@@ -1,0 +1,2772 @@
+{
+  "schema_version": "aaos-untracked-lineage-metadata/v1",
+  "generated_at_utc": "2026-09-25T09:08:06.6451650Z",
+  "scope": "Current checkout untracked non-profile files only; metadata and SHA-256; no file payload emitted. Paths matching browser profile/debug components are excluded and preserved.",
+  "checkout": "D:\\All projects\\ArcheAxis-Knowledge-OS",
+  "tracked_status_count": 71,
+  "untracked_count": 997,
+  "hashed_non_profile_count": 292,
+  "excluded_sensitive_path_count": 705,
+  "excluded_sensitive_prefixes": [
+    "docs/history/task-artifacts/web-chain-debug-headless-new/profile",
+    "docs/history/task-artifacts/web-chain-debug-relative/profile",
+    "docs/history/task-artifacts/web-chain-debug/profile",
+    "docs/history/task-artifacts/web-chain-debug/repro.png"
+  ],
+  "excluded_policy": "UNRESOLVED_POTENTIALLY_SENSITIVE / PRESERVE; no content, size, or hash read",
+  "classification": "All hashed paths remain UNRESOLVED_PRESERVE; hashes identify current bytes only and do not prove owner, origin, generator, consumer, sensitivity, or deletion eligibility.",
+  "aggregate_by_top_component": [
+    {
+      "top_component": "apps",
+      "files": 3,
+      "bytes": 32436.0
+    },
+    {
+      "top_component": "crates",
+      "files": 1,
+      "bytes": 6350.0
+    },
+    {
+      "top_component": "docs",
+      "files": 288,
+      "bytes": 466162897.0
+    }
+  ],
+  "aggregate_by_extension": [
+    {
+      "extension": "(none)",
+      "files": 2,
+      "bytes": 73.0
+    },
+    {
+      "extension": ".axaml",
+      "files": 1,
+      "bytes": 3371.0
+    },
+    {
+      "extension": ".cs",
+      "files": 1,
+      "bytes": 5307.0
+    },
+    {
+      "extension": ".docx",
+      "files": 5,
+      "bytes": 133579.0
+    },
+    {
+      "extension": ".exe",
+      "files": 4,
+      "bytes": 326882987.0
+    },
+    {
+      "extension": ".ico",
+      "files": 1,
+      "bytes": 23758.0
+    },
+    {
+      "extension": ".jpg",
+      "files": 1,
+      "bytes": 75910.0
+    },
+    {
+      "extension": ".json",
+      "files": 40,
+      "bytes": 761503.0
+    },
+    {
+      "extension": ".jsonl",
+      "files": 3,
+      "bytes": 274696.0
+    },
+    {
+      "extension": ".lock",
+      "files": 1,
+      "bytes": 0.0
+    },
+    {
+      "extension": ".lockdb",
+      "files": 1,
+      "bytes": 12288.0
+    },
+    {
+      "extension": ".log",
+      "files": 18,
+      "bytes": 135259.0
+    },
+    {
+      "extension": ".md",
+      "files": 83,
+      "bytes": 711314.0
+    },
+    {
+      "extension": ".patch",
+      "files": 9,
+      "bytes": 35731.0
+    },
+    {
+      "extension": ".pdf",
+      "files": 2,
+      "bytes": 21228004.0
+    },
+    {
+      "extension": ".png",
+      "files": 38,
+      "bytes": 3396602.0
+    },
+    {
+      "extension": ".py",
+      "files": 67,
+      "bytes": 796539.0
+    },
+    {
+      "extension": ".rs",
+      "files": 1,
+      "bytes": 6350.0
+    },
+    {
+      "extension": ".txt",
+      "files": 2,
+      "bytes": 41532.0
+    },
+    {
+      "extension": ".xlsx",
+      "files": 1,
+      "bytes": 44852.0
+    },
+    {
+      "extension": ".zip",
+      "files": 11,
+      "bytes": 111632028.0
+    }
+  ],
+  "files": [
+    {
+      "path": "apps/ArcheAxis.Desktop/Assets/aaos-app-icon.ico",
+      "disposition": "UNRESOLVED_PRESERVE",
+      "size_bytes": 23758,
+      "last_write_utc": "2026-09-24T16:47:41.3341203Z",
+      "sha256": "542FBB852F059044609792DC7C8C86644FFCF84CC5F102F7497D4F43604570F8",
+      "extension": ".ico",
+      "top_component": "apps"
+    },
+    {
+      "path": "apps/ArcheAxis.Desktop/Views/EvidenceCenterView.axaml",
+      "disposition": "UNRESOLVED_PRESERVE",
+      "size_bytes": 3371,
+      "last_write_utc": "2026-09-24T21:58:20.6020143Z",
+      "sha256": "D957161A9E9FDC2E0F1A41BED832ACCAD0FEF976A3DD39E8949280F8B18C47E1",
+      "extension": ".axaml",
+      "top_component": "apps"
+    },
+    {
+      "path": "apps/ArcheAxis.Desktop/Views/EvidenceCenterView.axaml.cs",
+      "disposition": "UNRESOLVED_PRESERVE",
+      "size_bytes": 5307,
+      "last_write_utc": "2026-09-24T21:58:17.5271139Z",
+      "sha256": "E570BD33E5F2F5895AD6921ABC687196698DCDABB07D657EDC718029C6C6DC32",
+      "extension": ".cs",
+      "top_component": "apps"
+    },
+    {
+      "path": "crates/archeaxis-api/tests/source_bound_knowledge_api.rs",
+      "disposition": "UNRESOLVED_PRESERVE",
+      "size_bytes": 6350,
+      "last_write_utc": "2026-09-24T19:05:03.2625838Z",
+      "sha256": "EA4BEEE3DEA871D39F5BB1E8BBB99294B44061F2E90FE89310FE9485CBAF31F3",
+      "extension": ".rs",
+      "top_component": "crates"
+    },
+    {
+      "path": "docs/current/AAOS-BRANCH-COMMIT-PATH-AUDIT-20260925.json",
+      "disposition": "UNRESOLVED_PRESERVE",
+      "size_bytes": 331654,
+      "last_write_utc": "2026-09-25T09:04:15.9048250Z",
+      "sha256": "C4231FE821C33BC60398CDD5C38DBA5F7821563CCC02E3C1D56BEF3BD42B1D81",
+      "extension": ".json",
+      "top_component": "docs"
+    },
+    {
+      "path": "docs/current/AAOS-BRANCH-DISPOSITION-REVIEW-20260925.json",
+      "disposition": "UNRESOLVED_PRESERVE",
+      "size_bytes": 18359,
+      "last_write_utc": "2026-09-25T09:06:48.6627060Z",
+      "sha256": "590CB3F6EED8FB8C8E1EA8E2D804627A1F26DF2803E19A1CD8286524D9A8DF10",
+      "extension": ".json",
+      "top_component": "docs"
+    },
+    {
+      "path": "docs/current/AAOS-LOCAL-REPOSITORY-LINEAGE-READBACK-20260925.md",
+      "disposition": "UNRESOLVED_PRESERVE",
+      "size_bytes": 18291,
+      "last_write_utc": "2026-09-25T09:07:04.6062774Z",
+      "sha256": "1A81ED9C354395CBA7FE551121C27EF4AE6B5DDF15A4573498125440BE759B58",
+      "extension": ".md",
+      "top_component": "docs"
+    },
+    {
+      "path": "docs/current/SESSION-RESTART-2026-09-12.md",
+      "disposition": "UNRESOLVED_PRESERVE",
+      "size_bytes": 8392,
+      "last_write_utc": "2026-09-12T16:00:40.2183166Z",
+      "sha256": "8BB47AB809043DC28F3E73C61EBF2C6967BDDBCACC92D7302C8213C8617D0465",
+      "extension": ".md",
+      "top_component": "docs"
+    },
+    {
+      "path": "docs/history/HERMES_CLEANUP_2026-09-13.md",
+      "disposition": "UNRESOLVED_PRESERVE",
+      "size_bytes": 4659,
+      "last_write_utc": "2026-09-13T05:31:04.3674016Z",
+      "sha256": "59FF93B2A9E405B20FF3AED2026D7A76F0E18CE54140D3C9A02EDFCFEA595A9B",
+      "extension": ".md",
+      "top_component": "docs"
+    },
+    {
+      "path": "docs/history/closure-tasks/01-migration-runner.md",
+      "disposition": "UNRESOLVED_PRESERVE",
+      "size_bytes": 3123,
+      "last_write_utc": "2026-07-16T14:27:43.1958443Z",
+      "sha256": "DAEB4A525168E82E46C567FE459C97FCB647783F1B8EF1DD2B229889F5EB714D",
+      "extension": ".md",
+      "top_component": "docs"
+    },
+    {
+      "path": "docs/history/closure-tasks/02-phase3-integration.md",
+      "disposition": "UNRESOLVED_PRESERVE",
+      "size_bytes": 3127,
+      "last_write_utc": "2026-07-16T14:27:44.2460471Z",
+      "sha256": "A168A3E139CC81B3D996D2AA01FB65C489E885FE16503BA6DA79A39278482BEC",
+      "extension": ".md",
+      "top_component": "docs"
+    },
+    {
+      "path": "docs/history/closure-tasks/03-phase4-research.md",
+      "disposition": "UNRESOLVED_PRESERVE",
+      "size_bytes": 3161,
+      "last_write_utc": "2026-07-16T14:27:45.9208858Z",
+      "sha256": "163DB555871E434DAA2C47EE12D70C806FFDB2666D2EAFC6FE558781F13BD7F3",
+      "extension": ".md",
+      "top_component": "docs"
+    },
+    {
+      "path": "docs/history/closure-tasks/04-phase5-knowledge-learning.md",
+      "disposition": "UNRESOLVED_PRESERVE",
+      "size_bytes": 3077,
+      "last_write_utc": "2026-07-16T14:27:46.8955596Z",
+      "sha256": "8C9BEFB086109C2B4FFE377E04A3C87E1DAF38FFADA0271FB4A15BDE4653C387",
+      "extension": ".md",
+      "top_component": "docs"
+    },
+    {
+      "path": "docs/history/closure-tasks/05-phase6-enhancement.md",
+      "disposition": "UNRESOLVED_PRESERVE",
+      "size_bytes": 3004,
+      "last_write_utc": "2026-07-16T14:27:48.0142573Z",
+      "sha256": "3ACAB19B8A18948F29DB18C6D450A1A5436941C1E10893376ED036AC2322A51A",
+      "extension": ".md",
+      "top_component": "docs"
+    },
+    {
+      "path": "docs/history/closure-tasks/06-phase7-dynamic-runtime.md",
+      "disposition": "UNRESOLVED_PRESERVE",
+      "size_bytes": 3158,
+      "last_write_utc": "2026-07-16T14:27:49.4971313Z",
+      "sha256": "EE09BAC951BECC5BF21ED4D2DDC8B34CDB9B9E0E3A455A3B3A462B3A4ADC449A",
+      "extension": ".md",
+      "top_component": "docs"
+    },
+    {
+      "path": "docs/history/closure-tasks/07-phase8-unified-sleep.md",
+      "disposition": "UNRESOLVED_PRESERVE",
+      "size_bytes": 2983,
+      "last_write_utc": "2026-07-16T14:27:50.5412581Z",
+      "sha256": "BAE83057CE0C32CCB5489CAA6653A759542655A4918608620550DEA0E18ABCA6",
+      "extension": ".md",
+      "top_component": "docs"
+    },
+    {
+      "path": "docs/history/closure-tasks/08-phase9-e2e-research-learning.md",
+      "disposition": "UNRESOLVED_PRESERVE",
+      "size_bytes": 2971,
+      "last_write_utc": "2026-07-16T14:27:51.7117362Z",
+      "sha256": "7F10A21090A180500A9CD908F21A77E010D1C345D931E34EC0C874EF8387977A",
+      "extension": ".md",
+      "top_component": "docs"
+    },
+    {
+      "path": "docs/history/closure-tasks/09-phase9-e2e-runtime-versioning.md",
+      "disposition": "UNRESOLVED_PRESERVE",
+      "size_bytes": 2976,
+      "last_write_utc": "2026-07-16T14:27:52.9411582Z",
+      "sha256": "397641FDD06680864689B6C838FC8A2214AEFA00DA3FBCD963FA14C06F5F560F",
+      "extension": ".md",
+      "top_component": "docs"
+    },
+    {
+      "path": "docs/history/closure-tasks/10-phase9-alpha-release.md",
+      "disposition": "UNRESOLVED_PRESERVE",
+      "size_bytes": 3369,
+      "last_write_utc": "2026-07-16T14:27:53.9998660Z",
+      "sha256": "05DD26897C0394642E02D4A6F8A6D9F8BF18E2D334A6813E6DDD494E9F20AC2E",
+      "extension": ".md",
+      "top_component": "docs"
+    },
+    {
+      "path": "docs/history/closure-tasks/run_queue.py",
+      "disposition": "UNRESOLVED_PRESERVE",
+      "size_bytes": 5417,
+      "last_write_utc": "2026-07-16T14:27:55.6755770Z",
+      "sha256": "9B45DE2DA38A1F4DA4EEABA8B77DB19BD908D71D18A98434712595D9C6DAAFF2",
+      "extension": ".py",
+      "top_component": "docs"
+    },
+    {
+      "path": "docs/history/closure-tasks/status.json",
+      "disposition": "UNRESOLVED_PRESERVE",
+      "size_bytes": 3922,
+      "last_write_utc": "2026-07-16T15:37:42.2889220Z",
+      "sha256": "F76C8A27D4DE0CB7B252DFD1BB86464863D9813A008277D406AE46FE92AAAF99",
+      "extension": ".json",
+      "top_component": "docs"
+    },
+    {
+      "path": "docs/history/desktop-attachments/AXOS_OpenSource_Absorption_Pack_2026-07-25.zip",
+      "disposition": "UNRESOLVED_PRESERVE",
+      "size_bytes": 56645,
+      "last_write_utc": "2026-07-25T16:02:38.1561194Z",
+      "sha256": "FC2E2F4290218CF15FACF00119E83E9E51286C7CBD7B45872F315F62F2F3DD8E",
+      "extension": ".zip",
+      "top_component": "docs"
+    },
+    {
+      "path": "docs/history/desktop-attachments/ArcheAxis OS Audit and Blueprint.docx",
+      "disposition": "UNRESOLVED_PRESERVE",
+      "size_bytes": 26298,
+      "last_write_utc": "2026-07-21T13:23:41.3058067Z",
+      "sha256": "4A6BEBDBA90462D64943245C3B99E97AC6710C3369A56E3838BAE7B962C8F89A",
+      "extension": ".docx",
+      "top_component": "docs"
+    },
+    {
+      "path": "docs/history/desktop-attachments/ArcheAxis OS Test Cases.docx",
+      "disposition": "UNRESOLVED_PRESERVE",
+      "size_bytes": 27687,
+      "last_write_utc": "2026-07-21T13:23:41.3133182Z",
+      "sha256": "6532E3054D7CF6AEBDE15145E4C4E571060DA525C4A7FC5C99B970A48C1BC753",
+      "extension": ".docx",
+      "top_component": "docs"
+    },
+    {
+      "path": "docs/history/desktop-attachments/ArcheAxis_Desktop_Cloud_Reaudit_Modification_Pack_v1.0.zip",
+      "disposition": "UNRESOLVED_PRESERVE",
+      "size_bytes": 26684247,
+      "last_write_utc": "2026-07-27T16:50:53.4933472Z",
+      "sha256": "6C60BDE6405A0D54E0516525CEECBAF3FB3F186CC548475FD15804F460433E76",
+      "extension": ".zip",
+      "top_component": "docs"
+    },
+    {
+      "path": "docs/history/desktop-attachments/ArcheAxis_Knowledge_Naming_Audit_TaskPack_v1_2026-08-12.zip",
+      "disposition": "UNRESOLVED_PRESERVE",
+      "size_bytes": 69004,
+      "last_write_utc": "2026-08-12T12:37:02.4763327Z",
+      "sha256": "5AC440CB485A6E72BE5E6079AAB6BAF418631447934607726D4AA57EFD203F91",
+      "extension": ".zip",
+      "top_component": "docs"
+    },
+    {
+      "path": "docs/history/desktop-attachments/ArcheAxis_Learning_Workspace_System_Blueprint_and_HERMES_Update_TaskPack_v1_2026-08-11.zip",
+      "disposition": "UNRESOLVED_PRESERVE",
+      "size_bytes": 17154,
+      "last_write_utc": "2026-08-11T17:25:04.5928017Z",
+      "sha256": "B90CD05BCB637637C8D984BEEF5B5CFE4DE710E62B039D23AD6A6B29F1DBC802",
+      "extension": ".zip",
+      "top_component": "docs"
+    },
+    {
+      "path": "docs/history/desktop-attachments/ArcheAxis_OS_CI_Acceleration_WORKLAB_Compatible_HERMES_TaskPack_2026-08-07.md",
+      "disposition": "UNRESOLVED_PRESERVE",
+      "size_bytes": 57327,
+      "last_write_utc": "2026-08-07T11:20:01.8683031Z",
+      "sha256": "EA2966D6153B2759BDCF4B80F95B764556F2B06DF77E8BCA86EA75C1A5D86BDB",
+      "extension": ".md",
+      "top_component": "docs"
+    },
+    {
+      "path": "docs/history/desktop-attachments/ArcheAxis_OS_Cloud_Full_Audit_Integrated_TaskPack_2026-08-07.md",
+      "disposition": "UNRESOLVED_PRESERVE",
+      "size_bytes": 48401,
+      "last_write_utc": "2026-08-07T12:37:33.7555883Z",
+      "sha256": "C51E8D5ACDF00CFB7B862AE29DBA069F19EB6B1057268EBA82EDB22CC6C6346C",
+      "extension": ".md",
+      "top_component": "docs"
+    },
+    {
+      "path": "docs/history/desktop-attachments/ArcheAxis_OS_Minimum_Surface_Master_TaskPack_2026-08-06.md",
+      "disposition": "UNRESOLVED_PRESERVE",
+      "size_bytes": 42608,
+      "last_write_utc": "2026-08-06T14:15:24.4205343Z",
+      "sha256": "28E6D1FDD1653959DA2D8408B0049B744DB94072E24C17BF035A7EAD7AE3A641",
+      "extension": ".md",
+      "top_component": "docs"
+    },
+    {
+      "path": "docs/history/desktop-attachments/ArcheAxis_OS_Only_Product_UI_Naming_Compatibility_Audit_2026-08-08.md",
+      "disposition": "UNRESOLVED_PRESERVE",
+      "size_bytes": 33758,
+      "last_write_utc": "2026-08-08T15:41:55.1833333Z",
+      "sha256": "6225A951517672261B022089EDE23E5AF7DB4620CCA4126DCF4FE4968313B97A",
+      "extension": ".md",
+      "top_component": "docs"
+    },
+    {
+      "path": "docs/history/desktop-attachments/ArcheAxis_Today_Conversation_Archive_HERMES_TaskPack_2026-07-28_v1.0.zip",
+      "disposition": "UNRESOLVED_PRESERVE",
+      "size_bytes": 78979668,
+      "last_write_utc": "2026-07-28T13:00:06.1593872Z",
+      "sha256": "65BD1B3359D4D2E7BA5EF9C43CD4F3156FDF4119CF5D357EBCD255991F9100F3",
+      "extension": ".zip",
+      "top_component": "docs"
+    },
+    {
+      "path": "docs/history/desktop-attachments/ArcheAxis_Workspace_Multiformat_Recognition_Web_Verification_Enhancement_TaskPack_v1_2026-08-11.md",
+      "disposition": "UNRESOLVED_PRESERVE",
+      "size_bytes": 62990,
+      "last_write_utc": "2026-08-11T13:49:45.0160540Z",
+      "sha256": "5331FDFA20ECF6DED5A8A770E0E6A4BFE3F4EB226D24E0C12082DB44D6419609",
+      "extension": ".md",
+      "top_component": "docs"
+    },
+    {
+      "path": "docs/history/desktop-attachments/ArcheAxis_Workspace_Project_History_and_OSS_Absorption_Master_Atlas_v1_2026-08-11.md",
+      "disposition": "UNRESOLVED_PRESERVE",
+      "size_bytes": 70568,
+      "last_write_utc": "2026-08-11T14:31:53.8735546Z",
+      "sha256": "EC7F2631025ACB089BA266B26080A740B7A86BEF3E86380819EB21406D49170C",
+      "extension": ".md",
+      "top_component": "docs"
+    },
+    {
+      "path": "docs/history/desktop-attachments/archeaxis-taskpack-0811/ArcheAxis_Learning_Workspace_System_Blueprint_and_HERMES_Update_TaskPack_v1_2026-08-11.md",
+      "disposition": "UNRESOLVED_PRESERVE",
+      "size_bytes": 38194,
+      "last_write_utc": "2026-08-11T17:21:09.0000000Z",
+      "sha256": "3D8424FACD0435A72E11D7A8D5020B77C96D60D052C26AE8C15F3028905428EA",
+      "extension": ".md",
+      "top_component": "docs"
+    },
+    {
+      "path": "docs/history/desktop-attachments/元枢知识系统测试案例包 V1.0.docx",
+      "disposition": "UNRESOLVED_PRESERVE",
+      "size_bytes": 25609,
+      "last_write_utc": "2026-07-21T13:23:41.3088454Z",
+      "sha256": "A5B8E36BC7A3BACA0B9B7C736C042DC2526B4BC9F5F110BC926B52C66C69423B",
+      "extension": ".docx",
+      "top_component": "docs"
+    },
+    {
+      "path": "docs/history/desktop-attachments/时间简史（插图本）.pdf",
+      "disposition": "UNRESOLVED_PRESERVE",
+      "size_bytes": 18967447,
+      "last_write_utc": "2026-08-11T12:47:50.8202526Z",
+      "sha256": "9D35E2A6A29D81D117B223298F94FD228003599E54462ADCC796FADA6AD284C5",
+      "extension": ".pdf",
+      "top_component": "docs"
+    },
+    {
+      "path": "docs/history/desktop-attachments/牛津通识读本：缤纷的语言学（中文版）.pdf",
+      "disposition": "UNRESOLVED_PRESERVE",
+      "size_bytes": 2260557,
+      "last_write_utc": "2026-08-11T12:47:50.8262534Z",
+      "sha256": "A1D6CC1DAD1E8B9C55A69655A1A581FF55AC72F7EAFBD5445F3A48B54C06C913",
+      "extension": ".pdf",
+      "top_component": "docs"
+    },
+    {
+      "path": "docs/history/evidence/2026-07-18_phase5-p01-knowledge-migration-status-symmetry.md",
+      "disposition": "UNRESOLVED_PRESERVE",
+      "size_bytes": 2866,
+      "last_write_utc": "2026-07-18T16:47:18.2613461Z",
+      "sha256": "8099682324F50D77B441510985951E570A8222EEA5ABB2C3EEC0070E6A736F68",
+      "extension": ".md",
+      "top_component": "docs"
+    },
+    {
+      "path": "docs/history/evidence/2026-07-18_phase5-p01-registry-live-schema-drift-regressions.md",
+      "disposition": "UNRESOLVED_PRESERVE",
+      "size_bytes": 3433,
+      "last_write_utc": "2026-07-18T17:02:22.1178395Z",
+      "sha256": "92122BD245C393F97E1498002AC80CB956B3EC8AAA337B1CB69FB585E2EBBE2D",
+      "extension": ".md",
+      "top_component": "docs"
+    },
+    {
+      "path": "docs/history/evidence/2026-07-18_phase5-p11-blocked-reconciliation-193949Z.md",
+      "disposition": "UNRESOLVED_PRESERVE",
+      "size_bytes": 2292,
+      "last_write_utc": "2026-07-18T19:40:31.8209610Z",
+      "sha256": "91B381830546DB719B9D1222741FE47C7AEC44B9A3C87570AD0E841E11BA90E5",
+      "extension": ".md",
+      "top_component": "docs"
+    },
+    {
+      "path": "docs/history/evidence/2026-07-18_phase5-p11-blocked-reconciliation-201426Z.md",
+      "disposition": "UNRESOLVED_PRESERVE",
+      "size_bytes": 2636,
+      "last_write_utc": "2026-07-18T20:14:52.1365641Z",
+      "sha256": "1452D9AAFAA11E1A752D84DCBB3784B71ED709886844C7B09AD8E82AA34AADCE",
+      "extension": ".md",
+      "top_component": "docs"
+    },
+    {
+      "path": "docs/history/evidence/2026-07-18_phase5-p11-blocked-reconciliation-204845Z.md",
+      "disposition": "UNRESOLVED_PRESERVE",
+      "size_bytes": 2607,
+      "last_write_utc": "2026-07-18T20:49:47.7110405Z",
+      "sha256": "D29DFBF92944805C6F3FDE1DC7830BA5E8346B9B8754C2605730AAF9C9BF1F7C",
+      "extension": ".md",
+      "top_component": "docs"
+    },
+    {
+      "path": "docs/history/evidence/2026-07-18_phase5-p11-blocked-reconciliation-212225Z.md",
+      "disposition": "UNRESOLVED_PRESERVE",
+      "size_bytes": 2841,
+      "last_write_utc": "2026-07-18T21:23:25.6921785Z",
+      "sha256": "4D4464744839B584E977E1855372276C3C111D413D50CEB314301146031FD000",
+      "extension": ".md",
+      "top_component": "docs"
+    },
+    {
+      "path": "docs/history/evidence/2026-07-18_phase5-p11-blocked-reconciliation-215721Z.md",
+      "disposition": "UNRESOLVED_PRESERVE",
+      "size_bytes": 3047,
+      "last_write_utc": "2026-07-18T21:58:26.3785352Z",
+      "sha256": "909CA3BD23D4454E4A5D1647BDB23B2711F313A35EB2DCC86DAD11ABE52CDBB6",
+      "extension": ".md",
+      "top_component": "docs"
+    },
+    {
+      "path": "docs/history/evidence/2026-07-18_phase5-p11-blocked-reconciliation-223058Z.md",
+      "disposition": "UNRESOLVED_PRESERVE",
+      "size_bytes": 2168,
+      "last_write_utc": "2026-07-18T22:32:03.4208099Z",
+      "sha256": "D3354DF471367C69BD619317688C2F960735A38295288D34447A5D9F2ACD1DBA",
+      "extension": ".md",
+      "top_component": "docs"
+    },
+    {
+      "path": "docs/history/evidence/2026-07-18_phase5-p11-blocked-reconciliation-230531Z.md",
+      "disposition": "UNRESOLVED_PRESERVE",
+      "size_bytes": 2329,
+      "last_write_utc": "2026-07-18T23:06:09.9774752Z",
+      "sha256": "4AACB07D1A7FE62587BBA1E188E6470AF3DE5BF668ADDF738757D90C7B99BDE3",
+      "extension": ".md",
+      "top_component": "docs"
+    },
+    {
+      "path": "docs/history/evidence/2026-07-18_phase5-p11-blocked-reconciliation-233855Z.md",
+      "disposition": "UNRESOLVED_PRESERVE",
+      "size_bytes": 2489,
+      "last_write_utc": "2026-07-18T23:39:30.4957396Z",
+      "sha256": "D720817852C9EDE6119A98C1428A53DE3A3D8EDE950B2E2B93E7971DD471152A",
+      "extension": ".md",
+      "top_component": "docs"
+    },
+    {
+      "path": "docs/history/evidence/2026-07-18_phase5-p11-blocked-resume-preflight.md",
+      "disposition": "UNRESOLVED_PRESERVE",
+      "size_bytes": 2364,
+      "last_write_utc": "2026-07-18T19:05:13.5594883Z",
+      "sha256": "6667C5CA66D8DE0D8CF3BC1E53090329158DEA532E8F0BFD7400F5D93839636A",
+      "extension": ".md",
+      "top_component": "docs"
+    },
+    {
+      "path": "docs/history/evidence/2026-07-18_phase5-p11-green-root-gate-blocked.md",
+      "disposition": "UNRESOLVED_PRESERVE",
+      "size_bytes": 3770,
+      "last_write_utc": "2026-07-18T18:30:24.3221016Z",
+      "sha256": "8DE0A4684A12F182F349B4B651A897A7F93ED20B17C9666E1BEAA42B38578171",
+      "extension": ".md",
+      "top_component": "docs"
+    },
+    {
+      "path": "docs/history/evidence/2026-07-18_phase5-p11-ownership-preflight-kanban-wrapper-blocked.md",
+      "disposition": "UNRESOLVED_PRESERVE",
+      "size_bytes": 2633,
+      "last_write_utc": "2026-07-18T17:49:09.3958869Z",
+      "sha256": "E8C4A5E06E3C050823B56A68807E3FB76AAFAF5E3E0903BDBAD74C5B6C63B856",
+      "extension": ".md",
+      "top_component": "docs"
+    },
+    {
+      "path": "docs/history/evidence/2026-07-18_phase5-p11-persisted-approval-materialization-red.md",
+      "disposition": "UNRESOLVED_PRESERVE",
+      "size_bytes": 2940,
+      "last_write_utc": "2026-07-18T17:13:59.4549677Z",
+      "sha256": "197881CF650E999401DC78FFA6EF442ED199A760620433562A4B80249894D57D",
+      "extension": ".md",
+      "top_component": "docs"
+    },
+    {
+      "path": "docs/history/evidence/2026-07-19_phase5-p11-blocked-reconciliation-001233Z.md",
+      "disposition": "UNRESOLVED_PRESERVE",
+      "size_bytes": 2580,
+      "last_write_utc": "2026-07-19T00:13:26.0843672Z",
+      "sha256": "693BB5E88936567AC689861AF6B6F7E7414296F9C9F84D8923B0255121F07A65",
+      "extension": ".md",
+      "top_component": "docs"
+    },
+    {
+      "path": "docs/history/evidence/2026-07-19_phase5-p11-blocked-reconciliation-004618Z.md",
+      "disposition": "UNRESOLVED_PRESERVE",
+      "size_bytes": 2669,
+      "last_write_utc": "2026-07-19T00:47:25.0162772Z",
+      "sha256": "A69AD6BF6507EBCB8E360ECCCFB6CC04B025B829DF997816F5809172A97D5159",
+      "extension": ".md",
+      "top_component": "docs"
+    },
+    {
+      "path": "docs/history/evidence/2026-07-19_phase5-p11-deprecation-facade-green.md",
+      "disposition": "UNRESOLVED_PRESERVE",
+      "size_bytes": 1668,
+      "last_write_utc": "2026-07-19T02:19:31.8926323Z",
+      "sha256": "AB490A4CC1A77756E8BA63687CF6033C1329C921A92022F4616D755B798C5C1D",
+      "extension": ".md",
+      "top_component": "docs"
+    },
+    {
+      "path": "docs/history/evidence/2026-07-19_phase5-p11-deprecation-facade-preflight.md",
+      "disposition": "UNRESOLVED_PRESERVE",
+      "size_bytes": 816,
+      "last_write_utc": "2026-07-19T02:14:45.4167227Z",
+      "sha256": "48582103CCE1E17B172038D481A2E7A1425EFCF47C8601ABC9193AFEE1B51F81",
+      "extension": ".md",
+      "top_component": "docs"
+    },
+    {
+      "path": "docs/history/evidence/2026-07-19_phase5-p11-governance-readback-expansion.md",
+      "disposition": "UNRESOLVED_PRESERVE",
+      "size_bytes": 1181,
+      "last_write_utc": "2026-07-19T02:24:32.7777533Z",
+      "sha256": "171ED1618CA640AEE7C6DEB90D4A0C91E404B3C2A5A7C83B77D31D5F7713BBA8",
+      "extension": ".md",
+      "top_component": "docs"
+    },
+    {
+      "path": "docs/history/evidence/2026-07-19_phase5-p11-ownership-preflight-wrapper-blocked-011149Z.md",
+      "disposition": "UNRESOLVED_PRESERVE",
+      "size_bytes": 2300,
+      "last_write_utc": "2026-07-19T01:12:14.8193519Z",
+      "sha256": "7580A56659C1D8533D60FAD3E54E41CABABC0E1D2764E3FF7923D2FF819B8703",
+      "extension": ".md",
+      "top_component": "docs"
+    },
+    {
+      "path": "docs/history/evidence/2026-07-19_phase5-p11-rejection-facade-green.md",
+      "disposition": "UNRESOLVED_PRESERVE",
+      "size_bytes": 1729,
+      "last_write_utc": "2026-07-19T02:11:13.3031859Z",
+      "sha256": "6EA64A27A9016F2D934E87FDEF312CD8C3698CBA982944EF6BB7C7FC3B0C7789",
+      "extension": ".md",
+      "top_component": "docs"
+    },
+    {
+      "path": "docs/history/evidence/2026-07-19_phase5-p11-rejection-facade-preflight.md",
+      "disposition": "UNRESOLVED_PRESERVE",
+      "size_bytes": 1081,
+      "last_write_utc": "2026-07-19T02:06:40.9889503Z",
+      "sha256": "906FF490C65D842301B5A3AE3F9A31E863ADD5D6418C89028E526DBA13CC9C13",
+      "extension": ".md",
+      "top_component": "docs"
+    },
+    {
+      "path": "docs/history/evidence/2026-07-19_phase5-p11-replay-provenance-green.md",
+      "disposition": "UNRESOLVED_PRESERVE",
+      "size_bytes": 2197,
+      "last_write_utc": "2026-07-19T01:32:04.6535108Z",
+      "sha256": "913E0A5956EC1DEF9CFF259EBC3D8F22B3D24FA5ED7585BD3256AD8BE7197C4E",
+      "extension": ".md",
+      "top_component": "docs"
+    },
+    {
+      "path": "docs/history/evidence/2026-07-19_phase5-p11-replay-provenance-preflight.md",
+      "disposition": "UNRESOLVED_PRESERVE",
+      "size_bytes": 1178,
+      "last_write_utc": "2026-07-19T01:26:57.8016098Z",
+      "sha256": "6140110BA1F06CF2A9F7B6EF64A495A1B1D1DE7F33277E393B6DAB739205D877",
+      "extension": ".md",
+      "top_component": "docs"
+    },
+    {
+      "path": "docs/history/evidence/2026-07-19_phase5-p11-root-green-blocked-reconciliation-011735Z.md",
+      "disposition": "UNRESOLVED_PRESERVE",
+      "size_bytes": 2172,
+      "last_write_utc": "2026-07-19T01:18:09.3875620Z",
+      "sha256": "133A89459FB991D494933F989B6C62A207B58C46E245992F606AF43CF4A752C4",
+      "extension": ".md",
+      "top_component": "docs"
+    },
+    {
+      "path": "docs/history/evidence/2026-07-19_phase5-p11-runtime-owner-preflight.md",
+      "disposition": "UNRESOLVED_PRESERVE",
+      "size_bytes": 1974,
+      "last_write_utc": "2026-07-19T00:56:47.0635118Z",
+      "sha256": "626BA1C22DD61E5B583422E2E1ECD1085F783A012EB6C6FA8BCCB30E75EFC53B",
+      "extension": ".md",
+      "top_component": "docs"
+    },
+    {
+      "path": "docs/history/evidence/2026-07-19_phase5-p11-runtime-owner-root-green.md",
+      "disposition": "UNRESOLVED_PRESERVE",
+      "size_bytes": 2648,
+      "last_write_utc": "2026-07-19T00:59:25.9114351Z",
+      "sha256": "1B6C5F696F51FA42C7BD3DE2FAD168A881A7E0D17DE48E9541F795E45C386F0E",
+      "extension": ".md",
+      "top_component": "docs"
+    },
+    {
+      "path": "docs/history/evidence/deepseek-p01-preflight-review.md",
+      "disposition": "UNRESOLVED_PRESERVE",
+      "size_bytes": 11751,
+      "last_write_utc": "2026-07-18T16:44:07.3334389Z",
+      "sha256": "5AA020DF874E170BB99C2FEB1249D543C111BBEA93445449F3A9E91BF491B474",
+      "extension": ".md",
+      "top_component": "docs"
+    },
+    {
+      "path": "docs/history/evidence/deepseek-p01-registry-live-schema-drift-review.md",
+      "disposition": "UNRESOLVED_PRESERVE",
+      "size_bytes": 12460,
+      "last_write_utc": "2026-07-18T17:06:58.7535051Z",
+      "sha256": "6A528AB66C827F89AC00B651E7D8C6A1427776286A2CA699765328ED436EA3F0",
+      "extension": ".md",
+      "top_component": "docs"
+    },
+    {
+      "path": "docs/history/evidence/deepseek-p01-snapshot-review.md",
+      "disposition": "UNRESOLVED_PRESERVE",
+      "size_bytes": 15935,
+      "last_write_utc": "2026-07-18T16:52:20.8851445Z",
+      "sha256": "C7373BB55176F18C74D2319DEE656D3A4FE269B031054FA247D6F48D1879C1F0",
+      "extension": ".md",
+      "top_component": "docs"
+    },
+    {
+      "path": "docs/history/evidence/deepseek-p11-root-green-review.md",
+      "disposition": "UNRESOLVED_PRESERVE",
+      "size_bytes": 18336,
+      "last_write_utc": "2026-07-19T01:09:39.8062630Z",
+      "sha256": "3654FF10B54CDB35F7D1B4598F6084D42A5BE4D1D9E4FDA5BC8632FEC2D34394",
+      "extension": ".md",
+      "top_component": "docs"
+    },
+    {
+      "path": "docs/history/evidence/p01-gpt-self-review-snapshot/MANIFEST.json",
+      "disposition": "UNRESOLVED_PRESERVE",
+      "size_bytes": 1174,
+      "last_write_utc": "2026-07-19T02:25:56.4364757Z",
+      "sha256": "972D89A2059557695596437F26B9D77AE5809B03085F0AE79312A0D1158809D1",
+      "extension": ".json",
+      "top_component": "docs"
+    },
+    {
+      "path": "docs/history/evidence/p01-migration-status-symmetry-snapshot/MANIFEST.json",
+      "disposition": "UNRESOLVED_PRESERVE",
+      "size_bytes": 999,
+      "last_write_utc": "2026-07-18T16:50:09.7457712Z",
+      "sha256": "E1CEC44B681A69EABD3EE0E8377F683F9C038A6DED8F5FB391777B6F8F550F8C",
+      "extension": ".json",
+      "top_component": "docs"
+    },
+    {
+      "path": "docs/history/evidence/p01-migration-status-symmetry-snapshot/app/adapters/research_knowledge.py",
+      "disposition": "UNRESOLVED_PRESERVE",
+      "size_bytes": 9743,
+      "last_write_utc": "2026-07-18T14:57:50.5755476Z",
+      "sha256": "F1CDC14382AEF541EA13A4A1A52300536D09882670E15CB78EB4F3B0808C366D",
+      "extension": ".py",
+      "top_component": "docs"
+    },
+    {
+      "path": "docs/history/evidence/p01-migration-status-symmetry-snapshot/shared/knowledge_migration.py",
+      "disposition": "UNRESOLVED_PRESERVE",
+      "size_bytes": 10000,
+      "last_write_utc": "2026-07-18T15:02:12.2332279Z",
+      "sha256": "641B1A152E222E8B8370F149773BECF151A5323B2EEAAB72601E6BAE360CD172",
+      "extension": ".py",
+      "top_component": "docs"
+    },
+    {
+      "path": "docs/history/evidence/p01-migration-status-symmetry-snapshot/shared/migration.py",
+      "disposition": "UNRESOLVED_PRESERVE",
+      "size_bytes": 20651,
+      "last_write_utc": "2026-07-18T15:02:29.3735493Z",
+      "sha256": "6E00D4722E087E275AC35B27BE81A499EA79BBE1FE8BC349A9B9B7812E2F7999",
+      "extension": ".py",
+      "top_component": "docs"
+    },
+    {
+      "path": "docs/history/evidence/p01-migration-status-symmetry-snapshot/shared/migration_runner.py",
+      "disposition": "UNRESOLVED_PRESERVE",
+      "size_bytes": 50119,
+      "last_write_utc": "2026-07-18T16:45:38.1584469Z",
+      "sha256": "92494B283B7A77A7CC9009DA719F805602BEC06FD90B9EF7CDF37072F7873B72",
+      "extension": ".py",
+      "top_component": "docs"
+    },
+    {
+      "path": "docs/history/evidence/p01-migration-status-symmetry-snapshot/tests/test_knowledge_governance_migration.py",
+      "disposition": "UNRESOLVED_PRESERVE",
+      "size_bytes": 2057,
+      "last_write_utc": "2026-07-18T16:46:00.9235584Z",
+      "sha256": "3DF96FA31F79B99531E5B58F73F77D3422DDBD467995F958EF83E0E447DAA7CF",
+      "extension": ".py",
+      "top_component": "docs"
+    },
+    {
+      "path": "docs/history/evidence/p01-migration-status-symmetry-snapshot/tests/test_research_knowledge_candidate_contract.py",
+      "disposition": "UNRESOLVED_PRESERVE",
+      "size_bytes": 4203,
+      "last_write_utc": "2026-07-18T14:56:32.5013927Z",
+      "sha256": "4C1FD3618CB3EF6F4D3DD1D1217D0C3B1B4C813AF5C018DA8EA4FC2EA38690D4",
+      "extension": ".py",
+      "top_component": "docs"
+    },
+    {
+      "path": "docs/history/evidence/p01-registry-live-schema-drift-snapshot/MANIFEST.json",
+      "disposition": "UNRESOLVED_PRESERVE",
+      "size_bytes": 1502,
+      "last_write_utc": "2026-07-18T17:01:06.8003612Z",
+      "sha256": "4C84465DE467640F8881E3143BD1F8812BF1E39136D789AC628B59485540E6BA",
+      "extension": ".json",
+      "top_component": "docs"
+    },
+    {
+      "path": "docs/history/evidence/p01-registry-live-schema-drift-snapshot/app/adapters/research_knowledge.py",
+      "disposition": "UNRESOLVED_PRESERVE",
+      "size_bytes": 9743,
+      "last_write_utc": "2026-07-18T17:01:06.7952387Z",
+      "sha256": "F1CDC14382AEF541EA13A4A1A52300536D09882670E15CB78EB4F3B0808C366D",
+      "extension": ".py",
+      "top_component": "docs"
+    },
+    {
+      "path": "docs/history/evidence/p01-registry-live-schema-drift-snapshot/shared/knowledge_migration.py",
+      "disposition": "UNRESOLVED_PRESERVE",
+      "size_bytes": 10000,
+      "last_write_utc": "2026-07-18T17:01:06.7962408Z",
+      "sha256": "641B1A152E222E8B8370F149773BECF151A5323B2EEAAB72601E6BAE360CD172",
+      "extension": ".py",
+      "top_component": "docs"
+    },
+    {
+      "path": "docs/history/evidence/p01-registry-live-schema-drift-snapshot/shared/migration.py",
+      "disposition": "UNRESOLVED_PRESERVE",
+      "size_bytes": 20651,
+      "last_write_utc": "2026-07-18T17:01:06.7932072Z",
+      "sha256": "6E00D4722E087E275AC35B27BE81A499EA79BBE1FE8BC349A9B9B7812E2F7999",
+      "extension": ".py",
+      "top_component": "docs"
+    },
+    {
+      "path": "docs/history/evidence/p01-registry-live-schema-drift-snapshot/shared/migration_runner.py",
+      "disposition": "UNRESOLVED_PRESERVE",
+      "size_bytes": 50119,
+      "last_write_utc": "2026-07-18T17:01:06.7942389Z",
+      "sha256": "92494B283B7A77A7CC9009DA719F805602BEC06FD90B9EF7CDF37072F7873B72",
+      "extension": ".py",
+      "top_component": "docs"
+    },
+    {
+      "path": "docs/history/evidence/p01-registry-live-schema-drift-snapshot/tests/test_knowledge_governance_migration.py",
+      "disposition": "UNRESOLVED_PRESERVE",
+      "size_bytes": 2931,
+      "last_write_utc": "2026-07-18T17:01:06.7982104Z",
+      "sha256": "61019E125BDAE3199BC92E512279CBDED679A69EBFF3B3B24D1D576654BF3F38",
+      "extension": ".py",
+      "top_component": "docs"
+    },
+    {
+      "path": "docs/history/evidence/p01-registry-live-schema-drift-snapshot/tests/test_migration_runner.py",
+      "disposition": "UNRESOLVED_PRESERVE",
+      "size_bytes": 58629,
+      "last_write_utc": "2026-07-18T17:01:06.7972396Z",
+      "sha256": "8E711F95072FFC2DC15EC68A217DC9ECF4AAFFFE7A7890652145FD5626725CFE",
+      "extension": ".py",
+      "top_component": "docs"
+    },
+    {
+      "path": "docs/history/evidence/p01-registry-live-schema-drift-snapshot/tests/test_research_knowledge_candidate_contract.py",
+      "disposition": "UNRESOLVED_PRESERVE",
+      "size_bytes": 4203,
+      "last_write_utc": "2026-07-18T17:01:06.8003612Z",
+      "sha256": "4C1FD3618CB3EF6F4D3DD1D1217D0C3B1B4C813AF5C018DA8EA4FC2EA38690D4",
+      "extension": ".py",
+      "top_component": "docs"
+    },
+    {
+      "path": "docs/history/evidence/p11-persisted-approval-materialization-green-snapshot/MANIFEST.json",
+      "disposition": "UNRESOLVED_PRESERVE",
+      "size_bytes": 1848,
+      "last_write_utc": "2026-07-18T18:28:37.6362880Z",
+      "sha256": "93BAB27BB35B47B0964918B5D2268FD41333488B0F0E2F013EE8276131393EE4",
+      "extension": ".json",
+      "top_component": "docs"
+    },
+    {
+      "path": "docs/history/evidence/p11-persisted-approval-materialization-green-snapshot/app/adapters/research_knowledge.py",
+      "disposition": "UNRESOLVED_PRESERVE",
+      "size_bytes": 9743,
+      "last_write_utc": "2026-07-18T14:57:50.5755476Z",
+      "sha256": "F1CDC14382AEF541EA13A4A1A52300536D09882670E15CB78EB4F3B0808C366D",
+      "extension": ".py",
+      "top_component": "docs"
+    },
+    {
+      "path": "docs/history/evidence/p11-persisted-approval-materialization-green-snapshot/app/facades/knowledge.py",
+      "disposition": "UNRESOLVED_PRESERVE",
+      "size_bytes": 8807,
+      "last_write_utc": "2026-07-18T18:27:23.1372492Z",
+      "sha256": "CF1FB344EB29225938AA7EB012B185A87A2A5207ACA60F8EB8A8A9400DEABFEA",
+      "extension": ".py",
+      "top_component": "docs"
+    },
+    {
+      "path": "docs/history/evidence/p11-persisted-approval-materialization-green-snapshot/shared/knowledge_migration.py",
+      "disposition": "UNRESOLVED_PRESERVE",
+      "size_bytes": 10000,
+      "last_write_utc": "2026-07-18T15:02:12.2332279Z",
+      "sha256": "641B1A152E222E8B8370F149773BECF151A5323B2EEAAB72601E6BAE360CD172",
+      "extension": ".py",
+      "top_component": "docs"
+    },
+    {
+      "path": "docs/history/evidence/p11-persisted-approval-materialization-green-snapshot/shared/migration.py",
+      "disposition": "UNRESOLVED_PRESERVE",
+      "size_bytes": 20651,
+      "last_write_utc": "2026-07-18T15:02:29.3735493Z",
+      "sha256": "6E00D4722E087E275AC35B27BE81A499EA79BBE1FE8BC349A9B9B7812E2F7999",
+      "extension": ".py",
+      "top_component": "docs"
+    },
+    {
+      "path": "docs/history/evidence/p11-persisted-approval-materialization-green-snapshot/shared/migration_runner.py",
+      "disposition": "UNRESOLVED_PRESERVE",
+      "size_bytes": 50119,
+      "last_write_utc": "2026-07-18T16:45:38.1584469Z",
+      "sha256": "92494B283B7A77A7CC9009DA719F805602BEC06FD90B9EF7CDF37072F7873B72",
+      "extension": ".py",
+      "top_component": "docs"
+    },
+    {
+      "path": "docs/history/evidence/p11-persisted-approval-materialization-green-snapshot/tests/test_knowledge_governance_migration.py",
+      "disposition": "UNRESOLVED_PRESERVE",
+      "size_bytes": 2931,
+      "last_write_utc": "2026-07-18T17:00:02.2174960Z",
+      "sha256": "61019E125BDAE3199BC92E512279CBDED679A69EBFF3B3B24D1D576654BF3F38",
+      "extension": ".py",
+      "top_component": "docs"
+    },
+    {
+      "path": "docs/history/evidence/p11-persisted-approval-materialization-green-snapshot/tests/test_migration_runner.py",
+      "disposition": "UNRESOLVED_PRESERVE",
+      "size_bytes": 58629,
+      "last_write_utc": "2026-07-18T17:00:02.2174960Z",
+      "sha256": "8E711F95072FFC2DC15EC68A217DC9ECF4AAFFFE7A7890652145FD5626725CFE",
+      "extension": ".py",
+      "top_component": "docs"
+    },
+    {
+      "path": "docs/history/evidence/p11-persisted-approval-materialization-green-snapshot/tests/test_phase4_research_github.py",
+      "disposition": "UNRESOLVED_PRESERVE",
+      "size_bytes": 65136,
+      "last_write_utc": "2026-07-18T17:12:52.1276378Z",
+      "sha256": "3A6B03354351814A5B561486AB86613DE17A43AB782E9E0A31CE6375A50F4C8E",
+      "extension": ".py",
+      "top_component": "docs"
+    },
+    {
+      "path": "docs/history/evidence/p11-persisted-approval-materialization-green-snapshot/tests/test_research_knowledge_candidate_contract.py",
+      "disposition": "UNRESOLVED_PRESERVE",
+      "size_bytes": 4203,
+      "last_write_utc": "2026-07-18T14:56:32.5013927Z",
+      "sha256": "4C1FD3618CB3EF6F4D3DD1D1217D0C3B1B4C813AF5C018DA8EA4FC2EA38690D4",
+      "extension": ".py",
+      "top_component": "docs"
+    },
+    {
+      "path": "docs/history/evidence/p11-runtime-owner-root-green-snapshot/MANIFEST.json",
+      "disposition": "UNRESOLVED_PRESERVE",
+      "size_bytes": 1741,
+      "last_write_utc": "2026-07-19T00:58:47.8615441Z",
+      "sha256": "E6425771D2FABFC59EEC90AEA747B7238F68F23BBE1E3B848C8CAA02DE20B40A",
+      "extension": ".json",
+      "top_component": "docs"
+    },
+    {
+      "path": "docs/history/evidence/p11-runtime-owner-root-green-snapshot/app/adapters/research_knowledge.py",
+      "disposition": "UNRESOLVED_PRESERVE",
+      "size_bytes": 9743,
+      "last_write_utc": "2026-07-18T14:57:50.5755476Z",
+      "sha256": "F1CDC14382AEF541EA13A4A1A52300536D09882670E15CB78EB4F3B0808C366D",
+      "extension": ".py",
+      "top_component": "docs"
+    },
+    {
+      "path": "docs/history/evidence/p11-runtime-owner-root-green-snapshot/app/facades/knowledge.py",
+      "disposition": "UNRESOLVED_PRESERVE",
+      "size_bytes": 8807,
+      "last_write_utc": "2026-07-18T18:27:23.1372492Z",
+      "sha256": "CF1FB344EB29225938AA7EB012B185A87A2A5207ACA60F8EB8A8A9400DEABFEA",
+      "extension": ".py",
+      "top_component": "docs"
+    },
+    {
+      "path": "docs/history/evidence/p11-runtime-owner-root-green-snapshot/shared/knowledge_migration.py",
+      "disposition": "UNRESOLVED_PRESERVE",
+      "size_bytes": 10000,
+      "last_write_utc": "2026-07-18T15:02:12.2332279Z",
+      "sha256": "641B1A152E222E8B8370F149773BECF151A5323B2EEAAB72601E6BAE360CD172",
+      "extension": ".py",
+      "top_component": "docs"
+    },
+    {
+      "path": "docs/history/evidence/p11-runtime-owner-root-green-snapshot/shared/migration.py",
+      "disposition": "UNRESOLVED_PRESERVE",
+      "size_bytes": 20651,
+      "last_write_utc": "2026-07-18T15:02:29.3735493Z",
+      "sha256": "6E00D4722E087E275AC35B27BE81A499EA79BBE1FE8BC349A9B9B7812E2F7999",
+      "extension": ".py",
+      "top_component": "docs"
+    },
+    {
+      "path": "docs/history/evidence/p11-runtime-owner-root-green-snapshot/shared/migration_runner.py",
+      "disposition": "UNRESOLVED_PRESERVE",
+      "size_bytes": 50119,
+      "last_write_utc": "2026-07-18T16:45:38.1584469Z",
+      "sha256": "92494B283B7A77A7CC9009DA719F805602BEC06FD90B9EF7CDF37072F7873B72",
+      "extension": ".py",
+      "top_component": "docs"
+    },
+    {
+      "path": "docs/history/evidence/p11-runtime-owner-root-green-snapshot/tests/test_knowledge_governance_migration.py",
+      "disposition": "UNRESOLVED_PRESERVE",
+      "size_bytes": 2931,
+      "last_write_utc": "2026-07-18T17:00:02.2174960Z",
+      "sha256": "61019E125BDAE3199BC92E512279CBDED679A69EBFF3B3B24D1D576654BF3F38",
+      "extension": ".py",
+      "top_component": "docs"
+    },
+    {
+      "path": "docs/history/evidence/p11-runtime-owner-root-green-snapshot/tests/test_migration_runner.py",
+      "disposition": "UNRESOLVED_PRESERVE",
+      "size_bytes": 58629,
+      "last_write_utc": "2026-07-18T17:00:02.2174960Z",
+      "sha256": "8E711F95072FFC2DC15EC68A217DC9ECF4AAFFFE7A7890652145FD5626725CFE",
+      "extension": ".py",
+      "top_component": "docs"
+    },
+    {
+      "path": "docs/history/evidence/p11-runtime-owner-root-green-snapshot/tests/test_phase4_research_github.py",
+      "disposition": "UNRESOLVED_PRESERVE",
+      "size_bytes": 65136,
+      "last_write_utc": "2026-07-18T17:12:52.1276378Z",
+      "sha256": "3A6B03354351814A5B561486AB86613DE17A43AB782E9E0A31CE6375A50F4C8E",
+      "extension": ".py",
+      "top_component": "docs"
+    },
+    {
+      "path": "docs/history/evidence/p11-runtime-owner-root-green-snapshot/tests/test_research_knowledge_candidate_contract.py",
+      "disposition": "UNRESOLVED_PRESERVE",
+      "size_bytes": 4203,
+      "last_write_utc": "2026-07-18T14:56:32.5013927Z",
+      "sha256": "4C1FD3618CB3EF6F4D3DD1D1217D0C3B1B4C813AF5C018DA8EA4FC2EA38690D4",
+      "extension": ".py",
+      "top_component": "docs"
+    },
+    {
+      "path": "docs/history/evidence/p11-runtime-owner-root-green-snapshot/tests/test_runtime_operations.py",
+      "disposition": "UNRESOLVED_PRESERVE",
+      "size_bytes": 19039,
+      "last_write_utc": "2026-07-19T00:57:32.5146542Z",
+      "sha256": "480ADAA75DAF3F9E2E142E4EF9A005DA01D9043AC697298E08FFA7246D3E5693",
+      "extension": ".py",
+      "top_component": "docs"
+    },
+    {
+      "path": "docs/history/handoffs/2026-07-18_phase5-p01_writer-handoff.md",
+      "disposition": "UNRESOLVED_PRESERVE",
+      "size_bytes": 1926,
+      "last_write_utc": "2026-07-18T16:41:25.7063493Z",
+      "sha256": "CCC9AE40AFF0511F0E88664D5F9AFC0F989F93580BC5DB1CF74110D00A099DD0",
+      "extension": ".md",
+      "top_component": "docs"
+    },
+    {
+      "path": "docs/history/handoffs/FAST_RESET_HANDOFF_2026-07-18.md",
+      "disposition": "UNRESOLVED_PRESERVE",
+      "size_bytes": 4857,
+      "last_write_utc": "2026-07-18T13:43:20.8009512Z",
+      "sha256": "49779EF7E056040755D5699972E7FEA048324D5112E8810373503853BD5C1A0F",
+      "extension": ".md",
+      "top_component": "docs"
+    },
+    {
+      "path": "docs/history/kanban/boards/cognitive-loop-os/board.json",
+      "disposition": "UNRESOLVED_PRESERVE",
+      "size_bytes": 332,
+      "last_write_utc": "2026-07-18T15:16:29.4750533Z",
+      "sha256": "676E305B05FA74CDA0F2F8866D39BA79B1501D54487A0BBBD401347925EE5C7E",
+      "extension": ".json",
+      "top_component": "docs"
+    },
+    {
+      "path": "docs/history/kanban/boards/cognitive-loop-os/kanban.db.init.lock",
+      "disposition": "UNRESOLVED_PRESERVE",
+      "size_bytes": 0,
+      "last_write_utc": "2026-07-18T15:50:51.3131911Z",
+      "sha256": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855",
+      "extension": ".lock",
+      "top_component": "docs"
+    },
+    {
+      "path": "docs/history/kanban/current",
+      "disposition": "UNRESOLVED_PRESERVE",
+      "size_bytes": 19,
+      "last_write_utc": "2026-07-18T15:50:49.0208629Z",
+      "sha256": "92C5D60681B56AFF412D98A44EC769CFB4F0DA4CB6471713DBCE70E2861F2C79",
+      "extension": "",
+      "top_component": "docs"
+    },
+    {
+      "path": "docs/history/migrated-windows-state/migration-manifest-2026-07-22.json",
+      "disposition": "UNRESOLVED_PRESERVE",
+      "size_bytes": 46299,
+      "last_write_utc": "2026-07-22T16:32:16.4311971Z",
+      "sha256": "979285DA7F4E1D92E437A9F08A9C778B052EBC55F9CFAAF9DC8A9B24D653EB83",
+      "extension": ".json",
+      "top_component": "docs"
+    },
+    {
+      "path": "docs/history/migrated-windows-state/release-v0.4.0/desktop-attachments/ArcheAxis_2026-07-31_完整对话整理与决策归档.md",
+      "disposition": "UNRESOLVED_PRESERVE",
+      "size_bytes": 8744,
+      "last_write_utc": "2026-08-01T15:41:57.9129456Z",
+      "sha256": "6E863E2F893A669B0893186F29CA95F8AF22529F7E27C817B7E291462CA6A28A",
+      "extension": ".md",
+      "top_component": "docs"
+    },
+    {
+      "path": "docs/history/migrated-windows-state/release-v0.4.0/desktop-attachments/ArcheAxis_HERMES_Full_TaskPack_2026-08-01_v1.0-2.zip",
+      "disposition": "UNRESOLVED_PRESERVE",
+      "size_bytes": 2814644,
+      "last_write_utc": "2026-08-01T15:42:15.2660599Z",
+      "sha256": "DE17B2569E4BEA1BEAB58F48FB7B401DD3D1D6B053FEEE213FA4B2DF5DC442CB",
+      "extension": ".zip",
+      "top_component": "docs"
+    },
+    {
+      "path": "docs/history/migrated-windows-state/release-v0.4.0/desktop-attachments/ArcheAxis_HERMES_Full_TaskPack_2026-08-01_v1.0.zip",
+      "disposition": "UNRESOLVED_PRESERVE",
+      "size_bytes": 2814644,
+      "last_write_utc": "2026-07-31T16:12:50.2155419Z",
+      "sha256": "DE17B2569E4BEA1BEAB58F48FB7B401DD3D1D6B053FEEE213FA4B2DF5DC442CB",
+      "extension": ".zip",
+      "top_component": "docs"
+    },
+    {
+      "path": "docs/history/migrated-windows-state/release-v0.4.0/desktop-attachments/ArcheAxis_Open_Source_Research_Master_2026-07-30_v1.0.zip",
+      "disposition": "UNRESOLVED_PRESERVE",
+      "size_bytes": 19351,
+      "last_write_utc": "2026-08-01T15:42:39.9337859Z",
+      "sha256": "8D426A2A2DC3A289A46F2DD5D201F854C9B5FB8A5592A5C52EAA5C416DA7D132",
+      "extension": ".zip",
+      "top_component": "docs"
+    },
+    {
+      "path": "docs/history/migrated-windows-state/release-v0.4.0/manifest.json",
+      "disposition": "UNRESOLVED_PRESERVE",
+      "size_bytes": 2166,
+      "last_write_utc": "2026-08-05T11:31:57.8503309Z",
+      "sha256": "2C9970385F0FCD38D20EE2CC1A26EFBD24CBEF381F98368D20DE9DE9121E8996",
+      "extension": ".json",
+      "top_component": "docs"
+    },
+    {
+      "path": "docs/history/migrated-windows-state/release-v0.4.0/sleep-mode/README.md",
+      "disposition": "UNRESOLVED_PRESERVE",
+      "size_bytes": 112,
+      "last_write_utc": "2026-07-30T16:29:39.3889981Z",
+      "sha256": "4D2BCB34052D500E49D33330E8AFAE4FC787EE0690DAA51B8D6862C4BF8DB79D",
+      "extension": ".md",
+      "top_component": "docs"
+    },
+    {
+      "path": "docs/history/migrated-windows-state/release-v0.4.0/sleep-mode/activity.jsonl",
+      "disposition": "UNRESOLVED_PRESERVE",
+      "size_bytes": 61128,
+      "last_write_utc": "2026-07-31T23:48:26.2995156Z",
+      "sha256": "80CC922B9ECEE63820ABC2C5C71179F2F577D9E65E79D4A642CC513278E6FC89",
+      "extension": ".jsonl",
+      "top_component": "docs"
+    },
+    {
+      "path": "docs/history/migrated-windows-state/release-v0.4.0/sleep-mode/state.json",
+      "disposition": "UNRESOLVED_PRESERVE",
+      "size_bytes": 1869,
+      "last_write_utc": "2026-07-31T23:48:26.2984651Z",
+      "sha256": "172A002891484A2DCAA9D8339770E93234D54E442C29C20695A7BCDCC8DA4859",
+      "extension": ".json",
+      "top_component": "docs"
+    },
+    {
+      "path": "docs/history/migrated-windows-state/release-v0.4.0/task-artifacts/decision-archive-audit-2026-08-01.md",
+      "disposition": "UNRESOLVED_PRESERVE",
+      "size_bytes": 7006,
+      "last_write_utc": "2026-08-01T15:56:32.6120026Z",
+      "sha256": "C605CEC6F414A6EEF76F3742041C692350E33BFB642E5B99904900DFA7FABFFC",
+      "extension": ".md",
+      "top_component": "docs"
+    },
+    {
+      "path": "docs/history/migrated-windows-state/release-v0.4.0/task-artifacts/external-recovery-2026-08-02/HANDOFF.md",
+      "disposition": "UNRESOLVED_PRESERVE",
+      "size_bytes": 2926,
+      "last_write_utc": "2026-08-02T15:17:01.9555511Z",
+      "sha256": "D02250971100BCA7A905DDFE9F49FF2504DC6391634DEA7919BA29959D905ED4",
+      "extension": ".md",
+      "top_component": "docs"
+    },
+    {
+      "path": "docs/history/migrated-windows-state/release-v0.4.0/task-artifacts/pr-release-v0.4.0-contract.md",
+      "disposition": "UNRESOLVED_PRESERVE",
+      "size_bytes": 1129,
+      "last_write_utc": "2026-07-30T15:08:16.6970049Z",
+      "sha256": "EF8CB209355506EDE8C4FD7D4C6D2E15EE9EA1C08F451FA016D78C0FAF54AE3C",
+      "extension": ".md",
+      "top_component": "docs"
+    },
+    {
+      "path": "docs/history/migrated-windows-state/release-v0.4.0/task-artifacts/release-v0.4.0-readback.md",
+      "disposition": "UNRESOLVED_PRESERVE",
+      "size_bytes": 717,
+      "last_write_utc": "2026-07-30T16:27:39.4060112Z",
+      "sha256": "1FC9B64CA16DD64A00A419BB5760983056770AFE80EF79E9A3469B62BE5D1A3C",
+      "extension": ".md",
+      "top_component": "docs"
+    },
+    {
+      "path": "docs/history/migrated-windows-state/release-v0.4.0/task-artifacts/taskpack-audit-2026-08-01.md",
+      "disposition": "UNRESOLVED_PRESERVE",
+      "size_bytes": 7130,
+      "last_write_utc": "2026-07-31T16:39:03.5902890Z",
+      "sha256": "42CF3F29D8F7E534385E26F6738F8F22E2D105C05DCB8EF92064B94A29F6ECDE",
+      "extension": ".md",
+      "top_component": "docs"
+    },
+    {
+      "path": "docs/history/migrated-windows-state/user-deliverables/ArcheAxis OS Audit and Blueprint.docx",
+      "disposition": "UNRESOLVED_PRESERVE",
+      "size_bytes": 26298,
+      "last_write_utc": "2026-07-21T13:13:52.5586075Z",
+      "sha256": "4A6BEBDBA90462D64943245C3B99E97AC6710C3369A56E3838BAE7B962C8F89A",
+      "extension": ".docx",
+      "top_component": "docs"
+    },
+    {
+      "path": "docs/history/migrated-windows-state/user-deliverables/ArcheAxis OS Test Cases.docx",
+      "disposition": "UNRESOLVED_PRESERVE",
+      "size_bytes": 27687,
+      "last_write_utc": "2026-07-21T13:14:27.1299937Z",
+      "sha256": "6532E3054D7CF6AEBDE15145E4C4E571060DA525C4A7FC5C99B970A48C1BC753",
+      "extension": ".docx",
+      "top_component": "docs"
+    },
+    {
+      "path": "docs/history/migrated-windows-state/user-deliverables/ArcheAxis_Knowledge_Benchmark_TaskPack_v1.0.zip",
+      "disposition": "UNRESOLVED_PRESERVE",
+      "size_bytes": 30323,
+      "last_write_utc": "2026-07-21T13:22:58.0306444Z",
+      "sha256": "4CBA44341252F4BD37F5EE3F207249506A3BADB57E57D087A175D14EB5FD5D33",
+      "extension": ".zip",
+      "top_component": "docs"
+    },
+    {
+      "path": "docs/history/migrated-windows-state/user-deliverables/Cognitive_Loop_OS_开源候选_STAR清单_2026-07-17.xlsx",
+      "disposition": "UNRESOLVED_PRESERVE",
+      "size_bytes": 44852,
+      "last_write_utc": "2026-07-17T13:49:36.2340411Z",
+      "sha256": "AEB7FB989796423B441F5258571EFCB973C60896B4D0DCEB6A732E3927E6B3DC",
+      "extension": ".xlsx",
+      "top_component": "docs"
+    },
+    {
+      "path": "docs/history/plans/2026-07-14_002006-cognitive-loop-os-integrated-execution.md",
+      "disposition": "UNRESOLVED_PRESERVE",
+      "size_bytes": 20964,
+      "last_write_utc": "2026-07-13T16:22:27.2412431Z",
+      "sha256": "7272B1B71B7AC9291DF3753FB4D00BDD09DC74F5F00544BDA4011D64F87EA9E3",
+      "extension": ".md",
+      "top_component": "docs"
+    },
+    {
+      "path": "docs/history/plans/2026-07-17_224545-deepseek-execution-handoff.md",
+      "disposition": "UNRESOLVED_PRESERVE",
+      "size_bytes": 3135,
+      "last_write_utc": "2026-07-17T14:48:19.5799589Z",
+      "sha256": "D464821385CECF0C0193ECC055F67944FFFAB55481EEE19C84BDB338E3B7AA59",
+      "extension": ".md",
+      "top_component": "docs"
+    },
+    {
+      "path": "docs/history/plans/2026-07-20_192250-cognitive-workspace-minimum-closed-loop.md",
+      "disposition": "UNRESOLVED_PRESERVE",
+      "size_bytes": 15713,
+      "last_write_utc": "2026-07-20T11:24:21.2906308Z",
+      "sha256": "6BC7201430BD678D4E673443494EFAA3590ADFDC8C39BE24E0747D1B6E4F9845",
+      "extension": ".md",
+      "top_component": "docs"
+    },
+    {
+      "path": "docs/history/plans/2026-07-23_004441-unresolved-work-inventory.md",
+      "disposition": "UNRESOLVED_PRESERVE",
+      "size_bytes": 6995,
+      "last_write_utc": "2026-07-22T16:45:27.6171303Z",
+      "sha256": "BD2751660933FA068AD52179E8C383B7CEDDE293C3FCA6C9C0477BDD49DE9EB1",
+      "extension": ".md",
+      "top_component": "docs"
+    },
+    {
+      "path": "docs/history/plans/2026-07-26_212205-full-absorption-roadmap.md",
+      "disposition": "UNRESOLVED_PRESERVE",
+      "size_bytes": 20043,
+      "last_write_utc": "2026-07-26T13:28:55.0334174Z",
+      "sha256": "D9CB7BAD00C1B3D61D68A3DD9958B7F130E1B45AC4BA02EA4E167A0B01DAEF3D",
+      "extension": ".md",
+      "top_component": "docs"
+    },
+    {
+      "path": "docs/history/plans/2026-07-28_platform-execution.md",
+      "disposition": "UNRESOLVED_PRESERVE",
+      "size_bytes": 12754,
+      "last_write_utc": "2026-07-28T15:04:34.0248206Z",
+      "sha256": "4D32453FA7F5EBDA53E9550C2344ADAFB4E6EE5CF035E7655C6F715ADEC6DE59",
+      "extension": ".md",
+      "top_component": "docs"
+    },
+    {
+      "path": "docs/history/plans/2026-08-09_taskpack-followup.md",
+      "disposition": "UNRESOLVED_PRESERVE",
+      "size_bytes": 11254,
+      "last_write_utc": "2026-08-09T07:03:01.8331104Z",
+      "sha256": "7F2868C90A656BEF0590490CDB45FDB4BCCEE442FE3F5A4094892123A039871A",
+      "extension": ".md",
+      "top_component": "docs"
+    },
+    {
+      "path": "docs/history/skill-call-index.json",
+      "disposition": "UNRESOLVED_PRESERVE",
+      "size_bytes": 1409,
+      "last_write_utc": "2026-09-02T16:08:48.0554638Z",
+      "sha256": "163E2C450F75155925BA28D7CC22B3F100CD3BEBD54492C2279188CE29410817",
+      "extension": ".json",
+      "top_component": "docs"
+    },
+    {
+      "path": "docs/history/sleep-mode/README.md",
+      "disposition": "UNRESOLVED_PRESERVE",
+      "size_bytes": 1883,
+      "last_write_utc": "2026-07-28T00:00:43.6480455Z",
+      "sha256": "1AD1EC1B3029EE35D35A301F80A00303E54929D32F4D724F5DFE8CF6DADE82AD",
+      "extension": ".md",
+      "top_component": "docs"
+    },
+    {
+      "path": "docs/history/sleep-mode/activity-migrated-20260805.jsonl",
+      "disposition": "UNRESOLVED_PRESERVE",
+      "size_bytes": 40238,
+      "last_write_utc": "2026-08-05T11:05:57.4713344Z",
+      "sha256": "895FEFA59A813FBEE72C0792D66AB530CD44F647744809C67F914CDC09904698",
+      "extension": ".jsonl",
+      "top_component": "docs"
+    },
+    {
+      "path": "docs/history/sleep-mode/activity.jsonl",
+      "disposition": "UNRESOLVED_PRESERVE",
+      "size_bytes": 173330,
+      "last_write_utc": "2026-08-04T14:53:12.4841739Z",
+      "sha256": "A10812B61D45866FB107623D972A4C7D0ACC365417D82F695B32174DC61A69F1",
+      "extension": ".jsonl",
+      "top_component": "docs"
+    },
+    {
+      "path": "docs/history/sleep-mode/append_blocked_revalidation.py",
+      "disposition": "UNRESOLVED_PRESERVE",
+      "size_bytes": 3000,
+      "last_write_utc": "2026-07-29T18:42:26.0959011Z",
+      "sha256": "52BC38878144A97DECECEA4B481C0182A133F4B75AA938B8D9BD4B1CECB61C7B",
+      "extension": ".py",
+      "top_component": "docs"
+    },
+    {
+      "path": "docs/history/sleep-mode/append_complete.py",
+      "disposition": "UNRESOLVED_PRESERVE",
+      "size_bytes": 1127,
+      "last_write_utc": "2026-07-27T16:21:30.9248941Z",
+      "sha256": "916006F5BF522705C06AB8D2361C0CEA48EDFF2B588B9989C8953C34FC3E85F5",
+      "extension": ".py",
+      "top_component": "docs"
+    },
+    {
+      "path": "docs/history/sleep-mode/append_cycle.py",
+      "disposition": "UNRESOLVED_PRESERVE",
+      "size_bytes": 941,
+      "last_write_utc": "2026-07-27T16:51:38.9041285Z",
+      "sha256": "3AE1147A23D4CBB7C0928D174D66F577C5B101FBD63780EE2564F90761532EA2",
+      "extension": ".py",
+      "top_component": "docs"
+    },
+    {
+      "path": "docs/history/sleep-mode/append_start.py",
+      "disposition": "UNRESOLVED_PRESERVE",
+      "size_bytes": 551,
+      "last_write_utc": "2026-07-27T15:41:04.7993579Z",
+      "sha256": "92E63AA31A50430622462E90626337E7AC723A3F0C27942BB3D32441C2D73C7E",
+      "extension": ".py",
+      "top_component": "docs"
+    },
+    {
+      "path": "docs/history/sleep-mode/block_boundary.py",
+      "disposition": "UNRESOLVED_PRESERVE",
+      "size_bytes": 1554,
+      "last_write_utc": "2026-07-27T15:42:21.3844528Z",
+      "sha256": "8C37DF9B131ADC29D9485366DA2A2DEBB7E1BEE3696969E9F7175643CE719E94",
+      "extension": ".py",
+      "top_component": "docs"
+    },
+    {
+      "path": "docs/history/sleep-mode/cycle_discovery.py",
+      "disposition": "UNRESOLVED_PRESERVE",
+      "size_bytes": 1196,
+      "last_write_utc": "2026-07-29T23:01:25.4079742Z",
+      "sha256": "5E96E4418C7EF5F0A6BA6AF7253C3108463A2EC83FBCF2EEFF7E8CD17EA5B152",
+      "extension": ".py",
+      "top_component": "docs"
+    },
+    {
+      "path": "docs/history/sleep-mode/discover_cycle.py",
+      "disposition": "UNRESOLVED_PRESERVE",
+      "size_bytes": 1337,
+      "last_write_utc": "2026-07-29T18:31:18.6538482Z",
+      "sha256": "C98A461639C524ABBD651E842FF6C9D2A153BDA5728E0CA6A5E85A3DD470B86A",
+      "extension": ".py",
+      "top_component": "docs"
+    },
+    {
+      "path": "docs/history/sleep-mode/discover_runner.py",
+      "disposition": "UNRESOLVED_PRESERVE",
+      "size_bytes": 133,
+      "last_write_utc": "2026-07-27T16:41:07.7092797Z",
+      "sha256": "4EDAB3C5FC99F494EDA5FC8C36C874150D0A8181DA62B00746D810CFA3C56C71",
+      "extension": ".py",
+      "top_component": "docs"
+    },
+    {
+      "path": "docs/history/sleep-mode/discover_webdriver.py",
+      "disposition": "UNRESOLVED_PRESERVE",
+      "size_bytes": 580,
+      "last_write_utc": "2026-07-27T15:41:19.2667505Z",
+      "sha256": "CC17F628E3453C4862CC82A0388EE8389BBF6730BAE80EA0825A95110453AB67",
+      "extension": ".py",
+      "top_component": "docs"
+    },
+    {
+      "path": "docs/history/sleep-mode/finalize_cycle.py",
+      "disposition": "UNRESOLVED_PRESERVE",
+      "size_bytes": 1894,
+      "last_write_utc": "2026-08-13T13:05:08.8087203Z",
+      "sha256": "A3A0FB15EA903F29621B272AEE105EDA45ED817EB5AC6AE1B829244A2E21BFBF",
+      "extension": ".py",
+      "top_component": "docs"
+    },
+    {
+      "path": "docs/history/sleep-mode/freeze_candidate.py",
+      "disposition": "UNRESOLVED_PRESERVE",
+      "size_bytes": 1394,
+      "last_write_utc": "2026-07-29T17:58:46.4895561Z",
+      "sha256": "921491563472C6B27A8DD9B25E6DCB96185B85024F8ACAF9F19E9E651CE22616",
+      "extension": ".py",
+      "top_component": "docs"
+    },
+    {
+      "path": "docs/history/sleep-mode/freeze_snapshot.py",
+      "disposition": "UNRESOLVED_PRESERVE",
+      "size_bytes": 625,
+      "last_write_utc": "2026-07-29T23:50:52.6128105Z",
+      "sha256": "9672B3970BB70B8EF812633FA22B49D906D5CE4D5DD7859B4268892E234E47D8",
+      "extension": ".py",
+      "top_component": "docs"
+    },
+    {
+      "path": "docs/history/sleep-mode/live_audit.py",
+      "disposition": "UNRESOLVED_PRESERVE",
+      "size_bytes": 1822,
+      "last_write_utc": "2026-07-29T23:56:20.0206692Z",
+      "sha256": "98751179377C7040DE093889336AE16E3C56E6FDA7DE81D997C792CE0EB03F1A",
+      "extension": ".py",
+      "top_component": "docs"
+    },
+    {
+      "path": "docs/history/sleep-mode/live_discovery.py",
+      "disposition": "UNRESOLVED_PRESERVE",
+      "size_bytes": 1174,
+      "last_write_utc": "2026-07-29T23:40:26.7809833Z",
+      "sha256": "65A9636F697657019E537DECD90D6015EF18526373CE05AC182D337E062F49B7",
+      "extension": ".py",
+      "top_component": "docs"
+    },
+    {
+      "path": "docs/history/sleep-mode/live_git_audit.py",
+      "disposition": "UNRESOLVED_PRESERVE",
+      "size_bytes": 443,
+      "last_write_utc": "2026-07-27T15:50:33.9623704Z",
+      "sha256": "24FF8C2150E3F71DD846C8EBE0481A5DB411FC110A7A5CCBF3D40A05DFB842D0",
+      "extension": ".py",
+      "top_component": "docs"
+    },
+    {
+      "path": "docs/history/sleep-mode/live_release_audit.py",
+      "disposition": "UNRESOLVED_PRESERVE",
+      "size_bytes": 1229,
+      "last_write_utc": "2026-07-29T17:48:13.7207049Z",
+      "sha256": "2501F8BA676CAD0E4E070782BC48AC47ED1E939ADB34D2683C6CD9C66A85EAB4",
+      "extension": ".py",
+      "top_component": "docs"
+    },
+    {
+      "path": "docs/history/sleep-mode/live_release_probe.py",
+      "disposition": "UNRESOLVED_PRESERVE",
+      "size_bytes": 1392,
+      "last_write_utc": "2026-07-29T17:57:56.7025351Z",
+      "sha256": "821DDB7F1D4F5A182A9556F6209E0FFB0A5070A55A52DF4854EB2DBE4F148F0A",
+      "extension": ".py",
+      "top_component": "docs"
+    },
+    {
+      "path": "docs/history/sleep-mode/live_status.py",
+      "disposition": "UNRESOLVED_PRESERVE",
+      "size_bytes": 406,
+      "last_write_utc": "2026-07-27T16:10:43.6067631Z",
+      "sha256": "B5E7BA8D4057E231B51D8904573DEAF661B3EB58A70C8ED0E6F9803B5CB98CEB",
+      "extension": ".py",
+      "top_component": "docs"
+    },
+    {
+      "path": "docs/history/sleep-mode/reconcile_state.py",
+      "disposition": "UNRESOLVED_PRESERVE",
+      "size_bytes": 2935,
+      "last_write_utc": "2026-07-27T15:51:43.9989841Z",
+      "sha256": "E7A735EDBCFACC9651A734D40EDD83A388B8FB4FC8CA8813F9152EAA56B98A3D",
+      "extension": ".py",
+      "top_component": "docs"
+    },
+    {
+      "path": "docs/history/sleep-mode/record_blocked_cycle.py",
+      "disposition": "UNRESOLVED_PRESERVE",
+      "size_bytes": 2037,
+      "last_write_utc": "2026-07-29T23:41:00.3744075Z",
+      "sha256": "5FFD83254AC3A60FDCC14E1C42D180CED278D86CA0CF1414AB11CA8E775D3D3C",
+      "extension": ".py",
+      "top_component": "docs"
+    },
+    {
+      "path": "docs/history/sleep-mode/record_blocker_revalidation.py",
+      "disposition": "UNRESOLVED_PRESERVE",
+      "size_bytes": 2064,
+      "last_write_utc": "2026-07-29T17:48:47.3065015Z",
+      "sha256": "CBDE960D017D8302DF6434591A6930F291A95DBBEF01640807AF841256031DCA",
+      "extension": ".py",
+      "top_component": "docs"
+    },
+    {
+      "path": "docs/history/sleep-mode/record_freeze_review.py",
+      "disposition": "UNRESOLVED_PRESERVE",
+      "size_bytes": 2426,
+      "last_write_utc": "2026-07-29T18:01:34.7374758Z",
+      "sha256": "D163D436BB791E86E50E46A9B0A1E2440A0139C13EFC1B0E8D5F24FFC34FE7F1",
+      "extension": ".py",
+      "top_component": "docs"
+    },
+    {
+      "path": "docs/history/sleep-mode/record_mobile_nav_cycle.py",
+      "disposition": "UNRESOLVED_PRESERVE",
+      "size_bytes": 2974,
+      "last_write_utc": "2026-07-29T18:25:32.3588692Z",
+      "sha256": "BB133A6EC25D13BFF719BD0C517089F70B1CCDB00E4CBB807621CCA35FEB2061",
+      "extension": ".py",
+      "top_component": "docs"
+    },
+    {
+      "path": "docs/history/sleep-mode/record_pr15_migration.py",
+      "disposition": "UNRESOLVED_PRESERVE",
+      "size_bytes": 2558,
+      "last_write_utc": "2026-07-29T17:34:59.7299852Z",
+      "sha256": "C3BCEDF3F5020CC4F8C3CD90FC99ADEDC344FF5098921C3E044B4D3FF455C6DE",
+      "extension": ".py",
+      "top_component": "docs"
+    },
+    {
+      "path": "docs/history/sleep-mode/record_pr15_responsive_cycle.py",
+      "disposition": "UNRESOLVED_PRESERVE",
+      "size_bytes": 2428,
+      "last_write_utc": "2026-07-30T00:00:52.8382182Z",
+      "sha256": "18C7D40CDC03D16BA05E11179138B3231667F3E5F0FB8BBAF7D3D7D61F784E13",
+      "extension": ".py",
+      "top_component": "docs"
+    },
+    {
+      "path": "docs/history/sleep-mode/record_refreeze_review.py",
+      "disposition": "UNRESOLVED_PRESERVE",
+      "size_bytes": 2448,
+      "last_write_utc": "2026-07-29T18:12:39.4885288Z",
+      "sha256": "E8D2720B7595BB650B6C920A2773BDADE0D50BAB24F747F2969E771226F3A359",
+      "extension": ".py",
+      "top_component": "docs"
+    },
+    {
+      "path": "docs/history/sleep-mode/record_review_block.py",
+      "disposition": "UNRESOLVED_PRESERVE",
+      "size_bytes": 3517,
+      "last_write_utc": "2026-07-29T18:33:32.9477163Z",
+      "sha256": "7B2E98FCB41FB1D2B14226027E80D9E691A6CBB4C0475483E689A4A49498A5E2",
+      "extension": ".py",
+      "top_component": "docs"
+    },
+    {
+      "path": "docs/history/sleep-mode/record_review_result.py",
+      "disposition": "UNRESOLVED_PRESERVE",
+      "size_bytes": 2742,
+      "last_write_utc": "2026-07-30T00:04:53.5052024Z",
+      "sha256": "480C75D36CD0E486BDC6AD5642107F05D97B280B83EF35B5911B4E2C05340194",
+      "extension": ".py",
+      "top_component": "docs"
+    },
+    {
+      "path": "docs/history/sleep-mode/revalidate_blocker.py",
+      "disposition": "UNRESOLVED_PRESERVE",
+      "size_bytes": 1301,
+      "last_write_utc": "2026-07-29T22:51:35.2860692Z",
+      "sha256": "BC0B6DCC0A74F768339DB10BD03039BC203EB5CA973E78522C45DA1FAB071962",
+      "extension": ".py",
+      "top_component": "docs"
+    },
+    {
+      "path": "docs/history/sleep-mode/run_accessibility_review.py",
+      "disposition": "UNRESOLVED_PRESERVE",
+      "size_bytes": 2236,
+      "last_write_utc": "2026-07-29T23:51:16.0758285Z",
+      "sha256": "367B2B21780DC93CC6FB3CDD471C41A0E61AB50602F72F2D6DBC608C20A72B5A",
+      "extension": ".py",
+      "top_component": "docs"
+    },
+    {
+      "path": "docs/history/sleep-mode/run_frozen_review.py",
+      "disposition": "UNRESOLVED_PRESERVE",
+      "size_bytes": 2076,
+      "last_write_utc": "2026-07-30T00:02:48.1848231Z",
+      "sha256": "D29886BE2FC356C5AC2F9C79862AE0753680950149D7D0A024D0A3BBB75CD281",
+      "extension": ".py",
+      "top_component": "docs"
+    },
+    {
+      "path": "docs/history/sleep-mode/run_pr15_smoke.py",
+      "disposition": "UNRESOLVED_PRESERVE",
+      "size_bytes": 359,
+      "last_write_utc": "2026-07-29T23:58:08.1954704Z",
+      "sha256": "FB3D1761F37608899F3B229895C3EA1E1CF1CC93A97DA2FC1053CC5129E3988E",
+      "extension": ".py",
+      "top_component": "docs"
+    },
+    {
+      "path": "docs/history/sleep-mode/state.json",
+      "disposition": "UNRESOLVED_PRESERVE",
+      "size_bytes": 1847,
+      "last_write_utc": "2026-08-05T11:30:49.7683049Z",
+      "sha256": "2A224E35899DECF447B0845B9EB4391D69068C30A340122F44C60A24C9D26A68",
+      "extension": ".json",
+      "top_component": "docs"
+    },
+    {
+      "path": "docs/history/sleep-mode/update_a0.py",
+      "disposition": "UNRESOLVED_PRESERVE",
+      "size_bytes": 2108,
+      "last_write_utc": "2026-07-27T14:37:05.7256573Z",
+      "sha256": "5472399E39D372815221FBC760D570AFA3142013B89EB98C5262D6BDF1646CBE",
+      "extension": ".py",
+      "top_component": "docs"
+    },
+    {
+      "path": "docs/history/sleep-tasks/01-phase2-release.md",
+      "disposition": "UNRESOLVED_PRESERVE",
+      "size_bytes": 2171,
+      "last_write_utc": "2026-07-15T16:14:11.8412428Z",
+      "sha256": "2B3D70CA894088DD335F082C09FFF0EE004BAF0D7DBF45EB9FDBD99B416B165B",
+      "extension": ".md",
+      "top_component": "docs"
+    },
+    {
+      "path": "docs/history/sleep-tasks/02-remove-admin-key.md",
+      "disposition": "UNRESOLVED_PRESERVE",
+      "size_bytes": 1692,
+      "last_write_utc": "2026-07-15T16:14:11.8412428Z",
+      "sha256": "D378FBA4FC727955C290AFB8A5AC7ECE972DF2BBC0B89DAD7E05DDF912472872",
+      "extension": ".md",
+      "top_component": "docs"
+    },
+    {
+      "path": "docs/history/sleep-tasks/03-rate-limiter.md",
+      "disposition": "UNRESOLVED_PRESERVE",
+      "size_bytes": 1582,
+      "last_write_utc": "2026-07-15T16:14:11.8579736Z",
+      "sha256": "E1FA913784E5D739945BCB5A1E84252B10D1AFB690CD0499E5CA09DDE5757E4B",
+      "extension": ".md",
+      "top_component": "docs"
+    },
+    {
+      "path": "docs/history/sleep-tasks/run_queue.py",
+      "disposition": "UNRESOLVED_PRESERVE",
+      "size_bytes": 3589,
+      "last_write_utc": "2026-07-15T16:14:12.4634343Z",
+      "sha256": "30C9650F999F1F5CEFE4E695DEAE1DE3C7A7BD5C666CF83EAFBB66E64066C2FF",
+      "extension": ".py",
+      "top_component": "docs"
+    },
+    {
+      "path": "docs/history/sleep-tasks/status.json",
+      "disposition": "UNRESOLVED_PRESERVE",
+      "size_bytes": 1272,
+      "last_write_utc": "2026-07-15T17:24:02.7317568Z",
+      "sha256": "E9B804CF60848B915F570A55E9452C2F98617B8CD48F490B3617B48EC7681D80",
+      "extension": ".json",
+      "top_component": "docs"
+    },
+    {
+      "path": "docs/history/task-artifacts/AA-NEXT-000-HOTFIX-SNAPSHOT.md",
+      "disposition": "UNRESOLVED_PRESERVE",
+      "size_bytes": 1714,
+      "last_write_utc": "2026-09-01T12:25:43.0025589Z",
+      "sha256": "BE941910E0D187D13BA30E813E06EF5C71CEA76867B755A46E3F6BFFE4101812",
+      "extension": ".md",
+      "top_component": "docs"
+    },
+    {
+      "path": "docs/history/task-artifacts/axr-r2-deeptutor-golden-flow/deeptutor-golden-flow.png",
+      "disposition": "UNRESOLVED_PRESERVE",
+      "size_bytes": 133069,
+      "last_write_utc": "2026-08-27T13:06:42.3595116Z",
+      "sha256": "0B1923ADA898E485D02A59DE61B038EEA53D56616F251F889542C400B289F4EF",
+      "extension": ".png",
+      "top_component": "docs"
+    },
+    {
+      "path": "docs/history/task-artifacts/axr-r2-release-candidate-229e995/evidence.json",
+      "disposition": "UNRESOLVED_PRESERVE",
+      "size_bytes": 2159,
+      "last_write_utc": "2026-08-27T13:07:30.4205100Z",
+      "sha256": "131FCA5B325AAD24541997FE52AF592A1564F3811A2C9DE91D29C439E53D3689",
+      "extension": ".json",
+      "top_component": "docs"
+    },
+    {
+      "path": "docs/history/task-artifacts/axr-r2-release-candidate-229e995/package-staging-cleanup.json",
+      "disposition": "UNRESOLVED_PRESERVE",
+      "size_bytes": 516,
+      "last_write_utc": "2026-08-27T13:25:10.9160515Z",
+      "sha256": "306E7B99400305599EB368C39052AF19346AA5D881650749D19365FD5BF1BACF",
+      "extension": ".json",
+      "top_component": "docs"
+    },
+    {
+      "path": "docs/history/task-artifacts/axr-r2-release-candidate-229e995/packages/package-preflight.json",
+      "disposition": "UNRESOLVED_PRESERVE",
+      "size_bytes": 716,
+      "last_write_utc": "2026-08-27T12:56:38.2315919Z",
+      "sha256": "D42F1773AFD61B6087D7A77B0A1079543AF6413690511291152E0D44EC2B6D3A",
+      "extension": ".json",
+      "top_component": "docs"
+    },
+    {
+      "path": "docs/history/task-artifacts/axr-r2-release-candidate-229e995/release-cleanup-final.json",
+      "disposition": "UNRESOLVED_PRESERVE",
+      "size_bytes": 1049,
+      "last_write_utc": "2026-08-27T13:58:23.3441496Z",
+      "sha256": "9D449800576235A86E581B66E66B0D8D41E219916A39F7B6F9FDF0CEF7660FB8",
+      "extension": ".json",
+      "top_component": "docs"
+    },
+    {
+      "path": "docs/history/task-artifacts/browser-smoke/canonical-browser-smoke.json",
+      "disposition": "UNRESOLVED_PRESERVE",
+      "size_bytes": 3148,
+      "last_write_utc": "2026-09-02T15:29:36.6095897Z",
+      "sha256": "86C62251ED265D6492EECAB1681BCC23489288CCCE79A908942757222E8BB73A",
+      "extension": ".json",
+      "top_component": "docs"
+    },
+    {
+      "path": "docs/history/task-artifacts/browser-smoke/canonical-shell-1280x800.png",
+      "disposition": "UNRESOLVED_PRESERVE",
+      "size_bytes": 74853,
+      "last_write_utc": "2026-09-02T15:29:34.4853672Z",
+      "sha256": "7A2650A86F4D4EB99AF74EE2A0474F4410545C490029EC451133CC43E39C14DB",
+      "extension": ".png",
+      "top_component": "docs"
+    },
+    {
+      "path": "docs/history/task-artifacts/browser-smoke/canonical-shell-1440x1000.png",
+      "disposition": "UNRESOLVED_PRESERVE",
+      "size_bytes": 81723,
+      "last_write_utc": "2026-09-02T15:29:33.5127570Z",
+      "sha256": "0DCFA29111F50D8BBBA841B9A8798B6B0D16EFA8A27CDC5A9342124A346371E0",
+      "extension": ".png",
+      "top_component": "docs"
+    },
+    {
+      "path": "docs/history/task-artifacts/browser-smoke/canonical-shell-360x640.png",
+      "disposition": "UNRESOLVED_PRESERVE",
+      "size_bytes": 37490,
+      "last_write_utc": "2026-09-02T15:29:36.4000247Z",
+      "sha256": "D195694AA367C266A89BADF739211F13DA3644E8AA0B04DC3C09EFCF12FE6E62",
+      "extension": ".png",
+      "top_component": "docs"
+    },
+    {
+      "path": "docs/history/task-artifacts/browser-smoke/canonical-shell-390x844.png",
+      "disposition": "UNRESOLVED_PRESERVE",
+      "size_bytes": 42674,
+      "last_write_utc": "2026-09-02T15:29:35.4377219Z",
+      "sha256": "7CDFDD52569D659DAE6628B2B7D8F8BA25E42CDCE5E65706CF5901D851BD91D9",
+      "extension": ".png",
+      "top_component": "docs"
+    },
+    {
+      "path": "docs/history/task-artifacts/ci-audit-fix-full/pytest.stderr.log",
+      "disposition": "UNRESOLVED_PRESERVE",
+      "size_bytes": 0,
+      "last_write_utc": "2026-08-23T21:44:01.9225633Z",
+      "sha256": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855",
+      "extension": ".log",
+      "top_component": "docs"
+    },
+    {
+      "path": "docs/history/task-artifacts/ci-audit-fix-full/pytest.stdout.log",
+      "disposition": "UNRESOLVED_PRESERVE",
+      "size_bytes": 41088,
+      "last_write_utc": "2026-08-23T21:45:02.2970829Z",
+      "sha256": "0B598DFE2003C284F1026FCF99AA8CDFF915156D735246D89F8A61151CD38650",
+      "extension": ".log",
+      "top_component": "docs"
+    },
+    {
+      "path": "docs/history/task-artifacts/current-reports/CLOUD_BASELINE.json",
+      "disposition": "UNRESOLVED_PRESERVE",
+      "size_bytes": 1066,
+      "last_write_utc": "2026-09-01T19:07:05.5398662Z",
+      "sha256": "FAF718C0777FAFD4727DFEA1901ABE8586D53E01C33D9E7E8ADC22AD4BC65BD1",
+      "extension": ".json",
+      "top_component": "docs"
+    },
+    {
+      "path": "docs/history/task-artifacts/current-reports/CURRENT_CAPABILITY_MATRIX.json",
+      "disposition": "UNRESOLVED_PRESERVE",
+      "size_bytes": 1595,
+      "last_write_utc": "2026-09-01T19:07:05.5408658Z",
+      "sha256": "2D9C86270F9308C5510D33DA39EBD10DB5587F0761E4EA7E728DDE7C991D6796",
+      "extension": ".json",
+      "top_component": "docs"
+    },
+    {
+      "path": "docs/history/task-artifacts/current-reports/EXACT_SHA_VERIFICATION.json",
+      "disposition": "UNRESOLVED_PRESERVE",
+      "size_bytes": 984,
+      "last_write_utc": "2026-09-01T19:07:05.5408658Z",
+      "sha256": "C70EC46F9AD12040DAE5A722CEC98C9C8815D9FB18E6D6F84B5AA3C3E0F5A253",
+      "extension": ".json",
+      "top_component": "docs"
+    },
+    {
+      "path": "docs/history/task-artifacts/frontend-consolidation/react-ai-assets-1280x800.png",
+      "disposition": "UNRESOLVED_PRESERVE",
+      "size_bytes": 53733,
+      "last_write_utc": "2026-08-28T16:09:52.7417514Z",
+      "sha256": "AF4D507A4A17E43006C6E59B5ABFD91E0DB2142BF7FB7E8B8A06FA44BB7EF82C",
+      "extension": ".png",
+      "top_component": "docs"
+    },
+    {
+      "path": "docs/history/task-artifacts/frontend-consolidation/react-evidence-1280x800.png",
+      "disposition": "UNRESOLVED_PRESERVE",
+      "size_bytes": 56481,
+      "last_write_utc": "2026-08-28T16:09:52.5619436Z",
+      "sha256": "DFA66ED7AAB747871F2406D48ABEA3B8153A4FE5A3D1AF0DDF01FBC21CF6C46F",
+      "extension": ".png",
+      "top_component": "docs"
+    },
+    {
+      "path": "docs/history/task-artifacts/frontend-consolidation/react-learning-1280x800.png",
+      "disposition": "UNRESOLVED_PRESERVE",
+      "size_bytes": 69801,
+      "last_write_utc": "2026-08-28T16:09:52.6440586Z",
+      "sha256": "1C0468D20ADA805D0CB6F2C996CBD0D2D4786AD44AF365CCB60FA75E211B83E1",
+      "extension": ".png",
+      "top_component": "docs"
+    },
+    {
+      "path": "docs/history/task-artifacts/frontend-consolidation/react-library-1280x800.png",
+      "disposition": "UNRESOLVED_PRESERVE",
+      "size_bytes": 50548,
+      "last_write_utc": "2026-08-28T16:09:52.4427090Z",
+      "sha256": "6BABAC92485891315DDA8FF7B66C6D1CFC38865D27D91C6A27EC6D0BD97A627F",
+      "extension": ".png",
+      "top_component": "docs"
+    },
+    {
+      "path": "docs/history/task-artifacts/frontend-consolidation/react-settings-1280x800.png",
+      "disposition": "UNRESOLVED_PRESERVE",
+      "size_bytes": 59030,
+      "last_write_utc": "2026-08-28T16:09:52.8436303Z",
+      "sha256": "F62821B2DB01B00061A68716E5032A80245E6394D3656292B2E377A26A317EBE",
+      "extension": ".png",
+      "top_component": "docs"
+    },
+    {
+      "path": "docs/history/task-artifacts/frontend-consolidation/react-shell-1280x800.png",
+      "disposition": "UNRESOLVED_PRESERVE",
+      "size_bytes": 96439,
+      "last_write_utc": "2026-08-28T16:09:52.2132495Z",
+      "sha256": "5FAEC66BA28A6E909F29510C92D4011373AAFCFB89578B1F7405D1726501919E",
+      "extension": ".png",
+      "top_component": "docs"
+    },
+    {
+      "path": "docs/history/task-artifacts/frontend-consolidation/react-shell-1440x1000.png",
+      "disposition": "UNRESOLVED_PRESERVE",
+      "size_bytes": 117551,
+      "last_write_utc": "2026-08-28T16:09:51.5057149Z",
+      "sha256": "2F2286B52508384067ED6A5A9DEB715CB44BFDFC79060BA2F64C4697627CBBEC",
+      "extension": ".png",
+      "top_component": "docs"
+    },
+    {
+      "path": "docs/history/task-artifacts/frontend-consolidation/react-shell-360x640.png",
+      "disposition": "UNRESOLVED_PRESERVE",
+      "size_bytes": 42047,
+      "last_write_utc": "2026-08-28T16:09:54.2451427Z",
+      "sha256": "A72E1A0495A26EC103C3B629F17B7922A6FA3FAB31CB084985EC8CF0872F6A6B",
+      "extension": ".png",
+      "top_component": "docs"
+    },
+    {
+      "path": "docs/history/task-artifacts/frontend-consolidation/react-shell-390x844.png",
+      "disposition": "UNRESOLVED_PRESERVE",
+      "size_bytes": 48030,
+      "last_write_utc": "2026-08-28T16:09:53.5362535Z",
+      "sha256": "DDB601FBC82CAC0FF9BDEDACB25FE83B2113AC10BD2CAA385E054D51FA7EF51C",
+      "extension": ".png",
+      "top_component": "docs"
+    },
+    {
+      "path": "docs/history/task-artifacts/frontend-consolidation/react-shell-command-palette-1280x800.png",
+      "disposition": "UNRESOLVED_PRESERVE",
+      "size_bytes": 118217,
+      "last_write_utc": "2026-08-28T16:09:52.3140750Z",
+      "sha256": "9BF94D76D3AA854EEAC1B4E28FFC6DA6897FC27D5463B088C93A29EAD077F533",
+      "extension": ".png",
+      "top_component": "docs"
+    },
+    {
+      "path": "docs/history/task-artifacts/frontend-consolidation/react-visual-acceptance.json",
+      "disposition": "UNRESOLVED_PRESERVE",
+      "size_bytes": 2908,
+      "last_write_utc": "2026-08-28T16:09:54.3018370Z",
+      "sha256": "528E74EB807EA4577B841C97496B5DC49286369267761E8C989D89645B27A9C6",
+      "extension": ".json",
+      "top_component": "docs"
+    },
+    {
+      "path": "docs/history/task-artifacts/golden-ocr-probe/ocr-golden-anchor.png",
+      "disposition": "UNRESOLVED_PRESERVE",
+      "size_bytes": 14066,
+      "last_write_utc": "2026-09-01T17:50:55.8616742Z",
+      "sha256": "FDAE05123BB912286A2092EFCFEBB8D7348DFA5E791EF91AD2FC9BAA9A5DFDBC",
+      "extension": ".png",
+      "top_component": "docs"
+    },
+    {
+      "path": "docs/history/task-artifacts/green-exe-build-debug-20260902/tauri-build-direct-node.stderr.log",
+      "disposition": "UNRESOLVED_PRESERVE",
+      "size_bytes": 1730,
+      "last_write_utc": "2026-09-02T14:40:15.1214343Z",
+      "sha256": "50808C53A6AD97A303F0ECAB0F4054E368E1C1DA067D84E954B14EC6A5DA1E65",
+      "extension": ".log",
+      "top_component": "docs"
+    },
+    {
+      "path": "docs/history/task-artifacts/green-exe-build-debug-20260902/tauri-build-direct-node.stdout.log",
+      "disposition": "UNRESOLVED_PRESERVE",
+      "size_bytes": 876,
+      "last_write_utc": "2026-09-02T14:39:36.0992398Z",
+      "sha256": "C2253052EC8FF34F631FEABBCEDBC03211118AD9D74D6779C8A45103CBD7B323",
+      "extension": ".log",
+      "top_component": "docs"
+    },
+    {
+      "path": "docs/history/task-artifacts/green-exe-build-debug-20260902/tauri-build-wrapper-2.stderr.log",
+      "disposition": "UNRESOLVED_PRESERVE",
+      "size_bytes": 317,
+      "last_write_utc": "2026-09-02T14:37:05.2066857Z",
+      "sha256": "A0467DFF9B06EC0A4DDC1BD3CD549EAD1C00335664A2F2471DD6FEA043F9C8DD",
+      "extension": ".log",
+      "top_component": "docs"
+    },
+    {
+      "path": "docs/history/task-artifacts/green-exe-build-debug-20260902/tauri-build-wrapper-2.stdout.log",
+      "disposition": "UNRESOLVED_PRESERVE",
+      "size_bytes": 0,
+      "last_write_utc": "2026-09-02T14:37:03.3797310Z",
+      "sha256": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855",
+      "extension": ".log",
+      "top_component": "docs"
+    },
+    {
+      "path": "docs/history/task-artifacts/green-exe-build-debug-20260902/tauri-build-wrapper-path.stderr.log",
+      "disposition": "UNRESOLVED_PRESERVE",
+      "size_bytes": 317,
+      "last_write_utc": "2026-09-02T14:37:53.0606283Z",
+      "sha256": "A0467DFF9B06EC0A4DDC1BD3CD549EAD1C00335664A2F2471DD6FEA043F9C8DD",
+      "extension": ".log",
+      "top_component": "docs"
+    },
+    {
+      "path": "docs/history/task-artifacts/green-exe-build-debug-20260902/tauri-build-wrapper-path.stdout.log",
+      "disposition": "UNRESOLVED_PRESERVE",
+      "size_bytes": 351,
+      "last_write_utc": "2026-09-02T14:37:52.9033954Z",
+      "sha256": "9E93BDC4A70021A0FDD417656463F68D75D7787F17C88140A8C36D2B6A91A638",
+      "extension": ".log",
+      "top_component": "docs"
+    },
+    {
+      "path": "docs/history/task-artifacts/green-exe-build-debug-20260902/tauri-build-wrapper.stderr.log",
+      "disposition": "UNRESOLVED_PRESERVE",
+      "size_bytes": 317,
+      "last_write_utc": "2026-09-02T14:36:19.9257155Z",
+      "sha256": "A0467DFF9B06EC0A4DDC1BD3CD549EAD1C00335664A2F2471DD6FEA043F9C8DD",
+      "extension": ".log",
+      "top_component": "docs"
+    },
+    {
+      "path": "docs/history/task-artifacts/green-exe-build-debug-20260902/tauri-build-wrapper.stdout.log",
+      "disposition": "UNRESOLVED_PRESERVE",
+      "size_bytes": 0,
+      "last_write_utc": "2026-09-02T14:36:18.0539314Z",
+      "sha256": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855",
+      "extension": ".log",
+      "top_component": "docs"
+    },
+    {
+      "path": "docs/history/task-artifacts/green-exe-build-debug-20260902/tauri-build.stderr.log",
+      "disposition": "UNRESOLVED_PRESERVE",
+      "size_bytes": 2100,
+      "last_write_utc": "2026-09-02T14:34:04.3702195Z",
+      "sha256": "BF90A1D43FAC302D321C046AF24F13E562778B89F01E14620185751C90968152",
+      "extension": ".log",
+      "top_component": "docs"
+    },
+    {
+      "path": "docs/history/task-artifacts/green-exe-build-debug-20260902/tauri-build.stdout.log",
+      "disposition": "UNRESOLVED_PRESERVE",
+      "size_bytes": 475,
+      "last_write_utc": "2026-09-02T14:33:27.9831368Z",
+      "sha256": "DACE680697847AD79AE96735E813D6FE8A65F8164176E8A5FC82F738A2BE1912",
+      "extension": ".log",
+      "top_component": "docs"
+    },
+    {
+      "path": "docs/history/task-artifacts/green-format-probe/2026-09-01-d206fca.json",
+      "disposition": "UNRESOLVED_PRESERVE",
+      "size_bytes": 6782,
+      "last_write_utc": "2026-09-01T14:03:54.1843462Z",
+      "sha256": "516D84303D095B5A7138EA713682840EE14DB162484C529F6F0B1681CDC64427",
+      "extension": ".json",
+      "top_component": "docs"
+    },
+    {
+      "path": "docs/history/task-artifacts/green-pipeline-service-smoke/.workspace.sqlite.9f1456539630213a.migration_operator_locks.lockdb",
+      "disposition": "UNRESOLVED_PRESERVE",
+      "size_bytes": 12288,
+      "last_write_utc": "2026-09-01T17:19:29.2382314Z",
+      "sha256": "5E137F732C8F75EBF5B8658F04591879FDBDF66B44D276533B1E4E9AC4E8F4B6",
+      "extension": ".lockdb",
+      "top_component": "docs"
+    },
+    {
+      "path": "docs/history/task-artifacts/green-pipeline-service-smoke/backups/pre_migration_20260901T171929_215621Z_35a06448.sqlite.manifest.json",
+      "disposition": "UNRESOLVED_PRESERVE",
+      "size_bytes": 340,
+      "last_write_utc": "2026-09-01T17:19:29.2191483Z",
+      "sha256": "0741C0C291829098CB0AC322E0E7EED886A3813DE12436C71D092DCE237E48ED",
+      "extension": ".json",
+      "top_component": "docs"
+    },
+    {
+      "path": "docs/history/task-artifacts/green-pipeline-service-smoke/backups/pre_migration_20260901T171929_229721Z_e9be5198.sqlite.manifest.json",
+      "disposition": "UNRESOLVED_PRESERVE",
+      "size_bytes": 382,
+      "last_write_utc": "2026-09-01T17:19:29.2337190Z",
+      "sha256": "AF8DDF240E45A53ED657CC99A0740775EF50B5FB375CCAD7FE64031AEBB6F43A",
+      "extension": ".json",
+      "top_component": "docs"
+    },
+    {
+      "path": "docs/history/task-artifacts/green-pipeline-service-smoke/green-boundary.md",
+      "disposition": "UNRESOLVED_PRESERVE",
+      "size_bytes": 54,
+      "last_write_utc": "2026-09-01T17:19:29.2392521Z",
+      "sha256": "8D8DA6816D97FF3345702BC60AFA031B07539567CC3EFE9AB32412F107AD64C4",
+      "extension": ".md",
+      "top_component": "docs"
+    },
+    {
+      "path": "docs/history/task-artifacts/green-pipeline-service-smoke/source_archive/raw-assets/8d8da6816d97ff3345702bc60afa031b07539567cc3efe9ab32412f107ad64c4",
+      "disposition": "UNRESOLVED_PRESERVE",
+      "size_bytes": 54,
+      "last_write_utc": "2026-09-01T17:19:30.2609619Z",
+      "sha256": "8D8DA6816D97FF3345702BC60AFA031B07539567CC3EFE9AB32412F107AD64C4",
+      "extension": "",
+      "top_component": "docs"
+    },
+    {
+      "path": "docs/history/task-artifacts/green-pipeline-service-smoke/source_archive/raw-assets/_metadata/8d8da6816d97ff3345702bc60afa031b07539567cc3efe9ab32412f107ad64c4.json",
+      "disposition": "UNRESOLVED_PRESERVE",
+      "size_bytes": 205,
+      "last_write_utc": "2026-09-01T17:19:30.2619617Z",
+      "sha256": "915692C48585F5BF3E12C01AC0A7DB93A23D3B95BFE2F0685B54ACAE9948F4A5",
+      "extension": ".json",
+      "top_component": "docs"
+    },
+    {
+      "path": "docs/history/task-artifacts/green-runtime-smoke/2026-09-01-d206fca.json",
+      "disposition": "UNRESOLVED_PRESERVE",
+      "size_bytes": 904,
+      "last_write_utc": "2026-09-01T13:44:09.8016744Z",
+      "sha256": "457F9D928ED476FF21C9F8E416E0D057660D688C34F5B9C4AF6F4C5A2390A3DF",
+      "extension": ".json",
+      "top_component": "docs"
+    },
+    {
+      "path": "docs/history/task-artifacts/installer-lifecycle-main-ci/job.log",
+      "disposition": "UNRESOLVED_PRESERVE",
+      "size_bytes": 27008,
+      "last_write_utc": "2026-08-22T15:42:08.9793306Z",
+      "sha256": "6A56BCF168CABD610094B16FC873FF087A5A49D3F91E19F7CE229204954C38EB",
+      "extension": ".log",
+      "top_component": "docs"
+    },
+    {
+      "path": "docs/history/task-artifacts/migration-baseline/db13d0564ac2971d4b1eb3e3a5bff9c9256af313.json",
+      "disposition": "UNRESOLVED_PRESERVE",
+      "size_bytes": 9235,
+      "last_write_utc": "2026-09-01T16:49:33.3812376Z",
+      "sha256": "A83D2D413840BE0EF76AE147B8B420C9458D992D306F78A18032684D4FA41764",
+      "extension": ".json",
+      "top_component": "docs"
+    },
+    {
+      "path": "docs/history/task-artifacts/post-merge-audit/SBOM.cdx.json",
+      "disposition": "UNRESOLVED_PRESERVE",
+      "size_bytes": 142695,
+      "last_write_utc": "2026-08-28T17:25:49.2045222Z",
+      "sha256": "2154CC23BACA048F886C9CCCAE6E601B7C9DFD403891C0585CBA757A53BB1497",
+      "extension": ".json",
+      "top_component": "docs"
+    },
+    {
+      "path": "docs/history/task-artifacts/post-merge-audit/THIRD_PARTY_NOTICES.txt",
+      "disposition": "UNRESOLVED_PRESERVE",
+      "size_bytes": 40717,
+      "last_write_utc": "2026-08-28T17:25:49.2683361Z",
+      "sha256": "8C88716C08B542638099BA94D3B6DEED9C6EE760F9FC39284B9D740974E1B87A",
+      "extension": ".txt",
+      "top_component": "docs"
+    },
+    {
+      "path": "docs/history/task-artifacts/rc/ArcheAxis Knowledge_0.6.14_x64-setup.exe",
+      "disposition": "UNRESOLVED_PRESERVE",
+      "size_bytes": 154127053,
+      "last_write_utc": "2026-08-31T11:51:34.3162136Z",
+      "sha256": "6DBA1847AE46437138DECDFBF9F416A37F1D36C09D30B4356850CA1FA9C3ED79",
+      "extension": ".exe",
+      "top_component": "docs"
+    },
+    {
+      "path": "docs/history/task-artifacts/rc/ArcheAxis.exe",
+      "disposition": "UNRESOLVED_PRESERVE",
+      "size_bytes": 9151488,
+      "last_write_utc": "2026-08-31T11:51:34.3718887Z",
+      "sha256": "A4297FDC8D025585D7F70EF7702A68DC9346646DC462E8DF0B2B06770103010B",
+      "extension": ".exe",
+      "top_component": "docs"
+    },
+    {
+      "path": "docs/history/task-artifacts/rc/frontend-dist.zip",
+      "disposition": "UNRESOLVED_PRESERVE",
+      "size_bytes": 82236,
+      "last_write_utc": "2026-08-31T11:51:34.3727260Z",
+      "sha256": "1F7133EC876C91BBEA32F8C4FE4EC7D381D9A9A2E50840C5944949D7EA974F11",
+      "extension": ".zip",
+      "top_component": "docs"
+    },
+    {
+      "path": "docs/history/task-artifacts/rc/release-candidate.json",
+      "disposition": "UNRESOLVED_PRESERVE",
+      "size_bytes": 851,
+      "last_write_utc": "2026-08-31T11:51:34.3727260Z",
+      "sha256": "5DBC0349D83313C2985C1E5F7DA05DDDFAE5B930A1422A8ECA877040DA92CC35",
+      "extension": ".json",
+      "top_component": "docs"
+    },
+    {
+      "path": "docs/history/task-artifacts/release-v0.6.14-readback/SBOM.cdx.json",
+      "disposition": "UNRESOLVED_PRESERVE",
+      "size_bytes": 142683,
+      "last_write_utc": "2026-09-01T19:03:47.1589694Z",
+      "sha256": "FB31A1A25F325EFA5D77CBD0DB92407D6A757A2CA0ABC240F5FA5155633BB87C",
+      "extension": ".json",
+      "top_component": "docs"
+    },
+    {
+      "path": "docs/history/task-artifacts/release-v0.6.14-readback/SHA256SUMS.txt",
+      "disposition": "UNRESOLVED_PRESERVE",
+      "size_bytes": 815,
+      "last_write_utc": "2026-09-01T19:03:47.0823372Z",
+      "sha256": "F4F357AAB6A472E398B3602F734E698C3956173C3A03D58484DB4F97090C6653",
+      "extension": ".txt",
+      "top_component": "docs"
+    },
+    {
+      "path": "docs/history/task-artifacts/release-v0.6.14-readback/release-api.json",
+      "disposition": "UNRESOLVED_PRESERVE",
+      "size_bytes": 17314,
+      "last_write_utc": "2026-09-01T19:07:36.7040297Z",
+      "sha256": "5349509C40313F72C9715CB2C57D0B905F3011C7A8CF8BF7E9E7A761CC3DEB96",
+      "extension": ".json",
+      "top_component": "docs"
+    },
+    {
+      "path": "docs/history/task-artifacts/release-v0.6.14-readback/release-identity.json",
+      "disposition": "UNRESOLVED_PRESERVE",
+      "size_bytes": 1818,
+      "last_write_utc": "2026-09-01T19:03:47.0901034Z",
+      "sha256": "C68381AF82DB1623BDE9827CCBE628DF2973E6CC74A1CDCE673FD05936AB1C5D",
+      "extension": ".json",
+      "top_component": "docs"
+    },
+    {
+      "path": "docs/history/task-artifacts/release-v0.6.14-readback/release-manifest.json",
+      "disposition": "UNRESOLVED_PRESERVE",
+      "size_bytes": 1699,
+      "last_write_utc": "2026-09-01T19:03:47.0835659Z",
+      "sha256": "C256A57CC2BC4E60BD3FC72769306361A7DCB82C928547473D0323D257734C77",
+      "extension": ".json",
+      "top_component": "docs"
+    },
+    {
+      "path": "docs/history/task-artifacts/ui-redesign/current-workspace-before.png",
+      "disposition": "UNRESOLVED_PRESERVE",
+      "size_bytes": 190556,
+      "last_write_utc": "2026-08-27T15:31:59.0127171Z",
+      "sha256": "501445E90974D304452D6AD4355ACFD3D5F24532BAAA5102063EEBD6F7566007",
+      "extension": ".png",
+      "top_component": "docs"
+    },
+    {
+      "path": "docs/history/task-artifacts/ui-redesign/osui-v3-overview-1440x1000.png",
+      "disposition": "UNRESOLVED_PRESERVE",
+      "size_bytes": 176881,
+      "last_write_utc": "2026-08-27T20:26:58.3309989Z",
+      "sha256": "3040F4BE225FD047D7099150D1E34DD11FD50746372DD2C7AE9B3C38C0AF4725",
+      "extension": ".png",
+      "top_component": "docs"
+    },
+    {
+      "path": "docs/history/task-artifacts/ui-redesign/osui-v3-overview-360x640.png",
+      "disposition": "UNRESOLVED_PRESERVE",
+      "size_bytes": 52691,
+      "last_write_utc": "2026-08-27T20:27:00.1472967Z",
+      "sha256": "3BE67251EDBD08426B4B913DEC2D2C3CCCC80E7A1DED6F4256B8A5DC11911951",
+      "extension": ".png",
+      "top_component": "docs"
+    },
+    {
+      "path": "docs/history/task-artifacts/ui-redesign/osui-v3-overview-390x844.png",
+      "disposition": "UNRESOLVED_PRESERVE",
+      "size_bytes": 66337,
+      "last_write_utc": "2026-08-27T20:26:59.4348769Z",
+      "sha256": "B3FF551E11EEDCFF5072F46EBEF13713EC1CB25ECDD4A3244151970F077420CC",
+      "extension": ".png",
+      "top_component": "docs"
+    },
+    {
+      "path": "docs/history/task-artifacts/ui-redesign/osui-v3-roadmap-1440x1000.png",
+      "disposition": "UNRESOLVED_PRESERVE",
+      "size_bytes": 158288,
+      "last_write_utc": "2026-08-27T20:26:58.7018011Z",
+      "sha256": "A2EF14C4F4F14C494DB30FF811B7990B3DBC6011E81F1BDF85A2F26922CEF5FE",
+      "extension": ".png",
+      "top_component": "docs"
+    },
+    {
+      "path": "docs/history/task-artifacts/ui-redesign/osui-v3-spatial-memory-1440x1000.png",
+      "disposition": "UNRESOLVED_PRESERVE",
+      "size_bytes": 139880,
+      "last_write_utc": "2026-08-27T20:26:58.5978009Z",
+      "sha256": "816A99BFF83089C42590924B9B2C2868557E4A63FE6FEC9CAD0E2B0F4E0B8B78",
+      "extension": ".png",
+      "top_component": "docs"
+    },
+    {
+      "path": "docs/history/task-artifacts/ui-redesign/osui-v3-visual-acceptance.json",
+      "disposition": "UNRESOLVED_PRESERVE",
+      "size_bytes": 3803,
+      "last_write_utc": "2026-08-27T20:27:00.3723685Z",
+      "sha256": "595D83793CCD83AEA4C44BF25B1D89FC4B330CCC4F05CE65BA2775378B0300D2",
+      "extension": ".json",
+      "top_component": "docs"
+    },
+    {
+      "path": "docs/history/task-artifacts/ui-redesign/osui-v3-visual-lesson-1440x1000.png",
+      "disposition": "UNRESOLVED_PRESERVE",
+      "size_bytes": 151497,
+      "last_write_utc": "2026-08-27T20:26:58.4828135Z",
+      "sha256": "795557BD41B3E7A83679498C676F4EEA1FF4A35B7DD7093DD5EC2DA6BC5DF71F",
+      "extension": ".png",
+      "top_component": "docs"
+    },
+    {
+      "path": "docs/history/task-artifacts/ui-redesign/tauri-frontend-osui-v3-1280x800.png",
+      "disposition": "UNRESOLVED_PRESERVE",
+      "size_bytes": 90387,
+      "last_write_utc": "2026-08-27T18:14:54.7524457Z",
+      "sha256": "67C0A1B18CB858C17B2BBDF480C495B3574FA45B113D97065188FA209E2A6C7C",
+      "extension": ".png",
+      "top_component": "docs"
+    },
+    {
+      "path": "docs/history/task-artifacts/ui-redesign/tauri-frontend-osui-v3.json",
+      "disposition": "UNRESOLVED_PRESERVE",
+      "size_bytes": 424,
+      "last_write_utc": "2026-08-27T18:14:54.9631290Z",
+      "sha256": "74E09EDD592EE0E0D6D6202ABE11CBD12BFC13D8CB7E5065F1A2E23B1A888FA1",
+      "extension": ".json",
+      "top_component": "docs"
+    },
+    {
+      "path": "docs/history/task-artifacts/ui-redesign/tauri-native-osui-v3-learning-2026-08-28.png",
+      "disposition": "UNRESOLVED_PRESERVE",
+      "size_bytes": 257474,
+      "last_write_utc": "2026-08-27T18:17:18.5146675Z",
+      "sha256": "5317249886C6339DABAF04A2FFEEEE53D95FCFF7247988AD25609AA0876E7C89",
+      "extension": ".png",
+      "top_component": "docs"
+    },
+    {
+      "path": "docs/history/task-artifacts/ui-redesign/tauri-native-osui-v3-library.png",
+      "disposition": "UNRESOLVED_PRESERVE",
+      "size_bytes": 178952,
+      "last_write_utc": "2026-08-27T16:45:09.7988268Z",
+      "sha256": "69F070FF4019250260F1576B484CFEFEF84EBA80E92AC444F27F473060B652D8",
+      "extension": ".png",
+      "top_component": "docs"
+    },
+    {
+      "path": "docs/history/task-artifacts/ui-redesign/tauri-native-osui-v3.png",
+      "disposition": "UNRESOLVED_PRESERVE",
+      "size_bytes": 348394,
+      "last_write_utc": "2026-08-27T16:44:09.2815185Z",
+      "sha256": "F044523CB762373DF45EB61F883DF544E5FD8AE3F245BB38BCF103435320E9BD",
+      "extension": ".png",
+      "top_component": "docs"
+    },
+    {
+      "path": "docs/history/task-artifacts/ui-redesign/ui-redesign-closure-receipt.json",
+      "disposition": "UNRESOLVED_PRESERVE",
+      "size_bytes": 983,
+      "last_write_utc": "2026-08-27T18:26:21.0490050Z",
+      "sha256": "13BC9E172AB313AF8E4199353B63942DFAD5FD1618AC017CA570D59083B3370A",
+      "extension": ".json",
+      "top_component": "docs"
+    },
+    {
+      "path": "docs/history/task-artifacts/ui/browser-e2e-library-converted-readback-20260902.png",
+      "disposition": "UNRESOLVED_PRESERVE",
+      "size_bytes": 59569,
+      "last_write_utc": "2026-09-02T12:16:43.6688489Z",
+      "sha256": "E098340AF46DE38AF2C42FDC99A025BF1D12145252D477A536CA497B059BD889",
+      "extension": ".png",
+      "top_component": "docs"
+    },
+    {
+      "path": "docs/history/task-artifacts/ui/browser-e2e-pdf-converted-readback-20260902.png",
+      "disposition": "UNRESOLVED_PRESERVE",
+      "size_bytes": 76536,
+      "last_write_utc": "2026-09-02T12:18:26.9242395Z",
+      "sha256": "E16DA1ADD4883FFDA70F2FD1634EDC8ABEE058968405352D7506D1496CEA9329",
+      "extension": ".png",
+      "top_component": "docs"
+    },
+    {
+      "path": "docs/history/task-artifacts/ui/browser-e2e-successful-pdf-import-20260902.png",
+      "disposition": "UNRESOLVED_PRESERVE",
+      "size_bytes": 60611,
+      "last_write_utc": "2026-09-02T12:17:56.3057795Z",
+      "sha256": "2BDCDCB8AE6979AC74E8BE129DBF19F80225067F2421C632765FE0DEF93C1BD1",
+      "extension": ".png",
+      "top_component": "docs"
+    },
+    {
+      "path": "docs/history/task-artifacts/ui/browser-e2e-successful-text-import-20260902.png",
+      "disposition": "UNRESOLVED_PRESERVE",
+      "size_bytes": 69208,
+      "last_write_utc": "2026-09-02T12:16:14.4264911Z",
+      "sha256": "DF00873ED0350BE210F305ACD5AA53D5A9B8A7F7178DC9BB5EF76658235684FB",
+      "extension": ".png",
+      "top_component": "docs"
+    },
+    {
+      "path": "docs/history/task-artifacts/ui/browser-e2e-workbench-20260902.png",
+      "disposition": "UNRESOLVED_PRESERVE",
+      "size_bytes": 62581,
+      "last_write_utc": "2026-09-01T19:25:23.0010644Z",
+      "sha256": "743B73DDF3B09AC0F91FB54A760665BCE9FAAFC466556F9D523AE220E1C8ECED",
+      "extension": ".png",
+      "top_component": "docs"
+    },
+    {
+      "path": "docs/history/task-artifacts/ui/frontend-preview-intake-static-20260902.png",
+      "disposition": "UNRESOLVED_PRESERVE",
+      "size_bytes": 44763,
+      "last_write_utc": "2026-09-01T19:13:39.6369825Z",
+      "sha256": "74CB3BC1B5B882273480F72D8E45FE55DD5A1DEDED4B0B9662559C2F0FDFF796",
+      "extension": ".png",
+      "top_component": "docs"
+    },
+    {
+      "path": "docs/history/task-artifacts/ui/frontend-preview-learning-static-20260902.png",
+      "disposition": "UNRESOLVED_PRESERVE",
+      "size_bytes": 42452,
+      "last_write_utc": "2026-09-01T19:13:49.7322713Z",
+      "sha256": "FE47EC756939B5BBA7158628737EF0FA7295838F8F44F17A415F21BA631A9546",
+      "extension": ".png",
+      "top_component": "docs"
+    },
+    {
+      "path": "docs/history/task-artifacts/ui/green-static-fallback-20260902.png",
+      "disposition": "UNRESOLVED_PRESERVE",
+      "size_bytes": 33276,
+      "last_write_utc": "2026-09-01T18:42:54.6221887Z",
+      "sha256": "97889FE3754FF9E707F39E194F9FC368245820E97B3E7498799BC5BF9F09F22B",
+      "extension": ".png",
+      "top_component": "docs"
+    },
+    {
+      "path": "docs/history/task-artifacts/ui/green-vbs-launched-import-20260902.jpg",
+      "disposition": "UNRESOLVED_PRESERVE",
+      "size_bytes": 75910,
+      "last_write_utc": "2026-09-02T12:32:28.4128065Z",
+      "sha256": "521332EC09B9C8D7C7112511777D6AF3A2DB3C104A85EB4C706592E8FFE73705",
+      "extension": ".jpg",
+      "top_component": "docs"
+    },
+    {
+      "path": "docs/history/task-artifacts/v0.6.11-candidate-bf0c483/ArcheAxis Knowledge_0.6.11_x64-setup.exe",
+      "disposition": "UNRESOLVED_PRESERVE",
+      "size_bytes": 154436574,
+      "last_write_utc": "2026-08-23T23:20:40.3279595Z",
+      "sha256": "C09D0D4F6EA1914EC526ED58761BB85978E1D40194B7437CDE3974F0DB487EA0",
+      "extension": ".exe",
+      "top_component": "docs"
+    },
+    {
+      "path": "docs/history/task-artifacts/v0.6.11-candidate-bf0c483/ArcheAxis.exe",
+      "disposition": "UNRESOLVED_PRESERVE",
+      "size_bytes": 9167872,
+      "last_write_utc": "2026-08-23T23:20:40.3592841Z",
+      "sha256": "0D8E2ADF5AE0804745874EC9FF8EDA9023474F357BC2AE21C159637FF39A1C98",
+      "extension": ".exe",
+      "top_component": "docs"
+    },
+    {
+      "path": "docs/history/task-artifacts/v0.6.11-candidate-bf0c483/frontend-dist.zip",
+      "disposition": "UNRESOLVED_PRESERVE",
+      "size_bytes": 64112,
+      "last_write_utc": "2026-08-23T23:20:40.3614180Z",
+      "sha256": "D968C901440A61A77ED10967A0E9BF699125CCDDAF19BA20BAA5CB7EA8C43588",
+      "extension": ".zip",
+      "top_component": "docs"
+    },
+    {
+      "path": "docs/history/task-artifacts/v0.6.11-candidate-bf0c483/release-candidate.json",
+      "disposition": "UNRESOLVED_PRESERVE",
+      "size_bytes": 851,
+      "last_write_utc": "2026-08-23T23:20:40.3619329Z",
+      "sha256": "029B5B4FF2DDD641B531193F25C6EF8BC53DC9DD87A672698E61F4A58936CB74",
+      "extension": ".json",
+      "top_component": "docs"
+    },
+    {
+      "path": "docs/history/task-artifacts/verification/full-local-gate-2026-09-02.log",
+      "disposition": "UNRESOLVED_PRESERVE",
+      "size_bytes": 8093,
+      "last_write_utc": "2026-09-01T17:10:29.6806483Z",
+      "sha256": "14505719396EE98915211A4227993ED797BC5A79B693F80CDAC0B123C3ED8A23",
+      "extension": ".log",
+      "top_component": "docs"
+    },
+    {
+      "path": "docs/history/task-artifacts/verification/full-local-gate-after-truth-drift-20260902.log",
+      "disposition": "UNRESOLVED_PRESERVE",
+      "size_bytes": 22410,
+      "last_write_utc": "2026-09-01T18:59:04.7203010Z",
+      "sha256": "21C98D90A30BFA1A950FB6B7340028F55B9F9AED4CB650AEEB5F2B035DFFC2EC",
+      "extension": ".log",
+      "top_component": "docs"
+    },
+    {
+      "path": "docs/history/task-artifacts/verification/full-local-gate-multiformat-rerun-20260902.log",
+      "disposition": "UNRESOLVED_PRESERVE",
+      "size_bytes": 3701,
+      "last_write_utc": "2026-09-01T18:30:45.2725614Z",
+      "sha256": "10436B25055E8E1C5B5E34626347EB9C8F549F8945E51F8392A6D7B602224EE1",
+      "extension": ".log",
+      "top_component": "docs"
+    },
+    {
+      "path": "docs/history/task-artifacts/verification/full-local-gate-plus-knowledge-20260902.log",
+      "disposition": "UNRESOLVED_PRESERVE",
+      "size_bytes": 22603,
+      "last_write_utc": "2026-09-01T19:01:27.5551493Z",
+      "sha256": "7A627E82307A6C57439DCF2A4A0C61D4413D22724479B8F4F3ADD3FDEA9232BB",
+      "extension": ".log",
+      "top_component": "docs"
+    },
+    {
+      "path": "docs/history/task-artifacts/verification/full-local-gate-post-version-fix-2026-09-02.log",
+      "disposition": "UNRESOLVED_PRESERVE",
+      "size_bytes": 3873,
+      "last_write_utc": "2026-09-01T17:13:41.9201842Z",
+      "sha256": "54639FFB6DD205B01D1864283C083B308001B0BBAFB6D66D3E5969B715B9A727",
+      "extension": ".log",
+      "top_component": "docs"
+    },
+    {
+      "path": "docs/history/task-artifacts/web-chain/golden-web-anchor-edge.png",
+      "disposition": "UNRESOLVED_PRESERVE",
+      "size_bytes": 14574,
+      "last_write_utc": "2026-09-02T15:04:08.0341075Z",
+      "sha256": "F86AB665304E53038409B59471FC21F70D079C4B68031251E304776CFFC17012",
+      "extension": ".png",
+      "top_component": "docs"
+    },
+    {
+      "path": "docs/history/task-artifacts/web-chain/golden-web-anchor-playwright.png",
+      "disposition": "UNRESOLVED_PRESERVE",
+      "size_bytes": 11369,
+      "last_write_utc": "2026-09-02T14:58:08.4454507Z",
+      "sha256": "FF0F49845FD98296A8C96F149CD2854613B24475831A476C056802A1599EDBB9",
+      "extension": ".png",
+      "top_component": "docs"
+    },
+    {
+      "path": "docs/history/task-artifacts/web-chain/golden-web-anchor.png",
+      "disposition": "UNRESOLVED_PRESERVE",
+      "size_bytes": 14574,
+      "last_write_utc": "2026-09-02T14:55:49.4562034Z",
+      "sha256": "F86AB665304E53038409B59471FC21F70D079C4B68031251E304776CFFC17012",
+      "extension": ".png",
+      "top_component": "docs"
+    },
+    {
+      "path": "docs/history/task-runtime-scattered/frontend-consolidation-pr-body.md",
+      "disposition": "UNRESOLVED_PRESERVE",
+      "size_bytes": 1074,
+      "last_write_utc": "2026-08-28T15:34:20.8244855Z",
+      "sha256": "54DB0CB018470D411ED1B47E6201324B38F0940EC08BEA5B84D993BFD6B3D170",
+      "extension": ".md",
+      "top_component": "docs"
+    },
+    {
+      "path": "docs/history/task-runtime-scattered/generated-dependencies.md",
+      "disposition": "UNRESOLVED_PRESERVE",
+      "size_bytes": 6138,
+      "last_write_utc": "2026-08-14T14:59:01.7399922Z",
+      "sha256": "CB177C3255EAC6BF3D47CDD8965575235E4D36E1EBF13E0C4947D935924C8D8C",
+      "extension": ".md",
+      "top_component": "docs"
+    },
+    {
+      "path": "docs/history/task-runtime-scattered/log175_draft.md",
+      "disposition": "UNRESOLVED_PRESERVE",
+      "size_bytes": 5327,
+      "last_write_utc": "2026-08-14T14:14:06.4010529Z",
+      "sha256": "859FD315B25EF34C0DE0C0D15BE3B1A79712ED1BC66201648B5D38CEB426484B",
+      "extension": ".md",
+      "top_component": "docs"
+    },
+    {
+      "path": "docs/history/task-runtime-scattered/ms00-b-handoff.md",
+      "disposition": "UNRESOLVED_PRESERVE",
+      "size_bytes": 3375,
+      "last_write_utc": "2026-08-07T11:31:55.1221288Z",
+      "sha256": "A232D20A6756B105070AB1C92B0BF0C2C8C9645AB5697A3C98667DFFF4D047D3",
+      "extension": ".md",
+      "top_component": "docs"
+    },
+    {
+      "path": "docs/history/task-runtime-scattered/pipeline-pr-body.md",
+      "disposition": "UNRESOLVED_PRESERVE",
+      "size_bytes": 829,
+      "last_write_utc": "2026-08-29T13:27:42.6608761Z",
+      "sha256": "42BE4CB990E6601D6C7160E9FF999DDD9DF2A3786C2B3C237002AB956ECD4893",
+      "extension": ".md",
+      "top_component": "docs"
+    },
+    {
+      "path": "docs/history/task-runtime-scattered/pipeline-review-prompt.md",
+      "disposition": "UNRESOLVED_PRESERVE",
+      "size_bytes": 4560,
+      "last_write_utc": "2026-08-11T13:16:39.1665445Z",
+      "sha256": "D4ECB0570A218B4ABBA85AB59B74976B28C5D0795AE4CAA064496B973ED120A1",
+      "extension": ".md",
+      "top_component": "docs"
+    },
+    {
+      "path": "docs/history/task-runtime-scattered/post-merge-ui-audit-pr-body.md",
+      "disposition": "UNRESOLVED_PRESERVE",
+      "size_bytes": 1598,
+      "last_write_utc": "2026-08-28T17:28:19.1839876Z",
+      "sha256": "05E533860B3AF824E2C4CFAF5550976F5F80675E67F9F0F37B52B450428FD91D",
+      "extension": ".md",
+      "top_component": "docs"
+    },
+    {
+      "path": "docs/history/task-runtime-scattered/project-pipelines-inventory.md",
+      "disposition": "UNRESOLVED_PRESERVE",
+      "size_bytes": 9497,
+      "last_write_utc": "2026-08-11T13:21:52.0611742Z",
+      "sha256": "106C047C54693894BCA8BE5112E19E276A9209B917EB42BFA77B346ADC3B57FA",
+      "extension": ".md",
+      "top_component": "docs"
+    },
+    {
+      "path": "docs/history/task-runtime-scattered/recovery-content-truth-pr-body.md",
+      "disposition": "UNRESOLVED_PRESERVE",
+      "size_bytes": 1394,
+      "last_write_utc": "2026-08-28T19:53:55.5496694Z",
+      "sha256": "7904850D50FD6787F2ED9887107D7B936B72FB0DA181CE1C7878EBAE8DBBCC81",
+      "extension": ".md",
+      "top_component": "docs"
+    },
+    {
+      "path": "docs/history/task-runtime-scattered/revert-unapproved-theme-20260902.patch",
+      "disposition": "UNRESOLVED_PRESERVE",
+      "size_bytes": 20024,
+      "last_write_utc": "2026-09-02T15:48:35.4021446Z",
+      "sha256": "1A7CBD1DCF8E0F51C6BC6ECCAF924D15F0E328B29D4376BD8A1AF2EFE261142C",
+      "extension": ".patch",
+      "top_component": "docs"
+    },
+    {
+      "path": "docs/history/task-runtime-scattered/web-crosscheck-report-2026-08-11.md",
+      "disposition": "UNRESOLVED_PRESERVE",
+      "size_bytes": 5794,
+      "last_write_utc": "2026-08-11T13:06:34.4006797Z",
+      "sha256": "91FF9766E71421F84D4F84CEAF59D67E5D51E42498850955CCDB7C5A4A5FE46A",
+      "extension": ".md",
+      "top_component": "docs"
+    },
+    {
+      "path": "docs/history/worktree-preserved-diffs/hermes__task-runtime__ci-baseline-db13d056.patch",
+      "disposition": "UNRESOLVED_PRESERVE",
+      "size_bytes": 9237,
+      "last_write_utc": "2026-09-13T05:22:27.3312122Z",
+      "sha256": "8F28283558189D136895AFCCF8E5A8308DBBA58B0A459DF5816FD6B06858A7C8",
+      "extension": ".patch",
+      "top_component": "docs"
+    },
+    {
+      "path": "docs/history/worktree-preserved-diffs/hermes__task-runtime__ci-release-optimization.patch",
+      "disposition": "UNRESOLVED_PRESERVE",
+      "size_bytes": 634,
+      "last_write_utc": "2026-09-13T05:22:35.1505364Z",
+      "sha256": "AB0B673D991A0B3AA0187B3AB5A9034FD90784715F3268B4220BB9F9E802348F",
+      "extension": ".patch",
+      "top_component": "docs"
+    },
+    {
+      "path": "docs/history/worktree-preserved-diffs/hermes__task-runtime__client-write-boundary-task1-scope.patch",
+      "disposition": "UNRESOLVED_PRESERVE",
+      "size_bytes": 3638,
+      "last_write_utc": "2026-09-13T05:22:35.7475863Z",
+      "sha256": "30635B9D9389F48A76B8E761251D2A023D114A3FE9F2307A4F605D3B6F25EE77",
+      "extension": ".patch",
+      "top_component": "docs"
+    },
+    {
+      "path": "docs/history/worktree-preserved-diffs/hermes__task-runtime__evidence-anchor-pagination.patch",
+      "disposition": "UNRESOLVED_PRESERVE",
+      "size_bytes": 85,
+      "last_write_utc": "2026-09-13T05:22:36.1081769Z",
+      "sha256": "30BD011506BFBC97B45C5F3C18FDA5BB9DDF6F472E8046B693B383DF53E2BAC8",
+      "extension": ".patch",
+      "top_component": "docs"
+    },
+    {
+      "path": "docs/history/worktree-preserved-diffs/hermes__task-runtime__post-release-v068.patch",
+      "disposition": "UNRESOLVED_PRESERVE",
+      "size_bytes": 526,
+      "last_write_utc": "2026-09-13T05:23:02.6068888Z",
+      "sha256": "3F5C692B159B7FD21FED33528DDFEBE1E736D3140783EBE65EC9E7E1ECF5C822",
+      "extension": ".patch",
+      "top_component": "docs"
+    },
+    {
+      "path": "docs/history/worktree-preserved-diffs/hermes__task-runtime__post-release-v069.patch",
+      "disposition": "UNRESOLVED_PRESERVE",
+      "size_bytes": 526,
+      "last_write_utc": "2026-09-13T05:23:02.7818814Z",
+      "sha256": "F3E12D4FB3BAD56A51F6CA07C238D0870C01A44D4826DEBE5D784CE82BF410D5",
+      "extension": ".patch",
+      "top_component": "docs"
+    },
+    {
+      "path": "docs/history/worktree-preserved-diffs/hermes__task-runtime__release-v069.patch",
+      "disposition": "UNRESOLVED_PRESERVE",
+      "size_bytes": 521,
+      "last_write_utc": "2026-09-13T05:23:22.1161099Z",
+      "sha256": "D2ADEF464FCC15E655253D1E64428755E76CF13D71329BA2B0F5B3275A59F667",
+      "extension": ".patch",
+      "top_component": "docs"
+    },
+    {
+      "path": "docs/history/worktree-preserved-diffs/hermes__task-runtime__worktrees__pipeline-green-hotfix.patch",
+      "disposition": "UNRESOLVED_PRESERVE",
+      "size_bytes": 540,
+      "last_write_utc": "2026-09-13T05:23:30.7110749Z",
+      "sha256": "D79361F640E85FECCCD8BD086D4CE8E8278194BB994554CD7938F84866FFF82B",
+      "extension": ".patch",
+      "top_component": "docs"
+    }
+  ]
+}

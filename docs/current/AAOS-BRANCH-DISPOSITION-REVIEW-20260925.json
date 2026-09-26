@@ -1,0 +1,1313 @@
+{
+  "schema_version": "aaos-branch-disposition-review/v1",
+  "generated_at": "2026-09-26T05:27:56.083628+00:00",
+  "source_manifest": "docs/current/AAOS-BRANCH-COMMIT-PATH-AUDIT-20260925.json",
+  "base_sha": "e3875db0ee6d073d37839eb7b95f7ef4ce881bbb",
+  "active_sha": "2994efa08d3e4f6ea561831fd4088d6d1b290cdd",
+  "authority_refs": [
+    "AGENTS.md §6",
+    "docs/authority/taskpack-0919-r6/TASKPACK.md",
+    "docs/current/M0-DIRECTION-OVERRIDE-20260920.md",
+    "docs/LANGUAGE_BOUNDARY_AUTHORITY_INDEX.md",
+    "docs/DIRECTORY_AUTHORITY_INDEX.md"
+  ],
+  "limitations": "Refreshed on 2026-09-26 after exact-tip reviews and one narrowly scoped local-ref cleanup. Current graph and local refs are in live_readback_20260926. Seven live origin heads remain as recorded in the 03:48 UTC readback; the 12 user-deleted heads remain absent. Only audit/r5-independent-audit-20260919 was removed after its sole commit was patch-equivalent and its document blob matched HEAD. Other local refs/worktrees are retained because they contain unique patches, are active/dirty, or have unresolved custody. No push, merge to main, Green, or release action.",
+  "branches": [
+    {
+      "branch": "agent/phase5-research-knowledge-governance",
+      "tip": "0a5e1bfa94209ccded6aa993c89c581bbfd00227",
+      "branch_commit_records": 1,
+      "disposition": "CAPABILITY_DONOR_REVIEW_AGAINST_R6_BEFORE_ANY_PORT",
+      "authority_basis": "AGENTS.md §6; R6 TASKPACK A00-A16 and §18 Research; M0-SHORTEST-COMPLETE-LOOP; current language/directory authority indexes",
+      "owner": "UNKNOWN",
+      "owner_recovery_receipt": "MISSING",
+      "unique_commit_semantic_review": "PARTIAL_20260926",
+      "merge_delete_authorized": false,
+      "content_review_20260926": {
+        "branch_tip": "0a5e1bfa94209ccded6aa993c89c581bbfd00227",
+        "merge_base": "752997d7f712655ef73e99c657111ebfaa45dcf5",
+        "unique_commits": [
+          "0a5e1bfa94209ccded6aa993c89c581bbfd00227"
+        ],
+        "verdict": "PARTIALLY_REIMPLEMENTED; NO_WHOLESALE_PORT; RETAIN_UNIQUE_DESIGN_FOR_REVIEW",
+        "evidence": [
+          "Donor app/adapters/research_knowledge.py projects source/claim/evidence candidate units and relations; current app/knowledge/promotion.py projects source/claim.",
+          "Donor shared/knowledge_migration.py protects decision UPDATE/DELETE with triggers; current shared/knowledge_governance_migration.py implements governance events and replay fingerprints, but equivalent immutable-decision triggers were not found.",
+          "Donor app/facades/knowledge.py human: prefix is not authenticated reviewer identity; legacy Python knowledge.sqlite writer conflicts with R6 Rust canonical writer."
+        ],
+        "remaining_gap": "Review evidence-unit relationships and immutable-ledger requirements against M0 before any Rust implementation. No full behavioral equivalence, ownership/custody, remote PR or deletion eligibility established.",
+        "subject_sha": "2994efa08d3e4f6ea561831fd4088d6d1b290cdd",
+        "evidence_level": "READ_ONLY_SEMANTIC_REVIEW_NO_RUNTIME_TESTS"
+      },
+      "graph_readback_20260926": {
+        "checked_at": "2026-09-26T01:08:44.810922+00:00",
+        "subject_sha": "2994efa08d3e4f6ea561831fd4088d6d1b290cdd",
+        "recorded_tip": "0a5e1bfa94209ccded6aa993c89c581bbfd00227",
+        "scope": "Local Git commit graph only; not semantic acceptance, live cloud state or cleanup authorization.",
+        "object_present": true,
+        "head_only_commits": 1731,
+        "recorded_tip_only_commits": 1,
+        "recorded_tip_contained_in_head": false,
+        "current_local_ref_tip": "0a5e1bfa94209ccded6aa993c89c581bbfd00227",
+        "recorded_tip_matches_current_local_ref": true
+      }
+    },
+    {
+      "branch": "audit/r5-independent-audit-20260919",
+      "tip": "6daca18e79b0749e86ca9c7bc320052b8ac12752",
+      "branch_commit_records": 1,
+      "disposition": "LOCAL_REF_DELETED_PATCH_EQUIVALENT_CONTENT_RETAINED",
+      "authority_basis": "AGENTS.md §6; R6 TASKPACK A00-A16 and §18 Research; M0-SHORTEST-COMPLETE-LOOP; current language/directory authority indexes",
+      "owner": "UNKNOWN",
+      "owner_recovery_receipt": "MISSING",
+      "unique_commit_semantic_review": "CONTENT_REVIEWED_WITH_LIMITS_20260926",
+      "merge_delete_authorized": true,
+      "graph_readback_20260926": {
+        "checked_at": "2026-09-26T01:08:44.810922+00:00",
+        "subject_sha": "2994efa08d3e4f6ea561831fd4088d6d1b290cdd",
+        "recorded_tip": "6daca18e79b0749e86ca9c7bc320052b8ac12752",
+        "scope": "Local Git commit graph only; not semantic acceptance, live cloud state or cleanup authorization.",
+        "object_present": true,
+        "head_only_commits": 369,
+        "recorded_tip_only_commits": 1,
+        "recorded_tip_contained_in_head": false,
+        "current_local_ref_tip": "6daca18e79b0749e86ca9c7bc320052b8ac12752",
+        "recorded_tip_matches_current_local_ref": true
+      },
+      "content_review_20260926": {
+        "subject_sha": "2994efa08d3e4f6ea561831fd4088d6d1b290cdd",
+        "branch_tip": "6daca18e79b0749e86ca9c7bc320052b8ac12752",
+        "verdict": "EXACT_DOCUMENT_ABSORBED",
+        "evidence": "Only changed path docs/current/R5-INDEPENDENT-AUDIT-20260919.md has identical donor/HEAD blob dcb1e1563c2250a614cc068ef26be3db3ef7972b; historical report, not current qualification.",
+        "remaining_gap": "Owner/custody and live remote state unverified; no deletion eligibility or runtime equivalence inferred."
+      },
+      "local_ref_cleanup_20260926": {
+        "branch": "audit/r5-independent-audit-20260919",
+        "deleted_expected_tip": "6daca18e79b0749e86ca9c7bc320052b8ac12752",
+        "checked_after_cleanup_absent": true,
+        "worktree_attached": false,
+        "remote_head_present": false,
+        "unique_branch_commits": 1,
+        "patch_equivalent_commits": 1,
+        "unique_patches": 0,
+        "exact_document_path": "docs/current/R5-INDEPENDENT-AUDIT-20260919.md",
+        "head_blob_match": "dcb1e1563c2250a614cc068ef26be3db3ef7972b",
+        "content_preserved_in_head": true,
+        "operation": "git update-ref -d refs/heads/audit/r5-independent-audit-20260919 <expected-tip>"
+      }
+    },
+    {
+      "branch": "audit/unreleased-real-version",
+      "tip": "40922904e0268788f6851057439521732bd2f451",
+      "branch_commit_records": 2,
+      "disposition": "LEGACY_CODE_DONOR_REVIEW_AGAINST_R6_BEFORE_ANY_PORT",
+      "authority_basis": "AGENTS.md §6; R6 TASKPACK A00-A16 and §18 Research; M0-SHORTEST-COMPLETE-LOOP; current language/directory authority indexes",
+      "owner": "UNKNOWN",
+      "owner_recovery_receipt": "MISSING",
+      "unique_commit_semantic_review": "PARTIAL_20260926",
+      "merge_delete_authorized": false,
+      "content_review_20260926": {
+        "branch_tip": "40922904e0268788f6851057439521732bd2f451",
+        "merge_base": "492fac5982c693eb668d31cc51a6a59bac83b7a1",
+        "unique_commits": [
+          "600b25e0e3a37032bfb31581d92d88b978dcf883",
+          "40922904e0268788f6851057439521732bd2f451"
+        ],
+        "verdict": "FUNCTIONAL_INTENT_ABSORBED; NO_PORT_REQUIRED; RETAIN_PENDING_CUSTODY_REVIEW",
+        "evidence": [
+          "HEAD pyproject.toml provides markitdown[pdf,docx,pptx,xlsx], covering donor PDF extra intent; exact donor PDF fixture test equivalence not established.",
+          "desktop/src-tauri/src/main.rs donor and HEAD blob both 7e9a9724b83a5df1926ceeed73a329f77a70d729; current formal Avalonia csproj OutputType is WinExe. Old lockfile digest must not be restored."
+        ],
+        "remaining_gap": "Historical fixture coverage equivalence, owner/custody and remote PR status remain unverified. No deletion eligibility.",
+        "subject_sha": "2994efa08d3e4f6ea561831fd4088d6d1b290cdd",
+        "evidence_level": "READ_ONLY_SEMANTIC_REVIEW_NO_RUNTIME_TESTS"
+      },
+      "graph_readback_20260926": {
+        "checked_at": "2026-09-26T01:08:44.810922+00:00",
+        "subject_sha": "2994efa08d3e4f6ea561831fd4088d6d1b290cdd",
+        "recorded_tip": "40922904e0268788f6851057439521732bd2f451",
+        "scope": "Local Git commit graph only; not semantic acceptance, live cloud state or cleanup authorization.",
+        "object_present": true,
+        "head_only_commits": 1545,
+        "recorded_tip_only_commits": 2,
+        "recorded_tip_contained_in_head": false,
+        "current_local_ref_tip": "40922904e0268788f6851057439521732bd2f451",
+        "recorded_tip_matches_current_local_ref": true
+      }
+    },
+    {
+      "branch": "axw/execution-h0",
+      "tip": "39df7d263ef6ac6e8d5c2e07c2de64261fdaeda8",
+      "branch_commit_records": 8,
+      "disposition": "LEGACY_CODE_DONOR_REVIEW_AGAINST_R6_BEFORE_ANY_PORT",
+      "authority_basis": "AGENTS.md §6; R6 TASKPACK A00-A16 and §18 Research; M0-SHORTEST-COMPLETE-LOOP; current language/directory authority indexes",
+      "owner": "UNKNOWN",
+      "owner_recovery_receipt": "MISSING",
+      "unique_commit_semantic_review": "PARTIAL_20260926",
+      "merge_delete_authorized": false,
+      "content_review_20260926": {
+        "subject_sha": "2994efa08d3e4f6ea561831fd4088d6d1b290cdd",
+        "branch_tip": "39df7d263ef6ac6e8d5c2e07c2de64261fdaeda8",
+        "unique_commits": [
+          "39df7d263ef6ac6e8d5c2e07c2de64261fdaeda8",
+          "35066f8c99c8767f0a1944ec573333791c74572f",
+          "b35aae0ca4478f12cfff9968d954f87e30bf29cf",
+          "d7acc8b34d7c3594a18a96669921263166cc9e66",
+          "9ff5ba6e8b22b3671e3ddf542087598c729aafe7",
+          "7b7df254286df7f4fee73fdf6f500a2f9e4a7f55",
+          "275bd904b5eb00fa02adee4d596cfa909a6c71fb",
+          "8cdfb21116892885a0bfa014ff0d7171f2761407"
+        ],
+        "evidence_level": "READ_ONLY_PARTIAL_SEMANTIC_REVIEW",
+        "verdict": "KEEP_EXISTING_CONTENT; SUPERSEDED_AS_WHOLESALE_PORT; PRESERVE_PENDING_REMAINING_REVIEW",
+        "remaining_gap": "Not all historical assertions and business branches examined; no full equivalence or deletion eligibility claimed",
+        "authority": "R6/M0; formal Avalonia desktop; Rust canonical writer; .project-local outputs; no release"
+      },
+      "graph_readback_20260926": {
+        "checked_at": "2026-09-26T01:08:44.810922+00:00",
+        "subject_sha": "2994efa08d3e4f6ea561831fd4088d6d1b290cdd",
+        "recorded_tip": "39df7d263ef6ac6e8d5c2e07c2de64261fdaeda8",
+        "scope": "Local Git commit graph only; not semantic acceptance, live cloud state or cleanup authorization.",
+        "object_present": true,
+        "head_only_commits": 1545,
+        "recorded_tip_only_commits": 8,
+        "recorded_tip_contained_in_head": false,
+        "current_local_ref_tip": "39df7d263ef6ac6e8d5c2e07c2de64261fdaeda8",
+        "recorded_tip_matches_current_local_ref": true
+      }
+    },
+    {
+      "branch": "axw/execution-h1",
+      "tip": "1c688c71eace449be2972acc538c0a8eb31dab89",
+      "branch_commit_records": 16,
+      "disposition": "LEGACY_CODE_DONOR_REVIEW_AGAINST_R6_BEFORE_ANY_PORT",
+      "authority_basis": "AGENTS.md §6; R6 TASKPACK A00-A16 and §18 Research; M0-SHORTEST-COMPLETE-LOOP; current language/directory authority indexes",
+      "owner": "UNKNOWN",
+      "owner_recovery_receipt": "MISSING",
+      "unique_commit_semantic_review": "PARTIAL_20260926",
+      "merge_delete_authorized": false,
+      "content_review_20260926": {
+        "subject_sha": "2994efa08d3e4f6ea561831fd4088d6d1b290cdd",
+        "branch_tip": "1c688c71eace449be2972acc538c0a8eb31dab89",
+        "unique_commits": [
+          "1c688c71eace449be2972acc538c0a8eb31dab89",
+          "78091cc1c6347293ef2c95eba76ca5b814567f21",
+          "5579d61413e8c39aa32d61ec5fd360b18f8cc45f",
+          "d9b03e24fa38319d2dfcc0e4bccc0e3035898e99",
+          "873e65235556db8b492331c9ed90282d76630e0a",
+          "dd7a0a05a5850b51f54e95bf9070e73ad338405d",
+          "58c5664483f1f11d2cc0ea1cbadbdf922dbb8401",
+          "bb951f0606c879935095388ff4203a8fefa97bd7",
+          "9abded5ee831752bec650476d75bf9a941785707",
+          "9ca07ff491274e8b565ac8483c9f9a08cf0be8c0",
+          "f09f94079caf302c47bc38332a8e21cec7e6a667",
+          "514841d744f8b6add6246f8d4b883c951a80d96e",
+          "bc6cad22f00aae6e36219911ce8ef0317b7e02cf",
+          "c09379e345fc477707293fd68219ab7406a85cd4",
+          "4a624407c9436bf60cbc63691b84a9a6e645578a",
+          "ad4480e56109721c4acbb94607782a05f012edb4"
+        ],
+        "evidence_level": "READ_ONLY_PARTIAL_SEMANTIC_REVIEW",
+        "verdict": "KEEP_EXISTING_CONTENT; SUPERSEDED_AS_WHOLESALE_PORT; PRESERVE_PENDING_REMAINING_REVIEW",
+        "remaining_gap": "Not all historical assertions and business branches examined; no full equivalence or deletion eligibility claimed",
+        "authority": "R6/M0; formal Avalonia desktop; Rust canonical writer; .project-local outputs; no release"
+      },
+      "graph_readback_20260926": {
+        "checked_at": "2026-09-26T01:08:44.810922+00:00",
+        "subject_sha": "2994efa08d3e4f6ea561831fd4088d6d1b290cdd",
+        "recorded_tip": "1c688c71eace449be2972acc538c0a8eb31dab89",
+        "scope": "Local Git commit graph only; not semantic acceptance, live cloud state or cleanup authorization.",
+        "object_present": true,
+        "head_only_commits": 1544,
+        "recorded_tip_only_commits": 16,
+        "recorded_tip_contained_in_head": false,
+        "current_local_ref_tip": "1c688c71eace449be2972acc538c0a8eb31dab89",
+        "recorded_tip_matches_current_local_ref": true
+      }
+    },
+    {
+      "branch": "chore/naming-repo-refs",
+      "tip": "a9aa0665cc0b99fb222b04169a004cd23b04c7cc",
+      "branch_commit_records": 3,
+      "disposition": "LEGACY_CODE_DONOR_REVIEW_AGAINST_R6_BEFORE_ANY_PORT",
+      "authority_basis": "AGENTS.md §6; R6 TASKPACK A00-A16 and §18 Research; M0-SHORTEST-COMPLETE-LOOP; current language/directory authority indexes",
+      "owner": "UNKNOWN",
+      "owner_recovery_receipt": "MISSING",
+      "unique_commit_semantic_review": "CONTENT_REVIEWED_WITH_LIMITS_20260926",
+      "merge_delete_authorized": false,
+      "graph_readback_20260926": {
+        "checked_at": "2026-09-26T01:08:44.810922+00:00",
+        "subject_sha": "2994efa08d3e4f6ea561831fd4088d6d1b290cdd",
+        "recorded_tip": "a9aa0665cc0b99fb222b04169a004cd23b04c7cc",
+        "scope": "Local Git commit graph only; not semantic acceptance, live cloud state or cleanup authorization.",
+        "object_present": true,
+        "head_only_commits": 1483,
+        "recorded_tip_only_commits": 3,
+        "recorded_tip_contained_in_head": false,
+        "current_local_ref_tip": "a9aa0665cc0b99fb222b04169a004cd23b04c7cc",
+        "recorded_tip_matches_current_local_ref": true
+      },
+      "content_review_20260926": {
+        "subject_sha": "2994efa08d3e4f6ea561831fd4088d6d1b290cdd",
+        "branch_tip": "a9aa0665cc0b99fb222b04169a004cd23b04c7cc",
+        "verdict": "SUPERSEDED_NAMING_NO_PORT",
+        "evidence": "Old owner/repo slug conflicts with NAMING_CONTRACT_V2. Current standalone scripts/ci/classify.py slug was independently fixed to DTALEX66/ArcheAxis-Knowledge-OS; CLI readback passed. Wide Cargo cache fallback was reviewed; no demonstrated incompatibility, no speculative workflow change.",
+        "remaining_gap": "Owner/custody and live remote state unverified; no deletion eligibility or runtime equivalence inferred."
+      }
+    },
+    {
+      "branch": "codex/aaos-p3-ui-convergence-20260922",
+      "tip": "a5de4b13474c217e7a9dd34b8cbfa402e8297780",
+      "branch_commit_records": 166,
+      "disposition": "CURRENT_ACTIVE_BRANCH",
+      "authority_basis": "AGENTS.md §6; R6 TASKPACK A00-A16 and §18 Research; M0-SHORTEST-COMPLETE-LOOP; current language/directory authority indexes",
+      "owner": "UNKNOWN",
+      "owner_recovery_receipt": "MISSING",
+      "unique_commit_semantic_review": "NOT_DONE",
+      "merge_delete_authorized": false,
+      "graph_readback_20260926": {
+        "checked_at": "2026-09-26T01:08:44.810922+00:00",
+        "subject_sha": "2994efa08d3e4f6ea561831fd4088d6d1b290cdd",
+        "recorded_tip": "a5de4b13474c217e7a9dd34b8cbfa402e8297780",
+        "scope": "Local Git commit graph only; not semantic acceptance, live cloud state or cleanup authorization.",
+        "object_present": true,
+        "head_only_commits": 7,
+        "recorded_tip_only_commits": 0,
+        "recorded_tip_contained_in_head": true,
+        "current_local_ref_tip": "2994efa08d3e4f6ea561831fd4088d6d1b290cdd",
+        "recorded_tip_matches_current_local_ref": false
+      },
+      "active_delivery_scope_note": "Recorded a5de4b snapshot predates current 2994efa by seven commits; 166 inventory records are not 166 audited commits. Current dirty work and later commits require their own review. Active checkout must be preserved.",
+      "post_inventory_commit_review": {
+        "range": "a5de4b13474c217e7a9dd34b8cbfa402e8297780..2994efa08d3e4f6ea561831fd4088d6d1b290cdd",
+        "commits": 7,
+        "documentation_only": 5,
+        "tests_fixtures_only": 1,
+        "mixed_with_production_code": 1,
+        "production_delta": "5bb89aa7 worker_text header_capped metadata and note; current test_p1_quality_matrix 11 passed, 2 subtests passed. Full dirty-worktree and all test semantics not covered.",
+        "run": "493d04ac7dc7",
+        "pytest_warning": "project-local pytest cache write denied; no permission bypass"
+      }
+    },
+    {
+      "branch": "codex/ci-release-optimization",
+      "tip": "74ca55361371551030838257280d19fc343ac5cb",
+      "branch_commit_records": 7,
+      "disposition": "HISTORICAL_RELEASE_OR_ROADMAP_FREEZE_RETAIN_EVIDENCE",
+      "authority_basis": "AGENTS.md §6; R6 TASKPACK A00-A16 and §18 Research; M0-SHORTEST-COMPLETE-LOOP; current language/directory authority indexes",
+      "owner": "UNKNOWN",
+      "owner_recovery_receipt": "MISSING",
+      "unique_commit_semantic_review": "TREE_ABSORPTION_PROVEN_CURRENT_KEY_PATHS_REVIEWED_20260926",
+      "merge_delete_authorized": false,
+      "graph_readback_20260926": {
+        "checked_at": "2026-09-26T01:08:44.810922+00:00",
+        "subject_sha": "2994efa08d3e4f6ea561831fd4088d6d1b290cdd",
+        "recorded_tip": "74ca55361371551030838257280d19fc343ac5cb",
+        "scope": "Local Git commit graph only; not semantic acceptance, live cloud state or cleanup authorization.",
+        "object_present": true,
+        "head_only_commits": 1236,
+        "recorded_tip_only_commits": 7,
+        "recorded_tip_contained_in_head": false,
+        "current_local_ref_tip": null,
+        "recorded_tip_matches_current_local_ref": false
+      },
+      "content_review_20260926": {
+        "subject_sha": "2994efa08d3e4f6ea561831fd4088d6d1b290cdd",
+        "branch_tip": "74ca55361371551030838257280d19fc343ac5cb",
+        "absorbing_commit": "93e58a3b2c537dd348903dd2296933e0cfb5a503",
+        "identical_tree": "545eaa7ef62bab9e92e55a9ef598012bb368680a",
+        "verdict": "HISTORICAL_TREE_ABSORBED_NO_WHOLESALE_PORT",
+        "evidence": "Source archive/AI candidate governance remains in Python compatibility surface; worktree isolation moved to git-common-dir/.project-local. Old React six-space tests and v0.6.8 release path do not qualify formal Avalonia/Rust R6.",
+        "remaining_gap": "Current semantic review sampled key commits, not all 100 paths. Formal Research/Recovery and AI-governance mapping remain open. No deletion eligibility."
+      }
+    },
+    {
+      "branch": "codex/execution-reliability-standards",
+      "tip": "affc0abcea7d080542e3f294322403f27ec6352a",
+      "branch_commit_records": 2,
+      "disposition": "HISTORICAL_GOVERNANCE_EVIDENCE_CROSSWALK_ONLY",
+      "authority_basis": "AGENTS.md §6; R6 TASKPACK A00-A16 and §18 Research; M0-SHORTEST-COMPLETE-LOOP; current language/directory authority indexes",
+      "owner": "UNKNOWN",
+      "owner_recovery_receipt": "MISSING",
+      "unique_commit_semantic_review": "PARTIAL_ARCHIVE_20260926",
+      "merge_delete_authorized": false,
+      "graph_readback_20260926": {
+        "checked_at": "2026-09-26T01:08:44.810922+00:00",
+        "subject_sha": "2994efa08d3e4f6ea561831fd4088d6d1b290cdd",
+        "recorded_tip": "affc0abcea7d080542e3f294322403f27ec6352a",
+        "scope": "Local Git commit graph only; not semantic acceptance, live cloud state or cleanup authorization.",
+        "object_present": true,
+        "head_only_commits": 1543,
+        "recorded_tip_only_commits": 2,
+        "recorded_tip_contained_in_head": false,
+        "current_local_ref_tip": "affc0abcea7d080542e3f294322403f27ec6352a",
+        "recorded_tip_matches_current_local_ref": true
+      },
+      "content_review_20260926": {
+        "subject_sha": "2994efa08d3e4f6ea561831fd4088d6d1b290cdd",
+        "branch_tip": "affc0abcea7d080542e3f294322403f27ec6352a",
+        "verdict": "UNIQUE_DOCUMENTS_FROZEN_OLD_QUEUE_NOT_ACTIVE",
+        "evidence": "Three unique documents preserved with hashes in docs/history/branch-donors/execution-reliability-20260926/ARCHIVE.json. Old H0-H5/.hermes instructions conflict with R6/M0. Remaining execution-log lineage not fully archived.",
+        "remaining_gap": "No live cloud/custody or deletion eligibility; partial findings retain their stated semantic gaps."
+      }
+    },
+    {
+      "branch": "codex/frozen-roadmap-deepseek-v1",
+      "tip": "fcfac4a8dac0cf285599a757e63ddb14e1f2ef6f",
+      "branch_commit_records": 149,
+      "disposition": "HISTORICAL_RELEASE_OR_ROADMAP_FREEZE_RETAIN_EVIDENCE",
+      "authority_basis": "AGENTS.md §6; R6 TASKPACK A00-A16 and §18 Research; M0-SHORTEST-COMPLETE-LOOP; current language/directory authority indexes",
+      "owner": "UNKNOWN",
+      "owner_recovery_receipt": "MISSING",
+      "unique_commit_semantic_review": "PATH_LEVEL_COMPLETE_KEY_SEMANTICS_SAMPLED_20260926",
+      "merge_delete_authorized": false,
+      "review_20260926": {
+        "tip": "fcfac4a8dac0cf285599a757e63ddb14e1f2ef6f",
+        "subject_sha": "2994efa08d3e4f6ea561831fd4088d6d1b290cdd",
+        "unique_commits": 149,
+        "changed_paths_from_merge_base": 137,
+        "runtime_source_paths": 0,
+        "checker_test_paths": 3,
+        "historical_source_package_paths": 103,
+        "planning_package_paths": 10,
+        "disposition": "RETAIN_HISTORICAL_DONOR_NO_WHOLE_BRANCH_MERGE",
+        "remaining": "Check privacy/source manifests before archiving 113 source/planning paths; preserve tip log; review remaining semantics. Fixed historical SHA gates must not replace R6/M0.",
+        "complete_commit_semantic_review": false
+      },
+      "reference_package_boundary_20260926": {
+        "historical_paths": 103,
+        "planning_paths": 10,
+        "reviewed": "README/manifests/index and original planning ZIP central directory only",
+        "zip_members": 5,
+        "zip_member_types": "five Markdown files, including one context handoff; no encryption flags",
+        "payload_read": false,
+        "verdict": "PRESERVE_PENDING_CONTENT_AND_HASH_REVIEW",
+        "remaining": "No complete privacy review of document content or DOCX objects; validate all manifest hashes and original-input provenance before archive. No source branch deletion."
+      },
+      "graph_readback_20260926": {
+        "checked_at": "2026-09-26T01:08:44.810922+00:00",
+        "subject_sha": "2994efa08d3e4f6ea561831fd4088d6d1b290cdd",
+        "recorded_tip": "fcfac4a8dac0cf285599a757e63ddb14e1f2ef6f",
+        "scope": "Local Git commit graph only; not semantic acceptance, live cloud state or cleanup authorization.",
+        "object_present": true,
+        "head_only_commits": 1545,
+        "recorded_tip_only_commits": 149,
+        "recorded_tip_contained_in_head": false,
+        "current_local_ref_tip": "fcfac4a8dac0cf285599a757e63ddb14e1f2ef6f",
+        "recorded_tip_matches_current_local_ref": true
+      }
+    },
+    {
+      "branch": "codex/post-release-v0.6.9",
+      "tip": "e50aad0d0407a3d726d048d56136e3bbe35455e1",
+      "branch_commit_records": 2,
+      "disposition": "HISTORICAL_RELEASE_OR_ROADMAP_FREEZE_RETAIN_EVIDENCE",
+      "authority_basis": "AGENTS.md §6; R6 TASKPACK A00-A16 and §18 Research; M0-SHORTEST-COMPLETE-LOOP; current language/directory authority indexes",
+      "owner": "UNKNOWN",
+      "owner_recovery_receipt": "MISSING",
+      "unique_commit_semantic_review": "TREE_ABSORPTION_PROVEN_RUNTIME_VERSION_DIFF_REVIEWED_20260926",
+      "merge_delete_authorized": false,
+      "graph_readback_20260926": {
+        "checked_at": "2026-09-26T01:08:44.810922+00:00",
+        "subject_sha": "2994efa08d3e4f6ea561831fd4088d6d1b290cdd",
+        "recorded_tip": "e50aad0d0407a3d726d048d56136e3bbe35455e1",
+        "scope": "Local Git commit graph only; not semantic acceptance, live cloud state or cleanup authorization.",
+        "object_present": true,
+        "head_only_commits": 1232,
+        "recorded_tip_only_commits": 2,
+        "recorded_tip_contained_in_head": false,
+        "current_local_ref_tip": null,
+        "recorded_tip_matches_current_local_ref": false
+      },
+      "content_review_20260926": {
+        "subject_sha": "2994efa08d3e4f6ea561831fd4088d6d1b290cdd",
+        "branch_tip": "e50aad0d0407a3d726d048d56136e3bbe35455e1",
+        "verdict": "HISTORICAL_TREE_ABSORBED_OLD_VERSION_CONSTANTS_SUPERSEDED_NO_PORT",
+        "evidence": "Current generator uses .project-local, explicit historical receipt and DEFAULT_RELEASE_EVIDENCE=None; default release unknown/NOT_EXECUTED. Donor runtime changes were v0.6.8/v0.6.9 version/lock/test constant synchronization, not a new runtime contract. Historical release evidence retained.",
+        "remaining_gap": "Status-document prose not exhaustively reread; live cloud/custody and deletion gates remain open. No runtime or release qualification inferred.",
+        "absorbing_commit": "b33679585fa3065dc52aa2c7bc204ecae9390cf5",
+        "identical_tree": "1c6c65feb59cc7d0620b4f6d3c95f3f3f253a1d5"
+      }
+    },
+    {
+      "branch": "codex/recovery-shell-closed-loop",
+      "tip": "14afe9376adfa9e528a93cbfbd943bdfe59b3d33",
+      "branch_commit_records": 13,
+      "disposition": "FROZEN_LEGACY_REACT_TAURI_REFERENCE_NO_MERGE",
+      "authority_basis": "AGENTS.md §6; R6 TASKPACK A00-A16 and §18 Research; M0-SHORTEST-COMPLETE-LOOP; current language/directory authority indexes",
+      "owner": "UNKNOWN",
+      "owner_recovery_receipt": "MISSING",
+      "unique_commit_semantic_review": "CONTENT_REVIEWED_WITH_LIMITS_20260926",
+      "merge_delete_authorized": false,
+      "graph_readback_20260926": {
+        "checked_at": "2026-09-26T01:08:44.810922+00:00",
+        "subject_sha": "2994efa08d3e4f6ea561831fd4088d6d1b290cdd",
+        "recorded_tip": "14afe9376adfa9e528a93cbfbd943bdfe59b3d33",
+        "scope": "Local Git commit graph only; not semantic acceptance, live cloud state or cleanup authorization.",
+        "object_present": true,
+        "head_only_commits": 1234,
+        "recorded_tip_only_commits": 13,
+        "recorded_tip_contained_in_head": false,
+        "current_local_ref_tip": null,
+        "recorded_tip_matches_current_local_ref": false
+      },
+      "content_review_20260926": {
+        "subject_sha": "2994efa08d3e4f6ea561831fd4088d6d1b290cdd",
+        "branch_tip": "14afe9376adfa9e528a93cbfbd943bdfe59b3d33",
+        "verdict": "LEGACY_RECOVERY_RETAINED_FORMAL_UI_GAP",
+        "evidence": "Recorded tip object remains despite absent local ref. src-tauri/src/recovery.rs exact blob retained; legacy offline restore remains. Rust maintenance backup/restore exists, but formal Avalonia recovery UI currently reads status only; backup selection/safe mode/sanitized logs/controlled restore readback remain open.",
+        "remaining_gap": "Current cloud/custody/deletion eligibility unverified; formal product and historical runtime acceptance not inferred."
+      }
+    },
+    {
+      "branch": "codex/recovery-shell-frontend",
+      "tip": "e4239ebd4fe825becc4192d6e89bfaa35a9a3946",
+      "branch_commit_records": 9,
+      "disposition": "FROZEN_LEGACY_REACT_TAURI_REFERENCE_NO_MERGE",
+      "authority_basis": "AGENTS.md §6; R6 TASKPACK A00-A16 and §18 Research; M0-SHORTEST-COMPLETE-LOOP; current language/directory authority indexes",
+      "owner": "UNKNOWN",
+      "owner_recovery_receipt": "MISSING",
+      "unique_commit_semantic_review": "CONTENT_REVIEWED_WITH_LIMITS_20260926",
+      "merge_delete_authorized": false,
+      "graph_readback_20260926": {
+        "checked_at": "2026-09-26T01:08:44.810922+00:00",
+        "subject_sha": "2994efa08d3e4f6ea561831fd4088d6d1b290cdd",
+        "recorded_tip": "e4239ebd4fe825becc4192d6e89bfaa35a9a3946",
+        "scope": "Local Git commit graph only; not semantic acceptance, live cloud state or cleanup authorization.",
+        "object_present": true,
+        "head_only_commits": 1234,
+        "recorded_tip_only_commits": 9,
+        "recorded_tip_contained_in_head": false,
+        "current_local_ref_tip": "e4239ebd4fe825becc4192d6e89bfaa35a9a3946",
+        "recorded_tip_matches_current_local_ref": true
+      },
+      "content_review_20260926": {
+        "subject_sha": "2994efa08d3e4f6ea561831fd4088d6d1b290cdd",
+        "branch_tip": "e4239ebd4fe825becc4192d6e89bfaa35a9a3946",
+        "verdict": "LEGACY_RECOVERY_RETAINED_FORMAL_UI_GAP",
+        "evidence": "Local ref exists; shares nine historical commits with closed-loop donor. Recovery Rust module exact, React UI evolved. Legacy Retry/Logs/Safe Mode/Backup Restore/Core Reload are references, not formal Avalonia acceptance. Do not wholesale port React/Tauri.",
+        "remaining_gap": "Current cloud/custody/deletion eligibility unverified; formal product and historical runtime acceptance not inferred."
+      }
+    },
+    {
+      "branch": "codex/release-v0.6.9",
+      "tip": "c64278dfcb77da8698d5edff72a55a3eae90ee9a",
+      "branch_commit_records": 2,
+      "disposition": "HISTORICAL_RELEASE_OR_ROADMAP_FREEZE_RETAIN_EVIDENCE",
+      "authority_basis": "AGENTS.md §6; R6 TASKPACK A00-A16 and §18 Research; M0-SHORTEST-COMPLETE-LOOP; current language/directory authority indexes",
+      "owner": "UNKNOWN",
+      "owner_recovery_receipt": "MISSING",
+      "unique_commit_semantic_review": "TREE_ABSORPTION_PROVEN_RUNTIME_VERSION_DIFF_REVIEWED_20260926",
+      "merge_delete_authorized": false,
+      "graph_readback_20260926": {
+        "checked_at": "2026-09-26T01:08:44.810922+00:00",
+        "subject_sha": "2994efa08d3e4f6ea561831fd4088d6d1b290cdd",
+        "recorded_tip": "c64278dfcb77da8698d5edff72a55a3eae90ee9a",
+        "scope": "Local Git commit graph only; not semantic acceptance, live cloud state or cleanup authorization.",
+        "object_present": true,
+        "head_only_commits": 1233,
+        "recorded_tip_only_commits": 2,
+        "recorded_tip_contained_in_head": false,
+        "current_local_ref_tip": null,
+        "recorded_tip_matches_current_local_ref": false
+      },
+      "content_review_20260926": {
+        "subject_sha": "2994efa08d3e4f6ea561831fd4088d6d1b290cdd",
+        "branch_tip": "c64278dfcb77da8698d5edff72a55a3eae90ee9a",
+        "verdict": "HISTORICAL_TREE_ABSORBED_OLD_VERSION_CONSTANTS_SUPERSEDED_NO_PORT",
+        "evidence": "Current generator uses .project-local, explicit historical receipt and DEFAULT_RELEASE_EVIDENCE=None; default release unknown/NOT_EXECUTED. Donor runtime changes were v0.6.8/v0.6.9 version/lock/test constant synchronization, not a new runtime contract. Historical release evidence retained.",
+        "remaining_gap": "Status-document prose not exhaustively reread; live cloud/custody and deletion gates remain open. No runtime or release qualification inferred.",
+        "absorbing_commit": "de5b5ba6efde2f306d029725c046b56d91226e4c",
+        "identical_tree": "199eb5473c38e7d73ec078f7135d39bb756ce9be"
+      }
+    },
+    {
+      "branch": "codex/v0.6.8-release-closure",
+      "tip": "42e7c0cc36fa6c7b8296c59be1ac885dd94c920e",
+      "branch_commit_records": 2,
+      "disposition": "HISTORICAL_RELEASE_OR_ROADMAP_FREEZE_RETAIN_EVIDENCE",
+      "authority_basis": "AGENTS.md §6; R6 TASKPACK A00-A16 and §18 Research; M0-SHORTEST-COMPLETE-LOOP; current language/directory authority indexes",
+      "owner": "UNKNOWN",
+      "owner_recovery_receipt": "MISSING",
+      "unique_commit_semantic_review": "TREE_ABSORPTION_PROVEN_RUNTIME_VERSION_DIFF_REVIEWED_20260926",
+      "merge_delete_authorized": false,
+      "graph_readback_20260926": {
+        "checked_at": "2026-09-26T01:08:44.810922+00:00",
+        "subject_sha": "2994efa08d3e4f6ea561831fd4088d6d1b290cdd",
+        "recorded_tip": "42e7c0cc36fa6c7b8296c59be1ac885dd94c920e",
+        "scope": "Local Git commit graph only; not semantic acceptance, live cloud state or cleanup authorization.",
+        "object_present": true,
+        "head_only_commits": 1235,
+        "recorded_tip_only_commits": 2,
+        "recorded_tip_contained_in_head": false,
+        "current_local_ref_tip": null,
+        "recorded_tip_matches_current_local_ref": false
+      },
+      "content_review_20260926": {
+        "subject_sha": "2994efa08d3e4f6ea561831fd4088d6d1b290cdd",
+        "branch_tip": "42e7c0cc36fa6c7b8296c59be1ac885dd94c920e",
+        "verdict": "HISTORICAL_TREE_ABSORBED_OLD_VERSION_CONSTANTS_SUPERSEDED_NO_PORT",
+        "evidence": "Current generator uses .project-local, explicit historical receipt and DEFAULT_RELEASE_EVIDENCE=None; default release unknown/NOT_EXECUTED. Donor runtime changes were v0.6.8/v0.6.9 version/lock/test constant synchronization, not a new runtime contract. Historical release evidence retained.",
+        "remaining_gap": "Status-document prose not exhaustively reread; live cloud/custody and deletion gates remain open. No runtime or release qualification inferred.",
+        "absorbing_commit": "2d1186d990ded2af322f4f3d75c7eec6478f04eb",
+        "identical_tree": "d40103fd32d31948b783f3d115097d2fff5a0fb1"
+      }
+    },
+    {
+      "branch": "codex/worker-quality-0906",
+      "tip": "4ca46eaf94c486dadcf200aac6b41cd968b1ce6e",
+      "branch_commit_records": 0,
+      "disposition": "ANCESTOR_OR_ATTACHED_WORKTREE_REQUIRES_CUSTODY",
+      "authority_basis": "AGENTS.md §6; R6 TASKPACK A00-A16 and §18 Research; M0-SHORTEST-COMPLETE-LOOP; current language/directory authority indexes",
+      "owner": "UNKNOWN",
+      "owner_recovery_receipt": "MISSING",
+      "unique_commit_semantic_review": "NOT_DONE",
+      "merge_delete_authorized": false,
+      "graph_readback_20260926": {
+        "checked_at": "2026-09-26T01:08:44.810922+00:00",
+        "subject_sha": "2994efa08d3e4f6ea561831fd4088d6d1b290cdd",
+        "recorded_tip": "4ca46eaf94c486dadcf200aac6b41cd968b1ce6e",
+        "scope": "Local Git commit graph only; not semantic acceptance, live cloud state or cleanup authorization.",
+        "object_present": true,
+        "head_only_commits": 1094,
+        "recorded_tip_only_commits": 0,
+        "recorded_tip_contained_in_head": true,
+        "current_local_ref_tip": "4ca46eaf94c486dadcf200aac6b41cd968b1ce6e",
+        "recorded_tip_matches_current_local_ref": true
+      }
+    },
+    {
+      "branch": "docs/verification-summary-2026-08-09",
+      "tip": "8cc9c69080786f9aeceaa882aba65a0e4c6a8848",
+      "branch_commit_records": 1,
+      "disposition": "HISTORICAL_GOVERNANCE_EVIDENCE_CROSSWALK_ONLY",
+      "authority_basis": "AGENTS.md §6; R6 TASKPACK A00-A16 and §18 Research; M0-SHORTEST-COMPLETE-LOOP; current language/directory authority indexes",
+      "owner": "UNKNOWN",
+      "owner_recovery_receipt": "MISSING",
+      "unique_commit_semantic_review": "CONTENT_REVIEWED_WITH_LIMITS_20260926",
+      "merge_delete_authorized": false,
+      "graph_readback_20260926": {
+        "checked_at": "2026-09-26T01:08:44.810922+00:00",
+        "subject_sha": "2994efa08d3e4f6ea561831fd4088d6d1b290cdd",
+        "recorded_tip": "8cc9c69080786f9aeceaa882aba65a0e4c6a8848",
+        "scope": "Local Git commit graph only; not semantic acceptance, live cloud state or cleanup authorization.",
+        "object_present": true,
+        "head_only_commits": 1545,
+        "recorded_tip_only_commits": 1,
+        "recorded_tip_contained_in_head": false,
+        "current_local_ref_tip": "8cc9c69080786f9aeceaa882aba65a0e4c6a8848",
+        "recorded_tip_matches_current_local_ref": true
+      },
+      "content_review_20260926": {
+        "subject_sha": "2994efa08d3e4f6ea561831fd4088d6d1b290cdd",
+        "branch_tip": "8cc9c69080786f9aeceaa882aba65a0e4c6a8848",
+        "verdict": "EXACT_DOCUMENT_ARCHIVED",
+        "evidence": "Only changed document is byte-preserved in docs/history/remote-branch-assets/residual-material-20260918.tar.gz; 11525 bytes, SHA256 f5358da3dc7c17afd85f6cd2b4d8266c97cf8a2cd317bf9d1376b301a3009a21. DSH no-archive claim corrected.",
+        "remaining_gap": "Owner/custody and live remote state unverified; no deletion eligibility or runtime equivalence inferred."
+      }
+    },
+    {
+      "branch": "feat/absorption-adopt-now",
+      "tip": "081cf20a28152c271155b6c3d524550ffc545ced",
+      "branch_commit_records": 7,
+      "disposition": "CAPABILITY_DONOR_REVIEW_AGAINST_R6_BEFORE_ANY_PORT",
+      "authority_basis": "AGENTS.md §6; R6 TASKPACK A00-A16 and §18 Research; M0-SHORTEST-COMPLETE-LOOP; current language/directory authority indexes",
+      "owner": "UNKNOWN",
+      "owner_recovery_receipt": "MISSING",
+      "unique_commit_semantic_review": "CONTENT_REVIEWED_WITH_LIMITS_20260926",
+      "merge_delete_authorized": false,
+      "graph_readback_20260926": {
+        "checked_at": "2026-09-26T01:08:44.810922+00:00",
+        "subject_sha": "2994efa08d3e4f6ea561831fd4088d6d1b290cdd",
+        "recorded_tip": "081cf20a28152c271155b6c3d524550ffc545ced",
+        "scope": "Local Git commit graph only; not semantic acceptance, live cloud state or cleanup authorization.",
+        "object_present": true,
+        "head_only_commits": 1535,
+        "recorded_tip_only_commits": 7,
+        "recorded_tip_contained_in_head": false,
+        "current_local_ref_tip": "081cf20a28152c271155b6c3d524550ffc545ced",
+        "recorded_tip_matches_current_local_ref": true
+      },
+      "content_review_20260926": {
+        "subject_sha": "2994efa08d3e4f6ea561831fd4088d6d1b290cdd",
+        "branch_tip": "081cf20a28152c271155b6c3d524550ffc545ced",
+        "verdict": "ADOPTION_ASSETS_ABSORBED",
+        "evidence": "Evidence connector/scheduler tests, Magika LICENSE/config/model and JSON_CANVAS_ADOPTION blobs match HEAD; other adapters evolved. Actual engine execution and model quality not established; old intermediate naming conflicts with V2.",
+        "remaining_gap": "No live cloud/custody or deletion eligibility; partial findings retain their stated semantic gaps."
+      }
+    },
+    {
+      "branch": "feat/absorption-roadmap-r0",
+      "tip": "42d13c0b748243235f9ffbff3e3394b76196b368",
+      "branch_commit_records": 7,
+      "disposition": "CAPABILITY_DONOR_REVIEW_AGAINST_R6_BEFORE_ANY_PORT",
+      "authority_basis": "AGENTS.md §6; R6 TASKPACK A00-A16 and §18 Research; M0-SHORTEST-COMPLETE-LOOP; current language/directory authority indexes",
+      "owner": "UNKNOWN",
+      "owner_recovery_receipt": "MISSING",
+      "unique_commit_semantic_review": "PARTIAL_20260926",
+      "merge_delete_authorized": false,
+      "content_review_20260926": {
+        "subject_sha": "2994efa08d3e4f6ea561831fd4088d6d1b290cdd",
+        "branch_tip": "42d13c0b748243235f9ffbff3e3394b76196b368",
+        "unique_commits": [
+          "42d13c0b748243235f9ffbff3e3394b76196b368",
+          "9394f36ace2c5e601914396644e7943f28d867fb",
+          "9af9e09f0da6747b6233480be86ce344beef2247",
+          "7e0d883cbcd5acec9a3e75c13189ee4734dc976c",
+          "d9a0c8540e4e320993882582e7098a24ddf7431a",
+          "92189f42b9ffc30edb76d3503d9de259514e4538",
+          "9035b707e87eb5a8f8136cc2a6dedbdea3d6558c"
+        ],
+        "evidence_level": "READ_ONLY_PARTIAL_SEMANTIC_REVIEW",
+        "verdict": "KEEP_EXISTING_CONTENT; SUPERSEDED_AS_WHOLESALE_PORT; PRESERVE_PENDING_REMAINING_REVIEW",
+        "remaining_gap": "Not all historical assertions and business branches examined; no full equivalence or deletion eligibility claimed",
+        "authority": "R6/M0; formal Avalonia desktop; Rust canonical writer; .project-local outputs; no release"
+      },
+      "graph_readback_20260926": {
+        "checked_at": "2026-09-26T01:08:44.810922+00:00",
+        "subject_sha": "2994efa08d3e4f6ea561831fd4088d6d1b290cdd",
+        "recorded_tip": "42d13c0b748243235f9ffbff3e3394b76196b368",
+        "scope": "Local Git commit graph only; not semantic acceptance, live cloud state or cleanup authorization.",
+        "object_present": true,
+        "head_only_commits": 1671,
+        "recorded_tip_only_commits": 7,
+        "recorded_tip_contained_in_head": false,
+        "current_local_ref_tip": "42d13c0b748243235f9ffbff3e3394b76196b368",
+        "recorded_tip_matches_current_local_ref": true
+      }
+    },
+    {
+      "branch": "feat/archeaxis-desktop-a1-violet-core",
+      "tip": "376281c6a68bd8b6385d43878d370b81e28cf9ee",
+      "branch_commit_records": 5,
+      "disposition": "FROZEN_WEB_UI_REFERENCE_REASSESS_AAVALONIA_CONTRACTS",
+      "authority_basis": "AGENTS.md §6; R6 TASKPACK A00-A16 and §18 Research; M0-SHORTEST-COMPLETE-LOOP; current language/directory authority indexes",
+      "owner": "UNKNOWN",
+      "owner_recovery_receipt": "MISSING",
+      "unique_commit_semantic_review": "CONTENT_REVIEWED_WITH_LIMITS_20260926",
+      "merge_delete_authorized": false,
+      "graph_readback_20260926": {
+        "checked_at": "2026-09-26T01:08:44.810922+00:00",
+        "subject_sha": "2994efa08d3e4f6ea561831fd4088d6d1b290cdd",
+        "recorded_tip": "376281c6a68bd8b6385d43878d370b81e28cf9ee",
+        "scope": "Local Git commit graph only; not semantic acceptance, live cloud state or cleanup authorization.",
+        "object_present": true,
+        "head_only_commits": 1670,
+        "recorded_tip_only_commits": 5,
+        "recorded_tip_contained_in_head": false,
+        "current_local_ref_tip": "376281c6a68bd8b6385d43878d370b81e28cf9ee",
+        "recorded_tip_matches_current_local_ref": true
+      },
+      "content_review_20260926": {
+        "subject_sha": "2994efa08d3e4f6ea561831fd4088d6d1b290cdd",
+        "branch_tip": "376281c6a68bd8b6385d43878d370b81e28cf9ee",
+        "verdict": "OLD_WEB_SHELL_SUPERSEDED",
+        "evidence": "Old app/workspace/ui shell absent at HEAD; current formal desktop is Avalonia. Donor ArcheAxis OS naming conflicts with NAMING_CONTRACT_V2; old requirements-ci route replaced by locked dependency workflow. No demonstrated unique code to port.",
+        "remaining_gap": "Current cloud/custody/deletion eligibility unverified; formal product and historical runtime acceptance not inferred."
+      }
+    },
+    {
+      "branch": "feat/axw022a-pdf-http-endpoint",
+      "tip": "17ca96280010822fe1ee95a6f264f47e7435d2c8",
+      "branch_commit_records": 4,
+      "disposition": "FROZEN_WEB_UI_REFERENCE_REASSESS_AAVALONIA_CONTRACTS",
+      "authority_basis": "AGENTS.md §6; R6 TASKPACK A00-A16 and §18 Research; M0-SHORTEST-COMPLETE-LOOP; current language/directory authority indexes",
+      "owner": "UNKNOWN",
+      "owner_recovery_receipt": "MISSING",
+      "unique_commit_semantic_review": "CONTENT_REVIEWED_WITH_LIMITS_20260926",
+      "merge_delete_authorized": false,
+      "graph_readback_20260926": {
+        "checked_at": "2026-09-26T01:08:44.810922+00:00",
+        "subject_sha": "2994efa08d3e4f6ea561831fd4088d6d1b290cdd",
+        "recorded_tip": "17ca96280010822fe1ee95a6f264f47e7435d2c8",
+        "scope": "Local Git commit graph only; not semantic acceptance, live cloud state or cleanup authorization.",
+        "object_present": true,
+        "head_only_commits": 1542,
+        "recorded_tip_only_commits": 4,
+        "recorded_tip_contained_in_head": false,
+        "current_local_ref_tip": "17ca96280010822fe1ee95a6f264f47e7435d2c8",
+        "recorded_tip_matches_current_local_ref": true
+      },
+      "content_review_20260926": {
+        "subject_sha": "2994efa08d3e4f6ea561831fd4088d6d1b290cdd",
+        "branch_tip": "17ca96280010822fe1ee95a6f264f47e7435d2c8",
+        "verdict": "BACKEND_INTENT_ABSORBED_FORMAL_PDF_READER_GAP",
+        "evidence": "app/workspace/router.py PDF bytes route validates digest prefix/size/content; tests/test_workspace_pdf_endpoint.py exists. Legacy PDF.js 3.11.174 page/zoom/search UI absent from formal Avalonia; Rust PDF bytes route not established. No wholesale Web UI port.",
+        "remaining_gap": "No runtime tests, current cloud/custody or deletion eligibility established."
+      }
+    },
+    {
+      "branch": "feat/axw022b-evidence-annotation",
+      "tip": "3edacbcb1c67475e3da2f2247f8622e219ca2675",
+      "branch_commit_records": 2,
+      "disposition": "FROZEN_WEB_UI_REFERENCE_REASSESS_AAVALONIA_CONTRACTS",
+      "authority_basis": "AGENTS.md §6; R6 TASKPACK A00-A16 and §18 Research; M0-SHORTEST-COMPLETE-LOOP; current language/directory authority indexes",
+      "owner": "UNKNOWN",
+      "owner_recovery_receipt": "MISSING",
+      "unique_commit_semantic_review": "CONTENT_REVIEWED_WITH_LIMITS_20260926",
+      "merge_delete_authorized": false,
+      "graph_readback_20260926": {
+        "checked_at": "2026-09-26T01:08:44.810922+00:00",
+        "subject_sha": "2994efa08d3e4f6ea561831fd4088d6d1b290cdd",
+        "recorded_tip": "3edacbcb1c67475e3da2f2247f8622e219ca2675",
+        "scope": "Local Git commit graph only; not semantic acceptance, live cloud state or cleanup authorization.",
+        "object_present": true,
+        "head_only_commits": 1541,
+        "recorded_tip_only_commits": 2,
+        "recorded_tip_contained_in_head": false,
+        "current_local_ref_tip": "3edacbcb1c67475e3da2f2247f8622e219ca2675",
+        "recorded_tip_matches_current_local_ref": true
+      },
+      "content_review_20260926": {
+        "subject_sha": "2994efa08d3e4f6ea561831fd4088d6d1b290cdd",
+        "branch_tip": "3edacbcb1c67475e3da2f2247f8622e219ca2675",
+        "verdict": "ANCHOR_API_ABSORBED_FORMAL_ANNOTATION_RETURN_GAP",
+        "evidence": "Legacy anchor API and exact test blob preserved; Rust Core creates/lists anchors. Formal EvidenceCenter is read-only anchor summary; native PDF selection annotation and return-to-original-position remain unverified/unimplemented.",
+        "remaining_gap": "No runtime tests, current cloud/custody or deletion eligibility established."
+      }
+    },
+    {
+      "branch": "feat/h2-bakeoff",
+      "tip": "376fb8001a0a7f2e2c25a0174e1dee6601d0b95b",
+      "branch_commit_records": 3,
+      "disposition": "CAPABILITY_DONOR_REVIEW_AGAINST_R6_BEFORE_ANY_PORT",
+      "authority_basis": "AGENTS.md §6; R6 TASKPACK A00-A16 and §18 Research; M0-SHORTEST-COMPLETE-LOOP; current language/directory authority indexes",
+      "owner": "UNKNOWN",
+      "owner_recovery_receipt": "MISSING",
+      "unique_commit_semantic_review": "CONTENT_REVIEWED_WITH_LIMITS_20260926",
+      "merge_delete_authorized": false,
+      "graph_readback_20260926": {
+        "checked_at": "2026-09-26T01:08:44.810922+00:00",
+        "subject_sha": "2994efa08d3e4f6ea561831fd4088d6d1b290cdd",
+        "recorded_tip": "376fb8001a0a7f2e2c25a0174e1dee6601d0b95b",
+        "scope": "Local Git commit graph only; not semantic acceptance, live cloud state or cleanup authorization.",
+        "object_present": true,
+        "head_only_commits": 1532,
+        "recorded_tip_only_commits": 3,
+        "recorded_tip_contained_in_head": false,
+        "current_local_ref_tip": "376fb8001a0a7f2e2c25a0174e1dee6601d0b95b",
+        "recorded_tip_matches_current_local_ref": true
+      },
+      "content_review_20260926": {
+        "subject_sha": "2994efa08d3e4f6ea561831fd4088d6d1b290cdd",
+        "branch_tip": "376fb8001a0a7f2e2c25a0174e1dee6601d0b95b",
+        "verdict": "FUNCTIONAL_INTENT_ABSORBED_RUNTIME_BENCHMARK_UNPROVEN",
+        "evidence": "shared/bakeoff.py computes CER/WER from ground truth; bakeoff_engines.py and audio_vad.py retain and extend donor engine/VAD capabilities. No runtime benchmark or actual engine availability inferred.",
+        "remaining_gap": "No runtime tests, current cloud/custody or deletion eligibility established."
+      }
+    },
+    {
+      "branch": "feat/h2-pipeline-integration",
+      "tip": "e1df9279fde0dd0665d4765c18b8a3d1c7ae443b",
+      "branch_commit_records": 9,
+      "disposition": "CAPABILITY_DONOR_REVIEW_AGAINST_R6_BEFORE_ANY_PORT",
+      "authority_basis": "AGENTS.md §6; R6 TASKPACK A00-A16 and §18 Research; M0-SHORTEST-COMPLETE-LOOP; current language/directory authority indexes",
+      "owner": "UNKNOWN",
+      "owner_recovery_receipt": "MISSING",
+      "unique_commit_semantic_review": "CONTENT_REVIEWED_WITH_LIMITS_20260926",
+      "merge_delete_authorized": false,
+      "graph_readback_20260926": {
+        "checked_at": "2026-09-26T01:08:44.810922+00:00",
+        "subject_sha": "2994efa08d3e4f6ea561831fd4088d6d1b290cdd",
+        "recorded_tip": "e1df9279fde0dd0665d4765c18b8a3d1c7ae443b",
+        "scope": "Local Git commit graph only; not semantic acceptance, live cloud state or cleanup authorization.",
+        "object_present": true,
+        "head_only_commits": 1476,
+        "recorded_tip_only_commits": 9,
+        "recorded_tip_contained_in_head": false,
+        "current_local_ref_tip": "e1df9279fde0dd0665d4765c18b8a3d1c7ae443b",
+        "recorded_tip_matches_current_local_ref": true
+      },
+      "content_review_20260926": {
+        "subject_sha": "2994efa08d3e4f6ea561831fd4088d6d1b290cdd",
+        "branch_tip": "e1df9279fde0dd0665d4765c18b8a3d1c7ae443b",
+        "verdict": "LEGACY_NAMING_AND_ROUTING_ABSORBED",
+        "evidence": "Current dual /api/v1 mount and ARCHEAXIS_DATA_DIR legacy fallback retain intent; donor .hermes outputs conflict with .project-local. One empty commit; no Rust/Avalonia loop qualification inferred.",
+        "remaining_gap": "No live cloud/custody or deletion eligibility; partial findings retain their stated semantic gaps."
+      }
+    },
+    {
+      "branch": "feat/ms00-c-release-identity",
+      "tip": "01e794d1070114c6a55142fae2032bc010b9946e",
+      "branch_commit_records": 1,
+      "disposition": "LEGACY_CODE_DONOR_REVIEW_AGAINST_R6_BEFORE_ANY_PORT",
+      "authority_basis": "AGENTS.md §6; R6 TASKPACK A00-A16 and §18 Research; M0-SHORTEST-COMPLETE-LOOP; current language/directory authority indexes",
+      "owner": "UNKNOWN",
+      "owner_recovery_receipt": "MISSING",
+      "unique_commit_semantic_review": "CONTENT_REVIEWED_WITH_LIMITS_20260926",
+      "merge_delete_authorized": false,
+      "graph_readback_20260926": {
+        "checked_at": "2026-09-26T01:08:44.810922+00:00",
+        "subject_sha": "2994efa08d3e4f6ea561831fd4088d6d1b290cdd",
+        "recorded_tip": "01e794d1070114c6a55142fae2032bc010b9946e",
+        "scope": "Local Git commit graph only; not semantic acceptance, live cloud state or cleanup authorization.",
+        "object_present": true,
+        "head_only_commits": 1616,
+        "recorded_tip_only_commits": 1,
+        "recorded_tip_contained_in_head": false,
+        "current_local_ref_tip": "01e794d1070114c6a55142fae2032bc010b9946e",
+        "recorded_tip_matches_current_local_ref": true
+      },
+      "content_review_20260926": {
+        "subject_sha": "2994efa08d3e4f6ea561831fd4088d6d1b290cdd",
+        "branch_tip": "01e794d1070114c6a55142fae2032bc010b9946e",
+        "verdict": "STRICTER_SUCCESSOR_RETAINED",
+        "evidence": "Prior content review found stricter identity schema/URL/run-ID successor 788707fee4a0070ce87d17054b08d48e11b7279d; current ancestry recheck passes. No old identity implementation port required.",
+        "remaining_gap": "No live cloud/custody or deletion eligibility; partial findings retain their stated semantic gaps."
+      }
+    },
+    {
+      "branch": "feat/naming-step3",
+      "tip": "bc4a234ffe4d84b2495a06080bded4a53db92898",
+      "branch_commit_records": 1,
+      "disposition": "LEGACY_CODE_DONOR_REVIEW_AGAINST_R6_BEFORE_ANY_PORT",
+      "authority_basis": "AGENTS.md §6; R6 TASKPACK A00-A16 and §18 Research; M0-SHORTEST-COMPLETE-LOOP; current language/directory authority indexes",
+      "owner": "UNKNOWN",
+      "owner_recovery_receipt": "MISSING",
+      "unique_commit_semantic_review": "CONTENT_REVIEWED_WITH_LIMITS_20260926",
+      "merge_delete_authorized": false,
+      "graph_readback_20260926": {
+        "checked_at": "2026-09-26T01:08:44.810922+00:00",
+        "subject_sha": "2994efa08d3e4f6ea561831fd4088d6d1b290cdd",
+        "recorded_tip": "bc4a234ffe4d84b2495a06080bded4a53db92898",
+        "scope": "Local Git commit graph only; not semantic acceptance, live cloud state or cleanup authorization.",
+        "object_present": true,
+        "head_only_commits": 1477,
+        "recorded_tip_only_commits": 1,
+        "recorded_tip_contained_in_head": false,
+        "current_local_ref_tip": "bc4a234ffe4d84b2495a06080bded4a53db92898",
+        "recorded_tip_matches_current_local_ref": true
+      },
+      "content_review_20260926": {
+        "subject_sha": "2994efa08d3e4f6ea561831fd4088d6d1b290cdd",
+        "branch_tip": "bc4a234ffe4d84b2495a06080bded4a53db92898",
+        "verdict": "FUNCTIONAL_INTENT_ABSORBED_OLD_UI_IDENTITY_CONFLICTS",
+        "evidence": "Current shared/config.py supports ARCHEAXIS priority and COGNITIVE fallback; app/main.py dual API mount and convention checks present. Donor Learning Workspace product identity conflicts with formal ArcheAxis Knowledge naming; preserve as history.",
+        "remaining_gap": "Owner/custody and live remote state unverified; no deletion eligibility or runtime equivalence inferred."
+      }
+    },
+    {
+      "branch": "feat/p1-compat-kernel-hardening",
+      "tip": "a4f2de19794df490206b5b0b935f5176a3d5775e",
+      "branch_commit_records": 11,
+      "disposition": "LEGACY_CODE_DONOR_REVIEW_AGAINST_R6_BEFORE_ANY_PORT",
+      "authority_basis": "AGENTS.md §6; R6 TASKPACK A00-A16 and §18 Research; M0-SHORTEST-COMPLETE-LOOP; current language/directory authority indexes",
+      "owner": "UNKNOWN",
+      "owner_recovery_receipt": "MISSING",
+      "unique_commit_semantic_review": "CONTENT_REVIEWED_WITH_LIMITS_20260926",
+      "merge_delete_authorized": false,
+      "graph_readback_20260926": {
+        "checked_at": "2026-09-26T01:08:44.810922+00:00",
+        "subject_sha": "2994efa08d3e4f6ea561831fd4088d6d1b290cdd",
+        "recorded_tip": "a4f2de19794df490206b5b0b935f5176a3d5775e",
+        "scope": "Local Git commit graph only; not semantic acceptance, live cloud state or cleanup authorization.",
+        "object_present": true,
+        "head_only_commits": 1572,
+        "recorded_tip_only_commits": 11,
+        "recorded_tip_contained_in_head": false,
+        "current_local_ref_tip": "a4f2de19794df490206b5b0b935f5176a3d5775e",
+        "recorded_tip_matches_current_local_ref": true
+      },
+      "content_review_20260926": {
+        "subject_sha": "2994efa08d3e4f6ea561831fd4088d6d1b290cdd",
+        "branch_tip": "a4f2de19794df490206b5b0b935f5176a3d5775e",
+        "verdict": "COMPAT_HARDENING_ABSORBED",
+        "evidence": "shared/compat/import_session.py, models.py, revision.py and tests/test_compat_kernel.py blobs match HEAD; lease worker and two tests also match. Current format_execution_v1 and multi_format encode measured/unsupported/partial boundaries. Real R6 format and migration qualification remains open.",
+        "remaining_gap": "No live cloud/custody or deletion eligibility; partial findings retain their stated semantic gaps."
+      }
+    },
+    {
+      "branch": "feat/portable-data-root",
+      "tip": "4e1a3ed849d72f667513d2d159c4cbe5dc6650da",
+      "branch_commit_records": 1,
+      "disposition": "LEGACY_CODE_DONOR_REVIEW_AGAINST_R6_BEFORE_ANY_PORT",
+      "authority_basis": "AGENTS.md §6; R6 TASKPACK A00-A16 and §18 Research; M0-SHORTEST-COMPLETE-LOOP; current language/directory authority indexes",
+      "owner": "UNKNOWN",
+      "owner_recovery_receipt": "MISSING",
+      "unique_commit_semantic_review": "CONTENT_REVIEWED_WITH_LIMITS_20260926",
+      "merge_delete_authorized": false,
+      "graph_readback_20260926": {
+        "checked_at": "2026-09-26T01:08:44.810922+00:00",
+        "subject_sha": "2994efa08d3e4f6ea561831fd4088d6d1b290cdd",
+        "recorded_tip": "4e1a3ed849d72f667513d2d159c4cbe5dc6650da",
+        "scope": "Local Git commit graph only; not semantic acceptance, live cloud state or cleanup authorization.",
+        "object_present": true,
+        "head_only_commits": 1633,
+        "recorded_tip_only_commits": 1,
+        "recorded_tip_contained_in_head": false,
+        "current_local_ref_tip": "4e1a3ed849d72f667513d2d159c4cbe5dc6650da",
+        "recorded_tip_matches_current_local_ref": true
+      },
+      "content_review_20260926": {
+        "subject_sha": "2994efa08d3e4f6ea561831fd4088d6d1b290cdd",
+        "branch_tip": "4e1a3ed849d72f667513d2d159c4cbe5dc6650da",
+        "verdict": "RECOVERY_BEHAVIOR_ABSORBED_FORMAL_DESKTOP_SCOPE_OPEN",
+        "evidence": "Recovery runtime supports ARCHEAXIS_PORTABLE_ROOT, legacy alias and portable.flag. Donor .hermes development outputs conflict with .project-local policy. Formal Avalonia portable root equivalence not established; do not claim Recovery evidence covers it.",
+        "remaining_gap": "Owner/custody and live remote state unverified; no deletion eligibility or runtime equivalence inferred."
+      }
+    },
+    {
+      "branch": "fix/desktop-close-request-destroy",
+      "tip": "801edea89bdf5d845f083670df4afad923ef985b",
+      "branch_commit_records": 1,
+      "disposition": "LEGACY_CODE_DONOR_REVIEW_AGAINST_R6_BEFORE_ANY_PORT",
+      "authority_basis": "AGENTS.md §6; R6 TASKPACK A00-A16 and §18 Research; M0-SHORTEST-COMPLETE-LOOP; current language/directory authority indexes",
+      "owner": "UNKNOWN",
+      "owner_recovery_receipt": "MISSING",
+      "unique_commit_semantic_review": "CONTENT_REVIEWED_WITH_LIMITS_20260926",
+      "merge_delete_authorized": false,
+      "graph_readback_20260926": {
+        "checked_at": "2026-09-26T01:08:44.810922+00:00",
+        "subject_sha": "2994efa08d3e4f6ea561831fd4088d6d1b290cdd",
+        "recorded_tip": "801edea89bdf5d845f083670df4afad923ef985b",
+        "scope": "Local Git commit graph only; not semantic acceptance, live cloud state or cleanup authorization.",
+        "object_present": true,
+        "head_only_commits": 1624,
+        "recorded_tip_only_commits": 1,
+        "recorded_tip_contained_in_head": false,
+        "current_local_ref_tip": "801edea89bdf5d845f083670df4afad923ef985b",
+        "recorded_tip_matches_current_local_ref": true
+      },
+      "content_review_20260926": {
+        "subject_sha": "2994efa08d3e4f6ea561831fd4088d6d1b290cdd",
+        "branch_tip": "801edea89bdf5d845f083670df4afad923ef985b",
+        "verdict": "CODE_FIX_ANCESTOR_HANDOFF_ARCHIVED",
+        "evidence": "Unique tip adds historical handoff only. Fix parent 9ffd72a888eda804093a7f933878fc3eade1cb4c is HEAD ancestor; window.destroy/exit retained in desktop/src-tauri/src/lib.rs; handoff preserved in donor-branch-assets. Old CI claims remain historical.",
+        "remaining_gap": "Owner/custody and live remote state unverified; no deletion eligibility or runtime equivalence inferred."
+      }
+    },
+    {
+      "branch": "main",
+      "tip": "e3875db0ee6d073d37839eb7b95f7ef4ce881bbb",
+      "branch_commit_records": 0,
+      "disposition": "ANCESTOR_OR_ATTACHED_WORKTREE_REQUIRES_CUSTODY",
+      "authority_basis": "AGENTS.md §6; R6 TASKPACK A00-A16 and §18 Research; M0-SHORTEST-COMPLETE-LOOP; current language/directory authority indexes",
+      "owner": "UNKNOWN",
+      "owner_recovery_receipt": "MISSING",
+      "unique_commit_semantic_review": "NOT_DONE",
+      "merge_delete_authorized": false,
+      "graph_readback_20260926": {
+        "checked_at": "2026-09-26T01:08:44.810922+00:00",
+        "subject_sha": "2994efa08d3e4f6ea561831fd4088d6d1b290cdd",
+        "recorded_tip": "e3875db0ee6d073d37839eb7b95f7ef4ce881bbb",
+        "scope": "Local Git commit graph only; not semantic acceptance, live cloud state or cleanup authorization.",
+        "object_present": true,
+        "head_only_commits": 173,
+        "recorded_tip_only_commits": 0,
+        "recorded_tip_contained_in_head": true,
+        "current_local_ref_tip": "e3875db0ee6d073d37839eb7b95f7ef4ce881bbb",
+        "recorded_tip_matches_current_local_ref": true
+      }
+    },
+    {
+      "branch": "release/v0.4.0-contract",
+      "tip": "75cb72ef4642b5dab4fdae5c81807b94757e6a69",
+      "branch_commit_records": 4,
+      "disposition": "HISTORICAL_RELEASE_OR_ROADMAP_FREEZE_RETAIN_EVIDENCE",
+      "authority_basis": "AGENTS.md §6; R6 TASKPACK A00-A16 and §18 Research; M0-SHORTEST-COMPLETE-LOOP; current language/directory authority indexes",
+      "owner": "UNKNOWN",
+      "owner_recovery_receipt": "MISSING",
+      "unique_commit_semantic_review": "PARTIAL_20260926",
+      "merge_delete_authorized": false,
+      "graph_readback_20260926": {
+        "checked_at": "2026-09-26T01:08:44.810922+00:00",
+        "subject_sha": "2994efa08d3e4f6ea561831fd4088d6d1b290cdd",
+        "recorded_tip": "75cb72ef4642b5dab4fdae5c81807b94757e6a69",
+        "scope": "Local Git commit graph only; not semantic acceptance, live cloud state or cleanup authorization.",
+        "object_present": true,
+        "head_only_commits": 1664,
+        "recorded_tip_only_commits": 4,
+        "recorded_tip_contained_in_head": false,
+        "current_local_ref_tip": "75cb72ef4642b5dab4fdae5c81807b94757e6a69",
+        "recorded_tip_matches_current_local_ref": true
+      },
+      "content_review_20260926": {
+        "subject_sha": "2994efa08d3e4f6ea561831fd4088d6d1b290cdd",
+        "branch_tip": "75cb72ef4642b5dab4fdae5c81807b94757e6a69",
+        "verdict": "CHECKSUM_BINDING_INTENT_RETAINED_PARTIAL_REVIEW",
+        "evidence": "Current frozen release.yml retains checksum payload-set equality, explicit allowlist and stronger draft asset readback; old .hermes/release naming must not return. Pipeline execution and all historical test-transition changes not verified.",
+        "remaining_gap": "Current cloud/custody/deletion eligibility unverified; formal product and historical runtime acceptance not inferred."
+      }
+    },
+    {
+      "branch": "work/tp12-facades",
+      "tip": "8d5ba104a91918c30f7d96513b6553f406f74e3f",
+      "branch_commit_records": 1,
+      "disposition": "LEGACY_CODE_DONOR_REVIEW_AGAINST_R6_BEFORE_ANY_PORT",
+      "authority_basis": "AGENTS.md §6; R6 TASKPACK A00-A16 and §18 Research; M0-SHORTEST-COMPLETE-LOOP; current language/directory authority indexes",
+      "owner": "UNKNOWN",
+      "owner_recovery_receipt": "MISSING",
+      "unique_commit_semantic_review": "CONTENT_REVIEWED_WITH_LIMITS_20260926",
+      "merge_delete_authorized": false,
+      "graph_readback_20260926": {
+        "checked_at": "2026-09-26T01:08:44.810922+00:00",
+        "subject_sha": "2994efa08d3e4f6ea561831fd4088d6d1b290cdd",
+        "recorded_tip": "8d5ba104a91918c30f7d96513b6553f406f74e3f",
+        "scope": "Local Git commit graph only; not semantic acceptance, live cloud state or cleanup authorization.",
+        "object_present": true,
+        "head_only_commits": 1800,
+        "recorded_tip_only_commits": 1,
+        "recorded_tip_contained_in_head": false,
+        "current_local_ref_tip": "8d5ba104a91918c30f7d96513b6553f406f74e3f",
+        "recorded_tip_matches_current_local_ref": true
+      },
+      "content_review_20260926": {
+        "subject_sha": "2994efa08d3e4f6ea561831fd4088d6d1b290cdd",
+        "branch_tip": "8d5ba104a91918c30f7d96513b6553f406f74e3f",
+        "verdict": "SUCCESSOR_IMPLEMENTATION_RETAINED",
+        "evidence": "Prior content review located successor b1b5a6ed445eb8697c6d1587f589706102911adc; current merge-base --is-ancestor confirms it remains in HEAD. Historical architecture deltas do not justify restoring old execution direction.",
+        "remaining_gap": "No live cloud/custody or deletion eligibility; partial findings retain their stated semantic gaps."
+      }
+    },
+    {
+      "branch": "codex/dp-f01-20260925",
+      "tip": "793e06ee040dcdb0248e2bbb322b44084620cf17",
+      "branch_commit_records": 2,
+      "disposition": "DSH_F01_PATCH_EQUIVALENT_TO_CURRENT_HEAD; RETAIN_WORKTREE_PENDING_CUSTODY_READBACK",
+      "authority_basis": "September R6/M0; DSH DP-F01 handoff; preserve dirty/unreadable worktree state",
+      "owner": "UNKNOWN",
+      "owner_recovery_receipt": "MISSING",
+      "unique_commit_semantic_review": "PATCH_EQUIVALENCE_VERIFIED_20260926; CUSTODY_PARTIAL",
+      "merge_delete_authorized": false,
+      "content_review_live_20260926": {
+        "branch_tip": "793e06ee040dcdb0248e2bbb322b44084620cf17",
+        "merge_base": "a5de4b13474c217e7a9dd34b8cbfa402e8297780",
+        "unique_commits": [
+          "56a76411624e450f2ecf50afdca070babe983cef",
+          "793e06ee040dcdb0248e2bbb322b44084620cf17"
+        ],
+        "git_cherry": "both commits marked patch-equivalent against current HEAD 2994efa08d3e4f6ea561831fd4088d6d1b290cdd",
+        "verdict": "SOURCE_TEST_AND_PROPOSAL_PATCHES_PRESENT_IN_CURRENT_HEAD; BRANCH_NOT_ANCESTOR_INTEGRATED",
+        "evidence": [
+          "git cherry -v HEAD codex/dp-f01-20260925 marks both commits with -",
+          "DP-F01 worktree remains registered at .project-local/worktrees/dp-f01-20260925",
+          "git status displayed no changes but reported an inaccessible p-kwyi6wvr directory"
+        ],
+        "remaining_gap": "Resolve exact worktree path custody/readability and confirm no ignored/unreadable required data before local branch/worktree cleanup. No cleanup performed.",
+        "subject_sha": "2994efa08d3e4f6ea561831fd4088d6d1b290cdd",
+        "evidence_level": "READ_ONLY_PATCH_EQUIVALENCE_AND_PARTIAL_WORKTREE_STATUS"
+      }
+    }
+  ],
+  "live_readback_20260926": {
+    "checked_subject_sha": "2994efa08d3e4f6ea561831fd4088d6d1b290cdd",
+    "checked_subject_tree": "4fc581e7dcde90a30d8e9019f26fdf362bfa5cc9",
+    "active_branch": "codex/aaos-p3-ui-convergence-20260922",
+    "active_local_tip": "2994efa08d3e4f6ea561831fd4088d6d1b290cdd",
+    "active_live_origin_tip": "a5de4b13474c217e7a9dd34b8cbfa402e8297780",
+    "active_ahead_behind_live_origin": [
+      7,
+      0
+    ],
+    "local_branch_count": 27,
+    "live_origin_heads": {
+      "codex/aaos-p3-ui-convergence-20260922": "a5de4b13474c217e7a9dd34b8cbfa402e8297780",
+      "codex/execution-reliability-standards": "affc0abcea7d080542e3f294322403f27ec6352a",
+      "codex/frozen-roadmap-deepseek-v1": "fcfac4a8dac0cf285599a757e63ddb14e1f2ef6f",
+      "docs/verification-summary-2026-08-09": "8cc9c69080786f9aeceaa882aba65a0e4c6a8848",
+      "feat/naming-step3": "bc4a234ffe4d84b2495a06080bded4a53db92898",
+      "main": "e3875db0ee6d073d37839eb7b95f7ef4ce881bbb",
+      "release/v0.4.0-contract": "75cb72ef4642b5dab4fdae5c81807b94757e6a69"
+    },
+    "live_origin_head_count": 7,
+    "cached_origin_branch_head_count": 19,
+    "cached_origin_heads_absent_from_live_query": 12,
+    "registered_worktree_count": 5,
+    "fresh_semantic_read_only_review_batches": {
+      "batch_a": [
+        "agent/phase5-research-knowledge-governance",
+        "feat/absorption-adopt-now",
+        "feat/absorption-roadmap-r0",
+        "feat/h2-bakeoff",
+        "feat/h2-pipeline-integration",
+        "audit/unreleased-real-version",
+        "axw/execution-h0",
+        "axw/execution-h1",
+        "feat/portable-data-root"
+      ],
+      "batch_b": [
+        "audit/r5-independent-audit-20260919",
+        "chore/naming-repo-refs",
+        "feat/naming-step3",
+        "feat/ms00-c-release-identity",
+        "feat/p1-compat-kernel-hardening",
+        "feat/axw022a-pdf-http-endpoint",
+        "feat/axw022b-evidence-annotation",
+        "fix/desktop-close-request-destroy",
+        "work/tp12-facades",
+        "codex/frozen-roadmap-deepseek-v1",
+        "release/v0.4.0-contract",
+        "codex/recovery-shell-frontend",
+        "feat/archeaxis-desktop-a1-violet-core"
+      ]
+    },
+    "limitations": [
+      "Direct ls-remote verifies the seven live refs; GitHub connector exact-head queries and fetch_pr verify matched PR states, but no search match is recorded only as NO_MATCH_FOUND_BY_HEAD_QUERY, not as ownership or write authorization",
+      "12 absent cached refs are local stale tracking refs, not live cloud heads",
+      "dirty active tree prevents attributing all working changes to a named donor",
+      "two inaccessible directories were not opened or cleaned",
+      "existing branch records keep merge_delete_authorized=false; unknown-owner/history refs remain preserved"
+    ],
+    "checked_at_utc": "2026-09-26T05:27:56.083628+00:00",
+    "remote_read_method": "direct read-only git ls-remote --heads origin; verified through normal approved user execution",
+    "external_git_ref_mutations": [],
+    "local_heads": {
+      "agent/phase5-research-knowledge-governance": "0a5e1bfa94209ccded6aa993c89c581bbfd00227",
+      "audit/r5-independent-audit-20260919": "6daca18e79b0749e86ca9c7bc320052b8ac12752",
+      "audit/unreleased-real-version": "40922904e0268788f6851057439521732bd2f451",
+      "axw/execution-h0": "39df7d263ef6ac6e8d5c2e07c2de64261fdaeda8",
+      "axw/execution-h1": "1c688c71eace449be2972acc538c0a8eb31dab89",
+      "chore/naming-repo-refs": "a9aa0665cc0b99fb222b04169a004cd23b04c7cc",
+      "codex/aaos-p3-ui-convergence-20260922": "2994efa08d3e4f6ea561831fd4088d6d1b290cdd",
+      "codex/dp-f01-20260925": "793e06ee040dcdb0248e2bbb322b44084620cf17",
+      "codex/execution-reliability-standards": "affc0abcea7d080542e3f294322403f27ec6352a",
+      "codex/frozen-roadmap-deepseek-v1": "fcfac4a8dac0cf285599a757e63ddb14e1f2ef6f",
+      "codex/recovery-shell-frontend": "e4239ebd4fe825becc4192d6e89bfaa35a9a3946",
+      "codex/worker-quality-0906": "4ca46eaf94c486dadcf200aac6b41cd968b1ce6e",
+      "docs/verification-summary-2026-08-09": "8cc9c69080786f9aeceaa882aba65a0e4c6a8848",
+      "feat/absorption-adopt-now": "081cf20a28152c271155b6c3d524550ffc545ced",
+      "feat/absorption-roadmap-r0": "42d13c0b748243235f9ffbff3e3394b76196b368",
+      "feat/archeaxis-desktop-a1-violet-core": "376281c6a68bd8b6385d43878d370b81e28cf9ee",
+      "feat/axw022a-pdf-http-endpoint": "17ca96280010822fe1ee95a6f264f47e7435d2c8",
+      "feat/axw022b-evidence-annotation": "3edacbcb1c67475e3da2f2247f8622e219ca2675",
+      "feat/h2-bakeoff": "376fb8001a0a7f2e2c25a0174e1dee6601d0b95b",
+      "feat/h2-pipeline-integration": "e1df9279fde0dd0665d4765c18b8a3d1c7ae443b",
+      "feat/ms00-c-release-identity": "01e794d1070114c6a55142fae2032bc010b9946e",
+      "feat/naming-step3": "bc4a234ffe4d84b2495a06080bded4a53db92898",
+      "feat/p1-compat-kernel-hardening": "a4f2de19794df490206b5b0b935f5176a3d5775e",
+      "feat/portable-data-root": "4e1a3ed849d72f667513d2d159c4cbe5dc6650da",
+      "fix/desktop-close-request-destroy": "801edea89bdf5d845f083670df4afad923ef985b",
+      "main": "e3875db0ee6d073d37839eb7b95f7ef4ce881bbb",
+      "release/v0.4.0-contract": "75cb72ef4642b5dab4fdae5c81807b94757e6a69",
+      "work/tp12-facades": "8d5ba104a91918c30f7d96513b6553f406f74e3f"
+    },
+    "local_head_dispositions_complete": true,
+    "local_ref_without_disposition": [],
+    "historical_records_not_current_local_ref": [
+      "codex/ci-release-optimization",
+      "codex/post-release-v0.6.9",
+      "codex/recovery-shell-closed-loop",
+      "codex/release-v0.6.9",
+      "codex/v0.6.8-release-closure"
+    ],
+    "remote_cleanup_readback": {
+      "checked_at_utc": "2026-09-26T02:16:27.155412+00:00",
+      "deleted_exact_tip_refs": 12,
+      "receipt": ".project-local/runs/aaos-ui-current-candidate-20260926/remote-cleanup-verified.json",
+      "current_live_readback": ".project-local/runs/aaos-ui-current-candidate-20260926/remote-heads-live-20260926.json",
+      "current_live_head_count": 7,
+      "current_absence_reverified": true,
+      "other_live_refs_preserved": true
+    },
+    "pr_disposition_readback_20260926": {
+      "checked_at_utc": "2026-09-26T03:52:23+00:00",
+      "source": "GitHub connector search by exact head, followed by fetch_pr for matched pull requests",
+      "branches": [
+        {
+          "branch": "codex/aaos-p3-ui-convergence-20260922",
+          "query_result": "NO_MATCH_FOUND_BY_HEAD_QUERY"
+        },
+        {
+          "branch": "codex/execution-reliability-standards",
+          "query_result": "NO_MATCH_FOUND_BY_HEAD_QUERY"
+        },
+        {
+          "branch": "codex/frozen-roadmap-deepseek-v1",
+          "query_result": "NO_MATCH_FOUND_BY_HEAD_QUERY"
+        },
+        {
+          "branch": "docs/verification-summary-2026-08-09",
+          "pull_requests": [
+            {
+              "number": 70,
+              "state": "closed",
+              "merged": false,
+              "head_sha": "8cc9c69080786f9aeceaa882aba65a0e4c6a8848"
+            }
+          ]
+        },
+        {
+          "branch": "feat/naming-step3",
+          "pull_requests": [
+            {
+              "number": 136,
+              "state": "closed",
+              "merged": false,
+              "head_sha": "bc4a234ffe4d84b2495a06080bded4a53db92898"
+            }
+          ]
+        },
+        {
+          "branch": "main",
+          "query_result": "NOT_APPLICABLE"
+        },
+        {
+          "branch": "release/v0.4.0-contract",
+          "merge_delete_authorized": false,
+          "retention_disposition": "HISTORICAL_RELEASE_OR_ROADMAP_FREEZE_RETAIN_EVIDENCE",
+          "pull_requests": [
+            {
+              "number": 21,
+              "state": "closed",
+              "merged": true,
+              "head_sha": "faec347d422e6ac03d505f474eb931fb7535f8f0"
+            },
+            {
+              "number": 22,
+              "state": "closed",
+              "merged": true,
+              "head_sha": "75cb72ef4642b5dab4fdae5c81807b94757e6a69",
+              "head_matches_live_remote_tip": true
+            }
+          ],
+          "head_commit_is_ancestor_of_live_main": false,
+          "retention_basis": "Explicit existing disposition HISTORICAL_RELEASE_OR_ROADMAP_FREEZE_RETAIN_EVIDENCE; merge_delete_authorized=false; exact branch tip is not an ancestor of current main."
+        }
+      ]
+    },
+    "local_branch_count_before_cleanup": 28,
+    "current_local_branches": [
+      "agent/phase5-research-knowledge-governance",
+      "audit/unreleased-real-version",
+      "axw/execution-h0",
+      "axw/execution-h1",
+      "chore/naming-repo-refs",
+      "codex/aaos-p3-ui-convergence-20260922",
+      "codex/dp-f01-20260925",
+      "codex/execution-reliability-standards",
+      "codex/frozen-roadmap-deepseek-v1",
+      "codex/recovery-shell-frontend",
+      "codex/worker-quality-0906",
+      "docs/verification-summary-2026-08-09",
+      "feat/absorption-adopt-now",
+      "feat/absorption-roadmap-r0",
+      "feat/archeaxis-desktop-a1-violet-core",
+      "feat/axw022a-pdf-http-endpoint",
+      "feat/axw022b-evidence-annotation",
+      "feat/h2-bakeoff",
+      "feat/h2-pipeline-integration",
+      "feat/ms00-c-release-identity",
+      "feat/naming-step3",
+      "feat/p1-compat-kernel-hardening",
+      "feat/portable-data-root",
+      "fix/desktop-close-request-destroy",
+      "main",
+      "release/v0.4.0-contract",
+      "work/tp12-facades"
+    ],
+    "local_ref_cleanup_20260926": {
+      "branch": "audit/r5-independent-audit-20260919",
+      "deleted_expected_tip": "6daca18e79b0749e86ca9c7bc320052b8ac12752",
+      "checked_after_cleanup_absent": true,
+      "worktree_attached": false,
+      "remote_head_present": false,
+      "unique_branch_commits": 1,
+      "patch_equivalent_commits": 1,
+      "unique_patches": 0,
+      "exact_document_path": "docs/current/R5-INDEPENDENT-AUDIT-20260919.md",
+      "head_blob_match": "dcb1e1563c2250a614cc068ef26be3db3ef7972b",
+      "content_preserved_in_head": true,
+      "operation": "git update-ref -d refs/heads/audit/r5-independent-audit-20260919 <expected-tip>"
+    }
+  }
+}

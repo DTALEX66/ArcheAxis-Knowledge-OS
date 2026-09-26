@@ -1,0 +1,5 @@
+## 2026-09-26 archive readback correction
+
+The statements in branch-batch-03.md and branch-batch-03.json that `docs/VERIFICATION_SUMMARY_2026-08-09.md` has no archived copy are superseded. The archive `docs/history/remote-branch-assets/residual-material-20260918.tar.gz` already exists at the audit baseline `a9ead3e1597808ca751c6ccec1dba27bcfff5b4b`. Its member `docs/verification-summary-2026-08-09/docs/VERIFICATION_SUMMARY_2026-08-09.md` is 11,525 bytes and exactly matches the donor blob at `8cc9c69080786f9aeceaa882aba65a0e4c6a8848`; SHA-256 `f5358da3dc7c17afd85f6cd2b4d8266c97cf8a2cd317bf9d1376b301a3009a21`. The earlier inventory examined the donor-branch-assets archive only, so its repository-wide absence conclusion was too broad. Archive coverage for these 12 paths is at least 6, not 5; the other six were not re-audited in this correction. This does not authorize branch deletion or make the historical summary current authority.
+
+This supplement supersedes the identified absence claim without changing the hash-pinned historical report. Other historical claims retain their original scope.
