@@ -3422,3 +3422,50 @@ read as "migration was not tested".
 **Non-claims.** Green here is a gate result for this path set, not product qualification. `main` has been
 fully force-qualified only at `ea2c3831` (20/20); `67a95352` is qualified by the required-gate set above.
 A15/A16 remain unsigned, release FROZEN, Local Green untouched, `local_green_updated=false`.
+
+### A08 answer binding closed, and the verification probes promoted to tracked regressions — 2026-09-26
+
+**The last undriven M0 link is now driven.** The previous A08 slice exercised the event, Assessment and
+schedule routes but explicitly did **not** post an answer, leaving `latest_review.answer` and
+`latest_review.assessment_id` null. The probe now posts a real answer through the route the Rust tests use,
+`POST /api/v1/learning/reviews` with an `x-archeaxis-actor` header. Result **`ok: true`**:
+
+| property | measured |
+| --- | --- |
+| answer posted | `record_answer_status: 201`; idempotent replay `200` |
+| answer read back | `answer_readback: "the terminus retreated 930 metres"`, `answer_matches: true` |
+| bound to the Assessment | `review_is_bound_to_assessment: true`, `learner_assessment_is_bound: true` |
+| bound to the knowledge version | `learner_knowledge_version_is_bound: true` |
+| schedule | `schedule_authority: "fsrs"`, `schedule_state_present: true` |
+| mastery | `mastery_projection_closed: false` - a projection, never reported as closed |
+| idempotency | `events_after_event: 1`, `events_after_review: 2`, replay adds none, `events_after_restart: 2` |
+
+**Two measured behaviours recorded rather than assumed.** First, `schedule_authority` differs by endpoint:
+the plain **learning-event** route reports `placeholder_ladder` (next review two days out), while the
+**review** route reports `fsrs` - so real FSRS scheduling is on the review path, not the event path. Second, a
+`rating: 3` review on a first-seen card schedules the next review only **ten minutes** out
+(`2026-09-26T12:10:00+00:00` from `now: 2026-09-26T12:00:00+00:00`). Both are stated as what the Core returned;
+no interval policy is claimed to be correct, and no learning-effectiveness claim is made.
+
+**The three verification probes are now tracked regressions** under `scripts/probes/`, alongside the existing
+`r10`/`r11` probes:
+
+| file | what it proves |
+| --- | --- |
+| `scripts/probes/core_backup_restore_smoke.py` | backup / restore with fail-closed negatives, rollback, verified restore, restart readback (`--maintenance-backup` / `--maintenance-restore`) |
+| `scripts/probes/core_learning_api_smoke.py` | learning event, Assessment, real answer bound to item/Assessment/knowledge version, FSRS schedule, idempotent replay, restart readback |
+| `scripts/probes/legacy_migration_smoke.py` | AXW-DATA-403 migration on a copy of the real legacy asset: dry-run plan, semantic diff, idempotency, rollback readback, original hash unchanged |
+
+All three were run from their new location: exit 0, `ok: true` for each. `scripts/check_path_conventions.py`
+reports `2271/2271 tracked paths owned` (was 2268), and `ruff check scripts --select E9,F63,F7,F82` - the
+selection CI's lint job actually uses over `scripts` - passes, as does the repository's own ruff config for
+the three files.
+
+**Scope.** These are standalone probes, not pytest cases, matching how `r10`/`r11` are run; nothing in CI
+executes them, so they are reproducible on demand rather than a gate. `core_*_smoke.py` exit 2 with an
+explicit `blocked` receipt when the Core binary is absent, so a missing build cannot read as a pass.
+
+**Non-claims.** A15/A16 remain unsigned and are not self-certified. Release FROZEN (no tag, no version
+promotion). Local Green untouched: `local_green_updated=false` - still no combination candidate, because the
+Codex frontend has not been delivered and `apps/ArcheAxis.Desktop/MainWindow.axaml.cs` remains an uncommitted
+dirty file this session has never touched.
