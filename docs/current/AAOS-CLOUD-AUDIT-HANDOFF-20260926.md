@@ -21,12 +21,13 @@ item explicitly marked **local-only** at the end.
 | Item | Value |
 | --- | --- |
 | Branch | `codex/aaos-p3-ui-convergence-20260922` |
-| Head commit | `60740800370c199396376915efb8a67a58224939` |
+| Head commit | `4270f25f906b9498775a61982c3db02de8fd465b` |
 | `main` | `e3875db0ee6d073d37839eb7b95f7ef4ce881bbb` (**not** updated) |
 | Local = remote | yes, verified by `git rev-parse` on both plus a GitHub commit readback |
 
-> The head commit is `60740800` for the code+docs state below. The two later
-> documentation-only commits of the same session are additive.
+> `4270f25f` is documentation-only. The code state to audit is `60740800`
+> (route reconciliation) and `a473267a` (the `install_builtin` and boundary
+> fixes); earlier commits in the same session are listed in the checkpoint log.
 
 ### CI runs (exact SHA)
 
@@ -147,10 +148,14 @@ twelve of the thirteen archived tips — see the table in
 ## 5. Local-only items (not auditable from the cloud)
 
 - Git objects reachable only from local refs that were never pushed. Verified:
-  `codex/recovery-shell-frontend` tip `e4239ebd4fe825becc4192d6e89bfaa35a9a3946`
-  returns **422** from GitHub. Its branch was never pushed, so deleting the local
-  ref makes it unrecoverable. This is the single archival tip not readable
-  remotely.
+  the `codex/recovery-shell-frontend` tip returns **422** from the GitHub commits
+  API, and that branch was never pushed, so deleting the local ref makes it
+  unrecoverable. This is the single archival tip not readable remotely. (Its
+  exact SHA is not restated here: this repository's own `test_axr060` requires
+  every 40-hex identifier in `docs/current/` to resolve to a real object in the
+  checkout, and a local-only commit cannot. The SHA remains in
+  `docs/current/AAOS-BRANCH-DISPOSITION-REVIEW-20260925.json`, which is a
+  declared audit receipt and therefore outside that scan.)
 - `.project-local/` runtime evidence (run directories, test databases,
   screenshots) is git-ignored by design and therefore absent from the cloud.
 
