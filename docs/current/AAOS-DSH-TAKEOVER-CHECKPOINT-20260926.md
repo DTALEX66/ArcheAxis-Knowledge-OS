@@ -24,6 +24,22 @@
 
 ## DONE（本轮，已推送并 CI 验证）
 
+**D-2 路由契约与真实 Core 对齐** — `a473267a`
+
+`config/desktop/routes-v1.json` 声明 `machine_assets -> /api/v1/machine/assets`，而**该 Core 路由从来不存在**。`R6-EXECUTION.md:977` 早已记录此不一致（"The declared desktop route entries `/api/v1/knowledge` and `/api/v1/machine/assets` do not have matching current Rust read routes"）并决定不引入投机调用——**契约本身从未被调和**。
+
+这使契约承诺了 canonical writer 从不提供的投影，也违反了该文件自己的测试所守护的原则（`test_unavailable_domains_are_not_declared_as_core_readiness_routes`：只有真实存在的 Core 投影才能被声明）。
+
+调和结果：
+
+- `page_id` `machine_assets` → `machine_growth`，与真实桌面 section 一致（`SetSection("machine-growth", …)`），也与其他 page_id 的既有惯例一致（它们本就跟随 shell 的 section）。
+- `core_endpoint` → `/api/v1/machine/tasks/{task_id}` —— Core 确实提供、且桌面唯一实际调用的 machine 端点（`MainWindow.axaml.cs:2559`）。
+
+新增回归 `test_every_declared_core_endpoint_exists_in_the_router`：解析真实 Axum 路由表，要求契约声明的每个端点都能解析到真实路由。**RED 已验证**：把 `/api/v1/machine/assets` 注回后失败于
+`manifest declares endpoints Core does not serve: [('machine_growth', '/api/v1/machine/assets')]`。
+
+CI @ `a473267a`：`gateplan` ✓ `lint` ✓ `test (3.12)` ✓ **`contracts-vnext` ✓** `a0-gates` ✓；`vnext-ci/cargo-test` ✓。
+
 **D-1 `test_axr060` 校验边界修复** — `14a2788c`
 
 复核 `5819cace` 中的实现，确认提示词列出的缺陷真实存在，其中第 3 条是**可利用漏洞**：
@@ -48,23 +64,25 @@
 
 ## OPEN
 
-**O-1 路由契约与实际导航漂移**（阶段 D 的第一个真实缺口）
+**O-1 路由契约与真实导航的**剩余**差异**（`machine_assets` 幻影端点已由 D-2 修复）
 
-实测对比：
+已修复的部分：`machine_assets` → `machine_growth` + 真实端点（见 D-2）。
+
+**仍存在的差异**（需 Owner 裁定权威侧）：
 
 | 来源 | 内容 |
 | --- | --- |
-| `config/desktop/routes-v1.json`（`archeaxis.desktop-routes/v1`） | **7 个 page_id**：`knowledge`、`source_reader`、`learning`、`jobs`、`machine_assets`、`settings`、`recovery` |
+| `config/desktop/routes-v1.json`（已修正后） | **7 个 page_id**：`knowledge`、`source_reader`、`learning`、`jobs`、`machine_growth`、`settings`、`recovery` |
 | `MainWindow.axaml.cs` 实际 `SetSection(...)` | **16 个 section**：`home`、`capture`、`library`、`source-reader`、`knowledge`、`learning`、`evidence`、`research`、`original-editor`、`memory-map`、`machine-growth`、`jobs`、`plugins`、`models`、`settings`、`recovery` |
 
-具体不一致：
+具体：
 
-- `machine_assets` 在契约中存在，但**不是真实 section**；真实 section 名为 `machine-growth`。
 - `home`、`capture`、`library`、`evidence`、`research`、`original-editor`、`memory-map`、`plugins`、`models` **未在契约中登记**。
 - `source_reader` 与真实 section 名 `source-reader` 命名不一致。
-- `/api/v1/machine/assets` 端点**从未被调用**（0 处）。
+- 契约 `page_id` 是**封闭 Literal** 且 `routes` 要求 `min_length=7`，扩展它需要同时改 Pydantic 契约 + JSON schema + 测试。
+- 其中 `research`/`plugins`/`models` 已被既有测试确立为**诚实不可用占位**（不调用 Core），把它们登记进契约需要 `core_endpoint` 变为可选——那是一次**契约语义变更**，故不擅自执行。
 
-裁定：`PROPOSED` —— 需要 Owner 确认哪一侧是权威（更新契约以匹配真实导航，或补齐真实导航以达到契约）。**未擅自改动任一侧**：契约与导航都是权威面，单方面改写会掩盖真实漂移。
+裁定：`PROPOSED` —— 需要 Owner 确认哪一侧是权威（把契约扩到真实导航，或把导航收敛到契约）。**未擅自改动任一侧**。
 
 **O-2 正式 UI 纵向切片**
 
@@ -115,6 +133,8 @@ rust-vnext, security-targeted, static, wheel-smoke, workers-vnext
 | --- | --- | --- | --- | --- | --- |
 | ERR-1 | 规范检查报 `tests/test_axr060_completion_audit.py: crlf` | **本文件的编辑工具把全文统一写成 CRLF**；HEAD 中该文件本来只有 311 个 CRLF（混合行尾），被改成 547 个纯 CRLF | 会阻塞 CI `lint` | 将该文件规范化为 LF（547 → 0 CRLF） | 改动后先跑 `check_repository_conventions.py --source worktree` 再提交 |
 | ERR-2 | `test_docs_only_classifies_static` 失败 | 该测试用 `docs/PROJECT_STATUS.md` 作为「纯文档」示例，而它**实际被契约测试断言** | 分类修正被过时示例挡住 | 改为真正普通文档 `docs/history/notes.md`，并新增 `contract-bearing-docs` 回归 | 分类变更必须同时更新承受该分类的测试示例 |
+| ERR-3 | `config/desktop/routes-v1.json` 一度变成 **UTF-8 BOM**，全部 JSON 解析失败 | 用 PowerShell `Set-Content -Encoding utf8` 写该文件时写入 BOM | 会破坏契约与其全部测试 | 用 Python 以字节方式剥离 BOM 并复核解析 | **不要用 PowerShell `Set-Content` 改仓库内的 JSON/源码**；用 Python 字节写入 |
+| ERR-4 | 同一文件随后变成 **CRLF**；`tests/test_desktop_routes_v1.py` 亦然 | 编辑/写入工具统一按 CRLF 落盘，而 HEAD 中这些文件是 LF | 会阻塞 CI `lint`（与 ERR-1 同类） | 全部规范化为 LF，`git diff --stat` 复核为**仅 1 行/必要行**差异 | 每次写文件后立刻查 `CRLF` 计数；提交前跑 `check_repository_conventions.py --source worktree` |
 
 未解决但已记录：`crates/archeaxis-api/tests/maintenance_cli.rs` 的 CRLF 是**既存且本轮未触碰**；CI 的 `--source head` 检查历史通过，`--source worktree` 会报。本轮未处理（不在授权范围）。
 
