@@ -38,6 +38,43 @@ item explicitly marked **local-only** at the end.
 | [36240789707](https://github.com/DTALEX66/ArcheAxis-Knowledge-OS/actions/runs/36240789707) | `a473267a` | success | `vnext-ci/cargo-test` |
 | [36241709088](https://github.com/DTALEX66/ArcheAxis-Knowledge-OS/actions/runs/36241709088) | `fde023c5` | success | `gateplan`, `lint`, `a0-gates` (docs-only: `test` correctly SKIPPED) |
 | [36242037128](https://github.com/DTALEX66/ArcheAxis-Knowledge-OS/actions/runs/36242037128) | `60740800` | success | `gateplan`, `lint`, `a0-gates` (docs-only) |
+| [36242496590](https://github.com/DTALEX66/ArcheAxis-Knowledge-OS/actions/runs/36242496590) | `4270f25f` | **failure** | `test (3.12)` ran and **failed** — see below |
+| [36242930810](https://github.com/DTALEX66/ArcheAxis-Knowledge-OS/actions/runs/36242930810) | `0db29842` | **failure (18/20 jobs pass)** | **forced full qualification** — see below |
+
+### Forced full qualification at `0db29842` (workflow_dispatch, `force_full=true`)
+
+Run [36242930810](https://github.com/DTALEX66/ArcheAxis-Knowledge-OS/actions/runs/36242930810) executed every gate that the push-triggered runs skip:
+
+| Result | Jobs |
+| --- | --- |
+| **success (18)** | `gateplan`, `lint`, **`test (3.12)`**, `contracts-vnext`, `rust-vnext`, `desktop-vnext`, `desktop-build`, `desktop-fast`, `workers-vnext`, `migration-targeted`, `security-targeted`, `format-targeted`, `browser-smoke`, `windows-runtime-smoke`, `green-candidate-vnext`, `installer-lifecycle`, `py-compat (3.11)`, `py-compat (3.13)` |
+| **failure (1)** | `wheel-smoke` |
+| **failure (aggregate)** | `a0-gates` — fails only because `wheel-smoke` failed |
+
+This is the strongest evidence in the session, and it is new: `rust-vnext`,
+`desktop-vnext`, `desktop-build`, `contracts-vnext`, `workers-vnext`,
+`installer-lifecycle`, `windows-runtime-smoke`, `green-candidate-vnext`,
+`browser-smoke`, `security-targeted`, `format-targeted`, `migration-targeted`
+and `py-compat` **had never run on this branch** and all pass here.
+
+### `wheel-smoke` is a pre-existing failure, not caused by this session
+
+The job asserts a set of required members in the built wheel
+(`app/release-manifest.json`, `app/research/github.py`, `shared/research_store.py`,
+`shared/core_schema.py`, `shared/migration_runner.py`, …) and that no cache or
+test artifact is packaged
+(`.github/workflows/ci.yml`, step "Smoke-test installed runtime outside
+repository", `assert not missing` / `assert not forbidden`).
+
+None of those files was touched by any commit in this session — the changes here
+are `app/capability/store.py`, test files, `config/desktop/routes-v1.json`, the
+Pydantic/Schema route contract, `.worklab/project-validation.v1.yaml` and
+documentation. This branch had never run `wheel-smoke` before this forced run,
+so no earlier baseline exists on it.
+
+**Status: OPEN, unverified cause.** Recorded rather than hidden; it is the single
+gate standing between this head and a fully green full qualification.
+
 
 **Read this honestly:** the jobs `rust-vnext`, `desktop-vnext`,
 `desktop-build`, `installer-lifecycle`, `wheel-smoke`, `security-targeted`,
