@@ -25,8 +25,10 @@ deleted or migrated as part of this upload.
   normal approved execution successfully read remote heads; that did not prove
   push permission. Any push must use the normal approved execution path and be
   followed by exact-SHA remote readback.
-- The uploaded commit SHA and remote readback result must be appended below
-  before declaring delivery complete.
+- Initial source upload commit: `72a2ba1fea73358c42c03ee3a85ea7f66cc6e052`.
+  It was pushed by fast-forward and immediately read back at the exact same SHA.
+  This handoff receipt is being finalized in a follow-up documentation-only
+  commit on the same branch.
 
 ## Frontend status
 
@@ -94,6 +96,7 @@ uploaded; their names can expose private session and machine-local structure.
 
 ## Delivery receipt
 
-- Uploaded commit: `PENDING`
-- Remote branch readback: `PENDING`
+- Initial source upload commit: `72a2ba1fea73358c42c03ee3a85ea7f66cc6e052`
+- Remote branch exact-SHA readback: `72a2ba1fea73358c42c03ee3a85ea7f66cc6e052` (PASS)
+- Handoff receipt commit: follows this document; verify branch tip for final SHA.
 - Exact-SHA cloud audit/CI: `PENDING`
