@@ -31,26 +31,38 @@ def _setter(style: ET.Element, property_name: str) -> ET.Element:
 def test_loading_status_consumes_emphasis_motion_and_reduced_motion_stays_visible() -> None:
     root = _theme_root()
     resources = {
-        element.get("{http://schemas.microsoft.com/winfx/2006/xaml}Key"): element.text
+        element.get("{http://schemas.microsoft.com/winfx/2006/xaml}Key"): element
         for element in root.iter()
         if element.get("{http://schemas.microsoft.com/winfx/2006/xaml}Key")
     }
+    for key, milliseconds in (
+        ("AaosMotionFastMs", 120),
+        ("AaosMotionStandardMs", 180),
+        ("AaosMotionEmphasisMs", 280),
+        ("AaosMotionRevealMs", 420),
+    ):
+        assert resources[key].text == str(milliseconds)
 
-    assert resources["AaosMotionFastMs"] == "120"
-    assert resources["AaosMotionStandardMs"] == "180"
-    assert resources["AaosMotionEmphasisMs"] == "280"
-    assert resources["AaosMotionRevealMs"] == "420"
+    def transition_ms(style: ET.Element) -> float:
+        transition = next(element for element in _setter(style, "Transitions").iter()
+                          if element.tag.endswith("DoubleTransition"))
+        hours, minutes, seconds = transition.get("Duration", "0:0:0").split(":")
+        return (float(hours) * 3600 + float(minutes) * 60 + float(seconds)) * 1000
 
     loading = _style(root, "TextBlock.status-loading")
     assert _setter(loading, "Foreground").get("Value") == "{DynamicResource AaosInfoBrush}"
     loading_opacity = float(_setter(loading, "Opacity").get("Value", "0"))
     assert 0.0 < loading_opacity < 1.0
-    loading_transition = next(
-        element
-        for element in _setter(loading, "Transitions").iter()
-        if element.tag.endswith("DoubleTransition") and element.get("Property") == "Opacity"
-    )
-    assert loading_transition.get("Duration") == "0:0:0.28"
+    assert transition_ms(loading) == float(resources["AaosMotionEmphasisMs"].text)
+
+    button = _style(root, "Button")
+    assert transition_ms(button) == float(resources["AaosMotionFastMs"].text)
+    surface = _style(root, "Control.aaos-animated-surface")
+    assert transition_ms(surface) == float(resources["AaosMotionStandardMs"].text)
+    ambient = _style(root, "Border.aaos-ambient-glow")
+    assert transition_ms(ambient) == float(resources["AaosMotionRevealMs"].text)
+    route = _style(root, "ScrollViewer.aaos-route-transition")
+    assert transition_ms(route) == float(resources["AaosMotionStandardMs"].text)
 
     reduced = _style(root, "Grid.reduced-motion TextBlock.status-loading")
     assert _setter(reduced, "Opacity").get("Value") == "1"

@@ -127,6 +127,25 @@ def check_python_workers_are_database_free(root: Path) -> list[str]:
     return failures
 
 
+def check_candidate_launcher_delegates_database_maintenance(root: Path) -> list[str]:
+    """The R6 launcher may orchestrate, but only Rust Core may open canonical SQLite."""
+    path = root / "scripts/launch/core_launch.py"
+    if not path.is_file():
+        return []
+    text = _read_text(path)
+    forbidden = re.compile(
+        r"^\s*(?:import\s+sqlite3\b|from\s+sqlite3\b)|"
+        r"\bsqlite3\.connect\s*\(|\bVACUUM\s+INTO\b",
+        re.IGNORECASE | re.MULTILINE,
+    )
+    if forbidden.search(text):
+        return [
+            "scripts/launch/core_launch.py: direct SQLite maintenance is forbidden; "
+            "delegate backup/restore to the Rust Core writer"
+        ]
+    return []
+
+
 def check_desktop_shell_has_no_sql_client(root: Path) -> list[str]:
     """The desktop is UI and Supervisor: no direct SQL, no duplicated rules."""
     failures = []
@@ -250,6 +269,7 @@ def run(root: Path = ROOT) -> tuple[list[str], dict]:
     failures: list[str] = []
     failures += check_database_ownership(root)
     failures += check_python_workers_are_database_free(root)
+    failures += check_candidate_launcher_delegates_database_maintenance(root)
     failures += check_desktop_shell_has_no_sql_client(root)
     protocol_failures, detail = check_protocol_literals_agree(root)
     failures += protocol_failures

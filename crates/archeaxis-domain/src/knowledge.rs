@@ -157,6 +157,111 @@ pub fn create_knowledge_v3(
     Ok(knowledge_id)
 }
 
+/// Create a human-reviewed Candidate and a transform-text anchor atomically.
+/// The job, source and transform identities are checked in the same write
+/// transaction that persists the anchor and Knowledge row.
+#[allow(clippy::too_many_arguments)]
+pub fn create_knowledge_v3_from_transform(
+    conn: &mut Connection,
+    knowledge_type: &str,
+    body: &str,
+    created_by: &str,
+    source_id: &str,
+    job_id: &str,
+    transform_id: i64,
+    selection_start_utf16: usize,
+    selection_end_utf16: usize,
+    quote: &str,
+    metadata: &KnowledgeV3Metadata,
+) -> rusqlite::Result<(String, String, String)> {
+    if !KNOWLEDGE_TYPES.contains(&knowledge_type) {
+        return Err(v3_error(format!("unknown knowledge_type: {knowledge_type}")));
+    }
+    validate_v3("candidate", metadata)?;
+    if metadata.owner != "human" || !metadata.requires_human_review {
+        return Err(v3_error("source-bound Candidates must remain human-owned and require human review"));
+    }
+    if selection_start_utf16 >= selection_end_utf16 || quote.is_empty() {
+        return Err(v3_error("selection must contain a non-empty quote and increasing UTF-16 offsets"));
+    }
+
+    let tx = conn.transaction_with_behavior(rusqlite::TransactionBehavior::Immediate)?;
+    let source: Option<(String, String)> = tx.query_row(
+        "SELECT s.sha256, t.text
+         FROM jobs j JOIN sources s ON s.source_id=j.input_ref
+         JOIN transforms t ON t.transform_id=j.transform_id AND t.source_id=s.source_id
+         WHERE j.job_id=?1 AND j.input_ref=?2 AND j.transform_id=?3 AND j.state='succeeded'",
+        rusqlite::params![job_id, source_id, transform_id],
+        |row| Ok((row.get(0)?, row.get(1)?)),
+    ).optional()?;
+    let (raw_sha256, transform_text) = source.ok_or_else(|| v3_error(
+        "source/job/transform identity is not a succeeded Core text transform",
+    ))?;
+    let start_byte = utf16_offset_to_byte(&transform_text, selection_start_utf16)
+        .ok_or_else(|| v3_error("selection start is not a valid UTF-16 boundary"))?;
+    let end_byte = utf16_offset_to_byte(&transform_text, selection_end_utf16)
+        .ok_or_else(|| v3_error("selection end is not a valid UTF-16 boundary"))?;
+    if transform_text.get(start_byte..end_byte) != Some(quote) {
+        return Err(v3_error("selected quote does not match the persisted transform at the supplied offsets"));
+    }
+
+    let position = serde_json::json!({
+        "schema": "archeaxis.transform-text-selection/v1",
+        "job_id": job_id,
+        "transform_id": transform_id,
+        "selection_start_utf16": selection_start_utf16,
+        "selection_end_utf16": selection_end_utf16,
+        "quote": quote,
+    }).to_string();
+    let anchor_id = crate::anchor::insert_anchor(&tx, source_id, &raw_sha256, &position)?;
+
+    let mut h = Sha256::new();
+    h.update(format!("{knowledge_type}|{body}|{created_by}").as_bytes());
+    let knowledge_id = format!("k_{}", &hex::encode(h.finalize())[..24]);
+    let receipt = receipt_hash(knowledge_type, body, "candidate", Some(&anchor_id));
+    tx.execute(
+        "INSERT INTO knowledge(knowledge_id, knowledge_type, body, status, evidence_status, anchor_id, created_by, receipt_hash)
+         VALUES(?1,?2,?3,'candidate',NULL,?4,?5,?6)",
+        rusqlite::params![knowledge_id, knowledge_type, body, anchor_id, created_by, receipt],
+    )?;
+    let evidence = serde_json::to_string(&metadata.external_evidence)
+        .map_err(|error| v3_error(format!("invalid V3 external_evidence: {error}")))?;
+    tx.execute(
+        "INSERT INTO knowledge_v3_metadata(
+            knowledge_id, source_type, owner, support_level, confidence, risk_level,
+            valid_from, valid_to, external_evidence, requires_human_review
+         ) VALUES(?1,?2,?3,?4,?5,?6,?7,?8,?9,?10)",
+        rusqlite::params![
+            knowledge_id,
+            &metadata.source_type,
+            &metadata.owner,
+            &metadata.support_level,
+            metadata.confidence,
+            &metadata.risk_level,
+            metadata.valid_from.as_deref(),
+            metadata.valid_to.as_deref(),
+            evidence,
+            metadata.requires_human_review,
+        ],
+    )?;
+    tx.commit()?;
+    Ok((knowledge_id, anchor_id, raw_sha256))
+}
+
+fn utf16_offset_to_byte(text: &str, offset: usize) -> Option<usize> {
+    let mut utf16 = 0;
+    for (byte, ch) in text.char_indices() {
+        if utf16 == offset {
+            return Some(byte);
+        }
+        utf16 += ch.len_utf16();
+        if utf16 > offset {
+            return None;
+        }
+    }
+    (utf16 == offset).then_some(text.len())
+}
+
 /// Review action produces an immutable event and (for accept/reject/modify)
 /// updates the knowledge status. `action` must be one of accepted|rejected|modified|deprecated.
 /// C03: the status change and the review event are committed in ONE write

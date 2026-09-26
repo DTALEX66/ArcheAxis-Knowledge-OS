@@ -85,6 +85,7 @@ def _tree(tmp_path: Path) -> Path:
     )
     _write(tmp_path / "apps/ArcheAxis.Desktop/ArcheAxis.Desktop.csproj", CSPROJ)
     _write(tmp_path / "apps/ArcheAxis.Desktop/Program.cs", "internal static class Program { }\n")
+    _write(tmp_path / "scripts/launch/core_launch.py", "# routes maintenance through the Rust Core\n")
     return tmp_path
 
 
@@ -114,6 +115,15 @@ def test_a_worker_that_opens_the_database_is_refused(tmp_path):
     assert len(failures) == 1
     assert "worker_sneaky.py" in failures[0]
     assert "'sqlite3'" in failures[0]
+
+
+def test_the_candidate_launcher_cannot_open_the_canonical_database(tmp_path):
+    root = _tree(tmp_path)
+    _write(root / "scripts/launch/core_launch.py", "import sqlite3\nconn = sqlite3.connect('workspace.sqlite')\n")
+    failures, _ = check.run(root)
+    assert len(failures) == 1
+    assert "scripts/launch/core_launch.py" in failures[0]
+    assert "Rust Core" in failures[0]
 
 
 def test_a_byte_order_mark_does_not_hide_a_violation(tmp_path):

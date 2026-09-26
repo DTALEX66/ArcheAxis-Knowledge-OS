@@ -1,32 +1,36 @@
 <Styles xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
     <Styles.Resources>
-        <SolidColorBrush x:Key="AaosBackgroundBrush" Color="#061118" />
-        <SolidColorBrush x:Key="AaosSidebarBrush" Color="#091821" />
-        <SolidColorBrush x:Key="AaosSurfaceBrush" Color="#0C1C26" />
-        <SolidColorBrush x:Key="AaosSurface2Brush" Color="#102630" />
-        <SolidColorBrush x:Key="AaosBorderBrush" Color="#1D5055" />
-        <SolidColorBrush x:Key="AaosPrimaryBrush" Color="#1FC8C5" />
-        <SolidColorBrush x:Key="AaosPrimaryTextBrush" Color="#061118" />
-        <SolidColorBrush x:Key="AaosGoldBrush" Color="#E6BE73" />
-        <SolidColorBrush x:Key="AaosSuccessBrush" Color="#37C99A" />
-        <SolidColorBrush x:Key="AaosErrorBrush" Color="#E56464" />
-        <SolidColorBrush x:Key="AaosInfoBrush" Color="#3B82F6" />
-        <SolidColorBrush x:Key="AaosWarningBrush" Color="#E6BE73" />
-        <SolidColorBrush x:Key="AaosApprovalBrush" Color="#B8E986" />
-        <SolidColorBrush x:Key="AaosDisabledBrush" Color="#5B6B73" />
-        <SolidColorBrush x:Key="AaosReviewBrush" Color="#E6BE73" />
-        <SolidColorBrush x:Key="AaosIvoryBrush" Color="#F3EFE6" />
-        <SolidColorBrush x:Key="AaosMutedBrush" Color="#96AAB4" />
-        <SolidColorBrush x:Key="AaosOverlayBrush" Color="#99061118" />
-        <LinearGradientBrush x:Key="AaosPrimaryGradientBrush" StartPoint="0,0" EndPoint="1,1">
-            <GradientStop Color="#1FC8C5" Offset="0" />
-            <GradientStop Color="#2CA9BE" Offset="1" />
+        <SolidColorBrush x:Key="AaosBackgroundBrush" Color="#080A0C" />
+        <SolidColorBrush x:Key="AaosSidebarBrush" Color="#101316" />
+        <SolidColorBrush x:Key="AaosSurfaceBrush" Color="#171A1D" />
+        <SolidColorBrush x:Key="AaosSurface2Brush" Color="#202428" />
+        <SolidColorBrush x:Key="AaosBorderBrush" Color="#3B4146" />
+        <SolidColorBrush x:Key="AaosPrimaryBrush" Color="#E1E4E6" />
+        <SolidColorBrush x:Key="AaosPrimaryTextBrush" Color="#101214" />
+        <SolidColorBrush x:Key="AaosGoldBrush" Color="#B6AA8D" />
+        <SolidColorBrush x:Key="AaosSuccessBrush" Color="#83A292" />
+        <SolidColorBrush x:Key="AaosErrorBrush" Color="#C78484" />
+        <SolidColorBrush x:Key="AaosInfoBrush" Color="#A5ADB3" />
+        <SolidColorBrush x:Key="AaosWarningBrush" Color="#B6AA8D" />
+        <SolidColorBrush x:Key="AaosApprovalBrush" Color="#A4B294" />
+        <SolidColorBrush x:Key="AaosDisabledBrush" Color="#72797E" />
+        <SolidColorBrush x:Key="AaosReviewBrush" Color="#B6AA8D" />
+        <SolidColorBrush x:Key="AaosIvoryBrush" Color="#F1F2F3" />
+        <SolidColorBrush x:Key="AaosMutedBrush" Color="#A5ADB3" />
+        <SolidColorBrush x:Key="AaosOverlayBrush" Color="#99080A0C" />
+        <LinearGradientBrush x:Key="AaosPrimaryGradientBrush" StartPoint="0%,0%" EndPoint="100%,100%">
+            <GradientStop Color="#F0F1F2" Offset="0" />
+            <GradientStop Color="#CFD3D6" Offset="1" />
         </LinearGradientBrush>
-        <LinearGradientBrush x:Key="AaosAmbientGlowBrush" StartPoint="0,0" EndPoint="1,1">
-            <GradientStop Color="#1FC8C5" Offset="0" />
-            <GradientStop Color="#123C4A" Offset="0.58" />
-            <GradientStop Color="#E6BE73" Offset="1" />
+        <LinearGradientBrush x:Key="AaosNavActiveBrush" StartPoint="0%,0%" EndPoint="0%,100%">
+            <GradientStop Color="#292E32" Offset="0" />
+            <GradientStop Color="#202428" Offset="1" />
+        </LinearGradientBrush>
+        <LinearGradientBrush x:Key="AaosAmbientGlowBrush" StartPoint="0%,0%" EndPoint="100%,100%">
+            <GradientStop Color="#C5C9CC" Offset="0" />
+            <GradientStop Color="#747B80" Offset="0.58" />
+            <GradientStop Color="#B6AA8D" Offset="1" />
         </LinearGradientBrush>
         <x:Double x:Key="AaosSpace4">4</x:Double>
         <x:Double x:Key="AaosSpace8">8</x:Double>
@@ -42,25 +46,26 @@
         <x:Double x:Key="AaosRadius24">24</x:Double>
         <x:Double x:Key="AaosDensityDefault">56</x:Double>
         <x:Double x:Key="AaosDensityCompact">44</x:Double>
-        <x:Double x:Key="AaosFontCaption">11</x:Double>
-        <x:Double x:Key="AaosFontBody">12</x:Double>
-        <x:Double x:Key="AaosFontControl">13</x:Double>
-        <x:Double x:Key="AaosFontSection">14</x:Double>
+        <x:Double x:Key="AaosFontCaption">12</x:Double>
+        <x:Double x:Key="AaosFontBody">14</x:Double>
+        <x:Double x:Key="AaosFontControl">14</x:Double>
+        <x:Double x:Key="AaosFontSection">15</x:Double>
         <x:Double x:Key="AaosFontHeading">18</x:Double>
         <x:Double x:Key="AaosFontCard">16</x:Double>
-        <x:Double x:Key="AaosFontPageTitle">26</x:Double>
-        <x:Double x:Key="AaosFontHero">30</x:Double>
+        <x:Double x:Key="AaosFontPageTitle">32</x:Double>
+        <x:Double x:Key="AaosFontHero">32</x:Double>
         <x:Double x:Key="AaosFontSubheading">24</x:Double>
-        <x:Double x:Key="AaosFontBrand">24</x:Double>
+        <x:Double x:Key="AaosFontBrand">17</x:Double>
         <x:Double x:Key="AaosFontLead">15</x:Double>
         <x:Double x:Key="AaosFontWorkspace">16</x:Double>
-        <x:Double x:Key="AaosFontKpi">26</x:Double>
+        <x:Double x:Key="AaosFontKpi">32</x:Double>
         <x:Double x:Key="AaosFontEmptyTitle">22</x:Double>
         <x:Double x:Key="AaosInspectorBreakpoint">1440</x:Double>
         <x:Double x:Key="AaosNarrowActionsBreakpoint">1280</x:Double>
         <x:Double x:Key="AaosTabletBreakpoint">1024</x:Double>
         <x:Double x:Key="AaosMobileBreakpoint">840</x:Double>
         <x:Double x:Key="AaosSourceReaderStackBreakpoint">1200</x:Double>
+        <x:Double x:Key="AaosSourceReaderNarrowActionsBreakpoint">760</x:Double>
         <x:Double x:Key="AaosMotionFastMs">120</x:Double>
         <x:Double x:Key="AaosMotionStandardMs">180</x:Double>
         <x:Double x:Key="AaosMotionEmphasisMs">280</x:Double>
@@ -69,12 +74,15 @@
         <x:String x:Key="AaosCommandPaletteGesture">Ctrl+K</x:String>
     </Styles.Resources>
 
+    <Style Selector="Window">
+        <Setter Property="FontFamily" Value="Inter" />
+    </Style>
     <Style Selector="Button">
         <Setter Property="Background" Value="{DynamicResource AaosSurfaceBrush}" />
         <Setter Property="Foreground" Value="{DynamicResource AaosIvoryBrush}" />
         <Setter Property="BorderBrush" Value="{DynamicResource AaosBorderBrush}" />
         <Setter Property="BorderThickness" Value="1" />
-        <Setter Property="CornerRadius" Value="8" />
+        <Setter Property="CornerRadius" Value="12" />
         <Setter Property="FontSize" Value="{DynamicResource AaosFontControl}" />
         <Setter Property="Padding" Value="14,9" />
         <Setter Property="MinHeight" Value="{DynamicResource AaosDensityCompact}" />
@@ -108,6 +116,10 @@
     <Style Selector="Button:pressed">
         <Setter Property="Background" Value="{DynamicResource AaosSurface2Brush}" />
         <Setter Property="Opacity" Value="0.86" />
+    </Style>
+    <Style Selector="Button.primary-action:pressed">
+        <Setter Property="Background" Value="{DynamicResource AaosPrimaryGradientBrush}" />
+        <Setter Property="Foreground" Value="{DynamicResource AaosPrimaryTextBrush}" />
     </Style>
     <Style Selector="Button:disabled">
         <Setter Property="Background" Value="{DynamicResource AaosSurfaceBrush}" />
@@ -173,7 +185,7 @@
         <Setter Property="Background" Value="{DynamicResource AaosSurfaceBrush}" />
         <Setter Property="BorderBrush" Value="{DynamicResource AaosBorderBrush}" />
         <Setter Property="BorderThickness" Value="1" />
-        <Setter Property="CornerRadius" Value="12" />
+        <Setter Property="CornerRadius" Value="18" />
     </Style>
     <Style Selector="Border.aaos-card:pointerover">
         <Setter Property="Background" Value="{DynamicResource AaosSurface2Brush}" />
@@ -183,13 +195,13 @@
         <Setter Property="Background" Value="{DynamicResource AaosSurface2Brush}" />
         <Setter Property="BorderBrush" Value="{DynamicResource AaosBorderBrush}" />
         <Setter Property="BorderThickness" Value="1" />
-        <Setter Property="CornerRadius" Value="8" />
+        <Setter Property="CornerRadius" Value="12" />
     </Style>
     <Style Selector="Border.aaos-kpi">
         <Setter Property="Background" Value="{DynamicResource AaosSurface2Brush}" />
         <Setter Property="BorderBrush" Value="{DynamicResource AaosBorderBrush}" />
         <Setter Property="BorderThickness" Value="1" />
-        <Setter Property="CornerRadius" Value="8" />
+        <Setter Property="CornerRadius" Value="18" />
         <Setter Property="Padding" Value="16" />
     </Style>
     <Style Selector="Border.aaos-status">
@@ -208,7 +220,7 @@
         <Setter Property="Background" Value="{DynamicResource AaosSurfaceBrush}" />
         <Setter Property="BorderBrush" Value="{DynamicResource AaosBorderBrush}" />
         <Setter Property="BorderThickness" Value="1" />
-        <Setter Property="CornerRadius" Value="12" />
+        <Setter Property="CornerRadius" Value="18" />
         <Setter Property="Padding" Value="24" />
     </Style>
     <Style Selector="TextBlock.aaos-provenance-tag">
@@ -235,10 +247,10 @@
         <Setter Property="BorderBrush" Value="{DynamicResource AaosWarningBrush}" />
     </Style>
     <Style Selector="Border.lifecycle-card">
+        <Setter Property="CornerRadius" Value="18" />
         <Setter Property="Background" Value="{DynamicResource AaosSurfaceBrush}" />
         <Setter Property="BorderBrush" Value="{DynamicResource AaosBorderBrush}" />
         <Setter Property="BorderThickness" Value="1" />
-        <Setter Property="CornerRadius" Value="8" />
     </Style>
     <Style Selector="Border.lifecycle-card:pointerover">
         <Setter Property="Background" Value="{DynamicResource AaosSurface2Brush}" />
@@ -313,11 +325,13 @@
         <Setter Property="Spacing" Value="4" />
     </Style>
     <Style Selector="Button.rail-button">
+        <Setter Property="HorizontalAlignment" Value="Stretch" />
         <Setter Property="HorizontalContentAlignment" Value="Left" />
         <Setter Property="Background" Value="Transparent" />
         <Setter Property="BorderBrush" Value="Transparent" />
-        <Setter Property="Foreground" Value="{DynamicResource AaosMutedBrush}" />
+        <Setter Property="Foreground" Value="{DynamicResource AaosIvoryBrush}" />
         <Setter Property="MinHeight" Value="{DynamicResource AaosDensityCompact}" />
+        <Setter Property="CornerRadius" Value="14" />
     </Style>
     <Style Selector="Button.rail-button:pointerover">
         <Setter Property="Background" Value="{DynamicResource AaosSurface2Brush}" />
@@ -325,8 +339,9 @@
         <Setter Property="Foreground" Value="{DynamicResource AaosIvoryBrush}" />
     </Style>
     <Style Selector="Button.rail-button.active">
-        <Setter Property="Background" Value="{DynamicResource AaosSurface2Brush}" />
+        <Setter Property="Background" Value="{DynamicResource AaosNavActiveBrush}" />
         <Setter Property="BorderBrush" Value="{DynamicResource AaosPrimaryBrush}" />
+        <Setter Property="BorderThickness" Value="3,1,1,1" />
         <Setter Property="Foreground" Value="{DynamicResource AaosIvoryBrush}" />
     </Style>
     <Style Selector="ListBoxItem:selected">
@@ -350,7 +365,7 @@
         <Setter Property="Foreground" Value="{DynamicResource AaosIvoryBrush}" />
         <Setter Property="BorderBrush" Value="{DynamicResource AaosBorderBrush}" />
         <Setter Property="BorderThickness" Value="1" />
-        <Setter Property="CornerRadius" Value="8" />
+        <Setter Property="CornerRadius" Value="12" />
         <Setter Property="FontSize" Value="{DynamicResource AaosFontControl}" />
         <Setter Property="Padding" Value="12,9" />
         <Setter Property="MinHeight" Value="{DynamicResource AaosDensityCompact}" />
@@ -379,7 +394,7 @@
         <Setter Property="Foreground" Value="{DynamicResource AaosIvoryBrush}" />
         <Setter Property="BorderBrush" Value="{DynamicResource AaosBorderBrush}" />
         <Setter Property="BorderThickness" Value="1" />
-        <Setter Property="CornerRadius" Value="8" />
+        <Setter Property="CornerRadius" Value="12" />
         <Setter Property="FontSize" Value="{DynamicResource AaosFontControl}" />
         <Setter Property="Padding" Value="12,9" />
         <Setter Property="MinHeight" Value="{DynamicResource AaosDensityCompact}" />

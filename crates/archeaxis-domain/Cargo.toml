@@ -14,4 +14,5 @@ archeaxis-store-sqlite = { path = "../archeaxis-store-sqlite" }
 tempfile = "3"
 
 [dev-dependencies]
+rusqlite = { version = "0.32", features = ["collation"] }
 tempfile = "3"

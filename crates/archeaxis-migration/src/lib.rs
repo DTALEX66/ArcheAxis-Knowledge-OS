@@ -8,7 +8,7 @@
 use rusqlite::Connection;
 use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
-use std::collections::BTreeMap;
+use std::collections::{BTreeMap, BTreeSet};
 use std::io::Write;
 use std::path::Path;
 
@@ -17,6 +17,33 @@ pub struct TableSummary {
     pub name: String,
     pub row_count: i64,
     pub columns: Vec<String>,
+}
+
+fn quote_identifier(name: &str) -> String {
+    format!("\"{}\"", name.replace('"', "\"\""))
+}
+
+fn export_filename(name: &str) -> String {
+    let is_plain = !name.starts_with("__table_")
+        && !name.is_empty()
+        && name
+            .bytes()
+            .all(|b| b.is_ascii_alphanumeric() || b == b'_' || b == b'-');
+    if is_plain {
+        format!("{name}.jsonl")
+    } else {
+        format!("__table_{}.jsonl", hex::encode(name.as_bytes()))
+    }
+}
+
+fn manifest_digest(tables: &BTreeMap<String, TableExport>) -> String {
+    let mut h = Sha256::new();
+    for (name, table) in tables {
+        h.update(name.as_bytes());
+        h.update(table.rows.to_le_bytes());
+        h.update(table.sha256.as_bytes());
+    }
+    hex::encode(h.finalize())
 }
 
 /// Inventory user tables of a legacy DB (read-only; excludes sqlite internals).
@@ -30,12 +57,14 @@ pub fn inventory(db_path: &str) -> rusqlite::Result<Vec<TableSummary>> {
         .collect::<Result<_, _>>()?;
     let mut out = Vec::new();
     for name in names {
-        let count: i64 = conn.query_row(&format!("SELECT count(*) FROM \"{name}\""), [], |r| {
-            r.get(0)
-        })?;
+        let count: i64 = conn.query_row(
+            &format!("SELECT count(*) FROM {}", quote_identifier(&name)),
+            [],
+            |r| r.get(0),
+        )?;
         let cols: Vec<String> = conn
-            .prepare(&format!("SELECT name FROM pragma_table_info('{name}')"))?
-            .query_map([], |r| r.get(0))?
+            .prepare("SELECT name FROM pragma_table_info(?1)")?
+            .query_map([&name], |r| r.get(0))?
             .collect::<Result<_, _>>()?;
         out.push(TableSummary {
             name,
@@ -52,20 +81,20 @@ pub fn export_jsonl(db_path: &str, out_dir: &str) -> Result<ExportManifest, Migr
     let conn = Connection::open_with_flags(db_path, rusqlite::OpenFlags::SQLITE_OPEN_READ_ONLY)?;
     std::fs::create_dir_all(out_dir).map_err(MigrationError::Io)?;
     let summary = inventory(db_path).map_err(MigrationError::Sql)?;
-    let mut files = BTreeMap::new();
     let mut manifest = ExportManifest {
         exported_at_unix: 0,
         tables: BTreeMap::new(),
         manifest_sha256: String::new(),
     };
     for t in &summary {
-        if t.row_count == 0 {
-            continue;
-        }
-        let path = Path::new(out_dir).join(format!("{}.jsonl", t.name));
-        let mut fh = std::fs::File::create(&path).map_err(MigrationError::Io)?;
+        let path = Path::new(out_dir).join(export_filename(&t.name));
+        let mut fh = std::fs::OpenOptions::new()
+            .write(true)
+            .create_new(true)
+            .open(&path)
+            .map_err(MigrationError::Io)?;
         let mut rows = conn
-            .prepare(&format!("SELECT * FROM \"{}\"", t.name))
+            .prepare(&format!("SELECT * FROM {}", quote_identifier(&t.name)))
             .map_err(MigrationError::Sql)?;
         let mut row_iter = rows.query([]).map_err(MigrationError::Sql)?;
         let mut lines = 0u64;
@@ -91,7 +120,6 @@ pub fn export_jsonl(db_path: &str, out_dir: &str) -> Result<ExportManifest, Migr
         let mut h = Sha256::new();
         h.update(&bytes);
         let digest = hex::encode(h.finalize());
-        files.insert(t.name.clone(), (lines, digest.clone()));
         manifest.tables.insert(
             t.name.clone(),
             TableExport {
@@ -100,16 +128,15 @@ pub fn export_jsonl(db_path: &str, out_dir: &str) -> Result<ExportManifest, Migr
             },
         );
     }
-    // manifest digest over the file map (stable ordering via BTreeMap)
-    let mut h = Sha256::new();
-    for (name, (lines, digest)) in &files {
-        h.update(name.as_bytes());
-        h.update(lines.to_le_bytes());
-        h.update(digest.as_bytes());
-    }
-    manifest.manifest_sha256 = hex::encode(h.finalize());
+    manifest.manifest_sha256 = manifest_digest(&manifest.tables);
     let mpath = Path::new(out_dir).join("export-manifest.json");
-    std::fs::write(&mpath, serde_json::to_string_pretty(&manifest).unwrap())
+    let mut manifest_file = std::fs::OpenOptions::new()
+        .write(true)
+        .create_new(true)
+        .open(&mpath)
+        .map_err(MigrationError::Io)?;
+    manifest_file
+        .write_all(serde_json::to_string_pretty(&manifest)?.as_bytes())
         .map_err(MigrationError::Io)?;
     Ok(manifest)
 }
@@ -157,7 +184,6 @@ impl From<serde_json::Error> for MigrationError {
     }
 }
 
-
 // ---------- X10 bounded demo: semantic staging of a declared fixture set -----
 // This is a DEMO mapping slice, not a claim of full legacy coverage. C04
 // fixes: legal knowledge_type PERSONAL_DEFINITION (contract vocabulary),
@@ -165,7 +191,6 @@ impl From<serde_json::Error> for MigrationError {
 // transaction (atomic; late errors roll back), honest inserted/reused counts,
 // and a stable legacy-row mapping embedded in created_by so equal bodies from
 // different legacy rows are not collapsed.
-
 
 #[derive(Serialize, Deserialize, Debug, Clone, Default, PartialEq)]
 pub struct DemoStageResult {
@@ -188,21 +213,52 @@ fn hex_sha256_bytes(data: &[u8]) -> String {
 
 /// Verify every exported table file against the manifest (hash + row count).
 fn verify_export(export_dir: &str, manifest: &ExportManifest) -> Result<(), MigrationError> {
+    if manifest.manifest_sha256 != manifest_digest(&manifest.tables) {
+        return Err(MigrationError::Io(std::io::Error::new(
+            std::io::ErrorKind::InvalidData,
+            "export manifest digest mismatch",
+        )));
+    }
+    let expected_files: BTreeSet<String> = manifest
+        .tables
+        .keys()
+        .map(|name| export_filename(name))
+        .collect();
     for (name, table) in &manifest.tables {
-        let path = Path::new(export_dir).join(format!("{name}.jsonl"));
+        let path = Path::new(export_dir).join(export_filename(name));
+        let metadata = std::fs::symlink_metadata(&path).map_err(MigrationError::Io)?;
+        if !metadata.file_type().is_file() {
+            return Err(MigrationError::Io(std::io::Error::new(
+                std::io::ErrorKind::InvalidData,
+                format!("{} is not a regular file", export_filename(name)),
+            )));
+        }
         let bytes = std::fs::read(&path).map_err(MigrationError::Io)?;
         if hex_sha256_bytes(&bytes) != table.sha256 {
             return Err(MigrationError::Io(std::io::Error::new(
                 std::io::ErrorKind::InvalidData,
-                format!("{name}.jsonl hash mismatch"),
+                format!("{} hash mismatch", export_filename(name)),
             )));
         }
         let lines = bytes.iter().filter(|b| **b == b'\n').count() as u64;
         if lines != table.rows {
             return Err(MigrationError::Io(std::io::Error::new(
                 std::io::ErrorKind::InvalidData,
-                format!("{name}.jsonl row count mismatch"),
+                format!("{} row count mismatch", export_filename(name)),
             )));
+        }
+    }
+    for entry in std::fs::read_dir(export_dir).map_err(MigrationError::Io)? {
+        let entry = entry.map_err(MigrationError::Io)?;
+        let path = entry.path();
+        if path.extension().and_then(|ext| ext.to_str()) == Some("jsonl") {
+            let filename = entry.file_name().to_string_lossy().into_owned();
+            if !expected_files.contains(&filename) {
+                return Err(MigrationError::Io(std::io::Error::new(
+                    std::io::ErrorKind::InvalidData,
+                    format!("unlisted export file: {filename}"),
+                )));
+            }
         }
     }
     Ok(())
@@ -223,7 +279,8 @@ pub fn stage_demo_semantic_import(
         serde_json::from_str(&manifest_raw).map_err(MigrationError::Json)?;
     verify_export(export_dir, &manifest)?;
 
-    let mut conn = archeaxis_store_sqlite::init_workspace(staging_db).map_err(MigrationError::Sql)?;
+    let mut conn =
+        archeaxis_store_sqlite::init_workspace(staging_db).map_err(MigrationError::Sql)?;
     let tx = conn
         .transaction_with_behavior(rusqlite::TransactionBehavior::Immediate)
         .map_err(MigrationError::Sql)?;
@@ -233,7 +290,7 @@ pub fn stage_demo_semantic_import(
     if let Some(note_table) = manifest.tables.get("notes") {
         leftover.retain(|t| t != "notes");
         result.notes_seen = note_table.rows;
-        let path = Path::new(export_dir).join("notes.jsonl");
+        let path = Path::new(export_dir).join(export_filename("notes"));
         let raw = std::fs::read_to_string(&path).map_err(MigrationError::Io)?;
         for (i, line) in raw.lines().enumerate() {
             if line.trim().is_empty() {
@@ -329,7 +386,10 @@ pub fn stage_demo_semantic_import(
 }
 
 fn demo_knowledge_id(kind: &str, body: &str, created_by: &str) -> String {
-    format!("k_{}", &hex_sha256_bytes(format!("{kind}|{body}|{created_by}").as_bytes())[..24])
+    format!(
+        "k_{}",
+        &hex_sha256_bytes(format!("{kind}|{body}|{created_by}").as_bytes())[..24]
+    )
 }
 
 fn demo_receipt(kind: &str, body: &str, status: &str) -> String {
@@ -388,7 +448,7 @@ pub fn stage_legacy_learning_history(
         return Ok(result);
     };
     result.rows_seen = entry.rows;
-    let raw = std::fs::read_to_string(Path::new(export_dir).join(format!("{table}.jsonl")))
+    let raw = std::fs::read_to_string(Path::new(export_dir).join(export_filename(table)))
         .map_err(MigrationError::Io)?;
     let mut conn =
         archeaxis_store_sqlite::init_workspace(staging_db).map_err(MigrationError::Sql)?;

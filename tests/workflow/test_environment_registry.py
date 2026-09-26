@@ -71,6 +71,14 @@ capabilities:
     )
     monkeypatch.setattr("scripts.workflow.environment_registry.shutil.which", lambda name: None)
     monkeypatch.setenv("ARCHEAXIS_EXTERNAL_ROOT", str(external))
+    def failed_external_probe(command, **kwargs):
+        assert command == [str(binary), "--version"]
+        assert kwargs["timeout"] == 5
+        raise OSError("fixture executable cannot be launched")
+
+    monkeypatch.setattr(
+        "scripts.workflow.environment_registry.subprocess.run", failed_external_probe
+    )
     item = resolve(manifest)["capabilities"][0]
     assert item["available"] is True
     assert item["resolved_path"] == "external:demo.exe"

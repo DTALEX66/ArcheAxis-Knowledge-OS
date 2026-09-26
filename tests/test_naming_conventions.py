@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import hashlib
 import json
 import subprocess
 import tomllib
@@ -27,6 +28,40 @@ from shared.naming import (
 )
 
 ROOT = Path(__file__).resolve().parents[1]
+
+_PRESERVED_FIXTURE_HASHES = {
+    "tests/fixtures/f01-quality/controlled.md": "70aff728005d7580260391e6754f30209ec5fbecd9803f30a31e48d72eb7b176",
+    "tests/fixtures/f01-quality/capped-lines.md": "71c0029230e042d72e9ec8db74f9a28196b37fdfb29f7df7d68e3b425af38928",
+    "tests/fixtures/f01-quality/fallback-gbk.txt": "8ba7ed5cd0f33c11b7bb447337b0ce852b0a4f52c5ee854b6107943408b2b215",
+    "tests/fixtures/p1-quality/bom-then-non-utf8.txt": "7b8e66f5da41888eb5cdd9ba9e142df708b548040f70aa7c6e417287ca4af188",
+    "tests/fixtures/p1-quality/capped-crlf.txt": "9a9af8502c625be793d85c664d7b2c728dc5052b4f60b73e059416118c6a310a",
+    "tests/fixtures/p1-quality/fallback-gbk-markdown.md": "8b593c1ffc2e113962d12485f54b381af29c4ae029b8c2e98c762d686138e6b7",
+    "tests/fixtures/p1-quality/one-long-line.txt": "d9785ad494215a183ceaf55c11aeed1433227e88469f61159f2daf27e6929100",
+}
+_PRESERVED_HISTORICAL_REPORT_HASHES = {
+    "docs/current/dsh-review/branch-batch-03.md": "def1136dd39c48db9a04cf149fccee2a6744d64a5053ef3ffb498b50eeb1d959",
+    "docs/current/dsh-review/branch-batch-03.json": "1d3d6ba80319d4445c771f54802cb46c4c6ed74bdcd662338e74324078d6ff53",
+}
+
+
+@pytest.mark.parametrize("path,expected_hash", _PRESERVED_FIXTURE_HASHES.items())
+def test_intentional_raw_quality_fixtures_are_hash_pinned(path: str, expected_hash: str) -> None:
+    content = (ROOT / path).read_bytes()
+    assert hashlib.sha256(content).hexdigest() == expected_hash
+    assert scan_text_bytes(path, content) == []
+    assert [issue.code for issue in scan_text_bytes(path, content + b" ")] == [
+        "preserved-fixture-mismatch"
+    ]
+
+
+@pytest.mark.parametrize("path,expected_hash", _PRESERVED_HISTORICAL_REPORT_HASHES.items())
+def test_historical_branch_audit_names_are_hash_pinned(path: str, expected_hash: str) -> None:
+    content = (ROOT / path).read_bytes()
+    assert hashlib.sha256(content).hexdigest() == expected_hash
+    assert scan_naming_forbidden_terms(path, content) == []
+    assert [issue.code for issue in scan_naming_forbidden_terms(path, content + b" ")] == [
+        "historical-report-mismatch"
+    ]
 
 
 @pytest.mark.parametrize('path', [

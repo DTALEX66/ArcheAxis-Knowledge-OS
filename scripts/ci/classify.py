@@ -218,7 +218,7 @@ def main() -> int:
     else:
         plan = classify_paths(paths, profile=profile, force_full=args.force_full)
 
-    plan["repository"] = "DTALEX66/archeaxis-workspace"
+    plan["repository"] = "DTALEX66/ArcheAxis-Knowledge-OS"
     plan["event"] = args.event
     plan["base_sha"] = args.base or "unavailable"
     plan["head_sha"] = args.head or "unavailable"

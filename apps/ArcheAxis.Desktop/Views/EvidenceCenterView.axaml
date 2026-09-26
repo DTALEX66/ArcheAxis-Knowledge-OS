@@ -1,0 +1,46 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:views="using:ArcheAxis.Desktop.Views"
+             NarrowActionsBreakpoint="{DynamicResource AaosNarrowActionsBreakpoint}"
+             x:Class="ArcheAxis.Desktop.Views.EvidenceCenterView">
+  <StackPanel x:Name="EvidenceSurface" Spacing="14">
+    <Border Classes="aaos-card" Padding="18">
+      <StackPanel Spacing="6">
+        <TextBlock Text="证据中心" Classes="page-title" />
+        <TextBlock Text="读取 Core 已持久化的 Evidence anchor 与 bundle 摘要；不展示原文正文，不把来源元数据升级为结论。" TextWrapping="Wrap" Foreground="{DynamicResource AaosMutedBrush}" />
+      </StackPanel>
+    </Border>
+    <Border Classes="aaos-card-compact" Padding="14">
+      <Grid x:Name="EvidenceToolbar" Classes="aaos-toolbar" ColumnDefinitions="Auto,Auto" RowDefinitions="Auto" ColumnSpacing="10" RowSpacing="10">
+        <Button x:Name="EvidenceRefreshButton" Classes="primary-action aaos-compact" Content="读取证据" Padding="14,8" Click="OnRefreshClick" AutomationProperties.Name="读取证据" />
+        <TextBlock x:Name="EvidenceStatusText" Grid.Column="1" Classes="status-empty" VerticalAlignment="Center" Text="empty · 尚未读取 Core Evidence。" TextWrapping="Wrap" AutomationProperties.Name="证据中心状态" />
+      </Grid>
+    </Border>
+    <Border x:Name="EvidenceEmptyState" Classes="aaos-empty-state" Padding="16">
+      <StackPanel x:Name="EvidenceEmptyStateContent" Orientation="Horizontal" Spacing="16">
+        <Image x:Name="EvidenceEmptyStateImage" Source="avares://ArcheAxis.Desktop/Assets/aaos-evidence-anchor-empty-state.png" Width="150" Height="112" Stretch="Uniform" Opacity="0.92" AutomationProperties.AccessibilityView="Raw" AutomationProperties.IsControlElementOverride="False" />
+        <StackPanel Spacing="7" VerticalAlignment="Center">
+          <TextBlock Text="尚未读取 Evidence anchor" Classes="card-heading" />
+          <TextBlock Text="点击“读取证据”读取 Core 已持久化的来源定位；页面不使用演示数据填充。" TextWrapping="Wrap" Foreground="{DynamicResource AaosMutedBrush}" />
+          <StackPanel Orientation="Horizontal" Spacing="8">
+            <Button Classes="aaos-compact" Content="去捕获来源" Padding="12,7" Click="OnOpenCaptureClick" AutomationProperties.Name="去捕获来源" />
+            <Button Classes="aaos-compact" Content="查看任务回执" Padding="12,7" Click="OnOpenJobsClick" AutomationProperties.Name="查看任务回执" />
+          </StackPanel>
+        </StackPanel>
+      </StackPanel>
+    </Border>
+    <Border Classes="aaos-card" Padding="18">
+      <StackPanel Spacing="8">
+        <TextBlock Text="Evidence anchors" Classes="card-heading" />
+        <ListBox x:Name="EvidenceAnchorsList" SelectionChanged="OnAnchorSelected" KeyDown="OnAnchorListKeyDown" DoubleTapped="OnAnchorDoubleTapped" MaxHeight="260" Background="Transparent" BorderThickness="0" AutomationProperties.Name="证据锚点列表" />
+        <TextBlock x:Name="EvidenceAnchorDetailText" Classes="status-empty" Text="尚未选择 Evidence anchor。" TextWrapping="Wrap" />
+      </StackPanel>
+    </Border>
+    <Border Classes="aaos-card" Padding="18">
+      <StackPanel Spacing="8">
+        <TextBlock Text="Evidence bundles" Classes="card-heading" />
+        <TextBlock x:Name="EvidenceBundlesText" Classes="status-empty" Text="尚未读取 bundle 摘要。" TextWrapping="Wrap" />
+      </StackPanel>
+    </Border>
+  </StackPanel>
+</UserControl>

@@ -54,3 +54,39 @@ def test_versioned_schema_is_present_and_binds_canonical_writer():
     schema = json.loads((ROOT / "packages/contracts/v1/desktop-routes.schema.json").read_text(encoding="utf-8"))
     assert schema["properties"]["schema"]["const"] == "archeaxis.desktop-routes/v1"
     assert schema["properties"]["canonical_writer"]["const"] == "archeaxis-core-rust-sqlite"
+
+
+def test_unavailable_domains_are_not_declared_as_core_readiness_routes():
+    manifest = json.loads((ROOT / "config/desktop/routes-v1.json").read_text(encoding="utf-8"))
+    page_ids = {route["page_id"] for route in manifest["routes"]}
+    assert page_ids.isdisjoint({"research", "plugins", "models"})
+
+    api = (ROOT / "crates/archeaxis-api/src/lib.rs").read_text(encoding="utf-8")
+    assert '"/api/v1/research' not in api
+    assert '"/api/v1/plugins' not in api
+    assert '"/api/v1/models' not in api
+
+
+def test_unavailable_domain_navigation_handlers_do_not_call_core():
+    shell = (ROOT / "apps/ArcheAxis.Desktop/MainWindow.axaml.cs").read_text(encoding="utf-8")
+    for handler, next_marker in (
+        ("private void OnResearchClick", "private void OnOriginalEditorClick"),
+        ("private void OnPluginsClick", "private void OnModelsClick"),
+        ("private void OnModelsClick", "private void OnSettingsClick"),
+    ):
+        region = shell.split(handler, 1)[1].split(next_marker, 1)[0]
+        assert "SetSection(" in region
+        assert "HttpMethod" not in region
+        assert "SendAsync(" not in region
+
+
+def test_import_timeout_is_scoped_without_weakening_core_transport():
+    supervisor = (ROOT / "apps/ArcheAxis.Desktop/CoreSupervisor.cs").read_text(encoding="utf-8")
+    assert 'Timeout = TimeSpan.FromSeconds(5)' in supervisor
+    assert 'Timeout = TimeSpan.FromSeconds(60)' in supervisor
+    assert '!machine && method == HttpMethod.Post && path == "/api/v1/imports"' in supervisor
+    assert '? ImportHttp : Http;' in supervisor
+    assert 'await client.SendAsync(request, ct)' in supervisor
+    assert supervisor.count('UseProxy = false, AllowAutoRedirect = false') == 2
+    assert 'Core origin mismatch' in supervisor
+    assert 'response.RequestMessage?.Headers.Remove("x-archeaxis-launch-token")' in supervisor

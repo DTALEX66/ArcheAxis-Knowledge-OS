@@ -7,7 +7,9 @@
 //! The owner's real private library was not provided, so this proves the software
 //! path on synthetic data only - the real-library qualification stays open.
 
-use archeaxis_migration::{export_jsonl, inventory, stage_demo_semantic_import, stage_legacy_learning_history};
+use archeaxis_migration::{
+    export_jsonl, inventory, stage_demo_semantic_import, stage_legacy_learning_history,
+};
 use rusqlite::Connection;
 use sha2::{Digest, Sha256};
 
@@ -51,7 +53,10 @@ fn non_empty_legacy_library_stages_notes_and_learning_history_without_touching_t
     let tables = inventory(legacy.to_str().unwrap()).unwrap();
     let names: Vec<String> = tables.iter().map(|t| t.name.clone()).collect();
     for expected in ["notes", "docs", "attachments", "links", "learning_history"] {
-        assert!(names.iter().any(|n| n == expected), "missing {expected} in {names:?}");
+        assert!(
+            names.iter().any(|n| n == expected),
+            "missing {expected} in {names:?}"
+        );
     }
 
     // Consistent read-only export, then verify + stage.
@@ -62,12 +67,22 @@ fn non_empty_legacy_library_stages_notes_and_learning_history_without_touching_t
     assert_eq!(manifest.tables.get("learning_history").unwrap().rows, 3);
 
     let staging = dir.path().join("staging.sqlite");
-    let staged = stage_demo_semantic_import(export.to_str().unwrap(), staging.to_str().unwrap()).unwrap();
+    let staged =
+        stage_demo_semantic_import(export.to_str().unwrap(), staging.to_str().unwrap()).unwrap();
     assert_eq!(staged.notes_seen, 3);
-    assert_eq!(staged.notes_inserted, 3, "all three notes must migrate on a first run");
+    assert_eq!(
+        staged.notes_inserted, 3,
+        "all three notes must migrate on a first run"
+    );
     assert_eq!(staged.notes_reused, 0);
-    assert!(staged.attachments_loss_rows >= 1, "attachments are explicit losses today");
-    assert!(staged.links_loss_rows >= 2, "links are explicit losses today");
+    assert!(
+        staged.attachments_loss_rows >= 1,
+        "attachments are explicit losses today"
+    );
+    assert!(
+        staged.links_loss_rows >= 2,
+        "links are explicit losses today"
+    );
 
     let learning = stage_legacy_learning_history(
         export.to_str().unwrap(),
@@ -96,9 +111,16 @@ fn non_empty_legacy_library_stages_notes_and_learning_history_without_touching_t
         )
         .unwrap();
     let without_due: i64 = conn
-        .query_row("SELECT count(*) FROM learning_events WHERE next_review IS NULL", [], |r| r.get(0))
+        .query_row(
+            "SELECT count(*) FROM learning_events WHERE next_review IS NULL",
+            [],
+            |r| r.get(0),
+        )
         .unwrap();
-    assert_eq!(with_due, 1, "only the legacy 7-day interval is stored as a due date");
+    assert_eq!(
+        with_due, 1,
+        "only the legacy 7-day interval is stored as a due date"
+    );
     assert_eq!(
         without_due, 2,
         "no-schedule and legacy-due-immediately rows are stored without a due date"
@@ -113,10 +135,15 @@ fn non_empty_legacy_library_stages_notes_and_learning_history_without_touching_t
     .unwrap();
     assert_eq!(again.replayed, 3);
     assert_eq!(again.staged_scheduled + again.staged_unscheduled, 0);
-    let total: i64 =
-        conn.query_row("SELECT count(*) FROM learning_events", [], |r| r.get(0)).unwrap();
+    let total: i64 = conn
+        .query_row("SELECT count(*) FROM learning_events", [], |r| r.get(0))
+        .unwrap();
     assert_eq!(total, 3, "history must not accumulate on re-runs");
 
     // No dual-write: the legacy database is byte-identical afterwards.
-    assert_eq!(bytes_sha256(&legacy), before, "the legacy database must never be modified");
+    assert_eq!(
+        bytes_sha256(&legacy),
+        before,
+        "the legacy database must never be modified"
+    );
 }

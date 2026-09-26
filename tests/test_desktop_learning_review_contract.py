@@ -21,6 +21,7 @@ import re
 import json
 from pathlib import Path
 
+import pytest
 from jsonschema import Draft202012Validator
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -32,6 +33,36 @@ REVIEW_SCHEMA = ROOT / "packages" / "contracts" / "learning" / "v1" / "review.sc
 
 def _shell_source() -> str:
     return SHELL.read_text(encoding="utf-8")
+
+
+def test_add_to_learning_selects_the_created_item_and_ignores_stale_navigation() -> None:
+    handler = _region(_shell_source(), "private async void OnAddKnowledgeToLearningClick", "private async void OnReadMachineTaskClick")
+    assert "var knowledgeId = _learningEligibleKnowledgeId" in handler
+    assert "bool IsCurrentRequest()" in handler
+    assert "requestVersion == _knowledgeRequestVersion" in handler
+    assert '_activeSection == "knowledge"' in handler
+    assert handler.index("_selectedLearningItemKey = itemKey;") < handler.index("OnLearningClick(sender, e);")
+    assert "if (IsCurrentRequest())" in handler
+
+
+def test_reader_candidate_submission_disables_its_own_action() -> None:
+    handler = _region(_shell_source(), "private async void OnSourceBoundCandidateRequested", "private void OnSourceReaderOpenJobRequested")
+    assert "if (SourceReaderView.CandidateSubmissionInProgress)" in handler
+    assert "SourceReaderView.SetCandidateSubmissionInProgress(true);" in handler
+    assert "SourceReaderView.SetCandidateSubmissionInProgress(false);" in handler
+    assert "CreateKnowledgeCandidateButton.IsEnabled" not in handler
+    assert "requestVersion == _sourceReaderRequestVersion" in handler
+    assert "ReferenceEquals(SourceReaderView.SelectedRow, e.Row)" in handler
+    assert "string.Equals(rawSha, e.RawSha256, StringComparison.Ordinal)" in handler
+    assert handler.index("if (!IsCurrentSource())") < handler.index("KnowledgeIdBox.Text = knowledgeId;")
+
+
+def test_programmatic_knowledge_id_read_survives_deferred_text_changed() -> None:
+    shell = _shell_source()
+    changed = _region(shell, "private void OnKnowledgeIdChanged", "private async void OnReadKnowledgeClick")
+    read = _region(shell, "private async void OnReadKnowledgeClick", "private async void OnAddKnowledgeToLearningClick")
+    assert changed.index("string.Equals(_observedKnowledgeInput, currentInput") < changed.index("++_knowledgeRequestVersion")
+    assert read.index("_observedKnowledgeInput = KnowledgeIdBox.Text") < read.index("++_knowledgeRequestVersion")
 
 
 def _region(source: str, start_marker: str, end_marker: str | None = None) -> str:
@@ -178,8 +209,18 @@ def test_desktop_projects_persisted_schedule_and_mastery_state_on_learning_open(
     assert 'TryGetProperty("latest_review"' in learning
     assert 'ReadDisplayValue(latestReview, "schedule_authority")' in learning
     assert 'ReadDisplayValue(latestReview, "schedule_state")' in learning
+    assert "FormatProjectionJsonForDisplay(" in learning
     assert 'ReadDisplayValue(projection, "closed")' in learning
     assert 'LearningItemText.Text = $"{assessmentText}' in learning
+
+
+def test_schedule_json_is_indented_for_narrow_inspector_readability() -> None:
+    shell = _shell_source()
+    formatter = _region(shell, "private static string FormatProjectionJsonForDisplay", "private async void OnRefreshJobsClick")
+
+    assert "JsonDocument.Parse(value)" in formatter
+    assert "JsonSerializerOptions { WriteIndented = true }" in formatter
+    assert "catch (JsonException)" in formatter
 
 
 def test_review_schema_accepts_desktop_payload_fields_without_opening_schedule_state() -> None:
@@ -230,8 +271,41 @@ def test_desktop_rejects_inconsistent_correctness_and_fsrs_rating_before_post() 
     assert "if (_activeReviewRating is null)" in submit
     assert "var rating = _activeReviewRating.Value;" in submit
     assert "_activeReviewRating ?? (correct ? 3 : 1)" not in submit
-    assert "if ((correct && rating == 1) || (!correct && rating >= 3))" in submit
+    assert "if ((correct && rating == 1) || (!correct && rating != 1))" in submit
     assert "SubmitReviewButton.IsEnabled = false;" in submit
+
+
+@pytest.mark.parametrize(
+    ("correct", "rating", "expected_valid"),
+    [
+        (True, 1, False),
+        (True, 2, True),
+        (True, 3, True),
+        (True, 4, True),
+        (False, 1, True),
+        (False, 2, False),
+        (False, 3, False),
+        (False, 4, False),
+    ],
+)
+def test_desktop_review_rating_rule_matches_shared_contract_matrix(
+    correct: bool, rating: int, expected_valid: bool
+) -> None:
+    schema = json.loads(REVIEW_SCHEMA.read_text(encoding="utf-8"))
+    validator = Draft202012Validator(schema)
+    payload = {
+        "item_key": "item-1",
+        "client_event_id": "event-1",
+        "correct": correct,
+        "rating": rating,
+    }
+    shell = _shell_source()
+    submit = _region(shell, "private async void OnSubmitReviewClick", "public sealed class LibraryResultRow")
+    rust = CORE.read_text(encoding="utf-8")
+
+    assert bool(list(validator.iter_errors(payload))) is (not expected_valid)
+    assert "if ((correct && rating == 1) || (!correct && rating != 1))" in submit
+    assert "(rating == 1) == body.correct" in rust
 
 
 def test_desktop_ignores_late_review_receipts_for_a_replaced_exposure() -> None:
@@ -304,6 +378,17 @@ def test_learning_queue_is_selectable_instead_of_fixing_the_first_core_item() ->
     assert "string.Equals(_selectedLearningItemKey, itemKey" in shell
 
 
+def test_learning_queue_and_inspector_wrap_long_projection_values() -> None:
+    xaml = (ROOT / "apps" / "ArcheAxis.Desktop" / "MainWindow.axaml").read_text(encoding="utf-8")
+
+    queue = xaml.split('x:Name="LearningQueueList"', 1)[1].split("</ListBox>", 1)[0]
+    assert '<DataTemplate x:DataType="{x:Type local:LearningQueueRow}">' in queue
+    assert "{Binding DisplayText}" in queue
+    assert 'TextWrapping="Wrap"' in queue
+    assert 'x:Name="InspectorObjectText"' in xaml
+    assert 'x:Name="InspectorObjectText" Text="未选择对象" TextWrapping="Wrap"' in xaml
+
+
 def test_a_new_presentation_starts_a_new_exposure() -> None:
     shell = _shell_source()
     learning = _region(
@@ -339,3 +424,31 @@ def test_headless_learning_smoke_covers_cold_restart_readback_without_claiming_m
     assert "runSuffix" in program
     assert "p3-headless-learning-card-" in program
     assert "p3-headless-learning-review-" in program
+
+
+def test_headless_learning_smoke_replays_review_idempotently_and_reads_one_event() -> None:
+    program = PROGRAM.read_text(encoding="utf-8")
+
+    assert program.count('PostJsonAsync(supervisor, "/api/v1/learning/reviews"') == 2
+    assert 'replay.RootElement.TryGetProperty("duplicate", out var duplicate)' in program
+    assert "duplicate.ValueKind != JsonValueKind.True" in program
+    assert 'RequiredInt64(events[0], "event_id")' in program
+    assert 'RequiredInt64(latest, "event_id") != reviewEventId' in program
+    assert "events.GetArrayLength() != 1" in program
+
+
+def test_review_failure_paths_never_report_success_and_keep_retry_identity() -> None:
+    shell = _shell_source()
+    submit = _region(shell, "private async void OnSubmitReviewClick")
+
+    assert "SetStatus(LearningReviewStatusText, \"复习提交失败：请先载入复习项目。\", \"error\")" in submit
+    assert "SetStatus(LearningReviewStatusText, \"复习提交失败：请输入回答。\", \"error\")" in submit
+    assert "permissionDenied ?" in submit
+    assert "复习提交被 Core 拒绝：请检查会话或权限范围。" in submit
+    assert 'permissionDenied ? "permission" : "error"' in submit
+    assert "复习提交中断；请以 Core 回执为准。" in submit
+    assert submit.index("_activeReviewEventId ??=") < submit.index("var payload =")
+    assert "SubmitReviewButton.IsEnabled = true;" in submit
+    assert "LearningAnswerBox.Text = string.Empty;" in submit
+    assert submit.index("if (response.IsSuccessStatusCode)") < submit.index("ShowToast(\"复习结果已由 Core 记录\")")
+    assert submit.index("ShowToast(\"复习结果已由 Core 记录\")") < submit.index("_activeReviewEventId = null;")

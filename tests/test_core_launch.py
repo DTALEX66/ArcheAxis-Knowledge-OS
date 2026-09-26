@@ -4,9 +4,9 @@ The launcher is allowed to be convenient, never credulous. These tests pin the
 refusals that matter more than the happy path:
 
   * stop kills only a pid it can identify as the Core; a recycled pid is refused;
-  * a backup proves the source database was not touched (sha256 before == after);
-  * a restore moves the database it replaces aside instead of deleting it, and it
-    refuses a backup that is unreadable or whose recorded hash does not match;
+  * backup/restore SQL is delegated to the Rust Core writer, never Python sqlite;
+  * restore preserves the replaced canonical workspace and refuses a backup whose
+    application identity or recorded hash does not match;
   * a manifest refuses to describe a commit while tracked files are dirty, and a
     missing artifact is a named failure, not a silent omission.
 """
@@ -17,8 +17,7 @@ import hashlib
 import importlib.util
 import json
 import os
-import shutil
-import sqlite3
+import subprocess
 from pathlib import Path
 
 import pytest
@@ -76,35 +75,6 @@ def test_probe_does_not_use_persistent_database_or_session(tmp_path, monkeypatch
     assert state.read_bytes() == before
     assert database.read_bytes() == b'preserved synthetic database'
     assert json.loads(capsys.readouterr().out)['ok'] is True
-
-
-def _make_db(path: Path, rows: list[str]) -> None:
-    connection = sqlite3.connect(str(path))
-    try:
-        connection.execute("CREATE TABLE IF NOT EXISTS knowledge(body TEXT)")
-        connection.executemany("INSERT INTO knowledge(body) VALUES (?)", [(row,) for row in rows])
-        connection.commit()
-    finally:
-        connection.close()
-
-
-def _replace_db(path: Path, rows: list[str]) -> None:
-    """Move the database on: drop what was there and store something else."""
-    connection = sqlite3.connect(str(path))
-    try:
-        connection.execute("DELETE FROM knowledge")
-        connection.executemany("INSERT INTO knowledge(body) VALUES (?)", [(row,) for row in rows])
-        connection.commit()
-    finally:
-        connection.close()
-
-
-def _rows(path: Path) -> list[str]:
-    connection = sqlite3.connect(str(path))
-    try:
-        return [row[0] for row in connection.execute("SELECT body FROM knowledge ORDER BY body")]
-    finally:
-        connection.close()
 
 
 def _sha(path: Path) -> str:
@@ -165,180 +135,108 @@ def test_live_session_is_detected_only_while_the_pid_exists(tmp_path):
     assert launcher.live_session(state) is None
 
 
-# ------------------------------------------------------------------- backup
+# -------------------------------------------------------- Core-owned backup
 
 
-def test_backup_copies_content_and_proves_the_source_was_not_touched(tmp_path):
+def _stub_core(monkeypatch, tmp_path, *, maintenance_result=None):
+    binary = tmp_path / "archeaxis-api.exe"
+    binary.write_bytes(b"core fixture")
+    monkeypatch.setattr(launcher, "CORE_BINARY", binary)
+    calls = []
+
+    def run(command, **kwargs):
+        calls.append(command)
+        if command[1] == "--maintenance-backup":
+            Path(command[3]).write_bytes(b"rust-owned canonical backup")
+            Path(command[3] + ".objects").mkdir()
+            result = {
+                "ok": True,
+                "schema_version": "5",
+                "objects_directory": command[3] + ".objects",
+            }
+        else:
+            result = maintenance_result or {
+                "ok": True,
+                "verified": True,
+                "preserved_previous": str(tmp_path / "core.pre-restore.sqlite"),
+                "preserved_previous_sha256": "b" * 64,
+            }
+            if result.get("ok") and result.get("preserved_previous"):
+                Path(result["preserved_previous"]).write_bytes(b"previous database snapshot")
+        return subprocess.CompletedProcess(command, 0 if result["ok"] else 1,
+                                            json.dumps(result), "" if result["ok"] else "Core refused")
+
+    monkeypatch.setattr(launcher.subprocess, "run", run)
+    return binary, calls
+
+
+def test_launcher_backup_delegates_database_work_to_rust_core(tmp_path, monkeypatch):
     db = tmp_path / "core.sqlite"
-    _make_db(db, ["alpha", "beta"])
+    db.write_bytes(b"database fixture; launcher must not parse it")
+    binary, calls = _stub_core(monkeypatch, tmp_path)
     code, report = launcher.backup_database(db, tmp_path / "backups", state_path=tmp_path / "none.json")
-    assert code == 0
-    assert report["backed_up"] is True
-    assert report["source_unchanged"] is True
-    assert report["source_sha256_before"] == report["source_sha256_after"]
-    backup = Path(report["backup"])
-    assert _rows(backup) == ["alpha", "beta"]
-    assert report["backup_sha256"] == _sha(backup)
-    assert Path(report["sha256_sidecar"]).read_text(encoding="utf-8").startswith(report["backup_sha256"])
-    # the source is opened read-only and the journal facts are recorded, so a
-    # changed source file can be explained instead of glossed over
-    assert report["opened_read_only"] is True
-    assert set(report["wal_before"]) == {"wal_bytes", "shm_bytes"}
-    assert report["wal_after"] == report["wal_before"]
-    assert "source_change_note" not in report
-
-
-def test_the_source_is_opened_read_only_so_a_backup_can_never_write_rows(tmp_path):
-    db = tmp_path / "core.sqlite"
-    _make_db(db, ["alpha"])
-    uri = launcher._read_only_uri(db)
-    assert uri.startswith("file:///") and uri.endswith("?mode=ro")
-    connection = sqlite3.connect(uri, uri=True)
-    try:
-        assert connection.execute("SELECT count(*) FROM knowledge").fetchone()[0] == 1
-        with pytest.raises(sqlite3.OperationalError):
-            connection.execute("INSERT INTO knowledge(body) VALUES ('nope')")
-    finally:
-        connection.close()
-    assert _rows(db) == ["alpha"]
-
-
-def test_backup_explains_a_source_change_instead_of_claiming_it_was_untouched(tmp_path):
-    """If the source hash moves, the receipt says so rather than asserting safety."""
-    db = tmp_path / "core.sqlite"
-    _make_db(db, ["alpha"])
-    real_hash = launcher.sha256_file
-    seen = {"n": 0}
-
-    def counting_hash(path):
-        if Path(path) == db:
-            seen["n"] += 1
-            return "hash-before" if seen["n"] == 1 else "hash-after"
-        return real_hash(path)
-
-    launcher.sha256_file = counting_hash
-    try:
-        code, report = launcher.backup_database(db, tmp_path / "backups", state_path=tmp_path / "none.json")
-    finally:
-        launcher.sha256_file = real_hash
 
     assert code == 0 and report["backed_up"] is True
-    assert report["source_unchanged"] is False
-    assert "unproven" in report["source_change_note"]
+    assert calls[0][:3] == [str(binary), "--maintenance-backup", str(db)]
+    backup = Path(report["backup"])
+    assert backup.read_bytes() == b"rust-owned canonical backup"
+    assert Path(str(backup) + ".objects").is_dir()
+    assert report["backup_sha256"] == _sha(backup)
+    assert json.loads(Path(str(backup) + ".meta.json").read_text(encoding="utf-8"))["app_id"] == "archeaxis.core"
+    assert db.read_bytes() == b"database fixture; launcher must not parse it"
 
 
-def test_backup_refuses_while_the_core_is_recorded_as_running(tmp_path):
+def test_backup_refuses_while_core_is_recorded_as_running(tmp_path, monkeypatch):
     db = tmp_path / "core.sqlite"
-    _make_db(db, ["alpha"])
+    db.write_bytes(b"db")
+    _, calls = _stub_core(monkeypatch, tmp_path)
     state = tmp_path / "core-launch.json"
     state.write_text(json.dumps({"pid": os.getpid()}), encoding="utf-8")
     code, report = launcher.backup_database(db, tmp_path / "backups", state_path=state)
-    assert code == 5
-    assert report["backed_up"] is False
-    assert not (tmp_path / "backups").exists()
+    assert code == 5 and report["backed_up"] is False
+    assert calls == []
 
 
-def test_backup_of_a_missing_database_is_a_named_failure(tmp_path):
-    code, report = launcher.backup_database(
-        tmp_path / "absent.sqlite", tmp_path / "backups", state_path=tmp_path / "none.json"
-    )
-    assert code == 6
-    assert report["backed_up"] is False
-    assert "does not exist" in report["reason"]
-
-
-# ------------------------------------------------------------------ restore
-
-
-def test_restore_puts_the_backup_back_and_preserves_what_it_replaced(tmp_path):
+def test_restore_validates_receipt_then_delegates_to_rust_core(tmp_path, monkeypatch):
     db = tmp_path / "core.sqlite"
-    _make_db(db, ["alpha", "beta"])
-    code, backup = launcher.backup_database(db, tmp_path / "backups", state_path=tmp_path / "none.json")
-    assert code == 0
+    db.write_bytes(b"database fixture")
+    backup = tmp_path / "backup.sqlite"
+    backup.write_bytes(b"canonical snapshot")
+    digest = _sha(backup)
+    Path(str(backup) + ".sha256").write_text(f"{digest}  {backup.name}\n", encoding="utf-8")
+    Path(str(backup) + ".meta.json").write_text(json.dumps({
+        "schema": "archeaxis.core-backup/v1", "app_id": "archeaxis.core", "backup_sha256": digest,
+    }), encoding="utf-8")
+    binary, calls = _stub_core(monkeypatch, tmp_path)
 
-    _replace_db(db, ["gamma"])  # the database moves on after the backup
-    assert _rows(db) == ["gamma"]
-
-    code, report = launcher.restore_database(db, Path(backup["backup"]), state_path=tmp_path / "none.json")
-    assert code == 0
-    assert report["restored"] is True
-    assert report["sidecar_matched"] is True
-    assert _rows(db) == ["alpha", "beta"]
-    # nothing was deleted: the replaced database is still readable where it was put
-    preserved = Path(report["preserved_previous"])
-    assert preserved.is_file()
-    assert _rows(preserved) == ["gamma"]
-    assert report["preserved_previous_sha256"] == _sha(preserved)
-
-
-def test_restore_also_moves_the_replaced_databases_write_ahead_log_aside(tmp_path):
-    """The restored file must not inherit a journal written for the old database."""
-    db = tmp_path / "core.sqlite"
-    _make_db(db, ["alpha"])
-    _, backup = launcher.backup_database(db, tmp_path / "backups", state_path=tmp_path / "none.json")
-    _replace_db(db, ["gamma"])
-    wal = Path(str(db) + "-wal")
-    shm = Path(str(db) + "-shm")
-    wal.write_bytes(b"journal of the database being replaced")
-    shm.write_bytes(b"shared memory of the database being replaced")
-
-    code, report = launcher.restore_database(db, Path(backup["backup"]), state_path=tmp_path / "none.json")
-    assert code == 0 and report["restored"] is True
-    assert _rows(db) == ["alpha"]
-    # moved aside, not deleted, and no stale journal is left pointing at the new file
-    assert not wal.exists() and not shm.exists()
-    assert len(report["preserved_journals"]) == 2
-    kept = Path(report["preserved_journals"][0])
-    assert kept.is_file()
-    assert kept.name.startswith(Path(report["preserved_previous"]).name)
-
-
-def test_restore_refuses_a_backup_whose_hash_disagrees_with_its_record(tmp_path):
-    db = tmp_path / "core.sqlite"
-    _make_db(db, ["alpha"])
-    _, backup = launcher.backup_database(db, tmp_path / "backups", state_path=tmp_path / "none.json")
-    backup_path = Path(backup["backup"])
-    _replace_db(backup_path, ["tampered"])
-
-    code, report = launcher.restore_database(db, backup_path, state_path=tmp_path / "none.json")
-    assert code == 7
-    assert report["restored"] is False
-    assert report["sidecar_matched"] is False
-    assert _rows(db) == ["alpha"]  # the live database was not touched
-
-
-def test_restore_refuses_a_file_that_is_not_a_database(tmp_path):
-    db = tmp_path / "core.sqlite"
-    _make_db(db, ["alpha"])
-    junk = tmp_path / "not-a-backup.sqlite"
-    junk.write_bytes(b"this is not sqlite")
-    code, report = launcher.restore_database(db, junk, state_path=tmp_path / "none.json")
-    assert code == 7
-    assert report["restored"] is False
-    assert "not a readable SQLite database" in report["reason"]
-
-
-def test_restore_refuses_a_valid_sqlite_without_archeaxis_metadata(tmp_path):
-    db = tmp_path / "core.sqlite"
-    _make_db(db, ["alpha"])
-    backup = tmp_path / "unidentified.sqlite"
-    shutil.copy2(db, backup)
     code, report = launcher.restore_database(db, backup, state_path=tmp_path / "none.json")
-    assert code == 7
-    assert report["restored"] is False
-    assert "metadata sidecar" in report["reason"]
+
+    assert code == 0 and report["restored"] is True
+    assert calls == [[str(binary), "--maintenance-restore", str(db), str(backup)]]
+    assert report["sidecar_matched"] is True
+    assert report["preserved_previous_sha256"] == _sha(Path(report["preserved_previous"]))
 
 
-def test_restore_refuses_while_the_core_is_recorded_as_running(tmp_path):
+def test_restore_refuses_hash_mismatch_without_calling_core(tmp_path, monkeypatch):
     db = tmp_path / "core.sqlite"
-    _make_db(db, ["alpha"])
-    _, backup = launcher.backup_database(db, tmp_path / "backups", state_path=tmp_path / "none.json")
-    state = tmp_path / "core-launch.json"
-    state.write_text(json.dumps({"pid": os.getpid()}), encoding="utf-8")
-    code, report = launcher.restore_database(db, Path(backup["backup"]), state_path=state)
-    assert code == 7
-    assert report["restored"] is False
-    assert "still running" in report["reason"]
+    db.write_bytes(b"keep")
+    backup = tmp_path / "backup.sqlite"
+    backup.write_bytes(b"snapshot")
+    Path(str(backup) + ".sha256").write_text(f"{'0' * 64}  {backup.name}\n", encoding="utf-8")
+    Path(str(backup) + ".meta.json").write_text(json.dumps({
+        "schema": "archeaxis.core-backup/v1", "app_id": "archeaxis.core", "backup_sha256": _sha(backup),
+    }), encoding="utf-8")
+    _stub_core(monkeypatch, tmp_path)
+    code, report = launcher.restore_database(db, backup, state_path=tmp_path / "none.json")
+    assert code == 7 and report["restored"] is False
+    assert db.read_bytes() == b"keep"
+
+
+def test_launcher_has_no_sqlite_driver_or_sql_operations():
+    source = MODULE.read_text(encoding="utf-8")
+    assert "import sqlite3" not in source
+    assert "VACUUM INTO" not in source
+    assert "sqlite3.connect" not in source
 
 
 # ----------------------------------------------------------------- manifest

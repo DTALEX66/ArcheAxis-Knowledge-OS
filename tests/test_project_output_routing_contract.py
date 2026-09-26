@@ -9,15 +9,15 @@ def _read(relative: str) -> str:
     return (ROOT / relative).read_text(encoding="utf-8")
 
 
-def test_frontend_and_tauri_share_the_canonical_frontend_output() -> None:
+def test_legacy_frontend_and_tauri_share_the_recovery_build_output() -> None:
     vite = _read("frontend/vite.config.ts")
     tauri = _read("src-tauri/tauri.conf.json")
     build = _read("src-tauri/build.rs")
 
-    canonical = ".project-local/build/frontend-dist"
-    assert canonical in vite
-    assert canonical in tauri
-    assert canonical in build
+    legacy_output = ".project-local/build/frontend-dist"
+    assert legacy_output in vite
+    assert legacy_output in tauri
+    assert legacy_output in build
     assert '"frontendDist": "../frontend/dist"' not in tauri
 
 

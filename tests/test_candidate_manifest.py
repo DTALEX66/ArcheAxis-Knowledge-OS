@@ -36,6 +36,22 @@ def _load(name: str, path: Path):
 candidate = _load("candidate_under_test", MODULE)
 builder = _load("build_candidate_under_test", BUILDER)
 
+
+@pytest.fixture(autouse=True)
+def _stable_builder_snapshot(monkeypatch):
+    monkeypatch.setattr(
+        builder,
+        "_source_snapshot",
+        lambda: {
+            "algorithm": "aaos-source-snapshot/v1",
+            "sha256": "d" * 64,
+            "file_count": 1,
+            "untracked_build_input_count": 0,
+            "excluded_path_count": 0,
+            "excluded_paths_sha256": "e" * 64,
+        },
+    )
+
 COMMIT = "a" * 40
 COMMITS = {COMMIT, "b" * 40}
 
@@ -61,6 +77,50 @@ def _bundle(tmp_path: Path, *, name: str = "bundle") -> tuple[Path, dict]:
 def test_a_faithful_bundle_verifies(tmp_path):
     root, manifest = _bundle(tmp_path)
     assert candidate.verify_manifest(root, manifest, known_commits=COMMITS) == []
+
+
+def test_source_snapshot_binds_tracked_and_untracked_build_inputs_but_skips_private_state(tmp_path):
+    repo = tmp_path / "source"
+    repo.mkdir()
+    subprocess.run(["git", "init", "-q", str(repo)], check=True)
+    subprocess.run(["git", "-C", str(repo), "config", "user.email", "test@example.invalid"], check=True)
+    subprocess.run(["git", "-C", str(repo), "config", "user.name", "Test"], check=True)
+    (repo / ".gitignore").write_text(".project-local/\n", encoding="utf-8")
+    (repo / "tracked.txt").write_text("original\n", encoding="utf-8")
+    (repo / "docs" / "current").mkdir(parents=True)
+    (repo / "docs" / "current" / "execution.md").write_text("receipt v1\n", encoding="utf-8")
+    subprocess.run(["git", "-C", str(repo), "add", ".gitignore", "tracked.txt", "docs"], check=True)
+    subprocess.run(["git", "-C", str(repo), "commit", "-qm", "fixture"], check=True)
+    (repo / "apps").mkdir()
+    (repo / "apps" / "new.axaml").write_text("<View />\n", encoding="utf-8")
+    (repo / "docs" / "history" / "task-artifacts" / "profile").mkdir(parents=True)
+    private = repo / "docs" / "history" / "task-artifacts" / "profile" / "Cookies"
+    private.write_bytes(b"do not read")
+    (repo / ".project-local").mkdir()
+    (repo / ".project-local" / "build.bin").write_bytes(b"ignored output")
+
+    first = candidate.working_tree_snapshot(repo)
+    assert first["untracked_build_input_count"] == 1
+    assert first["excluded_path_count"] == 0
+    assert first["sha256"]
+
+    (repo / "docs" / "current" / "execution.md").write_text("receipt v2\n", encoding="utf-8")
+    assert candidate.working_tree_snapshot(repo)["sha256"] == first["sha256"]
+
+    (repo / "tracked.txt").write_text("changed\n", encoding="utf-8")
+    second = candidate.working_tree_snapshot(repo)
+    assert second["sha256"] != first["sha256"]
+
+    (repo / "tracked.txt").write_text("original\n", encoding="utf-8")
+    (repo / "apps" / "new.axaml").write_text("<View Changed='true' />\n", encoding="utf-8")
+    third = candidate.working_tree_snapshot(repo)
+    assert third["sha256"] != first["sha256"]
+
+    (repo / "apps" / "new.axaml").write_text("<View />\n", encoding="utf-8")
+    private.write_bytes(b"changed but still excluded")
+    (repo / ".project-local" / "build.bin").write_bytes(b"changed ignored output")
+    final = candidate.working_tree_snapshot(repo)
+    assert final["sha256"] == first["sha256"]
 
 
 def test_the_manifest_records_size_and_digest_for_every_file(tmp_path):
@@ -176,6 +236,25 @@ def test_an_explicitly_given_binary_is_labelled_by_where_it_lives(tmp_path, monk
     assert builder.main(["--binary", str(binary), "--out", str(out)]) == 0
     manifest = json.loads((out / candidate.MANIFEST_NAME).read_text(encoding="utf-8"))
     assert manifest["build_kind"] == "debug-build"
+    assert manifest["source_snapshot"]["sha256"] == "d" * 64
+
+
+def test_builder_refuses_source_drift_during_packaging(tmp_path, monkeypatch, capsys):
+    monkeypatch.setattr(builder, "_tree_state", lambda: (False, True))
+    before = {"algorithm": "aaos-source-snapshot/v1", "sha256": "a" * 64}
+    after = {"algorithm": "aaos-source-snapshot/v1", "sha256": "b" * 64}
+    snapshots = [before, before, after]
+    monkeypatch.setattr(builder, "_source_snapshot", lambda: snapshots.pop(0))
+    dev_root = tmp_path / "project-local"
+    monkeypatch.setattr(builder.dev, "layout", lambda _root: {"dev": dev_root})
+    binary = tmp_path / "archeaxis-api.exe"
+    binary.write_bytes(b"core")
+    out = dev_root / "dist" / "candidate"
+
+    assert builder.main(["--binary", str(binary), "--out", str(out), "--allow-dirty"]) == 4
+    manifest = json.loads((out / candidate.MANIFEST_NAME).read_text(encoding="utf-8"))
+    assert manifest["source_snapshot"] == before
+    assert "snapshot differs" in capsys.readouterr().out
 
 
 def test_only_a_debug_binary_in_the_target_directory_is_refused_unless_allowed(tmp_path, monkeypatch, capsys):

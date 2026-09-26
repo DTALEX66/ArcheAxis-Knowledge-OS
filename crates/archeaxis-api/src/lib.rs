@@ -48,6 +48,8 @@ pub fn projections(state: Store, manual_receipts: bool) -> Router {
         .route("/api/v1/imports", post(import_source))
         .route("/api/v1/jobs", post(enqueue_job))
         .route("/api/v1/sources/:source_id/anchors", post(create_anchor))
+        .route("/api/v1/sources/:source_id/jobs/:job_id/transform", get(source_job_transform))
+        .route("/api/v1/knowledge-items/from-transform", post(create_knowledge_from_transform))
         .route("/api/v1/knowledge-items", post(create_knowledge))
         .route("/api/v1/knowledge-items/:id/v3", get(knowledge_v3))
         .route("/api/v1/knowledge-items/:id/qualification", get(knowledge_qualification))
@@ -785,6 +787,36 @@ async fn create_anchor(
     }).await
 }
 
+async fn source_job_transform(
+    State(state): State<AppState>,
+    Path((source_id, job_id)): Path<(String, String)>,
+) -> impl IntoResponse {
+    with_store(state, move |conn| {
+        let projection: rusqlite::Result<Option<(i64, String, String)>> = conn.query_row(
+            "SELECT t.transform_id, s.sha256, t.text
+             FROM jobs j JOIN sources s ON s.source_id=j.input_ref
+             JOIN transforms t ON t.transform_id=j.transform_id AND t.source_id=s.source_id
+             WHERE j.job_id=?1 AND j.input_ref=?2 AND j.kind='text' AND j.state='succeeded'",
+            rusqlite::params![job_id, source_id],
+            |row| Ok((row.get(0)?, row.get(1)?, row.get(2)?)),
+        ).optional();
+        match projection {
+            Ok(Some((transform_id, raw_sha256, content))) => (
+                StatusCode::OK,
+                Json(serde_json::json!({
+                    "source_id": source_id,
+                    "job_id": job_id,
+                    "transform_id": transform_id,
+                    "raw_sha256": raw_sha256,
+                    "content": content,
+                })),
+            ).into_response(),
+            Ok(None) => (StatusCode::NOT_FOUND, "succeeded source-bound text transform not found").into_response(),
+            Err(error) => (StatusCode::INTERNAL_SERVER_ERROR, error.to_string()).into_response(),
+        }
+    }).await
+}
+
 /// Read the persisted Evidence anchor projection without exposing source bodies.
 /// The Core remains the sole writer; this route only joins the canonical anchor
 /// and source hashes for the desktop Evidence Center.
@@ -1131,6 +1163,7 @@ async fn knowledge_v3(
                 "requires_human_review": requires_human_review,
                 "knowledge_id": knowledge_id,
                 "source_id": source_id,
+                "anchor_id": anchor_id,
                 "title": knowledge_type,
                 "body": body,
                 "created_at": created_at,
@@ -1152,6 +1185,18 @@ struct KnowledgeBody {
     created_by: String,
     #[serde(default)]
     v3: Option<KnowledgeV3Body>,
+}
+
+#[derive(Deserialize)]
+struct KnowledgeFromTransformBody {
+    knowledge_type: String,
+    body: String,
+    source_id: String,
+    job_id: String,
+    transform_id: i64,
+    selection_start_utf16: usize,
+    selection_end_utf16: usize,
+    quote: String,
 }
 
 #[derive(Deserialize)]
@@ -1244,6 +1289,62 @@ async fn create_knowledge(
             .into_response(),
         Err(e) => (StatusCode::BAD_REQUEST, e.to_string()).into_response(),
     }
+    }).await
+}
+
+async fn create_knowledge_from_transform(
+    State(state): State<AppState>,
+    headers: HeaderMap,
+    Json(body): Json<KnowledgeFromTransformBody>,
+) -> impl IntoResponse {
+    match request_actor(&headers) {
+        Ok("human") => {}
+        Ok(_) => return (StatusCode::FORBIDDEN, "source-bound Candidate creation requires a human actor").into_response(),
+        Err(status) => return (status, "unknown actor").into_response(),
+    }
+    if body.body.trim().is_empty() {
+        return (StatusCode::BAD_REQUEST, "Candidate body must not be empty").into_response();
+    }
+    let metadata = knowledge::KnowledgeV3Metadata {
+        source_type: v3_source_type(&body.knowledge_type, "human").to_string(),
+        owner: "human".to_string(),
+        support_level: "none".to_string(),
+        confidence: None,
+        risk_level: "low".to_string(),
+        valid_from: None,
+        valid_to: None,
+        external_evidence: Vec::new(),
+        requires_human_review: true,
+    };
+    with_store(state, move |conn| {
+        match knowledge::create_knowledge_v3_from_transform(
+            conn,
+            &body.knowledge_type,
+            &body.body,
+            "human",
+            &body.source_id,
+            &body.job_id,
+            body.transform_id,
+            body.selection_start_utf16,
+            body.selection_end_utf16,
+            &body.quote,
+            &metadata,
+        ) {
+            Ok((knowledge_id, anchor_id, raw_sha256)) => (
+                StatusCode::CREATED,
+                Json(serde_json::json!({
+                    "knowledge_id": knowledge_id,
+                    "anchor_id": anchor_id,
+                    "source_id": body.source_id,
+                    "job_id": body.job_id,
+                    "transform_id": body.transform_id,
+                    "raw_sha256": raw_sha256,
+                    "status": "candidate",
+                    "requires_human_review": true,
+                })),
+            ).into_response(),
+            Err(error) => (StatusCode::BAD_REQUEST, error.to_string()).into_response(),
+        }
     }).await
 }
 

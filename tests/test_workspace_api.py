@@ -909,6 +909,10 @@ def test_workspace_upload_keeps_distinct_raw_assets_when_conversion_text_matches
         "convert_file",
         lambda _path: ("Learning evidence anchor", "faster-whisper/local-model"),
     )
+    # This case checks content-addressed source identity and retry behavior;
+    # keep converter selection deterministic instead of depending on whichever
+    # builtin plugins happen to be active in the caller's workspace.
+    monkeypatch.setattr(service, "_get_conversion_dispatcher", lambda: None)
 
     audio = service.intake_upload(
         file_name="audio.wav", content=b"distinct-audio-source", db_path=database

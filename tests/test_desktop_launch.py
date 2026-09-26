@@ -25,10 +25,13 @@ def load_launcher():
     return module
 
 
-def test_prepare_binds_current_interpreter_worker_and_persistent_test_database(tmp_path):
+def test_prepare_binds_current_interpreter_worker_and_persistent_test_database(tmp_path, monkeypatch):
     launcher = load_launcher()
     fixture_root = ROOT / '.project-local' / 'build' / 'test-fixtures' / tmp_path.name
     fixture_root.mkdir(parents=True, exist_ok=True)
+    state_root = ROOT / '.project-local' / 'state' / 'test-fixtures' / tmp_path.name
+    test_database = state_root / 'workspace.sqlite'
+    monkeypatch.setattr(launcher.dev, 'state_path', lambda *_: test_database)
     desktop = fixture_root / 'desktop.exe'
     core = fixture_root / 'archeaxis-api.exe'
     desktop.write_bytes(b'fixture')
@@ -58,6 +61,7 @@ def test_prepare_binds_current_interpreter_worker_and_persistent_test_database(t
         for receipt in receipts:
             remove_receipt_artifact(receipt)
         shutil.rmtree(fixture_root, ignore_errors=True)
+        shutil.rmtree(state_root, ignore_errors=True)
 
 
 def test_prepare_prefers_explicit_archeaxis_python(tmp_path, monkeypatch):

@@ -6,8 +6,8 @@ Does what a candidate package entry point must do, without pretending to be one:
   --probe      launch the Core, report its readiness port, then stop it
   (no flag)    start the Core and keep it in the foreground until interrupted
   --stop       stop the launch session this tool recorded earlier
-  --backup     consistent copy of the Core database (VACUUM INTO) plus its hash
-  --restore    put a backup back, preserving the database it replaces
+  --backup     ask the Rust Core to make a canonical workspace backup
+  --restore    ask the Rust Core to restore and verify a backup
   --manifest   bind deliverable hashes to the tested source commit (refuses to
                emit a manifest from a dirty tracked worktree)
 
@@ -32,9 +32,7 @@ import importlib.util
 import json
 import os
 import secrets
-import shutil
 import socket
-import sqlite3
 import subprocess
 import sys
 import time
@@ -269,26 +267,71 @@ def _free_path(path: Path) -> Path:
     raise RuntimeError(f"cannot find a free name near {path}")
 
 
-def _read_only_uri(path: Path) -> str:
-    """A `file:` URI that forbids SQLite to write to `path`."""
-    return path.resolve().as_uri() + "?mode=ro"
-
-
-def _wal_facts(db: Path) -> dict:
-    """Side-car journal facts, so a change to the main file can be explained."""
-    facts = {}
-    for suffix in ("-wal", "-shm"):
-        side = Path(str(db) + suffix)
-        facts[f"{suffix.lstrip('-')}_bytes"] = side.stat().st_size if side.is_file() else None
-    return facts
-
-
 BACKUP_META_SUFFIX = ".meta.json"
 BACKUP_APP_ID = "archeaxis.core"
 
 
+def _run_core_maintenance(action: str, db: Path, artifact: Path) -> tuple[int, dict]:
+    """Delegate all canonical database operations to the Rust Core binary."""
+    command = [
+        str(CORE_BINARY),
+        f"--maintenance-{action}",
+        os.path.abspath(db),
+        os.path.abspath(artifact),
+    ]
+    try:
+        completed = subprocess.run(
+            command,
+            cwd=REPO,
+            capture_output=True,
+            text=True,
+            encoding="utf-8",
+            errors="replace",
+            check=False,
+        )
+    except OSError as error:
+        return 8, {"ok": False, "action": action, "error": f"cannot start Rust Core: {error}"}
+    try:
+        result = json.loads(completed.stdout or "{}")
+    except json.JSONDecodeError:
+        result = {"ok": False, "action": action, "error": "Rust Core returned invalid maintenance JSON"}
+    if completed.returncode != 0 or result.get("ok") is not True:
+        result.setdefault("error", completed.stderr.strip() or f"Rust Core exited {completed.returncode}")
+        result["ok"] = False
+        return completed.returncode or 8, result
+    return 0, result
+
+
+def _write_backup_receipts(path: Path, schema_version: str | None) -> dict:
+    digest = sha256_file(path)
+    sidecar = path.with_name(path.name + ".sha256")
+    sidecar.write_text(f"{digest}  {path.name}\n", encoding="utf-8")
+    metadata = path.with_name(path.name + BACKUP_META_SUFFIX)
+    metadata.write_text(
+        json.dumps(
+            {
+                "schema": "archeaxis.core-backup/v1",
+                "app_id": BACKUP_APP_ID,
+                "backup_sha256": digest,
+                "schema_version": schema_version,
+                "objects_directory": str(Path(str(path) + ".objects")),
+                "attachments": [],
+            },
+            ensure_ascii=False,
+            indent=2,
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+    return {
+        "backup_sha256": digest,
+        "sha256_sidecar": str(sidecar),
+        "metadata_sidecar": str(metadata),
+    }
+
+
 def backup_database(db: Path, out_dir: Path, state_path: Path = STATE_PATH) -> tuple[int, dict]:
-    """Copy the Core database with VACUUM INTO and prove the source was untouched."""
+    """Request a canonical Rust Core backup; Python only records file hashes."""
     report: dict = {"action": "backup", "db": str(db), "out_dir": str(out_dir)}
     session = live_session(state_path)
     if session:
@@ -305,78 +348,33 @@ def backup_database(db: Path, out_dir: Path, state_path: Path = STATE_PATH) -> t
         return 6, report
 
     before = sha256_file(db)
-    wal_before = _wal_facts(db)
     out_dir.mkdir(parents=True, exist_ok=True)
     target = _free_path(out_dir / f"core-backup-{utc_stamp()}.sqlite")
-    connection = None
-    opened_read_only = True
-    schema_version = None
-    try:
-        try:
-            connection = sqlite3.connect(_read_only_uri(db), uri=True)
-        except sqlite3.Error:
-            # a hot write-ahead log can refuse a read-only open; opening normally
-            # is then the only way to get a consistent copy, and the receipts
-            # below will show that the source file changed.
-            connection = sqlite3.connect(str(db))
-            opened_read_only = False
-        schema_version = connection.execute("PRAGMA schema_version").fetchone()[0]
-        connection.execute("VACUUM INTO ?", (str(target),))
-    except sqlite3.Error as error:
-        report.update({"backed_up": False, "reason": f"sqlite refused the backup: {error}"})
+    code, core = _run_core_maintenance("backup", db, target)
+    if code:
+        report.update({"backed_up": False, "reason": core.get("error"), "core_receipt": core})
+        return code, report
+    if not target.is_file() or not Path(str(target) + ".objects").is_dir():
+        report.update({"backed_up": False, "reason": "Rust Core did not publish the database and raw-object snapshot"})
         return 5, report
-    finally:
-        if connection is not None:
-            connection.close()
-
     after = sha256_file(db)
-    wal_after = _wal_facts(db)
-    digest = sha256_file(target)
-    sidecar = target.with_name(target.name + ".sha256")
-    sidecar.write_text(f"{digest}  {target.name}\n", encoding="utf-8")
-    metadata = target.with_name(target.name + BACKUP_META_SUFFIX)
-    metadata.write_text(
-        json.dumps(
-            {
-                "schema": "archeaxis.core-backup/v1",
-                "app_id": BACKUP_APP_ID,
-                "backup_sha256": digest,
-                "schema_version": schema_version,
-                "attachments": [],
-            },
-            ensure_ascii=False,
-            indent=2,
-        )
-        + "\n",
-        encoding="utf-8",
-    )
+    receipts = _write_backup_receipts(target, core.get("schema_version"))
+    digest = receipts["backup_sha256"]
     report.update(
         {
             "backed_up": True,
             "backup": str(target),
             "backup_sha256": digest,
             "backup_bytes": target.stat().st_size,
-            "sha256_sidecar": str(sidecar),
-            "metadata_sidecar": str(metadata),
-            "opened_read_only": opened_read_only,
+            **receipts,
+            "core_receipt": core,
             "source_sha256_before": before,
             "source_sha256_after": after,
             "source_unchanged": before == after,
-            "wal_before": wal_before,
-            "wal_after": wal_after,
         }
     )
     if before != after:
-        # do not claim the source was untouched: say what was observed instead
-        checkpointed = wal_before["wal_bytes"] and not wal_after["wal_bytes"]
-        report["source_change_note"] = (
-            "sqlite had a write-ahead log to replay/checkpoint when the database was opened "
-            "(wal_bytes "
-            f"{wal_before['wal_bytes']} -> {wal_after['wal_bytes']}); the backup reads the database "
-            "and writes no rows, but a checkpoint rewrites the main file"
-            if checkpointed
-            else "the source file changed while it was being read; treat this backup as unproven"
-        )
+        report["source_change_note"] = "the database file changed during Core maintenance; treat this backup as unproven"
     return 0, report
 
 
@@ -396,17 +394,6 @@ def restore_database(db: Path, backup: Path, state_path: Path = STATE_PATH) -> t
     if not backup.is_file():
         report.update({"restored": False, "reason": "the backup file does not exist"})
         return 6, report
-
-    try:
-        # read-only: validating a backup must not modify the file being validated
-        check = sqlite3.connect(_read_only_uri(backup), uri=True)
-        try:
-            check.execute("PRAGMA schema_version").fetchone()
-        finally:
-            check.close()
-    except sqlite3.Error as error:
-        report.update({"restored": False, "reason": f"the backup is not a readable SQLite database: {error}"})
-        return 7, report
 
     backup_digest = sha256_file(backup)
     sidecar = backup.with_name(backup.name + ".sha256")
@@ -438,34 +425,25 @@ def restore_database(db: Path, backup: Path, state_path: Path = STATE_PATH) -> t
         report.update({"restored": False, "reason": "the backup metadata hash does not match the backup"})
         return 7, report
 
-    preserved: Path | None = None
-    preserved_journals: list[str] = []
-    if db.exists():
-        preserved = _free_path(db.with_name(f"{db.name}.replaced-{utc_stamp()}"))
-        db.replace(preserved)
-    # a write-ahead log belongs to the database it was written for: leaving it
-    # behind would make SQLite replay an old journal into the restored file
-    for suffix in ("-wal", "-shm"):
-        side = Path(str(db) + suffix)
-        if side.is_file():
-            if preserved is not None:
-                aside = _free_path(Path(str(preserved) + suffix))
-            else:
-                aside = _free_path(db.with_name(f"{db.name}.orphaned-{utc_stamp()}{suffix}"))
-            side.replace(aside)
-            preserved_journals.append(str(aside))
-    db.parent.mkdir(parents=True, exist_ok=True)
-    shutil.copy2(backup, db)
-    restored_digest = sha256_file(db)
+    before = sha256_file(db) if db.is_file() else None
+    code, core = _run_core_maintenance("restore", db, backup)
+    preserved = core.get("preserved_previous")
+    if preserved and Path(preserved).is_file():
+        _write_backup_receipts(Path(preserved), None)
+    if code:
+        report.update({"restored": False, "reason": core.get("error"), "core_receipt": core})
+        return code, report
+    restored_digest = sha256_file(db) if db.is_file() else None
     report.update(
         {
-            "restored": restored_digest == backup_digest,
-            "preserved_previous": str(preserved) if preserved else None,
-            "preserved_previous_sha256": sha256_file(preserved) if preserved else None,
-            "preserved_journals": preserved_journals,
+            "restored": core.get("verified") is True,
+            "preserved_previous": preserved,
+            "preserved_previous_sha256": sha256_file(Path(preserved)) if preserved and Path(preserved).is_file() else None,
             "backup_sha256": backup_digest,
             "restored_sha256": restored_digest,
-            "bytes": db.stat().st_size,
+            "bytes": db.stat().st_size if db.is_file() else None,
+            "source_sha256_before": before,
+            "core_receipt": core,
         }
     )
     if not report["restored"]:

@@ -203,7 +203,7 @@ def test_tracked_current_surfaces_only_reference_declared_release_delta_or_sourc
     # A retained SHA is admissible when it is a real commit reachable from the
     # current checkout; arbitrary or dangling hashes remain rejected below.
     for sha in found - allowed_shas:
-        if subprocess.run(
+        is_reachable_commit = subprocess.run(
             ["git", "-C", str(ROOT), "cat-file", "-e", f"{sha}^{{commit}}"],
             stdout=subprocess.DEVNULL,
             stderr=subprocess.DEVNULL,
@@ -213,7 +213,19 @@ def test_tracked_current_surfaces_only_reference_declared_release_delta_or_sourc
             stdout=subprocess.DEVNULL,
             stderr=subprocess.DEVNULL,
             check=False,
-        ).returncode == 0:
+        ).returncode == 0
+        # Candidate and backup receipts bind the exact Git tree separately
+        # from the commit. Accept a referenced tree only when Git can read it
+        # as an actual tree object from this repository's object database.
+        is_git_tree = subprocess.run(
+            ["git", "-C", str(ROOT), "cat-file", "-t", sha],
+            stdout=subprocess.PIPE,
+            stderr=subprocess.DEVNULL,
+            check=False,
+            text=True,
+            encoding="utf-8",
+        )
+        if is_reachable_commit or (is_git_tree.returncode == 0 and is_git_tree.stdout.strip() == "tree"):
             allowed_shas.add(sha)
 
     assert found <= allowed_shas

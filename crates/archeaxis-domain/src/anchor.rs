@@ -8,6 +8,21 @@ fn id(seed: &str) -> String {
     format!("anc_{}", &hex::encode(h.finalize())[..24])
 }
 
+pub(crate) fn insert_anchor(
+    tx: &rusqlite::Transaction<'_>,
+    source_id: &str,
+    source_revision: &str,
+    position_json: &str,
+) -> rusqlite::Result<String> {
+    let seed = format!("{source_id}|{source_revision}|{position_json}");
+    let anchor_id = id(&seed);
+    tx.execute(
+        "INSERT OR IGNORE INTO anchors(anchor_id, source_id, source_revision, position) VALUES(?1,?2,?3,?4)",
+        rusqlite::params![anchor_id, source_id, source_revision, position_json],
+    )?;
+    Ok(anchor_id)
+}
+
 /// Save an anchor (source + revision + position). Returns its id.
 pub fn add_anchor(
     conn: &mut Connection,
@@ -15,12 +30,9 @@ pub fn add_anchor(
     source_revision: &str,
     position_json: &str,
 ) -> rusqlite::Result<String> {
-    let seed = format!("{source_id}|{source_revision}|{position_json}");
-    let anchor_id = id(&seed);
-    conn.execute(
-        "INSERT OR IGNORE INTO anchors(anchor_id, source_id, source_revision, position) VALUES(?1,?2,?3,?4)",
-        rusqlite::params![anchor_id, source_id, source_revision, position_json],
-    )?;
+    let tx = conn.transaction_with_behavior(rusqlite::TransactionBehavior::Immediate)?;
+    let anchor_id = insert_anchor(&tx, source_id, source_revision, position_json)?;
+    tx.commit()?;
     Ok(anchor_id)
 }
 

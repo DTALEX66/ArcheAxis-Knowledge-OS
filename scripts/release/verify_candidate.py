@@ -127,6 +127,11 @@ def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description="verify a candidate bundle")
     parser.add_argument("--candidate", type=Path, required=True)
     parser.add_argument("--run", action="store_true", help="also start the binary and stop it")
+    parser.add_argument(
+        "--require-current-source",
+        action="store_true",
+        help="recompute the current source snapshot and compare it with the candidate",
+    )
     parser.add_argument("--json", action="store_true")
     args = parser.parse_args(argv)
 
@@ -151,11 +156,17 @@ def main(argv: list[str] | None = None) -> int:
         print("candidate manifest must be an object", file=sys.stderr)
         return 3
 
-    problems = candidate.verify_manifest(root, manifest, known_commits=known_commits())
+    problems = candidate.verify_manifest(
+        root,
+        manifest,
+        known_commits=known_commits(),
+        current_source_root=REPO if args.require_current_source else None,
+    )
     receipt: dict = {
         "candidate": str(root),
         "schema": manifest.get("schema"),
         "source_commit": manifest.get("source_commit"),
+        "source_snapshot": manifest.get("source_snapshot"),
         "build_kind": manifest.get("build_kind"),
         "files": len(manifest.get("files") or []),
         "problems": problems,

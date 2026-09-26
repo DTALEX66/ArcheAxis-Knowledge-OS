@@ -7,7 +7,8 @@ fn make_legacy(dir: &std::path::Path) -> String {
     let conn = Connection::open(&db).unwrap();
     conn.execute_batch(
         "CREATE TABLE notes(id INTEGER PRIMARY KEY, body TEXT, created_at TEXT);
-         CREATE TABLE docs(id INTEGER PRIMARY KEY, title TEXT, sha256 TEXT);",
+         CREATE TABLE docs(id INTEGER PRIMARY KEY, title TEXT, sha256 TEXT);
+         CREATE TABLE empty_table(id INTEGER PRIMARY KEY, value TEXT);",
     )
     .unwrap();
     conn.execute(
@@ -48,6 +49,11 @@ fn export_jsonl_and_manifest_stable() {
     let m1 = export_jsonl(&db, &out).unwrap();
     assert_eq!(m1.tables["notes"].rows, 2);
     assert_eq!(m1.tables["docs"].rows, 1);
+    assert_eq!(m1.tables["empty_table"].rows, 0);
+    assert_eq!(
+        std::fs::read(std::path::Path::new(&out).join("empty_table.jsonl")).unwrap(),
+        b""
+    );
     assert_eq!(m1.manifest_sha256.len(), 64);
 
     // re-export is byte-stable (same digest) -> reproducible dry-run basis

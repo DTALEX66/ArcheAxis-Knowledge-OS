@@ -89,6 +89,27 @@ _FROZEN_ORIGINALS = {
         "4e95adebb9a275be790aa2b05f161a127faef27a661f4bf1dc41987031a8f9ef",
 }
 
+# Byte-exact inputs that intentionally exercise BOM, CRLF, missing-final-newline
+# and non-UTF-8 worker behavior. A changed fixture must be reviewed and repinned;
+# these are not general path exemptions.
+_PRESERVED_FIXTURE_HASHES = {
+    "tests/fixtures/f01-quality/controlled.md": "70aff728005d7580260391e6754f30209ec5fbecd9803f30a31e48d72eb7b176",
+    "tests/fixtures/f01-quality/capped-lines.md": "71c0029230e042d72e9ec8db74f9a28196b37fdfb29f7df7d68e3b425af38928",
+    "tests/fixtures/f01-quality/fallback-gbk.txt": "8ba7ed5cd0f33c11b7bb447337b0ce852b0a4f52c5ee854b6107943408b2b215",
+    "tests/fixtures/p1-quality/bom-then-non-utf8.txt": "7b8e66f5da41888eb5cdd9ba9e142df708b548040f70aa7c6e417287ca4af188",
+    "tests/fixtures/p1-quality/capped-crlf.txt": "9a9af8502c625be793d85c664d7b2c728dc5052b4f60b73e059416118c6a310a",
+    "tests/fixtures/p1-quality/fallback-gbk-markdown.md": "8b593c1ffc2e113962d12485f54b381af29c4ae029b8c2e98c762d686138e6b7",
+    "tests/fixtures/p1-quality/one-long-line.txt": "d9785ad494215a183ceaf55c11aeed1433227e88469f61159f2daf27e6929100",
+}
+
+# This DP audit intentionally quotes a superseded product name as branch
+# evidence. Pin the exact report bytes so it remains evidence, not a wildcard
+# naming exemption.
+_PRESERVED_HISTORICAL_REPORT_HASHES = {
+    "docs/current/dsh-review/branch-batch-03.md": "def1136dd39c48db9a04cf149fccee2a6744d64a5053ef3ffb498b50eeb1d959",
+    "docs/current/dsh-review/branch-batch-03.json": "1d3d6ba80319d4445c771f54802cb46c4c6ed74bdcd662338e74324078d6ff53",
+}
+
 
 @dataclass(frozen=True, order=True)
 class ConventionIssue:
@@ -121,6 +142,15 @@ def scan_text_bytes(path: str, content: bytes) -> list[ConventionIssue]:
     if frozen_hash and hashlib.sha256(content).hexdigest() != frozen_hash:
         return [ConventionIssue("frozen-original-mismatch", path,
                                 "preserved package bytes differ from the pinned original")]
+    fixture_hash = _PRESERVED_FIXTURE_HASHES.get(path)
+    if fixture_hash:
+        if hashlib.sha256(content).hexdigest() != fixture_hash:
+            return [ConventionIssue(
+                "preserved-fixture-mismatch",
+                path,
+                "byte-exact quality fixture differs from its pinned manifest bytes",
+            )]
+        return []
     if _is_declared_binary(path, content):
         return []
     try:
@@ -329,6 +359,15 @@ def scan_naming_forbidden_terms(path: str, content: bytes) -> list[ConventionIss
     if not path.startswith(active_prefixes):
         return []
     if path.startswith(exempt_prefixes) or path in exempt_files:
+        return []
+    historical_hash = _PRESERVED_HISTORICAL_REPORT_HASHES.get(path)
+    if historical_hash:
+        if hashlib.sha256(content).hexdigest() != historical_hash:
+            return [ConventionIssue(
+                "historical-report-mismatch",
+                path,
+                "historical branch-audit evidence changed from its pinned bytes",
+            )]
         return []
     try:
         text = content.decode("utf-8-sig")

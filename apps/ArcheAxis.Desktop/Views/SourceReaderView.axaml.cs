@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using Avalonia;
 using Avalonia.Automation;
 using Avalonia.Controls;
 using Avalonia.Input;
@@ -126,10 +127,49 @@ public sealed class SourceReaderRowActionEventArgs : EventArgs
     public SourceReaderRowActionEventArgs(SourceReaderRow? row) => Row = row;
 }
 
+public sealed class SourceBoundCandidateRequestedEventArgs : EventArgs
+{
+    public SourceReaderRow Row { get; }
+    public string Body { get; }
+    public string Quote { get; }
+    public int SelectionStartUtf16 { get; }
+    public int SelectionEndUtf16 { get; }
+    public long TransformId { get; }
+    public string RawSha256 { get; }
+
+    public SourceBoundCandidateRequestedEventArgs(SourceReaderRow row, string body, string quote, int start, int end, long transformId, string rawSha256)
+    {
+        Row = row;
+        Body = body;
+        Quote = quote;
+        SelectionStartUtf16 = start;
+        SelectionEndUtf16 = end;
+        TransformId = transformId;
+        RawSha256 = rawSha256;
+    }
+}
+
 public partial class SourceReaderView : UserControl
 {
+    public static readonly StyledProperty<double> StackBreakpointProperty =
+        AvaloniaProperty.Register<SourceReaderView, double>(nameof(StackBreakpoint), 1200);
+    public static readonly StyledProperty<double> NarrowActionsBreakpointProperty =
+        AvaloniaProperty.Register<SourceReaderView, double>(nameof(NarrowActionsBreakpoint), 760);
+
     private SourceReaderViewState _state = SourceReaderViewState.Initial;
     private bool _applyingState;
+
+    public double StackBreakpoint
+    {
+        get => GetValue(StackBreakpointProperty);
+        set => SetValue(StackBreakpointProperty, value);
+    }
+
+    public double NarrowActionsBreakpoint
+    {
+        get => GetValue(NarrowActionsBreakpointProperty);
+        set => SetValue(NarrowActionsBreakpointProperty, value);
+    }
 
     public event EventHandler<SourceReaderLoadRequestedEventArgs>? LoadRequested;
     public event EventHandler<SourceReaderRowSelectedEventArgs>? RowSelected;
@@ -138,6 +178,7 @@ public partial class SourceReaderView : UserControl
     public event EventHandler<SourceReaderRowActionEventArgs>? LibraryLookupRequested;
     public event EventHandler<SourceReaderRowActionEventArgs>? CopyProvenanceRequested;
     public event EventHandler<SourceReaderRowActionEventArgs>? CopyCitationRequested;
+    public event EventHandler<SourceBoundCandidateRequestedEventArgs>? SourceBoundCandidateRequested;
     public event EventHandler? ReturnToLibraryRequested;
     public event EventHandler? ReturnToKnowledgeRequested;
 
@@ -162,6 +203,8 @@ public partial class SourceReaderView : UserControl
     }
 
     public SourceReaderRow? SelectedRow => SourceReaderMembersList.SelectedItem as SourceReaderRow;
+    public long? LoadedTransformId { get; private set; }
+    public string? LoadedRawSha256 { get; private set; }
 
     public SourceReaderView()
     {
@@ -198,6 +241,13 @@ public partial class SourceReaderView : UserControl
         }
     }
 
+    public void SetTransformIdentity(long? transformId, string? rawSha256)
+    {
+        LoadedTransformId = transformId;
+        LoadedRawSha256 = rawSha256;
+        UpdateCandidateAction();
+    }
+
     private void SetStatus(string text, string semanticClass)
     {
         SourceReaderStatusText.Text = text;
@@ -227,6 +277,7 @@ public partial class SourceReaderView : UserControl
             SourceReaderShaFieldText.Text = "该任务投影未暴露 SHA-256";
             SourceReaderMemberBoundaryText.Text = "以下正文若存在，仅为 Core text transform 输出；不是原始字节或已接受 Knowledge。";
             ReadSourceTransformButton.IsEnabled = job.CanReadText;
+            UpdateCandidateAction();
             CopySourceProvenanceButton.IsEnabled = false;
             CopySourceCitationButton.IsEnabled = false;
             SourceReaderChainSourceText.Text = $"普通来源：{job.SourceId}";
@@ -256,6 +307,7 @@ public partial class SourceReaderView : UserControl
             SourceReaderShaFieldText.Text = member.Sha256;
             SourceReaderMemberBoundaryText.Text = "原文正文未暴露；字段来自 Core 来源成员投影。";
             ReadSourceTransformButton.IsEnabled = string.Equals(member.Readable, "true", StringComparison.OrdinalIgnoreCase) && HasValue(member.JobId);
+            UpdateCandidateAction();
             var canCopy = HasValue(member.SourceId) && HasValue(member.Member) && HasValue(member.Sha256);
             CopySourceProvenanceButton.IsEnabled = canCopy;
             CopySourceCitationButton.IsEnabled = canCopy;
@@ -280,6 +332,7 @@ public partial class SourceReaderView : UserControl
         SourceReaderShaFieldText.Text = "未选择";
         SourceReaderMemberBoundaryText.Text = "原文正文未暴露；字段来自 Core 来源成员投影。";
         ReadSourceTransformButton.IsEnabled = false;
+        SetTransformIdentity(null, null);
         ViewSourceJobButton.IsEnabled = false;
         FindLibraryFromSourceButton.IsEnabled = false;
         CopySourceProvenanceButton.IsEnabled = false;
@@ -308,6 +361,8 @@ public partial class SourceReaderView : UserControl
     {
         if (_applyingState || SourceReaderMembersList.SelectedItem is not SourceReaderRow row)
             return;
+        SetTransformIdentity(null, null);
+        SetCandidateStatus("尚未创建来源关联 Candidate。", "empty");
         var transform = row switch
         {
             SourceJobRow job when job.CanReadText => "已选择 Core 成功 text 任务；点击“读取转换内容”获取持久化输出。",
@@ -323,6 +378,69 @@ public partial class SourceReaderView : UserControl
 
     private void OnReadTransformClick(object? sender, RoutedEventArgs e) =>
         ReadTransformRequested?.Invoke(this, new SourceReaderRowActionEventArgs(SelectedRow));
+
+    private void OnCreateSourceBoundCandidateClick(object? sender, RoutedEventArgs e)
+    {
+        var row = SelectedRow;
+        var quote = SourceReaderTransformText.SelectedText;
+        var start = SourceReaderTransformText.SelectionStart;
+        var end = SourceReaderTransformText.SelectionEnd;
+        if (string.IsNullOrWhiteSpace(quote))
+        {
+            quote = SourceReaderQuoteBox.Text ?? string.Empty;
+            if (!string.IsNullOrWhiteSpace(quote))
+            {
+                var transform = SourceReaderTransformText.Text ?? string.Empty;
+                start = transform.IndexOf(quote, StringComparison.Ordinal);
+                if (start < 0)
+                {
+                    SetCandidateStatus("引用文本未在当前 Core transform 中找到；未提交。", "error");
+                    return;
+                }
+                if (transform.IndexOf(quote, start + quote.Length, StringComparison.Ordinal) >= 0)
+                {
+                    SetCandidateStatus("引用文本在当前 transform 中出现多次；请补充更长、更具体的引用。", "error");
+                    return;
+                }
+                end = start + quote.Length;
+            }
+        }
+        if (row is null || string.IsNullOrWhiteSpace(quote) || LoadedTransformId is null || string.IsNullOrWhiteSpace(LoadedRawSha256))
+        {
+            SetCandidateStatus("请先读取成功的 text transform，并选中或粘贴一段引用文本。", "empty");
+            return;
+        }
+        SourceReaderQuoteBox.Text = quote;
+        var body = SourceReaderCandidateBodyBox.Text?.Trim();
+        if (string.IsNullOrWhiteSpace(body))
+            body = quote.Trim();
+        SourceBoundCandidateRequested?.Invoke(this, new SourceBoundCandidateRequestedEventArgs(
+            row, body, quote, start, end, LoadedTransformId.Value, LoadedRawSha256));
+    }
+
+    public void SetCandidateStatus(string text, string semanticClass)
+    {
+        SourceReaderCandidateStatusText.Text = text;
+        AutomationProperties.SetName(SourceReaderCandidateStatusText, text);
+        foreach (var item in new[] { "loading", "empty", "error", "permission", "success", "info" })
+            SourceReaderCandidateStatusText.Classes.Set($"status-{item}", string.Equals(item, semanticClass, StringComparison.Ordinal));
+    }
+
+    public bool CandidateSubmissionInProgress { get; private set; }
+
+    public void SetCandidateSubmissionInProgress(bool value)
+    {
+        CandidateSubmissionInProgress = value;
+        UpdateCandidateAction();
+    }
+
+    private void UpdateCandidateAction()
+    {
+        CreateSourceBoundCandidateButton.IsEnabled = SelectedRow is not null
+            && !CandidateSubmissionInProgress
+            && LoadedTransformId is not null
+            && !string.IsNullOrWhiteSpace(LoadedRawSha256);
+    }
 
     private void OnRowsKeyDown(object? sender, KeyEventArgs e)
     {
@@ -348,7 +466,7 @@ public partial class SourceReaderView : UserControl
     private void OnViewSizeChanged(object? sender, SizeChangedEventArgs e)
     {
         var width = e.NewSize.Width;
-        var compact = width < 1200;
+        var compact = width < StackBreakpoint;
         SourceReaderShellGrid.ColumnDefinitions = compact
             ? new ColumnDefinitions("*")
             : new ColumnDefinitions("220,*,300");
@@ -364,7 +482,7 @@ public partial class SourceReaderView : UserControl
         SourceReaderMainBorder.Margin = compact ? new Avalonia.Thickness(0, 12, 0, 0) : default;
         SourceReaderChainBorder.Margin = compact ? new Avalonia.Thickness(0, 12, 0, 0) : default;
 
-        var narrowActions = width < 760;
+        var narrowActions = width < NarrowActionsBreakpoint;
         SourceReaderReturnActions.Orientation = narrowActions ? Orientation.Vertical : Orientation.Horizontal;
         SourceReaderContextActions.Orientation = narrowActions ? Orientation.Vertical : Orientation.Horizontal;
         SourceReaderLoadGrid.ColumnDefinitions = narrowActions ? new ColumnDefinitions("*") : new ColumnDefinitions("*,Auto");

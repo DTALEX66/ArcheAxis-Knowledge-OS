@@ -125,11 +125,16 @@ async fn v3_write_persists_governance_metadata_and_carries_it_across_revision() 
         &router,
         "POST",
         "/api/v1/knowledge-items",
-        r#"{"knowledge_type":"PERSONAL_DEFINITION","body":"temporal personal fact","status":"accepted","created_by":"owner","v3":{"source_type":"personal_experience","owner":"human","support_level":"moderate","confidence":0.75,"risk_level":"medium","valid_from":"2026-09-01T00:00:00+00:00","valid_to":"2026-09-30T00:00:00+00:00","external_evidence":[],"requires_human_review":true}}"#,
+        r#"{"knowledge_type":"PERSONAL_DEFINITION","body":"temporal personal fact","status":"candidate","created_by":"owner","v3":{"source_type":"personal_experience","owner":"human","support_level":"moderate","confidence":0.75,"risk_level":"medium","valid_from":"2026-09-01T00:00:00+00:00","valid_to":"2026-09-30T00:00:00+00:00","external_evidence":["synthetic-reference:aaos-a04-1"],"requires_human_review":true}}"#,
     )
     .await;
     assert_eq!(status, 201);
     let id = created["knowledge_id"].as_str().unwrap();
+
+    // A04: the entry form's governed fields must survive a full Core app
+    // restart, not only an in-process projection read.
+    drop(router);
+    let router = app(dir.path().join("knowledge.sqlite").to_str().unwrap()).unwrap();
 
     let (status, projected) = json(
         &router,
@@ -142,6 +147,14 @@ async fn v3_write_persists_governance_metadata_and_carries_it_across_revision() 
     assert_eq!(projected["support_level"], "moderate");
     assert_eq!(projected["confidence"], 0.75);
     assert_eq!(projected["risk_level"], "medium");
+    assert_eq!(projected["source_type"], "personal_experience");
+    assert_eq!(projected["owner"], "human");
+    assert_eq!(projected["status"], "candidate");
+    assert_eq!(
+        projected["external_evidence"],
+        serde_json::json!(["synthetic-reference:aaos-a04-1"])
+    );
+    assert_eq!(projected["requires_human_review"], true);
     assert_eq!(projected["valid_from"], "2026-09-01T00:00:00+00:00");
     assert_eq!(projected["valid_to"], "2026-09-30T00:00:00+00:00");
 

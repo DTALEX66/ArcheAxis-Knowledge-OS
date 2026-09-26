@@ -42,6 +42,10 @@ dev = importlib.util.module_from_spec(_dev_spec)
 _dev_spec.loader.exec_module(dev)
 
 
+def _source_snapshot() -> dict:
+    return candidate.working_tree_snapshot(REPO)
+
+
 def _git(*args: str) -> str:
     result = subprocess.run(["git", *args], cwd=str(REPO), capture_output=True, text=True)
     if result.returncode != 0:
@@ -63,6 +67,7 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--binary", type=Path, default=None, help="binary to bundle")
     parser.add_argument("--allow-debug", action="store_true", help="accept a debug build and label it as one")
     parser.add_argument("--allow-dirty", action="store_true", help="bundle an uncommitted tree, labelled as such")
+    parser.add_argument("--source-snapshot", type=Path, help="pre-build receipt from capture_source_snapshot.py")
     parser.add_argument("--zip", action="store_true", help="also write a zip and its sha256")
     args = parser.parse_args(argv)
 
@@ -113,6 +118,17 @@ def main(argv: list[str] | None = None) -> int:
             file=sys.stderr,
         )
         return 5
+    try:
+        source_snapshot = (
+            candidate.read_source_snapshot(args.source_snapshot, project_root=REPO)
+            if args.source_snapshot
+            else _source_snapshot()
+        )
+        if source_snapshot != _source_snapshot():
+            raise ValueError("captured source snapshot does not match the current worktree before packaging")
+    except (OSError, ValueError) as error:
+        print(f"cannot fingerprint candidate source: {error}", file=sys.stderr)
+        return 3
     name = f"archeaxis-core-{commit[:12]}-{kind}"
     try:
         paths = dev.layout(REPO)
@@ -142,9 +158,20 @@ def main(argv: list[str] | None = None) -> int:
         tree_clean=clean,
         untracked_present=untracked,
         python_hint=f"{sys.version_info.major}.{sys.version_info.minor}",
+        source_snapshot=source_snapshot,
     )
 
-    problems = candidate.verify_manifest(out, manifest, known_commits={commit})
+    try:
+        current_snapshot = _source_snapshot()
+    except (OSError, ValueError) as error:
+        print(f"cannot recheck candidate source after packaging: {error}", file=sys.stderr)
+        return 4
+    problems = candidate.verify_manifest(
+        out,
+        manifest,
+        known_commits={commit},
+        expected_source_snapshot=current_snapshot,
+    )
     if problems:
         print("the bundle does not match its own manifest, so it is not offered:")
         for item in problems:
@@ -155,6 +182,8 @@ def main(argv: list[str] | None = None) -> int:
     print(f"  source commit   {commit[:12]} ({subject[:60]})")
     print(f"  build kind      {kind}")
     print(f"  tracked tree    {'clean' if clean else 'HAS UNCOMMITTED CHANGES'} when built")
+    print(f"  source snapshot {source_snapshot['sha256']} ({source_snapshot['file_count']} files; "
+          f"{source_snapshot['excluded_path_count']} path-only exclusions)")
     print(f"  files           {len(manifest['files'])}, total {sum(item['bytes'] for item in manifest['files'])} bytes")
     for item in manifest["files"]:
         print(f"  {item['path']:20s} {item['bytes']:>12,d} bytes  sha256 {item['sha256'][:16]}...")

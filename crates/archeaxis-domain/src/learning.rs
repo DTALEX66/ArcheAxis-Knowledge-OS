@@ -499,18 +499,27 @@ pub fn events_for_item(
     rows.collect()
 }
 
-/// Return each learning item once with the latest persisted review deadline.
-///
-/// This is a read-only projection for desktop queues; it never infers mastery
-/// or creates a review event.
+/// Return each referenced learning item once with its latest persisted review
+/// deadline. A referenced item with no review is a valid first-use queue entry
+/// and has a null deadline. This read projection never infers mastery or writes
+/// a review event.
 pub fn item_keys_with_latest_review(
     conn: &Connection,
 ) -> rusqlite::Result<Vec<(String, Option<String>)>> {
+    ensure_card_references(conn)?;
     let mut stmt = conn.prepare(
-        "SELECT item_key, next_review FROM learning_events e
-         WHERE event_id = (SELECT MAX(event_id) FROM learning_events latest
-                           WHERE latest.item_key=e.item_key)
-         ORDER BY item_key ASC",
+        "SELECT items.item_key, latest.next_review
+         FROM (
+             SELECT item_key FROM card_references
+             UNION
+             SELECT item_key FROM learning_events
+         ) items
+         LEFT JOIN learning_events latest
+           ON latest.event_id = (
+               SELECT MAX(event_id) FROM learning_events
+               WHERE item_key=items.item_key
+           )
+         ORDER BY items.item_key ASC",
     )?;
     let rows = stmt.query_map([], |row| Ok((row.get(0)?, row.get(1)?)))?;
     rows.collect()

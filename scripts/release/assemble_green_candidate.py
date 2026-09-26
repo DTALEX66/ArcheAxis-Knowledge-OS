@@ -4,12 +4,21 @@ from __future__ import annotations
 
 import argparse
 import hashlib
+import importlib.util
 import json
 import os
 import shutil
+import stat
 import zipfile
 from dataclasses import dataclass
 from pathlib import Path
+
+_candidate_spec = importlib.util.spec_from_file_location(
+    "green_candidate_source_fingerprint", Path(__file__).with_name("candidate.py")
+)
+assert _candidate_spec and _candidate_spec.loader
+_candidate_module = importlib.util.module_from_spec(_candidate_spec)
+_candidate_spec.loader.exec_module(_candidate_module)
 
 
 @dataclass(frozen=True)
@@ -18,10 +27,17 @@ class AssemblyResult:
     zip_path: Path
 
 
-def _native_path(path: Path) -> str | Path:
+def _native_path(path: Path, *, force: bool = False) -> str | Path:
     """Use the Windows extended-length prefix for deep managed run paths."""
-    if path.drive and path.drive.upper() != "E:" and len(str(path)) >= 240:
-        return "\\\\?\\" + str(path)
+    text = str(path)
+    if text.startswith("\\\\?\\"):
+        return text
+    if (
+        path.drive
+        and path.drive.upper() not in {"E:", "F:"}
+        and (force or len(text) >= 240)
+    ):
+        return "\\\\?\\" + text
     return path
 
 
@@ -31,6 +47,48 @@ def _sha256(path: Path) -> str:
         for chunk in iter(lambda: stream.read(1024 * 1024), b""):
             digest.update(chunk)
     return digest.hexdigest()
+
+
+def _is_file(path: Path) -> bool:
+    """Check file type with the same extended path used by copy/hash operations."""
+    return stat.S_ISREG(os.stat(_native_path(path), follow_symlinks=False).st_mode)
+
+
+def _iter_files(root: Path):
+    """Walk a bundle tree using extended paths and yield normal paths + relatives."""
+    _reject_reparse(root)
+    native_root = os.fspath(_native_path(root, force=True))
+    root_prefix = native_root.rstrip("\\/")
+
+    def raise_walk_error(error: OSError) -> None:
+        raise error
+
+    for current, directories, filenames in os.walk(
+        native_root, topdown=True, onerror=raise_walk_error, followlinks=False
+    ):
+        relative_dir = current[len(root_prefix):].lstrip("\\/")
+        relative = Path(relative_dir) if relative_dir else Path()
+        for name in directories:
+            _reject_reparse(root / relative / name)
+        for name in filenames:
+            path = root / relative / name
+            _reject_reparse(path)
+            if _is_file(path):
+                yield path, relative / name
+
+
+def _source_snapshot_or_none(project_root: Path) -> dict | None:
+    if not project_root.is_dir():
+        return None
+    try:
+        return _candidate_module.working_tree_snapshot(project_root)
+    except ValueError as exc:
+        if any(
+            marker in str(exc).casefold()
+            for marker in ("not a git repository", "requires the exact git worktree root")
+        ):
+            return None
+        raise
 
 
 def _reject_reparse(path: Path) -> None:
@@ -78,11 +136,18 @@ def assemble(
     project_root: Path | None = None,
     source_commit: str | None = None,
     source_tree: str | None = None,
+    source_snapshot: dict | None = None,
 ) -> AssemblyResult:
     desktop = desktop.resolve()
     core = core.resolve()
     output = output.resolve()
+    runtime = runtime.resolve() if runtime is not None else None
+    workers = workers.resolve() if workers is not None else None
     project_root = (project_root or Path(__file__).resolve().parents[2]).resolve()
+    current_source_snapshot = _source_snapshot_or_none(project_root)
+    if source_snapshot is not None and source_snapshot != current_source_snapshot:
+        raise ValueError("captured source snapshot does not match the current worktree before assembly")
+    source_snapshot = source_snapshot if source_snapshot is not None else current_source_snapshot
     project_local = (project_root / ".project-local").resolve()
     try:
         output.relative_to(project_local)
@@ -116,32 +181,28 @@ def assemble(
     if workers is not None:
         (root / "workers").mkdir()
     copied_files: list[Path] = []
-    for source in desktop.rglob("*"):
-        _reject_reparse(source)
-        if source.is_file():
-            target = root / "desktop" / source.relative_to(desktop)
-            target.parent.mkdir(parents=True, exist_ok=True)
-            shutil.copy2(_native_path(source), _native_path(target))
-            copied_files.append(target)
+    for source, relative in _iter_files(desktop):
+        target = root / "desktop" / relative
+        os.makedirs(_native_path(target.parent), exist_ok=True)
+        shutil.copy2(_native_path(source), _native_path(target))
+        copied_files.append(target)
     core_target = root / "core" / "archeaxis-api.exe"
     shutil.copy2(_native_path(core), _native_path(core_target))
     copied_files.append(core_target)
     if runtime is not None:
-        for source in runtime.rglob("*"):
-            _reject_reparse(source)
-            if source.is_file():
-                target = root / "runtime" / source.relative_to(runtime)
-                target.parent.mkdir(parents=True, exist_ok=True)
-                shutil.copy2(_native_path(source), _native_path(target))
-                copied_files.append(target)
+        for source, relative in _iter_files(runtime):
+            target = root / "runtime" / relative
+            os.makedirs(_native_path(target.parent), exist_ok=True)
+            shutil.copy2(_native_path(source), _native_path(target))
+            copied_files.append(target)
     if workers is not None:
-        for source in workers.rglob("*"):
-            _reject_reparse(source)
-            if source.is_file() and not source.name.endswith((".pyc", ".pyo")):
-                target = root / "workers" / source.relative_to(workers)
-                target.parent.mkdir(parents=True, exist_ok=True)
-                shutil.copy2(_native_path(source), _native_path(target))
-                copied_files.append(target)
+        for source, relative in _iter_files(workers):
+            if source.name.endswith((".pyc", ".pyo")):
+                continue
+            target = root / "workers" / relative
+            os.makedirs(_native_path(target.parent), exist_ok=True)
+            shutil.copy2(_native_path(source), _native_path(target))
+            copied_files.append(target)
         profile = root / "worker-profile.json"
         profile.write_text(json.dumps({
             "schema": "archeaxis.worker-profile/v1",
@@ -203,6 +264,7 @@ shell.Run Chr(34) & executable & Chr(34), 1, False
         "provenance": {
             "source_commit": source_commit,
             "source_tree": source_tree,
+            "source_snapshot": source_snapshot,
         },
         "files": files,
     }
@@ -211,8 +273,11 @@ shell.Run Chr(34) & executable & Chr(34), 1, False
         stream.write(json.dumps(manifest, ensure_ascii=False, indent=2) + "\n")
     zip_path = output / f"ArcheAxis.Knowledge.Green-v{version}-x64.zip"
     with zipfile.ZipFile(_native_path(zip_path), "w", compression=zipfile.ZIP_DEFLATED) as archive:
-        for path in sorted(p for p in root.rglob("*") if p.is_file()):
-            archive.write(path, path.relative_to(output).as_posix())
+        for path, relative in sorted(_iter_files(root), key=lambda entry: entry[1]):
+            archive.write(_native_path(path), (Path(root.name) / relative).as_posix())
+    final_source_snapshot = _source_snapshot_or_none(project_root)
+    if final_source_snapshot != source_snapshot:
+        raise ValueError("source worktree changed while assembling the candidate")
     return AssemblyResult(root=root, zip_path=zip_path)
 
 
@@ -226,7 +291,13 @@ def main() -> int:
     parser.add_argument("--version", required=True)
     parser.add_argument("--source-commit")
     parser.add_argument("--source-tree")
+    parser.add_argument("--source-snapshot", type=Path, help="pre-build receipt from capture_source_snapshot.py")
     args = parser.parse_args()
+    expected_snapshot = (
+        _candidate_module.read_source_snapshot(args.source_snapshot, project_root=Path(__file__).resolve().parents[2])
+        if args.source_snapshot
+        else None
+    )
     result = assemble(
         args.desktop,
         args.core,
@@ -236,6 +307,7 @@ def main() -> int:
         workers=args.workers,
         source_commit=args.source_commit,
         source_tree=args.source_tree,
+        source_snapshot=expected_snapshot,
     )
     print(json.dumps({"root": str(result.root), "zip": str(result.zip_path)}))
     return 0

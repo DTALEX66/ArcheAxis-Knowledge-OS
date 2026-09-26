@@ -19,6 +19,8 @@ def verify(root: Path, workflow: Path) -> list[str]:
         if not (root / relative).exists():
             errors.append(f"formal release component missing: {relative}")
     text = workflow.read_text(encoding="utf-8")
+    if "if: ${{ false }} # R6 release freeze" not in text:
+        errors.append("release publish job is not disabled by the current R6 freeze")
     if "ArcheAxis.Desktop" not in text:
         errors.append("release workflow does not mention the formal Avalonia desktop")
     if "crates/archeaxis-api" not in text and "Rust Core" not in text:
@@ -44,7 +46,7 @@ def main() -> int:
         for error in errors:
             print(f"FAIL: {error}")
         return 1
-    print("PASS: formal Avalonia -> Rust Core -> Python workers release chain is identified")
+    print("PASS: formal Avalonia -> Rust Core -> Python workers are identified; release remains frozen")
     return 0
 
 

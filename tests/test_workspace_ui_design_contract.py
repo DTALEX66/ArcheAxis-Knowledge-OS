@@ -1,7 +1,8 @@
-"""Canonical UI contracts: React/Tauri is the only product shell."""
+"""Legacy React/Tauri recovery contracts and formal-shell authority guards."""
 from __future__ import annotations
 
 from pathlib import Path
+import json
 
 from fastapi.testclient import TestClient
 
@@ -9,6 +10,15 @@ from app.main import app
 
 ROOT = Path(__file__).resolve().parents[1]
 ROUTER = ROOT / "app/workspace/router.py"
+
+
+def test_formal_product_shell_is_avalonia_and_web_shell_is_legacy() -> None:
+    contract = json.loads((ROOT / "config/product/UI_CONTRACT_V2.json").read_text(encoding="utf-8"))
+
+    assert contract["productShell"]["base"] == "ArcheAxis C#/Avalonia"
+    assert contract["productShell"]["mode"] == "formal-desktop-shell"
+    assert contract["productShell"]["productionEntrypoint"] == "apps/ArcheAxis.Desktop/ArcheAxis.Desktop.csproj"
+    assert contract["productShell"]["webCompatibilityRole"] == "legacy-recovery-and-behavior-reference"
 
 
 def test_loopback_workspace_no_longer_exposes_or_packages_a_second_product_ui() -> None:
@@ -29,7 +39,7 @@ def test_legacy_knowledge_dashboard_does_not_redirect_to_a_retired_loopback_ui()
     assert response.status_code == 410
 
 
-def test_tauri_surface_and_ci_share_the_ui_release_gate() -> None:
+def test_legacy_tauri_recovery_surface_remains_covered_by_compatibility_ci() -> None:
     frontend = (ROOT / "frontend/index.html").read_text(encoding="utf-8")
     tauri = (ROOT / "src-tauri/src/main.rs").read_text(encoding="utf-8")
     desktop_lib = (ROOT / "desktop/src-tauri/src/lib.rs").read_text(encoding="utf-8")

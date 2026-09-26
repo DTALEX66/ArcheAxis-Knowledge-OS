@@ -92,6 +92,51 @@ async fn learning_items_returns_one_latest_deadline_per_item() {
 }
 
 #[tokio::test]
+async fn learning_items_includes_referenced_cards_before_the_first_review() {
+    let dir = tempfile::tempdir().unwrap();
+    let db = dir.path().join("learning.sqlite");
+    let router = app(db.to_str().unwrap()).unwrap();
+    let initial = get_items(&router).await;
+    assert_eq!(initial.0, StatusCode::OK);
+    assert_eq!(initial.1["count"], 0);
+
+    let response = router.clone().oneshot(
+        Request::post("/api/v1/knowledge-items")
+            .header("content-type", "application/json")
+            .body(Body::from(json!({
+                "knowledge_type": "PERSONAL_DEFINITION",
+                "body": "A first-use personal learning item.",
+                "status": "candidate",
+                "created_by": "human"
+            }).to_string())).unwrap(),
+    ).await.unwrap();
+    assert_eq!(response.status(), StatusCode::CREATED);
+    let bytes = response.into_body().collect().await.unwrap().to_bytes();
+    let knowledge: Value = serde_json::from_slice(&bytes).unwrap();
+    let knowledge_id = knowledge["knowledge_id"].as_str().unwrap();
+
+    let reference = router.clone().oneshot(
+        Request::post("/api/v1/learning/items/first-use-card/references")
+            .header("content-type", "application/json")
+            .body(Body::from(json!({"knowledge_id": knowledge_id}).to_string())).unwrap(),
+    ).await.unwrap();
+    assert_eq!(reference.status(), StatusCode::CREATED);
+
+    let assessment = router.clone().oneshot(
+        Request::post("/api/v1/learning/items/first-use-card/assessment")
+            .header("content-type", "application/json")
+            .body(Body::from(json!({"knowledge_id": knowledge_id}).to_string())).unwrap(),
+    ).await.unwrap();
+    assert_eq!(assessment.status(), StatusCode::CREATED);
+
+    let (status, queue) = get_items(&router).await;
+    assert_eq!(status, StatusCode::OK);
+    assert_eq!(queue["count"], 1);
+    assert_eq!(queue["items"][0]["item_key"], "first-use-card");
+    assert!(queue["items"][0]["next_review"].is_null());
+}
+
+#[tokio::test]
 async fn submitted_answer_is_readable_after_core_restart() {
     let dir = tempfile::tempdir().unwrap();
     let db = dir.path().join("learning.sqlite");

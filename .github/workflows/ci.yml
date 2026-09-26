@@ -565,9 +565,9 @@ jobs:
           uv pip install --system --require-hashes -r locked-browser.txt
       - name: Install Chromium
         run: python -m playwright install --with-deps chromium
-      - name: Install locked canonical frontend tooling
+      - name: Install locked legacy React/Tauri recovery tooling
         run: npm ci --prefix frontend --ignore-scripts
-      - name: Run real canonical React browser regressions
+      - name: Run legacy React/Tauri recovery-browser regressions
         env:
           ARCHEAXIS_DATA_DIR: ${{ runner.temp }}/cognitive-browser-runtime
         run: python scripts/a0_browser_smoke.py

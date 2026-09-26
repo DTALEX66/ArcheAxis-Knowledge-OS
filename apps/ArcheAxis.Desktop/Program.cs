@@ -78,6 +78,7 @@ class Program
         {
             string assessmentId;
             string knowledgeVersion;
+            long reviewEventId;
             using (var supervisor = new CoreSupervisor(dbPath))
             {
                 var started = await supervisor.StartAsync().ConfigureAwait(false);
@@ -104,7 +105,7 @@ class Program
                     || RequiredString(assessment.RootElement, "item_key") != itemKey)
                     throw new InvalidOperationException("assessment is not bound to the synthetic item and Knowledge");
 
-                using var review = await PostJsonAsync(supervisor, "/api/v1/learning/reviews", new
+                var reviewPayload = new
                 {
                     item_key = itemKey,
                     client_event_id = eventKey,
@@ -114,8 +115,22 @@ class Program
                     answer,
                     assessment_id = assessmentId,
                     knowledge_version = knowledgeVersion,
-                }).ConfigureAwait(false);
+                };
+                using var review = await PostJsonAsync(supervisor, "/api/v1/learning/reviews", reviewPayload).ConfigureAwait(false);
                 ValidateReviewProjection(review.RootElement, answer);
+
+                using var replay = await PostJsonAsync(supervisor, "/api/v1/learning/reviews", reviewPayload).ConfigureAwait(false);
+                if (!replay.RootElement.TryGetProperty("duplicate", out var duplicate)
+                    || duplicate.ValueKind != JsonValueKind.True
+                    || RequiredString(replay.RootElement, "answer") != answer)
+                    throw new InvalidOperationException("review replay did not return the original persisted receipt");
+
+                using var history = await GetJsonAsync(supervisor,
+                    $"/api/v1/learning/events/{Uri.EscapeDataString(itemKey)}").ConfigureAwait(false);
+                if (!history.RootElement.TryGetProperty("events", out var events)
+                    || events.ValueKind != JsonValueKind.Array || events.GetArrayLength() != 1)
+                    throw new InvalidOperationException("review replay created a duplicate learning event");
+                reviewEventId = RequiredInt64(events[0], "event_id");
             }
 
             using (var reopened = new CoreSupervisor(dbPath))
@@ -132,9 +147,11 @@ class Program
                 using var history = await GetJsonAsync(reopened,
                     $"/api/v1/learning/events/{Uri.EscapeDataString(itemKey)}").ConfigureAwait(false);
                 if (!history.RootElement.TryGetProperty("events", out var events)
-                    || events.ValueKind != JsonValueKind.Array || events.GetArrayLength() == 0)
-                    throw new InvalidOperationException("learning event readback is empty");
+                    || events.ValueKind != JsonValueKind.Array || events.GetArrayLength() != 1)
+                    throw new InvalidOperationException("review replay created a duplicate event or learning event readback is empty");
                 var latest = events[events.GetArrayLength() - 1];
+                if (RequiredInt64(latest, "event_id") != reviewEventId)
+                    throw new InvalidOperationException("review event identity changed across Core restart");
                 using var outcome = JsonDocument.Parse(RequiredString(latest, "outcome"));
                 if (RequiredString(outcome.RootElement, "answer") != answer)
                     throw new InvalidOperationException("learner answer readback changed across Core restart");
@@ -179,6 +196,15 @@ class Program
             && !string.IsNullOrWhiteSpace(value.GetString()))
             return value.GetString()!;
         throw new InvalidOperationException($"response is missing non-empty string '{name}'");
+    }
+
+    private static long RequiredInt64(JsonElement root, string name)
+    {
+        if (root.TryGetProperty(name, out var value)
+            && value.ValueKind == JsonValueKind.Number
+            && value.TryGetInt64(out var result))
+            return result;
+        throw new InvalidOperationException($"response is missing integer '{name}'");
     }
 
     private static void ValidateReviewProjection(JsonElement review, string expectedAnswer)

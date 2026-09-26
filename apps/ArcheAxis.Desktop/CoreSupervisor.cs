@@ -17,6 +17,10 @@ public sealed class CoreSupervisor : IDisposable
 {
     private static readonly HttpClient Http = new(new HttpClientHandler { UseProxy = false, AllowAutoRedirect = false })
         { Timeout = TimeSpan.FromSeconds(5) };
+    // Upload serialization and local disk reads share this bounded request deadline.
+    // Keep status/readiness requests on the short client so failures remain responsive.
+    private static readonly HttpClient ImportHttp = new(new HttpClientHandler { UseProxy = false, AllowAutoRedirect = false })
+        { Timeout = TimeSpan.FromSeconds(60) };
     private Process? _core;
     private CancellationTokenSource? _startup;
     private readonly string _coreBin;
@@ -206,7 +210,9 @@ public sealed class CoreSupervisor : IDisposable
             foreach (var header in headers)
                 request.Headers.TryAddWithoutValidation(header.Key, header.Value);
         request.Headers.Add("x-archeaxis-launch-token", launchToken);
-        var response = await Http.SendAsync(request, ct).ConfigureAwait(false);
+        var client = !machine && method == HttpMethod.Post && path == "/api/v1/imports"
+            ? ImportHttp : Http;
+        var response = await client.SendAsync(request, ct).ConfigureAwait(false);
         // Response diagnostics retain RequestMessage; strip the sent credential
         // before returning the response to either caller.
         response.RequestMessage?.Headers.Remove("x-archeaxis-launch-token");

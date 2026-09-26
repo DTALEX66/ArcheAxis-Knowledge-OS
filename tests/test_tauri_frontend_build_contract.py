@@ -1,4 +1,4 @@
-"""Regression guard for the desktop shell's embedded frontend resources."""
+"""Regression guard for the legacy Tauri recovery shell's embedded frontend."""
 
 from pathlib import Path
 
@@ -6,7 +6,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 
 
-def test_tauri_build_script_recursively_watches_canonical_project_build_frontend() -> None:
+def test_legacy_tauri_build_watches_project_local_recovery_frontend() -> None:
     source = (ROOT / "src-tauri" / "build.rs").read_text(encoding="utf-8")
 
     assert "fn watch_tree" in source
