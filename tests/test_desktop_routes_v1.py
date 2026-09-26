@@ -51,6 +51,56 @@ def test_recovery_manifest_matches_the_current_read_only_boundary_surface():
     assert route["read_only"] is True
 
 
+def test_navigation_sections_and_contract_page_ids_are_distinct_sets():
+    """The manifest page ids and the shell sections are different things.
+
+    The continuation pack warns that "7 page_id vs 16 section" must not be read as
+    "nine pages are missing". They are two sets that overlap, not a subset
+    relation: the manifest records persisted route ids, the shell records native
+    navigation sections, several of which are local surfaces with no Core route.
+
+    This test pins the real relationship so a later reader does not have to
+    reconstruct it, and so a genuine addition or removal on either side fails
+    loudly instead of silently widening the gap.
+    """
+    manifest = json.loads((ROOT / "config/desktop/routes-v1.json").read_text(encoding="utf-8"))
+    page_ids = {route["page_id"] for route in manifest["routes"]}
+
+    shell = (ROOT / "apps/ArcheAxis.Desktop/MainWindow.axaml.cs").read_text(encoding="utf-8")
+    registry = shell.split("CommandPaletteRoutes =", 1)[1].split("};", 1)[0]
+    sections = {m.group(1) for m in re.finditer(r'new\("[^"]*",\s*"([^"]*)"', registry)}
+
+    # The shell navigates exactly the sections it registers.
+    assert len(sections) == 16, sorted(sections)
+    assert sections == {
+        "home", "capture", "library", "source-reader", "knowledge", "original-editor",
+        "memory-map", "learning", "evidence", "research", "machine-growth", "jobs",
+        "plugins", "models", "recovery", "settings",
+    }
+
+    # Both sides use the same identifier convention, with one documented exception:
+    # page_id uses snake_case where a section is kebab-case. Normalising on "-"
+    # makes every manifest page id resolve to a real section.
+    normalised = {p.replace("_", "-") for p in page_ids}
+    assert normalised <= sections, sorted(normalised - sections)
+    assert page_ids & {"source_reader", "machine_growth"}, (
+        "if these were renamed, update the exception note as well as this test"
+    )
+
+    # The sections with no manifest page id are navigation, local projection or
+    # explicitly unavailable domains - not missing pages.
+    without_page_id = sections - normalised
+    assert without_page_id == {
+        "home", "capture", "library", "original-editor", "memory-map", "evidence",
+        "research", "plugins", "models",
+    }, sorted(without_page_id)
+
+    # research / plugins / models are the recorded honest-unavailable placeholders.
+    assert without_page_id & {"research", "plugins", "models"} == {
+        "research", "plugins", "models"
+    }
+
+
 def test_versioned_schema_is_present_and_binds_canonical_writer():
     schema = json.loads((ROOT / "packages/contracts/v1/desktop-routes.schema.json").read_text(encoding="utf-8"))
     assert schema["properties"]["schema"]["const"] == "archeaxis.desktop-routes/v1"
