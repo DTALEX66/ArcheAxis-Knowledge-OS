@@ -29,6 +29,7 @@ import json
 import shutil
 import sqlite3
 import sys
+import types
 import uuid
 from pathlib import Path
 
@@ -36,11 +37,35 @@ REPO = Path(__file__).resolve().parents[2]
 
 
 def _load(name: str, path: Path):
+    """Load a module by file path and register it under ``name``.
+
+    `scripts/check_architecture.py` forbids new `sys.path` mutations, so a probe must
+    reach repository packages without touching the path. Registering the module - and
+    the parent packages, with their real ``__path__`` - in `sys.modules` lets the
+    normal import machinery resolve submodules and gives the loaded module working
+    ``from shared.workspace_manifest import ...`` statements.
+    """
     spec = importlib.util.spec_from_file_location(name, path)
     assert spec and spec.loader
     module = importlib.util.module_from_spec(spec)
+    sys.modules[name] = module
     spec.loader.exec_module(module)
     return module
+
+
+def _register_package(name: str, directory: Path) -> None:
+    package = types.ModuleType(name)
+    package.__path__ = [str(directory)]  # type: ignore[attr-defined]
+    sys.modules[name] = package
+
+
+def _migrator():
+    """`app.workspace.migrate` plus the helper it imports, with no sys.path change."""
+    _register_package("shared", REPO / "shared")
+    _load("shared.workspace_manifest", REPO / "shared" / "workspace_manifest.py")
+    _register_package("app", REPO / "app")
+    _register_package("app.workspace", REPO / "app" / "workspace")
+    return _load("app.workspace.migrate", REPO / "app" / "workspace" / "migrate.py")
 
 
 runtime = _load("runtime_migration", REPO / "scripts" / "runtime" / "dev.py")
@@ -92,9 +117,8 @@ def main() -> int:
         print(json.dumps({"ok": False, "blocked": "legacy database not present", "path": str(LEGACY)}))
         return 2
 
-    sys.path.insert(0, str(REPO))
-    from app.workspace import migrate as migrator
-    from shared.workspace_manifest import create_workspace
+    migrator = _migrator()
+    create_workspace = sys.modules["shared.workspace_manifest"].create_workspace
 
     original_before = {
         "path": str(LEGACY),
