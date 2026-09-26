@@ -24,6 +24,43 @@
 
 ## DONE（本轮，已推送并 CI 验证）
 
+**D-5 legacy 类 10 条捐赠者分支复审 → 7 条已吸收删除、3 条归档后删除**
+
+同一判据（新增路径中 HEAD 不存在的数量）：
+
+| 分支 | 新增路径不在 HEAD | 处置 |
+| --- | --- | --- |
+| `audit/unreleased-real-version` | 0 | 已吸收 → 删除 |
+| `axw/execution-h0` | 0 | 已吸收 → 删除 |
+| `axw/execution-h1` | 0 | 已吸收 → 删除 |
+| `chore/naming-repo-refs` | 0 | 已吸收 → 删除 |
+| `feat/ms00-c-release-identity` | 0 | 已吸收 → 删除 |
+| `feat/naming-step3` | 0 | 已吸收 → 删除 |
+| `work/tp12-facades` | 0 | 已吸收 → 删除 |
+| `feat/p1-compat-kernel-hardening` | 3 | 归档后删除 |
+| `feat/portable-data-root` | 3 | 归档后删除 |
+| `fix/desktop-close-request-destroy` | 1 | 归档后删除 |
+
+**3 条有 HEAD 缺失路径的分支，逐条核实为「历史资产」而非「能力缺口」**：
+
+- `feat/p1-compat-kernel-hardening`：`tests/test_format_capabilities.py` 已被 HEAD 的 4 个格式测试取代（`test_format_execution_v1`、`test_format_matrix`、`test_text_format_facts`、`test_workspace_pipeline_multiformat`）；另两个是 2026-08-09 的 dated intake 记录。
+- `feat/portable-data-root`：`scripts/project_env.{bat,ps1,sh}` 是**已退役机制**——脚本头写的是**前身项目 `Cognitive-Loop-OS`**，运行时根为 `.hermes\task-runtime`，设 `COGNITIVE_DATA_DIR`；HEAD 已用 `config/profiles/portable-stable.yaml`（`data_policy: portable-root-only`）+ `scripts/runtime/dev.py` 的 `.project-local/` 取代。恢复它们会重新引入**已退役的项目名与运行时根**。
+- `fix/desktop-close-request-destroy`：仅一份 2026-08-06 的 NSIS 交接记录。
+
+**归档而非丢弃**：7 个独有文件已按**原始字节**存入 `docs/history/branch-donors/<branch>/<原相对路径>`，并附 `README.md` 记录来源分支、tip SHA、复审理由与恢复命令。实测 7/7 **EXACT**（`cat-file blob` 与磁盘逐字节比对）。
+
+**本地分支 22 → 12**。剩余 12 条**全部有保留理由**，无可删：
+
+| 分类 | 分支 |
+| --- | --- |
+| 活跃分支 | `codex/aaos-p3-ui-convergence-20260922` |
+| 工作树占用 | `codex/dp-f01-20260925`、`codex/worker-quality-0906` |
+| 祖先/主干 | `main` |
+| 历史证据保留 | `codex/execution-reliability-standards`、`codex/frozen-roadmap-deepseek-v1`、`docs/verification-summary-2026-08-09`、`release/v0.4.0-contract` |
+| 冻结参考（不合并） | `codex/recovery-shell-frontend`、`feat/archeaxis-desktop-a1-violet-core`、`feat/axw022a-pdf-http-endpoint`、`feat/axw022b-evidence-annotation` |
+
+**删除后验证**：HEAD 未变、3 个 worktree 未受影响、全套 **3353 passed / 0 failed**。
+
 **D-4 capability 类 5 条捐赠者分支语义复审 → 判定**已吸收**，已删除**
 
 判据：分支引入的**新增路径**中，有多少在 HEAD 中**不存在**（净新增）。用 `git diff --diff-filter=A merge-base..branch` 后逐路径以 `git cat-file -e HEAD:<path>` 核实。
