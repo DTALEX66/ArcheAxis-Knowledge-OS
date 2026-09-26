@@ -3519,3 +3519,54 @@ and `docs/` - so the 3376-passed / 0-failed suite result for the product tree st
 **Non-claims.** `main` is fully force-qualified only at `ea2c3831` (20/20); later SHAs are qualified by the
 required-gate set GatePlan selects for their paths. A15/A16 remain unsigned, release FROZEN, Local Green
 untouched, `local_green_updated=false`.
+
+### One continuous M0 run, and two real contract facts it exposed — 2026-09-26
+
+Before this slice the M0 chain was verified **link by link**, each probe starting a fresh Core. The mandate
+asks for the minimal representative input driven through *all* stages, so
+`scripts/probes/m0_full_loop_smoke.py` now runs the whole loop in **one workspace database and one Core
+session**, restarts that same workspace, and ends with the legacy migration. 25 stages, in order:
+
+```
+import 202 -> enqueue 202 -> execute 202 -> job succeeded -> transform 200 (63 chars)
+-> promote_anchored_knowledge 201 (anchor anc_...) -> V3 200 -> search 200 (1 item)
+-> human_accept 200 -> V3 after accept: status accepted
+-> learning_reference 201 -> learning_event 201 -> event replay 200 (duplicate)
+-> assessment 201 -> answer_recorded 201 -> learning_state 200 (answer read back)
+-> machine_task_failed 201 -> human_correction 200 (successor) -> accept_successor 200
+-> machine_retest 201 (retest_of = the failed task) -> machine_readback 200 (retest_of linked)
+-> restart: learning_state 200, knowledge V3 200 (same anchor)
+-> online backup: schema_version 6 -> mutate -> restore verified, counts 2/2 restored
+-> legacy migration: status ok, 89 tables, original hash unchanged
+```
+
+`chain_stages_verified: true`, `machine_principal_accepted: true`.
+
+**Contract fact one: the launch session owns the actor, and the full loop needs protocol v2.** Machine tasks
+first returned `403 machine task receipts are written by a machine principal only` even though
+`x-archeaxis-actor: machine` was demonstrably on the wire. `launch.rs::authenticate` derives the actor from
+**which token authenticated the call** and the launch JSON's `actor` field (default human); the router-level
+header only decides anything for the in-process router tests, which call `app(db)` without the launch layer.
+A legacy v1 session is therefore either human or machine and can never be both - which is exactly what the
+source comment says v2 is for: "v2 gives one owned session two distinct credentials". Launching with
+`protocol: archeaxis.desktop-launch/v2`, `actor: human` and a separate 64-hex `machine_token` makes the human
+calls authenticate with the launch token and the machine calls with the machine token, and all three machine
+stages then return 201/201/200 with `retest_of` linked back to the failed task.
+
+**Contract fact two, recorded as an open question rather than a pass.** The FSRS schedule the dedicated
+learning probe observes is **not** observed on this path. The same review that returns
+`schedule_authority: "fsrs"` with a populated `schedule_state` in `core_learning_api_smoke.py` returns
+`schedule_authority: "unavailable"`, `schedule_state: null`, `next_review_days: -2`, `next_review: null` here -
+the Core declining to invent a schedule, consistent with its documented stance. Re-running the dedicated probe
+immediately afterwards still returns `fsrs`, so this is a reproduced difference, not environmental drift, and
+**the cause is not pinned**. Both verdicts are therefore reported separately: `chain_stages_verified: true`
+says the loop ran and the persistence legs held, while the strict `ok` additionally requires the FSRS
+schedule and is **false**. FSRS remains verified only on the dedicated path.
+
+**Verification.** `scripts/check_architecture.py` reports `architecture guard passed` and
+`ruff check scripts --select E9,F63,F7,F82` reports `All checks passed!` with the new probe present.
+No product code changed in this slice.
+
+**Non-claims.** Driving every stage in one run is not a product qualification, and the two facts above are
+capabilities of the current Core, not endorsements. A15/A16 remain unsigned, release FROZEN, Local Green
+untouched, `local_green_updated=false`.
