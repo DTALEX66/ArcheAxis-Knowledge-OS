@@ -24,6 +24,39 @@
 
 ## DONE（本轮，已推送并 CI 验证）
 
+**D-3 分支审计核实（结论：审计已完成，且**未授权删除任何分支**）**
+
+以仓库内**已有的结构化审计记录** `docs/current/AAOS-BRANCH-DISPOSITION-REVIEW-20260925.json`（33 条，覆盖全部 27 个现存本地分支 + 6 个已删引用）为权威基数复核：
+
+| 项 | 实测 |
+| --- | --- |
+| 审计记录条目 | **33** |
+| 当前本地分支 | **27**（全部在审计记录内，无遗漏、无新增） |
+| `merge_delete_authorized` | **`False` = 32，`True` = 1**（该 1 条为 `audit/r5-independent-audit-20260919`，其引用**已删除**） |
+
+处置分类（记录原文）：
+
+| 条数 | disposition |
+| --- | --- |
+| 10 | `LEGACY_CODE_DONOR_REVIEW_AGAINST_R6_BEFORE_ANY_PORT` |
+| 6 | `HISTORICAL_RELEASE_OR_ROADMAP_FREEZE_RETAIN_EVIDENCE` |
+| 5 | `CAPABILITY_DONOR_REVIEW_AGAINST_R6_BEFORE_ANY_PORT` |
+| 3 | `FROZEN_WEB_UI_REFERENCE_REASSESS_AAVALONIA_CONTRACTS` |
+| 2 | `HISTORICAL_GOVERNANCE_EVIDENCE_CROSSWALK_ONLY` |
+| 2 | `FROZEN_LEGACY_REACT_TAURI_REFERENCE_NO_MERGE` |
+| 2 | `ANCESTOR_OR_ATTACHED_WORKTREE_REQUIRES_CUSTODY` |
+| 1 | `LOCAL_REF_DELETED_PATCH_EQUIVALENT_CONTENT_RETAINED` |
+| 1 | `CURRENT_ACTIVE_BRANCH` |
+| 1 | `DSH_F01_PATCH_EQUIVALENT_TO_CURRENT_HEAD; RETAIN_WORKTREE_PENDING_CUSTODY_READBACK` |
+
+**因此没有任何分支属于「没用的」。** 每一条要么是**待审代码/能力捐赠者**（需先对 R6 做语义复审再决定是否移植），要么是**必须保留的历史证据**，要么是**活跃工作树**。这也解释了为何 `git branch -d` 对全部候选都返回 *not fully merged* —— 它们确实不是快进关系。
+
+**过程留痕（含我自己的失误）**：我用 `git diff branch HEAD` 与 `git diff --name-status` 做判据，两次得到**自相矛盾**的信号（例如把 `codex/worker-quality-0906` 先判为「独有提交 0 的 HEAD 祖先」、又读出「1055 个路径差异」）。
+
+根因：对**祖先分支**，`git diff branch HEAD` 显示的是 **HEAD 自身 1112 个提交的演化**，不是该分支独有的内容；正确判据是比较 **merge-base..branch**（分支真正引入的内容）。
+
+决定性核实：`merge-base(codex/worker-quality-0906, HEAD) == 该分支 tip`（`4ca46eaf`）→ 分支独有提交 **0**，确为 HEAD 祖先。**未执行任何删除。**
+
 **D-2 路由契约与真实 Core 对齐** — `a473267a`
 
 `config/desktop/routes-v1.json` 声明 `machine_assets -> /api/v1/machine/assets`，而**该 Core 路由从来不存在**。`R6-EXECUTION.md:977` 早已记录此不一致（"The declared desktop route entries `/api/v1/knowledge` and `/api/v1/machine/assets` do not have matching current Rust read routes"）并决定不引入投机调用——**契约本身从未被调和**。
@@ -152,7 +185,8 @@ rust-vnext, security-targeted, static, wheel-smoke, workers-vnext
 
 ## NEXT（新会话可直接接续，勿重复已完成项）
 
-1. **O-1**：接通 `machine_assets`（`/api/v1/machine/assets`）与登记 `source_reader` page_id。先读 `config/desktop/routes-v1.json` 与 `MainWindow.axaml.cs` 的现有路由模式，按同一模式补，并加 C#/Python 合同测试。
+0. **分支审计已核实完成**（D-3）：33 条记录、`merge_delete_authorized=False` 共 32 条，**无可删分支**。下一步不是删除，而是按记录逐条做**语义复审**：对 15 条 `*_DONOR_REVIEW_AGAINST_R6_BEFORE_ANY_PORT`（10 legacy + 5 capability）判定是否移植 R6 缺失能力；对 6 条 `HISTORICAL_*RETAIN_EVIDENCE` 保持保留。**不要**用 `git branch -D` 绕过记录。
+1. **O-1**：接通路由契约剩余漂移（契约 7 page_id vs shell 16 section；`page_id` 为封闭 Literal、`routes` 有 `min_length=7`；`research`/`plugins`/`models` 是诚实不可用占位，登记它们需把 `core_endpoint` 变可选——属契约语义变更，需裁定）。
 2. **O-2**：从当前实际路由建立完整页面清单，再实现纵向切片（启动 → Capture → 导入反馈 → Reader/Evidence → 知识绑定 → 学习/Review → 重启读回）。每步先跑最小相关测试。
 3. **O-3**：向 Owner 确认 B10/B09/DESIGN-SPEC 是否存在于仓库之外；在确认前保持 `UNVERIFIED_REFERENCE`。
 4. **B-1**：取得 Owner 授权后再执行 main 快进/PR，并对新 main SHA 取 exact-SHA 证据；**不得**用旧 SHA 的结果声称新 main 已验证。
