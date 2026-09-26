@@ -3190,3 +3190,55 @@ the remaining forced gates (`desktop-build`, `installer-lifecycle`, `rust-vnext`
 `test (3.12)`, `green-candidate-vnext`, `desktop-fast`) was still in flight when this entry was written; it is
 recorded when complete. Passing `wheel-smoke` proves the gate now tests the installed wheel - it does not
 qualify the product. Release FROZEN, `main` untouched, Green untouched, `local_green_updated=false`.
+
+### Full forced qualification GREEN (20/20) and `main` integrated — 2026-09-26
+
+Forced full run
+[36250176719](https://github.com/DTALEX66/ArcheAxis-Knowledge-OS/actions/runs/36250176719)
+(`workflow_dispatch`, `force_full=true`) on `ea2c3831d9a46ae83fcf8199bc9ccf65da54e598`:
+**run conclusion `success`, 20/20 jobs success** - `a0-gates`, `browser-smoke`, `contracts-vnext`,
+`desktop-build`, `desktop-fast`, `desktop-vnext`, `format-targeted`, `gateplan`, `green-candidate-vnext`,
+`installer-lifecycle`, `lint`, `migration-targeted`, `py-compat (3.11)`, `py-compat (3.13)`, `rust-vnext`,
+`security-targeted`, `test (3.12)`, `wheel-smoke`, `windows-runtime-smoke`, `workers-vnext`.
+
+**The two version values, recorded by CI for the first time.** Both runs before this one asserted without a
+message, so neither value existed in any log. The instrumented step now records them:
+
+```
+Successfully installed archeaxis-workspace-0.6.14
+installed distribution version : '0.6.14'
+bundled manifest product.version: '0.6.14'
+resolved archeaxis-workspace distributions: [('archeaxis-workspace', '0.6.14',
+  '/opt/hostedtoolcache/Python/3.12.14/x64/lib/python3.12/site-packages/archeaxis_workspace-0.6.14.dist-info')]
+```
+
+Three things this establishes that the earlier slices could not: the resolved distribution is the **wheel's
+`site-packages` dist-info**, not the checkout's `archeaxis_workspace.egg-info`; exactly **one**
+`archeaxis-workspace` distribution is visible; and the two compared values are equal. The historical
+mismatch is therefore not a version drift - it was the checkout's metadata being compared against the
+checkout's own manifest, because the wheel was never installed.
+
+**`main` integration.** Authorised by the user in this session ("全部授权"), and performed as a
+**fast-forward, without force**:
+
+| | value |
+| --- | --- |
+| `origin/main` before | `e3875db0ee6d073d37839eb7b95f7ef4ce881bbb` |
+| `origin/main` after | `ea2c3831d9a46ae83fcf8199bc9ccf65da54e598` |
+| relation | 207 commits ahead, 0 behind; `origin/main` was an ancestor, so no merge commit and no conflict |
+| command | `git push origin ea2c3831:main` |
+| remote ack | `e3875db0..ea2c3831  ea2c3831 -> main` |
+| `main` before this | last CI run on `e3875db0` was `success` (2026-09-20) |
+
+The target SHA is the one the green 20/20 forced run above qualified, so `main` moved to a SHA with a real
+run bound to it. `main`'s own push-triggered run on the new SHA is recorded separately.
+
+**Honest property of this integration:** a fast-forward of a shared branch is **not reversible without a
+force push**, which the operating rules forbid. Rolling back to `e3875db0` would require
+`git push --force origin e3875db0:main`. That is recorded so the state is not mistaken for trivially
+revertible; the previous value is preserved in this table and in the reflog.
+
+**Non-claims.** Green CI is a gate result, not product qualification: A15 independent audit and A16 Owner
+Gate remain unsigned and are **not** self-certified here. `green-candidate-vnext` passing means the candidate
+verifier ran, not that a Local Green candidate was accepted or deployed. Release FROZEN (no tag, no version
+promotion), Local Green untouched, `local_green_updated=false`.
