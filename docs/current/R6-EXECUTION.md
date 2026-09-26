@@ -3242,3 +3242,62 @@ revertible; the previous value is preserved in this table and in the reflog.
 Gate remain unsigned and are **not** self-certified here. `green-candidate-vnext` passing means the candidate
 verifier ran, not that a Local Green candidate was accepted or deployed. Release FROZEN (no tag, no version
 promotion), Local Green untouched, `local_green_updated=false`.
+
+### `main` verified green on the integrated SHA, and the M0 chain verified at the API level — 2026-09-26
+
+**`main`'s own run.** Push-triggered run
+[36251109714](https://github.com/DTALEX66/ArcheAxis-Knowledge-OS/actions/runs/36251109714) on the integrated
+`ea2c3831d9a46ae83fcf8199bc9ccf65da54e598`: **conclusion `success`**, 19 jobs with 16 success and 3 correctly
+skipped by GatePlan (`browser-smoke`, `migration-targeted`, `py-compat`, `windows-runtime-smoke` skipped for
+this path set). Successes include `a0-gates`, `lint`, `test (3.12)`, `rust-vnext`, `desktop-build`,
+`desktop-fast`, `desktop-vnext`, `workers-vnext`, `security-targeted`, `contracts-vnext`,
+`green-candidate-vnext`, `installer-lifecycle` and `wheel-smoke`. The `wheel-smoke` step recorded the pair on
+`main` as well: `installed distribution version : '0.6.14'`, `bundled manifest product.version: '0.6.14'`,
+one resolved distribution at `.../site-packages/archeaxis_workspace-0.6.14.dist-info`. `main` recovery is
+therefore bound to the actual new `main` SHA and to a real run, not to a development-branch pass.
+
+**M0 chain verified independently at the API level against the real Core process.** Source identity first: the
+debug Core binary `.project-local/build/cargo/debug/archeaxis-api.exe` is dated 2026-09-26 10:55:24 while the
+newest file under `crates/` is 2026-09-26 01:23:11, and `git status --short -- crates/ Cargo.toml Cargo.lock`
+is empty, so the binary is source-current for the Rust crates and no rebuild was needed (`cargo`/`rustc` are
+not on `PATH`; a registered toolchain exists at
+`D:\All projects\OS External Configuration\toolchains\rust\cargo\bin`, unused here).
+
+Three real runs, each spawning the actual binary and speaking its HTTP API on loopback:
+
+| probe | result |
+| --- | --- |
+| `scripts/probes/r10_core_journey_smoke.py` | `ok: true`, 8 steps all 200/202: reachability, `POST /imports` 202 (`src_3f83059f...`), `POST /jobs` 202, `POST /jobs/{id}/executions` 202, job status succeeded, `GET /jobs/{id}/outputs/text` 200 readable, `GET /search?q=6371` 200. `transform_count: 1`, **`knowledge_count: 0`** |
+| `scripts/probes/r11_unseen_evaluation.py` | `probe_complete: true`, `ok: true`: 5 held-out documents, baseline 3 returned, 2 misses explained by query vocabulary, 0 unexplained; one human `modified` review applied; after correction `carries_corrected_value: true` and `carries_superseded_value: false`; a new held-out query asked for the first time afterwards |
+| `backup/restore smoke` (this session, `.project-local/task-runtime/wsr/backup_restore_smoke.py`) | **`ok: true`** - see below |
+
+**`knowledge_count: 0` after a conversion is correct, not a gap.** `shared/core_client.py` documents the
+boundary itself: "extracted text remains a transform and still requires human review before becoming
+knowledge". Promotion is a separate, human-gated route (`POST /api/v1/knowledge-items/from-transform`), which
+is exactly the governance rule the mandate requires - un-reviewed extraction must not become accepted
+knowledge automatically.
+
+**Backup/restore verified with fail-closed negatives** (`archeaxis-api --maintenance-backup|--maintenance-restore`,
+the CLI declared in `crates/archeaxis-api/src/main.rs`):
+
+| step | observed |
+| --- | --- |
+| seed + backup | `ok: true`, `schema_version: "6"`, backup file plus `<backup>.objects` directory |
+| negative: not a database | exit 1, `ok: false`, `file is not a database` |
+| negative: corrupted backup (`sources` dropped) | exit 1, `ok: false`, **`rolled_back: true`**, `no such table: sources` |
+| live workspace after both negatives | unchanged (`negatives_fail_closed: true`) |
+| mutate (`delete from sources`) then restore | `ok: true`, **`verified: true`**; `sources` 1 to 0 and back to **1**, `mutation_reverted: true`; a `pre-restore-<stamp>.sqlite` plus its objects directory preserved |
+| restart the Core on the restored workspace | HTTP 200 on search readback |
+
+**A06 finding recorded, not silently fixed.** `r11` reports that `crates/archeaxis-domain/src/search.rs`
+issues `knowledge_fts MATCH` with no stemming, so an inflected query term the document does not carry as a
+token removes that document from the result set - a usability behaviour, not a crash or data loss. The probe
+assigns the decision to the owner rather than to itself. No behavioural change was made here; it is recorded
+as measured.
+
+**Scope of this verification.** `r10`/`r11` were run as-is, not modified in this slice. The backup/restore
+probe is new and currently lives under `.project-local/`, so it is reproducible but **not yet a tracked
+regression**; promoting it into `scripts/probes/` with a test is deliberately left as a separate change so an
+unverified script is not committed as product surface. No status was upgraded: A06/A11 stay
+`TESTED_LOCAL_PARTIAL`, A15/A16 remain unsigned. Release FROZEN, Local Green untouched,
+`local_green_updated=false`.
