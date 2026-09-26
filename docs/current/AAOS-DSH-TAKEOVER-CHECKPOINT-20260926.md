@@ -24,6 +24,42 @@
 
 ## DONE（本轮，已推送并 CI 验证）
 
+**D-4 capability 类 5 条捐赠者分支语义复审 → 判定**已吸收**，已删除**
+
+判据：分支引入的**新增路径**中，有多少在 HEAD 中**不存在**（净新增）。用 `git diff --diff-filter=A merge-base..branch` 后逐路径以 `git cat-file -e HEAD:<path>` 核实。
+
+| 分支 | 新增路径 | HEAD 中不存在 | 结论 |
+| --- | --- | --- | --- |
+| `feat/h2-bakeoff` | 4 | **0** | 4 文件全在 HEAD（`shared/bakeoff.py`、`bakeoff_engines.py`、`audio_vad.py`、`tests/test_h2_bakeoff.py`），且 `app/ingestion/media_adapter.py` 消费之 → 已吸收 |
+| `feat/h2-pipeline-integration` | 1 | **0** | 已吸收 |
+| `feat/absorption-adopt-now` | 14 | **0** | 已吸收 |
+| `feat/absorption-roadmap-r0` | 35 | **0** | 已吸收 |
+| `agent/phase5-research-knowledge-governance` | 5 | **4** | 2026-07-20 的早期检查点；HEAD 已有**显著更成熟**的等价实现 → 被超越 |
+
+**不移植 phase5 的理由**（这是本条最重要的判断）：
+
+- 分支：`shared/knowledge_migration.py` **10,684 B**、`app/adapters/research_knowledge.py`。
+- HEAD：`shared/knowledge_governance_migration.py` **30,374 B**（含 `_recorded_versions`、`_actual_owned_schema_objects`、`_validate_schema`）、`app/adapters/claim.py` + `research_package.py`。
+- HEAD 另有 5 个治理测试：`test_research_knowledge_approval_contract`、`test_research_knowledge_governance_lifecycle`、`test_research_to_knowledge_promotion`、`test_knowledge_governance_migration`、`test_knowledge_governance_schema_tamper`；HEAD 研究相关测试共约 10 个。
+
+移植该分支会把**较不成熟的旧实现**与 HEAD 已有实现**并存**，制造双实现——正是本项目明令禁止的。故判定为「已被超越」，不移植。
+
+**执行与恢复**：删除前归档 tip SHA 至 `.project-local/tmp/deleted-branches-20260926.tsv`；本地分支 **27 → 22**。
+
+| 分支 | tip SHA（可恢复） |
+| --- | --- |
+| `feat/h2-bakeoff` | `376fb8001a0a7f2e2c25a0174e1dee6601d0b95b` |
+| `feat/h2-pipeline-integration` | `e1df9279fde0dd0665d4765c18b8a3d1c7ae443b` |
+| `feat/absorption-adopt-now` | `081cf20a28152c271155b6c3d524550ffc545ced` |
+| `feat/absorption-roadmap-r0` | `42d13c0b748243235f9ffbff3e3394b76196b368` |
+| `agent/phase5-research-knowledge-governance` | `0a5e1bfa94209ccded6aa993c89c581bbfd00227` |
+
+恢复命令：`git branch <name> <tip_sha>`（实测 5 个对象**均仍可达**，`cat-file -t` 全为 `commit`）。
+
+**删除后验证**：HEAD 未变、3 个 worktree 未受影响、能力相关测试 **21 passed**。
+
+**剩余 10 条 `LEGACY_CODE_DONOR_*` 分支尚未复审**（legacy 代码捐赠者），留待下一轮。
+
 **D-3 分支审计核实（结论：审计已完成，且**未授权删除任何分支**）**
 
 以仓库内**已有的结构化审计记录** `docs/current/AAOS-BRANCH-DISPOSITION-REVIEW-20260925.json`（33 条，覆盖全部 27 个现存本地分支 + 6 个已删引用）为权威基数复核：
