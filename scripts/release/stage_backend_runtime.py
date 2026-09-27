@@ -30,6 +30,7 @@ import hashlib
 import json
 import os
 import shutil
+import subprocess
 import sys
 import zipfile
 from pathlib import Path
@@ -46,6 +47,24 @@ def sha256(path: Path) -> str:
         for block in iter(lambda: handle.read(1 << 20), b""):
             digest.update(block)
     return digest.hexdigest()
+
+
+def packager_identity() -> str:
+    """The commit of the tooling that decided this layout, dirty state included.
+
+    An uncommitted stager means the artifact was assembled by logic no commit
+    describes, which is the condition this field exists to expose.
+    """
+    directory = Path(__file__).resolve().parent
+    try:
+        commit = subprocess.run(["git", "-C", str(directory), "rev-parse", "HEAD"],
+                                capture_output=True, text=True, check=True).stdout.strip()
+        dirty = subprocess.run(["git", "-C", str(directory), "status", "--porcelain",
+                                "--", str(Path(__file__).resolve())],
+                               capture_output=True, text=True, check=True).stdout.strip()
+    except (OSError, subprocess.CalledProcessError):
+        return ""
+    return f"{commit}+dirty" if dirty else commit
 
 
 def reject_reparse(path: Path) -> None:
@@ -99,22 +118,21 @@ def copy_distribution(name: str, site_packages: Path, target_site_packages: Path
 
 
 def write_launcher(root: Path) -> Path:
-    """A launcher that needs no manual environment: it points the Core at the profile."""
+    """The formal entry point: it resolves everything from the runtime root.
+
+    It does not export ARCHEAXIS_PYTHON; the Core reads the interpreter out of
+    worker-profile.json. A developer shell's stale variables are removed by
+    start-backend.py so a broken runtime cannot be masked by the environment.
+    """
     launcher = root / "start-backend.cmd"
     launcher.write_text(
         "@echo off\r\n"
-        "rem Backend launcher. Sets the runtime locations the Core reads; it does not\r\n"
-        "rem require the caller to resolve a Python interpreter by hand.\r\n"
+        "rem Formal backend launcher for a staged runtime. Everything it needs is\r\n"
+        "rem resolved from this directory; no checkout, virtualenv or manual\r\n"
+        "rem interpreter configuration is involved.\r\n"
         "setlocal\r\n"
-        'set \"ARCHEAXIS_BACKEND_ROOT=%~dp0\"\r\n'
-        'set \"ARCHEAXIS_CORE_BIN=%~dp0core\\archeaxis-api.exe\"\r\n'
-        'set \"ARCHEAXIS_WORKER_PROFILE=%~dp0worker-profile.json\"\r\n'
-        'set \"ARCHAXIS_WORKER_PROFILE=%~dp0worker-profile.json\"\r\n'
-        'set \"ARCHEAXIS_SCHEDULER_WORKER=%~dp0workers\\learning\\worker_schedule.py\"\r\n'
-        'set \"ARCHAXIS_SCHEDULER_WORKER=%~dp0workers\\learning\\worker_schedule.py\"\r\n'
-        "rem The interpreter itself is resolved from worker-profile.json, so no\r\n"
-        "rem ARCHEAXIS_PYTHON is set or required here.\r\n"
-        '"%ARCHEAXIS_CORE_BIN%" %*\r\n',
+        '"%~dp0runtime\\python.exe" "%~dp0start-backend.py" %*\r\n'
+        "exit /b %ERRORLEVEL%\r\n",
         encoding="utf-8", newline="\r\n")
     return launcher
 
@@ -135,8 +153,19 @@ def main() -> int:
     parser.add_argument("--version", required=True)
     parser.add_argument("--source-commit", required=True)
     parser.add_argument("--source-tree", required=True)
+    parser.add_argument("--runtime-commit",
+                        help="commit the Core/workers were built from; defaults to --source-commit")
+    parser.add_argument("--runtime-tree")
+    parser.add_argument("--packager-commit",
+                        help="commit of the staging tooling that decided this layout; "
+                             "defaults to the current commit of this script's checkout")
     parser.add_argument("--archive", type=Path, help="also write a zip beside the root")
     args = parser.parse_args()
+
+    packager_commit = args.packager_commit or packager_identity()
+    if not packager_commit:
+        raise ValueError("packager commit is unknown; pass --packager-commit so the "
+                         "artifact records which staging logic produced it")
 
     root = args.out.resolve()
     if root.exists():
@@ -182,6 +211,10 @@ def main() -> int:
     profile_path = root / "worker-profile.json"
     profile_path.write_text(json.dumps(profile, indent=2) + "\n", encoding="utf-8", newline="\n")
     launcher = write_launcher(root)
+    # The formal launcher is part of the artifact, so a candidate cannot be rebuilt
+    # with different startup logic and still look identical.
+    shutil.copy2(Path(__file__).resolve().parent / "backend_launcher.py",
+                 root / "start-backend.py")
 
     def interpreter_version() -> str:
         result = os.popen(f'"{root / "runtime" / "python.exe"}" -c '
@@ -196,6 +229,20 @@ def main() -> int:
     manifest = {
         "schema": MANIFEST_SCHEMA,
         "version": args.version,
+        # Two identities, kept apart on purpose. The staging tool decides which
+        # components exist, where they sit and which dependencies are copied, so
+        # treating a change to it as "documentation" is exactly how a candidate ends
+        # up assembled by logic nobody tested.
+        "runtime_source": {
+            "commit": args.runtime_commit or args.source_commit,
+            "tree": args.runtime_tree or args.source_tree,
+            "note": "commit the Core and workers were built from",
+        },
+        "packager_source": {
+            "commit": packager_commit,
+            "note": "commit of scripts/release/stage_backend_runtime.py and backend_launcher.py "
+                    "that produced this layout",
+        },
         "built_from": {"source_commit": args.source_commit, "source_tree": args.source_tree},
         "components": [
             {"component": "core", "path": "core/archeaxis-api.exe",
