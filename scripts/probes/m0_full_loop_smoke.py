@@ -174,6 +174,31 @@ def unmet_prerequisites() -> dict[str, str]:
     return unmet
 
 
+def binary_identity(path: Path) -> dict:
+    """The artefact that actually ran, not the path someone typed."""
+    stat = path.stat()
+    digest = hashlib.sha256()
+    with path.open("rb") as handle:
+        for block in iter(lambda: handle.read(1 << 20), b""):
+            digest.update(block)
+    return {"path": str(path), "sha256": digest.hexdigest(),
+            "size": stat.st_size, "mtime": stat.st_mtime}
+
+
+def source_identity() -> dict:
+    """What this run tested, including the working state when it is not committed."""
+    dirty = os.environ.get("ARCHEAXIS_SOURCE_DIRTY", "")
+    return {
+        "commit": os.environ.get("ARCHEAXIS_SOURCE_COMMIT", ""),
+        "tree": os.environ.get("ARCHEAXIS_SOURCE_TREE", ""),
+        "dirty": dirty == "1",
+        "patch_sha256": os.environ.get("ARCHEAXIS_SOURCE_PATCH_SHA256", ""),
+        "worktree_root": os.environ.get("ARCHEAXIS_WORKTREE_ROOT", ""),
+        "run_id": os.environ.get("ARCHEAXIS_RUN_ID", ""),
+        "identity_recorded": bool(dirty) and bool(os.environ.get("ARCHEAXIS_SOURCE_COMMIT")),
+    }
+
+
 def main() -> int:
     with contextlib.suppress(Exception):
         sys.stdout.reconfigure(encoding="utf-8")
@@ -196,7 +221,10 @@ def main() -> int:
     work.mkdir(parents=True, exist_ok=True)
     db = work / "workspace.sqlite"
     staging = work / "worker-staging"
-    receipt: dict = {"ok": False, "workdir": str(work), "stages": []}
+    receipt: dict = {"ok": False, "workdir": str(work), "stages": [],
+                     "core_binary": binary_identity(BINARY),
+                     "source": source_identity(),
+                     "interpreter": sys.executable}
     order: list[str] = []
 
     def stage(name: str, **fields: object) -> None:

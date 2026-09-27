@@ -285,6 +285,15 @@ fn v01_twelve_step_journey() {
             "schema": "archeaxis.vnext/v01-closed-loop-receipt",
             "schema_version": 2,
             "source_commit": std::env::var("ARCHEAXIS_SOURCE_COMMIT").unwrap_or_default(),
+            "source_tree": std::env::var("ARCHEAXIS_SOURCE_TREE").unwrap_or_default(),
+            // The commit alone cannot distinguish a committed source from HEAD plus
+            // uncommitted edits, and this receipt used to carry only the commit - so a
+            // run against a dirty checkout asserted an identity it never tested. These
+            // two fields carry the working state itself and are bound by
+            // scripts/ci/check_vnext_receipt.py.
+            "source_dirty": std::env::var("ARCHEAXIS_SOURCE_DIRTY").unwrap_or_default() == "1",
+            "source_patch_sha256": std::env::var("ARCHEAXIS_SOURCE_PATCH_SHA256").unwrap_or_default(),
+            "worktree_root": std::env::var("ARCHEAXIS_WORKTREE_ROOT").unwrap_or_default(),
             "run_id": std::env::var("ARCHEAXIS_RUN_ID").unwrap_or_default(),
             "scope": "in-process journey; worker receipt is simulated; not installed qualification",
             "generated_at_unix": std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).unwrap().as_secs(),

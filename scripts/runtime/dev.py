@@ -162,12 +162,47 @@ def external_toolchain() -> dict[str, str]:
     return discovered
 
 
+def worktree_identity(root: Path) -> tuple[bool, str]:
+    """The tested source as it actually is, not merely the commit it branches from.
+
+    ``git rev-parse HEAD`` is the same value for a clean checkout and for one carrying
+    uncommitted edits, so a receipt that records only the commit claims an identity the
+    run never tested. That happened here: the M0 loop, the receipt positives and the
+    affected regressions all ran against ``69a3baed`` *plus an uncommitted patch*, and
+    the journey receipt still said ``source_commit: 69a3baed`` - and the gate accepted
+    it. The digest covers the tracked diff plus every untracked, non-ignored file, so
+    two different working states cannot share one identity. Ignored paths are excluded
+    because they are build output, not source. Both reads go through :func:`git`, the
+    single Git boundary this launcher already has, so a caller that stubs Git for a
+    unit test stubs this too instead of silently reaching the real repository.
+    """
+    diff = git(root, "diff", "HEAD", "--binary")
+    names = sorted(filter(None, git(root, "ls-files", "--others",
+                                    "--exclude-standard", "-z").split("\0")))
+    digest = hashlib.sha256()
+    digest.update(diff.encode("utf-8", "surrogateescape"))
+    for name in names:
+        digest.update(name.encode("utf-8", "surrogateescape"))
+        path = root / name
+        if path.is_file():
+            digest.update(str(path.stat().st_size).encode("ascii"))
+            digest.update(path.read_bytes())
+    return bool(diff) or bool(names), digest.hexdigest()
+
+
 def environment(paths: dict[str, Path]) -> dict[str, str]:
     cache, build = paths["cache"], paths["build"]
+    dirty, patch_sha256 = worktree_identity(paths["root"])
     result = {
         "ARCHEAXIS_DEV_ROOT": str(paths["dev"]),
         "ARCHEAXIS_RUN_ROOT": str(paths["run"]),
         "ARCHEAXIS_SOURCE_COMMIT": git(paths["root"], "rev-parse", "HEAD"),
+        "ARCHEAXIS_SOURCE_TREE": git(paths["root"], "rev-parse", "HEAD^{tree}"),
+        # Must travel with the commit: a consumer that reads only the commit cannot
+        # tell a committed qualification from a local working state.
+        "ARCHEAXIS_SOURCE_DIRTY": "1" if dirty else "0",
+        "ARCHEAXIS_SOURCE_PATCH_SHA256": patch_sha256,
+        "ARCHEAXIS_WORKTREE_ROOT": str(paths["root"]),
         "ARCHEAXIS_RUN_ID": paths["run"].name,
         "ARCHEAXIS_PYTHON": sys.executable,
         "VNEXT_RECEIPT_OUT": str(paths["artifacts"] / "vnext-journey.json"),
@@ -343,10 +378,20 @@ def main() -> int:
     parser.add_argument("--env-file", type=Path,
                         help="also write this run's environment to a NAME=VALUE file for a "
                              "later step of the same run (local equivalent of --github-env)")
+    parser.add_argument("--require-worktree", type=Path,
+                        help="refuse to run unless the resolved Git worktree root is exactly "
+                             "this path; makes 'ran against the wrong checkout' impossible "
+                             "instead of a convention")
     parser.add_argument("command", nargs=argparse.REMAINDER)
     args = parser.parse_args()
     try:
         paths = layout(args.root, args.run_id)
+        if args.require_worktree is not None:
+            required = safe_path(args.require_worktree)
+            if paths["root"].resolve() != required.resolve():
+                raise ValueError(
+                    f"worktree guard: resolved root {paths['root']} is not the required "
+                    f"{required}")
         env = dict(os.environ)
         env.update(prepare(paths))
         if args.github_env:
@@ -383,9 +428,15 @@ def main() -> int:
         if not command:
             raise ValueError("a child command or --pytest is required")
         started = datetime.now(timezone.utc).isoformat()
+        dirty, patch_sha256 = worktree_identity(paths["root"])
         record = {"source_commit": git(paths["root"], "rev-parse", "HEAD"),
                   "source_tree": git(paths["root"], "rev-parse", "HEAD^{tree}"),
-                  "dirty": bool(git(paths["root"], "status", "--porcelain")),
+                  # `dirty` used to be a bare boolean nobody consumed. It is now the
+                  # discriminator the receipt gate binds against, so a run that tested
+                  # HEAD plus uncommitted edits can no longer present itself as a
+                  # committed-SHA qualification.
+                  "dirty": dirty, "source_patch_sha256": patch_sha256,
+                  "worktree_root": str(paths["root"]),
                   "started_at": started, "run_root": str(paths["run"]),
                   "executable": command[0], "argument_count": len(command) - 1,
                   "python": sys.version, "boundary": "environment-routing-not-sandbox"}
