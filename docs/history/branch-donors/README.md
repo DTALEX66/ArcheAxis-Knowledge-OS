@@ -1,3 +1,10 @@
+> Historical 2026-09-26 record; branch counts and object reachability below are dated.
+> 2026-09-27 consolidation removed nine byte-identical archive duplicates in favor
+> of `docs/history/donor-branch-assets/`. The exact old-to-retained paths and hashes
+> are in [DOCUMENT-CONSOLIDATION-20260927.json](../DOCUMENT-CONSOLIDATION-20260927.json).
+> The original file listings below describe the historical archive, not current paths.
+> Current branch disposition and durable recovery are in [the readback](../../current/SEPTEMBER-CONSOLIDATION-READBACK-20260927.md).
+
 # Branch-donor archives — 2026-09-26
 
 Files that existed **only** on a branch, were absent from `HEAD`, and were
@@ -13,7 +20,7 @@ product. Each file is stored byte-for-byte as it appeared on its branch.
 > served by the Rust Core in `HEAD`, so these are reference copies only and can
 > be dropped at any time — the branch tip remains recoverable.
 
-## Final local branch state
+## Historical local branch state — 2026-09-26
 
 Local branches went from 27 to 7. Each surviving branch has a recorded reason:
 
@@ -119,8 +126,9 @@ implementation beside the existing one, so it is SUPERSEDED, not merely absent.
 ## Why these branches were deleted
 
 Audit criterion: for each branch, count the paths it **added** relative to its
-merge-base and check each one with `git cat-file -e HEAD:<path>`. A branch that
-adds no path `HEAD` lacks has nothing left to contribute.
+merge-base and check each one with `git cat-file -e HEAD:<path>`. This old criterion is insufficient: changed existing paths can still contain unique work.
+Use the full change-set and semantic review above; current retirement also requires
+verified recovery and active-worktree protection.
 
 Ten `LEGACY_CODE_DONOR_REVIEW_AGAINST_R6_BEFORE_ANY_PORT` branches were reviewed:
 

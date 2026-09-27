@@ -1,3 +1,7 @@
+# HISTORICAL / SUPERSEDED execution snapshot (2026-09-27 clarification).
+# Original authority/required_current fields below describe the historical baseline only.
+# Active execution: docs/authority/taskpack-0919-r6/ and docs/current/R6-STATE.json
+# Priority: docs/current/M0-DIRECTION-OVERRIDE-20260920.md; preserve original capability history.
 schema_version: "2.0"
 graph_name: "ArcheAxis Knowledge — Task Graph"
 updated: "2026-09-01"
