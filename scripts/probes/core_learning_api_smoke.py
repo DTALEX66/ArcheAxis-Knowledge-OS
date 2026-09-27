@@ -48,8 +48,12 @@ BINARY = REPO / ".project-local" / "build" / "cargo" / "debug" / "archeaxis-api.
 ITEM_KEY = "learn-probe-1"
 EVENT_ID = "probe-event-0001"
 REVIEW_EVENT_ID = "probe-review-0001"
-ANSWER_TEXT = "the terminus retreated 930 metres"
-BODY = "The glacier terminus retreated 930 metres in a single melt season."
+# Deliberately NOT any value from r11_unseen_evaluation.py's held-out corpus:
+# tests/test_unseen_evaluation.py fails the suite when a tracked file other than that
+# probe quotes a held-out token, and this probe previously reused one of its glacier
+# measurements. Keep these unrelated to every rotation of that corpus.
+ANSWER_TEXT = "the lighthouse keeper logged 1284 steps"
+BODY = "The lighthouse keeper logged 1284 steps during the overnight watch."
 
 
 def start_core(db: Path, staging: Path) -> tuple[subprocess.Popen, str]:

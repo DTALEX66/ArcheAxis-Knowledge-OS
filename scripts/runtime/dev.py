@@ -86,6 +86,82 @@ def layout(root: Path, run_id: str | None = None) -> dict[str, Path]:
     return paths
 
 
+def _newest_child(directory: Path, required: Path) -> Path | None:
+    """Newest immediate child of ``directory`` that contains ``required``."""
+    if not directory.is_dir():
+        return None
+    candidates = [child for child in sorted(directory.iterdir()) if (child / required).exists()]
+    return candidates[-1] if candidates else None
+
+
+def external_toolchain() -> dict[str, str]:
+    """Environment for the registered external toolchain, discovered rather than guessed.
+
+    `ARCHEAXIS_MSVC_VCVARS` and `ARCHEAXIS_RUST_TOOLCHAINS` are what the tracked Rust
+    entry point `scripts/ci/cargo_test.bat` reads, and the OCR workers need tesseract
+    on `PATH` with a `TESSDATA_PREFIX` that exists. This host has all of them under the
+    registered external root, but nothing wired them together, so `cargo test` failed
+    with ``linker `link.exe` not found`` and an OCR worker failed with
+    ``AAK-WORKER-003`` even though every tool was installed. Discovery is deliberately
+    conditional: with no registered root, or with a path that does not exist, nothing
+    is set and CI is unaffected. A variable that is already set always wins, except
+    `PATH`, which is prepended to only when the directory is not already on it.
+    """
+    root_text = ""
+    for name in ("OS_EXTERNAL_CONFIG", "ARCHEAXIS_EXTERNAL_ROOT"):
+        root_text = os.environ.get(name, "").strip()
+        if root_text:
+            break
+    if not root_text:
+        return {}
+    root = Path(root_text)
+    discovered: dict[str, str] = {}
+
+    msvc = _newest_child(
+        root / "10-toolchains" / "msvc" / "VC" / "Tools" / "MSVC",
+        Path("bin") / "Hostx64" / "x64" / "link.exe",
+    )
+    if msvc is not None:
+        # msvc is <root>/VC/Tools/MSVC/<version>; vcvars64.bat lives under VC/.
+        vcvars = msvc.parents[2] / "Auxiliary" / "Build" / "vcvars64.bat"
+        if vcvars.is_file() and not Path(os.environ.get("ARCHEAXIS_MSVC_VCVARS", "")).is_file():
+            discovered["ARCHEAXIS_MSVC_VCVARS"] = str(vcvars)
+
+    rust = root / "toolchains" / "rust"
+    if (rust / "cargo" / "bin" / "cargo.exe").is_file() and not (
+        Path(os.environ.get("ARCHEAXIS_RUST_TOOLCHAINS", "")) / "cargo" / "bin" / "cargo.exe"
+    ).is_file():
+        discovered["ARCHEAXIS_RUST_TOOLCHAINS"] = str(rust)
+
+    tesseract = root / "10-toolchains" / "scoop" / "apps" / "tesseract" / "current"
+    existing_path = os.environ.get("PATH", "")
+    # The scoop shims on this host are stale - they point at a sibling `toolchains`
+    # tree that does not exist, so a shim is present but cannot start its target. The
+    # application trees themselves are intact, so expose those instead of the shims.
+    prepend: list[str] = []
+    if (tesseract / "tesseract.exe").is_file() and str(tesseract) not in existing_path:
+        prepend.append(str(tesseract))
+    ffmpeg_bin = root / "10-toolchains" / "scoop" / "apps" / "ffmpeg" / "current" / "bin"
+    if (ffmpeg_bin / "ffmpeg.exe").is_file() and str(ffmpeg_bin) not in existing_path:
+        prepend.append(str(ffmpeg_bin))
+    if prepend:
+        discovered["PATH"] = os.pathsep.join(
+            [*prepend, existing_path] if existing_path else prepend
+        )
+
+    tessdata = root / "10-toolchains" / "scoop" / "apps" / "tesseract-languages" / "current"
+    # An inherited TESSDATA_PREFIX is kept only when it actually exists: this host's
+    # shell profile points it at a sibling tree that is absent, and honouring that
+    # value is what produced the worker's AAK-WORKER-003. The emptiness check is
+    # explicit because ``Path("")`` is ``Path(".")``, which ``is_dir()`` reports as
+    # True - an unset variable must not read as a valid directory.
+    inherited_tessdata = os.environ.get("TESSDATA_PREFIX", "").strip()
+    if tessdata.is_dir() and not (inherited_tessdata and Path(inherited_tessdata).is_dir()):
+        discovered["TESSDATA_PREFIX"] = str(tessdata)
+
+    return discovered
+
+
 def environment(paths: dict[str, Path]) -> dict[str, str]:
     cache, build = paths["cache"], paths["build"]
     result = {
@@ -132,6 +208,9 @@ def environment(paths: dict[str, Path]) -> dict[str, str]:
             "NUGET_SCRATCH",
         ):
             safe_path(Path(value))
+    # Applied after the validation above: the registered external root is a real
+    # absolute path outside the checkout, and an already-set operator value wins.
+    result.update(external_toolchain())
     return result
 
 

@@ -3433,7 +3433,7 @@ schedule routes but explicitly did **not** post an answer, leaving `latest_revie
 | property | measured |
 | --- | --- |
 | answer posted | `record_answer_status: 201`; idempotent replay `200` |
-| answer read back | `answer_readback: "the terminus retreated 930 metres"`, `answer_matches: true` |
+| answer read back | `answer_matches: true` (the literal answer is a probe constant and is deliberately not restated here - `tests/test_unseen_evaluation.py` fails the suite when a tracked file other than `scripts/probes/r11_unseen_evaluation.py` quotes a held-out corpus token, and the first rotation of this probe's answer happened to collide with one) |
 | bound to the Assessment | `review_is_bound_to_assessment: true`, `learner_assessment_is_bound: true` |
 | bound to the knowledge version | `learner_knowledge_version_is_bound: true` |
 | schedule | `schedule_authority: "fsrs"`, `schedule_state_present: true` |
@@ -3570,3 +3570,52 @@ No product code changed in this slice.
 **Non-claims.** Driving every stage in one run is not a product qualification, and the two facts above are
 capabilities of the current Core, not endorsements. A15/A16 remain unsigned, release FROZEN, Local Green
 untouched, `local_green_updated=false`.
+
+### Two environment blockers fixed with zero downloads, Rust executed locally for the first time — 2026-09-27
+
+**Neither blocker was a missing tool.** Both were "the tool is registered in the external library and nothing
+points at it". This matters because the working instruction was to download missing tools into that library;
+no download was needed, and downloading would have duplicated what was already there.
+
+| blocker | root cause, measured | effect of wiring it |
+| --- | --- | --- |
+| Rust could not link (historical `LNK1181 kernel32.lib`; this session `error: linker \`link.exe\` not found`, exit 101) | `10-toolchains\msvc\VC\Tools\MSVC\14.44.35207` already held `link.exe`, `vcvars64.bat` and 76 x64 `.lib`; the Windows SDK `10.0.28000.0` on `C:` already held `x64\kernel32.Lib`; `scripts/ci/cargo_test.bat` already reads `ARCHEAXIS_MSVC_VCVARS` + `ARCHEAXIS_RUST_TOOLCHAINS`. Nothing set them | the whole Rust workspace compiles and runs |
+| OCR worker failed with `AAK-WORKER-003` | the **scoop shims are stale** - `10-toolchains\scoop\shims\tesseract.exe` targets `toolchains\scoop\apps\tesseract\current`, which does not exist (`Shim: Could not create process`); the inherited `TESSDATA_PREFIX` pointed at a sibling tree that is also absent, while `10-toolchains\scoop\apps\tesseract\current` and `...\tesseract-languages\current` are intact | OCR end-to-end test passes |
+
+**Rust, previously `NOT_EXECUTED`:**
+
+| target | result |
+| --- | --- |
+| `-p archeaxis-domain --test machine_loop_restart` | 1 passed / 0 failed |
+| `-p archeaxis-api --test f01_quality_roundtrip` | 5 passed / 0 failed - identical to the historical receipt |
+| `-p archeaxis-application --test ocr_job_end_to_end` | 1 failed before wiring, 1 passed after |
+| **entire workspace** (`cargo_test.bat test --workspace --offline --no-fail-fast`) | **87 test binaries, 240 passed, 0 failed, 0 ignored, exit 0** |
+
+**A calling convention worth writing down.** Plain `cargo test` makes `f01_quality_roundtrip` report
+`1 passed; 4 failed`; the failure text is the test's own guard, `run cargo via scripts/runtime/dev.py to select
+the exact Python`. The tracked entry point is required because it injects `ARCHEAXIS_PYTHON`. Reading that
+output as a product failure is wrong.
+
+**Durable fix.** `scripts/runtime/dev.py` gains `external_toolchain()`, which discovers all of the above from
+`OS_EXTERNAL_CONFIG` / `ARCHEAXIS_EXTERNAL_ROOT` and is additive by construction: with no registered root it
+returns `{}` (verified - CI is unaffected), a value that is already set **and valid** wins, a value that is set
+but does not exist is replaced (the stale `TESSDATA_PREFIX`), the MSVC version directory is discovered rather
+than hard-coded, and `PATH` is prepended only for directories not already on it. Seven closed-form regressions
+in `tests/runtime-paths/test_external_toolchain.py` pin those conditions against a fabricated root. Writing them
+caught a real bug in the first draft: `Path("")` is `Path(".")`, whose `is_dir()` is true, so an **unset**
+`TESSDATA_PREFIX` was treated as valid and discovery was skipped.
+
+**A regression I caused, caught by the suite.** Promoting the A08 probe earlier reused one of the
+measurements that `scripts/probes/r11_unseen_evaluation.py` holds out, so that value appeared in two tracked
+files (`scripts/probes/core_learning_api_smoke.py` and this ledger) and
+`tests/test_unseen_evaluation.py::test_the_corpus_is_still_unseen` failed - the very property that probe
+exists to protect, and the same failure mode recorded for round 96. Fixed by rotating this probe's own example
+to an unrelated value and redacting the ledger line; `r11`'s corpus was **not** touched, so its evidence stands.
+The unseen suite is green again. **The value is deliberately not restated even here**: the first attempt at this
+paragraph quoted it while explaining the incident and failed the same test a second time, which is the correct
+behaviour of that guard.
+
+**Final local state with the registered root exported.** Full canonical suite:
+**3413 passed, 14 skipped, 0 failed** (the earlier baseline of 3376 passed / 46 skipped was measured without the
+root, so previously-skipped OCR/media tests now run). Governance unchanged: A15/A16 unsigned, release FROZEN,
+`local_green_updated=false`.
