@@ -51,12 +51,18 @@
 
 | 内容 | 位置 |
 | --- | --- |
-| 差额表（A–H + M0 26 阶段逐项） | `docs/current/DSH-BACKEND-GAP-MAP-20260927.md` |
-| 第一轮证据索引 | `docs/current/DSH-BACKEND-EVIDENCE-20260927.json` |
-| 第二轮证据索引（含身份不一致实测更正） | `docs/current/DSH-BACKEND-EVIDENCE-R2-20260927.json` |
-| 面向 Codex 的合同 | `docs/current/DSH-BACKEND-CONTRACT-20260927.md` |
-| 原始运行回执 | `.project-local/dsh-evidence/`（**git-ignored**，仅本机可读） |
-| 第三/四轮审计提示词 | `docs/current/DSH-BACKEND-AUDIT-PROMPT-20260927.md`（主检出中为**未跟踪**，本任务未认领、未提交） |
+| 差额表（A–H + M0 26 阶段逐项） | `docs/current/DSH-BACKEND-GAP-MAP-20260927.md`（**在分支上**） |
+| 第一轮证据索引 | `docs/current/DSH-BACKEND-EVIDENCE-20260927.json`（在分支上） |
+| 第二轮证据索引（含身份不一致实测更正） | `docs/current/DSH-BACKEND-EVIDENCE-R2-20260927.json`（在分支上） |
+| 面向 Codex 的合同 | `docs/current/DSH-BACKEND-CONTRACT-20260927.md`（在分支上） |
+| 原始运行回执（日志、m0 回执、run env、wheel/安装资质） | `D:\All projects\ArcheAxis-Knowledge-OS\.project-local\worktrees\dsh-backend-20260927\.project-local\dsh-evidence\` |
+| 第三/四轮审计提示词 | `D:\All projects\ArcheAxis-Knowledge-OS\docs\current\DSH-BACKEND-AUDIT-PROMPT-20260927.md`（主检出中为**未跟踪**，本任务未认领、未提交） |
+
+> **路径精度说明（此前写得不够准，已更正）**：原始回执位于 **r4 worktree 自己的**
+> `.project-local/dsh-evidence/`，而 `.project-local/` 是 **git-ignored**，不在任何分支上；
+> 写成相对路径会让检出 r5 的审计者去错目录。因此这里给出绝对路径。
+> 审计者若只拿到分支，可复核的是分支内的索引与文档；原始回执需要 Owner 提供副本
+> 或在本机核对——这一点是本轮可审计性的真实边界，不是遗漏。
 
 ## 5. 本轮新增（`dsh/backend-r5`）
 
@@ -97,3 +103,36 @@ Codex 合同的本轮增量更新、Green 后端集成计划。
 
 Owner 原库未写；Green 未读写；`apps/**` 零改动；未 push 到 `main`；未删除 stash；
 未清理未知文件；四项 Owner Gate（A02 / P0-H01 / DP-F01 / DP-A11-Research）未被扩大。
+
+---
+
+## 9. 本分支对已冻结分支的更正（审计时必须知道）
+
+`dsh/backend-20260927` 冻结于 `7503195b`，而该提交上 **`scripts/check_language_boundaries.py` 失败（exit 1）**：
+
+```
+PROTOCOL_VERSION=1 but the envelope literals are [1, 2]
+crates/archeaxis-application/src/scheduler.rs->profile/v2
+```
+
+根因是我第三轮新增的 Rust 测试字面量 `"archeaxis.worker-profile/v2"`：该门禁扫描源码中的
+`<name>/v<digit>` 协议版本字面量，它被读成同一语言内的第二个 envelope 版本。第三轮加完
+scheduler 测试后我只跑了 ruff 与 repository conventions，**没有重跑语言边界门禁**，因此漏掉。
+这也意味着第三、四轮报告中"language boundaries 通过"的说法对当时的工作树**不成立**——它来自
+更早一次运行。
+
+本分支（`dsh/backend-r5`）把该字面量改为非版本形态的 `"archeaxis.worker-profile/unsupported"`，
+保持同一测试意图（错误 schema 必须具名拒绝）。修复后在本分支上实测：
+
+| 门禁 | 结果 |
+| --- | --- |
+| `scripts/check_language_boundaries.py` | `language boundary check passed …` exit 0 |
+| `scripts/check_architecture.py` | `architecture guard passed` |
+| `scripts/check_repository_conventions.py --source worktree` | `passed (worktree)` |
+| `ruff --select E9,F63,F7,F82` | `All checks passed!` |
+| `cargo fmt --all -- --check` | exit 0 |
+| `cargo test -p archeaxis-application --lib` | 6 passed / 0 failed（含该用例） |
+| `tests/runtime-paths/` | 47 passed / 9 subtests |
+
+冻结分支 `dsh/backend-20260927` **未回改**（保持"已交付即不再改动"），因此它上面的该门禁仍为
+失败。是否把这一行修复回植到冻结分支，请 Owner 决定。

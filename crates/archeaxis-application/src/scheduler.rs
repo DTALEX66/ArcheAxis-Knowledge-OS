@@ -218,8 +218,12 @@ mod tests {
     fn wrong_schema_missing_interpreter_and_broken_json_each_name_their_reason() {
         let python = existing_file();
         let cases = [
+            // Not a version-shaped literal: `scripts/check_language_boundaries.py`
+            // scans source text for `<name>/v<digit>` envelope versions, so writing
+            // `worker-profile/v2` here read as a second version of the same envelope
+            // inside one language and failed a real repository gate.
             (
-                profile(&python, "archeaxis.worker-profile/v2"),
+                profile(&python, "archeaxis.worker-profile/unsupported"),
                 "schema is not",
             ),
             (
