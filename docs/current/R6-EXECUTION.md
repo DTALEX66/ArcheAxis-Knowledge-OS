@@ -3653,8 +3653,10 @@ attached to its exact command and scope, and re-running costs four minutes.
 #### A green CI on a docs-only commit ran three gates
 
 `d570a986` is green on `main` (run `36292766608`) and on the branch (run `36292762956`) — but only `gateplan`,
-`lint` and `a0-gates` actually executed; **fourteen gates were skipped**, including `rust-vnext`, `test`,
-`wheel-smoke`, `desktop-build` and `installer-lifecycle`. The green is legitimate: `a0-gates` step
+`lint` and `a0-gates` actually executed; **sixteen gates were skipped**, including `rust-vnext`, `test`,
+`wheel-smoke`, `desktop-build` and `installer-lifecycle`. Writing this paragraph is what caught the error in its
+first draft, which said fourteen: the number is only trustworthy because the job list was read back per gate rather
+than counted from a summary line. The green is legitimate: `a0-gates` step
 `Validate required gates against GatePlan (ci-verdict)` passed, which is the check that a skip is *allowed* for a
 docs-only change. It is nevertheless **not** evidence that this commit's code was verified, because there is no
 code in it. Reading "main is green" as "CI verified the implementation" is exactly the substitution this project

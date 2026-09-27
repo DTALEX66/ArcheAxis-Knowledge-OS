@@ -483,7 +483,9 @@ A02 / P0-H01 / F01 D1–D5 / Research DTO 四项 **Owner 决策不变**；真实
 | 提交 | run（main / 分支） | 结论 | 实际执行的 gate |
 | --- | --- | --- | --- |
 | `95f6638a`（阻塞修复 + 代码/测试改动） | `36292355530` / `36292101536` | success | 代码相关 gate（含 `rust-vnext`、`wheel-smoke`、`workers-vnext` 等） |
-| `d570a986`（仅本报告，doc-only） | `36292766608` / `36292762956` | success | **仅 `gateplan`、`lint`、`a0-gates`**；其余 **14 个 gate 全部 skipped**（`rust-vnext`、`test`、`wheel-smoke`、`desktop-build`、`installer-lifecycle` …） |
+| `d570a986`（仅本报告，doc-only） | `36292766608` / `36292762956` | success | **仅 `gateplan`、`lint`、`a0-gates`**；其余 **16 个 gate 全部 skipped**（`desktop-vnext`、`migration-targeted`、`security-targeted`、`green-candidate-vnext`、`desktop-build`、`browser-smoke`、`contracts-vnext`、`windows-runtime-smoke`、`format-targeted`、`workers-vnext`、`test`、`wheel-smoke`、`py-compat`、`rust-vnext`、`installer-lifecycle`、`desktop-fast`） |
+
+（本报告定稿后的 doc-only 修正提交读回同上：两个 run 均 success，执行的仍是 `gateplan`/`lint`/`a0-gates`，skipped 仍为 16。）
 
 即：`d570a986` 的绿色是 **GatePlan 判定"doc-only ⇒ 允许跳过"** 的结果（`a0-gates` 的 `Validate required gates against GatePlan (ci-verdict)` 步骤成功），**不是**该提交的代码被 CI 验证过。本节的实现性结论仍以 §11.4 的**本机 exact-SHA** 运行为准。
 
