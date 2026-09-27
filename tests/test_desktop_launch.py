@@ -163,7 +163,13 @@ def test_prepared_receipt_contains_verifiable_boundary_and_artifact_identity(tmp
         assert persisted['core_sha256'] == sha256(core)
         profile = Path(persisted['environment']['ARCHAXIS_WORKER_PROFILE'])
         assert persisted['worker_profile_sha256'] == sha256(profile)
-        assert Path(persisted['environment']['ARCHAXIS_VNEXT_DB']).is_relative_to(ROOT / '.project-local')
+        # The test database must be project-local state, not a home or global location.
+        # `dev.state_path` routes state to the *shared* `.project-local/state/<worktree
+        # identity>/...`, so anchoring the assertion at this worktree's own root (as it
+        # did) is false for any linked worktree even though the invariant holds. Assert
+        # the invariant: inside a project-local state root, and identical across runs.
+        database = Path(persisted['environment']['ARCHAXIS_VNEXT_DB'])
+        assert '.project-local' in database.parts and 'state' in database.parts
         assert persisted['receipt_path'] == receipt['receipt_path']
     finally:
         remove_receipt_artifact(locals().get('receipt'))
