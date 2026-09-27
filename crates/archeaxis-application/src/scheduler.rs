@@ -17,6 +17,116 @@ use std::time::{Duration, Instant};
 const MAX_REQUEST_BYTES: usize = 65_536;
 const MAX_RESPONSE_BYTES: usize = 65_536;
 const MAX_STDERR_BYTES: usize = 32_768;
+const MAX_PROFILE_BYTES: usize = 16_384;
+
+#[derive(serde::Deserialize)]
+#[serde(deny_unknown_fields)]
+struct WorkerProfile {
+    schema: String,
+    python: String,
+    script: String,
+    staging: String,
+}
+
+/// Match the formal desktop profile boundary before doing any filesystem IO.
+fn profile_path(
+    directory: &std::path::Path,
+    value: &std::path::Path,
+) -> Result<PathBuf, SchedulerError> {
+    fn lexical(path: &std::path::Path) -> Result<(), SchedulerError> {
+        let spelling = path.to_string_lossy().replace('\\', "/").to_lowercase();
+        let private = [
+            ".git",
+            ".codex",
+            ".dsh",
+            ".zcode",
+            ".hermes",
+            ".openhuman",
+            ".claude",
+            ".agents",
+            ".agent",
+            ".cursor",
+            ".continue",
+            ".aider",
+            ".gemini",
+            ".opencode",
+            ".openhands",
+            ".cline",
+            ".roo",
+            ".kilocode",
+            ".windsurf",
+            ".copilot",
+            ".ssh",
+            ".aws",
+            ".azure",
+            ".gnupg",
+            "agent-private",
+            "private-agent-state",
+            "sessions",
+            "memories",
+            "keychain",
+            "credentials",
+            "auth",
+            "browser-data",
+            ".npmrc",
+            ".pypirc",
+            ".netrc",
+        ];
+        if spelling.trim().is_empty()
+            || spelling.starts_with("e:")
+            || spelling.starts_with("//")
+            || spelling
+                .split('/')
+                .any(|part| part == ".." || part.starts_with(".env") || private.contains(&part))
+            || format!("/{spelling}/").contains("/.project-local/agents/")
+        {
+            return Err(SchedulerError::Unavailable(
+                "unsafe or protected worker profile path".into(),
+            ));
+        }
+        Ok(())
+    }
+    lexical(value)?;
+    let resolved = if value.is_absolute() {
+        value.to_path_buf()
+    } else {
+        directory.join(value)
+    };
+    let resolved = if resolved.is_absolute() {
+        resolved
+    } else {
+        std::env::current_dir()
+            .map_err(|_| SchedulerError::Unavailable("profile base is unavailable".into()))?
+            .join(resolved)
+    };
+    lexical(&resolved)?;
+    let ancestors: Vec<_> = resolved.ancestors().collect();
+    for ancestor in ancestors.into_iter().rev() {
+        match std::fs::symlink_metadata(ancestor) {
+            Ok(metadata) => {
+                #[cfg(windows)]
+                let linked = {
+                    use std::os::windows::fs::MetadataExt;
+                    metadata.file_attributes() & 0x400 != 0
+                };
+                #[cfg(not(windows))]
+                let linked = metadata.file_type().is_symlink();
+                if linked {
+                    return Err(SchedulerError::Unavailable(
+                        "linked worker profile path".into(),
+                    ));
+                }
+            }
+            Err(error) if error.kind() == std::io::ErrorKind::NotFound => {}
+            Err(_) => {
+                return Err(SchedulerError::Unavailable(
+                    "worker profile path cannot be inspected".into(),
+                ));
+            }
+        }
+    }
+    Ok(resolved)
+}
 
 struct OwnedSchedulerChild(Child);
 impl OwnedSchedulerChild {
@@ -74,35 +184,42 @@ pub fn python_from_profile_text(
     text: &str,
     profile: &std::path::Path,
 ) -> Result<PathBuf, SchedulerError> {
-    let document: serde_json::Value = serde_json::from_str(text).map_err(|error| {
+    if text.len() > MAX_PROFILE_BYTES {
+        return Err(SchedulerError::Unavailable(
+            "worker profile exceeds limit".into(),
+        ));
+    }
+    // Serde structs also accept positional arrays; the profile contract does not.
+    if !text.trim_start().starts_with('{') {
+        return Err(SchedulerError::Unavailable(
+            "worker profile is not valid JSON object".into(),
+        ));
+    }
+    let document: WorkerProfile = serde_json::from_str(text).map_err(|error| {
         SchedulerError::Unavailable(format!("worker profile is not valid JSON: {error}"))
     })?;
-    if document.get("schema").and_then(|value| value.as_str()) != Some(WORKER_PROFILE_SCHEMA) {
+    if document.schema != WORKER_PROFILE_SCHEMA {
         return Err(SchedulerError::Unavailable(format!(
             "worker profile schema is not {WORKER_PROFILE_SCHEMA}"
         )));
     }
-    let raw = document
-        .get("python")
-        .and_then(|value| value.as_str())
-        .filter(|value| !value.trim().is_empty())
-        .ok_or_else(|| {
-            SchedulerError::Unavailable("worker profile has no python interpreter".into())
-        })?;
-    let path = PathBuf::from(raw);
-    let resolved = if path.is_absolute() {
-        path
-    } else {
-        profile
-            .parent()
-            .unwrap_or_else(|| std::path::Path::new("."))
-            .join(path)
-    };
+    let profile = profile_path(std::path::Path::new("."), profile)?;
+    let directory = profile
+        .parent()
+        .unwrap_or_else(|| std::path::Path::new("."));
+    let resolved = profile_path(directory, std::path::Path::new(&document.python))?;
+    let script = profile_path(directory, std::path::Path::new(&document.script))?;
+    profile_path(directory, std::path::Path::new(&document.staging))?;
     if !resolved.is_file() {
         return Err(SchedulerError::Unavailable(format!(
             "worker profile python is not a file: {}",
             resolved.display()
         )));
+    }
+    if !script.is_file() {
+        return Err(SchedulerError::Unavailable(
+            "worker profile script is not a file".into(),
+        ));
     }
     Ok(resolved)
 }
@@ -114,8 +231,26 @@ pub fn python_from_profile_text(
 /// running executable. Neither the profile nor the variable is allowed to point at a
 /// missing file silently.
 fn resolve_python() -> Result<PathBuf, SchedulerError> {
-    if let Some(value) = std::env::var_os("ARCHEAXIS_PYTHON") {
-        let configured = PathBuf::from(value);
+    let explicit = std::env::var_os("ARCHEAXIS_PYTHON").map(PathBuf::from);
+    let primary = std::env::var_os("ARCHEAXIS_WORKER_PROFILE").map(PathBuf::from);
+    let legacy = std::env::var_os("ARCHAXIS_WORKER_PROFILE").map(PathBuf::from);
+    let executable = std::env::current_exe().ok();
+    resolve_python_config(
+        explicit.as_deref(),
+        primary.as_deref(),
+        legacy.as_deref(),
+        executable.as_deref(),
+    )
+}
+
+fn resolve_python_config(
+    explicit: Option<&std::path::Path>,
+    primary: Option<&std::path::Path>,
+    legacy: Option<&std::path::Path>,
+    executable: Option<&std::path::Path>,
+) -> Result<PathBuf, SchedulerError> {
+    if let Some(value) = explicit {
+        let configured = profile_path(std::path::Path::new("."), value)?;
         if !configured.is_file() {
             return Err(SchedulerError::Unavailable(format!(
                 "ARCHEAXIS_PYTHON is not a file: {}",
@@ -124,42 +259,25 @@ fn resolve_python() -> Result<PathBuf, SchedulerError> {
         }
         return Ok(configured);
     }
-    let mut candidates: Vec<PathBuf> = Vec::new();
-    for name in ["ARCHEAXIS_WORKER_PROFILE", "ARCHAXIS_WORKER_PROFILE"] {
-        if let Some(value) = std::env::var_os(name) {
-            candidates.push(PathBuf::from(value));
-        }
-    }
-    if let Ok(executable) = std::env::current_exe() {
-        if let Some(directory) = executable.parent() {
-            candidates.push(directory.join(WORKER_PROFILE_NAME));
-        }
-    }
-    let mut reasons: Vec<String> = Vec::new();
-    for candidate in candidates {
-        if !candidate.is_file() {
-            reasons.push(format!("{} is not a file", candidate.display()));
-            continue;
-        }
-        match std::fs::read_to_string(&candidate) {
-            Ok(text) => match python_from_profile_text(&text, &candidate) {
-                Ok(python) => return Ok(python),
-                Err(SchedulerError::Unavailable(reason)) => {
-                    reasons.push(format!("{}: {reason}", candidate.display()));
-                }
-                Err(other) => return Err(other),
-            },
-            Err(error) => reasons.push(format!("{}: {error}", candidate.display())),
-        }
-    }
-    if reasons.is_empty() {
-        reasons.push("no worker profile was found".into());
-    }
-    Err(SchedulerError::Unavailable(format!(
-        "no scheduler interpreter: set ARCHEAXIS_PYTHON or publish {WORKER_PROFILE_NAME} \
-         ({})",
-        reasons.join("; ")
-    )))
+    // An explicit bad profile is authoritative: never silently use another profile.
+    let candidate = primary
+        .or(legacy)
+        .map(PathBuf::from)
+        .or_else(|| {
+            executable
+                .and_then(|path| path.parent())
+                .map(|path| path.join(WORKER_PROFILE_NAME))
+        })
+        .ok_or_else(|| SchedulerError::Unavailable("no worker profile was found".into()))?;
+    let candidate = profile_path(std::path::Path::new("."), &candidate)?;
+    let file = std::fs::File::open(&candidate).map_err(|_| {
+        SchedulerError::Unavailable("configured worker profile is missing or unreadable".into())
+    })?;
+    let bytes = bounded_read(file, MAX_PROFILE_BYTES, "worker profile")
+        .map_err(SchedulerError::Unavailable)?;
+    let text = std::str::from_utf8(&bytes)
+        .map_err(|_| SchedulerError::Unavailable("worker profile is not valid UTF-8".into()))?;
+    python_from_profile_text(text, &candidate)
 }
 
 #[cfg(test)]
@@ -179,11 +297,70 @@ mod tests {
             .into_owned()
     }
 
+    fn profile_location() -> std::path::PathBuf {
+        std::env::current_exe()
+            .unwrap()
+            .parent()
+            .unwrap()
+            .join("worker-profile.json")
+    }
+
     fn profile(python: &str, schema: &str) -> String {
         format!(
-            r#"{{"schema":"{schema}","python":{},"script":"workers/transport/text_ndjson.py","staging":"data/worker-staging"}}"#,
-            serde_json::Value::String(python.to_string())
+            r#"{{"schema":"{schema}","python":{},"script":{},"staging":"data/worker-staging"}}"#,
+            serde_json::Value::String(python.to_string()),
+            serde_json::Value::String(existing_file())
         )
+    }
+
+    #[test]
+    fn profile_requires_an_object_root() {
+        let sequence = serde_json::json!([
+            WORKER_PROFILE_SCHEMA,
+            existing_file(),
+            existing_file(),
+            "data/staging"
+        ]);
+        assert!(python_from_profile_text(&sequence.to_string(), &profile_location()).is_err());
+    }
+
+    #[test]
+    fn profile_rejects_duplicate_unknown_missing_and_oversized_fields() {
+        let valid = profile(&existing_file(), WORKER_PROFILE_SCHEMA);
+        let mut missing: serde_json::Value = serde_json::from_str(&valid).unwrap();
+        missing.as_object_mut().unwrap().remove("script");
+        let cases = [
+            valid.replacen("{", "{\"python\":\"ignored\",", 1),
+            valid.replacen("{", "{\"extra\":\"ignored\",", 1),
+            missing.to_string(),
+            format!("{}{}", valid, " ".repeat(16_384)),
+        ];
+        for text in cases {
+            assert!(python_from_profile_text(&text, &profile_location()).is_err());
+        }
+    }
+
+    #[test]
+    fn profile_rejects_unsafe_paths_in_every_field() {
+        for field in ["python", "script", "staging"] {
+            for value in [
+                r"E:\protected",
+                r"\\server\share",
+                "../escape",
+                ".codex/file",
+                ".env.local",
+                ".project-local/agents/task",
+            ] {
+                let mut text: serde_json::Value =
+                    serde_json::from_str(&profile(&existing_file(), WORKER_PROFILE_SCHEMA))
+                        .unwrap();
+                text[field] = serde_json::Value::String(value.into());
+                assert!(
+                    python_from_profile_text(&text.to_string(), &profile_location()).is_err(),
+                    "{field}: {value}"
+                );
+            }
+        }
     }
 
     #[test]
@@ -191,7 +368,7 @@ mod tests {
         let python = existing_file();
         let resolved = python_from_profile_text(
             &profile(&python, WORKER_PROFILE_SCHEMA),
-            Path::new(r"C:\candidate\worker-profile.json"),
+            &profile_location(),
         )
         .unwrap();
         assert_eq!(resolved, Path::new(&python));
@@ -202,14 +379,21 @@ mod tests {
         // A staged runtime keeps `runtime/python.exe` relative so the candidate stays
         // relocatable; the resolved path must be what the caller sees in the error.
         let error = python_from_profile_text(
-            &profile(r"runtime\python.exe", WORKER_PROFILE_SCHEMA),
-            Path::new(r"C:\candidate\worker-profile.json"),
+            &profile("runtime/python.exe", WORKER_PROFILE_SCHEMA),
+            &profile_location(),
         )
         .unwrap_err();
         let message = error.to_string();
         assert!(message.contains("is not a file"), "{message}");
         assert!(
-            message.contains(r"C:\candidate\runtime\python.exe"),
+            message.contains(
+                &profile_location()
+                    .parent()
+                    .unwrap()
+                    .join("runtime/python.exe")
+                    .display()
+                    .to_string()
+            ),
             "{message}"
         );
     }
@@ -228,23 +412,116 @@ mod tests {
             ),
             (
                 r#"{"schema":"archeaxis.worker-profile/v1"}"#.to_string(),
-                "no python interpreter",
+                "missing field",
             ),
-            (
-                r#"{"schema":"archeaxis.worker-profile/v1","python":"  "}"#.to_string(),
-                "no python interpreter",
-            ),
+            (profile("  ", WORKER_PROFILE_SCHEMA), "unsafe or protected"),
             ("not json".to_string(), "not valid JSON"),
         ];
         for (text, expected) in cases {
-            let error =
-                python_from_profile_text(&text, Path::new(r"C:\candidate\worker-profile.json"))
-                    .unwrap_err();
+            let error = python_from_profile_text(&text, &profile_location()).unwrap_err();
             assert!(
                 error.to_string().contains(expected),
                 "expected {expected:?} in {error}"
             );
         }
+    }
+
+    #[test]
+    fn relative_profile_paths_accept_a_relocated_runtime() {
+        let directory =
+            tempfile::tempdir_in(std::env::current_exe().unwrap().parent().unwrap()).unwrap();
+        std::fs::write(directory.path().join("python.exe"), b"fixture").unwrap();
+        std::fs::write(directory.path().join("worker.py"), b"fixture").unwrap();
+        let text = serde_json::json!({"schema": WORKER_PROFILE_SCHEMA, "python": "python.exe", "script": "worker.py", "staging": "data/staging"});
+        assert_eq!(
+            python_from_profile_text(&text.to_string(), &directory.path().join("profile.json"))
+                .unwrap(),
+            directory.path().join("python.exe")
+        );
+    }
+
+    #[test]
+    fn explicit_bad_profile_never_falls_back_to_a_valid_profile() {
+        let directory =
+            tempfile::tempdir_in(std::env::current_exe().unwrap().parent().unwrap()).unwrap();
+        let valid = directory.path().join("valid.json");
+        std::fs::write(&valid, profile(&existing_file(), WORKER_PROFILE_SCHEMA)).unwrap();
+        let missing = directory.path().join("missing.json");
+        assert!(super::resolve_python_config(None, Some(&missing), Some(&valid), None).is_err());
+        std::fs::write(&missing, "invalid").unwrap();
+        assert!(super::resolve_python_config(None, Some(&missing), Some(&valid), None).is_err());
+        assert_eq!(
+            super::resolve_python_config(None, None, Some(&valid), None).unwrap(),
+            Path::new(&existing_file())
+        );
+        assert_eq!(
+            super::resolve_python_config(
+                Some(Path::new(&existing_file())),
+                Some(&missing),
+                None,
+                None
+            )
+            .unwrap(),
+            Path::new(&existing_file())
+        );
+    }
+
+    #[test]
+    fn profile_load_rejects_oversized_files_and_missing_scripts() {
+        let directory =
+            tempfile::tempdir_in(std::env::current_exe().unwrap().parent().unwrap()).unwrap();
+        let path = directory.path().join("profile.json");
+        std::fs::write(
+            &path,
+            format!(
+                "{}{}",
+                profile(&existing_file(), WORKER_PROFILE_SCHEMA),
+                " ".repeat(16_384)
+            ),
+        )
+        .unwrap();
+        assert!(super::resolve_python_config(None, Some(&path), None, None).is_err());
+        let mut text: serde_json::Value =
+            serde_json::from_str(&profile(&existing_file(), WORKER_PROFILE_SCHEMA)).unwrap();
+        text["script"] = "missing-script.py".into();
+        assert!(
+            python_from_profile_text(&text.to_string(), &path)
+                .unwrap_err()
+                .to_string()
+                .contains("script is not a file")
+        );
+        assert!(
+            python_from_profile_text(
+                &profile(&existing_file(), WORKER_PROFILE_SCHEMA),
+                &directory.path().join(".codex/profile.json")
+            )
+            .is_err()
+        );
+    }
+
+    #[test]
+    fn profile_rejects_a_linked_ancestor() {
+        let directory =
+            tempfile::tempdir_in(std::env::current_exe().unwrap().parent().unwrap()).unwrap();
+        let target = directory.path().join("target");
+        let link = directory.path().join("link");
+        std::fs::create_dir(&target).unwrap();
+        #[cfg(windows)]
+        assert!(
+            std::process::Command::new("cmd")
+                .args(["/C", "mklink", "/J"])
+                .arg(&link)
+                .arg(&target)
+                .output()
+                .unwrap()
+                .status
+                .success()
+        );
+        #[cfg(unix)]
+        std::os::unix::fs::symlink(&target, &link).unwrap();
+        assert!(super::profile_path(directory.path(), &link.join("not-created-yet")).is_err());
+        #[cfg(windows)]
+        std::fs::remove_dir(&link).unwrap();
     }
 
     #[test]
@@ -393,6 +670,8 @@ impl SchedulerClient {
         }
         let mut command = Command::new(&self.python);
         command
+            .env_remove("PYTHONPATH")
+            .env_remove("PYTHONHOME")
             .arg("-B")
             .arg(&self.worker)
             .stdin(Stdio::piped())

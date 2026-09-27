@@ -1,5 +1,14 @@
 # 防漂移治理方案对齐报告（方案 ↔ 权威基座）
 
+> 2026-09-27 合并校正：下文是治理分支在 `43c2cafa` 主线上的历史源码审计，
+> 不是整合后实时状态。纳入 `dsh/backend-r5` 后，vNext journey receipt 已要求
+> `schema_version = 3`，并绑定 dirty/patch identity；旧 v2 应被拒绝。
+> task-receipt/v1 与 release identity 仍是独立 schema。CI 的 rust-vnext lane
+> 已执行根 workspace `cargo fmt --all -- --check`。下文 §3.1、§7、§8 中
+> “只接受 v2 / 根 fmt 无 gate”仅适用于原测量基线，不再作为当前实施建议。
+> 原报告的授权判断只描述其原任务；本轮 Owner 已明确授权后端整合修复，
+> 不据此创建新的 Authority、发布或改动前端。
+
 - 状态词：`STRUCTURAL`
 - 日期：2026-09-27
 - 对象：Owner 提供的《防漂移治理执行方案（Executive Summary）》（`Authority→CURRENT→Task Envelope→Machine Gate→Receipt`）

@@ -8,10 +8,12 @@ workspace and finally runs the legacy migration, so the ordering and the shared
 identity are what is being tested:
 
     source -> transform -> anchored Knowledge -> human acceptance -> V3 readback
-    -> learning reference -> Assessment -> real answer -> FSRS schedule
+    -> learning reference -> Assessment -> fixture answer -> FSRS schedule
     -> machine task failure -> human correction -> retest of the original failure
     -> restart readback -> online backup / restore -> legacy migration (copy)
 
+This is SYNTHETIC protocol evidence: the source, human actions and model failure
+are fixtures. It never qualifies real human learning or actual model inference.
 It measures; it signs nothing. A stage that returns an unexpected status is recorded
 with its status and body and the run stops there, so a partial run is a partial
 receipt rather than a pass.
@@ -106,6 +108,7 @@ def _migrator():
 
 core = _load("core_client_m0", REPO / "shared" / "core_client.py")
 runtime = _load("runtime_m0", REPO / "scripts" / "runtime" / "dev.py")
+launcher = _load("launcher_m0", REPO / "scripts/release/backend_launcher.py")
 
 
 def worker_profile() -> dict | None:
@@ -119,20 +122,10 @@ def worker_profile() -> dict | None:
         if not raw:
             continue
         path = Path(raw)
-        if not path.is_file():
-            raise SystemExit(f"worker profile is not a file: {path}")
-        document = json.loads(path.read_text(encoding="utf-8"))
-        if document.get("schema") != "archeaxis.worker-profile/v1":
-            raise SystemExit(f"worker profile schema is not v1: {path}")
-        base = path.parent
-        resolved = {}
-        for key in ("python", "script", "staging"):
-            value = document.get(key)
-            if not isinstance(value, str) or not value.strip():
-                raise SystemExit(f"worker profile has no {key}: {path}")
-            candidate = Path(value)
-            resolved[key] = (candidate if candidate.is_absolute() else base / candidate)
-        return resolved
+        try:
+            return launcher.load_profile(path.parent, path.name)
+        except (OSError, ValueError, RuntimeError) as error:
+            raise SystemExit(f"invalid worker profile: {error}") from error
     return None
 
 
@@ -157,36 +150,24 @@ def start_core(db: Path, staging: Path) -> tuple[subprocess.Popen, str]:
         stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
         text=True, encoding="utf-8",
     )
-    child.stdin.write(json.dumps({**LAUNCH, "text_worker": worker}) + "\n")
-    child.stdin.flush()
-    child.stdin.close()
-    import time
-
-    deadline = time.time() + 25
-    line = ""
-    while time.time() < deadline:
-        line = child.stdout.readline()
-        if "127.0.0.1:" in line:
-            break
-    if "127.0.0.1:" not in line:
-        child.kill()
-        err = ""
-        with contextlib.suppress(Exception):
-            err = child.stderr.read()
-        raise SystemExit(f"core not ready: stdout={line[:120]!r} stderr={err[:300]!r}")
-    return child, f"http://127.0.0.1:{line.split('127.0.0.1:', 1)[1].split()[0].strip()}"
+    try:
+        child.stdin.write(json.dumps({**LAUNCH, "text_worker": worker}) + "\n")
+        child.stdin.flush()
+        child.stdin.close()
+        return child, launcher.wait_for_readiness(child, 0, 25)
+    except BaseException:
+        launcher.stop(child)
+        raise
 
 
 def stop_core(child: subprocess.Popen) -> None:
-    with contextlib.suppress(Exception):
-        child.kill()
-        child.wait()
+    launcher.stop(child)
 
 
 def maintenance(action: str, db: Path, artifact: Path) -> tuple[int, dict]:
     result = subprocess.run(
         [str(BINARY), f"--maintenance-{action}", str(db), str(artifact)],
-        capture_output=True, text=True, encoding="utf-8", cwd=REPO,
+        capture_output=True, text=True, encoding="utf-8", cwd=REPO, timeout=120,
     )
     payload: dict = {}
     lines = (result.stdout or "").strip().splitlines()
@@ -254,6 +235,77 @@ def source_identity() -> dict:
     }
 
 
+def verdict_errors(receipt: dict) -> list[str]:
+    """Fail closed on every measured leg of this synthetic protocol journey."""
+    stages = receipt.get("stages", [])
+    by = {s.get("stage"): s for s in stages}
+    errors = []
+    if receipt.get("failed_stage") or len(by) != len(stages):
+        errors.append("failed or duplicate stage")
+    required_http = (
+        "import_source", "enqueue", "execute", "transform_readback",
+        "promote_anchored_knowledge", "knowledge_v3_readback", "search", "human_accept",
+        "knowledge_v3_after_accept", "learning_reference", "learning_event",
+        "learning_event_replay", "assessment", "answer_recorded", "learning_state",
+        "machine_task_failed", "human_correction", "accept_successor", "machine_retest",
+        "machine_readback", "pre_restart_learning_state", "restart_learning_state", "restart_knowledge_v3",
+    )
+    for name in required_http:
+        if by.get(name, {}).get("status") not in (200, 201, 202):
+            errors.append(f"{name}: missing or failed HTTP stage")
+    def field(name, key):
+        return by.get(name, {}).get(key)
+
+    def require(condition, reason):
+        if not condition:
+            errors.append(reason)
+
+    knowledge = field("promote_anchored_knowledge", "knowledge_id")
+    anchor = field("promote_anchored_knowledge", "anchor_id")
+    successor = field("human_correction", "successor_id")
+    failed_task = field("machine_task_failed", "task_id")
+    require(bool(field("import_source", "source_id")), "source identity missing")
+    require(field("job_settled", "state") == "succeeded", "job did not succeed")
+    require(bool(field("transform_readback", "transform_id")), "transform identity missing")
+    require(bool(knowledge and anchor), "knowledge or anchor identity missing")
+    require(field("search", "source_found") is True, "search did not find this source")
+    require(field("knowledge_v3_after_accept", "status_value") == "accepted", "knowledge not accepted")
+    require(field("learning_event_replay", "duplicate") is True, "event replay not deduplicated")
+    require(bool(field("assessment", "assessment_id"))
+            and field("assessment", "knowledge_version") == knowledge, "assessment identity mismatch")
+    require(field("answer_recorded", "schedule_authority") == "fsrs"
+            and bool(field("answer_recorded", "next_review")), "answer has no FSRS schedule")
+    for name in ("learning_state", "restart_learning_state"):
+        require(field(name, "answer") == ANSWER and bool(field(name, "next_review")),
+                f"{name}: answer or schedule missing")
+    require(bool(field("pre_restart_learning_state", "state"))
+            and field("pre_restart_learning_state", "state") == field("restart_learning_state", "state"),
+            "restart learning state changed")
+    require(field("learning_state", "next_review") == field("restart_learning_state", "next_review"),
+            "restart schedule changed")
+    for name in ("knowledge_v3_readback", "restart_knowledge_v3"):
+        require(bool(knowledge and anchor) and field(name, "knowledge_id") == knowledge
+                and field(name, "anchor_id") == anchor, f"{name}: knowledge identity changed")
+    require(bool(successor) and successor != knowledge, "correction has no successor")
+    for name in ("machine_retest", "machine_readback"):
+        require(bool(failed_task and successor) and field(name, "retest_of") == failed_task
+                and field(name, "knowledge_version") == successor,
+                f"{name}: correction/retest identity mismatch")
+    require(bool(field("machine_retest", "task_id"))
+            and field("machine_retest", "task_id") == field("machine_readback", "task_id"),
+            "machine task identity changed")
+    require(field("online_backup", "exit_code") == 0, "backup failed")
+    before = field("online_restore", "counts_before")
+    require(field("online_restore", "exit_code") == 0
+            and field("online_restore", "verified") is True and bool(before)
+            and before == field("online_restore", "counts_after")
+            and before != field("online_restore", "counts_mutated"), "restore not demonstrated")
+    require(field("legacy_migration", "status") == "ok"
+            and field("legacy_migration", "original_untouched") is True,
+            "legacy migration not verified")
+    return errors
+
+
 def main() -> int:
     with contextlib.suppress(Exception):
         sys.stdout.reconfigure(encoding="utf-8")
@@ -272,11 +324,12 @@ def main() -> int:
         }, ensure_ascii=False, indent=2))
         return 2
 
-    work = REPO / ".project-local" / "m0loop" / uuid.uuid4().hex[:8]
+    work = runtime.layout(REPO)["run"] / "artifacts" / "m0loop"
     work.mkdir(parents=True, exist_ok=True)
     db = work / "workspace.sqlite"
     staging = work / "worker-staging"
     receipt: dict = {"ok": False, "workdir": str(work), "stages": [],
+                     "evidence_level": "SYNTHETIC", "real_m0_verified": False,
                      "core_binary": binary_identity(BINARY),
                      "source": source_identity(),
                      "interpreter": sys.executable}
@@ -362,10 +415,15 @@ def main() -> int:
             raise SystemExit
 
         status, v3 = core.call(base, "GET", f"/api/v1/knowledge-items/{knowledge_id}/v3", TOKEN)
-        stage("knowledge_v3_readback", status=status, v3=v3)
+        stage("knowledge_v3_readback", status=status, v3=v3,
+              knowledge_id=v3.get("knowledge_id") if isinstance(v3, dict) else None,
+              anchor_id=v3.get("anchor_id") if isinstance(v3, dict) else None)
         status, search = core.call(base, "GET", core.search_path(QUOTE), TOKEN)
         stage("search", status=status,
-              items=len(search.get("items", [])) if isinstance(search, dict) else None)
+              items=len(search.get("items", [])) if isinstance(search, dict) else None,
+              source_found=isinstance(search, dict) and any(
+                  hit.get("source_id") == source_id and hit.get("transform_id") == transform_id
+                  for hit in search.get("transforms", []) if isinstance(hit, dict)))
 
         # 4. Human acceptance - the governance boundary, not an automatic promotion.
         status, accepted = core.call(
@@ -430,7 +488,7 @@ def main() -> int:
         learner = learning_state.get("learner", {}) if isinstance(learning_state, dict) else {}
         stage("learning_state", status=status,
               answer=(learner.get("latest_review") or {}).get("answer"),
-              next_review=learner.get("next_review"))
+              next_review=learner.get("next_review"), state=learning_state)
 
         # 6. Machine failure on the same accepted knowledge version.
         failed_task = f"m0-machine-{uuid.uuid4().hex[:8]}"
@@ -456,6 +514,9 @@ def main() -> int:
         )
         successor_id = corrected.get("knowledge_id") if isinstance(corrected, dict) else None
         stage("human_correction", status=status, successor_id=successor_id)
+        if status not in (200, 201) or not successor_id or successor_id == knowledge_id:
+            receipt["failed_stage"] = "human_correction"
+            raise SystemExit
         if successor_id:
             status, _ = core.call(
                 base, "POST", f"/api/v1/knowledge-items/{successor_id}/review-decisions", TOKEN,
@@ -468,7 +529,7 @@ def main() -> int:
             base, "POST", "/api/v1/machine/tasks", MACHINE_TOKEN,
             {
                 "task_id": retest_task, "conditions": "fixed sample after human correction",
-                "knowledge_version": successor_id or knowledge_id, "method_version": "method-1",
+                "knowledge_version": successor_id, "method_version": "method-1",
                 "tool_version": "tool-1", "model_version": "stub/local-stub",
                 "scope": "one extraction task", "outcome": "succeeded",
                 "retest_of": failed_task,
@@ -476,17 +537,21 @@ def main() -> int:
 
         )
         stage("machine_retest", status=status, task_id=retest_task, retest_of=failed_task,
-              response=str(retest)[:300])
+              knowledge_version=successor_id, response=str(retest)[:300])
         status, readback = core.call(base, "GET", f"/api/v1/machine/tasks/{retest_task}", MACHINE_TOKEN)
         stage("machine_readback", status=status,
+              task_id=readback.get("task_id") if isinstance(readback, dict) else None,
+              knowledge_version=readback.get("knowledge_version") if isinstance(readback, dict) else None,
               retest_of=readback.get("retest_of") if isinstance(readback, dict) else None)
+        status, final_learning_state = core.call(
+            base, "GET", f"/api/v1/learning/items/{ITEM_KEY}/state", TOKEN)
+        stage("pre_restart_learning_state", status=status, state=final_learning_state)
     except SystemExit:
         pass
     finally:
         stop_core(child)
 
     if "failed_stage" in receipt:
-        stop_core
         receipt["ok"] = False
         out = work / "m0-loop-receipt.json"
         out.write_text(json.dumps(receipt, ensure_ascii=False, indent=2, default=str) + "\n", encoding="utf-8")
@@ -501,9 +566,10 @@ def main() -> int:
         learner2 = state2.get("learner", {}) if isinstance(state2, dict) else {}
         stage("restart_learning_state", status=status,
               answer=(learner2.get("latest_review") or {}).get("answer"),
-              next_review=learner2.get("next_review"))
+              next_review=learner2.get("next_review"), state=state2)
         status, v3_2 = core.call(base, "GET", f"/api/v1/knowledge-items/{knowledge_id}/v3", TOKEN)
         stage("restart_knowledge_v3", status=status,
+              knowledge_id=v3_2.get("knowledge_id") if isinstance(v3_2, dict) else None,
               anchor_id=v3_2.get("anchor_id") if isinstance(v3_2, dict) else None)
     finally:
         stop_core(child)
@@ -517,7 +583,8 @@ def main() -> int:
         with contextlib.closing(sqlite3.connect(f"file:{db}?mode=ro", uri=True)) as connection:
             names = {r[0] for r in connection.execute("select name from sqlite_master where type='table'")}
             result = {}
-            for name in ("knowledge_items", "learning_events", "machine_tasks"):
+            for name in ("knowledge", "knowledge_supersedes", "review_events",
+                         "learning_assessments", "learning_events", "machine_tasks"):
                 if name in names:
                     with contextlib.suppress(sqlite3.OperationalError):
                         result[name] = connection.execute(f'select count(*) from "{name}"').fetchone()[0]
@@ -559,54 +626,9 @@ def main() -> int:
     stage("legacy_migration", **migration)
 
     receipt["stage_order"] = order
-    # The verdict must not be satisfied by only the last two stages: a run where the
-    # machine principal was rejected still restored and migrated cleanly, so each
-    # stage that carries chain meaning is required explicitly.
-    def status_of(name: str) -> object:
-        for entry in receipt["stages"]:
-            if entry.get("stage") == name:
-                return entry.get("status") or entry.get("state")
-        return None
-
-    machine_ok = (
-        status_of("machine_task_failed") in (200, 201)
-        and status_of("machine_retest") in (200, 201)
-        and status_of("machine_readback") == 200
-    )
-    schedule_ok = any(
-        entry.get("schedule_authority") == "fsrs"
-        for entry in receipt["stages"]
-        if "schedule_authority" in entry
-    )
-    receipt["machine_principal_accepted"] = machine_ok
-    receipt["fsrs_schedule_observed"] = schedule_ok
-    # Two verdicts, kept apart on purpose. `chain_stages_verified` says every stage of
-    # the loop ran and the persistence legs held. `ok` additionally requires a real
-    # FSRS schedule on the answer-bearing review.
-    #
-    # This comment used to record the opposite: that the FSRS schedule "is NOT observed
-    # on this path", with schedule_authority "unavailable", next_review_days -2 and
-    # schedule_state null. That was measured, but the cause was assigned to the product
-    # when it is only the environment. `SchedulerClient::from_env` needs
-    # ARCHEAXIS_PYTHON in the *Core's* environment, and this probe inherits it from its
-    # caller, so a run started without it records an unscheduled review. Launched
-    # through `scripts/runtime/dev.py` (which sets ARCHEAXIS_PYTHON) the same review
-    # reports authority "fsrs" with a populated schedule_state, and `ok` is true.
-    # `unmet_prerequisites()` now refuses to run at all when that variable is absent,
-    # so the old reading cannot come back as a silent product verdict.
-    receipt["chain_stages_verified"] = bool(
-        "failed_stage" not in receipt
-        and not receipt.get("failed_stage")
-        and status_of("promote_anchored_knowledge") in (200, 201)
-        and status_of("human_accept") in (200, 201)
-        and status_of("answer_recorded") in (200, 201)
-        and machine_ok
-        and restore_receipt.get("verified") is True
-        and after == before
-        and migration.get("original_untouched", False)
-        and migration.get("status") == "ok"
-    )
-    receipt["ok"] = bool(receipt["chain_stages_verified"] and schedule_ok)
+    receipt["validation_errors"] = verdict_errors(receipt)
+    receipt["chain_stages_verified"] = not receipt["validation_errors"]
+    receipt["ok"] = receipt["chain_stages_verified"]
     out = work / "m0-loop-receipt.json"
     out.write_text(json.dumps(receipt, ensure_ascii=False, indent=2, default=str) + "\n", encoding="utf-8")
     print(json.dumps(receipt, ensure_ascii=False, indent=2, default=str))

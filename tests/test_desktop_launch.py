@@ -37,9 +37,9 @@ def test_prepare_binds_current_interpreter_worker_and_persistent_test_database(t
             'purpose': 'test', 'target': {'id': 'project_test_corpus'},
         },
     )
-    fixture_root = ROOT / '.project-local' / 'build' / 'test-fixtures' / tmp_path.name
+    fixture_root = launcher.dev.layout(ROOT)['dev'] / 'build' / 'test-fixtures' / tmp_path.name
     fixture_root.mkdir(parents=True, exist_ok=True)
-    state_root = ROOT / '.project-local' / 'state' / 'test-fixtures' / tmp_path.name
+    state_root = launcher.dev.layout(ROOT)['dev'] / 'state' / 'test-fixtures' / tmp_path.name
     test_database = state_root / 'workspace.sqlite'
     monkeypatch.setattr(launcher.dev, 'state_path', lambda *_: test_database)
     desktop = fixture_root / 'desktop.exe'
@@ -64,7 +64,7 @@ def test_prepare_binds_current_interpreter_worker_and_persistent_test_database(t
         assert first['environment']['ARCHAXIS_SCHEDULER_WORKER'] == first['environment']['ARCHEAXIS_SCHEDULER_WORKER']
         database = Path(first['environment']['ARCHAXIS_VNEXT_DB'])
         assert database == Path(second['environment']['ARCHAXIS_VNEXT_DB'])
-        assert database.is_relative_to(ROOT / '.project-local/state')
+        assert database.is_relative_to(launcher.dev.layout(ROOT)['dev'] / 'state')
         assert not database.exists()
         assert not Path(profile['staging']).exists()
     finally:
@@ -85,7 +85,7 @@ def test_prepare_prefers_explicit_archeaxis_python(tmp_path, monkeypatch):
             'purpose': 'test', 'target': {'id': 'project_test_corpus'},
         },
     )
-    fixture_root = ROOT / '.project-local' / 'build' / 'test-fixtures' / tmp_path.name
+    fixture_root = launcher.dev.layout(ROOT)['dev'] / 'build' / 'test-fixtures' / tmp_path.name
     fixture_root.mkdir(parents=True, exist_ok=True)
     desktop = fixture_root / 'desktop.exe'
     core = fixture_root / 'archeaxis-api.exe'
@@ -106,7 +106,7 @@ def test_prepare_prefers_explicit_archeaxis_python(tmp_path, monkeypatch):
 
 def test_explicit_paths_still_run_indexed_resource_preflight(tmp_path, monkeypatch):
     launcher = load_launcher()
-    fixture_root = ROOT / '.project-local' / 'build' / 'test-fixtures' / tmp_path.name
+    fixture_root = launcher.dev.layout(ROOT)['dev'] / 'build' / 'test-fixtures' / tmp_path.name
     fixture_root.mkdir(parents=True, exist_ok=True)
     desktop = fixture_root / 'desktop.exe'
     core = fixture_root / 'archeaxis-api.exe'
@@ -132,7 +132,7 @@ def test_explicit_paths_still_run_indexed_resource_preflight(tmp_path, monkeypat
 
 def test_prepared_receipt_contains_verifiable_boundary_and_artifact_identity(tmp_path, monkeypatch):
     launcher = load_launcher()
-    fixture_root = ROOT / '.project-local' / 'build' / 'test-fixtures' / tmp_path.name
+    fixture_root = launcher.dev.layout(ROOT)['dev'] / 'build' / 'test-fixtures' / tmp_path.name
     fixture_root.mkdir(parents=True, exist_ok=True)
     desktop = fixture_root / 'desktop.exe'
     core = fixture_root / 'archeaxis-api.exe'
@@ -178,7 +178,7 @@ def test_prepared_receipt_contains_verifiable_boundary_and_artifact_identity(tmp
 
 def test_missing_binary_is_rejected_before_artifact_allocation(tmp_path, monkeypatch):
     launcher = load_launcher()
-    fixture_root = ROOT / '.project-local' / 'build' / 'test-fixtures' / tmp_path.name
+    fixture_root = launcher.dev.layout(ROOT)['dev'] / 'build' / 'test-fixtures' / tmp_path.name
     fixture_root.mkdir(parents=True, exist_ok=True)
     monkeypatch.setattr(launcher.dev, 'artifact_directory', lambda *args: (_ for _ in ()).throw(AssertionError('must not allocate')))
     try:
@@ -253,7 +253,7 @@ def test_fresh_workspace_is_explicit_and_isolated(tmp_path, monkeypatch):
             'purpose': 'test', 'target': {'id': 'project_test_corpus'},
         },
     )
-    fixture_root = ROOT / '.project-local' / 'build' / 'test-fixtures' / tmp_path.name
+    fixture_root = launcher.dev.layout(ROOT)['dev'] / 'build' / 'test-fixtures' / tmp_path.name
     fixture_root.mkdir(parents=True, exist_ok=True)
     desktop, core = fixture_root / 'desktop.exe', fixture_root / 'core.exe'
     for path in (desktop, core):
@@ -283,7 +283,7 @@ def test_prepare_accepts_project_local_staging_candidate(tmp_path, monkeypatch):
             'purpose': 'test', 'target': {'id': 'project_test_corpus'},
         },
     )
-    fixture_root = ROOT / '.project-local' / 'staging' / f'launch-{tmp_path.name}'
+    fixture_root = launcher.dev.layout(ROOT)['dev'] / 'staging' / f'launch-{tmp_path.name}'
     fixture_root.mkdir(parents=True, exist_ok=True)
     desktop, core = fixture_root / 'desktop.exe', fixture_root / 'core.exe'
     desktop.write_bytes(b'desktop-fixture')

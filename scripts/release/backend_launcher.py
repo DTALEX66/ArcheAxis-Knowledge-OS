@@ -20,13 +20,16 @@ from __future__ import annotations
 import argparse
 import json
 import os
+import re
 import secrets
 import socket
+import stat
 import subprocess
-import sys
+import threading
 import time
 import urllib.error
 import urllib.request
+from contextlib import suppress
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent
@@ -36,20 +39,52 @@ CORE_RELATIVE = Path("core") / "archeaxis-api.exe"
 LAUNCH_PROTOCOL = "archeaxis.desktop-launch/v2"
 READY_MARKER = "127.0.0.1:"
 STARTUP_TIMEOUT_SECONDS = 30.0
+PRIVATE_NAMES = set([".git", ".codex", ".dsh", ".zcode", ".hermes", ".openhuman", ".claude", ".agents", ".agent", ".cursor", ".continue", ".aider", ".gemini", ".opencode", ".openhands", ".cline", ".roo", ".kilocode", ".windsurf", ".copilot", ".ssh", ".aws", ".azure", ".gnupg", "agent-private", "private-agent-state", "sessions", "memories", "keychain", "credentials", "auth", "browser-data", ".npmrc", ".pypirc", ".netrc"])
 
 
-class LaunchFailure(Exception):
+class LaunchFailure(Exception):  # noqa: N818 - retained public exception contract
     """A named startup failure; the message says which component failed."""
 
 
-def load_profile(root: Path) -> dict:
-    path = root / PROFILE_NAME
+def safe_path(root: Path, value: str) -> Path:
+    spelling = value.replace("\\", "/")
+    if not value.strip() or spelling.lower().startswith("e:") or spelling.startswith("//") or ".." in spelling.split("/"):
+        raise LaunchFailure("unsafe worker profile path")
+    path = Path(os.path.abspath(root / value))
+    full = str(path).replace("\\", "/").lower()
+    if full.startswith(("e:", "//")) or any(part in PRIVATE_NAMES or part.startswith(".env") for part in full.split("/")) or "/.project-local/agents/" in full:
+        raise LaunchFailure("protected worker profile path")
+    for part in (*reversed(path.parents), path):
+        try:
+            info = part.lstat()
+        except (FileNotFoundError, NotADirectoryError):
+            continue
+        if stat.S_ISLNK(info.st_mode) or getattr(info, "st_file_attributes", 0) & 0x400:
+            raise LaunchFailure("linked worker profile path")
+    return path
+
+
+def load_profile(root: Path, explicit_path: str | None = None) -> dict:
+    path = safe_path(root, explicit_path if explicit_path is not None else PROFILE_NAME)
     if not path.is_file():
         raise LaunchFailure(f"worker profile is missing: {path}")
     try:
-        document = json.loads(path.read_text(encoding="utf-8"))
-    except json.JSONDecodeError as error:
-        raise LaunchFailure(f"worker profile is not valid JSON: {path}: {error}") from error
+        if path.stat().st_size > 16384:
+            raise LaunchFailure("worker profile exceeds limit")
+
+        def unique(pairs):
+            document = {}
+            for key, value in pairs:
+                if key in document:
+                    raise LaunchFailure("duplicate worker profile field")
+                document[key] = value
+            return document
+
+        document = json.loads(path.read_text(encoding="utf-8"), object_pairs_hook=unique)
+    except (json.JSONDecodeError, UnicodeError, OSError) as error:
+        raise LaunchFailure("worker profile is not valid readable JSON") from error
+    if not isinstance(document, dict) or set(document) != {"schema", "python", "script", "staging"}:
+        raise LaunchFailure("unsupported or incomplete worker profile fields")
     if document.get("schema") != PROFILE_SCHEMA:
         raise LaunchFailure(
             f"worker profile schema is not {PROFILE_SCHEMA}: {document.get('schema')!r}")
@@ -58,8 +93,9 @@ def load_profile(root: Path) -> dict:
         value = document.get(key)
         if not isinstance(value, str) or not value.strip():
             raise LaunchFailure(f"worker profile has no {key}: {path}")
-        candidate = Path(value)
-        resolved[key] = candidate if candidate.is_absolute() else root / candidate
+        resolved[key] = safe_path(path.parent, value)
+    require_file(resolved["python"], "worker interpreter")
+    require_file(resolved["script"], "worker script")
     return resolved
 
 
@@ -84,6 +120,10 @@ def build_environment(root: Path) -> dict:
     """
     environment = dict(os.environ)
     environment.pop("ARCHEAXIS_PYTHON", None)
+    environment.pop("ARCHAXIS_PYTHON", None)
+    environment.pop("PYTHONPATH", None)
+    environment.pop("PYTHONHOME", None)
+    environment["PYTHONNOUSERSITE"] = "1"
     environment["ARCHEAXIS_BACKEND_ROOT"] = str(root)
     environment["ARCHEAXIS_WORKER_PROFILE"] = str(root / PROFILE_NAME)
     environment["ARCHAXIS_WORKER_PROFILE"] = str(root / PROFILE_NAME)
@@ -95,16 +135,17 @@ def build_environment(root: Path) -> dict:
     return environment
 
 
-def start(data_root: Path, port: int) -> tuple[subprocess.Popen, str, dict]:
-    core = require_file(ROOT / CORE_RELATIVE, "Core executable")
+def start(data_root: Path, port: int) -> tuple[subprocess.Popen, str, dict, dict]:
+    core = require_file(safe_path(ROOT, str(CORE_RELATIVE)), "Core executable")
     profile = load_profile(ROOT)
     require_file(profile["python"], "scheduler interpreter (from worker profile)")
     require_file(profile["script"], "text worker script (from worker profile)")
 
+    data_root = safe_path(ROOT, str(data_root))
+    staging = safe_path(data_root, "worker-staging")
+    workspace = safe_path(data_root, "workspace.sqlite")
     data_root.mkdir(parents=True, exist_ok=True)
-    staging = data_root / "worker-staging"
     staging.mkdir(parents=True, exist_ok=True)
-    workspace = data_root / "workspace.sqlite"
 
     launch = {
         "launch_token": secrets.token_hex(32),
@@ -124,41 +165,75 @@ def start(data_root: Path, port: int) -> tuple[subprocess.Popen, str, dict]:
         text=True, encoding="utf-8", cwd=str(ROOT),
         env=build_environment(ROOT),
     )
-    assert child.stdin is not None and child.stdout is not None
-    child.stdin.write(json.dumps(launch) + "\n")
-    child.stdin.flush()
-    child.stdin.close()
+    try:
+        assert child.stdin is not None
+        child.stdin.write(json.dumps(launch) + "\n")
+        child.stdin.flush()
+        child.stdin.close()
+        base = wait_for_readiness(child, port, STARTUP_TIMEOUT_SECONDS)
+        receipt = {"core": str(core), "workspace": str(workspace), "port": port,
+                   "text_worker": launch["text_worker"]}
+        tokens = {"x-archeaxis-launch-token": launch["launch_token"],
+                  "x-archeaxis-machine-token": launch["machine_token"]}
+        return child, base, receipt, tokens
+    except BaseException:
+        stop(child)
+        raise
 
-    deadline = time.time() + STARTUP_TIMEOUT_SECONDS
-    line = ""
-    while time.time() < deadline:
-        if child.poll() is not None:
-            stderr = (child.stderr.read() if child.stderr else "") or ""
-            raise LaunchFailure(
-                f"Core exited before becoming ready (exit {child.returncode}): "
-                f"{stderr.strip()[:400] or 'no stderr'}")
-        line = child.stdout.readline()
-        if READY_MARKER in line:
-            break
-        if not line and child.poll() is not None:
-            stderr = (child.stderr.read() if child.stderr else "") or ""
-            raise LaunchFailure(
-                f"Core exited before becoming ready (exit {child.returncode}): "
-                f"{stderr.strip()[:400] or 'no stderr'}")
-    if READY_MARKER not in line:
-        child.kill()
-        raise LaunchFailure(f"Core did not report readiness within "
-                            f"{STARTUP_TIMEOUT_SECONDS:.0f}s (last output: {line.strip()[:200]!r})")
-    # The readiness line already carries the full authority; rebuilding it from the
-    # port alone produced `http://50595`, which is not a URL.
-    authority = line.split(READY_MARKER, 1)[1].split()[0].strip()
-    base = f"http://{READY_MARKER}{authority}"
-    receipt = {"core": str(core), "workspace": str(workspace), "port": port,
-               "ready_line": line.strip(), "text_worker": launch["text_worker"],
-               "session_id": launch["session_id"],
-               "launch_token": launch["launch_token"],
-               "machine_token": launch["machine_token"]}
-    return child, base, receipt
+
+def wait_for_readiness(child: subprocess.Popen, port: int, timeout: float) -> str:
+    """Drain both pipes for the child's lifetime; return only a validated URL.
+
+    Port zero accepts the OS-selected loopback port. On failure the owned child
+    is terminated and reaped. The caller owns stop(child) after successful use.
+    """
+    ready = threading.Event()
+    readiness = []
+    stream_failed = threading.Event()
+
+    def drain(stream, capture=False):
+        # Bounded buffer, including a child that never emits a newline. Never echo
+        # child output: it may contain the private stdin handshake.
+        line = ""
+        try:
+            while character := stream.read(1):
+                if character == "\n":
+                    if capture and not readiness and READY_MARKER in line:
+                        readiness.append(line)
+                        ready.set()
+                    line = ""
+                elif capture:
+                    line = (line + character)[-4096:]
+        except (OSError, UnicodeError):
+            stream_failed.set()
+            ready.set()
+        finally:
+            with suppress(OSError):
+                stream.close()
+
+    readers = [threading.Thread(target=drain, args=(child.stdout, True), daemon=True),
+               threading.Thread(target=drain, args=(child.stderr,), daemon=True)]
+    child._archeaxis_readers = readers
+    for reader in readers:
+        reader.start()
+    try:
+        deadline = time.monotonic() + timeout
+        while not ready.wait(min(0.05, max(0, deadline - time.monotonic()))):
+            if child.poll() is not None:
+                raise LaunchFailure(f"Core exited before becoming ready (exit {child.returncode})")
+            if time.monotonic() >= deadline:
+                raise LaunchFailure(f"Core did not report readiness within {timeout:g}s")
+        # Accept only this launch's loopback endpoint; arbitrary output never enters
+        # the public receipt, even when a compromised child echoes its handshake.
+        if stream_failed.is_set():
+            raise LaunchFailure("Core output stream failed")
+        match = re.fullmatch(r"archeaxis-api ready on http://127\.0\.0\.1:([0-9]{1,5})", readiness[0].strip())
+        if match is None or not 1 <= int(match[1]) <= 65535 or (port and int(match[1]) != port):
+            raise LaunchFailure("Core reported invalid readiness endpoint")
+        return f"http://127.0.0.1:{int(match[1])}"
+    except BaseException:
+        stop(child)
+        raise
 
 
 def call(base: str, method: str, path: str, body: dict | None = None,
@@ -188,14 +263,22 @@ def call(base: str, method: str, path: str, body: dict | None = None,
 
 
 def stop(child: subprocess.Popen) -> int:
-    if child.poll() is None:
-        child.terminate()
-        try:
-            return child.wait(timeout=15)
-        except subprocess.TimeoutExpired:
-            child.kill()
-            return child.wait(timeout=15)
-    return child.returncode or 0
+    try:
+        if child.poll() is None:
+            child.terminate()
+            try:
+                child.wait(timeout=15)
+            except subprocess.TimeoutExpired:
+                child.kill()
+                child.wait(timeout=15)
+        return child.returncode or 0
+    finally:
+        for reader in getattr(child, "_archeaxis_readers", []):
+            reader.join(timeout=1)
+        for stream in (child.stdin, child.stdout, child.stderr):
+            if stream is not None and not stream.closed:
+                with suppress(OSError):
+                    stream.close()
 
 
 def main() -> int:
@@ -209,16 +292,13 @@ def main() -> int:
 
     port = args.port or free_port()
     try:
-        child, base, receipt = start(args.data_root.resolve(), port)
-    except LaunchFailure as error:
+        child, base, receipt, tokens = start(safe_path(ROOT, str(args.data_root)), port)
+    except (LaunchFailure, OSError) as error:
         print(json.dumps({"ok": False, "failure": str(error)}, ensure_ascii=False, indent=2))
         return 2
 
     receipt["base_url"] = base
     if args.smoke:
-        tokens = {"x-archeaxis-launch-token": receipt.pop("launch_token"),
-                  "x-archeaxis-machine-token": receipt.pop("machine_token")}
-        receipt.pop("session_id", None)
         try:
             status, version = call(base, "GET", "/api/v1/system/version", tokens=tokens)
             receipt["system_version"] = {"status": status, "body": version}
@@ -237,8 +317,13 @@ def main() -> int:
         return 0 if receipt["ok"] else 1
 
     receipt["ok"] = True
-    print(json.dumps(receipt, ensure_ascii=False, indent=2))
-    return 0
+    try:
+        print(json.dumps(receipt, ensure_ascii=False, indent=2), flush=True)
+        return child.wait()
+    except KeyboardInterrupt:
+        return 130
+    finally:
+        stop(child)
 
 
 if __name__ == "__main__":

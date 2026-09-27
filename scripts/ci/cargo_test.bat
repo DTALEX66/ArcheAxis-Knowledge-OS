@@ -10,10 +10,13 @@ rem   ARCHEAXIS_MSVC_VCVARS   full path to vcvars64.bat (MSVC toolchain import)
 rem   ARCHEAXIS_RUST_TOOLCHAINS  parent directory holding cargo\ and rustup\
 rem   ARCHEAXIS_PYTHON        interpreter the worker tests must use
 rem   ARCHEAXIS_CARGO_TARGET_DIR  override for the sealed target directory
+rem   CARGO_TARGET_DIR          inherited canonical dev.py worktree build root
 rem
-rem Defaults: cargo must already be on PATH, and the target directory is pinned to
-rem <repo>\.project-local\build\cargo so a worktree cannot mix artefacts with the
-rem main checkout (the trap recorded in HANDOFF pitfall 3).
+rem Prefer running through scripts/runtime/dev.py, which sets the canonical
+rem common-repository, per-worktree CARGO_TARGET_DIR. An explicit ARCHEAXIS override
+rem wins; otherwise preserve that inherited directory. Direct standalone invocation
+rem without either variable retains the checkout-local .project-local\build\cargo
+rem fallback for compatibility; it does not provide dev.py's canonical isolation.
 rem
 rem Usage: scripts\ci\cargo_test.bat [cargo arguments...]
 rem        with no arguments: cargo test --workspace --offline
@@ -44,22 +47,26 @@ if defined ARCHEAXIS_RUST_TOOLCHAINS (
   set "PATH=!CARGO_HOME!\bin;%PATH%"
 )
 
-if not defined ARCHEAXIS_CARGO_TARGET_DIR set "ARCHEAXIS_CARGO_TARGET_DIR=%REPO%\.project-local\build\cargo"
-set "CARGO_TARGET_DIR=%ARCHEAXIS_CARGO_TARGET_DIR%"
+if defined ARCHEAXIS_CARGO_TARGET_DIR set "CARGO_TARGET_DIR=%ARCHEAXIS_CARGO_TARGET_DIR%"
+if not defined CARGO_TARGET_DIR set "CARGO_TARGET_DIR=%REPO%\.project-local\build\cargo"
 
-where cargo >nul 2>&1
+rem PATH may contain only the explicitly supplied toolchain. Resolve the Windows
+rem lookup utility independently so its absence from PATH is not called missing cargo.
+"%SystemRoot%\System32\where.exe" cargo >nul 2>&1
 if errorlevel 1 (
   echo cargo_test: cargo is not on PATH; set ARCHEAXIS_RUST_TOOLCHAINS or install the Rust toolchain 1>&2
   exit /b 2
 )
 
 set "ARGS=%*"
-if "%ARGS%"=="" set "ARGS=test --workspace --offline"
+set "FIRST=%~1"
+if not defined FIRST (
+  set "ARGS=test --workspace --offline"
+  set "FIRST=test"
+)
 
 rem If the caller did not name a cargo subcommand, assume "test", so that
 rem "cargo_test.bat -p archeaxis-domain" means what a reader expects.
-set "FIRST="
-for /f "tokens=1" %%A in ("%ARGS%") do set "FIRST=%%A"
 set "SUBCOMMAND="
 for %%S in (test build check run bench clippy fmt tree metadata doc) do (
   if /I "%FIRST%"=="%%S" set "SUBCOMMAND=1"
@@ -70,7 +77,7 @@ echo cargo_test: repo=%REPO%
 echo cargo_test: target=%CARGO_TARGET_DIR%
 echo cargo_test: cargo %ARGS%
 pushd "%REPO%"
-cargo %ARGS%
+call cargo %ARGS%
 set "STATUS=%ERRORLEVEL%"
 popd
 exit /b %STATUS%

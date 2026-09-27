@@ -43,9 +43,11 @@ launch JSON（`protocol: archeaxis.desktop-launch/v2`，一个 workspace 两个�
 }
 ```
 
-- 省略 `text_worker` 时只挂载只读投影路由；带上它才会挂载 `/jobs/:id/executions` 等执行路由。
-- 定时（FSRS）调度单独由环境变量 `ARCHEAXIS_PYTHON` 决定，**不需要**它出现在 launch JSON 里；
-  未设置时学习复习会记录为 `schedule_authority: "unavailable"`（见 §5）。
+- 省略 `text_worker` 时仍有 Core 的读写基础路由；带上它才会挂载 `/jobs/:id/executions` 等 worker 执行路由。
+- FSRS 解释器优先取 `ARCHEAXIS_PYTHON`，其次显式 `ARCHEAXIS_WORKER_PROFILE`
+  （兼容 `ARCHAXIS_WORKER_PROFILE`），最后可执行文件旁 `worker-profile.json`。
+  显式配置无效时拒绝降级；全部缺失或无效才记录调度不可用。worker profile
+  与 launch JSON 是独立契约。下述旧收据仅证明各自命名的源码与运行身份。
 - 维护入口（不启动服务、不需要 launch JSON）：
   `archeaxis-api --maintenance-backup <db> <artifact>` /
   `archeaxis-api --maintenance-restore <db> <artifact>`，stdout 输出一行 JSON。
@@ -54,7 +56,7 @@ launch JSON（`protocol: archeaxis.desktop-launch/v2`，一个 workspace 两个�
 
 ## 2. 路由表（30 条，均由当前源码提取）
 
-`crates/archeaxis-api/src/lib.rs`（只读投影路由）：
+`crates/archeaxis-api/src/lib.rs`（Core 基础读写路由）：
 
 | 方法 | 路径 |
 | --- | --- |

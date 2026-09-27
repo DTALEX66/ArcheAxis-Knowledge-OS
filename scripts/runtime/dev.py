@@ -183,10 +183,25 @@ def worktree_identity(root: Path) -> tuple[bool, str]:
     digest.update(diff.encode("utf-8", "surrogateescape"))
     for name in names:
         digest.update(name.encode("utf-8", "surrogateescape"))
-        path = root / name
+        relative = Path(name)
+        private = {'.codex', '.dsh', '.hermes', '.zcode', '.ssh', '.aws', '.azure',
+                   '.gnupg', '.claude', '.agents', '.npmrc', '.pypirc', '.netrc',
+                   'credentials', 'keychain', 'agent-private', 'private-agent-state'}
+        if relative.is_absolute() or '..' in relative.parts or any(
+            part.casefold() in private or part.casefold().startswith('.env')
+            for part in relative.parts
+        ):
+            raise ValueError('protected source path cannot be included in run identity')
+        # Reject the raw spelling and each ancestor before any file stat/read can
+        # follow a link outside this checkout. Private ancestors above the exact
+        # repo root are not traversed as source (native managed worktrees live there).
+        path = safe_path(root / relative)
+        path.relative_to(root.absolute())
         if path.is_file():
             digest.update(str(path.stat().st_size).encode("ascii"))
-            digest.update(path.read_bytes())
+            with path.open('rb') as source:
+                for block in iter(lambda: source.read(1024 * 1024), b''):
+                    digest.update(block)
     return bool(diff) or bool(names), digest.hexdigest()
 
 

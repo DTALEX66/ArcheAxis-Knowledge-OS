@@ -1,4 +1,4 @@
-"""Stage a complete backend runtime root from committed source.
+"""Stage a complete backend runtime root with measured bytes and asserted provenance.
 
 The repository already defines how the backend is distributed, and it is not one
 Python wheel. `scripts/release/assemble_green_candidate.py` and
@@ -30,8 +30,8 @@ import hashlib
 import json
 import os
 import shutil
+import stat
 import subprocess
-import sys
 import zipfile
 from pathlib import Path
 
@@ -39,6 +39,7 @@ PROFILE_SCHEMA = "archeaxis.worker-profile/v1"
 MANIFEST_SCHEMA = "archeaxis.backend-runtime/v1"
 TEXT_WORKER_RELATIVE = "workers/transport/text_ndjson.py"
 SCHEDULER_WORKER_RELATIVE = "workers/learning/worker_schedule.py"
+PRIVATE_NAMES = set([".git", ".codex", ".dsh", ".zcode", ".hermes", ".openhuman", ".claude", ".agents", ".agent", ".cursor", ".continue", ".aider", ".gemini", ".opencode", ".openhands", ".cline", ".roo", ".kilocode", ".windsurf", ".copilot", ".ssh", ".aws", ".azure", ".gnupg", "agent-private", "private-agent-state", "sessions", "memories", "keychain", "credentials", "auth", "browser-data", ".npmrc", ".pypirc", ".netrc"])
 
 
 def sha256(path: Path) -> str:
@@ -52,31 +53,52 @@ def sha256(path: Path) -> str:
 def packager_identity() -> str:
     """The commit of the tooling that decided this layout, dirty state included.
 
-    An uncommitted stager means the artifact was assembled by logic no commit
+    An uncommitted stager or launcher means the artifact used logic no commit
     describes, which is the condition this field exists to expose.
     """
     directory = Path(__file__).resolve().parent
+    inputs = [str(directory / name) for name in ("stage_backend_runtime.py", "backend_launcher.py")]
     try:
         commit = subprocess.run(["git", "-C", str(directory), "rev-parse", "HEAD"],
                                 capture_output=True, text=True, check=True).stdout.strip()
         dirty = subprocess.run(["git", "-C", str(directory), "status", "--porcelain",
-                                "--", str(Path(__file__).resolve())],
+                                "--", *inputs],
                                capture_output=True, text=True, check=True).stdout.strip()
+        tracked = subprocess.run(["git", "-C", str(directory), "ls-files", "--error-unmatch",
+                                  "--", *inputs], capture_output=True, text=True, check=False)
     except (OSError, subprocess.CalledProcessError):
         return ""
-    return f"{commit}+dirty" if dirty else commit
+    return f"{commit}+dirty" if dirty or tracked.returncode else commit
 
 
 def reject_reparse(path: Path) -> None:
     """A staged runtime must not follow a link out of its own tree."""
-    for part in (path, *path.parents):
-        if not part.exists():
+    raw = str(path).replace("\\", "/").lower()
+    if raw.startswith(("e:", "//")) or ".." in raw.split("/"):
+        raise ValueError("unsafe staging path")
+    path = Path(os.path.abspath(path))
+    full = str(path).replace("\\", "/").lower()
+    if full.startswith(("e:", "//")) or any(part in PRIVATE_NAMES or part.startswith(".env") for part in full.split("/")) or "/.project-local/agents/" in full:
+        raise ValueError("protected staging path")
+    for part in (*reversed(path.parents), path):
+        try:
+            info = part.lstat()
+        except (FileNotFoundError, NotADirectoryError):
             continue
-        if part.is_symlink() or (hasattr(part, "is_junction") and part.is_junction()):
-            raise ValueError(f"linked path rejected: {part}")
+        if stat.S_ISLNK(info.st_mode) or getattr(info, "st_file_attributes", 0) & 0x400:
+            raise ValueError("linked staging path rejected")
+
+
+def validate_tree(source: Path) -> None:
+    reject_reparse(source)
+    if source.is_dir():
+        for entry in source.iterdir():
+            validate_tree(entry)
 
 
 def copy_tree(source: Path, target: Path) -> None:
+    validate_tree(source)
+    validate_tree(target)
     shutil.copytree(source, target, dirs_exist_ok=True,
                     ignore=shutil.ignore_patterns("__pycache__", "*.pyc", "*.pyo"))
 
@@ -97,9 +119,13 @@ def copy_distribution(name: str, site_packages: Path, target_site_packages: Path
             stem = stem.rsplit(".", 1)[0]
         return stem.replace("_", "").lower()
 
+    reject_reparse(site_packages)
     members = [entry for entry in sorted(site_packages.iterdir()) if key(entry.name) == wanted]
     if not members:
         raise ValueError(f"dependency not present in {site_packages}: {name}")
+    for member in members:
+        validate_tree(member)
+    reject_reparse(target_site_packages)
     has_module = any(entry.is_file() or (entry.is_dir() and not entry.name.endswith(".dist-info"))
                      for entry in members)
     if not has_module:
@@ -109,6 +135,7 @@ def copy_distribution(name: str, site_packages: Path, target_site_packages: Path
     copied: list[str] = []
     for member in members:
         destination = target_site_packages / member.name
+        reject_reparse(destination)
         if member.is_dir():
             copy_tree(member, destination)
         else:
@@ -131,6 +158,9 @@ def write_launcher(root: Path) -> Path:
         "rem resolved from this directory; no checkout, virtualenv or manual\r\n"
         "rem interpreter configuration is involved.\r\n"
         "setlocal\r\n"
+        "set PYTHONPATH=\r\n"
+        "set PYTHONHOME=\r\n"
+        "set PYTHONNOUSERSITE=1\r\n"
         "rem cmd.exe answers 9009 for a missing program, which names nothing. Check the\r\n"
         "rem interpreter here so a broken runtime says which component is missing.\r\n"
         'if not exist \"%~dp0runtime\\python.exe\" (\r\n'
@@ -167,21 +197,36 @@ def main() -> int:
                         help="commit the Core/workers were built from; defaults to --source-commit")
     parser.add_argument("--runtime-tree")
     parser.add_argument("--packager-commit",
-                        help="commit of the staging tooling that decided this layout; "
-                             "defaults to the current commit of this script's checkout")
+                        help="asserted tooling commit (recorded separately from detected Git identity)")
     parser.add_argument("--archive", type=Path, help="also write a zip beside the root")
     args = parser.parse_args()
 
-    packager_commit = args.packager_commit or packager_identity()
+    detected_packager_commit = packager_identity()
+    packager_commit = detected_packager_commit or args.packager_commit
     if not packager_commit:
         raise ValueError("packager commit is unknown; pass --packager-commit so the "
                          "artifact records which staging logic produced it")
 
-    root = args.out.resolve()
+    shared_donor = args.shared or args.workers.parent.parent / "shared" / "learning_scheduler.py"
+    for candidate in (args.core, args.runtime, args.workers, shared_donor, args.out,
+                      args.dep_source, args.archive):
+        if candidate is not None:
+            reject_reparse(candidate)
+    # Preflight all recursive donors before producing even a partial output root.
+    for candidate in (args.runtime, args.workers, args.dep_source):
+        if candidate is not None:
+            validate_tree(candidate)
+    if not shared_donor.is_file():
+        raise ValueError(f"scheduler donor is missing: {shared_donor}")
+    if not args.core.is_file():
+        raise ValueError("Core executable is missing")
+    if args.dep and args.dep_source is None:
+        raise ValueError("--dep requires --dep-source")
+    if args.archive and args.archive.exists():
+        raise ValueError("refusing to overwrite an existing archive")
+    root = args.out.absolute()
     if root.exists():
         raise ValueError(f"refusing to overwrite an existing runtime root: {root}")
-    for candidate in (args.core, args.runtime, args.workers):
-        reject_reparse(candidate.resolve())
     if not (args.runtime / "python.exe").is_file():
         raise ValueError(f"runtime has no python.exe: {args.runtime}")
     if not (args.workers / "transport" / "text_ndjson.py").is_file():
@@ -198,9 +243,6 @@ def main() -> int:
     # relative path; the worker resolves it as <root>/shared/learning_scheduler.py.
     # Without it the worker starts and then reports FileNotFoundError, which reads like
     # a broken worker instead of a missing component.
-    shared_donor = args.shared or args.workers.resolve().parents[1] / "shared" / "learning_scheduler.py"
-    if not shared_donor.is_file():
-        raise ValueError(f"scheduler donor is missing: {shared_donor}")
     (root / "shared").mkdir()
     shutil.copy2(shared_donor, root / "shared" / "learning_scheduler.py")
 
@@ -210,7 +252,7 @@ def main() -> int:
         if args.dep_source is None:
             raise ValueError("--dep requires --dep-source")
         for name in args.dep:
-            dependencies.append(copy_distribution(name, args.dep_source.resolve(), site_packages))
+            dependencies.append(copy_distribution(name, args.dep_source, site_packages))
 
     profile = {
         "schema": PROFILE_SCHEMA,
@@ -246,14 +288,21 @@ def main() -> int:
         "runtime_source": {
             "commit": args.runtime_commit or args.source_commit,
             "tree": args.runtime_tree or args.source_tree,
-            "note": "commit the Core and workers were built from",
+            "evidence": "ASSERTED_NOT_VERIFIED",
+            "note": "caller-declared build provenance; not verified against the supplied Core or workers",
         },
         "packager_source": {
             "commit": packager_commit,
-            "note": "commit of scripts/release/stage_backend_runtime.py and backend_launcher.py "
-                    "that produced this layout",
+            "asserted_commit": args.packager_commit,
+            "evidence": "GIT_CHECKOUT_OBSERVED" if detected_packager_commit else "ASSERTED_NOT_VERIFIED",
+            "inputs_sha256": {
+                "stage_backend_runtime.py": sha256(Path(__file__)),
+                "backend_launcher.py": files["start-backend.py"]["sha256"],
+            },
+            "note": "detected tooling checkout HEAD and dirty state; byte hashes identify actual inputs",
         },
-        "built_from": {"source_commit": args.source_commit, "source_tree": args.source_tree},
+        "built_from": {"source_commit": args.source_commit, "source_tree": args.source_tree,
+                       "evidence": "ASSERTED_NOT_VERIFIED"},
         "components": [
             {"component": "core", "path": "core/archeaxis-api.exe",
              "sha256": files["core/archeaxis-api.exe"]["sha256"],
@@ -294,7 +343,7 @@ def main() -> int:
 
     archive_path = None
     if args.archive:
-        archive_path = args.archive.resolve()
+        archive_path = args.archive.absolute()
         with zipfile.ZipFile(archive_path, "w", compression=zipfile.ZIP_DEFLATED) as archive:
             for path in sorted(p for p in root.rglob("*") if p.is_file()):
                 archive.write(path, (root.name / path.relative_to(root)).as_posix())

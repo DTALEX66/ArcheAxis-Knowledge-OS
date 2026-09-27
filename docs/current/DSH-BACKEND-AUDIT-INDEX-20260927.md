@@ -1,5 +1,11 @@
 # DSH 后端审计定位索引 — 2026-09-27
 
+> 合并校正：下文交付状态和运行路径为原分支的历史记录，不能证明当前整合
+> candidate 已完成真实 M0。`ad89858c` 实际修改了打包器，不是文档-only；
+> `DSH-BACKEND-AUDIT-PROMPT-20260927.md` 在主线已 tracked；launcher 由
+> backend-20260927 继承，r5 没有首次引入。当前验证与分支处置另见
+> `SEPTEMBER-BACKEND-INTEGRATION-20260927.md`。
+
 > 用途：让独立审计（A15）**不需要猜**就能定位本轮后端工作的分支、身份、产物与证据。
 > 本文件只做定位与状态登记，不是审计结论，也不签发任何资格。
 >
@@ -27,7 +33,7 @@
 | **runtime_source_commit** | `4017259e` | Core 与 workers 的源码；此后未改运行语义 |
 | **packager_source_commit** | `7503195b` | `stage_backend_runtime.py` + `backend_launcher.py` |
 | 第三轮 HEAD / tree | `7503195b105b441e53062cc81036fa3916c9c217` / `1a5b2051c66cbb7f68e1da5e5f235143e5c4d9ff` | |
-| 文档-only 提交 | `ad89858c`、`b646ab0e` 等 | `ee015075 → b646ab0e` 机械比对：仅 3 个 `docs/current/` 文件，运行相关 diff = 无 |
+| 打包修复 / 文档提交 | `ad89858c` / `b646ab0e` | 前者修改 stage_backend_runtime.py；后者为文档。不得把整个区间归为文档-only |
 
 **不要把 runtime_source 与 packager_source 混成一个 SHA**：前者决定 Core/worker 行为，
 后者决定"产物里有哪些组件、依赖复制了哪些、manifest 长什么样"。
@@ -56,7 +62,7 @@
 | 第二轮证据索引（含身份不一致实测更正） | `docs/current/DSH-BACKEND-EVIDENCE-R2-20260927.json`（在分支上） |
 | 面向 Codex 的合同 | `docs/current/DSH-BACKEND-CONTRACT-20260927.md`（在分支上） |
 | 原始运行回执（日志、m0 回执、run env、wheel/安装资质） | `D:\All projects\ArcheAxis-Knowledge-OS\.project-local\worktrees\dsh-backend-20260927\.project-local\dsh-evidence\` |
-| 第三/四轮审计提示词 | `D:\All projects\ArcheAxis-Knowledge-OS\docs\current\DSH-BACKEND-AUDIT-PROMPT-20260927.md`（主检出中为**未跟踪**，本任务未认领、未提交） |
+| 第三/四轮审计提示词 | `docs/current/DSH-BACKEND-AUDIT-PROMPT-20260927.md`（主线 tracked；并非本整合任务创建） |
 
 > **路径精度说明（此前写得不够准，已更正）**：原始回执位于 **r4 worktree 自己的**
 > `.project-local/dsh-evidence/`，而 `.project-local/` 是 **git-ignored**，不在任何分支上；
