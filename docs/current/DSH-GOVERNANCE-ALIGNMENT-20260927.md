@@ -35,7 +35,7 @@
 
 | 方案条目 | 方案产物 | 仓库实际（证据锚点） | 判定 |
 | --- | --- | --- | --- |
-| §1 假设「每 Agent 独立 worktree，主工作树唯一」 | — | `git worktree list` 实测 **8 个**（含 3 个 detached）；当前 checkout = Codex 前端分支 `69a3baed`，且带脏文件 `apps/ArcheAxis.Desktop/MainWindow.axaml.cs` | `REFUTED` |
+| §1 假设「每 Agent 独立 worktree，主工作树唯一」 | — | `git worktree list` 实测 **8 个**（含 3 个 detached；此为测量时点值，其后另有新增，见 §10.1）；当时 checkout = Codex 前端分支 `69a3baed`，且带脏文件 `apps/ArcheAxis.Desktop/MainWindow.axaml.cs` | `REFUTED` |
 | §3 `gen_current.py` | 新脚本 | 不存在；但已存在 `scripts/generate_current_reports.py`（命名近撞，易混） | `PARTIAL` |
 | §3 `check_drift.py` | 新脚本 | 不存在；门禁侧已有 5 个自检/hostile gate_id | `PARTIAL` |
 | §3 `verify_scope.py` | 新脚本 | scope/ownership 已有**两处**权威：changed-path→risk→gates 分类表，与 gate registry 的 path_rules | `DUPLICATE` |
@@ -43,7 +43,7 @@
 | §5.1 `CURRENT.yaml` | 新投影 | 确实不存在（`git ls-files` 无 `CURRENT.yaml`）——**真实缺口** | `ABSENT` |
 | §5.2「Task Envelope 模板」 | 新模板 | 已存在**两套互斥** schema：issued 信封 与 non-authorizing 模板；模板「永不授权」 | `WRONG-CONCEPT` |
 | §5.3「Lease 模板」 | 新模板 | 已存在 grant 模板 + grant schema + `leases/{templates,issued,revocations}` | `DUPLICATE` |
-| §6 CI 门禁对照表 | 自造门禁名 | 已注册 36 个 gate_id；方案门禁名多数未注册 | `PARTIAL` |
+| §6 CI 门禁对照表 | 自造门禁名 | 已注册 35 个 gate_id；方案门禁名多数未注册 | `PARTIAL` |
 | §7 负例测试矩阵 | 9 行 | 其中 1 行与**活门禁直接冲突**（见 §3.1） | `CONFLICT` |
 | §8「Receipt v3 兼容」 | 迁移策略 | 前提不成立：把三个不同 schema 混成一个（见 §3.1） | `REFUTED` |
 | §9 并行工作流约束 | — | 与「单切片=单泳道=单分支=单 worktree=单 owner」一致 | `SUPPORTED` |
@@ -76,7 +76,7 @@
 
 ### 3.3 工作树与写入身份假设不成立
 
-- 实测 8 个 worktree，而非「主树唯一」。
+- 实测 8 个 worktree（测量时点；其后另有新增，见 §10.1），而非「主树唯一」。
 - **当前 checkout 是 Codex 前端分支** `codex/aaos-p3-ui-convergence-20260922`，且脏文件正是 `apps/ArcheAxis.Desktop/MainWindow.axaml.cs` —— 即方案划给 DSH 的 **deny 路径**。
 - ⇒ 若在当前树按方案写入，按方案**自身规则**即构成 scope violation。方案缺少「先确认当前 worktree 身份再动手」的 START 前置检查（现有 gate 已覆盖此意图，见 §6）。
 
@@ -209,7 +209,7 @@ status_vocabulary:
 
 ## 6. CI 门禁对照表（修正版）
 
-已注册 gate_id 共 36 个（`.project/GATE-REGISTRY.yaml:4-39`）。方案 §6 的门禁名绝大多数**未注册**：
+已注册 gate_id 共 35 个（`.project/GATE-REGISTRY.yaml:5-39`）。方案 §6 的门禁名绝大多数**未注册**：
 
 | 方案门禁名 | 已注册对应 | 判定 |
 | --- | --- | --- |
