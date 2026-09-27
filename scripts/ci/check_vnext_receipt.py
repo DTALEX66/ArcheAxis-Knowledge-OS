@@ -1,12 +1,22 @@
 """Reject historical, partial or failed in-process journey receipts.
 
 This gate qualifies the named test only, not the desktop or real worker pipeline.
+
+CI passes the run identity through the runner-owned ``GITHUB_ENV`` file. A local
+shell has no such file, so ``scripts/runtime/dev.py --env-file`` records the same
+mapping and ``--env-file`` here reads it back. Only the three identity names are
+accepted from that file, and an already-set operator value always wins, so this
+option adds a local entry point without relaxing a single check below.
 """
 
+import argparse
 import json
 import os
 import re
+import sys
 from pathlib import Path
+
+IDENTITY_NAMES = ("ARCHEAXIS_RUN_ROOT", "VNEXT_RECEIPT_OUT", "ARCHEAXIS_SOURCE_COMMIT")
 
 
 def validate(receipt: dict, commit: str, run_id: str) -> None:
@@ -25,7 +35,30 @@ def validate(receipt: dict, commit: str, run_id: str) -> None:
         raise ValueError("receipt has incomplete or failed steps")
 
 
+def load_identity(path: Path, environ: "os._Environ[str] | dict[str, str]") -> None:
+    """Fill only the identity names this process does not already define."""
+    for line in path.read_text(encoding="utf-8").splitlines():
+        if not line.strip() or line.lstrip().startswith("#"):
+            continue
+        name, separator, value = line.partition("=")
+        if not separator or name not in IDENTITY_NAMES:
+            continue
+        if not environ.get(name):
+            environ[name] = value
+
+
 def main() -> int:
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--env-file", type=Path,
+                        help="same-run identity written by "
+                             "scripts/runtime/dev.py --env-file")
+    args = parser.parse_args()
+    if args.env_file is not None:
+        try:
+            load_identity(args.env_file, os.environ)
+        except (OSError, UnicodeDecodeError) as exc:
+            print(f"vNext receipt rejected: run environment unreadable: {exc}")
+            return 1
     try:
         run = Path(os.environ["ARCHEAXIS_RUN_ROOT"])
         path = Path(os.environ["VNEXT_RECEIPT_OUT"])

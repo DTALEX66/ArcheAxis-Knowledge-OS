@@ -15,6 +15,19 @@ identity are what is being tested:
 It measures; it signs nothing. A stage that returns an unexpected status is recorded
 with its status and body and the run stops there, so a partial run is a partial
 receipt rather than a pass.
+
+Two prerequisites decide whether the verdict means anything, and both are checked
+before the run starts rather than inferred from a degraded stage:
+
+* ``ARCHEAXIS_PYTHON`` must name the interpreter the Core uses for its scheduler
+  worker. Without it ``SchedulerClient::from_env`` cannot answer, the review is
+  recorded as unscheduled, and ``schedule_authority`` reads ``unavailable`` - which
+  looks like a scheduling defect but is only a missing interpreter.
+* this process must be able to load the vector extension, or the legacy plan reports
+  ``vec_episodes`` as unreadable purely because of the interpreter it is running on.
+
+Both are reported as ``blocked`` with the missing condition named, so a run that
+could not have observed the whole loop is never written up as a product result.
 """
 
 from __future__ import annotations
@@ -23,6 +36,7 @@ import contextlib
 import hashlib
 import importlib.util
 import json
+import os
 import shutil
 import sqlite3
 import subprocess
@@ -140,11 +154,42 @@ def maintenance(action: str, db: Path, artifact: Path) -> tuple[int, dict]:
     return result.returncode, payload
 
 
+def unmet_prerequisites() -> dict[str, str]:
+    """Name the conditions under which this run cannot observe the whole loop.
+
+    Checked before any Core process starts, because both conditions change what the
+    receipt *means* while leaving every stage's HTTP status looking healthy. Naming
+    them here keeps a degraded environment from being read as a product defect.
+    """
+    unmet: dict[str, str] = {}
+    scheduler_python = os.environ.get("ARCHEAXIS_PYTHON", "").strip()
+    if not scheduler_python:
+        unmet["ARCHEAXIS_PYTHON"] = "not set; the Core scheduler worker would report unavailable"
+    elif not Path(scheduler_python).is_file():
+        unmet["ARCHEAXIS_PYTHON"] = f"not a file: {scheduler_python}"
+    try:
+        import sqlite_vec  # noqa: F401
+    except Exception as error:  # pragma: no cover - depends on the interpreter
+        unmet["sqlite_vec"] = f"{type(error).__name__}: {error}"
+    return unmet
+
+
 def main() -> int:
     with contextlib.suppress(Exception):
         sys.stdout.reconfigure(encoding="utf-8")
     if not BINARY.is_file():
         print(json.dumps({"ok": False, "blocked": "core binary not built", "path": str(BINARY)}))
+        return 2
+    unmet = unmet_prerequisites()
+    if unmet:
+        print(json.dumps({
+            "ok": False,
+            "blocked": "run prerequisites not met; the loop could not be observed",
+            "unmet": unmet,
+            "interpreter": sys.executable,
+            "note": "run this probe through scripts/runtime/dev.py with the project "
+                    "interpreter, and pass that same interpreter as the command",
+        }, ensure_ascii=False, indent=2))
         return 2
 
     work = REPO / ".project-local" / "m0loop" / uuid.uuid4().hex[:8]
@@ -453,11 +498,19 @@ def main() -> int:
     receipt["machine_principal_accepted"] = machine_ok
     receipt["fsrs_schedule_observed"] = schedule_ok
     # Two verdicts, kept apart on purpose. `chain_stages_verified` says every stage of
-    # the loop ran and the persistence legs held. `ok` additionally requires the FSRS
-    # schedule the dedicated learning probe observes - it is NOT observed on this path,
-    # where the same review returns schedule_authority "unavailable" with
-    # next_review_days -2 and schedule_state null, so the strict verdict is false and
-    # the deviation is a recorded open question rather than a silent pass.
+    # the loop ran and the persistence legs held. `ok` additionally requires a real
+    # FSRS schedule on the answer-bearing review.
+    #
+    # This comment used to record the opposite: that the FSRS schedule "is NOT observed
+    # on this path", with schedule_authority "unavailable", next_review_days -2 and
+    # schedule_state null. That was measured, but the cause was assigned to the product
+    # when it is only the environment. `SchedulerClient::from_env` needs
+    # ARCHEAXIS_PYTHON in the *Core's* environment, and this probe inherits it from its
+    # caller, so a run started without it records an unscheduled review. Launched
+    # through `scripts/runtime/dev.py` (which sets ARCHEAXIS_PYTHON) the same review
+    # reports authority "fsrs" with a populated schedule_state, and `ok` is true.
+    # `unmet_prerequisites()` now refuses to run at all when that variable is absent,
+    # so the old reading cannot come back as a silent product verdict.
     receipt["chain_stages_verified"] = bool(
         "failed_stage" not in receipt
         and not receipt.get("failed_stage")

@@ -1,0 +1,184 @@
+{
+  "schema": "archeaxis.dsh.backend-evidence/v1",
+  "recorded_at": "2026-09-27T14:35:00+08:00",
+  "recorded_by": "DSH backend execution task",
+  "status_vocabulary": ["TESTED_LOCAL", "TESTED_LOCAL_PARTIAL", "BLOCKED_BY_OWNER_DECISION", "STRUCTURAL", "NOT_EXECUTED", "NOT_VERIFIED"],
+  "baseline": {
+    "repository": "D:\\All projects\\ArcheAxis-Knowledge-OS",
+    "head": "69a3baed13be061f2f8283c6efd4b0e5e80c4d23",
+    "tree": "0acd4266a8f6e7f97bd9b11cfe11b8ac7abff3a4",
+    "audited_branch": "codex/aaos-p3-ui-convergence-20260922",
+    "backend_branch": "dsh/backend-20260927",
+    "backend_worktree": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\worktrees\\dsh-backend-20260927",
+    "backend_worktree_created_from": "69a3baed13be061f2f8283c6efd4b0e5e80c4d23",
+    "pushed": false,
+    "root_checkout_touched": false
+  },
+  "write_set": {
+    "files_changed": 89,
+    "outside_crates_and_declared_scripts": [],
+    "apps_touched": false,
+    "main_window_axaml_cs_touched": false,
+    "declared_files": [
+      ".github/workflows/ci.yml",
+      "crates/** (83 files, rustfmt only)",
+      "scripts/ci/check_vnext_receipt.py",
+      "scripts/contracts/generate_vocabulary.py",
+      "scripts/probes/m0_full_loop_smoke.py",
+      "scripts/runtime/dev.py",
+      "tests/runtime-paths/test_vnext_receipt.py",
+      "docs/current/DSH-BACKEND-CONTRACT-20260927.md",
+      "docs/current/DSH-BACKEND-EVIDENCE-20260927.json"
+    ]
+  },
+  "environment": {
+    "python": "3.13.14 (.venv)",
+    "rustc": "1.97.1 (8bab26f4f 2026-07-14)",
+    "rustfmt": "1.9.0-stable (8bab26f4f6 2026-07-14)",
+    "external_root": "D:\\All projects\\OS External Configuration",
+    "msvc_vcvars": "10-toolchains\\msvc\\VC\\Auxiliary\\Build\\vcvars64.bat",
+    "rust_toolchains": "toolchains\\rust",
+    "sandbox_note": "pytest cannot start under the DSH sandbox token: tempfile.TemporaryDirectory / os.mkdir(path, 0o700) yields a directory the process cannot write into, so conftest.py fails. Reproduced minimally (os.mkdir(mode=0o700) unwritable; os.makedirs + os.chmod(0o700) writable; identical failure in system temp). Not a product defect; the runs below used an approved wider permission."
+  },
+  "results": [
+    {
+      "id": "rust-workspace",
+      "claim": "Full vNext Rust workspace builds and passes at the baseline SHA after the workspace-wide reformat",
+      "command": "scripts/runtime/dev.py -- scripts/ci/cargo_test.bat test --workspace --offline --no-fail-fast",
+      "run_id": "dsh-post-format2",
+      "run_root": ".project-local/runs/5514a47716/dsh-post-format2",
+      "binaries_executed": 79,
+      "passed": 240,
+      "failed": 0,
+      "ignored": 0,
+      "exit_code": 0,
+      "status": "TESTED_LOCAL",
+      "evidence": [".project-local/worktrees/dsh-backend-20260927/.project-local/dsh-evidence/rust-workspace-post-format.log"]
+    },
+    {
+      "id": "vnext-receipt-positive",
+      "claim": "The same run that produces the 12-step journey receipt is accepted by the gate",
+      "command": "scripts/ci/check_vnext_receipt.py --env-file <run env>",
+      "exit_code": 0,
+      "stdout": "vNext current-run in-process journey receipt PASS (not installed qualification)",
+      "status": "TESTED_LOCAL",
+      "evidence": [
+        ".project-local/worktrees/dsh-backend-20260927/.project-local/dsh-evidence/post-format-run.env",
+        ".project-local/runs/5514a47716/dsh-post-format2/artifacts/vnext-journey.json"
+      ]
+    },
+    {
+      "id": "vnext-receipt-local-mode",
+      "claim": "A local run can hand its identity to the gate without faking GITHUB_ACTIONS/GITHUB_ENV",
+      "command": "dev.py --run-id dsh-local-receipt-1 --env-file <file> -- <cargo v01_journey>; check_vnext_receipt.py --env-file <file>",
+      "observed_env": "GITHUB_ACTIONS= (empty), GITHUB_ENV= (empty)",
+      "exit_code": 0,
+      "implementation": ["scripts/runtime/dev.py::write_env_file", "scripts/ci/check_vnext_receipt.py::load_identity"],
+      "status": "TESTED_LOCAL"
+    },
+    {
+      "id": "vnext-receipt-negatives",
+      "claim": "Missing run root, missing/corrupt receipt, wrong run-id, wrong source commit, reused previous run, failed step, and receipt outside artifacts are all rejected",
+      "command": "pytest tests/runtime-paths/ -q",
+      "passed": 42,
+      "subtests_passed": 9,
+      "exit_code": 0,
+      "status": "TESTED_LOCAL",
+      "evidence": ["tests/runtime-paths/test_vnext_receipt.py"]
+    },
+    {
+      "id": "m0-full-loop",
+      "claim": "The 26-stage M0 loop runs end to end through the real Core binary in one workspace",
+      "command": "dev.py --run-id dsh-m0-loop-3 -- <venv python> -B scripts/probes/m0_full_loop_smoke.py",
+      "receipt": ".project-local/worktrees/dsh-backend-20260927/.project-local/m0loop/f7f32c46/m0-loop-receipt.json",
+      "ok": true,
+      "chain_stages_verified": true,
+      "fsrs_schedule_observed": true,
+      "schedule_authority_answer_path": "fsrs",
+      "online_restore_verified": true,
+      "legacy_migration_status": "ok",
+      "legacy_original_untouched": true,
+      "unreadable_tables": [],
+      "exit_code": 0,
+      "status": "TESTED_LOCAL"
+    },
+    {
+      "id": "m0-fsrs-root-cause",
+      "claim": "The previously recorded ok=false / schedule_authority=unavailable was an environment-propagation defect, not a product limitation",
+      "measurement": [
+        "Without ARCHEAXIS_PYTHON the probe now reports blocked before starting (exit 2), naming the missing variable.",
+        "With an interpreter that lacks sqlite_vec the probe reports blocked naming sqlite_vec - which is exactly what produced unreadable_tables=[\"vec_episodes\"] in the first run of this session.",
+        "Launched through dev.py with the project interpreter the same review returns schedule_authority=fsrs with a populated schedule_state."
+      ],
+      "corrected_artifact": "scripts/probes/m0_full_loop_smoke.py (stale comment asserting the deviation was inherent to the path replaced with the measured cause; unmet_prerequisites() added)",
+      "status": "TESTED_LOCAL"
+    },
+    {
+      "id": "root-workspace-format-gate",
+      "claim": "The root vNext workspace had no rustfmt check anywhere, and 83 files had drifted",
+      "before": "cargo fmt --all -- --check exit 1, 83 files differ",
+      "after": "cargo fmt --all -- --check exit 0",
+      "ci_change": ".github/workflows/ci.yml rust-vnext job gained 'cargo fmt (root vNext workspace)'; GatePlan already requires rust-vnext for crates/** so no classifier change was needed",
+      "generator_interaction": "crates/archeaxis-contracts/src/generated/vocabulary.rs is generator-owned; rustfmt reformatting broke generate_vocabulary.py --check. Fixed by emitting #[rustfmt::skip] per item (the inner form #![rustfmt::skip] is rejected by stable rustc). Drift check and format check now both pass.",
+      "status": "TESTED_LOCAL"
+    },
+    {
+      "id": "owner-db-forensics",
+      "claim": "Read-only forensics on the Owner's live database",
+      "path": "data/archeaxis.sqlite",
+      "sha256": "6dc8d49c386d6c7c9d7d70613d03f50764e2d9a13fcc72f816bf1da04769811a",
+      "size": 987136,
+      "tables": 96,
+      "integrity_check": "ok",
+      "foreign_key_violations": 0,
+      "row_total": 36,
+      "missing_from_baseline": ["index:idx_kb_attachment_facts_source_path", "table:kb_attachment_facts"],
+      "mismatched": [],
+      "recorded_migration_runs": 7,
+      "note": "The earlier audit's claim that this database has zero rows in every table is refuted by measurement (36 rows). The Owner's database contains a FAILED core.sqlite apply recorded at 2026-09-27T05:40:12Z, which matches the observed mtime 2026-09-27 13:40:12 +08:00 and the lock file in data/.",
+      "status": "STRUCTURAL"
+    },
+    {
+      "id": "stale-db-recovery-contract",
+      "claim": "The Owner's database IS inside the supported upgrade range; the supported migration entry point repairs the drift on a consistent copy",
+      "method": "SQLite online-backup API copy (source opened mode=ro), then shared.migration_runner.MigrationOperator.apply('core.sqlite')",
+      "source_unchanged": true,
+      "before": "core_schema.validate -> RuntimeError: missing table:kb_attachment_facts,index:idx_kb_attachment_facts_source_path",
+      "apply": "state=applied, applied_migrations=[core_sqlite_baseline_v1], pre-migration backup written",
+      "after": "core_schema.validate -> accepted; missing objects 2 -> 0",
+      "conclusion": "Fail-closed startup validation is correct behaviour and is NOT evidence that the database is unsupported. A supported repair path exists and was verified on an isolated copy. The original was never written, checkpointed or locked for writing.",
+      "not_done": "The repair was NOT applied to the Owner's database. That is a data operation requiring explicit Owner authorisation.",
+      "status": "TESTED_LOCAL on the copy"
+    },
+    {
+      "id": "affected-python-regressions",
+      "claim": "Tests that read root-workspace Rust sources still pass after the reformat",
+      "command": "dev.py --pytest -- tests/runtime-paths/ tests/test_desktop_routes_v1.py tests/test_desktop_navigation_contract.py tests/contract/test_vocabulary_generation.py -q",
+      "passed": 273,
+      "subtests_passed": 38,
+      "exit_code": 0,
+      "status": "TESTED_LOCAL"
+    }
+  ],
+  "not_executed": [
+    "Real corpus / real format quality acceptance (no authorised real inputs available)",
+    "Real model or provider calls (no budget/provider authorisation in this session)",
+    "GUI / UIA / keyboard / DPI replay (Codex-owned; not touched)",
+    "Green runtime replacement, install, rollback (Owner Gate; release FROZEN)",
+    "Wheel / installed-run qualification for the final candidate packaging",
+    "Remote CI run for the new branch (remote writes not authorised in this session)"
+  ],
+  "blocked_by_owner_decision": [
+    "A02 resource-root / schema semantics",
+    "P0-H01 Provider/Host identity and lifecycle D1-D6",
+    "DP-F01 typed loss receipt D1-D5",
+    "DP-A11 / Research D1-D5 and DTO freeze",
+    "Applying the verified baseline repair to the Owner's live database"
+  ],
+  "preserved_untouched": [
+    "apps/ArcheAxis.Desktop/MainWindow.axaml.cs (pre-existing Codex modification)",
+    "docs/history/** untracked material",
+    "git stash@{0} and stash@{1}",
+    "data/archeaxis.sqlite and its lock files"
+  ]
+}

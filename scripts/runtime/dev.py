@@ -223,6 +223,52 @@ def prepare(paths: dict[str, Path]) -> dict[str, str]:
     return values
 
 
+def write_env_file(destination: Path, values: dict[str, str]) -> Path:
+    """Persist a run's environment for a later step of the *same* run.
+
+    CI learns the run identity through the runner-owned `GITHUB_ENV` file. A local
+    shell has no equivalent, so a caller that must hand one run's identity to a
+    following gate (for example `scripts/ci/check_vnext_receipt.py`) had to
+    reconstruct `ARCHEAXIS_RUN_ROOT`/`VNEXT_RECEIPT_OUT`/`ARCHEAXIS_SOURCE_COMMIT`
+    by hand - or fake `GITHUB_ACTIONS`. Writing the same mapping this launcher
+    already computes keeps the two paths from drifting, and the gate keeps every
+    identity check it had. An empty `destination` is a caller error, not a silent
+    no-op, because `Path("")` is `Path(".")`.
+    """
+    target = safe_path(destination)
+    target.parent.mkdir(parents=True, exist_ok=True)
+    lines = []
+    for name, value in values.items():
+        if "\n" in value or "\r" in value:
+            raise ValueError(f"invalid environment value for {name}")
+        lines.append(f"{name}={value}\n")
+    # Exclusive creation: a stale file from an earlier run must not be mistaken for
+    # this run's identity, and silently overwriting would hide that mistake.
+    with open(target, "x", encoding="utf-8", newline="\n") as output:
+        output.writelines(lines)
+    return target
+
+
+def read_env_file(source: Path) -> dict[str, str]:
+    """Read a `NAME=VALUE` file written by :func:`write_env_file`.
+
+    Kept here (rather than only inside a consumer) so the local operator flow has
+    one reader, while `scripts/ci/check_vnext_receipt.py` stays import-free: CI runs
+    that gate as a script, so `sys.path[0]` is `scripts/ci` and a repository import
+    would fail there. `tests/runtime-paths/test_vnext_receipt.py` pins the two
+    implementations together.
+    """
+    mapping: dict[str, str] = {}
+    for line in safe_path(source).read_text(encoding="utf-8").splitlines():
+        if not line.strip() or line.lstrip().startswith("#"):
+            continue
+        name, separator, value = line.partition("=")
+        if not separator or not re.fullmatch(r"[A-Za-z_][A-Za-z0-9_]*", name):
+            raise ValueError(f"invalid environment line: {name[:40]!r}")
+        mapping[name] = value
+    return mapping
+
+
 def pytest_environment(root: Path) -> Path:
     inherited = os.environ.get("ARCHEAXIS_RUN_ROOT")
     if inherited:
@@ -294,6 +340,9 @@ def main() -> int:
     parser.add_argument("--full", action="store_true")
     parser.add_argument("--github-env", action="store_true",
                         help="register paths through the GitHub runner environment file")
+    parser.add_argument("--env-file", type=Path,
+                        help="also write this run's environment to a NAME=VALUE file for a "
+                             "later step of the same run (local equivalent of --github-env)")
     parser.add_argument("command", nargs=argparse.REMAINDER)
     args = parser.parse_args()
     try:
@@ -313,6 +362,11 @@ def main() -> int:
                     output.write(f"{name}={value}\n")
             print(f"[dev] GitHub environment initialized: {paths['run']}")
             return 0
+        if args.env_file is not None:
+            # Recorded before the child starts so a run that fails or is cancelled
+            # still leaves the identity its own receipts must be checked against.
+            write_env_file(args.env_file, environment(paths))
+            print(f"[dev] environment file written: {args.env_file}", flush=True)
         command = args.command
         if command[:1] == ["--"]:
             command = command[1:]
