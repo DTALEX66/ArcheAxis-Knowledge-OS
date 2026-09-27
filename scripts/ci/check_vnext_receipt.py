@@ -39,9 +39,15 @@ IDENTITY_NAMES = (
 
 def validate(receipt: dict, commit: str, run_id: str, dirty: bool,
              patch_sha256: str) -> None:
+    # Each guard names its own failure: an exit code alone does not show which check
+    # fired, and "rejected" for the wrong reason is not evidence.
+    if receipt.get("schema") != "archeaxis.vnext/v01-closed-loop-receipt":
+        raise ValueError("not a vNext closed-loop receipt")
+    if receipt.get("schema_version") != SCHEMA_VERSION:
+        raise ValueError(
+            f"receipt schema_version {receipt.get('schema_version')!r} is not "
+            f"{SCHEMA_VERSION}; it cannot bind the tested working state")
     if (not re.fullmatch(r"[0-9a-f]{40}", commit) or not run_id
-            or receipt.get("schema") != "archeaxis.vnext/v01-closed-loop-receipt"
-            or receipt.get("schema_version") != SCHEMA_VERSION
             or receipt.get("source_commit") != commit
             or receipt.get("run_id") != run_id):
         raise ValueError("receipt source/run identity mismatch")
@@ -54,14 +60,15 @@ def validate(receipt: dict, commit: str, run_id: str, dirty: bool,
         raise ValueError(
             "receipt working state does not match this run "
             f"(receipt dirty={bool(receipt['source_dirty'])}, run dirty={dirty})")
+    # The digest of an empty delta is a real value for a clean tree, so it is bound the
+    # same way in both cases rather than being special-cased into absence.
     recorded_patch = receipt.get("source_patch_sha256")
-    if dirty:
-        if not re.fullmatch(r"[0-9a-f]{64}", patch_sha256 or ""):
-            raise ValueError("this run recorded no patch identity to bind against")
-        if recorded_patch != patch_sha256:
-            raise ValueError("receipt patch identity does not match this run")
-    elif recorded_patch not in ("", None):
-        raise ValueError("a clean run must not carry a patch identity")
+    if not re.fullmatch(r"[0-9a-f]{64}", patch_sha256 or ""):
+        raise ValueError("this run recorded no patch identity to bind against")
+    if recorded_patch != patch_sha256:
+        raise ValueError(
+            "receipt patch identity does not match this run "
+            f"(receipt {recorded_patch!r}, run {patch_sha256!r})")
     steps = receipt.get("steps", {})
     if (not isinstance(steps, dict) or len(steps) != 12
             or receipt.get("total_steps") != 12

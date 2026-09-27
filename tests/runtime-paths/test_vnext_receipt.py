@@ -36,7 +36,7 @@ def steps():
 def receipt(**overrides):
     value = {"schema": "archeaxis.vnext/v01-closed-loop-receipt", "schema_version": 3,
              "source_commit": COMMIT, "source_tree": "b" * 40,
-             "source_dirty": False, "source_patch_sha256": "",
+             "source_dirty": False, "source_patch_sha256": PATCH,
              "run_id": RUN_ID, "total_steps": 12,
              "steps": steps(), "manifest_sha256": "b" * 64}
     value.update(overrides)
@@ -46,11 +46,12 @@ def receipt(**overrides):
 def test_validate_rejects_stale_identity_failed_steps_and_unbound_working_state():
     from scripts.ci.check_vnext_receipt import validate
 
-    validate(receipt(), COMMIT, RUN_ID, False, "")
+    validate(receipt(), COMMIT, RUN_ID, False, PATCH)
     cases = {
         "source_commit": ("c" * 40, "identity"),
         "run_id": ("previous", "identity"),
-        "schema_version": (2, "identity"),
+        "schema_version": (2, "schema_version"),
+        "schema": ("other", "not a vNext closed-loop receipt"),
         "total_steps": (0, "steps"),
         "steps": ({"01_step": "PASS: old"}, "steps"),
         "steps_failed": ({**steps(), "05_step": "FAIL: failure"}, "steps"),
@@ -59,19 +60,19 @@ def test_validate_rejects_stale_identity_failed_steps_and_unbound_working_state(
         bad = copy.deepcopy(receipt())
         bad[key if key != "steps_failed" else "steps"] = value
         with pytest.raises(ValueError) as error:
-            validate(bad, COMMIT, RUN_ID, False, "")
+            validate(bad, COMMIT, RUN_ID, False, PATCH)
         assert expected in str(error.value)
     missing_field = copy.deepcopy(receipt())
     del missing_field["source_dirty"]
     with pytest.raises(ValueError, match="working state"):
-        validate(missing_field, COMMIT, RUN_ID, False, "")
-    dirty_receipt = receipt(source_dirty=True, source_patch_sha256=PATCH)
+        validate(missing_field, COMMIT, RUN_ID, False, PATCH)
+    # A dirty receipt offered for a clean run, and a patch digest that disagrees.
     with pytest.raises(ValueError, match="working state"):
-        validate(dirty_receipt, COMMIT, RUN_ID, False, "")
+        validate(receipt(source_dirty=True), COMMIT, RUN_ID, False, PATCH)
     with pytest.raises(ValueError, match="patch identity"):
-        validate(receipt(source_dirty=True, source_patch_sha256="d" * 64),
-                 COMMIT, RUN_ID, True, PATCH)
-    validate(dirty_receipt, COMMIT, RUN_ID, True, PATCH)
+        validate(receipt(source_patch_sha256="d" * 64), COMMIT, RUN_ID, False, PATCH)
+    # The dirty case is accepted once every part of the identity agrees.
+    validate(receipt(source_dirty=True), COMMIT, RUN_ID, True, PATCH)
 
 
 def controlled_env(**identity):
@@ -144,14 +145,12 @@ def negative_cases(tmp_path):
         ("failed_step", {}, receipt(steps={**steps(), "07_step": "FAIL: no rows"}),
          "receipt has incomplete or failed steps"),
         ("legacy_v2_receipt_no_working_state", {}, receipt(schema_version=2),
-         "receipt source/run identity mismatch"),
+         "schema_version"),
         ("dirty_run_clean_receipt", {"ARCHEAXIS_SOURCE_DIRTY": "1"}, base,
          "receipt working state does not match this run"),
-        ("clean_run_dirty_receipt", {},
-         receipt(source_dirty=True, source_patch_sha256=PATCH),
+        ("clean_run_dirty_receipt", {}, receipt(source_dirty=True),
          "receipt working state does not match this run"),
-        ("patch_mismatch", {"ARCHEAXIS_SOURCE_DIRTY": "1"},
-         receipt(source_dirty=True, source_patch_sha256="d" * 64),
+        ("patch_mismatch", {}, receipt(source_patch_sha256="d" * 64),
          "receipt patch identity does not match this run"),
     ]
     return cases

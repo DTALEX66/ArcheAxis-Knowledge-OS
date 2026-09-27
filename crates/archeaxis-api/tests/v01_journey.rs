@@ -283,7 +283,7 @@ fn v01_twelve_step_journey() {
         }
         let receipt = serde_json::json!({
             "schema": "archeaxis.vnext/v01-closed-loop-receipt",
-            "schema_version": 2,
+            "schema_version": 3,
             "source_commit": std::env::var("ARCHEAXIS_SOURCE_COMMIT").unwrap_or_default(),
             "source_tree": std::env::var("ARCHEAXIS_SOURCE_TREE").unwrap_or_default(),
             // The commit alone cannot distinguish a committed source from HEAD plus
