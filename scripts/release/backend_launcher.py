@@ -154,22 +154,37 @@ def start(data_root: Path, port: int) -> tuple[subprocess.Popen, str, dict]:
     authority = line.split(READY_MARKER, 1)[1].split()[0].strip()
     base = f"http://{READY_MARKER}{authority}"
     receipt = {"core": str(core), "workspace": str(workspace), "port": port,
-               "ready_line": line.strip(), "text_worker": launch["text_worker"]}
+               "ready_line": line.strip(), "text_worker": launch["text_worker"],
+               "session_id": launch["session_id"],
+               "launch_token": launch["launch_token"],
+               "machine_token": launch["machine_token"]}
     return child, base, receipt
 
 
-def call(base: str, method: str, path: str, body: dict | None = None) -> tuple[int, object]:
+def call(base: str, method: str, path: str, body: dict | None = None,
+         tokens: dict | None = None) -> tuple[int, object]:
+    """Every route is authenticated per request by the launch layer.
+
+    The Core matches `x-archeaxis-launch-token` against the token it accepted on
+    stdin and answers `AAK-AUTH-001` otherwise, so a caller that forgets it sees a
+    bare 401 rather than a startup problem.
+    """
     data = json.dumps(body).encode("utf-8") if body is not None else None
     request = urllib.request.Request(base + path, data=data, method=method)
     if data is not None:
         request.add_header("content-type", "application/json")
+    for name, value in (tokens or {}).items():
+        request.add_header(name, value)
     try:
         with urllib.request.urlopen(request, timeout=10) as response:
             payload = response.read().decode("utf-8")
             return response.status, json.loads(payload) if payload else {}
     except urllib.error.HTTPError as error:
         payload = error.read().decode("utf-8")
-        return error.code, payload
+        try:
+            return error.code, json.loads(payload)
+        except json.JSONDecodeError:
+            return error.code, payload
 
 
 def stop(child: subprocess.Popen) -> int:
@@ -201,10 +216,13 @@ def main() -> int:
 
     receipt["base_url"] = base
     if args.smoke:
+        tokens = {"x-archeaxis-launch-token": receipt.pop("launch_token"),
+                  "x-archeaxis-machine-token": receipt.pop("machine_token")}
+        receipt.pop("session_id", None)
         try:
-            status, version = call(base, "GET", "/api/v1/system/version")
+            status, version = call(base, "GET", "/api/v1/system/version", tokens=tokens)
             receipt["system_version"] = {"status": status, "body": version}
-            status, info = call(base, "GET", "/api/v1/workspaces/info")
+            status, info = call(base, "GET", "/api/v1/workspaces/info", tokens=tokens)
             receipt["workspaces_info"] = {"status": status, "body": info}
         finally:
             receipt["exit_code"] = stop(child)
