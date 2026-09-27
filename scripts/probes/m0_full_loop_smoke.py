@@ -46,7 +46,11 @@ import uuid
 from pathlib import Path
 
 REPO = Path(__file__).resolve().parents[2]
-BINARY = REPO / ".project-local" / "build" / "cargo" / "debug" / "archeaxis-api.exe"
+# The staged runtime already names its own Core through ARCHEAXIS_CORE_BIN; honouring
+# it is what lets this probe qualify an installed runtime instead of only a checkout.
+BINARY = Path(os.environ.get(
+    "ARCHEAXIS_CORE_BIN",
+    str(REPO / ".project-local" / "build" / "cargo" / "debug" / "archeaxis-api.exe")))
 LEGACY = REPO / "data" / "cognitive_os.sqlite"
 
 # The Core validates the launch identity as hex; a non-hex token is rejected with
@@ -104,12 +108,50 @@ core = _load("core_client_m0", REPO / "shared" / "core_client.py")
 runtime = _load("runtime_m0", REPO / "scripts" / "runtime" / "dev.py")
 
 
+def worker_profile() -> dict | None:
+    """The staged runtime's own worker profile, when one is published.
+
+    Reading it here is the point of the installed qualification: the caller passes a
+    runtime root, not a hand-resolved interpreter.
+    """
+    for name in ("ARCHEAXIS_WORKER_PROFILE", "ARCHAXIS_WORKER_PROFILE"):
+        raw = os.environ.get(name, "").strip()
+        if not raw:
+            continue
+        path = Path(raw)
+        if not path.is_file():
+            raise SystemExit(f"worker profile is not a file: {path}")
+        document = json.loads(path.read_text(encoding="utf-8"))
+        if document.get("schema") != "archeaxis.worker-profile/v1":
+            raise SystemExit(f"worker profile schema is not v1: {path}")
+        base = path.parent
+        resolved = {}
+        for key in ("python", "script", "staging"):
+            value = document.get(key)
+            if not isinstance(value, str) or not value.strip():
+                raise SystemExit(f"worker profile has no {key}: {path}")
+            candidate = Path(value)
+            resolved[key] = (candidate if candidate.is_absolute() else base / candidate)
+        return resolved
+    return None
+
+
 def start_core(db: Path, staging: Path) -> tuple[subprocess.Popen, str]:
-    worker = {
-        "python": str(Path(sys.executable).resolve()),
-        "script": str((REPO / "services/python-workers/transport/text_ndjson.py").resolve()),
-        "staging": str(staging.resolve()),
-    }
+    profile = worker_profile()
+    if profile is None:
+        worker = {
+            "python": str(Path(sys.executable).resolve()),
+            "script": str((REPO / "services/python-workers/transport/text_ndjson.py").resolve()),
+            "staging": str(staging.resolve()),
+        }
+    else:
+        # The run's own staging directory still wins so parallel runs stay isolated,
+        # while the interpreter and worker script come from the published runtime.
+        worker = {
+            "python": str(profile["python"].resolve()),
+            "script": str(profile["script"].resolve()),
+            "staging": str(staging.resolve()),
+        }
     child = subprocess.Popen(
         [str(BINARY), str(db), "0"],
         stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
@@ -163,10 +205,23 @@ def unmet_prerequisites() -> dict[str, str]:
     """
     unmet: dict[str, str] = {}
     scheduler_python = os.environ.get("ARCHEAXIS_PYTHON", "").strip()
-    if not scheduler_python:
-        unmet["ARCHEAXIS_PYTHON"] = "not set; the Core scheduler worker would report unavailable"
-    elif not Path(scheduler_python).is_file():
+    if scheduler_python and not Path(scheduler_python).is_file():
         unmet["ARCHEAXIS_PYTHON"] = f"not a file: {scheduler_python}"
+    if not scheduler_python:
+        # A staged runtime publishes the interpreter in worker-profile.json, and the
+        # Core resolves it from there. Requiring the variable as well would make this
+        # probe demand exactly the manual step the runtime exists to remove.
+        try:
+            profile = worker_profile()
+        except SystemExit as error:
+            profile = None
+            unmet["worker_profile"] = str(error)
+        if profile is None and "worker_profile" not in unmet:
+            unmet["ARCHEAXIS_PYTHON"] = (
+                "not set and no worker profile published; the Core would report "
+                "schedule_authority unavailable")
+        elif profile is not None and not profile["python"].is_file():
+            unmet["worker_profile.python"] = f"not a file: {profile['python']}"
     try:
         import sqlite_vec  # noqa: F401
     except Exception as error:  # pragma: no cover - depends on the interpreter
