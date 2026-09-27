@@ -3619,3 +3619,46 @@ behaviour of that guard.
 **3413 passed, 14 skipped, 0 failed** (the earlier baseline of 3376 passed / 46 skipped was measured without the
 root, so previously-skipped OCR/media tests now run). Governance unchanged: A15/A16 unsigned, release FROZEN,
 `local_green_updated=false`.
+
+### The backend audit prompt is closed, and its two structural findings — 2026-09-27
+
+The execution prompt asked for one consolidated report with eight elements; two review rounds had been recorded
+but never merged, and one heading still asserted a conclusion the second round had overturned. That report is now
+**section 11** of `docs/current/DSH-BACKEND-HANDOFF-20260927.md` (`95f6638a` → `d570a986`), and section 9.4
+carries a forward pointer so the superseded "Rust `NOT_EXECUTED`" heading cannot be read as current.
+
+Merged verdicts: `CONFIRMED` for the P1 quality matrix, machine-loop restart, the F01 Python and Rust targets, the
+language-data gap, the P0-H01 / Research proposals *as proposals*, and DP-UI-01 *as not-executed*; `PARTIAL` for
+DP-NF-01 (absorption is real, but the handoff credited the wrong verifier for batch 02 and dropped
+`branch-batch-03`'s 16 SHAs / 107 paths), DP-NF-04 (contract and renderer tests pass; the underlying Search and
+`CourseManifest` audits were **not** re-judged), and DP-NF-06 (the `NOT_EXECUTED` label is superseded by that same
+file's Correction, and the underlying reports give three mutually inconsistent causes for the `ok=false` run).
+Nothing was upgraded to `REAL`, `GUI_ACCEPTED`, `MERGED_MAIN`, `INSTALLED_RUNTIME_VERIFIED` or
+`CI_VERIFIED_EXACT_SHA`; the four owner decisions stay open and are the whole of `BLOCKED_BY_OWNER_DECISION`.
+
+#### A suite number in this ledger did not reproduce, and scope does not explain it
+
+The entry above records **3413 passed, 14 skipped** (3427 collected). Re-run on `d570a986` with the explicit scope
+`tests/ integration-tests/ knowledge_base/tests/` the count is **3419 passed, 10 skipped, 137 subtests, exit 0**,
+and `--collect-only` for that exact scope reports **3429** — passed + skipped matches collected exactly, so 3419/10
+is the reproducible figure and this ledger now prefers it.
+
+Scope alone is not the explanation, which is why it is written down rather than waved away: the three candidate
+scopes collect **3429** (`tests/ integration-tests/ knowledge_base/tests/`), **3382** (`tests/ knowledge_base/tests/`,
+i.e. `dev.py --pytest --full`) and **3344** (`tests/` alone). None of them is 3427. The 2-test difference therefore
+comes from an earlier state of the tree, and its cause is **not** pinned down; the earlier number is left standing
+as what it was, a measurement of its own moment. The lesson is the cheap one: a suite total is only meaningful
+attached to its exact command and scope, and re-running costs four minutes.
+
+#### A green CI on a docs-only commit ran three gates
+
+`d570a986` is green on `main` (run `36292766608`) and on the branch (run `36292762956`) — but only `gateplan`,
+`lint` and `a0-gates` actually executed; **fourteen gates were skipped**, including `rust-vnext`, `test`,
+`wheel-smoke`, `desktop-build` and `installer-lifecycle`. The green is legitimate: `a0-gates` step
+`Validate required gates against GatePlan (ci-verdict)` passed, which is the check that a skip is *allowed* for a
+docs-only change. It is nevertheless **not** evidence that this commit's code was verified, because there is no
+code in it. Reading "main is green" as "CI verified the implementation" is exactly the substitution this project
+forbids, and the report records the two readings side by side for that reason.
+
+Governance unchanged by this round: no product code, zero `apps/**` change, frozen TaskPack and `R6-STATE.json`
+untouched, A15/A16 unsigned, release FROZEN, `local_green_updated=false`.

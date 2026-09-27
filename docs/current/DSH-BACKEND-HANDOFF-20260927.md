@@ -419,6 +419,8 @@ A02 / P0-H01 / F01 D1–D5 / Research DTO 四项 **Owner 决策不变**；真实
 | 15 | `pytest tests/test_unseen_evaluation.py` | 13 passed | 0 |
 | 16 | 守卫：`check_architecture.py` / `check_repository_conventions.py --source index` / `check_language_boundaries.py` / `ruff … --select E9,F63,F7,F82` | 分别 `architecture guard passed` / `passed (index)` / `language boundary check passed` / `All checks passed!` | 0 |
 
+**第 13 项的作用域必须连命令一起读**：该作用域 `--collect-only` 实测 **3429**（= 3419 passed + 10 skipped），与之自洽。同机上 `tests/ knowledge_base/tests/`（即 `dev.py --pytest --full` 的默认集合）收集 **3382**、`tests/` 单独收集 **3344** —— 三者不可互换。本台账早前另有一条 "3413 passed, 14 skipped"（合计 3427）的记录，**不**等于上式中的任何一个；本轮在 `d570a986` 上用上表命令复跑得到 3419/10，故本节采用 3419/10，并注明旧值的 2 例差额**未**追平（不臆测成因）。
+
 **必须记录的调用约定（否则会误判产品失败）**：直接 `cargo test` 会让第 10 项的测试报 `1 passed; 4 failed`，失败正文是测试**自身的守卫** `run cargo via scripts/runtime/dev.py to select the exact Python`。受跟踪入口 `scripts/ci/cargo_test.bat` 是必需路径。
 
 **对 §6 历史数字的一处更正**：原稿记 `tests/workers` 为 `117 passed, 7 skipped, 2 failed, 5 errors`；当前 HEAD 实测 `135 passed, 7 skipped, 0 failed, 0 errors`（通过 +18，**2 failure 与 5 error 均未复现**）。差异成因（环境补齐 vs 测试演进）**未判定**，只记录"历史失败不适用于当前 HEAD"。
@@ -475,6 +477,15 @@ A02 / P0-H01 / F01 D1–D5 / Research DTO 四项 **Owner 决策不变**；真实
 - `git status --short`（同一基线）：仅 ` M apps/ArcheAxis.Desktop/MainWindow.axaml.cs`（**既存、属前端写范围，本任务从未触碰**）与既存 `?? docs/history/**`。
 - 第一轮（阻塞修复 + 转述审计）的改动**全部已提交**在 `95f6638a`：`scripts/runtime/dev.py`、`tests/runtime-paths/test_external_toolchain.py`、`scripts/probes/core_learning_api_smoke.py`、`docs/current/R6-EXECUTION.md`、`docs/current/DSH-BACKEND-HANDOFF-20260927.md`、`docs/current/DSH-BACKEND-EXECUTION-PROMPT-20260927.md`；本节随其后的 doc-only 提交发布（其后 `git diff --stat` 复归为空）。
 - 后端与 UI 写范围**分离**：本任务对 `apps/**` 零改动，未改 Avalonia 视图/主题/视图模型/页面事件；`main` = 分支 = `95f6638a`，其 CI run `36292355530` **success**。
+
+**本任务两个提交的 CI 读回（必须连着"跑了什么"一起读，否则会高估）**：
+
+| 提交 | run（main / 分支） | 结论 | 实际执行的 gate |
+| --- | --- | --- | --- |
+| `95f6638a`（阻塞修复 + 代码/测试改动） | `36292355530` / `36292101536` | success | 代码相关 gate（含 `rust-vnext`、`wheel-smoke`、`workers-vnext` 等） |
+| `d570a986`（仅本报告，doc-only） | `36292766608` / `36292762956` | success | **仅 `gateplan`、`lint`、`a0-gates`**；其余 **14 个 gate 全部 skipped**（`rust-vnext`、`test`、`wheel-smoke`、`desktop-build`、`installer-lifecycle` …） |
+
+即：`d570a986` 的绿色是 **GatePlan 判定"doc-only ⇒ 允许跳过"** 的结果（`a0-gates` 的 `Validate required gates against GatePlan (ci-verdict)` 步骤成功），**不是**该提交的代码被 CI 验证过。本节的实现性结论仍以 §11.4 的**本机 exact-SHA** 运行为准。
 
 ### 11.9 完成标准自检（执行提示词 §E）
 
