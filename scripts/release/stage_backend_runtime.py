@@ -131,6 +131,16 @@ def write_launcher(root: Path) -> Path:
         "rem resolved from this directory; no checkout, virtualenv or manual\r\n"
         "rem interpreter configuration is involved.\r\n"
         "setlocal\r\n"
+        "rem cmd.exe answers 9009 for a missing program, which names nothing. Check the\r\n"
+        "rem interpreter here so a broken runtime says which component is missing.\r\n"
+        'if not exist \"%~dp0runtime\\python.exe\" (\r\n'
+        "  echo {\"ok\": false, \"failure\": \"runtime interpreter is missing: %~dp0runtime\\python.exe\"}\r\n"
+        "  exit /b 2\r\n"
+        ")\r\n"
+        'if not exist \"%~dp0start-backend.py\" (\r\n'
+        "  echo {\"ok\": false, \"failure\": \"launcher script is missing: %~dp0start-backend.py\"}\r\n"
+        "  exit /b 2\r\n"
+        ")\r\n"
         '"%~dp0runtime\\python.exe" "%~dp0start-backend.py" %*\r\n'
         "exit /b %ERRORLEVEL%\r\n",
         encoding="utf-8", newline="\r\n")
