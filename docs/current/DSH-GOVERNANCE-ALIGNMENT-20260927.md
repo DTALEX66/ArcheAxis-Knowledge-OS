@@ -265,4 +265,47 @@ status_vocabulary:
 
 ## 9. 回滚
 
-删除本文件与同批 intake note 即可；无其他文件被修改。回滚后 `git status --short` 应回到基线（仅 `apps/ArcheAxis.Desktop/MainWindow.axaml.cs` 的既存 EOL-only 脏 + 既存 `docs/history/**` 未跟踪物）。
+删除本文件与同批 intake note 即可；无其他文件被修改。
+
+本分支已隔离到独立 worktree，完整回滚还需一步：`git worktree remove .project-local/worktrees/dsh-governance-20260927`。删除**远端**分支是独立的破坏性副作用，需单独授权，本报告未执行也未建议自动执行。
+
+回滚后主 worktree 的 `git status --short` 应回到基线（仅 `apps/ArcheAxis.Desktop/MainWindow.axaml.cs` 的既存 EOL-only 脏 + 既存 `docs/history/**` 未跟踪物）。
+
+---
+
+## 10. 并发写入实测事件、隔离处置与协调缺口（会话内追加）
+
+### 10.1 实测事件（全部为命令输出，非推测）
+
+| 时点 | 观测 | 含义 |
+| --- | --- | --- |
+| 本次 fetch 后 | `HEAD` = `69a3baed` = `origin/main` = `origin/codex/aaos-p3-ui-convergence-20260922` | 三 ref 同 SHA、零分叉 |
+| 随后创建分支时 | `HEAD` 已变为 `43c2cafa`（`docs(dsh): add a self-contained audit prompt for third-party review`） | **同一窗口期内另一写入者提交了它** |
+| 再 fetch 后 | `origin/main` 与 `origin/codex/…` 均已为 `43c2cafa` | 该提交**已被推送到远端** |
+| 数分钟后 | `git worktree list` 新增 `.project-local/worktrees/dsh-backend-r5`（`7503195b`，分支 `dsh/backend-r5`），此前不存在 | 并发活动**仍在继续** |
+
+结论：本检出上存在**至少一个并发写入者**。把新分支直接创建在主 worktree，等于与它共享检出与 HEAD。
+
+### 10.2 处置：一分支一 worktree
+
+依 `docs/authority/AGENTS.vnext-governance.md:51-53`（单切片 = 单泳道 = 单分支 = **单 worktree** = 单 owner）与 `DIRECTORY_AUTHORITY.yaml:560`（`.project-local/worktrees/` 属 `ignored_local_roots`）：
+
+- 主 worktree `D:/All projects/ArcheAxis-Knowledge-OS` 已切回 `codex/aaos-p3-ui-convergence-20260922` @ `43c2cafa`；其既存脏文件 `apps/ArcheAxis.Desktop/MainWindow.axaml.cs` 未受影响。
+- 本分支隔离至 `.project-local/worktrees/dsh-governance-20260927`，实测 `branch = dsh/governance-drift-alignment-20260927`、`HEAD = a0b0ef5a` = `origin/dsh/governance-drift-alignment-20260927`、`git status --porcelain` 为空。
+- 本任务后续写入**仅**发生在该 worktree 内。
+
+### 10.3 协调缺口（本报告的新增关键发现）
+
+`DIRECTORY_AUTHORITY.yaml:569-577` 与 `docs/authority/AGENTS.vnext-governance.md:41-42` 声明同机协调后端为 `git-common-dir/archeaxis-agent/state.sqlite`，用途明列 `local-coordination-locks`、`active-task-ownership`、`worktree-heartbeats`。
+
+实测结果：
+
+- `git rev-parse --git-common-dir` = `.git`，而 `.git/archeaxis-agent/` **不存在**。
+- `scripts/**` 全量检索 `archeaxis-agent`、`state.sqlite`、`coordination-lock`：**零命中**。
+
+⇒ 「不要并发写入」目前**没有任何机器保障**，只能依赖 Agent 自觉；这正是 10.1 的碰撞得以发生、且未被任何门禁拦下的原因。该缺口定为 `STRUCTURAL`，**本报告未自行补建**（补建需已签发信封，以及 `.project/**` 或 `scripts/**` 的写入授权）。
+
+### 10.4 建议（本轮未实施）
+
+1. 若要把「禁止并发写入」变成**强制**约束：实现该**已声明**的协调后端并提供 CLI（登记 / 心跳 / 超时回收），再把「检出身份与登记不匹配即拒绝」接入 START 检查。这恰是原方案 §3 的**意图**，但落点应是这个已声明的后端，而非另造 lease 文件。
+2. 在新后端落地前，最低成本、且已被本仓库规则支持的约束是：**每个写入者一个 worktree + 一条分支**，并在交接文档首行登记 worktree 身份与 `worktree_id` —— 后者正是 `.project/schemas/task-receipt.schema.json:75` 的既有字段。

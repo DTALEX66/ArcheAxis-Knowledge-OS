@@ -59,6 +59,21 @@ and `.project/leases/issued/` hold only README files). This intake note is
 written under the tier-1 Owner instruction and is flagged for Owner
 adjudication rather than silently treated as authorized.
 
+## Concurrent-writer finding
+
+A second writer was observed committing and pushing in this same checkout during
+the session: `43c2cafa` appeared after the fetch that still showed `69a3baed`,
+and a new `dsh-backend-r5` worktree appeared minutes later. Mitigation applied:
+this branch now has its own worktree at
+`.project-local/worktrees/dsh-governance-20260927`, and the main worktree was
+returned to `codex/aaos-p3-ui-convergence-20260922`.
+
+The repo declares a same-machine coordination backend at
+`git-common-dir/archeaxis-agent/state.sqlite` (`DIRECTORY_AUTHORITY.yaml:569-577`)
+but it does not exist, and no script under `scripts/**` references it. "No
+concurrent writes" therefore has no machine enforcement today. See section 10 of
+the alignment report.
+
 ## Open items for Owner decision
 
 1. Digest normalization for authority files: canonical-LF versus `AAK-JCS-1`
@@ -67,8 +82,13 @@ adjudication rather than silently treated as authorized.
    (the tracked option needs an issued envelope plus a new ownership rule).
 3. Whether `mypy` becomes a registered gate (it currently is not).
 4. Adjudication of the `workspace/intake/` write above.
+5. Whether to implement the declared coordination backend, since "no concurrent
+   writes" is currently unenforced. Not built by this intake.
 
 ## Rollback
 
-Delete this file and `docs/current/DSH-GOVERNANCE-ALIGNMENT-20260927.md`.
-No other file is touched, so no other rollback step is required.
+Delete this file and `docs/current/DSH-GOVERNANCE-ALIGNMENT-20260927.md`, then
+remove the branch worktree with
+`git worktree remove .project-local/worktrees/dsh-governance-20260927`.
+Deleting the remote branch is a separate destructive side effect requiring its
+own authorization and was not performed.
