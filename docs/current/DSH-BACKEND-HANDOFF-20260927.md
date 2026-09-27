@@ -214,6 +214,8 @@ DP-F01 Python 的历史回执（`5 passed, 1 warning, exit 0`）与本次实测*
 
 ### 9.4 Rust 目标：本机仍不可编译（`NOT_EXECUTED`，非产品缺陷）
 
+> **⚠ 已过时（第二轮起）**：本节的 `NOT_EXECUTED` 结论**已被 §10.2 取代** —— 阻塞成因是"已登记但未接线的 MSVC/工具链"，接线后 Rust 目标在本机全部跑通（§10.2 与 §11.4 第 9–12 项）。本节保留为当时的过程记录，**不得**再作为当前结论引用；当前结论看 **§11.2 / §11.4**。
+
 ```
 $env:CARGO_HOME=<repo>/.project-local/cache/cargo
 $env:CARGO_TARGET_DIR=<repo>/.project-local/build/cargo
@@ -337,3 +339,151 @@ scripts\ci\cargo_test.bat test --workspace --offline --no-fail-fast
 ### 10.6 未变
 
 A02 / P0-H01 / F01 D1–D5 / Research DTO 四项 **Owner 决策不变**；真实语料质量、真实模型/Provider、GUI/UIA、当前 DLL 路由复播、Candidate、Clean Machine、Green 与 Release 一律**未执行**；本回合**未**改冻结 TaskPack、`R6-EXECUTION.md`、`R6-STATE.json`。本轮改动落在：`scripts/runtime/dev.py`、`tests/runtime-paths/test_external_toolchain.py`、本文件。
+
+---
+
+## 11. 合并最终审计报告（执行提示词 §E 八项，基线 `95f6638a4de60bbedef262c9719e49974c100b80`）
+
+本节是**唯一**的结论汇总。§1–§8 是原交接稿的主张，§9–§10 是两轮复核的过程记录；**凡与本节冲突，以本节为准**，因为本节是唯一在全部修复之后、对 exact SHA 重跑并逐项复核过的版本。
+
+### 11.1 当前基线（§E-1）
+
+| 项 | 实测 |
+| --- | --- |
+| HEAD / tree | `95f6638a4de60bbedef262c9719e49974c100b80` / `3b8d5a9517989ce3e6922da6c51b0a6594dc3277` |
+| committer date | `2026-09-27T11:40:32+08:00` |
+| 远端 | `refs/heads/main` = `refs/heads/codex/aaos-p3-ui-convergence-20260922` = `95f6638a…` |
+| `git diff --stat` | **空** —— 已跟踪文件无未提交改动 |
+| `git status --short` | ` M apps/ArcheAxis.Desktop/MainWindow.axaml.cs`（**既存脏文件，属前端写范围，本任务未触碰、未认领**）；`?? docs/history/**`（既存未跟踪历史目录，未认领） |
+
+**可读性限制（下文的证级受此约束）**：
+
+1. `.project-local/` 全部为 **git-ignored**，云上不存在：探针回执、真实模型输出、迁移工作区、pytest 证据都在那里 → 任何引用它们的结论对云审计都是 `REQUEST-ARTIFACT`。
+2. **CI job 日志正文**匿名不可读（`GET /repos/.../actions/jobs/<id>/logs` → **403**，需 admin）。本节引用的 run 结论一律来自 **step 级元数据**。
+3. 本机**无 GUI 会话**、无真实语料授权输入、无真实模型调用授权 → 相应结论只能是 `NOT_EXECUTED`。
+
+### 11.2 逐项判定（§E-2）
+
+判定用 `CONFIRMED / REFUTED / PARTIAL / UNVERIFIED`；项目状态仍只用 R6 允许的状态词。
+
+| DP 项 | 判定 | 源码/证据锚点 | 说明 |
+| --- | --- | --- | --- |
+| DP-NF-01 / DP-GIT-01、02 | **PARTIAL** | `docs/current/dsh-review/branch-batch-01.md:266`（`No test was executed for any SHA`）；`branch-batch-02.md:256`（`verify_batch02.py` `errors=0`）；`branch-batch-03.md` | 交付物已吸收、数字逐字一致；但原稿把批次 02 的验证器写成 `audit_verify.ps1`，且漏了 branch-batch-03 的 16 SHA/107 路径 |
+| DP-NF-02 / P0-H01 | **CONFIRMED（作为提案）** | `p0-h01-host-lifecycle-proposal-20260925.md:3`（`STATUS: PROPOSAL / OWNER DECISION REQUIRED … Not an adopted contract`） | 提案属实且未获批准；无测试（`:12` citation-only） |
+| DP-NF-03 / P1 quality matrix | **CONFIRMED** | `tests/workers/test_p1_quality_matrix.py`（引入 `5bb89aa7`，HEAD 祖先）；本机 `11 passed, 2 subtests` | 13 文件/+5952−4 等数字与原文一致 |
+| DP-NF-04 / P2 Search + Course | **PARTIAL** | Search：`tests/test_vault_search_api.py` `7 passed`；Course：`tests/test_general_learning_contract.py` 6、`tests/test_courseware_v1.py` 11、`test_general_courseware_renderer.py` 8 全 passed | 上述是**契约/渲染层**测试通过；原报告的 Search 描述（FTS-only、每次查询 rebuild、字符窗口、无 calibrated score）是历史静态分析，本任务**未**重判其正确性；`CourseManifest` 合约**内容**未逐条审计 |
+| DP-NF-05 / machine-loop restart | **CONFIRMED** | `crates/archeaxis-domain/tests/machine_loop_restart.rs`（引入 `5bb89aa7`）；本机 `1 passed / 0 failed` | Rust 目标由 `NOT_EXECUTED` 升为 exact-SHA 本机实测 |
+| DP-NF-06 / P5、P6 | **PARTIAL** | `dp-nf-handoff-20260925.md:168`（P6 `NOT_EXECUTED`）对比同文件 `:196-197`（该标签**已被取代**）；`p6-current13-candidate-readback-20260925.md:77-89` 对比同文件 `:151-155` 对比 `AAOS-CLOUD-AUDIT-RECONCILIATION-20260923.md:177` | P5 按设计未跑测试；P6 `ok=false` 的**成因有三说且互相矛盾**；`NOT_EXECUTED` 标签应采信同文件 Correction（executed snapshot mismatch），非原稿所采 |
+| DP-NF-07 / language-data gap | **CONFIRMED（作为只读审计）** | `dsh-review/september-repo-language-data-gap-20260925.md:136`（`None of these is attributable to DSH`）；数字逐字一致 | 无测试（`:8-9` `STRUCTURAL / READ-ONLY`）；本任务未重分配任何未跟踪文件 |
+| DP-A11 / Research contract gap | **CONFIRMED（作为提案）** | `dsh-review/research-contract-gap.md:3-5`（`PROPOSAL / OWNER REVIEW REQUIRED … not an implementation authorization`）；D1–D5 | Research 仍 unavailable；DTO 未冻结前**不实现** |
+| DP-F01 / real text quality (Python) | **CONFIRMED** | `tests/workers/test_f01_real_quality.py`（引入 `d5f026ee`）；本机 `5 passed, 1 warning` —— 与历史回执逐字一致 | 同为合成 fixture，**非**真实语料 |
+| DP-F01 / quality roundtrip (Rust) | **CONFIRMED** | `crates/archeaxis-api/tests/f01_quality_roundtrip.rs`（引入 `d5f026ee`）；受跟踪入口 `5 passed / 0 failed` | 由 `NOT_EXECUTED` 升为 exact-SHA 本机实测 |
+| DP-F01 / quality projection 后续 | **CONFIRMED（作为提案）** | `dsh-review/job-quality-projection-proposal.md:3-5`（`not an implementation authorization`）；当前路由 `lib.rs:70`（`/jobs/:job_id/quality`）、`runtime/mod.rs:36`（`/outputs/:kind`） | 路由存在仅证明**声明**存在，未验返回体 |
+| DP-UI-01 | **CONFIRMED（作为未执行）** | `dsh-review/dp-ui-01-readiness.md:5`（`STATUS: BLOCKED / NOT_EXECUTED`） | 无 Candidate、无 GUI run；本任务**不触碰** UI 写范围 |
+
+### 11.3 吸收 / 取代 / 未吸收 / 无法判定（§E-3）
+
+判定方法：`git cat-file -e HEAD:<path>` 判存在；`git log --diff-filter=A` 取引入提交（`git log` 只走 HEAD 祖先，故引入提交必为祖先）；再以 `git merge-base --is-ancestor` 复核。
+
+| 交付物路径 | 状态 | 引入提交（HEAD 祖先） |
+| --- | --- | --- |
+| `crates/archeaxis-domain/tests/machine_loop_restart.rs` | **已吸收** | `5bb89aa7` 2026-09-26 *Integrate audited DP-NF task pack* |
+| `tests/workers/test_p1_quality_matrix.py` | **已吸收** | `5bb89aa7` 2026-09-26 |
+| `tests/workers/test_f01_real_quality.py` | **已吸收** | `d5f026ee` 2026-09-25 |
+| `crates/archeaxis-api/tests/f01_quality_roundtrip.rs` | **已吸收** | `d5f026ee` 2026-09-25 |
+
+- **被后续主线取代**：`docs/current/DSH-BACKEND-HANDOFF-20260927.md` 自身 §1/§2 的若干现时性描述（HEAD 已推进、部分测试已重跑）——由本节取代。
+- **未吸收**：本任务**未发现**明确未吸收的 DP 交付物，但**也未建立完整表**：仅覆盖上表 4 个路径与 `dsh-review/` 内的报告文件。DP-NF-01/02/04/06/07、DP-A11、DP-UI-01 的**分支侧**交付（各 worktree 的 commit）**无法判定**，因为本任务未读当前全部 refs、未建立 commit 图。
+- **无法判定**：`branch-batch-01/02/03` 所列 SHA 与当前 HEAD 的逐条关系（该三份报告的正文未完整阅读，仅回源到被引用行）。
+
+### 11.4 当前复跑：命令、退出码、结果（§E-4）
+
+环境身份：cwd = 仓库根；HEAD/dirty 同 §11.1；**所有 Python 目标**用 `.venv\Scripts\python.exe`（Python 3.13.14）+ `-p no:cacheprovider`；**所有 Rust 目标**经 `scripts/ci/cargo_test.bat`（`CARGO_TARGET_DIR=.project-local/build/cargo`，`--offline`）。
+
+| # | 命令 | 结果 | exit |
+| --- | --- | --- | --- |
+| 1 | `pytest tests/workers/test_f01_real_quality.py` | 5 passed, 1 warning | 0 |
+| 2 | `pytest tests/workers/test_p1_quality_matrix.py` | 11 passed, 2 subtests | 0 |
+| 3 | `pytest tests/workers/test_quality_regressions.py` | 15 passed, 30 subtests | 0 |
+| 4 | `pytest tests/test_vault_search_api.py` | 7 passed | 0 |
+| 5 | `pytest tests/test_general_learning_contract.py` | 6 passed | 0 |
+| 6 | `pytest tests/test_courseware_v1.py` | 11 passed | 0 |
+| 7 | `pytest tests/test_general_courseware_renderer.py` | 8 passed | 0 |
+| 8 | `pytest tests/workers`（整目录） | **135 passed, 7 skipped, 0 failed, 0 errors, 97 subtests** | 0 |
+| 9 | `cargo_test.bat test -p archeaxis-domain --test machine_loop_restart --offline` | 1 passed, 0 failed | 0 |
+| 10 | `cargo_test.bat test -p archeaxis-api --test f01_quality_roundtrip --offline -- --test-threads=1` | 5 passed, 0 failed | 0 |
+| 11 | `cargo_test.bat test -p archeaxis-application --test ocr_job_end_to_end --offline` | 接线前 0 passed/1 failed；接线后 **1 passed** | 0 |
+| 12 | `cargo_test.bat test --workspace --offline --no-fail-fast` | **87 个测试二进制 / 240 passed / 0 failed / 0 ignored** | 0 |
+| 13 | `dev.py --pytest -- tests/ integration-tests/ knowledge_base/tests/ -q`（含外置根） | **3419 passed, 10 skipped, 0 failed, 137 subtests** | 0 |
+| 14 | `pytest tests/runtime-paths/test_external_toolchain.py` | 7 passed | 0 |
+| 15 | `pytest tests/test_unseen_evaluation.py` | 13 passed | 0 |
+| 16 | 守卫：`check_architecture.py` / `check_repository_conventions.py --source index` / `check_language_boundaries.py` / `ruff … --select E9,F63,F7,F82` | 分别 `architecture guard passed` / `passed (index)` / `language boundary check passed` / `All checks passed!` | 0 |
+
+**必须记录的调用约定（否则会误判产品失败）**：直接 `cargo test` 会让第 10 项的测试报 `1 passed; 4 failed`，失败正文是测试**自身的守卫** `run cargo via scripts/runtime/dev.py to select the exact Python`。受跟踪入口 `scripts/ci/cargo_test.bat` 是必需路径。
+
+**对 §6 历史数字的一处更正**：原稿记 `tests/workers` 为 `117 passed, 7 skipped, 2 failed, 5 errors`；当前 HEAD 实测 `135 passed, 7 skipped, 0 failed, 0 errors`（通过 +18，**2 failure 与 5 error 均未复现**）。差异成因（环境补齐 vs 测试演进）**未判定**，只记录"历史失败不适用于当前 HEAD"。
+
+### 11.5 Owner 决策单（§E-5）
+
+| 决策 | 直接阻塞的工作 | 现状 | 默认安全行为 |
+| --- | --- | --- | --- |
+| **A02** resource-root / schema 语义（外置资源根、shared Model library、plugins 的 resolver） | 新配置与运行时语义落地；UI 的 Model/Plugin/路径呈现 | `BLOCKED_BY_OWNER_DECISION` | 不新增配置项、不呈现虚构 provider/模型版本/插件激活状态 |
+| **P0-H01** Provider/Host 身份与生命周期契约 | 正式宿主的 provider 路由、default/fallback/health 替换闭环 | 提案（`OWNER DECISION REQUIRED`） | 保持提案；不接入正式宿主 |
+| **DP-F01** typed loss receipt **D1–D5** | 质量详情 DTO（新 typed `/receipt` 还是扩展 `/quality`） | 提案（`not an implementation authorization`） | 不改 Rust route/schema；UI 不自行解析双层 JSON |
+| **DP-A11 / Research** 能力边界、`source_revision`、Provider/version、结果状态 | Research DTO 与路由冻结 | 提案（`OWNER REVIEW REQUIRED`） | Research 显示明确 unavailable；未审核外部内容不得自动成为已接受知识 |
+
+以上四项是**唯一**标注 `BLOCKED_BY_OWNER_DECISION` 的范围。本任务**未**因为 Owner 未决而停下其余工作：ancestry、静态审计、当前复跑都在本轮完成。
+
+### 11.6 REQUEST-ARTIFACT 清单（§E-6）
+
+| ID | 本轮状态 | 仍需的 artifact |
+| --- | --- | --- |
+| RA-01（DP-NF-01/02/04/05/06/07 分支侧 readback） | **仍缺** | 目标 worktree 的 branch/ref、baseline/head/tree、changed paths、命令与 stdout/exit；不存在则记 `NOT_AVAILABLE` |
+| RA-02（DP-F01 Python/Rust 原始回执） | **本机已补**（第 1、8、10 项） | 若需**真实语料**结论，仍需获准语料的路径/哈希/引擎/attempts/loss 回执 |
+| RA-03（DP-NF-03/05 复跑回执） | **本机已补**（第 2、9 项） | 域/数据库身份已在本地；如需跨机复核请提供隔离目录身份 |
+| RA-04（A04/A08/A14 真实 first-use 与重启 readback） | **仍缺** | Core/Desktop 版本与哈希、隔离 DB 身份、source/knowledge/assessment/event/task ID、重启前后 readback、幂等键、FSRS schedule |
+| RA-05（A05 真实文件质量） | **仍缺** | 获准输入路径/哈希、格式、engine/version、attempts/fallback、loss receipt、人工结构/语义判定（synthetic 另列） |
+| RA-06（A06 Research/Provider/vector/rerank） | **仍缺**；本轮新增一条**本机**观察见 §11.7 | 冻结契约/版本、provider 身份与版本、配置来源（不含密钥）、输入/来源修订、结果数/empty/error、benchmark 原始回执 |
+| RA-07（A13 Candidate/当前源码与 GUI） | **仍缺** | manifest/source snapshot/EXE/DLL 哈希、isolated data root、verifier stdout/exit、**当前 DLL** 的 UIA 路由/键盘/DPI 截图（旧 DLL 证据不迁移） |
+| RA-08（外部 CI/远端状态） | **部分已补**（§9.5：main `666d01b3` run `36254292169`、`ea2c3831` run `36251109714`、`95f6638a` run `36292355530` 均 success） | **job 日志正文**仍不可读（403，需 admin）；若需正文请提供授权读取方式 |
+
+### 11.7 未执行项、风险、最小恢复、证据等级（§E-7）
+
+**未执行（一律不得升级为通过）**：真实语料格式质量；真实模型/Provider 调用；GUI/UIA/键盘/DPI；当前 DLL 路由复播；Candidate 验收；Clean Machine；Green 安装/替换/回滚；Release/tag/版本；跨机 CI 复现。
+
+**风险（会误导后续判断的具体写法）**：
+
+1. 把 `rust-vnext@ea2c3831` 的 CI 成功外推为 HEAD 的 Rust 验证 —— 二者源码相同（`git diff --name-only ea2c3831..HEAD -- crates/ Cargo.toml Cargo.lock` 为空）**且**本轮已在 HEAD 本机跑通全部 Rust（240 passed），故当前结论有本机 exact-SHA 支撑；但**不得**记为 `CI_VERIFIED_EXACT_SHA`（HEAD 的 run 里该 gate 被 GatePlan skipped）。
+2. 把"路径已吸收"读成"内容已审计" —— §11.3 只覆盖 4 个路径。
+3. 把本轮**环境接线**（工具链路径）读成**产品修复** —— 产品代码本轮**未改**；改的是 `scripts/runtime/dev.py` 的环境发现与一个新增测试。
+4. 边界：本轮发现 M0 连续环上 FSRS 未被观察到（与专用探针结果不一致，成因未钉死）——该结论属于早前轮次记录，**不是**本文件的结论。
+
+**最小恢复方法**：本任务的代码/测试改动在提交 `95f6638a` 内（`scripts/runtime/dev.py`、`tests/runtime-paths/test_external_toolchain.py`、`scripts/probes/core_learning_api_smoke.py`、`docs/current/R6-EXECUTION.md`、`docs/current/DSH-BACKEND-*.md`）；本节的写入在其后的一个 doc-only 提交内。最小恢复 = 对这两个提交各做一次普通 `git revert <sha>`（**非** force push、**非** reset、**非** 分支删除）；回退后 `scripts/runtime/dev.py::external_toolchain()` 消失，Rust 目标回到"需手工设置工具链"，其余产品行为不变。不需要触碰任何 build 产物、`.project-local/` 或其它脏文件。
+
+**证据等级（分层，不互相冒充）**：
+
+| 层 | 内容 | 等级 |
+| --- | --- | --- |
+| 本机 exact-SHA 运行 | 第 1–16 项（Python 与 Rust 目标） | `TESTED_LOCAL`（受测目标），可复现 |
+| 源码/文档/路由结构核验 | 路由声明、吸收祖先关系、报告互文 | `STRUCTURAL` |
+| 历史报告所载 | DP-NF-01…07、DP-A11、DP-UI-01 的测试数字 | 二手本地运行报告，**不**升级 |
+| 未执行 | 真实语料/模型/GUI/Candidate/Green/Release | `NOT_EXECUTED` / `NOT_VERIFIED` |
+
+### 11.8 本任务自己改动的文件（§E-8）
+
+- `git diff --stat`（本报告写入**前**的基线）：**空**（无未提交的已跟踪改动）；本节写入后为 `docs/current/DSH-BACKEND-HANDOFF-20260927.md` 一个文件（doc-only）。
+- `git status --short`（同一基线）：仅 ` M apps/ArcheAxis.Desktop/MainWindow.axaml.cs`（**既存、属前端写范围，本任务从未触碰**）与既存 `?? docs/history/**`。
+- 第一轮（阻塞修复 + 转述审计）的改动**全部已提交**在 `95f6638a`：`scripts/runtime/dev.py`、`tests/runtime-paths/test_external_toolchain.py`、`scripts/probes/core_learning_api_smoke.py`、`docs/current/R6-EXECUTION.md`、`docs/current/DSH-BACKEND-HANDOFF-20260927.md`、`docs/current/DSH-BACKEND-EXECUTION-PROMPT-20260927.md`；本节随其后的 doc-only 提交发布（其后 `git diff --stat` 复归为空）。
+- 后端与 UI 写范围**分离**：本任务对 `apps/**` 零改动，未改 Avalonia 视图/主题/视图模型/页面事件；`main` = 分支 = `95f6638a`，其 CI run `36292355530` **success**。
+
+### 11.9 完成标准自检（执行提示词 §E）
+
+| 标准 | 结论 |
+| --- | --- |
+| 没有把历史报告冒充当前实现证据 | 满足：§11.4 只列本轮实测；历史数字在 §11.2 标为"报告所载"，且对 `tests/workers` 一处作了更正 |
+| 当前测试对 exact SHA 可重现 | 满足：第 1–16 项均绑定 `95f6638a` + 明确解释器/工具链，命令可复现 |
+| 后端与 UI 写范围分离 | 满足：`apps/**` 零改动 |
+| 未知项有责任人/所需 artifact/下一步 | 满足：§11.5 Owner 决策单 + §11.6 RA 清单 + §11.7 未执行清单 |
+| 不触碰 R6 Owner 台账与发布边界 | 满足：未改 `R6-STATE.json`、冻结 TaskPack，未改 Release/tag/版本，A15/A16 未签 |
+
+**总体结论**：本文件的审计部分**已完成**，最终判定为 **§11.2 的逐项 `CONFIRMED/PARTIAL` 组合 + `STRUCTURAL` 整体**；**没有**任何一项达 `REAL`、`GUI_ACCEPTED`、`MERGED_MAIN`、`INSTALLED_RUNTIME_VERIFIED` 或 `CI_VERIFIED_EXACT_SHA`。`local_green_updated=false`；A15/A16 未签；release `FROZEN`。
