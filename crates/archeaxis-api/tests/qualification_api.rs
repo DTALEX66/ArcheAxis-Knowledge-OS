@@ -14,22 +14,32 @@ use archeaxis_api::app;
 async fn get_qual(router: &axum::Router, id: &str) -> (StatusCode, Value) {
     let resp = router
         .clone()
-        .oneshot(Request::get(format!("/api/v1/knowledge-items/{id}/qualification")).body(Body::empty()).unwrap())
+        .oneshot(
+            Request::get(format!("/api/v1/knowledge-items/{id}/qualification"))
+                .body(Body::empty())
+                .unwrap(),
+        )
         .await
         .unwrap();
     let status = resp.status();
     let bytes = resp.into_body().collect().await.unwrap().to_bytes();
-    (status, serde_json::from_slice(&bytes).unwrap_or(Value::Null))
+    (
+        status,
+        serde_json::from_slice(&bytes).unwrap_or(Value::Null),
+    )
 }
 
 async fn post_knowledge(router: &axum::Router, body_text: &str, status: &str) -> String {
-    let body = format!(r#"{{"knowledge_type":"FACTUAL_CLAIM","body":"{body_text}","status":"{status}","created_by":"owner"}}"#);
+    let body = format!(
+        r#"{{"knowledge_type":"FACTUAL_CLAIM","body":"{body_text}","status":"{status}","created_by":"owner"}}"#
+    );
     let resp = router
         .clone()
         .oneshot(
             Request::post("/api/v1/knowledge-items")
                 .header("content-type", "application/json")
-                .body(Body::from(body)).unwrap(),
+                .body(Body::from(body))
+                .unwrap(),
         )
         .await
         .unwrap();
@@ -37,16 +47,24 @@ async fn post_knowledge(router: &axum::Router, body_text: &str, status: &str) ->
     let bytes = resp.into_body().collect().await.unwrap().to_bytes();
     let text = String::from_utf8_lossy(&bytes).to_string();
     assert!(s == StatusCode::CREATED, "create failed {s}: {text}");
-    serde_json::from_str::<Value>(&text).unwrap()["knowledge_id"].as_str().expect(&format!("no id in {text}")).to_string()
+    serde_json::from_str::<Value>(&text).unwrap()["knowledge_id"]
+        .as_str()
+        .expect(&format!("no id in {text}"))
+        .to_string()
 }
 
 async fn review(router: &axum::Router, id: &str, action: &str) {
     let body = format!(r#"{{"action":"{action}","reviewer":"owner"}}"#);
-    let _ = router.clone().oneshot(
-        Request::post(format!("/api/v1/knowledge-items/{id}/review-decisions"))
-            .header("content-type", "application/json")
-            .body(Body::from(body)).unwrap(),
-    ).await.unwrap();
+    let _ = router
+        .clone()
+        .oneshot(
+            Request::post(format!("/api/v1/knowledge-items/{id}/review-decisions"))
+                .header("content-type", "application/json")
+                .body(Body::from(body))
+                .unwrap(),
+        )
+        .await
+        .unwrap();
 }
 
 #[tokio::test]
@@ -74,9 +92,15 @@ async fn qualification_reflects_status_and_active_gate() {
 }
 
 async fn get_search(router: &axum::Router, q: &str) -> Value {
-    let resp = router.clone().oneshot(
-        Request::get(format!("/api/v1/search?q={q}")).body(Body::empty()).unwrap(),
-    ).await.unwrap();
+    let resp = router
+        .clone()
+        .oneshot(
+            Request::get(format!("/api/v1/search?q={q}"))
+                .body(Body::empty())
+                .unwrap(),
+        )
+        .await
+        .unwrap();
     let bytes = resp.into_body().collect().await.unwrap().to_bytes();
     serde_json::from_slice(&bytes).unwrap_or(Value::Null)
 }
@@ -106,9 +130,15 @@ async fn search_active_only_filters_out_inactive() {
     review(&router, &a, "accepted").await;
     let b = post_knowledge(&router, "only beta dead zq", "candidate").await;
     review(&router, &b, "deprecated").await;
-    let resp = router.clone().oneshot(
-        Request::get("/api/v1/search?q=zq&active_only=true").body(Body::empty()).unwrap(),
-    ).await.unwrap();
+    let resp = router
+        .clone()
+        .oneshot(
+            Request::get("/api/v1/search?q=zq&active_only=true")
+                .body(Body::empty())
+                .unwrap(),
+        )
+        .await
+        .unwrap();
     let bytes = resp.into_body().collect().await.unwrap().to_bytes();
     let v: Value = serde_json::from_slice(&bytes).unwrap();
     let items = v["items"].as_array().unwrap();

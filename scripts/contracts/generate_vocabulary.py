@@ -67,17 +67,30 @@ def read_vocabulary(root: Path) -> dict[str, list[str]]:
 
 def render(vocabulary: dict[str, list[str]]) -> dict[str, str]:
     quote = json.dumps
+    # `#[rustfmt::skip]` keeps this file byte-stable under `cargo fmt --all`. Without it
+    # rustfmt rewraps the long `pub const` arrays, the committed file stops matching
+    # `render()`, and `--check` reports drift for a file nobody edited - which is what
+    # happened the first time the root workspace gained a real format check. The inner
+    # form `#![rustfmt::skip]` is refused by stable rustc ("custom inner attributes are
+    # unstable"), so the attribute goes on each item. rustfmt.toml `ignore` needs
+    # nightly, and CI's drift job runs before Rust is installed, so the generator cannot
+    # format its own output either.
+    def skipped(line: str) -> list[str]:
+        return ["#[rustfmt::skip]", line]
+
     rust = [f"// {NOTICE}", ""]
     for category, values in vocabulary.items():
-        rust.append(f"pub const {category.upper()}_VALUES: &[&str] = &[{', '.join(map(quote, values))}];")
-    rust.extend(["", "pub const KNOWLEDGE_TYPES: &[&str] = KNOWLEDGE_TYPE_VALUES;"])
+        rust.extend(skipped(
+            f"pub const {category.upper()}_VALUES: &[&str] = &[{', '.join(map(quote, values))}];"))
+    rust.extend(["", *skipped("pub const KNOWLEDGE_TYPES: &[&str] = KNOWLEDGE_TYPE_VALUES;")])
     for category, prefix in (("review_status", "STATUS"), ("job_status", "JOB"), ("research_verdict", "VERDICT")):
         for value in vocabulary[category]:
-            rust.append(f"pub const {prefix}_{value.upper()}: &str = {quote(value)};")
-    rust.extend(["", "pub fn is_valid(category: &str, value: &str) -> bool {", "    match category {"])
+            rust.extend(skipped(f"pub const {prefix}_{value.upper()}: &str = {quote(value)};"))
+    rust.extend(["", "#[rustfmt::skip]", "pub fn is_valid(category: &str, value: &str) -> bool {", "    match category {"])
     for category in vocabulary:
         rust.append(f"        {quote(category)} => {category.upper()}_VALUES.contains(&value),")
     rust.extend(["        _ => false,", "    }", "}", "",
+                 "#[rustfmt::skip]",
                  "pub fn parse_value<'a>(category: &str, value: &'a str) -> Result<&'a str, &'static str> {",
                  '    if is_valid(category, value) { Ok(value) } else { Err("unknown vocabulary category or value") }', "}"])
 

@@ -3,7 +3,7 @@
 //! a placeholder-ladder interval. R2 EVENT-01 semantics (replay, conflict,
 //! missing key) must hold unchanged.
 
-use archeaxis_domain::learning::{self, ScheduleSource, SCHEDULE_DUPLICATE, SCHEDULE_UNAVAILABLE};
+use archeaxis_domain::learning::{self, SCHEDULE_DUPLICATE, SCHEDULE_UNAVAILABLE, ScheduleSource};
 use archeaxis_store_sqlite::init_workspace;
 
 fn workspace() -> (tempfile::TempDir, rusqlite::Connection) {
@@ -19,13 +19,19 @@ fn scheduler_interval_is_recorded_and_replayed_once() {
         learning::record_review_scheduled(&mut conn, "card-1", "review", true, "key-1", Some(37))
             .unwrap();
     assert!(!duplicate);
-    assert_eq!(days, 37, "the scheduler interval must be used, not the ladder");
+    assert_eq!(
+        days, 37,
+        "the scheduler interval must be used, not the ladder"
+    );
     assert_eq!(streak, 1);
     assert!(event_id > 0);
 
     let history = learning::events_for_item(&conn, "card-1").unwrap();
     assert_eq!(history.len(), 1);
-    assert!(history[0].3.is_some(), "a scheduled review carries a due date");
+    assert!(
+        history[0].3.is_some(),
+        "a scheduled review carries a due date"
+    );
 
     // Same retry: original receipt, no second event.
     let (same_id, same_streak, same_days, duplicate) =
@@ -44,7 +50,10 @@ fn unavailable_scheduler_records_an_unscheduled_review_not_a_ladder_interval() {
             .unwrap();
     assert!(!duplicate);
     assert_eq!(days, SCHEDULE_UNAVAILABLE);
-    assert!(event_id > 0, "the review is still recorded when the scheduler is unavailable");
+    assert!(
+        event_id > 0,
+        "the review is still recorded when the scheduler is unavailable"
+    );
 
     let history = learning::events_for_item(&conn, "card-2").unwrap();
     assert_eq!(history.len(), 1);
@@ -87,34 +96,57 @@ fn schedule_survives_a_workspace_reopen() {
     let mut conn = init_workspace(db.to_str().unwrap()).unwrap();
     let scheduled = learning::events_for_item(&conn, "card-r1").unwrap();
     assert_eq!(scheduled.len(), 1);
-    assert!(scheduled[0].3.is_some(), "the scheduled due date must survive a reopen");
+    assert!(
+        scheduled[0].3.is_some(),
+        "the scheduled due date must survive a reopen"
+    );
     let unscheduled = learning::events_for_item(&conn, "card-r2").unwrap();
     assert_eq!(unscheduled.len(), 1);
-    assert_eq!(unscheduled[0].3, None, "an unscheduled review stays unscheduled after reopen");
+    assert_eq!(
+        unscheduled[0].3, None,
+        "an unscheduled review stays unscheduled after reopen"
+    );
     // The keyed receipt also survives, so a post-restart retry still replays it.
     let (_id, _streak, days, duplicate) =
         learning::record_review_scheduled(&mut conn, "card-r1", "review", true, "key-r1", Some(21))
             .unwrap();
-    assert!(duplicate, "post-restart retry must be recognised as a replay");
+    assert!(
+        duplicate,
+        "post-restart retry must be recognised as a replay"
+    );
     assert_eq!(days, 21);
 }
 
 #[test]
 fn event_key_contract_still_holds_for_scheduled_reviews() {
     let (_dir, mut conn) = workspace();
-    learning::record_review_scheduled(&mut conn, "card-4", "review", true, "key-a", Some(5)).unwrap();
+    learning::record_review_scheduled(&mut conn, "card-4", "review", true, "key-a", Some(5))
+        .unwrap();
 
     // Missing key rejected.
-    assert!(learning::record_review_scheduled(&mut conn, "card-4", "review", true, "", Some(5)).is_err());
+    assert!(
+        learning::record_review_scheduled(&mut conn, "card-4", "review", true, "", Some(5))
+            .is_err()
+    );
 
     // Same key, different item -> conflict.
-    let conflict = learning::record_review_scheduled(&mut conn, "card-other", "review", true, "key-a", Some(5));
+    let conflict = learning::record_review_scheduled(
+        &mut conn,
+        "card-other",
+        "review",
+        true,
+        "key-a",
+        Some(5),
+    );
     assert!(conflict.is_err(), "key bound to another item must conflict");
 
     // Same key, different payload -> conflict.
     let conflict_payload =
         learning::record_review_scheduled(&mut conn, "card-4", "review", false, "key-a", Some(5));
-    assert!(conflict_payload.is_err(), "key bound to another payload must conflict");
+    assert!(
+        conflict_payload.is_err(),
+        "key bound to another payload must conflict"
+    );
 
     // Sources are explicit so callers cannot accidentally mix them.
     assert_ne!(ScheduleSource::Ladder, ScheduleSource::Explicit(Some(5)));

@@ -75,10 +75,7 @@ fn identical_bytes_from_two_origins_keep_both_origins_on_one_source() {
         }),
     )
     .unwrap();
-    assert!(matches!(
-        second,
-        source::ImportOutcome::Duplicate { .. }
-    ));
+    assert!(matches!(second, source::ImportOutcome::Duplicate { .. }));
 
     // Exactly one content row for the identical bytes.
     assert_eq!(source::count_sources(&conn).unwrap(), 1);

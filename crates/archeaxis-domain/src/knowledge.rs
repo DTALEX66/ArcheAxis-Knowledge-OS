@@ -21,9 +21,16 @@ pub struct KnowledgeV3Metadata {
 }
 
 const V3_SOURCE_TYPES: &[&str] = &[
-    "personal_experience", "personal_note", "personal_definition",
-    "project_observation", "external_document", "authoritative_reference",
-    "derived_inference", "machine_candidate", "imported_legacy", "research_result",
+    "personal_experience",
+    "personal_note",
+    "personal_definition",
+    "project_observation",
+    "external_document",
+    "authoritative_reference",
+    "derived_inference",
+    "machine_candidate",
+    "imported_legacy",
+    "research_result",
 ];
 const V3_OWNERS: &[&str] = &["human", "machine", "system"];
 const V3_SUPPORT_LEVELS: &[&str] = &["none", "weak", "moderate", "strong", "authoritative"];
@@ -35,16 +42,25 @@ fn v3_error(message: impl Into<String>) -> rusqlite::Error {
 
 fn validate_v3(status: &str, metadata: &KnowledgeV3Metadata) -> rusqlite::Result<()> {
     if !V3_SOURCE_TYPES.contains(&metadata.source_type.as_str()) {
-        return Err(v3_error(format!("unknown V3 source_type: {}", metadata.source_type)));
+        return Err(v3_error(format!(
+            "unknown V3 source_type: {}",
+            metadata.source_type
+        )));
     }
     if !V3_OWNERS.contains(&metadata.owner.as_str()) {
         return Err(v3_error(format!("unknown V3 owner: {}", metadata.owner)));
     }
     if !V3_SUPPORT_LEVELS.contains(&metadata.support_level.as_str()) {
-        return Err(v3_error(format!("unknown V3 support_level: {}", metadata.support_level)));
+        return Err(v3_error(format!(
+            "unknown V3 support_level: {}",
+            metadata.support_level
+        )));
     }
     if !V3_RISK_LEVELS.contains(&metadata.risk_level.as_str()) {
-        return Err(v3_error(format!("unknown V3 risk_level: {}", metadata.risk_level)));
+        return Err(v3_error(format!(
+            "unknown V3 risk_level: {}",
+            metadata.risk_level
+        )));
     }
     if let Some(confidence) = metadata.confidence {
         if !(0.0..=1.0).contains(&confidence) {
@@ -57,17 +73,22 @@ fn validate_v3(status: &str, metadata: &KnowledgeV3Metadata) -> rusqlite::Result
         }
     }
     if metadata.owner == "machine" && metadata.source_type != "machine_candidate" {
-        return Err(v3_error("machine V3 owner must use source_type=machine_candidate"));
+        return Err(v3_error(
+            "machine V3 owner must use source_type=machine_candidate",
+        ));
     }
     if metadata.source_type == "machine_candidate"
         && !matches!(status, "candidate" | "rejected" | "deprecated")
     {
-        return Err(v3_error("machine_candidate cannot be accepted or verified automatically"));
+        return Err(v3_error(
+            "machine_candidate cannot be accepted or verified automatically",
+        ));
     }
-    if status == "verified"
-        && (metadata.support_level == "none" || metadata.requires_human_review)
+    if status == "verified" && (metadata.support_level == "none" || metadata.requires_human_review)
     {
-        return Err(v3_error("verified V3 knowledge requires support and completed human review"));
+        return Err(v3_error(
+            "verified V3 knowledge requires support and completed human review",
+        ));
     }
     Ok(())
 }
@@ -116,7 +137,9 @@ pub fn create_knowledge_v3(
     metadata: Option<&KnowledgeV3Metadata>,
 ) -> rusqlite::Result<String> {
     if !KNOWLEDGE_TYPES.contains(&knowledge_type) {
-        return Err(v3_error(format!("unknown knowledge_type: {knowledge_type}")));
+        return Err(v3_error(format!(
+            "unknown knowledge_type: {knowledge_type}"
+        )));
     }
     if let Some(metadata) = metadata {
         validate_v3(status, metadata)?;
@@ -175,34 +198,44 @@ pub fn create_knowledge_v3_from_transform(
     metadata: &KnowledgeV3Metadata,
 ) -> rusqlite::Result<(String, String, String)> {
     if !KNOWLEDGE_TYPES.contains(&knowledge_type) {
-        return Err(v3_error(format!("unknown knowledge_type: {knowledge_type}")));
+        return Err(v3_error(format!(
+            "unknown knowledge_type: {knowledge_type}"
+        )));
     }
     validate_v3("candidate", metadata)?;
     if metadata.owner != "human" || !metadata.requires_human_review {
-        return Err(v3_error("source-bound Candidates must remain human-owned and require human review"));
+        return Err(v3_error(
+            "source-bound Candidates must remain human-owned and require human review",
+        ));
     }
     if selection_start_utf16 >= selection_end_utf16 || quote.is_empty() {
-        return Err(v3_error("selection must contain a non-empty quote and increasing UTF-16 offsets"));
+        return Err(v3_error(
+            "selection must contain a non-empty quote and increasing UTF-16 offsets",
+        ));
     }
 
     let tx = conn.transaction_with_behavior(rusqlite::TransactionBehavior::Immediate)?;
-    let source: Option<(String, String)> = tx.query_row(
-        "SELECT s.sha256, t.text
+    let source: Option<(String, String)> = tx
+        .query_row(
+            "SELECT s.sha256, t.text
          FROM jobs j JOIN sources s ON s.source_id=j.input_ref
          JOIN transforms t ON t.transform_id=j.transform_id AND t.source_id=s.source_id
          WHERE j.job_id=?1 AND j.input_ref=?2 AND j.transform_id=?3 AND j.state='succeeded'",
-        rusqlite::params![job_id, source_id, transform_id],
-        |row| Ok((row.get(0)?, row.get(1)?)),
-    ).optional()?;
-    let (raw_sha256, transform_text) = source.ok_or_else(|| v3_error(
-        "source/job/transform identity is not a succeeded Core text transform",
-    ))?;
+            rusqlite::params![job_id, source_id, transform_id],
+            |row| Ok((row.get(0)?, row.get(1)?)),
+        )
+        .optional()?;
+    let (raw_sha256, transform_text) = source.ok_or_else(|| {
+        v3_error("source/job/transform identity is not a succeeded Core text transform")
+    })?;
     let start_byte = utf16_offset_to_byte(&transform_text, selection_start_utf16)
         .ok_or_else(|| v3_error("selection start is not a valid UTF-16 boundary"))?;
     let end_byte = utf16_offset_to_byte(&transform_text, selection_end_utf16)
         .ok_or_else(|| v3_error("selection end is not a valid UTF-16 boundary"))?;
     if transform_text.get(start_byte..end_byte) != Some(quote) {
-        return Err(v3_error("selected quote does not match the persisted transform at the supplied offsets"));
+        return Err(v3_error(
+            "selected quote does not match the persisted transform at the supplied offsets",
+        ));
     }
 
     let position = serde_json::json!({
@@ -212,7 +245,8 @@ pub fn create_knowledge_v3_from_transform(
         "selection_start_utf16": selection_start_utf16,
         "selection_end_utf16": selection_end_utf16,
         "quote": quote,
-    }).to_string();
+    })
+    .to_string();
     let anchor_id = crate::anchor::insert_anchor(&tx, source_id, &raw_sha256, &position)?;
 
     let mut h = Sha256::new();
@@ -432,9 +466,8 @@ pub fn knowledge_ids_for_anchor(
     conn: &Connection,
     anchor_id: &str,
 ) -> rusqlite::Result<Vec<String>> {
-    let mut stmt = conn.prepare(
-        "SELECT knowledge_id FROM knowledge WHERE anchor_id=?1 ORDER BY knowledge_id",
-    )?;
+    let mut stmt = conn
+        .prepare("SELECT knowledge_id FROM knowledge WHERE anchor_id=?1 ORDER BY knowledge_id")?;
     let rows = stmt.query_map([anchor_id], |r| r.get(0))?;
     rows.collect()
 }
@@ -451,7 +484,10 @@ pub fn knowledge_status(conn: &Connection, knowledge_id: &str) -> rusqlite::Resu
 }
 
 /// Successor ids produced by modified reviews (revision chain forward).
-pub fn knowledge_successors(conn: &Connection, knowledge_id: &str) -> rusqlite::Result<Vec<String>> {
+pub fn knowledge_successors(
+    conn: &Connection,
+    knowledge_id: &str,
+) -> rusqlite::Result<Vec<String>> {
     let mut stmt = conn.prepare(
         "SELECT new_knowledge_id FROM knowledge_supersedes
          WHERE old_knowledge_id=?1 ORDER BY created_at, rowid",

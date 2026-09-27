@@ -3,7 +3,10 @@
 //! explicit "unavailable" (unscheduled review) when that scheduler cannot answer,
 //! or the placeholder ladder when no card state is given.
 
-use axum::{body::Body, http::{Request, StatusCode}};
+use axum::{
+    body::Body,
+    http::{Request, StatusCode},
+};
 use http_body_util::BodyExt;
 use serde_json::Value;
 use tower::ServiceExt;
@@ -23,7 +26,10 @@ async fn post(router: &axum::Router, body: &str) -> (StatusCode, Value) {
         .unwrap();
     let status = resp.status();
     let bytes = resp.into_body().collect().await.unwrap().to_bytes();
-    (status, serde_json::from_slice(&bytes).unwrap_or(Value::Null))
+    (
+        status,
+        serde_json::from_slice(&bytes).unwrap_or(Value::Null),
+    )
 }
 
 fn router() -> (tempfile::TempDir, axum::Router) {
@@ -76,17 +82,32 @@ async fn unusable_card_state_is_recorded_as_unscheduled() {
     .await;
     assert_eq!(status, StatusCode::CREATED, "unexpected: {value}");
     assert_eq!(value["schedule_authority"], "unavailable");
-    assert_eq!(value["next_review_days"].as_i64().unwrap(), -2, "unscheduled sentinel");
+    assert_eq!(
+        value["next_review_days"].as_i64().unwrap(),
+        -2,
+        "unscheduled sentinel"
+    );
 
     // History shows the event was kept with no due date, so nothing was invented.
     let resp = router
         .clone()
-        .oneshot(Request::get("/api/v1/learning/events/api-card-3").body(Body::empty()).unwrap())
+        .oneshot(
+            Request::get("/api/v1/learning/events/api-card-3")
+                .body(Body::empty())
+                .unwrap(),
+        )
         .await
         .unwrap();
     let bytes = resp.into_body().collect().await.unwrap().to_bytes();
     let history: Value = serde_json::from_slice(&bytes).unwrap();
-    let items = history["events"].as_array().or_else(|| history.as_array()).expect("history list");
+    let items = history["events"]
+        .as_array()
+        .or_else(|| history.as_array())
+        .expect("history list");
     assert_eq!(items.len(), 1);
-    assert!(items[0]["next_review"].is_null(), "unscheduled review has no due date: {}", items[0]);
+    assert!(
+        items[0]["next_review"].is_null(),
+        "unscheduled review has no due date: {}",
+        items[0]
+    );
 }

@@ -56,7 +56,10 @@ fn archive_roundtrip() {
             engine_version: "0.1".into(),
             params: serde_json::json!({}),
             loss_note: None,
-            losses: None, covered: None, total: None, coverage: None,
+            losses: None,
+            covered: None,
+            total: None,
+            coverage: None,
         }),
     )
     .unwrap();
@@ -86,7 +89,13 @@ fn archive_roundtrip() {
     assert_eq!(count(&conn2, "review_events"), 1);
     assert_eq!(count(&conn2, "jobs"), 1);
     assert_eq!(count(&conn2, "job_attempts"), 1);
-    assert_eq!(conn2.query_row("SELECT content FROM job_outputs",[],|r|r.get::<_,String>(0)).unwrap(),"非空结构😀\r\n原始字节");
+    assert_eq!(
+        conn2
+            .query_row("SELECT content FROM job_outputs", [], |r| r
+                .get::<_, String>(0))
+            .unwrap(),
+        "非空结构😀\r\n原始字节"
+    );
     // content survived
     let text: String = conn2
         .query_row(

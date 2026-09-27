@@ -23,7 +23,11 @@ fn setup() -> (tempfile::TempDir, rusqlite::Connection) {
 }
 
 /// Build a succeeded response whose structure/loss report come from a PDF route.
-fn pdf_style_output(req: &Request, path: serde_json::Value, engine: (&str, &str)) -> (Response, Vec<Vec<u8>>) {
+fn pdf_style_output(
+    req: &Request,
+    path: serde_json::Value,
+    engine: (&str, &str),
+) -> (Response, Vec<Vec<u8>>) {
     let payloads = vec![
         TEXT.as_bytes().to_vec(),
         serde_json::to_vec(&json!([{
@@ -38,8 +42,16 @@ fn pdf_style_output(req: &Request, path: serde_json::Value, engine: (&str, &str)
     ];
     let meta = [
         ("text", "archeaxis.text/v1", "text/plain; charset=utf-8"),
-        ("document_structure", "archeaxis.document-structure/v1", "application/json"),
-        ("loss_report", "archeaxis.loss-receipt/v1", "application/json"),
+        (
+            "document_structure",
+            "archeaxis.document-structure/v1",
+            "application/json",
+        ),
+        (
+            "loss_report",
+            "archeaxis.loss-receipt/v1",
+            "application/json",
+        ),
     ];
     let outputs = meta
         .into_iter()
@@ -80,23 +92,40 @@ fn a_page_qualified_anchor_is_accepted_for_the_same_span() {
     let (_dir, mut conn) = setup();
     let req = attempts::claim(&mut conn, "j", "r", 5000).unwrap();
     assert_eq!(req.capability, "pdf.extract");
-    let (response, bytes) =
-        pdf_style_output(&req, json!(["page-1", "line-1"]), ("pymupdf-native-pdf", "pymupdf"));
+    let (response, bytes) = pdf_style_output(
+        &req,
+        json!(["page-1", "line-1"]),
+        ("pymupdf-native-pdf", "pymupdf"),
+    );
     attempts::finish(&mut conn, &req, &response, &bytes).unwrap();
-    assert_eq!(jobs::job_state(&conn, "j").unwrap().as_deref(), Some("succeeded"));
+    assert_eq!(
+        jobs::job_state(&conn, "j").unwrap().as_deref(),
+        Some("succeeded")
+    );
     let engine: String = conn
         .query_row("SELECT engine FROM jobs WHERE job_id='j'", [], |r| r.get(0))
         .unwrap();
-    assert_eq!(engine, "pymupdf-native-pdf", "the route's real engine must be recorded");
-    assert_eq!(conn.query_row("SELECT count(*) FROM job_outputs", [], |r| r.get::<_, i64>(0)).unwrap(), 3);
+    assert_eq!(
+        engine, "pymupdf-native-pdf",
+        "the route's real engine must be recorded"
+    );
+    assert_eq!(
+        conn.query_row("SELECT count(*) FROM job_outputs", [], |r| r
+            .get::<_, i64>(0))
+            .unwrap(),
+        3
+    );
 }
 
 #[test]
 fn a_wrong_final_path_segment_is_still_refused() {
     let (_dir, mut conn) = setup();
     let req = attempts::claim(&mut conn, "j", "r", 5000).unwrap();
-    let (response, bytes) =
-        pdf_style_output(&req, json!(["page-1", "line-9"]), ("pymupdf-native-pdf", "pymupdf"));
+    let (response, bytes) = pdf_style_output(
+        &req,
+        json!(["page-1", "line-9"]),
+        ("pymupdf-native-pdf", "pymupdf"),
+    );
     assert!(
         attempts::finish(&mut conn, &req, &response, &bytes).is_err(),
         "tolerance must not accept an anchor that names a different line"
@@ -107,8 +136,11 @@ fn a_wrong_final_path_segment_is_still_refused() {
 fn an_undeclared_engine_is_still_refused() {
     let (_dir, mut conn) = setup();
     let req = attempts::claim(&mut conn, "j", "r", 5000).unwrap();
-    let (response, bytes) =
-        pdf_style_output(&req, json!(["page-1", "line-1"]), ("totally-unknown-engine", "9.9"));
+    let (response, bytes) = pdf_style_output(
+        &req,
+        json!(["page-1", "line-1"]),
+        ("totally-unknown-engine", "9.9"),
+    );
     assert!(
         attempts::finish(&mut conn, &req, &response, &bytes).is_err(),
         "only declared route engines may complete a job"

@@ -11,7 +11,10 @@ pub mod runtime;
 use archeaxis_application::container;
 use archeaxis_application::jobs::{self, LossReceipt};
 use archeaxis_domain::{ImportOutcome, anchor, knowledge, learning, machine, search, source};
-use archeaxis_store_sqlite::{workspace_info_json, writer::{Store, StoreError}};
+use archeaxis_store_sqlite::{
+    workspace_info_json,
+    writer::{Store, StoreError},
+};
 use axum::{
     Json, Router,
     extract::{Path, Query, State},
@@ -29,7 +32,10 @@ pub type AppState = Store;
 /// claim (C02), so a client cannot escalate. In-process projections default to
 /// human when the header is absent.
 fn request_actor(headers: &HeaderMap) -> Result<&'static str, StatusCode> {
-    match headers.get("x-archeaxis-actor").and_then(|v| v.to_str().ok()) {
+    match headers
+        .get("x-archeaxis-actor")
+        .and_then(|v| v.to_str().ok())
+    {
         Some("machine") => Ok("machine"),
         Some("human") | None => Ok("human"),
         Some(_) => Err(StatusCode::BAD_REQUEST),
@@ -38,21 +44,30 @@ fn request_actor(headers: &HeaderMap) -> Result<&'static str, StatusCode> {
 
 /// Build the router over the managed single-writer runtime.
 pub fn router(state: Store) -> Router {
-    projections(state,true)
+    projections(state, true)
 }
 
 /// Legacy manual receipts are only retained for in-process compatibility tests.
 pub fn projections(state: Store, manual_receipts: bool) -> Router {
-    let routes=Router::new()
+    let routes = Router::new()
         .route("/api/v1/system/version", get(system_version))
         .route("/api/v1/imports", post(import_source))
         .route("/api/v1/jobs", post(enqueue_job))
         .route("/api/v1/sources/:source_id/anchors", post(create_anchor))
-        .route("/api/v1/sources/:source_id/jobs/:job_id/transform", get(source_job_transform))
-        .route("/api/v1/knowledge-items/from-transform", post(create_knowledge_from_transform))
+        .route(
+            "/api/v1/sources/:source_id/jobs/:job_id/transform",
+            get(source_job_transform),
+        )
+        .route(
+            "/api/v1/knowledge-items/from-transform",
+            post(create_knowledge_from_transform),
+        )
         .route("/api/v1/knowledge-items", post(create_knowledge))
         .route("/api/v1/knowledge-items/:id/v3", get(knowledge_v3))
-        .route("/api/v1/knowledge-items/:id/qualification", get(knowledge_qualification))
+        .route(
+            "/api/v1/knowledge-items/:id/qualification",
+            get(knowledge_qualification),
+        )
         .route(
             "/api/v1/knowledge-items/:id/review-decisions",
             post(review_decision),
@@ -61,8 +76,14 @@ pub fn projections(state: Store, manual_receipts: bool) -> Router {
         .route("/api/v1/learning/reviews", post(record_stateful_review))
         .route("/api/v1/learning/events/:item_key", get(learning_history))
         .route("/api/v1/learning/items", get(learning_items))
-        .route("/api/v1/learning/items/:item_key/references", post(record_item_reference))
-        .route("/api/v1/learning/items/:item_key/assessment", get(read_assessment).post(create_assessment))
+        .route(
+            "/api/v1/learning/items/:item_key/references",
+            post(record_item_reference),
+        )
+        .route(
+            "/api/v1/learning/items/:item_key/assessment",
+            get(read_assessment).post(create_assessment),
+        )
         .route("/api/v1/learning/items/:item_key/state", get(item_state))
         .route("/api/v1/machine/tasks", post(record_machine_task))
         .route("/api/v1/machine/tasks/:task_id", get(machine_task_readback))
@@ -72,7 +93,11 @@ pub fn projections(state: Store, manual_receipts: bool) -> Router {
         .route("/api/v1/sources/:source_id/members", get(source_members))
         .route("/api/v1/sources/:source_id/jobs", get(source_jobs))
         .route("/api/v1/workspaces/info", get(workspace_info));
-    let routes=if manual_receipts {routes.route("/api/v1/jobs/:job_id/receipts",post(job_receipt))}else{routes};
+    let routes = if manual_receipts {
+        routes.route("/api/v1/jobs/:job_id/receipts", post(job_receipt))
+    } else {
+        routes
+    };
     routes.with_state(state)
 }
 
@@ -81,7 +106,10 @@ pub fn app(db_path: &str) -> Result<Router, StoreError> {
     Ok(router(Store::open(std::path::Path::new(db_path))?))
 }
 
-async fn with_store(state: Store, work: impl FnOnce(&mut Connection) -> axum::response::Response + Send + 'static) -> axum::response::Response {
+async fn with_store(
+    state: Store,
+    work: impl FnOnce(&mut Connection) -> axum::response::Response + Send + 'static,
+) -> axum::response::Response {
     match state.submit(work).await {
         Ok(response) => response,
         Err(error) => (StatusCode::SERVICE_UNAVAILABLE, error.to_string()).into_response(),
@@ -143,16 +171,16 @@ async fn import_source(
         }
     }
     with_store(state, move |conn| {
-    let origin = match (origin_kind.as_deref(), origin_ref.as_deref()) {
-        (Some(kind), Some(origin_ref)) => Some(source::OriginInfo {
-            kind,
-            origin_ref,
-            original_name: origin_name.as_deref(),
-            received_at: received_at.as_deref(),
-        }),
-        _ => None,
-    };
-    match source::import_source_with_origin(conn, &bytes, &body.name, None, origin) {
+        let origin = match (origin_kind.as_deref(), origin_ref.as_deref()) {
+            (Some(kind), Some(origin_ref)) => Some(source::OriginInfo {
+                kind,
+                origin_ref,
+                original_name: origin_name.as_deref(),
+                received_at: received_at.as_deref(),
+            }),
+            _ => None,
+        };
+        match source::import_source_with_origin(conn, &bytes, &body.name, None, origin) {
         Ok(ImportOutcome::Imported { source_id, sha256 }) => (
             StatusCode::ACCEPTED,
             Json(serde_json::json!({"source_id": source_id, "sha256": sha256, "duplicate": false})),
@@ -165,9 +193,9 @@ async fn import_source(
             .into_response(),
         Err(e) => (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()).into_response(),
     }
-    }).await
+    })
+    .await
 }
-
 
 async fn learning_history(
     State(state): State<AppState>,
@@ -218,22 +246,30 @@ async fn learning_history(
 /// only source for each item's deadline; no learner or machine status is
 /// inferred here.
 async fn learning_items(State(state): State<AppState>) -> impl IntoResponse {
-    with_store(state, |conn| match learning::item_keys_with_latest_review(conn) {
-        Ok(items) => {
-            let rows: Vec<serde_json::Value> = items
-                .into_iter()
-                .map(|(item_key, next_review)| serde_json::json!({
-                    "item_key": item_key,
-                    "next_review": next_review,
-                }))
-                .collect();
-            let count = rows.len();
-            (StatusCode::OK, Json(serde_json::json!({
-                "items": rows,
-                "count": count,
-            }))).into_response()
+    with_store(state, |conn| {
+        match learning::item_keys_with_latest_review(conn) {
+            Ok(items) => {
+                let rows: Vec<serde_json::Value> = items
+                    .into_iter()
+                    .map(|(item_key, next_review)| {
+                        serde_json::json!({
+                            "item_key": item_key,
+                            "next_review": next_review,
+                        })
+                    })
+                    .collect();
+                let count = rows.len();
+                (
+                    StatusCode::OK,
+                    Json(serde_json::json!({
+                        "items": rows,
+                        "count": count,
+                    })),
+                )
+                    .into_response()
+            }
+            Err(error) => (StatusCode::INTERNAL_SERVER_ERROR, error.to_string()).into_response(),
         }
-        Err(error) => (StatusCode::INTERNAL_SERVER_ERROR, error.to_string()).into_response(),
     })
     .await
 }
@@ -245,9 +281,7 @@ async fn learning_items(State(state): State<AppState>) -> impl IntoResponse {
 /// side is *not* inferred from learner activity: machine capability receipts are
 /// written by the machine loop, so until such a receipt exists this view says so
 /// instead of presenting learner progress as machine competence.
-fn latest_review_projection(
-    events: &[(i64, String, String, Option<String>)],
-) -> serde_json::Value {
+fn latest_review_projection(events: &[(i64, String, String, Option<String>)]) -> serde_json::Value {
     let Some((event_id, kind, outcome, next_review)) = events.last() else {
         return serde_json::Value::Null;
     };
@@ -266,7 +300,10 @@ fn latest_review_projection(
     })
 }
 
-async fn item_state(State(state): State<AppState>, Path(item_key): Path<String>) -> impl IntoResponse {
+async fn item_state(
+    State(state): State<AppState>,
+    Path(item_key): Path<String>,
+) -> impl IntoResponse {
     with_store(state, move |conn| {
         let events = match learning::events_for_item(conn, &item_key) {
             Ok(rows) => rows,
@@ -434,7 +471,8 @@ async fn record_item_reference(
         }
     })
     .await
-}#[derive(Deserialize)]
+}
+#[derive(Deserialize)]
 struct LearningEventBody {
     item_key: String,
     #[serde(default = "default_learning_kind")]
@@ -484,24 +522,38 @@ struct StatefulReviewBody {
 
 #[derive(Deserialize)]
 #[serde(deny_unknown_fields)]
-struct AssessmentBody { knowledge_id: String }
+struct AssessmentBody {
+    knowledge_id: String,
+}
 
 fn checked_review_schedule(
     connection: &Connection,
-    answer: Result<archeaxis_application::scheduler::Schedule, archeaxis_application::scheduler::SchedulerError>,
+    answer: Result<
+        archeaxis_application::scheduler::Schedule,
+        archeaxis_application::scheduler::SchedulerError,
+    >,
 ) -> rusqlite::Result<learning::ReviewSchedule> {
     let unavailable = || learning::ReviewSchedule {
         schedule_json: serde_json::json!({"authority":"unavailable"}).to_string(),
-        next_review: None, next_review_days: learning::SCHEDULE_UNAVAILABLE,
+        next_review: None,
+        next_review_days: learning::SCHEDULE_UNAVAILABLE,
     };
     let schedule = match answer {
         Ok(schedule) => learning::ReviewSchedule {
-            schedule_json: serde_json::json!({"authority":"fsrs","state":schedule.card_state}).to_string(),
-            next_review: Some(schedule.due), next_review_days: schedule.next_review_days,
+            schedule_json: serde_json::json!({"authority":"fsrs","state":schedule.card_state})
+                .to_string(),
+            next_review: Some(schedule.due),
+            next_review_days: schedule.next_review_days,
         },
         Err(_) => unavailable(),
     };
-    Ok(if learning::review_schedule_is_valid(connection, &schedule)? { schedule } else { unavailable() })
+    Ok(
+        if learning::review_schedule_is_valid(connection, &schedule)? {
+            schedule
+        } else {
+            unavailable()
+        },
+    )
 }
 
 #[cfg(test)]
@@ -511,34 +563,77 @@ mod stateful_schedule_failures {
 
     fn valid() -> Schedule {
         let due = "2026-09-02T00:10:00+00:00";
-        Schedule { authority: "fsrs".into(), next_review_days: 0, due: due.into(), state: "learning".into(),
+        Schedule {
+            authority: "fsrs".into(),
+            next_review_days: 0,
+            due: due.into(),
+            state: "learning".into(),
             card_state: serde_json::json!({"state":"learning","step":1,"stability":2.3065,"difficulty":2.1,
-                "due":due,"last_review":"2026-09-02T00:00:00+00:00"}) }
+                "due":due,"last_review":"2026-09-02T00:00:00+00:00"}),
+        }
     }
 
     #[test]
     fn malformed_or_missing_scheduler_keeps_review_and_prior_state() {
         for case in ["missing", "null-parameter", "unknown-state", "invalid-date"] {
             let dir = tempfile::tempdir().unwrap();
-            let mut conn = archeaxis_store_sqlite::init_workspace(dir.path().join("review.sqlite").to_str().unwrap()).unwrap();
-            learning::record_review_with_state(&mut conn, "card", "review", true, "prior", "first",
-                |c| checked_review_schedule(c, Ok(valid()))).unwrap();
+            let mut conn = archeaxis_store_sqlite::init_workspace(
+                dir.path().join("review.sqlite").to_str().unwrap(),
+            )
+            .unwrap();
+            learning::record_review_with_state(
+                &mut conn,
+                "card",
+                "review",
+                true,
+                "prior",
+                "first",
+                |c| checked_review_schedule(c, Ok(valid())),
+            )
+            .unwrap();
             let prior = learning::latest_fsrs_state_json(&conn, "card").unwrap();
             let mut broken = valid();
             match case {
                 "null-parameter" => broken.card_state["stability"] = serde_json::Value::Null,
                 "unknown-state" => broken.card_state["state"] = serde_json::json!("imaginary"),
                 "invalid-date" => broken.card_state["due"] = serde_json::json!("12:00"),
-                _ => {},
+                _ => {}
             }
-            let answer = if case == "missing" { Err(SchedulerError::Unavailable("fixture".into())) } else { Ok(broken) };
-            let receipt = learning::record_review_with_state(&mut conn, "card", "review", true, "failed", "second",
-                |c| checked_review_schedule(c, answer)).unwrap();
-            assert_eq!(receipt.next_review_days, learning::SCHEDULE_UNAVAILABLE, "{case}");
+            let answer = if case == "missing" {
+                Err(SchedulerError::Unavailable("fixture".into()))
+            } else {
+                Ok(broken)
+            };
+            let receipt = learning::record_review_with_state(
+                &mut conn,
+                "card",
+                "review",
+                true,
+                "failed",
+                "second",
+                |c| checked_review_schedule(c, answer),
+            )
+            .unwrap();
+            assert_eq!(
+                receipt.next_review_days,
+                learning::SCHEDULE_UNAVAILABLE,
+                "{case}"
+            );
             assert!(receipt.next_review.is_none());
-            assert_eq!(learning::latest_fsrs_state_json(&conn, "card").unwrap(), prior);
-            let retry = learning::record_review_with_state(&mut conn, "card", "review", true, "failed", "second",
-                |_| panic!("retry must not reschedule")).unwrap();
+            assert_eq!(
+                learning::latest_fsrs_state_json(&conn, "card").unwrap(),
+                prior
+            );
+            let retry = learning::record_review_with_state(
+                &mut conn,
+                "card",
+                "review",
+                true,
+                "failed",
+                "second",
+                |_| panic!("retry must not reschedule"),
+            )
+            .unwrap();
             assert_eq!(retry.outcome_json, receipt.outcome_json);
             assert_eq!(learning::count_learning(&conn).unwrap(), 2);
         }
@@ -552,14 +647,38 @@ mod stateful_schedule_failures {
         std::fs::write(&worker, "import time; time.sleep(10)").unwrap();
         let python = std::env::var_os("ARCHEAXIS_PYTHON").expect("run through dev.py");
         let client = archeaxis_application::scheduler::SchedulerClient::new(python, worker);
-        let mut conn = archeaxis_store_sqlite::init_workspace(dir.path().join("review.sqlite").to_str().unwrap()).unwrap();
+        let mut conn = archeaxis_store_sqlite::init_workspace(
+            dir.path().join("review.sqlite").to_str().unwrap(),
+        )
+        .unwrap();
         let started = Instant::now();
-        let failed = learning::record_review_with_state(&mut conn, "card", "review", true, "timed-out", "first",
-            |c| checked_review_schedule(c, client.review_with_timeout("{}", Duration::from_millis(700)))).unwrap();
+        let failed = learning::record_review_with_state(
+            &mut conn,
+            "card",
+            "review",
+            true,
+            "timed-out",
+            "first",
+            |c| {
+                checked_review_schedule(
+                    c,
+                    client.review_with_timeout("{}", Duration::from_millis(700)),
+                )
+            },
+        )
+        .unwrap();
         assert!(started.elapsed() < Duration::from_secs(3));
         assert_eq!(failed.next_review_days, learning::SCHEDULE_UNAVAILABLE);
-        let next = learning::record_review_with_state(&mut conn, "card", "review", true, "next", "second",
-            |c| checked_review_schedule(c, Ok(valid()))).unwrap();
+        let next = learning::record_review_with_state(
+            &mut conn,
+            "card",
+            "review",
+            true,
+            "next",
+            "second",
+            |c| checked_review_schedule(c, Ok(valid())),
+        )
+        .unwrap();
         assert!(next.next_review.is_some());
         assert_eq!(learning::count_learning(&conn).unwrap(), 2);
     }
@@ -573,53 +692,89 @@ fn assessment_json(value: &learning::AssessmentRecord) -> serde_json::Value {
 }
 
 async fn create_assessment(
-    State(state): State<AppState>, Path(item_key): Path<String>, Json(body): Json<AssessmentBody>,
+    State(state): State<AppState>,
+    Path(item_key): Path<String>,
+    Json(body): Json<AssessmentBody>,
 ) -> impl IntoResponse {
-    with_store(state, move |conn| match learning::create_assessment(conn, &item_key, &body.knowledge_id) {
-        Ok(value) => (StatusCode::CREATED, Json(assessment_json(&value))).into_response(),
-        Err(e) => (StatusCode::BAD_REQUEST, e.to_string()).into_response(),
-    }).await
+    with_store(state, move |conn| {
+        match learning::create_assessment(conn, &item_key, &body.knowledge_id) {
+            Ok(value) => (StatusCode::CREATED, Json(assessment_json(&value))).into_response(),
+            Err(e) => (StatusCode::BAD_REQUEST, e.to_string()).into_response(),
+        }
+    })
+    .await
 }
 
 async fn read_assessment(
-    State(state): State<AppState>, Path(item_key): Path<String>,
+    State(state): State<AppState>,
+    Path(item_key): Path<String>,
 ) -> impl IntoResponse {
-    with_store(state, move |conn| match learning::assessment_for_item_key(conn, &item_key) {
-        Ok(Some(value)) => (StatusCode::OK, Json(assessment_json(&value))).into_response(),
-        Ok(None) => (StatusCode::NOT_FOUND, "assessment not found").into_response(),
-        Err(e) => (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()).into_response(),
-    }).await
+    with_store(state, move |conn| {
+        match learning::assessment_for_item_key(conn, &item_key) {
+            Ok(Some(value)) => (StatusCode::OK, Json(assessment_json(&value))).into_response(),
+            Ok(None) => (StatusCode::NOT_FOUND, "assessment not found").into_response(),
+            Err(e) => (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()).into_response(),
+        }
+    })
+    .await
 }
 
 async fn record_stateful_review(
-    State(state): State<AppState>, headers: HeaderMap, Json(body): Json<StatefulReviewBody>,
+    State(state): State<AppState>,
+    headers: HeaderMap,
+    Json(body): Json<StatefulReviewBody>,
 ) -> impl IntoResponse {
     match request_actor(&headers) {
-        Ok("human") => {},
-        Ok(_) => return (StatusCode::FORBIDDEN, "machine principal cannot record human reviews").into_response(),
+        Ok("human") => {}
+        Ok(_) => {
+            return (
+                StatusCode::FORBIDDEN,
+                "machine principal cannot record human reviews",
+            )
+                .into_response();
+        }
         Err(status) => return (status, "invalid actor").into_response(),
     }
     let rating = body.rating.unwrap_or(if body.correct { 3 } else { 1 });
-    if body.item_key.trim().is_empty() || body.client_event_id.trim().is_empty()
-        || !(1..=4).contains(&rating) || (rating == 1) == body.correct {
-        return (StatusCode::BAD_REQUEST, "item, event key and consistent rating/outcome are required").into_response();
+    if body.item_key.trim().is_empty()
+        || body.client_event_id.trim().is_empty()
+        || !(1..=4).contains(&rating)
+        || (rating == 1) == body.correct
+    {
+        return (
+            StatusCode::BAD_REQUEST,
+            "item, event key and consistent rating/outcome are required",
+        )
+            .into_response();
     }
-    if body.answer.as_deref().is_some_and(|answer| answer.trim().is_empty()) {
+    if body
+        .answer
+        .as_deref()
+        .is_some_and(|answer| answer.trim().is_empty())
+    {
         return (StatusCode::BAD_REQUEST, "answer must not be empty").into_response();
     }
-    let assessment_id = body.assessment_id.clone().filter(|value| !value.trim().is_empty());
+    let assessment_id = body
+        .assessment_id
+        .clone()
+        .filter(|value| !value.trim().is_empty());
     // Preserve schedule-only legacy clients. The M0 first-use path carries an
     // answer and must bind it to a Core-owned assessment; old clients that
     // submit only a rating remain valid for the pre-Assessment queue.
     if body.answer.is_some() && assessment_id.is_none() {
-        return (StatusCode::BAD_REQUEST, "assessment_id is required when answer is submitted").into_response();
+        return (
+            StatusCode::BAD_REQUEST,
+            "assessment_id is required when answer is submitted",
+        )
+            .into_response();
     }
     let canonical = serde_json::json!({"item_key":body.item_key,"correct":body.correct,
         "rating":rating,"now":body.now,"answer":body.answer,
         "assessment_id":assessment_id,
         "question_version":body.question_version,"knowledge_version":body.knowledge_version,
         "exposure_id":body.exposure_id,"assist_strategy":body.assist_strategy,
-        "rating_version":body.rating_version,"correction_id":body.correction_id}).to_string();
+        "rating_version":body.rating_version,"correction_id":body.correction_id})
+    .to_string();
     with_store(state, move |conn| {
         if let Some(now) = body.now.as_deref() {
             match learning::valid_review_timestamp(conn, now) {
@@ -691,7 +846,10 @@ async fn record_learning_event(
     // C02: learning outcomes are human review events; machine principals must
     // not fabricate human learning history.
     if request_actor(&headers).unwrap_or("human") == "machine" {
-        return (StatusCode::FORBIDDEN, "machine principal cannot record human learning outcomes")
+        return (
+            StatusCode::FORBIDDEN,
+            "machine principal cannot record human learning outcomes",
+        )
             .into_response();
     }
     match body.client_event_id.as_deref().map(str::trim) {
@@ -776,15 +934,16 @@ async fn create_anchor(
     Json(body): Json<AnchorBody>,
 ) -> impl IntoResponse {
     with_store(state, move |conn| {
-    match anchor::add_anchor(conn, &source_id, &body.revision, &body.position) {
-        Ok(id) => (
-            StatusCode::CREATED,
-            Json(serde_json::json!({"anchor_id": id})),
-        )
-            .into_response(),
-        Err(e) => (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()).into_response(),
-    }
-    }).await
+        match anchor::add_anchor(conn, &source_id, &body.revision, &body.position) {
+            Ok(id) => (
+                StatusCode::CREATED,
+                Json(serde_json::json!({"anchor_id": id})),
+            )
+                .into_response(),
+            Err(e) => (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()).into_response(),
+        }
+    })
+    .await
 }
 
 async fn source_job_transform(
@@ -792,14 +951,16 @@ async fn source_job_transform(
     Path((source_id, job_id)): Path<(String, String)>,
 ) -> impl IntoResponse {
     with_store(state, move |conn| {
-        let projection: rusqlite::Result<Option<(i64, String, String)>> = conn.query_row(
-            "SELECT t.transform_id, s.sha256, t.text
+        let projection: rusqlite::Result<Option<(i64, String, String)>> = conn
+            .query_row(
+                "SELECT t.transform_id, s.sha256, t.text
              FROM jobs j JOIN sources s ON s.source_id=j.input_ref
              JOIN transforms t ON t.transform_id=j.transform_id AND t.source_id=s.source_id
              WHERE j.job_id=?1 AND j.input_ref=?2 AND j.kind='text' AND j.state='succeeded'",
-            rusqlite::params![job_id, source_id],
-            |row| Ok((row.get(0)?, row.get(1)?, row.get(2)?)),
-        ).optional();
+                rusqlite::params![job_id, source_id],
+                |row| Ok((row.get(0)?, row.get(1)?, row.get(2)?)),
+            )
+            .optional();
         match projection {
             Ok(Some((transform_id, raw_sha256, content))) => (
                 StatusCode::OK,
@@ -810,11 +971,17 @@ async fn source_job_transform(
                     "raw_sha256": raw_sha256,
                     "content": content,
                 })),
-            ).into_response(),
-            Ok(None) => (StatusCode::NOT_FOUND, "succeeded source-bound text transform not found").into_response(),
+            )
+                .into_response(),
+            Ok(None) => (
+                StatusCode::NOT_FOUND,
+                "succeeded source-bound text transform not found",
+            )
+                .into_response(),
             Err(error) => (StatusCode::INTERNAL_SERVER_ERROR, error.to_string()).into_response(),
         }
-    }).await
+    })
+    .await
 }
 
 /// Read the persisted Evidence anchor projection without exposing source bodies.
@@ -828,7 +995,9 @@ async fn evidence_anchors(State(state): State<AppState>) -> impl IntoResponse {
              ORDER BY a.created_at ASC, a.anchor_id ASC",
         ) {
             Ok(statement) => statement,
-            Err(error) => return (StatusCode::INTERNAL_SERVER_ERROR, error.to_string()).into_response(),
+            Err(error) => {
+                return (StatusCode::INTERNAL_SERVER_ERROR, error.to_string()).into_response();
+            }
         };
         let rows = match statement.query_map([], |row| {
             Ok(serde_json::json!({
@@ -841,17 +1010,22 @@ async fn evidence_anchors(State(state): State<AppState>) -> impl IntoResponse {
             }))
         }) {
             Ok(rows) => rows,
-            Err(error) => return (StatusCode::INTERNAL_SERVER_ERROR, error.to_string()).into_response(),
+            Err(error) => {
+                return (StatusCode::INTERNAL_SERVER_ERROR, error.to_string()).into_response();
+            }
         };
         let mut items = Vec::new();
         for row in rows {
             match row {
                 Ok(item) => items.push(item),
-                Err(error) => return (StatusCode::INTERNAL_SERVER_ERROR, error.to_string()).into_response(),
+                Err(error) => {
+                    return (StatusCode::INTERNAL_SERVER_ERROR, error.to_string()).into_response();
+                }
             }
         }
         (StatusCode::OK, Json(serde_json::json!({"items": items}))).into_response()
-    }).await
+    })
+    .await
 }
 
 /// R15/F15: what is inside a container, and which parts could be read.
@@ -970,24 +1144,29 @@ async fn knowledge_qualification(
     State(state): State<AppState>,
     Path(id): Path<String>,
 ) -> impl IntoResponse {
-    with_store(state, move |conn| match knowledge::knowledge_status(conn, &id) {
-        Ok(Some(_)) => (
-            StatusCode::OK,
-            Json(serde_json::json!({
-                "knowledge_id": id,
-                "exists": true,
-                "active": knowledge::is_knowledge_active(conn, &id).unwrap_or(false),
-            })),
-        )
-            .into_response(),
-        Ok(None) => (StatusCode::NOT_FOUND, "knowledge not found").into_response(),
-        Err(e) => (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()).into_response(),
+    with_store(state, move |conn| {
+        match knowledge::knowledge_status(conn, &id) {
+            Ok(Some(_)) => (
+                StatusCode::OK,
+                Json(serde_json::json!({
+                    "knowledge_id": id,
+                    "exists": true,
+                    "active": knowledge::is_knowledge_active(conn, &id).unwrap_or(false),
+                })),
+            )
+                .into_response(),
+            Ok(None) => (StatusCode::NOT_FOUND, "knowledge not found").into_response(),
+            Err(e) => (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()).into_response(),
+        }
     })
     .await
 }
 
 fn v3_source_type(knowledge_type: &str, created_by: &str) -> &'static str {
-    if created_by.contains("machine") || created_by.contains("python") || created_by.contains("worker") {
+    if created_by.contains("machine")
+        || created_by.contains("python")
+        || created_by.contains("worker")
+    {
         return "machine_candidate";
     }
     match knowledge_type {
@@ -1036,10 +1215,7 @@ fn v3_relation_ids(
     rows.collect()
 }
 
-async fn knowledge_v3(
-    State(state): State<AppState>,
-    Path(id): Path<String>,
-) -> impl IntoResponse {
+async fn knowledge_v3(State(state): State<AppState>, Path(id): Path<String>) -> impl IntoResponse {
     with_store(state, move |conn| {
         let row = match conn
             .query_row(
@@ -1219,9 +1395,15 @@ struct KnowledgeV3Body {
     requires_human_review: bool,
 }
 
-fn default_support_level() -> String { "none".to_string() }
-fn default_risk_level() -> String { "low".to_string() }
-fn default_requires_human_review() -> bool { true }
+fn default_support_level() -> String {
+    "none".to_string()
+}
+fn default_risk_level() -> String {
+    "low".to_string()
+}
+fn default_requires_human_review() -> bool {
+    true
+}
 
 fn default_status() -> String {
     "candidate".to_string()
@@ -1261,35 +1443,36 @@ async fn create_knowledge(
         }
     }
     with_store(state, move |conn| {
-    let metadata = body.v3.map(|v3| knowledge::KnowledgeV3Metadata {
-        source_type: v3.source_type,
-        owner: v3.owner,
-        support_level: v3.support_level,
-        confidence: v3.confidence,
-        risk_level: v3.risk_level,
-        valid_from: v3.valid_from,
-        valid_to: v3.valid_to,
-        external_evidence: v3.external_evidence,
-        requires_human_review: v3.requires_human_review,
-    });
-    match knowledge::create_knowledge_v3(
-        conn,
-        &body.knowledge_type,
-        &body.body,
-        &body.status,
-        None,
-        None,
-        &body.created_by,
-        metadata.as_ref(),
-    ) {
-        Ok(id) => (
-            StatusCode::CREATED,
-            Json(serde_json::json!({"knowledge_id": id})),
-        )
-            .into_response(),
-        Err(e) => (StatusCode::BAD_REQUEST, e.to_string()).into_response(),
-    }
-    }).await
+        let metadata = body.v3.map(|v3| knowledge::KnowledgeV3Metadata {
+            source_type: v3.source_type,
+            owner: v3.owner,
+            support_level: v3.support_level,
+            confidence: v3.confidence,
+            risk_level: v3.risk_level,
+            valid_from: v3.valid_from,
+            valid_to: v3.valid_to,
+            external_evidence: v3.external_evidence,
+            requires_human_review: v3.requires_human_review,
+        });
+        match knowledge::create_knowledge_v3(
+            conn,
+            &body.knowledge_type,
+            &body.body,
+            &body.status,
+            None,
+            None,
+            &body.created_by,
+            metadata.as_ref(),
+        ) {
+            Ok(id) => (
+                StatusCode::CREATED,
+                Json(serde_json::json!({"knowledge_id": id})),
+            )
+                .into_response(),
+            Err(e) => (StatusCode::BAD_REQUEST, e.to_string()).into_response(),
+        }
+    })
+    .await
 }
 
 async fn create_knowledge_from_transform(
@@ -1299,7 +1482,13 @@ async fn create_knowledge_from_transform(
 ) -> impl IntoResponse {
     match request_actor(&headers) {
         Ok("human") => {}
-        Ok(_) => return (StatusCode::FORBIDDEN, "source-bound Candidate creation requires a human actor").into_response(),
+        Ok(_) => {
+            return (
+                StatusCode::FORBIDDEN,
+                "source-bound Candidate creation requires a human actor",
+            )
+                .into_response();
+        }
         Err(status) => return (status, "unknown actor").into_response(),
     }
     if body.body.trim().is_empty() {
@@ -1316,8 +1505,9 @@ async fn create_knowledge_from_transform(
         external_evidence: Vec::new(),
         requires_human_review: true,
     };
-    with_store(state, move |conn| {
-        match knowledge::create_knowledge_v3_from_transform(
+    with_store(
+        state,
+        move |conn| match knowledge::create_knowledge_v3_from_transform(
             conn,
             &body.knowledge_type,
             &body.body,
@@ -1342,10 +1532,12 @@ async fn create_knowledge_from_transform(
                     "status": "candidate",
                     "requires_human_review": true,
                 })),
-            ).into_response(),
+            )
+                .into_response(),
             Err(error) => (StatusCode::BAD_REQUEST, error.to_string()).into_response(),
-        }
-    }).await
+        },
+    )
+    .await
 }
 
 #[derive(Deserialize)]
@@ -1382,22 +1574,23 @@ async fn review_decision(
             .into_response();
     }
     with_store(state, move |conn| {
-    match knowledge::review(
-        conn,
-        &id,
-        &body.action,
-        &body.reviewer,
-        body.note.as_deref(),
-        body.new_body.as_deref(),
-    ) {
-        Ok(kid) => (
-            StatusCode::OK,
-            Json(serde_json::json!({"knowledge_id": kid})),
-        )
-            .into_response(),
-        Err(e) => (StatusCode::BAD_REQUEST, e.to_string()).into_response(),
-    }
-    }).await
+        match knowledge::review(
+            conn,
+            &id,
+            &body.action,
+            &body.reviewer,
+            body.note.as_deref(),
+            body.new_body.as_deref(),
+        ) {
+            Ok(kid) => (
+                StatusCode::OK,
+                Json(serde_json::json!({"knowledge_id": kid})),
+            )
+                .into_response(),
+            Err(e) => (StatusCode::BAD_REQUEST, e.to_string()).into_response(),
+        }
+    })
+    .await
 }
 
 #[derive(Deserialize)]
@@ -1458,7 +1651,10 @@ async fn search_knowledge(
 ///
 /// Facts only: no accuracy figure is produced, and a recogniser's confidence is
 /// never presented as accuracy.
-async fn job_quality(State(state): State<AppState>, Path(job_id): Path<String>) -> impl IntoResponse {
+async fn job_quality(
+    State(state): State<AppState>,
+    Path(job_id): Path<String>,
+) -> impl IntoResponse {
     with_store(state, move |conn| {
         let row = conn.query_row(
             "SELECT state, engine, loss_receipt FROM jobs WHERE job_id=?1",
@@ -1512,15 +1708,14 @@ async fn job_quality(State(state): State<AppState>, Path(job_id): Path<String>) 
 }
 
 async fn workspace_info(State(state): State<AppState>) -> impl IntoResponse {
-    with_store(state, move |conn| {
-    match workspace_info_json(conn) {
+    with_store(state, move |conn| match workspace_info_json(conn) {
         Ok(s) => {
             let v: serde_json::Value = serde_json::from_str(&s).unwrap_or(serde_json::json!({}));
             Json(v).into_response()
         }
         Err(e) => (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()).into_response(),
-    }
-    }).await
+    })
+    .await
 }
 
 fn base64_decode(s: &str) -> Option<Vec<u8>> {
@@ -1541,15 +1736,19 @@ async fn enqueue_job(
     Json(body): Json<EnqueueBody>,
 ) -> impl IntoResponse {
     with_store(state, move |conn| {
-    match jobs::enqueue(conn, &body.job_id, &body.kind, &body.input_ref) {
-        Ok(()) => match jobs::job_state(conn, &body.job_id) {
-            Ok(Some(actual)) => (StatusCode::ACCEPTED,
-                Json(serde_json::json!({"job_id": body.job_id, "state": actual}))).into_response(),
-            _ => (StatusCode::INTERNAL_SERVER_ERROR, "job readback failed").into_response(),
-        },
-        Err(e) => job_error_response(e),
-    }
-    }).await
+        match jobs::enqueue(conn, &body.job_id, &body.kind, &body.input_ref) {
+            Ok(()) => match jobs::job_state(conn, &body.job_id) {
+                Ok(Some(actual)) => (
+                    StatusCode::ACCEPTED,
+                    Json(serde_json::json!({"job_id": body.job_id, "state": actual})),
+                )
+                    .into_response(),
+                _ => (StatusCode::INTERNAL_SERVER_ERROR, "job readback failed").into_response(),
+            },
+            Err(e) => job_error_response(e),
+        }
+    })
+    .await
 }
 
 #[derive(Deserialize)]
@@ -1592,37 +1791,52 @@ async fn job_receipt(
         return (StatusCode::BAD_REQUEST, "invalid terminal job state").into_response();
     }
     if body.state == jobs::STATE_COMPLETED && (body.engine.is_none() || body.text.is_none()) {
-        return (StatusCode::BAD_REQUEST, "successful receipt requires engine and text").into_response();
+        return (
+            StatusCode::BAD_REQUEST,
+            "successful receipt requires engine and text",
+        )
+            .into_response();
     }
     if body.state == jobs::STATE_COMPLETED && body.error.is_some() {
-        return (StatusCode::BAD_REQUEST, "successful receipt cannot contain an error").into_response();
+        return (
+            StatusCode::BAD_REQUEST,
+            "successful receipt cannot contain an error",
+        )
+            .into_response();
     }
-    if body.state == jobs::STATE_FAILED && (body.text.is_some() || body.loss_receipt.is_some() || body.engine.is_some()) {
-        return (StatusCode::BAD_REQUEST, "failed receipt cannot publish output").into_response();
+    if body.state == jobs::STATE_FAILED
+        && (body.text.is_some() || body.loss_receipt.is_some() || body.engine.is_some())
+    {
+        return (
+            StatusCode::BAD_REQUEST,
+            "failed receipt cannot publish output",
+        )
+            .into_response();
     }
     with_store(state, move |conn| {
-    let out = if body.state == "failed" {
-        jobs::fail(
-            conn,
-            &job_id,
-            body.error.as_deref().unwrap_or("unspecified"),
-        )
-    } else {
-        jobs::complete(
-            conn,
-            &job_id,
-            body.engine.as_deref().unwrap_or("worker"),
-            body.text.as_deref().unwrap_or(""),
-            body.loss_receipt.as_ref(),
-        )
-    };
-    match out {
-        Ok(()) => (
-            StatusCode::OK,
-            Json(serde_json::json!({"job_id": job_id, "state": body.state})),
-        )
-            .into_response(),
-        Err(e) => job_error_response(e),
-    }
-    }).await
+        let out = if body.state == "failed" {
+            jobs::fail(
+                conn,
+                &job_id,
+                body.error.as_deref().unwrap_or("unspecified"),
+            )
+        } else {
+            jobs::complete(
+                conn,
+                &job_id,
+                body.engine.as_deref().unwrap_or("worker"),
+                body.text.as_deref().unwrap_or(""),
+                body.loss_receipt.as_ref(),
+            )
+        };
+        match out {
+            Ok(()) => (
+                StatusCode::OK,
+                Json(serde_json::json!({"job_id": job_id, "state": body.state})),
+            )
+                .into_response(),
+            Err(e) => job_error_response(e),
+        }
+    })
+    .await
 }

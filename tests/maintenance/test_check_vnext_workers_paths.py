@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import importlib.util
+import os
 from pathlib import Path
 
 import pytest
@@ -35,3 +36,18 @@ def test_worker_checker_rejects_external_temp_root(tmp_path: Path, monkeypatch: 
     monkeypatch.setenv("ARCHEAXIS_RUN_ROOT", str(ROOT.parent / "worker-outside-test"))
     with pytest.raises(RuntimeError, match=r"inside \.project-local"):
         module._managed_tempdir("test-")
+
+
+def test_worker_checker_rejects_parent_traversal(monkeypatch: pytest.MonkeyPatch):
+    module = _load()
+    dev_root = Path(os.environ["ARCHEAXIS_DEV_ROOT"])
+    monkeypatch.setenv("ARCHEAXIS_RUN_ROOT", str(dev_root / ".." / "escaped"))
+    with pytest.raises(RuntimeError, match=r"inside \.project-local"):
+        module._managed_tempdir("test-")
+
+
+def test_worker_checker_accepts_launcher_run_root():
+    module = _load()
+    run_root = Path(os.environ["ARCHEAXIS_RUN_ROOT"])
+    with module._managed_tempdir("launcher-") as value:
+        assert Path(value).is_relative_to(run_root)

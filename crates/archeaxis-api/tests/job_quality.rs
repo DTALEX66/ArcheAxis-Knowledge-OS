@@ -1,7 +1,10 @@
 //! R08: the quality view reports facts about a job's extraction - engine,
 //! coverage, loss and region counts - and never an accuracy figure.
 
-use axum::{body::Body, http::{Request, StatusCode}};
+use axum::{
+    body::Body,
+    http::{Request, StatusCode},
+};
 use http_body_util::BodyExt;
 use serde_json::Value;
 use tower::ServiceExt;
@@ -32,7 +35,10 @@ async fn post(router: &axum::Router, path: &str, body: &str) -> (StatusCode, Val
         .unwrap();
     let status = resp.status();
     let bytes = resp.into_body().collect().await.unwrap().to_bytes();
-    (status, serde_json::from_slice(&bytes).unwrap_or(Value::Null))
+    (
+        status,
+        serde_json::from_slice(&bytes).unwrap_or(Value::Null),
+    )
 }
 
 #[tokio::test]
@@ -55,7 +61,10 @@ async fn a_queued_job_reports_facts_without_an_accuracy_claim() {
     )
     .await;
     assert!(status.is_success(), "unexpected import response: {created}");
-    let source_id = created["source_id"].as_str().expect("source_id").to_string();
+    let source_id = created["source_id"]
+        .as_str()
+        .expect("source_id")
+        .to_string();
 
     let (status, queued) = post(
         &router,
@@ -63,7 +72,10 @@ async fn a_queued_job_reports_facts_without_an_accuracy_claim() {
         &serde_json::json!({"job_id":"job-q","kind":"text","input_ref":source_id}).to_string(),
     )
     .await;
-    assert!(matches!(status, StatusCode::ACCEPTED), "unexpected enqueue response: {queued}");
+    assert!(
+        matches!(status, StatusCode::ACCEPTED),
+        "unexpected enqueue response: {queued}"
+    );
 
     let (status, body) = get(&router, "/api/v1/jobs/job-q/quality").await;
     assert_eq!(status, StatusCode::OK);
@@ -72,10 +84,19 @@ async fn a_queued_job_reports_facts_without_an_accuracy_claim() {
     assert_eq!(value["state"], "queued");
     assert_eq!(value["loss_count"], 0);
     assert_eq!(value["region_count"], 0);
-    assert!(value["coverage"].is_null(), "no receipt yet means no coverage claim: {value}");
-    assert!(value.get("accuracy").is_none(), "an accuracy figure must never be reported");
     assert!(
-        value["note"].as_str().unwrap_or("").contains("not accuracy"),
+        value["coverage"].is_null(),
+        "no receipt yet means no coverage claim: {value}"
+    );
+    assert!(
+        value.get("accuracy").is_none(),
+        "an accuracy figure must never be reported"
+    );
+    assert!(
+        value["note"]
+            .as_str()
+            .unwrap_or("")
+            .contains("not accuracy"),
         "the view must state that confidence is not accuracy: {value}"
     );
 }

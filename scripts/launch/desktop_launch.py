@@ -35,6 +35,26 @@ def _sha256(path: Path) -> str:
     return digest.hexdigest()
 
 
+def _development_artifact_kind(path: Path) -> str | None:
+    """Classify a path by the segment after its *nearest* ``.project-local``.
+
+    Measuring from the shared dev root instead reported ``worktrees`` for every
+    artefact a linked worktree produced, because a worktree keeps its own
+    ``.project-local`` nested inside the shared one::
+
+        <shared>/.project-local/worktrees/<name>/.project-local/build/...
+
+    so this launcher could not be exercised from the worktree workflow the project
+    mandates. The allowed set is unchanged; only the place it is measured from is.
+    """
+    parts = path.parts
+    marker = '.project-local'
+    if marker not in parts:
+        return None
+    start = max(index for index, part in enumerate(parts) if part == marker) + 1
+    return parts[start] if start < len(parts) else None
+
+
 def prepare_launch(*, desktop: Path | None = None, core: Path | None = None,
                    fresh_workspace: bool = False) -> dict:
     # This desktop launcher is a TEST entry; bind every invocation to the
@@ -47,7 +67,7 @@ def prepare_launch(*, desktop: Path | None = None, core: Path | None = None,
     for path in (desktop, core):
         if not path.is_relative_to(paths['dev']):
             raise ValueError('development executable must be inside project .project-local')
-        if path.relative_to(paths['dev']).parts[0] not in {'build', 'runs', 'dist', 'staging'}:
+        if _development_artifact_kind(path) not in {'build', 'runs', 'dist', 'staging'}:
             raise ValueError('development executable must be a build, run, dist or staging artifact')
         if not path.is_file():
             raise ValueError('required development executable is missing')

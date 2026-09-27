@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import errno
 import subprocess
 
 import pytest
@@ -26,7 +27,8 @@ def test_browser_environment_uses_short_project_hermes_root(tmp_path) -> None:
 
 
 def test_browser_environment_uses_output_parent_outside_project_runtime(monkeypatch) -> None:
-    output = web_screenshot.Path("outside-runtime/page.png")
+    # An earlier test may leave cwd inside the managed pytest runtime.
+    output = web_screenshot.Path(web_screenshot.Path.cwd().anchor) / "outside-runtime/page.png"
     monkeypatch.setattr(web_screenshot.Path, "mkdir", lambda *args, **kwargs: None)
 
     environment = web_screenshot._browser_environment(output)
@@ -70,7 +72,11 @@ def test_browser_failure_or_cancel_removes_its_profile(monkeypatch, tmp_path, er
     assert list((tmp_path / 'c').iterdir()) == []
 
 
-def test_profile_cleanup_failure_cannot_be_reported_as_success(monkeypatch, tmp_path):
+@pytest.mark.parametrize('cleanup_error', [
+    PermissionError('synthetic locked profile'),
+    OSError(errno.ENOTEMPTY, 'synthetic busy directory'),
+])
+def test_profile_cleanup_failure_cannot_be_reported_as_success(monkeypatch, tmp_path, cleanup_error):
     monkeypatch.setattr(web_screenshot, 'find_browser', lambda: 'browser-under-test')
     monkeypatch.setattr(web_screenshot, '_short_temp_root', lambda out: tmp_path)
     output = tmp_path / 'page.png'
@@ -81,9 +87,52 @@ def test_profile_cleanup_failure_cannot_be_reported_as_success(monkeypatch, tmp_
 
     def locked(path, ignore_errors=False):
         if not ignore_errors:
-            raise PermissionError('synthetic locked profile')
+            raise cleanup_error
 
     monkeypatch.setattr(web_screenshot.subprocess, 'run', capture)
     monkeypatch.setattr(web_screenshot.shutil, 'rmtree', locked)
+    ticks = iter((0.0, 6.0))
+    monkeypatch.setattr(web_screenshot.time, 'monotonic', lambda: next(ticks))
+    monkeypatch.setattr(web_screenshot, '_wait_for_screenshot', lambda _: True)
     with pytest.raises(web_screenshot.WebScreenshotError, match='profile cleanup'):
         web_screenshot.screenshot_web('http://127.0.0.1/fixture', output)
+
+
+@pytest.mark.parametrize('error', [
+    PermissionError('browser child is releasing its profile'),
+    OSError(errno.ENOTEMPTY, 'browser child is finishing directory writes'),
+])
+def test_profile_cleanup_waits_for_transient_browser_lock(monkeypatch, tmp_path, error):
+    profile = tmp_path / 'owned-profile'
+    profile.mkdir()
+    remove = web_screenshot.shutil.rmtree
+    calls = []
+
+    def transient_lock(path):
+        calls.append(path)
+        if len(calls) == 1:
+            raise error
+        remove(path)
+
+    monkeypatch.setattr(web_screenshot.shutil, 'rmtree', transient_lock)
+    monkeypatch.setattr(web_screenshot.time, 'sleep', lambda _: None)
+    web_screenshot._remove_browser_directory(profile)
+    assert len(calls) == 2
+    assert not profile.exists()
+
+
+def test_profile_cleanup_recognizes_windows_directory_not_empty(monkeypatch, tmp_path):
+    error = OSError('Windows directory still busy')
+    error.winerror = 145
+    ticks = iter((0.0, 6.0))
+    monkeypatch.setattr(web_screenshot.time, 'monotonic', lambda: next(ticks))
+
+    def fail(path):
+        raise error
+
+    monkeypatch.setattr(web_screenshot.shutil, 'rmtree', fail)
+    with pytest.raises(OSError) as caught:
+        web_screenshot._remove_browser_directory(tmp_path)
+    assert caught.value is error
+    # Both ticks were consumed: failure was classified as retryable, then timed out.
+    assert list(ticks) == []

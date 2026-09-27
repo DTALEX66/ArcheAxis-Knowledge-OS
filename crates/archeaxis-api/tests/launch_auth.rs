@@ -1,140 +1,341 @@
 //! Real process boundaries: no unauthenticated listener and no credentials in argv.
-use std::{io::{BufRead, BufReader, Read, Write}, net::TcpStream,
-    process::{Child, Command, Stdio}, sync::mpsc, time::{Duration, Instant}};
+use std::{
+    io::{BufRead, BufReader, Read, Write},
+    net::TcpStream,
+    process::{Child, Command, Stdio},
+    sync::mpsc,
+    time::{Duration, Instant},
+};
 
 const TOKEN: &str = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa";
 const SESSION: &str = "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb";
 const MACHINE_TOKEN: &str = "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc";
 struct Owned(Child);
-impl Drop for Owned { fn drop(&mut self) { let _=self.0.kill(); let _=self.0.wait(); } }
-fn spawn(db:&std::path::Path)->Owned {
-    let mut command=Command::new(env!("CARGO_BIN_EXE_archeaxis-api"));
-    command.arg(db).arg("0").stdin(Stdio::piped()).stdout(Stdio::piped()).stderr(Stdio::null());
-    #[cfg(windows)] { use std::os::windows::process::CommandExt; command.creation_flags(0x08000000); }
+impl Drop for Owned {
+    fn drop(&mut self) {
+        let _ = self.0.kill();
+        let _ = self.0.wait();
+    }
+}
+fn spawn(db: &std::path::Path) -> Owned {
+    let mut command = Command::new(env!("CARGO_BIN_EXE_archeaxis-api"));
+    command
+        .arg(db)
+        .arg("0")
+        .stdin(Stdio::piped())
+        .stdout(Stdio::piped())
+        .stderr(Stdio::null());
+    #[cfg(windows)]
+    {
+        use std::os::windows::process::CommandExt;
+        command.creation_flags(0x08000000);
+    }
     Owned(command.spawn().unwrap())
 }
-fn ready(child:&mut Owned)->u16 {
-    let stdout=child.0.stdout.take().unwrap(); let (send,receive)=mpsc::channel();
-    std::thread::spawn(move||{for line in BufReader::new(stdout).lines(){
-        if send.send(line.unwrap()).is_err(){break;}
-    }});
-    let line=receive.recv_timeout(Duration::from_secs(8)).expect("bounded readiness");
+fn ready(child: &mut Owned) -> u16 {
+    let stdout = child.0.stdout.take().unwrap();
+    let (send, receive) = mpsc::channel();
+    std::thread::spawn(move || {
+        for line in BufReader::new(stdout).lines() {
+            if send.send(line.unwrap()).is_err() {
+                break;
+            }
+        }
+    });
+    let line = receive
+        .recv_timeout(Duration::from_secs(8))
+        .expect("bounded readiness");
     assert!(!line.contains(TOKEN));
-    line.split("127.0.0.1:").nth(1).unwrap().split_whitespace().next().unwrap().parse().unwrap()
+    line.split("127.0.0.1:")
+        .nth(1)
+        .unwrap()
+        .split_whitespace()
+        .next()
+        .unwrap()
+        .parse()
+        .unwrap()
 }
-fn http(port:u16,method:&str,path:&str,headers:&str)->(u16,String) {http_body(port,method,path,headers,"")}
-fn http_body(port:u16,method:&str,path:&str,headers:&str,body:&str)->(u16,String) {
-    let mut socket=TcpStream::connect(("127.0.0.1",port)).unwrap();
-    socket.set_read_timeout(Some(Duration::from_secs(3))).unwrap();
+fn http(port: u16, method: &str, path: &str, headers: &str) -> (u16, String) {
+    http_body(port, method, path, headers, "")
+}
+fn http_body(port: u16, method: &str, path: &str, headers: &str, body: &str) -> (u16, String) {
+    let mut socket = TcpStream::connect(("127.0.0.1", port)).unwrap();
+    socket
+        .set_read_timeout(Some(Duration::from_secs(3)))
+        .unwrap();
     write!(socket,"{method} {path} HTTP/1.1\r\nHost: 127.0.0.1:{port}\r\nConnection: close\r\nContent-Length: {}\r\n{headers}\r\n{body}",body.len()).unwrap();
-    let mut response=String::new();socket.read_to_string(&mut response).unwrap();
+    let mut response = String::new();
+    socket.read_to_string(&mut response).unwrap();
     assert!(!response.contains(TOKEN));
-    (response.split_whitespace().nth(1).unwrap().parse().unwrap(),response.split("\r\n\r\n").nth(1).unwrap_or("").into())
+    (
+        response.split_whitespace().nth(1).unwrap().parse().unwrap(),
+        response.split("\r\n\r\n").nth(1).unwrap_or("").into(),
+    )
 }
 #[test]
 fn configured_process_exposes_actual_worker_execution_not_just_in_process_router() {
-    let dir=tempfile::tempdir().unwrap();let db=dir.path().join("runtime.sqlite");
-    let python=std::env::var("ARCHEAXIS_PYTHON").unwrap();
-    let script=std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR")).parent().unwrap().parent().unwrap().join("services/python-workers/transport/text_ndjson.py");
-    let mut child=spawn(&db);
-    writeln!(child.0.stdin.take().unwrap(),"{}",serde_json::json!({"launch_token":TOKEN,"session_id":SESSION,
-        "text_worker":{"python":python,"script":script,"staging":dir.path().join("staging")}})).unwrap();
-    let port=ready(&mut child);
-    let headers=format!("x-archeaxis-launch-token: {TOKEN}\r\nContent-Type: application/json\r\n");
-    let (code,body)=http_body(port,"POST","/api/v1/imports",&headers,r#"{"name":"real.txt","content_base64":"aGVsbG8="}"#);
-    assert_eq!(code,202);let source=serde_json::from_str::<serde_json::Value>(&body).unwrap()["source_id"].as_str().unwrap().to_owned();
-    assert_eq!(http_body(port,"POST","/api/v1/jobs",&headers,&serde_json::json!({"job_id":"process-job","kind":"text","input_ref":source}).to_string()).0,202);
-    assert_eq!(http_body(port,"POST","/api/v1/jobs/process-job/executions",&format!("{headers}idempotency-key: process-attempt\r\n"),r#"{"deadline_ms":5000}"#).0,202);
-    let deadline=Instant::now()+Duration::from_secs(6);
+    let dir = tempfile::tempdir().unwrap();
+    let db = dir.path().join("runtime.sqlite");
+    let python = std::env::var("ARCHEAXIS_PYTHON").unwrap();
+    let script = std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+        .parent()
+        .unwrap()
+        .parent()
+        .unwrap()
+        .join("services/python-workers/transport/text_ndjson.py");
+    let mut child = spawn(&db);
+    writeln!(
+        child.0.stdin.take().unwrap(),
+        "{}",
+        serde_json::json!({"launch_token":TOKEN,"session_id":SESSION,
+        "text_worker":{"python":python,"script":script,"staging":dir.path().join("staging")}})
+    )
+    .unwrap();
+    let port = ready(&mut child);
+    let headers =
+        format!("x-archeaxis-launch-token: {TOKEN}\r\nContent-Type: application/json\r\n");
+    let (code, body) = http_body(
+        port,
+        "POST",
+        "/api/v1/imports",
+        &headers,
+        r#"{"name":"real.txt","content_base64":"aGVsbG8="}"#,
+    );
+    assert_eq!(code, 202);
+    let source = serde_json::from_str::<serde_json::Value>(&body).unwrap()["source_id"]
+        .as_str()
+        .unwrap()
+        .to_owned();
+    assert_eq!(
+        http_body(
+            port,
+            "POST",
+            "/api/v1/jobs",
+            &headers,
+            &serde_json::json!({"job_id":"process-job","kind":"text","input_ref":source})
+                .to_string()
+        )
+        .0,
+        202
+    );
+    assert_eq!(
+        http_body(
+            port,
+            "POST",
+            "/api/v1/jobs/process-job/executions",
+            &format!("{headers}idempotency-key: process-attempt\r\n"),
+            r#"{"deadline_ms":5000}"#
+        )
+        .0,
+        202
+    );
+    let deadline = Instant::now() + Duration::from_secs(6);
     loop {
-        let (code,body)=http(port,"GET","/api/v1/jobs/process-job",&headers);assert_eq!(code,200);
-        let state=serde_json::from_str::<serde_json::Value>(&body).unwrap();
-        if state["state"]=="succeeded"{break;}
-        assert_eq!(state["state"],"running");assert!(Instant::now()<deadline);std::thread::sleep(Duration::from_millis(10));
+        let (code, body) = http(port, "GET", "/api/v1/jobs/process-job", &headers);
+        assert_eq!(code, 200);
+        let state = serde_json::from_str::<serde_json::Value>(&body).unwrap();
+        if state["state"] == "succeeded" {
+            break;
+        }
+        assert_eq!(state["state"], "running");
+        assert!(Instant::now() < deadline);
+        std::thread::sleep(Duration::from_millis(10));
     }
-    let (code,body)=http(port,"GET","/api/v1/jobs/process-job/outputs/text",&headers);assert_eq!(code,200);
-    assert_eq!(serde_json::from_str::<serde_json::Value>(&body).unwrap()["content"],"hello");
+    let (code, body) = http(
+        port,
+        "GET",
+        "/api/v1/jobs/process-job/outputs/text",
+        &headers,
+    );
+    assert_eq!(code, 200);
+    assert_eq!(
+        serde_json::from_str::<serde_json::Value>(&body).unwrap()["content"],
+        "hello"
+    );
 }
 #[test]
 fn process_requires_launch_auth_for_reads_writes_and_unknown_routes() {
-    let dir=tempfile::tempdir().unwrap();let db=dir.path().join("core with spaces.sqlite");
-    let mut child=spawn(&db);
-    writeln!(child.0.stdin.take().unwrap(),"{}",serde_json::json!({"launch_token":TOKEN,"session_id":SESSION})).unwrap();
-    let port=ready(&mut child);
-    for (method,path) in [("GET","/api/v1/system/version"),("GET","/api/v1/workspaces/info"),("POST","/api/v1/imports"),("POST","/api/v1/jobs"),("GET","/unknown")] {
-        for headers in ["", "x-archeaxis-launch-token: wrong\r\n", "x-archeaxis-scopes: owner\r\n"] {
-            let (status,body)=http(port,method,path,headers);
-            assert_eq!(status,401,"unprotected {method} {path}");
-            assert_eq!(serde_json::from_str::<serde_json::Value>(&body).unwrap()["code"],"AAK-AUTH-001");
+    let dir = tempfile::tempdir().unwrap();
+    let db = dir.path().join("core with spaces.sqlite");
+    let mut child = spawn(&db);
+    writeln!(
+        child.0.stdin.take().unwrap(),
+        "{}",
+        serde_json::json!({"launch_token":TOKEN,"session_id":SESSION})
+    )
+    .unwrap();
+    let port = ready(&mut child);
+    for (method, path) in [
+        ("GET", "/api/v1/system/version"),
+        ("GET", "/api/v1/workspaces/info"),
+        ("POST", "/api/v1/imports"),
+        ("POST", "/api/v1/jobs"),
+        ("GET", "/unknown"),
+    ] {
+        for headers in [
+            "",
+            "x-archeaxis-launch-token: wrong\r\n",
+            "x-archeaxis-scopes: owner\r\n",
+        ] {
+            let (status, body) = http(port, method, path, headers);
+            assert_eq!(status, 401, "unprotected {method} {path}");
+            assert_eq!(
+                serde_json::from_str::<serde_json::Value>(&body).unwrap()["code"],
+                "AAK-AUTH-001"
+            );
         }
     }
-    let headers=format!("x-archeaxis-launch-token: {TOKEN}\r\n");
-    let (status,body)=http(port,"GET","/api/v1/system/version",&headers);
-    assert_eq!(status,200);
-    let version:serde_json::Value=serde_json::from_str(&body).unwrap();
-    assert_eq!(version["session_id"],SESSION);assert_eq!(version["runtime"],"archeaxis-api");
-    assert_eq!(std::fs::canonicalize(version["workspace_db"].as_str().unwrap()).unwrap(),db.canonicalize().unwrap());
-    assert_eq!(http(port,"GET","/api/v1/workspaces/info",&headers).0,200);
-    assert_eq!(http(port,"GET","/api/v1/system/version",&format!("{headers}Origin: https://example.invalid\r\n")).0,403);
-    assert_eq!(http(port,"GET","/api/v1/system/version",&format!("{headers}{headers}")).0,401);
+    let headers = format!("x-archeaxis-launch-token: {TOKEN}\r\n");
+    let (status, body) = http(port, "GET", "/api/v1/system/version", &headers);
+    assert_eq!(status, 200);
+    let version: serde_json::Value = serde_json::from_str(&body).unwrap();
+    assert_eq!(version["session_id"], SESSION);
+    assert_eq!(version["runtime"], "archeaxis-api");
+    assert_eq!(
+        std::fs::canonicalize(version["workspace_db"].as_str().unwrap()).unwrap(),
+        db.canonicalize().unwrap()
+    );
+    assert_eq!(
+        http(port, "GET", "/api/v1/workspaces/info", &headers).0,
+        200
+    );
+    assert_eq!(
+        http(
+            port,
+            "GET",
+            "/api/v1/system/version",
+            &format!("{headers}Origin: https://example.invalid\r\n")
+        )
+        .0,
+        403
+    );
+    assert_eq!(
+        http(
+            port,
+            "GET",
+            "/api/v1/system/version",
+            &format!("{headers}{headers}")
+        )
+        .0,
+        401
+    );
     drop(child);
-    let next_token="c".repeat(64);
-    let mut restarted=spawn(&db);
-    writeln!(restarted.0.stdin.take().unwrap(),"{}",serde_json::json!({"launch_token":next_token,"session_id":"d".repeat(32)})).unwrap();
-    let next_port=ready(&mut restarted);
-    assert_eq!(http(next_port,"GET","/api/v1/system/version",&headers).0,401,"old credential survived restart");
-    assert_eq!(http(next_port,"GET","/api/v1/system/version",&format!("x-archeaxis-launch-token: {next_token}\r\n")).0,200);
+    let next_token = "c".repeat(64);
+    let mut restarted = spawn(&db);
+    writeln!(
+        restarted.0.stdin.take().unwrap(),
+        "{}",
+        serde_json::json!({"launch_token":next_token,"session_id":"d".repeat(32)})
+    )
+    .unwrap();
+    let next_port = ready(&mut restarted);
+    assert_eq!(
+        http(next_port, "GET", "/api/v1/system/version", &headers).0,
+        401,
+        "old credential survived restart"
+    );
+    assert_eq!(
+        http(
+            next_port,
+            "GET",
+            "/api/v1/system/version",
+            &format!("x-archeaxis-launch-token: {next_token}\r\n")
+        )
+        .0,
+        200
+    );
 }
 #[test]
 fn unknown_launch_actor_is_rejected_and_never_grants_human_authority() {
     // R04: an unrecognised launch actor must fail closed. Previously any value
     // other than "machine" was mapped to "human", so a caller that named an
     // unknown role silently received human authority.
-    for actor in ["alien", "Human", "owner", "", "machine " ] {
-        let dir=tempfile::tempdir().unwrap();
-        let db=dir.path().join("unknown-actor.sqlite");
-        let mut child=spawn(&db);
+    for actor in ["alien", "Human", "owner", "", "machine "] {
+        let dir = tempfile::tempdir().unwrap();
+        let db = dir.path().join("unknown-actor.sqlite");
+        let mut child = spawn(&db);
         writeln!(
             child.0.stdin.take().unwrap(),
             "{}",
             serde_json::json!({"launch_token":TOKEN,"session_id":SESSION,"actor":actor})
         )
         .unwrap();
-        let deadline=Instant::now()+Duration::from_secs(7);
-        let status=loop {
-            if let Some(status)=child.0.try_wait().unwrap(){break status;}
-            assert!(Instant::now()<deadline,"unknown launch actor left the process running");
+        let deadline = Instant::now() + Duration::from_secs(7);
+        let status = loop {
+            if let Some(status) = child.0.try_wait().unwrap() {
+                break status;
+            }
+            assert!(
+                Instant::now() < deadline,
+                "unknown launch actor left the process running"
+            );
             std::thread::sleep(Duration::from_millis(10));
         };
-        assert!(!status.success(),"unknown launch actor {actor:?} must not start a session");
-        assert!(!db.exists(),"unknown launch actor {actor:?} must not create a workspace");
+        assert!(
+            !status.success(),
+            "unknown launch actor {actor:?} must not start a session"
+        );
+        assert!(
+            !db.exists(),
+            "unknown launch actor {actor:?} must not create a workspace"
+        );
     }
     // The two documented actors still start, so the rejection is specific.
-    let dir=tempfile::tempdir().unwrap();
-    let db=dir.path().join("human-actor.sqlite");
-    let mut child=spawn(&db);
+    let dir = tempfile::tempdir().unwrap();
+    let db = dir.path().join("human-actor.sqlite");
+    let mut child = spawn(&db);
     writeln!(
         child.0.stdin.take().unwrap(),
         "{}",
         serde_json::json!({"launch_token":TOKEN,"session_id":SESSION,"actor":"human"})
     )
     .unwrap();
-    let port=ready(&mut child);
-    assert_eq!(http(port,"GET","/api/v1/system/version",&format!("x-archeaxis-launch-token: {TOKEN}\r\n")).0,200);
+    let port = ready(&mut child);
+    assert_eq!(
+        http(
+            port,
+            "GET",
+            "/api/v1/system/version",
+            &format!("x-archeaxis-launch-token: {TOKEN}\r\n")
+        )
+        .0,
+        200
+    );
 }
 
 #[test]
 fn invalid_or_unclosed_bootstrap_never_creates_workspace_and_exits_bounded() {
-    for bootstrap in [Some(""),Some("{}"),Some("not json"),Some("oversize"),None] {
-        let dir=tempfile::tempdir().unwrap();let db=dir.path().join("not-created.sqlite");let mut child=spawn(&db);
-        if let Some(value)=bootstrap {
-            let mut pipe=child.0.stdin.take().unwrap();
-            if value=="oversize" {let _=pipe.write_all(&vec![b'x';5000]);} else {let _=pipe.write_all(value.as_bytes());}
+    for bootstrap in [
+        Some(""),
+        Some("{}"),
+        Some("not json"),
+        Some("oversize"),
+        None,
+    ] {
+        let dir = tempfile::tempdir().unwrap();
+        let db = dir.path().join("not-created.sqlite");
+        let mut child = spawn(&db);
+        if let Some(value) = bootstrap {
+            let mut pipe = child.0.stdin.take().unwrap();
+            if value == "oversize" {
+                let _ = pipe.write_all(&vec![b'x'; 5000]);
+            } else {
+                let _ = pipe.write_all(value.as_bytes());
+            }
         }
-        let deadline=Instant::now()+Duration::from_secs(7);
-        let status=loop {if let Some(status)=child.0.try_wait().unwrap(){break status;}
-            assert!(Instant::now()<deadline,"invalid bootstrap left process running");std::thread::sleep(Duration::from_millis(10));};
-        assert!(!status.success());assert!(!db.exists());
+        let deadline = Instant::now() + Duration::from_secs(7);
+        let status = loop {
+            if let Some(status) = child.0.try_wait().unwrap() {
+                break status;
+            }
+            assert!(
+                Instant::now() < deadline,
+                "invalid bootstrap left process running"
+            );
+            std::thread::sleep(Duration::from_millis(10));
+        };
+        assert!(!status.success());
+        assert!(!db.exists());
     }
 }
 
@@ -169,7 +370,10 @@ fn machine_launch_cannot_self_accept_even_with_forged_headers() {
         &forged,
         r#"{"knowledge_type":"FACTUAL_CLAIM","body":"self-accept attempt","status":"accepted","actor":"human","created_by":"python-worker"}"#,
     );
-    assert_eq!(code, 400, "machine launch must not self-accept via forged headers/body");
+    assert_eq!(
+        code, 400,
+        "machine launch must not self-accept via forged headers/body"
+    );
 }
 
 #[test]
@@ -184,7 +388,8 @@ fn human_launch_may_save_personal_definition_accepted() {
     )
     .unwrap();
     let port = ready(&mut child);
-    let headers = format!("x-archeaxis-launch-token: {TOKEN}\r\nContent-Type: application/json\r\n");
+    let headers =
+        format!("x-archeaxis-launch-token: {TOKEN}\r\nContent-Type: application/json\r\n");
     let (code, _) = http_body(
         port,
         "POST",
@@ -200,85 +405,202 @@ fn v2_one_core_binds_distinct_tokens_to_fixed_roles() {
     let dir = tempfile::tempdir().unwrap();
     let db = dir.path().join("dual-role.sqlite");
     let mut child = spawn(&db);
-    writeln!(child.0.stdin.take().unwrap(), "{}", serde_json::json!({
-        "protocol":"archeaxis.desktop-launch/v2", "actor":"human",
-        "launch_token":TOKEN,"machine_token":MACHINE_TOKEN,"session_id":SESSION
-    })).unwrap();
+    writeln!(
+        child.0.stdin.take().unwrap(),
+        "{}",
+        serde_json::json!({
+            "protocol":"archeaxis.desktop-launch/v2", "actor":"human",
+            "launch_token":TOKEN,"machine_token":MACHINE_TOKEN,"session_id":SESSION
+        })
+    )
+    .unwrap();
     let port = ready(&mut child);
-    for (token, actor) in [(TOKEN,"human"),(MACHINE_TOKEN,"machine")] {
-        let headers = format!("x-archeaxis-launch-token: {token}\r\nx-archeaxis-actor: human\r\nContent-Type: application/json\r\n");
-        let (code, body) = http(port,"GET","/api/v1/system/version",&headers);
-        assert_eq!(code,200);
+    for (token, actor) in [(TOKEN, "human"), (MACHINE_TOKEN, "machine")] {
+        let headers = format!(
+            "x-archeaxis-launch-token: {token}\r\nx-archeaxis-actor: human\r\nContent-Type: application/json\r\n"
+        );
+        let (code, body) = http(port, "GET", "/api/v1/system/version", &headers);
+        assert_eq!(code, 200);
         assert!(!body.contains(MACHINE_TOKEN));
-        let version:serde_json::Value = serde_json::from_str(&body).unwrap();
-        assert_eq!(version["launch_protocol"],"archeaxis.desktop-launch/v2");
-        assert_eq!(version["actor"],actor);
-        assert_eq!(version["session_id"],SESSION);
-        assert_eq!(std::path::PathBuf::from(version["workspace_db"].as_str().unwrap()).canonicalize().unwrap(),db.canonicalize().unwrap());
-        let status = if actor=="human" {"accepted"} else {"candidate"};
+        let version: serde_json::Value = serde_json::from_str(&body).unwrap();
+        assert_eq!(version["launch_protocol"], "archeaxis.desktop-launch/v2");
+        assert_eq!(version["actor"], actor);
+        assert_eq!(version["session_id"], SESSION);
+        assert_eq!(
+            std::path::PathBuf::from(version["workspace_db"].as_str().unwrap())
+                .canonicalize()
+                .unwrap(),
+            db.canonicalize().unwrap()
+        );
+        let status = if actor == "human" {
+            "accepted"
+        } else {
+            "candidate"
+        };
         let payload = serde_json::json!({"knowledge_type":"PERSONAL_DEFINITION","body":actor,"status":status,"created_by":"bootstrap-test"});
-        let (created, body)=http_body(port,"POST","/api/v1/knowledge-items",&headers,&payload.to_string());
-        assert_eq!(created,201);
-        if actor=="human" {
-            let (review_status,review_body)=http_body(port,"POST","/api/v1/learning/reviews",&headers,r#"{"item_key":"live-fsrs","correct":true,"client_event_id":"live-fsrs-first","now":"2026-09-02T00:00:00+00:00"}"#);
-            assert_eq!(review_status,201,"{review_body}");
-            let review:serde_json::Value=serde_json::from_str(&review_body).unwrap();
-            assert_eq!(review["schedule_authority"],"fsrs");
-            assert_eq!(review["schedule_state"]["step"],1);
+        let (created, body) = http_body(
+            port,
+            "POST",
+            "/api/v1/knowledge-items",
+            &headers,
+            &payload.to_string(),
+        );
+        assert_eq!(created, 201);
+        if actor == "human" {
+            let (review_status, review_body) = http_body(
+                port,
+                "POST",
+                "/api/v1/learning/reviews",
+                &headers,
+                r#"{"item_key":"live-fsrs","correct":true,"client_event_id":"live-fsrs-first","now":"2026-09-02T00:00:00+00:00"}"#,
+            );
+            assert_eq!(review_status, 201, "{review_body}");
+            let review: serde_json::Value = serde_json::from_str(&review_body).unwrap();
+            assert_eq!(review["schedule_authority"], "fsrs");
+            assert_eq!(review["schedule_state"]["step"], 1);
         }
-        if actor=="machine" {
-            let item:serde_json::Value=serde_json::from_str(&body).unwrap();
-            let id=item["knowledge_id"].as_str().unwrap();
-            assert_eq!(http_body(port,"POST",&format!("/api/v1/knowledge-items/{id}/review-decisions"),&headers,r#"{"action":"accepted","reviewer":"machine"}"#).0,403);
+        if actor == "machine" {
+            let item: serde_json::Value = serde_json::from_str(&body).unwrap();
+            let id = item["knowledge_id"].as_str().unwrap();
+            assert_eq!(
+                http_body(
+                    port,
+                    "POST",
+                    &format!("/api/v1/knowledge-items/{id}/review-decisions"),
+                    &headers,
+                    r#"{"action":"accepted","reviewer":"machine"}"#
+                )
+                .0,
+                403
+            );
             assert_eq!(http_body(port,"POST","/api/v1/learning/events",&headers,r#"{"item_key":"card-a","kind":"review","correct":true,"client_event_id":"forged-human-event"}"#).0,403);
             assert_eq!(http_body(port,"POST","/api/v1/learning/reviews",&headers,r#"{"item_key":"card-a","correct":true,"client_event_id":"forged-stateful-event"}"#).0,403);
             let forged = serde_json::json!({"knowledge_type":"PERSONAL_DEFINITION","body":"forged","status":"accepted","actor":"human","created_by":"bootstrap-test"});
-            assert_eq!(http_body(port,"POST","/api/v1/knowledge-items",&headers,&forged.to_string()).0,400);
-            assert_eq!(http(port,"GET","/api/v1/system/version",&format!("{headers}Origin: http://localhost\r\n")).0,403);
+            assert_eq!(
+                http_body(
+                    port,
+                    "POST",
+                    "/api/v1/knowledge-items",
+                    &headers,
+                    &forged.to_string()
+                )
+                .0,
+                400
+            );
+            assert_eq!(
+                http(
+                    port,
+                    "GET",
+                    "/api/v1/system/version",
+                    &format!("{headers}Origin: http://localhost\r\n")
+                )
+                .0,
+                403
+            );
         }
     }
-    assert_eq!(http(port,"GET","/api/v1/system/version",&format!("x-archeaxis-launch-token: {TOKEN}\r\nx-archeaxis-launch-token: {MACHINE_TOKEN}\r\n")).0,401);
-    child.0.kill().unwrap();child.0.wait().unwrap();
-    let mut restarted=spawn(&db);
+    assert_eq!(
+        http(
+            port,
+            "GET",
+            "/api/v1/system/version",
+            &format!(
+                "x-archeaxis-launch-token: {TOKEN}\r\nx-archeaxis-launch-token: {MACHINE_TOKEN}\r\n"
+            )
+        )
+        .0,
+        401
+    );
+    child.0.kill().unwrap();
+    child.0.wait().unwrap();
+    let mut restarted = spawn(&db);
     writeln!(restarted.0.stdin.take().unwrap(),"{}",serde_json::json!({"protocol":"archeaxis.desktop-launch/v2","actor":"human","launch_token":"e".repeat(64),"machine_token":"f".repeat(64),"session_id":"d".repeat(32)})).unwrap();
-    let next_port=ready(&mut restarted);
-    let review_headers=format!("x-archeaxis-launch-token: {}\r\nContent-Type: application/json\r\n","e".repeat(64));
-    let (review_status,review_body)=http_body(next_port,"POST","/api/v1/learning/reviews",&review_headers,r#"{"item_key":"live-fsrs","correct":true,"client_event_id":"live-fsrs-second","now":"2026-09-02T00:10:00+00:00"}"#);
-    assert_eq!(review_status,201,"{review_body}");
-    let review:serde_json::Value=serde_json::from_str(&review_body).unwrap();
-    assert_eq!(review["next_review"],"2026-09-04T00:10:00+00:00");
-    for stale in [TOKEN,MACHINE_TOKEN] {
-        assert_eq!(http(next_port,"GET","/api/v1/system/version",&format!("x-archeaxis-launch-token: {stale}\r\n")).0,401);
+    let next_port = ready(&mut restarted);
+    let review_headers = format!(
+        "x-archeaxis-launch-token: {}\r\nContent-Type: application/json\r\n",
+        "e".repeat(64)
+    );
+    let (review_status, review_body) = http_body(
+        next_port,
+        "POST",
+        "/api/v1/learning/reviews",
+        &review_headers,
+        r#"{"item_key":"live-fsrs","correct":true,"client_event_id":"live-fsrs-second","now":"2026-09-02T00:10:00+00:00"}"#,
+    );
+    assert_eq!(review_status, 201, "{review_body}");
+    let review: serde_json::Value = serde_json::from_str(&review_body).unwrap();
+    assert_eq!(review["next_review"], "2026-09-04T00:10:00+00:00");
+    for stale in [TOKEN, MACHINE_TOKEN] {
+        assert_eq!(
+            http(
+                next_port,
+                "GET",
+                "/api/v1/system/version",
+                &format!("x-archeaxis-launch-token: {stale}\r\n")
+            )
+            .0,
+            401
+        );
     }
-    for (token, actor) in [("e".repeat(64),"human"),("f".repeat(64),"machine")] {
-        let (code,body)=http(next_port,"GET","/api/v1/system/version",&format!("x-archeaxis-launch-token: {token}\r\n"));
-        assert_eq!(code,200);
-        let identity:serde_json::Value=serde_json::from_str(&body).unwrap();
-        assert_eq!(identity["actor"],actor);assert_eq!(identity["session_id"],"d".repeat(32));
+    for (token, actor) in [("e".repeat(64), "human"), ("f".repeat(64), "machine")] {
+        let (code, body) = http(
+            next_port,
+            "GET",
+            "/api/v1/system/version",
+            &format!("x-archeaxis-launch-token: {token}\r\n"),
+        );
+        assert_eq!(code, 200);
+        let identity: serde_json::Value = serde_json::from_str(&body).unwrap();
+        assert_eq!(identity["actor"], actor);
+        assert_eq!(identity["session_id"], "d".repeat(32));
     }
 }
 
 #[test]
 fn invalid_v2_claims_are_rejected_before_database_creation() {
-    let base=serde_json::json!({"protocol":"archeaxis.desktop-launch/v2","actor":"human","launch_token":TOKEN,"machine_token":MACHINE_TOKEN,"session_id":SESSION});
-    let mut claims=Vec::new();
-    for field in ["actor","machine_token","launch_token","session_id"] {
-        let mut value=base.clone(); value.as_object_mut().unwrap().remove(field); claims.push(value.to_string());
+    let base = serde_json::json!({"protocol":"archeaxis.desktop-launch/v2","actor":"human","launch_token":TOKEN,"machine_token":MACHINE_TOKEN,"session_id":SESSION});
+    let mut claims = Vec::new();
+    for field in ["actor", "machine_token", "launch_token", "session_id"] {
+        let mut value = base.clone();
+        value.as_object_mut().unwrap().remove(field);
+        claims.push(value.to_string());
     }
-    for (field,value) in [("actor","machine"),("protocol","unknown"),("machine_token",TOKEN),("machine_token","short")] {
-        let mut claim=base.clone();claim[field]=serde_json::json!(value);claims.push(claim.to_string());
+    for (field, value) in [
+        ("actor", "machine"),
+        ("protocol", "unknown"),
+        ("machine_token", TOKEN),
+        ("machine_token", "short"),
+    ] {
+        let mut claim = base.clone();
+        claim[field] = serde_json::json!(value);
+        claims.push(claim.to_string());
     }
-    claims.push(base.to_string().replacen('{',"{\"machine_token\":\"duplicate\",",1));
-    let mut legacy=base.clone();legacy.as_object_mut().unwrap().remove("protocol");claims.push(legacy.to_string());
-    for field in ["protocol","actor","machine_token"] {
-        let mut value=base.clone();value[field]=serde_json::Value::Null;claims.push(value.to_string());
+    claims.push(
+        base.to_string()
+            .replacen('{', "{\"machine_token\":\"duplicate\",", 1),
+    );
+    let mut legacy = base.clone();
+    legacy.as_object_mut().unwrap().remove("protocol");
+    claims.push(legacy.to_string());
+    for field in ["protocol", "actor", "machine_token"] {
+        let mut value = base.clone();
+        value[field] = serde_json::Value::Null;
+        claims.push(value.to_string());
     }
     for claim in claims {
-        let dir=tempfile::tempdir().unwrap();let db=dir.path().join("invalid.sqlite");
-        let mut child=spawn(&db);writeln!(child.0.stdin.take().unwrap(),"{claim}").unwrap();
-        let deadline=Instant::now()+Duration::from_secs(7);
-        let status=loop {if let Some(status)=child.0.try_wait().unwrap(){break status;}
-            assert!(Instant::now()<deadline,"invalid claim did not terminate");std::thread::sleep(Duration::from_millis(10));};
-        assert!(!status.success());assert!(!db.exists());
+        let dir = tempfile::tempdir().unwrap();
+        let db = dir.path().join("invalid.sqlite");
+        let mut child = spawn(&db);
+        writeln!(child.0.stdin.take().unwrap(), "{claim}").unwrap();
+        let deadline = Instant::now() + Duration::from_secs(7);
+        let status = loop {
+            if let Some(status) = child.0.try_wait().unwrap() {
+                break status;
+            }
+            assert!(Instant::now() < deadline, "invalid claim did not terminate");
+            std::thread::sleep(Duration::from_millis(10));
+        };
+        assert!(!status.success());
+        assert!(!db.exists());
     }
 }
