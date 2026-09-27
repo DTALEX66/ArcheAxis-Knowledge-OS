@@ -10,11 +10,11 @@ use rusqlite::Connection;
 use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
 
-pub mod jobs;
-pub mod container;
-pub mod ocr;
 pub mod attempts;
+pub mod container;
 pub mod executor;
+pub mod jobs;
+pub mod ocr;
 pub mod scheduler;
 
 pub const RUNTIME_NAME: &str = "archeaxis-application";

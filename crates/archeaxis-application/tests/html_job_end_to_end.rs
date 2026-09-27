@@ -19,11 +19,16 @@ const SNAPSHOT: &str = "<!doctype html><html><head><title>Measured page</title><
 <script>var ignored = 1;</script></body></html>";
 
 fn python() -> PathBuf {
-    std::env::var_os("ARCHEAXIS_PYTHON").expect("run cargo via the project wrapper").into()
+    std::env::var_os("ARCHEAXIS_PYTHON")
+        .expect("run cargo via the project wrapper")
+        .into()
 }
 
 fn repo() -> PathBuf {
-    PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../..").canonicalize().unwrap()
+    PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+        .join("../..")
+        .canonicalize()
+        .unwrap()
 }
 
 async fn open_executor(dir: &std::path::Path) -> Executor {
@@ -32,7 +37,10 @@ async fn open_executor(dir: &std::path::Path) -> Executor {
         &dir.join("staging"),
         &python(),
         &repo().join("services/python-workers/transport/text_ndjson.py"),
-        &[("html.structure", repo().join("services/python-workers/web/worker_html.py"))],
+        &[(
+            "html.structure",
+            repo().join("services/python-workers/web/worker_html.py"),
+        )],
     )
     .await
     .unwrap()
@@ -40,17 +48,30 @@ async fn open_executor(dir: &std::path::Path) -> Executor {
 
 #[test]
 fn html_names_select_the_html_route_and_never_the_text_route() {
-    assert_eq!(attempts::resolve_media_type("html", "snapshot.html").unwrap(), "text/html");
-    assert_eq!(attempts::resolve_media_type("html", "page.htm").unwrap(), "text/html");
+    assert_eq!(
+        attempts::resolve_media_type("html", "snapshot.html").unwrap(),
+        "text/html"
+    );
+    assert_eq!(
+        attempts::resolve_media_type("html", "page.htm").unwrap(),
+        "text/html"
+    );
     assert_eq!(
         attempts::resolve_media_type("html", "page.xhtml").unwrap(),
         "application/xhtml+xml"
     );
     // a saved page must be read by the HTML worker, not decoded as plain text
-    let error = attempts::resolve_media_type("text", "snapshot.html").unwrap_err().to_string();
-    assert!(error.contains("cannot accept media type text/html"), "{error}");
+    let error = attempts::resolve_media_type("text", "snapshot.html")
+        .unwrap_err()
+        .to_string();
+    assert!(
+        error.contains("cannot accept media type text/html"),
+        "{error}"
+    );
     // and a URL is not a file name: there is no fetch route at all
-    let error = attempts::resolve_media_type("html", "https://example.invalid/").unwrap_err().to_string();
+    let error = attempts::resolve_media_type("html", "https://example.invalid/")
+        .unwrap_err()
+        .to_string();
     assert!(error.contains("cannot name a media type"), "{error}");
 }
 
@@ -62,15 +83,19 @@ async fn a_snapshot_job_stores_its_body_and_its_link_facts() {
     executor
         .store()
         .submit(move |conn| {
-            let source_id = match source::import_source(conn, &payload, "snapshot.html", None).unwrap() {
-                ImportOutcome::Imported { source_id, .. } => source_id,
-                ImportOutcome::Duplicate { source_id, .. } => source_id,
-            };
+            let source_id =
+                match source::import_source(conn, &payload, "snapshot.html", None).unwrap() {
+                    ImportOutcome::Imported { source_id, .. } => source_id,
+                    ImportOutcome::Duplicate { source_id, .. } => source_id,
+                };
             jobs::enqueue(conn, "job-html", "html", &source_id).unwrap();
         })
         .await
         .unwrap();
-    executor.execute("job-html", "run-html", 120_000, &Cancellation::new()).await.unwrap();
+    executor
+        .execute("job-html", "run-html", 120_000, &Cancellation::new())
+        .await
+        .unwrap();
 
     let (state, text, receipt) = executor
         .store()
@@ -97,14 +122,20 @@ async fn a_snapshot_job_stores_its_body_and_its_link_facts() {
         .unwrap();
 
     assert_eq!(state, "succeeded");
-    assert!(text.contains("6371"), "the body must be projected: {text:?}");
+    assert!(
+        text.contains("6371"),
+        "the body must be projected: {text:?}"
+    );
     // script content is never projected: it is not executed and not read as text
     assert!(!text.contains("var ignored"), "{text:?}");
     assert!(receipt.contains("python-worker-html"), "{receipt}");
     // the worker's own block anchors and its link list are kept as facts
     assert!(receipt.contains("worker_structure"), "{receipt}");
     assert!(receipt.contains("block-1"), "{receipt}");
-    assert!(receipt.contains("example.invalid/source"), "the link list must survive: {receipt}");
+    assert!(
+        receipt.contains("example.invalid/source"),
+        "the link list must survive: {receipt}"
+    );
 }
 
 #[tokio::test]
@@ -114,8 +145,13 @@ async fn something_that_is_not_html_fails_the_job_instead_of_succeeding_empty() 
     executor
         .store()
         .submit(|conn| {
-            let source_id = match source::import_source(conn, b"PK\x03\x04 this is a zip, not a page", "page.html", None)
-                .unwrap()
+            let source_id = match source::import_source(
+                conn,
+                b"PK\x03\x04 this is a zip, not a page",
+                "page.html",
+                None,
+            )
+            .unwrap()
             {
                 ImportOutcome::Imported { source_id, .. } => source_id,
                 ImportOutcome::Duplicate { source_id, .. } => source_id,
@@ -124,10 +160,16 @@ async fn something_that_is_not_html_fails_the_job_instead_of_succeeding_empty() 
         })
         .await
         .unwrap();
-    let outcome = executor.execute("job-not-html", "run", 60_000, &Cancellation::new()).await;
+    let outcome = executor
+        .execute("job-not-html", "run", 60_000, &Cancellation::new())
+        .await;
     let state = executor
         .store()
-        .submit(|conn| jobs::job_state(conn, "job-not-html").unwrap().unwrap_or_default())
+        .submit(|conn| {
+            jobs::job_state(conn, "job-not-html")
+                .unwrap()
+                .unwrap_or_default()
+        })
         .await
         .unwrap();
     // whatever the worker decides, the job must not report success with an empty body
@@ -145,7 +187,10 @@ async fn something_that_is_not_html_fails_the_job_instead_of_succeeding_empty() 
             })
             .await
             .unwrap();
-        assert_eq!(text_outputs, 0, "no text artifact may exist for a page that failed");
+        assert_eq!(
+            text_outputs, 0,
+            "no text artifact may exist for a page that failed"
+        );
     } else {
         let text: String = executor
             .store()
@@ -160,6 +205,9 @@ async fn something_that_is_not_html_fails_the_job_instead_of_succeeding_empty() 
             })
             .await
             .unwrap();
-        assert!(!text.trim().is_empty(), "a success must carry a real body, not nothing");
+        assert!(
+            !text.trim().is_empty(),
+            "a success must carry a real body, not nothing"
+        );
     }
 }

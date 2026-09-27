@@ -124,7 +124,11 @@ fn resolve(files: &[(String, Vec<u8>)], target: &str) -> Option<usize> {
     files
         .iter()
         .position(|(name, _)| name == target)
-        .or_else(|| files.iter().position(|(name, _)| name.rsplit('/').next() == Some(basename)))
+        .or_else(|| {
+            files
+                .iter()
+                .position(|(name, _)| name.rsplit('/').next() == Some(basename))
+        })
         .or_else(|| {
             files.iter().position(|(name, _)| {
                 let file = name.rsplit('/').next().unwrap_or(name);
@@ -161,7 +165,10 @@ fn obsidian_vault_roundtrip_keeps_bytes_names_and_links_and_states_the_gaps() {
     let names: BTreeSet<String> = files.iter().map(|(name, _)| name.clone()).collect();
     assert_eq!(
         names,
-        EXPECTED_FILES.iter().map(|n| n.to_string()).collect::<BTreeSet<_>>(),
+        EXPECTED_FILES
+            .iter()
+            .map(|n| n.to_string())
+            .collect::<BTreeSet<_>>(),
         "the fixture changed; update this test and its PROVENANCE together"
     );
 
@@ -205,7 +212,10 @@ fn obsidian_vault_roundtrip_keeps_bytes_names_and_links_and_states_the_gaps() {
             internal += 1;
         }
     }
-    assert!(internal >= 8, "the fixture must exercise real samples, saw {internal} internal links");
+    assert!(
+        internal >= 8,
+        "the fixture must exercise real samples, saw {internal} internal links"
+    );
     assert_eq!(
         external, 1,
         "exactly one external link must stay in the fixture to prove external targets are not required to resolve"
@@ -225,22 +235,40 @@ fn obsidian_vault_roundtrip_keeps_bytes_names_and_links_and_states_the_gaps() {
             ImportOutcome::Duplicate { .. } => panic!("{name} collided with another fixture file"),
         }
     }
-    assert_eq!(digests.len(), files.len(), "every vault file is its own source");
-    assert_eq!(source_names(&conn), names, "the vault paths are what the source names say");
+    assert_eq!(
+        digests.len(),
+        files.len(),
+        "every vault file is its own source"
+    );
+    assert_eq!(
+        source_names(&conn),
+        names,
+        "the vault paths are what the source names say"
+    );
     drop(conn);
 
-    let manifest = archeaxis_archive::export_workspace(db.to_str().unwrap(), archive.to_str().unwrap()).unwrap();
+    let manifest =
+        archeaxis_archive::export_workspace(db.to_str().unwrap(), archive.to_str().unwrap())
+            .unwrap();
     assert_eq!(manifest.tables["sources"].rows as usize, files.len());
     let restored_db = dir.path().join("restored.sqlite");
-    archeaxis_archive::restore_workspace(archive.to_str().unwrap(), restored_db.to_str().unwrap()).unwrap();
+    archeaxis_archive::restore_workspace(archive.to_str().unwrap(), restored_db.to_str().unwrap())
+        .unwrap();
     let restored = init_workspace(restored_db.to_str().unwrap()).unwrap();
 
-    assert_eq!(source_names(&restored), names, "names survive the archive round-trip");
+    assert_eq!(
+        source_names(&restored),
+        names,
+        "names survive the archive round-trip"
+    );
     for (name, bytes) in &files {
         let digest = &digests[name];
         let after = raw_objects::read(&restored, digest)
             .unwrap_or_else(|e| panic!("{name} did not survive the round-trip: {e}"));
-        assert_eq!(&after, bytes, "{name} is not byte-identical after the round-trip");
+        assert_eq!(
+            &after, bytes,
+            "{name} is not byte-identical after the round-trip"
+        );
         assert_eq!(after.len(), bytes.len(), "{name} changed length");
     }
 
@@ -248,12 +276,21 @@ fn obsidian_vault_roundtrip_keeps_bytes_names_and_links_and_states_the_gaps() {
     // extractor may later re-parse it, but nothing here resolves the graph
     let index_bytes = raw_objects::read(&restored, &digests["notes/index.md"]).unwrap();
     let index_text = text_of(&index_bytes);
-    for sample in ["[[atomic]]", "[[atomic#Why this matters]]", "[[atomic#^why-block]]", "![[diagram.png]]"] {
-        assert!(index_text.contains(sample), "the link sample {sample} was lost");
+    for sample in [
+        "[[atomic]]",
+        "[[atomic#Why this matters]]",
+        "[[atomic#^why-block]]",
+        "![[diagram.png]]",
+    ] {
+        assert!(
+            index_text.contains(sample),
+            "the link sample {sample} was lost"
+        );
     }
     // and the canvas is still a parseable JSON Canvas document
     let canvas: serde_json::Value =
-        serde_json::from_slice(&raw_objects::read(&restored, &digests["vault.canvas"]).unwrap()).unwrap();
+        serde_json::from_slice(&raw_objects::read(&restored, &digests["vault.canvas"]).unwrap())
+            .unwrap();
     assert_eq!(canvas["nodes"].as_array().unwrap().len(), 4);
     assert_eq!(canvas["edges"].as_array().unwrap().len(), 2);
 

@@ -69,7 +69,11 @@ fn v01_twelve_step_journey() {
     // 1) workspace init (Green start: no terminal window concept at Core level)
     let conn0 = archeaxis_store_sqlite::init_workspace(db.to_str().unwrap()).unwrap();
     drop(conn0);
-    pass("01_workspace_init", db.is_file(), "fresh vNext workspace initialized");
+    pass(
+        "01_workspace_init",
+        db.is_file(),
+        "fresh vNext workspace initialized",
+    );
     let router = app(db.to_str().unwrap()).unwrap();
 
     // 2) import two sources; sha256 readable; repeat import idempotent
@@ -126,7 +130,11 @@ fn v01_twelve_step_journey() {
         r#"{"revision":"rev-1","position":"{\"start\":0,\"end\":10}"}"#.to_string(),
     );
     let aid = ar["anchor_id"].as_str().unwrap().to_string();
-    let conn = Connection::open_with_flags(db.to_str().unwrap(), rusqlite::OpenFlags::SQLITE_OPEN_READ_ONLY).unwrap();
+    let conn = Connection::open_with_flags(
+        db.to_str().unwrap(),
+        rusqlite::OpenFlags::SQLITE_OPEN_READ_ONLY,
+    )
+    .unwrap();
     let got = archeaxis_domain::anchor::get_anchor(&conn, &aid).unwrap();
     drop(conn);
     pass(
@@ -161,7 +169,11 @@ fn v01_twelve_step_journey() {
         &format!("/api/v1/knowledge-items/{rej_id}/review-decisions"),
         r#"{"action":"rejected","reviewer":"owner","note":"无关"}"#.to_string(),
     );
-    let conn = Connection::open_with_flags(db.to_str().unwrap(), rusqlite::OpenFlags::SQLITE_OPEN_READ_ONLY).unwrap();
+    let conn = Connection::open_with_flags(
+        db.to_str().unwrap(),
+        rusqlite::OpenFlags::SQLITE_OPEN_READ_ONLY,
+    )
+    .unwrap();
     let status: String = conn
         .query_row(
             "SELECT status FROM knowledge WHERE knowledge_id=?1",
@@ -215,7 +227,11 @@ fn v01_twelve_step_journey() {
     let restarted = app(db.to_str().unwrap()).unwrap();
     let runtime_info = json_body(&restarted, "GET", "/api/v1/workspaces/info", String::new());
     assert_eq!(runtime_info["sources"], 2);
-    let conn = Connection::open_with_flags(db.to_str().unwrap(), rusqlite::OpenFlags::SQLITE_OPEN_READ_ONLY).unwrap();
+    let conn = Connection::open_with_flags(
+        db.to_str().unwrap(),
+        rusqlite::OpenFlags::SQLITE_OPEN_READ_ONLY,
+    )
+    .unwrap();
     let counts: (i64, i64, i64, i64, i64) = conn.query_row(
         "SELECT (SELECT count(*) FROM sources),(SELECT count(*) FROM knowledge),(SELECT count(*) FROM transforms),(SELECT count(*) FROM anchors),(SELECT count(*) FROM learning_events)",
         [], |r| Ok((r.get(0)?, r.get(1)?, r.get(2)?, r.get(3)?, r.get(4)?))).unwrap();
@@ -229,7 +245,11 @@ fn v01_twelve_step_journey() {
 
     // 10) SQLite backup API on a read-only maintenance handle, runtime stopped.
     let snap = dir.path().join("snapshot.sqlite");
-    let conn = Connection::open_with_flags(db.to_str().unwrap(), rusqlite::OpenFlags::SQLITE_OPEN_READ_ONLY).unwrap();
+    let conn = Connection::open_with_flags(
+        db.to_str().unwrap(),
+        rusqlite::OpenFlags::SQLITE_OPEN_READ_ONLY,
+    )
+    .unwrap();
     archeaxis_domain::backup::backup(&conn, snap.to_str().unwrap()).unwrap();
     drop(conn);
     pass("10_snapshot", snap.exists(), "snapshot written");
@@ -238,7 +258,11 @@ fn v01_twelve_step_journey() {
     let db2 = dir.path().join("restored.sqlite");
     let mut conn2 = archeaxis_store_sqlite::init_workspace(db2.to_str().unwrap()).unwrap();
     archeaxis_domain::backup::restore(snap.to_str().unwrap(), &mut conn2).unwrap();
-    let snap_c = Connection::open_with_flags(snap.to_str().unwrap(), rusqlite::OpenFlags::SQLITE_OPEN_READ_ONLY).unwrap();
+    let snap_c = Connection::open_with_flags(
+        snap.to_str().unwrap(),
+        rusqlite::OpenFlags::SQLITE_OPEN_READ_ONLY,
+    )
+    .unwrap();
     let same = archeaxis_domain::backup::verify_counts(&conn2, &snap_c).unwrap();
     drop(snap_c);
     drop(conn2);

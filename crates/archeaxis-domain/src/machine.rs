@@ -155,7 +155,11 @@ pub fn record_machine_task(conn: &mut Connection, task: &MachineTask<'_>) -> rus
         }
     }
     let existing: Option<i64> = tx
-        .query_row("SELECT 1 FROM machine_tasks WHERE task_id=?1", [task.task_id], |r| r.get(0))
+        .query_row(
+            "SELECT 1 FROM machine_tasks WHERE task_id=?1",
+            [task.task_id],
+            |r| r.get(0),
+        )
         .optional()?;
     if existing.is_some() {
         return Err(rusqlite::Error::InvalidParameterName(

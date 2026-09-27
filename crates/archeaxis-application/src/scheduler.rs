@@ -29,14 +29,20 @@ impl OwnedSchedulerChild {
     }
 }
 impl Drop for OwnedSchedulerChild {
-    fn drop(&mut self) { let _ = self.stop(); }
+    fn drop(&mut self) {
+        let _ = self.stop();
+    }
 }
 
 fn bounded_read(reader: impl Read, maximum: usize, stream: &str) -> Result<Vec<u8>, String> {
     let mut bytes = Vec::new();
-    reader.take(maximum as u64 + 1).read_to_end(&mut bytes)
+    reader
+        .take(maximum as u64 + 1)
+        .read_to_end(&mut bytes)
         .map_err(|e| format!("{stream} read failed: {e}"))?;
-    if bytes.len() > maximum { return Err(format!("{stream} exceeds byte limit")); }
+    if bytes.len() > maximum {
+        return Err(format!("{stream} exceeds byte limit"));
+    }
     Ok(bytes)
 }
 
@@ -44,12 +50,11 @@ fn bounded_read(reader: impl Read, maximum: usize, stream: &str) -> Result<Vec<u
 pub const AUTHORITY_FSRS: &str = "fsrs";
 
 /// Repository-relative location of the scheduler worker.
-pub const WORKER_RELATIVE_PATH: &str =
-    "services/python-workers/learning/worker_schedule.py";
+pub const WORKER_RELATIVE_PATH: &str = "services/python-workers/learning/worker_schedule.py";
 
 #[cfg(test)]
 mod tests {
-    use super::{resolve_scheduler_worker, WORKER_RELATIVE_PATH};
+    use super::{WORKER_RELATIVE_PATH, resolve_scheduler_worker};
     use std::path::Path;
 
     #[test]
@@ -131,7 +136,10 @@ pub struct SchedulerClient {
 
 impl SchedulerClient {
     pub fn new(python: impl Into<PathBuf>, worker: impl Into<PathBuf>) -> Self {
-        Self { python: python.into(), worker: worker.into() }
+        Self {
+            python: python.into(),
+            worker: worker.into(),
+        }
     }
 
     /// Build a client from `ARCHEAXIS_PYTHON` plus an explicit packaged worker
@@ -144,8 +152,12 @@ impl SchedulerClient {
             .join("..")
             .join("..");
         let worker = resolve_scheduler_worker(
-            std::env::var_os("ARCHEAXIS_SCHEDULER_WORKER").as_deref().map(std::path::Path::new),
-            std::env::var_os("ARCHAXIS_SCHEDULER_WORKER").as_deref().map(std::path::Path::new),
+            std::env::var_os("ARCHEAXIS_SCHEDULER_WORKER")
+                .as_deref()
+                .map(std::path::Path::new),
+            std::env::var_os("ARCHAXIS_SCHEDULER_WORKER")
+                .as_deref()
+                .map(std::path::Path::new),
             &repository,
         );
         Ok(Self::new(python, worker))
@@ -165,22 +177,36 @@ impl SchedulerClient {
 
     /// Bound stdin, both output streams and process exit by one deadline.
     /// This owns the direct FSRS process, not arbitrary descendant runtimes.
-    pub fn review_with_timeout(&self, request: &str, timeout: Duration) -> Result<Schedule, SchedulerError> {
+    pub fn review_with_timeout(
+        &self,
+        request: &str,
+        timeout: Duration,
+    ) -> Result<Schedule, SchedulerError> {
         if request.len() > MAX_REQUEST_BYTES {
-            return Err(SchedulerError::Rejected("request exceeds byte limit".into()));
+            return Err(SchedulerError::Rejected(
+                "request exceeds byte limit".into(),
+            ));
         }
         if timeout.is_zero() || timeout > Duration::from_secs(60) {
-            return Err(SchedulerError::Rejected("deadline must be positive and at most 60 seconds".into()));
+            return Err(SchedulerError::Rejected(
+                "deadline must be positive and at most 60 seconds".into(),
+            ));
         }
         let deadline = Instant::now() + timeout;
         if !self.python.is_file() {
-            return Err(SchedulerError::Unavailable("interpreter is not a file".into()));
+            return Err(SchedulerError::Unavailable(
+                "interpreter is not a file".into(),
+            ));
         }
         if !self.worker.is_file() {
-            return Err(SchedulerError::Unavailable("scheduler worker is not a file".into()));
+            return Err(SchedulerError::Unavailable(
+                "scheduler worker is not a file".into(),
+            ));
         }
         let mut command = Command::new(&self.python);
-        command.arg("-B").arg(&self.worker)
+        command
+            .arg("-B")
+            .arg(&self.worker)
             .stdin(Stdio::piped())
             .stdout(Stdio::piped())
             .stderr(Stdio::piped());
@@ -189,65 +215,121 @@ impl SchedulerClient {
             use std::os::windows::process::CommandExt;
             command.creation_flags(0x08000000); // CREATE_NO_WINDOW
         }
-        let mut child = OwnedSchedulerChild(command
-            .spawn()
-            .map_err(|e| SchedulerError::Unavailable(e.to_string()))?);
-        let mut stdin = child.0.stdin.take().ok_or_else(|| SchedulerError::Unavailable("no stdin pipe".into()))?;
-        let stdout = child.0.stdout.take().ok_or_else(|| SchedulerError::Unavailable("no stdout pipe".into()))?;
-        let stderr = child.0.stderr.take().ok_or_else(|| SchedulerError::Unavailable("no stderr pipe".into()))?;
+        let mut child = OwnedSchedulerChild(
+            command
+                .spawn()
+                .map_err(|e| SchedulerError::Unavailable(e.to_string()))?,
+        );
+        let mut stdin = child
+            .0
+            .stdin
+            .take()
+            .ok_or_else(|| SchedulerError::Unavailable("no stdin pipe".into()))?;
+        let stdout = child
+            .0
+            .stdout
+            .take()
+            .ok_or_else(|| SchedulerError::Unavailable("no stdout pipe".into()))?;
+        let stderr = child
+            .0
+            .stderr
+            .take()
+            .ok_or_else(|| SchedulerError::Unavailable("no stderr pipe".into()))?;
         let (send, receive) = mpsc::sync_channel::<Result<Option<Vec<u8>>, String>>(3);
         let mut threads = Vec::new();
         let payload = request.as_bytes().to_vec();
         let input_send = send.clone();
-        threads.push(thread::Builder::new().name("fsrs-stdin".into()).spawn(move || {
-            let result = stdin.write_all(&payload).and_then(|_| stdin.write_all(b"\n"))
-                .map(|_| None).map_err(|e| format!("stdin write failed: {e}"));
-            drop(stdin);
-            let _ = input_send.send(result);
-        }).map_err(|e| SchedulerError::Unavailable(e.to_string()))?);
+        threads.push(
+            thread::Builder::new()
+                .name("fsrs-stdin".into())
+                .spawn(move || {
+                    let result = stdin
+                        .write_all(&payload)
+                        .and_then(|_| stdin.write_all(b"\n"))
+                        .map(|_| None)
+                        .map_err(|e| format!("stdin write failed: {e}"));
+                    drop(stdin);
+                    let _ = input_send.send(result);
+                })
+                .map_err(|e| SchedulerError::Unavailable(e.to_string()))?,
+        );
         let output_send = send.clone();
-        threads.push(thread::Builder::new().name("fsrs-stdout".into()).spawn(move || {
-            let _ = output_send.send(bounded_read(stdout, MAX_RESPONSE_BYTES, "stdout").map(Some));
-        }).map_err(|e| SchedulerError::Unavailable(e.to_string()))?);
-        threads.push(thread::Builder::new().name("fsrs-stderr".into()).spawn(move || {
-            let _ = send.send(bounded_read(stderr, MAX_STDERR_BYTES, "stderr").map(|_| None));
-        }).map_err(|e| SchedulerError::Unavailable(e.to_string()))?);
+        threads.push(
+            thread::Builder::new()
+                .name("fsrs-stdout".into())
+                .spawn(move || {
+                    let _ = output_send
+                        .send(bounded_read(stdout, MAX_RESPONSE_BYTES, "stdout").map(Some));
+                })
+                .map_err(|e| SchedulerError::Unavailable(e.to_string()))?,
+        );
+        threads.push(
+            thread::Builder::new()
+                .name("fsrs-stderr".into())
+                .spawn(move || {
+                    let _ =
+                        send.send(bounded_read(stderr, MAX_STDERR_BYTES, "stderr").map(|_| None));
+                })
+                .map_err(|e| SchedulerError::Unavailable(e.to_string()))?,
+        );
         let result = (|| {
             let mut finished = 0;
             let mut output = None;
             loop {
                 if Instant::now() >= deadline {
-                    return Err(SchedulerError::Unavailable("worker execution deadline exceeded".into()));
+                    return Err(SchedulerError::Unavailable(
+                        "worker execution deadline exceeded".into(),
+                    ));
                 }
-                let status = child.0.try_wait().map_err(|e| SchedulerError::Unavailable(e.to_string()))?;
+                let status = child
+                    .0
+                    .try_wait()
+                    .map_err(|e| SchedulerError::Unavailable(e.to_string()))?;
                 if finished == 3 {
-                    if let Some(status) = status { return Ok((output.unwrap_or_default(), status)); }
+                    if let Some(status) = status {
+                        return Ok((output.unwrap_or_default(), status));
+                    }
                     thread::sleep(Duration::from_millis(5));
                     continue;
                 }
                 match receive.recv_timeout(Duration::from_millis(5)) {
-                    Ok(Ok(value)) => { finished += 1; if value.is_some() { output = value; } },
+                    Ok(Ok(value)) => {
+                        finished += 1;
+                        if value.is_some() {
+                            output = value;
+                        }
+                    }
                     Ok(Err(error)) => return Err(SchedulerError::Unavailable(error)),
-                    Err(mpsc::RecvTimeoutError::Timeout) => {},
-                    Err(mpsc::RecvTimeoutError::Disconnected) =>
-                        return Err(SchedulerError::Unavailable("worker I/O thread stopped before completion".into())),
+                    Err(mpsc::RecvTimeoutError::Timeout) => {}
+                    Err(mpsc::RecvTimeoutError::Disconnected) => {
+                        return Err(SchedulerError::Unavailable(
+                            "worker I/O thread stopped before completion".into(),
+                        ));
+                    }
                 }
             }
         })();
-        child.stop().map_err(|e| SchedulerError::Unavailable(format!("worker cleanup failed: {e}")))?;
+        child
+            .stop()
+            .map_err(|e| SchedulerError::Unavailable(format!("worker cleanup failed: {e}")))?;
         let cleanup_deadline = Instant::now() + Duration::from_secs(1);
         while threads.iter().any(|t| !t.is_finished()) && Instant::now() < cleanup_deadline {
             thread::sleep(Duration::from_millis(5));
         }
         if threads.iter().any(|t| !t.is_finished()) {
-            return Err(SchedulerError::Unavailable("worker cleanup incomplete: pipe still held outside direct worker".into()));
+            return Err(SchedulerError::Unavailable(
+                "worker cleanup incomplete: pipe still held outside direct worker".into(),
+            ));
         }
         for handle in threads {
-            handle.join().map_err(|_| SchedulerError::Unavailable("worker I/O thread panicked".into()))?;
+            handle
+                .join()
+                .map_err(|_| SchedulerError::Unavailable("worker I/O thread panicked".into()))?;
         }
         let (line, status) = result?;
-        let parsed: serde_json::Value = serde_json::from_slice(&line)
-            .map_err(|e| SchedulerError::Unavailable(format!("unparsable scheduler response: {e}")))?;
+        let parsed: serde_json::Value = serde_json::from_slice(&line).map_err(|e| {
+            SchedulerError::Unavailable(format!("unparsable scheduler response: {e}"))
+        })?;
         if let Some(error) = parsed.get("error").and_then(|v| v.as_str()) {
             return Err(SchedulerError::Rejected(error.to_string()));
         }
@@ -259,7 +341,9 @@ impl SchedulerClient {
         let next_review_days = parsed
             .get("next_review_days")
             .and_then(|v| v.as_i64())
-            .ok_or_else(|| SchedulerError::Unavailable("response has no next_review_days".into()))?;
+            .ok_or_else(|| {
+                SchedulerError::Unavailable("response has no next_review_days".into())
+            })?;
         let authority = parsed
             .get("authority")
             .and_then(|v| v.as_str())
@@ -281,11 +365,25 @@ impl SchedulerClient {
             .unwrap_or_default()
             .to_string();
         let mut card_state = serde_json::Map::new();
-        for field in ["state", "step", "stability", "difficulty", "due", "last_review"] {
-            let value = parsed.get(field).ok_or_else(||
-                SchedulerError::Unavailable(format!("response missing card field {field}")))?;
+        for field in [
+            "state",
+            "step",
+            "stability",
+            "difficulty",
+            "due",
+            "last_review",
+        ] {
+            let value = parsed.get(field).ok_or_else(|| {
+                SchedulerError::Unavailable(format!("response missing card field {field}"))
+            })?;
             card_state.insert(field.into(), value.clone());
         }
-        Ok(Schedule { authority, next_review_days, due, state, card_state: card_state.into() })
+        Ok(Schedule {
+            authority,
+            next_review_days,
+            due,
+            state,
+            card_state: card_state.into(),
+        })
     }
 }

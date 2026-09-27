@@ -18,13 +18,9 @@ fn knowledge_is_findable_from_its_source_anchor() {
     let sid: String = conn
         .query_row("SELECT source_id FROM sources LIMIT 1", [], |r| r.get(0))
         .unwrap();
-    let anchor_id = archeaxis_domain::anchor::add_anchor(
-        &mut conn,
-        &sid,
-        "rev-1",
-        r#"{"start":0,"end":9}"#,
-    )
-    .unwrap();
+    let anchor_id =
+        archeaxis_domain::anchor::add_anchor(&mut conn, &sid, "rev-1", r#"{"start":0,"end":9}"#)
+            .unwrap();
     let kid = knowledge::create_knowledge(
         &mut conn,
         "PERSONAL_DEFINITION",
@@ -38,7 +34,12 @@ fn knowledge_is_findable_from_its_source_anchor() {
     let found = knowledge_ids_for_anchor(&conn, &anchor_id).unwrap();
     assert_eq!(found, vec![kid]);
     // unrelated knowledge (no anchor) is not returned
-    assert_eq!(knowledge_ids_for_anchor(&conn, "missing-anchor").unwrap().len(), 0);
+    assert_eq!(
+        knowledge_ids_for_anchor(&conn, "missing-anchor")
+            .unwrap()
+            .len(),
+        0
+    );
     // reverse map also covers rows created through the transactional review
     // modified path? kept simple here; primary direction asserted above.
     let _ = count(&conn, "knowledge");

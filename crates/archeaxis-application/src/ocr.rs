@@ -50,8 +50,8 @@ pub fn candidates(conn: &Connection, pdf_job_id: &str) -> Result<Vec<OcrCandidat
     let Some(content) = content else {
         return Ok(Vec::new());
     };
-    let payload: serde_json::Value =
-        serde_json::from_str(&content).map_err(|_| JobError::InvalidReceipt("loss report is not JSON"))?;
+    let payload: serde_json::Value = serde_json::from_str(&content)
+        .map_err(|_| JobError::InvalidReceipt("loss report is not JSON"))?;
     let declared = payload
         .get("params")
         .and_then(|params| params.get("structure"))
@@ -108,7 +108,10 @@ pub fn enqueue_pages(
         {
             return Err(JobError::UnverifiableInput {
                 job: pdf_job_id.to_string(),
-                reason: format!("declared page file {:?} is not a plain name", candidate.file),
+                reason: format!(
+                    "declared page file {:?} is not a plain name",
+                    candidate.file
+                ),
             });
         }
         let path: PathBuf = staging_root.join("ocr").join(&candidate.file);
@@ -131,7 +134,10 @@ pub fn enqueue_pages(
         if digest != candidate.sha256 {
             return Err(JobError::UnverifiableInput {
                 job: pdf_job_id.to_string(),
-                reason: format!("declared page {} digest does not match the rendered bytes", candidate.page),
+                reason: format!(
+                    "declared page {} digest does not match the rendered bytes",
+                    candidate.page
+                ),
             });
         }
         let source_id = match source::import_source(conn, &bytes, &name, None)? {

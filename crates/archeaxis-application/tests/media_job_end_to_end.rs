@@ -15,11 +15,16 @@ use archeaxis_domain::source::{self, ImportOutcome};
 use std::path::PathBuf;
 
 fn python() -> PathBuf {
-    std::env::var_os("ARCHEAXIS_PYTHON").expect("run cargo via the project wrapper").into()
+    std::env::var_os("ARCHEAXIS_PYTHON")
+        .expect("run cargo via the project wrapper")
+        .into()
 }
 
 fn repo() -> PathBuf {
-    PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../..").canonicalize().unwrap()
+    PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+        .join("../..")
+        .canonicalize()
+        .unwrap()
 }
 
 /// A real WAV header through the same interpreter the worker uses; the samples are
@@ -31,7 +36,11 @@ fn wav_bytes() -> Vec<u8> {
                   \x20   h.setnchannels(2); h.setsampwidth(2); h.setframerate(8000)\n\
                   \x20   h.writeframes(b'\\x00\\x01'*2*4000)\n\
                   sys.stdout.buffer.write(buf.getvalue())\n";
-    match std::process::Command::new(python()).arg("-c").arg(script).output() {
+    match std::process::Command::new(python())
+        .arg("-c")
+        .arg(script)
+        .output()
+    {
         Ok(out) if out.status.success() => out.stdout,
         _ => Vec::new(),
     }
@@ -43,7 +52,10 @@ async fn open_executor(dir: &std::path::Path) -> Executor {
         &dir.join("staging"),
         &python(),
         &repo().join("services/python-workers/transport/text_ndjson.py"),
-        &[("media.probe", repo().join("services/python-workers/document/worker_media.py"))],
+        &[(
+            "media.probe",
+            repo().join("services/python-workers/document/worker_media.py"),
+        )],
     )
     .await
     .unwrap()
@@ -51,18 +63,43 @@ async fn open_executor(dir: &std::path::Path) -> Executor {
 
 #[test]
 fn media_names_select_the_media_route_and_never_the_text_route() {
-    assert_eq!(attempts::resolve_media_type("media", "tone.wav").unwrap(), "audio/wav");
-    assert_eq!(attempts::resolve_media_type("media", "clip.mp4").unwrap(), "video/mp4");
-    assert_eq!(attempts::resolve_media_type("media", "movie.mov").unwrap(), "video/mp4");
+    assert_eq!(
+        attempts::resolve_media_type("media", "tone.wav").unwrap(),
+        "audio/wav"
+    );
+    assert_eq!(
+        attempts::resolve_media_type("media", "clip.mp4").unwrap(),
+        "video/mp4"
+    );
+    assert_eq!(
+        attempts::resolve_media_type("media", "movie.mov").unwrap(),
+        "video/mp4"
+    );
     // a media file cannot travel as text: no route may decode a binary container
     for name in ["tone.wav", "clip.mp4"] {
-        let error = attempts::resolve_media_type("text", name).unwrap_err().to_string();
-        assert!(error.contains("cannot accept media type"), "{name}: {error}");
+        let error = attempts::resolve_media_type("text", name)
+            .unwrap_err()
+            .to_string();
+        assert!(
+            error.contains("cannot accept media type"),
+            "{name}: {error}"
+        );
     }
     // formats no reader here can read are refused by name rather than probed with a guess
-    for name in ["song.mp3", "audio.m4a", "lossless.flac", "movie.mkv", "clip.webm"] {
-        let error = attempts::resolve_media_type("media", name).unwrap_err().to_string();
-        assert!(error.contains("cannot name a media type"), "{name}: {error}");
+    for name in [
+        "song.mp3",
+        "audio.m4a",
+        "lossless.flac",
+        "movie.mkv",
+        "clip.webm",
+    ] {
+        let error = attempts::resolve_media_type("media", name)
+            .unwrap_err()
+            .to_string();
+        assert!(
+            error.contains("cannot name a media type"),
+            "{name}: {error}"
+        );
     }
 }
 
@@ -88,7 +125,10 @@ async fn a_wav_job_is_dispatched_to_the_media_worker_and_its_facts_are_stored() 
         .await
         .unwrap();
 
-    executor.execute("job-wav", "run-wav", 120_000, &Cancellation::new()).await.unwrap();
+    executor
+        .execute("job-wav", "run-wav", 120_000, &Cancellation::new())
+        .await
+        .unwrap();
 
     let (state, text, receipt) = executor
         .store()
@@ -119,9 +159,15 @@ async fn a_wav_job_is_dispatched_to_the_media_worker_and_its_facts_are_stored() 
     assert!(text.contains("sample_rate_hz\t8000"), "{text:?}");
     assert!(text.contains("channels\t2"), "{text:?}");
     // the projection is a header probe: no decoded content can be in it
-    assert!(!text.contains("transcript"), "a probe must not claim a transcript: {text:?}");
+    assert!(
+        !text.contains("transcript"),
+        "a probe must not claim a transcript: {text:?}"
+    );
     assert!(receipt.contains("python-worker-media"), "{receipt}");
-    assert!(receipt.contains("not measurements of the media"), "{receipt}");
+    assert!(
+        receipt.contains("not measurements of the media"),
+        "{receipt}"
+    );
 }
 
 #[tokio::test]
@@ -131,24 +177,38 @@ async fn a_container_the_probe_cannot_read_fails_the_job_instead_of_succeeding_e
     executor
         .store()
         .submit(|conn| {
-            let source_id =
-                match source::import_source(conn, b"ID3\x04\x00\x00 not a wav and not an mp4", "song.wav", None).unwrap()
-                {
-                    ImportOutcome::Imported { source_id, .. } => source_id,
-                    ImportOutcome::Duplicate { source_id, .. } => source_id,
-                };
+            let source_id = match source::import_source(
+                conn,
+                b"ID3\x04\x00\x00 not a wav and not an mp4",
+                "song.wav",
+                None,
+            )
+            .unwrap()
+            {
+                ImportOutcome::Imported { source_id, .. } => source_id,
+                ImportOutcome::Duplicate { source_id, .. } => source_id,
+            };
             jobs::enqueue(conn, "job-bad-wav", "media", &source_id).unwrap();
         })
         .await
         .unwrap();
 
-    let outcome = executor.execute("job-bad-wav", "run-bad-wav", 60_000, &Cancellation::new()).await;
+    let outcome = executor
+        .execute("job-bad-wav", "run-bad-wav", 60_000, &Cancellation::new())
+        .await;
     let state = executor
         .store()
-        .submit(|conn| jobs::job_state(conn, "job-bad-wav").unwrap().unwrap_or_default())
+        .submit(|conn| {
+            jobs::job_state(conn, "job-bad-wav")
+                .unwrap()
+                .unwrap_or_default()
+        })
         .await
         .unwrap();
-    assert!(outcome.is_err(), "an unreadable media container must not report success");
+    assert!(
+        outcome.is_err(),
+        "an unreadable media container must not report success"
+    );
     assert_eq!(state, "failed");
     let text_outputs: i64 = executor
         .store()
@@ -162,5 +222,8 @@ async fn a_container_the_probe_cannot_read_fails_the_job_instead_of_succeeding_e
         })
         .await
         .unwrap();
-    assert_eq!(text_outputs, 0, "no text artifact may exist for a media job that failed");
+    assert_eq!(
+        text_outputs, 0,
+        "no text artifact may exist for a media job that failed"
+    );
 }

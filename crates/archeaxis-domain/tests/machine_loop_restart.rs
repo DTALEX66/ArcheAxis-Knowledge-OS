@@ -67,7 +67,12 @@ fn a_superseded_revision_cannot_be_bound_and_the_retest_follows_the_successor() 
         // A measurement runs against the revision while it is current, and fails.
         machine::record_machine_task(
             &mut conn,
-            &stored_task("task-b", "failed", Some("synthetic worker error"), Some(&accepted)),
+            &stored_task(
+                "task-b",
+                "failed",
+                Some("synthetic worker error"),
+                Some(&accepted),
+            ),
         )
         .unwrap();
 
@@ -93,7 +98,9 @@ fn a_superseded_revision_cannot_be_bound_and_the_retest_follows_the_successor() 
 
         // The original row is still `accepted`; it is no longer *active*.
         assert_eq!(
-            knowledge::knowledge_status(&conn, &accepted).unwrap().as_deref(),
+            knowledge::knowledge_status(&conn, &accepted)
+                .unwrap()
+                .as_deref(),
             Some("accepted"),
             "REVISION-01: a modified review never rewrites the reviewed row's status"
         );
@@ -129,22 +136,38 @@ fn a_superseded_revision_cannot_be_bound_and_the_retest_follows_the_successor() 
     let mut conn = init_workspace(db_path).unwrap();
 
     // The retest chain written before the restart is intact.
-    let retest = machine::machine_task(&conn, "task-a").unwrap().expect("task-a recorded");
-    assert_eq!(retest.knowledge_version.as_deref(), Some(successor.as_str()));
+    let retest = machine::machine_task(&conn, "task-a")
+        .unwrap()
+        .expect("task-a recorded");
+    assert_eq!(
+        retest.knowledge_version.as_deref(),
+        Some(successor.as_str())
+    );
     assert_eq!(retest.retest_of.as_deref(), Some("task-b"));
     assert_eq!(retest.outcome, "succeeded");
     assert_eq!(retest.conditions, "offline; fixed synthetic sample");
 
-    let predecessor = machine::machine_task(&conn, "task-b").unwrap().expect("task-b recorded");
+    let predecessor = machine::machine_task(&conn, "task-b")
+        .unwrap()
+        .expect("task-b recorded");
     assert_eq!(predecessor.outcome, "failed");
-    assert_eq!(predecessor.failure.as_deref(), Some("synthetic worker error"));
+    assert_eq!(
+        predecessor.failure.as_deref(),
+        Some("synthetic worker error")
+    );
 
     // Nothing from the refused attempts landed.
     assert!(
-        machine::machine_task(&conn, "task-stale").unwrap().is_none(),
+        machine::machine_task(&conn, "task-stale")
+            .unwrap()
+            .is_none(),
         "a refused receipt must not land"
     );
-    assert!(machine::machine_task(&conn, "task-stale-retest").unwrap().is_none());
+    assert!(
+        machine::machine_task(&conn, "task-stale-retest")
+            .unwrap()
+            .is_none()
+    );
     assert_eq!(machine::machine_task_counts(&conn).unwrap(), (2, 0));
 
     // After the restart the superseded revision is still refused and the
@@ -155,8 +178,12 @@ fn a_superseded_revision_cannot_be_bound_and_the_retest_follows_the_successor() 
         machine::record_machine_task(&mut conn, &stale_after_restart).is_err(),
         "the refusal must not be an in-process accident"
     );
-    let mut current_after_restart =
-        stored_task("task-current-after-restart", "succeeded", None, Some(&successor));
+    let mut current_after_restart = stored_task(
+        "task-current-after-restart",
+        "succeeded",
+        None,
+        Some(&successor),
+    );
     current_after_restart.retest_of = Some("task-b");
     machine::record_machine_task(&mut conn, &current_after_restart).unwrap();
     assert_eq!(machine::machine_task_counts(&conn).unwrap(), (3, 0));

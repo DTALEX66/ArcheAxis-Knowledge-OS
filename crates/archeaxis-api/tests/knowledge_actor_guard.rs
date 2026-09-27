@@ -13,13 +13,25 @@ use tower::ServiceExt;
 
 use archeaxis_api::app;
 
-async fn call(router: &axum::Router, method: &str, path: &str, actor: Option<&str>, body: &str) -> (StatusCode, String) {
-    let mut req = Request::builder().method(method).uri(path)
+async fn call(
+    router: &axum::Router,
+    method: &str,
+    path: &str,
+    actor: Option<&str>,
+    body: &str,
+) -> (StatusCode, String) {
+    let mut req = Request::builder()
+        .method(method)
+        .uri(path)
         .header("content-type", "application/json");
     if let Some(a) = actor {
         req = req.header("x-archeaxis-actor", a);
     }
-    let resp = router.clone().oneshot(req.body(Body::from(body.to_string())).unwrap()).await.unwrap();
+    let resp = router
+        .clone()
+        .oneshot(req.body(Body::from(body.to_string())).unwrap())
+        .await
+        .unwrap();
     let status = resp.status();
     let bytes = resp.into_body().collect().await.unwrap().to_bytes();
     (status, String::from_utf8_lossy(&bytes).to_string())
@@ -29,24 +41,56 @@ async fn call(router: &axum::Router, method: &str, path: &str, actor: Option<&st
 async fn machine_cannot_self_accept_or_act_without_identity() {
     let dir = tempfile::tempdir().unwrap();
     let router = app(dir.path().join("api.sqlite").to_str().unwrap()).unwrap();
-    let kbody = |s: &str, cb: &str| format!(r#"{{"knowledge_type":"FACTUAL_CLAIM","body":"x","status":"{s}","created_by":"{cb}"}}"#);
+    let kbody = |s: &str, cb: &str| {
+        format!(
+            r#"{{"knowledge_type":"FACTUAL_CLAIM","body":"x","status":"{s}","created_by":"{cb}"}}"#
+        )
+    };
 
     // machine + candidate -> 201
-    let (s, _) = call(&router, "POST", "/api/v1/knowledge-items", Some("machine"), &kbody("candidate", "python-worker")).await;
+    let (s, _) = call(
+        &router,
+        "POST",
+        "/api/v1/knowledge-items",
+        Some("machine"),
+        &kbody("candidate", "python-worker"),
+    )
+    .await;
     assert_eq!(s, StatusCode::CREATED);
 
     // machine + accepted -> 400 (cannot self-accept)
-    let (s, msg) = call(&router, "POST", "/api/v1/knowledge-items", Some("machine"), &kbody("accepted", "python-worker")).await;
+    let (s, msg) = call(
+        &router,
+        "POST",
+        "/api/v1/knowledge-items",
+        Some("machine"),
+        &kbody("accepted", "python-worker"),
+    )
+    .await;
     assert_eq!(s, StatusCode::BAD_REQUEST);
     assert!(msg.contains("cannot self-accept"));
 
     // machine with body actor=human + header machine must NOT escalate
     let body = r#"{"knowledge_type":"PERSONAL_DEFINITION","body":"forged","status":"accepted","actor":"human","created_by":"machine"}"#;
-    let (s, _) = call(&router, "POST", "/api/v1/knowledge-items", Some("machine"), body).await;
+    let (s, _) = call(
+        &router,
+        "POST",
+        "/api/v1/knowledge-items",
+        Some("machine"),
+        body,
+    )
+    .await;
     assert_eq!(s, StatusCode::BAD_REQUEST, "body actor must be ignored");
 
     // unknown actor header -> 400
-    let (s, _) = call(&router, "POST", "/api/v1/knowledge-items", Some("alien"), &kbody("candidate", "x")).await;
+    let (s, _) = call(
+        &router,
+        "POST",
+        "/api/v1/knowledge-items",
+        Some("alien"),
+        &kbody("candidate", "x"),
+    )
+    .await;
     assert_eq!(s, StatusCode::BAD_REQUEST);
 }
 
@@ -78,7 +122,10 @@ async fn machine_cannot_review_or_record_human_learning() {
     )
     .await;
     assert_eq!(s, StatusCode::CREATED);
-    let id = serde_json::from_str::<serde_json::Value>(&body).unwrap()["knowledge_id"].as_str().unwrap().to_string();
+    let id = serde_json::from_str::<serde_json::Value>(&body).unwrap()["knowledge_id"]
+        .as_str()
+        .unwrap()
+        .to_string();
 
     // machine review of its own candidate -> 403
     let (s, _) = call(

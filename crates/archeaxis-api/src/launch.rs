@@ -1,101 +1,207 @@
 //! Single owned desktop session. Credentials arrive on inherited stdin only.
 //! This is not a multi-user role service or protection against same-user memory access.
-use archeaxis_store_sqlite::writer::{Store,StoreError};
-use axum::{Router,Json,extract::{Request,State},http::{StatusCode,Method},middleware::{self,Next},response::{Response,IntoResponse}};
+use archeaxis_store_sqlite::writer::{Store, StoreError};
+use axum::{
+    Json, Router,
+    extract::{Request, State},
+    http::{Method, StatusCode},
+    middleware::{self, Next},
+    response::{IntoResponse, Response},
+};
 use serde::Deserialize;
-use std::{io::Read,sync::mpsc,time::Duration};
+use std::{io::Read, sync::mpsc, time::Duration};
 
-#[derive(Clone,Deserialize)]
+#[derive(Clone, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct Launch {
-    launch_token:String,session_id:String,
-    #[serde(default,deserialize_with="present_string")]
-    pub actor:Option<String>,
-    pub text_worker:Option<TextWorker>,
-    #[serde(default,deserialize_with="present_string")]
-    protocol:Option<String>,
-    #[serde(default,deserialize_with="present_string")]
-    machine_token:Option<String>,
+    launch_token: String,
+    session_id: String,
+    #[serde(default, deserialize_with = "present_string")]
+    pub actor: Option<String>,
+    pub text_worker: Option<TextWorker>,
+    #[serde(default, deserialize_with = "present_string")]
+    protocol: Option<String>,
+    #[serde(default, deserialize_with = "present_string")]
+    machine_token: Option<String>,
 }
-fn present_string<'de,D:serde::Deserializer<'de>>(value:D)->Result<Option<String>,D::Error>{String::deserialize(value).map(Some)}
-#[derive(Clone,Deserialize)]
+fn present_string<'de, D: serde::Deserializer<'de>>(value: D) -> Result<Option<String>, D::Error> {
+    String::deserialize(value).map(Some)
+}
+#[derive(Clone, Deserialize)]
 #[serde(deny_unknown_fields)]
-pub struct TextWorker {pub python:std::path::PathBuf,pub script:std::path::PathBuf,pub staging:std::path::PathBuf}
+pub struct TextWorker {
+    pub python: std::path::PathBuf,
+    pub script: std::path::PathBuf,
+    pub staging: std::path::PathBuf,
+}
 impl TextWorker {
-    pub fn validate(&self)->Result<(),&'static str>{
-        for path in [&self.python,&self.script,&self.staging] {
-            let text=path.to_string_lossy().replace('\\',"/").to_ascii_lowercase();
-            if !path.is_absolute()||text.starts_with("e:")||text.starts_with("//")||path.components().any(|p|matches!(p,std::path::Component::ParentDir)) {return Err("invalid worker profile path");}
-            let mut part=std::path::PathBuf::new();
-            for component in path.components(){part.push(component);archeaxis_store_sqlite::raw_objects::reject_links(&part).map_err(|_|"invalid worker profile path")?;}
+    pub fn validate(&self) -> Result<(), &'static str> {
+        for path in [&self.python, &self.script, &self.staging] {
+            let text = path
+                .to_string_lossy()
+                .replace('\\', "/")
+                .to_ascii_lowercase();
+            if !path.is_absolute()
+                || text.starts_with("e:")
+                || text.starts_with("//")
+                || path
+                    .components()
+                    .any(|p| matches!(p, std::path::Component::ParentDir))
+            {
+                return Err("invalid worker profile path");
+            }
+            let mut part = std::path::PathBuf::new();
+            for component in path.components() {
+                part.push(component);
+                archeaxis_store_sqlite::raw_objects::reject_links(&part)
+                    .map_err(|_| "invalid worker profile path")?;
+            }
         }
-        if !self.python.is_file()||!self.script.is_file(){return Err("worker profile file missing");}
+        if !self.python.is_file() || !self.script.is_file() {
+            return Err("worker profile file missing");
+        }
         Ok(())
     }
 }
 impl Launch {
-    pub fn from_stdin()->Result<Self,&'static str> {
+    pub fn from_stdin() -> Result<Self, &'static str> {
         // A std thread (not the async blocking pool) lets main exit on a parent
         // that holds stdin open. Never include input or parse details in errors.
-        let (send,receive)=mpsc::channel();
-        std::thread::spawn(move||{
-            let mut bytes=Vec::new();
-            let result=std::io::stdin().take(4097).read_to_end(&mut bytes);
-            let _=send.send(result.map(|_|bytes));
+        let (send, receive) = mpsc::channel();
+        std::thread::spawn(move || {
+            let mut bytes = Vec::new();
+            let result = std::io::stdin().take(4097).read_to_end(&mut bytes);
+            let _ = send.send(result.map(|_| bytes));
         });
-        let bytes=receive.recv_timeout(Duration::from_secs(5)).map_err(|_|"launch input timed out")?
-            .map_err(|_|"launch input failed")?;
-        if bytes.len()>4096{return Err("launch input exceeds limit");}
-        let launch:Self=serde_json::from_slice(&bytes).map_err(|_|"invalid launch input")?;
-        if !hex(&launch.launch_token,64)||!hex(&launch.session_id,32){return Err("invalid launch identity");}
+        let bytes = receive
+            .recv_timeout(Duration::from_secs(5))
+            .map_err(|_| "launch input timed out")?
+            .map_err(|_| "launch input failed")?;
+        if bytes.len() > 4096 {
+            return Err("launch input exceeds limit");
+        }
+        let launch: Self = serde_json::from_slice(&bytes).map_err(|_| "invalid launch input")?;
+        if !hex(&launch.launch_token, 64) || !hex(&launch.session_id, 32) {
+            return Err("invalid launch identity");
+        }
         // Legacy preserves its single actor; v2 gives one owned session two
         // distinct credentials. Unknown/null/partial v2 claims never downgrade.
         match launch.protocol.as_deref() {
             None => {
-                if launch.machine_token.is_some(){return Err("machine token requires v2");}
-                if !matches!(launch.actor.as_deref(),None|Some("human")|Some("machine")){return Err("invalid launch actor");}
-            },
+                if launch.machine_token.is_some() {
+                    return Err("machine token requires v2");
+                }
+                if !matches!(
+                    launch.actor.as_deref(),
+                    None | Some("human") | Some("machine")
+                ) {
+                    return Err("invalid launch actor");
+                }
+            }
             Some("archeaxis.desktop-launch/v2") => {
-                if launch.actor.as_deref()!=Some("human"){return Err("invalid v2 launch actor");}
-                let machine=launch.machine_token.as_deref().ok_or("missing machine identity")?;
-                if !hex(machine,64)||machine.eq_ignore_ascii_case(&launch.launch_token){return Err("invalid machine identity");}
-            },
+                if launch.actor.as_deref() != Some("human") {
+                    return Err("invalid v2 launch actor");
+                }
+                let machine = launch
+                    .machine_token
+                    .as_deref()
+                    .ok_or("missing machine identity")?;
+                if !hex(machine, 64) || machine.eq_ignore_ascii_case(&launch.launch_token) {
+                    return Err("invalid machine identity");
+                }
+            }
             Some(_) => return Err("unsupported launch protocol"),
         }
-        if let Some(profile)=&launch.text_worker{profile.validate()?;}
+        if let Some(profile) = &launch.text_worker {
+            profile.validate()?;
+        }
         Ok(launch)
     }
 }
-fn hex(s:&str,n:usize)->bool{s.len()==n&&s.bytes().all(|b|b.is_ascii_hexdigit())}
+fn hex(s: &str, n: usize) -> bool {
+    s.len() == n && s.bytes().all(|b| b.is_ascii_hexdigit())
+}
 #[derive(Clone)]
-struct Session {launch:Launch,workspace_db:String}
+struct Session {
+    launch: Launch,
+    workspace_db: String,
+}
 
 /// Wrap every route, including fallbacks, before binding the production listener.
-pub async fn protect(router:Router,store:&Store,launch:Launch)->Result<Router,StoreError> {
-    let workspace_db=store.submit(|conn|conn.query_row("SELECT file FROM pragma_database_list WHERE name='main'",[],|r|r.get::<_,String>(0))).await??;
-    Ok(router.layer(middleware::from_fn_with_state(Session{launch,workspace_db},authenticate)))
+pub async fn protect(router: Router, store: &Store, launch: Launch) -> Result<Router, StoreError> {
+    let workspace_db = store
+        .submit(|conn| {
+            conn.query_row(
+                "SELECT file FROM pragma_database_list WHERE name='main'",
+                [],
+                |r| r.get::<_, String>(0),
+            )
+        })
+        .await??;
+    Ok(router.layer(middleware::from_fn_with_state(
+        Session {
+            launch,
+            workspace_db,
+        },
+        authenticate,
+    )))
 }
-fn error(status:StatusCode,code:&str,message:&str)->Response {
-    (status,Json(serde_json::json!({"code":code,"message":message,"retryable":false}))).into_response()
+fn error(status: StatusCode, code: &str, message: &str) -> Response {
+    (
+        status,
+        Json(serde_json::json!({"code":code,"message":message,"retryable":false})),
+    )
+        .into_response()
 }
-async fn authenticate(State(session):State<Session>,request:Request,next:Next)->Response {
-    let values=request.headers().get_all("x-archeaxis-launch-token");
-    let mut values=values.iter();
-    let value=values.next().map(|v|v.as_bytes()).unwrap_or_default();
-    let expected=session.launch.launch_token.as_bytes();
-    let matches=|expected:&[u8]| value.len()==expected.len()&&value.iter().zip(expected).fold(0u8,|diff,(a,b)|diff|(a^b))==0;
-    let primary=matches(expected);
-    let machine=session.launch.machine_token.as_ref().map(|token|matches(token.as_bytes())).unwrap_or(false);
-    if !(primary||machine)||values.next().is_some(){return error(StatusCode::UNAUTHORIZED,"AAK-AUTH-001","invalid launch credentials");}
-    let actor=if machine||session.launch.actor.as_deref()==Some("machine"){"machine"}else{"human"};
+async fn authenticate(State(session): State<Session>, request: Request, next: Next) -> Response {
+    let values = request.headers().get_all("x-archeaxis-launch-token");
+    let mut values = values.iter();
+    let value = values.next().map(|v| v.as_bytes()).unwrap_or_default();
+    let expected = session.launch.launch_token.as_bytes();
+    let matches = |expected: &[u8]| {
+        value.len() == expected.len()
+            && value
+                .iter()
+                .zip(expected)
+                .fold(0u8, |diff, (a, b)| diff | (a ^ b))
+                == 0
+    };
+    let primary = matches(expected);
+    let machine = session
+        .launch
+        .machine_token
+        .as_ref()
+        .map(|token| matches(token.as_bytes()))
+        .unwrap_or(false);
+    if !(primary || machine) || values.next().is_some() {
+        return error(
+            StatusCode::UNAUTHORIZED,
+            "AAK-AUTH-001",
+            "invalid launch credentials",
+        );
+    }
+    let actor = if machine || session.launch.actor.as_deref() == Some("machine") {
+        "machine"
+    } else {
+        "human"
+    };
     // Formal desktop is a native client. Do not allow browser origins to turn
     // this localhost API into a credentialed cross-origin write surface.
-    if request.headers().contains_key("origin") {return error(StatusCode::FORBIDDEN,"AAK-AUTH-002","browser origin not allowed");}
-    if request.method()==Method::GET&&request.uri().path()=="/api/v1/system/version" {
-        let mut version=serde_json::json!({"runtime":"archeaxis-api","contract":"0.1.0-outline",
+    if request.headers().contains_key("origin") {
+        return error(
+            StatusCode::FORBIDDEN,
+            "AAK-AUTH-002",
+            "browser origin not allowed",
+        );
+    }
+    if request.method() == Method::GET && request.uri().path() == "/api/v1/system/version" {
+        let mut version = serde_json::json!({"runtime":"archeaxis-api","contract":"0.1.0-outline",
             "schema_version":archeaxis_store_sqlite::SCHEMA_VERSION,
             "session_id":session.launch.session_id,"workspace_db":session.workspace_db});
-        if let Some(protocol)=&session.launch.protocol {version["launch_protocol"]=serde_json::json!(protocol);version["actor"]=serde_json::json!(actor);}
+        if let Some(protocol) = &session.launch.protocol {
+            version["launch_protocol"] = serde_json::json!(protocol);
+            version["actor"] = serde_json::json!(actor);
+        }
         return Json(version).into_response();
     }
     // Overwrite self-reported identity with the role of the matched bootstrap
@@ -103,7 +209,11 @@ async fn authenticate(State(session):State<Session>,request:Request,next:Next)->
     let (mut parts, body) = request.into_parts();
     parts.headers.insert(
         "x-archeaxis-actor",
-        axum::http::header::HeaderValue::from_static(if actor == "machine" { "machine" } else { "human" }),
+        axum::http::header::HeaderValue::from_static(if actor == "machine" {
+            "machine"
+        } else {
+            "human"
+        }),
     );
     next.run(axum::http::Request::from_parts(parts, body)).await
 }

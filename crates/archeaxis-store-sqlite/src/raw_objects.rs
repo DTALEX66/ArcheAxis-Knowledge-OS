@@ -1,25 +1,47 @@
 //! Immutable original objects owned by this vNext database, never external input paths.
 use rusqlite::Connection;
 use sha2::{Digest, Sha256};
-use std::{io::Write, path::{Path, PathBuf}};
+use std::{
+    io::Write,
+    path::{Path, PathBuf},
+};
 
 /// Bounded staging read; validate ancestors before traversing children and hold
 /// a regular single-link file identity. The caller independently binds the hash.
-pub fn read_staged(path:&Path, limit:usize) -> rusqlite::Result<Vec<u8>> {
+pub fn read_staged(path: &Path, limit: usize) -> rusqlite::Result<Vec<u8>> {
     use std::io::Read;
-    let text=path.to_string_lossy().replace('\\',"/").to_ascii_lowercase();
-    if text.starts_with("e:") || text.starts_with("//") || !path.is_absolute()
-        || path.components().any(|p|matches!(p,std::path::Component::ParentDir)) {
+    let text = path
+        .to_string_lossy()
+        .replace('\\', "/")
+        .to_ascii_lowercase();
+    if text.starts_with("e:")
+        || text.starts_with("//")
+        || !path.is_absolute()
+        || path
+            .components()
+            .any(|p| matches!(p, std::path::Component::ParentDir))
+    {
         return Err(rusqlite::Error::InvalidPath(path.to_owned()));
     }
-    let mut part=PathBuf::new();
-    for component in path.components() {part.push(component);reject_links(&part)?;}
-    let file=crate::writer::hold_identity(path).map_err(|e|rusqlite::Error::ToSqlConversionFailure(Box::new(e)))?
+    let mut part = PathBuf::new();
+    for component in path.components() {
+        part.push(component);
+        reject_links(&part)?;
+    }
+    let file = crate::writer::hold_identity(path)
+        .map_err(|e| rusqlite::Error::ToSqlConversionFailure(Box::new(e)))?
         .ok_or(rusqlite::Error::InvalidQuery)?;
-    let size=file.metadata().map_err(io_error)?.len();
-    if size>limit as u64 {return Err(rusqlite::Error::InvalidQuery);}
-    let mut bytes=Vec::new(); file.take(limit as u64+1).read_to_end(&mut bytes).map_err(io_error)?;
-    if bytes.len() as u64!=size {return Err(rusqlite::Error::InvalidQuery);}
+    let size = file.metadata().map_err(io_error)?.len();
+    if size > limit as u64 {
+        return Err(rusqlite::Error::InvalidQuery);
+    }
+    let mut bytes = Vec::new();
+    file.take(limit as u64 + 1)
+        .read_to_end(&mut bytes)
+        .map_err(io_error)?;
+    if bytes.len() as u64 != size {
+        return Err(rusqlite::Error::InvalidQuery);
+    }
     Ok(bytes)
 }
 
@@ -41,8 +63,8 @@ pub fn reject_links(path: &Path) -> rusqlite::Result<()> {
                 if meta.file_type().is_symlink() || reparse {
                     return Err(rusqlite::Error::InvalidPath(part.to_owned()));
                 }
-            },
-            Err(error) if error.kind() == std::io::ErrorKind::NotFound => {},
+            }
+            Err(error) if error.kind() == std::io::ErrorKind::NotFound => {}
             Err(error) => return Err(io_error(error)),
         }
     }
@@ -50,14 +72,21 @@ pub fn reject_links(path: &Path) -> rusqlite::Result<()> {
 }
 
 pub fn root(conn: &Connection) -> rusqlite::Result<PathBuf> {
-    let db = conn.path().filter(|p| !p.is_empty()).ok_or(rusqlite::Error::InvalidQuery)?;
+    let db = conn
+        .path()
+        .filter(|p| !p.is_empty())
+        .ok_or(rusqlite::Error::InvalidQuery)?;
     let root = PathBuf::from(format!("{db}.objects"));
     reject_links(&root)?;
     Ok(root)
 }
 
 fn object_path(conn: &Connection, digest: &str) -> rusqlite::Result<PathBuf> {
-    if digest.len() != 64 || !digest.bytes().all(|b| b.is_ascii_digit() || (b'a'..=b'f').contains(&b)) {
+    if digest.len() != 64
+        || !digest
+            .bytes()
+            .all(|b| b.is_ascii_digit() || (b'a'..=b'f').contains(&b))
+    {
         return Err(rusqlite::Error::InvalidQuery);
     }
     let path = root(conn)?.join(digest);
@@ -89,10 +118,10 @@ pub fn persist(conn: &Connection, bytes: &[u8]) -> rusqlite::Result<String> {
     staged.write_all(bytes).map_err(io_error)?;
     staged.as_file().sync_all().map_err(io_error)?;
     match staged.persist_noclobber(&path) {
-        Ok(_) => {},
+        Ok(_) => {}
         Err(error) if error.error.kind() == std::io::ErrorKind::AlreadyExists => {
             read(conn, &digest)?;
-        },
+        }
         Err(error) => return Err(io_error(error.error)),
     }
     Ok(digest)

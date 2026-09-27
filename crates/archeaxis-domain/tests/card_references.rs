@@ -2,8 +2,8 @@
 //! after that revision is superseded the read-side annotation reports it as no
 //! longer current - while the historical reference is preserved, never rewritten.
 
-use archeaxis_domain::learning;
 use archeaxis_domain::knowledge;
+use archeaxis_domain::learning;
 use archeaxis_store_sqlite::init_workspace;
 
 fn workspace() -> (tempfile::TempDir, rusqlite::Connection) {
@@ -47,8 +47,15 @@ fn a_card_keeps_its_revision_and_is_annotated_after_supersede() {
     knowledge::review(&mut conn, &successor, "accepted", "owner", None, None).unwrap();
 
     let references = learning::references_for_card(&conn, "card-1").unwrap();
-    assert_eq!(references.len(), 1, "the historical reference must be preserved");
-    assert_eq!(references[0].0, original, "it still names the revision the card was built from");
+    assert_eq!(
+        references.len(),
+        1,
+        "the historical reference must be preserved"
+    );
+    assert_eq!(
+        references[0].0, original,
+        "it still names the revision the card was built from"
+    );
     assert!(
         !references[0].1,
         "after supersede the referenced revision must be reported as not current"
@@ -57,7 +64,12 @@ fn a_card_keeps_its_revision_and_is_annotated_after_supersede() {
 
     // Recording the same reference again stays idempotent (retries cannot grow it).
     learning::record_card_reference(&mut conn, "card-1", &original, Some(2)).unwrap();
-    assert_eq!(learning::references_for_card(&conn, "card-1").unwrap().len(), 1);
+    assert_eq!(
+        learning::references_for_card(&conn, "card-1")
+            .unwrap()
+            .len(),
+        1
+    );
 
     // A reference to a revision that does not exist is refused.
     assert!(learning::record_card_reference(&mut conn, "card-2", "k_missing", None).is_err());

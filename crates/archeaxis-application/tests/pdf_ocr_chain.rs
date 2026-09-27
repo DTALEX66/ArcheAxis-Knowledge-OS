@@ -16,11 +16,16 @@ use archeaxis_domain::source::{self, ImportOutcome};
 use std::path::PathBuf;
 
 fn python() -> PathBuf {
-    std::env::var_os("ARCHEAXIS_PYTHON").expect("run cargo via the project wrapper").into()
+    std::env::var_os("ARCHEAXIS_PYTHON")
+        .expect("run cargo via the project wrapper")
+        .into()
 }
 
 fn repo() -> PathBuf {
-    PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../..").canonicalize().unwrap()
+    PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+        .join("../..")
+        .canonicalize()
+        .unwrap()
 }
 
 /// A PDF whose page holds a rendered image of text and no text layer at all.
@@ -32,7 +37,12 @@ fn scanned_pdf_bytes(text: &str) -> Vec<u8> {
                   buf=io.BytesIO(); img.save(buf,'PNG')\n\
                   d=fitz.open(); p=d.new_page(); p.insert_image(fitz.Rect(60,60,580,180),stream=buf.getvalue())\n\
                   sys.stdout.buffer.write(d.tobytes())\n";
-    match std::process::Command::new(python()).arg("-c").arg(script).arg(text).output() {
+    match std::process::Command::new(python())
+        .arg("-c")
+        .arg(script)
+        .arg(text)
+        .output()
+    {
         Ok(out) if out.status.success() => out.stdout,
         _ => Vec::new(),
     }
@@ -40,7 +50,12 @@ fn scanned_pdf_bytes(text: &str) -> Vec<u8> {
 
 fn text_pdf_bytes(text: &str) -> Vec<u8> {
     let script = "import fitz,sys;d=fitz.open();d.new_page().insert_text((72,100),sys.argv[1]);sys.stdout.buffer.write(d.tobytes())";
-    match std::process::Command::new(python()).arg("-c").arg(script).arg(text).output() {
+    match std::process::Command::new(python())
+        .arg("-c")
+        .arg(script)
+        .arg(text)
+        .output()
+    {
         Ok(out) if out.status.success() => out.stdout,
         _ => Vec::new(),
     }
@@ -53,8 +68,14 @@ async fn open_executor(dir: &std::path::Path) -> Executor {
         &python(),
         &repo().join("services/python-workers/transport/text_ndjson.py"),
         &[
-            ("pdf.extract", repo().join("services/python-workers/document/worker_pdf.py")),
-            ("image.ocr", repo().join("services/python-workers/vision/worker_ocr.py")),
+            (
+                "pdf.extract",
+                repo().join("services/python-workers/document/worker_pdf.py"),
+            ),
+            (
+                "image.ocr",
+                repo().join("services/python-workers/vision/worker_ocr.py"),
+            ),
         ],
     )
     .await
@@ -67,7 +88,9 @@ async fn open_executor(dir: &std::path::Path) -> Executor {
 /// has no traineddata and a chained OCR job cannot succeed there. The Python OCR tests skip in
 /// exactly that situation; these do the same instead of failing the suite for a missing local asset.
 fn tessdata_available() -> bool {
-    repo().join("tools/tesseract/tessdata/eng.traineddata").is_file()
+    repo()
+        .join("tools/tesseract/tessdata/eng.traineddata")
+        .is_file()
 }
 
 #[tokio::test]
@@ -99,14 +122,23 @@ async fn a_scanned_pdf_chains_into_a_real_ocr_job_and_its_text_is_stored() {
         .await
         .unwrap();
 
-    executor.execute("job-pdf", "run-pdf", 180_000, &Cancellation::new()).await.unwrap();
+    executor
+        .execute("job-pdf", "run-pdf", 180_000, &Cancellation::new())
+        .await
+        .unwrap();
 
     // R15/F06: the Core chained it by itself, inside the completion commit
     let chained: Vec<String> = executor
         .store()
         .submit(|conn| {
-            let mut statement = conn.prepare("SELECT job_id FROM jobs WHERE job_id LIKE 'job-pdf-page-%'").unwrap();
-            statement.query_map([], |row| row.get::<_, String>(0)).unwrap().map(|row| row.unwrap()).collect()
+            let mut statement = conn
+                .prepare("SELECT job_id FROM jobs WHERE job_id LIKE 'job-pdf-page-%'")
+                .unwrap();
+            statement
+                .query_map([], |row| row.get::<_, String>(0))
+                .unwrap()
+                .map(|row| row.unwrap())
+                .collect()
         })
         .await
         .unwrap();
@@ -118,7 +150,9 @@ async fn a_scanned_pdf_chains_into_a_real_ocr_job_and_its_text_is_stored() {
             .store()
             .submit(|conn| {
                 let mut statement = conn
-                    .prepare("SELECT task_id, outcome, failure FROM machine_tasks WHERE scope='job-pdf'")
+                    .prepare(
+                        "SELECT task_id, outcome, failure FROM machine_tasks WHERE scope='job-pdf'",
+                    )
                     .unwrap();
                 statement
                     .query_map([], |row| {
@@ -145,7 +179,11 @@ async fn a_scanned_pdf_chains_into_a_real_ocr_job_and_its_text_is_stored() {
         })
         .await
         .unwrap();
-    assert_eq!(declared.len(), 1, "a scanned page must be declared: {declared:?}");
+    assert_eq!(
+        declared.len(),
+        1,
+        "a scanned page must be declared: {declared:?}"
+    );
     assert_eq!(declared[0].page, 1);
     assert_eq!(declared[0].media_type.as_deref(), Some("image/png"));
     assert!(declared[0].sha256.len() == 64);
@@ -159,16 +197,26 @@ async fn a_scanned_pdf_chains_into_a_real_ocr_job_and_its_text_is_stored() {
         })
         .await
         .unwrap();
-    assert!(again.is_empty(), "enqueueing the same page twice is duplicate work, not more evidence");
+    assert!(
+        again.is_empty(),
+        "enqueueing the same page twice is duplicate work, not more evidence"
+    );
     let page_jobs: i64 = executor
         .store()
         .submit(|conn| {
-            conn.query_row("SELECT count(*) FROM jobs WHERE job_id LIKE 'job-pdf-page-%'", [], |row| row.get(0))
-                .unwrap()
+            conn.query_row(
+                "SELECT count(*) FROM jobs WHERE job_id LIKE 'job-pdf-page-%'",
+                [],
+                |row| row.get(0),
+            )
+            .unwrap()
         })
         .await
         .unwrap();
-    assert_eq!(page_jobs, 1, "one declared page means exactly one chained job");
+    assert_eq!(
+        page_jobs, 1,
+        "one declared page means exactly one chained job"
+    );
 
     // the chained job is a first-class image job whose source is the rendered page
     let (kind, name) = executor
@@ -185,7 +233,10 @@ async fn a_scanned_pdf_chains_into_a_real_ocr_job_and_its_text_is_stored() {
         .await
         .unwrap();
     assert_eq!(kind, "image");
-    assert_eq!(name, "scan-page-1.png", "the rendered page keeps a name the media derivation can read");
+    assert_eq!(
+        name, "scan-page-1.png",
+        "the rendered page keeps a name the media derivation can read"
+    );
 
     // and executing it produces the recognised text through the real engine
     executor
@@ -209,7 +260,10 @@ async fn a_scanned_pdf_chains_into_a_real_ocr_job_and_its_text_is_stored() {
         .await
         .unwrap();
     assert_eq!(state, "succeeded");
-    assert!(text.contains("6371"), "the OCR text must come from the rendered page: {text:?}");
+    assert!(
+        text.contains("6371"),
+        "the OCR text must come from the rendered page: {text:?}"
+    );
 }
 
 #[tokio::test]
@@ -226,7 +280,8 @@ async fn a_pdf_with_text_chains_nothing_and_a_tampered_render_is_refused() {
     executor
         .store()
         .submit(move |conn| {
-            let source_id = match source::import_source(conn, &payload, "notes.pdf", None).unwrap() {
+            let source_id = match source::import_source(conn, &payload, "notes.pdf", None).unwrap()
+            {
                 ImportOutcome::Imported { source_id, .. } => source_id,
                 ImportOutcome::Duplicate { source_id, .. } => source_id,
             };
@@ -234,14 +289,20 @@ async fn a_pdf_with_text_chains_nothing_and_a_tampered_render_is_refused() {
         })
         .await
         .unwrap();
-    executor.execute("job-text-pdf", "run-pdf", 180_000, &Cancellation::new()).await.unwrap();
+    executor
+        .execute("job-text-pdf", "run-pdf", 180_000, &Cancellation::new())
+        .await
+        .unwrap();
 
     let declared = executor
         .store()
         .submit(|conn| ocr::candidates(conn, "job-text-pdf").unwrap())
         .await
         .unwrap();
-    assert!(declared.is_empty(), "a page with text needs no OCR: {declared:?}");
+    assert!(
+        declared.is_empty(),
+        "a page with text needs no OCR: {declared:?}"
+    );
     let enqueued = executor
         .store()
         .submit({
@@ -263,7 +324,8 @@ async fn a_pdf_with_text_chains_nothing_and_a_tampered_render_is_refused() {
     executor2
         .store()
         .submit(move |conn| {
-            let source_id = match source::import_source(conn, &scanned, "tamper.pdf", None).unwrap() {
+            let source_id = match source::import_source(conn, &scanned, "tamper.pdf", None).unwrap()
+            {
                 ImportOutcome::Imported { source_id, .. } => source_id,
                 ImportOutcome::Duplicate { source_id, .. } => source_id,
             };
@@ -271,10 +333,16 @@ async fn a_pdf_with_text_chains_nothing_and_a_tampered_render_is_refused() {
         })
         .await
         .unwrap();
-    executor2.execute("job-tamper", "run-pdf", 180_000, &Cancellation::new()).await.unwrap();
+    executor2
+        .execute("job-tamper", "run-pdf", 180_000, &Cancellation::new())
+        .await
+        .unwrap();
 
     let render = staging2.join("ocr").join("page-1.png");
-    assert!(render.is_file(), "the render must be there before we tamper with it");
+    assert!(
+        render.is_file(),
+        "the render must be there before we tamper with it"
+    );
     // the automatic chain already ran during completion; tampering afterwards is what
     // the next case exercises, so start from a clean job for the refusal test
     std::fs::write(&render, b"not the rendered page").unwrap();
@@ -291,18 +359,30 @@ async fn a_pdf_with_text_chains_nothing_and_a_tampered_render_is_refused() {
     let pages_after: i64 = executor2
         .store()
         .submit(|conn| {
-            conn.query_row("SELECT count(*) FROM jobs WHERE job_id LIKE 'job-tamper-page-%'", [], |row| row.get(0))
-                .unwrap()
+            conn.query_row(
+                "SELECT count(*) FROM jobs WHERE job_id LIKE 'job-tamper-page-%'",
+                [],
+                |row| row.get(0),
+            )
+            .unwrap()
         })
         .await
         .unwrap();
-    assert_eq!(pages_after, 1, "the automatic chain queued exactly the one page it declared");
+    assert_eq!(
+        pages_after, 1,
+        "the automatic chain queued exactly the one page it declared"
+    );
 
     // and the page that was queued is a real image job
     let kind: String = executor2
         .store()
         .submit(|conn| {
-            conn.query_row("SELECT kind FROM jobs WHERE job_id='job-tamper-page-1'", [], |row| row.get(0)).unwrap()
+            conn.query_row(
+                "SELECT kind FROM jobs WHERE job_id='job-tamper-page-1'",
+                [],
+                |row| row.get(0),
+            )
+            .unwrap()
         })
         .await
         .unwrap();
@@ -318,7 +398,10 @@ async fn a_pdf_with_text_chains_nothing_and_a_tampered_render_is_refused() {
         .await
         .unwrap();
     assert!(escape.is_err());
-    assert!(error.contains("page 1") || error.contains("page-1") || error.contains("digest"), "{error}");
+    assert!(
+        error.contains("page 1") || error.contains("page-1") || error.contains("digest"),
+        "{error}"
+    );
 }
 
 #[tokio::test]
@@ -356,13 +439,18 @@ async fn a_chaining_failure_is_recorded_as_a_machine_receipt_and_the_pdf_job_sti
         })
         .await
         .unwrap();
-    let outcome = executor.execute("job-blocked", "run-pdf", 180_000, &Cancellation::new()).await;
+    let outcome = executor
+        .execute("job-blocked", "run-pdf", 180_000, &Cancellation::new())
+        .await;
 
     let (state, receipt) = executor
         .store()
         .submit(|conn| {
-            let state = jobs::job_state(conn, "job-blocked").unwrap().unwrap_or_default();
-            let receipt = archeaxis_domain::machine::machine_task(conn, "job-blocked-ocr-chain").unwrap();
+            let state = jobs::job_state(conn, "job-blocked")
+                .unwrap()
+                .unwrap_or_default();
+            let receipt =
+                archeaxis_domain::machine::machine_task(conn, "job-blocked-ocr-chain").unwrap();
             (state, receipt)
         })
         .await
