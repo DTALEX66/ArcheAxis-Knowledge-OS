@@ -149,7 +149,10 @@ def start(data_root: Path, port: int) -> tuple[subprocess.Popen, str, dict]:
         child.kill()
         raise LaunchFailure(f"Core did not report readiness within "
                             f"{STARTUP_TIMEOUT_SECONDS:.0f}s (last output: {line.strip()[:200]!r})")
-    base = "http://" + line.split(READY_MARKER, 1)[1].split()[0].strip()
+    # The readiness line already carries the full authority; rebuilding it from the
+    # port alone produced `http://50595`, which is not a URL.
+    authority = line.split(READY_MARKER, 1)[1].split()[0].strip()
+    base = f"http://{READY_MARKER}{authority}"
     receipt = {"core": str(core), "workspace": str(workspace), "port": port,
                "ready_line": line.strip(), "text_worker": launch["text_worker"]}
     return child, base, receipt
