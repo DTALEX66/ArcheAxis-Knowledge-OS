@@ -93,7 +93,10 @@ pub fn import_source_with_origin(
         )
         .optional()?;
     if let Some(sid) = existing {
-        tx.execute("UPDATE sources SET raw_path=?1 WHERE source_id=?2", [&raw_ref, &sid])?;
+        tx.execute(
+            "UPDATE sources SET raw_path=?1 WHERE source_id=?2",
+            [&raw_ref, &sid],
+        )?;
         if let Some(info) = origin {
             record_origin(&tx, &sid, info)?;
         }

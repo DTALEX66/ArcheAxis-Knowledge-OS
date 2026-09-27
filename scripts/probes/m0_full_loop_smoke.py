@@ -15,6 +15,19 @@ identity are what is being tested:
 It measures; it signs nothing. A stage that returns an unexpected status is recorded
 with its status and body and the run stops there, so a partial run is a partial
 receipt rather than a pass.
+
+Two prerequisites decide whether the verdict means anything, and both are checked
+before the run starts rather than inferred from a degraded stage:
+
+* ``ARCHEAXIS_PYTHON`` must name the interpreter the Core uses for its scheduler
+  worker. Without it ``SchedulerClient::from_env`` cannot answer, the review is
+  recorded as unscheduled, and ``schedule_authority`` reads ``unavailable`` - which
+  looks like a scheduling defect but is only a missing interpreter.
+* this process must be able to load the vector extension, or the legacy plan reports
+  ``vec_episodes`` as unreadable purely because of the interpreter it is running on.
+
+Both are reported as ``blocked`` with the missing condition named, so a run that
+could not have observed the whole loop is never written up as a product result.
 """
 
 from __future__ import annotations
@@ -23,6 +36,7 @@ import contextlib
 import hashlib
 import importlib.util
 import json
+import os
 import shutil
 import sqlite3
 import subprocess
@@ -32,7 +46,11 @@ import uuid
 from pathlib import Path
 
 REPO = Path(__file__).resolve().parents[2]
-BINARY = REPO / ".project-local" / "build" / "cargo" / "debug" / "archeaxis-api.exe"
+# The staged runtime already names its own Core through ARCHEAXIS_CORE_BIN; honouring
+# it is what lets this probe qualify an installed runtime instead of only a checkout.
+BINARY = Path(os.environ.get(
+    "ARCHEAXIS_CORE_BIN",
+    str(REPO / ".project-local" / "build" / "cargo" / "debug" / "archeaxis-api.exe")))
 LEGACY = REPO / "data" / "cognitive_os.sqlite"
 
 # The Core validates the launch identity as hex; a non-hex token is rejected with
@@ -90,12 +108,50 @@ core = _load("core_client_m0", REPO / "shared" / "core_client.py")
 runtime = _load("runtime_m0", REPO / "scripts" / "runtime" / "dev.py")
 
 
+def worker_profile() -> dict | None:
+    """The staged runtime's own worker profile, when one is published.
+
+    Reading it here is the point of the installed qualification: the caller passes a
+    runtime root, not a hand-resolved interpreter.
+    """
+    for name in ("ARCHEAXIS_WORKER_PROFILE", "ARCHAXIS_WORKER_PROFILE"):
+        raw = os.environ.get(name, "").strip()
+        if not raw:
+            continue
+        path = Path(raw)
+        if not path.is_file():
+            raise SystemExit(f"worker profile is not a file: {path}")
+        document = json.loads(path.read_text(encoding="utf-8"))
+        if document.get("schema") != "archeaxis.worker-profile/v1":
+            raise SystemExit(f"worker profile schema is not v1: {path}")
+        base = path.parent
+        resolved = {}
+        for key in ("python", "script", "staging"):
+            value = document.get(key)
+            if not isinstance(value, str) or not value.strip():
+                raise SystemExit(f"worker profile has no {key}: {path}")
+            candidate = Path(value)
+            resolved[key] = (candidate if candidate.is_absolute() else base / candidate)
+        return resolved
+    return None
+
+
 def start_core(db: Path, staging: Path) -> tuple[subprocess.Popen, str]:
-    worker = {
-        "python": str(Path(sys.executable).resolve()),
-        "script": str((REPO / "services/python-workers/transport/text_ndjson.py").resolve()),
-        "staging": str(staging.resolve()),
-    }
+    profile = worker_profile()
+    if profile is None:
+        worker = {
+            "python": str(Path(sys.executable).resolve()),
+            "script": str((REPO / "services/python-workers/transport/text_ndjson.py").resolve()),
+            "staging": str(staging.resolve()),
+        }
+    else:
+        # The run's own staging directory still wins so parallel runs stay isolated,
+        # while the interpreter and worker script come from the published runtime.
+        worker = {
+            "python": str(profile["python"].resolve()),
+            "script": str(profile["script"].resolve()),
+            "staging": str(staging.resolve()),
+        }
     child = subprocess.Popen(
         [str(BINARY), str(db), "0"],
         stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
@@ -140,18 +196,90 @@ def maintenance(action: str, db: Path, artifact: Path) -> tuple[int, dict]:
     return result.returncode, payload
 
 
+def unmet_prerequisites() -> dict[str, str]:
+    """Name the conditions under which this run cannot observe the whole loop.
+
+    Checked before any Core process starts, because both conditions change what the
+    receipt *means* while leaving every stage's HTTP status looking healthy. Naming
+    them here keeps a degraded environment from being read as a product defect.
+    """
+    unmet: dict[str, str] = {}
+    scheduler_python = os.environ.get("ARCHEAXIS_PYTHON", "").strip()
+    if scheduler_python and not Path(scheduler_python).is_file():
+        unmet["ARCHEAXIS_PYTHON"] = f"not a file: {scheduler_python}"
+    if not scheduler_python:
+        # A staged runtime publishes the interpreter in worker-profile.json, and the
+        # Core resolves it from there. Requiring the variable as well would make this
+        # probe demand exactly the manual step the runtime exists to remove.
+        try:
+            profile = worker_profile()
+        except SystemExit as error:
+            profile = None
+            unmet["worker_profile"] = str(error)
+        if profile is None and "worker_profile" not in unmet:
+            unmet["ARCHEAXIS_PYTHON"] = (
+                "not set and no worker profile published; the Core would report "
+                "schedule_authority unavailable")
+        elif profile is not None and not profile["python"].is_file():
+            unmet["worker_profile.python"] = f"not a file: {profile['python']}"
+    try:
+        import sqlite_vec  # noqa: F401
+    except Exception as error:  # pragma: no cover - depends on the interpreter
+        unmet["sqlite_vec"] = f"{type(error).__name__}: {error}"
+    return unmet
+
+
+def binary_identity(path: Path) -> dict:
+    """The artefact that actually ran, not the path someone typed."""
+    stat = path.stat()
+    digest = hashlib.sha256()
+    with path.open("rb") as handle:
+        for block in iter(lambda: handle.read(1 << 20), b""):
+            digest.update(block)
+    return {"path": str(path), "sha256": digest.hexdigest(),
+            "size": stat.st_size, "mtime": stat.st_mtime}
+
+
+def source_identity() -> dict:
+    """What this run tested, including the working state when it is not committed."""
+    dirty = os.environ.get("ARCHEAXIS_SOURCE_DIRTY", "")
+    return {
+        "commit": os.environ.get("ARCHEAXIS_SOURCE_COMMIT", ""),
+        "tree": os.environ.get("ARCHEAXIS_SOURCE_TREE", ""),
+        "dirty": dirty == "1",
+        "patch_sha256": os.environ.get("ARCHEAXIS_SOURCE_PATCH_SHA256", ""),
+        "worktree_root": os.environ.get("ARCHEAXIS_WORKTREE_ROOT", ""),
+        "run_id": os.environ.get("ARCHEAXIS_RUN_ID", ""),
+        "identity_recorded": bool(dirty) and bool(os.environ.get("ARCHEAXIS_SOURCE_COMMIT")),
+    }
+
+
 def main() -> int:
     with contextlib.suppress(Exception):
         sys.stdout.reconfigure(encoding="utf-8")
     if not BINARY.is_file():
         print(json.dumps({"ok": False, "blocked": "core binary not built", "path": str(BINARY)}))
         return 2
+    unmet = unmet_prerequisites()
+    if unmet:
+        print(json.dumps({
+            "ok": False,
+            "blocked": "run prerequisites not met; the loop could not be observed",
+            "unmet": unmet,
+            "interpreter": sys.executable,
+            "note": "run this probe through scripts/runtime/dev.py with the project "
+                    "interpreter, and pass that same interpreter as the command",
+        }, ensure_ascii=False, indent=2))
+        return 2
 
     work = REPO / ".project-local" / "m0loop" / uuid.uuid4().hex[:8]
     work.mkdir(parents=True, exist_ok=True)
     db = work / "workspace.sqlite"
     staging = work / "worker-staging"
-    receipt: dict = {"ok": False, "workdir": str(work), "stages": []}
+    receipt: dict = {"ok": False, "workdir": str(work), "stages": [],
+                     "core_binary": binary_identity(BINARY),
+                     "source": source_identity(),
+                     "interpreter": sys.executable}
     order: list[str] = []
 
     def stage(name: str, **fields: object) -> None:
@@ -453,11 +581,19 @@ def main() -> int:
     receipt["machine_principal_accepted"] = machine_ok
     receipt["fsrs_schedule_observed"] = schedule_ok
     # Two verdicts, kept apart on purpose. `chain_stages_verified` says every stage of
-    # the loop ran and the persistence legs held. `ok` additionally requires the FSRS
-    # schedule the dedicated learning probe observes - it is NOT observed on this path,
-    # where the same review returns schedule_authority "unavailable" with
-    # next_review_days -2 and schedule_state null, so the strict verdict is false and
-    # the deviation is a recorded open question rather than a silent pass.
+    # the loop ran and the persistence legs held. `ok` additionally requires a real
+    # FSRS schedule on the answer-bearing review.
+    #
+    # This comment used to record the opposite: that the FSRS schedule "is NOT observed
+    # on this path", with schedule_authority "unavailable", next_review_days -2 and
+    # schedule_state null. That was measured, but the cause was assigned to the product
+    # when it is only the environment. `SchedulerClient::from_env` needs
+    # ARCHEAXIS_PYTHON in the *Core's* environment, and this probe inherits it from its
+    # caller, so a run started without it records an unscheduled review. Launched
+    # through `scripts/runtime/dev.py` (which sets ARCHEAXIS_PYTHON) the same review
+    # reports authority "fsrs" with a populated schedule_state, and `ok` is true.
+    # `unmet_prerequisites()` now refuses to run at all when that variable is absent,
+    # so the old reading cannot come back as a silent product verdict.
     receipt["chain_stages_verified"] = bool(
         "failed_stage" not in receipt
         and not receipt.get("failed_stage")

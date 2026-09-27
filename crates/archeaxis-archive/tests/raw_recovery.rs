@@ -9,7 +9,14 @@ fn original_bytes_survive_source_removal_restart_and_archive_restore() {
     std::fs::write(&external, bytes).unwrap();
     let db = dir.path().join("workspace.sqlite");
     let mut conn = init_workspace(db.to_str().unwrap()).unwrap();
-    let digest = match source::import_source(&mut conn, &std::fs::read(&external).unwrap(), "original.bin", None).unwrap() {
+    let digest = match source::import_source(
+        &mut conn,
+        &std::fs::read(&external).unwrap(),
+        "original.bin",
+        None,
+    )
+    .unwrap()
+    {
         ImportOutcome::Imported { sha256, .. } => sha256,
         _ => unreachable!(),
     };
@@ -21,12 +28,19 @@ fn original_bytes_survive_source_removal_restart_and_archive_restore() {
     let archive = dir.path().join("archive");
     archeaxis_archive::export_workspace(db.to_str().unwrap(), archive.to_str().unwrap()).unwrap();
     let target = dir.path().join("restored.sqlite");
-    archeaxis_archive::restore_workspace(archive.to_str().unwrap(), target.to_str().unwrap()).unwrap();
+    archeaxis_archive::restore_workspace(archive.to_str().unwrap(), target.to_str().unwrap())
+        .unwrap();
     let mut restored = init_workspace(target.to_str().unwrap()).unwrap();
     assert_eq!(raw_objects::read(&restored, &digest).unwrap(), bytes);
-    assert!(matches!(source::import_source(&mut restored, bytes, "again.bin", None).unwrap(), ImportOutcome::Duplicate { .. }));
+    assert!(matches!(
+        source::import_source(&mut restored, bytes, "again.bin", None).unwrap(),
+        ImportOutcome::Duplicate { .. }
+    ));
     std::fs::write(archive.join("objects").join(&digest), b"corrupt").unwrap();
     let refused = dir.path().join("refused.sqlite");
-    assert!(archeaxis_archive::restore_workspace(archive.to_str().unwrap(), refused.to_str().unwrap()).is_err());
+    assert!(
+        archeaxis_archive::restore_workspace(archive.to_str().unwrap(), refused.to_str().unwrap())
+            .is_err()
+    );
     assert!(!refused.exists());
 }

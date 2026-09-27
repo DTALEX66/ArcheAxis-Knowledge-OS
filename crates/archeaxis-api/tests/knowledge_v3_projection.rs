@@ -99,20 +99,17 @@ async fn v3_projection_keeps_machine_candidates_and_revision_links_explicit() {
     )
     .await;
     assert_eq!(status, 200);
-    assert_eq!(old_projected["superseded_by"], serde_json::json!([revised_id]));
+    assert_eq!(
+        old_projected["superseded_by"],
+        serde_json::json!([revised_id])
+    );
 }
 
 #[tokio::test]
 async fn v3_projection_returns_not_found_without_touching_the_writer() {
     let dir = tempfile::tempdir().unwrap();
     let router = app(dir.path().join("knowledge.sqlite").to_str().unwrap()).unwrap();
-    let (status, payload) = json(
-        &router,
-        "GET",
-        "/api/v1/knowledge-items/missing/v3",
-        "",
-    )
-    .await;
+    let (status, payload) = json(&router, "GET", "/api/v1/knowledge-items/missing/v3", "").await;
     assert_eq!(status, 404);
     assert!(payload.is_object());
 }

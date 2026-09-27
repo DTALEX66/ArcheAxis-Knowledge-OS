@@ -1,5 +1,11 @@
 use archeaxis_store_sqlite::writer::{Store, StoreError};
-use std::{future::Future, pin::Pin, sync::mpsc, task::{Context, Poll, Waker}, time::Duration};
+use std::{
+    future::Future,
+    pin::Pin,
+    sync::mpsc,
+    task::{Context, Poll, Waker},
+    time::Duration,
+};
 
 fn poll_once<T>(future: Pin<&mut impl Future<Output = T>>) -> Poll<T> {
     future.poll(&mut Context::from_waker(Waker::noop()))
@@ -39,7 +45,10 @@ async fn panic_closes_pending_replies_and_unfinished_transactions_roll_back() {
     let (started, ready) = mpsc::channel();
     let (release, wait) = mpsc::channel();
     let mut first = Box::pin(store.submit(move |conn| {
-        conn.execute_batch("BEGIN; INSERT INTO workspace_meta(key,value) VALUES('must_rollback','yes');").unwrap();
+        conn.execute_batch(
+            "BEGIN; INSERT INTO workspace_meta(key,value) VALUES('must_rollback','yes');",
+        )
+        .unwrap();
         started.send(()).unwrap();
         wait.recv_timeout(Duration::from_secs(5)).unwrap();
         panic!("injected domain panic");
@@ -49,13 +58,38 @@ async fn panic_closes_pending_replies_and_unfinished_transactions_roll_back() {
     let mut pending = Box::pin(store.submit(|_| 2));
     assert!(poll_once(pending.as_mut()).is_pending());
     release.send(()).unwrap();
-    assert!(matches!(tokio::time::timeout(Duration::from_secs(5), first).await.unwrap(), Err(StoreError::Closed)));
-    assert!(matches!(tokio::time::timeout(Duration::from_secs(5), pending).await.unwrap(), Err(StoreError::Closed)));
+    assert!(matches!(
+        tokio::time::timeout(Duration::from_secs(5), first)
+            .await
+            .unwrap(),
+        Err(StoreError::Closed)
+    ));
+    assert!(matches!(
+        tokio::time::timeout(Duration::from_secs(5), pending)
+            .await
+            .unwrap(),
+        Err(StoreError::Closed)
+    ));
     drop(store);
     let reopened = Store::open(&path).unwrap();
-    let count = reopened.submit(|conn| conn.query_row("SELECT count(*) FROM workspace_meta WHERE key='must_rollback'", [], |r| r.get::<_, i64>(0)).unwrap()).await.unwrap();
+    let count = reopened
+        .submit(|conn| {
+            conn.query_row(
+                "SELECT count(*) FROM workspace_meta WHERE key='must_rollback'",
+                [],
+                |r| r.get::<_, i64>(0),
+            )
+            .unwrap()
+        })
+        .await
+        .unwrap();
     assert_eq!(count, 0);
-    assert!(matches!(reopened.submit(|conn| conn.execute_batch("BEGIN").unwrap()).await, Err(StoreError::Closed)));
+    assert!(matches!(
+        reopened
+            .submit(|conn| conn.execute_batch("BEGIN").unwrap())
+            .await,
+        Err(StoreError::Closed)
+    ));
 }
 
 #[tokio::test]
@@ -66,14 +100,28 @@ async fn dropping_a_reply_does_not_pretend_an_accepted_write_was_cancelled() {
     let (release, wait) = mpsc::channel();
     let mut operation = Box::pin(store.submit(move |conn| {
         wait.recv_timeout(Duration::from_secs(5)).unwrap();
-        conn.execute("INSERT INTO workspace_meta(key,value) VALUES('accepted','yes')", []).unwrap();
+        conn.execute(
+            "INSERT INTO workspace_meta(key,value) VALUES('accepted','yes')",
+            [],
+        )
+        .unwrap();
     }));
     assert!(poll_once(operation.as_mut()).is_pending());
     drop(operation);
     release.send(()).unwrap();
     drop(store); // Must drain accepted operations before returning/allowing reopen.
     let reopened = Store::open(&path).unwrap();
-    let value = reopened.submit(|conn| conn.query_row("SELECT value FROM workspace_meta WHERE key='accepted'", [], |r| r.get::<_, String>(0)).unwrap()).await.unwrap();
+    let value = reopened
+        .submit(|conn| {
+            conn.query_row(
+                "SELECT value FROM workspace_meta WHERE key='accepted'",
+                [],
+                |r| r.get::<_, String>(0),
+            )
+            .unwrap()
+        })
+        .await
+        .unwrap();
     assert_eq!(value, "yes");
 }
 

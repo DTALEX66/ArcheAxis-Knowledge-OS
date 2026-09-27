@@ -695,6 +695,15 @@ jobs:
       - uses: Swatinem/rust-cache@v2
         with:
           workspaces: "."
+      # The only `cargo fmt` in this repository lived in the desktop-fast job, whose
+      # working directory is `src-tauri` - a workspace `Cargo.toml` explicitly excludes.
+      # Nothing checked formatting for the root vNext workspace, so all eight `crates/`
+      # members could drift arbitrarily (they had: 83 files differed). GatePlan already
+      # requires rust-vnext for any `crates/**` change, so running the check here fixes
+      # coverage without touching the classifier, and without weakening any assertion.
+      - name: cargo fmt (root vNext workspace)
+        shell: bash
+        run: cargo fmt --all -- --check
       - name: cargo test (vNext workspace)
         shell: bash
         run: cargo test --workspace

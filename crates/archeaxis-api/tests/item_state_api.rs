@@ -1,7 +1,10 @@
 //! R10: the learner side and the machine side of an item's state are reported
 //! separately, and learner progress is never presented as machine competence.
 
-use axum::{body::Body, http::{Request, StatusCode}};
+use axum::{
+    body::Body,
+    http::{Request, StatusCode},
+};
 use http_body_util::BodyExt;
 use serde_json::Value;
 use tower::ServiceExt;
@@ -9,7 +12,10 @@ use tower::ServiceExt;
 use archeaxis_api::app;
 
 async fn call(router: &axum::Router, method: &str, path: &str, body: &str) -> (StatusCode, Value) {
-    let req = Request::builder().method(method).uri(path).header("content-type", "application/json");
+    let req = Request::builder()
+        .method(method)
+        .uri(path)
+        .header("content-type", "application/json");
     let resp = router
         .clone()
         .oneshot(req.body(Body::from(body.to_string())).unwrap())
@@ -17,7 +23,10 @@ async fn call(router: &axum::Router, method: &str, path: &str, body: &str) -> (S
         .unwrap();
     let status = resp.status();
     let bytes = resp.into_body().collect().await.unwrap().to_bytes();
-    (status, serde_json::from_slice(&bytes).unwrap_or(Value::Null))
+    (
+        status,
+        serde_json::from_slice(&bytes).unwrap_or(Value::Null),
+    )
 }
 
 #[tokio::test]
@@ -50,7 +59,10 @@ async fn learner_and_machine_state_are_reported_separately() {
     assert_eq!(state["learner"]["event_count"], 0);
     assert_eq!(state["machine"]["status"], "not_recorded", "{state}");
     assert!(
-        state["machine"]["note"].as_str().unwrap_or("").contains("machine loop"),
+        state["machine"]["note"]
+            .as_str()
+            .unwrap_or("")
+            .contains("machine loop"),
         "the machine side must say where receipts come from: {state}"
     );
 
@@ -142,7 +154,8 @@ async fn state_projection_reads_back_assessment_review_and_queue_after_reopen() 
             "answer": answer,
             "assessment_id": assessment["assessment_id"],
             "knowledge_version": assessment["knowledge_version"]
-        }).to_string(),
+        })
+        .to_string(),
     )
     .await;
     assert_eq!(status, StatusCode::CREATED, "{review}");
@@ -157,13 +170,34 @@ async fn state_projection_reads_back_assessment_review_and_queue_after_reopen() 
     )
     .await;
     assert_eq!(status, StatusCode::OK, "{state}");
-    assert_eq!(state["learner"]["assessment"]["assessment_id"], assessment["assessment_id"]);
-    assert_eq!(state["learner"]["assessment"]["knowledge_version"], assessment["knowledge_version"]);
+    assert_eq!(
+        state["learner"]["assessment"]["assessment_id"],
+        assessment["assessment_id"]
+    );
+    assert_eq!(
+        state["learner"]["assessment"]["knowledge_version"],
+        assessment["knowledge_version"]
+    );
     assert_eq!(state["learner"]["latest_review"]["answer"], answer);
-    assert_eq!(state["learner"]["latest_review"]["assessment_id"], assessment["assessment_id"]);
-    assert_eq!(state["learner"]["latest_review"]["schedule_authority"], review["schedule_authority"]);
-    assert_eq!(state["learner"]["latest_review"]["schedule_state"], review["schedule_state"]);
-    assert_eq!(state["learner"]["latest_review"]["mastery_projection"]["status"], "projection");
-    assert_eq!(state["learner"]["latest_review"]["mastery_projection"]["closed"], false);
+    assert_eq!(
+        state["learner"]["latest_review"]["assessment_id"],
+        assessment["assessment_id"]
+    );
+    assert_eq!(
+        state["learner"]["latest_review"]["schedule_authority"],
+        review["schedule_authority"]
+    );
+    assert_eq!(
+        state["learner"]["latest_review"]["schedule_state"],
+        review["schedule_state"]
+    );
+    assert_eq!(
+        state["learner"]["latest_review"]["mastery_projection"]["status"],
+        "projection"
+    );
+    assert_eq!(
+        state["learner"]["latest_review"]["mastery_projection"]["closed"],
+        false
+    );
     assert_eq!(state["learner"]["next_review"], review["next_review"]);
 }

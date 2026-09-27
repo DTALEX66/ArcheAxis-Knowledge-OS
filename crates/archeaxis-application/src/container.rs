@@ -60,7 +60,10 @@ fn sha256_hex(bytes: &[u8]) -> String {
 }
 
 /// The members the newest finished attempt of `archive_job_id` declared.
-pub fn declared_members(conn: &Connection, archive_job_id: &str) -> Result<Vec<ArchiveMember>, JobError> {
+pub fn declared_members(
+    conn: &Connection,
+    archive_job_id: &str,
+) -> Result<Vec<ArchiveMember>, JobError> {
     let content: Option<String> = conn
         .query_row(
             "SELECT content FROM job_outputs WHERE job_id=?1 AND kind='loss_report'
@@ -72,8 +75,8 @@ pub fn declared_members(conn: &Connection, archive_job_id: &str) -> Result<Vec<A
     let Some(content) = content else {
         return Ok(Vec::new());
     };
-    let payload: serde_json::Value =
-        serde_json::from_str(&content).map_err(|_| JobError::InvalidReceipt("loss report is not JSON"))?;
+    let payload: serde_json::Value = serde_json::from_str(&content)
+        .map_err(|_| JobError::InvalidReceipt("loss report is not JSON"))?;
     let declared = payload
         .get("params")
         .and_then(|params| params.get("structure"))
@@ -84,7 +87,8 @@ pub fn declared_members(conn: &Connection, archive_job_id: &str) -> Result<Vec<A
     let mut members: Vec<ArchiveMember> = Vec::new();
     for item in declared {
         members.push(
-            serde_json::from_value(item).map_err(|_| JobError::InvalidReceipt("a declared member is malformed"))?,
+            serde_json::from_value(item)
+                .map_err(|_| JobError::InvalidReceipt("a declared member is malformed"))?,
         );
     }
     Ok(members)
@@ -119,7 +123,10 @@ pub struct MemberRow {
 /// relation recorded at import time, without a second table of relations. The member
 /// name is recovered from the origin reference, and the readability of a member is the
 /// presence of a transform rather than a promise.
-pub fn members_of(conn: &Connection, container_source_id: &str) -> Result<Vec<MemberRow>, JobError> {
+pub fn members_of(
+    conn: &Connection,
+    container_source_id: &str,
+) -> Result<Vec<MemberRow>, JobError> {
     let prefix = format!("{container_source_id}#");
     let mut statement = conn.prepare(
         "SELECT o.source_id, o.origin_ref, s.original_name, s.sha256,
@@ -129,18 +136,25 @@ pub fn members_of(conn: &Connection, container_source_id: &str) -> Result<Vec<Me
          WHERE o.origin_kind=?1 AND o.origin_ref LIKE ?2
          ORDER BY o.imported_at, o.rowid",
     )?;
-    let rows = statement.query_map(rusqlite::params![ORIGIN_KIND, format!("{prefix}%")], |row| {
-        let reference: String = row.get(1)?;
-        Ok(MemberRow {
-            source_id: row.get(0)?,
-            member: reference.strip_prefix(&prefix).unwrap_or(&reference).to_string(),
-            original_name: row.get(2)?,
-            sha256: row.get(3)?,
-            readable: row.get::<_, i64>(4)? == 1,
-            job_id: row.get(5)?,
-        })
-    })?;
-    rows.collect::<rusqlite::Result<Vec<_>>>().map_err(JobError::from)
+    let rows = statement.query_map(
+        rusqlite::params![ORIGIN_KIND, format!("{prefix}%")],
+        |row| {
+            let reference: String = row.get(1)?;
+            Ok(MemberRow {
+                source_id: row.get(0)?,
+                member: reference
+                    .strip_prefix(&prefix)
+                    .unwrap_or(&reference)
+                    .to_string(),
+                original_name: row.get(2)?,
+                sha256: row.get(3)?,
+                readable: row.get::<_, i64>(4)? == 1,
+                job_id: row.get(5)?,
+            })
+        },
+    )?;
+    rows.collect::<rusqlite::Result<Vec<_>>>()
+        .map_err(JobError::from)
 }
 
 /// Import every declared member as its own source and enqueue the readable ones.
@@ -182,7 +196,10 @@ pub fn expand_members(
         if bytes.len() as u64 != member.bytes || sha256_hex(&bytes) != member.sha256 {
             return Err(JobError::UnverifiableInput {
                 job: archive_job_id.to_string(),
-                reason: format!("declared member {:?} does not match its digest and size", member.name),
+                reason: format!(
+                    "declared member {:?} does not match its digest and size",
+                    member.name
+                ),
             });
         }
         let origin_ref = format!("{container_source}#{}", member.name);
@@ -192,7 +209,13 @@ pub fn expand_members(
             original_name: Some(&member.name),
             received_at: None,
         };
-        let source_id = match source::import_source_with_origin(conn, &bytes, &member.name, None, Some(origin))? {
+        let source_id = match source::import_source_with_origin(
+            conn,
+            &bytes,
+            &member.name,
+            None,
+            Some(origin),
+        )? {
             ImportOutcome::Imported { source_id, .. } => source_id,
             ImportOutcome::Duplicate { source_id, .. } => source_id,
         };

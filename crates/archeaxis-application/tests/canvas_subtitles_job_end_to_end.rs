@@ -19,11 +19,16 @@ const CANVAS: &str = r#"{"nodes":[{"id":"n-1","type":"text","text":"measured 637
 const SRT: &str = "1\n00:00:01,000 --> 00:00:04,000\nThe measured value is 6371 km.\n\n2\n00:00:05,500 --> 00:00:07,000\nSecond cue.\n";
 
 fn python() -> PathBuf {
-    std::env::var_os("ARCHEAXIS_PYTHON").expect("run cargo via the project wrapper").into()
+    std::env::var_os("ARCHEAXIS_PYTHON")
+        .expect("run cargo via the project wrapper")
+        .into()
 }
 
 fn repo() -> PathBuf {
-    PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../..").canonicalize().unwrap()
+    PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+        .join("../..")
+        .canonicalize()
+        .unwrap()
 }
 
 async fn open_executor(dir: &std::path::Path) -> Executor {
@@ -33,8 +38,14 @@ async fn open_executor(dir: &std::path::Path) -> Executor {
         &python(),
         &repo().join("services/python-workers/transport/text_ndjson.py"),
         &[
-            ("canvas.structure", repo().join("services/python-workers/document/worker_canvas.py")),
-            ("subtitles.structure", repo().join("services/python-workers/document/worker_subtitles.py")),
+            (
+                "canvas.structure",
+                repo().join("services/python-workers/document/worker_canvas.py"),
+            ),
+            (
+                "subtitles.structure",
+                repo().join("services/python-workers/document/worker_subtitles.py"),
+            ),
         ],
     )
     .await
@@ -48,7 +59,8 @@ async fn run_job(executor: &Executor, job_id: &str, kind: &str, name: &str, payl
     executor
         .store()
         .submit(move |conn| {
-            let source_id = match source::import_source(conn, &payload, &owned_name, None).unwrap() {
+            let source_id = match source::import_source(conn, &payload, &owned_name, None).unwrap()
+            {
                 ImportOutcome::Imported { source_id, .. } => source_id,
                 ImportOutcome::Duplicate { source_id, .. } => source_id,
             };
@@ -56,7 +68,10 @@ async fn run_job(executor: &Executor, job_id: &str, kind: &str, name: &str, payl
         })
         .await
         .unwrap();
-    executor.execute(job_id, "run", 120_000, &Cancellation::new()).await.unwrap();
+    executor
+        .execute(job_id, "run", 120_000, &Cancellation::new())
+        .await
+        .unwrap();
 }
 
 async fn stored_text(executor: &Executor, job_id: &str) -> (String, String, String) {
@@ -88,14 +103,30 @@ async fn stored_text(executor: &Executor, job_id: &str) -> (String, String, Stri
 
 #[test]
 fn canvas_and_subtitle_names_select_their_own_routes() {
-    assert_eq!(attempts::resolve_media_type("canvas", "board.canvas").unwrap(), "application/json");
-    assert_eq!(attempts::resolve_media_type("subtitles", "talk.srt").unwrap(), "application/x-subrip");
-    assert_eq!(attempts::resolve_media_type("subtitles", "talk.vtt").unwrap(), "text/vtt");
+    assert_eq!(
+        attempts::resolve_media_type("canvas", "board.canvas").unwrap(),
+        "application/json"
+    );
+    assert_eq!(
+        attempts::resolve_media_type("subtitles", "talk.srt").unwrap(),
+        "application/x-subrip"
+    );
+    assert_eq!(
+        attempts::resolve_media_type("subtitles", "talk.vtt").unwrap(),
+        "text/vtt"
+    );
     // a subtitle is no longer declared as plain text, so the text route cannot take it
-    let error = attempts::resolve_media_type("text", "talk.srt").unwrap_err().to_string();
-    assert!(error.contains("cannot accept media type application/x-subrip"), "{error}");
+    let error = attempts::resolve_media_type("text", "talk.srt")
+        .unwrap_err()
+        .to_string();
+    assert!(
+        error.contains("cannot accept media type application/x-subrip"),
+        "{error}"
+    );
     // and the subtitle route will not take a plain text file
-    let error = attempts::resolve_media_type("subtitles", "notes.txt").unwrap_err().to_string();
+    let error = attempts::resolve_media_type("subtitles", "notes.txt")
+        .unwrap_err()
+        .to_string();
     assert!(error.contains("application/x-subrip"), "{error}");
 }
 
@@ -103,7 +134,14 @@ fn canvas_and_subtitle_names_select_their_own_routes() {
 async fn a_canvas_job_stores_its_node_structure_and_its_edges() {
     let dir = tempfile::tempdir().unwrap();
     let executor = open_executor(dir.path()).await;
-    run_job(&executor, "job-canvas", "canvas", "board.canvas", CANVAS.as_bytes().to_vec()).await;
+    run_job(
+        &executor,
+        "job-canvas",
+        "canvas",
+        "board.canvas",
+        CANVAS.as_bytes().to_vec(),
+    )
+    .await;
     let (state, text, receipt) = stored_text(&executor, "job-canvas").await;
 
     assert_eq!(state, "succeeded");
@@ -112,7 +150,10 @@ async fn a_canvas_job_stores_its_node_structure_and_its_edges() {
     assert!(receipt.contains("python-worker-canvas"), "{receipt}");
     // the worker's own node anchors are kept as a fact, with the node ids in them
     assert!(receipt.contains("worker_structure"), "{receipt}");
-    assert!(receipt.contains("n-1"), "the node anchor must carry its id: {receipt}");
+    assert!(
+        receipt.contains("n-1"),
+        "the node anchor must carry its id: {receipt}"
+    );
     assert!(receipt.contains("text_node"), "{receipt}");
     // and the edges the worker preserved are in the receipt too
     assert!(receipt.contains("e-1"), "{receipt}");
@@ -151,7 +192,14 @@ async fn a_canvas_job_stores_its_node_structure_and_its_edges() {
 async fn a_subtitle_job_stores_its_cue_structure_with_timings() {
     let dir = tempfile::tempdir().unwrap();
     let executor = open_executor(dir.path()).await;
-    run_job(&executor, "job-srt", "subtitles", "talk.srt", SRT.as_bytes().to_vec()).await;
+    run_job(
+        &executor,
+        "job-srt",
+        "subtitles",
+        "talk.srt",
+        SRT.as_bytes().to_vec(),
+    )
+    .await;
     let (state, text, receipt) = stored_text(&executor, "job-srt").await;
 
     assert_eq!(state, "succeeded");
@@ -173,7 +221,8 @@ async fn a_subtitle_file_the_worker_cannot_parse_fails_the_job() {
     executor
         .store()
         .submit(move |conn| {
-            let source_id = match source::import_source(conn, &broken, "broken.srt", None).unwrap() {
+            let source_id = match source::import_source(conn, &broken, "broken.srt", None).unwrap()
+            {
                 ImportOutcome::Imported { source_id, .. } => source_id,
                 ImportOutcome::Duplicate { source_id, .. } => source_id,
             };
@@ -181,8 +230,13 @@ async fn a_subtitle_file_the_worker_cannot_parse_fails_the_job() {
         })
         .await
         .unwrap();
-    let outcome = executor.execute("job-bad-srt", "run", 60_000, &Cancellation::new()).await;
+    let outcome = executor
+        .execute("job-bad-srt", "run", 60_000, &Cancellation::new())
+        .await;
     let (state, _, _) = stored_text(&executor, "job-bad-srt").await;
-    assert!(outcome.is_err(), "a malformed subtitle file must not report success");
+    assert!(
+        outcome.is_err(),
+        "a malformed subtitle file must not report success"
+    );
     assert_eq!(state, "failed");
 }

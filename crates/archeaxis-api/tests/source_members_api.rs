@@ -27,7 +27,10 @@ async fn get(router: &axum::Router, path: &str) -> (StatusCode, Value) {
         .unwrap();
     let status = response.status();
     let bytes = response.into_body().collect().await.unwrap().to_bytes();
-    (status, serde_json::from_slice(&bytes).unwrap_or(Value::Null))
+    (
+        status,
+        serde_json::from_slice(&bytes).unwrap_or(Value::Null),
+    )
 }
 
 fn member_of(conn: &mut rusqlite::Connection, container: &str, name: &str, body: &[u8]) -> String {
@@ -56,12 +59,19 @@ async fn a_containers_members_are_listed_with_their_readability() {
     let db = dir.path().join("api.sqlite");
     let container_id = {
         let mut conn = init_workspace(db.to_str().unwrap()).unwrap();
-        let container = source::import_source(&mut conn, b"PK\x03\x04 container bytes", "bundle.zip", None).unwrap();
+        let container =
+            source::import_source(&mut conn, b"PK\x03\x04 container bytes", "bundle.zip", None)
+                .unwrap();
         let container_id = match container {
             ImportOutcome::Imported { source_id, .. } => source_id,
             ImportOutcome::Duplicate { source_id, .. } => source_id,
         };
-        let readable = member_of(&mut conn, &container_id, "notes/index.md", b"# Index\n6371 km\n");
+        let readable = member_of(
+            &mut conn,
+            &container_id,
+            "notes/index.md",
+            b"# Index\n6371 km\n",
+        );
         member_of(&mut conn, &container_id, "opaque/blob.bin", b"raw bytes\n");
         // the readable member really was read: a transform exists for it
         source::record_transform(
@@ -93,7 +103,10 @@ async fn a_containers_members_are_listed_with_their_readability() {
     assert_eq!(by_name["notes/index.md"]["readable"], true);
     assert_eq!(by_name["opaque/blob.bin"]["readable"], false);
     assert_eq!(by_name["opaque/blob.bin"]["job_id"], Value::Null);
-    assert_eq!(by_name["notes/index.md"]["sha256"].as_str().unwrap().len(), 64);
+    assert_eq!(
+        by_name["notes/index.md"]["sha256"].as_str().unwrap().len(),
+        64
+    );
 
     // the note says what the list is and what "readable" means, so nobody reads it as
     // the container's whole inventory
@@ -108,7 +121,8 @@ async fn an_unknown_source_is_a_named_not_found_and_an_unexpanded_container_is_e
     let db = dir.path().join("api.sqlite");
     let container_id = {
         let mut conn = init_workspace(db.to_str().unwrap()).unwrap();
-        match source::import_source(&mut conn, b"PK\x03\x04 no members", "empty.zip", None).unwrap() {
+        match source::import_source(&mut conn, b"PK\x03\x04 no members", "empty.zip", None).unwrap()
+        {
             ImportOutcome::Imported { source_id, .. } => source_id,
             ImportOutcome::Duplicate { source_id, .. } => source_id,
         }

@@ -182,19 +182,27 @@ pub fn init_workspace(db_path: &str) -> rusqlite::Result<Connection> {
     // unrelated legacy database or downgrade a workspace from a future build.
     let has_meta: bool = conn.query_row(
         "SELECT EXISTS(SELECT 1 FROM sqlite_master WHERE type='table' AND name='workspace_meta')",
-        [], |r| r.get(0),
+        [],
+        |r| r.get(0),
     )?;
     let version = if has_meta {
         let value: String = conn.query_row(
-            "SELECT value FROM workspace_meta WHERE key='schema_version'", [], |r| r.get(0),
+            "SELECT value FROM workspace_meta WHERE key='schema_version'",
+            [],
+            |r| r.get(0),
         )?;
-        value.parse::<i64>().map_err(|_| rusqlite::Error::InvalidQuery)?
+        value
+            .parse::<i64>()
+            .map_err(|_| rusqlite::Error::InvalidQuery)?
     } else {
         let existing: i64 = conn.query_row(
             "SELECT count(*) FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%'",
-            [], |r| r.get(0),
+            [],
+            |r| r.get(0),
         )?;
-        if existing != 0 { return Err(rusqlite::Error::InvalidQuery); }
+        if existing != 0 {
+            return Err(rusqlite::Error::InvalidQuery);
+        }
         0
     };
     if !(0..=SCHEMA_VERSION).contains(&version) {
@@ -206,14 +214,21 @@ pub fn init_workspace(db_path: &str) -> rusqlite::Result<Connection> {
     // acquisition of the write transaction. Decide from the locked snapshot.
     let has_meta: bool = tx.query_row(
         "SELECT EXISTS(SELECT 1 FROM sqlite_master WHERE type='table' AND name='workspace_meta')",
-        [], |r| r.get(0),
+        [],
+        |r| r.get(0),
     )?;
     let version = if has_meta {
         let value: String = tx.query_row(
-            "SELECT value FROM workspace_meta WHERE key='schema_version'", [], |r| r.get(0),
+            "SELECT value FROM workspace_meta WHERE key='schema_version'",
+            [],
+            |r| r.get(0),
         )?;
-        value.parse::<i64>().map_err(|_| rusqlite::Error::InvalidQuery)?
-    } else { 0 };
+        value
+            .parse::<i64>()
+            .map_err(|_| rusqlite::Error::InvalidQuery)?
+    } else {
+        0
+    };
     if !(0..=SCHEMA_VERSION).contains(&version) {
         return Err(rusqlite::Error::InvalidQuery);
     }

@@ -18,11 +18,16 @@ use archeaxis_domain::source::{self, ImportOutcome};
 use std::path::PathBuf;
 
 fn python() -> PathBuf {
-    std::env::var_os("ARCHEAXIS_PYTHON").expect("run cargo via the project wrapper").into()
+    std::env::var_os("ARCHEAXIS_PYTHON")
+        .expect("run cargo via the project wrapper")
+        .into()
 }
 
 fn repo() -> PathBuf {
-    PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../..").canonicalize().unwrap()
+    PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+        .join("../..")
+        .canonicalize()
+        .unwrap()
 }
 
 /// A real ZIP with a readable text member, an image member and an unreadable one.
@@ -37,7 +42,11 @@ fn zip_bytes() -> Vec<u8> {
                   \x20   c.writestr('assets/shot.png',png.getvalue())\n\
                   \x20   c.writestr('opaque/blob.bin','raw bytes no route reads\\n')\n\
                   sys.stdout.buffer.write(buf.getvalue())\n";
-    match std::process::Command::new(python()).arg("-c").arg(script).output() {
+    match std::process::Command::new(python())
+        .arg("-c")
+        .arg(script)
+        .output()
+    {
         Ok(out) if out.status.success() => out.stdout,
         _ => Vec::new(),
     }
@@ -50,8 +59,14 @@ async fn open_executor(dir: &std::path::Path) -> Executor {
         &python(),
         &repo().join("services/python-workers/transport/text_ndjson.py"),
         &[
-            ("archive.inventory", repo().join("services/python-workers/document/worker_archive.py")),
-            ("image.ocr", repo().join("services/python-workers/vision/worker_ocr.py")),
+            (
+                "archive.inventory",
+                repo().join("services/python-workers/document/worker_archive.py"),
+            ),
+            (
+                "image.ocr",
+                repo().join("services/python-workers/vision/worker_ocr.py"),
+            ),
         ],
     )
     .await
@@ -72,7 +87,10 @@ async fn run_archive_job(executor: &Executor) -> Vec<u8> {
         })
         .await
         .unwrap();
-    executor.execute("job-zip", "run-zip", 120_000, &Cancellation::new()).await.unwrap();
+    executor
+        .execute("job-zip", "run-zip", 120_000, &Cancellation::new())
+        .await
+        .unwrap();
     payload
 }
 
@@ -96,8 +114,16 @@ async fn container_members_become_sources_recording_where_they_came_from() {
         .await
         .unwrap();
 
-    assert_eq!(expansion.sources.len(), 3, "every extracted member becomes a source: {expansion:?}");
-    assert_eq!(expansion.jobs.len(), 2, "the markdown and the image resolve to routes: {expansion:?}");
+    assert_eq!(
+        expansion.sources.len(),
+        3,
+        "every extracted member becomes a source: {expansion:?}"
+    );
+    assert_eq!(
+        expansion.jobs.len(),
+        2,
+        "the markdown and the image resolve to routes: {expansion:?}"
+    );
     assert_eq!(expansion.custody_only, vec!["opaque/blob.bin".to_string()]);
 
     // the relation is recorded, with the container in the origin reference
@@ -130,15 +156,25 @@ async fn container_members_become_sources_recording_where_they_came_from() {
         .await
         .unwrap();
 
-    assert_eq!(records.len(), 3, "each member records exactly one origin: {records:?}");
+    assert_eq!(
+        records.len(),
+        3,
+        "each member records exactly one origin: {records:?}"
+    );
     for (kind, reference, name) in &records {
         assert_eq!(kind, container::ORIGIN_KIND);
-        assert_eq!(kind, "import", "the store's origin vocabulary is fixed; the relation rides in the reference");
+        assert_eq!(
+            kind, "import",
+            "the store's origin vocabulary is fixed; the relation rides in the reference"
+        );
         assert!(
             reference.starts_with(&format!("{container_source}#")),
             "the origin must name the container: {reference}"
         );
-        assert!(name.as_deref().unwrap_or_default().contains('/'), "member names keep their path: {name:?}");
+        assert!(
+            name.as_deref().unwrap_or_default().contains('/'),
+            "member names keep their path: {name:?}"
+        );
     }
     // the vocabulary is enforced by the store, so an invented kind would be dropped in
     // silence: this test exists to keep the kind inside it
@@ -162,8 +198,14 @@ async fn container_members_become_sources_recording_where_they_came_from() {
         })
         .await
         .unwrap();
-    let kind_set: std::collections::BTreeSet<String> = kinds.iter().map(|(_, kind)| kind.clone()).collect();
-    assert_eq!(kind_set, ["image".to_string(), "text".to_string()].into_iter().collect());
+    let kind_set: std::collections::BTreeSet<String> =
+        kinds.iter().map(|(_, kind)| kind.clone()).collect();
+    assert_eq!(
+        kind_set,
+        ["image".to_string(), "text".to_string()]
+            .into_iter()
+            .collect()
+    );
 
     // expanding twice is idempotent: same sources, no new jobs
     let again = executor
@@ -174,7 +216,10 @@ async fn container_members_become_sources_recording_where_they_came_from() {
         })
         .await
         .unwrap();
-    assert!(again.jobs.is_empty(), "a second expansion must not enqueue more work: {again:?}");
+    assert!(
+        again.jobs.is_empty(),
+        "a second expansion must not enqueue more work: {again:?}"
+    );
     assert_eq!(again.sources.len(), 3);
 
     // and a member job really reads its member: the markdown text reaches the store
@@ -183,7 +228,10 @@ async fn container_members_become_sources_recording_where_they_came_from() {
         .find(|(_, kind)| kind == "text")
         .map(|(job, _)| job.clone())
         .unwrap();
-    executor.execute(&text_job, "run-member", 120_000, &Cancellation::new()).await.unwrap();
+    executor
+        .execute(&text_job, "run-member", 120_000, &Cancellation::new())
+        .await
+        .unwrap();
     let text_query = text_job.clone();
     let text: String = executor
         .store()
@@ -198,7 +246,10 @@ async fn container_members_become_sources_recording_where_they_came_from() {
         })
         .await
         .unwrap();
-    assert!(text.contains("6371"), "the member's own content must be extracted: {text:?}");
+    assert!(
+        text.contains("6371"),
+        "the member's own content must be extracted: {text:?}"
+    );
 
     // the relation is queryable: what is inside the container, and what could be read
     let members = executor
@@ -207,16 +258,29 @@ async fn container_members_become_sources_recording_where_they_came_from() {
         .await
         .unwrap();
     assert_eq!(members.len(), 3, "{members:?}");
-    let by_name: std::collections::BTreeMap<String, container::MemberRow> =
-        members.into_iter().map(|row| (row.member.clone(), row)).collect();
+    let by_name: std::collections::BTreeMap<String, container::MemberRow> = members
+        .into_iter()
+        .map(|row| (row.member.clone(), row))
+        .collect();
     assert_eq!(
         by_name.keys().cloned().collect::<Vec<_>>(),
-        vec!["assets/shot.png".to_string(), "notes/index.md".to_string(), "opaque/blob.bin".to_string()]
+        vec![
+            "assets/shot.png".to_string(),
+            "notes/index.md".to_string(),
+            "opaque/blob.bin".to_string()
+        ]
     );
     // the markdown was read (its job ran), the image has a job that has not run, and
     // the opaque member has no job at all because no name could be resolved for it
-    assert!(by_name["notes/index.md"].readable, "{:?}", by_name["notes/index.md"]);
-    assert_eq!(by_name["notes/index.md"].job_id.as_deref(), Some(text_job.as_str()));
+    assert!(
+        by_name["notes/index.md"].readable,
+        "{:?}",
+        by_name["notes/index.md"]
+    );
+    assert_eq!(
+        by_name["notes/index.md"].job_id.as_deref(),
+        Some(text_job.as_str())
+    );
     assert!(!by_name["assets/shot.png"].readable);
     assert!(by_name["assets/shot.png"].job_id.is_some());
     assert!(!by_name["opaque/blob.bin"].readable);
@@ -242,7 +306,10 @@ async fn a_member_that_does_not_match_its_declaration_is_refused() {
         .unwrap();
     assert_eq!(declared.len(), 3);
     let target = staging.join("members").join(&declared[0].file);
-    assert!(target.is_file(), "the member must be there before we tamper with it");
+    assert!(
+        target.is_file(),
+        "the member must be there before we tamper with it"
+    );
     std::fs::write(&target, b"not the member that was declared").unwrap();
 
     let refused = executor
@@ -258,10 +325,17 @@ async fn a_member_that_does_not_match_its_declaration_is_refused() {
     let jobs_after: i64 = executor
         .store()
         .submit(|conn| {
-            conn.query_row("SELECT count(*) FROM jobs WHERE job_id LIKE 'job-zip-member-%'", [], |row| row.get(0))
-                .unwrap()
+            conn.query_row(
+                "SELECT count(*) FROM jobs WHERE job_id LIKE 'job-zip-member-%'",
+                [],
+                |row| row.get(0),
+            )
+            .unwrap()
         })
         .await
         .unwrap();
-    assert_eq!(jobs_after, 0, "an unverifiable member must leave no queued job behind");
+    assert_eq!(
+        jobs_after, 0,
+        "an unverifiable member must leave no queued job behind"
+    );
 }

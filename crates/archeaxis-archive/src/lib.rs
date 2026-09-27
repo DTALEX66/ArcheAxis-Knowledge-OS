@@ -203,15 +203,23 @@ pub fn export_workspace(db_path: &str, out_dir: &str) -> Result<ArchiveManifest,
     let conn = Connection::open_with_flags(db_path, rusqlite::OpenFlags::SQLITE_OPEN_READ_ONLY)?;
     conn.execute_batch("BEGIN DEFERRED;")?;
     let schema_version: String = conn.query_row(
-        "SELECT value FROM workspace_meta WHERE key='schema_version'", [], |r| r.get(0),
+        "SELECT value FROM workspace_meta WHERE key='schema_version'",
+        [],
+        |r| r.get(0),
     )?;
-    let schema_version = schema_version.parse::<i64>()
+    let schema_version = schema_version
+        .parse::<i64>()
         .map_err(|_| ArchiveError::Table("invalid schema version".into()))?;
     if schema_version != archeaxis_store_sqlite::SCHEMA_VERSION {
-        return Err(ArchiveError::Table("unsupported archive schema version".into()));
+        return Err(ArchiveError::Table(
+            "unsupported archive schema version".into(),
+        ));
     }
     std::fs::create_dir(out_dir).map_err(ArchiveError::Io)?;
-    let mut manifest = ArchiveManifest { schema_version, ..Default::default() };
+    let mut manifest = ArchiveManifest {
+        schema_version,
+        ..Default::default()
+    };
     let mut file_hashes: BTreeMap<String, String> = BTreeMap::new();
     for table in EXPORT_TABLES {
         let cols = column_names(&conn, table)?;
@@ -247,16 +255,22 @@ pub fn export_workspace(db_path: &str, out_dir: &str) -> Result<ArchiveManifest,
     for digest in sources.query_map([], |row| row.get::<_, String>(0))? {
         let digest = digest?;
         let bytes = archeaxis_store_sqlite::raw_objects::read(&conn, &digest)?;
-        let mut file = std::fs::OpenOptions::new().write(true).create_new(true)
-            .open(object_dir.join(&digest)).map_err(ArchiveError::Io)?;
+        let mut file = std::fs::OpenOptions::new()
+            .write(true)
+            .create_new(true)
+            .open(object_dir.join(&digest))
+            .map_err(ArchiveError::Io)?;
         file.write_all(&bytes).map_err(ArchiveError::Io)?;
         file.sync_all().map_err(ArchiveError::Io)?;
         manifest.raw_objects.insert(digest, bytes.len() as u64);
     }
     manifest.manifest_sha256 = manifest_digest(&manifest);
     let mp = Path::new(out_dir).join("manifest.json");
-    std::fs::write(&mp, serde_json::to_string_pretty(&manifest).map_err(ArchiveError::Json)?)
-        .map_err(ArchiveError::Io)?;
+    std::fs::write(
+        &mp,
+        serde_json::to_string_pretty(&manifest).map_err(ArchiveError::Json)?,
+    )
+    .map_err(ArchiveError::Io)?;
     conn.execute_batch("COMMIT;")?;
     Ok(manifest)
 }
@@ -303,16 +317,25 @@ pub fn restore_workspace(
         }
         let content = String::from_utf8(bytes)
             .map_err(|_| ArchiveError::Table(format!("invalid UTF-8: {table}")))?;
-        let rows: Vec<serde_json::Value> = content.lines()
-            .map(serde_json::from_str).collect::<Result<_, _>>().map_err(ArchiveError::Json)?;
+        let rows: Vec<serde_json::Value> = content
+            .lines()
+            .map(serde_json::from_str)
+            .collect::<Result<_, _>>()
+            .map_err(ArchiveError::Json)?;
         if rows.len() as u64 != tf.rows {
-            return Err(ArchiveError::Table(format!("table row-count mismatch: {table}")));
+            return Err(ArchiveError::Table(format!(
+                "table row-count mismatch: {table}"
+            )));
         }
         validated.insert(*table, rows);
     }
     let mut raw_bytes = BTreeMap::new();
     for (digest, size) in &manifest.raw_objects {
-        if digest.len() != 64 || !digest.bytes().all(|b| b.is_ascii_hexdigit() && !b.is_ascii_uppercase()) {
+        if digest.len() != 64
+            || !digest
+                .bytes()
+                .all(|b| b.is_ascii_hexdigit() && !b.is_ascii_uppercase())
+        {
             return Err(ArchiveError::Table("invalid object digest".into()));
         }
         let path = Path::new(archive_dir).join("objects").join(digest);
@@ -323,21 +346,33 @@ pub fn restore_workspace(
         }
         raw_bytes.insert(digest.clone(), bytes);
     }
-    if validated["sources"].len() != raw_bytes.len() || validated["sources"].iter().any(|row| {
-        let digest = row.get("sha256").and_then(|v| v.as_str()).unwrap_or("");
-        !raw_bytes.contains_key(digest) || row.get("raw_path").and_then(|v| v.as_str()) != Some(digest)
-    }) {
-        return Err(ArchiveError::Table("source/object reference mismatch".into()));
+    if validated["sources"].len() != raw_bytes.len()
+        || validated["sources"].iter().any(|row| {
+            let digest = row.get("sha256").and_then(|v| v.as_str()).unwrap_or("");
+            !raw_bytes.contains_key(digest)
+                || row.get("raw_path").and_then(|v| v.as_str()) != Some(digest)
+        })
+    {
+        return Err(ArchiveError::Table(
+            "source/object reference mismatch".into(),
+        ));
     }
-    let parent = target.parent().filter(|p| !p.as_os_str().is_empty()).unwrap_or(Path::new("."));
+    let parent = target
+        .parent()
+        .filter(|p| !p.as_os_str().is_empty())
+        .unwrap_or(Path::new("."));
     let staging = tempfile::tempdir_in(parent).map_err(ArchiveError::Io)?;
     let staged = staging.path().join("restored.sqlite");
     let mut conn = archeaxis_store_sqlite::init_workspace(
-        staged.to_str().ok_or_else(|| ArchiveError::Table("invalid target path".into()))?,
+        staged
+            .to_str()
+            .ok_or_else(|| ArchiveError::Table("invalid target path".into()))?,
     )?;
     let staged_objects = archeaxis_store_sqlite::raw_objects::root(&conn)?;
     std::fs::create_dir_all(&staged_objects).map_err(ArchiveError::Io)?;
-    for bytes in raw_bytes.values() { archeaxis_store_sqlite::raw_objects::persist(&conn, bytes)?; }
+    for bytes in raw_bytes.values() {
+        archeaxis_store_sqlite::raw_objects::persist(&conn, bytes)?;
+    }
     let tx = conn.transaction_with_behavior(rusqlite::TransactionBehavior::Immediate)?;
     tx.execute("DELETE FROM workspace_meta", [])?;
     for table in tables {
@@ -372,26 +407,43 @@ pub fn restore_workspace(
         }
     }
     let restored_version: String = tx.query_row(
-        "SELECT value FROM workspace_meta WHERE key='schema_version'", [], |r| r.get(0),
+        "SELECT value FROM workspace_meta WHERE key='schema_version'",
+        [],
+        |r| r.get(0),
     )?;
     if restored_version != manifest.schema_version.to_string() {
-        return Err(ArchiveError::Table("workspace metadata version mismatch".into()));
+        return Err(ArchiveError::Table(
+            "workspace metadata version mismatch".into(),
+        ));
     }
-    tx.execute("UPDATE workspace_meta SET value=?1 WHERE key='schema_version'",
-        [archeaxis_store_sqlite::SCHEMA_VERSION.to_string()])?;
+    tx.execute(
+        "UPDATE workspace_meta SET value=?1 WHERE key='schema_version'",
+        [archeaxis_store_sqlite::SCHEMA_VERSION.to_string()],
+    )?;
     let violation = tx.prepare("PRAGMA foreign_key_check")?.exists([])?;
-    if violation { return Err(ArchiveError::Table("restored foreign key mismatch".into())); }
+    if violation {
+        return Err(ArchiveError::Table("restored foreign key mismatch".into()));
+    }
     tx.commit()?;
     conn.execute_batch("PRAGMA wal_checkpoint(TRUNCATE); PRAGMA journal_mode=DELETE;")?;
     drop(conn);
-    std::fs::OpenOptions::new().read(true).write(true).open(&staged)
-        .map_err(ArchiveError::Io)?.sync_all().map_err(ArchiveError::Io)?;
+    std::fs::OpenOptions::new()
+        .read(true)
+        .write(true)
+        .open(&staged)
+        .map_err(ArchiveError::Io)?
+        .sync_all()
+        .map_err(ArchiveError::Io)?;
     // Same-filesystem atomic publication with no overwrite even if another
     // process creates target after preflight. Unsupported filesystems fail closed.
     let final_objects = std::path::PathBuf::from(format!("{target_db}.objects"));
     archeaxis_store_sqlite::raw_objects::reject_links(&final_objects)?;
     std::fs::create_dir(&final_objects).map_err(ArchiveError::Io)?;
-    let mut publication = ObjectPublication { directory: final_objects.clone(), files: Vec::new(), committed: false };
+    let mut publication = ObjectPublication {
+        directory: final_objects.clone(),
+        files: Vec::new(),
+        committed: false,
+    };
     for digest in raw_bytes.keys() {
         let path = final_objects.join(digest);
         std::fs::hard_link(staged_objects.join(digest), &path).map_err(ArchiveError::Io)?;
@@ -427,7 +479,9 @@ struct ObjectPublication {
 impl Drop for ObjectPublication {
     fn drop(&mut self) {
         if !self.committed {
-            for path in &self.files { let _ = std::fs::remove_file(path); }
+            for path in &self.files {
+                let _ = std::fs::remove_file(path);
+            }
             let _ = std::fs::remove_dir(&self.directory);
         }
     }
@@ -456,31 +510,56 @@ mod version_tests {
     use super::*;
     #[test]
     fn v2_archive_remains_readable_after_attempt_schema_migration() {
-        let dir=tempfile::tempdir().unwrap();
-        let db=dir.path().join("v2.sqlite");
+        let dir = tempfile::tempdir().unwrap();
+        let db = dir.path().join("v2.sqlite");
         drop(archeaxis_store_sqlite::init_workspace(db.to_str().unwrap()).unwrap());
-        let archive=dir.path().join("archive");
-        let mut manifest=export_workspace(db.to_str().unwrap(),archive.to_str().unwrap()).unwrap();
+        let archive = dir.path().join("archive");
+        let mut manifest =
+            export_workspace(db.to_str().unwrap(), archive.to_str().unwrap()).unwrap();
         // Reconstruct the previous public v2 wire shape (same old table columns).
-        manifest.schema_version=2;
+        manifest.schema_version = 2;
         for gone in [
-            "job_attempts", "job_outputs", "source_origins", "learning_event_keys",
-            "knowledge_supersedes", "canvas_projections", "canvas_projection_nodes",
+            "job_attempts",
+            "job_outputs",
+            "source_origins",
+            "learning_event_keys",
+            "knowledge_supersedes",
+            "canvas_projections",
+            "canvas_projection_nodes",
             "canvas_projection_edges",
         ] {
             manifest.tables.remove(gone);
             let _ = std::fs::remove_file(archive.join(format!("{gone}.jsonl")));
         }
-        let rows=serde_json::json!({"key":"schema_version","value":"2"}).to_string()+"\n";
-        std::fs::write(archive.join("workspace_meta.jsonl"),&rows).unwrap();
-        manifest.tables.get_mut("workspace_meta").unwrap().sha256=hex::encode(Sha256::digest(rows.as_bytes()));
-        manifest.manifest_sha256=manifest_digest(&manifest);
-        std::fs::write(archive.join("manifest.json"),serde_json::to_vec(&manifest).unwrap()).unwrap();
-        let target=dir.path().join("upgraded.sqlite");
-        restore_workspace(archive.to_str().unwrap(),target.to_str().unwrap()).unwrap();
-        let conn=Connection::open_with_flags(target,rusqlite::OpenFlags::SQLITE_OPEN_READ_ONLY).unwrap();
-        assert_eq!(conn.query_row("SELECT value FROM workspace_meta WHERE key='schema_version'",[],|r|r.get::<_,String>(0)).unwrap(), archeaxis_store_sqlite::SCHEMA_VERSION.to_string());
-        assert_eq!(conn.query_row("SELECT count(*) FROM job_attempts",[],|r|r.get::<_,i64>(0)).unwrap(),0);
+        let rows = serde_json::json!({"key":"schema_version","value":"2"}).to_string() + "\n";
+        std::fs::write(archive.join("workspace_meta.jsonl"), &rows).unwrap();
+        manifest.tables.get_mut("workspace_meta").unwrap().sha256 =
+            hex::encode(Sha256::digest(rows.as_bytes()));
+        manifest.manifest_sha256 = manifest_digest(&manifest);
+        std::fs::write(
+            archive.join("manifest.json"),
+            serde_json::to_vec(&manifest).unwrap(),
+        )
+        .unwrap();
+        let target = dir.path().join("upgraded.sqlite");
+        restore_workspace(archive.to_str().unwrap(), target.to_str().unwrap()).unwrap();
+        let conn = Connection::open_with_flags(target, rusqlite::OpenFlags::SQLITE_OPEN_READ_ONLY)
+            .unwrap();
+        assert_eq!(
+            conn.query_row(
+                "SELECT value FROM workspace_meta WHERE key='schema_version'",
+                [],
+                |r| r.get::<_, String>(0)
+            )
+            .unwrap(),
+            archeaxis_store_sqlite::SCHEMA_VERSION.to_string()
+        );
+        assert_eq!(
+            conn.query_row("SELECT count(*) FROM job_attempts", [], |r| r
+                .get::<_, i64>(0))
+                .unwrap(),
+            0
+        );
     }
 
     /// Rewrite one table file and keep the manifest entry (rows + hash) honest.
@@ -493,7 +572,11 @@ mod version_tests {
 
     fn seal(manifest: &mut ArchiveManifest, archive: &Path) {
         manifest.manifest_sha256 = manifest_digest(manifest);
-        std::fs::write(archive.join("manifest.json"), serde_json::to_vec(manifest).unwrap()).unwrap();
+        std::fs::write(
+            archive.join("manifest.json"),
+            serde_json::to_vec(manifest).unwrap(),
+        )
+        .unwrap();
     }
 
     fn exported_fixture(dir: &tempfile::TempDir) -> (String, ArchiveManifest) {
@@ -513,8 +596,11 @@ mod version_tests {
         let archive_path = Path::new(archive.as_str());
         manifest.schema_version = 3;
         for gone in [
-            "learning_event_keys", "knowledge_supersedes", "canvas_projections",
-            "canvas_projection_nodes", "canvas_projection_edges",
+            "learning_event_keys",
+            "knowledge_supersedes",
+            "canvas_projections",
+            "canvas_projection_nodes",
+            "canvas_projection_edges",
         ] {
             manifest.tables.remove(gone);
             let _ = std::fs::remove_file(archive_path.join(format!("{gone}.jsonl")));
@@ -527,12 +613,23 @@ mod version_tests {
         let target = dir.path().join("eleven.sqlite");
         let restored = restore_workspace(&archive, target.to_str().unwrap()).unwrap();
         assert_eq!(restored.schema_version, 3);
-        let conn = Connection::open_with_flags(target, rusqlite::OpenFlags::SQLITE_OPEN_READ_ONLY).unwrap();
+        let conn = Connection::open_with_flags(target, rusqlite::OpenFlags::SQLITE_OPEN_READ_ONLY)
+            .unwrap();
         assert_eq!(
-            conn.query_row("SELECT value FROM workspace_meta WHERE key='schema_version'",[],|r|r.get::<_,String>(0)).unwrap(),
+            conn.query_row(
+                "SELECT value FROM workspace_meta WHERE key='schema_version'",
+                [],
+                |r| r.get::<_, String>(0)
+            )
+            .unwrap(),
             archeaxis_store_sqlite::SCHEMA_VERSION.to_string()
         );
-        assert_eq!(conn.query_row("SELECT count(*) FROM learning_event_keys",[],|r|r.get::<_,i64>(0)).unwrap(), 0);
+        assert_eq!(
+            conn.query_row("SELECT count(*) FROM learning_event_keys", [], |r| r
+                .get::<_, i64>(0))
+                .unwrap(),
+            0
+        );
     }
 
     /// ARCHIVE-01: the later v3 shape already had thirteen tables, but its
@@ -544,7 +641,11 @@ mod version_tests {
         let (archive, mut manifest) = exported_fixture(&dir);
         let archive_path = Path::new(archive.as_str());
         manifest.schema_version = 3;
-        for gone in ["canvas_projections", "canvas_projection_nodes", "canvas_projection_edges"] {
+        for gone in [
+            "canvas_projections",
+            "canvas_projection_nodes",
+            "canvas_projection_edges",
+        ] {
             manifest.tables.remove(gone);
             let _ = std::fs::remove_file(archive_path.join(format!("{gone}.jsonl")));
         }
@@ -552,21 +653,31 @@ mod version_tests {
         rewrite_table(&mut manifest, archive_path, "workspace_meta", &meta);
         let legacy = serde_json::json!({
             "event_key":"legacy-key-1","item_key":"card-1","created_at":"2026-09-01 00:00:00"
-        }).to_string() + "\n";
+        })
+        .to_string()
+            + "\n";
         rewrite_table(&mut manifest, archive_path, "learning_event_keys", &legacy);
         seal(&mut manifest, archive_path);
 
         let target = dir.path().join("thirteen.sqlite");
         restore_workspace(&archive, target.to_str().unwrap()).unwrap();
-        let conn = Connection::open_with_flags(target, rusqlite::OpenFlags::SQLITE_OPEN_READ_ONLY).unwrap();
+        let conn = Connection::open_with_flags(target, rusqlite::OpenFlags::SQLITE_OPEN_READ_ONLY)
+            .unwrap();
         assert_eq!(
-            conn.query_row("SELECT value FROM workspace_meta WHERE key='schema_version'",[],|r|r.get::<_,String>(0)).unwrap(),
+            conn.query_row(
+                "SELECT value FROM workspace_meta WHERE key='schema_version'",
+                [],
+                |r| r.get::<_, String>(0)
+            )
+            .unwrap(),
             archeaxis_store_sqlite::SCHEMA_VERSION.to_string()
         );
         let (key, payload, event_id): (String, Option<String>, Option<i64>) = conn
-            .query_row("SELECT event_key, payload_hash, event_id FROM learning_event_keys", [], |r| {
-                Ok((r.get(0)?, r.get(1)?, r.get(2)?))
-            })
+            .query_row(
+                "SELECT event_key, payload_hash, event_id FROM learning_event_keys",
+                [],
+                |r| Ok((r.get(0)?, r.get(1)?, r.get(2)?)),
+            )
             .unwrap();
         assert_eq!(key, "legacy-key-1");
         assert_eq!(payload, None, "added columns stay NULL, never invented");
@@ -595,7 +706,10 @@ mod version_tests {
             format!("{err}").contains("unknown v3 archive layout"),
             "unexpected error: {err}"
         );
-        assert!(!target.exists(), "no database is published for an unknown layout");
+        assert!(
+            !target.exists(),
+            "no database is published for an unknown layout"
+        );
     }
 
     /// ARCHIVE-01: a current-version archive missing an exported table is refused
@@ -624,7 +738,9 @@ mod version_tests {
         let dir = tempfile::tempdir().unwrap();
         let (archive, mut manifest) = exported_fixture(&dir);
         let archive_path = Path::new(archive.as_str());
-        let rogue = serde_json::json!({"key":"schema_version","value":"4","rogue_field":"x"}).to_string() + "\n";
+        let rogue = serde_json::json!({"key":"schema_version","value":"4","rogue_field":"x"})
+            .to_string()
+            + "\n";
         rewrite_table(&mut manifest, archive_path, "workspace_meta", &rogue);
         seal(&mut manifest, archive_path);
 
@@ -634,7 +750,10 @@ mod version_tests {
             format!("{err}").contains("unknown column in archive row"),
             "unexpected error: {err}"
         );
-        assert!(!target.exists(), "no database is published for an unknown column");
+        assert!(
+            !target.exists(),
+            "no database is published for an unknown column"
+        );
     }
 
     /// ARCHIVE-01 acceptance: archives exported by the OLD implementation at the
@@ -645,27 +764,37 @@ mod version_tests {
     #[test]
     fn genuine_v3_era_archives_restore_with_content() {
         let base = Path::new(env!("CARGO_MANIFEST_DIR")).join("tests/fixtures");
-        for name in ["v3-ten-tables", "v3-eleven-tables", "v3-twelve-tables", "v3-thirteen-tables"] {
+        for name in [
+            "v3-ten-tables",
+            "v3-eleven-tables",
+            "v3-twelve-tables",
+            "v3-thirteen-tables",
+        ] {
             let archive = base.join(name);
             let dir = tempfile::tempdir().unwrap();
             let target = dir.path().join("restored.sqlite");
-            restore_workspace(
-                archive.to_str().unwrap(),
-                target.to_str().unwrap(),
-            )
-            .unwrap_or_else(|e| panic!("restore failed for {name}: {e}"));
+            restore_workspace(archive.to_str().unwrap(), target.to_str().unwrap())
+                .unwrap_or_else(|e| panic!("restore failed for {name}: {e}"));
             let conn =
-                Connection::open_with_flags(target, rusqlite::OpenFlags::SQLITE_OPEN_READ_ONLY).unwrap();
+                Connection::open_with_flags(target, rusqlite::OpenFlags::SQLITE_OPEN_READ_ONLY)
+                    .unwrap();
             assert_eq!(
-                conn.query_row("SELECT value FROM workspace_meta WHERE key='schema_version'", [], |r| r
-                    .get::<_, String>(0))
-                    .unwrap(),
+                conn.query_row(
+                    "SELECT value FROM workspace_meta WHERE key='schema_version'",
+                    [],
+                    |r| r.get::<_, String>(0)
+                )
+                .unwrap(),
                 archeaxis_store_sqlite::SCHEMA_VERSION.to_string(),
                 "{name}: restored workspace must be upgraded to the current schema version"
             );
-            let knowledge_rows: i64 =
-                conn.query_row("SELECT count(*) FROM knowledge", [], |r| r.get(0)).unwrap();
-            assert_eq!(knowledge_rows, 2, "{name}: legacy knowledge rows must survive");
+            let knowledge_rows: i64 = conn
+                .query_row("SELECT count(*) FROM knowledge", [], |r| r.get(0))
+                .unwrap();
+            assert_eq!(
+                knowledge_rows, 2,
+                "{name}: legacy knowledge rows must survive"
+            );
             let claim: String = conn
                 .query_row(
                     "SELECT body FROM knowledge WHERE knowledge_type='FACTUAL_CLAIM'",
@@ -673,8 +802,13 @@ mod version_tests {
                     |r| r.get(0),
                 )
                 .unwrap();
-            assert_eq!(claim, "v3-fixture claim alpha", "{name}: body bytes must be preserved");
-            let sources: i64 = conn.query_row("SELECT count(*) FROM sources", [], |r| r.get(0)).unwrap();
+            assert_eq!(
+                claim, "v3-fixture claim alpha",
+                "{name}: body bytes must be preserved"
+            );
+            let sources: i64 = conn
+                .query_row("SELECT count(*) FROM sources", [], |r| r.get(0))
+                .unwrap();
             assert_eq!(sources, 1, "{name}: legacy source row must survive");
         }
     }

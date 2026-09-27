@@ -23,8 +23,16 @@ async fn source_jobs_are_read_from_persisted_core_state_and_unknown_sources_are_
     let db = dir.path().join("api.sqlite");
     let source_id = {
         let mut conn = init_workspace(db.to_str().unwrap()).unwrap();
-        let source_id = match source::import_source(&mut conn, b"reader payload", "reader.txt", None).unwrap() {
-            ImportOutcome::Imported { source_id, .. } | ImportOutcome::Duplicate { source_id, .. } => source_id,
+        let source_id = match source::import_source(
+            &mut conn,
+            b"reader payload",
+            "reader.txt",
+            None,
+        )
+        .unwrap()
+        {
+            ImportOutcome::Imported { source_id, .. }
+            | ImportOutcome::Duplicate { source_id, .. } => source_id,
         };
         jobs::enqueue(&mut conn, "job-running", "text", &source_id).unwrap();
         jobs::enqueue(&mut conn, "job-succeeded", "text", &source_id).unwrap();
@@ -73,7 +81,8 @@ async fn source_jobs_are_read_from_persisted_core_state_and_unknown_sources_are_
     let empty_id = {
         let mut conn = init_workspace(dir.path().join("empty.sqlite").to_str().unwrap()).unwrap();
         match source::import_source(&mut conn, b"no jobs", "empty.txt", None).unwrap() {
-            ImportOutcome::Imported { source_id, .. } | ImportOutcome::Duplicate { source_id, .. } => source_id,
+            ImportOutcome::Imported { source_id, .. }
+            | ImportOutcome::Duplicate { source_id, .. } => source_id,
         }
     };
     let empty_router = app(dir.path().join("empty.sqlite").to_str().unwrap()).unwrap();
