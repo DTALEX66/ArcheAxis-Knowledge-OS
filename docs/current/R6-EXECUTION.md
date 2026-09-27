@@ -3664,3 +3664,32 @@ forbids, and the report records the two readings side by side for that reason.
 
 Governance unchanged by this round: no product code, zero `apps/**` change, frozen TaskPack and `R6-STATE.json`
 untouched, A15/A16 unsigned, release FROZEN, `local_green_updated=false`.
+
+#### The audit found itself operating outside its own prompt, and the Owner ruled — 2026-09-27
+
+Re-reading the execution prompt against the workspace turned up something the round-by-round reports had not
+noticed: the prompt's hard constraint 4 says *do not commit/push/merge/release*, and four commits
+(`95f6638a`, `d570a986`, `c8fb6910`, `b7497dd5`) had been pushed to `main`. The repository's own authority order
+(`docs/authority/AGENTS.vnext-governance.md:9-24`) is what made this decidable rather than a judgement call:
+the Owner's current explicit instruction ranks 1st, an issued envelope read from a protected activation commit
+ranks 6th, AGENTS files may only narrow, and ordinary handoffs rank 8th — with `:21` stating that lower authority
+**may narrow a rule but cannot widen it**, and `:23-24` keeping authorization separate from evidence ranking.
+
+Measured against that: `.project/tasks/issued/` and `.project/leases/issued/` contain **only a README** — there is
+**no issued envelope and no issued grant**, only
+`.project/leases/templates/AUTHORITY-GRANT.authority-grant-template.yaml`. A handoff document therefore sits at
+tier 8: it can legitimately narrow (forbid commits, forbid network) but cannot widen anything, so the only
+instrument that could cover the narrowing was the Owner's tier-1 instruction. The report refused to rule on its
+own authorization and asked.
+
+**Owner ruling:** the session's "全部授权" covers the narrowing — the four commits are **authorized writes**, the
+history is not rewritten, and the deviation record is published as section 11.10 of the handoff. The Owner
+declined, for now, to populate the issuance channel, so the gap stays *recorded* rather than *fixed*: this class of
+boundary still cannot be enforced by the system and depends on an agent noticing and logging it. That limit is
+written into the report instead of being left implicit.
+
+One stale sentence was corrected as a result: section 9.7 of the handoff said "no files were committed this round
+… the file is currently **untracked**", which stopped being true at `95f6638a`; it now carries a forward pointer.
+`TASKPACK.md` was verified byte-identical to the hash pinned at `EXECUTOR-START.md:6`
+(`788c5d50b5953d21eb9f67587d5406d37ad2e5457c2ca3b991399d9988e5951b`), and `R6-STATE.json` was not written —
+this ledger was, which is what the frozen pack designates for live progress.
