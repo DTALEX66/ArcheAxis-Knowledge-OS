@@ -184,3 +184,43 @@ Codex 的既有未提交修改保持原样。原生 UI/交互/DPI/键盘验收�
 
 本合同的全部源码改动都在一条隔离分支上，回滚 = 回退该分支的提交；
 不涉及 force push、reset --hard、分支删除，也不涉及任何 build 产物或 `.project-local/`。
+
+---
+
+## 9. 第二轮增补（2026-09-27，受测提交 `ee015075`）
+
+### 9.1 源码身份必须连工作区状态一起读
+
+`git rev-parse HEAD` 对干净检出和带未提交修改的检出是**同一个值**。因此：
+receipt 现在携带 `source_tree`、`source_dirty`、`source_patch_sha256`、`worktree_root`；
+`dev.py` 把同样的值写入 `execution.json`。**任何只引用 commit 的后端资格说法都不要采信**，
+请连 `source_dirty` 一起读。干净运行校验器输出 `committed <sha>`；
+脏运行输出 `UNCOMMITTED … not a committed-source qualification`。
+
+### 9.2 正式启动所需的环境（前端接入须知）
+
+Core 进程需要 `ARCHEAXIS_PYTHON` 指向具备 `fsrs` 的解释器，`/api/v1/learning/reviews`
+才会返回 `schedule_authority: "fsrs"`；否则返回 `"unavailable"` 且 `next_review` 为 `null`。
+**不要**让用户在界面里手工填写该变量——正式宿主应由 Supervisor 在启动子进程时注入。
+在此之前，前端必须按 §5 如实显示三种权威状态，不得把 `unavailable` 显示为已完成排程。
+
+### 9.3 已完成的独立后端打包与安装后运行
+
+| 项 | 值 |
+| --- | --- |
+| wheel | `archeaxis_workspace-0.6.14-py3-none-any.whl`，sha256 `a97d326127e3d5b7e49710d671626853376649e24a7de84d09d33b918aebbfc4` |
+| 隔离安装根 | `D:\All projects\AAOS-DSH-WHEEL-QUAL\ee015075`（仓库之外，临时资质目录） |
+| 安装后入口 | `python -m app.runtime_entrypoint migrate` exit 0；重复执行**幂等**；`archeaxis health` exit 0 |
+| 遮蔽核验 | 隔离环境中 `app`/`shared`/`config` 全部解析到隔离 site-packages，无 checkout 遮蔽 |
+| 明确缺口 | `services/python-workers/**` **不在 wheel 内**，因此完整的 M0 环仍由源码构建的 Core＋worker 承载 |
+
+**注意**：安装的 Python 后端拥有**自己的** schema 基线（`python_compatibility`，本机
+97 表、含 `kb_attachment_facts`），与 Rust vNext Core 的 `workspace_meta` 基线**不是同一个库**。
+前端不得把两者当成同一事实源，也不得双写。
+
+### 9.4 `mastery_projection.closed` 的准确含义
+
+它是**合同规定的保留状态**，不是未实现的完成位。`crates/archeaxis-domain/src/learning.rs:144`
+原文：*"deliberately marked open: review observations and FSRS scheduling do not establish
+Knowledge truth or a closed mastery claim."*
+前端应显示为"投影/未闭合"，**不得**据此显示已掌握。
