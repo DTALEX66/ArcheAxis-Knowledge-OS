@@ -86,3 +86,9 @@ exact-SHA CI 未执行、main 未合并、远端 refs 未删除。原 PR #151 �
 先前 HTTP 401 的原因是进程环境中的失效 GH_TOKEN 遮蔽了已有有效登录；
 仅在本次 gh 子进程排除该变量后，账户和 PR 只读查询已成功。没有修改全局
 认证配置，也没有输出凭据；该 401 与当前推送审批阻塞是两个独立问题。
+
+## 后续交付读回 — 2026-09-27
+
+Owner 调整执行权限后，原策略阻塞已解除。候选 `96024a2782247a3f073c5eae5aeb175f9e156ee6` 的 CI 与 vNext CI 均通过，[PR #152](https://github.com/DTALEX66/ArcheAxis-Knowledge-OS/pull/152) 正常合并为 `dc7e68736be360470961302edb34099399281ec8`；#151 随其提交祖先被 GitHub 标记 MERGED。上述“未推送/未删除”和 worker-quality 本地分支继续保留是较早时点的记录。
+
+本轮已退休 10 个远端和 10 个本地 refs；worker-quality 原 dirty 文件仍保留，只删除分支 ref，工作树同 SHA 分离。[清理读回](SEPTEMBER-CONSOLIDATION-READBACK-20260927.md)记录名单、恢复 bundle 与证据层级。没有发布、Green 替换或真实 M0 完成声明。

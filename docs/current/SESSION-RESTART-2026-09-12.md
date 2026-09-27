@@ -1,3 +1,6 @@
+> HISTORICAL / SUPERSEDED — 2026-09-12 session snapshot. Its R3.1 active-plan instructions are retired.
+> Current execution: [R6 executor](../authority/taskpack-0919-r6/EXECUTOR-START.md), [R6 state](R6-STATE.json), [M0 overlay](M0-DIRECTION-OVERRIDE-20260920.md). Retained at the original path for historical consumers; do not execute the old handoff as current instructions.
+
 # ArcheAxis 新会话交接提示词 · 2026-09-12
 
 以下正文可直接交给新会话。本文件只是恢复入口，不替代权威配置、冻结任务正文或实际证据。
