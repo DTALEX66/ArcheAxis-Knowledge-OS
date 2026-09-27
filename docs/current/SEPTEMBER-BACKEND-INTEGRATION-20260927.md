@@ -70,3 +70,19 @@ R6 authority、repository/path conventions 与 CI Ruff 均通过。
 
 exact-SHA CI、合并与 ref 退休尚待远端执行 readback；本提交不提前声称成功。
 没有发布新版本、替换 Green 或将真实 M0 缺口改成 PASS。
+
+## 远端交付阻塞
+
+已验证修复提交：`2cc31fcb201a0dea0f7d46edcbe1e59f8dd8221d`，分支
+`codex/september-backend-integration`。执行 `git push -u origin
+codex/september-backend-integration` 时，工具在启动进程前返回：
+`approval required by policy, but AskForApproval is set to Never`。
+
+Owner 已授权推送/合并；阻塞来自工具审批策略。未尝试绕过该策略。
+因此状态为 `TESTED_LOCAL / REMOTE_DELIVERY_BLOCKED`：候选未推送、候选
+exact-SHA CI 未执行、main 未合并、远端 refs 未删除。原 PR #151 也未关闭。
+已审查分支继续保留，避免在新主线尚未落地前清除恢复入口。
+
+先前 HTTP 401 的原因是进程环境中的失效 GH_TOKEN 遮蔽了已有有效登录；
+仅在本次 gh 子进程排除该变量后，账户和 PR 只读查询已成功。没有修改全局
+认证配置，也没有输出凭据；该 401 与当前推送审批阻塞是两个独立问题。
