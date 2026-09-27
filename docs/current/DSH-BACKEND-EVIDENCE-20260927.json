@@ -151,6 +151,18 @@
       "status": "TESTED_LOCAL on the copy"
     },
     {
+      "id": "tests-workers-reconciliation",
+      "claim": "The historical tests/workers numbers reconcile exactly against the current run, and the historical failures do not reproduce",
+      "command": "dev.py --pytest -- tests/workers -q",
+      "historical_handoff_recorded": {"passed": 135, "skipped": 7, "failed": 0, "errors": 0, "subtests": 97},
+      "historical_earlier_recorded": {"passed": 117, "skipped": 7, "failed": 2, "errors": 5},
+      "current": {"passed": 142, "skipped": 0, "failed": 0, "errors": 0, "subtests": 97},
+      "reconciliation": "Subtests are identical at 97, so the suite composition is the same. 135 + the 7 previously-skipped = 142 exactly: wiring the registered external toolchain (ARCHEAXIS_EXTERNAL_ROOT -> tesseract, ffmpeg) turned 7 skips into passes rather than adding 7 new tests. The earlier 117/7/2/5 total 131 collected against today's 142, so 11 tests were added between those SHAs; none of the 2 failures or 5 errors reproduce at this SHA.",
+      "not_claimed": "This does not show the 2 failures and 5 errors were product defects that were fixed; it shows they do not reproduce here.",
+      "exit_code": 0,
+      "status": "TESTED_LOCAL"
+    },
+    {
       "id": "affected-python-regressions",
       "claim": "Tests that read root-workspace Rust sources still pass after the reformat",
       "command": "dev.py --pytest -- tests/runtime-paths/ tests/test_desktop_routes_v1.py tests/test_desktop_navigation_contract.py tests/contract/test_vocabulary_generation.py -q",
