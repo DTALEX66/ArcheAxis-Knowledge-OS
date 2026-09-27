@@ -63,17 +63,29 @@ def copy_tree(source: Path, target: Path) -> None:
 
 
 def copy_distribution(name: str, site_packages: Path, target_site_packages: Path) -> dict:
-    """Copy one installed distribution (package plus its dist-info) byte for byte."""
-    normalised = name.replace("-", "_").lower()
-    members: list[Path] = []
-    for entry in sorted(site_packages.iterdir()):
-        stem = entry.name.split("-")[0].replace("_", "").lower()
-        if stem == normalised.replace("_", "") or (
-            entry.name.endswith(".dist-info") and stem == normalised.replace("_", "")
-        ):
-            members.append(entry)
+    """Copy one installed distribution byte for byte.
+
+    A distribution is not always a package directory: `typing_extensions` installs a
+    single `typing_extensions.py` module, and matching only on directory names copied
+    its dist-info while silently leaving the module behind - which surfaced later as
+    `ModuleNotFoundError` from the worker instead of here.
+    """
+    wanted = name.replace("-", "_").replace("_", "").lower()
+
+    def key(entry_name: str) -> str:
+        stem = entry_name.split("-")[0]
+        if stem.endswith((".py", ".pyi")):
+            stem = stem.rsplit(".", 1)[0]
+        return stem.replace("_", "").lower()
+
+    members = [entry for entry in sorted(site_packages.iterdir()) if key(entry.name) == wanted]
     if not members:
         raise ValueError(f"dependency not present in {site_packages}: {name}")
+    has_module = any(entry.is_file() or (entry.is_dir() and not entry.name.endswith(".dist-info"))
+                     for entry in members)
+    if not has_module:
+        raise ValueError(f"dependency {name} has metadata but no importable member in "
+                         f"{site_packages}")
     target_site_packages.mkdir(parents=True, exist_ok=True)
     copied: list[str] = []
     for member in members:
@@ -113,6 +125,8 @@ def main() -> int:
     parser.add_argument("--runtime", required=True, type=Path,
                         help="portable interpreter directory containing python.exe")
     parser.add_argument("--workers", required=True, type=Path)
+    parser.add_argument("--shared", type=Path,
+                        help="scheduler donor; defaults to <workers>/../shared/learning_scheduler.py")
     parser.add_argument("--dep-source", type=Path,
                         help="site-packages the approved dependencies are copied from")
     parser.add_argument("--dep", action="append", default=[],
@@ -139,6 +153,17 @@ def main() -> int:
     copy_tree(args.runtime, root / "runtime")
     copy_tree(args.workers, root / "workers")
     (root / "data").mkdir()
+
+    # The scheduler worker imports the repository's shared donor rather than carrying a
+    # copy, and assemble_green_candidate stages exactly this one file at this exact
+    # relative path; the worker resolves it as <root>/shared/learning_scheduler.py.
+    # Without it the worker starts and then reports FileNotFoundError, which reads like
+    # a broken worker instead of a missing component.
+    shared_donor = args.shared or args.workers.resolve().parents[1] / "shared" / "learning_scheduler.py"
+    if not shared_donor.is_file():
+        raise ValueError(f"scheduler donor is missing: {shared_donor}")
+    (root / "shared").mkdir()
+    shutil.copy2(shared_donor, root / "shared" / "learning_scheduler.py")
 
     site_packages = root / "runtime" / "Lib" / "site-packages"
     dependencies = []
