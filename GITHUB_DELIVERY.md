@@ -1,36 +1,22 @@
-# GitHub 交付（上传与审核）指南
+# GitHub 交付参考（可选 WORK-LAB 协调工具）
 
-> 由 WORK-LAB workflow-assistance 增强模块提供统一的 GitHub 上传/审核加速能力。
-> 目的：让本项目的上传云端库与审核流程标准化、加速、可审计。
+本仓库独立运行。交付以本仓库 `AGENTS.md`、当前 Authority 与 GitHub 规则为准；WORK-LAB 工具不是构建、测试或发布的必需依赖。
 
-## 1. 云端库
+当前仓库身份：`DTALEX66/ArcheAxis-Knowledge-OS`。实际传输协议由 Git remote、URL rewrite 和 SSH 覆盖决定，不能从文档里的 URL 推断。
 
-- 仓库：DTALEX66/ArcheAxis-Knowledge-OS
-- 远程：https://github.com/DTALEX66/ArcheAxis-Knowledge-OS.git
-- 凭据：git credential manager（gho_ OAuth token，git credential fill 获取，不硬编码、不落盘）
+如需使用 WORK-LAB 的可选工具，先确认其当前代码中存在以下入口：
 
-- 注意：remote 为 HTTPS，凭据走 git credential manager。
-
-## 2. 上传加速（把改动推上云端库）
-
-```bash
-python "D:\All projects\WORK-LAB\10-workflow\workflow-assistance\scripts\workflow\github_upload_accelerator.py" --repo ArcheAxis-Knowledge-OS
-python "D:\All projects\WORK-LAB\10-workflow\workflow-assistance\scripts\workflow\github_upload_accelerator.py" --repo ArcheAxis-Knowledge-OS -m "feat: your change summary"
+```powershell
+$upload = 'D:\All projects\WORK-LAB\packages\client-neutral-core\scripts\github_upload_accelerator.py'
+$review = 'D:\All projects\WORK-LAB\packages\client-neutral-core\scripts\github_review_accelerator.py'
+python $upload --repo ArcheAxis-Knowledge-OS --repo-root 'D:\All projects\ArcheAxis-Knowledge-OS'
 ```
 
-- 安全：无 -m 只体检（DIRTY_NO_ACTION），绝不误提交/误推送；不 force-push。
+上例只诊断。实际写入须在任务专属分支上明确给出 `--message` 和重复的 `--file`（仓库相对文件路径）。脚本默认只本地提交；远端交付另加 `--push`，创建 PR 再加 `--create-pr`。本项目自身的测试和交付门禁仍须独立执行。
 
-## 3. 审核加速（PR 合并前检查）
-
-```bash
-python "D:\All projects\WORK-LAB\10-workflow\workflow-assistance\scripts\workflow\github_review_accelerator.py" --repo DTALEX66/ArcheAxis-Knowledge-OS --pr <PR号>
+```powershell
+python $upload --repo ArcheAxis-Knowledge-OS --repo-root 'D:\All projects\ArcheAxis-Knowledge-OS' --message 'docs: update delivery guide' --file GITHUB_DELIVERY.md
+python $review --repo DTALEX66/ArcheAxis-Knowledge-OS --pr <PR号>
 ```
 
-一次拿到 mergeable / mergeable_state / CI check-runs → APPROVE 或 BLOCK + 理由。
-
-## 4. 使用建议
-- 每次改动先体检再提交，保持云端库与本地一致；
-- 合并前跑审核加速器确认 APPROVE；
-- 提交信息用 conventional 前缀（feat/fix/docs），加速器自动补；
-- 共用库内容（大文件/权重）不上传，只上传链接与列表；
-- 脚本本体在 WORK-LAB 仓库（单一来源），本项目只引用不复制。
+审核工具仅提供只读预检建议；`APPROVE` 不等于 GitHub 审批、合并或发布。认证身份、保护规则和 required checks 必须以当前读回为准。
