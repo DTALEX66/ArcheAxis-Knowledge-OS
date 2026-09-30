@@ -6,9 +6,9 @@ PARTIAL，目标仍 active。用户授权审计后删除无用项目输出、迁
 
 ## 当前已执行结果
 
-累计净逻辑文件载荷减少58,021,000,876 B（58.02 GB），含本报告执行链50,245,032,550 B及此前两轮7,775,968,326 B。删除源58,278,093,724 B，保留恢复载荷8,033,061,174 B，二者差额是本报告执行链净值。不是物理磁盘回收统计；少量审计收据和脚本不计。
+累计净逻辑文件载荷减少58,482,961,971 B（58.48 GB），含本报告执行链50,706,993,645 B及此前两轮7,775,968,326 B。删除源58,740,054,819 B，保留恢复载荷8,033,061,174 B，二者差额是本报告执行链净值。不是物理磁盘回收统计；少量审计收据和脚本不计。
 
-最新元数据可访问范围：Formal25,169,438,491 B/348276files；Green8,957,443,149 B/114508files。分别491/40读取错误，private/Git与链接排除，不能等同Explorer全目录体积。
+最新元数据可访问范围（2026-10-01，framework旧候选清理后）：Formal24,802,560,462 B/348452files；Green9,552,879,378 B/114618files。分别491/40读取错误，private/Git与链接排除，不能等同Explorer全目录体积。按各根内NTFS文件身份去重，Formal逻辑载荷23,719,518,517 B、可读分配24,070,985,784 B；Green逻辑载荷7,367,134,235 B、可读分配7,513,391,144 B。跨根硬链接未归因，两个根各有1个allocation读取错误。近期编译恢复与验证生成的新输出已计入本次快照；累计删除账本不代表实时目录净变化。
 
 最新三项实际清理：历史mono候选1195文件净169,743,568 B；历史worker Lib7548文件净182,288,299 B；runtime-copy2 17948文件净363,612,342 B。完整ZIP CRC/SHA、精确集合与fresh源核对后删除，原根不存在，恢复和保留证据SHA读回通过。
 
@@ -36,7 +36,7 @@ PARTIAL，目标仍 active。用户授权审计后删除无用项目输出、迁
 
 ## Git交付
 
-本地分支codex/Audit，当前HEAD43c2cafa1bfe57a862e90c5a77dc16832264babd；2026-10-01远端main只读回读df1a0d59961d0ced18c99dc3e31a5c5bee4a4eac，codex/Audit远端未发现。正常Git访问路径已连通，本轮尚未commit/push，不声称双端一致。
+本地分支codex/Audit；本轮继续前已发布的最新源码检查点为07c771bea56658ee8a24ecc18b4a09e4df0404d2，包含35个桌面源码/资产及交接文档，此前经git ls-remote回读一致。清理文档检查点为35260ad70c5c2eaf038da1dd7c53a455b104a812及244483911fe153cf0b11d39cf8eaa9cf6cbb6b74。2026-10-01此前远端main只读回读为df1a0d59961d0ced18c99dc3e31a5c5bee4a4eac；尚未把其27个后端/文档提交集成到本工作分支，不能声称main或Green双端一致。后续提交SHA需以最新Git回读为准。
 
 既有19项tracked修改及此前未跟踪成果保护。本轮新增共享SDK路径索引、SDK迁移交接及本清理交接；OS External只最小增补忽略规则和项目工具注册表。上传应按精确任务文件集合进行，排除恢复包、缓存、运行数据库、日志、凭据与私人状态。最终必须分别记录本地提交SHA、远端分支SHA与验证范围。
 
@@ -64,4 +64,14 @@ PARTIAL，目标仍 active。用户授权审计后删除无用项目输出、迁
 
 命令面板焦点恢复失败缺回退：d2定向RED确认；两树最小补充Focus返回false时聚焦WorkspaceHeadingText，d3定向1pass、d4编译退出0。d5 C# Vocabulary harness编译通过，d6 production binding的29个wire cases通过。导航测试文件还由唯一writer修改，未放入本源码检查点；全量静态/原生交互/DPI矩阵及当前main后端整合未完成。批量测试覆写曾被自动审批拒绝，已改为精确上下文补丁保护现有dirty修改，没有绕过或整文件覆盖。
 
-2026-10-01 最新Git只读与fetch核对：当前HEAD是origin/main祖先，left/right=0/27；远端包含新增backend和文档整合，不能把当前dirty源码直接覆盖远端。tracked改动与远端变动的交集为docs/DOCUMENTATION_AUTHORITY_INDEX.md；交付需保留远端新backend及本地UI/清理成果，解决该文档真实三方差异。尚未merge/reset/commit/push，原工作文件未改变。最新元数据已在第八批/508缓存删除后回读。
+2026-10-01 前一Git只读与fetch快照：源码交付检查点提交前的基线是origin/main祖先，left/right=0/27；该段是历史快照，不能用作现在HEAD或已发布状态。远端包含新增backend和文档整合，不能把当前dirty源码直接覆盖远端。tracked改动与远端变动的交集为docs/DOCUMENTATION_AUTHORITY_INDEX.md；集成需保留远端新backend及本地UI/清理成果，解决该文档真实三方差异。未执行merge/reset，用户工作文件继续保留。
+
+## 最新清理、验证与交付范围
+
+旧framework候选经独立当前引用/进程审计后，先逐文件fresh校验并删除41个重复依赖456,173,680 B；scope外独立canonical长度/SHA一致，5个唯一应用文件当时保留，独立回读41源不存在、canonical全量哈希一致。随后明确旧编译字节不是必须保留成果：另外三个未绑定候选的7个EXE/DLL/PDB共4,288,288 B及framework剩余5个生成文件1,499,127 B已精确删除。对应三个源码提交仍可读，可重建功能版本，不保证相同二进制字节或旧PDB。framework5删除前fresh Win32_Process精确消费者0。47个空目录逐层确认无文件/链接后非递归移除，四个旧scope根均不存在。没有为这些无用输出再制造重复归档。
+
+最新导航契约da：212pass。随后39份受影响前端契约db：324pass、1个Pillow弃用warning。B10依据修正旧几何/菜单断言，移动导航测试明确只证明可见入口及命令面板注册，不把隐藏菜单当原生曝光；未使用skip/xfail。dd的Ruff调用格式失败、de真实运行检出42项静态问题；仅导入排序/末尾换行及不用的局部变量被修正，dh受影响Ruff全部通过。冻结集合最终di复跑324pass、同一warning；旧候选删除后dj现役SDK/输出路径桌面编译退出0。没有把静态/编译PASS冒充原生交互/DPI/动画完整验收。
+
+C# Supervisor d7编译、d8现有9项隔离/重启/错误凭据/短路径/带空格DB路径harness通过；Vocabulary d6为29个production-wire cases通过。均为既有测试和synthetic工作区，不是现有用户数据库或所有软件健康证明。
+
+公开历史清理MD限定18份，经独立内容审计后可发布。5份历史文档已纠正VS Code修复前后快照、容量元数据越界事件措辞、跨位置净值口径及已移除worktree提交保护方式；保留真实事件，不写“所有C/D软件健康PASS”。完整本地收据、数据库、恢复ZIP/CAS、原始私人正文仍不上云。两份依赖未公开UI母版输入的测试（test_aaos_icon_b10_contract.py、test_b10_shell_fidelity_contract.py）需先处理可移植输入交付，当前不能当成已可在云端裸检出的测试。

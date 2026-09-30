@@ -1,7 +1,8 @@
 """The formal Avalonia shell exposes honest first-use domain navigation."""
 
+import re
+import xml.etree.ElementTree as ET
 from pathlib import Path
-
 
 ROOT = Path(__file__).resolve().parents[1]
 XAML = ROOT / "apps" / "ArcheAxis.Desktop" / "MainWindow.axaml"
@@ -12,6 +13,27 @@ SOURCE_READER_XAML = ROOT / "apps" / "ArcheAxis.Desktop" / "Views" / "SourceRead
 SOURCE_READER_CODE = ROOT / "apps" / "ArcheAxis.Desktop" / "Views" / "SourceReaderView.axaml.cs"
 EVIDENCE_XAML = ROOT / "apps" / "ArcheAxis.Desktop" / "Views" / "EvidenceCenterView.axaml"
 EVIDENCE_CODE = ROOT / "apps" / "ArcheAxis.Desktop" / "Views" / "EvidenceCenterView.axaml.cs"
+
+
+def _control(name: str, path: Path = XAML) -> ET.Element:
+    """Select the whole named control, including nested icon/text content."""
+    matches = [node for node in ET.parse(path).getroot().iter()
+               if node.get("{http://schemas.microsoft.com/winfx/2006/xaml}Name") == name]
+    assert len(matches) == 1, name
+    return matches[0]
+
+
+def _handler(name: str, path: Path = CODE) -> str:
+    """Scope source contracts to a declaration, not a matching call elsewhere."""
+    code = path.read_text(encoding="utf-8")
+    start = re.search(r"^    (?:private|public|internal|protected)[^\n]*\b" + re.escape(name) + r"\(", code, re.M)
+    assert start is not None, name
+    following = re.search(r"^    (?:private|public|internal|protected)\b", code[start.end():], re.M)
+    return code[start.start():start.end() + following.start()] if following else code[start.start():]
+
+
+def _text(control: ET.Element) -> str:
+    return " ".join(node.get("Text", node.get("Content", "")) for node in control.iter())
 
 
 def test_aaos_theme_is_shared_at_application_scope() -> None:
@@ -79,13 +101,15 @@ def test_aaos_common_controls_consume_typography_tokens() -> None:
 
 def test_primary_page_titles_consume_shared_typography_classes() -> None:
     xaml = XAML.read_text(encoding="utf-8")
-    reader_xaml = SOURCE_READER_XAML.read_text(encoding="utf-8")
-    evidence_xaml = EVIDENCE_XAML.read_text(encoding="utf-8")
     theme = THEME_XAML.read_text(encoding="utf-8")
-    for title in ("捕获", "资料库", "知识库", "学习工作台", "机器知识", "恢复", "证据中心", "设置", "任务"):
-        source = evidence_xaml if title == "证据中心" else xaml
-        assert f'Text="{title}" Classes="page-title"' in source
-    assert 'Text="导入阅读" Classes="page-title"' in reader_xaml
+    root = ET.fromstring(xaml)
+    heading = next(node for node in root.iter() if node.get('{http://schemas.microsoft.com/winfx/2006/xaml}Name') == 'WorkspaceHeadingText')
+    assert 'page-title' in heading.get('Classes', '').split()
+    assert heading.get('Focusable') == 'True'
+    code = CODE.read_text(encoding='utf-8')
+    assert 'WorkspaceHeadingText.Text = displayHeading;' in code
+    assert 'AutomationProperties.SetName(WorkspaceHeadingText' in code
+    assert 'WorkspaceHeadingText.Focus()' in code
     assert 'Text="工作流状态" Classes="section-heading"' in xaml
     assert '<Style Selector="TextBlock.page-title">' in theme
     assert '<Style Selector="TextBlock.section-heading">' in theme
@@ -201,7 +225,9 @@ def test_library_to_source_reader_preserves_a_guarded_return_context() -> None:
     reader_xaml = SOURCE_READER_XAML.read_text(encoding="utf-8")
     code = CODE.read_text(encoding="utf-8")
     assert 'x:Name="BackToLibraryButton"' in reader_xaml
-    assert 'Content="返回资料库"' in reader_xaml
+    reader = ET.fromstring(reader_xaml)
+    back = next(node for node in reader.iter() if node.get('{http://schemas.microsoft.com/winfx/2006/xaml}Name') == 'BackToLibraryButton')
+    assert any(node.get('Text') == '返回资料库' for node in back.iter())
     assert 'Click="OnReturnToLibraryClick"' in reader_xaml
     assert 'ReturnToLibraryRequested?.Invoke' in SOURCE_READER_CODE.read_text(encoding="utf-8")
     assert 'private LibraryResultRow? _selectedLibraryResult;' in code
@@ -336,7 +362,8 @@ def test_mobile_layout_avoids_fixed_rail_and_tight_toolbar_rows() -> None:
         assert 'RowSpacing="10"' in grid
     reader_grid = reader_xaml.split('x:Name="SourceReaderLoadGrid"', 1)[1].split('</Grid>', 1)[0]
     assert 'RowSpacing="10"' in reader_grid
-    assert 'var mobile = e.NewSize.Width < mobileBreakpoint;' in code
+    assert '=> ApplyResponsiveLayout(e.NewSize);' in code
+    assert 'var mobile = frameSize.Width <= mobileBreakpoint;' in code
     assert 'MainFrameGrid.ColumnDefinitions[0].Width' in code
     assert 'WorkspaceScrollViewer.Padding' in code
 
@@ -384,8 +411,11 @@ def test_shell_exposes_core_product_navigation() -> None:
     xaml = XAML.read_text(encoding="utf-8")
     code = CODE.read_text(encoding="utf-8")
 
-    for label in ("工作台", "资料与知识", "学习", "机器知识", "设置", "资料库", "导入阅读", "知识库", "学习路径", "任务收据", "任务", "恢复"):
-        assert f'Content="{label}"' in xaml
+    for name, label in (("RailWorkspaceButton", "首页"), ("RailCaptureButton", "捕获"),
+                        ("RailLearningButton", "人类学习"), ("RailMachineButton", "机器学习"),
+                        ("RailEvidenceButton", "证据库"), ("RailSystemButton", "设置")):
+        assert label in _text(_control(name))
+        assert _control(name).get("Click")
 
     for handler in (
         "OnHomeClick",
@@ -417,12 +447,12 @@ def test_primary_navigation_and_system_actions_expose_stable_automation_names() 
     ):
         assert name in xaml
     for automation_name in (
-        'AutomationProperties.Name="打开工作台"',
+        'AutomationProperties.Name="打开首页"',
         'AutomationProperties.Name="打开捕获"',
         'AutomationProperties.Name="打开资料与知识"',
         'AutomationProperties.Name="打开原件阅读"',
-        'AutomationProperties.Name="打开学习"',
-        'AutomationProperties.Name="打开证据中心"',
+        'AutomationProperties.Name="打开人类学习"',
+        'AutomationProperties.Name="打开证据库"',
         'AutomationProperties.Name="打开任务"',
         'AutomationProperties.Name="打开设置"',
         'AutomationProperties.Name="读取恢复边界状态"',
@@ -588,7 +618,7 @@ def test_source_reader_and_knowledge_expose_source_context_navigation() -> None:
     assert 'LibrarySearchBox.Text = selected.SourceId.Trim();' in code
     assert 'SourceReaderView.SourceId = _activeKnowledgeSourceId;' in code
     assert 'selected.SourceId' in code
-    assert '知识搜索结果仍需人工选择确认关联' in xaml
+    assert 'Knowledge 需要人工确认关联；Transform 提取文本不等同于已接受知识。' in xaml
 
 
 def test_learning_review_exposes_explicit_grade_controls() -> None:
@@ -636,8 +666,8 @@ def test_navigation_maps_each_surface_to_one_section() -> None:
         ('SetSection("library", "资料库")', "OnLibraryClick"),
         ('SetSection("source-reader", "导入阅读")', "OnSourceReaderClick"),
         ('SetSection("knowledge", "知识库")', "OnKnowledgeClick"),
-        ('SetSection("learning", "学习")', "OnLearningNavigationClick"),
-        ('SetSection("machine-growth", "机器知识")', "OnMachineGrowthClick"),
+        ('SetSection("learning", "人类学习")', "OnLearningNavigationClick"),
+        ('SetSection("machine-growth", "机器学习")', "OnMachineGrowthClick"),
         ('SetSection("jobs", "任务")', "OnJobsClick"),
         ('SetSection("settings", "设置")', "OnSettingsClick"),
     ):
@@ -660,8 +690,9 @@ def test_navigation_state_controls_visible_surfaces() -> None:
     assert 'RecoverySurface.IsVisible = section == "recovery"' in code
     assert 'SettingsSurface.IsVisible = section == "settings"' in code
     assert 'JobsSurface.IsVisible = section == "jobs"' in code
-    assert 'UnavailableSurface.IsVisible = section is "research" or "plugins" or "models" or "original-editor"' in code
-    assert 'ContextKnowledgeSubnav.IsVisible = section is "library" or "source-reader" or "knowledge" or "original-editor" or "memory-map"' in code
+    assert 'UnavailableSurface.IsVisible = section is "research" or "plugins" or "models";' in code
+    assert 'OriginalEditorSurface.IsVisible = section == "original-editor";' in code
+    assert 'ContextKnowledgeSubnav.IsVisible = section is "library" or "search" or "source-reader" or "knowledge" or "original-editor" or "memory-map"' in code
     assert 'ContextSystemSubnav.IsVisible = section is "jobs" or "recovery" or "settings"' in code
     assert 'x:Name="WorkspaceHeadingText"' in XAML.read_text(encoding="utf-8")
     assert 'Focusable="True"' in XAML.read_text(encoding="utf-8")
@@ -705,8 +736,10 @@ def test_primary_space_rail_has_explicit_active_state_mapping() -> None:
         'RailSystemButton.Classes.Set("active", railSpace == "system")',
     ):
         assert expression in code
-    assert 'section is "library" or "source-reader" or "knowledge"' in code
-    assert 'section is "jobs" or "recovery" or "settings"' in code
+    transition = _handler("SetSection")
+    assert '"library" or "knowledge" => "knowledge"' in transition
+    assert '"source-reader" => "reader"' in transition
+    assert '"recovery" or "settings" => "system"' in transition
 
 
 def test_activity_receipt_dock_is_current_session_only() -> None:
@@ -735,7 +768,7 @@ def test_unwired_domains_are_explicitly_empty_not_synthetic() -> None:
     code = CODE.read_text(encoding="utf-8")
     surface = xaml + code
 
-    assert "Core 当前没有全量任务列表投影" in surface
+    assert "当前没有全量持久任务列表投影" in surface
     assert "不展示已安装、启用、默认/回退或健康状态" in surface
     assert "不执行、预演或模拟恢复" in surface
 
@@ -791,7 +824,8 @@ def test_source_reader_surface_reads_real_core_members_projection() -> None:
     assert 'Text="来源目录"' in xaml
     assert 'Text="容器成员 / Core 持久任务"' in xaml
     assert 'Text="转换阅读器"' in xaml
-    assert 'Text="Core transform"' in xaml
+    assert _control("SourceReaderTransformText", SOURCE_READER_XAML).get("IsReadOnly") == "True"
+    assert '原文正文未暴露' in _handler("RenderSelection", SOURCE_READER_CODE)
     assert 'Text="来源链"' in xaml
     assert '"/api/v1/sources/' in code
     assert '}/members");' in code
@@ -844,9 +878,11 @@ def test_settings_surface_exposes_explicit_core_refresh_and_workspace_readback()
 
 def test_learning_surface_has_a_direct_core_load_action() -> None:
     xaml = XAML.read_text(encoding="utf-8")
-    learning = xaml.split('x:Name="LearningSurface"', 1)[1].split('</StackPanel>', 1)[0]
-
-    assert 'Click="OnLearningClick"' in learning
+    root = ET.fromstring(xaml)
+    name_key = '{http://schemas.microsoft.com/winfx/2006/xaml}Name'
+    learning = next(node for node in root.iter() if node.get(name_key) == 'LearningSurface')
+    load = next(node for node in learning.iter() if node.get(name_key) == 'LoadLearningButton')
+    assert load.get('Click') == 'OnLearningClick'
 
 
 def test_learning_surface_exposes_traceable_source_chain() -> None:
@@ -885,7 +921,16 @@ def test_learning_surface_has_explicit_loading_empty_and_failure_feedback() -> N
 def test_workspace_learning_summary_does_not_turn_core_failure_into_zero() -> None:
     code = CODE.read_text(encoding="utf-8")
     assert "learningAvailable" in code
-    assert 'LearningCountText.Text = learningAvailable ? FormatOptionalCount(learning) : "—";' in code
+    assert '_homeLearningAvailable = learningAvailable;' in code
+    assert '_homeLearningCount = learning;' in code
+    assert '_homeLearningAvailable = false;' in code
+    assert '_homeLearningCount = null;' in code
+    assert 'HomeLifecycleLearningText.Text = !_homeLearningAvailable' in code
+    assert ': _homeLearningCount is null' in code
+    assert ': _homeLearningCount > 0' in code
+    assert '"不可用 · Core 队列不可用"' in code
+    assert '"不可用 · count 字段未暴露"' in code
+    assert '"空 · 无待学习项目"' in code
     assert 'count 字段未暴露' in code
     assert 'HomeFocusText.Text = "暂时无法读取学习进度。";' in code
 
@@ -948,10 +993,14 @@ def test_aaos_theme_tokens_replace_the_legacy_indigo_shell_palette() -> None:
     ):
         assert f'x:Key="{key}"' in theme
 
+    palettes = (ROOT / 'apps/ArcheAxis.Desktop/ThemePalette.cs').read_text(encoding='utf-8')
+    monochrome = palettes.split('MonochromeColors = new Dictionary', 1)[1].split('AuroraColors = new Dictionary', 1)[0]
+    aurora = palettes.split('AuroraColors = new Dictionary', 1)[1]
     for color in ("#080A0C", "#101316", "#171A1D", "#202428", "#3B4146", "#E1E4E6", "#B6AA8D", "#F1F2F3", "#A5ADB3"):
-        assert color in theme
-    for superseded_accent in ("#1FC8C5", "#164B50", "#133B42"):
-        assert superseded_accent not in theme
+        assert color in monochrome
+    for color in ("#061118", "#0C1C26", "#102630", "#1FC8C5", "#F3EFE6"):
+        assert color in aurora
+    assert 'palette == Aurora ? AuroraColors : MonochromeColors' in palettes
 
     assert 'Background="{DynamicResource AaosBackgroundBrush}"' in xaml
     assert 'BorderBrush="{DynamicResource AaosBorderBrush}"' in xaml
@@ -979,8 +1028,10 @@ def test_aaos_page_hierarchy_uses_shared_heading_classes() -> None:
     assert 'Selector="TextBlock.card-heading"' in theme
     assert 'x:Key="AaosFontCard"' in theme
     assert 'FontSize" Value="{DynamicResource AaosFontCard}"' in theme
-    assert 'Text="今日关注" Classes="section-heading"' in xaml
-    assert 'Text="当前会话回执" Classes="section-heading"' in xaml
+    for name, label in (("HomeRecentEvidenceCard", "最近证据"), ("HomeTodayProgressCard", "今日进度")):
+        headings = [node for node in _control(name).iter() if node.get("Text") == label]
+        assert len(headings) == 1
+        assert "section-heading" in headings[0].get("Classes", "").split()
     assert 'Text="继续阅读" Classes="card-heading"' in xaml
 
 
@@ -993,10 +1044,10 @@ def test_aaos_brand_workspace_empty_and_kpi_typography_use_shared_tokens() -> No
         assert f'Classes="{selector}"' in xaml
     assert 'x:Name="WorkspaceHeadingText" Text="首页" Classes="page-title"' in xaml
     assert 'Classes="workspace-title"' not in xaml
-    rail = xaml.split('x:Name="PrimaryRail"', 1)[1].split('x:Name="PrimaryRailScrollViewer"', 1)[1]
-    assert 'Text="星环知识平台"' in rail
-    assert 'Background="{DynamicResource AaosPrimaryGradientBrush}"' in rail
-    assert 'Text="ARCHEAXIS KNOWLEDGE"' in rail
+    assert _control("TopbarBrandName").get("Text") == "ArcheAxis"
+    assert _control("TopbarBrandName").get("AutomationProperties.Name") == "ArcheAxis Knowledge"
+    assert _control("TopbarBrandName").get("Foreground") == "{DynamicResource AaosIvoryBrush}"
+    assert _control("TopbarBrandTagline").get("Text") == "EVIDENCE · MEMORY · HUMAN + AI"
     for key in ("AaosFontBrand", "AaosFontLead", "AaosFontWorkspace", "AaosFontKpi", "AaosFontEmptyTitle"):
         assert f'x:Key="{key}"' in theme
 
@@ -1015,7 +1066,9 @@ def test_home_hero_ambient_motion_is_reduced_motion_safe() -> None:
     assert 'x:Name="HomeHeroAmbientGlow"' in xaml
     assert 'Background="{DynamicResource AaosAmbientGlowBrush}"' in xaml
     assert 'x:Name="HomeHeroAmbientGlow" IsVisible="False"' not in xaml
-    assert 'x:Name="HomeHeroImage" Grid.Column="1"' in xaml
+    assert _control("HomeHeroVisual").tag.endswith("AaosMemoryGraphView")
+    motion = _handler("StartHomeHeroAmbientMotion")
+    assert motion.index("if (_reducedMotion)") < motion.index("_homeHeroAmbientTimer.Start();")
     assert 'private DispatcherTimer? _homeHeroAmbientTimer;' in code
     assert 'StartHomeHeroAmbientMotion' in code
     assert 'StopHomeHeroAmbientMotion' in code
@@ -1024,13 +1077,10 @@ def test_home_hero_ambient_motion_is_reduced_motion_safe() -> None:
 
 
 def test_home_hero_uses_avalonia12_compatible_zindex_attributes() -> None:
-    xaml = XAML.read_text(encoding="utf-8")
-    hero_start = xaml.index('x:Name="HomeHeroGrid"')
-    hero_end = xaml.index('</Grid>', hero_start)
-    hero = xaml[hero_start:hero_end]
-    assert 'Panel.ZIndex=' not in hero
-    assert 'ZIndex="0"' in hero
-    assert hero.count('ZIndex="1"') == 2
+    graph = _control("HomeGraphContentGrid")
+    assert all("Panel.ZIndex" not in node.attrib for node in graph.iter())
+    assert _control("HomeHeroAmbientGlow").get("ZIndex") == "0"
+    assert any(node.tag.endswith("Viewbox") and node.get("ZIndex") == "1" for node in graph.iter())
 
 
 def test_route_changes_use_a_reduced_motion_safe_workspace_transition() -> None:
@@ -1095,8 +1145,8 @@ def test_home_surface_expresses_focus_and_evidence_without_demo_metrics() -> Non
     xaml = XAML.read_text(encoding="utf-8")
     home = xaml.split('x:Name="HomeSurface"', 1)[1].split('x:Name="LibrarySurface"', 1)[0]
 
-    assert 'Text="今日关注"' in home
-    assert 'Text="当前会话回执"' in home
+    assert _control("HomeFocusLearningButton").get("Click") == "OnLearningNavigationClick"
+    assert _control("HomeEvidenceText").get("Text") == "本次会话暂无活动回执。"
     assert 'x:Name="HomeFocusText"' in home
     assert 'x:Name="HomeEvidenceText"' in home
     assert "Core" in home
@@ -1141,7 +1191,7 @@ def test_home_lifecycle_strip_preserves_core_truth_boundaries() -> None:
         assert f'x:Name="{name}"' in xaml
     assert 'HomeLifecycleKnowledgeText.Text = "未关联 · 尚无来源知识记录"' in code
     assert 'HomeLifecycleReviewText.Text = "不可用' in code
-    assert 'HomeLifecycleGrid.ColumnDefinitions = compact' in code
+    assert 'HomeLifecycleGrid.ColumnDefinitions = homeMetricColumns switch' in _handler("ApplyResponsiveLayout")
     assert 'SetResponsiveToolbar(FirstRunReadinessGrid' in code
     assert 'SetResponsiveToolbar(HomeContinueReadingGrid' in code
     assert '"当前没有待学习内容。"' in code
@@ -1164,7 +1214,11 @@ def test_home_primary_actions_use_compact_resume_rows() -> None:
     assert 'Text="继续工作"' in home
     assert 'Text="导入资料"' in home
     assert 'Text="资料与知识"' in home
-    assert 'ColumnDefinitions="*,*,*,*"' not in home
+    for name, action in (("HomeContinueReadingGrid", "HomeContinueReadingButton"),
+                         ("HomeDeepTutorGrid", "HomeDeepTutorButton"), ("HomeImportGrid", "HomeImportButton")):
+        assert _control(name).get("ColumnDefinitions") == "*,Auto"
+        assert f"SetResponsiveToolbar({name}, {action}, narrowActions);" in _handler("ApplyResponsiveLayout")
+    assert len([node for node in _control("HomeStatsSurface") if node.tag.endswith("Border")]) == 4
 
 
 def test_source_reader_is_a_first_level_product_space() -> None:
@@ -1172,7 +1226,8 @@ def test_source_reader_is_a_first_level_product_space() -> None:
     code = CODE.read_text(encoding="utf-8")
 
     assert 'x:Name="RailReaderButton"' in xaml
-    assert 'Content="原件阅读"' in xaml
+    assert _control("RailReaderButton").get("Click") == "OnSourceReaderClick"
+    assert _control("RailReaderButton").get("AutomationProperties.Name") == "打开原件阅读"
     assert 'Click="OnSourceReaderClick"' in xaml
     assert '"source-reader" => "reader"' in code
     assert 'RailReaderButton.Classes.Set("active", railSpace == "reader");' in code
@@ -1182,7 +1237,7 @@ def test_capture_inbox_is_a_first_level_product_space() -> None:
     xaml = XAML.read_text(encoding="utf-8")
     code = CODE.read_text(encoding="utf-8")
     assert 'x:Name="RailCaptureButton"' in xaml
-    assert 'Content="捕获"' in xaml
+    assert 'Text="捕获"' in xaml
     assert 'Click="OnCaptureClick"' in xaml
     assert 'x:Name="CaptureSurface"' in xaml
     assert 'x:Name="CaptureSelectionText"' in xaml
@@ -1214,13 +1269,12 @@ def test_library_search_projects_core_results_as_selectable_items() -> None:
 
 
 def test_library_results_preserve_core_provenance_fields() -> None:
-    xaml = XAML.read_text(encoding="utf-8")
     code = CODE.read_text(encoding="utf-8")
     assert "public sealed class LibraryResultRow" in code
     for field in ("Kind", "KnowledgeId", "SourceId", "TransformId", "Status", "Active", "Engine"):
         assert f"public string {field}" in code
     for field in ("status", "active", "transform_id", "engine"):
-        assert f'ReadDisplayValue(' in code and f'"{field}"' in code
+        assert 'ReadDisplayValue(' in code and f'"{field}"' in code
     assert 'is not LibraryResultRow selected' in code
     assert 'selected.Kind != "knowledge"' in code
     assert "提取文本命中" in code
@@ -1394,10 +1448,10 @@ def test_source_reader_distinguishes_container_members_from_durable_jobs() -> No
     assert 'AutomationProperties.Name="来源成员或持久任务列表"' in reader_xaml
     assert 'SourceReaderMemberFieldLabel.Text = "来源类型";' in reader_code
     assert 'SourceReaderJobFieldLabel.Text = "Core 持久任务";' in reader_code
-    assert 'ViewSourceJobButton.Content = "查看选中任务回执";' in reader_code
+    assert 'ViewSourceJobButtonText.Text = "查看选中任务回执";' in reader_code
     assert 'AutomationProperties.SetName(ViewSourceJobButton, "查看选中任务回执");' in reader_code
     assert 'SourceReaderMemberFieldLabel.Text = "容器成员";' in reader_code
-    assert 'ViewSourceJobButton.Content = "查看成员任务回执";' in reader_code
+    assert 'ViewSourceJobButtonText.Text = "查看成员任务回执";' in reader_code
 
 
 def test_source_reader_preserves_structured_member_provenance_fields() -> None:
@@ -1458,9 +1512,13 @@ def test_source_reader_has_a_structured_selected_member_detail_card() -> None:
     reader_code = SOURCE_READER_CODE.read_text(encoding="utf-8")
     assert 'x:Name="SourceReaderSelectedText"' in reader_xaml
     for field in ("source_id", "member", "original_name", "readable", "job_id", "sha256"):
-        assert field in reader_code
+        assert f'ReadDisplayValue(member, "{field}")' in CODE.read_text(encoding="utf-8")
+    for control, member_field in (("Member", "Member"), ("OriginalName", "OriginalName"),
+                                  ("Readable", "Readable"), ("Job", "JobId"), ("Sha", "Sha256")):
+        assert f'SourceReader{control}FieldText.Text = member.{member_field};' in reader_code
     assert 'SourceReaderSelectedText.Text =' in reader_code
-    assert "原文正文未在此详情卡片展示" in reader_xaml
+    assert 'SourceReaderMemberBoundaryText.Text = "原文正文未暴露；字段来自 Core 来源成员投影。";' in reader_code
+    assert 'x:Name="SourceReaderMemberBoundaryText"' in reader_xaml
 
 
 def test_inspector_has_structured_provenance_fields_without_inference() -> None:
@@ -1572,7 +1630,8 @@ def test_home_deduplicates_core_learning_entry_and_labels_optional_workbench() -
     assert 'Text="可选 DeepTutor 工作台"' in home
     assert 'Core 待复习队列请从“今日关注 / Core 学习路径”进入' in home
     assert 'Content="打开 DeepTutor 工作台"' in home
-    assert 'Content="继续学习"' in home
+    assert _control("HomeFocusLearningButton").get("Click") == "OnLearningNavigationClick"
+    assert 'SetSection("learning"' in _handler("OnLearningNavigationClick")
 
 
 def test_knowledge_detail_has_object_header_and_body_projection_layers() -> None:
@@ -1709,7 +1768,7 @@ def test_jobs_filter_only_applies_to_current_session_core_receipts() -> None:
     method = code[filter_start:filter_end]
 
     assert 'x:Name="JobsStateFilterBox"' in xaml
-    for label in ("全部", "处理中", "成功", "需关注"):
+    for label in ("全部状态", "处理中", "成功", "需关注"):
         assert f'Content="{label}"' in xaml
     assert 'SelectionChanged="OnJobsStateFilterChanged"' in xaml
     assert "_jobsStateFilterReady = true;" in constructor
@@ -1760,8 +1819,9 @@ def test_activity_dock_details_use_the_same_reduced_motion_reveal() -> None:
 
 def test_exact_tablet_and_narrow_action_breakpoints_collapse_at_boundary() -> None:
     code = CODE.read_text(encoding="utf-8")
-    assert 'var compact = e.NewSize.Width <= tabletBreakpoint;' in code
-    assert 'var narrowActions = e.NewSize.Width <= narrowActionsBreakpoint;' in code
+    assert 'var compact = contentWidth <= tabletBreakpoint;' in code
+    assert 'var narrowActions = contentWidth <= narrowActionsBreakpoint;' in code
+    assert '(_inspectorDrawerOpen && wideInspector ? 320 : 0)' in code
 
 
 def test_library_search_ignores_stale_responses_from_older_queries() -> None:
@@ -1799,7 +1859,7 @@ def test_extracted_views_consume_theme_breakpoints_and_evidence_status_gets_flex
     assert 'width < NarrowActionsBreakpoint' in reader_code
     assert 'new ColumnDefinitions("Auto,*")' in evidence_code
     assert 'new ColumnDefinitions("*")' in evidence_code
-    assert 'EvidenceCenterView.SetResponsiveLayout(compact, e.NewSize.Width);' in main_code
+    assert 'EvidenceCenterView.SetResponsiveLayout(compact, contentWidth);' in main_code
 
 
 def test_capture_preserves_real_source_job_context_and_exposes_guarded_actions() -> None:
@@ -1943,47 +2003,66 @@ def test_desktop_frame_has_bounded_responsive_column_behavior() -> None:
     assert 'GetAaosBreakpoint("AaosTabletBreakpoint", 1024)' in code
 
 
-def test_b10_home_keeps_context_and_evidence_columns_visible_on_desktop() -> None:
+def test_b10_home_keeps_sidebar_and_optional_inspector_without_legacy_context_column() -> None:
     code = CODE.read_text(encoding="utf-8")
 
     set_section = code.split("private void SetSection", 1)[1].split("private void", 1)[0]
-    resize = code.split("private void OnMainFrameSizeChanged", 1)[1].split("private void", 1)[0]
-    assert "var showContextSidebar = Bounds.Width >= GetAaosBreakpoint(\"AaosTabletBreakpoint\", 1024);" in set_section
-    assert "var showContextSidebar = !hideContext;" in resize
+    resize = _handler("ApplyResponsiveLayout")
+    assert 'ContextSidebar.IsVisible = false;' in set_section
+    assert 'var showContextSidebar = false;' in resize
+    assert 'PrimaryRail.IsVisible = !mobile;' in resize
     assert "if (!_responsiveLayoutInitialized)" in resize
-    assert "_inspectorDrawerOpen = wideInspector;" in resize
+    assert "_inspectorDrawerOpen = false;" in resize
+    assert '_inspectorDrawerOpen = !_inspectorDrawerOpen;' in _handler('OnToggleInspectorDrawerClick')
     assert "MainFrameGrid.ColumnDefinitions[3].Width = _inspectorDrawerOpen" in resize
 
 def test_responsive_layout_reflows_home_cards_and_activity_dock() -> None:
     xaml = XAML.read_text(encoding="utf-8")
     code = CODE.read_text(encoding="utf-8")
-    assert 'x:Name="HomeFocusGrid"' in xaml
-    assert 'x:Name="HomeFocusActionCard"' in xaml
+    assert 'x:Name="HomePrimaryContentGrid"' in xaml
+    assert 'x:Name="HomeTodayFocusCard"' in xaml
     assert 'x:Name="HomeStatsSourceCard"' in xaml
     assert 'x:Name="HomeStatsKnowledgeCard"' in xaml
     assert 'x:Name="HomeStatsLearningCard"' in xaml
     assert 'x:Name="ActivityDock"' in xaml
     assert 'x:Name="ActivityDockGrid"' in xaml
-    assert 'Grid.SetColumn(ActivityDock, 0);' in code
-    assert 'Grid.SetColumnSpan(ActivityDock, 4);' in code
-    assert 'HomeFocusGrid.ColumnDefinitions' in code
+    assert 'Grid.SetColumn(ActivityDock, mobile ? 0 : 2);' in code
+    assert 'Grid.SetColumnSpan(ActivityDock, mobile ? 4 : 2);' in code
+    assert 'HomePrimaryContentGrid.ColumnDefinitions' in code
     assert 'HomeStatsSurface.ColumnDefinitions' in code
-    assert 'Grid.SetColumn(HomeFocusActionCard, compact ? 0 : 1);' in code
+    assert 'Grid.SetColumn(HomeTodayFocusCard, homeDashboardSingleColumn ? 0 : 1);' in code
     assert 'x:Name="CaptureContextActions"' in xaml
     assert 'x:Name="LearningCaptureActions"' in xaml
     assert 'GetAaosBreakpoint("AaosNarrowActionsBreakpoint", 1280)' in code
     assert 'CaptureContextActions.Orientation' in code
     assert 'LearningCaptureActions.Orientation' in code
     assert 'LearningEmptyActions.Orientation' in code
-    assert 'HomeHeroActions.Orientation' in code
+    assert 'HomeQuickCaptureActions.Orientation' in code
     assert 'LibraryFilterPanel.Orientation' in code
 
 
-def test_compact_home_hero_keeps_primary_actions_together_and_hides_decoration() -> None:
+def test_ui_home_prioritizes_learning_and_reader_views_scale_before_stacking() -> None:
+    code = CODE.read_text(encoding="utf-8")
+    reader_code = SOURCE_READER_CODE.read_text(encoding="utf-8")
+    evidence_code = EVIDENCE_CODE.read_text(encoding="utf-8")
+
+    stats = _control('HomeStatsSurface')
+    assert stats.get('IsVisible') != 'False'
+    assert 'HomeStatsSurface.IsVisible = section == "home";' in code
+    assert _control('HomeTodayFocusCard').get('Grid.Column') == '1'
+    assert 'HomeEvidenceContentGrid.IsVisible = _activeSection == "home";' in code
+    assert 'new ColumnDefinitions("210,2*,260")' in reader_code
+    assert 'new ColumnDefinitions("240,2.2*,300")' in reader_code
+    assert 'EvidenceLibraryTableHeader.IsVisible = width >= 1120;' in evidence_code
+    assert 'width < 1120 ? "EvidenceLibraryCompactRowTemplate" : "EvidenceLibraryRowTemplate"' in evidence_code
+    assert 'var detailColumns = width < 1024 ? 1 : 2;' in evidence_code
+    assert 'Grid.SetRow(EvidenceDetailPageGrid.Children[1], detailColumns == 1 ? 1 : 0);' in evidence_code
+
+
+def test_compact_home_reflows_graph_after_b10_evidence_dashboard() -> None:
     code = CODE.read_text(encoding="utf-8")
 
-    assert 'HomeHeroActions.Orientation = mobile' in code
-    assert 'HomeHeroImage.IsVisible = !compact;' in code
+    assert 'HomeGraphContentGrid.RowDefinitions = contentWidth < 1100' in code
 
 
 def test_home_surface_uses_plain_language_for_primary_status_and_actions() -> None:
@@ -1991,11 +2070,14 @@ def test_home_surface_uses_plain_language_for_primary_status_and_actions() -> No
     code = CODE.read_text(encoding="utf-8")
     home = xaml.split('x:Name="HomeSurface"', 1)[1].split('x:Name="CaptureSurface"', 1)[0]
 
-    assert 'Text="本地数据状态"' in xaml
-    assert 'Text="先检查工作区，再导入第一份资料。"' in home
-    assert 'Text="显示已确认的进度；尚未读取到的信息会明确标记。"' in home
-    assert 'Content="继续学习"' in home
-    assert 'AutomationProperties.Name="继续学习"' in home
+    for title in ('最近证据', '今日进度', 'Memory Graph', '节点详情'):
+        assert any(node.get('Text') == title for node in _control('HomeSurface').iter())
+    assert 'Core 返回真实 Evidence anchor 后会显示在这里。' in home
+    assert 'Core 尚未提供节点与关系投影；示意图仅表达页面结构。' in home
+    learning = _control("HomeFocusLearningButton")
+    assert learning.get("Content") == "查看学习队列"
+    assert learning.get("AutomationProperties.Name") == "查看 Core 学习队列"
+    assert learning.get("Click") == "OnLearningNavigationClick"
     assert "Core 学习队列暂不可用" not in code
     assert "Core 当前没有待学习项目" not in code
     assert "Core 已返回真实状态" not in code
@@ -2003,21 +2085,22 @@ def test_home_surface_uses_plain_language_for_primary_status_and_actions() -> No
 
 
 def test_primary_empty_states_and_settings_navigation_use_product_language() -> None:
-    xaml = XAML.read_text(encoding="utf-8")
     code = CODE.read_text(encoding="utf-8")
 
-    assert 'Content="设置" Padding="14,10" Click="OnSettingsClick" AutomationProperties.Name="打开设置"' in xaml
-    assert 'Content="设置" Click="OnSettingsClick" AutomationProperties.Name="打开设置"' in xaml
+    for name in ("RailSystemButton", "MobileSystemButton"):
+        settings = _control(name)
+        assert settings.get("Click") == "OnSettingsClick"
+        assert settings.get("AutomationProperties.Name") == "打开设置"
     assert 'HomeEvidenceText.Text = "本次会话还没有资料接收回执。";' in code
-    assert 'Text="本次会话还没有资料接收回执。"' in xaml
+    assert _control("HomeEvidenceText").get("Text") == "本次会话暂无活动回执。"
     assert 'string layer = "平台数据 · 类型暂不可用"' in code
     assert '来自平台数据；缺失字段不会补猜。' in code
 
 
 def test_wide_workspace_has_a_readable_bounded_center_width() -> None:
-    xaml = XAML.read_text(encoding="utf-8")
 
-    assert 'MaxWidth="1200"' in xaml
+    center = _control('WorkspaceScrollViewer')
+    assert any(node.get('MaxWidth') == '1600' for node in center.iter())
 
 
 def test_wide_desktop_keeps_inspector_optional_and_bounded_workspace_at_1920_2560() -> None:
@@ -2025,30 +2108,31 @@ def test_wide_desktop_keeps_inspector_optional_and_bounded_workspace_at_1920_256
     code = CODE.read_text(encoding="utf-8")
     theme = THEME_XAML.read_text(encoding="utf-8")
 
-    assert 'ColumnDefinitions="224,200,*,300"' in xaml
+    assert _control('MainFrameGrid').get('ColumnDefinitions') == '280,0,*,0'
     assert 'x:Name="InspectorPanel"' in xaml
     assert 'GetAaosBreakpoint("AaosInspectorBreakpoint", 1440)' in code
     assert 'InspectorDrawerButton.IsVisible = true;' in code
     assert 'InspectorPanel.IsVisible = _inspectorDrawerOpen;' in code
     assert 'MainFrameGrid.ColumnDefinitions[3].Width = _inspectorDrawerOpen' in code
     assert '<x:Double x:Key="AaosInspectorBreakpoint">1440</x:Double>' in theme
-    assert 'MaxWidth="1200"' in xaml
+    assert any(node.get('MaxWidth') == '1600' for node in _control('WorkspaceScrollViewer').iter())
 
 
 def test_aaos_default_shell_uses_b10_chrome_and_collapsed_activity() -> None:
     xaml = XAML.read_text(encoding="utf-8")
     code = CODE.read_text(encoding="utf-8")
 
-    assert 'RowDefinitions="Auto,*,Auto" ColumnDefinitions="224,200,*,300"' in xaml
-    assert 'Padding="24,8"' in xaml
+    assert _control('MainFrameGrid').get('RowDefinitions') == 'Auto,*,Auto,Auto'
+    assert _control('MainFrameGrid').get('ColumnDefinitions') == '280,0,*,0'
+    assert _control('TopbarShell').get('Padding') == '22,12'
     assert 'x:Name="TopbarCommandButton"' in xaml
-    assert 'x:Name="HomeHeroAmbientGlow" Grid.ColumnSpan="2" Background="{DynamicResource AaosAmbientGlowBrush}"' in xaml
-    assert 'x:Name="HomeHeroImage" Grid.Column="1"' in xaml
-    assert 'ActivityDock.MinHeight = expanded ? 112 : 44;' in code
+    assert _control('HomeHeroVisual').tag.endswith('AaosMemoryGraphView')
+    assert 'ActivityDock.MinHeight = expanded ? 112 : 24;' in code
     assert 'ActivityDockStatusText.IsVisible = expanded;' in code
     assert 'MainFrameGrid.ColumnDefinitions[3].Width = wideInspector && _inspectorDrawerOpen' in code
-    assert 'InspectorActionPanel.Orientation = _inspectorDrawerOpen' in code
-    assert 'ActivityDock.MinHeight = _activityDockExpanded ? 112 : 44;' in code
+    assert 'var inspectorActionsNarrow = narrowActions || InspectorPanel.IsVisible;' in code
+    assert 'InspectorActionPanel.Orientation = inspectorActionsNarrow' in code
+    assert 'ActivityDock.MinHeight = _activityDockExpanded ? 112 : 24;' in code
     assert 'ActivityDockGrid.RowDefinitions = new RowDefinitions("Auto");' in code
 
 
@@ -2137,8 +2221,8 @@ def test_evidence_center_projects_only_existing_core_read_models() -> None:
     assert 'x:Name="EvidenceEmptyStateContent"' in evidence_xaml
     assert 'x:Name="EvidenceEmptyStateImage"' in evidence_xaml
     assert 'EvidenceEmptyStateContent.Orientation' in evidence_code
-    assert 'EvidenceCenterView.SetResponsiveLayout(compact, e.NewSize.Width)' in code
-    assert 'SetResponsiveToolbar(MemoryMapToolbar' in code
+    assert 'EvidenceCenterView.SetResponsiveLayout(compact, contentWidth)' in code
+    assert 'EvidenceToolbar.ColumnDefinitions = narrowActions ? new ColumnDefinitions("*") : new ColumnDefinitions("Auto,*");' in evidence_code
 
 
 def test_evidence_selection_updates_inspector_action_state() -> None:
@@ -2244,7 +2328,12 @@ def test_memory_map_projects_core_knowledge_lineage_without_fabricating_graph() 
     assert '/v3' in code
     assert 'supersedes' in code
     assert 'superseded_by' in code
-    assert '不冒充 Memory Graph' in xaml
+    assert '示意网络不代表 Core 知识条目或真实关系；真实图谱投影尚未提供。' in xaml
+    graph_xaml = (ROOT / 'apps/ArcheAxis.Desktop/AaosMemoryGraphView.axaml').read_text(encoding='utf-8')
+    graph_code = (ROOT / 'apps/ArcheAxis.Desktop/AaosMemoryGraphView.axaml.cs').read_text(encoding='utf-8')
+    assert '节点和连线均不代表 Core 条目或关系' in graph_xaml
+    assert '静态示意，不代表 Core 条目或关系' in graph_code
+    assert '不读取、不筛选 Core 图谱数据。' in graph_code
     assert 'ReferenceEquals(sender, MemoryMapKnowledgeIdBox)' in code
     assert 'RefreshMemoryMapAsync()' in code
     assert 'var hasMemoryMapSource = MemoryMapSurface.IsVisible' in code
@@ -2268,16 +2357,36 @@ def test_unavailable_product_surfaces_have_truthful_next_actions() -> None:
     assert '尚未接入 Core' in code
 
 
-def test_mobile_workspace_keeps_primary_navigation_discoverable() -> None:
+def test_mobile_navigation_registers_visible_actions_and_keyboard_palette_routes() -> None:
     xaml = XAML.read_text(encoding="utf-8")
     code = CODE.read_text(encoding="utf-8")
 
     assert 'x:Name="MobileRail"' in xaml
-    assert 'HorizontalScrollBarVisibility="Hidden"' in xaml
-    assert 'x:Name="MobileWorkspaceButton"' in xaml
-    assert 'x:Name="MobileKnowledgeButton"' in xaml
-    assert 'x:Name="MobileLearningButton"' in xaml
-    assert 'x:Name="MobileSystemButton"' in xaml
+    rail = _control('MobileRail')
+    grid = next(node for node in rail if node.tag.endswith('Grid'))
+    visible_buttons = [node for node in grid if node.tag.endswith('Button')]
+    assert [node.get('Click') for node in visible_buttons] == [
+        'OnHomeClick', 'OnCaptureClick', 'OnEvidenceClick', 'OnReviewClick',
+    ]
+    assert all(node.get('IsVisible') != 'False' for node in visible_buttons)
+    assert _control('TopbarCommandButton').get('Click') == 'OnOpenCommandPaletteClick'
+    assert _control('TopbarShell').get('IsVisible') != 'False'
+    assert 'TopbarCommandButton.IsVisible = false' not in code
+    for label, section in (
+        ('首页', 'home'), ('捕获', 'capture'), ('证据库', 'evidence'),
+        ('原创', 'original-editor'), ('人类学习', 'learning'),
+        ('机器学习', 'machine-growth'), ('工作区', 'workspace'),
+        ('记忆地图', 'memory-map'), ('搜索', 'search'),
+        ('复习 / FSRS', 'review'), ('设置', 'settings'),
+    ):
+        assert f'new("{label}", "{section}"' in code
+    assert 'e.Key == Key.K && (e.KeyModifiers & KeyModifiers.Control) != 0' in code
+    keyboard = _handler('OnCommandPaletteKeyDown')
+    assert 'e.Key == Key.Tab' in keyboard
+    assert 'e.Key == Key.Enter' in keyboard
+    assert 'ExecuteCommandPaletteCommand(' in keyboard
+    # These are source registration contracts; actual native keyboard reachability
+    # requires a separate runtime check and is not proved by hidden controls.
     assert 'MobileRail.IsVisible = mobile;' in code
     assert 'PrimaryRail.IsVisible = !mobile;' in code
     assert 'Grid.SetColumn(WorkspaceScrollViewer, mobile ? 0 : 2);' in code
@@ -2287,7 +2396,6 @@ def test_mobile_workspace_keeps_primary_navigation_discoverable() -> None:
 
 
 def test_compact_home_and_source_reader_use_explicit_single_column_reflow() -> None:
-    xaml = XAML.read_text(encoding="utf-8")
     code = CODE.read_text(encoding="utf-8")
     reader_xaml = SOURCE_READER_XAML.read_text(encoding="utf-8")
     reader_code = SOURCE_READER_CODE.read_text(encoding="utf-8")
@@ -2299,9 +2407,9 @@ def test_compact_home_and_source_reader_use_explicit_single_column_reflow() -> N
     assert 'new ColumnDefinitions("*")' in reader_code
     assert 'new RowDefinitions("Auto,Auto,Auto")' in reader_code
     assert 'Grid.SetRow(SourceReaderChainBorder, compact ? 2 : 0);' in reader_code
-    assert 'x:Name="HomeHeroGrid"' in xaml
-    assert 'x:Name="HomeHeroImage"' in xaml
-    assert 'Grid.SetColumn(HomeHeroImage, compact ? 0 : 1);' in code
+    assert _control('HomeHeroVisual').tag.endswith('AaosMemoryGraphView')
+    assert 'HomeGraphContentGrid.RowDefinitions = contentWidth < 1100' in code
+    assert 'Grid.SetColumn(HomeNodeDetailsCard, contentWidth < 1100 ? 0 : 1);' in code
 
 
 def test_compact_knowledge_facts_reflow_without_overlapping_two_column_cards() -> None:
@@ -2313,7 +2421,10 @@ def test_compact_knowledge_facts_reflow_without_overlapping_two_column_cards() -
     assert 'KnowledgeFactsGrid.ColumnDefinitions = compact' in code
     assert 'new RowDefinitions("Auto,Auto,Auto,Auto")' in code
     assert 'Grid.SetRow(KnowledgeReviewCard, compact ? 3 : 1);' in code
-    assert 'HomeLifecycleGrid.ColumnDefinitions = compact' in code
+    resize = _handler("ApplyResponsiveLayout")
+    assert 'HomeLifecycleGrid.ColumnDefinitions = homeMetricColumns switch' in resize
+    assert 'Grid.SetColumn(HomeLifecycleGrid.Children[index], index % homeMetricColumns);' in resize
+    assert 'Grid.SetRow(HomeLifecycleGrid.Children[index], index / homeMetricColumns);' in resize
     assert 'new RowDefinitions("Auto,Auto,Auto,Auto,Auto")' in code
 
 
@@ -2349,7 +2460,9 @@ def test_core_learning_controls_expose_stable_automation_names_and_motion_tokens
     assert '<DoubleTransition Property="Opacity" Duration="0:0:0.12" />' in theme
     assert '<x:Double x:Key="AaosMotionFastMs">120</x:Double>' in theme
     assert '<Setter Property="Opacity" Value="0.86" />' in theme
-    assert 'x:Key="AaosPrimaryTextBrush" Color="#101214"' in theme
+    palette = (ROOT / "apps/ArcheAxis.Desktop/ThemePalette.cs").read_text(encoding="utf-8")
+    assert '["AaosPrimaryTextBrush"] = "#101214"' in palette
+    assert '["AaosPrimaryTextBrush"] = "#061118"' in palette
     assert '<Setter Property="Foreground" Value="{DynamicResource AaosPrimaryTextBrush}" />' in theme
     assert 'AAOS_REDUCED_MOTION' in code
     assert 'Grid.reduced-motion Button' in theme
@@ -2424,20 +2537,19 @@ def test_primary_and_mobile_navigation_have_stable_accessibility_names() -> None
     code = CODE.read_text(encoding="utf-8")
 
     expected = {
-        'x:Name="RailMachineButton"': 'AutomationProperties.Name="打开机器知识"',
+        'x:Name="RailMachineButton"': 'AutomationProperties.Name="打开机器学习"',
         'x:Name="RailResearchButton"': 'AutomationProperties.Name="打开研究"',
         'x:Name="RailPluginsButton"': 'AutomationProperties.Name="打开插件"',
         'x:Name="RailModelsButton"': 'AutomationProperties.Name="打开模型"',
-        'x:Name="MobileMachineButton"': 'AutomationProperties.Name="打开机器知识"',
+        'x:Name="MobileMachineButton"': 'AutomationProperties.Name="打开机器学习"',
         'x:Name="MobileResearchButton"': 'AutomationProperties.Name="打开研究"',
         'x:Name="MobilePluginsButton"': 'AutomationProperties.Name="打开插件"',
         'x:Name="MobileModelsButton"': 'AutomationProperties.Name="打开模型"',
     }
     for control, automation_name in expected.items():
         assert control in xaml
-        control_start = xaml.index(control)
-        control_end = xaml.index(" />", control_start)
-        assert automation_name in xaml[control_start:control_end]
+        named_control = _control(control.split('"')[1])
+        assert named_control.get("AutomationProperties.Name") == automation_name.split('"')[1]
     assert '来源链字段不完整，未复制占位值' in code
     assert 'private bool IsCurrentSourceTransformRequest' in code
     assert 'ReferenceEquals(SourceReaderView.SelectedRow, selected)' in code
@@ -2455,7 +2567,10 @@ def test_learning_navigation_does_not_reenter_section_setup() -> None:
     code = CODE.read_text(encoding="utf-8")
 
     assert 'private bool _learningNavigationLoadInProgress;' in code
-    assert 'section == "learning" && !_learningNavigationLoadInProgress' in code
+    assert 'section is "learning" or "review" && !_learningNavigationLoadInProgress' in code
+    loader = code.split('private Task LoadLearningIfNeededAsync()', 1)[1].split('private Task ReadRecoveryStatusAsync()', 1)[0]
+    assert 'if (!LearningSurface.IsVisible && !ReviewSurface.IsVisible)' in loader
+    assert 'OnLearningClick(this, new RoutedEventArgs());' in loader
     assert '_learningNavigationLoadInProgress = true;' in code
     assert '_learningNavigationLoadInProgress = false;' in code
 
@@ -2463,7 +2578,9 @@ def test_learning_navigation_does_not_reenter_section_setup() -> None:
 def test_command_palette_can_execute_evidence_route() -> None:
     code = CODE.read_text(encoding="utf-8")
 
-    assert 'new("证据中心", "evidence", "证据中心")' in code
+    assert 'new("证据库", "evidence", "证据库", "证据中心")' in code
+    assert 'string.Equals(command, Label, StringComparison.OrdinalIgnoreCase)' in code
+    assert 'Aliases.Any(alias => string.Equals(command, alias, StringComparison.OrdinalIgnoreCase))' in code
 
 
 def test_command_palette_routes_have_one_authoritative_definition() -> None:
@@ -2477,7 +2594,14 @@ def test_command_palette_routes_have_one_authoritative_definition() -> None:
 def test_command_palette_placeholder_lists_all_primary_routes() -> None:
     xaml = XAML.read_text(encoding="utf-8")
 
-    assert 'PlaceholderText="输入：首页 / 捕获 / 资料库 / 原件阅读 / 知识库 / 原件编辑 / 记忆地图 / 学习 / 证据中心 / 研究 / 机器知识 / 任务 / 插件 / 模型 / 恢复 / 设置"' in xaml
+    assert '机器学习 / 任务 / 插件 / 模型 / 恢复 / 设置"' in xaml
+    code = CODE.read_text(encoding="utf-8")
+    routes = code.split('CommandPaletteRoutes =', 1)[1].split('private static readonly string[] CommandPaletteCommands', 1)[0]
+    for label, section in (("证据库", "evidence"), ("原创", "original-editor"),
+                           ("人类学习", "learning"), ("机器学习", "machine-growth"),
+                           ("工作区", "workspace")):
+        assert any(f'"{label}"' in line and f'"{section}"' in line
+                   for line in routes.splitlines()), label
 
 
 def test_command_palette_unknown_command_help_lists_every_route() -> None:
@@ -2492,7 +2616,11 @@ def test_command_palette_restores_focus_after_close_or_execute() -> None:
     assert 'private IInputElement? _commandPaletteReturnFocus;' in code
     assert 'private void SetCommandPaletteVisibility(bool visible)' in code
     assert '_commandPaletteReturnFocus = FocusManager.GetFocusedElement();' in code
-    assert 'returnFocus?.Focus();' in code
+    restore = _handler("SetCommandPaletteVisibility")
+    # Avalonia 12.1.2 IFocusManager.Focus documents a boolean success result.
+    # Navigation can hide the old input; close must retain a visible focus destination.
+    assert re.search(r"if\s*\(returnFocus\?\.Focus\(\)\s*!=\s*true\)\s*(?:\{\s*)?WorkspaceHeadingText\.Focus\(\);", restore)
+    assert _control("WorkspaceHeadingText").get("Focusable") == "True"
     assert 'SetCommandPaletteVisibility(false);' in code
     execute_start = code.index("private void ExecuteCommandPaletteCommand")
     execute_end = code.index("private void ResetSourceReaderSelection", execute_start)
@@ -2835,24 +2963,21 @@ def test_native_top_level_menu_headers_expose_access_keys() -> None:
 
 def test_reused_ambient_illustrations_are_hidden_as_decorative_content() -> None:
     xaml = XAML.read_text(encoding="utf-8")
-    image_elements = [element.split("/>", 1)[0] for element in xaml.split("<Image ")[1:]]
-
-    assert len(image_elements) == 1
-    assert 'x:Name="HomeHeroImage"' in image_elements[0]
-    assert 'AutomationProperties.Name="星环知识图：资料、检索与灵感"' in image_elements[0]
-    assert 'AutomationProperties.AccessibilityView="Raw"' not in image_elements[0]
-    assert sum("knowledge-constellation-empty-state.png" in element
-               for element in xaml.split("<Image ")[1:]) == 1
+    hero = _control("HomeHeroVisual")
+    assert hero.tag.endswith("AaosMemoryGraphView")
+    assert hero.get("NodeSelected") == "OnHomeMemoryNodeSelected"
+    trend = _control("HomeTrendIllustration")
+    assert trend.get("AutomationProperties.AccessibilityView") == "Raw"
+    assert trend.get("AutomationProperties.Name") == "知识演化示意图，不表示真实时间序列"
     unavailable_start = xaml.index('x:Name="UnavailableSurface"')
     unavailable_end = xaml.index("</Border>", unavailable_start)
     assert "<Image " not in xaml[unavailable_start:unavailable_end]
     learning_start = xaml.index('x:Name="LearningEmptyActions"')
     learning_end = xaml.index("</StackPanel>", learning_start)
     assert "<Image " not in xaml[learning_start:learning_end]
-    evidence_xaml = EVIDENCE_XAML.read_text(encoding="utf-8")
-    evidence_image = evidence_xaml.split("<Image ", 1)[1].split("/>", 1)[0]
-    assert 'AutomationProperties.AccessibilityView="Raw"' in evidence_image
-    assert 'AutomationProperties.IsControlElementOverride="False"' in evidence_image
+    evidence_image = _control("EvidenceEmptyStateImage", EVIDENCE_XAML)
+    assert evidence_image.get("AutomationProperties.AccessibilityView") == "Raw"
+    assert evidence_image.get("AutomationProperties.IsControlElementOverride") == "False"
 
 
 def test_desktop_window_uses_a_valid_small_multiresolution_aaos_icon() -> None:
@@ -2876,21 +3001,16 @@ def test_desktop_window_uses_a_valid_small_multiresolution_aaos_icon() -> None:
 
 
 def test_evidence_center_uses_a_distinct_transparent_anchor_illustration() -> None:
-    import struct
-
-    xaml = EVIDENCE_XAML.read_text(encoding="utf-8")
-    image = (ROOT / "apps" / "ArcheAxis.Desktop" / "Assets" / "aaos-evidence-anchor-empty-state.png").read_bytes()
-    evidence_image = next(element.split("/>", 1)[0] for element in xaml.split("<Image ")[1:]
-                          if 'x:Name="EvidenceEmptyStateImage"' in element)
-
-    assert 'Source="avares://ArcheAxis.Desktop/Assets/aaos-evidence-anchor-empty-state.png"' in evidence_image
-    assert 'Width="150" Height="112"' in evidence_image
-    assert 'AutomationProperties.AccessibilityView="Raw"' in evidence_image
-    assert len(image) < 2_000_000
-    assert image[:8] == b"\x89PNG\r\n\x1a\n"
-    width, height = struct.unpack(">II", image[16:24])
-    assert width > 0 and height > 0
-    assert image[25] in (4, 6), "asset should retain an alpha channel for a transparent UI background"
+    evidence_image = _control("EvidenceEmptyStateImage", EVIDENCE_XAML)
+    assert evidence_image.tag.endswith("Border")
+    assert evidence_image.get("Background") == "Transparent"
+    assert evidence_image.get("Width") == "64" and evidence_image.get("Height") == "64"
+    assert evidence_image.get("AutomationProperties.AccessibilityView") == "Raw"
+    assert evidence_image.get("AutomationProperties.IsControlElementOverride") == "False"
+    anchor = list(evidence_image)
+    assert len(anchor) == 1 and anchor[0].tag.endswith("AaosIcon")
+    assert anchor[0].get("IconName") == "Evidence"
+    assert anchor[0].get("Width") == "14" and anchor[0].get("Height") == "14"
 
 
 def test_native_menu_shortcuts_are_bound_to_the_advertised_view_actions() -> None:
@@ -2901,17 +3021,20 @@ def test_native_menu_shortcuts_are_bound_to_the_advertised_view_actions() -> Non
     assert 'OnMenuToggleActivityDockClick(this, new RoutedEventArgs())' in code
 
 
-def test_native_navigation_menu_exposes_all_sixteen_command_palette_routes() -> None:
+def test_hidden_legacy_menu_registers_eighteen_routes_without_claiming_native_exposure() -> None:
     xaml = XAML.read_text(encoding="utf-8")
     start = xaml.index('AutomationProperties.Name="导航菜单"')
     end = xaml.index('<MenuItem Header="视图(_V)"', start)
     menu = xaml[start:end]
     for route in (
         "工作台", "捕获", "资料库", "原件阅读", "知识库", "原件编辑", "记忆地图", "学习",
-        "证据中心", "研究", "机器知识", "任务", "插件", "模型", "恢复", "系统设置",
+        "证据中心", "研究", "机器学习", "任务", "插件", "模型", "恢复", "系统设置",
+        "搜索", "复习与 FSRS",
     ):
         assert f'AutomationProperties.Name="导航到{route}"' in menu
-    assert menu.count("<MenuItem ") == 16
+    assert menu.count("<MenuItem ") == 18
+    assert _control('ApplicationMenu').get('IsVisible') == 'False'
+    assert _control('TopbarCommandButton').get('IsVisible') != 'False'
 
 
 def test_navigation_current_page_state_is_synchronized_for_rail_mobile_and_menu() -> None:
