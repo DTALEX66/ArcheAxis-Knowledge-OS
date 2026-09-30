@@ -7,18 +7,26 @@ using System.Net.Http;
 using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
+using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Input.Platform;
 using Avalonia.Interactivity;
+using Avalonia.Media;
+using Avalonia.Media.Imaging;
 using Avalonia.Platform.Storage;
 using Avalonia.Threading;
+using Avalonia.VisualTree;
 using ArcheAxis.Desktop.Views;
 
 namespace ArcheAxis.Desktop;
 
 public partial class MainWindow : Window
 {
+    private const double MasterSidebarWidth = 280d;
+    private const int ReviewFlipDurationMs = 550;
+    private ScaleTransform ToastEntranceScale = null!;
+    private TranslateTransform ToastEntranceTranslation = null!;
     private CoreSupervisor? _supervisor;
     private readonly DeepTutorSupervisor _deepTutor = DeepTutorSupervisor.CreateFromEnvironment();
     private string? _activeLearningItem;
@@ -37,6 +45,7 @@ public partial class MainWindow : Window
     private List<JobReceiptRow> _currentSessionJobReceipts = new();
     private string? _selectedLearningItemKey;
     private bool _hydratingLearningQueue;
+    private bool _reviewQueueLoadedFromCore;
     private bool _learningNavigationLoadInProgress;
     private bool _captureImportInProgress;
     private bool _jobsStateFilterReady;
@@ -44,6 +53,7 @@ public partial class MainWindow : Window
     private long _sourceReaderRequestVersion;
     private long _sourceTransformRequestVersion;
     private long _evidenceRequestVersion;
+    private long _homeEvidenceRequestVersion;
     private long _memoryMapRequestVersion;
     private long _learningRequestVersion;
     private long _reviewRequestVersion;
@@ -55,6 +65,8 @@ public partial class MainWindow : Window
     private long _machineTaskRequestVersion;
     private bool _machineTaskLoadInProgress;
     private long _jobLookupRequestVersion;
+    private long _jobOutputRequestVersion;
+    private bool _jobCancelInProgress;
     private readonly List<CaptureContextRow> _captureContexts = new();
     private CaptureContextRow? _latestCaptureContext;
     private CaptureContextRow? _selectedCaptureContext;
@@ -63,6 +75,12 @@ public partial class MainWindow : Window
     private bool _knowledgeReturnToLibraryAvailable;
     private string? _librarySearchQuery;
     private string? _activeKnowledgeSourceId;
+    private string? _knowledgeReadId;
+    private string? _knowledgeReadStatus;
+    private bool _knowledgeRequiresHumanReview;
+    private bool _knowledgeQualificationExists;
+    private bool _knowledgeQualificationActive;
+    private bool _knowledgeReviewInProgress;
     private string? _activeEvidenceSourceId;
     private string? _activeMemoryMapSourceId;
     private string? _sourceReaderReturnKnowledgeId;
@@ -78,9 +96,20 @@ public partial class MainWindow : Window
     private bool _responsiveLayoutInitialized;
     private bool _reducedMotion;
     private DispatcherTimer? _homeHeroAmbientTimer;
+    private DispatcherTimer? _inspectorMotionTimer;
+    private DateTimeOffset _inspectorMotionStartedAt;
+    private double _inspectorMotionStartX;
+    private double _inspectorMotionTargetX;
     private bool _homeHeroAmbientBright;
     private IInputElement? _commandPaletteReturnFocus;
-    private readonly DispatcherTimer _toastTimer = new() { Interval = TimeSpan.FromMilliseconds(2600) };
+    private readonly DispatcherTimer _toastTimer = new() { Interval = TimeSpan.FromMilliseconds(1800) };
+    private const int ToastMotionDurationMs = 220;
+    private readonly DispatcherTimer _toastMotionTimer = new() { Interval = TimeSpan.FromMilliseconds(16) };
+    private double _toastMotionElapsedMs;
+    private bool _toastMotionExiting;
+    private readonly DispatcherTimer _reviewFlipTimer = new() { Interval = TimeSpan.FromMilliseconds(16) };
+    private double _reviewFlipElapsedMs;
+    private bool _reviewFlipInProgress;
     private sealed record CommandPaletteRoute(
         string Label,
         string Section,
@@ -97,14 +126,17 @@ public partial class MainWindow : Window
         new("首页", "home", "首页", "工作台"),
         new("捕获", "capture", "捕获", "Capture"),
         new("资料库", "library", "资料库", "资料与知识"),
+        new("搜索", "search", "搜索", "Search"),
         new("原件阅读", "source-reader", "导入阅读", "导入阅读"),
         new("知识库", "knowledge", "知识库", "知识详情"),
-        new("原件编辑", "original-editor", "原件编辑", "编辑原件"),
+        new("原创", "original-editor", "原创", "原件编辑", "编辑原件"),
         new("记忆地图", "memory-map", "记忆地图", "Memory Map", "记忆图谱"),
-        new("学习", "learning", "学习", "学习路径"),
-        new("证据中心", "evidence", "证据中心"),
+        new("人类学习", "learning", "人类学习", "学习", "学习路径"),
+        new("复习 / FSRS", "review", "复习 / FSRS", "复习", "Review"),
+        new("证据库", "evidence", "证据库", "证据中心"),
         new("研究", "research", "研究"),
-        new("机器知识", "machine-growth", "机器知识"),
+        new("机器学习", "machine-growth", "机器学习", "机器知识"),
+        new("工作区", "workspace", "工作区"),
         new("任务", "jobs", "任务", "任务收据"),
         new("插件", "plugins", "插件"),
         new("模型", "models", "模型"),
@@ -126,6 +158,16 @@ public partial class MainWindow : Window
         public string JobState { get; set; }
         public string DisplayText =>
             $"文件：{FileName}\nsource_id={SourceId}\nsha256={Sha256}\njob_id={JobId}\n状态={JobState}";
+        public string JobStateDisplay => JobState switch
+        {
+            "succeeded" => "完成 · Core 回执",
+            "failed" => "失败 · Core 回执",
+            "cancelled" => "取消 · Core 回执",
+            "running" => "处理中 · Core 回执",
+            "queued" => "排队中 · Core 回执",
+            "source_received" => "来源已接收",
+            _ => $"{JobState} · Core 回执",
+        };
 
         public CaptureContextRow(string fileName, string sourceId, string sha256)
         {
@@ -143,16 +185,20 @@ public partial class MainWindow : Window
     {
         public string JobId { get; }
         public string State { get; }
+        public string RequestId { get; }
+        public string Attempt { get; }
         public string SemanticState { get; }
         public string Detail { get; }
         public string DisplayText => $"{JobId} · {State}";
 
-        public JobReceiptRow(string jobId, string state, string detail, string semanticState)
+        public JobReceiptRow(string jobId, string state, string detail, string semanticState, string requestId = "—", string attempt = "—")
         {
             JobId = jobId;
             State = state;
             Detail = detail;
             SemanticState = semanticState;
+            RequestId = requestId;
+            Attempt = attempt;
         }
 
         public override string ToString() => Detail;
@@ -161,6 +207,21 @@ public partial class MainWindow : Window
     public MainWindow()
     {
         InitializeComponent();
+        HomeHeroVisual.UseB10HomeLayout();
+        ComposeHomeDashboard();
+        var toastTransforms = (TransformGroup)ToastSurface.RenderTransform!;
+        ToastEntranceScale = (ScaleTransform)toastTransforms.Children[0];
+        ToastEntranceTranslation = (TranslateTransform)toastTransforms.Children[1];
+        var screen = Screens.Primary;
+        if (screen is not null && screen.Scaling > 0)
+        {
+            var availableWidth = Math.Max(MinWidth, screen.WorkingArea.Width / screen.Scaling - 32);
+            var availableHeight = Math.Max(MinHeight, screen.WorkingArea.Height / screen.Scaling - 32);
+            Width = Math.Min(Width, availableWidth);
+            Height = Math.Min(Height, availableHeight);
+        }
+        SettingsThemePaletteBox.SelectionChanged += OnThemePaletteChanged;
+        ThemePalette.Apply(ThemePalette.Aurora);
         _jobsStateFilterReady = true;
         SourceReaderView.LoadRequested += OnSourceReaderLoadRequested;
         SourceReaderView.RowSelected += OnSourceReaderRowSelected;
@@ -179,16 +240,43 @@ public partial class MainWindow : Window
         AttachAccessibleTextSync(FirstRunOptionalStatusText);
         AttachAccessibleTextSync(HomeFocusText);
         AttachAccessibleTextSync(HomeEvidenceText);
+        AttachAccessibleTextSync(HomeRecentEvidenceStatus);
+        AttachAccessibleTextSync(HomeGraphUnavailableText);
+        AttachAccessibleTextSync(HomeTrendUnavailableText);
         AttachAccessibleTextSync(HomeLifecycleCaptureText);
         AttachAccessibleTextSync(HomeLifecycleSourceText);
         AttachAccessibleTextSync(HomeLifecycleKnowledgeText);
         AttachAccessibleTextSync(HomeLifecycleLearningText);
         AttachAccessibleTextSync(HomeLifecycleReviewText);
+        LearningItemText.PropertyChanged += (_, args) =>
+        {
+            if (args.Property == TextBlock.TextProperty)
+                ReviewPagePromptText.Text = (LearningItemText.Text ?? string.Empty) .Split((char)10, 2)[0];
+        };
+        LearningReviewReceiptText.PropertyChanged += (_, args) =>
+        {
+            if (args.Property == TextBlock.TextProperty)
+                ReviewPageReceiptText.Text = LearningReviewReceiptText.Text;
+        };
+        LearningReviewStatusText.PropertyChanged += (_, args) =>
+        {
+            if (args.Property == TextBlock.TextProperty)
+                ReviewPageCommitStatusText.Text = LearningReviewStatusText.Text;
+        };
         AttachAccessibleTextSync(SettingsCoreStatusText);
         AttachAccessibleTextSync(SettingsWorkspaceStatusText);
-        Title = "ArcheAxis Learning Workspace (vNext) — core offline";
+        LearningAnswerBox.PropertyChanged += (_, args) =>
+        {
+            if (args.Property == TextBox.TextProperty && !ReviewSurface.IsVisible)
+                ReviewPageAnswerBox.Text = LearningAnswerBox.Text;
+        };
+        Title = "ArcheAxis Knowledge — core offline";
         _reducedMotion = string.Equals(Environment.GetEnvironmentVariable("AAOS_REDUCED_MOTION"), "1", StringComparison.OrdinalIgnoreCase)
             || string.Equals(Environment.GetEnvironmentVariable("AAOS_REDUCED_MOTION"), "true", StringComparison.OrdinalIgnoreCase);
+        HomeHeroVisual.SetReducedMotion(_reducedMotion);
+        MemoryMapMotherGraph.SetReducedMotion(_reducedMotion);
+        CaptureScanSweep.SetReducedMotion(_reducedMotion);
+        HomeHeroVisual.SetMotionActive(_activeSection == "home");
         if (_reducedMotion)
         {
             MainFrameGrid.Classes.Set("reduced-motion", true);
@@ -196,6 +284,19 @@ public partial class MainWindow : Window
         Loaded += OnLoaded;
         Closed += OnClosed;
         _toastTimer.Tick += OnToastTimerTick;
+        _toastMotionTimer.Tick += OnToastMotionTick;
+        _reviewFlipTimer.Tick += OnReviewFlipTick;
+    }
+
+    private void ComposeHomeDashboard()
+    {
+        // Keep the home focused on today's learning, quick capture, and real recent evidence.
+        HomeQuickCaptureCard.IsVisible = true;
+        HomeTodayFocusCard.IsVisible = true;
+        HomeEvidenceContentGrid.IsVisible = true;
+        HomeGraphContentGrid.IsVisible = _activeSection == "home";
+        HomeNodeDetailsCard.IsVisible = _activeSection == "home";
+        HomeTrendCard.IsVisible = _activeSection == "home";
     }
 
     private static void AttachAccessibleTextSync(TextBlock target)
@@ -210,7 +311,35 @@ public partial class MainWindow : Window
 
     private async void OnLoaded(object? sender, RoutedEventArgs e)
     {
-        StartHomeHeroAmbientMotion();
+        var capturePath = Environment.GetEnvironmentVariable("AAOS_UI_CAPTURE_PATH");
+        if (!string.IsNullOrWhiteSpace(capturePath))
+        {
+            if (double.TryParse(Environment.GetEnvironmentVariable("AAOS_UI_CAPTURE_WIDTH"), System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out var captureWidth) && captureWidth > 0)
+                Width = captureWidth;
+            if (double.TryParse(Environment.GetEnvironmentVariable("AAOS_UI_CAPTURE_HEIGHT"), System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out var captureHeight) && captureHeight > 0)
+                Height = captureHeight;
+            var capturePalette = Environment.GetEnvironmentVariable("AAOS_UI_CAPTURE_THEME") == ThemePalette.Monochrome
+                ? ThemePalette.Monochrome : ThemePalette.Aurora;
+            ApplyThemePalette(capturePalette);
+            SetCaptureRoute(Environment.GetEnvironmentVariable("AAOS_UI_CAPTURE_ROUTE") ?? "home");
+            ApplyResponsiveLayout(new Size(Width, Height));
+            if (string.Equals(Environment.GetEnvironmentVariable("AAOS_UI_CAPTURE_WAIT_CORE"), "1", StringComparison.Ordinal))
+            {
+                var captureDbPath = Environment.GetEnvironmentVariable("ARCHEAXIS_VNEXT_DB")
+                    ?? Environment.GetEnvironmentVariable("ARCHAXIS_VNEXT_DB")
+                    ?? System.IO.Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "ArcheAxis", "vnext", "workspace.sqlite");
+                _supervisor = new CoreSupervisor(captureDbPath);
+                var started = await _supervisor.StartAsync();
+                Title = started.ok ? "ArcheAxis Knowledge — connected" : $"ArcheAxis Knowledge — core offline ({started.detail})";
+                await RefreshWorkspaceSummaryAsync();
+                await RefreshHomeRecentEvidenceAsync();
+            }
+            await Dispatcher.UIThread.InvokeAsync(() => { }, DispatcherPriority.Render);
+            await Dispatcher.UIThread.InvokeAsync(() => { }, DispatcherPriority.Render);
+            CaptureWindowPng(capturePath);
+            Environment.Exit(0);
+            return;
+        }
         // Only start and authenticate our own Core; never adopt a shared service.
         FirstRunCoreStatusText.Text = "Core：正在启动检查";
         var dbPath = Environment.GetEnvironmentVariable("ARCHEAXIS_VNEXT_DB")
@@ -251,16 +380,59 @@ public partial class MainWindow : Window
             CoreStatusText.Classes.Set("status-success", result.ok);
             CoreStatusText.Classes.Set("status-error", !result.ok);
             await RefreshWorkspaceSummaryAsync();
+            await RefreshHomeRecentEvidenceAsync();
         }
         else
         {
-            Title = $"ArcheAxis Learning Workspace (vNext) — core offline ({result.detail})";
+            Title = $"ArcheAxis Knowledge — core offline ({result.detail})";
             CoreStatusText.Text = "核心状态：离线";
             FirstRunCoreStatusText.Text = "Core：离线";
             FirstRunWorkspaceStatusText.Text = "工作区：本地服务未连接，尚未读取状态。";
+            HomeEvidenceCountText.Text = "—";
+            HomeRecentEvidenceStatus.Text = "Core 离线，未读取最近 Evidence。";
             CoreStatusText.Classes.Set("status-success", result.ok);
             CoreStatusText.Classes.Set("status-error", !result.ok);
         }
+    }
+
+    private static readonly IReadOnlyDictionary<string, Action<MainWindow>> CaptureRoutes = new Dictionary<string, Action<MainWindow>>(StringComparer.OrdinalIgnoreCase)
+    {
+        ["home"] = window => window.SetSection("home", "首页"),
+        ["capture"] = window => window.SetSection("capture", "捕获"),
+        ["library"] = window => window.SetSection("library", "资料库"),
+        ["search"] = window => window.SetSection("search", "搜索"),
+        ["reader"] = window => window.SetSection("source-reader", "导入阅读"),
+        ["knowledge"] = window => window.SetSection("knowledge", "知识库"),
+        ["editor"] = window => window.SetSection("original-editor", "原创"),
+        ["memory"] = window => window.SetSection("memory-map", "记忆地图"),
+        ["learning"] = window => window.SetSection("learning", "人类学习"),
+        ["review"] = window => window.SetSection("review", "复习 / FSRS"),
+        ["evidence"] = window => window.SetSection("evidence", "证据中心"),
+        ["machine"] = window => window.SetSection("machine-growth", "机器学习"),
+        ["workspace"] = window => window.SetSection("workspace", "工作区"),
+        ["settings"] = window => window.SetSection("settings", "设置"),
+        ["jobs"] = window => window.SetSection("jobs", "任务"),
+        ["recovery"] = window => window.SetSection("recovery", "恢复"),
+    };
+
+    private void SetCaptureRoute(string route)
+    {
+        if (!CaptureRoutes.TryGetValue(route, out var applyRoute))
+            throw new ArgumentException($"Unknown UI capture route: {route}", nameof(route));
+        applyRoute(this);
+        SettingsThemePaletteBox.SelectedIndex = Environment.GetEnvironmentVariable("AAOS_UI_CAPTURE_THEME") == ThemePalette.Monochrome ? 1 : 0;
+    }
+
+    private void CaptureWindowPng(string path)
+    {
+        if (!this.IsAttachedToVisualTree() || VisualRoot is null)
+            throw new InvalidOperationException("AAOS UI capture requires an attached Avalonia window.");
+        var scale = RenderScaling;
+        var bounds = Bounds;
+        var pixels = new PixelSize((int)Math.Ceiling(bounds.Width * scale), (int)Math.Ceiling(bounds.Height * scale));
+        using var bitmap = new RenderTargetBitmap(pixels, new Vector(96 * scale, 96 * scale));
+        bitmap.Render(this);
+        bitmap.Save(path, PngBitmapEncoderOptions.Default);
     }
 
     private async Task RefreshWorkspaceSummaryAsync()
@@ -278,17 +450,15 @@ public partial class MainWindow : Window
                 using var document = JsonDocument.Parse(await response.Content.ReadAsStringAsync());
                 sources = ReadOptionalInt(document.RootElement, "sources");
                 anchors = ReadOptionalInt(document.RootElement, "anchors");
+                HomeEvidenceCountText.Text = FormatOptionalCount(anchors);
                 FirstRunWorkspaceStatusText.Text = sources is null || anchors is null
                     ? "工作区：部分状态暂不可用。"
                     : $"工作区：已读取 · {sources} 份资料 · {anchors} 条证据";
-                SourcesCountText.Text = FormatOptionalCount(sources);
-                AnchorsCountText.Text = FormatOptionalCount(anchors);
             }
             else
             {
+                HomeEvidenceCountText.Text = "—";
                 FirstRunWorkspaceStatusText.Text = $"工作区：状态读取失败（HTTP {(int)response.StatusCode}）。";
-                SourcesCountText.Text = "—";
-                AnchorsCountText.Text = "—";
             }
 
             using var learningResponse = await _supervisor.SendAsync(HttpMethod.Get, "/api/v1/learning/items");
@@ -313,19 +483,16 @@ public partial class MainWindow : Window
             _homeLearningAvailable = learningAvailable;
             _homeLearningCount = learning;
             HomeFocusLearningButton.IsEnabled = learningAvailable;
-            LearningCountText.Text = learningAvailable ? FormatOptionalCount(learning) : "—";
             RefreshHomeLifecycleProjection();
         }
         catch (Exception)
         {
             CoreStatusText.Text = "核心状态：已连接 · 状态读取失败";
                 FirstRunWorkspaceStatusText.Text = "工作区：状态读取失败。";
-            SourcesCountText.Text = "—";
-            AnchorsCountText.Text = "—";
             _homeLearningAvailable = false;
             _homeLearningCount = null;
             HomeFocusLearningButton.IsEnabled = false;
-            LearningCountText.Text = "—";
+            HomeEvidenceCountText.Text = "—";
             RefreshHomeLifecycleProjection();
         }
     }
@@ -340,6 +507,65 @@ public partial class MainWindow : Window
     private static string FormatOptionalCount(int? value) => value?.ToString() ?? "—";
 
     private static int ReadInt(JsonElement root, string name) => ReadOptionalInt(root, name) ?? 0;
+
+    private async Task RefreshHomeRecentEvidenceAsync()
+    {
+        var requestVersion = ++_homeEvidenceRequestVersion;
+        HomeRecentEvidenceList.ItemsSource = Array.Empty<EvidenceAnchorRow>();
+        HomeRecentEvidenceEmptyState.IsVisible = true;
+        HomeRecentEvidenceStatus.Text = "正在读取 Core 持久化 Evidence anchor。";
+        HomeProgressEvidenceValue.Text = "—";
+        if (_supervisor is null || _supervisor.CoreUrl.Length == 0)
+        {
+            HomeRecentEvidenceStatus.Text = "Core 未就绪，未读取最近 Evidence。";
+            return;
+        }
+
+        try
+        {
+            using var response = await _supervisor.SendAsync(HttpMethod.Get, "/api/v1/evidence/anchors");
+            if (requestVersion != _homeEvidenceRequestVersion || !string.Equals(_activeSection, "home", StringComparison.Ordinal))
+                return;
+            if (!response.IsSuccessStatusCode)
+            {
+                HomeRecentEvidenceStatus.Text = IsPermissionStatus(response.StatusCode)
+                    ? "Core 拒绝读取最近 Evidence anchor。"
+                    : $"最近 Evidence 读取失败（HTTP {(int)response.StatusCode}）。";
+                return;
+            }
+
+            using var document = JsonDocument.Parse(await response.Content.ReadAsStringAsync());
+            var rows = new List<EvidenceAnchorRow>();
+            if (document.RootElement.TryGetProperty("items", out var items) && items.ValueKind == JsonValueKind.Array)
+            {
+                foreach (var item in items.EnumerateArray())
+                {
+                    var anchorId = ReadDisplayValue(item, "anchor_id");
+                    if (string.IsNullOrWhiteSpace(anchorId) || anchorId == "未暴露") continue;
+                    rows.Add(new EvidenceAnchorRow(
+                        anchorId,
+                        ReadDisplayValue(item, "source_id"),
+                        ReadDisplayValue(item, "raw_sha256"),
+                        ReadDisplayValue(item, "source_revision"),
+                        ReadDisplayValue(item, "position"),
+                        ReadDisplayValue(item, "created_at")));
+                }
+            }
+
+            var recent = rows.OrderByDescending(row => row.CreatedAt, StringComparer.Ordinal).Take(4).ToArray();
+            HomeRecentEvidenceList.ItemsSource = recent;
+            HomeRecentEvidenceEmptyState.IsVisible = recent.Length == 0;
+            HomeProgressEvidenceValue.Text = recent.Length.ToString(CultureInfo.InvariantCulture);
+            HomeRecentEvidenceStatus.Text = rows.Count == 0
+                ? "Core 已响应；当前返回页没有可显示的 Evidence anchor。"
+                : $"Core 当前返回页有 {rows.Count} 条持久化 anchor；显示最近 {recent.Length} 条。";
+        }
+        catch (Exception)
+        {
+            if (requestVersion == _homeEvidenceRequestVersion)
+                HomeRecentEvidenceStatus.Text = "最近 Evidence 响应不可读取或无法解析。";
+        }
+    }
 
     private void RefreshHomeLifecycleProjection()
     {
@@ -367,6 +593,14 @@ public partial class MainWindow : Window
         HomeLifecycleReviewText.Text = "不可用 · 工作台尚未读取待复习项";
     }
 
+    private void OnHomeMemoryNodeSelected(object? sender, MemoryGraphNodeSelectedEventArgs e) =>
+        HomeMemoryNodeDetailsText.Text =
+            $"已选择 {e.NodeName} 示意节点。Core 尚未提供可验证的 Memory Graph 关系与关联摘要。";
+
+    private void OnMemoryMapNodeSelected(object? sender, MemoryGraphNodeSelectedEventArgs e) =>
+        MemoryMapNodeDetailsText.Text =
+            $"已选择 {e.NodeName} 示意节点。Core 尚未提供可验证的 Memory Graph 关系与关联摘要。";
+
     private void SetSection(string section, string heading)
     {
         if (!string.Equals(section, "source-reader", StringComparison.Ordinal))
@@ -385,7 +619,7 @@ public partial class MainWindow : Window
         }
         if (!string.Equals(section, "knowledge", StringComparison.Ordinal))
             ++_knowledgeRequestVersion;
-        if (!string.Equals(section, "library", StringComparison.Ordinal))
+        if (section is not ("library" or "search"))
             ++_librarySearchRequestVersion;
         if (!string.Equals(section, "settings", StringComparison.Ordinal))
             ++_settingsRequestVersion;
@@ -397,10 +631,15 @@ public partial class MainWindow : Window
             ++_jobLookupRequestVersion;
         _activeSection = section;
         SetNavigationCurrentPage(section);
-        WorkspaceHeadingText.Text = heading;
-        Avalonia.Automation.AutomationProperties.SetName(WorkspaceHeadingText, heading);
+        var displayHeading = section == "evidence" && EvidenceCenterView.IsDetailOpen ? "证据详情" : heading;
+        WorkspaceHeadingText.Text = displayHeading;
+        HomePageDescription.IsVisible = section == "home";
+        WorkspaceHeadingBar.IsVisible = true;
+        HomePageActions.IsVisible = section == "home";
+        OriginalEditorPageActions.IsVisible = section == "original-editor";
+        Avalonia.Automation.AutomationProperties.SetName(WorkspaceHeadingText, displayHeading);
         Dispatcher.UIThread.Post(() => WorkspaceHeadingText.Focus(), DispatcherPriority.Input);
-        InspectorSectionText.Text = heading;
+        InspectorSectionText.Text = displayHeading;
         InspectorObjectText.Text = "未选择对象";
         InspectorDetailsText.Text = "对象来源、版本和证据将在选择具体对象后显示。";
         InspectorSourceText.Text = "未暴露";
@@ -418,8 +657,12 @@ public partial class MainWindow : Window
             "capture" => "capture",
             "source-reader" => "reader",
             "library" or "knowledge" => "knowledge",
-            "original-editor" or "memory-map" => "knowledge",
+            "search" => "search",
+            "original-editor" => "originals",
+            "memory-map" => "memory-map",
+            "workspace" => "workspace-tree",
             "learning" => "learning",
+            "review" => "review",
             "evidence" => "evidence",
             "machine-growth" => "machine",
             "research" => "research",
@@ -431,7 +674,13 @@ public partial class MainWindow : Window
         };
         RailWorkspaceButton.Classes.Set("active", railSpace == "workspace");
         RailCaptureButton.Classes.Set("active", railSpace == "capture");
+        RailEvidenceButton.Classes.Set("active", railSpace == "evidence");
+        RailOriginalsButton.Classes.Set("active", railSpace == "originals");
+        RailWorkspaceTreeButton.Classes.Set("active", railSpace == "workspace-tree");
+        RailMemoryMapButton.Classes.Set("active", railSpace == "memory-map");
+        RailReviewButton.Classes.Set("active", railSpace == "review");
         RailKnowledgeButton.Classes.Set("active", railSpace == "knowledge");
+        RailSearchButton.Classes.Set("active", railSpace == "search");
         RailReaderButton.Classes.Set("active", railSpace == "reader");
         RailLearningButton.Classes.Set("active", railSpace == "learning");
         RailEvidenceButton.Classes.Set("active", railSpace == "evidence");
@@ -445,7 +694,7 @@ public partial class MainWindow : Window
         MobileCaptureButton.Classes.Set("active", railSpace == "capture");
         MobileKnowledgeButton.Classes.Set("active", railSpace == "knowledge");
         MobileReaderButton.Classes.Set("active", railSpace == "reader");
-        MobileLearningButton.Classes.Set("active", railSpace == "learning");
+        MobileLearningButton.Classes.Set("active", railSpace is "learning" or "review");
         MobileEvidenceButton.Classes.Set("active", railSpace == "evidence");
         MobileMachineButton.Classes.Set("active", railSpace == "machine");
         MobileResearchButton.Classes.Set("active", railSpace == "research");
@@ -456,50 +705,74 @@ public partial class MainWindow : Window
         HomeSurface.IsVisible = section == "home";
         CaptureSurface.IsVisible = section == "capture";
         LibrarySurface.IsVisible = section == "library";
+        SearchSurface.IsVisible = section == "search";
         SourceReaderView.IsVisible = section == "source-reader";
         KnowledgeSurface.IsVisible = section == "knowledge";
         LearningSurface.IsVisible = section == "learning";
+        ReviewSurface.IsVisible = section == "review";
+        ReviewQueueList.ItemsSource = LearningQueueList.ItemsSource;
+        ReviewQueueList.SelectedItem = LearningQueueList.SelectedItem;
+        UpdateReviewQueueEmptyState();
+        ReviewPageOutcomeBox.SelectedIndex = ReviewOutcomeBox.SelectedIndex;
+        ReviewPageOutcomeBox.IsEnabled = ReviewOutcomeBox.IsEnabled;
         EvidenceCenterView.IsVisible = section == "evidence";
         MemoryMapSurface.IsVisible = section == "memory-map";
+        HomeHeroVisual.SetMotionActive(section == "home");
+        MemoryMapMotherGraph.SetMotionActive(section == "memory-map");
+        WorkspaceSurface.IsVisible = section == "workspace";
         MachineKnowledgeSurface.IsVisible = section == "machine-growth";
         RecoverySurface.IsVisible = section == "recovery";
         SettingsSurface.IsVisible = section == "settings";
         JobsSurface.IsVisible = section == "jobs";
         HomeStatsSurface.IsVisible = section == "home";
+        HomeEvidenceContentGrid.IsVisible = section == "home";
         ContextWorkspaceSubnav.IsVisible = section == "home";
         ContextCaptureSubnav.IsVisible = section == "capture";
-        ContextKnowledgeSubnav.IsVisible = section is "library" or "source-reader" or "knowledge" or "original-editor" or "memory-map";
-        ContextLearningSubnav.IsVisible = section == "learning";
+        ContextKnowledgeSubnav.IsVisible = section is "library" or "search" or "source-reader" or "knowledge" or "original-editor" or "memory-map";
+        ContextLearningSubnav.IsVisible = section is "learning" or "review";
         ContextMachineSubnav.IsVisible = section == "machine-growth";
         ContextSystemSubnav.IsVisible = section is "jobs" or "recovery" or "settings";
-        var showContextSidebar = Bounds.Width >= GetAaosBreakpoint("AaosTabletBreakpoint", 1024);
-        ContextSidebar.IsVisible = showContextSidebar;
-        MainFrameGrid.ColumnDefinitions[1].Width = showContextSidebar
-            ? new GridLength(200)
-            : new GridLength(0);
-        MainFrameGrid.ColumnDefinitions[1].Width = showContextSidebar
-            ? new GridLength(200)
-            : new GridLength(0);
-        UnavailableSurface.IsVisible = section is "research" or "plugins" or "models" or "original-editor";
+        ContextSidebar.IsVisible = false;
+        MainFrameGrid.ColumnDefinitions[1].Width = new GridLength(0);
+        OriginalEditorSurface.IsVisible = section == "original-editor";
+        UnavailableSurface.IsVisible = section is "research" or "plugins" or "models";
         if (UnavailableSurface.IsVisible)
         {
-            UnavailableSurfaceTitle.Text = $"{heading} · 尚未接入 Core";
+            UnavailableSurfaceTitle.Text = heading;
             UnavailableSurfaceStateText.Text = "状态 · Core contract unavailable";
             UnavailableSurfaceBoundaryText.Text = "当前界面保持只读；不创建合成数据、随机状态或第二套真相。";
+            UnavailableSurfaceIcon.IconName = section switch
+            {
+                "research" => "Thinking",
+                "plugins" => "Workspace",
+                "models" => "Connection",
+                _ => "Info",
+            };
             UnavailableSurfaceText.Text = section switch
             {
                 "research" => "此页面尚未接入 Core 的研究任务、来源或结论投影；不创建或展示合成研究状态。",
                 "plugins" => "此页面尚未接入权威插件注册表；不展示已安装、启用、默认/回退或健康状态，也不提供管理操作。",
                 "models" => "此页面尚未接入 Core 模型注册表或配置投影；不展示可用模型、活动提供方或健康状态，也不修改模型配置。",
+                "workspace" => "Core 尚未提供空间树、对象摘要与访问范围投影；此页面不展示合成目录或文件。",
                 "original-editor" => "当前 Core 只暴露来源成员与转换读取边界；原件编辑持久化和版本提交接口尚未接入，不在桌面侧创建第二写入路径。",
                 "recovery" => "此页面尚未接入 Core 的备份与恢复投影；不展示恢复点，不执行、预演或模拟恢复，也不表示数据可恢复。",
                 _ => "该工作区尚未接入 Core 读模型。",
+            };
+            (UnavailableCapabilityOneTitle.Text, UnavailableCapabilityOneText.Text,
+                UnavailableCapabilityTwoTitle.Text, UnavailableCapabilityTwoText.Text,
+                UnavailableCapabilityThreeTitle.Text, UnavailableCapabilityThreeText.Text) = section switch
+            {
+                "research" => ("研究来源", "可追溯输入、原始资料与版本", "研究工作流", "任务阶段、假设与产出", "结论证据", "引用锚点与置信边界"),
+                "plugins" => ("插件目录", "名称、版本、来源与许可", "依赖关系", "权限范围与兼容性", "运行健康", "启用状态与错误回执"),
+                "models" => ("模型目录", "模型身份、版本与能力", "提供方连接", "本地配置与授权状态", "运行健康", "可用性与最近错误"),
+                _ => ("来源与任务", "来源绑定、任务状态与处理记录", "能力目录", "权威注册、版本与依赖状态", "运行状态", "只展示可验证的 Core 回读"),
             };
             UnavailableSurfaceNextStepText.Text = section switch
             {
                 "research" => "接入带来源与版本绑定的 Research read model。",
                 "plugins" => "接入权威 Plugin Registry 与 readiness projection。",
                 "models" => "接入 Core Model Registry 与 provider health projection。",
+                "workspace" => "接入带父子关系、对象类型、摘要和权限边界的 Workspace read model。",
                 "original-editor" => "等待 Core 原件编辑、版本提交与冲突处理契约。",
                 "recovery" => "等待 Core 备份/恢复投影与 owner-gated 执行契约。",
                 _ => "需要对应的 Core 读模型或写入契约。",
@@ -521,7 +794,7 @@ public partial class MainWindow : Window
         {
             _ = RefreshSettingsAsync();
         }
-        else if (section == "learning" && !_learningNavigationLoadInProgress)
+        else if (section is "learning" or "review" && !_learningNavigationLoadInProgress)
         {
             _ = LoadLearningIfNeededAsync();
         }
@@ -529,11 +802,11 @@ public partial class MainWindow : Window
         {
             _ = ReadRecoveryStatusAsync();
         }
+        else if (section == "home")
+        {
+            _ = RefreshHomeRecentEvidenceAsync();
+        }
         PlayWorkspaceRouteTransition();
-        if (section == "home")
-            StartHomeHeroAmbientMotion();
-        else
-            StopHomeHeroAmbientMotion();
         SourceReaderView.State = SourceReaderView.State with
         {
             CanReturnToLibrary = section == "source-reader" && _returnToLibraryAvailable,
@@ -546,24 +819,31 @@ public partial class MainWindow : Window
     private void SetNavigationCurrentPage(string section)
     {
         var inLibraryDomain = section is "library" or "knowledge";
-        SetNavigationButtonState(RailWorkspaceButton, section == "home", "工作台");
+        SetNavigationButtonState(RailWorkspaceButton, section == "home", "首页");
         SetNavigationButtonState(RailCaptureButton, section == "capture", "捕获");
+        SetNavigationButtonState(RailEvidenceButton, section == "evidence", "证据库");
+        SetNavigationButtonState(RailOriginalsButton, section == "original-editor", "原创");
+        SetNavigationButtonState(RailLearningButton, section == "learning", "人类学习");
+        SetNavigationButtonState(RailMachineButton, section == "machine-growth", "机器学习", "机器学习任务工作台");
+        SetNavigationButtonState(RailWorkspaceTreeButton, section == "workspace", "工作区");
+        SetNavigationButtonState(RailMemoryMapButton, section == "memory-map", "记忆地图");
+        SetNavigationButtonState(RailReviewButton, section == "review", "复习 / FSRS");
+        SetNavigationButtonState(RailSystemButton, section == "settings", "设置");
         SetNavigationButtonState(RailKnowledgeButton, inLibraryDomain, "资料与知识");
+        SetNavigationButtonState(RailSearchButton, section == "search", "搜索");
         SetNavigationButtonState(RailReaderButton, section == "source-reader", "原件阅读");
-        SetNavigationButtonState(RailLearningButton, section == "learning", "学习");
-        SetNavigationButtonState(RailMachineButton, section == "machine-growth", "机器知识");
-        SetNavigationButtonState(RailEvidenceButton, section == "evidence", "证据中心");
         SetNavigationButtonState(RailResearchButton, section == "research", "研究");
         SetNavigationButtonState(RailJobsButton, section == "jobs", "任务");
         SetNavigationButtonState(RailPluginsButton, section == "plugins", "插件");
         SetNavigationButtonState(RailModelsButton, section == "models", "模型");
         SetNavigationButtonState(RailSystemButton, section == "settings", "设置");
-        SetNavigationButtonState(MobileWorkspaceButton, section == "home", "工作台");
+        SetNavigationButtonState(MobileWorkspaceButton, section == "home", "首页");
         SetNavigationButtonState(MobileCaptureButton, section == "capture", "捕获");
         SetNavigationButtonState(MobileKnowledgeButton, inLibraryDomain, "资料与知识");
+        SetNavigationButtonState(MobileSearchButton, section == "search", "搜索");
         SetNavigationButtonState(MobileReaderButton, section == "source-reader", "原件阅读");
-        SetNavigationButtonState(MobileLearningButton, section == "learning", "学习");
-        SetNavigationButtonState(MobileMachineButton, section == "machine-growth", "机器知识");
+        SetNavigationButtonState(MobileLearningButton, section is "learning" or "review", "复习 / FSRS");
+        SetNavigationButtonState(MobileMachineButton, section == "machine-growth", "机器学习");
         SetNavigationButtonState(MobileEvidenceButton, section == "evidence", "证据中心");
         SetNavigationButtonState(MobileResearchButton, section == "research", "研究");
         SetNavigationButtonState(MobileJobsButton, section == "jobs", "任务");
@@ -571,17 +851,19 @@ public partial class MainWindow : Window
         SetNavigationButtonState(MobileModelsButton, section == "models", "模型");
         SetNavigationButtonState(MobileSystemButton, section == "settings", "系统");
 
-        SetNavigationMenuState(NavigateHomeMenuItem, section == "home", "工作台");
+        SetNavigationMenuState(NavigateHomeMenuItem, section == "home", "首页");
         SetNavigationMenuState(NavigateCaptureMenuItem, section == "capture", "捕获");
         SetNavigationMenuState(NavigateLibraryMenuItem, section == "library", "资料库");
+        SetNavigationMenuState(NavigateSearchMenuItem, section == "search", "搜索");
         SetNavigationMenuState(NavigateReaderMenuItem, section == "source-reader", "原件阅读");
         SetNavigationMenuState(NavigateKnowledgeMenuItem, section == "knowledge", "知识库");
         SetNavigationMenuState(NavigateEditorMenuItem, section == "original-editor", "原件编辑");
         SetNavigationMenuState(NavigateMemoryMapMenuItem, section == "memory-map", "记忆地图");
         SetNavigationMenuState(NavigateLearningMenuItem, section == "learning", "学习");
+        SetNavigationMenuState(NavigateReviewMenuItem, section == "review", "复习 / FSRS");
         SetNavigationMenuState(NavigateEvidenceMenuItem, section == "evidence", "证据中心");
         SetNavigationMenuState(NavigateResearchMenuItem, section == "research", "研究");
-        SetNavigationMenuState(NavigateMachineMenuItem, section == "machine-growth", "机器知识");
+        SetNavigationMenuState(NavigateMachineMenuItem, section == "machine-growth", "机器学习");
         SetNavigationMenuState(NavigateJobsMenuItem, section == "jobs", "任务");
         SetNavigationMenuState(NavigatePluginsMenuItem, section == "plugins", "插件");
         SetNavigationMenuState(NavigateModelsMenuItem, section == "models", "模型");
@@ -589,8 +871,12 @@ public partial class MainWindow : Window
         SetNavigationMenuState(NavigateSettingsMenuItem, section == "settings", "系统设置");
     }
 
-    private static void SetNavigationButtonState(Button button, bool isCurrent, string label) =>
+    private static void SetNavigationButtonState(Button button, bool isCurrent, string label, string? subtitle = null)
+    {
         Avalonia.Automation.AutomationProperties.SetName(button, isCurrent ? $"当前页面：{label}" : $"打开{label}");
+        if (!string.IsNullOrWhiteSpace(subtitle))
+            ToolTip.SetTip(button, subtitle);
+    }
 
     private static void SetNavigationMenuState(MenuItem menuItem, bool isCurrent, string label) =>
         Avalonia.Automation.AutomationProperties.SetName(menuItem, isCurrent ? $"当前页面：{label}" : $"导航到{label}");
@@ -805,16 +1091,79 @@ public partial class MainWindow : Window
             _ => "toast-success",
         };
         ToastSurface.Classes.Set(toastState, true);
-        RevealSurface(ToastSurface);
         _toastTimer.Stop();
+        _toastMotionTimer.Stop();
+        _toastTimer.Interval = TimeSpan.FromMilliseconds(1800);
+        if (_reducedMotion)
+        {
+            ToastSurface.Opacity = 1;
+            ToastEntranceTranslation.Y = 0;
+            ToastEntranceScale.ScaleX = 1;
+            ToastEntranceScale.ScaleY = 1;
+            ToastSurface.IsVisible = true;
+        }
+        else
+        {
+            ToastSurface.Opacity = 0;
+            ToastEntranceTranslation.Y = 12;
+            ToastEntranceScale.ScaleX = 0.98;
+            ToastEntranceScale.ScaleY = 0.98;
+            ToastSurface.IsVisible = true;
+            _toastMotionElapsedMs = 0;
+            _toastMotionExiting = false;
+            _toastMotionTimer.Start();
+        }
         _toastTimer.Start();
     }
 
     private void OnToastTimerTick(object? sender, EventArgs e)
     {
         _toastTimer.Stop();
+        _toastMotionTimer.Stop();
+        if (_reducedMotion)
+        {
+            ToastSurface.Opacity = 1;
+            ToastSurface.IsVisible = false;
+            return;
+        }
+        _toastMotionElapsedMs = 0;
+        _toastMotionExiting = true;
+        _toastMotionTimer.Start();
+    }
+
+    private void OnToastMotionTick(object? sender, EventArgs e)
+    {
+        _toastMotionElapsedMs = Math.Min(
+            ToastMotionDurationMs,
+            _toastMotionElapsedMs + _toastMotionTimer.Interval.TotalMilliseconds);
+        var progress = _toastMotionElapsedMs / ToastMotionDurationMs;
+        var eased = _toastMotionExiting
+            ? progress * progress * progress
+            : 1 - Math.Pow(1 - progress, 3);
+        ToastSurface.Opacity = _toastMotionExiting ? 1 - eased : eased;
+        ToastEntranceTranslation.Y = _toastMotionExiting ? 12 * eased : 12 * (1 - eased);
+        var scale = _toastMotionExiting ? 1 - 0.02 * eased : 0.98 + 0.02 * eased;
+        ToastEntranceScale.ScaleX = scale;
+        ToastEntranceScale.ScaleY = scale;
+
+        if (progress < 1)
+            return;
+
+        _toastMotionTimer.Stop();
+        if (_toastMotionExiting)
+        {
+            ToastSurface.IsVisible = false;
+            ToastSurface.Opacity = 0;
+            ToastEntranceTranslation.Y = 12;
+            ToastEntranceScale.ScaleX = 0.98;
+            ToastEntranceScale.ScaleY = 0.98;
+            return;
+        }
+
         ToastSurface.Opacity = 1;
-        ToastSurface.IsVisible = false;
+        ToastEntranceTranslation.Y = 0;
+        ToastEntranceScale.ScaleX = 1;
+        ToastEntranceScale.ScaleY = 1;
     }
 
     private void RevealSurface(Control target)
@@ -850,45 +1199,55 @@ public partial class MainWindow : Window
     private void OnToggleInspectorDrawerClick(object? sender, RoutedEventArgs e)
     {
         _inspectorDrawerOpen = !_inspectorDrawerOpen;
-        var wideInspector = Bounds.Width >= GetAaosBreakpoint("AaosInspectorBreakpoint", 1440);
-        InspectorDrawerButton.IsVisible = true;
-        MainFrameGrid.ColumnDefinitions[3].Width = wideInspector && _inspectorDrawerOpen
-            ? new GridLength(320)
-            : new GridLength(0);
-        if (wideInspector)
-        {
-            InspectorPanel.Width = double.NaN;
-            InspectorPanel.HorizontalAlignment = Avalonia.Layout.HorizontalAlignment.Stretch;
-            InspectorPanel.ZIndex = 0;
-            Grid.SetColumn(InspectorPanel, 3);
-            Grid.SetColumnSpan(InspectorPanel, 1);
-        }
-        else
-        {
-            InspectorPanel.Width = 320;
-            InspectorPanel.HorizontalAlignment = Avalonia.Layout.HorizontalAlignment.Right;
-            InspectorPanel.ZIndex = 5;
-            Grid.SetColumn(InspectorPanel, Bounds.Width < GetAaosBreakpoint("AaosMobileBreakpoint", 840) ? 0 : 2);
-            Grid.SetColumnSpan(InspectorPanel, Bounds.Width < GetAaosBreakpoint("AaosMobileBreakpoint", 840) ? 4 : 1);
-        }
-        InspectorActionPanel.Orientation = _inspectorDrawerOpen
-            || Bounds.Width <= GetAaosBreakpoint("AaosNarrowActionsBreakpoint", 1280)
-            ? Avalonia.Layout.Orientation.Vertical
-            : Avalonia.Layout.Orientation.Horizontal;
         if (_inspectorDrawerOpen)
+        {
             RevealSurface(InspectorPanel);
+            AnimateInspectorDrawer(0);
+        }
         else
         {
+            AnimateInspectorDrawer(18);
             InspectorPanel.Opacity = 1;
             InspectorPanel.IsVisible = false;
         }
-        var label = _inspectorDrawerOpen ? "关闭证据检查器" : "打开证据检查器";
-        InspectorDrawerButton.Content = label;
-        Avalonia.Automation.AutomationProperties.SetName(InspectorDrawerButton, label);
+
+        ApplyResponsiveLayout(MainFrameGrid.Bounds.Size);
         if (_inspectorDrawerOpen)
             InspectorPanel.Focus();
     }
 
+    private void AnimateInspectorDrawer(double targetX)
+    {
+        _inspectorMotionTimer?.Stop();
+        var transform = InspectorPanel.RenderTransform as TranslateTransform ?? new TranslateTransform();
+        InspectorPanel.RenderTransform = transform;
+        if (_reducedMotion)
+        {
+            transform.X = targetX;
+            return;
+        }
+        _inspectorMotionStartX = transform.X;
+        _inspectorMotionTargetX = targetX;
+        _inspectorMotionStartedAt = DateTimeOffset.UtcNow;
+        _inspectorMotionTimer ??= new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(16) };
+        _inspectorMotionTimer.Tick -= OnInspectorMotionTick;
+        _inspectorMotionTimer.Tick += OnInspectorMotionTick;
+        _inspectorMotionTimer.Start();
+    }
+
+    private void OnInspectorMotionTick(object? sender, EventArgs e)
+    {
+        if (InspectorPanel.RenderTransform is not TranslateTransform transform)
+        {
+            _inspectorMotionTimer?.Stop();
+            return;
+        }
+        var progress = Math.Clamp((DateTimeOffset.UtcNow - _inspectorMotionStartedAt).TotalMilliseconds / 280d, 0, 1);
+        var eased = 1 - Math.Pow(1 - progress, 3);
+        transform.X = _inspectorMotionStartX + (_inspectorMotionTargetX - _inspectorMotionStartX) * eased;
+        if (progress >= 1)
+            _inspectorMotionTimer?.Stop();
+    }
     private void OnMenuToggleInspectorClick(object? sender, RoutedEventArgs e)
     {
         if (!InspectorDrawerButton.IsVisible)
@@ -924,13 +1283,22 @@ public partial class MainWindow : Window
         LearningReviewReceiptText.Text = "排程、下一次复习和 Mastery projection：未读取。";
         LearningAnswerBox.Text = string.Empty;
         LearningAnswerBox.IsEnabled = false;
+        ReviewPageAnswerBox.Text = string.Empty;
+        ReviewPageAnswerBox.IsEnabled = false;
         ReviewOutcomeBox.SelectedIndex = 0;
         ReviewOutcomeBox.IsEnabled = false;
+        ReviewPageOutcomeBox.SelectedIndex = 0;
+        ReviewPageOutcomeBox.IsEnabled = false;
         ReviewAgainButton.IsEnabled = false;
         ReviewHardButton.IsEnabled = false;
         ReviewGoodButton.IsEnabled = false;
         ReviewEasyButton.IsEnabled = false;
-        SubmitReviewButton.IsEnabled = false;
+        ReviewAgainButton2.IsEnabled = false;
+        ReviewHardButton2.IsEnabled = false;
+        ReviewGoodButton2.IsEnabled = false;
+        ReviewEasyButton2.IsEnabled = false;
+                SubmitReviewButton.IsEnabled = false;
+        SubmitReviewButton2.IsEnabled = false;
         OpenLearningKnowledgeButton.IsEnabled = false;
         LearningEmptyActions.IsVisible = false;
         ReviewAgainButton.Classes.Set("selected", false);
@@ -949,6 +1317,10 @@ public partial class MainWindow : Window
     private void OnHomeClick(object? sender, RoutedEventArgs e) => SetSection("home", "首页");
 
     private void OnCaptureClick(object? sender, RoutedEventArgs e) => SetSection("capture", "捕获");
+
+    private void OnSearchClick(object? sender, RoutedEventArgs e) => SetSection("search", "搜索");
+
+    private void OnReviewClick(object? sender, RoutedEventArgs e) => SetSection("review", "复习 / FSRS");
 
     private void OnLibraryClick(object? sender, RoutedEventArgs e)
     {
@@ -980,20 +1352,96 @@ public partial class MainWindow : Window
         SetSection("knowledge", "知识库");
     }
 
-    private void OnLearningNavigationClick(object? sender, RoutedEventArgs e) => SetSection("learning", "学习");
+    private void OnLearningNavigationClick(object? sender, RoutedEventArgs e) => SetSection("learning", "人类学习");
 
     private void OnLearningOpenLibraryClick(object? sender, RoutedEventArgs e) => OnLibraryClick(sender, e);
 
     private void OnLearningOpenJobsClick(object? sender, RoutedEventArgs e) => OnJobsClick(sender, e);
 
+    private void OnReviewRevealClick(object? sender, RoutedEventArgs e)
+    {
+        if (!ReviewPageAnswerBox.IsEnabled || _reviewFlipInProgress)
+            return;
+
+        if (_reducedMotion)
+        {
+            ShowReviewAnswerFace();
+            return;
+        }
+
+        _reviewFlipElapsedMs = 0;
+        _reviewFlipInProgress = true;
+        _reviewFlipTimer.Start();
+    }
+
+    private void OnReviewFlipTick(object? sender, EventArgs e)
+    {
+        _reviewFlipElapsedMs = Math.Min(ReviewFlipDurationMs, _reviewFlipElapsedMs + _reviewFlipTimer.Interval.TotalMilliseconds);
+        var progress = _reviewFlipElapsedMs / ReviewFlipDurationMs;
+        var eased = progress * progress * (3 - 2 * progress);
+        ((ScaleTransform)ReviewCardFlipTransform.RenderTransform!).ScaleX = progress < 0.5 ? Math.Max(0.04, 1 - eased * 2) : Math.Max(0.04, (eased - 0.5) * 2);
+
+        if (progress >= 0.5 && ReviewQuestionFace.IsVisible)
+            ShowReviewAnswerFace();
+
+        if (progress >= 1)
+        {
+            _reviewFlipTimer.Stop();
+            _reviewFlipInProgress = false;
+            ((ScaleTransform)ReviewCardFlipTransform.RenderTransform!).ScaleX = 1;
+            ReviewPageAnswerBox.Focus();
+        }
+    }
+
+    private void ShowReviewAnswerFace()
+    {
+        ReviewQuestionFace.IsVisible = false;
+        ReviewAnswerFace.IsVisible = true;
+    }
+
+    private void ResetReviewFace()
+    {
+        _reviewFlipTimer.Stop();
+        _reviewFlipInProgress = false;
+        ((ScaleTransform)ReviewCardFlipTransform.RenderTransform!).ScaleX = 1;
+        ReviewQuestionFace.IsVisible = true;
+        ReviewAnswerFace.IsVisible = false;
+    }
     private void OnLearningQueueSelectionChanged(object? sender, SelectionChangedEventArgs e)
     {
         if (_hydratingLearningQueue || e.AddedItems.Count != 1 || e.AddedItems[0] is not LearningQueueRow selected)
             return;
+        _hydratingLearningQueue = true;
+        LearningQueueList.SelectedItem = selected;
+        ReviewQueueList.SelectedItem = selected;
+        _hydratingLearningQueue = false;
         if (string.Equals(_selectedLearningItemKey, selected.ItemKey, StringComparison.Ordinal))
             return;
         _selectedLearningItemKey = selected.ItemKey;
+        ResetReviewFace();
         OnLearningClick(this, new RoutedEventArgs());
+    }
+
+    private void UpdateReviewQueueEmptyState()
+    {
+        var hasItems = ReviewQueueList.Items.Count > 0;
+        ReviewQueueList.IsVisible = hasItems;
+        ReviewQueueEmptyState.IsVisible = !hasItems;
+        ReviewQueueEmptyTitle.Text = _reviewQueueLoadedFromCore
+            ? "当前没有待复习项目"
+            : "尚未载入复习队列";
+        ReviewQueueEmptyDescription.Text = _reviewQueueLoadedFromCore
+            ? "Core 已返回空队列；有新的待复习项目后会显示在这里。"
+            : "载入 Core 今日队列后，这里会显示待复习卡片。";
+    }
+
+    private void OnReviewPageOutcomeChanged(object? sender, SelectionChangedEventArgs e)
+    {
+        // XAML can raise SelectionChanged while InitializeComponent is still
+        // populating controls, before the generated named fields are assigned.
+        if (_hydratingLearningQueue || sender is not ComboBox outcomeBox || !outcomeBox.IsEnabled)
+            return;
+        ReviewOutcomeBox.SelectedIndex = outcomeBox.SelectedIndex;
     }
 
     private void OnEvidenceClick(object? sender, RoutedEventArgs e)
@@ -1026,6 +1474,26 @@ public partial class MainWindow : Window
     private void OnEvidenceOpenJobsClick(object? sender, RoutedEventArgs e) => OnJobsClick(sender, e);
 
     private void OnMemoryMapLoadClick(object? sender, RoutedEventArgs e) => _ = RefreshMemoryMapAsync();
+
+    private async void OnMemoryMapSearchClick(object? sender, RoutedEventArgs e) => await OpenMemoryMapSearchAsync();
+
+    private async void OnMemoryMapSearchKeyDown(object? sender, KeyEventArgs e)
+    {
+        if (e.Key != Key.Enter)
+            return;
+        e.Handled = true;
+        await OpenMemoryMapSearchAsync();
+    }
+
+    private async Task OpenMemoryMapSearchAsync()
+    {
+        SearchPageQueryBox.Text = MemoryMapSearchBox.Text;
+        SetSection("search", "搜索");
+        if (string.IsNullOrWhiteSpace(SearchPageQueryBox.Text))
+            SearchPageQueryBox.Focus();
+        else
+            await OnSearchPageClickAsync();
+    }
 
     private void OnOpenMemoryMapSourceClick(object? sender, RoutedEventArgs e)
     {
@@ -1064,11 +1532,25 @@ public partial class MainWindow : Window
 
     private void OnResearchClick(object? sender, RoutedEventArgs e) => SetSection("research", "研究");
 
-    private void OnOriginalEditorClick(object? sender, RoutedEventArgs e) => SetSection("original-editor", "原件编辑");
+    private void OnOriginalEditorClick(object? sender, RoutedEventArgs e) => SetSection("original-editor", "原创");
 
-    private void OnMemoryMapClick(object? sender, RoutedEventArgs e) => SetSection("memory-map", "记忆地图");
+    private void OnWorkspaceRouteClick(object? sender, RoutedEventArgs e) => SetSection("workspace", "工作区");
 
-    private void OnMachineGrowthClick(object? sender, RoutedEventArgs e) => SetSection("machine-growth", "机器知识");
+    private void OnMemoryMapClick(object? sender, RoutedEventArgs e)
+    {
+        var knowledgeId = _activeKnowledgeId;
+        if (string.IsNullOrWhiteSpace(knowledgeId)
+            && _selectedLibraryResult is { Kind: "knowledge" } selected)
+        {
+            knowledgeId = selected.KnowledgeId;
+        }
+
+        if (!string.IsNullOrWhiteSpace(knowledgeId))
+            MemoryMapKnowledgeIdBox.Text = knowledgeId;
+        SetSection("memory-map", "记忆地图");
+    }
+
+    private void OnMachineGrowthClick(object? sender, RoutedEventArgs e) => SetSection("machine-growth", "机器学习");
 
     private void OnJobsClick(object? sender, RoutedEventArgs e) => SetSection("jobs", "任务");
 
@@ -1080,11 +1562,22 @@ public partial class MainWindow : Window
 
     private void OnSettingsRefreshClick(object? sender, RoutedEventArgs e) => _ = RefreshSettingsAsync();
 
+    private void OnThemePaletteChanged(object? sender, SelectionChangedEventArgs e)
+    {
+        var selected = SettingsThemePaletteBox.SelectedIndex == 1 ? ThemePalette.Monochrome : ThemePalette.Aurora;
+        ApplyThemePalette(selected);
+    }
+
+    private void ApplyThemePalette(string palette)
+    {
+        ThemePalette.Apply(palette);
+        SettingsThemePaletteBox.SelectedIndex = palette == ThemePalette.Monochrome ? 1 : 0;
+    }
     private void OnRecoveryClick(object? sender, RoutedEventArgs e) => SetSection("recovery", "恢复");
 
     private Task LoadLearningIfNeededAsync()
     {
-        if (!LearningSurface.IsVisible)
+        if (!LearningSurface.IsVisible && !ReviewSurface.IsVisible)
             return Task.CompletedTask;
         OnLearningClick(this, new RoutedEventArgs());
         return Task.CompletedTask;
@@ -1114,7 +1607,8 @@ public partial class MainWindow : Window
         CommandPaletteOverlay.IsVisible = false;
         var returnFocus = _commandPaletteReturnFocus;
         _commandPaletteReturnFocus = null;
-        returnFocus?.Focus();
+        if (returnFocus?.Focus() != true)
+            WorkspaceHeadingText.Focus();
     }
 
     private void OnWindowKeyDown(object? sender, KeyEventArgs e)
@@ -2212,11 +2706,22 @@ public partial class MainWindow : Window
             return;
         _observedKnowledgeInput = currentInput;
         ++_knowledgeRequestVersion;
+        _knowledgeReadId = null;
+        _knowledgeReadStatus = null;
+        _knowledgeRequiresHumanReview = false;
+        _knowledgeQualificationExists = false;
+        _knowledgeQualificationActive = false;
         _learningEligibleKnowledgeId = null;
         if (AddKnowledgeToLearningButton is not null)
             AddKnowledgeToLearningButton.IsEnabled = false;
         if (KnowledgeBodyText is null)
             return;
+        if (KnowledgeQualificationText is not null)
+            KnowledgeQualificationText.Text = "qualification · 当前输入尚未绑定已读对象";
+        if (SubmitKnowledgeReviewButton is not null)
+            SubmitKnowledgeReviewButton.IsEnabled = false;
+        if (KnowledgeReviewActionStatusText is not null)
+            KnowledgeReviewActionStatusText.Text = "编号已更改；旧对象复核权限已清除。";
         _activeKnowledgeSourceId = null;
         OpenKnowledgeSourceButton.IsEnabled = false;
         KnowledgeBodyText.Text = "知识编号已更改，请读取当前对象。";
@@ -2244,6 +2749,13 @@ public partial class MainWindow : Window
         _observedKnowledgeInput = KnowledgeIdBox.Text?.Trim() ?? string.Empty;
         var requestVersion = ++_knowledgeRequestVersion;
         _learningEligibleKnowledgeId = null;
+        _knowledgeReadId = null;
+        _knowledgeReadStatus = null;
+        _knowledgeRequiresHumanReview = false;
+        _knowledgeQualificationExists = false;
+        _knowledgeQualificationActive = false;
+        SubmitKnowledgeReviewButton.IsEnabled = false;
+        KnowledgeQualificationText.Text = "qualification · 正在读取 Core 状态";
         AddKnowledgeToLearningButton.IsEnabled = false;
         SetStatus(KnowledgeLearningStatusText, "等待 Core Knowledge V3 eligibility 读回。", "empty");
         SetStatus(KnowledgeStateText, "正在读取 Knowledge V3。", "loading");
@@ -2342,6 +2854,13 @@ public partial class MainWindow : Window
             var hasKnowledgeIdentity = knowledgeIdentity != "—" && !string.IsNullOrWhiteSpace(knowledgeIdentity);
             var projectedKnowledgeType = ReadDisplayValue(root, "title");
             var projectedKnowledgeStatus = ReadDisplayValue(root, "status");
+            _knowledgeReadId = hasKnowledgeIdentity && string.Equals(knowledgeIdentity, knowledgeId, StringComparison.Ordinal)
+                ? knowledgeIdentity
+                : null;
+            _knowledgeReadStatus = projectedKnowledgeStatus;
+            _knowledgeRequiresHumanReview = ReadDisplayValue(root, "requires_human_review") == "true";
+            _knowledgeQualificationExists = false;
+            _knowledgeQualificationActive = false;
             var isPersonalKnowledge = projectedKnowledgeType is "PERSONAL_DEFINITION" or "PERSONAL_EXPERIENCE";
             AddKnowledgeToLearningButton.IsEnabled = hasKnowledgeIdentity
                 && string.Equals(knowledgeIdentity, knowledgeId, StringComparison.Ordinal)
@@ -2367,6 +2886,7 @@ public partial class MainWindow : Window
             KnowledgeObjectTitleText.Text = $"标题：{ReadDisplayValue(root, "title")}";
             KnowledgeObjectMetaText.Text = $"knowledge_id：{ReadDisplayValue(root, "knowledge_id")} · owner：{ReadDisplayValue(root, "owner")}";
             KnowledgeBodyText.Text = ReadDisplayValue(root, "body");
+            await RefreshKnowledgeQualificationAsync(knowledgeId, requestVersion);
             KnowledgeResultsText.Text = string.Join("\n", new[]
             {
                 $"Knowledge：{ReadDisplayValue(root, "knowledge_id")}",
@@ -2429,6 +2949,141 @@ public partial class MainWindow : Window
             _activeKnowledgeSourceId = null;
             OpenKnowledgeSourceButton.IsEnabled = false;
             UpdateInspectorActions();
+        }
+    }
+
+    private async Task RefreshKnowledgeQualificationAsync(string knowledgeId, long requestVersion)
+    {
+        if (_supervisor is null || _supervisor.CoreUrl.Length == 0)
+            return;
+        try
+        {
+            using var response = await _supervisor.SendAsync(
+                HttpMethod.Get,
+                $"/api/v1/knowledge-items/{Uri.EscapeDataString(knowledgeId)}/qualification");
+            if (requestVersion != _knowledgeRequestVersion
+                || !string.Equals(_knowledgeReadId, knowledgeId, StringComparison.Ordinal))
+                return;
+            if (!response.IsSuccessStatusCode)
+            {
+                KnowledgeQualificationText.Text = response.StatusCode == System.Net.HttpStatusCode.NotFound
+                    ? "qualification · Core 未找到该 Knowledge"
+                    : IsPermissionStatus(response.StatusCode)
+                        ? "qualification · Core 拒绝访问"
+                        : $"qualification · 读取失败（HTTP {(int)response.StatusCode}）";
+                UpdateKnowledgeReviewControls();
+                return;
+            }
+            using var document = JsonDocument.Parse(await response.Content.ReadAsStringAsync());
+            var projection = document.RootElement;
+            var responseId = ReadDisplayValue(projection, "knowledge_id");
+            _knowledgeQualificationExists = ReadDisplayValue(projection, "exists") == "true"
+                && string.Equals(responseId, knowledgeId, StringComparison.Ordinal);
+            _knowledgeQualificationActive = ReadDisplayValue(projection, "active") == "true";
+            KnowledgeQualificationText.Text = _knowledgeQualificationExists
+                ? $"Core qualification · {(_knowledgeQualificationActive ? "active" : "inactive")} · ID 已核对"
+                : "qualification · Core 返回身份不匹配或对象不存在";
+            UpdateKnowledgeReviewControls();
+        }
+        catch (Exception)
+        {
+            if (requestVersion == _knowledgeRequestVersion)
+            {
+                KnowledgeQualificationText.Text = "qualification · 请求中断；复核操作已禁用";
+                UpdateKnowledgeReviewControls();
+            }
+        }
+    }
+
+    private void OnKnowledgeReviewActionChanged(object? sender, SelectionChangedEventArgs e)
+    {
+        if (KnowledgeReviewNewBodyBox is null)
+            return;
+        var action = (KnowledgeReviewActionBox.SelectedItem as ComboBoxItem)?.Tag?.ToString();
+        KnowledgeReviewNewBodyBox.IsVisible = action == "modified";
+        UpdateKnowledgeReviewControls();
+    }
+
+    private void OnKnowledgeReviewInputChanged(object? sender, TextChangedEventArgs e)
+        => UpdateKnowledgeReviewControls();
+
+    private void UpdateKnowledgeReviewControls()
+    {
+        if (SubmitKnowledgeReviewButton is null || KnowledgeReviewActionBox is null)
+            return;
+        var action = (KnowledgeReviewActionBox.SelectedItem as ComboBoxItem)?.Tag?.ToString();
+        var canReview = !_knowledgeReviewInProgress
+            && string.Equals(_knowledgeReadId, KnowledgeIdBox.Text?.Trim(), StringComparison.Ordinal)
+            && _knowledgeReadStatus == "candidate"
+            && _knowledgeRequiresHumanReview
+            && _knowledgeQualificationExists
+            && _knowledgeQualificationActive
+            && !string.IsNullOrWhiteSpace(KnowledgeReviewActorBox.Text)
+            && action is "accepted" or "rejected" or "deprecated" or "modified"
+            && (action != "modified" || !string.IsNullOrWhiteSpace(KnowledgeReviewNewBodyBox.Text));
+        SubmitKnowledgeReviewButton.IsEnabled = canReview;
+    }
+
+    private async void OnSubmitKnowledgeReviewClick(object? sender, RoutedEventArgs e)
+    {
+        UpdateKnowledgeReviewControls();
+        if (!SubmitKnowledgeReviewButton.IsEnabled || _supervisor is null)
+            return;
+        var knowledgeId = _knowledgeReadId;
+        var action = (KnowledgeReviewActionBox.SelectedItem as ComboBoxItem)?.Tag?.ToString();
+        var reviewer = KnowledgeReviewActorBox.Text?.Trim();
+        if (string.IsNullOrWhiteSpace(knowledgeId) || string.IsNullOrWhiteSpace(action) || string.IsNullOrWhiteSpace(reviewer))
+            return;
+        var requestVersion = _knowledgeRequestVersion;
+        var note = string.IsNullOrWhiteSpace(KnowledgeReviewNoteBox.Text) ? null : KnowledgeReviewNoteBox.Text.Trim();
+        var newBody = action == "modified" ? KnowledgeReviewNewBodyBox.Text?.Trim() : null;
+        if (action == "modified" && string.IsNullOrWhiteSpace(newBody))
+            return;
+
+        _knowledgeReviewInProgress = true;
+        SubmitKnowledgeReviewButton.IsEnabled = false;
+        SetStatus(KnowledgeReviewActionStatusText, "正在以当前人类会话提交 Review 决定。", "loading");
+        try
+        {
+            using var response = await _supervisor.SendAsync(
+                HttpMethod.Post,
+                $"/api/v1/knowledge-items/{Uri.EscapeDataString(knowledgeId)}/review-decisions",
+                new StringContent(JsonSerializer.Serialize(new { action, reviewer, note, new_body = newBody }), Encoding.UTF8, "application/json"));
+            if (requestVersion != _knowledgeRequestVersion
+                || !string.Equals(_knowledgeReadId, knowledgeId, StringComparison.Ordinal))
+                return;
+            if (!response.IsSuccessStatusCode)
+            {
+                var message = IsPermissionStatus(response.StatusCode)
+                    ? "Core 拒绝人工复核请求；没有在界面预先改变 Knowledge 状态。"
+                    : $"Core 未接受复核决定（HTTP {(int)response.StatusCode}）；状态未在界面预先改变。";
+                SetStatus(KnowledgeReviewActionStatusText, message, IsPermissionStatus(response.StatusCode) ? "permission" : "error");
+                return;
+            }
+            using var document = JsonDocument.Parse(await response.Content.ReadAsStringAsync());
+            var reviewedKnowledgeId = ReadDisplayValue(document.RootElement, "knowledge_id");
+            if (reviewedKnowledgeId == "—" || string.IsNullOrWhiteSpace(reviewedKnowledgeId)
+                || (action != "modified" && !string.Equals(reviewedKnowledgeId, knowledgeId, StringComparison.Ordinal)))
+            {
+                SetStatus(KnowledgeReviewActionStatusText, "Core Review 回执身份不匹配；未切换当前对象。", "error");
+                return;
+            }
+            SetStatus(KnowledgeReviewActionStatusText, $"Core 已返回复核对象 {reviewedKnowledgeId}；正在重新读取 V3 与 qualification。", "success");
+            KnowledgeReviewActionBox.SelectedIndex = -1;
+            KnowledgeReviewNoteBox.Text = string.Empty;
+            KnowledgeReviewNewBodyBox.Text = string.Empty;
+            KnowledgeIdBox.Text = reviewedKnowledgeId;
+            OnReadKnowledgeClick(this, new RoutedEventArgs());
+        }
+        catch (Exception)
+        {
+            if (requestVersion == _knowledgeRequestVersion)
+                SetStatus(KnowledgeReviewActionStatusText, "Review 请求中断；请重新读取 Core 状态后再决定是否重试。", "error");
+        }
+        finally
+        {
+            _knowledgeReviewInProgress = false;
+            UpdateKnowledgeReviewControls();
         }
     }
 
@@ -2622,6 +3277,17 @@ public partial class MainWindow : Window
         UpdateInspectorActions();
     }
 
+    private void OnEvidenceDetailModeChanged(object? sender, EvidenceAnchorDetailModeChangedEventArgs e)
+    {
+        if (!string.Equals(_activeSection, "evidence", StringComparison.Ordinal))
+            return;
+
+        var heading = e.IsOpen ? "证据详情" : "证据中心";
+        WorkspaceHeadingText.Text = heading;
+        InspectorSectionText.Text = heading;
+        Avalonia.Automation.AutomationProperties.SetName(WorkspaceHeadingText, heading);
+    }
+
     private async Task RefreshEvidenceAsync()
     {
         var requestVersion = ++_evidenceRequestVersion;
@@ -2678,7 +3344,8 @@ public partial class MainWindow : Window
                         ReadDisplayValue(item, "source_id"),
                         ReadDisplayValue(item, "raw_sha256"),
                         ReadDisplayValue(item, "source_revision"),
-                        ReadDisplayValue(item, "position")));
+                        ReadDisplayValue(item, "position"),
+                        ReadDisplayValue(item, "created_at")));
                 }
             }
             EvidenceCenterView.SetAnchors(rows);
@@ -2976,10 +3643,12 @@ public partial class MainWindow : Window
     private void SetActivityDockExpanded(bool expanded, bool restoreFocus = false)
     {
         _activityDockExpanded = expanded;
-        ActivityDock.MinHeight = expanded ? 112 : 44;
+        ActivityDock.MinHeight = expanded ? 112 : 24;
         ActivityDock.Padding = expanded
             ? new Avalonia.Thickness(18, 12)
-            : new Avalonia.Thickness(18, 0);
+            : new Avalonia.Thickness(18, 2);
+        ActivityDockBrandFooter.IsVisible = !expanded;
+        ActivityDockMainContent.IsVisible = expanded;
         ActivityDockStatusText.IsVisible = expanded;
         if (_activityDockExpanded)
         {
@@ -3126,6 +3795,7 @@ public partial class MainWindow : Window
                 foreach (var context in _captureContexts.Where(context => context.JobId == jobId))
                     context.JobState = state == "—" ? "unknown" : state;
                 var attempt = ReadDisplayValue(status.RootElement, "attempt");
+                var requestId = ReadDisplayValue(status.RootElement, "request_id");
                 var error = ReadDisplayValue(status.RootElement, "error");
                 var detail = $"{jobId}\n状态：{state} · attempt：{attempt}";
                 if (error != "—") detail += $"\n错误：{error}";
@@ -3156,7 +3826,7 @@ public partial class MainWindow : Window
                         ? "\n质量回执：权限不足；Core 拒绝读取。任务状态已读取，质量未验证。"
                         : $"\n质量回执：读取失败（HTTP {(int)qualityResponse.StatusCode}）；任务状态已读取，质量未验证。";
                 }
-                receipts.Add(new JobReceiptRow(jobId, state, detail, semanticState));
+                receipts.Add(new JobReceiptRow(jobId, state, detail, semanticState, requestId, attempt));
             }
             catch (Exception)
             {
@@ -3233,7 +3903,21 @@ public partial class MainWindow : Window
 
     private void OnJobReceiptSelected(object? sender, SelectionChangedEventArgs e)
     {
-        if (e.AddedItems.Count != 1 || e.AddedItems[0] is not JobReceiptRow selected)
+        ++_jobOutputRequestVersion;
+        var selected = JobsResultsList.SelectedItem as JobReceiptRow;
+        JobReadOutputButton.IsEnabled = selected is not null
+            && selected.RequestId != "—"
+            && selected.Attempt != "—"
+            && selected.State == "succeeded";
+        JobCancelButton.IsEnabled = !_jobCancelInProgress
+            && selected is not null
+            && selected.RequestId != "—"
+            && selected.Attempt != "—"
+            && selected.State == "running";
+        JobOutputText.Text = selected is null
+            ? "选择当前会话的任务回执后读取输出。"
+            : $"已选择 job_id={selected.JobId} · attempt={selected.Attempt} · request_id={selected.RequestId}。";
+        if (selected is null)
             return;
         SetInspectorProjection(
             "Core 任务回执",
@@ -3242,21 +3926,259 @@ public partial class MainWindow : Window
             layer: "Core projection · Job/Quality receipt");
     }
 
+    private async void OnReadJobOutputClick(object? sender, RoutedEventArgs e)
+    {
+        var selected = JobsResultsList.SelectedItem as JobReceiptRow;
+        if (selected is null || _supervisor is null || _supervisor.CoreUrl.Length == 0)
+            return;
+        var kind = (JobOutputKindBox.SelectedItem as ComboBoxItem)?.Tag?.ToString();
+        if (string.IsNullOrWhiteSpace(kind) || selected.State != "succeeded"
+            || selected.RequestId == "—" || selected.Attempt == "—")
+            return;
+        var requestVersion = ++_jobOutputRequestVersion;
+        JobReadOutputButton.IsEnabled = false;
+        SetStatus(JobOutputText, "正在核对 Core 最新任务尝试后读取输出。", "loading");
+        try
+        {
+            async Task<JsonDocument?> ReadStatusAsync()
+            {
+                using var response = await _supervisor.SendAsync(HttpMethod.Get,
+                    $"/api/v1/jobs/{Uri.EscapeDataString(selected.JobId)}");
+                if (!response.IsSuccessStatusCode)
+                    return null;
+                return JsonDocument.Parse(await response.Content.ReadAsStringAsync());
+            }
+            bool MatchesSelectedAttempt(JsonElement status) =>
+                ReadDisplayValue(status, "job_id") == selected.JobId
+                && ReadDisplayValue(status, "state") == "succeeded"
+                && ReadDisplayValue(status, "request_id") == selected.RequestId
+                && ReadDisplayValue(status, "attempt") == selected.Attempt;
+
+            using var before = await ReadStatusAsync();
+            if (requestVersion != _jobOutputRequestVersion)
+                return;
+            if (before is null || !MatchesSelectedAttempt(before.RootElement))
+            {
+                SetStatus(JobOutputText, "任务已变化或未成功；输出读取已停止，请刷新当前会话回执。", "error");
+                return;
+            }
+            using var outputResponse = await _supervisor.SendAsync(HttpMethod.Get,
+                $"/api/v1/jobs/{Uri.EscapeDataString(selected.JobId)}/outputs/{Uri.EscapeDataString(kind)}");
+            if (requestVersion != _jobOutputRequestVersion)
+                return;
+            if (!outputResponse.IsSuccessStatusCode)
+            {
+                SetStatus(JobOutputText, outputResponse.StatusCode == System.Net.HttpStatusCode.NotFound
+                    ? $"Core 尚无此尝试的 {kind} 输出。"
+                    : $"输出读取失败（HTTP {(int)outputResponse.StatusCode}）；未显示未验证内容。", "error");
+                return;
+            }
+            using var outputDocument = JsonDocument.Parse(await outputResponse.Content.ReadAsStringAsync());
+            var outputRoot = outputDocument.RootElement;
+            if (!outputRoot.TryGetProperty("metadata", out var metadata)
+                || ReadDisplayValue(metadata, "kind") != kind
+                || !outputRoot.TryGetProperty("content", out var contentElement)
+                || contentElement.ValueKind != JsonValueKind.String)
+            {
+                SetStatus(JobOutputText, "Core 输出元数据或类型与请求不匹配；已拒绝显示。", "error");
+                return;
+            }
+            using var after = await ReadStatusAsync();
+            if (requestVersion != _jobOutputRequestVersion)
+                return;
+            if (after is null || !MatchesSelectedAttempt(after.RootElement))
+            {
+                SetStatus(JobOutputText, "读取期间 Core 最新尝试已变化；输出已丢弃，请刷新回执。", "error");
+                return;
+            }
+            var content = contentElement.GetString() ?? string.Empty;
+            var display = FormatProjectionJsonForDisplay(content);
+            const int displayLimit = 16000;
+            if (display.Length > displayLimit)
+                display = display[..displayLimit] + "\n…界面预览已截断；Core 原始输出未更改。";
+            SetStatus(JobOutputText,
+                $"{kind} · job={selected.JobId} · attempt={selected.Attempt} · request={selected.RequestId}\n{display}",
+                "success");
+        }
+        catch (Exception)
+        {
+            if (requestVersion == _jobOutputRequestVersion)
+                SetStatus(JobOutputText, "Core 输出读取中断；未将部分内容标为成功。", "error");
+        }
+        finally
+        {
+            if (requestVersion == _jobOutputRequestVersion)
+                JobReadOutputButton.IsEnabled = JobsResultsList.SelectedItem is JobReceiptRow current
+                    && current.JobId == selected.JobId && current.RequestId == selected.RequestId
+                    && current.Attempt == selected.Attempt && current.State == "succeeded";
+        }
+    }
+
+    private async void OnCancelJobAttemptClick(object? sender, RoutedEventArgs e)
+    {
+        var selected = JobsResultsList.SelectedItem as JobReceiptRow;
+        if (_jobCancelInProgress || selected is null || selected.State != "running"
+            || selected.RequestId == "—" || selected.Attempt == "—"
+            || _supervisor is null || _supervisor.CoreUrl.Length == 0)
+            return;
+        _jobCancelInProgress = true;
+        JobCancelButton.IsEnabled = false;
+        SetStatus(JobOutputText, $"正在向 Core 请求取消 job={selected.JobId} · attempt={selected.Attempt}。取消是信号，不代表任务已终止。", "loading");
+        try
+        {
+            using var response = await _supervisor.SendAsync(HttpMethod.Post,
+                $"/api/v1/jobs/{Uri.EscapeDataString(selected.JobId)}/executions/{Uri.EscapeDataString(selected.RequestId)}/cancel");
+            if (!response.IsSuccessStatusCode)
+            {
+                SetStatus(JobOutputText, response.StatusCode == System.Net.HttpStatusCode.Conflict
+                    ? "Core 报告 request_id 已过期或身份冲突；刷新状态后再操作。"
+                    : $"Core 未接受取消信号（HTTP {(int)response.StatusCode}）；任务状态未推断。", "error");
+                return;
+            }
+            using var document = JsonDocument.Parse(await response.Content.ReadAsStringAsync());
+            var requested = ReadDisplayValue(document.RootElement, "cancel_requested") == "true";
+            var state = ReadDisplayValue(document.RootElement, "state");
+            await RefreshJobsAsync();
+            SetStatus(JobOutputText, requested
+                ? "Core 已接受针对所选 request_id 的取消信号；刷新后的状态仍需按当前任务回执核验。"
+                : $"所选尝试已进入终态（{state}）；Core 没有报告取消。", requested ? "loading" : "info");
+        }
+        catch (Exception)
+        {
+            SetStatus(JobOutputText, "取消请求中断；不能推断任务已取消。请刷新 Core 状态。", "error");
+        }
+        finally
+        {
+            _jobCancelInProgress = false;
+            if (JobsResultsList.SelectedItem is JobReceiptRow current)
+                JobCancelButton.IsEnabled = current.State == "running"
+                    && current.RequestId != "—" && current.Attempt != "—";
+        }
+    }
+
     private void OnMainFrameSizeChanged(object? sender, SizeChangedEventArgs e)
+        => ApplyResponsiveLayout(e.NewSize);
+
+    private void ApplyResponsiveLayout(Size frameSize)
     {
         var inspectorBreakpoint = GetAaosBreakpoint("AaosInspectorBreakpoint", 1440);
         var narrowActionsBreakpoint = GetAaosBreakpoint("AaosNarrowActionsBreakpoint", 1280);
         var tabletBreakpoint = GetAaosBreakpoint("AaosTabletBreakpoint", 1024);
         var mobileBreakpoint = GetAaosBreakpoint("AaosMobileBreakpoint", 840);
-        var wideInspector = e.NewSize.Width >= inspectorBreakpoint;
+        var mobile = frameSize.Width <= mobileBreakpoint;
+        var sidebarWidth = MasterSidebarWidth;
+        var desktopWorkspaceWidth = Math.Max(0, frameSize.Width - (mobile ? 0 : sidebarWidth));
+        var wideInspector = frameSize.Width >= inspectorBreakpoint;
+        var contentWidth = Math.Max(0, frameSize.Width - (mobile ? 0 : sidebarWidth) - (_inspectorDrawerOpen && wideInspector ? 320 : 0));
         var hideInspector = !wideInspector;
-        var hideContext = e.NewSize.Width < tabletBreakpoint;
-        var compact = e.NewSize.Width <= tabletBreakpoint;
-        var mobile = e.NewSize.Width < mobileBreakpoint;
-        var narrowActions = e.NewSize.Width <= narrowActionsBreakpoint;
+        var compact = contentWidth <= tabletBreakpoint;
+        var workspaceStacked = contentWidth < GetAaosBreakpoint("AaosWorkspaceStackBreakpoint", 900);
+        WorkspacePageGrid.ColumnDefinitions = workspaceStacked
+            ? new ColumnDefinitions("*")
+            : new ColumnDefinitions("0.29*,0.71*");
+        WorkspacePageGrid.RowDefinitions = workspaceStacked
+            ? new RowDefinitions("Auto,Auto")
+            : new RowDefinitions("Auto");
+        Grid.SetColumn(WorkspaceFilesPanel, workspaceStacked ? 0 : 1);
+        Grid.SetRow(WorkspaceFilesPanel, workspaceStacked ? 1 : 0);
+        WorkspaceHeadingBar.ColumnDefinitions = mobile ? new ColumnDefinitions("*,Auto") : new ColumnDefinitions("*,Auto,Auto");
+        WorkspaceHeadingBar.RowDefinitions = mobile ? new RowDefinitions("Auto,Auto") : new RowDefinitions("Auto");
+        Grid.SetColumn(HomePageActions, mobile ? 0 : 1);
+        Grid.SetRow(HomePageActions, mobile ? 1 : 0);
+        Grid.SetColumnSpan(HomePageActions, mobile ? 2 : 1);
+        Grid.SetColumn(OriginalEditorPageActions, mobile ? 0 : 1);
+        Grid.SetRow(OriginalEditorPageActions, mobile ? 1 : 0);
+        Grid.SetColumnSpan(OriginalEditorPageActions, mobile ? 2 : 1);
+        Grid.SetColumn(InspectorDrawerButton, mobile ? 1 : 2);
+        Grid.SetRow(InspectorDrawerButton, 0);
+        TopbarBrandTagline.IsVisible = !mobile;
+        TopbarBrandName.IsVisible = !mobile;
+        TopbarCommandText.IsVisible = !mobile;
+        TopbarNotificationsLabel.IsVisible = !mobile;
+        TopbarWorkspaceLabel.IsVisible = !mobile;
+        TopbarShell.Padding = mobile ? new Avalonia.Thickness(10, 8) : new Avalonia.Thickness(22, 12);
+        TopbarShell.MinHeight = mobile ? 64 : 78;
+        TopbarCommandButton.Padding = mobile ? new Avalonia.Thickness(12, 9) : new Avalonia.Thickness(14, 9);
+        TopbarNotificationsButton.Padding = mobile ? new Avalonia.Thickness(10, 8) : new Avalonia.Thickness(12, 8);
+        TopbarWorkspaceButton.Padding = mobile ? new Avalonia.Thickness(10, 8) : new Avalonia.Thickness(12, 8);
+        ApplicationMenu.IsVisible = false;
+        TopbarNotificationsButton.IsVisible = true;
+        CoreStatusBorder.IsVisible = !mobile;
+        TopbarCommandButton.MaxWidth = mobile ? 52 : contentWidth < tabletBreakpoint ? 420 : 620;
+        var narrowActions = contentWidth <= narrowActionsBreakpoint;
+        OriginalEditorGrid.ColumnDefinitions = compact
+            ? new ColumnDefinitions("*")
+            : new ColumnDefinitions("2.1*,1*");
+        OriginalEditorGrid.RowDefinitions = compact
+            ? new RowDefinitions("Auto,Auto")
+            : new RowDefinitions("Auto");
+        var originalReferenceColumn = OriginalEditorGrid.Children[1];
+        Grid.SetColumn(originalReferenceColumn, compact ? 0 : 1);
+        Grid.SetRow(originalReferenceColumn, compact ? 1 : 0);
+        const double homeStatsTwoColumnBreakpoint = 1160;
+        const double homeStatsSingleColumnBreakpoint = 840;
+        HomeStatsSurface.ColumnDefinitions = frameSize.Width <= homeStatsSingleColumnBreakpoint
+            ? new ColumnDefinitions("*")
+            : frameSize.Width <= homeStatsTwoColumnBreakpoint
+                ? new ColumnDefinitions("*,*")
+                : new ColumnDefinitions("*,*,*,*");
+        HomeStatsSurface.RowDefinitions = frameSize.Width <= homeStatsSingleColumnBreakpoint
+            ? new RowDefinitions("Auto,Auto,Auto,Auto")
+            : frameSize.Width <= homeStatsTwoColumnBreakpoint
+                ? new RowDefinitions("Auto,Auto")
+                : new RowDefinitions("Auto");
+        HomeStatsSurface.RowSpacing = contentWidth < 840 ? 8 : 12;
+        for (var index = 0; index < HomeStatsSurface.Children.Count; index++)
+        {
+            if (HomeStatsSurface.Children[index] is Border homeStatsCard)
+                homeStatsCard.Padding = contentWidth < 840 ? new Avalonia.Thickness(12, 8) : new Avalonia.Thickness(16);
+            Grid.SetColumn(HomeStatsSurface.Children[index], frameSize.Width <= homeStatsSingleColumnBreakpoint ? 0 : index % (frameSize.Width <= homeStatsTwoColumnBreakpoint ? 2 : 4));
+            Grid.SetRow(HomeStatsSurface.Children[index], frameSize.Width <= homeStatsSingleColumnBreakpoint ? index : frameSize.Width <= homeStatsTwoColumnBreakpoint ? index / 2 : 0);
+        }
+        var homeEvidenceStacked = frameSize.Width <= homeStatsTwoColumnBreakpoint;
+        HomeEvidenceContentGrid.ColumnDefinitions = homeEvidenceStacked
+            ? new ColumnDefinitions("*")
+            : new ColumnDefinitions("1.2*,1*");
+        HomeEvidenceContentGrid.RowDefinitions = homeEvidenceStacked
+            ? new RowDefinitions("Auto,Auto")
+            : new RowDefinitions("Auto");
+        Grid.SetColumn(HomeRecentEvidenceCard, 0);
+        Grid.SetRow(HomeRecentEvidenceCard, 0);
+        Grid.SetColumn(HomeTodayProgressCard, homeEvidenceStacked ? 0 : 1);
+        Grid.SetRow(HomeTodayProgressCard, homeEvidenceStacked ? 1 : 0);
+        var homeProgressSingleColumn = frameSize.Width <= homeStatsTwoColumnBreakpoint;
+        HomeTodayProgressGrid.ColumnDefinitions = homeProgressSingleColumn
+            ? new ColumnDefinitions("*")
+            : new ColumnDefinitions("*,*,*,*");
+        HomeTodayProgressGrid.RowDefinitions = homeProgressSingleColumn
+            ? new RowDefinitions("Auto,Auto,Auto,Auto")
+            : new RowDefinitions("Auto");
+        for (var index = 0; index < HomeTodayProgressGrid.Children.Count; index++)
+        {
+            Grid.SetColumn(HomeTodayProgressGrid.Children[index], homeProgressSingleColumn ? 0 : index);
+            Grid.SetRow(HomeTodayProgressGrid.Children[index], homeProgressSingleColumn ? index : 0);
+        }
+        HomeQuickCaptureActions.Orientation = Avalonia.Layout.Orientation.Horizontal;
+        var homeDashboardSingleColumn = contentWidth <= homeStatsSingleColumnBreakpoint;
+        HomePrimaryContentGrid.ColumnDefinitions = homeDashboardSingleColumn
+            ? new ColumnDefinitions("*")
+            : new ColumnDefinitions("*,*");
+        HomePrimaryContentGrid.RowDefinitions = homeDashboardSingleColumn
+            ? new RowDefinitions("Auto,Auto")
+            : new RowDefinitions("Auto");
+        Grid.SetColumn(HomeQuickCaptureCard, 0);
+        Grid.SetRow(HomeQuickCaptureCard, 0);
+        Grid.SetColumn(HomeTodayFocusCard, homeDashboardSingleColumn ? 0 : 1);
+        Grid.SetRow(HomeTodayFocusCard, homeDashboardSingleColumn ? 1 : 0);
+        Grid.SetColumnSpan(HomeTodayFocusCard, 1);
+        HomeEvidenceContentGrid.IsVisible = _activeSection == "home";
+        HomeGraphContentGrid.IsVisible = _activeSection == "home";
+        HomeNodeDetailsCard.IsVisible = _activeSection == "home";
+        HomeQuickCaptureCard.IsVisible = true;
+        HomeTrendCard.IsVisible = _activeSection == "home";
         if (!_responsiveLayoutInitialized)
         {
-            _inspectorDrawerOpen = wideInspector;
+            _inspectorDrawerOpen = false;
             _responsiveLayoutInitialized = true;
         }
         InspectorDrawerButton.IsVisible = true;
@@ -3284,13 +4206,19 @@ public partial class MainWindow : Window
             Grid.SetColumn(InspectorPanel, mobile ? 0 : 2);
             Grid.SetColumnSpan(InspectorPanel, mobile ? 4 : 1);
         }
-        var showContextSidebar = !hideContext;
+        var visibleInspectorLabel = _inspectorDrawerOpen ? "关闭证据检查器" : "打开证据检查器";
+        InspectorDrawerButton.Content = mobile ? "检查器" : visibleInspectorLabel;
+        Avalonia.Automation.AutomationProperties.SetName(InspectorDrawerButton, visibleInspectorLabel);
+        var showContextSidebar = false;
         ContextSidebar.IsVisible = showContextSidebar;
         PrimaryRail.IsVisible = !mobile;
+        Grid.SetColumn(TopbarShell, 0);
+        Grid.SetColumnSpan(TopbarShell, 4);
         MobileRail.IsVisible = mobile;
         Grid.SetColumn(WorkspaceScrollViewer, mobile ? 0 : 2);
         Grid.SetColumnSpan(WorkspaceScrollViewer, mobile ? 4 : 1);
-        MainFrameGrid.ColumnDefinitions[0].Width = mobile ? new GridLength(0) : new GridLength(224);
+        PrimaryRail.Width = sidebarWidth;
+        MainFrameGrid.ColumnDefinitions[0].Width = mobile ? new GridLength(0) : new GridLength(sidebarWidth);
         MainFrameGrid.ColumnDefinitions[3].Width = wideInspector && _inspectorDrawerOpen
             ? new GridLength(320)
             : new GridLength(0);
@@ -3298,15 +4226,15 @@ public partial class MainWindow : Window
         WorkspaceScrollViewer.Padding = mobile
             ? new Avalonia.Thickness(16, 16)
             : new Avalonia.Thickness(32, 28);
-        Grid.SetColumn(ActivityDock, 0);
-        Grid.SetColumnSpan(ActivityDock, 4);
+        Grid.SetColumn(ActivityDock, mobile ? 0 : 2);
+        Grid.SetColumnSpan(ActivityDock, mobile ? 4 : 2);
         ActivityDockGrid.RowDefinitions = new RowDefinitions("Auto");
         Grid.SetRow(ActivityDockActions, 0);
         Grid.SetColumn(ActivityDockActions, 1);
         ActivityDock.Padding = _activityDockExpanded
             ? new Avalonia.Thickness(18, 12)
             : new Avalonia.Thickness(18, 0);
-        ActivityDock.MinHeight = _activityDockExpanded ? 112 : 44;
+        ActivityDock.MinHeight = _activityDockExpanded ? 112 : 24;
         CaptureContextActions.Orientation = narrowActions
             ? Avalonia.Layout.Orientation.Vertical
             : Avalonia.Layout.Orientation.Horizontal;
@@ -3316,12 +4244,51 @@ public partial class MainWindow : Window
         LearningEmptyActions.Orientation = narrowActions
             ? Avalonia.Layout.Orientation.Vertical
             : Avalonia.Layout.Orientation.Horizontal;
-        EvidenceCenterView.SetResponsiveLayout(compact, e.NewSize.Width);
+        EvidenceCenterView.SetResponsiveLayout(compact, contentWidth);
+        var unavailableColumns = contentWidth < 760 ? 1 : 3;
+        UnavailableCapabilityGrid.ColumnDefinitions = unavailableColumns == 1
+            ? new ColumnDefinitions("1*")
+            : new ColumnDefinitions("*,*,*");
+        UnavailableCapabilityGrid.RowDefinitions = unavailableColumns == 1
+            ? new RowDefinitions("Auto,Auto,Auto")
+            : new RowDefinitions("Auto");
+        for (var index = 0; index < UnavailableCapabilityGrid.Children.Count; index++)
+        {
+            Grid.SetColumn(UnavailableCapabilityGrid.Children[index], unavailableColumns == 1 ? 0 : index);
+            Grid.SetRow(UnavailableCapabilityGrid.Children[index], unavailableColumns == 1 ? index : 0);
+        }
         var inspectorActionsNarrow = narrowActions || InspectorPanel.IsVisible;
         InspectorActionPanel.Orientation = inspectorActionsNarrow
             ? Avalonia.Layout.Orientation.Vertical
             : Avalonia.Layout.Orientation.Horizontal;
         SetResponsiveToolbar(LibrarySearchGrid, LibrarySearchButton, narrowActions);
+        var captureCompact = contentWidth < 760;
+        CapturePageGrid.ColumnDefinitions = captureCompact
+            ? new ColumnDefinitions("1*")
+            : new ColumnDefinitions("0.8*,1.2*");
+        CapturePageGrid.RowDefinitions = captureCompact
+            ? new RowDefinitions("Auto,Auto")
+            : new RowDefinitions("Auto");
+        Grid.SetColumn(CapturePageGrid.Children[1], captureCompact ? 0 : 1);
+        Grid.SetRow(CapturePageGrid.Children[1], captureCompact ? 1 : 0);
+        var captureTypeColumns = contentWidth < 520 ? 1 : contentWidth < 840 ? 2 : 3;
+        CaptureTypeGrid.ColumnDefinitions = captureTypeColumns switch
+        {
+            1 => new ColumnDefinitions("1*"),
+            2 => new ColumnDefinitions("*,*"),
+            _ => new ColumnDefinitions("*,*,*"),
+        };
+        CaptureTypeGrid.RowDefinitions = captureTypeColumns switch
+        {
+            1 => new RowDefinitions("Auto,Auto,Auto,Auto,Auto,Auto"),
+            2 => new RowDefinitions("Auto,Auto,Auto"),
+            _ => new RowDefinitions("Auto,Auto"),
+        };
+        for (var index = 0; index < CaptureTypeGrid.Children.Count; index++)
+        {
+            Grid.SetColumn(CaptureTypeGrid.Children[index], index % captureTypeColumns);
+            Grid.SetRow(CaptureTypeGrid.Children[index], index / captureTypeColumns);
+        }
         LibraryFilterPanel.Orientation = narrowActions
             ? Avalonia.Layout.Orientation.Vertical
             : Avalonia.Layout.Orientation.Horizontal;
@@ -3333,46 +4300,101 @@ public partial class MainWindow : Window
             : new RowDefinitions("Auto");
         Grid.SetRow(LibrarySelectedDetailBorder, compact ? 1 : 0);
         Grid.SetColumn(LibrarySelectedDetailBorder, compact ? 0 : 1);
-        SetResponsiveToolbar(KnowledgeLoadGrid, KnowledgeLoadButton, narrowActions);
-        SetResponsiveToolbar(MachineTaskGrid, MachineTaskLoadButton, narrowActions);
-        SetResponsiveToolbar(JobLookupGrid, JobLookupButton, narrowActions);
-        SetResponsiveToolbar(MemoryMapToolbar, MemoryMapLoadButton, narrowActions);
-        HomeFocusGrid.ColumnDefinitions = compact
-            ? new ColumnDefinitions("1*")
-            : new ColumnDefinitions("*,*");
-        HomeFocusGrid.RowDefinitions = compact
-            ? new RowDefinitions("Auto,Auto")
-            : new RowDefinitions("Auto");
-        Grid.SetColumn(HomeFocusActionCard, compact ? 0 : 1);
-        Grid.SetRow(HomeFocusActionCard, compact ? 1 : 0);
-        HomeHeroGrid.ColumnDefinitions = compact
-            ? new ColumnDefinitions("1*")
-            : new ColumnDefinitions("*,220");
-        HomeHeroGrid.RowDefinitions = compact
-            ? new RowDefinitions("Auto,Auto")
-            : new RowDefinitions("Auto");
-        HomeHeroActions.Orientation = mobile
+        SetResponsiveToolbar(SearchPageQueryGrid, SearchPageSubmitButton, narrowActions);
+        SearchPageFilters.Orientation = narrowActions
             ? Avalonia.Layout.Orientation.Vertical
             : Avalonia.Layout.Orientation.Horizontal;
-        HomeHeroImage.IsVisible = !compact;
-        Grid.SetColumn(HomeHeroImage, compact ? 0 : 1);
-        Grid.SetRow(HomeHeroImage, compact ? 1 : 0);
-        HomeLifecycleGrid.ColumnDefinitions = compact
-            ? new ColumnDefinitions("1*")
-            : new ColumnDefinitions("*,*,*,*,*");
-        HomeLifecycleGrid.RowDefinitions = compact
-            ? new RowDefinitions("Auto,Auto,Auto,Auto,Auto")
+        SearchPageFilters.Width = narrowActions
+            ? Math.Max(250, contentWidth - (mobile ? 100 : 120))
+            : double.NaN;
+        SetResponsiveToolbar(KnowledgeLoadGrid, KnowledgeLoadButton, narrowActions);
+        SetResponsiveToolbar(MachineTaskGrid, MachineTaskLoadButton, narrowActions);
+        MachineLearningPanels.ColumnDefinitions = compact ? new ColumnDefinitions("1*") : new ColumnDefinitions("0.89*,1*");
+        var machineMetricContentWidth = Math.Max(0, contentWidth - (mobile ? 32 : 64));
+        var machineMetricColumns = machineMetricContentWidth < 580 ? 1 : machineMetricContentWidth < 920 ? 2 : 4;
+        var machineMetricWidth = machineMetricContentWidth / machineMetricColumns;
+        MachineMetricGrid.ItemWidth = Math.Max(180, machineMetricWidth);
+        MachineMetricGrid.ItemHeight = mobile ? 112 : 126;
+        var learningMetricContentWidth = Math.Max(0, contentWidth - (mobile ? 32 : 64));
+        var learningMetricColumns = learningMetricContentWidth < 580 ? 1 : learningMetricContentWidth < 920 ? 2 : 4;
+        var learningMetricWidth = learningMetricContentWidth / learningMetricColumns;
+        LearningMetricsGrid.ItemWidth = Math.Max(180, learningMetricWidth);
+        LearningMetricsGrid.ItemHeight = mobile ? 112 : 126;
+        var reviewMetricContentWidth = Math.Max(0, contentWidth - (mobile ? 32 : 64));
+        var reviewMetricColumns = reviewMetricContentWidth < 580 ? 1 : reviewMetricContentWidth < 920 ? 2 : 4;
+        ReviewMetricsGrid.ItemWidth = Math.Max(180, reviewMetricContentWidth / reviewMetricColumns);
+        ReviewMetricsGrid.ItemHeight = mobile ? 156 : 148;
+        var recoverySummaryContentWidth = Math.Max(0, contentWidth - (mobile ? 32 : 64));
+        RecoverySummaryGrid.ItemWidth = Math.Max(180, recoverySummaryContentWidth / (mobile ? 1 : 3));
+        RecoverySummaryGrid.ItemHeight = mobile ? 150 : 138;
+        LearningPlanGrid.ColumnDefinitions = compact ? new ColumnDefinitions("*") : new ColumnDefinitions("1*,2*");
+        LearningPlanGrid.RowDefinitions = compact ? new RowDefinitions("Auto,Auto") : new RowDefinitions("Auto");
+        Grid.SetColumn(LearningPlanGrid.Children[1], compact ? 0 : 1);
+        Grid.SetRow(LearningPlanGrid.Children[1], compact ? 1 : 0);
+        ReviewPageContentGrid.ColumnDefinitions = compact ? new ColumnDefinitions("*") : new ColumnDefinitions("1.1*,0.9*");
+        ReviewPageContentGrid.RowDefinitions = compact ? new RowDefinitions("Auto,Auto") : new RowDefinitions("Auto");
+        Grid.SetColumn(ReviewPageContentGrid.Children[1], compact ? 0 : 1);
+        Grid.SetRow(ReviewPageContentGrid.Children[1], compact ? 1 : 0);
+        SettingsControlsGrid.ColumnDefinitions = contentWidth < 840 ? new ColumnDefinitions("*") : new ColumnDefinitions("*,*");
+        var settingsControlColumns = contentWidth < 840 ? 1 : 2;
+        SettingsControlsGrid.RowDefinitions = settingsControlColumns == 1
+            ? new RowDefinitions("Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto")
+            : new RowDefinitions("Auto,Auto,Auto,Auto");
+        for (var index = 0; index < SettingsControlsGrid.Children.Count; index++)
+        {
+            Grid.SetColumn(SettingsControlsGrid.Children[index], index % settingsControlColumns);
+            Grid.SetRow(SettingsControlsGrid.Children[index], index / settingsControlColumns);
+        }
+        ReviewActionsGrid2.ColumnDefinitions = contentWidth < 760 ? new ColumnDefinitions("*,*") : new ColumnDefinitions("*,*,*,*");
+        ReviewActionsGrid2.RowDefinitions = contentWidth < 760 ? new RowDefinitions("Auto,Auto") : new RowDefinitions("Auto");
+        for (var index = 0; index < ReviewActionsGrid2.Children.Count; index++)
+        {
+            Grid.SetColumn(ReviewActionsGrid2.Children[index], contentWidth < 760 ? index % 2 : index);
+            Grid.SetRow(ReviewActionsGrid2.Children[index], contentWidth < 760 ? index / 2 : 0);
+        }
+        MachineLearningPanels.RowDefinitions = compact ? new RowDefinitions("Auto,Auto") : new RowDefinitions("Auto");
+        Grid.SetColumn(MachineLearningPanels.Children[1], compact ? 0 : 1);
+        Grid.SetRow(MachineLearningPanels.Children[1], compact ? 1 : 0);
+        SetResponsiveToolbar(JobLookupGrid, JobLookupButton, narrowActions);
+        SetMemoryMapToolbarLayout(narrowActions);
+        HomeGraphContentGrid.ColumnDefinitions = contentWidth < 1100 ? new ColumnDefinitions("*") : new ColumnDefinitions("1.35*,0.95*");
+        HomeGraphContentGrid.RowDefinitions = contentWidth < 1100 ? new RowDefinitions("Auto,Auto") : new RowDefinitions("Auto");
+        Grid.SetColumn(HomeMemoryGraphCard, 0);
+        Grid.SetRow(HomeMemoryGraphCard, 0);
+        Grid.SetColumn(HomeNodeDetailsCard, contentWidth < 1100 ? 0 : 1);
+        Grid.SetRow(HomeNodeDetailsCard, contentWidth < 1100 ? 1 : 0);
+        HomeHeroVisual.IsVisible = true;
+        MemoryMapVisualGrid.ColumnDefinitions = compact
+            ? new ColumnDefinitions("*")
+            : new ColumnDefinitions("1.05*,1*");
+        MemoryMapVisualGrid.RowDefinitions = compact
+            ? new RowDefinitions("Auto,Auto")
             : new RowDefinitions("Auto");
-        Grid.SetColumn(HomeLifecycleCaptureCard, 0);
-        Grid.SetRow(HomeLifecycleCaptureCard, 0);
-        Grid.SetColumn(HomeLifecycleSourceCard, compact ? 0 : 1);
-        Grid.SetRow(HomeLifecycleSourceCard, compact ? 1 : 0);
-        Grid.SetColumn(HomeLifecycleKnowledgeCard, compact ? 0 : 2);
-        Grid.SetRow(HomeLifecycleKnowledgeCard, compact ? 2 : 0);
-        Grid.SetColumn(HomeLifecycleLearningCard, compact ? 0 : 3);
-        Grid.SetRow(HomeLifecycleLearningCard, compact ? 3 : 0);
-        Grid.SetColumn(HomeLifecycleReviewCard, compact ? 0 : 4);
-        Grid.SetRow(HomeLifecycleReviewCard, compact ? 4 : 0);
+        var memoryMapDetails = MemoryMapVisualGrid.Children[1];
+        Grid.SetColumn(memoryMapDetails, compact ? 0 : 1);
+        Grid.SetRow(memoryMapDetails, compact ? 1 : 0);
+        HomeRecentEvidenceList.MaxHeight = compact ? 240 : 300;
+        HomePageActions.Orientation = mobile
+            ? Avalonia.Layout.Orientation.Vertical
+            : Avalonia.Layout.Orientation.Horizontal;
+        var homeMetricColumns = contentWidth < 900 ? 1 : contentWidth < 1280 ? 2 : 5;
+        HomeLifecycleGrid.ColumnDefinitions = homeMetricColumns switch
+        {
+            1 => new ColumnDefinitions("1*"),
+            2 => new ColumnDefinitions("*,*"),
+            _ => new ColumnDefinitions("*,*,*,*,*"),
+        };
+        HomeLifecycleGrid.RowDefinitions = homeMetricColumns switch
+        {
+            1 => new RowDefinitions("Auto,Auto,Auto,Auto,Auto"),
+            2 => new RowDefinitions("Auto,Auto,Auto"),
+            _ => new RowDefinitions("Auto"),
+        };
+        for (var index = 0; index < HomeLifecycleGrid.Children.Count; index++)
+        {
+            Grid.SetColumn(HomeLifecycleGrid.Children[index], index % homeMetricColumns);
+            Grid.SetRow(HomeLifecycleGrid.Children[index], index / homeMetricColumns);
+        }
         SetResponsiveToolbar(FirstRunReadinessGrid, FirstRunImportButton, narrowActions);
         SetResponsiveToolbar(HomeContinueReadingGrid, HomeContinueReadingButton, narrowActions);
         SetResponsiveToolbar(HomeDeepTutorGrid, HomeDeepTutorButton, narrowActions);
@@ -3380,16 +4402,6 @@ public partial class MainWindow : Window
         HomeKnowledgeActions.Orientation = narrowActions
             ? Avalonia.Layout.Orientation.Vertical
             : Avalonia.Layout.Orientation.Horizontal;
-        HomeStatsSurface.ColumnDefinitions = compact
-            ? new ColumnDefinitions("1*")
-            : new ColumnDefinitions("*,*,*");
-        HomeStatsSurface.RowDefinitions = compact
-            ? new RowDefinitions("Auto,Auto,Auto")
-            : new RowDefinitions("Auto");
-        Grid.SetColumn(HomeStatsKnowledgeCard, compact ? 0 : 1);
-        Grid.SetRow(HomeStatsKnowledgeCard, compact ? 1 : 0);
-        Grid.SetColumn(HomeStatsLearningCard, compact ? 0 : 2);
-        Grid.SetRow(HomeStatsLearningCard, compact ? 2 : 0);
         KnowledgeFactsGrid.ColumnDefinitions = compact
             ? new ColumnDefinitions("1*")
             : new ColumnDefinitions("*,*");
@@ -3439,29 +4451,63 @@ public partial class MainWindow : Window
         Grid.SetRow(action, narrow ? 1 : 0);
     }
 
+    private void SetMemoryMapToolbarLayout(bool narrow)
+    {
+        MemoryMapToolbar.ColumnDefinitions = narrow
+            ? new ColumnDefinitions("*")
+            : new ColumnDefinitions("*,Auto");
+        MemoryMapToolbar.RowDefinitions = narrow
+            ? new RowDefinitions("Auto,Auto")
+            : new RowDefinitions("Auto");
+
+        for (var index = 0; index < MemoryMapToolbar.Children.Count; index++)
+        {
+            Grid.SetColumn(MemoryMapToolbar.Children[index], narrow ? 0 : index);
+            Grid.SetRow(MemoryMapToolbar.Children[index], narrow ? index : 0);
+        }
+
+        MemoryMapLoadButton.HorizontalAlignment = narrow
+            ? Avalonia.Layout.HorizontalAlignment.Stretch
+            : Avalonia.Layout.HorizontalAlignment.Right;
+    }
+
     private async void OnSearchLibraryClick(object? sender, RoutedEventArgs e)
+    {
+        await SearchLibraryAsync();
+    }
+
+    private async Task SearchLibraryAsync()
     {
         var requestVersion = ++_librarySearchRequestVersion;
         var query = LibrarySearchBox.Text?.Trim() ?? string.Empty;
         if (query.Length == 0)
         {
+            SearchPageEmptyState.IsVisible = true;
+            SearchPageEmptyText.Text = "输入关键词后读取 Core 搜索结果。";
             LibraryResultsText.Text = "请输入关键词后再搜索。";
             SetStatus(LibrarySearchStatusText, "资料库搜索：请输入关键词。", "empty");
             LibraryResultsList.ItemsSource = Array.Empty<string>();
+            LibraryEmptyState.IsVisible = true;
             LibrarySelectedDetailBorder.IsVisible = false;
             OpenLibrarySourceButton.IsEnabled = false;
             return;
         }
         _librarySearchQuery = query;
+        SearchPageEmptyState.IsVisible = true;
+        SearchPageEmptyText.Text = "正在读取 Core 搜索结果…";
+        SearchPageResultCountText.Text = "正在读取…";
         LibrarySearchButton.IsEnabled = false;
         OpenLibrarySourceButton.IsEnabled = false;
         LibrarySelectedDetailBorder.IsVisible = false;
         SetStatus(LibrarySearchStatusText, "资料库搜索：正在读取 Core", "loading");
         if (_supervisor is null || _supervisor.CoreUrl.Length == 0)
         {
+            SearchPageEmptyText.Text = "Core 未就绪；连接后可读取真实搜索结果。";
+            SearchPageResultCountText.Text = "Core 未就绪。";
             LibraryResultsText.Text = "核心未就绪，无法读取资料库。";
             SetStatus(LibrarySearchStatusText, "资料库搜索：核心未就绪。", "error");
             LibraryResultsList.ItemsSource = Array.Empty<string>();
+            LibraryEmptyState.IsVisible = true;
             LibrarySelectedDetailBorder.IsVisible = false;
             LibrarySearchButton.IsEnabled = true;
             return;
@@ -3476,6 +4522,11 @@ public partial class MainWindow : Window
             if (!response.IsSuccessStatusCode)
             {
                 var permissionDenied = IsPermissionStatus(response.StatusCode);
+                SearchPageEmptyState.IsVisible = true;
+                SearchPageEmptyText.Text = permissionDenied
+                    ? "Core 拒绝搜索；请检查会话或权限范围。"
+                    : "Core 搜索失败；检查连接后重试。";
+                SearchPageResultCountText.Text = permissionDenied ? "访问被拒绝。" : "搜索失败。";
                 LibraryResultsText.Text = permissionDenied
                     ? "Core 拒绝资料库搜索；请检查会话或权限范围。"
                     : "资料库搜索失败，请检查 Core 状态。";
@@ -3486,6 +4537,7 @@ public partial class MainWindow : Window
                         : "资料库搜索：读取失败。",
                     permissionDenied ? "permission" : "error");
                 LibraryResultsList.ItemsSource = Array.Empty<string>();
+                LibraryEmptyState.IsVisible = true;
                 LibrarySelectedDetailBorder.IsVisible = false;
                 LibrarySearchButton.IsEnabled = true;
                 return;
@@ -3562,6 +4614,17 @@ public partial class MainWindow : Window
                     : $"资料库搜索：已读取 {visibleRows.Count} 条 Core 投影。",
                 visibleRows.Count == 0 ? "empty" : "success");
             LibraryResultsList.ItemsSource = visibleRows;
+            LibraryEmptyState.IsVisible = visibleRows.Count == 0;
+            SearchPageResultsList.ItemsSource = visibleRows;
+            var resultSummary = visibleRows.Count == 0
+                ? $"未找到匹配结果（知识 {count}，提取结果 {transformCount}）。"
+                : $"匹配结果：当前显示 {visibleRows.Count} 条 Core 投影。";
+            SearchPageEmptyState.IsVisible = visibleRows.Count == 0;
+            SearchPageEmptyText.Text = visibleRows.Count == 0
+                ? $"没有匹配结果 · 知识 {count} / Transform {transformCount}"
+                : string.Empty;
+            SearchPageResultCountText.Text = resultSummary;
+            SearchPageStatusText.Text = resultSummary;
             LibrarySelectedDetailBorder.IsVisible = false;
             SetInspectorProjection("资料库搜索", $"知识 {count} · 提取结果 {transformCount}\n当前筛选：{(kindFilter == "all" ? "全部类型" : kindFilter)} · active_only={LibraryActiveOnlyBox.IsChecked == true}\n查询：{query}\n来自 Core 搜索投影。");
             LibrarySearchButton.IsEnabled = true;
@@ -3570,21 +4633,52 @@ public partial class MainWindow : Window
         {
             if (requestVersion != _librarySearchRequestVersion)
                 return;
+            SearchPageEmptyState.IsVisible = true;
+            SearchPageEmptyText.Text = "搜索请求中断；检查 Core 状态后重试。";
+            SearchPageResultCountText.Text = "搜索中断。";
             LibraryResultsText.Text = "资料库搜索中断。";
             SetStatus(LibrarySearchStatusText, "资料库搜索：读取失败。", "error");
             LibraryResultsList.ItemsSource = Array.Empty<string>();
+            LibraryEmptyState.IsVisible = true;
             LibrarySelectedDetailBorder.IsVisible = false;
             LibrarySearchButton.IsEnabled = true;
         }
     }
 
+    private async void OnSearchPageClick(object? sender, RoutedEventArgs e)
+    {
+        LibrarySearchBox.Text = SearchPageQueryBox.Text;
+        LibraryActiveOnlyBox.IsChecked = SearchPageActiveOnly.IsChecked;
+        LibraryKindFilterBox.SelectedIndex = SearchPageTypeFilter.SelectedIndex;
+        await SearchLibraryAsync();
+    }
+
+    private async void OnSearchPageKeyDown(object? sender, KeyEventArgs e)
+    {
+        if (e.Key is Key.Enter)
+        {
+            e.Handled = true;
+            await OnSearchPageClickAsync();
+        }
+    }
+
+    private async Task OnSearchPageClickAsync()
+    {
+        LibrarySearchBox.Text = SearchPageQueryBox.Text;
+        LibraryActiveOnlyBox.IsChecked = SearchPageActiveOnly.IsChecked;
+        LibraryKindFilterBox.SelectedIndex = SearchPageTypeFilter.SelectedIndex;
+        await SearchLibraryAsync();
+    }
+
     private void OnLibraryResultSelected(object? sender, SelectionChangedEventArgs e)
     {
-        if (LibraryResultsList.SelectedItem is not LibraryResultRow selected)
+        if (sender is not ListBox list || list.SelectedItem is not LibraryResultRow selected)
         {
             LibrarySelectedDetailBorder.IsVisible = false;
             return;
         }
+        LibraryResultsList.SelectedItem = selected;
+        SearchPageResultsList.SelectedItem = selected;
         ProjectSelectedLibraryResult(selected);
     }
 
@@ -3593,7 +4687,7 @@ public partial class MainWindow : Window
         if (e.Key != Key.Enter)
             return;
 
-        if (ReferenceEquals(sender, LibraryResultsList))
+        if (ReferenceEquals(sender, LibraryResultsList) || ReferenceEquals(sender, SearchPageResultsList))
         {
             ExecuteSelectedLibraryResult();
             e.Handled = true;
@@ -3602,7 +4696,7 @@ public partial class MainWindow : Window
 
     private void OnDetailListDoubleTapped(object? sender, TappedEventArgs e)
     {
-        if (ReferenceEquals(sender, LibraryResultsList))
+        if (ReferenceEquals(sender, LibraryResultsList) || ReferenceEquals(sender, SearchPageResultsList))
             ExecuteSelectedLibraryResult();
         e.Handled = true;
     }
@@ -3757,6 +4851,7 @@ public partial class MainWindow : Window
     {
         // Supervisor shutdown: never leave an orphaned core process behind.
         _toastTimer.Stop();
+        _toastMotionTimer.Stop();
         StopHomeHeroAmbientMotion();
         _deepTutor.Dispose();
         _supervisor?.Dispose();
@@ -3783,6 +4878,8 @@ public partial class MainWindow : Window
     private void RefreshCaptureContextProjection()
     {
         var activeContext = _selectedCaptureContext ?? _latestCaptureContext;
+        CaptureRecentList.ItemsSource = _captureContexts.AsEnumerable().Reverse().ToArray();
+        CaptureRecentEmptyState.IsVisible = _captureContexts.Count == 0;
         if (activeContext is null)
         {
             CaptureContextText.Text = "本次导入上下文：尚未形成 Core 来源。";
@@ -3812,13 +4909,24 @@ public partial class MainWindow : Window
 
     private void OnCaptureContextSelected(object? sender, SelectionChangedEventArgs e)
     {
-        _selectedCaptureContext = CaptureContextsList.SelectedItem as CaptureContextRow;
+        var selected = sender is ListBox list ? list.SelectedItem as CaptureContextRow : null;
+        if (selected is not null)
+        {
+            _selectedCaptureContext = selected;
+            CaptureContextsList.SelectedItem = selected;
+        }
+        else
+        {
+            _selectedCaptureContext = CaptureContextsList.SelectedItem as CaptureContextRow;
+        }
         RefreshCaptureContextProjection();
     }
 
     private void OnOpenLatestSourceClick(object? sender, RoutedEventArgs e)
     {
-        var activeContext = _selectedCaptureContext ?? _latestCaptureContext;
+        var activeContext = (sender as Control)?.Tag as CaptureContextRow
+            ?? _selectedCaptureContext
+            ?? _latestCaptureContext;
         if (activeContext is null || string.IsNullOrWhiteSpace(activeContext.SourceId))
         {
             CaptureContextText.Text = "本次导入尚未形成可读取的 source_id。";
@@ -3868,11 +4976,13 @@ public partial class MainWindow : Window
         if (_captureImportInProgress)
             return;
         _captureImportInProgress = true;
+        CaptureScanSweep.SetSweepActive(true);
         SetCaptureImportActionsEnabled(false);
         SetStatus(CaptureImportStatusText, "正在打开资料选择器。", "loading");
         try
         {
-            await ImportSelectedFilesAsync();
+            var fileKind = (sender as Control)?.Tag as string;
+            await ImportSelectedFilesAsync(fileKind);
         }
         catch (Exception)
         {
@@ -3884,6 +4994,7 @@ public partial class MainWindow : Window
         finally
         {
             _captureImportInProgress = false;
+            CaptureScanSweep.SetSweepActive(false);
             SetCaptureImportActionsEnabled(true);
         }
     }
@@ -3894,9 +5005,10 @@ public partial class MainWindow : Window
         FirstRunImportButton.IsEnabled = enabled;
         HomeImportButton.IsEnabled = enabled;
         CaptureImportButton.IsEnabled = enabled;
+        CaptureDocumentButton.IsEnabled = enabled;
     }
 
-    private async Task ImportSelectedFilesAsync()
+    private async Task ImportSelectedFilesAsync(string? fileKind = null)
     {
         SetSection("capture", "捕获");
         var storage = TopLevel.GetTopLevel(this)?.StorageProvider;
@@ -3908,10 +5020,24 @@ public partial class MainWindow : Window
             return;
         }
 
+        var filters = fileKind switch
+        {
+            "document" => new[] { new FilePickerFileType("文档") { Patterns = new[] { "*.pdf", "*.docx", "*.doc", "*.md", "*.txt", "*.html", "*.htm", "*.pptx", "*.xlsx" } } },
+            "image" => new[] { new FilePickerFileType("图片") { Patterns = new[] { "*.png", "*.jpg", "*.jpeg", "*.webp", "*.gif", "*.bmp", "*.tif", "*.tiff" } } },
+            "audio" => new[] { new FilePickerFileType("音频") { Patterns = new[] { "*.mp3", "*.wav", "*.m4a", "*.aac", "*.flac", "*.ogg", "*.wma" } } },
+            _ => Array.Empty<FilePickerFileType>(),
+        };
         var files = await storage.OpenFilePickerAsync(new FilePickerOpenOptions
         {
-            Title = "选择要导入的资料",
+            Title = fileKind switch
+            {
+                "document" => "选择要导入的文档",
+                "image" => "选择要导入的图片",
+                "audio" => "选择要导入的音频",
+                _ => "选择要导入的资料",
+            },
             AllowMultiple = true,
+            FileTypeFilter = filters,
         });
         if (files.Count == 0)
         {
@@ -4101,14 +5227,16 @@ public partial class MainWindow : Window
 
     private async void OnLearningClick(object? sender, RoutedEventArgs e)
     {
+        ResetReviewFace();
         var requestVersion = ++_learningRequestVersion;
         ++_reviewRequestVersion;
-        if (!string.Equals(_activeSection, "learning", StringComparison.Ordinal))
+        if (!string.Equals(_activeSection, "learning", StringComparison.Ordinal)
+            && !string.Equals(_activeSection, "review", StringComparison.Ordinal))
         {
             _learningNavigationLoadInProgress = true;
             try
             {
-                SetSection("learning", "学习");
+                SetSection("learning", "人类学习");
             }
             finally
             {
@@ -4116,6 +5244,10 @@ public partial class MainWindow : Window
             }
         }
         LoadLearningButton.IsEnabled = false;
+        _reviewQueueLoadedFromCore = false;
+        LearningQueueList.ItemsSource = null;
+        ReviewQueueList.ItemsSource = null;
+        UpdateReviewQueueEmptyState();
         ReviewOutcomeBox.Text = string.Empty;
         ReviewOutcomeBox.SelectedIndex = 0;
         ResetLearningProjectionForUnavailable(
@@ -4164,6 +5296,7 @@ public partial class MainWindow : Window
             if (requestVersion != _learningRequestVersion)
                 return;
             var count = document.RootElement.GetProperty("count").GetInt32();
+            _reviewQueueLoadedFromCore = true;
             var learningStateAvailable = false;
             if (count > 0)
             {
@@ -4198,9 +5331,12 @@ public partial class MainWindow : Window
                 }
                 _hydratingLearningQueue = true;
                 LearningQueueList.ItemsSource = queueRows;
+                ReviewQueueList.ItemsSource = queueRows;
                 LearningQueueList.SelectedItem = queueRows.FirstOrDefault(row =>
                     string.Equals(row.ItemKey, _selectedLearningItemKey, StringComparison.Ordinal));
+                ReviewQueueList.SelectedItem = LearningQueueList.SelectedItem;
                 _hydratingLearningQueue = false;
+                UpdateReviewQueueEmptyState();
                 _activeLearningItem = first.GetProperty("item_key").GetString();
                 _activeReviewEventId = null;
                 _activeExposureId = null;
@@ -4302,9 +5438,12 @@ public partial class MainWindow : Window
                         _activeKnowledgeVersion = assessment.RootElement.GetProperty("knowledge_version").GetString();
                         var question = assessment.RootElement.GetProperty("question").GetString() ?? "";
                         var content = assessment.RootElement.GetProperty("content").GetString() ?? "";
-                        assessmentText = $"{question}\n内容：{content}";
-                        return !string.IsNullOrWhiteSpace(_activeAssessmentId)
+                        ReviewPagePromptText.Text = question;
+                        ReviewCardSurface.IsVisible = !string.IsNullOrWhiteSpace(question)
+                            && !string.IsNullOrWhiteSpace(_activeAssessmentId)
                             && !string.IsNullOrWhiteSpace(_activeKnowledgeVersion);
+                        assessmentText = $"{question}\n内容：{content}";
+                        return ReviewCardSurface.IsVisible;
                     }
 
                     using var assessmentResponse = await _supervisor.SendAsync(
@@ -4330,6 +5469,7 @@ public partial class MainWindow : Window
                 }
                 if (!assessmentReady && !string.IsNullOrWhiteSpace(activeKnowledgeId))
                     assessmentText = "Assessment 未就绪；未启用回答提交。";
+                ReviewCardSurface.IsVisible = assessmentReady;
                 LearningVersionText.Text = $"knowledge_id={_activeKnowledgeId ?? "未暴露"}\nknowledge_version={_activeKnowledgeVersion ?? "未生成"}\nassessment_id={_activeAssessmentId ?? "未生成"}";
                 var readbackText = "学习记录：未读回";
                 using (var historyResponse = await _supervisor.SendAsync(
@@ -4396,11 +5536,21 @@ public partial class MainWindow : Window
                     layer: "Core projection · Learning/Assessment");
                 LearningAnswerBox.IsEnabled = assessmentReady;
                 ReviewOutcomeBox.IsEnabled = assessmentReady;
+                ReviewPageOutcomeBox.IsEnabled = assessmentReady;
+                ReviewPageOutcomeBox.SelectedIndex = ReviewOutcomeBox.SelectedIndex;
+                ReviewPageAnswerBox.IsEnabled = assessmentReady;
+                ReviewRevealButton.IsEnabled = assessmentReady;
+                ReviewPageAnswerBox.Text = LearningAnswerBox.Text;
+                ReviewAgainButton2.IsEnabled = assessmentReady;
+                ReviewHardButton2.IsEnabled = assessmentReady;
+                ReviewGoodButton2.IsEnabled = assessmentReady;
+                ReviewEasyButton2.IsEnabled = assessmentReady;
                 ReviewAgainButton.IsEnabled = assessmentReady;
                 ReviewHardButton.IsEnabled = assessmentReady;
                 ReviewGoodButton.IsEnabled = assessmentReady;
                 ReviewEasyButton.IsEnabled = assessmentReady;
                 SubmitReviewButton.IsEnabled = assessmentReady;
+                SubmitReviewButton2.IsEnabled = assessmentReady;
             }
             else
             {
@@ -4419,11 +5569,19 @@ public partial class MainWindow : Window
                 OpenLearningKnowledgeButton.IsEnabled = false;
                 LearningAnswerBox.IsEnabled = false;
                 ReviewOutcomeBox.IsEnabled = false;
+                ReviewPageOutcomeBox.IsEnabled = false;
+                ReviewPageAnswerBox.IsEnabled = false;
+                ReviewRevealButton.IsEnabled = false;
                 ReviewAgainButton.IsEnabled = false;
                 ReviewHardButton.IsEnabled = false;
                 ReviewGoodButton.IsEnabled = false;
                 ReviewEasyButton.IsEnabled = false;
+                ReviewAgainButton2.IsEnabled = false;
+                ReviewHardButton2.IsEnabled = false;
+                ReviewGoodButton2.IsEnabled = false;
+                ReviewEasyButton2.IsEnabled = false;
                 SubmitReviewButton.IsEnabled = false;
+                SubmitReviewButton2.IsEnabled = false;
                 await RefreshWorkspaceSummaryAsync();
             }
             CoreStatusText.Text = count == 0
@@ -4446,6 +5604,7 @@ public partial class MainWindow : Window
                     ? "info"
                     : "success";
             SetStatus(LearningStatusText, learningStatus, learningSemanticState);
+            ReviewPageStatusText.Text = learningStatus;
             FinishLearningRequest(requestVersion);
         }
         catch (Exception)
@@ -4457,6 +5616,7 @@ public partial class MainWindow : Window
                 "学习路径：读取中断；未保留上一条学习投影。",
                 "请重新加载复习项目，或到设置页检查 Core 状态。");
             SetStatus(LearningStatusText, "学习路径：队列读取中断", "error");
+            ReviewPageStatusText.Text = "Core 队列读取中断；请检查连接后重新载入。";
             FinishLearningRequest(requestVersion);
         }
     }
@@ -4473,6 +5633,11 @@ public partial class MainWindow : Window
         ReviewHardButton.Classes.Set("selected", rating == 2);
         ReviewGoodButton.Classes.Set("selected", rating == 3);
         ReviewEasyButton.Classes.Set("selected", rating == 4);
+        ReviewAgainButton2.Classes.Set("selected", rating == 1);
+        ReviewHardButton2.Classes.Set("selected", rating == 2);
+        ReviewGoodButton2.Classes.Set("selected", rating == 3);
+        ReviewEasyButton2.Classes.Set("selected", rating == 4);
+        SubmitReviewButton2.IsEnabled = SubmitReviewButton.IsEnabled;
         SetStatus(LearningReviewStatusText, $"已选择 FSRS {rating}；请单独选择回答结果后提交。", "info");
     }
 
@@ -4502,6 +5667,11 @@ public partial class MainWindow : Window
 
     private async void OnSubmitReviewClick(object? sender, RoutedEventArgs e)
     {
+        if (ReviewSurface.IsVisible)
+        {
+            LearningAnswerBox.Text = ReviewPageAnswerBox.Text;
+            ReviewOutcomeBox.SelectedIndex = ReviewPageOutcomeBox.SelectedIndex;
+        }
         if (_supervisor is null || _supervisor.CoreUrl.Length == 0 || string.IsNullOrWhiteSpace(_activeLearningItem)
             || string.IsNullOrWhiteSpace(_activeAssessmentId))
         {
@@ -4552,6 +5722,7 @@ public partial class MainWindow : Window
         if (submittedItemKey is null || submittedAssessmentId is null || submittedEventId is null || submittedExposureId is null)
         {
             SubmitReviewButton.IsEnabled = true;
+            SubmitReviewButton2.IsEnabled = true;
             SetStatus(LearningReviewStatusText, "复习提交失败：当前项目身份未完整暴露。", "error");
             return;
         }
@@ -4635,16 +5806,23 @@ public partial class MainWindow : Window
                 _activeKnowledgeVersion = null;
                 LearningAnswerBox.Text = string.Empty;
                 ReviewOutcomeBox.SelectedIndex = 0;
+                ReviewPageOutcomeBox.SelectedIndex = 0;
                 ReviewAgainButton.IsEnabled = false;
                 ReviewHardButton.IsEnabled = false;
                 ReviewGoodButton.IsEnabled = false;
                 ReviewEasyButton.IsEnabled = false;
-                SubmitReviewButton.IsEnabled = false;
+                ReviewAgainButton2.IsEnabled = false;
+                ReviewHardButton2.IsEnabled = false;
+                ReviewGoodButton2.IsEnabled = false;
+                ReviewEasyButton2.IsEnabled = false;
+        SubmitReviewButton.IsEnabled = false;
+                SubmitReviewButton2.IsEnabled = false;
                 _activeReviewRating = null;
             }
             else
             {
                 SubmitReviewButton.IsEnabled = true;
+                SubmitReviewButton2.IsEnabled = true;
                 var permissionDenied = response.StatusCode is System.Net.HttpStatusCode.Unauthorized
                     or System.Net.HttpStatusCode.Forbidden;
                 SetStatus(
@@ -4667,6 +5845,7 @@ public partial class MainWindow : Window
                     submittedExposureId))
                 return;
             SubmitReviewButton.IsEnabled = true;
+            SubmitReviewButton2.IsEnabled = true;
             CoreStatusText.Text = "学习路径：复习提交中断";
             SetStatus(LearningReviewStatusText, "复习提交中断；请以 Core 回执为准。", "error");
         }
@@ -4698,6 +5877,8 @@ public sealed class LibraryResultRow
     public string Engine { get; }
     public string Head { get; }
     public string KindLabel => Kind == "knowledge" ? "KNOWLEDGE" : "TRANSFORM";
+    public string TopicLabel => "Core 未暴露";
+    public string UpdatedLabel => "Core 未暴露";
     public string StatusLabel => Kind == "transform"
         ? "Knowledge 状态：不适用"
         : $"status={Status} · active={Active}";

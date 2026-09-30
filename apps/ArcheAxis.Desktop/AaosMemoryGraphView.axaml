@@ -1,0 +1,79 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             x:Class="ArcheAxis.Desktop.AaosMemoryGraphView"
+             Width="560"
+             Height="420"
+             ClipToBounds="False"
+             AutomationProperties.Name="Memory Graph 静态示意：知识中心与关系网络；节点和连线均不代表 Core 条目或关系">
+  <UserControl.Styles>
+    <Style Selector="Button.aaos-graph-node">
+      <Setter Property="Transitions">
+        <Transitions>
+          <DoubleTransition Property="Opacity" Duration="0:0:0.12" />
+        </Transitions>
+      </Setter>
+    </Style>
+    <Style Selector="Button.aaos-graph-node Ellipse">
+      <Setter Property="Fill" Value="Transparent" />
+      <Setter Property="Stroke" Value="{DynamicResource AaosGoldBrush}" />
+      <Setter Property="StrokeThickness" Value="1.5" />
+    </Style>
+    <Style Selector="Button.aaos-graph-node:pointerover Ellipse">
+      <Setter Property="Stroke" Value="{DynamicResource AaosPrimaryBrush}" />
+      <Setter Property="StrokeThickness" Value="2.5" />
+      <Setter Property="Effect">
+        <DropShadowEffect Color="{DynamicResource AaosGraphGlowColor}" BlurRadius="12" OffsetX="0" OffsetY="0" />
+      </Setter>
+    </Style>
+    <Style Selector="Button.aaos-graph-node.focus-visible Ellipse">
+      <Setter Property="Stroke" Value="{DynamicResource AaosPrimaryBrush}" />
+      <Setter Property="StrokeThickness" Value="2.5" />
+      <Setter Property="Effect">
+        <DropShadowEffect Color="{DynamicResource AaosGraphGlowColor}" BlurRadius="12" OffsetX="0" OffsetY="0" />
+      </Setter>
+    </Style>
+    <Style Selector="Button.aaos-graph-node.selected Ellipse">
+      <Setter Property="Stroke" Value="{DynamicResource AaosPrimaryBrush}" />
+      <Setter Property="StrokeThickness" Value="2.5" />
+    </Style>
+  </UserControl.Styles>
+  <Grid RowDefinitions="*,Auto" RowSpacing="2">
+    <Canvas x:Name="GraphCanvas"
+            Grid.Row="0"
+            Width="560"
+            Height="390"
+            ClipToBounds="False"
+            AutomationProperties.HelpText="页面结构用的静态示意网络；所有中文标签、节点和交叉连线都不代表 Core 条目或关系，也不读取或筛选 Core 图谱数据。">
+      <Border x:Name="CoreKnowledgeNode"
+              Width="60"
+              Height="60"
+              CornerRadius="30"
+              Background="{DynamicResource AaosPrimaryBrush}"
+              BorderBrush="{DynamicResource AaosPrimaryBrush}"
+              BorderThickness="1"
+              Canvas.Left="250"
+              Canvas.Top="165"
+              ZIndex="3"
+              RenderTransformOrigin="50%,50%"
+              AutomationProperties.Name="知识中心静态示意节点；不代表 Core 条目或关系">
+        <Border.RenderTransform>
+          <ScaleTransform ScaleX="1" ScaleY="1" />
+        </Border.RenderTransform>
+        <TextBlock x:Name="CoreKnowledgeLabel" Text="知识"
+                   FontSize="13"
+                   FontWeight="SemiBold"
+                   Foreground="{DynamicResource AaosPrimaryTextBrush}"
+                   HorizontalAlignment="Center"
+                   VerticalAlignment="Center" />
+      </Border>
+    </Canvas>
+    <TextBlock Grid.Row="1"
+               Text="静态示意 · 节点与连线不代表 Core 条目或关系"
+               FontSize="11"
+               Classes="status-empty"
+               HorizontalAlignment="Center"
+               TextAlignment="Center"
+               TextWrapping="Wrap"
+               AutomationProperties.Name="静态示意；节点与连线不代表 Core 条目或关系" />
+  </Grid>
+</UserControl>

@@ -1,0 +1,15 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             x:Class="ArcheAxis.Desktop.AaosHomeHeroOrbit"
+             IsHitTestVisible="False"
+             AutomationProperties.AccessibilityView="Raw">
+  <Grid ClipToBounds="True" IsHitTestVisible="False">
+    <Canvas ClipToBounds="True" IsHitTestVisible="False">
+      <Ellipse x:Name="OrbitTrack" Width="180" Height="84"
+               Stroke="{DynamicResource AaosPrimaryBrush}" StrokeThickness="1"
+               Opacity="0.40" Fill="Transparent" />
+      <Ellipse x:Name="OrbitSatellite" Width="6" Height="6"
+               Fill="{DynamicResource AaosGoldBrush}" Opacity="0.90" />
+    </Canvas>
+  </Grid>
+</UserControl>

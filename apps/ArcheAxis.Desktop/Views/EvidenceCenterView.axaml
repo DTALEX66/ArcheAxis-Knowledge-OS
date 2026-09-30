@@ -1,46 +1,201 @@
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:local="using:ArcheAxis.Desktop"
              xmlns:views="using:ArcheAxis.Desktop.Views"
              NarrowActionsBreakpoint="{DynamicResource AaosNarrowActionsBreakpoint}"
              x:Class="ArcheAxis.Desktop.Views.EvidenceCenterView">
+  <UserControl.Styles>
+    <Style Selector="ListBoxItem:pointerover Border.evidence-anchor-row">
+      <Setter Property="Background" Value="{DynamicResource AaosSurface2Brush}" />
+      <Setter Property="BorderBrush" Value="{DynamicResource AaosPrimaryBrush}" />
+    </Style>
+    <Style Selector="ListBoxItem:selected Border.evidence-anchor-row">
+      <Setter Property="Background" Value="{DynamicResource AaosSurface2Brush}" />
+      <Setter Property="BorderBrush" Value="{DynamicResource AaosPrimaryBrush}" />
+    </Style>
+    <Style Selector="ListBoxItem:focus Border.evidence-anchor-row">
+      <Setter Property="BorderBrush" Value="{DynamicResource AaosPrimaryBrush}" />
+      <Setter Property="BorderThickness" Value="1.5" />
+    </Style>
+    <Style Selector="Grid.reduced-motion Border.evidence-anchor-row">
+      <Setter Property="Transitions"><Transitions /></Setter>
+    </Style>
+  </UserControl.Styles>
+  <UserControl.Resources>
+    <DataTemplate x:Key="EvidenceLibraryRowTemplate" x:DataType="{x:Type views:EvidenceAnchorRow}">
+      <Border Classes="evidence-anchor-row" Padding="12,10" Margin="0,2" CornerRadius="8" Background="{DynamicResource AaosSurfaceBrush}" BorderBrush="{DynamicResource AaosBorderBrush}" BorderThickness="1">
+        <Border.Transitions><Transitions><BrushTransition Property="Background" Duration="0:0:0.18" /><BrushTransition Property="BorderBrush" Duration="0:0:0.18" /></Transitions></Border.Transitions>
+        <Grid ColumnDefinitions="2*,1*,1*,1*,.8*,1.2*" RowDefinitions="Auto,Auto" ColumnSpacing="14" RowSpacing="5" MinHeight="68">
+          <TextBlock Text="{Binding AnchorId}" Classes="card-heading" FontSize="14" TextTrimming="CharacterEllipsis" VerticalAlignment="Center" ToolTip.Tip="Evidence anchor ID；Core 未提供来源标题" />
+          <TextBlock Grid.Column="1" Text="{Binding SourceId}" Classes="status-empty" FontSize="12" TextTrimming="CharacterEllipsis" VerticalAlignment="Center" />
+          <TextBlock Grid.Column="2" Text="{Binding ConfidenceDisplay}" Classes="status-empty" FontSize="11" VerticalAlignment="Center" />
+          <TextBlock Grid.Column="3" Text="{Binding TopicDisplay}" Classes="status-empty" FontSize="11" VerticalAlignment="Center" />
+          <TextBlock Grid.Column="4" Text="{Binding CitationCountDisplay}" Classes="status-empty" FontSize="11" VerticalAlignment="Center" />
+          <TextBlock Grid.Column="5" Text="{Binding VerificationStatusDisplay}" Classes="status-empty" FontSize="11" TextWrapping="Wrap" VerticalAlignment="Center" />
+          <StackPanel Grid.Row="1" Grid.ColumnSpan="6" Orientation="Horizontal" Spacing="12">
+            <TextBlock Text="revision" Classes="provenance-tag" FontSize="10" /><TextBlock Text="{Binding SourceRevisionDisplay}" Classes="status-empty" FontSize="10" />
+            <TextBlock Text="SHA-256" Classes="provenance-tag" FontSize="10" /><TextBlock Text="{Binding RawSha256Display}" Classes="status-empty" FontSize="10" MaxWidth="128" TextTrimming="CharacterEllipsis" />
+            <TextBlock Text="locator" Classes="provenance-tag" FontSize="10" /><TextBlock Text="{Binding LocatorDisplay}" Classes="status-empty" FontSize="10" MaxWidth="140" TextTrimming="CharacterEllipsis" />
+            <TextBlock Text="created" Classes="provenance-tag" FontSize="10" /><TextBlock Text="{Binding CreatedAtDisplay}" Classes="status-empty" FontSize="10" />
+          </StackPanel>
+        </Grid>
+      </Border>
+    </DataTemplate>
+    <DataTemplate x:Key="EvidenceLibraryCompactRowTemplate" x:DataType="{x:Type views:EvidenceAnchorRow}">
+      <Border Classes="evidence-anchor-row" Padding="10,9" Margin="0,2" CornerRadius="8" Background="{DynamicResource AaosSurfaceBrush}" BorderBrush="{DynamicResource AaosBorderBrush}" BorderThickness="1">
+        <Border.Transitions><Transitions><BrushTransition Property="Background" Duration="0:0:0.18" /><BrushTransition Property="BorderBrush" Duration="0:0:0.18" /></Transitions></Border.Transitions>
+        <Grid ColumnDefinitions="52,*" ColumnSpacing="10" MinHeight="80">
+          <Border Classes="evidence-thumbnail" Width="46" Height="64" CornerRadius="5" Background="{DynamicResource AaosSurface2Brush}" BorderBrush="{DynamicResource AaosBorderBrush}" BorderThickness="1" ToolTip.Tip="来源缩略图未由 Core 暴露；此处为类型图标" AutomationProperties.AccessibilityView="Raw"><local:AaosIcon Width="20" Height="20" IconName="Evidence" Foreground="{DynamicResource AaosPrimaryBrush}" /></Border>
+          <StackPanel Grid.Column="1" Spacing="3" VerticalAlignment="Center">
+            <TextBlock Text="{Binding TitleDisplay}" Classes="card-heading" FontSize="13" TextTrimming="CharacterEllipsis" />
+            <StackPanel Orientation="Horizontal" Spacing="6"><TextBlock Text="{Binding SourceId}" Classes="status-empty" FontSize="10" TextTrimming="CharacterEllipsis" /><TextBlock Text="{Binding PublicationYearDisplay}" Classes="status-empty" FontSize="10" /><TextBlock Text="{Binding VerificationStatusDisplay}" Classes="status-empty" FontSize="10" /></StackPanel>
+            <TextBlock Text="{Binding AnchorId}" Classes="provenance-projection" FontSize="10" TextTrimming="CharacterEllipsis" />
+            <StackPanel Orientation="Horizontal" Spacing="5"><TextBlock Text="修订" Classes="provenance-tag" FontSize="10" /><TextBlock Text="{Binding SourceRevisionDisplay}" Classes="status-empty" FontSize="10" /><TextBlock Text="SHA-256" Classes="provenance-tag" FontSize="10" /><TextBlock Text="{Binding RawSha256Display}" Classes="status-empty" FontSize="10" MaxWidth="90" TextTrimming="CharacterEllipsis" /><TextBlock Text="定位" Classes="provenance-tag" FontSize="10" /><TextBlock Text="{Binding LocatorDisplay}" Classes="status-empty" FontSize="10" MaxWidth="90" TextTrimming="CharacterEllipsis" /><TextBlock Text="创建" Classes="provenance-tag" FontSize="10" /><TextBlock Text="{Binding CreatedAtDisplay}" Classes="status-empty" FontSize="10" /></StackPanel>
+          </StackPanel>
+        </Grid>
+      </Border>
+    </DataTemplate>
+  </UserControl.Resources>
+  <Grid>
   <StackPanel x:Name="EvidenceSurface" Spacing="14">
-    <Border Classes="aaos-card" Padding="18">
-      <StackPanel Spacing="6">
-        <TextBlock Text="证据中心" Classes="page-title" />
-        <TextBlock Text="读取 Core 已持久化的 Evidence anchor 与 bundle 摘要；不展示原文正文，不把来源元数据升级为结论。" TextWrapping="Wrap" Foreground="{DynamicResource AaosMutedBrush}" />
-      </StackPanel>
-    </Border>
     <Border Classes="aaos-card-compact" Padding="14">
-      <Grid x:Name="EvidenceToolbar" Classes="aaos-toolbar" ColumnDefinitions="Auto,Auto" RowDefinitions="Auto" ColumnSpacing="10" RowSpacing="10">
-        <Button x:Name="EvidenceRefreshButton" Classes="primary-action aaos-compact" Content="读取证据" Padding="14,8" Click="OnRefreshClick" AutomationProperties.Name="读取证据" />
+      <Grid x:Name="EvidenceToolbar" Classes="aaos-toolbar" ColumnDefinitions="Auto,*" RowDefinitions="Auto" ColumnSpacing="10" RowSpacing="10">
+        <Button x:Name="EvidenceRefreshButton" Classes="primary-action aaos-compact" Padding="14,8" Click="OnRefreshClick" AutomationProperties.Name="读取证据">
+          <StackPanel Orientation="Horizontal" Spacing="8"><local:AaosIcon Width="16" Height="16" IconName="Refresh" Foreground="{DynamicResource AaosPrimaryTextBrush}" /><TextBlock Text="读取证据" VerticalAlignment="Center" /></StackPanel>
+        </Button>
         <TextBlock x:Name="EvidenceStatusText" Grid.Column="1" Classes="status-empty" VerticalAlignment="Center" Text="empty · 尚未读取 Core Evidence。" TextWrapping="Wrap" AutomationProperties.Name="证据中心状态" />
       </Grid>
     </Border>
-    <Border x:Name="EvidenceEmptyState" Classes="aaos-empty-state" Padding="16">
-      <StackPanel x:Name="EvidenceEmptyStateContent" Orientation="Horizontal" Spacing="16">
-        <Image x:Name="EvidenceEmptyStateImage" Source="avares://ArcheAxis.Desktop/Assets/aaos-evidence-anchor-empty-state.png" Width="150" Height="112" Stretch="Uniform" Opacity="0.92" AutomationProperties.AccessibilityView="Raw" AutomationProperties.IsControlElementOverride="False" />
-        <StackPanel Spacing="7" VerticalAlignment="Center">
-          <TextBlock Text="尚未读取 Evidence anchor" Classes="card-heading" />
-          <TextBlock Text="点击“读取证据”读取 Core 已持久化的来源定位；页面不使用演示数据填充。" TextWrapping="Wrap" Foreground="{DynamicResource AaosMutedBrush}" />
-          <StackPanel Orientation="Horizontal" Spacing="8">
-            <Button Classes="aaos-compact" Content="去捕获来源" Padding="12,7" Click="OnOpenCaptureClick" AutomationProperties.Name="去捕获来源" />
-            <Button Classes="aaos-compact" Content="查看任务回执" Padding="12,7" Click="OnOpenJobsClick" AutomationProperties.Name="查看任务回执" />
-          </StackPanel>
+    <Grid x:Name="EvidenceMetricsGrid" ColumnDefinitions="*,*,*,*" ColumnSpacing="14">
+        <Border Classes="aaos-kpi" Padding="14"><StackPanel Spacing="4"><TextBlock x:Name="EvidenceCountMetricText" Text="—" Classes="kpi-value metric-unknown" /><TextBlock x:Name="EvidenceCountMetricLabel" Text="证据 · 尚未读取" Classes="status-empty" /></StackPanel></Border>
+        <Border Grid.Column="1" Classes="aaos-kpi" Padding="14"><StackPanel Spacing="4"><TextBlock x:Name="EvidenceSourceMetricText" Text="—" Classes="kpi-value metric-unknown" /><TextBlock x:Name="EvidenceSourceMetricLabel" Text="来源 · 尚未读取" Classes="status-empty" /></StackPanel></Border>
+      <Border Grid.Column="2" Classes="aaos-kpi" Padding="14"><StackPanel Spacing="4"><TextBlock x:Name="EvidenceVerifiedMetricText" Text="—" Classes="kpi-value metric-unknown" /><TextBlock Text="已验证 · Core 未暴露" Classes="status-empty" /></StackPanel></Border>
+      <Border Grid.Column="3" Classes="aaos-kpi" Padding="14"><StackPanel Spacing="4"><TextBlock x:Name="EvidenceReviewMetricText" Text="—" Classes="kpi-value metric-unknown" /><TextBlock Text="待复核 · Core 未暴露" Classes="status-empty" /></StackPanel></Border>
+    </Grid>
+    <Border Classes="aaos-card" Padding="16">
+      <Grid x:Name="EvidenceContentGrid" RowDefinitions="Auto,*,Auto" ColumnDefinitions="*" RowSpacing="12">
+        <StackPanel x:Name="EvidenceCategoryTabs" Orientation="Horizontal" Spacing="8" Margin="2,0,2,4" AutomationProperties.Name="证据类型筛选；仅全部可用，Core 未提供类型字段">
+          <Button x:Name="EvidenceAllCategoryButton" Content="全部" Classes="primary-action aaos-compact" Padding="16,7" AutomationProperties.Name="全部证据，已选中" />
+          <Button x:Name="EvidenceArticleCategoryButton" Content="文章" IsEnabled="False" Classes="aaos-compact" Padding="16,7" ToolTip.Tip="Core anchor 未提供来源类型，文章筛选暂不可用" AutomationProperties.Name="文章筛选暂不可用，等待 Core 来源类型" />
+          <Button x:Name="EvidenceBookCategoryButton" Content="书籍" IsEnabled="False" Classes="aaos-compact" Padding="16,7" ToolTip.Tip="Core anchor 未提供来源类型，书籍筛选暂不可用" AutomationProperties.Name="书籍筛选暂不可用，等待 Core 来源类型" />
+          <Button x:Name="EvidenceVideoCategoryButton" Content="视频" IsEnabled="False" Classes="aaos-compact" Padding="16,7" ToolTip.Tip="Core anchor 未提供来源类型，视频筛选暂不可用" AutomationProperties.Name="视频筛选暂不可用，等待 Core 来源类型" />
+          <Button x:Name="EvidenceWebCategoryButton" Content="网页" IsEnabled="False" Classes="aaos-compact" Padding="16,7" ToolTip.Tip="Core anchor 未提供来源类型，网页筛选暂不可用" AutomationProperties.Name="网页筛选暂不可用，等待 Core 来源类型" />
         </StackPanel>
-      </StackPanel>
-    </Border>
-    <Border Classes="aaos-card" Padding="18">
-      <StackPanel Spacing="8">
-        <TextBlock Text="Evidence anchors" Classes="card-heading" />
-        <ListBox x:Name="EvidenceAnchorsList" SelectionChanged="OnAnchorSelected" KeyDown="OnAnchorListKeyDown" DoubleTapped="OnAnchorDoubleTapped" MaxHeight="260" Background="Transparent" BorderThickness="0" AutomationProperties.Name="证据锚点列表" />
-        <TextBlock x:Name="EvidenceAnchorDetailText" Classes="status-empty" Text="尚未选择 Evidence anchor。" TextWrapping="Wrap" />
-      </StackPanel>
-    </Border>
-    <Border Classes="aaos-card" Padding="18">
-      <StackPanel Spacing="8">
-        <TextBlock Text="Evidence bundles" Classes="card-heading" />
-        <TextBlock x:Name="EvidenceBundlesText" Classes="status-empty" Text="尚未读取 bundle 摘要。" TextWrapping="Wrap" />
-      </StackPanel>
+        <Grid x:Name="EvidenceLibraryListSurface" Grid.Row="1" MinHeight="160" RowDefinitions="Auto,*">
+          <Border x:Name="EvidenceLibraryTableHeader" Padding="12,11" CornerRadius="6" Background="{DynamicResource AaosSurface2Brush}" BorderBrush="{DynamicResource AaosBorderBrush}" BorderThickness="0,0,0,1" AutomationProperties.Name="证据库字段表头">
+            <Grid x:Name="EvidenceLibraryTableHeaderGrid" ColumnDefinitions="2*,1*,1*,1*,.8*,1.2*" ColumnSpacing="14">
+              <TextBlock Text="证据" Classes="provenance-tag" FontSize="11" />
+              <TextBlock Grid.Column="1" Text="来源" Classes="provenance-tag" FontSize="11" />
+              <TextBlock Grid.Column="2" Text="可信度" Classes="provenance-tag" FontSize="11" />
+              <TextBlock Grid.Column="3" Text="主题" Classes="provenance-tag" FontSize="11" />
+              <TextBlock Grid.Column="4" Text="引用" Classes="provenance-tag" FontSize="11" />
+              <TextBlock Grid.Column="5" Text="状态" Classes="provenance-tag" FontSize="11" />
+            </Grid>
+          </Border>
+          <ListBox x:Name="EvidenceAnchorsList" Grid.Row="1" SelectionChanged="OnAnchorSelected" KeyDown="OnAnchorListKeyDown" DoubleTapped="OnAnchorDoubleTapped" MaxHeight="560" Background="Transparent" BorderThickness="0" AutomationProperties.Name="证据锚点列表">
+            <ListBox.ItemTemplate>
+              <StaticResource ResourceKey="EvidenceLibraryRowTemplate" />
+            </ListBox.ItemTemplate>
+          </ListBox>
+          <Border x:Name="EvidenceEmptyState" Grid.Row="1" Classes="aaos-empty-state" Padding="8,6" HorizontalAlignment="Stretch" VerticalAlignment="Top">
+            <StackPanel x:Name="EvidenceEmptyStateContent" Orientation="Horizontal" Spacing="10">
+              <Border x:Name="EvidenceEmptyStateImage" Width="64" Height="64" CornerRadius="32" BorderThickness="1" BorderBrush="{DynamicResource AaosPrimaryBrush}" Opacity="0.48" Background="Transparent" VerticalAlignment="Center" AutomationProperties.AccessibilityView="Raw" AutomationProperties.IsControlElementOverride="False">
+                <local:AaosIcon Width="14" Height="14" IconName="Evidence" Foreground="{DynamicResource AaosPrimaryBrush}" />
+              </Border>
+              <StackPanel Spacing="7" VerticalAlignment="Center">
+                <TextBlock x:Name="EvidenceEmptyTitleText" Text="尚未读取 Evidence anchor" Classes="card-heading" />
+                <TextBlock x:Name="EvidenceEmptyDescriptionText" Text="点击“读取证据”读取 Core 已持久化的来源定位；页面不使用演示数据填充。" TextWrapping="Wrap" Foreground="{DynamicResource AaosMutedBrush}" />
+                <StackPanel x:Name="EvidenceEmptyActions" Orientation="Horizontal" Spacing="8">
+                  <Button Classes="aaos-compact" Padding="12,7" Click="OnOpenCaptureClick" AutomationProperties.Name="去捕获来源">
+                    <StackPanel Orientation="Horizontal" Spacing="7"><local:AaosIcon Width="15" Height="15" IconName="Capture" Foreground="{DynamicResource AaosPrimaryBrush}"/><TextBlock Text="去捕获来源"/></StackPanel>
+                  </Button>
+                  <Button Classes="aaos-compact" Padding="12,7" Click="OnOpenJobsClick" AutomationProperties.Name="查看任务回执">
+                    <StackPanel Orientation="Horizontal" Spacing="7"><local:AaosIcon Width="15" Height="15" IconName="Review" Foreground="{DynamicResource AaosPrimaryBrush}"/><TextBlock Text="查看任务回执"/></StackPanel>
+                  </Button>
+                </StackPanel>
+              </StackPanel>
+            </StackPanel>
+          </Border>
+        </Grid>
+        <TextBlock x:Name="EvidenceListBoundaryText" Grid.Row="2" Text="可信度、主题、引用和验证状态未由当前 Core anchor 契约暴露；列表只映射 anchor 已返回的来源、修订、哈希、定位与创建时间。" TextWrapping="Wrap" FontSize="11" Classes="status-empty" />
+      </Grid>
     </Border>
   </StackPanel>
+  <StackPanel x:Name="EvidenceDetailSurface" IsVisible="False" Spacing="14">
+    <StackPanel.Transitions>
+      <Transitions><DoubleTransition Property="Opacity" Duration="0:0:0.16" /></Transitions>
+    </StackPanel.Transitions>
+    <Grid ColumnDefinitions="*,Auto" ColumnSpacing="12">
+      <TextBlock x:Name="EvidenceDetailSubtitle" Text="原文、摘录、来源链、验证状态和引用关系" Classes="page-description" TextWrapping="Wrap" VerticalAlignment="Center" />
+      <Button x:Name="EvidenceBackButton" Grid.Column="1" Padding="14,8" Click="OnBackToEvidenceClick" AutomationProperties.Name="返回证据库列表">
+        <StackPanel Orientation="Horizontal" Spacing="8"><local:AaosIcon Width="16" Height="16" IconName="ChevronLeft" Foreground="{DynamicResource AaosIvoryBrush}" /><TextBlock Text="返回证据库" VerticalAlignment="Center" /></StackPanel>
+      </Button>
+    </Grid>
+    <Grid x:Name="EvidenceDetailPageGrid" ColumnDefinitions="1.1*,1*" ColumnSpacing="16" RowSpacing="14">
+      <Border Classes="aaos-card" Padding="24">
+        <StackPanel Spacing="16">
+          <TextBlock Text="证据原文" Classes="section-heading" />
+          <TextBlock x:Name="EvidenceDetailAnchorTitle" Text="尚未选择 Evidence anchor" Classes="card-heading" FontSize="22" TextWrapping="Wrap" />
+          <TextBlock x:Name="EvidenceDetailSourceText" Text="来源 / 修订 / 时间：Core 未暴露" Classes="provenance-projection" TextWrapping="Wrap" />
+          <Border BorderBrush="{DynamicResource AaosBorderBrush}" BorderThickness="0,1,0,0" Padding="0,14,0,0">
+            <StackPanel Spacing="10">
+              <TextBlock Text="原文 / 摘录" Classes="card-heading" />
+              <TextBlock x:Name="EvidenceDetailBodyText" Text="当前 Evidence anchor 只包含来源定位，不包含可展示的原文正文或摘录。" TextWrapping="Wrap" Classes="status-empty" />
+              <StackPanel x:Name="EvidenceDetailExcerptSkeleton" Spacing="40" AutomationProperties.Name="正文仅以母版阅读线纹理占位；未生成原文内容" AutomationProperties.AccessibilityView="Raw">
+                <Border Classes="evidence-excerpt-line" Height="1" Background="{DynamicResource AaosPrimaryBrush}" Opacity="0.36" />
+                <Border Classes="evidence-excerpt-line" Height="1" Background="{DynamicResource AaosPrimaryBrush}" Opacity="0.36" />
+                <Border Classes="evidence-excerpt-line" Height="1" Background="{DynamicResource AaosPrimaryBrush}" Opacity="0.36" />
+                <Border Classes="evidence-excerpt-line" Height="1" Background="{DynamicResource AaosPrimaryBrush}" Opacity="0.36" />
+                <Border Classes="evidence-excerpt-line" Height="1" Background="{DynamicResource AaosPrimaryBrush}" Opacity="0.36" />
+                <Border Classes="evidence-excerpt-line" Height="1" Background="{DynamicResource AaosPrimaryBrush}" Opacity="0.36" />
+                <Border Classes="evidence-excerpt-line" Height="1" Background="{DynamicResource AaosPrimaryBrush}" Opacity="0.36" />
+                <Border Classes="evidence-excerpt-line" Height="1" Background="{DynamicResource AaosPrimaryBrush}" Opacity="0.36" />
+                <Border Classes="evidence-excerpt-line" Height="1" Background="{DynamicResource AaosPrimaryBrush}" Opacity="0.36" />
+                <Border Classes="evidence-excerpt-line" Height="1" Background="{DynamicResource AaosPrimaryBrush}" Opacity="0.36" />
+                <Border Classes="evidence-excerpt-line" Height="1" Background="{DynamicResource AaosPrimaryBrush}" Opacity="0.36" />
+              </StackPanel>
+              <TextBlock x:Name="EvidenceDetailLocatorText" Text="locator · Core 未暴露" TextWrapping="Wrap" Classes="provenance-evidence" />
+            </StackPanel>
+          </Border>
+          <Button x:Name="EvidenceDetailOpenSourceButton" Classes="primary-action" Padding="14,8" HorizontalAlignment="Left" Click="OnOpenSelectedSourceClick" AutomationProperties.Name="查看所选证据来源成员">
+            <StackPanel Orientation="Horizontal" Spacing="8"><local:AaosIcon Width="16" Height="16" IconName="Source" Foreground="{DynamicResource AaosPrimaryTextBrush}" /><TextBlock Text="查看来源成员" VerticalAlignment="Center" /></StackPanel>
+          </Button>
+        </StackPanel>
+      </Border>
+      <StackPanel Grid.Column="1" Spacing="14">
+        <Border Classes="aaos-card" Padding="20">
+          <StackPanel Spacing="14">
+            <TextBlock Text="来源链与引用" Classes="section-heading" />
+            <Viewbox x:Name="EvidenceSourceChainIllustration" Width="300" Height="300" HorizontalAlignment="Center" Stretch="Uniform" AutomationProperties.Name="七点星环为母版装饰结构，不表示真实关联数量；来源与锚点字段单独显示">
+            <Grid Width="300" Height="300">
+              <Line StartPoint="150,150" EndPoint="42,97" Stroke="{DynamicResource AaosBorderBrush}" StrokeThickness="1" />
+              <Line StartPoint="150,150" EndPoint="123,31" Stroke="{DynamicResource AaosBorderBrush}" StrokeThickness="1" />
+              <Line StartPoint="150,150" EndPoint="224,55" Stroke="{DynamicResource AaosBorderBrush}" StrokeThickness="1" />
+              <Line StartPoint="150,150" EndPoint="269,150" Stroke="{DynamicResource AaosBorderBrush}" StrokeThickness="1" />
+              <Line StartPoint="150,150" EndPoint="224,242" Stroke="{DynamicResource AaosBorderBrush}" StrokeThickness="1" />
+              <Line StartPoint="150,150" EndPoint="123,269" Stroke="{DynamicResource AaosBorderBrush}" StrokeThickness="1" />
+              <Line StartPoint="150,150" EndPoint="42,203" Stroke="{DynamicResource AaosBorderBrush}" StrokeThickness="1" />
+              <Border Width="70" Height="70" CornerRadius="35" Background="{DynamicResource AaosPrimaryBrush}" HorizontalAlignment="Center" VerticalAlignment="Center"><StackPanel Spacing="3" HorizontalAlignment="Center" VerticalAlignment="Center"><local:AaosIcon Width="20" Height="20" IconName="Evidence" Foreground="{DynamicResource AaosPrimaryTextBrush}" /><TextBlock Text="Evidence" FontSize="10" FontWeight="SemiBold" Foreground="{DynamicResource AaosPrimaryTextBrush}" HorizontalAlignment="Center" /></StackPanel></Border>
+              <Ellipse Width="32" Height="32" Stroke="{DynamicResource AaosGoldBrush}" StrokeThickness="1.5" Fill="{DynamicResource AaosSurface2Brush}" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="26,81,0,0" AutomationProperties.AccessibilityView="Raw" />
+              <Ellipse Width="32" Height="32" Stroke="{DynamicResource AaosGoldBrush}" StrokeThickness="1.5" Fill="{DynamicResource AaosSurface2Brush}" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="107,15,0,0" AutomationProperties.AccessibilityView="Raw" />
+              <Ellipse Width="32" Height="32" Stroke="{DynamicResource AaosGoldBrush}" StrokeThickness="1.5" Fill="{DynamicResource AaosSurface2Brush}" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="208,39,0,0" AutomationProperties.AccessibilityView="Raw" />
+              <Ellipse Width="32" Height="32" Stroke="{DynamicResource AaosGoldBrush}" StrokeThickness="1.5" Fill="{DynamicResource AaosSurface2Brush}" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="253,134,0,0" AutomationProperties.AccessibilityView="Raw" />
+              <Ellipse Width="32" Height="32" Stroke="{DynamicResource AaosGoldBrush}" StrokeThickness="1.5" Fill="{DynamicResource AaosSurface2Brush}" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="208,226,0,0" AutomationProperties.AccessibilityView="Raw" />
+              <Ellipse Width="32" Height="32" Stroke="{DynamicResource AaosGoldBrush}" StrokeThickness="1.5" Fill="{DynamicResource AaosSurface2Brush}" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="107,253,0,0" AutomationProperties.AccessibilityView="Raw" />
+              <Ellipse Width="32" Height="32" Stroke="{DynamicResource AaosGoldBrush}" StrokeThickness="1.5" Fill="{DynamicResource AaosSurface2Brush}" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="26,187,0,0" AutomationProperties.AccessibilityView="Raw" />
+              <StackPanel VerticalAlignment="Bottom" HorizontalAlignment="Center" Spacing="2"><TextBlock Text="Source" Classes="provenance-tag" HorizontalAlignment="Center" /><TextBlock x:Name="EvidenceChainSourceNodeText" Text="Core source_id 未读取" Classes="status-empty" FontSize="10" TextTrimming="CharacterEllipsis" MaxWidth="138" HorizontalAlignment="Center" /><TextBlock x:Name="EvidenceChainAnchorNodeText" Text="Core anchor_id 未读取" Classes="status-empty" FontSize="10" TextTrimming="CharacterEllipsis" MaxWidth="138" HorizontalAlignment="Center" /></StackPanel>
+            </Grid>
+            </Viewbox>
+            <TextBlock Text="七点星环为母版装饰结构，不表示真实关联数量；来源与锚点字段由所选 Core 记录提供。" TextWrapping="Wrap" FontSize="11" Classes="status-empty" />
+            <TextBlock x:Name="EvidenceDetailCitationCountText" Text="引用 · Core 未暴露" Classes="provenance-projection" />
+            <TextBlock x:Name="EvidenceDetailVerificationText" Text="验证状态 · Core 未暴露" Classes="status-empty" />
+            <TextBlock Text="关联 Original · Core 未暴露" Classes="status-empty" />
+            <TextBlock Text="关联学习卡 · Core 未暴露" Classes="status-empty" />
+          </StackPanel>
+        </Border>
+        <Border Classes="aaos-card" Padding="18"><StackPanel Spacing="8"><TextBlock Text="Source chain" Classes="card-heading" /><TextBlock x:Name="EvidenceAnchorDetailText" Classes="status-empty" Text="选择 Evidence anchor 后显示已读取字段。" TextWrapping="Wrap" AutomationProperties.Name="证据定位详情" /><TextBlock x:Name="EvidenceDetailChainText" Text="来源链详情只展示 Core 已返回的 source、revision、hash 与 locator。" TextWrapping="Wrap" Classes="provenance-projection" /><TextBlock Text="Evidence bundles" Classes="card-heading" Margin="0,8,0,0" /><TextBlock x:Name="EvidenceBundlesText" Classes="status-empty" Text="尚未读取 bundle 摘要。" TextWrapping="Wrap" /></StackPanel></Border>
+      </StackPanel>
+    </Grid>
+  </StackPanel>
+  </Grid>
 </UserControl>

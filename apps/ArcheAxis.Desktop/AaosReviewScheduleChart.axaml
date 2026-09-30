@@ -1,0 +1,64 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             x:Class="ArcheAxis.Desktop.AaosReviewScheduleChart"
+             MinHeight="280"
+             HorizontalAlignment="Stretch"
+             ClipToBounds="True"
+             AutomationProperties.Name="复习排程图表；当前尚未收到 Core 排程数据，没有展示柱值或趋势">
+  <Grid RowDefinitions="Auto,*,Auto" RowSpacing="8" MinHeight="280">
+    <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8" VerticalAlignment="Center">
+      <StackPanel Spacing="3">
+        <TextBlock Text="未来 7 天" FontSize="13" FontWeight="SemiBold" Foreground="{DynamicResource AaosIvoryBrush}" />
+        <TextBlock Text="排程卡片量" FontSize="11" Foreground="{DynamicResource AaosMutedBrush}" />
+      </StackPanel>
+      <Border x:Name="CoreStatusTag" Grid.Column="1" Classes="aaos-provenance-tag" VerticalAlignment="Center" Padding="9,5" AutomationProperties.Name="数据来源 Core；状态未提供">
+        <TextBlock x:Name="CoreStatusText" Text="CORE · 未提供" FontSize="10" Foreground="{DynamicResource AaosMutedBrush}" />
+      </Border>
+    </Grid>
+
+    <Grid Grid.Row="1" MinHeight="190">
+      <Grid x:Name="PlotGrid" ColumnDefinitions="*,*,*,*,*,*,*" RowDefinitions="*,*,*,*" MinHeight="190" ClipToBounds="True" AutomationProperties.AccessibilityView="Raw">
+        <Border Grid.Column="0" Grid.RowSpan="4" BorderBrush="{DynamicResource AaosBorderBrush}" BorderThickness="0,0,1,0" Opacity="0.34" />
+        <Border Grid.Column="1" Grid.RowSpan="4" BorderBrush="{DynamicResource AaosBorderBrush}" BorderThickness="0,0,1,0" Opacity="0.34" />
+        <Border Grid.Column="2" Grid.RowSpan="4" BorderBrush="{DynamicResource AaosBorderBrush}" BorderThickness="0,0,1,0" Opacity="0.34" />
+        <Border Grid.Column="3" Grid.RowSpan="4" BorderBrush="{DynamicResource AaosBorderBrush}" BorderThickness="0,0,1,0" Opacity="0.34" />
+        <Border Grid.Column="4" Grid.RowSpan="4" BorderBrush="{DynamicResource AaosBorderBrush}" BorderThickness="0,0,1,0" Opacity="0.34" />
+        <Border Grid.Column="5" Grid.RowSpan="4" BorderBrush="{DynamicResource AaosBorderBrush}" BorderThickness="0,0,1,0" Opacity="0.34" />
+        <Border Grid.Column="6" Grid.RowSpan="4" BorderBrush="{DynamicResource AaosBorderBrush}" BorderThickness="0,0,1,0" Opacity="0.34" />
+        <Border Grid.ColumnSpan="7" Grid.Row="0" BorderBrush="{DynamicResource AaosBorderBrush}" BorderThickness="0,0,0,1" Opacity="0.3" />
+        <Border Grid.ColumnSpan="7" Grid.Row="1" BorderBrush="{DynamicResource AaosBorderBrush}" BorderThickness="0,0,0,1" Opacity="0.3" />
+        <Border Grid.ColumnSpan="7" Grid.Row="2" BorderBrush="{DynamicResource AaosBorderBrush}" BorderThickness="0,0,0,1" Opacity="0.3" />
+        <Border Grid.ColumnSpan="7" Grid.Row="3" BorderBrush="{DynamicResource AaosBorderBrush}" BorderThickness="0,0,0,1" Opacity="0.48" />
+
+        <Canvas x:Name="ScheduleBarsCanvas" Grid.ColumnSpan="7" Grid.RowSpan="4" ClipToBounds="True" IsVisible="False" AutomationProperties.Name="仅显示 Core 返回的每日排程数量；不会补值或推算趋势" />
+        <Border x:Name="EmptyState" Grid.ColumnSpan="7" Grid.RowSpan="4" HorizontalAlignment="Center" VerticalAlignment="Center"
+                MaxWidth="390" Margin="12" Padding="16,13" CornerRadius="12"
+                Background="{DynamicResource AaosSurfaceBrush}"
+                BorderBrush="{DynamicResource AaosBorderBrush}" BorderThickness="1"
+                AutomationProperties.Name="空图表状态；排程数据未提供">
+          <Grid ColumnDefinitions="Auto,*" ColumnSpacing="13">
+            <Canvas Width="38" Height="38" VerticalAlignment="Center" AutomationProperties.AccessibilityView="Raw">
+              <Border Canvas.Left="3" Canvas.Top="25" Width="7" Height="10" CornerRadius="3,3,1,1" Background="{DynamicResource AaosPrimaryBrush}" Opacity="0.52" />
+              <Border Canvas.Left="14" Canvas.Top="17" Width="7" Height="18" CornerRadius="3,3,1,1" Background="{DynamicResource AaosPrimaryBrush}" Opacity="0.7" />
+              <Border Canvas.Left="25" Canvas.Top="7" Width="7" Height="28" CornerRadius="3,3,1,1" Background="{DynamicResource AaosPrimaryBrush}" Opacity="0.9" />
+              <Border Canvas.Left="1" Canvas.Top="35" Width="34" Height="1" Background="{DynamicResource AaosBorderBrush}" />
+            </Canvas>
+            <StackPanel Grid.Column="1" Spacing="4" VerticalAlignment="Center">
+              <TextBlock Text="暂无排程数据" FontSize="14" FontWeight="SemiBold" Foreground="{DynamicResource AaosIvoryBrush}" />
+              <TextBlock x:Name="EmptyDescriptionText" Text="Core 未提供未来复习数量；收到真实排程后在此显示。" TextWrapping="Wrap" FontSize="11" Foreground="{DynamicResource AaosMutedBrush}" />
+            </StackPanel>
+          </Grid>
+        </Border>
+      </Grid>
+    </Grid>
+    <Grid x:Name="TimelineAxis" Grid.Row="2" ColumnDefinitions="*,*,*,*,*,*,*" ColumnSpacing="0" AutomationProperties.Name="未来七天的日历日期轴">
+      <TextBlock x:Name="AxisDay0" Grid.Column="0" Text="今天" FontSize="9" HorizontalAlignment="Center" Foreground="{DynamicResource AaosMutedBrush}" />
+      <TextBlock x:Name="AxisDay1" Grid.Column="1" FontSize="9" HorizontalAlignment="Center" Foreground="{DynamicResource AaosMutedBrush}" />
+      <TextBlock x:Name="AxisDay2" Grid.Column="2" FontSize="9" HorizontalAlignment="Center" Foreground="{DynamicResource AaosMutedBrush}" />
+      <TextBlock x:Name="AxisDay3" Grid.Column="3" FontSize="9" HorizontalAlignment="Center" Foreground="{DynamicResource AaosMutedBrush}" />
+      <TextBlock x:Name="AxisDay4" Grid.Column="4" FontSize="9" HorizontalAlignment="Center" Foreground="{DynamicResource AaosMutedBrush}" />
+      <TextBlock x:Name="AxisDay5" Grid.Column="5" FontSize="9" HorizontalAlignment="Center" Foreground="{DynamicResource AaosMutedBrush}" />
+      <TextBlock x:Name="AxisDay6" Grid.Column="6" FontSize="9" HorizontalAlignment="Center" Foreground="{DynamicResource AaosMutedBrush}" />
+    </Grid>
+  </Grid>
+</UserControl>

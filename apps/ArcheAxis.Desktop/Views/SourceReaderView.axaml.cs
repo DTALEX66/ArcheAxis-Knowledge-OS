@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using Avalonia;
 using Avalonia.Automation;
 using Avalonia.Controls;
+using Avalonia.Threading;
 using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Layout;
@@ -24,6 +25,7 @@ public abstract class SourceReaderRow
 {
     public string SourceId { get; }
     public string JobId { get; }
+    public abstract string DisplayIcon { get; }
     public abstract string DisplayKind { get; }
     public abstract string DisplayBoundary { get; }
     public abstract string DisplayText { get; }
@@ -43,6 +45,7 @@ public sealed class SourceMemberRow : SourceReaderRow
     public string OriginalName { get; }
     public string Sha256 { get; }
     public string Readable { get; }
+    public override string DisplayIcon => "Source";
     public override string DisplayKind => "容器成员 · Core projection";
     public override string DisplayBoundary => "原文正文未在此列表中展示";
     public override string DisplayText => $"{(string.IsNullOrWhiteSpace(OriginalName) ? Member : OriginalName)} · readable={Readable} · job={JobId}";
@@ -64,6 +67,7 @@ public sealed class SourceJobRow : SourceReaderRow
     public string Attempt { get; }
     public string Error { get; }
     public bool CanReadText => Kind == "text" && State == "succeeded";
+    public override string DisplayIcon => "Review";
     public override string DisplayKind => $"Core 持久任务 · {Kind}";
     public override string DisplayBoundary => $"state={State} · attempt={Attempt} · error={Error}";
     public override string DisplayText => $"{Kind} · {State} · attempt={Attempt} · {JobId}" + (Error == "—" ? string.Empty : $" · {Error}");
@@ -229,6 +233,22 @@ public partial class SourceReaderView : UserControl
             BackToKnowledgeFromSourceButton.IsEnabled = _state.CanReturnToKnowledge;
             if (!ReferenceEquals(SourceReaderMembersList.ItemsSource, _state.Rows))
                 SourceReaderMembersList.ItemsSource = _state.Rows;
+            var hasRows = _state.Rows.Count > 0;
+            SourceReaderMembersEmptyState.IsVisible = !hasRows;
+            SourceReaderMembersEmptyTitle.Text = _state.IsLoading
+                ? "正在读取 Core 来源…"
+                : _state.Presentation switch
+                {
+                    SourceReaderPresentation.Failed => "Core 来源暂不可读取",
+                    SourceReaderPresentation.Mismatched => "来源与请求不匹配",
+                    SourceReaderPresentation.Pending => "来源任务仍在处理中",
+                    _ when string.IsNullOrWhiteSpace(_state.SourceId) => "输入 source_id 开始",
+                    _ => "Core 当前未返回成员",
+                };
+            SourceReaderMembersEmptyDetail.Text = _state.IsLoading
+                ? "正在读取容器成员或来源任务。"
+                : string.IsNullOrWhiteSpace(_state.StatusText) ? _state.Summary : _state.StatusText;
+            AutomationProperties.SetName(SourceReaderMembersEmptyState, SourceReaderMembersEmptyTitle.Text);
             if (!ReferenceEquals(SourceReaderMembersList.SelectedItem, _state.SelectedRow))
                 SourceReaderMembersList.SelectedItem = _state.SelectedRow;
             RenderSelection(_state.SelectedRow);
@@ -265,11 +285,11 @@ public partial class SourceReaderView : UserControl
             SourceReaderReadableFieldLabel.Text = "输出可读性";
             SourceReaderJobFieldLabel.Text = "Core 持久任务";
             SourceReaderShaFieldLabel.Text = "来源 SHA-256";
-            ViewSourceJobButton.Content = "查看选中任务回执";
+            ViewSourceJobButtonText.Text = "查看选中任务回执";
             AutomationProperties.SetName(ViewSourceJobButton, "查看选中任务回执");
             ViewSourceJobButton.IsEnabled = HasValue(job.JobId);
             FindLibraryFromSourceButton.IsEnabled = false;
-            SourceReaderSelectedText.Text = $"普通来源持久任务\nsource_id：{job.SourceId}\njob_id：{job.JobId}\nkind：{job.Kind}\nstate：{job.State}\nattempt：{job.Attempt}\nerror：{job.Error}";
+            SourceReaderSelectedText.Text = $"{job.Kind} · Core 持久任务";
             SourceReaderMemberFieldText.Text = "普通来源（非容器成员）";
             SourceReaderOriginalNameFieldText.Text = "由 Core 持久任务关联；文件名未由此投影提供";
             SourceReaderReadableFieldText.Text = job.CanReadText ? "成功 text 输出可读取" : $"不可读取（{job.State}/{job.Kind}）";
@@ -295,11 +315,11 @@ public partial class SourceReaderView : UserControl
             SourceReaderReadableFieldLabel.Text = "成员可读性";
             SourceReaderJobFieldLabel.Text = "成员任务";
             SourceReaderShaFieldLabel.Text = "成员 SHA-256";
-            ViewSourceJobButton.Content = "查看成员任务回执";
+            ViewSourceJobButtonText.Text = "查看成员任务回执";
             AutomationProperties.SetName(ViewSourceJobButton, "查看选中容器成员的任务回执");
             ViewSourceJobButton.IsEnabled = HasValue(member.JobId);
             FindLibraryFromSourceButton.IsEnabled = HasValue(member.SourceId);
-            SourceReaderSelectedText.Text = $"source_id：{member.SourceId}\nmember：{member.Member}\noriginal_name：{member.OriginalName}\nreadable：{member.Readable}\njob_id：{member.JobId}\nsha256：{member.Sha256}";
+            SourceReaderSelectedText.Text = HasValue(member.OriginalName) ? member.OriginalName : member.Member;
             SourceReaderMemberFieldText.Text = member.Member;
             SourceReaderOriginalNameFieldText.Text = member.OriginalName;
             SourceReaderReadableFieldText.Text = member.Readable;
@@ -324,7 +344,7 @@ public partial class SourceReaderView : UserControl
         SourceReaderReadableFieldLabel.Text = "成员可读性";
         SourceReaderJobFieldLabel.Text = "成员任务";
         SourceReaderShaFieldLabel.Text = "成员 SHA-256";
-        SourceReaderSelectedText.Text = "尚未选择来源成员或持久任务。";
+        SourceReaderSelectedText.Text = "未选择来源";
         SourceReaderMemberFieldText.Text = "未选择";
         SourceReaderOriginalNameFieldText.Text = "未选择";
         SourceReaderReadableFieldText.Text = "未选择";
@@ -373,7 +393,14 @@ public partial class SourceReaderView : UserControl
         _state = _state with { SelectedRow = row, TransformText = transform, ChainBoundaryText = string.Empty };
         SourceReaderTransformText.Text = transform;
         RenderSelection(row);
+        AnimateChainSelection();
         RowSelected?.Invoke(this, new SourceReaderRowSelectedEventArgs(row));
+    }
+
+    private void AnimateChainSelection()
+    {
+        SourceReaderChainBorder.Opacity = 0.72;
+        Dispatcher.UIThread.Post(() => SourceReaderChainBorder.Opacity = 1, DispatcherPriority.Render);
     }
 
     private void OnReadTransformClick(object? sender, RoutedEventArgs e) =>
@@ -469,7 +496,9 @@ public partial class SourceReaderView : UserControl
         var compact = width < StackBreakpoint;
         SourceReaderShellGrid.ColumnDefinitions = compact
             ? new ColumnDefinitions("*")
-            : new ColumnDefinitions("220,*,300");
+            : width < 1440
+                ? new ColumnDefinitions("210,2*,260")
+                : new ColumnDefinitions("240,2.2*,300");
         SourceReaderShellGrid.RowDefinitions = compact
             ? new RowDefinitions("Auto,Auto,Auto")
             : new RowDefinitions("*");

@@ -1,36 +1,46 @@
 <Styles xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
     <Styles.Resources>
-        <SolidColorBrush x:Key="AaosBackgroundBrush" Color="#080A0C" />
-        <SolidColorBrush x:Key="AaosSidebarBrush" Color="#101316" />
-        <SolidColorBrush x:Key="AaosSurfaceBrush" Color="#171A1D" />
-        <SolidColorBrush x:Key="AaosSurface2Brush" Color="#202428" />
-        <SolidColorBrush x:Key="AaosBorderBrush" Color="#3B4146" />
-        <SolidColorBrush x:Key="AaosPrimaryBrush" Color="#E1E4E6" />
-        <SolidColorBrush x:Key="AaosPrimaryTextBrush" Color="#101214" />
-        <SolidColorBrush x:Key="AaosGoldBrush" Color="#B6AA8D" />
-        <SolidColorBrush x:Key="AaosSuccessBrush" Color="#83A292" />
-        <SolidColorBrush x:Key="AaosErrorBrush" Color="#C78484" />
-        <SolidColorBrush x:Key="AaosInfoBrush" Color="#A5ADB3" />
-        <SolidColorBrush x:Key="AaosWarningBrush" Color="#B6AA8D" />
-        <SolidColorBrush x:Key="AaosApprovalBrush" Color="#A4B294" />
-        <SolidColorBrush x:Key="AaosDisabledBrush" Color="#72797E" />
-        <SolidColorBrush x:Key="AaosReviewBrush" Color="#B6AA8D" />
-        <SolidColorBrush x:Key="AaosIvoryBrush" Color="#F1F2F3" />
-        <SolidColorBrush x:Key="AaosMutedBrush" Color="#A5ADB3" />
-        <SolidColorBrush x:Key="AaosOverlayBrush" Color="#99080A0C" />
+        <SolidColorBrush x:Key="AaosBackgroundBrush" Color="#061118" />
+        <SolidColorBrush x:Key="AaosSidebarBrush" Color="#091821" />
+        <SolidColorBrush x:Key="AaosSurfaceBrush" Color="#0C1C26" />
+        <SolidColorBrush x:Key="AaosSurface2Brush" Color="#102630" />
+        <SolidColorBrush x:Key="AaosBorderBrush" Color="#1D5055" />
+        <SolidColorBrush x:Key="AaosPrimaryBrush" Color="#1FC8C5" />
+        <Color x:Key="AaosGraphGlowColor">#6622D6D2</Color>
+        <SolidColorBrush x:Key="AaosPrimaryTextBrush" Color="#061118" />
+        <SolidColorBrush x:Key="AaosBrandMarkEnd" Color="#90C291" />
+        <SolidColorBrush x:Key="AaosGridBrush" Color="#0DFFFFFF" />
+        <SolidColorBrush x:Key="AaosAmbientPrimaryBrush" Color="#661FC8C5" />
+        <SolidColorBrush x:Key="AaosAmbientSecondaryBrush" Color="#55E6BE73" />
+        <SolidColorBrush x:Key="AaosAmbientTertiaryBrush" Color="#401FC8C5" />
+        <SolidColorBrush x:Key="AaosGoldBrush" Color="#E6BE73" />
+        <SolidColorBrush x:Key="AaosSuccessBrush" Color="#37C99A" />
+        <SolidColorBrush x:Key="AaosErrorBrush" Color="#E56464" />
+        <SolidColorBrush x:Key="AaosInfoBrush" Color="#3B82F6" />
+        <SolidColorBrush x:Key="AaosWarningBrush" Color="#E6BE73" />
+        <SolidColorBrush x:Key="AaosApprovalBrush" Color="#37C99A" />
+        <SolidColorBrush x:Key="AaosDisabledBrush" Color="#61747B" />
+        <SolidColorBrush x:Key="AaosReviewBrush" Color="#E6BE73" />
+        <SolidColorBrush x:Key="AaosIvoryBrush" Color="#F3EFE6" />
+        <SolidColorBrush x:Key="AaosMutedBrush" Color="#96AAB4" />
+        <SolidColorBrush x:Key="AaosOverlayBrush" Color="#9E061118" />
         <LinearGradientBrush x:Key="AaosPrimaryGradientBrush" StartPoint="0%,0%" EndPoint="100%,100%">
-            <GradientStop Color="#F0F1F2" Offset="0" />
-            <GradientStop Color="#CFD3D6" Offset="1" />
+            <GradientStop Color="#9DE7E0" Offset="0" />
+            <GradientStop Color="#63DED3" Offset="1" />
+        </LinearGradientBrush>
+        <LinearGradientBrush x:Key="AaosBrandMarkBrush" StartPoint="0%,0%" EndPoint="100%,100%">
+            <GradientStop Color="#1FC8C5" Offset="0" />
+            <GradientStop Color="#8DC398" Offset="1" />
         </LinearGradientBrush>
         <LinearGradientBrush x:Key="AaosNavActiveBrush" StartPoint="0%,0%" EndPoint="0%,100%">
-            <GradientStop Color="#292E32" Offset="0" />
-            <GradientStop Color="#202428" Offset="1" />
+            <GradientStop Color="#14343D" Offset="0" />
+            <GradientStop Color="#102630" Offset="1" />
         </LinearGradientBrush>
         <LinearGradientBrush x:Key="AaosAmbientGlowBrush" StartPoint="0%,0%" EndPoint="100%,100%">
-            <GradientStop Color="#C5C9CC" Offset="0" />
-            <GradientStop Color="#747B80" Offset="0.58" />
-            <GradientStop Color="#B6AA8D" Offset="1" />
+            <GradientStop Color="#1FC8C5" Offset="0" />
+            <GradientStop Color="#136F79" Offset="0.58" />
+            <GradientStop Color="#0C1C26" Offset="1" />
         </LinearGradientBrush>
         <x:Double x:Key="AaosSpace4">4</x:Double>
         <x:Double x:Key="AaosSpace8">8</x:Double>
@@ -70,7 +80,7 @@
         <x:Double x:Key="AaosMotionStandardMs">180</x:Double>
         <x:Double x:Key="AaosMotionEmphasisMs">280</x:Double>
         <x:Double x:Key="AaosMotionRevealMs">420</x:Double>
-        <x:Double x:Key="AaosMotionAmbientMs">4200</x:Double>
+        <x:Double x:Key="AaosMotionAmbientMs">6000</x:Double>
         <x:String x:Key="AaosCommandPaletteGesture">Ctrl+K</x:String>
     </Styles.Resources>
 
@@ -89,6 +99,21 @@
         <Setter Property="Transitions">
             <Transitions>
                 <DoubleTransition Property="Opacity" Duration="0:0:0.12" />
+                <BrushTransition Property="Background" Duration="0:0:0.22">
+                    <BrushTransition.Easing>
+                        <SplineEasing X1="0.25" Y1="0.1" X2="0.25" Y2="1" />
+                    </BrushTransition.Easing>
+                </BrushTransition>
+                <BrushTransition Property="BorderBrush" Duration="0:0:0.22">
+                    <BrushTransition.Easing>
+                        <SplineEasing X1="0.25" Y1="0.1" X2="0.25" Y2="1" />
+                    </BrushTransition.Easing>
+                </BrushTransition>
+                <BrushTransition Property="Foreground" Duration="0:0:0.22">
+                    <BrushTransition.Easing>
+                        <SplineEasing X1="0.25" Y1="0.1" X2="0.25" Y2="1" />
+                    </BrushTransition.Easing>
+                </BrushTransition>
             </Transitions>
         </Setter>
     </Style>
@@ -121,11 +146,78 @@
         <Setter Property="Background" Value="{DynamicResource AaosPrimaryGradientBrush}" />
         <Setter Property="Foreground" Value="{DynamicResource AaosPrimaryTextBrush}" />
     </Style>
+    <Style Selector="Button.aaos-graph-node">
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="BorderBrush" Value="Transparent" />
+        <Setter Property="BorderThickness" Value="0" />
+        <Setter Property="Padding" Value="0" />
+        <Setter Property="MinHeight" Value="0" />
+        <Setter Property="MinWidth" Value="0" />
+        <Setter Property="Opacity" Value="1" />
+        <Setter Property="RenderTransformOrigin" Value="50%,50%" />
+        <Setter Property="Transitions">
+            <Transitions>
+                <TransformOperationsTransition Property="RenderTransform" Duration="0:0:0.2" />
+            </Transitions>
+        </Setter>
+    </Style>
+    <Style Selector="Button.aaos-graph-node:pointerover">
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="BorderBrush" Value="Transparent" />
+        <Setter Property="Opacity" Value="1" />
+    </Style>
+    <Style Selector="Button.aaos-graph-node:pointerover Ellipse">
+        <Setter Property="Stroke" Value="{DynamicResource AaosPrimaryBrush}" />
+        <Setter Property="StrokeThickness" Value="3" />
+        <Setter Property="Effect">
+            <DropShadowEffect Color="{DynamicResource AaosGraphGlowColor}" BlurRadius="14" OffsetX="0" OffsetY="0" />
+        </Setter>
+    </Style>
+    <Style Selector="Button.aaos-graph-node.focus-visible Ellipse">
+        <Setter Property="Stroke" Value="{DynamicResource AaosPrimaryBrush}" />
+        <Setter Property="StrokeThickness" Value="3" />
+        <Setter Property="Effect">
+            <DropShadowEffect Color="{DynamicResource AaosGraphGlowColor}" BlurRadius="14" OffsetX="0" OffsetY="0" />
+        </Setter>
+    </Style>
+    <Style Selector="Button.aaos-graph-node.selected Ellipse">
+        <Setter Property="Fill" Value="{DynamicResource AaosSurface2Brush}" />
+        <Setter Property="Stroke" Value="{DynamicResource AaosGoldBrush}" />
+        <Setter Property="StrokeThickness" Value="3" />
+        <Setter Property="Effect">
+            <DropShadowEffect Color="{DynamicResource AaosGraphGlowColor}" BlurRadius="14" OffsetX="0" OffsetY="0" />
+        </Setter>
+    </Style>
+    <Style Selector="Grid.reduced-motion Button.aaos-graph-node">
+        <Setter Property="Transitions">
+            <Transitions />
+        </Setter>
+    </Style>
     <Style Selector="Button:disabled">
         <Setter Property="Background" Value="{DynamicResource AaosSurfaceBrush}" />
         <Setter Property="Foreground" Value="{DynamicResource AaosDisabledBrush}" />
         <Setter Property="BorderBrush" Value="{DynamicResource AaosBorderBrush}" />
         <Setter Property="Opacity" Value="0.72" />
+    </Style>
+    <Style Selector="Expander /template/ ToggleButton#ExpanderHeader">
+        <Setter Property="Background" Value="{DynamicResource AaosSurface2Brush}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource AaosBorderBrush}" />
+        <Setter Property="Foreground" Value="{DynamicResource AaosIvoryBrush}" />
+    </Style>
+    <Style Selector="Expander /template/ ToggleButton#ExpanderHeader /template/ Border#ToggleButtonBackground">
+        <Setter Property="Background" Value="{DynamicResource AaosSurface2Brush}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource AaosBorderBrush}" />
+    </Style>
+    <Style Selector="Expander:pointerover /template/ ToggleButton#ExpanderHeader /template/ Border#ToggleButtonBackground">
+        <Setter Property="Background" Value="{DynamicResource AaosSurfaceBrush}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource AaosPrimaryBrush}" />
+    </Style>
+    <Style Selector="Expander:pressed /template/ ToggleButton#ExpanderHeader /template/ Border#ToggleButtonBackground">
+        <Setter Property="Background" Value="{DynamicResource AaosSurfaceBrush}" />
+    </Style>
+    <Style Selector="Expander /template/ Border#ExpanderContent">
+        <Setter Property="Background" Value="{DynamicResource AaosSurfaceBrush}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource AaosBorderBrush}" />
     </Style>
     <Style Selector="Button.review-grade.selected">
         <Setter Property="Background" Value="{DynamicResource AaosPrimaryBrush}" />
@@ -145,6 +237,13 @@
             </Transitions>
         </Setter>
     </Style>
+    <Style Selector="Control.inspector-drawer">
+        <Setter Property="Transitions">
+            <Transitions>
+                <DoubleTransition Property="Opacity" Duration="0:0:0.28" />
+            </Transitions>
+        </Setter>
+    </Style>
     <Style Selector="Border.aaos-ambient-glow">
         <Setter Property="Background" Value="{DynamicResource AaosAmbientGlowBrush}" />
         <Setter Property="CornerRadius" Value="12" />
@@ -153,6 +252,18 @@
             <Transitions>
                 <DoubleTransition Property="Opacity" Duration="0:0:0.42" />
             </Transitions>
+        </Setter>
+    </Style>
+    <Style Selector="Border.aaos-home-ambient-glow">
+        <Setter Property="Transitions">
+            <Transitions>
+                <DoubleTransition Property="Opacity" Duration="0:0:6" />
+            </Transitions>
+        </Setter>
+    </Style>
+    <Style Selector="Grid.reduced-motion Border.aaos-home-ambient-glow">
+        <Setter Property="Transitions">
+            <Transitions />
         </Setter>
     </Style>
     <Style Selector="Grid.reduced-motion Border.aaos-ambient-glow">
@@ -164,6 +275,9 @@
         <Setter Property="Transitions">
             <Transitions />
         </Setter>
+    </Style>
+    <Style Selector="Grid.reduced-motion Control.inspector-drawer">
+        <Setter Property="Transitions"><Transitions /></Setter>
     </Style>
     <Style Selector="ScrollViewer.aaos-route-transition">
         <Setter Property="Transitions">
@@ -333,6 +447,16 @@
         <Setter Property="MinHeight" Value="{DynamicResource AaosDensityCompact}" />
         <Setter Property="CornerRadius" Value="14" />
     </Style>
+    <Style Selector="Button.rail-button.icon-rail-button">
+        <Setter Property="Width" Value="56" />
+        <Setter Property="MinWidth" Value="56" />
+        <Setter Property="Height" Value="48" />
+        <Setter Property="MinHeight" Value="48" />
+        <Setter Property="Padding" Value="0" />
+        <Setter Property="HorizontalAlignment" Value="Center" />
+        <Setter Property="HorizontalContentAlignment" Value="Center" />
+        <Setter Property="CornerRadius" Value="12" />
+    </Style>
     <Style Selector="Button.rail-button:pointerover">
         <Setter Property="Background" Value="{DynamicResource AaosSurface2Brush}" />
         <Setter Property="BorderBrush" Value="{DynamicResource AaosBorderBrush}" />
@@ -343,6 +467,40 @@
         <Setter Property="BorderBrush" Value="{DynamicResource AaosPrimaryBrush}" />
         <Setter Property="BorderThickness" Value="3,1,1,1" />
         <Setter Property="Foreground" Value="{DynamicResource AaosIvoryBrush}" />
+    </Style>
+    <Style Selector="Button.rail-button.icon-rail-button.active">
+        <Setter Property="BorderThickness" Value="1" />
+    </Style>
+    <Style Selector="Button.master-nav-button">
+        <Setter Property="MinHeight" Value="52" />
+        <Setter Property="Padding" Value="12,8" />
+        <Setter Property="HorizontalAlignment" Value="Stretch" />
+        <Setter Property="HorizontalContentAlignment" Value="Left" />
+        <Setter Property="CornerRadius" Value="10" />
+    </Style>
+    <Style Selector="Border.settings-availability">
+        <Setter Property="CornerRadius" Value="5" />
+        <Setter Property="Background" Value="{DynamicResource AaosSurfaceBrush}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource AaosBorderBrush}" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="HorizontalAlignment" Value="Center" />
+    </Style>
+    <Style Selector="Border.settings-availability TextBlock">
+        <Setter Property="Foreground" Value="{DynamicResource AaosMutedBrush}" />
+    </Style>
+    <Style Selector="Button.master-icon-button">
+        <Setter Property="Width" Value="44" />
+        <Setter Property="MinWidth" Value="44" />
+        <Setter Property="Height" Value="44" />
+        <Setter Property="MinHeight" Value="44" />
+        <Setter Property="Padding" Value="0" />
+        <Setter Property="HorizontalAlignment" Value="Center" />
+        <Setter Property="HorizontalContentAlignment" Value="Center" />
+        <Setter Property="VerticalContentAlignment" Value="Center" />
+        <Setter Property="CornerRadius" Value="8" />
+    </Style>
+    <Style Selector="Button.master-icon-button.active">
+        <Setter Property="BorderThickness" Value="1" />
     </Style>
     <Style Selector="ListBoxItem:selected">
         <Setter Property="Background" Value="{DynamicResource AaosSurface2Brush}" />

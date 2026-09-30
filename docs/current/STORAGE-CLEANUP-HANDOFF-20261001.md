@@ -60,4 +60,8 @@ PARTIAL，目标仍 active。用户授权审计后删除无用项目输出、迁
 
 绿色版验证：cy在Green mainline任务树通过现有版本恢复及Debug编译，cz当前DLL的1440 aurora原生截图退出0，目视品牌/侧栏保留，无Core和真实DB访问。Formal与Green编译各自通过不等于源码或安装态全量一致。cw双主题与未知学习计数2pass，cx图谱示意/真实lineage边界及三种学习计数状态2pass，cv sidebar和导航点5pass。剩余主导航契约由限定单文件writer修订，根未并行写该文件；未设置skip/xfail。
 
+前端源码交付检查点（WIP，非验收完成）：35个桌面源码/资产文件约8.9MB，均低于50MB，限定源码秘密模式检查未匹配。当前直接引用组件随源码保留；8张旧生成hero PNG、brand SVG及两个旧矢量组件按历史成果保留，不能称当前页面已使用或B10原包资产。最高视觉依据是用户采用提示词指定的B10最终可部署母版，B03等为较低参考，不能由旧测试反向覆盖。未提交原始UI ZIP、数据库、缓存、恢复包或私有状态。
+
+命令面板焦点恢复失败缺回退：d2定向RED确认；两树最小补充Focus返回false时聚焦WorkspaceHeadingText，d3定向1pass、d4编译退出0。d5 C# Vocabulary harness编译通过，d6 production binding的29个wire cases通过。导航测试文件还由唯一writer修改，未放入本源码检查点；全量静态/原生交互/DPI矩阵及当前main后端整合未完成。批量测试覆写曾被自动审批拒绝，已改为精确上下文补丁保护现有dirty修改，没有绕过或整文件覆盖。
+
 2026-10-01 最新Git只读与fetch核对：当前HEAD是origin/main祖先，left/right=0/27；远端包含新增backend和文档整合，不能把当前dirty源码直接覆盖远端。tracked改动与远端变动的交集为docs/DOCUMENTATION_AUTHORITY_INDEX.md；交付需保留远端新backend及本地UI/清理成果，解决该文档真实三方差异。尚未merge/reset/commit/push，原工作文件未改变。最新元数据已在第八批/508缓存删除后回读。
