@@ -1,12 +1,20 @@
-"""The formal Avalonia shell follows the current monochrome visual authority."""
+"""The formal shell preserves both user-authorized palettes and theme bindings."""
 from __future__ import annotations
 
-from pathlib import Path
+import re
 import xml.etree.ElementTree as ET
-
+from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 THEME = ROOT / "apps" / "ArcheAxis.Desktop" / "Themes" / "AaosTheme.axaml"
+PALETTE = ROOT / "apps" / "ArcheAxis.Desktop" / "ThemePalette.cs"
+
+
+def _palette_colors(name: str) -> dict[str, str]:
+    code = PALETTE.read_text(encoding="utf-8")
+    match = re.search(rf'{name}Colors = new Dictionary<string, string>\s*\{{(.*?)\n    \}};', code, re.S)
+    assert match is not None, name
+    return dict(re.findall(r'\["([^"]+)"\] = "(#[A-Fa-f0-9]+)"', match.group(1)))
 
 
 def _brushes() -> dict[str, str]:
@@ -18,8 +26,8 @@ def _brushes() -> dict[str, str]:
     }
 
 
-def test_formal_shell_uses_black_white_surfaces_and_neutral_primary_actions() -> None:
-    brushes = _brushes()
+def test_monochrome_palette_uses_black_white_surfaces_and_neutral_primary_actions() -> None:
+    brushes = _palette_colors("Monochrome")
 
     assert brushes["AaosBackgroundBrush"] == "#080A0C"
     assert brushes["AaosSidebarBrush"] == "#101316"
@@ -30,15 +38,17 @@ def test_formal_shell_uses_black_white_surfaces_and_neutral_primary_actions() ->
     assert brushes["AaosPrimaryTextBrush"] == "#101214"
 
 
-def test_default_shell_surfaces_do_not_reintroduce_saturated_green_or_cyan() -> None:
-    root = ET.parse(THEME).getroot()
+def test_monochrome_remains_neutral_and_aurora_default_is_explicitly_selectable() -> None:
     forbidden = {"#1FC8C5", "#164B50", "#133B42", "#123C4A", "#8FC3A1"}
-    colors = {
-        value.upper()
-        for element in root.iter()
-        for attribute, value in element.attrib.items()
-        if attribute in {"Color", "Background", "Foreground", "BorderBrush"}
-        and value.startswith("#")
-    }
-
-    assert colors.isdisjoint(forbidden)
+    assert {value.upper() for value in _palette_colors("Monochrome").values()}.isdisjoint(forbidden)
+    aurora = _palette_colors("Aurora")
+    assert aurora["AaosBackgroundBrush"] == "#061118"
+    assert aurora["AaosPrimaryBrush"] == "#1FC8C5"
+    assert aurora["AaosIvoryBrush"] == "#F3EFE6"
+    assert _brushes()["AaosBackgroundBrush"] == aurora["AaosBackgroundBrush"]
+    palette_code = PALETTE.read_text(encoding="utf-8")
+    assert "palette == Aurora ? AuroraColors : MonochromeColors" in palette_code
+    assert "resources[key] = new SolidColorBrush(Color.Parse(value));" in palette_code
+    shell = (PALETTE.parent / "MainWindow.axaml.cs").read_text(encoding="utf-8")
+    assert "ThemePalette.Apply(ThemePalette.Aurora);" in shell
+    assert "SettingsThemePaletteBox.SelectionChanged += OnThemePaletteChanged;" in shell

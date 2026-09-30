@@ -101,3 +101,7 @@ returned `LEARNING SMOKE OK` with `answer_saved=true`, `fsrs=true` and
 `mastery_projection_closed=false`. Native pointer/focus/accessibility readback
 remains `UNVERIFIED`: the current Windows bridge exposes no targetable native
 apps, and the captured screen is visual observation only.
+
+### Historical output location update — 2026-09-30
+
+The historical `.project-local/build/desktop-publish/ui-commercial-pass-2` output cited above is now stored under the `ui-commercial-pass-2/` member prefix in the verified archive. Original evidence text and acceptance status are unchanged. Restore before rerunning; archive SHA, exact paths and recovery instructions are in [the storage audit](../history/storage-cleanup/2026-09-30/desktop-publish-history-archive-20260930.md). This note does not assert a current product/runtime PASS.

@@ -2287,6 +2287,10 @@ Linux定向验证：Core客户端/启动17项、样本生成器11项、目录/CI
 - Fixed a deterministic defect in the tracked Rust entry point: `scripts/ci/cargo_test.bat` referenced `%CARGO_HOME%` inside the same parenthesised block that sets it, so PATH became `\bin;<old PATH>` and the documented `ARCHEAXIS_RUST_TOOLCHAINS` usage could never find cargo. It now uses delayed expansion (`!CARGO_HOME!`), with a regression test in `tests/runtime-paths/test_dev_paths.py`. No toolchain path, version or architecture was changed.
 - Left unchanged: `docs/environment/EXTERNAL_DEPENDENCIES.md`. No new external tool, model or service was added, so its §9 registration rule requires nothing; and its two declared copies are out of sync (external `OS External Configuration/EXTERNAL_DEPENDENCIES.md` 322 lines vs repository copy 347 lines), which is an owner decision rather than a DSH edit.
 
+### Historical dotnet publish output location update — 2026-09-30
+
+The historical `.project-local/build/dotnet/archeaxis-green-compatible-selfcontained` output cited in the 2026-09-16 R13 notes is now archive-backed by `.project-local/build/green-candidates/ArcheAxis.Knowledge.Green-vheadd1bb2b99-x64.zip`, under member prefix `ArcheAxis.Knowledge.Green-vheadd1bb2b99-x64/desktop/`. Restore that exact subtree before a historical rerun; verify against `.project-local/mig/formal-dotnet-publish-dedupe-20260930/preflight.json`. Original smoke evidence and acceptance meaning are unchanged; this is not current runtime or release qualification.
+
 ## 2026-09-18 DSH completion report
 
 - 本轮 DSH 会话的汇总交接记录（摘要、任务总表、验收收据、外置库与路径索引核查、分支分类汇总、**错误总结**、**阻塞总结**、状态不变量、复现命令）已落在 `docs/current/DSH-COMPLETION-REPORT-20260918.md`。
@@ -2294,3 +2298,7 @@ Linux定向验证：Core客户端/启动17项、样本生成器11项、目录/CI
 - 最终坐标：`BASE_SHA = 44bd821da82d9beeacf4e3c6f581c0fd90521ba4`；`FINAL_SHA` 以 8 位短 SHA 记录，因为提交 `c4cd01ad` 随后在提交信息规范化中被替换、已不是任何当前 main 的祖先（引用完整 SHA 会让"当前面 SHA 必须可达"的守卫测试失败）。规范化完成时的 head 为 `a5384490ba82f172b30869ba6a2550c4b312e093`；判断当前主线请用 `git rev-parse origin/main`。分支只读分类明细见 `docs/current/R5-BRANCH-DISPOSITION-20260918.md`。
 - 双端一致性核验（2026-09-18）：远端 `main` 的 **tree 对象**经 GitHub API 直读为 `247bec1e`（短 SHA 记录，tree 不是 commit），与本地 tree 相同；12 个关键交付物 blob SHA 远端与本地逐一相同（0 不一致）；18 个远端分支名与 SHA 经 `git ls-remote` 与 API 逐一相同。**未删除任何分支**。
 - 本地残留（非本轮产生）：19 个仅本地分支（80 个未推送提交）与 2 个 stash 只读分类见 `docs/current/R5-LOCAL-BRANCH-DISPOSITION-20260918.md`（删除候选 2 / 保留 12 / 上报 5；未删除任何一个，需 Owner 授权）。
+
+### Historical output location update — 2026-09-30
+
+The historical `.project-local/build/desktop-publish/win-x64` output cited above is now stored under the `win-x64/` member prefix in the verified archive. Original evidence text and acceptance status are unchanged. Restore before rerunning; archive SHA, exact paths and recovery instructions are in [the storage audit](../history/storage-cleanup/2026-09-30/desktop-publish-history-archive-20260930.md). This note does not assert a current product/runtime PASS.

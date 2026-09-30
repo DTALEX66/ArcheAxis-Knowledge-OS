@@ -6,9 +6,9 @@ PARTIAL，目标仍 active。用户授权审计后删除无用项目输出、迁
 
 ## 当前已执行结果
 
-累计净逻辑文件载荷减少58,482,961,971 B（58.48 GB），含本报告执行链50,706,993,645 B及此前两轮7,775,968,326 B。删除源58,740,054,819 B，保留恢复载荷8,033,061,174 B，二者差额是本报告执行链净值。不是物理磁盘回收统计；少量审计收据和脚本不计。
+累计净逻辑文件载荷减少58,561,935,343 B（58.56 GB），含本报告执行链50,785,967,017 B及此前两轮7,775,968,326 B。删除源58,819,028,191 B，保留恢复载荷8,033,061,174 B，二者差额是本报告执行链净值。不是物理磁盘回收统计；少量审计收据和脚本不计。
 
-最新元数据可访问范围（2026-10-01，framework旧候选清理后）：Formal24,802,560,462 B/348452files；Green9,552,879,378 B/114618files。分别491/40读取错误，private/Git与链接排除，不能等同Explorer全目录体积。按各根内NTFS文件身份去重，Formal逻辑载荷23,719,518,517 B、可读分配24,070,985,784 B；Green逻辑载荷7,367,134,235 B、可读分配7,513,391,144 B。跨根硬链接未归因，两个根各有1个allocation读取错误。近期编译恢复与验证生成的新输出已计入本次快照；累计删除账本不代表实时目录净变化。
+最新元数据可访问范围（2026-10-01，runtime旧副本清理和双树编译后）：Formal24,742,074,220 B/346976files；Green9,552,880,455 B/114621files。分别491/40读取错误，private/Git与链接排除，不能等同Explorer全目录体积。按各根内NTFS文件身份去重，Formal逻辑载荷23,659,032,275 B、可读分配24,007,872,320 B；Green逻辑载荷7,367,135,312 B、可读分配7,513,395,240 B。跨根硬链接未归因，两个根各有1个allocation读取错误。近期编译恢复与验证生成的新输出已计入本次快照；累计删除账本不代表实时目录净变化。
 
 最新三项实际清理：历史mono候选1195文件净169,743,568 B；历史worker Lib7548文件净182,288,299 B；runtime-copy2 17948文件净363,612,342 B。完整ZIP CRC/SHA、精确集合与fresh源核对后删除，原根不存在，恢复和保留证据SHA读回通过。
 
@@ -75,3 +75,9 @@ PARTIAL，目标仍 active。用户授权审计后删除无用项目输出、迁
 C# Supervisor d7编译、d8现有9项隔离/重启/错误凭据/短路径/带空格DB路径harness通过；Vocabulary d6为29个production-wire cases通过。均为既有测试和synthetic工作区，不是现有用户数据库或所有软件健康证明。
 
 公开历史清理MD限定18份，经独立内容审计后可发布。5份历史文档已纠正VS Code修复前后快照、容量元数据越界事件措辞、跨位置净值口径及已移除worktree提交保护方式；保留真实事件，不写“所有C/D软件健康PASS”。完整本地收据、数据库、恢复ZIP/CAS、原始私人正文仍不上云。两份依赖未公开UI母版输入的测试（test_aaos_icon_b10_contract.py、test_b10_shell_fidelity_contract.py）需先处理可移植输入交付，当前不能当成已可在云端裸检出的测试。
+
+公开56文件检查点c09c845f82d47fcf011798ba26852fa21b38cf45已推送codex/Audit，ls-remote完整SHA一致。精确SHA CI run36776964083终止FAIL：3401pass/4fail/35skip/137subtest；lint为SVG末尾换行与一份测试UTF-8 BOM两项编码问题，桌面专项gate在该doc/test检查点被计划跳过，不能称全部CI验证通过。
+
+已按失败根因处理：两份旧主题测试改为分别约束用户授权Monochrome/Aurora及真实资源切换；导航manifest仍7page_id，但现役19sections必须精确列明；补正式窗口双语无障碍名称，两树一致，未改变B10可见布局；旧import/learning文案断言对齐实际动作入口。dk新名称契约先RED；dl三份受影响测试29pass；dp四份变更测试Ruff PASS。dm正式树编译通过；Green gd1不存在本地.venv入口为NOT_EXECUTED，使用既有正式Python启动其dev脚本的gd2编译通过，未新增环境。编码问题最小去BOM/补LF，不改内容语义。修复版本远端CI仍待新提交验证。
+
+原runtime-readonly-copy经完整1545源SHA与已保留copy2 ZIP指定子集CRC/SHA/length核验，删除78,973,372 B及116个空目录，原根不存在，原run execution/source快照保留。独立回读1545源全absent、恢复映射/ZIP未变、指定成员全PASS、只计账一次。复用runtime-readonly-copy2-recovery-20261001.zip和既有mapping；恢复时按新的original-equivalence映射回runtime-readonly-copy根，不按copy2原mapping默认根恢复，也不恢复ZIP中超出1545子集的额外文件。没有新增恢复包。

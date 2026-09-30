@@ -7,7 +7,6 @@ from pathlib import Path
 
 from app.contracts.desktop_routes_v1 import DesktopRouteManifestV1
 
-
 ROOT = Path(__file__).resolve().parents[1]
 
 
@@ -54,8 +53,9 @@ def test_recovery_manifest_matches_the_current_read_only_boundary_surface():
 def test_navigation_sections_and_contract_page_ids_are_distinct_sets():
     """The manifest page ids and the shell sections are different things.
 
-    The continuation pack warns that "7 page_id vs 16 section" must not be read as
-    "nine pages are missing". They are two sets that overlap, not a subset
+    The old continuation pack's "7 page_id vs 16 section" described its snapshot;
+    the current shell includes search, review and workspace for 19 sections.
+    They are two sets that overlap, not a subset
     relation: the manifest records persisted route ids, the shell records native
     navigation sections, several of which are local surfaces with no Core route.
 
@@ -71,11 +71,11 @@ def test_navigation_sections_and_contract_page_ids_are_distinct_sets():
     sections = {m.group(1) for m in re.finditer(r'new\("[^"]*",\s*"([^"]*)"', registry)}
 
     # The shell navigates exactly the sections it registers.
-    assert len(sections) == 16, sorted(sections)
+    assert len(sections) == 19, sorted(sections)
     assert sections == {
         "home", "capture", "library", "source-reader", "knowledge", "original-editor",
         "memory-map", "learning", "evidence", "research", "machine-growth", "jobs",
-        "plugins", "models", "recovery", "settings",
+        "plugins", "models", "recovery", "settings", "search", "review", "workspace",
     }
 
     # Both sides use the same identifier convention, with one documented exception:
@@ -92,7 +92,7 @@ def test_navigation_sections_and_contract_page_ids_are_distinct_sets():
     without_page_id = sections - normalised
     assert without_page_id == {
         "home", "capture", "library", "original-editor", "memory-map", "evidence",
-        "research", "plugins", "models",
+        "research", "plugins", "models", "search", "review", "workspace",
     }, sorted(without_page_id)
 
     # research / plugins / models are the recorded honest-unavailable placeholders.
