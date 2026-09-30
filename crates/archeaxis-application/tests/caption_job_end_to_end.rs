@@ -16,11 +16,16 @@ use archeaxis_domain::source::{self, ImportOutcome};
 use std::path::PathBuf;
 
 fn python() -> PathBuf {
-    std::env::var_os("ARCHEAXIS_PYTHON").expect("run cargo via the project wrapper").into()
+    std::env::var_os("ARCHEAXIS_PYTHON")
+        .expect("run cargo via the project wrapper")
+        .into()
 }
 
 fn repo() -> PathBuf {
-    PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../..").canonicalize().unwrap()
+    PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+        .join("../..")
+        .canonicalize()
+        .unwrap()
 }
 
 /// A real PNG, so the worker's own image validation is exercised.
@@ -32,7 +37,11 @@ fn png_bytes() -> Vec<u8> {
                   ImageDraw.Draw(img).text((20,40),'measured 6371 km',fill='black')\n\
                   img.save(buf,'PNG')\n\
                   sys.stdout.buffer.write(buf.getvalue())\n";
-    match std::process::Command::new(python()).arg("-c").arg(script).output() {
+    match std::process::Command::new(python())
+        .arg("-c")
+        .arg(script)
+        .output()
+    {
         Ok(out) if out.status.success() => out.stdout,
         _ => Vec::new(),
     }
@@ -44,7 +53,10 @@ async fn open_executor(dir: &std::path::Path) -> Executor {
         &dir.join("staging"),
         &python(),
         &repo().join("services/python-workers/transport/text_ndjson.py"),
-        &[("image.caption", repo().join("services/python-workers/vision/worker_caption.py"))],
+        &[(
+            "image.caption",
+            repo().join("services/python-workers/vision/worker_caption.py"),
+        )],
     )
     .await
     .unwrap()
@@ -54,11 +66,22 @@ async fn open_executor(dir: &std::path::Path) -> Executor {
 fn a_caption_name_selects_the_caption_route_and_not_the_ocr_route() {
     // the kind selects the route, so the same .png name means OCR or captions depending
     // on what the caller asked for
-    assert_eq!(attempts::route_for_kind("caption").map(|route| route.0), Some("image.caption"));
-    assert_eq!(attempts::route_for_kind("image").map(|route| route.0), Some("image.ocr"));
-    assert_eq!(attempts::resolve_media_type("caption", "figure.png").unwrap(), "image/png");
+    assert_eq!(
+        attempts::route_for_kind("caption").map(|route| route.0),
+        Some("image.caption")
+    );
+    assert_eq!(
+        attempts::route_for_kind("image").map(|route| route.0),
+        Some("image.ocr")
+    );
+    assert_eq!(
+        attempts::resolve_media_type("caption", "figure.png").unwrap(),
+        "image/png"
+    );
     // and the caption route will not take something that is not an image
-    let error = attempts::resolve_media_type("caption", "notes.md").unwrap_err().to_string();
+    let error = attempts::resolve_media_type("caption", "notes.md")
+        .unwrap_err()
+        .to_string();
     assert!(error.contains("image/png"), "{error}");
 }
 
@@ -75,7 +98,8 @@ async fn a_caption_job_is_either_a_labelled_candidate_or_a_named_failure() {
     executor
         .store()
         .submit(move |conn| {
-            let source_id = match source::import_source(conn, &payload, "figure.png", None).unwrap() {
+            let source_id = match source::import_source(conn, &payload, "figure.png", None).unwrap()
+            {
                 ImportOutcome::Imported { source_id, .. } => source_id,
                 ImportOutcome::Duplicate { source_id, .. } => source_id,
             };
@@ -84,7 +108,9 @@ async fn a_caption_job_is_either_a_labelled_candidate_or_a_named_failure() {
         .await
         .unwrap();
 
-    let outcome = executor.execute("job-caption", "run-caption", 300_000, &Cancellation::new()).await;
+    let outcome = executor
+        .execute("job-caption", "run-caption", 300_000, &Cancellation::new())
+        .await;
     let (state, text, receipt) = executor
         .store()
         .submit(|conn| {
@@ -113,9 +139,15 @@ async fn a_caption_job_is_either_a_labelled_candidate_or_a_named_failure() {
         Ok(()) => {
             // a success must carry a real description, and the receipt must say what it is
             assert_eq!(state, "succeeded");
-            assert!(!text.trim().is_empty(), "a successful caption must not be empty");
+            assert!(
+                !text.trim().is_empty(),
+                "a successful caption must not be empty"
+            );
             assert!(receipt.contains("python-worker-caption"), "{receipt}");
-            assert!(receipt.contains("qwen2.5vl"), "the model must be recorded: {receipt}");
+            assert!(
+                receipt.contains("qwen2.5vl"),
+                "the model must be recorded: {receipt}"
+            );
             assert!(receipt.contains("model output"), "{receipt}");
             assert!(receipt.contains("candidate"), "{receipt}");
             assert!(receipt.contains("prompt_version"), "{receipt}");
@@ -135,7 +167,10 @@ async fn a_caption_job_is_either_a_labelled_candidate_or_a_named_failure() {
                 })
                 .await
                 .unwrap();
-            assert_eq!(text_outputs, 0, "a failed caption must leave no text artifact");
+            assert_eq!(
+                text_outputs, 0,
+                "a failed caption must leave no text artifact"
+            );
         }
     }
 }

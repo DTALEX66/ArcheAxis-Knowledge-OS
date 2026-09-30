@@ -51,11 +51,9 @@ fn origin_rows_survive_export_and_restore() {
     let target = dir.path().join("restored.sqlite");
     restore_workspace(archive.to_str().unwrap(), target.to_str().unwrap()).unwrap();
 
-    let restored = rusqlite::Connection::open_with_flags(
-        target,
-        rusqlite::OpenFlags::SQLITE_OPEN_READ_ONLY,
-    )
-    .unwrap();
+    let restored =
+        rusqlite::Connection::open_with_flags(target, rusqlite::OpenFlags::SQLITE_OPEN_READ_ONLY)
+            .unwrap();
     let after = source::list_origins(&restored, &sid).unwrap();
     assert_eq!(after.len(), 2);
     let url = after.iter().find(|o| o.0 == "url").unwrap();

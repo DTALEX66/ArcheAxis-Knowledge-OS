@@ -7,7 +7,9 @@ use rusqlite::Connection;
 
 fn events_for(conn: &Connection, kid: &str) -> Vec<(String, String)> {
     let mut stmt = conn
-        .prepare("SELECT action, reviewer FROM review_events WHERE knowledge_id=?1 ORDER BY event_id")
+        .prepare(
+            "SELECT action, reviewer FROM review_events WHERE knowledge_id=?1 ORDER BY event_id",
+        )
         .unwrap();
     stmt.query_map([kid], |r| Ok((r.get(0)?, r.get(1)?)))
         .unwrap()
@@ -20,13 +22,24 @@ fn accept_commits_status_and_one_event_atomically() {
     let dir = tempfile::tempdir().unwrap();
     let mut conn = init_workspace(dir.path().join("k.sqlite").to_str().unwrap()).unwrap();
     let kid = knowledge::create_knowledge(
-        &mut conn, "FACTUAL_CLAIM", "claim", "candidate", None, None, "owner",
+        &mut conn,
+        "FACTUAL_CLAIM",
+        "claim",
+        "candidate",
+        None,
+        None,
+        "owner",
     )
     .unwrap();
-    let ret = knowledge::review(&mut conn, &kid, "accepted", "owner", Some("checked"), None).unwrap();
+    let ret =
+        knowledge::review(&mut conn, &kid, "accepted", "owner", Some("checked"), None).unwrap();
     assert_eq!(ret, kid);
     let status: String = conn
-        .query_row("SELECT status FROM knowledge WHERE knowledge_id=?1", [&kid], |r| r.get(0))
+        .query_row(
+            "SELECT status FROM knowledge WHERE knowledge_id=?1",
+            [&kid],
+            |r| r.get(0),
+        )
         .unwrap();
     assert_eq!(status, "accepted");
     assert!(is_knowledge_active(&conn, &kid).unwrap());
@@ -38,7 +51,13 @@ fn modified_creates_candidate_and_records_event_on_original() {
     let dir = tempfile::tempdir().unwrap();
     let mut conn = init_workspace(dir.path().join("k.sqlite").to_str().unwrap()).unwrap();
     let kid = knowledge::create_knowledge(
-        &mut conn, "FACTUAL_CLAIM", "old text", "candidate", None, None, "owner",
+        &mut conn,
+        "FACTUAL_CLAIM",
+        "old text",
+        "candidate",
+        None,
+        None,
+        "owner",
     )
     .unwrap();
     let new_kid = knowledge::review(
@@ -65,16 +84,33 @@ fn failed_review_leaves_no_partial_state() {
     let dir = tempfile::tempdir().unwrap();
     let mut conn = init_workspace(dir.path().join("k.sqlite").to_str().unwrap()).unwrap();
     let kid = knowledge::create_knowledge(
-        &mut conn, "FACTUAL_CLAIM", "claim", "candidate", None, None, "owner",
+        &mut conn,
+        "FACTUAL_CLAIM",
+        "claim",
+        "candidate",
+        None,
+        None,
+        "owner",
     )
     .unwrap();
     let err = knowledge::review(&mut conn, &kid, "nonsense", "owner", None, None);
     assert!(err.is_err());
     let status: String = conn
-        .query_row("SELECT status FROM knowledge WHERE knowledge_id=?1", [&kid], |r| r.get(0))
+        .query_row(
+            "SELECT status FROM knowledge WHERE knowledge_id=?1",
+            [&kid],
+            |r| r.get(0),
+        )
         .unwrap();
-    assert_eq!(status, "candidate", "no partial status change on failed review");
-    assert_eq!(events_for(&conn, &kid).len(), 0, "no event on failed review");
+    assert_eq!(
+        status, "candidate",
+        "no partial status change on failed review"
+    );
+    assert_eq!(
+        events_for(&conn, &kid).len(),
+        0,
+        "no event on failed review"
+    );
 }
 
 // REVISION-01: accept/reject/deprecate never overwrite the reviewed body; a
@@ -84,11 +120,22 @@ fn accept_with_new_body_is_rejected_and_body_stays_immutable() {
     let dir = tempfile::tempdir().unwrap();
     let mut conn = init_workspace(dir.path().join("k.sqlite").to_str().unwrap()).unwrap();
     let kid = knowledge::create_knowledge(
-        &mut conn, "FACTUAL_CLAIM", "original bytes", "candidate", None, None, "owner",
+        &mut conn,
+        "FACTUAL_CLAIM",
+        "original bytes",
+        "candidate",
+        None,
+        None,
+        "owner",
     )
     .unwrap();
     let err = knowledge::review(
-        &mut conn, &kid, "accepted", "owner", Some("try to sneak a body change"), Some("rewritten body"),
+        &mut conn,
+        &kid,
+        "accepted",
+        "owner",
+        Some("try to sneak a body change"),
+        Some("rewritten body"),
     );
     assert!(err.is_err(), "accept must not carry a body change");
     let (status, body): (String, String) = conn
@@ -103,10 +150,22 @@ fn accept_with_new_body_is_rejected_and_body_stays_immutable() {
     assert_eq!(events_for(&conn, &kid).len(), 0);
 
     // The pure accept path still works and leaves body untouched.
-    let ret = knowledge::review(&mut conn, &kid, "accepted", "owner", Some("clean accept"), None).unwrap();
+    let ret = knowledge::review(
+        &mut conn,
+        &kid,
+        "accepted",
+        "owner",
+        Some("clean accept"),
+        None,
+    )
+    .unwrap();
     assert_eq!(ret, kid);
     let body: String = conn
-        .query_row("SELECT body FROM knowledge WHERE knowledge_id=?1", [&kid], |r| r.get(0))
+        .query_row(
+            "SELECT body FROM knowledge WHERE knowledge_id=?1",
+            [&kid],
+            |r| r.get(0),
+        )
         .unwrap();
     assert_eq!(body, "original bytes");
 }

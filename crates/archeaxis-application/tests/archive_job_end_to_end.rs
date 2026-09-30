@@ -15,11 +15,16 @@ use archeaxis_domain::source::{self, ImportOutcome};
 use std::path::PathBuf;
 
 fn python() -> PathBuf {
-    std::env::var_os("ARCHEAXIS_PYTHON").expect("run cargo via the project wrapper").into()
+    std::env::var_os("ARCHEAXIS_PYTHON")
+        .expect("run cargo via the project wrapper")
+        .into()
 }
 
 fn repo() -> PathBuf {
-    PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../..").canonicalize().unwrap()
+    PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+        .join("../..")
+        .canonicalize()
+        .unwrap()
 }
 
 /// Build a real ZIP through the same interpreter the worker uses.
@@ -31,7 +36,11 @@ fn zip_bytes() -> Vec<u8> {
                   \x20   c.writestr('assets/',b'')\n\
                   \x20   c.writestr('data.csv','name,qty\\nbolt,4\\n')\n\
                   sys.stdout.buffer.write(buf.getvalue())\n";
-    match std::process::Command::new(python()).arg("-c").arg(script).output() {
+    match std::process::Command::new(python())
+        .arg("-c")
+        .arg(script)
+        .output()
+    {
         Ok(out) if out.status.success() => out.stdout,
         _ => Vec::new(),
     }
@@ -43,7 +52,10 @@ async fn open_executor(dir: &std::path::Path) -> Executor {
         &dir.join("staging"),
         &python(),
         &repo().join("services/python-workers/transport/text_ndjson.py"),
-        &[("archive.inventory", repo().join("services/python-workers/document/worker_archive.py"))],
+        &[(
+            "archive.inventory",
+            repo().join("services/python-workers/document/worker_archive.py"),
+        )],
     )
     .await
     .unwrap()
@@ -51,13 +63,23 @@ async fn open_executor(dir: &std::path::Path) -> Executor {
 
 #[test]
 fn a_zip_name_selects_the_archive_route_and_never_the_text_route() {
-    assert_eq!(attempts::resolve_media_type("archive", "bundle.zip").unwrap(), "application/zip");
+    assert_eq!(
+        attempts::resolve_media_type("archive", "bundle.zip").unwrap(),
+        "application/zip"
+    );
     assert!(attempts::route_for_kind("archive").is_some());
     // a .zip cannot travel as text: no route may decode a container into text
-    let error = attempts::resolve_media_type("text", "bundle.zip").unwrap_err().to_string();
-    assert!(error.contains("cannot accept media type application/zip"), "{error}");
+    let error = attempts::resolve_media_type("text", "bundle.zip")
+        .unwrap_err()
+        .to_string();
+    assert!(
+        error.contains("cannot accept media type application/zip"),
+        "{error}"
+    );
     // and the archive route will not take something that is not a container
-    let error = attempts::resolve_media_type("archive", "notes.md").unwrap_err().to_string();
+    let error = attempts::resolve_media_type("archive", "notes.md")
+        .unwrap_err()
+        .to_string();
     assert!(error.contains("application/zip"), "{error}");
 }
 
@@ -74,7 +96,8 @@ async fn a_zip_job_is_dispatched_to_the_archive_worker_and_its_inventory_is_stor
     executor
         .store()
         .submit(move |conn| {
-            let source_id = match source::import_source(conn, &payload, "bundle.zip", None).unwrap() {
+            let source_id = match source::import_source(conn, &payload, "bundle.zip", None).unwrap()
+            {
                 ImportOutcome::Imported { source_id, .. } => source_id,
                 ImportOutcome::Duplicate { source_id, .. } => source_id,
             };
@@ -83,7 +106,10 @@ async fn a_zip_job_is_dispatched_to_the_archive_worker_and_its_inventory_is_stor
         .await
         .unwrap();
 
-    executor.execute("job-zip", "run-zip", 120_000, &Cancellation::new()).await.unwrap();
+    executor
+        .execute("job-zip", "run-zip", 120_000, &Cancellation::new())
+        .await
+        .unwrap();
 
     let (state, text, receipt) = executor
         .store()
@@ -110,10 +136,16 @@ async fn a_zip_job_is_dispatched_to_the_archive_worker_and_its_inventory_is_stor
         .unwrap();
 
     assert_eq!(state, "succeeded");
-    assert!(text.contains("notes/index.md"), "the inventory must name the members: {text:?}");
+    assert!(
+        text.contains("notes/index.md"),
+        "the inventory must name the members: {text:?}"
+    );
     assert!(text.contains("data.csv"), "{text:?}");
     // the projection is the inventory, so the members' contents are NOT in the store text
-    assert!(!text.contains("6371"), "a container projection must not contain member contents: {text:?}");
+    assert!(
+        !text.contains("6371"),
+        "a container projection must not contain member contents: {text:?}"
+    );
     assert!(receipt.contains("container inventory"), "{receipt}");
     assert!(receipt.contains("NOT the members' contents"), "{receipt}");
     // and the receipt carries the engine the route is allowed to report
@@ -127,7 +159,13 @@ async fn a_corrupt_container_fails_the_job_instead_of_succeeding_empty() {
     executor
         .store()
         .submit(|conn| {
-            let source_id = match source::import_source(conn, b"PK\x03\x04 not a container", "broken.zip", None).unwrap()
+            let source_id = match source::import_source(
+                conn,
+                b"PK\x03\x04 not a container",
+                "broken.zip",
+                None,
+            )
+            .unwrap()
             {
                 ImportOutcome::Imported { source_id, .. } => source_id,
                 ImportOutcome::Duplicate { source_id, .. } => source_id,
@@ -137,13 +175,22 @@ async fn a_corrupt_container_fails_the_job_instead_of_succeeding_empty() {
         .await
         .unwrap();
 
-    let outcome = executor.execute("job-broken", "run-broken", 60_000, &Cancellation::new()).await;
+    let outcome = executor
+        .execute("job-broken", "run-broken", 60_000, &Cancellation::new())
+        .await;
     let state = executor
         .store()
-        .submit(|conn| jobs::job_state(conn, "job-broken").unwrap().unwrap_or_default())
+        .submit(|conn| {
+            jobs::job_state(conn, "job-broken")
+                .unwrap()
+                .unwrap_or_default()
+        })
         .await
         .unwrap();
-    assert!(outcome.is_err(), "a corrupt container must not report success");
+    assert!(
+        outcome.is_err(),
+        "a corrupt container must not report success"
+    );
     assert_eq!(state, "failed");
     let text_outputs: i64 = executor
         .store()
@@ -157,5 +204,8 @@ async fn a_corrupt_container_fails_the_job_instead_of_succeeding_empty() {
         })
         .await
         .unwrap();
-    assert_eq!(text_outputs, 0, "no text artifact may exist for a container that failed");
+    assert_eq!(
+        text_outputs, 0,
+        "no text artifact may exist for a container that failed"
+    );
 }

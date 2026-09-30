@@ -2,15 +2,27 @@
 //! principal cannot write them, learners cannot be credited with machine
 //! competence, and an unverified task stays visible as unmeasured.
 
-use axum::{body::Body, http::{Request, StatusCode}};
+use axum::{
+    body::Body,
+    http::{Request, StatusCode},
+};
 use http_body_util::BodyExt;
 use serde_json::Value;
 use tower::ServiceExt;
 
 use archeaxis_api::app;
 
-async fn call(router: &axum::Router, method: &str, path: &str, actor: Option<&str>, body: &str) -> (StatusCode, Value) {
-    let mut req = Request::builder().method(method).uri(path).header("content-type", "application/json");
+async fn call(
+    router: &axum::Router,
+    method: &str,
+    path: &str,
+    actor: Option<&str>,
+    body: &str,
+) -> (StatusCode, Value) {
+    let mut req = Request::builder()
+        .method(method)
+        .uri(path)
+        .header("content-type", "application/json");
     if let Some(actor) = actor {
         req = req.header("x-archeaxis-actor", actor);
     }
@@ -21,7 +33,10 @@ async fn call(router: &axum::Router, method: &str, path: &str, actor: Option<&st
         .unwrap();
     let status = resp.status();
     let bytes = resp.into_body().collect().await.unwrap().to_bytes();
-    (status, serde_json::from_slice(&bytes).unwrap_or(Value::Null))
+    (
+        status,
+        serde_json::from_slice(&bytes).unwrap_or(Value::Null),
+    )
 }
 
 fn receipt(task_id: &str, outcome: &str) -> String {
@@ -43,7 +58,14 @@ async fn a_machine_records_a_receipt_and_anyone_can_read_it_back() {
     let dir = tempfile::tempdir().unwrap();
     let router = app(dir.path().join("api.sqlite").to_str().unwrap()).unwrap();
 
-    let (status, body) = call(&router, "POST", "/api/v1/machine/tasks", Some("machine"), &receipt("task-1", "succeeded")).await;
+    let (status, body) = call(
+        &router,
+        "POST",
+        "/api/v1/machine/tasks",
+        Some("machine"),
+        &receipt("task-1", "succeeded"),
+    )
+    .await;
     assert_eq!(status, StatusCode::CREATED, "{body}");
 
     let (status, readback) = call(&router, "GET", "/api/v1/machine/tasks/task-1", None, "").await;
@@ -61,7 +83,10 @@ async fn a_machine_records_a_receipt_and_anyone_can_read_it_back() {
     assert!(readback["retest_of"].is_null());
     assert!(readback["failure"].is_null());
     assert!(
-        readback["note"].as_str().unwrap_or("").contains("weights were trained"),
+        readback["note"]
+            .as_str()
+            .unwrap_or("")
+            .contains("weights were trained"),
         "the readback must separate a task receipt from weight training: {readback}"
     );
 
@@ -98,7 +123,14 @@ async fn machine_task_binds_knowledge_and_retest_to_canonical_records() {
         "outcome": "failed",
         "failure": "provider error"
     });
-    let (status, _) = call(&router, "POST", "/api/v1/machine/tasks", Some("machine"), &failed.to_string()).await;
+    let (status, _) = call(
+        &router,
+        "POST",
+        "/api/v1/machine/tasks",
+        Some("machine"),
+        &failed.to_string(),
+    )
+    .await;
     assert_eq!(status, StatusCode::CREATED);
 
     let (status, corrected) = call(
@@ -132,7 +164,14 @@ async fn machine_task_binds_knowledge_and_retest_to_canonical_records() {
         "outcome": "succeeded",
         "retest_of": "failed-task"
     });
-    let (status, _) = call(&router, "POST", "/api/v1/machine/tasks", Some("machine"), &retest.to_string()).await;
+    let (status, _) = call(
+        &router,
+        "POST",
+        "/api/v1/machine/tasks",
+        Some("machine"),
+        &retest.to_string(),
+    )
+    .await;
     assert_eq!(status, StatusCode::CREATED);
 
     let missing_knowledge = serde_json::json!({
@@ -143,7 +182,14 @@ async fn machine_task_binds_knowledge_and_retest_to_canonical_records() {
         "scope": "one task",
         "outcome": "succeeded"
     });
-    let (status, _) = call(&router, "POST", "/api/v1/machine/tasks", Some("machine"), &missing_knowledge.to_string()).await;
+    let (status, _) = call(
+        &router,
+        "POST",
+        "/api/v1/machine/tasks",
+        Some("machine"),
+        &missing_knowledge.to_string(),
+    )
+    .await;
     assert_eq!(status, StatusCode::BAD_REQUEST);
 
     let (status, _) = call(
@@ -159,13 +205,22 @@ async fn machine_task_binds_knowledge_and_retest_to_canonical_records() {
             "scope": "one task",
             "outcome": "succeeded",
             "retest_of": "missing-task"
-        }).to_string(),
-    ).await;
+        })
+        .to_string(),
+    )
+    .await;
     assert_eq!(status, StatusCode::BAD_REQUEST);
 
     drop(router);
     let router2 = app(&db_str).unwrap();
-    let (status, readback) = call(&router2, "GET", "/api/v1/machine/tasks/retest-task", None, "").await;
+    let (status, readback) = call(
+        &router2,
+        "GET",
+        "/api/v1/machine/tasks/retest-task",
+        None,
+        "",
+    )
+    .await;
     assert_eq!(status, StatusCode::OK);
     assert_eq!(readback["knowledge_version"], successor_id);
     assert_eq!(readback["retest_of"], "failed-task");
@@ -176,10 +231,25 @@ async fn machine_task_binds_knowledge_and_retest_to_canonical_records() {
 async fn a_human_cannot_write_a_machine_receipt() {
     let dir = tempfile::tempdir().unwrap();
     let router = app(dir.path().join("api.sqlite").to_str().unwrap()).unwrap();
-    let (status, _) = call(&router, "POST", "/api/v1/machine/tasks", Some("human"), &receipt("task-h", "succeeded")).await;
-    assert_eq!(status, StatusCode::FORBIDDEN, "the two sides must stay distinguishable");
+    let (status, _) = call(
+        &router,
+        "POST",
+        "/api/v1/machine/tasks",
+        Some("human"),
+        &receipt("task-h", "succeeded"),
+    )
+    .await;
+    assert_eq!(
+        status,
+        StatusCode::FORBIDDEN,
+        "the two sides must stay distinguishable"
+    );
     let (status, _) = call(&router, "GET", "/api/v1/machine/tasks/task-h", None, "").await;
-    assert_eq!(status, StatusCode::NOT_FOUND, "a refused receipt must not land");
+    assert_eq!(
+        status,
+        StatusCode::NOT_FOUND,
+        "a refused receipt must not land"
+    );
 }
 
 #[tokio::test]
@@ -187,7 +257,14 @@ async fn an_unmeasured_task_stays_unmeasured_and_cannot_be_rewritten() {
     let dir = tempfile::tempdir().unwrap();
     let router = app(dir.path().join("api.sqlite").to_str().unwrap()).unwrap();
 
-    let (status, _) = call(&router, "POST", "/api/v1/machine/tasks", Some("machine"), &receipt("task-u", "unmeasured")).await;
+    let (status, _) = call(
+        &router,
+        "POST",
+        "/api/v1/machine/tasks",
+        Some("machine"),
+        &receipt("task-u", "unmeasured"),
+    )
+    .await;
     assert_eq!(status, StatusCode::CREATED);
 
     // A rollup that ignores unmeasured results would be misleading: the state is
@@ -206,6 +283,17 @@ async fn an_unmeasured_task_stays_unmeasured_and_cannot_be_rewritten() {
     .await;
     assert_eq!(status, StatusCode::BAD_REQUEST);
 
-    let (status, _) = call(&router, "POST", "/api/v1/machine/tasks", Some("machine"), &receipt("task-u", "succeeded")).await;
-    assert_eq!(status, StatusCode::BAD_REQUEST, "an existing receipt must not be rewritten");
+    let (status, _) = call(
+        &router,
+        "POST",
+        "/api/v1/machine/tasks",
+        Some("machine"),
+        &receipt("task-u", "succeeded"),
+    )
+    .await;
+    assert_eq!(
+        status,
+        StatusCode::BAD_REQUEST,
+        "an existing receipt must not be rewritten"
+    );
 }

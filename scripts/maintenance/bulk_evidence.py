@@ -23,6 +23,7 @@ from __future__ import annotations
 
 import argparse
 import hashlib
+import importlib.util
 import json
 import os
 import re
@@ -117,7 +118,11 @@ def main() -> int:
     parser.add_argument("--receipt-name", default="bulk-receipt", help="receipt basename under run-root/artifacts")
     args = parser.parse_args()
     try:
-        run_root = _require_inside(args.run_root, ROOT / ".project-local", "run root")
+        runtime_spec = importlib.util.spec_from_file_location("bulk_evidence_runtime", ROOT / "scripts/runtime/dev.py")
+        assert runtime_spec and runtime_spec.loader
+        runtime = importlib.util.module_from_spec(runtime_spec)
+        runtime_spec.loader.exec_module(runtime)
+        run_root = _require_inside(args.run_root, runtime.layout(ROOT)["dev"], "run root")
     except ValueError as exc:
         return _usage_error(str(exc))
     if not run_root.is_dir():

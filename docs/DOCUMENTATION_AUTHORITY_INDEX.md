@@ -4,7 +4,7 @@
 > a document; it never promotes a plan, handoff, test fixture, release tag, or
 > historical snapshot into live product evidence.
 
-## Current read order (2026-09-25)
+## Current read order (2026-09-27)
 
 1. [AGENTS](../AGENTS.md), [project contract](../PROJECT_CONTRACT.yaml) and
    [decision supersession ledger](../DECISION_SUPERSESSION_LEDGER.yaml).
@@ -14,7 +14,7 @@
    [R6-EXECUTION](current/R6-EXECUTION.md) and [R6-STATE](current/R6-STATE.json).
    The current priority overlay is
    [M0 direction override](current/M0-DIRECTION-OVERRIDE-20260920.md).
-   The latest recorded drift and branch/path audit is the dated
+   A recorded drift and branch/path audit is the dated
    [REPOSITORY-DRIFT-CURRENT-RECEIPT-20260923](current/REPOSITORY-DRIFT-CURRENT-RECEIPT-20260923.md)
    snapshot; it is not live Git truth after 2026-09-23. The older
    [DOCUMENTATION-DRIFT-AUDIT-20260923](current/DOCUMENTATION-DRIFT-AUDIT-20260923.md)
@@ -23,21 +23,18 @@
    and [2026-09-23 project-local volume inventory](current/PROJECT-LOCAL-VOLUME-AUDIT-20260923.md)
    are dated snapshots; re-read refs and filesystem metadata before making
    current claims or any cleanup decision.
-  The [2026-09-25 local repository/data-lineage readback](current/AAOS-LOCAL-REPOSITORY-LINEAGE-READBACK-20260925.md)
-  is an append-only dated audit with a 2026-09-26 follow-up: use its latest
-  section for the seven live remote heads, PR readback, current branch cleanup
-  findings and visible spill lower bound. Earlier embedded snapshots retain
-  their historical values. The readback does not authorize remote deletion,
-  merge, or data movement.
-  The [2026-09-26 cloud audit handoff](current/AAOS-CLOUD-AUDIT-HANDOFF-20260926.md)
-  is the entry point for an external auditor with GitHub access only: it lists
-  the exact head SHA, the exact-SHA CI runs and which jobs were skipped, each
-  change and how to verify it, and the known defects left unfixed. Its session
-  log is [AAOS-DSH-TAKEOVER-CHECKPOINT-20260926](current/AAOS-DSH-TAKEOVER-CHECKPOINT-20260926.md)
-  and the branch-consolidation record with recovery tips is
-  `docs/history/branch-donors/README.md` (outside this index's link scope).
-  These are working records for this session, not current authority: they do not
-  authorize a release, a Green replacement, or a `main` merge.
+   The [2026-09-27 backend integration](current/SEPTEMBER-BACKEND-INTEGRATION-20260927.md)
+   and [consolidation readback](current/SEPTEMBER-CONSOLIDATION-READBACK-20260927.md)
+   record this delivery and exact-SHA evidence; neither replaces R6/M0 or live Git.
+   The [2026-09-25 lineage readback](current/AAOS-LOCAL-REPOSITORY-LINEAGE-READBACK-20260925.md),
+   [2026-09-26 cloud handoff](current/AAOS-CLOUD-AUDIT-HANDOFF-20260926.md) and
+   [takeover checkpoint](current/AAOS-DSH-TAKEOVER-CHECKPOINT-20260926.md)
+   are dated snapshots. Their branch counts, defects, known CI and permission
+   limits describe those times, not the current repository. Preserve original SHAs.
+   [Historical consolidation](history/branch-donors/README.md) and the
+   [document migration manifest](history/DOCUMENT-CONSOLIDATION-20260927.json)
+   retain recovery and exact-path disposition evidence. No record here grants
+   a release, Green replacement or further deletion by itself.
    R5/R3/R2 handoffs and branch records are historical receipts only. Before
    using local resources, read the [shared resource path index](SHARED_RESOURCE_PATH_INDEX.md).
 3. [Language authority](LANGUAGE_BOUNDARY_AUTHORITY_INDEX.md),
@@ -100,7 +97,7 @@ CI, release, or user-data migration unless it names that evidence layer.
 | Active forward work | [R6 executor](authority/taskpack-0919-r6/EXECUTOR-START.md) + [R6 execution](current/R6-EXECUTION.md) + [M0 overlay](current/M0-DIRECTION-OVERRIDE-20260920.md) | Current task pack and priority overlay |
 | Drift / branch / output audit | [2026-09-23 receipt](current/REPOSITORY-DRIFT-CURRENT-RECEIPT-20260923.md) + [frozen audit](current/DOCUMENTATION-DRIFT-AUDIT-20260923.md) | Dated evidence only; neither authorizes deletion or merge |
 | Branch disposition | [2026-09-23 branch table](current/BRANCH-DISPOSITION-CURRENT-20260923.md) | Dated read-only snapshot; refresh from live refs. Merge/delete requires separate owner gate |
-| Latest local branch/worktree/data-lineage snapshot | [2026-09-25 readback](current/AAOS-LOCAL-REPOSITORY-LINEAGE-READBACK-20260925.md) | Cached refs and metadata only; remote/content provenance unknown; no cleanup/merge authorization |
+| Dated local branch/worktree/data-lineage snapshot | [2026-09-25 readback](current/AAOS-LOCAL-REPOSITORY-LINEAGE-READBACK-20260925.md) | Cached refs and metadata only; remote/content provenance unknown; no cleanup/merge authorization |
 | Project-local volume | [2026-09-23 volume audit](current/PROJECT-LOCAL-VOLUME-AUDIT-20260923.md) | Dated size classification only; refresh before cleanup; no bulk cleanup authorization |
 | Language migration | [Language-audit adoption](current/AXM_LANGUAGE_AUDIT_TASK_ADOPTION_2026-09-02.md) | Historical map; React/TypeScript product-surface target superseded by R6/M0; dated G0 evidence only |
 | Language ownership and compatibility naming | [Language boundary authority](LANGUAGE_BOUNDARY_AUTHORITY_INDEX.md) | Binding migration boundary |
@@ -119,7 +116,7 @@ CI, release, or user-data migration unless it names that evidence layer.
 | [architecture/](architecture/) | Current architecture plus imported capability analysis | Cite only as design/reference, not live behavior |
 | [architecture/imported-designs/](architecture/imported-designs/) | Preserved upstream/reference inputs | Cite source and absorption status; do not copy claims into current truth |
 | [taskpacks/](taskpacks/) | Current and historical instructions | R6 under `authority/taskpack-0919-r6/` is current; older packs retain historical constraints only |
-| [current/](current/) | Reconciliations, G0 gates and active maintenance handoffs | Check date and status before using |
+| [current/](current/) | R6/M0 live records alongside explicitly dated historical snapshots | Check date and status before using |
 | [history/](history/) | Historical snapshots | Never cite as current state |
 | Root `HANDOFF_*` and `SUMMARY_*` records | Legacy historical records awaiting a hash/reference-bound archive move | History only; do not use as task authority |
 | [2026-09-03 G0 implementation plan](superpowers/plans/2026-09-03-runtime-authority-and-language-g0.md) | Dated superseded implementation plan | React/Tauri shell and pre-R6 gate sequence are historical; do not execute it |
@@ -134,6 +131,8 @@ release status, or task order:
 - `current/AXR_060_COMPLETION_AUDIT_2026-08-23.md`
 - `current/AXR_060_401_UNIFIED_CLIENT_HANDOFF_2026-08-24.md`
 - `current/CURRENT_PRODUCT_PLAN_V2.md`
+- `current/TASK_GRAPH_V2.yaml` and `current/SCOPE_LEDGER_V2.yaml` (historical execution fields, not the active queue)
+- `current/SESSION-RESTART-2026-09-12.md` (retired R3.1 handoff; retained for existing historical links)
 - `current/CONTINUATION_HANDOFF_2026-09-03.md`
 - `current/CURRENT_REALITY_2026-09-01.md`
 - `current/FRONTEND_CONSOLIDATION_V1_2026-08-28.md`

@@ -38,7 +38,6 @@ pub fn count_learning(conn: &Connection) -> rusqlite::Result<i64> {
     conn.query_row("SELECT count(*) FROM learning_events", [], |r| r.get(0))
 }
 
-
 /// Absolute next-review timestamp (UTC) computed by SQLite: 'now' + N days.
 pub fn next_review_iso(conn: &Connection, days: i64) -> rusqlite::Result<Option<String>> {
     if days <= 0 {
@@ -80,8 +79,15 @@ pub fn record_review(
 ) -> rusqlite::Result<(i64, u32, i64)> {
     let prior = correct_streak(conn, item_key)?;
     let streak_after = if correct { prior + 1 } else { 0 };
-    let next_review_days = if correct { suggest_next_interval(streak_after) } else { 1 };
-    let outcome = format!(r#"{{"outcome": "{}"}}"#, if correct { "correct" } else { "incorrect" });
+    let next_review_days = if correct {
+        suggest_next_interval(streak_after)
+    } else {
+        1
+    };
+    let outcome = format!(
+        r#"{{"outcome": "{}"}}"#,
+        if correct { "correct" } else { "incorrect" }
+    );
     let next_review = next_review_iso(conn, next_review_days)?;
     conn.execute(
         "INSERT INTO learning_events(item_key, kind, outcome, next_review) VALUES(?1,?2,?3,?4)",
@@ -139,8 +145,8 @@ pub struct ReviewReceipt {
 /// review observations and FSRS scheduling do not establish Knowledge truth
 /// or a closed mastery claim.
 fn mastery_projection_json(schedule_json: &str, correct_streak: u32) -> String {
-    let schedule: serde_json::Value = serde_json::from_str(schedule_json)
-        .unwrap_or_else(|_| serde_json::json!({}));
+    let schedule: serde_json::Value =
+        serde_json::from_str(schedule_json).unwrap_or_else(|_| serde_json::json!({}));
     serde_json::json!({
         "status": "projection",
         "closed": false,
@@ -148,7 +154,8 @@ fn mastery_projection_json(schedule_json: &str, correct_streak: u32) -> String {
         "review_state": schedule["state"]["state"],
         "stability": schedule["state"]["stability"],
         "correct_streak": correct_streak,
-    }).to_string()
+    })
+    .to_string()
 }
 
 /// Core-owned assessment snapshot bound to one learning item and one accepted
@@ -170,45 +177,79 @@ pub struct AssessmentRecord {
 // SQLite also accepts time-only and Julian-day values; constrain the wire form
 // to Python's ISO date-time representation before SQLite calendar validation.
 fn schedule_timestamp_shape(value: &str) -> bool {
-    if !value.is_ascii() || value.len() < 20 || &value[..4] == "0000" { return false; }
+    if !value.is_ascii() || value.len() < 20 || &value[..4] == "0000" {
+        return false;
+    }
     for (index, byte) in value.as_bytes()[..19].iter().enumerate() {
-        let separator = match index { 4 | 7 => Some(b'-'), 10 => Some(b'T'), 13 | 16 => Some(b':'), _ => None };
-        if separator.map_or(!byte.is_ascii_digit(), |expected| *byte != expected) { return false; }
+        let separator = match index {
+            4 | 7 => Some(b'-'),
+            10 => Some(b'T'),
+            13 | 16 => Some(b':'),
+            _ => None,
+        };
+        if separator.map_or(!byte.is_ascii_digit(), |expected| *byte != expected) {
+            return false;
+        }
     }
     let mut zone = &value[19..];
     if let Some(fraction) = zone.strip_prefix('.') {
         let digits = fraction.bytes().take_while(u8::is_ascii_digit).count();
-        if !(1..=6).contains(&digits) { return false; }
+        if !(1..=6).contains(&digits) {
+            return false;
+        }
         zone = &fraction[digits..];
     }
-    if zone == "Z" { return true; }
+    if zone == "Z" {
+        return true;
+    }
     let bytes = zone.as_bytes();
-    bytes.len() == 6 && matches!(bytes[0], b'+' | b'-') && bytes[3] == b':'
-        && bytes[1..3].iter().chain(bytes[4..6].iter()).all(u8::is_ascii_digit)
+    bytes.len() == 6
+        && matches!(bytes[0], b'+' | b'-')
+        && bytes[3] == b':'
+        && bytes[1..3]
+            .iter()
+            .chain(bytes[4..6].iter())
+            .all(u8::is_ascii_digit)
         && zone[1..3].parse::<u8>().is_ok_and(|hour| hour < 24)
         && zone[4..6].parse::<u8>().is_ok_and(|minute| minute < 60)
 }
 
 pub fn valid_review_timestamp(conn: &Connection, value: &str) -> rusqlite::Result<bool> {
-    if !schedule_timestamp_shape(value) { return Ok(false); }
+    if !schedule_timestamp_shape(value) {
+        return Ok(false);
+    }
     conn.query_row("SELECT COALESCE(strftime('%Y-%m-%dT%H:%M:%S',substr(?1,1,19),'+0 seconds')=substr(?1,1,19),0)",
         [value], |r| r.get(0))
 }
 
 /// Last successful FSRS state. An unscheduled event never erases it.
-pub fn latest_fsrs_state_json(conn: &Connection, item_key: &str) -> rusqlite::Result<Option<String>> {
+pub fn latest_fsrs_state_json(
+    conn: &Connection,
+    item_key: &str,
+) -> rusqlite::Result<Option<String>> {
     conn.query_row(
         "SELECT json_extract(outcome, '$.schedule.state') FROM learning_events
          WHERE item_key=?1 AND CASE WHEN json_valid(outcome)
          THEN json_extract(outcome, '$.schedule.authority') = 'fsrs' ELSE 0 END
-         ORDER BY event_id DESC LIMIT 1", [item_key], |r| r.get(0),
-    ).optional()
+         ORDER BY event_id DESC LIMIT 1",
+        [item_key],
+        |r| r.get(0),
+    )
+    .optional()
 }
 
 /// Validate worker output before recording an explicit unscheduled fallback.
-pub fn review_schedule_is_valid(conn: &Connection, schedule: &ReviewSchedule) -> rusqlite::Result<bool> {
-    let valid_json: bool = conn.query_row("SELECT json_valid(?1)", [&schedule.schedule_json], |r| r.get(0))?;
-    if !valid_json { return Ok(false); }
+pub fn review_schedule_is_valid(
+    conn: &Connection,
+    schedule: &ReviewSchedule,
+) -> rusqlite::Result<bool> {
+    let valid_json: bool =
+        conn.query_row("SELECT json_valid(?1)", [&schedule.schedule_json], |r| {
+            r.get(0)
+        })?;
+    if !valid_json {
+        return Ok(false);
+    }
     let valid: bool = conn.query_row(
         "SELECT COALESCE(json_type(?1)='object' AND (
           (json_extract(?1,'$.authority')='unavailable' AND ?2 IS NULL AND ?3=-2)
@@ -227,15 +268,21 @@ pub fn review_schedule_is_valid(conn: &Connection, schedule: &ReviewSchedule) ->
               AND json_extract(?1,'$.state.difficulty') BETWEEN 1 AND 10)), 0)",
         rusqlite::params![schedule.schedule_json, schedule.next_review, schedule.next_review_days], |r| r.get(0),
     )?;
-    if !valid { return Ok(false); }
+    if !valid {
+        return Ok(false);
+    }
     if let Some(due) = schedule.next_review.as_deref() {
         let (last_review, stability, difficulty): (String, f64, f64) = conn.query_row(
             "SELECT json_extract(?1,'$.state.last_review'), json_extract(?1,'$.state.stability'),
-                    json_extract(?1,'$.state.difficulty')", [&schedule.schedule_json],
+                    json_extract(?1,'$.state.difficulty')",
+            [&schedule.schedule_json],
             |r| Ok((r.get(0)?, r.get(1)?, r.get(2)?)),
         )?;
-        if !schedule_timestamp_shape(due) || !schedule_timestamp_shape(&last_review)
-            || !stability.is_finite() || !difficulty.is_finite() {
+        if !schedule_timestamp_shape(due)
+            || !schedule_timestamp_shape(&last_review)
+            || !stability.is_finite()
+            || !difficulty.is_finite()
+        {
             return Ok(false);
         }
     }
@@ -294,22 +341,41 @@ pub fn record_review_with_state_and_answer(
     }
     let mut hash = Sha256::new();
     hash.update(b"archeaxis.learning-state/v1\0");
-    for part in [kind, if correct { "correct" } else { "incorrect" }, canonical_request] {
+    for part in [
+        kind,
+        if correct { "correct" } else { "incorrect" },
+        canonical_request,
+    ] {
         hash.update((part.len() as u64).to_le_bytes());
         hash.update(part.as_bytes());
     }
     let payload_hash = hex::encode(hash.finalize());
     let tx = conn.transaction_with_behavior(rusqlite::TransactionBehavior::Immediate)?;
-    let existing: Option<(String, Option<String>, ReviewReceipt)> = tx.query_row(
-        "SELECT k.item_key, k.payload_hash, e.event_id, k.streak_after,
+    let existing: Option<(String, Option<String>, ReviewReceipt)> = tx
+        .query_row(
+            "SELECT k.item_key, k.payload_hash, e.event_id, k.streak_after,
                 k.next_review_days, e.next_review, e.outcome
          FROM learning_event_keys k JOIN learning_events e ON e.event_id=k.event_id
-         WHERE k.event_key=?1", [client_event_key], |r| Ok((r.get(0)?, r.get(1)?, ReviewReceipt {
-             event_id: r.get(2)?, streak_after: r.get::<_, i64>(3)? as u32,
-             next_review_days: r.get::<_, Option<i64>>(4)?.unwrap_or(SCHEDULE_UNAVAILABLE),
-             next_review: r.get(5)?, outcome_json: r.get(6)?, duplicate: true,
-         })),
-    ).optional()?;
+         WHERE k.event_key=?1",
+            [client_event_key],
+            |r| {
+                Ok((
+                    r.get(0)?,
+                    r.get(1)?,
+                    ReviewReceipt {
+                        event_id: r.get(2)?,
+                        streak_after: r.get::<_, i64>(3)? as u32,
+                        next_review_days: r
+                            .get::<_, Option<i64>>(4)?
+                            .unwrap_or(SCHEDULE_UNAVAILABLE),
+                        next_review: r.get(5)?,
+                        outcome_json: r.get(6)?,
+                        duplicate: true,
+                    },
+                ))
+            },
+        )
+        .optional()?;
     if let Some((stored_item, stored_hash, receipt)) = existing {
         if stored_item != item_key || stored_hash.as_deref() != Some(payload_hash.as_str()) {
             return Err(invalid("event_key conflict: different item or payload"));
@@ -317,29 +383,46 @@ pub fn record_review_with_state_and_answer(
         return Ok(receipt);
     }
     // A legacy key without a complete receipt is not permission to resubmit it.
-    let reserved: bool = tx.query_row("SELECT EXISTS(SELECT 1 FROM learning_event_keys WHERE event_key=?1)",
-        [client_event_key], |r| r.get(0))?;
-    if reserved { return Err(invalid("event_key conflict: incomplete legacy receipt")); }
+    let reserved: bool = tx.query_row(
+        "SELECT EXISTS(SELECT 1 FROM learning_event_keys WHERE event_key=?1)",
+        [client_event_key],
+        |r| r.get(0),
+    )?;
+    if reserved {
+        return Err(invalid("event_key conflict: incomplete legacy receipt"));
+    }
     let schedule = resolve(&tx)?;
     if !review_schedule_is_valid(&tx, &schedule)? {
         return Err(invalid("schedule state or exact due date is inconsistent"));
     }
-    let streak_after = if correct { correct_streak(&tx, item_key)? + 1 } else { 0 };
+    let streak_after = if correct {
+        correct_streak(&tx, item_key)? + 1
+    } else {
+        0
+    };
     let mastery_projection = mastery_projection_json(&schedule.schedule_json, streak_after);
     let outcome_json: String = tx.query_row(
         "SELECT json_object('outcome', ?1, 'schedule', json(?2), 'answer', ?3, 'assessment_id', ?4, 'mastery_projection', json(?5))",
         rusqlite::params![if correct { "correct" } else { "incorrect" }, schedule.schedule_json, answer, assessment_id, mastery_projection],
         |r| r.get(0),
     )?;
-    tx.execute("INSERT INTO learning_events(item_key,kind,outcome,next_review) VALUES(?1,?2,?3,?4)",
-        rusqlite::params![item_key, kind, outcome_json, schedule.next_review])?;
+    tx.execute(
+        "INSERT INTO learning_events(item_key,kind,outcome,next_review) VALUES(?1,?2,?3,?4)",
+        rusqlite::params![item_key, kind, outcome_json, schedule.next_review],
+    )?;
     let event_id = tx.last_insert_rowid();
     tx.execute("INSERT INTO learning_event_keys(event_key,item_key,payload_hash,event_id,streak_after,next_review_days)
                 VALUES(?1,?2,?3,?4,?5,?6)",
         rusqlite::params![client_event_key,item_key,payload_hash,event_id,streak_after,schedule.next_review_days])?;
     tx.commit()?;
-    Ok(ReviewReceipt { event_id, streak_after, next_review_days: schedule.next_review_days,
-        next_review: schedule.next_review, outcome_json, duplicate: false })
+    Ok(ReviewReceipt {
+        event_id,
+        streak_after,
+        next_review_days: schedule.next_review_days,
+        next_review: schedule.next_review,
+        outcome_json,
+        duplicate: false,
+    })
 }
 
 fn record_review_keyed_impl(
@@ -352,7 +435,8 @@ fn record_review_keyed_impl(
 ) -> rusqlite::Result<(i64, u32, i64, bool)> {
     if client_event_key.trim().is_empty() {
         return Err(rusqlite::Error::InvalidParameterName(
-            "learning events require a persistent event_key; unkeyed submissions are rejected".into(),
+            "learning events require a persistent event_key; unkeyed submissions are rejected"
+                .into(),
         ));
     }
     // The marker is part of the keyed payload: an unscheduled review is not
@@ -363,26 +447,27 @@ fn record_review_keyed_impl(
             if correct { "correct" } else { "incorrect" }
         )
     } else {
-        format!(r#"{{"outcome": "{}"}}"#, if correct { "correct" } else { "incorrect" })
+        format!(
+            r#"{{"outcome": "{}"}}"#,
+            if correct { "correct" } else { "incorrect" }
+        )
     };
     let mut h = Sha256::new();
     h.update(format!("{kind}|{outcome}").as_bytes());
     let payload_hash = hex::encode(h.finalize());
     let tx = conn.transaction_with_behavior(rusqlite::TransactionBehavior::Immediate)?;
-    let existing: Option<(Option<i64>, Option<String>, Option<i64>, Option<i64>, String)> = tx
+    let existing: Option<(
+        Option<i64>,
+        Option<String>,
+        Option<i64>,
+        Option<i64>,
+        String,
+    )> = tx
         .query_row(
             "SELECT event_id, payload_hash, streak_after, next_review_days, item_key
              FROM learning_event_keys WHERE event_key=?1",
             [client_event_key],
-            |r| {
-                Ok((
-                    r.get(0)?,
-                    r.get(1)?,
-                    r.get(2)?,
-                    r.get(3)?,
-                    r.get(4)?,
-                ))
-            },
+            |r| Ok((r.get(0)?, r.get(1)?, r.get(2)?, r.get(3)?, r.get(4)?)),
         )
         .optional()?;
     if let Some((event_id, stored_hash, stored_streak, stored_days, stored_item)) = existing {
@@ -403,7 +488,11 @@ fn record_review_keyed_impl(
     let streak_after = if correct { prior + 1 } else { 0 };
     let next_review_days = match schedule {
         ScheduleSource::Ladder => {
-            if correct { suggest_next_interval(streak_after) } else { 1 }
+            if correct {
+                suggest_next_interval(streak_after)
+            } else {
+                1
+            }
         }
         ScheduleSource::Explicit(days) => days.unwrap_or(SCHEDULE_UNAVAILABLE),
     };
@@ -657,25 +746,35 @@ pub fn create_assessment(
             "assessment knowledge must be referenced by the learning item".into(),
         ));
     }
-    let (status, knowledge_type, body, anchor_id): (String, String, String, Option<String>) = tx.query_row(
-        "SELECT status, knowledge_type, body, anchor_id FROM knowledge WHERE knowledge_id=?1",
-        [knowledge_id],
-        |row| Ok((row.get(0)?, row.get(1)?, row.get(2)?, row.get(3)?)),
-    ).optional()?.ok_or_else(|| rusqlite::Error::InvalidParameterName(
-        "assessment knowledge revision not found".into(),
-    ))?;
+    let (status, knowledge_type, body, anchor_id): (String, String, String, Option<String>) = tx
+        .query_row(
+            "SELECT status, knowledge_type, body, anchor_id FROM knowledge WHERE knowledge_id=?1",
+            [knowledge_id],
+            |row| Ok((row.get(0)?, row.get(1)?, row.get(2)?, row.get(3)?)),
+        )
+        .optional()?
+        .ok_or_else(|| {
+            rusqlite::Error::InvalidParameterName("assessment knowledge revision not found".into())
+        })?;
     if !crate::knowledge::is_knowledge_active(&tx, knowledge_id)?
         || (status != "accepted"
-            && !matches!(knowledge_type.as_str(), "PERSONAL_DEFINITION" | "PERSONAL_EXPERIENCE"))
+            && !matches!(
+                knowledge_type.as_str(),
+                "PERSONAL_DEFINITION" | "PERSONAL_EXPERIENCE"
+            ))
     {
         return Err(rusqlite::Error::InvalidParameterName(
             "assessment requires active accepted or personal knowledge".into(),
         ));
     }
     let source_id = match anchor_id.as_deref() {
-        Some(anchor) => tx.query_row(
-            "SELECT source_id FROM anchors WHERE anchor_id=?1", [anchor], |row| row.get::<_, String>(0),
-        ).optional()?,
+        Some(anchor) => tx
+            .query_row(
+                "SELECT source_id FROM anchors WHERE anchor_id=?1",
+                [anchor],
+                |row| row.get::<_, String>(0),
+            )
+            .optional()?,
         None => None,
     };
     let id = assessment_id(item_key, knowledge_id);
@@ -685,7 +784,16 @@ pub fn create_assessment(
             assessment_id, item_key, knowledge_id, knowledge_version,
             question, content, source_id, anchor_id
          ) VALUES(?1,?2,?3,?4,?5,?6,?7,?8)",
-        rusqlite::params![id, item_key, knowledge_id, knowledge_id, question, body, source_id, anchor_id],
+        rusqlite::params![
+            id,
+            item_key,
+            knowledge_id,
+            knowledge_id,
+            question,
+            body,
+            source_id,
+            anchor_id
+        ],
     )?;
     tx.commit()?;
     assessment_by_id(conn, &id)?.ok_or_else(|| rusqlite::Error::InvalidQuery)
@@ -702,7 +810,8 @@ pub fn assessment_by_id(
          FROM learning_assessments WHERE assessment_id=?1",
         [assessment_id],
         assessment_from_row,
-    ).optional()
+    )
+    .optional()
 }
 
 /// Validate that a review uses an assessment belonging to the same item.
@@ -726,5 +835,6 @@ pub fn assessment_for_item_key(
          ORDER BY created_at DESC, assessment_id DESC LIMIT 1",
         [item_key],
         assessment_from_row,
-    ).optional()
+    )
+    .optional()
 }

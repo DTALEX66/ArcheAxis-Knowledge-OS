@@ -42,7 +42,7 @@ def test_default_manifest_separates_source_roots_and_core_endpoints(tmp_path):
     assert first != batch.default_manifest(right, 'http://127.0.0.1:9000')
     assert first != batch.default_manifest(left, 'http://127.0.0.1:9001')
     assert first == batch.default_manifest(left, 'http://127.0.0.1:9000/')
-    assert first.is_relative_to(REPO / '.project-local' / 'state')
+    assert first.is_relative_to(batch._runtime().layout(REPO)['dev'] / 'state')
     assert not first.exists()
 
 

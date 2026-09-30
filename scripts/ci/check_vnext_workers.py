@@ -14,6 +14,7 @@ packages/contracts/v1/worker-protocol.schema.json.
 
 from __future__ import annotations
 
+import importlib.util
 import json
 import os
 import py_compile
@@ -38,10 +39,14 @@ WORKER_MATRIX = {
 
 def _managed_tempdir(prefix: str) -> tempfile.TemporaryDirectory[str]:
     """Allocate checker fixtures under the current project-local run root."""
-    configured = Path(os.environ.get("ARCHEAXIS_RUN_ROOT", ROOT / ".project-local" / "task-runtime"))
-    configured = configured.absolute()
+    spec = importlib.util.spec_from_file_location("worker_check_runtime", ROOT / "scripts/runtime/dev.py")
+    assert spec and spec.loader
+    runtime = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(runtime)
     try:
-        configured.relative_to(ROOT / ".project-local")
+        dev_root = runtime.layout(ROOT)["dev"]
+        configured = runtime.safe_path(Path(os.environ.get("ARCHEAXIS_RUN_ROOT", dev_root / "task-runtime")))
+        configured.relative_to(dev_root)
     except ValueError as exc:
         raise RuntimeError("ARCHEAXIS_RUN_ROOT must stay inside .project-local") from exc
     base = configured / "worker-check"

@@ -3,15 +3,26 @@
 //! cannot silently keep using a superseded revision - while the history itself is
 //! never rewritten.
 
-use axum::{body::Body, http::{Request, StatusCode}};
+use axum::{
+    body::Body,
+    http::{Request, StatusCode},
+};
 use http_body_util::BodyExt;
 use serde_json::Value;
 use tower::ServiceExt;
 
 use archeaxis_api::app;
 
-async fn request(router: &axum::Router, method: &str, path: &str, body: &str) -> (StatusCode, Value) {
-    let mut req = Request::builder().method(method).uri(path).header("content-type", "application/json");
+async fn request(
+    router: &axum::Router,
+    method: &str,
+    path: &str,
+    body: &str,
+) -> (StatusCode, Value) {
+    let mut req = Request::builder()
+        .method(method)
+        .uri(path)
+        .header("content-type", "application/json");
     let resp = router
         .clone()
         .oneshot(req.body(Body::from(body.to_string())).unwrap())
@@ -19,7 +30,10 @@ async fn request(router: &axum::Router, method: &str, path: &str, body: &str) ->
         .unwrap();
     let status = resp.status();
     let bytes = resp.into_body().collect().await.unwrap().to_bytes();
-    (status, serde_json::from_slice(&bytes).unwrap_or(Value::Null))
+    (
+        status,
+        serde_json::from_slice(&bytes).unwrap_or(Value::Null),
+    )
 }
 
 async fn post(router: &axum::Router, path: &str, body: &str) -> (StatusCode, Value) {
@@ -59,7 +73,10 @@ async fn re_reading_an_item_reports_its_revision_and_validity() {
     let references = history["references"].as_array().expect("references array");
     assert_eq!(references.len(), 1, "{history}");
     assert_eq!(references[0]["knowledge_id"], original.as_str());
-    assert_eq!(references[0]["active"], true, "the revision is current: {history}");
+    assert_eq!(
+        references[0]["active"], true,
+        "the revision is current: {history}"
+    );
 
     // A correction supersedes it and the successor is accepted.
     let (status, superseded) = post(
@@ -90,7 +107,10 @@ async fn re_reading_an_item_reports_its_revision_and_validity() {
         original.as_str(),
         "the item must still name the revision it was built from: {history}"
     );
-    assert_eq!(references[0]["active"], false, "the referenced revision is no longer current: {history}");
+    assert_eq!(
+        references[0]["active"], false,
+        "the referenced revision is no longer current: {history}"
+    );
 
     // A reference to an unknown revision is refused rather than silently ignored.
     let (status, _) = post(

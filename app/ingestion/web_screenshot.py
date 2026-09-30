@@ -6,6 +6,7 @@ extracted text + visual screenshot (PNG) which can feed OCR / VLM.
 
 from __future__ import annotations
 
+import errno
 import os
 import shutil
 import subprocess
@@ -137,6 +138,26 @@ def _wait_for_screenshot(path: Path) -> bool:
         time.sleep(SCREENSHOT_READY_POLL_SECONDS)
 
 
+def _remove_browser_directory(path: str | Path) -> None:
+    """Allow owned Chromium children a bounded interval to release file handles."""
+    deadline = time.monotonic() + 5.0
+    while True:
+        try:
+            shutil.rmtree(path)
+            return
+        except FileNotFoundError:
+            return
+        except OSError as error:
+            retryable = (isinstance(error, PermissionError)
+                         or error.errno == errno.ENOTEMPTY
+                         or getattr(error, "winerror", None) == 145)
+            if not retryable:
+                raise
+            if time.monotonic() >= deadline:
+                raise
+            time.sleep(SCREENSHOT_READY_POLL_SECONDS)
+
+
 def screenshot_web(url: str, out_path: str | Path, *, width: int = 1280) -> dict[str, Any]:
     """Headless screenshot of a URL into a PNG file.
 
@@ -171,7 +192,7 @@ def screenshot_web(url: str, out_path: str | Path, *, width: int = 1280) -> dict
             raise WebScreenshotError(f"screenshot failed (exit_code={proc.returncode}): {detail}")
     finally:
         try:
-            shutil.rmtree(profile)
+            _remove_browser_directory(profile)
         except FileNotFoundError:
             pass
         except OSError as error:
@@ -182,7 +203,7 @@ def screenshot_web(url: str, out_path: str | Path, *, width: int = 1280) -> dict
             raise WebScreenshotError(f"browser profile cleanup incomplete: {profile}")
         if ephemeral_root is not None:
             try:
-                shutil.rmtree(ephemeral_root)
+                _remove_browser_directory(ephemeral_root)
             except OSError as error:
                 raise WebScreenshotError(
                     f"browser temp cleanup failed: {ephemeral_root}: {error}"

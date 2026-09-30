@@ -59,6 +59,15 @@ def test_docs_only_classifies_static() -> None:
     assert plan["unknown_paths"] == []
 
 
+def test_backend_runtime_packaging_requires_vnext_gates() -> None:
+    for path in ("scripts/release/backend_launcher.py",
+                 "scripts/release/stage_backend_runtime.py",
+                 "scripts/release/check_runtime_isolation.py"):
+        plan = _classify([path])
+        assert {"rust-vnext", "desktop-vnext", "contracts-vnext", "workers-vnext"} <= set(
+            plan["required_gates"])
+
+
 def test_contract_bearing_docs_require_the_primary_suite() -> None:
     """Authority/status docs are asserted on by contract tests.
 

@@ -27,7 +27,10 @@ async fn post_import(router: &axum::Router, body: &str) -> (StatusCode, serde_js
     (status, value)
 }
 
-fn origins_for(conn: &rusqlite::Connection, source_id: &str) -> Vec<(String, String, Option<String>)> {
+fn origins_for(
+    conn: &rusqlite::Connection,
+    source_id: &str,
+) -> Vec<(String, String, Option<String>)> {
     let mut stmt = conn
         .prepare(
             "SELECT origin_kind, origin_ref, received_at FROM source_origins
@@ -89,7 +92,9 @@ async fn import_rejects_invalid_or_partial_origin_fields() {
     let router = app(db.to_str().unwrap()).unwrap();
     let b64 = base64::engine::general_purpose::STANDARD.encode(b"x");
 
-    let bad_kind = format!(r#"{{"name":"a","content_base64":"{b64}","origin_kind":"cloud","origin_ref":"r"}}"#);
+    let bad_kind = format!(
+        r#"{{"name":"a","content_base64":"{b64}","origin_kind":"cloud","origin_ref":"r"}}"#
+    );
     let (status, _) = post_import(&router, &bad_kind).await;
     assert_eq!(status, StatusCode::BAD_REQUEST);
 

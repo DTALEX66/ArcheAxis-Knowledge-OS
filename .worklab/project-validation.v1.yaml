@@ -50,6 +50,9 @@ risk_classes:
       - "tests/runtime-paths/**"
       - "scripts/release/assemble_green_candidate.py"
       - "scripts/release/verify_green_candidate.py"
+      - "scripts/release/backend_launcher.py"
+      - "scripts/release/stage_backend_runtime.py"
+      - "scripts/release/check_runtime_isolation.py"
     gates: [static, lint, rust-vnext, desktop-vnext, contracts-vnext, workers-vnext]
 
   - id: ci-desktop-build-policy

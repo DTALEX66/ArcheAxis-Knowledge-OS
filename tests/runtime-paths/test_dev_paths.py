@@ -17,6 +17,41 @@ SPEC.loader.exec_module(dev)
 
 
 class DevelopmentPaths(unittest.TestCase):
+    def test_identity_rejects_link_before_reading_target(self):
+        target = self.repo.parent / 'private-target.txt'
+        target.write_text('fixture-only', encoding='utf-8')
+        linked = self.repo / 'source.txt'
+        try:
+            linked.symlink_to(target)
+        except OSError:
+            self.skipTest('file symlink unavailable')
+        with (patch.object(Path, 'open', side_effect=AssertionError('must not read target')),
+              self.assertRaisesRegex(ValueError, 'linked')):
+            dev.worktree_identity(self.repo)
+
+    def test_identity_rejects_private_untracked_source(self):
+        private = self.repo / '.env.local'
+        private.write_text('fixture-only', encoding='utf-8')
+        with (patch.object(Path, 'open', side_effect=AssertionError('must not read private file')),
+              self.assertRaisesRegex(ValueError, 'protected source')):
+            dev.worktree_identity(self.repo)
+
+    @unittest.skipUnless(os.name == 'nt', 'Windows junction regression')
+    def test_identity_rejects_junction_ancestor(self):
+        target = self.repo.parent / 'outside-sources'
+        target.mkdir()
+        (target / 'source.txt').write_text('fixture-only', encoding='utf-8')
+        link = self.repo / 'linked'
+        result = subprocess.run(['cmd', '/c', 'mklink', '/J', str(link), str(target)],
+                                capture_output=True)
+        self.assertEqual(result.returncode, 0, result.stderr)
+        try:
+            with (patch.object(dev, 'git', side_effect=['', 'linked/source.txt']),
+                  self.assertRaisesRegex(ValueError, 'linked')):
+                dev.worktree_identity(self.repo)
+        finally:
+            link.rmdir()
+
     def test_protected_drives_are_rejected_before_filesystem_access(self):
         for drive in ('E:', 'F:'):
             with self.assertRaisesRegex(ValueError, 'protected drive'):
