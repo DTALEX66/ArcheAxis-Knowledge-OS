@@ -115,3 +115,21 @@ NuGet候选补充核实：先前canonical缺失系263字符路径的非扩展Pyt
 公开交付准备：22份Sept29项目历史包文件及两份母版资产通过内容审核，不是私人原生session/凭据/数据库。Sept29原ZIP14成员与unpacked全字节一致；其格式/BOM/EOL由精确SHA门禁和定向Git属性保留，4份自有派生审核文档只规范格式，保留原内容与原包。母版HTML/图标板迁为tests/fixtures/aaos-ui-mother的readonly参考，原SHA保留，两份测试不再依赖本机.project-local输入。HTML demo localStorage/随机图谱/示例值不得充当Core真值或直接生产应用。
 
 iv12已有受影响文档/runner/母版契约26pass；iv13命名/路径62pass；iv15加入包成员/母版精确SHA验证后90pass。iv16 Ruff发现import排序/异常抑制两项，修复后iv17 Ruff PASS，未改产品行为。后续正式提交及远端精确SHA CI仍需回读，不能提前称已上传/已健康。
+
+## 2026-10-01 继续清理读回
+
+已审计旧清单921、17,839、1,055文件集合回查剩余普通文件均为0，未发现漏执行。此次新增18个明确tmp_path/fake-data测试case的36个数据库及锁文件，89,137,152字节，删除前全量SHA、文件身份、单硬链接和进程复核通过，删除后全部absent；原3执行收据与当前Core保持。证据为remaining-formal-vector-six-second-reviewed/prune-20261001.json。
+
+两个无当前绑定的direct2/direct3旧Cargo Release target新增797文件77,870,696字节，逐项SHA和闭合硬链接集合复核后已删除；全部absent，当前Core、两处Desktop Debug、Cargo.toml/Cargo.lock保留哈希一致。原历史执行结束收据未定位，UNKNOWN保持；资格依据为生成归属、当前路由迁出、可再生和无进程消费者，不把未知写为成功。证据为old-direct-release-targets-reviewed/prune-20261001.json。
+
+本回合新增833文件167,007,848字节；累计净逻辑减少61,878,766,758字节，实际磁盘空闲增量未测。删除前元数据快照可读Formal27,138,273,706字节、Green8,783,888,264字节；排除Git/私有/不可读/reparse，读取错误491/40，不能当完整资源管理器体积。Formal新增本轮精确源码Rust测试构建导致增长；新Cargo Debug是现役验证产物，保留。旧candidate展开仍在进行逐成员原ZIP恢复审计，未声称全部清理完成。
+
+源码与公开39文件交付已推送codex/Audit，提交2a15f830d0dae6d5cbb7e9e3aa1c4aca735aa5e2经ls-remote一致。该SHA本地Desktop Debug编译与Rust workspace测试退出0，远端vNext CI成功；常规CI截至该快照未最终读回。原生启动验证iv20退出1，未启动桌面：共享资源校验器错误地从嵌套worktree父目录推导固定资源根，需修复，不以绕过preflight称健康。整体状态PARTIAL；不代表双端安装态/真实数据库/UI完整验收。
+
+旧候选桌面公共生成副本追加清理644文件567,079,733字节：三处精确源均与保留va5原ZIP对应成员SHA/CRC/length一致；当前Core/Desktop SHA与ZIP不变，全部源absent，独立readback PASS。独有4/70文件、敏感名称、manifest/core/runtime/workers/DB在删集外。恢复映射619,574字节计为成本，净566,460,159字节。累计净逻辑减少62,445,226,917字节；本回合1,477文件净733,468,007字节。旧历史候选需按映射恢复后才能重跑。证据：remaining-candidate-expanded-post-17839-review/prune-20261001.json。
+
+旧run Cargo Release top/deps追加113文件49,374,483字节已精确清理，全部源absent，现役Core及原exit101执行收据SHA保留；独立复核PASS。累计净逻辑62,494,601,400字节。本回合1,590文件净782,842,490字节。runtime/workers的20,689文件原ZIP映射执行门禁先后因manifest命名错误、保留父目录命名停止，均在删除前，源删除0；正在保守排除保留父目录子集，不取消guard。
+
+保守过滤后旧va5 runtime/workers公共副本20,688文件651,263,385字节全量fresh源SHA/ZIP成员CRC/长度、单硬链接、路径与进程门禁通过后已删，全部absent。候选manifest、原ZIP及现役Core/Desktop SHA不变；保护父目录下1文件13,665字节和原99敏感排除项保留。filtered映射19,911,641字节及保留的原始失败前mapping19,911,841字节均计入成本，避免虚报净量。此次运行副本净611,439,903字节；本回合合计22,278文件净1,394,282,393字节，累计净逻辑63,106,041,303字节，实际磁盘空闲增量仍未测。证据：remaining-va5-runtime-workers-public-filtered-reviewed/prune-20261001.json。
+
+清理后fresh元数据：Formal可读范围25,933,370,955字节（25.93GB）314,368files；Green8,595,662,287字节（8.60GB）116,519files。读取错误491/40，Git/私有/reparse仍排除；是可读取范围观察值，不是全部目录/实际空闲空间。源代码未修改；仅公开交接文档追加本回合证据，git diff --check通过。
