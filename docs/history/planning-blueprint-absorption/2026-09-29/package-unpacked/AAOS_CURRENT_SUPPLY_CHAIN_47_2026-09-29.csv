@@ -1,0 +1,48 @@
+﻿id,name,capability,disposition
+C001,PDF.js,pdf-viewer,REFERENCE
+C002,MarkItDown[pdf],document-conversion,CURRENT
+C003,Trafilatura,web-extraction,CURRENT
+C004,pytesseract + Tesseract-OCR,ocr-image,CURRENT
+C005,Crawl4AI,web-dynamic,CURRENT
+C006,LiteLLM,llm-provider-router,CURRENT
+C007,Langfuse,observability,CURRENT
+C008,sqlite-vec,vector-index,CURRENT
+C009,NetworkX,graph-computation,CURRENT
+C010,Loguru,logging,CURRENT
+C011,structlog,structured-logging,CURRENT
+C012,APScheduler,scheduling,CURRENT
+A001,Magika,file-type-routing,EVALUATE
+A002,PaddleOCR,ocr-chinese-complex,EVALUATE
+A003,EasyOCR,ocr-alternative,EVALUATE
+A004,RapidOCR,ocr-windows-cpu,EVALUATE
+A005,faster-whisper,asr-batch,ADOPT
+A006,whisper.cpp,asr-low-resource,EVALUATE
+A007,sherpa-onnx,asr-streaming,EVALUATE
+A008,Silero VAD,voice-activity-detection,ADOPT
+A009,Docling,document-complex,EVALUATE
+A010,Apache Tika,document-legacy,SIDECAR
+A011,Mozilla Readability,web-extraction-fallback,EVALUATE
+A012,Crawlee Python,web-dynamic-fallback,SIDECAR
+A013,JiWER,cer-wer-metric,ADOPT
+A014,RapidFuzz,text-alignment,ADOPT
+A015,py-fsrs,spaced-repetition,ADOPT
+A016,JSON Canvas,canvas-file-format,ADOPT
+A017,XYFlow,canvas-ui,EVALUATE
+A018,Crossref REST,evidence-doi,ADOPT
+A019,DataCite REST,evidence-dataset-doi,ADOPT
+A020,OpenAlex,evidence-academic-graph,ADOPT
+A021,Wikidata,evidence-entity,ADOPT
+A022,Syft,sbom-generator,ADOPT
+A023,pip-audit,dependency-vuln-scan,ADOPT
+A024,Gitleaks,secret-scan,ADOPT
+B001,MinerU,document-structure,REVIEW-BLOCK
+B002,PyMuPDF4LLM,pdf-extraction,REVIEW-BLOCK
+B003,Marker,pdf-conversion,REVIEW-BLOCK
+B004,FunASR / SenseVoice,asr-chinese,REVIEW-BLOCK
+B005,tldraw,canvas-drawing,REVIEW-BLOCK
+B006,Firecrawl,web-crawler,REVIEW-BLOCK
+B007,H5P PHP Library,interactive-content,REVIEW-BLOCK
+B008,Phoenix (Arize),observability-ui,REVIEW-BLOCK
+B009,SearXNG,search-aggregation,REVIEW-BLOCK
+C013,DeepTutor,downstream-learning-product-shell,SIDECAR
+X001_ARCHIVED,Kùzu,graph-database,REJECT-CORE

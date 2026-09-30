@@ -1,0 +1,62 @@
+AAOS / ArcheAxis Knowledge 新会话统一启动提示词（2026-09-29）
+
+目标：继续 AAOS，不丢历史、不把旧计划当当前任务、不把当前收敛误当长期能力删除。
+
+一、仓库与当前权威
+- Repo: DTALEX66/ArcheAxis-Knowledge-OS
+- 当前 main（本包读取时）: d8f99a6357405054f1f9ee66eb2f88d36f7f5143
+- Current execution authority: R6 immutable TaskPack + M0 shortest-complete-loop overlay
+- R6 overall: IN_PROGRESS
+- Release: FROZEN
+
+二、强制读取顺序
+1. AGENTS.md
+2. PROJECT_CONTRACT.yaml
+3. DECISION_SUPERSESSION_LEDGER.yaml
+4. docs/DOCUMENTATION_AUTHORITY_INDEX.md
+5. docs/authority/taskpack-0919-r6/EXECUTOR-START.md
+6. docs/authority/taskpack-0919-r6/TASKS.json
+7. docs/authority/taskpack-0919-r6/TASKPACK.md
+8. docs/current/R6-EXECUTION.md
+9. docs/current/R6-STATE.json
+10. docs/current/M0-DIRECTION-OVERRIDE-20260920.md
+11. docs/truth/CAPABILITY_ATLAS_V2.yaml
+12. docs/blueprint/SYSTEM_MASTER_BLUEPRINT_V2.md
+13. docs/truth/REQUIREMENT_TRACE_V2.yaml
+14. docs/truth/SUPPLY_CHAIN_LEDGER.json
+15. docs/truth/CAPABILITY_ABSORPTION_REGISTRY.yaml
+16. 历史/Imported Designs（仅在追溯来源或能力 donor 时读取）
+
+三、历史 provenance（只作来源/能力追溯，不抢执行权）
+- 9/4 Source Registry: 97 unique assets
+- 20,219,699-byte / 489,390-line conversation archive through 2026-08-25
+- 369 OSS/capability research pool
+- docs/architecture/imported-designs/: A-line Human Learning OS, B-line Machine Knowledge/Agent Execution OS, dual-system mappings
+- 16 Capability Atlas + 17 Requirement Trace
+
+四、铁律
+1. 旧 TaskPack/旧蓝图/旧 UI 的“完成/下一步”不得直接当 current。
+2. C#/Avalonia 是正式 Desktop；Rust 是 authoritative Core/SQLite writer；Python 仅 isolated capability workers；禁止 dual-write/direct SQL from UI/worker/agent。
+3. AAOS 不是通用 Agent OS；通用 Agent/Workflow/Multi-Agent 归 WORK-LAB，AAOS 只保留受治理的 AI Asset/Permission/Trace/Evaluation/P10 exploration。
+4. Candidate 默认；模型输出、外部材料、学习反馈都不能自动成为 verified truth。
+5. 不删除长期能力：LER、Animation、Simulation、Spatial Memory、Research Workspace、AI Assets 等按 Capability Atlas/Horizon 保留。
+6. 新开源/模型先进入 Source/Supply/Capability Registry，锁定 revision/license/model/data/Windows/rollback/benchmark，再决定 ADOPT/ADAPTER/SIDECAR/DONOR/DEFER/BLOCK。
+7. 任何“完成”必须绑定代码/测试/CI/runtime/Green 对应证据层。
+
+五、科研智能增补（不得抢 M0）
+- Asta Scientific Corpus/Agent → Evidence/Research Adapter candidate
+- PaperQA2 → local scientific reading sidecar candidate
+- Intern-S2 / 端砚 → high-difficulty scientific Provider candidate
+- AstaBench / scientific eval → qualification donor
+- OpenScholar/ScholarQA → citation-grounded synthesis algorithm donor
+先做 ScientificResearchRequest/Receipt/ResearchCandidateBundle/PedagogicProfile/LearningRecipe contracts；只输出 Candidate/Receipt，不直写 Knowledge。
+
+六、当前第一优先
+继续 R6/M0 P0-P6 真实闭环。不要因为本历史总包再次横向扩建平台。科研增强优先挂 A06 Research/Evidence 与 A08 Learning Compiler，在 M0 主线允许的切片中逐步接入。
+
+七、配套机器账本
+- AAOS_MASTER_ATLAS_2026-09-29.json
+- AAOS_SOURCE_BASELINE_97_2026-09-04.csv
+- AAOS_OSS_RESEARCH_POOL_369_2026-08-11.csv
+- AAOS_HISTORY_TO_CURRENT_MAPPING_2026-09-29.csv
+- AAOS_R6_M0_STATUS_2026-09-29.csv

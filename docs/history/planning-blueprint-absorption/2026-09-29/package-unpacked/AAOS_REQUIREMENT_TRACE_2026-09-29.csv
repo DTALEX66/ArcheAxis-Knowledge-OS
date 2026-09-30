@@ -1,0 +1,18 @@
+﻿requirement_id,title,capability,horizon,status
+REQ-SOURCE-001,原件保全与来源接入,CAP-0010,H0-H1,met_partial
+REQ-CONVERT-001,多格式转换与质量门,CAP-0020,H1-H2,in_progress
+REQ-EVIDENCE-001,证据锚定交叉核验,CAP-0030,H1,met_partial
+REQ-LEARNING-001,人类深度学习链,CAP-0040,H4,in_progress
+REQ-AI-ASSET-001,AI 学习资产与受控调用,CAP-0050,H4-H8,planned
+REQ-LER-001,LER 视觉教学,CAP-0060,H6-H7,planned
+REQ-LER-002,动态解释与仿真,CAP-0070,H7,planned
+REQ-SPATIAL-001,空间记忆与沉浸学习,CAP-0080,H7-H8,planned
+REQ-RESEARCH-001,研究课程项目空间,CAP-0090,H6-H7,planned
+REQ-INTEROP-001,开放互操作与适配器,CAP-0100,H3,in_progress
+REQ-SEARCH-001,搜索图谱索引,CAP-0110,H3-H4,in_progress
+REQ-DESKTOP-001,桌面平台,CAP-0120,H0-H5,in_progress
+REQ-EXPLORATION-001,受控执行探索,CAP-0130,H8-H10,deferred
+REQ-BACKUP-001,备份同步发布,CAP-0140,H5-H9,in_progress
+REQ-PROVIDER-001,模型 Provider 治理,CAP-0150,H4-H8,planned
+REQ-VISUAL-001,可视化表征,CAP-0160,H6-H8,planned
+REQ-IDENTITY-001,产品身份与命名,—,H0,met_partial

@@ -1,0 +1,25 @@
+﻿id,area,status,remaining_gap
+A00,Authority Reset,TESTED_LOCAL,状态/权威校验已记录
+A01,Version & Release Freeze,TESTED_LOCAL,A16 后 Owner 才可重新开放 release
+A02,Resource / Path / Environment Authority,BLOCKED_BY_OWNER_DECISION,Model library / plugins 的 resource-root schema 语义
+A03,Capability Absorption Registry,TESTED_LOCAL,上游 exact revision/license/runtime/benchmark 仍需资格化
+A04,Knowledge / Source V3,TESTED_LOCAL_PARTIAL,真实桌面首用与 UI/Core 进程完整 restart/readback 仍缺
+A05,Multiformat Pipeline,TESTED_LOCAL_PARTIAL,真实外部引擎、代表性 fixture、语义质量仍缺
+A06,Retrieval / Graph / Research,TESTED_LOCAL_PARTIAL,vector/reranker/graph/research 生产接线和 benchmark 仍缺
+A07,Machine Memory / Growth,TESTED_LOCAL_PARTIAL,真实模型、人审→复用→复测仍缺
+A08,Human Learning Kernel,TESTED_LOCAL_PARTIAL,Mastery 完整闭环、DeepTutor/OpenTutor/LearningMAP、自适应学习仍缺
+A09,Domain Learning Packs,TESTED_LOCAL_PARTIAL,真实领域内容和行为仍缺
+A10,Courseware / Renderer,TESTED_LOCAL_PARTIAL,真实互动执行/领域验收仍缺
+A11,Model Library / Roles,TESTED_LOCAL_PARTIAL,真实可执行模型和角色 benchmark 仍缺
+A12,Desktop / Candidate,TESTED_LOCAL_PARTIAL,重建 DLL 的完整 UIA/可访问性/真实首用仍缺
+A13,Migration / Green Candidate,TESTED_LOCAL_PARTIAL,真实 legacy 语义迁移、Green replace/restart/rollback 仍缺
+A14,Closed-loop Correction/Retest,TESTED_LOCAL_PARTIAL,真实 source→learning→machine→correction→retest 仍缺
+A15,Independent Audit,TESTED_LOCAL_PARTIAL,真实格式/模型/GUI/clean-machine/qualification 仍有阻塞
+A16,Owner Gate,BLOCKED_BY_OWNER_DECISION,P0-P6 真实闭环 + Green 备份/原位替换/回滚 + Owner approval
+P0,Authority + Plugin Kernel,PARTIAL,最小 provider/enable/disable/default/fallback/health 生命周期
+P1,Source + Format + Knowledge,PARTIAL,一条真实默认输入→转换→Canonical Source/Knowledge 链
+P2,Search + Learning Plan + Course,PARTIAL,FTS5 + 已验证 embedding/reranker + General Course/Renderer
+P3,Human Learning,PARTIAL,真人 UI 学习→Assessment→Mastery/FSRS→restart readback
+P4,Machine Loop,PARTIAL,真实模型任务→真实错误→人工 correction→retest
+P5,Persistence + Migration,PARTIAL,Backup/Restore + 非空 Legacy 副本语义 diff + restart/readback
+P6,Local Green,PARTIAL/BLOCKED,P0-P5 完整证据后，Owner-gated 原位替换/回滚

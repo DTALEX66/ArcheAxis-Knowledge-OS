@@ -30,3 +30,9 @@
 *.xls binary
 *.xlsx binary
 *.zip binary
+
+# Preserve owner-supplied historical package members and the B10 reference bytes.
+docs/history/planning-blueprint-absorption/2026-09-29/package-unpacked/** -text
+docs/history/planning-blueprint-absorption/2026-09-29/package-unpacked/*.csv whitespace=cr-at-eol
+docs/history/planning-blueprint-absorption/2026-09-29/package-unpacked/AAOS_完整历史规划蓝图吸收池与当前状态总报告_2026-09-29.md whitespace=-blank-at-eol
+tests/fixtures/aaos-ui-mother/index.html -text

@@ -1,0 +1,21 @@
+{
+  "schema": "aaos.ui-mother-fixtures/v1",
+  "assets": [
+    {
+      "path": "tests/fixtures/aaos-ui-mother/index.html",
+      "source": ".project-local/inputs/AAOS/extracted/archeaxis_最终版_高保真可部署UI/index.html",
+      "bytes": 42376,
+      "sha256": "1da1fe0d1feb55db98fba5e28cdbaf2e261e7ec4f562d3410cc9b7e74b3149f1",
+      "role": "READ_ONLY_VISUAL_REFERENCE_NOT_CORE_DATA"
+    },
+    {
+      "path": "tests/fixtures/aaos-ui-mother/icon-system.png",
+      "source": ".project-local/inputs/AAOS/extracted/ArcheAxis_VI_12张独立图/10_10_图标系统_Icon_System.png",
+      "bytes": 309911,
+      "sha256": "ae10bdbfd751cfef6c624c934431c3dfdb05bdfdf8ab0c78fd6cf1fe5ef40c5b",
+      "role": "READ_ONLY_VISUAL_REFERENCE_NOT_CORE_DATA"
+    }
+  ],
+  "highest_layout_authority": "User-adopted B10 final deployable mother",
+  "demo_boundary": "Demo localStorage, sample counts and random graph are not Core evidence; reference HTML is not a production application."
+}

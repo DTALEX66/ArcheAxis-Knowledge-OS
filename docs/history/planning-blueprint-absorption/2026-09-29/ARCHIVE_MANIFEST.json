@@ -1,0 +1,125 @@
+{
+  "schema": "aaos.archive-manifest/v1",
+  "archive_date": "2026-09-29",
+  "classification": "HISTORICAL_RECORD_REFERENCE_NOT_CURRENT_AUTHORITY",
+  "source_copies": [
+    {
+      "source": "D:\\All projects\\Record\\AAOS_历史规划蓝图吸收池完整总结文档包_2026-09-29.zip",
+      "archive": ".\\docs\\history\\planning-blueprint-absorption\\2026-09-29\\AAOS_历史规划蓝图吸收池完整总结文档包_2026-09-29.zip",
+      "bytes": 109325,
+      "sha256": "A453646B2E59DBA1BBC1500CD610FBD7484E19995384B7D0474FE0DB5D9C2CB5",
+      "byte_identical": true
+    },
+    {
+      "source": "D:\\All projects\\Record\\AAOS_接手与云端对标报告_2026-09-29.md",
+      "archive": ".\\docs\\history\\planning-blueprint-absorption\\2026-09-29\\AAOS_接手与云端对标报告_2026-09-29.md",
+      "bytes": 14442,
+      "sha256": "14E9E20468AD9FFFD6969CBE217002FB41E104289F075E3C263147970BC4BDE9",
+      "byte_identical": true
+    },
+    {
+      "source": "D:\\All projects\\Record\\AAOS_最终判断报告_2026-09-29.md",
+      "archive": ".\\docs\\history\\planning-blueprint-absorption\\2026-09-29\\AAOS_最终判断报告_2026-09-29.md",
+      "bytes": 31034,
+      "sha256": "CD0BE7FBAF7CE13D9ACD3FB6A795948A60165C5E51168ABC12CCDA7B2C7B2EF0",
+      "byte_identical": true
+    }
+  ],
+  "zip_entry_count": 14,
+  "zip_entries": [
+    {
+      "path": "AAOS_CAPABILITY_ATLAS_CURRENT_MAPPING_2026-09-29.csv",
+      "bytes": 1614,
+      "sha256": "555B6463E6171783CB8AAA2374CA7F557C19CF7548136FDDDF4DCCE3A399DD68"
+    },
+    {
+      "path": "AAOS_CODEX_DSH_HERMES_HANDOFF_2026-09-29.txt",
+      "bytes": 3517,
+      "sha256": "0C50F593D70D3927B83619084E242C84890BBC316302521851C4F5D89D25EB36"
+    },
+    {
+      "path": "AAOS_CURRENT_CAPABILITY_ABSORPTION_11_2026-09-29.csv",
+      "bytes": 1192,
+      "sha256": "11C515AC6C5885D1FADD2F304C496D429B205A4B2CBDF88E036D6B373EA80733"
+    },
+    {
+      "path": "AAOS_CURRENT_SUPPLY_CHAIN_47_2026-09-29.csv",
+      "bytes": 2022,
+      "sha256": "E70AFC6BF2D7004F9D798C63BC1E4AF4443135A921BF80BD69729488399C2376"
+    },
+    {
+      "path": "AAOS_HISTORY_TO_CURRENT_MAPPING_2026-09-29.csv",
+      "bytes": 1856,
+      "sha256": "7CD147AF95717F7C22672A21752F9BA7361FDD5C31ABAAF5CFCA3B510B52433C"
+    },
+    {
+      "path": "AAOS_MASTER_ATLAS_2026-09-29.json",
+      "bytes": 40895,
+      "sha256": "7F58C4E033A88FD16B80C831085A25FD0042B2182B1047AFE5D4FFCD86351D8C"
+    },
+    {
+      "path": "AAOS_OSS_RESEARCH_POOL_369_2026-08-11.csv",
+      "bytes": 37518,
+      "sha256": "7A9E032739CEFA6C8DB1ACC7BE83A64D80740691409928C9EED2294565FB942F"
+    },
+    {
+      "path": "AAOS_R6_M0_STATUS_2026-09-29.csv",
+      "bytes": 2504,
+      "sha256": "F010A587996CB704A66F8D29523E106811AF9F88EC4CE24844CB3ACFE8EDE9D5"
+    },
+    {
+      "path": "AAOS_REQUIREMENT_TRACE_2026-09-29.csv",
+      "bytes": 1132,
+      "sha256": "14D240B1234F886F770CAA694AFDA8B76B54B8594605D5AC905B0AD07D30CE63"
+    },
+    {
+      "path": "AAOS_SOURCE_BASELINE_97_2026-09-04.csv",
+      "bytes": 12927,
+      "sha256": "B278A5950E59BFC47BF924061F350C1BC061C56AEEC8E94465CF3C423BA92E7F"
+    },
+    {
+      "path": "AAOS_完整历史规划蓝图吸收池与当前状态总报告_2026-09-29.docx",
+      "bytes": 65234,
+      "sha256": "D8ED1C2AFDB92DCB87E6A5F7B6B46512AF4E408BA0EFE1CBE446F0D23BD9CA4F"
+    },
+    {
+      "path": "AAOS_完整历史规划蓝图吸收池与当前状态总报告_2026-09-29.md",
+      "bytes": 28565,
+      "sha256": "3839646BB60B811C5CC1AB3417625A69E71B70F5983B6B24EC796A664FA28FFB"
+    },
+    {
+      "path": "README_文档包.md",
+      "bytes": 1182,
+      "sha256": "D22E4DC7425518202CEE9425F0B203F0EC4DAD0654FEBFEDFEEF52FB8AEC7B08"
+    },
+    {
+      "path": "SHA256SUMS.txt",
+      "bytes": 1462,
+      "sha256": "514A23A3BC2132FE7D04FA6751AB745F116F2001F52029CD3680FA2457879FD1"
+    }
+  ],
+  "expanded_entry_count": 14,
+  "integrity": "PASS",
+  "supporting_documents": [
+    {
+      "path": "README.md",
+      "bytes": 724,
+      "sha256": "9E35098B617D69D73BBC943E9724D9798E6E27974617A09B42AB799BC2E5D0C7"
+    },
+    {
+      "path": "AUDIT_CROSSWALK.md",
+      "bytes": 4761,
+      "sha256": "3134B3DA8CE6FC2DA25BB7A36677659028AACAF20B545976563123C7044C032D"
+    },
+    {
+      "path": "OBSOLETE_DOCS_CLEANUP_AUDIT.md",
+      "bytes": 5751,
+      "sha256": "05A8B6920362CB92781A51FD3956A8C090A13FCD81DE83A1F95DA1DF044661A2"
+    },
+    {
+      "path": "OBSOLETE_DOCS_REFERENCES.json",
+      "bytes": 18883,
+      "sha256": "C8E1523C36F2C3C52316E4960FA7310F6F913E136C477C054002B73E40C23254"
+    }
+  ]
+}

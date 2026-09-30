@@ -36,8 +36,12 @@ def run_fake(tmp_path: Path, *, inherited: str = "", override: str = "", args=()
     if override:
         env["ARCHEAXIS_CARGO_TARGET_DIR"] = override
     command = Path(env["SYSTEMROOT"]) / "System32/cmd.exe"
+    # cmd /s /c needs an outer quoted command when both the batch path and
+    # an argument contain spaces. Popen's argv-to-string quoting alone drops
+    # the batch path's opening quote in that case (attempting to run D:\\All).
+    batch_command = subprocess.list2cmdline([str(RUNNER), *args])
     return subprocess.run(
-        [str(command), "/d", "/c", str(RUNNER), *args],
+        f'"{command}" /d /s /c "{batch_command}"',
         env=env,
         capture_output=True,
         text=True,

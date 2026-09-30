@@ -1,0 +1,366 @@
+{
+  "schema": "aaos.superseded-doc-reference-inventory/v1",
+  "observed_date": "2026-09-29",
+  "inventory_scope": "19 exact paths listed by DOCUMENTATION_AUTHORITY_INDEX.md (18 superseded docs plus HERMES_HANDOFF.md); repository textual basename reference scan; archive directory excluded",
+  "deletion_authorization": "NOT_REQUESTED_FOR_EXACT_PATHS",
+  "result": "KEEP_REFERENCED_EVIDENCE",
+  "items": [
+    {
+      "path": "docs/current/AXR_060_COMPLETION_AUDIT_2026-08-23.md",
+      "bytes": 10617,
+      "sha256_worktree": "B98438008CE429652EB2B6508728A61A22D8A020180AD493D4E11B2711824FBE",
+      "git_status": "clean",
+      "basename_reference_paths": [
+        "LEGACY_MANIFEST.yaml",
+        "tests\\test_axr060_completion_audit.py",
+        "docs\\superpowers\\plans\\2026-08-23-recovery-shell-closed-loop.md",
+        "docs\\superpowers\\plans\\2026-08-23-m0-evidence-truth-reset.md",
+        "docs\\SUMMARY_2026-08-24_v0.6.10.md",
+        "docs\\authority\\legacy\\T17-inventory-audit-2026-09-05.json",
+        "docs\\DOCUMENTATION_AUTHORITY_INDEX.md",
+        "docs\\history\\pre-v0.6.7-current-snapshots\\README.md",
+        "docs\\current\\AAOS-BRANCH-COMMIT-PATH-AUDIT-20260925.json",
+        "docs\\current\\CURRENT_PRODUCT_PLAN_V2.md",
+        "docs\\current\\BRANCH-CONVERGENCE.json",
+        "docs\\history\\planning-blueprint-absorption\\2026-09-29\\OBSOLETE_DOCS_CLEANUP_AUDIT.md",
+        "docs\\current\\R6-EXECUTION.md"
+      ]
+    },
+    {
+      "path": "docs/current/AXR_060_401_UNIFIED_CLIENT_HANDOFF_2026-08-24.md",
+      "bytes": 3747,
+      "sha256_worktree": "250B885309D98F2B9463B48D090AD0B484C1492131FEA513897A6A3312DD6C68",
+      "git_status": "clean",
+      "basename_reference_paths": [
+        "LEGACY_MANIFEST.yaml",
+        "docs\\DOCUMENTATION_AUTHORITY_INDEX.md",
+        "docs\\superpowers\\plans\\2026-08-24-unified-client-write-boundary.md",
+        "docs\\current\\AAOS-BRANCH-COMMIT-PATH-AUDIT-20260925.json",
+        "docs\\current\\R6-EXECUTION.md",
+        "docs\\authority\\legacy\\T17-inventory-audit-2026-09-05.json",
+        "docs\\history\\planning-blueprint-absorption\\2026-09-29\\OBSOLETE_DOCS_CLEANUP_AUDIT.md"
+      ]
+    },
+    {
+      "path": "docs/current/CURRENT_PRODUCT_PLAN_V2.md",
+      "bytes": 4112,
+      "sha256_worktree": "40E1813A6586BCBD028FD7F5C9FBEB7354540F1610BD05C26709168BD188D70A",
+      "git_status": "clean",
+      "basename_reference_paths": [
+        "LEGACY_MANIFEST.yaml",
+        "docs\\DOCUMENTATION_AUTHORITY_INDEX.md",
+        "docs\\current\\AAOS-BRANCH-COMMIT-PATH-AUDIT-20260925.json",
+        "tests\\test_naming_conventions.py",
+        "docs\\authority\\legacy\\T17-inventory-audit-2026-09-05.json",
+        "docs\\current\\TASK_GRAPH_V2.yaml",
+        "docs\\current\\R6-EXECUTION.md",
+        "docs\\current\\BRANCH-CONVERGENCE.json",
+        "docs\\current\\R5-EXECUTION.md",
+        "docs\\history\\planning-blueprint-absorption\\2026-09-29\\OBSOLETE_DOCS_CLEANUP_AUDIT.md",
+        "docs\\history\\desktop-attachments\\archeaxis-taskpack-0811\\ArcheAxis_Learning_Workspace_System_Blueprint_and_HERMES_Update_TaskPack_v1_2026-08-11.md"
+      ]
+    },
+    {
+      "path": "docs/current/CONTINUATION_HANDOFF_2026-09-03.md",
+      "bytes": 6149,
+      "sha256_worktree": "F16127D6BCFF7A78536929EF753F20C66AF0FC26A907FBCB0CC3B0E8E338978E",
+      "git_status": "clean",
+      "basename_reference_paths": [
+        "LEGACY_MANIFEST.yaml",
+        "docs\\DOCUMENTATION_AUTHORITY_INDEX.md",
+        "docs\\current\\AAOS-BRANCH-COMMIT-PATH-AUDIT-20260925.json",
+        "docs\\current\\R6-EXECUTION.md",
+        "docs\\history\\planning-blueprint-absorption\\2026-09-29\\OBSOLETE_DOCS_CLEANUP_AUDIT.md",
+        "docs\\authority\\legacy\\T17-inventory-audit-2026-09-05.json"
+      ]
+    },
+    {
+      "path": "docs/current/CURRENT_REALITY_2026-09-01.md",
+      "bytes": 8707,
+      "sha256_worktree": "BED04848423F54FAF6DB11632CD943AAA107CB552E1164DB566221CE4B045E2C",
+      "git_status": "clean",
+      "basename_reference_paths": [
+        "HERMES_HANDOFF.md",
+        "tests\\test_axr060_completion_audit.py",
+        "LEGACY_MANIFEST.yaml",
+        "docs\\PROJECT_STATUS.md",
+        "docs\\truth\\EXECUTION_STATUS_LOG.md",
+        "docs\\truth\\CURRENT_STATE_TRUTH.md",
+        "docs\\DOCUMENTATION_AUTHORITY_INDEX.md",
+        "docs\\truth\\AUTHORITY_CONTRACT.md",
+        "tests\\test_documentation_authority_index.py",
+        "docs\\authority\\vnext-reference\\ArcheAxis-Knowledge-vNext-Implementation-Decision-2026-09-04.md",
+        "docs\\authority\\vnext-reference\\ARCHEAXIS-HISTORY-AUTHORITY-AND-SOURCE-REGISTRY-2026-09-04.md",
+        "docs\\authority\\vnext-reference\\ARCHEAXIS-COMPLETE-REPAIR-AND-LANGUAGE-MIGRATION-PLAN-2026-09-04.md",
+        "docs\\authority\\legacy\\T17-inventory-audit-2026-09-05.json",
+        "docs\\history\\planning-blueprint-absorption\\2026-09-29\\OBSOLETE_DOCS_CLEANUP_AUDIT.md",
+        "docs\\current\\AXM_LANGUAGE_AUDIT_TASK_ADOPTION_2026-09-02.md",
+        "docs\\current\\REPOSITORY_NORMALIZATION_AUDIT_2026-09-02.md",
+        "docs\\current\\CONTINUATION_HANDOFF_2026-09-03.md",
+        "docs\\current\\OPERATIONAL_ISSUE_ARCHIVE_2026-09-04.md"
+      ]
+    },
+    {
+      "path": "docs/current/FRONTEND_CONSOLIDATION_V1_2026-08-28.md",
+      "bytes": 8173,
+      "sha256_worktree": "74E032CAE5FBEED70B148F3DD8546915CA04DE55D32E18B619F94FE0217A6B29",
+      "git_status": "clean",
+      "basename_reference_paths": [
+        "LEGACY_MANIFEST.yaml",
+        "docs\\DOCUMENTATION_AUTHORITY_INDEX.md",
+        "docs\\current\\UI_V3_PRODUCT_ROADMAP.md",
+        "docs\\current\\UI_PRODUCTION_ADOPTION_V3_2026-08-27.md",
+        "docs\\authority\\legacy\\T17-inventory-audit-2026-09-05.json",
+        "docs\\history\\planning-blueprint-absorption\\2026-09-29\\OBSOLETE_DOCS_CLEANUP_AUDIT.md"
+      ]
+    },
+    {
+      "path": "docs/current/UI_PRODUCTION_ADOPTION_V3_2026-08-27.md",
+      "bytes": 8247,
+      "sha256_worktree": "5F020527438899150C0D534418FCD9AA4A6159C74D08DB6CB4C382FD9B37B88A",
+      "git_status": "clean",
+      "basename_reference_paths": [
+        "LEGACY_MANIFEST.yaml",
+        "docs\\DOCUMENTATION_AUTHORITY_INDEX.md",
+        "docs\\authority\\legacy\\T17-inventory-audit-2026-09-05.json",
+        "docs\\PROJECT_STATUS.md",
+        "docs\\history\\planning-blueprint-absorption\\2026-09-29\\OBSOLETE_DOCS_CLEANUP_AUDIT.md"
+      ]
+    },
+    {
+      "path": "docs/current/AAOS-CLOUD-AUDIT-RECONCILIATION-20260923.md",
+      "bytes": 34894,
+      "sha256_worktree": "2AB167A79EE0881300310A3FEBA339431478EC7D7346606BFB0C43B4CB39F9CA",
+      "git_status": "clean",
+      "basename_reference_paths": [
+        "docs\\DOCUMENTATION_AUTHORITY_INDEX.md",
+        "docs\\superpowers\\plans\\2026-09-23-aaos-cloud-authority-hardening.md",
+        "docs\\history\\planning-blueprint-absorption\\2026-09-29\\OBSOLETE_DOCS_CLEANUP_AUDIT.md",
+        "docs\\current\\R6-EXECUTION.md",
+        "docs\\current\\AAOS-BRANCH-COMMIT-PATH-AUDIT-20260925.json",
+        "docs\\current\\DSH-BACKEND-HANDOFF-20260927.md",
+        "docs\\current\\DSH-BACKEND-AUDIT-PROMPT-20260927.md",
+        "tests\\test_axr060_completion_audit.py"
+      ]
+    },
+    {
+      "path": "docs/current/UI_V3_PRODUCT_ROADMAP.md",
+      "bytes": 7484,
+      "sha256_worktree": "33F7F03338FE4E89BE70B38F83FEA340E39DCD0EB9482DAB15FC23FBA51FD4B9",
+      "git_status": "M docs/current/UI_V3_PRODUCT_ROADMAP.md",
+      "basename_reference_paths": [
+        "LEGACY_MANIFEST.yaml",
+        "docs\\DOCUMENTATION_AUTHORITY_INDEX.md",
+        "docs\\authority\\legacy\\T17-inventory-audit-2026-09-05.json",
+        "tests\\journey\\v01-owner-loop.yaml",
+        "tests\\test_documentation_authority_index.py",
+        "docs\\current\\AAOS-UI-SUITE-COVERAGE-20260923.md",
+        "docs\\current\\AAOS-DSH-TAKEOVER-CHECKPOINT-20260926.md",
+        "docs\\history\\planning-blueprint-absorption\\2026-09-29\\OBSOLETE_DOCS_CLEANUP_AUDIT.md",
+        "docs\\history\\planning-blueprint-absorption\\2026-09-29\\AUDIT_CROSSWALK.md"
+      ]
+    },
+    {
+      "path": "docs/truth/ARCHITECTURE_FINAL.md",
+      "bytes": 7536,
+      "sha256_worktree": "93238FD2E0AA8F5A10B00C534E6BEC45F7738B50BD0219C96A11ADBD440CE750",
+      "git_status": "clean",
+      "basename_reference_paths": [
+        "LEGACY_MANIFEST.yaml",
+        "docs\\truth\\README.md",
+        "docs\\DOCUMENTATION_AUTHORITY_INDEX.md",
+        "docs\\authority\\legacy\\T17-inventory-audit-2026-09-05.json",
+        "docs\\history\\planning-blueprint-absorption\\2026-09-29\\OBSOLETE_DOCS_CLEANUP_AUDIT.md"
+      ]
+    },
+    {
+      "path": "docs/truth/AUTHORITY_CONTRACT.md",
+      "bytes": 3260,
+      "sha256_worktree": "39F2F4E3E0F4E55BA3B798907B61CC4038B5B158BEC780CEA19DC636BAFC2F38",
+      "git_status": "clean",
+      "basename_reference_paths": [
+        "LEGACY_MANIFEST.yaml",
+        "docs\\truth\\README.md",
+        "docs\\truth\\H0_H1_STATUS_HANDOFF.md",
+        "docs\\truth\\EXECUTION_STATUS_LOG.md",
+        "docs\\truth\\CURRENT_STATE_TRUTH.md",
+        "docs\\DOCUMENTATION_AUTHORITY_INDEX.md",
+        "tests\\test_truth_authority_supersession.py",
+        "docs\\authority\\legacy\\T17-inventory-audit-2026-09-05.json",
+        "docs\\current\\AAOS-BRANCH-COMMIT-PATH-AUDIT-20260925.json",
+        "docs\\current\\R5-BRANCH-DISPOSITION-20260918.md",
+        "docs\\history\\desktop-attachments\\ArcheAxis_Workspace_Multiformat_Recognition_Web_Verification_Enhancement_TaskPack_v1_2026-08-11.md",
+        "scripts\\check_repository_conventions.py",
+        "docs\\history\\planning-blueprint-absorption\\2026-09-29\\OBSOLETE_DOCS_CLEANUP_AUDIT.md",
+        "README.md"
+      ]
+    },
+    {
+      "path": "docs/current/DSH-COMPLETION-REPORT-20260918.md",
+      "bytes": 32028,
+      "sha256_worktree": "3B4B292DDD1B30A7BACD3554CD7795E2399F65001D205B241D87C1265CFEEC93",
+      "git_status": "clean",
+      "basename_reference_paths": [
+        "docs\\DOCUMENTATION_AUTHORITY_INDEX.md",
+        "docs\\current\\HERMES-FULL-AUDIT-PROMPT-20260918.md",
+        "docs\\current\\R5-STATE.json",
+        "docs\\current\\R5-INDEPENDENT-AUDIT-20260919.md",
+        "docs\\current\\R5-EXECUTION.md",
+        "docs\\history\\planning-blueprint-absorption\\2026-09-29\\OBSOLETE_DOCS_CLEANUP_AUDIT.md"
+      ]
+    },
+    {
+      "path": "docs/current/HERMES-FULL-AUDIT-PROMPT-20260918.md",
+      "bytes": 22106,
+      "sha256_worktree": "1CBF675B1F67B4B099ED28D9CE5079A5508B9A7CDF1B9402EA274EDD5AA0525F",
+      "git_status": "clean",
+      "basename_reference_paths": [
+        "docs\\DOCUMENTATION_AUTHORITY_INDEX.md",
+        "docs\\current\\R5-INDEPENDENT-AUDIT-20260919.md",
+        "docs\\history\\planning-blueprint-absorption\\2026-09-29\\OBSOLETE_DOCS_CLEANUP_AUDIT.md"
+      ]
+    },
+    {
+      "path": "docs/current/AXM_LANGUAGE_AUDIT_TASK_ADOPTION_2026-09-02.md",
+      "bytes": 9763,
+      "sha256_worktree": "F553878A2E0D4A0962EB45AD8804A990B9F03DC1D8EFE3D81CEBFEC76D488C0B",
+      "git_status": "clean",
+      "basename_reference_paths": [
+        "LEGACY_MANIFEST.yaml",
+        "docs\\authority\\vnext-reference\\ARCHEAXIS-HISTORY-AUTHORITY-AND-SOURCE-REGISTRY-2026-09-04.md",
+        "docs\\truth\\EXECUTION_STATUS_LOG.md",
+        "docs\\superpowers\\plans\\2026-09-03-runtime-authority-and-language-g0.md",
+        "docs\\current\\CURRENT_REALITY_2026-09-01.md",
+        "docs\\DOCUMENTATION_AUTHORITY_INDEX.md",
+        "docs\\history\\planning-blueprint-absorption\\2026-09-29\\OBSOLETE_DOCS_CLEANUP_AUDIT.md",
+        "docs\\authority\\legacy\\T17-inventory-audit-2026-09-05.json"
+      ]
+    },
+    {
+      "path": "docs/current/AX_DIRECTORY_MIGRATION_TASK_ADOPTION_2026-09-02.md",
+      "bytes": 7712,
+      "sha256_worktree": "32081B635A824089C2B0B46D46622949D0421DDB2E55191E3A0A0EC4124D4720",
+      "git_status": "clean",
+      "basename_reference_paths": [
+        "LEGACY_MANIFEST.yaml",
+        "docs\\truth\\EXECUTION_STATUS_LOG.md",
+        "docs\\current\\CURRENT_REALITY_2026-09-01.md",
+        "docs\\authority\\legacy\\T17-inventory-audit-2026-09-05.json",
+        "docs\\superpowers\\plans\\2026-09-03-runtime-authority-and-language-g0.md",
+        "docs\\DIRECTORY_AUTHORITY_INDEX.md",
+        "docs\\DOCUMENTATION_AUTHORITY_INDEX.md",
+        "docs\\history\\planning-blueprint-absorption\\2026-09-29\\OBSOLETE_DOCS_CLEANUP_AUDIT.md"
+      ]
+    },
+    {
+      "path": "docs/ABSORPTION_EXECUTION_MATRIX.md",
+      "bytes": 12787,
+      "sha256_worktree": "A2C51AE1B9D27A90667B80348589370054C466CAE1385E4BDDC5CFBA6ECD26BD",
+      "git_status": "clean",
+      "basename_reference_paths": [
+        "LEGACY_MANIFEST.yaml",
+        "docs\\FUTURE_EXECUTION_BLUEPRINT.md",
+        "docs\\DOCUMENTATION_AUTHORITY_INDEX.md",
+        "README.md",
+        "docs\\truth\\AXW1200_SNAPSHOT_RECEIPT.md",
+        "docs\\PROJECT_STATUS.md",
+        "docs\\current\\BRANCH-CONVERGENCE.json",
+        "docs\\current\\AAOS-BRANCH-COMMIT-PATH-AUDIT-20260925.json",
+        "docs\\authority\\legacy\\T17-inventory-audit-2026-09-05.json",
+        "docs\\bc-lines\\13_开源项目吸收总库.md",
+        "docs\\HANDOFF_2026-08-18_dual-learning-absorption.md",
+        "docs\\history\\plans\\2026-07-26_212205-full-absorption-roadmap.md",
+        "docs\\history\\sleep-mode\\activity.jsonl",
+        "docs\\history\\planning-blueprint-absorption\\2026-09-29\\OBSOLETE_DOCS_CLEANUP_AUDIT.md",
+        "docs\\history\\desktop-attachments\\ArcheAxis_Workspace_Project_History_and_OSS_Absorption_Master_Atlas_v1_2026-08-11.md",
+        "docs\\history\\desktop-attachments\\ArcheAxis_OS_Only_Product_UI_Naming_Compatibility_Audit_2026-08-08.md",
+        "docs\\history\\desktop-attachments\\ArcheAxis_OS_Cloud_Full_Audit_Integrated_TaskPack_2026-08-07.md"
+      ]
+    },
+    {
+      "path": "docs/PROJECT_STATUS.md",
+      "bytes": 15947,
+      "sha256_worktree": "9D73653D41658379B47B9EF49DB76B93A4A006A0E981FA1D7D7A56535222AA3E",
+      "git_status": "clean",
+      "basename_reference_paths": [
+        "docs\\architecture\\imported-designs\\reference-deliveries\\archeaxis-2026\\README.md",
+        "docs\\ABSORPTION_EXECUTION_MATRIX.md",
+        "docs\\current\\AAOS-DSH-TAKEOVER-CHECKPOINT-20260926.md",
+        "docs\\current\\AAOS-CLOUD-AUDIT-HANDOFF-20260926.md",
+        "docs\\current\\AAOS-BRANCH-COMMIT-PATH-AUDIT-20260925.json",
+        "docs\\HANDOFF_2026-07-23.md",
+        "docs\\FUTURE_EXECUTION_BLUEPRINT.md",
+        "docs\\environment\\EXTERNAL_DEPENDENCIES.md",
+        "docs\\DOCUMENTATION_AUTHORITY_INDEX.md",
+        "docs\\README.md",
+        "docs\\PRODUCT_POSITIONING.md",
+        "README.md",
+        "docs\\current\\BRANCH-CONVERGENCE.json",
+        "docs\\current\\DOCUMENTATION-DRIFT-AUDIT-20260923.md",
+        "docs\\truth\\EXECUTION_STATUS_LOG.md",
+        "docs\\truth\\CURRENT_STATE_TRUTH.md",
+        "docs\\current\\dsh-review\\branch-batch-01.md",
+        "docs\\current\\dsh-review\\branch-batch-01.json",
+        "docs\\current\\dsh-review\\branch-batch-02.md",
+        "docs\\current\\dsh-review\\branch-batch-03.md",
+        "docs\\truth\\AUTHORITY_CONTRACT.md",
+        "docs\\current\\REPOSITORY_NORMALIZATION_AUDIT_2026-09-02.md",
+        "LEGACY_MANIFEST.yaml",
+        "migrations\\reports\\phase-0\\FILE_INVENTORY.csv",
+        "tests\\test_ci_classifier.py",
+        "tests\\test_documentation_authority_index.py",
+        "tests\\test_release_manifest.py",
+        "tests\\test_product_version_truth_contract.py",
+        "docs\\authority\\legacy\\T17-inventory-audit-2026-09-05.json",
+        "docs\\history\\desktop-attachments\\ArcheAxis_OS_Minimum_Surface_Master_TaskPack_2026-08-06.md",
+        "docs\\history\\desktop-attachments\\ArcheAxis_OS_Cloud_Full_Audit_Integrated_TaskPack_2026-08-07.md",
+        "docs\\history\\desktop-attachments\\ArcheAxis_OS_Only_Product_UI_Naming_Compatibility_Audit_2026-08-08.md",
+        "docs\\history\\desktop-attachments\\ArcheAxis_Workspace_Project_History_and_OSS_Absorption_Master_Atlas_v1_2026-08-11.md",
+        "docs\\history\\sleep-tasks\\01-phase2-release.md",
+        "docs\\history\\plans\\2026-07-20_192250-cognitive-workspace-minimum-closed-loop.md",
+        "docs\\history\\plans\\2026-07-14_002006-cognitive-loop-os-integrated-execution.md",
+        "docs\\history\\plans\\2026-07-23_004441-unresolved-work-inventory.md",
+        "docs\\history\\sleep-mode\\block_boundary.py",
+        "docs\\history\\sleep-mode\\activity.jsonl",
+        "docs\\history\\planning-blueprint-absorption\\2026-09-29\\OBSOLETE_DOCS_CLEANUP_AUDIT.md",
+        "docs\\history\\task-artifacts\\verification\\full-local-gate-2026-09-02.log"
+      ]
+    },
+    {
+      "path": "docs/superpowers/specs/2026-08-23-six-space-closed-loop-design.md",
+      "bytes": 4788,
+      "sha256_worktree": "75BF69F7CC8B26E495F250F29A42E8ACE98508DF601AABA9292EF4F476B51904",
+      "git_status": "clean",
+      "basename_reference_paths": [
+        "LEGACY_MANIFEST.yaml",
+        "docs\\DOCUMENTATION_AUTHORITY_INDEX.md",
+        "docs\\current\\AAOS-BRANCH-COMMIT-PATH-AUDIT-20260925.json",
+        "docs\\authority\\legacy\\T17-inventory-audit-2026-09-05.json",
+        "docs\\history\\planning-blueprint-absorption\\2026-09-29\\OBSOLETE_DOCS_CLEANUP_AUDIT.md"
+      ]
+    },
+    {
+      "path": "HERMES_HANDOFF.md",
+      "bytes": 23190,
+      "sha256_worktree": "1065D8A485531C97268F40747E206F73851C3C1AC9D450EF217C8D762D555474",
+      "git_status": "clean",
+      "basename_reference_paths": [
+        "LEGACY_MANIFEST.yaml",
+        "docs\\DOCUMENTATION_AUTHORITY_INDEX.md",
+        "docs\\current\\REPOSITORY_NORMALIZATION_AUDIT_2026-09-02.md",
+        "docs\\current\\AAOS-BRANCH-COMMIT-PATH-AUDIT-20260925.json",
+        "docs\\current\\AAOS-LOCAL-REPOSITORY-LINEAGE-READBACK-20260925.md",
+        "docs\\current\\BRANCH-CONVERGENCE.json",
+        "docs\\current\\R5-PATH-DISPOSITION.json",
+        "docs\\history\\planning-blueprint-absorption\\2026-09-29\\OBSOLETE_DOCS_CLEANUP_AUDIT.md",
+        "docs\\history\\planning-blueprint-absorption\\2026-09-29\\AUDIT_CROSSWALK.md",
+        "docs\\history\\desktop-attachments\\ArcheAxis_OS_Cloud_Full_Audit_Integrated_TaskPack_2026-08-07.md",
+        "DIRECTORY_AUTHORITY.yaml",
+        "docs\\authority\\taskpack-0910-r3\\R15-PATH-DISPOSITION.json",
+        "docs\\history\\pre-v0.6.7-current-snapshots\\UNFINISHED_TASKS_2026-08-18.md",
+        "docs\\history\\plans\\2026-07-23_004441-unresolved-work-inventory.md",
+        "docs\\authority\\legacy\\T17-inventory-audit-2026-09-05.json"
+      ]
+    }
+  ]
+}

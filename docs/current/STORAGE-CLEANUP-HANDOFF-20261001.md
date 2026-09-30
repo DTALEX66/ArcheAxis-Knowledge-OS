@@ -81,3 +81,37 @@ C# Supervisor d7编译、d8现有9项隔离/重启/错误凭据/短路径/带空
 已按失败根因处理：两份旧主题测试改为分别约束用户授权Monochrome/Aurora及真实资源切换；导航manifest仍7page_id，但现役19sections必须精确列明；补正式窗口双语无障碍名称，两树一致，未改变B10可见布局；旧import/learning文案断言对齐实际动作入口。dk新名称契约先RED；dl三份受影响测试29pass；dp四份变更测试Ruff PASS。dm正式树编译通过；Green gd1不存在本地.venv入口为NOT_EXECUTED，使用既有正式Python启动其dev脚本的gd2编译通过，未新增环境。编码问题最小去BOM/补LF，不改内容语义。修复版本远端CI仍待新提交验证。
 
 原runtime-readonly-copy经完整1545源SHA与已保留copy2 ZIP指定子集CRC/SHA/length核验，删除78,973,372 B及116个空目录，原根不存在，原run execution/source快照保留。独立回读1545源全absent、恢复映射/ZIP未变、指定成员全PASS、只计账一次。复用runtime-readonly-copy2-recovery-20261001.zip和既有mapping；恢复时按新的original-equivalence映射回runtime-readonly-copy根，不按copy2原mapping默认根恢复，也不恢复ZIP中超出1545子集的额外文件。没有新增恢复包。
+
+## 2026-10-01 继续清理：旧 Core 编译缓存
+
+已执行逐文件删除551项：`.project-local/runs/be268a2d33/aaoscorebuildrelease/artifacts/cargo-target/release/build` 与 `release/.fingerprint` 内独立审计列明的缓存。执行前核对全部路径、SHA-256、文件身份、硬链接闭合和活动进程；执行后551源路径全部不存在，当前 `build/cargo/debug/archeaxis-api.exe` SHA-256 `71f90c25b03773aa55a8b542e252d2232066ba8cab5eaec33df92e80028da41c` 保持不变。未删除源码、当前Core、旧顶层Core制品或用户数据。
+
+本批逻辑净减66,708,946字节；按文件身份去重的内容大小35,772,904字节，未测量实际磁盘释放量。累计清理台账逻辑净减58,628,644,289字节。该运行历史exit101仍记录为失败；缓存可由保留的源码及Cargo.lock重新构建，不承诺恢复历史相同字节。未新增恢复压缩包。
+
+本批执行前的元数据快照：Formal可读范围25,553,736,290字节，Green可读范围9,602,973,787字节；排除私有目录、链接及不可读取项，是下界，不能当成完整资源管理器容量。后端验证新构建增加了部分输出。本记录不是全部清理或全部运行健康完成声明。
+
+本地详细证据位于 `.project-local/mig/storage-cleanup-current-20260930/new-core-cache-reviewed-20261001.json`、`new-core-cache-prune-20261001.json` 和 `round-total.json`。完整本地缓存/日志/恢复包不上传。
+
+同轮追加：3个已结束运行的VBCSCompiler/AnalyzerAssemblyLoader临时影子副本39文件已按独立清单删除，逻辑24,030,984字节，源全absent，当前Core SHA不变；SDK/NuGet原件和产品源码未动。累计清理台账逻辑净减58,652,675,273字节。本轮新增两批合计590文件90,739,930字节。证据：`vbcs-cache-reviewed-20261001.json` 与 `vbcs-cache-prune-20261001.json`。旧Green NuGet去重候选在删除前核验发现canonical文件缺失/文件身份差异，资格门禁停止，尚未执行该缓存批次；不能把早先匹配统计当成当前可恢复证明。
+
+NuGet候选补充核实：先前canonical缺失系263字符路径的非扩展Python调用错误，正常身份扩展路径元数据确认文件存在；样本source/canonical共享同卷同fileID、nlink=2，属于硬链接。共享名称不能按1.23GB重复路径统计为实际回收；旧dev.py也仍绑定其缓存用于未来restore。本轮不删除这种共享缓存名称，避免恢复时重新下载导致真实占用增长；只审计独立文件身份可回收子集。
+`green-old-nuget-duplicate-reviewed-20261001.json` 完整743项复核完成：全部source/canonical共享同文件身份，独立单硬链接可删子集0项；1,232,333,595字节为名称逻辑总和，不是重复分配空间。本轮全部保留，未计入减量。
+
+绿色版mainline旧Release追加清理：独立审计300项820,039,830字节，删除前全量fresh SHA/单硬链接/路径/进程复核后逐文件删除，源全部absent。保留Debug DLL、当前Core、MainWindow.axaml及MainWindow.axaml.cs，执行前后哈希一致。70项589,410,039字节另与保留Debug全SHA相同，其余是可从保留源码及SDK/NuGet重建的旧产物；不承诺重现旧dirty构建字节。没有修改安装根或数据库。证据：`green-mainline-release-reviewed-20261001.json` 与 `green-mainline-release-prune-20261001.json`。
+
+本次继续执行共3批890文件910,779,760字节；累计台账净逻辑减少59,472,715,103字节，实际NTFS释放量未测。旧清单的漏执行项为0不代表全部项目已无可清理项，整体任务仍PARTIAL。
+清理后本次fresh元数据：Formal可读范围25,464,354,609字节（25.46GB），Green8,782,933,957字节（8.78GB），读取错误仍491/40。均排除私有状态/Git/reparse，属于观察下界；未冒充全部软件/用户数据库健康或完整资源管理器大小。
+
+## 2026-10-01 下一继续回合
+
+已删除Formal四个旧.NET Release/bin/obj精确范围1,039文件777,160,641字节，独立review清单为 `formal-old-dotnet-release-reviewed-20261001.json`（SHA087fc5d2dcd02566832ccbeeda12208a9fab9b54cf83b87267f81ccb89e3fbe1）。执行前重新核全部SHA/身份/单硬链接/路径/活动进程；执行后1,039源路径全absent，现役Debug、Core413与两份前端源码哈希不变。可从保留源码/SDK/NuGet重建，不保证旧dirty历史二进制逐字节恢复。累计净逻辑减少60,249,875,744字节；实际磁盘释放量未测。
+
+隔离集成验证iv11为476pass/1skip/1warning/9subtest，运行源413ad3a0+当前两份测试修复dirty补丁；skip原因Windows file symlink unavailable，Pillow弃用警告保留。这不是纯413提交或用户DB/安装态全量健康证明。iv10文档/runner为16pass/1fail，缺Sept29归档导航尚未发布；双主题/B10权威断言已按真实用户方向修复，未设置skip/xfail。后续发布需包含经过内容审计的导航与链接依赖，并按精确提交重新CI验证。
+
+本继续回合进一步执行：24个已确认tmp_path生成的旧合成testcase，339文件134,267,763字节已删；原3execution与Core哈希保持。首次执行因审计run日期后缀不匹配在删前门禁停止，核正exact audit-r5-full-20260927后重新全量门禁通过再执行，不隐藏失败调用。旧candidate-current-final安全生成子集17,839文件794,582,943字节已复用保留原ZIP全量成员CRC/SHA/length核验后删除；精确恢复映射新增13,792,199字节，计账净780,790,744字节。另旧current-source候选中间编译1055文件547,398,411字节已删（闭合硬链接集合）；227项可由保留索引ZIP精确恢复，其他缓存可再生；映射573,752字节，计账净546,824,659字节。恢复ZIP/当前Core/DB/WAL/私有/截图/原执行收据全部在删集外；无需新ZIP。
+
+累计台账净逻辑减少61,711,758,910字节，包含两份大恢复映射成本，仍排除小型审计收据；实际NTFS释放未测。当前剩余对象不因名字或总大小直接获删资格。
+
+公开交付准备：22份Sept29项目历史包文件及两份母版资产通过内容审核，不是私人原生session/凭据/数据库。Sept29原ZIP14成员与unpacked全字节一致；其格式/BOM/EOL由精确SHA门禁和定向Git属性保留，4份自有派生审核文档只规范格式，保留原内容与原包。母版HTML/图标板迁为tests/fixtures/aaos-ui-mother的readonly参考，原SHA保留，两份测试不再依赖本机.project-local输入。HTML demo localStorage/随机图谱/示例值不得充当Core真值或直接生产应用。
+
+iv12已有受影响文档/runner/母版契约26pass；iv13命名/路径62pass；iv15加入包成员/母版精确SHA验证后90pass。iv16 Ruff发现import排序/异常抑制两项，修复后iv17 Ruff PASS，未改产品行为。后续正式提交及远端精确SHA CI仍需回读，不能提前称已上传/已健康。
