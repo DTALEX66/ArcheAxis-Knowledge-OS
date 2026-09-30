@@ -50,4 +50,14 @@ PARTIAL，目标仍 active。用户授权审计后删除无用项目输出、迁
 
 继续交付验证：命令面板补齐证据库、原创、人类学习、机器学习及工作区路由，旧名称作为alias保留；c7先失败、c8定向2pass。SDK10.0.401经现役build/dotnet项目命名输出根，cc的MSBuild /t:Build退出0并生成Debug/net10.0/ArcheAxis.Desktop.dll。c9/ca因缺恢复清单、cb因参数解析失败收据保留，不隐藏。编译通过不等于产品启动或安装态健康；其余源码/原生验收仍未完成。
 
+最新验证：原生capture cd成功生成1440/960 aurora首页PNG，未启动Core/未读取用户数据库，强制减少动画，不能证明完整交互。840边界按B10 max-width语义包含等号，首页动态无障碍名称对齐“首页”；ce RED、cf定向7pass、cg重新编译退出0。ch以显式现役Core及全新项目内synthetic数据库握手，SMOKE OK并退出0；不是现有用户数据库健康验证。ci全量39份前端契约324项为276pass/48fail/1warning，完整XML本地保留，真实实现与旧契约差异正在逐项核实，不自动豁免。
+
+四份清理公开文档已提交并推送codex/Audit，提交35260ad70c5c2eaf038da1dd7c53a455b104a812经git ls-remote回读一致；不代表本地前端修改已上传、不代表main已合并或Green全量一致。当前文档新增验证将在后续交付提交中同步。
+
+后续核实：co既有learning-smoke在全新synthetic工作区通过，assessment/answer/FSRS/cold Core重启回读成功，mastery_projection_closed=false如实保留。cj导航点/双主题图标3pass；ck结构化来源与学习加载3pass；cl动态页头/导航/无推断语义7pass；cm首次4pass/1fail，cn修订无关旧工具条断言后Evidence真实性1pass。测试修订只针对已独立核实的表示/解析/母版差异，未跳过或xfail。品牌sidebar最小布局修复由并行writer限定两XAML，cp编译通过，cq/cr双主题1440/840原生渲染通过；截图发现长品牌文字越界，仍在修复，未宣称完整UI验收通过。
+
+品牌越界后续修复：sidebar显示ArcheAxis品牌词根，tooltip/无障碍使用ArcheAxis Knowledge正式名，文字限宽并允许子线换行；两树动态窗口标题同步去除旧Learning Workspace/OS外部产品名。cs编译通过，cu1440 aurora原生截图经目视确认品牌留在侧栏内。ct最新全量324项为291pass/33fail/1warning，其中新增一项是sidebar从row1迁到row0后的旧几何断言，已改为检查母版品牌位于side栏顶部且跨全高；未用该定向修订推断全量PASS。其余未完成项继续记录，不重置历史失败收据。
+
+绿色版验证：cy在Green mainline任务树通过现有版本恢复及Debug编译，cz当前DLL的1440 aurora原生截图退出0，目视品牌/侧栏保留，无Core和真实DB访问。Formal与Green编译各自通过不等于源码或安装态全量一致。cw双主题与未知学习计数2pass，cx图谱示意/真实lineage边界及三种学习计数状态2pass，cv sidebar和导航点5pass。剩余主导航契约由限定单文件writer修订，根未并行写该文件；未设置skip/xfail。
+
 2026-10-01 最新Git只读与fetch核对：当前HEAD是origin/main祖先，left/right=0/27；远端包含新增backend和文档整合，不能把当前dirty源码直接覆盖远端。tracked改动与远端变动的交集为docs/DOCUMENTATION_AUTHORITY_INDEX.md；交付需保留远端新backend及本地UI/清理成果，解决该文档真实三方差异。尚未merge/reset/commit/push，原工作文件未改变。最新元数据已在第八批/508缓存删除后回读。
