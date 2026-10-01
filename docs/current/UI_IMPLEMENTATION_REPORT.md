@@ -1,5 +1,37 @@
 # AAOS UI Implementation Report
 
+## 2026-10-01 current evidence scope
+
+The user's adopted B10 final deployable master is the highest visual reference;
+B03 and other earlier assets supplement it without overriding it. The recorded
+Formal `di` run passed 324 affected static frontend contracts, and `dj` Desktop
+build exited 0. These are scoped local test/build results. Current native raster
+captures have been produced, but the complete native interaction, accessibility,
+animation and multi-DPI acceptance matrix remains `UNVERIFIED`; overall visual
+acceptance remains `PARTIAL`. Neither compilation nor raster rendering establishes
+installed-runtime or real Core-loop acceptance. Exact run and delivery boundaries
+are indexed in [the current handoff](STORAGE-CLEANUP-HANDOFF-20261001.md).
+
+All dated entries below, including test counts, output paths and screenshot
+availability, describe their own historical candidate. They do not replace the
+current evidence scope or B10 authority.
+
+## Historical 2026-09-27 visual fidelity correction
+
+The dated implementation map below describes the earlier frontend integration
+baseline. It does **not** establish pixel fidelity to the supplied B05/B10 suite.
+The user inspected the earlier candidate and correctly identified that it still
+looked like the existing prototype. The follow-up changes at that stage improved the
+outer shell, capture layout, and separate Search/Review routes, but the requested
+12-page one-to-one visual reproduction is still `PARTIAL`, and native screenshot
+acceptance is `NOT_EXECUTED`.
+
+That stage's page-by-page gaps and technical reasons were recorded in
+`docs/current/AAOS-UI-FIDELITY-STATUS-20260927.md`. Do not use the historical
+`Implemented` labels below as a claim of visual parity. The separately published
+`AAOS-Frontend-Acceptance-v2` executable is a review candidate, not a finished
+suite reproduction.
+
 Date: 2026-09-23
 Implementation surface: `apps/ArcheAxis.Desktop/`
 Reference authority: AAOS UI suite B03-B10 and the current R6/M0 authority chain
@@ -12,7 +44,7 @@ Coverage matrix: `docs/current/AAOS-UI-SUITE-COVERAGE-20260923.md`
 | Home / Workspace | `HomeSurface` | Implemented: responsive hero, first-run readiness, lifecycle, focus, session receipt and next actions |
 | Capture Inbox | `CaptureSurface` | Implemented: real file picker and Core submission/readback boundary |
 | Evidence Library | `EvidenceSurface` | Implemented persisted Core anchor list, truthful bundle boundary, and Capture/Jobs next actions |
-| Evidence Detail | Evidence inspector / source chain | Implemented for fields exposed by Core; no synthetic anchor/bundle rows |
+| Evidence Detail | Dedicated `EvidenceDetailSurface` / source chain | B05 left reading pane and right source-chain layout; projects only selected Core anchor fields and marks unavailable body/citation/verification without synthetic rows |
 | Originals / Original Editor | `SourceReaderSurface` | Implemented source member selection, transform readback and provenance copy; editor persistence remains Core-bound |
 | Human Learning | `LearningSurface` | Implemented real queue read, selectable items, answer, independent correctness, FSRS grade, receipt and restart readback |
 | Machine Learning | `MachineKnowledgeSurface` | Implemented real task receipt query; machine-derived values remain labeled |
@@ -280,3 +312,31 @@ repository drift/size audit: authority documents, external indexes, paths,
 handoffs, summaries, history, spill tracking, exact-path migration/freeze and
 branch disposition. That phase must use this report and the exact pushed commit
 as its frontend baseline; it must not rewrite frontend behavior while auditing.
+
+## 2026-09-27 AAOS icon and artwork implementation delta
+
+- Added `apps/ArcheAxis.Desktop/AaosIcon.axaml` and its code-behind as the shared
+  theme-aware vector icon set. Eight concepts are recreated from the VI icon
+  system; capture, original editing, workspace, review, settings and notification
+  symbols extend the same line language. The shell has 24 shared icon instances
+  across primary/compatibility navigation, mobile navigation and topbar actions.
+- Replaced the previous Home planet/orbit decoration with a non-data connected
+  node illustration and an explicit schematic accessibility label. Existing
+  empty-state illustrations remain separate product assets and are never used
+  to imply live Core data.
+- Evidence: targeted visual/navigation/route contracts `240 passed`; Avalonia
+  Debug build `0 warnings / 0 errors`; the launched native Home window remained
+  responsive and was captured at 1818x1172 in
+  `.project-local/acceptance/AAOS-UI-CANDIDATE-20260927-r7/`.
+- Scope remains `PARTIAL`: the Home composition and other route layouts are not
+  yet visually equivalent to the B10 final UI, and the other routes/themes,
+  compact layouts and DPI settings have not been captured for visual comparison.
+
+
+## r23 native preview readback (2026-09-27)
+
+The Release candidate launched in the Green-contained task tree at `.project-local/build/aaos-ui-preview/AAOS-UI-CANDIDATE-20260927-r23/` (PID 34856). At the current 125% Windows scaling, native-window screenshots now cover Home, Capture, Evidence Library, Originals, Human Learning, Machine Learning, Workspace, Memory Map, Search, Review and Settings in both Aurora and Monochrome: 22 images at `.project-local/acceptance/AAOS-UI-CANDIDATE-20260927-r23/`, each 1818×1172. Core remains offline; Evidence Detail requires a real Core anchor and is not included. This proves launch and route/theme rendering only; visual one-to-one parity, 150% scaling and Core-connected data remain unverified, so acceptance stays `PARTIAL`.
+
+## r25 parallel UI increment (2026-09-27)
+
+Evidence and Source Reader views now include shared semantic vector icons and source-chain interactions. Main shell includes expanded icon geometry, an app-icon redraw based on the B10 mark, reduced-motion-aware graph pulse/hover and Review flip approximation, Capture's import-only scan sweep, and bottom-centered transient Toast. Preview published successfully to `.project-local/build/aaos-ui-preview/AAOS-UI-CANDIDATE-20260927-r25/` (Core offline). Targeted UI contracts: **257 passed**; Release publish: **0 errors**, one `NU1900` vulnerability-index connectivity warning; `git diff --check`: pass. r24 native screenshot/contact-sheet evidence remains at `.project-local/acceptance/AAOS-UI-CANDIDATE-20260927-r24/`; it is not represented as r25 runtime capture. Visual fidelity remains `PARTIAL`; the contact sheet shows multiple information-panel pages that still need B10/B05 composition, illustration and interaction refinement. Evidence Detail still requires real Core data; 150% DPI and full pixel comparison are `NOT_EXECUTED`.

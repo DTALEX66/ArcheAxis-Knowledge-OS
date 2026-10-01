@@ -1,0 +1,109 @@
+using System;
+using System.Collections.Generic;
+using Avalonia;
+using Avalonia.Controls;
+using Avalonia.Media;
+
+namespace ArcheAxis.Desktop;
+
+/// <summary>Reusable AAOS line icon set, redrawn from the VI icon-system board.</summary>
+public partial class AaosIcon : UserControl
+{
+    public double IconStrokeThickness => 1.7;
+    // Preserve existing IconName compatibility while defining shared geometry once.
+    // Alias names keep their current visual meaning; no unsupported glyph shape is inferred.
+    private const string NotificationGeometry = "M18,9 A6,6 0 0,0 6,9 C6,16 3,16 3,18 L21,18 C21,16 18,16 18,9 M10,21 L14,21";
+    private const string ImportGeometry = "M12,3 L12,15 M7,10 L12,15 L17,10 M4,17 L4,21 L20,21 L20,17";
+    private const string ExportGeometry = "M12,15 L12,3 M7,8 L12,3 L17,8 M4,17 L4,21 L20,21 L20,17";
+    private const string LinkGeometry = "M9,15 L7,17 A4,4 0 0,1 3,13 L7,9 A4,4 0 0,1 13,9 M15,9 L17,7 A4,4 0 0,1 21,11 L17,15 A4,4 0 0,1 11,15 M8,16 L16,8";
+    private static readonly IReadOnlyDictionary<string, string> GeometryByName =
+        new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
+        {
+            ["Home"] = "M3,10 L12,3 L21,10 L21,21 L14,21 L14,15 L10,15 L10,21 L3,21 Z",
+            ["NavigationDot"] = "M9,12 A3,3 0 1,1 15,12 A3,3 0 1,1 9,12 Z",
+            ["Knowledge"] = "M2,4 C5,3 9,4 12,6 C15,4 19,3 22,4 L22,20 C18,18 15,19 12,21 C9,19 6,18 2,20 Z M12,6 L12,21",
+            ["Evidence"] = "M5,2 L15,2 L20,7 L20,22 L5,22 Z M15,2 L15,7 L20,7 M8,12 L17,12 M8,16 L17,16",
+            ["Search"] = "M18,10.5 A7.5,7.5 0 1,1 3,10.5 A7.5,7.5 0 1,1 18,10.5 M16,16 L22,22",
+            ["Memory"] = "M3,6 C3,2 21,2 21,6 C21,10 3,10 3,6 Z M3,6 L3,18 C3,22 21,22 21,18 L21,6 M3,12 C3,16 21,16 21,12",
+            ["Growth"] = "M3,19 L3,14 M8,19 L8,11 M13,19 L13,8 M18,19 L18,4",
+            ["History"] = "M3,11 A9,9 0 1,1 5,17 M3,11 L3,5 M3,11 L9,11 M12,7 L12,12 L16,14",
+            ["HumanAi"] = "M8,11 A4,4 0 1,1 8,3 A4,4 0 1,1 8,11 M1,21 C1,17 4,14 8,14 C12,14 15,17 15,21 M17,12 A3,3 0 1,0 17,6 M17,15 C20,15 22,17 22,20",
+            ["Connection"] = "M12,4 L6,16 M12,4 L18,16 M6,18 L18,18 M12,2 A2,2 0 1,1 12,6 A2,2 0 1,1 12,2 M6,16 A2,2 0 1,1 6,20 A2,2 0 1,1 6,16 M18,16 A2,2 0 1,1 18,20 A2,2 0 1,1 18,16",
+            ["Thinking"] = "M12,2 A9,9 0 1,1 12,20 A9,9 0 1,1 12,2 M9,15 C9,13 7,11 7,9 A5,5 0 1,1 17,9 C17,11 15,13 15,15 Z M9,18 L15,18 M10,21 L14,21 M12,6 L12,11 M10,9 L12,11 L14,9",
+            ["Capture"] = "M3,7 L8,7 L10,4 L15,4 L17,7 L21,7 L21,21 L3,21 Z M12,10 A4,4 0 1,0 12,18 A4,4 0 1,0 12,10",
+            ["Web"] = "M4,5 L20,5 L20,19 L4,19 Z M4,9 L20,9 M7,7 L7,7.1 M10,7 L10,7.1 M7,13 L10,13 L12,16 L14,12 L17,12",
+            ["Image"] = "M3,4 L21,4 L21,20 L3,20 Z M4,17 L9,11 L13,15 L16,12 L21,18 M8,8 A1.2,1.2 0 1,0 8,8.1",
+            ["Audio"] = "M3,12 L6,12 L8,7 L11,18 L14,5 L17,16 L19,12 L22,12",
+            ["Note"] = "M5,2 L15,2 L20,7 L20,22 L5,22 Z M15,2 L15,7 L20,7 M8,12 L17,12 M8,16 L17,16 M8,19 L14,19",
+            ["Original"] = "M3,17.5 L15.8,4.7 A2.1,2.1 0 0,1 18.8,7.7 L6,20.5 L2.5,21 Z M13.8,6.7 L16.8,9.7",
+            ["Workspace"] = "M3,4 L10,4 L10,10 L3,10 Z M14,4 L21,4 L21,10 L14,10 Z M3,14 L10,14 L10,20 L3,20 Z M14,14 L21,14 L21,20 L14,20 Z M10,7 L14,7 M6.5,10 L6.5,14 M17.5,10 L17.5,14 M10,17 L14,17",
+            ["Review"] = "M5,3 L19,3 L21,6 L21,21 L3,21 L3,6 Z M8,3 L8,7 M16,3 L16,7 M3,10 L21,10 M7,15 L10,18 L16,13",
+            ["Settings"] = "M12,2 L13.5,5.2 L17,4.5 L18,8 L21.5,9.5 L20,13 L21.5,16.5 L18,18 L17,21.5 L13.5,20 L12,22 L10.5,20 L7,21.5 L6,18 L2.5,16.5 L4,13 L2.5,9.5 L6,8 L7,4.5 L10.5,5.2 Z M12,9 A4,4 0 1,0 12,17 A4,4 0 1,0 12,9",
+            ["Notifications"] = NotificationGeometry,
+            ["Notification"] = NotificationGeometry,
+            ["Close"] = "M5,5 L19,19 M19,5 L5,19",
+            ["Plus"] = "M12,4 L12,20 M4,12 L20,12",
+            ["Refresh"] = "M20,7 L20,3 L16,3 M20,4 C17,1 12,1 8,3 C5,4 3,7 3,10 M4,17 L4,21 L8,21 M4,20 C7,23 12,23 16,21 C19,20 21,17 21,14",
+            ["Import"] = ImportGeometry,
+            ["Export"] = ExportGeometry,
+            ["Filter"] = "M3,4 L21,4 L14,12 L14,19 L10,21 L10,12 Z",
+            ["Calendar"] = "M4,5 L20,5 L20,21 L4,21 Z M8,3 L8,7 M16,3 L16,7 M4,10 L20,10 M8,14 L10,14 M14,14 L16,14 M8,18 L10,18",
+            ["Link"] = LinkGeometry,
+            ["Copy"] = "M8,8 L20,8 L20,21 L8,21 Z M16,8 L16,4 L4,4 L4,17 L8,17",
+            ["Check"] = "M4,12 L9,17 L20,6",
+            ["ChevronRight"] = "M9,5 L16,12 L9,19",
+            ["ChevronLeft"] = "M15,5 L8,12 L15,19",
+            ["ChevronDown"] = "M5,9 L12,16 L19,9",
+            ["ChevronUp"] = "M5,15 L12,8 L19,15",
+            ["Clock"] = "M12,22 A10,10 0 1,1 12,2 A10,10 0 1,1 12,22 Z M12,6 L12,12 L16,14",
+            ["Source"] = "M4,3 L15,3 L20,8 L20,21 L4,21 Z M15,3 L15,8 L20,8 M8,12 L16,12 M8,16 L16,16",
+            ["CopyLink"] = LinkGeometry,
+            ["MoreHorizontal"] = "M4,12 A1,1 0 1,1 4,12.1 M12,12 A1,1 0 1,1 12,12.1 M20,12 A1,1 0 1,1 20,12.1",
+            ["MoreVertical"] = "M12,4 A1,1 0 1,1 12,4.1 M12,12 A1,1 0 1,1 12,12.1 M12,20 A1,1 0 1,1 12,20.1",
+            ["ExternalLink"] = "M14,3 L21,3 L21,10 M21,3 L11,13 M18,13 L18,20 L4,20 L4,6 L11,6",
+            ["Download"] = ImportGeometry,
+            ["Upload"] = ExportGeometry,
+            ["Alert"] = "M12,3 L22,21 L2,21 Z M12,9 L12,14 M12,18 L12,18.1",
+            ["Info"] = "M12,22 A10,10 0 1,1 12,2 A10,10 0 1,1 12,22 Z M12,11 L12,16 M12,7 L12,7.1",
+            ["Save"] = "M4,3 L18,3 L21,6 L21,21 L3,21 L3,3 Z M7,3 L7,9 L16,9 L16,3 M7,21 L7,14 L17,14 L17,21",
+            ["Edit"] = "M3,17.5 L15.8,4.7 A2.1,2.1 0 0,1 18.8,7.7 L6,20.5 L2.5,21 Z M13.8,6.7 L16.8,9.7",
+            ["Quote"] = "M5,5 L11,5 L11,11 L7,11 C7,14 8,16 11,17 M14,5 L20,5 L20,11 L16,11 C16,14 17,16 20,17",
+            ["Reading"] = "M3,5 C6,4 9,5 12,7 C15,5 18,4 21,5 L21,20 C18,19 15,20 12,22 C9,20 6,19 3,20 Z M12,7 L12,22 M6,8 L9,9 M15,9 L18,8 M6,12 L9,13 M15,13 L18,12",
+            ["Research"] = "M9,3 L15,3 M10,3 L10,10 L5,18 A2,2 0 0,0 7,21 L17,21 A2,2 0 0,0 19,18 L14,10 L14,3 M8,16 L16,16 M10,13 L14,13",
+            ["TaskQueue"] = "M4,5 L20,5 M4,12 L20,12 M4,19 L20,19 M2,5 L2.1,5 M2,12 L2.1,12 M2,19 L2.1,19",
+            ["Plugin"] = "M8,3 L16,3 L16,7 L18,7 A2,2 0 0,1 20,9 L20,11 L22,11 L22,17 L20,17 L20,19 A2,2 0 0,1 18,21 L6,21 A2,2 0 0,1 4,19 L4,17 L2,17 L2,11 L4,11 L4,9 A2,2 0 0,1 6,7 L8,7 Z M8,3 L8,7 M12,7 L12,10",
+            ["Chip"] = "M7,7 L17,7 L17,17 L7,17 Z M9,10 L15,10 L15,14 L9,14 Z M9,2 L9,7 M15,2 L15,7 M9,17 L9,22 M15,17 L15,22 M2,9 L7,9 M2,15 L7,15 M17,9 L22,9 M17,15 L22,15",
+        };
+
+    public static readonly StyledProperty<string> IconNameProperty =
+        AvaloniaProperty.Register<AaosIcon, string>(nameof(IconName), "Knowledge");
+
+    static AaosIcon()
+    {
+        IconNameProperty.Changed.AddClassHandler<AaosIcon>((icon, _) => icon.UpdateIcon());
+    }
+
+    public string IconName
+    {
+        get => GetValue(IconNameProperty);
+        set => SetValue(IconNameProperty, value);
+    }
+
+    public AaosIcon()
+    {
+        InitializeComponent();
+        UpdateIcon();
+    }
+
+    private void UpdateIcon()
+    {
+        var name = IconName;
+        if (!GeometryByName.TryGetValue(name, out var geometry))
+            throw new ArgumentOutOfRangeException(nameof(IconName), name, "Unknown AAOS icon name.");
+
+        var isNavigationDot = string.Equals(name, "NavigationDot", StringComparison.OrdinalIgnoreCase);
+        IconPath.Data = Geometry.Parse(geometry);
+        IconPath.IsVisible = true;
+        IconPath.Fill = isNavigationDot ? Foreground : Brushes.Transparent;
+    }
+}

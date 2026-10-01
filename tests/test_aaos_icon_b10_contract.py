@@ -1,0 +1,80 @@
+import hashlib
+import re
+import xml.etree.ElementTree as ET
+from pathlib import Path
+
+ROOT = Path(__file__).resolve().parents[1]
+ICON_CODE = ROOT / "apps" / "ArcheAxis.Desktop" / "AaosIcon.axaml.cs"
+ICON_XAML = ROOT / "apps" / "ArcheAxis.Desktop" / "AaosIcon.axaml"
+MAIN_XAML = ROOT / "apps" / "ArcheAxis.Desktop" / "MainWindow.axaml"
+THEME_CODE = ROOT / "apps" / "ArcheAxis.Desktop" / "ThemePalette.cs"
+B10_HTML = ROOT / "tests" / "fixtures" / "aaos-ui-mother" / "index.html"
+ICON_BOARD = ROOT / "tests" / "fixtures" / "aaos-ui-mother" / "icon-system.png"
+
+
+def test_portable_mother_assets_preserve_owner_supplied_bytes():
+    assert hashlib.sha256(B10_HTML.read_bytes()).hexdigest() == (
+        "1da1fe0d1feb55db98fba5e28cdbaf2e261e7ec4f562d3410cc9b7e74b3149f1"
+    )
+    assert hashlib.sha256(ICON_BOARD.read_bytes()).hexdigest() == (
+        "ae10bdbfd751cfef6c624c934431c3dfdb05bdfdf8ab0c78fd6cf1fe5ef40c5b"
+    )
+
+
+def test_primary_navigation_uses_b10_master_dots_and_action_icons_are_registered():
+    b10 = B10_HTML.read_text(encoding="utf-8")
+    assert ".nav-dot" in b10  # User-adopted final B10 mother is the highest authority.
+
+    code = ICON_CODE.read_text(encoding="utf-8")
+    names = set(re.findall(r'^\s*\["([^"]+)"\]\s*=', code, re.M))
+    assert {"Home", "Import", "Original", "Knowledge", "Evidence", "Search", "Memory", "Growth", "HumanAi", "Connection", "Thinking", "Calendar", "Settings"} <= names
+    main = MAIN_XAML.read_text(encoding="utf-8")
+    root = ET.fromstring(main)
+    namespace = {"x": "http://schemas.microsoft.com/winfx/2006/xaml"}
+    expected = {
+        "RailWorkspaceButton": "Home",
+        "RailCaptureButton": "Import",
+        "RailEvidenceButton": "Evidence",
+        "RailOriginalsButton": "Original",
+        "RailLearningButton": "HumanAi",
+        "RailMachineButton": "Connection",
+        "RailWorkspaceTreeButton": "Workspace",
+        "RailMemoryMapButton": "Memory",
+        "RailSearchButton": "Search",
+        "RailReviewButton": "Calendar",
+        "RailSystemButton": "Settings",
+    }
+    for button_name in expected:
+        button = next(node for node in root.iter() if node.get(f"{{{namespace['x']}}}Name") == button_name)
+        dot = next(node for node in button.iter() if "b10-nav-dot" in node.get("Classes", "").split())
+        assert dot.get("Width") == dot.get("Height") == "10"
+        assert dot.get("BorderThickness") == "2"
+        assert dot.get("CornerRadius") == "5"
+        assert dot.get("Background") == "Transparent"
+        assert dot.get("BorderBrush") == "{DynamicResource AaosMutedBrush}"
+    assert 'IconName="Home"' in main
+
+
+def test_icon_stroke_and_foreground_follow_both_theme_palettes():
+    code = ICON_CODE.read_text(encoding="utf-8")
+    xaml = ICON_XAML.read_text(encoding="utf-8")
+    palettes = THEME_CODE.read_text(encoding="utf-8")
+    assert "IconStrokeThickness => 1.7" in code
+    assert 'Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=UserControl}}"' in xaml
+    assert 'StrokeThickness="{Binding IconStrokeThickness' in xaml
+    assert palettes.count('["AaosIvoryBrush"]') == 2
+    assert "#F3EFE6" in palettes and "#F1F2F3" in palettes
+    assert ICON_BOARD.is_file()
+
+
+def test_product_action_icons_are_registered_and_used_by_visible_controls():
+    code = ICON_CODE.read_text(encoding="utf-8")
+    xaml = MAIN_XAML.read_text(encoding="utf-8")
+    names = set(re.findall(r'^\s*\["([^"]+)"\]\s*=', code, re.M))
+    expected = {"Close", "Plus", "Refresh", "Import", "Export", "Filter", "Calendar", "Link", "Copy", "Check", "Clock", "Source", "Save", "Edit", "Notifications"}
+    assert expected <= names
+    assert 'IconName="Notifications"' in xaml
+    assert 'IconName="Workspace"' in xaml
+    assert 'IconName="Capture"' in xaml
+    assert 'IconName="Save"' in xaml
+    assert 'IconName="Link"' in xaml

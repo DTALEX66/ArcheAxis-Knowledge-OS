@@ -1,0 +1,721 @@
+{
+  "schema": "aaos.external-input-extract/v1",
+  "extracted_on": "2026-10-01",
+  "classification": "HISTORICAL_INPUT_NOT_AUTHORITY",
+  "source_files": [
+    {
+      "basename": "三项目_AI生态全生命周期收敛最终方案_2026-10-01.html",
+      "bytes": 102843,
+      "sha256": "43066037d74c8c2995fd0a9aac1218ccec5fb731594b9f9109b897a382fec212"
+    },
+    {
+      "basename": "WORK-LAB_审计收敛报告_2026-10-01.html",
+      "bytes": 161497,
+      "sha256": "2ac7e637d809e41ca7e462cd1d37679898d0b63e03649cb9eb6cbbfda2feba99"
+    },
+    {
+      "basename": "三项目_AI生态全生命周期收敛实施清单_2026-10-01.json",
+      "bytes": 106090,
+      "sha256": "35ffbd5d437c0738e994fd2fe4b36254bbfc33389aa7e22f1fec49890363fc98"
+    },
+    {
+      "basename": "WORK-LAB_审计裁决_2026-10-01.json",
+      "bytes": 140058,
+      "sha256": "55e1c82b67317d62cdc1647775bab2b61b9e7a43cdddc7bf130131655fe8d734"
+    }
+  ],
+  "selection_rules": {
+    "plan_convergence_ids": [
+      "D01",
+      "D02",
+      "D08",
+      "D09",
+      "D10",
+      "D11",
+      "D12",
+      "D15"
+    ],
+    "plan_phase_ids": [
+      "P00",
+      "P05",
+      "P06",
+      "P07",
+      "P09",
+      "P15",
+      "P16"
+    ],
+    "audit_verdict_ids": [
+      "H1",
+      "H7",
+      "I7",
+      "Q8"
+    ],
+    "audit_finding_ids": [
+      "F01",
+      "F18",
+      "F19",
+      "F20"
+    ],
+    "html": "text nodes explicitly mentioning AAOS, ArcheAxis or 星环; skips bare URL/path nodes"
+  },
+  "plan": {
+    "authority": {
+      "precedence": "用户最新明确指令 > 本仓当前权威链；本文件为研究与实施建议，不作新总账/权威/TaskPack",
+      "repository_baseline": "固定 WORK-LAB anchor 与其归档副本；不是今天三个仓库当前 main 的完整新审计",
+      "worklab_anchor": "d43d07a75ef8c556344e9b3a99f9257dd2db7b5c",
+      "worklab_current_task_register": "taskpacks/current/OPEN-TASK-REGISTER.md",
+      "design_lab_current_task_register": "design-lab/config/task-ledger-r3.json（以归档规则和未来当前权威解析确认）",
+      "archeaxis_current_task_register": "读取当前 AA 权威后解析既有唯一入口，不由本方案另建"
+    },
+    "coverage": {
+      "prior_pinned_evidence_hashes": "12/12匹配",
+      "prior_pinned_authority_hashes": "32/32匹配",
+      "prior_archive_hashes": "476/476匹配",
+      "prior_verdict_count": 47,
+      "literature_primary_pages": 38,
+      "cloud_all_three_current_full_trees": false,
+      "gpt_history_complete": false,
+      "windows_live_verified": false,
+      "unarchived_private_state": "UNVERIFIABLE；不从缺档推存在/不存在/合规"
+    },
+    "convergence": [
+      {
+        "id": "D01",
+        "target": "三项目身份与两种 WORK-LAB 职责",
+        "action": "KEEP_AS_IS",
+        "reason": "保留三个独立项目和现有控制面。WORK-LAB 全局治理与本项目代码/规范/技能/记忆的职责用既有 owner/scope 区分，不强造 platform-governance 与 worklab-project 新根，也不合成一仓。",
+        "evidence_urls": [
+          "https://raw.githubusercontent.com/DTALEX66/WORK-LAB/d43d07a75ef8c556344e9b3a99f9257dd2db7b5c/WORK-LAB-AUTHORITY.md",
+          "https://raw.githubusercontent.com/DTALEX66/WORK-LAB/d43d07a75ef8c556344e9b3a99f9257dd2db7b5c/.project/governance/three-project-boundary.json",
+          "https://raw.githubusercontent.com/DTALEX66/WORK-LAB/d43d07a75ef8c556344e9b3a99f9257dd2db7b5c/reports/audit-archive/20260930/projects/DESIGN-LAB/AUTHORITY.md",
+          "https://raw.githubusercontent.com/DTALEX66/WORK-LAB/d43d07a75ef8c556344e9b3a99f9257dd2db7b5c/reports/audit-archive/20260930/projects/ArcheAxis-Knowledge-OS/DIRECTORY_AUTHORITY.yaml"
+        ],
+        "sources": [
+          "R01",
+          "R02",
+          "R15",
+          "R17"
+        ],
+        "rollback": "各仓独立分支、独立 PR/回退；任何跨仓接口改动保留旧接口过渡和对应版本。",
+        "needs_local": false
+      },
+      {
+        "id": "D02",
+        "target": "全局与项目规则去重",
+        "action": "MERGE",
+        "reason": "每条常驻规则需有适用范围和可验证理由；全局保留共同边界，项目保留业务/目录/构建差异，长流程移到按需技能。硬边界留在权限/执行器/CI 中，文本缩短不弱化技术门。",
+        "evidence_urls": [
+          "https://raw.githubusercontent.com/DTALEX66/WORK-LAB/d43d07a75ef8c556344e9b3a99f9257dd2db7b5c/WORK-LAB-AUTHORITY.md",
+          "https://raw.githubusercontent.com/DTALEX66/WORK-LAB/d43d07a75ef8c556344e9b3a99f9257dd2db7b5c/config/config-ownership.json",
+          "https://developers.openai.com/blog/rethinking-skills-and-prompts-for-gpt-6-astra",
+          "https://code.claude.com/docs/en/memory",
+          "https://cursor.com/docs/rules",
+          "https://www.anthropic.com/engineering/effective-context-engineering-for-ai-agents"
+        ],
+        "sources": [
+          "R01",
+          "R03",
+          "S03",
+          "S05",
+          "S06",
+          "S37"
+        ],
+        "rollback": "保留原始源 hash，源提交回退并由上个渲染器重渲染；行为回归恢复。",
+        "needs_local": true
+      },
+      {
+        "id": "D08",
+        "target": "目录规范与外溢治理",
+        "action": "MERGE",
+        "reason": "扩展本项目现有目录/模块 owner 与输出根合同；目录名、深度或 age 只触发候选。新根、跨 owner、符号链接/junction、大小写/Unicode 冲突需检查。迁移按源→目的地 hash/引用/入口映射完成，不反复加编号根。",
+        "evidence_urls": [
+          "https://raw.githubusercontent.com/DTALEX66/WORK-LAB/d43d07a75ef8c556344e9b3a99f9257dd2db7b5c/WORK-LAB-AUTHORITY.md",
+          "https://raw.githubusercontent.com/DTALEX66/WORK-LAB/d43d07a75ef8c556344e9b3a99f9257dd2db7b5c/reports/audit-archive/20260930/projects/DESIGN-LAB/AUTHORITY.md",
+          "https://raw.githubusercontent.com/DTALEX66/WORK-LAB/d43d07a75ef8c556344e9b3a99f9257dd2db7b5c/reports/audit-archive/20260930/projects/ArcheAxis-Knowledge-OS/DIRECTORY_AUTHORITY.yaml",
+          "https://git-scm.com/docs/gitignore",
+          "https://github.com/pre-commit/pre-commit-hooks"
+        ],
+        "sources": [
+          "R01",
+          "R15",
+          "R17",
+          "S23",
+          "S26"
+        ],
+        "rollback": "保留 rename/move 映射与基线；反向移动后 hash、引用、构建和 owner 匹配恢复。",
+        "needs_local": true
+      },
+      {
+        "id": "D09",
+        "target": "可再生产缓存与受控生成物",
+        "action": "MERGE",
+        "reason": "区分 tracked 合同产物、发布产物、短期可再生成缓存、独有用户原件。DESIGN-LAB tracked build 保留重建 no-drift；缓存先证明可再下载/构建及无运行依赖，才进入精确路径候选。",
+        "evidence_urls": [
+          "https://raw.githubusercontent.com/DTALEX66/WORK-LAB/d43d07a75ef8c556344e9b3a99f9257dd2db7b5c/reports/audit-archive/20260930/projects/DESIGN-LAB/AUTHORITY.md",
+          "https://raw.githubusercontent.com/DTALEX66/WORK-LAB/d43d07a75ef8c556344e9b3a99f9257dd2db7b5c/reports/audit-archive/20260930/projects/ArcheAxis-Knowledge-OS/DIRECTORY_AUTHORITY.yaml",
+          "https://git-scm.com/docs/gitignore",
+          "https://knip.dev/guides/handling-issues",
+          "https://docs.github.com/en/actions/concepts/workflows-and-actions/dependency-caching"
+        ],
+        "sources": [
+          "R15",
+          "R17",
+          "S23",
+          "S28",
+          "S32"
+        ],
+        "rollback": "恢复精确路径隔离副本，或按锁定源和工具链重建；功能/产物 hash 或规定语义等价通过。",
+        "needs_local": true
+      },
+      {
+        "id": "D10",
+        "target": "历史文档、提示词、审计与对话",
+        "action": "ARCHIVE_ONLY",
+        "reason": "保留原件与位置/hash/后继映射，活动入口只指当前有效决定；找回历史不等于开机全文加载。未找回材料写缺失，不声称全部 GPT 历史已搜全。",
+        "evidence_urls": [
+          "https://raw.githubusercontent.com/DTALEX66/WORK-LAB/d43d07a75ef8c556344e9b3a99f9257dd2db7b5c/WORK-LAB-AUTHORITY.md",
+          "https://raw.githubusercontent.com/DTALEX66/WORK-LAB/d43d07a75ef8c556344e9b3a99f9257dd2db7b5c/reports/audit-archive/20260930/projects/DESIGN-LAB/AGENTS.md",
+          "https://raw.githubusercontent.com/DTALEX66/WORK-LAB/d43d07a75ef8c556344e9b3a99f9257dd2db7b5c/reports/audit-archive/20260930/ARCHIVE-INDEX.json",
+          "https://diataxis.fr/",
+          "https://cognitect.com/blog/2011/11/15/documenting-architecture-decisions",
+          "https://www.anthropic.com/engineering/effective-context-engineering-for-ai-agents"
+        ],
+        "sources": [
+          "R01",
+          "R16",
+          "R19",
+          "S29",
+          "S30",
+          "S37"
+        ],
+        "rollback": "保留未变原件；恢复索引与 supersedes 关系，可由原 source_id/定位找回。",
+        "needs_local": false
+      },
+      {
+        "id": "D11",
+        "target": "记忆与知识边界",
+        "action": "MERGE",
+        "reason": "三项目都有各自工作上下文。长期可复用知识的接受/存储/回忆属于 ArcheAxis；WL 输出带 provenance 的候选/工作流经验，DL 保留本领域经验并经审核选择性提炼。原生私有记忆和会话不自动导入或晋升为全局规范。",
+        "evidence_urls": [
+          "https://raw.githubusercontent.com/DTALEX66/WORK-LAB/d43d07a75ef8c556344e9b3a99f9257dd2db7b5c/.project/governance/three-project-boundary.json",
+          "https://raw.githubusercontent.com/DTALEX66/WORK-LAB/d43d07a75ef8c556344e9b3a99f9257dd2db7b5c/config/config-ownership.json",
+          "https://code.claude.com/docs/en/memory",
+          "https://hermes-agent.nousresearch.com/docs/user-guide/features/skills/",
+          "https://hermes-agent.nousresearch.com/docs/user-guide/configuration/",
+          "https://www.anthropic.com/engineering/effective-context-engineering-for-ai-agents"
+        ],
+        "sources": [
+          "R02",
+          "R03",
+          "S05",
+          "S07",
+          "S08",
+          "S37"
+        ],
+        "rollback": "撤回新候选/投影，保持原件与原软件状态；AA 仅沿本仓既有版本/接受协议恢复，不能旁路写库。",
+        "needs_local": true
+      },
+      {
+        "id": "D12",
+        "target": "新软件、新模型资格化",
+        "action": "MERGE",
+        "reason": "核心需求用能力、输出合同和风险描述；适配器记录实际软件版本、发现根、工具/技能行为与模型声明。使用用户原生选定的模型做配对评测，不改变默认 model/provider/auth，不用厂商旗舰排序代表兼容性。",
+        "evidence_urls": [
+          "https://raw.githubusercontent.com/DTALEX66/WORK-LAB/d43d07a75ef8c556344e9b3a99f9257dd2db7b5c/WORK-LAB-AUTHORITY.md",
+          "https://raw.githubusercontent.com/DTALEX66/WORK-LAB/d43d07a75ef8c556344e9b3a99f9257dd2db7b5c/config/adapter-registry.json",
+          "https://raw.githubusercontent.com/DTALEX66/WORK-LAB/d43d07a75ef8c556344e9b3a99f9257dd2db7b5c/config/global-agent-policy.yaml",
+          "https://developers.openai.com/blog/rethinking-skills-and-prompts-for-gpt-6-astra",
+          "https://developers.openai.com/blog/eval-skills",
+          "https://agentskills.io/specification",
+          "https://modelcontextprotocol.io/docs/2026-07-28/learn/architecture"
+        ],
+        "sources": [
+          "R01",
+          "R04",
+          "R05",
+          "S03",
+          "S04",
+          "S13",
+          "S14"
+        ],
+        "rollback": "恢复上个合格源/渲染器/受管配置集合；软件降级另需数据兼容证明；模型选择保持用户控制。",
+        "needs_local": true
+      },
+      {
+        "id": "D15",
+        "target": "统一生产—晋升—退出机制",
+        "action": "MERGE",
+        "reason": "在现有任务/receipt/cleanup 通道加入输出用途、目标 owner、保留规则和关闭清单；合并现有清理/备份/配额规则。登记是派生视图，不新建生命周期总账或第四产品。",
+        "evidence_urls": [
+          "https://raw.githubusercontent.com/DTALEX66/WORK-LAB/d43d07a75ef8c556344e9b3a99f9257dd2db7b5c/WORK-LAB-AUTHORITY.md",
+          "https://raw.githubusercontent.com/DTALEX66/WORK-LAB/d43d07a75ef8c556344e9b3a99f9257dd2db7b5c/.project/governance/three-project-boundary.json",
+          "https://raw.githubusercontent.com/DTALEX66/WORK-LAB/d43d07a75ef8c556344e9b3a99f9257dd2db7b5c/config/config-ownership.json",
+          "https://raw.githubusercontent.com/DTALEX66/WORK-LAB/d43d07a75ef8c556344e9b3a99f9257dd2db7b5c/reports/audit-archive/20260930/projects/DESIGN-LAB/AUTHORITY.md",
+          "https://raw.githubusercontent.com/DTALEX66/WORK-LAB/d43d07a75ef8c556344e9b3a99f9257dd2db7b5c/reports/audit-archive/20260930/projects/ArcheAxis-Knowledge-OS/DIRECTORY_AUTHORITY.yaml",
+          "https://martinfowler.com/articles/evo-arch-forward.html",
+          "https://docs.github.com/en/actions/concepts/workflows-and-actions/dependency-caching"
+        ],
+        "sources": [
+          "R01",
+          "R02",
+          "R03",
+          "R15",
+          "R17",
+          "S31",
+          "S32"
+        ],
+        "rollback": "回退对应功能源，保留已生成 receipt 与原件；运行输出回到允许根，历史不改为未发生。",
+        "needs_local": true
+      }
+    ],
+    "phases": [
+      {
+        "id": "P00",
+        "phase": "P0",
+        "target": "所有项目/所有软件",
+        "title": "建立明确范围和 coverage 清单",
+        "work": "读取本仓当前权威；分别固定三个仓 observed_commit/tree；列 tracked、refs、submodule/LFS 和读取失败；本机只读列允许根内未提交/忽略项及客户端载体版本。",
+        "acceptance": "公开 tree 的每个条目都分类；NOT_FOUND/UNREAD/SKIPPED 数量可计算；原件和复制件、历史 snapshot 与当前 commit 分开。",
+        "fail_when": "无法解析 current 权威、根身份不明或把固定 WL 档案当三仓全量，阻断对应动作。",
+        "rollback": "纯读取无回滚；报告保留时间点，不覆写原有任务账本。",
+        "needs_local": true,
+        "sources": [
+          "R01",
+          "R15",
+          "R17",
+          "R19"
+        ],
+        "evidence_urls": [
+          "https://raw.githubusercontent.com/DTALEX66/WORK-LAB/d43d07a75ef8c556344e9b3a99f9257dd2db7b5c/WORK-LAB-AUTHORITY.md",
+          "https://raw.githubusercontent.com/DTALEX66/WORK-LAB/d43d07a75ef8c556344e9b3a99f9257dd2db7b5c/reports/audit-archive/20260930/projects/DESIGN-LAB/AUTHORITY.md",
+          "https://raw.githubusercontent.com/DTALEX66/WORK-LAB/d43d07a75ef8c556344e9b3a99f9257dd2db7b5c/reports/audit-archive/20260930/projects/ArcheAxis-Knowledge-OS/DIRECTORY_AUTHORITY.yaml",
+          "https://raw.githubusercontent.com/DTALEX66/WORK-LAB/d43d07a75ef8c556344e9b3a99f9257dd2db7b5c/reports/audit-archive/20260930/ARCHIVE-INDEX.json"
+        ],
+        "status": "PROPOSED_NOT_EXECUTED"
+      },
+      {
+        "id": "P05",
+        "phase": "P1",
+        "target": "三个项目",
+        "title": "接入仓库卫生增量门禁",
+        "work": "复用现有 CI/命名/目录 owner/边界守卫；加入新增非法根、Windows 名称/大小写、未知大文件、源控缓存、断链、未声明输出路径检查；扫描结果逐项显示范围。",
+        "acceptance": "既有门禁继续有效；新增问题被阻断；历史存量以基线候选跟踪而非先要求全仓无问题。",
+        "fail_when": "用 ignore 大范围吞掉历史失败，或把受控 tracked build 当缓存，失败。",
+        "rollback": "回退本次新增检查源；原有必需门禁不移除。",
+        "needs_local": false,
+        "sources": [
+          "R01",
+          "R15",
+          "R17",
+          "S23",
+          "S25",
+          "S26",
+          "S27"
+        ],
+        "evidence_urls": [
+          "https://raw.githubusercontent.com/DTALEX66/WORK-LAB/d43d07a75ef8c556344e9b3a99f9257dd2db7b5c/WORK-LAB-AUTHORITY.md",
+          "https://raw.githubusercontent.com/DTALEX66/WORK-LAB/d43d07a75ef8c556344e9b3a99f9257dd2db7b5c/reports/audit-archive/20260930/projects/DESIGN-LAB/AUTHORITY.md",
+          "https://raw.githubusercontent.com/DTALEX66/WORK-LAB/d43d07a75ef8c556344e9b3a99f9257dd2db7b5c/reports/audit-archive/20260930/projects/ArcheAxis-Knowledge-OS/DIRECTORY_AUTHORITY.yaml",
+          "https://git-scm.com/docs/gitignore",
+          "https://github.com/github/git-sizer",
+          "https://github.com/pre-commit/pre-commit-hooks",
+          "https://github.com/gitleaks/gitleaks"
+        ],
+        "status": "PROPOSED_NOT_EXECUTED"
+      },
+      {
+        "id": "P06",
+        "phase": "P2",
+        "target": "三个项目",
+        "title": "语义收敛文档与规则",
+        "work": "按现有 authority-index/crosswalk 把重复 current、旧链接、孤儿指令和冲突字段列清单；合并 current 叙述，保留原件后继映射；将任务特定指南移为按需引用。",
+        "acceptance": "每条有效约束仍有唯一归属与可发现入口；构建/规则/任务入口不丢；不创建新全局或目录总权威。",
+        "fail_when": "只是按 age/name 批量归档，或索引要求 bootstrap 仍失效，失败。",
+        "rollback": "各仓单独 PR 回退及引用映射恢复；原件 hash 对齐。",
+        "needs_local": false,
+        "sources": [
+          "R01",
+          "R15",
+          "R16",
+          "R17",
+          "R18",
+          "S29",
+          "S30"
+        ],
+        "evidence_urls": [
+          "https://raw.githubusercontent.com/DTALEX66/WORK-LAB/d43d07a75ef8c556344e9b3a99f9257dd2db7b5c/WORK-LAB-AUTHORITY.md",
+          "https://raw.githubusercontent.com/DTALEX66/WORK-LAB/d43d07a75ef8c556344e9b3a99f9257dd2db7b5c/reports/audit-archive/20260930/projects/DESIGN-LAB/AUTHORITY.md",
+          "https://raw.githubusercontent.com/DTALEX66/WORK-LAB/d43d07a75ef8c556344e9b3a99f9257dd2db7b5c/reports/audit-archive/20260930/projects/DESIGN-LAB/AGENTS.md",
+          "https://raw.githubusercontent.com/DTALEX66/WORK-LAB/d43d07a75ef8c556344e9b3a99f9257dd2db7b5c/reports/audit-archive/20260930/projects/ArcheAxis-Knowledge-OS/DIRECTORY_AUTHORITY.yaml",
+          "https://raw.githubusercontent.com/DTALEX66/WORK-LAB/d43d07a75ef8c556344e9b3a99f9257dd2db7b5c/reports/audit-archive/20260930/projects/ArcheAxis-Knowledge-OS/AGENTS.md",
+          "https://diataxis.fr/",
+          "https://cognitect.com/blog/2011/11/15/documenting-architecture-decisions"
+        ],
+        "status": "PROPOSED_NOT_EXECUTED"
+      },
+      {
+        "id": "P07",
+        "phase": "P2",
+        "target": "三个项目",
+        "title": "目录和重复资产迁移",
+        "work": "对重复/旧目录作精确源目的映射、owner、读写调用者、动态加载和构建依赖检查；更新引用和输出生产者；禁止跨仓整个目录复制。",
+        "acceptance": "目的地 hash/语义、消费者、入口和 owner 都通过；Windows case/Unicode/path/junction fixture 通过。",
+        "fail_when": "仅凭目录深或相同 hash 判断可删，或引出受保护根/其他项目写入，失败。",
+        "rollback": "反向移动映射；恢复引用和生产者配置；不得恢复成同时两处活跃写。",
+        "needs_local": true,
+        "sources": [
+          "R02",
+          "R15",
+          "R17",
+          "S23",
+          "S26",
+          "S28"
+        ],
+        "evidence_urls": [
+          "https://raw.githubusercontent.com/DTALEX66/WORK-LAB/d43d07a75ef8c556344e9b3a99f9257dd2db7b5c/.project/governance/three-project-boundary.json",
+          "https://raw.githubusercontent.com/DTALEX66/WORK-LAB/d43d07a75ef8c556344e9b3a99f9257dd2db7b5c/reports/audit-archive/20260930/projects/DESIGN-LAB/AUTHORITY.md",
+          "https://raw.githubusercontent.com/DTALEX66/WORK-LAB/d43d07a75ef8c556344e9b3a99f9257dd2db7b5c/reports/audit-archive/20260930/projects/ArcheAxis-Knowledge-OS/DIRECTORY_AUTHORITY.yaml",
+          "https://git-scm.com/docs/gitignore",
+          "https://github.com/pre-commit/pre-commit-hooks",
+          "https://knip.dev/guides/handling-issues"
+        ],
+        "status": "PROPOSED_NOT_EXECUTED"
+      },
+      {
+        "id": "P09",
+        "phase": "P2",
+        "target": "三个项目",
+        "title": "约束所有生成器和任务出口",
+        "work": "现有 generator/task/cleanup 入口声明输出用途、允许根、最大体量/TTL、晋升目标和关闭清单；关闭时检测本仓及声明外置输出根新增文件；其他位置只报告允许的元数据。",
+        "acceptance": "新输出均有 receipt 和归属；不再出现无 owner 的新根/副本/最终版；失败任务输出也可退出。",
+        "fail_when": "生成器继续写未知根、关闭任务只加报告未处理输出，失败。",
+        "rollback": "回退 producer 变更，保留本次 receipt；输出恢复到已允许位置。",
+        "needs_local": true,
+        "sources": [
+          "R01",
+          "R02",
+          "R15",
+          "R17",
+          "S31",
+          "S32"
+        ],
+        "evidence_urls": [
+          "https://raw.githubusercontent.com/DTALEX66/WORK-LAB/d43d07a75ef8c556344e9b3a99f9257dd2db7b5c/WORK-LAB-AUTHORITY.md",
+          "https://raw.githubusercontent.com/DTALEX66/WORK-LAB/d43d07a75ef8c556344e9b3a99f9257dd2db7b5c/.project/governance/three-project-boundary.json",
+          "https://raw.githubusercontent.com/DTALEX66/WORK-LAB/d43d07a75ef8c556344e9b3a99f9257dd2db7b5c/reports/audit-archive/20260930/projects/DESIGN-LAB/AUTHORITY.md",
+          "https://raw.githubusercontent.com/DTALEX66/WORK-LAB/d43d07a75ef8c556344e9b3a99f9257dd2db7b5c/reports/audit-archive/20260930/projects/ArcheAxis-Knowledge-OS/DIRECTORY_AUTHORITY.yaml",
+          "https://martinfowler.com/articles/evo-arch-forward.html",
+          "https://docs.github.com/en/actions/concepts/workflows-and-actions/dependency-caching"
+        ],
+        "status": "PROPOSED_NOT_EXECUTED"
+      },
+      {
+        "id": "P15",
+        "phase": "P4",
+        "target": "三个项目/模型适配",
+        "title": "用同组任务比较新旧模型/规则",
+        "work": "在用户选定且可用的运行时执行成对 fixture：指令加载、触发/不触发、工具输出、中文Windows路径、未知字段、故障恢复、关闭产物；记录旧/新语义和执行身份。",
+        "acceptance": "硬边界零回归；关键任务质量不低于既定门；输入常驻负担与产物增长有测量；模型与软件变化尽量分开。",
+        "fail_when": "新模型仅靠参数能力宣传合格，或将模型/软件/目录/记忆迁移同时改变导致无法归因，失败。",
+        "rollback": "恢复上个规则/适配器集合；用户模型选择由用户掌握，不自动路由切换。",
+        "needs_local": true,
+        "sources": [
+          "R01",
+          "R04",
+          "R05",
+          "S03",
+          "S04",
+          "S13",
+          "S14"
+        ],
+        "evidence_urls": [
+          "https://raw.githubusercontent.com/DTALEX66/WORK-LAB/d43d07a75ef8c556344e9b3a99f9257dd2db7b5c/WORK-LAB-AUTHORITY.md",
+          "https://raw.githubusercontent.com/DTALEX66/WORK-LAB/d43d07a75ef8c556344e9b3a99f9257dd2db7b5c/config/adapter-registry.json",
+          "https://raw.githubusercontent.com/DTALEX66/WORK-LAB/d43d07a75ef8c556344e9b3a99f9257dd2db7b5c/config/global-agent-policy.yaml",
+          "https://developers.openai.com/blog/rethinking-skills-and-prompts-for-gpt-6-astra",
+          "https://developers.openai.com/blog/eval-skills",
+          "https://agentskills.io/specification",
+          "https://modelcontextprotocol.io/docs/2026-07-28/learn/architecture"
+        ],
+        "status": "PROPOSED_NOT_EXECUTED"
+      },
+      {
+        "id": "P16",
+        "phase": "P4",
+        "target": "各项目",
+        "title": "合并到 main 并持续验收",
+        "work": "任务进入本仓现有唯一 current 入口；各仓独立 PR，exact-SHA 结构/边界/证据/构建门；本机受管部署收据绑定同一候选版本。",
+        "acceptance": "源码与派生投影同批；冲突和未验状态诚实；只有所需Windows门通过才声明重装/部署成功。",
+        "fail_when": "跳过必需 gate 当 PASS；拿旧 SHA 的 GUI/运行证据替新产物；跨仓/桌面全量大合并，失败。",
+        "rollback": "各仓独立 revert；deploy 恢复上个 cohort 的受管集合；历史验收收据仍保留。",
+        "needs_local": true,
+        "sources": [
+          "R01",
+          "R15",
+          "R16",
+          "R17",
+          "S31"
+        ],
+        "evidence_urls": [
+          "https://raw.githubusercontent.com/DTALEX66/WORK-LAB/d43d07a75ef8c556344e9b3a99f9257dd2db7b5c/WORK-LAB-AUTHORITY.md",
+          "https://raw.githubusercontent.com/DTALEX66/WORK-LAB/d43d07a75ef8c556344e9b3a99f9257dd2db7b5c/reports/audit-archive/20260930/projects/DESIGN-LAB/AUTHORITY.md",
+          "https://raw.githubusercontent.com/DTALEX66/WORK-LAB/d43d07a75ef8c556344e9b3a99f9257dd2db7b5c/reports/audit-archive/20260930/projects/DESIGN-LAB/AGENTS.md",
+          "https://raw.githubusercontent.com/DTALEX66/WORK-LAB/d43d07a75ef8c556344e9b3a99f9257dd2db7b5c/reports/audit-archive/20260930/projects/ArcheAxis-Knowledge-OS/DIRECTORY_AUTHORITY.yaml",
+          "https://martinfowler.com/articles/evo-arch-forward.html"
+        ],
+        "status": "PROPOSED_NOT_EXECUTED"
+      }
+    ]
+  },
+  "audit": {
+    "anchor_sha": "d43d07a75ef8c556344e9b3a99f9257dd2db7b5c",
+    "overall_verdict": "NOT_READY_FOR_REINSTALL_OR_DEPLOYMENT_ACCEPTANCE",
+    "verdicts": [
+      {
+        "claim_id": "H1",
+        "level": "UNVERIFIABLE",
+        "evidence_level": "DECLARED",
+        "evidence_url": "https://raw.githubusercontent.com/DTALEX66/WORK-LAB/d43d07a75ef8c556344e9b3a99f9257dd2db7b5c/reports/audit-evidence/assets-20260930/three-project-probe.json",
+        "evidence_urls": [
+          "https://raw.githubusercontent.com/DTALEX66/WORK-LAB/d43d07a75ef8c556344e9b3a99f9257dd2db7b5c/reports/audit-evidence/assets-20260930/three-project-probe.json",
+          "https://raw.githubusercontent.com/DTALEX66/WORK-LAB/d43d07a75ef8c556344e9b3a99f9257dd2db7b5c/reports/audit-archive/20260930/projects/ArcheAxis-Knowledge-OS/AGENTS.md",
+          "https://raw.githubusercontent.com/DTALEX66/WORK-LAB/d43d07a75ef8c556344e9b3a99f9257dd2db7b5c/reports/audit-archive/20260930/projects/DESIGN-LAB/AGENTS.md"
+        ],
+        "note": "探针登记了三个独立remote和本地目录；固定WORK-LAB raw快照无法独立证明另两仓本机身份、目录不存在或其当时Git状态。三份规则中的独立项目定位可核对。",
+        "quota_impact": "不受影响",
+        "needed_to_decide": "三个仓库各自的commit/tree证据与Windows仓库根读回。"
+      },
+      {
+        "claim_id": "H7",
+        "level": "PASS",
+        "evidence_level": "VERIFIED",
+        "evidence_url": "https://raw.githubusercontent.com/DTALEX66/WORK-LAB/d43d07a75ef8c556344e9b3a99f9257dd2db7b5c/.project/governance/three-project-boundary.json",
+        "evidence_urls": [
+          "https://raw.githubusercontent.com/DTALEX66/WORK-LAB/d43d07a75ef8c556344e9b3a99f9257dd2db7b5c/.project/governance/three-project-boundary.json",
+          "https://raw.githubusercontent.com/DTALEX66/WORK-LAB/d43d07a75ef8c556344e9b3a99f9257dd2db7b5c/reports/audit-archive/20260930/projects/ArcheAxis-Knowledge-OS/AGENTS.md",
+          "https://raw.githubusercontent.com/DTALEX66/WORK-LAB/d43d07a75ef8c556344e9b3a99f9257dd2db7b5c/reports/audit-archive/20260930/projects/DESIGN-LAB/AGENTS.md"
+        ],
+        "note": "知识/长期记忆/学习归ArcheAxis，WORK-LAB保留导出守卫和Candidate；两项目独立运行的规则与此一致。原生客户端私有记忆不因领域归属而自动授权迁移。",
+        "quota_impact": "不受影响",
+        "needed_to_decide": ""
+      },
+      {
+        "claim_id": "I7",
+        "level": "PASS",
+        "evidence_level": "VERIFIED",
+        "evidence_url": "https://raw.githubusercontent.com/DTALEX66/WORK-LAB/d43d07a75ef8c556344e9b3a99f9257dd2db7b5c/reports/audit-evidence/assets-20260930/global-workflow-coverage.json",
+        "evidence_urls": [
+          "https://raw.githubusercontent.com/DTALEX66/WORK-LAB/d43d07a75ef8c556344e9b3a99f9257dd2db7b5c/reports/audit-evidence/assets-20260930/global-workflow-coverage.json",
+          "https://raw.githubusercontent.com/DTALEX66/WORK-LAB/d43d07a75ef8c556344e9b3a99f9257dd2db7b5c/reports/audit-evidence/assets-20260930/three-project-probe.json",
+          "https://raw.githubusercontent.com/DTALEX66/WORK-LAB/d43d07a75ef8c556344e9b3a99f9257dd2db7b5c/reports/audit-archive/20260930/ARCHIVE-INDEX.json"
+        ],
+        "note": "两个项目指定规则原文和WORK-LAB规范索引均可读。只能称已索引的规则切片；ArcheAxis归档8文件、DESIGN-LAB61文件不是两仓全树。",
+        "quota_impact": "不受影响",
+        "needed_to_decide": ""
+      },
+      {
+        "claim_id": "Q8",
+        "level": "PASS",
+        "evidence_level": "VERIFIED",
+        "evidence_url": "https://raw.githubusercontent.com/DTALEX66/WORK-LAB/d43d07a75ef8c556344e9b3a99f9257dd2db7b5c/.project/governance/three-project-boundary.json",
+        "evidence_urls": [
+          "https://raw.githubusercontent.com/DTALEX66/WORK-LAB/d43d07a75ef8c556344e9b3a99f9257dd2db7b5c/.project/governance/three-project-boundary.json",
+          "https://raw.githubusercontent.com/DTALEX66/WORK-LAB/d43d07a75ef8c556344e9b3a99f9257dd2db7b5c/AGENTS.md",
+          "https://raw.githubusercontent.com/DTALEX66/WORK-LAB/d43d07a75ef8c556344e9b3a99f9257dd2db7b5c/reports/audit-archive/20260930/projects/ArcheAxis-Knowledge-OS/AGENTS.md",
+          "https://raw.githubusercontent.com/DTALEX66/WORK-LAB/d43d07a75ef8c556344e9b3a99f9257dd2db7b5c/reports/audit-archive/20260930/projects/ArcheAxis-Knowledge-OS/DIRECTORY_AUTHORITY.yaml",
+          "https://raw.githubusercontent.com/DTALEX66/WORK-LAB/d43d07a75ef8c556344e9b3a99f9257dd2db7b5c/reports/audit-archive/20260930/projects/DESIGN-LAB/AGENTS.md",
+          "https://raw.githubusercontent.com/DTALEX66/WORK-LAB/d43d07a75ef8c556344e9b3a99f9257dd2db7b5c/reports/audit-archive/20260930/projects/DESIGN-LAB/AUTHORITY.md"
+        ],
+        "note": "已读规则的核心领域归属无直接冲突：WORK行动治理、AA知识、DL设计，后两者独立运行。存在过时引用：AA AGENTS仍指WORK-LAB 00-governance/global-execution-standard.md，而WORK-LAB已用docs/decisions路径。不据有限规则推断三仓全实现合规。",
+        "quota_impact": "不受影响",
+        "needed_to_decide": ""
+      }
+    ],
+    "findings": [
+      {
+        "id": "F01",
+        "area": "证据范围",
+        "severity": "blocker",
+        "conflict": "归档不是三仓云端全树，也不是全部GPT历史；AA探针还声明111个dirty项。",
+        "evidence_urls": [
+          "https://raw.githubusercontent.com/DTALEX66/WORK-LAB/d43d07a75ef8c556344e9b3a99f9257dd2db7b5c/reports/audit-archive/20260930/ARCHIVE-README.md",
+          "https://raw.githubusercontent.com/DTALEX66/WORK-LAB/d43d07a75ef8c556344e9b3a99f9257dd2db7b5c/reports/audit-evidence/assets-20260930/three-project-probe.json"
+        ],
+        "impact": "不能批准“完整恢复后重装清理完成”，不能覆盖未上传成果。",
+        "action": "按三仓分别绑定完整commit/tree清单与dirty保全清单；历史缺件登记固定ID，未恢复内容保留UNKNOWN。",
+        "needs_local": true,
+        "claim_ids": [
+          "H1",
+          "H2",
+          "I7"
+        ]
+      },
+      {
+        "id": "F18",
+        "area": "三项目规则",
+        "severity": "medium",
+        "conflict": "ArcheAxis AGENTS仍指WORK-LAB旧00-governance路径；WORK-LAB已禁止该活动根。",
+        "evidence_urls": [
+          "https://raw.githubusercontent.com/DTALEX66/WORK-LAB/d43d07a75ef8c556344e9b3a99f9257dd2db7b5c/reports/audit-archive/20260930/projects/ArcheAxis-Knowledge-OS/AGENTS.md",
+          "https://raw.githubusercontent.com/DTALEX66/WORK-LAB/d43d07a75ef8c556344e9b3a99f9257dd2db7b5c/AGENTS.md",
+          "https://raw.githubusercontent.com/DTALEX66/WORK-LAB/d43d07a75ef8c556344e9b3a99f9257dd2db7b5c/.project/governance/project-authority-index.json"
+        ],
+        "impact": "入口陈旧诱发路径找不到和错误权威继承。",
+        "action": "在ArcheAxis自己的变更中改为可选、固定合同引用；项目级规则归各项目写入，不能通过全局同步器批改。",
+        "needs_local": true,
+        "claim_ids": [
+          "Q8"
+        ]
+      },
+      {
+        "id": "F19",
+        "area": "边界门禁范围",
+        "severity": "medium",
+        "conflict": "边界验证器只检查标记、seam和manifest，不扫描全部调用者/数据库写者。",
+        "evidence_urls": [
+          "https://raw.githubusercontent.com/DTALEX66/WORK-LAB/d43d07a75ef8c556344e9b3a99f9257dd2db7b5c/scripts/ci/verify_three_project_boundary.py",
+          "https://raw.githubusercontent.com/DTALEX66/WORK-LAB/d43d07a75ef8c556344e9b3a99f9257dd2db7b5c/.project/governance/three-project-boundary.json"
+        ],
+        "impact": "PASS不能证明业务越界已不存在。",
+        "action": "保留结构门，补当前源的调用图/导入/写入口和跨项目独立运行负向检查，不把标记门升级为完整边界验收。",
+        "needs_local": true,
+        "claim_ids": [
+          "H4",
+          "Q8"
+        ]
+      },
+      {
+        "id": "F20",
+        "area": "历史和时间混用",
+        "severity": "medium",
+        "conflict": "包内锚点仍为636d5ece；探针、回读、归档的时间不同；external-libraries旧快照摘要与最终MANIFEST不一致。",
+        "evidence_urls": [
+          "https://raw.githubusercontent.com/DTALEX66/WORK-LAB/d43d07a75ef8c556344e9b3a99f9257dd2db7b5c/reports/EXTERNAL-AUDIT-PACK-CLIENT-ASSETS-20260930.md",
+          "https://raw.githubusercontent.com/DTALEX66/WORK-LAB/d43d07a75ef8c556344e9b3a99f9257dd2db7b5c/reports/audit-evidence/assets-20260930/inventory-verification.json",
+          "https://raw.githubusercontent.com/DTALEX66/WORK-LAB/d43d07a75ef8c556344e9b3a99f9257dd2db7b5c/reports/audit-evidence/assets-20260930/MANIFEST.json"
+        ],
+        "impact": "晚快照被误认为同一时点，可能产生伪冲突。",
+        "action": "新证据包统一snapshot_id与generated_at；历史记录不改写，新增差异解释，链接固定d43或后续提交。",
+        "needs_local": false,
+        "claim_ids": [
+          "Q10"
+        ]
+      }
+    ]
+  },
+  "html_aaos_passages": [
+    {
+      "source_basename": "三项目_AI生态全生命周期收敛最终方案_2026-10-01.html",
+      "text_node_index": 5,
+      "previous_text": "全生命周期收敛最终方案",
+      "text": "WORK-LAB 全局治理 + WORK-LAB / DESIGN-LAB / ArcheAxis 项目治理 + 仓库卫生 + 软件与模型升级",
+      "next_text": "2026-10-01（Asia/Shanghai） · 本轮一手文献 38 项 · 固定SHA审计结果继承并保留边界"
+    },
+    {
+      "source_basename": "三项目_AI生态全生命周期收敛最终方案_2026-10-01.html",
+      "text_node_index": 25,
+      "previous_text": "最终推荐与适用范围",
+      "text": "采用“现有权威和部署通道 + 分域生命周期 + 按需上下文 + 增量仓库卫生 + 逐版本行为验收”的组合。WORK-LAB 保留全局控制面和本项目两种职责，DESIGN-LAB 与 ArcheAxis 保留独立领域及项目治理。每种事实仍由原 owner 写，其他使用者读取带来源的投影。",
+      "next_text": "R01"
+    },
+    {
+      "source_basename": "三项目_AI生态全生命周期收敛最终方案_2026-10-01.html",
+      "text_node_index": 67,
+      "previous_text": "不回迁通用Agent runtime/模型网关；Open Design客户端≠DESIGN-LAB项目",
+      "text": "ArcheAxis/AAOS项目",
+      "next_text": "ArcheAxis现有项目权威"
+    },
+    {
+      "source_basename": "三项目_AI生态全生命周期收敛最终方案_2026-10-01.html",
+      "text_node_index": 68,
+      "previous_text": "ArcheAxis/AAOS项目",
+      "text": "ArcheAxis现有项目权威",
+      "next_text": "知识真值、长期记忆/学习/提炼/回忆及本项目目录、源码、构建与技能"
+    },
+    {
+      "source_basename": "三项目_AI生态全生命周期收敛最终方案_2026-10-01.html",
+      "text_node_index": 78,
+      "previous_text": "R23",
+      "text": "一条知识的业务真值与某个客户端的提示文本不是同一事实。三项目可保留各自任务上下文；长期复用经验的晋升先经领域 owner 决定，符合边界后才提交 ArcheAxis 的既有知识接受通道。",
+      "next_text": "R02"
+    },
+    {
+      "source_basename": "三项目_AI生态全生命周期收敛最终方案_2026-10-01.html",
+      "text_node_index": 373,
+      "previous_text": "MERGE",
+      "text": "三项目都有各自工作上下文。长期可复用知识的接受/存储/回忆属于 ArcheAxis；WL 输出带 provenance 的候选/工作流经验，DL 保留本领域经验并经审核选择性提炼。原生私有记忆和会话不自动导入或晋升为全局规范。",
+      "next_text": "撤回新候选/投影，保持原件与原软件状态；AA 仅沿本仓既有版本/接受协议恢复，不能旁路写库。"
+    },
+    {
+      "source_basename": "三项目_AI生态全生命周期收敛最终方案_2026-10-01.html",
+      "text_node_index": 1040,
+      "previous_text": "现有上游最新能力在用户当前版本可用：需要安装版本、官方相应tag与实际功能探针",
+      "text": "上一轮已读的WORK-LAB、DESIGN-LAB、AAOS历史判断报告作为辅助索引，不能替代长对话/附件原件。WORK-LAB历史manifest提及约15.6MB长对话和摘要，前一轮未取得可读原件；DESIGN-LAB约9MB长时间线和AA约20MB原始来源也未证明全量读取。本轮不把检索/摘要覆盖说成历史完整。",
+      "next_text": "归档494项references裁剪对整包技能语义、引用有效和经验回收有影响，逐项补材料；不影响已经独立重算的476副本字节正确性。缺model-switch原文另属漏档。公共副本之外的凭据、数据库、会话、记忆正文按策略未归档，继续不可推断其存在/不存在/合规。"
+    },
+    {
+      "source_basename": "WORK-LAB_审计收敛报告_2026-10-01.html",
+      "text_node_index": 232,
+      "previous_text": "VERIFIED",
+      "text": "知识/长期记忆/学习归ArcheAxis，WORK-LAB保留导出守卫和Candidate；两项目独立运行的规则与此一致。原生客户端私有记忆不因领域归属而自动授权迁移。",
+      "next_text": "不受影响"
+    },
+    {
+      "source_basename": "WORK-LAB_审计收敛报告_2026-10-01.html",
+      "text_node_index": 318,
+      "previous_text": "VERIFIED",
+      "text": "两个项目指定规则原文和WORK-LAB规范索引均可读。只能称已索引的规则切片；ArcheAxis归档8文件、DESIGN-LAB61文件不是两仓全树。",
+      "next_text": "不受影响"
+    },
+    {
+      "source_basename": "WORK-LAB_审计收敛报告_2026-10-01.html",
+      "text_node_index": 822,
+      "previous_text": "medium",
+      "text": "ArcheAxis AGENTS仍指WORK-LAB旧00-governance路径；WORK-LAB已禁止该活动根。",
+      "next_text": "入口陈旧诱发路径找不到和错误权威继承。"
+    },
+    {
+      "source_basename": "WORK-LAB_审计收敛报告_2026-10-01.html",
+      "text_node_index": 824,
+      "previous_text": "入口陈旧诱发路径找不到和错误权威继承。",
+      "text": "在ArcheAxis自己的变更中改为可选、固定合同引用；项目级规则归各项目写入，不能通过全局同步器批改。",
+      "next_text": "需本机：是"
+    },
+    {
+      "source_basename": "WORK-LAB_审计收敛报告_2026-10-01.html",
+      "text_node_index": 1322,
+      "previous_text": "全套schema、仓库CI、Windows集成门当前是否通过；本环境缺jsonschema，未自动安装依赖，只执行了本审计的字节、计数、集合与静态代码检查。",
+      "text": "历史辅助检索：本轮读取WORK-LAB_MASTER_HISTORY_AND_CURRENT_REPORT_2026-09-29.md、DESIGN-LAB_FINAL_JUDGMENT_REPORT_2026-09-29.md、AAOS_最终判断报告_2026-09-29.md，以及WORK-LAB-HISTORY-SOURCE-MANIFEST-2026-09-04.json；使用个人上下文检索定位9/29恢复讨论，并对已知缺件做精确文件检索。它们证明旧报告如何表述，不证明旧报告中的全部原件与实机结果。按用户的公开URL纪律，这些无公开raw URL的历史信息仅作为线索/待复核旁证，不计入A的VERIFIED。",
+      "next_text": "历史对象"
+    },
+    {
+      "source_basename": "WORK-LAB_审计收敛报告_2026-10-01.html",
+      "text_node_index": 1338,
+      "previous_text": "不得重新把整个9/28方案写成缺失；本轮未重物化该包。",
+      "text": "AAOS历史全集",
+      "next_text": "已读最终报告明确未逐件重读20MB历史原件。"
+    },
+    {
+      "source_basename": "WORK-LAB_审计收敛报告_2026-10-01.html",
+      "text_node_index": 1413,
+      "previous_text": "12801d492e7e559e",
+      "text": "project-archeaxis-rules",
+      "next_text": "reports/audit-archive/20260930/projects/ArcheAxis-Knowledge-OS/AGENTS.md"
+    },
+    {
+      "source_basename": "WORK-LAB_审计收敛报告_2026-10-01.html",
+      "text_node_index": 1418,
+      "previous_text": "dbaa61d05d5d0134",
+      "text": "project-archeaxis-rules",
+      "next_text": "reports/audit-archive/20260930/projects/ArcheAxis-Knowledge-OS/DIRECTORY_AUTHORITY.yaml"
+    },
+    {
+      "source_basename": "WORK-LAB_审计收敛报告_2026-10-01.html",
+      "text_node_index": 1646,
+      "previous_text": "DOCUMENTED_PLACEHOLDER；不复现值",
+      "text": "projects/ArcheAxis-Knowledge-OS/DIRECTORY_AUTHORITY.yaml:25",
+      "next_text": "credential_assignment"
+    }
+  ],
+  "project_decision": "User-requested archive and follow-up intake only; no automatic task activation, cleanup, cross-project write, private-state migration, merge or release."
+}

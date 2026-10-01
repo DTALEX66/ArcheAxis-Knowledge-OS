@@ -1,0 +1,37 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             x:Class="ArcheAxis.Desktop.AaosBrandMark"
+             Width="48"
+             Height="48"
+             ClipToBounds="False"
+             AutomationProperties.Name="ArcheAxis brand mark">
+    <Grid ClipToBounds="False" IsHitTestVisible="False">
+        <Border x:Name="MarkSurface"
+                CornerRadius="16"
+                Background="{DynamicResource AaosBrandMarkBrush}"
+                BorderBrush="{DynamicResource AaosPrimaryBrush}"
+                BorderThickness="1"
+                Effect="{DynamicResource AaosBrandMarkGlowEffect}">
+            <Grid ClipToBounds="True">
+                <Ellipse x:Name="RadialHighlight"
+                         Width="34"
+                         Height="34"
+                         HorizontalAlignment="Left"
+                         VerticalAlignment="Top"
+                         Margin="3"
+                         Fill="{DynamicResource AaosPrimaryBrush}"
+                         Opacity="0.24">
+                    <Ellipse.Effect>
+                        <BlurEffect Radius="13" />
+                    </Ellipse.Effect>
+                </Ellipse>
+                <TextBlock Text="AA"
+                           HorizontalAlignment="Center"
+                           VerticalAlignment="Center"
+                           Foreground="{DynamicResource AaosPrimaryTextBrush}"
+                           FontWeight="Black"
+                           FontSize="16" />
+            </Grid>
+        </Border>
+    </Grid>
+</UserControl>

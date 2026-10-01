@@ -1,0 +1,17 @@
+﻿capability_id,canonical_name,pillar,authority_status,horizon,technical_state,current_note
+CAP-0010,原件资产与来源接入,P0,binding_core,H0-H1,supported,当前核心
+CAP-0020,多格式转换,P0,binding_core,H1-H2,in_progress,当前核心
+CAP-0030,证据锚定与交叉核验,P1,binding_core,H1,supported,当前核心；科研增强主入口
+CAP-0040,人类深度学习系统,P2,binding_core,H4,in_progress,长期核心；Learning Compiler
+CAP-0050,AI 学习资产与受控调用,P3,binding_long_term,H4-H8,planned,机器学习资产
+CAP-0060,LER 视觉教学与课件,P4,binding_long_term,H6-H7,planned,保留
+CAP-0070,动态解释与仿真,P4,binding_long_term,H7,planned,保留
+CAP-0080,空间记忆与沉浸学习,P5,binding_long_term,H7-H8,planned,保留；M2/H7+
+CAP-0090,研究、课程与项目工作空间,P6,binding_long_term,H6-H7,planned,科研增强主入口
+CAP-0100,开放互操作与生态适配器,P7,binding_core,H3,in_progress,Obsidian/Zotero/Anki 等
+CAP-0110,搜索、图谱与索引,P8,binding_core,H3-H4,in_progress,FTS5/sqlite-vec/derived graph
+CAP-0120,桌面、平台与可选协作,P9,binding_core,H0-H5,in_progress,Avalonia 正式壳
+CAP-0130,受限受控执行探索,P10,exploration,H8-H10,planned,通用 Agent/执行后置
+CAP-0140,备份、同步与发布,P8/P9,binding_long_term,H5-H9,in_progress,当前有备份/候选/Green门
+CAP-0150,模型、Provider 与数据出境治理,P8,binding_long_term,H4-H8,planned,科研/云/本地模型路由入口
+CAP-0160,可视化与空间学习表征,P4,binding_long_term,H6-H8,planned,图解/Canvas/Graph/Learning Map

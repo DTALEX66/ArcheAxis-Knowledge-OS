@@ -93,6 +93,8 @@ _FROZEN_ORIGINALS = {
 # and non-UTF-8 worker behavior. A changed fixture must be reviewed and repinned;
 # these are not general path exemptions.
 _PRESERVED_FIXTURE_HASHES = {
+    "tests/fixtures/aaos-ui-mother/index.html":
+        "1da1fe0d1feb55db98fba5e28cdbaf2e261e7ec4f562d3410cc9b7e74b3149f1",
     "tests/fixtures/f01-quality/controlled.md": "70aff728005d7580260391e6754f30209ec5fbecd9803f30a31e48d72eb7b176",
     "tests/fixtures/f01-quality/capped-lines.md": "71c0029230e042d72e9ec8db74f9a28196b37fdfb29f7df7d68e3b425af38928",
     "tests/fixtures/f01-quality/fallback-gbk.txt": "8ba7ed5cd0f33c11b7bb447337b0ce852b0a4f52c5ee854b6107943408b2b215",
@@ -100,6 +102,40 @@ _PRESERVED_FIXTURE_HASHES = {
     "tests/fixtures/p1-quality/capped-crlf.txt": "9a9af8502c625be793d85c664d7b2c728dc5052b4f60b73e059416118c6a310a",
     "tests/fixtures/p1-quality/fallback-gbk-markdown.md": "8b593c1ffc2e113962d12485f54b381af29c4ae029b8c2e98c762d686138e6b7",
     "tests/fixtures/p1-quality/one-long-line.txt": "d9785ad494215a183ceaf55c11aeed1433227e88469f61159f2daf27e6929100",
+}
+
+# Byte-preserved members of the owner-supplied Sept29 historical package.
+# Each exact member hash was checked against the preserved ZIP; this is not
+# a directory exemption or permission to treat history as current authority.
+_PRESERVED_PACKAGE_MEMBER_HASHES = {
+    "docs/history/planning-blueprint-absorption/2026-09-29/package-unpacked/AAOS_完整历史规划蓝图吸收池与当前状态总报告_2026-09-29.docx":
+        "d8ed1c2afdb92dcb87e6a5f7b6b46512af4e408ba0efe1cbe446f0d23bd9ca4f",
+    "docs/history/planning-blueprint-absorption/2026-09-29/package-unpacked/AAOS_完整历史规划蓝图吸收池与当前状态总报告_2026-09-29.md":
+        "3839646bb60b811c5cc1ab3417625a69e71b70f5983b6b24ec796a664fa28ffb",
+    "docs/history/planning-blueprint-absorption/2026-09-29/package-unpacked/AAOS_CAPABILITY_ATLAS_CURRENT_MAPPING_2026-09-29.csv":
+        "555b6463e6171783cb8aaa2374ca7f557c19cf7548136fdddf4dcce3a399dd68",
+    "docs/history/planning-blueprint-absorption/2026-09-29/package-unpacked/AAOS_CODEX_DSH_HERMES_HANDOFF_2026-09-29.txt":
+        "0c50f593d70d3927b83619084e242c84890bbc316302521851c4f5d89d25eb36",
+    "docs/history/planning-blueprint-absorption/2026-09-29/package-unpacked/AAOS_CURRENT_CAPABILITY_ABSORPTION_11_2026-09-29.csv":
+        "11c515ac6c5885d1fadd2f304c496d429b205a4b2cbdf88e036d6b373ea80733",
+    "docs/history/planning-blueprint-absorption/2026-09-29/package-unpacked/AAOS_CURRENT_SUPPLY_CHAIN_47_2026-09-29.csv":
+        "e70afc6bf2d7004f9d798c63bc1e4af4443135a921bf80bd69729488399c2376",
+    "docs/history/planning-blueprint-absorption/2026-09-29/package-unpacked/AAOS_HISTORY_TO_CURRENT_MAPPING_2026-09-29.csv":
+        "7cd147af95717f7c22672a21752f9ba7361fdd5c31abaaf5cfca3b510b52433c",
+    "docs/history/planning-blueprint-absorption/2026-09-29/package-unpacked/AAOS_MASTER_ATLAS_2026-09-29.json":
+        "7f58c4e033a88fd16b80c831085a25fd0042b2182b1047afe5d4ffcd86351d8c",
+    "docs/history/planning-blueprint-absorption/2026-09-29/package-unpacked/AAOS_OSS_RESEARCH_POOL_369_2026-08-11.csv":
+        "7a9e032739cefa6c8db1acc7be83a64d80740691409928c9eed2294565fb942f",
+    "docs/history/planning-blueprint-absorption/2026-09-29/package-unpacked/AAOS_R6_M0_STATUS_2026-09-29.csv":
+        "f010a587996cb704a66f8d29523e106811af9f88ec4ce24844cb3acfe8ede9d5",
+    "docs/history/planning-blueprint-absorption/2026-09-29/package-unpacked/AAOS_REQUIREMENT_TRACE_2026-09-29.csv":
+        "14d240b1234f886f770caa694afda8b76b54b8594605d5ac905b0ad07d30ce63",
+    "docs/history/planning-blueprint-absorption/2026-09-29/package-unpacked/AAOS_SOURCE_BASELINE_97_2026-09-04.csv":
+        "b278a5950e59bfc47bf924061f350c1bc061c56aeec8e94465cf3c423ba92e7f",
+    "docs/history/planning-blueprint-absorption/2026-09-29/package-unpacked/README_文档包.md":
+        "d22e4dc7425518202cee9425f0b203f0ec4dad0654febfedfeef52fb8aec7b08",
+    "docs/history/planning-blueprint-absorption/2026-09-29/package-unpacked/SHA256SUMS.txt":
+        "514a23a3bc2132fe7d04fa6751ab745f116f2001f52029cd3680fa2457879fd1",
 }
 
 # This DP audit intentionally quotes a superseded product name as branch
@@ -163,7 +199,10 @@ def scan_text_bytes(path: str, content: bytes) -> list[ConventionIssue]:
     if frozen_hash and hashlib.sha256(content).hexdigest() != frozen_hash:
         return [ConventionIssue("frozen-original-mismatch", path,
                                 "preserved package bytes differ from the pinned original")]
-    fixture_hash = _PRESERVED_FIXTURE_HASHES.get(path)
+    fixture_hash = (
+        _PRESERVED_FIXTURE_HASHES.get(path)
+        or _PRESERVED_PACKAGE_MEMBER_HASHES.get(path)
+    )
     if fixture_hash:
         if hashlib.sha256(content).hexdigest() != fixture_hash:
             return [ConventionIssue(

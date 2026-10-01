@@ -1,0 +1,19 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             x:Class="ArcheAxis.Desktop.AaosCaptureScanSweep"
+             ClipToBounds="True"
+             IsHitTestVisible="False"
+             AutomationProperties.AccessibilityView="Raw">
+  <Grid ClipToBounds="True">
+    <Border x:Name="ScanBar"
+            Height="2"
+            VerticalAlignment="Top"
+            Background="{DynamicResource AaosPrimaryBrush}"
+            Opacity="0.88"
+            RenderTransformOrigin="0%,0%">
+      <Border.RenderTransform>
+        <TranslateTransform />
+      </Border.RenderTransform>
+    </Border>
+  </Grid>
+</UserControl>

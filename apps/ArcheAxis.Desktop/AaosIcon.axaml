@@ -1,0 +1,19 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:local="using:ArcheAxis.Desktop"
+             x:Class="ArcheAxis.Desktop.AaosIcon"
+             Focusable="False"
+             IsHitTestVisible="False"
+             AutomationProperties.AccessibilityView="Raw">
+    <Grid>
+        <Path x:Name="IconPath"
+              Classes="icon-path"
+              Stretch="Uniform"
+              AutomationProperties.AccessibilityView="Raw"
+              Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=UserControl}}"
+              StrokeThickness="{Binding IconStrokeThickness, RelativeSource={RelativeSource AncestorType=local:AaosIcon}}"
+              StrokeLineCap="Round"
+              StrokeJoin="Round"
+              Fill="Transparent" />
+    </Grid>
+</UserControl>

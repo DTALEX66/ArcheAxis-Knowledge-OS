@@ -1,0 +1,12 @@
+﻿capability_id,capability_name,status,absorption_mode,upstream_or_owner
+CAP-CORE-KNOWLEDGE,Canonical knowledge and source lifecycle,integrated,DIRECT_DEPENDENCY,first-party Rust Core
+CAP-DEEPTUTOR,Source-grounded tutor and recoverable learning workspace,candidate,SIDECAR,DeepTutor
+CAP-OPENTUTOR,Adaptive learning blocks and FSRS integration,candidate,ALGORITHM_DONOR,OpenTutor
+CAP-LEARNINGMAP,"Knowledge components, prerequisites, diagnosis, and pedagogy",candidate,ALGORITHM_DONOR,LearningMAP
+CAP-OPENMAIC,"Course DSL, renderer, and interactive learning artifacts",candidate,CONTRACT_ADAPTER,OpenMAIC
+CAP-RAG-ANYTHING,Multimodal document parsing and structure extraction,candidate,PYTHON_WORKER,RAG-Anything
+CAP-LIGHTRAG,Mixed vector and graph retrieval projection,candidate,ALGORITHM_DONOR,LightRAG
+CAP-GRAPHITI,Temporal knowledge projection and supersession,candidate,ALGORITHM_DONOR,Graphiti
+CAP-MEMOS,Machine experience memory and skill crystallization,candidate,SIDECAR,MemOS
+CAP-WEKNORA,"Knowledge workspace editing, revision, diff, and rollback UX",reference,UX_DONOR,WeKnora
+CAP-COGNEE,"Graph, memory, and ontology benchmark reference",reference,REFERENCE_ONLY,Cognee

@@ -1,0 +1,16 @@
+﻿historical_family,historical_content,current_owner_or_capability,disposition
+Cognitive/Agent OS,通用 Agent OS,WORK-LAB / AAOS CAP-0130 exploration,产品中心定位废弃；执行思想外移/受限保留
+Human Learning OS A线,诊断/路线/认知负荷/宫殿/训练/Teach-back/画像,CAP-0040 / 0060 / 0070 / 0080 / 0160,长期能力 donor；按 Horizon 激活
+Machine Knowledge OS B线,Context Pack/Route/MCP/Multi-Agent/TaskPack/Sandbox/Eval,WORK-LAB + CAP-0050/0130,AAOS 保留 AI Asset/Trace/Review；通用编排外移
+Research/VeriScope,外部资料/claim/evidence/conflict,CAP-0030 / CAP-0090 / A06,核心保留；科研模型增强主入口
+Obsidian/Vault,开放格式/Canvas/链接/附件/往返,CAP-0100,Adapter/format compatibility，非产品克隆
+Anki/FSRS,间隔重复/卡片,CAP-0040 / A08,FSRS 已吸收；卡片必须有来源/锚点
+DeepTutor,学习工作台,CAP-DEEPTUTOR / A08,Sidecar/UX benchmark；不写真值
+OpenTutor/LearningMAP,自适应学习/先修/诊断,CAP-OPENTUTOR / CAP-LEARNINGMAP,Algorithm donor
+LightRAG/GraphRAG/KAG,高级检索/图 RAG,CAP-0110 / CAP-LIGHTRAG,算法/eval donor；不做第二事实库
+Graphiti/MemOS/Cognee,时序图/机器记忆/本体,CAP-GRAPHITI / MEMOS / COGNEE,candidate/reference；后置
+Visual Teaching / LER,图解/课件/动画/仿真,CAP-0060/0070/0160,binding_long_term
+Spatial Memory,Palace/Room/Locus/Route/2D-3D-VR,CAP-0080,binding_long_term；M2/H7+
+Model Foundry,多模型路由/本地模型,CAP-0150 + LiteLLM,Provider governance，不是用户一级导航
+Open-source Foundry,开源项目池,369→47 Supply Chain→11 Absorption,从数量驱动收敛为能力 donor/供应链治理
+Scientific Intelligence 2026-09-29,Asta/PaperQA2/Intern-S2/AstaBench 等,CAP-0030/0040/0090/0150,新增提案；先 contract + candidate/eval，不能自动写 Knowledge

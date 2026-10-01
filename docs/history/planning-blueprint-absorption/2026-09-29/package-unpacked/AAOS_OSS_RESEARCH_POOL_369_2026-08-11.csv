@@ -1,0 +1,370 @@
+﻿candidate,categories
+allenai/olmocr,14.1 文档解析、OCR 与结构化（23）— `QUALIFY / BENCHMARK`
+apache/tika,14.1 文档解析、OCR 与结构化（23）— `QUALIFY / BENCHMARK`
+camelot-dev/camelot,14.1 文档解析、OCR 与结构化（23）— `QUALIFY / BENCHMARK`
+datalab-to/marker,14.1 文档解析、OCR 与结构化（23）— `QUALIFY / BENCHMARK`
+docling-project/docling,14.1 文档解析、OCR 与结构化（23）— `QUALIFY / BENCHMARK`
+facebookresearch/nougat,14.1 文档解析、OCR 与结构化（23）— `QUALIFY / BENCHMARK`
+GROBID/grobid,14.1 文档解析、OCR 与结构化（23）— `QUALIFY / BENCHMARK`
+HKUDS/RAG-Anything,14.1 文档解析、OCR 与结构化（23）— `QUALIFY / BENCHMARK` | 14.3 RAG、知识库与检索（30）— `REFERENCE / DEFER H7+`
+jsvine/pdfplumber,14.1 文档解析、OCR 与结构化（23）— `QUALIFY / BENCHMARK`
+Layout-Parser/layout-parser,14.1 文档解析、OCR 与结构化（23）— `QUALIFY / BENCHMARK`
+microsoft/markitdown,14.1 文档解析、OCR 与结构化（23）— `QUALIFY / BENCHMARK`
+microsoft/table-transformer,14.1 文档解析、OCR 与结构化（23）— `QUALIFY / BENCHMARK`
+ocrmypdf/OCRmyPDF,14.1 文档解析、OCR 与结构化（23）— `QUALIFY / BENCHMARK`
+opendatalab/MinerU,14.1 文档解析、OCR 与结构化（23）— `QUALIFY / BENCHMARK`
+opendatalab/MinerU-Ecosystem,14.1 文档解析、OCR 与结构化（23）— `QUALIFY / BENCHMARK`
+opendatalab/PDF-Extract-Kit,14.1 文档解析、OCR 与结构化（23）— `QUALIFY / BENCHMARK`
+PaddlePaddle/PaddleOCR,14.1 文档解析、OCR 与结构化（23）— `QUALIFY / BENCHMARK`
+py-pdf/pypdf,14.1 文档解析、OCR 与结构化（23）— `QUALIFY / BENCHMARK`
+pymupdf/RAG/pymupdf4llm,14.1 文档解析、OCR 与结构化（23）— `QUALIFY / BENCHMARK`
+tesseract-ocr/tesseract,14.1 文档解析、OCR 与结构化（23）— `QUALIFY / BENCHMARK`
+thelosttimes/kreuzberg,14.1 文档解析、OCR 与结构化（23）— `QUALIFY / BENCHMARK`
+Unstructured-IO/unstructured,14.1 文档解析、OCR 与结构化（23）— `QUALIFY / BENCHMARK`
+VikParuchuri/surya,14.1 文档解析、OCR 与结构化（23）— `QUALIFY / BENCHMARK`
+adbar/trafilatura,14.2 网页、社交媒体与浏览器采集（24）— `BASELINE / OPT-IN SIDECAR`
+AndyTheFactory/newspaper4k,14.2 网页、社交媒体与浏览器采集（24）— `BASELINE / OPT-IN SIDECAR`
+apify/crawlee,14.2 网页、社交媒体与浏览器采集（24）— `BASELINE / OPT-IN SIDECAR`
+browser-use/browser-use,14.2 网页、社交媒体与浏览器采集（24）— `BASELINE / OPT-IN SIDECAR`
+browserbase/stagehand,14.2 网页、社交媒体与浏览器采集（24）— `BASELINE / OPT-IN SIDECAR`
+bytedance/UI-TARS-desktop,14.2 网页、社交媒体与浏览器采集（24）— `BASELINE / OPT-IN SIDECAR` | 14.6 Agent、多智能体与编码智能体（34）— `DEV REFERENCE / REJECT-CORE` | 14.11 音视频、多模态与计算机操作（28）— `ASR SUBSET / COMPUTER-USE REJECT-CORE`
+D4Vinci/Scrapling,14.2 网页、社交媒体与浏览器采集（24）— `BASELINE / OPT-IN SIDECAR`
+daijro/camoufox,14.2 网页、社交媒体与浏览器采集（24）— `BASELINE / OPT-IN SIDECAR`
+DIYgod/RSSHub,14.2 网页、社交媒体与浏览器采集（24）— `BASELINE / OPT-IN SIDECAR`
+Evil0ctal/Douyin_TikTok_Download_API,14.2 网页、社交媒体与浏览器采集（24）— `BASELINE / OPT-IN SIDECAR`
+instaloader/instaloader,14.2 网页、社交媒体与浏览器采集（24）— `BASELINE / OPT-IN SIDECAR`
+Johnserf-Seed/TikTokDownload,14.2 网页、社交媒体与浏览器采集（24）— `BASELINE / OPT-IN SIDECAR`
+Kaliiiiiiiiii-Vinyzu/patchright,14.2 网页、社交媒体与浏览器采集（24）— `BASELINE / OPT-IN SIDECAR`
+ltaoo/XHS-Downloader,14.2 网页、社交媒体与浏览器采集（24）— `BASELINE / OPT-IN SIDECAR`
+mendableai/firecrawl,14.2 网页、社交媒体与浏览器采集（24）— `BASELINE / OPT-IN SIDECAR`
+microsoft/playwright,14.2 网页、社交媒体与浏览器采集（24）— `BASELINE / OPT-IN SIDECAR`
+mikf/gallery-dl,14.2 网页、社交媒体与浏览器采集（24）— `BASELINE / OPT-IN SIDECAR`
+NanmiCoder/MediaCrawler,14.2 网页、社交媒体与浏览器采集（24）— `BASELINE / OPT-IN SIDECAR`
+Nemo2011/bilibili-api,14.2 网页、社交媒体与浏览器采集（24）— `BASELINE / OPT-IN SIDECAR`
+scrapy/scrapy,14.2 网页、社交媒体与浏览器采集（24）— `BASELINE / OPT-IN SIDECAR`
+SeleniumHQ/selenium,14.2 网页、社交媒体与浏览器采集（24）— `BASELINE / OPT-IN SIDECAR`
+unclecode/crawl4ai,14.2 网页、社交媒体与浏览器采集（24）— `BASELINE / OPT-IN SIDECAR`
+vladkens/twscrape,14.2 网页、社交媒体与浏览器采集（24）— `BASELINE / OPT-IN SIDECAR`
+yt-dlp/yt-dlp,14.2 网页、社交媒体与浏览器采集（24）— `BASELINE / OPT-IN SIDECAR` | 14.11 音视频、多模态与计算机操作（28）— `ASR SUBSET / COMPUTER-USE REJECT-CORE`
+1Panel-dev/MaxKB,14.3 RAG、知识库与检索（30）— `REFERENCE / DEFER H7+`
+Cinnamon/kotaemon,14.3 RAG、知识库与检索（30）— `REFERENCE / DEFER H7+`
+deepset-ai/haystack,14.3 RAG、知识库与检索（30）— `REFERENCE / DEFER H7+`
+FlowiseAI/Flowise,14.3 RAG、知识库与检索（30）— `REFERENCE / DEFER H7+`
+HKUDS/LightRAG,14.3 RAG、知识库与检索（30）— `REFERENCE / DEFER H7+`
+HKUDS/MiniRAG,14.3 RAG、知识库与检索（30）— `REFERENCE / DEFER H7+`
+HKUDS/VideoRAG,14.3 RAG、知识库与检索（30）— `REFERENCE / DEFER H7+`
+infiniflow/ragflow,14.3 RAG、知识库与检索（30）— `REFERENCE / DEFER H7+`
+khoj-ai/khoj,14.3 RAG、知识库与检索（30）— `REFERENCE / DEFER H7+`
+labring/FastGPT,14.3 RAG、知识库与检索（30）— `REFERENCE / DEFER H7+`
+langchain-ai/langchain,14.3 RAG、知识库与检索（30）— `REFERENCE / DEFER H7+`
+langchain-ai/langgraph,14.3 RAG、知识库与检索（30）— `REFERENCE / DEFER H7+`
+langflow-ai/langflow,14.3 RAG、知识库与检索（30）— `REFERENCE / DEFER H7+`
+langgenius/dify,14.3 RAG、知识库与检索（30）— `REFERENCE / DEFER H7+`
+lobehub/lobe-chat,14.3 RAG、知识库与检索（30）— `REFERENCE / DEFER H7+`
+microsoft/graphrag,14.3 RAG、知识库与检索（30）— `REFERENCE / DEFER H7+`
+Mintplex-Labs/anything-llm,14.3 RAG、知识库与检索（30）— `REFERENCE / DEFER H7+`
+netease-youdao/QAnything,14.3 RAG、知识库与检索（30）— `REFERENCE / DEFER H7+`
+neuml/txtai,14.3 RAG、知识库与检索（30）— `REFERENCE / DEFER H7+`
+open-webui/open-webui,14.3 RAG、知识库与检索（30）— `REFERENCE / DEFER H7+`
+OpenSPG/KAG,14.3 RAG、知识库与检索（30）— `REFERENCE / DEFER H7+`
+OSU-NLP-Group/HippoRAG,14.3 RAG、知识库与检索（30）— `REFERENCE / DEFER H7+`
+pathwaycom/pathway,14.3 RAG、知识库与检索（30）— `REFERENCE / DEFER H7+`
+QuivrHQ/quivr,14.3 RAG、知识库与检索（30）— `REFERENCE / DEFER H7+`
+run-llama/llama_index,14.3 RAG、知识库与检索（30）— `REFERENCE / DEFER H7+`
+SciPhi-AI/R2R,14.3 RAG、知识库与检索（30）— `REFERENCE / DEFER H7+`
+stanfordnlp/dspy,14.3 RAG、知识库与检索（30）— `REFERENCE / DEFER H7+`
+Tencent/WeKnora,14.3 RAG、知识库与检索（30）— `REFERENCE / DEFER H7+`
+zylon-ai/private-gpt,14.3 RAG、知识库与检索（30）— `REFERENCE / DEFER H7+`
+getzep/graphiti,14.4 图谱、记忆与长期知识（16）— `CURRENT MINIMAL / DEFER`
+getzep/zep,14.4 图谱、记忆与长期知识（16）— `CURRENT MINIMAL / DEFER`
+igraph/igraph,14.4 图谱、记忆与长期知识（16）— `CURRENT MINIMAL / DEFER`
+kuzudb/kuzu,14.4 图谱、记忆与长期知识（16）— `CURRENT MINIMAL / DEFER`
+lancedb/lancedb,14.4 图谱、记忆与长期知识（16）— `CURRENT MINIMAL / DEFER` | 14.12 存储、搜索、同步与谱系（34）— `SQLITE FIRST / OPTIONAL DERIVED`
+langchain-ai/langmem,14.4 图谱、记忆与长期知识（16）— `CURRENT MINIMAL / DEFER`
+letta-ai/letta,14.4 图谱、记忆与长期知识（16）— `CURRENT MINIMAL / DEFER`
+mem0ai/mem0,14.4 图谱、记忆与长期知识（16）— `CURRENT MINIMAL / DEFER`
+MemTensor/HaluMem,14.4 图谱、记忆与长期知识（16）— `CURRENT MINIMAL / DEFER`
+MemTensor/MemOS,14.4 图谱、记忆与长期知识（16）— `CURRENT MINIMAL / DEFER`
+neo4j/neo4j,14.4 图谱、记忆与长期知识（16）— `CURRENT MINIMAL / DEFER`
+networkx/networkx,14.4 图谱、记忆与长期知识（16）— `CURRENT MINIMAL / DEFER`
+NirDiamant/Agent_Memory_Techniques,14.4 图谱、记忆与长期知识（16）— `CURRENT MINIMAL / DEFER`
+OpenSPG/openspg,14.4 图谱、记忆与长期知识（16）— `CURRENT MINIMAL / DEFER`
+Qiskit/rustworkx,14.4 图谱、记忆与长期知识（16）— `CURRENT MINIMAL / DEFER`
+topoteretes/cognee,14.4 图谱、记忆与长期知识（16）— `CURRENT MINIMAL / DEFER`
+ankitects/anki,14.5 个人学习、PKM 与知识工作台（20）— `FORMAT/API ADAPTER / UX REFERENCE`
+anyproto/anytype-ts,14.5 个人学习、PKM 与知识工作台（20）— `FORMAT/API ADAPTER / UX REFERENCE`
+AppFlowy-IO/AppFlowy,14.5 个人学习、PKM 与知识工作台（20）— `FORMAT/API ADAPTER / UX REFERENCE`
+foambubble/foam,14.5 个人学习、PKM 与知识工作台（20）— `FORMAT/API ADAPTER / UX REFERENCE`
+h5p/h5p-php-library,14.5 个人学习、PKM 与知识工作台（20）— `FORMAT/API ADAPTER / UX REFERENCE`
+laurent22/joplin,14.5 个人学习、PKM 与知识工作台（20）— `FORMAT/API ADAPTER / UX REFERENCE`
+learningequality/kolibri,14.5 个人学习、PKM 与知识工作台（20）— `FORMAT/API ADAPTER / UX REFERENCE`
+logseq/logseq,14.5 个人学习、PKM 与知识工作台（20）— `FORMAT/API ADAPTER / UX REFERENCE`
+moodle/moodle,14.5 个人学习、PKM 与知识工作台（20）— `FORMAT/API ADAPTER / UX REFERENCE`
+obsidianmd/obsidian-sample-plugin,14.5 个人学习、PKM 与知识工作台（20）— `FORMAT/API ADAPTER / UX REFERENCE`
+open-spaced-repetition/fsrs4anki,14.5 个人学习、PKM 与知识工作台（20）— `FORMAT/API ADAPTER / UX REFERENCE`
+openedx/edx-platform,14.5 个人学习、PKM 与知识工作台（20）— `FORMAT/API ADAPTER / UX REFERENCE`
+outline/outline,14.5 个人学习、PKM 与知识工作台（20）— `FORMAT/API ADAPTER / UX REFERENCE`
+silverbulletmd/silverbullet,14.5 个人学习、PKM 与知识工作台（20）— `FORMAT/API ADAPTER / UX REFERENCE`
+siyuan-note/siyuan,14.5 个人学习、PKM 与知识工作台（20）— `FORMAT/API ADAPTER / UX REFERENCE`
+streetwriters/notesnook,14.5 个人学习、PKM 与知识工作台（20）— `FORMAT/API ADAPTER / UX REFERENCE`
+toeverything/AFFiNE,14.5 个人学习、PKM 与知识工作台（20）— `FORMAT/API ADAPTER / UX REFERENCE`
+TriliumNext/Trilium,14.5 个人学习、PKM 与知识工作台（20）— `FORMAT/API ADAPTER / UX REFERENCE`
+usememos/memos,14.5 个人学习、PKM 与知识工作台（20）— `FORMAT/API ADAPTER / UX REFERENCE`
+zotero/zotero,14.5 个人学习、PKM 与知识工作台（20）— `FORMAT/API ADAPTER / UX REFERENCE`
+agno-agi/agno,14.6 Agent、多智能体与编码智能体（34）— `DEV REFERENCE / REJECT-CORE`
+Aider-AI/aider,14.6 Agent、多智能体与编码智能体（34）— `DEV REFERENCE / REJECT-CORE`
+block/goose,14.6 Agent、多智能体与编码智能体（34）— `DEV REFERENCE / REJECT-CORE`
+BrainBlend-AI/atomic-agents,14.6 Agent、多智能体与编码智能体（34）— `DEV REFERENCE / REJECT-CORE`
+camel-ai/camel,14.6 Agent、多智能体与编码智能体（34）— `DEV REFERENCE / REJECT-CORE`
+cline/cline,14.6 Agent、多智能体与编码智能体（34）— `DEV REFERENCE / REJECT-CORE`
+continuedev/continue,14.6 Agent、多智能体与编码智能体（34）— `DEV REFERENCE / REJECT-CORE`
+crewAIInc/crewAI,14.6 Agent、多智能体与编码智能体（34）— `DEV REFERENCE / REJECT-CORE`
+evalstate/fast-agent,14.6 Agent、多智能体与编码智能体（34）— `DEV REFERENCE / REJECT-CORE`
+FoundationAgents/OpenManus,14.6 Agent、多智能体与编码智能体（34）— `DEV REFERENCE / REJECT-CORE`
+geekan/MetaGPT,14.6 Agent、多智能体与编码智能体（34）— `DEV REFERENCE / REJECT-CORE`
+google-gemini/gemini-cli,14.6 Agent、多智能体与编码智能体（34）— `DEV REFERENCE / REJECT-CORE`
+google/adk-python,14.6 Agent、多智能体与编码智能体（34）— `DEV REFERENCE / REJECT-CORE`
+huggingface/smolagents,14.6 Agent、多智能体与编码智能体（34）— `DEV REFERENCE / REJECT-CORE`
+i-am-bee/beeai-framework,14.6 Agent、多智能体与编码智能体（34）— `DEV REFERENCE / REJECT-CORE`
+lastmile-ai/mcp-agent,14.6 Agent、多智能体与编码智能体（34）— `DEV REFERENCE / REJECT-CORE`
+mastra-ai/mastra,14.6 Agent、多智能体与编码智能体（34）— `DEV REFERENCE / REJECT-CORE`
+microsoft/autogen,14.6 Agent、多智能体与编码智能体（34）— `DEV REFERENCE / REJECT-CORE`
+microsoft/semantic-kernel,14.6 Agent、多智能体与编码智能体（34）— `DEV REFERENCE / REJECT-CORE`
+openai/codex,14.6 Agent、多智能体与编码智能体（34）— `DEV REFERENCE / REJECT-CORE`
+openai/openai-agents-python,14.6 Agent、多智能体与编码智能体（34）— `DEV REFERENCE / REJECT-CORE`
+openai/swarm,14.6 Agent、多智能体与编码智能体（34）— `DEV REFERENCE / REJECT-CORE`
+OpenHands/OpenHands,14.6 Agent、多智能体与编码智能体（34）— `DEV REFERENCE / REJECT-CORE`
+OpenInterpreter/open-interpreter,14.6 Agent、多智能体与编码智能体（34）— `DEV REFERENCE / REJECT-CORE`
+princeton-nlp/SWE-agent,14.6 Agent、多智能体与编码智能体（34）— `DEV REFERENCE / REJECT-CORE`
+pydantic/pydantic-ai,14.6 Agent、多智能体与编码智能体（34）— `DEV REFERENCE / REJECT-CORE`
+QwenLM/Qwen-Agent,14.6 Agent、多智能体与编码智能体（34）— `DEV REFERENCE / REJECT-CORE`
+QwenLM/qwen-code,14.6 Agent、多智能体与编码智能体（34）— `DEV REFERENCE / REJECT-CORE`
+RooCodeInc/Roo-Code,14.6 Agent、多智能体与编码智能体（34）— `DEV REFERENCE / REJECT-CORE`
+sst/opencode,14.6 Agent、多智能体与编码智能体（34）— `DEV REFERENCE / REJECT-CORE`
+stackblitz-labs/bolt.diy,14.6 Agent、多智能体与编码智能体（34）— `DEV REFERENCE / REJECT-CORE`
+strands-agents/sdk-python,14.6 Agent、多智能体与编码智能体（34）— `DEV REFERENCE / REJECT-CORE`
+TabbyML/tabby,14.6 Agent、多智能体与编码智能体（34）— `DEV REFERENCE / REJECT-CORE`
+a2aproject/A2A,14.7 Agent 协议、MCP 与 Agent UI（15）— `STANDARD/REFERENCE H10`
+a2aproject/a2a-python,14.7 Agent 协议、MCP 与 Agent UI（15）— `STANDARD/REFERENCE H10`
+a2ui-project/a2ui,14.7 Agent 协议、MCP 与 Agent UI（15）— `STANDARD/REFERENCE H10` | 14.14 前端、桌面与可视化（29）— `BAKE-OFF / CURRENT TAURI`
+ag-ui-protocol/ag-ui,14.7 Agent 协议、MCP 与 Agent UI（15）— `STANDARD/REFERENCE H10` | 14.14 前端、桌面与可视化（29）— `BAKE-OFF / CURRENT TAURI`
+Arize-ai/openinference,14.7 Agent 协议、MCP 与 Agent UI（15）— `STANDARD/REFERENCE H10` | 14.9 观测、评估与 Guardrails（26）— `SELECTIVE INTERNAL / H4+`
+asyncapi/spec,14.7 Agent 协议、MCP 与 Agent UI（15）— `STANDARD/REFERENCE H10`
+jlowin/fastmcp,14.7 Agent 协议、MCP 与 Agent UI（15）— `STANDARD/REFERENCE H10`
+json-schema-org/json-schema-spec,14.7 Agent 协议、MCP 与 Agent UI（15）— `STANDARD/REFERENCE H10`
+modelcontextprotocol/inspector,14.7 Agent 协议、MCP 与 Agent UI（15）— `STANDARD/REFERENCE H10`
+modelcontextprotocol/servers,14.7 Agent 协议、MCP 与 Agent UI（15）— `STANDARD/REFERENCE H10`
+modelcontextprotocol/specification,14.7 Agent 协议、MCP 与 Agent UI（15）— `STANDARD/REFERENCE H10`
+OAI/OpenAPI-Specification,14.7 Agent 协议、MCP 与 Agent UI（15）— `STANDARD/REFERENCE H10`
+open-rpc/spec,14.7 Agent 协议、MCP 与 Agent UI（15）— `STANDARD/REFERENCE H10`
+open-telemetry/semantic-conventions,14.7 Agent 协议、MCP 与 Agent UI（15）— `STANDARD/REFERENCE H10`
+zed-industries/agent-client-protocol,14.7 Agent 协议、MCP 与 Agent UI（15）— `STANDARD/REFERENCE H10`
+activepieces/activepieces,14.8 工作流、耐久执行与后台任务（22）— `EXISTING CORE FIRST / DEFER`
+agronholm/apscheduler,14.8 工作流、耐久执行与后台任务（22）— `EXISTING CORE FIRST / DEFER`
+airtai/faststream,14.8 工作流、耐久执行与后台任务（22）— `EXISTING CORE FIRST / DEFER`
+apache/airflow,14.8 工作流、耐久执行与后台任务（22）— `EXISTING CORE FIRST / DEFER`
+Bogdanp/dramatiq,14.8 工作流、耐久执行与后台任务（22）— `EXISTING CORE FIRST / DEFER`
+celery/celery,14.8 工作流、耐久执行与后台任务（22）— `EXISTING CORE FIRST / DEFER`
+dagster-io/dagster,14.8 工作流、耐久执行与后台任务（22）— `EXISTING CORE FIRST / DEFER`
+dapr/dapr,14.8 工作流、耐久执行与后台任务（22）— `EXISTING CORE FIRST / DEFER`
+dbos-inc/dbos-transact-py,14.8 工作流、耐久执行与后台任务（22）— `EXISTING CORE FIRST / DEFER`
+hatchet-dev/hatchet,14.8 工作流、耐久执行与后台任务（22）— `EXISTING CORE FIRST / DEFER`
+inngest/inngest,14.8 工作流、耐久执行与后台任务（22）— `EXISTING CORE FIRST / DEFER`
+kestra-io/kestra,14.8 工作流、耐久执行与后台任务（22）— `EXISTING CORE FIRST / DEFER`
+n8n-io/n8n,14.8 工作流、耐久执行与后台任务（22）— `EXISTING CORE FIRST / DEFER`
+node-red/node-red,14.8 工作流、耐久执行与后台任务（22）— `EXISTING CORE FIRST / DEFER`
+PrefectHQ/prefect,14.8 工作流、耐久执行与后台任务（22）— `EXISTING CORE FIRST / DEFER`
+python-arq/arq,14.8 工作流、耐久执行与后台任务（22）— `EXISTING CORE FIRST / DEFER`
+restatedev/restate,14.8 工作流、耐久执行与后台任务（22）— `EXISTING CORE FIRST / DEFER`
+rq/rq,14.8 工作流、耐久执行与后台任务（22）— `EXISTING CORE FIRST / DEFER`
+taskiq-python/taskiq,14.8 工作流、耐久执行与后台任务（22）— `EXISTING CORE FIRST / DEFER`
+temporalio/temporal,14.8 工作流、耐久执行与后台任务（22）— `EXISTING CORE FIRST / DEFER`
+triggerdotdev/trigger.dev,14.8 工作流、耐久执行与后台任务（22）— `EXISTING CORE FIRST / DEFER`
+windmill-labs/windmill,14.8 工作流、耐久执行与后台任务（22）— `EXISTING CORE FIRST / DEFER`
+Arize-ai/phoenix,14.9 观测、评估与 Guardrails（26）— `SELECTIVE INTERNAL / H4+`
+Azure/PyRIT,14.9 观测、评估与 Guardrails（26）— `SELECTIVE INTERNAL / H4+`
+comet-ml/opik,14.9 观测、评估与 Guardrails（26）— `SELECTIVE INTERNAL / H4+`
+confident-ai/deepeval,14.9 观测、评估与 Guardrails（26）— `SELECTIVE INTERNAL / H4+`
+EleutherAI/lm-evaluation-harness,14.9 观测、评估与 Guardrails（26）— `SELECTIVE INTERNAL / H4+`
+evidentlyai/evidently,14.9 观测、评估与 Guardrails（26）— `SELECTIVE INTERNAL / H4+`
+explodinggradients/ragas,14.9 观测、评估与 Guardrails（26）— `SELECTIVE INTERNAL / H4+`
+Giskard-AI/giskard,14.9 观测、评估与 Guardrails（26）— `SELECTIVE INTERNAL / H4+`
+guardrails-ai/guardrails,14.9 观测、评估与 Guardrails（26）— `SELECTIVE INTERNAL / H4+`
+Helicone/helicone,14.9 观测、评估与 Guardrails（26）— `SELECTIVE INTERNAL / H4+`
+huggingface/lighteval,14.9 观测、评估与 Guardrails（26）— `SELECTIVE INTERNAL / H4+`
+langfuse/langfuse,14.9 观测、评估与 Guardrails（26）— `SELECTIVE INTERNAL / H4+`
+microsoft/presidio,14.9 观测、评估与 Guardrails（26）— `SELECTIVE INTERNAL / H4+`
+mlflow/mlflow,14.9 观测、评估与 Guardrails（26）— `SELECTIVE INTERNAL / H4+`
+modelscope/evalscope,14.9 观测、评估与 Guardrails（26）— `SELECTIVE INTERNAL / H4+`
+NVIDIA/garak,14.9 观测、评估与 Guardrails（26）— `SELECTIVE INTERNAL / H4+`
+NVIDIA/NeMo-Guardrails,14.9 观测、评估与 Guardrails（26）— `SELECTIVE INTERNAL / H4+`
+open-telemetry/opentelemetry-python,14.9 观测、评估与 Guardrails（26）— `SELECTIVE INTERNAL / H4+`
+openlit/openlit,14.9 观测、评估与 Guardrails（26）— `SELECTIVE INTERNAL / H4+`
+promptfoo/promptfoo,14.9 观测、评估与 Guardrails（26）— `SELECTIVE INTERNAL / H4+`
+protectai/llm-guard,14.9 观测、评估与 Guardrails（26）— `SELECTIVE INTERNAL / H4+`
+traceloop/openllmetry,14.9 观测、评估与 Guardrails（26）— `SELECTIVE INTERNAL / H4+`
+truera/trulens,14.9 观测、评估与 Guardrails（26）— `SELECTIVE INTERNAL / H4+`
+UKGovernmentBEIS/inspect_ai,14.9 观测、评估与 Guardrails（26）— `SELECTIVE INTERNAL / H4+`
+wandb/weave,14.9 观测、评估与 Guardrails（26）— `SELECTIVE INTERNAL / H4+`
+abetlen/llama-cpp-python,14.10 本地模型、推理与训练（25）— `THIN PROVIDER / MOSTLY DEFER`
+bentoml/OpenLLM,14.10 本地模型、推理与训练（25）— `THIN PROVIDER / MOSTLY DEFER`
+BerriAI/litellm,14.10 本地模型、推理与训练（25）— `THIN PROVIDER / MOSTLY DEFER`
+bitsandbytes-foundation/bitsandbytes,14.10 本地模型、推理与训练（25）— `THIN PROVIDER / MOSTLY DEFER`
+ggml-org/llama.cpp,14.10 本地模型、推理与训练（25）— `THIN PROVIDER / MOSTLY DEFER`
+hiyouga/LLaMA-Factory,14.10 本地模型、推理与训练（25）— `THIN PROVIDER / MOSTLY DEFER`
+huggingface/optimum,14.10 本地模型、推理与训练（25）— `THIN PROVIDER / MOSTLY DEFER`
+huggingface/peft,14.10 本地模型、推理与训练（25）— `THIN PROVIDER / MOSTLY DEFER`
+huggingface/text-generation-inference,14.10 本地模型、推理与训练（25）— `THIN PROVIDER / MOSTLY DEFER`
+huggingface/trl,14.10 本地模型、推理与训练（25）— `THIN PROVIDER / MOSTLY DEFER`
+lm-sys/FastChat,14.10 本地模型、推理与训练（25）— `THIN PROVIDER / MOSTLY DEFER`
+ml-explore/mlx-lm,14.10 本地模型、推理与训练（25）— `THIN PROVIDER / MOSTLY DEFER`
+mlc-ai/mlc-llm,14.10 本地模型、推理与训练（25）— `THIN PROVIDER / MOSTLY DEFER`
+mudler/LocalAI,14.10 本地模型、推理与训练（25）— `THIN PROVIDER / MOSTLY DEFER`
+NVIDIA/TensorRT-LLM,14.10 本地模型、推理与训练（25）— `THIN PROVIDER / MOSTLY DEFER`
+ollama/ollama,14.10 本地模型、推理与训练（25）— `THIN PROVIDER / MOSTLY DEFER`
+OpenAccess-AI-Collective/axolotl,14.10 本地模型、推理与训练（25）— `THIN PROVIDER / MOSTLY DEFER`
+PygmalionAI/aphrodite-engine,14.10 本地模型、推理与训练（25）— `THIN PROVIDER / MOSTLY DEFER`
+pytorch/torchtune,14.10 本地模型、推理与训练（25）— `THIN PROVIDER / MOSTLY DEFER`
+sgl-project/sglang,14.10 本地模型、推理与训练（25）— `THIN PROVIDER / MOSTLY DEFER`
+triton-inference-server/server,14.10 本地模型、推理与训练（25）— `THIN PROVIDER / MOSTLY DEFER`
+turboderp-org/exllamav2,14.10 本地模型、推理与训练（25）— `THIN PROVIDER / MOSTLY DEFER`
+unslothai/unsloth,14.10 本地模型、推理与训练（25）— `THIN PROVIDER / MOSTLY DEFER`
+vllm-project/vllm,14.10 本地模型、推理与训练（25）— `THIN PROVIDER / MOSTLY DEFER`
+xorbitsai/inference,14.10 本地模型、推理与训练（25）— `THIN PROVIDER / MOSTLY DEFER`
+Breakthrough/PySceneDetect,14.11 音视频、多模态与计算机操作（28）— `ASR SUBSET / COMPUTER-USE REJECT-CORE`
+bytedance/UI-TARS,14.11 音视频、多模态与计算机操作（28）— `ASR SUBSET / COMPUTER-USE REJECT-CORE`
+facebookresearch/demucs,14.11 音视频、多模态与计算机操作（28）— `ASR SUBSET / COMPUTER-USE REJECT-CORE`
+facebookresearch/segment-anything-2,14.11 音视频、多模态与计算机操作（28）— `ASR SUBSET / COMPUTER-USE REJECT-CORE`
+FFmpeg/FFmpeg,14.11 音视频、多模态与计算机操作（28）— `ASR SUBSET / COMPUTER-USE REJECT-CORE`
+fishaudio/fish-speech,14.11 音视频、多模态与计算机操作（28）— `ASR SUBSET / COMPUTER-USE REJECT-CORE`
+FunAudioLLM/CosyVoice,14.11 音视频、多模态与计算机操作（28）— `ASR SUBSET / COMPUTER-USE REJECT-CORE`
+FunAudioLLM/SenseVoice,14.11 音视频、多模态与计算机操作（28）— `ASR SUBSET / COMPUTER-USE REJECT-CORE`
+ggerganov/whisper.cpp,14.11 音视频、多模态与计算机操作（28）— `ASR SUBSET / COMPUTER-USE REJECT-CORE`
+IDEA-Research/GroundingDINO,14.11 音视频、多模态与计算机操作（28）— `ASR SUBSET / COMPUTER-USE REJECT-CORE`
+k2-fsa/sherpa-onnx,14.11 音视频、多模态与计算机操作（28）— `ASR SUBSET / COMPUTER-USE REJECT-CORE`
+m-bain/whisperX,14.11 音视频、多模态与计算机操作（28）— `ASR SUBSET / COMPUTER-USE REJECT-CORE`
+microsoft/OmniParser,14.11 音视频、多模态与计算机操作（28）— `ASR SUBSET / COMPUTER-USE REJECT-CORE`
+mlfoundations/open_clip,14.11 音视频、多模态与计算机操作（28）— `ASR SUBSET / COMPUTER-USE REJECT-CORE`
+modelscope/FunASR,14.11 音视频、多模态与计算机操作（28）— `ASR SUBSET / COMPUTER-USE REJECT-CORE`
+myshell-ai/OpenVoice,14.11 音视频、多模态与计算机操作（28）— `ASR SUBSET / COMPUTER-USE REJECT-CORE`
+NVIDIA/NeMo,14.11 音视频、多模态与计算机操作（28）— `ASR SUBSET / COMPUTER-USE REJECT-CORE`
+OpenBMB/MiniCPM-V,14.11 音视频、多模态与计算机操作（28）— `ASR SUBSET / COMPUTER-USE REJECT-CORE`
+opencv/opencv,14.11 音视频、多模态与计算机操作（28）— `ASR SUBSET / COMPUTER-USE REJECT-CORE`
+OpenGVLab/InternVL,14.11 音视频、多模态与计算机操作（28）— `ASR SUBSET / COMPUTER-USE REJECT-CORE`
+OS-Copilot/OS-Copilot,14.11 音视频、多模态与计算机操作（28）— `ASR SUBSET / COMPUTER-USE REJECT-CORE`
+PaddlePaddle/PaddleSpeech,14.11 音视频、多模态与计算机操作（28）— `ASR SUBSET / COMPUTER-USE REJECT-CORE`
+pyannote/pyannote-audio,14.11 音视频、多模态与计算机操作（28）— `ASR SUBSET / COMPUTER-USE REJECT-CORE`
+QwenLM/Qwen2.5-VL,14.11 音视频、多模态与计算机操作（28）— `ASR SUBSET / COMPUTER-USE REJECT-CORE`
+showlab/ShowUI,14.11 音视频、多模态与计算机操作（28）— `ASR SUBSET / COMPUTER-USE REJECT-CORE`
+SYSTRAN/faster-whisper,14.11 音视频、多模态与计算机操作（28）— `ASR SUBSET / COMPUTER-USE REJECT-CORE`
+apache/arrow,14.12 存储、搜索、同步与谱系（34）— `SQLITE FIRST / OPTIONAL DERIVED`
+asg017/sqlite-vec,14.12 存储、搜索、同步与谱系（34）— `SQLITE FIRST / OPTIONAL DERIVED`
+automerge/automerge,14.12 存储、搜索、同步与谱系（34）— `SQLITE FIRST / OPTIONAL DERIVED` | 14.14 前端、桌面与可视化（29）— `BAKE-OFF / CURRENT TAURI`
+benbjohnson/litestream,14.12 存储、搜索、同步与谱系（34）— `SQLITE FIRST / OPTIONAL DERIVED`
+chroma-core/chroma,14.12 存储、搜索、同步与谱系（34）— `SQLITE FIRST / OPTIONAL DERIVED`
+dolthub/dolt,14.12 存储、搜索、同步与谱系（34）— `SQLITE FIRST / OPTIONAL DERIVED`
+duckdb/duckdb,14.12 存储、搜索、同步与谱系（34）— `SQLITE FIRST / OPTIONAL DERIVED`
+electric-sql/electric,14.12 存储、搜索、同步与谱系（34）— `SQLITE FIRST / OPTIONAL DERIVED`
+electric-sql/pglite,14.12 存储、搜索、同步与谱系（34）— `SQLITE FIRST / OPTIONAL DERIVED`
+facebookresearch/faiss,14.12 存储、搜索、同步与谱系（34）— `SQLITE FIRST / OPTIONAL DERIVED`
+infiniflow/infinity,14.12 存储、搜索、同步与谱系（34）— `SQLITE FIRST / OPTIONAL DERIVED`
+iterative/dvc,14.12 存储、搜索、同步与谱系（34）— `SQLITE FIRST / OPTIONAL DERIVED`
+MarquezProject/marquez,14.12 存储、搜索、同步与谱系（34）— `SQLITE FIRST / OPTIONAL DERIVED`
+meilisearch/meilisearch,14.12 存储、搜索、同步与谱系（34）— `SQLITE FIRST / OPTIONAL DERIVED`
+milvus-io/milvus,14.12 存储、搜索、同步与谱系（34）— `SQLITE FIRST / OPTIONAL DERIVED`
+OpenLineage/OpenLineage,14.12 存储、搜索、同步与谱系（34）— `SQLITE FIRST / OPTIONAL DERIVED`
+opensearch-project/OpenSearch,14.12 存储、搜索、同步与谱系（34）— `SQLITE FIRST / OPTIONAL DERIVED`
+paradedb/paradedb,14.12 存储、搜索、同步与谱系（34）— `SQLITE FIRST / OPTIONAL DERIVED`
+pgvector/pgvector,14.12 存储、搜索、同步与谱系（34）— `SQLITE FIRST / OPTIONAL DERIVED`
+pola-rs/polars,14.12 存储、搜索、同步与谱系（34）— `SQLITE FIRST / OPTIONAL DERIVED`
+powersync-ja/powersync-js,14.12 存储、搜索、同步与谱系（34）— `SQLITE FIRST / OPTIONAL DERIVED`
+pubkey/rxdb,14.12 存储、搜索、同步与谱系（34）— `SQLITE FIRST / OPTIONAL DERIVED`
+qdrant/qdrant,14.12 存储、搜索、同步与谱系（34）— `SQLITE FIRST / OPTIONAL DERIVED`
+quickwit-oss/tantivy,14.12 存储、搜索、同步与谱系（34）— `SQLITE FIRST / OPTIONAL DERIVED`
+rclone/rclone,14.12 存储、搜索、同步与谱系（34）— `SQLITE FIRST / OPTIONAL DERIVED`
+restic/restic,14.12 存储、搜索、同步与谱系（34）— `SQLITE FIRST / OPTIONAL DERIVED`
+simonw/datasette,14.12 存储、搜索、同步与谱系（34）— `SQLITE FIRST / OPTIONAL DERIVED`
+treeverse/lakeFS,14.12 存储、搜索、同步与谱系（34）— `SQLITE FIRST / OPTIONAL DERIVED`
+typesense/typesense,14.12 存储、搜索、同步与谱系（34）— `SQLITE FIRST / OPTIONAL DERIVED`
+unum-cloud/usearch,14.12 存储、搜索、同步与谱系（34）— `SQLITE FIRST / OPTIONAL DERIVED`
+vespa-engine/vespa,14.12 存储、搜索、同步与谱系（34）— `SQLITE FIRST / OPTIONAL DERIVED`
+weaviate/weaviate,14.12 存储、搜索、同步与谱系（34）— `SQLITE FIRST / OPTIONAL DERIVED`
+yjs/yjs,14.12 存储、搜索、同步与谱系（34）— `SQLITE FIRST / OPTIONAL DERIVED` | 14.14 前端、桌面与可视化（29）— `BAKE-OFF / CURRENT TAURI`
+anchore/grype,14.13 沙箱、权限与供应链安全（30）— `MINIMUM TOOL SET / INFRA DEFER`
+anchore/syft,14.13 沙箱、权限与供应链安全（30）— `MINIMUM TOOL SET / INFRA DEFER`
+aquasecurity/trivy,14.13 沙箱、权限与供应链安全（30）— `MINIMUM TOOL SET / INFRA DEFER`
+authzed/spicedb,14.13 沙箱、权限与供应链安全（30）— `MINIMUM TOOL SET / INFRA DEFER`
+bytecodealliance/wasmtime,14.13 沙箱、权限与供应链安全（30）— `MINIMUM TOOL SET / INFRA DEFER`
+casbin/casbin,14.13 沙箱、权限与供应链安全（30）— `MINIMUM TOOL SET / INFRA DEFER`
+cedar-policy/cedar,14.13 沙箱、权限与供应链安全（30）— `MINIMUM TOOL SET / INFRA DEFER`
+containers/bubblewrap,14.13 沙箱、权限与供应链安全（30）— `MINIMUM TOOL SET / INFRA DEFER`
+containers/podman,14.13 沙箱、权限与供应链安全（30）— `MINIMUM TOOL SET / INFRA DEFER`
+daytonaio/daytona,14.13 沙箱、权限与供应链安全（30）— `MINIMUM TOOL SET / INFRA DEFER`
+e2b-dev/E2B,14.13 沙箱、权限与供应链安全（30）— `MINIMUM TOOL SET / INFRA DEFER`
+FiloSottile/age,14.13 沙箱、权限与供应链安全（30）— `MINIMUM TOOL SET / INFRA DEFER`
+firecracker-microvm/firecracker,14.13 沙箱、权限与供应链安全（30）— `MINIMUM TOOL SET / INFRA DEFER`
+getsops/sops,14.13 沙箱、权限与供应链安全（30）— `MINIMUM TOOL SET / INFRA DEFER`
+github/codeql,14.13 沙箱、权限与供应链安全（30）— `MINIMUM TOOL SET / INFRA DEFER`
+gitleaks/gitleaks,14.13 沙箱、权限与供应链安全（30）— `MINIMUM TOOL SET / INFRA DEFER`
+google/gvisor,14.13 沙箱、权限与供应链安全（30）— `MINIMUM TOOL SET / INFRA DEFER`
+google/nsjail,14.13 沙箱、权限与供应链安全（30）— `MINIMUM TOOL SET / INFRA DEFER`
+hashicorp/vault,14.13 沙箱、权限与供应链安全（30）— `MINIMUM TOOL SET / INFRA DEFER`
+kata-containers/kata-containers,14.13 沙箱、权限与供应链安全（30）— `MINIMUM TOOL SET / INFRA DEFER`
+keycloak/keycloak,14.13 沙箱、权限与供应链安全（30）— `MINIMUM TOOL SET / INFRA DEFER`
+moby/moby,14.13 沙箱、权限与供应链安全（30）— `MINIMUM TOOL SET / INFRA DEFER`
+open-policy-agent/opa,14.13 沙箱、权限与供应链安全（30）— `MINIMUM TOOL SET / INFRA DEFER`
+openfga/openfga,14.13 沙箱、权限与供应链安全（30）— `MINIMUM TOOL SET / INFRA DEFER`
+opensandbox-group/OpenSandbox,14.13 沙箱、权限与供应链安全（30）— `MINIMUM TOOL SET / INFRA DEFER`
+PyCQA/bandit,14.13 沙箱、权限与供应链安全（30）— `MINIMUM TOOL SET / INFRA DEFER`
+pypa/pip-audit,14.13 沙箱、权限与供应链安全（30）— `MINIMUM TOOL SET / INFRA DEFER`
+rustsec/rustsec,14.13 沙箱、权限与供应链安全（30）— `MINIMUM TOOL SET / INFRA DEFER`
+semgrep/semgrep,14.13 沙箱、权限与供应链安全（30）— `MINIMUM TOOL SET / INFRA DEFER`
+sigstore/cosign,14.13 沙箱、权限与供应链安全（30）— `MINIMUM TOOL SET / INFRA DEFER`
+apache/echarts,14.14 前端、桌面与可视化（29）— `BAKE-OFF / CURRENT TAURI`
+codemirror/dev,14.14 前端、桌面与可视化（29）— `BAKE-OFF / CURRENT TAURI`
+cytoscape/cytoscape.js,14.14 前端、桌面与可视化（29）— `BAKE-OFF / CURRENT TAURI`
+excalidraw/excalidraw,14.14 前端、桌面与可视化（29）— `BAKE-OFF / CURRENT TAURI`
+facebook/lexical,14.14 前端、桌面与可视化（29）— `BAKE-OFF / CURRENT TAURI`
+facebook/react,14.14 前端、桌面与可视化（29）— `BAKE-OFF / CURRENT TAURI`
+microsoft/monaco-editor,14.14 前端、桌面与可视化（29）— `BAKE-OFF / CURRENT TAURI`
+pmndrs/jotai,14.14 前端、桌面与可视化（29）— `BAKE-OFF / CURRENT TAURI`
+pmndrs/zustand,14.14 前端、桌面与可视化（29）— `BAKE-OFF / CURRENT TAURI`
+ProseMirror/prosemirror,14.14 前端、桌面与可视化（29）— `BAKE-OFF / CURRENT TAURI`
+radix-ui/primitives,14.14 前端、桌面与可视化（29）— `BAKE-OFF / CURRENT TAURI`
+recharts/recharts,14.14 前端、桌面与可视化（29）— `BAKE-OFF / CURRENT TAURI`
+shadcn-ui/ui,14.14 前端、桌面与可视化（29）— `BAKE-OFF / CURRENT TAURI`
+tailwindlabs/tailwindcss,14.14 前端、桌面与可视化（29）— `BAKE-OFF / CURRENT TAURI`
+TanStack/query,14.14 前端、桌面与可视化（29）— `BAKE-OFF / CURRENT TAURI`
+TanStack/router,14.14 前端、桌面与可视化（29）— `BAKE-OFF / CURRENT TAURI`
+TanStack/table,14.14 前端、桌面与可视化（29）— `BAKE-OFF / CURRENT TAURI`
+TanStack/virtual,14.14 前端、桌面与可视化（29）— `BAKE-OFF / CURRENT TAURI`
+tauri-apps/tauri,14.14 前端、桌面与可视化（29）— `BAKE-OFF / CURRENT TAURI`
+tldraw/tldraw,14.14 前端、桌面与可视化（29）— `BAKE-OFF / CURRENT TAURI`
+TypeCellOS/BlockNote,14.14 前端、桌面与可视化（29）— `BAKE-OFF / CURRENT TAURI`
+ueberdosis/tiptap,14.14 前端、桌面与可视化（29）— `BAKE-OFF / CURRENT TAURI`
+visjs/vis-network,14.14 前端、桌面与可视化（29）— `BAKE-OFF / CURRENT TAURI`
+vitejs/vite,14.14 前端、桌面与可视化（29）— `BAKE-OFF / CURRENT TAURI`
+xyflow/xyflow,14.14 前端、桌面与可视化（29）— `BAKE-OFF / CURRENT TAURI`
+AFLplusplus/AFLplusplus,14.15 安全研究实验室（23）— `ISOLATED-LAB ONLY`
+angr/angr,14.15 安全研究实验室（23）— `ISOLATED-LAB ONLY`
+avast/retdec,14.15 安全研究实验室（23）— `ISOLATED-LAB ONLY`
+capstone-engine/capstone,14.15 安全研究实验室（23）— `ISOLATED-LAB ONLY`
+frida/frida,14.15 安全研究实验室（23）— `ISOLATED-LAB ONLY`
+Gallopsled/pwntools,14.15 安全研究实验室（23）— `ISOLATED-LAB ONLY`
+google/syzkaller,14.15 安全研究实验室（23）— `ISOLATED-LAB ONLY`
+keystone-engine/keystone,14.15 安全研究实验室（23）— `ISOLATED-LAB ONLY`
+lief-project/LIEF,14.15 安全研究实验室（23）— `ISOLATED-LAB ONLY`
+mitmproxy/mitmproxy,14.15 安全研究实验室（23）— `ISOLATED-LAB ONLY`
+mobsf/Mobile-Security-Framework-MobSF,14.15 安全研究实验室（23）— `ISOLATED-LAB ONLY`
+NationalSecurityAgency/ghidra,14.15 安全研究实验室（23）— `ISOLATED-LAB ONLY`
+pwndbg/pwndbg,14.15 安全研究实验室（23）— `ISOLATED-LAB ONLY`
+qemu/qemu,14.15 安全研究实验室（23）— `ISOLATED-LAB ONLY`
+radareorg/radare2,14.15 安全研究实验室（23）— `ISOLATED-LAB ONLY`
+rizinorg/rizin,14.15 安全研究实验室（23）— `ISOLATED-LAB ONLY`
+sqlmapproject/sqlmap,14.15 安全研究实验室（23）— `ISOLATED-LAB ONLY`
+unicorn-engine/unicorn,14.15 安全研究实验室（23）— `ISOLATED-LAB ONLY`
+VirusTotal/yara,14.15 安全研究实验室（23）— `ISOLATED-LAB ONLY`
+volatilityfoundation/volatility3,14.15 安全研究实验室（23）— `ISOLATED-LAB ONLY`
+wireshark/wireshark,14.15 安全研究实验室（23）— `ISOLATED-LAB ONLY`
+x64dbg/x64dbg,14.15 安全研究实验室（23）— `ISOLATED-LAB ONLY`
+zaproxy/zaproxy,14.15 安全研究实验室（23）— `ISOLATED-LAB ONLY`

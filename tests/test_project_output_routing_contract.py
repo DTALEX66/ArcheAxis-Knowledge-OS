@@ -1,5 +1,6 @@
 """Guard the single project-local output roots used by active build entrypoints."""
 
+import xml.etree.ElementTree as ET
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -131,11 +132,13 @@ def test_formal_desktop_window_is_the_archeaxis_workspace_shell() -> None:
     streaming = _read("apps/ArcheAxis.Desktop/StreamingImportContent.cs")
 
     assert "Welcome to Avalonia!" not in xaml
-    assert "星环知识平台" in xaml
-    assert "选择资料并导入" in xaml
+    window = ET.fromstring(xaml)
+    assert window.get("Title") == "ArcheAxis Knowledge"
+    assert window.get("AutomationProperties.Name") == "星环知识平台（ArcheAxis Knowledge）"
+    assert "选择资料" in xaml
     assert "打开学习路径" in xaml
     assert 'Click="OnImportClick"' in xaml
-    assert 'Click="OnLearningClick"' in xaml
+    assert 'Click="OnLearningNavigationClick"' in xaml
     assert "CoreStatusText.Text" in code
     assert "OpenFilePickerAsync" in code
     assert 'HttpMethod.Post' in code

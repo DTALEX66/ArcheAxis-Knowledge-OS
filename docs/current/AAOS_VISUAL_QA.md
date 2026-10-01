@@ -1,5 +1,13 @@
 # AAOS 视觉 QA 基线
 
+## 2026-10-01 当前证据范围
+
+当前用户采用提示词以 B10 最终可部署母版为最高视觉依据；B03 及其他批次只能补充，不能反向覆盖 B10。记录中的 Formal `di` 为 324 项受影响前端静态契约 PASS，`dj` 为桌面编译退出 0。已有原生 raster 渲染回读仅证明对应窗口、路由、主题可渲染，不代表完整原生交互、无障碍、动画或多 DPI 矩阵验收；这些仍 `UNVERIFIED`，整体视觉验收 `PARTIAL`。真实 Core 闭环及安装态健康也不能由上述证据推出。具体执行及发布边界见 [当前交接](STORAGE-CLEANUP-HANDOFF-20261001.md)。
+
+下文 2026-09-22 至 09-28 的布局、PID、候选路径、测试数字和缩放读数均是历史快照。r70 的 324 项是其当时独立测试结果，不等同于 2026-10-01 `di` 的 324 项。旧 195 DIP rail 记录不代表当前源码的 280 DIP rail，也不构成当前几何验收。
+
+## 历史 2026-09-22 基线
+
 日期：2026-09-22
 证据等级：`TESTED_LOCAL / READ_ONLY_AUDIT`。这是参考套件对照基线，不是当前 Avalonia GUI 已通过的声明。
 
@@ -101,3 +109,72 @@ the product, and does not replace the fixed external-resource authority index.
 - Evidence Center remains a truthful `UNAVAILABLE` Core-contract state, not a
   fabricated visual list. Native GUI screenshot/click/readback remains
   `NOT_EXECUTED` because the current CUA bridge exposes no native window.
+
+## 2026-09-27 Native Icon and Artwork Check
+
+- The formal shell now uses the B10 280px text sidebar and one reusable AAOS vector icon control. VI icon concepts were redrawn as vector geometry; they were not cropped from the reference board. Aurora Teal/Monochrome palette switching is handled by dynamic theme resources.
+- Home's previous planet/orbit decorative artwork was replaced by a small connected-node schematic. The screen reader label states that it does not represent live Memory Graph data. The current icon/artwork screenshot is `.project-local/acceptance/AAOS-UI-CANDIDATE-20260927-r7/AAOS-UI-CANDIDATE-20260927-r7.png`.
+- Debug build: `PASS` (0 warnings, 0 errors). Targeted UI contract: `PASS` (240 tests). Native screenshot confirms the Home window renders; it also confirms the page still has the older welcome/KPI/quick-capture composition and is not a B10 page-level visual pass.
+- Compact viewport capture (1000x1000 physical px) confirms the sidebar changes to the four-icon bottom bar and the action stack reflows; it is not a full set of device DPI tests. Screenshot: `.project-local/acceptance/AAOS-UI-CANDIDATE-20260927-r7/AAOS-UI-CANDIDATE-20260927-r7-compact.png`.
+- Remaining QA: capture and compare every route in both themes; verify tablet layouts and Windows scaling; replace/rebuild each page composition and any route-specific artwork to match the B10/B05 references. Overall visual acceptance remains `PARTIAL`.
+
+
+## 2026-09-27 r23 运行时截图增量
+
+- 候选目录：`.project-local/build/aaos-ui-preview/AAOS-UI-CANDIDATE-20260927-r23/`；窗口 PID 34856，标题显示 Core offline（未发现 Core binary）。
+- 当前显示缩放 125%；使用原生 HWND `PrintWindow` 回读，脚本先启用 DPI awareness。截图共 22 张，尺寸均 1818×1172，路径：`.project-local/acceptance/AAOS-UI-CANDIDATE-20260927-r23/`。
+- 覆盖 Home、Capture、Evidence Library、Originals、Human Learning、Machine Learning、Workspace、Memory Map、Search、Review、Settings；每页 Aurora 与 Monochrome 各一张。PNG 已核对存在且像素尺寸一致，主题切换后页面表面采样值不同。
+- Evidence Detail 因没有真实 Core evidence anchor 无法进入；没有注入演示记录。只验证当前 125% DPI 下列出页面可渲染与双主题切换，不代表像素级母版通过、150% DPI通过或 Core 联机通过。总体视觉验收仍 `PARTIAL`。
+
+## 2026-09-27 r25 并行页面与动效回归
+
+- 新 Release 候选发布在 `.project-local/build/aaos-ui-preview/AAOS-UI-CANDIDATE-20260927-r25/`，PID 19004；窗口标题显示 Core offline。当前 r24 验收组覆盖 11 页双主题，接触表 `.project-local/acceptance/AAOS-UI-CANDIDATE-20260927-r24/aurora-contact-sheet.png`。Settings Aurora 原始回读为 1800×1125，接触表用统一 1818×1172 画布缩放补齐；该单张是辅助预览，不能作为原始像素证据。r24 截图仅证明旧候选运行态，不冒充 r25 回读。
+- 本轮完成共享矢量图标扩展、B10 图标重绘应用 ICO、来源阅读器与 Evidence 页面图标/来源链交互、Memory Graph 节点悬停和脉冲连线动效、Review 翻面近似动效、首页 12 秒呼吸光效；Capture 真实导入期间显示扫描光带；Toast 调为底部居中、约 1.8 秒后淡出。reduced-motion 路径仍关闭动画。
+- 验证：指定 UI 契约 **257 passed**；Release `publish` 成功，0 编译错误，1 条 `NU1900`（NuGet 漏洞索引不可达）；`git diff --check` 通过。原件阅读、Evidence Detail 的运行期真实数据路径仍需 Core 在线数据才能验证。
+- 视觉结论仍为 `PARTIAL`：接触表中可见多页仍偏信息面板而非 B10/B05 的高保真密度与插画布局；像素级逐页对照、全尺寸/150% DPI、交互录屏及 Core-connected 状态均未完成。不得将双主题可渲染等同一比一复刻通过。
+
+## 2026-09-28 r48 Human Learning B05 / responsive readback
+
+- Reference: B05 `06_人类学习_Human_Learning_1920x1080.png`; screenshot: `.project-local/acceptance/AAOS-UI-CANDIDATE-20260928-mother-ui-r48/human-learning-1280x900.png`.
+- Native route was invoked through Windows UI Automation and captured with `PrintWindow` at 1280×900 physical px while Windows scaling is 125%. Four metric cards render as two filled columns with all labels contained. The main study-plan/growth composition remains responsive; support details are collapsed but retain their Core-bound controls.
+- `PrintWindow` succeeds and image was visually inspected. The candidate window reports Core offline; KPI values and history trend therefore remain truthful empty states. This is a single-page, Aurora-theme, single-window-size readback, not the full 12-route dual-theme/DPI matrix. Overall remains `PARTIAL`.
+- Release build: `0 warnings / 0 errors`. Targeted route/UI contracts: `43 passed, 190 deselected`, one existing pytest warning (`cache_dir` option unsupported by the isolated UI runner).
+
+## 2026-09-28 r50 Machine Learning B05 / responsive readback
+
+- Reference: B05 `07_机器学习_Machine_Learning_1920x1080.png`; runtime screenshots `.project-local/acceptance/AAOS-UI-CANDIDATE-20260928-mother-ui-r50/machine-learning-runtime.png` and `machine-learning-1280x900.png`.
+- UI Automation invoked the Machine Learning route, and native `PrintWindow` captured 1818×1172 and 1280×900 physical px at current Windows scaling (125%). Four metric cards fill four columns at wide width and two columns at compact width; Knowledge Supply and the trend surface stack responsively.
+- The page retains actual Core-backed status, but Core is offline and publishes no readiness overview or historical series. The B05 plotting area is present with a centered unavailable state; no demo values or trend line are fabricated. Single-route Aurora readback only; monochrome and additional DPI values remain unverified.
+- Machine/Human Learning targeted contracts: `6 passed`; Release build `0 warnings / 0 errors`. Overall AAOS visual state remains `PARTIAL`.
+
+## 2026-09-28 r51 theme token readback
+
+- Selected Memory Graph node outline now uses `AaosGoldBrush`, which maps to Aurora gold and monochrome grayscale through the existing theme palette.
+- Machine Learning page was captured at 1818×1172 in Aurora and Monochrome after switching through the live Settings selector: `.project-local/acceptance/AAOS-UI-CANDIDATE-20260928-mother-ui-r51/machine-learning-aurora.png` and `machine-learning-monochrome.png`.
+- Current selected page is Machine Learning in Monochrome; PID 29992 responds. This verifies theme application on this page, not every route. Full acceptance remains `PARTIAL`.
+
+## 2026-09-28 r56 runtime route / motion integration
+
+- Candidate: `.project-local/acceptance/AAOS-UI-CANDIDATE-20260928-mother-ui-r56/`; normal Release build, DLL SHA-256 `267DE1A3F68307FD02985AE72F9B3992549ED5E868C9D4C5B99EA64BB214CA79`.
+- UI Automation confirms a responsive visible window (1818×1172 physical px, 120 DPI / 125% scaling), Core offline title, the updated `ArcheAxis 轨道星品牌标记`, and Capture route controls including `快速捕获` and `最近捕获回执列表`.
+- Import scan motion is connected to the real import lifecycle and app reduced-motion preference. Runtime visual pixels are not captured: `PrintWindow` returns a blank surface and cropped `BitBlt` is unavailable in this host. No screenshot is represented as visual proof.
+- Focused contracts: 269 passed. This route/runtime readback is partial and does not complete the full page/theme/viewport acceptance matrix.
+
+## 2026-09-28 r57 B03/B05 primary navigation readback
+
+- Desktop rail width: 195 DIP (13.5% of 1440 DIP base canvas), matching the reference composition. All 11 primary routes render an icon and Chinese label. Desktop lockup includes `KNOWLEDGE OS · EVIDENCE · MEMORY`; mobile collapses to the bottom rail and hides the desktop tagline.
+- Live r57 UI Automation readback found all 11 labels and the tagline in the visible window. Window responded at 120 DPI/125% scaling; Core remains offline. This validates runtime controls and navigation structure, but not pixels because native screen capture remains blocked by this host.
+- Ten targeted suites: 277 passed. Release candidate and exact DLL hash are recorded in `AAOS-UI-FIDELITY-STATUS-20260927.md`; overall status remains `PARTIAL`.
+
+## 2026-09-28 Avalonia-native dual-theme route raster readback / r70
+
+- Added candidate-only `--ui-capture <png> <route>` startup mode. It sets reduced motion, routes the existing Avalonia window, applies the selected palette (`AAOS_UI_CAPTURE_THEME`), then renders the attached Window visual tree through `RenderTargetBitmap` at its current `RenderScaling`. It bypasses OS desktop capture permissions and does not affect normal launch. Candidate source paths: `apps/ArcheAxis.Desktop/Program.cs`, `apps/ArcheAxis.Desktop/MainWindow.axaml.cs`.
+- A 16-route matrix × Aurora Teal / 黑白深色 was rasterized to `.project-local/tmp/<route>-<aurora|mono>.png`: Home, Capture, Library, Search, Source Reader, Knowledge, Original Editor, Memory Map, Human Learning, Review/FSRS, Evidence, Machine Learning, Workspace, Settings, Jobs and Recovery. All are 1800×1125 px at the current 125% display scale. Pixel samples confirm theme backgrounds Aurora `#091821` and Monochrome `#101316`. Contact sheet: `.project-local/tmp/aaos-16-routes-contact-sheet.png`.
+- Raster review found the Review schedule chart's narrow y-axis label overlapping and clipping. Replaced the rotated/stacked label with a concise `张` unit marker and retained the full accessible name and tooltip `数量（张）`. Rebuilt and recaptured Review in both palettes; the label is legible and no longer overlaps. Runtime frames: `.project-local/tmp/review-aurora.png`, `.project-local/tmp/review-mono.png`.
+- Final y-axis marker after the image-review iteration is `张` (full unit retained in accessible name and tooltip). Candidate publish: `.project-local/acceptance/AAOS-UI-CANDIDATE-20260928-native-capture-r70/`; Release, self-contained win-x64. DLL SHA-256 `1BFC1F4F577FB583F58FB09B2090DA8A968906AF999D083E6AAF5D261A4BF26D`. Build emits only environmental NuGet vulnerability-index warning `NU1900`.
+- Release verification: 26 focused UI and visual contract files, `324 passed in 1.92s`; `git diff --check` and Avalonia XAML parse pass. Normal r64 preview was separately launched and reports Core offline and responding.
+- The PNGs show the Avalonia Window visual tree without native OS frame, and capture mode does not synthesize route data; unavailable states remain visible. Full interaction animation and multi-DPI matrix, and exhaustive page-by-page comparison against every B03/B05 reference, remain incomplete. Overall acceptance remains `PARTIAL`.
+
+## Historical screenshot archive
+
+The Green old-checkout r7 acceptance screenshots referenced above are retained inside `D:\All projects\Record\AAOS-project-archives\2026-09-29\green-old-checkout-acceptance.zip` at `acceptance/AAOS-UI-CANDIDATE-20260927-r7/`. The archive SHA-256 and exact restore steps are recorded in [the cleanup audit](../history/storage-cleanup/2026-09-29/green-old-checkout-acceptance-compaction.md).

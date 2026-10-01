@@ -3693,3 +3693,94 @@ One stale sentence was corrected as a result: section 9.7 of the handoff said "n
 `TASKPACK.md` was verified byte-identical to the hash pinned at `EXECUTOR-START.md:6`
 (`788c5d50b5953d21eb9f67587d5406d37ad2e5457c2ca3b991399d9988e5951b`), and `R6-STATE.json` was not written —
 this ledger was, which is what the frozen pack designates for live progress.
+
+### 2026-09-29: compacted superseded P3 staging expansions
+
+> 以下 2026-09-29/30 清理追加项是各阶段历史记录，其“仍在原位/当前/本轮”不代表最新文件存在状态。后续归档折叠已改变部分恢复资产位置；旧候选 SHA、原验收意义和原路径保留作为身份及恢复映射依据。最新恢复父包、helper、proof 和保留依赖只按 [当前清理交接索引](STORAGE-CLEANUP-HANDOFF-20261001.md) 核实，不能直接假定旧 sibling ZIP 或展开目录仍存在。
+
+The 2026-09-23 P3 candidate packages `p3-6fc42f91`, `p3-9654023a`, `p3-638bce4e`, and `p3-9c8870cf` are historical staged builds. Their sibling ZIPs and embedded manifests remain at their original `.project-local/staging/<candidate>/` paths. The expanded package directories were removed only after each expanded tree and ZIP matched every manifest file by length and SHA-256, ZIP member paths were exact, ZIP CRC passed, and no process executable was running from these paths. The archived candidates do not become current-source or Local Green evidence. Restore the expanded child directory from its sibling ZIP before any historical re-execution; then run `scripts/release/verify_green_candidate.py` with the required provenance/runtime/worker flags. Audit receipt and SHA-256 values: `.project-local/mig/staging-p3-expanded-dedupe-20260929/preflight.json` and `docs/history/storage-cleanup/2026-09-29/staging-p3-expanded-dedupe-20260929.md`.
+
+### Follow-up: seven superseded AAOS candidate expansions compacted — 2026-09-29
+
+- Removed seven expanded 2026-09-26 candidate directories after verifying each against its embedded manifest and pre-existing sibling ZIP by exact path, byte length, SHA-256, and ZIP CRC. Removed 127,729 files / 5,611,750,250 logical bytes; retained all seven ZIPs and their original paths. The current-source `aaos-current-candidate-final-20260926` expansion remains present.
+- Restore an individual package by extracting its sibling ZIP to the original `.project-local/staging/<candidate>/` child directory, then repeat the required candidate provenance/runtime verification. These historical candidates are not current-source or Local Green evidence. Details: [candidate compaction audit](../history/storage-cleanup/2026-09-29/aaos-iterative-candidates-dedupe-20260929.md); per-file receipt: `.project-local/mig/aaos-iterative-candidates-dedupe-20260929/preflight.json`.
+
+### Follow-up: six superseded publish expansions compacted — 2026-09-29
+
+- Six historical 2026-09-26 `.project-local/staging/*-publish` expansions were removed after each 225-file tree exactly matched the `desktop/` subtree of its pre-existing, CRC-checked sibling candidate ZIP by relative path, byte length and SHA-256. Total removed: 1,305,481,966 logical bytes. Candidate ZIPs and manifests remain; current-source `aaos-current-candidate-final-20260926` remains intact. These were publish-output duplicates, not the candidate packages themselves. Audit and restore map: [staging publish compaction](../history/storage-cleanup/2026-09-29/staging-publish-outputs-dedupe-20260929.md).
+
+### Follow-up: historical vclean expanded build copy compacted — 2026-09-29
+
+- The old R5/Q00 `vclean-fc05b0ad` expanded build copy was removed after full 480-file manifest/ZIP/tree equality and CRC verification. Its ZIP remains at `.project-local/build/green-candidates/ArcheAxis.Knowledge.Green-vclean-fc05b0ad-x64.zip` (SHA-256 `4C050120E146FCD6EC3C6E5023A0183032F1EA72B9AAF8EDBD8F0C9B6B8C08A7`); restore it to the same base name before historical re-execution. R6 has no direct reference; some older run directories are inaccessible, so their consumer status remains UNKNOWN. See [vclean compaction audit](../history/storage-cleanup/2026-09-29/green-vclean-expanded-dedupe-20260929.md).
+
+### Follow-up: large generated UI archives relocated for project-folder slimming — 2026-09-29
+
+- Moved the two multi-GB historical UI recovery ZIPs from `.project-local/mig` to `D:\All projects\Record\AAOS-project-archives\2026-09-29\`; post-move byte counts and SHA-256 values match their original verification receipts. This reduces the Formal project-folder size by 9,759,175,503 logical bytes. Manifests, original source receipts and location update records remain in `.project-local/mig`; index and restore paths are in the Record archive README. No product source, current candidate, runtime, or user data was changed.
+
+### Follow-up: stale nested Avalonia build output archived — 2026-09-29
+
+- Removed only `apps/ArcheAxis.Desktop/.project-local/build` after archiving its five generated output trees (303 files) and verifying every ZIP member hash against source. Recovery archive: `D:\All projects\Record\AAOS-project-archives\2026-09-29\desktop-app-local-build-20260929.zip`, SHA-256 `B7923F5D2E5CC36FA0E7A4A8BBEAEE2E77F839E81912852DD0DAC1FC6EACC302`. Current canonical outputs under repository-root `.project-local/build` and the adjacent local `runs` receipts remain. No product source or runtime was changed.
+
+### Follow-up: old Green checkout build output archived — 2026-09-29
+
+- Compacted the old Green checkout's ignored `.project-local/build/avalonia` and `dotnet` output trees (437 files / 1,415,586,378 bytes) into `D:\All projects\Record\AAOS-project-archives\2026-09-29\green-old-checkout-build-output-20260929.zip` (SHA-256 `2C41E8FA809E709ECED8092E940E9EE73B6FE55CA2A55FD1452EEB53F39C61E3`). Each file and ZIP member matched by relative path, length and SHA-256; the old `venv`, dependency cache, source checkout and all Green user data remain. Restore details are in the linked cleanup ledger.
+
+### Follow-up: regenerable local lint/bytecode caches removed — 2026-09-29
+
+- Removed `.project-local/runs/pycache` and root `.ruff_cache` after file-level inventory and process readback (884 files / 17,102,289 bytes). These are regenerable `.pyc`/Ruff cache artifacts; retained sources and current build outputs are unchanged. See [cache cleanup receipt](../history/storage-cleanup/2026-09-29/cleanup-audit-summary.md) and `.project-local/mig/regenerable-cache-prune-20260929/`.
+
+### Follow-up: folded six AAOS UI candidate expansions to retained sibling archives — 2026-09-30
+
+- Removed six expanded historical/reproducibility package trees from `.project-local/runs/aaos-ui-current-candidate-20260926/` after immediate pre-delete source-tree hash, byte, file-count, reparse-point, and sibling-ZIP readback. Independent per-member path/length/SHA-256 and ZIP CRC checks passed. Total removed: 109,482 files / 4,810,102,438 logical bytes. All six exact same-basename ZIPs remain.
+- The `audit-final-x64` directory remains expanded because it contains separate SQLite/WAL/SHM/writer-lock files absent from its ZIP; their contents were not read. Restore a removed tree by extracting its exact sibling ZIP to the prior directory path before a historical rerun. The verified `vfresh-2994efa` package remains recoverable; this compaction does not establish current-source or release readiness. See [candidate expansion audit](../history/storage-cleanup/2026-09-30/aaos-ui-candidate-expansion-dedupe-20260930.md) and receipts at `.project-local/mig/aaos-current-candidate-expansion-dedupe-20260930/`.
+
+### Follow-up: regenerable Cargo debug intermediates removed — 2026-09-30
+
+- Removed only `.project-local/build/cargo/debug/{deps,build,examples,.fingerprint}` (5,786 files / 14,307,581,655 logical bytes). Root Core EXE/PDB/RLIB and lock files were hash-checked unchanged; release tree and local Cargo cache remain. Recovery: `scripts\ci\cargo_test.bat build --workspace --locked --offline`. Exact preflight/readback: `.project-local/mig/cargo-debug-cache-prune-20260930/{preflight,final}.json`; cleanup and limits: [Cargo cache cleanup report](../history/storage-cleanup/2026-09-30/cargo-debug-cache-prune-20260930.md).
+
+### Follow-up: five historical Formal run build directories archived — 2026-09-30
+
+- Archived `frontend-responsive/desktop-build-absolute`, `frontend-responsive/desktop-build-railfix`, `r6-a12-build` and `ui-finalbuild3` under `.project-local/runs` into four verified ZIPs in `D:\All projects\Record\AAOS-project-archives\2026-09-30\formal-run-builds\`. Folded `r6-a12-release` using the exact `desktop/` subtree already present in the retained `vr6-0e934f33` ZIP. All five source expansions are absent after immediate source rehash, archive path/length/SHA-256/CRC verification and post-delete archive hash readback.
+- Removed 1,015 expanded files / 1,468,732,984 logical bytes; new archives total 423,551,386 bytes (logical net reduction 1,045,181,598 bytes). Historical R6/Desktop smoke and UI coverage references to these paths are now archive-backed; restore before historical execution. Product source, current Core, Green and all DB/WAL/SHM data were unchanged. This establishes storage integrity only, not a runtime or release gate.
+- Audit and restore map: [Formal run build archive](../history/storage-cleanup/2026-09-30/formal-run-builds-archive-20260930.md). Receipts: `.project-local/mig/formal-run-builds-archive-20260930/{preflight,verification,delete-ready,final}.json`.
+
+### Historical desktop publish paths archived — 2026-09-30
+
+All 22 historical `.project-local/build/desktop-publish/*` child directories (4,984 files / 4,798,503,361 logical bytes) were archived to `D:\All projects\Record\AAOS-project-archives\2026-09-30\historical-desktop-publish-22dirs-20260930.zip` (1,659,496,511 bytes, SHA-256 `98bb8ffbdabe2cbdb3d4fcf4c0ae7324a2e0b7a3dd985fd912e6a6c718b9c22c`). All ZIP member paths, lengths, SHA-256 and CRC matched the source; immediate source rehash and post-delete archive readback passed. The cited historical publish paths are now archive-backed: extract the required child prefix into the original desktop-publish parent before a historical rerun. The formal `.project-local/build/dotnet/ArcheAxis.Desktop` EXE/DLL sentinels remained unchanged; current candidates, Core and user data were preserved. Logical net reduction after the archive is 3,139,006,850 bytes. This is storage verification, not a new runtime/CI/release PASS.
+
+Restore map, per-child manifests and limits: [historical desktop publish archive](../history/storage-cleanup/2026-09-30/desktop-publish-history-archive-20260930.md). Machine receipts: `.project-local/mig/desktop-publish-history-archive-20260930/{preflight,verification,delete-ready,final}.json`.
+
+### Historical R6 candidate input location update — 2026-09-30
+
+The earlier `.project-local/build/dotnet/green-desktop-452b5d0c` package input named in `docs/current/R6-GREEN-CANDIDATE-20260921.json` is now archive-backed by `.project-local/build/green-candidates-r6/ArcheAxis.Knowledge.Green-vr6-452b5d0c-x64.zip`, under member prefix `ArcheAxis.Knowledge.Green-vr6-452b5d0c-x64/desktop/`. Restore that exact subtree before a historical rerun and verify against `.project-local/mig/formal-dotnet-publish-dedupe-20260930/preflight.json`. The dated candidate receipt is unchanged; this does not replace or qualify the current R6 candidate.
+
+### 历史阶段：2026-09-30 候选归档与外部项目所有权补充
+
+当前仅复核到之前审计记录，并在本轮尝试逐成员 SHA/CRC 重算；由于本轮脚本校验在完成前停止，未执行删除。不得把此处记成当前候选已清理。恢复归档保持 `.project-local/build/green-candidates-r6/` 原位；本轮删除决策为 NONE。详情、旧校验引用和本轮证据限度见 [候选交接审计](../history/storage-cleanup/2026-09-30/r6-green-expanded-candidate-handoff-20260930.md)。
+
+### 历史阶段：2026-09-30 R6 Green 展开包恢复指针
+
+以下三个历史候选的 sibling ZIP 与展开树在该次 2026-09-30 验证阶段独立逐成员 SHA-256、ZIP CRC 一致。当时展开副本仍存在、该验证阶段未删除；后续展开副本清理不由本段旧状态描述：
+
+| 候选展开目录 | 保留归档 | SHA-256 | 展开逻辑字节 |
+|---|---|---|---:|
+| `.project-local/build/green-candidates-r6/ArcheAxis.Knowledge.Green-vr6-0e934f33-x64/` | 同目录同名 `.zip` | `6AB6C5ECAEAFABFCF4A91131A9F20D2510BDCF5EE0CABD31D4D844344BD2A087` | 275,169,533 |
+| `.project-local/build/green-candidates-r6/ArcheAxis.Knowledge.Green-vr6-452b5d0c-x64/` | 同目录同名 `.zip` | `441F67BE549CAB0AC2A9F1A9391FA4E2192E0129D2F26AFBAC9321B42546663C` | 270,107,101 |
+| `.project-local/build/green-candidates-r6/ArcheAxis.Knowledge.Green-vr6-6f0b4cc-x64/` | 同目录同名 `.zip` | `FAAAF92B4117F067C8A38BAC3E1EBE38FE189CF141E5AD650AEC0567DF5EBBA6` | 275,328,860 |
+
+全量成员回执和恢复限制：`docs/history/storage-cleanup/2026-09-30/r6-green-expanded-candidate-handoff-20260930.md` 与 `.project-local/mig/r6-green-expanded-dedupe-20260930/verified-recheck.json`。如果将来折叠展开副本，归档 ZIP 必须保留，并按表中相同路径解压；该存储动作本身不能视作产品候选 qualification。
+
+
+### Historical candidate archive recovery pointer — 2026-09-30
+
+At that verification stage, the 2026-09-26 source candidate expansion was retained at .project-local/staging/aaos-current-candidate-final-20260926/ArcheAxis.Knowledge.Green-vcurrent-2994efa-final-20260926-x64/. Its original sibling ZIP SHA-256 was 49AD275391B6B78DCB611F196A0DAF2FD3DCB1431D1CD6648ABD7025AD3BC471; all 18,247 member paths, lengths, SHA-256 and ZIP CRC were verified. The then-recorded expansion and ZIP retention was superseded by subsequent storage compaction. The original restore destination remains .project-local/staging/aaos-current-candidate-final-20260926/; obtain and verify the complete recovery dependencies through the current cleanup handoff before attempting historical candidate verification. Historical evidence: .project-local/mig/current-candidate-dedupe-20260930/verification.json; report: docs/history/storage-cleanup/2026-09-30/current-candidate-expanded-dedupe-review-20260930.md. This changes neither the candidate's historical source identity nor its runtime qualification.
+
+### 2026-10-01 当前恢复与前端验证范围
+
+当前 metadata 回读显示：上文 vclean 原 sibling ZIP、R6 `vr6-0e934f33-x64` 展开目录，以及 final `vcurrent-2994efa-final-20260926-x64` 展开目录和原 sibling ZIP 均不存在。不能按旧段落直接运行这些路径，也不能据此断言恢复资产丢失；后续归档父包、helper、proof、依赖及还原入口仅查 [当前清理交接](STORAGE-CLEANUP-HANDOFF-20261001.md)，本段不另造恢复包路径。
+
+当前最高视觉依据为用户采用的 B10 最终可部署母版，较早 B03 等不能覆盖它。记录中的 Formal `di` 324 项静态前端契约 PASS、`dj` 桌面编译退出 0，均限于其执行范围。已有窗口 raster 回读不等于完整原生交互、无障碍、动画及多 DPI 矩阵通过；完整矩阵仍 `UNVERIFIED`，视觉验收 `PARTIAL`。没有由这些本地结果新增真实 Core 闭环、安装态健康、CI 或 release 完成声明。
+
+### 2026-10-01 外部三项目材料的 AAOS 待评估输入
+
+用户指定的两份三项目方案和两份 WORK-LAB 审计文件已只读对比。AAOS 专属及适用的跨项目条目、源文件 SHA-256、原 ID 与冲突裁决归档于 [`AAOS-ECOSYSTEM-AUDIT.md`](../history/external-inputs/2026-10-01/AAOS-ECOSYSTEM-AUDIT.md) 和同目录 `AAOS-ECOSYSTEM-EXTRACT.json`。这只是 `PROPOSED_NOT_EXECUTED` 的后续输入：知识/记忆边界映射 R6 A04/A08 与 M0；旧 WORK-LAB 规则路径需当前读回后另行修正；模型资格、生成出口、精确 SHA 交付复用现有合同。用户本轮已停止清理，因此目录/缓存/历史迁移条目保持 `PAUSED_BY_CURRENT_USER_SCOPE`，不执行。该归档不修改 immutable R6 TaskPack、R6-STATE 或 Owner Gate，也不构成跨仓写入、真实桌面验收或 release 证据。

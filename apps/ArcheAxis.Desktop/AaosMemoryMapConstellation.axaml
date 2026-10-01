@@ -1,0 +1,35 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             x:Class="ArcheAxis.Desktop.AaosMemoryMapConstellation"
+             Width="520"
+             Height="520"
+             AutomationProperties.Name="记忆地图示意构图：知识中心连接 14 个空心节点，不代表真实图谱关系或数据"
+             AutomationProperties.HelpText="空心节点与径向连线仅复刻母版版式；悬停、键盘聚焦或选择只强调对应示意连线，不会读取或筛选 Core 图谱数据。">
+  <UserControl.Styles>
+    <Style Selector="Button.aaos-graph-node Ellipse">
+      <Setter Property="Stroke" Value="{DynamicResource AaosGoldBrush}" />
+      <Setter Property="StrokeThickness" Value="1.4" />
+      <Setter Property="Fill" Value="Transparent" />
+    </Style>
+    <Style Selector="Button.aaos-graph-node:pointerover Ellipse">
+      <Setter Property="Stroke" Value="{DynamicResource AaosPrimaryBrush}" />
+      <Setter Property="StrokeThickness" Value="3" />
+      <Setter Property="Effect">
+        <DropShadowEffect Color="{DynamicResource AaosGraphGlowColor}" BlurRadius="14" OffsetX="0" OffsetY="0" />
+      </Setter>
+    </Style>
+    <Style Selector="Button.aaos-graph-node.focus-visible Ellipse">
+      <Setter Property="Stroke" Value="{DynamicResource AaosPrimaryBrush}" />
+      <Setter Property="StrokeThickness" Value="3" />
+      <Setter Property="Effect">
+        <DropShadowEffect Color="{DynamicResource AaosGraphGlowColor}" BlurRadius="14" OffsetX="0" OffsetY="0" />
+      </Setter>
+    </Style>
+    <Style Selector="Button.aaos-graph-node.selected Ellipse">
+      <Setter Property="Fill" Value="{DynamicResource AaosSurface2Brush}" />
+      <Setter Property="Stroke" Value="{DynamicResource AaosGoldBrush}" />
+      <Setter Property="StrokeThickness" Value="3" />
+    </Style>
+  </UserControl.Styles>
+  <Canvas x:Name="GraphCanvas" Width="520" Height="520" ClipToBounds="False" AutomationProperties.Name="Knowledge 中心与 14 个空心示意节点" />
+</UserControl>

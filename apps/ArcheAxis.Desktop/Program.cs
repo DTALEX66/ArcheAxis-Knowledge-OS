@@ -30,6 +30,19 @@ class Program
         {
             return RunLearningSmoke(args.Length > 1 ? args[1] : null);
         }
+        // Candidate-only native Avalonia visual readback; emits the live window visual tree as PNG.
+        if (args.Length > 0 && args[0] == "--ui-capture")
+        {
+            Environment.SetEnvironmentVariable("AAOS_UI_CAPTURE_PATH", args.Length > 1 ? args[1] : null);
+            Environment.SetEnvironmentVariable("AAOS_UI_CAPTURE_ROUTE", args.Length > 2 ? args[2] : "home");
+            Environment.SetEnvironmentVariable("AAOS_UI_CAPTURE_WIDTH", args.Length > 3 ? args[3] : null);
+            Environment.SetEnvironmentVariable("AAOS_UI_CAPTURE_HEIGHT", args.Length > 4 ? args[4] : null);
+            var requestedTheme = args.Length > 5 ? args[5] : "aurora";
+            Environment.SetEnvironmentVariable("AAOS_UI_CAPTURE_THEME",
+                requestedTheme.Equals("monochrome", StringComparison.OrdinalIgnoreCase) || requestedTheme == ThemePalette.Monochrome
+                    ? ThemePalette.Monochrome : ThemePalette.Aurora);
+            Environment.SetEnvironmentVariable("AAOS_REDUCED_MOTION", "1");
+        }
         BuildAvaloniaApp().StartWithClassicDesktopLifetime(args);
         return 0;
     }

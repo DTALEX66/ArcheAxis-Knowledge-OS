@@ -1,14 +1,36 @@
 """The documentation entrypoint must link only to existing authority records."""
 
+import contextlib
+import hashlib
 import json
 import re
+import zipfile
 from pathlib import Path
 
 import yaml
 from jsonschema import Draft202012Validator
 
-
 ROOT = Path(__file__).resolve().parents[1]
+
+
+def test_published_september_package_preserves_original_member_bytes() -> None:
+    base = ROOT / "docs/history/planning-blueprint-absorption/2026-09-29"
+    archive = base / "AAOS_历史规划蓝图吸收池完整总结文档包_2026-09-29.zip"
+    assert hashlib.sha256(archive.read_bytes()).hexdigest() == (
+        "a453646b2e59dba1bbc1500cd610fbd7484e19995384b7d0474fe0db5d9c2cb5"
+    )
+    with zipfile.ZipFile(archive) as package:
+        members = [entry for entry in package.infolist() if not entry.is_dir()]
+        assert len(members) == 14
+        for entry in members:
+            name = entry.filename
+            if not entry.flag_bits & 0x800:
+                with contextlib.suppress(UnicodeEncodeError, UnicodeDecodeError):
+                    name = name.encode("cp437").decode("utf-8")
+            original = base / "package-unpacked" / name
+            assert original.resolve().is_relative_to((base / "package-unpacked").resolve())
+            # ZipFile.read also checks CRC; no original BOM/EOL/content rewriting.
+            assert original.read_bytes() == package.read(entry)
 
 
 def test_documentation_authority_index_exists_and_its_local_links_resolve() -> None:
@@ -137,12 +159,15 @@ def test_superseded_g0_implementation_plan_is_explicitly_frozen() -> None:
     assert "R6/M0" in text.splitlines()[2]
 
 
-def test_current_ui_roadmap_declares_the_black_and_white_default() -> None:
+def test_current_ui_roadmap_declares_b10_authority_and_shared_dual_themes() -> None:
     roadmap = (ROOT / "docs" / "current" / "UI_V3_PRODUCT_ROADMAP.md").read_text(
         encoding="utf-8"
     )
 
-    assert "黑白深色基线" in roadmap
+    assert "B10 最终高保真可部署母版是最高视觉依据" in roadmap
+    assert "Aurora 与黑白深色两套配色共用布局及状态" in roadmap
+    assert "两套主题共用 ArcheAxis 母版布局、组件状态、页面密度和缩放规则" in roadmap
+    assert "主题切换只更新 Avalonia 前端资源，不更改 Core 配置或知识数据" in roadmap
     assert "历史参考，不是默认主题" in roadmap
     assert "设计底座：Archive Desk + Liquid Glass" not in roadmap
 

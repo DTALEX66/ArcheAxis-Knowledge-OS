@@ -175,3 +175,7 @@ preserve them as evidence and follow the R6/M0 files above.
 - [External dependency boundary](environment/EXTERNAL_DEPENDENCIES.md)
 - [Imported-design reference index](architecture/imported-designs/README.md)
 - [Historical snapshot index](history/pre-v0.6.7-current-snapshots/README.md)
+
+## 2026-09-29 planning / cloud comparison snapshot
+
+The full source package, its unpacked contents, and the two supplied reports are archived at [planning-blueprint-absorption/2026-09-29](history/planning-blueprint-absorption/2026-09-29/README.md). This is a dated historical/reference snapshot, not a new task authority: continue to use the R6 immutable TaskPack, M0 overlay, and live R6 execution/state above. The archive includes a source/hash manifest, an authority crosswalk, and an exact superseded-document cleanup audit. Its GitHub/CI/branch facts are time-bound and must be re-read before use.
