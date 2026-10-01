@@ -207,17 +207,65 @@ def verify(staged_root: Path, interpreter: Path | None, manifest: Path | None,
         "not_ready": sum(1 for entry in report["capabilities"] if not entry["ok"]),
     }
     report["ok"] = report["summary"]["not_ready"] == 0
+    report["requirements"] = requirements()
+    report["missing"] = missing_requirements(report)
     return report
+
+
+def requirements() -> list[dict]:
+    """What the declared capabilities need, so the check can state its own preconditions.
+
+    A runbook that says "provision the engines" is not reproducible; this is the list, per
+    capability, so the gap between a runtime and a passing run is enumerable.
+    """
+    return [
+        {"capability": capability,
+         "python_modules": needs.get("modules", []),
+         "declared_executables": needs.get("executables", []),
+         "unverifiable_models": needs.get("model", [])}
+        for capability, needs in REQUIREMENTS.items()
+    ]
+
+
+def missing_requirements(report: dict) -> dict:
+    """The distinct modules and executables that are absent, across all routes."""
+    modules: list[str] = []
+    executables: list[str] = []
+    models: list[str] = []
+    for entry in report.get("capabilities", []):
+        engine = entry.get("engine") or {}
+        if not (engine.get("modules") or {}).get("ok", True):
+            for name in (engine.get("modules") or {}).get("required", []):
+                if name not in modules:
+                    modules.append(name)
+        for name, detail in (engine.get("executables") or {}).items():
+            if not detail.get("ok") and name not in executables:
+                executables.append(name)
+        for name in engine.get("unverifiable") or []:
+            if name not in models:
+                models.append(name)
+    return {"python_modules": modules, "declared_executables": executables,
+            "unverifiable_models": models, "none": not (modules or executables)}
 
 
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("staged_root", type=Path)
+    parser.add_argument("staged_root", type=Path, nargs="?",
+                        help="a staged runtime root; not needed with --requirements")
     parser.add_argument("--interpreter", type=Path, default=None,
                         help="defaults to the interpreter the profile names")
     parser.add_argument("--manifest", type=Path, default=None)
     parser.add_argument("--json-out", type=Path, default=None)
+    parser.add_argument("--requirements", action="store_true",
+                        help="print what the declared capabilities need and stop; "
+                             "does not start a worker or touch the runtime")
     args = parser.parse_args()
+    if args.requirements:
+        print(json.dumps({"schema": "archeaxis.capability-requirements/v1",
+                          "capabilities": requirements()}, ensure_ascii=False, indent=2))
+        return 0
+    if args.staged_root is None:
+        parser.error("staged_root is required unless --requirements is given")
     try:
         report = verify(args.staged_root, args.interpreter, args.manifest, None)
     except (OSError, ValueError, KeyError) as error:

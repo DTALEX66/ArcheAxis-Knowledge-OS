@@ -211,3 +211,40 @@ def test_the_requirements_table_covers_every_declarable_capability():
     module = load()
     for capability in WORKER_FILES:
         assert capability in module.REQUIREMENTS, capability
+
+
+def test_the_check_can_state_its_own_requirements(tmp_path):
+    """A runbook that says "provision the engines" is not reproducible; this enumerates."""
+    module = load()
+    listed = {entry["capability"]: entry for entry in module.requirements()}
+    assert set(listed) == set(module.REQUIREMENTS)
+    assert listed["pdf.extract"]["python_modules"] == ["pymupdf"]
+    assert listed["image.ocr"]["declared_executables"] == ["tesseract", "tesseract-languages"]
+    assert listed["image.caption"]["unverifiable_models"] == ["ollama vision model"]
+    assert listed["canvas.structure"]["python_modules"] == []
+
+
+def test_a_passing_report_reports_nothing_missing(tmp_path):
+    module = load()
+    root = build(tmp_path, [{"capability": "canvas.structure",
+                             "script": "workers/document/worker_canvas.py"}])
+    report = module.verify(root, None, None, None)
+    assert report["ok"] is True
+    assert report["missing"] == {"python_modules": [], "declared_executables": [],
+                                 "unverifiable_models": [], "none": True}
+
+
+def test_a_failing_route_names_the_module_that_is_missing(tmp_path):
+    """The report must say *which* module, since that is the actionable part."""
+    module = load()
+    root = build(tmp_path, [{"capability": "pdf.extract",
+                             "script": "workers/document/worker_pdf.py"}],
+                 worker_capability="pdf.extract")
+    report = module.verify(root, None, None, None)
+    entry = report["capabilities"][0]
+    if entry["engine"]["modules"]["ok"]:
+        # pymupdf is installed in this environment, so the absence path cannot be shown
+        assert report["missing"]["python_modules"] == []
+        return
+    assert report["missing"]["python_modules"] == ["pymupdf"]
+    assert "pymupdf" in entry["engine"]["modules"]["error"]
