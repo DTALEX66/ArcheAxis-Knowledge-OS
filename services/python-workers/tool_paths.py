@@ -72,8 +72,22 @@ def _external_root() -> Path | None:
 
 
 def _manifest_path() -> Path:
+    """The declared capability manifest, in the tree this module is running from.
+
+    `default` is where the file sits relative to this module in the source tree
+    (`<repo>/services/python-workers/` -> `<repo>/config/environment/`). A staged runtime
+    ships it beside the workers instead (`<root>/config/environment/`), so that is tried
+    first; without it a staged OCR job reported "tesseract binary not found on PATH" even
+    though the engine is installed and declared.
+    """
     raw = os.environ.get(MANIFEST_ENV, "").strip()
-    return Path(raw) if raw else DEFAULT_MANIFEST
+    if raw:
+        return Path(raw)
+    here = Path(__file__).resolve()
+    beside = here.parent.parent / "config" / "environment" / "capability-requirements.yaml"
+    if beside.is_file():
+        return beside
+    return here.parents[2] / "config" / "environment" / "capability-requirements.yaml"
 
 
 def _declared_entries(manifest: Path) -> list[dict]:
