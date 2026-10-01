@@ -152,7 +152,7 @@ All paths are relative to the loopback base URL.
 | --- | --- | --- | --- |
 | 4 | `POST /api/v1/sources/{source_id}/anchors` | any token | Anchor creation. |
 | 23 | `GET /api/v1/evidence/anchors` | any token | Anchor listing. Not a complete cross-domain evidence service. |
-| 6 | `POST /api/v1/knowledge-items/from-transform` | any token | Body carries `source_id`, `job_id`, `transform_id`, UTF-16 selection range and `quote`. Core validates the **persisted** transform and selection. Returns a **candidate** + anchor. |
+| 6 | `POST /api/v1/knowledge-items/from-transform` | any token | Body carries `knowledge_type` and `body` (both **required**, no defaults), plus `source_id`, `job_id`, `transform_id`, UTF-16 selection range and `quote`. Core validates the **persisted** transform and selection. Returns a **candidate** + anchor. |
 | 7 | `POST /api/v1/knowledge-items` | any token | Direct candidate creation. |
 | 8 | `GET /api/v1/knowledge-items/{id}/v3` | any token | Knowledge V3 projection (`schema_version: "3.0.0"`). |
 | 9 | `GET /api/v1/knowledge-items/{id}/qualification` | any token | Qualification projection. |
@@ -171,7 +171,7 @@ All paths are relative to the loopback base URL.
 | 15 | `POST /api/v1/learning/items/{item_key}/references` | any token | Links an accepted knowledge id. **No actor guard** — a machine principal may call it. |
 | 17 | `POST /api/v1/learning/items/{item_key}/assessment` | any token | Body `{knowledge_id}`. **No actor guard.** Returns `assessment_id` + `knowledge_version`. |
 | 16 | `GET /api/v1/learning/items/{item_key}/assessment` | any token | Latest assessment. |
-| 12 | `POST /api/v1/learning/reviews` | **human only** | Body `{item_key, client_event_id, exposure_id?, assessment_id, knowledge_version, answer, correct, rating, now?}`. `client_event_id` is the idempotency identity — retry replays the original receipt. Machine → `403`. Never falls back to the placeholder ladder. |
+| 12 | `POST /api/v1/learning/reviews` | **human only** | Body `{item_key, client_event_id, exposure_id?, assessment_id, knowledge_version, answer, correct, rating?, now?}`. `rating` is a **number**, not a label, and is optional. `assessment_id` is required **whenever `answer` is submitted**, and `knowledge_version` must equal the one the assessment reports or the Core answers `400`. `client_event_id` is the idempotency identity — retry replays the original receipt. Machine → `403`. Never falls back to the placeholder ladder. The response carries `mastery_projection`. |
 | 11 | `POST /api/v1/learning/events` | **human only** | Legacy keyed path. With no `schedule_state`, authority is `placeholder_ladder` and `next_review` is `null`. With `schedule_state`, the reused FSRS worker decides. Machine → `403`. |
 | 13 | `GET /api/v1/learning/events/{item_key}` | any token | Event history. |
 | 14 | `GET /api/v1/learning/items` | any token | Queue; one latest deadline per item. |
@@ -192,12 +192,21 @@ The UI must not render these as measured values.
   `{"status":"not_recorded","note":"machine capability receipts are written by the machine
   loop; learner progress is never presented as machine competence"}`. It is
   `not_recorded` **even when machine receipts exist**, because no route writes the machine
-  competence ledger.
+  competence ledger — so a UI must not present `not_recorded` as "the machine has done
+  nothing". Both states are driven by `crates/archeaxis-api/tests/contract_constant_fields.rs`.
 * `learner.recording` is a fixed explanatory string.
 * Fixed `note` literals are appended to real data on machine readback, job quality and
-  source members.
+  source members. The notes at those three routes are asserted to be present by
+  `crates/archeaxis-api/tests/contract_constant_fields.rs`.
 * `mastery_projection.closed` is a **constant `false`** — mastery is deliberately an open
-  projection, never a closed claim. `correct_streak` is re-derived on every read.
+  projection, never a closed claim. `correct_streak` is re-derived on every read. **Where to
+  find it:** the projection travels with a `POST /learning/reviews` response and reaches
+  `GET /learning/items/{item_key}/state` under `learner.latest_review.mastery_projection` —
+  **not** at the response's top level, which is `null` until a review exists. The same test
+  checks that `correct_streak` equals the correct events on record.
+* An event's `outcome` in `GET /learning/events/{item_key}` is a **JSON document carried as a
+  string** (`"{\"outcome\": \"correct\"}"`), not a bare word. A UI that compares it to
+  `"correct"` directly will see every event as unknown.
 * `POST /learning/events` without `schedule_state` reports
   `schedule_authority:"placeholder_ladder"` and `next_review:null`. That is the 1/2/4/7/14
   stub, **not** FSRS. Distinguish it from `"fsrs"` and from `"unavailable"`.
