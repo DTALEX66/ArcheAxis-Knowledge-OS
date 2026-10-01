@@ -325,10 +325,45 @@ Two process-level tests launch the real binary:
 
 `packages/contracts/bootstrap/v2/launch.schema.json` documents the field.
 
-Still open on this axis: the staged runtime's `worker-profile.json` and
-`backend_launcher.py` validate exactly the original four profile fields, so a **staged
-candidate does not yet publish routes**. The Core accepts and enforces them today; the
-staging side is the remaining step before a Green candidate can convert anything but text.
+### The staged runtime publishes routes, and a staged run now converts non-text
+
+Two further halves had to land before a staged candidate could use this, and a staged
+run is what exposed the second one:
+
+* `backend_launcher.load_profile` validated the profile field set **exactly**, so a
+  profile carrying `routes` was rejected outright and `start()` never forwarded any. It
+  now accepts an optional `routes` list, resolves each script relative to the profile,
+  requires it to exist, and refuses a malformed entry by name instead of dropping it — a
+  dropped route would resurface later as an unexplained failed job.
+  `stage_backend_runtime` derives the routes it declares from the workers actually
+  present, so a candidate never advertises an absent script (which the Core refuses) or a
+  capability with no worker (which would fail at job time).
+* **Every one of the nine sidecar-capable workers could not start in a staged tree.**
+  They located the shared transport via a fixed `parents[3]` plus a
+  `services/python-workers/` suffix, which is correct only for the source layout. The
+  staged layout puts workers at `<root>/workers/<category>/` with the transport at
+  `<root>/workers/transport/`, so the worker died with `FileNotFoundError` before serving
+  anything. Each worker now tries both known layouts from its own file.
+
+Verified end to end with `scripts/probes/staged_runtime_routes_smoke.py`, which builds a
+runtime root, writes a profile whose routes come from the stager's own `present_routes`,
+starts the Core through the launcher's own `load_profile` + `start`, and runs a canvas
+job:
+
+| Run | Result |
+| --- | --- |
+| before the worker fix | `FileNotFoundError: ...\staged-routes\services\python-workers\transport\text_ndjson.py` |
+| after | **`job_state: succeeded`** on the golden canvas fixture |
+
+This is the first time the loop runs from a **staged** tree rather than a source checkout:
+staged profile → launcher → Core → declared route → real worker → converted output.
+
+Note on the packaging path: the full `stage_backend_runtime.py` refuses linked donor
+trees (`ValueError: protected staging path`). That is deliberate fail-closed behaviour and
+it rejected both `.venv` and the uv-managed interpreter directories on this host, so the
+probe builds a minimal root (Core + workers + profile) instead. The stager's route
+derivation is nonetheless covered by unit tests, and `CI`'s `green-candidate-vnext` job
+passes.
 
 So the corrected classification is:
 
