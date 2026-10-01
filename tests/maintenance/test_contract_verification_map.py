@@ -46,9 +46,10 @@ COVERAGE: dict[str, tuple[str, str]] = {
           "apart by the 405 that a mounted path answers"),
 }
 
-# Additional artifacts that check a section without being its primary one.
+# A section can have more than one checker; each is listed so none can be dropped silently.
 ALSO_CHECKS: dict[str, list[str]] = {
-    "3": ["crates/archeaxis-api/tests/contract_job_outputs.rs"],
+    "3": ["crates/archeaxis-api/tests/contract_job_outputs.rs",
+          "crates/archeaxis-api/tests/contract_schedule_authority.rs"],
 }
 
 # Sections whose evidence is not a single test file, with where it actually lives.
@@ -108,14 +109,15 @@ def test_every_recorded_checker_exists_and_asserts():
 @pytest.mark.parametrize("section", sorted(COVERAGE))
 def test_a_recorded_checker_is_reachable_by_one_command(section):
     """The runbook must name the artifacts, or the UI branch cannot run them."""
-    relative, _what = COVERAGE[section]
     runbook = RUNBOOK.read_text(encoding="utf-8")
-    # The runbook shows `cargo test --test <stem>` without the extension, so accept either.
-    stem = Path(relative).name
-    bare = Path(relative).stem
-    assert stem in runbook or bare in runbook, (
-        f"section {section}'s checker {stem} is not named in the acceptance runbook, so a UI "
-        "reader cannot find it from the document they are given")
+    recorded = [COVERAGE[section][0], *ALSO_CHECKS.get(section, [])]
+    for relative in recorded:
+        # The runbook shows `cargo test --test <stem>` without the extension, so accept either.
+        stem = Path(relative).name
+        bare = Path(relative).stem
+        assert stem in runbook or bare in runbook, (
+            f"section {section}'s checker {stem} is not named in the acceptance runbook, so a UI "
+            "reader cannot find it from the document they are given")
 
 
 def test_the_runbook_gives_one_command_for_the_whole_contract():

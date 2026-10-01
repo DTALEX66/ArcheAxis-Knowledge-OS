@@ -183,7 +183,7 @@ All paths are relative to the loopback base URL.
 | 4 | `POST /api/v1/sources/{source_id}/anchors` | any token | Anchor creation. |
 | 23 | `GET /api/v1/evidence/anchors` | any token | Anchor listing. Not a complete cross-domain evidence service. |
 | 6 | `POST /api/v1/knowledge-items/from-transform` | any token | Body carries `knowledge_type` and `body` (both **required**, no defaults), plus `source_id`, `job_id`, `transform_id`, UTF-16 selection range and `quote`. Core validates the **persisted** transform and selection. Returns a **candidate** + anchor. |
-| 7 | `POST /api/v1/knowledge-items` | any token | Direct candidate creation. |
+| 7 | `POST /api/v1/knowledge-items` | any token | Direct candidate creation. Body `{knowledge_type, body, status?, created_by?, v3?}`. **`status` defaults to `"candidate"` and there is no `review_state` field** — an unknown field is silently ignored, so sending `review_state:"accepted"` leaves the default and the assessment route later refuses the item with `400 assessment requires active accepted or personal knowledge`. To make an item assessable, send `status:"accepted"`. |
 | 8 | `GET /api/v1/knowledge-items/{id}/v3` | any token | Knowledge V3 projection (`schema_version: "3.0.0"`). |
 | 9 | `GET /api/v1/knowledge-items/{id}/qualification` | any token | Qualification projection. |
 | 10 | `POST /api/v1/knowledge-items/{id}/review-decisions` | **human only** | Body `{action, reviewer, new_body?, note?}`; `action` ∈ `accepted`/`rejected`/`deprecated`/`modified`. Machine principal → `403`. This is the **only** human-correction write path; `modified` creates a successor revision. |
@@ -240,6 +240,21 @@ The UI must not render these as measured values.
 * `POST /learning/events` without `schedule_state` reports
   `schedule_authority:"placeholder_ladder"` and `next_review:null`. That is the 1/2/4/7/14
   stub, **not** FSRS. Distinguish it from `"fsrs"` and from `"unavailable"`.
+* **`schedule_authority` has three values, and `POST /learning/reviews` can only produce two of
+  them.** Which one appears depends on the interpreter the Core was launched with, so it is a
+  property of the launch, not of the request:
+
+  | `ARCHEAXIS_PYTHON` points at | `schedule_authority` | `next_review` | `next_review_days` |
+  | --- | --- | --- | --- |
+  | an interpreter with `fsrs` | `"fsrs"` | a real timestamp | `0` |
+  | no such variable, or a path that does not exist | `"unavailable"` | `null` | `-2` |
+
+  Observed all three cases against the real binary. `"placeholder_ladder"` does **not** appear on
+  this route in either case — it belongs to `POST /learning/events` with no `schedule_state`. A UI
+  that renders `unavailable` as "scheduled" is making a claim the Core explicitly declined to
+  make, which is why the launch injects `ARCHEAXIS_PYTHON` rather than asking a user to set it.
+* `mastery_projection.schedule` is `null` on a review even when `schedule_authority` is `"fsrs"`,
+  so the schedule must be read from the top-level fields, not from the projection.
 * When no `knowledge_v3_metadata` row exists, the V3 projection invents
   `confidence:null`, `risk_level:"low"` and a `support_level`.
 
