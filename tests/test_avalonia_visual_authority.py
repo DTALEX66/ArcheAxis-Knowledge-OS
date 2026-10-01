@@ -47,7 +47,7 @@ def test_monochrome_remains_neutral_and_aurora_default_is_explicitly_selectable(
     assert aurora["AaosIvoryBrush"] == "#F3EFE6"
     assert _brushes()["AaosBackgroundBrush"] == aurora["AaosBackgroundBrush"]
     palette_code = PALETTE.read_text(encoding="utf-8")
-    assert "palette == Aurora ? AuroraColors : MonochromeColors" in palette_code
+    assert "palette == Monochrome ? MonochromeColors : AuroraColors" in palette_code
     assert "resources[key] = new SolidColorBrush(Color.Parse(value));" in palette_code
     shell = (PALETTE.parent / "MainWindow.axaml.cs").read_text(encoding="utf-8")
     assert "ThemePalette.Apply(ThemePalette.Aurora);" in shell

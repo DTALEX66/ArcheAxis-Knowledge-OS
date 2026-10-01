@@ -3780,3 +3780,7 @@ At that verification stage, the 2026-09-26 source candidate expansion was retain
 当前 metadata 回读显示：上文 vclean 原 sibling ZIP、R6 `vr6-0e934f33-x64` 展开目录，以及 final `vcurrent-2994efa-final-20260926-x64` 展开目录和原 sibling ZIP 均不存在。不能按旧段落直接运行这些路径，也不能据此断言恢复资产丢失；后续归档父包、helper、proof、依赖及还原入口仅查 [当前清理交接](STORAGE-CLEANUP-HANDOFF-20261001.md)，本段不另造恢复包路径。
 
 当前最高视觉依据为用户采用的 B10 最终可部署母版，较早 B03 等不能覆盖它。记录中的 Formal `di` 324 项静态前端契约 PASS、`dj` 桌面编译退出 0，均限于其执行范围。已有窗口 raster 回读不等于完整原生交互、无障碍、动画及多 DPI 矩阵通过；完整矩阵仍 `UNVERIFIED`，视觉验收 `PARTIAL`。没有由这些本地结果新增真实 Core 闭环、安装态健康、CI 或 release 完成声明。
+
+### 2026-10-01 外部三项目材料的 AAOS 待评估输入
+
+用户指定的两份三项目方案和两份 WORK-LAB 审计文件已只读对比。AAOS 专属及适用的跨项目条目、源文件 SHA-256、原 ID 与冲突裁决归档于 [`AAOS-ECOSYSTEM-AUDIT.md`](../history/external-inputs/2026-10-01/AAOS-ECOSYSTEM-AUDIT.md) 和同目录 `AAOS-ECOSYSTEM-EXTRACT.json`。这只是 `PROPOSED_NOT_EXECUTED` 的后续输入：知识/记忆边界映射 R6 A04/A08 与 M0；旧 WORK-LAB 规则路径需当前读回后另行修正；模型资格、生成出口、精确 SHA 交付复用现有合同。用户本轮已停止清理，因此目录/缓存/历史迁移条目保持 `PAUSED_BY_CURRENT_USER_SCOPE`，不执行。该归档不修改 immutable R6 TaskPack、R6-STATE 或 Owner Gate，也不构成跨仓写入、真实桌面验收或 release 证据。

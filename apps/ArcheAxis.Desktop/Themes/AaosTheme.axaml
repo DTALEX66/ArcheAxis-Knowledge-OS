@@ -570,6 +570,11 @@
         <Setter Property="Foreground" Value="{DynamicResource AaosIvoryBrush}" />
         <Setter Property="Background" Value="{DynamicResource AaosSurface2Brush}" />
     </Style>
+    <Style Selector="ComboBoxItem:focus">
+        <Setter Property="Background" Value="{DynamicResource AaosSurface2Brush}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource AaosPrimaryBrush}" />
+        <Setter Property="BorderThickness" Value="2" />
+    </Style>
     <Style Selector="CheckBox">
         <Setter Property="Foreground" Value="{DynamicResource AaosIvoryBrush}" />
     </Style>

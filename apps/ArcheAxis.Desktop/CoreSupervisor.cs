@@ -87,7 +87,8 @@ public sealed class CoreSupervisor : IDisposable
                 _core = process;
             }
             if (process is null) return (false, "failed to start core process");
-            _ = DrainAsync(process.StandardError);
+            var startupErrors = new List<string>();
+            var errorDrain = DrainStartupErrorsAsync(process.StandardError, startupErrors);
             var worker = _textWorker is null ? null : new { python = _textWorker.Python, script = _textWorker.Script, staging = _textWorker.Staging };
             await process.StandardInput.WriteLineAsync(JsonSerializer.Serialize(new { protocol = "archeaxis.desktop-launch/v2", actor = "human", launch_token = launchToken, machine_token = machineToken, session_id = sessionId, text_worker = worker }).AsMemory(), token).ConfigureAwait(false);
             process.StandardInput.Close();
@@ -147,7 +148,11 @@ public sealed class CoreSupervisor : IDisposable
                 }
             }
             Stop();
-            return (false, "core exited before readiness");
+            try { await errorDrain.WaitAsync(TimeSpan.FromSeconds(1)).ConfigureAwait(false); }
+            catch (TimeoutException) { }
+            return (false, startupErrors.Count == 0
+                ? "core exited before readiness"
+                : $"core exited before readiness: {string.Join(" | ", startupErrors)}");
         }
         catch (OperationCanceledException)
         {
@@ -223,6 +228,39 @@ public sealed class CoreSupervisor : IDisposable
     {
         var buffer = new char[4096];
         try { while (await reader.ReadAsync(buffer).ConfigureAwait(false) > 0) { } }
+        catch (IOException) { }
+        catch (ObjectDisposedException) { }
+    }
+
+    private static async Task DrainStartupErrorsAsync(StreamReader reader, List<string> errors)
+    {
+        try
+        {
+            while (await reader.ReadLineAsync().ConfigureAwait(false) is { } line)
+            {
+                if (errors.Count >= 4 || string.IsNullOrWhiteSpace(line)) continue;
+                // Only known, fixed Core messages may reach the UI. Raw stderr can
+                // contain paths or future sensitive fields, so never echo it.
+                var safe = line switch
+                {
+                    "failed to initialize execution workspace" => line,
+                    "failed to open workspace" => line,
+                    "workspace identity unavailable" => line,
+                    "invalid worker profile path" => line,
+                    "worker profile file missing" => line,
+                    "launch input exceeds limit" => line,
+                    "invalid launch identity" => line,
+                    "machine token requires v2" => line,
+                    "invalid launch actor" => line,
+                    "invalid v2 launch actor" => line,
+                    "invalid machine identity" => line,
+                    "unsupported launch protocol" => line,
+                    _ when line.StartsWith("cannot bind ", StringComparison.Ordinal) => "cannot bind loopback",
+                    _ => "unclassified Core startup error",
+                };
+                if (errors.Count == 0 || errors[^1] != safe) errors.Add(safe);
+            }
+        }
         catch (IOException) { }
         catch (ObjectDisposedException) { }
     }

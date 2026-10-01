@@ -28,7 +28,7 @@
                 <TextBlock Text="AA"
                            HorizontalAlignment="Center"
                            VerticalAlignment="Center"
-                           Foreground="#FFFFFF"
+                           Foreground="{DynamicResource AaosPrimaryTextBrush}"
                            FontWeight="Black"
                            FontSize="16" />
             </Grid>

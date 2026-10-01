@@ -323,20 +323,30 @@ public partial class MainWindow : Window
             ApplyThemePalette(capturePalette);
             SetCaptureRoute(Environment.GetEnvironmentVariable("AAOS_UI_CAPTURE_ROUTE") ?? "home");
             ApplyResponsiveLayout(new Size(Width, Height));
-            if (string.Equals(Environment.GetEnvironmentVariable("AAOS_UI_CAPTURE_WAIT_CORE"), "1", StringComparison.Ordinal))
+            try
             {
-                var captureDbPath = Environment.GetEnvironmentVariable("ARCHEAXIS_VNEXT_DB")
-                    ?? Environment.GetEnvironmentVariable("ARCHAXIS_VNEXT_DB")
-                    ?? System.IO.Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "ArcheAxis", "vnext", "workspace.sqlite");
-                _supervisor = new CoreSupervisor(captureDbPath);
-                var started = await _supervisor.StartAsync();
-                Title = started.ok ? "ArcheAxis Knowledge — connected" : $"ArcheAxis Knowledge — core offline ({started.detail})";
-                await RefreshWorkspaceSummaryAsync();
-                await RefreshHomeRecentEvidenceAsync();
+                if (string.Equals(Environment.GetEnvironmentVariable("AAOS_UI_CAPTURE_WAIT_CORE"), "1", StringComparison.Ordinal))
+                {
+                    var captureDbPath = Environment.GetEnvironmentVariable("ARCHEAXIS_VNEXT_DB")
+                        ?? Environment.GetEnvironmentVariable("ARCHAXIS_VNEXT_DB")
+                        ?? System.IO.Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "ArcheAxis", "vnext", "workspace.sqlite");
+                    _supervisor = new CoreSupervisor(captureDbPath);
+                    var started = await _supervisor.StartAsync();
+                    Title = started.ok ? "ArcheAxis Knowledge — connected" : $"ArcheAxis Knowledge — core offline ({started.detail})";
+                    await RefreshWorkspaceSummaryAsync();
+                    await RefreshHomeRecentEvidenceAsync();
+                }
+                await Dispatcher.UIThread.InvokeAsync(() => { }, DispatcherPriority.Render);
+                await Dispatcher.UIThread.InvokeAsync(() => { }, DispatcherPriority.Render);
+                CaptureWindowPng(capturePath);
             }
-            await Dispatcher.UIThread.InvokeAsync(() => { }, DispatcherPriority.Render);
-            await Dispatcher.UIThread.InvokeAsync(() => { }, DispatcherPriority.Render);
-            CaptureWindowPng(capturePath);
+            finally
+            {
+                // Environment.Exit bypasses Closed/OnClosed. Release only this window's
+                // owned Core before the capture process exits, including capture errors.
+                _supervisor?.Dispose();
+                _supervisor = null;
+            }
             Environment.Exit(0);
             return;
         }
@@ -4357,12 +4367,13 @@ public partial class MainWindow : Window
         Grid.SetRow(MachineLearningPanels.Children[1], compact ? 1 : 0);
         SetResponsiveToolbar(JobLookupGrid, JobLookupButton, narrowActions);
         SetMemoryMapToolbarLayout(narrowActions);
-        HomeGraphContentGrid.ColumnDefinitions = contentWidth < 1100 ? new ColumnDefinitions("*") : new ColumnDefinitions("1.35*,0.95*");
-        HomeGraphContentGrid.RowDefinitions = contentWidth < 1100 ? new RowDefinitions("Auto,Auto") : new RowDefinitions("Auto");
+        var homeGraphSingleColumn = frameSize.Width <= 1160;
+        HomeGraphContentGrid.ColumnDefinitions = homeGraphSingleColumn ? new ColumnDefinitions("*") : new ColumnDefinitions("1.35*,0.95*");
+        HomeGraphContentGrid.RowDefinitions = homeGraphSingleColumn ? new RowDefinitions("Auto,Auto") : new RowDefinitions("Auto");
         Grid.SetColumn(HomeMemoryGraphCard, 0);
         Grid.SetRow(HomeMemoryGraphCard, 0);
-        Grid.SetColumn(HomeNodeDetailsCard, contentWidth < 1100 ? 0 : 1);
-        Grid.SetRow(HomeNodeDetailsCard, contentWidth < 1100 ? 1 : 0);
+        Grid.SetColumn(HomeNodeDetailsCard, homeGraphSingleColumn ? 0 : 1);
+        Grid.SetRow(HomeNodeDetailsCard, homeGraphSingleColumn ? 1 : 0);
         HomeHeroVisual.IsVisible = true;
         MemoryMapVisualGrid.ColumnDefinitions = compact
             ? new ColumnDefinitions("*")
@@ -5761,13 +5772,17 @@ public partial class MainWindow : Window
                 var scheduleState = "未暴露";
                 var nextReview = "未暴露";
                 var nextReviewDays = "未暴露";
+                long? receiptEventId = null;
                 try
                 {
                     using var reviewResponse = JsonDocument.Parse(await response.Content.ReadAsStringAsync());
                     var reviewRoot = reviewResponse.RootElement;
+                    if (reviewRoot.TryGetProperty("event_id", out var eventValue)
+                        && eventValue.TryGetInt64(out var parsedEventId))
+                        receiptEventId = parsedEventId;
                     savedAnswer = reviewResponse.RootElement.TryGetProperty("answer", out var answerValue)
                         && answerValue.ValueKind == JsonValueKind.String
-                        && !string.IsNullOrWhiteSpace(answerValue.GetString());
+                        && answerValue.GetString() == answer;
                     scheduleAuthority = ReadDisplayValue(reviewRoot, "schedule_authority");
                     scheduleState = ReadDisplayValue(reviewRoot, "schedule_state");
                     nextReview = ReadDisplayValue(reviewRoot, "next_review");
@@ -5782,6 +5797,42 @@ public partial class MainWindow : Window
                 catch (JsonException)
                 {
                     // The event is already persisted; keep the UI status conservative.
+                }
+                var readbackVerified = false;
+                if (receiptEventId is not null && savedAnswer)
+                {
+                    using var stateResponse = await _supervisor.SendAsync(HttpMethod.Get,
+                        $"/api/v1/learning/items/{Uri.EscapeDataString(submittedItemKey)}/state");
+                    if (stateResponse.IsSuccessStatusCode)
+                    {
+                        using var stateDocument = JsonDocument.Parse(await stateResponse.Content.ReadAsStringAsync());
+                        var stateRoot = stateDocument.RootElement;
+                        if (stateRoot.TryGetProperty("item_key", out var stateItem)
+                            && stateItem.GetString() == submittedItemKey
+                            && stateRoot.TryGetProperty("learner", out var learner)
+                            && learner.TryGetProperty("latest_review", out var latest)
+                            && latest.ValueKind == JsonValueKind.Object
+                            && latest.TryGetProperty("event_id", out var latestEvent)
+                            && latestEvent.TryGetInt64(out var latestEventId)
+                            && latestEventId == receiptEventId
+                            && latest.TryGetProperty("assessment_id", out var latestAssessment)
+                            && latestAssessment.GetString() == submittedAssessmentId
+                            && latest.TryGetProperty("answer", out var latestAnswer)
+                            && latestAnswer.GetString() == answer)
+                            readbackVerified = true;
+                    }
+                }
+                if (!IsCurrentReviewSubmission(reviewRequestVersion, submittedItemKey,
+                        submittedAssessmentId, submittedKnowledgeId, submittedKnowledgeVersion,
+                        submittedEventId, submittedExposureId))
+                    return;
+                if (!readbackVerified)
+                {
+                    SubmitReviewButton.IsEnabled = true;
+                    SubmitReviewButton2.IsEnabled = true;
+                    SetStatus(LearningReviewStatusText,
+                        "Core 已响应，但当前项目的回答回读未确认；请重试同一提交或刷新复习状态。", "error");
+                    return;
                 }
                 LearningReviewReceiptText.Text =
                     $"排程 authority：{scheduleAuthority} · state：{scheduleState}\n" +

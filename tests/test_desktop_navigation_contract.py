@@ -1000,7 +1000,7 @@ def test_aaos_theme_tokens_replace_the_legacy_indigo_shell_palette() -> None:
         assert color in monochrome
     for color in ("#061118", "#0C1C26", "#102630", "#1FC8C5", "#F3EFE6"):
         assert color in aurora
-    assert 'palette == Aurora ? AuroraColors : MonochromeColors' in palettes
+    assert 'palette == Monochrome ? MonochromeColors : AuroraColors' in palettes
 
     assert 'Background="{DynamicResource AaosBackgroundBrush}"' in xaml
     assert 'BorderBrush="{DynamicResource AaosBorderBrush}"' in xaml
@@ -2062,7 +2062,8 @@ def test_ui_home_prioritizes_learning_and_reader_views_scale_before_stacking() -
 def test_compact_home_reflows_graph_after_b10_evidence_dashboard() -> None:
     code = CODE.read_text(encoding="utf-8")
 
-    assert 'HomeGraphContentGrid.RowDefinitions = contentWidth < 1100' in code
+    assert 'var homeGraphSingleColumn = frameSize.Width <= 1160;' in code
+    assert 'HomeGraphContentGrid.RowDefinitions = homeGraphSingleColumn' in code
 
 
 def test_home_surface_uses_plain_language_for_primary_status_and_actions() -> None:
@@ -2365,10 +2366,19 @@ def test_mobile_navigation_registers_visible_actions_and_keyboard_palette_routes
     rail = _control('MobileRail')
     grid = next(node for node in rail if node.tag.endswith('Grid'))
     visible_buttons = [node for node in grid if node.tag.endswith('Button')]
-    assert [node.get('Click') for node in visible_buttons] == [
-        'OnHomeClick', 'OnCaptureClick', 'OnEvidenceClick', 'OnReviewClick',
+    assert grid.get('ColumnDefinitions') == ','.join(['*'] * 7)
+    assert [(node.get('{http://schemas.microsoft.com/winfx/2006/xaml}Name'), node.get('Click'))
+            for node in visible_buttons] == [
+        ('MobileWorkspaceButton', 'OnHomeClick'),
+        ('MobileCaptureButton', 'OnCaptureClick'),
+        ('MobileEvidenceButton', 'OnEvidenceClick'),
+        ('MobileLearningButton', 'OnReviewClick'),
+        ('MobileMachineButton', 'OnMachineGrowthClick'),
+        ('MobileSearchButton', 'OnSearchClick'),
+        ('MobileSystemButton', 'OnSettingsClick'),
     ]
     assert all(node.get('IsVisible') != 'False' for node in visible_buttons)
+    assert all(float(node.get('Width')) >= 44 and float(node.get('Height')) >= 44 for node in visible_buttons)
     assert _control('TopbarCommandButton').get('Click') == 'OnOpenCommandPaletteClick'
     assert _control('TopbarShell').get('IsVisible') != 'False'
     assert 'TopbarCommandButton.IsVisible = false' not in code
@@ -2408,8 +2418,9 @@ def test_compact_home_and_source_reader_use_explicit_single_column_reflow() -> N
     assert 'new RowDefinitions("Auto,Auto,Auto")' in reader_code
     assert 'Grid.SetRow(SourceReaderChainBorder, compact ? 2 : 0);' in reader_code
     assert _control('HomeHeroVisual').tag.endswith('AaosMemoryGraphView')
-    assert 'HomeGraphContentGrid.RowDefinitions = contentWidth < 1100' in code
-    assert 'Grid.SetColumn(HomeNodeDetailsCard, contentWidth < 1100 ? 0 : 1);' in code
+    assert 'var homeGraphSingleColumn = frameSize.Width <= 1160;' in code
+    assert 'HomeGraphContentGrid.RowDefinitions = homeGraphSingleColumn' in code
+    assert 'Grid.SetColumn(HomeNodeDetailsCard, homeGraphSingleColumn ? 0 : 1);' in code
 
 
 def test_compact_knowledge_facts_reflow_without_overlapping_two_column_cards() -> None:

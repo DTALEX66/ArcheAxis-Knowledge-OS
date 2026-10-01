@@ -1,0 +1,142 @@
+{
+  "schema": "aaos.ui.asset-manifest/v1",
+  "audited_at": "2026-10-01",
+  "scope": "Current formal Desktop source only; no installed Green runtime verification",
+  "b10_master": "D:/All projects/UI套件/10_B10_最终版高保真可部署UI/archeaxis_最终版_高保真可部署UI.zip!/index.html",
+  "asset_root": "apps/ArcheAxis.Desktop/Assets/",
+  "reference_search": "Literal filename in apps/ArcheAxis.Desktop *.axaml, *.cs, *.csproj",
+  "items": [
+    {
+      "path": "apps/ArcheAxis.Desktop/Assets/aaos-app-icon.ico",
+      "sha256": "abbc53dea7b3158ff719c5869aef83d7cc48e62ef9d4dd45d38898bdcc77f387",
+      "bytes": 61401,
+      "referenced_by_csproj": true,
+      "referenced_by_xaml": true,
+      "referenced_by_code": false,
+      "b10_role": "B10 application identity/window icon",
+      "deployment_status": "DECLARED_RESOURCE_AND_WINDOW_ICON",
+      "gap": "Confirm final Green installed bundle and visual match to B10."
+    },
+    {
+      "path": "apps/ArcheAxis.Desktop/Assets/aaos-brand-mark.svg",
+      "sha256": "1240b52cde125c6142812b9960402cc30d1e7fff702053bcfc8d300ca6840d3c",
+      "bytes": 2120,
+      "referenced_by_csproj": false,
+      "referenced_by_xaml": false,
+      "referenced_by_code": false,
+      "b10_role": "B10 brand mark candidate",
+      "deployment_status": "SOURCE_ONLY_UNREFERENCED",
+      "gap": "No direct Desktop resource/page reference; verify visual fit, source/license, both themes and intended data semantics before use."
+    },
+    {
+      "path": "apps/ArcheAxis.Desktop/Assets/aaos-evidence-anchor-empty-state.png",
+      "sha256": "0b90b46ff44808d9aa685693fe614903b02aa900a8c82823ace8a0097b01031e",
+      "bytes": 864611,
+      "referenced_by_csproj": false,
+      "referenced_by_xaml": false,
+      "referenced_by_code": false,
+      "b10_role": "Evidence empty state candidate; static illustration only",
+      "deployment_status": "SOURCE_ONLY_UNREFERENCED",
+      "gap": "No direct Desktop resource/page reference; verify visual fit, source/license, both themes and intended data semantics before use."
+    },
+    {
+      "path": "apps/ArcheAxis.Desktop/Assets/aaos-home-hero-aurora-b03-v1.png",
+      "sha256": "0be238ef2cf320addf2ea9475c0c773642e43efefb4602d2ef6cc7aa2a84f1f8",
+      "bytes": 890462,
+      "referenced_by_csproj": false,
+      "referenced_by_xaml": false,
+      "referenced_by_code": false,
+      "b10_role": "Home hero candidate / Aurora",
+      "deployment_status": "SOURCE_ONLY_UNREFERENCED",
+      "gap": "No direct Desktop resource/page reference; verify visual fit, source/license, both themes and intended data semantics before use."
+    },
+    {
+      "path": "apps/ArcheAxis.Desktop/Assets/aaos-home-hero-aurora-v2.png",
+      "sha256": "7bac5a3d1dc1247415ad2c1838d2c4438af7cb30e28504edd20ff5701e12618d",
+      "bytes": 1334134,
+      "referenced_by_csproj": false,
+      "referenced_by_xaml": false,
+      "referenced_by_code": false,
+      "b10_role": "Home hero candidate / Aurora",
+      "deployment_status": "SOURCE_ONLY_UNREFERENCED",
+      "gap": "No direct Desktop resource/page reference; verify visual fit, source/license, both themes and intended data semantics before use."
+    },
+    {
+      "path": "apps/ArcheAxis.Desktop/Assets/aaos-home-hero-aurora-v3.png",
+      "sha256": "5ca2ccc123cc768073f36292cbd30615f032c86fb8fb966a162f4a4b835d89d1",
+      "bytes": 1342790,
+      "referenced_by_csproj": false,
+      "referenced_by_xaml": false,
+      "referenced_by_code": false,
+      "b10_role": "Home hero candidate / Aurora",
+      "deployment_status": "SOURCE_ONLY_UNREFERENCED",
+      "gap": "No direct Desktop resource/page reference; verify visual fit, source/license, both themes and intended data semantics before use."
+    },
+    {
+      "path": "apps/ArcheAxis.Desktop/Assets/aaos-home-hero-aurora.png",
+      "sha256": "d0eecd240cf5ecade79d9acdf434562897de80c6b68bcf700711e0a02d454c92",
+      "bytes": 541526,
+      "referenced_by_csproj": false,
+      "referenced_by_xaml": false,
+      "referenced_by_code": false,
+      "b10_role": "Home hero candidate / Aurora",
+      "deployment_status": "SOURCE_ONLY_UNREFERENCED",
+      "gap": "No direct Desktop resource/page reference; verify visual fit, source/license, both themes and intended data semantics before use."
+    },
+    {
+      "path": "apps/ArcheAxis.Desktop/Assets/aaos-home-hero-monochrome-b03-v1.png",
+      "sha256": "85a2d95d4000034def5196f90ed247e0a3f224f4d7e4a28934601b799ab97118",
+      "bytes": 653294,
+      "referenced_by_csproj": false,
+      "referenced_by_xaml": false,
+      "referenced_by_code": false,
+      "b10_role": "Home hero candidate / Monochrome",
+      "deployment_status": "SOURCE_ONLY_UNREFERENCED",
+      "gap": "No direct Desktop resource/page reference; verify visual fit, source/license, both themes and intended data semantics before use."
+    },
+    {
+      "path": "apps/ArcheAxis.Desktop/Assets/aaos-home-hero-monochrome-v2.png",
+      "sha256": "5b25880b7efbeb9827a8db134684fb8464eab403ea8ee530fbcbda96a00b76b6",
+      "bytes": 1407433,
+      "referenced_by_csproj": false,
+      "referenced_by_xaml": false,
+      "referenced_by_code": false,
+      "b10_role": "Home hero candidate / Monochrome",
+      "deployment_status": "SOURCE_ONLY_UNREFERENCED",
+      "gap": "No direct Desktop resource/page reference; verify visual fit, source/license, both themes and intended data semantics before use."
+    },
+    {
+      "path": "apps/ArcheAxis.Desktop/Assets/aaos-home-hero-monochrome-v3.png",
+      "sha256": "7b57ec85fa308c6ec6251d9ef5aa42822f46878ae8ccc8b7d19fd95650a94cc4",
+      "bytes": 1366714,
+      "referenced_by_csproj": false,
+      "referenced_by_xaml": false,
+      "referenced_by_code": false,
+      "b10_role": "Home hero candidate / Monochrome",
+      "deployment_status": "SOURCE_ONLY_UNREFERENCED",
+      "gap": "No direct Desktop resource/page reference; verify visual fit, source/license, both themes and intended data semantics before use."
+    },
+    {
+      "path": "apps/ArcheAxis.Desktop/Assets/aaos-home-hero-monochrome.png",
+      "sha256": "dd25e47fdda2e6779df33ad7d196eb53d526051e93ec1652e7cc64519798a951",
+      "bytes": 559900,
+      "referenced_by_csproj": false,
+      "referenced_by_xaml": false,
+      "referenced_by_code": false,
+      "b10_role": "Home hero candidate / Monochrome",
+      "deployment_status": "SOURCE_ONLY_UNREFERENCED",
+      "gap": "No direct Desktop resource/page reference; verify visual fit, source/license, both themes and intended data semantics before use."
+    },
+    {
+      "path": "apps/ArcheAxis.Desktop/Assets/aaos-knowledge-constellation-empty-state.png",
+      "sha256": "79e290bd62157f7a269522f70591f3ffe5ee56ae257cd62ed4df4914f9249612",
+      "bytes": 901588,
+      "referenced_by_csproj": false,
+      "referenced_by_xaml": false,
+      "referenced_by_code": false,
+      "b10_role": "Memory empty state candidate; static illustration only",
+      "deployment_status": "SOURCE_ONLY_UNREFERENCED",
+      "gap": "No direct Desktop resource/page reference; verify visual fit, source/license, both themes and intended data semantics before use."
+    }
+  ]
+}

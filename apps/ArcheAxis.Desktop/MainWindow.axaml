@@ -1520,21 +1520,21 @@
         </Border>
 
         <Border x:Name="MobileRail" Grid.Row="3" Grid.Column="0" Grid.ColumnSpan="4" IsVisible="False" Padding="12,5" Background="{DynamicResource AaosSidebarBrush}" BorderBrush="{DynamicResource AaosBorderBrush}" BorderThickness="0,1,0,0" AutomationProperties.Name="移动端主导航">
-            <Grid ColumnDefinitions="*,*,*,*" HorizontalAlignment="Stretch">
+            <Grid ColumnDefinitions="*,*,*,*,*,*,*" HorizontalAlignment="Stretch">
                 <Button x:Name="MobileWorkspaceButton" Grid.Column="0" Classes="rail-button master-icon-button active" Width="48" Height="44" HorizontalAlignment="Center" Click="OnHomeClick" ToolTip.Tip="首页" AutomationProperties.Name="打开首页"><local:AaosIcon Width="22" Height="22" IconName="Home" /></Button>
                 <Button x:Name="MobileCaptureButton" Grid.Column="1" Classes="rail-button master-icon-button" Width="48" Height="44" HorizontalAlignment="Center" Click="OnCaptureClick" ToolTip.Tip="捕获" AutomationProperties.Name="打开捕获"><local:AaosIcon Width="22" Height="22" IconName="Capture" /></Button>
                 <Button x:Name="MobileEvidenceButton" Grid.Column="2" Classes="rail-button master-icon-button" Width="48" Height="44" HorizontalAlignment="Center" Click="OnEvidenceClick" ToolTip.Tip="证据库" AutomationProperties.Name="打开证据库"><local:AaosIcon Width="22" Height="22" IconName="Evidence" /></Button>
                 <Button x:Name="MobileLearningButton" Grid.Column="3" Classes="rail-button master-icon-button" Width="48" Height="44" HorizontalAlignment="Center" Click="OnReviewClick" ToolTip.Tip="复习 / FSRS" AutomationProperties.Name="打开复习与 FSRS"><local:AaosIcon Width="22" Height="22" IconName="Review" /></Button>
+                <Button x:Name="MobileMachineButton" Grid.Column="4" Classes="rail-button master-icon-button" Width="48" Height="44" HorizontalAlignment="Center" Click="OnMachineGrowthClick" ToolTip.Tip="机器学习" AutomationProperties.Name="打开机器学习"><local:AaosIcon Width="22" Height="22" IconName="Chip" /></Button>
+                <Button x:Name="MobileSearchButton" Grid.Column="5" Classes="rail-button master-icon-button" Width="48" Height="44" HorizontalAlignment="Center" Click="OnSearchClick" ToolTip.Tip="搜索" AutomationProperties.Name="打开搜索"><local:AaosIcon Width="22" Height="22" IconName="Search" /></Button>
+                <Button x:Name="MobileSystemButton" Grid.Column="6" Classes="rail-button master-icon-button" Width="48" Height="44" HorizontalAlignment="Center" Click="OnSettingsClick" ToolTip.Tip="设置" AutomationProperties.Name="打开设置"><local:AaosIcon Width="22" Height="22" IconName="Settings" /></Button>
                 <StackPanel IsVisible="False">
                     <Button x:Name="MobileKnowledgeButton" Click="OnLibraryClick" AutomationProperties.Name="打开资料与知识" />
-                    <Button x:Name="MobileSearchButton" Click="OnSearchClick" AutomationProperties.Name="打开搜索" />
                     <Button x:Name="MobileReaderButton" Click="OnSourceReaderClick" AutomationProperties.Name="打开原件阅读" />
-                    <Button x:Name="MobileMachineButton" Click="OnMachineGrowthClick" AutomationProperties.Name="打开机器学习" />
                     <Button x:Name="MobileResearchButton" Click="OnResearchClick" AutomationProperties.Name="打开研究" />
                     <Button x:Name="MobileJobsButton" Click="OnJobsClick" AutomationProperties.Name="打开任务" />
                     <Button x:Name="MobilePluginsButton" Click="OnPluginsClick" AutomationProperties.Name="打开插件" />
                     <Button x:Name="MobileModelsButton" Click="OnModelsClick" AutomationProperties.Name="打开模型" />
-                    <Button x:Name="MobileSystemButton" Click="OnSettingsClick" AutomationProperties.Name="打开设置" />
                 </StackPanel>
             </Grid>
         </Border>

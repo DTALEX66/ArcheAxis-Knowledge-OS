@@ -19,7 +19,8 @@ def test_brand_mark_matches_b10_tile_and_uses_live_theme_resources():
     assert 'x:Name="MarkSurface"' in xaml
     assert 'Text="AA"' in xaml
     assert 'FontWeight="Black"' in xaml
-    assert 'Foreground="#FFFFFF"' in xaml
+    assert 'Foreground="{DynamicResource AaosPrimaryTextBrush}"' in xaml
+    assert 'Foreground="#FFFFFF"' not in xaml
     assert 'x:Name="RadialHighlight"' in xaml
     assert 'AaosBrandMarkBrush' in xaml
     assert 'AaosBrandMarkGlowEffect' in xaml

@@ -14,7 +14,7 @@ internal static class ThemePalette
     internal static event EventHandler? PaletteChanged;
     public static void Apply(string palette)
     {
-        var colors = palette == Aurora ? AuroraColors : MonochromeColors;
+        var colors = palette == Monochrome ? MonochromeColors : AuroraColors;
         var resources = Application.Current?.Resources;
         if (resources is null)
             return;
