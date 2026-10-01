@@ -186,7 +186,8 @@
       "archive_export_omitted_tables": "closed: the four tables are exported, both archive layouts restore, and the two lazily-created tables are now in the schema. Verified by crates/archeaxis-archive/tests/omitted_tables_roundtrip.rs",
       "source_scoped_transform_filter": "closed: the kind=text filter is gone and a PDF transform reads back. Verified by crates/archeaxis-api/tests/source_transform_readback.rs",
       "remaining_in_contract_section_9": "the Owner decision on the resource-root schema (A02), which is a decision rather than missing implementation"
-    }
+    },
+    "m0_chain_reverified_20261001": "the M0 probe was re-run on this branch against the built Core with an fsrs-capable scheduler interpreter: ok true, chain_stages_verified true, validation_errors empty, evidence_level SYNTHETIC, 27 of 27 stages. The contract had quoted a validation failure (legacy migration not verified) that belonged to another environment and no longer holds; that quote is removed. The gap map lists the chain as 26 stages because a pre_restart_learning_state baseline stage was added after it. The same run observed learning_event reporting placeholder_ladder and answer_recorded reporting fsrs in one launch, which is the two-route split the contract describes. The 27th stage migrates a temporary copy of data/cognitive_os.sqlite and asserts the original digest is unchanged, so it demonstrates the capability without migrating user data; production legacy migration, in-place replacement and release remain NOT_EXECUTED and the contract now says so beside that row. Pinned by tests/maintenance/test_m0_chain_claims.py."
   },
   "backend_key_disposition_20261001": {
     "document": "docs/current/AAOS-BACKEND-KEY-DISPOSITION-20261001.json",
