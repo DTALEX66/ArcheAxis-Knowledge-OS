@@ -147,7 +147,7 @@ Formats that additionally lack a reachable engine, named separately from the rou
 
 | Format | Status | Why |
 | --- | --- | --- |
-| audio → ASR transcription | still `NO_ROUTE`, path **fixed** | `media/worker_transcribe.py` has no `--staging-root` sidecar mode (its own usage line lists only `<input-file>` and `--probe`), so it is not one of the nine declared routes. Its engine, model and path resolution are real and were verified on a real Chinese audio file — see §3b. ASR is the one format the original pack requires before final closure and is the clearest remaining route gap. |
+| audio → ASR transcription | **RESOLVED on this branch** | `media/worker_transcribe.py` had a real engine, a real model and verified output while no route named its capability. It now has a sidecar mode and the `media.transcribe` route, verified end to end through the real Core — see §3b. It is the one format the pack requires before final closure. |
 | video decode | still `NO_ROUTE`, path **fixed** | `media/worker_video.py` likewise has no sidecar mode or declared capability; its ffmpeg path now resolves through the declaration as well as `PATH`. |
 | webpage fetch | `NO_ROUTE` | `web/worker_webpage.py` same; a fetch is deliberately not part of the HTML route. |
 | image caption / VL | `BLOCKED` | needs an Ollama endpoint at `127.0.0.1:11434` with `qwen2.5vl:7b`; no `ollama` binary and nothing listening. LM Studio is installed but has no models loaded and is not integrated — see §3b. |
@@ -159,6 +159,38 @@ Formats that additionally lack a reachable engine, named separately from the rou
 > skip, not evidence that OCR works. A reader must not count that suite as OCR coverage.
 
 `media.probe` is **not** transcription — it reads the container header only and says so.
+
+### ASR now reaches the Core — a real recording, transcribed
+
+`media/worker_transcribe.py` had a real engine, a real model and verified output, and no Core
+job could reach it: no sidecar mode and no declared capability. The repository's own
+reachability record held the reason it was left unrouted — *"no model is configured in this
+repository or on this machine's defaults. Routing it now would create a capability that always
+fails for want of a model."* That reason is resolved rather than argued with: the model
+resolves through the declared capability registry, with `ARCHEAXIS_ASR_MODEL_DIR` and a
+declared-path fallback, and the audio media types now name the containers a reader exists for.
+
+| Layer | Result |
+| --- | --- |
+| declared routes | `[..., 'media.transcribe', ...]` — the staged profile publishes it |
+| Core job | import `202` → enqueue `202` → execute `202 running` → **`succeeded`** |
+| transcript | `星环知识平台正在验证真实音频转写能力` / `这是一个用于测试的中文语音样本` |
+| structure | `line-1` (0–19), `line-2` (19–34) — canonical anchors over the projected text |
+| sidecar detail | language `zh` at `0.9983`, 2 segments over 8,940 ms, engine `python-worker-transcribe` 0.1.0, model `faster-whisper-large-v3-turbo`, `covered 2 / total 2` |
+| timing | preserved as `cues` under `params.worker_output`: `0–4240 ms`, `4240–8119 ms` |
+
+Two deliberate non-changes are worth recording. A `media` job is **not** silently redirected to
+ASR: routing `.wav` to the transcribe engine was tried and reverted, because it changed the
+meaning of the existing `media` kind — the container probe — whose own test depends on a
+garbage file named `.wav` reaching the probe. Transcription therefore has its own kind and
+capability. And `mp3`/`m4a`/`flac`/`ogg`/`opus` were previously unnamed in the media-type
+table *because no reader could read them*; they are named now that one can, while staying out
+of `media.probe`'s accepted types so the two readers remain disjoint.
+
+A probe that cannot read the declaration reports `capability: false` with the reason rather
+than crashing — which is what the runner's interpreter, with no PyYAML, requires. An explicit
+`--profile` that is bad still fails closed, because a silent fallback answers a different
+question than the one asked.
 
 #### What replaced the original measurement
 

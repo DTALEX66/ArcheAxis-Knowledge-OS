@@ -29,8 +29,8 @@
   },
   "status_counts": {
     "PLANNED": 13,
-    "CI_VERIFIED_EXACT_SHA": 8,
-    "IMPLEMENTED_LOCAL": 2,
+    "CI_VERIFIED_EXACT_SHA": 9,
+    "IMPLEMENTED_LOCAL": 1,
     "TESTED_LOCAL": 17,
     "BLOCKED": 11,
     "NOT_EXECUTED": 7
@@ -88,9 +88,9 @@
       "lane": "BACKEND_FRONTEND_LOOP",
       "maps_to": "A05",
       "prior_audit_verdict": "OPEN_OR_PARTIAL_REQUIRES_GOLDEN_JOURNEY",
-      "status": "IMPLEMENTED_LOCAL",
+      "status": "CI_VERIFIED_EXACT_SHA",
       "evidence_level": "REAL",
-      "disposition": "IMPLEMENTED_LOCAL — real Chinese audio transcribed: 3,362 characters / 295 segments from a 5,849,401-byte MP3 in 267.8s via faster-whisper. Timestamps and source binding produced; provenance readback not separately asserted",
+      "disposition": "ADVANCED — the ASR engine now reaches the Core. It had a real engine, a real model and verified output while no route named its capability; it has a sidecar mode and the media.transcribe route as of 2026-10-01, verified end to end through the real Core: import 202 to enqueue 202 to execute 202 running to succeeded, transcript 星环知识平台正在验证真实音频转写能力 with language zh at 0.9983, 2 segments over 8,940 ms, covered 2 of 2, and time-coded cues preserved. The earlier standalone verification on real Chinese audio stands: 3,362 characters / 295 segments from a 5,849,401-byte recording",
       "acceptance_reference": [
         "通过 local.asr.default 处理真实中文音频/视频音轨，产生 transcript、时间码、source binding、quality/provenance。",
         "ASR 不是 M0 首个文档闭环 blocker，但必须在最终多格式闭环前完成真实音频测试。",
@@ -543,7 +543,7 @@
       "prior_audit_verdict": "TESTED_LOCAL_PARTIAL",
       "status": "CI_VERIFIED_EXACT_SHA",
       "evidence_level": "REAL",
-      "disposition": "ADVANCED — the route-enablement gap recorded in this ledger was closed and verified: a launch declares its routes, the staged runtime publishes them, the standalone workers locate the shared transport in both layouts, a packaging-time readiness check answers per route, and real course material converts 9 of 9 with readiness 9 of 9. Seven defects were fixed on this branch. The remaining route work is now enumerated rather than unknown: tests/test_worker_route_coverage.py requires every worker to be either declared by the route table or recorded with how it is reached, and it names three that have a working engine but no sidecar mode and therefore no reachable Core job — media/worker_transcribe.py (ASR, which the pack requires before final closure), media/worker_video.py and web/worker_webpage.py",
+      "disposition": "ADVANCED — the route-enablement gap recorded in this ledger was closed and verified: a launch declares its routes, the staged runtime publishes them, the standalone workers locate the shared transport in both layouts, a packaging-time readiness check answers per route, and real course material converts 9 of 9 with readiness 9 of 9. Eight defects were fixed on this branch. The ASR engine, which the pack requires before final closure and which had a real engine and model with no route naming it, now has a sidecar mode and the media.transcribe route, verified through the real Core. One route gap remains, recorded in docs/authority/taskpack-0910-r3/WORKER-REACHABILITY.json rather than guessed at: media/worker_video.py takes an output directory and frame options that the route contract cannot yet carry",
       "acceptance_reference": [
         "workspace intake now prefers activated builtin converter plugins with explicit path-free fallback receipts; semantic quality, dynamic rendering, external engines and representative real fixtures remain open"
       ]

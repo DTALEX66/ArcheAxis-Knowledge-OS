@@ -137,7 +137,7 @@
     "branch": "codex/dsh-aaos-real-multiformat-loop-20261001",
     "base_sha": "1a981a4482b01f31989074e79c82a63400aa07a7",
     "observed_format_reachability": {
-      "reachable": 9,
+      "reachable": 10,
       "failed_at_route": 0,
       "input_source": "real_course_library",
       "supersedes": {
@@ -145,13 +145,13 @@
         "failed_at_route": 9,
         "note": "the original measurement on this branch, before route enablement; preserved in A05.remaining_gap"
       },
-      "note": "provisioned runtime; a bare runtime reports 8 of 12 on the golden corpus for missing engine distributions, which the readiness check names per route"
+      "note": "provisioned runtime; ten routes now including media.transcribe, which was wired after the nine-route measurement"
     },
     "evidence_class": "REAL",
     "release_status_unchanged": "FROZEN",
     "owner_gates": "A02/A16 remain BLOCKED; legacy migration NOT_EXECUTED",
     "route_enablement": "implemented: launch declares routes, staged profile publishes them, Core registers exactly what is declared",
-    "capability_readiness": "scripts/release/verify_backend_capabilities.py reports total 9 / ready 9 / not_ready 0 on the provisioned runtime",
+    "capability_readiness": "scripts/release/verify_backend_capabilities.py reports every declared route ready on a provisioned runtime, and names per route what a bare runtime is missing",
     "defects_fixed_on_branch": [
       "launcher sent the machine credential in a header the Core never reads",
       "workers located the shared transport by a fixed directory depth",
@@ -159,7 +159,8 @@
       "an unreadable capability manifest was reported as a missing engine",
       "PDF anchors used a page-local line counter in the final path segment",
       "OCR language data was accepted for a language it could not serve",
-      "the OCR route's language was hardcoded and ignored the declaration"
+      "the OCR route's language was hardcoded and ignored the declaration",
+      "a probe crashed on an interpreter whose declaration could not be read, instead of reporting that it could not check"
     ],
     "owner_gates_unchanged": "A02/A16 BLOCKED; legacy migration, in-place replacement and release NOT_EXECUTED; release FROZEN"
   },
@@ -174,8 +175,8 @@
     },
     "status_counts": {
       "PLANNED": 13,
-      "CI_VERIFIED_EXACT_SHA": 8,
-      "IMPLEMENTED_LOCAL": 2,
+      "CI_VERIFIED_EXACT_SHA": 9,
+      "IMPLEMENTED_LOCAL": 1,
       "TESTED_LOCAL": 17,
       "BLOCKED": 11,
       "NOT_EXECUTED": 7
@@ -194,7 +195,7 @@
         "evidence_level": "REAL"
       },
       "RECORD-0928:AA-BE-04": {
-        "status": "IMPLEMENTED_LOCAL",
+        "status": "CI_VERIFIED_EXACT_SHA",
         "evidence_level": "REAL"
       },
       "RECORD-0928:AA-BE-05": {
