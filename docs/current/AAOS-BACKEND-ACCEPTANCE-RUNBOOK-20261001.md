@@ -122,11 +122,12 @@ cargo test -p archeaxis-api --test contract_process_model \
 
 ```bash
 # §3 route inventory, the index that keeps this list honest, the numbers the documents state,
-# and the M0 chain's own stage count
+# the M0 chain's own stage count, and the exact request-body field names
 python -m pytest tests/maintenance/test_contract_route_inventory.py \
                  tests/maintenance/test_contract_verification_map.py \
                  tests/maintenance/test_contract_number_consistency.py \
-                 tests/maintenance/test_m0_chain_claims.py -q
+                 tests/maintenance/test_m0_chain_claims.py \
+                 tests/maintenance/test_request_body_fields.py -q
 ```
 
 `tests/maintenance/test_contract_verification_map.py` is the index: it maps each contract
@@ -145,6 +146,11 @@ owns.
 source, so §7's stage count cannot drift silently, and asserts that the chain's legacy stage
 operates on a **copy** and proves the original untouched — the distinction that keeps that stage
 inside the frozen boundary.
+
+`tests/maintenance/test_request_body_fields.py` reads the API's request-body structs and asserts
+the field names the contract lists, because an unknown field is silently dropped: a misspelled
+field yields a request that succeeds while doing something else, which has already cost real time
+on this branch three times.
 
 §7's evidence is the probes in this runbook plus `scripts/release/verify_backend_capabilities.py`;
 §9's items each name the artifact that closed them, or are marked as Owner decisions.

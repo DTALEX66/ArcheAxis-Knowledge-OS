@@ -183,7 +183,7 @@ All paths are relative to the loopback base URL.
 | 4 | `POST /api/v1/sources/{source_id}/anchors` | any token | Anchor creation. |
 | 23 | `GET /api/v1/evidence/anchors` | any token | Anchor listing. Not a complete cross-domain evidence service. |
 | 6 | `POST /api/v1/knowledge-items/from-transform` | any token | Body carries `knowledge_type` and `body` (both **required**, no defaults), plus `source_id`, `job_id`, `transform_id`, UTF-16 selection range and `quote`. Core validates the **persisted** transform and selection. Returns a **candidate** + anchor. |
-| 7 | `POST /api/v1/knowledge-items` | any token | Direct candidate creation. Body `{knowledge_type, body, status?, created_by?, v3?}`. **`status` defaults to `"candidate"` and there is no `review_state` field** — an unknown field is silently ignored, so sending `review_state:"accepted"` leaves the default and the assessment route later refuses the item with `400 assessment requires active accepted or personal knowledge`. To make an item assessable, send `status:"accepted"`. |
+| 7 | `POST /api/v1/knowledge-items` | any token | Direct candidate creation. Body `{knowledge_type, body, status, created_by, v3?}` — all four are **required**. **There is no `review_state` field**, and an unknown field is silently ignored, so sending `review_state:"accepted"` leaves the item at whatever `status` you sent; to make an item assessable, send `status:"accepted"`. See the request-body table in §4. |
 | 8 | `GET /api/v1/knowledge-items/{id}/v3` | any token | Knowledge V3 projection (`schema_version: "3.0.0"`). |
 | 9 | `GET /api/v1/knowledge-items/{id}/qualification` | any token | Qualification projection. |
 | 10 | `POST /api/v1/knowledge-items/{id}/review-decisions` | **human only** | Body `{action, reviewer, new_body?, note?}`; `action` ∈ `accepted`/`rejected`/`deprecated`/`modified`. Machine principal → `403`. This is the **only** human-correction write path; `modified` creates a successor revision. |
@@ -260,6 +260,38 @@ The UI must not render these as measured values.
   so the schedule must be read from the top-level fields, not from the projection.
 * When no `knowledge_v3_metadata` row exists, the V3 projection invents
   `confidence:null`, `risk_level:"low"` and a `support_level`.
+
+**Request bodies ignore unknown fields.** Every body struct is deserialised with serde's default
+behaviour, so a misspelled or renamed field is **silently dropped** — the request still succeeds,
+just not doing what the caller meant. This has cost real time on this branch three times
+(`review_state`, `review_state` again on a different route, and `body` where the field is
+`new_body`), so the exact field names are listed here and asserted against the source by
+`tests/maintenance/test_request_body_fields.py`.
+
+| Route | Body fields (`?` = optional) |
+| --- | --- |
+| `POST /api/v1/imports` | `name`, `content_base64`, `origin_kind?`, `origin_ref?`, `origin_name?`, `received_at?` |
+| `POST /api/v1/jobs` | `job_id`, `kind`, `input_ref` |
+| `POST /api/v1/jobs/{job_id}/executions` | *(no body fields; needs the `idempotency-key` header)* |
+| `POST /api/v1/sources/{source_id}/anchors` | `revision`, `position` |
+| `POST /api/v1/knowledge-items` | `knowledge_type`, `body`, **`status`**, **`created_by`**, `v3?` |
+| `POST /api/v1/knowledge-items/from-transform` | `knowledge_type`, `body`, `source_id`, `job_id`, `transform_id`, `selection_start_utf16`, `selection_end_utf16`, `quote` |
+| `POST /api/v1/knowledge-items/{id}/review-decisions` | `action`, `reviewer`, `note?`, **`new_body?`** |
+| `POST /api/v1/learning/items/{item_key}/references` | `knowledge_id` |
+| `POST /api/v1/learning/items/{item_key}/assessment` | `knowledge_id` |
+| `POST /api/v1/learning/events` | `item_key`, `kind`, **`correct`**, `client_event_id?`, `schedule_state?`, `now?` |
+| `POST /api/v1/learning/reviews` | `item_key`, `client_event_id`, `correct`, `rating?`, `now?`, `answer?`, `assessment_id?`, `question_version?`, `knowledge_version?`, `exposure_id?`, `assist_strategy?`, `rating_version?`, `correction_id?` |
+| `POST /api/v1/machine/tasks` | `task_id`, `conditions`, `model_version`, `scope`, `outcome`, `knowledge_version?`, `method_version?`, `tool_version?`, `failure?`, `retest_of?` |
+| `POST /jobs/{id}/receipts` (out of contract) | `state`, `engine?`, `text?`, `loss_receipt?`, `error?` |
+
+The `v3` sub-object is `POST /api/v1/knowledge-items`'s nested body: `source_type`, `owner`,
+`support_level`, `confidence?`, `risk_level`, `valid_from?`, `valid_to?`, `external_evidence`,
+`requires_human_review`.
+
+`GET /api/v1/search` takes **only** `q` and `active_only`. There is **no** `limit`, `offset`,
+`sort` or `page` parameter, and no filtering beyond `active_only` — the result limit is a
+hardcoded 20 in `crates/archeaxis-api/src/lib.rs`. A UI wanting paging has to do it client-side
+and cannot ask for more than that many matches.
 
 ## 5. Idempotency, conflicts and errors
 
@@ -495,3 +527,18 @@ Asserted by `crates/archeaxis-api/tests/contract_absent_surfaces.rs`.
    than a silent "engine not found". The resource-root schema question itself is still the
    Owner's (`A02` remains `BLOCKED`), which is a decision, not a missing implementation.
    `worker_video.py` now resolves ffmpeg through the declaration as well as `PATH`.
+6. ~~`DSH-BACKEND-GAP-MAP-20260927` §2C records the search filter/paging/sort/empty-result
+   semantics and the index behaviour after a knowledge revision as still unverified.~~
+   **RESOLVED, and two of the four do not exist to verify.** `GET /api/v1/search` takes only
+   `q` and `active_only`: there is no `limit`, `offset`, `sort` or `page`, and the result limit
+   is a hardcoded 20. `active_only=true` excludes a superseded revision and keeps its successor;
+   the unfiltered call still lists the superseded revision with `active: false`. Empty results and
+   escaping were already covered. The index cannot go stale across a revision because
+   `search::reindex` deletes and rebuilds `knowledge_fts` from the `knowledge` table **before
+   every query**; measured after a human correction, the corrected wording is found under the
+   successor, the superseded wording is still found under the old revision, and an untouched
+   sibling is unaffected.
+   Worth recording because it misled this branch: the corrected text goes in **`new_body`**, and
+   sending `body` instead is silently ignored, so the successor is created as a clone of the old
+   revision and the correction appears to vanish. The request-body table in §4 names every field
+   for this reason.

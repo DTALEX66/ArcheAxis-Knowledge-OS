@@ -53,6 +53,7 @@ ALSO_CHECKS: dict[str, list[str]] = {
     "5": ["crates/archeaxis-api/tests/contract_absent_surfaces.rs"],
     "7": ["tests/maintenance/test_m0_chain_claims.py"],
     "8": ["crates/archeaxis-api/tests/contract_absent_surfaces.rs"],
+    "4": ["tests/maintenance/test_request_body_fields.py"],
 }
 
 # Sections whose evidence is not a single test file, with where it actually lives.
