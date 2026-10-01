@@ -188,58 +188,58 @@
           <TextBlock Text="当前位置" FontSize="12" FontWeight="SemiBold" Foreground="{DynamicResource AaosMutedBrush}" />
           <StackPanel x:Name="ContextWorkspaceSubnav" Spacing="7">
             <TextBlock Text="首页" Classes="rail-label" />
-            <Button Content="继续工作" Click="OnHomeClick" HorizontalContentAlignment="Left" />
-            <Button Content="最近证据" Click="OnEvidenceClick" HorizontalContentAlignment="Left" />
+            <Button Content="继续工作" AutomationProperties.Name="继续工作" Click="OnHomeClick" HorizontalContentAlignment="Left" />
+            <Button Content="最近证据" AutomationProperties.Name="最近证据" Click="OnEvidenceClick" HorizontalContentAlignment="Left" />
           </StackPanel>
           <StackPanel x:Name="ContextCaptureSubnav" IsVisible="False" Spacing="7">
             <TextBlock Text="捕获 · 来源" Classes="rail-label" />
-            <Button x:Name="HomeSidebarImportButton" Content="选择资料" Click="OnImportClick" HorizontalContentAlignment="Left" />
-            <Button Content="导入阅读" Click="OnSourceReaderClick" HorizontalContentAlignment="Left" />
-            <Button Content="转换任务与回执" Click="OnJobsClick" HorizontalContentAlignment="Left" />
+            <Button x:Name="HomeSidebarImportButton" Content="选择资料" AutomationProperties.Name="选择资料" Click="OnImportClick" HorizontalContentAlignment="Left" />
+            <Button Content="导入阅读" AutomationProperties.Name="导入阅读" Click="OnSourceReaderClick" HorizontalContentAlignment="Left" />
+            <Button Content="转换任务与回执" AutomationProperties.Name="转换任务与回执" Click="OnJobsClick" HorizontalContentAlignment="Left" />
           </StackPanel>
           <StackPanel x:Name="ContextKnowledgeSubnav" IsVisible="False" Spacing="7">
             <TextBlock Text="证据库 · 知识" Classes="rail-label" />
-            <Button Content="证据锚点" Click="OnEvidenceClick" HorizontalContentAlignment="Left" />
-            <Button Content="资料与来源" Click="OnLibraryClick" HorizontalContentAlignment="Left" />
-            <Button Content="原件阅读" Click="OnSourceReaderClick" HorizontalContentAlignment="Left" />
-            <Button Content="知识详情与版本" Click="OnKnowledgeClick" HorizontalContentAlignment="Left" />
+            <Button Content="证据锚点" AutomationProperties.Name="证据锚点" Click="OnEvidenceClick" HorizontalContentAlignment="Left" />
+            <Button Content="资料与来源" AutomationProperties.Name="资料与来源" Click="OnLibraryClick" HorizontalContentAlignment="Left" />
+            <Button Content="原件阅读" AutomationProperties.Name="原件阅读" Click="OnSourceReaderClick" HorizontalContentAlignment="Left" />
+            <Button Content="知识详情与版本" AutomationProperties.Name="知识详情与版本" Click="OnKnowledgeClick" HorizontalContentAlignment="Left" />
           </StackPanel>
           <StackPanel x:Name="ContextOriginalSubnav" IsVisible="False" Spacing="7">
             <TextBlock Text="原创 · 写作" Classes="rail-label" />
-            <Button Content="原创编辑" Click="OnOriginalEditorClick" HorizontalContentAlignment="Left" />
+            <Button Content="原创编辑" AutomationProperties.Name="原创编辑" Click="OnOriginalEditorClick" HorizontalContentAlignment="Left" />
             <TextBlock Text="持久草稿和版本历史 · 待接 Core" TextWrapping="Wrap" FontSize="11" Foreground="{DynamicResource AaosMutedBrush}" />
           </StackPanel>
           <StackPanel x:Name="ContextLearningSubnav" IsVisible="False" Spacing="7">
             <TextBlock Text="人类学习" Classes="rail-label" />
-            <Button Content="学习项目与评估" Click="OnLearningNavigationClick" HorizontalContentAlignment="Left" />
-            <Button Content="复习队列 / FSRS" Click="OnReviewClick" HorizontalContentAlignment="Left" />
+            <Button Content="学习项目与评估" AutomationProperties.Name="学习项目与评估" Click="OnLearningNavigationClick" HorizontalContentAlignment="Left" />
+            <Button Content="复习队列 / FSRS" AutomationProperties.Name="复习队列 / FSRS" Click="OnReviewClick" HorizontalContentAlignment="Left" />
             <TextBlock Text="课程与学习产物 · 待开发" TextWrapping="Wrap" FontSize="11" Foreground="{DynamicResource AaosMutedBrush}" />
           </StackPanel>
           <StackPanel x:Name="ContextMachineSubnav" IsVisible="False" Spacing="7">
             <TextBlock Text="机器学习" Classes="rail-label" />
-            <Button Content="按 ID 查看任务" Click="OnMachineGrowthClick" HorizontalContentAlignment="Left" />
+            <Button Content="按 ID 查看任务" AutomationProperties.Name="按 ID 查看任务" Click="OnMachineGrowthClick" HorizontalContentAlignment="Left" />
             <TextBlock Text="评估 / 纠错 / 重测 · 待接 Core" TextWrapping="Wrap" FontSize="11" Foreground="{DynamicResource AaosMutedBrush}" />
           </StackPanel>
           <StackPanel x:Name="ContextProjectSubnav" IsVisible="False" Spacing="7">
             <TextBlock Text="工作区 · 项目" Classes="rail-label" />
-            <Button Content="工作区概览" Click="OnWorkspaceRouteClick" HorizontalContentAlignment="Left" />
-            <Button Content="研究 · 暂不可用" Click="OnResearchClick" HorizontalContentAlignment="Left" />
+            <Button Content="工作区概览" AutomationProperties.Name="工作区概览" Click="OnWorkspaceRouteClick" HorizontalContentAlignment="Left" />
+            <Button Content="研究 · 暂不可用" AutomationProperties.Name="研究 · 暂不可用" Click="OnResearchClick" HorizontalContentAlignment="Left" />
           </StackPanel>
           <StackPanel x:Name="ContextMemorySubnav" IsVisible="False" Spacing="7">
             <TextBlock Text="记忆 · 知识关联" Classes="rail-label" />
-            <Button Content="记忆地图" Click="OnMemoryMapClick" HorizontalContentAlignment="Left" />
-            <Button Content="知识详情" Click="OnKnowledgeClick" HorizontalContentAlignment="Left" />
+            <Button Content="记忆地图" AutomationProperties.Name="记忆地图" Click="OnMemoryMapClick" HorizontalContentAlignment="Left" />
+            <Button Content="知识详情" AutomationProperties.Name="知识详情" Click="OnKnowledgeClick" HorizontalContentAlignment="Left" />
           </StackPanel>
           <StackPanel x:Name="ContextSearchSubnav" IsVisible="False" Spacing="7">
             <TextBlock Text="搜索 · 检索" Classes="rail-label" />
-            <Button Content="词法搜索" Click="OnSearchClick" HorizontalContentAlignment="Left" />
+            <Button Content="词法搜索" AutomationProperties.Name="词法搜索" Click="OnSearchClick" HorizontalContentAlignment="Left" />
             <TextBlock Text="语义 / 图谱搜索 · 待开发" TextWrapping="Wrap" FontSize="11" Foreground="{DynamicResource AaosMutedBrush}" />
           </StackPanel>
           <StackPanel x:Name="ContextSystemSubnav" IsVisible="False" Spacing="7">
             <TextBlock Text="系统 · 状态" Classes="rail-label" />
-            <Button Content="任务回执" Click="OnJobsClick" HorizontalContentAlignment="Left" />
-            <Button Content="备份与恢复" Click="OnRecoveryClick" HorizontalContentAlignment="Left" />
-            <Button Content="设置" Click="OnSettingsClick" HorizontalContentAlignment="Left" />
+            <Button Content="任务回执" AutomationProperties.Name="任务回执" Click="OnJobsClick" HorizontalContentAlignment="Left" />
+            <Button Content="备份与恢复" AutomationProperties.Name="备份与恢复" Click="OnRecoveryClick" HorizontalContentAlignment="Left" />
+            <Button Content="设置" AutomationProperties.Name="设置" Click="OnSettingsClick" HorizontalContentAlignment="Left" />
           </StackPanel>
           <Border BorderBrush="{DynamicResource AaosBorderBrush}" BorderThickness="0,1,0,0" Padding="0,10,0,0">
             <StackPanel Spacing="5"><TextBlock Text="对象详情 · 三级" Classes="rail-label" /><TextBlock x:Name="ContextObjectPathText" Text="选择来源、知识或任务后查看详情" TextWrapping="Wrap" FontSize="11" Foreground="{DynamicResource AaosMutedBrush}" /></StackPanel>
@@ -258,13 +258,13 @@
         </StackPanel>
         <Expander x:Name="CompactContextNavigation" Header="空间导航 · 二级" IsVisible="False" IsExpanded="False" AutomationProperties.Name="展开空间导航">
           <WrapPanel Orientation="Horizontal" Margin="0,8,0,4">
-            <Button Content="来源" Click="OnSourceReaderClick" Margin="0,0,6,6" />
-            <Button Content="资料库" Click="OnLibraryClick" Margin="0,0,6,6" />
-            <Button Content="知识" Click="OnKnowledgeClick" Margin="0,0,6,6" />
-            <Button Content="任务回执" Click="OnJobsClick" Margin="0,0,6,6" />
-            <Button Content="原创" Click="OnOriginalEditorClick" Margin="0,0,6,6" />
-            <Button Content="记忆" Click="OnMemoryMapClick" Margin="0,0,6,6" />
-            <Button Content="恢复" Click="OnRecoveryClick" Margin="0,0,6,6" />
+            <Button Content="来源" AutomationProperties.Name="来源" Click="OnSourceReaderClick" Margin="0,0,6,6" />
+            <Button Content="资料库" AutomationProperties.Name="资料库" Click="OnLibraryClick" Margin="0,0,6,6" />
+            <Button Content="知识" AutomationProperties.Name="知识" Click="OnKnowledgeClick" Margin="0,0,6,6" />
+            <Button Content="任务回执" AutomationProperties.Name="任务回执" Click="OnJobsClick" Margin="0,0,6,6" />
+            <Button Content="原创" AutomationProperties.Name="原创" Click="OnOriginalEditorClick" Margin="0,0,6,6" />
+            <Button Content="记忆" AutomationProperties.Name="记忆" Click="OnMemoryMapClick" Margin="0,0,6,6" />
+            <Button Content="恢复" AutomationProperties.Name="恢复" Click="OnRecoveryClick" Margin="0,0,6,6" />
           </WrapPanel>
         </Expander>
         <Grid x:Name="WorkspaceHeadingBar" ColumnDefinitions="*,Auto,Auto" ColumnSpacing="10">

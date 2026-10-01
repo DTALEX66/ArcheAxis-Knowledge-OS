@@ -42,9 +42,9 @@ def test_monochrome_remains_neutral_and_aurora_default_is_explicitly_selectable(
     forbidden = {"#1FC8C5", "#164B50", "#133B42", "#123C4A", "#8FC3A1"}
     assert {value.upper() for value in _palette_colors("Monochrome").values()}.isdisjoint(forbidden)
     aurora = _palette_colors("Aurora")
-    assert aurora["AaosBackgroundBrush"] == "#061118"
-    assert aurora["AaosPrimaryBrush"] == "#1FC8C5"
-    assert aurora["AaosIvoryBrush"] == "#F3EFE6"
+    assert aurora["AaosBackgroundBrush"] == "#081020"
+    assert aurora["AaosPrimaryBrush"] == "#2EC4B6"
+    assert aurora["AaosIvoryBrush"] == "#F8F6EB"
     assert _brushes()["AaosBackgroundBrush"] == aurora["AaosBackgroundBrush"]
     palette_code = PALETTE.read_text(encoding="utf-8")
     assert "palette == Monochrome ? MonochromeColors : AuroraColors" in palette_code

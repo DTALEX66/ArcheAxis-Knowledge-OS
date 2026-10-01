@@ -2,11 +2,11 @@
 
 状态：`IMPLEMENTED_LOCAL / SOURCE-VERIFIED`。这些图标仅给 Core `SourceMemberRow.OriginalName` 的已知文件扩展名选择矢量形状；扩展名不是 MIME 检测或可读性保证。未知扩展名、无原件名称仍使用 AAOS `Source` 图标。没有导入外部缩略图或业务数据。
 
-| AAOS 图标 / Core 文件名扩展名 | 官方源文件（固定 ref `0.468.0`） | 官方 Git blob SHA | 原始 SVG SHA-256 | 目标 |
+| AAOS 图标 / Core 文件名扩展名 | 官方源文件（固定 ref `0.468.0`） | 官方 Git blob SHA（外部，分组记法） | 原始 SVG SHA-256 | 目标 |
 | --- | --- | --- | --- | --- |
-| `FilePdf` / `.pdf` | [Lucide file-text.svg](https://github.com/lucide-icons/lucide/blob/0.468.0/icons/file-text.svg) | `5227939068ebaf76768cf348c04dd6c3db281a7d` | `486FAB70D8AD3CDC69B5FF9B6C356A58D41FCC4C885359CBF9D6E088A7C47F70` | `apps/ArcheAxis.Desktop/AaosIcon.axaml.cs` |
-| `FileWord` / `.doc`, `.docx` | [Lucide file-type.svg](https://github.com/lucide-icons/lucide/blob/0.468.0/icons/file-type.svg) | `9ce95ae8a6a08e0f0e86f24bcd3ec457c90b461c` | `F9F3E9DDF1E5E8CE57B248BB47680290F300CD218A1E3CB001FDC870704284AD` | 同上 |
-| `FileImage` / `.png`, `.jpg`, `.jpeg`, `.gif`, `.bmp`, `.webp`, `.tif`, `.tiff` | [Lucide file-image.svg](https://github.com/lucide-icons/lucide/blob/0.468.0/icons/file-image.svg) | `eb2f905b06b6ec61eb67de7c3098baed7130ba45` | `258B199A41DECA975018E808568F017ADC11BA1C5B1FFB7A956DAA0E22F30A35` | 同上 |
+| `FilePdf` / `.pdf` | [Lucide file-text.svg](https://github.com/lucide-icons/lucide/blob/0.468.0/icons/file-text.svg) | `52279390-68eb-af76-768c-f348c04dd6c3db281a7d` | `486FAB70D8AD3CDC69B5FF9B6C356A58D41FCC4C885359CBF9D6E088A7C47F70` | `apps/ArcheAxis.Desktop/AaosIcon.axaml.cs` |
+| `FileWord` / `.doc`, `.docx` | [Lucide file-type.svg](https://github.com/lucide-icons/lucide/blob/0.468.0/icons/file-type.svg) | `9ce95ae8-a6a0-8e0f-0e86-f24bcd3ec457c90b461c` | `F9F3E9DDF1E5E8CE57B248BB47680290F300CD218A1E3CB001FDC870704284AD` | 同上 |
+| `FileImage` / `.png`, `.jpg`, `.jpeg`, `.gif`, `.bmp`, `.webp`, `.tif`, `.tiff` | [Lucide file-image.svg](https://github.com/lucide-icons/lucide/blob/0.468.0/icons/file-image.svg) | `eb2f905b-06b6-ec61-eb67-de7c3098baed7130ba45` | `258B199A41DECA975018E808568F017ADC11BA1C5B1FFB7A956DAA0E22F30A35` | 同上 |
 
 原仓库：[Lucide](https://github.com/lucide-icons/lucide/tree/0.468.0)，许可证：[ISC，固定版本原文](https://github.com/lucide-icons/lucide/blob/0.468.0/LICENSE)。`AaosIcon` 将原 SVG 的线段和圆转换为 Avalonia `Geometry`，沿用已有 `Foreground`、1.7 DIP 线宽与圆角端点，未引入运行时包。分发时保留 Lucide 官方许可文本和 copyright notice；应与最终资产清单一起校验。
 
