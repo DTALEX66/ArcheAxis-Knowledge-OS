@@ -49,7 +49,7 @@
       "id": "A05",
       "status": "TESTED_LOCAL_PARTIAL",
       "evidence_level": "TESTED_LOCAL",
-      "remaining_gap": "workspace intake now prefers activated builtin converter plugins with explicit path-free fallback receipts; semantic quality, dynamic rendering, external engines and representative real fixtures remain open 2026-10-01 measurement on codex/dsh-aaos-real-multiformat-loop-20261001 (base 1a981a44): a production Core launch registers exactly one capability route, text.extract, because main.rs calls Executor::open and executor.rs seeds only the default worker route; every other format route is registered solely by test callers of Executor::open_routes, and the configured transport advertises only [text.extract]. Against the hash-verified tests/fixtures/golden corpus the observed result is REACHABLE 1 / FAILED_AT_ROUTE 9, each non-text job settling failed with 'Core execution ended without a terminal receipt' after being accepted 202. Evidence: scripts/probes/production_format_coverage_smoke.py and docs/current/AAOS-BACKEND-LOOP-EVIDENCE-20261001.md (evidence class REAL).",
+      "remaining_gap": "workspace intake now prefers activated builtin converter plugins with explicit path-free fallback receipts; semantic quality, dynamic rendering, external engines and representative real fixtures remain open 2026-10-01 measurement on codex/dsh-aaos-real-multiformat-loop-20261001 (base 1a981a44): a production Core launch registers exactly one capability route, text.extract, because main.rs calls Executor::open and executor.rs seeds only the default worker route; every other format route is registered solely by test callers of Executor::open_routes, and the configured transport advertises only [text.extract]. Against the hash-verified tests/fixtures/golden corpus the observed result is REACHABLE 1 / FAILED_AT_ROUTE 9, each non-text job settling failed with 'Core execution ended without a terminal receipt' after being accepted 202. Evidence: scripts/probes/production_format_coverage_smoke.py and docs/current/AAOS-BACKEND-LOOP-EVIDENCE-20261001.md (evidence class REAL). 2026-10-01 follow-up on the same branch: the route-enablement mechanism was implemented and verified rather than left as a gap. A launch declares its capability routes, the staged runtime publishes them, the standalone workers locate the shared transport in both the source and staged layouts, and a packaging-time readiness check answers per route whether the runtime can serve it. On real course material through a staged runtime the matrix reports total 9 / ready 9 / not_ready 0 with 9 of 9 cases converted (pdf multi-page anchor numbering and the OCR route's language selection were defects found and fixed along the way). Evidence class REAL for the runtime, route and engine facts; SYNTHETIC remains the standing label for the M0 loop receipt, whose actor, answer and model failure are fixtures.",
       "subject_sha": "dd71d77adba53cd4235a93dc1d61af636ecfc6e5"
     },
     {
@@ -137,11 +137,30 @@
     "branch": "codex/dsh-aaos-real-multiformat-loop-20261001",
     "base_sha": "1a981a4482b01f31989074e79c82a63400aa07a7",
     "observed_format_reachability": {
-      "reachable": 1,
-      "failed_at_route": 9
+      "reachable": 9,
+      "failed_at_route": 0,
+      "input_source": "real_course_library",
+      "supersedes": {
+        "reachable": 1,
+        "failed_at_route": 9,
+        "note": "the original measurement on this branch, before route enablement; preserved in A05.remaining_gap"
+      },
+      "note": "provisioned runtime; a bare runtime reports 8 of 12 on the golden corpus for missing engine distributions, which the readiness check names per route"
     },
     "evidence_class": "REAL",
     "release_status_unchanged": "FROZEN",
-    "owner_gates": "A02/A16 remain BLOCKED; legacy migration NOT_EXECUTED"
+    "owner_gates": "A02/A16 remain BLOCKED; legacy migration NOT_EXECUTED",
+    "route_enablement": "implemented: launch declares routes, staged profile publishes them, Core registers exactly what is declared",
+    "capability_readiness": "scripts/release/verify_backend_capabilities.py reports total 9 / ready 9 / not_ready 0 on the provisioned runtime",
+    "defects_fixed_on_branch": [
+      "launcher sent the machine credential in a header the Core never reads",
+      "workers located the shared transport by a fixed directory depth",
+      "tool_paths resolved the capability manifest outside a staged runtime root",
+      "an unreadable capability manifest was reported as a missing engine",
+      "PDF anchors used a page-local line counter in the final path segment",
+      "OCR language data was accepted for a language it could not serve",
+      "the OCR route's language was hardcoded and ignored the declaration"
+    ],
+    "owner_gates_unchanged": "A02/A16 BLOCKED; legacy migration, in-place replacement and release NOT_EXECUTED; release FROZEN"
   }
 }

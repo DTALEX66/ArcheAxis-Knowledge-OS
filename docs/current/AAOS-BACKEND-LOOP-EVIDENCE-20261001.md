@@ -464,27 +464,47 @@ what caught them, and the test now prevents the drift.
 12" is a statement about a *provisioned* runtime, and this checker is what decides whether
 a given runtime is provisioned, per route, without running a job.
 
-### Real learning material through the staged runtime — 7 of 9 convert
+### Real learning material through the staged runtime — 9 of 9 convert
 
 The matrix above uses the repository's synthetic golden corpus. Setting
 `ARCHEAXIS_REAL_MATERIAL_ROOT` makes the same probe pick one real file per route from a real
-library and record each file's origin and size, so the conversion is of real content:
+library and record each file's origin and size, so the conversion is of real content. The
+same run now also reports the acceptance verdict — every declared route ready **and** every
+selected case converted, exiting non-zero otherwise — so "the probe finished" can never read
+as a pass.
 
-| Case | Real file (from the course library) | Bytes | Result |
-| --- | --- | --- | --- |
-| text/md | a course `ReadMe.md` | 10 | CONVERTED (`python-worker-text`) |
-| text/csv | `first_three_course_decomposition.csv` | 811 | CONVERTED |
-| text/json | a plugin manifest | 359 | CONVERTED |
-| office/docx | a real course handout | 63,409 | CONVERTED (`python-worker-office`) |
-| html | a real front-end `index.html` | 13,060 | CONVERTED (`python-worker-html`) |
-| canvas | a real Obsidian course map | 1,657 | CONVERTED (`python-worker-canvas`) |
-| media/mp4 | a real lesson video | 512,194 | CONVERTED (`python-worker-media`) |
-| pdf | a real course PDF | 100,776 | **FAILED** — `invalid receipt: structure or coverage does not match projected text` |
-| image/ocr | a real Chinese screenshot | 11,958 | **FAILED** — language data (fixed, see below) |
+| Case | Engine the Core reported | Result |
+| --- | --- | --- |
+| text/md · text/csv · text/json | `python-worker-text` | CONVERTED ×3 |
+| pdf | `pymupdf-native-pdf` | CONVERTED |
+| image/ocr | `python-worker-ocr` | CONVERTED |
+| office/docx | `python-worker-office` | CONVERTED |
+| html | `python-worker-html` | CONVERTED |
+| canvas | `python-worker-canvas` | CONVERTED |
+| media/mp4 | `python-worker-media` | CONVERTED |
 
-The PDF failure is new information and is **not** a route problem: the file reached the
-`pymupdf` engine and the worker's own receipt was rejected because its structure or
-coverage did not match the projected text. **That is now fixed** — see below.
+```
+accepted: true   verdict_reason: "ready and every case converted"
+readiness: total 9 / ready 9 / not_ready 0
+verdicts:  CONVERTED 9
+```
+
+The first run of this matrix reported **7 of 9**. Both failures were defects, and both are
+now fixed with tests that fail if the defect returns:
+
+* **PDF** used a page-local line counter in the anchor's final path segment, which the Core
+  treats as the line's global position. Single-page PDFs hide this because page-local equals
+  global; a real multi-page PDF does not. See the anchor section above.
+* **OCR** hardcoded `eng` for the route and consulted the declaration for language data
+  never — only the repository's bundled copy. A Chinese page was therefore handed the
+  English model. `ARCHEAXIS_OCR_LANG` now selects the language (default `eng`),
+  `ARCHEAXIS_OCR_TESSDATA` can pin the directory, the chosen directory must actually hold
+  the requested language, and the declared `tesseract-languages` entry is a candidate
+  resolved through the same resolver the workers use.
+
+**Image captioning remains out of scope**: `image.caption` needs a vision model at an Ollama
+endpoint this host does not serve. It is absent from the matrix on purpose rather than
+reported as a pass.
 
 ### PDF anchors are numbered globally — the multi-page receipt
 
