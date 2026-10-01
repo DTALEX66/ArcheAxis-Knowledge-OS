@@ -245,7 +245,7 @@ def main() -> int:
         "core_binary": binary_identity(BINARY),
         "launch_shape": "Executor::open (prod) via main.rs text_worker branch",
         "configured_worker": WORKER_SCRIPT,
-        "worker_capability_declaration": declared_version(),
+        "worker_capability_declaration": declared_capabilities(),
         "interpreter": sys.executable,
         "results": [],
     }

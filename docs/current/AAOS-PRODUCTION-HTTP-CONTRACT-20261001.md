@@ -275,6 +275,7 @@ with no route at all (ASR transcription, video decode, webpage fetch) must be re
 | Route inventory and auth model | source read of `crates/archeaxis-api/src/{main.rs,lib.rs,launch.rs,runtime/mod.rs}` | matches table above |
 | Continuous M0 loop through the real Core | `python -B scripts/probes/m0_full_loop_smoke.py` | **27/27 stages ran**; `answer_recorded.schedule_authority = "fsrs"`; restart readback identical; online backup `exit_code 0`; restore `verified true` with `counts_after == counts_before`; `evidence_level: SYNTHETIC`; sole validation error `legacy migration not verified` |
 | Format reachability in a production launch | `python -B scripts/probes/production_format_coverage_smoke.py` | `verdict_counts: {REACHABLE: 1, FAILED_AT_ROUTE: 9}`; worker advertises `['text.extract']` |
+| Format reachability, independently reproduced | a separate direct launch of the same Core, `kind=pdf` vs `kind=text` control | PDF settles `failed` with the same error and its `job_attempts` row shows `capability=pdf.extract` never terminated; the `text` control `succeeded` |
 | Rust API suite | `cargo test -p archeaxis-api --no-fail-fast` with `ARCHEAXIS_PYTHON` set | all 28 targets pass |
 | Rust application (per-format) suite | `cargo test -p archeaxis-application --no-fail-fast` | all targets pass |
 

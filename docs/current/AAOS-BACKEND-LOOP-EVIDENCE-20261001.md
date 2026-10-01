@@ -103,13 +103,33 @@ This is the headline result of this branch.
   **1 of 10**:
   `{REACHABLE: 1, FAILED_AT_ROUTE: 9}`. Every non-text format failed with
   `Core execution ended without a terminal receipt`.
-* Root cause (verified by direct source read): `crates/archeaxis-api/src/main.rs` calls
-  `Executor::open(...)`, and `crates/archeaxis-application/src/executor.rs` seeds exactly
-  one route, `("text.extract", default_worker, false)`. The additional
-  `(capability, worker)` routes are only ever registered through
-  `Executor::open_routes`, whose call sites are **all in test code**. The configured worker
-  script advertises only `["text.extract"]`
-  (`services/python-workers/transport/text_ndjson.py`).
+* Root cause (verified by direct source read and independently reproduced): the Core
+  registers no route for the capability. `crates/archeaxis-application/src/executor.rs`
+  returns `no worker registered for capability {capability}` for an unregistered
+  capability — **after** the claim has already inserted the `running` attempt row and
+  acknowledged it — so no worker process is ever spawned and the attempt is never
+  terminated. `crates/archeaxis-api/src/main.rs` calls `Executor::open(...)`, and
+  `Executor::open` delegates to `open_routes` with an **empty** extra-route slice; the
+  only seeded route is `("text.extract", default_worker, false)`. All eleven
+  `open_routes` call sites are test code. The launch document cannot carry extra routes
+  even in principle: `TextWorker` is `deny_unknown_fields` and holds only
+  `python`/`script`/`staging`. The configured worker script advertises only
+  `["text.extract"]` (`services/python-workers/transport/text_ndjson.py`).
+* **The operator-visible error is uninformative.** The specific
+  `no worker registered for capability pdf.extract` string is never persisted; the
+  post-await safety net in `crates/archeaxis-api/src/runtime/mod.rs` sees the attempt
+  still `running` and overwrites it with `Core execution ended without a terminal
+  receipt`. The job is first accepted with `202 running`, then settles `failed`. For the
+  UI this must be surfaced as `unavailable` for the format, not as a conversion error.
+* The repository already codifies the single-route production shape as intended
+  behaviour: `crates/archeaxis-application/tests/pdf_job_end_to_end.rs` asserts
+  `no worker registered for capability pdf.extract` using `Executor::open`, and passes.
+* Secondary cause (real, but provably unreached in production): the transport refuses a
+  capability it did not advertise with `AAK-VAL-001 "unsupported capability"`. Driving the
+  transport directly with `pdf.extract` / `image.ocr` / `office.structure` / `html.structure`
+  / `canvas.structure` / `media.probe` returns `rejected`, while `text.extract` returns
+  `succeeded`. In a production launch the Core errors out before spawning any worker, so
+  this path is not what the operator sees.
 
 Consequence to state plainly: the per-format Rust suites passing does **not** mean the
 product can convert a PDF. It means the executor *can* when a test registers the route.
@@ -122,7 +142,12 @@ Formats that additionally lack a reachable engine, named separately from the rou
 | video decode | `NO_ROUTE` | `media/worker_video.py` same; also needs `ffmpeg`, which is installed but not on `PATH`. |
 | webpage fetch | `NO_ROUTE` | `web/worker_webpage.py` same. |
 | image caption / VL | `BLOCKED` | needs an Ollama endpoint at `127.0.0.1:11434` with `qwen2.5vl:7b`; no `ollama` binary and nothing listening. |
-| image OCR | `ROUTE_GAP` + env | `tesseract` 5.5.0 is installed at `C:\Program Files\Tesseract-OCR\tesseract.exe` but **not on `PATH`**, and the session's `TESSDATA_PREFIX` points at a non-existent directory. |
+| image OCR | `ROUTE_GAP` + env | `tesseract` 5.5.0 is installed at `C:\Program Files\Tesseract-OCR\tesseract.exe` but **not on `PATH`**, and the session's `TESSDATA_PREFIX` points at a non-existent directory. Supplying `PATH` + `TESSDATA_PREFIX` makes the same transport call succeed, so the engine is available and only the wiring and environment are wrong. |
+
+> **False test signal.** `crates/archeaxis-application/tests/ocr_job_end_to_end.rs` guards
+> on tessdata being available and **returns early when it is not**, reporting
+> `1 passed ... finished in 0.00s` while asserting nothing. On this machine it is a silent
+> skip, not evidence that OCR works. A reader must not count that suite as OCR coverage.
 
 `media.probe` is **not** transcription — it reads the container header only and says so.
 
