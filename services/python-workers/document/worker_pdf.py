@@ -369,7 +369,6 @@ def extract(path: str, ocr_dir: Path | None = None) -> dict:
     anchors: list[dict] = []
     lines = text.splitlines(keepends=True)
     offset = 0
-    per_page_line: dict[int, int] = {}
     for line in lines:
         if len(anchors) >= MAX_ANCHORS:
             break
@@ -377,11 +376,18 @@ def extract(path: str, ocr_dir: Path | None = None) -> dict:
             (page for page, start, end in page_ranges if start <= offset <= end),
             page_ranges[0][0] if page_ranges else 1,
         )
-        per_page_line[page_index] = per_page_line.get(page_index, 0) + 1
+        global_line = len(anchors) + 1
         anchors.append(
             {
+                # The Core addresses a receipt anchor by its span and by the *final* path
+                # segment, treating any leading segment as a qualifier - so the final
+                # segment must be the line's global position, while the page stays a
+                # qualifier. A per-page counter put a page-local number in the final
+                # segment and made a real multi-page PDF fail with "structure or coverage
+                # does not match projected text", even though every span was correct; a
+                # single-page PDF has page-local == global, so it never showed.
                 "kind": "line",
-                "path": [f"page-{page_index}", f"line-{per_page_line[page_index]}"],
+                "path": [f"page-{page_index}", f"line-{global_line}"],
                 "char_start": offset,
                 "char_end": offset + len(line),
             }
