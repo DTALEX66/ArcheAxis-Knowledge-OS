@@ -1,3 +1,17 @@
+# 本次继续回合：已结束合成产物与编译缓存
+
+状态 PARTIAL。四批 4,527 文件真实删除并独立回读，源 221,028,064 B − 新 mapping/gzip 2,367,867 B = 净逻辑减少 218,660,197 B；统一账本累计 69,179,844,687 B。少量审计收据不在台账口径，实际 NTFS 释放未测。
+
+批次为旧 Cargo 编译库 10 项（46,250,574 B）、Green 旧构建环境公开 `.pyc` 265 项（4,826,825 B）、be268 公开测试生成的合成文件 1,551 项（110,289,787 B）。前两批扣除新映射，第三批可从公开精确 test nodes 重跑，无新增恢复载荷。旧编译缓存不能逐字节恢复；所有实际程序/符号、公开 Python 源码、环境入口、原始结束收据、锁文件及当前 Core 均保护。共享硬链接不冒充可物理回收副本。
+
+最新元数据 Formal 19,874,568,829 B / 293,586 文件；Green 8,590,728,016 B / 116,248 文件。491/40 个读取拒绝与私有/Git/链接排除，不能视作完整目录体积。iv28/iv29 Core握手及合成学习闭环通过，答案保存/FSRS/重启回读成功，`mastery_projection_closed=false`；不代表真实用户 DB 或安装态全界面验收。
+
+本地证据目录 `.project-local/mig/storage-cleanup-current-20260930/`：`old-cargo-library-cache-prune-20261001.json`、`green-old-build-venv-pycache-independent-readback-20261001.json`、`be268-synthetic-source-isolated-next-independent-readback-20261001.json`、`storage-after-further-cleanup-20261001.json`、`prune-eight-association-followup-20261001.json`、`three-spill-roots-current-readback-20261001.json`。不上传数据库、恢复包/CAS、缓存及私有正文。
+
+收据对标补足 7/8 原关联缺口；仅 staging-ui-delta 旧执行绑定仍 UNVERIFIED，源已不存在，不重复计删除。四个 be268 大目录 `ce3921cec208`、`37a9bb9d7cab`、`1547cc4f23f2`、`full-python2-20260915` 缺公共终止收据，限定证据位置无完整 JUnit/exit/command，保持 KEEP。读取拒绝及未知数据不能以名称定归属。E/F 禁访；未修改 ACL、系统配置、其他软件或用户数据。
+
+上一公开提交 `3d0c24439b523d563bdd574e0b5c04b752d71821` 精确 CI run `36795015416` 完成 success。当前文档更新须以新提交回读为准。以下章节保留较早检查点，较早累计和大小不代表最新值。
+
 # ArcheAxis 清理与交接（2026-10-01，持续更新）
 
 ## 状态与授权
@@ -150,3 +164,7 @@ iv12已有受影响文档/runner/母版契约26pass；iv13命名/路径62pass；
 ## 最后两批收尾
 
 已追加删除 290 个 AXW 合成测试产物（71,209,994 B）和 4 个由保留 vui3 ZIP 精确恢复的旧桌面文件（1,486,204 B，新增映射 4,975 B），独立回读通过。另 18 个 Cargo 空目录删除并回读，现役守护 SHA 保持。以上摘要累计已包含两批增量；元数据体积快照早于这两批，不能视作最新完整大小。vui3 ZIP 仍是恢复依据，保留。整体仍 PARTIAL，未知/私有/拒绝项不凭名称清理。
+
+## 本回合最后编译缓存批次
+
+另已删除旧 Cargo procedural-macro DLL/配对描述/fingerprint 2,701 项，源 59,660,878 B − mapping 1,481,161 B = 净 58,179,717 B（上述四批总数已包含）。27 DLL 实际导出 procedural-macro 声明，13 API 实际依赖无对应导入，全部闭合硬链接及进程门禁通过；53 个 EXE/PDB/源码锁文件和 15 个根标记 SHA 保持。其 697 个清单祖先空目录非递归删除，独立读回不存在；五 scope 根与 30 非空容器保留。精确收据 old-cargo-proc-macro-and-build-cache-independent-readback-20261001.json、old-cargo-2701-ancestor-empty-independent-readback-20261001.json。旧编译缓存可从源码重建，不能恢复历史相同字节。

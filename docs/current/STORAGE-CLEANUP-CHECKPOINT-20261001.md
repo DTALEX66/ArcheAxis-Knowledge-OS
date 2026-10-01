@@ -2,7 +2,19 @@
 
 状态：PARTIAL。本文件是已执行工作的摘要，不是“所有目录已无可清理内容”或“产品验收完成”的声明。
 
-## 最新摘要：资源路径修复与继续清理
+## 最新摘要：进一步收敛已结束产物与编译缓存
+
+本次继续四批实际删除 4,527 文件，源载荷 221,028,064 B，扣除新增恢复映射 2,367,867 B，净逻辑减少 218,660,197 B；统一账本累计 69,179,844,687 B。台账不含少量审计收据成本，不等于 NTFS 空闲空间增量。
+
+- 五个旧 Cargo scope 的 10 个编译库/依赖描述缓存已删，16 项现役及历史 EXE/PDB/源码锁文件守护 SHA 保持；不承诺旧编译缓存逐字节恢复。
+- Green 旧构建环境 265 个公开可再生 `.pyc` 已删，11,519 个 `.py` 与 82 个入口/环境 SHA 保持。18,152 个共享硬链接文件及仍被旧 CI 引用的环境本体保留。完整审计记录无损 gzip，净数已扣 mapping/gzip，执行与 readback 小收据未计台账。
+- be268 中 323 testcase 的 1,551 个合成产物已删，45 个原始 ended 收据、289 个锁文件、公开 producer 与当前 Core 保持；独立 readback 全 absent。
+- 最新可读取元数据快照：Formal 19,874,568,829 B / 293,586 文件，Green 8,590,728,016 B / 116,248 文件；读取拒绝 491/40，链接跳过 94/0，私有/Git排除，仅为读取下界。Git `count-objects -v`：pack 468,537 KiB，loose 1,351 KiB，garbage 0；未改写 Git 历史或运行 gc。
+- iv28 握手、iv29 合成学习答案保存/FSRS/Core 重启回读通过，`mastery_projection_closed=false`。上一公开文档提交 `3d0c24439b523d563bdd574e0b5c04b752d71821` 的 CI `36795015416` 完成 success；当前文档更新未冒称该 SHA 的新 CI。
+- 三个原外溢根已按 ItemNotFound 与权限错误区分，均 ABSENT。118 份执行类收据复核未发现已关联源文件漏删；8 个关联限制已解决 7 个，剩余 `staging-ui-delta-prune-total.json` 的历史执行绑定 UNVERIFIED（指定源已 absent，非新增可删目标）。
+- 四个大运行目录缺少公共原始终止证据，继续 KEEP；未知数据库、私有状态、权限拒绝项和恢复依赖保留。整体 PARTIAL，未证明全部目录再无可清理内容。
+
+## 资源路径修复与继续清理（上一检查点）
 
 - 代码提交 `62f23189c3bd607967f3313d7809e4d636f58f1b` 已发布并回读；CI run `36791031910` 成功。索引缺失拒绝、嵌套工作树使用已登记绝对路径、E/F 提前拒绝、索引/Git marker/输出路径 reparse 检查已落实。
 - 干净工作树 iv23：29 项资源边界与桌面启动回归通过。iv21 原生 Core 握手、iv22 学习答案持久化/FSRS/Core 冷重启回读通过；均为新合成工作区，`mastery_projection_closed=false` 保留。运行二进制由 2a 提交构建，相关 Desktop/Cargo/crates 源码到 62f 提交没有变化，不能冒称本轮重新构建所有二进制。
@@ -77,3 +89,7 @@ iv12已有受影响文档/runner/母版契约26pass；iv13命名/路径62pass；
 ## 最后两批收尾
 
 已追加删除 290 个 AXW 合成测试产物（71,209,994 B）和 4 个由保留 vui3 ZIP 精确恢复的旧桌面文件（1,486,204 B，新增映射 4,975 B），独立回读通过。另 18 个 Cargo 空目录删除并回读，现役守护 SHA 保持。以上摘要累计已包含两批增量；元数据体积快照早于这两批，不能视作最新完整大小。vui3 ZIP 仍是恢复依据，保留。整体仍 PARTIAL，未知/私有/拒绝项不凭名称清理。
+
+## 本回合最后编译缓存批次
+
+另已删除旧 Cargo procedural-macro DLL/配对描述/fingerprint 2,701 项，源 59,660,878 B − mapping 1,481,161 B = 净 58,179,717 B（上述四批总数已包含）。27 DLL 实际导出 procedural-macro 声明，13 API 实际依赖无对应导入，全部闭合硬链接及进程门禁通过；53 个 EXE/PDB/源码锁文件和 15 个根标记 SHA 保持。其 697 个清单祖先空目录非递归删除，独立读回不存在；五 scope 根与 30 非空容器保留。精确收据 old-cargo-proc-macro-and-build-cache-independent-readback-20261001.json、old-cargo-2701-ancestor-empty-independent-readback-20261001.json。旧编译缓存可从源码重建，不能恢复历史相同字节。
