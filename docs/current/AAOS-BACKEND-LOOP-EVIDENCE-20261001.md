@@ -91,9 +91,18 @@ schedule.
   (`crates/archeaxis-application/src/attempts.rs` and
   `services/python-workers/transport/text_ndjson.py`), not a registry.
 
-### P1 Source / Format / Knowledge — `PARTIAL`, and **NOT_REACHABLE for every non-text format**
+### P1 Source / Format / Knowledge — `ADVANCED`
 
-This is the headline result of this branch.
+This section opens with the branch's **original** measurement and then records what
+replaced it. The original result was a real finding and is kept; it is not the current
+state of the branch.
+
+#### Original measurement — **superseded**, kept for audit
+
+At the first measurement the headline result of this branch was that a production Core
+launch made **every non-text format unreachable**. That is no longer true: the
+route-enablement work recorded later in this document closed it, and real course material
+now converts 9 of 9 with readiness 9 of 9. The original finding follows, unedited.
 
 * Import → job → execute → transform → anchored candidate → V3 readback ran end to end on
   the real Core for **text**, with a real `source_id`, `transform_id`, `knowledge_id` and
@@ -138,11 +147,11 @@ Formats that additionally lack a reachable engine, named separately from the rou
 
 | Format | Status | Why |
 | --- | --- | --- |
-| audio → ASR transcription | `NO_ROUTE` + path defect | `media/worker_transcribe.py` has no `--staging-root` sidecar mode and no capability in either route table; its default model path also mis-resolves. The engine and model are real and work when the declared path is supplied — see §3b. |
-| video decode | `NO_ROUTE` + path defect | `media/worker_video.py` same, and it accepts no engine override at all — only `shutil.which("ffmpeg")`. |
+| audio → ASR transcription | still `NO_ROUTE`, path **fixed** | `media/worker_transcribe.py` has no `--staging-root` sidecar mode (its own usage line lists only `<input-file>` and `--probe`), so it is not one of the nine declared routes. Its engine, model and path resolution are real and were verified on a real Chinese audio file — see §3b. ASR is the one format the original pack requires before final closure and is the clearest remaining route gap. |
+| video decode | still `NO_ROUTE`, path **fixed** | `media/worker_video.py` likewise has no sidecar mode or declared capability; its ffmpeg path now resolves through the declaration as well as `PATH`. |
 | webpage fetch | `NO_ROUTE` | `web/worker_webpage.py` same; a fetch is deliberately not part of the HTML route. |
 | image caption / VL | `BLOCKED` | needs an Ollama endpoint at `127.0.0.1:11434` with `qwen2.5vl:7b`; no `ollama` binary and nothing listening. LM Studio is installed but has no models loaded and is not integrated — see §3b. |
-| image OCR | `ROUTE_GAP` (engine path **fixed**) | The engine and language data now resolve from the declared registry, and real OCR of a real Chinese image succeeds (§3b). The route itself is still unregistered in production, so an OCR *job* still fails there. |
+| image OCR | **RESOLVED on this branch** | The route is now declared and registered, the engine and language data resolve from the declared registry, and the language being read selects the data. Real OCR of a real Chinese image converts through the Core (§3b). |
 
 > **False test signal.** `crates/archeaxis-application/tests/ocr_job_end_to_end.rs` guards
 > on tessdata being available and **returns early when it is not**, reporting
@@ -150,6 +159,28 @@ Formats that additionally lack a reachable engine, named separately from the rou
 > skip, not evidence that OCR works. A reader must not count that suite as OCR coverage.
 
 `media.probe` is **not** transcription — it reads the container header only and says so.
+
+#### What replaced the original measurement
+
+Everything above about routes being unreachable was fixed on this branch, and the detailed
+evidence is in *Packaging-time capability readiness* and *Real learning material through
+the staged runtime* below. In short:
+
+* a launch now **declares** its capability routes, and the staged runtime publishes the
+  ones whose workers are present, so the Core registers exactly what the runtime has;
+* the nine standalone workers locate the shared transport from their own file, so the
+  source tree and a staged runtime both work, where a fixed directory depth worked only
+  for the source tree;
+* the resolver reads the declared capability manifest, and a manifest it cannot read is a
+  named failure instead of a silent "engine not found";
+* PDF anchors are numbered globally and OCR language data is chosen for the language being
+  read, which were the two defects the real-material run exposed.
+
+Re-measured on real course material through a staged runtime: **readiness 9 of 9, cases
+converted 9 of 9**. The formats named as lacking a route in the table above — ASR
+transcription, video decode, webpage fetch, image caption — remain outside the matrix for
+the reasons given there; ASR and video decode before this branch also needed the path
+fixes described in §3b, and image caption is still `BLOCKED` on a vision endpoint.
 
 ### P2 Search / Learning Plan / Course — `PARTIAL`
 
@@ -213,8 +244,12 @@ Formats that additionally lack a reachable engine, named separately from the rou
   validation error is `legacy migration not verified`. That leg is **paused by the Owner**
   and is reported `NOT_EXECUTED`, never `PASS`. In-place Green replacement and
   release/tagging remain `FROZEN` / Owner-gated.
-* Verdict for this branch: **`NOT_READY`**. Not `LOCAL_GREEN_READY_FOR_OWNER_REVIEW`,
-  because P1 non-text reachability and the Legacy leg are both open.
+* Verdict for this branch: **`NOT_READY`**, and now for a **narrower** reason than when this
+  section was first written. The route and format reachability gap that made P1
+  `NOT_REACHABLE` is closed (readiness 9 of 9, real material 9 of 9), so the remaining
+  reasons are: the Legacy copy migration leg is paused by the Owner, P4 has no real model,
+  and P2/P3 have not been exercised with real content or a real human first use. It is still
+  not `LOCAL_GREEN_READY_FOR_OWNER_REVIEW`.
 
 ## 3b. Real material and the declared external resource library
 

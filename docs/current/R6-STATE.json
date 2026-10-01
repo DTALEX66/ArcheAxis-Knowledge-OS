@@ -162,5 +162,257 @@
       "the OCR route's language was hardcoded and ignored the declaration"
     ],
     "owner_gates_unchanged": "A02/A16 BLOCKED; legacy migration, in-place replacement and release NOT_EXECUTED; release FROZEN"
+  },
+  "backend_key_disposition_20261001": {
+    "document": "docs/current/AAOS-BACKEND-KEY-DISPOSITION-20261001.json",
+    "keys_recorded": 58,
+    "evidence_counts": {
+      "NO_EVIDENCE": 30,
+      "REAL": 22,
+      "SYNTHETIC": 5,
+      "INTEGRATED": 1
+    },
+    "status_counts": {
+      "PLANNED": 13,
+      "CI_VERIFIED_EXACT_SHA": 8,
+      "IMPLEMENTED_LOCAL": 2,
+      "TESTED_LOCAL": 17,
+      "BLOCKED": 11,
+      "NOT_EXECUTED": 7
+    },
+    "per_key": {
+      "RECORD-0928:AA-BE-01": {
+        "status": "PLANNED",
+        "evidence_level": "NO_EVIDENCE"
+      },
+      "RECORD-0928:AA-BE-02": {
+        "status": "CI_VERIFIED_EXACT_SHA",
+        "evidence_level": "REAL"
+      },
+      "RECORD-0928:AA-BE-03": {
+        "status": "IMPLEMENTED_LOCAL",
+        "evidence_level": "REAL"
+      },
+      "RECORD-0928:AA-BE-04": {
+        "status": "IMPLEMENTED_LOCAL",
+        "evidence_level": "REAL"
+      },
+      "RECORD-0928:AA-BE-05": {
+        "status": "PLANNED",
+        "evidence_level": "NO_EVIDENCE"
+      },
+      "RECORD-0928:AA-BE-06": {
+        "status": "PLANNED",
+        "evidence_level": "NO_EVIDENCE"
+      },
+      "RECORD-0928:AA-BE-07": {
+        "status": "TESTED_LOCAL",
+        "evidence_level": "SYNTHETIC"
+      },
+      "RECORD-0928:AA-BE-08": {
+        "status": "BLOCKED",
+        "evidence_level": "NO_EVIDENCE"
+      },
+      "RECORD-0928:AA-BE-09": {
+        "status": "TESTED_LOCAL",
+        "evidence_level": "REAL"
+      },
+      "RECORD-0928:AA-BE-10": {
+        "status": "NOT_EXECUTED",
+        "evidence_level": "NO_EVIDENCE"
+      },
+      "RECORD-0928:GJ-01": {
+        "status": "CI_VERIFIED_EXACT_SHA",
+        "evidence_level": "REAL"
+      },
+      "RECORD-0928:GJ-02": {
+        "status": "TESTED_LOCAL",
+        "evidence_level": "REAL"
+      },
+      "RECORD-0928:GJ-03": {
+        "status": "PLANNED",
+        "evidence_level": "NO_EVIDENCE"
+      },
+      "RECORD-0928:GJ-04": {
+        "status": "TESTED_LOCAL",
+        "evidence_level": "SYNTHETIC"
+      },
+      "RECORD-0928:GJ-05": {
+        "status": "TESTED_LOCAL",
+        "evidence_level": "REAL"
+      },
+      "RECORD-0928:GJ-06": {
+        "status": "BLOCKED",
+        "evidence_level": "NO_EVIDENCE"
+      },
+      "RECORD-0928:GJ-07": {
+        "status": "BLOCKED",
+        "evidence_level": "NO_EVIDENCE"
+      },
+      "RECORD-0928:GJ-08": {
+        "status": "TESTED_LOCAL",
+        "evidence_level": "REAL"
+      },
+      "RECORD-0928:GJ-09": {
+        "status": "NOT_EXECUTED",
+        "evidence_level": "NO_EVIDENCE"
+      },
+      "RECORD-0928:GJ-10": {
+        "status": "NOT_EXECUTED",
+        "evidence_level": "NO_EVIDENCE"
+      },
+      "RECORD-0928:GJ-11": {
+        "status": "NOT_EXECUTED",
+        "evidence_level": "NO_EVIDENCE"
+      },
+      "RECORD-0928:GJ-12": {
+        "status": "BLOCKED",
+        "evidence_level": "NO_EVIDENCE"
+      },
+      "RECORD-0928:GJ-13": {
+        "status": "BLOCKED",
+        "evidence_level": "NO_EVIDENCE"
+      },
+      "ATLAS-0929:REQ-SOURCE-001": {
+        "status": "TESTED_LOCAL",
+        "evidence_level": "REAL"
+      },
+      "ATLAS-0929:REQ-CONVERT-001": {
+        "status": "CI_VERIFIED_EXACT_SHA",
+        "evidence_level": "REAL"
+      },
+      "ATLAS-0929:REQ-EVIDENCE-001": {
+        "status": "CI_VERIFIED_EXACT_SHA",
+        "evidence_level": "REAL"
+      },
+      "ATLAS-0929:REQ-LEARNING-001": {
+        "status": "PLANNED",
+        "evidence_level": "NO_EVIDENCE"
+      },
+      "ATLAS-0929:REQ-INTEROP-001": {
+        "status": "CI_VERIFIED_EXACT_SHA",
+        "evidence_level": "INTEGRATED"
+      },
+      "ATLAS-0929:REQ-SEARCH-001": {
+        "status": "PLANNED",
+        "evidence_level": "NO_EVIDENCE"
+      },
+      "ATLAS-0929:REQ-DESKTOP-001": {
+        "status": "PLANNED",
+        "evidence_level": "NO_EVIDENCE"
+      },
+      "ATLAS-0929:REQ-BACKUP-001": {
+        "status": "TESTED_LOCAL",
+        "evidence_level": "REAL"
+      },
+      "ATLAS-0929:REQ-IDENTITY-001": {
+        "status": "PLANNED",
+        "evidence_level": "NO_EVIDENCE"
+      },
+      "R6-LIVE-LEDGER:A00": {
+        "status": "TESTED_LOCAL",
+        "evidence_level": "REAL"
+      },
+      "R6-LIVE-LEDGER:A01": {
+        "status": "TESTED_LOCAL",
+        "evidence_level": "REAL"
+      },
+      "R6-LIVE-LEDGER:A02": {
+        "status": "BLOCKED",
+        "evidence_level": "REAL"
+      },
+      "R6-LIVE-LEDGER:A03": {
+        "status": "TESTED_LOCAL",
+        "evidence_level": "REAL"
+      },
+      "R6-LIVE-LEDGER:A04": {
+        "status": "PLANNED",
+        "evidence_level": "NO_EVIDENCE"
+      },
+      "R6-LIVE-LEDGER:A05": {
+        "status": "CI_VERIFIED_EXACT_SHA",
+        "evidence_level": "REAL"
+      },
+      "R6-LIVE-LEDGER:A06": {
+        "status": "PLANNED",
+        "evidence_level": "NO_EVIDENCE"
+      },
+      "R6-LIVE-LEDGER:A07": {
+        "status": "BLOCKED",
+        "evidence_level": "NO_EVIDENCE"
+      },
+      "R6-LIVE-LEDGER:A08": {
+        "status": "TESTED_LOCAL",
+        "evidence_level": "SYNTHETIC"
+      },
+      "R6-LIVE-LEDGER:A09": {
+        "status": "PLANNED",
+        "evidence_level": "NO_EVIDENCE"
+      },
+      "R6-LIVE-LEDGER:A10": {
+        "status": "PLANNED",
+        "evidence_level": "NO_EVIDENCE"
+      },
+      "R6-LIVE-LEDGER:A11": {
+        "status": "TESTED_LOCAL",
+        "evidence_level": "REAL"
+      },
+      "R6-LIVE-LEDGER:A13": {
+        "status": "NOT_EXECUTED",
+        "evidence_level": "NO_EVIDENCE"
+      },
+      "R6-LIVE-LEDGER:A14": {
+        "status": "TESTED_LOCAL",
+        "evidence_level": "SYNTHETIC"
+      },
+      "R6-LIVE-LEDGER:A15": {
+        "status": "BLOCKED",
+        "evidence_level": "NO_EVIDENCE"
+      },
+      "R6-LIVE-LEDGER:A16": {
+        "status": "BLOCKED",
+        "evidence_level": "NO_EVIDENCE"
+      },
+      "M0-OVERLAY:P0": {
+        "status": "TESTED_LOCAL",
+        "evidence_level": "REAL"
+      },
+      "M0-OVERLAY:P1": {
+        "status": "CI_VERIFIED_EXACT_SHA",
+        "evidence_level": "REAL"
+      },
+      "M0-OVERLAY:P2": {
+        "status": "PLANNED",
+        "evidence_level": "NO_EVIDENCE"
+      },
+      "M0-OVERLAY:P3": {
+        "status": "TESTED_LOCAL",
+        "evidence_level": "SYNTHETIC"
+      },
+      "M0-OVERLAY:P4": {
+        "status": "BLOCKED",
+        "evidence_level": "NO_EVIDENCE"
+      },
+      "M0-OVERLAY:P5": {
+        "status": "TESTED_LOCAL",
+        "evidence_level": "REAL"
+      },
+      "M0-OVERLAY:P6": {
+        "status": "BLOCKED",
+        "evidence_level": "NO_EVIDENCE"
+      },
+      "DP-0925:DP-GIT-01": {
+        "status": "NOT_EXECUTED",
+        "evidence_level": "NO_EVIDENCE"
+      },
+      "DP-0925:DP-F01": {
+        "status": "CI_VERIFIED_EXACT_SHA",
+        "evidence_level": "REAL"
+      },
+      "DP-0925:DP-A11": {
+        "status": "NOT_EXECUTED",
+        "evidence_level": "NO_EVIDENCE"
+      }
+    }
   }
 }
