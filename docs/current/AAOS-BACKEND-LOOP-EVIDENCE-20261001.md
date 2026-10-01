@@ -302,9 +302,33 @@ real registry, with no override of any kind set:
 | video | `ffmpeg not found` | `ffmpeg version 8.1.2`; real 12.9 s MP4 → WAV + keyframe |
 | transcribe | `ASR model directory not found` (worktree-derived path) | real model library resolved; a real 5.8 MB Chinese MP3 returned 3,362 chars across 295 segments |
 
-What remains on this axis is **not** path resolution: the production Core still registers
-only `text.extract`, so none of these workers is reachable through a job in a real launch.
-That is the route-enablement decision below.
+What remains on this axis is **not** path resolution: see the route-enablement section below.
+
+### Route enablement: the launch now declares its capability routes
+
+This is the P1 blocker itself. `main.rs` called `Executor::open`, which seeds exactly one
+route (`text.extract`), so every format engine was implemented, tested and unreachable.
+
+The launch document's `text_worker` now carries an optional `routes` list of
+`{capability, script}`. `main.rs` registers **exactly what is declared and nothing more**:
+the Core still never assumes a checkout layout, and an absent list keeps the previous
+single-route behaviour byte for byte. Validation refuses, rather than silently shadowing:
+an empty capability, a script that is not an existing absolute local path, a
+parent-directory escape, a redeclaration of `text.extract`, and a duplicate capability.
+
+Two process-level tests launch the real binary:
+
+| Test | Result |
+| --- | --- |
+| a declared `canvas.structure` route reaches its worker | canvas job settles **succeeded** |
+| nothing declared, same canvas job | still fails closed |
+
+`packages/contracts/bootstrap/v2/launch.schema.json` documents the field.
+
+Still open on this axis: the staged runtime's `worker-profile.json` and
+`backend_launcher.py` validate exactly the original four profile fields, so a **staged
+candidate does not yet publish routes**. The Core accepts and enforces them today; the
+staging side is the remaining step before a Green candidate can convert anything but text.
 
 So the corrected classification is:
 
