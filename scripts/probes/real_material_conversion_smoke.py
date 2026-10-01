@@ -5,9 +5,9 @@ own synthetic golden corpus.  This probe answers the complementary question: whe
 the input is a real course library instead of a fixture, what does the shipped
 Core actually do?
 
-The material is the Obsidian knowledge base under `ARCHEAXIS_REAL_MATERIAL_ROOT`
-(default `D:/All projects/ceshi`): course notes, term cards, course maps and a real
-frontend project.  The Core ingests bytes (`POST /api/v1/imports` takes
+The material root is supplied by the environment variable
+`ARCHEAXIS_REAL_MATERIAL_ROOT` (an Owner-provided course library); the probe fails
+closed when it is absent rather than guessing a location.  The Core ingests bytes (`POST /api/v1/imports` takes
 `content_base64`), so a real file outside the repository can be converted without
 copying it into the tree; the receipt records the absolute origin path and the
 sha256 of the bytes that were actually sent, so the evidence names its source.

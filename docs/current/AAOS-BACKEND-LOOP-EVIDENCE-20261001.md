@@ -142,7 +142,7 @@ Formats that additionally lack a reachable engine, named separately from the rou
 | video decode | `NO_ROUTE` + path defect | `media/worker_video.py` same, and it accepts no engine override at all — only `shutil.which("ffmpeg")`. |
 | webpage fetch | `NO_ROUTE` | `web/worker_webpage.py` same; a fetch is deliberately not part of the HTML route. |
 | image caption / VL | `BLOCKED` | needs an Ollama endpoint at `127.0.0.1:11434` with `qwen2.5vl:7b`; no `ollama` binary and nothing listening. LM Studio is installed but has no models loaded and is not integrated — see §3b. |
-| image OCR | `ROUTE_GAP` + env | `tesseract` 5.5.0 and its language packs are registered and working; the failure is `shutil.which` plus a `TESSDATA_PREFIX` that is missing the `10-` prefix. Real OCR succeeds once the declared paths are used — see §3b. |
+| image OCR | `ROUTE_GAP` (engine path **fixed**) | The engine and language data now resolve from the declared registry, and real OCR of a real Chinese image succeeds (§3b). The route itself is still unregistered in production, so an OCR *job* still fails there. |
 
 > **False test signal.** `crates/archeaxis-application/tests/ocr_job_end_to_end.rs` guards
 > on tessdata being available and **returns early when it is not**, reporting
@@ -247,7 +247,7 @@ acceptance, and every receipt records the origin path and the sha256 of the byte
 the route gap is not an artefact of synthetic fixtures: on real material the shipped binary
 still converts only plain text.
 
-### The engines themselves are present and working — the *paths* are the defect
+### Engines themselves are present and working — the *paths* are the defect
 
 The Owner's point is correct: the external libraries are not missing, and they are already
 declared in `OS External Configuration/00-registry/project-tool-index.yaml` and
@@ -257,8 +257,44 @@ verified those declared paths exist, then drove each engine through its own work
 | Engine | Declared path | Default resolution (as shipped) | With the declared path |
 | --- | --- | --- | --- |
 | faster-whisper large-v3-turbo | `D:\All projects\Model library\whisper\faster-whisper-large-v3-turbo` (model.bin 1,617,884,929 B) | `worker_transcribe.py` derives `PROJECT_ROOT.parent/"Model library"` → in a worktree that resolves to `.project-local\worktrees\Model library\...` → **capability false** | `capability true`; **real transcription of a real 5,849,401 B Chinese MP3: 3,362 chars, 295 segments, 267.8 s**, `zh`, `int8`, VAD on |
-| tesseract 5.5.0 + tesseract-languages | `10-toolchains\scoop\apps\tesseract\current` and `...\tesseract-languages\current` | `worker_ocr.py` uses `shutil.which("tesseract")` (not on `PATH`) and derives the binary from `TESSDATA_PREFIX`, which the session sets to a path **missing the `10-` prefix** → `tesseract binary not found on PATH` | `TESSERACT_CMD` + `TESSDATA_PREFIX` set to the declared paths → **real OCR of a real Chinese image**, `三命通会` and `(明) 万明英_著` read correctly, `covered 3/3`, with a loss receipt and a low-confidence review list |
-| ffmpeg 8.1.2 | `10-toolchains\scoop\apps\ffmpeg\current\bin` | `worker_video.py` uses **only** `shutil.which("ffmpeg")` and accepts no override at all | not reachable without a code change |
+| tesseract 5.5.0 + tesseract-languages | `10-toolchains\scoop\apps\tesseract\current` and `...\tesseract-languages\current` | `worker_ocr.py` used `shutil.which("tesseract")` (not on `PATH`) and derived the binary from `TESSDATA_PREFIX`, which the session sets to a path **missing the `10-` prefix** → `tesseract binary not found on PATH` | **fixed on this branch** — see below |
+| ffmpeg 8.1.2 | `10-toolchains\scoop\apps\ffmpeg\current\bin` | `worker_video.py` uses **only** `shutil.which("ffmpeg")` and accepts no override at all | still open |
+
+### Fixed on this branch: a declared-path resolver, wired into OCR
+
+`services/python-workers/tool_paths.py` resolves a declared tool or model to an existing
+path: an explicit per-tool override wins, then the manifest's `external_paths` resolved
+against the declared external root. A declared path may not be absolute and may not escape
+the root. A miss names the tool and what was consulted, and **never substitutes a binary
+found on `PATH`** — `guess_on_path` only *reports* what PATH would have offered.
+
+`vision/worker_ocr.py` now resolves both the binary and the language data through it.
+Language data needed the same treatment: tesseract reads `TESSDATA_PREFIX` when no
+`--tessdata-dir` is passed, so a stale ambient value silently overrode a correctly
+resolved binary.
+
+Real verification, with the ambient `TESSDATA_PREFIX` **deliberately left stale** and no
+`TESSERACT_CMD` set:
+
+* before: `{"error": "tesseract binary not found on PATH (OCR engine unavailable)"}`
+* after: `tessdata_dir = ...\10-toolchains\scoop\apps\tesseract-languages\current`,
+  text `三命通会` / `(明) 万明英_著`, `covered 3/3`
+
+`tests/workflow/test_worker_tool_paths.py` (7 tests) pins override precedence, declared
+resolution, the escape guard, and that the default path never consults `PATH` at all.
+
+Two registry gaps surfaced while doing this, both for the Owner's registry rather than for
+code: `faster-whisper-large-v3-turbo` — the model actually present on disk — is **not
+declared** in `capability-requirements.yaml` (only `faster-whisper-base` is, as an
+auto-download), while `sherpa-onnx` is declared as `../Model library/sherpa-onnx`, a
+relative path that escapes the external root and is therefore refused by the resolver's
+escape guard.
+
+### Still open on the same axis
+
+`worker_video.py` accepts no engine override at all, and `worker_transcribe.py` still
+derives its model path. Both should take the same resolver; neither is blocked on an Owner
+decision, only on doing the work.
 
 So the corrected classification is:
 
@@ -410,9 +446,13 @@ Lane `OWNER_GATE` (4 keys) — all remain `BLOCKED_BY_OWNER_DECISION`, none atte
    transform is unreadable through the source-scoped route even when the job succeeded.
 5. **ASR / video / webpage workers cannot be launched by the Core at all** (no
    `--staging-root` sidecar mode, no declared capability).
-6. **Stale environment resolution.** `TESSDATA_PREFIX` points at a non-existent directory;
-   the ASR model path in `media/worker_transcribe.py` resolves relative to the worktree and
-   misses the real model library.
+6. **Path resolution instead of the declared registry** — partially fixed on this branch.
+   `services/python-workers/tool_paths.py` now resolves declared paths and never falls back
+   to `PATH`, and `vision/worker_ocr.py` uses it for both the binary and the language data.
+   Still to do on the same axis: `worker_video.py` (accepts no engine override at all) and
+   `worker_transcribe.py` (still derives its model directory). Also needs the Owner's
+   registry updated: `faster-whisper-large-v3-turbo` is present on disk but undeclared, and
+   `sherpa-onnx` is declared with a root-escaping relative path.
 7. **Contract drift.** `packages/contracts/v1/openapi-outline.yaml` declares five
    unregistered routes and omits several real ones. Superseded for UI work by
    `docs/current/AAOS-PRODUCTION-HTTP-CONTRACT-20261001.md`.
