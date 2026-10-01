@@ -280,6 +280,14 @@ Before the fix this endpoint answered `500` with a raw FTS5 parser message for
 | **no** `text_worker` | 26 projection routes only | `/jobs/{id}`, `/executions`, `/outputs`, `/cancel` are **absent** (`404`). |
 | **with** `text_worker` | 30 routes (projection + the 4 runtime routes) | All routes above are served. |
 
+Both shapes were started from the real binary and asked over HTTP, and the result is asserted by
+`crates/archeaxis-api/tests/contract_launch_shape.rs`. **How to tell "absent" from "no such
+object":** ask the path with the *wrong* method. A mounted path answers `405 Method Not Allowed`;
+an absent one answers `404`. Every one of the four runtime paths answers `405` with a worker and
+`404` without one, while all projection paths answer `200` in both shapes. This matters because
+with a worker the *correct*-method answer for an unknown job is also `404`, so a UI cannot
+conclude from a `404` alone that the runtime routes are missing.
+
 `POST /api/v1/jobs/{job_id}/receipts` is **not** in the production surface. It is mounted
 only when the in-process router is built with `manual_receipts=true`, which the shipped
 binary never does; a test asserts it answers `404` in the runtime router. Do not call it.
