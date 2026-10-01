@@ -7,14 +7,14 @@
     {
       "worker": "services/python-workers/media/worker_video.py",
       "engine": "python-worker-video",
-      "reason": "it takes an output directory plus frame interval and frame cap options, and the route contract has no place for either yet: the artifact-root mechanism exists, but parameters are currently required to be empty, so routing it would need a deliberate contract change rather than a flag. Unrouted on purpose and recorded here.",
-      "what_it_would_serve": "F11 (MP4/MOV/MKV/WebM): frame events and sampling coverage"
+      "reason": "three independent reasons, of which the recorded one was only the third. (1) It returns no projected text: its result is a duration, an extracted 16 kHz mono audio path and a list of sampled keyframes with hashes - real measurements, but no text. The route contract is a projected text and the Core derives canonical line anchors from it and refuses a receipt whose structure does not match, so no parameters field would make this worker routable. (2) It produces file artifacts (the audio WAV and the JPEG frames) and the attempt directory is temporary, so routing it also needs an artifact-transfer shape the PDF and archive routes have but this one would need in a different form. (3) It takes an output directory and frame interval/cap options, and parameters are currently required to be empty. Routing frame extraction therefore needs an artifact-and-measurement contract alongside, or instead of, the text-projection contract - a deliberate design decision, not a flag. Unrouted on purpose and recorded here.",
+      "what_it_would_serve": "F11 (MP4/MOV/MKV/WebM): frame events, sampling coverage, and a 16 kHz mono audio track for the ASR lane"
     }
   ],
   "also_present_but_not_capability_workers": [
     {
       "worker": "services/python-workers/web/worker_webpage.py",
-      "note": "takes a URL and an output directory and fetches the page; it is a fetch client, not an extraction capability, and no route may reach the network. F03 (dynamic and long pages) therefore has no fetch path at all: only a saved snapshot can be read, and pagination or scroll coverage cannot be recorded without a browser."
+      "note": "takes a URL and an output directory and fetches the page; it is a fetch client, not an extraction capability, and no route may reach the network. F03 (dynamic and long pages) therefore has no fetch path at all: only a saved snapshot can be read, and pagination or scroll coverage cannot be recorded without a browser. It also returns no projected text, so it could not satisfy the route contract even if a network fetch were in scope - the same structural limit that keeps media/worker_video.py unrouted."
     },
     {
       "worker": "services/python-workers/worker_extract.py",

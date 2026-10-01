@@ -33,6 +33,54 @@ def _module_declarations(path: Path) -> tuple[set[str], set[str]]:
     return assigned, functions
 
 
+def _returned_dict_keys(path: Path) -> set[str]:
+    """Top-level string keys of every dict this module returns, at any depth.
+
+    Depth matters: `worker_office.py` returns its projection from per-format helpers rather
+    than from `extract` itself, so a shallow look would call a routed worker unprojected.
+    """
+    tree = ast.parse(path.read_text(encoding="utf-8"), filename=str(path))
+    keys: set[str] = set()
+    for node in ast.walk(tree):
+        if isinstance(node, ast.Return) and isinstance(node.value, ast.Dict):
+            for key in node.value.keys:
+                if isinstance(key, ast.Constant) and isinstance(key.value, str):
+                    keys.add(key.value)
+    return keys
+
+
+def test_every_routed_worker_projects_a_text():
+    """The route contract is a projected text, so a routed worker must produce one.
+
+    The Core derives canonical line anchors from the worker's `text` and refuses a receipt
+    whose structure does not match that projection, so a worker without a projection cannot
+    satisfy the contract however good its measurements are. This is the fact behind the one
+    remaining unrouted capability: `media/worker_video.py` returns a duration, an extracted
+    audio path and frame hashes - real, useful measurements - and no projection at all, so
+    routing it needs an artifact-shaped contract rather than a parameters field, and the
+    recorded reason for its exemption says so.
+    """
+    transport = _load_transport()
+    missing = []
+    for capability, route in transport.ROUTES.items():
+        worker = (REPO / route["worker"]).resolve()
+        if "text" not in _returned_dict_keys(worker):
+            missing.append(f"{capability} -> {route['worker']}")
+    assert missing == [], (
+        "these routed workers return no projected text, so the Core cannot anchor them: "
+        f"{missing}")
+
+
+def test_the_unrouted_video_worker_really_has_no_projection():
+    """The exemption reason must stay true, or it stops explaining anything."""
+    video = REPO / "services" / "python-workers" / "media" / "worker_video.py"
+    keys = _returned_dict_keys(video)
+    assert "text" not in keys, (
+        "worker_video now projects a text, so its recorded exemption is stale")
+    assert {"frames", "duration_ms", "audio_wav"} <= keys, (
+        f"worker_video's shape changed; revisit its exemption. keys={sorted(keys)}")
+
+
 def test_every_route_has_an_in_repo_worker_with_engine_and_extract():
     transport = _load_transport()
 
