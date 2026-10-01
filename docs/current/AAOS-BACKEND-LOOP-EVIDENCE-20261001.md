@@ -464,6 +464,37 @@ what caught them, and the test now prevents the drift.
 12" is a statement about a *provisioned* runtime, and this checker is what decides whether
 a given runtime is provisioned, per route, without running a job.
 
+### Real learning material through the staged runtime — 7 of 9 convert
+
+The matrix above uses the repository's synthetic golden corpus. Setting
+`ARCHEAXIS_REAL_MATERIAL_ROOT` makes the same probe pick one real file per route from a real
+library and record each file's origin and size, so the conversion is of real content:
+
+| Case | Real file (from the course library) | Bytes | Result |
+| --- | --- | --- | --- |
+| text/md | a course `ReadMe.md` | 10 | CONVERTED (`python-worker-text`) |
+| text/csv | `first_three_course_decomposition.csv` | 811 | CONVERTED |
+| text/json | a plugin manifest | 359 | CONVERTED |
+| office/docx | a real course handout | 63,409 | CONVERTED (`python-worker-office`) |
+| html | a real front-end `index.html` | 13,060 | CONVERTED (`python-worker-html`) |
+| canvas | a real Obsidian course map | 1,657 | CONVERTED (`python-worker-canvas`) |
+| media/mp4 | a real lesson video | 512,194 | CONVERTED (`python-worker-media`) |
+| pdf | a real course PDF | 100,776 | **FAILED** — `invalid receipt: structure or coverage does not match projected text` |
+| image/ocr | a real Chinese screenshot | 11,958 | **FAILED** — language data (fixed, see below) |
+
+The PDF failure is new information and is **not** a route problem: the file reached the
+`pymupdf` engine and the worker's own receipt was rejected because its structure or
+coverage did not match the projected text. That is a real-content fidelity question in the
+PDF worker, recorded here rather than smoothed over.
+
+The OCR failure was this branch's fault and is now fixed: an ambient `TESSDATA_PREFIX`
+holding unrelated languages was accepted as "usable" because the check required only *some*
+`*.traineddata`. The worker kept it, passed no `--tessdata-dir`, and tesseract reported
+`Failed loading language`. The check now requires **the language being read**, so an ambient
+directory is kept only when it can serve it. Real verification with an ambient directory
+that exists and holds only `deu`, asking for `chi_sim`: the declared language data is used
+and the worker reads `三命通会` / `(明) 万明英_著`, `covered 3/3`.
+
 Note on the packaging path: the full `stage_backend_runtime.py` refuses linked donor
 trees (`ValueError: protected staging path`). That is deliberate fail-closed behaviour and
 it rejected both `.venv` and the uv-managed interpreter directories on this host, so the
