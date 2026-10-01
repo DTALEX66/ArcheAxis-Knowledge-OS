@@ -76,18 +76,35 @@ most consequential fact for UI behaviour.
 
 ## 2. Authentication and identity
 
+Every claim below was exercised against a live Core and is asserted by
+`crates/archeaxis-api/tests/contract_auth_boundaries.rs`. The observations are recorded with
+each line, because two of them are easy to get wrong in a client.
+
 * Every request to every route must carry **exactly one** `x-archeaxis-launch-token`
-  header. Duplicate headers are rejected.
+  header. Duplicate headers are rejected. *Observed:* a duplicated header answers
+  `401 AAK-AUTH-001`, as does no header at all.
 * The value is compared (constant time) against `launch_token` **or** `machine_token`.
-  No match → `401 `AAK-AUTH-001``.
+  No match → `401 `AAK-AUTH-001``. *Observed:* a value of the right length with the wrong
+  content, a value of the wrong length, and an empty value all answer the same `401`.
+* **Both principals use that same header.** There is no second header for the machine token.
+  *Observed:* sending the machine token in `x-archeaxis-launch-token` answers `200`, while the
+  otherwise-plausible `x-archeaxis-machine-token` and `x-machine-token` both answer `401` —
+  a client that names the machine header gets a credential error rather than a machine request.
 * **The actor is derived server-side from which token matched.** Matching `machine_token`
-  makes the request a machine request; otherwise it is human.
+  makes the request a machine request; otherwise it is human. *Observed on a machine-only
+  route:* the machine token succeeds even when the request also claims `x-archeaxis-actor:
+  human`, and the human token is refused with `403 machine task receipts are written by a
+  machine principal only` even when it claims `x-archeaxis-actor: machine`.
 * The Core **overwrites** `x-archeaxis-actor` before dispatch, so a client cannot escalate
   by sending that header. Wire-supplied `x-archeaxis-actor` / `x-archeaxis-scopes` are
   ignored in production.
 * Any request carrying an `origin` header → `403 `AAK-AUTH-002` browser origin not allowed`.
   The formal desktop is a native client; a browser is deliberately not a valid client.
+  *Observed:* refused with a valid token, and `origin: null` is refused too.
 * There is **no** `x-archeaxis-machine-token` header in this protocol.
+* Human-only and machine-only routes refuse the other actor: *observed* the machine token on
+  a human-only review route answers `403 machine principal cannot perform human review
+  actions`.
 
 > Defect fixed in this branch: `scripts/release/backend_launcher.py` published the machine
 > token under `x-archeaxis-machine-token`, which the Core never reads. A machine call made
