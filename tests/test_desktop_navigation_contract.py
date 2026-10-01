@@ -1044,10 +1044,11 @@ def test_aaos_brand_workspace_empty_and_kpi_typography_use_shared_tokens() -> No
         assert f'Classes="{selector}"' in xaml
     assert 'x:Name="WorkspaceHeadingText" Text="首页" Classes="page-title"' in xaml
     assert 'Classes="workspace-title"' not in xaml
-    assert _control("TopbarBrandName").get("Text") == "ArcheAxis"
-    assert _control("TopbarBrandName").get("AutomationProperties.Name") == "ArcheAxis Knowledge"
-    assert _control("TopbarBrandName").get("Foreground") == "{DynamicResource AaosIvoryBrush}"
-    assert _control("TopbarBrandTagline").get("Text") == "EVIDENCE · MEMORY · HUMAN + AI"
+    brand = _control("TopbarBrand")
+    assert brand.get("AutomationProperties.Name") == "ArcheAxis Knowledge"
+    assert any(child.tag.endswith("AaosBrandMark") for child in brand)
+    rail_brand = _control("PrimaryRailBrand")
+    assert any(child.get("Text") == "EVIDENCE · MEMORY · HUMAN + AI" for child in rail_brand.iter())
     for key in ("AaosFontBrand", "AaosFontLead", "AaosFontWorkspace", "AaosFontKpi", "AaosFontEmptyTitle"):
         assert f'x:Key="{key}"' in theme
 
@@ -2125,7 +2126,7 @@ def test_aaos_default_shell_uses_b10_chrome_and_collapsed_activity() -> None:
 
     assert _control('MainFrameGrid').get('RowDefinitions') == 'Auto,*,Auto,Auto'
     assert _control('MainFrameGrid').get('ColumnDefinitions') == '280,0,*,0'
-    assert _control('TopbarShell').get('Padding') == '22,12'
+    assert _control('TopbarShell').get('Padding') == '24,12'
     assert 'x:Name="TopbarCommandButton"' in xaml
     assert _control('HomeHeroVisual').tag.endswith('AaosMemoryGraphView')
     assert 'ActivityDock.MinHeight = expanded ? 112 : 24;' in code
@@ -2979,7 +2980,7 @@ def test_reused_ambient_illustrations_are_hidden_as_decorative_content() -> None
     assert hero.get("NodeSelected") == "OnHomeMemoryNodeSelected"
     trend = _control("HomeTrendIllustration")
     assert trend.get("AutomationProperties.AccessibilityView") == "Raw"
-    assert trend.get("AutomationProperties.Name") == "知识演化示意图，不表示真实时间序列"
+    assert trend.get("AutomationProperties.Name") == "知识演化趋势暂无 Core 数据"
     unavailable_start = xaml.index('x:Name="UnavailableSurface"')
     unavailable_end = xaml.index("</Border>", unavailable_start)
     assert "<Image " not in xaml[unavailable_start:unavailable_end]
@@ -3021,7 +3022,7 @@ def test_evidence_center_uses_a_distinct_transparent_anchor_illustration() -> No
     anchor = list(evidence_image)
     assert len(anchor) == 1 and anchor[0].tag.endswith("AaosIcon")
     assert anchor[0].get("IconName") == "Evidence"
-    assert anchor[0].get("Width") == "14" and anchor[0].get("Height") == "14"
+    assert anchor[0].get("Width") == "28" and anchor[0].get("Height") == "28"
 
 
 def test_native_menu_shortcuts_are_bound_to_the_advertised_view_actions() -> None:

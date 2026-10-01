@@ -321,8 +321,6 @@ public partial class MainWindow : Window
             var capturePalette = Environment.GetEnvironmentVariable("AAOS_UI_CAPTURE_THEME") == ThemePalette.Monochrome
                 ? ThemePalette.Monochrome : ThemePalette.Aurora;
             ApplyThemePalette(capturePalette);
-            SetCaptureRoute(Environment.GetEnvironmentVariable("AAOS_UI_CAPTURE_ROUTE") ?? "home");
-            ApplyResponsiveLayout(new Size(Width, Height));
             try
             {
                 if (string.Equals(Environment.GetEnvironmentVariable("AAOS_UI_CAPTURE_WAIT_CORE"), "1", StringComparison.Ordinal))
@@ -330,11 +328,23 @@ public partial class MainWindow : Window
                     var captureDbPath = Environment.GetEnvironmentVariable("ARCHEAXIS_VNEXT_DB")
                         ?? Environment.GetEnvironmentVariable("ARCHAXIS_VNEXT_DB")
                         ?? System.IO.Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "ArcheAxis", "vnext", "workspace.sqlite");
-                    _supervisor = new CoreSupervisor(captureDbPath);
+                    var captureWorker = WorkerProfile.Load(AppContext.BaseDirectory,
+                        Environment.GetEnvironmentVariable("ARCHEAXIS_WORKER_PROFILE")
+                            ?? Environment.GetEnvironmentVariable("ARCHAXIS_WORKER_PROFILE"));
+                    _supervisor = new CoreSupervisor(captureDbPath, textWorker: captureWorker);
                     var started = await _supervisor.StartAsync();
                     Title = started.ok ? "ArcheAxis Knowledge — connected" : $"ArcheAxis Knowledge — core offline ({started.detail})";
                     await RefreshWorkspaceSummaryAsync();
-                    await RefreshHomeRecentEvidenceAsync();
+                }
+                var captureRoute = Environment.GetEnvironmentVariable("AAOS_UI_CAPTURE_ROUTE") ?? "home";
+                SetCaptureRoute(captureRoute);
+                ApplyResponsiveLayout(new Size(Width, Height));
+                if (string.Equals(Environment.GetEnvironmentVariable("AAOS_UI_CAPTURE_WAIT_CORE"), "1", StringComparison.Ordinal))
+                {
+                    if (captureRoute.Equals("evidence", StringComparison.OrdinalIgnoreCase))
+                        await RefreshEvidenceAsync();
+                    else if (captureRoute.Equals("home", StringComparison.OrdinalIgnoreCase))
+                        await RefreshHomeRecentEvidenceAsync();
                 }
                 await Dispatcher.UIThread.InvokeAsync(() => { }, DispatcherPriority.Render);
                 await Dispatcher.UIThread.InvokeAsync(() => { }, DispatcherPriority.Render);
@@ -1326,6 +1336,30 @@ public partial class MainWindow : Window
 
     private void OnHomeClick(object? sender, RoutedEventArgs e) => SetSection("home", "首页");
 
+    private void OnHomeQuickCaptureDraftChanged(object? sender, TextChangedEventArgs e)
+    {
+        HomeQuickCaptureDraftStatus.Text = "草稿仅保留在当前窗口；尚未保存到 Core。";
+        HomeQuickCaptureDraft.SetValue(Avalonia.Automation.AutomationProperties.NameProperty, "快速捕获草稿；尚未保存到 Core");
+    }
+
+    private void OnHomeQuickCaptureTextModeClick(object? sender, RoutedEventArgs e) => SetHomeQuickCaptureMode(linkMode: false);
+
+    private void OnHomeQuickCaptureLinkModeClick(object? sender, RoutedEventArgs e) => SetHomeQuickCaptureMode(linkMode: true);
+
+    private void SetHomeQuickCaptureMode(bool linkMode)
+    {
+        HomeQuickCaptureModeText.Text = linkMode ? "链接草稿" : "文字草稿";
+        HomeQuickCaptureModeText.SetValue(
+            Avalonia.Automation.AutomationProperties.NameProperty,
+            linkMode ? "当前捕获类型：链接草稿" : "当前捕获类型：文字草稿");
+        HomeQuickCaptureDraft.PlaceholderText = linkMode
+            ? "粘贴网页链接；草稿只保留在当前窗口，尚未保存到 Core。"
+            : "写下想法；草稿只保留在当前窗口，尚未保存到 Core。";
+        HomeQuickCaptureTextModeButton.Classes.Set("primary-action", !linkMode);
+        HomeQuickCaptureLinkModeButton.Classes.Set("primary-action", linkMode);
+        HomeQuickCaptureDraft.Focus();
+    }
+
     private void OnCaptureClick(object? sender, RoutedEventArgs e) => SetSection("capture", "捕获");
 
     private void OnSearchClick(object? sender, RoutedEventArgs e) => SetSection("search", "搜索");
@@ -1583,6 +1617,7 @@ public partial class MainWindow : Window
         ThemePalette.Apply(palette);
         SettingsThemePaletteBox.SelectedIndex = palette == ThemePalette.Monochrome ? 1 : 0;
     }
+
     private void OnRecoveryClick(object? sender, RoutedEventArgs e) => SetSection("recovery", "恢复");
 
     private Task LoadLearningIfNeededAsync()
@@ -4101,8 +4136,6 @@ public partial class MainWindow : Window
         Grid.SetColumnSpan(OriginalEditorPageActions, mobile ? 2 : 1);
         Grid.SetColumn(InspectorDrawerButton, mobile ? 1 : 2);
         Grid.SetRow(InspectorDrawerButton, 0);
-        TopbarBrandTagline.IsVisible = !mobile;
-        TopbarBrandName.IsVisible = !mobile;
         TopbarCommandText.IsVisible = !mobile;
         TopbarNotificationsLabel.IsVisible = !mobile;
         TopbarWorkspaceLabel.IsVisible = !mobile;
@@ -4169,7 +4202,7 @@ public partial class MainWindow : Window
             Grid.SetRow(HomeTodayProgressGrid.Children[index], homeProgressSingleColumn ? index : 0);
         }
         HomeQuickCaptureActions.Orientation = Avalonia.Layout.Orientation.Horizontal;
-        var homeDashboardSingleColumn = contentWidth <= homeStatsSingleColumnBreakpoint;
+        var homeDashboardSingleColumn = contentWidth < 840;
         HomePrimaryContentGrid.ColumnDefinitions = homeDashboardSingleColumn
             ? new ColumnDefinitions("*")
             : new ColumnDefinitions("*,*");
@@ -4222,8 +4255,8 @@ public partial class MainWindow : Window
         var showContextSidebar = false;
         ContextSidebar.IsVisible = showContextSidebar;
         PrimaryRail.IsVisible = !mobile;
-        Grid.SetColumn(TopbarShell, 0);
-        Grid.SetColumnSpan(TopbarShell, 4);
+        Grid.SetColumn(TopbarShell, mobile ? 0 : 2);
+        Grid.SetColumnSpan(TopbarShell, mobile ? 4 : 2);
         MobileRail.IsVisible = mobile;
         Grid.SetColumn(WorkspaceScrollViewer, mobile ? 0 : 2);
         Grid.SetColumnSpan(WorkspaceScrollViewer, mobile ? 4 : 1);
@@ -4275,7 +4308,7 @@ public partial class MainWindow : Window
         var captureCompact = contentWidth < 760;
         CapturePageGrid.ColumnDefinitions = captureCompact
             ? new ColumnDefinitions("1*")
-            : new ColumnDefinitions("0.8*,1.2*");
+            : new ColumnDefinitions("1.35*,0.95*");
         CapturePageGrid.RowDefinitions = captureCompact
             ? new RowDefinitions("Auto,Auto")
             : new RowDefinitions("Auto");
@@ -4337,14 +4370,15 @@ public partial class MainWindow : Window
         var recoverySummaryContentWidth = Math.Max(0, contentWidth - (mobile ? 32 : 64));
         RecoverySummaryGrid.ItemWidth = Math.Max(180, recoverySummaryContentWidth / (mobile ? 1 : 3));
         RecoverySummaryGrid.ItemHeight = mobile ? 150 : 138;
-        LearningPlanGrid.ColumnDefinitions = compact ? new ColumnDefinitions("*") : new ColumnDefinitions("1*,2*");
-        LearningPlanGrid.RowDefinitions = compact ? new RowDefinitions("Auto,Auto") : new RowDefinitions("Auto");
-        Grid.SetColumn(LearningPlanGrid.Children[1], compact ? 0 : 1);
-        Grid.SetRow(LearningPlanGrid.Children[1], compact ? 1 : 0);
-        ReviewPageContentGrid.ColumnDefinitions = compact ? new ColumnDefinitions("*") : new ColumnDefinitions("1.1*,0.9*");
-        ReviewPageContentGrid.RowDefinitions = compact ? new RowDefinitions("Auto,Auto") : new RowDefinitions("Auto");
-        Grid.SetColumn(ReviewPageContentGrid.Children[1], compact ? 0 : 1);
-        Grid.SetRow(ReviewPageContentGrid.Children[1], compact ? 1 : 0);
+        var learningReviewSingleColumn = frameSize.Width <= 1160;
+        LearningPlanGrid.ColumnDefinitions = learningReviewSingleColumn ? new ColumnDefinitions("*") : new ColumnDefinitions("1.25*,2*");
+        LearningPlanGrid.RowDefinitions = learningReviewSingleColumn ? new RowDefinitions("Auto,Auto") : new RowDefinitions("Auto");
+        Grid.SetColumn(LearningPlanGrid.Children[1], learningReviewSingleColumn ? 0 : 1);
+        Grid.SetRow(LearningPlanGrid.Children[1], learningReviewSingleColumn ? 1 : 0);
+        ReviewPageContentGrid.ColumnDefinitions = learningReviewSingleColumn ? new ColumnDefinitions("*") : new ColumnDefinitions("1.1*,0.9*");
+        ReviewPageContentGrid.RowDefinitions = learningReviewSingleColumn ? new RowDefinitions("Auto,Auto") : new RowDefinitions("Auto");
+        Grid.SetColumn(ReviewPageContentGrid.Children[1], learningReviewSingleColumn ? 0 : 1);
+        Grid.SetRow(ReviewPageContentGrid.Children[1], learningReviewSingleColumn ? 1 : 0);
         SettingsControlsGrid.ColumnDefinitions = contentWidth < 840 ? new ColumnDefinitions("*") : new ColumnDefinitions("*,*");
         var settingsControlColumns = contentWidth < 840 ? 1 : 2;
         SettingsControlsGrid.RowDefinitions = settingsControlColumns == 1

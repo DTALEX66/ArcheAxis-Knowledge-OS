@@ -4,7 +4,8 @@
 
 - 当前执行权威：`AGENTS.md`、`docs/CONFIGURATION_AUTHORITY_INDEX.md`、R6 TaskPack、`docs/current/R6-STATE.json` 与 M0 overlay。R6 状态仍为 `IN_PROGRESS`，release 为 `FROZEN`。
 - 最终视觉母版：UI 套件 B10；B03/B05 等补页面结构和细节。2026-09-28/29 UI 文档和 2026-09-29 Master Atlas 是历史或阶段记录，不能作为当前验收。
-- 2026-09-30 ZIP SHA-256 `A51AE04407A807C647739F787ABDB91ACCD1021AB515BC989069CB2D25197170`，仅含两份 Markdown，无源码/图片。其 Current/Future、路由兼容、素材来源与许可证要求纳入对照；包内跨 WORK-LAB/DESIGN-LAB 实施不扩入本任务。
+- 2026-09-28 完整任务包 `D:/All projects/Record/AAOS_ArcheAxis_今日完整整合最终任务包_2026-09-28.zip` SHA-256 `E989877203FD47B9A027B2ABD0D9521DEB9A97E5D5E6905697E0FCA451E5A753`；9 月 29 日规划和截图是日期绑定的历史记录。2026-09-30 ZIP SHA-256 `A51AE04407A807C647739F787ABDB91ACCD1021AB515BC989069CB2D25197170`，仅含两份 Markdown，无源码/图片。其 Current/Future、路由兼容、素材来源与许可证要求纳入对照；包内跨 WORK-LAB/DESIGN-LAB 实施不扩入本任务。
+- 2026-10-01 四份外部材料的 AAOS 切片与四份源 SHA-256 见 `../history/external-inputs/2026-10-01/AAOS-ECOSYSTEM-AUDIT.md` 和 `AAOS-ECOSYSTEM-EXTRACT.json`。其中知识 owner、人审/version/provenance、精确 SHA 交付是待核对输入；缓存/目录/数据库清理迁移已被用户当前指令暂停。
 - 根目录 `AUTHORITY.md` 缺失（`AUTHORITY_REFERENCE_MISSING`）；使用项目声明的 `PROJECT_CONTRACT.yaml`、决策账本和 Authority 索引。
 - 本表为当前源码映射和待验收事项；“页面存在”不等于母版逐像素、实际交互、真实后端或绿色版安装验收通过。
 - 逐页母版与资产详情见 `AAOS-UI-MASTER-ASSET-AUDIT-20261001.md`，逐资产路径/SHA/部署状态见 `AAOS-UI-ASSET-MANIFEST-20261001.json`，生产路由与真实身份映射见 `AAOS-UI-BACKEND-MAP-20261001.md`。
@@ -19,7 +20,7 @@
 | 开源 UI01–UI14 候选 | 当前正式栈为 Avalonia；多数示例是 React/CSS | 仅在具体组件缺口且许可、版本、源码适配已核实时选用，不整体引入第二设计系统 |
 | WORK-LAB 与 DESIGN-LAB 同 Shell 实施 | 超出当前 AAOS 三个明确工作目录与本仓边界；R6 明确 WORK-LAB 非运行前提 | 记录为跨项目提案，不写入这两个项目或假装已接通 |
 | `AUTHORITY.md` | 本仓根目录当前不存在 | `AUTHORITY_REFERENCE_MISSING`；按现有 Authority 索引执行 |
-| 不自行 merge/release | 与 R6 release `FROZEN` 一致；用户本轮明确要上传公共任务修改 | 可在验证后提交/推送任务分支并精确回读 CI；不据此 merge/release |
+| 不自行 merge/release | R6 release 仍 `FROZEN`；用户 2026-10-01 明确要求“该合并的合并” | 已验证公共分支经 PR #155 合并；该历史 ZIP 的合并限制不覆盖当前用户授权，release 仍未授权 |
 | 商业级 `RC_READY` | 当前 R6 `IN_PROGRESS`，桌面完整验收未完成 | 只在所有 DoD 真实通过时标记；否则保持 `PARTIAL` |
 
 | 母版页面/工作面 | 当前实现入口 | 资产 | 关键交互 | 真实后端接口/状态 | 当前验收证据与缺口 |
@@ -45,4 +46,4 @@
 | 交互、动画、缩放、IME/a11y | `PARTIAL` | 正常桌面启动、键鼠与 100/125/150/200% DPI 实测 |
 | Desktop/Core 稳定启动 | `UNVERIFIED` | 实际日志定位、修复和重启回读；0xe0434352 本身不是根因 |
 | 原绿色版集成 | `UNVERIFIED` | 原根准确启动路径、二进制/配置身份和同一 workspace 读回 |
-| 远端交付 | `UNVERIFIED` | 精确 SHA 推送回读和对应 CI；不把历史 CI 当本轮 CI |
+| 远端交付 | `CI_VERIFIED_EXACT_SHA / MERGED_MAIN`，仅针对 2026-10-01 阶段性公共增量 | PR #155 head `6621aab7b7e2067f0ffe0fcaad1f479f7fd691d6` 与 merge/main `59498723a8d4e94c6314e490473ba6d60847c247` 的各自 CI success；后续 Green dirty UI 尚未交付 |
