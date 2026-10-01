@@ -299,8 +299,9 @@ The production binary registers exactly **one** capability route, `text.extract`
 job settles `failed` after being accepted with `202`. The UI must present that as
 `unavailable` for the format, not as a conversion error, and must not offer a retry that
 cannot succeed. Format routes that require an absent local engine (caption/VL) and formats
-with no route at all (ASR transcription, video decode, webpage fetch) must be reported
-`unavailable` rather than `error`.
+with no route at all (video decode, webpage fetch) must be reported `unavailable` rather than
+`error`. ASR transcription now has a route and reaches the Core; its engine must be present on
+the runtime, and the readiness check in §7 says so per route.
 
 ## 7. Evidence
 
@@ -308,12 +309,15 @@ with no route at all (ASR transcription, video decode, webpage fetch) must be re
 | --- | --- | --- |
 | Route inventory and auth model | source read of `crates/archeaxis-api/src/{main.rs,lib.rs,launch.rs,runtime/mod.rs}` | matches table above |
 | Continuous M0 loop through the real Core | `python -B scripts/probes/m0_full_loop_smoke.py` | **27/27 stages ran**; `answer_recorded.schedule_authority = "fsrs"`; restart readback identical; online backup `exit_code 0`; restore `verified true` with `counts_after == counts_before`; `evidence_level: SYNTHETIC`; sole validation error `legacy migration not verified` |
-| Format reachability in a production launch | `python -B scripts/probes/production_format_coverage_smoke.py` | `verdict_counts: {REACHABLE: 1, FAILED_AT_ROUTE: 9}`; worker advertises `['text.extract']` |
-| Format reachability, independently reproduced | a separate direct launch of the same Core, `kind=pdf` vs `kind=text` control | PDF settles `failed` with the same error and its `job_attempts` row shows `capability=pdf.extract` never terminated; the `text` control `succeeded` |
-| Same measurement on **real user material** | `python -B scripts/probes/real_material_conversion_smoke.py` | `{CONVERTED: 1, FAILED_AT_ROUTE: 5}` against a real Obsidian knowledge base (3,095 real `.md`, 66 `.pdf`, 24 `.docx`, 22 `.canvas`); the success is a real Chinese course note |
-| Engines present and working with declared paths | `worker_transcribe.py --probe`/transcribe, `worker_ocr.py` | real ASR of a real 5.8 MB Chinese MP3 → 3,362 chars / 295 segments; real OCR of a Chinese image → `三命通会` read correctly, `covered 3/3` |
-| Rust API suite | `cargo test -p archeaxis-api --no-fail-fast` with `ARCHEAXIS_PYTHON` set | all 28 targets pass |
+| Format reachability, **current** | `python -B scripts/probes/staged_format_matrix_smoke.py <core> <runtime-python>` | readiness `total 9 / ready 9 / not_ready 0`; `verdict_counts: {CONVERTED: 9}` on real course material; `accepted: true` |
+| Format reachability, superseded measurement | `python -B scripts/probes/production_format_coverage_smoke.py` | `{REACHABLE: 1, FAILED_AT_ROUTE: 9}` — the state before route enablement; kept as the record of what was found |
+| Format reachability, independently reproduced (at that time) | a separate direct launch of the same Core, `kind=pdf` vs `kind=text` control | PDF settled `failed` with the same error and its `job_attempts` row showed `capability=pdf.extract` never terminated; the `text` control `succeeded` |
+| Real user material, superseded measurement | `python -B scripts/probes/real_material_conversion_smoke.py` | `{CONVERTED: 1, FAILED_AT_ROUTE: 5}` against a real Obsidian knowledge base. Superseded by the staged matrix above, which measures ten routes on real course material; this probe has not been re-run since and no newer figure is claimed for it |
+| Engines present and working with declared paths | `worker_transcribe.py --probe`/transcribe, `worker_ocr.py` | real ASR of a real 5.8 MB Chinese MP3 → 3,362 chars / 295 segments; real OCR of a Chinese image → `三命通会` read correctly, `covered 3/3`. ASR is additionally reachable through the Core now (`media.transcribe`) |
+| Route count in a production launch | the staged profile's own `routes` | **10** capabilities declared and served, including `media.transcribe`; the 30-route projection/runtime split in §6 is unchanged |
+| Rust API suite | `cargo test -p archeaxis-api --no-fail-fast` with `ARCHEAXIS_PYTHON` set | all targets pass |
 | Rust application (per-format) suite | `cargo test -p archeaxis-application --no-fail-fast` | all targets pass |
+| Contract conflict rules | `cargo test -p archeaxis-api --test contract_conflict_rules`, and a live-Core probe | replay is `202 replayed:true`; a different deadline or a different job under one key is `409 AAK-CON-002`; a settled job is `409 AAK-CON-003`; no conflict path leaves a second attempt |
 
 Evidence level for this document: **REAL** for the route inventory, authentication model
 and format-reachability measurements (real binary, real HTTP, real verified fixture bytes);
@@ -333,12 +337,11 @@ source, the human actions and the model failure are fixtures.
 
 ## 9. Open items this contract does not close
 
-1. **Format routes are not wired into the production binary.** This is the single largest
-   gap between "the loop exists in tests" and "the product can convert a real PDF". It
-   needs a route-enablement mechanism (the worker profile naming its routes, or the Core
-   registering routes for every capability the configured worker advertises) plus a
-   regression test that launches the production shape and converts one real fixture per
-   format.
+1. ~~**Format routes are not wired into the production binary.**~~ **RESOLVED.** A launch
+   now declares its routes, the staged runtime publishes the ones whose workers are present,
+   and the Core registers exactly what is declared; a packaging-time readiness check answers
+   per route. Measured on real course material: readiness 9 of 9, cases converted 9 of 9.
+   See `docs/current/AAOS-BACKEND-LOOP-EVIDENCE-20261001.md` §7.
 2. The **open-format JSONL archive** (`archeaxis-archive` `EXPORT_TABLES`) silently omits
    four live data tables — `machine_tasks`, `learning_assessments`, `card_references` and
    `knowledge_v3_metadata` — so an archive/restore round trip loses human-learning,
@@ -346,12 +349,20 @@ source, the human actions and the model failure are fixtures.
    `--maintenance-backup`/`--maintenance-restore` use the SQLite Online Backup API
    (`crates/archeaxis-domain/src/backup.rs`) and were measured to preserve all four tables.
    The archive path is not reachable from the CLI or from any HTTP route today; it is
-   exercised only by Rust tests.
+   exercised only by Rust tests. **Still open.**
 3. `GET /sources/{id}/jobs/{job_id}/transform` filters `kind='text'`, so non-text
-   transforms are unreadable through the source-scoped route.
-4. ASR, video decode and webpage fetch have no sidecar mode and no declared capability.
-5. The **path resolver that A02 specifies does not exist**: workers guess with
-   `shutil.which` or derive relative paths instead of reading the declared resource
-   registry, so real engines that are installed, registered and working stay unreachable.
-   `worker_video.py` accepts no engine override at all. This is independent of the route
-   gap and of the resource-root schema question.
+   transforms are unreadable through the source-scoped route. **Still open.**
+4. ~~ASR, video decode and webpage fetch have no sidecar mode and no declared capability.~~
+   **ASR RESOLVED**: `media.transcribe` is declared, and a real Chinese recording reaches the
+   Core (import → enqueue → execute → `succeeded`, `zh` at 0.9983, covered 2 of 2). Video
+   decode and webpage fetch **remain open**, for the reasons the reachability record gives:
+   `media/worker_video.py` returns no projected text at all, so it needs an
+   artifact-and-measurement contract rather than a parameters field, and
+   `web/worker_webpage.py` is a fetch client that no route may point at the network.
+5. ~~The **path resolver that A02 specifies does not exist**.~~ **RESOLVED.**
+   `services/python-workers/tool_paths.py` resolves engines from the declared capability
+   registry, and the workers use it; an engine that is installed and declared is now found
+   even when it is not on `PATH`. A manifest that cannot be read is a named failure rather
+   than a silent "engine not found". The resource-root schema question itself is still the
+   Owner's (`A02` remains `BLOCKED`), which is a decision, not a missing implementation.
+   `worker_video.py` now resolves ffmpeg through the declaration as well as `PATH`.
