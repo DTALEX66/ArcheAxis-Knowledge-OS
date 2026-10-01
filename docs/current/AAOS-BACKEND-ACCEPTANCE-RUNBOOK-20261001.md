@@ -128,7 +128,8 @@ python -m pytest tests/maintenance/test_contract_route_inventory.py \
                  tests/maintenance/test_contract_verification_map.py \
                  tests/maintenance/test_contract_number_consistency.py \
                  tests/maintenance/test_m0_chain_claims.py \
-                 tests/maintenance/test_request_body_fields.py -q
+                 tests/maintenance/test_request_body_fields.py \
+                 tests/maintenance/test_build_toolchain_routing.py -q
 ```
 
 `tests/maintenance/test_contract_verification_map.py` is the index: it maps each contract
@@ -176,16 +177,36 @@ Readiness is not a quality claim: it says a route can run, not that its output i
 
 ## Toolchain note (Windows, this host)
 
-`cargo build` here needs a working `rustc` and linker. The MSVC toolchain bin on this host
-has `cargo.exe` but no `rustc.exe`, so use the GNU toolchain with MinGW on `PATH` and an
-in-tree `CARGO_TARGET_DIR`:
+`cargo build` here needs a working `rustc` and linker. Three toolchains are present and only one
+works, which is worth stating because two of them fail in ways that look like something else:
+
+* the **MSVC** toolchain bin has `cargo.exe` but no `rustc.exe`;
+* the external root's `toolchains\rust\cargo\bin` is **complete** (`cargo` and `rustc` 1.97.1), but
+  it targets MSVC, so it fails with `linker link.exe not found` unless a Visual Studio environment
+  is imported — which is also why `scripts/runtime/dev.py cargo …` fails on this host, since
+  `dev.py` points `ARCHEAXIS_RUST_TOOLCHAINS` at that tree;
+* the **GNU** toolchain from `rustup` works with MinGW as the linker.
+
+So use the GNU toolchain with MinGW on `PATH`. `scripts/ci/cargo_test.bat` is the official entry
+point and honours `ARCHEAXIS_CARGO_TARGET_DIR` as an explicit override of the target directory, so
+the verified invocation is:
 
 ```powershell
-$env:PATH = "<mingw>\bin;$env:USERPROFILE\.rustup\toolchains\stable-x86_64-pc-windows-gnu\bin;$env:PATH"
-$env:CARGO_TARGET_DIR = "<worktree>\.project-local\build\cargo-gnu"
+$env:PATH = "<external-root>\toolchains\mingw\mingw64\bin;$env:USERPROFILE\.rustup\toolchains\stable-x86_64-pc-windows-gnu\bin;$env:PATH"
+$env:ARCHEAXIS_CARGO_TARGET_DIR = "<worktree>\.project-local\build\cargo-gnu"
+$env:ARCHEAXIS_PYTHON = "<repo>\.venv\Scripts\python.exe"
+scripts\ci\cargo_test.bat -p archeaxis-api --test contract_absent_surfaces
 ```
 
-Rust tests that drive Python workers require `ARCHEAXIS_PYTHON` set to the interpreter.
+`cargo_test.bat` echoes the target it resolved and exits `0` on this host with those two variables,
+which the runbook's contract stage relies on. `dev.py` also works and resolves the canonical
+per-worktree target (`.project-local/build/<identity>/cargo`) on its own — use it when you want that
+routing rather than an explicit override. A linked worktree has its **own** `.project-local`, so
+either choice keeps build output inside the worktree; `ARCHEAXIS_CARGO_TARGET_DIR` exists because the
+bare fallback (`.project-local/build/cargo`) is shared by anything running in the same checkout.
+
+Rust tests that drive Python workers require `ARCHEAXIS_PYTHON` set to the interpreter. Python suites
+do not need the toolchain at all.
 
 ## Rollback
 

@@ -52,7 +52,8 @@ ALSO_CHECKS: dict[str, list[str]] = {
           "crates/archeaxis-api/tests/contract_schedule_authority.rs"],
     "5": ["crates/archeaxis-api/tests/contract_absent_surfaces.rs",
           "crates/archeaxis-api/tests/contract_review_cost.rs"],
-    "7": ["tests/maintenance/test_m0_chain_claims.py"],
+    "7": ["tests/maintenance/test_m0_chain_claims.py",
+          "tests/maintenance/test_build_toolchain_routing.py"],
     "8": ["crates/archeaxis-api/tests/contract_absent_surfaces.rs"],
     "4": ["tests/maintenance/test_request_body_fields.py"],
 }
