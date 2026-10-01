@@ -161,6 +161,38 @@ def declared_path(name: str) -> str | None:
         return None
 
 
+def transport_path(worker_file: str) -> Path:
+    """The NDJSON transport a standalone worker must load, from the worker's own file.
+
+    Two layouts place the shared transport next to a worker's own category directory,
+    and both are in live use:
+
+    * the source tree:  `<repo>/services/python-workers/document/worker_x.py`
+      with the transport at `<repo>/services/python-workers/transport/text_ndjson.py`;
+    * a staged runtime: `<root>/workers/document/worker_x.py`
+      with the transport at `<root>/workers/transport/text_ndjson.py`
+      (that is the layout `stage_backend_runtime.py` produces and the one the Core's
+      own `TEXT_WORKER_RELATIVE` names).
+
+    The workers derived the first from a fixed `parents[3]` and then appended
+    `services/python-workers/transport/...`, so a staged run died with
+    `FileNotFoundError` before the worker could serve anything. Deriving from the
+    worker's own file makes the source case exact, and the sibling case covers the
+    staged tree, so neither layout needs a depth constant kept in sync.
+
+    Returns the staged-shell sibling when neither candidate exists, so a caller still
+    gets a named path to report rather than a silent wrong one.
+    """
+    here = Path(worker_file).resolve()
+    source_form = here.parent.parent.parent / "services" / "python-workers" / "transport" / "text_ndjson.py"
+    sibling_form = here.parent.parent / "transport" / "text_ndjson.py"
+    if sibling_form.is_file():
+        return sibling_form
+    if source_form.is_file():
+        return source_form
+    return sibling_form
+
+
 def resolve(name: str) -> str | None:
     """Load this module by file path and resolve *name*; None when unresolvable.
 
