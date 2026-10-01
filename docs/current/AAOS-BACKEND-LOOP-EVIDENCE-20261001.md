@@ -256,9 +256,9 @@ verified those declared paths exist, then drove each engine through its own work
 
 | Engine | Declared path | Default resolution (as shipped) | With the declared path |
 | --- | --- | --- | --- |
-| faster-whisper large-v3-turbo | `D:\All projects\Model library\whisper\faster-whisper-large-v3-turbo` (model.bin 1,617,884,929 B) | `worker_transcribe.py` derives `PROJECT_ROOT.parent/"Model library"` → in a worktree that resolves to `.project-local\worktrees\Model library\...` → **capability false** | `capability true`; **real transcription of a real 5,849,401 B Chinese MP3: 3,362 chars, 295 segments, 267.8 s**, `zh`, `int8`, VAD on |
+| faster-whisper large-v3-turbo | `Model library\whisper\faster-whisper-large-v3-turbo` beside the declared external root (model.bin 1,617,884,929 B) | `worker_transcribe.py` derived `PROJECT_ROOT.parent/"Model library"` → in a worktree that resolves to `.project-local\worktrees\Model library\...` → `ASR model directory not found` | **fixed on this branch** — the probe now resolves the real model library with no override |
 | tesseract 5.5.0 + tesseract-languages | `10-toolchains\scoop\apps\tesseract\current` and `...\tesseract-languages\current` | `worker_ocr.py` used `shutil.which("tesseract")` (not on `PATH`) and derived the binary from `TESSDATA_PREFIX`, which the session sets to a path **missing the `10-` prefix** → `tesseract binary not found on PATH` | **fixed on this branch** — see below |
-| ffmpeg 8.1.2 | `10-toolchains\scoop\apps\ffmpeg\current\bin` | `worker_video.py` uses **only** `shutil.which("ffmpeg")` and accepts no override at all | still open |
+| ffmpeg 8.1.2 | `10-toolchains\scoop\apps\ffmpeg\current\bin` | `worker_video.py` used **only** `shutil.which("ffmpeg")` and accepted no override at all | **fixed on this branch** — real 12.9 s MP4 produced a 16 kHz mono WAV, one sampled keyframe and a loss receipt naming the declared binary |
 
 ### Fixed on this branch: a declared-path resolver, wired into OCR
 
@@ -290,11 +290,21 @@ auto-download), while `sherpa-onnx` is declared as `../Model library/sherpa-onnx
 relative path that escapes the external root and is therefore refused by the resolver's
 escape guard.
 
-### Still open on the same axis
+### All three engine paths now resolve from the declaration
 
-`worker_video.py` accepts no engine override at all, and `worker_transcribe.py` still
-derives its model path. Both should take the same resolver; neither is blocked on an Owner
-decision, only on doing the work.
+`tool_paths.resolve(name)` is the single call a worker makes; `vision/worker_ocr.py`,
+`media/worker_video.py` and `media/worker_transcribe.py` all use it. Verified against the
+real registry, with no override of any kind set:
+
+| Worker | Before | After |
+| --- | --- | --- |
+| OCR | `tesseract binary not found on PATH` | binary and language data resolved; real Chinese text read |
+| video | `ffmpeg not found` | `ffmpeg version 8.1.2`; real 12.9 s MP4 → WAV + keyframe |
+| transcribe | `ASR model directory not found` (worktree-derived path) | real model library resolved; a real 5.8 MB Chinese MP3 returned 3,362 chars across 295 segments |
+
+What remains on this axis is **not** path resolution: the production Core still registers
+only `text.extract`, so none of these workers is reachable through a job in a real launch.
+That is the route-enablement decision below.
 
 So the corrected classification is:
 
