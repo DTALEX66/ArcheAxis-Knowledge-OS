@@ -484,8 +484,27 @@ library and record each file's origin and size, so the conversion is of real con
 
 The PDF failure is new information and is **not** a route problem: the file reached the
 `pymupdf` engine and the worker's own receipt was rejected because its structure or
-coverage did not match the projected text. That is a real-content fidelity question in the
-PDF worker, recorded here rather than smoothed over.
+coverage did not match the projected text. **That is now fixed** — see below.
+
+### PDF anchors are numbered globally — the multi-page receipt
+
+The Core addresses an anchor by its span and by the **final** path segment, treating any
+leading segment as a qualifier. The PDF worker put a *page-local* line counter in that
+final position, so page 2 began at `["page-2","line-1"]` while the Core expected
+`["line-26"]`. Every `char_start`/`char_end` was correct; only the label differed. On a
+single-page document page-local equals global, so the golden single-page fixture never
+showed it and the first real multi-page PDF did.
+
+Located by reproducing the rejection outside the Core and applying the Core's own rules to
+the worker's response: five anchors differed, with identical spans.
+
+| | Result |
+| --- | --- |
+| reproducer, before | 5 differing anchors, `structure or coverage does not match projected text` |
+| reproducer, after | **0 differences** |
+| new regression test | a two-page PDF with different line counts per page; asserts the job **succeeds** and every anchor names its global line with the page as a leading qualifier |
+| reverting only the worker line | that test **fails at `execute`**, so it detects the defect rather than describing it |
+| `receipt_spans` guard | still refuses a genuinely wrong final segment, so the fix does not weaken it |
 
 The OCR failure was this branch's fault and is now fixed: an ambient `TESSDATA_PREFIX`
 holding unrelated languages was accepted as "usable" because the check required only *some*
@@ -493,7 +512,8 @@ holding unrelated languages was accepted as "usable" because the check required 
 `Failed loading language`. The check now requires **the language being read**, so an ambient
 directory is kept only when it can serve it. Real verification with an ambient directory
 that exists and holds only `deu`, asking for `chi_sim`: the declared language data is used
-and the worker reads `三命通会` / `(明) 万明英_著`, `covered 3/3`.
+and the worker reads `三命通会` / `(明) 万明英_著`, `covered 3/3`. With both fixes, every case
+in the real-material matrix has a route, an anchor scheme and an engine path that hold.
 
 Note on the packaging path: the full `stage_backend_runtime.py` refuses linked donor
 trees (`ValueError: protected staging path`). That is deliberate fail-closed behaviour and
