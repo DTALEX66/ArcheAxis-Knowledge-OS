@@ -17,3 +17,17 @@
 | [MiniMax-AI/skills](https://github.com/MiniMax-AI/skills/blob/main/README_zh.md) 编程工具技能库 | 官方 `frontend-dev`、`shader-dev`、`minimax-multimodal-toolkit`；社区 `vision-analysis` 等。README 称 Beta，提供 Codex/Claude/Cursor/OpenCode 接法。 | `vision-analysis` 可辅助母版截图审查，`shader-dev` 可作光效算法参考；媒体工具可作资产候选。先核版本、许可证、费用与软件实际可调用性。 | 该 GitHub 仓库的 Skill 已安装在 MiniMax Design；`frontend-dev` 的 React/Next.js、Framer Motion/GSAP 可直接用于 Avalonia。 |
 
 官方页面只展示部分广场 Skills 和 15 个工具条目，没有可审计的全量插件清单或热度排名。所谓“最新、最火”须在执行当天以广场/官方发布页核实，当前为 `UNVERIFIED`；不得为了排名安装与 AAOS 无关的有声书、MV、电商或付费插件。来源：[Design 官网](https://design.minimax.io/)、[工具目录](https://design.minimax.io/tools)、[官方编程 Skills](https://github.com/MiniMax-AI/skills/blob/main/README_zh.md)。
+
+### 官方公开目录逐项筛选
+
+[Design 官网公开 Skill 列表](https://design.minimax.io/en)展示 8 项：`image-remix` v0.7.14 为 AAOS 缺失背景的直接候选；`character-scene-storyboard` v1.4.11 适合 Hero 动效分镜；`promo-video` v0.1.15 仅在确需品牌演示短片时考虑。`rap-avatar-mv` v0.1.5、`ecommerce-image` v0.1.10、`audiobook` v0.3.15、`animal-podcast` v0.5.12、`mv-creator` v0.1.15 与桌面产品页面交付不匹配，默认不调用。版本取自该公开目录快照；安装版能否调用及许可/计费要现场核验。
+
+[工具目录](https://design.minimax.io/tools)公开 15 条入口，按用途压缩为：
+
+| 类别 | 公开入口 | AAOS 裁决 |
+| --- | --- | --- |
+| 直接候选 | AI Design、AI Image Generator、AI Photo Editor、Image to Video、AI Video Editor | 仅针对母版缺图、修图与适度光效；逐资产审查尺寸、色彩、版权、性能及导出格式。 |
+| 有条件候选 | AI Video Generator、MiniMax H3 ComfyUI、MiniMax H3 Max、Photo to Video AI、AI Photo Enhancer、GPT Image 2.5 | 有确切页面素材缺口再评估，先核当前可用性和费用；不为了动效引入视频运行依赖。 |
+| 与产品 UI 无直接关系 | AI Anime Generator、日文動画生成入口、Face Swap、GPT-6 Astra 工具入口 | 不默认调用；尤其不为了插件热度换模型、付费或上传用户资料。 |
+
+工具目录的“15”是公开网页条目数，不是本机已安装插件数；其中 AI Image Generator 和 GPT Image 2.5 等可能是重叠的模型/工作流入口，不能相加当作独立能力。该目录及官方 GitHub Skills 均未给出可靠下载量/评分排序，热度维度保持 `UNVERIFIED`。
