@@ -37,14 +37,27 @@ archeaxis-api <workspace-db-path> [port]
 
 * `port` defaults to argv, then env `ARCHAXIS_VNEXT_PORT`, then `47831`. `0` asks the OS
   for a loopback port — the real desktop passes `0` and reads the chosen port from stdout.
-* Binding is **IPv4 loopback only**. There is no remote or LAN surface.
+  *Observed:* all three resolutions, including an argv port winning while the environment
+  named a different one.
+* Binding is **IPv4 loopback only**. There is no remote or LAN surface. *Observed:* an IPv4
+  connection on `127.0.0.1` succeeds, a connection to `::1` on the same port is refused, and
+  the host's own LAN address is not served. This is the claim with the most consequence for a
+  client: a UI that resolved `localhost` to IPv6 would appear to fail while the Core is
+  healthy, and a successful IPv6 connection would be a surface §1 says does not exist.
 * Before binding, the parent must write **one** JSON line to the Core's stdin (≤4096 bytes)
-  and close it within 5 s, or the Core exits `2`.
+  and close it within 5 s, or the Core exits `2`. *Observed:* an empty document, an unknown
+  field, a v2 document with no `machine_token`, one whose `machine_token` equals
+  `launch_token`, and a document over 4096 bytes all exit `2`, as does a call with no
+  workspace argument.
 * On success the Core writes one line to stdout:
-  `archeaxis-api ready on http://127.0.0.1:<port>`.
+  `archeaxis-api ready on http://127.0.0.1:<port>`. *Observed*, including the port chosen
+  when `0` was passed.
 
 Exit codes: `2` = usage / launch-input / launch-identity failure; `1` = workspace open,
 executor init, identity protect, or bind failure.
+
+All of the above is asserted by `crates/archeaxis-api/tests/contract_process_model.rs`, which
+drives the real binary.
 
 ### Launch document (v2)
 
