@@ -124,6 +124,13 @@ CREATE TABLE IF NOT EXISTS learning_assessments (
     created_at TEXT NOT NULL DEFAULT (datetime('now')),
     UNIQUE(item_key, knowledge_id)
 );
+CREATE TABLE IF NOT EXISTS card_references (
+    item_key TEXT NOT NULL,
+    knowledge_id TEXT NOT NULL REFERENCES knowledge(knowledge_id),
+    created_event_id INTEGER,
+    referenced_at TEXT NOT NULL DEFAULT (datetime('now')),
+    PRIMARY KEY(item_key, knowledge_id)
+);
 CREATE TABLE IF NOT EXISTS job_attempts (
     job_id TEXT NOT NULL REFERENCES jobs(job_id),
     attempt INTEGER NOT NULL CHECK(attempt > 0),
@@ -169,6 +176,26 @@ CREATE TABLE IF NOT EXISTS canvas_projection_edges (
     label TEXT NOT NULL DEFAULT '',
     color TEXT NOT NULL DEFAULT '#888',
     PRIMARY KEY(canvas_id, edge_id)
+);
+-- Machine receipts. Created on demand until now, which is why the archive omitted them:
+-- the export refuses to write an archive it cannot account for, and a table that only
+-- exists after the first machine task made the table set depend on usage history. Creating
+-- it with the rest of the schema makes the exported set a property of the schema version,
+-- which is what the archive layout depends on. The domain's own ensure_machine_tasks stays
+-- for databases created before this.
+CREATE TABLE IF NOT EXISTS machine_tasks (
+    task_id TEXT PRIMARY KEY,
+    principal TEXT NOT NULL,
+    conditions TEXT NOT NULL,
+    knowledge_version TEXT,
+    method_version TEXT,
+    tool_version TEXT,
+    model_version TEXT NOT NULL,
+    scope TEXT NOT NULL,
+    outcome TEXT NOT NULL,
+    failure TEXT,
+    retest_of TEXT,
+    recorded_at TEXT NOT NULL DEFAULT (datetime('now'))
 );
 "#;
 

@@ -951,12 +951,19 @@ async fn source_job_transform(
     Path((source_id, job_id)): Path<(String, String)>,
 ) -> impl IntoResponse {
     with_store(state, move |conn| {
+        // Every extraction route stores its projection in `transforms.text` - the PDF
+        // worker's extracted text, the OCR reading, a subtitle's cue text, an archive's
+        // inventory listing - so this route reads whichever one the job produced. It used to
+        // filter `j.kind='text'`, which answered `404` for a succeeded PDF, OCR, Office,
+        // HTML, canvas, subtitle, archive, media or ASR job that had a perfectly readable
+        // projection; nothing asserted that refusal, which is how a text-only filter
+        // survived under a route the contract lists as source-bound transform readback.
         let projection: rusqlite::Result<Option<(i64, String, String)>> = conn
             .query_row(
                 "SELECT t.transform_id, s.sha256, t.text
              FROM jobs j JOIN sources s ON s.source_id=j.input_ref
              JOIN transforms t ON t.transform_id=j.transform_id AND t.source_id=s.source_id
-             WHERE j.job_id=?1 AND j.input_ref=?2 AND j.kind='text' AND j.state='succeeded'",
+             WHERE j.job_id=?1 AND j.input_ref=?2 AND j.state='succeeded'",
                 rusqlite::params![job_id, source_id],
                 |row| Ok((row.get(0)?, row.get(1)?, row.get(2)?)),
             )
@@ -975,7 +982,7 @@ async fn source_job_transform(
                 .into_response(),
             Ok(None) => (
                 StatusCode::NOT_FOUND,
-                "succeeded source-bound text transform not found",
+                "succeeded source-bound transform not found",
             )
                 .into_response(),
             Err(error) => (StatusCode::INTERNAL_SERVER_ERROR, error.to_string()).into_response(),

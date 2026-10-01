@@ -26,6 +26,66 @@ pub const EXPORT_TABLES: &[&str] = &[
     "source_origins",
     "learning_event_keys",
     "knowledge_supersedes",
+    // These four are live tables that the export used to omit, so an archive/restore round
+    // trip silently lost human-learning assessments, machine receipts, card references and
+    // the V3 governance metadata. They are appended rather than inserted: `restore` inserts
+    // in this order, and each one's foreign keys name `knowledge`, `sources` or `anchors`,
+    // which are all written earlier, so appending is sufficient and keeps the historical
+    // layout above byte-identical for readers that expect it.
+    "knowledge_v3_metadata",
+    "learning_assessments",
+    "card_references",
+    "machine_tasks",
+];
+
+/// ARCHIVE-01: every export layout the **current** schema version actually shipped,
+/// identified by the manifest table set - the same rule `V3_LAYOUTS` applies to version 3.
+/// The sixteen-table layout was current until the four omitted tables were added, so a
+/// genuine archive of either shape must stay restorable. Anything else at this version is an
+/// unknown layout and is rejected rather than guessed.
+pub const CURRENT_LAYOUTS: &[&[&str]] = &[
+    // 16 tables: the layout that omitted the four tables below.
+    &[
+        "workspace_meta",
+        "sources",
+        "transforms",
+        "anchors",
+        "knowledge",
+        "review_events",
+        "learning_events",
+        "jobs",
+        "job_attempts",
+        "job_outputs",
+        "canvas_projections",
+        "canvas_projection_nodes",
+        "canvas_projection_edges",
+        "source_origins",
+        "learning_event_keys",
+        "knowledge_supersedes",
+    ],
+    // 20 tables: the four omitted tables added.
+    &[
+        "workspace_meta",
+        "sources",
+        "transforms",
+        "anchors",
+        "knowledge",
+        "review_events",
+        "learning_events",
+        "jobs",
+        "job_attempts",
+        "job_outputs",
+        "canvas_projections",
+        "canvas_projection_nodes",
+        "canvas_projection_edges",
+        "source_origins",
+        "learning_event_keys",
+        "knowledge_supersedes",
+        "knowledge_v3_metadata",
+        "learning_assessments",
+        "card_references",
+        "machine_tasks",
+    ],
 ];
 
 /// ARCHIVE-01: every export layout that schema version 3 actually shipped,
@@ -118,15 +178,13 @@ fn archive_tables(manifest: &ArchiveManifest) -> Result<&'static [&'static str],
             .find(|layout| same_set(layout))
             .copied()
             .ok_or_else(|| ArchiveError::Table("unknown v3 archive layout".into())),
-        version if version == archeaxis_store_sqlite::SCHEMA_VERSION => {
-            if same_set(EXPORT_TABLES) {
-                Ok(EXPORT_TABLES)
-            } else {
-                Err(ArchiveError::Table(
-                    "archive layout does not match the current table set".into(),
-                ))
-            }
-        }
+        version if version == archeaxis_store_sqlite::SCHEMA_VERSION => CURRENT_LAYOUTS
+            .iter()
+            .find(|layout| same_set(layout))
+            .copied()
+            .ok_or_else(|| {
+                ArchiveError::Table("archive layout does not match a current table set".into())
+            }),
         _ => Err(ArchiveError::Table("unsupported archive version".into())),
     }
 }
@@ -516,21 +574,22 @@ mod version_tests {
         let archive = dir.path().join("archive");
         let mut manifest =
             export_workspace(db.to_str().unwrap(), archive.to_str().unwrap()).unwrap();
-        // Reconstruct the previous public v2 wire shape (same old table columns).
-        manifest.schema_version = 2;
-        for gone in [
-            "job_attempts",
-            "job_outputs",
-            "source_origins",
-            "learning_event_keys",
-            "knowledge_supersedes",
-            "canvas_projections",
-            "canvas_projection_nodes",
-            "canvas_projection_edges",
-        ] {
-            manifest.tables.remove(gone);
-            let _ = std::fs::remove_file(archive.join(format!("{gone}.jsonl")));
+        // Reconstruct the previous public v2 wire shape: the eight-table v2 layout, which is
+        // the leading slice of the export order but must be named explicitly now that the
+        // current set is larger.
+        let v2_layout = &EXPORT_TABLES[..8];
+        let stale: Vec<String> = manifest
+            .tables
+            .keys()
+            .filter(|table| !v2_layout.contains(&table.as_str()))
+            .cloned()
+            .collect();
+        for table in stale {
+            manifest.tables.remove(&table);
+            let _ = std::fs::remove_file(archive.join(format!("{table}.jsonl")));
         }
+        assert_eq!(manifest.tables.len(), v2_layout.len());
+        manifest.schema_version = 2;
         let rows = serde_json::json!({"key":"schema_version","value":"2"}).to_string() + "\n";
         std::fs::write(archive.join("workspace_meta.jsonl"), &rows).unwrap();
         manifest.tables.get_mut("workspace_meta").unwrap().sha256 =
@@ -587,28 +646,51 @@ mod version_tests {
         (archive.to_str().unwrap().to_string(), manifest)
     }
 
+    /// Reduce an exported archive to exactly `layout`, dropping every other table.
+    ///
+    /// The historical-layout tests used to remove a fixed handful of tables from whatever
+    /// the current export produces, which only lands on the intended layout while the current
+    /// set has the size it had when the test was written. Adding four tables to the export
+    /// moved that arithmetic off the target and the tests failed for the fixture rather than
+    /// for the rule. Naming the target layout instead makes them say what they mean, and they
+    /// keep working when the current set grows again.
+    fn reduce_to_layout(
+        archive: &str,
+        manifest: &mut ArchiveManifest,
+        layout: &[&str],
+        schema_version: i64,
+    ) {
+        let archive_path = Path::new(archive);
+        let drop: Vec<String> = manifest
+            .tables
+            .keys()
+            .filter(|table| !layout.contains(&table.as_str()))
+            .cloned()
+            .collect();
+        for table in drop {
+            manifest.tables.remove(&table);
+            let _ = std::fs::remove_file(archive_path.join(format!("{table}.jsonl")));
+        }
+        manifest.schema_version = schema_version;
+        let meta = serde_json::json!({"key":"schema_version","value":schema_version.to_string()})
+            .to_string()
+            + "\n";
+        rewrite_table(manifest, archive_path, "workspace_meta", &meta);
+        assert_eq!(
+            manifest.tables.len(),
+            layout.len(),
+            "the reduced archive must be exactly the layout under test"
+        );
+    }
+
     /// ARCHIVE-01: the older v3 wire shape carried eleven tables (no supersedes
     /// and no learning-event key table) and must still restore and upgrade.
     #[test]
     fn v3_eleven_table_archive_restores_and_upgrades() {
         let dir = tempfile::tempdir().unwrap();
         let (archive, mut manifest) = exported_fixture(&dir);
-        let archive_path = Path::new(archive.as_str());
-        manifest.schema_version = 3;
-        for gone in [
-            "learning_event_keys",
-            "knowledge_supersedes",
-            "canvas_projections",
-            "canvas_projection_nodes",
-            "canvas_projection_edges",
-        ] {
-            manifest.tables.remove(gone);
-            let _ = std::fs::remove_file(archive_path.join(format!("{gone}.jsonl")));
-        }
-        let meta = serde_json::json!({"key":"schema_version","value":"3"}).to_string() + "\n";
-        rewrite_table(&mut manifest, archive_path, "workspace_meta", &meta);
-        assert_eq!(manifest.tables.len(), V3_LAYOUTS[1].len());
-        seal(&mut manifest, archive_path);
+        reduce_to_layout(&archive, &mut manifest, V3_LAYOUTS[1], 3);
+        seal(&mut manifest, Path::new(&archive));
 
         let target = dir.path().join("eleven.sqlite");
         let restored = restore_workspace(&archive, target.to_str().unwrap()).unwrap();
@@ -640,17 +722,9 @@ mod version_tests {
         let dir = tempfile::tempdir().unwrap();
         let (archive, mut manifest) = exported_fixture(&dir);
         let archive_path = Path::new(archive.as_str());
-        manifest.schema_version = 3;
-        for gone in [
-            "canvas_projections",
-            "canvas_projection_nodes",
-            "canvas_projection_edges",
-        ] {
-            manifest.tables.remove(gone);
-            let _ = std::fs::remove_file(archive_path.join(format!("{gone}.jsonl")));
-        }
-        let meta = serde_json::json!({"key":"schema_version","value":"3"}).to_string() + "\n";
-        rewrite_table(&mut manifest, archive_path, "workspace_meta", &meta);
+        // V3_LAYOUTS[3] is the full thirteen-table v3 set, which is the shape this test is
+        // about: the later v3 layout whose event-key rows predate the v4 receipt columns.
+        reduce_to_layout(&archive, &mut manifest, V3_LAYOUTS[3], 3);
         let legacy = serde_json::json!({
             "event_key":"legacy-key-1","item_key":"card-1","created_at":"2026-09-01 00:00:00"
         })
