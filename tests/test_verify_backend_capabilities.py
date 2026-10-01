@@ -158,6 +158,53 @@ def test_a_declared_executable_is_resolved_through_the_manifest(tmp_path):
         assert ("ok" in value) and isinstance(value["ok"], bool), name
 
 
+def test_an_executable_the_engine_lacks_is_distinguished_from_one_not_checked(tmp_path):
+    """"not found" and "could not be checked" are different answers.
+
+    The report must not say an engine is absent when the declaration simply could not be
+    read, because that sends someone to install a tool they already have.
+    """
+    module = load()
+    root = build(tmp_path, [{"capability": "image.ocr",
+                             "script": "workers/vision/worker_ocr.py"}],
+                 worker_capability="image.ocr")
+    tool_paths = ROOT / "services" / "python-workers" / "tool_paths.py"
+    (root / "workers" / "tool_paths.py").write_text(
+        tool_paths.read_text(encoding="utf-8"), encoding="utf-8")
+    # A readable manifest that declares nothing: tesseract is genuinely not declared.
+    (root / "config" / "environment" / "capability-requirements.yaml").write_text(
+        "capabilities:\n  toolchains: []\n", encoding="utf-8")
+    report = module.verify(root, None, None, None)
+    entry = report["capabilities"][0]
+    details = entry["engine"]["executables"]
+    assert set(details) == {"tesseract", "tesseract-languages"}
+    for name, detail in details.items():
+        assert detail["ok"] is False, name
+        assert "could not be read" not in detail["not_checked_because"], name
+        assert detail["not_checked_because"] == "not resolved through the declaration"
+
+
+def test_an_unreadable_manifest_marks_executables_as_not_checked(tmp_path):
+    """A manifest that cannot be parsed says nothing about whether the engine is installed."""
+    module = load()
+    root = build(tmp_path, [{"capability": "image.ocr",
+                             "script": "workers/vision/worker_ocr.py"}],
+                 worker_capability="image.ocr")
+    tool_paths = ROOT / "services" / "python-workers" / "tool_paths.py"
+    (root / "workers" / "tool_paths.py").write_text(
+        tool_paths.read_text(encoding="utf-8"), encoding="utf-8")
+    (root / "config" / "environment" / "capability-requirements.yaml").write_text(
+        "capabilities: [this: is: not: valid", encoding="utf-8")
+    report = module.verify(root, None, None, None)
+    entry = report["capabilities"][0]
+    details = entry["engine"]["executables"]
+    assert set(details) == {"tesseract", "tesseract-languages"}
+    for name, detail in details.items():
+        assert detail["ok"] is False, name
+        assert "ManifestUnreadable" in str(detail["path_or_error"]), name
+        assert "could not be read" in detail["not_checked_because"], name
+
+
 def test_routes_are_taken_from_the_profile_by_default(tmp_path):
     module = load()
     root = build(tmp_path, [

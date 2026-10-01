@@ -148,7 +148,19 @@ def check_engine(capability: str, interpreter: Path, staged_root: Path,
             resolved = {name: "ERROR: resolver did not answer" for name in executables}
         for name, value in resolved.items():
             usable = isinstance(value, str) and not value.startswith("ERROR:")
-            result["executables"][name] = {"path_or_error": value, "ok": usable}
+            detail: dict = {"path_or_error": value, "ok": usable}
+            if not usable:
+                # "not found" and "could not be checked" are different answers. A resolver
+                # that cannot read the declaration says nothing about whether the engine is
+                # installed, and reporting it as absent would send someone to install an
+                # engine they already have.
+                note = ("the declared manifest could not be read, so this executable was "
+                        "not checked; see the module checks for the reader")
+                if "ManifestUnreadable" in str(value):
+                    detail["not_checked_because"] = note
+                else:
+                    detail["not_checked_because"] = "not resolved through the declaration"
+            result["executables"][name] = detail
             result["ok"] = result["ok"] and usable
 
     if models:

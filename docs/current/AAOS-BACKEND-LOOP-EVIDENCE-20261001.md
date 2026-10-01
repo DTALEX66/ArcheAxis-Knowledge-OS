@@ -506,6 +506,19 @@ now fixed with tests that fail if the defect returns:
 endpoint this host does not serve. It is absent from the matrix on purpose rather than
 reported as a pass.
 
+### Reproducing this
+
+`docs/current/AAOS-BACKEND-ACCEPTANCE-RUNBOOK-20261001.md` records the branch and base, the
+preconditions and how to check each, the two commands with their exit semantics (`0` pass,
+`1` fail closed, `2` usage), the observed output, what is deliberately not covered, the
+Windows toolchain note, and the rollback. The readiness check states its own preconditions:
+`verify_backend_capabilities.py --requirements` enumerates, per capability, the Python
+modules and declared executables a runtime needs, and a failing check carries `missing` —
+the distinct modules and executables that are absent — so the gap between a runtime and a
+passing run is enumerable rather than guessed at. A route that could not be **checked**
+(for instance because the manifest cannot be read) is reported as not checked rather than as
+an absent engine.
+
 ### PDF anchors are numbered globally — the multi-page receipt
 
 The Core addresses an anchor by its span and by the **final** path segment, treating any
