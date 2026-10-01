@@ -617,12 +617,26 @@ def main() -> int:
         print(json.dumps({"error": "usage: worker_ocr.py <image-file> [--lang eng]"}))
         return 2
     try:
-        tessdata_dir = load_tessdata_dir(args.profile) if args.profile is not None else None
-        if tessdata_dir is None:
-            # No explicit profile: prefer language data that can serve this language over
-            # an ambient TESSDATA_PREFIX that may be stale (see _declared_tessdata).
-            tessdata_dir = _declared_tessdata(args.lang)
-        out = probe(args.lang, tessdata_dir) if args.probe else extract(Path(args.input), args.lang, tessdata_dir)
+        if args.probe:
+            # A probe reports availability, so it must answer even when the declaration
+            # cannot be read - the reason belongs in the payload, not in a traceback. The
+            # fail-closed reading belongs to extraction, where a wrong answer silently
+            # changes a conversion; here the caller is asking whether the engine is usable.
+            try:
+                tessdata_dir = (load_tessdata_dir(args.profile) if args.profile is not None
+                                else _declared_tessdata(args.lang))
+            except Exception as resolution_error:  # noqa: BLE001 - reported, not raised
+                out = {"capability": False, "engine": ENGINE, "resolution_failed": True,
+                       "reason": f"{type(resolution_error).__name__}: {resolution_error}"}
+            else:
+                out = probe(args.lang, tessdata_dir)
+        else:
+            tessdata_dir = load_tessdata_dir(args.profile) if args.profile is not None else None
+            if tessdata_dir is None:
+                # No explicit profile: prefer language data that can serve this language over
+                # an ambient TESSDATA_PREFIX that may be stale (see _declared_tessdata).
+                tessdata_dir = _declared_tessdata(args.lang)
+            out = extract(Path(args.input), args.lang, tessdata_dir)
     except Exception as exc:  # noqa: BLE001
         print(json.dumps({"error": str(exc)}, ensure_ascii=False))
         return 1

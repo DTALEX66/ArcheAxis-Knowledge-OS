@@ -68,7 +68,16 @@ def _ffmpeg() -> str:
 
 
 def probe() -> dict:
-    binary = _declared_path("ffmpeg") or shutil.which("ffmpeg")
+    # A probe reports whether the engine is available; it must not crash when it is not.
+    # Resolution can also fail because the declaration itself cannot be read, and that is a
+    # different answer from "ffmpeg is absent" - so it is reported, not swallowed and not
+    # raised. The fail-closed reading belongs to extraction, where a wrong answer costs a
+    # conversion rather than a diagnostic.
+    try:
+        binary = _declared_path("ffmpeg") or shutil.which("ffmpeg")
+    except Exception as exc:  # noqa: BLE001 - a probe reports, it does not raise
+        return {"capability": False, "reason": f"{type(exc).__name__}: {exc}",
+                "engine": ENGINE, "resolution_failed": True}
     if not binary:
         return {"capability": False, "reason": "ffmpeg not found", "engine": ENGINE}
     try:
