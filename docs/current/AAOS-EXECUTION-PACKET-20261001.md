@@ -2,6 +2,8 @@
 
 状态：`AUDITED / PARTIAL`。本文件是导航和交接，不替代 `AGENTS.md`、R6 TaskPack、`R6-STATE.json` 或 M0 方向覆盖。根 `AUTHORITY.md` 未发现，记录为 `AUTHORITY_REFERENCE_MISSING`；请从 `docs/CONFIGURATION_AUTHORITY_INDEX.md` 进入权威链。清理任务已暂停；不得删除、迁移或整理缓存、历史文档、数据库、恢复包，不访问 E/F 盘。
 
+给接手者的一页摘要：`AAOS-GOAL-ABSTRACT-20261001.md`；完整交付总结：`AAOS-GOAL-SUMMARY-20261001.md`。
+
 ## 先读顺序
 
 1. `AGENTS.md`、`docs/CONFIGURATION_AUTHORITY_INDEX.md`、`docs/authority/taskpack-0919-r6/EXECUTOR-START.md`、`TASKS.json`、`TASKPACK.md`、`docs/current/R6-STATE.json`、`R6-EXECUTION.md`、`M0-DIRECTION-OVERRIDE-20260920.md`。
