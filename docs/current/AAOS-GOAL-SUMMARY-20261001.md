@@ -11,7 +11,7 @@
 
 ## 未完成的产品工作
 
-正式 UI 仍须按用户指定的 12 张产品母版及 11 张品牌视觉逐页复刻，补齐资产/图标、两套基础主题、窗口缩放、状态、动效和真实交互。后端仍须用真实输入完成多格式 Source → Knowledge → Human Learning → Machine correction/retest 的重启可回读闭环。阶段 Green 可启动记录与 64 张原生截图仅证明旧候选局部可运行；最新源码尚未原 Green 安装验收。R6 release 仍 `FROZEN`，PR #156 仍为 Draft。详见未闭合总账。
+正式 UI 仍须以用户指定的 12 张产品母版及 11 张品牌视觉逐页对照，补齐资产/图标、两套基础主题、窗口缩放、状态、动效和真实交互；MiniMax Design 可提交有对照证据、视觉和功能收益的更优方案，不锁死逐像素复刻。后端仍须用真实输入完成多格式 Source → Knowledge → Human Learning → Machine correction/retest 的重启可回读闭环。阶段 Green 可启动记录与 64 张原生截图仅证明旧候选局部可运行；最新源码尚未原 Green 安装验收。R6 release 仍 `FROZEN`，PR #156 仍为 Draft。详见未闭合总账与导航重审。
 
 ## 发布与本地边界
 

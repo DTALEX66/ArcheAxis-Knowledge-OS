@@ -3,7 +3,7 @@
 ## 证据边界
 
 - 当前执行权威：`AGENTS.md`、`docs/CONFIGURATION_AUTHORITY_INDEX.md`、R6 TaskPack、`docs/current/R6-STATE.json` 与 M0 overlay。R6 状态仍为 `IN_PROGRESS`，release 为 `FROZEN`。
-- 最终视觉母版：用户 2026-10-01 明确指定 `D:/All projects/UI套件/01_01_产品信息架构_Information_Architecture.png` 至 `12_12_搜索与复习_Search_Review_FSRS.png` 的产品 UI 图；同目录品牌视觉 `01_01_品牌主视觉_Brand_Hero.png` 至 `11_11_品牌应用_Applications_Left.png` 用于色彩、标志、字形、图形语言。B10 仅作交互结构参考，不再作为最终视觉验收标准。2026-09-28/29 UI 文档和 Master Atlas 是历史或阶段记录。
+- 当前视觉对照基线：用户 2026-10-01 指定 `D:/All projects/UI套件/01_01_产品信息架构_Information_Architecture.png` 至 `12_12_搜索与复习_Search_Review_FSRS.png` 的产品 UI 图；同目录品牌视觉 `01_01_品牌主视觉_Brand_Hero.png` 至 `11_11_品牌应用_Applications_Left.png` 用于色彩、标志、字形、图形语言。用户随后明确允许 MiniMax Design 借其自身能力提出更好的 UI/元素/动画/交互/功能性；需保留母版逐页对照、改动理由、真实能力与原生验收。B10 仅作旧交互参考，不锁死新设计。2026-09-28/29 UI 文档和 Master Atlas 是历史或阶段记录。
 - 2026-09-28 完整任务包 `D:/All projects/Record/AAOS_ArcheAxis_今日完整整合最终任务包_2026-09-28.zip` SHA-256 `E989877203FD47B9A027B2ABD0D9521DEB9A97E5D5E6905697E0FCA451E5A753`；9 月 29 日规划和截图是日期绑定的历史记录。2026-09-30 ZIP SHA-256 `A51AE04407A807C647739F787ABDB91ACCD1021AB515BC989069CB2D25197170`，仅含两份 Markdown，无源码/图片。其 Current/Future、路由兼容、素材来源与许可证要求纳入对照；包内跨 WORK-LAB/DESIGN-LAB 实施不扩入本任务。
 - 2026-10-01 四份外部材料的 AAOS 切片与四份源 SHA-256 见 `../history/external-inputs/2026-10-01/AAOS-ECOSYSTEM-AUDIT.md` 和 `AAOS-ECOSYSTEM-EXTRACT.json`。其中知识 owner、人审/version/provenance、精确 SHA 交付是待核对输入；缓存/目录/数据库清理迁移已被用户当前指令暂停。
 - 根目录 `AUTHORITY.md` 缺失（`AUTHORITY_REFERENCE_MISSING`）；使用项目声明的 `PROJECT_CONTRACT.yaml`、决策账本和 Authority 索引。
