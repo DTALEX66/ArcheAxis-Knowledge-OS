@@ -142,7 +142,7 @@ All paths are relative to the loopback base URL.
 | R3 | `POST /api/v1/jobs/{job_id}/executions/{request_id}/cancel` | any token | Requesting a cancel is not the same as observing `cancelled`; re-read the job. |
 | R4 | `GET /api/v1/jobs/{job_id}/outputs/{kind}` | any token | Persisted job output. |
 | 22 | `GET /api/v1/jobs/{job_id}/quality` | any token | Aggregate projection; not a typed loss receipt. |
-| 5 | `GET /api/v1/sources/{source_id}/jobs/{job_id}/transform` | any token | **Filters `kind='text'`** — a non-text transform is not readable here even when the job succeeded. |
+| 5 | `GET /api/v1/sources/{source_id}/jobs/{job_id}/transform` | any token | The succeeded job's stored projection, whatever its kind: every extraction route writes its projection to `transforms.text`, so a PDF, OCR, Office, HTML, canvas, subtitle, archive, media or ASR transform reads back here. A job with no stored projection is `404`, and the `source_id` binding is enforced rather than the job id alone. |
 | 24 | `GET /api/v1/sources/{source_id}/members` | any token | Source members. |
 | 25 | `GET /api/v1/sources/{source_id}/jobs` | any token | Jobs for a source. |
 
