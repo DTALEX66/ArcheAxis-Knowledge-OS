@@ -32,6 +32,7 @@ import base64
 import contextlib
 import importlib.util
 import json
+import os
 import shutil
 import sys
 import time
@@ -59,7 +60,7 @@ stager = _load("stager_matrix", STAGER)
 core_client = _load("core_client_matrix", REPO / "shared" / "core_client.py")
 
 # (label, job kind, staged input name, source path or None for a generated input, language)
-MATRIX: list[tuple[str, str, str, Path | None, str]] = [
+GOLDEN_MATRIX: list[tuple[str, str, str, Path | None, str]] = [
     ("text/txt", "text", "golden-text-anchor.txt", GOLDEN / "golden-text-anchor.txt", ""),
     ("pdf", "pdf", "golden-journey-evidence.pdf", GOLDEN / "golden-journey-evidence.pdf", ""),
     ("image/ocr", "image", "golden-screenshot-ocr.png", GOLDEN / "golden-screenshot-ocr.png", "eng"),
@@ -80,6 +81,71 @@ MATRIX: list[tuple[str, str, str, Path | None, str]] = [
     ("media/mp4", "media", "golden-video-anchor.mp4", GOLDEN / "golden-video-anchor.mp4", ""),
 ]
 
+# Real-material mode: the same route set, sourced from a real learning library instead of
+# the repository's synthetic fixtures. Set ARCHEAXIS_REAL_MATERIAL_ROOT to enable it; the
+# probe then picks one real file per route and records its origin and sha256, so the
+# receipt names the actual content that was converted.
+MATERIAL_ROOT_ENV = "ARCHEAXIS_REAL_MATERIAL_ROOT"
+MAX_MATERIAL_BYTES = int(os.environ.get("ARCHEAXIS_REAL_MAX_BYTES", str(4 * 1024 * 1024)))
+# Vault tool state and machine-generated transcripts are not learning content.
+SKIP_DIR_PARTS = {".obsidian", ".git", ".smart-env", ".copilot", "node_modules", "__pycache__"}
+SKIP_NAME_TOKENS = tuple(part for part in
+                         os.environ.get("ARCHEAXIS_REAL_EXCLUDE", "ASR").split(",") if part)
+
+# label -> (job kind, candidate suffixes, language)
+MATERIAL_ROUTES: dict[str, tuple[str, tuple[str, ...], str]] = {
+    "text/md": ("text", (".md",), ""),
+    "text/csv": ("text", (".csv",), ""),
+    "text/json": ("text", (".json",), ""),
+    "pdf": ("pdf", (".pdf",), ""),
+    "image/ocr": ("image", (".png",), "chi_sim"),
+    "office/docx": ("office", (".docx",), ""),
+    "html": ("html", (".html",), ""),
+    "canvas": ("canvas", (".canvas",), ""),
+    "media/mp4": ("media", (".mp4",), ""),
+}
+
+
+def material_root() -> Path | None:
+    raw = os.environ.get(MATERIAL_ROOT_ENV, "").strip()
+    if not raw:
+        return None
+    root = Path(raw)
+    return root if root.is_dir() else None
+
+
+def usable_material(path: Path) -> bool:
+    if any(part in SKIP_DIR_PARTS for part in path.parts):
+        return False
+    return not any(token and token in path.name for token in SKIP_NAME_TOKENS)
+
+
+def pick_material(root: Path, suffixes: tuple[str, ...]) -> Path | None:
+    """The smallest usable real file with one of these suffixes."""
+    best: tuple[int, Path] | None = None
+    for suffix in suffixes:
+        for path in root.rglob(f"*{suffix}"):
+            with contextlib.suppress(OSError):
+                size = path.stat().st_size
+                if 0 < size <= MAX_MATERIAL_BYTES and usable_material(path):
+                    if best is None or size < best[0]:
+                        best = (size, path)
+    return best[1] if best else None
+
+
+def build_matrix() -> tuple[list[tuple[str, str, str, Path | None, str]], Path | None]:
+    """The route list and the material root in use, golden or real."""
+    root = material_root()
+    if root is None:
+        return GOLDEN_MATRIX, None
+    matrix: list[tuple[str, str, str, Path | None, str]] = []
+    for label, (kind, suffixes, language) in MATERIAL_ROUTES.items():
+        source = pick_material(root, suffixes)
+        if source is None:
+            continue
+        matrix.append((label, kind, source.name, source, language))
+    return matrix, root
+
 
 def build_generated_input(destination: Path) -> None:
     """A real zip of real repository files, so the archive route reads a real container."""
@@ -92,7 +158,8 @@ def build_generated_input(destination: Path) -> None:
             bundle.write(source, source.name)
 
 
-def build_staged_tree(root: Path, core_binary: Path, runtime_python: Path) -> Path:
+def build_staged_tree(root: Path, core_binary: Path, runtime_python: Path,
+                      matrix: list[tuple[str, str, str, Path | None, str]]) -> Path:
     """A runtime root: core/, workers/, data/inputs, profile.
 
     The profile's `python` is the runtime's own interpreter, named by absolute path, which
@@ -116,7 +183,7 @@ def build_staged_tree(root: Path, core_binary: Path, runtime_python: Path) -> Pa
         shutil.copy2(manifest, root / "config" / "environment" / manifest.name)
     inputs = root / "data" / "inputs"
     inputs.mkdir(parents=True, exist_ok=True)
-    for _label, _kind, name, source, _language in MATRIX:
+    for _label, _kind, name, source, _language in matrix:
         if source is None:
             build_generated_input(inputs / name)
         elif source.is_file():
@@ -209,10 +276,16 @@ def main() -> int:
         }))
         return 2
 
+    matrix, material = build_matrix()
+    if not matrix:
+        print(json.dumps({"ok": False, "blocked": "no inputs selected",
+                          "material_root": os.environ.get(MATERIAL_ROOT_ENV, "")}))
+        return 2
+
     root = REPO / ".project-local" / "runs" / "staged-matrix"
     if root.exists():
         shutil.rmtree(root, ignore_errors=True)
-    profile_path = build_staged_tree(root, core_binary, runtime_python)
+    profile_path = build_staged_tree(root, core_binary, runtime_python, matrix)
     inputs = root / "data" / "inputs"
 
     receipt: dict = {
@@ -221,6 +294,8 @@ def main() -> int:
         "core_binary": str(core_binary),
         "runtime_python": str(runtime_python),
         "evidence_level": "REAL_STAGED_RUNTIME",
+        "input_source": "real_material" if material else "repository_golden_corpus",
+        "material_root": str(material) if material else "",
         "declared_routes": json.loads(profile_path.read_text(encoding="utf-8")).get("routes", []),
         "external_engine_root": launcher.os.environ.get("ARCHEAXIS_EXTERNAL_ROOT", ""),
         "results": [],
@@ -233,15 +308,18 @@ def main() -> int:
         status, version = core_client.call(base, "GET", "/api/v1/system/version", token)
         receipt["system_version_status"] = status
         receipt["system_version"] = version if isinstance(version, dict) else str(version)
-        for labelled, kind, name, _source, _language in MATRIX:
+        for labelled, kind, name, source, _language in matrix:
             staged_input = inputs / name
             if not staged_input.is_file():
                 receipt["results"].append({
                     "case": labelled, "kind": kind, "input": name,
-                    "verdict": "INPUT_ABSENT", "note": "source fixture not present in this checkout",
+                    "verdict": "INPUT_ABSENT", "note": "source file not present",
                 })
                 continue
-            receipt["results"].append(run_job(base, token, kind, staged_input, labelled))
+            record = run_job(base, token, kind, staged_input, labelled)
+            if source is not None:
+                record["origin"] = str(source)
+            receipt["results"].append(record)
     finally:
         launcher.stop(child)
 

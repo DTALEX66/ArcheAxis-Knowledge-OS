@@ -67,35 +67,47 @@ def _declared_path(name: str) -> str | None:
     return module.declared(name, __file__)
 
 
-def _usable_tessdata(candidate: Path | None) -> Path | None:
-    """A language-data directory that actually holds traineddata."""
+def _usable_tessdata(candidate: Path | None, language: str | None = None) -> Path | None:
+    """A language-data directory that holds the language actually being read.
+
+    Checking for *any* `*.traineddata` is not enough. An ambient `TESSDATA_PREFIX` that
+    carries a few unrelated languages passes that test, so the worker kept the ambient
+    directory and never passed `--tessdata-dir`; tesseract then failed with
+    `Failed loading language 'eng'` for a request the declared language data could have
+    served. Requiring the requested language is what makes "usable" mean usable.
+    """
     if candidate is None:
         return None
     try:
-        if candidate.is_dir() and any(candidate.glob("*.traineddata")):
-            return candidate
+        if not candidate.is_dir():
+            return None
+        if language:
+            return candidate if (candidate / f"{language}.traineddata").is_file() else None
+        return candidate if any(candidate.glob("*.traineddata")) else None
     except OSError:
         return None
-    return None
 
 
-def _declared_tessdata() -> Path | None:
-    """Language data from the declared registry, when the ambient one is unusable.
+def _declared_tessdata(language: str | None = None) -> Path | None:
+    """Language data from the declared registry, when the ambient one cannot serve.
 
-    Tesseract reads `TESSDATA_PREFIX` when no `--tessdata-dir` is given, so a stale
-    ambient value silently overrides a correctly resolved binary.  The declared
-    `tesseract-languages` entry is preferred whenever the ambient directory does not
-    actually contain language data.
+    Tesseract reads `TESSDATA_PREFIX` when no `--tessdata-dir` is given, so an ambient
+    value silently overrides a correctly resolved binary. The ambient directory is kept
+    only when it can serve the requested language; otherwise the declared
+    `tesseract-languages` entry is used, which is the configured engine rather than
+    whatever happens to be in the environment.
     """
-    ambient = _usable_tessdata(Path(os.environ["TESSDATA_PREFIX"])
-                               if os.environ.get("TESSDATA_PREFIX", "").strip() else None)
-    if ambient is not None:
-        return ambient
+    ambient_value = os.environ.get("TESSDATA_PREFIX", "").strip()
+    if ambient_value:
+        ambient = _usable_tessdata(Path(ambient_value), language)
+        if ambient is not None:
+            return ambient
     declared_langdata = _declared_path("tesseract-languages")
     if not declared_langdata:
         return None
     base = Path(declared_langdata)
-    return _usable_tessdata(base) or _usable_tessdata(base / "tessdata")
+    return (_usable_tessdata(base, language)
+            or _usable_tessdata(base / "tessdata", language))
 
 
 def _tesseract() -> str:
@@ -607,9 +619,9 @@ def main() -> int:
     try:
         tessdata_dir = load_tessdata_dir(args.profile) if args.profile is not None else None
         if tessdata_dir is None:
-            # No explicit profile: prefer declared language data over an ambient
-            # TESSDATA_PREFIX that may be stale (see _declared_tessdata).
-            tessdata_dir = _declared_tessdata()
+            # No explicit profile: prefer language data that can serve this language over
+            # an ambient TESSDATA_PREFIX that may be stale (see _declared_tessdata).
+            tessdata_dir = _declared_tessdata(args.lang)
         out = probe(args.lang, tessdata_dir) if args.probe else extract(Path(args.input), args.lang, tessdata_dir)
     except Exception as exc:  # noqa: BLE001
         print(json.dumps({"error": str(exc)}, ensure_ascii=False))
