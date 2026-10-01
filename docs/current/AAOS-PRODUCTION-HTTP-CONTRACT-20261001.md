@@ -307,8 +307,8 @@ Before the fix this endpoint answered `500` with a raw FTS5 parser message for
 
 | Launch | Routes served | Consequence for the UI |
 | --- | --- | --- |
-| **no** `text_worker` | 26 projection routes only | `/jobs/{id}`, `/executions`, `/outputs`, `/cancel` are **absent** (`404`). |
-| **with** `text_worker` | 30 routes (projection + the 4 runtime routes) | All routes above are served. |
+| **no** `text_worker` | 26 projection addresses (25 mounted routes, one of which carries GET and POST, plus the conditional legacy `/jobs/{id}/receipts`) | `/jobs/{id}`, `/executions`, `/outputs`, `/cancel` are **absent** (`404`). |
+| **with** `text_worker` | 30 addresses (the 26 projection addresses + the 4 runtime routes) | All routes above are served. |
 
 Both shapes were started from the real binary and asked over HTTP, and the result is asserted by
 `crates/archeaxis-api/tests/contract_launch_shape.rs`. **How to tell "absent" from "no such

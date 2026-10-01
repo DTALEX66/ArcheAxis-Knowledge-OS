@@ -118,15 +118,23 @@ cargo test -p archeaxis-api --test contract_process_model \
 ```
 
 ```bash
-# §3 route inventory, and the index that keeps this list honest
+# §3 route inventory, the index that keeps this list honest, and the numbers the documents state
 python -m pytest tests/maintenance/test_contract_route_inventory.py \
-                 tests/maintenance/test_contract_verification_map.py -q
+                 tests/maintenance/test_contract_verification_map.py \
+                 tests/maintenance/test_contract_number_consistency.py -q
 ```
 
 `tests/maintenance/test_contract_verification_map.py` is the index: it maps each contract
 section to the artifact that checks it and fails if one is renamed, deleted, or emptied, or if
 the contract grows a section nothing covers. It does not re-check the claims — it keeps the
 links real, because a missing test does not fail, it simply does not run.
+
+`tests/maintenance/test_contract_number_consistency.py` compares every count the contract, this
+runbook and the ledger state with the thing it describes — the matrix case counts, the route
+counts, the readiness total, and the disposition's 58 keys with their evidence levels. It also
+checks that the ledger agrees with the disposition it points at, that the disposition's stated
+counts match its own entries, and that it covers exactly the keys in the two lanes this task
+owns.
 
 §7's evidence is the probes in this runbook plus `scripts/release/verify_backend_capabilities.py`;
 §9's items each name the artifact that closed them, or are marked as Owner decisions.
