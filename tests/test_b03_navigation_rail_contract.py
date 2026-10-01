@@ -22,7 +22,10 @@ def test_primary_navigation_matches_b10_labeled_rail_and_topbar():
     assert brand.get("Grid.Row") == "0"
     assert any(node.get("Text") == "ArcheAxis" for node in brand.iter())
     assert topbar.get("Grid.Row") == "0"
-    assert topbar.get("Grid.ColumnSpan") == "4"
+    assert topbar.get("Grid.Column") == "2"
+    assert topbar.get("Grid.ColumnSpan") == "2"
+    assert "Grid.SetColumn(TopbarShell, mobile ? 0 : 2);" in code
+    assert "Grid.SetColumnSpan(TopbarShell, mobile ? 4 : 2);" in code
     assert 'private const double MasterSidebarWidth = 280d;' in code
     assert 'PrimaryRail.IsVisible = !mobile;' in code
     assert 'MobileRail.IsVisible = mobile;' in code

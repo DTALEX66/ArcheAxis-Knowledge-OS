@@ -19,7 +19,7 @@ def test_mobile_topbar_keeps_search_and_two_actions_without_text_pressure():
     for name in ("TopbarCommandText", "TopbarNotificationsLabel", "TopbarWorkspaceLabel"):
         assert named[name].tag.endswith("TextBlock")
         assert f"{name}.IsVisible = !mobile;" in code
-    assert "TopbarBrandName.IsVisible = !mobile;" in code
+    assert named["TopbarBrand"].get("IsVisible") == "{ReflectionBinding IsVisible, ElementName=MobileRail}"
     assert "TopbarCommandButton.MaxWidth = mobile ?" in code
     assert "TopbarShell.Padding = mobile ?" in code
     # B10 @media(max-width:840px) includes the boundary itself.
@@ -58,7 +58,7 @@ def test_home_narrow_first_fold_keeps_all_real_kpis_in_two_compact_columns():
     assert "var homeHeroStacked = contentWidth <= homeStatsSingleColumnBreakpoint;" not in responsive
     assert "new ColumnDefinitions(\"*,*\")" in responsive
     assert "HomeStatsSurface.RowDefinitions = frameSize.Width <= homeStatsSingleColumnBreakpoint" in responsive
-    assert "var homeDashboardSingleColumn = contentWidth <= homeStatsSingleColumnBreakpoint;" in home_dashboard
+    assert "var homeDashboardSingleColumn = contentWidth < 840;" in home_dashboard
     assert "Grid.SetColumn(HomeStatsSurface.Children[index], frameSize.Width <= homeStatsSingleColumnBreakpoint ? 0 : index % (frameSize.Width <= homeStatsTwoColumnBreakpoint ? 2 : 4));" in responsive
     assert "Grid.SetRow(HomeStatsSurface.Children[index], frameSize.Width <= homeStatsSingleColumnBreakpoint ? index : frameSize.Width <= homeStatsTwoColumnBreakpoint ? index / 2 : 0);" in responsive
     assert "HomeEvidenceContentGrid.ColumnDefinitions = homeEvidenceStacked" in responsive
