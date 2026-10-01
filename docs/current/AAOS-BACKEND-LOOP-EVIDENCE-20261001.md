@@ -428,6 +428,42 @@ provisioned runtime and 8 of 12 on a bare one — the three extra failures are
 Also not covered by the matrix: `image.caption`, which needs a vision model at an Ollama
 endpoint this host does not serve. It is absent on purpose rather than reported as a pass.
 
+### Packaging-time capability readiness — the two runtime failures as a check
+
+Both staged failures above were packaging conditions that only appeared at first use, as
+engine-shaped errors from a job. `scripts/release/verify_backend_capabilities.py` answers
+them at packaging time instead. For every route the profile declares it checks, against the
+interpreter the profile names:
+
+* **launch** — the worker starts under that interpreter and emits a protocol hello
+  advertising exactly the capability being declared. That proves the interpreter runs the
+  worker, the shared transport loads, and the declared capability is the one the worker
+  actually serves. (Verified as a usable signal: all nine sidecar workers emit a valid
+  hello naming their own capability.)
+* **engine** — the engine's Python modules are importable by that interpreter, and each
+  external executable resolves **through the declared capability manifest, not PATH**,
+  which is the distinction that made a working tesseract look absent.
+
+A failing route is named and the run fails closed; nothing is installed. A capability that
+needs a served model is reported `unverifiable` rather than passed.
+
+Run against one staged tree with two interpreters:
+
+| Interpreter | Result |
+| --- | --- |
+| standard-library only | fails closed, naming the missing import per route (`ModuleNotFoundError: No module named 'fitz'`) |
+| with the engines and PyYAML | `total 9 / ready 9 / not_ready 0`, exit 0 |
+
+The requirements table follows the imports the workers **actually make**, and a test
+enforces it both ways — a capability with no entry, or a module the worker never imports,
+fails the suite. Writing that table from memory produced two wrong entries (`html` listed
+`bs4` and `image.ocr` listed `PIL`, neither of which those workers import); the check is
+what caught them, and the test now prevents the drift.
+
+**This is the mechanism behind the earlier verdicts.** "A staged runtime can convert 11 of
+12" is a statement about a *provisioned* runtime, and this checker is what decides whether
+a given runtime is provisioned, per route, without running a job.
+
 Note on the packaging path: the full `stage_backend_runtime.py` refuses linked donor
 trees (`ValueError: protected staging path`). That is deliberate fail-closed behaviour and
 it rejected both `.venv` and the uv-managed interpreter directories on this host, so the
