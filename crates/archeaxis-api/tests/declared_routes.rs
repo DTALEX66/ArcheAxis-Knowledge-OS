@@ -127,9 +127,8 @@ fn http_with(port: u16, method: &str, path: &str, body: &str, extra: &str) -> (u
     socket
         .set_read_timeout(Some(Duration::from_secs(5)))
         .unwrap();
-    let headers = format!(
-        "x-archeaxis-launch-token: {TOKEN}\r\nContent-Type: application/json\r\n{extra}"
-    );
+    let headers =
+        format!("x-archeaxis-launch-token: {TOKEN}\r\nContent-Type: application/json\r\n{extra}");
     write!(
         socket,
         "{method} {path} HTTP/1.1\r\nHost: 127.0.0.1:{port}\r\nConnection: close\r\nContent-Length: {}\r\n{headers}\r\n{body}",
@@ -191,7 +190,13 @@ fn prerequisites() -> Option<(PathBuf, PathBuf)> {
 }
 
 /// Launch the real binary with one declared route and run a job through it.
-fn run_declared_route(capability: &str, worker: &str, kind: &str, source_name: &str, payload: &[u8]) -> (u16, String) {
+fn run_declared_route(
+    capability: &str,
+    worker: &str,
+    kind: &str,
+    source_name: &str,
+    payload: &[u8],
+) -> (u16, String) {
     let dir = work_dir("declared");
     let db = dir.0.join("workspace.sqlite");
     let transport = repo().join("services/python-workers/transport/text_ndjson.py");
@@ -260,7 +265,8 @@ fn run_declared_route(capability: &str, worker: &str, kind: &str, source_name: &
 #[test]
 fn a_declared_route_reaches_its_worker_in_the_production_binary() {
     let Some(_) = prerequisites() else { return };
-    let canvas = std::fs::read(repo().join("tests/fixtures/golden/learning-evidence.canvas")).unwrap();
+    let canvas =
+        std::fs::read(repo().join("tests/fixtures/golden/learning-evidence.canvas")).unwrap();
     let (_, body) = run_declared_route(
         "canvas.structure",
         "services/python-workers/document/worker_canvas.py",
@@ -279,7 +285,8 @@ fn an_undeclared_route_still_fails_closed() {
     let Some(_) = prerequisites() else { return };
     // Only text.extract is registered here, so the canvas job must fail rather than
     // be dispatched to a worker that was never declared.
-    let canvas = std::fs::read(repo().join("tests/fixtures/golden/learning-evidence.canvas")).unwrap();
+    let canvas =
+        std::fs::read(repo().join("tests/fixtures/golden/learning-evidence.canvas")).unwrap();
     let dir = work_dir("undeclared");
     let db = dir.0.join("workspace.sqlite");
     let transport = repo().join("services/python-workers/transport/text_ndjson.py");
@@ -318,7 +325,8 @@ fn an_undeclared_route_still_fails_closed() {
         port,
         "POST",
         "/api/v1/jobs",
-        &serde_json::json!({"job_id": job_id, "kind": "canvas", "input_ref": source_id}).to_string(),
+        &serde_json::json!({"job_id": job_id, "kind": "canvas", "input_ref": source_id})
+            .to_string(),
     );
     assert_eq!(code, 202);
     let (code, body) = http_with(

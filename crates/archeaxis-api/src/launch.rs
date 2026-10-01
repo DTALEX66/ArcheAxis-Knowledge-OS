@@ -372,10 +372,7 @@ mod route_declaration_tests {
                 route(dir.path(), "pdf.extract", "b.py", true),
             ],
         );
-        assert_eq!(
-            profile.validate(),
-            Err("duplicate worker route capability")
-        );
+        assert_eq!(profile.validate(), Err("duplicate worker route capability"));
     }
 
     #[test]
