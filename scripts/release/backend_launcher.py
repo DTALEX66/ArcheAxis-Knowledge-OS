@@ -83,7 +83,11 @@ def load_profile(root: Path, explicit_path: str | None = None) -> dict:
         document = json.loads(path.read_text(encoding="utf-8"), object_pairs_hook=unique)
     except (json.JSONDecodeError, UnicodeError, OSError) as error:
         raise LaunchFailure("worker profile is not valid readable JSON") from error
-    if not isinstance(document, dict) or set(document) != {"schema", "python", "script", "staging"}:
+    allowed_fields = (
+        {"schema", "python", "script", "staging"},
+        {"schema", "python", "script", "staging", "routes"},
+    )
+    if not isinstance(document, dict) or set(document) not in allowed_fields:
         raise LaunchFailure("unsupported or incomplete worker profile fields")
     if document.get("schema") != PROFILE_SCHEMA:
         raise LaunchFailure(
@@ -96,6 +100,44 @@ def load_profile(root: Path, explicit_path: str | None = None) -> dict:
         resolved[key] = safe_path(path.parent, value)
     require_file(resolved["python"], "worker interpreter")
     require_file(resolved["script"], "worker script")
+    resolved["routes"] = _load_routes(document, path)
+    return resolved
+
+
+def _load_routes(document: dict, path: Path) -> list[dict]:
+    """The profile's optional capability routes, resolved and validated.
+
+    An absent list keeps the previous single-route behaviour. Each entry names one
+    capability and the worker script that serves it, relative to the profile, so the
+    staged runtime declares what it actually ships rather than the Core assuming a
+    layout. A malformed entry is refused by name instead of being silently dropped,
+    because a dropped route would surface later as an unexplained failed job.
+    """
+    routes = document.get("routes")
+    if routes is None:
+        return []
+    if not isinstance(routes, list):
+        raise LaunchFailure("worker profile routes must be a list")
+    resolved: list[dict] = []
+    seen: set[str] = set()
+    for index, entry in enumerate(routes):
+        if not isinstance(entry, dict) or set(entry) != {"capability", "script"}:
+            raise LaunchFailure(f"worker profile route {index} must be capability and script")
+        capability = entry.get("capability")
+        script = entry.get("script")
+        if not isinstance(capability, str) or not capability.strip():
+            raise LaunchFailure(f"worker profile route {index} has no capability")
+        if not isinstance(script, str) or not script.strip():
+            raise LaunchFailure(f"worker profile route {index} has no script")
+        capability = capability.strip()
+        if capability == "text.extract":
+            raise LaunchFailure("worker profile route must not redeclare text.extract")
+        if capability in seen:
+            raise LaunchFailure(f"duplicate worker profile route capability: {capability}")
+        seen.add(capability)
+        resolved_script = safe_path(path.parent, script)
+        require_file(resolved_script, f"worker route script for {capability}")
+        resolved.append({"capability": capability, "script": resolved_script})
     return resolved
 
 
@@ -157,6 +199,12 @@ def start(data_root: Path, port: int) -> tuple[subprocess.Popen, str, dict, dict
             "python": str(profile["python"]),
             "script": str(profile["script"]),
             "staging": str(staging),
+            # Declared capability routes. An empty list would be identical to omitting
+            # the field, so it is only emitted when the runtime actually ships routes.
+            **({"routes": [
+                {"capability": route["capability"], "script": str(route["script"])}
+                for route in profile.get("routes", [])
+            ]} if profile.get("routes") else {}),
         },
     }
     child = subprocess.Popen(

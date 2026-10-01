@@ -39,7 +39,41 @@ PROFILE_SCHEMA = "archeaxis.worker-profile/v1"
 MANIFEST_SCHEMA = "archeaxis.backend-runtime/v1"
 TEXT_WORKER_RELATIVE = "workers/transport/text_ndjson.py"
 SCHEDULER_WORKER_RELATIVE = "workers/learning/worker_schedule.py"
+
+# Capability -> worker scripts that implement it, in preference order, relative to
+# the staged root. Each of these workers advertises the capability itself and
+# refuses anything it did not advertise, so the Core can only dispatch a route that
+# a real worker serves. Only the first *existing* path is declared: the profile
+# states what this runtime actually ships, and a capability with no worker present is
+# left out rather than declared and then failing at job time.
+ROUTE_SCRIPTS: dict[str, tuple[str, ...]] = {
+    "archive.inventory": ("workers/document/worker_archive.py",),
+    "canvas.structure": ("workers/document/worker_canvas.py",),
+    "html.structure": ("workers/web/worker_html.py",),
+    "image.caption": ("workers/vision/worker_caption.py",),
+    "image.ocr": ("workers/vision/worker_ocr.py",),
+    "media.probe": ("workers/document/worker_media.py",),
+    "office.structure": ("workers/document/worker_office.py",),
+    "pdf.extract": ("workers/document/worker_pdf.py",),
+    "subtitles.structure": ("workers/document/worker_subtitles.py",),
+}
 PRIVATE_NAMES = set([".git", ".codex", ".dsh", ".zcode", ".hermes", ".openhuman", ".claude", ".agents", ".agent", ".cursor", ".continue", ".aider", ".gemini", ".opencode", ".openhands", ".cline", ".roo", ".kilocode", ".windsurf", ".copilot", ".ssh", ".aws", ".azure", ".gnupg", "agent-private", "private-agent-state", "sessions", "memories", "keychain", "credentials", "auth", "browser-data", ".npmrc", ".pypirc", ".netrc"])
+
+
+def present_routes(root: Path) -> list[dict[str, str]]:
+    """Declare the capability routes this staged tree can actually serve.
+
+    Only a capability whose worker script is present is declared. A route that named
+    an absent script would make the Core refuse the whole profile, and a route
+    declared without a worker would fail at job time instead of at packaging time.
+    """
+    declared: list[dict[str, str]] = []
+    for capability in sorted(ROUTE_SCRIPTS):
+        for relative in ROUTE_SCRIPTS[capability]:
+            if (root / relative).is_file():
+                declared.append({"capability": capability, "script": relative})
+                break
+    return declared
 
 
 def sha256(path: Path) -> str:
@@ -260,6 +294,9 @@ def main() -> int:
         "script": TEXT_WORKER_RELATIVE,
         "staging": "data/worker-staging",
     }
+    declared_routes = present_routes(root)
+    if declared_routes:
+        profile["routes"] = declared_routes
     profile_path = root / "worker-profile.json"
     profile_path.write_text(json.dumps(profile, indent=2) + "\n", encoding="utf-8", newline="\n")
     launcher = write_launcher(root)
