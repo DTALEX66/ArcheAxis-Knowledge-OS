@@ -147,3 +147,39 @@ def tool_path(name: str, *, guess_on_path: bool = False) -> str:
         hint = f"; PATH would offer {found}" if found else "; PATH offers nothing"
     raise ToolNotFound(
         f"{name}: no declared path resolved (consulted: {', '.join(consulted)}){hint}")
+
+
+def declared_path(name: str) -> str | None:
+    """`tool_path(name)`, or None when it cannot be resolved.
+
+    For a worker call site that must keep its existing fallback when there is no
+    declaration at all, but must still prefer a declared path when there is one.
+    """
+    try:
+        return tool_path(name)
+    except Exception:  # noqa: BLE001 - unresolved is not an error at this layer
+        return None
+
+
+def resolve(name: str) -> str | None:
+    """Load this module by file path and resolve *name*; None when unresolvable.
+
+    The single call a worker makes. A worker is executed as a standalone script
+    (`python -B worker.py --staging-root ...`) with no package import path, so it
+    cannot `import tool_paths`; it locates the sibling file instead. Loading here
+    rather than in each worker keeps the dependency direction one way.
+    """
+    import importlib.util
+
+    module_path = Path(__file__).resolve()
+    if not module_path.is_file():
+        return None
+    try:
+        spec = importlib.util.spec_from_file_location("worker_tool_paths", module_path)
+        if spec is None or spec.loader is None:
+            return None
+        module = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(module)
+        return module.declared_path(name)
+    except Exception:  # noqa: BLE001 - a worker keeps its own fallback
+        return None

@@ -24,7 +24,9 @@ from __future__ import annotations
 
 import argparse
 import hashlib
+import importlib.util
 import json
+import os
 import shutil
 import subprocess
 import sys
@@ -36,15 +38,40 @@ ENGINE_VERSION = "0.1.0"
 SUPPORTED = {".mp4", ".mov", ".mkv", ".webm"}
 
 
+def _declared_path(name: str) -> str | None:
+    """The declared external path for a tool, or None if it cannot be resolved.
+
+    Loaded by file path because a worker is executed as a standalone script with no
+    package import path. R6 A02 requires an exact declared path and forbids PATH
+    guessing; ffmpeg is installed and declared on this machine but absent from PATH,
+    so `which` alone reported the engine unavailable.
+    """
+    module_path = Path(__file__).resolve().parent.parent / "tool_paths.py"
+    if not module_path.is_file():
+        return None
+    try:
+        spec = importlib.util.spec_from_file_location("worker_tool_paths", module_path)
+        if spec is None or spec.loader is None:
+            return None
+        module = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(module)
+        return module.resolve(name)
+    except Exception:  # noqa: BLE001 - a worker keeps its own fallback
+        return None
+
+
 def _ffmpeg() -> str:
+    declared = _declared_path("ffmpeg")
+    if declared:
+        return declared
     binary = shutil.which("ffmpeg")
     if not binary:
-        raise RuntimeError("ffmpeg binary not found on PATH (video engine unavailable)")
+        raise RuntimeError("ffmpeg binary not found (video engine unavailable)")
     return binary
 
 
 def probe() -> dict:
-    binary = shutil.which("ffmpeg")
+    binary = _declared_path("ffmpeg") or shutil.which("ffmpeg")
     if not binary:
         return {"capability": False, "reason": "ffmpeg not found", "engine": ENGINE}
     try:

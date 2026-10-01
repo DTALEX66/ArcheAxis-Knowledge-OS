@@ -64,8 +64,8 @@ def _declared_path(name: str) -> str | None:
             return None
         module = importlib.util.module_from_spec(spec)
         spec.loader.exec_module(module)
-        return module.tool_path(name)
-    except Exception:
+        return module.resolve(name)
+    except Exception:  # noqa: BLE001 - a worker keeps its own fallback
         return None
 
 
