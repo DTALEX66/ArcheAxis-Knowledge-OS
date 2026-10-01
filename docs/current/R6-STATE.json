@@ -49,7 +49,7 @@
       "id": "A05",
       "status": "TESTED_LOCAL_PARTIAL",
       "evidence_level": "TESTED_LOCAL",
-      "remaining_gap": "workspace intake now prefers activated builtin converter plugins with explicit path-free fallback receipts; semantic quality, dynamic rendering, external engines and representative real fixtures remain open",
+      "remaining_gap": "workspace intake now prefers activated builtin converter plugins with explicit path-free fallback receipts; semantic quality, dynamic rendering, external engines and representative real fixtures remain open 2026-10-01 measurement on codex/dsh-aaos-real-multiformat-loop-20261001 (base 1a981a44): a production Core launch registers exactly one capability route, text.extract, because main.rs calls Executor::open and executor.rs seeds only the default worker route; every other format route is registered solely by test callers of Executor::open_routes, and the configured transport advertises only [text.extract]. Against the hash-verified tests/fixtures/golden corpus the observed result is REACHABLE 1 / FAILED_AT_ROUTE 9, each non-text job settling failed with 'Core execution ended without a terminal receipt' after being accepted 202. Evidence: scripts/probes/production_format_coverage_smoke.py and docs/current/AAOS-BACKEND-LOOP-EVIDENCE-20261001.md (evidence class REAL).",
       "subject_sha": "dd71d77adba53cd4235a93dc1d61af636ecfc6e5"
     },
     {
@@ -129,5 +129,19 @@
       "remaining_gap": "P0-P6 real closure, resource-root semantics, real migration/Green backup-replace-rollback and Owner approval remain open",
       "subject_sha": "ffd8ff202cfcbd4e34f40dc3dd7f5d0cde2b9f33"
     }
-  ]
+  ],
+  "production_loop_measurement_20261001": {
+    "report": "docs/current/AAOS-BACKEND-LOOP-EVIDENCE-20261001.md",
+    "contract": "docs/current/AAOS-PRODUCTION-HTTP-CONTRACT-20261001.md",
+    "probe": "scripts/probes/production_format_coverage_smoke.py",
+    "branch": "codex/dsh-aaos-real-multiformat-loop-20261001",
+    "base_sha": "1a981a4482b01f31989074e79c82a63400aa07a7",
+    "observed_format_reachability": {
+      "reachable": 1,
+      "failed_at_route": 9
+    },
+    "evidence_class": "REAL",
+    "release_status_unchanged": "FROZEN",
+    "owner_gates": "A02/A16 remain BLOCKED; legacy migration NOT_EXECUTED"
+  }
 }
