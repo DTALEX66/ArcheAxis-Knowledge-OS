@@ -543,7 +543,7 @@
       "prior_audit_verdict": "TESTED_LOCAL_PARTIAL",
       "status": "CI_VERIFIED_EXACT_SHA",
       "evidence_level": "REAL",
-      "disposition": "ADVANCED — the route-enablement gap recorded in this ledger was closed and verified: a launch declares its routes, the staged runtime publishes them, the standalone workers locate the shared transport in both layouts, a packaging-time readiness check answers per route, and real course material converts 9 of 9 with readiness 9 of 9. Seven defects were found and fixed on this branch",
+      "disposition": "ADVANCED — the route-enablement gap recorded in this ledger was closed and verified: a launch declares its routes, the staged runtime publishes them, the standalone workers locate the shared transport in both layouts, a packaging-time readiness check answers per route, and real course material converts 9 of 9 with readiness 9 of 9. Seven defects were fixed on this branch. The remaining route work is now enumerated rather than unknown: tests/test_worker_route_coverage.py requires every worker to be either declared by the route table or recorded with how it is reached, and it names three that have a working engine but no sidecar mode and therefore no reachable Core job — media/worker_transcribe.py (ASR, which the pack requires before final closure), media/worker_video.py and web/worker_webpage.py",
       "acceptance_reference": [
         "workspace intake now prefers activated builtin converter plugins with explicit path-free fallback receipts; semantic quality, dynamic rendering, external engines and representative real fixtures remain open"
       ]
