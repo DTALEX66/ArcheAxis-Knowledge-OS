@@ -173,8 +173,7 @@ def start(data_root: Path, port: int) -> tuple[subprocess.Popen, str, dict, dict
         base = wait_for_readiness(child, port, STARTUP_TIMEOUT_SECONDS)
         receipt = {"core": str(core), "workspace": str(workspace), "port": port,
                    "text_worker": launch["text_worker"]}
-        tokens = {"x-archeaxis-launch-token": launch["launch_token"],
-                  "x-archeaxis-machine-token": launch["machine_token"]}
+        tokens = {"human": launch["launch_token"], "machine": launch["machine_token"]}
         return child, base, receipt, tokens
     except BaseException:
         stop(child)
@@ -236,19 +235,49 @@ def wait_for_readiness(child: subprocess.Popen, port: int, timeout: float) -> st
         raise
 
 
+def credential(tokens: dict | None, role: str) -> dict:
+    """The request header that authenticates *role* against the Core.
+
+    The Core reads exactly one credential header, `x-archeaxis-launch-token`, and
+    matches its value against either the launch token or the machine token before
+    deriving the actor from whichever matched (`launch.rs::authenticate`).  The
+    machine token therefore travels in that same header; there is no separate
+    `x-archeaxis-machine-token` header in the protocol, and sending one would be
+    ignored.  Selecting the value here means a caller cannot pick the wrong header
+    and silently act as the other principal.
+    """
+    if role not in {"human", "machine"}:
+        raise LaunchFailure(f"unknown credential role: {role}")
+    if not tokens:
+        raise LaunchFailure(f"no credentials were issued for role: {role}")
+    value = tokens.get(role)
+    if not value:
+        raise LaunchFailure(f"missing credential for role: {role}")
+    return {"x-archeaxis-launch-token": value}
+
+
 def call(base: str, method: str, path: str, body: dict | None = None,
-         tokens: dict | None = None) -> tuple[int, object]:
+         tokens: dict | None = None, *,
+         header_tokens: dict | None = None,
+         role: str | None = None) -> tuple[int, object]:
     """Every route is authenticated per request by the launch layer.
 
     The Core matches `x-archeaxis-launch-token` against the token it accepted on
     stdin and answers `AAK-AUTH-001` otherwise, so a caller that forgets it sees a
     bare 401 rather than a startup problem.
+
+    Pass `role` with the credentials returned by `start` to authenticate as that
+    principal.  `header_tokens` is the raw header mapping, for callers that build
+    their own headers.
     """
     data = json.dumps(body).encode("utf-8") if body is not None else None
     request = urllib.request.Request(base + path, data=data, method=method)
     if data is not None:
         request.add_header("content-type", "application/json")
-    for name, value in (tokens or {}).items():
+    headers = dict(header_tokens or {})
+    if role is not None:
+        headers.update(credential(tokens, role))
+    for name, value in headers.items():
         request.add_header(name, value)
     try:
         with urllib.request.urlopen(request, timeout=10) as response:
@@ -300,9 +329,11 @@ def main() -> int:
     receipt["base_url"] = base
     if args.smoke:
         try:
-            status, version = call(base, "GET", "/api/v1/system/version", tokens=tokens)
+            status, version = call(base, "GET", "/api/v1/system/version",
+                                   tokens=tokens, role="human")
             receipt["system_version"] = {"status": status, "body": version}
-            status, info = call(base, "GET", "/api/v1/workspaces/info", tokens=tokens)
+            status, info = call(base, "GET", "/api/v1/workspaces/info",
+                                tokens=tokens, role="human")
             receipt["workspaces_info"] = {"status": status, "body": info}
         finally:
             receipt["exit_code"] = stop(child)
