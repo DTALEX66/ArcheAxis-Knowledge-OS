@@ -52,3 +52,17 @@ def test_monochrome_remains_neutral_and_aurora_default_is_explicitly_selectable(
     shell = (PALETTE.parent / "MainWindow.axaml.cs").read_text(encoding="utf-8")
     assert "ThemePalette.Apply(ThemePalette.Aurora);" in shell
     assert "SettingsThemePaletteBox.SelectionChanged += OnThemePaletteChanged;" in shell
+
+
+def test_aurora_effects_and_navigation_gradients_follow_current_brand_tokens() -> None:
+    aurora = _palette_colors("Aurora")
+    theme = THEME.read_text(encoding="utf-8")
+    palette_code = PALETTE.read_text(encoding="utf-8")
+    assert aurora["AaosGoldBrush"] == "#F4D08B"
+    assert aurora["AaosSurface2Brush"] == "#1A2233"
+    assert aurora["AaosAmbientStart"] == aurora["AaosPrimaryBrush"]
+    assert aurora["AaosBrandMarkEnd"] == aurora["AaosPrimaryBrush"]
+    assert aurora["AaosAmbientSecondaryBrush"] == "#55F4D08B"
+    assert 'palette == Aurora ? "#66F4D08B"' in palette_code
+    for old_color in ("#1FC8C5", "#8DC398", "#14343D", "#102630", "#061118"):
+        assert old_color not in theme

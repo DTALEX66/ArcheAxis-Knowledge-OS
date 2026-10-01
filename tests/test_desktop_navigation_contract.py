@@ -2008,8 +2008,8 @@ def test_current_navigation_reveals_context_sidebar_at_desktop_width() -> None:
     set_section = code.split("private void SetSection", 1)[1].split("private void", 1)[0]
     resize = _handler("ApplyResponsiveLayout")
     assert 'ContextKnowledgeSubnav.IsVisible = section is "evidence" or "library" or "source-reader" or "knowledge";' in set_section
-    assert 'var showContextSidebar = !mobile && frameSize.Width >= 1120;' in resize
-    assert 'CompactContextNavigation.IsVisible = !showContextSidebar;' in resize
+    assert 'var showContextSidebar = !mobile && frameSize.Width >= 1120 && _activeSection != "home";' in resize
+    assert 'CompactContextNavigation.IsVisible = !showContextSidebar && _activeSection != "home";' in resize
     assert 'PrimaryRail.IsVisible = !mobile;' in resize
     assert "if (!_responsiveLayoutInitialized)" in resize
     assert "_inspectorDrawerOpen = false;" in resize
@@ -2109,7 +2109,7 @@ def test_wide_desktop_keeps_inspector_optional_and_bounded_workspace_at_1920_256
     code = CODE.read_text(encoding="utf-8")
     theme = THEME_XAML.read_text(encoding="utf-8")
 
-    assert _control('MainFrameGrid').get('ColumnDefinitions') == '280,0,*,0'
+    assert _control('MainFrameGrid').get('ColumnDefinitions') == '84,0,*,0'
     assert 'x:Name="InspectorPanel"' in xaml
     assert 'GetAaosBreakpoint("AaosInspectorBreakpoint", 1440)' in code
     assert 'InspectorDrawerButton.IsVisible = true;' in code
@@ -2124,7 +2124,7 @@ def test_aaos_default_shell_uses_b10_chrome_and_collapsed_activity() -> None:
     code = CODE.read_text(encoding="utf-8")
 
     assert _control('MainFrameGrid').get('RowDefinitions') == 'Auto,*,Auto,Auto'
-    assert _control('MainFrameGrid').get('ColumnDefinitions') == '280,0,*,0'
+    assert _control('MainFrameGrid').get('ColumnDefinitions') == '84,0,*,0'
     assert _control('TopbarShell').get('Padding') == '24,12'
     assert 'x:Name="TopbarCommandButton"' in xaml
     assert _control('HomeHeroVisual').tag.endswith('AaosMemoryGraphView')

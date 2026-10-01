@@ -24,7 +24,7 @@ namespace ArcheAxis.Desktop;
 
 public partial class MainWindow : Window
 {
-    private const double MasterSidebarWidth = 280d;
+    private const double MasterSidebarWidth = 84d;
     private const int ReviewFlipDurationMs = 550;
     private ScaleTransform ToastEntranceScale = null!;
     private TranslateTransform ToastEntranceTranslation = null!;
@@ -4180,9 +4180,10 @@ public partial class MainWindow : Window
         var mobileBreakpoint = GetAaosBreakpoint("AaosMobileBreakpoint", 840);
         var mobile = frameSize.Width <= mobileBreakpoint;
         var sidebarWidth = MasterSidebarWidth;
-        var desktopWorkspaceWidth = Math.Max(0, frameSize.Width - (mobile ? 0 : sidebarWidth));
+        var showContextSidebar = !mobile && frameSize.Width >= 1120 && _activeSection != "home";
+        var desktopWorkspaceWidth = Math.Max(0, frameSize.Width - (mobile ? 0 : sidebarWidth) - (showContextSidebar ? 200 : 0));
         var wideInspector = frameSize.Width >= inspectorBreakpoint;
-        var contentWidth = Math.Max(0, frameSize.Width - (mobile ? 0 : sidebarWidth) - (_inspectorDrawerOpen && wideInspector ? 320 : 0));
+        var contentWidth = Math.Max(0, desktopWorkspaceWidth - (_inspectorDrawerOpen && wideInspector ? 320 : 0));
         var hideInspector = !wideInspector;
         var compact = contentWidth <= tabletBreakpoint;
         var workspaceStacked = contentWidth < GetAaosBreakpoint("AaosWorkspaceStackBreakpoint", 900);
@@ -4320,9 +4321,8 @@ public partial class MainWindow : Window
         var visibleInspectorLabel = _inspectorDrawerOpen ? "关闭证据检查器" : "打开证据检查器";
         InspectorDrawerButton.Content = mobile ? "检查器" : visibleInspectorLabel;
         Avalonia.Automation.AutomationProperties.SetName(InspectorDrawerButton, visibleInspectorLabel);
-        var showContextSidebar = !mobile && frameSize.Width >= 1120;
         ContextSidebar.IsVisible = showContextSidebar;
-        CompactContextNavigation.IsVisible = !showContextSidebar;
+        CompactContextNavigation.IsVisible = !showContextSidebar && _activeSection != "home";
         PrimaryRail.IsVisible = !mobile;
         Grid.SetColumn(TopbarShell, mobile ? 0 : 2);
         Grid.SetColumnSpan(TopbarShell, mobile ? 4 : 2);

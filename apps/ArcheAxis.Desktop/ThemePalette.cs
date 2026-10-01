@@ -22,10 +22,10 @@ internal static class ThemePalette
         foreach (var (key, value) in colors)
             resources[key] = new SolidColorBrush(Color.Parse(value));
 
-        resources["AaosGraphGlowColor"] = Color.Parse(palette == Aurora ? "#6622D6D2" : "#66E1E4E6");
+        resources["AaosGraphGlowColor"] = Color.Parse(palette == Aurora ? "#662EC4B6" : "#66E1E4E6");
         resources["AaosBrandMarkGlowEffect"] = new DropShadowEffect
         {
-            Color = Color.Parse(palette == Aurora ? "#661FC8C5" : "#66E1E4E6"),
+            Color = Color.Parse(palette == Aurora ? "#66F4D08B" : "#66E1E4E6"),
             BlurRadius = 30,
             OffsetX = 0,
             OffsetY = 10,
@@ -50,8 +50,8 @@ internal static class ThemePalette
 
     private static LinearGradientBrush BrandGradient(string palette, IReadOnlyDictionary<string, string> colors)
     {
-        var start = palette == Aurora ? "#37CAC7" : "#E2E5E7";
-        var end = palette == Aurora ? "#90C291" : "#ADB4B8";
+        var start = palette == Aurora ? colors["AaosGoldBrush"] : "#E2E5E7";
+        var end = palette == Aurora ? colors["AaosPrimaryBrush"] : "#ADB4B8";
         return Gradient(start, end);
     }
 
@@ -119,17 +119,17 @@ internal static class ThemePalette
         ["AaosReviewBrush"] = "#E6BE73",
         ["AaosIvoryBrush"] = "#F8F6EB",
         ["AaosMutedBrush"] = "#96AAB4",
-        ["AaosOverlayBrush"] = "#9E061118",
+        ["AaosOverlayBrush"] = "#9E081020",
         ["AaosPrimaryGradientEnd"] = "#63DED3",
-        ["AaosBrandMarkEnd"] = "#8DC398",
+        ["AaosBrandMarkEnd"] = "#2EC4B6",
         ["AaosGridBrush"] = "#0DFFFFFF",
-        ["AaosAmbientPrimaryBrush"] = "#661FC8C5",
-        ["AaosAmbientSecondaryBrush"] = "#55E6BE73",
-        ["AaosAmbientTertiaryBrush"] = "#401FC8C5",
-        ["AaosNavActiveStart"] = "#14343D",
-        ["AaosNavActiveEnd"] = "#102630",
-        ["AaosAmbientStart"] = "#1FC8C5",
-        ["AaosAmbientMiddle"] = "#136F79",
-        ["AaosAmbientEnd"] = "#0C1C26",
+        ["AaosAmbientPrimaryBrush"] = "#662EC4B6",
+        ["AaosAmbientSecondaryBrush"] = "#55F4D08B",
+        ["AaosAmbientTertiaryBrush"] = "#402EC4B6",
+        ["AaosNavActiveStart"] = "#173B47",
+        ["AaosNavActiveEnd"] = "#101D2E",
+        ["AaosAmbientStart"] = "#2EC4B6",
+        ["AaosAmbientMiddle"] = "#1B7775",
+        ["AaosAmbientEnd"] = "#101D2E",
     };
 }

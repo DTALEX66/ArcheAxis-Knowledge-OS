@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Window xmlns="https://github.com/avaloniaui" xmlns:d="http://schemas.microsoft.com/expression/blend/2008" xmlns:local="using:ArcheAxis.Desktop" xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" xmlns:views="using:ArcheAxis.Desktop.Views" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" mc:Ignorable="d" d:DesignWidth="1920" d:DesignHeight="1080" Width="1440" Height="900" MinWidth="720" MinHeight="560" WindowStartupLocation="CenterScreen" x:Class="ArcheAxis.Desktop.MainWindow" Title="ArcheAxis Knowledge" AutomationProperties.Name="星环知识平台（ArcheAxis Knowledge）" Icon="/Assets/aaos-app-icon.ico" KeyDown="OnWindowKeyDown">
-  <Grid x:Name="MainFrameGrid" RowDefinitions="Auto,*,Auto,Auto" ColumnDefinitions="280,0,*,0" Background="{DynamicResource AaosBackgroundBrush}" SizeChanged="OnMainFrameSizeChanged">
+  <Grid x:Name="MainFrameGrid" RowDefinitions="Auto,*,Auto,Auto" ColumnDefinitions="84,0,*,0" Background="{DynamicResource AaosBackgroundBrush}" SizeChanged="OnMainFrameSizeChanged">
     <local:AaosBackdrop Grid.Row="0" Grid.RowSpan="4" Grid.Column="0" Grid.ColumnSpan="4" IsHitTestVisible="False" />
     <Border x:Name="TopbarShell" Grid.Row="0" Grid.Column="2" Grid.ColumnSpan="2" MinHeight="78" Padding="24,12" Background="{DynamicResource AaosSidebarBrush}" BorderBrush="{DynamicResource AaosBorderBrush}" BorderThickness="0,0,0,1">
       <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="20">
@@ -69,12 +69,12 @@
         </StackPanel>
       </Grid>
     </Border>
-    <Border x:Name="PrimaryRail" Grid.Row="0" Grid.RowSpan="4" Grid.Column="0" Width="280" Padding="18,14" Background="{DynamicResource AaosSidebarBrush}" BorderBrush="{DynamicResource AaosBorderBrush}" BorderThickness="0,0,1,0">
+    <Border x:Name="PrimaryRail" Grid.Row="0" Grid.RowSpan="4" Grid.Column="0" Width="84" Padding="8,14" Background="{DynamicResource AaosSidebarBrush}" BorderBrush="{DynamicResource AaosBorderBrush}" BorderThickness="0,0,1,0">
       <Grid RowDefinitions="Auto,*,Auto" RowSpacing="12">
         <Border x:Name="PrimaryRailBrand" Grid.Row="0" Padding="8,8,10,22" Margin="0,0,0,4" BorderBrush="{DynamicResource AaosBorderBrush}" BorderThickness="0,0,0,1" AutomationProperties.Name="ArcheAxis Knowledge">
           <StackPanel Orientation="Horizontal" Spacing="14" VerticalAlignment="Center">
             <local:AaosBrandMark x:Name="SidebarBrandMark" Width="48" Height="48" VerticalAlignment="Center" />
-            <StackPanel Width="164" Spacing="3" VerticalAlignment="Center">
+            <StackPanel Width="164" Spacing="3" VerticalAlignment="Center" IsVisible="False">
               <TextBlock Text="ArcheAxis" FontSize="17" TextTrimming="CharacterEllipsis" ToolTip.Tip="ArcheAxis Knowledge" AutomationProperties.Name="ArcheAxis Knowledge" FontWeight="Bold" Foreground="{DynamicResource AaosIvoryBrush}" />
               <TextBlock Text="EVIDENCE · MEMORY · HUMAN + AI" TextWrapping="Wrap" FontSize="9" LetterSpacing="1.0" Foreground="{DynamicResource AaosPrimaryBrush}" />
             </StackPanel>
@@ -85,64 +85,64 @@
             <Button x:Name="RailWorkspaceButton" Classes="rail-button master-nav-button active" MinHeight="44" Padding="14,12" HorizontalAlignment="Stretch" HorizontalContentAlignment="Left" Click="OnHomeClick" ToolTip.Tip="首页" AutomationProperties.Name="打开首页">
               <StackPanel Orientation="Horizontal" Spacing="12" VerticalAlignment="Center">
                 <local:AaosIcon Width="20" Height="20" IconName="Home" Foreground="{DynamicResource AaosPrimaryBrush}" />
-                <TextBlock Text="首页" VerticalAlignment="Center" />
+                <TextBlock Text="首页" VerticalAlignment="Center" IsVisible="False" />
               </StackPanel>
             </Button>
             <Button x:Name="RailCaptureButton" Classes="rail-button master-nav-button" MinHeight="44" Padding="14,12" HorizontalAlignment="Stretch" HorizontalContentAlignment="Left" Click="OnCaptureClick" ToolTip.Tip="捕获" AutomationProperties.Name="打开捕获">
               <StackPanel Orientation="Horizontal" Spacing="12" VerticalAlignment="Center">
                 <local:AaosIcon Width="20" Height="20" IconName="Import" Foreground="{DynamicResource AaosPrimaryBrush}" />
-                <TextBlock Text="捕获" VerticalAlignment="Center" />
+                <TextBlock Text="捕获" VerticalAlignment="Center" IsVisible="False" />
               </StackPanel>
             </Button>
             <Button x:Name="RailEvidenceButton" Classes="rail-button master-nav-button" MinHeight="44" Padding="14,12" HorizontalAlignment="Stretch" HorizontalContentAlignment="Left" Click="OnEvidenceClick" ToolTip.Tip="证据库" AutomationProperties.Name="打开证据库">
               <StackPanel Orientation="Horizontal" Spacing="12" VerticalAlignment="Center">
                 <local:AaosIcon Width="20" Height="20" IconName="Evidence" Foreground="{DynamicResource AaosPrimaryBrush}" />
-                <TextBlock Text="证据库" VerticalAlignment="Center" />
+                <TextBlock Text="证据库" VerticalAlignment="Center" IsVisible="False" />
               </StackPanel>
             </Button>
             <Button x:Name="RailOriginalsButton" Classes="rail-button master-nav-button" MinHeight="44" Padding="14,12" HorizontalAlignment="Stretch" HorizontalContentAlignment="Left" Click="OnOriginalEditorClick" ToolTip.Tip="原创" AutomationProperties.Name="打开原创编辑器">
               <StackPanel Orientation="Horizontal" Spacing="12" VerticalAlignment="Center">
                 <local:AaosIcon Width="20" Height="20" IconName="Original" Foreground="{DynamicResource AaosPrimaryBrush}" />
-                <TextBlock Text="原创" VerticalAlignment="Center" />
+                <TextBlock Text="原创" VerticalAlignment="Center" IsVisible="False" />
               </StackPanel>
             </Button>
             <Button x:Name="RailLearningButton" Classes="rail-button master-nav-button" MinHeight="44" Padding="14,12" HorizontalAlignment="Stretch" HorizontalContentAlignment="Left" Click="OnLearningNavigationClick" ToolTip.Tip="人类学习" AutomationProperties.Name="打开人类学习">
               <StackPanel Orientation="Horizontal" Spacing="12" VerticalAlignment="Center">
                 <local:AaosIcon Width="20" Height="20" IconName="HumanAi" Foreground="{DynamicResource AaosPrimaryBrush}" />
-                <TextBlock Text="人类学习" VerticalAlignment="Center" />
+                <TextBlock Text="人类学习" VerticalAlignment="Center" IsVisible="False" />
               </StackPanel>
             </Button>
             <Button x:Name="RailMachineButton" Classes="rail-button master-nav-button" MinHeight="44" Padding="14,12" HorizontalAlignment="Stretch" HorizontalContentAlignment="Left" Click="OnMachineGrowthClick" ToolTip.Tip="机器学习" AutomationProperties.Name="打开机器学习">
               <StackPanel Orientation="Horizontal" Spacing="12" VerticalAlignment="Center">
                 <local:AaosIcon Width="20" Height="20" IconName="Connection" Foreground="{DynamicResource AaosPrimaryBrush}" />
-                <TextBlock Text="机器学习" VerticalAlignment="Center" />
+                <TextBlock Text="机器学习" VerticalAlignment="Center" IsVisible="False" />
               </StackPanel>
             </Button>
             <Button x:Name="RailWorkspaceTreeButton" Classes="rail-button master-nav-button" MinHeight="44" Padding="14,12" HorizontalAlignment="Stretch" HorizontalContentAlignment="Left" Click="OnWorkspaceRouteClick" ToolTip.Tip="工作区" AutomationProperties.Name="打开工作区">
               <StackPanel Orientation="Horizontal" Spacing="12" VerticalAlignment="Center">
                 <local:AaosIcon Width="20" Height="20" IconName="Workspace" Foreground="{DynamicResource AaosPrimaryBrush}" />
-                <TextBlock Text="工作区" VerticalAlignment="Center" />
+                <TextBlock Text="工作区" VerticalAlignment="Center" IsVisible="False" />
               </StackPanel>
             </Button>
             <Button x:Name="RailMemoryMapButton" Classes="rail-button master-nav-button" MinHeight="44" Padding="14,12" HorizontalAlignment="Stretch" HorizontalContentAlignment="Left" Click="OnMemoryMapClick" ToolTip.Tip="记忆地图" AutomationProperties.Name="打开记忆地图">
               <StackPanel Orientation="Horizontal" Spacing="12" VerticalAlignment="Center">
                 <local:AaosIcon Width="20" Height="20" IconName="Memory" Foreground="{DynamicResource AaosPrimaryBrush}" />
-                <TextBlock Text="记忆地图" VerticalAlignment="Center" />
+                <TextBlock Text="记忆地图" VerticalAlignment="Center" IsVisible="False" />
               </StackPanel>
             </Button>
             <Button x:Name="RailSearchButton" Classes="rail-button master-nav-button" MinHeight="44" Padding="14,12" HorizontalAlignment="Stretch" HorizontalContentAlignment="Left" Click="OnSearchClick" ToolTip.Tip="搜索" AutomationProperties.Name="打开搜索">
               <StackPanel Orientation="Horizontal" Spacing="12" VerticalAlignment="Center">
                 <local:AaosIcon Width="20" Height="20" IconName="Search" Foreground="{DynamicResource AaosPrimaryBrush}" />
-                <TextBlock Text="搜索" VerticalAlignment="Center" />
+                <TextBlock Text="搜索" VerticalAlignment="Center" IsVisible="False" />
               </StackPanel>
             </Button>
             <Button x:Name="RailReviewButton" Classes="rail-button master-nav-button" MinHeight="44" Padding="14,12" HorizontalAlignment="Stretch" HorizontalContentAlignment="Left" Click="OnReviewClick" ToolTip.Tip="复习 / FSRS" AutomationProperties.Name="打开复习与 FSRS">
               <StackPanel Orientation="Horizontal" Spacing="12" VerticalAlignment="Center">
                 <local:AaosIcon Width="20" Height="20" IconName="Review" Foreground="{DynamicResource AaosPrimaryBrush}" />
-                <TextBlock Text="复习 / FSRS" VerticalAlignment="Center" />
+                <TextBlock Text="复习 / FSRS" VerticalAlignment="Center" IsVisible="False" />
               </StackPanel>
             </Button>
-            <Expander Header="未来能力 · 待开发" IsExpanded="False" AutomationProperties.Name="展开未来能力蓝图，只读">
+            <Expander Header="蓝图" ToolTip.Tip="未来能力 · 待开发" IsExpanded="False" AutomationProperties.Name="展开未来能力蓝图，只读">
               <StackPanel Spacing="6" Margin="10,6,0,8">
                 <TextBlock Text="蓝图保留 · 当前不可执行" TextWrapping="Wrap" FontSize="11" Foreground="{DynamicResource AaosMutedBrush}" />
                 <TextBlock Text="视觉教学 / 仿真 / 空间记忆" TextWrapping="Wrap" FontSize="11" Foreground="{DynamicResource AaosMutedBrush}" />
@@ -176,7 +176,7 @@
           <Button x:Name="RailSystemButton" Classes="rail-button master-nav-button" MinHeight="44" Padding="14,10" HorizontalAlignment="Stretch" HorizontalContentAlignment="Left" Click="OnSettingsClick" ToolTip.Tip="设置与恢复" AutomationProperties.Name="打开设置与恢复">
             <StackPanel Orientation="Horizontal" Spacing="12" VerticalAlignment="Center">
               <local:AaosIcon Width="20" Height="20" IconName="Settings" Foreground="{DynamicResource AaosPrimaryBrush}" />
-              <TextBlock Text="设置与恢复" VerticalAlignment="Center" />
+              <TextBlock Text="设置与恢复" VerticalAlignment="Center" IsVisible="False" />
             </StackPanel>
           </Button>
         </Border>
@@ -992,7 +992,7 @@
                 <Button x:Name="SearchPageSubmitButton" Grid.Column="1" Classes="primary-action" Click="OnSearchPageClick" Padding="22,12" AutomationProperties.Name="提交全局知识搜索">
                   <StackPanel Orientation="Horizontal" Spacing="8">
                     <local:AaosIcon Width="16" Height="16" IconName="Search" />
-                    <TextBlock Text="搜索" VerticalAlignment="Center" />
+                    <TextBlock Text="搜索" VerticalAlignment="Center" IsVisible="False" />
                   </StackPanel>
                 </Button>
               </Grid>

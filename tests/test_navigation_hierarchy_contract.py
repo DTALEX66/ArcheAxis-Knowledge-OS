@@ -34,14 +34,14 @@ class NavigationHierarchyContract(unittest.TestCase):
                      "ContextMemorySubnav", "ContextSearchSubnav", "ContextSystemSubnav",
                      "CompactContextNavigation", "BreadcrumbDomainButton"):
             self.assertIn(name, self.named)
-        self.assertIn("var showContextSidebar = !mobile && frameSize.Width >= 1120;", self.code)
-        self.assertIn("CompactContextNavigation.IsVisible = !showContextSidebar;", self.code)
+        self.assertIn('var showContextSidebar = !mobile && frameSize.Width >= 1120 && _activeSection != "home";', self.code)
+        self.assertIn('CompactContextNavigation.IsVisible = !showContextSidebar && _activeSection != "home";', self.code)
         self.assertIn('section is "evidence" or "library" or "source-reader" or "knowledge"', self.code)
         self.assertIn("OnBreadcrumbDomainClick", self.code)
 
     def test_blueprint_is_read_only_and_no_sample_person(self):
         text = XAML.read_text(encoding="utf-8")
-        self.assertIn('Header="未来能力 · 待开发"', text)
+        self.assertIn('Header="蓝图" ToolTip.Tip="未来能力 · 待开发"', text)
         self.assertIn("Capability Atlas V2", text)
         self.assertNotIn('Text="Alex"', text)
         self.assertNotIn('Text="Personal Workspace"', text)
