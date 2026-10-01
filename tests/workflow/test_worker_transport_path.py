@@ -67,14 +67,20 @@ def test_a_deeper_staged_root_still_resolves(tmp_path):
 def test_no_worker_still_uses_a_fixed_parent_depth_for_the_transport():
     """A regression guard: the fixed-index derivation must be gone everywhere.
 
-    Matches the code form `.parents[3]`, not the explanatory comment that names the
-    old derivation.
+    The guard is about how a worker *locates the transport*, so it looks at the transport
+    candidate expression rather than at any `.parents[3]` in the file. A worker may use a
+    fixed index for something else - `worker_transcribe.py` derives the repository root that
+    way, which is correct for a file at `services/python-workers/media/` - and flagging that
+    would be a false positive that pushes a worker away from a right answer.
     """
     offenders = []
     for path in MODULE.parent.rglob("worker_*.py"):
         text = path.read_text(encoding="utf-8")
-        if ".parents[3]" in text and "text_ndjson" in text:
-            offenders.append(path.name)
+        for line in text.splitlines():
+            if "text_ndjson" not in line:
+                continue
+            if ".parents[3]" in line:
+                offenders.append(f"{path.name}: {line.strip()}")
     assert offenders == [], f"workers still locating the transport by fixed depth: {offenders}"
 
 

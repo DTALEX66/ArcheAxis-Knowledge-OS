@@ -357,6 +357,9 @@ pub const KNOWN_WORKER_IDENTITIES: &[&str] = &[
     "python-worker-subtitles-ndjson",
     "python-worker-html-ndjson",
     "python-worker-caption-ndjson",
+    // the ASR route's identity; a route with no identity here is refused with
+    // "unexpected worker identity" before it can serve anything
+    "python-worker-transcribe-ndjson",
 ];
 
 fn run_worker(

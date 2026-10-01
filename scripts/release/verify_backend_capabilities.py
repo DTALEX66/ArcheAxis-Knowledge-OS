@@ -48,6 +48,13 @@ REQUIREMENTS: dict[str, dict[str, list[str]]] = {
         "executables": ["tesseract", "tesseract-languages"],
     },
     "media.probe": {},
+    "media.transcribe": {
+        # The ASR engine is imported inside extract(), and the model is a directory that must
+        # exist on disk. The model cannot be checked by this script without loading 1.6 GB,
+        # so it is reported as unverifiable here and named as the reason.
+        "modules": ["faster_whisper"],
+        "model": ["faster-whisper model directory (ARCHEAXIS_ASR_MODEL_DIR)"],
+    },
     "office.structure": {"modules": ["openpyxl", "pptx", "pymupdf"]},
     "pdf.extract": {"modules": ["pymupdf"]},
     "subtitles.structure": {},

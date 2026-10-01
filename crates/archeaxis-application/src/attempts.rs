@@ -21,6 +21,10 @@ pub const ENGINE_PROFILES: &[(&str, &str)] = &[
     ("python-worker-subtitles", "0.1.0"),
     ("python-worker-html", "0.1.0"),
     ("python-worker-caption", "0.1.0"),
+    // The ASR engine. It was real and verified - 3,362 characters from a real Chinese
+    // recording - but no route named it, so no job could reach it. A receipt may not report
+    // this engine until the route below exists.
+    ("python-worker-transcribe", "0.1.0"),
 ];
 
 /// R08: the extraction routes the Core can dispatch, declared once. A job's kind
@@ -58,6 +62,10 @@ pub const ROUTES: &[(&str, &str, &str)] = &[
     // engine profile. What it produces is a candidate description, never extracted text,
     // and a missing model is a named failure rather than an empty success.
     ("caption", "image.caption", "image/png"),
+    // The pack requires real audio before final closure. A recording is binary and its
+    // projection is a transcript with time-coded cues, so it gets its own kind, capability
+    // and worker rather than being probed as a container.
+    ("transcribe", "media.transcribe", "audio/wav"),
 ];
 
 /// Resolve a job kind to its route: (capability, input media type).
@@ -99,6 +107,19 @@ pub const ROUTE_MEDIA_TYPES: &[(&str, &[&str])] = &[
     ),
     ("archive.inventory", &["application/zip"]),
     ("media.probe", &["video/mp4", "audio/wav"]),
+    (
+        "media.transcribe",
+        &[
+            "audio/mpeg",
+            "audio/mp4",
+            "audio/x-m4a",
+            "audio/flac",
+            "audio/ogg",
+            "audio/opus",
+            "audio/wav",
+            "audio/x-wav",
+        ],
+    ),
     (
         "office.structure",
         &[
@@ -164,9 +185,21 @@ pub fn media_type_for_name(name: &str) -> Option<&'static str> {
         // R15/F15: a container gets the archive route, not a text decode
         "zip" => "application/zip",
         // R15/F10-F11: the formats this repository can probe without decoding samples.
-        // mp3, m4a, flac, mkv and webm are deliberately NOT named: no reader here can
-        // read them, so a name that claims otherwise would be dispatched as noise.
+        // mkv and webm are still deliberately NOT named: no reader here can read them, so a
+        // name that claims otherwise would be dispatched as noise.
+        //
+        // The audio containers below WERE deliberately unnamed, on the grounds that no
+        // reader here could read them. That stopped being true when the ASR route was
+        // declared: `media.transcribe` has a reader for exactly these, so naming them lets
+        // a real recording reach it instead of being custody-only. They stay out of
+        // `media.probe`'s accepted types, so the probe still refuses a format it cannot
+        // read rather than reporting a header it does not understand.
         "wav" => "audio/wav",
+        "mp3" => "audio/mpeg",
+        "m4a" => "audio/mp4",
+        "flac" => "audio/flac",
+        "ogg" | "oga" => "audio/ogg",
+        "opus" => "audio/opus",
         "mp4" | "m4v" | "mov" => "video/mp4",
         // R15/F07-F09: the OOXML families this repository can read; the legacy binary
         // formats (doc, ppt, xls) are deliberately NOT named, so they stay custody-only

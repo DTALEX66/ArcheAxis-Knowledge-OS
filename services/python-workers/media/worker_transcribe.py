@@ -34,24 +34,31 @@ from pathlib import Path
 
 ENGINE = "python-worker-transcribe"
 ENGINE_VERSION = "0.1.0"
+WORKER_IDENTITY = "python-worker-transcribe-ndjson"
+CAPABILITY = "media.transcribe"
 
 PROJECT_ROOT = Path(__file__).resolve().parents[3]
 DEFAULT_MODEL_DIR = PROJECT_ROOT.parent / "Model library" / "whisper" / "faster-whisper-large-v3-turbo"
 
 
 def _load_tool_paths():
+    """The shared resolver, loaded from this worker's own tree.
+
+    Failing to load it is not the same as failing to read a declaration, so the two are
+    kept apart: this returns None when the module is not there, while `declared()` below
+    lets a manifest that exists but cannot be read raise. A broad `except` around both -
+    which this once had - reported an unreadable manifest as "nothing declared", the
+    failure mode the resolver was changed to stop making.
+    """
     module_path = Path(__file__).resolve().parent.parent / "tool_paths.py"
     if not module_path.is_file():
         return None
-    try:
-        spec = importlib.util.spec_from_file_location("worker_tool_paths", module_path)
-        if spec is None or spec.loader is None:
-            return None
-        module = importlib.util.module_from_spec(spec)
-        spec.loader.exec_module(module)
-        return module
-    except Exception:  # noqa: BLE001 - a worker keeps its own fallback
+    spec = importlib.util.spec_from_file_location("worker_tool_paths", module_path)
+    if spec is None or spec.loader is None:
         return None
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
 
 
 def _declared_path(name: str) -> str | None:
@@ -197,6 +204,30 @@ def extract(path: str, model_path: str | None, language: str, device: str) -> di
 
 
 def main() -> int:
+    # The sidecar branch first, before the CLI parser: the Core spawns a worker with
+    # `--staging-root` and speaks the NDJSON protocol on stdio. Without this mode the
+    # engine was real, verified and completely unreachable from any Core job - which is
+    # what tests/test_worker_route_coverage.py now exists to catch.
+    if "--staging-root" in sys.argv:
+        _transport_candidates = (
+            Path(__file__).resolve().parent.parent / "transport" / "text_ndjson.py",
+            Path(__file__).resolve().parents[2] / "services" / "python-workers" / "transport" / "text_ndjson.py",
+        )
+        _transport = next((p for p in _transport_candidates if p.is_file()),
+                          _transport_candidates[0])
+        spec = importlib.util.spec_from_file_location("transcribe_transport", _transport)
+        if spec is None or spec.loader is None:
+            print(json.dumps({"error": "transport module is missing", "engine": ENGINE}))
+            return 1
+        transport = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(transport)
+        parser = argparse.ArgumentParser(description=__doc__)
+        parser.add_argument("--staging-root", type=Path, required=True)
+        parser.add_argument("--artifact-root", type=Path, default=None)
+        args = parser.parse_args()
+        return transport.serve_stdio(WORKER_IDENTITY, [CAPABILITY], args.staging_root,
+                                     args.artifact_root)
+
     parser = argparse.ArgumentParser(description="ArcheAxis local ASR worker")
     parser.add_argument("input", nargs="?", help="media file")
     parser.add_argument("--model-dir", default=None)

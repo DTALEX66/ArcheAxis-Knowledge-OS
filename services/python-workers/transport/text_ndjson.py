@@ -244,6 +244,25 @@ ROUTES = {
         "media_types": {"video/mp4", "audio/wav"},
         "call": "path",
     },
+    # The pack requires real audio before final closure. The ASR engine, its model and its
+    # path resolution were all real and verified, but nothing declared the capability, so
+    # no Core job could reach it. Audio formats are named here that the probe route
+    # deliberately does not guess at, because this route has a reader for them.
+    "media.transcribe": {
+        "version": "1",
+        "worker": "services/python-workers/media/worker_transcribe.py",
+        "media_types": {
+            "audio/mpeg",
+            "audio/mp4",
+            "audio/x-m4a",
+            "audio/flac",
+            "audio/ogg",
+            "audio/opus",
+            "audio/wav",
+            "audio/x-wav",
+        },
+        "call": "transcribe",
+    },
     # R15/F07-F09: an Office package is a ZIP of XML parts; this route reaches the
     # worker that already read them since the 2026-09-05 slice but had no route.
     "office.structure": {
@@ -316,6 +335,19 @@ _IMAGE_SUFFIX = {
     "image/tiff": ".tiff",
     "image/webp": ".webp",
     "image/bmp": ".bmp",
+}
+
+# The ASR worker hands the path to its engine, which selects a decoder by suffix, so the
+# content-addressed staged name needs a route-local view carrying the real extension.
+_AUDIO_SUFFIX = {
+    "audio/mpeg": ".mp3",
+    "audio/mp4": ".m4a",
+    "audio/x-m4a": ".m4a",
+    "audio/flac": ".flac",
+    "audio/ogg": ".ogg",
+    "audio/opus": ".opus",
+    "audio/wav": ".wav",
+    "audio/x-wav": ".wav",
 }
 
 # R15/F07-F09 + F12: a worker that dispatches on the file suffix cannot read staging's
@@ -420,6 +452,24 @@ def _run_route(route, source: Path, media_type: str, artifact_root: Path | None 
         # the directory is one that actually holds that language.
         language = _ocr_language()
         return module.extract(view, language, _ocr_tessdata(language))
+    if route["call"] == "transcribe":
+        # The ASR worker dispatches on the suffix, and it takes its model directory and
+        # language as arguments. Both default to the worker's own resolution - the declared
+        # model and language detection - so the transport passes them only when an operator
+        # has configured them, rather than inventing a default here.
+        suffix = _AUDIO_SUFFIX.get(media_type.split(";", 1)[0].strip().lower())
+        view = source
+        if suffix is not None:
+            view = _materialise_view(source, suffix)
+        kwargs: dict = {}
+        model_dir = os.environ.get("ARCHEAXIS_ASR_MODEL_DIR", "").strip()
+        kwargs["model_path"] = model_dir or None
+        # Default to detection: the language is a property of the recording, so the
+        # transport does not pin one unless an operator has.
+        kwargs["language"] = os.environ.get("ARCHEAXIS_ASR_LANG", "").strip() or "auto"
+        kwargs["device"] = os.environ.get("ARCHEAXIS_ASR_DEVICE", "").strip() or "cpu"
+        return _as_route_contract(module.extract(str(view), **kwargs),
+                                  route.get("capability", "route"))
     if route.get("suffix_by_media"):
         suffix = route["suffix_by_media"].get(media_type.split(";", 1)[0].strip().lower())
         if suffix is None:

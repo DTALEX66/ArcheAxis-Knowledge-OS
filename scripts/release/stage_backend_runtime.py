@@ -53,6 +53,7 @@ ROUTE_SCRIPTS: dict[str, tuple[str, ...]] = {
     "image.caption": ("workers/vision/worker_caption.py",),
     "image.ocr": ("workers/vision/worker_ocr.py",),
     "media.probe": ("workers/document/worker_media.py",),
+    "media.transcribe": ("workers/media/worker_transcribe.py",),
     "office.structure": ("workers/document/worker_office.py",),
     "pdf.extract": ("workers/document/worker_pdf.py",),
     "subtitles.structure": ("workers/document/worker_subtitles.py",),

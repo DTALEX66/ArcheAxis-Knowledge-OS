@@ -85,20 +85,40 @@ fn media_names_select_the_media_route_and_never_the_text_route() {
             "{name}: {error}"
         );
     }
-    // formats no reader here can read are refused by name rather than probed with a guess
-    for name in [
-        "song.mp3",
-        "audio.m4a",
-        "lossless.flac",
-        "movie.mkv",
-        "clip.webm",
-    ] {
+    // formats no reader here can read are refused by name rather than probed with a guess.
+    // The audio containers used to be in this list, on the grounds that no reader could read
+    // them; the `media.transcribe` route now has one, so they name their media type and the
+    // refusal moved to the route that genuinely cannot take them (asserted below).
+    for name in ["movie.mkv", "clip.webm"] {
         let error = attempts::resolve_media_type("media", name)
             .unwrap_err()
             .to_string();
         assert!(
             error.contains("cannot name a media type"),
             "{name}: {error}"
+        );
+    }
+    // a named audio container is refused by the *probe*, not by the namer: the probe reads
+    // container headers and must not be handed a format it cannot open.
+    for name in ["song.mp3", "audio.m4a", "lossless.flac"] {
+        let error = attempts::resolve_media_type("media", name)
+            .unwrap_err()
+            .to_string();
+        assert!(
+            error.contains("cannot accept media type"),
+            "{name}: {error}"
+        );
+        assert!(
+            attempts::resolve_media_type("transcribe", name).is_ok(),
+            "{name} must be accepted by the transcribe route"
+        );
+    }
+    // and the transcribe route refuses what it cannot decode, so the two readers stay
+    // disjoint rather than both claiming every binary name
+    for name in ["clip.mp4", "notes.pdf", "movie.mkv"] {
+        assert!(
+            attempts::resolve_media_type("transcribe", name).is_err(),
+            "{name} must not reach the ASR route"
         );
     }
 }

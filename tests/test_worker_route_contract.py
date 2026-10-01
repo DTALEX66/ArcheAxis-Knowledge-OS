@@ -53,4 +53,7 @@ def test_every_route_has_an_in_repo_worker_with_engine_and_extract():
         media_types = route.get("media_types")
         assert isinstance(media_types, (set, frozenset)) and media_types
         assert all(isinstance(media_type, str) and media_type.strip() for media_type in media_types)
-        assert route.get("call") in {"path", "ocr"}
+        # `transcribe` was added for the ASR route: it hands the worker a suffixed view of
+        # the audio plus the configured model path, language and device, which `path` (one
+        # positional argument) and `ocr` (language plus tessdata) cannot express.
+        assert route.get("call") in {"path", "ocr", "transcribe"}

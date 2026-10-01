@@ -223,6 +223,7 @@ WORKER_FILES = {
     "image.caption": "vision/worker_caption.py",
     "image.ocr": "vision/worker_ocr.py",
     "media.probe": "document/worker_media.py",
+    "media.transcribe": "media/worker_transcribe.py",
     "office.structure": "document/worker_office.py",
     "pdf.extract": "document/worker_pdf.py",
     "subtitles.structure": "document/worker_subtitles.py",
