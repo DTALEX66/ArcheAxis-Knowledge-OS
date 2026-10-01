@@ -20,6 +20,7 @@ from __future__ import annotations
 
 import argparse
 import contextlib
+import importlib.util
 import json
 import math
 import os
@@ -45,6 +46,58 @@ SUPPORTED = {".png", ".jpg", ".jpeg", ".webp", ".bmp", ".tiff", ".tif"}
 def _run(command: list[str], **kwargs) -> subprocess.CompletedProcess:
     # No visible Tesseract console when invoked from the desktop worker lane.
     return subprocess.run(command, creationflags=subprocess.CREATE_NO_WINDOW if os.name == "nt" else 0, **kwargs)
+
+
+def _declared_path(name: str) -> str | None:
+    """The declared external path for a tool, or None if it cannot be resolved.
+
+    Loaded by file path because a worker is executed as a standalone script with no
+    package import path. Resolution failures fall through to the caller's existing
+    behaviour so a machine that genuinely has no declaration notices no change.
+    """
+    module_path = Path(__file__).resolve().parent.parent / "tool_paths.py"
+    if not module_path.is_file():
+        return None
+    try:
+        spec = importlib.util.spec_from_file_location("worker_tool_paths", module_path)
+        if spec is None or spec.loader is None:
+            return None
+        module = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(module)
+        return module.tool_path(name)
+    except Exception:
+        return None
+
+
+def _usable_tessdata(candidate: Path | None) -> Path | None:
+    """A language-data directory that actually holds traineddata."""
+    if candidate is None:
+        return None
+    try:
+        if candidate.is_dir() and any(candidate.glob("*.traineddata")):
+            return candidate
+    except OSError:
+        return None
+    return None
+
+
+def _declared_tessdata() -> Path | None:
+    """Language data from the declared registry, when the ambient one is unusable.
+
+    Tesseract reads `TESSDATA_PREFIX` when no `--tessdata-dir` is given, so a stale
+    ambient value silently overrides a correctly resolved binary.  The declared
+    `tesseract-languages` entry is preferred whenever the ambient directory does not
+    actually contain language data.
+    """
+    ambient = _usable_tessdata(Path(os.environ["TESSDATA_PREFIX"])
+                               if os.environ.get("TESSDATA_PREFIX", "").strip() else None)
+    if ambient is not None:
+        return ambient
+    declared = _declared_path("tesseract-languages")
+    if not declared:
+        return None
+    base = Path(declared)
+    return _usable_tessdata(base) or _usable_tessdata(base / "tessdata")
 
 
 def _tesseract() -> str:
@@ -76,6 +129,12 @@ def _tesseract() -> str:
             derived = Path(tessdata).parent / "tesseract" / "current" / "tesseract.exe"
             if usable(derived):
                 return str(derived)
+    # R6 A02: resolve the engine from the declared external registry before
+    # guessing. The engine is installed and registered on this machine, but it is
+    # not on PATH, so `which` was reporting "unavailable" for a working engine.
+    declared = _declared_path("tesseract")
+    if declared and usable(Path(declared)):
+        return declared
     binary = shutil.which("tesseract")
     if binary and usable(Path(binary)):
         return binary
@@ -542,6 +601,10 @@ def main() -> int:
         return 2
     try:
         tessdata_dir = load_tessdata_dir(args.profile) if args.profile is not None else None
+        if tessdata_dir is None:
+            # No explicit profile: prefer declared language data over an ambient
+            # TESSDATA_PREFIX that may be stale (see _declared_tessdata).
+            tessdata_dir = _declared_tessdata()
         out = probe(args.lang, tessdata_dir) if args.probe else extract(Path(args.input), args.lang, tessdata_dir)
     except Exception as exc:  # noqa: BLE001
         print(json.dumps({"error": str(exc)}, ensure_ascii=False))
