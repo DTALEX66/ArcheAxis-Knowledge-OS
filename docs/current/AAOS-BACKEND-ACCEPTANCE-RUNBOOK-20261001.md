@@ -101,6 +101,39 @@ verdicts:  CONVERTED 9
 including `pdf` → `pymupdf-native-pdf`, `office/docx` → `python-worker-office`,
 `image/ocr` → `python-worker-ocr`, `media/mp4` → `python-worker-media`.
 
+## Stage 3 — the published contract's own claims
+
+`docs/current/AAOS-PRODUCTION-HTTP-CONTRACT-20261001.md` tells the UI branch what it may rely
+on. Every section of it is checked, and the whole set runs from one command per side:
+
+```bash
+# §1 process model and handshake, §2 authentication, §4 constant fields,
+# §5 conflicts and errors, §6 launch shape, §8 output boundaries
+cargo test -p archeaxis-api --test contract_process_model \
+                            --test contract_auth_boundaries \
+                            --test contract_constant_fields \
+                            --test contract_conflict_rules \
+                            --test contract_launch_shape \
+                            --test contract_job_outputs
+```
+
+```bash
+# §3 route inventory, and the index that keeps this list honest
+python -m pytest tests/maintenance/test_contract_route_inventory.py \
+                 tests/maintenance/test_contract_verification_map.py -q
+```
+
+`tests/maintenance/test_contract_verification_map.py` is the index: it maps each contract
+section to the artifact that checks it and fails if one is renamed, deleted, or emptied, or if
+the contract grows a section nothing covers. It does not re-check the claims — it keeps the
+links real, because a missing test does not fail, it simply does not run.
+
+§7's evidence is the probes in this runbook plus `scripts/release/verify_backend_capabilities.py`;
+§9's items each name the artifact that closed them, or are marked as Owner decisions.
+
+Requires `ARCHEAXIS_PYTHON` set to an interpreter (see the toolchain note), and nothing else:
+these drive the real binary or the real routers, so they need no provisioned runtime.
+
 ## What is not covered, on purpose
 
 * **`image.caption`** needs a vision model at an Ollama endpoint this host does not serve.
