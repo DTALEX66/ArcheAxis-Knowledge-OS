@@ -17,6 +17,8 @@
 
   <ItemGroup>
     <AvaloniaResource Include="Assets\aaos-app-icon.ico" />
+    <AvaloniaResource Include="Assets\home-planet-hero-20261001.png" />
+    <AvaloniaResource Include="Assets\home-planet-hero-monochrome-20261001.png" />
     <None Include="../../scripts/launch/deeptutor_web.py" Link="scripts/launch/deeptutor_web.py" CopyToOutputDirectory="PreserveNewest" />
     <PackageReference Include="Avalonia" Version="12.1.2" />
     <PackageReference Include="Avalonia.Desktop" Version="12.1.2" />

@@ -14,6 +14,7 @@ using Avalonia.Input.Platform;
 using Avalonia.Interactivity;
 using Avalonia.Media;
 using Avalonia.Media.Imaging;
+using Avalonia.Platform;
 using Avalonia.Platform.Storage;
 using Avalonia.Threading;
 using Avalonia.VisualTree;
@@ -651,6 +652,21 @@ public partial class MainWindow : Window
             ++_jobLookupRequestVersion;
         _activeSection = section;
         SetNavigationCurrentPage(section);
+        BreadcrumbDomainButton.Content = section switch
+        {
+            "capture" => "捕获",
+            "evidence" or "library" or "source-reader" or "knowledge" => "证据库",
+            "original-editor" => "原创",
+            "learning" => "人类学习",
+            "review" => "复习 / FSRS",
+            "machine-growth" => "机器学习",
+            "workspace" or "research" => "工作区",
+            "memory-map" => "记忆",
+            "search" => "搜索",
+            "jobs" or "recovery" or "settings" or "plugins" or "models" => "设置与恢复",
+            _ => "工作台"
+        };
+        BreadcrumbPageText.Text = section == "home" ? "概览" : heading;
         var displayHeading = section == "evidence" && EvidenceCenterView.IsDetailOpen ? "证据详情" : heading;
         WorkspaceHeadingText.Text = displayHeading;
         HomePageDescription.IsVisible = section == "home";
@@ -748,12 +764,26 @@ public partial class MainWindow : Window
         HomeEvidenceContentGrid.IsVisible = section == "home";
         ContextWorkspaceSubnav.IsVisible = section == "home";
         ContextCaptureSubnav.IsVisible = section == "capture";
-        ContextKnowledgeSubnav.IsVisible = section is "library" or "search" or "source-reader" or "knowledge" or "original-editor" or "memory-map";
+        ContextKnowledgeSubnav.IsVisible = section is "evidence" or "library" or "source-reader" or "knowledge";
+        ContextOriginalSubnav.IsVisible = section == "original-editor";
         ContextLearningSubnav.IsVisible = section is "learning" or "review";
         ContextMachineSubnav.IsVisible = section == "machine-growth";
-        ContextSystemSubnav.IsVisible = section is "jobs" or "recovery" or "settings";
-        ContextSidebar.IsVisible = false;
-        MainFrameGrid.ColumnDefinitions[1].Width = new GridLength(0);
+        ContextProjectSubnav.IsVisible = section is "workspace" or "research";
+        ContextMemorySubnav.IsVisible = section == "memory-map";
+        ContextSearchSubnav.IsVisible = section == "search";
+        ContextSystemSubnav.IsVisible = section is "jobs" or "recovery" or "settings" or "plugins" or "models";
+        ContextObjectPathText.Text = section switch
+        {
+            "capture" or "source-reader" => "来源 → 原件 → 转换 → 锚点；仅显示 Core 已返回的对象。",
+            "evidence" or "library" or "knowledge" => "来源 → 证据锚点 → 知识版本；进入详情后读取 Core。",
+            "learning" or "review" => "学习项 → Assessment → Review / FSRS；以 Core 回执为准。",
+            "machine-growth" => "任务 ID → 任务投影；评估与纠错尚未接通。",
+            "workspace" or "research" => "工作区 → 项目 → 对象；编辑接口尚未接通。",
+            "memory-map" => "知识 → 关联 / lineage；图谱接口尚未接通。",
+            "search" => "结果 → 来源 / 知识详情；当前仅支持词法检索。",
+            "original-editor" => "原创 → 编辑；持久化与版本接口尚未接通。",
+            _ => "选择来源、知识或任务后查看三级对象详情。"
+        };
         OriginalEditorSurface.IsVisible = section == "original-editor";
         UnavailableSurface.IsVisible = section is "research" or "plugins" or "models";
         if (UnavailableSurface.IsVisible)
@@ -841,14 +871,14 @@ public partial class MainWindow : Window
         var inLibraryDomain = section is "library" or "knowledge";
         SetNavigationButtonState(RailWorkspaceButton, section == "home", "首页");
         SetNavigationButtonState(RailCaptureButton, section == "capture", "捕获");
-        SetNavigationButtonState(RailEvidenceButton, section == "evidence", "证据库");
+        SetNavigationButtonState(RailEvidenceButton, section is "evidence" or "library" or "source-reader" or "knowledge", "证据库");
         SetNavigationButtonState(RailOriginalsButton, section == "original-editor", "原创");
         SetNavigationButtonState(RailLearningButton, section == "learning", "人类学习");
         SetNavigationButtonState(RailMachineButton, section == "machine-growth", "机器学习", "机器学习任务工作台");
-        SetNavigationButtonState(RailWorkspaceTreeButton, section == "workspace", "工作区");
+        SetNavigationButtonState(RailWorkspaceTreeButton, section is "workspace" or "research", "工作区");
         SetNavigationButtonState(RailMemoryMapButton, section == "memory-map", "记忆地图");
         SetNavigationButtonState(RailReviewButton, section == "review", "复习 / FSRS");
-        SetNavigationButtonState(RailSystemButton, section == "settings", "设置");
+        SetNavigationButtonState(RailSystemButton, section is "settings" or "recovery" or "jobs" or "plugins" or "models", "设置与恢复");
         SetNavigationButtonState(RailKnowledgeButton, inLibraryDomain, "资料与知识");
         SetNavigationButtonState(RailSearchButton, section == "search", "搜索");
         SetNavigationButtonState(RailReaderButton, section == "source-reader", "原件阅读");
@@ -856,7 +886,6 @@ public partial class MainWindow : Window
         SetNavigationButtonState(RailJobsButton, section == "jobs", "任务");
         SetNavigationButtonState(RailPluginsButton, section == "plugins", "插件");
         SetNavigationButtonState(RailModelsButton, section == "models", "模型");
-        SetNavigationButtonState(RailSystemButton, section == "settings", "设置");
         SetNavigationButtonState(MobileWorkspaceButton, section == "home", "首页");
         SetNavigationButtonState(MobileCaptureButton, section == "capture", "捕获");
         SetNavigationButtonState(MobileKnowledgeButton, inLibraryDomain, "资料与知识");
@@ -1336,6 +1365,33 @@ public partial class MainWindow : Window
 
     private void OnHomeClick(object? sender, RoutedEventArgs e) => SetSection("home", "首页");
 
+    private void OnBreadcrumbDomainClick(object? sender, RoutedEventArgs e)
+    {
+        switch (_activeSection)
+        {
+            case "home":
+                SetSection("home", "首页");
+                break;
+            case "library":
+            case "source-reader":
+            case "knowledge":
+                SetSection("evidence", "证据库");
+                break;
+            case "research":
+                SetSection("workspace", "工作区");
+                break;
+            case "jobs":
+            case "recovery":
+            case "plugins":
+            case "models":
+                SetSection("settings", "设置");
+                break;
+            default:
+                SetSection(_activeSection, BreadcrumbDomainButton.Content?.ToString() ?? "首页");
+                break;
+        }
+    }
+
     private void OnHomeQuickCaptureDraftChanged(object? sender, TextChangedEventArgs e)
     {
         HomeQuickCaptureDraftStatus.Text = "草稿仅保留在当前窗口；尚未保存到 Core。";
@@ -1615,6 +1671,18 @@ public partial class MainWindow : Window
     private void ApplyThemePalette(string palette)
     {
         ThemePalette.Apply(palette);
+        var heroAsset = palette == ThemePalette.Monochrome
+            ? "avares://ArcheAxis.Desktop/Assets/home-planet-hero-monochrome-20261001.png"
+            : "avares://ArcheAxis.Desktop/Assets/home-planet-hero-20261001.png";
+        using (var heroStream = AssetLoader.Open(new Uri(heroAsset)))
+        {
+            HomePlanetHero.Background = new ImageBrush(new Bitmap(heroStream))
+            {
+                Stretch = Stretch.UniformToFill,
+                AlignmentX = AlignmentX.Right,
+                AlignmentY = AlignmentY.Center
+            };
+        }
         SettingsThemePaletteBox.SelectedIndex = palette == ThemePalette.Monochrome ? 1 : 0;
     }
 
@@ -4252,8 +4320,9 @@ public partial class MainWindow : Window
         var visibleInspectorLabel = _inspectorDrawerOpen ? "关闭证据检查器" : "打开证据检查器";
         InspectorDrawerButton.Content = mobile ? "检查器" : visibleInspectorLabel;
         Avalonia.Automation.AutomationProperties.SetName(InspectorDrawerButton, visibleInspectorLabel);
-        var showContextSidebar = false;
+        var showContextSidebar = !mobile && frameSize.Width >= 1120;
         ContextSidebar.IsVisible = showContextSidebar;
+        CompactContextNavigation.IsVisible = !showContextSidebar;
         PrimaryRail.IsVisible = !mobile;
         Grid.SetColumn(TopbarShell, mobile ? 0 : 2);
         Grid.SetColumnSpan(TopbarShell, mobile ? 4 : 2);
@@ -4423,9 +4492,9 @@ public partial class MainWindow : Window
         Grid.SetColumn(memoryMapDetails, compact ? 0 : 1);
         Grid.SetRow(memoryMapDetails, compact ? 1 : 0);
         HomeRecentEvidenceList.MaxHeight = compact ? 240 : 300;
-        HomePageActions.Orientation = mobile
-            ? Avalonia.Layout.Orientation.Vertical
-            : Avalonia.Layout.Orientation.Horizontal;
+        HomePageActions.Orientation = Avalonia.Layout.Orientation.Horizontal;
+        HomeExportOverviewButton.IsVisible = false;
+        HomePageDescription.IsVisible = _activeSection == "home" && !mobile;
         var homeMetricColumns = contentWidth < 900 ? 1 : contentWidth < 1280 ? 2 : 5;
         HomeLifecycleGrid.ColumnDefinitions = homeMetricColumns switch
         {

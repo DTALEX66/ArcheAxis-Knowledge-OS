@@ -1,8 +1,13 @@
 # AAOS 母版与资产覆盖审计（2026-10-01）
 
-状态：`PARTIAL / SOURCE_AUDIT`。本文是本轮只读源码、母版压缩包和历史材料的覆盖索引；没有逐页像素差分或桌面运行验收。当前视觉标准按用户指令和 `docs/current/AAOS-UI-REVIEW-20260929.md` 的 2026-10-01 现行解释，以 B10 为最终母版；B01–B09 仅补充细节。R6/M0 执行权威仍由 `docs/CONFIGURATION_AUTHORITY_INDEX.md` 索引。`docs/current/R6-STATE.json` 的 `updated_at` 是 2026-09-26，不能据此判定今日 UI 完成。
+状态：`PARTIAL / SOURCE_AUDIT`。用户 2026-10-01 最新指令以 UI 套件根目录 12 张产品页面 PNG 为最终产品视觉标准，以 11 张品牌视觉 PNG 为品牌系统参考。B10 是交互结构原型，不是最终视觉母版。下文早期 B10 对照和缺口为历史阶段记录，须按最新 PNG 重新复核，不能用于通过最终验收。R6/M0 执行权威仍由 `docs/CONFIGURATION_AUTHORITY_INDEX.md` 索引；`docs/current/R6-STATE.json` 更新日为 2026-09-26，不能据此判定今日 UI 完成。
 
 ## 母版及资产索引
+
+| 最新母版集 | 路径 | 用途 |
+| --- | --- | --- |
+| 产品 UI 12 页 | `D:/All projects/UI套件/01_01_产品信息架构_Information_Architecture.png` 至 `12_12_搜索与复习_Search_Review_FSRS.png` | 页面布局、星球/星环视觉、蓝黑材质、图标、层级、导航结构；原图含 UI 文字，不能整图充当背景。 |
+| 品牌视觉 11 页 | `D:/All projects/UI套件/01_01_品牌主视觉_Brand_Hero.png` 至 `11_11_品牌应用_Applications_Left.png` | Deep Space `#081020`、Graphite `#1A2233`、Aurora Teal `#2EC4B6`、Aurora Gold `#F4D08B`、Ivory `#F8F6EB`；星环标志、字体和线性图标参考。 |
 
 | ID | 实际路径 | 本轮读回 | 可用性 |
 |---|---|---|---|
@@ -32,7 +37,7 @@
 
 ## 资产部署与冲突判定
 
-- B10 色值：`#061118` 背景、`#0C1C26`/`#102630` surface、`#1FC8C5` 主交互、`#F3EFE6` 文字、`#E6BE73` 稀少可信强调。字体栈以 Inter、Segoe UI、中文系统字体为主。须与 `AaosTheme.axaml`、`ThemePalette.cs` 按令牌逐项核验，而非只比首页。
+- 历史 B10 色值已被用户新指定的品牌图覆盖。品牌色标准为 Deep Space `#081020`、Graphite `#1A2233`、Aurora Teal `#2EC4B6`、Aurora Gold `#F4D08B`、Ivory `#F8F6EB`；品牌字形参考 Playfair Display，辅助字形参考 HarmonyOS Sans。当前代码已更新 Aurora 主令牌，字形完整部署仍待核验。
 - 当前唯一由项目文件确认打包的图像是 `Assets/aaos-app-icon.ico`。`aaos-brand-mark.svg` 和 10 张 PNG 仅是源码候选资产；所有候选保留原位，待逐图确认用途/许可和双主题后再打包。不要因“未引用”删除。
 - B10 不提供可单独部署的页面配图，因此其数据图形应按内嵌 SVG 复刻为 Avalonia 矢量/Canvas，绑定真实节点、边和状态。9 月 30 日任务包要求替换静态数据配图，与本轮用户目标一致；真实用户图片、资料预览和纯装饰品牌图片应保留并单独标记来源。
 - 对确实缺失的纯装饰配图，可依据 B10 构图调用图片生成，但目前未见 B10 指定可复刻的独立光栅图。本轮不为数据图、图标或状态图生成位图。图标采用现有 `AaosIcon`/Avalonia 矢量，需逐图与 B10/B01 对齐线宽、几何、大小和焦点态。

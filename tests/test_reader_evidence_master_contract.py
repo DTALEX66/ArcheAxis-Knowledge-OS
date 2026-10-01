@@ -11,7 +11,11 @@ def test_source_reader_rows_show_type_icons_and_keyboard_focus_feedback() -> Non
     assert 'IconName="{Binding DisplayIcon}"' in READER_XAML
     assert 'Border.source-reader-row' in READER_XAML
     assert 'ListBoxItem:focus Border.source-reader-row' in READER_XAML
-    assert 'DisplayIcon => "Source"' in READER_CODE
+    assert 'Path.GetExtension(OriginalName)' in READER_CODE
+    assert '".pdf" => "FilePdf"' in READER_CODE
+    assert '".doc" or ".docx" => "FileWord"' in READER_CODE
+    assert '".png" or ".jpg" or ".jpeg"' in READER_CODE
+    assert '_ => "Source"' in READER_CODE
     assert 'DisplayIcon => "Review"' in READER_CODE
 
 

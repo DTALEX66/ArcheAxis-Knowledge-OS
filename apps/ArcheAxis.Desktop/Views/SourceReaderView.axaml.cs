@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using Avalonia;
 using Avalonia.Automation;
 using Avalonia.Controls;
@@ -45,7 +46,13 @@ public sealed class SourceMemberRow : SourceReaderRow
     public string OriginalName { get; }
     public string Sha256 { get; }
     public string Readable { get; }
-    public override string DisplayIcon => "Source";
+    public override string DisplayIcon => (Path.GetExtension(OriginalName) ?? string.Empty).ToLowerInvariant() switch
+    {
+        ".pdf" => "FilePdf",
+        ".doc" or ".docx" => "FileWord",
+        ".png" or ".jpg" or ".jpeg" or ".gif" or ".bmp" or ".webp" or ".tif" or ".tiff" => "FileImage",
+        _ => "Source",
+    };
     public override string DisplayKind => "容器成员 · Core projection";
     public override string DisplayBoundary => "原文正文未在此列表中展示";
     public override string DisplayText => $"{(string.IsNullOrWhiteSpace(OriginalName) ? Member : OriginalName)} · readable={Readable} · job={JobId}";

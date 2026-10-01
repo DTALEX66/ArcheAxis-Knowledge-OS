@@ -1,20 +1,20 @@
 <Styles xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
     <Styles.Resources>
-        <SolidColorBrush x:Key="AaosBackgroundBrush" Color="#061118" />
-        <SolidColorBrush x:Key="AaosSidebarBrush" Color="#091821" />
-        <SolidColorBrush x:Key="AaosSurfaceBrush" Color="#0C1C26" />
-        <SolidColorBrush x:Key="AaosSurface2Brush" Color="#102630" />
-        <SolidColorBrush x:Key="AaosBorderBrush" Color="#1D5055" />
-        <SolidColorBrush x:Key="AaosPrimaryBrush" Color="#1FC8C5" />
+        <SolidColorBrush x:Key="AaosBackgroundBrush" Color="#081020" />
+        <SolidColorBrush x:Key="AaosSidebarBrush" Color="#0C1728" />
+        <SolidColorBrush x:Key="AaosSurfaceBrush" Color="#101D2E" />
+        <SolidColorBrush x:Key="AaosSurface2Brush" Color="#1A2233" />
+        <SolidColorBrush x:Key="AaosBorderBrush" Color="#27516B" />
+        <SolidColorBrush x:Key="AaosPrimaryBrush" Color="#2EC4B6" />
         <Color x:Key="AaosGraphGlowColor">#6622D6D2</Color>
-        <SolidColorBrush x:Key="AaosPrimaryTextBrush" Color="#061118" />
+        <SolidColorBrush x:Key="AaosPrimaryTextBrush" Color="#081020" />
         <SolidColorBrush x:Key="AaosBrandMarkEnd" Color="#90C291" />
         <SolidColorBrush x:Key="AaosGridBrush" Color="#0DFFFFFF" />
         <SolidColorBrush x:Key="AaosAmbientPrimaryBrush" Color="#661FC8C5" />
         <SolidColorBrush x:Key="AaosAmbientSecondaryBrush" Color="#55E6BE73" />
         <SolidColorBrush x:Key="AaosAmbientTertiaryBrush" Color="#401FC8C5" />
-        <SolidColorBrush x:Key="AaosGoldBrush" Color="#E6BE73" />
+        <SolidColorBrush x:Key="AaosGoldBrush" Color="#F4D08B" />
         <SolidColorBrush x:Key="AaosSuccessBrush" Color="#37C99A" />
         <SolidColorBrush x:Key="AaosErrorBrush" Color="#E56464" />
         <SolidColorBrush x:Key="AaosInfoBrush" Color="#3B82F6" />
@@ -22,7 +22,7 @@
         <SolidColorBrush x:Key="AaosApprovalBrush" Color="#37C99A" />
         <SolidColorBrush x:Key="AaosDisabledBrush" Color="#61747B" />
         <SolidColorBrush x:Key="AaosReviewBrush" Color="#E6BE73" />
-        <SolidColorBrush x:Key="AaosIvoryBrush" Color="#F3EFE6" />
+        <SolidColorBrush x:Key="AaosIvoryBrush" Color="#F8F6EB" />
         <SolidColorBrush x:Key="AaosMutedBrush" Color="#96AAB4" />
         <SolidColorBrush x:Key="AaosOverlayBrush" Color="#9E061118" />
         <LinearGradientBrush x:Key="AaosPrimaryGradientBrush" StartPoint="0%,0%" EndPoint="100%,100%">
