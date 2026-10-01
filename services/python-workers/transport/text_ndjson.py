@@ -11,6 +11,7 @@ Core sends one request and closes stdin for this single-shot transport.
 from __future__ import annotations
 
 import argparse
+import contextlib
 import hashlib
 import importlib.util
 import json
@@ -39,10 +40,68 @@ MAX_SAFE_INTEGER = 2**53 - 1
 OUTPUT_SCHEMAS = ["archeaxis.text/v1", "archeaxis.document-structure/v1", "archeaxis.loss-receipt/v1"]
 
 
+OCR_LANG_ENV = "ARCHEAXIS_OCR_LANG"
+OCR_TESSDATA_ENV = "ARCHEAXIS_OCR_TESSDATA"
+
+
 class Rejected(ValueError):
     def __init__(self, message, code="AAK-VAL-001"):
         super().__init__(message)
         self.code = code
+
+
+def _declared_tool_path(name: str) -> Path | None:
+    """The declared external path for a capability, or None.
+
+    Uses the same resolver the workers use, so the transport stops guessing where
+    language data lives. A manifest that cannot be read raises rather than reading as
+    "nothing declared".
+    """
+    tool_paths = _SCRIPT.parent.parent / "tool_paths.py"
+    if not tool_paths.is_file():
+        return None
+    spec = importlib.util.spec_from_file_location("transport_tool_paths", tool_paths)
+    if spec is None or spec.loader is None:
+        return None
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    resolved = module.declared_path(name)
+    return Path(resolved) if resolved else None
+
+
+def _ocr_language() -> str:
+    """The language the OCR route reads.
+
+    `ARCHEAXIS_OCR_LANG` selects it, defaulting to `eng`. It used to be hardcoded, which
+    meant a Chinese page was handed the English model and read as noise - the language is
+    a property of the material, not of the route.
+    """
+    return os.environ.get(OCR_LANG_ENV, "").strip() or "eng"
+
+
+def _ocr_tessdata(language: str) -> Path | None:
+    """Language data for this language, preferring one that can actually serve it.
+
+    Order: an explicit `ARCHEAXIS_OCR_TESSDATA`, the repository's bundled copy, then the
+    declared `tesseract-languages` entry. A candidate counts only if it holds the
+    requested language, so a directory of unrelated languages is not mistaken for usable.
+    The path is handed over in plain form because tesseract cannot open a Windows extended
+    (\\\\?\\\\) path, which a canonicalising caller such as the Rust executor would
+    otherwise supply.
+    """
+    candidates: list[Path] = []
+    configured = os.environ.get(OCR_TESSDATA_ENV, "").strip()
+    if configured:
+        candidates.append(Path(configured))
+    candidates.append(ROOT / "tools" / "tesseract" / "tessdata")
+    declared = _declared_tool_path("tesseract-languages")
+    if declared is not None:
+        candidates.extend([declared, declared / "tessdata"])
+    for candidate in candidates:
+        with contextlib.suppress(OSError):
+            if (candidate / f"{language}.traineddata").is_file():
+                return Path(str(candidate).replace("\\\\?\\", ""))
+    return None
 
 
 def safe_path(path: Path, *, missing=False) -> Path:
@@ -356,18 +415,11 @@ def _run_route(route, source: Path, media_type: str, artifact_root: Path | None 
         if not view.exists():
             with view.open("xb") as handle:
                 handle.write(source.read_bytes())
-        # OCR keeps its own explicit parameters: language plus the tessdata dir.
-        # The repository ships eng.traineddata; an ambient TESSDATA_PREFIX may
-        # point elsewhere, so the repository copy wins when it exists. The path is
-        # passed in plain form because tesseract cannot open a Windows extended
-        # (\\?\) path - canonicalised callers such as the Rust executor would
-        # otherwise hand one over and OCR would fail to load its language data.
-        tessdata = ROOT / "tools" / "tesseract" / "tessdata"
-        tessdata_arg = tessdata if tessdata.is_dir() else None
-        if tessdata_arg is not None:
-            plain = str(tessdata_arg).replace("\\\\?\\", "")
-            tessdata_arg = Path(plain)
-        return module.extract(view, "eng", tessdata_arg)
+        # OCR keeps its own explicit parameters: language plus the tessdata dir. The
+        # language comes from the caller's configuration rather than being hardcoded, and
+        # the directory is one that actually holds that language.
+        language = _ocr_language()
+        return module.extract(view, language, _ocr_tessdata(language))
     if route.get("suffix_by_media"):
         suffix = route["suffix_by_media"].get(media_type.split(";", 1)[0].strip().lower())
         if suffix is None:

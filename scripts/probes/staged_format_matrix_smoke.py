@@ -44,6 +44,7 @@ REPO = Path(__file__).resolve().parents[2]
 GOLDEN = REPO / "tests" / "fixtures" / "golden"
 LAUNCHER = REPO / "scripts" / "release" / "backend_launcher.py"
 STAGER = REPO / "scripts" / "release" / "stage_backend_runtime.py"
+VERIFIER = REPO / "scripts" / "release" / "verify_backend_capabilities.py"
 
 
 def _load(name: str, path: Path):
@@ -58,6 +59,7 @@ def _load(name: str, path: Path):
 launcher = _load("launcher_matrix", LAUNCHER)
 stager = _load("stager_matrix", STAGER)
 core_client = _load("core_client_matrix", REPO / "shared" / "core_client.py")
+verifier = _load("verifier_matrix", VERIFIER)
 
 # (label, job kind, staged input name, source path or None for a generated input, language)
 GOLDEN_MATRIX: list[tuple[str, str, str, Path | None, str]] = [
@@ -288,6 +290,11 @@ def main() -> int:
     profile_path = build_staged_tree(root, core_binary, runtime_python, matrix)
     inputs = root / "data" / "inputs"
 
+    # Readiness first: whether each route the profile declares is actually usable on the
+    # interpreter it names. Reported alongside the job results so a failure can be
+    # attributed to the route or to the packaging rather than guessed at.
+    readiness = verifier.verify(root, runtime_python, None, None)
+
     receipt: dict = {
         "ok": False,
         "staged_root": str(root),
@@ -297,9 +304,21 @@ def main() -> int:
         "input_source": "real_material" if material else "repository_golden_corpus",
         "material_root": str(material) if material else "",
         "declared_routes": json.loads(profile_path.read_text(encoding="utf-8")).get("routes", []),
+        "readiness": {
+            "ok": readiness.get("ok"),
+            "summary": readiness.get("summary"),
+            "not_ready": [
+                {"capability": entry["capability"],
+                 "launch": entry["launch"].get("reason"),
+                 "engine": entry["engine"]}
+                for entry in readiness.get("capabilities", [])
+                if not entry.get("ok")
+            ],
+        },
         "external_engine_root": launcher.os.environ.get("ARCHEAXIS_EXTERNAL_ROOT", ""),
         "results": [],
     }
+    receipt["readiness_ok"] = bool(readiness.get("ok"))
 
     launcher.ROOT = root
     child, base, _start_receipt, tokens = launcher.start(root / "data", 0)
@@ -329,15 +348,30 @@ def main() -> int:
     receipt["verdict_counts"] = counts
     receipt["converted"] = [r["case"] for r in receipt["results"] if r["verdict"] == "CONVERTED"]
     receipt["not_converted"] = [r["case"] for r in receipt["results"] if r["verdict"] != "CONVERTED"]
-    receipt["ok"] = True
+
+    # `ok` is the acceptance verdict, not "the probe finished": every declared route must
+    # be ready on the runtime and every selected case must convert. A probe that merely
+    # completed while cases failed would otherwise read as a pass.
+    all_converted = not receipt["not_converted"] and bool(receipt["results"])
+    receipt["accepted"] = bool(receipt["readiness_ok"]) and all_converted
+    receipt["ok"] = receipt["accepted"]
+    receipt["verdict_reason"] = (
+        "ready and every case converted" if receipt["accepted"]
+        else "; ".join(filter(None, [
+            "" if receipt["readiness_ok"] else "declared routes are not all ready",
+            "" if all_converted else f"cases not converted: {receipt['not_converted']}",
+        ]))
+    )
     out = root / "staged-format-matrix.json"
     out.write_text(json.dumps(receipt, ensure_ascii=False, indent=2, default=str) + "\n",
                    encoding="utf-8")
     print(json.dumps({k: receipt[k] for k in
-                      ("ok", "evidence_level", "verdict_counts", "converted",
-                       "not_converted", "declared_routes")}, ensure_ascii=False, indent=2))
+                      ("ok", "accepted", "verdict_reason", "evidence_level",
+                       "input_source", "readiness_ok", "readiness", "verdict_counts",
+                       "converted", "not_converted", "declared_routes")},
+                     ensure_ascii=False, indent=2))
     print(f"\nreceipt: {out}")
-    return 0
+    return 0 if receipt["accepted"] else 1
 
 
 if __name__ == "__main__":
