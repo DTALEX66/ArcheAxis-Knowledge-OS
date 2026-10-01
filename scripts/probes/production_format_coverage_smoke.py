@@ -39,8 +39,25 @@ BINARY = Path(os.environ.get(
     "ARCHEAXIS_CORE_BIN",
     str(REPO / ".project-local" / "build" / "cargo" / "debug" / "archeaxis-api.exe")))
 
-sys.path.insert(0, str(REPO))
-from shared import core_client as core  # noqa: E402
+
+def _load(name: str, path: Path):
+    """Load a module by file path, registering it (no sys.path mutation allowed).
+
+    The repository's architecture guard forbids new `sys.path` mutations, so the
+    Core client is loaded the same way `m0_full_loop_smoke.py` loads its helpers
+    rather than by inserting the repository root on the import path.
+    """
+    import importlib.util
+
+    spec = importlib.util.spec_from_file_location(name, path)
+    assert spec and spec.loader
+    module = importlib.util.module_from_spec(spec)
+    sys.modules[name] = module
+    spec.loader.exec_module(module)
+    return module
+
+
+core = _load("core_client_format_coverage", REPO / "shared" / "core_client.py")
 
 TOKEN = "c" * 64
 MACHINE_TOKEN = "e" * 64
