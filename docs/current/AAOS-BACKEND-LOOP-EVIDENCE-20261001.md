@@ -388,13 +388,42 @@ engines into the registered standalone runtime, after which those three converte
 then restoring that runtime to exactly its previous contents (`pip`, `README.txt`), since
 it is an Owner-registered shared resource and not mine to leave modified.
 
-**One item is open.** The staged OCR job fails with
-`Failed loading language 'eng' ... Tesseract couldn't load any languages!`. The staged
-worker resolves the tesseract **binary and the declared tessdata directory** correctly —
-run directly against the staged tree it reads `OCR GOLDEN ANCHOR` with confidences 92-97
-— so the divergence is specific to how the Core-spawned worker ends up with language data.
-I did not isolate it and am not guessing at the cause. It is the one format in the matrix
-that does not convert.
+**The OCR case is explained, and it was not the engine.** The staged OCR job failed with
+`Failed loading language 'eng' ... Tesseract couldn't load any languages!`, which reads
+like a language-data problem. The actual cause was the resolver's reader:
+
+`tool_paths` read `capability-requirements.yaml` with a bare `import yaml` inside
+`try/except ImportError: return []`, and treated a read or parse failure the same way. On a
+runtime interpreter **without PyYAML** every declared path therefore resolved to nothing
+and the worker reported
+
+```
+tesseract binary not found on PATH (OCR engine unavailable)
+```
+
+for an engine that is installed and declared. A missing YAML parser was reported as a
+missing engine — the silent downgrade the project's rules forbid, and the reason this took
+two rounds to place: the message pointed at tesseract while the fault was the reader.
+
+Fixed on this branch. `ManifestUnreadable` now names the manifest, the reason, and the
+remedy, and is distinct from `ToolNotFound`; the workers delegate to `tool_paths.declared`
+instead of keeping their own `except Exception: return None` wrappers, which was the
+mechanism that turned the fault into a quiet miss. Verified on the same interpreter that
+lacks PyYAML:
+
+| | Message |
+| --- | --- |
+| before | `tesseract binary not found on PATH (OCR engine unavailable)` |
+| after | `<manifest>: no YAML parser available (No module named 'yaml'); install PyYAML so declared capabilities can be read` |
+
+and on an interpreter that has it, the same worker reads
+`OCR GOLDEN ANCHOR / Synthetic screenshot fixture - no personal data`.
+
+**So the runtimes differ in a way that is worth stating plainly:** the format workers need
+their engine distributions **and** the resolver needs PyYAML. The interpreter must carry
+both. This is a packaging condition and it is why the matrix reports 11 of 12 on a
+provisioned runtime and 8 of 12 on a bare one — the three extra failures are
+`pdf`/`xlsx`/`pptx` engine imports, and the OCR case was this parser.
 
 Also not covered by the matrix: `image.caption`, which needs a vision model at an Ollama
 endpoint this host does not serve. It is absent on purpose rather than reported as a pass.
