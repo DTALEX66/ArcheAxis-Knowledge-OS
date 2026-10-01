@@ -60,6 +60,17 @@ class ToolNotFound(RuntimeError):
     """A declared tool or model could not be resolved to an existing path."""
 
 
+class ManifestUnreadable(RuntimeError):
+    """The declared capability manifest exists but could not be read or parsed.
+
+    Distinct from `ToolNotFound` on purpose. The manifest is how a declared engine is
+    found, so failing to read it is a different fault from a tool that is genuinely not
+    declared - and reporting the first as the second is how a missing parser or an
+    unreadable file turns into "engine not installed" and sends someone looking in the
+    wrong place.
+    """
+
+
 def _external_root() -> Path | None:
     for name in _ROOT_ENV:
         raw = os.environ.get(name, "").strip()
@@ -91,16 +102,31 @@ def _manifest_path() -> Path:
 
 
 def _declared_entries(manifest: Path) -> list[dict]:
+    """The declared capability entries.
+
+    An absent manifest means nothing is declared. A manifest that is present but cannot
+    be read is a different matter and raises: the resolver needs a YAML parser, and
+    without one every declared engine would silently look undeclared. That is how a
+    runtime interpreter lacking PyYAML reported "tesseract binary not found on PATH" for
+    an installed, declared engine.
+    """
     if not manifest.is_file():
         return []
     try:
         import yaml
-    except ImportError:  # pragma: no cover - reported as an unresolved tool
-        return []
+    except ImportError as error:
+        raise ManifestUnreadable(
+            f"{manifest}: no YAML parser available ({error}); install PyYAML so declared "
+            "capabilities can be read"
+        ) from error
     try:
-        data = yaml.safe_load(manifest.read_text(encoding="utf-8")) or {}
-    except (OSError, ValueError):
-        return []
+        text = manifest.read_text(encoding="utf-8")
+    except OSError as error:
+        raise ManifestUnreadable(f"{manifest}: cannot be read ({error})") from error
+    try:
+        data = yaml.safe_load(text) or {}
+    except Exception as error:  # noqa: BLE001 - a parse failure is not a missing tool
+        raise ManifestUnreadable(f"{manifest}: cannot be parsed ({error})") from error
     entries: list[dict] = []
     for group in (data.get("capabilities") or {}).values():
         for entry in group or []:
@@ -164,14 +190,15 @@ def tool_path(name: str, *, guess_on_path: bool = False) -> str:
 
 
 def declared_path(name: str) -> str | None:
-    """`tool_path(name)`, or None when it cannot be resolved.
+    """`tool_path(name)`, or None when there is simply no declaration.
 
-    For a worker call site that must keep its existing fallback when there is no
-    declaration at all, but must still prefer a declared path when there is one.
+    Only `ToolNotFound` becomes None, so a worker keeps its own fallback when nothing is
+    declared. `ManifestUnreadable` propagates: a declaration that cannot be read is a
+    fault to report, not a tool that is absent.
     """
     try:
         return tool_path(name)
-    except Exception:  # noqa: BLE001 - unresolved is not an error at this layer
+    except ToolNotFound:
         return None
 
 
@@ -208,24 +235,41 @@ def transport_path(worker_file: str) -> Path:
 
 
 def resolve(name: str) -> str | None:
-    """Load this module by file path and resolve *name*; None when unresolvable.
+    """Load this module by file path and resolve *name*; None when unresolvable."""
+    module = _load_self()
+    return None if module is None else module.declared_path(name)
 
-    The single call a worker makes. A worker is executed as a standalone script
-    (`python -B worker.py --staging-root ...`) with no package import path, so it
-    cannot `import tool_paths`; it locates the sibling file instead. Loading here
-    rather than in each worker keeps the dependency direction one way.
+
+def declared(name: str, worker_file: str) -> str | None:
+    """The declared path for *name*, loading this module from the worker's own tree.
+
+    The single call a worker makes. A worker runs as a standalone script with no package
+    import path, so it locates the sibling `tool_paths.py` instead. Only a missing
+    declaration returns None: a manifest that exists but cannot be read propagates, since
+    a worker that quietly treated "cannot read the declaration" as "not declared" would
+    report a missing engine for an installed one.
     """
+    module_path = Path(worker_file).resolve().parent.parent / "tool_paths.py"
+    if not module_path.is_file():
+        return None
+    import importlib.util
+
+    spec = importlib.util.spec_from_file_location("worker_tool_paths", module_path)
+    if spec is None or spec.loader is None:
+        return None
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module.declared_path(name)
+
+
+def _load_self():
+    """This module, loaded by file path (see `resolve`)."""
     import importlib.util
 
     module_path = Path(__file__).resolve()
-    if not module_path.is_file():
+    spec = importlib.util.spec_from_file_location("worker_tool_paths", module_path)
+    if spec is None or spec.loader is None:
         return None
-    try:
-        spec = importlib.util.spec_from_file_location("worker_tool_paths", module_path)
-        if spec is None or spec.loader is None:
-            return None
-        module = importlib.util.module_from_spec(spec)
-        spec.loader.exec_module(module)
-        return module.declared_path(name)
-    except Exception:  # noqa: BLE001 - a worker keeps its own fallback
-        return None
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module

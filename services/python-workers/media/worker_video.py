@@ -39,25 +39,22 @@ SUPPORTED = {".mp4", ".mov", ".mkv", ".webm"}
 
 
 def _declared_path(name: str) -> str | None:
-    """The declared external path for a tool, or None if it cannot be resolved.
+    """The declared external path for *name*, or None when nothing is declared.
 
-    Loaded by file path because a worker is executed as a standalone script with no
-    package import path. R6 A02 requires an exact declared path and forbids PATH
-    guessing; ffmpeg is installed and declared on this machine but absent from PATH,
-    so `which` alone reported the engine unavailable.
+    Delegates to `tool_paths.declared`, which loads the shared module from this worker's
+    own tree. Only a missing declaration becomes None; a manifest that exists but cannot
+    be read raises, because reporting that as "not declared" is how a missing parser turns
+    into "engine not installed".
     """
     module_path = Path(__file__).resolve().parent.parent / "tool_paths.py"
     if not module_path.is_file():
         return None
-    try:
-        spec = importlib.util.spec_from_file_location("worker_tool_paths", module_path)
-        if spec is None or spec.loader is None:
-            return None
-        module = importlib.util.module_from_spec(spec)
-        spec.loader.exec_module(module)
-        return module.resolve(name)
-    except Exception:  # noqa: BLE001 - a worker keeps its own fallback
+    spec = importlib.util.spec_from_file_location("worker_tool_paths", module_path)
+    if spec is None or spec.loader is None:
         return None
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module.declared(name, __file__)
 
 
 def _ffmpeg() -> str:

@@ -55,15 +55,19 @@ def _load_tool_paths():
 
 
 def _declared_path(name: str) -> str | None:
-    """The declared external path for a model, or None if it cannot be resolved.
+    """The declared external path for a model, or None when nothing is declared.
 
-    R6 A02 requires a model resolver over exact paths. `DEFAULT_MODEL_DIR` derives
-    the model library from the checkout's parent, which is correct only for the
-    canonical layout: in a worktree it resolves to an absent sibling and the probe
-    reported the model missing while it was present on disk.
+    R6 A02 requires a model resolver over exact paths. `DEFAULT_MODEL_DIR` derives the
+    model library from the checkout's parent, which is correct only for the canonical
+    layout: in a worktree it resolves to an absent sibling and the probe reported the
+    model missing while it was present on disk.
+
+    Only a missing declaration becomes None; a manifest that exists but cannot be read
+    raises, because reporting that as "not declared" sends someone looking for a model
+    that is present.
     """
     module = _load_tool_paths()
-    return None if module is None else module.resolve(name)
+    return None if module is None else module.declared(name, __file__)
 
 
 def _root_derived_model_dir() -> Path | None:
@@ -100,9 +104,9 @@ def _model_dir(path: str | None) -> Path:
         if override:
             candidate = Path(override)
     if candidate is None:
-        declared = _declared_path("faster-whisper-large-v3-turbo")
-        if declared:
-            candidate = Path(declared)
+        declared_model = _declared_path("faster-whisper-large-v3-turbo")
+        if declared_model:
+            candidate = Path(declared_model)
     if candidate is None:
         candidate = _root_derived_model_dir()
     if candidate is None:

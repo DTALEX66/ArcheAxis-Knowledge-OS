@@ -49,24 +49,22 @@ def _run(command: list[str], **kwargs) -> subprocess.CompletedProcess:
 
 
 def _declared_path(name: str) -> str | None:
-    """The declared external path for a tool, or None if it cannot be resolved.
+    """The declared external path for *name*, or None when nothing is declared.
 
-    Loaded by file path because a worker is executed as a standalone script with no
-    package import path. Resolution failures fall through to the caller's existing
-    behaviour so a machine that genuinely has no declaration notices no change.
+    Delegates to `tool_paths.declared`, which loads the shared module from this worker's
+    own tree. Only a missing declaration becomes None; a manifest that exists but cannot
+    be read raises, because reporting that as "not declared" is how a missing parser turns
+    into "engine not installed".
     """
     module_path = Path(__file__).resolve().parent.parent / "tool_paths.py"
     if not module_path.is_file():
         return None
-    try:
-        spec = importlib.util.spec_from_file_location("worker_tool_paths", module_path)
-        if spec is None or spec.loader is None:
-            return None
-        module = importlib.util.module_from_spec(spec)
-        spec.loader.exec_module(module)
-        return module.resolve(name)
-    except Exception:  # noqa: BLE001 - a worker keeps its own fallback
+    spec = importlib.util.spec_from_file_location("worker_tool_paths", module_path)
+    if spec is None or spec.loader is None:
         return None
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module.declared(name, __file__)
 
 
 def _usable_tessdata(candidate: Path | None) -> Path | None:
@@ -93,10 +91,10 @@ def _declared_tessdata() -> Path | None:
                                if os.environ.get("TESSDATA_PREFIX", "").strip() else None)
     if ambient is not None:
         return ambient
-    declared = _declared_path("tesseract-languages")
-    if not declared:
+    declared_langdata = _declared_path("tesseract-languages")
+    if not declared_langdata:
         return None
-    base = Path(declared)
+    base = Path(declared_langdata)
     return _usable_tessdata(base) or _usable_tessdata(base / "tessdata")
 
 
@@ -132,9 +130,9 @@ def _tesseract() -> str:
     # R6 A02: resolve the engine from the declared external registry before
     # guessing. The engine is installed and registered on this machine, but it is
     # not on PATH, so `which` was reporting "unavailable" for a working engine.
-    declared = _declared_path("tesseract")
-    if declared and usable(Path(declared)):
-        return declared
+    declared_binary = _declared_path("tesseract")
+    if declared_binary and usable(Path(declared_binary)):
+        return declared_binary
     binary = shutil.which("tesseract")
     if binary and usable(Path(binary)):
         return binary
