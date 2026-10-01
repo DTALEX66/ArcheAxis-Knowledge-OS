@@ -39,7 +39,7 @@ def test_human_learning_matches_master_columns_and_hides_support_panels_until_re
     assert metrics.get("ItemWidth") == "280"
     assert metrics.get("ItemHeight") == "126"
     plan = nodes["LearningPlanGrid"]
-    assert plan.get("ColumnDefinitions") == "1*,2*"
+    assert plan.get("ColumnDefinitions") == "1.25*,2*"
     assert nodes["LearningSupportDetails"].tag.endswith("Expander")
     assert nodes["LearningSupportDetails"].get("IsExpanded") == "False"
     for name in ("LearningReviewCard", "LearningProvenancePanel"):

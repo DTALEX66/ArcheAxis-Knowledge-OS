@@ -19,3 +19,19 @@
 4. 将本轮属于公共仓的改动独立提交并上传任务分支，回读远端精确 SHA 与该 SHA 的 CI。Green 大量先存未提交修改须由对应 writer 核对，不能整树批量认领。
 
 回退：Formal 本轮新增改动按单独提交回退；Green 隔离树仅对本轮精确文件补丁单独回退，保留既有用户修改。历史资料和数据库不参与回退或清理。
+
+## 2026-10-01 阶段二增量（同日追加）
+
+- 先前公共增量 PR #155 已合并：head `6621aab7b7e2067f0ffe0fcaad1f479f7fd691d6`，远端 main/merge `59498723a8d4e94c6314e490473ba6d60847c247`；该精确 main SHA 的 `CI` 和 `vnext-ci` 工作流均 success。它仍不是正式 UI 完成或 Green 根安装证明。
+- 新集成树 `D:/All projects/ArcheAxis.Knowledge.Green-x64/.ui-task-tree/aaos-ui-phase2-integrate` 从此 main SHA 建立，保护原 Green mainline 的大量既有 dirty。并入 B10/B05 视觉改动：移动品牌块、Evidence 空态矢量图标和窄窗布局、Capture 双栏与草稿高度、Home 无真实趋势时的中性空态、Learning/Review 1160 整窗断点及 Learning 双栏比例。Review 的真实回读和 capture owned Core 释放逻辑在并入后保留。
+- 该新树 Desktop Debug 构建 `0 warnings / 0 errors`；定向合同初次运行 `219 passed / 4 failed`，失败均为旧品牌/间距/占位文案/图标尺寸断言，已据当前 B10 控件结构调整。补充单测 `1 passed`，新增 Home 草稿/标题与知识人审合同 `4 passed`。最终 6 模块完整复验及原生多页验收仍待执行。
+- 新树通过标准 `desktop_launch.py --fresh-workspace` 生成隔离合成库收据，原生 `--ui-capture home 1280 900 aurora` exit 0，截图在项目 `.project-local/runs/22cad761f8/ccb851cbb19e/artifacts/desktop-launch/c487a861f57b4e7aa359118bf357305e/phase2-home-1280.png`。该画面和既有 Green mainline 多页截图是阶段视觉证据，尚缺母版同尺寸像素对照、DPI、动效及全页面运行。
+- 当前 Green mainline `.project-local/rt/runtime/python/python.exe` 已按 `uv.lock` 构造并在 `-I -B` 下导入 fsrs 6.3.2、FastAPI、Uvicorn 与应用入口。其后隔离候选组包与验证见下节；原 Green 根安装与真实用户库闭环仍未执行。Canonical 构造还生成 Green mainline 根目录被忽略的 `build/lib` 和 `build/bdist.win-amd64`，按用户清理禁令保留。
+
+### 阶段二候选与真实 Core 空态回读
+
+- phase2 capture 曾在 Core 启动前切页且不加载 worker profile，使页面停在“Core 未就绪”。现在只在显式 `AAOS_UI_CAPTURE_WAIT_CORE=1` 时加载同一 worker profile、启动 owned Core 后切页，并等待 Evidence/Home 数据回读；退出仍在 `finally` 中释放 owned Core。隔离合成库的 720 Monochrome Evidence 截图呈现“Core 已响应，但当前没有 Evidence anchor”，不再把未读状态冒充空列表。
+- `phase2-ui-publish-workerfix-20261001` self-contained Release 发布 exit 0；新树 9 模块 UI/Review/capture 定向合同 `227 passed`（1 条既有 pytest config 警告）。
+- 以当前 main commit/tree 加 dirty source snapshot 构造的隔离候选 `ArcheAxis.Knowledge.Green-vphase2-20261001-r2-x64` 首次严格 `verify_green_candidate.py --require-runtime --require-workers --require-provenance --expected-commit --expected-tree --require-current-source`：`ok=true`、20,081 文件、无问题。包内 Python 直接导入 fsrs 6.3.2。
+- 此候选目录内使用自身 Desktop/Core/runtime/worker 和自身合成 `data/workspace.sqlite` 原位运行：720 Monochrome Evidence 截图 exit 0，SQLite 4096 字节，画面显示 Core 已响应且返回空 anchor。最初仅传新拼写 Core 环境变量导致离线；按候选 VBS 同时传兼容旧拼写后成功。所有这些均为合成库证据。
+- 原位运行产生 `data/` 截图与 SQLite/WAL/锁文件。用户当前禁止清理，现保留这些文件；因此对这个**已运行目录**再次执行严格 verifier 会因未登记的 `data/` 文件失败。组装时生成的原始 ZIP 仍保留；未来安装须从经验证的洁净包另建 staging，不能把已运行目录直接当作严格验收通过的包，也不能覆盖原 Green 根未知数据。

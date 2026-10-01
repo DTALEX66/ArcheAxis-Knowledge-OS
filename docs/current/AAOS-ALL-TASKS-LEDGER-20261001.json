@@ -1,0 +1,4581 @@
+{
+  "schema": "aaos.all-tasks-ledger/v1",
+  "audited_at": "2026-10-01",
+  "purpose": "Task source inventory and current audit crosswalk; does not replace R6-STATE.json or M0 authority",
+  "cleanup_scope": "PAUSED_BY_USER; no delete/move/migration",
+  "sources": [
+    {
+      "id": "RECORD-0928",
+      "path": "D:\\All projects\\Record\\AAOS_ArcheAxis_今日完整整合最终任务包_2026-09-28.zip",
+      "member": "AAOS_最终任务包_2026-09-28/04_任务索引.json",
+      "sha256": "E989877203FD47B9A027B2ABD0D9521DEB9A97E5D5E6905697E0FCA451E5A753",
+      "authority_class": "HANDOFF_NOT_CURRENT_AUTHORITY"
+    },
+    {
+      "id": "RECORD-0930",
+      "path": "D:\\All projects\\Record\\AAOS_UI_FRONTEND_TASKPACK_20260930.zip",
+      "sha256": "A51AE04407A807C647739F787ABDB91ACCD1021AB515BC989069CB2D25197170",
+      "member": "AAOS_商业级未来兼容UI前端任务包.md",
+      "authority_class": "PROPOSAL_NOT_CURRENT_AUTHORITY"
+    },
+    {
+      "id": "OSS-0930",
+      "path": "D:\\All projects\\Record\\AAOS_UI_FRONTEND_TASKPACK_20260930.zip",
+      "member": "AAOS_商业级未来兼容UI前端任务包.md#开源供应链",
+      "sha256": "A51AE04407A807C647739F787ABDB91ACCD1021AB515BC989069CB2D25197170",
+      "authority_class": "THIRD_PARTY_CANDIDATE_INDEX"
+    },
+    {
+      "id": "UI-PROMPT",
+      "path": "D:\\All projects\\UI套件\\11_CODEX_UI开发提示词\\02_ArcheAxis_AAOS_UI开发提示词_CODEX.md",
+      "sha256": "13FF1F200D9F3551AFCF7C81C5F121F32430C9CF2C76DD8538F0BFA652FA26C2",
+      "authority_class": "USER_SUPPLIED_DESIGN_INPUT_SUPERSEDED_WHERE_CONFLICTS"
+    },
+    {
+      "id": "ATLAS-0929",
+      "path": "docs\\history\\planning-blueprint-absorption\\2026-09-29\\package-unpacked\\AAOS_REQUIREMENT_TRACE_2026-09-29.csv",
+      "sha256": "14D240B1234F886F770CAA694AFDA8B76B54B8594605D5AC905B0AD07D30CE63",
+      "authority_class": "HISTORICAL_PLANNING_SNAPSHOT"
+    },
+    {
+      "id": "ABSORB-0929",
+      "path": "docs\\history\\planning-blueprint-absorption\\2026-09-29\\package-unpacked\\AAOS_CURRENT_CAPABILITY_ABSORPTION_11_2026-09-29.csv",
+      "sha256": "11C515AC6C5885D1FADD2F304C496D429B205A4B2CBDF88E036D6B373EA80733",
+      "authority_class": "HISTORICAL_DONOR_CANDIDATE_SNAPSHOT"
+    },
+    {
+      "id": "R6-LIVE-LEDGER",
+      "path": "docs\\current\\R6-STATE.json",
+      "sha256": "0B67090FAD8BDD9325ABA0E5A50EED2FD53EF7E0E8F14FB00FA04D0F1F431426",
+      "authority_class": "CURRENT_STATUS_LEDGER_AS_OF_2026-09-26"
+    },
+    {
+      "id": "M0-OVERLAY",
+      "path": "docs/current/M0-DIRECTION-OVERRIDE-20260920.md",
+      "authority_class": "CURRENT_PRIORITY_OVERLAY"
+    },
+    {
+      "id": "SCI-0929",
+      "path": "docs\\history\\planning-blueprint-absorption\\2026-09-29\\package-unpacked\\AAOS_MASTER_ATLAS_2026-09-29.json",
+      "sha256": "7F58C4E033A88FD16B80C831085A25FD0042B2182B1047AFE5D4FFCD86351D8C",
+      "authority_class": "SCIENTIFIC_ENHANCEMENT_PROPOSAL"
+    },
+    {
+      "id": "R1-0906",
+      "path": "docs/authority/taskpack-0906/TASKS.json",
+      "sha256": "1AA5C17C94F8C279987B5F4C70777E25D3614B6419FDA65FD351ABF71FF6BC94",
+      "authority_class": "HISTORICAL_SUPERSEDED_LINEAGE"
+    },
+    {
+      "id": "R2-0907",
+      "path": "docs/authority/taskpack-0907/TASKS.json",
+      "sha256": "28FF4D552C813856243D6BAB3FC550BDD7BF41F01F62326A71F7AA003CCC0F7E",
+      "authority_class": "HISTORICAL_SUPERSEDED_LINEAGE"
+    },
+    {
+      "id": "R3-0908",
+      "path": "docs/authority/taskpack-0908-r3/TASKS.json",
+      "sha256": "54892E6CCA3CDC80E58A0AFFCFAE8AD1EBDB62774475D57B7579562D0A3E56AD",
+      "authority_class": "HISTORICAL_SUPERSEDED_LINEAGE"
+    },
+    {
+      "id": "R3-0910",
+      "path": "docs/authority/taskpack-0910-r3/TASKS.json",
+      "sha256": "954D02F655BDF1D5FE7B339629534BEE55051A67FA26139ADEF5340C555DCB37",
+      "authority_class": "HISTORICAL_SUPERSEDED_LINEAGE"
+    },
+    {
+      "id": "R5-0912",
+      "path": "docs/authority/taskpack-0912-r5/TASKS.json",
+      "sha256": "0C352487EBE99A57C8639909F998FD3DFD6B43CDB88B4E46EF158A4C45EEC0BE",
+      "authority_class": "HISTORICAL_SUPERSEDED_LINEAGE"
+    },
+    {
+      "id": "UI-PLAN-0924",
+      "path": "docs\\superpowers\\plans\\2026-09-24-aaos-commercial-frontend-completion.md",
+      "sha256": "FF2CD215EEA346A54E154CB3AD0916D08983F72B89B3781E97D0599F6CAC83A7",
+      "authority_class": "IMPLEMENTATION_PLAN_HISTORICAL"
+    },
+    {
+      "id": "DP-0925",
+      "path": "docs\\current\\DSH-DP-TASK-ASSIGNMENTS-20260925.md",
+      "sha256": "9E6B39B4898F1A06AA2CEC11AE1B3F3042FBBA4004F738FCBFD78AC9E36F6425",
+      "authority_class": "HISTORICAL_PARALLEL_ASSIGNMENT"
+    },
+    {
+      "id": "ECOSYSTEM-1001",
+      "path": "docs\\history\\external-inputs\\2026-10-01\\AAOS-ECOSYSTEM-AUDIT.md",
+      "sha256": "01E723689A8736B5C7065215598DAEEA8990B311C9B5887B75AEE398820360C2",
+      "authority_class": "ARCHIVED_PROPOSAL_NOT_EXECUTED"
+    }
+  ],
+  "counts": {
+    "RECORD-0928": 43,
+    "RECORD-0930": 17,
+    "OSS-0930": 14,
+    "UI-PROMPT": 10,
+    "ATLAS-0929": 17,
+    "ABSORB-0929": 11,
+    "R6-LIVE-LEDGER": 17,
+    "M0-OVERLAY": 7,
+    "SCI-0929": 5,
+    "R1-0906": 21,
+    "R2-0907": 23,
+    "R3-0908": 23,
+    "R3-0910": 17,
+    "R5-0912": 23,
+    "UI-PLAN-0924": 8,
+    "DP-0925": 5,
+    "ECOSYSTEM-1001": 9
+  },
+  "source_catalogs_not_tasks": [
+    {
+      "path": "docs\\history\\planning-blueprint-absorption\\2026-09-29\\package-unpacked\\AAOS_SOURCE_BASELINE_97_2026-09-04.csv",
+      "count": 97,
+      "reason": "source assets, not 97 current execution grants"
+    },
+    {
+      "path": "docs\\history\\planning-blueprint-absorption\\2026-09-29\\package-unpacked\\AAOS_CURRENT_SUPPLY_CHAIN_47_2026-09-29.csv",
+      "count": 47,
+      "reason": "dependency inventory; adopt only through current need, license, runtime and acceptance"
+    },
+    {
+      "path": "docs\\history\\planning-blueprint-absorption\\2026-09-29\\package-unpacked\\AAOS_OSS_RESEARCH_POOL_369_2026-08-11.csv",
+      "count": 369,
+      "reason": "research candidates, not 369 current tasks or dependencies"
+    },
+    {
+      "path": "docs\\history\\planning-blueprint-absorption\\2026-09-29\\package-unpacked\\AAOS_CAPABILITY_ATLAS_CURRENT_MAPPING_2026-09-29.csv",
+      "count": 16,
+      "reason": "capability map; current authority is docs/truth/CAPABILITY_ATLAS_V2.yaml"
+    },
+    {
+      "path": "docs/current/DSH-BACKEND-GAP-MAP-20260927.md#1-M0-26-阶段逐项",
+      "count": 26,
+      "reason": "historical synthetic journey stages, not independent unclosed tasks; requalify current exact binary"
+    }
+  ],
+  "audit_method": "Source IDs and original acceptance retained. Historical/planned/fixture evidence is a lead, not current completion proof. A row closes only after exact-source code, runtime and required native or real journey evidence are linked in the current R6/M0 ledger.",
+  "task_rows": [
+    {
+      "key": "RECORD-0928:AA-00",
+      "source": "RECORD-0928",
+      "source_id": "AA-00",
+      "title": "重新绑定 current main",
+      "original_status": "UNVERIFIED_IN_THIS_HANDOFF",
+      "audit_verdict": "PARTIAL_CURRENT_BASELINE_READBACK",
+      "authority_class": "HISTORICAL_INPUT",
+      "current_evidence": [
+        "docs/current/R6-STATE.json"
+      ],
+      "requirements_or_acceptance": [
+        "第一动作只做最小读回：HEAD、origin/main、GitHub main、dirty/untracked、当前 worktree、R6-EXECUTION、R6-STATE、M0 overlay。今天对话最后核到的 main 为 d8f99a6357405054f1f9ee66eb2f88d36f7f5143；若 live main 已前进，只记录差异并继承最新 main。",
+        "禁止从旧 codex/aaos-p3-ui-convergence-20260922 直接继续正式开发。任何本地 dirty/untracked 必须先保护，再从 current main 建立新的安全 UI 工作基线。",
+        "验收：没有 reset、没有覆盖 dirty、没有创建第二套 current state；执行状态继续写现有 R6-EXECUTION / R6-STATE。",
+        "验收：基线明确且 dirty 受保护；沿用现有 ledger"
+      ],
+      "maps_to": [
+        "A00"
+      ]
+    },
+    {
+      "key": "RECORD-0928:AA-01",
+      "source": "RECORD-0928",
+      "source_id": "AA-01",
+      "title": "最小状态对齐",
+      "original_status": "UNVERIFIED_IN_THIS_HANDOFF",
+      "audit_verdict": "PARTIAL_CURRENT_BASELINE_READBACK",
+      "authority_class": "HISTORICAL_INPUT",
+      "current_evidence": [
+        "docs/current/R6-STATE.json"
+      ],
+      "requirements_or_acceptance": [
+        "只把会影响后续执行的最新集成事实映射回现有 R6 ledger；不再做全仓历史报告，不复制测试数字，不新增 TaskPack。",
+        "验收：新执行器能从现有权威直接知道 current main、M0 critical path、A15/A16、Release FROZEN 和未闭合项。",
+        "验收：基线明确且 dirty 受保护；沿用现有 ledger"
+      ],
+      "maps_to": [
+        "A00",
+        "A01"
+      ]
+    },
+    {
+      "key": "RECORD-0928:AA-UI-01",
+      "source": "RECORD-0928",
+      "source_id": "AA-UI-01",
+      "title": "正式 Information Architecture",
+      "original_status": "UNVERIFIED_IN_THIS_HANDOFF",
+      "audit_verdict": "OPEN_OR_PARTIAL_REQUIRES_GOLDEN_JOURNEY",
+      "authority_class": "HISTORICAL_INPUT",
+      "current_evidence": [
+        "docs/current/AAOS-UI-COVERAGE-MATRIX-20261001.md",
+        "docs/current/AAOS-UI-BACKEND-MAP-20261001.md"
+      ],
+      "requirements_or_acceptance": [
+        "一级导航围绕用户任务：Home/Workspace、Import/Capture、Library、Reader/Evidence、Knowledge、Search、Learning、Review、Machine、Recovery/Settings。Agent、MCP、Runtime、模型管理不成为 AAOS 一级产品导航。",
+        "二级导航按真实对象组织：Source、Transform、Evidence、Knowledge Version、Course、Assessment、Review Queue、Machine Task、Correction、Backup、Migration。",
+        "所有导航映射真实 Core API / projection；没有后端合同的页面只能显示 Not Available/Planned，不得伪造可用状态。",
+        "验收：GJ-10/GJ-11"
+      ],
+      "maps_to": [
+        "A12"
+      ]
+    },
+    {
+      "key": "RECORD-0928:AA-UI-02",
+      "source": "RECORD-0928",
+      "source_id": "AA-UI-02",
+      "title": "Global Command / Menu / Context Navigation",
+      "original_status": "UNVERIFIED_IN_THIS_HANDOFF",
+      "audit_verdict": "OPEN_OR_PARTIAL_REQUIRES_GOLDEN_JOURNEY",
+      "authority_class": "HISTORICAL_INPUT",
+      "current_evidence": [
+        "docs/current/AAOS-UI-COVERAGE-MATRIX-20261001.md",
+        "docs/current/AAOS-UI-BACKEND-MAP-20261001.md"
+      ],
+      "requirements_or_acceptance": [
+        "实现 Ctrl+K/Command Palette、主菜单、context menu、breadcrumb、back/forward、最近对象、全局搜索入口。",
+        "命令使用稳定 command id，并在执行前检查 capability/permission；高风险操作进入确认/审批，不允许菜单绕过后端规则。",
+        "验收：键盘可完成打开资料、搜索、进入 Reader、创建学习、提交 Assessment、进入 Review、查看 Machine result、打开 Recovery 的主旅程。",
+        "验收：GJ-11"
+      ],
+      "maps_to": [
+        "A12"
+      ]
+    },
+    {
+      "key": "RECORD-0928:AA-UI-03",
+      "source": "RECORD-0928",
+      "source_id": "AA-UI-03",
+      "title": "Import / Capture",
+      "original_status": "UNVERIFIED_IN_THIS_HANDOFF",
+      "audit_verdict": "OPEN_OR_PARTIAL_REQUIRES_GOLDEN_JOURNEY",
+      "authority_class": "HISTORICAL_INPUT",
+      "current_evidence": [
+        "docs/current/AAOS-UI-COVERAGE-MATRIX-20261001.md",
+        "docs/current/AAOS-UI-BACKEND-MAP-20261001.md"
+      ],
+      "requirements_or_acceptance": [
+        "支持 drag/drop、file picker、批量导入、真实进度、取消、失败重试、Unsupported/Partial、Parser/Provider 状态。",
+        "首批真实格式：TXT、MD、PDF text、scanned PDF OCR、HTML、Image；DOCX 与 Audio 在当前 adapter 成熟时进入首批，否则作为紧随其后的第二批，但不得改变统一 receipt 契约。",
+        "导入后必须看到 Raw Source identity、hash、media type、parser/version、job/transform、quality/loss 状态。",
+        "验收：GJ-01"
+      ],
+      "maps_to": [
+        "A04",
+        "A05",
+        "A12"
+      ]
+    },
+    {
+      "key": "RECORD-0928:AA-UI-04",
+      "source": "RECORD-0928",
+      "source_id": "AA-UI-04",
+      "title": "Library / Reader / Evidence",
+      "original_status": "UNVERIFIED_IN_THIS_HANDOFF",
+      "audit_verdict": "OPEN_OR_PARTIAL_REQUIRES_GOLDEN_JOURNEY",
+      "authority_class": "HISTORICAL_INPUT",
+      "current_evidence": [
+        "docs/current/AAOS-UI-COVERAGE-MATRIX-20261001.md",
+        "docs/current/AAOS-UI-BACKEND-MAP-20261001.md"
+      ],
+      "requirements_or_acceptance": [
+        "Library 提供真实对象列表、筛选、搜索、状态、来源与 revision。Reader 展示真实原文/转换结果，Evidence anchor 可定位到页、段、时间码或结构节点。",
+        "Evidence 面板展示 source_id、source_revision、anchor、transform、quality/loss、provenance；禁止只显示漂亮摘要而丢失来源绑定。",
+        "验收：用户从 Library 打开真实来源，选中 Evidence，能回到原始位置并读回同一 anchor。",
+        "验收：GJ-02/GJ-03"
+      ],
+      "maps_to": [
+        "A04",
+        "A05",
+        "A12"
+      ]
+    },
+    {
+      "key": "RECORD-0928:AA-UI-05",
+      "source": "RECORD-0928",
+      "source_id": "AA-UI-05",
+      "title": "Knowledge",
+      "original_status": "UNVERIFIED_IN_THIS_HANDOFF",
+      "audit_verdict": "OPEN_OR_PARTIAL_REQUIRES_GOLDEN_JOURNEY",
+      "authority_class": "HISTORICAL_INPUT",
+      "current_evidence": [
+        "docs/current/AAOS-UI-COVERAGE-MATRIX-20261001.md",
+        "docs/current/AAOS-UI-BACKEND-MAP-20261001.md"
+      ],
+      "requirements_or_acceptance": [
+        "展示 external / personal / machine_candidate 等真实 Knowledge V3 状态，区分 Candidate、Accepted/Verified、Rejected/Deprecated，不把 AI 输出自动升级为可信知识。",
+        "支持从 Evidence 生成 Candidate、人工确认/修订、查看版本与 provenance。同一 Knowledge version 必须能被 Search、Learning 和 Machine Task 引用。",
+        "验收：GJ-02"
+      ],
+      "maps_to": [
+        "A04",
+        "A12"
+      ]
+    },
+    {
+      "key": "RECORD-0928:AA-UI-06",
+      "source": "RECORD-0928",
+      "source_id": "AA-UI-06",
+      "title": "Search",
+      "original_status": "UNVERIFIED_IN_THIS_HANDOFF",
+      "audit_verdict": "OPEN_OR_PARTIAL_REQUIRES_GOLDEN_JOURNEY",
+      "authority_class": "HISTORICAL_INPUT",
+      "current_evidence": [
+        "docs/current/AAOS-UI-COVERAGE-MATRIX-20261001.md",
+        "docs/current/AAOS-UI-BACKEND-MAP-20261001.md"
+      ],
+      "requirements_or_acceptance": [
+        "一个统一搜索面：FTS5 + local.embedding.default + local.reranker.default。显示 query、retrieval source、rerank 结果、Evidence anchor 与 provider health。",
+        "Provider 不可用时降级到可解释模式，例如 FTS-only；UI 明确标记 degraded，不得静默伪装完整语义检索。",
+        "验收：GJ-03"
+      ],
+      "maps_to": [
+        "A06",
+        "A12"
+      ]
+    },
+    {
+      "key": "RECORD-0928:AA-UI-07",
+      "source": "RECORD-0928",
+      "source_id": "AA-UI-07",
+      "title": "Learning Plan / Course / Artifact",
+      "original_status": "UNVERIFIED_IN_THIS_HANDOFF",
+      "audit_verdict": "OPEN_OR_PARTIAL_REQUIRES_GOLDEN_JOURNEY",
+      "authority_class": "HISTORICAL_INPUT",
+      "current_evidence": [
+        "docs/current/AAOS-UI-COVERAGE-MATRIX-20261001.md",
+        "docs/current/AAOS-UI-BACKEND-MAP-20261001.md"
+      ],
+      "requirements_or_acceptance": [
+        "M0 只做 general 学习链。UI 展示目标、KC/Prerequisite、Learning Objective、Course/Artifact、来源 Knowledge 与 Evidence。",
+        "优先把已有 native lesson / 第一 Renderer 做成真实可学习界面；不要同时扩多个 Renderer、Domain Pack。",
+        "验收：GJ-04"
+      ],
+      "maps_to": [
+        "A08",
+        "A09",
+        "A10",
+        "A12"
+      ]
+    },
+    {
+      "key": "RECORD-0928:AA-UI-08",
+      "source": "RECORD-0928",
+      "source_id": "AA-UI-08",
+      "title": "Assessment / Review / Mastery",
+      "original_status": "UNVERIFIED_IN_THIS_HANDOFF",
+      "audit_verdict": "OPEN_OR_PARTIAL_REQUIRES_GOLDEN_JOURNEY",
+      "authority_class": "HISTORICAL_INPUT",
+      "current_evidence": [
+        "docs/current/AAOS-UI-COVERAGE-MATRIX-20261001.md",
+        "docs/current/AAOS-UI-BACKEND-MAP-20261001.md"
+      ],
+      "requirements_or_acceptance": [
+        "真实用户必须看到问题、输入/选择答案、提交、得到结果与解释；Assessment 由 Core 产生，Rust Core 写入权威学习状态。",
+        "显示 FSRS due、review rating、Mastery signal，但明确 Mastery != Truth。",
+        "验收：完全退出 Desktop/Core 后重新启动，Assessment、answer、review event、FSRS、due queue、Mastery 状态一致读回。",
+        "验收：GJ-04/GJ-05"
+      ],
+      "maps_to": [
+        "A08",
+        "A12"
+      ]
+    },
+    {
+      "key": "RECORD-0928:AA-UI-09",
+      "source": "RECORD-0928",
+      "source_id": "AA-UI-09",
+      "title": "Machine Task / Correction / Retest",
+      "original_status": "UNVERIFIED_IN_THIS_HANDOFF",
+      "audit_verdict": "OPEN_OR_PARTIAL_REQUIRES_GOLDEN_JOURNEY",
+      "authority_class": "HISTORICAL_INPUT",
+      "current_evidence": [
+        "docs/current/AAOS-UI-COVERAGE-MATRIX-20261001.md",
+        "docs/current/AAOS-UI-BACKEND-MAP-20261001.md"
+      ],
+      "requirements_or_acceptance": [
+        "用户从同一 Accepted/Personal Knowledge 发起真实本地模型任务。展示 Knowledge versions、Provider、模型 provenance、输出与 Evidence。",
+        "用户必须能指出一个真实错误，创建 Correction，触发 Retest，并比较 before/after。",
+        "禁止模型自评替代人工纠错；禁止预写 correct=true。",
+        "验收：GJ-06/GJ-07"
+      ],
+      "maps_to": [
+        "A07",
+        "A14",
+        "A12"
+      ]
+    },
+    {
+      "key": "RECORD-0928:AA-UI-10",
+      "source": "RECORD-0928",
+      "source_id": "AA-UI-10",
+      "title": "Backup / Restore / Migration / Recovery",
+      "original_status": "UNVERIFIED_IN_THIS_HANDOFF",
+      "audit_verdict": "OPEN_OR_PARTIAL_REQUIRES_GOLDEN_JOURNEY",
+      "authority_class": "HISTORICAL_INPUT",
+      "current_evidence": [
+        "docs/current/AAOS-UI-COVERAGE-MATRIX-20261001.md",
+        "docs/current/AAOS-UI-BACKEND-MAP-20261001.md"
+      ],
+      "requirements_or_acceptance": [
+        "Recovery 面板只暴露真实后端能力：backup manifest、restore validation、workspace identity、Legacy copy migration、rollback。",
+        "任何 destructive action 必须明确目标、影响范围、备份、审批与回滚；Green data 和真实用户资料默认不可删。",
+        "验收：GJ-08/GJ-09"
+      ],
+      "maps_to": [
+        "A13",
+        "A12"
+      ]
+    },
+    {
+      "key": "RECORD-0928:AA-UI-11",
+      "source": "RECORD-0928",
+      "source_id": "AA-UI-11",
+      "title": "UI 状态矩阵",
+      "original_status": "UNVERIFIED_IN_THIS_HANDOFF",
+      "audit_verdict": "OPEN_OR_PARTIAL_REQUIRES_GOLDEN_JOURNEY",
+      "authority_class": "HISTORICAL_INPUT",
+      "current_evidence": [
+        "docs/current/AAOS-UI-COVERAGE-MATRIX-20261001.md",
+        "docs/current/AAOS-UI-BACKEND-MAP-20261001.md"
+      ],
+      "requirements_or_acceptance": [
+        "所有核心页面实现 empty、loading、partial、unsupported、offline、provider-degraded、permission-denied、error、retry、long-running job、cancelled、stale/restart-required。",
+        "禁止 fake KPI、mock progress、phantom endpoint、没有真实后端绑定的按钮。",
+        "验收：GJ-01～GJ-11"
+      ],
+      "maps_to": [
+        "A12"
+      ]
+    },
+    {
+      "key": "RECORD-0928:AA-UI-12",
+      "source": "RECORD-0928",
+      "source_id": "AA-UI-12",
+      "title": "交互与动画",
+      "original_status": "UNVERIFIED_IN_THIS_HANDOFF",
+      "audit_verdict": "OPEN_OR_PARTIAL_REQUIRES_GOLDEN_JOURNEY",
+      "authority_class": "HISTORICAL_INPUT",
+      "current_evidence": [
+        "docs/current/AAOS-UI-COVERAGE-MATRIX-20261001.md",
+        "docs/current/AAOS-UI-BACKEND-MAP-20261001.md"
+      ],
+      "requirements_or_acceptance": [
+        "动画服务于状态变化，不服务于装饰。页面/面板/Toast/Selection/Progress/Skeleton/Drag-drop/Evidence anchor/Learning feedback 使用短、可中断、可关闭的过渡。",
+        "支持 reduced motion；长任务用真实 job progress，不用循环假进度。错误、审批、危险操作不使用会弱化风险感知的娱乐动画。",
+        "验收：GJ-11"
+      ],
+      "maps_to": [
+        "A12"
+      ]
+    },
+    {
+      "key": "RECORD-0928:AA-UI-13",
+      "source": "RECORD-0928",
+      "source_id": "AA-UI-13",
+      "title": "ICON / PNG / GIF / Illustration",
+      "original_status": "UNVERIFIED_IN_THIS_HANDOFF",
+      "audit_verdict": "OPEN_OR_PARTIAL_REQUIRES_GOLDEN_JOURNEY",
+      "authority_class": "HISTORICAL_INPUT",
+      "current_evidence": [
+        "docs/current/AAOS-UI-COVERAGE-MATRIX-20261001.md",
+        "docs/current/AAOS-UI-BACKEND-MAP-20261001.md"
+      ],
+      "requirements_or_acceptance": [
+        "建立受控资产目录和命名规则。功能性图标优先 vector/SVG 或 Avalonia 可缩放资源；PNG 用于截图、位图参考、不可矢量化视觉；GIF 只允许帮助/演示，不作为核心状态真值或唯一反馈。",
+        "每个资产记录来源、license/rights、用途、dark-theme 适配、DPI/scale、fallback。旧 OSUI/frontend 视觉只可吸收设计/行为参考，不恢复 React/Tauri 产品身份。",
+        "清理重复图标、无来源图片、过时 mock screenshot 前先核实引用。",
+        "验收：GJ-11"
+      ],
+      "maps_to": [
+        "A03",
+        "A12"
+      ]
+    },
+    {
+      "key": "RECORD-0928:AA-UI-14",
+      "source": "RECORD-0928",
+      "source_id": "AA-UI-14",
+      "title": "Accessibility / Native Acceptance",
+      "original_status": "UNVERIFIED_IN_THIS_HANDOFF",
+      "audit_verdict": "OPEN_OR_PARTIAL_REQUIRES_GOLDEN_JOURNEY",
+      "authority_class": "HISTORICAL_INPUT",
+      "current_evidence": [
+        "docs/current/AAOS-UI-COVERAGE-MATRIX-20261001.md",
+        "docs/current/AAOS-UI-BACKEND-MAP-20261001.md"
+      ],
+      "requirements_or_acceptance": [
+        "覆盖 keyboard-only、focus order、focus visible、IME 中文输入、screen reader、high contrast、DPI/scale、窗口 resize、reduced motion。",
+        "Native UIA 必须针对 current rebuilt DLL 重新执行，旧 DLL 的 UIA 证据不得转移。",
+        "建立截图矩阵：关键页面 × 正常/空/错误/降级 × 代表性 DPI；截图只作视觉证据，不替代真实交互证据。",
+        "验收：GJ-11"
+      ],
+      "maps_to": [
+        "A12",
+        "A15"
+      ]
+    },
+    {
+      "key": "RECORD-0928:AA-BE-01",
+      "source": "RECORD-0928",
+      "source_id": "AA-BE-01",
+      "title": "Provider Consumption Contract",
+      "original_status": "UNVERIFIED_IN_THIS_HANDOFF",
+      "audit_verdict": "OPEN_OR_PARTIAL_REQUIRES_GOLDEN_JOURNEY",
+      "authority_class": "HISTORICAL_INPUT",
+      "current_evidence": [
+        "docs/current/R6-STATE.json"
+      ],
+      "requirements_or_acceptance": [
+        "AAOS 只保存 logical provider id、capability、policy、health/fallback result，不保存物理模型路径。实现对 WORK-LAB provider health、invoke、timeout、cancel、fallback、provenance 的版本化 contract。",
+        "验收：WORK-LAB runtime 重启或模型不可用时，AAOS 不崩溃、不越权启动第二套共享 runtime，并能显示 degraded/offline。",
+        "验收：GJ-01/GJ-03/GJ-06"
+      ],
+      "maps_to": [
+        "A03",
+        "A11"
+      ]
+    },
+    {
+      "key": "RECORD-0928:AA-BE-02",
+      "source": "RECORD-0928",
+      "source_id": "AA-BE-02",
+      "title": "多格式 Intake 统一合同",
+      "original_status": "UNVERIFIED_IN_THIS_HANDOFF",
+      "audit_verdict": "OPEN_OR_PARTIAL_REQUIRES_GOLDEN_JOURNEY",
+      "authority_class": "HISTORICAL_INPUT",
+      "current_evidence": [
+        "docs/current/R6-STATE.json"
+      ],
+      "requirements_or_acceptance": [
+        "所有格式统一产生 RawAsset/Source identity、SHA-256、media type、parser/provider、version、Transform/Conversion revision、Structure、Anchor、Loss/Quality receipt。",
+        "首批必须真实跑 TXT、MD、PDF text、scanned PDF OCR、HTML、Image；DOCX、Audio 紧随其后。若 XLSX/PPTX 现有 adapter 已成熟，可加入同一批，否则不得阻塞 M0。",
+        "Unsupported/Partial 必须显式，不允许空输出冒充成功。",
+        "验收：GJ-01/GJ-02"
+      ],
+      "maps_to": [
+        "A05"
+      ]
+    },
+    {
+      "key": "RECORD-0928:AA-BE-03",
+      "source": "RECORD-0928",
+      "source_id": "AA-BE-03",
+      "title": "OCR",
+      "original_status": "UNVERIFIED_IN_THIS_HANDOFF",
+      "audit_verdict": "OPEN_OR_PARTIAL_REQUIRES_GOLDEN_JOURNEY",
+      "authority_class": "HISTORICAL_INPUT",
+      "current_evidence": [
+        "docs/current/R6-STATE.json"
+      ],
+      "requirements_or_acceptance": [
+        "通过 local.ocr.default 消费 WORK-LAB 选择的默认 OCR pipeline。测试中文、英文、混排、扫描 PDF、图片、表格、页序与 provenance。",
+        "AAOS 只负责输入、结构化 receipt、Evidence anchor 与业务质量；OCR 模型/runtime 由 WORK-LAB 治理。",
+        "验收：GJ-01/GJ-02"
+      ],
+      "maps_to": [
+        "A05"
+      ]
+    },
+    {
+      "key": "RECORD-0928:AA-BE-04",
+      "source": "RECORD-0928",
+      "source_id": "AA-BE-04",
+      "title": "ASR",
+      "original_status": "UNVERIFIED_IN_THIS_HANDOFF",
+      "audit_verdict": "OPEN_OR_PARTIAL_REQUIRES_GOLDEN_JOURNEY",
+      "authority_class": "HISTORICAL_INPUT",
+      "current_evidence": [
+        "docs/current/R6-STATE.json"
+      ],
+      "requirements_or_acceptance": [
+        "通过 local.asr.default 处理真实中文音频/视频音轨，产生 transcript、时间码、source binding、quality/provenance。",
+        "ASR 不是 M0 首个文档闭环 blocker，但必须在最终多格式闭环前完成真实音频测试。",
+        "验收：GJ-01/GJ-02"
+      ],
+      "maps_to": [
+        "A05"
+      ]
+    },
+    {
+      "key": "RECORD-0928:AA-BE-05",
+      "source": "RECORD-0928",
+      "source_id": "AA-BE-05",
+      "title": "Retrieval",
+      "original_status": "UNVERIFIED_IN_THIS_HANDOFF",
+      "audit_verdict": "OPEN_OR_PARTIAL_REQUIRES_GOLDEN_JOURNEY",
+      "authority_class": "HISTORICAL_INPUT",
+      "current_evidence": [
+        "docs/current/R6-STATE.json"
+      ],
+      "requirements_or_acceptance": [
+        "实现并验证 FTS5 + real embedding + reranker 的最小组合。Embedding 数据与索引属于 AAOS；模型服务属于 WORK-LAB。",
+        "Golden Query 必须能从已知来源返回正确 chunk/Evidence，并证明 reranker 改善候选排序或至少不破坏已知命中。",
+        "验收：GJ-03"
+      ],
+      "maps_to": [
+        "A06"
+      ]
+    },
+    {
+      "key": "RECORD-0928:AA-BE-06",
+      "source": "RECORD-0928",
+      "source_id": "AA-BE-06",
+      "title": "General Learning",
+      "original_status": "UNVERIFIED_IN_THIS_HANDOFF",
+      "audit_verdict": "OPEN_OR_PARTIAL_REQUIRES_GOLDEN_JOURNEY",
+      "authority_class": "HISTORICAL_INPUT",
+      "current_evidence": [
+        "docs/current/R6-STATE.json"
+      ],
+      "requirements_or_acceptance": [
+        "从 Accepted Knowledge 生成最小 KC、Prerequisite、Learning Objective、CourseManifest、Artifact；保持 source/knowledge/renderer binding。",
+        "只完成 general；其他 Domain Pack 不进入当前 critical path。",
+        "验收：GJ-04"
+      ],
+      "maps_to": [
+        "A09",
+        "A10"
+      ]
+    },
+    {
+      "key": "RECORD-0928:AA-BE-07",
+      "source": "RECORD-0928",
+      "source_id": "AA-BE-07",
+      "title": "Human Learning",
+      "original_status": "UNVERIFIED_IN_THIS_HANDOFF",
+      "audit_verdict": "OPEN_OR_PARTIAL_REQUIRES_GOLDEN_JOURNEY",
+      "authority_class": "HISTORICAL_INPUT",
+      "current_evidence": [
+        "docs/current/R6-STATE.json"
+      ],
+      "requirements_or_acceptance": [
+        "打通 Course → Assessment → answer → learning event → FSRS/Mastery → due queue → restart/readback。",
+        "每个写入由 Rust Core authoritative path 完成；C# 与 Python 不直接写主 DB。",
+        "验收：GJ-04/GJ-05"
+      ],
+      "maps_to": [
+        "A08"
+      ]
+    },
+    {
+      "key": "RECORD-0928:AA-BE-08",
+      "source": "RECORD-0928",
+      "source_id": "AA-BE-08",
+      "title": "Real Local Machine Loop",
+      "original_status": "UNVERIFIED_IN_THIS_HANDOFF",
+      "audit_verdict": "OPEN_OR_PARTIAL_REQUIRES_GOLDEN_JOURNEY",
+      "authority_class": "HISTORICAL_INPUT",
+      "current_evidence": [
+        "docs/current/R6-STATE.json"
+      ],
+      "requirements_or_acceptance": [
+        "使用 WORK-LAB 的 local.fast.default / local.deep.default 和同一批 Accepted/Personal Knowledge 执行真实任务。",
+        "必须记录 Model/Provider、Knowledge Versions、Input、Output、Result。由用户指出真实错误 → Correction → Retest → restart/readback。",
+        "验收不接受 stub、local-stub、mock、模型自评或预写 correct=true。",
+        "验收：GJ-06/GJ-07"
+      ],
+      "maps_to": [
+        "A07",
+        "A14"
+      ]
+    },
+    {
+      "key": "RECORD-0928:AA-BE-09",
+      "source": "RECORD-0928",
+      "source_id": "AA-BE-09",
+      "title": "Backup / Restore",
+      "original_status": "UNVERIFIED_IN_THIS_HANDOFF",
+      "audit_verdict": "OPEN_OR_PARTIAL_REQUIRES_GOLDEN_JOURNEY",
+      "authority_class": "HISTORICAL_INPUT",
+      "current_evidence": [
+        "docs/current/R6-STATE.json"
+      ],
+      "requirements_or_acceptance": [
+        "验证 DB identity、schema、workspace identity、hash、referential integrity、manifest 唯一性；restore 后完整 restart/readback。",
+        "备份不得把共享 Model library、外置真实资料库或无关 cache 打包进产品数据。",
+        "验收：GJ-08"
+      ],
+      "maps_to": [
+        "A13"
+      ]
+    },
+    {
+      "key": "RECORD-0928:AA-BE-10",
+      "source": "RECORD-0928",
+      "source_id": "AA-BE-10",
+      "title": "Legacy Copy Migration",
+      "original_status": "UNVERIFIED_IN_THIS_HANDOFF",
+      "audit_verdict": "OPEN_OR_PARTIAL_REQUIRES_GOLDEN_JOURNEY",
+      "authority_class": "HISTORICAL_INPUT",
+      "current_evidence": [
+        "docs/current/R6-STATE.json"
+      ],
+      "requirements_or_acceptance": [
+        "只对非空 Legacy DB/Workspace 的隔离副本执行 read-only export → staging import → semantic diff → loss report → restart/readback。",
+        "禁止修改原 Legacy、真实 Green data 或用户资料。",
+        "验收：GJ-09"
+      ],
+      "maps_to": [
+        "A13"
+      ]
+    },
+    {
+      "key": "RECORD-0928:AA-CLEAN-01",
+      "source": "RECORD-0928",
+      "source_id": "AA-CLEAN-01",
+      "title": "Repository Forensic Volume Audit",
+      "original_status": "UNVERIFIED_IN_THIS_HANDOFF",
+      "audit_verdict": "PAUSED_BY_USER_CLEANUP_STOP",
+      "authority_class": "HISTORICAL_INPUT",
+      "current_evidence": [
+        "docs/current/R6-STATE.json"
+      ],
+      "requirements_or_acceptance": [
+        "只读盘点 tracked working tree、.git objects/pack/reflog/worktree metadata、.project-local/build/runs/cache/worktrees/task-runtime/dist/ui-audit/candidates、Cargo target、.NET bin/obj/publish、Node node_modules/dist、Python venv/cache、ZIP+expanded candidate、linked worktree 重复 build、logs/db/runtime data、legacy local artifacts。",
+        "输出一级/二级目录 bytes、file count、largest、duplicate by size/hash、producer、consumer、referenced-by、active lock、rebuild method。现场盘点前可回收空间为 UNKNOWN。",
+        "验收：精确清理证据；不损害 GJ 与用户数据"
+      ],
+      "maps_to": []
+    },
+    {
+      "key": "RECORD-0928:AA-CLEAN-02",
+      "source": "RECORD-0928",
+      "source_id": "AA-CLEAN-02",
+      "title": "Green Forensic Volume Audit",
+      "original_status": "UNVERIFIED_IN_THIS_HANDOFF",
+      "audit_verdict": "PAUSED_BY_USER_CLEANUP_STOP",
+      "authority_class": "HISTORICAL_INPUT",
+      "current_evidence": [
+        "docs/current/R6-STATE.json"
+      ],
+      "requirements_or_acceptance": [
+        "把 Green 分层为 executable/runtime、data/user DB、backup、logs/cache、old candidate/installer/archive、duplicated runtime/model、accidental shared-library copy。",
+        "Green data、用户 DB、真实资料默认 PRESERVE_USER_DATA。不得把 D:\\All projects\\资料库 或共享模型库当垃圾。",
+        "验收：精确清理证据；不损害 GJ 与用户数据"
+      ],
+      "maps_to": []
+    },
+    {
+      "key": "RECORD-0928:AA-CLEAN-03",
+      "source": "RECORD-0928",
+      "source_id": "AA-CLEAN-03",
+      "title": "Path / Spill Trace",
+      "original_status": "UNVERIFIED_IN_THIS_HANDOFF",
+      "audit_verdict": "PAUSED_BY_USER_CLEANUP_STOP",
+      "authority_class": "HISTORICAL_INPUT",
+      "current_evidence": [
+        "docs/current/R6-STATE.json"
+      ],
+      "requirements_or_acceptance": [
+        "核对 SHARED_RESOURCE_PATH_INDEX、EXTERNAL_DEPENDENCIES、launcher/profile/env/config 中的旧路径；追踪 ARCHEAXIS/COGNITIVE/HERMES 旧路径、temp、user-home、junction/symlink/reparse point、跨项目写出。",
+        "只清 AAOS 自己的 stale reference 和生成物；不清共享 Model library / OS External Configuration 本体。",
+        "验收：精确清理证据；不损害 GJ 与用户数据"
+      ],
+      "maps_to": []
+    },
+    {
+      "key": "RECORD-0928:AA-CLEAN-04",
+      "source": "RECORD-0928",
+      "source_id": "AA-CLEAN-04",
+      "title": "Cleanup Classes",
+      "original_status": "UNVERIFIED_IN_THIS_HANDOFF",
+      "audit_verdict": "PAUSED_BY_USER_CLEANUP_STOP",
+      "authority_class": "HISTORICAL_INPUT",
+      "current_evidence": [
+        "docs/current/R6-STATE.json"
+      ],
+      "requirements_or_acceptance": [
+        "KEEP：当前源码、权威、用户数据、当前 evidence。",
+        "ARCHIVE：唯一历史证据但不需常驻。",
+        "REBUILDABLE_DELETE：确认无引用、无进程锁、可重建的 cache/build。",
+        "OWNER_GATED_DELETE：旧 candidate、Green backup、可能含恢复价值的大包。",
+        "FORBIDDEN：共享模型权重、真实资料库、Green user data、未确认 dirty/worktree、credential/private state。",
+        "每次删除必须 exact path + size/hash + owner + referenced-by + rollback/rebuild；禁止按目录名一刀切。",
+        "验收：精确清理证据；不损害 GJ 与用户数据"
+      ],
+      "maps_to": []
+    },
+    {
+      "key": "RECORD-0928:GJ-01",
+      "source": "RECORD-0928",
+      "source_id": "GJ-01",
+      "title": "多格式真实输入",
+      "original_status": "UNVERIFIED_IN_THIS_HANDOFF",
+      "audit_verdict": "OPEN_OR_PARTIAL_REQUIRES_GOLDEN_JOURNEY",
+      "authority_class": "HISTORICAL_INPUT",
+      "current_evidence": [
+        "docs/current/R6-STATE.json"
+      ],
+      "requirements_or_acceptance": [
+        "真实 TXT/MD/PDF text/scanned PDF/HTML/Image 导入；DOCX/Audio 随后纳入同一合同。每个样本保留 source hash、parser/provider、revision、quality/loss、anchor。",
+        "验收：GJ-01"
+      ],
+      "maps_to": [
+        "A05"
+      ]
+    },
+    {
+      "key": "RECORD-0928:GJ-02",
+      "source": "RECORD-0928",
+      "source_id": "GJ-02",
+      "title": "Source 到 Knowledge",
+      "original_status": "UNVERIFIED_IN_THIS_HANDOFF",
+      "audit_verdict": "OPEN_OR_PARTIAL_REQUIRES_GOLDEN_JOURNEY",
+      "authority_class": "HISTORICAL_INPUT",
+      "current_evidence": [
+        "docs/current/R6-STATE.json"
+      ],
+      "requirements_or_acceptance": [
+        "Raw Source → Transform/OCR/ASR → Structure → Evidence Anchor → Knowledge Candidate → Human Accept。不得跳过 Evidence/Provenance。",
+        "验收：GJ-02"
+      ],
+      "maps_to": [
+        "A04",
+        "A05"
+      ]
+    },
+    {
+      "key": "RECORD-0928:GJ-03",
+      "source": "RECORD-0928",
+      "source_id": "GJ-03",
+      "title": "Search",
+      "original_status": "UNVERIFIED_IN_THIS_HANDOFF",
+      "audit_verdict": "OPEN_OR_PARTIAL_REQUIRES_GOLDEN_JOURNEY",
+      "authority_class": "HISTORICAL_INPUT",
+      "current_evidence": [
+        "docs/current/R6-STATE.json"
+      ],
+      "requirements_or_acceptance": [
+        "Accepted Knowledge → FTS5 + Embedding + Reranker → source-bound Search。搜索结果必须能回到原始 Evidence。",
+        "验收：GJ-03"
+      ],
+      "maps_to": [
+        "A06"
+      ]
+    },
+    {
+      "key": "RECORD-0928:GJ-04",
+      "source": "RECORD-0928",
+      "source_id": "GJ-04",
+      "title": "Human Learning",
+      "original_status": "UNVERIFIED_IN_THIS_HANDOFF",
+      "audit_verdict": "OPEN_OR_PARTIAL_REQUIRES_GOLDEN_JOURNEY",
+      "authority_class": "HISTORICAL_INPUT",
+      "current_evidence": [
+        "docs/current/R6-STATE.json"
+      ],
+      "requirements_or_acceptance": [
+        "Knowledge → General Learning Plan/Course/Artifact → 真人 Assessment → answer → FSRS/Mastery。",
+        "验收：GJ-04"
+      ],
+      "maps_to": [
+        "A08"
+      ]
+    },
+    {
+      "key": "RECORD-0928:GJ-05",
+      "source": "RECORD-0928",
+      "source_id": "GJ-05",
+      "title": "Human Restart",
+      "original_status": "UNVERIFIED_IN_THIS_HANDOFF",
+      "audit_verdict": "OPEN_OR_PARTIAL_REQUIRES_GOLDEN_JOURNEY",
+      "authority_class": "HISTORICAL_INPUT",
+      "current_evidence": [
+        "docs/current/R6-STATE.json"
+      ],
+      "requirements_or_acceptance": [
+        "完全退出并重启，读回 Course/Artifact/Assessment/answer/review/Mastery/FSRS，确认同一 workspace identity。",
+        "验收：GJ-05"
+      ],
+      "maps_to": [
+        "A08"
+      ]
+    },
+    {
+      "key": "RECORD-0928:GJ-06",
+      "source": "RECORD-0928",
+      "source_id": "GJ-06",
+      "title": "Machine Learning Loop",
+      "original_status": "UNVERIFIED_IN_THIS_HANDOFF",
+      "audit_verdict": "OPEN_OR_PARTIAL_REQUIRES_GOLDEN_JOURNEY",
+      "authority_class": "HISTORICAL_INPUT",
+      "current_evidence": [
+        "docs/current/R6-STATE.json"
+      ],
+      "requirements_or_acceptance": [
+        "同一 Knowledge → real local FAST/DEEP task → observed real error → human Correction → Retest。记录 before/after、provider provenance 和 Knowledge versions。",
+        "验收：GJ-06"
+      ],
+      "maps_to": [
+        "A07",
+        "A14"
+      ]
+    },
+    {
+      "key": "RECORD-0928:GJ-07",
+      "source": "RECORD-0928",
+      "source_id": "GJ-07",
+      "title": "Machine Restart",
+      "original_status": "UNVERIFIED_IN_THIS_HANDOFF",
+      "audit_verdict": "OPEN_OR_PARTIAL_REQUIRES_GOLDEN_JOURNEY",
+      "authority_class": "HISTORICAL_INPUT",
+      "current_evidence": [
+        "docs/current/R6-STATE.json"
+      ],
+      "requirements_or_acceptance": [
+        "再次重启，读回 machine task/correction/retest 与 Knowledge binding；不得只验证内存态。",
+        "验收：GJ-07"
+      ],
+      "maps_to": [
+        "A07",
+        "A14"
+      ]
+    },
+    {
+      "key": "RECORD-0928:GJ-08",
+      "source": "RECORD-0928",
+      "source_id": "GJ-08",
+      "title": "Backup / Restore",
+      "original_status": "UNVERIFIED_IN_THIS_HANDOFF",
+      "audit_verdict": "OPEN_OR_PARTIAL_REQUIRES_GOLDEN_JOURNEY",
+      "authority_class": "HISTORICAL_INPUT",
+      "current_evidence": [
+        "docs/current/R6-STATE.json"
+      ],
+      "requirements_or_acceptance": [
+        "执行 Backup → Restore → identity/hash/referential-integrity readback，确认不携带共享模型权重和无关 cache。",
+        "验收：GJ-08"
+      ],
+      "maps_to": [
+        "A13"
+      ]
+    },
+    {
+      "key": "RECORD-0928:GJ-09",
+      "source": "RECORD-0928",
+      "source_id": "GJ-09",
+      "title": "Legacy Migration",
+      "original_status": "UNVERIFIED_IN_THIS_HANDOFF",
+      "audit_verdict": "OPEN_OR_PARTIAL_REQUIRES_GOLDEN_JOURNEY",
+      "authority_class": "HISTORICAL_INPUT",
+      "current_evidence": [
+        "docs/current/R6-STATE.json"
+      ],
+      "requirements_or_acceptance": [
+        "isolated non-empty Legacy copy → export/import → semantic diff/loss → restart/readback；原 Legacy 与真实 Green data 不修改。",
+        "验收：GJ-09"
+      ],
+      "maps_to": [
+        "A13"
+      ]
+    },
+    {
+      "key": "RECORD-0928:GJ-10",
+      "source": "RECORD-0928",
+      "source_id": "GJ-10",
+      "title": "Exact-source Candidate",
+      "original_status": "UNVERIFIED_IN_THIS_HANDOFF",
+      "audit_verdict": "OPEN_OR_PARTIAL_REQUIRES_GOLDEN_JOURNEY",
+      "authority_class": "HISTORICAL_INPUT",
+      "current_evidence": [
+        "docs/current/R6-STATE.json"
+      ],
+      "requirements_or_acceptance": [
+        "从 current main/current approved source 构建 Avalonia + Rust + Python Candidate；验证 candidate manifest、runtime/workers/provenance/current-source。",
+        "验收：GJ-10"
+      ],
+      "maps_to": [
+        "A13"
+      ]
+    },
+    {
+      "key": "RECORD-0928:GJ-11",
+      "source": "RECORD-0928",
+      "source_id": "GJ-11",
+      "title": "Native Acceptance",
+      "original_status": "UNVERIFIED_IN_THIS_HANDOFF",
+      "audit_verdict": "OPEN_OR_PARTIAL_REQUIRES_GOLDEN_JOURNEY",
+      "authority_class": "HISTORICAL_INPUT",
+      "current_evidence": [
+        "docs/current/R6-STATE.json"
+      ],
+      "requirements_or_acceptance": [
+        "对该 Candidate 执行 native UIA、keyboard、IME、screen reader、high contrast、DPI、reduced motion、截图矩阵与完整 Golden Journey。",
+        "验收：GJ-11"
+      ],
+      "maps_to": [
+        "A12",
+        "A15"
+      ]
+    },
+    {
+      "key": "RECORD-0928:GJ-12",
+      "source": "RECORD-0928",
+      "source_id": "GJ-12",
+      "title": "A15",
+      "original_status": "UNVERIFIED_IN_THIS_HANDOFF",
+      "audit_verdict": "OWNER_GATE_OPEN",
+      "authority_class": "HISTORICAL_INPUT",
+      "current_evidence": [
+        "docs/current/R6-STATE.json"
+      ],
+      "requirements_or_acceptance": [
+        "独立只读审计；执行者不得自签。所有完成声明绑定 exact SHA、candidate identity、真实 E2E 与失败/恢复证据。",
+        "验收：GJ-12"
+      ],
+      "maps_to": [
+        "A15"
+      ]
+    },
+    {
+      "key": "RECORD-0928:GJ-13",
+      "source": "RECORD-0928",
+      "source_id": "GJ-13",
+      "title": "A16 / Green Owner Gate",
+      "original_status": "UNVERIFIED_IN_THIS_HANDOFF",
+      "audit_verdict": "OWNER_GATE_OPEN",
+      "authority_class": "HISTORICAL_INPUT",
+      "current_evidence": [
+        "docs/current/R6-STATE.json"
+      ],
+      "requirements_or_acceptance": [
+        "只有 A15 通过且 Owner 明确授权后，才允许 backup current Green → exact target replace → launch → identity/hash readback → full journey → restart → rollback test。",
+        "Green 成功仍不自动等于公开 Release；Release 解冻需要独立 Owner 决策。",
+        "验收：GJ-13"
+      ],
+      "maps_to": [
+        "A16"
+      ]
+    },
+    {
+      "key": "RECORD-0930:U930-01",
+      "source": "RECORD-0930",
+      "source_id": "U930-01",
+      "title": "Current Core 与 Future Capability 信息架构、Super 入口和三级对象导航",
+      "original_status": null,
+      "audit_verdict": "OPEN_OR_PARTIAL",
+      "authority_class": "HISTORICAL_INPUT",
+      "current_evidence": [
+        "docs/current/AAOS-UI-NAVIGATION-IA-20261001.md"
+      ],
+      "requirements_or_acceptance": [],
+      "maps_to": []
+    },
+    {
+      "key": "RECORD-0930:U930-02",
+      "source": "RECORD-0930",
+      "source_id": "U930-02",
+      "title": "真实 Knowledge、Learning、Search、Pipeline、Model 工作面及来源状态",
+      "original_status": null,
+      "audit_verdict": "OPEN_OR_PARTIAL",
+      "authority_class": "HISTORICAL_INPUT",
+      "current_evidence": [
+        "docs/current/AAOS-UI-BACKEND-MAP-20261001.md"
+      ],
+      "requirements_or_acceptance": [],
+      "maps_to": []
+    },
+    {
+      "key": "RECORD-0930:U930-03",
+      "source": "RECORD-0930",
+      "source_id": "U930-03",
+      "title": "历史吸收池 proposed/evaluating/adopted/rejected 状态投影",
+      "original_status": null,
+      "audit_verdict": "OPEN_OR_PARTIAL",
+      "authority_class": "HISTORICAL_INPUT",
+      "current_evidence": [
+        "docs/current/AAOS-UI-COVERAGE-MATRIX-20261001.md"
+      ],
+      "requirements_or_acceptance": [],
+      "maps_to": []
+    },
+    {
+      "key": "RECORD-0930:U930-04",
+      "source": "RECORD-0930",
+      "source_id": "U930-04",
+      "title": "静态业务配图转真实数据图；地图/列表降级和装饰图分离",
+      "original_status": null,
+      "audit_verdict": "OPEN_OR_PARTIAL",
+      "authority_class": "HISTORICAL_INPUT",
+      "current_evidence": [
+        "docs/current/AAOS-UI-MASTER-ASSET-AUDIT-20261001.md"
+      ],
+      "requirements_or_acceptance": [],
+      "maps_to": []
+    },
+    {
+      "key": "RECORD-0930:U930-05",
+      "source": "RECORD-0930",
+      "source_id": "U930-05",
+      "title": "route/API/contract/deep-link/storage 兼容矩阵",
+      "original_status": null,
+      "audit_verdict": "OPEN_OR_PARTIAL",
+      "authority_class": "HISTORICAL_INPUT",
+      "current_evidence": [
+        "docs/current/AAOS-UI-BACKEND-MAP-20261001.md"
+      ],
+      "requirements_or_acceptance": [],
+      "maps_to": []
+    },
+    {
+      "key": "RECORD-0930:U930-06",
+      "source": "RECORD-0930",
+      "source_id": "U930-06",
+      "title": "Capability schema 分离实施状态和当前可用状态",
+      "original_status": null,
+      "audit_verdict": "OPEN_OR_PARTIAL",
+      "authority_class": "HISTORICAL_INPUT",
+      "current_evidence": [
+        "docs/current/AAOS-UI-NAVIGATION-IA-20261001.md"
+      ],
+      "requirements_or_acceptance": [],
+      "maps_to": []
+    },
+    {
+      "key": "RECORD-0930:U930-07",
+      "source": "RECORD-0930",
+      "source_id": "U930-07",
+      "title": "UI01–UI14 开源候选逐项核官方源码、版本、许可证及 Avalonia 可用性",
+      "original_status": null,
+      "audit_verdict": "OPEN_OR_PARTIAL",
+      "authority_class": "HISTORICAL_INPUT",
+      "current_evidence": [
+        "docs/current/AAOS-UI-THIRD-PARTY-ICON-SOURCES-20261001.md"
+      ],
+      "requirements_or_acceptance": [],
+      "maps_to": []
+    },
+    {
+      "key": "RECORD-0930:U930-08",
+      "source": "RECORD-0930",
+      "source_id": "U930-08",
+      "title": "loading/empty/success/partial/error/offline/stale/denied/conflict/recovery 及 receipt/readback",
+      "original_status": null,
+      "audit_verdict": "OPEN_OR_PARTIAL",
+      "authority_class": "HISTORICAL_INPUT",
+      "current_evidence": [
+        "docs/current/AAOS-UI-COVERAGE-MATRIX-20261001.md"
+      ],
+      "requirements_or_acceptance": [],
+      "maps_to": []
+    },
+    {
+      "key": "RECORD-0930:U930-09",
+      "source": "RECORD-0930",
+      "source_id": "U930-09",
+      "title": "Windows IME、键盘、a11y、DPI、双主题与截图矩阵",
+      "original_status": null,
+      "audit_verdict": "OPEN_OR_PARTIAL",
+      "authority_class": "HISTORICAL_INPUT",
+      "current_evidence": [
+        "docs/current/AAOS-VISUAL-QA-20261001.md"
+      ],
+      "requirements_or_acceptance": [],
+      "maps_to": []
+    },
+    {
+      "key": "RECORD-0930:U930-10",
+      "source": "RECORD-0930",
+      "source_id": "U930-10",
+      "title": "正式 Desktop 生产构建、E2E、重启恢复与原 Green 安装验收",
+      "original_status": null,
+      "audit_verdict": "OPEN_OR_PARTIAL",
+      "authority_class": "HISTORICAL_INPUT",
+      "current_evidence": [
+        "docs/current/AAOS-DESKTOP-STARTUP-20261001.md"
+      ],
+      "requirements_or_acceptance": [],
+      "maps_to": []
+    },
+    {
+      "key": "RECORD-0930:U930-11",
+      "source": "RECORD-0930",
+      "source_id": "U930-11",
+      "title": "六份交付：Completion Report、Final IA、Capability Matrix、Visual QA、Asset Manifest、Merge-ready Handoff",
+      "original_status": null,
+      "audit_verdict": "OPEN_OR_PARTIAL",
+      "authority_class": "HISTORICAL_INPUT",
+      "current_evidence": [
+        "docs/current/AAOS-UI-HANDOFF-20261001.md"
+      ],
+      "requirements_or_acceptance": [],
+      "maps_to": []
+    },
+    {
+      "key": "RECORD-0930:U930-D01",
+      "source": "RECORD-0930",
+      "source_id": "U930-D01",
+      "title": "AAOS_FRONTEND_COMPLETION_REPORT.md",
+      "original_status": null,
+      "audit_verdict": "DELIVERABLE_NAME_OR_ACCEPTANCE_NOT_YET_CLOSED",
+      "authority_class": "HISTORICAL_INPUT",
+      "current_evidence": [
+        "docs/current/AAOS-OPEN-WORK-REGISTER-20261001.md"
+      ],
+      "requirements_or_acceptance": [],
+      "maps_to": []
+    },
+    {
+      "key": "RECORD-0930:U930-D02",
+      "source": "RECORD-0930",
+      "source_id": "U930-D02",
+      "title": "AAOS_FINAL_IA.md",
+      "original_status": null,
+      "audit_verdict": "DELIVERABLE_NAME_OR_ACCEPTANCE_NOT_YET_CLOSED",
+      "authority_class": "HISTORICAL_INPUT",
+      "current_evidence": [
+        "docs/current/AAOS-OPEN-WORK-REGISTER-20261001.md"
+      ],
+      "requirements_or_acceptance": [],
+      "maps_to": []
+    },
+    {
+      "key": "RECORD-0930:U930-D03",
+      "source": "RECORD-0930",
+      "source_id": "U930-D03",
+      "title": "AAOS_CAPABILITY_UI_MATRIX.md",
+      "original_status": null,
+      "audit_verdict": "DELIVERABLE_NAME_OR_ACCEPTANCE_NOT_YET_CLOSED",
+      "authority_class": "HISTORICAL_INPUT",
+      "current_evidence": [
+        "docs/current/AAOS-OPEN-WORK-REGISTER-20261001.md"
+      ],
+      "requirements_or_acceptance": [],
+      "maps_to": []
+    },
+    {
+      "key": "RECORD-0930:U930-D04",
+      "source": "RECORD-0930",
+      "source_id": "U930-D04",
+      "title": "AAOS_VISUAL_QA.md",
+      "original_status": null,
+      "audit_verdict": "DELIVERABLE_NAME_OR_ACCEPTANCE_NOT_YET_CLOSED",
+      "authority_class": "HISTORICAL_INPUT",
+      "current_evidence": [
+        "docs/current/AAOS-OPEN-WORK-REGISTER-20261001.md"
+      ],
+      "requirements_or_acceptance": [],
+      "maps_to": []
+    },
+    {
+      "key": "RECORD-0930:U930-D05",
+      "source": "RECORD-0930",
+      "source_id": "U930-D05",
+      "title": "AAOS_ASSET_MANIFEST.json",
+      "original_status": null,
+      "audit_verdict": "DELIVERABLE_NAME_OR_ACCEPTANCE_NOT_YET_CLOSED",
+      "authority_class": "HISTORICAL_INPUT",
+      "current_evidence": [
+        "docs/current/AAOS-OPEN-WORK-REGISTER-20261001.md"
+      ],
+      "requirements_or_acceptance": [],
+      "maps_to": []
+    },
+    {
+      "key": "RECORD-0930:U930-D06",
+      "source": "RECORD-0930",
+      "source_id": "U930-D06",
+      "title": "AAOS_MERGE_READY_HANDOFF.md",
+      "original_status": null,
+      "audit_verdict": "DELIVERABLE_NAME_OR_ACCEPTANCE_NOT_YET_CLOSED",
+      "authority_class": "HISTORICAL_INPUT",
+      "current_evidence": [
+        "docs/current/AAOS-OPEN-WORK-REGISTER-20261001.md"
+      ],
+      "requirements_or_acceptance": [],
+      "maps_to": []
+    },
+    {
+      "key": "OSS-0930:UI01",
+      "source": "OSS-0930",
+      "source_id": "UI01",
+      "title": "shadcn/ui",
+      "original_status": null,
+      "audit_verdict": "CANDIDATE_NOT_ADOPTED",
+      "authority_class": "HISTORICAL_INPUT",
+      "current_evidence": [
+        "docs/current/AAOS-UI-THIRD-PARTY-ICON-SOURCES-20261001.md"
+      ],
+      "requirements_or_acceptance": [
+        "React primitive reference; no Avalonia runtime adoption"
+      ],
+      "maps_to": []
+    },
+    {
+      "key": "OSS-0930:UI02",
+      "source": "OSS-0930",
+      "source_id": "UI02",
+      "title": "Uiverse Galaxy",
+      "original_status": null,
+      "audit_verdict": "CANDIDATE_NOT_ADOPTED",
+      "authority_class": "HISTORICAL_INPUT",
+      "current_evidence": [
+        "docs/current/AAOS-UI-THIRD-PARTY-ICON-SOURCES-20261001.md"
+      ],
+      "requirements_or_acceptance": [
+        "CSS candidate; source/license check required"
+      ],
+      "maps_to": []
+    },
+    {
+      "key": "OSS-0930:UI03",
+      "source": "OSS-0930",
+      "source_id": "UI03",
+      "title": "Magic UI",
+      "original_status": null,
+      "audit_verdict": "CANDIDATE_NOT_ADOPTED",
+      "authority_class": "HISTORICAL_INPUT",
+      "current_evidence": [
+        "docs/current/AAOS-UI-THIRD-PARTY-ICON-SOURCES-20261001.md"
+      ],
+      "requirements_or_acceptance": [
+        "Orbit/Beam motion donor; native port required"
+      ],
+      "maps_to": []
+    },
+    {
+      "key": "OSS-0930:UI04",
+      "source": "OSS-0930",
+      "source_id": "UI04",
+      "title": "React Bits",
+      "original_status": null,
+      "audit_verdict": "CANDIDATE_NOT_ADOPTED",
+      "authority_class": "HISTORICAL_INPUT",
+      "current_evidence": [
+        "docs/current/AAOS-UI-THIRD-PARTY-ICON-SOURCES-20261001.md"
+      ],
+      "requirements_or_acceptance": [
+        "Particle/space motion donor; native port required"
+      ],
+      "maps_to": []
+    },
+    {
+      "key": "OSS-0930:UI05",
+      "source": "OSS-0930",
+      "source_id": "UI05",
+      "title": "Aceternity",
+      "original_status": null,
+      "audit_verdict": "CANDIDATE_NOT_ADOPTED",
+      "authority_class": "HISTORICAL_INPUT",
+      "current_evidence": [
+        "docs/current/AAOS-UI-THIRD-PARTY-ICON-SOURCES-20261001.md"
+      ],
+      "requirements_or_acceptance": [
+        "Free/Pro and redistribution license need separate check"
+      ],
+      "maps_to": []
+    },
+    {
+      "key": "OSS-0930:UI06",
+      "source": "OSS-0930",
+      "source_id": "UI06",
+      "title": "Semi Design",
+      "original_status": null,
+      "audit_verdict": "CANDIDATE_NOT_ADOPTED",
+      "authority_class": "HISTORICAL_INPUT",
+      "current_evidence": [
+        "docs/current/AAOS-UI-THIRD-PARTY-ICON-SOURCES-20261001.md"
+      ],
+      "requirements_or_acceptance": [
+        "Table/form/layout behavior reference"
+      ],
+      "maps_to": []
+    },
+    {
+      "key": "OSS-0930:UI07",
+      "source": "OSS-0930",
+      "source_id": "UI07",
+      "title": "Tailwind",
+      "original_status": null,
+      "audit_verdict": "CANDIDATE_NOT_ADOPTED",
+      "authority_class": "HISTORICAL_INPUT",
+      "current_evidence": [
+        "docs/current/AAOS-UI-THIRD-PARTY-ICON-SOURCES-20261001.md"
+      ],
+      "requirements_or_acceptance": [
+        "Web stack only; no native runtime dependency"
+      ],
+      "maps_to": []
+    },
+    {
+      "key": "OSS-0930:UI08",
+      "source": "OSS-0930",
+      "source_id": "UI08",
+      "title": "Spectrum Web Components",
+      "original_status": null,
+      "audit_verdict": "CANDIDATE_NOT_ADOPTED",
+      "authority_class": "HISTORICAL_INPUT",
+      "current_evidence": [
+        "docs/current/AAOS-UI-THIRD-PARTY-ICON-SOURCES-20261001.md"
+      ],
+      "requirements_or_acceptance": [
+        "DESIGN-LAB proposal outside AAOS write scope"
+      ],
+      "maps_to": []
+    },
+    {
+      "key": "OSS-0930:UI09",
+      "source": "OSS-0930",
+      "source_id": "UI09",
+      "title": "Web Awesome",
+      "original_status": null,
+      "audit_verdict": "CANDIDATE_NOT_ADOPTED",
+      "authority_class": "HISTORICAL_INPUT",
+      "current_evidence": [
+        "docs/current/AAOS-UI-THIRD-PARTY-ICON-SOURCES-20261001.md"
+      ],
+      "requirements_or_acceptance": [
+        "DESIGN-LAB proposal outside AAOS write scope"
+      ],
+      "maps_to": []
+    },
+    {
+      "key": "OSS-0930:UI10",
+      "source": "OSS-0930",
+      "source_id": "UI10",
+      "title": "XYFlow",
+      "original_status": null,
+      "audit_verdict": "CANDIDATE_NOT_ADOPTED",
+      "authority_class": "HISTORICAL_INPUT",
+      "current_evidence": [
+        "docs/current/AAOS-UI-THIRD-PARTY-ICON-SOURCES-20261001.md"
+      ],
+      "requirements_or_acceptance": [
+        "React graph donor; not adopted in Avalonia"
+      ],
+      "maps_to": []
+    },
+    {
+      "key": "OSS-0930:UI11",
+      "source": "OSS-0930",
+      "source_id": "UI11",
+      "title": "D3",
+      "original_status": null,
+      "audit_verdict": "CANDIDATE_NOT_ADOPTED",
+      "authority_class": "HISTORICAL_INPUT",
+      "current_evidence": [
+        "docs/current/AAOS-UI-THIRD-PARTY-ICON-SOURCES-20261001.md"
+      ],
+      "requirements_or_acceptance": [
+        "Graph/layout algorithm candidate"
+      ],
+      "maps_to": []
+    },
+    {
+      "key": "OSS-0930:UI12",
+      "source": "OSS-0930",
+      "source_id": "UI12",
+      "title": "Penpot",
+      "original_status": null,
+      "audit_verdict": "CANDIDATE_NOT_ADOPTED",
+      "authority_class": "HISTORICAL_INPUT",
+      "current_evidence": [
+        "docs/current/AAOS-UI-THIRD-PARTY-ICON-SOURCES-20261001.md"
+      ],
+      "requirements_or_acceptance": [
+        "Inspector/layout behavior reference; no product copy"
+      ],
+      "maps_to": []
+    },
+    {
+      "key": "OSS-0930:UI13",
+      "source": "OSS-0930",
+      "source_id": "UI13",
+      "title": "Dify/n8n",
+      "original_status": null,
+      "audit_verdict": "CANDIDATE_NOT_ADOPTED",
+      "authority_class": "HISTORICAL_INPUT",
+      "current_evidence": [
+        "docs/current/AAOS-UI-THIRD-PARTY-ICON-SOURCES-20261001.md"
+      ],
+      "requirements_or_acceptance": [
+        "Workflow UX reference; no blind source copy"
+      ],
+      "maps_to": []
+    },
+    {
+      "key": "OSS-0930:UI14",
+      "source": "OSS-0930",
+      "source_id": "UI14",
+      "title": "Lucide",
+      "original_status": null,
+      "audit_verdict": "PARTIAL_SOURCE_VERIFIED",
+      "authority_class": "HISTORICAL_INPUT",
+      "current_evidence": [
+        "docs/current/AAOS-UI-THIRD-PARTY-ICON-SOURCES-20261001.md"
+      ],
+      "requirements_or_acceptance": [
+        "Three pinned Reader vector shapes locally integrated; full icon audit open"
+      ],
+      "maps_to": []
+    },
+    {
+      "key": "UI-PROMPT:P00",
+      "source": "UI-PROMPT",
+      "source_id": "P00",
+      "title": "审计实际技术栈、路由、存储、搜索、学习/FSRS、AI、证据与 Schema",
+      "original_status": null,
+      "audit_verdict": "OPEN_OR_PARTIAL",
+      "authority_class": "HISTORICAL_INPUT",
+      "current_evidence": [
+        "docs/current/AAOS-UI-COVERAGE-MATRIX-20261001.md"
+      ],
+      "requirements_or_acceptance": [],
+      "maps_to": []
+    },
+    {
+      "key": "UI-PROMPT:P01",
+      "source": "UI-PROMPT",
+      "source_id": "P01",
+      "title": "13 组 UI 包来源核验；最新用户指定 PNG 优先于旧 B10 色值/视觉",
+      "original_status": null,
+      "audit_verdict": "OPEN_OR_PARTIAL",
+      "authority_class": "HISTORICAL_INPUT",
+      "current_evidence": [
+        "docs/current/AAOS-UI-COVERAGE-MATRIX-20261001.md"
+      ],
+      "requirements_or_acceptance": [],
+      "maps_to": []
+    },
+    {
+      "key": "UI-PROMPT:P02",
+      "source": "UI-PROMPT",
+      "source_id": "P02",
+      "title": "Evidence-driven、Local-first、人机双向学习主闭环",
+      "original_status": null,
+      "audit_verdict": "OPEN_OR_PARTIAL",
+      "authority_class": "HISTORICAL_INPUT",
+      "current_evidence": [
+        "docs/current/AAOS-UI-COVERAGE-MATRIX-20261001.md"
+      ],
+      "requirements_or_acceptance": [],
+      "maps_to": []
+    },
+    {
+      "key": "UI-PROMPT:P03",
+      "source": "UI-PROMPT",
+      "source_id": "P03",
+      "title": "品牌色、星环结构、稳定阅读与节制动效",
+      "original_status": null,
+      "audit_verdict": "OPEN_OR_PARTIAL",
+      "authority_class": "HISTORICAL_INPUT",
+      "current_evidence": [
+        "docs/current/AAOS-UI-COVERAGE-MATRIX-20261001.md"
+      ],
+      "requirements_or_acceptance": [],
+      "maps_to": []
+    },
+    {
+      "key": "UI-PROMPT:P04",
+      "source": "UI-PROMPT",
+      "source_id": "P04",
+      "title": "Home、Capture、Evidence Library/Detail、Original、Human/Machine Learning、Workspace、Memory、Search、Review、Settings",
+      "original_status": null,
+      "audit_verdict": "OPEN_OR_PARTIAL",
+      "authority_class": "HISTORICAL_INPUT",
+      "current_evidence": [
+        "docs/current/AAOS-UI-COVERAGE-MATRIX-20261001.md"
+      ],
+      "requirements_or_acceptance": [],
+      "maps_to": []
+    },
+    {
+      "key": "UI-PROMPT:P05",
+      "source": "UI-PROMPT",
+      "source_id": "P05",
+      "title": "通用组件、证据专属组件、命令面板、引用和 FSRS 动作",
+      "original_status": null,
+      "audit_verdict": "OPEN_OR_PARTIAL",
+      "authority_class": "HISTORICAL_INPUT",
+      "current_evidence": [
+        "docs/current/AAOS-UI-COVERAGE-MATRIX-20261001.md"
+      ],
+      "requirements_or_acceptance": [],
+      "maps_to": []
+    },
+    {
+      "key": "UI-PROMPT:P06",
+      "source": "UI-PROMPT",
+      "source_id": "P06",
+      "title": "真实本地 Repository/Adapter、离线/冲突及外部模型边界",
+      "original_status": null,
+      "audit_verdict": "OPEN_OR_PARTIAL",
+      "authority_class": "HISTORICAL_INPUT",
+      "current_evidence": [
+        "docs/current/AAOS-UI-COVERAGE-MATRIX-20261001.md"
+      ],
+      "requirements_or_acceptance": [],
+      "maps_to": []
+    },
+    {
+      "key": "UI-PROMPT:P07",
+      "source": "UI-PROMPT",
+      "source_id": "P07",
+      "title": "词法/语义搜索降级和真实 FSRS 调度",
+      "original_status": null,
+      "audit_verdict": "OPEN_OR_PARTIAL",
+      "authority_class": "HISTORICAL_INPUT",
+      "current_evidence": [
+        "docs/current/AAOS-UI-COVERAGE-MATRIX-20261001.md"
+      ],
+      "requirements_or_acceptance": [],
+      "maps_to": []
+    },
+    {
+      "key": "UI-PROMPT:P08",
+      "source": "UI-PROMPT",
+      "source_id": "P08",
+      "title": "响应式、44 DIP 命中、键盘、4.5:1 对比和窄屏图谱",
+      "original_status": null,
+      "audit_verdict": "OPEN_OR_PARTIAL",
+      "authority_class": "HISTORICAL_INPUT",
+      "current_evidence": [
+        "docs/current/AAOS-UI-COVERAGE-MATRIX-20261001.md"
+      ],
+      "requirements_or_acceptance": [],
+      "maps_to": []
+    },
+    {
+      "key": "UI-PROMPT:P09",
+      "source": "UI-PROMPT",
+      "source_id": "P09",
+      "title": "实施报告、视觉 QA、来源审计、smoke/build/typecheck/lint",
+      "original_status": null,
+      "audit_verdict": "OPEN_OR_PARTIAL",
+      "authority_class": "HISTORICAL_INPUT",
+      "current_evidence": [
+        "docs/current/AAOS-UI-COVERAGE-MATRIX-20261001.md"
+      ],
+      "requirements_or_acceptance": [],
+      "maps_to": []
+    },
+    {
+      "key": "ATLAS-0929:REQ-SOURCE-001",
+      "source": "ATLAS-0929",
+      "source_id": "REQ-SOURCE-001",
+      "title": "原件保全与来源接入",
+      "original_status": "met_partial",
+      "audit_verdict": "PARTIAL_RECHECK_CURRENT",
+      "authority_class": "HISTORICAL_INPUT",
+      "current_evidence": [
+        "docs/truth/CAPABILITY_ATLAS_V2.yaml",
+        "docs/current/R6-STATE.json"
+      ],
+      "requirements_or_acceptance": [],
+      "maps_to": [
+        "CAP-0010"
+      ]
+    },
+    {
+      "key": "ATLAS-0929:REQ-CONVERT-001",
+      "source": "ATLAS-0929",
+      "source_id": "REQ-CONVERT-001",
+      "title": "多格式转换与质量门",
+      "original_status": "in_progress",
+      "audit_verdict": "PARTIAL_RECHECK_CURRENT",
+      "authority_class": "HISTORICAL_INPUT",
+      "current_evidence": [
+        "docs/truth/CAPABILITY_ATLAS_V2.yaml",
+        "docs/current/R6-STATE.json"
+      ],
+      "requirements_or_acceptance": [],
+      "maps_to": [
+        "CAP-0020"
+      ]
+    },
+    {
+      "key": "ATLAS-0929:REQ-EVIDENCE-001",
+      "source": "ATLAS-0929",
+      "source_id": "REQ-EVIDENCE-001",
+      "title": "证据锚定交叉核验",
+      "original_status": "met_partial",
+      "audit_verdict": "PARTIAL_RECHECK_CURRENT",
+      "authority_class": "HISTORICAL_INPUT",
+      "current_evidence": [
+        "docs/truth/CAPABILITY_ATLAS_V2.yaml",
+        "docs/current/R6-STATE.json"
+      ],
+      "requirements_or_acceptance": [],
+      "maps_to": [
+        "CAP-0030"
+      ]
+    },
+    {
+      "key": "ATLAS-0929:REQ-LEARNING-001",
+      "source": "ATLAS-0929",
+      "source_id": "REQ-LEARNING-001",
+      "title": "人类深度学习链",
+      "original_status": "in_progress",
+      "audit_verdict": "PARTIAL_RECHECK_CURRENT",
+      "authority_class": "HISTORICAL_INPUT",
+      "current_evidence": [
+        "docs/truth/CAPABILITY_ATLAS_V2.yaml",
+        "docs/current/R6-STATE.json"
+      ],
+      "requirements_or_acceptance": [],
+      "maps_to": [
+        "CAP-0040"
+      ]
+    },
+    {
+      "key": "ATLAS-0929:REQ-AI-ASSET-001",
+      "source": "ATLAS-0929",
+      "source_id": "REQ-AI-ASSET-001",
+      "title": "AI 学习资产与受控调用",
+      "original_status": "planned",
+      "audit_verdict": "DEFERRED_BLUEPRINT",
+      "authority_class": "HISTORICAL_INPUT",
+      "current_evidence": [
+        "docs/truth/CAPABILITY_ATLAS_V2.yaml",
+        "docs/current/R6-STATE.json"
+      ],
+      "requirements_or_acceptance": [],
+      "maps_to": [
+        "CAP-0050"
+      ]
+    },
+    {
+      "key": "ATLAS-0929:REQ-LER-001",
+      "source": "ATLAS-0929",
+      "source_id": "REQ-LER-001",
+      "title": "LER 视觉教学",
+      "original_status": "planned",
+      "audit_verdict": "DEFERRED_BLUEPRINT",
+      "authority_class": "HISTORICAL_INPUT",
+      "current_evidence": [
+        "docs/truth/CAPABILITY_ATLAS_V2.yaml",
+        "docs/current/R6-STATE.json"
+      ],
+      "requirements_or_acceptance": [],
+      "maps_to": [
+        "CAP-0060"
+      ]
+    },
+    {
+      "key": "ATLAS-0929:REQ-LER-002",
+      "source": "ATLAS-0929",
+      "source_id": "REQ-LER-002",
+      "title": "动态解释与仿真",
+      "original_status": "planned",
+      "audit_verdict": "DEFERRED_BLUEPRINT",
+      "authority_class": "HISTORICAL_INPUT",
+      "current_evidence": [
+        "docs/truth/CAPABILITY_ATLAS_V2.yaml",
+        "docs/current/R6-STATE.json"
+      ],
+      "requirements_or_acceptance": [],
+      "maps_to": [
+        "CAP-0070"
+      ]
+    },
+    {
+      "key": "ATLAS-0929:REQ-SPATIAL-001",
+      "source": "ATLAS-0929",
+      "source_id": "REQ-SPATIAL-001",
+      "title": "空间记忆与沉浸学习",
+      "original_status": "planned",
+      "audit_verdict": "DEFERRED_BLUEPRINT",
+      "authority_class": "HISTORICAL_INPUT",
+      "current_evidence": [
+        "docs/truth/CAPABILITY_ATLAS_V2.yaml",
+        "docs/current/R6-STATE.json"
+      ],
+      "requirements_or_acceptance": [],
+      "maps_to": [
+        "CAP-0080"
+      ]
+    },
+    {
+      "key": "ATLAS-0929:REQ-RESEARCH-001",
+      "source": "ATLAS-0929",
+      "source_id": "REQ-RESEARCH-001",
+      "title": "研究课程项目空间",
+      "original_status": "planned",
+      "audit_verdict": "DEFERRED_BLUEPRINT",
+      "authority_class": "HISTORICAL_INPUT",
+      "current_evidence": [
+        "docs/truth/CAPABILITY_ATLAS_V2.yaml",
+        "docs/current/R6-STATE.json"
+      ],
+      "requirements_or_acceptance": [],
+      "maps_to": [
+        "CAP-0090"
+      ]
+    },
+    {
+      "key": "ATLAS-0929:REQ-INTEROP-001",
+      "source": "ATLAS-0929",
+      "source_id": "REQ-INTEROP-001",
+      "title": "开放互操作与适配器",
+      "original_status": "in_progress",
+      "audit_verdict": "PARTIAL_RECHECK_CURRENT",
+      "authority_class": "HISTORICAL_INPUT",
+      "current_evidence": [
+        "docs/truth/CAPABILITY_ATLAS_V2.yaml",
+        "docs/current/R6-STATE.json"
+      ],
+      "requirements_or_acceptance": [],
+      "maps_to": [
+        "CAP-0100"
+      ]
+    },
+    {
+      "key": "ATLAS-0929:REQ-SEARCH-001",
+      "source": "ATLAS-0929",
+      "source_id": "REQ-SEARCH-001",
+      "title": "搜索图谱索引",
+      "original_status": "in_progress",
+      "audit_verdict": "PARTIAL_RECHECK_CURRENT",
+      "authority_class": "HISTORICAL_INPUT",
+      "current_evidence": [
+        "docs/truth/CAPABILITY_ATLAS_V2.yaml",
+        "docs/current/R6-STATE.json"
+      ],
+      "requirements_or_acceptance": [],
+      "maps_to": [
+        "CAP-0110"
+      ]
+    },
+    {
+      "key": "ATLAS-0929:REQ-DESKTOP-001",
+      "source": "ATLAS-0929",
+      "source_id": "REQ-DESKTOP-001",
+      "title": "桌面平台",
+      "original_status": "in_progress",
+      "audit_verdict": "PARTIAL_RECHECK_CURRENT",
+      "authority_class": "HISTORICAL_INPUT",
+      "current_evidence": [
+        "docs/truth/CAPABILITY_ATLAS_V2.yaml",
+        "docs/current/R6-STATE.json"
+      ],
+      "requirements_or_acceptance": [],
+      "maps_to": [
+        "CAP-0120"
+      ]
+    },
+    {
+      "key": "ATLAS-0929:REQ-EXPLORATION-001",
+      "source": "ATLAS-0929",
+      "source_id": "REQ-EXPLORATION-001",
+      "title": "受控执行探索",
+      "original_status": "deferred",
+      "audit_verdict": "DEFERRED_BLUEPRINT",
+      "authority_class": "HISTORICAL_INPUT",
+      "current_evidence": [
+        "docs/truth/CAPABILITY_ATLAS_V2.yaml",
+        "docs/current/R6-STATE.json"
+      ],
+      "requirements_or_acceptance": [],
+      "maps_to": [
+        "CAP-0130"
+      ]
+    },
+    {
+      "key": "ATLAS-0929:REQ-BACKUP-001",
+      "source": "ATLAS-0929",
+      "source_id": "REQ-BACKUP-001",
+      "title": "备份同步发布",
+      "original_status": "in_progress",
+      "audit_verdict": "PARTIAL_RECHECK_CURRENT",
+      "authority_class": "HISTORICAL_INPUT",
+      "current_evidence": [
+        "docs/truth/CAPABILITY_ATLAS_V2.yaml",
+        "docs/current/R6-STATE.json"
+      ],
+      "requirements_or_acceptance": [],
+      "maps_to": [
+        "CAP-0140"
+      ]
+    },
+    {
+      "key": "ATLAS-0929:REQ-PROVIDER-001",
+      "source": "ATLAS-0929",
+      "source_id": "REQ-PROVIDER-001",
+      "title": "模型 Provider 治理",
+      "original_status": "planned",
+      "audit_verdict": "DEFERRED_BLUEPRINT",
+      "authority_class": "HISTORICAL_INPUT",
+      "current_evidence": [
+        "docs/truth/CAPABILITY_ATLAS_V2.yaml",
+        "docs/current/R6-STATE.json"
+      ],
+      "requirements_or_acceptance": [],
+      "maps_to": [
+        "CAP-0150"
+      ]
+    },
+    {
+      "key": "ATLAS-0929:REQ-VISUAL-001",
+      "source": "ATLAS-0929",
+      "source_id": "REQ-VISUAL-001",
+      "title": "可视化表征",
+      "original_status": "planned",
+      "audit_verdict": "DEFERRED_BLUEPRINT",
+      "authority_class": "HISTORICAL_INPUT",
+      "current_evidence": [
+        "docs/truth/CAPABILITY_ATLAS_V2.yaml",
+        "docs/current/R6-STATE.json"
+      ],
+      "requirements_or_acceptance": [],
+      "maps_to": [
+        "CAP-0160"
+      ]
+    },
+    {
+      "key": "ATLAS-0929:REQ-IDENTITY-001",
+      "source": "ATLAS-0929",
+      "source_id": "REQ-IDENTITY-001",
+      "title": "产品身份与命名",
+      "original_status": "met_partial",
+      "audit_verdict": "PARTIAL_RECHECK_CURRENT",
+      "authority_class": "HISTORICAL_INPUT",
+      "current_evidence": [
+        "docs/truth/CAPABILITY_ATLAS_V2.yaml",
+        "docs/current/R6-STATE.json"
+      ],
+      "requirements_or_acceptance": [],
+      "maps_to": [
+        "—"
+      ]
+    },
+    {
+      "key": "ABSORB-0929:CAP-CORE-KNOWLEDGE",
+      "source": "ABSORB-0929",
+      "source_id": "CAP-CORE-KNOWLEDGE",
+      "title": "Canonical knowledge and source lifecycle",
+      "original_status": "integrated",
+      "audit_verdict": "HISTORICAL_CANDIDATE_REQUIRES_CURRENT_LICENSE_RUNTIME_EVIDENCE",
+      "authority_class": "HISTORICAL_INPUT",
+      "current_evidence": [
+        "docs/current/R6-STATE.json"
+      ],
+      "requirements_or_acceptance": [
+        "DIRECT_DEPENDENCY",
+        "first-party Rust Core"
+      ],
+      "maps_to": []
+    },
+    {
+      "key": "ABSORB-0929:CAP-DEEPTUTOR",
+      "source": "ABSORB-0929",
+      "source_id": "CAP-DEEPTUTOR",
+      "title": "Source-grounded tutor and recoverable learning workspace",
+      "original_status": "candidate",
+      "audit_verdict": "HISTORICAL_CANDIDATE_REQUIRES_CURRENT_LICENSE_RUNTIME_EVIDENCE",
+      "authority_class": "HISTORICAL_INPUT",
+      "current_evidence": [
+        "docs/current/R6-STATE.json"
+      ],
+      "requirements_or_acceptance": [
+        "SIDECAR",
+        "DeepTutor"
+      ],
+      "maps_to": []
+    },
+    {
+      "key": "ABSORB-0929:CAP-OPENTUTOR",
+      "source": "ABSORB-0929",
+      "source_id": "CAP-OPENTUTOR",
+      "title": "Adaptive learning blocks and FSRS integration",
+      "original_status": "candidate",
+      "audit_verdict": "HISTORICAL_CANDIDATE_REQUIRES_CURRENT_LICENSE_RUNTIME_EVIDENCE",
+      "authority_class": "HISTORICAL_INPUT",
+      "current_evidence": [
+        "docs/current/R6-STATE.json"
+      ],
+      "requirements_or_acceptance": [
+        "ALGORITHM_DONOR",
+        "OpenTutor"
+      ],
+      "maps_to": []
+    },
+    {
+      "key": "ABSORB-0929:CAP-LEARNINGMAP",
+      "source": "ABSORB-0929",
+      "source_id": "CAP-LEARNINGMAP",
+      "title": "Knowledge components, prerequisites, diagnosis, and pedagogy",
+      "original_status": "candidate",
+      "audit_verdict": "HISTORICAL_CANDIDATE_REQUIRES_CURRENT_LICENSE_RUNTIME_EVIDENCE",
+      "authority_class": "HISTORICAL_INPUT",
+      "current_evidence": [
+        "docs/current/R6-STATE.json"
+      ],
+      "requirements_or_acceptance": [
+        "ALGORITHM_DONOR",
+        "LearningMAP"
+      ],
+      "maps_to": []
+    },
+    {
+      "key": "ABSORB-0929:CAP-OPENMAIC",
+      "source": "ABSORB-0929",
+      "source_id": "CAP-OPENMAIC",
+      "title": "Course DSL, renderer, and interactive learning artifacts",
+      "original_status": "candidate",
+      "audit_verdict": "HISTORICAL_CANDIDATE_REQUIRES_CURRENT_LICENSE_RUNTIME_EVIDENCE",
+      "authority_class": "HISTORICAL_INPUT",
+      "current_evidence": [
+        "docs/current/R6-STATE.json"
+      ],
+      "requirements_or_acceptance": [
+        "CONTRACT_ADAPTER",
+        "OpenMAIC"
+      ],
+      "maps_to": []
+    },
+    {
+      "key": "ABSORB-0929:CAP-RAG-ANYTHING",
+      "source": "ABSORB-0929",
+      "source_id": "CAP-RAG-ANYTHING",
+      "title": "Multimodal document parsing and structure extraction",
+      "original_status": "candidate",
+      "audit_verdict": "HISTORICAL_CANDIDATE_REQUIRES_CURRENT_LICENSE_RUNTIME_EVIDENCE",
+      "authority_class": "HISTORICAL_INPUT",
+      "current_evidence": [
+        "docs/current/R6-STATE.json"
+      ],
+      "requirements_or_acceptance": [
+        "PYTHON_WORKER",
+        "RAG-Anything"
+      ],
+      "maps_to": []
+    },
+    {
+      "key": "ABSORB-0929:CAP-LIGHTRAG",
+      "source": "ABSORB-0929",
+      "source_id": "CAP-LIGHTRAG",
+      "title": "Mixed vector and graph retrieval projection",
+      "original_status": "candidate",
+      "audit_verdict": "HISTORICAL_CANDIDATE_REQUIRES_CURRENT_LICENSE_RUNTIME_EVIDENCE",
+      "authority_class": "HISTORICAL_INPUT",
+      "current_evidence": [
+        "docs/current/R6-STATE.json"
+      ],
+      "requirements_or_acceptance": [
+        "ALGORITHM_DONOR",
+        "LightRAG"
+      ],
+      "maps_to": []
+    },
+    {
+      "key": "ABSORB-0929:CAP-GRAPHITI",
+      "source": "ABSORB-0929",
+      "source_id": "CAP-GRAPHITI",
+      "title": "Temporal knowledge projection and supersession",
+      "original_status": "candidate",
+      "audit_verdict": "HISTORICAL_CANDIDATE_REQUIRES_CURRENT_LICENSE_RUNTIME_EVIDENCE",
+      "authority_class": "HISTORICAL_INPUT",
+      "current_evidence": [
+        "docs/current/R6-STATE.json"
+      ],
+      "requirements_or_acceptance": [
+        "ALGORITHM_DONOR",
+        "Graphiti"
+      ],
+      "maps_to": []
+    },
+    {
+      "key": "ABSORB-0929:CAP-MEMOS",
+      "source": "ABSORB-0929",
+      "source_id": "CAP-MEMOS",
+      "title": "Machine experience memory and skill crystallization",
+      "original_status": "candidate",
+      "audit_verdict": "HISTORICAL_CANDIDATE_REQUIRES_CURRENT_LICENSE_RUNTIME_EVIDENCE",
+      "authority_class": "HISTORICAL_INPUT",
+      "current_evidence": [
+        "docs/current/R6-STATE.json"
+      ],
+      "requirements_or_acceptance": [
+        "SIDECAR",
+        "MemOS"
+      ],
+      "maps_to": []
+    },
+    {
+      "key": "ABSORB-0929:CAP-WEKNORA",
+      "source": "ABSORB-0929",
+      "source_id": "CAP-WEKNORA",
+      "title": "Knowledge workspace editing, revision, diff, and rollback UX",
+      "original_status": "reference",
+      "audit_verdict": "HISTORICAL_CANDIDATE_REQUIRES_CURRENT_LICENSE_RUNTIME_EVIDENCE",
+      "authority_class": "HISTORICAL_INPUT",
+      "current_evidence": [
+        "docs/current/R6-STATE.json"
+      ],
+      "requirements_or_acceptance": [
+        "UX_DONOR",
+        "WeKnora"
+      ],
+      "maps_to": []
+    },
+    {
+      "key": "ABSORB-0929:CAP-COGNEE",
+      "source": "ABSORB-0929",
+      "source_id": "CAP-COGNEE",
+      "title": "Graph, memory, and ontology benchmark reference",
+      "original_status": "reference",
+      "audit_verdict": "HISTORICAL_CANDIDATE_REQUIRES_CURRENT_LICENSE_RUNTIME_EVIDENCE",
+      "authority_class": "HISTORICAL_INPUT",
+      "current_evidence": [
+        "docs/current/R6-STATE.json"
+      ],
+      "requirements_or_acceptance": [
+        "REFERENCE_ONLY",
+        "Cognee"
+      ],
+      "maps_to": []
+    },
+    {
+      "key": "R6-LIVE-LEDGER:A00",
+      "source": "R6-LIVE-LEDGER",
+      "source_id": "A00",
+      "title": "Authority Reset",
+      "original_status": "TESTED_LOCAL",
+      "audit_verdict": "TESTED_LOCAL",
+      "authority_class": "CURRENT_EXECUTION_STATE",
+      "current_evidence": [
+        "docs/current/R6-STATE.json"
+      ],
+      "requirements_or_acceptance": [
+        "state and authority validation recorded"
+      ],
+      "maps_to": []
+    },
+    {
+      "key": "R6-LIVE-LEDGER:A01",
+      "source": "R6-LIVE-LEDGER",
+      "source_id": "A01",
+      "title": "Version and Release Freeze",
+      "original_status": "TESTED_LOCAL",
+      "audit_verdict": "TESTED_LOCAL",
+      "authority_class": "CURRENT_EXECUTION_STATE",
+      "current_evidence": [
+        "docs/current/R6-STATE.json"
+      ],
+      "requirements_or_acceptance": [
+        "Owner-only release reopening after A16"
+      ],
+      "maps_to": []
+    },
+    {
+      "key": "R6-LIVE-LEDGER:A02",
+      "source": "R6-LIVE-LEDGER",
+      "source_id": "A02",
+      "title": "Resource Path Environment Authority",
+      "original_status": "BLOCKED_BY_OWNER_DECISION",
+      "audit_verdict": "BLOCKED_BY_OWNER_DECISION",
+      "authority_class": "CURRENT_EXECUTION_STATE",
+      "current_evidence": [
+        "docs/current/R6-STATE.json"
+      ],
+      "requirements_or_acceptance": [
+        "choose resource-root schema semantics for Model library and plugins"
+      ],
+      "maps_to": []
+    },
+    {
+      "key": "R6-LIVE-LEDGER:A03",
+      "source": "R6-LIVE-LEDGER",
+      "source_id": "A03",
+      "title": "Capability Absorption Registry",
+      "original_status": "TESTED_LOCAL",
+      "audit_verdict": "TESTED_LOCAL",
+      "authority_class": "CURRENT_EXECUTION_STATE",
+      "current_evidence": [
+        "docs/current/R6-STATE.json"
+      ],
+      "requirements_or_acceptance": [
+        "exact upstream/license/runtime readback and benchmark"
+      ],
+      "maps_to": []
+    },
+    {
+      "key": "R6-LIVE-LEDGER:A04",
+      "source": "R6-LIVE-LEDGER",
+      "source_id": "A04",
+      "title": "Knowledge Source Model V3",
+      "original_status": "TESTED_LOCAL_PARTIAL",
+      "audit_verdict": "TESTED_LOCAL_PARTIAL",
+      "authority_class": "CURRENT_EXECUTION_STATE",
+      "current_evidence": [
+        "docs/current/R6-STATE.json"
+      ],
+      "requirements_or_acceptance": [
+        "V3 governance metadata has the canonical Rust write path, sidecar persistence, projection and revision inheritance; Avalonia entry controls passed the focused/full navigation contract and Release build, and the Rust API regression now closes/reopens the app over the same SQLite file and reads the fields back (5 passed). Desktop/Core process restart through the UI and the real first-use journey remain open"
+      ],
+      "maps_to": []
+    },
+    {
+      "key": "R6-LIVE-LEDGER:A05",
+      "source": "R6-LIVE-LEDGER",
+      "source_id": "A05",
+      "title": "Multiformat Pipeline",
+      "original_status": "TESTED_LOCAL_PARTIAL",
+      "audit_verdict": "TESTED_LOCAL_PARTIAL",
+      "authority_class": "CURRENT_EXECUTION_STATE",
+      "current_evidence": [
+        "docs/current/R6-STATE.json"
+      ],
+      "requirements_or_acceptance": [
+        "workspace intake now prefers activated builtin converter plugins with explicit path-free fallback receipts; semantic quality, dynamic rendering, external engines and representative real fixtures remain open"
+      ],
+      "maps_to": []
+    },
+    {
+      "key": "R6-LIVE-LEDGER:A06",
+      "source": "R6-LIVE-LEDGER",
+      "source_id": "A06",
+      "title": "Retrieval Graph Research",
+      "original_status": "TESTED_LOCAL_PARTIAL",
+      "audit_verdict": "TESTED_LOCAL_PARTIAL",
+      "authority_class": "CURRENT_EXECUTION_STATE",
+      "current_evidence": [
+        "docs/current/R6-STATE.json"
+      ],
+      "requirements_or_acceptance": [
+        "Vault lexical search now emits a path-free derived receipt with stable source_id and source_revision binding; vector/reranker/graph/research wiring, provider readback and benchmark evidence remain open"
+      ],
+      "maps_to": []
+    },
+    {
+      "key": "R6-LIVE-LEDGER:A07",
+      "source": "R6-LIVE-LEDGER",
+      "source_id": "A07",
+      "title": "Machine Memory Growth",
+      "original_status": "TESTED_LOCAL_PARTIAL",
+      "audit_verdict": "TESTED_LOCAL_PARTIAL",
+      "authority_class": "CURRENT_EXECUTION_STATE",
+      "current_evidence": [
+        "docs/current/R6-STATE.json"
+      ],
+      "requirements_or_acceptance": [
+        "execution feedback now persists the lesson as a canonical distillation candidate and binds the pending skill-candidate receipt; real model execution, user-observed error and human review/reuse/retest journey remain open"
+      ],
+      "maps_to": []
+    },
+    {
+      "key": "R6-LIVE-LEDGER:A08",
+      "source": "R6-LIVE-LEDGER",
+      "source_id": "A08",
+      "title": "Human Learning Kernel",
+      "original_status": "TESTED_LOCAL_PARTIAL",
+      "audit_verdict": "TESTED_LOCAL_PARTIAL",
+      "authority_class": "CURRENT_EXECUTION_STATE",
+      "current_evidence": [
+        "docs/current/R6-STATE.json"
+      ],
+      "requirements_or_acceptance": [
+        "current synthetic native UIA now covers real picker import, persisted source/job/transform, exact-quote source-bound human Candidate+anchor+V3, Library search and Knowledge V3 readback, source+anchor-bound Assessment, one FSRS Good review, answer/event/due/schedule readback and same-database cold restart; SQLite confirms one event/key and FSRS scheduled. A separate actual --learning-smoke replay reused the event key, returned duplicate=true, retained exactly one event, and read back same Assessment/event/answer after restart. Mastery remains closed=false; A08 full Human Learning Kernel integration with DeepTutor/OpenTutor/LearningMAP and real adaptive learning remains open 2026-09-26 synthetic native two-item regression additionally proves new item B selection, answer submission and same-Assessment/answer/FSRS readback after Desktop/Core restart; the deferred ID event race was fixed. This does not close Mastery or real adaptive learning."
+      ],
+      "maps_to": []
+    },
+    {
+      "key": "R6-LIVE-LEDGER:A09",
+      "source": "R6-LIVE-LEDGER",
+      "source_id": "A09",
+      "title": "Domain Learning Packs",
+      "original_status": "TESTED_LOCAL_PARTIAL",
+      "audit_verdict": "TESTED_LOCAL_PARTIAL",
+      "authority_class": "CURRENT_EXECUTION_STATE",
+      "current_evidence": [
+        "docs/current/R6-STATE.json"
+      ],
+      "requirements_or_acceptance": [
+        "general-only course manifest and KC/objective/artifact closure are locally validated; real domain content, domain-specific behavior and runtime learning evidence remain open"
+      ],
+      "maps_to": []
+    },
+    {
+      "key": "R6-LIVE-LEDGER:A10",
+      "source": "R6-LIVE-LEDGER",
+      "source_id": "A10",
+      "title": "Courseware Learning Artifacts",
+      "original_status": "TESTED_LOCAL_PARTIAL",
+      "audit_verdict": "TESTED_LOCAL_PARTIAL",
+      "authority_class": "CURRENT_EXECUTION_STATE",
+      "current_evidence": [
+        "docs/current/R6-STATE.json"
+      ],
+      "requirements_or_acceptance": [
+        "general-only manifest and a deterministic local lesson Projection now preserve source/knowledge/renderer bindings; focused renderer contract/readback pytest passes, while real interactive execution/domain acceptance remain open"
+      ],
+      "maps_to": []
+    },
+    {
+      "key": "R6-LIVE-LEDGER:A11",
+      "source": "R6-LIVE-LEDGER",
+      "source_id": "A11",
+      "title": "Local Model Pool",
+      "original_status": "TESTED_LOCAL_PARTIAL",
+      "audit_verdict": "TESTED_LOCAL_PARTIAL",
+      "authority_class": "CURRENT_EXECUTION_STATE",
+      "current_evidence": [
+        "docs/current/R6-STATE.json"
+      ],
+      "requirements_or_acceptance": [
+        "fresh shallow shared Model library inventory is recorded; executable/runtime readback and bounded role benchmarks remain open"
+      ],
+      "maps_to": []
+    },
+    {
+      "key": "R6-LIVE-LEDGER:A12",
+      "source": "R6-LIVE-LEDGER",
+      "source_id": "A12",
+      "title": "Avalonia Product Shell",
+      "original_status": "TESTED_LOCAL_PARTIAL",
+      "audit_verdict": "TESTED_LOCAL_PARTIAL",
+      "authority_class": "CURRENT_EXECUTION_STATE",
+      "current_evidence": [
+        "docs/current/R6-STATE.json"
+      ],
+      "requirements_or_acceptance": [
+        "B10 Avalonia shell remains TESTED_LOCAL_PARTIAL. Fresh Release Candidate `fresh-2994efa-20260926` uses commit 2994efa08d3e4f6ea561831fd4088d6d1b290cdd / tree 4fc581e7dcde90a30d8e9019f26fdf362bfa5cc9 and current-source snapshot 53acfe1918c0489434a13977f9c1776f305d06b66f566427978dc3015ba4ac62 (1543 files, 10 untracked build inputs). Candidate verifier passed with runtime/workers/provenance/current-source required (18246 files); ZIP SHA256 22d58f18ccf8e0daf0b32ace2baa0d0cadc1efe8ab70458c9d7a433bd88bb1b4. Desktop DLL SHA256 2db9ef70aca66e58accaeefc3b6b4eb62dd1e820aeebdc2729abfad2f5ad1c7eb; EXE SHA256 5d63fbf3617d25123ccd700b12cf93f32ca37f93bbf2e8d29e858f9629d0c055. Package launched directly and remained alive 20 seconds with isolated data root; NU1900 vulnerability-feed warning remains. Prior 16/16 UIA route evidence and palette/Ctrl+K evidence belong to the earlier Desktop DLL and are not transferred to this rebuilt DLL; rerun route/UIA matrix. Command text entry/result activation, full menu, viewport/DPI screenshots, IME, screen reader, high contrast, real first-use/P3 and Research/Recovery/Plugin/Model/Editor/Graph contracts remain open; Mastery closed=false and Owner gates remain open. Source/UI/Candidate contract run via scripts/runtime/dev.py: 296 passed, 1 skipped (12.09s); native UIA remains unverified for the rebuilt Desktop DLL."
+      ],
+      "maps_to": []
+    },
+    {
+      "key": "R6-LIVE-LEDGER:A13",
+      "source": "R6-LIVE-LEDGER",
+      "source_id": "A13",
+      "title": "Legacy Migration Local Green",
+      "original_status": "TESTED_LOCAL_PARTIAL",
+      "audit_verdict": "TESTED_LOCAL_PARTIAL",
+      "authority_class": "CURRENT_EXECUTION_STATE",
+      "current_evidence": [
+        "docs/current/R6-STATE.json"
+      ],
+      "requirements_or_acceptance": [
+        "Fresh exact-source Candidate `fresh-2994efa-20260926`: commit 2994efa08d3e4f6ea561831fd4088d6d1b290cdd, tree 4fc581e7dcde90a30d8e9019f26fdf362bfa5cc9, snapshot 53acfe1918c0489434a13977f9c1776f305d06b66f566427978dc3015ba4ac62; required provenance/runtime/workers/current-source verifier PASS, 18246 files; archive SHA256 22d58f18ccf8e0daf0b32ace2baa0d0cadc1efe8ab70458c9d7a433bd88bb1b4. Fresh Desktop DLL was rebuilt from current source and the package stayed alive 20 seconds in an isolated launch. Previous UIA route/keyboard evidence references an older DLL, so current rebuilt UI still needs the full route/interaction replay. Workspace identity, real Legacy semantic migration, complete P3 Golden Journey and Green replace/restart/rollback Owner gates remain open; release FROZEN, no Green action. Source/UI/Candidate contract run via scripts/runtime/dev.py: 296 passed, 1 skipped (12.09s); native UIA remains unverified for the rebuilt Desktop DLL."
+      ],
+      "maps_to": []
+    },
+    {
+      "key": "R6-LIVE-LEDGER:A14",
+      "source": "R6-LIVE-LEDGER",
+      "source_id": "A14",
+      "title": "Full Human Machine Closed Loop",
+      "original_status": "TESTED_LOCAL_PARTIAL",
+      "audit_verdict": "TESTED_LOCAL_PARTIAL",
+      "authority_class": "CURRENT_EXECUTION_STATE",
+      "current_evidence": [
+        "docs/current/R6-STATE.json"
+      ],
+      "requirements_or_acceptance": [
+        "stage contract, answer readback, canonical machine retest binding and non-empty correction/retest evidence guards have local evidence; a synthetic failed-task/retest pair bound to the same accepted Knowledge also survives online backup/restore. The real source-to-knowledge-to-learning-to-machine-to-correction-to-retest journey, real model execution and complete product restart readback remain open"
+      ],
+      "maps_to": []
+    },
+    {
+      "key": "R6-LIVE-LEDGER:A15",
+      "source": "R6-LIVE-LEDGER",
+      "source_id": "A15",
+      "title": "Independent Audit",
+      "original_status": "TESTED_LOCAL_PARTIAL",
+      "audit_verdict": "TESTED_LOCAL_PARTIAL",
+      "authority_class": "CURRENT_EXECUTION_STATE",
+      "current_evidence": [
+        "docs/current/R6-STATE.json"
+      ],
+      "requirements_or_acceptance": [
+        "historical independent audit at a5f52101 recorded candidate provenance 452b5d0c and remote identity at that audit time (not current HEAD or live remote verification), but G01-G14 remain BLOCKED for missing full qualification, real formats/quality, model, Legacy, GUI/clean-machine, runtime-directory and release evidence; product NOT_READY and A16 remains blocked"
+      ],
+      "maps_to": []
+    },
+    {
+      "key": "R6-LIVE-LEDGER:A16",
+      "source": "R6-LIVE-LEDGER",
+      "source_id": "A16",
+      "title": "Owner Gate",
+      "original_status": "BLOCKED_BY_OWNER_DECISION",
+      "audit_verdict": "BLOCKED_BY_OWNER_DECISION",
+      "authority_class": "CURRENT_EXECUTION_STATE",
+      "current_evidence": [
+        "docs/current/R6-STATE.json"
+      ],
+      "requirements_or_acceptance": [
+        "P0-P6 real closure, resource-root semantics, real migration/Green backup-replace-rollback and Owner approval remain open"
+      ],
+      "maps_to": []
+    },
+    {
+      "key": "M0-OVERLAY:P0",
+      "source": "M0-OVERLAY",
+      "source_id": "P0",
+      "title": "Authority + Plugin Kernel",
+      "original_status": "PARTIAL",
+      "audit_verdict": "PARTIAL_OR_BLOCKED",
+      "authority_class": "CURRENT_PRIORITY_OVERLAY_HISTORICAL_STATUS_SNAPSHOT",
+      "current_evidence": [
+        "docs/current/M0-DIRECTION-OVERRIDE-20260920.md",
+        "docs/current/R6-STATE.json"
+      ],
+      "requirements_or_acceptance": [
+        "最小 provider/enable/disable/default/fallback/health 生命周期"
+      ],
+      "maps_to": []
+    },
+    {
+      "key": "M0-OVERLAY:P1",
+      "source": "M0-OVERLAY",
+      "source_id": "P1",
+      "title": "Source + Format + Knowledge",
+      "original_status": "PARTIAL",
+      "audit_verdict": "PARTIAL_OR_BLOCKED",
+      "authority_class": "CURRENT_PRIORITY_OVERLAY_HISTORICAL_STATUS_SNAPSHOT",
+      "current_evidence": [
+        "docs/current/M0-DIRECTION-OVERRIDE-20260920.md",
+        "docs/current/R6-STATE.json"
+      ],
+      "requirements_or_acceptance": [
+        "一条真实默认输入→转换→Canonical Source/Knowledge 链"
+      ],
+      "maps_to": []
+    },
+    {
+      "key": "M0-OVERLAY:P2",
+      "source": "M0-OVERLAY",
+      "source_id": "P2",
+      "title": "Search + Learning Plan + Course",
+      "original_status": "PARTIAL",
+      "audit_verdict": "PARTIAL_OR_BLOCKED",
+      "authority_class": "CURRENT_PRIORITY_OVERLAY_HISTORICAL_STATUS_SNAPSHOT",
+      "current_evidence": [
+        "docs/current/M0-DIRECTION-OVERRIDE-20260920.md",
+        "docs/current/R6-STATE.json"
+      ],
+      "requirements_or_acceptance": [
+        "FTS5 + 已验证 embedding/reranker + General Course/Renderer"
+      ],
+      "maps_to": []
+    },
+    {
+      "key": "M0-OVERLAY:P3",
+      "source": "M0-OVERLAY",
+      "source_id": "P3",
+      "title": "Human Learning",
+      "original_status": "PARTIAL",
+      "audit_verdict": "PARTIAL_OR_BLOCKED",
+      "authority_class": "CURRENT_PRIORITY_OVERLAY_HISTORICAL_STATUS_SNAPSHOT",
+      "current_evidence": [
+        "docs/current/M0-DIRECTION-OVERRIDE-20260920.md",
+        "docs/current/R6-STATE.json"
+      ],
+      "requirements_or_acceptance": [
+        "真人 UI 学习→Assessment→Mastery/FSRS→restart readback"
+      ],
+      "maps_to": []
+    },
+    {
+      "key": "M0-OVERLAY:P4",
+      "source": "M0-OVERLAY",
+      "source_id": "P4",
+      "title": "Machine Loop",
+      "original_status": "PARTIAL",
+      "audit_verdict": "PARTIAL_OR_BLOCKED",
+      "authority_class": "CURRENT_PRIORITY_OVERLAY_HISTORICAL_STATUS_SNAPSHOT",
+      "current_evidence": [
+        "docs/current/M0-DIRECTION-OVERRIDE-20260920.md",
+        "docs/current/R6-STATE.json"
+      ],
+      "requirements_or_acceptance": [
+        "真实模型任务→真实错误→人工 correction→retest"
+      ],
+      "maps_to": []
+    },
+    {
+      "key": "M0-OVERLAY:P5",
+      "source": "M0-OVERLAY",
+      "source_id": "P5",
+      "title": "Persistence + Migration",
+      "original_status": "PARTIAL",
+      "audit_verdict": "PARTIAL_OR_BLOCKED",
+      "authority_class": "CURRENT_PRIORITY_OVERLAY_HISTORICAL_STATUS_SNAPSHOT",
+      "current_evidence": [
+        "docs/current/M0-DIRECTION-OVERRIDE-20260920.md",
+        "docs/current/R6-STATE.json"
+      ],
+      "requirements_or_acceptance": [
+        "Backup/Restore + 非空 Legacy 副本语义 diff + restart/readback"
+      ],
+      "maps_to": []
+    },
+    {
+      "key": "M0-OVERLAY:P6",
+      "source": "M0-OVERLAY",
+      "source_id": "P6",
+      "title": "Local Green",
+      "original_status": "PARTIAL/BLOCKED",
+      "audit_verdict": "PARTIAL_OR_BLOCKED",
+      "authority_class": "CURRENT_PRIORITY_OVERLAY_HISTORICAL_STATUS_SNAPSHOT",
+      "current_evidence": [
+        "docs/current/M0-DIRECTION-OVERRIDE-20260920.md",
+        "docs/current/R6-STATE.json"
+      ],
+      "requirements_or_acceptance": [
+        "P0-P5 完整证据后，Owner-gated 原位替换/回滚"
+      ],
+      "maps_to": []
+    },
+    {
+      "key": "SCI-0929:SCI-01",
+      "source": "SCI-0929",
+      "source_id": "SCI-01",
+      "title": "Asta Scientific Corpus / Agent",
+      "original_status": null,
+      "audit_verdict": "DEFERRED_CANDIDATE_NOT_CURRENT_M0",
+      "authority_class": "HISTORICAL_INPUT",
+      "current_evidence": [
+        "docs/current/M0-DIRECTION-OVERRIDE-20260920.md"
+      ],
+      "requirements_or_acceptance": [
+        "科研文献发现、snippet/citation traversal、可复现检索",
+        "新候选；先做只读 Evidence Candidate Adapter"
+      ],
+      "maps_to": [
+        "CAP-0030 / CAP-0090 / CAP-0150"
+      ]
+    },
+    {
+      "key": "SCI-0929:SCI-02",
+      "source": "SCI-0929",
+      "source_id": "SCI-02",
+      "title": "PaperQA2",
+      "original_status": null,
+      "audit_verdict": "DEFERRED_CANDIDATE_NOT_CURRENT_M0",
+      "authority_class": "HISTORICAL_INPUT",
+      "current_evidence": [
+        "docs/current/M0-DIRECTION-OVERRIDE-20260920.md"
+      ],
+      "requirements_or_acceptance": [
+        "本地论文集合 agentic reading / cited answer",
+        "新候选 sidecar；不能成为第二知识库"
+      ],
+      "maps_to": [
+        "CAP-0030 / CAP-0110"
+      ]
+    },
+    {
+      "key": "SCI-0929:SCI-03",
+      "source": "SCI-0929",
+      "source_id": "SCI-03",
+      "title": "Intern-S2 / 书生·端砚",
+      "original_status": null,
+      "audit_verdict": "DEFERRED_CANDIDATE_NOT_CURRENT_M0",
+      "authority_class": "HISTORICAL_INPUT",
+      "current_evidence": [
+        "docs/current/M0-DIRECTION-OVERRIDE-20260920.md"
+      ],
+      "requirements_or_acceptance": [
+        "高难科学推理/科研任务 Provider",
+        "云端/科研 Provider 候选；高难任务按需升级"
+      ],
+      "maps_to": [
+        "CAP-0150 / CAP-0090"
+      ]
+    },
+    {
+      "key": "SCI-0929:SCI-04",
+      "source": "SCI-0929",
+      "source_id": "SCI-04",
+      "title": "AstaBench / scientific eval",
+      "original_status": null,
+      "audit_verdict": "DEFERRED_CANDIDATE_NOT_CURRENT_M0",
+      "authority_class": "HISTORICAL_INPUT",
+      "current_evidence": [
+        "docs/current/M0-DIRECTION-OVERRIDE-20260920.md"
+      ],
+      "requirements_or_acceptance": [
+        "科研检索/代码/数据/端到端能力评测",
+        "新评测 donor；用于资格化而非普通用户 UI"
+      ],
+      "maps_to": [
+        "A06/A11/A14 + Evaluation"
+      ]
+    },
+    {
+      "key": "SCI-0929:SCI-05",
+      "source": "SCI-0929",
+      "source_id": "SCI-05",
+      "title": "OpenScholar / ScholarQA",
+      "original_status": null,
+      "audit_verdict": "DEFERRED_CANDIDATE_NOT_CURRENT_M0",
+      "authority_class": "HISTORICAL_INPUT",
+      "current_evidence": [
+        "docs/current/M0-DIRECTION-OVERRIDE-20260920.md"
+      ],
+      "requirements_or_acceptance": [
+        "citation-grounded synthesis 模式",
+        "Algorithm/UX donor；不复制巨大文献库"
+      ],
+      "maps_to": [
+        "CAP-0030 / CAP-0090"
+      ]
+    },
+    {
+      "key": "R1-0906:T00",
+      "source": "R1-0906",
+      "source_id": "T00",
+      "title": "锁定本轮决策、现场与基线",
+      "original_status": "planned",
+      "audit_verdict": "HISTORICAL_TRACE_ONLY_REASSESS_VIA_R6_M0",
+      "authority_class": "HISTORICAL_SUPERSEDED",
+      "current_evidence": [
+        "docs/authority/taskpack-0906/TASKS.json",
+        "DECISION_SUPERSESSION_LEDGER.yaml"
+      ],
+      "requirements_or_acceptance": [],
+      "maps_to": []
+    },
+    {
+      "key": "R1-0906:T01",
+      "source": "R1-0906",
+      "source_id": "T01",
+      "title": "可复现构建与最小必需CI",
+      "original_status": "planned",
+      "audit_verdict": "HISTORICAL_TRACE_ONLY_REASSESS_VIA_R6_M0",
+      "authority_class": "HISTORICAL_SUPERSEDED",
+      "current_evidence": [
+        "docs/authority/taskpack-0906/TASKS.json",
+        "DECISION_SUPERSESSION_LEDGER.yaml"
+      ],
+      "requirements_or_acceptance": [],
+      "maps_to": []
+    },
+    {
+      "key": "R1-0906:T02",
+      "source": "R1-0906",
+      "source_id": "T02",
+      "title": "冻结最小跨语言协议",
+      "original_status": "planned",
+      "audit_verdict": "HISTORICAL_TRACE_ONLY_REASSESS_VIA_R6_M0",
+      "authority_class": "HISTORICAL_SUPERSEDED",
+      "current_evidence": [
+        "docs/authority/taskpack-0906/TASKS.json",
+        "DECISION_SUPERSESSION_LEDGER.yaml"
+      ],
+      "requirements_or_acceptance": [],
+      "maps_to": []
+    },
+    {
+      "key": "R1-0906:T17",
+      "source": "R1-0906",
+      "source_id": "T17",
+      "title": "旧版资产全量盘点与复用缺陷前置",
+      "original_status": "planned",
+      "audit_verdict": "HISTORICAL_TRACE_ONLY_REASSESS_VIA_R6_M0",
+      "authority_class": "HISTORICAL_SUPERSEDED",
+      "current_evidence": [
+        "docs/authority/taskpack-0906/TASKS.json",
+        "DECISION_SUPERSESSION_LEDGER.yaml"
+      ],
+      "requirements_or_acceptance": [],
+      "maps_to": []
+    },
+    {
+      "key": "R1-0906:T03",
+      "source": "R1-0906",
+      "source_id": "T03",
+      "title": "Rust存储、原件与可恢复事务",
+      "original_status": "planned",
+      "audit_verdict": "HISTORICAL_TRACE_ONLY_REASSESS_VIA_R6_M0",
+      "authority_class": "HISTORICAL_SUPERSEDED",
+      "current_evidence": [
+        "docs/authority/taskpack-0906/TASKS.json",
+        "DECISION_SUPERSESSION_LEDGER.yaml"
+      ],
+      "requirements_or_acceptance": [],
+      "maps_to": []
+    },
+    {
+      "key": "R1-0906:T04",
+      "source": "R1-0906",
+      "source_id": "T04",
+      "title": "任务执行器、模型能力与Supervisor",
+      "original_status": "planned",
+      "audit_verdict": "HISTORICAL_TRACE_ONLY_REASSESS_VIA_R6_M0",
+      "authority_class": "HISTORICAL_SUPERSEDED",
+      "current_evidence": [
+        "docs/authority/taskpack-0906/TASKS.json",
+        "DECISION_SUPERSESSION_LEDGER.yaml"
+      ],
+      "requirements_or_acceptance": [],
+      "maps_to": []
+    },
+    {
+      "key": "R1-0906:T05",
+      "source": "R1-0906",
+      "source_id": "T05",
+      "title": "网页与文档转换能力包",
+      "original_status": "planned",
+      "audit_verdict": "HISTORICAL_TRACE_ONLY_REASSESS_VIA_R6_M0",
+      "authority_class": "HISTORICAL_SUPERSEDED",
+      "current_evidence": [
+        "docs/authority/taskpack-0906/TASKS.json",
+        "DECISION_SUPERSESSION_LEDGER.yaml"
+      ],
+      "requirements_or_acceptance": [],
+      "maps_to": []
+    },
+    {
+      "key": "R1-0906:T06",
+      "source": "R1-0906",
+      "source_id": "T06",
+      "title": "截图、视觉与音视频能力包",
+      "original_status": "planned",
+      "audit_verdict": "HISTORICAL_TRACE_ONLY_REASSESS_VIA_R6_M0",
+      "authority_class": "HISTORICAL_SUPERSEDED",
+      "current_evidence": [
+        "docs/authority/taskpack-0906/TASKS.json",
+        "DECISION_SUPERSESSION_LEDGER.yaml"
+      ],
+      "requirements_or_acceptance": [],
+      "maps_to": []
+    },
+    {
+      "key": "R1-0906:T07",
+      "source": "R1-0906",
+      "source_id": "T07",
+      "title": "质量评测、差异复核与模型定型",
+      "original_status": "planned",
+      "audit_verdict": "HISTORICAL_TRACE_ONLY_REASSESS_VIA_R6_M0",
+      "authority_class": "HISTORICAL_SUPERSEDED",
+      "current_evidence": [
+        "docs/authority/taskpack-0906/TASKS.json",
+        "DECISION_SUPERSESSION_LEDGER.yaml"
+      ],
+      "requirements_or_acceptance": [],
+      "maps_to": []
+    },
+    {
+      "key": "R1-0906:T08",
+      "source": "R1-0906",
+      "source_id": "T08",
+      "title": "云端模型联网交叉核查",
+      "original_status": "planned",
+      "audit_verdict": "HISTORICAL_TRACE_ONLY_REASSESS_VIA_R6_M0",
+      "authority_class": "HISTORICAL_SUPERSEDED",
+      "current_evidence": [
+        "docs/authority/taskpack-0906/TASKS.json",
+        "DECISION_SUPERSESSION_LEDGER.yaml"
+      ],
+      "requirements_or_acceptance": [],
+      "maps_to": []
+    },
+    {
+      "key": "R1-0906:T09",
+      "source": "R1-0906",
+      "source_id": "T09",
+      "title": "知识版本、复核、检索与调用政策",
+      "original_status": "planned",
+      "audit_verdict": "HISTORICAL_TRACE_ONLY_REASSESS_VIA_R6_M0",
+      "authority_class": "HISTORICAL_SUPERSEDED",
+      "current_evidence": [
+        "docs/authority/taskpack-0906/TASKS.json",
+        "DECISION_SUPERSESSION_LEDGER.yaml"
+      ],
+      "requirements_or_acceptance": [],
+      "maps_to": []
+    },
+    {
+      "key": "R1-0906:T10",
+      "source": "R1-0906",
+      "source_id": "T10",
+      "title": "人类侧学习全流程",
+      "original_status": "planned",
+      "audit_verdict": "HISTORICAL_TRACE_ONLY_REASSESS_VIA_R6_M0",
+      "authority_class": "HISTORICAL_SUPERSEDED",
+      "current_evidence": [
+        "docs/authority/taskpack-0906/TASKS.json",
+        "DECISION_SUPERSESSION_LEDGER.yaml"
+      ],
+      "requirements_or_acceptance": [],
+      "maps_to": []
+    },
+    {
+      "key": "R1-0906:T11",
+      "source": "R1-0906",
+      "source_id": "T11",
+      "title": "机器侧HTTP/MCP调用与反馈学习",
+      "original_status": "planned",
+      "audit_verdict": "HISTORICAL_TRACE_ONLY_REASSESS_VIA_R6_M0",
+      "authority_class": "HISTORICAL_SUPERSEDED",
+      "current_evidence": [
+        "docs/authority/taskpack-0906/TASKS.json",
+        "DECISION_SUPERSESSION_LEDGER.yaml"
+      ],
+      "requirements_or_acceptance": [],
+      "maps_to": []
+    },
+    {
+      "key": "R1-0906:T12",
+      "source": "R1-0906",
+      "source_id": "T12",
+      "title": "Avalonia完整工作台",
+      "original_status": "planned",
+      "audit_verdict": "HISTORICAL_TRACE_ONLY_REASSESS_VIA_R6_M0",
+      "authority_class": "HISTORICAL_SUPERSEDED",
+      "current_evidence": [
+        "docs/authority/taskpack-0906/TASKS.json",
+        "DECISION_SUPERSESSION_LEDGER.yaml"
+      ],
+      "requirements_or_acceptance": [],
+      "maps_to": []
+    },
+    {
+      "key": "R1-0906:T13",
+      "source": "R1-0906",
+      "source_id": "T13",
+      "title": "旧能力全面吸收与非空数据迁移验证",
+      "original_status": "planned",
+      "audit_verdict": "HISTORICAL_TRACE_ONLY_REASSESS_VIA_R6_M0",
+      "authority_class": "HISTORICAL_SUPERSEDED",
+      "current_evidence": [
+        "docs/authority/taskpack-0906/TASKS.json",
+        "DECISION_SUPERSESSION_LEDGER.yaml"
+      ],
+      "requirements_or_acceptance": [],
+      "maps_to": []
+    },
+    {
+      "key": "R1-0906:T14",
+      "source": "R1-0906",
+      "source_id": "T14",
+      "title": "全仓规范化收尾",
+      "original_status": "planned",
+      "audit_verdict": "HISTORICAL_TRACE_ONLY_REASSESS_VIA_R6_M0",
+      "authority_class": "HISTORICAL_SUPERSEDED",
+      "current_evidence": [
+        "docs/authority/taskpack-0906/TASKS.json",
+        "DECISION_SUPERSESSION_LEDGER.yaml"
+      ],
+      "requirements_or_acceptance": [],
+      "maps_to": []
+    },
+    {
+      "key": "R1-0906:T15",
+      "source": "R1-0906",
+      "source_id": "T15",
+      "title": "Windows集成、全格式与双侧资格验收",
+      "original_status": "planned",
+      "audit_verdict": "HISTORICAL_TRACE_ONLY_REASSESS_VIA_R6_M0",
+      "authority_class": "HISTORICAL_SUPERSEDED",
+      "current_evidence": [
+        "docs/authority/taskpack-0906/TASKS.json",
+        "DECISION_SUPERSESSION_LEDGER.yaml"
+      ],
+      "requirements_or_acceptance": [],
+      "maps_to": []
+    },
+    {
+      "key": "R1-0906:T16",
+      "source": "R1-0906",
+      "source_id": "T16",
+      "title": "可交付打包与可回滚使用版",
+      "original_status": "planned",
+      "audit_verdict": "HISTORICAL_TRACE_ONLY_REASSESS_VIA_R6_M0",
+      "authority_class": "HISTORICAL_SUPERSEDED",
+      "current_evidence": [
+        "docs/authority/taskpack-0906/TASKS.json",
+        "DECISION_SUPERSESSION_LEDGER.yaml"
+      ],
+      "requirements_or_acceptance": [],
+      "maps_to": []
+    },
+    {
+      "key": "R1-0906:T18",
+      "source": "R1-0906",
+      "source_id": "T18",
+      "title": "GPT与图像模型驱动的前端全面升级",
+      "original_status": "planned",
+      "audit_verdict": "HISTORICAL_TRACE_ONLY_REASSESS_VIA_R6_M0",
+      "authority_class": "HISTORICAL_SUPERSEDED",
+      "current_evidence": [
+        "docs/authority/taskpack-0906/TASKS.json",
+        "DECISION_SUPERSESSION_LEDGER.yaml"
+      ],
+      "requirements_or_acceptance": [],
+      "maps_to": []
+    },
+    {
+      "key": "R1-0906:T19",
+      "source": "R1-0906",
+      "source_id": "T19",
+      "title": "统一运行根、Agent入口与实际目录边界",
+      "original_status": "planned",
+      "audit_verdict": "HISTORICAL_TRACE_ONLY_REASSESS_VIA_R6_M0",
+      "authority_class": "HISTORICAL_SUPERSEDED",
+      "current_evidence": [
+        "docs/authority/taskpack-0906/TASKS.json",
+        "DECISION_SUPERSESSION_LEDGER.yaml"
+      ],
+      "requirements_or_acceptance": [],
+      "maps_to": []
+    },
+    {
+      "key": "R1-0906:T20",
+      "source": "R1-0906",
+      "source_id": "T20",
+      "title": "体积重计、历史资产保全和分批瘦身",
+      "original_status": "planned",
+      "audit_verdict": "HISTORICAL_TRACE_ONLY_REASSESS_VIA_R6_M0",
+      "authority_class": "HISTORICAL_SUPERSEDED",
+      "current_evidence": [
+        "docs/authority/taskpack-0906/TASKS.json",
+        "DECISION_SUPERSESSION_LEDGER.yaml"
+      ],
+      "requirements_or_acceptance": [],
+      "maps_to": []
+    },
+    {
+      "key": "R2-0907:X00",
+      "source": "R2-0907",
+      "source_id": "X00",
+      "title": "基线、冲突裁决与唯一任务入口",
+      "original_status": "TODO",
+      "audit_verdict": "HISTORICAL_TRACE_ONLY_REASSESS_VIA_R6_M0",
+      "authority_class": "HISTORICAL_SUPERSEDED",
+      "current_evidence": [
+        "docs/authority/taskpack-0907/TASKS.json",
+        "DECISION_SUPERSESSION_LEDGER.yaml"
+      ],
+      "requirements_or_acceptance": [],
+      "maps_to": []
+    },
+    {
+      "key": "R2-0907:X01",
+      "source": "R2-0907",
+      "source_id": "X01",
+      "title": "运行路径止增、浏览器失败与关键 CI",
+      "original_status": "TODO",
+      "audit_verdict": "HISTORICAL_TRACE_ONLY_REASSESS_VIA_R6_M0",
+      "authority_class": "HISTORICAL_SUPERSEDED",
+      "current_evidence": [
+        "docs/authority/taskpack-0907/TASKS.json",
+        "DECISION_SUPERSESSION_LEDGER.yaml"
+      ],
+      "requirements_or_acceptance": [],
+      "maps_to": []
+    },
+    {
+      "key": "R2-0907:X02",
+      "source": "R2-0907",
+      "source_id": "X02",
+      "title": "旧资产保全与当前能力的语义复用",
+      "original_status": "TODO",
+      "audit_verdict": "HISTORICAL_TRACE_ONLY_REASSESS_VIA_R6_M0",
+      "authority_class": "HISTORICAL_SUPERSEDED",
+      "current_evidence": [
+        "docs/authority/taskpack-0907/TASKS.json",
+        "DECISION_SUPERSESSION_LEDGER.yaml"
+      ],
+      "requirements_or_acceptance": [],
+      "maps_to": []
+    },
+    {
+      "key": "R2-0907:X03",
+      "source": "R2-0907",
+      "source_id": "X03",
+      "title": "现成学习工作台资格与默认入口",
+      "original_status": "TODO",
+      "audit_verdict": "HISTORICAL_TRACE_ONLY_REASSESS_VIA_R6_M0",
+      "authority_class": "HISTORICAL_SUPERSEDED",
+      "current_evidence": [
+        "docs/authority/taskpack-0907/TASKS.json",
+        "DECISION_SUPERSESSION_LEDGER.yaml"
+      ],
+      "requirements_or_acceptance": [],
+      "maps_to": []
+    },
+    {
+      "key": "R2-0907:X04",
+      "source": "R2-0907",
+      "source_id": "X04",
+      "title": "跨语言真实契约及身份语义",
+      "original_status": "TODO",
+      "audit_verdict": "HISTORICAL_TRACE_ONLY_REASSESS_VIA_R6_M0",
+      "authority_class": "HISTORICAL_SUPERSEDED",
+      "current_evidence": [
+        "docs/authority/taskpack-0907/TASKS.json",
+        "DECISION_SUPERSESSION_LEDGER.yaml"
+      ],
+      "requirements_or_acceptance": [],
+      "maps_to": []
+    },
+    {
+      "key": "R2-0907:X05",
+      "source": "R2-0907",
+      "source_id": "X05",
+      "title": "Rust原件、事务、作业与恢复底座",
+      "original_status": "TODO",
+      "audit_verdict": "HISTORICAL_TRACE_ONLY_REASSESS_VIA_R6_M0",
+      "authority_class": "HISTORICAL_SUPERSEDED",
+      "current_evidence": [
+        "docs/authority/taskpack-0907/TASKS.json",
+        "DECISION_SUPERSESSION_LEDGER.yaml"
+      ],
+      "requirements_or_acceptance": [],
+      "maps_to": []
+    },
+    {
+      "key": "R2-0907:X06",
+      "source": "R2-0907",
+      "source_id": "X06",
+      "title": "复用workers贯通首批真实格式",
+      "original_status": "TODO",
+      "audit_verdict": "HISTORICAL_TRACE_ONLY_REASSESS_VIA_R6_M0",
+      "authority_class": "HISTORICAL_SUPERSEDED",
+      "current_evidence": [
+        "docs/authority/taskpack-0907/TASKS.json",
+        "DECISION_SUPERSESSION_LEDGER.yaml"
+      ],
+      "requirements_or_acceptance": [],
+      "maps_to": []
+    },
+    {
+      "key": "R2-0907:X07",
+      "source": "R2-0907",
+      "source_id": "X07",
+      "title": "质量、公开核查、知识修订和搜索",
+      "original_status": "TODO",
+      "audit_verdict": "HISTORICAL_TRACE_ONLY_REASSESS_VIA_R6_M0",
+      "authority_class": "HISTORICAL_SUPERSEDED",
+      "current_evidence": [
+        "docs/authority/taskpack-0907/TASKS.json",
+        "DECISION_SUPERSESSION_LEDGER.yaml"
+      ],
+      "requirements_or_acceptance": [],
+      "maps_to": []
+    },
+    {
+      "key": "R2-0907:X08",
+      "source": "R2-0907",
+      "source_id": "X08",
+      "title": "人类学习侧复用与事件回收",
+      "original_status": "TODO",
+      "audit_verdict": "HISTORICAL_TRACE_ONLY_REASSESS_VIA_R6_M0",
+      "authority_class": "HISTORICAL_SUPERSEDED",
+      "current_evidence": [
+        "docs/authority/taskpack-0907/TASKS.json",
+        "DECISION_SUPERSESSION_LEDGER.yaml"
+      ],
+      "requirements_or_acceptance": [],
+      "maps_to": []
+    },
+    {
+      "key": "R2-0907:X09",
+      "source": "R2-0907",
+      "source_id": "X09",
+      "title": "机器知识、真实调用、评测与反馈",
+      "original_status": "TODO",
+      "audit_verdict": "HISTORICAL_TRACE_ONLY_REASSESS_VIA_R6_M0",
+      "authority_class": "HISTORICAL_SUPERSEDED",
+      "current_evidence": [
+        "docs/authority/taskpack-0907/TASKS.json",
+        "DECISION_SUPERSESSION_LEDGER.yaml"
+      ],
+      "requirements_or_acceptance": [],
+      "maps_to": []
+    },
+    {
+      "key": "R2-0907:X10",
+      "source": "R2-0907",
+      "source_id": "X10",
+      "title": "旧库非空迁移与无损差分",
+      "original_status": "TODO",
+      "audit_verdict": "HISTORICAL_TRACE_ONLY_REASSESS_VIA_R6_M0",
+      "authority_class": "HISTORICAL_SUPERSEDED",
+      "current_evidence": [
+        "docs/authority/taskpack-0907/TASKS.json",
+        "DECISION_SUPERSESSION_LEDGER.yaml"
+      ],
+      "requirements_or_acceptance": [],
+      "maps_to": []
+    },
+    {
+      "key": "R2-0907:X11",
+      "source": "R2-0907",
+      "source_id": "X11",
+      "title": "Windows人机闭环候选与可用包",
+      "original_status": "TODO",
+      "audit_verdict": "HISTORICAL_TRACE_ONLY_REASSESS_VIA_R6_M0",
+      "authority_class": "HISTORICAL_SUPERSEDED",
+      "current_evidence": [
+        "docs/authority/taskpack-0907/TASKS.json",
+        "DECISION_SUPERSESSION_LEDGER.yaml"
+      ],
+      "requirements_or_acceptance": [],
+      "maps_to": []
+    },
+    {
+      "key": "R2-0907:Q00",
+      "source": "R2-0907",
+      "source_id": "Q00",
+      "title": "独立GPT审计M0",
+      "original_status": "TODO",
+      "audit_verdict": "HISTORICAL_TRACE_ONLY_REASSESS_VIA_R6_M0",
+      "authority_class": "HISTORICAL_SUPERSEDED",
+      "current_evidence": [
+        "docs/authority/taskpack-0907/TASKS.json",
+        "DECISION_SUPERSESSION_LEDGER.yaml"
+      ],
+      "requirements_or_acceptance": [],
+      "maps_to": []
+    },
+    {
+      "key": "R2-0907:X12",
+      "source": "R2-0907",
+      "source_id": "X12",
+      "title": "多格式完整覆盖与学科活动",
+      "original_status": "TODO",
+      "audit_verdict": "HISTORICAL_TRACE_ONLY_REASSESS_VIA_R6_M0",
+      "authority_class": "HISTORICAL_SUPERSEDED",
+      "current_evidence": [
+        "docs/authority/taskpack-0907/TASKS.json",
+        "DECISION_SUPERSESSION_LEDGER.yaml"
+      ],
+      "requirements_or_acceptance": [],
+      "maps_to": []
+    },
+    {
+      "key": "R2-0907:X13",
+      "source": "R2-0907",
+      "source_id": "X13",
+      "title": "全仓规范化与必要交付体验收口",
+      "original_status": "TODO",
+      "audit_verdict": "HISTORICAL_TRACE_ONLY_REASSESS_VIA_R6_M0",
+      "authority_class": "HISTORICAL_SUPERSEDED",
+      "current_evidence": [
+        "docs/authority/taskpack-0907/TASKS.json",
+        "DECISION_SUPERSESSION_LEDGER.yaml"
+      ],
+      "requirements_or_acceptance": [],
+      "maps_to": []
+    },
+    {
+      "key": "R2-0907:X14",
+      "source": "R2-0907",
+      "source_id": "X14",
+      "title": "本地50多GB保全清理与容量止增",
+      "original_status": "TODO",
+      "audit_verdict": "HISTORICAL_TRACE_ONLY_REASSESS_VIA_R6_M0",
+      "authority_class": "HISTORICAL_SUPERSEDED",
+      "current_evidence": [
+        "docs/authority/taskpack-0907/TASKS.json",
+        "DECISION_SUPERSESSION_LEDGER.yaml"
+      ],
+      "requirements_or_acceptance": [],
+      "maps_to": []
+    },
+    {
+      "key": "R2-0907:Q01",
+      "source": "R2-0907",
+      "source_id": "Q01",
+      "title": "独立GPT审计M1及清理结果",
+      "original_status": "TODO",
+      "audit_verdict": "HISTORICAL_TRACE_ONLY_REASSESS_VIA_R6_M0",
+      "authority_class": "HISTORICAL_SUPERSEDED",
+      "current_evidence": [
+        "docs/authority/taskpack-0907/TASKS.json",
+        "DECISION_SUPERSESSION_LEDGER.yaml"
+      ],
+      "requirements_or_acceptance": [],
+      "maps_to": []
+    },
+    {
+      "key": "R2-0907:F01",
+      "source": "R2-0907",
+      "source_id": "F01",
+      "title": "视觉教学、动画与交互仿真",
+      "original_status": "DEFERRED_RETAINED",
+      "audit_verdict": "HISTORICAL_TRACE_ONLY_REASSESS_VIA_R6_M0",
+      "authority_class": "HISTORICAL_SUPERSEDED",
+      "current_evidence": [
+        "docs/authority/taskpack-0907/TASKS.json",
+        "DECISION_SUPERSESSION_LEDGER.yaml"
+      ],
+      "requirements_or_acceptance": [],
+      "maps_to": []
+    },
+    {
+      "key": "R2-0907:F02",
+      "source": "R2-0907",
+      "source_id": "F02",
+      "title": "大型知识宫殿与2D/2.5D/3D/VR/AR",
+      "original_status": "DEFERRED_RETAINED",
+      "audit_verdict": "HISTORICAL_TRACE_ONLY_REASSESS_VIA_R6_M0",
+      "authority_class": "HISTORICAL_SUPERSEDED",
+      "current_evidence": [
+        "docs/authority/taskpack-0907/TASKS.json",
+        "DECISION_SUPERSESSION_LEDGER.yaml"
+      ],
+      "requirements_or_acceptance": [],
+      "maps_to": []
+    },
+    {
+      "key": "R2-0907:F03",
+      "source": "R2-0907",
+      "source_id": "F03",
+      "title": "完整人机学习、经验迁移和可选微调",
+      "original_status": "DEFERRED_RETAINED",
+      "audit_verdict": "HISTORICAL_TRACE_ONLY_REASSESS_VIA_R6_M0",
+      "authority_class": "HISTORICAL_SUPERSEDED",
+      "current_evidence": [
+        "docs/authority/taskpack-0907/TASKS.json",
+        "DECISION_SUPERSESSION_LEDGER.yaml"
+      ],
+      "requirements_or_acceptance": [],
+      "maps_to": []
+    },
+    {
+      "key": "R2-0907:F04",
+      "source": "R2-0907",
+      "source_id": "F04",
+      "title": "多端同步、SDK、扩展和可选协作",
+      "original_status": "DEFERRED_RETAINED",
+      "audit_verdict": "HISTORICAL_TRACE_ONLY_REASSESS_VIA_R6_M0",
+      "authority_class": "HISTORICAL_SUPERSEDED",
+      "current_evidence": [
+        "docs/authority/taskpack-0907/TASKS.json",
+        "DECISION_SUPERSESSION_LEDGER.yaml"
+      ],
+      "requirements_or_acceptance": [],
+      "maps_to": []
+    },
+    {
+      "key": "R2-0907:F05",
+      "source": "R2-0907",
+      "source_id": "F05",
+      "title": "研究课程项目工作空间与图谱纵深",
+      "original_status": "DEFERRED_RETAINED",
+      "audit_verdict": "HISTORICAL_TRACE_ONLY_REASSESS_VIA_R6_M0",
+      "authority_class": "HISTORICAL_SUPERSEDED",
+      "current_evidence": [
+        "docs/authority/taskpack-0907/TASKS.json",
+        "DECISION_SUPERSESSION_LEDGER.yaml"
+      ],
+      "requirements_or_acceptance": [],
+      "maps_to": []
+    },
+    {
+      "key": "R2-0907:F06",
+      "source": "R2-0907",
+      "source_id": "F06",
+      "title": "吸收失败后的必要独立实现",
+      "original_status": "DEFERRED_RETAINED",
+      "audit_verdict": "HISTORICAL_TRACE_ONLY_REASSESS_VIA_R6_M0",
+      "authority_class": "HISTORICAL_SUPERSEDED",
+      "current_evidence": [
+        "docs/authority/taskpack-0907/TASKS.json",
+        "DECISION_SUPERSESSION_LEDGER.yaml"
+      ],
+      "requirements_or_acceptance": [],
+      "maps_to": []
+    },
+    {
+      "key": "R3-0908:X00",
+      "source": "R3-0908",
+      "source_id": "X00",
+      "title": "基线、冲突裁决与唯一任务入口",
+      "original_status": "REOPENED",
+      "audit_verdict": "HISTORICAL_TRACE_ONLY_REASSESS_VIA_R6_M0",
+      "authority_class": "HISTORICAL_SUPERSEDED",
+      "current_evidence": [
+        "docs/authority/taskpack-0908-r3/TASKS.json",
+        "DECISION_SUPERSESSION_LEDGER.yaml"
+      ],
+      "requirements_or_acceptance": [],
+      "maps_to": []
+    },
+    {
+      "key": "R3-0908:X01",
+      "source": "R3-0908",
+      "source_id": "X01",
+      "title": "运行路径止增、浏览器失败与关键 CI",
+      "original_status": "PARTIAL",
+      "audit_verdict": "HISTORICAL_TRACE_ONLY_REASSESS_VIA_R6_M0",
+      "authority_class": "HISTORICAL_SUPERSEDED",
+      "current_evidence": [
+        "docs/authority/taskpack-0908-r3/TASKS.json",
+        "DECISION_SUPERSESSION_LEDGER.yaml"
+      ],
+      "requirements_or_acceptance": [],
+      "maps_to": []
+    },
+    {
+      "key": "R3-0908:X02",
+      "source": "R3-0908",
+      "source_id": "X02",
+      "title": "旧资产保全与当前能力的语义复用",
+      "original_status": "PARTIAL",
+      "audit_verdict": "HISTORICAL_TRACE_ONLY_REASSESS_VIA_R6_M0",
+      "authority_class": "HISTORICAL_SUPERSEDED",
+      "current_evidence": [
+        "docs/authority/taskpack-0908-r3/TASKS.json",
+        "DECISION_SUPERSESSION_LEDGER.yaml"
+      ],
+      "requirements_or_acceptance": [],
+      "maps_to": []
+    },
+    {
+      "key": "R3-0908:X03",
+      "source": "R3-0908",
+      "source_id": "X03",
+      "title": "现成学习工作台资格与默认入口",
+      "original_status": "PARTIAL",
+      "audit_verdict": "HISTORICAL_TRACE_ONLY_REASSESS_VIA_R6_M0",
+      "authority_class": "HISTORICAL_SUPERSEDED",
+      "current_evidence": [
+        "docs/authority/taskpack-0908-r3/TASKS.json",
+        "DECISION_SUPERSESSION_LEDGER.yaml"
+      ],
+      "requirements_or_acceptance": [],
+      "maps_to": []
+    },
+    {
+      "key": "R3-0908:X04",
+      "source": "R3-0908",
+      "source_id": "X04",
+      "title": "跨语言真实契约及身份语义",
+      "original_status": "REOPENED",
+      "audit_verdict": "HISTORICAL_TRACE_ONLY_REASSESS_VIA_R6_M0",
+      "authority_class": "HISTORICAL_SUPERSEDED",
+      "current_evidence": [
+        "docs/authority/taskpack-0908-r3/TASKS.json",
+        "DECISION_SUPERSESSION_LEDGER.yaml"
+      ],
+      "requirements_or_acceptance": [],
+      "maps_to": []
+    },
+    {
+      "key": "R3-0908:X05",
+      "source": "R3-0908",
+      "source_id": "X05",
+      "title": "Rust原件、事务、作业与恢复底座",
+      "original_status": "REOPENED",
+      "audit_verdict": "HISTORICAL_TRACE_ONLY_REASSESS_VIA_R6_M0",
+      "authority_class": "HISTORICAL_SUPERSEDED",
+      "current_evidence": [
+        "docs/authority/taskpack-0908-r3/TASKS.json",
+        "DECISION_SUPERSESSION_LEDGER.yaml"
+      ],
+      "requirements_or_acceptance": [],
+      "maps_to": []
+    },
+    {
+      "key": "R3-0908:X06",
+      "source": "R3-0908",
+      "source_id": "X06",
+      "title": "复用workers贯通首批真实格式",
+      "original_status": "PARTIAL",
+      "audit_verdict": "HISTORICAL_TRACE_ONLY_REASSESS_VIA_R6_M0",
+      "authority_class": "HISTORICAL_SUPERSEDED",
+      "current_evidence": [
+        "docs/authority/taskpack-0908-r3/TASKS.json",
+        "DECISION_SUPERSESSION_LEDGER.yaml"
+      ],
+      "requirements_or_acceptance": [],
+      "maps_to": []
+    },
+    {
+      "key": "R3-0908:X07",
+      "source": "R3-0908",
+      "source_id": "X07",
+      "title": "质量、公开核查、知识修订和搜索",
+      "original_status": "REOPENED",
+      "audit_verdict": "HISTORICAL_TRACE_ONLY_REASSESS_VIA_R6_M0",
+      "authority_class": "HISTORICAL_SUPERSEDED",
+      "current_evidence": [
+        "docs/authority/taskpack-0908-r3/TASKS.json",
+        "DECISION_SUPERSESSION_LEDGER.yaml"
+      ],
+      "requirements_or_acceptance": [],
+      "maps_to": []
+    },
+    {
+      "key": "R3-0908:X08",
+      "source": "R3-0908",
+      "source_id": "X08",
+      "title": "人类学习侧复用与事件回收",
+      "original_status": "PARTIAL",
+      "audit_verdict": "HISTORICAL_TRACE_ONLY_REASSESS_VIA_R6_M0",
+      "authority_class": "HISTORICAL_SUPERSEDED",
+      "current_evidence": [
+        "docs/authority/taskpack-0908-r3/TASKS.json",
+        "DECISION_SUPERSESSION_LEDGER.yaml"
+      ],
+      "requirements_or_acceptance": [],
+      "maps_to": []
+    },
+    {
+      "key": "R3-0908:X09",
+      "source": "R3-0908",
+      "source_id": "X09",
+      "title": "机器知识、真实调用、评测与反馈",
+      "original_status": "PARTIAL",
+      "audit_verdict": "HISTORICAL_TRACE_ONLY_REASSESS_VIA_R6_M0",
+      "authority_class": "HISTORICAL_SUPERSEDED",
+      "current_evidence": [
+        "docs/authority/taskpack-0908-r3/TASKS.json",
+        "DECISION_SUPERSESSION_LEDGER.yaml"
+      ],
+      "requirements_or_acceptance": [],
+      "maps_to": []
+    },
+    {
+      "key": "R3-0908:X10",
+      "source": "R3-0908",
+      "source_id": "X10",
+      "title": "旧库非空迁移与无损差分",
+      "original_status": "PARTIAL",
+      "audit_verdict": "HISTORICAL_TRACE_ONLY_REASSESS_VIA_R6_M0",
+      "authority_class": "HISTORICAL_SUPERSEDED",
+      "current_evidence": [
+        "docs/authority/taskpack-0908-r3/TASKS.json",
+        "DECISION_SUPERSESSION_LEDGER.yaml"
+      ],
+      "requirements_or_acceptance": [],
+      "maps_to": []
+    },
+    {
+      "key": "R3-0908:X11",
+      "source": "R3-0908",
+      "source_id": "X11",
+      "title": "Windows人机闭环候选与可用包",
+      "original_status": "PARTIAL",
+      "audit_verdict": "HISTORICAL_TRACE_ONLY_REASSESS_VIA_R6_M0",
+      "authority_class": "HISTORICAL_SUPERSEDED",
+      "current_evidence": [
+        "docs/authority/taskpack-0908-r3/TASKS.json",
+        "DECISION_SUPERSESSION_LEDGER.yaml"
+      ],
+      "requirements_or_acceptance": [],
+      "maps_to": []
+    },
+    {
+      "key": "R3-0908:Q00",
+      "source": "R3-0908",
+      "source_id": "Q00",
+      "title": "独立GPT审计M0",
+      "original_status": "FAILED_AT_BASELINE",
+      "audit_verdict": "HISTORICAL_TRACE_ONLY_REASSESS_VIA_R6_M0",
+      "authority_class": "HISTORICAL_SUPERSEDED",
+      "current_evidence": [
+        "docs/authority/taskpack-0908-r3/TASKS.json",
+        "DECISION_SUPERSESSION_LEDGER.yaml"
+      ],
+      "requirements_or_acceptance": [],
+      "maps_to": []
+    },
+    {
+      "key": "R3-0908:X12",
+      "source": "R3-0908",
+      "source_id": "X12",
+      "title": "多格式完整覆盖与学科活动",
+      "original_status": "PARTIAL",
+      "audit_verdict": "HISTORICAL_TRACE_ONLY_REASSESS_VIA_R6_M0",
+      "authority_class": "HISTORICAL_SUPERSEDED",
+      "current_evidence": [
+        "docs/authority/taskpack-0908-r3/TASKS.json",
+        "DECISION_SUPERSESSION_LEDGER.yaml"
+      ],
+      "requirements_or_acceptance": [],
+      "maps_to": []
+    },
+    {
+      "key": "R3-0908:X13",
+      "source": "R3-0908",
+      "source_id": "X13",
+      "title": "全仓规范化与必要交付体验收口",
+      "original_status": "PARTIAL",
+      "audit_verdict": "HISTORICAL_TRACE_ONLY_REASSESS_VIA_R6_M0",
+      "authority_class": "HISTORICAL_SUPERSEDED",
+      "current_evidence": [
+        "docs/authority/taskpack-0908-r3/TASKS.json",
+        "DECISION_SUPERSESSION_LEDGER.yaml"
+      ],
+      "requirements_or_acceptance": [],
+      "maps_to": []
+    },
+    {
+      "key": "R3-0908:X14",
+      "source": "R3-0908",
+      "source_id": "X14",
+      "title": "本地50多GB保全清理与容量止增",
+      "original_status": "PARTIAL",
+      "audit_verdict": "HISTORICAL_TRACE_ONLY_REASSESS_VIA_R6_M0",
+      "authority_class": "HISTORICAL_SUPERSEDED",
+      "current_evidence": [
+        "docs/authority/taskpack-0908-r3/TASKS.json",
+        "DECISION_SUPERSESSION_LEDGER.yaml"
+      ],
+      "requirements_or_acceptance": [],
+      "maps_to": []
+    },
+    {
+      "key": "R3-0908:Q01",
+      "source": "R3-0908",
+      "source_id": "Q01",
+      "title": "独立GPT审计M1及清理结果",
+      "original_status": "NOT_READY",
+      "audit_verdict": "HISTORICAL_TRACE_ONLY_REASSESS_VIA_R6_M0",
+      "authority_class": "HISTORICAL_SUPERSEDED",
+      "current_evidence": [
+        "docs/authority/taskpack-0908-r3/TASKS.json",
+        "DECISION_SUPERSESSION_LEDGER.yaml"
+      ],
+      "requirements_or_acceptance": [],
+      "maps_to": []
+    },
+    {
+      "key": "R3-0908:F01",
+      "source": "R3-0908",
+      "source_id": "F01",
+      "title": "视觉教学、动画与交互仿真",
+      "original_status": "DEFERRED_RETAINED",
+      "audit_verdict": "HISTORICAL_TRACE_ONLY_REASSESS_VIA_R6_M0",
+      "authority_class": "HISTORICAL_SUPERSEDED",
+      "current_evidence": [
+        "docs/authority/taskpack-0908-r3/TASKS.json",
+        "DECISION_SUPERSESSION_LEDGER.yaml"
+      ],
+      "requirements_or_acceptance": [],
+      "maps_to": []
+    },
+    {
+      "key": "R3-0908:F02",
+      "source": "R3-0908",
+      "source_id": "F02",
+      "title": "大型知识宫殿与2D/2.5D/3D/VR/AR",
+      "original_status": "DEFERRED_RETAINED",
+      "audit_verdict": "HISTORICAL_TRACE_ONLY_REASSESS_VIA_R6_M0",
+      "authority_class": "HISTORICAL_SUPERSEDED",
+      "current_evidence": [
+        "docs/authority/taskpack-0908-r3/TASKS.json",
+        "DECISION_SUPERSESSION_LEDGER.yaml"
+      ],
+      "requirements_or_acceptance": [],
+      "maps_to": []
+    },
+    {
+      "key": "R3-0908:F03",
+      "source": "R3-0908",
+      "source_id": "F03",
+      "title": "完整人机学习、经验迁移和可选微调",
+      "original_status": "DEFERRED_RETAINED",
+      "audit_verdict": "HISTORICAL_TRACE_ONLY_REASSESS_VIA_R6_M0",
+      "authority_class": "HISTORICAL_SUPERSEDED",
+      "current_evidence": [
+        "docs/authority/taskpack-0908-r3/TASKS.json",
+        "DECISION_SUPERSESSION_LEDGER.yaml"
+      ],
+      "requirements_or_acceptance": [],
+      "maps_to": []
+    },
+    {
+      "key": "R3-0908:F04",
+      "source": "R3-0908",
+      "source_id": "F04",
+      "title": "多端同步、SDK、扩展和可选协作",
+      "original_status": "DEFERRED_RETAINED",
+      "audit_verdict": "HISTORICAL_TRACE_ONLY_REASSESS_VIA_R6_M0",
+      "authority_class": "HISTORICAL_SUPERSEDED",
+      "current_evidence": [
+        "docs/authority/taskpack-0908-r3/TASKS.json",
+        "DECISION_SUPERSESSION_LEDGER.yaml"
+      ],
+      "requirements_or_acceptance": [],
+      "maps_to": []
+    },
+    {
+      "key": "R3-0908:F05",
+      "source": "R3-0908",
+      "source_id": "F05",
+      "title": "研究课程项目工作空间与图谱纵深",
+      "original_status": "DEFERRED_RETAINED",
+      "audit_verdict": "HISTORICAL_TRACE_ONLY_REASSESS_VIA_R6_M0",
+      "authority_class": "HISTORICAL_SUPERSEDED",
+      "current_evidence": [
+        "docs/authority/taskpack-0908-r3/TASKS.json",
+        "DECISION_SUPERSESSION_LEDGER.yaml"
+      ],
+      "requirements_or_acceptance": [],
+      "maps_to": []
+    },
+    {
+      "key": "R3-0908:F06",
+      "source": "R3-0908",
+      "source_id": "F06",
+      "title": "吸收失败后的必要独立实现",
+      "original_status": "DEFERRED_RETAINED",
+      "audit_verdict": "HISTORICAL_TRACE_ONLY_REASSESS_VIA_R6_M0",
+      "authority_class": "HISTORICAL_SUPERSEDED",
+      "current_evidence": [
+        "docs/authority/taskpack-0908-r3/TASKS.json",
+        "DECISION_SUPERSESSION_LEDGER.yaml"
+      ],
+      "requirements_or_acceptance": [],
+      "maps_to": []
+    },
+    {
+      "key": "R3-0910:R00",
+      "source": "R3-0910",
+      "source_id": "R00",
+      "title": "锁定实际基线与唯一执行入口",
+      "original_status": "TODO",
+      "audit_verdict": "HISTORICAL_TRACE_ONLY_REASSESS_VIA_R6_M0",
+      "authority_class": "HISTORICAL_SUPERSEDED",
+      "current_evidence": [
+        "docs/authority/taskpack-0910-r3/TASKS.json",
+        "DECISION_SUPERSESSION_LEDGER.yaml"
+      ],
+      "requirements_or_acceptance": [],
+      "maps_to": [
+        "X00",
+        "X13"
+      ]
+    },
+    {
+      "key": "R3-0910:R01",
+      "source": "R3-0910",
+      "source_id": "R01",
+      "title": "目录止增与全范围容量基线",
+      "original_status": "TODO",
+      "audit_verdict": "HISTORICAL_TRACE_ONLY_REASSESS_VIA_R6_M0",
+      "authority_class": "HISTORICAL_SUPERSEDED",
+      "current_evidence": [
+        "docs/authority/taskpack-0910-r3/TASKS.json",
+        "DECISION_SUPERSESSION_LEDGER.yaml"
+      ],
+      "requirements_or_acceptance": [],
+      "maps_to": [
+        "X01",
+        "X14"
+      ]
+    },
+    {
+      "key": "R3-0910:R02",
+      "source": "R3-0910",
+      "source_id": "R02",
+      "title": "知识正文不可变与修订",
+      "original_status": "TODO",
+      "audit_verdict": "HISTORICAL_TRACE_ONLY_REASSESS_VIA_R6_M0",
+      "authority_class": "HISTORICAL_SUPERSEDED",
+      "current_evidence": [
+        "docs/authority/taskpack-0910-r3/TASKS.json",
+        "DECISION_SUPERSESSION_LEDGER.yaml"
+      ],
+      "requirements_or_acceptance": [],
+      "maps_to": [
+        "X05",
+        "X07"
+      ]
+    },
+    {
+      "key": "R3-0910:R03",
+      "source": "R3-0910",
+      "source_id": "R03",
+      "title": "旧v3归档向后兼容",
+      "original_status": "TODO",
+      "audit_verdict": "HISTORICAL_TRACE_ONLY_REASSESS_VIA_R6_M0",
+      "authority_class": "HISTORICAL_SUPERSEDED",
+      "current_evidence": [
+        "docs/authority/taskpack-0910-r3/TASKS.json",
+        "DECISION_SUPERSESSION_LEDGER.yaml"
+      ],
+      "requirements_or_acceptance": [],
+      "maps_to": [
+        "X05",
+        "X10"
+      ]
+    },
+    {
+      "key": "R3-0910:R04",
+      "source": "R3-0910",
+      "source_id": "R04",
+      "title": "宿主身份与凭据隔离",
+      "original_status": "TODO",
+      "audit_verdict": "HISTORICAL_TRACE_ONLY_REASSESS_VIA_R6_M0",
+      "authority_class": "HISTORICAL_SUPERSEDED",
+      "current_evidence": [
+        "docs/authority/taskpack-0910-r3/TASKS.json",
+        "DECISION_SUPERSESSION_LEDGER.yaml"
+      ],
+      "requirements_or_acceptance": [],
+      "maps_to": [
+        "X04"
+      ]
+    },
+    {
+      "key": "R3-0910:R05",
+      "source": "R3-0910",
+      "source_id": "R05",
+      "title": "学习事件幂等与FSRS接线",
+      "original_status": "TODO",
+      "audit_verdict": "HISTORICAL_TRACE_ONLY_REASSESS_VIA_R6_M0",
+      "authority_class": "HISTORICAL_SUPERSEDED",
+      "current_evidence": [
+        "docs/authority/taskpack-0910-r3/TASKS.json",
+        "DECISION_SUPERSESSION_LEDGER.yaml"
+      ],
+      "requirements_or_acceptance": [],
+      "maps_to": [
+        "X08"
+      ]
+    },
+    {
+      "key": "R3-0910:R06",
+      "source": "R3-0910",
+      "source_id": "R06",
+      "title": "公开核查结果与云端交叉核查",
+      "original_status": "TODO",
+      "audit_verdict": "HISTORICAL_TRACE_ONLY_REASSESS_VIA_R6_M0",
+      "authority_class": "HISTORICAL_SUPERSEDED",
+      "current_evidence": [
+        "docs/authority/taskpack-0910-r3/TASKS.json",
+        "DECISION_SUPERSESSION_LEDGER.yaml"
+      ],
+      "requirements_or_acceptance": [],
+      "maps_to": [
+        "X07"
+      ]
+    },
+    {
+      "key": "R3-0910:R07",
+      "source": "R3-0910",
+      "source_id": "R07",
+      "title": "旧资产非空迁移收口",
+      "original_status": "TODO",
+      "audit_verdict": "HISTORICAL_TRACE_ONLY_REASSESS_VIA_R6_M0",
+      "authority_class": "HISTORICAL_SUPERSEDED",
+      "current_evidence": [
+        "docs/authority/taskpack-0910-r3/TASKS.json",
+        "DECISION_SUPERSESSION_LEDGER.yaml"
+      ],
+      "requirements_or_acceptance": [],
+      "maps_to": [
+        "X02",
+        "X10"
+      ]
+    },
+    {
+      "key": "R3-0910:R08",
+      "source": "R3-0910",
+      "source_id": "R08",
+      "title": "统一转换管线与质量展示",
+      "original_status": "TODO",
+      "audit_verdict": "HISTORICAL_TRACE_ONLY_REASSESS_VIA_R6_M0",
+      "authority_class": "HISTORICAL_SUPERSEDED",
+      "current_evidence": [
+        "docs/authority/taskpack-0910-r3/TASKS.json",
+        "DECISION_SUPERSESSION_LEDGER.yaml"
+      ],
+      "requirements_or_acceptance": [],
+      "maps_to": [
+        "X06",
+        "X07"
+      ]
+    },
+    {
+      "key": "R3-0910:R09",
+      "source": "R3-0910",
+      "source_id": "R09",
+      "title": "原文双向导航与下游失效",
+      "original_status": "TODO",
+      "audit_verdict": "HISTORICAL_TRACE_ONLY_REASSESS_VIA_R6_M0",
+      "authority_class": "HISTORICAL_SUPERSEDED",
+      "current_evidence": [
+        "docs/authority/taskpack-0910-r3/TASKS.json",
+        "DECISION_SUPERSESSION_LEDGER.yaml"
+      ],
+      "requirements_or_acceptance": [],
+      "maps_to": [
+        "X07",
+        "X08",
+        "X09"
+      ]
+    },
+    {
+      "key": "R3-0910:R10",
+      "source": "R3-0910",
+      "source_id": "R10",
+      "title": "DeepTutor—Core与人类学习可用入口",
+      "original_status": "TODO",
+      "audit_verdict": "HISTORICAL_TRACE_ONLY_REASSESS_VIA_R6_M0",
+      "authority_class": "HISTORICAL_SUPERSEDED",
+      "current_evidence": [
+        "docs/authority/taskpack-0910-r3/TASKS.json",
+        "DECISION_SUPERSESSION_LEDGER.yaml"
+      ],
+      "requirements_or_acceptance": [],
+      "maps_to": [
+        "X03",
+        "X08",
+        "X11"
+      ]
+    },
+    {
+      "key": "R3-0910:R11",
+      "source": "R3-0910",
+      "source_id": "R11",
+      "title": "真实机器学习与双向反馈闭环",
+      "original_status": "TODO",
+      "audit_verdict": "HISTORICAL_TRACE_ONLY_REASSESS_VIA_R6_M0",
+      "authority_class": "HISTORICAL_SUPERSEDED",
+      "current_evidence": [
+        "docs/authority/taskpack-0910-r3/TASKS.json",
+        "DECISION_SUPERSESSION_LEDGER.yaml"
+      ],
+      "requirements_or_acceptance": [],
+      "maps_to": [
+        "X09",
+        "X11"
+      ]
+    },
+    {
+      "key": "R3-0910:R12",
+      "source": "R3-0910",
+      "source_id": "R12",
+      "title": "安全清理与终态容量证明",
+      "original_status": "TODO",
+      "audit_verdict": "HISTORICAL_TRACE_ONLY_REASSESS_VIA_R6_M0",
+      "authority_class": "HISTORICAL_SUPERSEDED",
+      "current_evidence": [
+        "docs/authority/taskpack-0910-r3/TASKS.json",
+        "DECISION_SUPERSESSION_LEDGER.yaml"
+      ],
+      "requirements_or_acceptance": [],
+      "maps_to": [
+        "X14"
+      ]
+    },
+    {
+      "key": "R3-0910:R13",
+      "source": "R3-0910",
+      "source_id": "R13",
+      "title": "Windows可用包与同源证据",
+      "original_status": "TODO",
+      "audit_verdict": "HISTORICAL_TRACE_ONLY_REASSESS_VIA_R6_M0",
+      "authority_class": "HISTORICAL_SUPERSEDED",
+      "current_evidence": [
+        "docs/authority/taskpack-0910-r3/TASKS.json",
+        "DECISION_SUPERSESSION_LEDGER.yaml"
+      ],
+      "requirements_or_acceptance": [],
+      "maps_to": [
+        "X11"
+      ]
+    },
+    {
+      "key": "R3-0910:R14",
+      "source": "R3-0910",
+      "source_id": "R14",
+      "title": "Q00独立复审",
+      "original_status": "TODO",
+      "audit_verdict": "HISTORICAL_TRACE_ONLY_REASSESS_VIA_R6_M0",
+      "authority_class": "HISTORICAL_SUPERSEDED",
+      "current_evidence": [
+        "docs/authority/taskpack-0910-r3/TASKS.json",
+        "DECISION_SUPERSESSION_LEDGER.yaml"
+      ],
+      "requirements_or_acceptance": [],
+      "maps_to": [
+        "Q00"
+      ]
+    },
+    {
+      "key": "R3-0910:R15",
+      "source": "R3-0910",
+      "source_id": "R15",
+      "title": "M1全格式、互操作与仓库语言治理",
+      "original_status": "TODO",
+      "audit_verdict": "HISTORICAL_TRACE_ONLY_REASSESS_VIA_R6_M0",
+      "authority_class": "HISTORICAL_SUPERSEDED",
+      "current_evidence": [
+        "docs/authority/taskpack-0910-r3/TASKS.json",
+        "DECISION_SUPERSESSION_LEDGER.yaml"
+      ],
+      "requirements_or_acceptance": [],
+      "maps_to": [
+        "X12",
+        "X13"
+      ]
+    },
+    {
+      "key": "R3-0910:R16",
+      "source": "R3-0910",
+      "source_id": "R16",
+      "title": "Q01完整性与容量复审",
+      "original_status": "TODO",
+      "audit_verdict": "HISTORICAL_TRACE_ONLY_REASSESS_VIA_R6_M0",
+      "authority_class": "HISTORICAL_SUPERSEDED",
+      "current_evidence": [
+        "docs/authority/taskpack-0910-r3/TASKS.json",
+        "DECISION_SUPERSESSION_LEDGER.yaml"
+      ],
+      "requirements_or_acceptance": [],
+      "maps_to": [
+        "Q01"
+      ]
+    },
+    {
+      "key": "R5-0912:X00",
+      "source": "R5-0912",
+      "source_id": "X00",
+      "title": "基线、冲突裁决与唯一任务入口",
+      "original_status": "REOPENED",
+      "audit_verdict": "HISTORICAL_TRACE_ONLY_REASSESS_VIA_R6_M0",
+      "authority_class": "HISTORICAL_SUPERSEDED",
+      "current_evidence": [
+        "docs/authority/taskpack-0912-r5/TASKS.json",
+        "DECISION_SUPERSESSION_LEDGER.yaml"
+      ],
+      "requirements_or_acceptance": [],
+      "maps_to": []
+    },
+    {
+      "key": "R5-0912:X01",
+      "source": "R5-0912",
+      "source_id": "X01",
+      "title": "运行路径止增、浏览器失败与关键 CI",
+      "original_status": "PARTIAL",
+      "audit_verdict": "HISTORICAL_TRACE_ONLY_REASSESS_VIA_R6_M0",
+      "authority_class": "HISTORICAL_SUPERSEDED",
+      "current_evidence": [
+        "docs/authority/taskpack-0912-r5/TASKS.json",
+        "DECISION_SUPERSESSION_LEDGER.yaml"
+      ],
+      "requirements_or_acceptance": [],
+      "maps_to": []
+    },
+    {
+      "key": "R5-0912:X02",
+      "source": "R5-0912",
+      "source_id": "X02",
+      "title": "旧资产保全与当前能力的语义复用",
+      "original_status": "PARTIAL",
+      "audit_verdict": "HISTORICAL_TRACE_ONLY_REASSESS_VIA_R6_M0",
+      "authority_class": "HISTORICAL_SUPERSEDED",
+      "current_evidence": [
+        "docs/authority/taskpack-0912-r5/TASKS.json",
+        "DECISION_SUPERSESSION_LEDGER.yaml"
+      ],
+      "requirements_or_acceptance": [],
+      "maps_to": []
+    },
+    {
+      "key": "R5-0912:X03",
+      "source": "R5-0912",
+      "source_id": "X03",
+      "title": "现成学习工作台资格与默认入口",
+      "original_status": "PARTIAL",
+      "audit_verdict": "HISTORICAL_TRACE_ONLY_REASSESS_VIA_R6_M0",
+      "authority_class": "HISTORICAL_SUPERSEDED",
+      "current_evidence": [
+        "docs/authority/taskpack-0912-r5/TASKS.json",
+        "DECISION_SUPERSESSION_LEDGER.yaml"
+      ],
+      "requirements_or_acceptance": [],
+      "maps_to": []
+    },
+    {
+      "key": "R5-0912:X04",
+      "source": "R5-0912",
+      "source_id": "X04",
+      "title": "跨语言真实契约及身份语义",
+      "original_status": "REOPENED",
+      "audit_verdict": "HISTORICAL_TRACE_ONLY_REASSESS_VIA_R6_M0",
+      "authority_class": "HISTORICAL_SUPERSEDED",
+      "current_evidence": [
+        "docs/authority/taskpack-0912-r5/TASKS.json",
+        "DECISION_SUPERSESSION_LEDGER.yaml"
+      ],
+      "requirements_or_acceptance": [],
+      "maps_to": []
+    },
+    {
+      "key": "R5-0912:X05",
+      "source": "R5-0912",
+      "source_id": "X05",
+      "title": "Rust原件、事务、作业与恢复底座",
+      "original_status": "REOPENED",
+      "audit_verdict": "HISTORICAL_TRACE_ONLY_REASSESS_VIA_R6_M0",
+      "authority_class": "HISTORICAL_SUPERSEDED",
+      "current_evidence": [
+        "docs/authority/taskpack-0912-r5/TASKS.json",
+        "DECISION_SUPERSESSION_LEDGER.yaml"
+      ],
+      "requirements_or_acceptance": [],
+      "maps_to": []
+    },
+    {
+      "key": "R5-0912:X06",
+      "source": "R5-0912",
+      "source_id": "X06",
+      "title": "复用workers贯通首批真实格式",
+      "original_status": "PARTIAL",
+      "audit_verdict": "HISTORICAL_TRACE_ONLY_REASSESS_VIA_R6_M0",
+      "authority_class": "HISTORICAL_SUPERSEDED",
+      "current_evidence": [
+        "docs/authority/taskpack-0912-r5/TASKS.json",
+        "DECISION_SUPERSESSION_LEDGER.yaml"
+      ],
+      "requirements_or_acceptance": [],
+      "maps_to": []
+    },
+    {
+      "key": "R5-0912:X07",
+      "source": "R5-0912",
+      "source_id": "X07",
+      "title": "质量、公开核查、知识修订和搜索",
+      "original_status": "REOPENED",
+      "audit_verdict": "HISTORICAL_TRACE_ONLY_REASSESS_VIA_R6_M0",
+      "authority_class": "HISTORICAL_SUPERSEDED",
+      "current_evidence": [
+        "docs/authority/taskpack-0912-r5/TASKS.json",
+        "DECISION_SUPERSESSION_LEDGER.yaml"
+      ],
+      "requirements_or_acceptance": [],
+      "maps_to": []
+    },
+    {
+      "key": "R5-0912:X08",
+      "source": "R5-0912",
+      "source_id": "X08",
+      "title": "人类学习侧复用与事件回收",
+      "original_status": "PARTIAL",
+      "audit_verdict": "HISTORICAL_TRACE_ONLY_REASSESS_VIA_R6_M0",
+      "authority_class": "HISTORICAL_SUPERSEDED",
+      "current_evidence": [
+        "docs/authority/taskpack-0912-r5/TASKS.json",
+        "DECISION_SUPERSESSION_LEDGER.yaml"
+      ],
+      "requirements_or_acceptance": [],
+      "maps_to": []
+    },
+    {
+      "key": "R5-0912:X09",
+      "source": "R5-0912",
+      "source_id": "X09",
+      "title": "机器知识、真实调用、评测与反馈",
+      "original_status": "PARTIAL",
+      "audit_verdict": "HISTORICAL_TRACE_ONLY_REASSESS_VIA_R6_M0",
+      "authority_class": "HISTORICAL_SUPERSEDED",
+      "current_evidence": [
+        "docs/authority/taskpack-0912-r5/TASKS.json",
+        "DECISION_SUPERSESSION_LEDGER.yaml"
+      ],
+      "requirements_or_acceptance": [],
+      "maps_to": []
+    },
+    {
+      "key": "R5-0912:X10",
+      "source": "R5-0912",
+      "source_id": "X10",
+      "title": "旧库非空迁移与无损差分",
+      "original_status": "PARTIAL",
+      "audit_verdict": "HISTORICAL_TRACE_ONLY_REASSESS_VIA_R6_M0",
+      "authority_class": "HISTORICAL_SUPERSEDED",
+      "current_evidence": [
+        "docs/authority/taskpack-0912-r5/TASKS.json",
+        "DECISION_SUPERSESSION_LEDGER.yaml"
+      ],
+      "requirements_or_acceptance": [],
+      "maps_to": []
+    },
+    {
+      "key": "R5-0912:X11",
+      "source": "R5-0912",
+      "source_id": "X11",
+      "title": "Windows人机闭环候选与可用包",
+      "original_status": "PARTIAL",
+      "audit_verdict": "HISTORICAL_TRACE_ONLY_REASSESS_VIA_R6_M0",
+      "authority_class": "HISTORICAL_SUPERSEDED",
+      "current_evidence": [
+        "docs/authority/taskpack-0912-r5/TASKS.json",
+        "DECISION_SUPERSESSION_LEDGER.yaml"
+      ],
+      "requirements_or_acceptance": [],
+      "maps_to": []
+    },
+    {
+      "key": "R5-0912:Q00",
+      "source": "R5-0912",
+      "source_id": "Q00",
+      "title": "独立GPT审计M0",
+      "original_status": "FAILED_AT_BASELINE",
+      "audit_verdict": "HISTORICAL_TRACE_ONLY_REASSESS_VIA_R6_M0",
+      "authority_class": "HISTORICAL_SUPERSEDED",
+      "current_evidence": [
+        "docs/authority/taskpack-0912-r5/TASKS.json",
+        "DECISION_SUPERSESSION_LEDGER.yaml"
+      ],
+      "requirements_or_acceptance": [],
+      "maps_to": []
+    },
+    {
+      "key": "R5-0912:X12",
+      "source": "R5-0912",
+      "source_id": "X12",
+      "title": "多格式完整覆盖与学科活动",
+      "original_status": "PARTIAL",
+      "audit_verdict": "HISTORICAL_TRACE_ONLY_REASSESS_VIA_R6_M0",
+      "authority_class": "HISTORICAL_SUPERSEDED",
+      "current_evidence": [
+        "docs/authority/taskpack-0912-r5/TASKS.json",
+        "DECISION_SUPERSESSION_LEDGER.yaml"
+      ],
+      "requirements_or_acceptance": [],
+      "maps_to": []
+    },
+    {
+      "key": "R5-0912:X13",
+      "source": "R5-0912",
+      "source_id": "X13",
+      "title": "全仓规范化与必要交付体验收口",
+      "original_status": "PARTIAL",
+      "audit_verdict": "HISTORICAL_TRACE_ONLY_REASSESS_VIA_R6_M0",
+      "authority_class": "HISTORICAL_SUPERSEDED",
+      "current_evidence": [
+        "docs/authority/taskpack-0912-r5/TASKS.json",
+        "DECISION_SUPERSESSION_LEDGER.yaml"
+      ],
+      "requirements_or_acceptance": [],
+      "maps_to": []
+    },
+    {
+      "key": "R5-0912:X14",
+      "source": "R5-0912",
+      "source_id": "X14",
+      "title": "本地50多GB保全清理与容量止增",
+      "original_status": "PARTIAL",
+      "audit_verdict": "HISTORICAL_TRACE_ONLY_REASSESS_VIA_R6_M0",
+      "authority_class": "HISTORICAL_SUPERSEDED",
+      "current_evidence": [
+        "docs/authority/taskpack-0912-r5/TASKS.json",
+        "DECISION_SUPERSESSION_LEDGER.yaml"
+      ],
+      "requirements_or_acceptance": [],
+      "maps_to": []
+    },
+    {
+      "key": "R5-0912:Q01",
+      "source": "R5-0912",
+      "source_id": "Q01",
+      "title": "独立GPT审计M1及清理结果",
+      "original_status": "NOT_READY",
+      "audit_verdict": "HISTORICAL_TRACE_ONLY_REASSESS_VIA_R6_M0",
+      "authority_class": "HISTORICAL_SUPERSEDED",
+      "current_evidence": [
+        "docs/authority/taskpack-0912-r5/TASKS.json",
+        "DECISION_SUPERSESSION_LEDGER.yaml"
+      ],
+      "requirements_or_acceptance": [],
+      "maps_to": []
+    },
+    {
+      "key": "R5-0912:F01",
+      "source": "R5-0912",
+      "source_id": "F01",
+      "title": "视觉教学、动画与交互仿真",
+      "original_status": "DEFERRED_RETAINED",
+      "audit_verdict": "HISTORICAL_TRACE_ONLY_REASSESS_VIA_R6_M0",
+      "authority_class": "HISTORICAL_SUPERSEDED",
+      "current_evidence": [
+        "docs/authority/taskpack-0912-r5/TASKS.json",
+        "DECISION_SUPERSESSION_LEDGER.yaml"
+      ],
+      "requirements_or_acceptance": [],
+      "maps_to": []
+    },
+    {
+      "key": "R5-0912:F02",
+      "source": "R5-0912",
+      "source_id": "F02",
+      "title": "大型知识宫殿与2D/2.5D/3D/VR/AR",
+      "original_status": "DEFERRED_RETAINED",
+      "audit_verdict": "HISTORICAL_TRACE_ONLY_REASSESS_VIA_R6_M0",
+      "authority_class": "HISTORICAL_SUPERSEDED",
+      "current_evidence": [
+        "docs/authority/taskpack-0912-r5/TASKS.json",
+        "DECISION_SUPERSESSION_LEDGER.yaml"
+      ],
+      "requirements_or_acceptance": [],
+      "maps_to": []
+    },
+    {
+      "key": "R5-0912:F03",
+      "source": "R5-0912",
+      "source_id": "F03",
+      "title": "完整人机学习、经验迁移和可选微调",
+      "original_status": "DEFERRED_RETAINED",
+      "audit_verdict": "HISTORICAL_TRACE_ONLY_REASSESS_VIA_R6_M0",
+      "authority_class": "HISTORICAL_SUPERSEDED",
+      "current_evidence": [
+        "docs/authority/taskpack-0912-r5/TASKS.json",
+        "DECISION_SUPERSESSION_LEDGER.yaml"
+      ],
+      "requirements_or_acceptance": [],
+      "maps_to": []
+    },
+    {
+      "key": "R5-0912:F04",
+      "source": "R5-0912",
+      "source_id": "F04",
+      "title": "多端同步、SDK、扩展和可选协作",
+      "original_status": "DEFERRED_RETAINED",
+      "audit_verdict": "HISTORICAL_TRACE_ONLY_REASSESS_VIA_R6_M0",
+      "authority_class": "HISTORICAL_SUPERSEDED",
+      "current_evidence": [
+        "docs/authority/taskpack-0912-r5/TASKS.json",
+        "DECISION_SUPERSESSION_LEDGER.yaml"
+      ],
+      "requirements_or_acceptance": [],
+      "maps_to": []
+    },
+    {
+      "key": "R5-0912:F05",
+      "source": "R5-0912",
+      "source_id": "F05",
+      "title": "研究课程项目工作空间与图谱纵深",
+      "original_status": "DEFERRED_RETAINED",
+      "audit_verdict": "HISTORICAL_TRACE_ONLY_REASSESS_VIA_R6_M0",
+      "authority_class": "HISTORICAL_SUPERSEDED",
+      "current_evidence": [
+        "docs/authority/taskpack-0912-r5/TASKS.json",
+        "DECISION_SUPERSESSION_LEDGER.yaml"
+      ],
+      "requirements_or_acceptance": [],
+      "maps_to": []
+    },
+    {
+      "key": "R5-0912:F06",
+      "source": "R5-0912",
+      "source_id": "F06",
+      "title": "吸收失败后的必要独立实现",
+      "original_status": "DEFERRED_RETAINED",
+      "audit_verdict": "HISTORICAL_TRACE_ONLY_REASSESS_VIA_R6_M0",
+      "authority_class": "HISTORICAL_SUPERSEDED",
+      "current_evidence": [
+        "docs/authority/taskpack-0912-r5/TASKS.json",
+        "DECISION_SUPERSESSION_LEDGER.yaml"
+      ],
+      "requirements_or_acceptance": [],
+      "maps_to": []
+    },
+    {
+      "key": "UI-PLAN-0924:Task-1",
+      "source": "UI-PLAN-0924",
+      "source_id": "Task-1",
+      "title": "Persist and restore ordinary-source Reader context",
+      "original_status": null,
+      "audit_verdict": "PARTIAL_REQUIRES_EXACT_SOURCE_NATIVE_ACCEPTANCE",
+      "authority_class": "HISTORICAL_INPUT",
+      "current_evidence": [
+        "docs/current/AAOS-UI-COVERAGE-MATRIX-20261001.md"
+      ],
+      "requirements_or_acceptance": [],
+      "maps_to": []
+    },
+    {
+      "key": "UI-PLAN-0924:Task-2",
+      "source": "UI-PLAN-0924",
+      "source_id": "Task-2",
+      "title": "Close navigation, command and assistive-technology semantics",
+      "original_status": null,
+      "audit_verdict": "PARTIAL_REQUIRES_EXACT_SOURCE_NATIVE_ACCEPTANCE",
+      "authority_class": "HISTORICAL_INPUT",
+      "current_evidence": [
+        "docs/current/AAOS-UI-COVERAGE-MATRIX-20261001.md"
+      ],
+      "requirements_or_acceptance": [],
+      "maps_to": []
+    },
+    {
+      "key": "UI-PLAN-0924:Task-3",
+      "source": "UI-PLAN-0924",
+      "source_id": "Task-3",
+      "title": "Reduce MainWindow coupling through incremental view extraction",
+      "original_status": null,
+      "audit_verdict": "PARTIAL_REQUIRES_EXACT_SOURCE_NATIVE_ACCEPTANCE",
+      "authority_class": "HISTORICAL_INPUT",
+      "current_evidence": [
+        "docs/current/AAOS-UI-COVERAGE-MATRIX-20261001.md"
+      ],
+      "requirements_or_acceptance": [],
+      "maps_to": []
+    },
+    {
+      "key": "UI-PLAN-0924:Task-4",
+      "source": "UI-PLAN-0924",
+      "source_id": "Task-4",
+      "title": "Complete product visual assets and motion system",
+      "original_status": null,
+      "audit_verdict": "PARTIAL_REQUIRES_EXACT_SOURCE_NATIVE_ACCEPTANCE",
+      "authority_class": "HISTORICAL_INPUT",
+      "current_evidence": [
+        "docs/current/AAOS-UI-COVERAGE-MATRIX-20261001.md"
+      ],
+      "requirements_or_acceptance": [],
+      "maps_to": []
+    },
+    {
+      "key": "UI-PLAN-0924:Task-5",
+      "source": "UI-PLAN-0924",
+      "source_id": "Task-5",
+      "title": "Finish Core-backed frontend workflows and honest domain boundaries",
+      "original_status": null,
+      "audit_verdict": "PARTIAL_REQUIRES_EXACT_SOURCE_NATIVE_ACCEPTANCE",
+      "authority_class": "HISTORICAL_INPUT",
+      "current_evidence": [
+        "docs/current/AAOS-UI-COVERAGE-MATRIX-20261001.md"
+      ],
+      "requirements_or_acceptance": [],
+      "maps_to": []
+    },
+    {
+      "key": "UI-PLAN-0924:Task-6",
+      "source": "UI-PLAN-0924",
+      "source_id": "Task-6",
+      "title": "Prove responsive layout, keyboard, UIA and visual quality in a real window",
+      "original_status": null,
+      "audit_verdict": "PARTIAL_REQUIRES_EXACT_SOURCE_NATIVE_ACCEPTANCE",
+      "authority_class": "HISTORICAL_INPUT",
+      "current_evidence": [
+        "docs/current/AAOS-UI-COVERAGE-MATRIX-20261001.md"
+      ],
+      "requirements_or_acceptance": [],
+      "maps_to": []
+    },
+    {
+      "key": "UI-PLAN-0924:Task-7",
+      "source": "UI-PLAN-0924",
+      "source_id": "Task-7",
+      "title": "Complete the M0 P3 real learning Golden Journey",
+      "original_status": null,
+      "audit_verdict": "PARTIAL_REQUIRES_EXACT_SOURCE_NATIVE_ACCEPTANCE",
+      "authority_class": "HISTORICAL_INPUT",
+      "current_evidence": [
+        "docs/current/AAOS-UI-COVERAGE-MATRIX-20261001.md"
+      ],
+      "requirements_or_acceptance": [],
+      "maps_to": []
+    },
+    {
+      "key": "UI-PLAN-0924:Task-8",
+      "source": "UI-PLAN-0924",
+      "source_id": "Task-8",
+      "title": "Build and stage an exact-SHA Local Green Candidate for owner review",
+      "original_status": null,
+      "audit_verdict": "PARTIAL_REQUIRES_EXACT_SOURCE_NATIVE_ACCEPTANCE",
+      "authority_class": "HISTORICAL_INPUT",
+      "current_evidence": [
+        "docs/current/AAOS-UI-COVERAGE-MATRIX-20261001.md"
+      ],
+      "requirements_or_acceptance": [],
+      "maps_to": []
+    },
+    {
+      "key": "DP-0925:DP-GIT-01",
+      "source": "DP-0925",
+      "source_id": "DP-GIT-01",
+      "title": "branch/commit semantic audit (start now; read-only product review)",
+      "original_status": null,
+      "audit_verdict": "HISTORICAL_ASSIGNMENT_RECHECK_INTEGRATION",
+      "authority_class": "HISTORICAL_INPUT",
+      "current_evidence": [
+        "docs/current/SEPTEMBER-BACKEND-INTEGRATION-20260927.md",
+        "docs/current/R6-STATE.json"
+      ],
+      "requirements_or_acceptance": [],
+      "maps_to": []
+    },
+    {
+      "key": "DP-0925:DP-UI-01",
+      "source": "DP-0925",
+      "source_id": "DP-UI-01",
+      "title": "native GUI acceptance (wait for root's current-tree Candidate)",
+      "original_status": null,
+      "audit_verdict": "HISTORICAL_ASSIGNMENT_RECHECK_INTEGRATION",
+      "authority_class": "HISTORICAL_INPUT",
+      "current_evidence": [
+        "docs/current/SEPTEMBER-BACKEND-INTEGRATION-20260927.md",
+        "docs/current/R6-STATE.json"
+      ],
+      "requirements_or_acceptance": [],
+      "maps_to": []
+    },
+    {
+      "key": "DP-0925:DP-UI-02",
+      "source": "DP-0925",
+      "source_id": "DP-UI-02",
+      "title": "measured frontend defect fix (only after DP-UI-01)",
+      "original_status": null,
+      "audit_verdict": "HISTORICAL_ASSIGNMENT_RECHECK_INTEGRATION",
+      "authority_class": "HISTORICAL_INPUT",
+      "current_evidence": [
+        "docs/current/SEPTEMBER-BACKEND-INTEGRATION-20260927.md",
+        "docs/current/R6-STATE.json"
+      ],
+      "requirements_or_acceptance": [],
+      "maps_to": []
+    },
+    {
+      "key": "DP-0925:DP-F01",
+      "source": "DP-0925",
+      "source_id": "DP-F01",
+      "title": "real text quality roundtrip (independent M0 P1 slice; candidate implementation)",
+      "original_status": null,
+      "audit_verdict": "HISTORICAL_ASSIGNMENT_RECHECK_INTEGRATION",
+      "authority_class": "HISTORICAL_INPUT",
+      "current_evidence": [
+        "docs/current/SEPTEMBER-BACKEND-INTEGRATION-20260927.md",
+        "docs/current/R6-STATE.json"
+      ],
+      "requirements_or_acceptance": [],
+      "maps_to": []
+    },
+    {
+      "key": "DP-0925:DP-A11",
+      "source": "DP-0925",
+      "source_id": "DP-A11",
+      "title": "Research contract gap analysis (optional read-only, after DP-GIT-01)",
+      "original_status": null,
+      "audit_verdict": "HISTORICAL_ASSIGNMENT_RECHECK_INTEGRATION",
+      "authority_class": "HISTORICAL_INPUT",
+      "current_evidence": [
+        "docs/current/SEPTEMBER-BACKEND-INTEGRATION-20260927.md",
+        "docs/current/R6-STATE.json"
+      ],
+      "requirements_or_acceptance": [],
+      "maps_to": []
+    },
+    {
+      "key": "ECOSYSTEM-1001:H7-D11",
+      "source": "ECOSYSTEM-1001",
+      "source_id": "H7-D11",
+      "title": "知识 owner 与 provenance 人审版本合同",
+      "original_status": null,
+      "audit_verdict": "PARTIAL_RECHECK_CURRENT",
+      "authority_class": "HISTORICAL_INPUT",
+      "current_evidence": [
+        "docs\\history\\external-inputs\\2026-10-01\\AAOS-ECOSYSTEM-AUDIT.md"
+      ],
+      "requirements_or_acceptance": [],
+      "maps_to": []
+    },
+    {
+      "key": "ECOSYSTEM-1001:Q8-F18",
+      "source": "ECOSYSTEM-1001",
+      "source_id": "Q8-F18",
+      "title": "核验 AGENTS 指向的 WORK-LAB 全局标准路径",
+      "original_status": null,
+      "audit_verdict": "NEEDS_EXTERNAL_READBACK",
+      "authority_class": "HISTORICAL_INPUT",
+      "current_evidence": [
+        "docs\\history\\external-inputs\\2026-10-01\\AAOS-ECOSYSTEM-AUDIT.md"
+      ],
+      "requirements_or_acceptance": [],
+      "maps_to": []
+    },
+    {
+      "key": "ECOSYSTEM-1001:I7-F01",
+      "source": "ECOSYSTEM-1001",
+      "source_id": "I7-F01",
+      "title": "外部归档仅是切片，不外推当前全树状态",
+      "original_status": null,
+      "audit_verdict": "AUDIT_RULE",
+      "authority_class": "HISTORICAL_INPUT",
+      "current_evidence": [
+        "docs\\history\\external-inputs\\2026-10-01\\AAOS-ECOSYSTEM-AUDIT.md"
+      ],
+      "requirements_or_acceptance": [],
+      "maps_to": []
+    },
+    {
+      "key": "ECOSYSTEM-1001:D01-D02-P00-P06",
+      "source": "ECOSYSTEM-1001",
+      "source_id": "D01-D02-P00-P06",
+      "title": "三项目独立 owner 与覆盖映射",
+      "original_status": null,
+      "audit_verdict": "AUDIT_RULE",
+      "authority_class": "HISTORICAL_INPUT",
+      "current_evidence": [
+        "docs\\history\\external-inputs\\2026-10-01\\AAOS-ECOSYSTEM-AUDIT.md"
+      ],
+      "requirements_or_acceptance": [],
+      "maps_to": []
+    },
+    {
+      "key": "ECOSYSTEM-1001:P05-P09-D15",
+      "source": "ECOSYSTEM-1001",
+      "source_id": "P05-P09-D15",
+      "title": "生成器输出归属与增量仓库卫生",
+      "original_status": null,
+      "audit_verdict": "PROPOSAL_NOT_ADOPTED",
+      "authority_class": "HISTORICAL_INPUT",
+      "current_evidence": [
+        "docs\\history\\external-inputs\\2026-10-01\\AAOS-ECOSYSTEM-AUDIT.md"
+      ],
+      "requirements_or_acceptance": [],
+      "maps_to": []
+    },
+    {
+      "key": "ECOSYSTEM-1001:D08-D09-P07",
+      "source": "ECOSYSTEM-1001",
+      "source_id": "D08-D09-P07",
+      "title": "目录、重复资产及缓存迁移",
+      "original_status": null,
+      "audit_verdict": "PAUSED_BY_USER_CLEANUP_STOP",
+      "authority_class": "HISTORICAL_INPUT",
+      "current_evidence": [
+        "docs\\history\\external-inputs\\2026-10-01\\AAOS-ECOSYSTEM-AUDIT.md"
+      ],
+      "requirements_or_acceptance": [],
+      "maps_to": []
+    },
+    {
+      "key": "ECOSYSTEM-1001:D12-P15",
+      "source": "ECOSYSTEM-1001",
+      "source_id": "D12-P15",
+      "title": "模型/软件逐版本资格化",
+      "original_status": null,
+      "audit_verdict": "OPEN_OR_PARTIAL",
+      "authority_class": "HISTORICAL_INPUT",
+      "current_evidence": [
+        "docs\\history\\external-inputs\\2026-10-01\\AAOS-ECOSYSTEM-AUDIT.md"
+      ],
+      "requirements_or_acceptance": [],
+      "maps_to": []
+    },
+    {
+      "key": "ECOSYSTEM-1001:P16",
+      "source": "ECOSYSTEM-1001",
+      "source_id": "P16",
+      "title": "各仓独立精确 SHA 交付",
+      "original_status": null,
+      "audit_verdict": "OPEN_OR_PARTIAL",
+      "authority_class": "HISTORICAL_INPUT",
+      "current_evidence": [
+        "docs\\history\\external-inputs\\2026-10-01\\AAOS-ECOSYSTEM-AUDIT.md"
+      ],
+      "requirements_or_acceptance": [],
+      "maps_to": []
+    },
+    {
+      "key": "ECOSYSTEM-1001:F19",
+      "source": "ECOSYSTEM-1001",
+      "source_id": "F19",
+      "title": "外部门禁不证明 AAOS 真实边界",
+      "original_status": null,
+      "audit_verdict": "AUDIT_RULE",
+      "authority_class": "HISTORICAL_INPUT",
+      "current_evidence": [
+        "docs\\history\\external-inputs\\2026-10-01\\AAOS-ECOSYSTEM-AUDIT.md"
+      ],
+      "requirements_or_acceptance": [],
+      "maps_to": []
+    }
+  ]
+}

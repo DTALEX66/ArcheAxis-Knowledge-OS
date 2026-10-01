@@ -18,7 +18,7 @@ def test_original_editor_keeps_mother_composition_with_document_and_reference_ra
     nodes = _nodes()
     surface = nodes["OriginalEditorSurface"]
     grid = nodes["OriginalEditorGrid"]
-    assert grid.get("ColumnDefinitions") == "2.1*,1*"
+    assert grid.get("ColumnDefinitions") == "1.35*,0.95*"
     assert nodes["OriginalDocumentCard"] in list(grid.iter())
     assert nodes["OriginalReferenceRail"] in list(grid.iter())
     assert list(grid).index(nodes["OriginalDocumentCard"]) < list(grid).index(nodes["OriginalReferenceRail"])

@@ -14,7 +14,8 @@ def test_capture_disposes_owned_core_before_forced_process_exit() -> None:
     )[0]
 
     assert 'AAOS_UI_CAPTURE_WAIT_CORE' in capture
-    assert "_supervisor = new CoreSupervisor(captureDbPath);" in capture
+    assert "WorkerProfile.Load(AppContext.BaseDirectory" in capture
+    assert "_supervisor = new CoreSupervisor(captureDbPath, textWorker: captureWorker);" in capture
     assert capture.index("try\n            {") < capture.index("_supervisor = new CoreSupervisor")
     assert capture.index("CaptureWindowPng(capturePath);") < capture.index("finally")
     assert capture.index("finally") < capture.index("_supervisor?.Dispose();")
@@ -31,5 +32,7 @@ def test_capture_error_also_releases_owned_core() -> None:
 
     assert "await _supervisor.StartAsync()" in guarded
     assert "await RefreshWorkspaceSummaryAsync()" in guarded
+    assert guarded.index("await _supervisor.StartAsync()") < guarded.index("SetCaptureRoute(captureRoute);")
+    assert "await RefreshEvidenceAsync();" in guarded
     assert "CaptureWindowPng(capturePath);" in guarded
     assert "_supervisor?.Dispose();" not in guarded

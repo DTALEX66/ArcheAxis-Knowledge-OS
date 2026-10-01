@@ -10,6 +10,9 @@
              x:Class="ArcheAxis.Desktop.Views.SourceReaderView"
              SizeChanged="OnViewSizeChanged">
   <UserControl.Styles>
+    <Style Selector="Button.source-reader-available:disabled">
+      <Setter Property="IsVisible" Value="False" />
+    </Style>
     <Style Selector="ListBoxItem:pointerover Border.source-reader-row">
       <Setter Property="Background" Value="{DynamicResource AaosSurface2Brush}" />
       <Setter Property="BorderBrush" Value="{DynamicResource AaosPrimaryBrush}" />
@@ -45,10 +48,10 @@
         </Grid>
         <TextBlock x:Name="SourceReaderStatusText" Text="尚未读取 Core 来源成员。" TextWrapping="Wrap" Foreground="{DynamicResource AaosMutedBrush}" AutomationProperties.Name="来源阅读状态" />
         <StackPanel x:Name="SourceReaderReturnActions" Orientation="Horizontal" Spacing="8">
-          <Button x:Name="BackToLibraryButton" Classes="aaos-compact" IsEnabled="False" Padding="12,7" Click="OnReturnToLibraryClick" AutomationProperties.Name="返回资料库"><StackPanel Orientation="Horizontal" Spacing="7"><local:AaosIcon IconName="ChevronLeft" Width="14" Height="14"/><TextBlock Text="返回资料库"/></StackPanel></Button>
-          <Button x:Name="BackToKnowledgeFromSourceButton" Classes="aaos-compact" IsEnabled="False" Padding="12,7" Click="OnReturnToKnowledgeClick" AutomationProperties.Name="返回 Knowledge 详情"><StackPanel Orientation="Horizontal" Spacing="7"><local:AaosIcon IconName="Knowledge" Width="14" Height="14"/><TextBlock Text="返回 Knowledge 详情"/></StackPanel></Button>
-          <Button x:Name="ViewSourceJobButton" Classes="aaos-compact" IsEnabled="False" Padding="12,7" Click="OnOpenJobClick" AutomationProperties.Name="查看选中项任务回执"><StackPanel Orientation="Horizontal" Spacing="7"><local:AaosIcon IconName="Review" Width="14" Height="14"/><TextBlock x:Name="ViewSourceJobButtonText" Text="查看选中项任务回执"/></StackPanel></Button>
-          <Button x:Name="FindLibraryFromSourceButton" Classes="aaos-compact" IsEnabled="False" Padding="12,7" Click="OnLibraryLookupClick" AutomationProperties.Name="在资料库查找关联投影"><StackPanel Orientation="Horizontal" Spacing="7"><local:AaosIcon IconName="Source" Width="14" Height="14"/><TextBlock Text="在资料库查找关联投影"/></StackPanel></Button>
+          <Button x:Name="BackToLibraryButton" Classes="aaos-compact source-reader-available" IsEnabled="False" Padding="12,7" Click="OnReturnToLibraryClick" AutomationProperties.Name="返回资料库"><StackPanel Orientation="Horizontal" Spacing="7"><local:AaosIcon IconName="ChevronLeft" Width="14" Height="14"/><TextBlock Text="返回资料库"/></StackPanel></Button>
+          <Button x:Name="BackToKnowledgeFromSourceButton" Classes="aaos-compact source-reader-available" IsEnabled="False" Padding="12,7" Click="OnReturnToKnowledgeClick" AutomationProperties.Name="返回 Knowledge 详情"><StackPanel Orientation="Horizontal" Spacing="7"><local:AaosIcon IconName="Knowledge" Width="14" Height="14"/><TextBlock Text="返回 Knowledge 详情"/></StackPanel></Button>
+          <Button x:Name="ViewSourceJobButton" Classes="aaos-compact source-reader-available" IsEnabled="False" Padding="12,7" Click="OnOpenJobClick" AutomationProperties.Name="查看选中项任务回执"><StackPanel Orientation="Horizontal" Spacing="7"><local:AaosIcon IconName="Review" Width="14" Height="14"/><TextBlock x:Name="ViewSourceJobButtonText" Text="查看选中项任务回执"/></StackPanel></Button>
+          <Button x:Name="FindLibraryFromSourceButton" Classes="aaos-compact source-reader-available" IsEnabled="False" Padding="12,7" Click="OnLibraryLookupClick" AutomationProperties.Name="在资料库查找关联投影"><StackPanel Orientation="Horizontal" Spacing="7"><local:AaosIcon IconName="Source" Width="14" Height="14"/><TextBlock Text="在资料库查找关联投影"/></StackPanel></Button>
         </StackPanel>
       </StackPanel>
     </Border>

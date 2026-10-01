@@ -469,14 +469,30 @@ async fn f01_controlled_markdown_roundtrip_preserves_the_whole_receipt() {
     // Restart read-back: reopen the same workspace and re-read the same receipt.
     drop(router);
     drop(executor);
-    let restored = Executor::open(
-        &dir.path().join("db.sqlite"),
-        &dir.path().join("staging"),
-        &python(),
-        &transport(),
-    )
-    .await
-    .unwrap();
+    // The HTTP runtime may still hold its Store clone briefly while its
+    // background terminal task clears the active-job registry. The persisted
+    // terminal state above does not imply that the workspace lock is released.
+    let reopen_deadline = std::time::Instant::now() + Duration::from_secs(2);
+    let restored = loop {
+        match Executor::open(
+            &dir.path().join("db.sqlite"),
+            &dir.path().join("staging"),
+            &python(),
+            &transport(),
+        )
+        .await
+        {
+            Ok(restored) => break restored,
+            Err(error) if error == "workspace writer is owned or its queue is full" => {
+                assert!(
+                    std::time::Instant::now() < reopen_deadline,
+                    "old runtime did not release the workspace writer within 2 seconds"
+                );
+                tokio::time::sleep(Duration::from_millis(10)).await;
+            }
+            Err(error) => panic!("workspace reopen failed: {error}"),
+        }
+    };
     let router = archeaxis_api::runtime::router(restored);
     let (status, replay) = call(
         &router,

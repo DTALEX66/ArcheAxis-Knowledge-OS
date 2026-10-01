@@ -56,16 +56,16 @@ def test_settings_unknown_values_are_not_rendered_as_false_toggles():
     assert len(availability) == 7
 
 
-def test_home_starts_with_b10_stats_evidence_and_graph_without_hero():
+def test_home_starts_with_current_mother_hero_then_core_bound_cards():
     root = ET.parse(WINDOW).getroot()
     xname = "{http://schemas.microsoft.com/winfx/2006/xaml}Name"
     by_name = {node.get(xname): node for node in root.iter() if node.get(xname)}
     home = by_name["HomeSurface"]
     visible = [node.get(xname) for node in home if node.get("IsVisible") != "False"]
-    assert visible[:3] == ["HomeStatsSurface", "HomeEvidenceContentGrid", "HomeGraphContentGrid"]
+    assert visible[:4] == ["HomePlanetHero", "HomeStatsSurface", "HomeEvidenceContentGrid", "HomeGraphContentGrid"]
     assert by_name["HomePrimaryContentGrid"].get("IsVisible") == "False"
-    assert "HomeWelcomeHero" not in by_name
-    assert "HomeHeroPlanetImage" not in by_name
+    assert "HomePlanetHero" in by_name
+    assert "home-planet-hero-20261001.png" in WINDOW.read_text(encoding="utf-8")
     assert by_name["HomeStatsSurface"].get("ColumnDefinitions") == "*,*,*,*"
     assert by_name["HomeEvidenceContentGrid"].get("ColumnDefinitions") == "1.2*,1*"
     assert by_name["HomeTodayProgressCard"].get("Grid.Column") == "1"

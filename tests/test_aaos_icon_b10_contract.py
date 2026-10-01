@@ -21,10 +21,7 @@ def test_portable_mother_assets_preserve_owner_supplied_bytes():
     )
 
 
-def test_primary_navigation_uses_b10_master_dots_and_action_icons_are_registered():
-    b10 = B10_HTML.read_text(encoding="utf-8")
-    assert ".nav-dot" in b10  # User-adopted final B10 mother is the highest authority.
-
+def test_primary_navigation_uses_latest_mother_vector_icons():
     code = ICON_CODE.read_text(encoding="utf-8")
     names = set(re.findall(r'^\s*\["([^"]+)"\]\s*=', code, re.M))
     assert {"Home", "Import", "Original", "Knowledge", "Evidence", "Search", "Memory", "Growth", "HumanAi", "Connection", "Thinking", "Calendar", "Settings"} <= names
@@ -41,17 +38,13 @@ def test_primary_navigation_uses_b10_master_dots_and_action_icons_are_registered
         "RailWorkspaceTreeButton": "Workspace",
         "RailMemoryMapButton": "Memory",
         "RailSearchButton": "Search",
-        "RailReviewButton": "Calendar",
+        "RailReviewButton": "Review",
         "RailSystemButton": "Settings",
     }
-    for button_name in expected:
+    for button_name, icon_name in expected.items():
         button = next(node for node in root.iter() if node.get(f"{{{namespace['x']}}}Name") == button_name)
-        dot = next(node for node in button.iter() if "b10-nav-dot" in node.get("Classes", "").split())
-        assert dot.get("Width") == dot.get("Height") == "10"
-        assert dot.get("BorderThickness") == "2"
-        assert dot.get("CornerRadius") == "5"
-        assert dot.get("Background") == "Transparent"
-        assert dot.get("BorderBrush") == "{DynamicResource AaosMutedBrush}"
+        assert any(node.get("IconName") == icon_name for node in button.iter())
+        assert not any("b10-nav-dot" in node.get("Classes", "").split() for node in button.iter())
     assert 'IconName="Home"' in main
 
 
@@ -63,7 +56,7 @@ def test_icon_stroke_and_foreground_follow_both_theme_palettes():
     assert 'Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=UserControl}}"' in xaml
     assert 'StrokeThickness="{Binding IconStrokeThickness' in xaml
     assert palettes.count('["AaosIvoryBrush"]') == 2
-    assert "#F3EFE6" in palettes and "#F1F2F3" in palettes
+    assert "#F8F6EB" in palettes and "#F1F2F3" in palettes
     assert ICON_BOARD.is_file()
 
 
