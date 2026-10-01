@@ -358,6 +358,47 @@ job:
 This is the first time the loop runs from a **staged** tree rather than a source checkout:
 staged profile → launcher → Core → declared route → real worker → converted output.
 
+### Staged per-format matrix — 11 of 12 real inputs convert
+
+One runtime root, routes from the stager's own `present_routes`, workers under the
+runtime's own interpreter, one real input per capability
+(`scripts/probes/staged_format_matrix_smoke.py`):
+
+| Case | Engine the Core reported | Verdict |
+| --- | --- | --- |
+| text/txt | `python-worker-text` | CONVERTED |
+| pdf | `pymupdf-native-pdf` | CONVERTED |
+| office/docx | `python-worker-office` | CONVERTED |
+| office/xlsx | `python-worker-office` | CONVERTED |
+| office/pptx | `python-worker-office` | CONVERTED |
+| html | `python-worker-html` | CONVERTED |
+| canvas | `python-worker-canvas` | CONVERTED |
+| subtitles | `python-worker-subtitles` | CONVERTED |
+| archive | `python-worker-archive` | CONVERTED |
+| media/wav | `python-worker-media` | CONVERTED |
+| media/mp4 | `python-worker-media` | CONVERTED |
+| image/ocr | — | FAILED_AT_ROUTE |
+
+**One condition must be stated with this result, because without it the same matrix
+reports only 8 of 12.** The runtime's interpreter has to carry the engine distributions:
+with a standard-library-only interpreter, pdf/xlsx/pptx fail with
+`no native PDF engine available`, `xlsx engine missing` and `pptx engine missing`. I
+confirmed that is a packaging condition and not a product defect by provisioning the
+engines into the registered standalone runtime, after which those three converted — and
+then restoring that runtime to exactly its previous contents (`pip`, `README.txt`), since
+it is an Owner-registered shared resource and not mine to leave modified.
+
+**One item is open.** The staged OCR job fails with
+`Failed loading language 'eng' ... Tesseract couldn't load any languages!`. The staged
+worker resolves the tesseract **binary and the declared tessdata directory** correctly —
+run directly against the staged tree it reads `OCR GOLDEN ANCHOR` with confidences 92-97
+— so the divergence is specific to how the Core-spawned worker ends up with language data.
+I did not isolate it and am not guessing at the cause. It is the one format in the matrix
+that does not convert.
+
+Also not covered by the matrix: `image.caption`, which needs a vision model at an Ollama
+endpoint this host does not serve. It is absent on purpose rather than reported as a pass.
+
 Note on the packaging path: the full `stage_backend_runtime.py` refuses linked donor
 trees (`ValueError: protected staging path`). That is deliberate fail-closed behaviour and
 it rejected both `.venv` and the uv-managed interpreter directories on this host, so the
