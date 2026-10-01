@@ -397,7 +397,7 @@ the runtime, and the readiness check in §7 says so per route.
 | Claim | Command | Result |
 | --- | --- | --- |
 | Route inventory and auth model | source read of `crates/archeaxis-api/src/{main.rs,lib.rs,launch.rs,runtime/mod.rs}` | matches table above |
-| Continuous M0 loop through the real Core | `python -B scripts/probes/m0_full_loop_smoke.py` | **27/27 stages ran**; `answer_recorded.schedule_authority = "fsrs"`; restart readback identical; online backup `exit_code 0`; restore `verified true` with `counts_after == counts_before`; `evidence_level: SYNTHETIC`; sole validation error `legacy migration not verified` |
+| Continuous M0 loop through the real Core | `ARCHEAXIS_CORE_BIN=<built core> python -B scripts/probes/m0_full_loop_smoke.py` | **27/27 stages ran**, `chain_stages_verified: true`, **`validation_errors: []`**, `ok: true`, `evidence_level: SYNTHETIC`. `answer_recorded.schedule_authority = "fsrs"`; `learning_event` (no card state) `= "placeholder_ladder"` in the same run, which is the two-route split §4 describes; restart readback identical on both `learning_state` and `knowledge_v3`; `machine_retest.retest_of` points at the failed task; online backup `exit_code 0` and restore `verified true` with `counts_after == counts_before`. **Re-run on this branch** rather than quoted: an earlier reading of this row said the sole validation error was `legacy migration not verified`, which was true of that environment and is not true of this one |
 | Format reachability, **current** | `python -B scripts/probes/staged_format_matrix_smoke.py <core> <runtime-python>` | readiness `total 9 / ready 9 / not_ready 0`; `verdict_counts: {CONVERTED: 9}` on real course material; `accepted: true` |
 | Format reachability, superseded measurement | `python -B scripts/probes/production_format_coverage_smoke.py` | `{REACHABLE: 1, FAILED_AT_ROUTE: 9}` — the state before route enablement; kept as the record of what was found |
 | Format reachability, independently reproduced (at that time) | a separate direct launch of the same Core, `kind=pdf` vs `kind=text` control | PDF settled `failed` with the same error and its `job_attempts` row showed `capability=pdf.extract` never terminated; the `text` control `succeeded` |
@@ -412,6 +412,20 @@ Evidence level for this document: **REAL** for the route inventory, authenticati
 and format-reachability measurements (real binary, real HTTP, real verified fixture bytes);
 **SYNTHETIC** for the M0 loop receipt, which the probe itself labels as such because the
 source, the human actions and the model failure are fixtures.
+
+### What the M0 receipt's 27th stage does and does not mean
+
+The chain's last stage reports `legacy_migration: status "ok"`, and it is worth being exact about
+it, because it sits next to a frozen boundary. The stage migrates a **temporary copy** of
+`data/cognitive_os.sqlite` — it copies the file, records the original's `sha256` before and
+after, and asserts `original_untouched`. So the run demonstrates that the migration *capability*
+works and that it left the source alone; it does **not** migrate any user data, does not replace
+anything in place, and does not publish. Production legacy migration, in-place Green replacement
+and release remain **`NOT_EXECUTED`** by the Owner's decision, and nothing here changes that.
+
+The probe skips the stage when that file is absent, which leaves `status` unset and makes the
+chain's own validation fail with `legacy migration not verified`. That is the message an earlier
+reading of this document recorded; on this host the file is present and the stage runs.
 
 ## 8. Explicitly out of contract
 

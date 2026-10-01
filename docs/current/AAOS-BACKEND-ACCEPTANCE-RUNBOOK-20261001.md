@@ -121,10 +121,12 @@ cargo test -p archeaxis-api --test contract_process_model \
 ```
 
 ```bash
-# §3 route inventory, the index that keeps this list honest, and the numbers the documents state
+# §3 route inventory, the index that keeps this list honest, the numbers the documents state,
+# and the M0 chain's own stage count
 python -m pytest tests/maintenance/test_contract_route_inventory.py \
                  tests/maintenance/test_contract_verification_map.py \
-                 tests/maintenance/test_contract_number_consistency.py -q
+                 tests/maintenance/test_contract_number_consistency.py \
+                 tests/maintenance/test_m0_chain_claims.py -q
 ```
 
 `tests/maintenance/test_contract_verification_map.py` is the index: it maps each contract
@@ -138,6 +140,11 @@ counts, the readiness total, and the disposition's 58 keys with their evidence l
 checks that the ledger agrees with the disposition it points at, that the disposition's stated
 counts match its own entries, and that it covers exactly the keys in the two lanes this task
 owns.
+
+`tests/maintenance/test_m0_chain_claims.py` checks the M0 chain's own numbers from the probe
+source, so §7's stage count cannot drift silently, and asserts that the chain's legacy stage
+operates on a **copy** and proves the original untouched — the distinction that keeps that stage
+inside the frozen boundary.
 
 §7's evidence is the probes in this runbook plus `scripts/release/verify_backend_capabilities.py`;
 §9's items each name the artifact that closed them, or are marked as Owner decisions.
