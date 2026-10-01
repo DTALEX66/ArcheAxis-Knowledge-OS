@@ -178,7 +178,10 @@ Formats that additionally lack a reachable engine, named separately from the rou
 * Online backup, a deliberate mutation, and a verified restore: **REAL**.
   `--maintenance-backup` exited `0` (`schema_version 6`); after deleting all
   `learning_events` rows and restoring, `counts_after == counts_before` exactly, with
-  `verified: true` and a distinct `counts_mutated` proving the restore did work.
+  `verified: true` and a distinct `counts_mutated` proving the restore did work. An
+  independent verifier repeated this for `machine_tasks`, `learning_assessments`,
+  `card_references` and `knowledge_v3_metadata` and every table survived — this path uses
+  the SQLite Online Backup API, not the archive table list.
 * Cold restart with full state readback: **REAL** (see P3).
 * **Not closed:** the real Legacy copy migration. The M0 probe reported
   `legacy_migration: {"skipped": "legacy database not present"}` and the run's sole
@@ -202,7 +205,7 @@ Lane `BACKEND_FRONTEND_LOOP` (54 keys). Evidence level is the highest actually r
 | `AA-BE-06` General Learning | A09/A10 | `PARTIAL` | `SYNTHETIC` | General-only manifest validated locally; no real domain content. |
 | `AA-BE-07` Human Learning | A08 | `PARTIAL` | `SYNTHETIC` | Real FSRS + real persistence; synthetic actions; no real human first use. |
 | `AA-BE-08` Real Local Machine Loop | A07/A14 | `PARTIAL` | `SYNTHETIC` | Protocol path works; declared stub model, no inference. |
-| `AA-BE-09` Backup / Restore | A13 | `PARTIAL` | `REAL` | Verified round trip for exported tables; **learning/machine tables are not exported** (§5). |
+| `AA-BE-09` Backup / Restore | A13 | `PARTIAL` | `REAL` | Verified round trip via the SQLite Online Backup API, independently reproduced for learning and machine tables; the separate JSONL **archive** path omits four tables (§5.3). |
 | `AA-BE-10` Legacy Copy Migration | A13 | `NOT_EXECUTED` | `NO_EVIDENCE` | Paused by the Owner. Not attempted, not passed. |
 | `GJ-01` real multiformat input | A05 | `PARTIAL` | `REAL` | 10 real verified fixtures imported; 9 formats fail to convert. |
 | `GJ-02` Source → Knowledge | A04/A05 | `REAL` | `REAL` | Text source produced anchored candidate + V3 with real hashes. |
@@ -282,10 +285,29 @@ Lane `OWNER_GATE` (4 keys) — all remain `BLOCKED_BY_OWNER_DECISION`, none atte
    per format. Not attempted here because choosing the enablement mechanism is an
    architectural decision and the R6 boundary says to wire only what the current loop
    requires. **Owner decision requested.**
-3. **Backup does not carry learning or machine state.** `EXPORT_TABLES` in
-   `crates/archeaxis-archive/src/lib.rs` omits `machine_tasks`, `learning_assessments` and
-   `card_references`, so a verified restore still loses them. The M0 probe's restore check
-   cannot catch this because it only counts knowledge/review/learning tables.
+3. **The open-format JSONL archive omits four live data tables.**
+   `EXPORT_TABLES` in `crates/archeaxis-archive/src/lib.rs` lists 16 tables and leaves out
+   `machine_tasks`, `learning_assessments`, `card_references` and `knowledge_v3_metadata`,
+   so an archive export/restore round trip silently drops human-learning assessments,
+   learning-item references, machine task receipts and the V3 governance sidecar.
+   `crates/archeaxis-domain/src/machine.rs` already documents this limitation in-tree
+   ("_because it is created on demand it is not part of EXPORT_TABLES, so archives do not
+   carry machine receipts yet_").
+
+   **This is not the online backup path, and it is not a backup data-loss bug.**
+   `--maintenance-backup` / `--maintenance-restore` go through
+   `crates/archeaxis-domain/src/backup.rs`, which uses the **SQLite Online Backup API**
+   (a page-level copy of the whole database) and never consults `EXPORT_TABLES`. An
+   independent verifier drove real HTTP routes to create rows in all four tables and then
+   ran the real maintenance CLI; every table survived the backup, a deliberate mutation,
+   and the restore (`machine_tasks` 1→1→0→1, `learning_assessments` 1→1→0→1,
+   `card_references` 1→1→0→1, `knowledge_v3_metadata` 1→1→1→1; `verified: true`).
+
+   Reachability: `--maintenance-export` is not a supported flag (exit 2), no HTTP route
+   calls `export_workspace`, and no script calls it, so the archive path is exercised only
+   by Rust tests today. A separate stale-comment defect remains: the v3-layout comment in
+   the same file still describes its 13-table set as "identical to the current table set",
+   which is wrong at schema version 6.
 4. **`GET /sources/{id}/jobs/{job_id}/transform` filters `kind='text'`**, so a non-text
    transform is unreadable through the source-scoped route even when the job succeeded.
 5. **ASR / video / webpage workers cannot be launched by the Core at all** (no

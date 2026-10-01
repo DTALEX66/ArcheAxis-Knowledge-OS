@@ -302,9 +302,14 @@ source, the human actions and the model failure are fixtures.
    registering routes for every capability the configured worker advertises) plus a
    regression test that launches the production shape and converts one real fixture per
    format.
-2. `machine_tasks`, `learning_assessments` and `card_references` are absent from the
-   archive `EXPORT_TABLES`, so a backup/restore does not carry the learning or machine
-   state.
+2. The **open-format JSONL archive** (`archeaxis-archive` `EXPORT_TABLES`) silently omits
+   four live data tables — `machine_tasks`, `learning_assessments`, `card_references` and
+   `knowledge_v3_metadata` — so an archive/restore round trip loses human-learning,
+   machine-receipt and V3-governance rows. This is **not** the online backup path:
+   `--maintenance-backup`/`--maintenance-restore` use the SQLite Online Backup API
+   (`crates/archeaxis-domain/src/backup.rs`) and were measured to preserve all four tables.
+   The archive path is not reachable from the CLI or from any HTTP route today; it is
+   exercised only by Rust tests.
 3. `GET /sources/{id}/jobs/{job_id}/transform` filters `kind='text'`, so non-text
    transforms are unreadable through the source-scoped route.
 4. ASR, video decode and webpage fetch have no sidecar mode and no declared capability.
