@@ -138,11 +138,11 @@ Formats that additionally lack a reachable engine, named separately from the rou
 
 | Format | Status | Why |
 | --- | --- | --- |
-| audio → ASR transcription | `NO_ROUTE` | `media/worker_transcribe.py` has no `--staging-root` sidecar mode and no capability in either route table. |
-| video decode | `NO_ROUTE` | `media/worker_video.py` same; also needs `ffmpeg`, which is installed but not on `PATH`. |
-| webpage fetch | `NO_ROUTE` | `web/worker_webpage.py` same. |
-| image caption / VL | `BLOCKED` | needs an Ollama endpoint at `127.0.0.1:11434` with `qwen2.5vl:7b`; no `ollama` binary and nothing listening. |
-| image OCR | `ROUTE_GAP` + env | `tesseract` 5.5.0 is installed at `C:\Program Files\Tesseract-OCR\tesseract.exe` but **not on `PATH`**, and the session's `TESSDATA_PREFIX` points at a non-existent directory. Supplying `PATH` + `TESSDATA_PREFIX` makes the same transport call succeed, so the engine is available and only the wiring and environment are wrong. |
+| audio → ASR transcription | `NO_ROUTE` + path defect | `media/worker_transcribe.py` has no `--staging-root` sidecar mode and no capability in either route table; its default model path also mis-resolves. The engine and model are real and work when the declared path is supplied — see §3b. |
+| video decode | `NO_ROUTE` + path defect | `media/worker_video.py` same, and it accepts no engine override at all — only `shutil.which("ffmpeg")`. |
+| webpage fetch | `NO_ROUTE` | `web/worker_webpage.py` same; a fetch is deliberately not part of the HTML route. |
+| image caption / VL | `BLOCKED` | needs an Ollama endpoint at `127.0.0.1:11434` with `qwen2.5vl:7b`; no `ollama` binary and nothing listening. LM Studio is installed but has no models loaded and is not integrated — see §3b. |
+| image OCR | `ROUTE_GAP` + env | `tesseract` 5.5.0 and its language packs are registered and working; the failure is `shutil.which` plus a `TESSDATA_PREFIX` that is missing the `10-` prefix. Real OCR succeeds once the declared paths are used — see §3b. |
 
 > **False test signal.** `crates/archeaxis-application/tests/ocr_job_end_to_end.rs` guards
 > on tessdata being available and **returns early when it is not**, reporting
@@ -216,8 +216,81 @@ Formats that additionally lack a reachable engine, named separately from the rou
 * Verdict for this branch: **`NOT_READY`**. Not `LOCAL_GREEN_READY_FOR_OWNER_REVIEW`,
   because P1 non-text reachability and the Legacy leg are both open.
 
-## 4. Per-key disposition against the disposition ledger
+## 3b. Real material and the declared external resource library
 
+The section above measures reachability with the repository's own synthetic golden
+corpus. This one repeats the measurement with **real user learning material** and then
+separates two causes that the golden corpus cannot distinguish: a route that is not
+registered, and an engine path that does not resolve.
+
+Material root (supplied by the Owner): `D:\All projects\ceshi` — a real Obsidian knowledge
+base plus course archives. After excluding vault tool-state folders and machine-generated
+`*ASR*` transcripts, it holds **3,095 real `.md` notes**, 1,203 `.png`, 66 `.pdf`, 64 `.mp4`,
+24 `.docx`, 22 `.canvas`.
+
+### Real material through the production launch — `scripts/probes/real_material_conversion_smoke.py`
+
+`{CONVERTED: 1, FAILED_AT_ROUTE: 5}`. The one success is a real, human-authored Chinese
+course note, converted by `python-worker-text` with `covered 47 / total 47`:
+
+| Kind | Real file | Result |
+| --- | --- | --- |
+| `text` | `10_课程库\...\C0205_...\04_关键图表与课件索引.md` (2,048 B) | **CONVERTED** — 982 chars out, preserves the YAML frontmatter and the Mermaid block |
+| `canvas` | `...\C0413_潜意识巨人\02_课程地图.canvas` (2,617 B) | failed — route gap |
+| `html` | `...\TALOS-frontend-design\...\renderer\index.html` (13,060 B) | failed — route gap |
+| `pdf` | `...\06.颠覆认知，圆梦清华.pdf` (100,776 B) | failed — route gap |
+| `office` | `...\07.九大人生法则看考研成败（大字体）.docx` (63,409 B) | failed — route gap |
+| `image` | `...\三命通会_p1.png` (11,958 B) | failed — route gap |
+
+Every failure is the same `Core execution ended without a terminal receipt` after a `202`
+acceptance, and every receipt records the origin path and the sha256 of the bytes sent. So
+the route gap is not an artefact of synthetic fixtures: on real material the shipped binary
+still converts only plain text.
+
+### The engines themselves are present and working — the *paths* are the defect
+
+The Owner's point is correct: the external libraries are not missing, and they are already
+declared in `OS External Configuration/00-registry/project-tool-index.yaml` and
+`config/environment/capability-requirements.yaml` with explicit paths and versions. I
+verified those declared paths exist, then drove each engine through its own worker:
+
+| Engine | Declared path | Default resolution (as shipped) | With the declared path |
+| --- | --- | --- | --- |
+| faster-whisper large-v3-turbo | `D:\All projects\Model library\whisper\faster-whisper-large-v3-turbo` (model.bin 1,617,884,929 B) | `worker_transcribe.py` derives `PROJECT_ROOT.parent/"Model library"` → in a worktree that resolves to `.project-local\worktrees\Model library\...` → **capability false** | `capability true`; **real transcription of a real 5,849,401 B Chinese MP3: 3,362 chars, 295 segments, 267.8 s**, `zh`, `int8`, VAD on |
+| tesseract 5.5.0 + tesseract-languages | `10-toolchains\scoop\apps\tesseract\current` and `...\tesseract-languages\current` | `worker_ocr.py` uses `shutil.which("tesseract")` (not on `PATH`) and derives the binary from `TESSDATA_PREFIX`, which the session sets to a path **missing the `10-` prefix** → `tesseract binary not found on PATH` | `TESSERACT_CMD` + `TESSDATA_PREFIX` set to the declared paths → **real OCR of a real Chinese image**, `三命通会` and `(明) 万明英_著` read correctly, `covered 3/3`, with a loss receipt and a low-confidence review list |
+| ffmpeg 8.1.2 | `10-toolchains\scoop\apps\ffmpeg\current\bin` | `worker_video.py` uses **only** `shutil.which("ffmpeg")` and accepts no override at all | not reachable without a code change |
+
+So the corrected classification is:
+
+* **Route gap** — the Core registers only `text.extract`; this is why every binary format
+  fails in production. Unchanged by anything above.
+* **Path-resolution defect** — where a route exists or a worker is invoked directly, the
+  worker still guesses (`which()`) or derives a relative path instead of reading the
+  declared resource registry. `worker_transcribe` at least accepts `--model-dir` /
+  `ARCHEAXIS_ASR_MODEL_DIR`; `worker_ocr` accepts `TESSERACT_CMD`; `worker_video` accepts
+  nothing.
+* **Language selection** — OCR defaulted to `eng` over a Chinese image and produced
+  garbage. That is a caller-side choice, not an engine fault.
+
+This is precisely the A02 deliverable that is still missing: *model resolver*, *tool
+resolver*, *external capability registry*, *exact paths*, **no PATH guessing**. A02 is
+recorded as `BLOCKED_BY_OWNER_DECISION` because the resource-root schema needs an Owner
+decision — but "stop guessing and read the declared paths" is not a schema decision, and
+it is what unblocks the engines.
+
+### On LM Studio
+
+The Owner also notes LM Studio is installed. Verified: `C:\Users\ALEX\.lmstudio` exists, an
+`LMS` process is running, and `~/.lmstudio/bin/lms.exe` is present. However `~/.lmstudio/models`
+is **empty**, nothing is listening on port 1234, and **no file under `config/` mentions
+LM Studio** — the only model server the code knows is Ollama at `127.0.0.1:11434`
+(`config/defaults.yaml`, `config/model-profiles/*`), and the vision caption worker speaks
+Ollama's native `/api/generate` rather than the OpenAI-compatible `/v1` surface LM Studio
+serves. So LM Studio is a real local runtime that is **not integrated and currently has no
+models loaded**, and it does not change the caption/VL `BLOCKED` verdict. It is a candidate
+for the A02/A03 registry, not an available engine today.
+
+## 4. Per-key disposition against the disposition ledger
 Lane `BACKEND_FRONTEND_LOOP` (54 keys). Evidence level is the highest actually reached.
 
 | Key | Maps to | Status | Evidence | Basis |

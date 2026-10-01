@@ -276,6 +276,8 @@ with no route at all (ASR transcription, video decode, webpage fetch) must be re
 | Continuous M0 loop through the real Core | `python -B scripts/probes/m0_full_loop_smoke.py` | **27/27 stages ran**; `answer_recorded.schedule_authority = "fsrs"`; restart readback identical; online backup `exit_code 0`; restore `verified true` with `counts_after == counts_before`; `evidence_level: SYNTHETIC`; sole validation error `legacy migration not verified` |
 | Format reachability in a production launch | `python -B scripts/probes/production_format_coverage_smoke.py` | `verdict_counts: {REACHABLE: 1, FAILED_AT_ROUTE: 9}`; worker advertises `['text.extract']` |
 | Format reachability, independently reproduced | a separate direct launch of the same Core, `kind=pdf` vs `kind=text` control | PDF settles `failed` with the same error and its `job_attempts` row shows `capability=pdf.extract` never terminated; the `text` control `succeeded` |
+| Same measurement on **real user material** | `python -B scripts/probes/real_material_conversion_smoke.py` | `{CONVERTED: 1, FAILED_AT_ROUTE: 5}` against a real Obsidian knowledge base (3,095 real `.md`, 66 `.pdf`, 24 `.docx`, 22 `.canvas`); the success is a real Chinese course note |
+| Engines present and working with declared paths | `worker_transcribe.py --probe`/transcribe, `worker_ocr.py` | real ASR of a real 5.8 MB Chinese MP3 → 3,362 chars / 295 segments; real OCR of a Chinese image → `三命通会` read correctly, `covered 3/3` |
 | Rust API suite | `cargo test -p archeaxis-api --no-fail-fast` with `ARCHEAXIS_PYTHON` set | all 28 targets pass |
 | Rust application (per-format) suite | `cargo test -p archeaxis-application --no-fail-fast` | all targets pass |
 
@@ -314,4 +316,8 @@ source, the human actions and the model failure are fixtures.
 3. `GET /sources/{id}/jobs/{job_id}/transform` filters `kind='text'`, so non-text
    transforms are unreadable through the source-scoped route.
 4. ASR, video decode and webpage fetch have no sidecar mode and no declared capability.
-5. The ASR model path and `TESSDATA_PREFIX` resolve incorrectly from a worktree checkout.
+5. The **path resolver that A02 specifies does not exist**: workers guess with
+   `shutil.which` or derive relative paths instead of reading the declared resource
+   registry, so real engines that are installed, registered and working stay unreachable.
+   `worker_video.py` accepts no engine override at all. This is independent of the route
+   gap and of the resource-root schema question.
