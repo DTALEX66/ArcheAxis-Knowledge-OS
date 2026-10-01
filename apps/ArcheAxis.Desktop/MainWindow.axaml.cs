@@ -4350,6 +4350,9 @@ public partial class MainWindow : Window
         SearchPageFilters.Width = narrowActions
             ? Math.Max(250, contentWidth - (mobile ? 100 : 120))
             : double.NaN;
+        SearchPageEmptyState.VerticalAlignment = narrowActions
+            ? Avalonia.Layout.VerticalAlignment.Top
+            : Avalonia.Layout.VerticalAlignment.Stretch;
         SetResponsiveToolbar(KnowledgeLoadGrid, KnowledgeLoadButton, narrowActions);
         SetResponsiveToolbar(MachineTaskGrid, MachineTaskLoadButton, narrowActions);
         MachineLearningPanels.ColumnDefinitions = compact ? new ColumnDefinitions("1*") : new ColumnDefinitions("0.89*,1*");
@@ -4381,6 +4384,7 @@ public partial class MainWindow : Window
         Grid.SetRow(ReviewPageContentGrid.Children[1], learningReviewSingleColumn ? 1 : 0);
         SettingsControlsGrid.ColumnDefinitions = contentWidth < 840 ? new ColumnDefinitions("*") : new ColumnDefinitions("*,*");
         var settingsControlColumns = contentWidth < 840 ? 1 : 2;
+        SettingsControlsGrid.RowSpacing = settingsControlColumns == 1 ? 14 : 40;
         SettingsControlsGrid.RowDefinitions = settingsControlColumns == 1
             ? new RowDefinitions("Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto")
             : new RowDefinitions("Auto,Auto,Auto,Auto");

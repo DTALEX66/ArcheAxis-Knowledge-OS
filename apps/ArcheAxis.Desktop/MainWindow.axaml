@@ -1823,7 +1823,7 @@
                   <Grid ColumnDefinitions="*,Auto" ColumnSpacing="16">
                     <StackPanel Spacing="5" VerticalAlignment="Center">
                       <TextBlock Text="本地数据" Classes="section-heading" />
-                      <TextBlock Text="管理相关选项与行为。" Classes="status-empty" TextWrapping="Wrap" />
+                      <TextBlock Text="Core 尚未提供本地数据设置的读写接口。" Classes="status-empty" TextWrapping="Wrap" />
                     </StackPanel>
                     <StackPanel Grid.Column="1" Spacing="7" VerticalAlignment="Center" HorizontalAlignment="Center">
                       <Border Classes="settings-availability" Padding="7,3">
@@ -1837,7 +1837,7 @@
                   <Grid ColumnDefinitions="*,Auto" ColumnSpacing="16">
                     <StackPanel Spacing="5" VerticalAlignment="Center">
                       <TextBlock Text="模型与提供方" Classes="section-heading" />
-                      <TextBlock Text="管理相关选项与行为。" Classes="status-empty" TextWrapping="Wrap" />
+                      <TextBlock Text="Core 尚未提供模型配置的读写接口。" Classes="status-empty" TextWrapping="Wrap" />
                     </StackPanel>
                     <StackPanel Grid.Column="1" Spacing="7" VerticalAlignment="Center" HorizontalAlignment="Center">
                       <Border Classes="settings-availability" Padding="7,3">
@@ -1851,7 +1851,7 @@
                   <Grid ColumnDefinitions="*,Auto" ColumnSpacing="16">
                     <StackPanel Spacing="5" VerticalAlignment="Center">
                       <TextBlock Text="同步" Classes="section-heading" />
-                      <TextBlock Text="管理相关选项与行为。" Classes="status-empty" TextWrapping="Wrap" />
+                      <TextBlock Text="Core 尚未提供同步设置的读写接口。" Classes="status-empty" TextWrapping="Wrap" />
                     </StackPanel>
                     <StackPanel Grid.Column="1" Spacing="7" VerticalAlignment="Center" HorizontalAlignment="Center">
                       <Border Classes="settings-availability" Padding="7,3">
@@ -1865,7 +1865,7 @@
                   <Grid ColumnDefinitions="*,Auto" ColumnSpacing="16">
                     <StackPanel Spacing="5" VerticalAlignment="Center">
                       <TextBlock Text="隐私" Classes="section-heading" />
-                      <TextBlock Text="管理相关选项与行为。" Classes="status-empty" TextWrapping="Wrap" />
+                      <TextBlock Text="Core 尚未提供隐私设置的读写接口。" Classes="status-empty" TextWrapping="Wrap" />
                     </StackPanel>
                     <StackPanel Grid.Column="1" Spacing="7" VerticalAlignment="Center" HorizontalAlignment="Center">
                       <Border Classes="settings-availability" Padding="7,3">
@@ -1879,7 +1879,7 @@
                   <Grid ColumnDefinitions="*,Auto" ColumnSpacing="16">
                     <StackPanel Spacing="5" VerticalAlignment="Center">
                       <TextBlock Text="导入导出" Classes="section-heading" />
-                      <TextBlock Text="管理相关选项与行为。" Classes="status-empty" TextWrapping="Wrap" />
+                      <TextBlock Text="Core 尚未提供导入导出设置的读写接口。" Classes="status-empty" TextWrapping="Wrap" />
                     </StackPanel>
                     <StackPanel Grid.Column="1" Spacing="7" VerticalAlignment="Center" HorizontalAlignment="Center">
                       <Border Classes="settings-availability" Padding="7,3">
@@ -1905,7 +1905,7 @@
                   <Grid ColumnDefinitions="*,Auto" ColumnSpacing="16">
                     <StackPanel Spacing="5" VerticalAlignment="Center">
                       <TextBlock Text="快捷键" Classes="section-heading" />
-                      <TextBlock Text="查看与管理键盘操作。" Classes="status-empty" TextWrapping="Wrap" />
+                      <TextBlock Text="Core 尚未提供快捷键设置的读写接口。" Classes="status-empty" TextWrapping="Wrap" />
                     </StackPanel>
                     <StackPanel Grid.Column="1" Spacing="7" VerticalAlignment="Center" HorizontalAlignment="Center">
                       <Border Classes="settings-availability" Padding="7,3">
@@ -1919,7 +1919,7 @@
                   <Grid ColumnDefinitions="*,Auto" ColumnSpacing="16">
                     <StackPanel Spacing="5" VerticalAlignment="Center">
                       <TextBlock Text="实验功能" Classes="section-heading" />
-                      <TextBlock Text="管理相关选项与行为。" Classes="status-empty" TextWrapping="Wrap" />
+                      <TextBlock Text="Core 尚未提供实验功能设置的读写接口。" Classes="status-empty" TextWrapping="Wrap" />
                     </StackPanel>
                     <StackPanel Grid.Column="1" Spacing="7" VerticalAlignment="Center" HorizontalAlignment="Center">
                       <Border Classes="settings-availability" Padding="7,3">
