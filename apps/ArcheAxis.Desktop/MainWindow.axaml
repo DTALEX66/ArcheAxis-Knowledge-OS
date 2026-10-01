@@ -834,7 +834,7 @@
               <Button Content="保存草稿" IsEnabled="False" Padding="14,8" ToolTip.Tip="Core Original 写入契约尚未提供" AutomationProperties.Name="保存草稿暂不可用" />
             </StackPanel>
           </Grid>
-          <Grid x:Name="OriginalEditorGrid" ColumnDefinitions="2.1*,1*" ColumnSpacing="14" RowSpacing="14">
+          <Grid x:Name="OriginalEditorGrid" ColumnDefinitions="1.35*,0.95*" ColumnSpacing="14" RowSpacing="14">
             <Border x:Name="OriginalDocumentCard" Grid.Column="0" Classes="aaos-card" Padding="18">
               <Grid RowDefinitions="Auto,*,Auto" RowSpacing="12">
                 <Border Classes="aaos-toolbar" Padding="7">
@@ -1625,7 +1625,7 @@
         <views:EvidenceCenterView x:Name="EvidenceCenterView" IsVisible="False" RefreshRequested="OnEvidenceRefreshRequested" AnchorSelected="OnEvidenceAnchorSelected" DetailModeChanged="OnEvidenceDetailModeChanged" OpenCaptureRequested="OnEvidenceOpenCaptureRequested" OpenJobsRequested="OnEvidenceOpenJobsRequested" OpenSourceRequested="OnEvidenceOpenSourceRequested" />
         <StackPanel x:Name="MemoryMapSurface" IsVisible="False" Spacing="14">
           <TextBlock Text="记忆地图 · 搜索 · 复习" Classes="section-heading" />
-          <Grid x:Name="MemoryMapVisualGrid" ColumnDefinitions="1.05*,1*" ColumnSpacing="16" RowSpacing="14">
+          <Grid x:Name="MemoryMapVisualGrid" ColumnDefinitions="1.35*,0.95*" ColumnSpacing="16" RowSpacing="14">
             <Border x:Name="MemoryMapGraphCard" Classes="aaos-card" Padding="18">
               <Grid RowDefinitions="Auto,*,Auto,Auto" RowSpacing="12">
                 <TextBlock Text="记忆地图  Memory Map" Classes="section-heading" VerticalAlignment="Center" />

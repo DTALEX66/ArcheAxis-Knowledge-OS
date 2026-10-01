@@ -4151,7 +4151,7 @@ public partial class MainWindow : Window
         var narrowActions = contentWidth <= narrowActionsBreakpoint;
         OriginalEditorGrid.ColumnDefinitions = compact
             ? new ColumnDefinitions("*")
-            : new ColumnDefinitions("2.1*,1*");
+            : new ColumnDefinitions("1.35*,0.95*");
         OriginalEditorGrid.RowDefinitions = compact
             ? new RowDefinitions("Auto,Auto")
             : new RowDefinitions("Auto");
@@ -4415,7 +4415,7 @@ public partial class MainWindow : Window
         HomeHeroVisual.IsVisible = true;
         MemoryMapVisualGrid.ColumnDefinitions = compact
             ? new ColumnDefinitions("*")
-            : new ColumnDefinitions("1.05*,1*");
+            : new ColumnDefinitions("1.35*,0.95*");
         MemoryMapVisualGrid.RowDefinitions = compact
             ? new RowDefinitions("Auto,Auto")
             : new RowDefinitions("Auto");
