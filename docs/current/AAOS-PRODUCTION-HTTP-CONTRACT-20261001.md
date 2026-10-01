@@ -342,16 +342,22 @@ source, the human actions and the model failure are fixtures.
    and the Core registers exactly what is declared; a packaging-time readiness check answers
    per route. Measured on real course material: readiness 9 of 9, cases converted 9 of 9.
    See `docs/current/AAOS-BACKEND-LOOP-EVIDENCE-20261001.md` §7.
-2. The **open-format JSONL archive** (`archeaxis-archive` `EXPORT_TABLES`) silently omits
-   four live data tables — `machine_tasks`, `learning_assessments`, `card_references` and
-   `knowledge_v3_metadata` — so an archive/restore round trip loses human-learning,
-   machine-receipt and V3-governance rows. This is **not** the online backup path:
-   `--maintenance-backup`/`--maintenance-restore` use the SQLite Online Backup API
-   (`crates/archeaxis-domain/src/backup.rs`) and were measured to preserve all four tables.
-   The archive path is not reachable from the CLI or from any HTTP route today; it is
-   exercised only by Rust tests. **Still open.**
-3. `GET /sources/{id}/jobs/{job_id}/transform` filters `kind='text'`, so non-text
-   transforms are unreadable through the source-scoped route. **Still open.**
+2. ~~The **open-format JSONL archive** (`archeaxis-archive` `EXPORT_TABLES`) silently omits
+   four live data tables.~~ **RESOLVED.** `knowledge_v3_metadata`, `learning_assessments`,
+   `card_references` and `machine_tasks` are exported, and `CURRENT_LAYOUTS` accepts both the
+   sixteen-table and twenty-table shapes so genuine older archives still restore. The two that
+   were created on demand (`card_references`, `machine_tasks`) are now created with the rest of
+   the schema, because the export refuses a table it cannot account for and an exported set
+   that depends on usage history cannot be identified from a manifest. The online backup path
+   was never affected: `--maintenance-backup`/`--maintenance-restore` use the SQLite Online
+   Backup API (`crates/archeaxis-domain/src/backup.rs`) and were measured to preserve all four.
+   Verified by `crates/archeaxis-archive/tests/omitted_tables_roundtrip.rs`.
+3. ~~`GET /sources/{id}/jobs/{job_id}/transform` filters `kind='text'`, so non-text transforms
+   are unreadable through the source-scoped route.~~ **RESOLVED.** Every extraction route stores
+   its projection in `transforms.text`, so the filter excluded readable content on the basis of
+   the job's kind; a PDF transform was answered `404`. Verified by
+   `crates/archeaxis-api/tests/source_transform_readback.rs`, which also checks that a job
+   without a stored projection is still `404` and that the source binding is still enforced.
 4. ~~ASR, video decode and webpage fetch have no sidecar mode and no declared capability.~~
    **ASR RESOLVED**: `media.transcribe` is declared, and a real Chinese recording reaches the
    Core (import → enqueue → execute → `succeeded`, `zh` at 0.9983, covered 2 of 2). Video

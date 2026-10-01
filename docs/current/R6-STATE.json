@@ -161,7 +161,9 @@
       "OCR language data was accepted for a language it could not serve",
       "the OCR route's language was hardcoded and ignored the declaration",
       "a probe crashed on an interpreter whose declaration could not be read, instead of reporting that it could not check",
-      "search sent user text straight into FTS5 MATCH, so ordinary queries were answered 500 with a raw parser message instead of an empty result"
+      "search sent user text straight into FTS5 MATCH, so ordinary queries were answered 500 with a raw parser message instead of an empty result",
+      "the source-scoped transform route filtered kind=text, so a succeeded PDF or OCR transform was answered 404",
+      "the archive export omitted four live tables, so a round trip silently lost assessments, machine receipts, card references and V3 metadata"
     ],
     "owner_gates_unchanged": "A02/A16 BLOCKED; legacy migration, in-place replacement and release NOT_EXECUTED; release FROZEN",
     "contract_promises_exercised_20261001": {
@@ -169,6 +171,11 @@
       "conflict_rules": "pinned by crates/archeaxis-api/tests/contract_conflict_rules.rs and confirmed against a live Core: replay 202 replayed:true; a different deadline or a different job under one key 409 AAK-CON-002; a settled job 409 AAK-CON-003; no conflict path leaves a second attempt.",
       "search_query_semantics": "q is text a person typed: whitespace tokens as quoted phrases joined with OR. No phrase or boolean syntax exists, and a UI must not express all-words as AND.",
       "contract_stale_items_corrected": "the contract's open-item list said format routes were unwired, ASR had no sidecar mode and the A02 resolver did not exist; all three are now recorded as resolved, while the archive export gap and the source-scoped transform filter are marked as still open."
+    },
+    "open_items_closed_20261001": {
+      "archive_export_omitted_tables": "closed: the four tables are exported, both archive layouts restore, and the two lazily-created tables are now in the schema. Verified by crates/archeaxis-archive/tests/omitted_tables_roundtrip.rs",
+      "source_scoped_transform_filter": "closed: the kind=text filter is gone and a PDF transform reads back. Verified by crates/archeaxis-api/tests/source_transform_readback.rs",
+      "remaining_in_contract_section_9": "the Owner decision on the resource-root schema (A02), which is a decision rather than missing implementation"
     }
   },
   "backend_key_disposition_20261001": {
