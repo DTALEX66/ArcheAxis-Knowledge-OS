@@ -228,8 +228,11 @@ The UI must not render these as measured values.
 * Fixed `note` literals are appended to real data on machine readback, job quality and
   source members. The notes at those three routes are asserted to be present by
   `crates/archeaxis-api/tests/contract_constant_fields.rs`.
-* `mastery_projection.closed` is a **constant `false`** — mastery is deliberately an open
-  projection, never a closed claim. `correct_streak` is re-derived on every read. **Where to
+* `mastery_projection.closed` is a **constant `false`** and `mastery_projection.status` is the
+  constant `"projection"` — mastery is deliberately an open projection, never a closed claim, and
+  the projection is not Knowledge Truth. The projection's keys are exactly
+  `basis`, `closed`, `correct_streak`, `review_state`, `stability`, `status`. `correct_streak` is
+  re-derived on every read. **Where to
   find it:** the projection travels with a `POST /learning/reviews` response and reaches
   `GET /learning/items/{item_key}/state` under `learner.latest_review.mastery_projection` —
   **not** at the response's top level, which is `null` until a review exists. The same test
@@ -260,7 +263,31 @@ The UI must not render these as measured values.
 
 ## 5. Idempotency, conflicts and errors
 
-Error body shape for auth failures: `{"code","message","retryable"}`.
+**Error bodies are not uniform, and the groups are not the ones a reader would guess.** Measured
+with `crates/archeaxis-api/tests/contract_absent_surfaces.rs`: the auth middleware **and the two
+job routes** answer JSON; every other family answers **plain text**.
+
+| Error | Status | Content-Type | Body |
+| --- | --- | --- | --- |
+| missing / duplicated / unmatched credential | `401` | `application/json` | `{"code":"AAK-AUTH-001","message":"invalid launch credentials","retryable":false}` |
+| any `origin` header | `403` | `application/json` | `{"code":"AAK-AUTH-002","message":"browser origin not allowed","retryable":false}` |
+| unknown job (`GET /jobs/{id}`) | `404` | `application/json` | `{"code":"AAK-VAL-004","message":"job not found","retryable":false}` |
+| unknown job outputs (`GET /jobs/{id}/outputs/{kind}`) | `404` | `application/json` | `{"code":"AAK-VAL-004", …}` |
+| unknown job quality | `404` | `text/plain` | `unknown job` |
+| unknown source members | `404` | `text/plain` | `source not found` |
+| unknown knowledge (`GET /knowledge-items/{id}/v3`) | `404` | `text/plain` | `knowledge not found` |
+| unknown machine task | `404` | `text/plain` | `unknown machine task` |
+| unknown `knowledge_type` | `400` | `text/plain` | `Invalid parameter name: unknown knowledge_type: NOPE` |
+| missing required body field | `422` | `text/plain` | `Failed to deserialize the JSON body into the target type: missing field \`knowledge_type\` …` |
+| the other actor's route | `403` | `text/plain` | `machine principal cannot record human reviews` |
+
+**Consequence for the UI:** parse the body as JSON for the auth middleware and the job routes; for
+every other error the body is plain text, so a client that unconditionally parses JSON fails there.
+Reading a `code` field gives a stable value (`AAK-AUTH-00x`, `AAK-VAL-004`) only on the JSON
+group, and the same `AAK-VAL-004` covers both "no such job" and "no such output", so the message
+is what distinguishes them.
+
+The table below names the status meanings; the shapes above are what actually arrives.
 
 | Status | Meaning | Real examples |
 | --- | --- | --- |
@@ -388,12 +415,32 @@ source, the human actions and the model failure are fixtures.
 
 ## 8. Explicitly out of contract
 
+Everything in this section is a **route family a UI might reasonably try and must not**, because
+it does not exist. "Does not exist" is checked the only way that distinguishes it from "exists but
+has no such object": `404` to the family's own method **and** `404` to a wrong method. A mounted
+path answers `405` to a wrong method, so the wrong-method probe is what makes the claim testable.
+Asserted by `crates/archeaxis-api/tests/contract_absent_surfaces.rs`.
+
+| Attempted route | Observed | Meaning for the UI |
+| --- | --- | --- |
+| `GET/POST /api/v1/research`, `/research/tasks` | `404` in both methods | no research surface; show "not connected", never a success state |
+| `GET/POST /api/v1/plugins` | `404` in both methods | no plugin surface; never render "plugin active" |
+| `GET/POST /api/v1/models`, `/models/providers` | `404` in both methods | no model or provider surface; never render a provider or model version |
+| `GET /api/v1/embeddings/search` | `404` in both methods | there is no embedding route |
+| `GET /api/v1/graph/search` | `404` in both methods | there is no graph route |
+
 * Legacy copy migration, in-place Green replacement, release/tagging — **paused by the
   Owner**. Not available through this API and not to be assumed by the UI.
+* **`GET /api/v1/search` is lexical, not semantic.** It does not represent embedding, hybrid or
+  graph retrieval, and a UI must not label it as such. `count: 0` is a **successful empty
+  result**, not an error — see §5.
 * Vector/semantic/hybrid search, rerankers, graph APIs — **do not exist** in the Core.
 * A machine-competence write route — **does not exist**; `machine.status` stays
   `not_recorded`.
 * Distillation approve/reject/revoke over HTTP — **does not exist**.
+* **There is no typed loss receipt.** `GET /api/v1/jobs/{job_id}/quality` is a summary
+  projection; for an unknown job it answers `404` with the literal body `unknown job`. A UI must
+  not parse a two-layer JSON payload out of it or invent `fallback: true`.
 * Offline multi-client sync, accounts, or any remote surface — out of scope; the Core is
   an IPv4-loopback single-writer child process.
 

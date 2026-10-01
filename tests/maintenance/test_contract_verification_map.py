@@ -50,6 +50,8 @@ COVERAGE: dict[str, tuple[str, str]] = {
 ALSO_CHECKS: dict[str, list[str]] = {
     "3": ["crates/archeaxis-api/tests/contract_job_outputs.rs",
           "crates/archeaxis-api/tests/contract_schedule_authority.rs"],
+    "5": ["crates/archeaxis-api/tests/contract_absent_surfaces.rs"],
+    "8": ["crates/archeaxis-api/tests/contract_absent_surfaces.rs"],
 }
 
 # Sections whose evidence is not a single test file, with where it actually lives.

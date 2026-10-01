@@ -108,14 +108,16 @@ on. Every section of it is checked, and the whole set runs from one command per 
 
 ```bash
 # §1 process model and handshake, §2 authentication, §4 constant fields,
-# §5 conflicts and errors, §6 launch shape, §3 output and schedule-authority boundaries
+# §5 conflicts and error shapes, §6 launch shape, §3 output and schedule-authority
+# boundaries, §8 the route families that deliberately do not exist
 cargo test -p archeaxis-api --test contract_process_model \
                             --test contract_auth_boundaries \
                             --test contract_constant_fields \
                             --test contract_conflict_rules \
                             --test contract_launch_shape \
                             --test contract_job_outputs \
-                            --test contract_schedule_authority
+                            --test contract_schedule_authority \
+                            --test contract_absent_surfaces
 ```
 
 ```bash
