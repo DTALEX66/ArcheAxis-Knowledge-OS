@@ -117,7 +117,8 @@ cargo test -p archeaxis-api --test contract_process_model \
                             --test contract_launch_shape \
                             --test contract_job_outputs \
                             --test contract_schedule_authority \
-                            --test contract_absent_surfaces
+                            --test contract_absent_surfaces \
+                            --test contract_review_cost
 ```
 
 ```bash

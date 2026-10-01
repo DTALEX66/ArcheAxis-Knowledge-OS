@@ -359,6 +359,26 @@ across the states report no mismatch:
 `loading` has no server representation: it is the interval before the first response, so the
 UI owns it.
 
+### What a review costs, and why the UI should not block its own thread on it
+
+`POST /learning/reviews` waits for the FSRS worker **inside** the single-writer callback
+(`crates/archeaxis-api/src/lib.rs` → `with_store`, recorded as a known limitation in
+`docs/architecture/CURRENT_ARCHITECTURE.md`). Measured on this host, five reviews each way:
+
+| Launch | `schedule_authority` | `POST /learning/reviews` median | a projection read, for scale |
+| --- | --- | --- | --- |
+| no usable scheduler interpreter | `unavailable` | **3.0 ms** | 14.7 ms |
+| interpreter with `fsrs` | `fsrs` | **83.1 ms** | 15.0 ms |
+
+The 83 ms is the subprocess round trip; the 3 ms case does not spawn one. Two consequences for the
+UI: a review is roughly **6× a projection read** when scheduling is real, and because the wait
+happens inside the writer, the one writer is occupied for that whole time — so reviews are the
+serialisation point, not the reads. The UI should keep review submissions off its render thread and
+expect a noticeable pause, rather than treating this route as a fast call.
+
+Numbers are from a debug build with an empty workspace, so treat them as a shape (fast read, slow
+write that holds the writer) rather than as production timings.
+
 ### Search query semantics
 
 `GET /api/v1/search?q=` treats `q` as **text a person typed**, not as a query expression. The
