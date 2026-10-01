@@ -33,32 +33,88 @@ pub struct TextWorker {
     pub python: std::path::PathBuf,
     pub script: std::path::PathBuf,
     pub staging: std::path::PathBuf,
+    /// Additional capability routes, declared by whoever built the launch.
+    ///
+    /// The default `script` serves `text.extract`. Each entry here registers one
+    /// more capability against the worker that implements it, so a PDF or OCR job
+    /// reaches its own engine. The list is declared rather than guessed: the Core
+    /// does not assume a checkout layout, and an absent list keeps the previous
+    /// single-route behaviour exactly.
+    #[serde(default)]
+    pub routes: Vec<WorkerRoute>,
 }
+
+/// One declared capability route: which script serves which capability.
+#[derive(Clone, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct WorkerRoute {
+    pub capability: String,
+    pub script: std::path::PathBuf,
+}
+
 impl TextWorker {
+    /// The additional `(capability, script)` routes this launch declares.
+    pub fn extra_routes(&self) -> Vec<(String, std::path::PathBuf)> {
+        self.routes
+            .iter()
+            .map(|route| (route.capability.clone(), route.script.clone()))
+            .collect()
+    }
+
+    fn validate_path(path: &std::path::Path) -> Result<(), &'static str> {
+        let text = path
+            .to_string_lossy()
+            .replace('\\', "/")
+            .to_ascii_lowercase();
+        // A `\\?\D:\...` verbatim prefix names the same local drive path; it is what
+        // `canonicalize` returns on Windows. Strip it so an absolute local path is not
+        // refused merely for how it was spelled, while a real UNC share still is.
+        let text = text.strip_prefix("//?/").unwrap_or(&text).to_string();
+        if !path.is_absolute()
+            || text.starts_with("e:")
+            || text.starts_with("//")
+            || path
+                .components()
+                .any(|p| matches!(p, std::path::Component::ParentDir))
+        {
+            return Err("invalid worker profile path");
+        }
+        let mut part = std::path::PathBuf::new();
+        for component in path.components() {
+            part.push(component);
+            archeaxis_store_sqlite::raw_objects::reject_links(&part)
+                .map_err(|_| "invalid worker profile path")?;
+        }
+        Ok(())
+    }
+
     pub fn validate(&self) -> Result<(), &'static str> {
         for path in [&self.python, &self.script, &self.staging] {
-            let text = path
-                .to_string_lossy()
-                .replace('\\', "/")
-                .to_ascii_lowercase();
-            if !path.is_absolute()
-                || text.starts_with("e:")
-                || text.starts_with("//")
-                || path
-                    .components()
-                    .any(|p| matches!(p, std::path::Component::ParentDir))
-            {
-                return Err("invalid worker profile path");
-            }
-            let mut part = std::path::PathBuf::new();
-            for component in path.components() {
-                part.push(component);
-                archeaxis_store_sqlite::raw_objects::reject_links(&part)
-                    .map_err(|_| "invalid worker profile path")?;
-            }
+            Self::validate_path(path)?;
         }
         if !self.python.is_file() || !self.script.is_file() {
             return Err("worker profile file missing");
+        }
+        for route in &self.routes {
+            // An empty or duplicated capability would silently shadow a route
+            // rather than fail, so it is refused here instead.
+            let capability = route.capability.trim();
+            if capability.is_empty() {
+                return Err("worker route capability must not be empty");
+            }
+            if capability == "text.extract" {
+                return Err("worker route must not redeclare text.extract");
+            }
+            Self::validate_path(&route.script)?;
+            if !route.script.is_file() {
+                return Err("worker route script missing");
+            }
+        }
+        let mut seen = std::collections::HashSet::new();
+        for route in &self.routes {
+            if !seen.insert(route.capability.trim()) {
+                return Err("duplicate worker route capability");
+            }
         }
         Ok(())
     }
@@ -216,4 +272,120 @@ async fn authenticate(State(session): State<Session>, request: Request, next: Ne
         }),
     );
     next.run(axum::http::Request::from_parts(parts, body)).await
+}
+
+#[cfg(test)]
+mod route_declaration_tests {
+    use super::*;
+    use std::fs;
+
+    /// A profile whose three required paths exist, so `validate` reaches the routes.
+    fn worker(dir: &std::path::Path, routes: Vec<WorkerRoute>) -> TextWorker {
+        let python = dir.join("python.exe");
+        let script = dir.join("text_ndjson.py");
+        let staging = dir.join("staging");
+        for path in [&python, &script] {
+            fs::write(path, b"stub").unwrap();
+        }
+        fs::create_dir_all(&staging).unwrap();
+        TextWorker {
+            python,
+            script,
+            staging,
+            routes,
+        }
+    }
+
+    fn route(dir: &std::path::Path, capability: &str, name: &str, exists: bool) -> WorkerRoute {
+        let script = dir.join(name);
+        if exists {
+            fs::write(&script, b"stub").unwrap();
+        }
+        WorkerRoute {
+            capability: capability.to_string(),
+            script,
+        }
+    }
+
+    #[test]
+    fn absent_routes_keep_the_single_text_route() {
+        let dir = tempfile::tempdir().unwrap();
+        let profile = worker(dir.path(), Vec::new());
+        assert!(profile.validate().is_ok());
+        assert!(profile.extra_routes().is_empty());
+    }
+
+    #[test]
+    fn a_declared_route_is_returned_as_capability_and_script() {
+        let dir = tempfile::tempdir().unwrap();
+        let profile = worker(
+            dir.path(),
+            vec![route(dir.path(), "pdf.extract", "worker_pdf.py", true)],
+        );
+        assert!(profile.validate().is_ok());
+        let extra = profile.extra_routes();
+        assert_eq!(extra.len(), 1);
+        assert_eq!(extra[0].0, "pdf.extract");
+        assert!(extra[0].1.is_file());
+    }
+
+    #[test]
+    fn a_route_script_that_does_not_exist_is_refused() {
+        let dir = tempfile::tempdir().unwrap();
+        let profile = worker(
+            dir.path(),
+            vec![route(dir.path(), "pdf.extract", "absent.py", false)],
+        );
+        assert_eq!(profile.validate(), Err("worker route script missing"));
+    }
+
+    #[test]
+    fn redeclaring_text_extract_is_refused() {
+        let dir = tempfile::tempdir().unwrap();
+        let profile = worker(
+            dir.path(),
+            vec![route(dir.path(), "text.extract", "other.py", true)],
+        );
+        assert_eq!(
+            profile.validate(),
+            Err("worker route must not redeclare text.extract")
+        );
+    }
+
+    #[test]
+    fn an_empty_capability_is_refused() {
+        let dir = tempfile::tempdir().unwrap();
+        let profile = worker(dir.path(), vec![route(dir.path(), "   ", "other.py", true)]);
+        assert_eq!(
+            profile.validate(),
+            Err("worker route capability must not be empty")
+        );
+    }
+
+    #[test]
+    fn a_duplicate_capability_is_refused_rather_than_silently_shadowed() {
+        let dir = tempfile::tempdir().unwrap();
+        let profile = worker(
+            dir.path(),
+            vec![
+                route(dir.path(), "pdf.extract", "a.py", true),
+                route(dir.path(), "pdf.extract", "b.py", true),
+            ],
+        );
+        assert_eq!(
+            profile.validate(),
+            Err("duplicate worker route capability")
+        );
+    }
+
+    #[test]
+    fn a_route_script_may_not_escape_through_a_parent_component() {
+        let dir = tempfile::tempdir().unwrap();
+        let mut profile = worker(dir.path(), Vec::new());
+        profile.routes = vec![WorkerRoute {
+            capability: "pdf.extract".into(),
+            script: dir.path().join("..").join("outside.py"),
+        }];
+        assert_eq!(profile.validate(), Err("invalid worker profile path"));
+    }
 }
