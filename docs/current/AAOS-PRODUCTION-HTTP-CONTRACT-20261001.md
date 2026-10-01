@@ -26,6 +26,34 @@ Source identity for every observation in this document:
 | Contract string reported by Core | `0.1.0-outline` |
 | Launch protocol | `archeaxis.desktop-launch/v2` |
 
+## 0. What the UI may do with this document
+
+`docs/LANGUAGE_BOUNDARY_AUTHORITY_INDEX.md` fixes what each layer owns, and the UI's side of that
+boundary is a constraint on how this contract is used, not decoration:
+
+| Layer | Owns | Must not |
+| --- | --- | --- |
+| C#/Avalonia desktop (`apps/ArcheAxis.Desktop/`) | the UI and the Core supervisor | execute SQL, or **duplicate business rules** |
+| Rust (`crates/`) | the vNext domain, jobs, storage and API; **the one authoritative writer** | write the legacy database |
+| Python (`services/python-workers/`) | parsing, OCR, ASR, model and scheduling computation | hold a main-database handle, or grant human approval |
+
+So this document is a **surface to call, not a specification to reimplement**. Concretely:
+
+* the UI reads state through these routes and renders it; when it needs a decision — whether an
+  item is assessable, whether a job settled, whether a schedule exists — the answer comes from the
+  Core, and the UI must not recompute it from the fields it happens to see. §4 lists the fields
+  that exist precisely so a reader does not have to guess which of them is authoritative.
+* the UI never opens the workspace database, and never writes to the legacy one. There is no
+  dual-write path and no live synchronization.
+* the UI verifies readiness, `system/version`, session and workspace identity before using the
+  business routes, and re-checks workspace identity after a restart rather than treating a
+  successful response from another database as recovery.
+* credentials stay out of the UI's logs, screenshots, public receipts and Git; the Core overwrites
+  a wire-supplied actor, so sending one is never a way to widen access.
+* a language or framework choice is **not** evidence that a capability is absorbed. Nothing in
+  this document, and no directory layout, substitutes for R6 A13 / M0 P5 migration acceptance or
+  for the P6 Owner gate on Green replacement.
+
 ## 1. Process model and launch handshake
 
 The Core is a child process owned by the desktop Supervisor. It is **not** a service the
@@ -509,6 +537,18 @@ Asserted by `crates/archeaxis-api/tests/contract_absent_surfaces.rs`.
   not parse a two-layer JSON payload out of it or invent `fallback: true`.
 * Offline multi-client sync, accounts, or any remote surface — out of scope; the Core is
   an IPv4-loopback single-writer child process.
+* **This contract describes the Rust Core, not the Python backend wheel.** The packaged
+  `archeaxis_workspace-0.6.14-py3-none-any.whl` is a *different* backend with its **own schema
+  baseline** (`python_compatibility`, 97 tables, including `kb_attachment_facts`), which is **not
+  the same database** as the Rust vNext Core's `workspace_meta` baseline. A UI must not treat the
+  two as one source of truth and must not write both. The wheel also does **not** contain
+  `services/python-workers/**`, so "run the full M0 loop from the wheel" is not currently possible;
+  the M0 loop is carried by the source-built Core plus workers.
+* Nothing here is a migration plan. Migration acceptance is R6 A13 / M0 P5 — a nonempty legacy-copy
+  export, a staged import, semantic difference/loss accounting, identity-preserving restart and
+  readback, and then the **separate** P6 Owner gate for Green replacement and rollback. A language
+  decision, a build, a fixture or a directory move is not evidence that a capability was absorbed,
+  and no directory move substitutes for migration.
 
 ## 9. Open items this contract does not close
 

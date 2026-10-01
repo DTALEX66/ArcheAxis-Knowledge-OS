@@ -60,6 +60,9 @@ ALSO_CHECKS: dict[str, list[str]] = {
 
 # Sections whose evidence is not a single test file, with where it actually lives.
 EVIDENCE_ELSEWHERE: dict[str, str] = {
+    "0": "the consumer boundaries, paraphrased from docs/LANGUAGE_BOUNDARY_AUTHORITY_INDEX.md and "
+         "checked against that authority and its guard by "
+         "tests/maintenance/test_consumer_boundaries.py",
     "7": "the probes and the readiness checker referenced by the section itself, recorded in "
          "docs/current/AAOS-BACKEND-LOOP-EVIDENCE-20261001.md",
     "8": "§8 is a list of things deliberately absent; each entry names the artifact that "

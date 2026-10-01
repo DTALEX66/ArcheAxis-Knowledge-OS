@@ -129,7 +129,8 @@ python -m pytest tests/maintenance/test_contract_route_inventory.py \
                  tests/maintenance/test_contract_number_consistency.py \
                  tests/maintenance/test_m0_chain_claims.py \
                  tests/maintenance/test_request_body_fields.py \
-                 tests/maintenance/test_build_toolchain_routing.py -q
+                 tests/maintenance/test_build_toolchain_routing.py \
+                 tests/maintenance/test_consumer_boundaries.py -q
 ```
 
 `tests/maintenance/test_contract_verification_map.py` is the index: it maps each contract
