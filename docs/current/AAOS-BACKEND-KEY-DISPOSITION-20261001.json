@@ -22,14 +22,14 @@
     "NOT_EXECUTED"
   ],
   "counts": {
-    "NO_EVIDENCE": 30,
-    "REAL": 22,
+    "NO_EVIDENCE": 26,
+    "REAL": 26,
     "SYNTHETIC": 5,
     "INTEGRATED": 1
   },
   "status_counts": {
-    "PLANNED": 13,
-    "CI_VERIFIED_EXACT_SHA": 9,
+    "PLANNED": 9,
+    "CI_VERIFIED_EXACT_SHA": 13,
     "IMPLEMENTED_LOCAL": 1,
     "TESTED_LOCAL": 17,
     "BLOCKED": 11,
@@ -103,9 +103,9 @@
       "lane": "BACKEND_FRONTEND_LOOP",
       "maps_to": "A06",
       "prior_audit_verdict": "OPEN_OR_PARTIAL_REQUIRES_GOLDEN_JOURNEY",
-      "status": "PLANNED",
-      "evidence_level": "NO_EVIDENCE",
-      "disposition": "NOT_ADVANCED — retrieval was not touched on this branch; the accepted-knowledge to FTS5/embedding/reranker path and its readback are unchanged",
+      "status": "CI_VERIFIED_EXACT_SHA",
+      "evidence_level": "REAL",
+      "disposition": "ADVANCED — retrieval was exercised for the first time on this branch and a real defect was found and fixed. Probing the states the published contract promises, against a live Core, showed the `empty` state did not exist: `GET /api/v1/search?q=` sent the query straight into FTS5 MATCH, so `zzz-no-such-term` answered 500 with `no such column: no`, an empty q and `zzz OR` answered 500 with `fts5: syntax error near \"\"`, and an unterminated quote answered 500 with `unterminated string`. The contract states that 200 with count=0 is a successful empty state. Both indexes now build the query from the user's text (whitespace tokens as quoted phrases with quotes doubled, combined with OR, FTS5's own default), and all these shapes answer 200 with count=0. FTS5 lexical search is now real and verified; vector, reranker and graph remain absent, which is unchanged",
       "acceptance_reference": [
         "实现并验证 FTS5 + real embedding + reranker 的最小组合。Embedding 数据与索引属于 AAOS；模型服务属于 WORK-LAB。",
         "Golden Query 必须能从已知来源返回正确 chunk/Evidence，并证明 reranker 改善候选排序或至少不破坏已知命中。",
@@ -222,9 +222,9 @@
       "lane": "BACKEND_FRONTEND_LOOP",
       "maps_to": "A06",
       "prior_audit_verdict": "OPEN_OR_PARTIAL_REQUIRES_GOLDEN_JOURNEY",
-      "status": "PLANNED",
-      "evidence_level": "NO_EVIDENCE",
-      "disposition": "NOT_ADVANCED — search was not touched on this branch",
+      "status": "CI_VERIFIED_EXACT_SHA",
+      "evidence_level": "REAL",
+      "disposition": "PARTIAL — FTS5 lexical search now behaves as the contract states, verified against a live Core: a query that matches nothing is 200 with count=0 rather than a 500 carrying an FTS5 parser message, which it was for ordinary text such as a hyphenated term or an empty q. A hit still returns to its source and transform with source_id and engine attribution. The embedding and reranker half of this key is untouched and still absent",
       "acceptance_reference": [
         "Accepted Knowledge → FTS5 + Embedding + Reranker → source-bound Search。搜索结果必须能回到原始 Evidence。",
         "验收：GJ-03"
@@ -432,9 +432,9 @@
       "lane": "BACKEND_FRONTEND_LOOP",
       "maps_to": "CAP-0110",
       "prior_audit_verdict": "PARTIAL_RECHECK_CURRENT",
-      "status": "PLANNED",
-      "evidence_level": "NO_EVIDENCE",
-      "disposition": "NOT_ADVANCED on this branch",
+      "status": "CI_VERIFIED_EXACT_SHA",
+      "evidence_level": "REAL",
+      "disposition": "PARTIAL — the FTS5 lexical half is now verified against a live Core and its empty state fixed; the graph and index half of this requirement is untouched",
       "acceptance_reference": ""
     },
     {
@@ -554,9 +554,9 @@
       "lane": "BACKEND_FRONTEND_LOOP",
       "maps_to": "",
       "prior_audit_verdict": "TESTED_LOCAL_PARTIAL",
-      "status": "PLANNED",
-      "evidence_level": "NO_EVIDENCE",
-      "disposition": "NOT_ADVANCED on this branch",
+      "status": "CI_VERIFIED_EXACT_SHA",
+      "evidence_level": "REAL",
+      "disposition": "PARTIAL — the lexical retrieval half is now real and verified: FTS5 search answers 200 with count=0 for text that matches nothing, where it previously answered 500 with a raw FTS5 parser message for ordinary queries. Vector, reranker, graph and the provider readback for this key remain open",
       "acceptance_reference": [
         "Vault lexical search now emits a path-free derived receipt with stable source_id and source_revision binding; vector/reranker/graph/research wiring, provider readback and benchmark evidence remain open"
       ]

@@ -160,7 +160,8 @@
       "PDF anchors used a page-local line counter in the final path segment",
       "OCR language data was accepted for a language it could not serve",
       "the OCR route's language was hardcoded and ignored the declaration",
-      "a probe crashed on an interpreter whose declaration could not be read, instead of reporting that it could not check"
+      "a probe crashed on an interpreter whose declaration could not be read, instead of reporting that it could not check",
+      "search sent user text straight into FTS5 MATCH, so ordinary queries were answered 500 with a raw parser message instead of an empty result"
     ],
     "owner_gates_unchanged": "A02/A16 BLOCKED; legacy migration, in-place replacement and release NOT_EXECUTED; release FROZEN"
   },
@@ -168,14 +169,14 @@
     "document": "docs/current/AAOS-BACKEND-KEY-DISPOSITION-20261001.json",
     "keys_recorded": 58,
     "evidence_counts": {
-      "NO_EVIDENCE": 30,
-      "REAL": 22,
+      "NO_EVIDENCE": 26,
+      "REAL": 26,
       "SYNTHETIC": 5,
       "INTEGRATED": 1
     },
     "status_counts": {
-      "PLANNED": 13,
-      "CI_VERIFIED_EXACT_SHA": 9,
+      "PLANNED": 9,
+      "CI_VERIFIED_EXACT_SHA": 13,
       "IMPLEMENTED_LOCAL": 1,
       "TESTED_LOCAL": 17,
       "BLOCKED": 11,
@@ -199,8 +200,8 @@
         "evidence_level": "REAL"
       },
       "RECORD-0928:AA-BE-05": {
-        "status": "PLANNED",
-        "evidence_level": "NO_EVIDENCE"
+        "status": "CI_VERIFIED_EXACT_SHA",
+        "evidence_level": "REAL"
       },
       "RECORD-0928:AA-BE-06": {
         "status": "PLANNED",
@@ -231,8 +232,8 @@
         "evidence_level": "REAL"
       },
       "RECORD-0928:GJ-03": {
-        "status": "PLANNED",
-        "evidence_level": "NO_EVIDENCE"
+        "status": "CI_VERIFIED_EXACT_SHA",
+        "evidence_level": "REAL"
       },
       "RECORD-0928:GJ-04": {
         "status": "TESTED_LOCAL",
@@ -295,8 +296,8 @@
         "evidence_level": "INTEGRATED"
       },
       "ATLAS-0929:REQ-SEARCH-001": {
-        "status": "PLANNED",
-        "evidence_level": "NO_EVIDENCE"
+        "status": "CI_VERIFIED_EXACT_SHA",
+        "evidence_level": "REAL"
       },
       "ATLAS-0929:REQ-DESKTOP-001": {
         "status": "PLANNED",
@@ -335,8 +336,8 @@
         "evidence_level": "REAL"
       },
       "R6-LIVE-LEDGER:A06": {
-        "status": "PLANNED",
-        "evidence_level": "NO_EVIDENCE"
+        "status": "CI_VERIFIED_EXACT_SHA",
+        "evidence_level": "REAL"
       },
       "R6-LIVE-LEDGER:A07": {
         "status": "BLOCKED",

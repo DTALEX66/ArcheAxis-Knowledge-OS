@@ -230,6 +230,40 @@ Conflict semantics the UI must honour:
 UI states to map explicitly: `loading / empty / error / offline / permission / conflict /
 unavailable`. `200` with `count=0` is a successful **empty** state, not an error.
 
+Each of those states was then **exercised against a live Core** rather than assumed, and the
+`empty` state did not hold: see *Search query semantics* below. After that fix, ten probes
+across the states report no mismatch:
+
+| State | How it was provoked | Observed |
+| --- | --- | --- |
+| `empty` | a search for text that cannot occur, an empty `q`, a query of only operators | `200`, `count: 0` |
+| `permission` | no `x-archeaxis-launch-token`; an unknown token; a browser `origin` header | `401 AAK-AUTH-001`; `401 AAK-AUTH-001`; `403 AAK-AUTH-002` |
+| `error` | a job body with neither `job_id` nor `input_ref`; an import with no name | `422` |
+| `unavailable` | a `pdf` job on a launch that declares no route for it | job settles `failed` |
+| `conflict` | an execution replayed under a different `idempotency-key`, and under the same one | see *Idempotency* above |
+| `offline` | any remote-sync surface | `404` — the Core has none, which is the contract's claim |
+
+`loading` has no server representation: it is the interval before the first response, so the
+UI owns it.
+
+### Search query semantics
+
+`GET /api/v1/search?q=` treats `q` as **text a person typed**, not as a query expression. The
+core tokenises it on whitespace and matches rows containing **any** of the tokens, with
+ranking ordering rows that match more of them first. Consequences the UI can rely on:
+
+* `q` may contain anything — punctuation, quotes, hyphens, `AND`/`OR`/`NOT`, or be empty. None
+  of these is an operator, and none produces an error. A `q` with nothing searchable in it is
+  `200` with `count: 0`.
+* **No phrase or boolean syntax is available.** A quoted string is not a phrase request and
+  `OR` is not an operator; they are words like any other. A UI that wants "all of these words"
+  must not express it as `AND`.
+* A hyphen is a token separator: `radius-6371` matches text containing those tokens adjacent,
+  and does not match them apart.
+
+Before the fix this endpoint answered `500` with a raw FTS5 parser message for
+`zzz-no-such-term`, an empty `q`, `zzz OR` and an unterminated quote.
+
 ## 6. Launch shape decides the router — the critical integration fact
 
 | Launch | Routes served | Consequence for the UI |

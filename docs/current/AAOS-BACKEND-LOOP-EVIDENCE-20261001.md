@@ -573,6 +573,39 @@ now fixed with tests that fail if the defect returns:
 endpoint this host does not serve. It is absent from the matrix on purpose rather than
 reported as a pass.
 
+### The contract's UI states, exercised against a live Core
+
+The published contract tells the UI to map `loading / empty / error / offline / permission /
+conflict / unavailable`, and states that `200` with `count=0` is a successful empty state.
+Probing those states against a running Core — rather than trusting the sentence — found that
+the empty state did not exist:
+
+| Probe | Before | After |
+| --- | --- | --- |
+| `q=zzz-no-such-term` | `500`, `no such column: no` | `200`, `count: 0` |
+| `q=` (empty) | `500`, `fts5: syntax error near ""` | `200`, `count: 0` |
+| `q=zzz OR` | `500`, `fts5: syntax error near ""` | `200`, `count: 0` |
+| `q="unterminated quote` | `500`, `unterminated string` | `200`, `count: 0` |
+
+The query went into `MATCH` verbatim, so a person's text was read as an FTS5 expression and a
+search that found nothing was reported as a failure carrying a SQLite parser diagnostic. Both
+indexes now build the query from the user's text — whitespace tokens as quoted phrases with
+their quotes doubled — combined with `OR`, which is FTS5's own default for space-separated
+terms and keeps recall wide, since this index has no vector or reranker behind it. `AND` was
+tried and rejected: it broke `v01_closed_loop`'s two-word query and made two words in
+different sentences match nothing.
+
+With that fixed, all states are reproducible and the probe reports **10 probes, 0
+mismatches**: `empty` (`200`/`count: 0`), `permission` (`401 AAK-AUTH-001` for a missing and
+for an unknown token; `403 AAK-AUTH-002` for a browser `origin`), `error` (`422` for a job
+body without `job_id`/`input_ref` and an import without a name), `unavailable` (a `pdf` job on
+a launch that declares no route settles `failed`), `conflict` (execution replay), and
+`offline` (no sync surface: `404`). `loading` is a client state with no server representation.
+
+The contract document now records the query semantics the UI depends on, including the one
+that is easy to get wrong: **no phrase or boolean syntax is available**, so a UI must not
+express "all of these words" as `AND`.
+
 ### Reproducing this
 
 `docs/current/AAOS-BACKEND-ACCEPTANCE-RUNBOOK-20261001.md` records the branch and base, the
