@@ -455,6 +455,10 @@ pub const KNOWN_WORKER_IDENTITIES: &[&str] = &[
     // the ASR route's identity; a route with no identity here is refused with
     // "unexpected worker identity" before it can serve anything
     "python-worker-transcribe-ndjson",
+    // G4: the machine answer route. Registered so a launch may declare it; whether a Core job route
+    // drives it is a separate question, and the capability registry answers that rather than this
+    // list, which only says which identities are recognised at all.
+    "python-worker-machine-answer-ndjson",
 ];
 
 fn run_worker(

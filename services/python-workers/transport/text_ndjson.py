@@ -326,6 +326,11 @@ ROUTES = {
             "image/bmp": ".bmp",
         },
     },
+    # G4's machine answer worker has **no route here on purpose**. A route in this table is validated
+    # against the job protocol, and that protocol requires `parameters` to be empty, so there is no
+    # way to carry the question the worker needs. Declaring a route here would be a route that fails
+    # its own validation. What the worker needs is a Core route that accepts a question, which does
+    # not exist yet, and inventing a route that cannot run would be worse than saying so.
 }
 
 

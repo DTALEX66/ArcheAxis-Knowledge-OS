@@ -566,6 +566,18 @@ has no such object": `404` to the family's own method **and** `404` to a wrong m
 path answers `405` to a wrong method, so the wrong-method probe is what makes the claim testable.
 Asserted by `crates/archeaxis-api/tests/contract_absent_surfaces.rs`.
 
+**G4 status, stated plainly.** A real local model works here: `POST`ing to `/chat/completions` on the
+OpenAI-compatible server at `127.0.0.1:1234` returns an answer with `finish_reason: stop`, and the
+worker `services/python-workers/machine/worker_machine_answer.py` wraps that with endpoint
+resolution, a capability probe, a token budget it reports, and a receipt labelling the answer a
+**candidate**. Its identity is registered, so a launch may declare it.
+
+What does **not** exist is a Core route that drives it. A route in the worker transport is validated
+against the job protocol, and that protocol requires `parameters` to be empty, so there is no way to
+carry the question the worker needs. Declaring a route there anyway would be a route that fails its
+own validation. **The missing piece is a Core route that accepts a question**, and until it exists a
+UI must show machine answering as not connected rather than calling anything.
+
 | Attempted route | Observed | Meaning for the UI |
 | --- | --- | --- |
 | `GET/POST /api/v1/research`, `/research/tasks` | `404` in both methods | no research surface; show "not connected", never a success state |
