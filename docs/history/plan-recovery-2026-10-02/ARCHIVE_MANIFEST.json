@@ -1,0 +1,26 @@
+{
+  "schema": "aaos.archive-manifest/v1",
+  "archive_date": "2026-10-02",
+  "classification": "HISTORICAL_RECORD_REFERENCE_NOT_CURRENT_AUTHORITY",
+  "provenance": {
+    "supplied_by": "the Owner, in session, on 2026-10-02",
+    "form": "pasted as chat text rather than as a file, so there is no source file to hash; the archived copy is the record",
+    "session_note": "the pasted text ended with a stray 'E）' fragment, which is recorded here rather than silently dropped or treated as an instruction"
+  },
+  "source_copies": [
+    {
+      "source": "Owner-supplied plan text (in session, 2026-10-02)",
+      "archive": "./docs/history/plan-recovery-2026-10-02/AAOS-R7-PLAN-2026-10-02.md",
+      "bytes": 13805,
+      "sha256": "C5F5E3E317F20741FD5A5E675FD9B400AC955482DF9BC0EC7442FD745A8AAE4A",
+      "byte_identical": true
+    }
+  ],
+  "expanded_entry_count": 1,
+  "integrity": "PASS",
+  "related_records": [
+    "docs/current/AAOS-PLAN-SUPERSESSION-20261002.md",
+    "docs/current/AAOS-R7-FAST-CLOSURE-TASKPACK-20261002.json",
+    "docs/history/planning-blueprint-absorption/2026-09-29/ARCHIVE_MANIFEST.json"
+  ]
+}
