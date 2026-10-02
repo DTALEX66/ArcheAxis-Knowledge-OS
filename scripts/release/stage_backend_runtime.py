@@ -52,6 +52,21 @@ ROUTE_SCRIPTS: dict[str, tuple[str, ...]] = {
     "html.structure": ("workers/web/worker_html.py",),
     "image.caption": ("workers/vision/worker_caption.py",),
     "image.ocr": ("workers/vision/worker_ocr.py",),
+    # G4: the machine answer route. It is declared here even though it has **no entry in the worker
+    # transport's own route table**, because the two tables are different registries:
+    #
+    # * this one is what the launch declares, and the Core registers only what is declared. Without an
+    #   entry here the capability does not exist in a staged runtime, `POST /api/v1/machine/answers`
+    #   answers 503 "no worker is registered for machine.answer", and the machine half of the
+    #   co-learning loop is unreachable in the product even though its code is finished.
+    # * the transport table is the *job* protocol, and this capability deliberately has no entry
+    #   there: a job request must carry an empty `parameters` object, so there is nowhere for the
+    #   question a machine answer needs to travel. The transport records that reason beside its own
+    #   table rather than leaving it as a silence.
+    #
+    # Declaring it here is the wiring that makes the route usable. It does not add a job route: the
+    # Core reaches this worker through its own route rather than through a job.
+    "machine.answer": ("workers/machine/worker_machine_answer.py",),
     "media.probe": ("workers/document/worker_media.py",),
     "media.transcribe": ("workers/media/worker_transcribe.py",),
     "office.structure": ("workers/document/worker_office.py",),

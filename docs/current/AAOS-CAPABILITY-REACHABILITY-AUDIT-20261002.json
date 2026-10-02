@@ -6,7 +6,6 @@
   "worktree": ".project-local/worktrees/dsh-backend-loop-20261001",
   "question": "Which registered capabilities cannot be reached by a job, and how could a reader tell?",
   "verdict_in_one_line": "11 capabilities are reachable by a job kind in attempts::ROUTES; 1 capability (machine.answer) is registered in KNOWN_WORKER_IDENTITIES and reachable only through a dedicated Core HTTP route, never by a job; no capability in any of the four audited sources is reached by nothing at all.",
-
   "method": {
     "what_counts_as_reachable_in_this_audit": [
       "reachable_by_a_job: a job kind in crates/archeaxis-application/src/attempts.rs::ROUTES maps to the capability, because attempts::claim resolves the kind through route_for_kind and refuses any kind that is absent ('undeclared job kind'). That table is therefore the single production gate for job dispatch, and nothing else in the Core can claim a job.",
@@ -99,7 +98,6 @@
       "It did not modify any existing file."
     ]
   },
-
   "sources_read": [
     "crates/archeaxis-application/src/attempts.rs",
     "crates/archeaxis-application/src/executor.rs",
@@ -119,23 +117,69 @@
     "apps/ArcheAxis.Desktop/CoreSupervisor.cs",
     "docs/current/AAOS-CAPABILITY-REGISTRY-V1-20261002.json"
   ],
-
   "attempts_routes_table": [
-    {"kind": "text", "capability": "text.extract", "media_type": "text/plain"},
-    {"kind": "text.extract", "capability": "text.extract", "media_type": "text/plain"},
-    {"kind": "pdf", "capability": "pdf.extract", "media_type": "application/pdf"},
-    {"kind": "image", "capability": "image.ocr", "media_type": "image/png"},
-    {"kind": "archive", "capability": "archive.inventory", "media_type": "application/zip"},
-    {"kind": "media", "capability": "media.probe", "media_type": "video/mp4"},
-    {"kind": "office", "capability": "office.structure", "media_type": "application/vnd.openxmlformats-officedocument.wordprocessingml.document"},
-    {"kind": "canvas", "capability": "canvas.structure", "media_type": "application/json"},
-    {"kind": "subtitles", "capability": "subtitles.structure", "media_type": "application/x-subrip"},
-    {"kind": "html", "capability": "html.structure", "media_type": "text/html"},
-    {"kind": "caption", "capability": "image.caption", "media_type": "image/png"},
-    {"kind": "transcribe", "capability": "media.transcribe", "media_type": "audio/wav"}
+    {
+      "kind": "text",
+      "capability": "text.extract",
+      "media_type": "text/plain"
+    },
+    {
+      "kind": "text.extract",
+      "capability": "text.extract",
+      "media_type": "text/plain"
+    },
+    {
+      "kind": "pdf",
+      "capability": "pdf.extract",
+      "media_type": "application/pdf"
+    },
+    {
+      "kind": "image",
+      "capability": "image.ocr",
+      "media_type": "image/png"
+    },
+    {
+      "kind": "archive",
+      "capability": "archive.inventory",
+      "media_type": "application/zip"
+    },
+    {
+      "kind": "media",
+      "capability": "media.probe",
+      "media_type": "video/mp4"
+    },
+    {
+      "kind": "office",
+      "capability": "office.structure",
+      "media_type": "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+    },
+    {
+      "kind": "canvas",
+      "capability": "canvas.structure",
+      "media_type": "application/json"
+    },
+    {
+      "kind": "subtitles",
+      "capability": "subtitles.structure",
+      "media_type": "application/x-subrip"
+    },
+    {
+      "kind": "html",
+      "capability": "html.structure",
+      "media_type": "text/html"
+    },
+    {
+      "kind": "caption",
+      "capability": "image.caption",
+      "media_type": "image/png"
+    },
+    {
+      "kind": "transcribe",
+      "capability": "media.transcribe",
+      "media_type": "audio/wav"
+    }
   ],
   "attempts_routes_note": "12 entries, 11 distinct capabilities: 'text' and 'text.extract' are two job kinds for one capability. The media type column is the declared default only; attempts::resolve_media_type derives the announced type from the source file name and requires it to be in attempts::ROUTE_MEDIA_TYPES for the capability (attempts.rs:234-248).",
-
   "known_worker_identities": [
     "python-worker-text-ndjson",
     "python-worker-pdf-ndjson",
@@ -151,22 +195,64 @@
     "python-worker-machine-answer-ndjson"
   ],
   "known_worker_identities_note": "12 identities. These are process names, not capabilities: the list gates which worker process the Core will drive (executor.rs:650-654), and the separate check that the worker advertises the claimed capability is at executor.rs:658-663. A capability is absent from this list and still job-reachable only if its worker's identity is spelled differently; no such case exists here - all 11 job-reachable capabilities correspond one-to-one with the first 11 identities.",
-
   "transport_routes_table": [
-    {"capability": "text.extract", "worker": "services/python-workers/document/worker_text.py", "call": "path"},
-    {"capability": "pdf.extract", "worker": "services/python-workers/document/worker_pdf.py", "call": "path"},
-    {"capability": "image.ocr", "worker": "services/python-workers/vision/worker_ocr.py", "call": "ocr"},
-    {"capability": "archive.inventory", "worker": "services/python-workers/document/worker_archive.py", "call": "path"},
-    {"capability": "media.probe", "worker": "services/python-workers/document/worker_media.py", "call": "path"},
-    {"capability": "media.transcribe", "worker": "services/python-workers/media/worker_transcribe.py", "call": "transcribe"},
-    {"capability": "office.structure", "worker": "services/python-workers/document/worker_office.py", "call": "path"},
-    {"capability": "canvas.structure", "worker": "services/python-workers/document/worker_canvas.py", "call": "path"},
-    {"capability": "subtitles.structure", "worker": "services/python-workers/document/worker_subtitles.py", "call": "path"},
-    {"capability": "html.structure", "worker": "services/python-workers/web/worker_html.py", "call": "path"},
-    {"capability": "image.caption", "worker": "services/python-workers/vision/worker_caption.py", "call": "path"}
+    {
+      "capability": "text.extract",
+      "worker": "services/python-workers/document/worker_text.py",
+      "call": "path"
+    },
+    {
+      "capability": "pdf.extract",
+      "worker": "services/python-workers/document/worker_pdf.py",
+      "call": "path"
+    },
+    {
+      "capability": "image.ocr",
+      "worker": "services/python-workers/vision/worker_ocr.py",
+      "call": "ocr"
+    },
+    {
+      "capability": "archive.inventory",
+      "worker": "services/python-workers/document/worker_archive.py",
+      "call": "path"
+    },
+    {
+      "capability": "media.probe",
+      "worker": "services/python-workers/document/worker_media.py",
+      "call": "path"
+    },
+    {
+      "capability": "media.transcribe",
+      "worker": "services/python-workers/media/worker_transcribe.py",
+      "call": "transcribe"
+    },
+    {
+      "capability": "office.structure",
+      "worker": "services/python-workers/document/worker_office.py",
+      "call": "path"
+    },
+    {
+      "capability": "canvas.structure",
+      "worker": "services/python-workers/document/worker_canvas.py",
+      "call": "path"
+    },
+    {
+      "capability": "subtitles.structure",
+      "worker": "services/python-workers/document/worker_subtitles.py",
+      "call": "path"
+    },
+    {
+      "capability": "html.structure",
+      "worker": "services/python-workers/web/worker_html.py",
+      "call": "path"
+    },
+    {
+      "capability": "image.caption",
+      "worker": "services/python-workers/vision/worker_caption.py",
+      "call": "path"
+    }
   ],
   "transport_routes_note": "11 keys, identical to the 11 distinct capabilities of attempts::ROUTES. The transport deliberately has no machine.answer key; text_ndjson.py:329-333 records that decision in the source: the job protocol requires parameters to be empty, so a question cannot travel in a job request, and declaring the route would be a route that fails its own validation.",
-
   "readers_own_reachability_record": {
     "file": "docs/authority/taskpack-0910-r3/WORKER-REACHABILITY.json",
     "schema": "archeaxis.worker-reachability/v1",
@@ -188,71 +274,334 @@
       }
     ],
     "also_present_but_not_capability_workers": [
-      {"worker": "services/python-workers/web/worker_webpage.py", "note": "declares an ENGINE but is a fetch client that takes a URL and an output directory; the record says no route may reach the network, and it returns no projected text either"},
-      {"worker": "services/python-workers/worker_extract.py", "note": "a dispatcher with no engine identity of its own"}
+      {
+        "worker": "services/python-workers/web/worker_webpage.py",
+        "note": "declares an ENGINE but is a fetch client that takes a URL and an output directory; the record says no route may reach the network, and it returns no projected text either"
+      },
+      {
+        "worker": "services/python-workers/worker_extract.py",
+        "note": "a dispatcher with no engine identity of its own"
+      }
     ],
     "routed_since_this_record": [
-      {"worker": "services/python-workers/media/worker_transcribe.py", "engine": "python-worker-transcribe", "routed_as": "media.transcribe", "note": "routed 2026-10-01; kept as history because the exemption was real until the model resolution and the audio media types existed"},
-      {"worker": "services/python-workers/vision/worker_caption.py", "engine": "python-worker-caption", "routed_as": "image.caption", "note": "routed in round 84"},
-      {"worker": "services/python-workers/web/worker_html.py", "engine": "python-worker-html", "routed_as": "html.structure", "note": "routed in round 83"},
-      {"worker": "services/python-workers/document/worker_office.py", "engine": "python-worker-office", "routed_as": "office.structure", "note": "routed in round 81"},
-      {"worker": "services/python-workers/document/worker_canvas.py", "engine": "python-worker-canvas", "routed_as": "canvas.structure", "note": "routed in round 82"},
-      {"worker": "services/python-workers/document/worker_subtitles.py", "engine": "python-worker-subtitles", "routed_as": "subtitles.structure", "note": "routed in round 82"}
+      {
+        "worker": "services/python-workers/media/worker_transcribe.py",
+        "engine": "python-worker-transcribe",
+        "routed_as": "media.transcribe",
+        "note": "routed 2026-10-01; kept as history because the exemption was real until the model resolution and the audio media types existed"
+      },
+      {
+        "worker": "services/python-workers/vision/worker_caption.py",
+        "engine": "python-worker-caption",
+        "routed_as": "image.caption",
+        "note": "routed in round 84"
+      },
+      {
+        "worker": "services/python-workers/web/worker_html.py",
+        "engine": "python-worker-html",
+        "routed_as": "html.structure",
+        "note": "routed in round 83"
+      },
+      {
+        "worker": "services/python-workers/document/worker_office.py",
+        "engine": "python-worker-office",
+        "routed_as": "office.structure",
+        "note": "routed in round 81"
+      },
+      {
+        "worker": "services/python-workers/document/worker_canvas.py",
+        "engine": "python-worker-canvas",
+        "routed_as": "canvas.structure",
+        "note": "routed in round 82"
+      },
+      {
+        "worker": "services/python-workers/document/worker_subtitles.py",
+        "engine": "python-worker-subtitles",
+        "routed_as": "subtitles.structure",
+        "note": "routed in round 82"
+      }
     ],
     "checker_re_run_result": "passed=true, failures=[], workers=13, routed=11, exempted=2 (exit 0). Only capabilities are tallied here; the checker does not compare the transport table against attempts::ROUTES, so 'passed' does not mean 'a job can reach every routed capability'."
   },
-
   "cross_reference": {
-    "columns": ["attempts::ROUTES (job kind)", "KNOWN_WORKER_IDENTITIES", "transport ROUTES", "WORKER-REACHABILITY.json", "reached by a job?"],
+    "columns": [
+      "attempts::ROUTES (job kind)",
+      "KNOWN_WORKER_IDENTITIES",
+      "transport ROUTES",
+      "WORKER-REACHABILITY.json",
+      "reached by a job?"
+    ],
     "per_capability": [
-      {"capability": "text.extract", "job_kinds": ["text", "text.extract"], "in_known_identities": "python-worker-text-ndjson", "in_transport_routes": true, "in_reachability_record": false, "job_reachable": true},
-      {"capability": "pdf.extract", "job_kinds": ["pdf"], "in_known_identities": "python-worker-pdf-ndjson", "in_transport_routes": true, "in_reachability_record": false, "job_reachable": true},
-      {"capability": "image.ocr", "job_kinds": ["image"], "in_known_identities": "python-worker-ocr-ndjson", "in_transport_routes": true, "in_reachability_record": false, "job_reachable": true},
-      {"capability": "archive.inventory", "job_kinds": ["archive"], "in_known_identities": "python-worker-archive-ndjson", "in_transport_routes": true, "in_reachability_record": false, "job_reachable": true},
-      {"capability": "media.probe", "job_kinds": ["media"], "in_known_identities": "python-worker-media-ndjson", "in_transport_routes": true, "in_reachability_record": false, "job_reachable": true},
-      {"capability": "media.transcribe", "job_kinds": ["transcribe"], "in_known_identities": "python-worker-transcribe-ndjson", "in_transport_routes": true, "in_reachability_record": true, "in_reachability_record_basis": "listed under routed_since_this_record as routed on 2026-10-01, i.e. history rather than a live exemption", "job_reachable": true},
-      {"capability": "office.structure", "job_kinds": ["office"], "in_known_identities": "python-worker-office-ndjson", "in_transport_routes": true, "in_reachability_record": true, "in_reachability_record_basis": "listed under routed_since_this_record, round 81", "job_reachable": true},
-      {"capability": "canvas.structure", "job_kinds": ["canvas"], "in_known_identities": "python-worker-canvas-ndjson", "in_transport_routes": true, "in_reachability_record": true, "in_reachability_record_basis": "listed under routed_since_this_record, round 82", "job_reachable": true},
-      {"capability": "subtitles.structure", "job_kinds": ["subtitles"], "in_known_identities": "python-worker-subtitles-ndjson", "in_transport_routes": true, "in_reachability_record": true, "in_reachability_record_basis": "listed under routed_since_this_record, round 82", "job_reachable": true},
-      {"capability": "html.structure", "job_kinds": ["html"], "in_known_identities": "python-worker-html-ndjson", "in_transport_routes": true, "in_reachability_record": true, "in_reachability_record_basis": "listed under routed_since_this_record, round 83", "job_reachable": true},
-      {"capability": "image.caption", "job_kinds": ["caption"], "in_known_identities": "python-worker-caption-ndjson", "in_transport_routes": true, "in_reachability_record": true, "in_reachability_record_basis": "listed under routed_since_this_record, round 84", "job_reachable": true},
-      {"capability": "machine.answer", "job_kinds": [], "in_known_identities": "python-worker-machine-answer-ndjson", "in_transport_routes": false, "in_reachability_record": true, "in_reachability_record_basis": "unrouted entry with reached_by POST /api/v1/machine/answers and routed_by_core_route true", "job_reachable": false}
+      {
+        "capability": "text.extract",
+        "job_kinds": [
+          "text",
+          "text.extract"
+        ],
+        "in_known_identities": "python-worker-text-ndjson",
+        "in_transport_routes": true,
+        "in_reachability_record": false,
+        "job_reachable": true
+      },
+      {
+        "capability": "pdf.extract",
+        "job_kinds": [
+          "pdf"
+        ],
+        "in_known_identities": "python-worker-pdf-ndjson",
+        "in_transport_routes": true,
+        "in_reachability_record": false,
+        "job_reachable": true
+      },
+      {
+        "capability": "image.ocr",
+        "job_kinds": [
+          "image"
+        ],
+        "in_known_identities": "python-worker-ocr-ndjson",
+        "in_transport_routes": true,
+        "in_reachability_record": false,
+        "job_reachable": true
+      },
+      {
+        "capability": "archive.inventory",
+        "job_kinds": [
+          "archive"
+        ],
+        "in_known_identities": "python-worker-archive-ndjson",
+        "in_transport_routes": true,
+        "in_reachability_record": false,
+        "job_reachable": true
+      },
+      {
+        "capability": "media.probe",
+        "job_kinds": [
+          "media"
+        ],
+        "in_known_identities": "python-worker-media-ndjson",
+        "in_transport_routes": true,
+        "in_reachability_record": false,
+        "job_reachable": true
+      },
+      {
+        "capability": "media.transcribe",
+        "job_kinds": [
+          "transcribe"
+        ],
+        "in_known_identities": "python-worker-transcribe-ndjson",
+        "in_transport_routes": true,
+        "in_reachability_record": true,
+        "in_reachability_record_basis": "listed under routed_since_this_record as routed on 2026-10-01, i.e. history rather than a live exemption",
+        "job_reachable": true
+      },
+      {
+        "capability": "office.structure",
+        "job_kinds": [
+          "office"
+        ],
+        "in_known_identities": "python-worker-office-ndjson",
+        "in_transport_routes": true,
+        "in_reachability_record": true,
+        "in_reachability_record_basis": "listed under routed_since_this_record, round 81",
+        "job_reachable": true
+      },
+      {
+        "capability": "canvas.structure",
+        "job_kinds": [
+          "canvas"
+        ],
+        "in_known_identities": "python-worker-canvas-ndjson",
+        "in_transport_routes": true,
+        "in_reachability_record": true,
+        "in_reachability_record_basis": "listed under routed_since_this_record, round 82",
+        "job_reachable": true
+      },
+      {
+        "capability": "subtitles.structure",
+        "job_kinds": [
+          "subtitles"
+        ],
+        "in_known_identities": "python-worker-subtitles-ndjson",
+        "in_transport_routes": true,
+        "in_reachability_record": true,
+        "in_reachability_record_basis": "listed under routed_since_this_record, round 82",
+        "job_reachable": true
+      },
+      {
+        "capability": "html.structure",
+        "job_kinds": [
+          "html"
+        ],
+        "in_known_identities": "python-worker-html-ndjson",
+        "in_transport_routes": true,
+        "in_reachability_record": true,
+        "in_reachability_record_basis": "listed under routed_since_this_record, round 83",
+        "job_reachable": true
+      },
+      {
+        "capability": "image.caption",
+        "job_kinds": [
+          "caption"
+        ],
+        "in_known_identities": "python-worker-caption-ndjson",
+        "in_transport_routes": true,
+        "in_reachability_record": true,
+        "in_reachability_record_basis": "listed under routed_since_this_record, round 84",
+        "job_reachable": true
+      },
+      {
+        "capability": "machine.answer",
+        "job_kinds": [],
+        "in_known_identities": "python-worker-machine-answer-ndjson",
+        "in_transport_routes": false,
+        "in_reachability_record": true,
+        "in_reachability_record_basis": "unrouted entry with reached_by POST /api/v1/machine/answers and routed_by_core_route true",
+        "job_reachable": false
+      }
     ],
     "non_capability_workers_seen_while_reading": [
-      {"worker": "services/python-workers/media/worker_video.py", "engine": "python-worker-video", "in_known_identities": false, "in_transport_routes": false, "note": "not a capability in any of the four audited sources. It has an ENGINE but declares no WORKER_IDENTITY, so the Core's identity gate (executor.rs:650) would refuse it even if a route named it."},
-      {"worker": "services/python-workers/web/worker_webpage.py", "engine": "python-worker-webpage", "in_known_identities": false, "in_transport_routes": false, "note": "a network fetch client, recorded in the reachability record as not a capability worker"},
-      {"worker": "services/python-workers/worker_extract.py", "engine": null, "in_known_identities": false, "in_transport_routes": false, "note": "a dispatcher with no engine identity of its own"},
-      {"worker": "services/python-workers/evaluation/worker_quality.py", "engine": "python-worker-quality", "in_known_identities": false, "in_transport_routes": false, "note": "an evaluation worker, not a capability in any of the four sources"}
+      {
+        "worker": "services/python-workers/media/worker_video.py",
+        "engine": "python-worker-video",
+        "in_known_identities": false,
+        "in_transport_routes": false,
+        "note": "not a capability in any of the four audited sources. It has an ENGINE but declares no WORKER_IDENTITY, so the Core's identity gate (executor.rs:650) would refuse it even if a route named it."
+      },
+      {
+        "worker": "services/python-workers/web/worker_webpage.py",
+        "engine": "python-worker-webpage",
+        "in_known_identities": false,
+        "in_transport_routes": false,
+        "note": "a network fetch client, recorded in the reachability record as not a capability worker"
+      },
+      {
+        "worker": "services/python-workers/worker_extract.py",
+        "engine": null,
+        "in_known_identities": false,
+        "in_transport_routes": false,
+        "note": "a dispatcher with no engine identity of its own"
+      },
+      {
+        "worker": "services/python-workers/evaluation/worker_quality.py",
+        "engine": "python-worker-quality",
+        "in_known_identities": false,
+        "in_transport_routes": false,
+        "note": "an evaluation worker, not a capability in any of the four sources"
+      }
     ]
   },
-
   "production_registration_note": {
     "why_it_matters_here": "A capability in KNOWN_WORKER_IDENTITIES is not automatically registered. Executor::open_routes registers only what the launch declares (plus text.extract), and the capability surface lists exactly the registered routes. So 'registered + healthy' is a statement about one launch, and a name in the identity list is not evidence of registration.",
     "the_three_declaration_paths": [
-      {"path": "crates/archeaxis-api/src/main.rs:213-238", "role": "the only route-declaring entry point; reads launch.text_worker.routes"},
-      {"path": "scripts/release/stage_backend_runtime.py:49-77 and 293-300", "role": "writes worker-profile.json; ROUTE_SCRIPTS contains exactly 10 capabilities - archive.inventory, canvas.structure, html.structure, image.caption, image.ocr, media.probe, media.transcribe, office.structure, pdf.extract, subtitles.structure - and text.extract is served by the profile's default script. machine.answer is not in that table."},
-      {"path": "apps/ArcheAxis.Desktop/CoreSupervisor.cs:92-93", "role": "the desktop host declares no routes at all; only {python, script, staging}"}
+      {
+        "path": "crates/archeaxis-api/src/main.rs:213-238",
+        "role": "the only route-declaring entry point; reads launch.text_worker.routes"
+      },
+      {
+        "path": "scripts/release/stage_backend_runtime.py:49-77 and 293-300",
+        "role": "writes worker-profile.json; ROUTE_SCRIPTS contains exactly 10 capabilities - archive.inventory, canvas.structure, html.structure, image.caption, image.ocr, media.probe, media.transcribe, office.structure, pdf.extract, subtitles.structure - and text.extract is served by the profile's default script. machine.answer is not in that table."
+      },
+      {
+        "path": "apps/ArcheAxis.Desktop/CoreSupervisor.cs:92-93",
+        "role": "the desktop host declares no routes at all; only {python, script, staging}"
+      }
     ],
     "consequence": "In a staged-runtime or desktop launch, machine.answer is not a registered capability at all: the capability surface would not list it, and POST /api/v1/machine/answers would answer 503 with the executor's own words, 'no worker is registered for machine.answer' (executor.rs:143). It becomes registered only when a launch declares it, which today only the two test contracts (crates/archeaxis-api/tests/contract_machine_answer.rs:29 and contract_machine_retest.rs:33) and the probe scripts/probes/colearning_real_model_smoke.py:138 do.",
     "capability_surface_cannot_express_this": "crates/archeaxis-api/src/capabilities.rs never consults attempts::ROUTES. Its health field is computed from std::fs::metadata alone and its registered field is hard-coded true for every row it emits, so a row can read 'declared' and enabled for a capability no job kind can reach. The surface's own declared_only_note says it is not proof a capability works, but it is silent on whether anything can invoke it."
   },
-
   "reachable_by_a_job": [
-    {"capability": "text.extract", "job_kinds": ["text", "text.extract"], "worker": "services/python-workers/document/worker_text.py", "identity": "python-worker-text-ndjson"},
-    {"capability": "pdf.extract", "job_kinds": ["pdf"], "worker": "services/python-workers/document/worker_pdf.py", "identity": "python-worker-pdf-ndjson"},
-    {"capability": "image.ocr", "job_kinds": ["image"], "worker": "services/python-workers/vision/worker_ocr.py", "identity": "python-worker-ocr-ndjson"},
-    {"capability": "archive.inventory", "job_kinds": ["archive"], "worker": "services/python-workers/document/worker_archive.py", "identity": "python-worker-archive-ndjson"},
-    {"capability": "media.probe", "job_kinds": ["media"], "worker": "services/python-workers/document/worker_media.py", "identity": "python-worker-media-ndjson"},
-    {"capability": "media.transcribe", "job_kinds": ["transcribe"], "worker": "services/python-workers/media/worker_transcribe.py", "identity": "python-worker-transcribe-ndjson"},
-    {"capability": "office.structure", "job_kinds": ["office"], "worker": "services/python-workers/document/worker_office.py", "identity": "python-worker-office-ndjson"},
-    {"capability": "canvas.structure", "job_kinds": ["canvas"], "worker": "services/python-workers/document/worker_canvas.py", "identity": "python-worker-canvas-ndjson"},
-    {"capability": "subtitles.structure", "job_kinds": ["subtitles"], "worker": "services/python-workers/document/worker_subtitles.py", "identity": "python-worker-subtitles-ndjson"},
-    {"capability": "html.structure", "job_kinds": ["html"], "worker": "services/python-workers/web/worker_html.py", "identity": "python-worker-html-ndjson"},
-    {"capability": "image.caption", "job_kinds": ["caption"], "worker": "services/python-workers/vision/worker_caption.py", "identity": "python-worker-caption-ndjson"}
+    {
+      "capability": "text.extract",
+      "job_kinds": [
+        "text",
+        "text.extract"
+      ],
+      "worker": "services/python-workers/document/worker_text.py",
+      "identity": "python-worker-text-ndjson"
+    },
+    {
+      "capability": "pdf.extract",
+      "job_kinds": [
+        "pdf"
+      ],
+      "worker": "services/python-workers/document/worker_pdf.py",
+      "identity": "python-worker-pdf-ndjson"
+    },
+    {
+      "capability": "image.ocr",
+      "job_kinds": [
+        "image"
+      ],
+      "worker": "services/python-workers/vision/worker_ocr.py",
+      "identity": "python-worker-ocr-ndjson"
+    },
+    {
+      "capability": "archive.inventory",
+      "job_kinds": [
+        "archive"
+      ],
+      "worker": "services/python-workers/document/worker_archive.py",
+      "identity": "python-worker-archive-ndjson"
+    },
+    {
+      "capability": "media.probe",
+      "job_kinds": [
+        "media"
+      ],
+      "worker": "services/python-workers/document/worker_media.py",
+      "identity": "python-worker-media-ndjson"
+    },
+    {
+      "capability": "media.transcribe",
+      "job_kinds": [
+        "transcribe"
+      ],
+      "worker": "services/python-workers/media/worker_transcribe.py",
+      "identity": "python-worker-transcribe-ndjson"
+    },
+    {
+      "capability": "office.structure",
+      "job_kinds": [
+        "office"
+      ],
+      "worker": "services/python-workers/document/worker_office.py",
+      "identity": "python-worker-office-ndjson"
+    },
+    {
+      "capability": "canvas.structure",
+      "job_kinds": [
+        "canvas"
+      ],
+      "worker": "services/python-workers/document/worker_canvas.py",
+      "identity": "python-worker-canvas-ndjson"
+    },
+    {
+      "capability": "subtitles.structure",
+      "job_kinds": [
+        "subtitles"
+      ],
+      "worker": "services/python-workers/document/worker_subtitles.py",
+      "identity": "python-worker-subtitles-ndjson"
+    },
+    {
+      "capability": "html.structure",
+      "job_kinds": [
+        "html"
+      ],
+      "worker": "services/python-workers/web/worker_html.py",
+      "identity": "python-worker-html-ndjson"
+    },
+    {
+      "capability": "image.caption",
+      "job_kinds": [
+        "caption"
+      ],
+      "worker": "services/python-workers/vision/worker_caption.py",
+      "identity": "python-worker-caption-ndjson"
+    }
   ],
   "reachable_by_a_job_count": 11,
   "reachable_by_a_job_note": "Attempts::ROUTES yields 11 distinct capabilities from 12 entries. All 11 also appear as keys in the transport's ROUTES dict, and their media-type sets agree with attempts::ROUTE_MEDIA_TYPES (attempts.rs:85-145). Job reachability is conditional on the launch registering the corresponding route for the ten non-text capabilities: the capability is reachable by a job kind once its route is registered, and attempts::claim refuses a disabled capability inside the claim transaction (attempts.rs:271-276).",
-
   "registered_but_not_job_reachable": [
     {
       "capability": "machine.answer",
@@ -271,7 +620,6 @@
     }
   ],
   "registered_but_not_job_reachable_count": 1,
-
   "advertised_but_unreachable": [],
   "advertised_but_unreachable_is_empty": true,
   "advertised_but_unreachable_scope": "The two sources this audit was asked to treat as 'advertised': KNOWN_WORKER_IDENTITIES (crates/archeaxis-application/src/executor.rs:521-539) and the transport ROUTES dict (services/python-workers/transport/text_ndjson.py:194-334), read as a set of capability names.",
@@ -281,11 +629,18 @@
     "result": "11 are reached by a job; 1 (machine.answer) is reached by POST /api/v1/machine/answers and POST /api/v1/machine/retests, both of which call Executor::machine_answer, which resolves and runs the worker. No capability in the union is reached by nothing, so the list is empty - not because it was not looked for, but because each name resolves to a named caller.",
     "the_one_caveat_a_reader_must_keep": "machine.answer's reaching path only exists when a launch has registered that route, and no shipped launch does. In a staged-runtime or desktop launch it is therefore not merely un-job-reachable, it is unregistered, and its two HTTP routes answer 503 'no worker is registered for machine.answer'. That is a registration gap, not a 'nothing reaches it' gap: the reaching code path exists and is exercised by the test contracts.",
     "adjacent_case_that_is_out_of_this_scope_but_relevant": [
-      {"worker": "services/python-workers/media/worker_video.py", "engine": "python-worker-video", "why_adjacent": "It is advertised by the standard the repository's own checker uses (it declares ENGINE and def extract) and it is recorded in WORKER-REACHABILITY.json as unrouted. It is NOT advertised in either of the two sources this audit was scoped to: it appears in neither KNOWN_WORKER_IDENTITIES nor the transport ROUTES dict. It also declares no WORKER_IDENTITY, so the Core's identity gate at executor.rs:650-654 would refuse it with 'unexpected worker identity' even if a route named it. If a reader wants a capability that nothing reaches, this is the closest case in the repository - and the correct statement is that it is unrouted on purpose, for three recorded structural reasons, and additionally outside the Core's identity allow-list."},
-      {"worker": "services/python-workers/web/worker_webpage.py", "engine": "python-worker-webpage", "why_adjacent": "Declares an ENGINE but no WORKER_IDENTITY; the reachability record classifies it as not a capability worker (a network fetch client). Same status: not advertised in the two scoped sources."}
+      {
+        "worker": "services/python-workers/media/worker_video.py",
+        "engine": "python-worker-video",
+        "why_adjacent": "It is advertised by the standard the repository's own checker uses (it declares ENGINE and def extract) and it is recorded in WORKER-REACHABILITY.json as unrouted. It is NOT advertised in either of the two sources this audit was scoped to: it appears in neither KNOWN_WORKER_IDENTITIES nor the transport ROUTES dict. It also declares no WORKER_IDENTITY, so the Core's identity gate at executor.rs:650-654 would refuse it with 'unexpected worker identity' even if a route named it. If a reader wants a capability that nothing reaches, this is the closest case in the repository - and the correct statement is that it is unrouted on purpose, for three recorded structural reasons, and additionally outside the Core's identity allow-list."
+      },
+      {
+        "worker": "services/python-workers/web/worker_webpage.py",
+        "engine": "python-worker-webpage",
+        "why_adjacent": "Declares an ENGINE but no WORKER_IDENTITY; the reachability record classifies it as not a capability worker (a network fetch client). Same status: not advertised in the two scoped sources."
+      }
     ]
   },
-
   "how_a_reader_can_tell": [
     "READ attempts::ROUTES, not the capability surface. That table is the only production gate for job dispatch (attempts::claim, attempts.rs:250-302, refuses an undeclared kind at :264-267). A capability absent from it cannot be reached by any job, whatever /api/v1/capabilities reports.",
     "DO NOT read health as reachability. crates/archeaxis-api/src/capabilities.rs computes health from std::fs::metadata on two paths (capabilities.rs:34-38 and 68-78) and sets registered: true unconditionally (capabilities.rs:98) for every row it emits. A row exists only for a route the launch declared, so a 'declared' + enabled row means 'this launch declared this route and both files exist' - it says nothing about whether a job kind selects it.",
@@ -294,6 +649,17 @@
     "THE REPOSITORY'S OWN CHECKER COVERS LESS THAN IT LOOKS LIKE. scripts/check_worker_reachability.py compares worker files against the transport's \"worker\" paths only (check() at :70-106). It exits 0 while never comparing the transport table against attempts::ROUTES, so passed=true is not evidence that a job can reach every routed capability.",
     "ASK THE LAUNCH, NOT THE CHECKOUT. Whether a route is registered depends on the launch document (launch.rs:30-45), and the only production writers are scripts/release/stage_backend_runtime.py (ROUTE_SCRIPTS, :49-60) and apps/ArcheAxis.Desktop/CoreSupervisor.cs (:92-93, which declares no routes)."
   ],
-
-  "conclusion": "A job can reach exactly eleven capabilities, and the list is the one attempts::ROUTES declares: text.extract, pdf.extract, image.ocr, archive.inventory, media.probe, media.transcribe, office.structure, canvas.structure, subtitles.structure, html.structure and image.caption. One further capability is registered but no job can reach it: machine.answer, whose worker exists, whose identity python-worker-machine-answer-ndjson is in KNOWN_WORKER_IDENTITIES, and which is absent from attempts::ROUTES on purpose - the transport cannot carry the question it needs, because a job request requires an empty parameters object, and its output is an answer with a loss receipt rather than projected text with canonical anchors. It is reached instead by the Core's own HTTP routes POST /api/v1/machine/answers and POST /api/v1/machine/retests, which call Executor::machine_answer and run the worker as a process. Nothing in either of the two audited sources is reached by nothing at all, so that list is empty: every name resolves to a named caller. The honesty defect a reader should carry away is not that a capability is entirely orphaned, but that the capability surface cannot express the difference: capabilities.rs reports only whether a launch declared a route and whether the worker and interpreter files exist, never whether a job kind can select it, so 'registered and healthy' is compatible with 'no job can run this'. Two caveats keep this honest. First, the registerable set is not the same as the registered set: the ten non-text routes are registered only when a launch declares them, and the staged runtime ships ten of them (stage_backend_runtime.py ROUTE_SCRIPTS) while the desktop host declares none, so machine.answer is not even registered in those launches and its HTTP routes answer 503 'no worker is registered for machine.answer' - the reaching code path exists but no shipped launch wires it. Second, the closest thing in this repository to a capability that nothing reaches is services/python-workers/media/worker_video.py, which is unrouted for three recorded structural reasons and is additionally outside the Core's identity allow-list because it declares no WORKER_IDENTITY; it is not in either of the two sources this audit was scoped to, so it is reported here as an adjacent finding rather than as a hit against the scoped question."
+  "conclusion": "A job can reach exactly eleven capabilities, and the list is the one attempts::ROUTES declares: text.extract, pdf.extract, image.ocr, archive.inventory, media.probe, media.transcribe, office.structure, canvas.structure, subtitles.structure, html.structure and image.caption. One further capability is registered but no job can reach it: machine.answer, whose worker exists, whose identity python-worker-machine-answer-ndjson is in KNOWN_WORKER_IDENTITIES, and which is absent from attempts::ROUTES on purpose - the transport cannot carry the question it needs, because a job request requires an empty parameters object, and its output is an answer with a loss receipt rather than projected text with canonical anchors. It is reached instead by the Core's own HTTP routes POST /api/v1/machine/answers and POST /api/v1/machine/retests, which call Executor::machine_answer and run the worker as a process. Nothing in either of the two audited sources is reached by nothing at all, so that list is empty: every name resolves to a named caller. The honesty defect a reader should carry away is not that a capability is entirely orphaned, but that the capability surface cannot express the difference: capabilities.rs reports only whether a launch declared a route and whether the worker and interpreter files exist, never whether a job kind can select it, so 'registered and healthy' is compatible with 'no job can run this'. Two caveats keep this honest. First, the registerable set is not the same as the registered set: the ten non-text routes are registered only when a launch declares them, and the staged runtime ships ten of them (stage_backend_runtime.py ROUTE_SCRIPTS) while the desktop host declares none, so machine.answer is not even registered in those launches and its HTTP routes answer 503 'no worker is registered for machine.answer' - the reaching code path exists but no shipped launch wires it. Second, the closest thing in this repository to a capability that nothing reaches is services/python-workers/media/worker_video.py, which is unrouted for three recorded structural reasons and is additionally outside the Core's identity allow-list because it declares no WORKER_IDENTITY; it is not in either of the two sources this audit was scoped to, so it is reported here as an adjacent finding rather than as a hit against the scoped question.",
+  "resolution_20261002": {
+    "what_changed": "scripts/release/stage_backend_runtime.py ROUTE_SCRIPTS gained \"machine.answer\": (\"workers/machine/worker_machine_answer.py\",). The staged profile now declares 11 capability routes instead of 10, so a launched runtime registers the capability and POST /api/v1/machine/answers no longer answers 503 'no worker is registered for machine.answer'.",
+    "why_it_belongs_in_the_launch_table_and_not_the_transport_table": "They are different registries. The launch table is what the Core registers; the transport table is the job protocol, which requires an empty `parameters` object and therefore has nowhere for the question to travel. The capability is reached by the Core's own route.",
+    "verified": [
+      "present_routes() against a tree whose workers/ is the real services/python-workers now returns machine.answer -> workers/machine/worker_machine_answer.py, and the declared script exists in the staged tree",
+      "\"machine.answer\" is still absent from services/python-workers/transport/text_ndjson.py, which is the correct state and not an oversight",
+      "tests/test_stage_backend_runtime_routes.py (5) and tests/test_backend_launcher_routes.py, tests/test_backend_runtime_safety.py, tests/test_axw_run202_profiles.py (58 together) pass",
+      "tests/maintenance/test_contract_number_consistency.py passes after the contract's declared and readiness counts were moved to 11 and 10"
+    ],
+    "not_proven": "That a launched runtime serves the route end to end. A full staging run is unavailable on this host because the only local interpreter directory contains reparse points, which the stager refuses. The staged-runtime probe and CI remain the evidence for the launch itself.",
+    "audit_findings_left_intact": "The measured facts above are unchanged: they describe the state before this change. Only this note was added."
+  }
 }
