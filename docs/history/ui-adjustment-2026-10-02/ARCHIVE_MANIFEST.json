@@ -344,5 +344,14 @@
     "docs/history/plan-recovery-2026-10-02/AAOS-R7-PLAN-2026-10-02.md",
     "docs/current/AAOS-UI-IA-FREEZE-V1-20261002.json"
   ],
-  "recorded_at": "2026-10-02T08:14:08.323441+00:00"
+  "recorded_at": "2026-10-02T08:14:08.323441+00:00",
+  "supplied_prompts_beside_the_zip": [
+    {
+      "file": "AAOS-FRONTEND-UI-HANDOFF-AUDIT-PROMPT-OLDER.md",
+      "sha256": "5F48D66B94162679CCC9868598CDB7C15EB1D71F4EBB2A22877BA46E224BBCAA",
+      "bytes": 13308,
+      "supplied_by": "the Owner, as the older frontend UI/UX handoff audit prompt",
+      "note": "archived verbatim; what it adds and what is superseded is recorded in docs/current/AAOS-UI-HANDOFF-AUDIT-PROMPT-ASSESSMENT-20261002.json"
+    }
+  ]
 }
