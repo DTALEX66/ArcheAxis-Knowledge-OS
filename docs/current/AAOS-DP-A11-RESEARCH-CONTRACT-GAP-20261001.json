@@ -1,0 +1,77 @@
+{
+  "key": "DP-0925:DP-A11",
+  "title": "Research contract gap analysis (optional read-only, after DP-GIT-01)",
+  "status": "EXECUTED",
+  "method": "read the legacy research modules, grep the Core's route table for research routes, and read what the production contract already states; nothing was executed and no route was added",
+  "recorded_at": "2026-10-02T06:28:50.150243+00:00",
+  "legacy_surface": {
+    "app/facades/research.py": {
+      "role": "surface the legacy backend offered",
+      "present": true,
+      "lines": 77,
+      "symbols": [
+        "ResearchIntakeResult",
+        "ingest_candidate",
+        "research_github_repository",
+        "get_research_package"
+      ],
+      "symbols_confirmed": [
+        "ResearchIntakeResult",
+        "get_research_package",
+        "ingest_candidate",
+        "research_github_repository"
+      ]
+    },
+    "app/workspace/research_consumer.py": {
+      "role": "how an intake was consumed",
+      "present": true,
+      "lines": 87,
+      "symbols": [
+        "make_intake_research_handler",
+        "consume"
+      ],
+      "symbols_confirmed": [
+        "consume",
+        "make_intake_research_handler"
+      ]
+    },
+    "app/research/document.py": {
+      "role": "the document graph a research package produced",
+      "present": true,
+      "lines": 308,
+      "symbols": [
+        "build_workspace_document_graph",
+        "validate_workspace_document_graph",
+        "persist_workspace_document"
+      ],
+      "symbols_confirmed": [
+        "build_workspace_document_graph",
+        "persist_workspace_document",
+        "validate_workspace_document_graph"
+      ]
+    }
+  },
+  "vnext_core_routes_matching_research": [],
+  "contract_states": [
+    "| `GET/POST /api/v1/research`, `/research/tasks` | `404` in both methods | no research surface; show \"not connected\", never a success state |"
+  ],
+  "gap": {
+    "capability": "The legacy backend could ingest a research candidate, research a GitHub repository, return a research package, and build and persist a workspace document graph from it. The vNext Core registers no research route at all.",
+    "what_is_missing": [
+      "a route surface: no /api/v1/research* path is mounted, so a UI cannot reach any of it",
+      "a frozen DTO: the package and document-graph shapes exist only in the legacy Python implementation, not as a contract this Core can implement against",
+      "provider identity and version semantics: who performed the research and with which model or client is undefined for vNext",
+      "source revision semantics: what a research result is bound to when the source changes",
+      "result status semantics: which outcomes are success, partial or refused"
+    ],
+    "what_is_not_missing": [
+      "the four undecided semantics are recorded as Owner decisions, not as absent engineering; the contract already says the routes do not exist and must render as not connected, which is the honest current state"
+    ],
+    "decision_vs_work": {
+      "owner_decision": "capability boundary, source_revision, provider/version, and result status - the contract names these as P0-H01 / DP-A11 scope and they are not the executor's to freeze",
+      "executor_work_once_decided": "a route table, a worker or module implementing the frozen DTO, and tests that pin the four semantics"
+    },
+    "recommendation": "Do not implement against the legacy Python shapes: they are a different backend's DTO and the naming contract is a standing decision. Wait for the DTO freeze, then implement once rather than twice."
+  },
+  "conclusion": "The gap is real and is a decision gap rather than an implementation gap. No route exists, no DTO is frozen, and the four semantics are explicitly Owner decisions; the read-only analysis requested by this key is complete."
+}

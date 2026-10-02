@@ -563,8 +563,8 @@
     "document": "docs/current/AAOS-BACKEND-KEY-DISPOSITION-20261001.json",
     "keys_recorded": 58,
     "evidence_counts": {
-      "NO_EVIDENCE": 20,
-      "REAL": 32,
+      "NO_EVIDENCE": 19,
+      "REAL": 33,
       "SYNTHETIC": 5,
       "INTEGRATED": 1
     },
@@ -572,9 +572,9 @@
       "PLANNED": 9,
       "CI_VERIFIED_EXACT_SHA": 13,
       "IMPLEMENTED_LOCAL": 1,
-      "TESTED_LOCAL": 18,
+      "TESTED_LOCAL": 19,
       "BLOCKED": 11,
-      "NOT_EXECUTED": 6
+      "NOT_EXECUTED": 5
     },
     "per_key": {
       "RECORD-0928:AA-BE-01": {

@@ -22,8 +22,8 @@
     "NOT_EXECUTED"
   ],
   "counts": {
-    "NO_EVIDENCE": 20,
-    "REAL": 32,
+    "NO_EVIDENCE": 19,
+    "REAL": 33,
     "SYNTHETIC": 5,
     "INTEGRATED": 1
   },
@@ -31,9 +31,9 @@
     "PLANNED": 9,
     "CI_VERIFIED_EXACT_SHA": 13,
     "IMPLEMENTED_LOCAL": 1,
-    "TESTED_LOCAL": 18,
+    "TESTED_LOCAL": 19,
     "BLOCKED": 11,
-    "NOT_EXECUTED": 6
+    "NOT_EXECUTED": 5
   },
   "keys": [
     {
@@ -782,10 +782,10 @@
       "lane": "BACKEND_FRONTEND_LOOP",
       "maps_to": "",
       "prior_audit_verdict": "HISTORICAL_ASSIGNMENT_RECHECK_INTEGRATION",
-      "status": "NOT_EXECUTED",
-      "evidence_level": "NO_EVIDENCE",
-      "disposition": "NOT_EXECUTED — optional read-only analysis not performed",
-      "acceptance_reference": ""
+      "status": "TESTED_LOCAL",
+      "evidence_level": "REAL",
+      "disposition": "EXECUTED (read-only) - legacy research surface read, Core route table grepped, contract statements read. No /api/v1/research* route exists and no DTO is frozen. The four semantics (capability boundary, source_revision, provider/version, result status) are Owner decisions, so this is a decision gap rather than an implementation gap; implementing against the legacy Python shapes was explicitly not recommended.",
+      "acceptance_reference": "docs/current/AAOS-DP-A11-RESEARCH-CONTRACT-GAP-20261001.json"
     }
   ]
 }
