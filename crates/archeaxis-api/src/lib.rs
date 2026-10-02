@@ -1782,6 +1782,9 @@ fn job_error_response(error: jobs::JobError) -> axum::response::Response {
         jobs::JobError::InvalidReceipt(_) => StatusCode::BAD_REQUEST,
         jobs::JobError::MediaTypeNotAccepted { .. } => StatusCode::BAD_REQUEST,
         jobs::JobError::UnverifiableInput { .. } => StatusCode::BAD_REQUEST,
+        // R7/G1: a disabled capability is a conflict with the workspace's own settings, not a
+        // malformed request, and the body names the capability so an operator knows what to change.
+        jobs::JobError::CapabilityDisabled { .. } => StatusCode::CONFLICT,
     };
     (status, error.to_string()).into_response()
 }

@@ -36,6 +36,9 @@ pub const EXPORT_TABLES: &[&str] = &[
     "learning_assessments",
     "card_references",
     "machine_tasks",
+    // R7/G1: the capability enable/disable record. It has no foreign keys, so appending is safe
+    // for `restore`, and omitting it would silently lose which capabilities an operator turned off.
+    "capability_settings",
 ];
 
 /// ARCHIVE-01: every export layout the **current** schema version actually shipped,
@@ -85,6 +88,30 @@ pub const CURRENT_LAYOUTS: &[&[&str]] = &[
         "learning_assessments",
         "card_references",
         "machine_tasks",
+    ],
+    // 21 tables: the capability enable/disable record added by R7/G1.
+    &[
+        "workspace_meta",
+        "sources",
+        "transforms",
+        "anchors",
+        "knowledge",
+        "review_events",
+        "learning_events",
+        "jobs",
+        "job_attempts",
+        "job_outputs",
+        "canvas_projections",
+        "canvas_projection_nodes",
+        "canvas_projection_edges",
+        "source_origins",
+        "learning_event_keys",
+        "knowledge_supersedes",
+        "knowledge_v3_metadata",
+        "learning_assessments",
+        "card_references",
+        "machine_tasks",
+        "capability_settings",
     ],
 ];
 

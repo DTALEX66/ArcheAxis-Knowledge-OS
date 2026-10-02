@@ -4,6 +4,7 @@ use crate::attempts;
 use archeaxis_sidecar_protocol::worker::{
     MAX_FRAME_BYTES, Request, Response, decode_hello, decode_response,
 };
+use archeaxis_store_sqlite::capability_settings;
 use archeaxis_store_sqlite::{raw_objects, writer::Store};
 use std::{
     io::{Read, Write},
@@ -104,6 +105,41 @@ impl Executor {
     /// runtime it would need is present, which needs this path.
     pub fn python_path(&self) -> &Path {
         &self.python
+    }
+
+    /// The capability this job would need **if** this workspace has disabled it, so a caller can
+    /// say why the job will not start.
+    ///
+    /// This is a reporting aid, not the enforcement point: the refusal that actually stops a
+    /// disabled capability is inside the claim transaction, which is what guarantees no attempt row
+    /// is written. `None` therefore means "nothing is known to be disabled", which includes the
+    /// cases where the job does not exist or its kind has no route - those are reported by the claim
+    /// itself, with their own reasons.
+    pub async fn disabled_capability_for(&self, job_id: &str) -> Option<String> {
+        let owned = job_id.to_owned();
+        let kind = self
+            .store
+            .submit_wait(move |conn: &mut rusqlite::Connection| {
+                use rusqlite::OptionalExtension;
+                conn.query_row("SELECT kind FROM jobs WHERE job_id=?1", [&owned], |row| {
+                    row.get::<_, String>(0)
+                })
+                .optional()
+            })
+            .await
+            .ok()?
+            .ok()??;
+        let capability = crate::attempts::route_for_kind(&kind)?.0.to_string();
+        let named = capability.clone();
+        let disabled = self
+            .store
+            .submit_wait(move |conn: &mut rusqlite::Connection| {
+                capability_settings::is_enabled(conn, &named)
+            })
+            .await
+            .ok()?
+            .ok()?;
+        (!disabled).then_some(capability)
     }
 
     /// The capabilities this executor will actually serve, in registration order.

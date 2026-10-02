@@ -89,12 +89,12 @@ def test_the_launch_shape_split_adds_up():
 
     The split is checked against the routers rather than repeated from the table, so the
     arithmetic in §6 has to hold on its own. It does: the projection builder mounts 25
-    unconditional routes and one conditional legacy mount, which is 26 addresses, and the 6
-    runtime routes make 32 - the same total the inventory lists. A reader counting mounts will
-    see 25 and 6; a reader counting addresses will see 26 and 6. Both reach 32, and this test
+    unconditional routes and one conditional legacy mount, which is 26 addresses, and the 7
+    runtime routes make 33 - the same total the inventory lists. A reader counting mounts will
+    see 25 and 7; a reader counting addresses will see 26 and 7. Both reach 33, and this test
     records the distinction so neither number is mistaken for the other.
 
-    The runtime builder grew from 4 to 6 when R7/G1 added the two capability routes. Adding them
+    The runtime builder grew from 4 to 7 when R7/G1 added the three capability paths. Adding them
     to the runtime builder rather than to the projections is deliberate: the capability surface
     reads the executor's registered routes, and the executor is the runtime router's state, while
     the projection builder holds only the store.
@@ -104,7 +104,7 @@ def test_the_launch_shape_split_adds_up():
     assert projections == 25, (
         f"the projection builder mounts {projections} routes; §3's own row count depends on this")
     assert conditional == 1, f"conditional mounts changed: {conditional}"
-    assert runtime == 6, f"the runtime builder mounts {runtime} routes, §6 says 6"
+    assert runtime == 7, f"the runtime builder mounts {runtime} routes, §6 says 7"
     assert projections + conditional + runtime == inventory, (
         f"{projections} + {conditional} + {runtime} does not reach the inventory's {inventory}")
     # and the inventory's pair count must account for the dual-method route

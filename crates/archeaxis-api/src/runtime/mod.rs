@@ -5,7 +5,7 @@ use axum::{
     extract::{Path, State},
     http::{HeaderMap, StatusCode},
     response::{IntoResponse, Response},
-    routing::{get, post},
+    routing::{get, post, put},
 };
 use rusqlite::OptionalExtension;
 use serde::Deserialize;
@@ -38,6 +38,10 @@ pub fn router(executor: Executor) -> Router {
         // the executor's registered routes, and the executor is this router's state.
         .route("/api/v1/capabilities", get(capabilities))
         .route("/api/v1/capabilities/:capability", get(capability))
+        .route(
+            "/api/v1/capabilities/:capability/enabled",
+            put(set_capability_enabled),
+        )
         .with_state(Runtime {
             executor,
             active: Arc::new(Mutex::new(HashMap::new())),
@@ -46,14 +50,20 @@ pub fn router(executor: Executor) -> Router {
         .merge(projections)
 }
 
-/// The registered capabilities. Deliberately does not touch the store: "which capabilities exist"
-/// is the question a workspace whose database will not open still has to be able to answer.
 async fn capabilities(State(runtime): State<Runtime>) -> Response {
-    crate::capabilities::list(&runtime.executor)
+    crate::capabilities::list(&runtime.executor).await
 }
 
 async fn capability(State(runtime): State<Runtime>, Path(name): Path<String>) -> Response {
-    crate::capabilities::read(&runtime.executor, &name)
+    crate::capabilities::read(&runtime.executor, &name).await
+}
+
+async fn set_capability_enabled(
+    State(runtime): State<Runtime>,
+    Path(name): Path<String>,
+    Json(body): Json<CapabilityEnabledBody>,
+) -> Response {
+    crate::capabilities::set_enabled(&runtime.executor, &name, body.enabled).await
 }
 fn error(status: u16, code: &str, message: &str) -> Response {
     (
@@ -79,6 +89,17 @@ fn valid_id(id: &str) -> bool {
 #[serde(deny_unknown_fields)]
 struct ExecuteBody {
     deadline_ms: u64,
+}
+
+/// `enabled` is a required boolean and unknown fields are refused.
+///
+/// `Option<bool>` would let `{}` mean "disable it", silently turning an empty body into the most
+/// destructive of the two actions. Requiring the field means a caller has to say which it wants, and
+/// `deny_unknown_fields` means a misspelled key is a `422` rather than a silent no-op.
+#[derive(Deserialize)]
+#[serde(deny_unknown_fields)]
+struct CapabilityEnabledBody {
+    enabled: bool,
 }
 
 async fn execute(
@@ -123,6 +144,17 @@ async fn execute(
 }
 async fn start(runtime: Runtime, job: String, id: String, deadline: u64) -> Response {
     let _admission = runtime.admission.lock().await;
+    // R7/G1: name a disabled capability instead of letting it fall into the generic "cannot start in
+    // its current state". The authoritative refusal is inside the claim transaction, which is what
+    // guarantees no attempt row is created; this is here because `Executor::start` reports failures
+    // as strings, so without it the caller is told the job cannot start and not why.
+    if let Some(capability) = runtime.executor.disabled_capability_for(&job).await {
+        return error(
+            409,
+            "AAK-CAP-001",
+            &format!("capability {capability} is disabled in this workspace"),
+        );
+    }
     if runtime
         .active
         .lock()

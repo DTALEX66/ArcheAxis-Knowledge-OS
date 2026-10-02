@@ -2,6 +2,7 @@
 //! Process IO and file reading belong outside this transaction boundary.
 use crate::jobs::{self, JobError, LossReceipt};
 use archeaxis_sidecar_protocol::worker::{Request, Response, decode_response};
+use archeaxis_store_sqlite::capability_settings;
 use rusqlite::{Connection, OptionalExtension, TransactionBehavior};
 use serde::Deserialize;
 use serde_json::Value;
@@ -264,6 +265,15 @@ pub fn claim(
         Some((capability, _)) => capability,
         None => return Err(JobError::InvalidReceipt("undeclared job kind")),
     };
+    // R7/G1: a capability this workspace turned off is refused here, inside the claim transaction,
+    // so a disabled capability leaves no attempt row, no staging copy and no partial output behind.
+    // Checking after the worker started would make "disabled" mean "ran and was then discarded".
+    if !capability_settings::is_enabled(&tx, capability)? {
+        return Err(JobError::CapabilityDisabled {
+            capability: capability.to_string(),
+            job: job_id.to_string(),
+        });
+    }
     // the media type comes from what the file is, not from a value pinned to the kind
     let media_type = resolve_media_type(&kind, &name)?;
     let next: i64 = tx.query_row(

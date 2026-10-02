@@ -1,11 +1,14 @@
 //! vNext database schema and workspace init (Rust sole writer).
 use rusqlite::Connection;
 
+pub mod capability_settings;
 pub mod raw_objects;
 pub mod writer;
 
 // Assessment and the V3 governance sidecar are additive schema changes.
-pub const SCHEMA_VERSION: i64 = 6;
+// 7 adds the capability enable/disable record that R7/G1 needs; like the earlier additive steps it
+// is applied on open rather than by rewriting anything.
+pub const SCHEMA_VERSION: i64 = 7;
 
 const SCHEMA_SQL: &str = r#"
 CREATE TABLE IF NOT EXISTS workspace_meta (
@@ -305,6 +308,18 @@ pub fn init_workspace(db_path: &str) -> rusqlite::Result<Connection> {
                 requires_human_review INTEGER NOT NULL CHECK(requires_human_review IN (0,1)),
                 CHECK(valid_from IS NULL OR valid_to IS NULL OR valid_to >= valid_from)
             );"
+        )?;
+    }
+    if version < 7 {
+        // An absent row means enabled, because a capability the launch registered and nobody
+        // disabled is what the Core serves. Only a disabled capability is written, so the table
+        // records decisions rather than restating the registration.
+        tx.execute_batch(
+            "CREATE TABLE IF NOT EXISTS capability_settings (
+                capability TEXT PRIMARY KEY,
+                enabled INTEGER NOT NULL CHECK(enabled IN (0,1)),
+                changed_at TEXT NOT NULL DEFAULT (datetime('now'))
+            );",
         )?;
     }
     tx.execute(
