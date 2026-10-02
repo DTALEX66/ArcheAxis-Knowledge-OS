@@ -62,6 +62,8 @@ pub fn capability_record(
     python: &Path,
     disabled: &HashSet<String>,
     record_readable: bool,
+    default_worker: &Path,
+    fallback: Option<&Path>,
 ) -> serde_json::Value {
     let worker_present = file_exists(worker);
     let python_present = file_exists(python);
@@ -97,10 +99,46 @@ pub fn capability_record(
         "health": health,
         "health_basis": "file existence only - a job has to run before anything may be called \
                          working",
-        "is_default": true,
-        "fallback": serde_json::Value::Null,
-        "fallback_note": "no second provider exists for any capability yet",
+        // `is_default` is true only for the route the Core would actually choose, which is the first
+        // registered one whose files exist. Reporting it true for every registered route - as this
+        // did before - described a registry that cannot say which provider answers.
+        "is_default": worker == default_worker,
+        "default_provider": default_worker.to_string_lossy(),
+        "fallback": match fallback {
+            Some(path) => serde_json::Value::String(path.to_string_lossy().to_string()),
+            None => serde_json::Value::Null,
+        },
+        "fallback_note": if fallback.is_some() {
+            "a second registered route exists; the Core answers with the default and this one is \
+             the candidate if the default's files are missing"
+        } else {
+            "no second provider is registered for this capability"
+        },
     })
+}
+
+/// The provider the Core would actually choose for a capability: the first registered route whose
+/// worker and interpreter both exist, or the first registered route if none is usable.
+fn chosen_provider<'a>(
+    executor: &'a Executor,
+    capability: &str,
+    python: &Path,
+) -> Option<&'a Path> {
+    let providers = executor.providers_for(capability);
+    providers
+        .iter()
+        .find(|(_, usable)| *usable && file_exists(python))
+        .or_else(|| providers.first())
+        .map(|(path, _)| *path)
+}
+
+/// Whether two provider paths name the same file.
+///
+/// Compared as lossy strings rather than as `Path` values: the route table yields one path type and
+/// the chosen default another, and reconciling their borrow shapes is not worth the noise in a
+/// comparison whose whole job is "is this the route that answers".
+fn same_provider(a: &Path, b: &Path) -> bool {
+    a.to_string_lossy() == b.to_string_lossy()
 }
 
 /// The whole registry.
@@ -111,6 +149,20 @@ pub async fn list(executor: &Executor) -> Response {
     let capabilities: Vec<serde_json::Value> = routes
         .iter()
         .map(|(capability, worker, site_packages)| {
+            let default_owned: std::path::PathBuf = chosen_provider(executor, capability, python)
+                .map(|path| path.to_path_buf())
+                .unwrap_or_else(|| worker.to_path_buf());
+            // A fallback is only reported for the default's own record: naming a second provider on
+            // every row would leave a reader unable to tell which one answers.
+            let fallback = if same_provider(worker, &default_owned) {
+                executor
+                    .providers_for(capability)
+                    .into_iter()
+                    .map(|(path, _)| path)
+                    .find(|path| !same_provider(path, &default_owned))
+            } else {
+                None
+            };
             capability_record(
                 capability,
                 worker,
@@ -118,6 +170,8 @@ pub async fn list(executor: &Executor) -> Response {
                 python,
                 &disabled,
                 readable,
+                &default_owned,
+                fallback,
             )
         })
         .collect();
@@ -164,9 +218,23 @@ pub async fn read(executor: &Executor, capability: &str) -> Response {
     };
     let (disabled, readable) = disabled_and_readable(executor).await;
     let python = executor.python_path();
+    let default_owned: std::path::PathBuf = chosen_provider(executor, &name, python)
+        .map(|path| path.to_path_buf())
+        .unwrap_or_else(|| worker.to_path_buf());
+    let fallback = if same_provider(&worker, &default_owned) {
+        executor
+            .providers_for(&name)
+            .into_iter()
+            .map(|(path, _)| path)
+            .find(|path| !same_provider(path, &default_owned))
+    } else {
+        None
+    };
     Json(json!({
         "schema": "archeaxis.capability/v1",
-        "capability": capability_record(&name, &worker, site_packages, python, &disabled, readable),
+        "capability": capability_record(
+            &name, &worker, site_packages, python, &disabled, readable, &default_owned, fallback
+        ),
     }))
     .into_response()
 }

@@ -30,6 +30,16 @@ impl Cancellation {
     }
 }
 
+/// Whether a path exists as a regular file, used to decide if a registered route can actually run.
+///
+/// R7/G1: a route whose worker or interpreter is missing is not a provider choice, so choosing it
+/// over a usable fallback would convert a configuration mistake into a failed job.
+fn file_usable(path: &Path) -> bool {
+    std::fs::metadata(path)
+        .map(|meta| meta.is_file())
+        .unwrap_or(false)
+}
+
 #[derive(Clone)]
 pub struct Executor {
     store: Store,
@@ -91,11 +101,39 @@ impl Executor {
     }
 
     /// The worker registered for a capability, with its launch policy.
+    ///
+    /// R7/G1: when more than one route is registered for one capability, the **first usable one**
+    /// answers and the later ones are fallbacks. Usable means its worker script and the interpreter
+    /// both exist, because registering a route whose files are missing is a configuration mistake
+    /// rather than a provider choice, and silently choosing it would turn that mistake into a failed
+    /// job. When no registered route is usable the first is returned anyway, so the failure names the
+    /// provider the operator declared instead of reporting that nothing was registered.
     fn worker_for(&self, capability: &str) -> Option<(PathBuf, bool)> {
+        let candidates: Vec<&(String, PathBuf, bool)> = self
+            .routes
+            .iter()
+            .filter(|(name, _, _)| name == capability)
+            .collect();
+        let chosen = candidates
+            .iter()
+            .find(|(_, path, _)| file_usable(path) && file_usable(&self.python))
+            .or_else(|| candidates.first())?;
+        Some((chosen.1.clone(), chosen.2))
+    }
+
+    /// The routes registered for one capability, in registration order, each marked with whether it
+    /// is usable. The first element is the default; any later element is a fallback candidate.
+    pub fn providers_for(&self, capability: &str) -> Vec<(&Path, bool)> {
         self.routes
             .iter()
-            .find(|(name, _, _)| name == capability)
-            .map(|(_, path, allow_site)| (path.clone(), *allow_site))
+            .filter(|(name, _, _)| name == capability)
+            .map(|(_, path, _)| {
+                (
+                    path.as_path(),
+                    file_usable(path) && file_usable(&self.python),
+                )
+            })
+            .collect()
     }
     pub fn store(&self) -> &Store {
         &self.store

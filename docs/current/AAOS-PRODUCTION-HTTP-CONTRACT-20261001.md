@@ -206,7 +206,17 @@ Three limits are part of the contract, not caveats on it:
   enabled** so the table records decisions rather than restating the launch. When that record cannot
   be read the field falls back to the registration state and `enabled_basis` says so, instead of
   reporting a decision nobody made.
-* `fallback` is `null` with a stated reason, because **no capability has a second provider yet**.
+* `is_default`, `default_provider` and `fallback` describe **which registered route would answer**.
+  `is_default` is true only for the provider the Core actually chooses — the first registered route
+  whose worker and interpreter files both exist — and `default_provider` names it. Reporting
+  `is_default` true on every row, as this contract first did, described a registry that cannot say
+  who answers. `fallback` names a second registered route, and is reported **only on the default's
+  record** because naming one on every row would leave a reader unable to tell which provider runs.
+* **No capability has a second provider in a production launch yet**, so `fallback` reads `null`
+  there. The field becomes meaningful as soon as a launch declares two routes for one capability, and
+  the tests cover that case rather than leaving it to the future: a route whose worker is missing is
+  skipped in favour of a usable one, because registering a broken route is a configuration mistake
+  rather than a provider choice.
 
 Disabling is a real barrier, not a label: `attempts::claim` reads the record inside the claim
 transaction, so a disabled capability leaves behind no attempt row, no staging copy and no partial

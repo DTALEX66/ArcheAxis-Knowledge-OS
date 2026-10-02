@@ -160,7 +160,109 @@ async fn enable_is_recorded_rather_than_asserted_and_fallback_is_still_absent() 
         record["fallback_note"]
             .as_str()
             .unwrap()
-            .contains("no second provider")
+            .contains("no second provider is registered")
+    );
+    // the provider that would actually answer is named, and this record is that one
+    assert_eq!(record["is_default"], true, "{record}");
+    assert!(
+        !record["default_provider"].as_str().unwrap().is_empty(),
+        "{record}"
+    );
+}
+
+// --- default and fallback ----------------------------------------------------------------------
+
+#[tokio::test]
+async fn the_usable_provider_answers_even_when_a_broken_one_was_registered_first() {
+    // Registering a route whose files are missing is a configuration mistake, not a provider choice.
+    // Choosing it over a usable fallback would convert that mistake into a failed job, so the Core
+    // skips it and the registry says which provider actually answers.
+    let broken = PathBuf::from("this/worker/does/not/exist.py");
+    let working = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+        .join("../../services/python-workers/vision/worker_caption.py");
+    let (_dir, executor) = executor_with(&[
+        ("image.caption", broken.clone()),
+        ("image.caption", working.clone()),
+    ])
+    .await;
+    let routes = executor.registered_routes();
+    // Counted before the router takes ownership: `registered_routes` borrows the executor, so the
+    // borrow has to end here.
+    let registered_for_capability = routes
+        .iter()
+        .filter(|(name, _, _)| *name == "image.caption")
+        .count();
+    drop(routes);
+
+    let router = archeaxis_api::runtime::router(executor);
+    let (status, body) = get(&router, "/api/v1/capabilities/image.caption").await;
+    assert_eq!(status, 200, "{body}");
+    let record = &body["capability"];
+
+    // both routes are registered for the capability, which is what makes a fallback meaningful
+    assert_eq!(registered_for_capability, 2);
+
+    // the broken one is reported as unusable, and the working one is the default
+    assert!(
+        !record["provider"]["worker_present"].as_bool().unwrap(),
+        "{record}"
+    );
+    assert_eq!(
+        record["provider"]["worker"],
+        *broken.to_string_lossy(),
+        "{record}"
+    );
+    assert_eq!(record["is_default"], false, "{record}");
+    assert_eq!(
+        record["default_provider"].as_str().unwrap(),
+        working.to_string_lossy(),
+        "{record}"
+    );
+    // This record describes the registered-but-broken route, so it carries no fallback of its own:
+    // `fallback` is reported only on the record of the provider that answers.
+    assert!(record["fallback"].is_null(), "{record}");
+
+    // Ask for the listing as well: the working route's own record names the other route as its
+    // fallback candidate, because `fallback` is reported on the record of the provider that answers.
+    let (_, listing) = get(&router, "/api/v1/capabilities").await;
+    let default_record = listing["capabilities"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .find(|entry| entry["capability"] == "image.caption" && entry["is_default"] == true)
+        .expect("the working provider must be the default");
+    assert_eq!(
+        default_record["provider"]["worker"],
+        *working.to_string_lossy(),
+        "{default_record}"
+    );
+    assert_eq!(
+        default_record["fallback"].as_str().unwrap(),
+        broken.to_string_lossy(),
+        "{default_record}"
+    );
+}
+
+#[tokio::test]
+async fn a_single_provider_capability_reports_no_fallback() {
+    let working = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+        .join("../../services/python-workers/vision/worker_caption.py");
+    let (_dir, executor) = executor_with(&[("image.caption", working)]).await;
+    let (_, body) = get(
+        &archeaxis_api::runtime::router(executor),
+        "/api/v1/capabilities/image.caption",
+    )
+    .await;
+    let record = &body["capability"];
+
+    assert_eq!(record["is_default"], true, "{record}");
+    assert!(record["fallback"].is_null(), "{record}");
+    assert!(
+        record["fallback_note"]
+            .as_str()
+            .unwrap()
+            .contains("no second provider is registered"),
+        "{record}"
     );
 }
 
