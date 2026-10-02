@@ -5,7 +5,8 @@
   "provenance": {
     "supplied_by": "the Owner",
     "source": "D:\\All projects\\Record\\AAOS_UI_深度调整包_20261002.zip",
-    "how_obtained": "the Owner named this exact path on 2026-10-02; the zip was copied byte-for-byte and then unpacked beside it",
+    "how_obtained": "the Owner named this exact path on 2026-10-02; the zip was copied byte-for-byte and its members hashed from inside the archive",
+    "why_not_unpacked_into_the_tree": "an unpacked copy was tried first and ten of its files failed check_repository_conventions.py - six JSON files with no final newline, one text file with trailing whitespace, three CSVs with a UTF-8 BOM. Rewriting them would break the byte fidelity an archive exists for, so the zip is stored whole and the content is proven by hashing its members in place.",
     "note": "the package says of itself that it follows the current R6/M0 implementation and does not establish a separate R7 authority, which matches section 16 of the master taskpack"
   },
   "source_copies": [
@@ -18,7 +19,7 @@
     }
   ],
   "zip_entry_count": 52,
-  "unpacked_entry_count": 52,
+  "members_hashed_in_place": 52,
   "entries": [
     {
       "path": "AAOS_UI_Adjustment_20261002/00_先读我.md",
@@ -28,17 +29,26 @@
     {
       "path": "AAOS_UI_Adjustment_20261002/evidence/package-manifest.json",
       "bytes": 8222,
-      "sha256": "85C0FF3948D666D50E546AC2A0C5B620CD40A26A1B6E99F6F024FBC8BF146D48"
+      "sha256": "85C0FF3948D666D50E546AC2A0C5B620CD40A26A1B6E99F6F024FBC8BF146D48",
+      "deviations_from_repo_conventions": [
+        "missing final newline"
+      ]
     },
     {
       "path": "AAOS_UI_Adjustment_20261002/evidence/preview-validation.json",
       "bytes": 3771,
-      "sha256": "7AB7153DEC2EC77ECDF8580A3A772C73EF2A16F92F3D26C54B8A93ECAE38683F"
+      "sha256": "7AB7153DEC2EC77ECDF8580A3A772C73EF2A16F92F3D26C54B8A93ECAE38683F",
+      "deviations_from_repo_conventions": [
+        "missing final newline"
+      ]
     },
     {
       "path": "AAOS_UI_Adjustment_20261002/evidence/source-hashes.json",
       "bytes": 1338,
-      "sha256": "8059716A5D9AD78F42156A957B62C0E29618CA760FFDD413C3161AFCD8CA271C"
+      "sha256": "8059716A5D9AD78F42156A957B62C0E29618CA760FFDD413C3161AFCD8CA271C",
+      "deviations_from_repo_conventions": [
+        "missing final newline"
+      ]
     },
     {
       "path": "AAOS_UI_Adjustment_20261002/evidence/本次交付检查.md",
@@ -56,24 +66,33 @@
       "sha256": "78355CBC51AF5E54A4D825088EC78E65F75C4DE2AFCC31FC8C92FAF2BA4ADB51"
     },
     {
-      "path": "AAOS_UI_Adjustment_20261002/integration/design-tokens.json",
-      "bytes": 3145,
-      "sha256": "141C8121CC607AE246749696F5926E0E8611EA1C25A059F798F639973E5A7594"
-    },
-    {
       "path": "AAOS_UI_Adjustment_20261002/integration/LegacyRoutePlacements.cs",
       "bytes": 1171,
       "sha256": "921CDD129AF440B388FA139BD939D229E4B9A21684539661F8449F5709D4022F"
     },
     {
+      "path": "AAOS_UI_Adjustment_20261002/integration/design-tokens.json",
+      "bytes": 3145,
+      "sha256": "141C8121CC607AE246749696F5926E0E8611EA1C25A059F798F639973E5A7594",
+      "deviations_from_repo_conventions": [
+        "missing final newline"
+      ]
+    },
+    {
       "path": "AAOS_UI_Adjustment_20261002/integration/navigation-capability-registry.json",
       "bytes": 43835,
-      "sha256": "24CA624CA93DE43844748150FD5E9269CF5736804ACE7B30E098F980C5E4126C"
+      "sha256": "24CA624CA93DE43844748150FD5E9269CF5736804ACE7B30E098F980C5E4126C",
+      "deviations_from_repo_conventions": [
+        "missing final newline"
+      ]
     },
     {
       "path": "AAOS_UI_Adjustment_20261002/integration/route-migration-map.json",
       "bytes": 4630,
-      "sha256": "69964BE00FBB97D8366924ED6E16D4A761EB0AFBC226ED94E4E8B49ED7330421"
+      "sha256": "69964BE00FBB97D8366924ED6E16D4A761EB0AFBC226ED94E4E8B49ED7330421",
+      "deviations_from_repo_conventions": [
+        "missing final newline"
+      ]
     },
     {
       "path": "AAOS_UI_Adjustment_20261002/integration/接入说明.md",
@@ -81,19 +100,9 @@
       "sha256": "BFBA93C1C374809CD038A4117F9983C743909851D1663B9F9D3A55B02D0447A0"
     },
     {
-      "path": "AAOS_UI_Adjustment_20261002/preview/assets/aaos-brand-mark.svg",
-      "bytes": 2119,
-      "sha256": "D5B680EBFE7F3B617F70482DAC94C3B7CE050D23D0EBCBF80C9AFF9B76A2E437"
-    },
-    {
       "path": "AAOS_UI_Adjustment_20261002/preview/assets/AAOS-LICENSE.txt",
       "bytes": 1065,
       "sha256": "B247E647F770F10E281CD662A1B1626461469D056C8B5C65E0C94C87A724F334"
-    },
-    {
-      "path": "AAOS_UI_Adjustment_20261002/preview/assets/aaos-preview-cjk.ttf",
-      "bytes": 300052,
-      "sha256": "7271B73037A1CF6FD55380B3FAD6481ECCFE68610C8FEA8CD1E14473D25DB48E"
     },
     {
       "path": "AAOS_UI_Adjustment_20261002/preview/assets/NOTICE.txt",
@@ -104,6 +113,16 @@
       "path": "AAOS_UI_Adjustment_20261002/preview/assets/NotoSansSC-OFL.txt",
       "bytes": 4388,
       "sha256": "1C05C68C34F9708415AADA51F17E1B0092D2CEA709BF4A94CD38114F9E73D7D9"
+    },
+    {
+      "path": "AAOS_UI_Adjustment_20261002/preview/assets/aaos-brand-mark.svg",
+      "bytes": 2119,
+      "sha256": "D5B680EBFE7F3B617F70482DAC94C3B7CE050D23D0EBCBF80C9AFF9B76A2E437"
+    },
+    {
+      "path": "AAOS_UI_Adjustment_20261002/preview/assets/aaos-preview-cjk.ttf",
+      "bytes": 300052,
+      "sha256": "7271B73037A1CF6FD55380B3FAD6481ECCFE68610C8FEA8CD1E14473D25DB48E"
     },
     {
       "path": "AAOS_UI_Adjustment_20261002/preview/catalog.js",
@@ -248,7 +267,10 @@
     {
       "path": "AAOS_UI_Adjustment_20261002/specs/02_19路由迁移.csv",
       "bytes": 1908,
-      "sha256": "2371EB5A6D2CD10488550448810156C9A1F0153B37A6BF4F493830097440DA84"
+      "sha256": "2371EB5A6D2CD10488550448810156C9A1F0153B37A6BF4F493830097440DA84",
+      "deviations_from_repo_conventions": [
+        "UTF-8 BOM"
+      ]
     },
     {
       "path": "AAOS_UI_Adjustment_20261002/specs/02_现有页面迁移映射.md",
@@ -263,7 +285,10 @@
     {
       "path": "AAOS_UI_Adjustment_20261002/specs/04_全能力菜单清单_50项.csv",
       "bytes": 4644,
-      "sha256": "1AF9673A5341F6496ACB6C6765BBBC5518665683526FD9963662C73F30574D92"
+      "sha256": "1AF9673A5341F6496ACB6C6765BBBC5518665683526FD9963662C73F30574D92",
+      "deviations_from_repo_conventions": [
+        "UTF-8 BOM"
+      ]
     },
     {
       "path": "AAOS_UI_Adjustment_20261002/specs/04_未来能力与开发提醒.md",
@@ -278,7 +303,10 @@
     {
       "path": "AAOS_UI_Adjustment_20261002/specs/05_正式验收矩阵.csv",
       "bytes": 2238,
-      "sha256": "67F5B6A29AA3BA846E32129A852128E061C1FF62F810F3CDB5C9900C0D8E6D00"
+      "sha256": "67F5B6A29AA3BA846E32129A852128E061C1FF62F810F3CDB5C9900C0D8E6D00",
+      "deviations_from_repo_conventions": [
+        "UTF-8 BOM"
+      ]
     }
   ],
   "category_counts": {
@@ -290,12 +318,31 @@
     "screenshots": 19,
     "specs": 8
   },
-  "package_own_manifest_present": true,
+  "members_not_matching_repo_conventions": {
+    "count": 9,
+    "paths": [
+      "AAOS_UI_Adjustment_20261002/evidence/package-manifest.json",
+      "AAOS_UI_Adjustment_20261002/evidence/preview-validation.json",
+      "AAOS_UI_Adjustment_20261002/evidence/source-hashes.json",
+      "AAOS_UI_Adjustment_20261002/integration/design-tokens.json",
+      "AAOS_UI_Adjustment_20261002/integration/navigation-capability-registry.json",
+      "AAOS_UI_Adjustment_20261002/integration/route-migration-map.json",
+      "AAOS_UI_Adjustment_20261002/specs/02_19路由迁移.csv",
+      "AAOS_UI_Adjustment_20261002/specs/04_全能力菜单清单_50项.csv",
+      "AAOS_UI_Adjustment_20261002/specs/05_正式验收矩阵.csv"
+    ],
+    "why_recorded": "so a later reader knows the package as delivered does not satisfy this repository's formatting, instead of finding out from a red build"
+  },
+  "own_manifest_present": true,
+  "own_manifest_shape": "list",
+  "own_manifest_package_id": null,
+  "own_manifest_revision": null,
+  "own_manifest_entry_count": 51,
   "integrity": "PASS",
   "related_records": [
+    "docs/current/AAOS-UI-CONTRACT-VERIFICATION-20261002.json",
     "docs/history/plan-recovery-2026-10-02/AAOS-R7-PLAN-2026-10-02.md",
-    "docs/current/AAOS-UI-IA-FREEZE-V1-20261002.json",
-    "workspace/intake/2026-10-02-r7-master-taskpack.md"
+    "docs/current/AAOS-UI-IA-FREEZE-V1-20261002.json"
   ],
-  "recorded_at": "2026-10-02T08:05:04.072696+00:00"
+  "recorded_at": "2026-10-02T08:14:08.323441+00:00"
 }

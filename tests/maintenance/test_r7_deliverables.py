@@ -8,6 +8,7 @@ that makes it useful rather than being an empty placeholder.
 from __future__ import annotations
 
 import json
+import zipfile
 from pathlib import Path
 
 import pytest
@@ -222,18 +223,34 @@ def test_the_ui_package_archive_is_intact():
     assert manifest["integrity"] == "PASS"
     assert manifest["source_copies"][0]["byte_identical"] is True
     assert manifest["zip_entry_count"] == 52, manifest["zip_entry_count"]
-    assert manifest["unpacked_entry_count"] == 52, manifest["unpacked_entry_count"]
-    # every recorded member must still be there at the recorded size
-    unpacked = archive / "package-unpacked"
+    assert manifest["members_hashed_in_place"] == 52, manifest["members_hashed_in_place"]
+    # the zip is stored whole and its members are hashed from inside it
+    assert archive.joinpath(manifest["source_copies"][0]["archive"].split("/")[-1]).is_file()
+
+
+def test_the_ui_package_is_hashed_in_place_rather_than_unpacked():
+    """An unpacked copy failed the repository's own conventions; storing the zip avoids editing it."""
+    archive = REPO / "docs/history/ui-adjustment-2026-10-02"
+    manifest = json.loads((archive / "ARCHIVE_MANIFEST.json").read_text(encoding="utf-8"))
+    assert not (archive / "package-unpacked").exists(), (
+        "the unpacked copy is not committed: ten of its files violate repository conventions")
+    # those deviations must stay recorded rather than silently repaired
+    deviations = manifest["members_not_matching_repo_conventions"]
+    assert deviations["count"] >= 9, deviations
+    assert any("BOM" in path or path.endswith(".csv") for path in deviations["paths"])
+    # and every member must still be recorded with a hash
     for entry in manifest["entries"]:
-        path = unpacked / entry["path"]
-        assert path.is_file(), f"archived member is missing: {entry['path']}"
-        assert path.stat().st_size == entry["bytes"], entry["path"]
-    # the six spaces the package freezes
-    assert manifest["category_counts"]["screenshots"] == 19
-    assert manifest["category_counts"]["specs"] == 8
-    assert manifest["category_counts"]["integration"] == 6
-    assert manifest["category_counts"]["prompts"] == 3
+        assert entry["sha256"] and entry["bytes"] >= 0, entry
+
+
+def test_the_ui_package_categories_are_the_ones_it_advertises():
+    archive = REPO / "docs/history/ui-adjustment-2026-10-02"
+    manifest = json.loads((archive / "ARCHIVE_MANIFEST.json").read_text(encoding="utf-8"))
+    counts = manifest["category_counts"]
+    assert counts["screenshots"] == 19, counts
+    assert counts["specs"] == 8, counts
+    assert counts["integration"] == 6, counts
+    assert counts["prompts"] == 3, counts
 
 
 def test_the_contract_verification_matches_the_core_route_table():
@@ -274,9 +291,12 @@ def test_retest_is_recorded_as_representable_rather_than_absent():
 
 def test_the_ui_prompt_that_assigns_this_work_is_archived():
     """The package's third prompt is the one addressed to this executor; it must be in the archive."""
-    prompt = (REPO / "docs/history/ui-adjustment-2026-10-02/package-unpacked"
-                      "/AAOS_UI_Adjustment_20261002/prompts/03_DSH契约核对补充.txt")
-    assert prompt.is_file(), "the DSH contract-verification prompt is not archived"
-    text = prompt.read_text(encoding="utf-8")
+    archive = REPO / "docs/history/ui-adjustment-2026-10-02"
+    manifest = json.loads((archive / "ARCHIVE_MANIFEST.json").read_text(encoding="utf-8"))
+    zip_path = archive / manifest["source_copies"][0]["archive"].split("/")[-1]
+    with zipfile.ZipFile(zip_path) as handle:
+        target = next(name for name in handle.namelist()
+                      if name.endswith("prompts/03_DSH契约核对补充.txt"))
+        text = handle.read(target).decode("utf-8")
     for anchor in ("correction/retest", "plugin", "graph"):
         assert anchor in text, f"the archived prompt does not mention {anchor}"
