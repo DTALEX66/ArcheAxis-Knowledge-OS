@@ -94,7 +94,19 @@
           "item": "G2 universal knowledge",
           "dod": "each first-batch format reaches an Evidence anchor and a Knowledge object from a real file, one external knowledge-software source imports, and Ask answers with a citation",
           "depends_on": "nothing blocking",
-          "status": "READY"
+          "status": "READY",
+          "delivered_in": [
+            "b6ea4c26 (cited Ask: every answer is the cited excerpts themselves, with the knowledge id, anchor and source file, so a reader can check it)"
+          ],
+          "measured_this_round": {
+            "obsidian_shaped_markdown": "imported and extracted through the real Core, state `succeeded`. Front-matter, wiki-links, tags and an embedded attachment all survive in the projection, because `.md` maps to `text/markdown` and `text.extract` accepts that type. `.canvas` maps to `application/json`, which the same route accepts.",
+            "correction": "this item previously said G2 lacked knowledge-software compatibility outright. That overstated it: the *file* half works. What is missing is the *vault* half - walking a directory, reading a `.obsidian` configuration, building the link graph and importing each member with its own provenance - which needs a path-safety design the Core does not have yet."
+          },
+          "remaining": [
+            "vault-level import: walk a directory and import each member, with the path-safety boundary the Core currently avoids",
+            "Git repository source",
+            "Notion export (markdown plus CSV pairs)"
+          ]
         },
         {
           "item": "G3 human learning lite",
