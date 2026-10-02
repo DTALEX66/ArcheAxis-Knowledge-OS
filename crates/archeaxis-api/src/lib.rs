@@ -33,7 +33,7 @@ pub type AppState = Store;
 /// the launch middleware which OVERWRITES this header with the launch-session
 /// claim (C02), so a client cannot escalate. In-process projections default to
 /// human when the header is absent.
-fn request_actor(headers: &HeaderMap) -> Result<&'static str, StatusCode> {
+pub(crate) fn request_actor(headers: &HeaderMap) -> Result<&'static str, StatusCode> {
     match headers
         .get("x-archeaxis-actor")
         .and_then(|v| v.to_str().ok())

@@ -49,6 +49,10 @@ pub fn router(executor: Executor) -> Router {
         // G2: Ask with citations. It needs the store and the domain search matcher, both reachable
         // from the executor, and it answers over the same material the search route answers over.
         .route("/api/v1/ask", post(ask))
+        // G4: the human half of the co-learning loop. A person marks a real error in a machine answer
+        // and gives the correction; both are stored, and the correction is a candidate that only
+        // human review can promote.
+        .route("/api/v1/machine/corrections", post(record_correction))
         .with_state(Runtime {
             executor,
             active: Arc::new(Mutex::new(HashMap::new())),
@@ -94,6 +98,140 @@ async fn ask(State(runtime): State<Runtime>, Json(body): Json<AskBody>) -> Respo
     match asked {
         Ok(Ok(document)) => Json(document).into_response(),
         Ok(Err(e)) => (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()).into_response(),
+        Err(e) => (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()).into_response(),
+    }
+}
+
+/// G4: record a real error a human found in a machine answer, and the human's correction.
+///
+/// This is the step the whole gate exists for. Three things are enforced here rather than left to a
+/// caller:
+///
+/// * the pair is stored as a pair - the model's answer travels with the correction, so a reviewer
+///   reads what was actually said rather than a description of it;
+/// * the specific error is **required**, because "it was wrong" is not a reviewable finding;
+/// * the correction is a **candidate** and nothing else. The domain refuses to accept or verify
+///   machine-origin content automatically, so the promotion path runs through human review, which is
+///   exactly what the taskpack forbids skipping.
+async fn record_correction(
+    State(runtime): State<Runtime>,
+    headers: HeaderMap,
+    Json(body): Json<CorrectionBody>,
+) -> Response {
+    for (name, value) in [
+        ("question", &body.question),
+        ("machine_answer", &body.machine_answer),
+        ("corrected_answer", &body.corrected_answer),
+        ("error_note", &body.error_note),
+    ] {
+        if value.trim().is_empty() {
+            return (
+                StatusCode::UNPROCESSABLE_ENTITY,
+                format!("{name} is required; a correction without it is not reviewable"),
+            )
+                .into_response();
+        }
+    }
+    // A correction is a human act. A machine principal correcting itself would remove the human step
+    // the loop is built around, which is the same reason review actions are refused to machines.
+    let reviewer = match crate::request_actor(&headers).unwrap_or("human") {
+        "machine" => {
+            return (
+                StatusCode::FORBIDDEN,
+                "a correction is a human act; a machine principal cannot record one",
+            )
+                .into_response();
+        }
+        _ => body.reviewer.clone().unwrap_or_else(|| "human".to_string()),
+    };
+
+    let knowledge_id = body.knowledge_id.clone();
+    let question = body.question.clone();
+    let machine_answer = body.machine_answer.clone();
+    let corrected = body.corrected_answer.clone();
+    let error_note = body.error_note.clone();
+    // Cloned because the closure takes ownership and the response names the reviewer afterwards.
+    let reviewer_for_write = reviewer.clone();
+
+    let recorded = runtime
+        .executor
+        .store()
+        .submit_wait(move |conn: &mut rusqlite::Connection| {
+            // One `Result<String, String>`, not a nested one: the outer layer is always success, so a
+            // nested shape would make "no such item" indistinguishable from a created id at the
+            // call site - which is a mistake this code made once and the tests caught.
+            let outcome: Result<String, String> = (|| {
+                // The knowledge item must exist, or the correction is about nothing and would sit in
+                // the review queue with no context.
+                let exists: bool = conn
+                    .query_row(
+                        "SELECT EXISTS(SELECT 1 FROM knowledge WHERE knowledge_id=?1)",
+                        [&knowledge_id],
+                        |row| row.get(0),
+                    )
+                    .map_err(|e| e.to_string())?;
+                if !exists {
+                    return Err(format!("no knowledge item {knowledge_id}"));
+                }
+                // The body is the human's corrected answer, written as a candidate.
+                // `create_knowledge` opens its own transaction, so the review event is recorded
+                // immediately after rather than nested: both writes are individually atomic, and a
+                // crash between them leaves a candidate with no review note, which is a state review
+                // already handles - the opposite order would leave a note pointing at nothing.
+                let candidate_id = archeaxis_domain::knowledge::create_knowledge(
+                    conn,
+                    "OBSERVATION",
+                    &corrected,
+                    "candidate",
+                    Some("UNSOURCED"),
+                    // No anchor: a correction is the author's judgement, not a position in a file.
+                    None,
+                    "human",
+                )
+                .map_err(|e| e.to_string())?;
+                conn.execute(
+                    "INSERT INTO review_events(knowledge_id, action, reviewer, note) \
+                     VALUES(?1,?2,?3,?4)",
+                    rusqlite::params![
+                        candidate_id,
+                        "correction_recorded",
+                        reviewer_for_write,
+                        format!(
+                            "correction of a machine answer for {knowledge_id}\nquestion: {question}\n\
+                             machine answered: {machine_answer}\nerror found: {error_note}"
+                        )
+                    ],
+                )
+                .map_err(|e| e.to_string())?;
+                Ok(candidate_id)
+            })();
+            outcome
+        })
+        .await;
+
+    match recorded {
+        Ok(Ok(candidate_id)) => Json(json!({
+            "schema": "archeaxis.machine-correction/v1",
+            "correction_candidate_id": candidate_id,
+            "corrects_knowledge_id": body.knowledge_id,
+            "question": body.question,
+            "machine_answer": body.machine_answer,
+            "corrected_answer": body.corrected_answer,
+            "error_note": body.error_note,
+            "reviewer": reviewer,
+            "status": "candidate",
+            "authority": "candidate",
+            "promotion": "this candidate is not knowledge until a human accepts it through \
+                          POST /api/v1/knowledge-items/{id}/review-decisions, which a machine \
+                          principal is refused",
+            "note": "the model's answer and the human's correction are stored together so a reviewer \
+                     reads what was actually said",
+        }))
+        .into_response(),
+        // `reason` is converted rather than passed through so the branch is a response body whatever
+        // the store hands back.
+        Ok(Err(reason)) => (StatusCode::NOT_FOUND, reason).into_response(),
+        // The outer error is the store's own, and a `rusqlite::Error` is not itself a response body.
         Err(e) => (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()).into_response(),
     }
 }
@@ -237,6 +375,29 @@ struct AskBody {
     question: String,
     #[serde(default)]
     limit: Option<i64>,
+}
+
+/// The body of a correction candidate.
+///
+/// Every field is required, including the answer the model gave and the specific error the human
+/// found. A correction that omits what was wrong is not reviewable: a reviewer reading it later
+/// would have to guess which part of the answer was the problem, and guessing is what review exists
+/// to avoid.
+#[derive(Deserialize)]
+#[serde(deny_unknown_fields)]
+struct CorrectionBody {
+    /// The knowledge item the machine was answering from.
+    knowledge_id: String,
+    question: String,
+    /// What the model answered, carried so the pair is reviewable as a pair.
+    machine_answer: String,
+    /// What the human says is correct instead.
+    corrected_answer: String,
+    /// What specifically was wrong. Required, because "it was wrong" is not a reviewable finding.
+    error_note: String,
+    /// Who found it. Review is a human act, so the default is the human principal.
+    #[serde(default)]
+    reviewer: Option<String>,
 }
 
 async fn execute(
