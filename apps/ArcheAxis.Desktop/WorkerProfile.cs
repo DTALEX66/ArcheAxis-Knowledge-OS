@@ -49,7 +49,9 @@ public static class WorkerProfile
                         if (entry.ValueKind != JsonValueKind.Object)
                             throw new InvalidDataException("worker profile route must be an object");
                         string? capability = null;
-                        string? script = null;
+                        // Named `routeScript` rather than `script`: the enclosing method declares a
+                        // local `script` for the text worker, and C# refuses the shadowing (CS0136).
+                        string? routeScript = null;
                         foreach (var part in entry.EnumerateObject())
                         {
                             // A route names a capability and the script that serves it. Anything else
@@ -58,13 +60,13 @@ public static class WorkerProfile
                             if (part.Name == "capability" && part.Value.ValueKind == JsonValueKind.String)
                                 capability = part.Value.GetString();
                             else if (part.Name == "script" && part.Value.ValueKind == JsonValueKind.String)
-                                script = part.Value.GetString();
+                                routeScript = part.Value.GetString();
                             else
                                 throw new InvalidDataException("unknown or invalid worker profile route field");
                         }
-                        if (string.IsNullOrWhiteSpace(capability) || string.IsNullOrWhiteSpace(script))
+                        if (string.IsNullOrWhiteSpace(capability) || string.IsNullOrWhiteSpace(routeScript))
                             throw new InvalidDataException("worker profile route needs a capability and a script");
-                        routeEntries.Add((capability, script));
+                        routeEntries.Add((capability, routeScript));
                     }
                     continue;
                 }
@@ -85,12 +87,12 @@ public static class WorkerProfile
             // is required to exist: a route whose worker is absent would register a capability that
             // fails at job time.
             var routes = new List<CoreWorkerRoute>(routeEntries.Count);
-            foreach (var (capability, routeScript) in routeEntries)
+            foreach (var declared in routeEntries)
             {
-                var resolved = Resolve(directory, routeScript);
+                var resolved = Resolve(directory, declared.Script);
                 if (!File.Exists(resolved))
-                    throw new InvalidDataException($"worker route script is missing: {capability}");
-                routes.Add(new CoreWorkerRoute(capability, resolved));
+                    throw new InvalidDataException($"worker route script is missing: {declared.Capability}");
+                routes.Add(new CoreWorkerRoute(declared.Capability, resolved));
             }
             return new CoreTextWorker(python, script, staging, routes);
         }
