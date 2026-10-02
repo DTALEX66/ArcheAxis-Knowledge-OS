@@ -42,6 +42,10 @@ pub fn router(executor: Executor) -> Router {
             "/api/v1/capabilities/:capability/enabled",
             put(set_capability_enabled),
         )
+        // G4: a machine answer over accepted material. It lives with the runtime router because it
+        // needs the executor, and the executor is this router's state; the projection builder holds
+        // only the store and cannot reach a worker.
+        .route("/api/v1/machine/answers", post(machine_answer))
         .with_state(Runtime {
             executor,
             active: Arc::new(Mutex::new(HashMap::new())),
@@ -64,6 +68,87 @@ async fn set_capability_enabled(
     Json(body): Json<CapabilityEnabledBody>,
 ) -> Response {
     crate::capabilities::set_enabled(&runtime.executor, &name, body.enabled).await
+}
+
+/// G4: ask the local model one question about one accepted knowledge item.
+///
+/// The context is the knowledge item's **own body**, read from the canonical store, so the answer is
+/// grounded in material this workspace accepted rather than in a caller-supplied string. The reply
+/// is a candidate and says so; nothing here writes knowledge, and no automatic promotion exists.
+async fn machine_answer(
+    State(runtime): State<Runtime>,
+    Json(body): Json<MachineAnswerBody>,
+) -> Response {
+    if body.question.trim().is_empty() {
+        return (
+            StatusCode::UNPROCESSABLE_ENTITY,
+            "a question is required; an answer to nothing is not a task",
+        )
+            .into_response();
+    }
+    // Refused before the model runs, for the same reason the job path refuses: "disabled" must mean
+    // nothing happened, not that something ran and was discarded.
+    if let Some(refusal) = crate::capabilities::refusal(&runtime.executor, "machine.answer").await {
+        return refusal;
+    }
+
+    let knowledge_id = body.knowledge_id.clone();
+    let context = runtime
+        .executor
+        .store()
+        .submit_wait(move |conn: &mut rusqlite::Connection| {
+            conn.query_row(
+                "SELECT body FROM knowledge WHERE knowledge_id=?1",
+                [&knowledge_id],
+                |row| row.get::<_, String>(0),
+            )
+            .optional()
+        })
+        .await;
+    let context = match context {
+        Ok(Ok(Some(text))) if !text.trim().is_empty() => text,
+        Ok(Ok(_)) => {
+            return (
+                StatusCode::NOT_FOUND,
+                format!(
+                    "no knowledge item {} with a body to answer from",
+                    body.knowledge_id
+                ),
+            )
+                .into_response();
+        }
+        Ok(Err(e)) => {
+            return (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()).into_response();
+        }
+        Err(e) => return (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()).into_response(),
+    };
+
+    // Bounded rather than open: a model that never returns must not hold the request. The default is
+    // generous because a local model on a busy host is slow, and the caller may lower it.
+    let timeout_s = body.timeout_s.unwrap_or(300).clamp(1, 900);
+    match runtime
+        .executor
+        .machine_answer(
+            context,
+            body.question.clone(),
+            body.max_tokens.unwrap_or(2048),
+            std::time::Duration::from_secs(timeout_s),
+        )
+        .await
+    {
+        Ok(answer) => Json(json!({
+            "schema": "archeaxis.machine-answer/v1",
+            "knowledge_id": body.knowledge_id,
+            "question": body.question,
+            "authority": "candidate",
+            "note": "model output awaiting human review; it is not accepted knowledge and nothing \
+                     was promoted",
+            "answer": answer,
+        }))
+        .into_response(),
+        // The worker's own words, because it is the component that knows why it could not answer.
+        Err(reason) => (StatusCode::SERVICE_UNAVAILABLE, reason).into_response(),
+    }
 }
 fn error(status: u16, code: &str, message: &str) -> Response {
     (
@@ -100,6 +185,21 @@ struct ExecuteBody {
 #[serde(deny_unknown_fields)]
 struct CapabilityEnabledBody {
     enabled: bool,
+}
+
+/// The body of a machine answer request.
+///
+/// `knowledge_id` is required and there is no free-text context field: an answer grounded in a string
+/// the caller supplied would be unverifiable, and grounding is the whole point of this route.
+#[derive(Deserialize)]
+#[serde(deny_unknown_fields)]
+struct MachineAnswerBody {
+    knowledge_id: String,
+    question: String,
+    #[serde(default)]
+    max_tokens: Option<u64>,
+    #[serde(default)]
+    timeout_s: Option<u64>,
 }
 
 async fn execute(

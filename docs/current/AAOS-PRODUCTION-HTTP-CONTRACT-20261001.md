@@ -177,7 +177,7 @@ against what it launched; a mismatch means it is talking to a different Core.
 `runtime` and `contract` are hard-coded string literals, not derived from the crate
 version. Do not use them to infer a build.
 
-## 3. Route inventory (33 pairs in a `text_worker` launch)
+## 3. Route inventory (34 pairs in a `text_worker` launch)
 
 `PROD` = reachable in a production launch. `PROD` marks the routes the UI may rely on.
 All paths are relative to the loopback base URL.
@@ -196,6 +196,7 @@ All paths are relative to the loopback base URL.
 | R5 | `GET /api/v1/capabilities` | any token | The routes the Core actually registered, one record each: `capability`, `provider` (kind, worker path, whether the worker and interpreter files exist, whether the route may import site packages), `enabled`, `health`, `is_default`, `fallback`. **Left with the executor rather than the projections because it reads the registered routes**, and it reads no database, so it answers even when the store will not open. |
 | R6 | `GET /api/v1/capabilities/{capability}` | any token | One capability by its **exact** dot-separated name. A near miss is `404` with a plain-text body rather than the nearest match, because a registry that guesses is worse than one that says it does not know. |
 | R7 | `PUT /api/v1/capabilities/{capability}/enabled` | any token | Body `{"enabled": true\|false}`. **`enabled` is a required boolean and unknown fields are `422`** — `{}` must not be read as "disable", which would make the most destructive action the default. Answers with the record re-read from the workspace, not echoed from the request. A capability that is not registered is `404`; a capability the workspace has turned off is refused by the execute path with `409 AAK-CAP-001` and by the claim transaction, so no attempt row is created. |
+| R8 | `POST /api/v1/machine/answers` | any token | Body `{"knowledge_id","question","max_tokens"?,"timeout_s"?}`. Asks the local model one question about **one accepted knowledge item**, whose own `body` is the context, so an answer is grounded in material this workspace accepted. **There is no free-text context field** and an unknown field is `422`: an answer grounded in a caller-supplied string would be unverifiable. Replies `{"schema":"archeaxis.machine-answer/v1","knowledge_id","question","authority":"candidate","note","answer"}`, where `answer` is the worker's own JSON with its `loss_receipt`. A blank question is `422`, an unknown or bodyless knowledge item is `404`, a disabled `machine.answer` is `409`, and a model that cannot answer is `503` with the worker's own reason. **Nothing here writes knowledge and nothing is promoted.** |
 
 Three limits are part of the contract, not caveats on it:
 
@@ -464,7 +465,7 @@ Before the fix this endpoint answered `500` with a raw FTS5 parser message for
 | Launch | Routes served | Consequence for the UI |
 | --- | --- | --- |
 | **no** `text_worker` | 26 projection addresses (25 mounted routes, one of which carries GET and POST, plus the conditional legacy `/jobs/{id}/receipts`) | `/jobs/{id}`, `/executions`, `/outputs`, `/cancel`, `/capabilities` and its enable/disable write are **absent** (`404`). |
-| **with** `text_worker` | 33 addresses (the 26 projection addresses + the 7 runtime routes) | All routes above are served. |
+| **with** `text_worker` | 34 addresses (the 26 projection addresses + the 8 runtime routes) | All routes above are served. |
 
 The runtime builder carries six routes: the four job-execution ones plus the two capability
 registry reads added by R7/G1. They are mounted there rather than with the projections because

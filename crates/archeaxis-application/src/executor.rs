@@ -121,6 +121,83 @@ impl Executor {
         Some((chosen.1.clone(), chosen.2))
     }
 
+    /// Ask a local model one question about one context, through the worker boundary.
+    ///
+    /// G4 needs a Core route that accepts a **question**, and the job protocol cannot carry one: a
+    /// route in the worker transport is validated with `parameters` empty. Rather than inventing a
+    /// second model client inside the Core, this runs the machine answer worker as a process, which
+    /// keeps the one boundary the project already has for every capability that calls an engine.
+    ///
+    /// The worker is asked for JSON on stdout, and its own words are returned rather than rephrased,
+    /// so a receipt field cannot drift from what the worker actually decided.
+    pub async fn machine_answer(
+        &self,
+        context: String,
+        question: String,
+        max_tokens: u64,
+        timeout: Duration,
+    ) -> Result<serde_json::Value, String> {
+        let worker = self
+            .worker_for("machine.answer")
+            .map(|(path, _)| path)
+            .ok_or_else(|| "no worker is registered for machine.answer".to_string())?;
+        let python = self.python.clone();
+
+        // Blocking process work belongs off the async runtime; the call can take a model's own latency.
+        tokio::task::spawn_blocking(move || -> Result<serde_json::Value, String> {
+            let dir = tempfile::tempdir().map_err(|e| format!("temp dir: {e}"))?;
+            let context_path = dir.path().join("context.txt");
+            std::fs::write(&context_path, context.as_bytes())
+                .map_err(|e| format!("writing the context: {e}"))?;
+
+            let mut command = Command::new(&python);
+            command.arg("-B");
+            command.arg(&worker);
+            command.arg(&context_path);
+            command.arg("--question").arg(&question);
+            command.arg("--max-tokens").arg(max_tokens.to_string());
+            command.stdout(Stdio::piped()).stderr(Stdio::piped());
+
+            let mut child = command
+                .spawn()
+                .map_err(|e| format!("starting the machine answer worker: {e}"))?;
+            // A model call has its own latency, so the wait is bounded by the caller's timeout rather
+            // than left open; a hung worker must not hold the request forever.
+            let started = std::time::Instant::now();
+            loop {
+                match child.try_wait() {
+                    Ok(Some(_)) => break,
+                    Ok(None) if started.elapsed() < timeout => {
+                        std::thread::sleep(Duration::from_millis(50))
+                    }
+                    Ok(None) => {
+                        let _ = child.kill();
+                        return Err(format!(
+                            "the machine answer worker exceeded {} s",
+                            timeout.as_secs()
+                        ));
+                    }
+                    Err(e) => return Err(format!("waiting for the machine answer worker: {e}")),
+                }
+            }
+            let output = child
+                .wait_with_output()
+                .map_err(|e| format!("reading the machine answer worker: {e}"))?;
+            let stdout = String::from_utf8_lossy(&output.stdout);
+            if !output.status.success() {
+                let stderr = String::from_utf8_lossy(&output.stderr);
+                return Err(format!(
+                    "the machine answer worker failed: {}",
+                    stderr.trim().lines().last().unwrap_or("no reason reported")
+                ));
+            }
+            serde_json::from_str(stdout.trim())
+                .map_err(|e| format!("the machine answer worker did not answer with JSON: {e}"))
+        })
+        .await
+        .map_err(|e| format!("machine answer task failed: {e}"))?
+    }
+
     /// The routes registered for one capability, in registration order, each marked with whether it
     /// is usable. The first element is the default; any later element is a fallback candidate.
     pub fn providers_for(&self, capability: &str) -> Vec<(&Path, bool)> {
