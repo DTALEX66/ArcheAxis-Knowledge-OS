@@ -31,7 +31,7 @@ def test_primary_navigation_matches_current_mother_icon_rail_and_topbar():
     assert 'MobileRail.IsVisible = mobile;' in code
 
 
-def test_daily_routes_use_distinct_vector_icons_and_accessible_names():
+def test_daily_routes_use_distinct_vector_icons_responsive_labels_and_accessible_names():
     root = ET.parse(XAML).getroot()
     xname = "{http://schemas.microsoft.com/winfx/2006/xaml}Name"
     rail = next(node for node in root.iter() if node.get(xname) == "PrimaryRail")
@@ -44,7 +44,12 @@ def test_daily_routes_use_distinct_vector_icons_and_accessible_names():
         button = buttons[name]
         assert "master-nav-button" in button.get("Classes", "")
         assert any(node.tag.endswith("}AaosIcon") and node.get("IconName") for node in button.iter())
-        assert any(node.get("Text") and node.get("IsVisible") == "False"
+        assert any(node.get("Text") and node.get(xname)
                    for node in button.iter() if node.tag.endswith("}TextBlock"))
         assert button.get("AutomationProperties.Name")
         assert button.get("ToolTip.Tip")
+
+    code = CODE.read_text(encoding="utf-8")
+    assert "var expandedRail = !mobile && frameSize.Width >= narrowActionsBreakpoint;" in code
+    assert "var sidebarWidth = expandedRail ? 224d : MasterSidebarWidth;" in code
+    assert "RailHomeLabel.IsVisible = expandedRail;" in code
