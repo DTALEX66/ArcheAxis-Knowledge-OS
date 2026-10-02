@@ -130,7 +130,7 @@
       "bytes": 12927,
       "data_rows": 97,
       "columns": [
-        "﻿scope",
+        "scope",
         "index",
         "title",
         "stable_id",
@@ -144,7 +144,7 @@
       "bytes": 37518,
       "data_rows": 369,
       "columns": [
-        "﻿candidate",
+        "candidate",
         "categories"
       ]
     },
@@ -154,7 +154,7 @@
       "bytes": 2022,
       "data_rows": 47,
       "columns": [
-        "﻿id",
+        "id",
         "name",
         "capability",
         "disposition"
@@ -166,7 +166,7 @@
       "bytes": 1192,
       "data_rows": 11,
       "columns": [
-        "﻿capability_id",
+        "capability_id",
         "capability_name",
         "status",
         "absorption_mode",
@@ -179,7 +179,7 @@
       "bytes": 1614,
       "data_rows": 16,
       "columns": [
-        "﻿capability_id",
+        "capability_id",
         "canonical_name",
         "pillar",
         "authority_status",
@@ -194,7 +194,7 @@
       "bytes": 1132,
       "data_rows": 17,
       "columns": [
-        "﻿requirement_id",
+        "requirement_id",
         "title",
         "capability",
         "horizon",
@@ -207,7 +207,7 @@
       "bytes": 1856,
       "data_rows": 15,
       "columns": [
-        "﻿historical_family",
+        "historical_family",
         "historical_content",
         "current_owner_or_capability",
         "disposition"
@@ -219,7 +219,7 @@
       "bytes": 2504,
       "data_rows": 24,
       "columns": [
-        "﻿id",
+        "id",
         "area",
         "status",
         "remaining_gap"
