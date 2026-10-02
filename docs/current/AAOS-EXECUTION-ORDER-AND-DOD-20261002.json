@@ -122,7 +122,8 @@
           "delivered_in": [
             "facc4144 (the machine answer worker over the local model)",
             "637a4bb7 (POST /api/v1/machine/answers: grounded in the knowledge item's own body)",
-            "a4acd1a8 (POST /api/v1/machine/corrections: the human half, as an un-promotable candidate)"
+            "a4acd1a8 (POST /api/v1/machine/corrections: the human half, as an un-promotable candidate)",
+            "c3b86628 (POST /api/v1/machine/retests: linked to the failed task, and it does not score itself)"
           ],
           "what_is_wired": {
             "machine_answer": "POST /api/v1/machine/answers asks the local model one question about one accepted knowledge item, whose own body is the context",
@@ -135,9 +136,22 @@
             "a human accepting the correction through POST /api/v1/knowledge-items/{id}/review-decisions"
           ],
           "remaining": [
-            "a route that runs the retest and links it to the corrected knowledge",
             "candidate generation beyond the correction itself"
-          ]
+          ],
+          "loop_is_closed": [
+            "a model answers from accepted knowledge",
+            "a person marks a specific error and gives the correction",
+            "the correction is stored as a candidate, with the answer it corrects",
+            "the retest runs the same question and records itself with `retest_of`",
+            "promotion of the correction runs only through human review"
+          ],
+          "constraints_the_domain_enforces": {
+            "retest_of_a_failed_task_only": "the domain refuses a retest of anything that did not fail: `retest_of must reference an existing failed machine task`. \"Did the correction help\" only has a meaning when something went wrong, and this was found by a test rather than assumed.",
+            "no_self_scoring": "the retest returns the prior receipt beside the new answer and states that it does not decide whether the correction helped. A Core that scored its own retest would be marking its own work.",
+            "no_measurement_from_a_failed_run": "when the model cannot answer, the route fails by name and records nothing, because a task that could not run is not a measurement.",
+            "correction_needs_the_specific_error": "`error_note` is required, because \"it was wrong\" is not a reviewable finding.",
+            "a_machine_cannot_correct_or_accept": "recording a correction and accepting one are both refused to a machine principal."
+          }
         },
         {
           "item": "G5 product / local Green",
