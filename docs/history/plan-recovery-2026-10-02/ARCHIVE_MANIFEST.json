@@ -11,9 +11,10 @@
     {
       "source": "Owner-supplied plan text (in session, 2026-10-02)",
       "archive": "./docs/history/plan-recovery-2026-10-02/AAOS-R7-PLAN-2026-10-02.md",
-      "bytes": 13805,
-      "sha256": "C5F5E3E317F20741FD5A5E675FD9B400AC955482DF9BC0EC7442FD745A8AAE4A",
-      "byte_identical": true
+      "bytes": 14907,
+      "sha256": "936BB892095E40175B8566E0E6C4960487696DAA5B70164E9E768DF390C4FBB7",
+      "byte_identical": true,
+      "note": "the plan text as supplied, plus an appendix recording that the pasted text ended with a bare 'E）' after section fifteen; no text was invented to fill the gap"
     }
   ],
   "expanded_entry_count": 1,
@@ -22,5 +23,12 @@
     "docs/current/AAOS-PLAN-SUPERSESSION-20261002.md",
     "docs/current/AAOS-R7-FAST-CLOSURE-TASKPACK-20261002.json",
     "docs/history/planning-blueprint-absorption/2026-09-29/ARCHIVE_MANIFEST.json"
-  ]
+  ],
+  "truncation": {
+    "observed": "the supplied text ends at section fifteen; a bare 'E）' follows it",
+    "assessment": "section sixteen is very likely missing, since the plan's item markers run A) B) C) D) E) and 'E）' is the fifth. The A)-D) items and the section heading were not received.",
+    "action_taken": "recorded, not reconstructed - writing guessed planning text into a historical record would misrepresent it as original",
+    "action_available": "the Owner can supply section sixteen and it will be appended, with the manifest hash updated; archived lines are never rewritten",
+    "recorded_at": "2026-10-02T07:30:55.603737+00:00"
+  }
 }
