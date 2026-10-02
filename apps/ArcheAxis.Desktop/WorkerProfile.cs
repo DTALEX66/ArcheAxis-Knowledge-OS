@@ -32,8 +32,42 @@ public static class WorkerProfile
             if (document.RootElement.ValueKind != JsonValueKind.Object)
                 throw new InvalidDataException("worker profile must be an object");
             var fields = new Dictionary<string, string>(StringComparer.Ordinal);
+            var routeEntries = new List<(string Capability, string Script)>();
             foreach (var field in document.RootElement.EnumerateObject())
             {
+                // `routes` is read here rather than refused. The staged runtime's reader accepted it in
+                // `deb2238a` because a launch that cannot declare capability routes registers none,
+                // and this reader had the same refusal. A profile carrying routes used to throw
+                // "unknown ... worker profile field", which the window reports as an invalid worker
+                // configuration and refuses to start on.
+                if (field.Name == "routes")
+                {
+                    if (field.Value.ValueKind != JsonValueKind.Array)
+                        throw new InvalidDataException("worker profile routes must be an array");
+                    foreach (var entry in field.Value.EnumerateArray())
+                    {
+                        if (entry.ValueKind != JsonValueKind.Object)
+                            throw new InvalidDataException("worker profile route must be an object");
+                        string? capability = null;
+                        string? script = null;
+                        foreach (var part in entry.EnumerateObject())
+                        {
+                            // A route names a capability and the script that serves it. Anything else
+                            // is refused by name rather than dropped: a dropped route would surface
+                            // later as an unexplained capability that is simply missing.
+                            if (part.Name == "capability" && part.Value.ValueKind == JsonValueKind.String)
+                                capability = part.Value.GetString();
+                            else if (part.Name == "script" && part.Value.ValueKind == JsonValueKind.String)
+                                script = part.Value.GetString();
+                            else
+                                throw new InvalidDataException("unknown or invalid worker profile route field");
+                        }
+                        if (string.IsNullOrWhiteSpace(capability) || string.IsNullOrWhiteSpace(script))
+                            throw new InvalidDataException("worker profile route needs a capability and a script");
+                        routeEntries.Add((capability, script));
+                    }
+                    continue;
+                }
                 if (field.Name is not ("schema" or "python" or "script" or "staging")
                     || field.Value.ValueKind != JsonValueKind.String
                     || !fields.TryAdd(field.Name, field.Value.GetString()!))
@@ -47,7 +81,18 @@ public static class WorkerProfile
             var staging = Resolve(directory, fields["staging"]);
             if (!File.Exists(python) || !File.Exists(script))
                 throw new InvalidDataException("worker interpreter or script is missing");
-            return new CoreTextWorker(python, script, staging);
+            // Every declared route script is resolved and checked the same way the text script is, and
+            // is required to exist: a route whose worker is absent would register a capability that
+            // fails at job time.
+            var routes = new List<CoreWorkerRoute>(routeEntries.Count);
+            foreach (var (capability, routeScript) in routeEntries)
+            {
+                var resolved = Resolve(directory, routeScript);
+                if (!File.Exists(resolved))
+                    throw new InvalidDataException($"worker route script is missing: {capability}");
+                routes.Add(new CoreWorkerRoute(capability, resolved));
+            }
+            return new CoreTextWorker(python, script, staging, routes);
         }
         catch (JsonException) { throw new InvalidDataException("invalid worker profile JSON"); }
     }

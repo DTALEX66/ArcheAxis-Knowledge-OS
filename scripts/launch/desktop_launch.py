@@ -86,9 +86,35 @@ def prepare_launch(*, desktop: Path | None = None, core: Path | None = None,
     database = (directory / 'workspace.sqlite' if fresh_workspace else
                 dev.state_path(REPO, 'desktop-test', 'workspace.sqlite'))
     profile = directory / 'worker-profile.json'
+    # The capability routes this desktop ships, resolved against the repository's workers. They are
+    # written here for the same reason the staged runtime writes them: a launch that declares no routes
+    # registers none, and the Core then serves only its built-in text route, so every other capability
+    # - PDF, OCR, Office, media, canvas and the co-learning machine answer - is unreachable from the
+    # product. Each entry names a worker that exists; a missing one raises rather than being dropped,
+    # because a dropped route surfaces later as a capability that is simply absent.
+    _route_workers = {
+        'archive.inventory': 'document/worker_archive.py',
+        'canvas.structure': 'document/worker_canvas.py',
+        'html.structure': 'web/worker_html.py',
+        'image.caption': 'vision/worker_caption.py',
+        'image.ocr': 'vision/worker_ocr.py',
+        'machine.answer': 'machine/worker_machine_answer.py',
+        'media.probe': 'document/worker_media.py',
+        'media.transcribe': 'media/worker_transcribe.py',
+        'office.structure': 'document/worker_office.py',
+        'pdf.extract': 'document/worker_pdf.py',
+        'subtitles.structure': 'document/worker_subtitles.py',
+    }
+    routes = []
+    for capability, relative in sorted(_route_workers.items()):
+        worker = dev.safe_path(REPO / 'services/python-workers' / relative)
+        if not worker.is_file():
+            raise ValueError(f'worker for {capability} is missing: {relative}')
+        routes.append({'capability': capability, 'script': str(worker)})
     profile.write_text(json.dumps({
         'schema': 'archeaxis.worker-profile/v1', 'python': str(python),
         'script': str(script), 'staging': str(directory / 'worker-staging'),
+        'routes': routes,
     }, indent=2) + '\n', encoding='utf-8')
     source_head = dev.git(REPO, 'rev-parse', 'HEAD')
     receipt = {

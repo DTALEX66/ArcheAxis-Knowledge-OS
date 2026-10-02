@@ -117,24 +117,25 @@ most consequential fact for UI behaviour.
 
 **`text_worker` may also carry a `routes` list**, and the Core registers exactly what a launch
 declares (`crates/archeaxis-api/src/launch.rs`: `#[serde(default)] pub routes: Vec<WorkerRoute>`;
-`main.rs` passes `extra_routes()` to `Executor::open_routes`). Two readers exist and they do not agree:
+`main.rs` passes `extra_routes()` to `Executor::open_routes`). Each entry is `{"capability": ...,
+"script": ...}`, with the script resolved relative to the profile.
+
+Both readers now accept and forward it:
 
 | Reader | Accepts `routes` | Forwards it |
 | --- | --- | --- |
 | `scripts/release/backend_launcher.py` (staged runtime) | yes | yes, since `deb2238a` |
-| `apps/ArcheAxis.Desktop/WorkerProfile.cs` + `CoreSupervisor.cs` | **no** | **no** |
+| `apps/ArcheAxis.Desktop/WorkerProfile.cs` + `CoreSupervisor.cs` | yes | yes |
 
-The desktop's reader requires **exactly four fields** (`WorkerProfile.cs:37`, `:42`) and its
-`CoreTextWorker` record carries only `Python/Script/Staging` (`CoreSupervisor.cs:13`, `:92`), so a
-desktop launch sends no routes and the launched Core registers **only the built-in `text.extract`**.
-Every other capability - PDF, OCR, Office, media, canvas, and the G4 `machine.answer` route - is
-unreachable when the product is launched the way the product is launched. `deb2238a` fixed this
-pattern in the Python launcher and left the desktop's copy untouched.
-
-This is recorded rather than fixed because the change is C# and no .NET SDK is available in the
-environment where it was found; see `AAOS-FINDING-DESKTOP-CAPABILITY-ROUTES-20261002.json` for the
-seven measured facts, the proposed scope, and the acceptance check. **It is an open Owner question
-whether the desktop is meant to stay text-only**, since nothing in the repository states either way.
+The desktop's reader used to require **exactly four fields** (`WorkerProfile.cs:37`, `:42`) and its
+`CoreTextWorker` record carried only `Python/Script/Staging` (`CoreSupervisor.cs:13`, `:92`), so a
+desktop launch sent no routes and the launched Core registered **only the built-in `text.extract`**:
+every other capability - PDF, OCR, Office, media, canvas, and the co-learning `machine.answer` route -
+was unreachable when the product was launched the way the product is launched. `deb2238a` had fixed
+this pattern in the Python launcher and left the desktop's copy untouched. Both are fixed now, and
+`tests/test_desktop_launch.py` asserts that a prepared desktop launch declares its routes, that every
+declared script exists, and that every script is inside `services/python-workers`. The seven measured
+facts that established the defect are recorded in `AAOS-FINDING-DESKTOP-CAPABILITY-ROUTES-20261002.json`.
 
 ## 2. Authentication and identity
 

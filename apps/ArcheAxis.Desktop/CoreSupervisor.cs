@@ -3,6 +3,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Net.Http;
 using System.Collections.Generic;
+using System.Linq;
 using System.Security.Cryptography;
 using System.Text.Json;
 using System.Threading;
@@ -10,7 +11,22 @@ using System.Threading.Tasks;
 
 namespace ArcheAxis.Desktop;
 
-public sealed record CoreTextWorker(string Python, string Script, string Staging);
+/// <summary>One declared capability route: which capability, and the script that serves it.</summary>
+public sealed record CoreWorkerRoute(string Capability, string Script);
+
+/// <summary>
+/// The text worker and any capability routes this launch declares.
+///
+/// <para>
+/// The routes are carried, not dropped. Without them the Core registers only its built-in
+/// `text.extract` route, so every other capability - PDF, OCR, Office, media, canvas, and the
+/// co-learning machine answer - is unreachable in a launch started from this product. The Core accepts
+/// the field (`crates/archeaxis-api/src/launch.rs`, `#[serde(default)] pub routes`), so a launch that
+/// omits it is a launch that registers nothing, not one that cannot register anything.
+/// </para>
+/// </summary>
+public sealed record CoreTextWorker(string Python, string Script, string Staging,
+    IReadOnlyList<CoreWorkerRoute> Routes);
 
 /// <summary>Owns one silent Core child; never adopts an unrelated loopback service.</summary>
 public sealed class CoreSupervisor : IDisposable
@@ -89,7 +105,16 @@ public sealed class CoreSupervisor : IDisposable
             if (process is null) return (false, "failed to start core process");
             var startupErrors = new List<string>();
             var errorDrain = DrainStartupErrorsAsync(process.StandardError, startupErrors);
-            var worker = _textWorker is null ? null : new { python = _textWorker.Python, script = _textWorker.Script, staging = _textWorker.Staging };
+            // The routes are keyed `capability` and `script`, which is what the Core's `WorkerRoute`
+            // declares under `deny_unknown_fields`; a positional record would serialize PascalCase and
+            // be refused as an unknown field.
+            var worker = _textWorker is null ? null : new
+            {
+                python = _textWorker.Python,
+                script = _textWorker.Script,
+                staging = _textWorker.Staging,
+                routes = _textWorker.Routes.Select(route => new { capability = route.Capability, script = route.Script }).ToArray(),
+            };
             await process.StandardInput.WriteLineAsync(JsonSerializer.Serialize(new { protocol = "archeaxis.desktop-launch/v2", actor = "human", launch_token = launchToken, machine_token = machineToken, session_id = sessionId, text_worker = worker }).AsMemory(), token).ConfigureAwait(false);
             process.StandardInput.Close();
             while (await process.StandardOutput.ReadLineAsync(token).ConfigureAwait(false) is { } line)
