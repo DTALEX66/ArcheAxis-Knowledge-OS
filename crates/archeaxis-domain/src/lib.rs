@@ -13,5 +13,6 @@ pub mod machine;
 pub mod search;
 pub mod source;
 pub mod vault;
+pub mod vault_members;
 
 pub use source::ImportOutcome;

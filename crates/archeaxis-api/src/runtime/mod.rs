@@ -62,6 +62,9 @@ pub fn router(executor: Executor) -> Router {
         // G2: store the link graph of one note. Separated from the parse so a caller can inspect what
         // a note declares before deciding to keep it.
         .route("/api/v1/vault/links/record", post(vault_links_record))
+        // G2: what each member of a vault is, so a walker can tell the user's notes from the
+        // application's own configuration before it reads anything.
+        .route("/api/v1/vault/members", post(vault_members))
         .with_state(Runtime {
             executor,
             active: Arc::new(Mutex::new(HashMap::new())),
@@ -243,6 +246,30 @@ async fn record_correction(
         // The outer error is the store's own, and a `rusqlite::Error` is not itself a response body.
         Err(e) => (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()).into_response(),
     }
+}
+
+/// G2: classify a vault's members without reading any of them.
+///
+/// The gap this closes: nothing in the repository distinguished a person's notes from the vault's own
+/// `.obsidian/` directory, so a directory walk had no way to tell that `workspace.json` - which
+/// records a person's open panes, with **absolute paths on their disk** - is application state rather
+/// than a claim about the world.
+///
+/// It is a pure function over names: it reads no file, touches no store, and cannot leak the contents
+/// of what it classifies. An unsafe path is reported with the reason and is **not classified**, since
+/// deciding what an out-of-tree path *is* would suggest it might be read.
+async fn vault_members(Json(body): Json<VaultMembersBody>) -> Response {
+    if body.members.is_empty() {
+        return (
+            StatusCode::UNPROCESSABLE_ENTITY,
+            "members is required; classifying nothing answers nothing",
+        )
+            .into_response();
+    }
+    Json(archeaxis_domain::vault_members::classify_members(
+        &body.members,
+    ))
+    .into_response()
 }
 
 /// G2: store one note's link graph.
@@ -731,6 +758,16 @@ struct CorrectionBody {
     /// Who found it. Review is a human act, so the default is the human principal.
     #[serde(default)]
     reviewer: Option<String>,
+}
+
+/// The body of a vault member classification.
+///
+/// The members are relative paths the caller enumerated. The Core does not walk the directory, which
+/// is why this takes a list of names rather than a root.
+#[derive(Deserialize)]
+#[serde(deny_unknown_fields)]
+struct VaultMembersBody {
+    members: Vec<String>,
 }
 
 /// The body of a vault link record.
