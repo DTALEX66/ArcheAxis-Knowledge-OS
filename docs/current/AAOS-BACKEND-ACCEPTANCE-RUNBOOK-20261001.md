@@ -163,22 +163,28 @@ these drive the real binary or the real routers, so they need no provisioned run
 
 ## What is not covered, on purpose
 
-* **`image.caption` is no longer blocked by a missing model.** This was recorded as "needs a vision
-  model at an Ollama endpoint this host does not serve" — that was wrong. A vision model is present
-  in the shared library and is served locally, and a real caption was produced from a real
-  repository fixture:
+* **`image.caption` is working, and the earlier notes about it were wrong twice.** It was recorded
+  as "needs a vision model at an Ollama endpoint this host does not serve" — there is a vision model,
+  and the worker was simply pointed at a runtime this host does not have. It now resolves whichever
+  local server answers (Ollama first, then any OpenAI-compatible one) and carries the resolved
+  protocol through to the receipt. Measured here, where LM Studio serves it on 127.0.0.1:1234:
 
   ```
-  endpoint : http://127.0.0.1:1234/v1   (LM Studio, OpenAI-compatible)
-  model    : qwen2.5-vl-7b-instruct
-  image    : tests/fixtures/golden/golden-screenshot-ocr.png  (21,378 bytes)
-  result   : finish_reason=stop
-             "这张图片显示了一个名为“OCR GOLDEN ANCHOR”的合成截图，没有个人数据。"
+  probe    : capability true, endpoint http://127.0.0.1:1234/v1, protocol openai,
+             model qwen2.5-vl-7b-instruct          (discovered, not configured)
+  caption  : the real fixture tests/fixtures/golden/golden-screenshot-ocr.png, 21,378 bytes,
+             61 s, describing the image correctly
+  route    : the worker's own sidecar protocol answers status "succeeded" with text,
+             document_structure and loss_report outputs; the repository's
+             caption_job_end_to_end test is green
   ```
 
-  It stays out of the matrix because the caption **route** is not wired to this endpoint yet — the
-  blocker is wiring, not a model. Do not report it `unverifiable` any more; report it `unwired`.
-
+  Two configuration points exist for a machine that differs: `ARCHEAXIS_CAPTION_ENDPOINT`,
+  `ARCHEAXIS_CAPTION_MODEL` and `ARCHEAXIS_CAPTION_PROTOCOL`.
+  **Do not report it `unverifiable` any more.**
+* **No local Ollama runtime is installed** on this host — only its weights and manifests are in the
+  library. That is what the old note was really about, and it is worth saying precisely rather than
+  as "the endpoint does not exist".
 * **A local text model also works**, measured: `qwen3.5-4b` answered `Say exactly:
   AAOS-LOCAL-MODEL-OK` with `content: AAOS-LOCAL-MODEL-OK`, `finish_reason: stop`, 4.5 s. Note that
   these are reasoning models: the chain of thought arrives in `reasoning_content` and the answer in
@@ -186,6 +192,12 @@ these drive the real binary or the real routers, so they need no provisioned run
 * **Embedding and reranker models are served** (`text-embedding-qwen3-embedding-0.6b`,
   `text-embedding-nomic-embed-text-v1.5`, `qwen3-reranker-0.6b`). Vector retrieval and reranking
   were recorded as "do not exist" — the models for both are available; what is missing is a route.
+* **H3 video is installed and its runtime already points at the shared library.** ComfyUI 0.33.1
+  with `comfy-aimdo` DynamicVRAM resolves all three H3 component classes by name through its API
+  (`UNETLoader`, `VAELoader`, `CLIPLoader`), and the four weights total 39.55 GB. That is an
+  integration task, not a missing capability: the weights are in `Model library/ComfyUI/`, which the
+  library README assigns to the DESIGN-LAB visual chain — ownership says who writes that directory,
+  not who may read it.
 
 * **Supported formats this matrix does not exercise**: the golden corpus covers 12 cases
   and real-material mode 9, so six are golden-only here — `office/xlsx`, `office/pptx`,

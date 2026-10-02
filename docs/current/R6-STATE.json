@@ -332,7 +332,232 @@
         "why_it_matters": "vector retrieval and reranking were recorded as 'do not exist'. The models for both are served locally; what is missing is a route, not a model."
       },
       "recorded_at": "2026-10-02T05:36:47.619764+00:00"
-    }
+    },
+    "model_library_complete_inventory_20261001": {
+      "path": "D:\\All projects\\Model library",
+      "total_gb": 102.65,
+      "total_files": 67,
+      "families": {
+        "ComfyUI": {
+          "gb": 49.37,
+          "files": 8,
+          "largest": [
+            {
+              "gb": 19.53,
+              "path": "ComfyUI\\diffusion_models\\minimax_h3_fl2va_pruned_int8_convrot.safetensors"
+            },
+            {
+              "gb": 14.61,
+              "path": "ComfyUI\\text_encoders\\qwen3vl_32b_minimax_h3_nvfp4_awq.safetensors"
+            },
+            {
+              "gb": 6.46,
+              "path": "ComfyUI\\diffusion_models\\sd_xl_base_1.0.safetensors"
+            },
+            {
+              "gb": 4.85,
+              "path": "ComfyUI\\vae\\minimax_h3_video_vae_fp16.safetensors"
+            },
+            {
+              "gb": 2.59,
+              "path": "ComfyUI\\text_encoders\\clip_g.safetensors"
+            },
+            {
+              "gb": 0.56,
+              "path": "ComfyUI\\vae\\minimax_h3_audio_vae_fp32.safetensors"
+            }
+          ]
+        },
+        "ollama": {
+          "gb": 27.71,
+          "files": 26,
+          "largest": [
+            {
+              "gb": 17.28,
+              "path": "ollama\\blobs\\sha256-1194192cf2a187eb02722edcc3f77b11d21f537048ce04b67ccf8ba78863006a"
+            },
+            {
+              "gb": 5.56,
+              "path": "ollama\\blobs\\sha256-a99b7f834d754b88f122d865f32758ba9f0994a83f8363df2c1e71c17605a025"
+            },
+            {
+              "gb": 4.87,
+              "path": "ollama\\blobs\\sha256-a3de86cd1c132c822487ededd47a324c50491393e6565cd14bafa40d0b8e686f"
+            }
+          ]
+        },
+        "plain-gguf": {
+          "gb": 15.83,
+          "files": 2,
+          "largest": [
+            {
+              "gb": 13.27,
+              "path": "plain-gguf\\qwen3.8-27b\\Qwen3.8-27B-UD-IQ4_XS.gguf"
+            },
+            {
+              "gb": 2.55,
+              "path": "plain-gguf\\qwen3.5-4b\\Qwen3.5-4B-Q4_K_M.gguf"
+            }
+          ]
+        },
+        "ggml-org": {
+          "gb": 5.16,
+          "files": 2,
+          "largest": [
+            {
+              "gb": 4.36,
+              "path": "ggml-org\\Qwen2.5-VL-7B-Instruct-GGUF\\Qwen2.5-VL-7B-Instruct-Q4_K_M.gguf"
+            },
+            {
+              "gb": 0.79,
+              "path": "ggml-org\\Qwen2.5-VL-7B-Instruct-GGUF\\mmproj-Qwen2.5-VL-7B-Instruct-Q8_0.gguf"
+            }
+          ]
+        },
+        "sherpa-onnx": {
+          "gb": 1.55,
+          "files": 20,
+          "largest": [
+            {
+              "gb": 0.98,
+              "path": "sherpa-onnx\\sense-voice.tar.bz2"
+            },
+            {
+              "gb": 0.22,
+              "path": "sherpa-onnx\\sherpa-onnx-sense-voice-zh-en-ja-ko-yue-2024-07-17\\model.int8.onnx"
+            },
+            {
+              "gb": 0.14,
+              "path": "sherpa-onnx\\sherpa-onnx-sense-voice-zh-en-ja-ko-yue-2024-07-17\\model.onnx"
+            },
+            {
+              "gb": 0.08,
+              "path": "sherpa-onnx\\zh-14m.tar"
+            },
+            {
+              "gb": 0.07,
+              "path": "sherpa-onnx\\zh-14m.tar.bz2"
+            },
+            {
+              "gb": 0.04,
+              "path": "sherpa-onnx\\sherpa-onnx-streaming-zipformer-zh-14M-2023-02-23\\encoder-epoch-99-avg-1.onnx"
+            }
+          ]
+        },
+        "whisper": {
+          "gb": 1.51,
+          "files": 5,
+          "largest": [
+            {
+              "gb": 1.51,
+              "path": "whisper\\faster-whisper-large-v3-turbo\\model.bin"
+            }
+          ]
+        },
+        "Qwen": {
+          "gb": 1.06,
+          "files": 2,
+          "largest": [
+            {
+              "gb": 0.6,
+              "path": "Qwen\\Qwen3-Embedding-0.6B-GGUF\\Qwen3-Embedding-0.6B-Q8_0.gguf"
+            },
+            {
+              "gb": 0.46,
+              "path": "Qwen\\Qwen3-Reranker-0.6B-GGUF\\Qwen3-Reranker-0.6B-Q8_0.gguf"
+            }
+          ]
+        },
+        "runtimes-tmp": {
+          "gb": 0.46,
+          "files": 1,
+          "largest": [
+            {
+              "gb": 0.46,
+              "path": "runtimes-tmp\\reranker-dl.gguf"
+            }
+          ]
+        },
+        "README.md": {
+          "gb": 0.0,
+          "files": 1,
+          "largest": []
+        }
+      },
+      "readme_says": {
+        "capability_roles": {
+          "qwen3:8b": "local.general.fast - 推理验证 OK",
+          "qwen3-coder:30b-a3b-q4_K_M": "local.code.readonly - 推理验证 OK",
+          "qwen2.5vl:7b": "local.vision.ocr - 推理验证 OK",
+          "qwen3-embedding:0.6b": "local.embedding - 向量验证 OK",
+          "qwen3-reranker": "local.reranker - 已导入",
+          "faster-whisper-large-v3-turbo": "local.asr - 转写冒烟 OK"
+        },
+        "ownership": "ComfyUI/ is DESIGN-LAB/Open Design's visual chain and WORK-LAB keeps a read-only inventory; ollama/ and whisper/ are managed by WORK-LAB's model control plane; H3 is a DESIGN-LAB asset and not a text-inference model",
+        "why_this_matters": "ownership says who writes the directory, not who may read it. AAOS reading H3 is an integration question, not a boundary violation."
+      },
+      "recorded_at": "2026-10-02T05:53:16.911023+00:00"
+    },
+    "h3_video_stack_20261001": {
+      "weights_gb": 39.55,
+      "components": [
+        {
+          "file": "diffusion_models/minimax_h3_fl2va_pruned_int8_convrot.safetensors",
+          "role": "DiT video model",
+          "gb": 19.53
+        },
+        {
+          "file": "text_encoders/qwen3vl_32b_minimax_h3_nvfp4_awq.safetensors",
+          "role": "text encoder",
+          "gb": 14.61
+        },
+        {
+          "file": "vae/minimax_h3_video_vae_fp16.safetensors",
+          "role": "video VAE",
+          "gb": 4.85
+        },
+        {
+          "file": "vae/minimax_h3_audio_vae_fp32.safetensors",
+          "role": "audio VAE",
+          "gb": 0.56
+        }
+      ],
+      "runtime": {
+        "comfyui": "D:\\All projects\\Design External Configuration\\toolchains\\comfyui\\ComfyUI_windows_portable",
+        "version": "0.33.1",
+        "python": "3.13.14 embedded",
+        "pytorch": "2.13.0+cu130",
+        "memory_layer": "comfy-aimdo 0.4.13 - 'DynamicVRAM support detected and enabled', which is what lets a 19.53 GB DiT run against 8 GB of VRAM",
+        "gpu": "NVIDIA GeForce RTX 5060, 8,546,484,224 bytes VRAM",
+        "ram_total_gb": 63.8,
+        "extra_model_paths": "base_path: D:/All projects/Model library/ComfyUI",
+        "download_receipts": "h3_download.log: all four files rc=0, 1,386 s total"
+      },
+      "resolvable_through_the_api_measured": {
+        "UNETLoader.unet_name": [
+          "minimax_h3_fl2va_pruned_int8_convrot.safetensors",
+          "sd_xl_base_1.0.safetensors"
+        ],
+        "VAELoader.vae_name": [
+          "minimax_h3_audio_vae_fp32.safetensors",
+          "minimax_h3_video_vae_fp16.safetensors",
+          "sdxl_vae.safetensors"
+        ],
+        "CLIPLoader.clip_name": [
+          "clip_g.safetensors",
+          "clip_l.safetensors",
+          "qwen3vl_32b_minimax_h3_nvfp4_awq.safetensors"
+        ]
+      },
+      "conclusion": "H3 is installed, its runtime is installed, the runtime is pointed at the shared library, and ComfyUI resolves all three H3 component classes by name through its API. AAOS can integrate it; the work is declaring a capability route and a worker, not obtaining anything."
+    },
+    "ollama_runtime_absent_20261001": {
+      "runtime_installed": false,
+      "evidence": "no ollama.exe under any searched root, not on PATH, nothing on 127.0.0.1:11434, no Windows service, and OLLAMA_MODELS is unset - only the weights and manifests are present in the library",
+      "weights_present": "5 manifests: qwen3:8b, qwen3-coder:30b-a3b-q4_K_M, qwen2.5vl:7b, qwen3-embedding:0.6b, qwen3-reranker",
+      "consequence": "scripts/python-workers/vision/worker_caption.py hardcodes http://127.0.0.1:11434/api/generate, so that route cannot work here as written. The same models are served by LM Studio on 127.0.0.1:1234, so the caption capability is reachable by pointing the worker at the endpoint that exists."
+    },
+    "earlier_omission_corrected": "Reports on this branch listed only a few large files and omitted the H3/ComfyUI stack - 49.37 GB of 102.65 GB - and the library's own README, which already mapped each model to a verified capability role. A first reaction to H3's ownership line was to file it as 'do not consume', which was wrong: ownership governs writes, not reads."
   },
   "backend_key_disposition_20261001": {
     "document": "docs/current/AAOS-BACKEND-KEY-DISPOSITION-20261001.json",
