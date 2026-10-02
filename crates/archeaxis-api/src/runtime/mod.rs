@@ -53,6 +53,9 @@ pub fn router(executor: Executor) -> Router {
         // and gives the correction; both are stored, and the correction is a candidate that only
         // human review can promote.
         .route("/api/v1/machine/corrections", post(record_correction))
+        // G4: run the task again and record it against the one it retests, which is what closes the
+        // loop rather than leaving the correction as an unreferenced note.
+        .route("/api/v1/machine/retests", post(run_retest))
         .with_state(Runtime {
             executor,
             active: Arc::new(Mutex::new(HashMap::new())),
@@ -236,6 +239,192 @@ async fn record_correction(
     }
 }
 
+/// G4: ask the same question again and record the answer as a retest of the earlier task.
+///
+/// Three things make this a retest rather than another task:
+///
+/// * the prior task must exist, because `retest_of` is a claim about a specific earlier run;
+/// * the new receipt carries `retest_of`, so the pair is readable from the store and not only from
+///   this response;
+/// * it is recorded by the **machine** principal through the domain's own guard, which is what makes
+///   the receipt a machine measurement rather than a human assertion.
+///
+/// It does not decide whether the correction helped. That is a judgement about the two answers, and
+/// a Core that scored its own retest would be marking its own work; the two receipts are returned
+/// side by side so a person can compare them.
+async fn run_retest(State(runtime): State<Runtime>, Json(body): Json<RetestBody>) -> Response {
+    if body.question.trim().is_empty() {
+        return (
+            StatusCode::UNPROCESSABLE_ENTITY,
+            "a question is required; a retest of nothing is not a retest",
+        )
+            .into_response();
+    }
+    if body.retest_of.trim().is_empty() {
+        return (
+            StatusCode::UNPROCESSABLE_ENTITY,
+            "retest_of is required; a retest that does not name what it retests is just another task",
+        )
+            .into_response();
+    }
+    if let Some(refusal) = crate::capabilities::refusal(&runtime.executor, "machine.answer").await {
+        return refusal;
+    }
+
+    // Cloned up front: the value is used by the read closure, by the id derivation and by the
+    // response, and a single move would leave two of the three without it.
+    let retest_of = body.retest_of.clone();
+    // The prior receipt, read first so a retest of a task that does not exist fails before a model
+    // call rather than after one.
+    let prior_id = retest_of.clone();
+    let prior = runtime
+        .executor
+        .store()
+        .submit_wait(move |conn: &mut rusqlite::Connection| {
+            archeaxis_domain::machine::machine_task(conn, &prior_id)
+        })
+        .await;
+    let prior = match prior {
+        Ok(Ok(Some(receipt))) => receipt,
+        Ok(Ok(None)) => {
+            return (
+                StatusCode::NOT_FOUND,
+                format!("no machine task {}", body.retest_of),
+            )
+                .into_response();
+        }
+        Ok(Err(e)) => return (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()).into_response(),
+        Err(e) => return (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()).into_response(),
+    };
+
+    // The context is the knowledge item's own body, exactly as the answered route does it, so the
+    // retest is grounded the same way rather than in a caller-supplied string.
+    let knowledge_id = body.knowledge_id.clone();
+    let context = runtime
+        .executor
+        .store()
+        .submit_wait(move |conn: &mut rusqlite::Connection| {
+            conn.query_row(
+                "SELECT body FROM knowledge WHERE knowledge_id=?1",
+                [&knowledge_id],
+                |row| row.get::<_, String>(0),
+            )
+            .optional()
+        })
+        .await;
+    let context = match context {
+        Ok(Ok(Some(text))) if !text.trim().is_empty() => text,
+        Ok(Ok(_)) => {
+            return (
+                StatusCode::NOT_FOUND,
+                format!(
+                    "no knowledge item {} with a body to answer from",
+                    body.knowledge_id
+                ),
+            )
+                .into_response();
+        }
+        Ok(Err(e)) => return (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()).into_response(),
+        Err(e) => return (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()).into_response(),
+    };
+
+    let timeout_s = body.timeout_s.unwrap_or(300).clamp(1, 900);
+    let outcome = runtime
+        .executor
+        .machine_answer(
+            context,
+            body.question.clone(),
+            body.max_tokens.unwrap_or(2048),
+            std::time::Duration::from_secs(timeout_s),
+        )
+        .await;
+
+    let answer = match outcome {
+        Ok(answer) => answer,
+        // The worker's own words, and the retest is not recorded: a task that could not run is not a
+        // measurement, and recording it as `unmeasured` would look like a result.
+        Err(reason) => return (StatusCode::SERVICE_UNAVAILABLE, reason).into_response(),
+    };
+    let answered = answer["answer"].as_str().unwrap_or("").to_string();
+
+    // A fresh task id per retest, derived from the pair so asking the same retest twice is the same
+    // receipt rather than a second one saying the same thing.
+    //
+    // Hashed with the standard library rather than with `sha2`: this crate does not depend on it, and
+    // adding a dependency to name an id whose only job is to be stable would be the wrong trade. The
+    // digest is 128 bits of `DefaultHasher`, which is enough to keep two different retests apart.
+    let retest_id = {
+        use std::hash::{Hash, Hasher};
+        let mut hasher = std::collections::hash_map::DefaultHasher::new();
+        retest_of.hash(&mut hasher);
+        body.knowledge_id.hash(&mut hasher);
+        body.question.hash(&mut hasher);
+        // A second pass in a different order, so the id does not rest on one 64-bit value.
+        let mut second = std::collections::hash_map::DefaultHasher::new();
+        body.question.hash(&mut second);
+        body.knowledge_id.hash(&mut second);
+        retest_of.hash(&mut second);
+        format!("retest_{:016x}{:016x}", hasher.finish(), second.finish())
+    };
+    let recorded_id = retest_id.clone();
+    let prior_conditions = prior.conditions.clone();
+    let model_version = answer["model"].as_str().unwrap_or("unknown").to_string();
+    let knowledge_version = format!("{}@v1", body.knowledge_id);
+    // The write closure takes ownership, and the response names the retested task as well, so the id
+    // is cloned once before the move rather than being borrowed from a value that has gone.
+    let retest_of_for_write = retest_of.clone();
+    let written = runtime
+        .executor
+        .store()
+        .submit_wait(move |conn: &mut rusqlite::Connection| {
+            archeaxis_domain::machine::record_machine_task(
+                conn,
+                &archeaxis_domain::machine::MachineTask {
+                    task_id: &recorded_id,
+                    // The domain refuses any other principal, which is what keeps this a machine
+                    // measurement rather than a human assertion.
+                    principal: "machine",
+                    conditions: &prior_conditions,
+                    knowledge_version: Some(&knowledge_version),
+                    method_version: None,
+                    tool_version: None,
+                    model_version: &model_version,
+                    scope: "retest",
+                    outcome: "succeeded",
+                    failure: None,
+                    retest_of: Some(&retest_of_for_write),
+                },
+            )
+        })
+        .await;
+    match written {
+        Ok(Ok(())) => {}
+        Ok(Err(e)) => return (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()).into_response(),
+        Err(e) => return (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()).into_response(),
+    }
+
+    Json(json!({
+        "schema": "archeaxis.machine-retest/v1",
+        "retest_task_id": retest_id,
+        "retest_of": retest_of,
+        "knowledge_id": body.knowledge_id,
+        "question": body.question,
+        "answer": answer,
+        "answered": answered,
+        "prior": {
+            "conditions": prior.conditions,
+            "outcome": prior.outcome,
+            "model_version": prior.model_version,
+            "knowledge_version": prior.knowledge_version,
+        },
+        "authority": "candidate",
+        "note": "an answer is model output awaiting human review, and this route does not decide \
+                 whether the correction helped: the two receipts are shown side by side so a person \
+                 can compare them",
+    }))
+    .into_response()
+}
+
 /// G4: ask the local model one question about one accepted knowledge item.
 ///
 /// The context is the knowledge item's **own body**, read from the canonical store, so the answer is
@@ -398,6 +587,26 @@ struct CorrectionBody {
     /// Who found it. Review is a human act, so the default is the human principal.
     #[serde(default)]
     reviewer: Option<String>,
+}
+
+/// The body of a retest: run the machine task again and record it against the one it retests.
+///
+/// `retest_of` is required. A retest that does not name what it retests is just another task, and
+/// "did the correction help" would have no answer.
+#[derive(Deserialize)]
+#[serde(deny_unknown_fields)]
+struct RetestBody {
+    /// The machine task being retested.
+    retest_of: String,
+    /// The knowledge the retest answers from - usually the corrected item, which is why it is named
+    /// separately from whatever the original task ran against.
+    knowledge_id: String,
+    /// The question to put again.
+    question: String,
+    #[serde(default)]
+    max_tokens: Option<u64>,
+    #[serde(default)]
+    timeout_s: Option<u64>,
 }
 
 async fn execute(
