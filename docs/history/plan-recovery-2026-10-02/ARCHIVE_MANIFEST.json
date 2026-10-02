@@ -38,5 +38,39 @@
     "sha256": "936BB892095E40175B8566E0E6C4960487696DAA5B70164E9E768DF390C4FBB7",
     "why_replaced": "an archive must hold the real document; the pasted text was a partial rendering of this one, and keeping it as the archive would have recorded the project as having a fifteen-section plan when it has forty-three",
     "replaced_at": "2026-10-02T07:50:55.656027+00:00"
+  },
+  "multi_location_confirmation": {
+    "question": "the Owner supplied three Desktop copies plus the Record copy expecting four versions that needed consolidating",
+    "measured": [
+      {
+        "origin": "desktop",
+        "path": "C:\\Users\\ALEX\\Desktop\\AAOS_全历史恢复_云端对账_快速闭环_最终全套任务包_2026-10-02.md",
+        "bytes": 29550,
+        "sha256": "54AC415CBBDD6AF05110AB8C05CE19CDDFD99E646965C68F1BEBB10A1337E85E"
+      },
+      {
+        "origin": "desktop",
+        "path": "C:\\Users\\ALEX\\Desktop\\AAOS_全历史恢复_云端对账_快速闭环_最终全套任务包_2026-10-02 (1).md",
+        "bytes": 29550,
+        "sha256": "54AC415CBBDD6AF05110AB8C05CE19CDDFD99E646965C68F1BEBB10A1337E85E"
+      },
+      {
+        "origin": "desktop",
+        "path": "C:\\Users\\ALEX\\Desktop\\AAOS_全历史恢复_云端对账_快速闭环_最终全套任务包_2026-10-02 (2).md",
+        "bytes": 29550,
+        "sha256": "54AC415CBBDD6AF05110AB8C05CE19CDDFD99E646965C68F1BEBB10A1337E85E"
+      },
+      {
+        "origin": "record",
+        "path": "D:\\All projects\\Record\\AAOS_全历史恢复_云端对账_快速闭环_最终全套任务包_2026-10-02.md",
+        "bytes": 29550,
+        "sha256": "54AC415CBBDD6AF05110AB8C05CE19CDDFD99E646965C68F1BEBB10A1337E85E"
+      }
+    ],
+    "distinct_documents": 1,
+    "all_identical_to_the_archived_copy": true,
+    "verdict": "ONE_DOCUMENT",
+    "action": "none taken, because there is nothing to consolidate. Writing a merged file would invent a difference between copies that measure identical, and would break the byte-for-byte identity the archive records. The four paths are recorded here so the check is auditable rather than assumed.",
+    "recorded_at": "2026-10-02T08:29:48.927462+00:00"
   }
 }
