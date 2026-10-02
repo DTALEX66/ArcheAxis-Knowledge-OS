@@ -1,0 +1,621 @@
+{
+  "document": "AAOS_PROVIDER_ROLLBACK_DESIGN",
+  "status": "DESIGN_ONLY - no code changed, no route added, no schema changed",
+  "recorded_at": "2026-10-02",
+  "requested_as": "design for provider rollback, section 42 item 11 and section 9 of docs/history/plan-recovery-2026-10-02/AAOS-R7-PLAN-2026-10-02.md",
+  "code_state_this_design_was_verified_against": {
+    "commit": "ed47205c",
+    "branch": "codex/dsh-aaos-real-multiformat-loop-20261001",
+    "worktree_dirty": true,
+    "dirty_files": [
+      "crates/archeaxis-archive/src/lib.rs",
+      "crates/archeaxis-domain/src/vault.rs",
+      "crates/archeaxis-store-sqlite/src/lib.rs"
+    ],
+    "note": "crates/archeaxis-store-sqlite/src/lib.rs has SCHEMA_VERSION = 8 in the working tree, not 7. Version 8 was taken by the vault link graph (uncommitted, R7/G2). Any new table for provider rollback therefore has to be version 9, not 8. Read from the file, not from the task brief."
+  },
+
+  "scope": {
+    "question": "What would provider rollback mean for this repository, what state would it need, what must never be automatic, and what is the smallest slice that can actually be checked?",
+    "in_scope": [
+      "capability -> provider resolution as it exists today",
+      "the three distinct things 'rollback' can mean and which of them the current fields support",
+      "the state that is genuinely missing, and where it belongs",
+      "runtime failure semantics for a provider that started and then failed",
+      "the smallest verifiable first slice"
+    ],
+    "explicitly_out_of_scope": [
+      "writing Rust for any of this",
+      "adding an HTTP route",
+      "changing SCHEMA_VERSION, EXPORT_TABLES or CURRENT_LAYOUTS now",
+      "a public marketplace (section 9 and section 42 item 11 both exclude it)",
+      "automatic provider switching of any kind (see failure_semantics and must_not_be_automatic)"
+    ],
+    "vocabulary": {
+      "provider": "A registered route for one capability: a python worker script plus the interpreter it is launched with. Executor::open_routes builds these from the launch declaration; capabilities.rs calls the worker script 'the provider' because naming the script is what lets a UI say which process would answer.",
+      "default_provider": "The route the Core would actually choose right now. Computed per request by capabilities::chosen_provider; never stored.",
+      "fallback": "A second registered route for the same capability that is not the one answering. Computed per request; never stored.",
+      "rollback": "Deliberately left undefined in this document until meanings_of_rollback separates the three candidate meanings, because the repository has never defined it and one word covers three different products."
+    }
+  },
+
+  "what_already_works": [
+    {
+      "claim": "The capability surface exists over HTTP: list, read one, and set enabled.",
+      "file": "crates/archeaxis-api/src/capabilities.rs",
+      "functions": ["list", "read", "set_enabled", "capability_record", "disable path via refusal"],
+      "routes": {
+        "GET /api/v1/capabilities": "crates/archeaxis-api/src/runtime/mod.rs",
+        "GET /api/v1/capabilities/{capability}": "crates/archeaxis-api/src/runtime/mod.rs",
+        "PUT /api/v1/capabilities/{capability}/enabled": "crates/archeaxis-api/src/runtime/mod.rs"
+      },
+      "verified": "Read in full. An unknown capability is a 404 rather than the nearest match, and PUT echoes the record re-read from the store rather than echoing the request."
+    },
+    {
+      "claim": "Enable/disable is persisted in capability_settings; an absent row means enabled; only a disable is written.",
+      "file": "crates/archeaxis-store-sqlite/src/capability_settings.rs",
+      "functions": ["is_enabled", "disabled_capabilities", "set_enabled"],
+      "table": "capability_settings (capability TEXT PRIMARY KEY, enabled INTEGER NOT NULL CHECK(enabled IN (0,1)), changed_at TEXT NOT NULL DEFAULT (datetime('now')))",
+      "verified": "Read in full. is_enabled returns stored.unwrap_or(1) == 1, so an absent row reads as enabled."
+    },
+    {
+      "claim": "Disable is a real barrier, not a report: it is enforced inside the claim transaction, so a disabled capability leaves no attempt row and no partial output.",
+      "file": "crates/archeaxis-application/src/attempts.rs",
+      "functions": ["claim"],
+      "verified": "Read at the claim body. capability_settings::is_enabled(&tx, capability) is called inside transaction_with_behavior(Immediate) and returns JobError::CapabilityDisabled before any attempt row is written."
+    },
+    {
+      "claim": "The Core picks the first USABLE registered route for a capability, where usable means the worker script and the interpreter both exist.",
+      "file": "crates/archeaxis-application/src/executor.rs",
+      "functions": ["worker_for", "file_usable"],
+      "verified": "Read in full. candidates.iter().find(|(_, path, _)| file_usable(path) && file_usable(&self.python)).or_else(|| candidates.first()). When nothing is usable the FIRST registered route is returned anyway, so the failure names the declared provider rather than reporting that nothing was registered."
+    },
+    {
+      "claim": "All routes for one capability are enumerable, each marked usable, in registration order.",
+      "file": "crates/archeaxis-application/src/executor.rs",
+      "functions": ["providers_for", "registered_routes"],
+      "verified": "Read in full. providers_for returns Vec<(&Path, bool)>, first element is the default, later elements are fallback candidates."
+    },
+    {
+      "claim": "is_default and fallback are derived per request, not stored.",
+      "file": "crates/archeaxis-api/src/capabilities.rs",
+      "functions": ["chosen_provider", "same_provider", "capability_record"],
+      "verified": "Read in full. chosen_provider re-derives the default on every request from providers_for plus file_exists(python); capability_record computes is_default as worker == default_worker and fallback as the first route that is not the default, reported only on the default's own record. There is no column, table or file behind either field."
+    },
+    {
+      "claim": "The route catalogue is the launch declaration, arriving on the Core's inherited stdin, not the database.",
+      "file": "crates/archeaxis-api/src/launch.rs",
+      "functions": ["Launch::from_stdin", "TextWorker::extra_routes", "TextWorker::validate"],
+      "wired_at": "crates/archeaxis-api/src/main.rs, which passes launch.text_worker.extra_routes() into Executor::open_routes",
+      "verified": "Read in full. Launch has text_worker: Option<TextWorker>, TextWorker has routes: Vec<WorkerRoute> with #[serde(default)], and WorkerRoute is {capability, script}."
+    },
+    {
+      "claim": "A provider identity allow-list refuses an unexpected worker before it serves anything, and the worker must advertise the requested capability.",
+      "file": "crates/archeaxis-application/src/executor.rs",
+      "functions": ["run_worker", "KNOWN_WORKER_IDENTITIES"],
+      "verified": "Read in full. hello.worker.name must be in KNOWN_WORKER_IDENTITIES with version \"1\", and hello.capabilities must contain req.capability, both before stdin is written."
+    },
+    {
+      "claim": "Attempts are already durably journaled with state, error text, response JSON and result digest.",
+      "file": "crates/archeaxis-store-sqlite/src/lib.rs",
+      "table": "job_attempts (job_id, attempt, request_id UNIQUE, request_json, state CHECK IN ('running','succeeded','failed','rejected','cancelled'), response_json, result_digest, error, created_at, completed_at)",
+      "verified": "Read the CREATE TABLE in SCHEMA_SQL. Terminal states are written by attempts::terminate as called from Executor::execute_owned."
+    },
+    {
+      "claim": "Machine receipts have a real journal with deliberate refusals, and it already refuses to be rewritten.",
+      "file": "crates/archeaxis-domain/src/machine.rs",
+      "functions": ["record_machine_task", "MachineTask"],
+      "verified": "Read in full. principal must be exactly \"machine\", outcome must be in OUTCOMES, a failed task must state a failure and a succeeded task must not, and a duplicate task_id is rejected with 'a machine task receipt is immutable; this task id is already recorded'."
+    },
+    {
+      "claim": "The archive exports capability_settings, so a backup/restore round trip keeps which capabilities were turned off.",
+      "file": "crates/archeaxis-archive/src/lib.rs",
+      "constants": ["EXPORT_TABLES", "CURRENT_LAYOUTS"],
+      "verified": "Read in full. capability_settings is the last entry of EXPORT_TABLES, and the 21-table layout containing it is the last entry of CURRENT_LAYOUTS."
+    },
+    {
+      "claim": "The registry document already records provider rollback as not built.",
+      "file": "docs/current/AAOS-CAPABILITY-REGISTRY-V1-20261002.json",
+      "verified": "Read in full. not_yet_implemented already lists 'provider rollback, beyond naming the fallback candidate' and 'a second provider for any capability in a production launch, which is why fallback reads null there even though the field and its behaviour are tested'. This design does not contradict that document; it says what closing that gap would require."
+    }
+  ],
+
+  "the_blocking_fact_that_the_design_has_to_face": {
+    "claim": "A second provider for a capability cannot currently exist in a production launch, because the launch validator refuses duplicate capabilities, while the only way to register a route is the launch.",
+    "file": "crates/archeaxis-api/src/launch.rs",
+    "function": "TextWorker::validate",
+    "mechanism": "seen: HashSet of route.capability; a second non-unique value returns Err(\"duplicate worker route capability\"). TextWorker::validate is called from Launch validation, which main.rs enforces before open_routes is reached. The same function also refuses a route that redeclares text.extract.",
+    "consequence": [
+      "The multi-provider machinery in the application layer is real and tested, but it is reachable only by constructing an Executor directly.",
+      "crates/archeaxis-api/tests/contract_capability_registry.rs registers two image.caption routes by calling Executor::open_routes directly with a slice, which is exactly the path a production launch cannot take.",
+      "Therefore 'provider rollback' cannot be built on top of today's production launch without first deciding whether a launch may declare two routes for one capability. That is a policy decision, not a refactor, which is why it is recorded as a decision this design does not take."
+    ]
+  },
+
+  "meanings_of_rollback": {
+    "introduction": "The task asks for three meanings to be separated. They differ in what has to be remembered and who is allowed to act. Only the first two are 'rollback' in the sense section 42 item 11 means; the third is request-level failover and is argued against below.",
+    "meanings": [
+      {
+        "id": "a",
+        "name": "Choose a different provider now",
+        "description": "For a capability with at least two registered routes, an operator names which one answers from now on, and it keeps answering across a Core restart.",
+        "existing_support": {
+          "is_default": "Reports the fact (which route answers now) but supplies no way to change it. capabilities.rs::capability_record computes is_default = (worker == default_worker) from chosen_provider, which derives from providers_for plus file existence only.",
+          "fallback": "Reports that a second route exists and which one it is, on the default's row only. It is a description of the catalogue, not a selection.",
+          "verdict": "Neither field supports (a). Both describe; neither decides. The only existing way to change which provider answers is to change the launch declaration's route ORDER and restart the Core - the launch, not the database, is the catalogue (launch.rs::TextWorker::extra_routes -> main.rs -> Executor::open_routes)."
+        },
+        "new_state_required": [
+          "The operator's choice, persisted per capability and surviving a restart.",
+          "A provider identity that a preference can name and that the Core can match against a registered route. Today a provider is a filesystem path (capabilities.rs::capability_record emits worker.to_string_lossy()), which is machine- and install-specific."
+        ],
+        "additional_prerequisite": "The capability must actually have two routes registered in a production launch, which launch.rs::TextWorker::validate currently forbids (see the_blocking_fact_that_the_design_has_to_face). Meaning (a) cannot be delivered before that policy question is answered.",
+        "human_owned": true
+      },
+      {
+        "id": "b",
+        "name": "Revert to the provider used before the last change",
+        "description": "Undo the most recent provider change, or the Nth most recent one, for a capability.",
+        "existing_support": {
+          "is_default": "Unchanged per request; holds no memory of a previous answer.",
+          "fallback": "Holds no history. It is recomputed from registration order and file existence on every request, so it cannot distinguish 'this is the fallback' from 'this was the default yesterday'.",
+          "verdict": "Neither field supports (b). Nothing in the repository records which provider was the default at any past moment."
+        },
+        "new_state_required": [
+          "A history of provider decisions, or at minimum the previous value kept alongside the current one.",
+          "If true multi-step rollback is wanted rather than a single undo, an append-only decision journal keyed by capability with monotonic ordering, and a read that returns the parent of the current head."
+        ],
+        "design_note": "A single 'previous_provider' column is a strictly weaker product than a decision journal: it supports one undo and then the trail is gone. Which one is wanted is a human product decision and is left open (see open_questions).",
+        "human_owned": true
+      },
+      {
+        "id": "c",
+        "name": "Revert after a provider fails at run time",
+        "description": "A provider that started is asked to do a job and fails; the Core answers by sending the job to another provider, now or for all subsequent jobs.",
+        "existing_support": {
+          "is_default": "Irrelevant to this path. Resolution happens once, before the worker starts: Executor::execute_owned calls self.worker_for(&req.capability) and then run_worker with that one route. There is no step after a failure that re-resolves.",
+          "fallback": "Describes a candidate, and nothing consumes it as a retry target. capabilities.rs only reads providers_for to REPORT; nothing in the execute path calls providers_for at all.",
+          "worker_for": "Its 'usable' test is a pre-flight file-existence check (file_usable on the script and the interpreter), not a reaction to a failure. It is deliberately about a configuration mistake being skipped, not about a working provider being replaced.",
+          "verdict": "No existing field supports (c), and the current design intentionally does not: a route whose files exist is chosen and then trusted for that request."
+        },
+        "new_state_required": [
+          "The identity of the provider that served a given attempt, so that 'provider X failed' is a durable, checkable statement rather than an inference from prose in an error string. Today job_attempts records state, error, response_json and result_digest, but not which route produced them.",
+          "If any cross-request reaction were ever wanted, a failure policy per capability (how many failures, over what window, and whether the last usable route is re-resolved). This design recommends building NONE of that now."
+        ],
+        "human_owned": true,
+        "recommendation": "Fail the attempt, name the provider, record it, and require a human to change the provider. See failure_semantics."
+      }
+    ],
+    "summary_table": [
+      {"meaning": "a - choose a different provider now", "supported_by_is_default_or_fallback": "no (they report, they do not select)", "needs_new_state": "yes: the chosen provider, persisted", "needs_launch_policy_change": "yes: duplicate capabilities must be allowed before two providers can exist in production", "automatic": "no - human action"},
+      {"meaning": "b - revert to the previous provider", "supported_by_is_default_or_fallback": "no (no history anywhere)", "needs_new_state": "yes: decision history or a previous-value column", "needs_launch_policy_change": "yes, same as (a)", "automatic": "no - human action"},
+      {"meaning": "c - revert after a runtime failure", "supported_by_is_default_or_fallback": "no (nothing re-resolves after a failure; fallback is never read by the execute path)", "needs_new_state": "yes for the record: which provider served the attempt; no for any automatic reaction", "needs_launch_policy_change": "not for the record; yes only if a retry target is ever wanted", "automatic": "must not be (recommendation)"}
+    ]
+  },
+
+  "required_state": {
+    "introduction": "Organised by the question each field answers. 'Belongs in capability_settings' is preferred wherever it is honest, because that table is already exported, already has a schema-version guard, already means 'a decision the operator made about this capability', and already has the absent-row semantics this design needs. A new table is recommended only where the shape genuinely differs.",
+    "fields": [
+      {
+        "id": "S1",
+        "answers": "Which provider should answer this capability from now on?",
+        "belongs_in": "capability_settings, as an added nullable column. NOT a new table.",
+        "proposed_column": "preferred_provider TEXT NULL",
+        "column_semantics": "NULL means no preference was expressed, which is the existing behaviour exactly: the first usable registered route answers. A non-NULL value names the provider the operator chose. It is deliberately NULL-able rather than defaulted, so 'nobody chose' stays distinguishable from 'someone chose the provider that happens to be first' - the same discipline as capability_settings.is_enabled's absent-row-means-enabled rule.",
+        "reasoning": [
+          "capability_settings is already 'the workspace's own capability record' for decisions about one capability. capabilities.rs::capability_record already tells a reader that enabled comes from there. A provider preference is the same kind of fact and does not deserve a second home.",
+          "The table has one row per capability with capability as PRIMARY KEY, so a preference needs no extra key and cannot diverge from the enable/disable row it belongs to.",
+          "capability_settings::set_enabled already writes with INSERT ... ON CONFLICT(capability) DO UPDATE and refreshes changed_at. A preference write follows the same shape, so changed_at keeps meaning 'when this capability's settings last changed'.",
+          "No new table means no new EXPORT_TABLES entry and no new CURRENT_LAYOUTS entry. See archive_and_schema_cost below for why that matters more than it looks.",
+          "Identity caveat: a provider in this codebase is a path string (capabilities.rs emits worker.to_string_lossy(); same_provider compares lossy strings). A preference stored as a path does not survive moving the checkout or reinstalling the interpreter. Whether that is acceptable, or whether a stable provider id is needed first, is listed in open_questions - this design does not settle it."
+        ],
+        "migration": "Bump SCHEMA_VERSION in crates/archeaxis-store-sqlite/src/lib.rs from 8 to 9, add the column to the capability_settings CREATE TABLE inside SCHEMA_SQL so a fresh database has it, and add a 'if version < 9' guard that ALTERs the column only when pragma_table_info('capability_settings') does not already list it. That guard shape is not invented: version < 4 in the same function does exactly this, checking pragma_table_info('learning_event_keys') before ALTERing four columns, and its comment explains why (a fresh database created by SCHEMA_SQL already has the columns).",
+        "does_not_do": "It cannot express (b) beyond one level, and it cannot express a preference with an author or a reason. Both are listed as open."
+      },
+      {
+        "id": "S2",
+        "answers": "What should undo do - who changed the provider, when, from what, to what, and why?",
+        "belongs_in": "a NEW table, ONLY IF true rollback (meaning b) is wanted. Recommended name: capability_provider_decisions.",
+        "columns": [
+          {"name": "decision_id", "type": "INTEGER PRIMARY KEY AUTOINCREMENT", "why": "Monotonic ordering. Undo means 'the previous decision for this capability', which needs a total order on writes; AUTOINCREMENT tolerates a deleted row without reusing an id, which a rollback log must not do."},
+          {"name": "capability", "type": "TEXT NOT NULL", "why": "The subject. Deliberately NOT a FOREIGN KEY to capability_settings: capabilities exist because the launch registered them, not because a settings row exists, and capabilities.rs::set_enabled explicitly refuses to write rows for capabilities that do not exist so that the table cannot accumulate 'decisions about nothing'. A foreign key here would import exactly that failure mode in reverse."},
+          {"name": "from_provider", "type": "TEXT NULL", "why": "NULL means there was no explicit preference before this decision (the launch order was answering). Distinguishing that from 'the preference was provider X' is what makes an undo restore the real prior state rather than inventing one."},
+          {"name": "to_provider", "type": "TEXT NOT NULL", "why": "The chosen provider. NOT NULL because a decision that chose nothing is not a decision. Disabling a capability is expressed in capability_settings.enabled, not here."},
+          {"name": "reason", "type": "TEXT NULL", "why": "Section 42 item 14 requires every completion claim to carry its evidence, and an unexplained provider switch is the kind of change that cannot be reviewed later. Left nullable here rather than NOT NULL because this design does not decide whether the API should force it; listed as an open question."},
+          {"name": "decided_by", "type": "TEXT NOT NULL", "why": "The launch already carries actor: Option<String> (launch.rs::Launch), so a human identity is available without inventing an auth system. Recording it is what makes the change attributable rather than anonymous."},
+          {"name": "decided_at", "type": "TEXT NOT NULL DEFAULT (datetime('now'))", "why": "Matches every other timestamp in SCHEMA_SQL."},
+          {"name": "reverted_decision_id", "type": "INTEGER NULL", "why": "When this row IS an undo, it names the decision it undid. Without it, a rollback is indistinguishable from a fresh choice in the same direction, and 'revert to the provider used before the last change' cannot be verified after the fact."}
+        ],
+        "reasoning": [
+          "capability_settings is a CURRENT-state table with capability as PRIMARY KEY: one row, last write wins. History has a different shape (many rows per capability, append-only), so it cannot be a column on that table and should not be a second nullable pair on it.",
+          "An append-only decision log is the only shape that makes meaning (b) auditable. It also gives the capability surface something honest to show a human ('this changed 3 minutes ago, by this actor'), which section 27 requires the UI not to fake.",
+          "It must NOT be machine_tasks. crates/archeaxis-domain/src/machine.rs::record_machine_task refuses any principal other than \"machine\" with 'machine task receipts are written by a machine principal only', and its own doc comment says a human outcome belongs in the human-owned records. A provider choice is a human outcome; putting it in machine_tasks would either violate that refusal or require weakening a deliberate guard.",
+          "NOTE ON A NEGATIVE RESULT: the machine_tasks journal is nevertheless the right home for the FACT that a provider failed at run time (see S3), because that fact is machine-observed. The split is the important part: machine records what happened, a human-owned record says what to do about it."
+        ],
+        "if_new_table_then_all_of_this": [
+          "Bump SCHEMA_VERSION in crates/archeaxis-store-sqlite/src/lib.rs to 9 (or 10 if S1 already took 9) and create the table in SCHEMA_SQL so a fresh database has it AND add an 'if version < N' CREATE TABLE IF NOT EXISTS guard, mirroring how version < 6 creates knowledge_v3_metadata and version < 7 creates capability_settings.",
+          "Append the table name to EXPORT_TABLES in crates/archeaxis-archive/src/lib.rs. Appending is safe for restore because the table has no foreign keys.",
+          "Append a NEW layout array to CURRENT_LAYOUTS in the same file, containing every current table plus the new one.",
+          "Does omitting the CURRENT_LAYOUTS entry silently lose data? No - it is worse and it is loud. crates/archeaxis-archive/src/lib.rs::archive_tables resolves the archive's table set by exact set equality against CURRENT_LAYOUTS for the current schema version and otherwise returns ArchiveError::Table(\"archive layout does not match a current table set\"). So adding EXPORT_TABLES without adding the layout makes every existing 21-table archive UNRESTORABLE. The silent-loss risk is the opposite direction: crates/archeaxis-archive/src/lib.rs::export_workspace returns ArchiveError::Table(\"missing table {table}\") for a table in EXPORT_TABLES that does not exist, and crates/archeaxis-archive/tests/omitted_tables_roundtrip.rs::a_fresh_workspace_has_every_exported_table asserts every exported table exists from initialization. That test exists precisely because four tables were once omitted and an archive round trip silently lost them.",
+          "Columns added after an archive was written are already handled: restore fills an absent column with NULL. Read at the restore loop in crates/archeaxis-archive/src/lib.rs, which comments the ARCHIVE-01 upgrade path and rejects an unknown EXTRA column in an archive row rather than dropping or guessing it. THIS IS WHY S1 IS CHEAPER THAN S2: a new column on an existing table needs no EXPORT_TABLES change and no CURRENT_LAYOUTS entry at all, because the table set is unchanged."
+        ],
+        "not_recommended_now": "Do not build this until (b) is actually wanted. If the product only ever needs 'choose a provider now', S1 alone is the whole feature, and adding a second table plus schema version plus archive layout for a history nobody reads is the kind of unverified state this project's rules push against."
+      },
+      {
+        "id": "S3",
+        "answers": "Which provider served that attempt, and what exactly happened when it failed?",
+        "belongs_in": "job_attempts, as an added nullable column, PLUS the existing machine_tasks journal for the failure event.",
+        "proposed_column": "provider TEXT NULL on job_attempts",
+        "column_semantics": "The provider identity (today: the worker path string) that run_worker was launched with for this attempt. NULL for attempts written before this column existed, and for a capability resolved through a path that did not name a provider.",
+        "reasoning": [
+          "The provenance chain currently breaks at exactly this point. Executor::execute_owned does let (worker, allow_site) = self.worker_for(&req.capability) and then passes worker into run_worker, but nothing durable records it: job_attempts carries state, error, response_json and result_digest, and the response is validated against the worker's advertised capabilities, not against the route that was chosen.",
+          "Without it, 'provider X failed' is unfalsifiable after the fact. The error text may mention it, but the error column is prose written by the Core and is not a stable field to group or query by. A human deciding whether to roll back needs the fact, not a sentence.",
+          "It belongs on job_attempts rather than jobs: jobs is the unit of work (job_id, kind, state), while an attempt is one execution of that work by one provider. Two attempts could legitimately be served by two providers, and a column on jobs would have to overwrite the first answer with the second.",
+          "It must not be smuggled into request_json. That column is the serialized archeaxis_sidecar_protocol::worker::Request; adding a Core-side routing fact there would change the worker transport contract, which this design does not touch.",
+          "There is a tempting alternative: nothing at all, because the failure is already visible as a failed attempt plus a machine task. That is insufficient for (c): the question rollback must answer is WHICH provider failed, and no existing column answers it."
+        ],
+        "also_record": {
+          "where": "crates/archeaxis-domain/src/machine.rs::record_machine_task into machine_tasks",
+          "what": "One receipt per provider failure, principal \"machine\", outcome \"failed\", failure set to the reason, scope naming the job or attempt, model_version naming the route rather than a model (the existing OCR chaining receipt at crates/archeaxis-application/src/executor.rs uses model_version \"not-a-model: deterministic core chaining\" for exactly this reason).",
+          "why_here": "record_machine_task is the project's machine journal and its refusals make the record trustworthy: a failed task MUST state why it failed, and a duplicate task_id is rejected ('a machine task receipt is immutable'). A failure receipt therefore cannot be quietly rewritten later, which is what makes it usable as evidence for a human decision.",
+          "why_not_here": "A rollback DECISION must never be written here - the principal guard forbids it and the doc comment says a human outcome belongs in the human-owned records."
+        },
+        "archive_cost": "A new column on job_attempts needs no EXPORT_TABLES or CURRENT_LAYOUTS change (the table set is unchanged) and is filled with NULL by restore for older archives, per the ARCHIVE-01 path already in crates/archeaxis-archive/src/lib.rs.",
+        "schema_version": "Shares the version bump with S1 if both land together."
+      },
+      {
+        "id": "S4",
+        "answers": "Should the preference be re-checked at claim time like enabled is?",
+        "belongs_in": "nowhere yet. Deliberately NOT persisted.",
+        "reasoning": [
+          "Disable is enforced inside attempts::claim because 'disabled' must leave no attempt row and no partial output behind (attempts.rs::claim, and the enforcement_note in docs/current/AAOS-CAPABILITY-REGISTRY-V1-20261002.json). A provider preference is not a barrier of that kind.",
+          "Provider resolution happens one step later, in Executor::execute_owned, after the claim and after the input is read. Moving a preference check into the claim transaction would put provider selection in two places, and the second place would be the one that matters.",
+          "Recorded here so that a future reader does not 'improve' this by adding a second enforcement point."
+        ]
+      },
+      {
+        "id": "S5",
+        "answers": "Should the capability record expose the preference, the history, and the last failure?",
+        "belongs_in": "nowhere (no new state). This is a read model.",
+        "reasoning": [
+          "capabilities.rs::capability_record already carries a deliberate honesty discipline: every derived field is paired with a basis string ('enabled_basis', 'health_basis', 'fallback_note'). A new field without a basis would be the first exception and would be the one a UI over-reads.",
+          "Whatever is added must keep that pairing, and must not let a recorded preference be read as a claim that the preferred provider works. health is file existence only and says so; that does not change."
+        ]
+      },
+      {
+        "id": "S6",
+        "answers": "Should anything remember the state as of the last good run, so the Core can restore it?",
+        "belongs_in": "nowhere. Rejected.",
+        "reasoning": [
+          "A Core that restores a previous provider selection on startup is automatic promotion of a machine-observed event into a configuration change. That is the exact category section 42 item 15 and section 9 forbid, and it is argued against in failure_semantics.",
+          "The launch declaration is already the only source of the route catalogue, and the provider preference is a persisted overlay on it. Restoring a third, remembered overlay would create a second source of truth for the same decision."
+        ]
+      }
+    ]
+  },
+
+  "failure_semantics": {
+    "question": "If a provider that started fails at run time, should the Core automatically fall back to the next registered provider, or fail and let a human decide?",
+    "scope_limit_that_must_be_kept": "This question is ONLY about a provider that started and then failed. It is NOT about a registered route whose worker script or interpreter does not exist. executor.rs::worker_for already skips the latter before the run begins, with the stated reason that 'registering a route whose files are missing is a configuration mistake rather than a provider choice, and silently choosing it would turn that mistake into a failed job'. That pre-flight behaviour is a configuration fact checkable before the run, and this design recommends keeping it exactly as it is. The line to hold is: a fact checkable before the run may be handled by the Core; an unexpected failure during the run must not silently change who answers.",
+    "argument_for_automatic_fallback": [
+      "Availability: a job that would have failed can still produce a result, and the user asked for an extraction, not for a particular process to have succeeded.",
+      "It is what 'fallback' already appears to promise. capabilities.rs emits a fallback field and a fallback_note saying the second route 'is the candidate if the default's files are missing'. A reader can reasonably infer that a failing default should also move aside, and a field that promises failover but never delivers it is its own kind of lie.",
+      "The failure may be transient and uninteresting: a worker killed by a machine hiccup is not evidence that its provider is worse. Making a human re-run by hand is toil.",
+      "The retry target is already registered and already passed the identity allow-list, so the Core is not reaching for anything unknown."
+    ],
+    "argument_against_automatic_fallback": [
+      "It breaks the provenance chain in a way nothing currently records. There is no provider identity on a job_attempts row (see S3). A silent switch means the durable record says 'text.extract succeeded' while a different program produced the bytes than the one a human chose, and no reader can tell.",
+      "It is automatic promotion of a machine-observed event into a configuration change. The project forbids this in its most explicit terms: section 9 of docs/history/plan-recovery-2026-10-02/AAOS-R7-PLAN-2026-10-02.md says plugins may not '自动把 AI Candidate 转正' (automatically promote an AI candidate) and may not '自动批准 Evidence'; section 42 item 15 says 'skipped、cancelled、unknown、blocked 都不能写 PASS'. A failover turns one provider's failure into another provider's success and reports the capability as having worked, which is the same move with a different subject.",
+      "The provider choice is a human-owned decision by the project's own gate list. section 31 lists what '不得自动决定' (must not be decided automatically) and section 28 ends '最后三项仍属于高风险 Owner Gate' (the last three remain high-risk Owner Gates), one of which is 'default launcher cutover' - changing which provider answers IS a default change. Automating it removes an item from a list that exists to keep it human.",
+      "Two providers for one capability are two different things. A human chose provider A for reasons that are not the Core's business: a license, a measured quality on real inputs, a data-ownership rule, a model requirement. capability_settings and the launch declaration are where such reasons live. Switching to B at the first hiccup throws away the reason without asking.",
+      "It makes failures invisible. A fallback that succeeds produces a success, and nothing in this repository would surface 'the default provider is broken and has been for a week'. The operator finds out when the fallback also breaks.",
+      "It creates a worse failure mode than the one it fixes: the fallback may be slower, costlier, or produce different loss notes, and a job silently served by it can differ observably from the same job served by the default. Without the provider on the receipt (S3, again), that difference is undiagnosable.",
+      "The blast radius is not small. Executor::execute_owned commits through attempts::finish inside a single store transaction; adding a re-resolution after a failure means the failure path and the success path can be reached by the same request, which is a materially more complex state machine than the current one. Nothing in this slice needs it."
+    ],
+    "recommendation": {
+      "decision": "MANUAL. Do NOT auto-fallback after a runtime provider failure.",
+      "what_the_core_should_do_instead": [
+        "Fail the attempt through the existing path: Failure::Failed, then attempts::terminate(conn, &req, \"failed\", &message) as Executor::execute_owned already does. Do not add a second resolution step.",
+        "Name the provider in the terminal error, and persist the provider on the attempt row (S3) so the fact survives the response.",
+        "Record one machine receipt via archeaxis_domain::machine::record_machine_task with outcome \"failed\" and the reason, which makes the failure immutable and queryable.",
+        "Report the failure and the provider in the capability surface, with a basis string like every other derived field, and let a human use the explicit choose-a-provider action (meaning a) to change who answers.",
+        "Keep the existing configuration-mistake behaviour unchanged: worker_for still skips a route whose files do not exist, before the run, and the record still says worker_missing or interpreter_missing rather than pretending a run happened."
+      ],
+      "why_this_satisfies_the_repository_rules": "The failure is machine-recorded (which the machine journal is allowed and designed to do) and the response to it is human-owned (which the owner-gate list requires). Nothing in the loop promotes a machine event into a configuration change.",
+      "what_would_change_this_recommendation": [
+        "A provider identity on every attempt (S3) landing first, so a failover would be visible after the fact rather than silent.",
+        "An explicit, human-authored per-capability failover policy, opt-in and off by default, where the policy itself is a recorded human decision rather than a Core default.",
+        "Both of the above, and still an Owner decision - not an engineering one. This design does not take it."
+      ]
+    }
+  },
+
+  "must_not_be_automatic": {
+    "introduction": "What the repository's own rules forbid, quoted from the files rather than paraphrased. Quoted text is Chinese where the source is Chinese; the English gloss is this document's, not the file's.",
+    "citations": [
+      {
+        "source": "docs/history/plan-recovery-2026-10-02/AAOS-R7-PLAN-2026-10-02.md",
+        "section": "42 item 15",
+        "quote": "skipped、cancelled、unknown、blocked 都不能写 PASS。",
+        "gloss": "skipped, cancelled, unknown and blocked must never be written as PASS.",
+        "forbids": "Any automatic failover that reports a provider's failure as an overall success. An auto-fallback that hides a failed default writes a PASS over a failure, which is precisely what this sentence names."
+      },
+      {
+        "source": "docs/history/plan-recovery-2026-10-02/AAOS-R7-PLAN-2026-10-02.md",
+        "section": "9 (Plugin Kernel V1)",
+        "quote": "插件不得 direct SQL、不得直接改 canonical knowledge、不得自动批准 Evidence、不得自动把 AI Candidate 转正、不得无授权下载模型/联网。",
+        "gloss": "Plugins must not use direct SQL, must not directly change canonical knowledge, must not automatically approve Evidence, must not automatically promote an AI Candidate, and must not download models or reach the network without authorization.",
+        "forbids": "Any automatic path that turns a machine outcome into an accepted state. A provider substitution accepted without a human is the same shape of move as promoting a candidate."
+      },
+      {
+        "source": "docs/history/plan-recovery-2026-10-02/AAOS-R7-PLAN-2026-10-02.md",
+        "section": "24 (G4, Human <-> AI Mutual Learning)",
+        "quote": "任何 Candidate 不得自动升级为可信资产。",
+        "gloss": "No Candidate may be automatically upgraded into a trusted asset.",
+        "forbids": "The general principle the failover case is an instance of: machine-observed events do not become trusted state without review."
+      },
+      {
+        "source": "docs/history/plan-recovery-2026-10-02/AAOS-R7-PLAN-2026-10-02.md",
+        "section": "42 item 11",
+        "quote": "插件化采用\"可信内核不可替换 + 能力 Provider 可替换\"；第一版只做 registry/enable/disable/health/default/fallback/rollback/permission，不做公开 Marketplace。",
+        "gloss": "Pluginisation uses 'the trusted kernel is not replaceable + the capability Provider is replaceable'; the first version does only registry/enable/disable/health/default/fallback/rollback/permission, and does not do a public Marketplace.",
+        "requires": "This is the sentence that commissions the feature AND bounds it: rollback is in the first version's list, and 'the capability Provider is replaceable' is stated as something a human does. Nothing here authorises the Core to replace a provider on its own."
+      },
+      {
+        "source": "docs/history/plan-recovery-2026-10-02/AAOS-R7-PLAN-2026-10-02.md",
+        "section": "31 (Owner approval points)",
+        "quote": "以下不得自动决定：... 高风险模型下载；网络 Provider 默认启用；Research DTO / 重大 canonical schema；...",
+        "gloss": "The following must not be decided automatically: ... high-risk model downloads; enabling a network Provider by default; Research DTO / major canonical schema; ...",
+        "forbids": "Deciding by machine which provider is the default. Note that a change to canonical schema is on this list too, which is why S1 and S2 are design decisions for a human and not for this document to ship."
+      },
+      {
+        "source": "docs/history/plan-recovery-2026-10-02/AAOS-R7-PLAN-2026-10-02.md",
+        "section": "31 (Owner approval points), second list",
+        "quote": "Backup/Restore 已有能力；Legacy semantic migration；新 workspace identity；stage candidate；in-place Green replacement；default launcher cutover；release/tag。最后三项仍属于高风险 Owner Gate。",
+        "gloss": "Backup/Restore, legacy semantic migration, new workspace identity, stage candidate, in-place Green replacement, default launcher cutover, release/tag. The last three remain high-risk Owner Gates.",
+        "forbids": "Treating a change of the answering provider as an ordinary setting. 'default launcher cutover' is the same kind of act and is an Owner Gate."
+      },
+      {
+        "source": "docs/history/plan-recovery-2026-10-02/AAOS-R7-PLAN-2026-10-02.md",
+        "section": "42 item 14",
+        "quote": "每个完成声明必须带 exact SHA、测试/运行环境、真实或合成输入等级、日志/receipt、restart/readback 与剩余缺口。",
+        "gloss": "Every completion claim must carry an exact SHA, the test/runtime environment, the real-or-synthetic input grade, logs/receipts, restart/readback, and the remaining gaps.",
+        "requires": "Any rollback claim has to survive restart/readback and name its remaining gaps, which is why the acceptance check in smallest_first_slice is a restart test and not a unit assertion."
+      },
+      {
+        "source": "AGENTS.md",
+        "section": "3 (Safety Rules)",
+        "quote": "Prefer small, auditable changes that can be reverted with one commit.",
+        "gloss": "as written",
+        "requires": "The first slice must be revertible in one commit, which is why it is one column plus one read path and not a decision ledger."
+      },
+      {
+        "source": "AGENTS.md",
+        "section": "3 (Safety Rules)",
+        "quote": "Do not use destructive actions (recursive deletion, hard reset, forced push, mass overwrite) unless the user separately confirms scope.",
+        "gloss": "as written",
+        "forbids": "Mass-rewriting existing capability_settings rows when the column is added. The migration must ADD a nullable column and leave existing rows alone."
+      },
+      {
+        "source": "AGENTS.md",
+        "section": "7 (Current System Boundaries)",
+        "quote": "High-risk content routes to `REVIEW` before action.",
+        "gloss": "as written",
+        "forbids": "Any provider change that takes effect without passing through a human decision point."
+      },
+      {
+        "source": "AGENTS.md",
+        "section": "7 (Current System Boundaries)",
+        "quote": "Accuracy claims require human truth/prediction pairs; model confidence is not accuracy.",
+        "gloss": "as written",
+        "forbids": "Choosing between providers on the Core's own say-so. Provider A beating provider B is a claim about quality, and quality claims need human pairs, not a file-existence check and not a success/failure count."
+      },
+      {
+        "source": "AGENTS.md",
+        "section": "6 (Implementation Workflow), step 6",
+        "quote": "Report what changed, what was tested, what remains uncertain, and how to roll back.",
+        "gloss": "as written",
+        "requires": "The provider change path must itself be revertible and must say how - which is meaning (a) plus meaning (b), not meaning (c)."
+      },
+      {
+        "source": "docs/VERIFICATION_POLICY.md",
+        "section": "review triggers",
+        "quote": "高风险路径仍遵循本政策的完整门禁、frozen tree review 与 exact-SHA CI",
+        "gloss": "High-risk paths still follow this policy's full gates, frozen tree review and exact-SHA CI.",
+        "requires": "A schema change is a high-risk path and needs the full gate set, not a quick edit."
+      }
+    ],
+    "summary": [
+      "The Core must not switch provider on its own after a failure.",
+      "The Core must not choose the default provider from measured quality.",
+      "The Core must not restore a remembered provider selection after a restart.",
+      "The Core must not rewrite existing capability_settings rows when a column is added.",
+      "The Core must not report a failover as a success of the originally chosen provider.",
+      "A human changing the provider must produce an attributable record, not an anonymous row."
+    ]
+  },
+
+  "smallest_first_slice": {
+    "name": "record an explicit provider preference, and let it choose among routes that are already registered",
+    "why_this_and_not_the_others": [
+      "It is meaning (a): the only one of the three that is useful alone. Meaning (b) is meaningless before (a) exists, and (c) is recommended against.",
+      "It needs ONE added nullable column on an existing table. No new table, no EXPORT_TABLES change, no CURRENT_LAYOUTS change, so it cannot break an existing archive (see required_state.S1 and the archive reasoning there).",
+      "It is revertible in one commit, per AGENTS.md section 3.",
+      "Its acceptance check is a real restart/readback, which is what section 42 item 14 demands of a completion claim.",
+      "It does NOT answer the launch duplicate-capability policy question, and it says so: the slice is useful for any capability that has two registered routes (reachable today by constructing the Executor directly, and by a launch once that policy is decided). Shipping the read path before the policy is what lets the policy decision be made against something real."
+    ],
+    "included": [
+      {
+        "step": 1,
+        "what": "Create the missing read/write functions in crates/archeaxis-store-sqlite/src/capability_settings.rs, next to is_enabled/disabled_capabilities/set_enabled: a read returning Option<String> for one capability, a bulk read mirroring disabled_capabilities, and a write that sets or clears the preference.",
+        "constraints": [
+          "Absent row or NULL column both mean 'no preference expressed', matching is_enabled's absent-row discipline.",
+          "The write must reuse the INSERT ... ON CONFLICT(capability) DO UPDATE shape of set_enabled and must not create a row for a capability that is not registered.",
+          "Clearing a preference must be expressible, so a human can go back to 'the Core decides' without inventing a provider."
+        ]
+      },
+      {
+        "step": 2,
+        "what": "Add preferred_provider TEXT NULL to the capability_settings CREATE TABLE in crates/archeaxis-store-sqlite/src/lib.rs, bump SCHEMA_VERSION from 8 to 9, and add an 'if version < 9' guard that ALTERs the column only when pragma_table_info('capability_settings') does not already list it, mirroring the existing version < 4 guard.",
+        "constraints": [
+          "No existing row is touched. No table is dropped or recreated.",
+          "A database at version 7 or 8 migrates on open; a database at 9 or later is refused by the existing version check, unchanged."
+        ]
+      },
+      {
+        "step": 3,
+        "what": "Make provider resolution prefer the recorded provider. The natural seam is crates/archeaxis-application/src/executor.rs::worker_for, which is the single function every execution path already goes through (Executor::execute_owned calls it, and Executor::machine_answer calls it). It would consult the preference for the capability and, if that route is registered AND usable, return it; otherwise fall back to exactly today's rule - the first usable route, or the first route if none is usable.",
+        "constraints": [
+          "A preference naming a route that is not registered, or whose files are missing, must NOT make the capability unusable. It degrades to the existing rule, and the record must say that the preference was not honoured, with a basis string.",
+          "This must not become a second enforcement point at claim time (see required_state.S4).",
+          "Nothing here changes what happens after a provider starts and fails (see failure_semantics)."
+        ]
+      },
+      {
+        "step": 4,
+        "what": "Report it. capabilities.rs::capability_record gains a preference field and a preference_basis string following the existing 'enabled_basis'/'health_basis'/'fallback_note' discipline, saying which provider the operator chose, whether it was honoured, and - when it was not - that the Core fell back to the registered order.",
+        "constraints": [
+          "A recorded preference must never be readable as a claim that the preferred provider works. health stays file existence only and keeps saying so."
+        ]
+      },
+      {
+        "step": 5,
+        "what": "One write route on the existing surface, PUT /api/v1/capabilities/{capability}/provider, taking the provider identity. It reuses the existing refusals: 404 for a capability that is not registered, and a body that is not exactly one known field is refused rather than silently read as a default (the precedent is the enabled route's 422 on {} or a misspelled key).",
+        "constraints": [
+          "No new state beyond the single column.",
+          "No automatic caller: nothing in the Core calls this route."
+        ]
+      }
+    ],
+    "excluded_on_purpose": [
+      "Any history or decision ledger (meaning b). Listed as an open question, not built.",
+      "Any automatic reaction to a runtime failure (meaning c). Argued against in failure_semantics.",
+      "Relaxing crates/archeaxis-api/src/launch.rs::TextWorker::validate's duplicate-capability refusal. That is a policy decision with its own review, and doing it silently inside a provider-preference slice would bundle a policy change into a feature commit.",
+      "A stable provider identifier to replace the path string. Real problem, listed as an open question, not solved here.",
+      "Changing SCHEMA_VERSION's meaning, EXPORT_TABLES, or CURRENT_LAYOUTS."
+    ],
+    "acceptance_check": {
+      "statement": "One executable test in crates/archeaxis-api/tests/ proves that an explicitly chosen provider answers, survives a Core restart, is reported as chosen, and degrades honestly when it cannot be honoured - and that the archive round trip still restores the choice.",
+      "exact_checks": [
+        {
+          "id": "AC1",
+          "name": "the default flips, observably",
+          "setup": "Build an Executor over a temp workspace with TWO usable routes registered for one capability - the same shape crates/archeaxis-api/tests/contract_capability_registry.rs::the_usable_provider_answers_even_when_a_broken_one_was_registered_first already uses, by calling Executor::open_routes with a two-element slice.",
+          "assert_before": "GET /api/v1/capabilities/{capability} reports is_default true for the FIRST registered route and fallback naming the second.",
+          "act": "PUT /api/v1/capabilities/{capability}/provider naming the second route.",
+          "assert_after": "The same GET reports is_default true for the SECOND route, default_provider equal to the second route's path, and an is_default false record for the first.",
+          "why_this_is_the_real_check": "It asserts the flip from the re-read record rather than from the PUT response, following the existing enabled route's rule that a reply echoing the request would not prove the write landed."
+        },
+        {
+          "id": "AC2",
+          "name": "it survives a restart and a re-read",
+          "act": "Drop the router and the Executor, then reopen the same database with Executor::open_routes declaring the SAME two routes in the SAME order.",
+          "assert": "GET /api/v1/capabilities/{capability} still reports is_default true for the second route.",
+          "why": "This is the difference between a real preference and a value echoed from a request. It is also the restart/readback that section 42 item 14 requires of a completion claim."
+        },
+        {
+          "id": "AC3",
+          "name": "an unhonoured preference degrades honestly rather than breaking the capability",
+          "act": "With the preference still naming the second route, reopen the Executor declaring ONLY the first route.",
+          "assert": [
+            "GET still returns 200, not an error.",
+            "is_default is true for the first route.",
+            "the preference field still names the second route, and preference_basis states that the preferred provider is not registered and the Core used the registered order."
+          ],
+          "why": "A preference that silently disappears is a lie by omission, and a preference that breaks the capability turns a preference into a failure."
+        },
+        {
+          "id": "AC4",
+          "name": "a preference never becomes an automatic decision",
+          "act": "Inspect the substrate and then run a failing job.",
+          "assert": [
+            "No column, table or file records a provider history: the only new state is capability_settings.preferred_provider.",
+            "After a provider is made to fail at run time, job_attempts holds a failed attempt and the provider that answered is unchanged - no second provider was tried and no preference was written."
+          ],
+          "why": "This is the check that makes the design's central recommendation falsifiable rather than aspirational. Without it, 'no automatic fallback' is only a sentence in a document."
+        },
+        {
+          "id": "AC5",
+          "name": "the archive still round trips, including the new column",
+          "act": "Export the workspace with archeaxis_archive::export_workspace and restore it with restore_workspace, then read the preference back.",
+          "assert": [
+            "export succeeds and its manifest table set is still the 22-table CURRENT_LAYOUTS entry, i.e. EXPORT_TABLES and CURRENT_LAYOUTS were not changed by this slice",
+            "restore succeeds",
+            "the restored workspace's preference for the capability equals the original"
+          ],
+          "why": "This is the tripwire for the archive failure mode described in required_state.S2. It is also the cheapest place to catch someone later turning a column into a table without updating CURRENT_LAYOUTS. crates/archeaxis-archive/tests/omitted_tables_roundtrip.rs is the precedent for this kind of test and explains in its own header why it exists.",
+          "note": "TABLE COUNT DEPENDS ON THE VAULT WORK IN THE DIRTY WORKING TREE. Verify the expected count from CURRENT_LAYOUTS at the time of implementation rather than hard-coding 22 from this document."
+        },
+        {
+          "id": "AC6",
+          "name": "the migration does not destroy an existing decision",
+          "act": "Create a workspace at schema version 8 with a capability explicitly DISABLED in capability_settings, open it with the new build, then read the capability surface.",
+          "assert": "The capability still reads enabled: false, and preferred_provider reads NULL for it - the added column did not overwrite or recreate the row.",
+          "why": "AGENTS.md section 3 forbids mass overwrite. An ALTER that recreated the table would silently re-enable every capability an operator had turned off, and the whole point of capability_settings is that a disable is a decision somebody made."
+        }
+      ],
+      "evidence_to_record_with_the_result": [
+        "exact commit SHA of the slice",
+        "the test names above and their pass output",
+        "the schema version before and after the migration",
+        "the export manifest table set and its sha256",
+        "the remaining gaps, which at minimum are: no history, no runtime reaction, and the launch duplicate-capability policy still undecided"
+      ],
+      "what_this_slice_does_not_prove": "It does not prove a second provider can be registered in a PRODUCTION launch, because launch.rs::TextWorker::validate still refuses duplicates. It proves the selection, persistence, reporting and archive behaviour, which is everything that can be built without taking that policy decision. This limitation must appear in the completion claim, per section 42 item 14's requirement to state remaining gaps rather than let a passing test imply more than it shows."
+    }
+  },
+
+  "open_questions": {
+    "introduction": "Decisions this design does not take, each with why it needs a human rather than more reading of the code.",
+    "questions": [
+      {
+        "id": "Q1",
+        "question": "May a production launch declare two routes for one capability?",
+        "why_it_needs_a_human": "crates/archeaxis-api/src/launch.rs::TextWorker::validate currently refuses it with 'duplicate worker route capability', while the application layer is built and tested for exactly that case. Something deliberate went into that refusal and this document cannot tell from the code alone whether it was about shadowing, about the single-owner launch model, or about not shipping a second provider before M0. Section 42 item 11 puts fallback in the first version's list and the M0 overlay in AGENTS.md section 6 defers '第二 providers' (second providers) until M0 has a real Local Green result. Those two statements are in tension and only the owner can say which wins.",
+        "what_it_blocks": "Meaning (a) and meaning (b) in a production launch. Not the smallest first slice, which is deliberately buildable without it."
+      },
+      {
+        "id": "Q2",
+        "question": "Is a provider's identity its path, or does it need a stable id?",
+        "why_it_needs_a_human": "capabilities.rs::same_provider compares lossy path strings, and capability_record emits the worker path as the provider. A preference stored as a path breaks when the checkout moves or the interpreter is reinstalled, and silently stops being honoured - which AC3 would report honestly but a user would still experience as 'my choice was forgotten'. A stable id needs a naming authority and a mapping to paths, which is a schema decision with migration consequences.",
+        "options_noted": ["keep the path and accept the fragility, documented", "add a provider id to the launch declaration and to the preference", "derive an id from the script's content digest, which is stable across moves but changes on any edit"],
+        "this_designs_choice": "Path, for now, because it is the only identity that exists and because S1 is one column rather than a new name-resolution subsystem. Flagged rather than settled."
+      },
+      {
+        "id": "Q3",
+        "question": "Is a single undo enough, or is a decision history wanted?",
+        "why_it_needs_a_human": "It is a product question with a schema cost (required_state.S2). A 'previous_provider' column supports one undo and then the trail is gone; a decision ledger supports auditing per section 42 item 14 but costs a table, a schema version, an EXPORT_TABLES entry and a CURRENT_LAYOUTS entry. Only a human can say which the product needs.",
+        "this_designs_choice": "Neither is built. S1 records only the current preference, so nothing is lost if the answer is 'history'."
+      },
+      {
+        "id": "Q4",
+        "question": "Should a provider change require a reason?",
+        "why_it_needs_a_human": "required_state.S2.reason is nullable in this design, which means an unexplained switch is accepted. Section 42 item 14 pushes toward requiring one; usability pushes against. The enabled route's precedent is instructive but not decisive: it refuses an empty body rather than requiring a justification.",
+        "this_designs_choice": "Not required, because this design does not decide it."
+      },
+      {
+        "id": "Q5",
+        "question": "Is a worker 'rejected' response a provider failure for rollback purposes?",
+        "why_it_needs_a_human": "crates/archeaxis-application/src/executor.rs::run_worker already distinguishes Failure::Rejected from Failure::Failed, and execute_owned maps them to different terminal states ('rejected' vs 'failed'). A rejection is a deliberate, contract-conformant answer; folding it into 'the provider failed' would make a provider look broken for behaving correctly. Whether a human rolling back cares about rejections is a judgement, not a code fact.",
+        "this_designs_choice": "The design uses 'failed' only. Rejections are out of scope and the distinction is preserved."
+      },
+      {
+        "id": "Q6",
+        "question": "What happens when a preferred provider's files disappear - fall back to the order, or refuse the capability?",
+        "why_it_needs_a_human": "This document recommends falling back to the registered order and reporting that the preference was not honoured (AC3). The opposite argument is real: if a human chose provider B because provider A had a licence problem or produced worse evidence, then quietly answering with A is exactly the silent substitution this design argues against everywhere else.",
+        "this_designs_choice": "Fall back and report, because the alternative makes a missing file into a capability outage and because the existing worker_for already establishes 'a missing file is a configuration mistake, not a provider choice'. If a human disagrees, the honest alternative is to refuse the capability and say why - and that is a different design, not a tweak."
+      },
+      {
+        "id": "Q7",
+        "question": "Does provider preference belong to the workspace or to the operator?",
+        "why_it_needs_a_human": "launch.rs::Launch carries actor: Option<String> and a session model, so an identity exists. capability_settings is workspace-scoped with capability as its only key, so a per-operator preference would need a composite key and a change to what that table means. This design treats the workspace as the owner because the table already says so, but the launch model does not settle it.",
+        "this_designs_choice": "Workspace. Noting that this makes the preference visible to every session."
+      },
+      {
+        "id": "Q8",
+        "question": "Should the provider preference be honoured by Executor::machine_answer, which bypasses the claim path entirely?",
+        "why_it_needs_a_human": "Executor::machine_answer calls worker_for(\"machine.answer\") directly and runs the worker as a process without going through attempts::claim. If worker_for gains preference awareness, this path inherits it, which is probably right but is not obviously intended: machine.answer has no attempt row and therefore no place to record which provider answered (S3 does not cover it).",
+        "this_designs_choice": "It inherits the preference, because worker_for is the single seam and duplicating the rule would create two sources of truth. The missing provenance on that path is recorded here as a known gap rather than fixed."
+      }
+    ]
+  }
+}

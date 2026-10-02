@@ -39,6 +39,10 @@ pub const EXPORT_TABLES: &[&str] = &[
     // R7/G1: the capability enable/disable record. It has no foreign keys, so appending is safe
     // for `restore`, and omitting it would silently lose which capabilities an operator turned off.
     "capability_settings",
+    // R7/G2: the vault link graph. It references `knowledge`, which is written earlier, so
+    // appending is safe for `restore`; omitting it would silently lose every link a vault
+    // declared, which is the gap this table exists to close.
+    "vault_links",
 ];
 
 /// ARCHIVE-01: every export layout the **current** schema version actually shipped,
@@ -112,6 +116,31 @@ pub const CURRENT_LAYOUTS: &[&[&str]] = &[
         "card_references",
         "machine_tasks",
         "capability_settings",
+    ],
+    // 22 tables: the vault link graph added by R7/G2.
+    &[
+        "workspace_meta",
+        "sources",
+        "transforms",
+        "anchors",
+        "knowledge",
+        "review_events",
+        "learning_events",
+        "jobs",
+        "job_attempts",
+        "job_outputs",
+        "canvas_projections",
+        "canvas_projection_nodes",
+        "canvas_projection_edges",
+        "source_origins",
+        "learning_event_keys",
+        "knowledge_supersedes",
+        "knowledge_v3_metadata",
+        "learning_assessments",
+        "card_references",
+        "machine_tasks",
+        "capability_settings",
+        "vault_links",
     ],
 ];
 

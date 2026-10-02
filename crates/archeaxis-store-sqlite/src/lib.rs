@@ -6,9 +6,10 @@ pub mod raw_objects;
 pub mod writer;
 
 // Assessment and the V3 governance sidecar are additive schema changes.
-// 7 adds the capability enable/disable record that R7/G1 needs; like the earlier additive steps it
-// is applied on open rather than by rewriting anything.
-pub const SCHEMA_VERSION: i64 = 7;
+// 7 adds the capability enable/disable record that R7/G1 needs; 8 adds the vault link graph that
+// G2 needs. Like the earlier additive steps both are applied on open rather than by rewriting
+// anything.
+pub const SCHEMA_VERSION: i64 = 8;
 
 const SCHEMA_SQL: &str = r#"
 CREATE TABLE IF NOT EXISTS workspace_meta (
@@ -322,6 +323,33 @@ pub fn init_workspace(db_path: &str) -> rusqlite::Result<Connection> {
             );",
         )?;
     }
+    if version < 8 {
+        // G2: the Obsidian-style link graph of a vault note.
+        //
+        // `target_knowledge_id` is NULLABLE on purpose. A vault routinely links to a note that has
+        // not been imported, and a link to a note that is not here yet is a fact about the vault
+        // rather than a reason to refuse the link. Refusing it would silently drop exactly the
+        // links that tell a reader the vault is incomplete.
+        //
+        // `source_knowledge_id` is NOT NULL because the note declaring the link is always the one
+        // being read, so a link with no declaring note would be meaningless.
+        tx.execute_batch(
+            "CREATE TABLE IF NOT EXISTS vault_links (
+                source_knowledge_id TEXT NOT NULL REFERENCES knowledge(knowledge_id),
+                target_ref TEXT NOT NULL,
+                target_knowledge_id TEXT REFERENCES knowledge(knowledge_id),
+                embed INTEGER NOT NULL CHECK(embed IN (0,1)),
+                fragment TEXT,
+                fragment_is_block INTEGER NOT NULL DEFAULT 0 CHECK(fragment_is_block IN (0,1)),
+                syntax TEXT NOT NULL,
+                ordinal INTEGER NOT NULL,
+                created_at TEXT NOT NULL DEFAULT (datetime('now')),
+                PRIMARY KEY(source_knowledge_id, target_ref, ordinal)
+            );
+            CREATE INDEX IF NOT EXISTS vault_links_target ON vault_links(target_knowledge_id);",
+        )?;
+    }
+
     tx.execute(
         "INSERT OR REPLACE INTO workspace_meta(key, value) VALUES('schema_version', ?1)",
         [SCHEMA_VERSION.to_string()],

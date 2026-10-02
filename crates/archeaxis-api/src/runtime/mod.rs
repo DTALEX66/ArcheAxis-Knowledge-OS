@@ -59,6 +59,9 @@ pub fn router(executor: Executor) -> Router {
         // G2: the vault link graph of one note. It takes the note's text rather than a path, because
         // the Core does not walk a directory and this must not be the place that starts to.
         .route("/api/v1/vault/links", post(vault_links))
+        // G2: store the link graph of one note. Separated from the parse so a caller can inspect what
+        // a note declares before deciding to keep it.
+        .route("/api/v1/vault/links/record", post(vault_links_record))
         .with_state(Runtime {
             executor,
             active: Arc::new(Mutex::new(HashMap::new())),
@@ -240,6 +243,86 @@ async fn record_correction(
         // The outer error is the store's own, and a `rusqlite::Error` is not itself a response body.
         Err(e) => (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()).into_response(),
     }
+}
+
+/// G2: store one note's link graph.
+///
+/// This is the half `obsidian_vault_roundtrip.rs` said was missing: "no table stores a link or embed
+/// relationship". The graph is now stored, **and the two things it still does not do are stated**:
+/// the Core does not resolve a target by itself (the caller supplies the mapping) and it does not
+/// walk a directory (it is handed one note's text at a time).
+///
+/// Dangling links are stored rather than dropped, because a link to a note that is not here is how a
+/// reader learns the vault is incomplete.
+async fn vault_links_record(
+    State(runtime): State<Runtime>,
+    Json(body): Json<VaultRecordBody>,
+) -> Response {
+    let knowledge_id = body.knowledge_id.clone();
+    let markdown = body.markdown.clone();
+    let resolutions = body.resolutions.clone();
+
+    let written = runtime
+        .executor
+        .store()
+        // One error layer, as `String`: a driver failure and "no such note" are both reasons to
+        // hand back, and keeping them in one layer is what stops the call site having to unpack
+        // three. The driver error is converted where it arises rather than by `?`.
+        .submit_wait(
+            move |conn: &mut rusqlite::Connection| -> Result<serde_json::Value, String> {
+                // The declaring note has to exist, or its links would reference nothing.
+                if !archeaxis_domain::vault::knowledge_exists(conn, &knowledge_id)
+                    .map_err(|e| e.to_string())?
+                {
+                    // `Ok(Err(..))`: the outer error is the store driver's, so a missing note is a
+                    // reason inside a successful transaction rather than a database failure.
+                    return Err(format!("no knowledge item {knowledge_id}"));
+                }
+                let text = match &markdown {
+                    Some(text) => text.clone(),
+                    None => conn
+                        .query_row(
+                            "SELECT body FROM knowledge WHERE knowledge_id=?1",
+                            [&knowledge_id],
+                            |row| row.get::<_, String>(0),
+                        )
+                        .map_err(|e| e.to_string())?,
+                };
+                // A resolution the caller supplied is only honoured when the target really exists, so a
+                // typo cannot manufacture a link to nothing.
+                let mut checked: std::collections::HashMap<String, String> =
+                    std::collections::HashMap::new();
+                for (target, resolved) in &resolutions {
+                    if archeaxis_domain::vault::knowledge_exists(conn, resolved).unwrap_or(false) {
+                        checked.insert(target.clone(), resolved.clone());
+                    }
+                }
+                let count =
+                    archeaxis_domain::vault::record_links(conn, &knowledge_id, &text, |target| {
+                        checked.get(target).cloned()
+                    })
+                    .map_err(|e| e.to_string())?;
+                let stored = archeaxis_domain::vault::stored_links(conn, &knowledge_id)
+                    .map_err(|e| e.to_string())?;
+                let _ = count;
+                Ok(stored)
+            },
+        )
+        .await;
+
+    // Three kinds of outcome, kept apart: the graph, a reason the note was not found, and a driver
+    // failure. Flattening them was a mistake this route made twice while being written.
+    let mut document: serde_json::Value = match written {
+        Ok(Ok(document)) => document,
+        Ok(Err(reason)) => return (StatusCode::NOT_FOUND, reason).into_response(),
+        Err(e) => return (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()).into_response(),
+    };
+    document["not_done_here"] = serde_json::json!([
+        "resolving a target by itself: the caller supplies the name-to-item mapping, because only whoever walked the vault knows which note a link names",
+        "walking a directory: the Core is handed one note's text at a time and reads no vault",
+        "block reference definitions: a `^id` line is not recorded as a target",
+    ]);
+    Json(document).into_response()
 }
 
 /// G2: the Obsidian-style link graph of one note, as a projection.
@@ -648,6 +731,25 @@ struct CorrectionBody {
     /// Who found it. Review is a human act, so the default is the human principal.
     #[serde(default)]
     reviewer: Option<String>,
+}
+
+/// The body of a vault link record.
+///
+/// `resolutions` is supplied by the caller because only whoever walked the vault knows which note a
+/// link name refers to. The Core does not guess it and does not read a directory: handing over a
+/// mapping is what keeps the walk outside the Core while still letting it store the graph. A name
+/// absent from the map is stored as an unresolved link, which is a fact about the vault.
+#[derive(Deserialize)]
+#[serde(deny_unknown_fields)]
+struct VaultRecordBody {
+    /// The knowledge item whose body declares the links.
+    knowledge_id: String,
+    /// Optional parser input; the item's own body is used when this is absent.
+    #[serde(default)]
+    markdown: Option<String>,
+    /// target-as-written -> knowledge item, for the targets the caller could resolve.
+    #[serde(default)]
+    resolutions: std::collections::HashMap<String, String>,
 }
 
 /// The body of a vault link parse.

@@ -1,0 +1,299 @@
+{
+  "schema": "archeaxis.capability-reachability-audit/v1",
+  "document": "AAOS_CAPABILITY_REACHABILITY_AUDIT",
+  "recorded_at": "2026-10-02",
+  "audit_kind": "read-only static audit; no file was modified, only this record was created",
+  "worktree": ".project-local/worktrees/dsh-backend-loop-20261001",
+  "question": "Which registered capabilities cannot be reached by a job, and how could a reader tell?",
+  "verdict_in_one_line": "11 capabilities are reachable by a job kind in attempts::ROUTES; 1 capability (machine.answer) is registered in KNOWN_WORKER_IDENTITIES and reachable only through a dedicated Core HTTP route, never by a job; no capability in any of the four audited sources is reached by nothing at all.",
+
+  "method": {
+    "what_counts_as_reachable_in_this_audit": [
+      "reachable_by_a_job: a job kind in crates/archeaxis-application/src/attempts.rs::ROUTES maps to the capability, because attempts::claim resolves the kind through route_for_kind and refuses any kind that is absent ('undeclared job kind'). That table is therefore the single production gate for job dispatch, and nothing else in the Core can claim a job.",
+      "reached_another_way: a non-job caller invokes the executor or the worker directly (the G4 machine-answer path). This is recorded as a real reaching path, not as job reachability."
+    ],
+    "facts_and_how_each_was_established": [
+      {
+        "fact": "the complete (kind -> capability -> media type) job route table",
+        "file": "crates/archeaxis-application/src/attempts.rs",
+        "symbol": "pub const ROUTES: &[(&str, &str, &str)]",
+        "lines": "35-70",
+        "how": "read the file and parsed the literal with a script (see command_evidence.extract_attempts_routes); 12 entries, 11 distinct capabilities"
+      },
+      {
+        "fact": "the worker identities the Core's identity gate accepts",
+        "file": "crates/archeaxis-application/src/executor.rs",
+        "symbol": "pub const KNOWN_WORKER_IDENTITIES: &[&str]",
+        "lines": "521-539",
+        "how": "read the file; the value is enforced in run_worker (executor.rs:650-654), where a hello whose worker.name is not in this list fails with 'unexpected worker identity'"
+      },
+      {
+        "fact": "which capability selects which worker script on the worker side, and which route options each carries",
+        "file": "services/python-workers/transport/text_ndjson.py",
+        "symbol": "ROUTES (module-level dict), consumed by execute() at line 520 and serve_stdio() at line 599",
+        "lines": "194-334",
+        "how": "read the file and parsed the dict with ast.literal_eval (see command_evidence.extract_transport_routes); 11 capability keys"
+      },
+      {
+        "fact": "which capability the executor can actually be asked for",
+        "file": "crates/archeaxis-application/src/executor.rs",
+        "symbol": "Executor::open_routes (69-101), worker_for (111-122), machine_answer (133-199), registered_routes (266-273), execute_owned (316-437)",
+        "how": "read the file. open_routes seeds exactly one route ('text.extract', default_worker) and then pushes each launch-declared (capability, path) pair. worker_for returns None for a capability with no registered route, and execute_owned turns that into 'no worker registered for capability <cap>' (executor.rs:349-354). registered_routes() is the set the capability surface reports."
+      },
+      {
+        "fact": "the capability surface reports registration plus file existence only",
+        "file": "crates/archeaxis-api/src/capabilities.rs",
+        "symbol": "capability_record (58-118), list (145-198)",
+        "how": "read the file. health is 'worker_missing' / 'interpreter_missing' / 'declared' from std::fs::metadata on the worker and interpreter paths only; registered is hard-coded true because the row exists only for a registered route. list() therefore enumerates exactly Executor::registered_routes(), which is the launch's declaration."
+      },
+      {
+        "fact": "how the production launch declares routes",
+        "files": [
+          "crates/archeaxis-api/src/main.rs (206-247)",
+          "crates/archeaxis-api/src/launch.rs (30-53, 55-62, 91-120)",
+          "scripts/release/stage_backend_runtime.py (43-77, 293-300)",
+          "scripts/release/backend_launcher.py (107-141, 192-209)",
+          "apps/ArcheAxis.Desktop/CoreSupervisor.cs (92-93)"
+        ],
+        "how": "read each. main.rs takes launch.text_worker and calls Executor::open_routes with profile.extra_routes(); launch.rs defines text_worker.routes as the only declaration mechanism and refuses text.extract redeclaration; stage_backend_runtime.py writes worker-profile.json with routes from its ROUTE_SCRIPTS table; backend_launcher.py forwards profile['routes'] into the launch JSON; CoreSupervisor.cs sends only {python, script, staging} and declares no routes at all."
+      },
+      {
+        "fact": "the repository's own reachability record and its checker",
+        "files": [
+          "docs/authority/taskpack-0910-r3/WORKER-REACHABILITY.json",
+          "scripts/check_worker_reachability.py"
+        ],
+        "how": "read both, then ran the checker (see command_evidence.run_worker_reachability)"
+      }
+    ],
+    "commands_actually_run": [
+      {
+        "id": "extract_attempts_routes",
+        "command": "python -c \"parse ROUTES literal out of crates/archeaxis-application/src/attempts.rs and KNOWN_WORKER_IDENTITIES out of crates/archeaxis-application/src/executor.rs\"",
+        "result": "ROUTES entries: 12; distinct capabilities in attempts::ROUTES: archive.inventory, canvas.structure, html.structure, image.caption, image.ocr, media.probe, media.transcribe, office.structure, pdf.extract, subtitles.structure, text.extract. KNOWN_WORKER_IDENTITIES: 12 real identities (the regex also caught the literal error string 'unexpected worker identity', which is a message at executor.rs:653, not an identity)"
+      },
+      {
+        "id": "extract_transport_routes",
+        "command": "python -c \"ast.literal_eval the ROUTES dict of services/python-workers/transport/text_ndjson.py\"",
+        "result": "11 capability keys, each with its worker path: text.extract->document/worker_text.py, pdf.extract->document/worker_pdf.py, image.ocr->vision/worker_ocr.py, archive.inventory->document/worker_archive.py, media.probe->document/worker_media.py, media.transcribe->media/worker_transcribe.py, office.structure->document/worker_office.py, canvas.structure->document/worker_canvas.py, subtitles.structure->document/worker_subtitles.py, html.structure->web/worker_html.py, image.caption->vision/worker_caption.py"
+      },
+      {
+        "id": "run_worker_reachability",
+        "command": "python scripts/check_worker_reachability.py --json --record docs/authority/taskpack-0910-r3/WORKER-REACHABILITY.json",
+        "result": "{\"passed\": true, \"failures\": [], \"workers\": 13, \"routed\": 11, \"exempted\": 2} (exit 0). The checker's 'routed' count measures workers named by a transport \"worker\": path; 'exempted' is the two entries in the record's unrouted list"
+      },
+      {
+        "id": "machine_answer_reach",
+        "command": "grep -rn 'machine\\.answer' over the worktree, and grep -rn 'open_routes' over the worktree",
+        "result": "open_routes call sites: crates/archeaxis-api/src/main.rs:221 (production, driven by the launch declaration), crates/archeaxis-application/src/executor.rs:62 (Executor::open delegating with an empty extra list), and 12 files under crates/*/tests/ (test-only). machine.answer appears in the executor, the worker, the Core HTTP handlers, two test contracts, one probe script, and documents; it appears in no worker-profile.json, no *.cs, and no *.json"
+      },
+      {
+        "id": "git_status",
+        "command": "git status --short",
+        "result": " M crates/archeaxis-archive/src/lib.rs, M crates/archeaxis-domain/src/vault.rs, M crates/archeaxis-store-sqlite/src/lib.rs - all three pre-existing and untouched by this audit; no audit file is among them"
+      }
+    ],
+    "what_this_audit_did_not_do": [
+      "It did not start the Core, so 'reachable' is a claim about the code path a job takes, not an observed end-to-end run in this worktree.",
+      "It did not run any test. crates/*/tests/ and tests/ were read only to establish that a reaching path is test-only; a test-only construct is never counted as production reachability here.",
+      "It did not modify any existing file."
+    ]
+  },
+
+  "sources_read": [
+    "crates/archeaxis-application/src/attempts.rs",
+    "crates/archeaxis-application/src/executor.rs",
+    "crates/archeaxis-application/src/jobs.rs",
+    "crates/archeaxis-application/src/container.rs",
+    "crates/archeaxis-application/src/ocr.rs",
+    "crates/archeaxis-api/src/capabilities.rs",
+    "crates/archeaxis-api/src/main.rs",
+    "crates/archeaxis-api/src/launch.rs",
+    "crates/archeaxis-api/src/runtime/mod.rs",
+    "crates/archeaxis-api/src/lib.rs",
+    "services/python-workers/transport/text_ndjson.py",
+    "docs/authority/taskpack-0910-r3/WORKER-REACHABILITY.json",
+    "scripts/check_worker_reachability.py",
+    "scripts/release/stage_backend_runtime.py",
+    "scripts/release/backend_launcher.py",
+    "apps/ArcheAxis.Desktop/CoreSupervisor.cs",
+    "docs/current/AAOS-CAPABILITY-REGISTRY-V1-20261002.json"
+  ],
+
+  "attempts_routes_table": [
+    {"kind": "text", "capability": "text.extract", "media_type": "text/plain"},
+    {"kind": "text.extract", "capability": "text.extract", "media_type": "text/plain"},
+    {"kind": "pdf", "capability": "pdf.extract", "media_type": "application/pdf"},
+    {"kind": "image", "capability": "image.ocr", "media_type": "image/png"},
+    {"kind": "archive", "capability": "archive.inventory", "media_type": "application/zip"},
+    {"kind": "media", "capability": "media.probe", "media_type": "video/mp4"},
+    {"kind": "office", "capability": "office.structure", "media_type": "application/vnd.openxmlformats-officedocument.wordprocessingml.document"},
+    {"kind": "canvas", "capability": "canvas.structure", "media_type": "application/json"},
+    {"kind": "subtitles", "capability": "subtitles.structure", "media_type": "application/x-subrip"},
+    {"kind": "html", "capability": "html.structure", "media_type": "text/html"},
+    {"kind": "caption", "capability": "image.caption", "media_type": "image/png"},
+    {"kind": "transcribe", "capability": "media.transcribe", "media_type": "audio/wav"}
+  ],
+  "attempts_routes_note": "12 entries, 11 distinct capabilities: 'text' and 'text.extract' are two job kinds for one capability. The media type column is the declared default only; attempts::resolve_media_type derives the announced type from the source file name and requires it to be in attempts::ROUTE_MEDIA_TYPES for the capability (attempts.rs:234-248).",
+
+  "known_worker_identities": [
+    "python-worker-text-ndjson",
+    "python-worker-pdf-ndjson",
+    "python-worker-ocr-ndjson",
+    "python-worker-archive-ndjson",
+    "python-worker-media-ndjson",
+    "python-worker-office-ndjson",
+    "python-worker-canvas-ndjson",
+    "python-worker-subtitles-ndjson",
+    "python-worker-html-ndjson",
+    "python-worker-caption-ndjson",
+    "python-worker-transcribe-ndjson",
+    "python-worker-machine-answer-ndjson"
+  ],
+  "known_worker_identities_note": "12 identities. These are process names, not capabilities: the list gates which worker process the Core will drive (executor.rs:650-654), and the separate check that the worker advertises the claimed capability is at executor.rs:658-663. A capability is absent from this list and still job-reachable only if its worker's identity is spelled differently; no such case exists here - all 11 job-reachable capabilities correspond one-to-one with the first 11 identities.",
+
+  "transport_routes_table": [
+    {"capability": "text.extract", "worker": "services/python-workers/document/worker_text.py", "call": "path"},
+    {"capability": "pdf.extract", "worker": "services/python-workers/document/worker_pdf.py", "call": "path"},
+    {"capability": "image.ocr", "worker": "services/python-workers/vision/worker_ocr.py", "call": "ocr"},
+    {"capability": "archive.inventory", "worker": "services/python-workers/document/worker_archive.py", "call": "path"},
+    {"capability": "media.probe", "worker": "services/python-workers/document/worker_media.py", "call": "path"},
+    {"capability": "media.transcribe", "worker": "services/python-workers/media/worker_transcribe.py", "call": "transcribe"},
+    {"capability": "office.structure", "worker": "services/python-workers/document/worker_office.py", "call": "path"},
+    {"capability": "canvas.structure", "worker": "services/python-workers/document/worker_canvas.py", "call": "path"},
+    {"capability": "subtitles.structure", "worker": "services/python-workers/document/worker_subtitles.py", "call": "path"},
+    {"capability": "html.structure", "worker": "services/python-workers/web/worker_html.py", "call": "path"},
+    {"capability": "image.caption", "worker": "services/python-workers/vision/worker_caption.py", "call": "path"}
+  ],
+  "transport_routes_note": "11 keys, identical to the 11 distinct capabilities of attempts::ROUTES. The transport deliberately has no machine.answer key; text_ndjson.py:329-333 records that decision in the source: the job protocol requires parameters to be empty, so a question cannot travel in a job request, and declaring the route would be a route that fails its own validation.",
+
+  "readers_own_reachability_record": {
+    "file": "docs/authority/taskpack-0910-r3/WORKER-REACHABILITY.json",
+    "schema": "archeaxis.worker-reachability/v1",
+    "checked_by": "scripts/check_worker_reachability.py",
+    "routing_source_recorded": "services/python-workers/transport/text_ndjson.py",
+    "records_as_unrouted": [
+      {
+        "worker": "services/python-workers/media/worker_video.py",
+        "engine": "python-worker-video",
+        "why_recorded_unrouted": "three independent reasons, given in the record: (1) the worker returns no projected text - a duration, a 16 kHz mono audio path and sampled keyframe hashes - while the route contract requires projected text with canonical line anchors that the Core re-derives and checks; (2) it produces file artifacts (WAV, JPEG frames) but the attempt directory is temporary, so routing it needs an artifact-transfer shape different from the PDF/archive one; (3) it takes an output directory and frame interval/cap options, and parameters are required to be empty. The record states the design decision is needed, not a flag.",
+        "what_it_would_serve": "F11 (MP4/MOV/MKV/WebM): frame events, sampling coverage, and a 16 kHz mono audio track for the ASR lane"
+      },
+      {
+        "worker": "services/python-workers/machine/worker_machine_answer.py",
+        "engine": "python-worker-machine-answer",
+        "why_recorded_unrouted": "two reasons, and the record itself says the first is unusual: (1) the worker IS reachable, but not through job dispatch - it is served by the Core route POST /api/v1/machine/answers, because a transport route is validated with parameters required to be empty and there is nowhere for the question to travel; (2) its result is an answer plus a loss receipt rather than projected text with canonical anchors, so the text-projection contract does not describe it either.",
+        "reached_by": "POST /api/v1/machine/answers",
+        "routed_by_core_route": true
+      }
+    ],
+    "also_present_but_not_capability_workers": [
+      {"worker": "services/python-workers/web/worker_webpage.py", "note": "declares an ENGINE but is a fetch client that takes a URL and an output directory; the record says no route may reach the network, and it returns no projected text either"},
+      {"worker": "services/python-workers/worker_extract.py", "note": "a dispatcher with no engine identity of its own"}
+    ],
+    "routed_since_this_record": [
+      {"worker": "services/python-workers/media/worker_transcribe.py", "engine": "python-worker-transcribe", "routed_as": "media.transcribe", "note": "routed 2026-10-01; kept as history because the exemption was real until the model resolution and the audio media types existed"},
+      {"worker": "services/python-workers/vision/worker_caption.py", "engine": "python-worker-caption", "routed_as": "image.caption", "note": "routed in round 84"},
+      {"worker": "services/python-workers/web/worker_html.py", "engine": "python-worker-html", "routed_as": "html.structure", "note": "routed in round 83"},
+      {"worker": "services/python-workers/document/worker_office.py", "engine": "python-worker-office", "routed_as": "office.structure", "note": "routed in round 81"},
+      {"worker": "services/python-workers/document/worker_canvas.py", "engine": "python-worker-canvas", "routed_as": "canvas.structure", "note": "routed in round 82"},
+      {"worker": "services/python-workers/document/worker_subtitles.py", "engine": "python-worker-subtitles", "routed_as": "subtitles.structure", "note": "routed in round 82"}
+    ],
+    "checker_re_run_result": "passed=true, failures=[], workers=13, routed=11, exempted=2 (exit 0). Only capabilities are tallied here; the checker does not compare the transport table against attempts::ROUTES, so 'passed' does not mean 'a job can reach every routed capability'."
+  },
+
+  "cross_reference": {
+    "columns": ["attempts::ROUTES (job kind)", "KNOWN_WORKER_IDENTITIES", "transport ROUTES", "WORKER-REACHABILITY.json", "reached by a job?"],
+    "per_capability": [
+      {"capability": "text.extract", "job_kinds": ["text", "text.extract"], "in_known_identities": "python-worker-text-ndjson", "in_transport_routes": true, "in_reachability_record": false, "job_reachable": true},
+      {"capability": "pdf.extract", "job_kinds": ["pdf"], "in_known_identities": "python-worker-pdf-ndjson", "in_transport_routes": true, "in_reachability_record": false, "job_reachable": true},
+      {"capability": "image.ocr", "job_kinds": ["image"], "in_known_identities": "python-worker-ocr-ndjson", "in_transport_routes": true, "in_reachability_record": false, "job_reachable": true},
+      {"capability": "archive.inventory", "job_kinds": ["archive"], "in_known_identities": "python-worker-archive-ndjson", "in_transport_routes": true, "in_reachability_record": false, "job_reachable": true},
+      {"capability": "media.probe", "job_kinds": ["media"], "in_known_identities": "python-worker-media-ndjson", "in_transport_routes": true, "in_reachability_record": false, "job_reachable": true},
+      {"capability": "media.transcribe", "job_kinds": ["transcribe"], "in_known_identities": "python-worker-transcribe-ndjson", "in_transport_routes": true, "in_reachability_record": true, "in_reachability_record_basis": "listed under routed_since_this_record as routed on 2026-10-01, i.e. history rather than a live exemption", "job_reachable": true},
+      {"capability": "office.structure", "job_kinds": ["office"], "in_known_identities": "python-worker-office-ndjson", "in_transport_routes": true, "in_reachability_record": true, "in_reachability_record_basis": "listed under routed_since_this_record, round 81", "job_reachable": true},
+      {"capability": "canvas.structure", "job_kinds": ["canvas"], "in_known_identities": "python-worker-canvas-ndjson", "in_transport_routes": true, "in_reachability_record": true, "in_reachability_record_basis": "listed under routed_since_this_record, round 82", "job_reachable": true},
+      {"capability": "subtitles.structure", "job_kinds": ["subtitles"], "in_known_identities": "python-worker-subtitles-ndjson", "in_transport_routes": true, "in_reachability_record": true, "in_reachability_record_basis": "listed under routed_since_this_record, round 82", "job_reachable": true},
+      {"capability": "html.structure", "job_kinds": ["html"], "in_known_identities": "python-worker-html-ndjson", "in_transport_routes": true, "in_reachability_record": true, "in_reachability_record_basis": "listed under routed_since_this_record, round 83", "job_reachable": true},
+      {"capability": "image.caption", "job_kinds": ["caption"], "in_known_identities": "python-worker-caption-ndjson", "in_transport_routes": true, "in_reachability_record": true, "in_reachability_record_basis": "listed under routed_since_this_record, round 84", "job_reachable": true},
+      {"capability": "machine.answer", "job_kinds": [], "in_known_identities": "python-worker-machine-answer-ndjson", "in_transport_routes": false, "in_reachability_record": true, "in_reachability_record_basis": "unrouted entry with reached_by POST /api/v1/machine/answers and routed_by_core_route true", "job_reachable": false}
+    ],
+    "non_capability_workers_seen_while_reading": [
+      {"worker": "services/python-workers/media/worker_video.py", "engine": "python-worker-video", "in_known_identities": false, "in_transport_routes": false, "note": "not a capability in any of the four audited sources. It has an ENGINE but declares no WORKER_IDENTITY, so the Core's identity gate (executor.rs:650) would refuse it even if a route named it."},
+      {"worker": "services/python-workers/web/worker_webpage.py", "engine": "python-worker-webpage", "in_known_identities": false, "in_transport_routes": false, "note": "a network fetch client, recorded in the reachability record as not a capability worker"},
+      {"worker": "services/python-workers/worker_extract.py", "engine": null, "in_known_identities": false, "in_transport_routes": false, "note": "a dispatcher with no engine identity of its own"},
+      {"worker": "services/python-workers/evaluation/worker_quality.py", "engine": "python-worker-quality", "in_known_identities": false, "in_transport_routes": false, "note": "an evaluation worker, not a capability in any of the four sources"}
+    ]
+  },
+
+  "production_registration_note": {
+    "why_it_matters_here": "A capability in KNOWN_WORKER_IDENTITIES is not automatically registered. Executor::open_routes registers only what the launch declares (plus text.extract), and the capability surface lists exactly the registered routes. So 'registered + healthy' is a statement about one launch, and a name in the identity list is not evidence of registration.",
+    "the_three_declaration_paths": [
+      {"path": "crates/archeaxis-api/src/main.rs:213-238", "role": "the only route-declaring entry point; reads launch.text_worker.routes"},
+      {"path": "scripts/release/stage_backend_runtime.py:49-77 and 293-300", "role": "writes worker-profile.json; ROUTE_SCRIPTS contains exactly 10 capabilities - archive.inventory, canvas.structure, html.structure, image.caption, image.ocr, media.probe, media.transcribe, office.structure, pdf.extract, subtitles.structure - and text.extract is served by the profile's default script. machine.answer is not in that table."},
+      {"path": "apps/ArcheAxis.Desktop/CoreSupervisor.cs:92-93", "role": "the desktop host declares no routes at all; only {python, script, staging}"}
+    ],
+    "consequence": "In a staged-runtime or desktop launch, machine.answer is not a registered capability at all: the capability surface would not list it, and POST /api/v1/machine/answers would answer 503 with the executor's own words, 'no worker is registered for machine.answer' (executor.rs:143). It becomes registered only when a launch declares it, which today only the two test contracts (crates/archeaxis-api/tests/contract_machine_answer.rs:29 and contract_machine_retest.rs:33) and the probe scripts/probes/colearning_real_model_smoke.py:138 do.",
+    "capability_surface_cannot_express_this": "crates/archeaxis-api/src/capabilities.rs never consults attempts::ROUTES. Its health field is computed from std::fs::metadata alone and its registered field is hard-coded true for every row it emits, so a row can read 'declared' and enabled for a capability no job kind can reach. The surface's own declared_only_note says it is not proof a capability works, but it is silent on whether anything can invoke it."
+  },
+
+  "reachable_by_a_job": [
+    {"capability": "text.extract", "job_kinds": ["text", "text.extract"], "worker": "services/python-workers/document/worker_text.py", "identity": "python-worker-text-ndjson"},
+    {"capability": "pdf.extract", "job_kinds": ["pdf"], "worker": "services/python-workers/document/worker_pdf.py", "identity": "python-worker-pdf-ndjson"},
+    {"capability": "image.ocr", "job_kinds": ["image"], "worker": "services/python-workers/vision/worker_ocr.py", "identity": "python-worker-ocr-ndjson"},
+    {"capability": "archive.inventory", "job_kinds": ["archive"], "worker": "services/python-workers/document/worker_archive.py", "identity": "python-worker-archive-ndjson"},
+    {"capability": "media.probe", "job_kinds": ["media"], "worker": "services/python-workers/document/worker_media.py", "identity": "python-worker-media-ndjson"},
+    {"capability": "media.transcribe", "job_kinds": ["transcribe"], "worker": "services/python-workers/media/worker_transcribe.py", "identity": "python-worker-transcribe-ndjson"},
+    {"capability": "office.structure", "job_kinds": ["office"], "worker": "services/python-workers/document/worker_office.py", "identity": "python-worker-office-ndjson"},
+    {"capability": "canvas.structure", "job_kinds": ["canvas"], "worker": "services/python-workers/document/worker_canvas.py", "identity": "python-worker-canvas-ndjson"},
+    {"capability": "subtitles.structure", "job_kinds": ["subtitles"], "worker": "services/python-workers/document/worker_subtitles.py", "identity": "python-worker-subtitles-ndjson"},
+    {"capability": "html.structure", "job_kinds": ["html"], "worker": "services/python-workers/web/worker_html.py", "identity": "python-worker-html-ndjson"},
+    {"capability": "image.caption", "job_kinds": ["caption"], "worker": "services/python-workers/vision/worker_caption.py", "identity": "python-worker-caption-ndjson"}
+  ],
+  "reachable_by_a_job_count": 11,
+  "reachable_by_a_job_note": "Attempts::ROUTES yields 11 distinct capabilities from 12 entries. All 11 also appear as keys in the transport's ROUTES dict, and their media-type sets agree with attempts::ROUTE_MEDIA_TYPES (attempts.rs:85-145). Job reachability is conditional on the launch registering the corresponding route for the ten non-text capabilities: the capability is reachable by a job kind once its route is registered, and attempts::claim refuses a disabled capability inside the claim transaction (attempts.rs:271-276).",
+
+  "registered_but_not_job_reachable": [
+    {
+      "capability": "machine.answer",
+      "how_it_is_reached_instead": "A dedicated Core HTTP route, not a job. POST /api/v1/machine/answers (mounted at crates/archeaxis-api/src/runtime/mod.rs:48, handler machine_answer at :494-568) reads a knowledge item's own body as the context and calls Executor::machine_answer (crates/archeaxis-application/src/executor.rs:133-199), which resolves worker_for('machine.answer') and runs services/python-workers/machine/worker_machine_answer.py as a separate process with --question and --max-tokens and parses JSON from its stdout. The retest route POST /api/v1/machine/retests (runtime/mod.rs:58, handler run_retest at :316) reaches the same worker through the same call.",
+      "evidence": [
+        "crates/archeaxis-application/src/executor.rs:521-539 - KNOWN_WORKER_IDENTITIES contains 'python-worker-machine-answer-ndjson', and the comment at :535-538 states explicitly that being registered here says which identities are recognised at all, and that 'whether a Core job route drives it is a separate question'",
+        "crates/archeaxis-application/src/attempts.rs:35-70 - ROUTES has no entry whose capability is machine.answer; route_for_kind therefore returns None for it (attempts.rs:73-78), and attempts::claim refuses an undeclared kind with JobError::InvalidReceipt('undeclared job kind') at attempts.rs:264-267",
+        "services/python-workers/transport/text_ndjson.py:329-334 - the ROUTES dict carries a comment saying the machine answer worker has no route here on purpose, because a transport route is validated with parameters required to be empty (execute(), line 525-527) so the question has nowhere to travel",
+        "services/python-workers/machine/worker_machine_answer.py:327 - the worker advertises only ['machine.answer'] over the stdio transport",
+        "crates/archeaxis-application/src/executor.rs:111-122 and :347-354 - worker_for returns None unless a route was registered for that capability, and execute_owned then fails with 'no worker registered for capability <cap>'; the error text at :143 for the machine path is 'no worker is registered for machine.answer'",
+        "docs/authority/taskpack-0910-r3/WORKER-REACHABILITY.json:13-20 - the repository's own record lists this worker as unrouted with reached_by POST /api/v1/machine/answers and routed_by_core_route true",
+        "grep for open_routes shows the only production caller is crates/archeaxis-api/src/main.rs:221, driven by the launch declaration; the two contracts that declare machine.answer (crates/archeaxis-api/tests/contract_machine_answer.rs:29, contract_machine_retest.rs:33) and the probe scripts/probes/colearning_real_model_smoke.py:138 are test or probe constructs and are not counted as production registration"
+      ],
+      "is_it_actually_registered_in_a_production_launch": "No, not by default. Registration requires a launch document declaring {capability, script}. The staged runtime's worker-profile.json is generated from scripts/release/stage_backend_runtime.py:49-60, whose ROUTE_SCRIPTS table lists 10 capabilities and omits machine.answer; apps/ArcheAxis.Desktop/CoreSupervisor.cs:92-93 declares no routes at all. So in those launches the capability surface does not list machine.answer, and POST /api/v1/machine/answers answers 503 with 'no worker is registered for machine.answer'. It is registered only in a launch that declares it, which today means the two test contracts and the probe script.",
+      "why_a_job_cannot_reach_it": "Two independent reasons, both recorded in the sources rather than inferred: the job request schema requires an empty parameters object, so a question cannot be carried in a job request; and the worker's output is an answer plus a loss receipt, not projected text with canonical line anchors, so the text-projection finish path in attempts::finish (attempts.rs:384-467) does not describe it."
+    }
+  ],
+  "registered_but_not_job_reachable_count": 1,
+
+  "advertised_but_unreachable": [],
+  "advertised_but_unreachable_is_empty": true,
+  "advertised_but_unreachable_scope": "The two sources this audit was asked to treat as 'advertised': KNOWN_WORKER_IDENTITIES (crates/archeaxis-application/src/executor.rs:521-539) and the transport ROUTES dict (services/python-workers/transport/text_ndjson.py:194-334), read as a set of capability names.",
+  "advertised_but_unreachable_how_ruled_out": {
+    "method": "Enumerated every capability name in both sources and tested each one against both reaching paths: (a) a job kind in attempts::ROUTES mapping to it, and (b) a non-job caller in the Core that resolves a worker for it.",
+    "arithmetic": "KNOWN_WORKER_IDENTITIES names 12 worker processes; 11 correspond one-to-one with the 11 job-reachable capabilities and the 12th is python-worker-machine-answer-ndjson, whose capability is machine.answer. The transport ROUTES dict has 11 keys, all 11 of them job-reachable. The union is 12 capabilities.",
+    "result": "11 are reached by a job; 1 (machine.answer) is reached by POST /api/v1/machine/answers and POST /api/v1/machine/retests, both of which call Executor::machine_answer, which resolves and runs the worker. No capability in the union is reached by nothing, so the list is empty - not because it was not looked for, but because each name resolves to a named caller.",
+    "the_one_caveat_a_reader_must_keep": "machine.answer's reaching path only exists when a launch has registered that route, and no shipped launch does. In a staged-runtime or desktop launch it is therefore not merely un-job-reachable, it is unregistered, and its two HTTP routes answer 503 'no worker is registered for machine.answer'. That is a registration gap, not a 'nothing reaches it' gap: the reaching code path exists and is exercised by the test contracts.",
+    "adjacent_case_that_is_out_of_this_scope_but_relevant": [
+      {"worker": "services/python-workers/media/worker_video.py", "engine": "python-worker-video", "why_adjacent": "It is advertised by the standard the repository's own checker uses (it declares ENGINE and def extract) and it is recorded in WORKER-REACHABILITY.json as unrouted. It is NOT advertised in either of the two sources this audit was scoped to: it appears in neither KNOWN_WORKER_IDENTITIES nor the transport ROUTES dict. It also declares no WORKER_IDENTITY, so the Core's identity gate at executor.rs:650-654 would refuse it with 'unexpected worker identity' even if a route named it. If a reader wants a capability that nothing reaches, this is the closest case in the repository - and the correct statement is that it is unrouted on purpose, for three recorded structural reasons, and additionally outside the Core's identity allow-list."},
+      {"worker": "services/python-workers/web/worker_webpage.py", "engine": "python-worker-webpage", "why_adjacent": "Declares an ENGINE but no WORKER_IDENTITY; the reachability record classifies it as not a capability worker (a network fetch client). Same status: not advertised in the two scoped sources."}
+    ]
+  },
+
+  "how_a_reader_can_tell": [
+    "READ attempts::ROUTES, not the capability surface. That table is the only production gate for job dispatch (attempts::claim, attempts.rs:250-302, refuses an undeclared kind at :264-267). A capability absent from it cannot be reached by any job, whatever /api/v1/capabilities reports.",
+    "DO NOT read health as reachability. crates/archeaxis-api/src/capabilities.rs computes health from std::fs::metadata on two paths (capabilities.rs:34-38 and 68-78) and sets registered: true unconditionally (capabilities.rs:98) for every row it emits. A row exists only for a route the launch declared, so a 'declared' + enabled row means 'this launch declared this route and both files exist' - it says nothing about whether a job kind selects it.",
+    "A NAME IN KNOWN_WORKER_IDENTITIES IS NOT A ROUTE. executor.rs:535-538 says so in the source: the list says which identities are recognised at all; the capability registry answers whether a job route drives it.",
+    "THE TRANSPORT TABLE IS THE THIRD OPINION. services/python-workers/transport/text_ndjson.py:520 rejects a request whose capability is not a key of its ROUTES dict with 'unsupported capability', and serve_stdio (:624-629) additionally requires the worker to have advertised that capability. A capability in attempts::ROUTES but absent from this dict would fail at the worker instead of at the Core; today the two sets are identical.",
+    "THE REPOSITORY'S OWN CHECKER COVERS LESS THAN IT LOOKS LIKE. scripts/check_worker_reachability.py compares worker files against the transport's \"worker\" paths only (check() at :70-106). It exits 0 while never comparing the transport table against attempts::ROUTES, so passed=true is not evidence that a job can reach every routed capability.",
+    "ASK THE LAUNCH, NOT THE CHECKOUT. Whether a route is registered depends on the launch document (launch.rs:30-45), and the only production writers are scripts/release/stage_backend_runtime.py (ROUTE_SCRIPTS, :49-60) and apps/ArcheAxis.Desktop/CoreSupervisor.cs (:92-93, which declares no routes)."
+  ],
+
+  "conclusion": "A job can reach exactly eleven capabilities, and the list is the one attempts::ROUTES declares: text.extract, pdf.extract, image.ocr, archive.inventory, media.probe, media.transcribe, office.structure, canvas.structure, subtitles.structure, html.structure and image.caption. One further capability is registered but no job can reach it: machine.answer, whose worker exists, whose identity python-worker-machine-answer-ndjson is in KNOWN_WORKER_IDENTITIES, and which is absent from attempts::ROUTES on purpose - the transport cannot carry the question it needs, because a job request requires an empty parameters object, and its output is an answer with a loss receipt rather than projected text with canonical anchors. It is reached instead by the Core's own HTTP routes POST /api/v1/machine/answers and POST /api/v1/machine/retests, which call Executor::machine_answer and run the worker as a process. Nothing in either of the two audited sources is reached by nothing at all, so that list is empty: every name resolves to a named caller. The honesty defect a reader should carry away is not that a capability is entirely orphaned, but that the capability surface cannot express the difference: capabilities.rs reports only whether a launch declared a route and whether the worker and interpreter files exist, never whether a job kind can select it, so 'registered and healthy' is compatible with 'no job can run this'. Two caveats keep this honest. First, the registerable set is not the same as the registered set: the ten non-text routes are registered only when a launch declares them, and the staged runtime ships ten of them (stage_backend_runtime.py ROUTE_SCRIPTS) while the desktop host declares none, so machine.answer is not even registered in those launches and its HTTP routes answer 503 'no worker is registered for machine.answer' - the reaching code path exists but no shipped launch wires it. Second, the closest thing in this repository to a capability that nothing reaches is services/python-workers/media/worker_video.py, which is unrouted for three recorded structural reasons and is additionally outside the Core's identity allow-list because it declares no WORKER_IDENTITY; it is not in either of the two sources this audit was scoped to, so it is reported here as an adjacent finding rather than as a hit against the scoped question."
+}

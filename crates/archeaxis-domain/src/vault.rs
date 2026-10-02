@@ -25,6 +25,7 @@
 //! (`^id` on their own line) as *targets they define*, tags, and front-matter fields. A link to a
 //! block is recorded as a link whose fragment is a block id; the definition side is not resolved here.
 
+use rusqlite::{Connection, OptionalExtension};
 use serde_json::json;
 
 /// One relationship a note declares.
@@ -219,6 +220,136 @@ pub fn note_links(markdown: &str) -> serde_json::Value {
             "tags and front-matter fields, which are neither links nor embeds",
         ],
     })
+}
+
+/// One note's links, stored. Returns how many were written.
+///
+/// `resolve` answers "which knowledge item is this target, if any?". Two deliberate choices live in
+/// this signature:
+///
+/// * the resolver is a parameter, so this function makes no assumption about where a vault's notes
+///   live. The Core does not walk a directory, and a resolver supplied here cannot make it start.
+/// * an unresolved target is stored with `target_knowledge_id` NULL rather than dropped. A vault
+///   routinely links to a note that has not been imported, and **the dangling links are the useful
+///   part**: they are how a reader learns the vault is incomplete. Dropping them would make an
+///   incomplete vault look complete.
+///
+/// The write is idempotent per note: the previous rows for that note are replaced, so re-parsing a
+/// note after an edit does not accumulate stale relationships.
+pub fn record_links<F>(
+    conn: &mut Connection,
+    source_knowledge_id: &str,
+    markdown: &str,
+    resolve: F,
+) -> rusqlite::Result<usize>
+where
+    F: Fn(&str) -> Option<String>,
+{
+    let links = links_in(markdown);
+    let tx = conn.transaction_with_behavior(rusqlite::TransactionBehavior::Immediate)?;
+    tx.execute(
+        "DELETE FROM vault_links WHERE source_knowledge_id=?1",
+        [source_knowledge_id],
+    )?;
+    for (ordinal, link) in links.iter().enumerate() {
+        // A self-link is a real thing a note may write ("see the heading above"), and it is kept
+        // rather than filtered: dropping it would report a vault where every note is an island.
+        let target = resolve(&link.target);
+        tx.execute(
+            "INSERT INTO vault_links(source_knowledge_id, target_ref, target_knowledge_id, embed,
+                                     fragment, fragment_is_block, syntax, ordinal)
+             VALUES(?1,?2,?3,?4,?5,?6,?7,?8)",
+            rusqlite::params![
+                source_knowledge_id,
+                link.target,
+                target,
+                if link.embed { 1 } else { 0 },
+                link.fragment,
+                if link.fragment_is_block { 1 } else { 0 },
+                link.syntax,
+                ordinal as i64,
+            ],
+        )?;
+    }
+    tx.commit()?;
+    Ok(links.len())
+}
+
+/// What the store holds for one note: declared links, whether each resolved, and the counts a
+/// reader needs to tell a complete note from an incomplete vault.
+pub fn stored_links(
+    conn: &Connection,
+    source_knowledge_id: &str,
+) -> rusqlite::Result<serde_json::Value> {
+    let mut statement = conn.prepare(
+        "SELECT target_ref, target_knowledge_id, embed, fragment, fragment_is_block, syntax
+         FROM vault_links WHERE source_knowledge_id=?1 ORDER BY ordinal",
+    )?;
+    let rows = statement.query_map([source_knowledge_id], |row| {
+        Ok((
+            row.get::<_, String>(0)?,
+            row.get::<_, Option<String>>(1)?,
+            row.get::<_, i64>(2)?,
+            row.get::<_, Option<String>>(3)?,
+            row.get::<_, i64>(4)?,
+            row.get::<_, String>(5)?,
+        ))
+    })?;
+    let mut links = Vec::new();
+    for row in rows {
+        let (target_ref, target_knowledge_id, embed, fragment, fragment_is_block, syntax) = row?;
+        let resolved = target_knowledge_id.is_some();
+        links.push(json!({
+            "target_ref": target_ref,
+            "target_knowledge_id": target_knowledge_id,
+            // Stated per link rather than once for the note, because one note typically has both.
+            "resolved": resolved,
+            "embed": embed == 1,
+            "fragment": fragment,
+            "fragment_is_block": fragment_is_block == 1,
+            "syntax": syntax,
+            "resolution_note": if resolved {
+                "the target is a note this workspace holds"
+            } else {
+                "the target is not imported here; the link is kept because a dangling link is how a                  reader learns the vault is incomplete"
+            },
+        }));
+    }
+    let dangling = links
+        .iter()
+        .filter(|link| link["resolved"] == false)
+        .count();
+    let embeds = links.iter().filter(|link| link["embed"] == true).count();
+    Ok(json!({
+        "schema": "archeaxis.vault-links-stored/v1",
+        "source_knowledge_id": source_knowledge_id,
+        "count": links.len(),
+        "resolved": links.len() - dangling,
+        "dangling": dangling,
+        "embeds": embeds,
+        "links": links,
+    }))
+}
+
+/// Whether a knowledge item exists, used as the default resolver's first step.
+pub fn knowledge_exists(conn: &Connection, knowledge_id: &str) -> rusqlite::Result<bool> {
+    conn.query_row(
+        "SELECT EXISTS(SELECT 1 FROM knowledge WHERE knowledge_id=?1)",
+        [knowledge_id],
+        |row| row.get(0),
+    )
+}
+
+/// Look up a knowledge item whose body is exactly this note, which is how a vault note imported as
+/// its own source is found again. Returns `None` when the note is not here, which is a fact about the
+/// vault rather than a failure.
+pub fn knowledge_for_note(conn: &Connection, note_body: &str) -> rusqlite::Result<Option<String>> {
+    conn.query_row(
+        "SELECT knowledge_id FROM knowledge WHERE body=?1 LIMIT 1",
+        [note_body],
+        |row| row.get(0),
+    )
+    .optional()
 }
 
 #[cfg(test)]
