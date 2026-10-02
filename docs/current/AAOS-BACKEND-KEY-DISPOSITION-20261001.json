@@ -22,8 +22,8 @@
     "NOT_EXECUTED"
   ],
   "counts": {
-    "NO_EVIDENCE": 21,
-    "REAL": 31,
+    "NO_EVIDENCE": 20,
+    "REAL": 32,
     "SYNTHETIC": 5,
     "INTEGRATED": 1
   },
@@ -31,9 +31,9 @@
     "PLANNED": 9,
     "CI_VERIFIED_EXACT_SHA": 13,
     "IMPLEMENTED_LOCAL": 1,
-    "TESTED_LOCAL": 17,
+    "TESTED_LOCAL": 18,
     "BLOCKED": 11,
-    "NOT_EXECUTED": 7
+    "NOT_EXECUTED": 6
   },
   "keys": [
     {
@@ -760,10 +760,10 @@
       "lane": "BACKEND_FRONTEND_LOOP",
       "maps_to": "",
       "prior_audit_verdict": "HISTORICAL_ASSIGNMENT_RECHECK_INTEGRATION",
-      "status": "NOT_EXECUTED",
-      "evidence_level": "NO_EVIDENCE",
-      "disposition": "NOT_EXECUTED — historical assignment, read-only review not performed this session",
-      "acceptance_reference": ""
+      "status": "TESTED_LOCAL",
+      "evidence_level": "REAL",
+      "disposition": "EXECUTED (read-only) - 7 remote branches audited from Git alone. Every branch name matches the commits it carries. One finding: codex/Audit and codex/aaos-ui-phase2-20261001 are the same commit (1a981a44) and hold identical content, so the UI changes either carries come from that shared history rather than two independent efforts.",
+      "acceptance_reference": "docs/current/AAOS-DP-GIT-01-BRANCH-COMMIT-AUDIT-20261001.json"
     },
     {
       "key": "DP-0925:DP-F01",
