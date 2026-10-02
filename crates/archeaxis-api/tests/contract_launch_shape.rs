@@ -91,6 +91,34 @@ async fn a_worker_less_launch_has_no_runtime_routes_at_all() {
     }
 }
 
+/// The capability registry is not a projection, and the two sides of that are both pinned here.
+///
+/// §6 of the contract says the capability paths depend on the runtime router rather than on a
+/// declared worker, so `projections()` must not carry them while `runtime::router()` must. The
+/// second half is what makes "a broken launch can still be asked what exists" a fact rather than a
+/// sentence.
+#[tokio::test]
+async fn the_capability_registry_belongs_to_the_runtime_router_not_the_projections() {
+    let dir = tempfile::tempdir().unwrap();
+    // One executor: the store takes the workspace's single-writer OS lock, so opening the same
+    // database twice would fail rather than being a second view of it.
+    let executor = executor(dir.path()).await;
+
+    let projections = archeaxis_api::projections(executor.store().clone(), false);
+    assert_eq!(
+        status(&projections, "GET", "/api/v1/capabilities").await,
+        404,
+        "the capability registry is not a projection and must not appear in the projection router"
+    );
+
+    let runtime = archeaxis_api::runtime::router(executor);
+    assert_eq!(
+        status(&runtime, "GET", "/api/v1/capabilities").await,
+        200,
+        "the runtime router serves the capability registry even with no extra worker declared"
+    );
+}
+
 #[tokio::test]
 async fn a_worker_less_launch_still_serves_the_projection_routes() {
     let dir = tempfile::tempdir().unwrap();

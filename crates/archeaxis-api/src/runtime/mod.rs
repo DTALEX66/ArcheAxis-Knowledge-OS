@@ -34,12 +34,26 @@ pub fn router(executor: Executor) -> Router {
             post(cancel),
         )
         .route("/api/v1/jobs/:job_id/outputs/:kind", get(output))
+        // R7/G1 capability surface. It lives here rather than with the projections because it reads
+        // the executor's registered routes, and the executor is this router's state.
+        .route("/api/v1/capabilities", get(capabilities))
+        .route("/api/v1/capabilities/:capability", get(capability))
         .with_state(Runtime {
             executor,
             active: Arc::new(Mutex::new(HashMap::new())),
             admission: Arc::new(Mutex::new(())),
         })
         .merge(projections)
+}
+
+/// The registered capabilities. Deliberately does not touch the store: "which capabilities exist"
+/// is the question a workspace whose database will not open still has to be able to answer.
+async fn capabilities(State(runtime): State<Runtime>) -> Response {
+    crate::capabilities::list(&runtime.executor)
+}
+
+async fn capability(State(runtime): State<Runtime>, Path(name): Path<String>) -> Response {
+    crate::capabilities::read(&runtime.executor, &name)
 }
 fn error(status: u16, code: &str, message: &str) -> Response {
     (

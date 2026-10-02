@@ -100,6 +100,27 @@ impl Executor {
         &self.store
     }
 
+    /// The interpreter the routes were opened with. A capability record reports whether the
+    /// runtime it would need is present, which needs this path.
+    pub fn python_path(&self) -> &Path {
+        &self.python
+    }
+
+    /// The capabilities this executor will actually serve, in registration order.
+    ///
+    /// R7/G1: a registry has to describe what the Core registered rather than what a checkout
+    /// happens to contain, and the launch is what declares routes. This exposes that set read-only
+    /// so a capability surface can report it without a second source of truth. The boolean is
+    /// whether the route may import the interpreter's installed packages.
+    pub fn registered_routes(&self) -> Vec<(&str, &Path, bool)> {
+        self.routes
+            .iter()
+            .map(|(capability, worker, site_packages)| {
+                (capability.as_str(), worker.as_path(), *site_packages)
+            })
+            .collect()
+    }
+
     pub async fn execute(
         &self,
         job_id: &str,

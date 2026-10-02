@@ -177,7 +177,7 @@ against what it launched; a mismatch means it is talking to a different Core.
 `runtime` and `contract` are hard-coded string literals, not derived from the crate
 version. Do not use them to infer a build.
 
-## 3. Route inventory (30 pairs in a `text_worker` launch)
+## 3. Route inventory (32 pairs in a `text_worker` launch)
 
 `PROD` = reachable in a production launch. `PROD` marks the routes the UI may rely on.
 All paths are relative to the loopback base URL.
@@ -188,6 +188,23 @@ All paths are relative to the loopback base URL.
 | --- | --- | --- | --- |
 | 1 | `GET /api/v1/system/version` | any token | Session/identity readback. See §2. |
 | 26 | `GET /api/v1/workspaces/info` | any token | Workspace projection. |
+
+### Capability registry (R7/G1)
+
+| # | Method + path | Auth | Notes |
+| --- | --- | --- | --- |
+| R5 | `GET /api/v1/capabilities` | any token | The routes the Core actually registered, one record each: `capability`, `provider` (kind, worker path, whether the worker and interpreter files exist, whether the route may import site packages), `enabled`, `health`, `is_default`, `fallback`. **Left with the executor rather than the projections because it reads the registered routes**, and it reads no database, so it answers even when the store will not open. |
+| R6 | `GET /api/v1/capabilities/{capability}` | any token | One capability by its **exact** dot-separated name. A near miss is `404` with a plain-text body rather than the nearest match, because a registry that guesses is worse than one that says it does not know. |
+
+Three limits are part of the contract, not caveats on it:
+
+* `health` is `declared`, `worker_missing` or `interpreter_missing` — **file existence only**. A
+  passing entry is not evidence a capability works; only a job is. The body says so in
+  `health_basis` and `declared_only`.
+* `enabled` is `true` for every registered route and `enabled_basis` states that this is the
+  launch's registration state, because **enable/disable is not implemented yet**. A UI must not
+  render the field as a setting.
+* `fallback` is `null` with a stated reason, because **no capability has a second provider yet**.
 
 ### Source intake and conversion
 
@@ -429,16 +446,26 @@ Before the fix this endpoint answered `500` with a raw FTS5 parser message for
 
 | Launch | Routes served | Consequence for the UI |
 | --- | --- | --- |
-| **no** `text_worker` | 26 projection addresses (25 mounted routes, one of which carries GET and POST, plus the conditional legacy `/jobs/{id}/receipts`) | `/jobs/{id}`, `/executions`, `/outputs`, `/cancel` are **absent** (`404`). |
-| **with** `text_worker` | 30 addresses (the 26 projection addresses + the 4 runtime routes) | All routes above are served. |
+| **no** `text_worker` | 26 projection addresses (25 mounted routes, one of which carries GET and POST, plus the conditional legacy `/jobs/{id}/receipts`) | `/jobs/{id}`, `/executions`, `/outputs`, `/cancel`, `/capabilities` are **absent** (`404`). |
+| **with** `text_worker` | 32 addresses (the 26 projection addresses + the 6 runtime routes) | All routes above are served. |
+
+The runtime builder carries six routes: the four job-execution ones plus the two capability
+registry reads added by R7/G1. They are mounted there rather than with the projections because
+the capability surface reads the executor's registered routes, and the executor is the runtime
+router's state while the projection builder holds only the store.
 
 Both shapes were started from the real binary and asked over HTTP, and the result is asserted by
 `crates/archeaxis-api/tests/contract_launch_shape.rs`. **How to tell "absent" from "no such
 object":** ask the path with the *wrong* method. A mounted path answers `405 Method Not Allowed`;
-an absent one answers `404`. Every one of the four runtime paths answers `405` with a worker and
+an absent one answers `404`. The four **job-execution** runtime paths answer `405` with a worker and
 `404` without one, while all projection paths answer `200` in both shapes. This matters because
 with a worker the *correct*-method answer for an unknown job is also `404`, so a UI cannot
 conclude from a `404` alone that the runtime routes are missing.
+
+The two **capability registry** paths behave differently and the difference is deliberate: they
+depend on the runtime router, not on a worker, so they answer `200` in both launch shapes. A
+workspace that has declared no worker can still be asked which capabilities exist — that is the
+question a broken launch most needs answered.
 
 `POST /api/v1/jobs/{job_id}/receipts` is **not** in the production surface. It is mounted
 only when the in-process router is built with `manual_receipts=true`, which the shipped

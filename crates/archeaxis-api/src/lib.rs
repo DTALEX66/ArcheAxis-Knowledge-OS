@@ -5,6 +5,7 @@
 //! no full job orchestration). The standalone process wraps these internal
 //! projections with launch authentication; `app` alone is for in-process use.
 
+pub mod capabilities;
 pub mod launch;
 pub mod runtime;
 

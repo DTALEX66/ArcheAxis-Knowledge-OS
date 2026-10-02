@@ -114,6 +114,9 @@ def test_the_conditional_exceptions_are_still_conditional():
 
 
 def test_the_inventory_is_the_size_the_contract_claims():
-    """§3 says 30 pairs in a text_worker launch; that number must match the table."""
-    assert len(documented_routes()) == 30, (
+    """§3 says 32 pairs in a text_worker launch; that number must match the table."""
+    # The inventory grew from 30 to 32 when R7/G1 added `GET /capabilities` and
+    # `GET /capabilities/{capability}` to the runtime builder. The heading and this expectation are
+    # updated together, which is the point of the check.
+    assert len(documented_routes()) == 32, (
         "the inventory size changed; update §3's heading and this expectation together")
