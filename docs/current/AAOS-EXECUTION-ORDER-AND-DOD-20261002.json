@@ -76,9 +76,19 @@
         },
         {
           "item": "G1 plugin kernel",
-          "dod": "a capability can be registered, resolved, disabled, health-checked and failed over without editing the Core, and no provider writes the database",
+          "dod": "a capability can be listed, resolved by exact name, health-checked, disabled and re-enabled over HTTP without editing the Core, and a disabled capability is refused at claim time",
           "depends_on": "A02 for a stable root, though a declarative root can start",
-          "status": "READY"
+          "status": "DONE",
+          "delivered_in": [
+            "5ab692da (the registry surface)",
+            "d3c8e539 (enable/disable as a barrier)",
+            "cf83fcfd (default and fallback, preferring a usable provider)"
+          ],
+          "remaining": [
+            "provider rollback",
+            "a second provider anywhere in production",
+            "per-capability permission"
+          ]
         },
         {
           "item": "G2 universal knowledge",

@@ -21,11 +21,9 @@
     "the receipt names the engine and engine_version that produced a result"
   ],
   "not_yet_implemented": [
-    "a registry that persists capability records",
-    "enable / disable without editing the Core",
-    "a health endpoint per capability",
-    "default and fallback selection between providers of one capability",
-    "provider rollback"
+    "provider rollback, beyond naming the fallback candidate",
+    "a second provider for any capability in a production launch, which is why fallback reads null there even though the field and its behaviour are tested",
+    "permission or scope per capability; the launch token model remains the only gate"
   ],
   "provider_catalogue_measured_on_this_host": {
     "note": "the model runtime is installed and serving; this records what a registry would have to describe, not a claim that the registry exists",
@@ -40,5 +38,26 @@
     "vision_caption": "wired through a capability route and measured producing a real caption",
     "h3_video": "the ComfyUI runtime resolves all three H3 component classes; no route exists"
   },
-  "invariant": "a capability provider never writes the canonical database; it answers a bounded request and the Core validates and commits the result"
+  "invariant": "a capability provider never writes the canonical database; it answers a bounded request and the Core validates and commits the result",
+  "implemented_over_http": {
+    "GET /api/v1/capabilities": "the routes the Core registered, each with provider, health, enabled, is_default and fallback",
+    "GET /api/v1/capabilities/{capability}": "one capability by exact dot-separated name; a near miss is 404 rather than the nearest match",
+    "PUT /api/v1/capabilities/{capability}/enabled": "enable/disable, persisted in capability_settings and answered from the re-read record rather than echoed back"
+  },
+  "enforcement_note": "Disable is a real barrier, not a report: `attempts::claim` reads the record inside the claim transaction, so a disabled capability creates no attempt row, no staging copy and no partial output, and the execute path answers 409 AAK-CAP-001 before the worker starts. A check placed after the worker started would make 'disabled' mean 'ran and was then discarded'.",
+  "schema_note": "capability_settings arrived with schema version 7 and is in the archive export table set, so a backup/restore round trip keeps it rather than silently dropping which capabilities an operator turned off.",
+  "recorded_over": [
+    {
+      "commit": "5ab692da",
+      "delivered": "the registry surface and its limits"
+    },
+    {
+      "commit": "d3c8e539",
+      "delivered": "enable/disable persisted, refused at claim time"
+    },
+    {
+      "commit": "cf83fcfd",
+      "delivered": "default and fallback reporting, preferring a usable provider"
+    }
+  ]
 }
