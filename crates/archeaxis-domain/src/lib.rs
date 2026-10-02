@@ -12,5 +12,6 @@ pub mod learning;
 pub mod machine;
 pub mod search;
 pub mod source;
+pub mod vault;
 
 pub use source::ImportOutcome;

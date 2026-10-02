@@ -56,6 +56,9 @@ pub fn router(executor: Executor) -> Router {
         // G4: run the task again and record it against the one it retests, which is what closes the
         // loop rather than leaving the correction as an unreferenced note.
         .route("/api/v1/machine/retests", post(run_retest))
+        // G2: the vault link graph of one note. It takes the note's text rather than a path, because
+        // the Core does not walk a directory and this must not be the place that starts to.
+        .route("/api/v1/vault/links", post(vault_links))
         .with_state(Runtime {
             executor,
             active: Arc::new(Mutex::new(HashMap::new())),
@@ -237,6 +240,64 @@ async fn record_correction(
         // The outer error is the store's own, and a `rusqlite::Error` is not itself a response body.
         Err(e) => (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()).into_response(),
     }
+}
+
+/// G2: the Obsidian-style link graph of one note, as a projection.
+///
+/// `crates/archeaxis-archive/tests/obsidian_vault_roundtrip.rs` states that importing a vault writes
+/// no anchors and that no table stores a link or embed relationship. This route reports what a note
+/// declares; **persisting it is not done here**, and the response says so rather than leaving a
+/// reader to assume the graph is now stored.
+///
+/// Text in, structure out: it reads no file, which is what keeps it inside the Core's stated
+/// ingestion boundary.
+async fn vault_links(State(runtime): State<Runtime>, Json(body): Json<VaultLinksBody>) -> Response {
+    // Cloned because the id is used by the read closure and named again in the response.
+    let requested = body.knowledge_id.clone();
+    let markdown = match (body.markdown, requested.clone()) {
+        (Some(text), _) => text,
+        (None, Some(knowledge_id)) => {
+            let wanted = knowledge_id.clone();
+            let read = runtime
+                .executor
+                .store()
+                .submit_wait(move |conn: &mut rusqlite::Connection| {
+                    conn.query_row(
+                        "SELECT body FROM knowledge WHERE knowledge_id=?1",
+                        [&wanted],
+                        |row| row.get::<_, String>(0),
+                    )
+                    .optional()
+                })
+                .await;
+            match read {
+                Ok(Ok(Some(text))) => text,
+                Ok(Ok(None)) => {
+                    return (
+                        StatusCode::NOT_FOUND,
+                        format!("no knowledge item {knowledge_id}"),
+                    )
+                        .into_response();
+                }
+                Ok(Err(e)) => {
+                    return (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()).into_response();
+                }
+                Err(e) => {
+                    return (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()).into_response();
+                }
+            }
+        }
+        (None, None) => {
+            return (
+                StatusCode::UNPROCESSABLE_ENTITY,
+                "either markdown or knowledge_id is required; an empty graph answers nothing",
+            )
+                .into_response();
+        }
+    };
+    let mut document = archeaxis_domain::vault::note_links(&markdown);
+    document["knowledge_id"] = serde_json::json!(requested);
+    Json(document).into_response()
 }
 
 /// G4: ask the same question again and record the answer as a retest of the earlier task.
@@ -587,6 +648,20 @@ struct CorrectionBody {
     /// Who found it. Review is a human act, so the default is the human principal.
     #[serde(default)]
     reviewer: Option<String>,
+}
+
+/// The body of a vault link parse.
+///
+/// Either `markdown` or `knowledge_id` is required, and giving neither is refused rather than
+/// answered with an empty graph. The Core does not read a directory: a vault is walked outside it and
+/// each note's text is handed over, which is why this takes text rather than a path.
+#[derive(Deserialize)]
+#[serde(deny_unknown_fields)]
+struct VaultLinksBody {
+    #[serde(default)]
+    markdown: Option<String>,
+    #[serde(default)]
+    knowledge_id: Option<String>,
 }
 
 /// The body of a retest: run the machine task again and record it against the one it retests.
