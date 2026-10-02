@@ -204,11 +204,36 @@ def assemble(
             shutil.copy2(_native_path(source), _native_path(target))
             copied_files.append(target)
         profile = root / "worker-profile.json"
+        # The capability routes the candidate actually carries, each named relative to the candidate
+        # root. This used to be a fixed four-field profile with no `routes`, which meant a launched
+        # Core registered only its built-in `text.extract`: PDF, OCR, Office, media, canvas and the
+        # co-learning machine answer were all unreachable from the shipped product, and nothing
+        # failed. The list is derived from the workers that were really copied, so the profile
+        # declares what is present rather than what someone remembered to write down.
+        route_workers = {
+            "archive.inventory": "workers/document/worker_archive.py",
+            "canvas.structure": "workers/document/worker_canvas.py",
+            "html.structure": "workers/web/worker_html.py",
+            "image.caption": "workers/vision/worker_caption.py",
+            "image.ocr": "workers/vision/worker_ocr.py",
+            "machine.answer": "workers/machine/worker_machine_answer.py",
+            "media.probe": "workers/document/worker_media.py",
+            "media.transcribe": "workers/media/worker_transcribe.py",
+            "office.structure": "workers/document/worker_office.py",
+            "pdf.extract": "workers/document/worker_pdf.py",
+            "subtitles.structure": "workers/document/worker_subtitles.py",
+        }
+        routes = [
+            {"capability": capability, "script": relative}
+            for capability, relative in sorted(route_workers.items())
+            if _native_path(root / relative).is_file()
+        ]
         profile.write_text(json.dumps({
             "schema": "archeaxis.worker-profile/v1",
             "python": "runtime/python.exe",
             "script": "workers/transport/text_ndjson.py",
             "staging": "data/worker-staging",
+            "routes": routes,
         }, ensure_ascii=False, indent=2) + "\n", encoding="utf-8", newline="\n")
         copied_files.append(profile)
     donor = project_root / "shared" / "learning_scheduler.py"
