@@ -1,0 +1,79 @@
+{
+  "document": "AAOS_UI_IA_FREEZE_V1",
+  "requested_as": "UI_IA_FREEZE (section 42 startup list; section 33 item 9)",
+  "recorded_at": "2026-10-02T07:52:28.753552+00:00",
+  "source": "section 14 of the archived master taskpack",
+  "tech_stack_unchanged": "C#/Avalonia Desktop + Rust authoritative Core + isolated Python workers; existing pages and visual assets are not rebuilt",
+  "frozen_top_level_domains": [
+    "Home",
+    "Knowledge",
+    "Learning",
+    "AI Learning",
+    "Blueprint / Explore",
+    "System"
+  ],
+  "domain_contents": {
+    "Knowledge": [
+      "Capture",
+      "Sources / Library",
+      "Knowledge",
+      "Evidence",
+      "Search",
+      "Workspace"
+    ],
+    "Learning": [
+      "Plan",
+      "Course / Learning Artifact",
+      "Assessment",
+      "Review / FSRS",
+      "Mastery",
+      "Memory Map"
+    ],
+    "AI Learning": [
+      "Machine Tasks",
+      "Controlled Use",
+      "Evaluation",
+      "Corrections",
+      "Retest",
+      "Memory / Rule / Skill Candidates"
+    ],
+    "Blueprint / Explore": [
+      "Research",
+      "Graph",
+      "Visual Learning",
+      "Simulation",
+      "Spatial Memory",
+      "3D / VR / AR",
+      "Future Capabilities"
+    ],
+    "System": [
+      "Plugins",
+      "Adapters",
+      "Providers",
+      "Models",
+      "Capability Health",
+      "Jobs / Receipts",
+      "Backup / Restore",
+      "Settings"
+    ]
+  },
+  "detail_pages_are_objects_not_nav_items": [
+    "Reader",
+    "Knowledge Detail",
+    "Evidence Detail",
+    "Assessment Detail",
+    "Task Detail"
+  ],
+  "shell": "left navigation + top bar + main workspace + Inspector + Activity Dock",
+  "inspector_responsibility": [
+    "Source",
+    "Evidence",
+    "Version",
+    "Relation",
+    "History",
+    "Status"
+  ],
+  "plugin_mechanism_is_hidden_behind_capability": "when a user drops in a PDF the Capability Resolver picks the provider; the user is not asked to understand plugins first",
+  "unimplemented_entries_must_say_so": "section 42 item 12: a function with no Core behind it shows as pending or not connected, and faking it is forbidden",
+  "correction_of_the_earlier_record": "an earlier note on this branch recorded the frozen navigation as Home / Library / Search / Evidence / Learn / AI / Plugins / Settings. That was wrong: the master taskpack froze six domains, and Library, Search and Evidence are inside Knowledge rather than beside it."
+}

@@ -1,0 +1,135 @@
+{
+  "document": "AAOS_EXECUTION_ORDER_AND_DOD_20261002",
+  "requested_as": "执行顺序与每项 DoD (section 42, last first-round item)",
+  "recorded_at": "2026-10-02T07:52:41.359570+00:00",
+  "one_route": "G0 -> G1 -> G2 -> G3 -> G4 -> G5. Section 16 and section 42 both forbid a second parallel route, and R7 is a label rather than a supersession of R6/M0.",
+  "rounds": [
+    {
+      "round": "first",
+      "instruction": "section 42: output and land records only; do not start large-scale code changes",
+      "items": [
+        {
+          "item": "CURRENT_AUTHORITY_SNAPSHOT",
+          "file": "AAOS-CURRENT-AUTHORITY-SNAPSHOT-20261002.json",
+          "dod": "R6/M0 named as the live authority, R7 marked a label, release FROZEN, and the four authority layers recorded as the plan defines them",
+          "status": "DONE"
+        },
+        {
+          "item": "HISTORY_COVERAGE_LEDGER",
+          "file": "AAOS-HISTORY-COVERAGE-LEDGER-20261002.json",
+          "dod": "every archived capability, requirement and history-mapping row lands in the section 34 vocabulary; MISSING is absent",
+          "status": "DONE"
+        },
+        {
+          "item": "BRANCH_CONVERGENCE_LEDGER",
+          "file": "AAOS-BRANCH-CONVERGENCE-LEDGER-20261002.json",
+          "dod": "all fourteen section 18 fields recorded per branch, unique content measured against each branch's own PR base, and the ordering hazard stated",
+          "status": "DONE"
+        },
+        {
+          "item": "LOCAL_CLOUD_RECONCILIATION",
+          "file": "AAOS-LOCAL-CLOUD-RECONCILIATION-20261002.json",
+          "dod": "git status, worktrees, stashes and local-only commits recorded, unknown state preserved, and none of the five prohibited git actions used",
+          "status": "DONE"
+        },
+        {
+          "item": "CORE_PLUGIN_BOUNDARY",
+          "file": "AAOS-CORE-PLUGIN-BOUNDARY-V1-20261002.json",
+          "dod": "the never-plugin list and the prefer-plugin list are both explicit, and the invariant that a provider never writes the canonical database is stated",
+          "status": "DONE"
+        },
+        {
+          "item": "CAPABILITY_REGISTRY_V1 (section 33 item 6)",
+          "file": "AAOS-CAPABILITY-REGISTRY-V1-20261002.json",
+          "dod": "the record shape a registry must carry is defined and the gap between it and the Core today is listed",
+          "status": "DONE"
+        },
+        {
+          "item": "FAST_CLOSURE_GOLDEN_PATH",
+          "file": "AAOS-FAST-CLOSURE-GOLDEN-PATH-V1-20261002.json",
+          "dod": "the chain is the Owner's own wording from section 15 and the measured position on it is stated without rounding up",
+          "status": "DONE"
+        },
+        {
+          "item": "UI_IA_FREEZE",
+          "file": "AAOS-UI-IA-FREEZE-V1-20261002.json",
+          "dod": "the six frozen domains, their contents, the object-detail rule and the no-faking rule are all recorded",
+          "status": "DONE"
+        },
+        {
+          "item": "OPEN_BLOCKERS_AND_OWNER_GATES",
+          "file": "AAOS-OPEN-BLOCKERS-AND-OWNER-GATES-20261002.json",
+          "dod": "each blocker marked as an Owner decision or as executor wiring, so the next actor is never ambiguous",
+          "status": "DONE"
+        }
+      ]
+    },
+    {
+      "round": "next",
+      "instruction": "section 42: only after the audit above may code execution begin",
+      "items": [
+        {
+          "item": "G0 close - branch convergence",
+          "dod": "PR #156 merged to main, then #157 and #158 converged to codex/Audit, each with exact-SHA CI green, or an explicit Owner decision to defer",
+          "depends_on": "the Owner's merge; the executor may not merge",
+          "status": "WAITING_ON_OWNER"
+        },
+        {
+          "item": "G1 plugin kernel",
+          "dod": "a capability can be registered, resolved, disabled, health-checked and failed over without editing the Core, and no provider writes the database",
+          "depends_on": "A02 for a stable root, though a declarative root can start",
+          "status": "READY"
+        },
+        {
+          "item": "G2 universal knowledge",
+          "dod": "each first-batch format reaches an Evidence anchor and a Knowledge object from a real file, one external knowledge-software source imports, and Ask answers with a citation",
+          "depends_on": "nothing blocking",
+          "status": "READY"
+        },
+        {
+          "item": "G3 human learning lite",
+          "dod": "a person completes item -> assessment -> FSRS -> review in the product and a restart reads the same state back",
+          "depends_on": "a human at the UI; the backend routes already exist",
+          "status": "READY"
+        },
+        {
+          "item": "G4 machine co-learning lite",
+          "dod": "one real model runs on accepted knowledge, a human marks a real error, the correction is reviewed, a retest runs, and nothing is auto-promoted",
+          "depends_on": "nothing measurable; the runtime is installed and serving",
+          "status": "READY"
+        },
+        {
+          "item": "G5 product / local Green",
+          "dod": "the golden path completes by a real person on a real file, then backup, restore, migration, candidate install, restart readback and rollback, with Independent Audit and the Owner Gate before any replacement",
+          "depends_on": "G4 plus A15, A16 and P6",
+          "status": "BLOCKED_BY_G4_AND_OWNER"
+        }
+      ]
+    }
+  ],
+  "definition_of_done_applies_to_every_claim": [
+    "an exact SHA",
+    "the test or runtime environment",
+    "the input level, real or synthetic",
+    "a log or receipt",
+    "restart/readback where state is involved",
+    "the remaining gap stated rather than omitted"
+  ],
+  "never_pass": [
+    "skipped",
+    "cancelled",
+    "unknown",
+    "blocked"
+  ],
+  "cross_reference": {
+    "taskpack_gates": [
+      "G0",
+      "G1",
+      "G2",
+      "G3",
+      "G4",
+      "G5"
+    ],
+    "acceptance_ladder": "AAOS-R7-ACCEPTANCE-MATRIX-20261002.json"
+  }
+}

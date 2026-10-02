@@ -1,0 +1,63 @@
+{
+  "document": "AAOS_CURRENT_AUTHORITY_SNAPSHOT_20261002",
+  "requested_as": "CURRENT_AUTHORITY_SNAPSHOT (section 42 startup list; section 33 item 1)",
+  "recorded_at": "2026-10-02T07:52:28.753552+00:00",
+  "authority_layers_as_the_plan_defines_them": {
+    "L1_product_constitution": [
+      "Product Identity",
+      "System Master Blueprint",
+      "Capability Atlas",
+      "Requirement Trace"
+    ],
+    "L2_capability_research_donor_pool": [
+      "97-source",
+      "369 pool",
+      "47 supply chain",
+      "11 absorption",
+      "Imported Designs",
+      "UI/VI",
+      "scientific-intelligence donors"
+    ],
+    "L3_active_execution": [
+      "R6 immutable TaskPack",
+      "R6 State/Execution",
+      "M0 overlay",
+      "October current ledgers",
+      "the Owner's latest decisions"
+    ],
+    "L4_evidence": [
+      "Git exact SHA",
+      "PR",
+      "CI",
+      "runtime",
+      "real input",
+      "receipt",
+      "native Desktop",
+      "restart/readback",
+      "Green",
+      "backup/restore",
+      "Owner Gate"
+    ],
+    "only_L4_proves_completion": true
+  },
+  "repository": {
+    "identity": "DTALEX66/ArcheAxis-Knowledge-OS",
+    "main": "59498723a8d4e94c6314e490473ba6d60847c247",
+    "codex_Audit": "1a981a4482b01f31989074e79c82a63400aa07a7",
+    "note": "codex/Audit is 18 commits ahead of main and 0 behind, so it is the newer line"
+  },
+  "active_execution_authority": {
+    "R6_plan_id": "AAK-LOCAL-GREEN-ABSORB-FIRST-20260919-R6",
+    "R6_package": "docs/authority/taskpack-0919-r6/ (immutable)",
+    "R6_live_state": "docs/current/R6-STATE.json, docs/current/R6-EXECUTION.md",
+    "M0_overlay": "M0-SHORTEST-COMPLETE-LOOP (ledger SUP-020)",
+    "R7_status": "an execution label only. Section 16 of the taskpack states that R7 is a label until the Owner writes a supersession into Authority, that it must not silently overwrite R6/M0, and that R6/M0 completed or partial capability is inherited directly."
+  },
+  "frozen_by_this_plan": {
+    "product_identity": "local-first evidence-driven trusted-knowledge Human-AI co-learning personal knowledge and learning OS",
+    "architecture": "C#/Avalonia Desktop + Rust authoritative Core + SQLite canonical store + isolated Python workers",
+    "canonical_writer": "the Rust Core only; no UI or worker direct SQL, no dual-write",
+    "release": "FROZEN until G0-G5, Independent Audit and the Owner Gate complete"
+  },
+  "what_this_snapshot_does_not_do": "It does not supersede R6 or M0, and it does not promote R7 to Authority. Writing a supersession is an Owner act."
+}

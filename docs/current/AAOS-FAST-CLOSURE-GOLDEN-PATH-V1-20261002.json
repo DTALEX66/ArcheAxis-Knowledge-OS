@@ -1,0 +1,53 @@
+{
+  "document": "AAOS_FAST_CLOSURE_GOLDEN_PATH_V1",
+  "requested_as": "FAST_CLOSURE_GOLDEN_PATH (section 42 startup list; section 33 item 8)",
+  "recorded_at": "2026-10-02T07:52:28.753552+00:00",
+  "source": "section 15 of the archived master taskpack; the chain below is the Owner's wording",
+  "gate_rule": "section 15: until this chain passes, large-scale horizontal expansion is not allowed.",
+  "chain": [
+    "user imports a real PDF / Markdown / Image",
+    "original and hash preserved",
+    "real Parser / OCR",
+    "Source",
+    "Transform",
+    "Anchor",
+    "Knowledge Version",
+    "Evidence",
+    "FTS search",
+    "Reader / Ask with citation",
+    "generate a Human Learning Item",
+    "user Assessment",
+    "FSRS / learning event",
+    "real Machine Task",
+    "model output",
+    "user identifies an error",
+    "Correction Candidate",
+    "Human Review",
+    "Retest",
+    "Memory / Rule / Skill candidate (optional)",
+    "save",
+    "close AAOS",
+    "restart",
+    "Source / Evidence / Learning / Correction / Result all read back"
+  ],
+  "stage_count": 24,
+  "measured_position_today": {
+    "real": [
+      "import and original preservation",
+      "PDF / OCR / image caption / ASR workers",
+      "Source to Knowledge with anchors",
+      "FTS search",
+      "learning items and assessment",
+      "FSRS scheduling when the interpreter can schedule",
+      "restart readback (M0 chain, 27 of 27 stages)"
+    ],
+    "not_yet_real": [
+      "Reader / Ask with citation over the knowledge store",
+      "a real Machine Task driving a model",
+      "user error identification bound to a correction",
+      "correction-bound retest",
+      "Memory / Rule / Skill candidate generation"
+    ]
+  },
+  "honest_note": "The chain is not complete. The first half is measured working on real files; the machine-learning half is wiring that does not exist yet, which is why G4 is the gate that blocks G5."
+}

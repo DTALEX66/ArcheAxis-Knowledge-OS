@@ -1,0 +1,80 @@
+{
+  "document": "AAOS_OPEN_BLOCKERS_AND_OWNER_GATES_20261002",
+  "requested_as": "OPEN_BLOCKERS_AND_OWNER_GATES (section 42 startup list)",
+  "recorded_at": "2026-10-02T07:52:28.753552+00:00",
+  "owner_gates_section_31_and_the_key_disposition": [
+    {
+      "id": "A16",
+      "gate": "Owner Gate for Green replacement",
+      "blocks": "G5 final replace; release stays FROZEN until this is granted"
+    },
+    {
+      "id": "A15",
+      "gate": "Independent Audit sign-off",
+      "blocks": "any claim above TESTED_LOCAL; the executor may not self-sign"
+    },
+    {
+      "id": "P6",
+      "gate": "Local Green qualification and in-place replacement",
+      "blocks": "the last step of G5"
+    },
+    {
+      "id": "A02",
+      "gate": "resource-root schema semantics",
+      "blocks": "a stable plugin/capability root for G1"
+    },
+    {
+      "id": "MIGRATION",
+      "gate": "authorise applying the verified repair to the Owner's original database",
+      "blocks": "Legacy migration; an isolated copy already proved it succeeds"
+    },
+    {
+      "id": "RELEASE",
+      "gate": "lift the release freeze and authorise publication",
+      "blocks": "RELEASED on the acceptance ladder"
+    },
+    {
+      "id": "DP-F01",
+      "gate": "typed loss receipt semantics",
+      "blocks": "a richer receipt shape; a UI must not invent fallback=true"
+    },
+    {
+      "id": "DP-A11",
+      "gate": "Research contract DTO freeze",
+      "blocks": "any research route; the read-only gap analysis is complete"
+    },
+    {
+      "id": "WORKERS_PACKAGING",
+      "gate": "should services/python-workers enter the wheel",
+      "blocks": "a wheel-only full loop"
+    },
+    {
+      "id": "H3_CONSUMPTION",
+      "gate": "does AAOS consume the ComfyUI/H3 video stack",
+      "blocks": "a video-generation route"
+    }
+  ],
+  "blockers_that_are_not_owner_decisions": [
+    {
+      "blocker": "G4 has no capability route that runs a real model task",
+      "kind": "wiring",
+      "who": "executor"
+    },
+    {
+      "blocker": "G3 has no real human operating the loop from the UI",
+      "kind": "needs a person at the product",
+      "who": "the Owner or a user"
+    },
+    {
+      "blocker": "G2 lacks knowledge-software adapters and cited ask/read",
+      "kind": "wiring",
+      "who": "executor"
+    },
+    {
+      "blocker": "G1 lacks the registry, resolver, health and fallback",
+      "kind": "wiring, with A02 as its only dependency",
+      "who": "executor"
+    }
+  ],
+  "forbidden_markers": "section 42 item 15: skipped, cancelled, unknown and blocked may never be written as PASS"
+}
