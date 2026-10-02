@@ -300,3 +300,51 @@ def test_the_ui_prompt_that_assigns_this_work_is_archived():
         text = handle.read(target).decode("utf-8")
     for anchor in ("correction/retest", "plugin", "graph"):
         assert anchor in text, f"the archived prompt does not mention {anchor}"
+
+
+# --- the merge checklist ------------------------------------------------------------------------
+def test_the_merge_checklist_records_the_topology_defect():
+    """The checklist exists because codex/Audit advanced after it was last merged into main."""
+    checklist = json.loads(
+        (DOCS / "AAOS-MERGE-CHECKLIST-20261002.json").read_text(encoding="utf-8"))
+    topology = checklist["topology_measured"]
+    assert topology["audit_ahead_of_main"] == 18, topology
+    assert topology["main_ahead_of_audit"] == 0, topology
+    # main is PR #155's merge commit, which is why the 18 commits never arrived
+    defect = checklist["the_defect_this_checklist_exists_for"]
+    assert "no second pull request was ever opened" in defect["finding"]
+    assert len(defect["resolutions"]) >= 2
+
+
+def test_the_merge_checklist_tells_the_owner_to_retarget_rather_than_merge_as_is():
+    """Merging #157/#158 on their own bases would land them on codex/Audit, not on main."""
+    checklist = json.loads(
+        (DOCS / "AAOS-MERGE-CHECKLIST-20261002.json").read_text(encoding="utf-8"))
+    for entry in checklist["pull_requests"]:
+        if entry["number"] in (157, 158):
+            assert entry["base"] == "codex/Audit", entry
+    actions = checklist["owner_actions"]
+    assert [a["order"] for a in actions] == [1, 2, 3], actions
+    assert "gh pr merge 156" in actions[0]["command"]
+    for action in actions[1:]:
+        assert "gh pr edit" in action["command"] and "--base main" in action["command"], action
+    # and every step must say how to undo itself
+    for action in actions:
+        assert action["rollback"], action
+
+
+def test_the_merge_checklist_keeps_merging_separate_from_releasing():
+    checklist = json.loads(
+        (DOCS / "AAOS-MERGE-CHECKLIST-20261002.json").read_text(encoding="utf-8"))
+    assert "FROZEN" in checklist["release_boundary"]
+    assert "not a publication" in checklist["release_boundary"]
+    assert "Owner's act" in checklist["executor_limit"]
+
+
+def test_the_merge_checklist_ships_a_readable_markdown_alongside_the_json():
+    markdown = DOCS / "AAOS-MERGE-CHECKLIST-20261002.md"
+    assert markdown.is_file()
+    text = markdown.read_text(encoding="utf-8")
+    for anchor in ("defect this exists for", "gh pr merge 156", "gh pr edit 157", "Do not",
+                   "not releasing"):
+        assert anchor in text, anchor

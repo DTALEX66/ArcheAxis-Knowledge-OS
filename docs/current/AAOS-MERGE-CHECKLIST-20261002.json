@@ -1,0 +1,127 @@
+{
+  "document": "AAOS_MERGE_CHECKLIST_20261002",
+  "recorded_at": "2026-10-02T10:49:16.397410+00:00",
+  "method": "git merge-base and rev-list against the remote refs, and gh pr view for each pull request, read live rather than recalled",
+  "topology_measured": {
+    "main": "59498723a8d4e94c6314e490473ba6d60847c247",
+    "codex/Audit": "1a981a4482b01f31989074e79c82a63400aa07a7",
+    "merge_base_of_main_and_audit": "59498723a8d4e94c6314e490473ba6d60847c247",
+    "audit_ahead_of_main": 18,
+    "main_ahead_of_audit": 0,
+    "my_branch": "6eeb62f8a18438966063f7005fb99955562b5666",
+    "my_branch_ahead_of_audit": 103,
+    "my_branch_ahead_of_main": 121
+  },
+  "the_defect_this_checklist_exists_for": {
+    "finding": "`main` is exactly PR #155's merge commit, and #155 merged codex/Audit at 6621aab7. codex/Audit has since advanced 18 commits to 1a981a44 and no second pull request was ever opened for it.",
+    "consequence": "PR #156, #157 and #158 all sit on or above those 18 commits. Merging them by their own bases therefore does not put anything on `main`: #156 would move main to 1a981a44, but #157 and #158 target codex/Audit and would land on a branch that is not the product line.",
+    "why_it_matters": "everything built on this branch - the capability registry, the cited Ask, the machine answer, the human correction, the published contract - is unreachable from `main` until this is resolved.",
+    "resolutions": [
+      "preferred: merge #156 into main, which brings main to 1a981a44, then retarget #157 and #158 from codex/Audit to main and merge them there; codex/Audit stops being a line",
+      "alternative: merge #156, then #157 and #158 into codex/Audit, then open and merge a further PR from codex/Audit to main, which is a second round trip"
+    ]
+  },
+  "pull_requests": [
+    {
+      "number": 155,
+      "state": "MERGED",
+      "draft": false,
+      "base": "main",
+      "head": "codex/Audit",
+      "head_sha": "6621aab7b7e2067f0ffe0fcaad1f479f7fd691d6",
+      "mergeable": "UNKNOWN",
+      "merge_state": "UNKNOWN",
+      "merge_commit_of_the_previous_one": "59498723a8d4e94c6314e490473ba6d60847c247 - this is what PR #155 did to main"
+    },
+    {
+      "number": 156,
+      "state": "OPEN",
+      "draft": true,
+      "base": "main",
+      "head": "codex/aaos-ui-phase2-20261001",
+      "head_sha": "1a981a4482b01f31989074e79c82a63400aa07a7",
+      "mergeable": "MERGEABLE",
+      "merge_state": "CLEAN",
+      "merge_commit_of_the_previous_one": null
+    },
+    {
+      "number": 157,
+      "state": "OPEN",
+      "draft": true,
+      "base": "codex/Audit",
+      "head": "codex/dsh-aaos-real-multiformat-loop-20261001",
+      "head_sha": "6eeb62f8a18438966063f7005fb99955562b5666",
+      "mergeable": "MERGEABLE",
+      "merge_state": "CLEAN",
+      "merge_commit_of_the_previous_one": null
+    },
+    {
+      "number": 158,
+      "state": "OPEN",
+      "draft": true,
+      "base": "codex/Audit",
+      "head": "codex/minimax-aaos-cosmic-ui-20261001",
+      "head_sha": "627e74ffcc2b16e2109ab85c0a8183f1e4a6b21a",
+      "mergeable": "MERGEABLE",
+      "merge_state": "CLEAN",
+      "merge_commit_of_the_previous_one": null
+    }
+  ],
+  "conflict_evidence": {
+    "pr157_files": 119,
+    "pr158_files": 14,
+    "files_in_common": [],
+    "files_in_common_count": 0,
+    "measured_against": "origin/codex/Audit, the shared base",
+    "reading": "zero files in common, so merging one does not conflict with the other at file granularity. This was asserted without measuring earlier in this branch and the measurement is what replaced the assertion."
+  },
+  "owner_actions": [
+    {
+      "order": 1,
+      "action": "merge PR #156 into main",
+      "command": "gh pr merge 156 --merge",
+      "why": "it brings main from 59498723 to 1a981a44, which is the base the rest sits on",
+      "expected_result": "main becomes 1a981a44",
+      "verify": [
+        "gh pr view 156 --json state,mergeCommit",
+        "git fetch origin && git rev-parse origin/main  # expect the merge commit",
+        "gh run list --branch main --limit 1  # expect a successful CI run on the new main"
+      ],
+      "rollback": "git push origin 59498723a8d4e94c6314e490473ba6d60847c247:main  (restores main to 59498723)",
+      "blocked_by": "the Owner's merge authority; the executor may not merge"
+    },
+    {
+      "order": 2,
+      "action": "retarget PR #157 to main, then merge",
+      "command": "gh pr edit 157 --base main && gh pr merge 157 --merge",
+      "why": "its base is codex/Audit, which is not the product line",
+      "expected_result": "main gains the backend loop, the contract, the capability registry, the cited Ask, the machine answer and the human correction",
+      "verify": [
+        "gh pr view 157 --json baseRefName,mergeStateStatus  # base must read main and state CLEAN before merging",
+        "gh run list --limit 1  # exact-SHA CI on the merge commit"
+      ],
+      "rollback": "git revert -m 1 <merge-commit>  (a merge commit is reverted, not reset, so the branch history stays readable)",
+      "note": "retargeting re-runs CI against main, which is the check that matters; a green run against codex/Audit does not cover main"
+    },
+    {
+      "order": 3,
+      "action": "retarget PR #158 to main, then merge",
+      "command": "gh pr edit 158 --base main && gh pr merge 158 --merge",
+      "why": "same reason as #157, and it is a small change so it can follow",
+      "expected_result": "main gains the cosmic UI layer",
+      "verify": [
+        "gh pr view 158 --json baseRefName,mergeStateStatus",
+        "gh run list --limit 1"
+      ],
+      "rollback": "git revert -m 1 <merge-commit>",
+      "note": "measured to share zero files with #157, so the second of the two does not need a conflict re-check; the earlier note that it did was a guess"
+    }
+  ],
+  "what_the_owner_should_not_do": [
+    "git reset --hard on main: it would discard the merge commits and is the one action the taskpack names as forbidden",
+    "merge #157 or #158 without retargeting: they would land on codex/Audit and leave main untouched, which is the defect being fixed",
+    "remove the draft flag and merge without reading the new run: retargeting changes the merge base, so the previous green run no longer covers it"
+  ],
+  "release_boundary": "merging does not release. Release stays FROZEN until G0-G5, the Independent Audit and the Owner Gate are complete, and merging is explicitly not a publication.",
+  "executor_limit": "this document is preparation. Creating a pull request, changing a base, or merging is the Owner's act, and the executor was instructed repeatedly not to merge and did not."
+}
