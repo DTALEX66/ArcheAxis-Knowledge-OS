@@ -151,6 +151,26 @@
             "no_measurement_from_a_failed_run": "when the model cannot answer, the route fails by name and records nothing, because a task that could not run is not a measurement.",
             "correction_needs_the_specific_error": "`error_note` is required, because \"it was wrong\" is not a reviewable finding.",
             "a_machine_cannot_correct_or_accept": "recording a correction and accepting one are both refused to a machine principal."
+          },
+          "reachability": {
+            "question": "Can the product actually reach the capabilities this work added?",
+            "answer_before": "No. A launch that declared no routes registered only the built-in text.extract, so PDF, OCR, Office, media, canvas and the co-learning machine answer were all unreachable in the product's own launch path. Two readers disagreed: the staged runtime accepted `routes` and forwarded them after deb2238a, while the desktop's reader required exactly four fields and its supervisor never sent any.",
+            "answer_now": "Yes, measured, not inferred.",
+            "fixes": [
+              "95ce1ea4 declares machine.answer in the staged runtime's ROUTE_SCRIPTS, so the staged profile publishes 11 routes instead of 10",
+              "d6e9640f makes the desktop's profile reader accept `routes`, carry them on CoreTextWorker, and send them in the launch document; desktop_launch.py declares the same 11 capabilities",
+              "ad49dd46 fixes CS0136, a route-script local shadowing the text worker's script, which CI caught because no local .NET SDK was available to compile it"
+            ],
+            "measured_evidence": {
+              "probe": "scripts/probes/desktop_route_readback.py",
+              "observation": "a launch document carrying 11 routes, sent to the real archeaxis-api binary, yields 12 registered capabilities: the 11 declared plus the built-in text.extract",
+              "result": "missing: none; machine.answer registered: true; verdict REGISTERED",
+              "regression_guard": "tests/test_desktop_route_registration.py asserts that the desktop declares its routes, that the desktop and the staged runtime declare the same capabilities, that the C# carries and sends them under the names the Core accepts, and that the probe keeps a non-success verdict path"
+            },
+            "what_remains_unproven": [
+              "that the desktop's C# serializes the routes correctly at run time: the desktop-vnext CI job builds and smoke-runs the real host and is green on ad49dd46, but a green build is not a launched product",
+              "that every one of those eleven routes completes a real conversion: the readback reads the capability surface, it does not run a job on each route"
+            ]
           }
         },
         {
