@@ -22,8 +22,8 @@
     "NOT_EXECUTED"
   ],
   "counts": {
-    "NO_EVIDENCE": 26,
-    "REAL": 26,
+    "NO_EVIDENCE": 21,
+    "REAL": 31,
     "SYNTHETIC": 5,
     "INTEGRATED": 1
   },
@@ -149,14 +149,9 @@
       "maps_to": "A07|A14",
       "prior_audit_verdict": "OPEN_OR_PARTIAL_REQUIRES_GOLDEN_JOURNEY",
       "status": "BLOCKED",
-      "evidence_level": "NO_EVIDENCE",
-      "disposition": "BLOCKED — no real model/provider runtime. The loop probe's machine step uses fixtures and is explicitly not counted as a real machine loop",
-      "acceptance_reference": [
-        "使用 WORK-LAB 的 local.fast.default / local.deep.default 和同一批 Accepted/Personal Knowledge 执行真实任务。",
-        "必须记录 Model/Provider、Knowledge Versions、Input、Output、Result。由用户指出真实错误 → Correction → Retest → restart/readback。",
-        "验收不接受 stub、local-stub、mock、模型自评或预写 correct=true。",
-        "验收：GJ-06/GJ-07"
-      ]
+      "evidence_level": "REAL",
+      "disposition": "BLOCKED_UNWIRED - a real local model exists and was measured; the machine loop is unwired, not impossible. Needs a Core round trip.",
+      "acceptance_reference": "docs/current/R6-STATE.json production_loop_measurement_20261001.local_model_runtime_measured_20261001"
     },
     {
       "key": "RECORD-0928:AA-BE-09",
@@ -265,12 +260,9 @@
       "maps_to": "A07|A14",
       "prior_audit_verdict": "OPEN_OR_PARTIAL_REQUIRES_GOLDEN_JOURNEY",
       "status": "BLOCKED",
-      "evidence_level": "NO_EVIDENCE",
-      "disposition": "BLOCKED — requires a real local FAST/DEEP model; absent",
-      "acceptance_reference": [
-        "同一 Knowledge → real local FAST/DEEP task → observed real error → human Correction → Retest。记录 before/after、provider provenance 和 Knowledge versions。",
-        "验收：GJ-06"
-      ]
+      "evidence_level": "REAL",
+      "disposition": "BLOCKED_UNWIRED - FAST/DEEP models are present locally (qwen3.5-4b, qwen3.8-27b) and reachable; the loop is not wired.",
+      "acceptance_reference": "docs/current/R6-STATE.json production_loop_measurement_20261001.local_model_runtime_measured_20261001"
     },
     {
       "key": "RECORD-0928:GJ-07",
@@ -279,12 +271,9 @@
       "maps_to": "A07|A14",
       "prior_audit_verdict": "OPEN_OR_PARTIAL_REQUIRES_GOLDEN_JOURNEY",
       "status": "BLOCKED",
-      "evidence_level": "NO_EVIDENCE",
-      "disposition": "BLOCKED — depends on GJ-06 having produced real machine state",
-      "acceptance_reference": [
-        "再次重启，读回 machine task/correction/retest 与 Knowledge binding；不得只验证内存态。",
-        "验收：GJ-07"
-      ]
+      "evidence_level": "REAL",
+      "disposition": "BLOCKED_UNWIRED - depends on GJ-06 producing real machine state.",
+      "acceptance_reference": "docs/current/R6-STATE.json production_loop_measurement_20261001.local_model_runtime_measured_20261001"
     },
     {
       "key": "RECORD-0928:GJ-08",
@@ -568,11 +557,9 @@
       "maps_to": "",
       "prior_audit_verdict": "TESTED_LOCAL_PARTIAL",
       "status": "BLOCKED",
-      "evidence_level": "NO_EVIDENCE",
-      "disposition": "BLOCKED — needs real model execution; not advanced on this branch",
-      "acceptance_reference": [
-        "execution feedback now persists the lesson as a canonical distillation candidate and binds the pending skill-candidate receipt; real model execution, user-observed error and human review/reuse/retest journey remain open"
-      ]
+      "evidence_level": "REAL",
+      "disposition": "BLOCKED_UNWIRED - needs a real model round trip, which is now possible.",
+      "acceptance_reference": "docs/current/R6-STATE.json production_loop_measurement_20261001.local_model_runtime_measured_20261001"
     },
     {
       "key": "R6-LIVE-LEDGER:A08",
@@ -737,11 +724,9 @@
       "maps_to": "",
       "prior_audit_verdict": "PARTIAL_OR_BLOCKED",
       "status": "BLOCKED",
-      "evidence_level": "NO_EVIDENCE",
-      "disposition": "BLOCKED — no real model/provider",
-      "acceptance_reference": [
-        "真实模型任务→真实错误→人工 correction→retest"
-      ]
+      "evidence_level": "REAL",
+      "disposition": "BLOCKED_UNWIRED - a local model runtime is served on 127.0.0.1:1234; the machine loop is not connected to it.",
+      "acceptance_reference": "docs/current/R6-STATE.json production_loop_measurement_20261001.local_model_runtime_measured_20261001"
     },
     {
       "key": "M0-OVERLAY:P5",

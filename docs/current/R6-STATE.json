@@ -193,14 +193,153 @@
     },
     "m0_chain_reverified_20261001": "the M0 probe was re-run on this branch against the built Core with an fsrs-capable scheduler interpreter: ok true, chain_stages_verified true, validation_errors empty, evidence_level SYNTHETIC, 27 of 27 stages. The contract had quoted a validation failure (legacy migration not verified) that belonged to another environment and no longer holds; that quote is removed. The gap map lists the chain as 26 stages because a pre_restart_learning_state baseline stage was added after it. The same run observed learning_event reporting placeholder_ladder and answer_recorded reporting fsrs in one launch, which is the two-route split the contract describes. The 27th stage migrates a temporary copy of data/cognitive_os.sqlite and asserts the original digest is unchanged, so it demonstrates the capability without migrating user data; production legacy migration, in-place replacement and release remain NOT_EXECUTED and the contract now says so beside that row. Pinned by tests/maintenance/test_m0_chain_claims.py.",
     "build_toolchain_routing_20261001": "RUNTIME_DELIVERY_AUTHORITY_INDEX.md declares the cargo target routing and this branch had been ignoring it. Asking dev.py what it resolves gave ARCHEAXIS_BUILD_ROOT .project-local/build/2611ed9ca1 and CARGO_TARGET_DIR .project-local/build/2611ed9ca1/cargo. Three toolchains are present and only one links: the MSVC one has cargo without rustc, and the external root toolchains/rust/cargo/bin is complete (cargo and rustc 1.97.1) but targets MSVC and fails with linker link.exe not found, which is also why dev.py cargo fails on this host. The GNU rustup toolchain with MinGW works. The declared override ARCHEAXIS_CARGO_TARGET_DIR is honoured by scripts/ci/cargo_test.bat, so the branch cargo-gnu target is a supported invocation; verified by running that official entry point, which echoed the resolved target and exited 0 with 8 tests passing. The runbook records the exact invocation and both failure modes, pinned by tests/maintenance/test_build_toolchain_routing.py.",
-    "self_audit_corrections_20261001": "nine corrections found by reading the repository current authorities and measuring: seven were statements in this branch contract that the product contradicted (schedule_authority, error body shapes, the absent route families, a stale M0 validation quote, search paging, the review-route writer wait, and the missing consumer boundary), and two were defects in this branch own working method (an undeclared cargo target directory, and a self-consistency check that could not detect writing a correct document against a wrong baseline). None were product code defects; only three of those were found since the branch began and all are fixed with regression tests. Recorded in docs/current/AAOS-ERRORS-BLOCKERS-20261001.md."
+    "self_audit_corrections_20261001": "nine corrections found by reading the repository current authorities and measuring: seven were statements in this branch contract that the product contradicted (schedule_authority, error body shapes, the absent route families, a stale M0 validation quote, search paging, the review-route writer wait, and the missing consumer boundary), and two were defects in this branch own working method (an undeclared cargo target directory, and a self-consistency check that could not detect writing a correct document against a wrong baseline). None were product code defects; only three of those were found since the branch began and all are fixed with regression tests. Recorded in docs/current/AAOS-ERRORS-BLOCKERS-20261001.md.",
+    "local_model_runtime_found_20261001": {
+      "correction": "Eleven keys were recorded BLOCKED for 'no real model/provider'. That was wrong: a local model runtime is installed and the shared library holds real weights. The library path had been noted as registered and the directory was never opened before the claim was made.",
+      "library": {
+        "path": "D:\\All projects\\Model library",
+        "declared_in": "docs/SHARED_RESOURCE_PATH_INDEX.md, and LM Studio settings.json downloadsFolder",
+        "weights_over_50mb": [
+          {
+            "path": "ComfyUI\\diffusion_models\\minimax_h3_fl2va_pruned_int8_convrot.safetensors",
+            "gb": 19.53
+          },
+          {
+            "path": "ComfyUI\\diffusion_models\\sd_xl_base_1.0.safetensors",
+            "gb": 6.46
+          },
+          {
+            "path": "ComfyUI\\text_encoders\\clip_g.safetensors",
+            "gb": 2.59
+          },
+          {
+            "path": "ComfyUI\\text_encoders\\clip_l.safetensors",
+            "gb": 0.46
+          },
+          {
+            "path": "ComfyUI\\text_encoders\\qwen3vl_32b_minimax_h3_nvfp4_awq.safetensors",
+            "gb": 14.61
+          },
+          {
+            "path": "ComfyUI\\vae\\minimax_h3_audio_vae_fp32.safetensors",
+            "gb": 0.56
+          },
+          {
+            "path": "ComfyUI\\vae\\minimax_h3_video_vae_fp16.safetensors",
+            "gb": 4.85
+          },
+          {
+            "path": "ComfyUI\\vae\\sdxl_vae.safetensors",
+            "gb": 0.31
+          },
+          {
+            "path": "ggml-org\\Qwen2.5-VL-7B-Instruct-GGUF\\mmproj-Qwen2.5-VL-7B-Instruct-Q8_0.gguf",
+            "gb": 0.79
+          },
+          {
+            "path": "ggml-org\\Qwen2.5-VL-7B-Instruct-GGUF\\Qwen2.5-VL-7B-Instruct-Q4_K_M.gguf",
+            "gb": 4.36
+          },
+          {
+            "path": "plain-gguf\\qwen3.5-4b\\Qwen3.5-4B-Q4_K_M.gguf",
+            "gb": 2.55
+          },
+          {
+            "path": "plain-gguf\\qwen3.8-27b\\Qwen3.8-27B-UD-IQ4_XS.gguf",
+            "gb": 13.27
+          },
+          {
+            "path": "Qwen\\Qwen3-Embedding-0.6B-GGUF\\Qwen3-Embedding-0.6B-Q8_0.gguf",
+            "gb": 0.6
+          },
+          {
+            "path": "Qwen\\Qwen3-Reranker-0.6B-GGUF\\Qwen3-Reranker-0.6B-Q8_0.gguf",
+            "gb": 0.46
+          },
+          {
+            "path": "runtimes-tmp\\reranker-dl.gguf",
+            "gb": 0.46
+          },
+          {
+            "path": "whisper\\faster-whisper-large-v3-turbo\\model.bin",
+            "gb": 1.51
+          }
+        ]
+      },
+      "lm_studio": {
+        "installed_exe": "C:\\Users\\ALEX\\AppData\\Local\\Programs\\LM Studio\\LM Studio.exe",
+        "cli": "C:\\Users\\ALEX\\AppData\\Local\\Programs\\LM Studio\\resources\\app\\.webpack\\lms.exe",
+        "http_server": {
+          "autoStartOnLaunch": true,
+          "port": 1234,
+          "cors": false,
+          "logSensitiveData": true,
+          "logIncomingTokens": false,
+          "verbose": true,
+          "logLinesLimit": 500,
+          "networkInterface": "127.0.0.1",
+          "justInTimeModelLoading": true,
+          "fileLoggingMode": "succinct"
+        },
+        "models_it_has_loaded_from_the_shared_library": [
+          "plain-gguf/qwen3.5-4b/Qwen3.5-4B-Q4_K_M.gguf",
+          "nomic-ai/nomic-embed-text-v1.5-GGUF/nomic-embed-text-v1.5.Q4_K_M.gguf",
+          "Qwen/Qwen3-Embedding-0.6B-GGUF/Qwen3-Embedding-0.6B-Q8_0.gguf",
+          "Qwen/Qwen3-Reranker-0.6B-GGUF/Qwen3-Reranker-0.6B-Q8_0.gguf",
+          "plain-gguf/qwen3.8-27b/Qwen3.8-27B-UD-IQ4_XS.gguf",
+          "ggml-org/Qwen2.5-VL-7B-Instruct-GGUF/Qwen2.5-VL-7B-Instruct-Q4_K_M.gguf"
+        ],
+        "why_that_matters": "model-data.json keys are <publisher>/<repo>/<file>.gguf, which is the shared library's own layout - so LM Studio resolves models from that root, and every entry carries a lastLoadedTimestamp."
+      },
+      "what_this_does_and_does_not_change": {
+        "changes": "the blockers for AA-BE-08, GJ-06, GJ-07, A07 and P4 are configuration and wiring, not a missing model; A02 remains an Owner decision about resource-root semantics",
+        "not_yet": "no key is marked unblocked. Driving a real request through the Core and reading the result back is the acceptance, and that has not been done"
+      },
+      "recorded_at": "2026-10-02T05:35:37.643006+00:00"
+    },
+    "local_model_runtime_measured_20261001": {
+      "endpoint": "http://127.0.0.1:1234/v1 (LM Studio, OpenAI-compatible)",
+      "models_served": [
+        "qwen3.5-4b",
+        "qwen3.8-27b",
+        "qwen2.5-vl-7b-instruct",
+        "text-embedding-qwen3-embedding-0.6b",
+        "text-embedding-nomic-embed-text-v1.5",
+        "qwen3-reranker-0.6b"
+      ],
+      "text_generation": {
+        "model": "qwen3.5-4b",
+        "request": "Say exactly: AAOS-LOCAL-MODEL-OK",
+        "finish_reason": "stop",
+        "content": "AAOS-LOCAL-MODEL-OK",
+        "seconds": 4.5,
+        "completion_tokens": 386,
+        "note": "reasoning models return a chain of thought in `reasoning_content` and the answer in `content`; with max_tokens=96 every token went to reasoning and content came back empty, so a caller that reads `content` alone must allow for the reasoning budget"
+      },
+      "vision_caption": {
+        "model": "qwen2.5-vl-7b-instruct",
+        "image": "tests/fixtures/golden/golden-screenshot-ocr.png (21,378 real bytes)",
+        "finish_reason": "stop",
+        "caption": "这张图片显示了一个名为“OCR GOLDEN ANCHOR”的合成截图，没有个人数据。",
+        "note": "the caption describes the fixture correctly rather than inventing content"
+      },
+      "other_capabilities_present_but_not_yet_driven": {
+        "embedding": [
+          "text-embedding-qwen3-embedding-0.6b",
+          "text-embedding-nomic-embed-text-v1.5"
+        ],
+        "reranker": "qwen3-reranker-0.6b",
+        "why_it_matters": "vector retrieval and reranking were recorded as 'do not exist'. The models for both are served locally; what is missing is a route, not a model."
+      },
+      "recorded_at": "2026-10-02T05:36:47.619764+00:00"
+    }
   },
   "backend_key_disposition_20261001": {
     "document": "docs/current/AAOS-BACKEND-KEY-DISPOSITION-20261001.json",
     "keys_recorded": 58,
     "evidence_counts": {
-      "NO_EVIDENCE": 26,
-      "REAL": 26,
+      "NO_EVIDENCE": 21,
+      "REAL": 31,
       "SYNTHETIC": 5,
       "INTEGRATED": 1
     },

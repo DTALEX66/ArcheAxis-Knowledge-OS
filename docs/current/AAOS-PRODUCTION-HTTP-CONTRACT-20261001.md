@@ -467,10 +467,16 @@ The production binary registers exactly **one** capability route, `text.extract`
 **Contract obligation for the UI:** until the Core registers the format routes, a non-text
 job settles `failed` after being accepted with `202`. The UI must present that as
 `unavailable` for the format, not as a conversion error, and must not offer a retry that
-cannot succeed. Format routes that require an absent local engine (caption/VL) and formats
-with no route at all (video decode, webpage fetch) must be reported `unavailable` rather than
-`error`. ASR transcription now has a route and reaches the Core; its engine must be present on
-the runtime, and the readiness check in §7 says so per route.
+cannot succeed. Formats with no route at all (video decode, webpage fetch) must be reported
+`unavailable` rather than `error`. ASR transcription now has a route and reaches the Core; its
+engine must be present on the runtime, and the readiness check in §7 says so per route.
+
+**A local model runtime is present, and this changes why some things are unavailable.** This
+document previously said caption/VL needed "an absent local engine". A real vision model is served
+locally and produced a real caption from a real fixture, and real text generation was measured too —
+see the runbook for the receipts. So for `image.caption`, and for the machine loop, the blocker is
+**wiring rather than a missing model**. A UI should still render those surfaces as not connected,
+because no route reaches the model yet, but it should not be told the capability is impossible:
 
 ## 7. Evidence
 
@@ -487,6 +493,7 @@ the runtime, and the readiness check in §7 says so per route.
 | Rust API suite | `cargo test -p archeaxis-api --no-fail-fast` with `ARCHEAXIS_PYTHON` set | all targets pass |
 | Rust application (per-format) suite | `cargo test -p archeaxis-application --no-fail-fast` | all targets pass |
 | Contract conflict rules | `cargo test -p archeaxis-api --test contract_conflict_rules`, and a live-Core probe | replay is `202 replayed:true`; a different deadline or a different job under one key is `409 AAK-CON-002`; a settled job is `409 AAK-CON-003`; no conflict path leaves a second attempt |
+| **Local model runtime, measured** | `http://127.0.0.1:1234/v1` (LM Studio) with the shared library at `D:\\All projects\Model library` | six models served; `qwen3.5-4b` answered `AAOS-LOCAL-MODEL-OK` (`finish_reason: stop`, 4.5 s); `qwen2.5-vl-7b-instruct` captioned the real fixture `golden-screenshot-ocr.png` correctly; embedding and reranker models served. This **replaces** the earlier false claim that no real model exists |
 
 Evidence level for this document: **REAL** for the route inventory, authentication model
 and format-reachability measurements (real binary, real HTTP, real verified fixture bytes);

@@ -163,8 +163,30 @@ these drive the real binary or the real routers, so they need no provisioned run
 
 ## What is not covered, on purpose
 
-* **`image.caption`** needs a vision model at an Ollama endpoint this host does not serve.
-  It is reported `unverifiable` rather than passed, and is absent from the matrix.
+* **`image.caption` is no longer blocked by a missing model.** This was recorded as "needs a vision
+  model at an Ollama endpoint this host does not serve" — that was wrong. A vision model is present
+  in the shared library and is served locally, and a real caption was produced from a real
+  repository fixture:
+
+  ```
+  endpoint : http://127.0.0.1:1234/v1   (LM Studio, OpenAI-compatible)
+  model    : qwen2.5-vl-7b-instruct
+  image    : tests/fixtures/golden/golden-screenshot-ocr.png  (21,378 bytes)
+  result   : finish_reason=stop
+             "这张图片显示了一个名为“OCR GOLDEN ANCHOR”的合成截图，没有个人数据。"
+  ```
+
+  It stays out of the matrix because the caption **route** is not wired to this endpoint yet — the
+  blocker is wiring, not a model. Do not report it `unverifiable` any more; report it `unwired`.
+
+* **A local text model also works**, measured: `qwen3.5-4b` answered `Say exactly:
+  AAOS-LOCAL-MODEL-OK` with `content: AAOS-LOCAL-MODEL-OK`, `finish_reason: stop`, 4.5 s. Note that
+  these are reasoning models: the chain of thought arrives in `reasoning_content` and the answer in
+  `content`, and a small `max_tokens` is consumed entirely by reasoning, leaving `content` empty.
+* **Embedding and reranker models are served** (`text-embedding-qwen3-embedding-0.6b`,
+  `text-embedding-nomic-embed-text-v1.5`, `qwen3-reranker-0.6b`). Vector retrieval and reranking
+  were recorded as "do not exist" — the models for both are available; what is missing is a route.
+
 * **Supported formats this matrix does not exercise**: the golden corpus covers 12 cases
   and real-material mode 9, so six are golden-only here — `office/xlsx`, `office/pptx`,
   `subtitles`, `archive`, `media/wav` and `text/txt`. They are reachable and their
