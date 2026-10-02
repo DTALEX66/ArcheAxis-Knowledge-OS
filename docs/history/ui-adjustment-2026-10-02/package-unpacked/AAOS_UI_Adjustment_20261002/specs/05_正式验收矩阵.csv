@@ -1,0 +1,20 @@
+﻿ID,事项,通过条件,证据,本包状态
+NAV-01,六空间,六空间有文字与清晰选中，不平铺19个一级入口,Windows UIA + 截图,NOT_RUN_NATIVE
+NAV-02,路由兼容,19 route 与原有别名可导航，旧handler不丢,路由对照+原生交互,NOT_RUN_NATIVE
+NAV-03,全能力保留,16 capability全覆盖；50项逐项可到达，未来可看说明,registry覆盖+菜单实测,NOT_RUN_NATIVE
+NAV-04,状态诚实,待开发/待接入/待核验与运行健康分开,负例状态投影,NOT_RUN_NATIVE
+OBJ-01,来源阅读,同一真实资料、版本、选区、锚点回跳一致,真实资料+身份读回,NOT_RUN_NATIVE
+OBJ-02,候选认可,候选→人审→读回，不预先改变认可,403/409+真实审核收据,NOT_RUN_NATIVE
+SRC-01,导入失败,转换失败保留原件；重试/取消最终状态读回,真实失败与恢复,NOT_RUN_NATIVE
+SEARCH-01,搜索空/错,词法结果、空结果、离线与语义不可用独立,真实查询与降级,NOT_RUN_NATIVE
+LEARN-01,学习旅程,答案、assessment、知识版本与review收据一致,真人作答+冷重启,NOT_RUN_NATIVE
+LEARN-02,掌握边界,FSRS due不冒充掌握度，评分可解释,测评与投影核对,NOT_RUN_NATIVE
+AI-01,真实模型,实际模型身份、知识输入、真实错误与修正,实际模型调用,NOT_RUN_NATIVE
+AI-02,纠错复测,候选审核和独立复测；不自动升级技能,真实负例+复测读回,NOT_RUN_NATIVE
+SYS-01,Provider生命周期,启停/default/fallback/健康/替换/回滚一致,生命周期+冷重启,NOT_RUN_NATIVE
+SYS-02,恢复,工作空间identity、原件hash与关联恢复一致,非空隔离副本恢复,NOT_RUN_NATIVE
+UI-01,DPI矩阵,2560×1440及1920×1080；100/125/150/200%；逻辑宽度自适应,当前Candidate截图,NOT_RUN_NATIVE
+UI-02,键盘/IME,Ctrl+K、Tab、Esc、焦点恢复、中文IME与长标题,UIA+人工交互,NOT_RUN_NATIVE
+UI-03,双主题,Aurora/Monochrome正常、空、错、禁用、选中与焦点可读,截图检查,NOT_RUN_NATIVE
+UI-04,减少动态,隐藏页停止动画；Reduced Motion可操作,系统设置+原生交互,NOT_RUN_NATIVE
+BIND-01,证据身份,SHA、dirty diff、build路径、进程、制品与UIA证据同一对象,证据收据,NOT_RUN_NATIVE

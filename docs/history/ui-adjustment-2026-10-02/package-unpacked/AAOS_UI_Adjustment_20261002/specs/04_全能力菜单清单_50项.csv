@@ -1,0 +1,51 @@
+﻿空间,菜单,key,本包显示状态,capability,保留级别,激活范围,运行状态
+工作台,总览,home,当前,CAP-0120,binding_core,H0-H5,unknown
+工作台,处理记录,jobs,部分接通,CAP-0020,binding_core,H1-H2,unknown
+资料与知识,捕获与导入,capture,部分接通,CAP-0010,binding_core,H0-H1,unknown
+资料与知识,资料库,library,部分接通,CAP-0010,binding_core,H0-H1,unknown
+资料与知识,知识条目,knowledge,部分接通,CAP-0030,binding_core,H1,unknown
+资料与知识,搜索与问答,search,部分接通,CAP-0110,binding_core,H3-H4,unknown
+资料与知识,项目工作空间,workspace,部分接通,CAP-0090,binding_long_term,H6-H7,unknown
+资料与知识,多格式与损失报告,format-quality,部分接通,CAP-0020,binding_core,H1-H2,unknown
+资料与知识,开放互操作 / Vault,interop,部分接通,CAP-0100,binding_core,H3,unknown
+资料与知识,科研与研究空间,research,待接入,CAP-0090,binding_long_term,H6-H7,unknown
+资料与知识,语义检索与重排,semantic-search,待开发,CAP-0110,binding_core,H3-H4,unknown
+资料与知识,引用图谱与索引,reference-graph,待开发,CAP-0110,binding_core,H3-H4,unknown
+资料与知识,知识软件适配器,knowledge-adapters,待开发,CAP-0100,binding_core,H3,unknown
+证据,证据中心,evidence,部分接通,CAP-0030,binding_core,H1,unknown
+证据,待复核与认可,evidence-review,部分接通,CAP-0030,binding_core,H1,unknown
+证据,交叉核验,cross-validation,待接入,CAP-0030,binding_core,H1,unknown
+证据,冲突与覆盖关系,evidence-conflicts,待开发,CAP-0030,binding_core,H1,unknown
+学习,今日学习,learning,部分接通,CAP-0040,binding_core,H4,unknown
+学习,复习,review,部分接通,CAP-0040,binding_core,H4,unknown
+学习,进度与掌握状态,mastery,待核验,CAP-0040,binding_core,H4,unknown
+学习,记忆地图,memory-map,部分接通,CAP-0160,binding_long_term,H6-H8,unknown
+学习,课程与学习计划,courses,待开发,CAP-0090,binding_long_term,H6-H7,unknown
+学习,讲解与 Teach-back,teachback,待开发,CAP-0040,binding_core,H4,unknown
+学习,学习画像与自适应,learning-profile,待开发,CAP-0040,binding_core,H4,unknown
+学习,LER 视觉教学 / 课件,visual-teaching,待开发,CAP-0060,binding_long_term,H6-H7,unknown
+学习,概念图 / Canvas / 学习图,learning-visuals,待开发,CAP-0160,binding_long_term,H6-H8,unknown
+学习,动态解释与动画,animation,待开发,CAP-0070,binding_long_term,H7,unknown
+学习,仿真与实验,simulation,待开发,CAP-0070,binding_long_term,H7,unknown
+学习,空间记忆 / 记忆宫殿,spatial-memory,待开发,CAP-0080,binding_long_term,H7-H8,unknown
+学习,2D / 2.5D / 3D / VR / AR,immersive,待开发,CAP-0080,binding_long_term,H7-H8,unknown
+学习,领域学习包,domain-learning,待开发,CAP-0040,binding_core,H4,unknown
+机器知识,机器任务,machine-growth,部分接通,CAP-0050,binding_long_term,H4-H8,unknown
+机器知识,纠错与复测,corrections,待接入,CAP-0050,binding_long_term,H4-H8,unknown
+机器知识,AI Memory,machine-memory,待开发,CAP-0050,binding_long_term,H4-H8,unknown
+机器知识,规则 / 标准候选,rule-candidates,待开发,CAP-0050,binding_long_term,H4-H8,unknown
+机器知识,技能候选,skill-candidates,待开发,CAP-0050,binding_long_term,H4-H8,unknown
+机器知识,知识上下文包,context-packs,待开发,CAP-0050,binding_long_term,H4-H8,unknown
+机器知识,评测与调用审计,evaluation,待开发,CAP-0050,binding_long_term,H4-H8,unknown
+机器知识,人机互学与经验沉淀,colearning,待开发,CAP-0050,binding_long_term,H4-H8,unknown
+系统,插件与能力提供方,plugins,待接入,CAP-0150,binding_long_term,H4-H8,unknown
+系统,模型与共享资源,models,待接入,CAP-0150,binding_long_term,H4-H8,unknown
+系统,备份与恢复,recovery,部分接通,CAP-0140,binding_long_term,H5-H9,unknown
+系统,外观与基础设置,settings,部分接通,CAP-0120,binding_core,H0-H5,unknown
+系统,全能力目录 / 蓝图,capabilities,规划保留,CAP-0120,binding_core,H0-H5,unknown
+系统,模型路由 / 数据出境,external-providers,待开发,CAP-0150,binding_long_term,H4-H8,unknown
+系统,同步与完整导出,sync,待开发,CAP-0140,binding_long_term,H5-H9,unknown
+系统,多设备 / 扩展端,multi-device,待开发,CAP-0120,binding_core,H0-H5,unknown
+系统,可选协作,collaboration,待开发,CAP-0120,binding_core,H0-H5,unknown
+系统,安装 / 更新 / 发布,installation,待核验,CAP-0120,binding_core,H0-H5,unknown
+系统,受限受控执行 Adapter,controlled-execution,探索保留,CAP-0130,exploration,H8-H10,unknown

@@ -1,0 +1,38 @@
+[
+  {
+    "path": "apps/ArcheAxis.Desktop/MainWindow.axaml",
+    "sha256": "7f6b1687990c1dfb017cb2fd3312e6d9d9722d09b3d0a45f271865f741816c9d"
+  },
+  {
+    "path": "apps/ArcheAxis.Desktop/MainWindow.axaml.cs",
+    "sha256": "958fec0c23bf9206d39f087c1cf310b007c746950b54864f3c27e9a862d9882d"
+  },
+  {
+    "path": "apps/ArcheAxis.Desktop/Themes/AaosTheme.axaml",
+    "sha256": "2b812175857ffc56d4affa6f62280ef025d572f5708f3150176b6d227e63d1a6"
+  },
+  {
+    "path": "apps/ArcheAxis.Desktop/ThemePalette.cs",
+    "sha256": "f48a03a57e4280ca6a2b7de3bcb65dc63cd656c3e691fc0720efdd0541eb770f"
+  },
+  {
+    "path": "apps/ArcheAxis.Desktop/ArcheAxis.Desktop.csproj",
+    "sha256": "a5812c5b02142e176ab37a919c6381dc1361dec23db717a51345d43f5ae705fd"
+  },
+  {
+    "path": "docs/current/AAOS-UI-COVERAGE-MATRIX-20261001.md",
+    "sha256": "77bcbefed8cb870b23be08ef6621847e84c70d6737498cf562f1f990f92a7442"
+  },
+  {
+    "path": "docs/current/AAOS-UI-BACKEND-MAP-20261001.md",
+    "sha256": "7857bd57715a59428d5b626710e1fc3271538b142c4a166b5044173db49257d7"
+  },
+  {
+    "path": "docs/truth/CAPABILITY_ATLAS_V2.yaml",
+    "sha256": "c290b342f47d38e79f3e1539175d21f822808495a902b465ea1b0d42b99cc39a"
+  },
+  {
+    "path": "docs/blueprint/SYSTEM_MASTER_BLUEPRINT_V2.md",
+    "sha256": "c00037ba9adfdcdddd001ff7cb6e111d3a3df22b037644604b56e84860492384"
+  }
+]

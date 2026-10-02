@@ -1,0 +1,111 @@
+{
+  "palettes": {
+    "MonochromeColors": {
+      "AaosBackgroundBrush": "#080A0C",
+      "AaosSidebarBrush": "#101316",
+      "AaosSurfaceBrush": "#171A1D",
+      "AaosSurface2Brush": "#202428",
+      "AaosBorderBrush": "#3B4146",
+      "AaosPrimaryBrush": "#E1E4E6",
+      "AaosPrimaryTextBrush": "#101214",
+      "AaosGoldBrush": "#B6AA8D",
+      "AaosSuccessBrush": "#83A292",
+      "AaosErrorBrush": "#C78484",
+      "AaosInfoBrush": "#A5ADB3",
+      "AaosWarningBrush": "#B6AA8D",
+      "AaosApprovalBrush": "#A4B294",
+      "AaosDisabledBrush": "#72797E",
+      "AaosReviewBrush": "#B6AA8D",
+      "AaosIvoryBrush": "#F1F2F3",
+      "AaosMutedBrush": "#A5ADB3",
+      "AaosOverlayBrush": "#99080A0C",
+      "AaosPrimaryGradientEnd": "#CFD3D6",
+      "AaosBrandMarkEnd": "#A9B0B4",
+      "AaosGridBrush": "#0DFFFFFF",
+      "AaosAmbientPrimaryBrush": "#66E1E4E6",
+      "AaosAmbientSecondaryBrush": "#55B6AA8D",
+      "AaosAmbientTertiaryBrush": "#40E1E4E6",
+      "AaosNavActiveStart": "#292E32",
+      "AaosNavActiveEnd": "#202428",
+      "AaosAmbientStart": "#C5C9CC",
+      "AaosAmbientMiddle": "#747B80",
+      "AaosAmbientEnd": "#171A1D"
+    },
+    "AuroraColors": {
+      "AaosBackgroundBrush": "#061118",
+      "AaosSidebarBrush": "#091821",
+      "AaosSurfaceBrush": "#0C1C26",
+      "AaosSurface2Brush": "#102630",
+      "AaosBorderBrush": "#1D5055",
+      "AaosPrimaryBrush": "#1FC8C5",
+      "AaosPrimaryTextBrush": "#061118",
+      "AaosGoldBrush": "#E6BE73",
+      "AaosSuccessBrush": "#37C99A",
+      "AaosErrorBrush": "#E56464",
+      "AaosInfoBrush": "#3B82F6",
+      "AaosWarningBrush": "#E6BE73",
+      "AaosApprovalBrush": "#37C99A",
+      "AaosDisabledBrush": "#61747B",
+      "AaosReviewBrush": "#E6BE73",
+      "AaosIvoryBrush": "#F3EFE6",
+      "AaosMutedBrush": "#96AAB4",
+      "AaosOverlayBrush": "#9E061118",
+      "AaosPrimaryGradientEnd": "#63DED3",
+      "AaosBrandMarkEnd": "#8DC398",
+      "AaosGridBrush": "#0DFFFFFF",
+      "AaosAmbientPrimaryBrush": "#661FC8C5",
+      "AaosAmbientSecondaryBrush": "#55E6BE73",
+      "AaosAmbientTertiaryBrush": "#401FC8C5",
+      "AaosNavActiveStart": "#14343D",
+      "AaosNavActiveEnd": "#102630",
+      "AaosAmbientStart": "#1FC8C5",
+      "AaosAmbientMiddle": "#136F79",
+      "AaosAmbientEnd": "#0C1C26"
+    }
+  },
+  "layout": {
+    "sidebar_dip": 248,
+    "topbar_dip": 60,
+    "activity_collapsed_dip": 44,
+    "inspector_dip": 320,
+    "inspector_min_dip": 280,
+    "inspector_max_dip": 400,
+    "page_padding_dip": 28,
+    "reader_max_text_width_dip": 760,
+    "reader_object_tree_dip": 164
+  },
+  "breakpoints_dip": {
+    "full_inspector": 1600,
+    "compact_inspector": 1360,
+    "overlay_inspector": 1100,
+    "compact_nav": 900
+  },
+  "spacing": [
+    4,
+    8,
+    12,
+    16,
+    24,
+    28,
+    32,
+    48
+  ],
+  "radii": {
+    "control": 8,
+    "panel": 12,
+    "dialog": 16
+  },
+  "typography_dip": {
+    "body": 14,
+    "reading": 17,
+    "caption": 12,
+    "section": 16,
+    "page": 28
+  },
+  "motion_ms": {
+    "hover": 120,
+    "transition": 180,
+    "drawer": 220
+  },
+  "native_theme": "existing FluentTheme 12.1.2 + AaosTheme + ThemePalette"
+}

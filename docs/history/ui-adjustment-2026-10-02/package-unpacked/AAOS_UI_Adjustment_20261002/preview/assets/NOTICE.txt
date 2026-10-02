@@ -1,0 +1,5 @@
+AAOS icon geometry and brand asset reused from DTALEX66/ArcheAxis-Knowledge-OS at main SHA 59498723a8d4e94c6314e490473ba6d60847c247. This is a user-authorized design handoff for that project.
+
+The preview font is a renamed, subset derivative of Noto Sans SC from https://github.com/google/fonts/tree/main/ofl/notosanssc . Original copyright and SIL OFL 1.1 are preserved in NotoSansSC-OFL.txt. It is bundled solely for portable Chinese design previews; production uses the project's existing font strategy.
+
+All displayed documents, answers, event times and object statuses in the HTML are fixed illustrative fixtures. No runtime-state or product-completion claim is made.

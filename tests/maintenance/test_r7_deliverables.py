@@ -213,3 +213,70 @@ def test_the_archive_holds_the_complete_document_not_a_partial_copy():
     # the replaced partial copy stays recorded rather than being silently overwritten
     assert "superseded_partial_archive" in manifest
     assert "RESOLVED" in manifest["truncation"]["observed"]
+
+
+# --- the 2026-10-02 UI adjustment package and the DSH contract check ---------------------------
+def test_the_ui_package_archive_is_intact():
+    archive = REPO / "docs/history/ui-adjustment-2026-10-02"
+    manifest = json.loads((archive / "ARCHIVE_MANIFEST.json").read_text(encoding="utf-8"))
+    assert manifest["integrity"] == "PASS"
+    assert manifest["source_copies"][0]["byte_identical"] is True
+    assert manifest["zip_entry_count"] == 52, manifest["zip_entry_count"]
+    assert manifest["unpacked_entry_count"] == 52, manifest["unpacked_entry_count"]
+    # every recorded member must still be there at the recorded size
+    unpacked = archive / "package-unpacked"
+    for entry in manifest["entries"]:
+        path = unpacked / entry["path"]
+        assert path.is_file(), f"archived member is missing: {entry['path']}"
+        assert path.stat().st_size == entry["bytes"], entry["path"]
+    # the six spaces the package freezes
+    assert manifest["category_counts"]["screenshots"] == 19
+    assert manifest["category_counts"]["specs"] == 8
+    assert manifest["category_counts"]["integration"] == 6
+    assert manifest["category_counts"]["prompts"] == 3
+
+
+def test_the_contract_verification_matches_the_core_route_table():
+    record = json.loads(
+        (DOCS / "AAOS-UI-CONTRACT-VERIFICATION-20261002.json").read_text(encoding="utf-8"))
+    measured = record["route_table_measured"]
+    # 25 unconditional projection routes + 1 conditional legacy receipts mount = 26, which is what
+    # the published contract states and what the route table contains
+    assert measured["unconditional_routes"] == 25, measured
+    assert len(measured["conditional_routes"]) == 1, measured
+    assert measured["explicitly_registered_routes"] == 26, measured
+    assert measured["conditional_routes"][0]["path"] == "/api/v1/jobs/:job_id/receipts"
+
+
+def test_no_ui_capability_is_claimed_for_a_route_that_does_not_exist():
+    """The prompt forbids inventing a path; a claim of 已有 must point at a registered route."""
+    record = json.loads(
+        (DOCS / "AAOS-UI-CONTRACT-VERIFICATION-20261002.json").read_text(encoding="utf-8"))
+    registered = {route["path"] for route in record["unconditional_production_routes"]}
+    registered |= {route["path"] for route in record["route_table_measured"]["conditional_routes"]}
+    for entry in record["verification"]:
+        if entry["status"] == "已有":
+            assert entry["path"] in registered, (
+                f"{entry['capability']} claims 已有 at {entry['path']}, which is not registered")
+        else:
+            # an absent capability must not quietly carry a hopeful URL
+            assert entry["path"] is None or entry["path"] not in registered, entry
+
+
+def test_retest_is_recorded_as_representable_rather_than_absent():
+    """`retest_of` exists on the machine task receipt, so 'no retest at all' would be wrong."""
+    record = json.loads(
+        (DOCS / "AAOS-UI-CONTRACT-VERIFICATION-20261002.json").read_text(encoding="utf-8"))
+    detail = record["retest_detail"]
+    assert detail["field_present"] == "retest_of"
+    assert detail["where"] == "GET /api/v1/machine/tasks/:task_id"
+
+
+def test_the_ui_prompt_that_assigns_this_work_is_archived():
+    """The package's third prompt is the one addressed to this executor; it must be in the archive."""
+    prompt = (REPO / "docs/history/ui-adjustment-2026-10-02/package-unpacked"
+                      "/AAOS_UI_Adjustment_20261002/prompts/03_DSH契约核对补充.txt")
+    assert prompt.is_file(), "the DSH contract-verification prompt is not archived"
+    text = prompt.read_text(encoding="utf-8")
+    for anchor in ("correction/retest", "plugin", "graph"):
+        assert anchor in text, f"the archived prompt does not mention {anchor}"

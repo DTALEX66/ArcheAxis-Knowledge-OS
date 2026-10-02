@@ -1,0 +1,15 @@
+<ResourceDictionary xmlns="https://github.com/avaloniaui"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+  <!-- Merge selectively into current resources; no global theme replacement. -->
+  <x:Double x:Key="AaosUiSidebarWidth">248</x:Double>
+  <x:Double x:Key="AaosUiTopbarHeight">60</x:Double>
+  <x:Double x:Key="AaosUiInspectorWidth">320</x:Double>
+  <x:Double x:Key="AaosUiActivityHeight">44</x:Double>
+  <x:Double x:Key="AaosUiPagePadding">28</x:Double>
+  <x:Double x:Key="AaosUiReaderFontSize">17</x:Double>
+  <x:Double x:Key="AaosUiBodyFontSize">14</x:Double>
+  <x:Double x:Key="AaosUiCaptionFontSize">12</x:Double>
+  <x:Double x:Key="AaosUiPageTitleFontSize">28</x:Double>
+  <x:Double x:Key="AaosUiControlRadius">8</x:Double>
+  <x:Double x:Key="AaosUiPanelRadius">12</x:Double>
+</ResourceDictionary>
