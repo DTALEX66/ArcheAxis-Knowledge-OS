@@ -1,0 +1,189 @@
+{
+  "document": "AAOS_R7_FAST_CLOSURE_TASKPACK",
+  "baseline_date": "2026-10-02",
+  "recorded_at": "2026-10-02T06:59:33.025500+00:00",
+  "relationship": {
+    "R6": "authority and engineering baseline - unchanged",
+    "M0": "shortest complete loop overlay - unchanged",
+    "R7": "product fast-closure execution layer; it replaces neither and adds no third route"
+  },
+  "acceptance_levels": [
+    "PLANNED",
+    "CONTRACT_ONLY",
+    "IMPLEMENTED",
+    "TESTED_LOCAL",
+    "INTEGRATED",
+    "REAL_INPUT_VERIFIED",
+    "GREEN_VERIFIED",
+    "RELEASED"
+  ],
+  "forbidden_inferences": [
+    "tests = product complete",
+    "a TaskPack = implemented",
+    "CI = a human closed loop",
+    "a candidate package = Green",
+    "model configuration = a runnable model",
+    "a plugin manifest = a finished plugin system"
+  ],
+  "gates": [
+    {
+      "gate": "G0",
+      "name": "RECONCILE",
+      "objective": "History + Library + main + PR156/157/158 + Local fully reconciled; no asset lost.",
+      "status": "DONE",
+      "evidence": [
+        "docs/current/AAOS-20261002-MASTER-RECONCILIATION.json",
+        "docs/current/AAOS-CLOUD-BRANCH-RECONCILIATION-20261002.md",
+        "docs/current/AAOS-FULL-HISTORY-RECOVERY-20261002.json"
+      ],
+      "measured": {
+        "remote_branches": 5,
+        "open_draft_prs": 3,
+        "history_archive_files": 88,
+        "history_archive_mb": 13.39,
+        "archive_hash_verification": "PASS 17/17",
+        "registries": {
+          "source_baseline": 97,
+          "oss_pool": 369,
+          "supply_chain": 47,
+          "capability_absorption": 11,
+          "capability_atlas": 16,
+          "requirement_trace": 17
+        },
+        "merge_order": "#156 (to main) -> #157 -> #158, with a conflict re-check before #158"
+      },
+      "exit_criteria": "Every cloud and local asset has a SHA, an authority, an implementation status and a disposition; the history archive verifies against its own manifest."
+    },
+    {
+      "gate": "G1",
+      "name": "TRUSTED CORE",
+      "objective": "Freeze Source, Knowledge, Evidence, Version, Review, learning state, AI candidate state and the plugin contract; add the plugin registry, capability resolver, enable/disable, health, default/fallback and provider replacement.",
+      "status": "PARTIAL",
+      "existing": [
+        "crates/archeaxis-api + application + domain already own Source, Knowledge, Evidence, Version, Review and learning state, with a single-writer boundary",
+        "capability routes already resolve a declared capability to a worker script (launch-declared routes, Executor::open_routes, KNOWN_WORKER_IDENTITIES)",
+        "a readiness checker reports per-route capability by launching the Core"
+      ],
+      "missing": [
+        "a plugin registry with enable/disable",
+        "a capability resolver exposed over HTTP",
+        "health per capability",
+        "default/fallback provider selection"
+      ],
+      "explicitly_not": "no marketplace",
+      "exit_criteria": "A capability can be registered, resolved, disabled and health-checked without editing the Core, and no plugin writes the canonical database."
+    },
+    {
+      "gate": "G2",
+      "name": "UNIVERSAL KNOWLEDGE",
+      "objective": "First batch TXT, MD, PDF, HTML, Image/OCR, DOCX; second batch PPTX, XLSX, Audio/ASR, Video; the chain Import -> Raw Asset -> Source -> Transform -> Anchor -> Knowledge -> Evidence -> Search -> Ask/Read.",
+      "status": "MOSTLY_PRESENT",
+      "measured": {
+        "routes_declared_and_staged": 10,
+        "real_material_matrix": "9 of 9 converted, readiness 9 of 9",
+        "worker_routes": [
+          "text.extract",
+          "pdf.extract",
+          "image.ocr",
+          "image.caption",
+          "office.structure",
+          "html.structure",
+          "archive.inventory",
+          "canvas.structure",
+          "subtitles.structure",
+          "media.probe",
+          "media.transcribe"
+        ]
+      },
+      "missing": [
+        "software compatibility: Markdown Folder, Obsidian Vault, Git, Notion Export",
+        "ask/read with citations over the knowledge store",
+        "video decode as a knowledge route"
+      ],
+      "exit_criteria": "Each first-batch format reaches an Evidence anchor and a Knowledge object from a real file, and one external knowledge-software source imports."
+    },
+    {
+      "gate": "G3",
+      "name": "HUMAN LEARNING LITE",
+      "objective": "Knowledge -> Learning Objective -> Assessment -> User Answer -> Feedback -> FSRS -> Review -> Restart Readback, operable from the real UI, while keeping the full heavy Learning schema.",
+      "status": "PRESENT_EXCEPT_UI",
+      "measured": {
+        "routes": [
+          "POST /learning/items/{item_key}/references",
+          "GET|POST /learning/items/{item_key}/assessment",
+          "POST /learning/reviews",
+          "POST /learning/events",
+          "GET /learning/events/{item_key}",
+          "GET /learning/items",
+          "GET /learning/items/{item_key}/state"
+        ],
+        "fsrs": "real scheduling when the launch interpreter can schedule; unavailable otherwise",
+        "m0_chain": "27 of 27 stages, restart readback identical"
+      },
+      "missing": [
+        "a real human operating the loop from the UI rather than from a probe"
+      ],
+      "exit_criteria": "A person answers a generated question in the product UI, the schedule is recorded, and after a restart the same state reads back."
+    },
+    {
+      "gate": "G4",
+      "name": "MACHINE / CO-LEARNING LITE",
+      "objective": "Accepted Knowledge -> Real Task -> AI Output -> Human identifies a real error -> Correction Candidate -> Human Review -> Retest -> Result, then candidate generation for Knowledge/Memory/Rule/Skill with no automatic promotion.",
+      "status": "BLOCKED_UNWIRED",
+      "measured": {
+        "local_model_runtime": "LM Studio on 127.0.0.1:1234 serving six models; a real caption and a real completion were produced",
+        "comfyui": "0.33.1 with the H3 video stack resolvable through its API",
+        "machine_routes": "POST /machine/tasks records a receipt; it does not execute a model"
+      },
+      "missing": [
+        "a capability route that runs a real model task and stores its output as a candidate",
+        "an error-identification surface bound to a human correction",
+        "retest bound to the correction"
+      ],
+      "exit_criteria": "One real model runs on accepted knowledge, a human marks a real error, the correction is reviewed, a retest runs, and the result is recorded - with nothing auto-promoted."
+    },
+    {
+      "gate": "G5",
+      "name": "DAILY PRODUCT / LOCAL GREEN",
+      "objective": "One golden journey end to end, then backup, restore, migration, candidate, Green and rollback, with replacement only after the Owner Gate.",
+      "status": "NOT_EXECUTED",
+      "golden_journey": [
+        "drag in a real PDF",
+        "original preserved",
+        "conversion",
+        "Evidence anchor",
+        "Knowledge",
+        "search",
+        "AI cited answer",
+        "learning question",
+        "user answer",
+        "FSRS",
+        "AI uses the same knowledge",
+        "AI makes an error",
+        "human correction",
+        "candidate",
+        "review",
+        "retest",
+        "close AAOS",
+        "restart",
+        "everything reads back"
+      ],
+      "then": [
+        "backup",
+        "restore",
+        "migration",
+        "candidate",
+        "Green",
+        "rollback"
+      ],
+      "blocked_by": [
+        "G4 not wired",
+        "the Owner Gate for replacement",
+        "the frozen release boundary"
+      ],
+      "exit_criteria": "The journey completes on a real file by a real person, and a restart reads everything back."
+    }
+  ],
+  "parallel_routes": 1,
+  "conclusion": "Four gates are measurable now: G0 is done, G1 and G2 are largely present with named gaps, and G3 needs a human at the UI rather than more code. G4 is the first gate that is blocked by wiring rather than by a decision, and G5 depends on G4 plus the Owner Gate. There is one route, G0 -> G5, and nothing here creates a second."
+}
