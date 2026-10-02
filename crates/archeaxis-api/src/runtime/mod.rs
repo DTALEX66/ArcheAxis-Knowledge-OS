@@ -46,6 +46,9 @@ pub fn router(executor: Executor) -> Router {
         // needs the executor, and the executor is this router's state; the projection builder holds
         // only the store and cannot reach a worker.
         .route("/api/v1/machine/answers", post(machine_answer))
+        // G2: Ask with citations. It needs the store and the domain search matcher, both reachable
+        // from the executor, and it answers over the same material the search route answers over.
+        .route("/api/v1/ask", post(ask))
         .with_state(Runtime {
             executor,
             active: Arc::new(Mutex::new(HashMap::new())),
@@ -68,6 +71,31 @@ async fn set_capability_enabled(
     Json(body): Json<CapabilityEnabledBody>,
 ) -> Response {
     crate::capabilities::set_enabled(&runtime.executor, &name, body.enabled).await
+}
+
+/// G2: answer a question from accepted material, with the citations that make it checkable.
+async fn ask(State(runtime): State<Runtime>, Json(body): Json<AskBody>) -> Response {
+    if body.question.trim().is_empty() {
+        return (
+            StatusCode::UNPROCESSABLE_ENTITY,
+            "a question is required; an answer to nothing is not an answer",
+        )
+            .into_response();
+    }
+    // Bounded so a projection cannot be turned into a full-table read by a caller, and floored at 1
+    // so `limit: 0` asks for something rather than silently answering with nothing.
+    let limit = body.limit.unwrap_or(20).clamp(1, 100);
+    let question = body.question.clone();
+    let asked = runtime
+        .executor
+        .store()
+        .submit_wait(move |conn: &mut rusqlite::Connection| crate::ask::ask(conn, &question, limit))
+        .await;
+    match asked {
+        Ok(Ok(document)) => Json(document).into_response(),
+        Ok(Err(e)) => (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()).into_response(),
+        Err(e) => (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()).into_response(),
+    }
 }
 
 /// G4: ask the local model one question about one accepted knowledge item.
@@ -200,6 +228,15 @@ struct MachineAnswerBody {
     max_tokens: Option<u64>,
     #[serde(default)]
     timeout_s: Option<u64>,
+}
+
+/// The body of an Ask request. `limit` is optional; the query is not.
+#[derive(Deserialize)]
+#[serde(deny_unknown_fields)]
+struct AskBody {
+    question: String,
+    #[serde(default)]
+    limit: Option<i64>,
 }
 
 async fn execute(
