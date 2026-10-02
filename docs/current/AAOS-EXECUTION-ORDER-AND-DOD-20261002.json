@@ -116,9 +116,28 @@
         },
         {
           "item": "G4 machine co-learning lite",
-          "dod": "one real model runs on accepted knowledge, a human marks a real error, the correction is reviewed, a retest runs, and nothing is auto-promoted",
+          "dod": "one real model answers from accepted knowledge over HTTP, a human records a specific error with the correction, the correction is stored as a candidate, and promotion runs only through human review",
           "depends_on": "nothing measurable; the runtime is installed and serving",
-          "status": "READY"
+          "status": "READY",
+          "delivered_in": [
+            "facc4144 (the machine answer worker over the local model)",
+            "637a4bb7 (POST /api/v1/machine/answers: grounded in the knowledge item's own body)",
+            "a4acd1a8 (POST /api/v1/machine/corrections: the human half, as an un-promotable candidate)"
+          ],
+          "what_is_wired": {
+            "machine_answer": "POST /api/v1/machine/answers asks the local model one question about one accepted knowledge item, whose own body is the context",
+            "human_correction": "POST /api/v1/machine/corrections records the model's answer and the correction together with the specific error; a machine principal is 403",
+            "no_auto_promotion": "the correction is an OBSERVATION with status candidate and an UNSOURCED evidence status, and the domain refuses to accept or verify machine-origin content automatically; a machine principal is also refused the review action",
+            "retest_representable": "a retest is a machine task carrying `retest_of`, so the link exists; no route runs one yet"
+          },
+          "what_still_needs_a_person": [
+            "a real human finding a real error in a real answer, which is the step the gate is for",
+            "a human accepting the correction through POST /api/v1/knowledge-items/{id}/review-decisions"
+          ],
+          "remaining": [
+            "a route that runs the retest and links it to the corrected knowledge",
+            "candidate generation beyond the correction itself"
+          ]
         },
         {
           "item": "G5 product / local Green",
