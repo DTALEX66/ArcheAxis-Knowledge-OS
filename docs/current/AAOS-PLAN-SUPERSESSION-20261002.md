@@ -1,5 +1,7 @@
 # Plan supersession — 2026-10-02
 
+Source of this plan: archived verbatim at docs/history/plan-recovery-2026-10-02/AAOS-R7-PLAN-2026-10-02.md (SHA-256 in that directory's ARCHIVE_MANIFEST.json).
+
 ## What changed
 
 | | Previous | Now |

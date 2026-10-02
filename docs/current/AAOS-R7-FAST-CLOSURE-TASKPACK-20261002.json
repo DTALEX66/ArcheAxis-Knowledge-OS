@@ -185,5 +185,6 @@
     }
   ],
   "parallel_routes": 1,
-  "conclusion": "Four gates are measurable now: G0 is done, G1 and G2 are largely present with named gaps, and G3 needs a human at the UI rather than more code. G4 is the first gate that is blocked by wiring rather than by a decision, and G5 depends on G4 plus the Owner Gate. There is one route, G0 -> G5, and nothing here creates a second."
+  "conclusion": "Four gates are measurable now: G0 is done, G1 and G2 are largely present with named gaps, and G3 needs a human at the UI rather than more code. G4 is the first gate that is blocked by wiring rather than by a decision, and G5 depends on G4 plus the Owner Gate. There is one route, G0 -> G5, and nothing here creates a second.",
+  "source_plan_archive": "docs/history/plan-recovery-2026-10-02/AAOS-R7-PLAN-2026-10-02.md"
 }
