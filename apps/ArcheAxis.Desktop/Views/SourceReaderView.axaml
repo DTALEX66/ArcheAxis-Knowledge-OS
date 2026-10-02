@@ -176,6 +176,18 @@
               </Grid>
           </StackPanel>
           <TextBlock x:Name="SourceReaderChainBoundaryText" Text="仅为 Core 来源成员投影；不代表正文、理解或 evidence anchor。" TextWrapping="Wrap" FontSize="11" Classes="status-empty" />
+          <Border x:Name="SourceReaderKnowledgeLinksBorder" Classes="aaos-card-compact" Padding="12">
+            <StackPanel Spacing="7">
+              <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
+                <TextBlock Text="由此产生的 Knowledge" Classes="card-heading" />
+                <TextBlock Grid.Column="1" Text="双向导航" Classes="provenance-evidence" />
+              </Grid>
+              <TextBlock x:Name="SourceReaderKnowledgeLinksText" Text="Core 未返回与此来源锚点关联的 Knowledge。" TextWrapping="Wrap" FontSize="11" Classes="status-empty" />
+              <Button x:Name="BackToKnowledgeFromAnchorButton" Classes="aaos-compact source-reader-available" IsEnabled="False" HorizontalAlignment="Left" Padding="12,7" Click="OnReturnToKnowledgeClick" AutomationProperties.Name="从来源锚点返回关联 Knowledge">
+                <StackPanel Orientation="Horizontal" Spacing="7"><local:AaosIcon IconName="Knowledge" Width="15" Height="15"/><TextBlock Text="返回关联 Knowledge" /></StackPanel>
+              </Button>
+            </StackPanel>
+          </Border>
           <Separator Margin="0,4" />
           <TextBlock Text="Context Actions" FontSize="12" Foreground="{DynamicResource AaosMutedBrush}" />
           <StackPanel x:Name="SourceReaderContextActions" Orientation="Horizontal" Spacing="8">

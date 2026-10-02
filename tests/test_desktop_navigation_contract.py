@@ -998,9 +998,12 @@ def test_aaos_theme_tokens_replace_the_legacy_indigo_shell_palette() -> None:
         assert color in monochrome
     for color in ("#081020", "#0C1728", "#101D2E", "#2EC4B6", "#F8F6EB"):
         assert color in aurora
-    assert 'palette == Monochrome ? MonochromeColors : AuroraColors' in palettes
+    assert 'IvoryColors = new Dictionary' in palettes
+    assert 'Ivory => IvoryColors' in palettes
+    assert 'Monochrome => MonochromeColors' in palettes
 
-    assert 'Background="{DynamicResource AaosBackgroundBrush}"' in xaml
+    assert 'Background="Transparent"' in xaml
+    assert 'ThemePalette.ResolveBrush("AaosBackgroundBrush")' in (ROOT / 'apps/ArcheAxis.Desktop/AaosBackdrop.cs').read_text(encoding='utf-8')
     assert 'BorderBrush="{DynamicResource AaosBorderBrush}"' in xaml
     for legacy in ("#6366F1", "#050505", "#111113", "#2B2E63"):
         assert legacy not in xaml
@@ -1055,7 +1058,7 @@ def test_aaos_primary_rail_labels_use_a_shared_typography_class() -> None:
     xaml = XAML.read_text(encoding="utf-8")
     theme = THEME_XAML.read_text(encoding="utf-8")
     assert 'Selector="TextBlock.rail-label"' in theme
-    assert xaml.count('Classes="rail-label"') == 11
+    assert xaml.count('Classes="rail-label"') == 12
     assert 'FontSize="18"' not in xaml
 
 
@@ -2062,7 +2065,7 @@ def test_ui_home_prioritizes_learning_and_reader_views_scale_before_stacking() -
 def test_compact_home_reflows_graph_after_b10_evidence_dashboard() -> None:
     code = CODE.read_text(encoding="utf-8")
 
-    assert 'var homeGraphSingleColumn = frameSize.Width <= 1160;' in code
+    assert 'var homeGraphSingleColumn = contentWidth <= 1160;' in code
     assert 'HomeGraphContentGrid.RowDefinitions = homeGraphSingleColumn' in code
 
 
@@ -2418,7 +2421,7 @@ def test_compact_home_and_source_reader_use_explicit_single_column_reflow() -> N
     assert 'new RowDefinitions("Auto,Auto,Auto")' in reader_code
     assert 'Grid.SetRow(SourceReaderChainBorder, compact ? 2 : 0);' in reader_code
     assert _control('HomeHeroVisual').tag.endswith('AaosMemoryGraphView')
-    assert 'var homeGraphSingleColumn = frameSize.Width <= 1160;' in code
+    assert 'var homeGraphSingleColumn = contentWidth <= 1160;' in code
     assert 'HomeGraphContentGrid.RowDefinitions = homeGraphSingleColumn' in code
     assert 'Grid.SetColumn(HomeNodeDetailsCard, homeGraphSingleColumn ? 0 : 1);' in code
 
@@ -2844,8 +2847,7 @@ def test_source_reader_action_group_is_attached_to_source_chain() -> None:
     reader_xaml = SOURCE_READER_XAML.read_text(encoding="utf-8")
 
     chain_start = reader_xaml.index('x:Name="SourceReaderChainBorder"')
-    chain_end = reader_xaml.index('</Border>', chain_start)
-    chain = reader_xaml[chain_start:chain_end]
+    chain = reader_xaml[chain_start:]
     assert 'x:Name="SourceReaderContextActions"' in chain
 
 

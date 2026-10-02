@@ -47,7 +47,8 @@ def test_monochrome_remains_neutral_and_aurora_default_is_explicitly_selectable(
     assert aurora["AaosIvoryBrush"] == "#F8F6EB"
     assert _brushes()["AaosBackgroundBrush"] == aurora["AaosBackgroundBrush"]
     palette_code = PALETTE.read_text(encoding="utf-8")
-    assert "palette == Monochrome ? MonochromeColors : AuroraColors" in palette_code
+    assert "Ivory => IvoryColors" in palette_code
+    assert "Monochrome => MonochromeColors" in palette_code
     assert "resources[key] = new SolidColorBrush(Color.Parse(value));" in palette_code
     shell = (PALETTE.parent / "MainWindow.axaml.cs").read_text(encoding="utf-8")
     assert "ThemePalette.Apply(ThemePalette.Aurora);" in shell
@@ -63,6 +64,7 @@ def test_aurora_effects_and_navigation_gradients_follow_current_brand_tokens() -
     assert aurora["AaosAmbientStart"] == aurora["AaosPrimaryBrush"]
     assert aurora["AaosBrandMarkEnd"] == aurora["AaosPrimaryBrush"]
     assert aurora["AaosAmbientSecondaryBrush"] == "#55F4D08B"
-    assert 'palette == Aurora ? "#66F4D08B"' in palette_code
+    assert 'Aurora => "#66F4D08B"' in palette_code
+    assert 'Ivory => "#449A6F21"' in palette_code
     for old_color in ("#1FC8C5", "#8DC398", "#14343D", "#102630", "#061118"):
         assert old_color not in theme

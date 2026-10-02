@@ -30,14 +30,26 @@ class NavigationHierarchyContract(unittest.TestCase):
         self.assertIn("RailSystemButton", self.named)
 
     def test_context_and_compact_navigation_have_real_route_targets(self):
-        for name in ("ContextKnowledgeSubnav", "ContextOriginalSubnav", "ContextProjectSubnav",
+        for name in ("ContextKnowledgeSubnav", "ContextOriginalSubnav", "ContextReviewSubnav", "ContextProjectSubnav",
                      "ContextMemorySubnav", "ContextSearchSubnav", "ContextSystemSubnav",
                      "CompactContextNavigation", "BreadcrumbDomainButton"):
             self.assertIn(name, self.named)
         self.assertIn('var showContextSidebar = !mobile && frameSize.Width >= 1120 && _activeSection != "home";', self.code)
         self.assertIn('CompactContextNavigation.IsVisible = !showContextSidebar && _activeSection != "home";', self.code)
         self.assertIn('section is "evidence" or "library" or "source-reader" or "knowledge"', self.code)
+        self.assertIn('ContextLearningSubnav.IsVisible = section == "learning";', self.code)
+        self.assertIn('ContextReviewSubnav.IsVisible = section == "review";', self.code)
         self.assertIn("OnBreadcrumbDomainClick", self.code)
+
+    def test_home_workspace_memory_and_review_keep_required_second_level_tasks(self):
+        text = XAML.read_text(encoding="utf-8")
+        for label in ("快速捕获", "今日学习与复习", "今日复习队列", "空间 / 项目树 · 等待 Core 投影",
+                      "文件 / 文档 / 回收站 · 待开发", "个人记忆 · 等待 Core 投影", "知识关联"):
+            self.assertIn(label, text)
+
+    def test_real_projection_updates_third_level_object_path(self):
+        self.assertIn('ContextObjectPathText.Text = sourceIdentity == "未暴露"', self.code)
+        self.assertIn('$"当前对象 → {objectName} · 来源 {sourceIdentity} · 版本 {versionIdentity}"', self.code)
 
     def test_blueprint_is_read_only_and_no_sample_person(self):
         text = XAML.read_text(encoding="utf-8")

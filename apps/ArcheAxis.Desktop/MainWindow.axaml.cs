@@ -319,8 +319,12 @@ public partial class MainWindow : Window
                 Width = captureWidth;
             if (double.TryParse(Environment.GetEnvironmentVariable("AAOS_UI_CAPTURE_HEIGHT"), System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out var captureHeight) && captureHeight > 0)
                 Height = captureHeight;
-            var capturePalette = Environment.GetEnvironmentVariable("AAOS_UI_CAPTURE_THEME") == ThemePalette.Monochrome
-                ? ThemePalette.Monochrome : ThemePalette.Aurora;
+            var capturePalette = Environment.GetEnvironmentVariable("AAOS_UI_CAPTURE_THEME") switch
+            {
+                ThemePalette.Ivory => ThemePalette.Ivory,
+                ThemePalette.Monochrome => ThemePalette.Monochrome,
+                _ => ThemePalette.Aurora,
+            };
             ApplyThemePalette(capturePalette);
             try
             {
@@ -441,7 +445,12 @@ public partial class MainWindow : Window
         if (!CaptureRoutes.TryGetValue(route, out var applyRoute))
             throw new ArgumentException($"Unknown UI capture route: {route}", nameof(route));
         applyRoute(this);
-        SettingsThemePaletteBox.SelectedIndex = Environment.GetEnvironmentVariable("AAOS_UI_CAPTURE_THEME") == ThemePalette.Monochrome ? 1 : 0;
+        SettingsThemePaletteBox.SelectedIndex = Environment.GetEnvironmentVariable("AAOS_UI_CAPTURE_THEME") switch
+        {
+            ThemePalette.White => 1,
+            ThemePalette.Black => 2,
+            _ => 0,
+        };
     }
 
     private void CaptureWindowPng(string path)
@@ -657,7 +666,7 @@ public partial class MainWindow : Window
             "capture" => "捕获",
             "evidence" or "library" or "source-reader" or "knowledge" => "证据库",
             "original-editor" => "原创",
-            "learning" => "人类学习",
+            "learning" => "学习",
             "review" => "复习 / FSRS",
             "machine-growth" => "机器学习",
             "workspace" or "research" => "工作区",
@@ -766,7 +775,8 @@ public partial class MainWindow : Window
         ContextCaptureSubnav.IsVisible = section == "capture";
         ContextKnowledgeSubnav.IsVisible = section is "evidence" or "library" or "source-reader" or "knowledge";
         ContextOriginalSubnav.IsVisible = section == "original-editor";
-        ContextLearningSubnav.IsVisible = section is "learning" or "review";
+        ContextLearningSubnav.IsVisible = section == "learning";
+        ContextReviewSubnav.IsVisible = section == "review";
         ContextMachineSubnav.IsVisible = section == "machine-growth";
         ContextProjectSubnav.IsVisible = section is "workspace" or "research";
         ContextMemorySubnav.IsVisible = section == "memory-map";
@@ -1008,6 +1018,11 @@ public partial class MainWindow : Window
         InspectorChainVersionText.Text = $"版本 → {DisplayInspectorValue(version)}";
         InspectorChainProjectionText.Text = $"当前投影 → {DisplayInspectorValue(objectName)}";
         InspectorProvenanceText.Text = "来自平台数据；缺失字段不会补猜。";
+        var sourceIdentity = DisplayInspectorValue(source);
+        var versionIdentity = DisplayInspectorValue(version);
+        ContextObjectPathText.Text = sourceIdentity == "未暴露" && versionIdentity == "未暴露"
+            ? $"当前对象 → {objectName}"
+            : $"当前对象 → {objectName} · 来源 {sourceIdentity} · 版本 {versionIdentity}";
         RefreshInspectorAccessibleNames();
     }
 
@@ -1664,7 +1679,12 @@ public partial class MainWindow : Window
 
     private void OnThemePaletteChanged(object? sender, SelectionChangedEventArgs e)
     {
-        var selected = SettingsThemePaletteBox.SelectedIndex == 1 ? ThemePalette.Monochrome : ThemePalette.Aurora;
+        var selected = SettingsThemePaletteBox.SelectedIndex switch
+        {
+            1 => ThemePalette.White,
+            2 => ThemePalette.Black,
+            _ => ThemePalette.Aurora,
+        };
         ApplyThemePalette(selected);
     }
 
@@ -1683,7 +1703,12 @@ public partial class MainWindow : Window
                 AlignmentY = AlignmentY.Center
             };
         }
-        SettingsThemePaletteBox.SelectedIndex = palette == ThemePalette.Monochrome ? 1 : 0;
+        SettingsThemePaletteBox.SelectedIndex = palette switch
+        {
+            ThemePalette.White => 1,
+            ThemePalette.Black => 2,
+            _ => 0,
+        };
     }
 
     private void OnRecoveryClick(object? sender, RoutedEventArgs e) => SetSection("recovery", "恢复");
@@ -4179,7 +4204,8 @@ public partial class MainWindow : Window
         var tabletBreakpoint = GetAaosBreakpoint("AaosTabletBreakpoint", 1024);
         var mobileBreakpoint = GetAaosBreakpoint("AaosMobileBreakpoint", 840);
         var mobile = frameSize.Width <= mobileBreakpoint;
-        var sidebarWidth = MasterSidebarWidth;
+        var expandedRail = !mobile && frameSize.Width >= narrowActionsBreakpoint;
+        var sidebarWidth = expandedRail ? 224d : MasterSidebarWidth;
         var showContextSidebar = !mobile && frameSize.Width >= 1120 && _activeSection != "home";
         var desktopWorkspaceWidth = Math.Max(0, frameSize.Width - (mobile ? 0 : sidebarWidth) - (showContextSidebar ? 200 : 0));
         var wideInspector = frameSize.Width >= inspectorBreakpoint;
@@ -4214,6 +4240,18 @@ public partial class MainWindow : Window
         TopbarNotificationsButton.Padding = mobile ? new Avalonia.Thickness(10, 8) : new Avalonia.Thickness(12, 8);
         TopbarWorkspaceButton.Padding = mobile ? new Avalonia.Thickness(10, 8) : new Avalonia.Thickness(12, 8);
         ApplicationMenu.IsVisible = false;
+        PrimaryRailBrandText.IsVisible = expandedRail;
+        RailHomeLabel.IsVisible = expandedRail;
+        RailCaptureLabel.IsVisible = expandedRail;
+        RailEvidenceLabel.IsVisible = expandedRail;
+        RailOriginalsLabel.IsVisible = expandedRail;
+        RailLearningLabel.IsVisible = expandedRail;
+        RailMachineLabel.IsVisible = expandedRail;
+        RailWorkspaceTreeLabel.IsVisible = expandedRail;
+        RailMemoryLabel.IsVisible = expandedRail;
+        RailSearchLabel.IsVisible = expandedRail;
+        RailReviewLabel.IsVisible = expandedRail;
+        RailSystemLabel.IsVisible = expandedRail;
         TopbarNotificationsButton.IsVisible = true;
         CoreStatusBorder.IsVisible = !mobile;
         TopbarCommandButton.MaxWidth = mobile ? 52 : contentWidth < tabletBreakpoint ? 420 : 620;
@@ -4229,14 +4267,14 @@ public partial class MainWindow : Window
         Grid.SetRow(originalReferenceColumn, compact ? 1 : 0);
         const double homeStatsTwoColumnBreakpoint = 1160;
         const double homeStatsSingleColumnBreakpoint = 840;
-        HomeStatsSurface.ColumnDefinitions = frameSize.Width <= homeStatsSingleColumnBreakpoint
+        HomeStatsSurface.ColumnDefinitions = contentWidth <= homeStatsSingleColumnBreakpoint
             ? new ColumnDefinitions("*")
-            : frameSize.Width <= homeStatsTwoColumnBreakpoint
+            : contentWidth <= homeStatsTwoColumnBreakpoint
                 ? new ColumnDefinitions("*,*")
                 : new ColumnDefinitions("*,*,*,*");
-        HomeStatsSurface.RowDefinitions = frameSize.Width <= homeStatsSingleColumnBreakpoint
+        HomeStatsSurface.RowDefinitions = contentWidth <= homeStatsSingleColumnBreakpoint
             ? new RowDefinitions("Auto,Auto,Auto,Auto")
-            : frameSize.Width <= homeStatsTwoColumnBreakpoint
+            : contentWidth <= homeStatsTwoColumnBreakpoint
                 ? new RowDefinitions("Auto,Auto")
                 : new RowDefinitions("Auto");
         HomeStatsSurface.RowSpacing = contentWidth < 840 ? 8 : 12;
@@ -4244,10 +4282,10 @@ public partial class MainWindow : Window
         {
             if (HomeStatsSurface.Children[index] is Border homeStatsCard)
                 homeStatsCard.Padding = contentWidth < 840 ? new Avalonia.Thickness(12, 8) : new Avalonia.Thickness(16);
-            Grid.SetColumn(HomeStatsSurface.Children[index], frameSize.Width <= homeStatsSingleColumnBreakpoint ? 0 : index % (frameSize.Width <= homeStatsTwoColumnBreakpoint ? 2 : 4));
-            Grid.SetRow(HomeStatsSurface.Children[index], frameSize.Width <= homeStatsSingleColumnBreakpoint ? index : frameSize.Width <= homeStatsTwoColumnBreakpoint ? index / 2 : 0);
+            Grid.SetColumn(HomeStatsSurface.Children[index], contentWidth <= homeStatsSingleColumnBreakpoint ? 0 : index % (contentWidth <= homeStatsTwoColumnBreakpoint ? 2 : 4));
+            Grid.SetRow(HomeStatsSurface.Children[index], contentWidth <= homeStatsSingleColumnBreakpoint ? index : contentWidth <= homeStatsTwoColumnBreakpoint ? index / 2 : 0);
         }
-        var homeEvidenceStacked = frameSize.Width <= homeStatsTwoColumnBreakpoint;
+        var homeEvidenceStacked = contentWidth <= homeStatsTwoColumnBreakpoint;
         HomeEvidenceContentGrid.ColumnDefinitions = homeEvidenceStacked
             ? new ColumnDefinitions("*")
             : new ColumnDefinitions("1.2*,1*");
@@ -4258,7 +4296,7 @@ public partial class MainWindow : Window
         Grid.SetRow(HomeRecentEvidenceCard, 0);
         Grid.SetColumn(HomeTodayProgressCard, homeEvidenceStacked ? 0 : 1);
         Grid.SetRow(HomeTodayProgressCard, homeEvidenceStacked ? 1 : 0);
-        var homeProgressSingleColumn = frameSize.Width <= homeStatsTwoColumnBreakpoint;
+        var homeProgressSingleColumn = contentWidth <= homeStatsTwoColumnBreakpoint;
         HomeTodayProgressGrid.ColumnDefinitions = homeProgressSingleColumn
             ? new ColumnDefinitions("*")
             : new ColumnDefinitions("*,*,*,*");
@@ -4442,7 +4480,7 @@ public partial class MainWindow : Window
         var recoverySummaryContentWidth = Math.Max(0, contentWidth - (mobile ? 32 : 64));
         RecoverySummaryGrid.ItemWidth = Math.Max(180, recoverySummaryContentWidth / (mobile ? 1 : 3));
         RecoverySummaryGrid.ItemHeight = mobile ? 150 : 138;
-        var learningReviewSingleColumn = frameSize.Width <= 1160;
+        var learningReviewSingleColumn = contentWidth <= 1160;
         LearningPlanGrid.ColumnDefinitions = learningReviewSingleColumn ? new ColumnDefinitions("*") : new ColumnDefinitions("1.25*,2*");
         LearningPlanGrid.RowDefinitions = learningReviewSingleColumn ? new RowDefinitions("Auto,Auto") : new RowDefinitions("Auto");
         Grid.SetColumn(LearningPlanGrid.Children[1], learningReviewSingleColumn ? 0 : 1);
@@ -4474,7 +4512,7 @@ public partial class MainWindow : Window
         Grid.SetRow(MachineLearningPanels.Children[1], compact ? 1 : 0);
         SetResponsiveToolbar(JobLookupGrid, JobLookupButton, narrowActions);
         SetMemoryMapToolbarLayout(narrowActions);
-        var homeGraphSingleColumn = frameSize.Width <= 1160;
+        var homeGraphSingleColumn = contentWidth <= 1160;
         HomeGraphContentGrid.ColumnDefinitions = homeGraphSingleColumn ? new ColumnDefinitions("*") : new ColumnDefinitions("1.35*,0.95*");
         HomeGraphContentGrid.RowDefinitions = homeGraphSingleColumn ? new RowDefinitions("Auto,Auto") : new RowDefinitions("Auto");
         Grid.SetColumn(HomeMemoryGraphCard, 0);

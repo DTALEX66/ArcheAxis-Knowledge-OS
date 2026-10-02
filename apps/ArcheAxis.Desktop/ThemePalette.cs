@@ -9,12 +9,21 @@ namespace ArcheAxis.Desktop;
 /// <summary>Applies the two user-selectable AAOS palettes.</summary>
 internal static class ThemePalette
 {
-    internal const string Monochrome = "黑白深色";
-    internal const string Aurora = "Aurora Teal";
+    internal const string Black = "黑色主题";
+    internal const string White = "白色主题";
+    internal const string DeepSpace = "深空主题";
+    internal const string Monochrome = Black;
+    internal const string Ivory = White;
+    internal const string Aurora = DeepSpace;
     internal static event EventHandler? PaletteChanged;
     public static void Apply(string palette)
     {
-        var colors = palette == Monochrome ? MonochromeColors : AuroraColors;
+        var colors = palette switch
+        {
+            Ivory => IvoryColors,
+            Monochrome => MonochromeColors,
+            _ => AuroraColors,
+        };
         var resources = Application.Current?.Resources;
         if (resources is null)
             return;
@@ -22,10 +31,39 @@ internal static class ThemePalette
         foreach (var (key, value) in colors)
             resources[key] = new SolidColorBrush(Color.Parse(value));
 
-        resources["AaosGraphGlowColor"] = Color.Parse(palette == Aurora ? "#662EC4B6" : "#66E1E4E6");
+        resources["AaosAcrylicMaterial"] = new ExperimentalAcrylicMaterial
+        {
+            BackgroundSource = AcrylicBackgroundSource.Digger,
+            TintColor = Color.Parse(palette switch
+            {
+                White => "#F7F3E8",
+                Black => "#171A1F",
+                _ => "#101D2E",
+            }),
+            TintOpacity = palette == White ? 0.58 : 0.72,
+            MaterialOpacity = palette == White ? 0.72 : 0.78,
+            FallbackColor = Color.Parse(palette switch
+            {
+                White => "#99E6E0D2",
+                Black => "#B8171A1F",
+                _ => "#B8101D2E",
+            }),
+        };
+
+        resources["AaosGraphGlowColor"] = Color.Parse(palette switch
+        {
+            Aurora => "#662EC4B6",
+            Ivory => "#55147F78",
+            _ => "#66E1E4E6",
+        });
         resources["AaosBrandMarkGlowEffect"] = new DropShadowEffect
         {
-            Color = Color.Parse(palette == Aurora ? "#66F4D08B" : "#66E1E4E6"),
+            Color = Color.Parse(palette switch
+            {
+                Aurora => "#66F4D08B",
+                Ivory => "#449A6F21",
+                _ => "#66E1E4E6",
+            }),
             BlurRadius = 30,
             OffsetX = 0,
             OffsetY = 10,
@@ -50,8 +88,9 @@ internal static class ThemePalette
 
     private static LinearGradientBrush BrandGradient(string palette, IReadOnlyDictionary<string, string> colors)
     {
-        var start = palette == Aurora ? colors["AaosGoldBrush"] : "#E2E5E7";
-        var end = palette == Aurora ? colors["AaosPrimaryBrush"] : "#ADB4B8";
+        var branded = palette is Aurora or Ivory;
+        var start = branded ? colors["AaosGoldBrush"] : "#E2E5E7";
+        var end = branded ? colors["AaosPrimaryBrush"] : "#ADB4B8";
         return Gradient(start, end);
     }
 
@@ -66,6 +105,43 @@ internal static class ThemePalette
             brush.GradientStops.Add(new GradientStop(Color.Parse(stops[index]), (double)index / (stops.Length - 1)));
         return brush;
     }
+
+    private static readonly IReadOnlyDictionary<string, string> IvoryColors = new Dictionary<string, string>
+    {
+        ["AaosBackgroundBrush"] = "#F8F6EB",
+        ["AaosSidebarBrush"] = "#F0ECE1",
+        ["AaosSurfaceBrush"] = "#FFFFFF",
+        ["AaosSurface2Brush"] = "#ECE8DD",
+        ["AaosBorderBrush"] = "#C8C2B4",
+        ["AaosPrimaryBrush"] = "#147F78",
+        ["AaosPrimaryTextBrush"] = "#FFFFFF",
+        ["AaosGoldBrush"] = "#9A6F21",
+        ["AaosSuccessBrush"] = "#187A59",
+        ["AaosErrorBrush"] = "#B33A3A",
+        ["AaosInfoBrush"] = "#245FA8",
+        ["AaosWarningBrush"] = "#8A611C",
+        ["AaosApprovalBrush"] = "#187A59",
+        ["AaosDisabledBrush"] = "#7A807F",
+        ["AaosReviewBrush"] = "#8A611C",
+        ["AaosIvoryBrush"] = "#172033",
+        ["AaosMutedBrush"] = "#586575",
+        ["AaosOverlayBrush"] = "#66172033",
+        ["AaosGlassBrush"] = "#99FFFFFF",
+        ["AaosGlassRimBrush"] = "#997C927A",
+        ["AaosHeroTextBrush"] = "#F8F6EB",
+        ["AaosHeroMutedBrush"] = "#B7C8D1",
+        ["AaosPrimaryGradientEnd"] = "#2EA49B",
+        ["AaosBrandMarkEnd"] = "#147F78",
+        ["AaosGridBrush"] = "#15172033",
+        ["AaosAmbientPrimaryBrush"] = "#33147F78",
+        ["AaosAmbientSecondaryBrush"] = "#339A6F21",
+        ["AaosAmbientTertiaryBrush"] = "#24147F78",
+        ["AaosNavActiveStart"] = "#D8EFEA",
+        ["AaosNavActiveEnd"] = "#E8F3EF",
+        ["AaosAmbientStart"] = "#D8EFEA",
+        ["AaosAmbientMiddle"] = "#EDE4CB",
+        ["AaosAmbientEnd"] = "#FFFFFF",
+    };
 
     private static readonly IReadOnlyDictionary<string, string> MonochromeColors = new Dictionary<string, string>
     {
@@ -87,6 +163,10 @@ internal static class ThemePalette
         ["AaosIvoryBrush"] = "#F1F2F3",
         ["AaosMutedBrush"] = "#A5ADB3",
         ["AaosOverlayBrush"] = "#99080A0C",
+        ["AaosGlassBrush"] = "#88171A1F",
+        ["AaosGlassRimBrush"] = "#99C7CFD4",
+        ["AaosHeroTextBrush"] = "#F1F2F3",
+        ["AaosHeroMutedBrush"] = "#C4CBD0",
         ["AaosPrimaryGradientEnd"] = "#CFD3D6",
         ["AaosBrandMarkEnd"] = "#A9B0B4",
         ["AaosGridBrush"] = "#0DFFFFFF",
@@ -120,6 +200,10 @@ internal static class ThemePalette
         ["AaosIvoryBrush"] = "#F8F6EB",
         ["AaosMutedBrush"] = "#96AAB4",
         ["AaosOverlayBrush"] = "#9E081020",
+        ["AaosGlassBrush"] = "#7A101D2E",
+        ["AaosGlassRimBrush"] = "#99B7E3E8",
+        ["AaosHeroTextBrush"] = "#F8F6EB",
+        ["AaosHeroMutedBrush"] = "#B7C8D1",
         ["AaosPrimaryGradientEnd"] = "#63DED3",
         ["AaosBrandMarkEnd"] = "#2EC4B6",
         ["AaosGridBrush"] = "#0DFFFFFF",
