@@ -46,9 +46,12 @@ def test_the_committed_record_passes_against_the_real_tree():
     assert failures == []
     assert detail["workers"] >= 11
     assert detail["routed"] >= 10
-    # one exemption remains: media/worker_video.py. The ASR engine that was exempted for
-    # want of a model is routed as media.transcribe as of 2026-10-01.
-    assert detail["exempted"] == 1
+    # Two exemptions: media/worker_video.py, which returns measurements and artifacts rather
+    # than a projected text, and machine/worker_machine_answer.py, which is reached by the Core
+    # route POST /api/v1/machine/answers instead of by job dispatch because the job protocol
+    # cannot carry its question. The ASR engine that was exempted for want of a model is routed
+    # as media.transcribe as of 2026-10-01.
+    assert detail["exempted"] == 2
 
 
 def test_the_discovery_rule_finds_the_workers_it_claims_to():
