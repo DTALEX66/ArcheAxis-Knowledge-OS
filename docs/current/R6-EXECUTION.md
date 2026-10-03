@@ -4200,3 +4200,24 @@ At that verification stage, the 2026-09-26 source candidate expansion was retain
 - 工作树 porcelain = **0**（含未跟踪）。
 - `origin/main` 仍 `59498723`（**未合入**）；Release 仍 FROZEN；未 force、未 rewrite。
 - CI（精确 SHA `d7eb2f82`）：`CI` push 37125705991 **success**、`vnext-ci` push 37125706019 **success**、`vnext-ci` PR 37125709232 **success**。
+
+#### 2026-10-03 追加 21：全路由界面读回（15/15）；首页一处待查差异 + 捕获路径的瞬态失败
+
+**做法**：用产品自己的 Desktop（Debug 构建）+ Core + 11 路由档案，对**全部 15 条合法路由**做原生窗口捕获（此前只做过 evidence/learning/review/search/knowledge/machine）。
+
+| 路由 | 结果 |
+| --- | --- |
+| home / workspace / library / search / reader / knowledge / editor / memory / learning / review / evidence / machine / settings / jobs / recovery | **15/15 全部产出 PNG**（`.project-local/runs/sweep-routes-r27/`） |
+
+**发现 1（待查，用户可见）：首页读回显示 `Core 未就绪，未读取最近 Evidence。`，而证据页在同样环境、同一真实库下读到 38 条 anchor。**
+
+- 复现：`home` 单独捕获 = 642,870 B（页面文案为未就绪）；`evidence` 单独捕获 = 278,674 B（在线，38 anchors）。环境变量、DB、profile、二进制完全一致。
+- 已排除的原因：Core 二进制本身正常（直连探测 `READY`、`/api/v1/evidence/anchors` 返回 **38**）；Core 在 `cwd=repo` 与 `cwd=bindir` 两种工作目录下都能就绪；`ARCHAXIS_CORE_BIN` 拼写与解析路径已核对（`CoreSupervisor.cs:61-62,82`）。
+- 已确认：截图里那句文案**不是 XAML 默认值**（XAML 默认是 `尚未读取 Core Evidence anchor。`），所以确实是 `MainWindow.axaml.cs:553` 的判空分支被执行过。
+- **尚未确认的关键**：这是"真实产品首屏缺陷"，还是**捕获路径特有**。正常使用时 `OnLoaded` 连接成功回调会再次调用 `RefreshHomeRecentEvidenceAsync()`（`:411`），而捕获路径只在 `:355` 调一次；两者都可能命中 `:551` 的判空。**结论未定，故不写成已确认缺陷，也不做推测性改动。**
+
+**发现 2（捕获路径瞬态）：连续快速捕获时所有路由都可能落回未就绪态。** 15 连拍那次 `evidence` 也是 274,992 B（未就绪），而单独重跑同一命令即为 278,674 B（在线）。怀疑与上一个 Core 的 writer lock / 启动竞争有关。**未定位到根因。**
+
+**发现 3（F01 残留，已确认）：首页仍有大量英文工程词。** `Capture / Evidence / Originals / Memory / Review 统一在同一个知识操作系统中。`、今日进度四卡 `Capture / Evidence / Review / Output`、`Memory Graph` 标题、`Learning` 节点、以及 `Core 持久化 evidence anchors` / `Core 未提供` 等实现口径文案。审计 F01 要求的"清理首页 Core/evidence anchors 等默认后台术语"**尚未完成**。
+
+**本轮未改动任何代码/数据**；仅捕获与核实。

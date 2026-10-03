@@ -76,6 +76,9 @@ P2–P4 的机器侧全链在**真实资料的副本**上跑通；出厂 Green �
 - `courses/from-knowledge` 目前只支持**有 anchor 的 active accepted** 知识；无 anchor 的个人知识路径未做。
 - 前端整机视觉/无障碍矩阵（键鼠焦点、IME、忙碌/禁用、减弱动效、DPI/窄窗）**未做完整真人验收**。
 - 远端 `main` 未合入本次工作；双端读回见 §9 的 2026-10-03 快照。
+- **首页待查差异（未定论）**：全 15 路由读回中，`home` 在 CPU 与 `evidence` 完全相同的环境、同一真实库下显示 `Core 未就绪`，而 `evidence` 读到 38 条 anchor。已排除 Core 二进制、工作目录、环境变量拼写；未区分"真实首屏缺陷"与"捕获路径特有"，故**未做推测性修改**。证据：`.project-local/runs/sweep-routes-r27/`。
+- **捕获路径瞬态失败**：连续快速捕获时全部路由可落回未就绪态（15 连拍那次 `evidence` 也是 274,992 B；单独重跑为 278,674 B）。根因未定位。
+- **F01 残留（已确认）**：首页仍有英文工程词（`Capture / Evidence / Review / Output`、`Memory Graph`、`Learning`）与实现口径文案（`Core 持久化 evidence anchors`、`Core 未提供`）。
 
 ## 7. 需 Owner 裁决
 
