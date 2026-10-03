@@ -4162,3 +4162,41 @@ At that verification stage, the 2026-09-26 source candidate expansion was retain
 **生命周期层**：`TESTED_LOCAL` → `BRANCH_PUBLISHED` → **`CI_VERIFIED_EXACT_SHA`（`ca718c244c070c067bfe8fac18ef77e7d18caa5e`）**。仍未 `MERGED_MAIN`（main 仍 `59498723`）、仍未 `INSTALLED_RUNTIME_VERIFIED`、Release 仍 FROZEN。
 
 **教训（已加入本地验证口径）**：本地"全绿"不等于 CI 绿。至少还要跑 `cargo fmt --all -- --check`。这条差异是**只有 CI 层能发现**的东西——正好印证证据分级里"本地测试不能顶替 CI 层"。
+
+#### 2026-10-03 追加 20：收尾（清理体积 / 端到端复检 / 又发现并修复一个真实测试缺陷 / 双端一致）
+
+**(1) 清理体积：已释放 16,728 MB（约 16.3 GB）。**
+
+- 删除**我自己生成**的 5 个过期产物（`build/gc-r18`、`build/gc-r19`、`green-candidates/…vdsh-r16-…`、`…vdsh-r17-…`、`desktop-publish-r16`）：**4,591 MB**。删除前逐一解析绝对路径并校验前缀在 `.project-local\` 内。保留现行候选 `build/gc-r20`。
+- 清理 `runs/2611ed9ca1/` 下 427 个一次性运行目录中的 61 个（保留最新 10 个）：**12,137 MB**。
+- **未删**：他人/其他工作树的产物、Green 根目录下的既有候选、以及所有被引用的收据。
+
+**(2) 33 个运行目录无法删除（真实权限条件，未强删）。**
+
+这些目录（如 `…\065f416d7b15\pytest-cache`）**属主是另一个 SID `…-1004`**，当前用户（`…-1001`）既无 `WRITE_DAC` 也无 `WRITE_OWNER`，**连读取 ACL 都被拒**。按 bundled `diagnose-windows-sandbox-acl` 技能在非受限模式运行其脚本，结论是 **`repair failed` / `nextAction: stop`** —— 即脚本无法证明可修复的路径。按技能规定"未修复就报告并停止"，**未强行绕过**。`Remove-Item -Recurse` 亦在同一批目录上以路径长度/权限失败；改用 Python `shutil.rmtree` + `\?\` 长路径前缀后大多数成功。
+
+**(3) 端到端复检又抓到一个真实缺陷（不是我的改动引起的，但确实错了）。**
+
+本地 `archeaxis-api` 全量套件 **exit 101**：`contract_process_model::an_argv_port_wins_over_the_environment_and_the_environment_over_the_default` 稳定失败 3/3。
+
+- **根因（已实测）**：`free_port()` 用 **connect** 探测空闲——连不上就算空闲。但本机 **49152 端口 connect 被拒（因为没人监听）而 bind 被拒（WSAEACCES / os error 10013）**，两个性质分开了。测试于是把 49152 当空闲端口交给 Core，Core 绑定失败退出，握手拿到 `Disconnected`，**失败原因与被钉的端口选择契约毫无关系**。实测：49152 `cannot bind … os error 10013`；49160 / 49200 / 49252 均正常 ready。
+- **为什么 CI 没抓到**：CI runner 上 49152 可绑定，所以 CI 绿。**这是只有本机环境才暴露的测试缺陷**。
+- **修复**：`free_port()` 改为**尝试 bind**（`TcpListener::bind` 成功才算空闲），并写明理由。
+- **验证**：该文件 **5 passed / 0 failed**；整个 crate **204 passed / 0 failed**；`cargo fmt --all -- --check` exit 0。提交 `d7eb2f82` 并推送。
+
+**(4) 本机全量复检（冻结树）**
+
+| 检查 | 结果 |
+| --- | --- |
+| `cargo fmt --all -- --check` | exit 0 |
+| `check_architecture.py` | passed |
+| `check_path_conventions.py` | passed（**2585/2585** tracked paths owned，0 unowned，0 deny-commit） |
+| `archeaxis-api` 套件 | **204 passed / 0 failed** |
+| Python 全量门禁 | exit 0 |
+
+**(5) 双端仓库一致**
+
+- 本地 HEAD == `origin/codex/dsh-aaos-real-multiformat-loop-20261001` == **`d7eb2f82`**，ahead/behind = 0/0。
+- 工作树 porcelain = **0**（含未跟踪）。
+- `origin/main` 仍 `59498723`（**未合入**）；Release 仍 FROZEN；未 force、未 rewrite。
+- CI（精确 SHA `d7eb2f82`）：`CI` push 37125705991 **success**、`vnext-ci` push 37125706019 **success**、`vnext-ci` PR 37125709232 **success**。

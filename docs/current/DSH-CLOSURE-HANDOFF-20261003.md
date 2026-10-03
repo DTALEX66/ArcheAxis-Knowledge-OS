@@ -64,7 +64,8 @@ P2–P4 的机器侧全链在**真实资料的副本**上跑通；出厂 Green �
 2. **Core 启动输入硬上限 4096 字节。** 13 条路由的绝对路径序列化后：短安装根 2741 B、worktree 根 3045 B、深安装根 **4405 B**；深层安装因此启动失败，界面只显示“Core 未就绪”。已提升到 64 KiB 并端到端复验。
 3. **OCR worker 测试的环境耦合。** `worker_ocr.py` 先按声明式外置注册表解析 tesseract，再回落 `shutil.which`；4 条用例只 mock 了后者，于是**在产品的正确配置下失败**。属测试缺陷，已补隔离。
 4. **路由清单重复三处**（见 1）。已加 AST 守卫，并**验证守卫真的会失败**。
-5. **候选里装过过期 Core。** `build_candidate.py` 未指定 `--binary` 时取默认目标，组装出的候选含第 6 轮二进制。已在 r19 显式使用已验证 Core。
+5. **端口空闲探测与"可绑定"不是一回事。** `contract_process_model` 的 `free_port()` 用 connect 判断空闲；本机 49152 connect 被拒而 bind 被拒（WSAEACCES 10013），测试因而把不可绑定端口交给 Core，**失败原因与被钉契约无关**。改为尝试 bind。本机修复前 3/3 失败、修复后 204/0；**CI 无法发现（runner 上该端口可绑定）**。
+6. **候选里装过过期 Core。** `build_candidate.py` 未指定 `--binary` 时取默认目标，组装出的候选含第 6 轮二进制。已在 r19 显式使用已验证 Core。
 
 ## 6. 未做 / 未通过（不得记成通过）
 
@@ -125,7 +126,7 @@ P2–P4 的机器侧全链在**真实资料的副本**上跑通；出厂 Green �
 | 主张 | 状态 | 层级 | 证据（命令/路径/SHA） |
 | --- | --- | --- | --- |
 | 源码改动正确且不回归 | **PASS** | `TESTED_LOCAL` | `scripts\ci\cargo_test.bat -p archeaxis-api` → 204/0；`scripts\ci\run_tests.ps1 --full` → 3865/0 |
-| 上述改动的 **CI** | **PASS** | `CI_VERIFIED_EXACT_SHA` | `ca718c244c070c067bfe8fac18ef77e7d18caa5e`：`CI` push run 37124046203、`vnext-ci` push 37124046194、`vnext-ci` PR 37124049326 **全部 success** |
+| 上述改动的 **CI** | **PASS** | `CI_VERIFIED_EXACT_SHA` | 当前 tip **`d7eb2f827dd819d7d281c0682ca40d08a2fdfe7e`**：`CI` push 37125705991、`vnext-ci` push 37125706019、`vnext-ci` PR 37125709232 **全部 success**（前一验证点 `ca718c24` 亦全绿） |
 | 首轮推送的 CI（已修复） | **FAILED → 已修** | — | `ef0104f8` 的 `CI` push run 37123557549 失败于 `cargo fmt --all -- --check`；本地门禁未跑 rustfmt，CI 先发现 |
 | 真实资料导入并入库 | **PASS** | 2 + 5（真实产品运行时跑真实库） | `D:\All projects\资料库\workspace.sqlite`（schema 9）19/19/38/19；FTS `SKILL`→13、`Obsidian`→13、`安全边界`→1 |
 | 转换字节保真 | **PASS** | 2 | 19/19 transform 与原件 sha256 全等 |
