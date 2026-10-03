@@ -46,5 +46,7 @@ def test_source_reader_visuals_do_not_introduce_fake_source_content():
     xaml = VIEW.read_text(encoding="utf-8")
     code = CODE.read_text(encoding="utf-8")
     assert "Core 来源成员投影" in xaml
-    assert "原文正文未暴露" in code
+    # The reader must state that an unextracted original has no body to show, rather than
+    # rendering placeholder text as if it were the document.
+    assert "原件正文暂未提供" in code
     assert "evidence anchor" in xaml

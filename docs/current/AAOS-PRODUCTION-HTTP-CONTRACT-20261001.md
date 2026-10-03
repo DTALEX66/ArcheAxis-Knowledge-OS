@@ -199,7 +199,7 @@ against what it launched; a mismatch means it is talking to a different Core.
 `runtime` and `contract` are hard-coded string literals, not derived from the crate
 version. Do not use them to infer a build.
 
-## 3. Route inventory (40 pairs in a `text_worker` launch)
+## 3. Route inventory (45 pairs in a `text_worker` launch)
 
 `PROD` = reachable in a production launch. `PROD` marks the routes the UI may rely on.
 All paths are relative to the loopback base URL.
@@ -283,7 +283,8 @@ is not registered is a `404` rather than a row about nothing.
 
 | # | Method + path | Auth | Notes |
 | --- | --- | --- | --- |
-| 21 | `GET /api/v1/search?q=&active_only=` | any token | Lexical **FTS5 only**. Returns `count`, `items[]`, `transforms[]`. `count=0` is a successful empty result. No vector, reranker or graph route exists. |
+| 21 | `GET /api/v1/search?q=&active_only=` | any token | Lexical **FTS5 only**. Returns `count`, `items[]`, `transforms[]`. `count=0` is a successful empty result. This route itself uses no vector or reranker; the graded route is R15. |
+| R15 | `POST /api/v1/search/semantic` | any token | Body `{q}` only. Bounded query-time ranking over **accepted** canonical knowledge: no persisted index, at most 128 candidates, 90 s ceiling. Returns `schema: archeaxis.semantic-search/v1` with `status` (`AVAILABLE`/`EMPTY`/`PARTIAL`), `complete`, `candidate_count`, `candidates[]` and per-leg `embedding`/`reranker` completeness. `EMPTY` with `candidate_count=0` is the correct answer when nothing is accepted yet, not an error; `index_persisted` is always `false`, so this is not a full vector index. |
 
 ### Human learning
 
@@ -309,6 +310,15 @@ A successful model process leaves evaluation `unmeasured`; it does not prove ans
 | --- | --- | --- | --- |
 | 19 | `POST /api/v1/machine/tasks` | **machine only** | Body `{task_id, conditions, knowledge_version, method_version, tool_version, model_version, scope, outcome, failure?, retest_of?}`. `outcome` ∈ `succeeded`/`failed`/`unmeasured`. Receipts are immutable. The `runtime.` scope prefix is Core-owned and rejected here (`403`). Human → `403`. |
 | 20 | `GET /api/v1/machine/tasks/{task_id}` | any token | Readback projection; Core runtime receipts carry the serialized original response in `conditions`. |
+
+### Courses (General)
+
+| # | Method + path | Auth | Notes |
+| --- | --- | --- | --- |
+| R16 | `POST /api/v1/courses` | **human only** | Stores a course the caller supplies through the `course.general` donor worker. A machine principal is refused, and a malformed body is refused before a write. Asserted by `crates/archeaxis-api/tests/contract_general_course.rs`. |
+| R17 | `POST /api/v1/courses/from-knowledge` | **human only** | Builds a candidate course from **active accepted** canonical knowledge that carries an anchor. The Core re-checks the worker's manifest against the canonical knowledge and answers `502` when the worker rewrote the body, id or title, so a tampered lesson never reaches the store. Knowledge without an anchor is refused rather than guessed. Asserted by `contract_general_course.rs`. |
+| R18 | `GET /api/v1/courses/{id}` | any token | Course readback. |
+| R19 | `POST /api/v1/courses/{id}/render` | any token | Renders the stored course. |
 
 ## 4. Fields that are constants, not data
 
@@ -498,12 +508,14 @@ Before the fix this endpoint answered `500` with a raw FTS5 parser message for
 | Launch | Routes served | Consequence for the UI |
 | --- | --- | --- |
 | **no** `text_worker` | 26 projection addresses (25 mounted routes, one of which carries GET and POST, plus the conditional legacy `/jobs/{id}/receipts`) | `/jobs/{id}`, `/executions`, `/outputs`, `/cancel`, `/capabilities` and its enable/disable write are **absent** (`404`). |
-| **with** `text_worker` | 40 addresses (the 26 projection addresses + the 14 runtime routes) | All routes above are served. |
+| **with** `text_worker` | 45 addresses (the 26 projection addresses + the 19 runtime routes) | All routes above are served. |
 
-The runtime builder carries six routes: the four job-execution ones plus the two capability
-registry reads added by R7/G1. They are mounted there rather than with the projections because
+The runtime builder carries **19** routes, mounted there rather than with the projections because
 the capability surface reads the executor's registered routes, and the executor is the runtime
-router's state while the projection builder holds only the store.
+router's state while the projection builder holds only the store. In groups: the four
+job-execution routes; the three capability-registry paths; `POST /api/v1/ask` and the semantic
+search route; the machine answer, correction and retest routes; the three vault routes; and the
+four course routes.
 
 Both shapes were started from the real binary and asked over HTTP, and the result is asserted by
 `crates/archeaxis-api/tests/contract_launch_shape.rs`. **How to tell "absent" from "no such
@@ -562,12 +574,12 @@ because no route reaches the model yet, but it should not be told the capability
 | --- | --- | --- |
 | Route inventory and auth model | source read of `crates/archeaxis-api/src/{main.rs,lib.rs,launch.rs,runtime/mod.rs}` | matches table above |
 | Historical continuous M0 loop (before the 2026-10-03 G4 provenance fix) | `ARCHEAXIS_CORE_BIN=<built core> python -B scripts/probes/m0_full_loop_smoke.py` | **27/27 stages ran**, `chain_stages_verified: true`, **`validation_errors: []`**, `ok: true`, `evidence_level: SYNTHETIC`. `answer_recorded.schedule_authority = "fsrs"`; `learning_event` (no card state) `= "placeholder_ladder"` in the same run, which is the two-route split §4 describes; restart readback identical on both `learning_state` and `knowledge_v3`; `machine_retest.retest_of` points at the failed task; online backup `exit_code 0` and restore `verified true` with `counts_after == counts_before`. **Re-run on this branch** rather than quoted: an earlier reading of this row said the sole validation error was `legacy migration not verified`, which was true of that environment and is not true of this one |
-| Format reachability, **current** | `python -B scripts/probes/staged_format_matrix_smoke.py <core> <runtime-python>` | readiness `total 10 / ready 10 / not_ready 0`; `verdict_counts: {CONVERTED: 9}` on real course material; `accepted: true`. The total moved from 9 to 10 with the `machine.answer` declaration below: `total` is the count of declared routes other than the built-in `text.extract`, and `verdict_counts` is unchanged at 9 because the matrix exercises nine *import formats* and `machine.answer` is not one. That is the honest reading of the two numbers, and it is why they no longer equal each other |
+| Format reachability, **current** | `python -B scripts/probes/staged_format_matrix_smoke.py <core> <runtime-python>` | readiness `total 13 / ready 13 / not_ready 0`; `verdict_counts: {CONVERTED: 9}` on real course material; `accepted: true`. `total` is the number of routes the staged profile declares, measured rather than derived: the built-in `text.extract` is not one of them, so nothing is subtracted. `verdict_counts` is 9 because the matrix exercises nine *import formats*, several of which are not capability routes at all. The two numbers measure different things, which is why they are not expected to be equal |
 | Format reachability, superseded measurement | `python -B scripts/probes/production_format_coverage_smoke.py` | `{REACHABLE: 1, FAILED_AT_ROUTE: 9}` — the state before route enablement; kept as the record of what was found |
 | Format reachability, independently reproduced (at that time) | a separate direct launch of the same Core, `kind=pdf` vs `kind=text` control | PDF settled `failed` with the same error and its `job_attempts` row showed `capability=pdf.extract` never terminated; the `text` control `succeeded` |
 | Real user material, superseded measurement | `python -B scripts/probes/real_material_conversion_smoke.py` | `{CONVERTED: 1, FAILED_AT_ROUTE: 5}` against a real Obsidian knowledge base. Superseded by the staged matrix above, which measures ten routes on real course material; this probe has not been re-run since and no newer figure is claimed for it |
 | Engines present and working with declared paths | `worker_transcribe.py --probe`/transcribe, `worker_ocr.py` | real ASR of a real 5.8 MB Chinese MP3 → 3,362 chars / 295 segments; real OCR of a Chinese image → `三命通会` read correctly, `covered 3/3`. ASR is additionally reachable through the Core now (`media.transcribe`) |
-| Route count in a production launch | the staged profile's own `routes` | **11** capabilities declared and served. Ten are import/transform routes including `media.transcribe`; the eleventh is **`machine.answer`**, declared here by R7/G4 so that `POST /api/v1/machine/answers` and `/machine/retests` work in a staged runtime instead of answering `503 no worker is registered`. It is declared in the launch profile and deliberately **absent from the worker transport's job table**, because a job request must carry an empty `parameters` object and the question a machine answer needs has nowhere to travel; the Core reaches that worker through its own route rather than through a job. The 39-route projection/runtime split in §6 is unchanged |
+| Route count in a production launch | the staged profile's own `routes` | **13** capabilities declared and served. Eleven are import/transform routes including `media.transcribe`. The twelfth is **`machine.answer`**, declared here by R7/G4 so that `POST /api/v1/machine/answers` and `/machine/retests` work in a staged runtime instead of answering `503 no worker is registered`; it is deliberately **absent from the worker transport's job table**, because a job request must carry an empty `parameters` object and the question a machine answer needs has nowhere to travel. The thirteenth is the pair **`search.semantic`** /**`course.general`**: the Core reaches both through its own derived routes (`POST /api/v1/search/semantic`, `POST /api/v1/courses*`), and until they were declared here those routes answered `503 derived worker is not registered` in a staged runtime even though both workers shipped in `workers/`. Each derived worker also answers the transport hello when started with `--staging-root` (the same wiring `machine.answer` uses), which is what lets the packaging readiness check verify them instead of reporting them not ready. The 39-route projection/runtime split in §6 is unchanged |
 | Rust API suite | `cargo test -p archeaxis-api --no-fail-fast` with `ARCHEAXIS_PYTHON` set | all targets pass |
 | Rust application (per-format) suite | `cargo test -p archeaxis-application --no-fail-fast` | all targets pass |
 | Contract conflict rules | `cargo test -p archeaxis-api --test contract_conflict_rules`, and a live-Core probe | replay is `202 replayed:true`; a different deadline or a different job under one key is `409 AAK-CON-002`; a settled job is `409 AAK-CON-003`; no conflict path leaves a second attempt |

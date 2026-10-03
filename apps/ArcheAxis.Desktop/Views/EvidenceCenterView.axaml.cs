@@ -23,18 +23,68 @@ public sealed class EvidenceAnchorRow
     public string SourceRevisionDisplay => DisplayOrDash(SourceRevision);
     public string RawSha256Display => DisplayOrDash(RawSha256);
     public string LocatorDisplay => DisplayOrDash(Locator);
-    public string CreatedAtDisplay => DisplayOrDash(CreatedAt);
-    // Evidence anchor IDs are the only title-like identity currently returned by Core.
-    public string TitleDisplay => AnchorId;
-    public string PublicationYearDisplay => "年份未由 Core 暴露";
-    public string VerificationStatusDisplay => "验证状态未由 Core 暴露";
-    public string ConfidenceDisplay => "Core 未暴露";
-    public string TopicDisplay => "Core 未暴露";
-    public string CitationCountDisplay => "Core 未暴露";
-    public string DisplayText => $"{AnchorId} · source={SourceId} · revision={SourceRevision}";
+    public string CreatedAtDisplay => UserDisplay.Date(CreatedAt);
+    public string SourceTitle { get; set; } = "资料来源";
+    /// <summary>Whether the Core named the source, rather than this window falling back to a local guess.</summary>
+    public bool HasSourceName { get; private set; }
+    /// <summary>
+    /// The quoted selection the Core stored with the anchor, empty when the anchor only records a
+    /// position. It is shown instead of a generic label because a reader who cannot see what was
+    /// quoted cannot judge whether the citation is about the thing they are reading.
+    /// </summary>
+    public string Quote { get; private set; } = "";
+    public string TitleDisplay => string.IsNullOrWhiteSpace(Quote) ? $"{SourceTitle}的引用记录" : QuoteExcerpt;
+    public string PublicationYearDisplay => "年份未提供";
+    public string VerificationStatusDisplay => "验证状态未提供";
+    public string ConfidenceDisplay => "未提供";
+    public string TopicDisplay => "未提供";
+    public string CitationCountDisplay => "未提供";
+    public string DisplayText => $"{TitleDisplay} · {CreatedAtDisplay}";
     public string DetailText =>
-        $"anchor_id={AnchorId}\nsource_id={SourceId}\nraw_sha256={RawSha256}\nsource_revision={SourceRevision}\ncreated_at={CreatedAt}\nlocator={Locator}\n" +
-        "Evidence anchor 仅提供来源定位，不包含原文正文。";
+        $"anchor_id={AnchorId}\nsource_id={SourceId}\nraw_sha256={RawSha256}\nsource_revision={SourceRevision}\ncreated_at={CreatedAt}\nlocator={Locator}\n"
+        + (string.IsNullOrWhiteSpace(Quote) ? string.Empty : $"quote={Quote}\n")
+        + (string.IsNullOrWhiteSpace(KnowledgeId) ? string.Empty : $"knowledge_id={KnowledgeId} · status={KnowledgeStatus ?? "—"}\n")
+        + "Evidence anchor 仅提供来源定位，不包含原文正文。";
+
+    /// <summary>The Core's own file name for the material; an empty or placeholder value changes nothing.</summary>
+    public void SetSourceName(string? name)
+    {
+        if (string.IsNullOrWhiteSpace(name) || name == "—" || name == "未暴露") return;
+        SourceTitle = name;
+        HasSourceName = true;
+    }
+
+    public void SetQuote(string? quote)
+    {
+        if (string.IsNullOrWhiteSpace(quote) || quote == "—" || quote == "未暴露") return;
+        Quote = quote;
+    }
+
+    /// <summary>The knowledge row this anchor is cited by, empty when nothing cites it yet.</summary>
+    public string KnowledgeId { get; private set; } = "";
+    public string KnowledgeStatus { get; private set; } = "";
+
+    public void SetKnowledgeLink(string? knowledgeId, string? status)
+    {
+        if (string.IsNullOrWhiteSpace(knowledgeId) || knowledgeId == "—" || knowledgeId == "未暴露") return;
+        KnowledgeId = knowledgeId;
+        KnowledgeStatus = string.IsNullOrWhiteSpace(status) || status == "—" ? string.Empty : status;
+    }
+
+    /// <summary>True while the cited knowledge still needs a person's decision.</summary>
+    public bool IsPendingReview => string.Equals(KnowledgeStatus, "candidate", StringComparison.Ordinal);
+
+    /// <summary>Whitespace-collapsed excerpt, because a quoted line is frequently multi-line.</summary>
+    public string QuoteExcerpt
+    {
+        get
+        {
+            var flattened = Quote.Replace('\r', ' ').Replace('\n', ' ').Trim();
+            while (flattened.Contains("  ", StringComparison.Ordinal))
+                flattened = flattened.Replace("  ", " ", StringComparison.Ordinal);
+            return flattened.Length <= 90 ? flattened : flattened[..90] + "…";
+        }
+    }
 
     public EvidenceAnchorRow(string anchorId, string sourceId, string rawSha256, string sourceRevision, string locator, string createdAt)
     {
@@ -75,6 +125,9 @@ public partial class EvidenceCenterView : UserControl
     public event EventHandler? OpenJobsRequested;
     public event EventHandler? OpenSourceRequested;
 
+    /// <summary>Every anchor the last read returned, before the pending-review filter is applied.</summary>
+    private IReadOnlyList<EvidenceAnchorRow> _allRows = Array.Empty<EvidenceAnchorRow>();
+
     public EvidenceAnchorRow? SelectedAnchor => EvidenceAnchorsList.SelectedItem as EvidenceAnchorRow;
     public bool IsDetailOpen => EvidenceDetailSurface.IsVisible;
 
@@ -91,18 +144,24 @@ public partial class EvidenceCenterView : UserControl
 
     public void ResetSelection()
     {
-        EvidenceAnchorDetailText.Text = "尚未选择 Evidence anchor。";
+        EvidenceAnchorDetailText.Text = "尚未选择引用记录。";
         SetDetailMode(false);
-        EvidenceDetailAnchorTitle.Text = "尚未选择 Evidence anchor";
-        EvidenceDetailSourceText.Text = "来源 / 修订 / 时间：Core 未暴露";
+        EvidenceDetailAnchorTitle.Text = "尚未选择引用记录";
+        EvidenceDetailSourceText.Text = "来源和时间尚未读取";
         EvidenceDetailLocatorText.Text = "locator · Core 未暴露";
         EvidenceDetailChainText.Text = "来源链详情只展示 Core 已返回的 source、revision、hash 与 locator。";
-        EvidenceChainSourceNodeText.Text = "Core source_id 未读取";
-        EvidenceChainAnchorNodeText.Text = "Core anchor_id 未读取";
+        EvidenceChainSourceNodeText.Text = "来源尚未读取";
+        EvidenceChainAnchorNodeText.Text = "引用尚未读取";
+        _allRows = Array.Empty<EvidenceAnchorRow>();
+        // Clearing the filter re-enters the filter through its own change handler; the empty row
+        // set above makes that a no-op rather than a repopulation of a reset list.
+        if (EvidencePendingOnlyCheck is not null) EvidencePendingOnlyCheck.IsChecked = false;
         EvidenceAnchorsList.ItemsSource = null;
         EvidenceEmptyState.IsVisible = true;
-        EvidenceEmptyTitleText.Text = "尚未读取 Evidence anchor";
-        EvidenceEmptyDescriptionText.Text = "点击“读取证据”读取 Core 已持久化的来源定位；页面不使用演示数据填充。";
+        EvidenceEmptyTitleText.Text = "尚未读取引用记录";
+        // Say plainly that an empty surface stays empty: this window never fills a missing
+        // projection with sample rows, which is the guarantee a reader needs to trust the list.
+        EvidenceEmptyDescriptionText.Text = "点击“读取证据”查看已保存的来源引用。未生成示例记录，缺失字段保持未提供。";
         EvidenceCountMetricText.Text = "—";
         EvidenceSourceMetricText.Text = "—";
         EvidenceCountMetricText.Classes.Set("metric-unknown", true);
@@ -113,8 +172,10 @@ public partial class EvidenceCenterView : UserControl
 
     public void SetAnchors(IReadOnlyList<EvidenceAnchorRow> rows)
     {
-        EvidenceAnchorsList.ItemsSource = rows;
-        EvidenceEmptyState.IsVisible = rows.Count == 0;
+        // Every row is kept so the pending-review filter can be applied and lifted without a
+        // second read of the Core; the metrics below always describe the whole projection.
+        _allRows = rows;
+        ApplyPendingFilter();
         EvidenceCountMetricText.Text = rows.Count.ToString(System.Globalization.CultureInfo.InvariantCulture);
         EvidenceSourceMetricText.Text = rows.Select(row => row.SourceId).Distinct(StringComparer.Ordinal).Count()
             .ToString(System.Globalization.CultureInfo.InvariantCulture);
@@ -123,13 +184,40 @@ public partial class EvidenceCenterView : UserControl
         EvidenceCountMetricLabel.Text = "证据";
         EvidenceSourceMetricLabel.Text = "来源";
         EvidenceVerifiedMetricText.Text = "—";
-        EvidenceReviewMetricText.Text = "—";
+        // A real count of anchors whose knowledge row is still awaiting a human decision, instead
+        // of a placeholder that never changes. It stays "no data" rather than zero when empty.
+        var pendingReview = rows.Count(row => row.IsPendingReview);
+        EvidenceReviewMetricText.Text = pendingReview == 0
+            ? "—"
+            : pendingReview.ToString(System.Globalization.CultureInfo.InvariantCulture);
+        EvidenceReviewMetricText.Classes.Set("metric-unknown", pendingReview == 0);
+        EvidenceReviewMetricLabel.Text = pendingReview == 0 ? "待复核 · 暂无数据" : "待复核";
         if (rows.Count == 0)
         {
-            EvidenceEmptyTitleText.Text = "暂无 Evidence anchor";
-            EvidenceEmptyDescriptionText.Text = "Core 已返回空的 anchor 列表。可前往捕获来源或查看任务回执；未生成示例记录。";
+            EvidenceEmptyTitleText.Text = "暂无引用记录";
+            EvidenceEmptyDescriptionText.Text = "暂无已保存引用。可导入资料，或查看资料处理任务。未生成示例记录，缺失字段保持未提供。";
         }
     }
+
+    /// <summary>
+    /// Show only the rows whose cited knowledge still awaits a person, or all of them. The
+    /// predicate reads the Core's own knowledge status, so the filter can never invent a
+    /// pending item; when nothing matches it says so instead of showing an empty table.
+    /// </summary>
+    private void ApplyPendingFilter()
+    {
+        var pendingOnly = EvidencePendingOnlyCheck?.IsChecked == true;
+        var visible = pendingOnly ? _allRows.Where(row => row.IsPendingReview).ToList() : _allRows;
+        EvidenceAnchorsList.ItemsSource = visible;
+        EvidenceEmptyState.IsVisible = visible.Count == 0;
+        if (visible.Count == 0 && pendingOnly)
+        {
+            EvidenceEmptyTitleText.Text = "没有待复核的引用记录";
+            EvidenceEmptyDescriptionText.Text = "当前没有引用了待复核知识的记录。取消“仅看待复核”可看到全部引用。";
+        }
+    }
+
+    private void OnPendingOnlyChanged(object? sender, RoutedEventArgs e) => ApplyPendingFilter();
 
     public void SetStatus(string text, string semanticClass)
     {
@@ -172,6 +260,7 @@ public partial class EvidenceCenterView : UserControl
             emptyIcon.Width = emptyIcon.Height = Math.Min(28, Math.Max(14, EvidenceEmptyStateImage.Width * 0.4375));
         EvidenceEmptyStateImage.HorizontalAlignment = HorizontalAlignment.Left;
         EvidenceToolbar.ColumnDefinitions = narrowActions ? new ColumnDefinitions("*") : new ColumnDefinitions("Auto,*");
+        EvidenceToolbarActions.Orientation = narrowActions ? Orientation.Vertical : Orientation.Horizontal;
         EvidenceToolbar.RowDefinitions = narrowActions ? new RowDefinitions("Auto,Auto") : new RowDefinitions("Auto");
         Grid.SetColumn(EvidenceStatusText, narrowActions ? 0 : 1);
         Grid.SetRow(EvidenceStatusText, narrowActions ? 1 : 0);
@@ -202,12 +291,12 @@ public partial class EvidenceCenterView : UserControl
     {
         if (e.AddedItems.Count == 1 && e.AddedItems[0] is EvidenceAnchorRow row)
         {
-            EvidenceDetailAnchorTitle.Text = row.AnchorId;
-            EvidenceDetailSourceText.Text = $"来源：{row.SourceId}  ·  修订：{row.SourceRevision}  ·  创建：{row.CreatedAt}";
+            EvidenceDetailAnchorTitle.Text = row.TitleDisplay;
+            EvidenceDetailSourceText.Text = $"来源：{row.SourceTitle} · 保存于 {row.CreatedAtDisplay}";
             EvidenceDetailLocatorText.Text = $"locator · {row.Locator}";
             EvidenceDetailChainText.Text = row.DetailText;
-            EvidenceChainSourceNodeText.Text = row.SourceId;
-            EvidenceChainAnchorNodeText.Text = row.AnchorId;
+            EvidenceChainSourceNodeText.Text = row.SourceTitle;
+            EvidenceChainAnchorNodeText.Text = "已保存引用位置";
             SetDetailMode(true);
             AnchorSelected?.Invoke(this, new EvidenceAnchorSelectedEventArgs(row));
         }

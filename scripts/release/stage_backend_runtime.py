@@ -49,6 +49,11 @@ SCHEDULER_WORKER_RELATIVE = "workers/learning/worker_schedule.py"
 ROUTE_SCRIPTS: dict[str, tuple[str, ...]] = {
     "archive.inventory": ("workers/document/worker_archive.py",),
     "canvas.structure": ("workers/document/worker_canvas.py",),
+    # G2: graded retrieval and General courses. Their workers are staged with the rest of
+    # services/python-workers, but a capability exists in a launch only if it is declared here.
+    # Without these entries POST /api/v1/search/semantic and POST /api/v1/courses* answer 503
+    # "derived worker is not registered" in the shipped product even though the code is finished.
+    "course.general": ("workers/course/worker_general_course.py",),
     "html.structure": ("workers/web/worker_html.py",),
     "image.caption": ("workers/vision/worker_caption.py",),
     "image.ocr": ("workers/vision/worker_ocr.py",),
@@ -71,6 +76,7 @@ ROUTE_SCRIPTS: dict[str, tuple[str, ...]] = {
     "media.transcribe": ("workers/media/worker_transcribe.py",),
     "office.structure": ("workers/document/worker_office.py",),
     "pdf.extract": ("workers/document/worker_pdf.py",),
+    "search.semantic": ("workers/search/semantic_ranking.py",),
     "subtitles.structure": ("workers/document/worker_subtitles.py",),
 }
 PRIVATE_NAMES = set([".git", ".codex", ".dsh", ".zcode", ".hermes", ".openhuman", ".claude", ".agents", ".agent", ".cursor", ".continue", ".aider", ".gemini", ".opencode", ".openhands", ".cline", ".roo", ".kilocode", ".windsurf", ".copilot", ".ssh", ".aws", ".azure", ".gnupg", "agent-private", "private-agent-state", "sessions", "memories", "keychain", "credentials", "auth", "browser-data", ".npmrc", ".pypirc", ".netrc"])

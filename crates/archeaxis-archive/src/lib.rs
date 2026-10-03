@@ -43,6 +43,9 @@ pub const EXPORT_TABLES: &[&str] = &[
     // appending is safe for `restore`; omitting it would silently lose every link a vault
     // declared, which is the gap this table exists to close.
     "vault_links",
+    "general_courses",
+    "general_course_artifacts",
+    "general_course_bindings",
 ];
 
 /// ARCHIVE-01: every export layout the **current** schema version actually shipped,
@@ -50,7 +53,10 @@ pub const EXPORT_TABLES: &[&str] = &[
 /// The sixteen-table layout was current until the four omitted tables were added, so a
 /// genuine archive of either shape must stay restorable. Anything else at this version is an
 /// unknown layout and is rejected rather than guessed.
-pub const CURRENT_LAYOUTS: &[&[&str]] = &[
+pub const CURRENT_LAYOUTS: &[&[&str]] = &[EXPORT_TABLES];
+
+/// Exact historical schema-8 layouts; retain every shipped table set after v9.
+pub const V8_LAYOUTS: &[&[&str]] = &[
     // 16 tables: the layout that omitted the four tables below.
     &[
         "workspace_meta",
@@ -234,6 +240,11 @@ fn archive_tables(manifest: &ArchiveManifest) -> Result<&'static [&'static str],
             .find(|layout| same_set(layout))
             .copied()
             .ok_or_else(|| ArchiveError::Table("unknown v3 archive layout".into())),
+        8 => V8_LAYOUTS
+            .iter()
+            .find(|layout| same_set(layout))
+            .copied()
+            .ok_or_else(|| ArchiveError::Table("unknown v8 archive layout".into())),
         version if version == archeaxis_store_sqlite::SCHEMA_VERSION => CURRENT_LAYOUTS
             .iter()
             .find(|layout| same_set(layout))
@@ -622,6 +633,85 @@ fn json_to_value(v: serde_json::Value) -> rusqlite::types::Value {
 #[cfg(test)]
 mod version_tests {
     use super::*;
+    #[test]
+    fn every_shipped_v8_layout_restores_into_v9() {
+        assert_eq!(
+            V8_LAYOUTS.iter().map(|l| l.len()).collect::<Vec<_>>(),
+            vec![16, 20, 21, 22]
+        );
+        for layout in V8_LAYOUTS {
+            let dir = tempfile::tempdir().unwrap();
+            let (archive, mut manifest) = exported_fixture(&dir);
+            reduce_to_layout(&archive, &mut manifest, layout, 8);
+            seal(&mut manifest, Path::new(&archive));
+            let target = dir.path().join("v8-restored.sqlite");
+            restore_workspace(&archive, target.to_str().unwrap()).unwrap();
+            let conn = Connection::open(target).unwrap();
+            assert_eq!(
+                conn.query_row(
+                    "SELECT value FROM workspace_meta WHERE key='schema_version'",
+                    [],
+                    |r| r.get::<_, String>(0)
+                )
+                .unwrap(),
+                "9"
+            );
+            assert_eq!(
+                conn.query_row("SELECT count(*) FROM general_courses", [], |r| r
+                    .get::<_, i64>(0))
+                    .unwrap(),
+                0
+            );
+        }
+    }
+    #[test]
+    fn course_tables_roundtrip_all_payloads_and_bindings() {
+        let dir = tempfile::tempdir().unwrap();
+        let db = dir.path().join("course.sqlite");
+        let conn = archeaxis_store_sqlite::init_workspace(db.to_str().unwrap()).unwrap();
+        conn.execute_batch("INSERT INTO sources(source_id,sha256,original_name) VALUES('s','abc','source.md');
+            INSERT INTO knowledge(knowledge_id,knowledge_type,body,status,created_by,receipt_hash) VALUES('k','FACTUAL_CLAIM','body','accepted','human','hash');
+            INSERT INTO general_courses(manifest_id,title,manifest_json,status,human_review_required) VALUES('course','Title','{\"manifest_id\":\"course\"}','candidate',1);
+            INSERT INTO general_course_artifacts(artifact_id,manifest_id,artifact_json,status,derived_only,human_review_required) VALUES('lesson','course','{\"artifact_id\":\"lesson\"}','candidate',1,1);
+            INSERT INTO general_course_bindings(manifest_id,component_id,knowledge_id,knowledge_version,source_id,source_revision) VALUES('course','kc','k','k','s','abc');").unwrap();
+        // Persist the source bytes under their actual digest; archive also verifies objects.
+        conn.execute("DELETE FROM general_course_bindings", [])
+            .unwrap();
+        conn.execute("DELETE FROM sources", []).unwrap();
+        let bytes = b"course source";
+        let digest = hex::encode(Sha256::digest(bytes));
+        archeaxis_store_sqlite::raw_objects::persist(&conn, bytes).unwrap();
+        conn.execute("INSERT INTO sources(source_id,sha256,original_name,raw_path) VALUES('s',?1,'source.md',?1)",[&digest]).unwrap();
+        conn.execute(
+            "INSERT INTO general_course_bindings VALUES('course','kc','k','k','s',?1)",
+            [&digest],
+        )
+        .unwrap();
+        drop(conn);
+        let archive = dir.path().join("archive");
+        export_workspace(db.to_str().unwrap(), archive.to_str().unwrap()).unwrap();
+        let target = dir.path().join("restored.sqlite");
+        restore_workspace(archive.to_str().unwrap(), target.to_str().unwrap()).unwrap();
+        let conn = Connection::open(target).unwrap();
+        assert_eq!(
+            conn.query_row(
+                "SELECT artifact_json FROM general_course_artifacts",
+                [],
+                |r| r.get::<_, String>(0)
+            )
+            .unwrap(),
+            "{\"artifact_id\":\"lesson\"}"
+        );
+        assert_eq!(
+            conn.query_row(
+                "SELECT source_revision FROM general_course_bindings",
+                [],
+                |r| r.get::<_, String>(0)
+            )
+            .unwrap(),
+            digest
+        );
+    }
     #[test]
     fn v2_archive_remains_readable_after_attempt_schema_migration() {
         let dir = tempfile::tempdir().unwrap();

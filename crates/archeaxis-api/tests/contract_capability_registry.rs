@@ -8,7 +8,7 @@
 //! Three rules are pinned executably:
 //!
 //! * it reports the routes the Core registered, not the routes a checkout contains;
-//! * `health` is file existence and says so, because only a job can show a capability works;
+//! * `health` observes a real hello and says no task was executed;
 //! * an unknown capability is a `404` rather than the nearest match.
 
 use archeaxis_application::executor::Executor;
@@ -90,11 +90,11 @@ async fn a_registered_capability_names_the_worker_that_would_answer() {
     assert_eq!(record["provider"]["kind"], "python-worker");
     // the provider is a path that really exists, not a name
     assert_eq!(record["provider"]["worker_present"], true, "{record}");
-    assert_eq!(record["health"], "declared", "{record}");
+    assert_eq!(record["health"], "handshake_ready", "{record}");
 }
 
 #[tokio::test]
-async fn health_says_it_is_file_existence_rather_than_a_working_capability() {
+async fn health_reports_handshake_evidence_without_claiming_a_working_engine() {
     let worker = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
         .join("../../services/python-workers/vision/worker_caption.py");
     let (_dir, executor) = executor_with(&[("image.caption", worker)]).await;
@@ -105,7 +105,8 @@ async fn health_says_it_is_file_existence_rather_than_a_working_capability() {
     .await;
 
     // The surface must not let a passing entry be read as proof the capability works.
-    assert_eq!(body["declared_only"], true);
+    assert_eq!(body["declared_only"], false);
+    assert_eq!(body["execution_verified"], false);
     let basis = body["capabilities"][0]["health_basis"].as_str().unwrap();
     assert!(basis.contains("job has to run"), "{basis}");
     assert_eq!(
@@ -132,7 +133,84 @@ async fn a_capability_whose_worker_is_absent_is_unusable_rather_than_unhealthy()
     assert_eq!(record["provider"]["worker_present"], false);
     assert_eq!(record["health"], "worker_missing", "{record}");
     // and the difference is stated rather than folded into a generic unhealthy
-    assert_ne!(record["health"], "declared");
+    assert_ne!(record["health"], "handshake_ready");
+}
+
+#[tokio::test]
+async fn an_existing_broken_worker_is_not_reported_as_healthy() {
+    let scripts = tempfile::tempdir().unwrap();
+    let broken = scripts.path().join("broken.py");
+    std::fs::write(&broken, "raise RuntimeError('synthetic startup failure')\n").unwrap();
+    let (_dir, executor) = executor_with(&[("image.caption", broken)]).await;
+    let (_, body) = get(
+        &archeaxis_api::runtime::router(executor),
+        "/api/v1/capabilities/image.caption",
+    )
+    .await;
+    assert_eq!(body["capability"]["provider"]["worker_present"], true);
+    assert_eq!(body["capability"]["health"], "handshake_failed", "{body}");
+    assert_eq!(body["capability"]["health_details"]["task_executed"], false);
+}
+
+#[tokio::test]
+async fn health_rejects_foreign_capabilities_and_bounds_silent_startup() {
+    let text = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+        .join("../../services/python-workers/transport/text_ndjson.py");
+    let (_dir, executor) = executor_with(&[("image.caption", text)]).await;
+    let (_, body) = get(
+        &archeaxis_api::runtime::router(executor),
+        "/api/v1/capabilities/image.caption",
+    )
+    .await;
+    assert_eq!(body["capability"]["health"], "handshake_failed");
+    assert!(
+        body["capability"]["health_details"]["reason"]
+            .as_str()
+            .unwrap()
+            .contains("capability")
+    );
+    let scripts = tempfile::tempdir().unwrap();
+    let silent = scripts.path().join("silent.py");
+    std::fs::write(&silent, "import time\ntime.sleep(60)\n").unwrap();
+    let (_dir, executor) = executor_with(&[("image.caption", silent)]).await;
+    let started = std::time::Instant::now();
+    let (_, body) = get(
+        &archeaxis_api::runtime::router(executor),
+        "/api/v1/capabilities/image.caption",
+    )
+    .await;
+    assert_eq!(body["capability"]["health"], "handshake_failed");
+    assert!(started.elapsed() < std::time::Duration::from_secs(6));
+}
+
+#[tokio::test]
+async fn health_sends_no_job_and_does_not_change_provider_selection() {
+    let scripts = tempfile::tempdir().unwrap();
+    let script = scripts.path().join("probe.py");
+    let marker = scripts.path().join("task-ran");
+    let hello = serde_json::json!({
+        "schema":"archeaxis.worker-hello/v1","type":"hello",
+        "protocol":{"major":1,"min_minor":0,"max_minor":0},
+        "worker":{"name":"python-worker-caption-ndjson","version":"1"},
+        "capabilities":["image.caption"],
+        "schemas":["archeaxis.text/v1","archeaxis.document-structure/v1","archeaxis.loss-receipt/v1"]
+    });
+    std::fs::write(&script,format!(
+        "import sys\nfrom pathlib import Path\nprint({:?}, flush=True)\nif sys.stdin.readline(): Path({:?}).touch()\n",
+        hello.to_string(),marker.to_string_lossy())).unwrap();
+    let (_dir, executor) = executor_with(&[("image.caption", script.clone())]).await;
+    let (_, body) = get(
+        &archeaxis_api::runtime::router(executor),
+        "/api/v1/capabilities/image.caption",
+    )
+    .await;
+    assert_eq!(body["capability"]["health"], "handshake_ready", "{body}");
+    assert_eq!(
+        body["capability"]["default_provider"],
+        script.to_string_lossy().as_ref()
+    );
+    assert_eq!(body["capability"]["automatic_failure_fallback"], false);
+    assert!(!marker.exists());
 }
 
 #[tokio::test]

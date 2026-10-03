@@ -119,6 +119,16 @@ impl TextWorker {
         Ok(())
     }
 }
+/// Hard bound on the launch document a parent may write to this process's stdin.
+///
+/// The bound exists because the parent is a separate process: the child must never read an
+/// unbounded stream just because someone started it by hand. It was 4096, which a shipped
+/// product profile now nearly fills on its own - a 13-route launch with absolute worker paths
+/// measures 2741 bytes from a short install root and 4405 bytes from a deep one, so the deep
+/// install failed with exit code 2 and the desktop reported only "Core 未就绪". 64 KiB keeps a
+/// hard bound with roughly an order of magnitude of headroom for a legitimate profile.
+const MAX_LAUNCH_BYTES: usize = 65536;
+
 impl Launch {
     pub fn from_stdin() -> Result<Self, &'static str> {
         // A std thread (not the async blocking pool) lets main exit on a parent
@@ -126,14 +136,16 @@ impl Launch {
         let (send, receive) = mpsc::channel();
         std::thread::spawn(move || {
             let mut bytes = Vec::new();
-            let result = std::io::stdin().take(4097).read_to_end(&mut bytes);
+            let result = std::io::stdin()
+                .take(MAX_LAUNCH_BYTES as u64 + 1)
+                .read_to_end(&mut bytes);
             let _ = send.send(result.map(|_| bytes));
         });
         let bytes = receive
             .recv_timeout(Duration::from_secs(5))
             .map_err(|_| "launch input timed out")?
             .map_err(|_| "launch input failed")?;
-        if bytes.len() > 4096 {
+        if bytes.len() > MAX_LAUNCH_BYTES {
             return Err("launch input exceeds limit");
         }
         let launch: Self = serde_json::from_slice(&bytes).map_err(|_| "invalid launch input")?;

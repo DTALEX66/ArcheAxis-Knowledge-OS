@@ -1,7 +1,7 @@
 //! archeaxis-api standalone server (the process a Supervisor starts).
 //!
 //! Usage: archeaxis-api <workspace-db-path> [port]
-//! Requires a <=4096-byte launch JSON on stdin, closed by the parent within 5s.
+//! Requires a launch JSON of at most 64 KiB on stdin, closed by the parent within 5s.
 //! See packages/contracts/v1/protocol-mapping.md (native launch slice).
 //! Port defaults to 47831 (override with ARCHAXIS_VNEXT_PORT).
 //! Serves the vNext local HTTP API on 127.0.0.1 — the handshake target for the

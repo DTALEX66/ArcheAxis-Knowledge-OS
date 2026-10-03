@@ -1,6 +1,8 @@
 //! Real single-shot text worker execution outside the SQLite owner thread.
 //! Explicit local Core configuration, not a user-supplied executable endpoint.
 use crate::attempts;
+mod derived;
+mod health;
 use archeaxis_sidecar_protocol::worker::{
     MAX_FRAME_BYTES, Request, Response, decode_hello, decode_response,
 };
@@ -51,6 +53,8 @@ pub struct Executor {
     /// hardened `-S` launch; engine-backed routes (PDF/OCR) need their engine
     /// from the configured interpreter, so `-S` must not strip it.
     routes: Arc<Vec<(String, PathBuf, bool)>>,
+    health_slots: Arc<tokio::sync::Semaphore>,
+    derived_slots: Arc<tokio::sync::Semaphore>,
 }
 impl Executor {
     pub async fn open(
@@ -97,6 +101,8 @@ impl Executor {
             python: python.to_owned(),
             worker: default_worker.to_owned(),
             routes: Arc::new(routes),
+            health_slots: Arc::new(tokio::sync::Semaphore::new(4)),
+            derived_slots: Arc::new(tokio::sync::Semaphore::new(4)),
         })
     }
 
@@ -220,6 +226,33 @@ impl Executor {
     /// runtime it would need is present, which needs this path.
     pub fn python_path(&self) -> &Path {
         &self.python
+    }
+
+    /// Observe the existing NDJSON hello without submitting a task or selecting a
+    /// replacement. Health is handshake evidence, not engine or inference success.
+    pub async fn provider_health(
+        &self,
+        capability: &str,
+        worker: &Path,
+        allow_site: bool,
+    ) -> serde_json::Value {
+        let permit = self.health_slots.clone().acquire_owned().await;
+        let permit = match permit {
+            Ok(permit) => permit,
+            Err(_) => {
+                return serde_json::json!({"status":"handshake_failed","reason":"health probe unavailable","task_executed":false});
+            }
+        };
+        let python = self.python.clone();
+        let staging = self.staging.clone();
+        let worker = worker.to_owned();
+        let capability = capability.to_owned();
+        tokio::task::spawn_blocking(move || {
+            let _permit = permit;
+            health::probe(&staging,&python,&worker,&capability,allow_site)
+        }).await.unwrap_or_else(|_| serde_json::json!({
+            "status":"handshake_failed","reason":"health probe task failed","task_executed":false
+        }))
     }
 
     /// The capability this job would need **if** this workspace has disabled it, so a caller can

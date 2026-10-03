@@ -157,8 +157,7 @@ public partial class MainWindow : Window
         public string Sha256 { get; }
         public string JobId { get; set; }
         public string JobState { get; set; }
-        public string DisplayText =>
-            $"文件：{FileName}\nsource_id={SourceId}\nsha256={Sha256}\njob_id={JobId}\n状态={JobState}";
+        public string DisplayText => $"{FileName} · {UserDisplay.Status(JobState)}";
         public string JobStateDisplay => JobState switch
         {
             "succeeded" => "完成 · Core 回执",
@@ -190,11 +189,15 @@ public partial class MainWindow : Window
         public string Attempt { get; }
         public string SemanticState { get; }
         public string Detail { get; }
-        public string DisplayText => $"{JobId} · {State}";
+        public string ErrorText { get; }
+        public string DisplayText => $"导入任务 · {UserDisplay.Status(State)}" + (string.IsNullOrWhiteSpace(ErrorText) ? "" : $"\n{ErrorText}");
 
-        public JobReceiptRow(string jobId, string state, string detail, string semanticState, string requestId = "—", string attempt = "—")
+        public JobReceiptRow(string jobId, string state, string detail, string semanticState, string requestId = "—", string attempt = "—", string error = "")
         {
             JobId = jobId;
+            ErrorText = semanticState == "permission" ? "没有读取处理记录的权限。"
+                : state is "failed" or "error" ? UserDisplay.Failure(error)
+                : semanticState == "error" ? "处理记录不完整，请展开详细记录查看原因。" : "";
             State = state;
             Detail = detail;
             SemanticState = semanticState;
@@ -319,8 +322,12 @@ public partial class MainWindow : Window
                 Width = captureWidth;
             if (double.TryParse(Environment.GetEnvironmentVariable("AAOS_UI_CAPTURE_HEIGHT"), System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out var captureHeight) && captureHeight > 0)
                 Height = captureHeight;
-            var capturePalette = Environment.GetEnvironmentVariable("AAOS_UI_CAPTURE_THEME") == ThemePalette.Monochrome
-                ? ThemePalette.Monochrome : ThemePalette.Aurora;
+            var capturePalette = Environment.GetEnvironmentVariable("AAOS_UI_CAPTURE_THEME") switch
+            {
+                ThemePalette.White => ThemePalette.White,
+                ThemePalette.Black => ThemePalette.Black,
+                _ => ThemePalette.DeepSpace,
+            };
             ApplyThemePalette(capturePalette);
             try
             {
@@ -441,7 +448,12 @@ public partial class MainWindow : Window
         if (!CaptureRoutes.TryGetValue(route, out var applyRoute))
             throw new ArgumentException($"Unknown UI capture route: {route}", nameof(route));
         applyRoute(this);
-        SettingsThemePaletteBox.SelectedIndex = Environment.GetEnvironmentVariable("AAOS_UI_CAPTURE_THEME") == ThemePalette.Monochrome ? 1 : 0;
+        SettingsThemePaletteBox.SelectedIndex = Environment.GetEnvironmentVariable("AAOS_UI_CAPTURE_THEME") switch
+        {
+            ThemePalette.White => 1,
+            ThemePalette.Black => 2,
+            _ => 0,
+        };
     }
 
     private void CaptureWindowPng(string path)
@@ -563,16 +575,25 @@ public partial class MainWindow : Window
                 {
                     var anchorId = ReadDisplayValue(item, "anchor_id");
                     if (string.IsNullOrWhiteSpace(anchorId) || anchorId == "未暴露") continue;
-                    rows.Add(new EvidenceAnchorRow(
+                    var row = new EvidenceAnchorRow(
                         anchorId,
                         ReadDisplayValue(item, "source_id"),
                         ReadDisplayValue(item, "raw_sha256"),
                         ReadDisplayValue(item, "source_revision"),
                         ReadDisplayValue(item, "position"),
-                        ReadDisplayValue(item, "created_at")));
+                        ReadDisplayValue(item, "created_at"));
+                    // The Core names the file the anchor came from and quotes the anchored line;
+                    // only when it does not does this window fall back to a local guess.
+                    row.SetSourceName(ReadDisplayValue(item, "source_name"));
+                    row.SetQuote(ReadDisplayValue(item, "quote"));
+                    row.SetKnowledgeLink(ReadDisplayValue(item, "knowledge_id"),
+                        ReadDisplayValue(item, "knowledge_status"));
+                    rows.Add(row);
                 }
             }
 
+            foreach (var row in rows)
+                if (!row.HasSourceName) row.SetSourceName(ResolveSourceTitle(row.SourceId));
             var recent = rows.OrderByDescending(row => row.CreatedAt, StringComparer.Ordinal).Take(4).ToArray();
             HomeRecentEvidenceList.ItemsSource = recent;
             HomeRecentEvidenceEmptyState.IsVisible = recent.Length == 0;
@@ -593,16 +614,16 @@ public partial class MainWindow : Window
         var context = _selectedCaptureContext ?? _latestCaptureContext;
         HomeLifecycleCaptureText.Text = context is null
             ? "空 · 尚无当前会话来源"
-            : "已接收 · 当前会话已登记 source_id";
+            : "已接收 · 资料已登记";
         HomeLifecycleSourceText.Text = context is null
             ? "不可用 · 尚未登记来源"
             : context.JobState is "queued" or "running"
-                ? $"处理中 · {context.JobState}"
+                ? "处理中"
                 : context.JobState is "succeeded" or "completed"
-                    ? $"已完成 · {context.JobState}"
+                    ? "已完成"
                     : context.JobState is "failed" or "error" or "cancelled"
-                        ? $"异常 · {context.JobState}；请从来源阅读重试"
-                        : $"未知 · {context.JobState}；未推断为可用";
+                        ? $"{UserDisplay.Status(context.JobState)}；请打开来源查看原因"
+                        : "状态待确认；请打开来源核实";
         HomeLifecycleKnowledgeText.Text = "未关联 · 尚无来源知识记录";
         HomeLifecycleLearningText.Text = !_homeLearningAvailable
             ? "不可用 · Core 队列不可用"
@@ -777,7 +798,7 @@ public partial class MainWindow : Window
             "capture" or "source-reader" => "来源 → 原件 → 转换 → 锚点；仅显示 Core 已返回的对象。",
             "evidence" or "library" or "knowledge" => "来源 → 证据锚点 → 知识版本；进入详情后读取 Core。",
             "learning" or "review" => "学习项 → Assessment → Review / FSRS；以 Core 回执为准。",
-            "machine-growth" => "任务 ID → 任务投影；评估与纠错尚未接通。",
+            "machine-growth" => "提问、检查回答，用你的纠正再答原题。",
             "workspace" or "research" => "工作区 → 项目 → 对象；编辑接口尚未接通。",
             "memory-map" => "知识 → 关联 / lineage；图谱接口尚未接通。",
             "search" => "结果 → 来源 / 知识详情；当前仅支持词法检索。",
@@ -1106,6 +1127,17 @@ public partial class MainWindow : Window
         target.Classes.Set("status-disabled", semanticState == "unavailable" || semanticState == "disabled");
         target.Classes.Set("status-warning", semanticState == "warning");
         target.Text = text;
+        if (ReferenceEquals(target, JobOutputText))
+        {
+            JobUserStatusText.Text = semanticState switch
+            {
+                "loading" => "正在处理任务请求，请稍候…",
+                "success" => "请求已完成。可展开详细记录查看原始输出；取消请求仍需刷新任务确认。",
+                "permission" => "当前没有查看任务的权限。",
+                _ => UserDisplay.Failure(text.Replace("Core ", "").Replace("Core", "服务"))
+            };
+            JobUserStatusText.Classes.Set("status-error", semanticState == "error" || semanticState == "permission");
+        }
         Avalonia.Automation.AutomationProperties.SetName(target, text);
         Avalonia.Automation.AutomationProperties.SetLiveSetting(
             target,
@@ -1664,7 +1696,12 @@ public partial class MainWindow : Window
 
     private void OnThemePaletteChanged(object? sender, SelectionChangedEventArgs e)
     {
-        var selected = SettingsThemePaletteBox.SelectedIndex == 1 ? ThemePalette.Monochrome : ThemePalette.Aurora;
+        var selected = SettingsThemePaletteBox.SelectedIndex switch
+        {
+            1 => ThemePalette.White,
+            2 => ThemePalette.Black,
+            _ => ThemePalette.DeepSpace,
+        };
         ApplyThemePalette(selected);
     }
 
@@ -1683,7 +1720,12 @@ public partial class MainWindow : Window
                 AlignmentY = AlignmentY.Center
             };
         }
-        SettingsThemePaletteBox.SelectedIndex = palette == ThemePalette.Monochrome ? 1 : 0;
+        SettingsThemePaletteBox.SelectedIndex = palette switch
+        {
+            ThemePalette.White => 1,
+            ThemePalette.Black => 2,
+            _ => 0,
+        };
     }
 
     private void OnRecoveryClick(object? sender, RoutedEventArgs e) => SetSection("recovery", "恢复");
@@ -2244,7 +2286,7 @@ public partial class MainWindow : Window
             && ReferenceEquals(SourceReaderView.SelectedRow, e.Row)
             && SourceReaderView.LoadedTransformId == e.TransformId;
         SourceReaderView.SetCandidateSubmissionInProgress(true);
-        SourceReaderView.SetCandidateStatus("Core 正在校验 source/job/transform 和选区，并原子创建待审核 Candidate。", "loading");
+        SourceReaderView.SetCandidateStatus("正在检查引用位置并保存待复核知识…", "loading");
         try
         {
             var payload = JsonSerializer.Serialize(new
@@ -2271,8 +2313,8 @@ public partial class MainWindow : Window
                 }
                 var denied = IsPermissionStatus(response.StatusCode);
                 SourceReaderView.SetCandidateStatus(
-                    denied ? "Core 拒绝创建来源关联 Candidate；请检查会话或权限范围。"
-                        : $"Core 未创建 Candidate（HTTP {(int)response.StatusCode}）；请确认当前选区仍匹配持久化 transform。",
+                    denied ? "没有创建知识的权限，请检查当前会话。"
+                        : "知识创建失败，请重新读取资料并检查所选引用。",
                     denied ? "permission" : "error");
                 return;
             }
@@ -2296,18 +2338,19 @@ public partial class MainWindow : Window
             }
             if (!IsCurrentSource())
             {
-                ShowToast($"先前来源已创建待审核知识 {knowledgeId}；可在资料库读取。");
+                ShowToast("先前来源已创建待复核知识，可在资料库读取。");
                 return;
             }
             KnowledgeIdBox.Text = knowledgeId;
-            SourceReaderView.SetCandidateStatus($"Core 已创建 human Candidate：{knowledgeId}\nanchor_id={anchorId}\nsource_id={returnedSource} · job_id={returnedJob} · transform_id={e.TransformId}\n原件 SHA-256={rawSha} · status=candidate · requires_human_review=true", "success");
-            SetStatus(KnowledgeStateText, $"来源 Reader 已创建待人工复核 Candidate：{knowledgeId}。", "success");
+            SourceReaderView.SetCandidateReceipt($"knowledge_id={knowledgeId}\nanchor_id={anchorId}\nsource_id={returnedSource} · job_id={returnedJob} · transform_id={e.TransformId}\nSHA-256={rawSha} · status=candidate · requires_human_review=true");
+            SourceReaderView.SetCandidateStatus("知识和引用已保存，请阅读后亲自复核。", "success");
+            SetStatus(KnowledgeStateText, "来源引用已创建待复核知识。", "success");
             OnReadKnowledgeClick(sender, new RoutedEventArgs());
         }
         catch (Exception)
         {
             if (IsCurrentSource())
-                SourceReaderView.SetCandidateStatus("Core 创建或读回中断；请依据 knowledge_id 和 Core 持久投影核实，不要重复推断成功。", "error");
+                SourceReaderView.SetCandidateStatus("保存或读取中断，请先在资料库核实是否已保存，再决定重试。", "error");
         }
         finally
         {
@@ -2375,16 +2418,18 @@ public partial class MainWindow : Window
                     SetSourceReaderTransform(denied
                         ? "Core 拒绝读取转换输出；原文正文仍未暴露。"
                         : result.Error is null
-                            ? $"Core job 当前不可读取（state={result.State}）；未显示正文。"
-                            : $"Core 输出读取失败（state={result.State}）；未显示正文。");
+                            ? $"当前资料暂不可读：{UserDisplay.Status(result.State)}。"
+                            : "资料读取失败。具体原因见上方状态。");
+                    SetSourceReaderCoreNote(result.Error ?? $"state={result.State}");
                     SetSourceReaderStatus(denied
                         ? "来源阅读：Core 拒绝当前访问权限，请检查会话或权限范围。"
-                        : $"来源阅读：Core 输出不可用（{result.State}）。", denied ? "permission" : result.State is "failed" or "cancelled" or "source_mismatch" or "identity_mismatch" ? "error" : "empty");
+                        : result.Error is not null ? $"资料读取失败：{UserDisplay.Failure(result.Error)}"
+                        : $"资料暂不可读：{UserDisplay.Status(result.State)}。", denied ? "permission" : result.State is "failed" or "cancelled" or "source_mismatch" or "identity_mismatch" ? "error" : "empty");
                     return;
                 }
                 SetSourceReaderTransform(result.Content, $"Core transform_id={result.TransformId} · raw_sha256={result.RawSha256}；source_id↔job_id 由 Core 持久状态校验。文本为提取结果，不是原始字节或 accepted Knowledge。");
                 SourceReaderView.SetTransformIdentity(result.TransformId, result.RawSha256);
-                SetSourceReaderStatus("来源阅读：已读取带有 Core 来源、任务、转换和原件 SHA 身份的文本；可选区创建待审核 Candidate。", "success");
+                SetSourceReaderStatus("文本已读取，可以选择引用并整理待复核知识。", "success");
             }
             catch (Exception)
             {
@@ -2426,15 +2471,17 @@ public partial class MainWindow : Window
                 var denied = result.IsPermissionDenied;
                 SetSourceReaderTransform(denied
                     ? "Core 拒绝读取转换输出；原文正文仍未暴露。"
-                    : "Core 未返回身份可核验的成功 text transform；未显示正文。");
+                    : "提取文本未通过来源核验，暂不显示正文。具体原因见上方状态。");
+                SetSourceReaderCoreNote(result.Error ?? $"state={result.State}");
                 SetSourceReaderStatus(denied
                     ? "来源阅读：Core 拒绝当前访问权限，请检查会话或权限范围。"
-                    : $"来源阅读：transform 不可用或身份校验失败（{result.State}）。", denied ? "permission" : "error");
+                    : result.Error is not null ? $"资料读取失败：{UserDisplay.Failure(result.Error)}"
+                    : "提取文本暂不可用或来源校验失败，请重新读取。", denied ? "permission" : "error");
                 return;
             }
             SetSourceReaderTransform(result.Content, $"Core transform_id={result.TransformId} · raw_sha256={result.RawSha256}；转换内容不是原始字节、理解或 accepted Knowledge。");
             SourceReaderView.SetTransformIdentity(result.TransformId, result.RawSha256);
-            SetSourceReaderStatus("来源阅读：已读取带有 Core 来源、任务、转换和原件 SHA 身份的文本；可选区创建待审核 Candidate。", "success");
+            SetSourceReaderStatus("文本已读取，可以选择引用并整理待复核知识。", "success");
         }
         catch (Exception)
         {
@@ -2827,10 +2874,13 @@ public partial class MainWindow : Window
         _learningEligibleKnowledgeId = null;
         if (AddKnowledgeToLearningButton is not null)
             AddKnowledgeToLearningButton.IsEnabled = false;
+        if (GenerateCourseButton is not null)
+            GenerateCourseButton.IsEnabled = false;
         if (KnowledgeBodyText is null)
             return;
         if (KnowledgeQualificationText is not null)
             KnowledgeQualificationText.Text = "qualification · 当前输入尚未绑定已读对象";
+            KnowledgeReviewAvailabilityText.Text = "知识选择已更改，请重新读取后复核。";
         if (SubmitKnowledgeReviewButton is not null)
             SubmitKnowledgeReviewButton.IsEnabled = false;
         if (KnowledgeReviewActionStatusText is not null)
@@ -2869,7 +2919,9 @@ public partial class MainWindow : Window
         _knowledgeQualificationActive = false;
         SubmitKnowledgeReviewButton.IsEnabled = false;
         KnowledgeQualificationText.Text = "qualification · 正在读取 Core 状态";
+        KnowledgeReviewAvailabilityText.Text = "正在读取知识并检查复核条件…";
         AddKnowledgeToLearningButton.IsEnabled = false;
+        GenerateCourseButton.IsEnabled = false;
         SetStatus(KnowledgeLearningStatusText, "等待 Core Knowledge V3 eligibility 读回。", "empty");
         SetStatus(KnowledgeStateText, "正在读取 Knowledge V3。", "loading");
         var knowledgeId = KnowledgeIdBox.Text?.Trim() ?? string.Empty;
@@ -2960,7 +3012,13 @@ public partial class MainWindow : Window
                 return;
             var root = document.RootElement;
             KnowledgeStatusText.Text = ReadDisplayValue(root, "status");
-            KnowledgeSourceText.Text = ReadDisplayValue(root, "source_id");
+            var sourceId = ReadDisplayValue(root, "source_id");
+            var knownSource = _captureContexts.LastOrDefault(context => context.SourceId == sourceId);
+            var sourceTitle = knownSource?.FileName
+                ?? (_selectedSourceReaderRow is SourceMemberRow member && member.SourceId == sourceId
+                    ? member.OriginalName : null);
+            KnowledgeSourceText.Text = !string.IsNullOrWhiteSpace(sourceTitle) ? sourceTitle
+                : sourceId == "—" ? "未关联资料来源" : "已关联资料来源，可点击查看";
             KnowledgeTrustText.Text = $"支持：{ReadDisplayValue(root, "support_level")} · 置信：{ReadDisplayValue(root, "confidence")} · 风险：{ReadDisplayValue(root, "risk_level")}";
             KnowledgeReviewText.Text = ReadDisplayValue(root, "requires_human_review");
             var knowledgeIdentity = ReadDisplayValue(root, "knowledge_id");
@@ -2983,13 +3041,15 @@ public partial class MainWindow : Window
             SetStatus(
                 KnowledgeLearningStatusText,
                 AddKnowledgeToLearningButton.IsEnabled
-                    ? "已从 Core 读回 eligible Knowledge；加入学习后仍保持其当前 Candidate/accepted 状态。"
-                    : "当前 Knowledge 未满足 Core Assessment 条件；不会自动接受或加入学习。",
+                    ? "已确认可以加入学习；加入后会生成学习题目。"
+                    : "这条知识暂不适合加入学习，请先检查复核状态。",
                 AddKnowledgeToLearningButton.IsEnabled ? "info" : "disabled");
             SetStatus(KnowledgeStateText, hasKnowledgeIdentity ? "Knowledge V3 已读取。" : "Knowledge V3 已响应，但标识字段未暴露。", hasKnowledgeIdentity ? "success" : "empty");
             _activeKnowledgeSourceId = ReadDisplayValue(root, "source_id");
             OpenKnowledgeSourceButton.IsEnabled = !string.IsNullOrWhiteSpace(_activeKnowledgeSourceId)
                 && _activeKnowledgeSourceId != "—";
+            GenerateCourseButton.IsEnabled = AddKnowledgeToLearningButton.IsEnabled
+                && _knowledgeReadStatus == "accepted" && OpenKnowledgeSourceButton.IsEnabled && !_courseInProgress;
             KnowledgeContextSourceText.Text = $"来源：{ReadDisplayValue(root, "source_id")}";
             KnowledgeContextVersionText.Text = $"Knowledge 版本：{ReadDisplayValue(root, "knowledge_version")}";
             KnowledgeContextProjectionText.Text = $"当前投影：{ReadDisplayValue(root, "knowledge_id")} · {ReadDisplayValue(root, "status")}";
@@ -3069,6 +3129,7 @@ public partial class MainWindow : Window
     {
         if (_supervisor is null || _supervisor.CoreUrl.Length == 0)
             return;
+        KnowledgeReviewAvailabilityText.Text = "正在检查所选知识的复核条件…";
         try
         {
             using var response = await _supervisor.SendAsync(
@@ -3084,6 +3145,10 @@ public partial class MainWindow : Window
                     : IsPermissionStatus(response.StatusCode)
                         ? "qualification · Core 拒绝访问"
                         : $"qualification · 读取失败（HTTP {(int)response.StatusCode}）";
+                KnowledgeReviewAvailabilityText.Text = response.StatusCode == System.Net.HttpStatusCode.NotFound
+                    ? "没有找到所选知识；复核操作已禁用。"
+                    : IsPermissionStatus(response.StatusCode) ? "当前会话无权读取该知识；复核操作已禁用。"
+                    : "无法检查复核条件，请检查连接后重试。";
                 UpdateKnowledgeReviewControls();
                 return;
             }
@@ -3096,6 +3161,10 @@ public partial class MainWindow : Window
             KnowledgeQualificationText.Text = _knowledgeQualificationExists
                 ? $"Core qualification · {(_knowledgeQualificationActive ? "active" : "inactive")} · ID 已核对"
                 : "qualification · Core 返回身份不匹配或对象不存在";
+            KnowledgeReviewAvailabilityText.Text = !_knowledgeQualificationExists
+                ? "读取结果与所选知识不一致；复核操作已禁用。"
+                : _knowledgeQualificationActive ? "当前知识可用。请阅读内容与来源，再作复核决定。"
+                : "这条知识已被替代或不可用；复核操作已禁用。";
             UpdateKnowledgeReviewControls();
         }
         catch (Exception)
@@ -3103,6 +3172,7 @@ public partial class MainWindow : Window
             if (requestVersion == _knowledgeRequestVersion)
             {
                 KnowledgeQualificationText.Text = "qualification · 请求中断；复核操作已禁用";
+                KnowledgeReviewAvailabilityText.Text = "检查复核条件时连接中断，请重试。";
                 UpdateKnowledgeReviewControls();
             }
         }
@@ -3210,7 +3280,7 @@ public partial class MainWindow : Window
             || _supervisor is null
             || _supervisor.CoreUrl.Length == 0)
         {
-            SetStatus(KnowledgeLearningStatusText, "Knowledge ID 或 Core 不可用；未加入学习。", "error");
+            SetStatus(KnowledgeLearningStatusText, "请先读取适合学习的知识，并连接服务。", "error");
             return;
         }
 
@@ -3221,67 +3291,19 @@ public partial class MainWindow : Window
             && string.Equals(_learningEligibleKnowledgeId, knowledgeId, StringComparison.Ordinal);
         _addKnowledgeToLearningInProgress = true;
         AddKnowledgeToLearningButton.IsEnabled = false;
-        SetStatus(KnowledgeLearningStatusText, "正在请求 Core 建立学习来源并生成 Assessment。", "loading");
+        SetStatus(KnowledgeLearningStatusText, "正在保存学习来源并生成学习题目…", "loading");
         try
         {
-            using var reference = await _supervisor.SendAsync(
-                HttpMethod.Post,
-                $"/api/v1/learning/items/{Uri.EscapeDataString(itemKey)}/references",
-                new StringContent(JsonSerializer.Serialize(new { knowledge_id = knowledgeId }), Encoding.UTF8, "application/json"));
-            if (!reference.IsSuccessStatusCode)
-            {
-                if (!IsCurrentRequest())
-                    return;
-                var denied = IsPermissionStatus(reference.StatusCode);
-                SetStatus(
-                    KnowledgeLearningStatusText,
-                    denied ? "Core 拒绝建立学习来源；请检查会话或权限范围。"
-                        : $"Core 未建立学习来源（HTTP {(int)reference.StatusCode}）。",
-                    denied ? "permission" : "error");
-                return;
-            }
-
-            using var assessment = await _supervisor.SendAsync(
-                HttpMethod.Post,
-                $"/api/v1/learning/items/{Uri.EscapeDataString(itemKey)}/assessment",
-                new StringContent(JsonSerializer.Serialize(new { knowledge_id = knowledgeId }), Encoding.UTF8, "application/json"));
-            if (!assessment.IsSuccessStatusCode)
-            {
-                if (!IsCurrentRequest())
-                {
-                    ShowToast("知识引用已保存，但学习问题尚未生成；返回知识页重新加入学习可重试。", "error");
-                    return;
-                }
-                SetStatus(
-                    KnowledgeLearningStatusText,
-                    $"Core 已保存 Knowledge 引用，但 Assessment 未就绪（HTTP {(int)assessment.StatusCode}）；未启动学习。",
-                    "error");
-                return;
-            }
-
-            using var document = JsonDocument.Parse(await assessment.Content.ReadAsStringAsync());
-            if (!IsCurrentRequest())
-                return;
-            if (ReadDisplayValue(document.RootElement, "item_key") != itemKey
-                || ReadDisplayValue(document.RootElement, "knowledge_id") != knowledgeId
-                || ReadDisplayValue(document.RootElement, "assessment_id") == "—"
-                || string.IsNullOrWhiteSpace(ReadDisplayValue(document.RootElement, "assessment_id")))
-            {
-                SetStatus(KnowledgeLearningStatusText, "Core Assessment 身份与请求不一致；已拒绝进入学习。", "error");
-                return;
-            }
-
-            SetStatus(
-                KnowledgeLearningStatusText,
-                $"Core Assessment 已读回：{ReadDisplayValue(document.RootElement, "assessment_id")}；正在载入待学习队列。",
-                "success");
+            await EnrollKnowledgeAsync(knowledgeId, itemKey, IsCurrentRequest);
+            if (!IsCurrentRequest()) return;
+            SetStatus(KnowledgeLearningStatusText, "学习题目已保存，正在载入学习队列。", "success");
             _selectedLearningItemKey = itemKey;
             OnLearningClick(sender, e);
         }
-        catch (Exception)
+        catch (Exception error)
         {
             if (IsCurrentRequest())
-                SetStatus(KnowledgeLearningStatusText, "加入学习请求中断；请重新读取 Core 状态后重试。", "error");
+                SetStatus(KnowledgeLearningStatusText, UserDisplay.Failure(error.Message), "error");
         }
         finally
         {
@@ -3300,7 +3322,7 @@ public partial class MainWindow : Window
 
     private async void OnReadMachineTaskClick(object? sender, RoutedEventArgs e)
     {
-        if (_machineTaskLoadInProgress)
+        if (_machineTaskLoadInProgress || _machineJourneyInProgress)
             return;
         var requestVersion = ++_machineTaskRequestVersion;
         var taskId = MachineTaskIdBox.Text?.Trim() ?? string.Empty;
@@ -3348,6 +3370,17 @@ public partial class MainWindow : Window
             });
             SetStatus(MachineTaskStatusText, "机器任务收据已从 Core 读取。", "success");
             SetInspectorProjection(ReadDisplayValue(root, "task_id"), $"模型：{ReadDisplayValue(root, "model_version")} · 结果：{ReadDisplayValue(root, "outcome")}\n来自 Core 机器任务收据。");
+            if (ReadDisplayValue(root, "scope") is "runtime.answer" or "runtime.evaluation.failed" or "runtime.retest")
+            {
+                var restored = MachineLearningJourney.FromTask(root);
+                await VerifyMachineCorrectionAsync(restored);
+                if (requestVersion != _machineTaskRequestVersion || _activeSection != "machine-growth") return;
+                _machineJourney = restored;
+                MachineKnowledgeIdBox.Text = restored.KnowledgeId;
+                MachineQuestionBox.Text = restored.Question;
+                RenderMachineJourney();
+                SetStatus(MachineJourneyStatusText, "已恢复保存的回答与纠正，可以继续当前旅程。", "success");
+            }
         }
         catch (Exception)
         {
@@ -3361,6 +3394,7 @@ public partial class MainWindow : Window
             _machineTaskLoadInProgress = false;
             MachineTaskLoadButton.IsEnabled = true;
             MachineTaskIdBox.IsEnabled = true;
+            UpdateMachineJourneyControls();
         }
     }
 
@@ -3379,6 +3413,14 @@ public partial class MainWindow : Window
         var selected = e.Row;
         view.SetAnchorDetail(selected.DetailText);
         _activeEvidenceSourceId = selected.SourceId;
+        // Carry the cited knowledge into the review box: the person still reads and decides,
+        // but they do not have to retype an identifier the Core already returned.
+        if (!string.IsNullOrWhiteSpace(selected.KnowledgeId))
+        {
+            KnowledgeIdBox.Text = selected.KnowledgeId;
+            SetStatus(KnowledgeReviewActionStatusText,
+                $"已带入所选证据关联的知识 {selected.KnowledgeId}；点击读取后再作复核决定。", "info");
+        }
         SetInspectorProjection(
             selected.AnchorId,
             selected.DetailText,
@@ -3452,15 +3494,24 @@ public partial class MainWindow : Window
                 {
                     var anchorId = ReadDisplayValue(item, "anchor_id");
                     if (string.IsNullOrWhiteSpace(anchorId) || anchorId == "未暴露") continue;
-                    rows.Add(new EvidenceAnchorRow(
+                    var row = new EvidenceAnchorRow(
                         anchorId,
                         ReadDisplayValue(item, "source_id"),
                         ReadDisplayValue(item, "raw_sha256"),
                         ReadDisplayValue(item, "source_revision"),
                         ReadDisplayValue(item, "position"),
-                        ReadDisplayValue(item, "created_at")));
+                        ReadDisplayValue(item, "created_at"));
+                    // The Core names the file the anchor came from and quotes the anchored line;
+                    // only when it does not does this window fall back to a local guess.
+                    row.SetSourceName(ReadDisplayValue(item, "source_name"));
+                    row.SetQuote(ReadDisplayValue(item, "quote"));
+                    row.SetKnowledgeLink(ReadDisplayValue(item, "knowledge_id"),
+                        ReadDisplayValue(item, "knowledge_status"));
+                    rows.Add(row);
                 }
             }
+            foreach (var row in rows)
+                if (!row.HasSourceName) row.SetSourceName(ResolveSourceTitle(row.SourceId));
             EvidenceCenterView.SetAnchors(rows);
             EvidenceCenterView.SetBundlesText("Core 当前未暴露 Evidence bundle 读模型；仅显示已持久化 anchor。");
             var status = rows.Count == 0 ? "Core 已响应，但当前没有 Evidence anchor。" : $"Core 已返回 {rows.Count} 个 Evidence anchor。";
@@ -3939,7 +3990,7 @@ public partial class MainWindow : Window
                         ? "\n质量回执：权限不足；Core 拒绝读取。任务状态已读取，质量未验证。"
                         : $"\n质量回执：读取失败（HTTP {(int)qualityResponse.StatusCode}）；任务状态已读取，质量未验证。";
                 }
-                receipts.Add(new JobReceiptRow(jobId, state, detail, semanticState, requestId, attempt));
+                receipts.Add(new JobReceiptRow(jobId, state, detail, semanticState, requestId, attempt, error));
             }
             catch (Exception)
             {
@@ -4030,6 +4081,7 @@ public partial class MainWindow : Window
         JobOutputText.Text = selected is null
             ? "选择当前会话的任务回执后读取输出。"
             : $"已选择 job_id={selected.JobId} · attempt={selected.Attempt} · request_id={selected.RequestId}。";
+        JobUserStatusText.Text = selected is null ? "选择任务后查看处理结果。" : selected.DisplayText;
         if (selected is null)
             return;
         SetInspectorProjection(
@@ -4722,6 +4774,7 @@ public partial class MainWindow : Window
             var visibleRows = kindFilter == "all"
                 ? rows
                 : rows.Where(row => row.Kind == kindFilter).ToList();
+            foreach (var row in visibleRows) row.SourceTitle = ResolveSourceTitle(row.SourceId);
             LibraryResultsText.Text = visibleRows.Count == 0
                 ? $"未找到匹配结果（知识 {count}，提取结果 {transformCount}）。"
                 : $"匹配结果：知识 {count}，提取结果 {transformCount}；当前显示 {visibleRows.Count} 条；选择一项查看来源摘要。";
@@ -4835,6 +4888,7 @@ public partial class MainWindow : Window
         _selectedLibraryResult = selected;
         LibrarySelectedDetailText.Text = selected.InspectorDetails;
         LibraryDetailKindText.Text = selected.KindLabel;
+        LibrarySelectedSummaryText.Text = $"{selected.Head}\n{selected.StatusLabel} · {selected.SourceLabel}";
         LibraryDetailHeadText.Text = selected.Head;
         LibraryDetailStatusText.Text = selected.StatusLabel;
         LibraryDetailSourceText.Text = selected.SourceLabel;
@@ -4894,6 +4948,17 @@ public partial class MainWindow : Window
         SourceReaderView.SourceId = selected.SourceId.Trim();
         SetSection("source-reader", "导入阅读");
         OnReadSourceMembersClick(sender, e);
+    }
+
+    private string ResolveSourceTitle(string sourceId)
+    {
+        var context = _captureContexts.LastOrDefault(item => item.SourceId == sourceId);
+        if (context is not null && !string.IsNullOrWhiteSpace(context.FileName))
+            return Path.GetFileName(context.FileName);
+        if (SourceReaderView.SelectedRow is SourceMemberRow member && member.SourceId == sourceId
+            && !string.IsNullOrWhiteSpace(member.OriginalName) && member.OriginalName != "—")
+            return Path.GetFileName(member.OriginalName);
+        return "关联资料";
     }
 
     private void OnOpenSelectedKnowledgeClick(object? sender, RoutedEventArgs e)
@@ -5013,12 +5078,12 @@ public partial class MainWindow : Window
             return;
         }
         CaptureContextText.Text = $"已保留 {_captureContexts.Count} 项导入上下文\n选中项：{activeContext.DisplayText}\n边界：source_id ↔ job_id ↔ file_name；未据此推断知识或学习关联。";
-        HomeEvidenceText.Text = $"本次会话 Core 回执：{activeContext.FileName}\nsource_id={activeContext.SourceId} · job_id={activeContext.JobId} · 状态={activeContext.JobState}\n仅表示 Core 接收/任务回执；不代表 Knowledge 接受或 evidence anchor。";
+        HomeEvidenceText.Text = $"{activeContext.FileName} · {UserDisplay.Status(activeContext.JobState)}\n资料接收与知识复核是两个步骤。";
         HomeOpenCurrentSourceButton.IsEnabled = !string.IsNullOrWhiteSpace(activeContext.SourceId);
         OpenLatestSourceButton.IsEnabled = !string.IsNullOrWhiteSpace(activeContext.SourceId);
         OpenLatestJobButton.IsEnabled = !string.IsNullOrWhiteSpace(activeContext.JobId)
             && activeContext.JobId != "未提交";
-        LearningCaptureContextText.Text = $"最近 Capture：source_id={activeContext.SourceId} · job_id={activeContext.JobId} · 状态={activeContext.JobState}\n未证明与当前学习项目关联；学习来源仍以 Core learner.references 为准。";
+        LearningCaptureContextText.Text = $"最近导入：{activeContext.FileName} · {UserDisplay.Status(activeContext.JobState)}\n学习来源以当前题目关联的资料为准。";
         OpenLearningCaptureSourceButton.IsEnabled = OpenLatestSourceButton.IsEnabled;
         OpenLearningCaptureJobButton.IsEnabled = OpenLatestJobButton.IsEnabled;
         RefreshHomeLifecycleProjection();
@@ -5070,7 +5135,7 @@ public partial class MainWindow : Window
             return;
         }
 
-        HomeContinueReadingText.Text = $"当前会话来源：{activeContext.FileName}\nsource_id={activeContext.SourceId} · 状态={activeContext.JobState}\n仅当前会话，未宣称持久化阅读位置。";
+        HomeContinueReadingText.Text = $"{activeContext.FileName} · {UserDisplay.Status(activeContext.JobState)}\n可继续阅读本次会话的资料。阅读位置尚未保存。";
         HomeContinueReadingButton.IsEnabled = true;
     }
 
@@ -5432,7 +5497,7 @@ public partial class MainWindow : Window
                         && dueValue.ValueKind != JsonValueKind.Null
                         ? dueValue.GetString() ?? "未排程"
                         : "未排程";
-                    queueRows.Add(new LearningQueueRow(itemKey, queueNextReview));
+                    queueRows.Add(new LearningQueueRow(itemKey, queueNextReview, $"学习项目 {queueRows.Count + 1}"));
                     if (first.ValueKind == JsonValueKind.Undefined
                         && (string.IsNullOrWhiteSpace(_selectedLearningItemKey)
                             || string.Equals(_selectedLearningItemKey, itemKey, StringComparison.Ordinal)))
@@ -5951,14 +6016,12 @@ public partial class MainWindow : Window
                     $"下一次复习：{nextReview} · days：{nextReviewDays}\n" +
                     $"回答回执：{(savedAnswer ? "已由 Core 保存" : "未暴露")} · " +
                     $"Mastery projection：{(masteryProjectionOpen ? "未闭合" : "按 Core 回执显示")}";
-                CoreStatusText.Text = savedAnswer && masteryProjectionOpen
-                    ? "学习路径：复习已记录（回答已保存；Mastery projection 未闭合）"
-                    : "学习路径：复习已记录";
+                CoreStatusText.Text = "学习路径：回答和复习安排已保存";
                 SetStatus(
                     LearningReviewStatusText,
                     savedAnswer && masteryProjectionOpen
-                        ? "复习已记录；回答已保存，但 Mastery projection 未闭合。"
-                        : "复习已记录；知识接受状态仍由 Core projection 决定。",
+                        ? "回答和复习安排已保存。掌握情况还需要后续练习确认。"
+                        : "复习已记录；知识的复核状态保持不变。",
                     "success");
                 ShowToast("复习结果已由 Core 记录");
                 // The exposure is closed: the next one must carry fresh ids.
@@ -6018,12 +6081,14 @@ public sealed class LearningQueueRow
 {
     public string ItemKey { get; }
     public string NextReview { get; }
-    public string DisplayText => $"{ItemKey} · 下次复习：{NextReview}";
+    public string Title { get; }
+    public string DisplayText => $"{Title} · 下次复习：{UserDisplay.Date(NextReview)}";
 
-    public LearningQueueRow(string itemKey, string nextReview)
+    public LearningQueueRow(string itemKey, string nextReview, string title = "学习项目")
     {
         ItemKey = itemKey;
         NextReview = nextReview;
+        Title = title;
     }
 
     public override string ToString() => DisplayText;
@@ -6039,18 +6104,21 @@ public sealed class LibraryResultRow
     public string Active { get; }
     public string Engine { get; }
     public string Head { get; }
-    public string KindLabel => Kind == "knowledge" ? "KNOWLEDGE" : "TRANSFORM";
-    public string TopicLabel => "Core 未暴露";
-    public string UpdatedLabel => "Core 未暴露";
+    public string Body { get; set; } = "";
+    public bool HasBody => !string.IsNullOrWhiteSpace(Body);
+    public string KindLabel => Kind == "knowledge" ? "知识" : "提取文本";
+    public string TopicLabel => "主题未提供";
+    public string UpdatedLabel => "时间未提供";
     public string StatusLabel => Kind == "transform"
-        ? "Knowledge 状态：不适用"
-        : $"status={Status} · active={Active}";
+        ? "提取文本"
+        : $"{UserDisplay.Status(Status)}{(Active == "false" ? " · 已停用" : "")}";
     public string SourceLabel => string.IsNullOrWhiteSpace(SourceId)
-        ? "source_id：未暴露"
-        : $"source_id：{SourceId}";
+        ? "来源未提供"
+        : SourceTitle;
+    public string SourceTitle { get; set; } = "资料来源";
     public string DisplayText => Kind == "transform"
-        ? $"提取文本命中 · {SourceId}: {Head} · transform_id={TransformId} · engine={Engine}"
-        : $"知识 · {KnowledgeId}: {Head} · status={Status} · active={Active}";
+        ? $"提取文本 · {Head}"
+        : $"{Head} · {StatusLabel}";
     public string InspectorDetails => Kind == "transform"
         ? $"类型：transform\nTransform：{TransformId}\n来源：{SourceId}\n引擎：{Engine}\n标题：{Head}\nTransform 投影不是 Knowledge 接受状态。\n来自 Core 搜索投影；未把结果文本升级为新的知识真相。"
         : $"类型：knowledge\nKnowledge：{KnowledgeId}\n来源：{SourceId}\n状态：{Status}\nActive：{Active}\n引擎：{Engine}\n标题：{Head}\n来自 Core 搜索投影；未把结果文本升级为新的知识真相。";

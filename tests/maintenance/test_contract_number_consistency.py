@@ -89,9 +89,9 @@ def test_the_launch_shape_split_adds_up():
 
     The split is checked against the routers rather than repeated from the table, so the
     arithmetic in §6 has to hold on its own. It does: the projection builder mounts 25
-    unconditional routes and one conditional legacy mount, which is 26 addresses, and the 7
-    runtime routes make 40 - the same total the inventory lists. A reader counting mounts will
-    see 25 and 14; a reader counting addresses will see 26 and 14. Both reach 40, and this test
+    unconditional routes and one conditional legacy mount, which is 26 addresses, and the 19
+    runtime routes make 45 - the same total the inventory lists. A reader counting mounts will
+    see 25 and 19; a reader counting addresses will see 26 and 19. Both reach 45, and this test
     records the distinction so neither number is mistaken for the other.
 
     The runtime builder grew from 4 to 9 as R7 added the three capability paths, the machine answer, the cited Ask, the human correction, the retest, the vault link parse, the vault link record and the vault member classification. Adding them
@@ -104,7 +104,7 @@ def test_the_launch_shape_split_adds_up():
     assert projections == 25, (
         f"the projection builder mounts {projections} routes; §3's own row count depends on this")
     assert conditional == 1, f"conditional mounts changed: {conditional}"
-    assert runtime == 14, f"the runtime builder mounts {runtime} routes, §6 says 14"
+    assert runtime == 19, f"the runtime builder mounts {runtime} routes, §6 says 19"
     assert projections + conditional + runtime == inventory, (
         f"{projections} + {conditional} + {runtime} does not reach the inventory's {inventory}")
     # and the inventory's pair count must account for the dual-method route
@@ -125,7 +125,7 @@ def test_the_runbooks_case_counts_match_the_matrix():
 
 
 def test_the_contracts_readiness_counts_match_the_declared_routes():
-    """§7 reports readiness on the staged runtime, which omits the built-in text route."""
+    """§7 reports readiness on the staged runtime, one entry per declared route."""
     facts = tree_facts()
     contract = CONTRACT.read_text(encoding="utf-8")
     declared = re.search(r"\*\*(\d+)\*\* capabilities declared", contract)
@@ -135,11 +135,13 @@ def test_the_contracts_readiness_counts_match_the_declared_routes():
     assert int(declared.group(1)) == facts["declared_routes"], (
         f"§7 states {declared.group(1)} declared capabilities, ROUTE_SCRIPTS has "
         f"{facts['declared_routes']}")
-    # The readiness run counts the routes the staged profile publishes, which is every declared
-    # capability except the built-in text.extract.
-    assert int(readiness.group(1)) == facts["declared_routes"] - 1, (
+    # The readiness run reports one entry per route the staged profile declares, so its total is
+    # the declared count itself. Measured, not derived: ROUTE_SCRIPTS declares 13 and the staged
+    # probe reports total 13 (.project-local/runs/staged-13routes-fixed-20261003.log). The
+    # built-in text.extract is not one of the declared routes, so nothing is subtracted.
+    assert int(readiness.group(1)) == facts["declared_routes"], (
         f"§7 states readiness total {readiness.group(1)}, the staged profile publishes "
-        f"{facts['declared_routes'] - 1}")
+        f"{facts['declared_routes']}")
 
 
 def test_the_ledger_agrees_with_the_disposition_it_points_at():

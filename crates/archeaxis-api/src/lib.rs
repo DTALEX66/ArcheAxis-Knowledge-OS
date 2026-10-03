@@ -1006,7 +1006,9 @@ async fn source_job_transform(
 async fn evidence_anchors(State(state): State<AppState>) -> impl IntoResponse {
     with_store(state, |conn| {
         let mut statement = match conn.prepare(
-            "SELECT a.anchor_id, a.source_id, s.sha256, a.source_revision, a.position, a.created_at
+            "SELECT a.anchor_id, a.source_id, s.sha256, a.source_revision, a.position, a.created_at, s.original_name,
+                    (SELECT k.knowledge_id FROM knowledge k WHERE k.anchor_id = a.anchor_id ORDER BY k.rowid DESC LIMIT 1),
+                    (SELECT k.status FROM knowledge k WHERE k.anchor_id = a.anchor_id ORDER BY k.rowid DESC LIMIT 1)
              FROM anchors a JOIN sources s ON s.source_id = a.source_id
              ORDER BY a.created_at ASC, a.anchor_id ASC",
         ) {
@@ -1016,13 +1018,28 @@ async fn evidence_anchors(State(state): State<AppState>) -> impl IntoResponse {
             }
         };
         let rows = match statement.query_map([], |row| {
+            // A bare positional anchor stores an opaque locator, while an anchor created from
+            // a transform stores the quoted selection inside that locator. The quote and the
+            // source's own file name are surfaced as their own fields so a reader does not have
+            // to parse the locator or resolve an id, and the quote stays null when there is none.
+            let position = row.get::<_, String>(4)?;
+            let quote = serde_json::from_str::<serde_json::Value>(&position)
+                .ok()
+                .and_then(|value| value.get("quote").and_then(|quote| quote.as_str()).map(str::to_string));
             Ok(serde_json::json!({
                 "anchor_id": row.get::<_, String>(0)?,
                 "source_id": row.get::<_, String>(1)?,
                 "raw_sha256": row.get::<_, String>(2)?,
                 "source_revision": row.get::<_, String>(3)?,
-                "position": row.get::<_, String>(4)?,
+                "position": position,
                 "created_at": row.get::<_, String>(5)?,
+                "source_name": row.get::<_, String>(6)?,
+                "quote": quote,
+                // The knowledge this anchor is attached to, when a review candidate cites it, so a
+                // reader can go from "this is the quoted evidence" to "review it" without a search.
+                // Null for a bare positional anchor that no knowledge row references.
+                "knowledge_id": row.get::<_, Option<String>>(7)?,
+                "knowledge_status": row.get::<_, Option<String>>(8)?,
             }))
         }) {
             Ok(rows) => rows,

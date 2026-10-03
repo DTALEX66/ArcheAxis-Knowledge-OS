@@ -37,6 +37,8 @@ public sealed class CoreSupervisor : IDisposable
     // Keep status/readiness requests on the short client so failures remain responsive.
     private static readonly HttpClient ImportHttp = new(new HttpClientHandler { UseProxy = false, AllowAutoRedirect = false })
         { Timeout = TimeSpan.FromSeconds(60) };
+    private static readonly HttpClient ModelHttp = new(new HttpClientHandler { UseProxy = false, AllowAutoRedirect = false })
+        { Timeout = TimeSpan.FromSeconds(125) };
     private Process? _core;
     private CancellationTokenSource? _startup;
     private readonly string _coreBin;
@@ -241,7 +243,10 @@ public sealed class CoreSupervisor : IDisposable
                 request.Headers.TryAddWithoutValidation(header.Key, header.Value);
         request.Headers.Add("x-archeaxis-launch-token", launchToken);
         var client = !machine && method == HttpMethod.Post && path == "/api/v1/imports"
-            ? ImportHttp : Http;
+            ? ImportHttp
+            : method == HttpMethod.Post && (path is "/api/v1/machine/answers" or "/api/v1/machine/retests" or "/api/v1/search/semantic" or "/api/v1/courses/from-knowledge"
+                || (path.StartsWith("/api/v1/courses/", StringComparison.Ordinal) && path.EndsWith("/render", StringComparison.Ordinal)))
+                ? ModelHttp : Http;
         var response = await client.SendAsync(request, ct).ConfigureAwait(false);
         // Response diagnostics retain RequestMessage; strip the sent credential
         // before returning the response to either caller.

@@ -497,7 +497,7 @@ def test_home_exposes_guarded_current_session_continue_reading() -> None:
     assert 'Click="OnOpenHomeReadingClick"' in xaml
     assert 'private void OnOpenHomeReadingClick' in code
     assert 'private void RefreshHomeReadingProjection' in code
-    assert '仅当前会话，未宣称持久化阅读位置' in code
+    assert '阅读位置尚未保存' in code
     assert 'RefreshHomeReadingProjection();' in code
 
 
@@ -585,7 +585,7 @@ def test_source_reader_exposes_structured_member_provenance_fields() -> None:
     assert 'SourceReaderReadableFieldText.Text = member.Readable;' in code
     assert 'SourceReaderJobFieldText.Text = member.JobId;' in code
     assert 'SourceReaderShaFieldText.Text = member.Sha256;' in code
-    assert '原文正文未暴露；字段来自 Core 来源成员投影。' in code
+    assert '原件正文暂未提供' in code
 
 
 def test_source_reader_uses_explicit_state_semantics() -> None:
@@ -766,7 +766,7 @@ def test_unwired_domains_are_explicitly_empty_not_synthetic() -> None:
     code = CODE.read_text(encoding="utf-8")
     surface = xaml + code
 
-    assert "当前没有全量持久任务列表投影" in surface
+    assert "历史任务可通过高级查询读取" in surface
     assert "不展示已安装、启用、默认/回退或健康状态" in surface
     assert "不执行、预演或模拟恢复" in surface
 
@@ -820,10 +820,10 @@ def test_source_reader_surface_reads_real_core_members_projection() -> None:
     assert 'x:Name="SourceReaderResultsText"' in xaml
     assert 'x:Name="SourceReaderShellGrid"' in xaml
     assert 'Text="来源目录"' in xaml
-    assert 'Text="容器成员 / Core 持久任务"' in xaml
+    assert 'Text="文件与处理任务"' in xaml
     assert 'Text="转换阅读器"' in xaml
     assert _control("SourceReaderTransformText", SOURCE_READER_XAML).get("IsReadOnly") == "True"
-    assert '原文正文未暴露' in _handler("RenderSelection", SOURCE_READER_CODE)
+    assert '原件正文暂未提供' in _handler("RenderSelection", SOURCE_READER_CODE)
     assert 'Text="来源链"' in xaml
     assert '"/api/v1/sources/' in code
     assert '}/members");' in code
@@ -843,7 +843,7 @@ def test_library_surface_uses_the_existing_core_search_projection() -> None:
     assert 'TryGetProperty("transforms"' in code
     assert 'x:Name="LibraryWorkspaceGrid"' in xaml
     assert 'ColumnDefinitions="1.1*,0.9*"' in xaml
-    assert 'Text="Header / Provenance / Boundary"' in xaml
+    assert 'x:Name="LibraryDetailDiagnostics"' in xaml
     assert 'LibraryWorkspaceGrid.ColumnDefinitions = compact' in code
     assert 'Grid.SetRow(LibrarySelectedDetailBorder, compact ? 1 : 0);' in code
 
@@ -998,9 +998,10 @@ def test_aaos_theme_tokens_replace_the_legacy_indigo_shell_palette() -> None:
         assert color in monochrome
     for color in ("#081020", "#0C1728", "#101D2E", "#2EC4B6", "#F8F6EB"):
         assert color in aurora
-    assert 'palette == Monochrome ? MonochromeColors : AuroraColors' in palettes
+    assert 'Ivory => IvoryColors' in palettes
+    assert 'Monochrome => MonochromeColors' in palettes
 
-    assert 'Background="{DynamicResource AaosBackgroundBrush}"' in xaml
+    assert 'TransparencyLevelHint="AcrylicBlur" Background="Transparent"' in xaml
     assert 'BorderBrush="{DynamicResource AaosBorderBrush}"' in xaml
     for legacy in ("#6366F1", "#050505", "#111113", "#2B2E63"):
         assert legacy not in xaml
@@ -1169,7 +1170,7 @@ def test_home_evidence_projects_current_capture_receipt_with_boundary() -> None:
     assert 'x:Name="HomeEvidenceText"' in XAML.read_text(encoding="utf-8")
     assert "HomeEvidenceText.Text" in code
     assert "本次会话 Core 回执" in code
-    assert "不代表 Knowledge 接受或 evidence anchor" in code
+    assert "资料接收与知识复核是两个步骤" in code
 
 
 def test_home_focus_is_projected_from_the_real_learning_queue() -> None:
@@ -1252,7 +1253,7 @@ def test_capture_inbox_reuses_import_and_receipt_boundary() -> None:
     assert 'await RefreshJobsAsync();' in code
     assert 'ActivityDockText.Text' in code
     assert 'CaptureReceiptText.Text' in code
-    assert '未创建虚构的 Core 状态' in xaml
+    assert 'x:Name="CaptureDiagnostics" Header="更多信息：导入记录" IsExpanded="False"' in xaml
     assert '"/api/v1/sources/{Uri.EscapeDataString(sourceId)}/members"' in code
 
 
@@ -1276,7 +1277,7 @@ def test_library_results_preserve_core_provenance_fields() -> None:
         assert 'ReadDisplayValue(' in code and f'"{field}"' in code
     assert 'is not LibraryResultRow selected' in code
     assert 'selected.Kind != "knowledge"' in code
-    assert "提取文本命中" in code
+    assert "提取文本 · {Head}" in code
 
 
 def test_library_result_can_open_source_reader_for_exposed_source_id() -> None:
@@ -1339,7 +1340,7 @@ def test_knowledge_candidate_creation_is_human_explicit_and_never_auto_accepted(
     assert "source_type = sourceType" in handler
     assert "ResetKnowledgeDraftGovernanceMetadata();" in handler
     assert 'OnReadKnowledgeClick(sender, e);' in handler
-    assert 'Content="仅创建 Candidate；不自动接受"' in xaml
+    assert 'Content="保存为待确认条目"' in xaml
     assert "CreateHumanKnowledgeCandidate" not in handler
 
 
@@ -1395,10 +1396,15 @@ def test_eligible_knowledge_can_explicitly_create_a_core_first_use_learning_item
     end = code.index("private async void OnReadMachineTaskClick", start)
     handler = code[start:end]
     assert 'var itemKey = $"desktop-learning-{knowledgeId}";' in handler
-    assert '/references"' in handler
-    assert '/assessment"' in handler
-    assert 'ReadDisplayValue(document.RootElement, "item_key") != itemKey' in handler
-    assert 'ReadDisplayValue(document.RootElement, "knowledge_id") != knowledgeId' in handler
+    shared = (CODE.parent / "MainWindow.CourseLearning.cs").read_text(encoding="utf-8")
+    validator = (CODE.parent / "CourseLessonReadback.cs").read_text(encoding="utf-8")
+    assert 'await EnrollKnowledgeAsync(knowledgeId, itemKey, IsCurrentRequest)' in handler
+    assert '/references"' in shared
+    assert '/assessment"' in shared
+    assert 'CourseLessonReadback.ValidateAssessment(document.RootElement, itemKey, knowledgeId, expectedVersion)' in shared
+    assert 'Required(receipt, "item_key") != itemKey' in validator
+    assert 'Required(receipt, "knowledge_id") != knowledgeId' in validator
+    assert 'Required(receipt, "assessment_id")' in validator
     assert 'OnLearningClick(sender, e);' in handler
 
 
@@ -1409,7 +1415,8 @@ def test_knowledge_v3_detail_projects_structured_truth_fields() -> None:
     for name in ("KnowledgeStatusText", "KnowledgeSourceText", "KnowledgeTrustText", "KnowledgeReviewText"):
         assert f'x:Name="{name}"' in xaml
     assert 'KnowledgeStatusText.Text = ReadDisplayValue(root, "status");' in code
-    assert 'KnowledgeSourceText.Text = ReadDisplayValue(root, "source_id");' in code
+    assert 'KnowledgeSourceText.Text = !string.IsNullOrWhiteSpace(sourceTitle) ? sourceTitle' in code
+    assert 'knownSource?.FileName' in code
     assert 'KnowledgeTrustText.Text = $"支持：{ReadDisplayValue(root, "support_level")} · 置信：{ReadDisplayValue(root, "confidence")} · 风险：{ReadDisplayValue(root, "risk_level")}";' in code
     assert 'KnowledgeReviewText.Text = ReadDisplayValue(root, "requires_human_review");' in code
 
@@ -1424,7 +1431,7 @@ def test_source_reader_projects_members_as_selectable_provenance_rows() -> None:
     assert 'SourceReaderMembersList.ItemsSource = _state.Rows;' in reader_code
     assert 'private void OnSourceReaderRowSelected' in code
     assert 'RowSelected?.Invoke(this, new SourceReaderRowSelectedEventArgs(row));' in reader_code
-    assert 'job=' in reader_code
+    assert 'SourceReaderJobFieldText.Text = member.JobId;' in reader_code
 
 
 def test_source_reader_rows_declare_projection_and_original_content_boundary() -> None:
@@ -1439,11 +1446,11 @@ def test_source_reader_distinguishes_container_members_from_durable_jobs() -> No
     reader_xaml = SOURCE_READER_XAML.read_text(encoding="utf-8")
     reader_code = SOURCE_READER_CODE.read_text(encoding="utf-8")
 
-    assert 'public override string DisplayKind => "容器成员 · Core projection";' in reader_code
+    assert 'public override string DisplayKind => "资料文件";' in reader_code
     assert 'public override string DisplayBoundary => "原文正文未在此列表中展示";' in reader_code
-    assert 'public override string DisplayKind => $"Core 持久任务 · {Kind}";' in reader_code
-    assert 'public override string DisplayBoundary => $"state={State} · attempt={Attempt} · error={Error}";' in reader_code
-    assert 'public override string DisplayText => $"{Kind} · {State} · attempt={Attempt} · {JobId}"' in reader_code
+    assert 'public override string DisplayKind => "资料处理任务";' in reader_code
+    assert 'UserDisplay.Failure(Error)' in reader_code
+    assert 'UserDisplay.Status(State)' in reader_code
     assert 'AutomationProperties.Name="来源成员或持久任务列表"' in reader_xaml
     assert 'SourceReaderMemberFieldLabel.Text = "来源类型";' in reader_code
     assert 'SourceReaderJobFieldLabel.Text = "Core 持久任务";' in reader_code
@@ -1516,7 +1523,7 @@ def test_source_reader_has_a_structured_selected_member_detail_card() -> None:
                                   ("Readable", "Readable"), ("Job", "JobId"), ("Sha", "Sha256")):
         assert f'SourceReader{control}FieldText.Text = member.{member_field};' in reader_code
     assert 'SourceReaderSelectedText.Text =' in reader_code
-    assert 'SourceReaderMemberBoundaryText.Text = "原文正文未暴露；字段来自 Core 来源成员投影。";' in reader_code
+    assert '原件正文暂未提供' in reader_code
     assert 'x:Name="SourceReaderMemberBoundaryText"' in reader_xaml
 
 
@@ -1682,8 +1689,8 @@ def test_learning_inspector_does_not_promote_knowledge_id_to_source_id() -> None
 def test_library_transform_display_does_not_claim_knowledge_state() -> None:
     code = CODE.read_text(encoding="utf-8")
     assert 'public string DisplayText => Kind == "transform"' in code
-    assert 'transform_id={TransformId}' in code
-    assert '· status={Status} · active={Active}";' in code
+    assert 'Transform：{TransformId}' in code
+    assert 'UserDisplay.Status(Status)' in code
 
 
 def test_learning_loading_guards_stale_requests_and_clears_previous_answer() -> None:
@@ -1723,8 +1730,8 @@ def test_library_and_source_reader_expose_explicit_core_permission_state() -> No
 def test_home_source_lifecycle_does_not_promote_unknown_or_failed_jobs() -> None:
     code = CODE.read_text(encoding="utf-8")
     assert 'context.JobState is "succeeded" or "completed"' in code
-    assert '异常 · {context.JobState}；请从来源阅读重试' in code
-    assert '未知 · {context.JobState}；未推断为可用' in code
+    assert 'UserDisplay.Status(context.JobState)' in code
+    assert '状态待确认；请打开来源核实' in code
 
 
 def test_knowledge_v3_distinguishes_permission_not_found_and_server_failure() -> None:
@@ -2206,7 +2213,10 @@ def test_evidence_center_projects_only_existing_core_read_models() -> None:
     assert '不等于 Knowledge 接受或学习掌握' in code
     assert 'x:Name="EvidenceSurface"' in evidence_xaml
     assert 'x:Name="EvidenceEmptyState"' in evidence_xaml
-    assert 'EvidenceEmptyState.IsVisible = rows.Count == 0' in evidence_code
+    # The empty state is still driven by the row set, now the filtered one, so an empty list can
+    # never look like a table that merely failed to render.
+    assert 'var visible = pendingOnly ? _allRows.Where(row => row.IsPendingReview).ToList() : _allRows;' in evidence_code
+    assert 'EvidenceEmptyState.IsVisible = visible.Count == 0;' in evidence_code
     reset = evidence_code.split("public void ResetSelection()", 1)[1].split("public void SetAnchors", 1)[0]
     assert "EvidenceAnchorsList.ItemsSource = null;" in reset
     assert "EvidenceEmptyState.IsVisible = true;" in reset
@@ -2214,7 +2224,7 @@ def test_evidence_center_projects_only_existing_core_read_models() -> None:
     assert 'Click="OnOpenJobsClick"' in evidence_xaml
     assert 'OpenCaptureRequested="OnEvidenceOpenCaptureRequested"' in xaml
     assert 'OpenJobsRequested="OnEvidenceOpenJobsRequested"' in xaml
-    assert '页面不使用演示数据填充' in evidence_xaml
+    assert '已保存的来源引用' in evidence_xaml
     assert 'KeyDown="OnAnchorListKeyDown"' in evidence_xaml
     assert 'DoubleTapped="OnAnchorDoubleTapped"' in evidence_xaml
     assert 'private void OnAnchorListKeyDown' in evidence_code
@@ -2492,7 +2502,7 @@ def test_source_reader_can_read_existing_core_transform_output_without_calling_i
     assert 'string.Equals(selected.Readable, "true", StringComparison.OrdinalIgnoreCase)' in code
     assert 'StringComparison.OrdinalIgnoreCase' in code
     assert 'RawSha256' in code
-    assert '已读取带有 Core 来源、任务、转换和原件 SHA 身份的文本' in code
+    assert '文本已读取，可以选择引用并整理待复核知识' in code
 
 
 def test_source_reader_can_copy_only_the_selected_core_provenance_chain() -> None:
@@ -2764,7 +2774,7 @@ def test_named_product_actions_have_stable_accessible_names() -> None:
     source_reader_actions = {
         'x:Name="SourceReaderLoadButton"': 'AutomationProperties.Name="读取 Core 来源与容器成员"',
         'x:Name="BackToLibraryButton"': 'AutomationProperties.Name="返回资料库"',
-        'x:Name="BackToKnowledgeFromSourceButton"': 'AutomationProperties.Name="返回 Knowledge 详情"',
+        'x:Name="BackToKnowledgeFromSourceButton"': 'AutomationProperties.Name="返回知识详情"',
         'x:Name="ViewSourceJobButton"': 'AutomationProperties.Name="查看选中项任务回执"',
         'x:Name="FindLibraryFromSourceButton"': 'AutomationProperties.Name="在资料库查找关联投影"',
         'x:Name="ReadSourceTransformButton"': 'AutomationProperties.Name="读取转换内容"',
@@ -3082,7 +3092,7 @@ def test_reader_restores_single_file_jobs_from_core_without_capture_session_stat
     assert 'SourceReaderView.SelectedRow is SourceJobRow sourceJob' in code
     assert 'public bool CanReadText => Kind == "text" && State == "succeeded";' in reader_code
     assert 'CoreTextOutputReader.ReadAsync(_supervisor, sourceJob.SourceId, sourceJob.JobId)' in code
-    assert "Core 持久任务" in reader_xaml
+    assert "文件与处理任务" in reader_xaml
     assert "Core 持久任务" in reader_code
     assert "当前 Desktop 会话 Capture 上下文" not in code
     reader_load = code[code.index("private async void OnReadSourceMembersClick"):code.index("private void OnSourceReaderLoadRequested")]

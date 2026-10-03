@@ -95,6 +95,7 @@ def prepare_launch(*, desktop: Path | None = None, core: Path | None = None,
     _route_workers = {
         'archive.inventory': 'document/worker_archive.py',
         'canvas.structure': 'document/worker_canvas.py',
+        'course.general': 'course/worker_general_course.py',
         'html.structure': 'web/worker_html.py',
         'image.caption': 'vision/worker_caption.py',
         'image.ocr': 'vision/worker_ocr.py',
@@ -103,6 +104,7 @@ def prepare_launch(*, desktop: Path | None = None, core: Path | None = None,
         'media.transcribe': 'media/worker_transcribe.py',
         'office.structure': 'document/worker_office.py',
         'pdf.extract': 'document/worker_pdf.py',
+        'search.semantic': 'search/semantic_ranking.py',
         'subtitles.structure': 'document/worker_subtitles.py',
     }
     routes = []

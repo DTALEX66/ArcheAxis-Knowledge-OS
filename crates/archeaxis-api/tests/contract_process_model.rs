@@ -201,7 +201,7 @@ fn wait_timeout(child: &mut Child, timeout: Duration) -> Option<std::process::Ex
 }
 
 fn oversized_document() -> String {
-    // A valid document with one extra field large enough to pass 4096 bytes. Built by
+    // A valid document with one extra field large enough to pass the launch limit. Built by
     // serialisation rather than string surgery so it cannot become malformed JSON by accident.
     serde_json::json!({
         "launch_token": TOKEN,
@@ -209,7 +209,7 @@ fn oversized_document() -> String {
         "session_id": SESSION,
         "actor": "human",
         "protocol": "archeaxis.desktop-launch/v2",
-        "pad": "x".repeat(5000)
+        "pad": "x".repeat(70_000)
     })
     .to_string()
 }
@@ -239,7 +239,7 @@ fn launch_input_failures_exit_two() {
             "a machine token equal to the launch token",
             launch_document(TOKEN),
         ),
-        ("a document over 4096 bytes", oversized_document()),
+        ("a document over the launch limit", oversized_document()),
     ];
 
     for (label, document) in cases {

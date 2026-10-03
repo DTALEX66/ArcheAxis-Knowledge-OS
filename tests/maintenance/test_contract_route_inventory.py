@@ -117,6 +117,8 @@ def test_the_inventory_is_the_size_the_contract_claims():
     """§3 says 40 pairs in a text_worker launch; that number must match the table."""
     # The inventory grew from 30 to 33 when R7/G1 added `GET /capabilities`,
     # `GET /capabilities/{capability}` and `PUT /capabilities/{capability}/enabled` to the runtime
-    # builder. The heading and this expectation are updated together, which is the point of the check.
-    assert len(documented_routes()) == 40, (
+    # builder, and from 40 to 45 when the graded semantic search route and the four General course
+    # routes were documented. The heading and this expectation are updated together, which is the
+    # point of the check.
+    assert len(documented_routes()) == 45, (
         "the inventory size changed; update §3's heading and this expectation together")

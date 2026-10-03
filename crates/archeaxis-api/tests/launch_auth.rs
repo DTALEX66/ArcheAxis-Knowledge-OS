@@ -72,6 +72,82 @@ fn http_body(port: u16, method: &str, path: &str, headers: &str, body: &str) -> 
         response.split("\r\n\r\n").nth(1).unwrap_or("").into(),
     )
 }
+
+#[test]
+fn provider_profile_replacement_requires_restart_and_can_be_rolled_back() {
+    let dir = tempfile::tempdir().unwrap();
+    let db = dir.path().join("runtime.sqlite");
+    let profile = dir.path().join("launch-profile.json");
+    let python = std::env::var("ARCHEAXIS_PYTHON").unwrap();
+    let original = std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+        .parent()
+        .unwrap()
+        .parent()
+        .unwrap()
+        .join("services/python-workers/transport/text_ndjson.py");
+    // Distinct configured provider that delegates to the real existing transport.
+    let replacement = dir.path().join("replacement.py");
+    std::fs::write(
+        &replacement,
+        format!(
+            "import runpy\nrunpy.run_path({:?}, run_name='__main__')\n",
+            original.to_string_lossy()
+        ),
+    )
+    .unwrap();
+    let document = |worker: &std::path::Path| {
+        serde_json::json!({
+            "protocol":"archeaxis.desktop-launch/v2","actor":"human",
+            "launch_token":TOKEN,"machine_token":MACHINE_TOKEN,"session_id":SESSION,
+            "text_worker":{"python":python,"script":worker,"staging":dir.path().join("staging")}
+        })
+        .to_string()
+    };
+    let original_profile = document(&original);
+    std::fs::write(&profile, &original_profile).unwrap();
+    let read = |port| {
+        let (status, body) = http(
+            port,
+            "GET",
+            "/api/v1/capabilities/text.extract",
+            &format!("x-archeaxis-launch-token: {TOKEN}\r\n"),
+        );
+        assert_eq!(status, 200, "{body}");
+        let value: serde_json::Value = serde_json::from_str(&body).unwrap();
+        assert_eq!(value["capability"]["health"], "handshake_ready", "{value}");
+        value["capability"]["default_provider"]
+            .as_str()
+            .unwrap()
+            .to_string()
+    };
+    let start = || {
+        let mut child = spawn(&db);
+        writeln!(
+            child.0.stdin.take().unwrap(),
+            "{}",
+            std::fs::read_to_string(&profile).unwrap()
+        )
+        .unwrap();
+        let port = ready(&mut child);
+        (child, port)
+    };
+    let (child, port) = start();
+    assert_eq!(read(port), original.to_string_lossy());
+    std::fs::write(&profile, document(&replacement)).unwrap();
+    assert_eq!(
+        read(port),
+        original.to_string_lossy(),
+        "profile edits do not hot-switch a live Core"
+    );
+    drop(child);
+    let (child, port) = start();
+    assert_eq!(read(port), replacement.to_string_lossy());
+    drop(child);
+    std::fs::write(&profile, &original_profile).unwrap();
+    let (_child, port) = start();
+    assert_eq!(read(port), original.to_string_lossy());
+    assert_eq!(std::fs::read_to_string(profile).unwrap(), original_profile);
+}
 #[test]
 fn configured_process_exposes_actual_worker_execution_not_just_in_process_router() {
     let dir = tempfile::tempdir().unwrap();

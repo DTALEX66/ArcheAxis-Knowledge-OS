@@ -213,6 +213,10 @@ def assemble(
         route_workers = {
             "archive.inventory": "workers/document/worker_archive.py",
             "canvas.structure": "workers/document/worker_canvas.py",
+            # G2: graded retrieval and General courses. Both workers are copied with the rest of
+            # services/python-workers; declaring them here is what makes the route exist in the
+            # shipped candidate, and without it the packaged product answers 503 for them.
+            "course.general": "workers/course/worker_general_course.py",
             "html.structure": "workers/web/worker_html.py",
             "image.caption": "workers/vision/worker_caption.py",
             "image.ocr": "workers/vision/worker_ocr.py",
@@ -221,6 +225,7 @@ def assemble(
             "media.transcribe": "workers/media/worker_transcribe.py",
             "office.structure": "workers/document/worker_office.py",
             "pdf.extract": "workers/document/worker_pdf.py",
+            "search.semantic": "workers/search/semantic_ranking.py",
             "subtitles.structure": "workers/document/worker_subtitles.py",
         }
         routes = [

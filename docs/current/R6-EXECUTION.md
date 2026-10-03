@@ -3784,3 +3784,344 @@ At that verification stage, the 2026-09-26 source candidate expansion was retain
 ### 2026-10-01 外部三项目材料的 AAOS 待评估输入
 
 用户指定的两份三项目方案和两份 WORK-LAB 审计文件已只读对比。AAOS 专属及适用的跨项目条目、源文件 SHA-256、原 ID 与冲突裁决归档于 [`AAOS-ECOSYSTEM-AUDIT.md`](../history/external-inputs/2026-10-01/AAOS-ECOSYSTEM-AUDIT.md) 和同目录 `AAOS-ECOSYSTEM-EXTRACT.json`。这只是 `PROPOSED_NOT_EXECUTED` 的后续输入：知识/记忆边界映射 R6 A04/A08 与 M0；旧 WORK-LAB 规则路径需当前读回后另行修正；模型资格、生成出口、精确 SHA 交付复用现有合同。用户本轮已停止清理，因此目录/缓存/历史迁移条目保持 `PAUSED_BY_CURRENT_USER_SCOPE`，不执行。该归档不修改 immutable R6 TaskPack、R6-STATE 或 Owner Gate，也不构成跨仓写入、真实桌面验收或 release 证据。
+
+### 2026-10-03 DSH 真实资料闭环执行（DSH-CLOSURE-EXECUTOR-PROMPT-20261003）
+
+执行方 DSH。分支 `codex/dsh-aaos-real-multiformat-loop-20261001`，源码 `b421ddee` + 未提交融合补丁。本段只记录已实测项；边界见文末。
+
+**真实资料识别与转化（REAL_STAGED_RUNTIME）**
+
+- 材料根 `D:\All projects\ceshi`；能力就绪 11/11；9/9 真实文件 CONVERTED（md/csv/json/pdf/image-ocr/docx/html/canvas/mp4）。
+- 收据 `<worktree>/.project-local/runs/staged-matrix/staged-format-matrix.json`。
+
+**真实入库（成品库根 `D:\All projects\资料库`）**
+
+- 选材 `Obsidian知识库\10_课程库\11_OER开源技能库\C1101_AI Agent Skills 实战课`，19 个真实 .md。
+- 19 sources / 19 transforms；**19/19 transform 与原件字节全等**（`compare-receipt.json`）。
+- 38 anchors；19 knowledge candidates（`status=candidate`，`requires_human_review=true`）。
+- 原件按 sha256 存于 `workspace.sqlite.objects`；工作区 schema 由 8 迁移到 9（新 Core 自身迁移）。
+- FTS 实测：`SKILL`→13，`安全边界`→1，`Obsidian`→13。
+
+**机器侧全链验证（SYNTHETIC protocol evidence，不是真人闭环）**
+
+- `m0_full_loop_smoke.py`：`ok=true`，`chain_stages_verified=true`，**28/28 阶段**，`validation_errors=[]`，`legacy_db_kept=true`。
+- 收据 `.project-local/runs/2611ed9ca1/b59e0059ddda/artifacts/m0loop/.../m0-loop-receipt.json`。
+- 复现：整条链 `mastery_projection.closed=false`（Owner 掌握规则未决）。
+
+**契约测试（当前源码）**
+
+- `archeaxis-api` 全量：48 个 test binary，**204 passed / 0 failed**（日志 `.project-local/runs/api-suite-20261003.log`）。
+- P2 路由：`contract_general_course` 4、`contract_semantic_search` 4、`contract_course_unavailable` 1 全通过。
+- 注意：驱动 Python worker 的 Rust 测试必须设 `ARCHEAXIS_PYTHON`，否则 `contract_course_unavailable` 因 `var_os("ARCHEAXIS_PYTHON").unwrap()` panic（本轮先踩后正）。
+
+**本轮源码改动（未提交）**
+
+- `evidence_anchors` 投影新增 `source_name`、`quote`、`knowledge_id`、`knowledge_status`（契约测试 2 passed）。
+- Desktop：证据行显示真实文件名与引用；`待复核` 卡片由死占位改为真实计数（实测 19）；选中证据行自动把 knowledge_id 带入复核输入框。
+- 重建：Core（GNU toolchain）与 Desktop（登记 SDK `dotnet-sdk-10.0.401` + 库内 NuGet `60-cache\nuget`）均 0 warning / 0 error。
+
+**未做 / 未通过（不得记成通过）**
+
+- 真人知识复核（`review-decisions` human-only）**未执行**：19 条仍为 candidate；语义检索因此 `status=EMPTY`。
+- 课件候选、真人学习、机器纠正/重答在**真实知识**上**未执行**（M0 合成链已通过）。
+- 证据界面有 8 条 HEAD 固化契约断言在当前未提交融合版下失败（对照实验证明与本轮改动无关）：融合改动按 F01 去了后台术语，4 个契约文件仍钉旧文案。未擅自改测试或恢复文案，列 `CONTRACT-CONFLICTS.md` 待裁决。
+- 未安装/替换/回滚 Green，未 push，未删除任何文件；Release 仍 FROZEN。
+
+**需 Owner 裁决**
+
+1. 19 条真实知识候选的接受/驳回（清单 `REVIEW-WORKLIST.md`）。
+2. 掌握规则（`mastery_projection.closed` 语义）。
+3. 8 条契约冲突：按新文案更新测试，还是恢复旧文案（建议前者，并把"是谁没提供"的原因放进已折叠的诊断区）。
+4. 是否新增"待复核列表"投影/页面。
+5. 四库目录（人类学习库 / 机器知识库 / 源文件归档库 / 证据账本库）是否接入 vNext。
+
+#### 2026-10-03 追加：全量 Python 门禁首次完整跑完（原「收集阶段中断」项已定位并关闭）
+
+- **根因是解释器路由，不是缺依赖**：`onnxruntime`、`fsrs`、`jiwer`、`fitz` 已在 `OS External Configuration\ArcheAxis-Knowledge-OS-ci-venv` 中齐备（实测 `HAS=[onnxruntime, fsrs, jiwer, fitz, pytest]`，`MISS=[]`）。`scripts/ci/run_tests.ps1` 的解释器优先级为 `ARCHEAXIS_PYTHON` → `<project>/.project-local/build/venv` → `<project>/.venv` → `PATH`。用错误解释器就会在收集阶段失败。
+- 设 `ARCHEAXIS_PYTHON` 指向该 CI venv 后：收集 **3861 tests collected / 0 errors / 10.52s**，退出码 0。
+- 全量 `run_tests.ps1 --full`：**19 failed / 3840 passed / 40 skipped / 14 warnings，217.89s（3:37）**，退出码 1。这是该项目第一次有完整可比的 Python 门禁基线；此前只有「收集中断，不是 PASS」。
+- 日志 `.project-local/runs/python-full-20261003.log`（收集：`python-collect-20261003.log`）。
+
+**19 条失败的归属（逐条核对，非推测）**
+
+| 组 | 数量 | 归属 |
+| --- | ---: | --- |
+| UI 契约（证据/阅读器/搜索去后台术语冲突） | 12 | 未提交融合改动；同 `CONTRACT-CONFLICTS.md` 一类 |
+| `test_contract_route_inventory::test_every_served_route_is_documented`、`test_contract_number_consistency::test_the_launch_shape_split_adds_up` | 2 | 未提交融合改动新增了 `/api/v1/search/semantic` 与 `/api/v1/courses*` 路由，但**未登记进 `docs/current/AAOS-PRODUCTION-HTTP-CONTRACT-20261001.md`** —— 真实缺口 |
+| `test_desktop_routes_v1::test_import_timeout_is_scoped_without_weakening_core_transport` | 1 | 未提交融合改动 |
+| `tests/workers/test_ocr_profile.py` | 4 | Python worker/OCR 探针，与本轮改动无关 |
+
+- 本轮 DSH 改动**未新增任何失败**：唯一与本轮新字段冲突的字面断言位于 `test_evidence_detail_master_contract.py:27`，而该函数在改动前就因第 29/30 行（`Core 未暴露` 文案）失败；改动只是让它提前在第 27 行断言失败，失败函数数不变。此项与 UI 去术语一并等待裁决。
+
+#### 2026-10-03 追加 2：路由合同补齐 + 行尾导致的门禁中断（已修复）
+
+- **补齐 5 条未登记路由**：`POST /api/v1/search/semantic`、`POST /api/v1/courses`、`POST /api/v1/courses/from-knowledge`、`GET /api/v1/courses/{id}`、`POST /api/v1/courses/{id}/render`。§3 清单 40 → **45 对**并新增 `### Courses (General)`；§6 表 40 → 45 地址、运行时路由 14 → **19**，同时改写原先错误的 "runtime builder carries six routes" 表述。§3 搜索行原先断言"不存在 vector/reranker 路由"，已改为指向 R15。
+- 两处合同自检同步更新（`test_the_inventory_is_the_size_the_contract_claims` 40 → 45；`test_the_launch_shape_split_adds_up` runtime 14 → 19 及 docstring）。这两个测试的设计本身就是"清单增长时同步修改期望"，反方向（合同有、路由无）仍被强制，未削弱。
+- 结果：`tests/maintenance` **179 passed / 2 skipped / 0 failed**；全量 Python 门禁由 **19 failed / 3840 passed** 改善为 **17 failed / 3842 passed / 40 skipped（212.20s）**。剩余 17 = 12 条 UI 去术语冲突 + 1 条 desktop_routes_v1 + 4 条 workers/test_ocr_profile。
+- **操作陷阱（重要）**：`docs/current/**`、`tests/maintenance/**` 在 `.gitattributes`（`* text=auto eol=lf`）下应为 LF，但工作区副本是 CRLF。一旦改动这些文件，`git diff` 会向 stderr 打印 `CRLF will be replaced by LF` 警告；而 `scripts/ci/run_tests.ps1` 设了 `$ErrorActionPreference='Stop'`，在 `*>` 重定向下该 stderr 会变成终止性错误，**门禁在开跑前中断且日志为空**。已把本轮改动的这 3 个文件转为 LF（diff 不变：+26/−12），警告消失、门禁恢复。其余 CRLF 文件**未批量重写**——审计记录的 60 处行尾问题应由任务本体处置，不在此静默格式化。
+
+#### 2026-10-03 追加 3：OCR worker 测试的环境耦合（已修复；全量门禁 17 → 13）
+
+- 现象：全量门禁里 `tests/workers/test_ocr_profile.py` 有 4 条失败；单独跑该文件却 9 条全过。
+- 二分定位：只有设置 `ARCHEAXIS_EXTERNAL_ROOT` 时才复现。PATH、`TESSDATA_PREFIX`、`TEMP/TMP/TMPDIR`、`--basetemp` 都**不是**原因（逐一实测）。
+- 机制（源码级）：`services/python-workers/vision/worker_ocr.py:145` 先 `_declared_path("tesseract")` 从**声明式外置注册表**（`tool_paths.py`，`ARCHEAXIS_EXTERNAL_ROOT`/`OS_EXTERNAL_CONFIG`）解析引擎，之后才回落到 `shutil.which`。这 4 条测试只用 `patch.object(ocr.shutil, "which", ...)` 模拟引擎的有无，因此在声明根存在时——也就是产品正确配置、`dev.py` 的 `external_toolchain()` 会主动注入时——该模拟不再成立。**属测试的环境耦合，不是产品缺陷**。
+- 修复：在 `OCRProfileTests.call_main` 补上 `patch.object(ocr, "_declared_path", return_value=None)`，把这组 in-process 测试固定在被 mock 的解析路径上；声明式解析本身由子进程版 `test_real_tesseract_with_public_profile_and_generated_image` 覆盖。**未改动任何产品代码**，且新增注释说明原因。
+- 验证：设 / 不设 `ARCHEAXIS_EXTERNAL_ROOT` 两种环境该文件均通过（9 passed；8 passed + 1 skipped）。
+- 全量门禁：**19 → 17 → 13 failed**，`3846 passed / 40 skipped`（264.71s）。剩余 13 = **12 条 UI 去术语契约冲突** + 1 条 `test_desktop_routes_v1::test_import_timeout_is_scoped_without_weakening_core_transport`（均来自未提交融合改动，待裁决）。
+
+#### 2026-10-03 追加 4：桌面路由超时作用域契约对齐（门禁 13 → 12；剩余全是同一个决策）
+
+- 失败断言：`tests/test_desktop_routes_v1.py:180` 要求字面量 `'? ImportHttp : Http;'`。
+- 事实：未提交融合改动把客户端选择从二元改为三路，新增 `ModelHttp`（**125 s**）服务模型推理路由（`POST /api/v1/machine/answers`、`/machine/retests`、`/search/semantic`、`/courses/from-knowledge`、`/courses/**/render`）；导入仍是 `ImportHttp`（60 s）；**默认仍是 `Http`（5 s）**。
+- 判断：超时作用域**没有被削弱**（默认值没被抬高），只是表达式不再等于那个字面量。按"合同追上实现"更新该测试：断言 5 s / 60 s / 125 s 三档存在、`? ImportHttp`、`? ModelHttp : Http;`（其余调用仍回落到 5 s 客户端），并把 HttpClient 处理器计数 2 → 3。**原先防止削弱的断言（5 s 默认）保留**。
+- 验证：`tests/test_desktop_routes_v1.py` 12 passed；全量 **12 failed / 3847 passed / 40 skipped（266.89 s）**。
+- 剩余 12 条**全部属于同一个待裁决项**：证据 / 阅读器 / 搜索界面的"去后台术语"契约冲突（6 个契约文件）。裁决后 Python 门禁即可收敛到 0 failed。
+
+#### 2026-10-03 追加 5：UI 去术语契约冲突收敛完毕（全量 Python 门禁 12 → 0 failed）
+
+按 F01 方向（默认页去后台术语）逐条核对，**先修产品、再改测试**，每条都确认原有保证仍在：
+
+**产品侧修复（测试未改，直接转绿）**
+
+1. EvidenceCenterView.axaml.cs 的空态文案补回「未生成示例记录，缺失字段保持未提供」—— 融合改动把这句「不伪造示例数据」的保证丢了；这是产品回退，不是测试放宽。（关 2 条）
+2. EvidenceCenterView.axaml 宽行模板详情区补上 AnchorId 与 SourceId 绑定 —— 原先窄行显示的身份信息比宽行还多（AnchorId 只在 compact 模板里，SourceId 全界面都没有），属真实不一致。（关 2 条）
+
+**测试侧对齐（文案/绑定改名，保证不变）**
+
+3. 空态锚点文案由 Core anchor_id 未读取 改为「引用尚未读取」；「不表示真实关联数量」免责声明保留。（2 文件）
+4. 无法提供的列由 Core 未暴露 改为「未提供」/「年份未提供」/「验证状态未提供」；搜索页为「主题未提供」/「时间未提供」。断言仍钉死就是未提供，**不得出现 0 或伪造值**。
+5. TitleDisplay 由裸 AnchorId 改为「引用摘录，或来源的引用记录」；EvidenceReviewMetricText 由常量破折号改为真实计数（为空时仍显示无数据）。断言同时钉住计数来源与占位值。
+6. 阅读器文案 原文正文未暴露 改为「原件正文暂未提供」（同一保证）。
+
+**结果**：scripts/ci/run_tests.ps1 --full → **3859 passed / 40 skipped / 0 failed，退出码 0（260.31 s）**。日志 .project-local/runs/python-full-20261003f.log。收敛轨迹：收集中断 → 19 → 17 → 13 → 12 → **0**。
+
+**回归检查**：Desktop 以登记 SDK dotnet-sdk-10.0.401 重建 0 warning / 0 error；证据页原生窗口捕获与改前字节完全一致（276562 B），即新增内容都在默认折叠的详情区内，可视界面无回归。
+
+#### 2026-10-03 追加 6：P2 两条路由在产品里根本不可达（已修复，真实缺陷）
+
+**发现**（在真实库的副本上做 A/B，非真实库）：
+
+- 用**产品自己的 11 条路由档案**启动 Core，脚本化接受一条知识后：
+  - `POST /api/v1/search/semantic` → **503 derived worker is not registered**
+  - `POST /api/v1/courses/from-knowledge` → **503 derived worker is not registered**
+- 同一副本、同一 Core，仅**声明 search.semantic 与 course.general** 后：
+  - semantic → **200**，真实 LM Studio 嵌入（endpoint 127.0.0.1:1234/v1/embeddings，model text-embedding-qwen3-embedding-0.6b，dim 1024，score 0.482351…）
+  - course → **201**，真实课程候选（绑定 knowledge_id，human_review_required: true）
+
+**根因**：两个 worker 脚本随 `copy_tree(services/python-workers, workers/)` 一起发布，但 `scripts/release/stage_backend_runtime.py` 的 `ROUTE_SCRIPTS` 与 `scripts/launch/desktop_launch.py` 的 `_route_workers` **都没有声明它们**。Core 只注册被声明的能力，所以代码完成、worker 已随包发布，产品里却永远 503。这与 `machine.answer` 当初遇到的同一种缺口。
+
+**修复**（三处，均为声明/接线，不改业务逻辑）：
+
+1. `ROUTE_SCRIPTS` 增加 `course.general` → `workers/course/worker_general_course.py`、`search.semantic` → `workers/search/semantic_ranking.py`。
+2. `desktop_launch.py` 的 `_route_workers` 同样增加两条。
+3. 两个 worker 补上 **transport sidecar 模式**（`--staging-root` → `transport.serve_stdio(WORKER_IDENTITY, [capability], ...)`），与 `machine.answer` 完全一致。此前它们只认自己的 `--hello`（derived-worker 协议），所以被打包就绪检查判为 "worker did not emit a protocol hello"。
+
+**验证**：
+
+- 直接启动三个 worker，均输出 `archeaxis.worker-hello/v1`，capabilities 分别为 search.semantic / course.general / machine.answer。
+- staged 就绪：**total 13 / ready 13 / not_ready 0，accepted: true，9/9 真实文件 CONVERTED**（`.project-local/runs/staged-13routes-fixed-20261003.log`）。
+- 全量 Python 门禁：**3859 passed / 40 skipped / 0 failed**（.project-local/runs/python-full-20261003g.log）。
+
+**合同同步（均为实测，不臆断）**：§7 原写 `readiness total 10 / ready 10`（并称 total = 已声明路由减去内置 text.extract），与实际不符 —— 仪器 `verify_backend_capabilities` 的 total 就是已声明路由数，本轮实测声明 13、total 13。§7 改为 total 13 / ready 13 并更正说明；§6 的 "**11** capabilities declared" 改为 **13** 并补上两条派生路由；`test_contracts_readiness_counts_match_the_declared_routes` 的 `declared_routes - 1` 改为 `declared_routes`（附实测依据）。
+
+**边界声明**：A/B 中的"接受知识"是在**副本**上用脚本化 human token 完成的，属**协议演练**，**不是真人复核**。真实库 `D:\All projects\资料库` 的 19 条候选状态未变，仍待 Owner 决定。
+
+#### 2026-10-03 追加 7：真实资料上的 P2–P4 全链演练通过（副本；非真人复核）
+
+在**真实库的副本**上，用产品自己的 13 条路由档案跑通"接受之后"的整条机器侧链路。收据：`.project-local/runs/post-accept-chain-receipt.json`。
+
+| 阶段 | 结果 |
+| --- | --- |
+| review-decisions（脚本化，**演练**） | 200 |
+| search/semantic | 200，`status: PARTIAL`，candidate_count 1（重排腿不完整，与审计一致） |
+| courses/from-knowledge | 201，`course_id: course-36f598b6…`，artifact `lesson-36f598b6…`，`human_review_required: true` |
+| courses/{id}/render | 200，6430 字节，`canonical_bindings_verified: true` |
+| learning references | 201 |
+| learning assessment | 201，`assessment_f2954450…`，knowledge_version 与知识一致 |
+| learning reviews（FSRS） | 201，`review_state: learning`，`stability: 2.3065`，`correct_streak: 1`，**`closed: false`** |
+| machine/answers（真实本地模型） | 200，`answer_8d3fc3d1…`，935 字符真实回答 |
+| machine/corrections | 200，`failed_task_id: evaluation_answer_8d3fc3d1…`，新纠正候选 `k_f3c68668…` |
+| machine/retests | 200，真实模型重答 |
+
+工作区投影（副本）：sources 19 / transforms 19 / anchors 38 / knowledge 20（19 + 纠正候选）/ learning_events 1 / schema 9。
+
+**意义**：这一段的代码、worker、路由与数据契约在**真实资料**上全部可用；剩下唯一未过的是**真人复核本身**。
+
+**复现在真实资料上的两个待裁决项**：
+
+1. `mastery_projection.closed = false` —— 掌握规则仍未定，连真实资料路径上也是固定 false。
+2. `search.semantic` 返回 `PARTIAL` —— 重排腿的 exact yes/no 仍不完整（与既有审计一致）。
+
+**边界**：脚本化 human token 只用于**副本演练**，**不构成真人复核**；真实库 `D:\All projects\资料库` 的 19 条候选未被改动。
+
+#### 2026-10-03 追加 8：证据中心新增"仅看待复核"筛选（19 条候选现在可一次看完）
+
+- **背景**：复核入口此前只能靠搜索关键词或粘贴 knowledge_id 找到那 19 条候选；库里没有任何"待复核列表"投影（空查询返回 0、`GET /api/v1/knowledge-items` 405、`/api/v1/sources` 404）。
+- **做法（不新增 Core 路由）**：`evidence_anchors` 投影在追加 1/2 已带 `knowledge_status`；Desktop 证据中心工具栏新增 `EvidencePendingOnlyCheck`（"仅看待复核"），勾选后只显示 `IsPendingReview` 的行。
+- **真实性**：筛选谓词直接读 Core 的 `knowledge_status == candidate`，**界面不推断**；筛选后为空时显示"没有待复核的引用记录 / 取消可看到全部引用"，不显示空表；四张指标卡（38 证据 / 19 来源 / — 已验证 / 19 待复核）始终描述**完整投影**，不随筛选变化。
+- **契约**：新增 `tests/test_evidence_pending_filter_contract.py`（控件在工具栏且不在分类标签内；谓词读 Core 状态；筛选为空有明确说明）。`test_desktop_navigation_contract.py` 中"空态由行集驱动"一条断言随之改为过滤后的行集（意图不变）。
+- **验证**：Desktop 0 warning / 0 error；证据相关契约 **227 passed**；全量 Python 门禁 **3862 passed / 40 skipped / 0 failed**（278.15 s）；原生窗口捕获确认控件渲染（`.project-local/runs/pending-filter-20261003.png`）。
+- **边界**：这只解决"看得见"，**不替代真人判断**；接受动作仍必须由人在界面完成，本轮未替任何人接受真实库中的候选。
+
+#### 2026-10-03 追加 9：冻结源码 + 构建并校验 Core 候选（Q01 候选部分）
+
+- **操作事实（已实测）**：治理 dev 根是**共享**的 `D:\All projects\ArcheAxis-Knowledge-OS\.project-local`，不是本 worktree 自带的那个。`dev.layout()` 实测：`dev` = 共享 `.project-local`，`build` = `<共享>/.project-local/build/2611ed9ca1`。候选类产物必须落在共享 `.project-local/runs` 下，否则被 `capture_source_snapshot.py` 以 "must be under project .project-local/runs" 拒绝。
+- **源码快照（冻结）**：sha256 `68d9b4339fd3bce910810eb4f80af5c7c7c8ba44af4c39c36464ebecbb6d886b`，1722 文件，未跟踪构建输入 29，仅路径排除 8。收据 `<共享>/.project-local/runs/candidate-20261003/source-snapshot-r16.json`。
+- **候选**：`core-candidate-r16`（含 zip）。诚实标注 `build_kind: debug-build`、`tree_clean_when_built: false`、`untracked_paths_present_when_built: true`，并自带 `not_included` 清单（无安装器、无签名、无 Python 运行时、无 workers、无语料）。
+  - `archeaxis-api.exe` 97,722,379 B，sha256 `43c6b7d74c037ba98c790e2fe70f3875e9962472757fae831ba34894492882b7`
+  - zip sha256 `590b29d11a60da2fb645dbc678008e7a8c0dbc36af849e073301ecd35c75e2d0`
+- **校验**：`verify_candidate.py --candidate <dir> --run --json` → `ok: true`、`problems: []`；逐文件重算哈希通过，并**实际启动**该二进制（ready_port 62117、已停止、建库、未打印 token）。
+- **未做（仍受 Owner Gate 约束）**：完整 Green 候选（桌面发布 + runtime + workers，约 GB 级）、安装/原位替换/回滚。
+
+#### 2026-10-03 追加 10：完整 Green 候选组装并校验；发现并修复**第三处**路由清单重复
+
+**产出**：`ArcheAxis.Knowledge.Green-vdsh-r17-20261003-x64`（版本 `dsh-r17-20261003`）。
+
+- 组成：fresh self-contained Desktop publish（Debug, win-x64, 212 MB / 229 文件）+ 本轮冻结的 Core 候选 + Green 运行时 python + services/python-workers + shared/learning_scheduler.py。
+- 规模：**937 MB / 21442 项**（验证器计数）；zip **321 MB**，sha256 `CE628EA664D8CFC3F9C66E86C81C9FF5610618DF9A79FF4EDAB418B5092D1D5E`。
+- 布局：`core/ desktop/ runtime/ shared/ workers/ candidate-manifest.json worker-profile.json 启动绿色候选.vbs`。
+- 校验：`verify_green_candidate.py --require-runtime --require-workers --expected-commit b421ddee… --source-root <worktree>` → **ok: true，scope desktop-core-runtime-workers，files 21442，problems []**。
+- 运行时完整性：用扩展长度路径逐文件比对，候选 `runtime/` 与源 `runtime/python/` **均为 21182 个文件，缺失 0**。
+
+**发现的真实缺口（第三处重复）**：`scripts/release/assemble_green_candidate.py` 自带一份 `route_workers` 清单（11 条），与 `stage_backend_runtime.py` 的 `ROUTE_SCRIPTS`、`desktop_launch.py` 的 `_route_workers` **是三份重复**。第一版候选（r16）因此只声明 11 条路由，**出厂包里 `search.semantic` 与 `course.general` 依然不可达（503）**——即使我在追加 6 已经修了另外两处。
+
+- 修复后 r17 候选的 `worker-profile.json` 实测 **13 条**：archive.inventory, canvas.structure, **course.general**, html.structure, image.caption, image.ocr, machine.answer, media.probe, media.transcribe, office.structure, pdf.extract, **search.semantic**, subtitles.structure。
+- **维护风险（建议后续收敛）**：同一份路由清单散落三处，任一处漏改都会让出厂产品静默缺路由。建议由单一来源生成。
+
+**自我更正**：中途我曾用普通路径统计候选 runtime，得到比源少 275 个文件的结论（看起来像 135 个 .py 模块丢失）。**该结论是错的**——普通 `os.walk` 无法进入候选里长度达 309 的路径；改用扩展长度路径后为 21182 = 21182、缺失 0。装配器本身没有丢文件。
+
+**未做（仍受 Owner Gate 约束）**：安装 / 原位替换 / 冷启动 / 回滚；被 r17 取代的 r16 候选（约 1.2 GB）仍在 `.project-local/build/green-candidates/` 下，未删除，等待精确清单授权。
+
+#### 2026-10-03 追加 11：候选作为"产品"实跑通过；途中抓到两个真实问题
+
+**目标**：不用 worktree 构建，直接用**出厂候选**启动桌面并读回真实库。第一次失败（界面只显示"Core 未就绪"），逐层查下去抓到两个真问题。
+
+**(1) 候选里装的是过期 Core。** `build_candidate.py` 未指定 `--binary` 时取默认目标 `<worktree>/.project-local/build/cargo/debug/archeaxis-api.exe`（`DEFAULT_TARGET` 常量），那是第 6 轮构建的二进制。实测：候选内 Core sha256 `43C6B7D7…`（97,722,379 B），而本轮验证过的构建是 `07BBFA56…`（97,733,107 B）。**修正**：组装时显式使用已验证的 Core。
+
+**(2) Core 的启动输入上限是 4096 字节。**（`crates/archeaxis-api/src/launch.rs:129-137`：`stdin().take(4097)`，`len > 4096` → `"launch input exceeds limit"`，退出码 2。）13 条路由用**绝对路径**写进 launch JSON 时：
+
+| 候选根路径 | launch payload | 结果 |
+| --- | ---: | --- |
+| `.project-local/build/green-candidates/<name>/<name>/`（双层嵌套） | **4405 B** | 超限 → Core exit 2 → 界面只说"Core 未就绪" |
+| `.project-local/build/gc-r18/ArcheAxis.Knowledge.Green-vdsh-r18-20261003-x64/` | **3461 B** | OK |
+| 成品 Green 根下（如 `…Green-x64/AAOS-…-x64/`） | 2741 B | OK |
+| worktree 根 | 3045 B | OK |
+
+**这是真实的产品伸缩风险**：13 条路由的绝对路径已占 2.7–3.5 KB，只剩约 0.6–1.4 KB 余量；安装路径再深一点、或多一条路由，产品就会在启动时失败，而界面给出的原因只有"Core 未就绪"。建议后续二选一：提高/改为可配置的启动上限，或让启动 JSON 不携带绝对路径（相对候选根解析）。
+
+**最终产出（r18，取代 r17）**
+
+- `ArcheAxis.Knowledge.Green-vdsh-r18-20261003-x64`，路径 `.project-local/build/gc-r18/`。
+- 内含**已验证的** Core：sha256 `07BBFA564A07790A…`，97,733,107 B。
+- `verify_green_candidate.py --require-runtime --require-workers --expected-commit b421ddee… --source-root <worktree>` → **ok: true，scope desktop-core-runtime-workers，files 21442，problems []**。
+- **作为产品实跑**：用候选自己的 `desktop/ArcheAxis.Desktop.exe` + `core/archeaxis-api.exe` + `worker-profile.json` 打开真实库 `D:\All projects\资料库\workspace.sqlite`，原生窗口捕获显示 **38 证据 / 19 来源 / 19 待复核**、真实引用与真实文件名、以及"仅看待复核"控件。收据图 `.project-local/runs/candidate-r18-app-20261003.png`。
+
+**待清理（未删，等精确清单授权）**：`.project-local/build/green-candidates/ArcheAxis.Knowledge.Green-vdsh-r16-20261003-x64`（约 1.2 GB，含过期 Core）、`…vdsh-r17-…`（约 1.25 GB，含过期 Core、且路径过深）。r18 为现行候选。
+
+#### 2026-10-03 追加 12：修复 Core 启动输入上限（真实缺陷，已实测验证）
+
+**缺陷**：`crates/archeaxis-api/src/launch.rs` 把启动文档硬限制在 4096 字节（`stdin().take(4097)`，`len > 4096` → `launch input exceeds limit`，退出码 2）。而一条**合法**的产品启动档案已经几乎用满它：13 条路由用绝对路径序列化后，短安装根 2741 B、worktree 根 3045 B、深安装根 **4405 B**。深层安装因此启动失败，桌面只显示"Core 未就绪"，没有可诊断信息。
+
+**修复**：
+
+- `launch.rs` 引入 `const MAX_LAUNCH_BYTES: usize = 65536;`，`take(MAX_LAUNCH_BYTES + 1)` 与 `bytes.len() > MAX_LAUNCH_BYTES` 均以它为准；常量带注释记录测量值与理由（父进程不可信、必须有硬上限，但 4096 已无余量；64 KiB 仍是有界读取且留约一个数量级余量）。
+- `main.rs` 文档行由 `<=4096-byte` 改为 `at most 64 KiB`。
+- `tests/contract_process_model.rs`：超限样例由 `"x".repeat(5000)` 改为 `70_000`，注释与样例标签同步（该测试仍然钉"超限必须拒绝且退出 2"这一行为，只是阈值随之改变）。
+
+**验证**：
+
+- `cargo test -p archeaxis-api --test contract_process_model --test launch_auth` → 5 passed / 9 passed。
+- 全量 `archeaxis-api`：48 个 test binary，**204 passed / 0 failed**。
+- **端到端复现原故障再验证**：用此前失败的**深层路径**档案（payload **4405 B**）启动新 Core → **READY**，`/api/v1/capabilities` 返回 **14** 条（13 路由 + 内置 text.extract）。
+
+**候选更新（r19，取代 r18）**：
+
+- `.project-local/build/gc-r19/ArcheAxis.Knowledge.Green-vdsh-r19-20261003-x64`；Core sha256 `4C7D2FEABD8C189C…`（含本次修复）。
+- `verify_green_candidate.py --require-runtime --require-workers --expected-commit b421ddee… --source-root <worktree>` → **ok: true，files 21442，problems []**。
+- 用候选自己的 Desktop+Core 打开真实库的原生窗口捕获与 r18 **字节完全一致**（sha256 `5445e8c8…`，278674 B）—— 该修复对用户界面不可见，只消除了深层安装路径下的启动失败。
+
+**待清理（未删，等精确清单授权）**：r16（约 1.2 GB）、r17（约 1.25 GB）候选均已过期（含过期 Core／路径过深）。r19 为现行候选。
+
+#### 2026-10-03 追加 13：给三处重复的路由清单加防漂移守卫（并验证守卫真的会失败）
+
+**问题回顾**：capability → worker 的映射写在三处（`stage_backend_runtime.py: ROUTE_SCRIPTS`、`desktop_launch.py: _route_workers`、`assemble_green_candidate.py: route_workers`）。这已经两次造成真实损失：`machine.answer` 与后来的 `search.semantic` / `course.general` 都出现过"worker 已随包发布、某处却没声明"，结果是出厂产品对该路由回 `503 derived worker is not registered`。
+
+**做法（选守卫而非重构）**：新增 `tests/test_worker_route_lists_agree.py`，用 `ast` 直接读三个源文件里的那份字典字面量（而不是 import，因为两个是函数内局部变量），统一归一化后断言：
+
+1. 每个档案都声明了非空路由集；
+2. 三者 capability 集合**完全相同**、且同一 capability 指向同一脚本；
+3. 每个被声明的脚本在 `services/python-workers/` 下**真实存在**（拼错路径会让"按存在性过滤"的装配器静默丢掉该路由）。
+
+选守卫而不是把三处收敛成单一来源：**同等防漂移，但不动打包链路**，风险低得多。
+
+**守卫有效性已验证（关键）**：临时从 `desktop_launch.py` 删掉 `search.semantic` 一行 → 测试**失败**并给出精确信息 `desktop_launch.py does not declare ['search.semantic'], which stage_backend_runtime.py declares`；恢复后 3 passed。**能失败的守卫才算守卫。**
+
+**全量 Python 门禁**：**3865 passed / 40 skipped / 0 failed**（264.72 s）。日志 `.project-local/runs/python-full-20261003i.log`。
+
+#### 2026-10-03 追加 14：整合交接文档；仓库约定检查现状（57 处 CRLF，均非本会话文件）
+
+**新增交付物**：`docs/current/DSH-CLOSURE-HANDOFF-20261003.md`（11,610 B）。把散落在 14 段 live 记录里的内容收敛成一份可审阅交接：P0–P6 验收矩阵、门禁数字、本会话改动清单与理由、发现并修复的 5 个真实缺陷、未做/未通过清单、7 项 Owner 裁决（附建议）、回退步骤、产物与收据索引、边界声明。
+
+**仓库约定检查现状（`scripts/check_repository_conventions.py` exit 1，57 处）**：
+
+- 全部为 **CRLF** 违规（`only Windows command files may use CRLF`）。审计记录的是 60 处，本会话把我编辑过的若干文件转为 LF 后降到 **57**。
+- **逐条核对：57 个文件全部不是本会话改动的文件**；分布为 docs/current 31、services/python-workers 10、scripts/probes 4、docs/history 5、tests 4、crates 2、docs/authority 1。
+- **不应批量格式化**：其中 `docs/authority/taskpack-0910-r3/WORKER-REACHABILITY.json` 属不可变 authority；docs/current 下大量 JSON 是**按 sha256 被引用的收据**，改行尾会改变其哈希、打断引用。
+- **它同时是一个操作陷阱**：`scripts/ci/run_tests.ps1` 设了 `$ErrorActionPreference='Stop'`，而改动任一 CRLF 文件都会让 `git diff` 向 stderr 打印 `CRLF will be replaced by LF`，在 `*>` 重定向下变成终止性错误 → **门禁在开跑前中断、日志为空**。本会话已两次踩到。缓解办法：**编辑哪个 CRLF 文件就把那个文件转成 LF**（本会话即如此处理），不要全局重写。
+
+**其余约定检查通过**：`check_architecture.py` exit 0；`check_path_conventions.py` exit 0（2550/2550 tracked paths owned，0 unowned，0 deny-commit tracked，0 ambiguous）。`check_evidence_index.py` 需要 `--index`（历史包检查器），非门禁项，未传参时的 `--help` 之外调用会 exit 2，本轮已确认属误用而非失败。
+
+**全量 Python 门禁**：**3865 passed / 40 skipped / 0 failed**（264.34 s）。
+
+#### 2026-10-03 追加 15：扩大"在软件中读回验证"到学习/复习/搜索/知识/机器五个面
+
+此前只在证据页做原生窗口读回。本轮用**出厂候选 r19 自己的** Desktop+Core+profile，打开**接受后演练副本**（该副本持有真实 FSRS 状态），对五个路由做窗口捕获。
+
+| 路由 | 捕获 | 读回内容 |
+| --- | --- | --- |
+| 人类学习 `learning` | `.project-local/runs/r19-learning.png` | **真实 FSRS 回读**：`学习项目 1 · 下次复习：2026-10-03 20:05`；四张指标卡诚实显示 `—`；趋势图明确写 `趋势暂不可绘制 — Core 未提供带时间戳的学习历史指标` |
+| 复习/FSRS `review` | `.project-local/runs/r19-review.png` | 需显式按"载入今日队列"才取队列（之前是诚实空态 `尚未载入复习队列`）；`记忆调度` 的 7 天排程卡量标为 `CORE · 未提供` 并解释 `Core 未提供未来复习数量` |
+| 搜索 `search` | `.project-local/runs/r19-search.png` | 已捕获（未逐像素复核） |
+| 知识 `knowledge` | `.project-local/runs/r19-knowledge.png` | 已捕获 |
+| 机器学习 `machine` | `.project-local/runs/r19-machine.png` | 已捕获 |
+
+**结论**：P3 的界面读回在**出厂候选 + 真实 FSRS 数据**下成立；未提供的数据一律显式标为未提供（没有把未知画成 0 或成功）。
+
+**记录两条 UX/投影观察（非缺陷，供裁决）**：
+
+1. 复习页不自动取队列，需要用户点一次"载入今日队列"；而学习页已能显示下次复习时间。是否让复习页进入时自动取一次，是产品取舍。
+2. `记忆调度` 的"未来 7 天排程卡片量"需要 Core 提供**按日聚合**的排程投影，当前没有该投影，因此该图恒为空态。若该图要有内容，需要新增一个读投影（而不是调界面）。
+
+本轮**未改动任何代码/数据**，仅做读回验证与记录。
+
+#### 2026-10-03 追加 16：读回验证发现并修正一处"对用户说了假话"的界面标签
+
+继续扩大软件读回（机器/知识/搜索页）。在 **机器学习**页侧栏发现：`评估 / 纠错 / 重测 · 待接 Core`。
+
+**核实**：该页自己的代码调用 `/api/v1/machine/answers`、`/api/v1/machine/corrections`、`/api/v1/machine/retests`、`/api/v1/machine/tasks/{id}`（`MainWindow.MachineLearning.cs`），而这四条路由在追加 7 的演练中全部返回 200。**所以这个标签是假的**——它告诉用户功能没接上，而实际上接上了。
+
+**修正**（`apps/ArcheAxis.Desktop/MainWindow.axaml`）：改为 `选已接受的知识提问，用你的纠正让机器再答一次`。原生捕获确认新文案渲染（`.project-local/runs/r20-machine-label.png`）。
+
+**同时核实了另一处**：`原创`侧栏的 `持久草稿和版本历史 · 待接 Core` 仍然是**真的**（`MainWindow.axaml.cs` 里没有任何草稿/版本持久化调用），因此**未改动**——不做没有依据的文案修改。
+
+**候选更新（r20，取代 r19）**：`.project-local/build/gc-r20/ArcheAxis.Knowledge.Green-vdsh-r20-20261003-x64`；`verify_green_candidate.py --require-runtime --require-workers` → ok:true，21442 项，problems []；源码快照 sha256 `c787a325be45771cb0c6c96422f9546394bcb02735b0b9a358c823a7b01bee3c`（1723 文件）；Core sha256 `4C7D2FEA…`。
+
+**全量 Python 门禁**：**3865 passed / 40 skipped / 0 failed**（420.67 s）。
+
+**待清理（未删）**：r16、r17、r19 候选均已过期（各约 1.2–1.3 GB），等精确清单授权。
+
+#### 2026-10-03 追加 17：按项目自带的证据分级标准自查交接（结论：全部停在 TESTED_LOCAL）
+
+按 `workflow-assistance-evidence-verification` 的分级口径（1 结构 / 2 本地执行 / 3 精确 SHA 的 CI / 4 发布 / 5 活体行为）与生命周期层（`PLANNED`→`BRANCH_PUBLISHED`→`IMPLEMENTED_LOCAL`→`TESTED_LOCAL`→`CI_VERIFIED_EXACT_SHA`→`MERGED_MAIN`→`INSTALLED_RUNTIME_VERIFIED`），对交接文档逐条自查，并把结果写成交接 §11。
+
+**自查收紧的三处地方**（原交接把话说得比证据允许的更满）：
+
+1. **本会话改动没有 CI 层证据。** 改动**未提交**，因此**没有承载它们的 SHA**，任何 CI 都无法引用。远端 `0980fc7d` 的 CI success（run 37024251817/37024257187）**不含**本会话改动，不能当成本次的 CI 证据。→ 本工作最高只到 **`TESTED_LOCAL`**。
+2. **候选出处强度是 PARTIAL**：`build_kind=debug-build`、`tree_clean_when_built=false`，非 release、非清洁树。不能读成"生产级候选"。
+3. **安装层是 BLOCKED 而非"未开始"**：`INSTALLED_RUNTIME_VERIFIED` 未达成，原因是 Owner Gate 约束，不是待办遗漏。
+
+**仍为 PASS 的部分**：本地执行级（Rust 204/0、Python 3865/0）、真实库导入与字节保真（19/19 全等）、协议级 P2–P4 演练、M0 合成链 28/28（标注 SYNTHETIC）、界面活体读回（出厂候选原生捕获）、候选可校验可启动。**真实库真人复核仍为 NOT EXECUTED**。
+
+**该标准同时给出"下一步该做什么"的客观依据**：本地测试**不能**顶替 CI 层，要继续上探证据等级，**必须先提交**。这把"提交"从"保护工作"升级为"达到 CI 层的必要条件"——但仍需 Owner 授权，不擅自提交。
+
+**校验**：交接文档 14,392 B、0 CRLF、11 节；`check_architecture.py` exit 0；`check_path_conventions.py` exit 0（2550/2550 tracked paths owned）。本次为文档改动，未触碰源码与数据。

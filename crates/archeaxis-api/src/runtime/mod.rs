@@ -14,6 +14,8 @@ use std::{collections::HashMap, sync::Arc};
 use tokio::sync::Mutex;
 
 mod colearning;
+mod courses;
+mod semantic;
 use colearning::{machine_answer, record_correction, run_retest};
 
 struct Active {
@@ -53,6 +55,7 @@ pub fn router(executor: Executor) -> Router {
         // G2: Ask with citations. It needs the store and the domain search matcher, both reachable
         // from the executor, and it answers over the same material the search route answers over.
         .route("/api/v1/ask", post(ask))
+        .route("/api/v1/search/semantic", post(semantic::search))
         // G4: the human half of the co-learning loop. A person marks a real error in a machine answer
         // and gives the correction; both are stored, and the correction is a candidate that only
         // human review can promote.
@@ -60,6 +63,13 @@ pub fn router(executor: Executor) -> Router {
         // G4: run the task again and record it against the one it retests, which is what closes the
         // loop rather than leaving the correction as an unreferenced note.
         .route("/api/v1/machine/retests", post(run_retest))
+        .route("/api/v1/courses", post(courses::create))
+        .route(
+            "/api/v1/courses/from-knowledge",
+            post(courses::from_knowledge),
+        )
+        .route("/api/v1/courses/:id", get(courses::read))
+        .route("/api/v1/courses/:id/render", post(courses::render))
         // G2: the vault link graph of one note. It takes the note's text rather than a path, because
         // the Core does not walk a directory and this must not be the place that starts to.
         .route("/api/v1/vault/links", post(vault_links))

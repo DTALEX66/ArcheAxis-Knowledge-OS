@@ -24,10 +24,14 @@ def test_evidence_detail_stacks_at_narrow_width_and_keeps_core_unknowns():
     assert "var detailColumns = width < 1024 ? 1 : 2;" in code
     assert 'new ColumnDefinitions("1.1*,1*")' in code
     assert 'EvidenceVerifiedMetricText.Text = "—"' in code
-    assert 'EvidenceReviewMetricText.Text = "—"' in code
+    # The review metric now carries a real count of anchors whose knowledge still awaits a
+    # person, and shows "no data" rather than 0 when none do. What must not change is that the
+    # figure is never invented, so the count and its source are both pinned here.
+    assert 'var pendingReview = rows.Count(row => row.IsPendingReview);' in code
+    assert 'EvidenceReviewMetricText.Text = pendingReview == 0' in code
     xaml = XAML_PATH.read_text(encoding="utf-8")
-    assert 'Text="已验证 · Core 未暴露"' in xaml
-    assert 'Text="待复核 · Core 未暴露"' in xaml
+    assert 'Text="已验证 · 暂无数据"' in xaml
+    assert 'Text="待复核' in xaml
     assert "DataTemplate" in code and "using Avalonia.Controls.Templates;" in code
 
 
@@ -42,7 +46,7 @@ def test_evidence_empty_state_uses_l6_aurora_ring_and_preserves_truthful_actions
     assert rings[0].get("BorderBrush") == "{DynamicResource AaosPrimaryBrush}"
     assert rings[0].get("Width") == rings[0].get("Height") == "64"
     assert any(element.tag.endswith("AaosIcon") and element.get("IconName") == "Evidence" for element in rings[0].iter())
-    assert 'Text="尚未读取 Evidence anchor"' in XAML_PATH.read_text(encoding="utf-8")
+    assert 'Text="尚未读取证据。"' in XAML_PATH.read_text(encoding="utf-8")
     assert 'AutomationProperties.Name="去捕获来源"' in XAML_PATH.read_text(encoding="utf-8")
     assert 'AutomationProperties.Name="查看任务回执"' in XAML_PATH.read_text(encoding="utf-8")
     code = CODE_PATH.read_text(encoding="utf-8")

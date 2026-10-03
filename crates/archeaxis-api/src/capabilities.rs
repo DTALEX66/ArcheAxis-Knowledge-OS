@@ -9,9 +9,8 @@
 //!
 //! * It reports the routes the Core actually registered, not the routes a checkout happens to
 //!   contain. The launch declares routes, so the launch is the source of truth.
-//! * `health` describes what is checkable from here - whether the worker script exists and whether
-//!   the interpreter does. It does **not** claim a capability is working, because that requires
-//!   running a job, and a registry cannot substitute for a job.
+//! * `health` observes a live protocol hello without submitting a task. It does
+//!   not claim engine availability or correct output, which require a real job.
 //! * `enabled` comes from the workspace's own capability record, not from a guess. When that record
 //!   cannot be read the field falls back to the launch's registration state and the response says
 //!   so, rather than reporting a decision nobody made.
@@ -29,8 +28,7 @@ use serde_json::json;
 use archeaxis_application::executor::Executor;
 use archeaxis_store_sqlite::capability_settings;
 
-/// Whether a path exists as a regular file. Health is a fact about the filesystem, so it is checked
-/// rather than assumed from configuration.
+/// File presence supports route selection; the live hello observation supplies health separately.
 fn file_exists(path: &Path) -> bool {
     std::fs::metadata(path)
         .map(|meta| meta.is_file())
@@ -109,12 +107,26 @@ pub fn capability_record(
             None => serde_json::Value::Null,
         },
         "fallback_note": if fallback.is_some() {
-            "a second registered route exists; the Core answers with the default and this one is \
-             the candidate if the default's files are missing"
+            "a second registered route exists; file-missing selection only; execution failures \
+             never trigger automatic switching; replacement requires configuration and restart"
         } else {
             "no second provider is registered for this capability"
         },
     })
+}
+
+async fn observed_record(executor: Executor, mut record: serde_json::Value) -> serde_json::Value {
+    let worker = std::path::PathBuf::from(record["provider"]["worker"].as_str().unwrap());
+    let capability = record["capability"].as_str().unwrap().to_string();
+    let allow_site = record["provider"]["uses_site_packages"].as_bool().unwrap();
+    let observation = executor
+        .provider_health(&capability, &worker, allow_site)
+        .await;
+    record["health"] = observation["status"].clone();
+    record["health_basis"] = observation["basis"].clone();
+    record["health_details"] = observation;
+    record["automatic_failure_fallback"] = false.into();
+    record
 }
 
 /// The provider the Core would actually choose for a capability: the first registered route whose
@@ -146,7 +158,7 @@ pub async fn list(executor: &Executor) -> Response {
     let (disabled, readable) = disabled_and_readable(executor).await;
     let routes = executor.registered_routes();
     let python = executor.python_path();
-    let capabilities: Vec<serde_json::Value> = routes
+    let records: Vec<serde_json::Value> = routes
         .iter()
         .map(|(capability, worker, site_packages)| {
             let default_owned: std::path::PathBuf = chosen_provider(executor, capability, python)
@@ -175,9 +187,27 @@ pub async fn list(executor: &Executor) -> Response {
             )
         })
         .collect();
+    // Preserve declaration order while the executor limits live probes to four.
+    let probes: Vec<_> = records
+        .into_iter()
+        .map(|record| tokio::spawn(observed_record(executor.clone(), record)))
+        .collect();
+    let mut capabilities = Vec::with_capacity(probes.len());
+    for probe in probes {
+        match probe.await {
+            Ok(record) => capabilities.push(record),
+            Err(_) => {
+                return (
+                    StatusCode::SERVICE_UNAVAILABLE,
+                    "capability health observation failed",
+                )
+                    .into_response();
+            }
+        }
+    }
     let unhealthy = capabilities
         .iter()
-        .filter(|record| record["health"] != "declared")
+        .filter(|record| record["health"] != "handshake_ready")
         .count();
     let disabled_count = capabilities
         .iter()
@@ -189,9 +219,9 @@ pub async fn list(executor: &Executor) -> Response {
         "count": capabilities.len(),
         "disabled": disabled_count,
         "unhealthy": unhealthy,
-        "declared_only": true,
-        "declared_only_note": "this surface reports registration and file health; it is not proof \
-                               a capability works, and a passing entry here must not be read as one",
+        "declared_only": false,
+        "execution_verified": false,
+        "declared_only_note": "live worker handshake observed; no task submitted and engine/output correctness is unverified",
         "capabilities": capabilities,
     }))
     .into_response()
@@ -230,11 +260,23 @@ pub async fn read(executor: &Executor, capability: &str) -> Response {
     } else {
         None
     };
+    let record = observed_record(
+        executor.clone(),
+        capability_record(
+            &name,
+            &worker,
+            site_packages,
+            python,
+            &disabled,
+            readable,
+            &default_owned,
+            fallback,
+        ),
+    )
+    .await;
     Json(json!({
         "schema": "archeaxis.capability/v1",
-        "capability": capability_record(
-            &name, &worker, site_packages, python, &disabled, readable, &default_owned, fallback
-        ),
+        "capability": record,
     }))
     .into_response()
 }

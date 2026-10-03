@@ -52,7 +52,9 @@ def test_search_filters_and_selected_data_remain_available_without_duplicate_det
     assert names["SearchPageTypeFilter"].get("SelectedIndex") == "0"
     assert names["SearchPageActiveOnly"].get("Content") == "仅当前有效"
     code = (ROOT / "apps" / "ArcheAxis.Desktop" / "MainWindow.axaml.cs").read_text(encoding="utf-8")
-    assert 'public string TopicLabel => "Core 未暴露";' in code
-    assert 'public string UpdatedLabel => "Core 未暴露";' in code
+    # Both columns stay explicitly unavailable rather than showing a fabricated value; the
+    # wording names the field, not the Core, which is the de-jargon direction for this page.
+    assert 'public string TopicLabel => "主题未提供";' in code
+    assert 'public string UpdatedLabel => "时间未提供";' in code
     assert 'ReadDisplayValue(item, "source_id")' in code
     assert "ProjectSelectedLibraryResult(selected);" in code

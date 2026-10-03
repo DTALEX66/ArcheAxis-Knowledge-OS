@@ -53,9 +53,9 @@ public sealed class SourceMemberRow : SourceReaderRow
         ".png" or ".jpg" or ".jpeg" or ".gif" or ".bmp" or ".webp" or ".tif" or ".tiff" => "FileImage",
         _ => "Source",
     };
-    public override string DisplayKind => "容器成员 · Core projection";
+    public override string DisplayKind => "资料文件";
     public override string DisplayBoundary => "原文正文未在此列表中展示";
-    public override string DisplayText => $"{(string.IsNullOrWhiteSpace(OriginalName) ? Member : OriginalName)} · readable={Readable} · job={JobId}";
+    public override string DisplayText => $"{(string.IsNullOrWhiteSpace(OriginalName) ? "资料文件" : Path.GetFileName(OriginalName))} · {(Readable == "true" ? "可阅读" : "尚不可阅读")}";
 
     public SourceMemberRow(string sourceId, string member, string originalName, string sha256, string readable, string jobId)
         : base(sourceId, jobId)
@@ -75,9 +75,9 @@ public sealed class SourceJobRow : SourceReaderRow
     public string Error { get; }
     public bool CanReadText => Kind == "text" && State == "succeeded";
     public override string DisplayIcon => "Review";
-    public override string DisplayKind => $"Core 持久任务 · {Kind}";
-    public override string DisplayBoundary => $"state={State} · attempt={Attempt} · error={Error}";
-    public override string DisplayText => $"{Kind} · {State} · attempt={Attempt} · {JobId}" + (Error == "—" ? string.Empty : $" · {Error}");
+    public override string DisplayKind => "资料处理任务";
+    public override string DisplayBoundary => State is "failed" or "error" ? UserDisplay.Failure(Error) : "处理记录已保存";
+    public override string DisplayText => $"资料处理 · {UserDisplay.Status(State)}";
 
     public SourceJobRow(string sourceId, string jobId, string kind, string state, string attempt, string error)
         : base(sourceId, jobId)
@@ -249,7 +249,7 @@ public partial class SourceReaderView : UserControl
                     SourceReaderPresentation.Failed => "Core 来源暂不可读取",
                     SourceReaderPresentation.Mismatched => "来源与请求不匹配",
                     SourceReaderPresentation.Pending => "来源任务仍在处理中",
-                    _ when string.IsNullOrWhiteSpace(_state.SourceId) => "输入 source_id 开始",
+                    _ when string.IsNullOrWhiteSpace(_state.SourceId) => "从资料库选择来源开始",
                     _ => "Core 当前未返回成员",
                 };
             SourceReaderMembersEmptyDetail.Text = _state.IsLoading
@@ -277,6 +277,7 @@ public partial class SourceReaderView : UserControl
 
     private void SetStatus(string text, string semanticClass)
     {
+        text = UserDisplay.Message(text);
         SourceReaderStatusText.Text = text;
         AutomationProperties.SetName(SourceReaderStatusText, text);
         foreach (var item in new[] { "loading", "empty", "error", "permission", "success", "info" })
@@ -296,13 +297,13 @@ public partial class SourceReaderView : UserControl
             AutomationProperties.SetName(ViewSourceJobButton, "查看选中任务回执");
             ViewSourceJobButton.IsEnabled = HasValue(job.JobId);
             FindLibraryFromSourceButton.IsEnabled = false;
-            SourceReaderSelectedText.Text = $"{job.Kind} · Core 持久任务";
+            SourceReaderSelectedText.Text = $"资料处理 · {UserDisplay.Status(job.State)}";
             SourceReaderMemberFieldText.Text = "普通来源（非容器成员）";
             SourceReaderOriginalNameFieldText.Text = "由 Core 持久任务关联；文件名未由此投影提供";
             SourceReaderReadableFieldText.Text = job.CanReadText ? "成功 text 输出可读取" : $"不可读取（{job.State}/{job.Kind}）";
             SourceReaderJobFieldText.Text = job.JobId;
             SourceReaderShaFieldText.Text = "该任务投影未暴露 SHA-256";
-            SourceReaderMemberBoundaryText.Text = "以下正文若存在，仅为 Core text transform 输出；不是原始字节或已接受 Knowledge。";
+            SourceReaderMemberBoundaryText.Text = "下方是提取文本，尚需阅读和复核后形成知识。";
             ReadSourceTransformButton.IsEnabled = job.CanReadText;
             UpdateCandidateAction();
             CopySourceProvenanceButton.IsEnabled = false;
@@ -326,13 +327,13 @@ public partial class SourceReaderView : UserControl
             AutomationProperties.SetName(ViewSourceJobButton, "查看选中容器成员的任务回执");
             ViewSourceJobButton.IsEnabled = HasValue(member.JobId);
             FindLibraryFromSourceButton.IsEnabled = HasValue(member.SourceId);
-            SourceReaderSelectedText.Text = HasValue(member.OriginalName) ? member.OriginalName : member.Member;
+            SourceReaderSelectedText.Text = HasValue(member.OriginalName) ? Path.GetFileName(member.OriginalName) : "资料文件";
             SourceReaderMemberFieldText.Text = member.Member;
             SourceReaderOriginalNameFieldText.Text = member.OriginalName;
             SourceReaderReadableFieldText.Text = member.Readable;
             SourceReaderJobFieldText.Text = member.JobId;
             SourceReaderShaFieldText.Text = member.Sha256;
-            SourceReaderMemberBoundaryText.Text = "原文正文未暴露；字段来自 Core 来源成员投影。";
+            SourceReaderMemberBoundaryText.Text = "请选择并读取资料的提取文本。原件正文暂未提供。";
             ReadSourceTransformButton.IsEnabled = string.Equals(member.Readable, "true", StringComparison.OrdinalIgnoreCase) && HasValue(member.JobId);
             UpdateCandidateAction();
             var canCopy = HasValue(member.SourceId) && HasValue(member.Member) && HasValue(member.Sha256);
@@ -357,7 +358,7 @@ public partial class SourceReaderView : UserControl
         SourceReaderReadableFieldText.Text = "未选择";
         SourceReaderJobFieldText.Text = "未选择";
         SourceReaderShaFieldText.Text = "未选择";
-        SourceReaderMemberBoundaryText.Text = "原文正文未暴露；字段来自 Core 来源成员投影。";
+        SourceReaderMemberBoundaryText.Text = "尚未选择资料。";
         ReadSourceTransformButton.IsEnabled = false;
         SetTransformIdentity(null, null);
         ViewSourceJobButton.IsEnabled = false;
@@ -452,8 +453,11 @@ public partial class SourceReaderView : UserControl
             row, body, quote, start, end, LoadedTransformId.Value, LoadedRawSha256));
     }
 
+    public void SetCandidateReceipt(string text) => SourceReaderCandidateReceiptText.Text = text;
+
     public void SetCandidateStatus(string text, string semanticClass)
     {
+        text = UserDisplay.Message(text);
         SourceReaderCandidateStatusText.Text = text;
         AutomationProperties.SetName(SourceReaderCandidateStatusText, text);
         foreach (var item in new[] { "loading", "empty", "error", "permission", "success", "info" })

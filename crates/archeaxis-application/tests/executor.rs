@@ -42,6 +42,61 @@ async fn prepare(dir: &Path, script: &Path) -> Executor {
     executor
 }
 #[tokio::test]
+async fn worker_failure_never_switches_to_a_later_provider() {
+    let dir = tempfile::tempdir().unwrap();
+    let broken = dir.path().join("broken.py");
+    std::fs::write(&broken, "raise RuntimeError('broken provider')\n").unwrap();
+    let executor = Executor::open_routes(
+        &dir.path().join("db.sqlite"),
+        &dir.path().join("staging"),
+        &python(),
+        &broken,
+        &[("text.extract", worker())],
+    )
+    .await
+    .unwrap();
+    executor
+        .store()
+        .submit(|conn| {
+            let source = match source::import_source(conn, b"hello", "test.txt", None).unwrap() {
+                ImportOutcome::Imported { source_id, .. } => source_id,
+                _ => unreachable!(),
+            };
+            jobs::enqueue(conn, "job", "text", &source).unwrap();
+        })
+        .await
+        .unwrap();
+    assert!(
+        executor
+            .execute("job", "run-failure", 5000, &Cancellation::new())
+            .await
+            .is_err()
+    );
+    executor
+        .store()
+        .submit(|conn| {
+            assert_eq!(
+                jobs::job_state(conn, "job").unwrap().as_deref(),
+                Some("failed")
+            );
+            assert_eq!(
+                conn.query_row("SELECT count(*) FROM job_outputs", [], |r| r
+                    .get::<_, i64>(0))
+                    .unwrap(),
+                0
+            );
+            assert_eq!(
+                conn.query_row("SELECT count(*) FROM job_attempts", [], |r| r
+                    .get::<_, i64>(0))
+                    .unwrap(),
+                1
+            );
+        })
+        .await
+        .unwrap();
+}
+
+#[tokio::test]
 async fn non_text_worker_is_accepted_and_a_foreign_capability_is_refused_with_a_reason() {
     // R08 (c): the Core's identity gate accepts every known route identity, the
     // handshake is capability-agnostic, and the job's own capability must be
