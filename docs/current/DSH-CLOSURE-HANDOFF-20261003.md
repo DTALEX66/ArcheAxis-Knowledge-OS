@@ -85,7 +85,7 @@ P2–P4 的机器侧全链在**真实资料的副本**上跑通；出厂 Green �
 | # | 事项 | 我的建议 |
 | --- | --- | --- |
 | 1 | 真实库 19 条知识候选的接受/驳回 | 用证据中心“仅看待复核”筛选后逐条判断（清单见 `.project-local/…/REVIEW-WORKLIST.md`） |
-| 2 | 掌握规则（`mastery_projection.closed` 语义） | 由你给定；执行方不得自行把 Good/连对变成闭环 |
+| 2 | 掌握规则（`mastery_projection.closed` 语义） | **已出提案**：`docs/current/AAOS-MASTERY-RULE-PROPOSAL-20261003.md`（含现状核对、A/B/C 三方案与推荐、6 个待答问题）。执行方不得自行把 Good/连对变成闭环 |
 | 3 | 是否提交本会话改动到 feature 分支 | 建议**先本地提交**（保护工作、后续候选可为 `tree_clean_when_built=true`）；推送与否另定 |
 | 4 | 安装 / 原位替换 / 冷启动 / 回滚演练 | 需要你给出精确路径与操作授权 |
 | 5 | 过期候选清理（r16、r17，各约 1.2 GB） | 需我列精确清单 + 你批准后再删 |
