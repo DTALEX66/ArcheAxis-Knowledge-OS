@@ -147,7 +147,7 @@ public partial class AaosMemoryGraphView : UserControl
         CoreKnowledgeLabel.Text = "Knowledge";
         CoreKnowledgeLabel.FontSize = 14;
         AutomationProperties.SetName(this,
-            "B10 Memory Graph 静态示意：Knowledge 与 Evidence、Originals、Learning、Memory、Workspace、Review 六个母版节点；不代表 Core 数据");
+            "B10 记忆图谱静态示意：知识中心与证据、原文、学习、记忆、工作区、复习六个母版节点；不代表 Core 数据");
         BuildMasterConstellation();
         ApplyHomeMasterPalette();
         UpdatePulseState();

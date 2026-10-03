@@ -4248,3 +4248,22 @@ At that verification stage, the 2026-09-26 source candidate expansion was retain
 同步更新了两条会钉住旧文案的契约：`test_desktop_navigation_contract.py` 的标题集合、`test_home_hero_orbit_b10_contract.py` 的六节点集合（**布局断言未动**，只改措辞）。
 
 **验证**：Desktop 构建 0 warning / 0 error；全量 Python 门禁 **3865 passed / 40 skipped / 0 failed**；原生捕获确认新文案渲染（`.project-local/runs/home-after-f01-r27.png`）。
+
+#### 2026-10-03 追加 23：清掉剩余协议术语（F01 的余项）
+
+把仍在用户界面出现的英文协议词改为产品自己的话：
+
+| 位置 | 改前 | 改后 |
+| --- | --- | --- |
+| 侧栏横条（学习/复习） | `学习项 → Assessment → Review / FSRS；以 Core 回执为准。` | `学习项、评估、复习与 FSRS 的统一视图；以 Core 回执为准。` |
+| 学习页 | `最近 Capture（未关联）` / `最近 Capture：…` | `最近捕获（未关联）` / `最近捕获：…` |
+| 学习页 | `Knowledge / Assessment 版本`、`Assessment 判断` | `知识 / 评估版本`、`评估判断` |
+| 复习页 | `载入 Core 复习队列后显示当前 Assessment 问题。` | `载入 Core 复习队列后显示当前复习问题。` |
+| 学习页状态 | `Assessment：未生成`、`Assessment 未就绪…`、`学习路径：…；Assessment 未就绪。` | `评估：未生成`、`评估未就绪…`、`…；评估未就绪。` |
+| 检查器层级 | `Core projection · Learning/Assessment` | `Core 投影 · 学习/评估` |
+| 节点选择提示 | `…不冒充 Memory Graph…` | `…不冒充记忆图谱…` |
+| 图谱无障碍名 | `Memory Graph 静态示意：…`（且仍列旧英文节点名） | `记忆图谱静态示意：…`（并更正为中文六节点名） |
+
+同步更新 `test_desktop_navigation_contract.py` 中两条钉住旧措辞的断言（`评估未就绪`、`Core 知识谱系投影，不冒充记忆图谱`）。
+
+**验证**：Desktop 构建 0 error；全量 Python 门禁 **3865 passed / 40 skipped / 0 failed**（214.28 s）。

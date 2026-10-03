@@ -707,7 +707,7 @@ def test_memory_map_and_original_editor_routes_are_truthful_core_boundaries() ->
     assert '"original-editor" => "当前 Core 只暴露来源成员与转换读取边界' in code
     assert 'x:Name="MemoryMapSurface"' in xaml
     assert 'MemoryMapSurface.IsVisible = section == "memory-map"' in code
-    assert '这是 Core Knowledge lineage 投影，不冒充 Memory Graph' in code
+    assert '这是 Core 知识谱系投影，不冒充记忆图谱' in code
 
 
 def test_primary_space_rail_has_explicit_active_state_mapping() -> None:
@@ -936,7 +936,7 @@ def test_workspace_learning_summary_does_not_turn_core_failure_into_zero() -> No
 def test_learning_partial_projections_remain_explicitly_unverified() -> None:
     code = CODE.read_text(encoding="utf-8")
     assert "来源状态读取失败" in code
-    assert "Assessment 未就绪" in code
+    assert "评估未就绪" in code
     assert "学习记录读取失败" in code
 
 
@@ -1664,7 +1664,7 @@ def test_inspector_layer_labels_preserve_projection_boundaries() -> None:
         "Core projection · Source member",
         "Core projection · Knowledge V3",
         "Core projection · Transform search",
-        "Core projection · Learning/Assessment",
+        "Core 投影 · 学习/评估",
     ):
         assert label in code
 

@@ -1417,8 +1417,8 @@
               <Grid ColumnDefinitions="*,*" ColumnSpacing="14">
                 <Border Classes="aaos-card" Padding="16">
                   <StackPanel Spacing="8">
-                    <TextBlock Text="最近 Capture（未关联）" FontSize="12" FontWeight="SemiBold" Foreground="{DynamicResource AaosMutedBrush}" />
-                    <TextBlock x:Name="LearningCaptureContextText" Text="最近 Capture：尚未形成；未证明与当前学习项目关联。" TextWrapping="Wrap" FontSize="11" Foreground="{DynamicResource AaosMutedBrush}" />
+                    <TextBlock Text="最近捕获（未关联）" FontSize="12" FontWeight="SemiBold" Foreground="{DynamicResource AaosMutedBrush}" />
+                    <TextBlock x:Name="LearningCaptureContextText" Text="最近捕获：尚未形成；未证明与当前学习项目关联。" TextWrapping="Wrap" FontSize="11" Foreground="{DynamicResource AaosMutedBrush}" />
                     <StackPanel x:Name="LearningCaptureActions" Orientation="Horizontal" Spacing="8">
                       <Button x:Name="OpenLearningCaptureSourceButton" Content="打开最近来源" IsEnabled="False" Padding="12,7" Click="OnOpenLatestSourceClick" AutomationProperties.Name="打开最近来源" />
                       <Button x:Name="OpenLearningCaptureJobButton" Content="查看最近任务" IsEnabled="False" Padding="12,7" Click="OnOpenLatestJobClick" AutomationProperties.Name="查看最近任务" />
@@ -1432,7 +1432,7 @@
                     <TextBlock x:Name="LearningEvidenceText" Classes="provenance-evidence" Text="尚未载入 Core 学习来源。" TextWrapping="Wrap" />
                     <TextBlock Text="原件" FontSize="12" Foreground="{DynamicResource AaosMutedBrush}" />
                     <TextBlock x:Name="LearningOriginalText" Classes="provenance-original" Text="原件正文未从学习投影直接暴露。" TextWrapping="Wrap" />
-                    <TextBlock Text="Knowledge / Assessment 版本" FontSize="12" Foreground="{DynamicResource AaosMutedBrush}" />
+                    <TextBlock Text="知识 / 评估版本" FontSize="12" Foreground="{DynamicResource AaosMutedBrush}" />
                     <TextBlock x:Name="LearningVersionText" Classes="provenance-projection" Text="尚未生成" TextWrapping="Wrap" />
                     <Button x:Name="OpenLearningKnowledgeButton" Content="打开当前 Knowledge 详情" IsEnabled="False" HorizontalAlignment="Left" Padding="14,8" Click="OnOpenLearningKnowledgeClick" AutomationProperties.Name="打开当前 Knowledge 详情" />
                     <TextBlock Text="记忆读回" FontSize="12" Classes="provenance-review" />
@@ -1446,7 +1446,7 @@
                   <TextBlock Text="Review Card · 当前复习" Classes="section-heading" />
                   <TextBlock Text="Learner Answer" FontSize="12" Classes="provenance-original" />
                   <TextBox x:Name="LearningAnswerBox" PlaceholderText="输入你的回答" IsEnabled="False" AutomationProperties.Name="学习回答输入框" />
-                  <TextBlock Text="Assessment 判断" FontSize="12" Classes="status-info" />
+                  <TextBlock Text="评估判断" FontSize="12" Classes="status-info" />
                   <ComboBox x:Name="ReviewOutcomeBox" Classes="review-control" IsEnabled="False" SelectedIndex="0" AutomationProperties.Name="Core 正确性结果">
                     <ComboBoxItem Content="选择结果" />
                     <ComboBoxItem Content="回答正确" />
@@ -1539,7 +1539,7 @@
                   </Grid.RenderTransform>
                   <StackPanel x:Name="ReviewQuestionFace" Spacing="16" VerticalAlignment="Center" HorizontalAlignment="Stretch">
                     <TextBlock Text="QUESTION · 当前问题" Classes="lifecycle-label" HorizontalAlignment="Center" />
-                    <TextBlock x:Name="ReviewPagePromptText" Text="载入 Core 复习队列后显示当前 Assessment 问题。" TextWrapping="Wrap" Classes="section-heading" FontSize="26" HorizontalAlignment="Center" TextAlignment="Center" />
+                    <TextBlock x:Name="ReviewPagePromptText" Text="载入 Core 复习队列后显示当前复习问题。" TextWrapping="Wrap" Classes="section-heading" FontSize="26" HorizontalAlignment="Center" TextAlignment="Center" />
                     <Button x:Name="ReviewRevealButton" Classes="primary-action" IsEnabled="False" Content="展开复习" HorizontalAlignment="Center" Padding="22,12" Click="OnReviewRevealClick" AutomationProperties.Name="展开复习回答区" />
                   </StackPanel>
                   <StackPanel x:Name="ReviewAnswerFace" IsVisible="False" Spacing="12">
@@ -1548,7 +1548,7 @@
                     <Expander x:Name="ReviewPageDiagnostics" Header="更多信息：来源与排程" IsExpanded="False">
                       <TextBlock x:Name="ReviewPageReceiptText" Text="评分、Evidence、Knowledge 版本和排程以 Core 回执为准。" TextWrapping="Wrap" Classes="provenance-projection" Margin="0,10,0,0" />
                     </Expander>
-                    <TextBlock Text="Assessment 判断" Classes="lifecycle-label" />
+                    <TextBlock Text="评估判断" Classes="lifecycle-label" />
                     <ComboBox x:Name="ReviewPageOutcomeBox" Classes="review-control" IsEnabled="False" SelectedIndex="0" SelectionChanged="OnReviewPageOutcomeChanged" AutomationProperties.Name="复习回答正确性">
                       <ComboBoxItem Content="选择结果" />
                       <ComboBoxItem Content="回答正确" />

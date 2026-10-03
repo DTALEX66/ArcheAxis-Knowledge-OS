@@ -637,11 +637,11 @@ public partial class MainWindow : Window
 
     private void OnHomeMemoryNodeSelected(object? sender, MemoryGraphNodeSelectedEventArgs e) =>
         HomeMemoryNodeDetailsText.Text =
-            $"已选择 {e.NodeName} 示意节点。Core 尚未提供可验证的 Memory Graph 关系与关联摘要。";
+            $"已选择 {e.NodeName} 示意节点。Core 尚未提供可验证的记忆图谱关系与关联摘要。";
 
     private void OnMemoryMapNodeSelected(object? sender, MemoryGraphNodeSelectedEventArgs e) =>
         MemoryMapNodeDetailsText.Text =
-            $"已选择 {e.NodeName} 示意节点。Core 尚未提供可验证的 Memory Graph 关系与关联摘要。";
+            $"已选择 {e.NodeName} 示意节点。Core 尚未提供可验证的记忆图谱关系与关联摘要。";
 
     private void SetSection(string section, string heading)
     {
@@ -797,7 +797,7 @@ public partial class MainWindow : Window
         {
             "capture" or "source-reader" => "来源 → 原件 → 转换 → 锚点；仅显示 Core 已返回的对象。",
             "evidence" or "library" or "knowledge" => "来源 → 证据锚点 → 知识版本；进入详情后读取 Core。",
-            "learning" or "review" => "学习项 → Assessment → Review / FSRS；以 Core 回执为准。",
+            "learning" or "review" => "学习项、评估、复习与 FSRS 的统一视图；以 Core 回执为准。",
             "machine-growth" => "提问、检查回答，用你的纠正再答原题。",
             "workspace" or "research" => "工作区 → 项目 → 对象；编辑接口尚未接通。",
             "memory-map" => "知识 → 关联 / lineage；图谱接口尚未接通。",
@@ -3614,7 +3614,7 @@ public partial class MainWindow : Window
                 $"source_id={sourceId}",
                 $"supersedes={supersedes}",
                 $"superseded_by={supersededBy}",
-                "这是 Core Knowledge lineage 投影，不冒充 Memory Graph 节点、边或认知结论。",
+                "这是 Core 知识谱系投影，不冒充记忆图谱节点、边或认知结论。",
             });
             SetStatus(MemoryMapStatusText, "记忆地图：已读取 Core Knowledge lineage。", "success");
             SetInspectorProjection(
@@ -3623,7 +3623,7 @@ public partial class MainWindow : Window
                 sourceId,
                 $"supersedes={supersedes}",
                 status,
-                "仅展示 Core 已持久化的版本关系；不冒充 Memory Graph 或学习掌握。",
+                "仅展示 Core 已持久化的版本关系；不冒充记忆图谱或学习掌握。",
                 layer: "Core projection · Knowledge lineage");
             UpdateInspectorActions();
         }
@@ -5070,7 +5070,7 @@ public partial class MainWindow : Window
             HomeOpenCurrentSourceButton.IsEnabled = false;
             OpenLatestSourceButton.IsEnabled = false;
             OpenLatestJobButton.IsEnabled = false;
-            LearningCaptureContextText.Text = "最近 Capture：尚未形成；未证明与当前学习项目关联。";
+            LearningCaptureContextText.Text = "最近捕获：尚未形成；未证明与当前学习项目关联。";
             OpenLearningCaptureSourceButton.IsEnabled = false;
             OpenLearningCaptureJobButton.IsEnabled = false;
             RefreshHomeLifecycleProjection();
@@ -5602,7 +5602,7 @@ public partial class MainWindow : Window
                     ? "原件正文未从学习投影直接暴露。"
                     : "原件正文未从学习投影直接暴露；请从原件阅读按来源投影查看。";
                 OpenLearningKnowledgeButton.IsEnabled = !string.IsNullOrWhiteSpace(activeKnowledgeId);
-                var assessmentText = "Assessment：未生成";
+                var assessmentText = "评估：未生成";
                 var assessmentReady = false;
                 if (!string.IsNullOrWhiteSpace(activeKnowledgeId))
                 {
@@ -5651,7 +5651,7 @@ public partial class MainWindow : Window
                     }
                 }
                 if (!assessmentReady && !string.IsNullOrWhiteSpace(activeKnowledgeId))
-                    assessmentText = "Assessment 未就绪；未启用回答提交。";
+                    assessmentText = "评估未就绪；未启用回答提交。";
                 ReviewCardSurface.IsVisible = assessmentReady;
                 LearningVersionText.Text = $"knowledge_id={_activeKnowledgeId ?? "未暴露"}\nknowledge_version={_activeKnowledgeVersion ?? "未生成"}\nassessment_id={_activeAssessmentId ?? "未生成"}";
                 var readbackText = "学习记录：未读回";
@@ -5721,7 +5721,7 @@ public partial class MainWindow : Window
                     version: _activeKnowledgeVersion,
                     status: null,
                     boundary: "学习来源仅显示 Core learner.references 与 Assessment 已暴露字段；assessment_id 不是对象状态，未暴露引用位置不推断。",
-                    layer: "Core projection · Learning/Assessment");
+                    layer: "Core 投影 · 学习/评估");
                 LearningAnswerBox.IsEnabled = assessmentReady;
                 ReviewOutcomeBox.IsEnabled = assessmentReady;
                 ReviewPageOutcomeBox.IsEnabled = assessmentReady;
@@ -5782,7 +5782,7 @@ public partial class MainWindow : Window
                 : string.IsNullOrWhiteSpace(_activeKnowledgeId)
                     ? "学习路径：队列已读取；当前来源版本未暴露。"
                 : string.IsNullOrWhiteSpace(_activeAssessmentId)
-                    ? "学习路径：队列已读取；Assessment 未就绪。"
+                    ? "学习路径：队列已读取；评估未就绪。"
                     : $"学习路径：已读取 {count} 个项目；当前项目状态来自 Core。";
             var learningSemanticState = count == 0
                 ? "empty"
