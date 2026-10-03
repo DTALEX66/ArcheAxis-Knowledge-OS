@@ -13,7 +13,7 @@
 
 use std::{
     io::{BufRead, BufReader, Write},
-    net::{Ipv4Addr, SocketAddr, TcpStream},
+    net::{Ipv4Addr, SocketAddr, TcpListener, TcpStream},
     process::{Child, Command, Stdio},
     sync::mpsc,
     time::Duration,
@@ -86,10 +86,17 @@ fn port_of(line: &str) -> u16 {
         .unwrap_or(0)
 }
 
+/// A port that nothing answers on is not necessarily a port this process may bind.
+///
+/// The probe here used to be a connect: an error meant "free". On a host that reserves the low
+/// end of this range the two properties come apart - connecting is refused because nothing
+/// listens, and binding is refused with WSAEACCES (os error 10013) - so the launch under test
+/// exited before readiness and this test failed for a reason that has nothing to do with the
+/// port-selection contract it pins. Binding is the property the child actually needs.
 fn free_port() -> u16 {
     for candidate in 49152..49252u16 {
         let address = SocketAddr::from((Ipv4Addr::LOCALHOST, candidate));
-        if TcpStream::connect_timeout(&address, Duration::from_millis(120)).is_err() {
+        if TcpListener::bind(address).is_ok() {
             return candidate;
         }
     }
