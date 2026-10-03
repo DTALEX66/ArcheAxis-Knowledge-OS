@@ -4286,3 +4286,21 @@ At that verification stage, the 2026-09-26 source candidate expansion was retain
 **验证**：Desktop 构建 **0 warning / 0 error**；全量 Python 门禁 **3868 passed / 40 skipped / 0 failed**；原生捕获确认 `CORE · 已提供`、今天 10/3 柱值 **1**、其余 0（`.project-local/runs/review-schedule-r30.png`）。
 
 **记录一条编译教训**：C# 的关系模式不接受非常量上界，`offset is >= 0 and < counts.Length` 会报 `CS9135`，须写成 `offset >= 0 && offset < counts.Length`。
+
+#### 2026-10-03 追加 25：原创草稿持久化 —— 范围说明（结论：不在 M0 内做）
+
+**核实结果**：`原创` 侧栏 `持久草稿和版本历史 · 待接 Core` **属实**。两处 `保存草稿` 按钮 `IsEnabled="False"`，文案明写 `草稿只保留在当前界面；保存到 Core 尚未提供，不会伪装成已保存来源。`；**Core 侧完全没有草稿路由或存储**（`crates/` 下 grep `draft` 只命中一条无关注释）。
+
+**判断**：按 F01 的标准（须说明不可提供的真实原因与所需动作），**这一处已经合格** —— 它既说清了原因，也没有把未保存伪装成已保存。所以这不是缺陷，是**未排期的能力**。
+
+**交付**：`docs/current/AAOS-ORIGINAL-DRAFT-SCOPE-NOTE-20261003.md`，含：
+
+- 最小可行切面（Core 表 + 4 条路由 + 契约登记 + 前端启用 + 契约测试）
+- **为何不在 M0 内做**：不在 P0–P5 闭环路径上；M0 方向覆盖全文未提原创编辑器（无授权）；会新增**第二个写入面**，需连带处理备份/迁移/「草稿不是知识，不得进检索或当来源」的边界
+- 若 Owner 决定要做，建议的最小切片与顺序（含「先钉住：草稿存在也不能让知识/证据/搜索计数变化」）
+- 4 个待 Owner 回答的问题
+- **本文未新增任何 Core 路由、表或界面功能**
+
+**顺带（F01 余项）**：把两处按钮提示与一处说明里的工程词改成人话 —— `Core Original 持久化契约尚未接入` / `Core Original 写入契约尚未提供` / `Core 写入合同` → `保存到 Core 的功能尚未提供` / `保存到 Core 尚未提供，不会伪装成已保存来源。`；侧栏 `持久草稿和版本历史 · 待接 Core` → `草稿与版本历史 · 保存到 Core 尚未提供`。已确认这 5 条字符串**没有被任何测试钉住**。
+
+**验证**：Desktop 构建 0 error；全量 Python 门禁 **3868 passed / 40 skipped / 0 failed**（212.73 s）。

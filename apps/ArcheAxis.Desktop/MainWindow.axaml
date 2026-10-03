@@ -207,7 +207,7 @@
           <StackPanel x:Name="ContextOriginalSubnav" IsVisible="False" Spacing="7">
             <TextBlock Text="原创 · 写作" Classes="rail-label" />
             <Button Content="原创编辑" AutomationProperties.Name="原创编辑" Click="OnOriginalEditorClick" HorizontalContentAlignment="Left" />
-            <TextBlock Text="持久草稿和版本历史 · 待接 Core" TextWrapping="Wrap" FontSize="11" Foreground="{DynamicResource AaosMutedBrush}" />
+            <TextBlock Text="草稿与版本历史 · 保存到 Core 尚未提供" TextWrapping="Wrap" FontSize="11" Foreground="{DynamicResource AaosMutedBrush}" />
           </StackPanel>
           <StackPanel x:Name="ContextLearningSubnav" IsVisible="False" Spacing="7">
             <TextBlock Text="人类学习" Classes="rail-label" />
@@ -282,7 +282,7 @@
             <Button x:Name="HomeExportOverviewButton" Content="导出今日概览" IsEnabled="False" Padding="14,8" ToolTip.Tip="Core 尚未提供今日概览导出投影" AutomationProperties.Name="导出今日概览暂不可用，等待 Core 投影" />
           </StackPanel>
           <StackPanel x:Name="OriginalEditorPageActions" Grid.Column="1" IsVisible="False" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
-            <Button IsEnabled="False" Padding="14,8" ToolTip.Tip="Core Original 持久化契约尚未接入" AutomationProperties.Name="保存草稿暂不可用，等待 Core Original 契约">
+            <Button IsEnabled="False" Padding="14,8" ToolTip.Tip="保存到 Core 的功能尚未提供" AutomationProperties.Name="保存草稿暂不可用；保存到 Core 尚未提供">
               <StackPanel Orientation="Horizontal" Spacing="8">
                 <local:AaosIcon Width="16" Height="16" IconName="Save" />
                 <TextBlock Text="保存草稿" />
@@ -684,7 +684,7 @@
                     <TextBox x:Name="CaptureDraftBox" AcceptsReturn="True" MinHeight="204" TextWrapping="Wrap" PlaceholderText="粘贴文本或写下快速笔记…" AutomationProperties.Name="捕获草稿；尚未保存到 Core" />
                   </Border>
                   <Grid ColumnDefinitions="*,Auto" ColumnSpacing="12">
-                    <TextBlock Text="草稿仅保留在当前界面；Core 写入合同接入前不会伪装成已保存来源。" TextWrapping="Wrap" FontSize="11" Classes="status-empty" VerticalAlignment="Center" />
+                    <TextBlock Text="草稿只保留在当前界面；保存到 Core 尚未提供，不会伪装成已保存来源。" TextWrapping="Wrap" FontSize="11" Classes="status-empty" VerticalAlignment="Center" />
                     <Button x:Name="CaptureSaveButton" Grid.Column="1" Content="保存到知识库" Classes="primary-action" IsEnabled="False" HorizontalAlignment="Right" Padding="16,8" ToolTip.Tip="Core 尚未提供文本捕获写入接口" AutomationProperties.Name="保存暂不可用；Core 写入接口尚未接入" />
                   </Grid>
                 </StackPanel>
@@ -892,7 +892,7 @@
               <Border Classes="aaos-status" Padding="10,6" VerticalAlignment="Center">
                 <TextBlock x:Name="OriginalEditorSaveStateText" Text="只读 · 未载入 Original" Classes="status-empty" AutomationProperties.Name="原创编辑保存状态" />
               </Border>
-              <Button Content="保存草稿" IsEnabled="False" Padding="14,8" ToolTip.Tip="Core Original 写入契约尚未提供" AutomationProperties.Name="保存草稿暂不可用" />
+              <Button Content="保存草稿" IsEnabled="False" Padding="14,8" ToolTip.Tip="保存到 Core 的功能尚未提供" AutomationProperties.Name="保存草稿暂不可用；保存到 Core 尚未提供" />
             </StackPanel>
           </Grid>
           <Grid x:Name="OriginalEditorGrid" ColumnDefinitions="1.35*,0.95*" ColumnSpacing="14" RowSpacing="14">
