@@ -4125,3 +4125,20 @@ At that verification stage, the 2026-09-26 source candidate expansion was retain
 **该标准同时给出"下一步该做什么"的客观依据**：本地测试**不能**顶替 CI 层，要继续上探证据等级，**必须先提交**。这把"提交"从"保护工作"升级为"达到 CI 层的必要条件"——但仍需 Owner 授权，不擅自提交。
 
 **校验**：交接文档 14,392 B、0 CRLF、11 节；`check_architecture.py` exit 0；`check_path_conventions.py` exit 0（2550/2550 tracked paths owned）。本次为文档改动，未触碰源码与数据。
+
+#### 2026-10-03 追加 18：提交并推送（依据任务文档的明确授权，非 force、不涉 main/Release）
+
+**授权依据**：`docs/current/DSH-CLOSURE-EXECUTOR-PROMPT-20261003.md:12` 逐字写明——"用户要求项目同步：**可提交和正常推送经过核验的任务所属源码、项目合同、脱敏审计文档/证据**；禁止force push、history rewrite、直接破坏保护分支。merge/main和Release不得从\"上传\"推导授权；Release保持FROZEN。" 以及 `:53` "按明确路径stage本任务"。
+
+**动作**：
+
+- **范围**：82 个明确路径（48 modified + 34 untracked），**逐路径 stage**（`git add --pathspec-from-file`，未用 `git add .`）；`+6565 / −369`。未包含任何日志、缓存、数据库或构建产物（`.project-local` 全程被 ignore，未进入索引）。
+- **提交**：`ef0104f83fa1781612a4ff13a83a2a7ee2d3f324`，分支 `codex/dsh-aaos-real-multiformat-loop-20261001`，提交后工作树 **CLEAN**。
+- **推送**：**非 force 快进** `0980fc7d..ef0104f8`；`git ls-remote origin refs/heads/<branch>` 回读 = `ef0104f8…`；推送后 ahead/behind = **0/0**。
+- **未做的事**：未 merge、未动 `main`（仍 `59498723`）、未 force、未 rewrite、未删任何 ref；**Release 保持 FROZEN**。
+
+**生命周期层推进**：本工作由 `TESTED_LOCAL` 前进到 **`BRANCH_PUBLISHED`**。
+
+**CI（已触发，结果待收）**：`CI` push run 37123557549、`vnext-ci` push run 37123557579、`vnext-ci` pull_request run 37123559897，均针对 `ef0104f8`。收到 success 后方可写 `CI_VERIFIED_EXACT_SHA`；**未收到前不写**。
+
+**记录一条操作事实**：`git add` 在 PowerShell 下若路径清单文件带 BOM 会 `exit 128`（"did not match any files" 类失败）。本轮首次即踩到；改用 Python 以 UTF-8 无 BOM + LF 生成清单后 `exit 0`。

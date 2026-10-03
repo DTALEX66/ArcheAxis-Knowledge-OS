@@ -90,8 +90,7 @@ async fn evidence_anchor_list_surfaces_the_quoted_selection() {
     let db = dir.path().join("evidence-quote.sqlite");
     {
         let mut conn = init_workspace(db.to_str().unwrap()).unwrap();
-        let imported =
-            source::import_source(&mut conn, b"quoted body", "quoted.md", None).unwrap();
+        let imported = source::import_source(&mut conn, b"quoted body", "quoted.md", None).unwrap();
         let source_id = match imported {
             ImportOutcome::Imported { source_id, .. }
             | ImportOutcome::Duplicate { source_id, .. } => source_id,
