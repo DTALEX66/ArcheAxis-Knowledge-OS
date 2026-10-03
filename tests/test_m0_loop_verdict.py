@@ -18,7 +18,7 @@ def complete_receipt():
         "promote_anchored_knowledge", "knowledge_v3_readback", "search", "human_accept",
         "knowledge_v3_after_accept", "learning_reference", "learning_event",
         "learning_event_replay", "assessment", "answer_recorded", "learning_state",
-        "machine_task_failed", "human_correction", "accept_successor", "machine_retest",
+        "machine_answer", "machine_task_failed", "human_correction", "accept_successor", "machine_retest",
         "machine_readback", "pre_restart_learning_state", "restart_learning_state", "restart_knowledge_v3")]
     by = {s["stage"]: s for s in stages}
     by["import_source"]["source_id"] = "s1"
@@ -32,6 +32,8 @@ def complete_receipt():
     for name in ("learning_state", "restart_learning_state"):
         by[name].update(answer=probe.ANSWER, next_review="tomorrow", state={"id": "l1"})
     by["pre_restart_learning_state"]["state"] = {"id": "l1"}
+    for name in ("machine_answer", "machine_task_failed", "human_correction"):
+        by[name]["answer_id"] = "answer1"
     by["machine_task_failed"]["task_id"] = "m1"
     by["human_correction"]["successor_id"] = "k2"
     for name in ("machine_retest", "machine_readback"):

@@ -148,7 +148,7 @@ def assemble(
     if source_snapshot is not None and source_snapshot != current_source_snapshot:
         raise ValueError("captured source snapshot does not match the current worktree before assembly")
     source_snapshot = source_snapshot if source_snapshot is not None else current_source_snapshot
-    project_local = (project_root / ".project-local").resolve()
+    project_local = _candidate_module.project_local_root(project_root)
     try:
         output.relative_to(project_local)
     except ValueError as exc:
@@ -226,7 +226,7 @@ def assemble(
         routes = [
             {"capability": capability, "script": relative}
             for capability, relative in sorted(route_workers.items())
-            if _native_path(root / relative).is_file()
+            if Path(_native_path(root / relative)).is_file()
         ]
         profile.write_text(json.dumps({
             "schema": "archeaxis.worker-profile/v1",

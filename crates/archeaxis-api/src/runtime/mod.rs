@@ -13,6 +13,9 @@ use serde_json::{Value, json};
 use std::{collections::HashMap, sync::Arc};
 use tokio::sync::Mutex;
 
+mod colearning;
+use colearning::{machine_answer, record_correction, run_retest};
+
 struct Active {
     request_id: String,
     cancel: Cancellation,
@@ -23,6 +26,7 @@ struct Runtime {
     executor: Executor,
     active: Arc<Mutex<HashMap<String, Active>>>,
     admission: Arc<Mutex<()>>,
+    colearning_admission: Arc<Mutex<()>>,
 }
 pub fn router(executor: Executor) -> Router {
     let projections = crate::projections(executor.store().clone(), false);
@@ -69,6 +73,7 @@ pub fn router(executor: Executor) -> Router {
             executor,
             active: Arc::new(Mutex::new(HashMap::new())),
             admission: Arc::new(Mutex::new(())),
+            colearning_admission: Arc::new(Mutex::new(())),
         })
         .merge(projections)
 }
@@ -110,140 +115,6 @@ async fn ask(State(runtime): State<Runtime>, Json(body): Json<AskBody>) -> Respo
     match asked {
         Ok(Ok(document)) => Json(document).into_response(),
         Ok(Err(e)) => (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()).into_response(),
-        Err(e) => (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()).into_response(),
-    }
-}
-
-/// G4: record a real error a human found in a machine answer, and the human's correction.
-///
-/// This is the step the whole gate exists for. Three things are enforced here rather than left to a
-/// caller:
-///
-/// * the pair is stored as a pair - the model's answer travels with the correction, so a reviewer
-///   reads what was actually said rather than a description of it;
-/// * the specific error is **required**, because "it was wrong" is not a reviewable finding;
-/// * the correction is a **candidate** and nothing else. The domain refuses to accept or verify
-///   machine-origin content automatically, so the promotion path runs through human review, which is
-///   exactly what the taskpack forbids skipping.
-async fn record_correction(
-    State(runtime): State<Runtime>,
-    headers: HeaderMap,
-    Json(body): Json<CorrectionBody>,
-) -> Response {
-    for (name, value) in [
-        ("question", &body.question),
-        ("machine_answer", &body.machine_answer),
-        ("corrected_answer", &body.corrected_answer),
-        ("error_note", &body.error_note),
-    ] {
-        if value.trim().is_empty() {
-            return (
-                StatusCode::UNPROCESSABLE_ENTITY,
-                format!("{name} is required; a correction without it is not reviewable"),
-            )
-                .into_response();
-        }
-    }
-    // A correction is a human act. A machine principal correcting itself would remove the human step
-    // the loop is built around, which is the same reason review actions are refused to machines.
-    let reviewer = match crate::request_actor(&headers).unwrap_or("human") {
-        "machine" => {
-            return (
-                StatusCode::FORBIDDEN,
-                "a correction is a human act; a machine principal cannot record one",
-            )
-                .into_response();
-        }
-        _ => body.reviewer.clone().unwrap_or_else(|| "human".to_string()),
-    };
-
-    let knowledge_id = body.knowledge_id.clone();
-    let question = body.question.clone();
-    let machine_answer = body.machine_answer.clone();
-    let corrected = body.corrected_answer.clone();
-    let error_note = body.error_note.clone();
-    // Cloned because the closure takes ownership and the response names the reviewer afterwards.
-    let reviewer_for_write = reviewer.clone();
-
-    let recorded = runtime
-        .executor
-        .store()
-        .submit_wait(move |conn: &mut rusqlite::Connection| {
-            // One `Result<String, String>`, not a nested one: the outer layer is always success, so a
-            // nested shape would make "no such item" indistinguishable from a created id at the
-            // call site - which is a mistake this code made once and the tests caught.
-            let outcome: Result<String, String> = (|| {
-                // The knowledge item must exist, or the correction is about nothing and would sit in
-                // the review queue with no context.
-                let exists: bool = conn
-                    .query_row(
-                        "SELECT EXISTS(SELECT 1 FROM knowledge WHERE knowledge_id=?1)",
-                        [&knowledge_id],
-                        |row| row.get(0),
-                    )
-                    .map_err(|e| e.to_string())?;
-                if !exists {
-                    return Err(format!("no knowledge item {knowledge_id}"));
-                }
-                // The body is the human's corrected answer, written as a candidate.
-                // `create_knowledge` opens its own transaction, so the review event is recorded
-                // immediately after rather than nested: both writes are individually atomic, and a
-                // crash between them leaves a candidate with no review note, which is a state review
-                // already handles - the opposite order would leave a note pointing at nothing.
-                let candidate_id = archeaxis_domain::knowledge::create_knowledge(
-                    conn,
-                    "OBSERVATION",
-                    &corrected,
-                    "candidate",
-                    Some("UNSOURCED"),
-                    // No anchor: a correction is the author's judgement, not a position in a file.
-                    None,
-                    "human",
-                )
-                .map_err(|e| e.to_string())?;
-                conn.execute(
-                    "INSERT INTO review_events(knowledge_id, action, reviewer, note) \
-                     VALUES(?1,?2,?3,?4)",
-                    rusqlite::params![
-                        candidate_id,
-                        "correction_recorded",
-                        reviewer_for_write,
-                        format!(
-                            "correction of a machine answer for {knowledge_id}\nquestion: {question}\n\
-                             machine answered: {machine_answer}\nerror found: {error_note}"
-                        )
-                    ],
-                )
-                .map_err(|e| e.to_string())?;
-                Ok(candidate_id)
-            })();
-            outcome
-        })
-        .await;
-
-    match recorded {
-        Ok(Ok(candidate_id)) => Json(json!({
-            "schema": "archeaxis.machine-correction/v1",
-            "correction_candidate_id": candidate_id,
-            "corrects_knowledge_id": body.knowledge_id,
-            "question": body.question,
-            "machine_answer": body.machine_answer,
-            "corrected_answer": body.corrected_answer,
-            "error_note": body.error_note,
-            "reviewer": reviewer,
-            "status": "candidate",
-            "authority": "candidate",
-            "promotion": "this candidate is not knowledge until a human accepts it through \
-                          POST /api/v1/knowledge-items/{id}/review-decisions, which a machine \
-                          principal is refused",
-            "note": "the model's answer and the human's correction are stored together so a reviewer \
-                     reads what was actually said",
-        }))
-        .into_response(),
-        // `reason` is converted rather than passed through so the branch is a response body whatever
-        // the store hands back.
-        Ok(Err(reason)) => (StatusCode::NOT_FOUND, reason).into_response(),
-        // The outer error is the store's own, and a `rusqlite::Error` is not itself a response body.
         Err(e) => (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()).into_response(),
     }
 }
@@ -410,272 +281,6 @@ async fn vault_links(State(runtime): State<Runtime>, Json(body): Json<VaultLinks
     Json(document).into_response()
 }
 
-/// G4: ask the same question again and record the answer as a retest of the earlier task.
-///
-/// Three things make this a retest rather than another task:
-///
-/// * the prior task must exist, because `retest_of` is a claim about a specific earlier run;
-/// * the new receipt carries `retest_of`, so the pair is readable from the store and not only from
-///   this response;
-/// * it is recorded by the **machine** principal through the domain's own guard, which is what makes
-///   the receipt a machine measurement rather than a human assertion.
-///
-/// It does not decide whether the correction helped. That is a judgement about the two answers, and
-/// a Core that scored its own retest would be marking its own work; the two receipts are returned
-/// side by side so a person can compare them.
-async fn run_retest(State(runtime): State<Runtime>, Json(body): Json<RetestBody>) -> Response {
-    if body.question.trim().is_empty() {
-        return (
-            StatusCode::UNPROCESSABLE_ENTITY,
-            "a question is required; a retest of nothing is not a retest",
-        )
-            .into_response();
-    }
-    if body.retest_of.trim().is_empty() {
-        return (
-            StatusCode::UNPROCESSABLE_ENTITY,
-            "retest_of is required; a retest that does not name what it retests is just another task",
-        )
-            .into_response();
-    }
-    if let Some(refusal) = crate::capabilities::refusal(&runtime.executor, "machine.answer").await {
-        return refusal;
-    }
-
-    // Cloned up front: the value is used by the read closure, by the id derivation and by the
-    // response, and a single move would leave two of the three without it.
-    let retest_of = body.retest_of.clone();
-    // The prior receipt, read first so a retest of a task that does not exist fails before a model
-    // call rather than after one.
-    let prior_id = retest_of.clone();
-    let prior = runtime
-        .executor
-        .store()
-        .submit_wait(move |conn: &mut rusqlite::Connection| {
-            archeaxis_domain::machine::machine_task(conn, &prior_id)
-        })
-        .await;
-    let prior = match prior {
-        Ok(Ok(Some(receipt))) => receipt,
-        Ok(Ok(None)) => {
-            return (
-                StatusCode::NOT_FOUND,
-                format!("no machine task {}", body.retest_of),
-            )
-                .into_response();
-        }
-        Ok(Err(e)) => return (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()).into_response(),
-        Err(e) => return (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()).into_response(),
-    };
-
-    // The context is the knowledge item's own body, exactly as the answered route does it, so the
-    // retest is grounded the same way rather than in a caller-supplied string.
-    let knowledge_id = body.knowledge_id.clone();
-    let context = runtime
-        .executor
-        .store()
-        .submit_wait(move |conn: &mut rusqlite::Connection| {
-            conn.query_row(
-                "SELECT body FROM knowledge WHERE knowledge_id=?1",
-                [&knowledge_id],
-                |row| row.get::<_, String>(0),
-            )
-            .optional()
-        })
-        .await;
-    let context = match context {
-        Ok(Ok(Some(text))) if !text.trim().is_empty() => text,
-        Ok(Ok(_)) => {
-            return (
-                StatusCode::NOT_FOUND,
-                format!(
-                    "no knowledge item {} with a body to answer from",
-                    body.knowledge_id
-                ),
-            )
-                .into_response();
-        }
-        Ok(Err(e)) => return (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()).into_response(),
-        Err(e) => return (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()).into_response(),
-    };
-
-    let timeout_s = body.timeout_s.unwrap_or(300).clamp(1, 900);
-    let outcome = runtime
-        .executor
-        .machine_answer(
-            context,
-            body.question.clone(),
-            body.max_tokens.unwrap_or(2048),
-            std::time::Duration::from_secs(timeout_s),
-        )
-        .await;
-
-    let answer = match outcome {
-        Ok(answer) => answer,
-        // The worker's own words, and the retest is not recorded: a task that could not run is not a
-        // measurement, and recording it as `unmeasured` would look like a result.
-        Err(reason) => return (StatusCode::SERVICE_UNAVAILABLE, reason).into_response(),
-    };
-    let answered = answer["answer"].as_str().unwrap_or("").to_string();
-
-    // A fresh task id per retest, derived from the pair so asking the same retest twice is the same
-    // receipt rather than a second one saying the same thing.
-    //
-    // Hashed with the standard library rather than with `sha2`: this crate does not depend on it, and
-    // adding a dependency to name an id whose only job is to be stable would be the wrong trade. The
-    // digest is 128 bits of `DefaultHasher`, which is enough to keep two different retests apart.
-    let retest_id = {
-        use std::hash::{Hash, Hasher};
-        let mut hasher = std::collections::hash_map::DefaultHasher::new();
-        retest_of.hash(&mut hasher);
-        body.knowledge_id.hash(&mut hasher);
-        body.question.hash(&mut hasher);
-        // A second pass in a different order, so the id does not rest on one 64-bit value.
-        let mut second = std::collections::hash_map::DefaultHasher::new();
-        body.question.hash(&mut second);
-        body.knowledge_id.hash(&mut second);
-        retest_of.hash(&mut second);
-        format!("retest_{:016x}{:016x}", hasher.finish(), second.finish())
-    };
-    let recorded_id = retest_id.clone();
-    let prior_conditions = prior.conditions.clone();
-    let model_version = answer["model"].as_str().unwrap_or("unknown").to_string();
-    let knowledge_version = format!("{}@v1", body.knowledge_id);
-    // The write closure takes ownership, and the response names the retested task as well, so the id
-    // is cloned once before the move rather than being borrowed from a value that has gone.
-    let retest_of_for_write = retest_of.clone();
-    let written = runtime
-        .executor
-        .store()
-        .submit_wait(move |conn: &mut rusqlite::Connection| {
-            archeaxis_domain::machine::record_machine_task(
-                conn,
-                &archeaxis_domain::machine::MachineTask {
-                    task_id: &recorded_id,
-                    // The domain refuses any other principal, which is what keeps this a machine
-                    // measurement rather than a human assertion.
-                    principal: "machine",
-                    conditions: &prior_conditions,
-                    knowledge_version: Some(&knowledge_version),
-                    method_version: None,
-                    tool_version: None,
-                    model_version: &model_version,
-                    scope: "retest",
-                    outcome: "succeeded",
-                    failure: None,
-                    retest_of: Some(&retest_of_for_write),
-                },
-            )
-        })
-        .await;
-    match written {
-        Ok(Ok(())) => {}
-        Ok(Err(e)) => return (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()).into_response(),
-        Err(e) => return (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()).into_response(),
-    }
-
-    Json(json!({
-        "schema": "archeaxis.machine-retest/v1",
-        "retest_task_id": retest_id,
-        "retest_of": retest_of,
-        "knowledge_id": body.knowledge_id,
-        "question": body.question,
-        "answer": answer,
-        "answered": answered,
-        "prior": {
-            "conditions": prior.conditions,
-            "outcome": prior.outcome,
-            "model_version": prior.model_version,
-            "knowledge_version": prior.knowledge_version,
-        },
-        "authority": "candidate",
-        "note": "an answer is model output awaiting human review, and this route does not decide \
-                 whether the correction helped: the two receipts are shown side by side so a person \
-                 can compare them",
-    }))
-    .into_response()
-}
-
-/// G4: ask the local model one question about one accepted knowledge item.
-///
-/// The context is the knowledge item's **own body**, read from the canonical store, so the answer is
-/// grounded in material this workspace accepted rather than in a caller-supplied string. The reply
-/// is a candidate and says so; nothing here writes knowledge, and no automatic promotion exists.
-async fn machine_answer(
-    State(runtime): State<Runtime>,
-    Json(body): Json<MachineAnswerBody>,
-) -> Response {
-    if body.question.trim().is_empty() {
-        return (
-            StatusCode::UNPROCESSABLE_ENTITY,
-            "a question is required; an answer to nothing is not a task",
-        )
-            .into_response();
-    }
-    // Refused before the model runs, for the same reason the job path refuses: "disabled" must mean
-    // nothing happened, not that something ran and was discarded.
-    if let Some(refusal) = crate::capabilities::refusal(&runtime.executor, "machine.answer").await {
-        return refusal;
-    }
-
-    let knowledge_id = body.knowledge_id.clone();
-    let context = runtime
-        .executor
-        .store()
-        .submit_wait(move |conn: &mut rusqlite::Connection| {
-            conn.query_row(
-                "SELECT body FROM knowledge WHERE knowledge_id=?1",
-                [&knowledge_id],
-                |row| row.get::<_, String>(0),
-            )
-            .optional()
-        })
-        .await;
-    let context = match context {
-        Ok(Ok(Some(text))) if !text.trim().is_empty() => text,
-        Ok(Ok(_)) => {
-            return (
-                StatusCode::NOT_FOUND,
-                format!(
-                    "no knowledge item {} with a body to answer from",
-                    body.knowledge_id
-                ),
-            )
-                .into_response();
-        }
-        Ok(Err(e)) => {
-            return (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()).into_response();
-        }
-        Err(e) => return (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()).into_response(),
-    };
-
-    // Bounded rather than open: a model that never returns must not hold the request. The default is
-    // generous because a local model on a busy host is slow, and the caller may lower it.
-    let timeout_s = body.timeout_s.unwrap_or(300).clamp(1, 900);
-    match runtime
-        .executor
-        .machine_answer(
-            context,
-            body.question.clone(),
-            body.max_tokens.unwrap_or(2048),
-            std::time::Duration::from_secs(timeout_s),
-        )
-        .await
-    {
-        Ok(answer) => Json(json!({
-            "schema": "archeaxis.machine-answer/v1",
-            "knowledge_id": body.knowledge_id,
-            "question": body.question,
-            "authority": "candidate",
-            "note": "model output awaiting human review; it is not accepted knowledge and nothing \
-                     was promoted",
-            "answer": answer,
-        }))
-        .into_response(),
-        // The worker's own words, because it is the component that knows why it could not answer.
-        Err(reason) => (StatusCode::SERVICE_UNAVAILABLE, reason).into_response(),
-    }
-}
 fn error(status: u16, code: &str, message: &str) -> Response {
     (
         StatusCode::from_u16(status).unwrap(),
@@ -746,6 +351,9 @@ struct AskBody {
 #[derive(Deserialize)]
 #[serde(deny_unknown_fields)]
 struct CorrectionBody {
+    /// Optional for legacy clients; their tuple must still match a persisted answer.
+    #[serde(default)]
+    answer_id: Option<String>,
     /// The knowledge item the machine was answering from.
     knowledge_id: String,
     question: String,

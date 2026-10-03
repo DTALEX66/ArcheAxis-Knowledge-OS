@@ -77,10 +77,21 @@ _PRIVATE_NAME = re.compile(
 _SHA256_RE = re.compile(r"^[0-9a-f]{64}$")
 
 
+def project_local_root(project_root: Path) -> Path:
+    """Use the shared ignored output root for a linked Git worktree."""
+    root = Path(project_root).resolve()
+    common = subprocess.run(
+        ["git", "-C", str(root), "rev-parse", "--path-format=absolute", "--git-common-dir"],
+        capture_output=True, text=True, check=False,
+    )
+    owner = Path(common.stdout.strip()).resolve().parent if common.returncode == 0 else root
+    return (owner / ".project-local").resolve()
+
+
 def read_source_snapshot(path: Path, *, project_root: Path) -> dict[str, str | int]:
     """Read and validate a source snapshot receipt captured before compilation."""
     path = Path(os.path.abspath(path))
-    allowed = (Path(project_root).resolve() / ".project-local" / "runs").resolve()
+    allowed = project_local_root(project_root) / "runs"
     try:
         path.relative_to(allowed)
     except ValueError as exc:

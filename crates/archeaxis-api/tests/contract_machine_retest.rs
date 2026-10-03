@@ -21,8 +21,14 @@ struct Fixture {
 async fn fixture() -> Fixture {
     let dir = tempfile::tempdir().unwrap();
     let python = PathBuf::from(std::env::var_os("ARCHEAXIS_PYTHON").unwrap());
-    let worker = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-        .join("../../services/python-workers/machine/worker_machine_answer.py");
+    // Synthetic worker: deterministic contract evidence, never real-model evidence.
+    let worker = dir.path().join("answer.py");
+    std::fs::write(&worker, r#"import json
+from pathlib import Path
+p = Path(__file__).with_suffix('.count')
+p.write_text(str(int(p.read_text()) + 1) if p.exists() else '1')
+print(json.dumps({'answer': 'Synthetic answer', 'model': 'some-model', 'loss_receipt': {'params': {'authority': 'candidate'}}}))
+"#).unwrap();
     let transport = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
         .join("../../services/python-workers/transport/text_ndjson.py");
     let executor = Executor::open_routes(
@@ -54,12 +60,12 @@ async fn fixture() -> Fixture {
                 &machine::MachineTask {
                     task_id: "task_baseline",
                     principal: "machine",
-                    conditions: "asked what writes the canonical store",
+                    conditions: &serde_json::json!({"knowledge_id": knowledge_id, "question": "what writes the store?", "answer": {"answer":"incorrect baseline", "model":"some-model"}, "correction": {"correction_candidate_id":"candidate_fixture"}}).to_string(),
                     knowledge_version: Some(&format!("{knowledge_id}@v1")),
                     method_version: None,
                     tool_version: None,
                     model_version: "some-model",
-                    scope: "baseline",
+                    scope: "runtime.evaluation.failed",
                     // The domain only accepts a retest of a **failed** task, because that is the
                     // only case where "did the correction help" has a meaning. The fixture
                     // therefore records a failure, with the reason the domain requires.
@@ -206,7 +212,7 @@ async fn a_recorded_retest_links_to_the_task_it_retests() {
     // and linked; without one the route fails by name and records nothing, because a task that could
     // not run is not a measurement.
     let fixture = fixture().await;
-    let question = "What writes the canonical store?";
+    let question = "what writes the store?";
     let (status, text) = post(
         &fixture.router,
         "/api/v1/machine/retests",
@@ -236,4 +242,117 @@ async fn a_recorded_retest_links_to_the_task_it_retests() {
         }
         other => panic!("unexpected status {other}: {text}"),
     }
+}
+
+#[tokio::test]
+async fn different_question_and_unrelated_knowledge_are_rejected_before_inference() {
+    let f = fixture().await;
+    assert_eq!(
+        post(
+            &f.router,
+            "/api/v1/machine/retests",
+            &body(&f.knowledge_id, &f.prior_task_id, "a different question")
+        )
+        .await
+        .0,
+        409
+    );
+    let mut conn = rusqlite::Connection::open(f._dir.path().join("db.sqlite")).unwrap();
+    let other = knowledge::create_knowledge(
+        &mut conn,
+        "NOTE",
+        "unrelated",
+        "accepted",
+        None,
+        None,
+        "human",
+    )
+    .unwrap();
+    assert_eq!(
+        post(
+            &f.router,
+            "/api/v1/machine/retests",
+            &body(&other, &f.prior_task_id, "what writes the store?")
+        )
+        .await
+        .0,
+        409
+    );
+    assert!(!f._dir.path().join("answer.count").exists());
+}
+
+#[tokio::test]
+async fn concurrent_retests_and_restart_replay_one_persisted_answer() {
+    let f = fixture().await;
+    let request = body(&f.knowledge_id, &f.prior_task_id, "what writes the store?");
+    let (a, b) = tokio::join!(
+        post(&f.router, "/api/v1/machine/retests", &request),
+        post(&f.router, "/api/v1/machine/retests", &request)
+    );
+    assert_eq!(a.0, 200, "{}", a.1);
+    assert_eq!(a, b);
+    assert_eq!(
+        std::fs::read_to_string(f._dir.path().join("answer.count")).unwrap(),
+        "1"
+    );
+    drop(f.router);
+    let python = PathBuf::from(std::env::var_os("ARCHEAXIS_PYTHON").unwrap());
+    let transport = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+        .join("../../services/python-workers/transport/text_ndjson.py");
+    let executor = Executor::open_routes(
+        &f._dir.path().join("db.sqlite"),
+        &f._dir.path().join("staging"),
+        &python,
+        &transport,
+        &[("machine.answer", f._dir.path().join("answer.py"))],
+    )
+    .await
+    .unwrap();
+    let restarted = archeaxis_api::runtime::router(executor);
+    assert_eq!(
+        a,
+        post(&restarted, "/api/v1/machine/retests", &request).await
+    );
+    assert_eq!(
+        std::fs::read_to_string(f._dir.path().join("answer.count")).unwrap(),
+        "1"
+    );
+}
+
+#[tokio::test]
+async fn a_reviewed_successor_remains_comparable_to_the_original() {
+    let f = fixture().await;
+    let mut conn = rusqlite::Connection::open(f._dir.path().join("db.sqlite")).unwrap();
+    let successor = knowledge::create_knowledge(
+        &mut conn,
+        "NOTE",
+        "corrected successor",
+        "accepted",
+        None,
+        None,
+        "human",
+    )
+    .unwrap();
+    conn.execute(
+        "INSERT INTO knowledge_supersedes(old_knowledge_id,new_knowledge_id) VALUES(?1,?2)",
+        [&f.knowledge_id, &successor],
+    )
+    .unwrap();
+    let request = body(&successor, &f.prior_task_id, "what writes the store?");
+    let first = post(&f.router, "/api/v1/machine/retests", &request).await;
+    assert_eq!(first.0, 200, "{}", first.1);
+    conn.execute(
+        "UPDATE knowledge SET status='deprecated' WHERE knowledge_id=?1",
+        [successor],
+    )
+    .unwrap();
+    // Replaying the immutable historical result does not infer from deprecated knowledge.
+    assert_eq!(
+        first,
+        post(&f.router, "/api/v1/machine/retests", &request).await
+    );
+    assert_eq!(
+        std::fs::read_to_string(f._dir.path().join("answer.count")).unwrap(),
+        "1"
+    );
 }

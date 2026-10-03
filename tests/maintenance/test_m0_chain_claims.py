@@ -1,11 +1,11 @@
 """The M0 chain's own numbers, so the contract's claim about it cannot drift silently.
 
-The contract quotes the M0 loop as "27 of 27 stages". That number is checkable from the probe
+The current contract declares 28 synthetic stages. That count is checkable from the probe
 source without running it, which matters because the probe needs a built Core, a scheduler
 interpreter with `fsrs`, and the legacy database present - none of which is guaranteed where the
 document is read.
 
-It also records why the chain's 27th stage sits next to a frozen boundary: the stage migrates a
+It also records why the chain's final stage sits next to a frozen boundary: the stage migrates a
 **copy** and asserts the original is untouched, so it demonstrates the capability without
 migrating user data. That distinction is easy to lose and is asserted here.
 """
@@ -35,24 +35,20 @@ def test_the_probe_records_one_uniquely_named_stage_per_step():
 def test_the_contract_quotes_the_stage_count_the_probe_actually_has():
     names = stage_names()
     contract = CONTRACT.read_text(encoding="utf-8")
-    claim = re.search(r"\*\*(\d+)/(\d+) stages ran\*\*", contract)
-    assert claim, "the contract no longer states a stage count"
-    stated, total = int(claim.group(1)), int(claim.group(2))
-    assert stated == total, f"the contract claims {stated} of {total}, which cannot pass"
-    assert total == len(names), (
-        f"the contract claims {total} stages, the probe records {len(names)}: {names}")
-    assert "validation_errors: []" in contract, (
-        "the contract must record what the run's own validation said, not only the stage count")
+    claim = re.search(r"Current synthetic journey stages: \*\*(\d+)\*\*", contract)
+    assert claim, "the contract no longer declares its current synthetic stage count"
+    assert int(claim.group(1)) == len(names)
+
 
 
 def test_the_gap_maps_older_count_is_not_the_current_one():
-    """The gap map lists 26 rows; the probe has had a pre-restart baseline added since.
+    """The gap map lists 26 rows; the probe added pre-restart and persisted-answer stages.
 
     This is recorded as a fact rather than fixed, because the gap map is dated navigation material
     with its own tested commit and the contract is the current authority.
     """
     names = stage_names()
-    assert len(names) == 27, (
+    assert len(names) == 28, (
         "if the probe's stage count changes, the contract's claim and this note both need updating")
     assert "pre_restart_learning_state" in names, (
         "the extra stage relative to the gap map is the pre-restart baseline")

@@ -26,6 +26,7 @@ from __future__ import annotations
 import contextlib
 import importlib.util
 import json
+import os
 import shutil
 import sqlite3
 import subprocess
@@ -49,7 +50,10 @@ runtime = _load("runtime_backup", REPO / "scripts" / "runtime" / "dev.py")
 
 TOKEN = "b" * 64
 SESSION = "a" * 32
-BINARY = REPO / ".project-local" / "build" / "cargo" / "debug" / "archeaxis-api.exe"
+BINARY = Path(os.environ.get(
+    "ARCHEAXIS_CORE_BIN",
+    str(REPO / ".project-local" / "build" / "cargo" / "debug" / "archeaxis-api.exe"),
+))
 
 
 def row_counts(db: Path) -> dict[str, int]:

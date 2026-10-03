@@ -107,3 +107,21 @@ def test_the_probe_does_not_import_anything_outside_the_standard_library():
         "datetime", "pathlib",
     }
     assert not third_party, f"the probe imports third-party modules: {sorted(third_party)}"
+
+
+def test_report_rejects_incomplete_or_wrong_final_status():
+    probe = _module()
+    incomplete = probe.Receipt()
+    incomplete.stage("import_source", status=202)
+    assert probe.report(incomplete) == 1
+    incorrect = probe.Receipt()
+    incorrect.stage("machine_cannot_accept_correction", status=200)
+    assert probe.report(incorrect) == 1
+
+
+def test_retest_readback_must_match_the_failure():
+    probe = _module()
+    receipt = probe.Receipt()
+    receipt.stage("retest_readback", status=200, links_to_failure=False)
+    receipt.stage("machine_cannot_accept_correction", status=403)
+    assert probe.report(receipt) == 1

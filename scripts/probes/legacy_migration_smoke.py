@@ -26,6 +26,7 @@ import contextlib
 import hashlib
 import importlib.util
 import json
+import os
 import shutil
 import sqlite3
 import sys
@@ -69,7 +70,11 @@ def _migrator():
 
 
 runtime = _load("runtime_migration", REPO / "scripts" / "runtime" / "dev.py")
-LEGACY = REPO / "data" / "cognitive_os.sqlite"
+# An explicit read-only source is required; a repository runtime database is
+# private state and must not be selected merely because it exists.
+LEGACY = Path(os.environ["ARCHEAXIS_LEGACY_COPY"]).resolve() if os.environ.get(
+    "ARCHEAXIS_LEGACY_COPY", ""
+).strip() else None
 
 
 def sha256_file(path: Path) -> str:
@@ -113,8 +118,8 @@ def _shallow_workdir() -> Path:
 def main() -> int:
     with contextlib.suppress(Exception):
         sys.stdout.reconfigure(encoding="utf-8")
-    if not LEGACY.is_file():
-        print(json.dumps({"ok": False, "blocked": "legacy database not present", "path": str(LEGACY)}))
+    if LEGACY is None or not LEGACY.is_file():
+        print(json.dumps({"ok": False, "blocked": "set ARCHEAXIS_LEGACY_COPY to an authorised legacy database", "path": str(LEGACY)}))
         return 2
 
     migrator = _migrator()

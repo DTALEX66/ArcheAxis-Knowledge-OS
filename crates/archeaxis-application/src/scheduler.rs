@@ -26,6 +26,17 @@ struct WorkerProfile {
     python: String,
     script: String,
     staging: String,
+    #[serde(default, rename = "routes")]
+    _routes: Vec<WorkerRoute>,
+}
+
+#[derive(serde::Deserialize)]
+#[serde(deny_unknown_fields)]
+struct WorkerRoute {
+    #[serde(rename = "capability")]
+    _capability: String,
+    #[serde(rename = "script")]
+    _script: String,
 }
 
 /// Match the formal desktop profile boundary before doing any filesystem IO.
@@ -322,6 +333,20 @@ mod tests {
             "data/staging"
         ]);
         assert!(python_from_profile_text(&sequence.to_string(), &profile_location()).is_err());
+    }
+
+    #[test]
+    fn profile_with_declared_capability_routes_still_resolves_scheduler_python() {
+        let mut document: serde_json::Value =
+            serde_json::from_str(&profile(&existing_file(), WORKER_PROFILE_SCHEMA)).unwrap();
+        document["routes"] = serde_json::json!([{
+            "capability": "machine.answer",
+            "script": "workers/machine/worker_machine_answer.py"
+        }]);
+        assert_eq!(
+            python_from_profile_text(&document.to_string(), &profile_location()).unwrap(),
+            std::path::PathBuf::from(existing_file())
+        );
     }
 
     #[test]

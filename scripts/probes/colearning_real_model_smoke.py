@@ -28,12 +28,16 @@ import os
 import shutil
 import sys
 import time
-import uuid
 from datetime import datetime, timezone
 from pathlib import Path
 
 REPO = Path(__file__).resolve().parents[2]
-RUN = REPO / ".project-local" / "runs" / "colearning-real-model"
+RUN: Path | None = None
+
+
+def run_directory() -> Path:
+    runtime = _load("colearning_runtime", REPO / "scripts/runtime/dev.py")
+    return runtime.artifact_directory(REPO, "colearning-real-model")
 
 # A context whose content is checkable, so a wrong answer is detectable without a human.
 CONTEXT = (
@@ -71,6 +75,12 @@ class Receipt:
         for entry in self.stages:
             if entry.get("problem"):
                 return entry["stage"]
+            status = entry.get("status")
+            expected = (403,) if entry["stage"] == "machine_cannot_accept_correction" else (200, 201, 202)
+            if status is not None and status not in expected:
+                return entry["stage"]
+            if entry.get("links_to_failure") is False:
+                return entry["stage"]
         return None
 
     def document(self, **extra) -> dict:
@@ -106,6 +116,7 @@ def unmet_prerequisites() -> dict[str, str]:
 
 
 def main() -> int:
+    global RUN
     if len(sys.argv) < 2:
         print("usage: colearning_real_model_smoke.py <core-executable>")
         return 2
@@ -121,8 +132,7 @@ def main() -> int:
     launcher = _load("launcher_colearning", REPO / "scripts/release/backend_launcher.py")
     client = _load("client_colearning", REPO / "shared/core_client.py")
 
-    if RUN.exists():
-        shutil.rmtree(RUN, ignore_errors=True)
+    RUN = run_directory()
     (RUN / "core").mkdir(parents=True)
     shutil.copy2(core, RUN / "core" / "archeaxis-api.exe")
     (RUN / "data").mkdir(parents=True)
@@ -224,7 +234,6 @@ def main() -> int:
             receipt.block("local_model", str(answered)[:400])
             return report(receipt)
         answer_text = answered["answer"]["answer"]
-        model_version = answered["answer"]["model"]
 
         # 4. The failure. This script plays the person: it asks a question the accepted context cannot
         #    answer, so a grounded model has a real reason to fail rather than an invented one.
@@ -235,30 +244,9 @@ def main() -> int:
                       answer=(ungrounded.get("answer", {}) or {}).get("answer", "")[:400]
                       if status == 200 else str(ungrounded)[:300])
 
-        # The task receipt that the retest will point at. It must fail, because the domain only
-        # accepts a retest of a failure.
-        if machine_token is None:
-            receipt.block("machine_principal",
-                          "the launch offered no machine credential, so no failure can be recorded "
-                          "and the retest cannot be run")
-            return report(receipt)
-        failed_task = f"colearning-{uuid.uuid4().hex[:8]}"
-        status, body = call("POST", "/api/v1/machine/tasks", machine_token, {
-            "task_id": failed_task,
-            "conditions": QUESTION,
-            "knowledge_version": f"{knowledge_id}@v1",
-            "model_version": model_version,
-            "scope": "grounded-answer",
-            "outcome": "failed",
-            "failure": "the answer did not stay inside the accepted context",
-        })
-        receipt.stage("record_failed_task", status=status, task_id=failed_task, body=body)
-        if status not in (200, 201):
-            receipt.stage("record_failed_task", problem="the failure could not be recorded")
-            return report(receipt)
-
         # 5. The human correction, through the product's own route.
         status, corrected = call("POST", "/api/v1/machine/corrections", human, {
+            "answer_id": answered["answer_id"],
             "knowledge_id": knowledge_id,
             "question": QUESTION,
             "machine_answer": answer_text,
@@ -272,11 +260,18 @@ def main() -> int:
             receipt.stage("human_correction", problem="the correction was refused")
             return report(receipt)
         candidate = corrected["correction_candidate_id"]
+        failed_task = corrected["failed_task_id"]
+        status, accepted_correction = call(
+            "POST", f"/api/v1/knowledge-items/{candidate}/review-decisions", human,
+            {"action": "accepted", "reviewer": "scripted-human-fixture"})
+        receipt.stage("accept_correction_fixture", status=status, body=accepted_correction)
+        if status != 200:
+            return report(receipt)
 
         # 6. The retest: the same question again, linked to the failure.
         status, retest = call("POST", "/api/v1/machine/retests", human, {
             "retest_of": failed_task,
-            "knowledge_id": knowledge_id,
+            "knowledge_id": candidate,
             "question": QUESTION,
             "timeout_s": 600,
         })
@@ -293,7 +288,7 @@ def main() -> int:
                       links_to_failure=(readback.get("retest_of") == failed_task
                                         if isinstance(readback, dict) else False))
 
-        # 8. The correction is still a candidate, and a machine cannot promote it.
+        # 8. Review remains forbidden to machines after the scripted human review.
         status, _ = call("POST", f"/api/v1/knowledge-items/{candidate}/review-decisions",
                          machine_token, {"action": "accepted", "reviewer": "machine"})
         receipt.stage("machine_cannot_accept_correction", status=status,
@@ -307,20 +302,29 @@ def main() -> int:
 
 def report(receipt: Receipt, **extra) -> int:
     document = receipt.document(**extra)
-    out = RUN / "receipt.json"
-    if RUN.exists():
+    out = RUN / "receipt.json" if RUN is not None else None
+    if out is not None and RUN.exists():
         out.write_text(json.dumps(document, ensure_ascii=False, indent=2), encoding="utf-8")
     print(json.dumps(document, ensure_ascii=False, indent=2)[:4000])
     # A run that reached every stage is a pass even when a prerequisite was noted on the way: the
     # note belongs in the receipt, and letting it decide the verdict would mark a complete run as
     # incomplete. A prerequisite only decides the verdict when it actually stopped the run.
-    reached_the_end = not receipt.failed_stage and any(
-        entry["stage"] == "machine_cannot_accept_correction" for entry in receipt.stages)
+    required = {
+        "import_source", "text_transform", "read_transform", "create_knowledge",
+        "accept_knowledge", "machine_answer", "machine_answered_out_of_scope",
+        "human_correction", "accept_correction_fixture", "machine_retest",
+        "retest_readback", "machine_cannot_accept_correction",
+    }
+    reached_the_end = not receipt.failed_stage and required.issubset(
+        entry["stage"] for entry in receipt.stages)
     if receipt.blocked and not reached_the_end:
         print("\nBLOCKED:", json.dumps(receipt.blocked, ensure_ascii=False))
         return 3
     if receipt.failed_stage:
         print(f"\nFAILED at {receipt.failed_stage}")
+        return 1
+    if not reached_the_end:
+        print("\nINCOMPLETE: the probe did not reach all required stages")
         return 1
     return 0
 

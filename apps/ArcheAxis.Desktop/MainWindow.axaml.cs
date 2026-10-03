@@ -5613,10 +5613,12 @@ public partial class MainWindow : Window
                                     && !string.IsNullOrWhiteSpace(outcome.GetString()))
                                 {
                                     using var outcomeDocument = JsonDocument.Parse(outcome.GetString()!);
-                                    var savedAnswerText = outcomeDocument.RootElement.TryGetProperty("answer", out var answerValue)
+                                    var historicalAnswerText = outcomeDocument.RootElement.TryGetProperty("answer", out var answerValue)
                                         && answerValue.ValueKind == JsonValueKind.String
                                         ? answerValue.GetString()
                                         : null;
+                                    var savedAnswerText = LearningAnswerReadback.AnswerForAssessment(
+                                        outcomeDocument.RootElement, _activeAssessmentId);
                                     var savedAnswer = !string.IsNullOrWhiteSpace(savedAnswerText);
                                     if (!string.IsNullOrWhiteSpace(savedAnswerText))
                                         LearningAnswerBox.Text = savedAnswerText;
@@ -5626,7 +5628,10 @@ public partial class MainWindow : Window
                                         && closed.ValueKind == JsonValueKind.False;
                                     readbackText = savedAnswer && projectionOpen
                                         ? "已保存回答；Mastery projection 未闭合"
-                                        : savedAnswer ? "已保存回答" : "学习记录已读回";
+                                        : savedAnswer ? "已保存回答"
+                                        : !string.IsNullOrWhiteSpace(historicalAnswerText)
+                                            ? "先前 Assessment 的回答仅保留为历史记录；当前题目尚未回答。"
+                                            : "学习记录已读回";
                                 }
                             }
                         }

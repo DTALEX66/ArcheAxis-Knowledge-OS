@@ -15,7 +15,6 @@ from __future__ import annotations
 
 import importlib.util
 import json
-import shutil
 import subprocess
 import sys
 import time
@@ -25,7 +24,12 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 REPO = Path(__file__).resolve().parents[2]
-RUN = REPO / ".project-local" / "runs" / "desktop-route-readback"
+
+
+def run_directory() -> Path:
+    """Allocate an isolated run without removing an earlier probe's evidence."""
+    runtime = load("desktop_route_runtime", REPO / "scripts/runtime/dev.py")
+    return runtime.artifact_directory(REPO, "desktop-route-readback")
 
 # The same eleven capabilities the desktop launcher now writes, resolved the same way.
 ROUTE_WORKERS = {
@@ -57,12 +61,9 @@ def main() -> int:
         return 2
     core, python = Path(sys.argv[1]), Path(sys.argv[2])
     workers_root = REPO / "services/python-workers"
-
-    if RUN.exists():
-        shutil.rmtree(RUN, ignore_errors=True)
-    RUN.mkdir(parents=True)
-    db = RUN / "workspace.sqlite"
-    staging = RUN / "worker-staging"
+    run = run_directory()
+    db = run / "workspace.sqlite"
+    staging = run / "worker-staging"
     staging.mkdir()
 
     routes = []
@@ -90,7 +91,7 @@ def main() -> int:
     child = subprocess.Popen(
         [str(core), str(db), "0"],
         stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
-        text=True, encoding="utf-8", cwd=str(RUN),
+        text=True, encoding="utf-8", cwd=str(run),
     )
     base = None
     deadline = time.time() + 40
@@ -154,7 +155,7 @@ def main() -> int:
             ],
             "verdict": "REGISTERED" if not missing and machine_ok else "INCOMPLETE",
         }
-        (RUN / "receipt.json").write_text(json.dumps(receipt, ensure_ascii=False, indent=2),
+        (run / "receipt.json").write_text(json.dumps(receipt, ensure_ascii=False, indent=2),
                                          encoding="utf-8")
         print()
         print("missing:", missing or "none")

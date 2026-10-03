@@ -386,6 +386,13 @@ async fn record_machine_task(
     headers: HeaderMap,
     Json(body): Json<MachineTaskBody>,
 ) -> impl IntoResponse {
+    if body.scope.starts_with("runtime.") {
+        return (
+            StatusCode::FORBIDDEN,
+            "runtime receipt scopes are Core-owned",
+        )
+            .into_response();
+    }
     if request_actor(&headers).unwrap_or("human") != "machine" {
         return (
             StatusCode::FORBIDDEN,

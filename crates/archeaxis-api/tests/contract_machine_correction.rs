@@ -42,6 +42,16 @@ async fn fixture() -> (tempfile::TempDir, Router, String) {
         .unwrap()
         .unwrap();
 
+    let id = knowledge_id.clone();
+    executor.store().submit_wait(move |conn: &mut rusqlite::Connection| {
+        let doc = serde_json::json!({"knowledge_id": id, "question": "What writes the store?",
+            "answer": {"answer": "Postgres writes the canonical store.", "model": "synthetic-model"}});
+        archeaxis_domain::machine::record_machine_task(conn, &archeaxis_domain::machine::MachineTask {
+            task_id: "answer_fixture", principal: "machine", conditions: &doc.to_string(),
+            knowledge_version: Some(&format!("{id}@v1")), method_version: None, tool_version: None,
+            model_version: "synthetic-model", scope: "runtime.answer", outcome: "unmeasured", failure: None, retest_of: None,
+        })
+    }).await.unwrap().unwrap();
     let router = archeaxis_api::runtime::router(executor);
     (dir, router, knowledge_id)
 }
@@ -194,7 +204,7 @@ async fn a_correction_about_nothing_is_a_not_found() {
     )
     .await;
     assert_eq!(status, 404, "{text}");
-    assert!(text.contains("no knowledge item"), "{text}");
+    assert!(text.contains("no persisted machine answer"), "{text}");
 }
 
 #[tokio::test]
@@ -257,4 +267,181 @@ async fn the_correction_can_be_promoted_only_by_human_review() {
         200,
         "a human review must be able to promote it"
     );
+}
+
+#[tokio::test]
+async fn a_fabricated_answer_cannot_be_corrected_and_explicit_id_cannot_change_it() {
+    let (_dir, router, id) = fixture().await;
+    let (status, _) = post(
+        &router,
+        "/api/v1/machine/corrections",
+        &body(&id, &[("machine_answer", "invented words")]),
+        None,
+    )
+    .await;
+    assert_eq!(status, 404);
+    let mut request: serde_json::Value =
+        serde_json::from_str(&body(&id, &[("machine_answer", "invented words")])).unwrap();
+    request["answer_id"] = "answer_fixture".into();
+    assert_eq!(
+        post(
+            &router,
+            "/api/v1/machine/corrections",
+            &request.to_string(),
+            None
+        )
+        .await
+        .0,
+        409
+    );
+}
+
+#[tokio::test]
+async fn correction_retry_returns_the_same_candidate_and_failure() {
+    let (_dir, router, id) = fixture().await;
+    let request = body(&id, &[]);
+    let first = post(&router, "/api/v1/machine/corrections", &request, None).await;
+    assert_eq!(first.0, 200, "{}", first.1);
+    assert_eq!(
+        first,
+        post(&router, "/api/v1/machine/corrections", &request, None).await
+    );
+    assert_eq!(
+        post(
+            &router,
+            "/api/v1/machine/corrections",
+            &body(&id, &[("error_note", "different judgement")]),
+            None
+        )
+        .await
+        .0,
+        409
+    );
+}
+
+#[tokio::test]
+async fn public_machine_receipts_cannot_forge_core_answer_provenance() {
+    let (_dir, router, id) = fixture().await;
+    let request = serde_json::json!({"task_id":"forged","conditions":"{}",
+        "knowledge_version":format!("{id}@v1"),"model_version":"forged",
+        "scope":"runtime.answer","outcome":"unmeasured"});
+    assert_eq!(
+        post(
+            &router,
+            "/api/v1/machine/tasks",
+            &request.to_string(),
+            Some("machine")
+        )
+        .await
+        .0,
+        403
+    );
+}
+
+#[tokio::test]
+async fn a_failed_review_write_rolls_back_the_candidate_and_evaluation() {
+    let (dir, router, id) = fixture().await;
+    let conn = rusqlite::Connection::open(dir.path().join("db.sqlite")).unwrap();
+    conn.execute_batch(
+        "CREATE TRIGGER reject_correction BEFORE INSERT ON review_events
+        WHEN NEW.action='correction_recorded' BEGIN SELECT RAISE(ABORT,'injected failure'); END;",
+    )
+    .unwrap();
+    assert_eq!(
+        post(
+            &router,
+            "/api/v1/machine/corrections",
+            &body(&id, &[]),
+            None
+        )
+        .await
+        .0,
+        500
+    );
+    let candidates: i64 = conn
+        .query_row(
+            "SELECT count(*) FROM knowledge WHERE knowledge_type='OBSERVATION'",
+            [],
+            |r| r.get(0),
+        )
+        .unwrap();
+    let evaluations: i64 = conn
+        .query_row(
+            "SELECT count(*) FROM machine_tasks WHERE scope='runtime.evaluation.failed'",
+            [],
+            |r| r.get(0),
+        )
+        .unwrap();
+    assert_eq!((candidates, evaluations), (0, 0));
+}
+
+#[tokio::test]
+async fn different_answers_with_identical_corrections_get_independent_candidates() {
+    let (dir, router, knowledge_id) = fixture().await;
+    let conn = rusqlite::Connection::open(dir.path().join("db.sqlite")).unwrap();
+    conn.execute("INSERT INTO machine_tasks(task_id,principal,conditions,knowledge_version,model_version,scope,outcome)
+        SELECT 'answer_second',principal,conditions,knowledge_version,model_version,scope,outcome
+        FROM machine_tasks WHERE task_id='answer_fixture'", []).unwrap();
+    let mut request: serde_json::Value = serde_json::from_str(&body(&knowledge_id, &[])).unwrap();
+    request["answer_id"] = "answer_fixture".into();
+    let first = post(
+        &router,
+        "/api/v1/machine/corrections",
+        &request.to_string(),
+        None,
+    )
+    .await;
+    assert_eq!(first.0, 200, "{}", first.1);
+    let first: serde_json::Value = serde_json::from_str(&first.1).unwrap();
+    let first_candidate = first["correction_candidate_id"].as_str().unwrap();
+    let accepted = post(
+        &router,
+        &format!("/api/v1/knowledge-items/{first_candidate}/review-decisions"),
+        r#"{"action":"accepted","reviewer":"human"}"#,
+        None,
+    )
+    .await;
+    assert_eq!(accepted.0, 200);
+    request["answer_id"] = "answer_second".into();
+    let second = post(
+        &router,
+        "/api/v1/machine/corrections",
+        &request.to_string(),
+        None,
+    )
+    .await;
+    assert_eq!(second.0, 200, "{}", second.1);
+    let second: serde_json::Value = serde_json::from_str(&second.1).unwrap();
+    assert_ne!(
+        first["correction_candidate_id"],
+        second["correction_candidate_id"]
+    );
+    assert_ne!(first["failed_task_id"], second["failed_task_id"]);
+    let status: String = conn
+        .query_row(
+            "SELECT status FROM knowledge WHERE knowledge_id=?1",
+            [second["correction_candidate_id"].as_str().unwrap()],
+            |r| r.get(0),
+        )
+        .unwrap();
+    assert_eq!(status, "candidate");
+}
+
+#[tokio::test]
+async fn a_persisted_answer_can_be_evaluated_after_its_knowledge_is_deprecated() {
+    let (dir, router, knowledge_id) = fixture().await;
+    let conn = rusqlite::Connection::open(dir.path().join("db.sqlite")).unwrap();
+    conn.execute(
+        "UPDATE knowledge SET status='deprecated' WHERE knowledge_id=?1",
+        [&knowledge_id],
+    )
+    .unwrap();
+    let result = post(
+        &router,
+        "/api/v1/machine/corrections",
+        &body(&knowledge_id, &[]),
+        None,
+    )
+    .await;
+    assert_eq!(result.0, 200, "{}", result.1);
 }

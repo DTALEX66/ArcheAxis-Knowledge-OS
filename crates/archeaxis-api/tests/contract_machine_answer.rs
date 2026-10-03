@@ -17,8 +17,14 @@ use tower::ServiceExt;
 async fn fixture() -> (tempfile::TempDir, Router, String) {
     let dir = tempfile::tempdir().unwrap();
     let python = PathBuf::from(std::env::var_os("ARCHEAXIS_PYTHON").unwrap());
-    let worker = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-        .join("../../services/python-workers/machine/worker_machine_answer.py");
+    // Synthetic worker: deterministic contract evidence, never real-model evidence.
+    let worker = dir.path().join("answer.py");
+    std::fs::write(&worker, r#"import json
+from pathlib import Path
+p = Path(__file__).with_suffix('.count')
+p.write_text(str(int(p.read_text()) + 1) if p.exists() else '1')
+print(json.dumps({'answer': 'Synthetic answer', 'model': 'some-model', 'loss_receipt': {'params': {'authority': 'candidate'}}}))
+"#).unwrap();
     let transport = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
         .join("../../services/python-workers/transport/text_ndjson.py");
     let executor = Executor::open_routes(
@@ -100,6 +106,66 @@ async fn an_unknown_knowledge_item_is_a_not_found_rather_than_a_free_answer() {
 
     assert_eq!(status, 404, "{body}");
     assert!(body.contains("no knowledge item"), "{body}");
+}
+
+#[tokio::test]
+async fn candidate_and_deprecated_knowledge_are_refused_before_inference() {
+    for status in ["candidate", "deprecated", "rejected"] {
+        let (dir, router, knowledge_id) = fixture().await;
+        let conn = rusqlite::Connection::open(dir.path().join("db.sqlite")).unwrap();
+        conn.execute(
+            "UPDATE knowledge SET status=?1 WHERE knowledge_id=?2",
+            [status, &knowledge_id],
+        )
+        .unwrap();
+        let (status, body) = post(
+            &router,
+            "/api/v1/machine/answers",
+            &serde_json::json!({"knowledge_id": knowledge_id, "question": "what?", "timeout_s": 1})
+                .to_string(),
+        )
+        .await;
+        assert_eq!(status, 404, "{body}");
+    }
+}
+
+#[tokio::test]
+async fn active_personal_knowledge_is_allowed_but_superseded_knowledge_is_not() {
+    let (dir, router, id) = fixture().await;
+    let mut conn = rusqlite::Connection::open(dir.path().join("db.sqlite")).unwrap();
+    let personal = knowledge::create_knowledge(
+        &mut conn,
+        "PERSONAL_DEFINITION",
+        "my experience",
+        "candidate",
+        None,
+        None,
+        "human",
+    )
+    .unwrap();
+    let request = serde_json::json!({"knowledge_id":personal,"question":"what?"});
+    assert_eq!(
+        post(&router, "/api/v1/machine/answers", &request.to_string())
+            .await
+            .0,
+        200
+    );
+    conn.execute(
+        "INSERT INTO knowledge_supersedes(old_knowledge_id,new_knowledge_id) VALUES(?1,?2)",
+        [&id, &personal],
+    )
+    .unwrap();
+    let request = serde_json::json!({"knowledge_id":id,"question":"what?"});
+    assert_eq!(
+        post(&router, "/api/v1/machine/answers", &request.to_string())
+            .await
+            .0,
+        404
+    );
+    assert_eq!(
+        std::fs::read_to_string(dir.path().join("answer.count")).unwrap(),
+        "1"
+    );
 }
 
 #[tokio::test]
@@ -197,4 +263,91 @@ async fn an_answer_is_either_a_labelled_candidate_or_a_named_failure() {
         }
         other => panic!("unexpected status {other}: {body}"),
     }
+}
+
+#[tokio::test]
+async fn persisted_answer_correction_review_and_retest_form_one_chain() {
+    let (dir, router, id) = fixture().await;
+    let request = serde_json::json!({"knowledge_id":id,"question":"what writes the store?"});
+    let (status, answer) = post(&router, "/api/v1/machine/answers", &request.to_string()).await;
+    assert_eq!(status, 200, "{answer}");
+    let answer: serde_json::Value = serde_json::from_str(&answer).unwrap();
+    let correction = serde_json::json!({"answer_id":answer["answer_id"],
+        "knowledge_id":id,"question":request["question"],"machine_answer":answer["answer"]["answer"],
+        "corrected_answer":"The Rust Core writes the SQLite store.", "error_note":"synthetic worker did not identify the writer"});
+    let (status, correction) = post(
+        &router,
+        "/api/v1/machine/corrections",
+        &correction.to_string(),
+    )
+    .await;
+    assert_eq!(status, 200, "{correction}");
+    let correction: serde_json::Value = serde_json::from_str(&correction).unwrap();
+    let candidate = correction["correction_candidate_id"].as_str().unwrap();
+    let retest = serde_json::json!({"retest_of":correction["failed_task_id"],
+        "knowledge_id":candidate,"question":request["question"]});
+    assert_eq!(
+        post(&router, "/api/v1/machine/retests", &retest.to_string())
+            .await
+            .0,
+        404
+    );
+    assert_eq!(
+        post(
+            &router,
+            &format!("/api/v1/knowledge-items/{candidate}/review-decisions"),
+            r#"{"action":"accepted","reviewer":"synthetic-human"}"#
+        )
+        .await
+        .0,
+        200
+    );
+    let (status, result) = post(&router, "/api/v1/machine/retests", &retest.to_string()).await;
+    assert_eq!(status, 200, "{result}");
+    let result: serde_json::Value = serde_json::from_str(&result).unwrap();
+    assert_eq!(
+        result["prior"]["conditions"]["answer_id"],
+        answer["answer_id"]
+    );
+    assert_eq!(
+        std::fs::read_to_string(dir.path().join("answer.count")).unwrap(),
+        "2"
+    );
+    // A wrong retest is another persisted answer; the same correction text must work again.
+    let second = serde_json::json!({
+        "answer_id": result["retest_task_id"], "knowledge_id": candidate,
+        "question": request["question"], "machine_answer": result["answer"]["answer"],
+        "corrected_answer": "The Rust Core writes the SQLite store.",
+        "error_note": "synthetic retest still omitted the writer"
+    });
+    let (status, second) = post(&router, "/api/v1/machine/corrections", &second.to_string()).await;
+    assert_eq!(status, 200, "{second}");
+    let second: serde_json::Value = serde_json::from_str(&second).unwrap();
+    assert_eq!(second["answer_id"], result["retest_task_id"]);
+    assert_ne!(
+        second["correction_candidate_id"],
+        correction["correction_candidate_id"]
+    );
+    let second_id = second["correction_candidate_id"].as_str().unwrap();
+    assert_eq!(
+        post(
+            &router,
+            &format!("/api/v1/knowledge-items/{second_id}/review-decisions"),
+            r#"{"action":"accepted","reviewer":"synthetic-human"}"#
+        )
+        .await
+        .0,
+        200
+    );
+    let second_retest = serde_json::json!({
+        "retest_of": second["failed_task_id"], "knowledge_id": second_id,
+        "question": request["question"]
+    });
+    let (status, response) = post(
+        &router,
+        "/api/v1/machine/retests",
+        &second_retest.to_string(),
+    )
+    .await;
+    assert_eq!(status, 200, "{response}");
 }
