@@ -2078,7 +2078,7 @@ def test_home_surface_uses_plain_language_for_primary_status_and_actions() -> No
     code = CODE.read_text(encoding="utf-8")
     home = xaml.split('x:Name="HomeSurface"', 1)[1].split('x:Name="CaptureSurface"', 1)[0]
 
-    for title in ('最近证据', '今日进度', 'Memory Graph', '节点详情'):
+    for title in ('最近证据', '今日进度', '记忆图谱', '节点详情'):
         assert any(node.get('Text') == title for node in _control('HomeSurface').iter())
     assert 'Core 返回真实 Evidence anchor 后会显示在这里。' in home
     assert 'Core 尚未提供节点与关系投影；示意图仅表达页面结构。' in home

@@ -57,12 +57,14 @@ public partial class AaosMemoryGraphView : UserControl
 
     private static readonly IReadOnlyList<GraphNodeDefinition> B10HomeNodes =
     [
-        new GraphNodeDefinition("Evidence", 18, 30),
-        new GraphNodeDefinition("Originals", 18, 72),
-        new GraphNodeDefinition("Learning", 49, 15),
-        new GraphNodeDefinition("Memory", 82, 28),
-        new GraphNodeDefinition("Workspace", 85, 71),
-        new GraphNodeDefinition("Review", 52, 87),
+        // The six master nodes are the product's own domain words, so they are shown in the
+        // product's language; the diagram stays a static illustration either way.
+        new GraphNodeDefinition("证据", 18, 30),
+        new GraphNodeDefinition("原文", 18, 72),
+        new GraphNodeDefinition("学习", 49, 15),
+        new GraphNodeDefinition("记忆", 82, 28),
+        new GraphNodeDefinition("工作区", 85, 71),
+        new GraphNodeDefinition("复习", 52, 87),
     ];
 
     // -1 denotes the central Knowledge node. The cycle, center links, and

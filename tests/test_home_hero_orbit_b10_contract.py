@@ -13,7 +13,9 @@ def test_home_memory_graph_matches_b10_six_node_layout():
     assert nodes_block and edges_block
     nodes = re.findall(r'new GraphNodeDefinition\("([^\"]+)",\s*([\d.]+),\s*([\d.]+)\)', nodes_block.group(1))
     edges = [tuple(map(int, pair)) for pair in re.findall(r"\(\s*(-?\d+)\s*,\s*(-?\d+)\s*\)", edges_block.group(1))]
-    assert {name for name, _, _ in nodes} == {"Evidence", "Originals", "Learning", "Memory", "Workspace", "Review"}
+    # The six master nodes are named in the product's own language; the layout they pin is
+    # unchanged, so this only tracks the wording.
+    assert {name for name, _, _ in nodes} == {"证据", "原文", "学习", "记忆", "工作区", "复习"}
     assert len(nodes) == 6
     assert edges == [(-1, 0), (-1, 1), (-1, 2), (-1, 3), (-1, 4), (-1, 5)]
     assert "UseB10HomeLayout()" in source

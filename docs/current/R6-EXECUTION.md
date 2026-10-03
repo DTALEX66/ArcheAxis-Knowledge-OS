@@ -4221,3 +4221,30 @@ At that verification stage, the 2026-09-26 source candidate expansion was retain
 **发现 3（F01 残留，已确认）：首页仍有大量英文工程词。** `Capture / Evidence / Originals / Memory / Review 统一在同一个知识操作系统中。`、今日进度四卡 `Capture / Evidence / Review / Output`、`Memory Graph` 标题、`Learning` 节点、以及 `Core 持久化 evidence anchors` / `Core 未提供` 等实现口径文案。审计 F01 要求的"清理首页 Core/evidence anchors 等默认后台术语"**尚未完成**。
 
 **本轮未改动任何代码/数据**；仅捕获与核实。
+
+#### 2026-10-03 追加 22：撤回一个误报；修复首页 F01 文案并达 CI 绿
+
+**撤回（REFUTED）：上一轮记录的"首页显示 Core 未就绪"不是产品缺陷，是我的捕获工具缺陷。**
+
+真因：我用的 `$null = & <desktop> --ui-capture ...` 模式会**留下挂起的 Desktop 进程**（实测 22:01:25 起的两个进程一直没退出）。这些挂起进程**占住输出文件与 Core/DB**，于是后续捕获拿到 0 字节 PNG 或落回未就绪态——并且**把 Desktop 的构建输出锁住**（`MSB3027/MSB3021`）。清掉进程后一切正常。
+
+**证据**：改用 `& ... 2>&1 | Select-Object` 捕获同一路由，首页显示 **证据条目 38**、`Core 当前返回页有 38 条持久化 anchor；显示最近 4 条。`，并列出真实引用与真实文件名（`14_复习与训练问题.md`、`13_项目转化.md`）。**首页读取真实数据完全正常。**
+
+教训（已记）：GUI 捕获**不要**把输出赋给 `$null`；每次捕获后必须确认没有残留进程。
+
+**修复（F01 首页文案，已确认的问题）**：
+
+| 位置 | 改前 | 改后 |
+| --- | --- | --- |
+| 首页副标题 | `Capture / Evidence / Originals / Memory / Review 统一在同一个知识操作系统中。` | `捕获、证据、原文、记忆、复习，都在同一个知识工作台中。` |
+| 证据条目 副标 | `Core 持久化 evidence anchors` | `来自 Core 的证据条目` |
+| 今日进度 四卡 | `Capture / Evidence / Review / Output` | `捕获 / 证据 / 复习 / 产出` |
+| 证据卡 副标 | `最近读取的 anchors` | `最近读取的证据` |
+| 记忆图谱 标题 | `Memory Graph` | `记忆图谱` |
+| 图谱六节点 | `Evidence / Originals / Learning / Memory / Workspace / Review` | `证据 / 原文 / 学习 / 记忆 / 工作区 / 复习` |
+| 节点详情提示 | `点击 Memory Graph 节点查看关联说明。` | `点击记忆图谱节点查看关联说明。` |
+| 记忆页 状态/边界 | `Core Knowledge lineage` / `Memory Graph` | `Core 的知识谱系` / `记忆图谱` |
+
+同步更新了两条会钉住旧文案的契约：`test_desktop_navigation_contract.py` 的标题集合、`test_home_hero_orbit_b10_contract.py` 的六节点集合（**布局断言未动**，只改措辞）。
+
+**验证**：Desktop 构建 0 warning / 0 error；全量 Python 门禁 **3865 passed / 40 skipped / 0 failed**；原生捕获确认新文案渲染（`.project-local/runs/home-after-f01-r27.png`）。

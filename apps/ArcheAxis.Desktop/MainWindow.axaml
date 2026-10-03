@@ -270,7 +270,7 @@
         <Grid x:Name="WorkspaceHeadingBar" ColumnDefinitions="*,Auto,Auto" ColumnSpacing="10">
           <StackPanel Grid.Column="0" Spacing="5">
             <TextBlock x:Name="WorkspaceHeadingText" Text="首页" Classes="page-title" Focusable="True" IsTabStop="False" AutomationProperties.Name="当前工作区页面" />
-            <TextBlock x:Name="HomePageDescription" Text="Capture / Evidence / Originals / Memory / Review 统一在同一个知识操作系统中。" TextWrapping="Wrap" Foreground="{DynamicResource AaosMutedBrush}" />
+            <TextBlock x:Name="HomePageDescription" Text="捕获、证据、原文、记忆、复习，都在同一个知识工作台中。" TextWrapping="Wrap" Foreground="{DynamicResource AaosMutedBrush}" />
           </StackPanel>
           <StackPanel x:Name="HomePageActions" Grid.Column="1" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
             <Button Classes="primary-action" Padding="14,8" Click="OnCaptureClick" AutomationProperties.Name="开始捕获">
@@ -315,7 +315,7 @@
               <StackPanel Spacing="5">
                 <TextBlock Text="证据条目" Foreground="{DynamicResource AaosMutedBrush}" />
                 <TextBlock x:Name="HomeEvidenceCountText" Text="—" Classes="kpi-value" />
-                <TextBlock Text="Core 持久化 evidence anchors" Foreground="{DynamicResource AaosMutedBrush}" />
+                <TextBlock Text="来自 Core 的证据条目" Foreground="{DynamicResource AaosMutedBrush}" />
               </StackPanel>
             </Border>
             <Border x:Name="HomeStatsKnowledgeCard" Grid.Column="1" Classes="aaos-kpi">
@@ -455,28 +455,28 @@
                 <Grid x:Name="HomeTodayProgressGrid" ColumnDefinitions="*,*,*,*" RowDefinitions="Auto" ColumnSpacing="10" IsVisible="True">
               <Border Classes="aaos-kpi">
                 <StackPanel Spacing="4">
-                  <TextBlock Text="Capture" Foreground="{DynamicResource AaosMutedBrush}" />
+                  <TextBlock Text="捕获" Foreground="{DynamicResource AaosMutedBrush}" />
                   <TextBlock Text="—" Classes="kpi-value" />
                   <TextBlock Text="Core 未提供" FontSize="11" Foreground="{DynamicResource AaosMutedBrush}" />
                 </StackPanel>
               </Border>
               <Border Grid.Column="1" Classes="aaos-kpi">
                 <StackPanel Spacing="4">
-                  <TextBlock Text="Evidence" Foreground="{DynamicResource AaosMutedBrush}" />
+                  <TextBlock Text="证据" Foreground="{DynamicResource AaosMutedBrush}" />
                   <TextBlock x:Name="HomeProgressEvidenceValue" Text="—" Classes="kpi-value" />
-                  <TextBlock Text="最近读取的 anchors" FontSize="11" Foreground="{DynamicResource AaosMutedBrush}" />
+                  <TextBlock Text="最近读取的证据" FontSize="11" Foreground="{DynamicResource AaosMutedBrush}" />
                 </StackPanel>
               </Border>
               <Border Grid.Column="2" Classes="aaos-kpi">
                 <StackPanel Spacing="4">
-                  <TextBlock Text="Review" Foreground="{DynamicResource AaosMutedBrush}" />
+                  <TextBlock Text="复习" Foreground="{DynamicResource AaosMutedBrush}" />
                   <TextBlock Text="—" Classes="kpi-value" />
                   <TextBlock Text="Core 未提供" FontSize="11" Foreground="{DynamicResource AaosMutedBrush}" />
                 </StackPanel>
               </Border>
               <Border Grid.Column="3" Classes="aaos-kpi">
                 <StackPanel Spacing="4">
-                  <TextBlock Text="Output" Foreground="{DynamicResource AaosMutedBrush}" />
+                  <TextBlock Text="产出" Foreground="{DynamicResource AaosMutedBrush}" />
                   <TextBlock Text="—" Classes="kpi-value" />
                   <TextBlock Text="Core 未提供" FontSize="11" Foreground="{DynamicResource AaosMutedBrush}" />
                 </StackPanel>
@@ -489,7 +489,7 @@
             <Border x:Name="HomeMemoryGraphCard" Grid.Column="0" Classes="aaos-card" Padding="18">
               <Grid RowDefinitions="Auto,*,Auto" RowSpacing="10">
                 <Border x:Name="HomeHeroAmbientGlow" Grid.RowSpan="3" Classes="aaos-home-ambient-glow" Background="{DynamicResource AaosAmbientGlowBrush}" Opacity="0.14" IsHitTestVisible="False" ZIndex="0" />
-                <TextBlock Grid.Row="0" Text="Memory Graph" Classes="section-heading" ZIndex="1" />
+                <TextBlock Grid.Row="0" Text="记忆图谱" Classes="section-heading" ZIndex="1" />
                 <Viewbox Grid.Row="1" MaxWidth="470" MaxHeight="360" Stretch="Uniform" HorizontalAlignment="Center" VerticalAlignment="Center" ZIndex="1">
                   <local:AaosMemoryGraphView x:Name="HomeHeroVisual" NodeSelected="OnHomeMemoryNodeSelected" />
                 </Viewbox>
@@ -499,7 +499,7 @@
             <Border x:Name="HomeNodeDetailsCard" Grid.Column="1" Classes="aaos-card" Padding="18">
               <StackPanel Spacing="12">
                 <TextBlock Text="节点详情" Classes="section-heading" />
-                <TextBlock x:Name="HomeMemoryNodeDetailsText" Text="点击 Memory Graph 节点查看关联说明。" TextWrapping="Wrap" Foreground="{DynamicResource AaosMutedBrush}" />
+                <TextBlock x:Name="HomeMemoryNodeDetailsText" Text="点击记忆图谱节点查看关联说明。" TextWrapping="Wrap" Foreground="{DynamicResource AaosMutedBrush}" />
                 <Border x:Name="HomeTrendCard" Classes="aaos-card-compact" Padding="14">
                   <StackPanel Spacing="8">
                     <TextBlock Text="知识演化" Classes="card-heading" />
@@ -1801,7 +1801,7 @@
                 <TextBlock Grid.Row="2" Text="示意网络不代表 Core 知识条目或真实关系；真实图谱投影尚未提供。" Classes="status-empty" TextWrapping="Wrap" />
                 <Expander Grid.Row="3" Header="高级：图谱控制与知识关系查询" IsExpanded="False" AutomationProperties.Name="展开记忆地图图谱控制与知识关系查询">
                   <StackPanel Spacing="10" Margin="0,8,0,0">
-                    <TextBlock x:Name="MemoryMapStatusText" Classes="status-empty" Text="尚未读取 Core Knowledge lineage。Core 尚未提供 Memory Graph 节点与关系投影。" TextWrapping="Wrap" AutomationProperties.Name="记忆地图状态；图形元素不代表实时 Core 数据" />
+                    <TextBlock x:Name="MemoryMapStatusText" Classes="status-empty" Text="尚未读取 Core 的知识谱系。Core 尚未提供记忆图谱的节点与关系投影。" TextWrapping="Wrap" AutomationProperties.Name="记忆地图状态；图形元素不代表实时 Core 数据" />
                     <Grid x:Name="MemoryMapToolbar" Classes="aaos-toolbar" ColumnDefinitions="*,Auto" RowDefinitions="Auto" ColumnSpacing="8" RowSpacing="8">
                       <TextBox x:Name="MemoryMapKnowledgeIdBox" PlaceholderText="knowledge_id" KeyDown="OnToolbarInputKeyDown" AutomationProperties.Name="记忆地图 knowledge_id 输入" />
                       <Button x:Name="MemoryMapLoadButton" Classes="primary-action" Grid.Column="1" Content="读取谱系" Padding="12,9" Click="OnMemoryMapLoadClick" AutomationProperties.Name="读取 Knowledge 谱系" />
@@ -1810,7 +1810,7 @@
                     <Expander x:Name="MemoryMapDiagnostics" Header="更多信息：知识关系记录" IsExpanded="False">
                       <TextBlock x:Name="MemoryMapResultsText" Text="输入 knowledge_id 后读取 Core。" TextWrapping="Wrap" Classes="provenance-projection" AutomationProperties.Name="Knowledge 谱系结果" />
                     </Expander>
-                    <TextBlock Text="谱系不等于 Memory Graph；当前不展示随机关系或未绑定来源的结论。" TextWrapping="Wrap" FontSize="11" Classes="status-empty" />
+                    <TextBlock Text="谱系不等于记忆图谱；当前不展示随机关系或未绑定来源的结论。" TextWrapping="Wrap" FontSize="11" Classes="status-empty" />
                   </StackPanel>
                 </Expander>
               </Grid>

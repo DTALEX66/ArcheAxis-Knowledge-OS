@@ -76,9 +76,9 @@ P2–P4 的机器侧全链在**真实资料的副本**上跑通；出厂 Green �
 - `courses/from-knowledge` 目前只支持**有 anchor 的 active accepted** 知识；无 anchor 的个人知识路径未做。
 - 前端整机视觉/无障碍矩阵（键鼠焦点、IME、忙碌/禁用、减弱动效、DPI/窄窗）**未做完整真人验收**。
 - 远端 `main` 未合入本次工作；双端读回见 §9 的 2026-10-03 快照。
-- **首页待查差异（未定论）**：全 15 路由读回中，`home` 在 CPU 与 `evidence` 完全相同的环境、同一真实库下显示 `Core 未就绪`，而 `evidence` 读到 38 条 anchor。已排除 Core 二进制、工作目录、环境变量拼写；未区分"真实首屏缺陷"与"捕获路径特有"，故**未做推测性修改**。证据：`.project-local/runs/sweep-routes-r27/`。
-- **捕获路径瞬态失败**：连续快速捕获时全部路由可落回未就绪态（15 连拍那次 `evidence` 也是 274,992 B；单独重跑为 278,674 B）。根因未定位。
-- **F01 残留（已确认）**：首页仍有英文工程词（`Capture / Evidence / Review / Output`、`Memory Graph`、`Learning`）与实现口径文案（`Core 持久化 evidence anchors`、`Core 未提供`）。
+- ~~首页显示 `Core 未就绪`~~ —— **REFUTED（撤回）**：真因是我的捕获命令 `$null = & <desktop>` 留下挂起的 Desktop 进程，占住输出文件、Core 与 DB，并锁住 Desktop 构建；改用 `2>&1 | Select-Object` 后首页正常显示 **38 条证据**与真实引用。见 `.project-local/runs/home-after-f01-r27.png`。
+- ~~捕获路径瞬态失败~~ —— 同一原因，已随撤回。**教训：GUI 捕获后必须确认无残留进程。**
+- **F01 首页文案** —— **已修复**：副标题、今日进度四卡（捕获/证据/复习/产出）、证据副标、记忆图谱标题与六节点、节点详情提示、记忆页状态与边界，全部改为自然中文；两条契约措辞同步更新。
 
 ## 7. 需 Owner 裁决
 
