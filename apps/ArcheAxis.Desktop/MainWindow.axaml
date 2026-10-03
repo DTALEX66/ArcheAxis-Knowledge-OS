@@ -1572,7 +1572,7 @@
                   <TextBlock Text="记忆调度" Classes="card-heading" />
                   <TextBlock Grid.Column="1" Text="Core projection" Classes="lifecycle-label" />
                 </Grid>
-                <local:AaosReviewScheduleChart MinHeight="340" HorizontalAlignment="Stretch" />
+                <local:AaosReviewScheduleChart x:Name="ReviewScheduleChart" MinHeight="340" HorizontalAlignment="Stretch" />
               </StackPanel>
             </Border>
           </Grid>

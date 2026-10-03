@@ -4267,3 +4267,22 @@ At that verification stage, the 2026-09-26 source candidate expansion was retain
 同步更新 `test_desktop_navigation_contract.py` 中两条钉住旧措辞的断言（`评估未就绪`、`Core 知识谱系投影，不冒充记忆图谱`）。
 
 **验证**：Desktop 构建 0 error；全量 Python 门禁 **3865 passed / 40 skipped / 0 failed**（214.28 s）。
+
+#### 2026-10-03 追加 24：把复习页那张恒空的"未来 7 天排程"接上真实数据（未新增 Core 路由）
+
+**问题（已核实）**：`记忆调度` 图永远显示 `CORE · 未提供` / `暂无排程数据`。真因不是 Core 缺投影，而是**界面从未给它数据**：`MainWindow.axaml:1575` 的 `AaosReviewScheduleChart` **既没有 `x:Name`，也没有任何 `Schedule` 绑定**，所以控件永远拿着 `null` 走自己的空态分支。
+
+**关键发现**：Core **早就返回了排程**。`GET /api/v1/learning/items` 返回 `{count, items:[{item_key, next_review}]}`（实测：`next_review: 2026-10-03T12:05:55+00:00`）。所以这跟"仅看待复核"一样，是**复用已有数据**，**不需要新增路由**。
+
+**改动**：
+
+1. 图上加 `x:Name="ReviewScheduleChart"`。
+2. 学习/复习加载时把 `items[].next_review` 收集起来（复用同一次响应，**不加额外请求**）。
+3. 新增 `BuildReviewSchedule()`：按**本地日**把到期时间分桶到 今天..+6 共 7 天，只统计落在窗口内的；没有数据时置 `null`，控件保留自己诚实的空态。
+4. 每次重新加载前先清空 `Schedule`，避免旧柱残留。
+
+**新增契约守卫** `tests/test_review_schedule_projection_contract.py`（3 条）：图表可被代码触达、排程来自 Core 已返回的 `items`、分桶严格限制在 7 天窗口内且用本地日。**防止它再次退化成死面。**
+
+**验证**：Desktop 构建 **0 warning / 0 error**；全量 Python 门禁 **3868 passed / 40 skipped / 0 failed**；原生捕获确认 `CORE · 已提供`、今天 10/3 柱值 **1**、其余 0（`.project-local/runs/review-schedule-r30.png`）。
+
+**记录一条编译教训**：C# 的关系模式不接受非常量上界，`offset is >= 0 and < counts.Length` 会报 `CS9135`，须写成 `offset >= 0 && offset < counts.Length`。

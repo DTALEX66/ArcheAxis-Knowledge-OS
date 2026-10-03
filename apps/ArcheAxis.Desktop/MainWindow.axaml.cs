@@ -541,6 +541,21 @@ public partial class MainWindow : Window
 
     private static int ReadInt(JsonElement root, string name) => ReadOptionalInt(root, name) ?? 0;
 
+    /// Buckets the per-item next_review the Core already returned into the seven local days the
+    /// chart draws. An item due outside the window contributes nothing; no schedule is invented.
+    private static IReadOnlyList<ReviewScheduleDay> BuildReviewSchedule(IReadOnlyList<DateTimeOffset> dueTimes)
+    {
+        var today = DateOnly.FromDateTime(DateTime.Now);
+        var counts = new int[7];
+        foreach (var due in dueTimes)
+        {
+            var offset = DateOnly.FromDateTime(due.ToLocalTime().DateTime).DayNumber - today.DayNumber;
+            if (offset >= 0 && offset < counts.Length)
+                counts[offset]++;
+        }
+        return counts.Select((count, offset) => new ReviewScheduleDay(today.AddDays(offset), count)).ToArray();
+    }
+
     private async Task RefreshHomeRecentEvidenceAsync()
     {
         var requestVersion = ++_homeEvidenceRequestVersion;
@@ -5412,6 +5427,7 @@ public partial class MainWindow : Window
     {
         ResetReviewFace();
         var requestVersion = ++_learningRequestVersion;
+        ReviewScheduleChart.Schedule = null;
         ++_reviewRequestVersion;
         if (!string.Equals(_activeSection, "learning", StringComparison.Ordinal)
             && !string.Equals(_activeSection, "review", StringComparison.Ordinal))
@@ -5485,6 +5501,7 @@ public partial class MainWindow : Window
             {
                 var items = document.RootElement.GetProperty("items");
                 var queueRows = new List<LearningQueueRow>();
+                var scheduleDue = new List<DateTimeOffset>();
                 JsonElement first = default;
                 foreach (var item in items.EnumerateArray())
                 {
@@ -5498,6 +5515,11 @@ public partial class MainWindow : Window
                         ? dueValue.GetString() ?? "未排程"
                         : "未排程";
                     queueRows.Add(new LearningQueueRow(itemKey, queueNextReview, $"学习项目 {queueRows.Count + 1}"));
+                    if (item.TryGetProperty("next_review", out var dueAt)
+                        && dueAt.ValueKind == JsonValueKind.String
+                        && DateTimeOffset.TryParse(dueAt.GetString(), CultureInfo.InvariantCulture,
+                            DateTimeStyles.RoundtripKind, out var dueInstant))
+                        scheduleDue.Add(dueInstant);
                     if (first.ValueKind == JsonValueKind.Undefined
                         && (string.IsNullOrWhiteSpace(_selectedLearningItemKey)
                             || string.Equals(_selectedLearningItemKey, itemKey, StringComparison.Ordinal)))
@@ -5506,6 +5528,9 @@ public partial class MainWindow : Window
                         _selectedLearningItemKey = itemKey;
                     }
                 }
+                // The Core already reports one next_review per item, so this forecast is a
+                // bucketing of what it returned rather than a projection the Core withholds.
+                ReviewScheduleChart.Schedule = BuildReviewSchedule(scheduleDue);
                 if (first.ValueKind == JsonValueKind.Undefined && queueRows.Count > 0)
                 {
                     _selectedLearningItemKey = queueRows[0].ItemKey;
