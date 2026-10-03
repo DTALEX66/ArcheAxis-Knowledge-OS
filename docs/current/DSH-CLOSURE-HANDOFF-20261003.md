@@ -38,7 +38,7 @@ P2–P4 的机器侧全链在**真实资料的副本**上跑通；出厂 Green �
 
 收敛轨迹：Python 门禁原为**收集中断（不是 PASS）** → 19 → 17 → 13 → 12 → 0。
 
-## 4. 本会话改动（全部未提交）
+## 4. 本会话改动（已提交并推送：`ef0104f8` → `ca718c24`）
 
 | 文件 | 改动与理由 |
 | --- | --- |
@@ -125,8 +125,8 @@ P2–P4 的机器侧全链在**真实资料的副本**上跑通；出厂 Green �
 | 主张 | 状态 | 层级 | 证据（命令/路径/SHA） |
 | --- | --- | --- | --- |
 | 源码改动正确且不回归 | **PASS** | `TESTED_LOCAL` | `scripts\ci\cargo_test.bat -p archeaxis-api` → 204/0；`scripts\ci\run_tests.ps1 --full` → 3865/0 |
-| 上述改动的 **CI** | **NOT EXECUTED** | 未达 `CI_VERIFIED_EXACT_SHA` | 改动**未提交**，因此**没有承载它们的 SHA**，任何 CI 都不可能引用它们 |
-| 远端 feature tip 的 CI | **PASS（但不覆盖本工作）** | `CI_VERIFIED_EXACT_SHA` | `0980fc7d` 的 run 37024251817/37024257187 success；该 SHA **不含**本会话改动 |
+| 上述改动的 **CI** | **PASS** | `CI_VERIFIED_EXACT_SHA` | `ca718c244c070c067bfe8fac18ef77e7d18caa5e`：`CI` push run 37124046203、`vnext-ci` push 37124046194、`vnext-ci` PR 37124049326 **全部 success** |
+| 首轮推送的 CI（已修复） | **FAILED → 已修** | — | `ef0104f8` 的 `CI` push run 37123557549 失败于 `cargo fmt --all -- --check`；本地门禁未跑 rustfmt，CI 先发现 |
 | 真实资料导入并入库 | **PASS** | 2 + 5（真实产品运行时跑真实库） | `D:\All projects\资料库\workspace.sqlite`（schema 9）19/19/38/19；FTS `SKILL`→13、`Obsidian`→13、`安全边界`→1 |
 | 转换字节保真 | **PASS** | 2 | 19/19 transform 与原件 sha256 全等 |
 | P2–P4 机器侧全链 | **PASS（协议级）** | 2 | 副本演练收据 `post-accept-chain-receipt.json` |
@@ -138,7 +138,7 @@ P2–P4 的机器侧全链在**真实资料的副本**上跑通；出厂 Green �
 | 候选出处强度 | **PARTIAL** | 2 | `build_kind=debug-build`、`tree_clean_when_built=false`；非 release、非清洁树 |
 | **安装/替换/冷启动/回滚** | **BLOCKED** | 未达 `INSTALLED_RUNTIME_VERIFIED` | Owner Gate：不擅自安装/替换/回滚 Green |
 | 清理过期候选 | **BLOCKED** | — | 需精确清单授权 |
-| 提交/推送 | **BLOCKED** | 未达 `BRANCH_PUBLISHED`（本工作） | 未获授权；本地 `b421ddee` + 未提交工作区 |
+| 提交/推送 | **DONE** | `BRANCH_PUBLISHED` | `ef0104f8` → `ca718c24` 非 force 快进推送至 `codex/dsh-aaos-real-multiformat-loop-20261001`；远端 ls-remote 回读一致；**未 merge、未动 main（仍 `59498723`）、未 force** |
 
 **一句话**：本会话的全部实现停在 **`TESTED_LOCAL`**。要再上一层（`CI_VERIFIED_EXACT_SHA`），**必须先提交**——按此标准，本地测试**不能**顶替 CI 层。
 

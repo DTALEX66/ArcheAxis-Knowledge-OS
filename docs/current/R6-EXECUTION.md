@@ -4142,3 +4142,23 @@ At that verification stage, the 2026-09-26 source candidate expansion was retain
 **CI（已触发，结果待收）**：`CI` push run 37123557549、`vnext-ci` push run 37123557579、`vnext-ci` pull_request run 37123559897，均针对 `ef0104f8`。收到 success 后方可写 `CI_VERIFIED_EXACT_SHA`；**未收到前不写**。
 
 **记录一条操作事实**：`git add` 在 PowerShell 下若路径清单文件带 BOM 会 `exit 128`（"did not match any files" 类失败）。本轮首次即踩到；改用 Python 以 UTF-8 无 BOM + LF 生成清单后 `exit 0`。
+
+#### 2026-10-03 追加 19：CI 首轮抓到本地门禁漏掉的东西；修复后达 CI_VERIFIED_EXACT_SHA
+
+**第一轮 CI 失败（有价值）。** 推送 `ef0104f8` 后：`vnext-ci` push success、`vnext-ci` pull_request success，但 **`CI` push run 37123557549 FAILED** —— 失败步骤 `rust-vnext` 的 **`cargo fmt (root vNext workspace)`**（`ci.yml:704-706`：`cargo fmt --all -- --check`）。
+
+**根因**：我的**本地门禁从未跑过 rustfmt**（`scripts/ci/cargo_test.bat` 与 `scripts/ci/run_tests.ps1 --full` 都不含 `cargo fmt`），而 CI 要求它。违规只有一处，且是**我写的文件**：`crates/archeaxis-api/tests/evidence_anchors_api.rs:90` 的一处换行。
+
+**修复**：`cargo fmt --all` 只改了这 1 个文件；`cargo fmt --all -- --check` 现在 exit 0；该测试仍 2 passed。提交 `ca718c24` 并快进推送（`ef0104f8..ca718c24`，远端 ls-remote 回读一致，工作树 CLEAN）。
+
+**第二轮 CI 全绿（精确到 SHA）**：
+
+| workflow | event | 结果 | run |
+| --- | --- | --- | --- |
+| `CI` | push | **success** | 37124046203 |
+| `vnext-ci` | push | **success** | 37124046194 |
+| `vnext-ci` | pull_request | **success** | 37124049326 |
+
+**生命周期层**：`TESTED_LOCAL` → `BRANCH_PUBLISHED` → **`CI_VERIFIED_EXACT_SHA`（`ca718c244c070c067bfe8fac18ef77e7d18caa5e`）**。仍未 `MERGED_MAIN`（main 仍 `59498723`）、仍未 `INSTALLED_RUNTIME_VERIFIED`、Release 仍 FROZEN。
+
+**教训（已加入本地验证口径）**：本地"全绿"不等于 CI 绿。至少还要跑 `cargo fmt --all -- --check`。这条差异是**只有 CI 层能发现**的东西——正好印证证据分级里"本地测试不能顶替 CI 层"。
