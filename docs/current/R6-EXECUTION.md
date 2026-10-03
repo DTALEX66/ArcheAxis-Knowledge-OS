@@ -4304,3 +4304,20 @@ At that verification stage, the 2026-09-26 source candidate expansion was retain
 **顺带（F01 余项）**：把两处按钮提示与一处说明里的工程词改成人话 —— `Core Original 持久化契约尚未接入` / `Core Original 写入契约尚未提供` / `Core 写入合同` → `保存到 Core 的功能尚未提供` / `保存到 Core 尚未提供，不会伪装成已保存来源。`；侧栏 `持久草稿和版本历史 · 待接 Core` → `草稿与版本历史 · 保存到 Core 尚未提供`。已确认这 5 条字符串**没有被任何测试钉住**。
 
 **验证**：Desktop 构建 0 error；全量 Python 门禁 **3868 passed / 40 skipped / 0 failed**（212.73 s）。
+
+#### 2026-10-04 追加 26：执行 Owner 批准的方案 B（Mastery 进展投影，Core 侧）
+
+Owner 裁决：执行 2/3/4，5 给出说明。本轮先做**方案 B 的 Core 侧**。
+
+**实现**：`crates/archeaxis-domain/src/learning.rs`
+
+- 新增 `learner_observation(conn, item_key)`：从 `learning_events` **重新派生** `attempts`（该 item 的事件总数）、`distinct_correct_days`（答对发生在多少个不同 `date(created_at)`）、`last_correct_at`（最近一次答对的 `created_at`）。数据源就是事件表本身，**不引入第二个权威，也不引入能力账本**。
+- `mastery_projection_json` 增加 4 个字段：`attempts` / `distinct_correct_days` / `last_correct_at` / `next_review_at`；**`closed` 仍恒为 false**。
+
+**测试当场抓到我实现里的一个真 bug**：我最初在 INSERT 事件**之前**派生计数，于是第一次复习时 `attempts=0`、`distinct_correct_days=0`、`last_correct_at=null` —— 报的是**这次复习之前**的状态。已改为：先 INSERT，再派生，再 `json_set` 回写投影；并且**回执改为回读已落库的行**（否则响应里 `mastery_projection` 会是 `null`）。这两个问题都是契约测试发现的，不是我事后想到的。
+
+**契约加固**（`contract_constant_fields.rs::the_mastery_projection_is_open_wherever_it_is_reported`）：新增断言 `attempts == 事件数`（派生，不是固定值）、`1 <= distinct_correct_days <= 答对数`、`last_correct_at`/`next_review_at` 必须是字符串、以及**加了这些字段之后 `closed` 仍然必须是 false**。
+
+**验证**：`cargo fmt --all -- --check` exit 0；`archeaxis-api` 套件 **204 passed / 0 failed**。
+
+**方案 B 的剩余部分**：界面 —— 首页卡片 `本月掌握` 更名为 `本月进展`，用这些字段展示可复述的事实并**常驻**「不构成掌握结论」限定。下一轮做。

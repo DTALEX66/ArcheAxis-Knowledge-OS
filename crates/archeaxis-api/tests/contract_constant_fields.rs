@@ -246,6 +246,32 @@ async fn the_mastery_projection_is_open_wherever_it_is_reported() {
         correct,
         "correct_streak must be re-derived from the events, not fixed: {state}"
     );
+
+    // The recognisable counts and times come from that same log, so the product can show a
+    // learner how they are doing without any of it turning into a mastery claim.
+    let projection = &state["learner"]["latest_review"]["mastery_projection"];
+    assert_eq!(
+        projection["attempts"].as_u64().unwrap_or(0) as usize,
+        events.len(),
+        "attempts must equal the events on record, not a fixed number: {state}"
+    );
+    let distinct_days = projection["distinct_correct_days"].as_u64().unwrap_or(0);
+    assert!(
+        distinct_days >= 1 && distinct_days as usize <= correct,
+        "distinct_correct_days must be a derived count bounded by the correct events: {state}"
+    );
+    assert!(
+        projection["last_correct_at"].is_string(),
+        "last_correct_at must name when the last correct answer happened: {state}"
+    );
+    assert!(
+        projection["next_review_at"].is_string(),
+        "next_review_at must carry the schedule the Core already computed: {state}"
+    );
+    assert_eq!(
+        projection["closed"], false,
+        "adding what the learner did must not close the mastery claim: {state}"
+    );
 }
 
 #[tokio::test]
