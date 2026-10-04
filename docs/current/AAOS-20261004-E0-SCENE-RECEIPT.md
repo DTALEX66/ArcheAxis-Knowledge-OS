@@ -1387,3 +1387,39 @@ package.zip  kind=archive  ok=false  failed_step=search_results  output_status=r
 | `archive.inventory` | `output_status: readable` |
 
 **Q04 的逐能力半：4 / 13 已在候选内产出可读输出**（此前是 1）。其余 9 个未做，其中 `pdf`/`image` 有**未定的失败**需要单独查。
+
+## 47. §46 的 B 类失败查清了：**不是能力缺陷，是候选缺依赖**（2026-10-04）
+
+§46 我把 `pdf`/`image` 的失败记为"原因未确定，不归因"。本轮把它查到底 —— **打的是任务单本身，不是我的封装**：
+
+```
+import  -> 202 | source_id: src_f4eee107088575eabd4e19a7
+enqueue -> 202 {"job_id": "pdf-why-1", "state": "queued"}
+execute -> 202
+terminal state: failed (2 polls)
+error: {"code":"AAK-WORKER-003",
+        "message":"no native PDF engine available (pymupdf/pdfminer)",
+        "retryable":false}
+```
+
+### 47.1 这说明的是**worker 做得对**
+
+PDF worker **跑了**，并且**响亮地、带错误码地、明确不可重试地**说明：**候选里没有原生 PDF 引擎**。
+
+**这是正确行为，不是缺陷。** 一个静默给空结果或假装成功的 worker 才叫缺陷 —— 而它给了 `AAK-WORKER-003` + 明确原因 + `retryable:false`。
+
+### 47.2 真正的原因在我这边
+
+我暂存运行时用的是共用工具库里的**裸 CPython**（`cpython-3.12.13-windows-x86_64-none`），**它没有项目依赖的 site-packages**；而暂存器的参数表里本来就有 `--dep-source` / `--dep`（`action="append"`）——**那正是用来把依赖装进候选的**，我**没有用**。
+
+所以：
+
+- **不是 `pdf.extract` 坏了**；
+- **不是候选布局坏了**；
+- 是**我这个候选的运行时不含 worker 依赖**。
+
+**这是本会话第三次"我的调用/搭建方式不对，产物看起来坏了"**（§45 少注册 worker、§49 传错 runtime、本节缺依赖）。前两次一次拦下、一次已发布后撤回 —— **这次我在写下结论之前就查到了原因**。
+
+### 47.3 未完成
+
+**没有**用 `--dep-source` 重做一个带依赖的候选并重跑 `pdf`/`image`。所以 `pdf.extract` / `image.ocr` 在候选内的**真实可调用性仍然未验证** —— 只验证了它们**会被正确地拒绝**。
