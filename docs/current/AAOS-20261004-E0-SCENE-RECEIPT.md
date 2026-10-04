@@ -592,3 +592,39 @@ docs/taskpacks/MANDATORY_CAPABILITY_FIRST_KNOWLEDGE_LIFECYCLE_ADDENDUM_v1_2026-0
 ### 24.3 步数上限 —— 不存在
 
 `max_steps` / `step_limit` / `agent_run` 在 `crates`、`app`、`shared` 内**无命中**。记为**未实现**（不是缺陷：Agent Runtime 属被推迟的能力）。
+
+## 25. W28/Q37 核对（权限不扩大）（2026-10-04）
+
+**校准有效**（先用 `mime_type` 确认检索可用，再下结论）。
+
+**两个词表陷阱必须先说清，否则结论会错**：
+
+| 查的串 | 命中实际是什么 |
+| --- | --- |
+| `acl` | 来自 **`dataclass`** 的子串，**不是**访问控制 |
+| `comments` | `shared/compat/models.py` 里的 **YAML frontmatter `# 注释` 保真**，**不是**源软件的评论 |
+
+**两处都是"形状像、语义不同"**，与 §23.2 的 `tombstone` 同类 —— 这正是每轮先查语义而不是先信形状的原因。
+
+### 25.1 源侧暴露边界：**未记录**
+
+`shared/compat/import_session.py` 的 `compat_files` 表记录的是：
+
+`relative_path` · `source_hash` · `file_size` · `frontmatter_json` · `body_hash` · `is_canvas` · `is_binary` · `mime_type` · `imported_at`
+
+**没有任何字段**记录源的可⻅性/ACL、源评论、源修订历史是否被暴露或吸收。所以「**源 ACL / 评论 / 历史暴露边界**」这一项**未实现**。
+
+### 25.2 「权限不扩大」的**结构现状** —— 一个必须精确的区分
+
+兼容层只是把文件读进来并记入 `compat_files`，**它不分配任何目标侧权限**。
+
+因此「不扩大权限」目前**不是被保证的，而是因为还没有权限概念**。这两者**不同**：
+
+- 前者是**设计上的保证**（有人写下了规则并让它可验证）；
+- 后者是**空白**（没有规则，因为没有被规则约束的东西）。
+
+**不能把空白说成保证。** 我说的是后者。
+
+### 25.3 目标权策略：**NOT_VERIFIED**
+
+我**没有穷尽检索** `docs/` 里的目标权策略文档，所以**既不声称有、也不声称无** —— 记为未核实。
