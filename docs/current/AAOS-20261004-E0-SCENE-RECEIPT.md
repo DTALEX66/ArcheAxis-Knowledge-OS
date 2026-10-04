@@ -277,3 +277,21 @@ G0 尚未闭合的部分：W35 未做；且 atlas 与 Authority 的一致性建�
 ### 14.5 本节结论
 
 Q29 的三项里：**路径穿越结构性达标且有测试**；**reparse 防护存在于相邻面而非归档面**；**炸弹与原件保留未验证**。按包内规则（未核实即 NOT_RUN，不写主观结论），本节只登记核实到的事实。
+
+### 14.6 自我更正：14.3 说轻了
+
+写完 14.3（"炸弹未证实有防护"）之后我取到了 `tests/test_worker_archive_route.py` 的完整用例名，证据**比我写的更强**：
+
+| 测试 | 它固定的性质 |
+| --- | --- |
+| `test_a_nested_container_is_listed_but_not_opened` | **嵌套容器只被列出、不被打开** —— 递归展开（压缩炸弹的主要放大路径）在行为上被固定 |
+| `test_the_receipt_says_it_is_an_inventory_not_the_contents` | **回执自己声明"这是清单，不是内容"** —— 正是 Q28/Q29 要的"不伪称全文导入" |
+| `test_an_empty_container_is_refused_rather_than_reported_as_empty_success` | 空容器被**拒绝**，而不是报成"空成功" |
+| `test_a_corrupt_container_fails_loudly` | 损坏容器**响亮失败**，不静默 |
+| `test_the_inventory_is_one_line_per_member_with_line_anchors` | 清单逐成员一行并带行锚点 |
+
+**更正后的准确表述**：Q29 在归档面上是「**不落盘**（穿越结构性不可达）+ **不递归展开**（炸弹放大路径被固定）+ **回执自陈是清单**」，三者都有测试。
+
+14.3 里"未证实"的写法是在**证据不全时的保守**；准确的差别是：**没有"压缩比阈值"这一具体机制**，而不是"没有防护"。**"没有阈值"与"没有防护"不是一回事。**
+
+我既不夸大也不缩小 —— **说轻了同样是失真**，所以这一节更正我自己上一节。仍保持 NOT_VERIFIED 的只剩 14.4 原件保留，以及 14.2 归档面是否有独立 reparse 防护。
