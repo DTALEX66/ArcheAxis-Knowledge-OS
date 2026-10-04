@@ -704,3 +704,48 @@ module: D:\All projects\ArcheAxis-Knowledge-OS\.project-local\worktrees\dsh-back
 ```
 
 `pytest tests -k "collection or view"` → **189 passed / 4 skipped**。
+
+## 28. W25/Q35 核对：本轮**真机端到端跑了一次**（2026-10-04）
+
+**执行**（本轮、本分支，含我这些轮的全部改动）：
+
+```
+python scripts/probes/r10_core_journey_smoke.py     -> exit 0
+```
+
+它 **spawn 真实 Core 进程**（`archeaxis-api <db> 0` + stdin launch JSON），全程走**真实 HTTP**：
+
+| 步骤 | 方法 | 路径 | 状态 |
+| --- | --- | --- | --- |
+| reachability | GET | `/api/v1/system/version` | 200 |
+| import | POST | `/api/v1/imports` | 202 |
+| enqueue | POST | `/api/v1/jobs` | 202 |
+| execute | POST | `/api/v1/jobs/{id}/executions` | 202 |
+| job_status | GET | `/api/v1/jobs/{id}` | 200 ×2 |
+| output | GET | `/api/v1/jobs/{id}/outputs/text` | 200（`readable`） |
+| search | GET | `/api/v1/search?q=6371` | 200 |
+
+`transform_count: 1` · `knowledge_count: 0` · `core_port: 54432`
+
+**收据**：`.project-local/runs/2611ed9ca1/1e82a3abc6f6/artifacts/r10-smoke/6082014ae21f41e4a14338d3c33d93c9/r10-core-conversion.json`
+
+### 28.1 但它**自己声明没有验证闭环** —— 我不改这个结论
+
+```json
+{"ok": true, "scope": "real_conversion_probe", "closed_loop_verified": false, ...}
+```
+
+**本次跑通的是「来源 → 转换 → 输出回读 → 检索」，不是闭环。** 依据：`knowledge_count: 0`（未产生已接受知识），且**没有任何学习步骤**。
+
+**Q35 要求的是**：来源 → 讲解/练习 → **作答** → **反馈** → **学习记录回读**。**本次未覆盖。**
+
+把这次说成「学习链已跑通」会是**最容易犯、也最严重的一次失真** —— 连探针自己都写了 `closed_loop_verified: false`。**我不越界。**
+
+### 28.2 本轮的实际价值
+
+- **新鲜的实跑证据**：本轮、本分支，包含 W06 mastery、首页进展卡片、复习状态行、归档回执、compat `source_context`、`collection_views` 的全部改动；
+- **真实进程 + 真实 HTTP + 真实 worker 转换**；
+- 输出**可读回**（`output_status: readable`）且**可检索**；
+- 并**明确划出它没有证明的那一段**。
+
+**学习链需单独做**：在同一收据上继续走 知识接受 → 复习调度 → 作答 → 学习事件 → item state 回读（那正是 W06 已覆盖的接口）。
