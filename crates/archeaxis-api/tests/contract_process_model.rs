@@ -193,6 +193,32 @@ fn an_argv_port_wins_over_the_environment_and_the_environment_over_the_default()
     );
 }
 
+#[test]
+fn a_launch_document_that_is_not_utf8_exits_two() {
+    // Bounded and decodable are separate promises. These bytes are well inside the limit and still
+    // not text, so the launch must be refused for its encoding rather than read as a bad document.
+    let dir = tempfile::tempdir().unwrap();
+    let mut child = spawn(
+        dir.path(),
+        &[dir.path().join("ws.sqlite").to_str().unwrap(), "0"],
+        None,
+    );
+    child
+        .0
+        .stdin
+        .as_mut()
+        .unwrap()
+        .write_all(&[0xff, 0xfe, 0xfd, b'{', b'}'])
+        .unwrap();
+    let status = wait_timeout(&mut child.0, Duration::from_secs(12))
+        .expect("the core must exit on a document that is not utf-8");
+    assert_eq!(
+        status.code(),
+        Some(2),
+        "an undecodable document must exit 2"
+    );
+}
+
 /// Wait up to `timeout` for the child to exit, so a hung launch fails the test rather than the
 /// suite. `Child::wait` has no timeout and this binary is expected to exit promptly on bad input.
 fn wait_timeout(child: &mut Child, timeout: Duration) -> Option<std::process::ExitStatus> {

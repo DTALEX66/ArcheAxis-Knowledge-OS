@@ -20,6 +20,11 @@
           "additionalProperties": false,
           "required": ["python", "script", "staging"],
           "properties": {
+            "root": {
+              "$comment": "One directory the other paths may be written relative to. Absolute paths keep working; a relative path with no root is refused by the Core rather than guessed.",
+              "type": "string",
+              "minLength": 1
+            },
             "python": {"type": "string", "minLength": 1},
             "script": {"type": "string", "minLength": 1},
             "staging": {"type": "string", "minLength": 1},
