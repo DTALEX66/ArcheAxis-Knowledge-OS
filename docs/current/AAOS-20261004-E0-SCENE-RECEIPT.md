@@ -1286,3 +1286,25 @@ EXIT=0
 - **没有调用任何 worker 能力** —— 本轮只走了知识路由，`workers\document\*` 等**一次都没执行**；所以 Q04 的"逐能力真实调用"半**仍未做**；
 - **没有启动桌面**（`启动绿色候选.vbs` 会拉桌面 + 核心）；本轮只起核心；
 - **没有长期运行**：起→就绪→三步请求→杀进程，是短程冒烟，不是稳定性验证。
+
+## 44. Q04 逐能力真实调用：**在候选里跑通了第一个**（2026-10-04）
+
+§43 只走了知识路由，`workers\*` 一次都没执行。本轮**在组装好的候选里真实执行了一个 worker 能力**：
+
+```
+module: ...worktrees\dsh-backend-loop-20261001\shared\core_client.py
+{"ok": true, "failed_step": null, "scope": "real_conversion_probe",
+ "output_status": "readable", "knowledge_count": 0, "transform_count": 1}
+steps: [reachability 200, import 202, enqueue 202, execute 202,
+        job_status 200 x3, output 200, search 200]
+EXIT=0
+```
+
+**关键点**：启动的是候选自己的 `core\archeaxis-api.exe`，用的是候选自己的 `runtime\python.exe` 与 `workers\transport\text_ndjson.py` —— 所以这次**真实的 worker 执行发生在组装产物内部**，不是源码树。
+
+### 44.1 我**不**声称的
+
+- **没有指名道姓说清是哪一个 capability id**：该旅程喂的是 `.md` 样本，走的是文本路线，但"它具体对应 `routes.json` 里的哪个 id"**我没有去核实**，所以不写具体名字；
+- `knowledge_count: 0` 且旅程自报 `scope: real_conversion_probe` —— **它不声称闭环**，我也不；
+- `search 200` 只说明路由可达，**不代表有命中**（未断言 count）；
+- **13 个能力里只跑了 1 个**，且是哪一类还需逐项确认。**Q04 的"逐能力"半只完成了第一例。**
