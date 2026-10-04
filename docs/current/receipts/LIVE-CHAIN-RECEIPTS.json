@@ -1,0 +1,152 @@
+{
+  "schema": "archeaxis.live-chain-receipts/v1",
+  "commit": "4e842d47e94c71519ba9b46befcbe7af4d95480b",
+  "tree": "65146e55be7bce3fcf5800559ed5fa681488a624",
+  "worktree_state": "?? scripts/probes/refresh_live_chain_receipts.py",
+  "note": "Produced by scripts/probes/refresh_live_chain_receipts.py against the commit named here. Both probes drive a REAL Core process over HTTP; path fields are removed because the checkout location is not evidence.",
+  "chains": {
+    "conversion": {
+      "ok": true,
+      "failed_step": null,
+      "scope": "real_conversion_probe",
+      "closed_loop_verified": false,
+      "steps": [
+        {
+          "step": "reachability",
+          "method": "GET",
+          "path": "/api/v1/system/version",
+          "status": 200
+        },
+        {
+          "step": "import",
+          "method": "POST",
+          "path": "/api/v1/imports",
+          "status": 202
+        },
+        {
+          "step": "enqueue",
+          "method": "POST",
+          "path": "/api/v1/jobs",
+          "status": 202
+        },
+        {
+          "step": "execute",
+          "method": "POST",
+          "path": "/api/v1/jobs/host-probe-2a297b46678557ce8a7c524c/executions",
+          "status": 202
+        },
+        {
+          "step": "job_status",
+          "method": "GET",
+          "path": "/api/v1/jobs/host-probe-2a297b46678557ce8a7c524c",
+          "status": 200
+        },
+        {
+          "step": "job_status",
+          "method": "GET",
+          "path": "/api/v1/jobs/host-probe-2a297b46678557ce8a7c524c",
+          "status": 200
+        },
+        {
+          "step": "output",
+          "method": "GET",
+          "path": "/api/v1/jobs/host-probe-2a297b46678557ce8a7c524c/outputs/text",
+          "status": 200
+        },
+        {
+          "step": "search",
+          "method": "GET",
+          "path": "/api/v1/search?q=6371",
+          "status": 200
+        }
+      ],
+      "source_id": "src_3f83059f699322666aa2fd3d",
+      "job_id": "host-probe-2a297b46678557ce8a7c524c",
+      "output_status": "readable",
+      "knowledge_count": 0,
+      "transform_count": 1,
+      "core_port": "64131"
+    },
+    "learning": {
+      "ok": true,
+      "failed_step": null,
+      "scope": "real_learning_chain_probe",
+      "steps": [
+        {
+          "step": "reachability",
+          "method": "GET",
+          "path": "/api/v1/system/version",
+          "status": 200
+        },
+        {
+          "step": "accepted_fact",
+          "method": "POST",
+          "path": "/api/v1/knowledge-items",
+          "status": 201
+        },
+        {
+          "step": "learning_event",
+          "method": "POST",
+          "path": "/api/v1/learning/events",
+          "status": 201
+        },
+        {
+          "step": "reference",
+          "method": "POST",
+          "path": "/api/v1/learning/items/card-learning-smoke/references",
+          "status": 201
+        },
+        {
+          "step": "assessment",
+          "method": "POST",
+          "path": "/api/v1/learning/items/card-learning-smoke/assessment",
+          "status": 201
+        },
+        {
+          "step": "answer",
+          "method": "POST",
+          "path": "/api/v1/learning/reviews",
+          "status": 201
+        },
+        {
+          "step": "item_state",
+          "method": "GET",
+          "path": "/api/v1/learning/items/card-learning-smoke/state",
+          "status": 200
+        }
+      ],
+      "core_port": "49241",
+      "not_covered": [
+        "human knowledge review"
+      ],
+      "knowledge_id": "k_689b9ae35192afc9e58b73b2",
+      "answer_keys": [
+        "answer",
+        "duplicate",
+        "event_id",
+        "mastery_projection",
+        "next_review",
+        "next_review_days",
+        "schedule_authority",
+        "schedule_state",
+        "streak_after"
+      ],
+      "assessment_keys": [
+        "anchor_id",
+        "assessment_id",
+        "content",
+        "created_at",
+        "item_key",
+        "knowledge_id",
+        "knowledge_version",
+        "question",
+        "source_id"
+      ],
+      "state_keys": [
+        "item_key",
+        "learner",
+        "machine"
+      ]
+    }
+  }
+}

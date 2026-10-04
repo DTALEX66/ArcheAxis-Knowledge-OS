@@ -957,3 +957,35 @@ module: ...worktrees\dsh-backend-loop-20261001\shared\compat\import_session.py
 not_carried: ["deck_options: ...", "deck_names: ..."]
 20 passed, 1 skipped
 ```
+
+## 35. W31/Q40：把真机收据**绑定到 SHA 并放进仓库**（2026-10-04）
+
+### 35.1 我自己证据里的一个真实缺口
+
+§28 与 §31 的探针把收据写进 `.project-local/runs/<run>/...` —— 那是**被忽略且不保留**的目录。
+
+**含义：我在收据里引用的那些路径是短暂的。** 运行目录一旦被清理，引用就指向不存在的东西。这正是 Q40 说的「**回归要对应真正集成 SHA/构建，不借旧成绩**」的反面 —— 证据没有绑在任何可持久的东西上。
+
+### 35.2 已补：`scripts/probes/refresh_live_chain_receipts.py`
+
+它跑两条探针，把结果写进**被跟踪**的 `docs/current/receipts/LIVE-CHAIN-RECEIPTS.json`，其中包含：
+
+| 字段 | 值 |
+| --- | --- |
+| `schema` | `archeaxis.live-chain-receipts/v1` |
+| `commit` / `tree` | 运行时的 `HEAD` 与 tree 哈希 |
+| `worktree_state` | 运行时工作区状态（**不干净就如实写**） |
+| `chains.conversion` | `ok=True steps=8 scope=real_conversion_probe` |
+| `chains.learning` | `ok=True steps=7 scope=real_learning_chain_probe` |
+
+**绝对路径被剥离**（`receipt_path` 移除）—— **检出放在哪里不是证据**。
+
+### 35.3 一个必须说清的关系
+
+这次运行时 `worktree_state` 是 `?? scripts/probes/refresh_live_chain_receipts.py` —— 因为**脚本本身当时还没提交**。所以：
+
+- 收据里记录的 `commit` 是**运行时的 HEAD**，也就是本提交的**父提交**；
+- 收据文件本身由**紧随其后的提交**（本提交）携带；
+- **我没有把 `worktree_state` 洗成 "clean"** —— 它当时确实不干净，如实写下来。
+
+**这是一个结构性事实，不是隐瞒**：收据不可能在自己被提交前知道自己所在的提交哈希。
