@@ -798,3 +798,42 @@ item/event arguments remain accepted for compatibility, but are unused.
 **所以「有接口」不等于「有旅程」** —— 这两件事必须分开说，否则会把"接口齐备"读成"链路已验证"。
 
 **下一步（形状已定）**：写一个真正驱动学习链的探针 —— 起真实 Core → 造一条 accepted 知识 → `learning/events` → `learning/items/{id}/references` → 复习 → 读 `item state` 回执；**并明确它不做人类审校**（审校永远是人做的事，`run_journey` 的历史文档字符串早已把这条写成原则）。
+
+## 30. W25/Q35 学习链：**本轮真机跑通**（2026-10-04）
+
+新增 `scripts/probes/r10_learning_chain_smoke.py`，起**真实 Core 进程**（launch JSON 走 stdin、读就绪行取端口），全程**真实 HTTP**：
+
+| 步骤 | 方法 | 路径 | 状态 |
+| --- | --- | --- | --- |
+| reachability | GET | `/api/v1/system/version` | **200** |
+| **accepted_fact** | POST | `/api/v1/knowledge-items` | **201** |
+| **learning_event** | POST | `/api/v1/learning/events` | **201** |
+| **reference** | POST | `/api/v1/learning/items/card-learning-smoke/references` | **201** |
+| **item_state** | GET | `/api/v1/learning/items/card-learning-smoke/state` | **200** |
+
+`knowledge_id: k_689b9ae35192afc9e58b73b2` · `state_keys: ["item_key","learner","machine"]` · `core_port: 49244` · **exit 0**
+
+**收据**：`.project-local/runs/2611ed9ca1/36d0ee9737d6/artifacts/r10-learning/8e9f46e6412748d1a232819e0b0b8df5/r10-learning-chain.json`
+
+**解析确认**（第 36 轮纪律）：`module: ...worktrees\dsh-backend-loop-20261001\shared\core_client.py` —— 用的是**本工作树**。
+
+### 30.1 探针**自己声明**它没覆盖什么
+
+```json
+"scope": "real_learning_chain_probe",
+"not_covered": ["human knowledge review", "answer and feedback pair"]
+```
+
+- **不做人类审校**：`core_client.review_request` 覆盖 accepted/rejected/deprecated/modified，那是**人的动作**；一个旅程自己去做它，等于**给自己判分**。
+- **不做作答/反馈对**：那需要 assessment 路径，本切片未覆盖。
+
+**所以这次跑通的是**：来源（已接受事实）→ 学习事件 → 依据修订的引用 → 物品状态回读。
+**仍未跑通的是**：讲解/练习的呈现、作答、反馈。两者**分开陈述**。
+
+### 30.2 一次自我纠正：猜形状产生的两个 null
+
+第一次运行时我**猜**了 state 的 JSON 形状，抽出 `known_reference` 与 `state_status`，两者都是 `null`。
+
+**危险之处**：`known_reference: null` 会被读成「**该物品没有已知引用**」—— 而事实是**我的抽取写错了**，不是数据没有。
+
+已改为记录 `state_keys`（**读到的真实键名**，`["item_key","learner","machine"]`），并在代码注释里写明原因。**猜出来的字段比没有字段更危险**，因为它长得像证据。
