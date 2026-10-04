@@ -45,6 +45,8 @@ ATTEMPTED = {
     "note.md", "legacy-gbk.txt", "plain.txt", "page.html", "document.pdf", "report.docx",
     "sheet.xlsx", "slides.pptx", "ragged.csv", "picture.png", "screenshot.png", "board.canvas",
     "learning.canvas", "audio.wav", "video.mp4", "package.apkg", "mystery.unknown-ext",
+    "sample.srt", "overlap.srt", "sample.vtt", "defaults.yaml", "capability-map.json",
+    "broken-edge.canvas", "zh-group.canvas",
 }
 
 
@@ -99,7 +101,8 @@ MEASURED_OUTCOMES_2026_10_04 = {
 
 
 def test_every_recorded_outcome_is_one_of_the_known_categories(receipt):
-    allowed = {"carried_passthrough", "custody_only", "engine_missing", "structured", "refused"}
+    allowed = {"carried_passthrough", "custody_only", "engine_missing", "conversion_failed",
+               "structured", "refused"}
     for item in receipt["items"]:
         assert item["outcome"] in allowed, (item["sample"], item["outcome"])
 

@@ -13,6 +13,7 @@ INTAKE_ROUTE = "workspace/api/intake/upload"
 HANDSHAKE_ROUTE = "api/v1/system/handshake"
 GOLDEN = REPO / "tests/fixtures/golden"
 QUALITY = REPO / "tests/fixtures/f01-quality"
+VNEXT = REPO / "tests/fixtures/vnext"
 
 # Real files, one per format family the product claims to absorb. Nothing here is synthesised for
 # this probe: each is a tracked fixture with its own provenance, and the receipt records the hash
@@ -35,6 +36,16 @@ SAMPLES = (
     (GOLDEN / "golden-video-anchor.mp4", "video.mp4", "mp4"),
     (REPO / "tests/fixtures/anki-apkg/review.apkg", "package.apkg", "apkg"),
     (QUALITY / "unsupported.unknown-ext", "mystery.unknown-ext", "unknown-ext"),
+    # Lightweight extensions, each a real tracked sample. Nothing here is synthesised, and the
+    # formats the taskbook also names - EPUB and EML - are absent from the repository entirely, so
+    # they are reported as having no sample rather than being invented to make the count look better.
+    (VNEXT / "documents/sample.srt", "sample.srt", "srt"),
+    (VNEXT / "documents/sample-overlap.srt", "overlap.srt", "srt"),
+    (VNEXT / "documents/sample.vtt", "sample.vtt", "vtt"),
+    (REPO / "config/defaults.yaml", "defaults.yaml", "yaml"),
+    (REPO / "config/capability-map.v1.json", "capability-map.json", "json"),
+    (VNEXT / "documents/broken-edge.canvas", "broken-edge.canvas", "canvas"),
+    (VNEXT / "documents/canvas-zh-group.canvas", "zh-group.canvas", "canvas"),
 )
 
 # The outcomes this probe is allowed to record. The distinction between the first three and the
@@ -44,6 +55,10 @@ SAMPLES = (
 CARRIED = "carried_passthrough"
 CUSTODY = "custody_only"
 ENGINE_MISSING = "engine_missing"
+# An engine that exists and ran, but could not convert this file, is a different fact from one that
+# is not installed at all. An earlier version of this probe folded both into engine_missing, which
+# misreported a malformed canvas as a missing dependency.
+CONVERSION_FAILED = "conversion_failed"
 STRUCTURED = "structured"
 REFUSED = "refused"
 
@@ -60,7 +75,9 @@ def classify(status, payload, error_body):
     if status != 200:
         text = error_body or ""
         lowered = text.lower()
-        if "requires" in lowered or "install" in lowered or "no engine could convert" in lowered:
+        if "no engine could convert" in lowered:
+            return CONVERSION_FAILED, text[:240]
+        if "requires" in lowered or "install" in lowered:
             return ENGINE_MISSING, text[:240]
         return REFUSED, text[:240]
     body = payload if isinstance(payload, dict) else {}
