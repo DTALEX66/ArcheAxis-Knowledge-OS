@@ -385,3 +385,29 @@ ORDER BY k.knowledge_id LIMIT 129
 在本轮预算内我没有把握一次做对，因此**只登记、不动代码**：宁可留下一个**有证据的缺陷条目**，也不要留下一个**半成品改动**。任务包的要求是未完成项显式登记，不是"看起来动过"。
 
 **下一轮**：读 `semantic.rs` 的处理函数与 `contract_semantic_search.rs` 的响应断言 → 实现「多取一行判断触顶 + 显式声明」→ 补含 **>129 条语料**的契约用例 → 门禁与 CI。
+
+## 17. 撤回 §16：那个「缺陷」不存在，是我读错了（2026-10-04）
+
+**§16 登记的「语义语料 129 上限未声明」是错的。本节撤回它。**
+
+我当时只读了 `snapshot()` 里的一行 `LIMIT 129` 就推断「静默截断」，**没有读它下面十行**。实际逻辑是：
+
+```rust
+// crates/archeaxis-api/src/runtime/semantic.rs:244-253
+let candidates = match current(&runtime).await { Ok(v) => v, Err(r) => return r };
+if candidates.len() > 128 {
+    return error(
+        StatusCode::CONFLICT,
+        "semantic search capacity exceeded: more than 128 eligible knowledge items; \
+         no partial corpus was ranked",
+    );
+}
+```
+
+`LIMIT 129` 的用途**恰恰是多取一行**：取到 129 就说明「超过 128 上限存在」，于是**拒绝服务并明说"没有对任何部分语料做排序"**。响应里还有 `complete` 与 `status`（`AVAILABLE` / `PARTIAL` / `UNAVAILABLE`），`candidates` 只在全部通过时才返回。
+
+**这正是 §16 声称缺失的那种诚实行为。** 而我在 §16 里写成「用户无法从响应里知道自己这次检索是不完整的」—— **那是对一段正确代码的错误指控。**
+
+**教训**：**读 SQL 不等于读行为。** 我从一行 `LIMIT` 推断出截断语义，却没有读它周围的判断。这和我第 7 轮批评过的「拿端口和自己比」是同类错误：**看到形状就下结论，没有验证语义**。
+
+**§16 作废。** 分页这一格更正为：**语义检索对超限语料是显式拒绝（409 + 说明），不是静默截断 —— 属于已覆盖的诚实行为。** 我仍未核实的只剩「是否存在别的列表路由会静默截断」，而这一轮我没有穷尽检索，不声称。
