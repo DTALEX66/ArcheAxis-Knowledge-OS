@@ -72,13 +72,16 @@ def test_the_loader_returns_one_shape_under_any_prefix():
 
 def test_the_loader_refuses_a_manifest_that_is_not_ours():
     module = _loader()
-    original = MANIFEST.read_text(encoding="utf-8")
+    # Bytes, put back byte for byte. Writing text would let the host translate newlines and
+    # rewrite a tracked file, leaving the working tree dirty for every later check that reads
+    # git diff - a test must not be able to dirty the repository it is checking.
+    original = MANIFEST.read_bytes()
     try:
-        MANIFEST.write_text(json.dumps({"schema": "something-else", "routes": {}}), encoding="utf-8")
+        MANIFEST.write_bytes(b'{"schema": "something-else", "routes": {}}')
         try:
             module.load()
             raise AssertionError("a foreign schema must be refused")
         except ValueError:
             pass
     finally:
-        MANIFEST.write_text(original, encoding="utf-8")
+        MANIFEST.write_bytes(original)
