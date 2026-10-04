@@ -1156,3 +1156,31 @@ candidate-q04b\ArcheAxis.Knowledge.Green-v...\   <-- 真实根
 - 若 `root` = 运行时根 → 指向 `<root>\runtime\runtime\python.exe`，**正确**。
 
 **我没有读该脚本里 `root` 的定义，所以我不说这是缺陷。** 记为**未核实**，并写明判据 —— 这是第 20 轮那次假指控之后我固定下来的做法。
+
+## 40. §39.3 的判据已读：**这是一个真实缺陷**（2026-10-04）
+
+§39.3 我写明「判据是读该脚本里 `root` 的定义，我没读，所以不说是缺陷」。本轮读了：
+
+```vbs
+root = files.GetParentFolderName(WScript.ScriptFullName)          <- 候选根
+executable                                   = root & "\desktop\ArcheAxis.Desktop.exe"
+shell.Environment("PROCESS")("ARCHEAXIS_CORE_BIN") = root & "\core\archeaxis-api.exe"
+shell.Environment("PROCESS")("ARCHEAXIS_PYTHON")   = root & "\runtime\python.exe"
+```
+
+**`root` 就是候选根**（该 vbs 自己所在的目录）。对照组证实这一解读：
+
+| 启动器设置的路径 | 实际存在？ |
+| --- | --- |
+| `<root>\core\archeaxis-api.exe` | **True** |
+| `<root>\desktop\ArcheAxis.Desktop.exe` | **True** |
+| `<root>\runtime\python.exe` | **False** |
+| `<root>\runtime\runtime\python.exe` | **True** |
+
+**所以这是真实缺陷**：前两条按候选根解析正确，**唯独解释器那条指向不存在的路径**。
+
+### 40.1 病根与边界
+
+**病根**：组装把**已暂存运行时**整个放进 `<root>\runtime\`，而那份暂存运行时**自身内部还有一层 `runtime\`** 放着解释器 —— 于是解释器落在 `<root>\runtime\runtime\python.exe`，而启动器期望 `<root>\runtime\python.exe`。
+
+**边界（不声称的部分）**：我**没有运行该启动器**。这是**路径解析层面**的判定（`Test-Path` 对同一 `root` 基准下的三条路径给出 2 True / 1 False），**不是运行期观察到的失败**。要说"启动必定失败"还需要实跑一次。
