@@ -96,7 +96,7 @@
     },
     {
       "capability_id": "CAP-0150",
-      "state": "core_native",
+      "state": "not_implemented",
       "runtime_capabilities": []
     },
     {
