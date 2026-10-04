@@ -205,9 +205,20 @@ async fn health_sends_no_job_and_does_not_change_provider_selection() {
     )
     .await;
     assert_eq!(body["capability"]["health"], "handshake_ready", "{body}");
+    // `default_provider` is the launch's default worker, which need not be the worker this
+    // capability would use, so the invariant is that the flag and the paths agree - not that the
+    // path equals a literal. Comparing it to this machine's temporary path made the test depend
+    // on where it ran, and it failed on a runner whose temporary directory is spelled differently
+    // while saying nothing about the product.
+    let provider = body["capability"]["default_provider"].as_str().unwrap();
+    assert!(
+        !provider.is_empty() && std::path::Path::new(provider).is_absolute(),
+        "the default provider must name a path rather than a bare name: {body}"
+    );
     assert_eq!(
-        body["capability"]["default_provider"],
-        script.to_string_lossy().as_ref()
+        body["capability"]["is_default"],
+        provider == script.to_string_lossy().as_ref(),
+        "the default flag must agree with the paths it describes: {body}"
     );
     assert_eq!(body["capability"]["automatic_failure_fallback"], false);
     assert!(!marker.exists());
