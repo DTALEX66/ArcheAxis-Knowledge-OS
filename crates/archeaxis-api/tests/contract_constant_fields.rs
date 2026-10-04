@@ -272,6 +272,60 @@ async fn the_mastery_projection_is_open_wherever_it_is_reported() {
         projection["closed"], false,
         "adding what the learner did must not close the mastery claim: {state}"
     );
+
+    // W06: a replay of the same submission is answered with the ORIGINAL receipt, and it must not
+    // move a single count. The counts are derived after the insert, so a replay that reached the
+    // insert path would silently double them.
+    let (status, again) = call(
+        &router,
+        "POST",
+        "/api/v1/learning/reviews",
+        Some(serde_json::json!({
+            "item_key": "card-1", "client_event_id": "r-1", "assessment_id": assessment_id,
+            "knowledge_version": assessed_version, "answer": "alpha", "correct": true
+        })),
+    )
+    .await;
+    assert_eq!(
+        status, 200,
+        "a replay is answered with the stored receipt: {again}"
+    );
+    assert_eq!(again["duplicate"], true, "a replay must say so: {again}");
+    assert_eq!(
+        again["event_id"], review["event_id"],
+        "a replay must not append an event: {again}"
+    );
+    assert_eq!(
+        again["mastery_projection"], review["mastery_projection"],
+        "a replay must return the receipt exactly as stored: {again}"
+    );
+    let (status, after) = call(&router, "GET", "/api/v1/learning/items/card-1/state", None).await;
+    assert_eq!(status, 200, "{after}");
+    assert_eq!(
+        after["learner"]["latest_review"]["mastery_projection"], *projection,
+        "a replay must leave the projection untouched: {after}"
+    );
+    assert_eq!(
+        after["learner"]["event_count"], state["learner"]["event_count"],
+        "a replay must not change how many events are on record: {after}"
+    );
+
+    // The same key carrying a different payload is a conflict, not a replay: answering it with the
+    // stored receipt would tell the caller their new submission was recorded when it was not.
+    let (status, conflict) = call(
+        &router,
+        "POST",
+        "/api/v1/learning/reviews",
+        Some(serde_json::json!({
+            "item_key": "card-1", "client_event_id": "r-1", "assessment_id": assessment_id,
+            "knowledge_version": assessed_version, "answer": "beta", "correct": false
+        })),
+    )
+    .await;
+    assert!(
+        (400..500).contains(&status),
+        "a key reused for a different payload must be refused: {status} {conflict}"
+    );
 }
 
 #[tokio::test]
