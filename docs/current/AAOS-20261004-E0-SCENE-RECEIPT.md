@@ -1028,3 +1028,43 @@ tree restored, CLEAN    ->    6 passed
 ```
 
 失败**精确落在应守的两条上**（schema/tree 长度、tree 与提交不符），其余四条不受影响。
+
+## 37. 按任务包**权威行表**重核：发现两行我漏了（2026-10-04）
+
+§46 我写下「任务包中不需要 Owner 决定、不需要下载供体、不属于现场 UI owner 的条目已全部核对或落地」。
+
+**本轮我回去读了任务包自己的行表（Q01–Q42），发现那句话太宽了 —— 有两行我从未核对过。**
+
+| 行 | 验收主题 | 我此前的状态 |
+| --- | --- | --- |
+| **Q18 / W15** | `expected_version` 不符**拒绝**并保留历史 | **未核对** |
+| **Q20 / W16** | 进入页读取**不写事件、不消耗卡片** | **未核对** |
+
+**教训**：**"我已经把能做的都做了"是最容易说出口、也最该去查证的一句话。** 我用了 46 轮才想到去读那张权威表本身。
+
+### 37.1 Q18：**机制不存在**
+
+校准有效（用两个已确知存在的串 `knowledge_supersedes` / `learning_events` 确认检索可用）后：
+
+```
+git grep -in "expected_version|version_conflict|stale_version|precondition" -- crates
+->  NO version-competition guard vocabulary anywhere in crates
+```
+
+**`expected_version`、`version_conflict`、`stale_version`、`precondition` 在 `crates` 内全部零命中。**
+
+所以验收「`expected_version` 不符拒绝并保留历史」**目前没有任何机制**。记为**未实现**。
+
+（⚠️ 一处诚实的自我提醒：我第一次"校准"用的串是 `expected_version` 本身 —— **那是我假设存在的，不是确知存在的**，所以那次校准什么都没校准。改用确知串后结论才成立。）
+
+### 37.2 Q20：**结构性成立**
+
+三个学习读取处理器 `learning_history`（`lib.rs:202`）、`learning_items`（`:250`）、`item_state`（`:305`），在各自行范围内检索：
+
+```
+INSERT | UPDATE | DELETE | submit_wait | execute   ->  (no write keywords)
+```
+
+**三个处理器里没有任何写入语句。** 所以「进入页读取不写事件、不消耗卡片」**在结构上成立** —— 与 §15.4（没有语句能改 body）、§23.1（没有语句能删知识）、§24.2（没有语句能让模型输出升级）**同源**：不是"我加了检查所以不会写"，而是"**没有那条能写的语句**"。
+
+**边界（不声称的部分）**：我核对的是**这三个处理器自身**；**没有排除**写入藏在他们调用的某个 helper 里。这一点我没有查，因此不说"不可能"。
