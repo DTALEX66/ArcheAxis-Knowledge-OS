@@ -155,7 +155,7 @@ python -m app.runtime_entrypoint  migrate | backup | integrity | migration-statu
 1. runtime 放进 runtime/python/（代码要求嵌套）        -> 宿主首次派生出后端
 2. 仓库包装进构建产物的 site-packages                  -> No module named 'app' 消失
 3. 装齐项目声明的 36 个依赖                            -> No module named 'yaml' 消失，迁移跑通
-4. 数据根下建 data/ 子目录（或把数据根引到有它的地方） -> 宿主启动 Core 并自述可用
+~~4. 数据根下建 data/ 子目录~~  -> 【已证伪，见下文更正】
 ```
 
 ### Q02 的两个验收面
@@ -283,3 +283,11 @@ python -m app.runtime_entrypoint  migrate | backup | integrity | migration-statu
 
 > **未向系统/全局位置安装任何东西；外置工具库按授权增加了两个驱动；
 > 启动宿主会在产品数据目录写浏览器状态，但产品数据库未被修改（有哈希为证）。**
+
+> **⚠️ 追记（第 127 轮）**：上方「四步」的**第 4 步已被实测证伪**。
+> `data/archeaxis.sqlite` 这个值由 `shared/config.py:253 resolve_runtime_path()` 解析：
+> **相对路径且首段是 `data`/`config` 时，该首段被设计性地丢弃**，其余拼到 `ARCHEAXIS_DATA_DIR`。
+> **所以 `data/` 根本不需要存在。**
+> 本轮实测：**不建 `data/` 子目录**，宿主照样启动 Core，界面 7,275 字符、无恢复页、自述「本地可用」，
+> 且数据库落在**数据根**。**故为三步，不是四步。**
+> 详见 `docs/current/AAOS01-THE-HOST-NEEDS-NO-DATA-SUBDIR.md` 与 `AAOS01-THE-DATA-SUBDIRECTORY-WAS-NEVER-NEEDED.md`。
