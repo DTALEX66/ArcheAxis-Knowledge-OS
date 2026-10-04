@@ -163,3 +163,24 @@
 G0 尚未闭合的部分：W35 未做；且 atlas 与 Authority 的一致性建议由 Hermes 侧独立复核（任务包建议分工），本回执行器不自签。
 
 
+
+## 10. W15 机器可测部分对账（2026-10-04）
+
+任务包 W15 的实物验收是「人完成逐条处置，**机器 actor 拒绝**，**历史可纠正**」。前两项里的后两项**不需要真人**即可核对，结论如下：
+
+**机器 actor 拒绝 —— 已完整覆盖，本轮未新增测试（不盲目重做）**：
+
+| 场景 | 证据 |
+| --- | --- |
+| 机器复核自己的候选 → **403** | `crates/archeaxis-api/tests/knowledge_actor_guard.rs:130-139` |
+| 机器创建「accepted」→ **400 cannot self-accept** | 同上 `:61-71` |
+| body 里伪造 `actor=human` + 头部 machine → **400（不升级）** | 同上 `:73-83` |
+| 未知 actor → **400** | 同上 `:85-94` |
+| 机器记录人类学习结果 → **403** | 同上 `:141-` |
+| **生产路径**（v2 launch 的 machine_token，而非开发头部）人/机令牌对照，机器对 review-decisions → 拒绝 | `tests/launch_auth.rs:494,538,547`；另有 `:419 machine_launch_cannot_self_accept_even_with_forged_headers` 与 `:621` 重启后同一约束 |
+
+**历史可纠正 —— 已覆盖**：`tests/knowledge_v3_projection.rs:92` 新版本 `supersedes == [旧 id]`；`:103` **旧版本仍可读**且 `superseded_by` 指向新版本（不是删除，是可审计地取代）；`:177` 再次修订仍记录其取代对象。
+
+**仍未做（只能由人）**：真实库 19 条候选的**逐条处置**本身。`review-decisions` 需要 human actor，执行方不得代做，故本项保持 NOT_RUN。
+
+**本轮无代码改动**：这是一次"先检查现有成果"的对账，结论是既有覆盖已经满足机器侧验收；新增重复测试只会制造第二份真值。
