@@ -123,3 +123,137 @@ python -m app.runtime_entrypoint  migrate | backup | integrity | migration-statu
 - **不伪造真人证据**：Q07/Q08 的真人环节我登记为**需真人**，不代签；
 - **不改产品行为**：全程**未改实现代码**，只改了 2 个 `Cargo.toml` 的 `[workspace]`（原缺，无法构建）；
 - **不因一处边界停手**：三项待决期间，Q06–Q13 一直在独立推进。
+
+---
+
+# 台账更新（第 121 轮追加 —— 保留上方原文，本节记录其后的实测进展）
+
+> **追加而非改写**：上方是早前的状态，保留其原貌以便追溯。
+> **本节只写此后实测到的，并明确标出仍未做与仍待你决定的。**
+
+## 一、Q02 的重大进展：**卡点已解，链路已通**
+
+上方记的是「**本机路径空格使 `windres` 失败**」。**那个卡点已经解决。**
+
+**根因**：`--target-dir` 路径含空格（`D:\All projects\…`），被按空格拆分。
+**处置**：`--target-dir C:\Windows\Temp\aaos-target`（无空格）→ **宿主可构建**。
+
+**此后打通了完整链路（每一步都有实测）：**
+
+| 环节 | 证据 |
+| --- | --- |
+| 宿主**能构建** | `cargo build` 56.95s / 12.62s；`tauri build` 成功 |
+| 宿主**加载真正的界面** | 生产构建下页面 7,275 字符（恢复页只有 1,444） |
+| **runtime 解析成功** | 需要 `runtime/python/python.exe` **嵌套**布局 |
+| **宿主驱动迁移** | 生成真实 `archeaxis.sqlite` + 5 份 `pre_migration_*.sqlite` 备份 |
+| **宿主启动 Core** | 子进程 `python.exe -B -I -m app.runtime_entrypoint core` |
+| **应用自述后端可用** | 状态栏 **`后端状态：本地可用`**，`data-status="available"` |
+
+### 让这一切成立的**四步**（每步都有独立轮次记录）
+
+```
+1. runtime 放进 runtime/python/（代码要求嵌套）        -> 宿主首次派生出后端
+2. 仓库包装进构建产物的 site-packages                  -> No module named 'app' 消失
+3. 装齐项目声明的 36 个依赖                            -> No module named 'yaml' 消失，迁移跑通
+4. 数据根下建 data/ 子目录（或把数据根引到有它的地方） -> 宿主启动 Core 并自述可用
+```
+
+### Q02 的两个验收面
+
+| 面 | 状态 | 证据 |
+| --- | --- | --- |
+| **只读桥接** | ✅ | 界面状态与计数来自 Core；**后端原始响应** `{"schema_version":"v1","items":[]}` |
+| **读写闭环** | ✅（冒烟通道） | `POST /api/v1/learning/tick` **200**，服务端派生真值并返回评审响应 |
+
+**⚠️ 未做且我不冒充的部分**：**桌面路径的写**需要**宿主签发的令牌**（见下节契约），
+**外部探针无法满足** —— 所以「桌面路径的写」我**没有**验证。
+
+## 二、Q03 的进展：**两条 API 面已分清，写授权契约已完整读出**
+
+### 两条面（这是此前混淆的根源）
+
+| 面 | 实现 | 提供 |
+| --- | --- | --- |
+| **Python 后端** | `app.main:app`（宿主启动的就是它） | `/api/v1/workspace/api/*`、`/api/v1/system/*` |
+| **Rust Core** | `crates/archeaxis-api` | `/api/v1/machine/answers`、`x-archeaxis-actor` 契约 |
+
+**任务包边界据此重新划清**：Q02 的只读桥接与读写闭环 → **Python 面**；
+**类型合同与权限 → Rust 面**。
+
+### 写授权契约（`app/workspace/router.py:99-139`，**四个条件**）
+
+| # | 条件 | 不满足时 |
+| --- | --- | --- |
+| 1 | 本地请求 | 403 |
+| 2 | **`x-archeaxis-launch-token` 与后端环境令牌 hmac 匹配** | **403 `desktop write authorization rejected`** |
+| 3 | `x-archeaxis-scopes` 含 `workspace:write` 且为已发范围子集 | 403 `desktop write scope rejected` |
+| 4 | `idempotency-key` **请求头**，长度 1–200 | 422 |
+
+**产品显式提供的通道**（文档字符串称为 `the explicit browser-smoke process`）：
+未配置桌面凭据 + `ARCHEAXIS_BROWSER_SMOKE_WRITE_BYPASS=1` → 授权层放行。
+**Q02 的读写闭环就是走这条路完成的。**
+
+**仍待你决定**：canonical 数据模型（Core `anchors` vs Python `evidence_anchors`）—— **决定 2 未变**。
+
+## 三、接口表**更新**（此前是探索所得；现在是**应用自述**）
+
+**权威来源**：`GET /openapi.json`（**应用自己给出的路由表**）—— 优于我从源码或行为推断。
+
+按域归纳（完整表见 `docs/current/AAOS01-Q02-THE-BACKEND-DESCRIBES-ITSELF.md`）：
+
+```
+系统     /api/v1/system/status · handshake · restart   /api/v1/setup/preflight · status
+知识     /api/v1/workspace/api/knowledge · knowledge/start-learning
+证据     /api/v1/workspace/api/evidence/anchor · anchors · bundles
+学习     /api/v1/learning/tick · teach-back · trajectory · review-outcome · distill
+原件     /api/v1/workspace/api/intake/upload · intake/url · batch/import · batch/{id}/*
+库       /api/v1/workspace/api/library · library/{raw_sha256}/content · converted · conversion-run
+备份交换 /api/v1/workspace/api/backup/create · verify · restore · exchange/export · import · verify
+运行     /api/v1/workspace/api/runtime/candidates · approve · deprecate · jobs · delivery · planner
+前端视图 /api/v1/workspace/api/v1/home · activity · objects/{public_ref}
+```
+
+**⚠️ 未确认**：`/openapi.json` 的**总数**（我的输出被截断，只读到约 60 条）。
+
+## 四、迁移读数的**最终定性**（此前是一条悬而未决的疑问）
+
+```
+"migrations": {"applied": 6, "pending": 4}
+   = Counter(item["state"] for item in MigrationOperator(...).status())
+   = 10 个注册 owner 的状态计数
+```
+
+| owner | kind | state | 已应用 |
+| --- | --- | --- | --- |
+| `core.sqlite` | sqlite_core | applied | 1 |
+| `knowledge-governance.sqlite` | sqlite_knowledge | applied | **10** |
+| `research.sqlite` | sqlite_research | applied | 1 |
+| `sleep-loop.sqlite` | sqlite_sleep | applied | 2 |
+| `taskpack.sqlite` | sqlite | applied | 2 |
+| `workspace.sqlite` | sqlite_workspace | applied | 2 |
+| **`fts.cards` · `fts.documents`** | fts | **pending** | **无应用记录** |
+| **`vector.cards` · `vector.documents`** | vector | **pending** | **无应用记录** |
+
+**那 4 个 pending 是全文检索与向量索引 owner，且`operation` 与 `applied_migrations` 都是 `None`**
+—— 即**从未被应用过**，不是「陈旧」。
+
+**我不判定这是否缺陷**：**FTS 与向量索引常按需惰性创建**，没有内容时无索引表是正常的。
+
+## 五、仍未做 / 仍待你决定（**这次不夹带**）
+
+| # | 事项 | 性质 |
+| --- | --- | --- |
+| **决定 1** | **目录分类更正**：`src-tauri/`、`frontend/` → `SOURCE`；`apps/ArcheAxis.Desktop/` → `LEGACY_SOURCE` | **Authority 变更，需你批** |
+| **决定 2** | **Q03 canonical 模型**（Core `anchors` vs Python `evidence_anchors`） | **需你定** |
+| **决定 3** | **Q14 安装旅程**（老 Green 已有三个真实候选） | **需你定** |
+| **决定 4** | **能力↔路由映射**是否正式补（草案已在 `docs/current/AAOS01-Q09-DRAFT-CAPABILITY-ROUTE-MAP.md`） | **Authority 新增，需你批** |
+| 未做 | **桌面路径的写**（需宿主令牌，外部探针无法满足） | 未测 |
+| 未做 | `/openapi.json` 路由总数 | 输出截断，未确认 |
+| 未做 | Q04 / Q05 | 依赖 Q03 |
+| 未做 | Q15 收口 | 依赖 Q14 |
+
+## 六、本轮**未改**任何仓库文件
+
+**本节只是台账追加** —— 记录实测进展、明确未做项、并把待决事项列清。
+**未触碰官方 Green 的 `data/` 与资料库**；**未删除任何东西**。
+
