@@ -443,3 +443,32 @@ if candidates.len() > 128 {
 我一度以为 `tests/fixtures/obsidian-vault` **既未跟踪也不在磁盘上**，并准备登记为缺陷。核对 `vault_root()` 后发现：该路径是**相对 crate 清单目录**解析的，真实位置在 `crates/archeaxis-archive/tests/fixtures/obsidian-vault`，**固定装置完整存在**。
 
 **又是我看错路径。** 与上一轮的「假缺陷指控」同类：**没有读解析逻辑就下结论**。记录在此 —— 它说明核对的价值不在于我判断多准，而在于**我每次都去查了**。
+
+## 19. 补上我自己验证口径里的一个缺口（2026-10-04）
+
+**发现**：我一直写的「套件全绿」，用的是 `scripts/ci/cargo_test.bat -p archeaxis-api` —— **只测 api 这一个 crate**。而 CI 的 `cargo-test` 作业跑的是 `cargo test (workspace)`。也就是说：**`archeaxis-archive`、`archeaxis-domain`、`archeaxis-migration` 三个 crate 我从未跑过**，却一直把 CI 的绿当作自己的验证结果引用。
+
+**本轮补跑（本地，GNU 工具链）**：
+
+```
+cargo test -p archeaxis-archive -p archeaxis-domain -p archeaxis-migration
+```
+
+结果：**全部通过**（含 `obsidian_vault_roundtrip`、domain 的 25 条、migration 的若干）。所以**没有隐藏的失败** —— 但**这是一个真实的验证口径缺口**：我引用的是别人的检查，不是我自己跑的。
+
+**更正**：以后凡是我说"套件绿"，要么是 `-p archeaxis-api` **明说范围**，要么就是 workspace 级；**不再把 CI 的结果当成我本地跑过的**。
+
+## 20. W22 方向分析（Obsidian 供体）（2026-10-04）
+
+按仓库既有先例（**格式忠实固定装置 + PROVENANCE + 明确缺口**，已于 §18.1 记录），核对现有 Obsidian 往返到底证明了哪个方向：
+
+`crates/archeaxis-archive/tests/obsidian_vault_roundtrip.rs` 的文档字符串自陈证明三件事、拒绝暗示第四件：
+
+1. 字节与文件名在**导出/恢复进全新工作区**后存活 → 即 **Obsidian → AAOS → 导回** 两个方向都有覆盖；
+2. 固定装置是**真 vault**（每条内部链接、标题锚点、块引用都在夹具内解析，不是假设）；
+3. 链接在笔记抽取文本里**以文本形式**存活；
+4. **明确不覆盖**：导入不写锚点、无表存链接/嵌入关系、`.canvas` 语义图未存。
+
+**结论**：Obsidian 这一个供体**已经有真实的双向往返 + 显式缺口声明**，是 W22 的模板；**Anki / Notion / Zotero 目前一个都没有**。
+
+W22 下一个切片的形状因此是明确的：**再做一个供体的格式忠实夹具 + 往返 + 缺口自陈**。按 §18.2，先走 (B)，GUI 应用那一步留给「真实应用打开导出」的单独人面向检查。
