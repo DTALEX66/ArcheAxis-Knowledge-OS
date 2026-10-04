@@ -100,6 +100,29 @@ def run() -> dict:
                     "root_kind": "temp-work" if root == str(work) else "fixture-vault",
                     "status": None, "error": f"{type(error).__name__}: {error}"[:300]})
         shutil.rmtree(vault, ignore_errors=True)
+
+        # The candidate listing is read-only and needs no identity at all. It is fetched to record
+        # what a machine candidate looks like from outside, and in particular that nothing in it
+        # attributes a decision to a person - the disposition path has no reviewer field.
+        candidates_route = "workspace/api/runtime/candidates"
+        try:
+            request = urllib.request.Request(base + candidates_route, method="GET")
+            with urllib.request.urlopen(request, timeout=30) as response:
+                listing = json.loads(response.read().decode("utf-8"))
+                receipt["candidates_status"] = response.status
+                receipt["candidates_keys"] = (sorted(listing.keys())
+                                              if isinstance(listing, dict) else None)
+                receipt["candidates_payload"] = json.dumps(listing, ensure_ascii=False)[:400]
+        except urllib.error.HTTPError as error:
+            receipt["candidates_status"] = error.code
+            try:
+                receipt["candidates_error"] = error.read().decode("utf-8", "replace")[:240]
+            except Exception as read_error:
+                receipt["candidates_error"] = f"<unreadable: {type(read_error).__name__}>"
+        except Exception as error:
+            receipt["candidates_status"] = None
+            receipt["candidates_error"] = f"{type(error).__name__}: {error}"[:240]
+
         receipt["ok"] = True
     finally:
         app.kill()

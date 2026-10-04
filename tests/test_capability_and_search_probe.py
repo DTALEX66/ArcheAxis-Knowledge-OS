@@ -65,6 +65,24 @@ def test_the_search_body_shape_used_is_the_documented_one(receipt):
     assert kinds == {"purpose-built-vault", "fixture-vault"}
 
 
+def test_the_candidate_listing_answers_without_any_identity(receipt):
+    """Read-only, and the receipt records what it returned."""
+    assert receipt["candidates_status"] is not None
+    if receipt["candidates_status"] == 200:
+        assert receipt["candidates_keys"] is not None
+
+
+def test_the_candidate_listing_attributes_no_decision_to_a_person(receipt):
+    """The disposition path has no reviewer field, so a listing cannot name one either.
+
+    This asserts the absence of reviewer-attribution keys rather than their presence, which is the
+    property the task depends on: nothing here can be read as a human having approved something.
+    """
+    payload = receipt.get("candidates_payload") or ""
+    for forbidden in ("reviewer", "approved_by", "approvedBy"):
+        assert forbidden not in payload
+
+
 def test_search_answers_for_a_vault_root(receipt):
     """Search works, and this is asserted only after it reproduced in two environments.
 
