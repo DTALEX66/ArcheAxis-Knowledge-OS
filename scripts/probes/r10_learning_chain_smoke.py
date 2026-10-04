@@ -96,7 +96,7 @@ def main() -> int:
 
         result: dict = {"ok": False, "failed_step": None, "scope": "real_learning_chain_probe",
                         "steps": steps, "core_port": port,
-                        "not_covered": ["human knowledge review", "answer and feedback pair"]}
+                        "not_covered": ["human knowledge review"]}
 
         status, version = step(core.call, base, "reachability", "GET", "/api/v1/system/version")
         if status != 200:
@@ -137,6 +137,36 @@ def main() -> int:
             result["payload"] = reference
             return _finish(result, workdir, steps)
 
+        status, assessment = step(
+            core.call, base, "assessment", "POST",
+            "/api/v1/learning/items/" + ITEM_KEY + "/assessment",
+            {"knowledge_id": knowledge_id},
+        )
+        if not 200 <= status < 300:
+            result["failed_step"] = "assessment"
+            result["payload"] = assessment
+            return _finish(result, workdir, steps)
+        assessment_id = (assessment or {}).get("assessment_id") if isinstance(assessment, dict) else None
+        knowledge_version = (assessment or {}).get("knowledge_version") if isinstance(assessment, dict) else None
+
+        # The answer. This is the learner answering the item, not a review of the knowledge:
+        # review_request() would be the human act of accepting or rejecting a claim.
+        status, answered = step(
+            core.call, base, "answer", "POST", "/api/v1/learning/reviews",
+            {
+                "item_key": ITEM_KEY,
+                "client_event_id": CLIENT_EVENT_ID + "-answer",
+                "assessment_id": assessment_id,
+                "knowledge_version": knowledge_version,
+                "answer": "6371",
+                "correct": True,
+            },
+        )
+        if not 200 <= status < 300:
+            result["failed_step"] = "answer"
+            result["payload"] = answered
+            return _finish(result, workdir, steps)
+
         status, state = step(
             core.call, base, "item_state", "GET",
             "/api/v1/learning/items/" + ITEM_KEY + "/state",
@@ -148,6 +178,12 @@ def main() -> int:
 
         result["ok"] = True
         result["knowledge_id"] = knowledge_id
+        # The reply to the answer is the feedback: the schedule and projection the Core returned.
+        # Its keys are recorded rather than a guessed field, for the reason the state keys are.
+        result["answer_keys"] = sorted(answered.keys()) if isinstance(answered, dict) else None
+        result["assessment_keys"] = (
+            sorted(assessment.keys()) if isinstance(assessment, dict) else None
+        )
         # The state readback answered 200 and is the last step. Its body is not re-asserted
         # here: guessing at the shape once produced two null fields that read as "the item has
         # no known reference" when the truth was that the extraction was wrong.

@@ -837,3 +837,47 @@ item/event arguments remain accepted for compatibility, but are unused.
 **危险之处**：`known_reference: null` 会被读成「**该物品没有已知引用**」—— 而事实是**我的抽取写错了**，不是数据没有。
 
 已改为记录 `state_keys`（**读到的真实键名**，`["item_key","learner","machine"]`），并在代码注释里写明原因。**猜出来的字段比没有字段更危险**，因为它长得像证据。
+
+## 31. W25/Q35 学习链**全段真机跑通**（2026-10-04）
+
+在 §30 的探针上补齐 **assessment** 与 **answer** 两步，真实 Core 全程 HTTP，**exit 0**：
+
+| 步骤 | 方法 | 路径 | 状态 |
+| --- | --- | --- | --- |
+| reachability | GET | `/api/v1/system/version` | 200 |
+| accepted_fact | POST | `/api/v1/knowledge-items` | 201 |
+| learning_event | POST | `/api/v1/learning/events` | 201 |
+| reference | POST | `/api/v1/learning/items/card-learning-smoke/references` | 201 |
+| **assessment** | POST | `/api/v1/learning/items/card-learning-smoke/assessment` | **201** |
+| **answer** | POST | `/api/v1/learning/reviews` | **201** |
+| **item_state** | GET | `/api/v1/learning/items/card-learning-smoke/state` | **200** |
+
+### 31.1 反馈是**真实读到的**，不是我猜的
+
+作答的 201 回执就是这个链的**反馈**。我记录它**实际携带的键名**：
+
+```
+answer_keys:      ["answer","duplicate","event_id","mastery_projection","next_review",
+                   "next_review_days","schedule_authority","schedule_state","streak_after"]
+assessment_keys:  ["anchor_id","assessment_id","content","created_at","item_key","knowledge_id",
+                   "knowledge_version","question","source_id"]
+state_keys:       ["item_key","learner","machine"]
+```
+
+即：**排程**（`next_review` / `next_review_days`）、**投影**（`mastery_projection`，W06 的派生字段）、**连续答对**（`streak_after`）、**幂等标记**（`duplicate` / `event_id`）；题面（`question`）并挂到 `knowledge_version` / `anchor_id` / `source_id`。
+
+### 31.2 仍然只排除一件事，且理由不变
+
+```json
+"not_covered": ["human knowledge review"]
+```
+
+**人类审校**仍然不在旅程里 —— `review_request` 覆盖 accepted/rejected/deprecated/modified，**一个旅程自己去做它，等于给自己判分**。这一条从 R10 起就是原则，我不动它。
+
+### 31.3 与 §28 的对照
+
+| 链 | 状态 |
+| --- | --- |
+| 转换链（来源→转换→输出回读→检索） | ✅ §28 真机，exit 0 |
+| **学习链（来源→题面/依据→作答→反馈→状态回读）** | ✅ **本节真机，exit 0** |
+| 人类审校 | ❌ **不在任何旅程内，且不应在** |
