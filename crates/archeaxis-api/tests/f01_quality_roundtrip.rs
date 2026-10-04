@@ -566,6 +566,37 @@ async fn f01_capped_fixture_reports_anchor_loss_and_never_claims_full_coverage()
         "BOM strip and the anchor cap are two losses"
     );
 
+    // The loss and the coverage have to agree, and no surface may call a conversion lossless,
+    // equivalent or byte-identical once it has declared a loss. Keeping the original file is not
+    // the same as the conversion having behaved the same way as the original.
+    let (status, loss_report) = call(
+        &router,
+        "GET",
+        "/api/v1/jobs/f01-capped/outputs/loss_report",
+        "",
+        "",
+    )
+    .await;
+    assert_eq!(status, StatusCode::OK, "{loss_report}");
+    let lost = body_of(&loss_report);
+    assert!(
+        !lost.trim().is_empty(),
+        "a conversion that lost anchors must declare the loss"
+    );
+    let surfaces = [
+        ("quality", quality.to_string()),
+        ("loss_report", lost.clone()),
+    ];
+    for (surface, rendered) in surfaces {
+        let lowered = rendered.to_lowercase();
+        for claim in ["lossless", "equivalent", "byte-identical", "byte identical"] {
+            assert!(
+                !lowered.contains(claim),
+                "{surface} must not describe a conversion that lost anchors as {claim}: {rendered}"
+            );
+        }
+    }
+
     let (status, structure_output) = call(
         &router,
         "GET",
