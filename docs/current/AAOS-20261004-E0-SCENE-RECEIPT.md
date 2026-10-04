@@ -527,3 +527,35 @@ Anki 读取器（`parse_apkg`，语义已在 §29 轮验证）应改为：
 - 保持上一版已验证的诚实语义：排程标 `imported_from_source`、未答过的卡**无间隔而非 0**、缺 collection **响亮拒绝**、单元内**不出现** `reviewed_by`/`graded_by`/`correct`/`mastery`/`score`。
 
 **属主数保持 59。**
+
+## 23. W29/Q38 核对（冲突 / 删除）（2026-10-04）
+
+**先说检索可信度**：我先用两个**确知存在**的串校准（`superseded_by`、`knowledge_supersedes` 均有命中），确认检索有效，**再**下结论 —— 这是第 20/23/25 轮三次「grep 静默返回空」之后固定的做法。
+
+### 23.1 「未见对象不是自动删除」—— **结构性成立**
+
+| 检索 | 结果 |
+| --- | --- |
+| `DELETE FROM knowledge`（知识表本身） | **无命中** |
+| `deleted_at` | **无命中** |
+| `UPDATE knowledge` | **唯一一条**：`crates/archeaxis-domain/src/knowledge.rs:453` `SET status=?1, receipt_hash=?2`（**从不改 body**，见 §15.4） |
+| 命中的 `DELETE` | 只有 `crates/archeaxis-domain/src/search.rs:51` `DELETE FROM knowledge_fts;` —— 那是 **FTS 索引重建**，删的是索引行，**不是知识** |
+
+**结论**：知识在 Core 里**没有删除路径**。所以「没看到某个对象」**在结构上不可能**导致它被删除 —— 与 §15.4（不存在能改写正文的语句）同源，**比任何单条测试都更强**。
+
+### 23.2 「三方差异与 tombstone」—— **未实现，且此处的 tombstone 是另一个意思**
+
+`tombstone` 在本仓库中的含义与「对象删除标记」**无关**：
+
+```
+docs/truth/CAPABILITY_ATLAS_V2.yaml:6
+tombstone_rule: "任何 capability 的删除、降级、改名、合并均需 Owner Decision 和可追溯映射…"
+```
+
+那是**能力图谱的治理规则**（消歧见 `docs/current/AAOS-20261004-E0-SCENE-RECEIPT.md:100`），**不是**同步用的 tombstone；其余命中为导入的设计文档。
+
+**所以 Q38 的第二半（多源三方差异 + 对象 tombstone）不存在** —— 它属于多源同步能力，而该能力**尚未开始**。记为**未实现**，不记为缺陷。
+
+### 23.3 一条不可互相冒充的边界
+
+`supersedes` / `superseded_by`（W15 已钉）解决的是**同一工作区内的版本取代**，**不是跨源冲突消解**。两者**不可互相冒充** —— 前者是"我把旧的换成了新的"，后者是"两个来源对同一件事说了不同的话"。
