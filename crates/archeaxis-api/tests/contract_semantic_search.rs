@@ -97,6 +97,26 @@ async fn call(app: Router, payload: Value) -> (u16, Value) {
             .unwrap_or_else(|_| json!({"raw":String::from_utf8_lossy(&data)})),
     )
 }
+/// The documented failure body, asserted rather than assumed.
+///
+/// These routes answered `{"error": ...}` until now: a client that reads `code` found nothing and
+/// could not tell a refusal from a transient failure. `retryable` follows the contract, which ties
+/// it to 503.
+fn assert_error_envelope(code: &str, body: &serde_json::Value, retryable: bool) {
+    assert_eq!(body["code"], code, "{body}");
+    assert!(
+        body["message"]
+            .as_str()
+            .is_some_and(|text| !text.trim().is_empty()),
+        "an error must say what happened: {body}"
+    );
+    assert_eq!(body["retryable"], retryable, "{body}");
+    assert!(
+        body.get("error").is_none(),
+        "the old body must be gone: {body}"
+    );
+}
+
 fn stub(mode: &str) -> String {
     format!(
         r#"import json,sys
@@ -149,12 +169,20 @@ async fn empty_capacity_unknown_fields_and_untrusted_worker_rows_are_explicit() 
     let (status, body) = call(app.clone(), json!({"q":"x"})).await;
     assert_eq!(status, 200);
     assert_eq!(body["status"], "EMPTY");
-    assert_eq!(call(app, json!({"q":"x","candidates":[]})).await.0, 422);
+    let (status, body) = call(app, json!({"q":"x","candidates":[]})).await;
+    assert_eq!(status, 422);
+    assert_error_envelope("AAK-VAL-001", &body, false);
+
     let (_dir, _executor, app) = setup("raise RuntimeError('must not execute')", 129).await;
-    assert_eq!(call(app, json!({"q":"x"})).await.0, 409);
+    let (status, body) = call(app, json!({"q":"x"})).await;
+    assert_eq!(status, 409);
+    assert_error_envelope("AAK-CON-002", &body, false);
+
     for mode in ["foreign", "version", "duplicate", "score", "bad_logprob"] {
         let (_dir, _executor, app) = setup(&stub(mode), 2).await;
-        assert_eq!(call(app, json!({"q":"x"})).await.0, 502, "{mode}");
+        let (status, body) = call(app, json!({"q":"x"})).await;
+        assert_eq!(status, 502, "{mode}");
+        assert_error_envelope("AAK-WORKER-001", &body, false);
     }
 }
 

@@ -11,7 +11,28 @@ pub(super) struct Body {
     q: String,
 }
 fn error(status: StatusCode, reason: &str) -> Response {
-    (status, Json(json!({"error":reason}))).into_response()
+    // The same envelope every other route answers with. This module used to answer `{"error": ...}`,
+    // so a client reading `code` found nothing and could not tell a retryable refusal from a
+    // permanent one. The code follows from the status, which is already what decides it; the
+    // contract accepts that one code may cover several messages and the message disambiguates.
+    let code = match status.as_u16() {
+        400 | 422 => "AAK-VAL-001",
+        404 => "AAK-VAL-004",
+        409 => "AAK-CON-002",
+        // A failed or absent worker is an execution problem, not a bad request, so 5xx keeps the
+        // worker code wherever the status came from.
+        500..=599 => "AAK-WORKER-001",
+        _ => "AAK-VAL-001",
+    };
+    (
+        status,
+        Json(json!({
+            "code": code,
+            "message": reason,
+            "retryable": status == StatusCode::SERVICE_UNAVAILABLE,
+        })),
+    )
+        .into_response()
 }
 
 fn snapshot(conn: &rusqlite::Connection) -> rusqlite::Result<Vec<Value>> {
@@ -188,7 +209,22 @@ fn validate_batch(
     ))
 }
 
-pub(super) async fn search(State(runtime): State<Runtime>, Json(body): Json<Body>) -> Response {
+pub(super) async fn search(
+    State(runtime): State<Runtime>,
+    body: Result<Json<Body>, axum::extract::rejection::JsonRejection>,
+) -> Response {
+    let Json(body) = match body {
+        Ok(json) => json,
+        // The framework's own rejection is a different body: it carries no `code`, and it repeats
+        // the deserializer's internal wording - including the field names it expected - back to
+        // the caller. Answer the documented envelope instead, without that detail.
+        Err(_) => {
+            return error(
+                StatusCode::UNPROCESSABLE_ENTITY,
+                "the request body was not accepted",
+            );
+        }
+    };
     if body.q.trim().is_empty() || body.q.chars().count() > 2048 {
         return error(
             StatusCode::UNPROCESSABLE_ENTITY,

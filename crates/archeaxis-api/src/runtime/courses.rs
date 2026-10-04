@@ -166,7 +166,28 @@ pub(super) struct RenderBody {
 }
 
 fn error(status: StatusCode, message: &str) -> Response {
-    (status, Json(json!({"error":message}))).into_response()
+    // The same envelope every other route answers with. This module used to answer `{"error": ...}`,
+    // so a client reading `code` found nothing and could not tell a retryable refusal from a
+    // permanent one. The code follows from the status, which is already what decides it; the
+    // contract accepts that one code may cover several messages and the message disambiguates.
+    let code = match status.as_u16() {
+        400 | 422 => "AAK-VAL-001",
+        404 => "AAK-VAL-004",
+        409 => "AAK-CON-002",
+        // A failed or absent worker is an execution problem, not a bad request, so 5xx keeps the
+        // worker code wherever the status came from.
+        500..=599 => "AAK-WORKER-001",
+        _ => "AAK-VAL-001",
+    };
+    (
+        status,
+        Json(json!({
+            "code": code,
+            "message": message,
+            "retryable": status == StatusCode::SERVICE_UNAVAILABLE,
+        })),
+    )
+        .into_response()
 }
 async fn worker(runtime: &Runtime, request: Value, expected: &str) -> Result<Value, Response> {
     if let Some(refusal) = crate::capabilities::refusal(&runtime.executor, "course.general").await {
