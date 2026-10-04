@@ -472,3 +472,23 @@ cargo test -p archeaxis-archive -p archeaxis-domain -p archeaxis-migration
 **结论**：Obsidian 这一个供体**已经有真实的双向往返 + 显式缺口声明**，是 W22 的模板；**Anki / Notion / Zotero 目前一个都没有**。
 
 W22 下一个切片的形状因此是明确的：**再做一个供体的格式忠实夹具 + 往返 + 缺口自陈**。按 §18.2，先走 (B)，GUI 应用那一步留给「真实应用打开导出」的单独人面向检查。
+
+## 21. W22 供体方向矩阵（2026-10-04）
+
+Q31/Q32 要求 **A-AAOS-A 与 AAOS-A-AAOS 两个方向**。本轮把四个供体的**实际方向覆盖**核清 —— 这是任何"往返已完成"声明的前提。
+
+| 供体 | AAOS → A | A → AAOS | 证据 |
+| --- | --- | --- | --- |
+| **Obsidian** | ✅ 导出/恢复进全新工作区 | ✅ 导入 vault | `crates/archeaxis-archive/tests/obsidian_vault_roundtrip.rs`（含四项显式缺口） |
+| **Anki** | ✅ `to_anki_csv`（Anki 可导入的 CSV） | ❌ **不存在** | 导出实现 `app/adapters/anki_zotero.py:25`；测试 `tests/test_adapters_longterm.py`、`tests/workers/test_bulk_legacy_adapters.py` |
+| **Zotero** | ❌ 未见 | ✅ `parse_zotero_json`（库导出 → 知识单元） | 同两个测试文件 |
+| **Notion** | ❌ | ❌ | 全仓无命中 |
+
+**Anki → AAOS 方向**：`.apkg` 在 `crates/`、`services/`、`app/` 内**除夹具外零命中**；一个 `.apkg` 只会被 `archive.inventory` 当作**容器**清点（那是诚实的，但**不是**读取牌组）。
+
+**本轮新增的事实**：`tests/fixtures/anki-apkg/review.apkg` 提供了该缺失方向**需要的地基**（一个真包），但**读取路径仍不存在**，所以**不声称往返** —— 与 `PROVENANCE.txt` 第 2 条一致。
+
+### 两条必须同时说清的边界
+
+1. `to_anki_csv` 产出的是 **CSV**，不是 `.apkg`。Anki 能导入它，但这条路径**未经 Anki 本体打开验证**（§18.2 的 (A) 项）。
+2. Anki 的**笔记类型 / 选项组 / 排程语义在这一层完全没有被读写**。把 CSV 导入 Anki，会由 Anki 用**它自己的默认值**建卡 —— 与 `review.apkg` 里那组真实排程数字**无关**。这正是 **Q36 / W27「不伪造外来评分与调度」** 要单独处理的事，**不能**因为"有 CSV 导出"就当成已经覆盖。
