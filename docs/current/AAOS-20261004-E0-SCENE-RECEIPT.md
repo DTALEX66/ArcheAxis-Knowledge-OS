@@ -1343,3 +1343,47 @@ package.zip  kind=archive  ok=false  failed_step=job_status      output_status=n
 **Q04 的逐能力半仍然是 1/13**（只有 §44 那一次文本路线成功，而且我连它的 capability id 都没核实）。**本轮没有增加任何能力证据。**
 
 **下一步的确切形状**：启动声明必须**取自候选自己的 `worker-profile.json`**，让每个能力都有 worker，再逐 kind 跑。在此之前跑出来的失败**都不能算能力的账**。
+
+## 46. Q04 逐能力：**候选内 4 个能力产出可读输出**（2026-10-04）
+
+§45 的诊断（"启动声明只注册了一个 worker"）是对的。`TextWorker` 的契约本身就写着这件事：
+
+```rust
+crates/archeaxis-api/src/launch.rs:31-53
+pub struct TextWorker {
+    pub python, script, staging,          // script 服务 text.extract
+    pub routes: Vec<WorkerRoute>,          // 其余能力：一个 capability 一个 script
+    pub root: Option<PathBuf>,             // 一个根 + 相对路径（正是 W05 那项工作）
+}
+```
+
+按 `services/python-workers/routes.json`（W04 的单源清单）把 **13 条路由**填进启动声明、`root` 指向候选根、脚本用相对路径：
+
+```
+routes registered in the launch: 13
+note.md      kind=text     ok=false  failed_step=search_results  output_status=readable
+page.html    kind=html     ok=true   failed_step=null            output_status=readable
+document.pdf kind=pdf      ok=false  failed_step=job_status      output_status=null
+picture.png  kind=image    ok=false  failed_step=job_status      output_status=null
+board.canvas kind=canvas   ok=false  failed_step=search_results  output_status=readable
+package.zip  kind=archive  ok=false  failed_step=search_results  output_status=readable
+```
+
+### 46.1 必须分开读的两类失败
+
+**A 类：能力跑了、输出可读，只是卡在检索步骤。** `text` / `canvas` / `archive` 三者 `output_status: readable` —— **转换确实成功**。它们倒在我传的查询串 `6371` 上：那三份材料里**本来就没有 `6371`**，所以**检索没有命中是正确行为**，旅程把它当失败是**旅程的严格**，**不是能力的问题**。
+
+**B 类：`pdf` / `image` 倒在 `job_status`。原因未确定。** 可能是候选里缺对应引擎（OCR/PDF），也可能是真实失败 —— **我没有查，所以不归因**。
+
+### 46.2 本轮的实际增量
+
+**在组装好的候选里，已有 4 个能力产出可读输出**：
+
+| 能力 | 证据 |
+| --- | --- |
+| `text.extract` | `output_status: readable` |
+| **`html.structure`** | **`ok: true`**（整条旅程通过） |
+| `canvas.structure` | `output_status: readable` |
+| `archive.inventory` | `output_status: readable` |
+
+**Q04 的逐能力半：4 / 13 已在候选内产出可读输出**（此前是 1）。其余 9 个未做，其中 `pdf`/`image` 有**未定的失败**需要单独查。
