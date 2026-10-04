@@ -556,6 +556,54 @@ public partial class MainWindow : Window
         return counts.Select((count, offset) => new ReviewScheduleDay(today.AddDays(offset), count)).ToArray();
     }
 
+    /// The two learning cards read what the Core already returns for the queue.
+    ///
+    /// `/api/v1/learning/items` carries one `next_review` per item, so "due" is a count of what
+    /// the Core reported rather than an estimate. Progress counts the items on record and says so
+    /// in the same breath: it is the number of learning items, never a claim that anything was
+    /// mastered. When the response cannot be read the cards say that instead of showing a zero,
+    /// because a zero is a measurement and "cannot say" is not.
+    private async Task RefreshHomeLearningProgressAsync()
+    {
+        if (_supervisor is null || _supervisor.CoreUrl.Length == 0)
+            return;
+        try
+        {
+            using var response = await _supervisor.SendAsync(HttpMethod.Get, "/api/v1/learning/items");
+            if (!response.IsSuccessStatusCode)
+            {
+                HomeReviewDueValue.Text = "—";
+                HomeReviewDueNote.Text = "Core 未返回学习项";
+                HomeProgressValue.Text = "—";
+                HomeProgressNote.Text = "Core 未返回学习项";
+                return;
+            }
+            using var document = JsonDocument.Parse(await response.Content.ReadAsStringAsync());
+            var items = document.RootElement.TryGetProperty("items", out var array)
+                && array.ValueKind == JsonValueKind.Array
+                ? array.EnumerateArray().ToList()
+                : new List<JsonElement>();
+            var now = DateTimeOffset.Now;
+            var due = items.Count(item =>
+                item.TryGetProperty("next_review", out var at)
+                && at.ValueKind == JsonValueKind.String
+                && DateTimeOffset.TryParse(at.GetString(), CultureInfo.InvariantCulture,
+                    DateTimeStyles.RoundtripKind, out var instant)
+                && instant <= now);
+            HomeReviewDueValue.Text = due.ToString(CultureInfo.InvariantCulture);
+            HomeReviewDueNote.Text = items.Count == 0 ? "尚无学习项" : "到期项，来自 Core 排程";
+            HomeProgressValue.Text = items.Count.ToString(CultureInfo.InvariantCulture);
+            HomeProgressNote.Text = "学习项数，不等于掌握";
+        }
+        catch (Exception)
+        {
+            HomeReviewDueValue.Text = "—";
+            HomeReviewDueNote.Text = "学习项响应不可读";
+            HomeProgressValue.Text = "—";
+            HomeProgressNote.Text = "学习项响应不可读";
+        }
+    }
+
     private async Task RefreshHomeRecentEvidenceAsync()
     {
         var requestVersion = ++_homeEvidenceRequestVersion;
@@ -568,6 +616,7 @@ public partial class MainWindow : Window
             HomeRecentEvidenceStatus.Text = "Core 未就绪，未读取最近 Evidence。";
             return;
         }
+        await RefreshHomeLearningProgressAsync();
 
         try
         {

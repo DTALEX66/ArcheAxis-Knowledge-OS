@@ -328,15 +328,15 @@
             <Border x:Name="HomeStatsLearningCard" Grid.Column="2" Classes="aaos-kpi">
               <StackPanel Spacing="5">
                 <TextBlock Text="待复习" Foreground="{DynamicResource AaosMutedBrush}" />
-                <TextBlock Text="—" Classes="kpi-value" />
-                <TextBlock Text="Core 未提供" Foreground="{DynamicResource AaosMutedBrush}" />
+                <TextBlock x:Name="HomeReviewDueValue" Text="—" Classes="kpi-value" />
+                <TextBlock x:Name="HomeReviewDueNote" Text="Core 未提供" Foreground="{DynamicResource AaosMutedBrush}" />
               </StackPanel>
             </Border>
             <Border x:Name="HomeStatsJobsCard" Grid.Column="3" Classes="aaos-kpi">
               <StackPanel Spacing="5">
-                <TextBlock Text="本月掌握" Foreground="{DynamicResource AaosMutedBrush}" />
-                <TextBlock Text="—" Classes="kpi-value" />
-                <TextBlock Text="Core 未提供" Foreground="{DynamicResource AaosMutedBrush}" />
+                <TextBlock Text="本月进展" Foreground="{DynamicResource AaosMutedBrush}" />
+                <TextBlock x:Name="HomeProgressValue" Text="—" Classes="kpi-value" />
+                <TextBlock x:Name="HomeProgressNote" Text="Core 未提供" Foreground="{DynamicResource AaosMutedBrush}" />
               </StackPanel>
             </Border>
           </Grid>
@@ -1287,7 +1287,7 @@
               <Grid ColumnDefinitions="*,Auto" RowDefinitions="Auto,*">
                 <StackPanel Spacing="5">
                   <TextBlock Text="—" Classes="kpi-value metric-unknown" Foreground="{DynamicResource AaosPrimaryBrush}" />
-                  <TextBlock Text="本月掌握" Classes="status-empty" />
+                  <TextBlock Text="本月进展" Classes="status-empty" />
                 </StackPanel>
                 <local:AaosIcon Grid.Column="1" Width="20" Height="20" IconName="Thinking" Foreground="{DynamicResource AaosPrimaryBrush}" Opacity="0.8" />
                 <TextBlock Grid.Row="1" Grid.ColumnSpan="2" Margin="0,8,0,0" Text="尚无 Core 掌握投影" FontSize="10" Classes="lifecycle-label" />
