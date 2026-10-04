@@ -749,3 +749,52 @@ python scripts/probes/r10_core_journey_smoke.py     -> exit 0
 - 并**明确划出它没有证明的那一段**。
 
 **学习链需单独做**：在同一收据上继续走 知识接受 → 复习调度 → 作答 → 学习事件 → item state 回读（那正是 W06 已覆盖的接口）。
+
+## 29. W25/Q35 续：**历史学习链收据已因设计而失效**（2026-10-04）
+
+§28 我说「学习链要单独做」。本轮查清了**为什么不只是"没做"，而是"曾经做过又被明确收回"**。
+
+### 29.1 历史收据（taskpack-0910-r3）确实记过一次真实学习链
+
+`docs/authority/taskpack-0910-r3/EXECUTION.md:52`（R10d）记载的真实 Core 冒烟收据是：
+
+```
+reachability 200 -> import 202 -> search 200 (count 1)
+  -> learning_event POST /learning/events   -> 201
+  -> reference     POST /learning/items/card-smoke/references -> 201
+```
+
+即**当时那次实跑是走过学习事件与引用的**。
+
+### 29.2 但今天的 `run_journey` 已经**明确不再是学习旅程**
+
+`shared/core_client.py:132-148` 的文档字符串自己写着：
+
+```
+"""Probe reachability, source storage and existing search results only.
+
+Kept under its historical name for callers. This is not a cold-start learning
+journey: it neither parses the imported source nor proves that search hits
+derive from it. Never invent an answer or write learner progress. The legacy
+item/event arguments remain accepted for compatibility, but are unused.
+"""
+```
+
+**所以那条历史收据是"因设计而失效"的**：函数被有意收窄，参数保留只为兼容，**已经不再使用**。
+
+**全仓检索 `run_journey` 的调用者**：只有 `docs/` 与 `STATE.json` 里的记载，**没有任何现存代码调用它**。今天真实在跑的是 `run_conversion_journey`（§28 的收据）。
+
+这又是本项目那个反复出现的动作：**把一句过度的声明收回**，并在文档字符串里写清它现在到底做什么。
+
+### 29.3 Q35 的准确状态
+
+| 项 | 状态 |
+| --- | --- |
+| **转换链**（来源→转换→输出回读→检索） | ✅ **本轮真机跑通**（§28，exit 0） |
+| **学习链**（来源→讲解/练习→作答→反馈→学习记录回读） | ❌ **没有任何 live 端到端证据** |
+| 学习链的**接口** | ✅ 存在：`/learning/events`、`/learning/items/{id}/state`、`/learning/reviews`（W06 已钉幂等与投影） |
+| 驱动这些接口的**编排器** | ❌ 不存在。`core_client` 只有**请求构造器**（`learning_event_request` / `reference_request` / `review_request`），**没有把它们串起来的旅程** |
+
+**所以「有接口」不等于「有旅程」** —— 这两件事必须分开说，否则会把"接口齐备"读成"链路已验证"。
+
+**下一步（形状已定）**：写一个真正驱动学习链的探针 —— 起真实 Core → 造一条 accepted 知识 → `learning/events` → `learning/items/{id}/references` → 复习 → 读 `item state` 回执；**并明确它不做人类审校**（审校永远是人做的事，`run_journey` 的历史文档字符串早已把这条写成原则）。
