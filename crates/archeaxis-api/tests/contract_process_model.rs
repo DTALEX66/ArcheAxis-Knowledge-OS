@@ -12,7 +12,7 @@
 //! Every check here was first run against the binary on this host; all fourteen held.
 
 use std::{
-    io::{BufRead, BufReader, Write},
+    io::{BufRead, BufReader, Read, Write},
     net::{Ipv4Addr, SocketAddr, TcpListener, TcpStream},
     process::{Child, Command, Stdio},
     sync::mpsc,
@@ -79,6 +79,31 @@ fn handshake(child: &mut Owned, document: &str) -> String {
         .expect("bounded readiness")
 }
 
+/// The readiness line is a claim about a listener, so this checks the claim rather than the string.
+///
+/// The address it names must answer as this Core, carrying the session this launch was given. That
+/// is what makes the port real: a test that only compared the number it passed to the number
+/// printed would still pass if the child bound something else and echoed what it was told.
+fn identifies(address: &str, launch_token: &str, session: &str) -> bool {
+    let Ok(target) = address.parse::<SocketAddr>() else {
+        return false;
+    };
+    let Ok(mut stream) = TcpStream::connect_timeout(&target, Duration::from_secs(2)) else {
+        return false;
+    };
+    let request = format!(
+        "GET /api/v1/system/version HTTP/1.1\r\nHost: {address}\r\nx-archeaxis-launch-token: {launch_token}\r\nConnection: close\r\n\r\n"
+    );
+    if stream.write_all(request.as_bytes()).is_err() {
+        return false;
+    }
+    let mut response = String::new();
+    if stream.read_to_string(&mut response).is_err() {
+        return false;
+    }
+    response.contains("archeaxis-api") && response.contains(session)
+}
+
 fn port_of(line: &str) -> u16 {
     line.rsplit(':')
         .next()
@@ -93,10 +118,24 @@ fn port_of(line: &str) -> u16 {
 /// listens, and binding is refused with WSAEACCES (os error 10013) - so the launch under test
 /// exited before readiness and this test failed for a reason that has nothing to do with the
 /// port-selection contract it pins. Binding is the property the child actually needs.
+/// A port to express precedence with. Choosing one and then letting the child bind it leaves a
+/// window, and the probe cannot prove bindability - which is why every assertion below checks the
+/// listener the Core actually reported rather than trusting this number.
 fn free_port() -> u16 {
+    // Two calls used to return the same candidate, because the first bind is released before the
+    // second call looks. The precedence test then compared a number with itself and passed without
+    // checking anything - so a port handed out once is never handed out again in this process.
+    static ISSUED: std::sync::Mutex<Option<std::collections::HashSet<u16>>> =
+        std::sync::Mutex::new(None);
+    let mut guard = ISSUED.lock().unwrap();
+    let issued = guard.get_or_insert_with(std::collections::HashSet::new);
     for candidate in 49152..49252u16 {
+        if issued.contains(&candidate) {
+            continue;
+        }
         let address = SocketAddr::from((Ipv4Addr::LOCALHOST, candidate));
         if TcpListener::bind(address).is_ok() {
+            issued.insert(candidate);
             return candidate;
         }
     }
@@ -124,6 +163,12 @@ fn the_readiness_line_names_the_port_it_chose() {
     assert!(
         port_of(&line) > 0,
         "port 0 must yield a usable port: {line}"
+    );
+    // The number is not the point; this is. The address it named must be serving this Core, which
+    // is what lets the launch use port 0 instead of a port the test picked and hoped to keep.
+    assert!(
+        identifies(&format!("127.0.0.1:{}", port_of(&line)), TOKEN, SESSION),
+        "the readiness line must name a live listener for this session: {line}"
     );
 }
 
@@ -177,6 +222,14 @@ fn an_argv_port_wins_over_the_environment_and_the_environment_over_the_default()
         line.ends_with(&format!(":{chosen}")),
         "argv must win: {line}"
     );
+    assert!(
+        identifies(&format!("127.0.0.1:{chosen}"), TOKEN, SESSION),
+        "the argv port must be the live listener: {line}"
+    );
+    assert!(
+        !identifies(&format!("127.0.0.1:{other}"), TOKEN, SESSION),
+        "the environment port must not be serving when argv names one: {line}"
+    );
     drop(child);
 
     // and the environment is used when argv omits the port
@@ -190,6 +243,10 @@ fn an_argv_port_wins_over_the_environment_and_the_environment_over_the_default()
     assert!(
         line.ends_with(&format!(":{other}")),
         "ARCHAXIS_VNEXT_PORT must be used when argv omits the port: {line}"
+    );
+    assert!(
+        identifies(&format!("127.0.0.1:{other}"), TOKEN, SESSION),
+        "the environment port must be the live listener when argv omits one: {line}"
     );
 }
 
