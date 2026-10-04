@@ -95,3 +95,71 @@
 2. W02/W03：能力与 IA 对账 + 供体/知识库既有实现盘点（K0）。
 3. W04–W09：工程可靠性（单源 runtime manifest、启动输入、学习事件、真实 bind 0、进程捕获、缺失状态合同）。
 
+## 7. W02 能力与 IA 对账（批准集合 vs 当前菜单）
+
+**批准集合**：`docs/truth/CAPABILITY_ATLAS_V2.yaml`（schema 2.0，updated 2026-08-12；状态规则 `docs/truth/AUTHORITY_AND_STATUS_RULES_V1.md`；tombstone 规则要求删除/降级/改名/合并须 Owner Decision）。共 **16 项**：CAP-0010…CAP-0160。
+
+**当前桌面入口**：`MainWindow.axaml` 实测 **17 个 rail 按钮**：Workspace、Capture、Evidence、Originals、Learning、Machine、WorkspaceTree、MemoryMap、Search、Review、Knowledge、Reader、Research、Jobs、Plugins、Models、System（另有等量 Mobile 镜像）。
+
+| capability | 名称 | 当前入口 | 判定 |
+| --- | --- | --- | --- |
+| CAP-0010 | 原件资产与来源接入 | Workspace / Capture / Originals | 有入口 |
+| CAP-0020 | 多格式转换 | Capture / Jobs | 有入口 |
+| CAP-0030 | 证据锚定与交叉核验 | Evidence | 有入口（交叉核验未在菜单体现） |
+| CAP-0040 | 人类深度学习系统 | Learning / Review | 有入口 |
+| CAP-0050 | AI 学习资产与受控调用 | Machine | 部分 |
+| CAP-0060 | LER 视觉教学与课件 | 仅学习页内「课件候选」 | **部分（无独立入口）** |
+| CAP-0070 | 动态解释与仿真 | — | **MISSING（无入口）** |
+| CAP-0080 | 空间记忆与沉浸学习 | MemoryMap（静态示意图） | **部分（仅为示意图）** |
+| CAP-0090 | 研究、课程与项目工作空间 | Research / WorkspaceTree | 有入口 |
+| CAP-0100 | 开放互操作与生态适配器 | Plugins（未对应）；有策略文档 | **部分（无对应入口）** |
+| CAP-0110 | 搜索、图谱与索引 | Search / MemoryMap | 有入口 |
+| CAP-0120 | 桌面、平台与可选协作 | System | 有入口 |
+| CAP-0130 | 受限受控执行探索 | — | **MISSING（无入口）** |
+| CAP-0140 | 备份、同步与发布 | System / Recovery | 部分 |
+| CAP-0150 | 模型、Provider 与数据出境治理 | Models | 有入口 |
+| CAP-0160 | 可视化与空间学习表征 | MemoryMap / 图谱 | 部分 |
+
+**W02 结论**：
+
+1. **有 2 项批准能力在界面上完全没有入口**：CAP-0070 动态解释与仿真、CAP-0130 受限受控执行探索。按 U09「现有及未来能力都要可发现」，这两项必须在 W12 有正式入口与详情页（**可折叠、不得灰色死按钮**）。
+2. **另有 5 项只有部分体现**（CAP-0060/0080/0100/0140/0160）。
+3. **不以 seed 充全史**：本次只做 atlas↔菜单映射，**未新增、未删除、未改名任何能力**；任何变更须走 tombstone 规则的 Owner Decision。
+
+## 8. W03 K0 供体与知识库既有实现盘点（复用优先）
+
+**已有代码（先复用，不要重建）**：
+
+| 类别 | 已存在 |
+| --- | --- |
+| Rust 领域 | `crates/archeaxis-domain/src/vault.rs`、`vault_members.rs` |
+| Rust 迁移 | `crates/archeaxis-migration/`（含 `legacy_dryrun` 示例、`migration_dry_run`、`legacy_nonempty_migration`、`stage_demo` 测试） |
+| Rust 契约测试 | `crates/archeaxis-api/tests/contract_vault_links.rs`、`contract_vault_members.rs`、`import_origins.rs` |
+| **Obsidian 往返** | **`crates/archeaxis-archive/tests/obsidian_vault_roundtrip.rs` + 固定装置 `tests/fixtures/obsidian-vault/`**（`notes/atomic.md`、`notes/index.md`、`vault.canvas`、`attachments/diagram.png`、`PROVENANCE.txt`） |
+| Python（legacy `app/`） | `app/exchange/export.py`、`exchange/backup.py`、`ingestion/import_job.py`、`evidence/hl01_import.py`、`knowledge/vault_projection.py`、`workspace/vault.py`、`workspace/migrate.py` |
+| 策略文档 | `docs/architecture/OPEN_INTEROP_AND_ADAPTER_POLICY_V1.md`、`docs/MIGRATION_OPERATOR.md`、`docs/ABSORPTION_OBSIDIAN_ASSISTANCE_2026-07-13.md` |
+
+**四态分类（任务包要求「参考/代码/可用/往返」分开）**：
+
+| 态 | 结论 |
+| --- | --- |
+| 参考 | 有（interop 策略、迁移操作手册、吸收记录） |
+| 代码 | **有**（上表全部为已跟踪文件） |
+| 可用 | **NOT_RUN** —— 本轮未执行，不声称可用 |
+| 往返 | **代码与固定装置存在，但本轮 NOT_RUN** —— 不得据此声称已验收 |
+
+**W03 结论**：**W22（Markdown/Obsidian 首个双向 profile）已有可观既有基础**，必须**先复用 vault/roundtrip/迁移三处**再谈新增；K1 的交换合同应**扩展现有 `packages/contracts/v1/`**，不另起一套。
+
+## 9. G0 状态（E0 退出条件）
+
+| 工作项 | 状态 | 证据 |
+| --- | --- | --- |
+| W00 真实根/HEAD/工作树/唯一写者 | **完成** | 本回执 §1、§1.1 |
+| W01 有效 Authority 与本轮 delta | **完成** | 本回执 §3 |
+| W02 能力与 IA 对账 | **完成（发现 2 项无入口 + 5 项部分）** | 本回执 §7 |
+| W03 供体/知识库既有实现盘点 K0 | **完成（四态已分；可用与往返为 NOT_RUN）** | 本回执 §8 |
+| W35 雷达专项状态与范围确认 | **PENDING** | 未开始 |
+
+G0 尚未闭合的部分：W35 未做；且 atlas 与 Authority 的一致性建议由 Hermes 侧独立复核（任务包建议分工），本回执行器不自签。
+
+
