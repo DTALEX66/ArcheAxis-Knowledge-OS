@@ -65,11 +65,14 @@ def test_the_search_body_shape_used_is_the_documented_one(receipt):
     assert kinds == {"temp-work", "fixture-vault"}
 
 
-def test_search_is_not_reported_as_working(receipt):
-    """Measured on 2026-10-04: one attempt failed with a server error, the other timed out.
+def test_no_claim_is_made_about_whether_search_works(receipt):
+    """Deliberately does not pin an outcome, because the outcome is machine-dependent.
 
-    Recorded so that neither can later be described as a passing search. If search starts answering,
-    this test fails and the new outcome is recorded on purpose.
+    Locally both attempts failed - one with a server error, one by timing out - while CI answered 200
+    for both. That difference is why this asserts only that an outcome was recorded. An earlier
+    version of this test pinned the local failure as if it were a product fact and CI correctly
+    rejected it. What is pinned elsewhere in this file is the empty capability list, and that is
+    pinned because it comes from a literal in the source rather than from one machine's behaviour.
     """
-    statuses = [attempt.get("status") for attempt in receipt["searches"]]
-    assert 200 not in statuses
+    for attempt in receipt["searches"]:
+        assert "status" in attempt
