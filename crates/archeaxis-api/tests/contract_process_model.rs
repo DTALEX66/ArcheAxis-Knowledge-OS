@@ -31,15 +31,72 @@ impl Drop for Owned {
     }
 }
 
-fn launch_document(machine: &str) -> String {
+/// The same document with a caller-chosen launch token, so a restart can carry a new one.
+fn launch_document_with(launch_token: &str, machine: &str) -> String {
     serde_json::json!({
-        "launch_token": TOKEN,
+        "launch_token": launch_token,
         "machine_token": machine,
         "session_id": SESSION,
         "actor": "human",
         "protocol": "archeaxis.desktop-launch/v2"
     })
     .to_string()
+}
+
+/// One request against a spawned Core: the status code and the raw response.
+///
+/// Raw rather than a client, because the point is to speak to whatever is really listening on the
+/// port the readiness line named - the same reason `identifies` connects instead of trusting it.
+fn request(
+    address: &str,
+    method: &str,
+    path: &str,
+    launch_token: &str,
+    body: &str,
+) -> (u16, String) {
+    let Ok(target) = address.parse::<SocketAddr>() else {
+        return (0, String::new());
+    };
+    let Ok(mut stream) = TcpStream::connect_timeout(&target, Duration::from_secs(3)) else {
+        return (0, String::new());
+    };
+    let mut text = format!(
+        "{method} {path} HTTP/1.1\r\nHost: {address}\r\nx-archeaxis-launch-token: {launch_token}\r\nConnection: close\r\n"
+    );
+    if !body.is_empty() {
+        text.push_str(&format!(
+            "content-type: application/json\r\ncontent-length: {}\r\n",
+            body.len()
+        ));
+    }
+    text.push_str("\r\n");
+    text.push_str(body);
+    if stream.write_all(text.as_bytes()).is_err() {
+        return (0, String::new());
+    }
+    let mut response = String::new();
+    if stream.read_to_string(&mut response).is_err() {
+        return (0, String::new());
+    }
+    let status = response
+        .split_whitespace()
+        .nth(1)
+        .and_then(|code| code.parse().ok())
+        .unwrap_or(0);
+    (status, response)
+}
+
+/// The value of a top-level string field, found without decoding chunks or content lengths.
+fn string_field(response: &str, name: &str) -> Option<String> {
+    let needle = format!("\"{name}\":\"");
+    let start = response.find(&needle)? + needle.len();
+    let rest = &response[start..];
+    let end = rest.find('"')?;
+    Some(rest[..end].to_string())
+}
+
+fn launch_document(machine: &str) -> String {
+    launch_document_with(TOKEN, machine)
 }
 
 fn spawn(dir: &std::path::Path, args: &[&str], env_port: Option<&str>) -> Owned {
@@ -121,6 +178,88 @@ fn port_of(line: &str) -> u16 {
 /// A port to express precedence with. Choosing one and then letting the child bind it leaves a
 /// window, and the probe cannot prove bindability - which is why every assertion below checks the
 /// listener the Core actually reported rather than trusting this number.
+/// A cold start is a new process holding a new token over the workspace the last one left behind.
+///
+/// W18/Q24 asks for four things and each is asserted separately: a new process, a new token, the
+/// old token no longer accepted - so nothing is answering for the process that stopped - and the
+/// data still readable. The last one is what makes this a restart rather than a fresh workspace,
+/// so the row is written through the Core's own route before the first process is stopped.
+#[test]
+fn a_cold_start_is_a_new_process_with_a_new_token_over_the_same_workspace() {
+    const SECOND: &str = "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd";
+    const SECOND_MACHINE: &str = "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee";
+
+    let dir = tempfile::tempdir().unwrap();
+    let db = dir.path().join("cold.sqlite");
+    let db = db.to_str().unwrap().to_string();
+
+    let (first_pid, first_address, item) = {
+        let mut first = spawn(dir.path(), &[&db, "0"], None);
+        let line = handshake(&mut first, &launch_document(MACHINE));
+        let address = format!("127.0.0.1:{}", port_of(&line));
+        assert!(identifies(&address, TOKEN, SESSION), "first launch: {line}");
+
+        let (status, body) = request(
+            &address,
+            "POST",
+            "/api/v1/knowledge-items",
+            TOKEN,
+            r#"{"knowledge_type":"FACTUAL_CLAIM","body":"survives a restart","status":"candidate","created_by":"python-worker"}"#,
+        );
+        assert_eq!(status, 201, "the first process must record the row: {body}");
+        let id = string_field(&body, "knowledge_id").expect("a created item names itself");
+        let (status, read) = request(
+            &address,
+            "GET",
+            &format!("/api/v1/knowledge-items/{id}/v3"),
+            TOKEN,
+            "",
+        );
+        assert_eq!(
+            status, 200,
+            "the row must be readable before the restart: {read}"
+        );
+        assert!(
+            read.contains("survives a restart"),
+            "the read must be the row that was written: {read}"
+        );
+        (first.0.id(), address, id)
+    };
+
+    // The first process is gone by here; anything still answering on its port would be an
+    // instance outliving the launch that owned it.
+    assert!(
+        !identifies(&first_address, TOKEN, SESSION),
+        "the stopped process must not still be answering"
+    );
+
+    let mut second = spawn(dir.path(), &[&db, "0"], None);
+    let line = handshake(&mut second, &launch_document_with(SECOND, SECOND_MACHINE));
+    let second_address = format!("127.0.0.1:{}", port_of(&line));
+
+    assert_ne!(
+        second.0.id(),
+        first_pid,
+        "a cold start is a different process"
+    );
+    assert!(
+        identifies(&second_address, SECOND, SESSION),
+        "the new process must answer for the new token: {line}"
+    );
+    let item_path = format!("/api/v1/knowledge-items/{item}/v3");
+    let (status, _) = request(&second_address, "GET", &item_path, TOKEN, "");
+    assert_eq!(
+        status, 401,
+        "the previous launch token must not be accepted by the new process"
+    );
+    let (status, body) = request(&second_address, "GET", &item_path, SECOND, "");
+    assert_eq!(status, 200, "the new token must read the workspace: {body}");
+    assert!(
+        body.contains("survives a restart"),
+        "the row written before the restart must still be there: {body}"
+    );
+}
+
 fn free_port() -> u16 {
     // Two calls used to return the same candidate, because the first bind is released before the
     // second call looks. The precedence test then compared a number with itself and passed without
