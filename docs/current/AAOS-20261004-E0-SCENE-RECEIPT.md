@@ -1184,3 +1184,49 @@ shell.Environment("PROCESS")("ARCHEAXIS_PYTHON")   = root & "\runtime\python.exe
 **病根**：组装把**已暂存运行时**整个放进 `<root>\runtime\`，而那份暂存运行时**自身内部还有一层 `runtime\`** 放着解释器 —— 于是解释器落在 `<root>\runtime\runtime\python.exe`，而启动器期望 `<root>\runtime\python.exe`。
 
 **边界（不声称的部分）**：我**没有运行该启动器**。这是**路径解析层面**的判定（`Test-Path` 对同一 `root` 基准下的三条路径给出 2 True / 1 False），**不是运行期观察到的失败**。要说"启动必定失败"还需要实跑一次。
+
+## 41. **撤回 §40**：那不是缺陷，是我传错了参数（2026-10-04）
+
+**§40 登记的「候选启动器 `ARCHEAXIS_PYTHON` 指向不存在的解释器」是错的。本节撤回它。**
+
+### 41.1 我错在哪
+
+暂存器的输出目录长这样：
+
+```
+backend-runtime-q04\            <-- 我传给了 --runtime
+    runtime\python.exe           <-- 解释器在这（真正的运行时根）
+    core\  shared\  workers\  start-backend.cmd  ...
+```
+
+**真正的运行时根是 `<staged>\runtime`，而我传的是 `<staged>`。** 组装器把传入目录的**内容**铺到 `<root>\runtime\` 下 —— 传错一层，解释器就落深一层。
+
+### 41.2 决定性实验
+
+改用 `--runtime <staged>\runtime` 重新组装：
+
+```
+candidate runtime\python.exe          -> True
+candidate runtime\runtime\python.exe  -> False
+```
+
+**启动器与组装器都是对的**（`worker-profile.json` 里的 `"python": "runtime/python.exe"` 也是对的）。**错的只有我的调用。**
+
+### 41.3 为什么我的"对照组"没有拦住我
+
+§40 我用对照组证明 `root` = 候选根：`core\archeaxis-api.exe` 与 `desktop\ArcheAxis.Desktop.exe` 都存在、唯独 `runtime\python.exe` 不存在。
+
+**对照组是有效的，但它证明的是"我对这个产物的读法没错"，而不是"我把这个产物造对了"。**
+
+> **我拿一个自己造错的候选，去证明启动器写错了路径。**
+
+这是本会话**第四次**因路径产生错误结论 —— 但前三次我都在写入收据前拦住了，**这一次我已经把它作为"真实缺陷"提交并推送了**。所以必须显式撤回。
+
+### 41.4 有效的部分仍然有效
+
+- **Q04 的解析结论不受影响**：13/13 能力在候选内解析成功（那份候选的 workers 目录是对的，传错的是 runtime）；
+- `runtime\python.exe` 这一层判据本身没错，错的是**基准候选**。
+
+### 41.5 新增的纪律
+
+**对照组的有效性，取决于被测产物本身是不是按正确方式产生的。** 以后凡是用一个**我自己组装的产物**去证明"产物有问题"，必须先确认**组装调用本身**符合该工具的参数契约（读它给出的文档字符串/清单，而不是凭目录长相推断）。
