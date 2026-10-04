@@ -1259,3 +1259,30 @@ profile declares python as: runtime/python.exe
 ### 42.2 仍未做的
 
 **没有启动这个候选。** 静态一致 ≠ 能跑起来。Q04 的第二半（逐能力真实调用）与"启动候选并观察后端就绪"都**仍未做**，如实登记。
+
+## 43. 正确组装的候选：**真的跑起来了**（2026-10-04）
+
+§42 我写明「静态一致 ≠ 能跑起来」「没有启动这个候选」。本轮启动了 —— **用候选自己的核心、自己的解释器、自己的 workers 路径**：
+
+```
+candidate root: ArcheAxis.Knowledge.Green-v0.0.0-q04c-x64
+core: True | python: True | transport: True
+readiness line names port: 50389
+GET  /system/version          -> 200
+POST /knowledge-items         -> 201
+GET  /knowledge-items/{id}/v3 -> 200 | body carries the text: True
+RESULT: assembled candidate core reached readiness and answered
+EXIT=0
+```
+
+**含义**：这是一个**组装产物**（不是源码树）在跑 —— 它启动、绑定端口、用 launch token 认证、走自己的写入路径落一条数据、再读回来，**用的全是候选内部的 `core\`、`runtime\`、`workers\`**。
+
+### 43.1 它同时彻底洗清了 §40 的错误指控
+
+§40 我断言"候选的解释器路径是坏的"。本轮证明**恰恰相反**：候选内的 `runtime\python.exe` 与 `workers\transport\text_ndjson.py` **都真实可用并被真实使用**。
+
+### 43.2 **不声称**的部分
+
+- **没有调用任何 worker 能力** —— 本轮只走了知识路由，`workers\document\*` 等**一次都没执行**；所以 Q04 的"逐能力真实调用"半**仍未做**；
+- **没有启动桌面**（`启动绿色候选.vbs` 会拉桌面 + 核心）；本轮只起核心；
+- **没有长期运行**：起→就绪→三步请求→杀进程，是短程冒烟，不是稳定性验证。
