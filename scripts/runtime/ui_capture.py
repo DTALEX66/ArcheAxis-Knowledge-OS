@@ -76,15 +76,25 @@ def drain(stream, sink: list[str]) -> threading.Thread:
 
 
 def running_pids(image_name: str) -> set[int]:
-    """PIDs whose executable image is `image_name`; empty where the host cannot say."""
+    """PIDs whose executable image is `image_name`; empty when the host will not say.
+
+    Best effort on purpose. This is a diagnostic, and `tasklist` writes in the console codepage,
+    whose bytes are not always decodable as UTF-8 - decoding it as text raised UnicodeDecodeError
+    and failed the capture it was only trying to describe. An unreadable answer is reported as
+    "cannot say" rather than raised, so listing processes can never break a run.
+    """
     if os.name != "nt":
         return set()
-    result = subprocess.run(
-        ["tasklist", "/FI", f"IMAGENAME eq {image_name}", "/FO", "CSV", "/NH"],
-        capture_output=True, text=True, check=False,
-    )
+    try:
+        result = subprocess.run(
+            ["tasklist", "/FI", f"IMAGENAME eq {image_name}", "/FO", "CSV", "/NH"],
+            capture_output=True, check=False,
+        )
+    except OSError:
+        return set()
+    output = result.stdout.decode("utf-8", "replace")
     pids: set[int] = set()
-    for line in result.stdout.splitlines():
+    for line in output.splitlines():
         fields = [part.strip().strip('"') for part in line.split(",")]
         if len(fields) >= 2 and fields[0].lower() == image_name.lower():
             try:
