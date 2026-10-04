@@ -1308,3 +1308,38 @@ EXIT=0
 - `knowledge_count: 0` 且旅程自报 `scope: real_conversion_probe` —— **它不声称闭环**，我也不；
 - `search 200` 只说明路由可达，**不代表有命中**（未断言 count）；
 - **13 个能力里只跑了 1 个**，且是哪一类还需逐项确认。**Q04 的"逐能力"半只完成了第一例。**
+
+## 45. 多能力扫描：**六项全失败，但不归因于能力**（2026-10-04）
+
+本轮想一次推进 Q04 的逐能力半，用真实夹具跑了六种 kind：
+
+```
+note.md      kind=text     ok=false  failed_step=search_results  output_status=readable
+page.html    kind=html     ok=false  failed_step=job_status      output_status=null
+document.pdf kind=pdf      ok=false  failed_step=job_status      output_status=null
+picture.png  kind=image    ok=false  failed_step=job_status      output_status=null
+board.canvas kind=canvas   ok=false  failed_step=job_status      output_status=null
+package.zip  kind=archive  ok=false  failed_step=job_status      output_status=null
+```
+
+### 45.1 为什么**不能**把它写成"六个能力失败"
+
+我的启动声明里**只注册了一个文本 worker**：
+
+```python
+{"launch_token": ..., "session_id": ..., "text_worker": {...}}
+```
+
+而**候选自己带着 `worker-profile.json`，里面列着各能力的 worker**。我只交了 `text_worker`，**非文本 kind 根本没有 worker 可跑** —— `job_status` 卡住是**必然**，不是能力坏了。
+
+**这与 §49 是同一类错误：我的调用不符合产物的用法，然后产物看起来坏了。** 上一轮我刚刚因为同类问题撤回了一个已发布的"缺陷"。
+
+### 45.2 顺带一处**未解释**的异常
+
+`note.md` 在**单独跑**（§44）时成功，这次却停在 `search_results`。我**不解释**它 —— 最可能是同一次进程里连跑六单带来的状态差异，但我没有验证，所以不写结论。
+
+### 45.3 结论
+
+**Q04 的逐能力半仍然是 1/13**（只有 §44 那一次文本路线成功，而且我连它的 capability id 都没核实）。**本轮没有增加任何能力证据。**
+
+**下一步的确切形状**：启动声明必须**取自候选自己的 `worker-profile.json`**，让每个能力都有 worker，再逐 kind 跑。在此之前跑出来的失败**都不能算能力的账**。
