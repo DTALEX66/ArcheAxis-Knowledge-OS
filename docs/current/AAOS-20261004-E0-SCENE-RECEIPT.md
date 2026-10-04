@@ -1230,3 +1230,32 @@ candidate runtime\runtime\python.exe  -> False
 ### 41.5 新增的纪律
 
 **对照组的有效性，取决于被测产物本身是不是按正确方式产生的。** 以后凡是用一个**我自己组装的产物**去证明"产物有问题"，必须先确认**组装调用本身**符合该工具的参数契约（读它给出的文档字符串/清单，而不是凭目录长相推断）。
+
+## 42. 正确组装的候选：**静态一致**（2026-10-04）
+
+§41 用 `--runtime <staged>\runtime` 组出了正确的候选 `candidate-q04c`。本轮核它的静态一致性：
+
+```
+candidate root: ArcheAxis.Knowledge.Green-v0.0.0-q04c-x64
+capabilities declared: 13 | workers resolved: 13
+profile declares python as: runtime/python.exe
+  -> resolves inside the candidate: True | runtime\python.exe
+```
+
+**三方互相印证**：清单声明的 13 个能力 → 候选 `workers\` 下 13/13；`worker-profile.json` 声明的 `runtime/python.exe` → 在候选内**确实解析得到**；启动器 `启动绿色候选.vbs` 与 `core\  desktop\` 都在。
+
+### 42.1 一个不是缺陷的不对称（并说明我为什么先查再写）
+
+`start-backend.cmd` / `start-backend.py` 在候选里**找不到**。我先查了再下结论：
+
+- 它们**属于暂存器的输出根**（`<staged>\`），**不属于运行时根**（`<staged>\runtime\`）；
+- 正确传参时，组装器只把**运行时根的内容**铺进 `<root>\runtime\`，所以这两个文件**本就不该出现**；
+- 候选自己的启动器是 `启动绿色候选.vbs`，**后端启动由它承担**。
+
+它们出现在 §49 的 q04b 里，**恰恰是因为我当时把整个暂存根传了进去** —— 这反过来**再次印证 §41 的撤回是对的**。
+
+**这是本会话第五次"路径看起来不对"。前四次里三次我拦住了、一次我发布后撤回；这一次查完发现根本不是问题。**
+
+### 42.2 仍未做的
+
+**没有启动这个候选。** 静态一致 ≠ 能跑起来。Q04 的第二半（逐能力真实调用）与"启动候选并观察后端就绪"都**仍未做**，如实登记。
