@@ -989,3 +989,42 @@ not_carried: ["deck_options: ...", "deck_names: ..."]
 - **我没有把 `worktree_state` 洗成 "clean"** —— 它当时确实不干净，如实写下来。
 
 **这是一个结构性事实，不是隐瞒**：收据不可能在自己被提交前知道自己所在的提交哈希。
+
+## 36. W32/Q41：回执与**真实提交**一一对应（2026-10-04）
+
+新增 `tests/test_live_chain_receipt_matches_a_real_commit.py`（6 条），把 45 轮的持久收据**钉到真实历史上**：
+
+| 断言 | 意义 |
+| --- | --- |
+| `schema` / `commit` / `tree` 长度、`worktree_state` 存在 | 收据必须自陈它是哪一次运行 |
+| `commit` **确实存在于本仓库**，且记录的 `tree` **就是该提交的 tree** | 名字对不上树 = 证据没有到达状态 |
+| `commit` 必须是 `HEAD` 的**祖先** | **来自没人能到达的分支的证据，不是这条工作线的证据** |
+| 两条链 `ok`、`failed_step` 为空、`scope` 不变、**每步均 2xx** | 状态与步骤逐条对应 |
+| 转换链仍 `closed_loop_verified is False`；学习链仍 `not_covered == ["human knowledge review"]` | 两条"不认领"的声明必须保持 |
+
+### 36.1 反例：第一次**没有真正跑起来** —— 这比没有反例更糟
+
+第一次反例我用**相对路径**改写收据，PowerShell 把它解析到了**根仓库**，于是：
+
+```
+[System.IO.File]::ReadAllText($p)  ->  未能找到路径 ...\ArcheAxis-Knowledge-OS\docs\...
+```
+
+**文件从未被改动**，而那一次门禁报的是 `6 passed` —— 也就是**未改动文件的通过**。
+
+**如果我就此写"门禁已被证明会失败"，那会是一次纯粹的编造。** 我看到了 stderr 才没这么写。
+
+> **一个没有真正运行的反例，比没有反例更糟 —— 它会制造信心。**
+
+### 36.2 用绝对路径重做（真正跑起来了）
+
+```
+content changed by patch: True
+FAILED ...::test_the_receipt_declares_its_schema_and_the_commit_it_ran_against
+FAILED ...::test_the_named_commit_exists_and_its_tree_is_the_recorded_tree
+2 failed, 4 passed
+==== RESTORE ====
+tree restored, CLEAN    ->    6 passed
+```
+
+失败**精确落在应守的两条上**（schema/tree 长度、tree 与提交不符），其余四条不受影响。
