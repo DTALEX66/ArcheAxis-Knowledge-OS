@@ -33,7 +33,7 @@ vec![("text.extract".to_string(), default_worker.to_owned(), false)]
 ## 3. 因此 worker 该在哪里看
 
 **在 `text.extract` 那条路上** —— 即**导入 / 提取**（`/api/v1/imports` → `/api/v1/jobs`），
-而不是 machance answer。**下一轮改走那条路。**
+而不是 machine answer。**下一轮改走那条路。**
 
 （我上一轮说「先造知识项再问」是**对的方向、错的路**：知识项确实需要，但那条路由本身没有 worker。）
 
