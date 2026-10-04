@@ -1629,6 +1629,14 @@ public partial class MainWindow : Window
         ReviewQueueEmptyDescription.Text = _reviewQueueLoadedFromCore
             ? "Core 已返回空队列；有新的待复习项目后会显示在这里。"
             : "载入 Core 今日队列后，这里会显示待复习卡片。";
+        // This line used to be a static default no code ever changed, so the page said the queue
+        // had not been read while the queue sat on screen underneath it. It now reports the same
+        // state the empty title does, and counts what is actually listed.
+        ReviewPageStatusText.Text = !_reviewQueueLoadedFromCore
+            ? "尚未读取 Core 复习队列。"
+            : hasItems
+                ? $"已读取 Core 复习队列：{ReviewQueueList.Items.Count} 项。"
+                : "Core 已响应；当前没有待复习项。";
     }
 
     private void OnReviewPageOutcomeChanged(object? sender, SelectionChangedEventArgs e)
