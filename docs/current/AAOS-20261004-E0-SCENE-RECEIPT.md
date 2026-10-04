@@ -934,3 +934,26 @@ tree restored, CLEAN
 反例只在工作区临时施加，随后 `git checkout` 复原 —— **仓库中没有任何残留改动**。
 
 这与 §32 那条缺口的区别很关键：**"我认为它会失败"和"我看见它失败"是两回事**，而我上一轮只做到了前者。
+
+## 34. W26/Q36 补：Anki 读取器**声明它没承载什么**（2026-10-04）
+
+§31 的读取器已带出笔记类型、字段、排程与依据来源，但**没有带出牌组与选项组**（学习步长、间隔、难度系数），而且**没有说**。
+
+一个被导入的单元因此会被读成「源知道的就这些」。已补：
+
+```python
+"not_carried": [
+    "deck_options: the learning steps, intervals and ease the collection scheduled with",
+    "deck_names: the deck an item belonged to",
+]
+```
+
+与 §26.1（Q37 源侧上下文）、§27.1（Q33 未承载的数据库特性）**同一手法**：**把空白变成声明为空白**。
+
+实测（含第 36 轮纪律）：
+
+```
+module: ...worktrees\dsh-backend-loop-20261001\shared\compat\import_session.py
+not_carried: ["deck_options: ...", "deck_names: ..."]
+20 passed, 1 skipped
+```

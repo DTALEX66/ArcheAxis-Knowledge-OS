@@ -92,6 +92,12 @@ def read_anki_package(path: str | Path) -> list[dict[str, object]]:
                 "cards": cards.get(note_id, []),
                 "scheduling_origin": "imported_from_source",
                 "authority_effect": "candidate_or_measurement_only",
+                # What the collection holds that this reader does not carry, declared so an
+                # imported unit cannot be read as the whole of what the source knew.
+                "not_carried": [
+                    "deck_options: the learning steps, intervals and ease the collection scheduled with",
+                    "deck_names: the deck an item belonged to",
+                ],
             })
         return units
     finally:

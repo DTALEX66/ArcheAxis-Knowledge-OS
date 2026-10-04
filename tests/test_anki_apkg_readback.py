@@ -93,3 +93,11 @@ def test_the_reader_adds_no_new_sqlite_owner() -> None:
     assert 'shared/compat/import_session.py' in owners, 'the reader lives behind a sanctioned owner'
     assert 'app/adapters/anki_zotero.py' not in owners, (
         'an adapter must not open a database; the reader belongs in the compatibility kernel')
+
+
+def test_the_reader_declares_what_it_does_not_carry() -> None:
+    '''An imported unit must not read as the whole of what the source collection knew.'''
+    unit = read_anki_package(FIXTURE)[0]
+    not_carried = ' '.join(unit['not_carried'])
+    assert 'deck_options' in not_carried, unit
+    assert 'deck_names' in not_carried, unit
