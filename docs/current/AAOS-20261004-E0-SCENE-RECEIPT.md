@@ -881,3 +881,21 @@ state_keys:       ["item_key","learner","machine"]
 | 转换链（来源→转换→输出回读→检索） | ✅ §28 真机，exit 0 |
 | **学习链（来源→题面/依据→作答→反馈→状态回读）** | ✅ **本节真机，exit 0** |
 | 人类审校 | ❌ **不在任何旅程内，且不应在** |
+
+## 32. 把两条实跑探针纳入门禁（2026-10-04）
+
+§28 与 §31 的两条链是**手工驱动**的。手工证据有个隐患：**Core 一旦回归，探针会静默失效，而收据仍写着通过** —— 与我在 §19 承认过的「把 CI 的验证当成我自己的」是同一类问题，只是方向相反。
+
+新增 `tests/test_live_chain_probes.py`（2 条），把两条探针**按原样跑起来**并断言它们**实际输出的收据**：
+
+| 断言 | 意义 |
+| --- | --- |
+| `ok is True` 且 `failed_step is None` | 每一步都真的成功 |
+| 转换探针 `scope == "real_conversion_probe"` 且 **`closed_loop_verified is False`** | **它必须继续拒绝认领闭环** —— 若哪天变了，收据必须被重读 |
+| 学习探针 7 步齐全且状态均 2xx | reachability / accepted_fact / learning_event / reference / assessment / answer / item_state |
+| `next_review`、`mastery_projection` 在 `answer_keys`；`question` 在 `assessment_keys` | 反馈与题面是**读到的**，不是猜的 |
+| **`not_covered == ["human knowledge review"]`** | 人类审校**永远不得**进入旅程 |
+
+**没有内建 Core 的检出会 skip**（并写明理由）—— **跳过的探针是诚实的，编造的通过不是**。
+
+本轮**未对这条门禁本身做反例验证**（即未故意破坏探针确认它会失败）。如实记录，不声称做过。它的断言取自真实输出中已观察到的具体值（步骤名、状态码、键名、`not_covered`），不是我构造的常量。
