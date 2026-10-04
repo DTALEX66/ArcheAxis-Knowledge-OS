@@ -123,6 +123,28 @@ def run() -> dict:
             receipt["candidates_status"] = None
             receipt["candidates_error"] = f"{type(error).__name__}: {error}"[:240]
 
+        # The learning surface the boundary exposes is read-only here: what the product reports about
+        # learning state. The human review decision lives on the Core route, which the authority index
+        # marks human-only, so nothing in this probe posts a review.
+        learning_route = "workspace/api/learning"
+        try:
+            request = urllib.request.Request(base + learning_route, method="GET")
+            with urllib.request.urlopen(request, timeout=30) as response:
+                learning = json.loads(response.read().decode("utf-8"))
+                receipt["learning_status"] = response.status
+                receipt["learning_keys"] = (sorted(learning.keys())
+                                           if isinstance(learning, dict) else None)
+                receipt["learning_payload"] = json.dumps(learning, ensure_ascii=False)[:400]
+        except urllib.error.HTTPError as error:
+            receipt["learning_status"] = error.code
+            try:
+                receipt["learning_error"] = error.read().decode("utf-8", "replace")[:240]
+            except Exception as read_error:
+                receipt["learning_error"] = f"<unreadable: {type(read_error).__name__}>"
+        except Exception as error:
+            receipt["learning_status"] = None
+            receipt["learning_error"] = f"{type(error).__name__}: {error}"[:240]
+
         receipt["ok"] = True
     finally:
         app.kill()

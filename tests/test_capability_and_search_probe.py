@@ -65,6 +65,24 @@ def test_the_search_body_shape_used_is_the_documented_one(receipt):
     assert kinds == {"purpose-built-vault", "fixture-vault"}
 
 
+def test_the_learning_surface_answers_read_only(receipt):
+    """Read-only, and the receipt records its shape."""
+    assert receipt["learning_status"] is not None
+    if receipt["learning_status"] == 200:
+        assert receipt["learning_keys"] is not None
+
+
+def test_no_review_was_posted_and_no_human_is_claimed(receipt):
+    """The human review decision lives on a Core route the authority index marks human-only.
+
+    This asserts that nothing in the receipt records a claim to have made one, so a review cannot
+    appear to have happened by a probe running.
+    """
+    payload = (receipt.get("learning_payload") or "") + (receipt.get("candidates_payload") or "")
+    for forbidden in ("reviewer", "approved_by", "human_review"):
+        assert forbidden not in payload
+
+
 def test_the_candidate_listing_answers_without_any_identity(receipt):
     """Read-only, and the receipt records what it returned."""
     assert receipt["candidates_status"] is not None
