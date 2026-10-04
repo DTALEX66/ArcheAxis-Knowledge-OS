@@ -666,3 +666,41 @@ source_context TEXT NOT NULL DEFAULT 'acl,comments,history:not_recorded'
 ```
 
 含义：兼容层读取源文件时**没有**采集"谁能看、带了什么评论、有什么修订历史"，这一边界现在**被写下来是"声明为未记录"**，而不是留白。列默认值承担它，所以**没有插入语句需要记得说这件事** —— 让"忘记声明"在结构上不可能。
+
+## 27. W23/Q33 核对（复杂数据库）+ 一处「未承载」的显式声明（2026-10-04）
+
+校准有效。**五个方面里的三个已有实现**：
+
+| 方面 | 状态 | 证据 |
+| --- | --- | --- |
+| **视图** | ✅ | `shared/collection_views.py` —— table / board / calendar / gallery / list |
+| **公式** | ✅ | `app/ingestion/xlsx_adapter.py:35-39` —— 公式单元格**保留公式文本**并标 `is_formula`、带稳定锚点（**不假装求出了值**） |
+| **汇总 rollup** | ✅ | `shared/collection_views.py:180` `aggregate()` |
+
+| 方面 | 状态 |
+| --- | --- |
+| **属性类型** | ❌ **未建模** —— `_render_table(items, columns)` 里的 column 是 dict 的键，**不是有类型的属性** |
+| **关系 relation** | ❌ **未建模** —— `shared/compat` 内无 relation 词表；视图只按字段分组/过滤 |
+
+### 27.1 改动：把「未承载」写出来
+
+`render_view` 的返回新增 `not_carried`，显式声明**没有承载**的东西：
+
+```python
+data["not_carried"] = [
+    "property_types: a column is a dict key, not a typed property",
+    "relations: links between items are neither modelled nor stored",
+]
+```
+
+理由与 §26.1（Q37）同：**未言明的缺席会被读成「源本来就没有这些东西」** —— 而一个空视图**最不该**暗示这个。
+
+### 27.2 验证纪律（第 36 轮新规首次执行）
+
+本轮**打印了 `module.__file__`** 并确认解析到**工作树**：
+
+```
+module: D:\All projects\ArcheAxis-Knowledge-OS\.project-local\worktrees\dsh-backend-loop-20261001\shared\collection_views.py
+```
+
+`pytest tests -k "collection or view"` → **189 passed / 4 skipped**。

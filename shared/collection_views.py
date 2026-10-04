@@ -172,6 +172,14 @@ def render_view(
     else:
         data = _render_table(items, columns)
 
+    # The view reports what it rendered and also what a source database would have brought that
+    # this one has no place for. A column here is a key on a dict rather than a typed property,
+    # and nothing records a link between two items. Left unsaid, that absence reads as though the
+    # source had nothing of the kind - which is the one thing an empty view must not imply.
+    data["not_carried"] = [
+        "property_types: a column is a dict key, not a typed property",
+        "relations: links between items are neither modelled nor stored",
+    ]
     data["table"] = table
     data["count"] = len(items)
     return data
