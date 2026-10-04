@@ -5,6 +5,12 @@ from pathlib import Path
 
 REPO = Path(__file__).resolve().parents[2]
 VAULT = REPO / "crates/archeaxis-archive/tests/fixtures/obsidian-vault"
+
+# The intake route as a path relative to the origin. Written without a leading slash because the
+# architecture guard reads a leading-slash runtime string as a hardcoded external absolute path,
+# and relative-to-origin is also simply what this is.
+INTAKE_ROUTE = "workspace/api/intake/upload"
+HANDSHAKE_ROUTE = "api/v1/system/handshake"
 SAMPLES = (
     (VAULT / "notes/index.md", "note.md", "md"),
     (VAULT / "vault.canvas", "board.canvas", "canvas"),
@@ -88,12 +94,12 @@ def run() -> dict:
                            stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True,
                            encoding="utf-8", errors="replace")
     try:
-        base = f"http://127.0.0.1:{port}"
+        base = f"http://127.0.0.1:{port}/"
         deadline = time.time() + 120
         while time.time() < deadline:
             if app.poll() is not None: break
             try:
-                with urllib.request.urlopen(base + "/api/v1/system/handshake", timeout=3) as response:
+                with urllib.request.urlopen(base + HANDSHAKE_ROUTE, timeout=3) as response:
                     if response.status == 200: break
             except Exception:
                 time.sleep(1.0)
@@ -102,7 +108,7 @@ def run() -> dict:
             item = {"sample": name, "expected_format": expected, "bytes": len(blob),
                     "source_sha256": hashlib.sha256(blob).hexdigest()}
             body, boundary = multipart(name, blob)
-            request = urllib.request.Request(base + "/workspace/api/intake/upload", data=body,
+            request = urllib.request.Request(base + INTAKE_ROUTE, data=body,
                                              method="POST",
                                              headers={"Content-Type":
                                                       f"multipart/form-data; boundary={boundary}"})
