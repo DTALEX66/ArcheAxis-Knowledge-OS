@@ -11,10 +11,30 @@ VAULT = REPO / "crates/archeaxis-archive/tests/fixtures/obsidian-vault"
 # and relative-to-origin is also simply what this is.
 INTAKE_ROUTE = "workspace/api/intake/upload"
 HANDSHAKE_ROUTE = "api/v1/system/handshake"
+GOLDEN = REPO / "tests/fixtures/golden"
+QUALITY = REPO / "tests/fixtures/f01-quality"
+
+# Real files, one per format family the product claims to absorb. Nothing here is synthesised for
+# this probe: each is a tracked fixture with its own provenance, and the receipt records the hash
+# of the bytes that were actually sent.
 SAMPLES = (
     (VAULT / "notes/index.md", "note.md", "md"),
+    (QUALITY / "fallback-gbk.txt", "legacy-gbk.txt", "txt"),
+    (GOLDEN / "golden-text-anchor.txt", "plain.txt", "txt"),
+    (GOLDEN / "golden-web-anchor.html", "page.html", "html"),
+    (GOLDEN / "golden-journey-evidence.pdf", "document.pdf", "pdf"),
+    (GOLDEN / "golden-docx-anchor.docx", "report.docx", "docx"),
+    (GOLDEN / "golden-xlsx-anchor.xlsx", "sheet.xlsx", "xlsx"),
+    (GOLDEN / "golden-pptx-anchor.pptx", "slides.pptx", "pptx"),
+    (QUALITY / "ragged.csv", "ragged.csv", "csv"),
+    (GROUP := VAULT / "attachments/diagram.png", "picture.png", "png"),
+    (GOLDEN / "golden-screenshot-ocr.png", "screenshot.png", "png"),
     (VAULT / "vault.canvas", "board.canvas", "canvas"),
-    (VAULT / "attachments/diagram.png", "picture.png", "png"),
+    (GOLDEN / "learning-evidence.canvas", "learning.canvas", "canvas"),
+    (GOLDEN / "golden-audio-anchor.wav", "audio.wav", "wav"),
+    (GOLDEN / "golden-video-anchor.mp4", "video.mp4", "mp4"),
+    (REPO / "tests/fixtures/anki-apkg/review.apkg", "package.apkg", "apkg"),
+    (QUALITY / "unsupported.unknown-ext", "mystery.unknown-ext", "unknown-ext"),
 )
 
 # The outcomes this probe is allowed to record. The distinction between the first three and the
