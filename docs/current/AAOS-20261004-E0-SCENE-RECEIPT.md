@@ -295,3 +295,32 @@ Q29 的三项里：**路径穿越结构性达标且有测试**；**reparse 防�
 14.3 里"未证实"的写法是在**证据不全时的保守**；准确的差别是：**没有"压缩比阈值"这一具体机制**，而不是"没有防护"。**"没有阈值"与"没有防护"不是一回事。**
 
 我既不夸大也不缩小 —— **说轻了同样是失真**，所以这一节更正我自己上一节。仍保持 NOT_VERIFIED 的只剩 14.4 原件保留，以及 14.2 归档面是否有独立 reparse 防护。
+
+## 15. W21/Q30 核对（迁移幂等恢复）（2026-10-04）
+
+任务包的验收是「**重复 / 取消 / 断电**后不重复造对象、**不覆盖用户编辑**」。核对结果如下。
+
+### 15.1 已覆盖的三项
+
+| 验收项 | 证据 |
+| --- | --- |
+| **重复不重复造对象** | `tests/runtime_jobs.rs:81` `http_runs_real_worker_and_replays_without_a_second_transform` —— **重放不会再跑一次转换** |
+| **取消** | `tests/runtime_jobs.rs:181` `durable_ack_cancel_retry_and_parallel_budget_are_not_client_lifetime`；`:416` `waiting_admission_does_not_block_cancellation_of_an_owned_worker` |
+| **断电/中断的等价场景** | `tests/runtime_jobs.rs:323` `disconnected_submitter_does_not_abandon_claimed_http_operation` —— 提交方断开**不会**让已认领的操作被抛弃 |
+| 失败终写的诚实处理 | `:360` `unrecoverable_terminal_write_is_reported_unavailable_not_reaccepted_running` —— 终写不可恢复时报 `unavailable`，**不会**被悄悄重新接受为 running |
+| 并发同键冲突 | `tests/contract_conflict_rules.rs:199` `an_execution_that_is_already_running_conflicts_with_a_second_key` |
+
+### 15.2 **未核实**的一项：「不覆盖用户编辑」
+
+「重复导入不得覆盖人类已编辑/已接受的对象」与 15.1 是**不同的性质**：15.1 证明的是**同一份工作不被重做**，而这一条要求的是**新的导入不得盖掉人对旧对象做出的修改**。
+
+本轮我**没有**找到钉住这一条的测试，但我也**没有**穷尽检索（迁移面涉及 `app/`、`crates/archeaxis-migration`、vault 往返多处）。因此记为 **NOT_VERIFIED**：
+
+- 不说它「已覆盖」—— 我没有证据；
+- 也不说它「缺失」—— 我没有穷尽查。
+
+下一轮把它作为**具体待办**：先穷尽检索迁移/导入路径上的「已接受对象 + 人类编辑」组合，再决定是补测试还是登记缺口。
+
+### 15.3 本节结论
+
+Q30 四项中**三项已覆盖且证据具体**（含重放不二次转换、断连不弃权、终写失败如实报 unavailable），**一项未核实**。「重复/取消/断电」这一组不是空白。
