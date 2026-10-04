@@ -1,9 +1,12 @@
 //! Real single-shot text worker execution outside the SQLite owner thread.
 //! Explicit local Core configuration, not a user-supplied executable endpoint.
 use crate::attempts;
+mod derived;
+mod health;
 use archeaxis_sidecar_protocol::worker::{
     MAX_FRAME_BYTES, Request, Response, decode_hello, decode_response,
 };
+use archeaxis_store_sqlite::capability_settings;
 use archeaxis_store_sqlite::{raw_objects, writer::Store};
 use std::{
     io::{Read, Write},
@@ -29,6 +32,16 @@ impl Cancellation {
     }
 }
 
+/// Whether a path exists as a regular file, used to decide if a registered route can actually run.
+///
+/// R7/G1: a route whose worker or interpreter is missing is not a provider choice, so choosing it
+/// over a usable fallback would convert a configuration mistake into a failed job.
+fn file_usable(path: &Path) -> bool {
+    std::fs::metadata(path)
+        .map(|meta| meta.is_file())
+        .unwrap_or(false)
+}
+
 #[derive(Clone)]
 pub struct Executor {
     store: Store,
@@ -40,6 +53,8 @@ pub struct Executor {
     /// hardened `-S` launch; engine-backed routes (PDF/OCR) need their engine
     /// from the configured interpreter, so `-S` must not strip it.
     routes: Arc<Vec<(String, PathBuf, bool)>>,
+    health_slots: Arc<tokio::sync::Semaphore>,
+    derived_slots: Arc<tokio::sync::Semaphore>,
 }
 impl Executor {
     pub async fn open(
@@ -86,18 +101,208 @@ impl Executor {
             python: python.to_owned(),
             worker: default_worker.to_owned(),
             routes: Arc::new(routes),
+            health_slots: Arc::new(tokio::sync::Semaphore::new(4)),
+            derived_slots: Arc::new(tokio::sync::Semaphore::new(4)),
         })
     }
 
     /// The worker registered for a capability, with its launch policy.
+    ///
+    /// R7/G1: when more than one route is registered for one capability, the **first usable one**
+    /// answers and the later ones are fallbacks. Usable means its worker script and the interpreter
+    /// both exist, because registering a route whose files are missing is a configuration mistake
+    /// rather than a provider choice, and silently choosing it would turn that mistake into a failed
+    /// job. When no registered route is usable the first is returned anyway, so the failure names the
+    /// provider the operator declared instead of reporting that nothing was registered.
     fn worker_for(&self, capability: &str) -> Option<(PathBuf, bool)> {
+        let candidates: Vec<&(String, PathBuf, bool)> = self
+            .routes
+            .iter()
+            .filter(|(name, _, _)| name == capability)
+            .collect();
+        let chosen = candidates
+            .iter()
+            .find(|(_, path, _)| file_usable(path) && file_usable(&self.python))
+            .or_else(|| candidates.first())?;
+        Some((chosen.1.clone(), chosen.2))
+    }
+
+    /// Ask a local model one question about one context, through the worker boundary.
+    ///
+    /// G4 needs a Core route that accepts a **question**, and the job protocol cannot carry one: a
+    /// route in the worker transport is validated with `parameters` empty. Rather than inventing a
+    /// second model client inside the Core, this runs the machine answer worker as a process, which
+    /// keeps the one boundary the project already has for every capability that calls an engine.
+    ///
+    /// The worker is asked for JSON on stdout, and its own words are returned rather than rephrased,
+    /// so a receipt field cannot drift from what the worker actually decided.
+    pub async fn machine_answer(
+        &self,
+        context: String,
+        question: String,
+        max_tokens: u64,
+        timeout: Duration,
+    ) -> Result<serde_json::Value, String> {
+        let worker = self
+            .worker_for("machine.answer")
+            .map(|(path, _)| path)
+            .ok_or_else(|| "no worker is registered for machine.answer".to_string())?;
+        let python = self.python.clone();
+
+        // Blocking process work belongs off the async runtime; the call can take a model's own latency.
+        tokio::task::spawn_blocking(move || -> Result<serde_json::Value, String> {
+            let dir = tempfile::tempdir().map_err(|e| format!("temp dir: {e}"))?;
+            let context_path = dir.path().join("context.txt");
+            std::fs::write(&context_path, context.as_bytes())
+                .map_err(|e| format!("writing the context: {e}"))?;
+
+            let mut command = Command::new(&python);
+            command.arg("-B");
+            command.arg(&worker);
+            command.arg(&context_path);
+            command.arg("--question").arg(&question);
+            command.arg("--max-tokens").arg(max_tokens.to_string());
+            command.stdout(Stdio::piped()).stderr(Stdio::piped());
+
+            let mut child = command
+                .spawn()
+                .map_err(|e| format!("starting the machine answer worker: {e}"))?;
+            // A model call has its own latency, so the wait is bounded by the caller's timeout rather
+            // than left open; a hung worker must not hold the request forever.
+            let started = std::time::Instant::now();
+            loop {
+                match child.try_wait() {
+                    Ok(Some(_)) => break,
+                    Ok(None) if started.elapsed() < timeout => {
+                        std::thread::sleep(Duration::from_millis(50))
+                    }
+                    Ok(None) => {
+                        let _ = child.kill();
+                        return Err(format!(
+                            "the machine answer worker exceeded {} s",
+                            timeout.as_secs()
+                        ));
+                    }
+                    Err(e) => return Err(format!("waiting for the machine answer worker: {e}")),
+                }
+            }
+            let output = child
+                .wait_with_output()
+                .map_err(|e| format!("reading the machine answer worker: {e}"))?;
+            let stdout = String::from_utf8_lossy(&output.stdout);
+            if !output.status.success() {
+                let stderr = String::from_utf8_lossy(&output.stderr);
+                return Err(format!(
+                    "the machine answer worker failed: {}",
+                    stderr.trim().lines().last().unwrap_or("no reason reported")
+                ));
+            }
+            serde_json::from_str(stdout.trim())
+                .map_err(|e| format!("the machine answer worker did not answer with JSON: {e}"))
+        })
+        .await
+        .map_err(|e| format!("machine answer task failed: {e}"))?
+    }
+
+    /// The routes registered for one capability, in registration order, each marked with whether it
+    /// is usable. The first element is the default; any later element is a fallback candidate.
+    pub fn providers_for(&self, capability: &str) -> Vec<(&Path, bool)> {
         self.routes
             .iter()
-            .find(|(name, _, _)| name == capability)
-            .map(|(_, path, allow_site)| (path.clone(), *allow_site))
+            .filter(|(name, _, _)| name == capability)
+            .map(|(_, path, _)| {
+                (
+                    path.as_path(),
+                    file_usable(path) && file_usable(&self.python),
+                )
+            })
+            .collect()
     }
     pub fn store(&self) -> &Store {
         &self.store
+    }
+
+    /// The interpreter the routes were opened with. A capability record reports whether the
+    /// runtime it would need is present, which needs this path.
+    pub fn python_path(&self) -> &Path {
+        &self.python
+    }
+
+    /// Observe the existing NDJSON hello without submitting a task or selecting a
+    /// replacement. Health is handshake evidence, not engine or inference success.
+    pub async fn provider_health(
+        &self,
+        capability: &str,
+        worker: &Path,
+        allow_site: bool,
+    ) -> serde_json::Value {
+        let permit = self.health_slots.clone().acquire_owned().await;
+        let permit = match permit {
+            Ok(permit) => permit,
+            Err(_) => {
+                return serde_json::json!({"status":"handshake_failed","reason":"health probe unavailable","task_executed":false});
+            }
+        };
+        let python = self.python.clone();
+        let staging = self.staging.clone();
+        let worker = worker.to_owned();
+        let capability = capability.to_owned();
+        tokio::task::spawn_blocking(move || {
+            let _permit = permit;
+            health::probe(&staging,&python,&worker,&capability,allow_site)
+        }).await.unwrap_or_else(|_| serde_json::json!({
+            "status":"handshake_failed","reason":"health probe task failed","task_executed":false
+        }))
+    }
+
+    /// The capability this job would need **if** this workspace has disabled it, so a caller can
+    /// say why the job will not start.
+    ///
+    /// This is a reporting aid, not the enforcement point: the refusal that actually stops a
+    /// disabled capability is inside the claim transaction, which is what guarantees no attempt row
+    /// is written. `None` therefore means "nothing is known to be disabled", which includes the
+    /// cases where the job does not exist or its kind has no route - those are reported by the claim
+    /// itself, with their own reasons.
+    pub async fn disabled_capability_for(&self, job_id: &str) -> Option<String> {
+        let owned = job_id.to_owned();
+        let kind = self
+            .store
+            .submit_wait(move |conn: &mut rusqlite::Connection| {
+                use rusqlite::OptionalExtension;
+                conn.query_row("SELECT kind FROM jobs WHERE job_id=?1", [&owned], |row| {
+                    row.get::<_, String>(0)
+                })
+                .optional()
+            })
+            .await
+            .ok()?
+            .ok()??;
+        let capability = crate::attempts::route_for_kind(&kind)?.0.to_string();
+        let named = capability.clone();
+        let disabled = self
+            .store
+            .submit_wait(move |conn: &mut rusqlite::Connection| {
+                capability_settings::is_enabled(conn, &named)
+            })
+            .await
+            .ok()?
+            .ok()?;
+        (!disabled).then_some(capability)
+    }
+
+    /// The capabilities this executor will actually serve, in registration order.
+    ///
+    /// R7/G1: a registry has to describe what the Core registered rather than what a checkout
+    /// happens to contain, and the launch is what declares routes. This exposes that set read-only
+    /// so a capability surface can report it without a second source of truth. The boolean is
+    /// whether the route may import the interpreter's installed packages.
+    pub fn registered_routes(&self) -> Vec<(&str, &Path, bool)> {
+        self.routes
+            .iter()
+            .map(|(capability, worker, site_packages)| {
+                (capability.as_str(), worker.as_path(), *site_packages)
+            })
+            .collect()
     }
 
     pub async fn execute(
@@ -357,6 +562,13 @@ pub const KNOWN_WORKER_IDENTITIES: &[&str] = &[
     "python-worker-subtitles-ndjson",
     "python-worker-html-ndjson",
     "python-worker-caption-ndjson",
+    // the ASR route's identity; a route with no identity here is refused with
+    // "unexpected worker identity" before it can serve anything
+    "python-worker-transcribe-ndjson",
+    // G4: the machine answer route. Registered so a launch may declare it; whether a Core job route
+    // drives it is a separate question, and the capability registry answers that rather than this
+    // list, which only says which identities are recognised at all.
+    "python-worker-machine-answer-ndjson",
 ];
 
 fn run_worker(

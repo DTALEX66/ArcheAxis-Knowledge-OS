@@ -26,6 +26,7 @@ Output:
 from __future__ import annotations
 
 import argparse
+import importlib.util
 import json
 import os
 import sys
@@ -33,13 +34,90 @@ from pathlib import Path
 
 ENGINE = "python-worker-transcribe"
 ENGINE_VERSION = "0.1.0"
+WORKER_IDENTITY = "python-worker-transcribe-ndjson"
+CAPABILITY = "media.transcribe"
 
 PROJECT_ROOT = Path(__file__).resolve().parents[3]
 DEFAULT_MODEL_DIR = PROJECT_ROOT.parent / "Model library" / "whisper" / "faster-whisper-large-v3-turbo"
 
 
+def _load_tool_paths():
+    """The shared resolver, loaded from this worker's own tree.
+
+    Failing to load it is not the same as failing to read a declaration, so the two are
+    kept apart: this returns None when the module is not there, while `declared()` below
+    lets a manifest that exists but cannot be read raise. A broad `except` around both -
+    which this once had - reported an unreadable manifest as "nothing declared", the
+    failure mode the resolver was changed to stop making.
+    """
+    module_path = Path(__file__).resolve().parent.parent / "tool_paths.py"
+    if not module_path.is_file():
+        return None
+    spec = importlib.util.spec_from_file_location("worker_tool_paths", module_path)
+    if spec is None or spec.loader is None:
+        return None
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
+
+
+def _declared_path(name: str) -> str | None:
+    """The declared external path for a model, or None when nothing is declared.
+
+    R6 A02 requires a model resolver over exact paths. `DEFAULT_MODEL_DIR` derives the
+    model library from the checkout's parent, which is correct only for the canonical
+    layout: in a worktree it resolves to an absent sibling and the probe reported the
+    model missing while it was present on disk.
+
+    Only a missing declaration becomes None; a manifest that exists but cannot be read
+    raises, because reporting that as "not declared" sends someone looking for a model
+    that is present.
+    """
+    module = _load_tool_paths()
+    return None if module is None else module.declared(name, __file__)
+
+
+def _root_derived_model_dir() -> Path | None:
+    """The model library that sits beside the declared external root.
+
+    `DEFAULT_MODEL_DIR` assumes the model library is beside the *checkout's parent*,
+    which is true only for the canonical layout: in a worktree it points at an absent
+    sibling. The declared external root is stable across checkout shapes, and the
+    shared model library is its sibling - the same relationship the existing
+    `app/ingestion/asr_adapter.py` and `media_adapter.py` rely on.
+    """
+    module = _load_tool_paths()
+    if module is None:
+        return None
+    try:
+        root = module._external_root()
+    except Exception:  # noqa: BLE001
+        return None
+    if root is None:
+        return None
+    for base in (root.parent, root):
+        candidate = base / "Model library" / "whisper" / "faster-whisper-large-v3-turbo"
+        if candidate.is_dir():
+            return candidate
+    return None
+
+
 def _model_dir(path: str | None) -> Path:
-    candidate = Path(path or os.environ.get("ARCHEAXIS_ASR_MODEL_DIR") or DEFAULT_MODEL_DIR)
+    # Precedence: explicit argument, operator override, declaration, root-derived
+    # sibling, then the layout-derived default.
+    candidate: Path | None = Path(path) if path else None
+    if candidate is None:
+        override = os.environ.get("ARCHEAXIS_ASR_MODEL_DIR", "").strip()
+        if override:
+            candidate = Path(override)
+    if candidate is None:
+        declared_model = _declared_path("faster-whisper-large-v3-turbo")
+        if declared_model:
+            candidate = Path(declared_model)
+    if candidate is None:
+        candidate = _root_derived_model_dir()
+    if candidate is None:
+        candidate = DEFAULT_MODEL_DIR
     if not candidate.is_dir():
         raise ValueError(f"ASR model directory not found: {candidate} (set --model-dir)")
     marker = candidate / "model.bin"
@@ -126,6 +204,30 @@ def extract(path: str, model_path: str | None, language: str, device: str) -> di
 
 
 def main() -> int:
+    # The sidecar branch first, before the CLI parser: the Core spawns a worker with
+    # `--staging-root` and speaks the NDJSON protocol on stdio. Without this mode the
+    # engine was real, verified and completely unreachable from any Core job - which is
+    # what tests/test_worker_route_coverage.py now exists to catch.
+    if "--staging-root" in sys.argv:
+        _transport_candidates = (
+            Path(__file__).resolve().parent.parent / "transport" / "text_ndjson.py",
+            Path(__file__).resolve().parents[2] / "services" / "python-workers" / "transport" / "text_ndjson.py",
+        )
+        _transport = next((p for p in _transport_candidates if p.is_file()),
+                          _transport_candidates[0])
+        spec = importlib.util.spec_from_file_location("transcribe_transport", _transport)
+        if spec is None or spec.loader is None:
+            print(json.dumps({"error": "transport module is missing", "engine": ENGINE}))
+            return 1
+        transport = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(transport)
+        parser = argparse.ArgumentParser(description=__doc__)
+        parser.add_argument("--staging-root", type=Path, required=True)
+        parser.add_argument("--artifact-root", type=Path, default=None)
+        args = parser.parse_args()
+        return transport.serve_stdio(WORKER_IDENTITY, [CAPABILITY], args.staging_root,
+                                     args.artifact_root)
+
     parser = argparse.ArgumentParser(description="ArcheAxis local ASR worker")
     parser.add_argument("input", nargs="?", help="media file")
     parser.add_argument("--model-dir", default=None)

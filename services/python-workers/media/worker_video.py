@@ -24,7 +24,9 @@ from __future__ import annotations
 
 import argparse
 import hashlib
+import importlib.util
 import json
+import os
 import shutil
 import subprocess
 import sys
@@ -36,15 +38,46 @@ ENGINE_VERSION = "0.1.0"
 SUPPORTED = {".mp4", ".mov", ".mkv", ".webm"}
 
 
+def _declared_path(name: str) -> str | None:
+    """The declared external path for *name*, or None when nothing is declared.
+
+    Delegates to `tool_paths.declared`, which loads the shared module from this worker's
+    own tree. Only a missing declaration becomes None; a manifest that exists but cannot
+    be read raises, because reporting that as "not declared" is how a missing parser turns
+    into "engine not installed".
+    """
+    module_path = Path(__file__).resolve().parent.parent / "tool_paths.py"
+    if not module_path.is_file():
+        return None
+    spec = importlib.util.spec_from_file_location("worker_tool_paths", module_path)
+    if spec is None or spec.loader is None:
+        return None
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module.declared(name, __file__)
+
+
 def _ffmpeg() -> str:
+    declared = _declared_path("ffmpeg")
+    if declared:
+        return declared
     binary = shutil.which("ffmpeg")
     if not binary:
-        raise RuntimeError("ffmpeg binary not found on PATH (video engine unavailable)")
+        raise RuntimeError("ffmpeg binary not found (video engine unavailable)")
     return binary
 
 
 def probe() -> dict:
-    binary = shutil.which("ffmpeg")
+    # A probe reports whether the engine is available; it must not crash when it is not.
+    # Resolution can also fail because the declaration itself cannot be read, and that is a
+    # different answer from "ffmpeg is absent" - so it is reported, not swallowed and not
+    # raised. The fail-closed reading belongs to extraction, where a wrong answer costs a
+    # conversion rather than a diagnostic.
+    try:
+        binary = _declared_path("ffmpeg") or shutil.which("ffmpeg")
+    except Exception as exc:  # noqa: BLE001 - a probe reports, it does not raise
+        return {"capability": False, "reason": f"{type(exc).__name__}: {exc}",
+                "engine": ENGINE, "resolution_failed": True}
     if not binary:
         return {"capability": False, "reason": "ffmpeg not found", "engine": ENGINE}
     try:

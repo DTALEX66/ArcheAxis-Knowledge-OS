@@ -1,0 +1,147 @@
+{
+  "key": "DP-0925:DP-GIT-01",
+  "title": "branch/commit semantic audit (read-only product review)",
+  "status": "EXECUTED",
+  "method": "git ls-remote for the remote branch list, then log/show/merge-base per branch; the whole main..branch range is inspected, not just the head commit, because a branch may end with a test fix. No branch was written to and no ref was created.",
+  "recorded_at": "2026-10-02T06:28:00.675228+00:00",
+  "branches": [
+    {
+      "branch": "codex/Audit",
+      "sha": "1a981a4482b01f31989074e79c82a63400aa07a7",
+      "subject": "docs: audit Green repository boundary and staged cleanup",
+      "author": "DTALEX66",
+      "date": "2026-10-01",
+      "commits_ahead_of_main": 18,
+      "commits_behind_main": 0,
+      "files_in_head_commit": 5,
+      "head_commit_touches_apps": false,
+      "branch_touches_apps": true,
+      "is_merged_into_main": false,
+      "name_matches_content": true,
+      "state": "18 commits ahead of main, touches apps/"
+    },
+    {
+      "branch": "codex/aaos-p3-ui-convergence-20260922",
+      "sha": "43c2cafa1bfe57a862e90c5a77dc16832264babd",
+      "subject": "docs(dsh): add a self-contained audit prompt for third-party review",
+      "author": "DTALEX66",
+      "date": "2026-09-27",
+      "commits_ahead_of_main": 0,
+      "commits_behind_main": 45,
+      "files_in_head_commit": 1,
+      "head_commit_touches_apps": false,
+      "branch_touches_apps": false,
+      "is_merged_into_main": true,
+      "name_matches_content": true,
+      "state": "merged into main (superseded pointer)"
+    },
+    {
+      "branch": "codex/aaos-ui-phase2-20261001",
+      "sha": "1a981a4482b01f31989074e79c82a63400aa07a7",
+      "subject": "docs: audit Green repository boundary and staged cleanup",
+      "author": "DTALEX66",
+      "date": "2026-10-01",
+      "commits_ahead_of_main": 18,
+      "commits_behind_main": 0,
+      "files_in_head_commit": 5,
+      "head_commit_touches_apps": false,
+      "branch_touches_apps": true,
+      "is_merged_into_main": false,
+      "name_matches_content": true,
+      "state": "18 commits ahead of main, touches apps/"
+    },
+    {
+      "branch": "codex/dsh-aaos-real-multiformat-loop-20261001",
+      "sha": "aefa51cb963a406db32235bec9bbcb531e778873",
+      "subject": "Record that the caption route reaches a real local vision model",
+      "author": "DTALEX66",
+      "date": "2026-10-02",
+      "commits_ahead_of_main": 95,
+      "commits_behind_main": 0,
+      "files_in_head_commit": 2,
+      "head_commit_touches_apps": false,
+      "branch_touches_apps": true,
+      "is_merged_into_main": false,
+      "name_matches_content": true,
+      "state": "95 commits ahead of main, touches apps/"
+    },
+    {
+      "branch": "codex/github-delivery-docs-20260929",
+      "sha": "aa8046996c14db7da8b01dab133b46de80e89614",
+      "subject": "docs: update optional GitHub delivery guide",
+      "author": "DTALEX66",
+      "date": "2026-09-29",
+      "commits_ahead_of_main": 1,
+      "commits_behind_main": 19,
+      "files_in_head_commit": 1,
+      "head_commit_touches_apps": false,
+      "branch_touches_apps": false,
+      "is_merged_into_main": false,
+      "name_matches_content": true,
+      "state": "1 commits ahead of main, touches apps/"
+    },
+    {
+      "branch": "codex/minimax-aaos-cosmic-ui-20261001",
+      "sha": "627e74ffcc2b16e2109ab85c0a8183f1e4a6b21a",
+      "subject": "State the palette invariant instead of counting palettes by hand",
+      "author": "DTALEX66",
+      "date": "2026-10-02",
+      "commits_ahead_of_main": 20,
+      "commits_behind_main": 0,
+      "files_in_head_commit": 1,
+      "head_commit_touches_apps": false,
+      "branch_touches_apps": true,
+      "is_merged_into_main": false,
+      "name_matches_content": true,
+      "state": "20 commits ahead of main, touches apps/"
+    },
+    {
+      "branch": "main",
+      "sha": "59498723a8d4e94c6314e490473ba6d60847c247",
+      "subject": "Merge pull request #155 from DTALEX66/codex/Audit",
+      "author": "DTALEX66",
+      "date": "2026-10-01",
+      "commits_ahead_of_main": 0,
+      "commits_behind_main": 0,
+      "files_in_head_commit": 0,
+      "head_commit_touches_apps": false,
+      "branch_touches_apps": false,
+      "is_merged_into_main": true,
+      "name_matches_content": true,
+      "state": "merged into main (superseded pointer)"
+    }
+  ],
+  "branches_sharing_one_commit": {
+    "1a981a4482b01f31989074e79c82a63400aa07a7": [
+      "codex/Audit",
+      "codex/aaos-ui-phase2-20261001"
+    ]
+  },
+  "findings": [
+    "codex/Audit and codex/aaos-ui-phase2-20261001 are the same commit (1a981a44), so they hold identical content; the UI changes either branch carries come from that shared history rather than from two separate efforts"
+  ],
+  "ui_branch_check": [
+    {
+      "branch": "codex/aaos-p3-ui-convergence-20260922",
+      "sha": "43c2cafa1bfe57a862e90c5a77dc16832264babd",
+      "commits_ahead_of_main": 0,
+      "carries_ui_changes_relative_to_main": false,
+      "state": "merged into main (superseded pointer)"
+    },
+    {
+      "branch": "codex/aaos-ui-phase2-20261001",
+      "sha": "1a981a4482b01f31989074e79c82a63400aa07a7",
+      "commits_ahead_of_main": 18,
+      "carries_ui_changes_relative_to_main": true,
+      "state": "18 commits ahead of main, touches apps/"
+    },
+    {
+      "branch": "codex/minimax-aaos-cosmic-ui-20261001",
+      "sha": "627e74ffcc2b16e2109ab85c0a8183f1e4a6b21a",
+      "commits_ahead_of_main": 20,
+      "carries_ui_changes_relative_to_main": true,
+      "state": "20 commits ahead of main, touches apps/"
+    }
+  ],
+  "summary": "7 remote branches examined. 1 finding(s) recorded below."
+}

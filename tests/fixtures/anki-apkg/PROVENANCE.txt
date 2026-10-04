@@ -1,0 +1,23 @@
+anki-apkg fixture - provenance
+
+What this is
+  review.apkg is a genuine Anki 2.1 package: a ZIP holding collection.anki2 (a SQLite
+  database with the col, notes and cards tables), a media map, and the media member it names.
+  It contains one Basic note with two fields and one card that has been reviewed.
+
+How it was made
+  python build_fixture.py review.apkg
+  The script is committed beside the fixture so the artifact can be rebuilt and compared, in the
+  same way the obsidian fixture records how it was made. It writes Anki's own schema rather than a
+  convenient approximation of it: fields are joined with the unit separator, the note type and
+  deck are recorded as the JSON blobs Anki stores, and the card carries real scheduling numbers.
+
+What it does NOT establish
+  1. It was not produced or opened by the Anki application itself. Nothing here shows that Anki
+     opens a package this project writes; that is a separate, human-facing check.
+  2. It is not a workspace readback. No import path consumes .apkg yet, so no round-trip is
+     claimed - only that the fixture is a real package for such a round-trip to be written against.
+  3. It is one deck, one note type and one card. It says nothing about the range of Anki note
+     types, options groups, filtered decks or review history a real collection can contain.
+  4. It carries no human review. The scheduling numbers are written here, not earned by anyone
+     answering a card, and must never be read as a person's study history.

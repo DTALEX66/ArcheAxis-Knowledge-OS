@@ -33,6 +33,14 @@ pub enum JobError {
         job: String,
         reason: String,
     },
+    /// R7/G1: the workspace has turned this capability off, so no attempt is created for it.
+    ///
+    /// Refused at claim time rather than after the worker starts, so a disabled capability leaves
+    /// behind no attempt row, no staging copy and no partial output.
+    CapabilityDisabled {
+        capability: String,
+        job: String,
+    },
 }
 impl From<rusqlite::Error> for JobError {
     fn from(error: rusqlite::Error) -> Self {
@@ -65,6 +73,10 @@ impl std::fmt::Display for JobError {
             Self::UnverifiableInput { job, reason } => {
                 write!(f, "cannot enqueue work for {job}: {reason}")
             }
+            Self::CapabilityDisabled { capability, job } => write!(
+                f,
+                "capability {capability} is disabled in this workspace, so {job} cannot run"
+            ),
         }
     }
 }

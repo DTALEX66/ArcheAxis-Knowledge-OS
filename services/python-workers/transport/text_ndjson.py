@@ -11,6 +11,7 @@ Core sends one request and closes stdin for this single-shot transport.
 from __future__ import annotations
 
 import argparse
+import contextlib
 import hashlib
 import importlib.util
 import json
@@ -39,10 +40,68 @@ MAX_SAFE_INTEGER = 2**53 - 1
 OUTPUT_SCHEMAS = ["archeaxis.text/v1", "archeaxis.document-structure/v1", "archeaxis.loss-receipt/v1"]
 
 
+OCR_LANG_ENV = "ARCHEAXIS_OCR_LANG"
+OCR_TESSDATA_ENV = "ARCHEAXIS_OCR_TESSDATA"
+
+
 class Rejected(ValueError):
     def __init__(self, message, code="AAK-VAL-001"):
         super().__init__(message)
         self.code = code
+
+
+def _declared_tool_path(name: str) -> Path | None:
+    """The declared external path for a capability, or None.
+
+    Uses the same resolver the workers use, so the transport stops guessing where
+    language data lives. A manifest that cannot be read raises rather than reading as
+    "nothing declared".
+    """
+    tool_paths = _SCRIPT.parent.parent / "tool_paths.py"
+    if not tool_paths.is_file():
+        return None
+    spec = importlib.util.spec_from_file_location("transport_tool_paths", tool_paths)
+    if spec is None or spec.loader is None:
+        return None
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    resolved = module.declared_path(name)
+    return Path(resolved) if resolved else None
+
+
+def _ocr_language() -> str:
+    """The language the OCR route reads.
+
+    `ARCHEAXIS_OCR_LANG` selects it, defaulting to `eng`. It used to be hardcoded, which
+    meant a Chinese page was handed the English model and read as noise - the language is
+    a property of the material, not of the route.
+    """
+    return os.environ.get(OCR_LANG_ENV, "").strip() or "eng"
+
+
+def _ocr_tessdata(language: str) -> Path | None:
+    """Language data for this language, preferring one that can actually serve it.
+
+    Order: an explicit `ARCHEAXIS_OCR_TESSDATA`, the repository's bundled copy, then the
+    declared `tesseract-languages` entry. A candidate counts only if it holds the
+    requested language, so a directory of unrelated languages is not mistaken for usable.
+    The path is handed over in plain form because tesseract cannot open a Windows extended
+    (\\\\?\\\\) path, which a canonicalising caller such as the Rust executor would
+    otherwise supply.
+    """
+    candidates: list[Path] = []
+    configured = os.environ.get(OCR_TESSDATA_ENV, "").strip()
+    if configured:
+        candidates.append(Path(configured))
+    candidates.append(ROOT / "tools" / "tesseract" / "tessdata")
+    declared = _declared_tool_path("tesseract-languages")
+    if declared is not None:
+        candidates.extend([declared, declared / "tessdata"])
+    for candidate in candidates:
+        with contextlib.suppress(OSError):
+            if (candidate / f"{language}.traineddata").is_file():
+                return Path(str(candidate).replace("\\\\?\\", ""))
+    return None
 
 
 def safe_path(path: Path, *, missing=False) -> Path:
@@ -185,6 +244,25 @@ ROUTES = {
         "media_types": {"video/mp4", "audio/wav"},
         "call": "path",
     },
+    # The pack requires real audio before final closure. The ASR engine, its model and its
+    # path resolution were all real and verified, but nothing declared the capability, so
+    # no Core job could reach it. Audio formats are named here that the probe route
+    # deliberately does not guess at, because this route has a reader for them.
+    "media.transcribe": {
+        "version": "1",
+        "worker": "services/python-workers/media/worker_transcribe.py",
+        "media_types": {
+            "audio/mpeg",
+            "audio/mp4",
+            "audio/x-m4a",
+            "audio/flac",
+            "audio/ogg",
+            "audio/opus",
+            "audio/wav",
+            "audio/x-wav",
+        },
+        "call": "transcribe",
+    },
     # R15/F07-F09: an Office package is a ZIP of XML parts; this route reaches the
     # worker that already read them since the 2026-09-05 slice but had no route.
     "office.structure": {
@@ -248,6 +326,11 @@ ROUTES = {
             "image/bmp": ".bmp",
         },
     },
+    # G4's machine answer worker has **no route here on purpose**. A route in this table is validated
+    # against the job protocol, and that protocol requires `parameters` to be empty, so there is no
+    # way to carry the question the worker needs. Declaring a route here would be a route that fails
+    # its own validation. What the worker needs is a Core route that accepts a question, which does
+    # not exist yet, and inventing a route that cannot run would be worse than saying so.
 }
 
 
@@ -257,6 +340,19 @@ _IMAGE_SUFFIX = {
     "image/tiff": ".tiff",
     "image/webp": ".webp",
     "image/bmp": ".bmp",
+}
+
+# The ASR worker hands the path to its engine, which selects a decoder by suffix, so the
+# content-addressed staged name needs a route-local view carrying the real extension.
+_AUDIO_SUFFIX = {
+    "audio/mpeg": ".mp3",
+    "audio/mp4": ".m4a",
+    "audio/x-m4a": ".m4a",
+    "audio/flac": ".flac",
+    "audio/ogg": ".ogg",
+    "audio/opus": ".opus",
+    "audio/wav": ".wav",
+    "audio/x-wav": ".wav",
 }
 
 # R15/F07-F09 + F12: a worker that dispatches on the file suffix cannot read staging's
@@ -356,18 +452,29 @@ def _run_route(route, source: Path, media_type: str, artifact_root: Path | None 
         if not view.exists():
             with view.open("xb") as handle:
                 handle.write(source.read_bytes())
-        # OCR keeps its own explicit parameters: language plus the tessdata dir.
-        # The repository ships eng.traineddata; an ambient TESSDATA_PREFIX may
-        # point elsewhere, so the repository copy wins when it exists. The path is
-        # passed in plain form because tesseract cannot open a Windows extended
-        # (\\?\) path - canonicalised callers such as the Rust executor would
-        # otherwise hand one over and OCR would fail to load its language data.
-        tessdata = ROOT / "tools" / "tesseract" / "tessdata"
-        tessdata_arg = tessdata if tessdata.is_dir() else None
-        if tessdata_arg is not None:
-            plain = str(tessdata_arg).replace("\\\\?\\", "")
-            tessdata_arg = Path(plain)
-        return module.extract(view, "eng", tessdata_arg)
+        # OCR keeps its own explicit parameters: language plus the tessdata dir. The
+        # language comes from the caller's configuration rather than being hardcoded, and
+        # the directory is one that actually holds that language.
+        language = _ocr_language()
+        return module.extract(view, language, _ocr_tessdata(language))
+    if route["call"] == "transcribe":
+        # The ASR worker dispatches on the suffix, and it takes its model directory and
+        # language as arguments. Both default to the worker's own resolution - the declared
+        # model and language detection - so the transport passes them only when an operator
+        # has configured them, rather than inventing a default here.
+        suffix = _AUDIO_SUFFIX.get(media_type.split(";", 1)[0].strip().lower())
+        view = source
+        if suffix is not None:
+            view = _materialise_view(source, suffix)
+        kwargs: dict = {}
+        model_dir = os.environ.get("ARCHEAXIS_ASR_MODEL_DIR", "").strip()
+        kwargs["model_path"] = model_dir or None
+        # Default to detection: the language is a property of the recording, so the
+        # transport does not pin one unless an operator has.
+        kwargs["language"] = os.environ.get("ARCHEAXIS_ASR_LANG", "").strip() or "auto"
+        kwargs["device"] = os.environ.get("ARCHEAXIS_ASR_DEVICE", "").strip() or "cpu"
+        return _as_route_contract(module.extract(str(view), **kwargs),
+                                  route.get("capability", "route"))
     if route.get("suffix_by_media"):
         suffix = route["suffix_by_media"].get(media_type.split(";", 1)[0].strip().lower())
         if suffix is None:

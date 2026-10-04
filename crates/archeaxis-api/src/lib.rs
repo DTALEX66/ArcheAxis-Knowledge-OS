@@ -5,6 +5,8 @@
 //! no full job orchestration). The standalone process wraps these internal
 //! projections with launch authentication; `app` alone is for in-process use.
 
+pub mod ask;
+pub mod capabilities;
 pub mod launch;
 pub mod runtime;
 
@@ -31,7 +33,7 @@ pub type AppState = Store;
 /// the launch middleware which OVERWRITES this header with the launch-session
 /// claim (C02), so a client cannot escalate. In-process projections default to
 /// human when the header is absent.
-fn request_actor(headers: &HeaderMap) -> Result<&'static str, StatusCode> {
+pub(crate) fn request_actor(headers: &HeaderMap) -> Result<&'static str, StatusCode> {
     match headers
         .get("x-archeaxis-actor")
         .and_then(|v| v.to_str().ok())
@@ -384,6 +386,13 @@ async fn record_machine_task(
     headers: HeaderMap,
     Json(body): Json<MachineTaskBody>,
 ) -> impl IntoResponse {
+    if body.scope.starts_with("runtime.") {
+        return (
+            StatusCode::FORBIDDEN,
+            "runtime receipt scopes are Core-owned",
+        )
+            .into_response();
+    }
     if request_actor(&headers).unwrap_or("human") != "machine" {
         return (
             StatusCode::FORBIDDEN,
@@ -951,12 +960,19 @@ async fn source_job_transform(
     Path((source_id, job_id)): Path<(String, String)>,
 ) -> impl IntoResponse {
     with_store(state, move |conn| {
+        // Every extraction route stores its projection in `transforms.text` - the PDF
+        // worker's extracted text, the OCR reading, a subtitle's cue text, an archive's
+        // inventory listing - so this route reads whichever one the job produced. It used to
+        // filter `j.kind='text'`, which answered `404` for a succeeded PDF, OCR, Office,
+        // HTML, canvas, subtitle, archive, media or ASR job that had a perfectly readable
+        // projection; nothing asserted that refusal, which is how a text-only filter
+        // survived under a route the contract lists as source-bound transform readback.
         let projection: rusqlite::Result<Option<(i64, String, String)>> = conn
             .query_row(
                 "SELECT t.transform_id, s.sha256, t.text
              FROM jobs j JOIN sources s ON s.source_id=j.input_ref
              JOIN transforms t ON t.transform_id=j.transform_id AND t.source_id=s.source_id
-             WHERE j.job_id=?1 AND j.input_ref=?2 AND j.kind='text' AND j.state='succeeded'",
+             WHERE j.job_id=?1 AND j.input_ref=?2 AND j.state='succeeded'",
                 rusqlite::params![job_id, source_id],
                 |row| Ok((row.get(0)?, row.get(1)?, row.get(2)?)),
             )
@@ -975,7 +991,7 @@ async fn source_job_transform(
                 .into_response(),
             Ok(None) => (
                 StatusCode::NOT_FOUND,
-                "succeeded source-bound text transform not found",
+                "succeeded source-bound transform not found",
             )
                 .into_response(),
             Err(error) => (StatusCode::INTERNAL_SERVER_ERROR, error.to_string()).into_response(),
@@ -990,7 +1006,9 @@ async fn source_job_transform(
 async fn evidence_anchors(State(state): State<AppState>) -> impl IntoResponse {
     with_store(state, |conn| {
         let mut statement = match conn.prepare(
-            "SELECT a.anchor_id, a.source_id, s.sha256, a.source_revision, a.position, a.created_at
+            "SELECT a.anchor_id, a.source_id, s.sha256, a.source_revision, a.position, a.created_at, s.original_name,
+                    (SELECT k.knowledge_id FROM knowledge k WHERE k.anchor_id = a.anchor_id ORDER BY k.rowid DESC LIMIT 1),
+                    (SELECT k.status FROM knowledge k WHERE k.anchor_id = a.anchor_id ORDER BY k.rowid DESC LIMIT 1)
              FROM anchors a JOIN sources s ON s.source_id = a.source_id
              ORDER BY a.created_at ASC, a.anchor_id ASC",
         ) {
@@ -1000,13 +1018,28 @@ async fn evidence_anchors(State(state): State<AppState>) -> impl IntoResponse {
             }
         };
         let rows = match statement.query_map([], |row| {
+            // A bare positional anchor stores an opaque locator, while an anchor created from
+            // a transform stores the quoted selection inside that locator. The quote and the
+            // source's own file name are surfaced as their own fields so a reader does not have
+            // to parse the locator or resolve an id, and the quote stays null when there is none.
+            let position = row.get::<_, String>(4)?;
+            let quote = serde_json::from_str::<serde_json::Value>(&position)
+                .ok()
+                .and_then(|value| value.get("quote").and_then(|quote| quote.as_str()).map(str::to_string));
             Ok(serde_json::json!({
                 "anchor_id": row.get::<_, String>(0)?,
                 "source_id": row.get::<_, String>(1)?,
                 "raw_sha256": row.get::<_, String>(2)?,
                 "source_revision": row.get::<_, String>(3)?,
-                "position": row.get::<_, String>(4)?,
+                "position": position,
                 "created_at": row.get::<_, String>(5)?,
+                "source_name": row.get::<_, String>(6)?,
+                "quote": quote,
+                // The knowledge this anchor is attached to, when a review candidate cites it, so a
+                // reader can go from "this is the quoted evidence" to "review it" without a search.
+                // Null for a bare positional anchor that no knowledge row references.
+                "knowledge_id": row.get::<_, Option<String>>(7)?,
+                "knowledge_status": row.get::<_, Option<String>>(8)?,
             }))
         }) {
             Ok(rows) => rows,
@@ -1774,6 +1807,9 @@ fn job_error_response(error: jobs::JobError) -> axum::response::Response {
         jobs::JobError::InvalidReceipt(_) => StatusCode::BAD_REQUEST,
         jobs::JobError::MediaTypeNotAccepted { .. } => StatusCode::BAD_REQUEST,
         jobs::JobError::UnverifiableInput { .. } => StatusCode::BAD_REQUEST,
+        // R7/G1: a disabled capability is a conflict with the workspace's own settings, not a
+        // malformed request, and the body names the capability so an operator knows what to change.
+        jobs::JobError::CapabilityDisabled { .. } => StatusCode::CONFLICT,
     };
     (status, error.to_string()).into_response()
 }

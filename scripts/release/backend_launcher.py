@@ -83,7 +83,11 @@ def load_profile(root: Path, explicit_path: str | None = None) -> dict:
         document = json.loads(path.read_text(encoding="utf-8"), object_pairs_hook=unique)
     except (json.JSONDecodeError, UnicodeError, OSError) as error:
         raise LaunchFailure("worker profile is not valid readable JSON") from error
-    if not isinstance(document, dict) or set(document) != {"schema", "python", "script", "staging"}:
+    allowed_fields = (
+        {"schema", "python", "script", "staging"},
+        {"schema", "python", "script", "staging", "routes"},
+    )
+    if not isinstance(document, dict) or set(document) not in allowed_fields:
         raise LaunchFailure("unsupported or incomplete worker profile fields")
     if document.get("schema") != PROFILE_SCHEMA:
         raise LaunchFailure(
@@ -96,6 +100,44 @@ def load_profile(root: Path, explicit_path: str | None = None) -> dict:
         resolved[key] = safe_path(path.parent, value)
     require_file(resolved["python"], "worker interpreter")
     require_file(resolved["script"], "worker script")
+    resolved["routes"] = _load_routes(document, path)
+    return resolved
+
+
+def _load_routes(document: dict, path: Path) -> list[dict]:
+    """The profile's optional capability routes, resolved and validated.
+
+    An absent list keeps the previous single-route behaviour. Each entry names one
+    capability and the worker script that serves it, relative to the profile, so the
+    staged runtime declares what it actually ships rather than the Core assuming a
+    layout. A malformed entry is refused by name instead of being silently dropped,
+    because a dropped route would surface later as an unexplained failed job.
+    """
+    routes = document.get("routes")
+    if routes is None:
+        return []
+    if not isinstance(routes, list):
+        raise LaunchFailure("worker profile routes must be a list")
+    resolved: list[dict] = []
+    seen: set[str] = set()
+    for index, entry in enumerate(routes):
+        if not isinstance(entry, dict) or set(entry) != {"capability", "script"}:
+            raise LaunchFailure(f"worker profile route {index} must be capability and script")
+        capability = entry.get("capability")
+        script = entry.get("script")
+        if not isinstance(capability, str) or not capability.strip():
+            raise LaunchFailure(f"worker profile route {index} has no capability")
+        if not isinstance(script, str) or not script.strip():
+            raise LaunchFailure(f"worker profile route {index} has no script")
+        capability = capability.strip()
+        if capability == "text.extract":
+            raise LaunchFailure("worker profile route must not redeclare text.extract")
+        if capability in seen:
+            raise LaunchFailure(f"duplicate worker profile route capability: {capability}")
+        seen.add(capability)
+        resolved_script = safe_path(path.parent, script)
+        require_file(resolved_script, f"worker route script for {capability}")
+        resolved.append({"capability": capability, "script": resolved_script})
     return resolved
 
 
@@ -157,6 +199,12 @@ def start(data_root: Path, port: int) -> tuple[subprocess.Popen, str, dict, dict
             "python": str(profile["python"]),
             "script": str(profile["script"]),
             "staging": str(staging),
+            # Declared capability routes. An empty list would be identical to omitting
+            # the field, so it is only emitted when the runtime actually ships routes.
+            **({"routes": [
+                {"capability": route["capability"], "script": str(route["script"])}
+                for route in profile.get("routes", [])
+            ]} if profile.get("routes") else {}),
         },
     }
     child = subprocess.Popen(
@@ -173,8 +221,7 @@ def start(data_root: Path, port: int) -> tuple[subprocess.Popen, str, dict, dict
         base = wait_for_readiness(child, port, STARTUP_TIMEOUT_SECONDS)
         receipt = {"core": str(core), "workspace": str(workspace), "port": port,
                    "text_worker": launch["text_worker"]}
-        tokens = {"x-archeaxis-launch-token": launch["launch_token"],
-                  "x-archeaxis-machine-token": launch["machine_token"]}
+        tokens = {"human": launch["launch_token"], "machine": launch["machine_token"]}
         return child, base, receipt, tokens
     except BaseException:
         stop(child)
@@ -236,19 +283,49 @@ def wait_for_readiness(child: subprocess.Popen, port: int, timeout: float) -> st
         raise
 
 
+def credential(tokens: dict | None, role: str) -> dict:
+    """The request header that authenticates *role* against the Core.
+
+    The Core reads exactly one credential header, `x-archeaxis-launch-token`, and
+    matches its value against either the launch token or the machine token before
+    deriving the actor from whichever matched (`launch.rs::authenticate`).  The
+    machine token therefore travels in that same header; there is no separate
+    `x-archeaxis-machine-token` header in the protocol, and sending one would be
+    ignored.  Selecting the value here means a caller cannot pick the wrong header
+    and silently act as the other principal.
+    """
+    if role not in {"human", "machine"}:
+        raise LaunchFailure(f"unknown credential role: {role}")
+    if not tokens:
+        raise LaunchFailure(f"no credentials were issued for role: {role}")
+    value = tokens.get(role)
+    if not value:
+        raise LaunchFailure(f"missing credential for role: {role}")
+    return {"x-archeaxis-launch-token": value}
+
+
 def call(base: str, method: str, path: str, body: dict | None = None,
-         tokens: dict | None = None) -> tuple[int, object]:
+         tokens: dict | None = None, *,
+         header_tokens: dict | None = None,
+         role: str | None = None) -> tuple[int, object]:
     """Every route is authenticated per request by the launch layer.
 
     The Core matches `x-archeaxis-launch-token` against the token it accepted on
     stdin and answers `AAK-AUTH-001` otherwise, so a caller that forgets it sees a
     bare 401 rather than a startup problem.
+
+    Pass `role` with the credentials returned by `start` to authenticate as that
+    principal.  `header_tokens` is the raw header mapping, for callers that build
+    their own headers.
     """
     data = json.dumps(body).encode("utf-8") if body is not None else None
     request = urllib.request.Request(base + path, data=data, method=method)
     if data is not None:
         request.add_header("content-type", "application/json")
-    for name, value in (tokens or {}).items():
+    headers = dict(header_tokens or {})
+    if role is not None:
+        headers.update(credential(tokens, role))
+    for name, value in headers.items():
         request.add_header(name, value)
     try:
         with urllib.request.urlopen(request, timeout=10) as response:
@@ -300,9 +377,11 @@ def main() -> int:
     receipt["base_url"] = base
     if args.smoke:
         try:
-            status, version = call(base, "GET", "/api/v1/system/version", tokens=tokens)
+            status, version = call(base, "GET", "/api/v1/system/version",
+                                   tokens=tokens, role="human")
             receipt["system_version"] = {"status": status, "body": version}
-            status, info = call(base, "GET", "/api/v1/workspaces/info", tokens=tokens)
+            status, info = call(base, "GET", "/api/v1/workspaces/info",
+                                tokens=tokens, role="human")
             receipt["workspaces_info"] = {"status": status, "body": info}
         finally:
             receipt["exit_code"] = stop(child)

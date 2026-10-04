@@ -25,6 +25,11 @@
         <SolidColorBrush x:Key="AaosIvoryBrush" Color="#F8F6EB" />
         <SolidColorBrush x:Key="AaosMutedBrush" Color="#96AAB4" />
         <SolidColorBrush x:Key="AaosOverlayBrush" Color="#9E081020" />
+        <SolidColorBrush x:Key="AaosGlassBrush" Color="#7A101D2E" />
+        <SolidColorBrush x:Key="AaosGlassRimBrush" Color="#99B7E3E8" />
+        <SolidColorBrush x:Key="AaosHeroTextBrush" Color="#F8F6EB" />
+        <SolidColorBrush x:Key="AaosHeroMutedBrush" Color="#B7C8D1" />
+        <ExperimentalAcrylicMaterial x:Key="AaosAcrylicMaterial" BackgroundSource="Digger" TintColor="#101D2E" TintOpacity="0.72" MaterialOpacity="0.72" FallbackColor="#CC101D2E" />
         <LinearGradientBrush x:Key="AaosPrimaryGradientBrush" StartPoint="0%,0%" EndPoint="100%,100%">
             <GradientStop Color="#2EC4B6" Offset="0" />
             <GradientStop Color="#63DED3" Offset="1" />
@@ -92,7 +97,7 @@
         <Setter Property="Foreground" Value="{DynamicResource AaosIvoryBrush}" />
         <Setter Property="BorderBrush" Value="{DynamicResource AaosBorderBrush}" />
         <Setter Property="BorderThickness" Value="1" />
-        <Setter Property="CornerRadius" Value="12" />
+        <Setter Property="CornerRadius" Value="9" />
         <Setter Property="FontSize" Value="{DynamicResource AaosFontControl}" />
         <Setter Property="Padding" Value="14,9" />
         <Setter Property="MinHeight" Value="{DynamicResource AaosDensityCompact}" />
@@ -118,13 +123,14 @@
         </Setter>
     </Style>
     <Style Selector="Button.primary-action">
-        <Setter Property="Background" Value="{DynamicResource AaosPrimaryGradientBrush}" />
+        <Setter Property="Background" Value="{DynamicResource AaosPrimaryBrush}" />
         <Setter Property="Foreground" Value="{DynamicResource AaosPrimaryTextBrush}" />
-        <Setter Property="BorderBrush" Value="{DynamicResource AaosPrimaryBrush}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource AaosGlassRimBrush}" />
         <Setter Property="FontWeight" Value="SemiBold" />
     </Style>
     <Style Selector="Button.primary-action:pointerover">
         <Setter Property="Background" Value="{DynamicResource AaosPrimaryBrush}" />
+        <Setter Property="Foreground" Value="{DynamicResource AaosPrimaryTextBrush}" />
         <Setter Property="BorderBrush" Value="{DynamicResource AaosPrimaryTextBrush}" />
     </Style>
     <Style Selector="Button.aaos-compact">
@@ -295,25 +301,37 @@
         <Setter Property="BorderBrush" Value="{DynamicResource AaosPrimaryBrush}" />
         <Setter Property="BorderThickness" Value="2" />
     </Style>
-    <Style Selector="Border.aaos-card">
-        <Setter Property="Background" Value="{DynamicResource AaosSurfaceBrush}" />
-        <Setter Property="BorderBrush" Value="{DynamicResource AaosBorderBrush}" />
+    <Style Selector="Border.aaos-glass">
+        <Setter Property="Background" Value="{DynamicResource AaosGlassBrush}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource AaosGlassRimBrush}" />
         <Setter Property="BorderThickness" Value="1" />
-        <Setter Property="CornerRadius" Value="18" />
+        <Setter Property="CornerRadius" Value="16" />
+        <Setter Property="Effect">
+            <DropShadowEffect Color="{DynamicResource AaosGraphGlowColor}" BlurRadius="12" OffsetX="0" OffsetY="3" />
+        </Setter>
+    </Style>
+    <Style Selector="Border.aaos-card">
+        <Setter Property="Background" Value="{DynamicResource AaosGlassBrush}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource AaosGlassRimBrush}" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="CornerRadius" Value="14" />
+        <Setter Property="Effect">
+            <DropShadowEffect Color="{DynamicResource AaosGraphGlowColor}" BlurRadius="10" OffsetX="0" OffsetY="3" />
+        </Setter>
     </Style>
     <Style Selector="Border.aaos-card:pointerover">
         <Setter Property="Background" Value="{DynamicResource AaosSurface2Brush}" />
         <Setter Property="BorderBrush" Value="{DynamicResource AaosPrimaryBrush}" />
     </Style>
     <Style Selector="Border.aaos-card-compact">
-        <Setter Property="Background" Value="{DynamicResource AaosSurface2Brush}" />
-        <Setter Property="BorderBrush" Value="{DynamicResource AaosBorderBrush}" />
+        <Setter Property="Background" Value="{DynamicResource AaosGlassBrush}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource AaosGlassRimBrush}" />
         <Setter Property="BorderThickness" Value="1" />
         <Setter Property="CornerRadius" Value="12" />
     </Style>
     <Style Selector="Border.aaos-kpi">
-        <Setter Property="Background" Value="{DynamicResource AaosSurface2Brush}" />
-        <Setter Property="BorderBrush" Value="{DynamicResource AaosBorderBrush}" />
+        <Setter Property="Background" Value="{DynamicResource AaosGlassBrush}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource AaosGlassRimBrush}" />
         <Setter Property="BorderThickness" Value="1" />
         <Setter Property="CornerRadius" Value="18" />
         <Setter Property="Padding" Value="16" />
@@ -519,6 +537,12 @@
         <Setter Property="BorderThickness" Value="2" />
     </Style>
     <Style Selector="TextBox">
+        <Setter Property="Transitions">
+            <Transitions>
+                <BrushTransition Property="BorderBrush" Duration="0:0:0.16" />
+                <BrushTransition Property="Background" Duration="0:0:0.16" />
+            </Transitions>
+        </Setter>
         <Setter Property="Background" Value="{DynamicResource AaosSurfaceBrush}" />
         <Setter Property="Foreground" Value="{DynamicResource AaosIvoryBrush}" />
         <Setter Property="BorderBrush" Value="{DynamicResource AaosBorderBrush}" />
@@ -548,6 +572,9 @@
         <Setter Property="BorderBrush" Value="{DynamicResource AaosPrimaryBrush}" />
     </Style>
     <Style Selector="ComboBox">
+        <Setter Property="Transitions">
+            <Transitions><BrushTransition Property="BorderBrush" Duration="0:0:0.16" /></Transitions>
+        </Setter>
         <Setter Property="Background" Value="{DynamicResource AaosSurfaceBrush}" />
         <Setter Property="Foreground" Value="{DynamicResource AaosIvoryBrush}" />
         <Setter Property="BorderBrush" Value="{DynamicResource AaosBorderBrush}" />
@@ -561,6 +588,25 @@
         <Setter Property="Foreground" Value="{DynamicResource AaosDisabledBrush}" />
         <Setter Property="BorderBrush" Value="{DynamicResource AaosBorderBrush}" />
         <Setter Property="Opacity" Value="0.72" />
+    </Style>
+    <Style Selector="Border.aaos-card, Border.aaos-card-compact">
+        <Setter Property="Transitions">
+            <Transitions>
+                <BrushTransition Property="BorderBrush" Duration="0:0:0.18" />
+                <BrushTransition Property="Background" Duration="0:0:0.18" />
+            </Transitions>
+        </Setter>
+    </Style>
+    <Style Selector="MenuItem:pointerover">
+        <Setter Property="Background" Value="{DynamicResource AaosSurface2Brush}" />
+        <Setter Property="Foreground" Value="{DynamicResource AaosIvoryBrush}" />
+    </Style>
+    <Style Selector="MenuItem:disabled">
+        <Setter Property="Foreground" Value="{DynamicResource AaosDisabledBrush}" />
+        <Setter Property="Opacity" Value="0.72" />
+    </Style>
+    <Style Selector="Grid.reduced-motion TextBox, Grid.reduced-motion ComboBox, Grid.reduced-motion Border.aaos-card, Grid.reduced-motion Border.aaos-card-compact">
+        <Setter Property="Transitions"><Transitions /></Setter>
     </Style>
     <Style Selector="ComboBoxItem">
         <Setter Property="Foreground" Value="{DynamicResource AaosIvoryBrush}" />

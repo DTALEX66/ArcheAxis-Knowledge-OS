@@ -12,8 +12,9 @@ uncompressed and compressed bytes, the compression methods present, nested archi
 members, members that are encrypted, and the member list itself (capped, with an
 explicit capped fact).
 
-Isolation boundary: never opens the vNext database, never executes file content, and
-never extracts a member to disk.
+Isolation boundary: never opens the vNext database and never executes file content. Members
+are written out only when the caller supplies a destination, and the container itself is opened
+for reading only, so its own bytes remain the source of record.
 
 Usage:
     python worker_archive.py <input-file>
@@ -152,9 +153,19 @@ def extract(path: str, member_dir: Path | None = None) -> dict:
         "engine_version": ENGINE_VERSION,
         "params": {
             "projection": "container inventory (one member per line: name, size)",
+            # The note has to describe what THIS run did. Claiming nothing was extracted while
+            # members sit in the destination would make the receipt itself untrue, which is the
+            # one thing a loss receipt may never be.
             "projection_note": (
                 "this is an inventory of the container, NOT the members' contents: no member was extracted, "
                 "executed or decoded, and the container's own bytes remain the source of record"
+                if not extracted
+                else (
+                    "this is an inventory of the container, NOT the members' contents: "
+                    f"{len(extracted)} of {len(files)} member(s) were also written out as candidate "
+                    "sources, bounded by count and total bytes and declared by digest; nothing was "
+                    "executed or decoded, and the container's own bytes remain the source of record"
+                )
             ),
             "coverage_unit": "line anchors over the inventory listing",
             "structure": {
@@ -214,10 +225,17 @@ def main() -> int:
     if "--staging-root" in sys.argv:
         import argparse
 
-        repo_root = Path(__file__).resolve().parents[3]
-        spec = importlib.util.spec_from_file_location(
-            "archive_transport", repo_root / "services" / "python-workers" / "transport" / "text_ndjson.py"
+        # The shared transport sits beside this worker's own category directory, in a
+        # source checkout (`services/python-workers/transport/`) and in a staged runtime
+        # (`workers/transport/`) alike, so both are tried from this file's location. A
+        # fixed parents[3] plus a `services/python-workers/` suffix was correct only for
+        # the source layout and left a staged worker unable to start.
+        _transport_candidates = (
+            Path(__file__).resolve().parent.parent / "transport" / "text_ndjson.py",
+            Path(__file__).resolve().parents[2] / "services" / "python-workers" / "transport" / "text_ndjson.py",
         )
+        _transport = next((p for p in _transport_candidates if p.is_file()), _transport_candidates[0])
+        spec = importlib.util.spec_from_file_location("archive_transport", _transport)
         if spec is None or spec.loader is None:
             print(json.dumps({"error": "transport module is missing", "engine": ENGINE}))
             return 1

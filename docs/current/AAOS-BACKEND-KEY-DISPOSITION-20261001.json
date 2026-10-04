@@ -1,0 +1,791 @@
+{
+  "schema": "archeaxis.backend-key-disposition/v1",
+  "as_of": "2026-10-01",
+  "branch": "codex/dsh-aaos-real-multiformat-loop-20261001",
+  "base_sha": "1a981a4482b01f31989074e79c82a63400aa07a7",
+  "scope": "the BACKEND_FRONTEND_LOOP (54) and OWNER_GATE (4) keys of AAOS-ALL-TASKS-DISPOSITION-20261001.csv",
+  "evidence_levels": [
+    "NO_EVIDENCE",
+    "SIMULATED",
+    "SYNTHETIC",
+    "INTEGRATED",
+    "REAL"
+  ],
+  "status_values": [
+    "PLANNED",
+    "IMPLEMENTED_LOCAL",
+    "TESTED_LOCAL",
+    "CI_VERIFIED_EXACT_SHA",
+    "MERGED_MAIN",
+    "INSTALLED_RUNTIME_VERIFIED",
+    "BLOCKED",
+    "NOT_EXECUTED"
+  ],
+  "counts": {
+    "NO_EVIDENCE": 19,
+    "REAL": 33,
+    "SYNTHETIC": 5,
+    "INTEGRATED": 1
+  },
+  "status_counts": {
+    "PLANNED": 9,
+    "CI_VERIFIED_EXACT_SHA": 13,
+    "IMPLEMENTED_LOCAL": 1,
+    "TESTED_LOCAL": 19,
+    "BLOCKED": 11,
+    "NOT_EXECUTED": 5
+  },
+  "keys": [
+    {
+      "key": "RECORD-0928:AA-BE-01",
+      "title": "Provider Consumption Contract",
+      "lane": "BACKEND_FRONTEND_LOOP",
+      "maps_to": "A03|A11",
+      "prior_audit_verdict": "OPEN_OR_PARTIAL_REQUIRES_GOLDEN_JOURNEY",
+      "status": "PLANNED",
+      "evidence_level": "NO_EVIDENCE",
+      "disposition": "PARTIAL — no real WORK-LAB provider runtime to consume; AAOS-side logical id / capability / health surface not exercised against a live provider",
+      "acceptance_reference": [
+        "AAOS 只保存 logical provider id、capability、policy、health/fallback result，不保存物理模型路径。实现对 WORK-LAB provider health、invoke、timeout、cancel、fallback、provenance 的版本化 contract。",
+        "验收：WORK-LAB runtime 重启或模型不可用时，AAOS 不崩溃、不越权启动第二套共享 runtime，并能显示 degraded/offline。",
+        "验收：GJ-01/GJ-03/GJ-06"
+      ]
+    },
+    {
+      "key": "RECORD-0928:AA-BE-02",
+      "title": "多格式 Intake 统一合同",
+      "lane": "BACKEND_FRONTEND_LOOP",
+      "maps_to": "A05",
+      "prior_audit_verdict": "OPEN_OR_PARTIAL_REQUIRES_GOLDEN_JOURNEY",
+      "status": "CI_VERIFIED_EXACT_SHA",
+      "evidence_level": "REAL",
+      "disposition": "PARTIAL — 9 routes convert real material end to end (RawAsset identity, sha256, media type, structure, anchors, loss receipt); xlsx/pptx/subtitles/archive/wav/txt measured on the golden corpus only; scanned-PDF-to-OCR chaining has an existing passing test",
+      "acceptance_reference": [
+        "所有格式统一产生 RawAsset/Source identity、SHA-256、media type、parser/provider、version、Transform/Conversion revision、Structure、Anchor、Loss/Quality receipt。",
+        "首批必须真实跑 TXT、MD、PDF text、scanned PDF OCR、HTML、Image；DOCX、Audio 紧随其后。若 XLSX/PPTX 现有 adapter 已成熟，可加入同一批，否则不得阻塞 M0。",
+        "Unsupported/Partial 必须显式，不允许空输出冒充成功。",
+        "验收：GJ-01/GJ-02"
+      ]
+    },
+    {
+      "key": "RECORD-0928:AA-BE-03",
+      "title": "OCR",
+      "lane": "BACKEND_FRONTEND_LOOP",
+      "maps_to": "A05",
+      "prior_audit_verdict": "OPEN_OR_PARTIAL_REQUIRES_GOLDEN_JOURNEY",
+      "status": "IMPLEMENTED_LOCAL",
+      "evidence_level": "REAL",
+      "disposition": "IMPLEMENTED_LOCAL — real OCR on real Chinese material: an 11,958-byte page reading 三命通会 / (明) 万明英_著, covered 3/3; language now selectable and language data resolved from the declaration. Chinese, English and the declared language pack are covered; table and page-order cases are not",
+      "acceptance_reference": [
+        "通过 local.ocr.default 消费 WORK-LAB 选择的默认 OCR pipeline。测试中文、英文、混排、扫描 PDF、图片、表格、页序与 provenance。",
+        "AAOS 只负责输入、结构化 receipt、Evidence anchor 与业务质量；OCR 模型/runtime 由 WORK-LAB 治理。",
+        "验收：GJ-01/GJ-02"
+      ]
+    },
+    {
+      "key": "RECORD-0928:AA-BE-04",
+      "title": "ASR",
+      "lane": "BACKEND_FRONTEND_LOOP",
+      "maps_to": "A05",
+      "prior_audit_verdict": "OPEN_OR_PARTIAL_REQUIRES_GOLDEN_JOURNEY",
+      "status": "CI_VERIFIED_EXACT_SHA",
+      "evidence_level": "REAL",
+      "disposition": "ADVANCED — the ASR engine now reaches the Core. It had a real engine, a real model and verified output while no route named its capability; it has a sidecar mode and the media.transcribe route as of 2026-10-01, verified end to end through the real Core: import 202 to enqueue 202 to execute 202 running to succeeded, transcript 星环知识平台正在验证真实音频转写能力 with language zh at 0.9983, 2 segments over 8,940 ms, covered 2 of 2, and time-coded cues preserved. The earlier standalone verification on real Chinese audio stands: 3,362 characters / 295 segments from a 5,849,401-byte recording",
+      "acceptance_reference": [
+        "通过 local.asr.default 处理真实中文音频/视频音轨，产生 transcript、时间码、source binding、quality/provenance。",
+        "ASR 不是 M0 首个文档闭环 blocker，但必须在最终多格式闭环前完成真实音频测试。",
+        "验收：GJ-01/GJ-02"
+      ]
+    },
+    {
+      "key": "RECORD-0928:AA-BE-05",
+      "title": "Retrieval",
+      "lane": "BACKEND_FRONTEND_LOOP",
+      "maps_to": "A06",
+      "prior_audit_verdict": "OPEN_OR_PARTIAL_REQUIRES_GOLDEN_JOURNEY",
+      "status": "CI_VERIFIED_EXACT_SHA",
+      "evidence_level": "REAL",
+      "disposition": "ADVANCED — retrieval was exercised for the first time on this branch and a real defect was found and fixed. Probing the states the published contract promises, against a live Core, showed the `empty` state did not exist: `GET /api/v1/search?q=` sent the query straight into FTS5 MATCH, so `zzz-no-such-term` answered 500 with `no such column: no`, an empty q and `zzz OR` answered 500 with `fts5: syntax error near \"\"`, and an unterminated quote answered 500 with `unterminated string`. The contract states that 200 with count=0 is a successful empty state. Both indexes now build the query from the user's text (whitespace tokens as quoted phrases with quotes doubled, combined with OR, FTS5's own default), and all these shapes answer 200 with count=0. FTS5 lexical search is now real and verified; vector, reranker and graph remain absent, which is unchanged",
+      "acceptance_reference": [
+        "实现并验证 FTS5 + real embedding + reranker 的最小组合。Embedding 数据与索引属于 AAOS；模型服务属于 WORK-LAB。",
+        "Golden Query 必须能从已知来源返回正确 chunk/Evidence，并证明 reranker 改善候选排序或至少不破坏已知命中。",
+        "验收：GJ-03"
+      ]
+    },
+    {
+      "key": "RECORD-0928:AA-BE-06",
+      "title": "General Learning",
+      "lane": "BACKEND_FRONTEND_LOOP",
+      "maps_to": "A09|A10",
+      "prior_audit_verdict": "OPEN_OR_PARTIAL_REQUIRES_GOLDEN_JOURNEY",
+      "status": "PLANNED",
+      "evidence_level": "NO_EVIDENCE",
+      "disposition": "NOT_ADVANCED — learning-plan/course/artifact generation was not touched on this branch",
+      "acceptance_reference": [
+        "从 Accepted Knowledge 生成最小 KC、Prerequisite、Learning Objective、CourseManifest、Artifact；保持 source/knowledge/renderer binding。",
+        "只完成 general；其他 Domain Pack 不进入当前 critical path。",
+        "验收：GJ-04"
+      ]
+    },
+    {
+      "key": "RECORD-0928:AA-BE-07",
+      "title": "Human Learning",
+      "lane": "BACKEND_FRONTEND_LOOP",
+      "maps_to": "A08",
+      "prior_audit_verdict": "OPEN_OR_PARTIAL_REQUIRES_GOLDEN_JOURNEY",
+      "status": "TESTED_LOCAL",
+      "evidence_level": "SYNTHETIC",
+      "disposition": "PARTIAL — M0 probe passes 27/27 stages with schedule_authority fsrs and identical restart readback, but that receipt's actor, answer and model failure are fixtures",
+      "acceptance_reference": [
+        "打通 Course → Assessment → answer → learning event → FSRS/Mastery → due queue → restart/readback。",
+        "每个写入由 Rust Core authoritative path 完成；C# 与 Python 不直接写主 DB。",
+        "验收：GJ-04/GJ-05"
+      ]
+    },
+    {
+      "key": "RECORD-0928:AA-BE-08",
+      "title": "Real Local Machine Loop",
+      "lane": "BACKEND_FRONTEND_LOOP",
+      "maps_to": "A07|A14",
+      "prior_audit_verdict": "OPEN_OR_PARTIAL_REQUIRES_GOLDEN_JOURNEY",
+      "status": "BLOCKED",
+      "evidence_level": "REAL",
+      "disposition": "BLOCKED_UNWIRED - a real local model exists and was measured; the machine loop is unwired, not impossible. Needs a Core round trip.",
+      "acceptance_reference": "docs/current/R6-STATE.json production_loop_measurement_20261001.local_model_runtime_measured_20261001"
+    },
+    {
+      "key": "RECORD-0928:AA-BE-09",
+      "title": "Backup / Restore",
+      "lane": "BACKEND_FRONTEND_LOOP",
+      "maps_to": "A13",
+      "prior_audit_verdict": "OPEN_OR_PARTIAL_REQUIRES_GOLDEN_JOURNEY",
+      "status": "TESTED_LOCAL",
+      "evidence_level": "REAL",
+      "disposition": "PARTIAL — online backup/restore verified with counts_after == counts_before and verified: true, and the archive excluded from the product data set; the earlier claim that the SQLite backup dropped machine_tasks/learning_assessments/card_references/knowledge_v3_metadata was refuted by an independent check and corrected. A narrower JSONL archive export gap (4 tables) was found instead",
+      "acceptance_reference": [
+        "验证 DB identity、schema、workspace identity、hash、referential integrity、manifest 唯一性；restore 后完整 restart/readback。",
+        "备份不得把共享 Model library、外置真实资料库或无关 cache 打包进产品数据。",
+        "验收：GJ-08"
+      ]
+    },
+    {
+      "key": "RECORD-0928:AA-BE-10",
+      "title": "Legacy Copy Migration",
+      "lane": "BACKEND_FRONTEND_LOOP",
+      "maps_to": "A13",
+      "prior_audit_verdict": "OPEN_OR_PARTIAL_REQUIRES_GOLDEN_JOURNEY",
+      "status": "NOT_EXECUTED",
+      "evidence_level": "NO_EVIDENCE",
+      "disposition": "NOT_EXECUTED — Legacy copy migration is frozen by user decision; not run and not simulated",
+      "acceptance_reference": [
+        "只对非空 Legacy DB/Workspace 的隔离副本执行 read-only export → staging import → semantic diff → loss report → restart/readback。",
+        "禁止修改原 Legacy、真实 Green data 或用户资料。",
+        "验收：GJ-09"
+      ]
+    },
+    {
+      "key": "RECORD-0928:GJ-01",
+      "title": "多格式真实输入",
+      "lane": "BACKEND_FRONTEND_LOOP",
+      "maps_to": "A05",
+      "prior_audit_verdict": "OPEN_OR_PARTIAL_REQUIRES_GOLDEN_JOURNEY",
+      "status": "CI_VERIFIED_EXACT_SHA",
+      "evidence_level": "REAL",
+      "disposition": "PARTIAL — real text/md/csv/json, PDF, image, DOCX, HTML, canvas and mp4 all import and convert through a staged runtime; real scanned-PDF OCR chaining is covered by an existing test rather than by this run",
+      "acceptance_reference": [
+        "真实 TXT/MD/PDF text/scanned PDF/HTML/Image 导入；DOCX/Audio 随后纳入同一合同。每个样本保留 source hash、parser/provider、revision、quality/loss、anchor。",
+        "验收：GJ-01"
+      ]
+    },
+    {
+      "key": "RECORD-0928:GJ-02",
+      "title": "Source 到 Knowledge",
+      "lane": "BACKEND_FRONTEND_LOOP",
+      "maps_to": "A04|A05",
+      "prior_audit_verdict": "OPEN_OR_PARTIAL_REQUIRES_GOLDEN_JOURNEY",
+      "status": "TESTED_LOCAL",
+      "evidence_level": "REAL",
+      "disposition": "PARTIAL — source identity/hash/revision plus structure, anchors and loss receipt are produced and Core-verified for every converting format; the human-accept step was not exercised with real content on this branch",
+      "acceptance_reference": [
+        "Raw Source → Transform/OCR/ASR → Structure → Evidence Anchor → Knowledge Candidate → Human Accept。不得跳过 Evidence/Provenance。",
+        "验收：GJ-02"
+      ]
+    },
+    {
+      "key": "RECORD-0928:GJ-03",
+      "title": "Search",
+      "lane": "BACKEND_FRONTEND_LOOP",
+      "maps_to": "A06",
+      "prior_audit_verdict": "OPEN_OR_PARTIAL_REQUIRES_GOLDEN_JOURNEY",
+      "status": "CI_VERIFIED_EXACT_SHA",
+      "evidence_level": "REAL",
+      "disposition": "PARTIAL — FTS5 lexical search now behaves as the contract states, verified against a live Core: a query that matches nothing is 200 with count=0 rather than a 500 carrying an FTS5 parser message, which it was for ordinary text such as a hyphenated term or an empty q. A hit still returns to its source and transform with source_id and engine attribution. The embedding and reranker half of this key is untouched and still absent",
+      "acceptance_reference": [
+        "Accepted Knowledge → FTS5 + Embedding + Reranker → source-bound Search。搜索结果必须能回到原始 Evidence。",
+        "验收：GJ-03"
+      ]
+    },
+    {
+      "key": "RECORD-0928:GJ-04",
+      "title": "Human Learning",
+      "lane": "BACKEND_FRONTEND_LOOP",
+      "maps_to": "A08",
+      "prior_audit_verdict": "OPEN_OR_PARTIAL_REQUIRES_GOLDEN_JOURNEY",
+      "status": "TESTED_LOCAL",
+      "evidence_level": "SYNTHETIC",
+      "disposition": "PARTIAL — synthetic native UIA covers the chain; not exercised with real content",
+      "acceptance_reference": [
+        "Knowledge → General Learning Plan/Course/Artifact → 真人 Assessment → answer → FSRS/Mastery。",
+        "验收：GJ-04"
+      ]
+    },
+    {
+      "key": "RECORD-0928:GJ-05",
+      "title": "Human Restart",
+      "lane": "BACKEND_FRONTEND_LOOP",
+      "maps_to": "A08",
+      "prior_audit_verdict": "OPEN_OR_PARTIAL_REQUIRES_GOLDEN_JOURNEY",
+      "status": "TESTED_LOCAL",
+      "evidence_level": "REAL",
+      "disposition": "PARTIAL — same-database cold restart readback verified by the M0 probe with identical state; a full Desktop process restart was not performed",
+      "acceptance_reference": [
+        "完全退出并重启，读回 Course/Artifact/Assessment/answer/review/Mastery/FSRS，确认同一 workspace identity。",
+        "验收：GJ-05"
+      ]
+    },
+    {
+      "key": "RECORD-0928:GJ-06",
+      "title": "Machine Learning Loop",
+      "lane": "BACKEND_FRONTEND_LOOP",
+      "maps_to": "A07|A14",
+      "prior_audit_verdict": "OPEN_OR_PARTIAL_REQUIRES_GOLDEN_JOURNEY",
+      "status": "BLOCKED",
+      "evidence_level": "REAL",
+      "disposition": "BLOCKED_UNWIRED - FAST/DEEP models are present locally (qwen3.5-4b, qwen3.8-27b) and reachable; the loop is not wired.",
+      "acceptance_reference": "docs/current/R6-STATE.json production_loop_measurement_20261001.local_model_runtime_measured_20261001"
+    },
+    {
+      "key": "RECORD-0928:GJ-07",
+      "title": "Machine Restart",
+      "lane": "BACKEND_FRONTEND_LOOP",
+      "maps_to": "A07|A14",
+      "prior_audit_verdict": "OPEN_OR_PARTIAL_REQUIRES_GOLDEN_JOURNEY",
+      "status": "BLOCKED",
+      "evidence_level": "REAL",
+      "disposition": "BLOCKED_UNWIRED - depends on GJ-06 producing real machine state.",
+      "acceptance_reference": "docs/current/R6-STATE.json production_loop_measurement_20261001.local_model_runtime_measured_20261001"
+    },
+    {
+      "key": "RECORD-0928:GJ-08",
+      "title": "Backup / Restore",
+      "lane": "BACKEND_FRONTEND_LOOP",
+      "maps_to": "A13",
+      "prior_audit_verdict": "OPEN_OR_PARTIAL_REQUIRES_GOLDEN_JOURNEY",
+      "status": "TESTED_LOCAL",
+      "evidence_level": "REAL",
+      "disposition": "PARTIAL — as BE-09: isolated-resource backup/restore verified with counts preserved and verified: true",
+      "acceptance_reference": [
+        "执行 Backup → Restore → identity/hash/referential-integrity readback，确认不携带共享模型权重和无关 cache。",
+        "验收：GJ-08"
+      ]
+    },
+    {
+      "key": "RECORD-0928:GJ-09",
+      "title": "Legacy Migration",
+      "lane": "BACKEND_FRONTEND_LOOP",
+      "maps_to": "A13",
+      "prior_audit_verdict": "OPEN_OR_PARTIAL_REQUIRES_GOLDEN_JOURNEY",
+      "status": "NOT_EXECUTED",
+      "evidence_level": "NO_EVIDENCE",
+      "disposition": "NOT_EXECUTED — frozen by user decision",
+      "acceptance_reference": [
+        "isolated non-empty Legacy copy → export/import → semantic diff/loss → restart/readback；原 Legacy 与真实 Green data 不修改。",
+        "验收：GJ-09"
+      ]
+    },
+    {
+      "key": "RECORD-0928:GJ-10",
+      "title": "Exact-source Candidate",
+      "lane": "BACKEND_FRONTEND_LOOP",
+      "maps_to": "A13",
+      "prior_audit_verdict": "OPEN_OR_PARTIAL_REQUIRES_GOLDEN_JOURNEY",
+      "status": "NOT_EXECUTED",
+      "evidence_level": "NO_EVIDENCE",
+      "disposition": "NOT_EXECUTED — no candidate was built from current main; the frozen boundary excludes release packaging",
+      "acceptance_reference": [
+        "从 current main/current approved source 构建 Avalonia + Rust + Python Candidate；验证 candidate manifest、runtime/workers/provenance/current-source。",
+        "验收：GJ-10"
+      ]
+    },
+    {
+      "key": "RECORD-0928:GJ-11",
+      "title": "Native Acceptance",
+      "lane": "BACKEND_FRONTEND_LOOP",
+      "maps_to": "A12|A15",
+      "prior_audit_verdict": "OPEN_OR_PARTIAL_REQUIRES_GOLDEN_JOURNEY",
+      "status": "NOT_EXECUTED",
+      "evidence_level": "NO_EVIDENCE",
+      "disposition": "NOT_EXECUTED — native UIA/IME/DPI acceptance belongs to the UI writer and was not performed here",
+      "acceptance_reference": [
+        "对该 Candidate 执行 native UIA、keyboard、IME、screen reader、high contrast、DPI、reduced motion、截图矩阵与完整 Golden Journey。",
+        "验收：GJ-11"
+      ]
+    },
+    {
+      "key": "RECORD-0928:GJ-12",
+      "title": "A15",
+      "lane": "OWNER_GATE",
+      "maps_to": "A15",
+      "prior_audit_verdict": "OWNER_GATE_OPEN",
+      "status": "BLOCKED",
+      "evidence_level": "NO_EVIDENCE",
+      "disposition": "BLOCKED — Owner-gated independent audit; the executor may not self-sign",
+      "acceptance_reference": [
+        "独立只读审计；执行者不得自签。所有完成声明绑定 exact SHA、candidate identity、真实 E2E 与失败/恢复证据。",
+        "验收：GJ-12"
+      ]
+    },
+    {
+      "key": "RECORD-0928:GJ-13",
+      "title": "A16 / Green Owner Gate",
+      "lane": "OWNER_GATE",
+      "maps_to": "A16",
+      "prior_audit_verdict": "OWNER_GATE_OPEN",
+      "status": "BLOCKED",
+      "evidence_level": "NO_EVIDENCE",
+      "disposition": "BLOCKED — Owner-gated Green replacement; requires A15 to pass and explicit Owner authorisation",
+      "acceptance_reference": [
+        "只有 A15 通过且 Owner 明确授权后，才允许 backup current Green → exact target replace → launch → identity/hash readback → full journey → restart → rollback test。",
+        "Green 成功仍不自动等于公开 Release；Release 解冻需要独立 Owner 决策。",
+        "验收：GJ-13"
+      ]
+    },
+    {
+      "key": "ATLAS-0929:REQ-SOURCE-001",
+      "title": "原件保全与来源接入",
+      "lane": "BACKEND_FRONTEND_LOOP",
+      "maps_to": "CAP-0010",
+      "prior_audit_verdict": "PARTIAL_RECHECK_CURRENT",
+      "status": "TESTED_LOCAL",
+      "evidence_level": "REAL",
+      "disposition": "PARTIAL — original-file preservation, sha256 identity and source binding verified for real material",
+      "acceptance_reference": ""
+    },
+    {
+      "key": "ATLAS-0929:REQ-CONVERT-001",
+      "title": "多格式转换与质量门",
+      "lane": "BACKEND_FRONTEND_LOOP",
+      "maps_to": "CAP-0020",
+      "prior_audit_verdict": "PARTIAL_RECHECK_CURRENT",
+      "status": "CI_VERIFIED_EXACT_SHA",
+      "evidence_level": "REAL",
+      "disposition": "PARTIAL — 9 of 9 selected real cases convert; the quality gate beyond structure/coverage is not asserted",
+      "acceptance_reference": ""
+    },
+    {
+      "key": "ATLAS-0929:REQ-EVIDENCE-001",
+      "title": "证据锚定交叉核验",
+      "lane": "BACKEND_FRONTEND_LOOP",
+      "maps_to": "CAP-0030",
+      "prior_audit_verdict": "PARTIAL_RECHECK_CURRENT",
+      "status": "CI_VERIFIED_EXACT_SHA",
+      "evidence_level": "REAL",
+      "disposition": "PARTIAL — anchors are Core-verified against the projected text and the PDF multi-page numbering defect was fixed; cross-verification against an independent truth set was not performed",
+      "acceptance_reference": ""
+    },
+    {
+      "key": "ATLAS-0929:REQ-LEARNING-001",
+      "title": "人类深度学习链",
+      "lane": "BACKEND_FRONTEND_LOOP",
+      "maps_to": "CAP-0040",
+      "prior_audit_verdict": "PARTIAL_RECHECK_CURRENT",
+      "status": "PLANNED",
+      "evidence_level": "NO_EVIDENCE",
+      "disposition": "NOT_ADVANCED on this branch",
+      "acceptance_reference": ""
+    },
+    {
+      "key": "ATLAS-0929:REQ-INTEROP-001",
+      "title": "开放互操作与适配器",
+      "lane": "BACKEND_FRONTEND_LOOP",
+      "maps_to": "CAP-0100",
+      "prior_audit_verdict": "PARTIAL_RECHECK_CURRENT",
+      "status": "CI_VERIFIED_EXACT_SHA",
+      "evidence_level": "INTEGRATED",
+      "disposition": "PARTIAL — the plugin/route boundary is now declaration-driven and verified; no third-party adapter was added",
+      "acceptance_reference": ""
+    },
+    {
+      "key": "ATLAS-0929:REQ-SEARCH-001",
+      "title": "搜索图谱索引",
+      "lane": "BACKEND_FRONTEND_LOOP",
+      "maps_to": "CAP-0110",
+      "prior_audit_verdict": "PARTIAL_RECHECK_CURRENT",
+      "status": "CI_VERIFIED_EXACT_SHA",
+      "evidence_level": "REAL",
+      "disposition": "PARTIAL — the FTS5 lexical half is now verified against a live Core and its empty state fixed; the graph and index half of this requirement is untouched",
+      "acceptance_reference": ""
+    },
+    {
+      "key": "ATLAS-0929:REQ-DESKTOP-001",
+      "title": "桌面平台",
+      "lane": "BACKEND_FRONTEND_LOOP",
+      "maps_to": "CAP-0120",
+      "prior_audit_verdict": "PARTIAL_RECHECK_CURRENT",
+      "status": "PLANNED",
+      "evidence_level": "NO_EVIDENCE",
+      "disposition": "NOT_ADVANCED — belongs to the UI writer",
+      "acceptance_reference": ""
+    },
+    {
+      "key": "ATLAS-0929:REQ-BACKUP-001",
+      "title": "备份同步发布",
+      "lane": "BACKEND_FRONTEND_LOOP",
+      "maps_to": "CAP-0140",
+      "prior_audit_verdict": "PARTIAL_RECHECK_CURRENT",
+      "status": "TESTED_LOCAL",
+      "evidence_level": "REAL",
+      "disposition": "PARTIAL — as BE-09",
+      "acceptance_reference": ""
+    },
+    {
+      "key": "ATLAS-0929:REQ-IDENTITY-001",
+      "title": "产品身份与命名",
+      "lane": "BACKEND_FRONTEND_LOOP",
+      "maps_to": "—",
+      "prior_audit_verdict": "PARTIAL_RECHECK_CURRENT",
+      "status": "PLANNED",
+      "evidence_level": "NO_EVIDENCE",
+      "disposition": "NOT_ADVANCED — naming is locked by the standing contract and was not touched",
+      "acceptance_reference": ""
+    },
+    {
+      "key": "R6-LIVE-LEDGER:A00",
+      "title": "Authority Reset",
+      "lane": "BACKEND_FRONTEND_LOOP",
+      "maps_to": "",
+      "prior_audit_verdict": "TESTED_LOCAL",
+      "status": "TESTED_LOCAL",
+      "evidence_level": "REAL",
+      "disposition": "PASS — authority state read; AUTHORITY_REFERENCE_MISSING recorded because the root AUTHORITY.md is absent, and no authority was rebuilt from an old package",
+      "acceptance_reference": [
+        "state and authority validation recorded"
+      ]
+    },
+    {
+      "key": "R6-LIVE-LEDGER:A01",
+      "title": "Version and Release Freeze",
+      "lane": "BACKEND_FRONTEND_LOOP",
+      "maps_to": "",
+      "prior_audit_verdict": "TESTED_LOCAL",
+      "status": "TESTED_LOCAL",
+      "evidence_level": "REAL",
+      "disposition": "UNCHANGED — release stays FROZEN; reopening is Owner-only after A16",
+      "acceptance_reference": [
+        "Owner-only release reopening after A16"
+      ]
+    },
+    {
+      "key": "R6-LIVE-LEDGER:A02",
+      "title": "Resource Path Environment Authority",
+      "lane": "OWNER_GATE",
+      "maps_to": "",
+      "prior_audit_verdict": "BLOCKED_BY_OWNER_DECISION",
+      "status": "BLOCKED",
+      "evidence_level": "REAL",
+      "disposition": "BLOCKED_BY_OWNER_DECISION — the resource-root schema semantics for the Model library and plugins remain the Owner's choice. Two concrete registry defects were found and are reported rather than decided",
+      "acceptance_reference": [
+        "choose resource-root schema semantics for Model library and plugins"
+      ]
+    },
+    {
+      "key": "R6-LIVE-LEDGER:A03",
+      "title": "Capability Absorption Registry",
+      "lane": "BACKEND_FRONTEND_LOOP",
+      "maps_to": "",
+      "prior_audit_verdict": "TESTED_LOCAL",
+      "status": "TESTED_LOCAL",
+      "evidence_level": "REAL",
+      "disposition": "PARTIAL — the capability registry is now read by a live resolver rather than assumed; two registry gaps were found and are reported for the Owner: faster-whisper-large-v3-turbo is present on disk but undeclared, and sherpa-onnx is declared with a root-escaping path",
+      "acceptance_reference": [
+        "exact upstream/license/runtime readback and benchmark"
+      ]
+    },
+    {
+      "key": "R6-LIVE-LEDGER:A04",
+      "title": "Knowledge Source Model V3",
+      "lane": "BACKEND_FRONTEND_LOOP",
+      "maps_to": "",
+      "prior_audit_verdict": "TESTED_LOCAL_PARTIAL",
+      "status": "PLANNED",
+      "evidence_level": "NO_EVIDENCE",
+      "disposition": "NOT_ADVANCED — Knowledge V3 model was not touched",
+      "acceptance_reference": [
+        "V3 governance metadata has the canonical Rust write path, sidecar persistence, projection and revision inheritance; Avalonia entry controls passed the focused/full navigation contract and Release build, and the Rust API regression now closes/reopens the app over the same SQLite file and reads the fields back (5 passed). Desktop/Core process restart through the UI and the real first-use journey remain open"
+      ]
+    },
+    {
+      "key": "R6-LIVE-LEDGER:A05",
+      "title": "Multiformat Pipeline",
+      "lane": "BACKEND_FRONTEND_LOOP",
+      "maps_to": "",
+      "prior_audit_verdict": "TESTED_LOCAL_PARTIAL",
+      "status": "CI_VERIFIED_EXACT_SHA",
+      "evidence_level": "REAL",
+      "disposition": "ADVANCED — the route-enablement gap recorded in this ledger was closed and verified: a launch declares its routes, the staged runtime publishes them, the standalone workers locate the shared transport in both layouts, a packaging-time readiness check answers per route, and real course material converts 9 of 9 with readiness 9 of 9. Eight defects were fixed on this branch. The ASR engine now has a sidecar mode and the media.transcribe route, verified through the real Core. One capability stays unrouted, and its reason is now established by test rather than inferred: media/worker_video.py returns no projected text at all — a duration, an extracted audio path and frame hashes — so no parameters field would make it routable, because the route contract is a projected text that the Core anchors. tests/test_worker_route_contract.py enforces that every routed worker projects a text and that the video worker still does not, so the exemption cannot quietly become stale",
+      "acceptance_reference": [
+        "workspace intake now prefers activated builtin converter plugins with explicit path-free fallback receipts; semantic quality, dynamic rendering, external engines and representative real fixtures remain open"
+      ]
+    },
+    {
+      "key": "R6-LIVE-LEDGER:A06",
+      "title": "Retrieval Graph Research",
+      "lane": "BACKEND_FRONTEND_LOOP",
+      "maps_to": "",
+      "prior_audit_verdict": "TESTED_LOCAL_PARTIAL",
+      "status": "CI_VERIFIED_EXACT_SHA",
+      "evidence_level": "REAL",
+      "disposition": "PARTIAL — the lexical retrieval half is now real and verified: FTS5 search answers 200 with count=0 for text that matches nothing, where it previously answered 500 with a raw FTS5 parser message for ordinary queries. Vector, reranker, graph and the provider readback for this key remain open",
+      "acceptance_reference": [
+        "Vault lexical search now emits a path-free derived receipt with stable source_id and source_revision binding; vector/reranker/graph/research wiring, provider readback and benchmark evidence remain open"
+      ]
+    },
+    {
+      "key": "R6-LIVE-LEDGER:A07",
+      "title": "Machine Memory Growth",
+      "lane": "BACKEND_FRONTEND_LOOP",
+      "maps_to": "",
+      "prior_audit_verdict": "TESTED_LOCAL_PARTIAL",
+      "status": "BLOCKED",
+      "evidence_level": "REAL",
+      "disposition": "BLOCKED_UNWIRED - needs a real model round trip, which is now possible.",
+      "acceptance_reference": "docs/current/R6-STATE.json production_loop_measurement_20261001.local_model_runtime_measured_20261001"
+    },
+    {
+      "key": "R6-LIVE-LEDGER:A08",
+      "title": "Human Learning Kernel",
+      "lane": "BACKEND_FRONTEND_LOOP",
+      "maps_to": "",
+      "prior_audit_verdict": "TESTED_LOCAL_PARTIAL",
+      "status": "TESTED_LOCAL",
+      "evidence_level": "SYNTHETIC",
+      "disposition": "NOT_ADVANCED on this branch; the M0 probe remains SYNTHETIC",
+      "acceptance_reference": [
+        "current synthetic native UIA now covers real picker import, persisted source/job/transform, exact-quote source-bound human Candidate+anchor+V3, Library search and Knowledge V3 readback, source+anchor-bound Assessment, one FSRS Good review, answer/event/due/schedule readback and same-database cold restart; SQLite confirms one event/key and FSRS scheduled. A separate actual --learning-smoke replay reused the event key, returned duplicate=true, retained exactly one event, and read back same Assessment/event/answer after restart. Mastery remains closed=false; A08 full Human Learning Kernel integration with DeepTutor/OpenTutor/LearningMAP and real adaptive learning remains open 2026-09-26 synthetic native two-item regression additionally proves new item B selection, answer submission and same-Assessment/answer/FSRS readback after Desktop/Core restart; the deferred ID event race was fixed. This does not close Mastery or real adaptive learning."
+      ]
+    },
+    {
+      "key": "R6-LIVE-LEDGER:A09",
+      "title": "Domain Learning Packs",
+      "lane": "BACKEND_FRONTEND_LOOP",
+      "maps_to": "",
+      "prior_audit_verdict": "TESTED_LOCAL_PARTIAL",
+      "status": "PLANNED",
+      "evidence_level": "NO_EVIDENCE",
+      "disposition": "NOT_ADVANCED on this branch",
+      "acceptance_reference": [
+        "general-only course manifest and KC/objective/artifact closure are locally validated; real domain content, domain-specific behavior and runtime learning evidence remain open"
+      ]
+    },
+    {
+      "key": "R6-LIVE-LEDGER:A10",
+      "title": "Courseware Learning Artifacts",
+      "lane": "BACKEND_FRONTEND_LOOP",
+      "maps_to": "",
+      "prior_audit_verdict": "TESTED_LOCAL_PARTIAL",
+      "status": "PLANNED",
+      "evidence_level": "NO_EVIDENCE",
+      "disposition": "NOT_ADVANCED on this branch",
+      "acceptance_reference": [
+        "general-only manifest and a deterministic local lesson Projection now preserve source/knowledge/renderer bindings; focused renderer contract/readback pytest passes, while real interactive execution/domain acceptance remain open"
+      ]
+    },
+    {
+      "key": "R6-LIVE-LEDGER:A11",
+      "title": "Local Model Pool",
+      "lane": "BACKEND_FRONTEND_LOOP",
+      "maps_to": "",
+      "prior_audit_verdict": "TESTED_LOCAL_PARTIAL",
+      "status": "TESTED_LOCAL",
+      "evidence_level": "REAL",
+      "disposition": "PARTIAL — the shared Model library and the external registry were both read and their real paths verified; no benchmark was run",
+      "acceptance_reference": [
+        "fresh shallow shared Model library inventory is recorded; executable/runtime readback and bounded role benchmarks remain open"
+      ]
+    },
+    {
+      "key": "R6-LIVE-LEDGER:A13",
+      "title": "Legacy Migration Local Green",
+      "lane": "BACKEND_FRONTEND_LOOP",
+      "maps_to": "",
+      "prior_audit_verdict": "TESTED_LOCAL_PARTIAL",
+      "status": "NOT_EXECUTED",
+      "evidence_level": "NO_EVIDENCE",
+      "disposition": "NOT_EXECUTED — migration frozen",
+      "acceptance_reference": [
+        "Fresh exact-source Candidate `fresh-2994efa-20260926`: commit 2994efa08d3e4f6ea561831fd4088d6d1b290cdd, tree 4fc581e7dcde90a30d8e9019f26fdf362bfa5cc9, snapshot 53acfe1918c0489434a13977f9c1776f305d06b66f566427978dc3015ba4ac62; required provenance/runtime/workers/current-source verifier PASS, 18246 files; archive SHA256 22d58f18ccf8e0daf0b32ace2baa0d0cadc1efe8ab70458c9d7a433bd88bb1b4. Fresh Desktop DLL was rebuilt from current source and the package stayed alive 20 seconds in an isolated launch. Previous UIA route/keyboard evidence references an older DLL, so current rebuilt UI still needs the full route/interaction replay. Workspace identity, real Legacy semantic migration, complete P3 Golden Journey and Green replace/restart/rollback Owner gates remain open; release FROZEN, no Green action. Source/UI/Candidate contract run via scripts/runtime/dev.py: 296 passed, 1 skipped (12.09s); native UIA remains unverified for the rebuilt Desktop DLL."
+      ]
+    },
+    {
+      "key": "R6-LIVE-LEDGER:A14",
+      "title": "Full Human Machine Closed Loop",
+      "lane": "BACKEND_FRONTEND_LOOP",
+      "maps_to": "",
+      "prior_audit_verdict": "TESTED_LOCAL_PARTIAL",
+      "status": "TESTED_LOCAL",
+      "evidence_level": "SYNTHETIC",
+      "disposition": "PARTIAL — the fixture-based loop is unchanged; the real machine leg is BLOCKED",
+      "acceptance_reference": [
+        "stage contract, answer readback, canonical machine retest binding and non-empty correction/retest evidence guards have local evidence; a synthetic failed-task/retest pair bound to the same accepted Knowledge also survives online backup/restore. The real source-to-knowledge-to-learning-to-machine-to-correction-to-retest journey, real model execution and complete product restart readback remain open"
+      ]
+    },
+    {
+      "key": "R6-LIVE-LEDGER:A15",
+      "title": "Independent Audit",
+      "lane": "BACKEND_FRONTEND_LOOP",
+      "maps_to": "",
+      "prior_audit_verdict": "TESTED_LOCAL_PARTIAL",
+      "status": "BLOCKED",
+      "evidence_level": "NO_EVIDENCE",
+      "disposition": "BLOCKED — independent audit is Owner-gated and the executor may not self-sign",
+      "acceptance_reference": [
+        "historical independent audit at a5f52101 recorded candidate provenance 452b5d0c and remote identity at that audit time (not current HEAD or live remote verification), but G01-G14 remain BLOCKED for missing full qualification, real formats/quality, model, Legacy, GUI/clean-machine, runtime-directory and release evidence; product NOT_READY and A16 remains blocked"
+      ]
+    },
+    {
+      "key": "R6-LIVE-LEDGER:A16",
+      "title": "Owner Gate",
+      "lane": "OWNER_GATE",
+      "maps_to": "",
+      "prior_audit_verdict": "BLOCKED_BY_OWNER_DECISION",
+      "status": "BLOCKED",
+      "evidence_level": "NO_EVIDENCE",
+      "disposition": "BLOCKED_BY_OWNER_DECISION — unchanged",
+      "acceptance_reference": [
+        "P0-P6 real closure, resource-root semantics, real migration/Green backup-replace-rollback and Owner approval remain open"
+      ]
+    },
+    {
+      "key": "M0-OVERLAY:P0",
+      "title": "Authority + Plugin Kernel",
+      "lane": "BACKEND_FRONTEND_LOOP",
+      "maps_to": "",
+      "prior_audit_verdict": "PARTIAL_OR_BLOCKED",
+      "status": "TESTED_LOCAL",
+      "evidence_level": "REAL",
+      "disposition": "PARTIAL — the Core is still the sole canonical writer and the launch/health path was exercised repeatedly by the ready-gated probe; the provider enable/disable/default/fallback lifecycle was not re-verified",
+      "acceptance_reference": [
+        "最小 provider/enable/disable/default/fallback/health 生命周期"
+      ]
+    },
+    {
+      "key": "M0-OVERLAY:P1",
+      "title": "Source + Format + Knowledge",
+      "lane": "BACKEND_FRONTEND_LOOP",
+      "maps_to": "",
+      "prior_audit_verdict": "PARTIAL_OR_BLOCKED",
+      "status": "CI_VERIFIED_EXACT_SHA",
+      "evidence_level": "REAL",
+      "disposition": "ADVANCED — a real default input to Canonical Source to Core-verified structure now works for 9 formats on real material, with the readiness check deciding per route whether the engine is present",
+      "acceptance_reference": [
+        "一条真实默认输入→转换→Canonical Source/Knowledge 链"
+      ]
+    },
+    {
+      "key": "M0-OVERLAY:P2",
+      "title": "Search + Learning Plan + Course",
+      "lane": "BACKEND_FRONTEND_LOOP",
+      "maps_to": "",
+      "prior_audit_verdict": "PARTIAL_OR_BLOCKED",
+      "status": "PLANNED",
+      "evidence_level": "NO_EVIDENCE",
+      "disposition": "NOT_ADVANCED on this branch",
+      "acceptance_reference": [
+        "FTS5 + 已验证 embedding/reranker + General Course/Renderer"
+      ]
+    },
+    {
+      "key": "M0-OVERLAY:P3",
+      "title": "Human Learning",
+      "lane": "BACKEND_FRONTEND_LOOP",
+      "maps_to": "",
+      "prior_audit_verdict": "PARTIAL_OR_BLOCKED",
+      "status": "TESTED_LOCAL",
+      "evidence_level": "SYNTHETIC",
+      "disposition": "PARTIAL — synthetic-native only; no real-user first use",
+      "acceptance_reference": [
+        "真人 UI 学习→Assessment→Mastery/FSRS→restart readback"
+      ]
+    },
+    {
+      "key": "M0-OVERLAY:P4",
+      "title": "Machine Loop",
+      "lane": "BACKEND_FRONTEND_LOOP",
+      "maps_to": "",
+      "prior_audit_verdict": "PARTIAL_OR_BLOCKED",
+      "status": "BLOCKED",
+      "evidence_level": "REAL",
+      "disposition": "BLOCKED_UNWIRED - a local model runtime is served on 127.0.0.1:1234; the machine loop is not connected to it.",
+      "acceptance_reference": "docs/current/R6-STATE.json production_loop_measurement_20261001.local_model_runtime_measured_20261001"
+    },
+    {
+      "key": "M0-OVERLAY:P5",
+      "title": "Persistence + Migration",
+      "lane": "BACKEND_FRONTEND_LOOP",
+      "maps_to": "",
+      "prior_audit_verdict": "PARTIAL_OR_BLOCKED",
+      "status": "TESTED_LOCAL",
+      "evidence_level": "REAL",
+      "disposition": "PARTIAL — backup/restore verified on isolated resources; the non-empty Legacy copy leg is frozen",
+      "acceptance_reference": [
+        "Backup/Restore + 非空 Legacy 副本语义 diff + restart/readback"
+      ]
+    },
+    {
+      "key": "M0-OVERLAY:P6",
+      "title": "Local Green",
+      "lane": "BACKEND_FRONTEND_LOOP",
+      "maps_to": "",
+      "prior_audit_verdict": "PARTIAL_OR_BLOCKED",
+      "status": "BLOCKED",
+      "evidence_level": "NO_EVIDENCE",
+      "disposition": "BLOCKED — the in-place replace/rollback is Owner-gated and P0-P5 are not all complete",
+      "acceptance_reference": [
+        "P0-P5 完整证据后，Owner-gated 原位替换/回滚"
+      ]
+    },
+    {
+      "key": "DP-0925:DP-GIT-01",
+      "title": "branch/commit semantic audit (start now; read-only product review)",
+      "lane": "BACKEND_FRONTEND_LOOP",
+      "maps_to": "",
+      "prior_audit_verdict": "HISTORICAL_ASSIGNMENT_RECHECK_INTEGRATION",
+      "status": "TESTED_LOCAL",
+      "evidence_level": "REAL",
+      "disposition": "EXECUTED (read-only) - 7 remote branches audited from Git alone. Every branch name matches the commits it carries. One finding: codex/Audit and codex/aaos-ui-phase2-20261001 are the same commit (1a981a44) and hold identical content, so the UI changes either carries come from that shared history rather than two independent efforts.",
+      "acceptance_reference": "docs/current/AAOS-DP-GIT-01-BRANCH-COMMIT-AUDIT-20261001.json"
+    },
+    {
+      "key": "DP-0925:DP-F01",
+      "title": "real text quality roundtrip (independent M0 P1 slice; candidate implementation)",
+      "lane": "BACKEND_FRONTEND_LOOP",
+      "maps_to": "",
+      "prior_audit_verdict": "HISTORICAL_ASSIGNMENT_RECHECK_INTEGRATION",
+      "status": "CI_VERIFIED_EXACT_SHA",
+      "evidence_level": "REAL",
+      "disposition": "PARTIAL — the real text roundtrip is now covered: text/md/csv/json convert with Core-verified anchors",
+      "acceptance_reference": ""
+    },
+    {
+      "key": "DP-0925:DP-A11",
+      "title": "Research contract gap analysis (optional read-only, after DP-GIT-01)",
+      "lane": "BACKEND_FRONTEND_LOOP",
+      "maps_to": "",
+      "prior_audit_verdict": "HISTORICAL_ASSIGNMENT_RECHECK_INTEGRATION",
+      "status": "TESTED_LOCAL",
+      "evidence_level": "REAL",
+      "disposition": "EXECUTED (read-only) - legacy research surface read, Core route table grepped, contract statements read. No /api/v1/research* route exists and no DTO is frozen. The four semantics (capability boundary, source_revision, provider/version, result status) are Owner decisions, so this is a decision gap rather than an implementation gap; implementing against the legacy Python shapes was explicitly not recommended.",
+      "acceptance_reference": "docs/current/AAOS-DP-A11-RESEARCH-CONTRACT-GAP-20261001.json"
+    }
+  ]
+}

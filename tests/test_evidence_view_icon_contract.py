@@ -28,7 +28,7 @@ def test_source_chain_visual_does_not_render_unverified_related_nodes_as_real_da
     illustration = _named_elements()["EvidenceSourceChainIllustration"]
     assert sum(element.tag.endswith("Ellipse") for element in illustration.iter()) == 7
     assert "不表示真实关联数量" in XAML_PATH.read_text(encoding="utf-8")
-    assert "Core anchor_id 未读取" in XAML_PATH.read_text(encoding="utf-8")
+    assert "引用尚未读取" in XAML_PATH.read_text(encoding="utf-8")
 
 
 def test_evidence_detail_surface_fades_in_and_back_navigation_restores_list_focus():

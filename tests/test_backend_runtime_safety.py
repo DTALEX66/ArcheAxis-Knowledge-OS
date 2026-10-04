@@ -117,7 +117,31 @@ def test_readiness_drains_stderr_and_receipt_has_no_secrets(monkeypatch, tmp_pat
         assert base == "http://127.0.0.1:1234"
         assert "launch_token" not in json.dumps(receipt)
         assert "machine_token" not in json.dumps(receipt)
-        assert tokens["x-archeaxis-launch-token"] not in json.dumps(receipt)
+        assert launcher.credential(tokens, "human")["x-archeaxis-launch-token"] not in json.dumps(receipt)
+    finally:
+        for child in children:
+            launcher.stop(child)
+
+
+def test_machine_credential_uses_the_header_the_core_reads(monkeypatch, tmp_path):
+    """The Core authenticates every request from `x-archeaxis-launch-token` alone.
+
+    `launch.rs::authenticate` reads that one header and matches it against either
+    the launch token or the machine token, then derives the actor from which one
+    matched.  The launcher used to publish the machine token under
+    `x-archeaxis-machine-token`, a header the Core never reads, so a machine call
+    made with those credentials was authenticated as the human actor instead of
+    being refused - a silent identity downgrade rather than a visible error.
+    """
+    children = dummy_core(monkeypatch, tmp_path, "import sys,time;sys.stdin.readline();print('archeaxis-api ready on http://127.0.0.1:1234');time.sleep(2)")
+    child, base, _, tokens = launcher.start(tmp_path / "data", 1234)
+    try:
+        human = launcher.credential(tokens, "human")
+        machine = launcher.credential(tokens, "machine")
+        assert set(human) == {"x-archeaxis-launch-token"}
+        assert set(machine) == {"x-archeaxis-launch-token"}
+        assert human != machine
+        assert "x-archeaxis-machine-token" not in json.dumps(tokens)
     finally:
         for child in children:
             launcher.stop(child)

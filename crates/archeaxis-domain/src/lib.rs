@@ -7,10 +7,13 @@
 
 pub mod anchor;
 pub mod backup;
+pub mod course;
 pub mod knowledge;
 pub mod learning;
 pub mod machine;
 pub mod search;
 pub mod source;
+pub mod vault;
+pub mod vault_members;
 
 pub use source::ImportOutcome;

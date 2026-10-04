@@ -1,11 +1,43 @@
 //! vNext database schema and workspace init (Rust sole writer).
 use rusqlite::Connection;
 
+pub mod capability_settings;
 pub mod raw_objects;
 pub mod writer;
 
 // Assessment and the V3 governance sidecar are additive schema changes.
-pub const SCHEMA_VERSION: i64 = 6;
+// 7 adds the capability enable/disable record that R7/G1 needs; 8 adds the vault link graph that
+// G2 needs. Like the earlier additive steps both are applied on open rather than by rewriting
+// anything.
+pub const SCHEMA_VERSION: i64 = 9;
+
+const COURSE_SCHEMA_SQL: &str = r#"
+CREATE TABLE IF NOT EXISTS general_courses (
+    manifest_id TEXT PRIMARY KEY,
+    title TEXT NOT NULL,
+    manifest_json TEXT NOT NULL,
+    status TEXT NOT NULL CHECK(status='candidate'),
+    human_review_required INTEGER NOT NULL CHECK(human_review_required=1),
+    created_at TEXT NOT NULL DEFAULT (datetime('now'))
+);
+CREATE TABLE IF NOT EXISTS general_course_artifacts (
+    artifact_id TEXT PRIMARY KEY,
+    manifest_id TEXT NOT NULL REFERENCES general_courses(manifest_id),
+    artifact_json TEXT NOT NULL,
+    status TEXT NOT NULL CHECK(status='candidate'),
+    derived_only INTEGER NOT NULL CHECK(derived_only=1),
+    human_review_required INTEGER NOT NULL CHECK(human_review_required=1)
+);
+CREATE TABLE IF NOT EXISTS general_course_bindings (
+    manifest_id TEXT NOT NULL REFERENCES general_courses(manifest_id),
+    component_id TEXT NOT NULL,
+    knowledge_id TEXT NOT NULL REFERENCES knowledge(knowledge_id),
+    knowledge_version TEXT NOT NULL,
+    source_id TEXT NOT NULL REFERENCES sources(source_id),
+    source_revision TEXT NOT NULL,
+    PRIMARY KEY(manifest_id,component_id,source_id)
+);
+"#;
 
 const SCHEMA_SQL: &str = r#"
 CREATE TABLE IF NOT EXISTS workspace_meta (
@@ -124,6 +156,13 @@ CREATE TABLE IF NOT EXISTS learning_assessments (
     created_at TEXT NOT NULL DEFAULT (datetime('now')),
     UNIQUE(item_key, knowledge_id)
 );
+CREATE TABLE IF NOT EXISTS card_references (
+    item_key TEXT NOT NULL,
+    knowledge_id TEXT NOT NULL REFERENCES knowledge(knowledge_id),
+    created_event_id INTEGER,
+    referenced_at TEXT NOT NULL DEFAULT (datetime('now')),
+    PRIMARY KEY(item_key, knowledge_id)
+);
 CREATE TABLE IF NOT EXISTS job_attempts (
     job_id TEXT NOT NULL REFERENCES jobs(job_id),
     attempt INTEGER NOT NULL CHECK(attempt > 0),
@@ -169,6 +208,26 @@ CREATE TABLE IF NOT EXISTS canvas_projection_edges (
     label TEXT NOT NULL DEFAULT '',
     color TEXT NOT NULL DEFAULT '#888',
     PRIMARY KEY(canvas_id, edge_id)
+);
+-- Machine receipts. Created on demand until now, which is why the archive omitted them:
+-- the export refuses to write an archive it cannot account for, and a table that only
+-- exists after the first machine task made the table set depend on usage history. Creating
+-- it with the rest of the schema makes the exported set a property of the schema version,
+-- which is what the archive layout depends on. The domain's own ensure_machine_tasks stays
+-- for databases created before this.
+CREATE TABLE IF NOT EXISTS machine_tasks (
+    task_id TEXT PRIMARY KEY,
+    principal TEXT NOT NULL,
+    conditions TEXT NOT NULL,
+    knowledge_version TEXT,
+    method_version TEXT,
+    tool_version TEXT,
+    model_version TEXT NOT NULL,
+    scope TEXT NOT NULL,
+    outcome TEXT NOT NULL,
+    failure TEXT,
+    retest_of TEXT,
+    recorded_at TEXT NOT NULL DEFAULT (datetime('now'))
 );
 "#;
 
@@ -280,6 +339,46 @@ pub fn init_workspace(db_path: &str) -> rusqlite::Result<Connection> {
             );"
         )?;
     }
+    if version < 7 {
+        // An absent row means enabled, because a capability the launch registered and nobody
+        // disabled is what the Core serves. Only a disabled capability is written, so the table
+        // records decisions rather than restating the registration.
+        tx.execute_batch(
+            "CREATE TABLE IF NOT EXISTS capability_settings (
+                capability TEXT PRIMARY KEY,
+                enabled INTEGER NOT NULL CHECK(enabled IN (0,1)),
+                changed_at TEXT NOT NULL DEFAULT (datetime('now'))
+            );",
+        )?;
+    }
+    if version < 8 {
+        // G2: the Obsidian-style link graph of a vault note.
+        //
+        // `target_knowledge_id` is NULLABLE on purpose. A vault routinely links to a note that has
+        // not been imported, and a link to a note that is not here yet is a fact about the vault
+        // rather than a reason to refuse the link. Refusing it would silently drop exactly the
+        // links that tell a reader the vault is incomplete.
+        //
+        // `source_knowledge_id` is NOT NULL because the note declaring the link is always the one
+        // being read, so a link with no declaring note would be meaningless.
+        tx.execute_batch(
+            "CREATE TABLE IF NOT EXISTS vault_links (
+                source_knowledge_id TEXT NOT NULL REFERENCES knowledge(knowledge_id),
+                target_ref TEXT NOT NULL,
+                target_knowledge_id TEXT REFERENCES knowledge(knowledge_id),
+                embed INTEGER NOT NULL CHECK(embed IN (0,1)),
+                fragment TEXT,
+                fragment_is_block INTEGER NOT NULL DEFAULT 0 CHECK(fragment_is_block IN (0,1)),
+                syntax TEXT NOT NULL,
+                ordinal INTEGER NOT NULL,
+                created_at TEXT NOT NULL DEFAULT (datetime('now')),
+                PRIMARY KEY(source_knowledge_id, target_ref, ordinal)
+            );
+            CREATE INDEX IF NOT EXISTS vault_links_target ON vault_links(target_knowledge_id);",
+        )?;
+    }
+
+    tx.execute_batch(COURSE_SCHEMA_SQL)?;
     tx.execute(
         "INSERT OR REPLACE INTO workspace_meta(key, value) VALUES('schema_version', ?1)",
         [SCHEMA_VERSION.to_string()],

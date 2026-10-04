@@ -38,9 +38,15 @@ class Program
             Environment.SetEnvironmentVariable("AAOS_UI_CAPTURE_WIDTH", args.Length > 3 ? args[3] : null);
             Environment.SetEnvironmentVariable("AAOS_UI_CAPTURE_HEIGHT", args.Length > 4 ? args[4] : null);
             var requestedTheme = args.Length > 5 ? args[5] : "aurora";
-            Environment.SetEnvironmentVariable("AAOS_UI_CAPTURE_THEME",
-                requestedTheme.Equals("monochrome", StringComparison.OrdinalIgnoreCase) || requestedTheme == ThemePalette.Monochrome
-                    ? ThemePalette.Monochrome : ThemePalette.Aurora);
+            Environment.SetEnvironmentVariable("AAOS_UI_CAPTURE_THEME", requestedTheme.ToLowerInvariant() switch
+            {
+                "white" or "ivory" => ThemePalette.White,
+                "black" or "monochrome" => ThemePalette.Black,
+                "deep-space" or "deepspace" => ThemePalette.DeepSpace,
+                _ when requestedTheme == ThemePalette.Ivory => ThemePalette.Ivory,
+                _ when requestedTheme == ThemePalette.Monochrome => ThemePalette.Monochrome,
+                _ => ThemePalette.Aurora,
+            });
             Environment.SetEnvironmentVariable("AAOS_REDUCED_MOTION", "1");
         }
         BuildAvaloniaApp().StartWithClassicDesktopLifetime(args);

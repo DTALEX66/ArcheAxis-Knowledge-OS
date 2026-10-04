@@ -1,4 +1,4 @@
-"""The formal shell preserves both user-authorized palettes and theme bindings."""
+"""The formal shell preserves user-authorized palettes and theme bindings."""
 from __future__ import annotations
 
 import re
@@ -26,6 +26,28 @@ def _brushes() -> dict[str, str]:
     }
 
 
+def test_every_palette_resolves_the_glass_and_content_brushes():
+    tables = [_palette_colors(name) for name in ("Ivory", "Monochrome", "Aurora")]
+    assert all(set(table) == set(tables[0]) for table in tables)
+    for table in tables:
+        assert {"AaosGlassBrush", "AaosGlassRimBrush", "AaosHeroTextBrush", "AaosHeroMutedBrush",
+                "AaosPrimaryTextBrush", "AaosErrorBrush", "AaosMutedBrush"} <= table.keys()
+
+
+def test_primary_action_label_contrast_survives_every_palette_and_hover():
+    def luminance(hex_color):
+        channels = [int(hex_color[index:index + 2], 16) / 255 for index in (1, 3, 5)]
+        linear = [channel / 12.92 if channel <= .04045 else ((channel + .055) / 1.055) ** 2.4 for channel in channels]
+        return sum(channel * weight for channel, weight in zip(linear, (.2126, .7152, .0722)))
+    for name in ("Ivory", "Monochrome", "Aurora"):
+        palette = _palette_colors(name)
+        values = sorted([luminance(palette["AaosPrimaryBrush"]), luminance(palette["AaosPrimaryTextBrush"])])
+        assert (values[1] + .05) / (values[0] + .05) >= 4.5, name
+    theme = ET.parse(THEME).getroot()
+    hover = next(node for node in theme if node.get("Selector") == "Button.primary-action:pointerover")
+    assert any(node.get("Property") == "Foreground" and node.get("Value") == "{DynamicResource AaosPrimaryTextBrush}" for node in hover)
+
+
 def test_monochrome_palette_uses_black_white_surfaces_and_neutral_primary_actions() -> None:
     brushes = _palette_colors("Monochrome")
 
@@ -47,7 +69,8 @@ def test_monochrome_remains_neutral_and_aurora_default_is_explicitly_selectable(
     assert aurora["AaosIvoryBrush"] == "#F8F6EB"
     assert _brushes()["AaosBackgroundBrush"] == aurora["AaosBackgroundBrush"]
     palette_code = PALETTE.read_text(encoding="utf-8")
-    assert "palette == Monochrome ? MonochromeColors : AuroraColors" in palette_code
+    assert "Ivory => IvoryColors" in palette_code
+    assert "Monochrome => MonochromeColors" in palette_code
     assert "resources[key] = new SolidColorBrush(Color.Parse(value));" in palette_code
     shell = (PALETTE.parent / "MainWindow.axaml.cs").read_text(encoding="utf-8")
     assert "ThemePalette.Apply(ThemePalette.Aurora);" in shell
@@ -63,6 +86,7 @@ def test_aurora_effects_and_navigation_gradients_follow_current_brand_tokens() -
     assert aurora["AaosAmbientStart"] == aurora["AaosPrimaryBrush"]
     assert aurora["AaosBrandMarkEnd"] == aurora["AaosPrimaryBrush"]
     assert aurora["AaosAmbientSecondaryBrush"] == "#55F4D08B"
-    assert 'palette == Aurora ? "#66F4D08B"' in palette_code
+    assert 'Aurora => "#66F4D08B"' in palette_code
+    assert 'Ivory => "#449A6F21"' in palette_code
     for old_color in ("#1FC8C5", "#8DC398", "#14343D", "#102630", "#061118"):
         assert old_color not in theme

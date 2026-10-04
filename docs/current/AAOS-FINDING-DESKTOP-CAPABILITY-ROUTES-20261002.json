@@ -1,0 +1,133 @@
+{
+  "schema": "aaos.finding.desktop-capability-routes/v1",
+  "recorded_at": "2026-10-02",
+  "recorded_at_commit": "574831ddc8926f8eff68c210a3debf23c2b0b1f5",
+  "status": "FIXED",
+  "one_line": "A desktop launch registers no capability routes at all, so every capability - PDF, OCR, Office, media, canvas and the G4 machine.answer route - is unreachable when the product is launched the way the product is launched.",
+  "why_it_matters_for_this_work": "The G4 co-learning loop's machine side is reached by POST /api/v1/machine/answers and /machine/retests. Those answer 503 'no worker is registered for machine.answer' in a desktop launch, which is the launch the product uses.",
+  "the_prior_commit_described_the_same_defect": {
+    "commit": "deb2238a",
+    "its_own_words": "Round 3 let a launch declare `routes` and the Core registers exactly what is declared. The staged runtime could not use it: load_profile validated set(document) == {\"schema\",\"python\",\"script\",\"staging\"} exactly, so a profile carrying routes was rejected outright, and start() never forwarded any.",
+    "what_it_fixed": "scripts/release/backend_launcher.py, the staged runtime's reader",
+    "what_it_left": "the same two defects in the desktop's own components, because the commit was scoped to the Python launcher"
+  },
+  "measured_facts": [
+    {
+      "id": "F1",
+      "fact": "The desktop's profile reader rejects any field beyond four.",
+      "location": "apps/ArcheAxis.Desktop/WorkerProfile.cs",
+      "evidence": {
+        "field_whitelist_line": 37,
+        "exact_count_line": 42
+      },
+      "consequence": "a profile carrying `routes` throws `InvalidDataException: unknown, duplicate or invalid worker profile field`"
+    },
+    {
+      "id": "F2",
+      "fact": "The desktop's supervisor never sends routes, so the Core registers none.",
+      "location": "apps/ArcheAxis.Desktop/CoreSupervisor.cs",
+      "evidence": {
+        "payload_line": 92,
+        "record_line": 13
+      },
+      "consequence": "`CoreTextWorker` carries only Python/Script/Staging, so the desktop-launch document's `text_worker` object has no `routes` key and the Core registers only the built-in text.extract route"
+    },
+    {
+      "id": "F3",
+      "fact": "The Core would accept and register routes from the desktop if they were sent.",
+      "location": "crates/archeaxis-api/src/launch.rs",
+      "evidence": {
+        "struct_field_line": 44,
+        "registration_line": 216
+      },
+      "consequence": "the gap is a wiring gap in the desktop, not a missing Core capability: `routes` is #[serde(default)] in the launch struct and main.rs passes extra_routes() to Executor::open_routes"
+    },
+    {
+      "id": "F4",
+      "fact": "The desktop launcher writes no routes either.",
+      "location": "scripts/launch/desktop_launch.py",
+      "evidence": {
+        "profile_write_line": 89
+      },
+      "consequence": "the development desktop launch prep produces the same four-field profile, so the gap is reproducible from the documented launch path"
+    },
+    {
+      "id": "F5",
+      "fact": "The two profile files are different artifacts and do not collide.",
+      "location": "scripts/release/stage_backend_runtime.py",
+      "evidence": {
+        "staged_profile_line": 316,
+        "desktop_default_line": 22
+      },
+      "consequence": "IMPORTANT CORRECTION TO MY OWN FIRST READING: I initially suspected that adding machine.answer to the staged profile's routes would make a staged tree unreadable by the desktop. Measurement disproved that. The desktop reads the profile the desktop launcher writes, which has exactly the four fields the desktop requires. The staged profile is a separate file consumed by the staged launcher. There is no collision."
+    },
+    {
+      "id": "F6",
+      "fact": "The contract's launch document does not mention routes at all.",
+      "location": "docs/current/AAOS-PRODUCTION-HTTP-CONTRACT-20261001.md",
+      "evidence": {
+        "text_worker_block_starts": 99
+      },
+      "consequence": "a reader of the contract cannot learn that a launch may declare capability routes, so the desktop's omission is invisible rather than documented as a limitation"
+    },
+    {
+      "id": "F7",
+      "fact": "CI does not cover the desktop profile reader against a profile that has routes.",
+      "location": ".github/workflows/ci.yml",
+      "evidence": {
+        "smoke_invocation_line": 751
+      },
+      "consequence": "the smoke passes a database path and no worker profile, so the reader's exact-count rule is never exercised against a routes-bearing profile"
+    }
+  ],
+  "what_is_NOT_established": [
+    "Whether the desktop is *intended* to stay text-only. M0 defers second providers and extra domains, which could be read as an argument for it. Nothing in the repository states that the desktop registers no capability routes, so this is an open question for the Owner rather than a settled limitation.",
+    "Whether the desktop actually reaches capability routes through some other path this session did not find. The two files above are the only desktop consumers of a worker profile."
+  ],
+  "proposed_fix_scope_if_the_owner_wants_it": {
+    "components": [
+      "WorkerProfile.cs: accept `routes` and resolve each script the way backend_launcher.py does, instead of rejecting the field",
+      "CoreSupervisor.cs: add routes to CoreTextWorker and to the launch document",
+      "desktop_launch.py: write the routes the desktop ships",
+      "the contract's launch document: state that a launch may declare routes"
+    ],
+    "why_it_is_not_done_yet": "The changes are C#, and `dotnet` is not available in this environment (not on PATH and absent from Program Files), so they cannot be compiled or run here. Shipping uncompilable C# would be a claim without evidence, which this project forbids. It is left as a verified finding and an explicit decision for the Owner.",
+    "acceptance_check_if_implemented": "a desktop launch with a routes-bearing profile registers the declared capabilities, asserted by extending tests/runtime-paths/CoreSupervisor.Tests to send a profile with routes and read back the capability list from the live Core"
+  },
+  "reproduce": [
+    "git -C <repo> grep -n 'fields.Count != 4' apps/ArcheAxis.Desktop/WorkerProfile.cs",
+    "git -C <repo> grep -n 'new { python = _textWorker.Python' apps/ArcheAxis.Desktop/CoreSupervisor.cs",
+    "git -C <repo> grep -n 'extra_routes' crates/archeaxis-api/src/main.rs"
+  ],
+  "fix_20261002": {
+    "owner_decision": "The Owner chose to have the C# changed and verified by CI, rather than treating the desktop as intentionally text-only. The question the finding left open - whether the desktop is meant to register no capability routes - is therefore answered: it is not.",
+    "components_changed": [
+      {
+        "file": "apps/ArcheAxis.Desktop/WorkerProfile.cs",
+        "change": "`routes` is read instead of refused. Each entry must be an object whose only fields are `capability` and `script`, both non-empty strings; an unknown field is refused by name rather than dropped. Every route script is resolved through the same `Resolve` as the text script, so the drive-letter, UNC, `..`, private-name and reparse-point rules apply to it too, and it must exist."
+      },
+      {
+        "file": "apps/ArcheAxis.Desktop/CoreSupervisor.cs",
+        "change": "`CoreTextWorker` gained `Routes`, a `CoreWorkerRoute` record was added, and the launch document now carries `routes` as an array of `{capability, script}`. The keys are lowercase deliberately: the Core declares `WorkerRoute` under `deny_unknown_fields`, so the default PascalCase serialization of a record would be refused as an unknown field. `using System.Linq;` was added for the projection."
+      },
+      {
+        "file": "scripts/launch/desktop_launch.py",
+        "change": "The prepared profile now declares the same 11 capabilities the staged runtime ships. Each worker path is resolved through the existing `dev.safe_path` and must exist; a missing worker raises rather than being silently omitted."
+      },
+      {
+        "file": "tests/test_desktop_launch.py",
+        "change": "Asserts that a prepared launch declares routes, that `machine.answer` is among them, that every declared script exists, and that every script is inside `services/python-workers`."
+      },
+      {
+        "file": "docs/current/AAOS-PRODUCTION-HTTP-CONTRACT-20261001.md",
+        "change": "§5 now documents the `routes` field and both readers, which it previously omitted."
+      }
+    ],
+    "acceptance_evidence": {
+      "python": "tests/test_desktop_launch.py: 10 passed, including the new route assertions",
+      "csharp": "Not built locally: no .NET SDK is available in this environment. The C# change is accepted only if CI's desktop-vnext job builds it and the supervisor smoke passes. Until that job is green on the exact commit, the C# half is UNVERIFIED.",
+      "lint": "repository conventions, architecture, language boundaries, path conventions and the format matrix all exit 0"
+    },
+    "residual_risk": "The C# was written without a compiler in reach, so a syntax or type error is possible and would be caught by CI rather than locally. The two constructs most worth CI's attention are the anonymous-type projection in CoreSupervisor and the tuple list in WorkerProfile."
+  }
+}

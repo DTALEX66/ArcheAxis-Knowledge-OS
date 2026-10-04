@@ -58,7 +58,11 @@ fn knowledge_id_from_version(value: &str) -> &str {
     value.split_once('@').map(|(id, _)| id).unwrap_or(value)
 }
 
-fn validate_knowledge_binding(conn: &Connection, value: Option<&str>) -> rusqlite::Result<()> {
+fn validate_knowledge_binding(
+    conn: &Connection,
+    value: Option<&str>,
+    historical_evaluation: bool,
+) -> rusqlite::Result<()> {
     let Some(value) = value.map(str::trim) else {
         return Ok(());
     };
@@ -80,12 +84,13 @@ fn validate_knowledge_binding(conn: &Connection, value: Option<&str>) -> rusqlit
             "knowledge_version must reference existing canonical knowledge".into(),
         ));
     };
-    if !knowledge::is_knowledge_active(conn, knowledge_id)?
-        || (status != "accepted"
-            && !matches!(
-                knowledge_type.as_str(),
-                "PERSONAL_DEFINITION" | "PERSONAL_EXPERIENCE"
-            ))
+    if !historical_evaluation
+        && (!knowledge::is_knowledge_active(conn, knowledge_id)?
+            || (status != "accepted"
+                && !matches!(
+                    knowledge_type.as_str(),
+                    "PERSONAL_DEFINITION" | "PERSONAL_EXPERIENCE"
+                )))
     {
         return Err(rusqlite::Error::InvalidParameterName(
             "knowledge_version must reference active accepted or personal knowledge".into(),
@@ -132,9 +137,17 @@ pub fn record_machine_task(conn: &mut Connection, task: &MachineTask<'_>) -> rus
             "a succeeded machine task cannot carry a failure note".into(),
         ));
     }
-    let tx = conn.transaction_with_behavior(rusqlite::TransactionBehavior::Immediate)?;
+    // Runtime answer/correction receipts can be part of a larger atomic write.
+    let tx = conn.savepoint()?;
     ensure_machine_tasks(&tx)?;
-    validate_knowledge_binding(&tx, task.knowledge_version)?;
+    // An evaluation describes a persisted past answer, not a new inference.
+    // The HTTP generic writer refuses all runtime.* scopes; the Core correction
+    // route verifies the original answer before reaching this historical binding.
+    validate_knowledge_binding(
+        &tx,
+        task.knowledge_version,
+        task.scope == "runtime.evaluation.failed" && task.outcome == "failed",
+    )?;
     if let Some(retest_of) = task.retest_of.map(str::trim) {
         if retest_of.is_empty() {
             return Err(rusqlite::Error::InvalidParameterName(

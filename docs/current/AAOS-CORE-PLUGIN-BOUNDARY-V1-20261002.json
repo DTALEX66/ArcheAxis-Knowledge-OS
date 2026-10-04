@@ -1,0 +1,53 @@
+{
+  "document": "AAOS_CORE_PLUGIN_BOUNDARY_V1",
+  "recorded_at": "2026-10-02T07:01:15.837733+00:00",
+  "origin": "the 2026-08-14 principle, restated by the 2026-10-02 plan: not 'everything is a plugin' but a trusted microkernel plus replaceable capability providers plus controlled external adapters",
+  "trusted_microkernel_never_plugin": [
+    "Source / Raw Asset identity",
+    "hash / version",
+    "Knowledge Object / Knowledge Version",
+    "Anchor / provenance",
+    "Claim / Evidence",
+    "Conflict",
+    "Candidate -> Review -> Accepted state machine",
+    "human approval",
+    "canonical transaction",
+    "receipt / audit",
+    "permission",
+    "canonical writer",
+    "the binding rules between Learning / AI assets and Evidence",
+    "plugin and capability contract authority"
+  ],
+  "prefer_plugin": [
+    "Parser",
+    "OCR",
+    "ASR",
+    "search implementation",
+    "embedding",
+    "reranker",
+    "graph projection",
+    "model provider",
+    "web research provider",
+    "learning renderer",
+    "visualization",
+    "3D/VR",
+    "external knowledge software",
+    "agent runtime adapter"
+  ],
+  "invariant": "A plugin must never write the canonical database. It receives a bounded request and returns a result the Core validates and commits.",
+  "what_this_makes_mechanism": {
+    "already_present": [
+      "capability routes are declared by the launch rather than assumed from a checkout layout",
+      "the Core registers exactly what is declared (Executor::open_routes)",
+      "a worker identity allow-list refuses an unexpected worker before it serves anything",
+      "the receipt carries the engine and engine_version, so a result names what produced it"
+    ],
+    "missing_for_R7_G1": [
+      "a plugin registry with enable/disable",
+      "a capability resolver exposed over HTTP",
+      "per-capability health",
+      "default/fallback provider selection"
+    ],
+    "explicitly_out_of_scope": "a marketplace"
+  }
+}

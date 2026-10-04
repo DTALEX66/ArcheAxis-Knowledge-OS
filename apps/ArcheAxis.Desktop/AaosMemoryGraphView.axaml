@@ -4,7 +4,7 @@
              Width="560"
              Height="420"
              ClipToBounds="False"
-             AutomationProperties.Name="Memory Graph 静态示意：知识中心与关系网络；节点和连线均不代表 Core 条目或关系">
+             AutomationProperties.Name="记忆图谱静态示意：知识中心与关系网络；节点和连线均不代表 Core 条目或关系">
   <UserControl.Styles>
     <Style Selector="Button.aaos-graph-node">
       <Setter Property="Transitions">

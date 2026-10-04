@@ -1,0 +1,55 @@
+{
+  "document": "AAOS_LOCAL_CLOUD_RECONCILIATION_20261002",
+  "recorded_at": "2026-10-02T07:51:59.364054+00:00",
+  "method": "git status --porcelain, branch -vv, worktree list, stash list, log --not --remotes; read-only, and unknown local state is preserved rather than cleaned",
+  "prohibitions_observed": [
+    "no git reset --hard",
+    "no git clean",
+    "no batch overwrite",
+    "no worktree removed",
+    "no Green overwrite"
+  ],
+  "commands_run_and_their_findings": [
+    {
+      "command": "git status --porcelain",
+      "finding": "2 untracked entries, 0 tracked changes"
+    },
+    {
+      "command": "git worktree list --porcelain",
+      "finding": "9 worktrees registered",
+      "entries": [
+        "worktree D:/All projects/ArcheAxis-Knowledge-OS",
+        "worktree C:/Users/ALEX/.codex/worktrees/aaos-formal-frontend/ArcheAxis-Knowledge-OS",
+        "worktree D:/All projects/ArcheAxis-Knowledge-OS/.project-local/worktrees/dsh-backend-loop-20261001",
+        "worktree D:/All projects/ArcheAxis-Knowledge-OS/.project-local/worktrees/v3-era",
+        "worktree D:/All projects/ArcheAxis-Knowledge-OS/.project-local/worktrees/worker-quality-0906",
+        "worktree D:/All projects/ArcheAxis.Knowledge.Green-x64/.ui-task-tree/AAOS-integration-verification-413ad3a0",
+        "worktree D:/All projects/ArcheAxis.Knowledge.Green-x64/.ui-task-tree/aaos-ui-phase2-integrate",
+        "worktree D:/All projects/ArcheAxis.Knowledge.Green-x64/.ui-task-tree/ArcheAxis-Knowledge-OS",
+        "worktree D:/All projects/ArcheAxis.Knowledge.Green-x64/.ui-task-tree/minimax-aaos-cosmic-ui-20261001"
+      ]
+    },
+    {
+      "command": "git stash list",
+      "finding": "2 stash entries: ['stash@{0}: On codex/local-pre-api-updates-20260918: local copies already uploaded to origin/main 2026-09-18', 'stash@{1}: On feat/portable-data-root: recovery-20260805-before-taskpack-completion']"
+    },
+    {
+      "command": "git log --branches --not --remotes --oneline",
+      "finding": "dd0282cb Replace the partial plan archive with the complete 43-section master taskpack\n793e06ee docs(dsh-review): job-quality / loss-receipt read projection proposal\n56a76411 test(f01): real text quality roundtrip through Executor -> text NDJSON worker -> Core API"
+    },
+    {
+      "command": "git rev-parse per branch vs origin",
+      "finding": "all five branches match their remote refs"
+    }
+  ],
+  "untracked_entries_preserved": [
+    "?? docs/current/AAOS-BRANCH-CONVERGENCE-LEDGER-20261002.json",
+    "?? docs/current/AAOS-LOCAL-CLOUD-RECONCILIATION-20261002.json"
+  ],
+  "local_only_commits": "dd0282cb Replace the partial plan archive with the complete 43-section master taskpack\n793e06ee docs(dsh-review): job-quality / loss-receipt read projection proposal\n56a76411 test(f01): real text quality roundtrip through Executor -> text NDJSON worker -> Core API",
+  "stashes_preserved": [
+    "stash@{0}: On codex/local-pre-api-updates-20260918: local copies already uploaded to origin/main 2026-09-18",
+    "stash@{1}: On feat/portable-data-root: recovery-20260805-before-taskpack-completion"
+  ],
+  "verdict": "Local and cloud agree ref-for-ref. The untracked entries are the archived history material and are preserved; nothing was cleaned, reset or overwritten."
+}

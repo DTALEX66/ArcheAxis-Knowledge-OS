@@ -45,7 +45,12 @@ def test_the_committed_record_passes_against_the_real_tree():
     failures, detail = checker.check(REPO, RECORD)
     assert failures == []
     assert detail["workers"] >= 11
-    assert detail["routed"] >= 9
+    assert detail["routed"] >= 10
+    # Two exemptions: media/worker_video.py, which returns measurements and artifacts rather
+    # than a projected text, and machine/worker_machine_answer.py, which is reached by the Core
+    # route POST /api/v1/machine/answers instead of by job dispatch because the job protocol
+    # cannot carry its question. The ASR engine that was exempted for want of a model is routed
+    # as media.transcribe as of 2026-10-01.
     assert detail["exempted"] == 2
 
 
@@ -56,6 +61,7 @@ def test_the_discovery_rule_finds_the_workers_it_claims_to():
     assert "services/python-workers/media/worker_video.py" in workers
     assert workers["services/python-workers/web/worker_html.py"] == "python-worker-html"
     assert workers["services/python-workers/document/worker_canvas.py"] == "python-worker-canvas"
+    assert workers["services/python-workers/media/worker_transcribe.py"] == "python-worker-transcribe"
     # a dispatcher with no engine of its own is not a capability worker
     assert "services/python-workers/worker_extract.py" not in workers
 
@@ -65,9 +71,10 @@ def test_every_routed_worker_is_really_named_by_a_route():
     assert "services/python-workers/web/worker_html.py" in routed
     assert "services/python-workers/document/worker_office.py" in routed
     assert "services/python-workers/document/worker_subtitles.py" in routed
-    # the exempted two must not appear in the route table, or their exemption is stale
+    # the ASR engine is routed now, so it must appear in the route table
+    assert "services/python-workers/media/worker_transcribe.py" in routed
+    # the remaining exempted one must not appear in the route table, or its exemption is stale
     assert "services/python-workers/media/worker_video.py" not in routed
-    assert "services/python-workers/media/worker_transcribe.py" not in routed
 
 
 def test_a_worker_with_no_route_and_no_reason_is_refused(tmp_path):
@@ -82,11 +89,6 @@ def test_an_exemption_with_no_reason_is_refused(tmp_path):
         tmp_path,
         [
             {"worker": "services/python-workers/media/worker_video.py", "engine": "python-worker-video"},
-            {
-                "worker": "services/python-workers/media/worker_transcribe.py",
-                "engine": "python-worker-transcribe",
-                "reason": "needs a model",
-            },
         ],
     )
     failures = _failures(record)
@@ -106,11 +108,6 @@ def test_a_stale_exemption_for_a_routed_worker_is_refused(tmp_path):
                 "worker": "services/python-workers/media/worker_video.py",
                 "engine": "python-worker-video",
                 "reason": "needs parameters the contract cannot carry",
-            },
-            {
-                "worker": "services/python-workers/media/worker_transcribe.py",
-                "engine": "python-worker-transcribe",
-                "reason": "needs a model",
             },
         ],
     )
@@ -133,9 +130,9 @@ def test_an_exemption_for_a_worker_that_does_not_exist_is_refused(tmp_path):
                 "reason": "needs parameters the contract cannot carry",
             },
             {
-                "worker": "services/python-workers/media/worker_transcribe.py",
-                "engine": "python-worker-transcribe",
-                "reason": "needs a model",
+                "worker": "services/python-workers/web/worker_html.py",
+                "engine": "python-worker-html",
+                "reason": "routed, so this exemption is stale",
             },
         ],
     )

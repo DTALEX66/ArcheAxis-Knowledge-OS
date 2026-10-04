@@ -1,0 +1,63 @@
+{
+  "document": "AAOS_CAPABILITY_REGISTRY_V1",
+  "requested_as": "section 33 item 6",
+  "recorded_at": "2026-10-02T07:52:28.753552+00:00",
+  "scope": "section 42 item 11 and section 9: the first version does registry, enable, disable, health, default, fallback, rollback and permission, and does not do a public marketplace.",
+  "what_a_capability_record_must_carry": [
+    "capability id and version",
+    "provider identity and provider version",
+    "enabled / disabled",
+    "health state and when it was last checked",
+    "is_default for its capability",
+    "fallback provider if this one fails",
+    "rollback target",
+    "permission or scope it runs under",
+    "the media types it accepts and the outputs it produces"
+  ],
+  "already_implemented_in_the_core": [
+    "capability routes are declared at launch rather than inferred from the checkout layout",
+    "the Core registers exactly what was declared (Executor::open_routes)",
+    "a worker identity allow-list refuses an unexpected worker before it serves anything",
+    "the receipt names the engine and engine_version that produced a result"
+  ],
+  "not_yet_implemented": [
+    "provider rollback, beyond naming the fallback candidate",
+    "a second provider for any capability in a production launch, which is why fallback reads null there even though the field and its behaviour are tested",
+    "permission or scope per capability; the launch token model remains the only gate"
+  ],
+  "provider_catalogue_measured_on_this_host": {
+    "note": "the model runtime is installed and serving; this records what a registry would have to describe, not a claim that the registry exists",
+    "served_models": [
+      "qwen3.5-4b",
+      "qwen3.8-27b",
+      "qwen2.5-vl-7b-instruct",
+      "text-embedding-qwen3-embedding-0.6b",
+      "text-embedding-nomic-embed-text-v1.5",
+      "qwen3-reranker-0.6b"
+    ],
+    "vision_caption": "wired through a capability route and measured producing a real caption",
+    "h3_video": "the ComfyUI runtime resolves all three H3 component classes; no route exists"
+  },
+  "invariant": "a capability provider never writes the canonical database; it answers a bounded request and the Core validates and commits the result",
+  "implemented_over_http": {
+    "GET /api/v1/capabilities": "the routes the Core registered, each with provider, health, enabled, is_default and fallback",
+    "GET /api/v1/capabilities/{capability}": "one capability by exact dot-separated name; a near miss is 404 rather than the nearest match",
+    "PUT /api/v1/capabilities/{capability}/enabled": "enable/disable, persisted in capability_settings and answered from the re-read record rather than echoed back"
+  },
+  "enforcement_note": "Disable is a real barrier, not a report: `attempts::claim` reads the record inside the claim transaction, so a disabled capability creates no attempt row, no staging copy and no partial output, and the execute path answers 409 AAK-CAP-001 before the worker starts. A check placed after the worker started would make 'disabled' mean 'ran and was then discarded'.",
+  "schema_note": "capability_settings arrived with schema version 7 and is in the archive export table set, so a backup/restore round trip keeps it rather than silently dropping which capabilities an operator turned off.",
+  "recorded_over": [
+    {
+      "commit": "5ab692da",
+      "delivered": "the registry surface and its limits"
+    },
+    {
+      "commit": "d3c8e539",
+      "delivered": "enable/disable persisted, refused at claim time"
+    },
+    {
+      "commit": "cf83fcfd",
+      "delivered": "default and fallback reporting, preferring a usable provider"
+    }
+  ]
+}

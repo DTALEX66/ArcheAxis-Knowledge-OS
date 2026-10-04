@@ -27,6 +27,7 @@ from __future__ import annotations
 
 import argparse
 import hashlib
+import importlib.util
 import json
 import os
 import shutil
@@ -35,11 +36,44 @@ import subprocess
 import zipfile
 from pathlib import Path
 
+_worker_routes_spec = importlib.util.spec_from_file_location(
+    "stage_worker_routes", Path(__file__).with_name("worker_routes.py")
+)
+assert _worker_routes_spec and _worker_routes_spec.loader
+worker_routes = importlib.util.module_from_spec(_worker_routes_spec)
+_worker_routes_spec.loader.exec_module(worker_routes)
+
 PROFILE_SCHEMA = "archeaxis.worker-profile/v1"
 MANIFEST_SCHEMA = "archeaxis.backend-runtime/v1"
 TEXT_WORKER_RELATIVE = "workers/transport/text_ndjson.py"
 SCHEDULER_WORKER_RELATIVE = "workers/learning/worker_schedule.py"
+
+# Capability -> worker scripts that implement it, in preference order, relative to
+# the staged root. Each of these workers advertises the capability itself and
+# refuses anything it did not advertise, so the Core can only dispatch a route that
+# a real worker serves. Only the first *existing* path is declared: the profile
+# states what this runtime actually ships, and a capability with no worker present is
+# left out rather than declared and then failing at job time.
+# Loaded from services/python-workers/routes.json - the single mapping. See worker_routes.py for
+# why the three hand-written copies were removed.
+ROUTE_SCRIPTS: dict[str, tuple[str, ...]] = worker_routes.load(prefix="workers/")
 PRIVATE_NAMES = set([".git", ".codex", ".dsh", ".zcode", ".hermes", ".openhuman", ".claude", ".agents", ".agent", ".cursor", ".continue", ".aider", ".gemini", ".opencode", ".openhands", ".cline", ".roo", ".kilocode", ".windsurf", ".copilot", ".ssh", ".aws", ".azure", ".gnupg", "agent-private", "private-agent-state", "sessions", "memories", "keychain", "credentials", "auth", "browser-data", ".npmrc", ".pypirc", ".netrc"])
+
+
+def present_routes(root: Path) -> list[dict[str, str]]:
+    """Declare the capability routes this staged tree can actually serve.
+
+    Only a capability whose worker script is present is declared. A route that named
+    an absent script would make the Core refuse the whole profile, and a route
+    declared without a worker would fail at job time instead of at packaging time.
+    """
+    declared: list[dict[str, str]] = []
+    for capability in sorted(ROUTE_SCRIPTS):
+        for relative in ROUTE_SCRIPTS[capability]:
+            if (root / relative).is_file():
+                declared.append({"capability": capability, "script": relative})
+                break
+    return declared
 
 
 def sha256(path: Path) -> str:
@@ -260,6 +294,9 @@ def main() -> int:
         "script": TEXT_WORKER_RELATIVE,
         "staging": "data/worker-staging",
     }
+    declared_routes = present_routes(root)
+    if declared_routes:
+        profile["routes"] = declared_routes
     profile_path = root / "worker-profile.json"
     profile_path.write_text(json.dumps(profile, indent=2) + "\n", encoding="utf-8", newline="\n")
     launcher = write_launcher(root)

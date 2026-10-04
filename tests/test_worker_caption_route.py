@@ -96,7 +96,12 @@ def test_a_description_is_labelled_as_model_output(tmp_path, monkeypatch):
     description from extracted content without reading this worker."""
     sample = tmp_path / "figure.png"
     _sample(sample)
-    monkeypatch.setattr(caption, "probe", lambda model: {"capability": True, "model": model})
+    # The real probe resolves a model when the caller names none, because the two local vision
+    # runtimes name the same model differently. A stub that echoed `None` back would describe a
+    # behaviour the worker does not have, so this one resolves the way the worker does.
+    monkeypatch.setattr(
+        caption, "probe",
+        lambda model: {"capability": True, "model": model or caption._endpoint()["model"]})
     monkeypatch.setattr(
         caption,
         "describe",
@@ -119,7 +124,10 @@ def test_a_description_is_labelled_as_model_output(tmp_path, monkeypatch):
     assert result["text"] == "a described figure"
     assert result["engine"] == caption.ENGINE
     params = result["loss_receipt"]["params"]
-    assert params["model"] == caption.DEFAULT_MODEL
+    # The promise is that the receipt names the model actually used, not a particular model: which
+    # local runtime answers is a property of the machine, and it names the same model differently.
+    assert params["model"] == caption._endpoint()["model"]
+    assert params["model"], "the receipt must name a model rather than leaving it empty"
     assert params["prompt_version"] == caption.PROMPT_VERSION
     assert "candidate" in params["authority"]
     assert "candidate" in result["loss_receipt"]["loss_note"]
