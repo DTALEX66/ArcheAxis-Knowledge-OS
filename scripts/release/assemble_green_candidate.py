@@ -20,6 +20,13 @@ assert _candidate_spec and _candidate_spec.loader
 _candidate_module = importlib.util.module_from_spec(_candidate_spec)
 _candidate_spec.loader.exec_module(_candidate_module)
 
+_worker_routes_spec = importlib.util.spec_from_file_location(
+    "candidate_worker_routes", Path(__file__).with_name("worker_routes.py")
+)
+assert _worker_routes_spec and _worker_routes_spec.loader
+worker_routes = importlib.util.module_from_spec(_worker_routes_spec)
+_worker_routes_spec.loader.exec_module(worker_routes)
+
 
 @dataclass(frozen=True)
 class AssemblyResult:
@@ -210,23 +217,11 @@ def assemble(
         # co-learning machine answer were all unreachable from the shipped product, and nothing
         # failed. The list is derived from the workers that were really copied, so the profile
         # declares what is present rather than what someone remembered to write down.
+        # Loaded from services/python-workers/routes.json - the single mapping, so the shipped
+        # candidate cannot declare a different set from the staged runtime.
         route_workers = {
-            "archive.inventory": "workers/document/worker_archive.py",
-            "canvas.structure": "workers/document/worker_canvas.py",
-            # G2: graded retrieval and General courses. Both workers are copied with the rest of
-            # services/python-workers; declaring them here is what makes the route exist in the
-            # shipped candidate, and without it the packaged product answers 503 for them.
-            "course.general": "workers/course/worker_general_course.py",
-            "html.structure": "workers/web/worker_html.py",
-            "image.caption": "workers/vision/worker_caption.py",
-            "image.ocr": "workers/vision/worker_ocr.py",
-            "machine.answer": "workers/machine/worker_machine_answer.py",
-            "media.probe": "workers/document/worker_media.py",
-            "media.transcribe": "workers/media/worker_transcribe.py",
-            "office.structure": "workers/document/worker_office.py",
-            "pdf.extract": "workers/document/worker_pdf.py",
-            "search.semantic": "workers/search/semantic_ranking.py",
-            "subtitles.structure": "workers/document/worker_subtitles.py",
+            capability: scripts[0]
+            for capability, scripts in worker_routes.load(prefix="workers/").items()
         }
         routes = [
             {"capability": capability, "script": relative}

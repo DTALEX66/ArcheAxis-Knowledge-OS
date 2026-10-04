@@ -35,27 +35,29 @@ def _module(name: str, path: Path):
 
 
 def test_the_desktop_launcher_declares_routes():
-    launcher = _module("desktop_launch_routes_under_test", LAUNCHER)
-    # The table is module-level inside prepare_launch in the current shape, so read the source for the
-    # capability names and assert they are non-empty and contain the two that matter most.
     source = LAUNCHER.read_text(encoding="utf-8")
-    assert "'machine.answer'" in source, (
+    # The launcher no longer carries its own table. It reads the single mapping beside the workers,
+    # which is what keeps the three launch paths from drifting apart again.
+    assert "worker_routes.load(" in source, (
+        "the launcher must read services/python-workers/routes.json rather than its own copy")
+    routes = _module("worker_routes_under_test", REPO / "scripts/release/worker_routes.py").load()
+    assert "machine.answer" in routes, (
         "the co-learning machine answer must be declared, or its Core routes answer 503")
-    assert "routes" in source
-    assert launcher is not None
+    assert routes, "no capability routes are declared at all"
 
 
 def test_the_desktop_and_the_staged_runtime_declare_the_same_capabilities():
     """Two launch paths, one product. If they disagree, one of them is wrong."""
-    desktop_source = LAUNCHER.read_text(encoding="utf-8")
-    stager = _module("stager_for_route_parity", STAGER)
-    staged_capabilities = set(stager.ROUTE_SCRIPTS)
-    # Every capability the staged runtime ships is named in the desktop launcher's table.
-    missing = [capability for capability in sorted(staged_capabilities)
-               if f"'{capability}'" not in desktop_source]
-    assert not missing, (
-        f"the staged runtime declares {missing} but the desktop launcher does not; the two launch "
-        "paths must offer the same capabilities or the product behaves differently by entry point")
+    # Both now read the same file, so this compares the two sets instead of looking for names in a
+    # source string - which is what let them drift while a substring check still passed.
+    desktop_capabilities = set(
+        _module("worker_routes_for_parity", REPO / "scripts/release/worker_routes.py").load())
+    staged_capabilities = set(_module("stager_for_route_parity", STAGER).ROUTE_SCRIPTS)
+    assert desktop_capabilities == staged_capabilities, (
+        f"the two launch paths disagree: desktop-only "
+        f"{sorted(desktop_capabilities - staged_capabilities)}, staged-only "
+        f"{sorted(staged_capabilities - desktop_capabilities)}; they must offer the same "
+        "capabilities or the product behaves differently by entry point")
 
 
 def test_the_csharp_supervisor_carries_routes_into_the_launch_document():

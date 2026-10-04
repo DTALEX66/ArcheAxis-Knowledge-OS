@@ -25,6 +25,11 @@ _resource_spec = importlib.util.spec_from_file_location(
 assert _resource_spec and _resource_spec.loader
 resource_boundaries = importlib.util.module_from_spec(_resource_spec)
 _resource_spec.loader.exec_module(resource_boundaries)
+_worker_routes_spec = importlib.util.spec_from_file_location(
+    'desktop_worker_routes', REPO / 'scripts/release/worker_routes.py')
+assert _worker_routes_spec and _worker_routes_spec.loader
+worker_routes = importlib.util.module_from_spec(_worker_routes_spec)
+_worker_routes_spec.loader.exec_module(worker_routes)
 
 
 def _sha256(path: Path) -> str:
@@ -92,21 +97,9 @@ def prepare_launch(*, desktop: Path | None = None, core: Path | None = None,
     # - PDF, OCR, Office, media, canvas and the co-learning machine answer - is unreachable from the
     # product. Each entry names a worker that exists; a missing one raises rather than being dropped,
     # because a dropped route surfaces later as a capability that is simply absent.
-    _route_workers = {
-        'archive.inventory': 'document/worker_archive.py',
-        'canvas.structure': 'document/worker_canvas.py',
-        'course.general': 'course/worker_general_course.py',
-        'html.structure': 'web/worker_html.py',
-        'image.caption': 'vision/worker_caption.py',
-        'image.ocr': 'vision/worker_ocr.py',
-        'machine.answer': 'machine/worker_machine_answer.py',
-        'media.probe': 'document/worker_media.py',
-        'media.transcribe': 'media/worker_transcribe.py',
-        'office.structure': 'document/worker_office.py',
-        'pdf.extract': 'document/worker_pdf.py',
-        'search.semantic': 'search/semantic_ranking.py',
-        'subtitles.structure': 'document/worker_subtitles.py',
-    }
+    # Loaded from services/python-workers/routes.json - the single mapping, so a route cannot be
+    # declared here and forgotten in the package or the reverse.
+    _route_workers = {capability: scripts[0] for capability, scripts in worker_routes.load().items()}
     routes = []
     for capability, relative in sorted(_route_workers.items()):
         worker = dev.safe_path(REPO / 'services/python-workers' / relative)

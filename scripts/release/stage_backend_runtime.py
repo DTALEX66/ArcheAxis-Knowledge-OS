@@ -27,6 +27,7 @@ from __future__ import annotations
 
 import argparse
 import hashlib
+import importlib.util
 import json
 import os
 import shutil
@@ -34,6 +35,13 @@ import stat
 import subprocess
 import zipfile
 from pathlib import Path
+
+_worker_routes_spec = importlib.util.spec_from_file_location(
+    "stage_worker_routes", Path(__file__).with_name("worker_routes.py")
+)
+assert _worker_routes_spec and _worker_routes_spec.loader
+worker_routes = importlib.util.module_from_spec(_worker_routes_spec)
+_worker_routes_spec.loader.exec_module(worker_routes)
 
 PROFILE_SCHEMA = "archeaxis.worker-profile/v1"
 MANIFEST_SCHEMA = "archeaxis.backend-runtime/v1"
@@ -46,39 +54,9 @@ SCHEDULER_WORKER_RELATIVE = "workers/learning/worker_schedule.py"
 # a real worker serves. Only the first *existing* path is declared: the profile
 # states what this runtime actually ships, and a capability with no worker present is
 # left out rather than declared and then failing at job time.
-ROUTE_SCRIPTS: dict[str, tuple[str, ...]] = {
-    "archive.inventory": ("workers/document/worker_archive.py",),
-    "canvas.structure": ("workers/document/worker_canvas.py",),
-    # G2: graded retrieval and General courses. Their workers are staged with the rest of
-    # services/python-workers, but a capability exists in a launch only if it is declared here.
-    # Without these entries POST /api/v1/search/semantic and POST /api/v1/courses* answer 503
-    # "derived worker is not registered" in the shipped product even though the code is finished.
-    "course.general": ("workers/course/worker_general_course.py",),
-    "html.structure": ("workers/web/worker_html.py",),
-    "image.caption": ("workers/vision/worker_caption.py",),
-    "image.ocr": ("workers/vision/worker_ocr.py",),
-    # G4: the machine answer route. It is declared here even though it has **no entry in the worker
-    # transport's own route table**, because the two tables are different registries:
-    #
-    # * this one is what the launch declares, and the Core registers only what is declared. Without an
-    #   entry here the capability does not exist in a staged runtime, `POST /api/v1/machine/answers`
-    #   answers 503 "no worker is registered for machine.answer", and the machine half of the
-    #   co-learning loop is unreachable in the product even though its code is finished.
-    # * the transport table is the *job* protocol, and this capability deliberately has no entry
-    #   there: a job request must carry an empty `parameters` object, so there is nowhere for the
-    #   question a machine answer needs to travel. The transport records that reason beside its own
-    #   table rather than leaving it as a silence.
-    #
-    # Declaring it here is the wiring that makes the route usable. It does not add a job route: the
-    # Core reaches this worker through its own route rather than through a job.
-    "machine.answer": ("workers/machine/worker_machine_answer.py",),
-    "media.probe": ("workers/document/worker_media.py",),
-    "media.transcribe": ("workers/media/worker_transcribe.py",),
-    "office.structure": ("workers/document/worker_office.py",),
-    "pdf.extract": ("workers/document/worker_pdf.py",),
-    "search.semantic": ("workers/search/semantic_ranking.py",),
-    "subtitles.structure": ("workers/document/worker_subtitles.py",),
-}
+# Loaded from services/python-workers/routes.json - the single mapping. See worker_routes.py for
+# why the three hand-written copies were removed.
+ROUTE_SCRIPTS: dict[str, tuple[str, ...]] = worker_routes.load(prefix="workers/")
 PRIVATE_NAMES = set([".git", ".codex", ".dsh", ".zcode", ".hermes", ".openhuman", ".claude", ".agents", ".agent", ".cursor", ".continue", ".aider", ".gemini", ".opencode", ".openhands", ".cline", ".roo", ".kilocode", ".windsurf", ".copilot", ".ssh", ".aws", ".azure", ".gnupg", "agent-private", "private-agent-state", "sessions", "memories", "keychain", "credentials", "auth", "browser-data", ".npmrc", ".pypirc", ".netrc"])
 
 
