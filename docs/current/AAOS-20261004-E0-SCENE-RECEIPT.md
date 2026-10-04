@@ -223,3 +223,28 @@ G0 尚未闭合的部分：W35 未做；且 atlas 与 Authority 的一致性建�
 上一轮（W13）我在 `config/capability-map.v1.json` 里把 **CAP-0150「模型、Provider 与数据出境治理」标为 `core_native`**。本轮核对证明 **Core 里没有这个面**：`core_native` 意味着「由 Core 自身路由实现」，而这里连一条相关路由或模型都不存在。provider routing 目前是 Python 侧 sidecar 设计且宿主生命周期被阻塞。
 
 因此改为 **`not_implemented`**。这是一次**我自己制造的台账不准确**，由本轮核对发现并修掉 —— 台账说"已实现"而代码里没有，正是任务包最要防的那种失真。
+
+## 13. W20 核对（Q27 / Q28）（2026-10-04）
+
+### 13.1 Q28「元数据/摘要/全文分别记录，不伪称全文导入」—— **转换轴已覆盖**
+
+| 已钉住的诚实性质 | 证据 |
+| --- | --- |
+| **没有回执时 `coverage` 是 `null`，不是 0** | `tests/job_quality.rs:88` `value["coverage"].is_null()`，注释写明「no receipt yet means no coverage claim」；`lib.rs:1730` 用 `unwrap_or(Value::Null)` |
+| **被截断的转换不得声称全覆盖** | `tests/f01_quality_roundtrip.rs:539` `f01_capped_fixture_reports_anchor_loss_and_never_claims_full_coverage`，断言 `coverage < 1.0` |
+| 质量面只报 coverage / loss / region，**从不报准确率** | `tests/job_quality.rs:2` 文件头声明 |
+
+**未实现的部分**：书目轴（元数据 / 摘要 / 全文三者的分别记录）**在 Core 里没有对应概念** —— `crates/` 内检索 `abstract` 与 `full_text` **零命中**。它属于外部书目来源（Crossref/OpenAlex 那一类）的切片，而那个切片**尚未开始**。因此这是**未实现的能力，不是缺陷**，也不得被说成已覆盖。
+
+### 13.2 Q27「401/403/429/5xx/超时/分页/预算耗尽」—— 部分覆盖，部分**不存在**
+
+| 项 | 状态 | 证据 |
+| --- | --- | --- |
+| 401 | ✅ 覆盖 | `launch_auth`（本轮实跑 9 passed）；冷启动测试里旧 token → 401 |
+| 403 | ✅ 覆盖 | `knowledge_actor_guard` 机器复核 → 403（3 passed） |
+| 5xx | ✅ 覆盖 | `contract_semantic_search` 502（worker 失败）、`runtime/mod.rs` 503 `AAK-WORKER-001` |
+| 超时 | ✅ 覆盖 | 调度超时释放事务、worker 超时后拒绝 |
+| **429 / 预算耗尽** | ❌ **不存在** | `crates/archeaxis-api/src` 内检索 `429` / `rate.limit` / `budget` **零命中** |
+| **分页** | ⚠️ **本轮未核实** | 我**不声称**已覆盖，也**不声称**缺失；需下一轮专门核对 |
+
+**说明**：429/预算属于 external-provider 治理，与 W19 的 Q26 同源，当前既无实现也无授权；分页需要单独核对后才下结论。
