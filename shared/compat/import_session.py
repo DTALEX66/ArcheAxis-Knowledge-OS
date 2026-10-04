@@ -28,7 +28,8 @@ CREATE TABLE IF NOT EXISTS compat_files (
     is_canvas INTEGER NOT NULL DEFAULT 0,
     is_binary INTEGER NOT NULL DEFAULT 0,
     mime_type TEXT,
-    imported_at TEXT NOT NULL
+    imported_at TEXT NOT NULL,
+    source_context TEXT NOT NULL DEFAULT 'acl,comments,history:not_recorded'
 );
 """
 
@@ -133,6 +134,15 @@ class ImportSession:
             )
         if "mime_type" not in columns:
             self._conn.execute("ALTER TABLE compat_files ADD COLUMN mime_type TEXT")
+        # The kernel reads a source's files and nothing about who could see them, what comments
+        # they carried, or what revision history came with them. That boundary is written down as
+        # declared absence rather than left blank, so an unrecorded exposure cannot later be read
+        # as a clean one. A column default carries it, so no insert has to remember to say so.
+        if "source_context" not in columns:
+            self._conn.execute(
+                "ALTER TABLE compat_files ADD COLUMN source_context TEXT NOT NULL "
+                "DEFAULT 'acl,comments,history:not_recorded'"
+            )
         self._conn.commit()
         self._losses: list[dict[str, object]] = []
 

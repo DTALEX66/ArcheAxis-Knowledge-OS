@@ -628,3 +628,41 @@ docs/taskpacks/MANDATORY_CAPABILITY_FIRST_KNOWLEDGE_LIFECYCLE_ADDENDUM_v1_2026-0
 ### 25.3 目标权策略：**NOT_VERIFIED**
 
 我**没有穷尽检索** `docs/` 里的目标权策略文档，所以**既不声称有、也不声称无** —— 记为未核实。
+
+## 26. 一个验证完整性隐患：脚本方式运行会加载**根仓库**的代码（2026-10-04）
+
+**发现经过**：为 Q37 加上 `source_context` 列之后，我用**脚本文件**验证，却报 `no such column: source_context`。诊断结果：
+
+```
+module file: D:\All projects\ArcheAxis-Knowledge-OS\shared\compat\import_session.py
+```
+
+**加载的是根仓库，不是本工作树。**
+
+**机制**：`python <script.py>` 会把**脚本所在目录**放到 `sys.path[0]`。我把脚本写在 `.project-local/runs/`，于是**工作树根不在解析路径上**，而共用 CI venv 已把**根仓库**配了进去 —— 根仓库的 `shared` 因此胜出。
+
+| 调用方式 | 实际解析到 |
+| --- | --- |
+| `python .project-local/runs/x.py` | **根仓库**（错） |
+| `Set-Location <worktree>` + `python -c "..."` | **工作树** ✅ |
+| `pytest`（rootdir = 工作树） | **工作树** ✅ |
+
+**含义**：**用脚本文件方式验证，可能在一棵"不是我正在改的树"上得到绿色。** 这与 §19（把 CI 的验证当成我自己的）属于**同一类验证完整性缺陷** —— 只不过这次是"**跑对了命令，跑错了目标**"。
+
+**纪律（即刻生效）**：在本工作树内验证，只用 `pytest`，或 `python -c`（cwd = 工作树根）；**脚本文件必须放在工作树根内**。若确有脚本，必须显式打印并断言 `module.__file__` 指向工作树。
+
+**本次改动经复核未受影响**：
+
+- `git diff --stat` 显示编辑确实落在工作树文件（11 insertions / 1 deletion）；
+- cwd = 工作树时，`shared.compat.import_session.__file__` **指向工作树**，且 `"source_context" in _SCHEMA` 为 **True**；
+- `pytest tests/test_compat_kernel.py` → **9 passed / 1 skipped**。
+
+### 26.1 顺带落地的 Q37 改动
+
+`compat_files` 新增一列（含迁移，沿用既有 `ALTER TABLE` 模式）：
+
+```sql
+source_context TEXT NOT NULL DEFAULT 'acl,comments,history:not_recorded'
+```
+
+含义：兼容层读取源文件时**没有**采集"谁能看、带了什么评论、有什么修订历史"，这一边界现在**被写下来是"声明为未记录"**，而不是留白。列默认值承担它，所以**没有插入语句需要记得说这件事** —— 让"忘记声明"在结构上不可能。
