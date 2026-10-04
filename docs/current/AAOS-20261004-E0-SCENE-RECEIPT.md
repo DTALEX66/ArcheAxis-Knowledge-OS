@@ -559,3 +559,36 @@ tombstone_rule: "任何 capability 的删除、降级、改名、合并均需 Ow
 ### 23.3 一条不可互相冒充的边界
 
 `supersedes` / `superseded_by`（W15 已钉）解决的是**同一工作区内的版本取代**，**不是跨源冲突消解**。两者**不可互相冒充** —— 前者是"我把旧的换成了新的"，后者是"两个来源对同一件事说了不同的话"。
+
+## 24. W30/Q39 核对（Agent 边界）（2026-10-04）
+
+### 24.0 先说校准本身的一次失败
+
+我先用 `git grep -c 'approval' -- crates` 校准，**返回空** —— 差点据此判定「没有审批」。`git grep` 默认**区分大小写**，改用 `-i` 后审批**大量存在**。
+
+**教训：校准失败时必须先修校准，不能用一次失败的校准去支持任何结论。** 这正是 §23 起我把"先校准"写进流程的原因 —— 而它这一轮**当场救了我一次**。
+
+### 24.1 有实现、有证据的三项
+
+| 项 | 证据 |
+| --- | --- |
+| **预算** | `crates/archeaxis-application/src/executor.rs:360` 与 `crates/archeaxis-sidecar-protocol/src/worker.rs:161` 校验 "invalid task identity, capability or budget"；`crates/archeaxis-api/tests/runtime_jobs.rs:181` 覆盖 parallel budget |
+| **取消** | `runtime_jobs.rs:181`；`:416` 等待准入不阻塞取消 |
+| **审批** | `app/evaluation/governance.py:27` `EvaluationApproval`；`app/knowledge/closed_loop.py:11,35` `KnowledgeLearningArtifactApproval` —— 审批记录携带 `reviewer_id` / `rationale` / `reviewed_at` |
+
+### 24.2 「提示注入不得升级为系统指令」—— 要求在文档里，词表在实现里没有
+
+```
+docs/taskpacks/MANDATORY_CAPABILITY_FIRST_KNOWLEDGE_LIFECYCLE_ADDENDUM_v1_2026-08-09.md:177
+- prompt injection、网页命令、文档宏和模型输出永远不能升级为系统指令；
+```
+
+**但 `crates/`、`app/`、`shared/` 内没有 prompt injection 的实现词表。**
+
+**结构上成立的部分**：模型输出进入知识层时**只能是 `candidate`**，且 `machine` actor **不能自我接受、不能复核**（W15 已钉，含生产 launch-token 路径）。所以「模型输出不能升级为系统指令」在**知识层是由写入面结构保证的** —— 与 §15.4、§23.1 同源：不是"我加了检查"，而是"**没有那条能让它升级的语句**"。
+
+**仍未覆盖的部分**：该要求还涵盖**网页命令与文档宏**，那属于不可信摄入面。我**未核实**那条路径上的同等约束，因此**不声称** —— 用知识层的结论去覆盖摄入面，会是一次越界的推断。
+
+### 24.3 步数上限 —— 不存在
+
+`max_steps` / `step_limit` / `agent_run` 在 `crates`、`app`、`shared` 内**无命中**。记为**未实现**（不是缺陷：Agent Runtime 属被推迟的能力）。
