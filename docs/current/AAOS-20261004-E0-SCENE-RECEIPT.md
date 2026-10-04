@@ -492,3 +492,38 @@ Q31/Q32 要求 **A-AAOS-A 与 AAOS-A-AAOS 两个方向**。本轮把四个供体
 
 1. `to_anki_csv` 产出的是 **CSV**，不是 `.apkg`。Anki 能导入它，但这条路径**未经 Anki 本体打开验证**（§18.2 的 (A) 项）。
 2. Anki 的**笔记类型 / 选项组 / 排程语义在这一层完全没有被读写**。把 CSV 导入 Anki，会由 Anki 用**它自己的默认值**建卡 —— 与 `review.apkg` 里那组真实排程数字**无关**。这正是 **Q36 / W27「不伪造外来评分与调度」** 要单独处理的事，**不能**因为"有 CSV 导出"就当成已经覆盖。
+
+## 22. 关于 59 个 SQLite 属主：审计脚本自己已经回答了该怎么办（2026-10-04）
+
+上一轮我越界（在 `app/adapters/anki_zotero.py` 里 `sqlite3.connect`），`audit_first_wave_owners` 把属主数从 59 顶到 60，`CI` 失败，我选择**回滚而不是把数字改成 60**。本轮读了这个脚本本身，它**自己把这条判断说清楚了**：
+
+```
+scripts/ci/audit_first_wave_owners.py:1-6
+"""Produce the source-only G0 inventory of direct SQLite connection owners.
+
+This script deliberately does not import product modules or open a database.
+It is an input to the language-boundary audit, not evidence of a runtime
+writer and not authorization to change one.
+"""
+```
+
+**所以：**
+
+1. 这份清单是**只读盘点**，它**不导入产品模块、不打开数据库**；
+2. 它**不是"运行时写入者"的证据**，也**不是"可以改一个"的授权** —— 这两句是脚本作者写的，不是我推断的；
+3. 测试把 59 冻结住，是为了让**任何**新增属主都**先发出响声**。
+
+因此正确做法**既不是"永远不许加"，也不是"把数字改掉"**，而是：**新能力必须落在既有的受 sanction 属主背后** —— 让"能开 SQLite 的模块集合"**不增长**。
+
+**这使上一轮的回滚从"我的判断"升级为"脚本作者的明文规定"**：我当初没有授权去改那个数字，回滚是对的。
+
+### 22.1 下一步的确切形状
+
+Anki 读取器（`parse_apkg`，语义已在 §29 轮验证）应改为：
+
+- **不在适配器里 `connect`**；
+- 落在**某个已列入 59 的模块**背后，由它提供"读取一个**外来**只读 SQLite 字节串"的窄接口；
+- 该接口必须显式标明**外来只读**（`:memory:` 反序列化，**不可能**写工作区库）；
+- 保持上一版已验证的诚实语义：排程标 `imported_from_source`、未答过的卡**无间隔而非 0**、缺 collection **响亮拒绝**、单元内**不出现** `reviewed_by`/`graded_by`/`correct`/`mastery`/`score`。
+
+**属主数保持 59。**
