@@ -10,6 +10,7 @@ EXPORT_NAME = "probe-exchange"
 # Route segments relative to the origin; the architecture guard reads a leading-slash runtime
 # string as a hardcoded external absolute path, and relative-to-origin is what these are.
 INTAKE = "workspace/api/intake/upload"
+ANCHOR = "workspace/api/evidence/anchor"
 EXPORT = "workspace/api/exchange/export"
 VERIFY = "workspace/api/exchange/verify"
 
@@ -77,6 +78,24 @@ def run() -> dict:
         receipt["intake_preserved_hash"] = (intake.get("raw_sha256")
                                             == hashlib.sha256(blob).hexdigest())
 
+        # Anchor an exact character range, and read it back, so the receipt carries both the read
+        # projection and the exported record and the two can be compared rather than described.
+        text = blob.decode("utf-8", "replace")
+        needle = "Why this matters"
+        start = text.find(needle)
+        locator = {"char_region": [start, start + len(needle)],
+                   "block": f"notes/index.md#{needle}", "page": 1, "source_format": "md"}
+        status, created = post_json(base, ANCHOR, {"raw_sha256": intake.get("raw_sha256"),
+                                                    "source_revision": "1", "locator": locator})
+        receipt["anchor_status"] = status
+        read_request = urllib.request.Request(
+            base + ANCHOR + "/" + str(created.get("anchor_id")), method="GET")
+        with urllib.request.urlopen(read_request, timeout=60) as response:
+            readback = json.loads(response.read().decode("utf-8"))
+        projected = readback.get("locator") or {}
+        receipt["read_projection_keys"] = sorted(projected.keys())
+        receipt["read_projection_has_block_ids"] = "block_ids" in projected
+
         try:
             status, exported = post_json(base, EXPORT, {"name": EXPORT_NAME, "overwrite": True})
             receipt["export_status"] = status
@@ -117,6 +136,22 @@ def run() -> dict:
         except Exception as error:
             receipt["verify_status"] = None
             receipt["verify_error"] = f"{type(error).__name__}: {error}"[:300]
+        # What the exported record carries, for comparison with the read projection above.
+        verify_payload = receipt.get("verify")
+        manifest = (verify_payload or {}).get("manifest") if isinstance(verify_payload, dict) else None
+        items = (manifest or {}).get("items") if isinstance(manifest, dict) else None
+        exported_locator_keys: list[str] = []
+        if items:
+            for entry in items:
+                metadata = entry.get("metadata") or {}
+                loc = metadata.get("locator") or {}
+                exported_locator_keys.extend(sorted(loc.keys()))
+        receipt["exported_locator_keys"] = sorted(set(exported_locator_keys))
+        receipt["exported_has_block_ids"] = "block_ids" in receipt["exported_locator_keys"]
+        receipt["contrast"] = {
+            "read_projection_has_block_ids": receipt["read_projection_has_block_ids"],
+            "exported_has_block_ids": receipt["exported_has_block_ids"],
+        }
         receipt["ok"] = True
     finally:
         app.kill()
