@@ -411,3 +411,35 @@ if candidates.len() > 128 {
 **教训**：**读 SQL 不等于读行为。** 我从一行 `LIMIT` 推断出截断语义，却没有读它周围的判断。这和我第 7 轮批评过的「拿端口和自己比」是同类错误：**看到形状就下结论，没有验证语义**。
 
 **§16 作废。** 分页这一格更正为：**语义检索对超限语料是显式拒绝（409 + 说明），不是静默截断 —— 属于已覆盖的诚实行为。** 我仍未核实的只剩「是否存在别的列表路由会静默截断」，而这一轮我没有穷尽检索，不声称。
+
+## 18. 供体工具核实（W22 前置）（2026-10-04）
+
+按 Owner 原话「缺少工具，先查权威路径记录，确定共用外置工具库和本地仓库里没有，再下载到共用外置工具库」，本轮完成**前置条件核对**：
+
+| 核对项 | 结果 |
+| --- | --- |
+| 权威路径记录 | `docs/SHARED_RESOURCE_PATH_INDEX.md:11` `shared_tools = D:\All projects\OS External Configuration`；`:18` 说明 `10-toolchains` 是它的子目录，不是第六个工具库 |
+| 共用外置工具库内 Anki / Notion / Obsidian / Zotero | **均不存在** |
+| 本地仓库内供体程序 | 无 |
+
+**所以「下载到共用外置工具库」的前提条件已满足 —— 但本轮未下载**（体积与时间超出本轮预算），如实登记为**未执行**，不写成"已准备"。
+
+### 18.1 仓库已有先例，且它不是「装 GUI 应用」
+
+`crates/archeaxis-archive/tests/obsidian_vault_roundtrip.rs`（R15）走的是**格式忠实的手工固定装置 + `PROVENANCE.txt` + 明确列出未覆盖项**，而不是调用 Obsidian 本体：
+
+- `vault_root()` = `CARGO_MANIFEST_DIR/tests/fixtures/obsidian-vault`，**真实存在且已跟踪**：`PROVENANCE.txt`、`notes/index.md`、`notes/atomic.md`、`attachments/diagram.png`、`vault.canvas`；
+- 文档字符串**主动列出四项未覆盖**（链接图未被吸收、无表存储关系、`.canvas` 语义图未存）。
+
+### 18.2 需要 Owner 裁决的一个取舍
+
+- **(A) 下载四个 GUI 应用**到 `shared_tools`：可支撑「真实应用打开我们的导出」这类断言；代价是数百 MB 与较长下载。
+- **(B) 沿用仓库先例**：格式忠实的固定装置 + PROVENANCE + 明确缺口声明；无需下载，且与 Obsidian 既有做法一致。
+
+**建议：先用 (B) 做格式级往返**（那是测试真正能断言的），把 (A) 留给「真实应用打开导出」这一条单独的人面向检查。
+
+### 18.3 本轮第三次差点误报
+
+我一度以为 `tests/fixtures/obsidian-vault` **既未跟踪也不在磁盘上**，并准备登记为缺陷。核对 `vault_root()` 后发现：该路径是**相对 crate 清单目录**解析的，真实位置在 `crates/archeaxis-archive/tests/fixtures/obsidian-vault`，**固定装置完整存在**。
+
+**又是我看错路径。** 与上一轮的「假缺陷指控」同类：**没有读解析逻辑就下结论**。记录在此 —— 它说明核对的价值不在于我判断多准，而在于**我每次都去查了**。
