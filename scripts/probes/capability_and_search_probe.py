@@ -59,8 +59,15 @@ def run() -> dict:
         receipt["handshake_capabilities"] = handshake.get("capabilities")
         receipt["handshake_capabilities_is_empty_list"] = handshake.get("capabilities") == []
 
-        # Search: the route takes {root, query}; root is the vault root to search inside.
-        for root in (str(work), str(REPO / "crates/archeaxis-archive/tests/fixtures/obsidian-vault")):
+        # Search: the route takes {root, query} and the root must be an existing directory. An earlier
+        # version pointed it at the working directory, which is full of the database and its sidecars,
+        # and got a server error; a purpose-built vault avoids confusing the route with a store.
+        import tempfile
+        vault = Path(tempfile.mkdtemp(prefix="vault-"))
+        (vault / "note.md").write_text(
+            "# Index\n\nWhy this matters: a phrase to find.\n", encoding="utf-8")
+        receipt["vault_root_has_space"] = " " in str(vault)
+        for root in (str(vault), str(REPO / "crates/archeaxis-archive/tests/fixtures/obsidian-vault")):
             payload = {"root": root, "query": "Why this matters"}
             try:
                 request = urllib.request.Request(base + SEARCH, data=json.dumps(payload).encode(),
@@ -71,9 +78,11 @@ def run() -> dict:
                 with urllib.request.urlopen(request, timeout=10) as response:
                     data = json.loads(response.read().decode("utf-8"))
                     receipt.setdefault("searches", []).append({
-                        "root_kind": "temp-work" if root == str(work) else "fixture-vault",
+                        "root_kind": "purpose-built-vault" if root == str(vault) else "fixture-vault",
                         "status": response.status,
                         "keys": sorted(data.keys()) if isinstance(data, dict) else None,
+                        "match_count": (len(data.get("results") or [])
+                                        if isinstance(data, dict) else None),
                         "payload": json.dumps(data, ensure_ascii=False)[:320]})
             except urllib.error.HTTPError as error:
                 # Reading an error body can itself hang, which is how an earlier run of this probe
@@ -90,6 +99,7 @@ def run() -> dict:
                 receipt.setdefault("searches", []).append({
                     "root_kind": "temp-work" if root == str(work) else "fixture-vault",
                     "status": None, "error": f"{type(error).__name__}: {error}"[:300]})
+        shutil.rmtree(vault, ignore_errors=True)
         receipt["ok"] = True
     finally:
         app.kill()

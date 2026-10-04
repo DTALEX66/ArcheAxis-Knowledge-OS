@@ -62,17 +62,19 @@ def test_the_search_body_shape_used_is_the_documented_one(receipt):
     """The route takes {root, query}; both keys were sent on every attempt."""
     assert len(receipt["searches"]) == 2
     kinds = {attempt["root_kind"] for attempt in receipt["searches"]}
-    assert kinds == {"temp-work", "fixture-vault"}
+    assert kinds == {"purpose-built-vault", "fixture-vault"}
 
 
-def test_no_claim_is_made_about_whether_search_works(receipt):
-    """Deliberately does not pin an outcome, because the outcome is machine-dependent.
+def test_search_answers_for_a_vault_root(receipt):
+    """Search works, and this is asserted only after it reproduced in two environments.
 
-    Locally both attempts failed - one with a server error, one by timing out - while CI answered 200
-    for both. That difference is why this asserts only that an outcome was recorded. An earlier
-    version of this test pinned the local failure as if it were a product fact and CI correctly
-    rejected it. What is pinned elsewhere in this file is the empty capability list, and that is
-    pinned because it comes from a literal in the source rather than from one machine's behaviour.
+    An earlier version of this file pinned that search did not answer, from one local run; CI
+    returned 200 and rejected it. The cause of that first local failure was then found to be the
+    root I passed - the working directory, full of the database and its sidecars - rather than the
+    capability. With a purpose-built vault the route answers here as well as in CI, so a positive
+    claim is now reproducible rather than a single machine's behaviour.
     """
-    for attempt in receipt["searches"]:
-        assert "status" in attempt
+    by_kind = {attempt["root_kind"]: attempt for attempt in receipt["searches"]}
+    assert by_kind["purpose-built-vault"]["status"] == 200
+    assert by_kind["purpose-built-vault"]["match_count"] >= 1
+    assert by_kind["fixture-vault"]["status"] == 200
