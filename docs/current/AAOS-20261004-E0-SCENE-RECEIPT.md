@@ -1068,3 +1068,38 @@ INSERT | UPDATE | DELETE | submit_wait | execute   ->  (no write keywords)
 **三个处理器里没有任何写入语句。** 所以「进入页读取不写事件、不消耗卡片」**在结构上成立** —— 与 §15.4（没有语句能改 body）、§23.1（没有语句能删知识）、§24.2（没有语句能让模型输出升级）**同源**：不是"我加了检查所以不会写"，而是"**没有那条能写的语句**"。
 
 **边界（不声称的部分）**：我核对的是**这三个处理器自身**；**没有排除**写入藏在他们调用的某个 helper 里。这一点我没有查，因此不说"不可能"。
+
+## 38. Q04 复核：**未验证**，并拦住一次假缺陷（2026-10-04）
+
+Q04 的验收是「每个 required 能力在候选位置**真正可调用**」。本轮尝试真实组装候选后核对，**没有完成**，原因具体：
+
+```
+python scripts/release/assemble_green_candidate.py --desktop <build> --core <exe> \
+    --workers services/python-workers --out <dir> --version 0.0.0-q04candidate
+->  ValueError: workers require a staged runtime
+```
+
+`--workers` 必须配 `--runtime`（由 `scripts/release/stage_backend_runtime.py` 先产出的**已暂存运行时**）。**本轮没有产出该运行时，所以组装失败。**
+
+### 38.1 必须拦住的那一步
+
+组装失败后，我的解析检查跑在**一个空目录**上，输出：
+
+```
+worker files resolved: 0
+missing or empty: 13
+   MISSING archive.inventory workers\document\worker_archive.py
+   ...
+```
+
+**这 13 行是组装失败的产物，不是"13 个能力缺失"。** 如果我把它们抄进收据当作发现，那就是**又一次对正确代码的错误指控** —— 与第 20 轮我撤回的那次同类。
+
+**所以 Q04 记为 NOT_VERIFIED**，并记下确切阻塞：**需要先暂存后端运行时**。
+
+### 38.2 已经知道的部分（不等于 Q04）
+
+- W04 已证明**清单单源**且**清单里每个脚本在源码树中存在**（`tests/test_worker_route_lists_agree.py` 断言 "scripts exist"）；
+- W13 的能力台账把 16 个批准能力与运行时路由联起来；
+- **但"在候选位置真正可调用"是另一件事**，它要求在**组装后的布局**里验证 —— 本轮未做到。
+
+**"源码树里存在" ≠ "候选里可调用"**，这两件事同样不能互相冒充。
