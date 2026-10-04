@@ -215,10 +215,16 @@ async fn health_sends_no_job_and_does_not_change_provider_selection() {
         !provider.is_empty() && std::path::Path::new(provider).is_absolute(),
         "the default provider must name a path rather than a bare name: {body}"
     );
+    // `is_default` says whether this capability's own worker is the launch default, so both sides
+    // of the comparison have to come out of the record itself. Comparing the reported default
+    // against the raw path this test passed in made the assertion depend on whether the Core
+    // rewrites paths on the way in, which is how it came to fail on a runner whose paths are not
+    // shaped like this machine's - a report about the machine, not about the product.
+    let worker = body["capability"]["provider"]["worker"].as_str().unwrap();
     assert_eq!(
         body["capability"]["is_default"],
-        provider == script.to_string_lossy().as_ref(),
-        "the default flag must agree with the paths it describes: {body}"
+        worker == provider,
+        "the default flag must agree with the two paths the record itself reports: {body}"
     );
     assert_eq!(body["capability"]["automatic_failure_fallback"], false);
     assert!(!marker.exists());
