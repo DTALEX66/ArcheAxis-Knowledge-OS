@@ -1103,3 +1103,56 @@ missing or empty: 13
 - **但"在候选位置真正可调用"是另一件事**，它要求在**组装后的布局**里验证 —— 本轮未做到。
 
 **"源码树里存在" ≠ "候选里可调用"**，这两件事同样不能互相冒充。
+
+## 39. Q04 补齐：**13/13 能力在候选内解析成功**（2026-10-04）
+
+§38 的阻塞（`workers require a staged runtime`）已解决：**运行时取自共用外置工具库**，不碰 Green。
+
+```
+--runtime "<shared_tools>\10-toolchains\python\python\cpython-3.12.13-windows-x86_64-none"
+stage_backend_runtime.py   -> exit 0   (files: 2799)
+assemble_green_candidate.py -> exit 0   (root + zip)
+```
+
+### 39.1 Q04 的结论
+
+```
+candidate root: ArcheAxis.Knowledge.Green-v0.0.0-q04candidate-x64
+declared capabilities: 13
+workers resolved in the candidate: 13
+missing or empty: 0 []
+```
+
+**清单声明的 13 个能力，其 worker 在候选布局 `<root>/workers/<script>` 下全部存在且非空**（同一份也在 `<root>/runtime/workers/<script>` 下）。
+
+**Q04 的"解析"这一半达标。** 仍未做的是**逐能力真实调用**（那需要为每个能力喂一份真实输入并观察回执）—— 我**不把"文件在"说成"已调用"**。
+
+### 39.2 又一次"看错路径"，以及我没有据此下结论
+
+第一次核对报 `missing or empty: 13` —— 因为我把**候选父目录**当成了候选根；真实根是带版本号的那个子目录。
+
+```
+candidate-q04b\                                  <-- 我看的
+candidate-q04b\ArcheAxis.Knowledge.Green-v...\   <-- 真实根
+    workers\  core\  desktop\  runtime\  shared\
+```
+
+**这是本会话第三次因路径看错而险些产生假缺陷。** 我没有把那 13 行写进收据。
+
+### 39.3 一个**未核实**的布局事实（不声称是缺陷）
+
+运行时内部还有一层：
+
+```
+<root>\runtime\           <-- 候选内的运行时根
+    runtime\python.exe     <-- 解释器实际在这
+    workers\  core\  shared\
+    start-backend.cmd / start-backend.py / worker-profile.json
+```
+
+而生成的启动器里写着 `ARCHEAXIS_PYTHON = root & "\runtime\python.exe"`。**它能否解析正确，取决于该脚本里 `root` 指的是哪个目录** ——
+
+- 若 `root` = 候选根 → 指向 `<root>\runtime\python.exe`，**不存在**（实际在更深一层）；
+- 若 `root` = 运行时根 → 指向 `<root>\runtime\runtime\python.exe`，**正确**。
+
+**我没有读该脚本里 `root` 的定义，所以我不说这是缺陷。** 记为**未核实**，并写明判据 —— 这是第 20 轮那次假指控之后我固定下来的做法。
