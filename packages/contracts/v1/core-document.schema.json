@@ -714,6 +714,29 @@
         },
         "recorded_at": {
           "type": "string"
+        },
+        "request_check_id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "attempt_id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "retry_of_task_id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "engine_receipt": {},
+        "retrieval_receipts": {
+          "type": "array",
+          "items": {}
         }
       }
     },

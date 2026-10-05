@@ -98,6 +98,37 @@ paths:
               schema:
                 $ref: "core-document.schema.json#/$defs/DocumentDto"
         "404": {description: Referenced source/document/version not found}
+  /api/v1/documents/{document_id}/checks/execute:
+    parameters:
+      - name: document_id
+        in: path
+        required: true
+        schema: {type: string}
+    post:
+      operationId: executeDocumentCheck
+      description: "Human-only explicit version/hash-bound attempt, distinct from pending application and note save. Current unconfigured worker yields failed/not_configured, execution_verified=false, execution_state=not_executed; no cloud call or human approval is implied. Retry references a real previous attempt_id. Arbitrary model/provider fields are forbidden."
+      x-contract-status: implemented-source-slice-not-owner-acceptance
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required: [check_id, expected_content_sha256]
+              properties:
+                check_id: {type: string}
+                expected_content_sha256: {type: string}
+                retry_of_task_id: {type: [string, "null"]}
+      responses:
+        "201":
+          description: Durable failed/not_configured attempt receipt; execution was not verified
+          content:
+            application/json:
+              schema:
+                $ref: "core-document.schema.json#/$defs/DocumentCheckDto"
+        "403": {description: Actor not permitted}
+        "409": {description: Content/version or previous attempt identity mismatch}
   /api/v1/documents/{document_id}/checks:
     parameters:
       - name: document_id

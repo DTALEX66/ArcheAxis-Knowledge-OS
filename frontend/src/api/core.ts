@@ -5,7 +5,7 @@ export type { CoreOperation } from "./generated/core-contract";
 const responseSchemas: Partial<Record<CoreOperation, string>> = {
   sources_list: "SourcesListDto", source_jobs: "SourceJobsDto", source_original: "OriginalDto", documents_list: "DocumentsListDto",
   document_create: "DocumentDto", document_get: "DocumentDto", document_draft: "DocumentDto",
-  document_checks: "DocumentChecksDto", document_check_record: "DocumentCheckDto",
+  document_checks: "DocumentChecksDto", document_check_record: "DocumentCheckDto", document_check_execute: "DocumentCheckDto",
   document_version: "DocumentDto", document_restore: "DocumentDto", anchors_list: "AnchorsListDto", anchor_create: "AnchorDto",
   search: "SearchDto", knowledge_get: "KnowledgeDto", learning_items: "LearningItemsDto",
   learning_state: "LearningStateDto", document_export: "DocumentExportDto",

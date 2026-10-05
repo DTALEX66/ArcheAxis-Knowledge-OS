@@ -1,9 +1,12 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { coreCommand } from "../api/core";
 import { assertCoreDto, type DocumentDto, type DocumentCheckDto, type DocumentChecksDto, type RevisionBasisDto } from "../api/generated/core-contract";
 
 const labels: Record<string,string> = {pending:"等待核验",unverified:"未核验",uncertain:"不确定",original_unclear:"原件不清晰",conflicting:"存在冲突",failed:"核验失败",faithful:"识别忠实",mismatch:"识别不一致",supported:"有依据支持",refuted:"依据不支持",passed:"核验通过"};
 export function CheckPanel({document,onRevisionBasis}:{document:DocumentDto;onRevisionBasis:(basis:RevisionBasisDto)=>void}) {
+  const identity=`${document.document_id}:${document.version}:${document.content_sha256}`;
+  const currentIdentity=useRef(identity);currentIdentity.current=identity;
+  const executionGeneration=useRef(0);
   const [result,setResult]=useState<DocumentChecksDto|null>(null);
   const [version,setVersion]=useState(String(document.version));
   const [message,setMessage]=useState(""); const [busy,setBusy]=useState(false);
@@ -16,7 +19,7 @@ export function CheckPanel({document,onRevisionBasis}:{document:DocumentDto;onRe
     if(value.document_id!==document.document_id||value.version!==target)throw new Error("check identity mismatch");
     setResult(value);
   }
-  useEffect(()=>{let alive=true;setResult(null);setVersion(String(document.version));
+  useEffect(()=>{let alive=true;executionGeneration.current++;setBusy(false);setMessage("");setResult(null);setVersion(String(document.version));
     coreCommand<DocumentChecksDto>("document_checks",{document_id:document.document_id,version:document.version}).then(value=>{
       assertCoreDto("DocumentChecksDto",value);
       if(value.document_id!==document.document_id||value.version!==document.version||value.content_sha256!==document.content_sha256)throw new Error("check identity mismatch");
@@ -36,6 +39,24 @@ export function CheckPanel({document,onRevisionBasis}:{document:DocumentDto;onRe
       setMessage(mode==="cloud"&&!value.execution_verified?"申请已记录；云端核验尚未执行。":"核验记录已保存；不会替代知识认可。");
     } catch {setMessage("核验记录未确认，请保留填写内容重试；正文仍可保存。");}finally{setBusy(false);}
   }
+  async function execute(item:DocumentCheckDto) {
+    if(item.provider_mode!=="cloud"||item.version!==document.version||item.content_sha256!==document.content_sha256)return;
+    const boundIdentity=identity;const generation=++executionGeneration.current;
+    const current=()=>currentIdentity.current===boundIdentity&&executionGeneration.current===generation;
+    setBusy(true);
+    try {
+      const requestId=typeof item.request_check_id==="string"?item.request_check_id:item.check_id;
+      const retryId=typeof item.attempt_id==="string"?item.attempt_id:undefined;
+      const value=await coreCommand<DocumentCheckDto>("document_check_execute",{document_id:document.document_id,body:{check_id:requestId,expected_content_sha256:document.content_sha256,...(retryId?{retry_of_task_id:retryId}:{})}});
+      assertCoreDto("DocumentCheckDto",value);
+      if(value.document_id!==document.document_id||value.version!==document.version||value.content_sha256!==document.content_sha256||value.dimension!==item.dimension||value.provider_mode!=="cloud"||value.request_check_id!==requestId||typeof value.attempt_id!=="string"||value.retry_of_task_id!==(retryId??null))throw new Error("execution identity mismatch");
+      if(value.status!=="failed"||value.reason!=="not_configured"||value.execution_verified!==false||value.execution_state!=="not_executed")throw new Error("unexpected unconfigured execution receipt");
+      const refreshed=await coreCommand<DocumentChecksDto>("document_checks",{document_id:document.document_id,version:document.version});
+      assertCoreDto("DocumentChecksDto",refreshed);
+      if(refreshed.document_id!==document.document_id||refreshed.version!==document.version||refreshed.content_sha256!==document.content_sha256)throw new Error("execution readback identity mismatch");
+      if(!current())return;setResult(refreshed);setMessage("执行尝试已记录为失败：核验引擎未配置；没有发生云端核验。正文仍可保存。");
+    } catch {if(current())setMessage("执行回执未确认；不会标记核验成功。正文仍可保存。");} finally {if(current())setBusy(false);}
+  }
   return <section aria-label="内容核验"><h4>内容核验</h4><p>核验与笔记保存独立；核验通过不等同人工认可。</p>
     <label>查看核验版本 <input type="number" min="1" max={document.version} value={version} onChange={event=>setVersion(event.target.value)}/></label>
     <button disabled={busy} onClick={()=>{const target=Number(version);if(Number.isInteger(target)&&target>0&&target<=document.version)void read(target).catch(()=>setMessage("该版本记录未读取；当前文档未改变。"));}}>读取版本记录</button>
@@ -47,9 +68,11 @@ export function CheckPanel({document,onRevisionBasis}:{document:DocumentDto;onRe
       {result ? result.checks.filter(item=>item.dimension===dimension).length ? result.checks.filter(item=>item.dimension===dimension).map(item=><div key={item.check_id}>
         <p>{labels[item.status]} · {item.provider_mode==="manual"?"手动记录":item.execution_verified?"云端已执行":"云端尚未执行"}</p>
         {item.reason?<p>{item.reason==="worker_not_configured"?"云端核验尚未接通，申请仍待执行。":item.reason}</p>:null}{item.basis?<p>依据：{String(item.basis)}</p>:null}
+        {item.provider_mode==="cloud"&&(!item.attempt_id?!result.checks.some(other=>other.request_check_id===item.check_id&&typeof other.attempt_id==="string"):item.status==="failed"&&typeof item.attempt_id==="string"&&result.checks.find(other=>other.request_check_id===item.request_check_id&&typeof other.attempt_id==="string")?.attempt_id===item.attempt_id)?<button disabled={busy||item.version!==document.version||item.content_sha256!==document.content_sha256} onClick={()=>void execute(item)}>{typeof item.attempt_id==="string"?"明确重试执行核验":"明确执行核验"}</button>:null}
+        {item.reason==="not_configured"?<p>执行尝试失败：核验引擎未配置，没有云端调用。</p>:null}
         <button disabled={!rationale.trim()} onClick={()=>{onRevisionBasis({rationale:rationale.trim(),reference_version:item.version,check_id:item.check_id,...(item.position&&typeof item.position==="object"&&!Array.isArray(item.position)?{position:item.position}: {})});setMessage("修订理由已选定，将随下一次正文保存记录。");}}>用于下一次修订</button>
       </div>):<p>该版本尚无核验记录。</p>:<p>核验状态尚未读取。</p>}
-      <button disabled={busy} onClick={()=>void record(dimension,"cloud")}>申请或重试{dimension==="recognition_fidelity"?"识别":"专业"}云端核验</button>
+      <button disabled={busy} onClick={()=>void record(dimension,"cloud")}>申请{dimension==="recognition_fidelity"?"识别":"专业"}云端核验</button>
       <details><summary>手动记录{dimension==="recognition_fidelity"?"识别":"专业"}核验</summary>
         <label>核验结论 <select value={statuses[dimension]} onChange={event=>setStatuses(previous=>({...previous,[dimension]:event.target.value}))}>{["uncertain","original_unclear","conflicting","failed",...(dimension==="recognition_fidelity"?["faithful","mismatch"]:["supported","refuted"])].map(item=><option key={item} value={item}>{labels[item]}</option>)}</select></label>
         <button disabled={busy} onClick={()=>void record(dimension,"manual")}>明确提交手动核验记录</button>

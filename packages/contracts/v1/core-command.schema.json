@@ -50,7 +50,8 @@
         "workspace_backup",
         "workspace_backups",
         "document_checks",
-        "document_check_record"
+        "document_check_record",
+        "document_check_execute"
       ]
     },
     "payload": {

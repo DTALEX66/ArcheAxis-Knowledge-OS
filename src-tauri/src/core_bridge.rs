@@ -45,6 +45,7 @@ pub enum Operation {
     DocumentRestore,
     DocumentChecks,
     DocumentCheckRecord,
+    DocumentCheckExecute,
     JobsGet,
     JobQuality,
     AnchorsList,
@@ -148,6 +149,11 @@ fn route(request: &Request) -> Result<(&'static str, String, Option<Value>), Str
         DocumentCheckRecord => (
             "POST",
             format!("/api/v1/documents/{}/checks", id(p, "document_id")?),
+            Some(body()?),
+        ),
+        DocumentCheckExecute => (
+            "POST",
+            format!("/api/v1/documents/{}/checks/execute", id(p, "document_id")?),
             Some(body()?),
         ),
         DocumentGet => (
@@ -533,6 +539,19 @@ mod tests {
                 .unwrap();
         assert!(default.payload.is_object());
         assert!(route(&default).is_ok());
+    }
+    #[test]
+    fn document_check_execute_is_finite_and_keeps_retry_body() {
+        let body = serde_json::json!({"check_id":"check-safe","expected_content_sha256":"a".repeat(64),"retry_of_task_id":"doccheck_old"});
+        let request=serde_json::from_value::<Request>(serde_json::json!({"operation":"document_check_execute","payload":{"document_id":"doc-safe","body":body}})).unwrap();
+        let (method, path, value) = route(&request).unwrap();
+        assert_eq!(method, "POST");
+        assert_eq!(path, "/api/v1/documents/doc-safe/checks/execute");
+        assert_eq!(value, Some(body));
+        for unsafe_id in ["../secret", "doc/a", "https://example.test", "doc?url=bad"] {
+            let request=serde_json::from_value::<Request>(serde_json::json!({"operation":"document_check_execute","payload":{"document_id":unsafe_id,"body":{}}})).unwrap();
+            assert!(route(&request).is_err());
+        }
     }
     #[test]
     fn check_history_queries_are_finite_and_numeric() {

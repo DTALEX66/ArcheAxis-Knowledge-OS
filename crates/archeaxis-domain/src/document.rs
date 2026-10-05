@@ -573,3 +573,90 @@ pub fn search(conn: &Connection, query: &str) -> Result<Vec<Value>, Error> {
     let rows=stmt.query_map([pattern],|r|Ok(json!({"document_id":r.get::<_,String>(0)?,"source_id":r.get::<_,Option<String>>(1)?,"source_revision":r.get::<_,Option<String>>(2)?,"title":r.get::<_,String>(3)?,"version":r.get::<_,i64>(4)?,"content_sha256":r.get::<_,String>(5)?,"head":r.get::<_,String>(6)?})))?.collect::<Result<Vec<_>,_>>()?;
     Ok(rows)
 }
+
+/// Explicit execution preflight. No provider is configured by this product path yet.
+/// Preserve each failed attempt and permit only an explicit retry of that attempt.
+pub fn execute_check_unconfigured(conn: &mut Connection, id: &str, check_id: &str,
+    expected_sha: &str, retry_of: Option<&str>) -> Result<Value, Error> {
+    let tx = conn.transaction_with_behavior(rusqlite::TransactionBehavior::Immediate)?;
+    let raw: Option<String> = tx.query_row(
+        "SELECT receipt_json FROM document_checks WHERE check_id=?1 AND document_id=?2",
+        params![check_id,id], |r| r.get(0)).optional()?;
+    let request: Value = serde_json::from_str(&raw.ok_or(Error::NotFound)?)
+        .map_err(|_|Error::Invalid("invalid stored check"))?;
+    if request["provider_mode"] != "cloud" || request["status"] != "pending" {
+        return Err(Error::Invalid("execution requires original cloud pending request"));
+    }
+    let version=request["version"].as_i64().ok_or(Error::Invalid("invalid check version"))?;
+    let snapshot=read(&tx,id,Some(version))?;
+    if snapshot["content_sha256"] != expected_sha || request["content_sha256"] != expected_sha {
+        return Err(Error::Invalid("check snapshot digest mismatch"));
+    }
+    let previous: Option<String> = tx.query_row(
+        "SELECT receipt_json FROM document_checks WHERE document_id=?1 AND version=?2 AND json_extract(receipt_json,'$.request_check_id')=?3 ORDER BY rowid DESC LIMIT 1",
+        params![id,version,check_id],|r|r.get(0)).optional()?;
+    match (previous, retry_of) {
+        (None,None)=>{},
+        (Some(raw),Some(task))=>{
+            let previous:Value=serde_json::from_str(&raw).map_err(|_|Error::Invalid("invalid previous attempt"))?;
+            if previous["status"]!="failed" || previous["attempt_id"]!=task {
+                return Err(Error::Invalid("retry must reference latest failed attempt"));
+            }
+        },
+        _=>return Err(Error::Invalid("explicit retry required")),
+    }
+    let task:String=tx.query_row("SELECT 'doccheck_'||lower(hex(randomblob(16)))",[],|r|r.get(0))?;
+    let terminal_id:String=tx.query_row("SELECT 'chk_'||lower(hex(randomblob(16)))",[],|r|r.get(0))?;
+    let at:String=tx.query_row("SELECT datetime('now')",[],|r|r.get(0))?;
+    let mut result=request.clone();
+    result["check_id"]=json!(terminal_id); result["request_check_id"]=json!(check_id);
+    result["attempt_id"]=json!(task); result["retry_of_task_id"]=json!(retry_of);
+    result["status"]=json!("failed"); result["reason"]=json!("not_configured");
+    result["actor"]=json!("machine"); result["execution_verified"]=json!(false);
+    result["execution_state"]=json!("not_executed"); result["recorded_at"]=json!(at);
+    result["engine_receipt"]=Value::Null; result["retrieval_receipts"]=json!([]);
+    let conditions=result.to_string();
+    crate::machine::record_machine_task_in_transaction(&tx,&crate::machine::MachineTask {
+        task_id:&task,principal:"machine",conditions:&conditions,knowledge_version:None,
+        method_version:Some("document-check/v1"),tool_version:None,model_version:"not_configured",
+        scope:"runtime.document_check",outcome:"failed",failure:Some("not_configured"),retest_of:retry_of,
+    })?;
+    tx.execute("INSERT INTO document_checks(check_id,document_id,version,dimension,receipt_json) VALUES(?1,?2,?3,?4,?5)",
+        params![terminal_id,id,version,request["dimension"].as_str(),conditions])?;
+    tx.commit()?; Ok(result)
+}
+
+#[cfg(test)]
+mod execution_preflight_tests {
+    use super::*;
+    fn setup() -> Connection {
+        let c=Connection::open_in_memory().unwrap();
+        c.execute_batch("CREATE TABLE documents(document_id TEXT PRIMARY KEY,source_id TEXT,source_revision TEXT,title TEXT,current_version INTEGER);
+          CREATE TABLE document_versions(document_id TEXT,version INTEGER,editor_json TEXT,text_projection TEXT,content_sha256 TEXT,revision_basis TEXT);
+          CREATE TABLE document_blocks(document_id TEXT,version INTEGER,block_id TEXT,kind TEXT,ordinal INTEGER,node_json TEXT,text_projection TEXT,codec_status TEXT);
+          CREATE TABLE document_checks(check_id TEXT PRIMARY KEY,document_id TEXT,version INTEGER,dimension TEXT,receipt_json TEXT);
+          INSERT INTO documents VALUES('d',NULL,NULL,'ordinary',2);
+          INSERT INTO document_versions VALUES('d',1,'{}','old','old-sha',NULL);
+          INSERT INTO document_versions VALUES('d',2,'{}','new','new-sha',NULL);").unwrap();
+        let request=json!({"check_id":"pending","document_id":"d","version":1,"content_sha256":"old-sha","dimension":"professional_basis","provider_mode":"cloud","status":"pending"});
+        c.execute("INSERT INTO document_checks VALUES('pending','d',1,'professional_basis',?1)",[request.to_string()]).unwrap(); c
+    }
+    #[test] fn absent_provider_persists_failure_and_explicit_retry_without_changing_document() {
+        let mut c=setup();
+        let a=execute_check_unconfigured(&mut c,"d","pending","old-sha",None).unwrap();
+        assert_eq!(a["reason"],"not_configured"); assert_eq!(a["execution_verified"],false);
+        assert!(execute_check_unconfigured(&mut c,"d","pending","old-sha",None).is_err());
+        let b=execute_check_unconfigured(&mut c,"d","pending","old-sha",a["attempt_id"].as_str()).unwrap();
+        assert_ne!(a["attempt_id"],b["attempt_id"]);
+        assert_eq!(read(&c,"d",None).unwrap()["content_sha256"],"new-sha");
+        assert_eq!(checks(&c,"d",Some(1)).unwrap()["checks"].as_array().unwrap().len(),3);
+        let n:i64=c.query_row("SELECT count(*) FROM machine_tasks WHERE outcome='failed' AND knowledge_version IS NULL",[],|r|r.get(0)).unwrap(); assert_eq!(n,2);
+    }
+    #[test] fn rejects_wrong_sha_cross_document_and_foreign_retry_without_partial_receipt() {
+        let mut c=setup();
+        assert!(execute_check_unconfigured(&mut c,"d","pending","new-sha",None).is_err());
+        assert!(execute_check_unconfigured(&mut c,"other","pending","old-sha",None).is_err());
+        assert!(execute_check_unconfigured(&mut c,"d","pending","old-sha",Some("foreign")).is_err());
+        let n:i64=c.query_row("SELECT count(*) FROM document_checks",[],|r|r.get(0)).unwrap(); assert_eq!(n,1);
+    }
+}
