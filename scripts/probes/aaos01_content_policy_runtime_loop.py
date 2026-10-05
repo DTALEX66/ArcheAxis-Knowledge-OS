@@ -104,6 +104,7 @@ def main():
             "commit": dev.git(REPO, "rev-parse", "HEAD"),
             "dirty": dirty,
             "patch_sha256": patch,
+            "changes": office.source_changes(dev),
         }
         receipt["candidate_manifest"] = office.identity(candidate / "backend-runtime-manifest.json")
         receipt["core"] = office.identity(candidate / "core/archeaxis-api.exe")

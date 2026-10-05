@@ -35,6 +35,32 @@ def identity(path):
             "bytes": path.stat().st_size}
 
 
+def source_changes(dev):
+    """Identify changed public source bytes without collecting diff contents."""
+    names = dev.git(REPO, "diff", "HEAD", "--name-only", "--no-renames", "-z")
+    untracked = dev.git(REPO, "ls-files", "--others", "--exclude-standard", "-z")
+    changes = []
+    protected = {".codex", ".agents", ".hermes", ".dsh", ".zcode", ".claude",
+                 ".ssh", ".aws", ".azure", ".gnupg", ".npmrc", ".pypirc", ".netrc",
+                 "credentials", "keychain", "agent-private", "private-agent-state"}
+    for name in sorted(set(filter(None, (names + "\0" + untracked).split("\0")))):
+        relative = Path(name)
+        if relative.is_absolute() or ".." in relative.parts or any(
+            part.casefold() in protected or part.casefold().startswith(".env")
+            for part in relative.parts
+        ):
+            raise ValueError("protected source change cannot enter a public receipt")
+        path = dev.safe_path(REPO / relative)
+        path.relative_to(REPO.absolute())
+        baseline = dev.git(REPO, "ls-tree", "HEAD", "--", name)
+        entry = {"path": name, "head_tree_entry": baseline, "exists": path.is_file()}
+        if entry["exists"]:
+            entry.update({"worktree_blob": dev.git(REPO, "hash-object", "--", name),
+                          "bytes": path.stat().st_size})
+        changes.append(entry)
+    return changes
+
+
 def start(candidate, work, launcher):
     profile = launcher.load_profile(candidate)
     token = secrets.token_hex(32)
@@ -133,7 +159,8 @@ def main():
         dev = load("aaos_office_dev", REPO / "scripts/runtime/dev.py")
         dirty, patch_sha = dev.worktree_identity(REPO)
         receipt["source"] = {"commit": dev.git(REPO, "rev-parse", "HEAD"),
-                             "dirty": dirty, "patch_sha256": patch_sha}
+                             "dirty": dirty, "patch_sha256": patch_sha,
+                             "changes": source_changes(dev)}
         profile = launcher.load_profile(candidate)
         receipt["candidate_manifest"] = identity(candidate / "backend-runtime-manifest.json")
         receipt["worker_profile"] = identity(candidate / "worker-profile.json")

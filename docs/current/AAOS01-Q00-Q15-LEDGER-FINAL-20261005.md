@@ -1,5 +1,9 @@
 # AAOS-01 Q00–Q15 当前执行台账（2026-10-05）
 
+任务持续授权（用户2026-10-05明确授予，至撤销或任务结束）：允许提交、正常推送至 `codex/dsh-aaos-real-multiformat-loop-20261001`，触发 workflow_dispatch(force_full)、gh run rerun 与读取运行结果；等待固定 CI 时禁止推送。禁止 force push、改写历史、合并或直接推 main、发布 release。此授权不扩展至付费云端调用或真人认可。
+
+本地实际重建包含品牌与九项线性图标的生产 Tauri host，SHA `696e6fc58d8569b15743819524acbd97e04bcc233cd0d1bd7387341c9c46494f`；构建前仅清指定release缓存资源，随后Core/profile分别匹配a11 `494493ab...faad820` / `79093169...e46ad`。候选内 `runtime/python.exe` 实际 import 四模块成功，仍不是installed qualification，未拉起窗口。Office/Contentpolicy收据补充变化公共源码路径、HEAD对象和工作树blob，不保存diff正文；实际变化识别和五项敏感路径拒绝检查PASS。新生成四schema经字节比对只有尾换行，精确恢复原字节；其patch SHA `f423b6089e64716c19950dda56f6ff335b0a6fbe4a5c22c0006e87e2ffcda679`不等于旧CI6087，旧dirty来源仍UNKNOWN。
+
 最新固定提交 `6776eaec695254b9c3768b8c42190cec9bc9fc0c`，workflow `308098767`、run `37313542770`、attempt `1`，workflow_dispatch(force_full)，headSha 已完整读回。最终 FAILURE：18 个 job 实际 success，installer-lifecycle 与 a0-gates failure。desktop-fast 的普通保存与独立核验、真实 Office、Q12/导出/故障、Rust fmt/test 目标步骤全部执行成功；desktop-build 实际构建 NSIS 成功，不能代替安装态资格。
 
 本次安装态第一次 POST /session 约60秒失败，DevToolsActivePort 不存在，steps=[]。typedartifact 已校验身份、非空 ZIP、CRC 与 SHA：native 包 `0af817deff5fe3227ff3fef6bfc028587756eafabe8cc67568d1d292c53aa04b`（6383字节）；native-driver.log 3596字节，driver.log 0字节不作证据。能力已带正确安装 exe 和独立 session-1 userDataFolder，匹配工具153.0.4234.48；因此此前目录分裂修复已生效，但不能解释或宣称修复此次失败。进程诊断自身超时，宿主早退、WebView创建失败及驱动连接失败尚不能区分。等待期间没有推送。
