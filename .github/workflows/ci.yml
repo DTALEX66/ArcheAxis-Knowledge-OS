@@ -1017,6 +1017,24 @@ jobs:
             if (-not (Test-Path $path)) { throw "bundle is missing $relative" }
             Write-Host "present: $relative"
           }
+      # The workers import their engines directly, and an engine that is not installed only
+      # shows up when a job of that format runs - which no gate does. A candidate staged from
+      # an older tree can also look complete while lacking them, because preparation reuses an
+      # existing runtime. Asserting the engines here turns both into a build failure instead of
+      # a format failing later for a reason that has to be rediscovered.
+      - name: Assert the staged runtime carries the format engines
+        shell: pwsh
+        run: |
+          $runtime = '.project-local/rt/runtime'
+          if (-not (Test-Path $runtime)) { throw "staged runtime is missing: $runtime" }
+          $found = @(Get-ChildItem $runtime -Recurse -Directory -ErrorAction SilentlyContinue |
+                     Where-Object { $_.Name -in @('openpyxl', 'pptx', 'markitdown', 'pytesseract') } |
+                     ForEach-Object { $_.Name } | Sort-Object -Unique)
+          Write-Host ("engine packages present: " + ($found -join ', '))
+          $missing = @('openpyxl', 'pptx', 'markitdown', 'pytesseract') | Where-Object { $_ -notin $found }
+          if ($missing.Count -gt 0) {
+            throw "staged runtime is missing format engines: " + ($missing -join ', ')
+          }
       - name: Inject CI candidate identity
         shell: pwsh
         run: |
