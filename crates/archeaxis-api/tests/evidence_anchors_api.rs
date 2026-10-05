@@ -108,3 +108,172 @@ async fn evidence_anchor_list_surfaces_the_quoted_selection() {
     assert_eq!(payload["items"][0]["source_name"], "quoted.md");
     assert_eq!(payload["items"][0]["quote"], "the Earth radius is 6371 km");
 }
+
+// Seeded protocol receipts test API validation; these are not ASR execution evidence.
+async fn time_anchor_post(
+    db: &std::path::Path,
+    source: &str,
+    revision: &str,
+    position: Value,
+    checksum: Option<&str>,
+) -> (StatusCode, Value) {
+    let response = app(db.to_str().unwrap())
+        .unwrap()
+        .oneshot(
+            Request::post(format!("/api/v1/sources/{source}/anchors"))
+                .header("content-type", "application/json")
+                .header("x-archeaxis-actor", "human")
+                .body(Body::from(
+                    serde_json::json!({
+        "revision":revision,"position":position.to_string(),"checksum":checksum})
+                    .to_string(),
+                ))
+                .unwrap(),
+        )
+        .await
+        .unwrap();
+    let status = response.status();
+    let bytes = response.into_body().collect().await.unwrap().to_bytes();
+    (
+        status,
+        serde_json::from_slice(&bytes).unwrap_or(Value::Null),
+    )
+}
+
+#[tokio::test]
+async fn time_anchor_binds_actual_receipt_and_preserves_old_attempt() {
+    use sha2::{Digest, Sha256};
+    let dir = tempfile::tempdir().unwrap();
+    let db = dir.path().join("time.sqlite");
+    let mut conn = init_workspace(db.to_str().unwrap()).unwrap();
+    let import = |conn: &mut rusqlite::Connection, bytes: &[u8]| match source::import_source(
+        conn,
+        bytes,
+        "speech.wav",
+        None,
+    )
+    .unwrap()
+    {
+        ImportOutcome::Imported { source_id, .. } | ImportOutcome::Duplicate { source_id, .. } => {
+            source_id
+        }
+    };
+    let source = import(&mut conn, b"synthetic audio");
+    let other = import(&mut conn, b"other audio");
+    let revision = format!("{:x}", Sha256::digest(b"synthetic audio"));
+    archeaxis_application::jobs::enqueue(&mut conn, "time-job", "transcribe", &source).unwrap();
+    let loss=serde_json::json!({"params":{"worker_output":{"duration_ms":2000,"cues":[{"start_ms":100,"end_ms":1000,"text":"value 37"}]}}}).to_string();
+    let result_sha = format!("{:x}", Sha256::digest(loss.as_bytes()));
+    let checksum = format!("{:x}", Sha256::digest(b"value 37"));
+    let request=serde_json::json!({"job_id":"time-job","attempt":1,"capability":"media.transcribe","inputs":[{"sha256":revision}]}).to_string();
+    conn.execute("INSERT INTO job_attempts(job_id,attempt,request_id,request_json,state) VALUES('time-job',1,'time-request',?1,'succeeded')",[request]).unwrap();
+    conn.execute(
+        "UPDATE jobs SET state='succeeded' WHERE job_id='time-job'",
+        [],
+    )
+    .unwrap();
+    let metadata =
+        serde_json::json!({"kind":"loss_report","sha256":result_sha,"byte_length":loss.len()})
+            .to_string();
+    conn.execute("INSERT INTO job_outputs(job_id,attempt,kind,metadata_json,content) VALUES('time-job',1,'loss_report',?1,?2)",rusqlite::params![metadata,loss]).unwrap();
+    let locator = serde_json::json!({"type":"time","job_id":"time-job","attempt":1,"cue_index":0,"start_ms":100,"end_ms":1000,"result_sha256":result_sha});
+    for (field, value) in [
+        ("result_sha256", serde_json::json!("wrong")),
+        ("start_ms", serde_json::json!(101)),
+        ("attempt", serde_json::json!(2)),
+        ("cue_index", serde_json::json!(1)),
+    ] {
+        let mut bad = locator.clone();
+        bad[field] = value;
+        assert_eq!(
+            time_anchor_post(&db, &source, &revision, bad, Some(&checksum))
+                .await
+                .0,
+            StatusCode::BAD_REQUEST
+        );
+    }
+    let other_revision = format!("{:x}", Sha256::digest(b"other audio"));
+    assert_eq!(
+        time_anchor_post(
+            &db,
+            &other,
+            &other_revision,
+            locator.clone(),
+            Some(&checksum)
+        )
+        .await
+        .0,
+        StatusCode::BAD_REQUEST
+    );
+    assert_eq!(
+        time_anchor_post(&db, &source, &revision, locator.clone(), Some("wrong"))
+            .await
+            .0,
+        StatusCode::BAD_REQUEST
+    );
+    let (_, unverified) = time_anchor_post(&db, &source, &revision, locator.clone(), None).await;
+    assert_eq!(unverified["location_status"], "unverified");
+    let (status, accepted) =
+        time_anchor_post(&db, &source, &revision, locator.clone(), Some(&checksum)).await;
+    assert_eq!(status, StatusCode::CREATED);
+    assert_eq!(accepted["location_status"], "located");
+    let anchor_id = accepted["anchor_id"].as_str().unwrap();
+    let saved: String = conn
+        .query_row(
+            "SELECT position FROM anchors WHERE anchor_id=?1",
+            [anchor_id],
+            |r| r.get(0),
+        )
+        .unwrap();
+    conn.execute("INSERT INTO job_attempts(job_id,attempt,request_id,request_json,state) VALUES('time-job',2,'next-request','{}','failed')",[]).unwrap();
+    assert_eq!(
+        time_anchor_post(&db, &source, &revision, locator, Some(&checksum))
+            .await
+            .0,
+        StatusCode::BAD_REQUEST
+    );
+    assert_eq!(
+        conn.query_row(
+            "SELECT position FROM anchors WHERE anchor_id=?1",
+            [anchor_id],
+            |r| r.get::<_, String>(0)
+        )
+        .unwrap(),
+        saved
+    );
+    // Empty cues cannot authenticate even a formerly valid cue/checksum.
+    conn.execute(
+        "DELETE FROM job_attempts WHERE job_id='time-job' AND attempt=2",
+        [],
+    )
+    .unwrap();
+    conn.execute(
+        "UPDATE job_outputs SET content=?1 WHERE job_id='time-job'",
+        [r#"{"params":{"worker_output":{"duration_ms":2000,"cues":[]}}}"#],
+    )
+    .unwrap();
+    let empty: String = conn
+        .query_row(
+            "SELECT content FROM job_outputs WHERE job_id='time-job'",
+            [],
+            |r| r.get(0),
+        )
+        .unwrap();
+    let empty_hash = format!("{:x}", Sha256::digest(empty.as_bytes()));
+    let empty_meta =
+        serde_json::json!({"kind":"loss_report","sha256":empty_hash,"byte_length":empty.len()})
+            .to_string();
+    conn.execute(
+        "UPDATE job_outputs SET metadata_json=?1 WHERE job_id='time-job'",
+        [empty_meta],
+    )
+    .unwrap();
+    let mut bad = serde_json::from_str::<Value>(&saved).unwrap();
+    bad["result_sha256"] = serde_json::json!(empty_hash);
+    assert_eq!(
+        time_anchor_post(&db, &source, &revision, bad, Some(&checksum))
+            .await
+            .0,
+        StatusCode::BAD_REQUEST
+    );
+}

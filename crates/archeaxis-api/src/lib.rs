@@ -983,6 +983,87 @@ async fn record_learning_event(
     .await
 }
 
+// A located time anchor verifies a cue's provenance, not recognition accuracy.
+fn verify_time_anchor(
+    conn: &rusqlite::Connection,
+    source: &str,
+    revision: &str,
+    position: &serde_json::Value,
+    checksum: &str,
+) -> Option<bool> {
+    use sha2::{Digest, Sha256};
+    let job = position["job_id"].as_str()?;
+    let attempt = i64::try_from(position["attempt"].as_u64()?).ok()?;
+    let index = usize::try_from(position["cue_index"].as_u64()?).ok()?;
+    let start = position["start_ms"].as_u64()?;
+    let end = position["end_ms"].as_u64()?;
+    let expected = position["result_sha256"].as_str()?;
+    let (input, kind, job_state, state, wire, metadata, content, latest): (
+        String,
+        String,
+        String,
+        String,
+        String,
+        String,
+        String,
+        i64,
+    ) = conn
+        .query_row(
+            "SELECT j.input_ref,j.kind,j.state,a.state,a.request_json,o.metadata_json,o.content,
+         (SELECT MAX(attempt) FROM job_attempts WHERE job_id=j.job_id)
+         FROM jobs j JOIN job_attempts a ON a.job_id=j.job_id
+         JOIN job_outputs o ON o.job_id=a.job_id AND o.attempt=a.attempt AND o.kind='loss_report'
+         WHERE j.job_id=?1 AND a.attempt=?2",
+            rusqlite::params![job, attempt],
+            |r| {
+                Ok((
+                    r.get(0)?,
+                    r.get(1)?,
+                    r.get(2)?,
+                    r.get(3)?,
+                    r.get(4)?,
+                    r.get(5)?,
+                    r.get(6)?,
+                    r.get(7)?,
+                ))
+            },
+        )
+        .ok()?;
+    if input != source
+        || kind != "transcribe"
+        || job_state != "succeeded"
+        || state != "succeeded"
+        || latest != attempt
+    {
+        return Some(false);
+    }
+    let request: serde_json::Value = serde_json::from_str(&wire).ok()?;
+    let meta: serde_json::Value = serde_json::from_str(&metadata).ok()?;
+    let loss: serde_json::Value = serde_json::from_str(&content).ok()?;
+    let hash = format!("{:x}", Sha256::digest(content.as_bytes()));
+    if request["capability"] != "media.transcribe"
+        || request["job_id"] != job
+        || request["attempt"] != attempt
+        || request["inputs"][0]["sha256"] != revision
+        || meta["kind"] != "loss_report"
+        || meta["sha256"] != hash
+        || expected != hash
+        || meta["byte_length"].as_u64()? != content.len() as u64
+    {
+        return Some(false);
+    }
+    let output = &loss["params"]["worker_output"];
+    let cue = output["cues"].as_array()?.get(index)?;
+    let text = cue["text"].as_str()?;
+    Some(
+        start < end
+            && end <= output["duration_ms"].as_u64()?
+            && cue["start_ms"].as_u64()? == start
+            && cue["end_ms"].as_u64()? == end
+            && format!("{:x}", Sha256::digest(text.as_bytes())) == checksum,
+    )
+}
+
 #[derive(Deserialize)]
 struct AnchorBody {
     revision: String,
@@ -1037,6 +1118,9 @@ async fn create_anchor(
         if let Some(checksum) = body.checksum {
             use sha2::{Digest, Sha256};
             let validation = (|| -> Option<bool> {
+                if position["type"] == "time" {
+                    return verify_time_anchor(conn, &source_id, &body.revision, &position, &checksum);
+                }
                 if position["type"] != "text" {
                     return None;
                 }
@@ -1050,7 +1134,7 @@ async fn create_anchor(
             if validation != Some(true) {
                 return (
                     StatusCode::BAD_REQUEST,
-                    "text byte range/checksum does not match immutable UTF-8 original",
+                    "locator/checksum does not match immutable source or verified ASR cue",
                 )
                     .into_response();
             }
