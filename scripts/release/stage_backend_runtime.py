@@ -30,6 +30,7 @@ import hashlib
 import importlib.util
 import json
 import os
+import re
 import shutil
 import stat
 import subprocess
@@ -151,6 +152,23 @@ def reject_nested_links(member: Path) -> None:
                 raise ValueError("linked staging path rejected")
 
 
+def reject_links_along(path: Path) -> None:
+    """Reject a link on any component of an absolute path, without judging its names.
+
+    This is the link half of the path rule, which stays meaningful for upstream files;
+    the name half is only meaningful at a root location. Judging a package's internals by
+    name re-rejects modules that legitimately share a protected name.
+    """
+    resolved = Path(os.path.abspath(path))
+    for part in (*reversed(resolved.parents), resolved):
+        try:
+            info = part.lstat()
+        except (FileNotFoundError, NotADirectoryError):
+            continue
+        if stat.S_ISLNK(info.st_mode) or getattr(info, "st_file_attributes", 0) & 0x400:
+            raise ValueError("linked staging path rejected")
+
+
 def copy_distribution_tree(source: Path, target: Path) -> None:
     """Copy one distribution directory, checking links but not its module names.
 
@@ -167,6 +185,52 @@ def copy_tree(source: Path, target: Path) -> None:
     validate_tree(target)
     shutil.copytree(source, target, dirs_exist_ok=True,
                     ignore=shutil.ignore_patterns("__pycache__", "*.pyc", "*.pyo"))
+
+
+def canonical_distribution_name(name: str) -> str:
+    """The normalisation the packaging tooling itself uses for comparison.
+
+    Runs of dashes, underscores and dots are equivalent, and case is ignored. Without
+    this, a distribution declared as `typing-extensions` and installed as
+    `typing_extensions` would not be recognised as the same thing.
+    """
+    return re.sub(r"[-_.]+", "-", name).lower()
+
+
+def distribution_files(name: str, site_packages: Path) -> list[Path] | None:
+    """The files a distribution actually installed, from its own RECORD.
+
+    A distribution's name is not the name of the module or directory it installs, and
+    guessing from the name - as matching a directory called after it does - both misses
+    single-module distributions and drags in entries that only look similar. The RECORD
+    the installer wrote is the authoritative statement of what belongs to it, so the
+    declared name is resolved through the distribution metadata instead.
+
+    Returns None when no matching distribution is installed, and None when it is
+    installed but recorded no RECORD, so the caller can fall back deliberately.
+    """
+    wanted = canonical_distribution_name(name)
+    for dist_info in sorted(site_packages.glob("*.dist-info")):
+        metadata = dist_info / "METADATA"
+        if not metadata.is_file():
+            continue
+        declared = None
+        for line in metadata.read_text(encoding="utf-8", errors="replace").splitlines():
+            if line.startswith("Name:"):
+                declared = line.split(":", 1)[1].strip()
+                break
+        if declared is None or canonical_distribution_name(declared) != wanted:
+            continue
+        record = dist_info / "RECORD"
+        if not record.is_file():
+            return None
+        installed = []
+        for line in record.read_text(encoding="utf-8", errors="replace").splitlines():
+            relative = line.split(",", 1)[0].strip()
+            if relative:
+                installed.append(site_packages / relative.replace("/", os.sep))
+        return installed
+    return None
 
 
 def copy_distribution(name: str, site_packages: Path, target_site_packages: Path) -> dict:
@@ -186,6 +250,38 @@ def copy_distribution(name: str, site_packages: Path, target_site_packages: Path
         return stem.replace("_", "").lower()
 
     reject_reparse(site_packages)
+    # The RECORD is authoritative, so prefer it over matching names. A distribution's name
+    # is not the name it imports as - pymupdf installs `fitz`, and copying only entries
+    # named after the distribution leaves that behind, which surfaces later as a
+    # ModuleNotFoundError from the worker rather than here.
+    recorded = distribution_files(name, site_packages)
+    if recorded is not None:
+        resolved_root = site_packages.resolve()
+        chosen: list[tuple[Path, Path]] = []
+        for path in recorded:
+            try:
+                resolved = path.resolve()
+            except OSError:
+                continue
+            # A recorded path may sit outside the package root, and a `..` in one must
+            # not be followed out of the tree. Only files inside it are staged; console
+            # scripts are not importable modules and do not belong in a package directory.
+            if not resolved.is_relative_to(resolved_root) or not resolved.is_file():
+                continue
+            chosen.append((resolved, resolved.relative_to(resolved_root)))
+        if not chosen:
+            raise ValueError(f"dependency {name} records no files inside {site_packages}")
+        target_site_packages.mkdir(parents=True, exist_ok=True)
+        reject_reparse(target_site_packages)
+        staged_files: list[str] = []
+        for source, relative in chosen:
+            reject_links_along(source)
+            destination = target_site_packages / relative
+            reject_links_along(destination)
+            destination.parent.mkdir(parents=True, exist_ok=True)
+            shutil.copy2(source, destination)
+            staged_files.append(relative.as_posix())
+        return {"name": name, "members": sorted(staged_files)}
     members = [entry for entry in sorted(site_packages.iterdir()) if key(entry.name) == wanted]
     if not members:
         raise ValueError(f"dependency not present in {site_packages}: {name}")
@@ -211,6 +307,46 @@ def copy_distribution(name: str, site_packages: Path, target_site_packages: Path
         else:
             shutil.copy2(member, destination)
         copied.append(member.name)
+    # The RECORD the installer wrote is the authoritative statement of what belongs to a
+    # distribution, and matching by name is only a guess at it. Cross-check the two, so a
+    # distribution that installs a module outside the directory named after it is reported
+    # here rather than surfacing later as a ModuleNotFoundError from the worker.
+    recorded = distribution_files(name, site_packages)
+    if recorded is not None:
+        # A RECORD may name files outside the package root - fastapi records a console
+        # script under the environment's Scripts directory. Those are not importable
+        # modules, must not be staged into a package directory, and resolving them is how
+        # a `..` in a recorded path would otherwise be followed out of the tree.
+        resolved_root = site_packages.resolve()
+        expected: set[str] = set()
+        for path in recorded:
+            try:
+                resolved = path.resolve()
+            except OSError:
+                continue
+            if not resolved.is_relative_to(resolved_root):
+                continue
+            expected.add(resolved.relative_to(resolved_root).as_posix())
+        staged: set[str] = set()
+        for member in members:
+            if member.is_dir():
+                for entry in member.rglob("*"):
+                    if entry.is_file() and "__pycache__" not in entry.parts:
+                        staged.add(entry.relative_to(site_packages).as_posix())
+            else:
+                staged.add(member.relative_to(site_packages).as_posix())
+        missing = sorted(
+            [
+                recorded_name
+                for recorded_name in expected
+                if recorded_name not in staged
+                and not recorded_name.endswith((".pyc", ".pyo"))
+            ]
+        )
+        if missing:
+            raise ValueError(
+                f"dependency {name} records files that were not staged: {missing[:5]}"
+            )
     return {"name": name, "members": sorted(copied)}
 
 
