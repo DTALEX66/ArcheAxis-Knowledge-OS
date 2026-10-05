@@ -1,5 +1,13 @@
 # AAOS-01 Q00–Q15 当前执行台账（2026-10-05）
 
+现行固定门禁更新（2026-10-06）：`514f606aff1157fa7b6a2c7bac078c7aed041e81`，workflow308098767/run37353509272/attempt1，完整身份核对一致，终态FAILURE；等待期间未推送。18个job实际SUCCESS，包括rust-vnext、test(3.12)、desktop-fast、desktop-build；installer-lifecycle和a0-gates失败。安装typed artifact11363709234为172,524字节，CRC/四元组绑定PASS，ZIP SHA `267a35ab301989a4b45deee1c7ce713af0073bb1e3452aa36b956f63f1c6d562`。四次WebDriver实际启动成功，前十项安装态业务断言通过；第十一项寻找旧按钮“申请或重试识别云端核验”失败，后续未执行。已本地同步实际按钮名称，保留原十二项并增加显式执行/重试失败持久化断言；新十三项尚未安装态执行，不将修复写成CI通过。
+
+本地实际实现更新（未发布）：Rust Core沿现有document_checks/machine_tasks执行版本绑定核验，Python复用LiteLLM、SafeHTTP与检索/正文提取donor，两维分别记录识别忠实度及专业依据；原件文字是识别对照，联网仅辅助背景。普通保存不等待核验。宿主固定数据根config/document-check.json提供非秘密provider/model/额度配置，无默认模型；无配置或非法配置不阻断保存。显式执行/重试、失败恢复与历史展示已接入现有UI，不虚构真人认可。实际根工作区完整cargo test exit0、src-tauri fmt和67tests PASS；联网/配置20回归PASS、相关Ruff PASS，SDK/HTTP传输夹具属于SYNTHETIC，未执行真实云端或付费调用。识别原件当前仅有界UTF-8文本，PDF/图片/媒体原件核验仍PARTIAL；实际provider/model/额度选择与真实服务验收待用户配置。以下旧“尚未实现”记载为当时阶段，不代表当前实现状态。
+
+本轮精确清理：tauri-driver2.1.0的自有target/release五个编译中间目录已删除，639文件、212,379,120字节逻辑量，路径不存在readback PASS；已安装driver与官方重建配方SHA前后相同，收据aaos01-tools/driver-build-prune.json。物理回收及整仓净变化UNMEASURED。既有审计的framework候选现已不存在，不能重复计清理；未知数据库与Green唯一恢复材料继续保留，不据备份推导所有权。
+
+收拢验证：前端全量32文件/213tests、tsc与Vite生产构建PASS。合法材料预检失败现沿已有failed receipt链持久化，4项实际file-backed API测试PASS，覆盖65,001字正文完整保存、无worker调用、明确重试和重启失败读回；非法权限/SHA不新增attempt。桌面仅document_check_execute使用160秒有界等待，覆盖worker120秒加20秒清理预算，普通操作仍30秒。最终src-tauri fmt/67tests、根fmt及route inventory/数量/Tauri Authority/a0合同回归PASS。新安装态十三项仍待下一固定提交实际运行。
+
 当前固定门禁：`29e7f08b84205cedbbdace6228383e8942146eb6`，workflow308098767/run37349719826/attempt1，完整headSha与workflow_dispatch核对一致，终态FAILURE，等待期间没有推送。desktop-fast、desktop-build实际PASS；rust-vnext在根工作区fmt失败，其后测试为SKIPPED；test(3.12)的OS测试失败；installer-lifecycle与a0-gates失败。根fmt遗漏已本地修正，canonical `cargo test --workspace --locked`完整exit0；实际production route inventory遗漏checks/execute已补齐61条，定向4tests PASS。完整Windows OS回归实际3985 PASS、36 skipped、137 subtests PASS、1 FAIL（第二份路由计数仍用36/41）；该唯一断言已同步真实37/42，计数/inventory/Tauri authority/CI a0四模块canonical定向41 PASS、exit0、无skip。完整运行本身仍为FAIL，不把旧CI失败或未复跑全量改写为通过。
 
 安装诊断artifact11362996823严格绑定上述四元组，6,243字节非空ZIP/CRC/SHA核对PASS，SHA `86b25deb619367bfc2cdb1ea69e0d91e46f89db6be03614953a5a65197efcd6e`。installed host SHA `19b7f50c2fba0459661f72024bb2ff7ce4f8cabf5c5b18c54fc05d50b3f3922a`：实际宿主/Core/WebView及可见窗口存在，WebView调试参数布尔为false，仅Core loopback监听；CDP40秒超时、steps=[]，未执行12步业务断言。proxy_environment_present=false。不能据此判NSIS产品未启动，也不能判业务成功。

@@ -19,6 +19,8 @@ pub struct Launch {
     #[serde(default, deserialize_with = "present_string")]
     pub actor: Option<String>,
     pub text_worker: Option<TextWorker>,
+    pub document_check_config: Option<archeaxis_application::executor::DocumentCheckConfig>,
+    pub document_check_config_error: Option<String>,
     #[serde(default, deserialize_with = "present_string")]
     protocol: Option<String>,
     #[serde(default, deserialize_with = "present_string")]
@@ -195,6 +197,28 @@ impl Launch {
             serde_json::from_slice(&bytes).map_err(|_| "invalid launch input")?;
         if !hex(&launch.launch_token, 64) || !hex(&launch.session_id, 32) {
             return Err("invalid launch identity");
+        }
+        if launch
+            .document_check_config_error
+            .as_deref()
+            .is_some_and(|value| value != "invalid_config")
+            || (launch.document_check_config_error.is_some()
+                && launch.document_check_config.is_some())
+        {
+            return Err("invalid document check error contract");
+        }
+        if let Some(config) = &launch.document_check_config {
+            if config.validate().is_err()
+                || !launch.text_worker.as_ref().is_some_and(|worker| {
+                    worker
+                        .routes
+                        .iter()
+                        .any(|route| route.capability == "machine.answer")
+                })
+            {
+                launch.document_check_config = None;
+                launch.document_check_config_error = Some("invalid_config".into());
+            }
         }
         // Legacy preserves its single actor; v2 gives one owned session two
         // distinct credentials. Unknown/null/partial v2 claims never downgrade.

@@ -31,8 +31,12 @@ struct Runtime {
     colearning_admission: Arc<Mutex<()>>,
 }
 pub fn router(executor: Executor) -> Router {
-    let projections = crate::projections(executor.store().clone(), false);
+    let projections = crate::projections_base(executor.store().clone(), false);
     Router::new()
+        .route(
+            "/api/v1/documents/:document_id/checks/execute",
+            post(execute_document_check),
+        )
         .route("/api/v1/jobs/:job_id", get(status))
         .route("/api/v1/jobs/:job_id/executions", post(execute))
         .route(
@@ -688,4 +692,13 @@ async fn output(
         Ok(Ok(None)) => error(404, "AAK-VAL-004", "output not found"),
         _ => unavailable(),
     }
+}
+
+async fn execute_document_check(
+    State(runtime): State<Runtime>,
+    Path(id): Path<String>,
+    headers: HeaderMap,
+    Json(body): Json<crate::documents::CheckExecuteBody>,
+) -> Response {
+    crate::documents::execute_runtime_check(runtime.executor, id, headers, body).await
 }

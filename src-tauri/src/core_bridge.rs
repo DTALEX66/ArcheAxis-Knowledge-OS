@@ -421,7 +421,11 @@ pub fn execute(port: u16, token: &str, request: Request) -> Result<Reply, String
         .no_proxy()
         .redirect(reqwest::redirect::Policy::none())
         .timeout(std::time::Duration::from_secs(
-            if matches!(request.operation, Operation::MachineAnswer) {
+            if matches!(request.operation, Operation::DocumentCheckExecute) {
+                // The owned worker permits 120 seconds plus 20 seconds for bounded
+                // transport cleanup; keep a finite margin for durable readback.
+                160
+            } else if matches!(request.operation, Operation::MachineAnswer) {
                 135
             } else if matches!(request.operation, Operation::WorkspaceBackup) {
                 120

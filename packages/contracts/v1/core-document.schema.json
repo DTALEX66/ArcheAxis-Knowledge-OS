@@ -733,10 +733,27 @@
             "null"
           ]
         },
-        "engine_receipt": {},
+        "engine_receipt": {
+          "type": [
+            "object",
+            "null"
+          ]
+        },
         "retrieval_receipts": {
           "type": "array",
           "items": {}
+        },
+        "reported_status": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "raw_response": {
+          "type": [
+            "string",
+            "null"
+          ]
         }
       }
     },

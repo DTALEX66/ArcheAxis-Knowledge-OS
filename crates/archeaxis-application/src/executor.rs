@@ -53,6 +53,8 @@ pub struct Executor {
     /// hardened `-S` launch; engine-backed routes (PDF/OCR) need their engine
     /// from the configured interpreter, so `-S` must not strip it.
     routes: Arc<Vec<(String, PathBuf, bool)>>,
+    document_check_config: Option<Arc<DocumentCheckConfig>>,
+    document_check_config_error: Option<String>,
     health_slots: Arc<tokio::sync::Semaphore>,
     derived_slots: Arc<tokio::sync::Semaphore>,
 }
@@ -87,6 +89,11 @@ impl Executor {
             .await
             .map_err(|e| e.to_string())?
             .map_err(|e| e.to_string())?;
+        store
+            .submit_wait(archeaxis_domain::document::recover_interrupted_checks)
+            .await
+            .map_err(|_| "document check recovery scheduling failed")?
+            .map_err(|_| "document check recovery failed")?;
         let mut routes: Vec<(String, PathBuf, bool)> =
             vec![("text.extract".to_string(), default_worker.to_owned(), true)];
         for (capability, path) in extra {
@@ -101,6 +108,8 @@ impl Executor {
             python: python.to_owned(),
             worker: default_worker.to_owned(),
             routes: Arc::new(routes),
+            document_check_config: None,
+            document_check_config_error: None,
             health_slots: Arc::new(tokio::sync::Semaphore::new(4)),
             derived_slots: Arc::new(tokio::sync::Semaphore::new(4)),
         })
@@ -800,5 +809,231 @@ fn run_worker(
             Err(Failure::Failed(format!("{message}; stderr tail: {stderr}")))
         }
         other => other,
+    }
+}
+
+/// Explicit product-owned cloud policy. Never comes from an HTTP execution body.
+#[derive(Clone, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct DocumentCheckConfig {
+    pub provider: String,
+    pub model: String,
+    pub endpoint: Option<String>,
+    pub max_tokens: u64,
+    pub timeout_seconds: u64,
+    pub search_limit: u64,
+}
+impl DocumentCheckConfig {
+    pub fn validate(&self) -> Result<(), &'static str> {
+        if self.provider.is_empty()
+            || self.provider.len() > 64
+            || !self
+                .provider
+                .bytes()
+                .all(|b| b.is_ascii_alphanumeric() || b == b'_')
+            || self.model.len() > 256
+            || !self.model.starts_with(&format!("{}/", self.provider))
+            || self
+                .model
+                .split_once('/')
+                .is_none_or(|(_, name)| name.trim().is_empty())
+            || !(128..=4096).contains(&self.max_tokens)
+            || !(1..=120).contains(&self.timeout_seconds)
+            || !(1..=3).contains(&self.search_limit)
+        {
+            return Err("invalid document check configuration");
+        }
+        if self.endpoint.as_ref().is_some_and(|endpoint| {
+            !endpoint.starts_with("https://")
+                || endpoint.len() > 2048
+                || endpoint.contains(['@', '?', '#'])
+                || endpoint.chars().any(char::is_whitespace)
+        }) {
+            return Err("invalid document check endpoint");
+        }
+        Ok(())
+    }
+}
+
+impl Executor {
+    pub fn with_document_check_config(
+        mut self,
+        config: Option<DocumentCheckConfig>,
+    ) -> Result<Self, String> {
+        if config
+            .as_ref()
+            .is_some_and(|value| value.validate().is_err())
+        {
+            self.document_check_config = None;
+            self.document_check_config_error = Some("invalid_config".into());
+            return Ok(self);
+        }
+        self.document_check_config = config.map(Arc::new);
+        Ok(self)
+    }
+    pub fn with_document_check_config_error(
+        mut self,
+        error: Option<String>,
+    ) -> Result<Self, String> {
+        if error
+            .as_deref()
+            .is_some_and(|value| value != "invalid_config")
+            || (error.is_some() && self.document_check_config.is_some())
+        {
+            return Err("invalid document check error contract".into());
+        }
+        if error.is_some() {
+            self.document_check_config_error = error;
+        }
+        Ok(self)
+    }
+    pub fn document_check_config_error(&self) -> Option<String> {
+        self.document_check_config_error.clone()
+    }
+    pub fn document_check_config(&self) -> Option<DocumentCheckConfig> {
+        self.document_check_config
+            .as_ref()
+            .map(|v| v.as_ref().clone())
+    }
+    /// Reuse the launch-owned machine worker and product interpreter. All I/O is bounded.
+    pub async fn document_check(
+        &self,
+        request: serde_json::Value,
+    ) -> Result<serde_json::Value, String> {
+        let config = self.document_check_config().ok_or("not_configured")?;
+        config.validate().map_err(str::to_owned)?;
+        if request["config"] != serde_json::to_value(&config).map_err(|_| "invalid_config")? {
+            return Err("config_identity_mismatch".into());
+        }
+        let worker = self
+            .worker_for("machine.answer")
+            .map(|(path, _)| path)
+            .ok_or("worker_not_configured")?;
+        let python = self.python.clone();
+        let bytes = serde_json::to_vec(&request).map_err(|_| "invalid_request")?;
+        if bytes.len() > 512000 {
+            return Err("input_exceeds_bound".into());
+        }
+        let permit = self
+            .derived_slots
+            .clone()
+            .acquire_owned()
+            .await
+            .map_err(|_| "execution_unavailable")?;
+        tokio::task::spawn_blocking(move || {
+            let _permit = permit;
+            let deadline = Instant::now() + Duration::from_secs(config.timeout_seconds + 20);
+            let mut command = Command::new(&python);
+            command
+                .arg("-B")
+                .arg(worker)
+                .arg("--document-check")
+                .stdin(Stdio::piped())
+                .stdout(Stdio::piped())
+                .stderr(Stdio::piped());
+            #[cfg(windows)]
+            {
+                use std::os::windows::process::CommandExt;
+                command.creation_flags(0x08000000);
+            }
+            let mut child = OwnedChild(command.spawn().map_err(|_| "worker_start_failed")?);
+            let mut input = child.0.stdin.take().ok_or("worker_stdin_missing")?;
+            let mut output = child.0.stdout.take().ok_or("worker_stdout_missing")?;
+            let mut errors = child.0.stderr.take().ok_or("worker_stderr_missing")?;
+            let (send, receive) = mpsc::channel();
+            let reader = thread::spawn(move || {
+                let mut bytes = Vec::new();
+                let result = output
+                    .by_ref()
+                    .take(128001)
+                    .read_to_end(&mut bytes)
+                    .map_err(|_| "worker_read_failed");
+                let _ = send.send(result.map(|_| bytes));
+            });
+            // Drain without logging secret-bearing SDK stderr; no unbounded allocation.
+            let err_reader = thread::spawn(move || {
+                let _ = std::io::copy(&mut errors, &mut std::io::sink());
+            });
+            let (written_send, written_receive) = mpsc::channel();
+            let writer = thread::spawn(move || {
+                let result = input.write_all(&bytes).map_err(|_| "worker_write_failed");
+                drop(input);
+                let _ = written_send.send(result);
+            });
+            let result = (|| -> Result<serde_json::Value, String> {
+                written_receive
+                    .recv_timeout(deadline.saturating_duration_since(Instant::now()))
+                    .map_err(|_| "worker_timeout")?
+                    .map_err(str::to_owned)?;
+                let bytes = receive
+                    .recv_timeout(deadline.saturating_duration_since(Instant::now()))
+                    .map_err(|_| "worker_timeout")?
+                    .map_err(str::to_owned)?;
+                if bytes.len() > 128000 {
+                    return Err("output_exceeds_bound".into());
+                }
+                let value: serde_json::Value =
+                    serde_json::from_slice(&bytes).map_err(|_| "invalid_worker_response")?;
+                if !["succeeded", "failed"].contains(&value["outcome"].as_str().unwrap_or("")) {
+                    return Err("invalid_worker_response".into());
+                }
+                loop {
+                    match child.0.try_wait().map_err(|_| "worker_wait_failed")? {
+                        Some(status) => {
+                            if (value["outcome"] == "succeeded") != status.success() {
+                                return Err("worker_exit_outcome_mismatch".into());
+                            }
+                            break;
+                        }
+                        None if Instant::now() < deadline => {
+                            thread::sleep(Duration::from_millis(20))
+                        }
+                        _ => return Err("worker_timeout".into()),
+                    }
+                }
+                Ok(value)
+            })();
+            if child.0.try_wait().ok().flatten().is_none() {
+                let _ = child.0.kill();
+                let _ = child.0.wait();
+            }
+            // Cancel our own blocking pipe I/O; a descendant retaining a pipe cannot
+            // make cleanup join forever. No shared process or global setting is changed.
+            #[cfg(windows)]
+            {
+                use std::os::windows::io::AsRawHandle;
+                #[link(name = "kernel32")]
+                unsafe extern "system" {
+                    fn CancelSynchronousIo(thread: *mut std::ffi::c_void) -> i32;
+                }
+                for task in [&reader, &writer, &err_reader] {
+                    if !task.is_finished() {
+                        unsafe {
+                            CancelSynchronousIo(task.as_raw_handle());
+                        }
+                    }
+                }
+            }
+            let cleanup_deadline = Instant::now() + Duration::from_secs(1);
+            while (!reader.is_finished() || !writer.is_finished() || !err_reader.is_finished())
+                && Instant::now() < cleanup_deadline
+            {
+                thread::sleep(Duration::from_millis(10));
+            }
+            let incomplete =
+                !reader.is_finished() || !writer.is_finished() || !err_reader.is_finished();
+            for task in [reader, writer, err_reader] {
+                if task.is_finished() {
+                    let _ = task.join();
+                }
+            }
+            if incomplete {
+                return Err("worker_cleanup_incomplete".into());
+            }
+
+            result
+        })
+        .await
+        .map_err(|_| "worker_task_failed".to_string())?
     }
 }

@@ -703,8 +703,8 @@ def main():
         assert not js("return [...document.querySelectorAll('button')].some(b=>b.textContent==='接受当前候选')")
         receipt["steps"].append("UI search finds ordinary unverified document and opens existing editor without knowledge acceptance")
         for label, cloud_button, manual_summary in (
-            ("识别忠实度", "申请或重试识别云端核验", "手动记录识别核验"),
-            ("专业依据", "申请或重试专业云端核验", "手动记录专业核验"),
+            ("识别忠实度", "申请识别云端核验", "手动记录识别核验"),
+            ("专业依据", "申请专业云端核验", "手动记录专业核验"),
         ):
             scope = f"//section[@aria-label='{label}']"
             summary = ui_element("xpath", f"{scope}//summary[normalize-space(.)='{manual_summary}']")
@@ -721,6 +721,27 @@ def main():
             assert cloud and all(item["status"] == "pending" and not item["execution_verified"] and item["execution_state"] == "not_executed" for item in cloud)
         receipt["ordinary_document_checks"] = checks
         receipt["steps"].append("UI separately records both manual uncertain checks and cloud pending requests; cloud remains not executed")
+        for label in ("识别忠实度", "专业依据"):
+            scope = f"//section[@aria-label='{label}']"
+            ui_click("明确执行核验", scope)
+            wait(f"return document.querySelector('[aria-label=\"{label}\"]').textContent.includes('执行尝试失败：核验引擎未配置')")
+            ui_click("明确重试执行核验", scope)
+            dimension = "recognition_fidelity" if label == "识别忠实度" else "professional_basis"
+            deadline = time.monotonic() + 30
+            while time.monotonic() < deadline:
+                attempted = bridge("document_checks", {"document_id": ordinary["document_id"], "version": ordinary["version"]})
+                failed = [item for item in attempted["checks"] if item["dimension"] == dimension and item.get("attempt_id") and item["status"] == "failed"]
+                if len(failed) == 2:
+                    break
+                time.sleep(0.15)
+            assert len(failed) == 2 and failed[1]["retry_of_task_id"] == failed[0]["attempt_id"]
+            pending = next(item for item in checks["checks"] if item["dimension"] == dimension and item["provider_mode"] == "cloud")
+            assert failed[0]["attempt_id"] != failed[1]["attempt_id"]
+            assert all(item["request_check_id"] == pending["check_id"] and item["document_id"] == ordinary["document_id"] and item["version"] == ordinary["version"] and item["content_sha256"] == ordinary["content_sha256"] and item["actor"] == "machine" for item in failed)
+            assert all(item["reason"] == "not_configured" and item["execution_state"] == "not_executed" and not item["execution_verified"] for item in failed)
+            assert bridge("document_get", {"document_id": ordinary["document_id"]}) == ordinary
+        receipt["ordinary_document_failed_attempts"] = attempted
+        receipt["steps"].append("UI explicitly executes and retries both unconfigured checks without cloud success, human approval or content loss")
         ui_type('[aria-label="内容核验"] > label textarea', "工程样板修订理由，不构成知识认可")
         revision_button = ui_element("xpath", "(//button[normalize-space(.)='用于下一次修订'])[1]")
         request("POST", f"/session/{session}/element/{revision_button}/click", {})

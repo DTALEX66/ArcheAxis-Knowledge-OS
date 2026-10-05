@@ -53,6 +53,16 @@ pub fn router(state: Store) -> Router {
 
 /// Legacy manual receipts are only retained for in-process compatibility tests.
 pub fn projections(state: Store, manual_receipts: bool) -> Router {
+    projections_base(state.clone(), manual_receipts).merge(
+        Router::new()
+            .route(
+                "/api/v1/documents/:document_id/checks/execute",
+                post(documents::execute_check),
+            )
+            .with_state(state),
+    )
+}
+pub(crate) fn projections_base(state: Store, manual_receipts: bool) -> Router {
     let routes = Router::new()
         .route("/api/v1/sources", get(documents::sources))
         .route(
@@ -64,10 +74,6 @@ pub fn projections(state: Store, manual_receipts: bool) -> Router {
             get(documents::list).post(documents::create),
         )
         .route("/api/v1/documents/:document_id", get(documents::read))
-        .route(
-            "/api/v1/documents/:document_id/checks/execute",
-            post(documents::execute_check),
-        )
         .route(
             "/api/v1/documents/:document_id/checks",
             get(documents::checks).post(documents::record_check),

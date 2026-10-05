@@ -299,10 +299,22 @@ async fn main() {
         )
         .await
         {
-            Ok(executor) => (
-                executor.store().clone(),
-                archeaxis_api::runtime::router(executor),
-            ),
+            Ok(executor) => match executor
+                .with_document_check_config(launch.document_check_config.clone())
+                .and_then(|executor| {
+                    executor.with_document_check_config_error(
+                        launch.document_check_config_error.clone(),
+                    )
+                }) {
+                Ok(executor) => (
+                    executor.store().clone(),
+                    archeaxis_api::runtime::router(executor),
+                ),
+                Err(_) => {
+                    eprintln!("document check configuration unavailable");
+                    std::process::exit(1);
+                }
+            },
             Err(_) => {
                 eprintln!("failed to initialize execution workspace");
                 std::process::exit(1);

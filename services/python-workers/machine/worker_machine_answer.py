@@ -300,6 +300,9 @@ def extract(path: str, question: str | None = None,
 
 
 def main() -> int:
+    if sys.argv[1:] == ["--document-check"]:
+        from document_check import main as document_check_main
+        return document_check_main()
     # G4: the sidecar mode is this worker's wiring, with its own identity and capability.
     if "--staging-root" in sys.argv:
         import importlib.util

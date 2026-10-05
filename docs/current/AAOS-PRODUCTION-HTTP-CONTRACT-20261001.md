@@ -307,7 +307,7 @@ These additions reflect the current Rust handlers and generated `core-document.s
 | 39 | `POST /api/v1/workspace/backups` | **human only** | No caller path; creates a consistent product-owned backup and returns its manifest. Independent restore/readback remains a separate assertion. |
 | 40 | `GET /api/v1/documents/{document_id}/checks?version=&offset=` | any token | Actual version/hash bound records, 1000-row pages with next_offset. Current versions do not inherit old conclusions. |
 | 41 | `POST /api/v1/documents/{document_id}/checks` | **human only** | Independent recognition_fidelity / professional_basis. Manual reports are explicit; cloud request is pending/not_executed until a real authorized worker executes. |
-| 42 | `POST /api/v1/documents/{document_id}/checks/execute` | **human only** | Explicit version/hash-bound attempt, separate from pending application and save. Body check_id, expected_content_sha256, optional retry_of_task_id; no arbitrary model/provider. Current unconfigured worker returns 201 durable failed/not_configured with execution_verified=false and execution_state=not_executed; retry references actual previous attempt. |
+| 42 | `POST /api/v1/documents/{document_id}/checks/execute` | **human only** | Explicit version/hash-bound attempt, separate from pending application and save. Body check_id, expected_content_sha256, optional retry_of_task_id; no arbitrary model/provider. Unconfigured execution returns 201 durable failed/not_configured with execution_verified=false and execution_state=not_executed. A text-worker launch accepts owner-selected document_check_config from the fixed data-root config/document-check.json; invalid configuration remains a durable failed attempt and ordinary save remains available. Configured execution uses the same product Python and server-selected bounded provider/model, persists actual engine/retrieval receipts, and retries reference the latest failed attempt. Material preparation failures persist without invoking the worker; version/SHA and permission failures reject before claiming. Fidelity originals currently support bounded UTF-8 text only; real configured cloud acceptance is not established by transport fixtures. |
 
 `AnchorBody` is `{revision, position, checksum?}`. For a UTF-8 text locator, `start`/`end` are byte offsets and `checksum` identifies the selected slice; Core validates the bytes and boundaries. A source revision alone is not proof of a located page or text range.
 
@@ -540,14 +540,15 @@ Before the fix this endpoint answered `500` with a raw FTS5 parser message for
 | Launch | Routes served | Consequence for the UI |
 | --- | --- | --- |
 | **no** `text_worker` | 42 projection method/path pairs (37 unconditional mounts, five dual-method mounts); manual legacy `/jobs/{id}/receipts` remains absent from production | `/jobs/{id}`, `/executions`, `/outputs`, `/cancel`, `/capabilities` and its enable/disable write are **absent** (`404`). |
-| **with** `text_worker` | 61 addresses (42 projection method/path pairs + 19 runtime method/path pairs) | All routes above are served. |
+| **with** `text_worker` | 61 addresses (41 base projection method/path pairs + 20 runtime method/path pairs) | All routes above are served. |
 
-The runtime builder carries **19** routes, mounted there rather than with the projections because
+The runtime builder carries **20** routes, mounted there rather than with the projections because
 the capability surface reads the executor's registered routes, and the executor is the runtime
 router's state while the projection builder holds only the store. In groups: the four
 job-execution routes; the three capability-registry paths; `POST /api/v1/ask` and the semantic
 search route; the machine answer, correction and retest routes; the three vault routes; and the
-four course routes.
+four course routes; and the document-check execution route replacing the projection-only
+unconfigured handler at the same method/path.
 
 Both shapes were started from the real binary and asked over HTTP, and the result is asserted by
 `crates/archeaxis-api/tests/contract_launch_shape.rs`. **How to tell "absent" from "no such
@@ -743,3 +744,5 @@ UI must show machine answering as not connected rather than calling anything.
    sending `body` instead is silently ignored, so the successor is created as a clone of the old
    revision and the correction appears to vanish. The request-body table in §4 names every field
    for this reason.
+
+The projection-only launch retains its explicit unconfigured document-check execution handler. A text-worker launch instead mounts that same method/path once in the runtime builder; its 41 base projection pairs plus 20 runtime pairs total 61. This does not add a second endpoint or imply cloud configuration.

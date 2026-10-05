@@ -719,3 +719,525 @@ mod execution_preflight_tests {
         assert_eq!(n, 1);
     }
 }
+
+/// Snapshot-bound claim for one explicit cloud attempt. No network occurs here.
+pub struct CheckExecution {
+    pub preparation_error: Option<&'static str>,
+    pub running: Value,
+    pub text: String,
+    pub original: Option<(String, String, Vec<u8>)>,
+    pub recognition: Option<Value>,
+}
+
+pub fn begin_check(
+    conn: &mut Connection,
+    id: &str,
+    check_id: &str,
+    expected_sha: &str,
+    retry_of: Option<&str>,
+) -> Result<CheckExecution, Error> {
+    let tx = conn.transaction_with_behavior(rusqlite::TransactionBehavior::Immediate)?;
+    let raw: Option<String> = tx
+        .query_row(
+            "SELECT receipt_json FROM document_checks WHERE document_id=?1 AND check_id=?2",
+            params![id, check_id],
+            |r| r.get(0),
+        )
+        .optional()?;
+    let request: Value = serde_json::from_str(&raw.ok_or(Error::NotFound)?)
+        .map_err(|_| Error::Invalid("invalid stored check"))?;
+    if request["provider_mode"] != "cloud"
+        || request["status"] != "pending"
+        || !request["request_check_id"].is_null()
+    {
+        return Err(Error::Invalid("execution requires original cloud request"));
+    }
+    let version = request["version"]
+        .as_i64()
+        .ok_or(Error::Invalid("invalid version"))?;
+    let snapshot = read(&tx, id, Some(version))?;
+    if snapshot["content_sha256"] != expected_sha || request["content_sha256"] != expected_sha {
+        return Err(Error::Invalid("check snapshot digest mismatch"));
+    }
+    let previous:Option<String>=tx.query_row(
+        "SELECT receipt_json FROM document_checks WHERE document_id=?1 AND version=?2 AND json_extract(receipt_json,'$.request_check_id')=?3 ORDER BY rowid DESC LIMIT 1",
+        params![id,version,check_id],|r|r.get(0)).optional()?;
+    match (previous, retry_of) {
+        (None, None) => {}
+        (Some(raw), Some(previous_id)) => {
+            let previous: Value = serde_json::from_str(&raw)
+                .map_err(|_| Error::Invalid("invalid previous attempt"))?;
+            if previous["status"] != "failed" || previous["attempt_id"] != previous_id {
+                return Err(Error::Invalid("explicit latest failed retry required"));
+            }
+        }
+        _ => return Err(Error::Invalid("explicit latest failed retry required")),
+    }
+    // Identity/version/retry checks above reject before any attempt is claimed.
+    // Material failures below become a terminal attempt without invoking a worker.
+    let material = (|| -> Result<CheckExecution, Error> {
+        let text = snapshot["text_projection"]
+            .as_str()
+            .ok_or(Error::Invalid("missing document text"))?
+            .to_owned();
+        if text.len() > 64000 {
+            return Err(Error::Invalid("cloud snapshot exceeds bound"));
+        }
+        let original = if request["dimension"] == "recognition_fidelity" {
+            match (
+                snapshot["source_id"].as_str(),
+                snapshot["source_revision"].as_str(),
+            ) {
+                (Some(source_id), Some(revision)) => {
+                    let name: String = tx.query_row(
+                        "SELECT original_name FROM sources WHERE source_id=?1 AND sha256=?2",
+                        params![source_id, revision],
+                        |r| r.get(0),
+                    )?;
+                    let bytes = archeaxis_store_sqlite::raw_objects::read(&tx, revision)?;
+                    if bytes.len() > 64000 || hex::encode(Sha256::digest(&bytes)) != revision {
+                        return Err(Error::Invalid("original exceeds bound or digest mismatch"));
+                    }
+                    Some((name, revision.to_owned(), bytes))
+                }
+                _ => None,
+            }
+        } else {
+            None
+        };
+        let recognition = if let (Some(job), Some(digest)) = (
+            request["recognition_job_id"].as_str(),
+            request["recognition_result_sha256"].as_str(),
+        ) {
+            let output:Option<String>=tx.query_row("SELECT o.content FROM jobs j JOIN job_outputs o ON j.job_id=o.job_id JOIN job_attempts a ON a.job_id=o.job_id AND a.attempt=o.attempt WHERE j.job_id=?1 AND j.input_ref=?2 AND j.state='succeeded' AND a.state='succeeded' AND o.kind='text' AND json_extract(o.metadata_json,'$.sha256')=?3 ORDER BY o.attempt DESC LIMIT 1",params![job,snapshot["source_id"].as_str(),digest],|r|r.get(0)).optional()?;
+            let output = output.ok_or(Error::Invalid("recognition output unavailable"))?;
+            if output.len() > 64000 || hex::encode(Sha256::digest(output.as_bytes())) != digest {
+                return Err(Error::Invalid(
+                    "recognition digest mismatch or exceeds bound",
+                ));
+            }
+            Some(json!({"job_id":job,"result_sha256":digest,"text":output}))
+        } else {
+            None
+        };
+        Ok(CheckExecution {
+            running: Value::Null,
+            text,
+            original,
+            recognition,
+            preparation_error: None,
+        })
+    })();
+    let attempt: String =
+        tx.query_row("SELECT 'doccheck_'||lower(hex(randomblob(16)))", [], |r| {
+            r.get(0)
+        })?;
+    let running_id: String =
+        tx.query_row("SELECT 'chk_'||lower(hex(randomblob(16)))", [], |r| {
+            r.get(0)
+        })?;
+    let at: String = tx.query_row("SELECT datetime('now')", [], |r| r.get(0))?;
+    let mut running = request;
+    running["check_id"] = json!(running_id);
+    running["request_check_id"] = json!(check_id);
+    running["attempt_id"] = json!(attempt);
+    running["retry_of_task_id"] = json!(retry_of);
+    running["actor"] = json!("machine");
+    running["execution_verified"] = json!(false);
+    running["execution_state"] = json!("running");
+    running["recorded_at"] = json!(at);
+    tx.execute("INSERT INTO document_checks(check_id,document_id,version,dimension,receipt_json) VALUES(?1,?2,?3,?4,?5)",params![running_id,id,version,running["dimension"].as_str(),running.to_string()])?;
+    tx.commit()?;
+    match material {
+        Ok(mut execution) => {
+            execution.running = running;
+            Ok(execution)
+        }
+        Err(error) => {
+            let reason = match error {
+                Error::Invalid("cloud snapshot exceeds bound") => "cloud_snapshot_exceeds_bound",
+                Error::Invalid("original exceeds bound or digest mismatch") => {
+                    "original_bound_or_digest_mismatch"
+                }
+                Error::Invalid("recognition output unavailable") => {
+                    "recognition_output_unavailable"
+                }
+                Error::Invalid("recognition digest mismatch or exceeds bound") => {
+                    "recognition_bound_or_digest_mismatch"
+                }
+                _ => "material_preflight_failed",
+            };
+            Ok(CheckExecution {
+                running,
+                text: String::new(),
+                original: None,
+                recognition: None,
+                preparation_error: Some(reason),
+            })
+        }
+    }
+}
+
+/// Terminal append and machine receipt commit together. No document or prior receipt is edited.
+pub fn finish_check(
+    conn: &mut Connection,
+    running: &Value,
+    response: &Value,
+    provider: &str,
+    model: &str,
+) -> Result<Value, Error> {
+    let tx = conn.transaction_with_behavior(rusqlite::TransactionBehavior::Immediate)?;
+    let raw: Option<String> = tx
+        .query_row(
+            "SELECT receipt_json FROM document_checks WHERE check_id=?1 AND document_id=?2",
+            params![
+                running["check_id"].as_str(),
+                running["document_id"].as_str()
+            ],
+            |r| r.get(0),
+        )
+        .optional()?;
+    let persisted: Value = serde_json::from_str(&raw.ok_or(Error::NotFound)?)
+        .map_err(|_| Error::Invalid("invalid running check"))?;
+    if persisted != *running || running["execution_state"] != "running" {
+        return Err(Error::Invalid("running check identity mismatch"));
+    }
+    let exists:bool=tx.query_row("SELECT EXISTS(SELECT 1 FROM document_checks WHERE json_extract(receipt_json,'$.attempt_id')=?1 AND json_extract(receipt_json,'$.execution_state')!='running')",[running["attempt_id"].as_str()],|r|r.get(0))?;
+    if exists {
+        return Err(Error::Invalid("attempt already terminal"));
+    }
+    if response["schema"] != "archeaxis.document-check.response/v1" {
+        return Err(Error::Invalid("worker response schema mismatch"));
+    }
+    for key in [
+        "attempt_id",
+        "request_check_id",
+        "document_id",
+        "version",
+        "content_sha256",
+        "dimension",
+    ] {
+        if response[key] != running[key] {
+            return Err(Error::Invalid("worker snapshot identity mismatch"));
+        }
+    }
+    let success = response["outcome"] == "succeeded";
+    if !success && response["outcome"] != "failed" {
+        return Err(Error::Invalid("invalid execution outcome"));
+    }
+    let basis = response["basis"]
+        .as_str()
+        .ok_or(Error::Invalid("missing basis"))?;
+    let raw_response = response["raw_response"]
+        .as_str()
+        .ok_or(Error::Invalid("missing raw response"))?;
+    let retrieval = response["retrieval_receipts"]
+        .as_array()
+        .ok_or(Error::Invalid("missing retrieval receipts"))?;
+    if basis.len() > 8192
+        || raw_response.len() > 32000
+        || retrieval.len() > 10
+        || response.to_string().len() > 128000
+    {
+        return Err(Error::Invalid("worker response exceeds bound"));
+    }
+    let reason = response["reason"].as_str();
+    if !success
+        && reason.is_none_or(|v| {
+            v.is_empty()
+                || v.len() > 128
+                || !v.bytes().all(|b| b.is_ascii_alphanumeric() || b == b'_')
+        })
+    {
+        return Err(Error::Invalid(
+            "failed execution requires bounded reason code",
+        ));
+    }
+    if success {
+        let status = response["status"]
+            .as_str()
+            .ok_or(Error::Invalid("missing conclusion"))?;
+        let allowed: &[&str] = if running["dimension"] == "recognition_fidelity" {
+            &[
+                "faithful",
+                "mismatch",
+                "uncertain",
+                "original_unclear",
+                "conflicting",
+            ]
+        } else {
+            &["supported", "refuted", "uncertain", "conflicting"]
+        };
+        if !allowed.contains(&status) {
+            return Err(Error::Invalid("conclusion does not match dimension"));
+        }
+        let verdict: Value = serde_json::from_str(raw_response)
+            .map_err(|_| Error::Invalid("invalid provider verdict JSON"))?;
+        if verdict["status"] != response["status"]
+            || verdict["basis"] != response["basis"]
+            || verdict.as_object().is_none_or(|v| v.len() != 2)
+        {
+            return Err(Error::Invalid(
+                "provider verdict differs from recorded conclusion",
+            ));
+        }
+        if running["dimension"] == "professional_basis" {
+            if !retrieval.iter().any(|r| r["kind"] == "search")
+                || !retrieval.iter().any(|r| r["kind"] == "article")
+            {
+                return Err(Error::Invalid(
+                    "professional check requires retrieval receipts",
+                ));
+            }
+            for receipt in retrieval {
+                if receipt["body_sha256"]
+                    .as_str()
+                    .is_none_or(|v| v.len() != 64 || !v.bytes().all(|b| b.is_ascii_hexdigit()))
+                    || receipt["http_status"]
+                        .as_u64()
+                        .is_none_or(|v| !(200..300).contains(&v))
+                    || receipt["bytes"]
+                        .as_u64()
+                        .is_none_or(|v| v == 0 || v > 500000)
+                    || receipt["retrieved_at"].as_f64().is_none_or(|v| v <= 0.0)
+                {
+                    return Err(Error::Invalid("invalid retrieval receipt"));
+                }
+            }
+        }
+        let engine = &response["engine_receipt"];
+        if basis.trim().is_empty()
+            || engine["tokens_used"].as_u64().is_none()
+            || engine["provider"] != provider
+            || engine["requested_model"] != model
+            || engine["model"]
+                .as_str()
+                .is_none_or(|v| v.is_empty() || v == "unknown" || v.len() > 256)
+            || raw_response.trim().is_empty()
+            || engine["response_sha256"] != hex::encode(Sha256::digest(raw_response.as_bytes()))
+            || engine["finish_reason"].as_str().is_none_or(|v| v != "stop")
+            || engine["prompt_sha256"]
+                .as_str()
+                .is_none_or(|v| v.len() != 64 || !v.bytes().all(|b| b.is_ascii_hexdigit()))
+        {
+            return Err(Error::Invalid("successful execution evidence mismatch"));
+        }
+    }
+    let mut result = running.clone();
+    result["check_id"] = tx
+        .query_row("SELECT 'chk_'||lower(hex(randomblob(16)))", [], |r| {
+            r.get::<_, String>(0)
+        })
+        .map(Value::String)?;
+    result["status"] = if success {
+        response["status"].clone()
+    } else {
+        json!("failed")
+    };
+    result["reported_status"] = response["status"].clone();
+    result["basis"] = json!(basis);
+    result["reason"] = response["reason"].clone();
+    result["raw_response"] = json!(raw_response);
+    result["engine_receipt"] = response["engine_receipt"].clone();
+    result["retrieval_receipts"] = response["retrieval_receipts"].clone();
+    result["execution_verified"] = json!(success);
+    result["execution_state"] = json!(if success { "executed" } else { "failed" });
+    result["recorded_at"] = tx
+        .query_row("SELECT datetime('now')", [], |r| r.get::<_, String>(0))
+        .map(Value::String)?;
+    let conditions = result.to_string();
+    crate::machine::record_machine_task_in_transaction(
+        &tx,
+        &crate::machine::MachineTask {
+            task_id: running["attempt_id"]
+                .as_str()
+                .ok_or(Error::Invalid("missing attempt"))?,
+            principal: "machine",
+            conditions: &conditions,
+            knowledge_version: None,
+            method_version: Some("document-check/v1"),
+            tool_version: Some("python-worker-machine-answer"),
+            model_version: if success {
+                response["engine_receipt"]["model"]
+                    .as_str()
+                    .unwrap_or("unknown")
+            } else {
+                model
+            },
+            scope: "runtime.document_check",
+            outcome: if success { "succeeded" } else { "failed" },
+            failure: if success { None } else { reason },
+            retest_of: running["retry_of_task_id"].as_str(),
+        },
+    )?;
+    tx.execute("INSERT INTO document_checks(check_id,document_id,version,dimension,receipt_json) VALUES(?1,?2,?3,?4,?5)",params![result["check_id"].as_str(),running["document_id"].as_str(),running["version"].as_i64(),running["dimension"].as_str(),conditions])?;
+    tx.commit()?;
+    Ok(result)
+}
+
+pub fn failed_check_response(running: &Value, reason: &str) -> Value {
+    let mut result = running.clone();
+    result["schema"] = json!("archeaxis.document-check.response/v1");
+    result["outcome"] = json!("failed");
+    result["status"] = json!("failed");
+    result["reason"] = json!(reason);
+    result["basis"] = json!("");
+    result["raw_response"] = json!("");
+    result["engine_receipt"] = Value::Null;
+    result["retrieval_receipts"] = json!([]);
+    result
+}
+
+/// A restart records interrupted attempts as failures; it never repeats a paid call.
+pub fn recover_interrupted_checks(conn: &mut Connection) -> Result<(), Error> {
+    let running: Vec<Value> = {
+        let mut stmt=conn.prepare("SELECT c.receipt_json FROM document_checks c WHERE json_extract(c.receipt_json,'$.execution_state')='running' AND NOT EXISTS(SELECT 1 FROM document_checks t WHERE json_extract(t.receipt_json,'$.attempt_id')=json_extract(c.receipt_json,'$.attempt_id') AND json_extract(t.receipt_json,'$.execution_state')!='running')")?;
+        stmt.query_map([], |r| r.get::<_, String>(0))?
+            .collect::<Result<Vec<_>, _>>()?
+            .into_iter()
+            .map(|v| {
+                serde_json::from_str(&v).map_err(|_| Error::Invalid("invalid interrupted check"))
+            })
+            .collect::<Result<Vec<_>, _>>()?
+    };
+    for attempt in running {
+        let response = failed_check_response(&attempt, "process_interrupted");
+        finish_check(
+            conn,
+            &attempt,
+            &response,
+            "not_configured",
+            "not_configured",
+        )?;
+    }
+    Ok(())
+}
+
+#[cfg(test)]
+mod cloud_execution_tests {
+    use super::*;
+    fn setup() -> Connection {
+        let c = Connection::open_in_memory().unwrap();
+        c.execute_batch("CREATE TABLE documents(document_id TEXT PRIMARY KEY,source_id TEXT,source_revision TEXT,title TEXT,current_version INTEGER);
+            CREATE TABLE document_versions(document_id TEXT,version INTEGER,editor_json TEXT,text_projection TEXT,content_sha256 TEXT,revision_basis TEXT);
+            CREATE TABLE document_blocks(document_id TEXT,version INTEGER,block_id TEXT,kind TEXT,ordinal INTEGER,node_json TEXT,text_projection TEXT,codec_status TEXT);
+            CREATE TABLE document_checks(check_id TEXT PRIMARY KEY,document_id TEXT,version INTEGER,dimension TEXT,receipt_json TEXT);
+            INSERT INTO documents VALUES('d',NULL,NULL,'ordinary',2);
+            INSERT INTO document_versions VALUES('d',1,'{}','old','old-sha',NULL);
+            INSERT INTO document_versions VALUES('d',2,'{}','new','new-sha',NULL);").unwrap();
+        let value = json!({"check_id":"request","document_id":"d","version":1,"content_sha256":"old-sha","dimension":"professional_basis","provider_mode":"cloud","status":"pending"});
+        c.execute(
+            "INSERT INTO document_checks VALUES('request','d',1,'professional_basis',?1)",
+            [value.to_string()],
+        )
+        .unwrap();
+        c
+    }
+    #[test]
+    fn append_only_attempt_binds_version_and_explicit_retry() {
+        let mut c = setup();
+        let a = begin_check(&mut c, "d", "request", "old-sha", None).unwrap();
+        assert!(begin_check(&mut c, "d", "request", "old-sha", None).is_err());
+        let response = failed_check_response(&a.running, "provider_call_failed");
+        let terminal =
+            finish_check(&mut c, &a.running, &response, "explicit", "explicit/model").unwrap();
+        assert_eq!(terminal["status"], "failed");
+        assert_eq!(terminal["execution_verified"], false);
+        assert!(finish_check(&mut c, &a.running, &response, "explicit", "explicit/model").is_err());
+        let persisted: String = c
+            .query_row(
+                "SELECT receipt_json FROM document_checks WHERE check_id=?1",
+                [a.running["check_id"].as_str()],
+                |r| r.get(0),
+            )
+            .unwrap();
+        assert_eq!(
+            serde_json::from_str::<Value>(&persisted).unwrap(),
+            a.running
+        );
+        assert!(begin_check(&mut c, "d", "request", "old-sha", Some("foreign")).is_err());
+        let retry = begin_check(
+            &mut c,
+            "d",
+            "request",
+            "old-sha",
+            terminal["attempt_id"].as_str(),
+        )
+        .unwrap();
+        assert_ne!(retry.running["attempt_id"], terminal["attempt_id"]);
+        assert_eq!(read(&c, "d", None).unwrap()["content_sha256"], "new-sha");
+    }
+    #[test]
+    fn identity_or_engine_mismatch_has_no_partial_terminal() {
+        let mut c = setup();
+        let a = begin_check(&mut c, "d", "request", "old-sha", None).unwrap();
+        let mut response = failed_check_response(&a.running, "provider_call_failed");
+        response["document_id"] = json!("foreign");
+        assert!(finish_check(&mut c, &a.running, &response, "explicit", "explicit/model").is_err());
+        let count: i64 = c
+            .query_row("SELECT count(*) FROM document_checks", [], |r| r.get(0))
+            .unwrap();
+        assert_eq!(count, 2);
+        response["document_id"] = json!("d");
+        response["outcome"] = json!("succeeded");
+        response["status"] = json!("supported");
+        assert!(finish_check(&mut c, &a.running, &response, "explicit", "explicit/model").is_err());
+        let count: i64 = c
+            .query_row("SELECT count(*) FROM document_checks", [], |r| r.get(0))
+            .unwrap();
+        assert_eq!(count, 2);
+    }
+    #[test]
+    fn terminal_and_machine_receipt_roll_back_together() {
+        let mut c = setup();
+        let a = begin_check(&mut c, "d", "request", "old-sha", None).unwrap();
+        c.execute_batch("CREATE TRIGGER fail_terminal BEFORE INSERT ON document_checks WHEN json_extract(NEW.receipt_json,'$.execution_state')='failed' BEGIN SELECT RAISE(ABORT,'injected terminal failure'); END;").unwrap();
+        let response = failed_check_response(&a.running, "provider_call_failed");
+        assert!(finish_check(&mut c, &a.running, &response, "explicit", "explicit/model").is_err());
+        let exists: bool = c
+            .query_row(
+                "SELECT EXISTS(SELECT 1 FROM sqlite_master WHERE name='machine_tasks')",
+                [],
+                |r| r.get(0),
+            )
+            .unwrap();
+        assert!(!exists);
+        let count: i64 = c
+            .query_row("SELECT count(*) FROM document_checks", [], |r| r.get(0))
+            .unwrap();
+        assert_eq!(count, 2);
+    }
+    #[test]
+    fn restart_recovers_as_failure_and_never_reexecutes() {
+        let mut c = setup();
+        let a = begin_check(&mut c, "d", "request", "old-sha", None).unwrap();
+        recover_interrupted_checks(&mut c).unwrap();
+        recover_interrupted_checks(&mut c).unwrap();
+        let raw:String=c.query_row("SELECT receipt_json FROM document_checks WHERE json_extract(receipt_json,'$.execution_state')='failed'",[],|r|r.get(0)).unwrap();
+        let terminal: Value = serde_json::from_str(&raw).unwrap();
+        assert_eq!(terminal["reason"], "process_interrupted");
+        assert_eq!(terminal["attempt_id"], a.running["attempt_id"]);
+        assert_eq!(terminal["execution_verified"], false);
+        assert_eq!(read(&c, "d", None).unwrap()["text_projection"], "new");
+    }
+    #[test]
+    fn professional_terminal_rejects_legacy_and_wrong_dimension_statuses() {
+        let mut c = setup();
+        let a = begin_check(&mut c, "d", "request", "old-sha", None).unwrap();
+        for status in ["passed", "unverified", "original_unclear", "faithful"] {
+            let mut response = failed_check_response(&a.running, "fixture");
+            response["outcome"] = json!("succeeded");
+            response["status"] = json!(status);
+            assert!(matches!(
+                finish_check(&mut c, &a.running, &response, "explicit", "explicit/model"),
+                Err(Error::Invalid("conclusion does not match dimension"))
+            ));
+        }
+        assert_eq!(
+            c.query_row("SELECT count(*) FROM document_checks", [], |r| r
+                .get::<_, i64>(0))
+                .unwrap(),
+            2
+        );
+    }
+}

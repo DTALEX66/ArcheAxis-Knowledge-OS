@@ -88,17 +88,38 @@ def test_the_launch_shape_split_adds_up():
     inventory = tree_facts()["inventory_pairs"]
     assert projections == 37, f"unconditional projection mounts changed: {projections}"
     assert conditional == 1, f"conditional manual receipt mounts changed: {conditional}"
-    assert runtime == 19, f"runtime mounts changed: {runtime}"
+    assert runtime == 20, f"runtime mounts changed: {runtime}"
     lib = (REPO / "crates/archeaxis-api/src/lib.rs").read_text(encoding="utf-8")
     projection_builder = lib[lib.index("pub fn projections("):lib.index("let routes = if manual_receipts")]
     runtime_source = (REPO / "crates/archeaxis-api/src/runtime/mod.rs").read_text(encoding="utf-8")
     runtime_builder = runtime_source[runtime_source.index("pub fn router("):runtime_source.index(".merge(projections)")]
-    method_pattern = r"\b(?:get|post|put|patch|delete)\s*\("
-    projection_pairs = len(re.findall(method_pattern, projection_builder))
-    runtime_pairs = len(re.findall(method_pattern, runtime_builder))
-    assert projection_pairs == 42, f"projection method/path pairs changed: {projection_pairs}"
-    assert runtime_pairs == 19, f"runtime method/path pairs changed: {runtime_pairs}"
-    assert projection_pairs + runtime_pairs == inventory
+    parser = load("route_parser_for_shapes", REPO / "tests/maintenance/test_contract_route_inventory.py")
+
+    def pairs(builder):
+        entries = []
+        for match in re.finditer(r"\.route\s*\(", builder):
+            args = parser.balanced_call(builder, match.end() - 1)
+            path = re.search(r'"([^"]+)"', args)
+            assert path, "route path must be a literal"
+            entries.extend((method.upper(), parser.normalise(path.group(1)))
+                           for method in re.findall(r"\b(get|post|put|patch|delete)\s*\(", args))
+        assert len(entries) == len(set(entries)), "duplicate mount in one builder"
+        return set(entries)
+
+    wrapper_end = lib.index("pub(crate) fn projections_base(")
+    wrapper = pairs(lib[lib.index("pub fn projections("):wrapper_end])
+    base = pairs(lib[wrapper_end:lib.index("let routes = if manual_receipts")])
+    runtime_set = pairs(runtime_builder)
+    execute = {("POST", "/api/v1/documents/:p/checks/execute")}
+    assert wrapper == execute, "projection-only execution must retain its unconfigured handler"
+    assert wrapper & base == set(), "projection-only duplicate mount"
+    assert base & runtime_set == set(), "runtime duplicate mount"
+    assert runtime_set & wrapper == execute, "only the execution handler is replaced"
+    assert "crate::projections_base(executor.store().clone(), false)" in runtime_source
+    assert len(wrapper | base) == 42
+    assert len(base) == 41
+    assert len(runtime_set) == 20
+    assert len(base | runtime_set) == inventory
     contract = CONTRACT.read_text(encoding="utf-8")
     assert "42 projection method/path pairs" in contract
     assert "37 unconditional mounts" in contract

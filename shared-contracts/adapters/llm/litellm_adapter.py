@@ -12,6 +12,8 @@ class LLMResponse:
     model: str = ""
     tokens_used: int = 0
     finish_reason: str = "stop"
+    actual_model: str = "unknown"
+    actual_finish_reason: str = "unknown"
 
 
 def _value(item: Any, name: str, default: Any = None) -> Any:
@@ -47,6 +49,8 @@ def complete(
     return LLMResponse(
         content=str(content),
         model=str(_value(response, "model", model) or model),
+        actual_model=str(_value(response, "model", "unknown") or "unknown"),
         tokens_used=int(_value(usage, "total_tokens", 0) or 0),
         finish_reason=str(_value(choice, "finish_reason", "stop") or "stop"),
+        actual_finish_reason=str(_value(choice, "finish_reason", "unknown") or "unknown"),
     )

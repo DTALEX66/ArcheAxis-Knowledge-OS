@@ -562,6 +562,15 @@ def main() -> int:
     # a broken worker instead of a missing component.
     (root / "shared").mkdir()
     shutil.copy2(shared_donor, root / "shared" / "learning_scheduler.py")
+    # Stateless document-check donors, staged from the same authority source tree.
+    source_root = Path(__file__).resolve().parents[2]
+    for relative, name in (("shared/safe_http.py", "safe_http.py"),
+                           ("shared-contracts/adapters/llm/litellm_adapter.py", "llm_adapter.py")):
+        donor = source_root / relative
+        if not donor.is_file():
+            raise ValueError(f"document-check donor is missing: {relative}")
+        shutil.copy2(donor, root / "shared" / name)
+
 
     site_packages = root / "runtime" / "Lib" / "site-packages"
     dependencies = []

@@ -177,6 +177,118 @@ def build_environment(root: Path) -> dict:
     return environment
 
 
+def document_check_config(data_root: Path) -> tuple[dict | None, str | None]:
+    """One fixed non-secret owner file; invalid config cannot block ordinary save."""
+    from urllib.parse import urlsplit
+
+    def reparse(metadata):
+        import stat
+
+        return stat.S_ISLNK(metadata.st_mode) or bool(
+            getattr(metadata, "st_file_attributes", 0) & 0x400
+        )
+
+    def identity(metadata):
+        return metadata.st_dev, metadata.st_ino, metadata.st_size, metadata.st_mtime_ns
+
+    try:
+        root = data_root.resolve(strict=True)
+        folder = root / "config"
+        try:
+            parent = folder.stat(follow_symlinks=False)
+        except FileNotFoundError:
+            return None, None
+        if reparse(parent) or not folder.is_dir():
+            return None, "invalid_config"
+        folder_identity = folder.resolve(strict=True)
+        if not folder_identity.is_relative_to(root):
+            return None, "invalid_config"
+        path = folder / "document-check.json"
+        try:
+            before = path.stat(follow_symlinks=False)
+        except FileNotFoundError:
+            return None, None
+        if reparse(before) or not path.is_file() or before.st_size > 16 * 1024:
+            return None, "invalid_config"
+        canonical = path.resolve(strict=True)
+        if canonical.parent != folder_identity or not canonical.is_relative_to(root):
+            return None, "invalid_config"
+        with path.open("rb") as handle:
+            import os
+
+            opened = os.fstat(handle.fileno())
+            if identity(before) != identity(opened):
+                return None, "invalid_config"
+            raw = handle.read(16 * 1024 + 1)
+            final_opened = os.fstat(handle.fileno())
+        after = path.stat(follow_symlinks=False)
+        if (
+            len(raw) > 16 * 1024
+            or reparse(after)
+            or identity(opened) != identity(after)
+            or identity(opened) != identity(final_opened)
+            or path.resolve(strict=True) != canonical
+            or folder.resolve(strict=True) != folder_identity
+            or reparse(folder.stat(follow_symlinks=False))
+        ):
+            return None, "invalid_config"
+        def unique_config(pairs):
+            result = {}
+            for key, value in pairs:
+                if key in result:
+                    raise ValueError("duplicate configuration field")
+                result[key] = value
+            return result
+
+        config = json.loads(raw, object_pairs_hook=unique_config)
+        required = {"provider", "model", "max_tokens", "timeout_seconds", "search_limit"}
+        if (
+            not isinstance(config, dict)
+            or not required <= config.keys()
+            or config.keys() - required - {"endpoint"}
+        ):
+            return None, "invalid_config"
+        provider, model = config["provider"], config["model"]
+        if (
+            not isinstance(provider, str)
+            or not provider
+            or len(provider.encode("utf-8")) > 64
+            or not all(c.isascii() and (c.isalnum() or c == "_") for c in provider)
+        ):
+            return None, "invalid_config"
+        if (
+            not isinstance(model, str)
+            or len(model.encode("utf-8")) > 256
+            or not model.startswith(provider + "/")
+            or not model.split("/", 1)[1].strip()
+        ):
+            return None, "invalid_config"
+        for field, low, high in (
+            ("max_tokens", 128, 4096),
+            ("timeout_seconds", 1, 120),
+            ("search_limit", 1, 3),
+        ):
+            if type(config[field]) is not int or not low <= config[field] <= high:
+                return None, "invalid_config"
+        endpoint = config.get("endpoint")
+        if endpoint is not None:
+            if (
+                not isinstance(endpoint, str)
+                or not endpoint.startswith("https://")
+                or len(endpoint.encode("utf-8")) > 2048
+                or any(c in endpoint for c in "@?#")
+                or any(c.isspace() for c in endpoint)
+            ):
+                return None, "invalid_config"
+            url = urlsplit(endpoint)
+            if not url.hostname or url.username is not None or url.password is not None:
+                return None, "invalid_config"
+            _ = url.port
+        return config, None
+    except (OSError, ValueError, TypeError):
+        return None, "invalid_config"
+
+
 def start(data_root: Path, port: int, *, workspace_name: str = "workspace.sqlite") -> tuple[subprocess.Popen, str, dict, dict]:
     """Launch a session, optionally reopening the product host's workspace file."""
     if not workspace_name.strip() or any(character in workspace_name for character in "\\/:") or workspace_name in {".", ".."}:
@@ -210,6 +322,11 @@ def start(data_root: Path, port: int, *, workspace_name: str = "workspace.sqlite
             ]} if profile.get("routes") else {}),
         },
     }
+    check_config, check_error = document_check_config(data_root)
+    if check_config is not None:
+        launch["document_check_config"] = check_config
+    if check_error is not None:
+        launch["document_check_config_error"] = check_error
     child = subprocess.Popen(
         [str(core), str(workspace), str(port)],
         stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE,

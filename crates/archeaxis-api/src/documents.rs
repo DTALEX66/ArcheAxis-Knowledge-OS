@@ -338,3 +338,114 @@ pub(crate) async fn execute_check(
     )
     .await
 }
+
+pub(crate) async fn execute_runtime_check(
+    executor: archeaxis_application::executor::Executor,
+    id: String,
+    headers: HeaderMap,
+    body: CheckExecuteBody,
+) -> Response {
+    match crate::request_actor(&headers) {
+        Ok("human") => {}
+        Ok(_) => return StatusCode::FORBIDDEN.into_response(),
+        Err(status) => return status.into_response(),
+    }
+    let Some(config) = executor.document_check_config() else {
+        if let Some(reason) = executor.document_check_config_error() {
+            let result = executor
+                .store()
+                .submit_wait(move |conn| {
+                    let execution = document::begin_check(
+                        conn,
+                        &id,
+                        &body.check_id,
+                        &body.expected_content_sha256,
+                        body.retry_of_task_id.as_deref(),
+                    )?;
+                    let failed = document::failed_check_response(&execution.running, &reason);
+                    document::finish_check(
+                        conn,
+                        &execution.running,
+                        &failed,
+                        "not_configured",
+                        "not_configured",
+                    )
+                })
+                .await;
+            return match result {
+                Ok(Ok(value)) => (StatusCode::CREATED, Json(value)).into_response(),
+                Ok(Err(error)) => failure(error),
+                Err(_) => StatusCode::SERVICE_UNAVAILABLE.into_response(),
+            };
+        }
+        return execute_check(
+            State(executor.store().clone()),
+            Path(id),
+            headers,
+            Json(body),
+        )
+        .await;
+    };
+    let document_id = id.clone();
+    let attempt = executor
+        .store()
+        .submit_wait(move |conn| {
+            document::begin_check(
+                conn,
+                &document_id,
+                &body.check_id,
+                &body.expected_content_sha256,
+                body.retry_of_task_id.as_deref(),
+            )
+        })
+        .await;
+    let attempt = match attempt {
+        Ok(Ok(value)) => value,
+        Ok(Err(error)) => return failure(error),
+        Err(_) => return StatusCode::SERVICE_UNAVAILABLE.into_response(),
+    };
+    let preparation_error = attempt.preparation_error;
+    let mut request = json!({"schema":"archeaxis.document-check.request/v1","text":attempt.text,"config":config,"recognition":attempt.recognition,"original":null});
+    for key in [
+        "attempt_id",
+        "request_check_id",
+        "document_id",
+        "version",
+        "content_sha256",
+        "dimension",
+    ] {
+        request[key] = attempt.running[key].clone();
+    }
+    if let Some((name, digest, bytes)) = attempt.original {
+        request["original"] = json!({"media_type":archeaxis_application::attempts::media_type_for_name(&name).unwrap_or("application/octet-stream"),"sha256":digest,"content_base64":base64::engine::general_purpose::STANDARD.encode(bytes)});
+    }
+    let running = attempt.running;
+    let response = if let Some(reason) = preparation_error {
+        document::failed_check_response(&running, reason)
+    } else {
+        match executor.document_check(request).await {
+            Ok(value) => value,
+            Err(reason) => document::failed_check_response(&running, &reason),
+        }
+    };
+    let result = executor
+        .store()
+        .submit_wait(move |conn| {
+            match document::finish_check(conn, &running, &response, &config.provider, &config.model)
+            {
+                Ok(value) => Ok(value),
+                Err(document::Error::Invalid(_)) => {
+                    let failed =
+                        document::failed_check_response(&running, "invalid_worker_response");
+                    document::finish_check(conn, &running, &failed, &config.provider, &config.model)
+                }
+                Err(error) => Err(error),
+            }
+        })
+        .await;
+    match result {
+        Ok(Ok(value)) => (StatusCode::CREATED, Json(value)).into_response(),
+        Ok(Err(error)) => failure(error),
+        Err(_) => StatusCode::SERVICE_UNAVAILABLE.into_response(),
+    }
+}

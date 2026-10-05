@@ -62,6 +62,165 @@ const CORE_VERSION_PATH: &str = "/api/v1/system/version";
 /// token. A near miss is refused rather than defaulted.
 pub const CORE_LAUNCH_PROTOCOL: &str = "archeaxis.desktop-launch/v2";
 
+/// Non-secret owner-selected configuration; no provider or model defaults.
+#[derive(serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+struct DocumentCheckConfig {
+    provider: String,
+    model: String,
+    endpoint: Option<String>,
+    max_tokens: u64,
+    timeout_seconds: u64,
+    search_limit: u64,
+}
+fn config_reparse(metadata: &std::fs::Metadata) -> bool {
+    if metadata.file_type().is_symlink() {
+        return true;
+    }
+    #[cfg(windows)]
+    {
+        use std::os::windows::fs::MetadataExt;
+        return metadata.file_attributes() & 0x400 != 0;
+    }
+    #[cfg(not(windows))]
+    {
+        false
+    }
+}
+fn config_same_file(left: &std::fs::Metadata, right: &std::fs::Metadata) -> bool {
+    if left.len() != right.len() || left.modified().ok() != right.modified().ok() {
+        return false;
+    }
+    #[cfg(windows)]
+    {
+        use std::os::windows::fs::MetadataExt;
+        return left.creation_time() == right.creation_time()
+            && left.file_attributes() == right.file_attributes();
+    }
+    #[cfg(unix)]
+    {
+        use std::os::unix::fs::MetadataExt;
+        return left.dev() == right.dev() && left.ino() == right.ino();
+    }
+    #[cfg(not(any(windows, unix)))]
+    {
+        true
+    }
+}
+fn document_check_config(data_dir: &Path) -> (Option<serde_json::Value>, Option<&'static str>) {
+    fn load(data_dir: &Path) -> Result<Option<serde_json::Value>, ()> {
+        let root = data_dir.canonicalize().map_err(|_| ())?;
+        let folder = root.join("config");
+        match std::fs::symlink_metadata(&folder) {
+            Ok(metadata) if config_reparse(&metadata) || !metadata.is_dir() => return Err(()),
+            Ok(_) => {}
+            Err(error) if error.kind() == ErrorKind::NotFound => return Ok(None),
+            Err(_) => return Err(()),
+        }
+        let folder_identity = folder.canonicalize().map_err(|_| ())?;
+        if !folder_identity.starts_with(&root) {
+            return Err(());
+        }
+        let path = folder.join("document-check.json");
+        let before = match std::fs::symlink_metadata(&path) {
+            Ok(metadata) => metadata,
+            Err(error) if error.kind() == ErrorKind::NotFound => return Ok(None),
+            Err(_) => return Err(()),
+        };
+        if !before.is_file() || config_reparse(&before) || before.len() > 16 * 1024 {
+            return Err(());
+        }
+        let identity = path.canonicalize().map_err(|_| ())?;
+        if identity.parent() != Some(folder_identity.as_path()) || !identity.starts_with(&root) {
+            return Err(());
+        }
+        let file = std::fs::File::open(&path).map_err(|_| ())?;
+        let opened = file.metadata().map_err(|_| ())?;
+        if !config_same_file(&before, &opened) {
+            return Err(());
+        }
+        let mut bytes = Vec::new();
+        (&file)
+            .take(16 * 1024 + 1)
+            .read_to_end(&mut bytes)
+            .map_err(|_| ())?;
+        let after = std::fs::symlink_metadata(&path).map_err(|_| ())?;
+        let final_opened = file.metadata().map_err(|_| ())?;
+        if bytes.len() > 16 * 1024
+            || config_reparse(&after)
+            || !config_same_file(&opened, &after)
+            || !config_same_file(&opened, &final_opened)
+            || path.canonicalize().map_err(|_| ())? != identity
+            || folder.canonicalize().map_err(|_| ())? != folder_identity
+            || config_reparse(&std::fs::symlink_metadata(&folder).map_err(|_| ())?)
+        {
+            return Err(());
+        }
+        let config: DocumentCheckConfig = serde_json::from_slice(&bytes).map_err(|_| ())?;
+        if config.provider.is_empty()
+            || config.provider.len() > 64
+            || !config
+                .provider
+                .bytes()
+                .all(|byte| byte.is_ascii_alphanumeric() || byte == b'_')
+            || config.model.len() > 256
+            || !config.model.starts_with(&format!("{}/", config.provider))
+            || config
+                .model
+                .split_once('/')
+                .is_none_or(|(_, name)| name.trim().is_empty())
+            || !(128..=4096).contains(&config.max_tokens)
+            || !(1..=120).contains(&config.timeout_seconds)
+            || !(1..=3).contains(&config.search_limit)
+        {
+            return Err(());
+        }
+        if let Some(endpoint) = &config.endpoint {
+            if !endpoint.starts_with("https://")
+                || endpoint.len() > 2048
+                || endpoint.contains(['@', '?', '#'])
+                || endpoint.chars().any(char::is_whitespace)
+            {
+                return Err(());
+            }
+            let parsed = url::Url::parse(endpoint).map_err(|_| ())?;
+            if parsed.host_str().is_none()
+                || !parsed.username().is_empty()
+                || parsed.password().is_some()
+            {
+                return Err(());
+            }
+        }
+        Ok(Some(serde_json::to_value(config).map_err(|_| ())?))
+    }
+    match load(data_dir) {
+        Ok(value) => (value, None),
+        Err(()) => (None, Some("invalid_config")),
+    }
+}
+fn configured_core_launch_document(
+    token: &str,
+    machine_token: &str,
+    session_id: &str,
+    spec: &CoreSpec,
+) -> String {
+    let mut document: serde_json::Value = serde_json::from_str(&core_launch_document(
+        token,
+        machine_token,
+        session_id,
+        spec.text_worker.as_ref(),
+    ))
+    .expect("generated launch document");
+    let (config, error) = document_check_config(&spec.data_dir);
+    if let Some(config) = config {
+        document["document_check_config"] = config;
+    }
+    if let Some(error) = error {
+        document["document_check_config_error"] = serde_json::json!(error);
+    }
+    document.to_string()
+}
+
 /// The canonical Core's launch inputs.
 ///
 /// Unlike the legacy Python entrypoint, which reads its identity from environment
@@ -271,6 +430,7 @@ impl BackendProcess {
         // the thirty-two hex characters the Core requires.
         let machine_token = launch_token()?;
         let session_id = machine_token[..32].to_owned();
+        let document = configured_core_launch_document(&token, &machine_token, &session_id, spec);
         let logs = new_log_buffer();
         let mut command = Command::new(&spec.executable);
         command
@@ -295,12 +455,6 @@ impl BackendProcess {
         // before it validates anything, so leaving the pipe open would hang the launch.
         match child.stdin.take() {
             Some(mut stdin) => {
-                let document = core_launch_document(
-                    &token,
-                    &machine_token,
-                    &session_id,
-                    spec.text_worker.as_ref(),
-                );
                 if stdin.write_all(document.as_bytes()).is_err() {
                     let _ = child.kill();
                     let _ = child.wait();
@@ -328,14 +482,9 @@ impl BackendProcess {
             let _ = std::fs::write(spec.data_dir.join("core-launch-failure.log"), captured);
             // Redacted: the document carries two credentials, and a diagnostic file is not a
             // place to leave them. What matters for diagnosis is every other field.
-            let document = core_launch_document(
-                &token,
-                &machine_token,
-                &session_id,
-                spec.text_worker.as_ref(),
-            )
-            .replace(&token, "<launch-token>")
-            .replace(&machine_token, "<machine-token>");
+            let document = document
+                .replace(&token, "<launch-token>")
+                .replace(&machine_token, "<machine-token>");
             let _ = std::fs::write(spec.data_dir.join("core-launch-document.json"), document);
             return Err(error);
         }
@@ -922,6 +1071,84 @@ mod tests {
         assert_eq!(arguments, [OsStr::new("-B"), OsStr::new("-I")]);
     }
 
+    #[cfg(windows)]
+    #[test]
+    fn owner_document_check_config_rejects_owned_parent_junction() {
+        let root = tempfile::tempdir().unwrap();
+        let data = root.path().join("data");
+        let donor = root.path().join("donor");
+        std::fs::create_dir_all(&data).unwrap();
+        std::fs::create_dir_all(&donor).unwrap();
+        let status = std::process::Command::new("cmd")
+            .args(["/C", "mklink", "/J"])
+            .arg(data.join("config"))
+            .arg(&donor)
+            .stdout(std::process::Stdio::null())
+            .stderr(std::process::Stdio::null())
+            .status()
+            .unwrap();
+        assert!(status.success());
+        assert_eq!(
+            super::document_check_config(&data),
+            (None, Some("invalid_config"))
+        );
+        std::fs::remove_dir(data.join("config")).unwrap();
+    }
+    #[test]
+    fn owner_document_check_config_is_optional_bounded_and_nonsecret() {
+        let root = tempfile::tempdir().unwrap();
+        assert_eq!(super::document_check_config(root.path()), (None, None));
+        std::fs::create_dir(root.path().join("config")).unwrap();
+        let path = root.path().join("config/document-check.json");
+        let valid = serde_json::json!({"provider":"fixture","model":"fixture/exact-v1","endpoint":"https://fixture.invalid/v1","max_tokens":128,"timeout_seconds":10,"search_limit":1});
+        std::fs::write(&path, serde_json::to_vec(&valid).unwrap()).unwrap();
+        assert!(super::document_check_config(root.path()).0.is_some());
+        for bad in [
+            serde_json::json!({}),
+            {
+                let mut c = valid.clone();
+                c["provider"] = serde_json::json!("fixture-");
+                c
+            },
+            {
+                let mut c = valid.clone();
+                c["endpoint"] = serde_json::json!("https://fixture.invalid/ bad");
+                c
+            },
+            {
+                let mut c = valid.clone();
+                c["endpoint"] =
+                    serde_json::json!("https://fixture.invalid/".to_owned() + &"a".repeat(2048));
+                c
+            },
+            {
+                let mut c = valid.clone();
+                c["api_key"] = serde_json::json!("synthetic-forbidden");
+                c
+            },
+            {
+                let mut c = valid.clone();
+                c["endpoint"] = serde_json::json!("https://user:secret@fixture.invalid/v1");
+                c
+            },
+            {
+                let mut c = valid.clone();
+                c["model"] = serde_json::json!("default");
+                c
+            },
+        ] {
+            std::fs::write(&path, serde_json::to_vec(&bad).unwrap()).unwrap();
+            assert_eq!(
+                super::document_check_config(root.path()),
+                (None, Some("invalid_config"))
+            );
+        }
+        std::fs::write(&path, vec![b' '; 16 * 1024 + 1]).unwrap();
+        assert_eq!(
+            super::document_check_config(root.path()),
+            (None, Some("invalid_config"))
+        );
+    }
     #[test]
     fn core_launch_document_carries_exactly_the_contract_the_core_enforces() {
         // These are the rules the Core refuses a launch for, so the host must satisfy
