@@ -4,6 +4,10 @@
 
 本地未发布增量：新增 `/documents/:id/checks/execute` 与有限桥接/明确执行与显式重试按钮，绑定原pending check、实际不可变version/SHA及latest failed attempt；未配置明确failed/not_configured/not_executed，不调用云端。沿已有machine_tasks/document_checks同事务保存，无Source虚构，无第二库，无真人认可。8项file-backed API测试（普通保存/重启历史重试/权限与注入拒绝）、domain回归、内部事务回滚测试、7项SIMULATED UI回归/tsc、完整前端32文件208tests、src-tauri fmt和64tests PASS；旧异步回执不覆盖新文档。实际云端模型+联网原件对照与专业检索尚未实现，此增量不属于当前55e604 CI。
 
+诊断补足（未称CI根因修复）：native probe现在Popen即绑定host PID/创建时间，CDP超时采实际ownedtree/允许名单exe路径/调试参数布尔/可见窗口/两profile计数/loopback监听；未采到身份不把空集合写成清理通过，采集与强制清理失败仍写失败收据。HTTP限固定127.0.0.1、不经代理且拒外部跳转。自有Python/localhost实helper（含假proxy、外部URL/redirect、PID重用负例）PASS，实际与tested helper AST相同；Ruff和29门禁合同PASS，原12业务断言未减。代理是否导致CI失败仍UNKNOWN，未修改系统策略。
+
+双端描述：Formal现有README保持当前Tauri方向；Green根新增README.md（SHA db869fe64b721f920990af025943e59a91f8f9b35a263f21e5414fd4a2b0bd37），明确根层旧0.6.14与旧Avalonia入口不等同当前AAOS源码，任务状态仅指向本表，未改程序/启动器/用户数据。复用20261001已审743个NuGet文件证据：当时两缓存对应文件均同fileID/hardlink，没有独立重复payload；历史1,232,333,595字节逻辑名称量不能算本轮可回收量，本轮未重审全树/归档或删除。
+
 当前增量（2026-10-06）：canonical Tauri CLI 宿主 SHA `05bdaeeeb869ccd3cc1a4ded2f62db6efd0c181ea49720865ab370c8ab04b85f` 实际完整12步及四次产品正常 exit0 PASS；收据 `aaos01-webdriver/8f28552761c640d8886183e99e908c30/receipt.json`（40,011字节，SHA `09a4ab1a1bb423d656d7c48342b16fa73a01469779d57e357bfd89d9df9e0b5e`）。独立无观察器 WM_CLOSE PASS，收据 `aaos01-owned-wmclose-preflight/85f62dcf00224515836feec1ccfbabe3/receipt.json` SHA `c052e36f2b4f9f723285bf9254b3fa21c6e169f0c59f7c3cbb6f5dfede62662f`，自有进程与端口无残留。
 
 同一宿主真实媒体闭环 PASS：公开合成 WAV 原件 SHA `838522e7a1c43673f88385a172a5abc921d34d99671e43490b711958cea52ebb`；单播放器 duration=5.22839s、实际播放推进并暂停；transcribe job `read_4d20b12c-0e14-46e9-81be-c50a73b1064d` attempt1 succeeded，实际本地 large-v3-turbo/cpu/int8，cue0–4560ms；located anchor `anc_6e152eef7bdfb38eb9aabf2f` 绑定原件/job/attempt/产物SHA和UTF8 checksum。完全重启后回执/CAS/锚点相等，自动读回 cues且未新增job；两次exit0、无自有残留。收据 `aaos01-webdriver/6832d94993b54ec48fda44cbab69bf2d/receipt.json` SHA `d1d2e77bc80d08b3a9bf06bc521fea018cb218f8560d5868feebf4e3533d9130`，两张非空截图。输入SYNTHETIC、产品执行REAL；不是真人准确率、视频解码、NSIS安装态或新exact-SHA CI。a16 Python是探针解释器；本收据未独立采集worker进程解释器路径，不由探针解释器推导worker身份。
@@ -138,7 +142,7 @@ a11 真实 Tauri 窗口旅程 `aaos01-webdriver/e4236d2bedb44a5882f2c03b480feb08
 
 界面吸收沿已有资产进行：Tauri导航、命令面板、检查器、恢复壳继续复用；DataTable/Section用于实际结构分页，Avalonia SourceReader/EvidenceCenter的来源链、定位事实及折叠记录布局迁入同一前端，不另建永久客户端。Tiptap3.31.4、PDF.js6.4.299为锁定依赖，未知节点/来源原件不丢。开源池WeKnora在既有registry仍是UX_DONOR/REFERENCE且upstream未固定、license未核验，不将登记项冒认已集成，不盲目复制代码。
 
-当前本地候选：工作树 `.project-local/a8` 与 `.project-local/rt`，manifest SHA-256 `5bd3e69f30b7e432b98e871e7d42f906b67e7c57fb16723839fc62e1765438c0`，Core SHA-256 `5e5cb4f6b1afe27c1eec05c892d9e5e6a5c8e1f9457fc0b7c4e674d1045b6b4c`；解释器 `runtime/python.exe`，Python3.12.13。候选声明源为72039249且实际暂存时worktree dirty，仅是本地组件实测，不能伪称新提交的exact源码候选。既有uv.lock导出/install的a3干净donor经权威暂存器进入runtime，未重复增加Office依赖。锁SHA-256 `0F73EA804B0ECA61A251013D199F75D88F35E6322BB155EB2581B8D10F69CE52`；新CI将以新固定SHA重新准备候选。
+历史本地候选：工作树 `.project-local/a8` 与 `.project-local/rt`，manifest SHA-256 `5bd3e69f30b7e432b98e871e7d42f906b67e7c57fb16723839fc62e1765438c0`，Core SHA-256 `5e5cb4f6b1afe27c1eec05c892d9e5e6a5c8e1f9457fc0b7c4e674d1045b6b4c`；解释器 `runtime/python.exe`，Python3.12.13。候选声明源为72039249且实际暂存时worktree dirty，仅是本地组件实测，不能伪称新提交的exact源码候选。既有uv.lock导出/install的a3干净donor经权威暂存器进入runtime，未重复增加Office依赖。锁SHA-256 `0F73EA804B0ECA61A251013D199F75D88F35E6322BB155EB2581B8D10F69CE52`；新CI将以新固定SHA重新准备候选。
 
 引擎断言由产品候选解释器执行真实 import，输出模块路径与版本，检查模块来自 runtime 内部，并核对 profile 与宿主 nested/flat 选择规则；失败非零。四模块为 openpyxl、pptx、markitdown、pytesseract。引擎负向测试失败非零，原文件字节已恢复；这不是 OCR 样本资格。
 

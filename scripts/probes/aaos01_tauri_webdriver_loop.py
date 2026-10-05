@@ -16,7 +16,8 @@ import uuid
 from contextlib import suppress
 from pathlib import Path
 from urllib.error import HTTPError
-from urllib.request import Request, urlopen
+from urllib.parse import urlsplit
+from urllib.request import HTTPRedirectHandler, ProxyHandler, Request, build_opener
 
 from aaos01_office_runtime_loop import REPO, identity, load
 
@@ -112,6 +113,98 @@ def process_elevation(pid):
         kernel.CloseHandle(process_handle)
 
 
+
+def owned_attach_diagnostics(root_pid, root_created, cdp_port, folders):
+    """Owned metadata only; never persist complete command lines or environment."""
+    rows = native_process_rows()
+    root = next((row for row in rows if row["pid"] == root_pid), None)
+    if root is None or root["created"] != root_created:
+        raise RuntimeError("Owned attach root missing or PID creation mismatch")
+    owned = owned_process_rows(rows, root_pid)
+    ids = ",".join(str(row["pid"]) for row in owned)
+    script = (
+        "$ErrorActionPreference='Stop'; [Console]::OutputEncoding=[Text.UTF8Encoding]::new($false); $ids=@(" + ids + "); "
+        "$processes=@(Get-CimInstance Win32_Process -Filter ("
+        "$ids.ForEach({ 'ProcessId=' + $_ }) -join ' OR ') | ForEach-Object { "
+        "$cmd=$_.CommandLine; $allowed=$_.Name -in @('ArcheAxis.exe','archeaxis-api.exe','python.exe','pythonw.exe','msedgewebview2.exe'); "
+        "[pscustomobject]@{pid=$_.ProcessId; executable_path=if($allowed){$_.ExecutablePath}else{$null}; "
+        "command_metadata_available=($null -ne $cmd); "
+        "debug_port_matches=($cmd -match '--remote-debugging-port=" + str(cdp_port) + "(?:[^0-9]|$)'); "
+        "debug_address_loopback=($cmd -match '--remote-debugging-address=127\\.0\\.0\\.1(?:[^0-9.]|$)'); "
+        "has_user_data_dir=($cmd -match '--user-data-dir(?:=|\\s)') } }); "
+        "$listeners=@(Get-NetTCPConnection -State Listen -ErrorAction Stop | Where-Object { "
+        "($_.LocalPort -eq " + str(cdp_port) + " -or $_.OwningProcess -in $ids) -and $_.LocalAddress -in @('127.0.0.1','::1') "
+        "} | Select-Object LocalAddress,LocalPort,OwningProcess); "
+        "@{processes=$processes; loopback_listeners=$listeners} | ConvertTo-Json -Depth 5 -Compress"
+    )
+    result = subprocess.run(["powershell.exe", "-NoProfile", "-Command", script],
+                            capture_output=True, text=True, encoding="utf-8", errors="replace", check=True, timeout=15)
+    metadata = json.loads(result.stdout)
+    after = {row["pid"]: row for row in native_process_rows()}
+    if any(row["pid"] not in after or after[row["pid"]]["created"] != row["created"] for row in owned):
+        raise RuntimeError("Owned attach process identity changed during metadata collection")
+    indexed = {row["pid"]: row for row in owned}
+    if {row["pid"] for row in metadata["processes"]} != set(indexed):
+        raise RuntimeError("Incomplete owned attach process metadata")
+    for row in metadata["processes"]:
+        row.update({"created": indexed[row["pid"]]["created"], "name": indexed[row["pid"]]["name"]})
+    from ctypes import wintypes
+    user = ctypes.WinDLL("user32", use_last_error=True)
+    callback_type = ctypes.WINFUNCTYPE(wintypes.BOOL, wintypes.HWND, wintypes.LPARAM)
+    user.EnumWindows.argtypes = [callback_type, wintypes.LPARAM]
+    user.IsWindowVisible.argtypes = [wintypes.HWND]
+    user.GetWindowThreadProcessId.argtypes = [wintypes.HWND, ctypes.POINTER(wintypes.DWORD)]
+    user.GetClassNameW.argtypes = [wintypes.HWND, wintypes.LPWSTR, ctypes.c_int]
+    windows = []
+    @callback_type
+    def inspect_window(hwnd, _):
+        pid = wintypes.DWORD()
+        user.GetWindowThreadProcessId(hwnd, ctypes.byref(pid))
+        if pid.value in indexed and user.IsWindowVisible(hwnd):
+            name = ctypes.create_unicode_buffer(256)
+            user.GetClassNameW(hwnd, name, len(name))
+            windows.append({"hwnd": int(hwnd), "pid": pid.value,
+                            "created": indexed[pid.value]["created"], "class_name": name.value})
+        return True
+    if not user.EnumWindows(inspect_window, 0):
+        raise ctypes.WinError(ctypes.get_last_error())
+    profiles = []
+    def walk_failed(error):
+        raise error
+    for folder in folders:
+        count = 0
+        truncated = False
+        if folder.exists():
+            for _, directories, files in os.walk(folder, followlinks=False, onerror=walk_failed):
+                directories[:] = [name for name in directories
+                                  if not (Path(_) / name).is_symlink() and not (Path(_) / name).is_junction()]
+                count += len(files)
+                if count >= 10000:
+                    truncated = True
+                    break
+        profiles.append({"path": str(folder), "exists": folder.is_dir(),
+                         "file_count": count, "count_truncated": truncated})
+    return {"collection_verified": True, "owned_processes": owned,
+            "process_metadata": metadata["processes"], "visible_windows": windows,
+            "loopback_listeners": metadata["loopback_listeners"], "profiles": profiles}
+
+
+
+def loopback_urlopen(request, *, timeout):
+    """This probe permits HTTP only to its explicit local loopback listeners."""
+    url = request.full_url if isinstance(request, Request) else request
+    parsed = urlsplit(url)
+    if parsed.scheme != "http" or parsed.hostname != "127.0.0.1" or parsed.username or parsed.password:
+        raise ValueError("Non-loopback probe HTTP target rejected")
+    class LoopbackRedirectHandler(HTTPRedirectHandler):
+        def redirect_request(self, req, fp, code, msg, headers, newurl):
+            target = urlsplit(newurl)
+            if target.scheme != "http" or target.hostname != "127.0.0.1" or target.username or target.password:
+                raise ValueError("Non-loopback probe HTTP redirect rejected")
+            return super().redirect_request(req, fp, code, msg, headers, newurl)
+    return build_opener(ProxyHandler({}), LoopbackRedirectHandler()).open(request, timeout=timeout)
+
+
 def free_port():
     with socket.socket() as s:
         s.bind(("127.0.0.1", 0))
@@ -175,6 +268,8 @@ def main():
         "conditions": {
             "new_session_timeout_seconds": args.session_timeout,
             "ordinary_request_timeout_seconds": 45,
+            "proxy_environment_present": any(key.lower() in ("http_proxy", "https_proxy", "all_proxy", "no_proxy") for key in os.environ),
+            "local_http_transport": "explicit_loopback_no_proxy",
             "webview_user_data_folder": str(work / "webview"),
             "webview_user_data_folder_owner": "Owned host per-process WEBVIEW2_USER_DATA_FOLDER",
             "webview_user_data_folder_strategy": "Fresh session-N profile per launch; canonical product data root unchanged",
@@ -196,6 +291,7 @@ def main():
     owned_host = None
     owned_host_records = []
     attach_ports = []
+    owned_tree_collection_verified = False
     log = (work / "driver.log").open("wb")
 
     def request(method, path, body=None):
@@ -208,7 +304,7 @@ def main():
         )
         try:
             timeout = args.session_timeout if method == "POST" and path == "/session" else 45
-            with urlopen(req, timeout=timeout) as response:
+            with loopback_urlopen(req, timeout=timeout) as response:
                 value = json.load(response)["value"]
         except HTTPError as error:
             body = error.read().decode("utf-8", "replace")
@@ -278,7 +374,7 @@ def main():
         receipt.setdefault("screenshots", []).append(identity(work / name))
 
     def launch():
-        nonlocal session, owned_host
+        nonlocal session, owned_host, owned_tree_collection_verified
         began = time.monotonic()
         folder = work / "webview" / f"session-{len(receipt.get('launch_attempts', [])) + 1}"
         folder.mkdir(parents=True, exist_ok=False)
@@ -289,23 +385,42 @@ def main():
         host_env["WEBVIEW2_ADDITIONAL_BROWSER_ARGUMENTS"] = f"--remote-debugging-port={cdp_port} --remote-debugging-address=127.0.0.1"
         owned_host = subprocess.Popen([str(host)], cwd=host.parent, env=host_env)
         receipt.setdefault("owned_host_pids", []).append(owned_host.pid)
-        receipt.setdefault("launch_attempts", []).append({"user_data_folder": str(folder), "host_pid": owned_host.pid, "mode":"owned_prelaunch_attach"})
+        root_identity = next((row for row in native_process_rows() if row["pid"] == owned_host.pid), None)
+        if root_identity is None:
+            raise RuntimeError("Owned attach host creation identity unavailable")
+        owned_host_records.append(root_identity)
+        receipt.setdefault("launch_attempts", []).append({"user_data_folder": str(folder), "host_pid": owned_host.pid, "host_created": root_identity["created"], "mode":"owned_prelaunch_attach"})
         deadline = began + 40
         while True:
             if owned_host.poll() is not None:
                 raise RuntimeError("Owned host exited before CDP")
             try:
-                with urlopen(f"http://127.0.0.1:{cdp_port}/json/version", timeout=1) as response:
+                with loopback_urlopen(f"http://127.0.0.1:{cdp_port}/json/version", timeout=1) as response:
                     version = json.load(response)
                 break
-            except OSError:
+            except OSError as connection_error:
+                nested_reason = getattr(connection_error, "reason", None)
+                receipt["launch_attempts"][-1]["last_cdp_connection_error"] = {
+                    "type": type(connection_error).__name__, "errno": getattr(connection_error, "errno", None),
+                    "reason_type": type(nested_reason).__name__ if nested_reason is not None else None,
+                    "reason_errno": getattr(nested_reason, "errno", None)}
                 if time.monotonic() >= deadline:
+                    try:
+                        diagnostic = owned_attach_diagnostics(owned_host.pid, root_identity["created"], cdp_port, [folder, work / "data"])
+                        owned_host_records.extend(diagnostic["owned_processes"])
+                        owned_tree_collection_verified = True
+                        receipt["launch_attempts"][-1]["timeout_diagnostics"] = diagnostic
+                    except BaseException as diagnostic_error:
+                        receipt["launch_attempts"][-1]["timeout_diagnostics"] = {
+                            "collection_verified": False, "error_type": type(diagnostic_error).__name__,
+                            "traceback": traceback.format_exc()}
                     raise TimeoutError("Owned attach CDP unavailable after 40 seconds") from None
                 time.sleep(.2)
         edge_version = subprocess.check_output([str(edge), "--version"], text=True, timeout=10).strip()
         assert edge_version.startswith("Microsoft Edge WebDriver " + version["Browser"].split("/")[1] + " "), "Runtime/driver version mismatch"
         owned = owned_process_rows(native_process_rows(), owned_host.pid)
         owned_host_records.extend(owned)
+        owned_tree_collection_verified = True
         query = subprocess.check_output(["powershell.exe", "-NoProfile", "-Command", f"@(Get-NetTCPConnection -State Listen -LocalPort {cdp_port} | Select-Object LocalAddress,OwningProcess) | ConvertTo-Json -Compress"], text=True, timeout=10)
         listeners = json.loads(query)
         if isinstance(listeners, dict):
@@ -325,10 +440,11 @@ def main():
         receipt.setdefault("windows", []).append(js("return {title:document.title,url:location.href,text:document.body.innerText}"))
 
     def close_session():
-        nonlocal session, owned_host
+        nonlocal session, owned_host, owned_tree_collection_verified
         assert owned_host is not None, "Owned host identity missing"
         pid = owned_host.pid
         owned_host_records.extend(owned_process_rows(native_process_rows(), pid))
+        owned_tree_collection_verified = True
         assert owned_host.poll() is None, "Owned host exited unexpectedly before requested product exit"
         receipt.setdefault("requested_product_exits", []).append({"pid":pid,"requested":True})
         if owned_host.poll() is None:
@@ -643,9 +759,13 @@ def main():
             except BaseException as error:
                 receipt["ok"] = False
                 receipt["owned_host_cleanup_error"] = type(error).__name__
-                cleanup = load("attach_cleanup", REPO / "scripts/runtime/dev.py")
-                cleanup.stop_owned_process(owned_host)
-                owned_host.wait(timeout=15)
+                try:
+                    cleanup = load("attach_cleanup", REPO / "scripts/runtime/dev.py")
+                    cleanup.stop_owned_process(owned_host)
+                    owned_host.wait(timeout=15)
+                except BaseException as cleanup_error:
+                    receipt["owned_host_forced_cleanup_error"] = type(cleanup_error).__name__
+                    receipt["owned_host_forced_cleanup_traceback"] = traceback.format_exc()
         if session:
             try:
                 request("DELETE", f"/session/{session}")
@@ -662,6 +782,9 @@ def main():
                 receipt["cleanup_error"] = type(cleanup_error).__name__
                 receipt["ok"] = False
         try:
+            receipt["owned_identity_collection_verified"] = owned_tree_collection_verified
+            if receipt.get("owned_host_pids") and not owned_tree_collection_verified:
+                raise RuntimeError("Owned attach process tree was never identity-verified")
             rows = {row["pid"]: row for row in native_process_rows()}
             remaining = [row["pid"] for row in owned_host_records
                          if row["pid"] in rows and rows[row["pid"]]["created"] == row["created"]]
