@@ -155,11 +155,19 @@ impl CoreSpec {
     /// when it is absent keeps the legacy entrypoint the default until a candidate
     /// actually provides a Core.
     pub fn beside_runtime(runtime: &RuntimeSpec) -> Option<Self> {
-        let root = runtime.python.parent()?.parent()?.parent()?.to_path_buf();
+        // The interpreter sits either at `<root>/runtime/python/python.exe` or at
+        // `<root>/runtime/python.exe`, so walk up until the Core appears rather than
+        // assuming a depth. The root is the directory the Core and workers sit in.
+        let root = (2..=3)
+            .filter_map(|levels| {
+                let mut path = runtime.python.clone();
+                for _ in 0..levels {
+                    path = path.parent()?.to_path_buf();
+                }
+                Some(path)
+            })
+            .find(|candidate| candidate.join("core").join("archeaxis-api.exe").is_file())?;
         let executable = root.join("core").join("archeaxis-api.exe");
-        if !executable.is_file() {
-            return None;
-        }
         let workspace_db = runtime.data_dir.join("archeaxis.sqlite");
         Some(Self {
             executable,

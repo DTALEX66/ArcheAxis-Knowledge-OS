@@ -116,13 +116,23 @@ fn resolve_runtime_for_profile(
         });
     }
 
-    let python = resource_dir.join("runtime/python/python.exe");
-    if !python.is_file() {
+    // Two layouts are in use and neither is wrong. The dependency stager writes a flat
+    // `runtime/python.exe` and its worker profile names that same path, while an earlier
+    // packaging pass nested the interpreter under `runtime/python/`. Accept either,
+    // preferring the nested form so nothing that already worked changes, because a
+    // candidate must not be unusable over a packaging detail.
+    let nested = resource_dir.join("runtime/python/python.exe");
+    let flat = resource_dir.join("runtime/python.exe");
+    let python = if nested.is_file() {
+        nested
+    } else if flat.is_file() {
+        flat
+    } else {
         return Err(format!(
             "bundled Python runtime is missing: {}",
-            python.display()
+            nested.display()
         ));
-    }
+    };
     if let Some(portable_root) = portable_root {
         if !portable_root.is_absolute() {
             return Err(format!(
