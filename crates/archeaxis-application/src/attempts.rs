@@ -112,7 +112,10 @@ pub const ROUTE_MEDIA_TYPES: &[(&str, &[&str])] = &[
             "image/bmp",
         ],
     ),
-    ("archive.inventory", &["application/zip"]),
+    (
+        "archive.inventory",
+        &["application/zip", "application/x-tar"],
+    ),
     ("media.probe", &["video/mp4", "audio/wav"]),
     (
         "media.transcribe",
@@ -196,6 +199,7 @@ pub fn media_type_for_name(name: &str) -> Option<&'static str> {
         "xml" => "application/xml",
         // R15/F15: a container gets the archive route, not a text decode
         "zip" => "application/zip",
+        "tar" => "application/x-tar",
         // R15/F10-F11: the formats this repository can probe without decoding samples.
         // mkv and webm are still deliberately NOT named: no reader here can read them, so a
         // name that claims otherwise would be dispatched as noise.

@@ -25,7 +25,7 @@ export function JobContent({sourceId,name,onKnowledge,sourceRevision,onTimeSeek,
  const extension=name.split(".").pop()?.toLowerCase();
  const [latestState,setLatestState]=useState<unknown>(null);
  const [transform,setTransform]=useState<Record<string,unknown>|null>(null);const [selection,setSelection]=useState({start:0,end:0});const [candidateBody,setCandidateBody]=useState("");const [candidateId,setCandidateId]=useState("");
- const routes:Record<string,string>={xlsx:"office",pptx:"office",docx:"office",html:"html",htm:"html",xhtml:"html",pdf:"pdf",png:"image",jpg:"image",jpeg:"image",tif:"image",tiff:"image",webp:"image",bmp:"image",zip:"archive",canvas:"canvas",srt:"subtitles",vtt:"subtitles",wav:"media",mp4:"media",txt:"text",md:"text",csv:"text",tsv:"text",json:"text",jsonl:"text",yaml:"text",yml:"text",toml:"text",xml:"text",epub:"text",eml:"text"};
+ const routes:Record<string,string>={xlsx:"office",pptx:"office",docx:"office",html:"html",htm:"html",xhtml:"html",pdf:"pdf",png:"image",jpg:"image",jpeg:"image",tif:"image",tiff:"image",webp:"image",bmp:"image",zip:"archive",tar:"archive",canvas:"canvas",srt:"subtitles",vtt:"subtitles",wav:"media",mp4:"media",txt:"text",md:"text",csv:"text",tsv:"text",json:"text",jsonl:"text",yaml:"text",yml:"text",toml:"text",xml:"text",epub:"text",eml:"text"};
  const kind=extension?routes[extension]??null:null;
 
  useEffect(()=>{

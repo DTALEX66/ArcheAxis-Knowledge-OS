@@ -106,7 +106,25 @@ pub fn declared_members(
 
 /// The route a member's own name selects, if any: (job kind, expected media type).
 fn route_for_member(name: &str) -> Option<(&'static str, &'static str)> {
-    // Nested containers remain in custody; do not recursively enqueue expansion.
+    // MIME alone cannot distinguish .canvas from ordinary .json.
+    // Reuse only currently supported member routes; no nested expansion or media job.
+    let extension = Path::new(name)
+        .extension()
+        .and_then(|value| value.to_str())
+        .unwrap_or("")
+        .to_ascii_lowercase();
+    let preferred = match extension.as_str() {
+        "docx" | "pptx" | "xlsx" => Some("office"),
+        "html" | "htm" | "xhtml" => Some("html"),
+        "canvas" => Some("canvas"),
+        "srt" | "vtt" => Some("subtitles"),
+        _ => None,
+    };
+    if let Some(kind) = preferred {
+        return attempts::resolve_media_type(kind, name)
+            .ok()
+            .map(|media| (kind, media));
+    }
     for kind in ["text", "pdf", "image"] {
         if let Ok(media) = attempts::resolve_media_type(kind, name) {
             return Some((kind, media));
@@ -280,4 +298,36 @@ pub fn expand_members(
         }
     }
     Ok(expansion)
+}
+
+#[cfg(test)]
+mod supported_member_route_tests {
+    use super::route_for_member;
+    #[test]
+    fn existing_routes_are_selected_without_json_collision_or_recursive_media() {
+        for (name, expected) in [
+            ("a.docx", "office"),
+            ("a.pptx", "office"),
+            ("a.xlsx", "office"),
+            ("a.html", "html"),
+            ("a.htm", "html"),
+            ("a.xhtml", "html"),
+            ("a.CANVAS", "canvas"),
+            ("a.json", "text"),
+            ("a.srt", "subtitles"),
+            ("a.vtt", "subtitles"),
+        ] {
+            assert_eq!(route_for_member(name).unwrap().0, expected, "{name}");
+        }
+        for name in [
+            "nested.zip",
+            "nested.tar",
+            "video.mp4",
+            "audio.wav",
+            "audio.mp3",
+            "unknown.bin",
+        ] {
+            assert!(route_for_member(name).is_none(), "{name}");
+        }
+    }
 }

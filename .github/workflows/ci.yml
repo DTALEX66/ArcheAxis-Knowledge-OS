@@ -692,6 +692,11 @@ jobs:
         run: |
           uv export --frozen --only-group ci --no-emit-project --format requirements-txt --output-file locked-ci.txt
           uv pip install --system --require-hashes -r locked-ci.txt
+          uv export --frozen --only-group ci-adapters --no-emit-project --format requirements-txt --output-file locked-ci-adapters.txt
+          uv pip install --system --require-hashes -r locked-ci-adapters.txt
+          # Bind worker tests to the interpreter that received the locked adapters,
+          # after setup-python rather than the runner's initial Python.
+          python -B scripts/runtime/dev.py --github-env
       - uses: Swatinem/rust-cache@v2
         with:
           workspaces: "."

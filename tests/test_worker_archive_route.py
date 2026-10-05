@@ -123,7 +123,7 @@ def test_an_empty_container_is_refused_rather_than_reported_as_empty_success(tmp
 
 def test_the_transport_route_declares_the_archive_capability_and_media_type():
     route = transport.ROUTES["archive.inventory"]
-    assert route["media_types"] == {"application/zip"}
+    assert route["media_types"] == {"application/zip", "application/x-tar"}
     assert route["worker"] == "services/python-workers/document/worker_archive.py"
     assert route["call"] == "path"
     # the text route must not accept a zip, so a container cannot fall back to a decode
@@ -144,3 +144,105 @@ def test_the_worker_prints_exactly_one_envelope_on_stdout(tmp_path: Path):
     lines = [line for line in result.stdout.splitlines() if line.strip()]
     assert len(lines) == 1, f"stdout must be exactly one envelope: {lines[:3]}"
     assert '"engine": "python-worker-archive"' in lines[0]
+
+
+def _tar_sample(path, entries):
+    import io
+    import tarfile
+
+    with tarfile.open(path, "w") as archive:
+        for name, payload, kind in entries:
+            info = tarfile.TarInfo(name)
+            info.type = kind
+            info.size = len(payload)
+            if kind in (tarfile.SYMTYPE, tarfile.LNKTYPE):
+                info.linkname = "../../outside.txt"
+            archive.addfile(info, io.BytesIO(payload))
+
+
+def test_tar_declares_actual_bytes_and_digest_for_existing_core_member_chain(tmp_path):
+    import hashlib
+    import tarfile
+
+    sample = tmp_path / "bundle.tar"
+    payload = b"Known TAR member value 37\n"
+    _tar_sample(sample, [("notes/a.txt", payload, tarfile.REGTYPE)])
+    result = worker.extract(str(sample), tmp_path / "members")
+    members = result["loss_receipt"]["params"]["structure"]["extractable_members"]
+    assert len(members) == 1
+    assert members[0]["name"] == "notes/a.txt"
+    assert members[0]["sha256"] == hashlib.sha256(payload).hexdigest()
+    assert (tmp_path / "members" / members[0]["file"]).read_bytes() == payload
+    assert "NOT the members' contents" in result["loss_receipt"]["params"]["projection_note"]
+
+
+def test_tar_unsafe_entries_fail_before_any_member_is_written(tmp_path):
+    import tarfile
+
+    import pytest
+
+    for index, (name, kind) in enumerate(
+        [
+            ("../escape.txt", tarfile.REGTYPE),
+            ("/absolute.txt", tarfile.REGTYPE),
+            ("C:/escape.txt", tarfile.REGTYPE),
+            ("link", tarfile.SYMTYPE),
+            ("hard", tarfile.LNKTYPE),
+            ("device", tarfile.CHRTYPE),
+        ]
+    ):
+        sample = tmp_path / f"unsafe-{index}.tar"
+        output = tmp_path / f"out-{index}"
+        _tar_sample(sample, [("safe.txt", b"safe", tarfile.REGTYPE), (name, b"", kind)])
+        with pytest.raises(ValueError):
+            worker.extract(str(sample), output)
+        assert not output.exists()
+
+
+def test_tar_member_count_and_bytes_budgets_are_enforced_before_output(tmp_path, monkeypatch):
+    import tarfile
+
+    import pytest
+
+    sample = tmp_path / "budget.tar"
+    _tar_sample(sample, [("a.txt", b"123", tarfile.REGTYPE), ("b.txt", b"456", tarfile.REGTYPE)])
+    monkeypatch.setattr(worker, "MEMBER_CAP", 1)
+    with pytest.raises(ValueError, match="count"):
+        worker.extract(str(sample), tmp_path / "members")
+    monkeypatch.setattr(worker, "MEMBER_CAP", 5000)
+    monkeypatch.setattr(worker, "MEMBER_BYTES_CAP", 5)
+    with pytest.raises(ValueError, match="bytes"):
+        worker.extract(str(sample), tmp_path / "members")
+    assert not (tmp_path / "members").exists()
+
+
+def test_tar_does_not_recursively_decode_nested_archive(tmp_path):
+    import tarfile
+
+    sample = tmp_path / "outer.tar"
+    _tar_sample(sample, [("inner.tar", b"opaque nested bytes", tarfile.REGTYPE)])
+    result = worker.extract(str(sample), tmp_path / "members")
+    assert result["loss_receipt"]["params"]["structure"]["extractable_member_count"] == 1
+    assert "opaque nested bytes" not in result["text"]
+
+
+def test_tar_canonical_duplicate_and_empty_names_are_refused(tmp_path):
+    import tarfile
+
+    import pytest
+
+    for index, entries in enumerate(
+        [
+            [("a", b"", tarfile.DIRTYPE), ("a/", b"", tarfile.DIRTYPE)],
+            [("", b"", tarfile.REGTYPE)],
+            [(".", b"", tarfile.DIRTYPE)],
+            [("./", b"", tarfile.DIRTYPE)],
+            [("pretend/", b"x", tarfile.REGTYPE)],
+        ]
+    ):
+        sample = tmp_path / f"names-{index}.tar"
+        output = tmp_path / f"names-out-{index}"
+        _tar_sample(sample, entries)
+        with pytest.raises(ValueError):
+            worker.extract(str(sample), output)
+        assert not output.exists()

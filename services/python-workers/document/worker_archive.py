@@ -28,6 +28,7 @@ import hashlib
 import importlib.util
 import json
 import sys
+import tarfile
 import zipfile
 from pathlib import Path
 
@@ -37,7 +38,21 @@ ENGINE_VERSION = "0.1.0"
 WORKER_IDENTITY = "python-worker-archive-ndjson"
 MEMBER_CAP = 5000
 LISTED_CAP = 2000
-NESTED_SUFFIXES = (".zip", ".jar", ".war", ".odt", ".ods", ".odp", ".epub", ".docx", ".xlsx", ".pptx")
+NESTED_SUFFIXES = (
+    ".tar",
+    ".tar.gz",
+    ".tgz",
+    ".zip",
+    ".jar",
+    ".war",
+    ".odt",
+    ".ods",
+    ".odp",
+    ".epub",
+    ".docx",
+    ".xlsx",
+    ".pptx",
+)
 COMPRESSION_NAMES = {0: "stored", 8: "deflate", 12: "bzip2", 14: "lzma"}
 # R15/F15 second half: members can be offered to the Core as sources of their own.
 # Extraction is bounded by count and by total bytes, and every bound is declared.
@@ -75,10 +90,14 @@ def _extract_members(members, container, out_dir: Path | None) -> tuple[list[dic
     files = [info for info in members if not info.is_dir()]
     for index, info in enumerate(files, start=1):
         if len(extracted) >= MEMBER_JOB_CAP:
-            problems.append(f"only the first {MEMBER_JOB_CAP} of {len(files)} members were extracted")
+            problems.append(
+                f"only the first {MEMBER_JOB_CAP} of {len(files)} members were extracted"
+            )
             break
         if total + info.file_size > MEMBER_BYTES_CAP:
-            problems.append(f"member byte budget of {MEMBER_BYTES_CAP} reached; later members were not extracted")
+            problems.append(
+                f"member byte budget of {MEMBER_BYTES_CAP} reached; later members were not extracted"
+            )
             break
         if info.flag_bits & 0x1:
             problems.append(f"member {info.filename!r} is encrypted and was not extracted")
@@ -89,7 +108,9 @@ def _extract_members(members, container, out_dir: Path | None) -> tuple[list[dic
             with container.open(info) as member:
                 payload = member.read(remaining + 1)
             if len(payload) > remaining:
-                problems.append(f"member byte budget of {MEMBER_BYTES_CAP} reached while reading; member was not extracted")
+                problems.append(
+                    f"member byte budget of {MEMBER_BYTES_CAP} reached while reading; member was not extracted"
+                )
                 break
             target.write_bytes(payload)
             total += len(payload)
@@ -102,7 +123,9 @@ def _extract_members(members, container, out_dir: Path | None) -> tuple[list[dic
                 }
             )
         except Exception as exc:  # noqa: BLE001 - an unreadable member is a fact
-            problems.append(f"member {info.filename!r} could not be extracted: {type(exc).__name__}: {exc}")
+            problems.append(
+                f"member {info.filename!r} could not be extracted: {type(exc).__name__}: {exc}"
+            )
     return extracted, problems
 
 
@@ -111,7 +134,12 @@ def _line_anchors(text: str, cap: int = 5000) -> list[dict]:
     offset = 0
     for index, line in enumerate(text.splitlines(keepends=True), start=1):
         anchors.append(
-            {"kind": "line", "path": [f"line-{index}"], "char_start": offset, "char_end": offset + len(line)}
+            {
+                "kind": "line",
+                "path": [f"line-{index}"],
+                "char_start": offset,
+                "char_end": offset + len(line),
+            }
         )
         offset += len(line)
         if index >= cap:
@@ -119,12 +147,99 @@ def _line_anchors(text: str, cap: int = 5000) -> list[dict]:
     return anchors
 
 
+class _TarContainer:
+    """Uncompressed, single-level TAR adapter; never call extract/extractall.
+
+    Validate the complete bounded directory before creating any member output.
+    Links, devices, sparse entries and unsafe original names are refused rather
+    than made into apparent readable sources. Compressed TAR is not this profile.
+    """
+
+    def __init__(self, path):
+        if Path(path).stat().st_size > MEMBER_BYTES_CAP + 16 * 1024 * 1024:
+            raise ValueError("TAR input exceeds the byte budget")
+        # This adapter owns the handle: validation exceptions and __exit__ close it.
+        self.archive = tarfile.open(path, mode="r:")  # noqa: SIM115
+        self.members = []
+        self.by_name = {}
+        total = 0
+        try:
+            for item in self.archive:
+                if len(self.members) >= MEMBER_CAP:
+                    raise ValueError("TAR member count exceeds the budget")
+                parts = item.name.replace("\\", "/").split("/")
+                if (
+                    not item.name
+                    or item.name in (".", "./")
+                    or item.name.startswith(("/", "\\"))
+                    or ":" in item.name
+                    or ".." in parts
+                    or "\\" in item.name
+                ):
+                    raise ValueError("unsafe TAR member name")
+                if not (item.isfile() or item.isdir()) or item.sparse is not None:
+                    raise ValueError("TAR links, special and sparse members are unsupported")
+                key = item.name + ("/" if item.isdir() and not item.name.endswith("/") else "")
+                if item.isfile() and item.name.endswith("/"):
+                    raise ValueError("regular TAR member has directory name")
+                if key in self.by_name:
+                    raise ValueError("duplicate TAR member name")
+                if item.size < 0:
+                    raise ValueError("negative TAR member size")
+                total += item.size
+                if total > MEMBER_BYTES_CAP:
+                    raise ValueError("TAR member bytes exceed the budget")
+                info = zipfile.ZipInfo(
+                    item.name + ("/" if item.isdir() and not item.name.endswith("/") else "")
+                )
+                info.file_size = item.size
+                info.compress_size = item.size
+                info.compress_type = zipfile.ZIP_STORED
+                self.by_name[info.filename] = item
+                self.members.append(info)
+        except BaseException:
+            self.archive.close()
+            raise
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, *_):
+        self.archive.close()
+
+    def infolist(self):
+        return self.members
+
+    def open(self, info):
+        stream = self.archive.extractfile(self.by_name[info.filename])
+        if stream is None:
+            raise ValueError("TAR regular member exposes no bytes")
+        return stream
+
+
+def _open_container(path):
+    if zipfile.is_zipfile(path):
+        return zipfile.ZipFile(path)
+    try:
+        return _TarContainer(path)
+    except (tarfile.TarError, OSError) as error:
+        raise ValueError(f"unreadable archive: {type(error).__name__}") from error
+
+
 def extract(path: str, member_dir: Path | None = None) -> dict:
     try:
-        with zipfile.ZipFile(path) as container:
+        with _open_container(path) as container:
             members = container.infolist()
-            listing = [(info.filename, info.file_size, info.compress_size, info.compress_type, info.is_dir())
-                       for info in members]
+            listing = [
+                (
+                    info.filename,
+                    info.file_size,
+                    info.compress_size,
+                    info.compress_type,
+                    info.is_dir(),
+                )
+                for info in members
+            ]
             encrypted = [info.filename for info in members if info.flag_bits & 0x1]
             methods = sorted({info.compress_type for info in members})
             extracted, extraction_problems = _extract_members(members, container, member_dir)
@@ -143,9 +258,13 @@ def extract(path: str, member_dir: Path | None = None) -> dict:
     structure = _line_anchors(text)
     losses: list[str] = []
     if len(listing) > LISTED_CAP:
-        losses.append(f"only the first {LISTED_CAP} members are projected; the container lists {len(listing)}")
+        losses.append(
+            f"only the first {LISTED_CAP} members are projected; the container lists {len(listing)}"
+        )
     if encrypted:
-        losses.append(f"{len(encrypted)} member(s) are encrypted and were not read: {', '.join(encrypted[:5])}")
+        losses.append(
+            f"{len(encrypted)} member(s) are encrypted and were not read: {', '.join(encrypted[:5])}"
+        )
     if nested:
         losses.append(
             f"{len(nested)} member(s) are themselves containers and are listed, not opened: {', '.join(nested[:5])}"
@@ -156,6 +275,7 @@ def extract(path: str, member_dir: Path | None = None) -> dict:
         "engine": ENGINE,
         "engine_version": ENGINE_VERSION,
         "params": {
+            "container_profile": "zip-or-uncompressed-tar-single-level",
             "projection": "container inventory (one member per line: name, size)",
             # The note has to describe what THIS run did. Claiming nothing was extracted while
             # members sit in the destination would make the receipt itself untrue, which is the
@@ -178,7 +298,9 @@ def extract(path: str, member_dir: Path | None = None) -> dict:
                 "directory_count": len(directories),
                 "uncompressed_bytes": sum(item[1] for item in files),
                 "compressed_bytes": sum(item[2] for item in files),
-                "compression_methods": [COMPRESSION_NAMES.get(code, f"unknown({code})") for code in methods],
+                "compression_methods": [
+                    COMPRESSION_NAMES.get(code, f"unknown({code})") for code in methods
+                ],
                 "nested_containers": nested,
                 "encrypted_members": encrypted,
                 "members": [
@@ -236,9 +358,15 @@ def main() -> int:
         # the source layout and left a staged worker unable to start.
         _transport_candidates = (
             Path(__file__).resolve().parent.parent / "transport" / "text_ndjson.py",
-            Path(__file__).resolve().parents[2] / "services" / "python-workers" / "transport" / "text_ndjson.py",
+            Path(__file__).resolve().parents[2]
+            / "services"
+            / "python-workers"
+            / "transport"
+            / "text_ndjson.py",
         )
-        _transport = next((p for p in _transport_candidates if p.is_file()), _transport_candidates[0])
+        _transport = next(
+            (p for p in _transport_candidates if p.is_file()), _transport_candidates[0]
+        )
         spec = importlib.util.spec_from_file_location("archive_transport", _transport)
         if spec is None or spec.loader is None:
             print(json.dumps({"error": "transport module is missing", "engine": ENGINE}))
@@ -249,7 +377,9 @@ def main() -> int:
         parser.add_argument("--staging-root", type=Path, required=True)
         parser.add_argument("--artifact-root", type=Path, default=None)
         args = parser.parse_args()
-        return transport.serve_stdio(WORKER_IDENTITY, ["archive.inventory"], args.staging_root, args.artifact_root)
+        return transport.serve_stdio(
+            WORKER_IDENTITY, ["archive.inventory"], args.staging_root, args.artifact_root
+        )
 
     with contextlib.suppress(AttributeError, OSError):
         sys.stdout.reconfigure(encoding="utf-8")

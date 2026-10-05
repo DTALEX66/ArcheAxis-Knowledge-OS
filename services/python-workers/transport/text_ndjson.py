@@ -245,7 +245,7 @@ ROUTES = {
     "archive.inventory": {
         "version": "1",
         "worker": "services/python-workers/document/worker_archive.py",
-        "media_types": {"application/zip"},
+        "media_types": {"application/zip", "application/x-tar"},
         "call": "path",
         # R15/F15: the archive worker can offer its members to the Core as sources, so
         # it is told where durable transfer files may be written.
