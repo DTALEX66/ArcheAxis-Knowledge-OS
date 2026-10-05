@@ -98,7 +98,21 @@ def prepare_bundle_runtime(*, repository: Path, destination: Path) -> Path:
     return staged_python
 
 
-def install_core(*, destination: Path, core: Path, workers: Path | None = None) -> Path:
+CANDIDATE_ROOT_FILES = (
+    "worker-profile.json",
+    "start-backend.py",
+    "start-backend.cmd",
+    "backend-runtime-manifest.json",
+)
+
+
+def install_core(
+    *,
+    destination: Path,
+    core: Path,
+    workers: Path | None = None,
+    candidate_root: Path | None = None,
+) -> Path:
     """Place a built canonical Core, and optionally its workers, beside the runtime.
 
     A bundle resource map can only name directories that exist when the bundle is built,
@@ -120,6 +134,16 @@ def install_core(*, destination: Path, core: Path, workers: Path | None = None) 
             dirs_exist_ok=True,
             ignore=shutil.ignore_patterns("__pycache__", "*.pyc", "*.pyo"),
         )
+    if candidate_root is not None:
+        # These sit at the candidate root, not inside a directory, so a resource map that
+        # names directories cannot carry them. The Core reads its scheduler interpreter from
+        # the worker profile, so a bundle without it starts a Core that cannot resolve its
+        # worker and does not stay up.
+        for name in CANDIDATE_ROOT_FILES:
+            source = candidate_root / name
+            if not source.is_file():
+                raise RuntimeError(f"candidate root is missing {name}: {source}")
+            shutil.copy2(source, destination / name)
     return staged / core.name
 
 
@@ -135,6 +159,8 @@ def main() -> int:
                         help="place the Core and workers only; do not reinstall the runtime")
     parser.add_argument("--workers", type=Path,
                         help="workers tree to place beside the runtime")
+    parser.add_argument("--candidate-root", type=Path,
+                        help="candidate root holding the worker profile and launcher files")
     args = parser.parse_args()
     if args.workers is not None and args.core is None:
         parser.error("--workers requires --core")
@@ -147,7 +173,12 @@ def main() -> int:
     # the install resolves and builds the whole locked dependency set, and a packaging step
     # that only needs to copy one executable should not pay for that or risk changing it.
     if args.core_only:
-        print(install_core(destination=destination, core=args.core, workers=args.workers))
+        print(install_core(
+            destination=destination,
+            core=args.core,
+            workers=args.workers,
+            candidate_root=args.candidate_root,
+        ))
         return 0
     staged_python = prepare_bundle_runtime(repository=args.repository, destination=destination)
     if args.core is not None:
