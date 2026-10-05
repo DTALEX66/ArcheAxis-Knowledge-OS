@@ -22,7 +22,8 @@ describe("mock transcription UI integration",()=>{
   bridge.call.mockImplementation(async(op:string,p:any)=>{
    if(op==="job_enqueue"){job=p.body.job_id;return {job_id:job};}
    if(op==="job_execute"){executions++;if(executions===1)successful=job;return {};}
-   if(op==="jobs_get")return {job_id:job,input_ref:"source",kind:"transcribe",attempt:3,state:executions===1?"succeeded":"failed",error:executions===1?null:"AAK-WORKER-003"};
+   if(op==="source_jobs")return {source_id:"source",jobs:job?[{job_id:job,input_ref:"source",kind:"transcribe",state:"succeeded",attempt:3}]:[]};
+   if(op==="jobs_get")return {job_id:job,input_ref:"source",attempt:3,state:executions===1?"succeeded":"failed",error:executions===1?null:"AAK-WORKER-003"};
    if(op==="job_output")return p.kind==="text"?{content:"数值37"}:p.kind==="document_structure"?{content:"[]"}:{content,metadata:{kind:"loss_report",sha256:sha,byte_length:new TextEncoder().encode(content).length}};
    if(op==="source_job_transform")return {source_id:"source",job_id:job,transform_id:1,content:"数值37"};
    if(op==="anchor_create")return {anchor_id:"anchor",source_id:p.source_id,source_revision:p.body.revision,position:JSON.stringify({...JSON.parse(p.body.position),checksum:p.body.checksum}),location_status:"located"};

@@ -18,11 +18,13 @@ describe("receipt-bound transcription cues",()=>{
  it("displays unverified explicitly",async()=>{bridge.call.mockResolvedValue(await anchor("unverified"));render(<TranscriptionCues proof={proof}/>);await userEvent.setup().click(screen.getByRole("button",{name:"引用时间段"}));await screen.findByText(/定位尚未校验/);expect(screen.queryByText(/关联已校验/)).not.toBeInTheDocument();});
  it("rejects wrong identity,digest and illegal times",async()=>{
   const content=JSON.stringify({params:{worker_output:{duration_ms:2000,cues:proof.cues}}});const output={content,metadata:{kind:"loss_report",sha256:await utf8Sha256(content),byte_length:new TextEncoder().encode(content).length}};
-  const state={job_id:proof.jobId,input_ref:"s",attempt:2,state:"succeeded",kind:"transcribe"};
-  await expect(transcriptionProof("s",proof.revision,proof.jobId,state,output)).resolves.toMatchObject({jobId:proof.jobId});
-  await expect(transcriptionProof("other",proof.revision,proof.jobId,state,output)).rejects.toThrow();
-  await expect(transcriptionProof("s",proof.revision,proof.jobId,state,{...output,metadata:{...output.metadata,sha256:"wrong"}})).rejects.toThrow();
+  const state={job_id:proof.jobId,input_ref:"s",attempt:2,state:"succeeded"};
+  const sourceJob={...state,kind:"transcribe"};
+  await expect(transcriptionProof("s",proof.revision,proof.jobId,state,output,sourceJob)).resolves.toMatchObject({jobId:proof.jobId});
+  await expect(transcriptionProof("other",proof.revision,proof.jobId,state,output,sourceJob)).rejects.toThrow();
+  await expect(transcriptionProof("s",proof.revision,proof.jobId,state,{...output,metadata:{...output.metadata,sha256:"wrong"}},sourceJob)).rejects.toThrow();
+  for(const changed of [{kind:"media"},{job_id:"other"},{input_ref:"other"},{attempt:3},{state:"failed"}])await expect(transcriptionProof("s",proof.revision,proof.jobId,state,output,{...sourceJob,...changed})).rejects.toThrow();
   const invalid=JSON.stringify({params:{worker_output:{duration_ms:2000,cues:[{start_ms:0,end_ms:2001,text:"bad"}]}}});
-  await expect(transcriptionProof("s",proof.revision,proof.jobId,state,{content:invalid,metadata:{kind:"loss_report",sha256:await utf8Sha256(invalid),byte_length:invalid.length}})).rejects.toThrow();
+  await expect(transcriptionProof("s",proof.revision,proof.jobId,state,{content:invalid,metadata:{kind:"loss_report",sha256:await utf8Sha256(invalid),byte_length:invalid.length}},sourceJob)).rejects.toThrow();
  });
 });

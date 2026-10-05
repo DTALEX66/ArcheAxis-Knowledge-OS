@@ -10,10 +10,10 @@ import json
 import os
 import socket
 import subprocess
-import threading
 import time
 import traceback
 import uuid
+from contextlib import suppress
 from pathlib import Path
 from urllib.error import HTTPError
 from urllib.request import Request, urlopen
@@ -176,7 +176,7 @@ def main():
             "new_session_timeout_seconds": args.session_timeout,
             "ordinary_request_timeout_seconds": 45,
             "webview_user_data_folder": str(work / "webview"),
-            "webview_user_data_folder_owner": "EdgeDriver webviewOptions.userDataFolder",
+            "webview_user_data_folder_owner": "Owned host per-process WEBVIEW2_USER_DATA_FOLDER",
             "webview_user_data_folder_strategy": "Fresh session-N profile per launch; canonical product data root unchanged",
         },
         "limitations": [
@@ -193,6 +193,9 @@ def main():
         )
     session = None
     process = None
+    owned_host = None
+    owned_host_records = []
+    attach_ports = []
     log = (work / "driver.log").open("wb")
 
     def request(method, path, body=None):
@@ -275,129 +278,73 @@ def main():
         receipt.setdefault("screenshots", []).append(identity(work / name))
 
     def launch():
-        nonlocal session
+        nonlocal session, owned_host
         began = time.monotonic()
         folder = work / "webview" / f"session-{len(receipt.get('launch_attempts', [])) + 1}"
-        receipt.setdefault("launch_attempts", []).append({
-            "user_data_folder": str(folder),
-            "previous_owned_hosts_exited": all(item["exited"] for item in receipt.get("host_shutdowns", [])),
-        })
-        observations = receipt["launch_attempts"][-1].setdefault("observations", [])
-        stop_monitor = threading.Event()
-        known_hosts = {}
-
-        def observe(elapsed):
-            sample = {"elapsed_seconds": elapsed, "driver_exited": process.poll() is not None,
-                      "profiles": profile_metadata([folder, work / "data"])}
+        folder.mkdir(parents=True, exist_ok=False)
+        cdp_port = free_port()
+        attach_ports.append(cdp_port)
+        host_env = dict(env)
+        host_env["WEBVIEW2_USER_DATA_FOLDER"] = str(folder)
+        host_env["WEBVIEW2_ADDITIONAL_BROWSER_ARGUMENTS"] = f"--remote-debugging-port={cdp_port} --remote-debugging-address=127.0.0.1"
+        owned_host = subprocess.Popen([str(host)], cwd=host.parent, env=host_env)
+        receipt.setdefault("owned_host_pids", []).append(owned_host.pid)
+        receipt.setdefault("launch_attempts", []).append({"user_data_folder": str(folder), "host_pid": owned_host.pid, "mode":"owned_prelaunch_attach"})
+        deadline = began + 40
+        while True:
+            if owned_host.poll() is not None:
+                raise RuntimeError("Owned host exited before CDP")
             try:
-                rows = owned_process_rows(native_process_rows(), process.pid) if not sample["driver_exited"] else []
-                for row in rows:
-                    row["elevation"] = process_elevation(row["pid"])
-                    if row["name"].casefold() == host.name.casefold():
-                        known_hosts[row["pid"]] = row["created"]
-                sample["processes"] = rows
-                sample["previously_observed_hosts"] = [
-                    {"pid": pid, "created": created, "present_same_identity": any(row["pid"] == pid and row["created"] == created for row in rows)}
-                    for pid, created in known_hosts.items()]
-            except (OSError, RuntimeError) as error:
-                sample["collection_error"] = type(error).__name__
-            observations.append(sample)
-
-        def monitor():
-            for elapsed in (1, 10, 30):
-                if stop_monitor.wait(max(0, began + elapsed - time.monotonic())):
-                    return
-                observe(elapsed)
-
-        observer = threading.Thread(target=monitor, daemon=True)
-        observer.start()
-        try:
-            result = request(
-            "POST",
-            "/session",
-            {
-                "capabilities": {
-                    "alwaysMatch": {
-                        "tauri:options": {
-                            "application": str(host),
-                            "args": [],
-                            "webviewOptions": {
-                                "userDataFolder": str(folder),
-                                "additionalBrowserArguments": [
-                                    "remote-debugging-port=0",
-                                    "remote-debugging-address=127.0.0.1",
-                                ],
-                            },
-                        }
-                    }
-                }
-            },
-            )
-        finally:
-            stop_monitor.set()
-            observer.join(timeout=2)
-            if observer.is_alive():
-                observations.append({"collection_error": "monitor_stop_timeout"})
-            else:
-                observe(time.monotonic() - began)
+                with urlopen(f"http://127.0.0.1:{cdp_port}/json/version", timeout=1) as response:
+                    version = json.load(response)
+                break
+            except OSError:
+                if time.monotonic() >= deadline:
+                    raise TimeoutError("Owned attach CDP unavailable after 40 seconds") from None
+                time.sleep(.2)
+        edge_version = subprocess.check_output([str(edge), "--version"], text=True, timeout=10).strip()
+        assert edge_version.startswith("Microsoft Edge WebDriver " + version["Browser"].split("/")[1] + " "), "Runtime/driver version mismatch"
+        owned = owned_process_rows(native_process_rows(), owned_host.pid)
+        owned_host_records.extend(owned)
+        query = subprocess.check_output(["powershell.exe", "-NoProfile", "-Command", f"@(Get-NetTCPConnection -State Listen -LocalPort {cdp_port} | Select-Object LocalAddress,OwningProcess) | ConvertTo-Json -Compress"], text=True, timeout=10)
+        listeners = json.loads(query)
+        if isinstance(listeners, dict):
+            listeners = [listeners]
+        assert listeners and all(item["LocalAddress"] in ("127.0.0.1", "::1") and item["OwningProcess"] in {row["pid"] for row in owned} for item in listeners), "Unowned CDP listener"
+        receipt["launch_attempts"][-1].update({"owned_processes":owned,"cdp_version":version["Browser"],"listeners":listeners,"listener_process_identities":[row for row in owned if row["pid"] in {item["OwningProcess"] for item in listeners}]})
+        result = request("POST", "/session", {"capabilities":{"alwaysMatch":{"browserName":"webview2","ms:edgeChromium":True,"ms:edgeOptions":{"debuggerAddress":f"127.0.0.1:{cdp_port}"}}}})
         session = result["sessionId"]
-        request("POST", f"/session/{session}/timeouts", {"script": 30000})
-        wait(
-            "return [...document.querySelectorAll('button')].some(b=>b.textContent.trim().endsWith('资料库'))"
-        )
-        receipt.setdefault("launches", []).append(
-            {"seconds": time.monotonic() - began, "capabilities": result["capabilities"], "user_data_folder": str(folder)}
-        )
+        assert request("GET", f"/session/{session}/window/handles"), "Actual WebDriver window missing"
+        request("POST", f"/session/{session}/timeouts", {"script":30000})
+        wait("return [...document.querySelectorAll('button')].some(b=>b.textContent.trim().endsWith('资料库'))")
+        receipt.setdefault("launches", []).append({"seconds":time.monotonic()-began,"capabilities":result["capabilities"],"user_data_folder":str(folder)})
         version = bridge("system_version")
         assert isinstance(version, dict)
         receipt["system_version"] = version
-        receipt.setdefault("windows", []).append(
-            js("return {title:document.title,url:location.href,text:document.body.innerText}")
-        )
+        owned_host_records.extend(owned_process_rows(native_process_rows(), owned_host.pid))
+        receipt.setdefault("windows", []).append(js("return {title:document.title,url:location.href,text:document.body.innerText}"))
 
     def close_session():
-        nonlocal session
-        # Enumerate only descendants of the driver Popen we created. Record live
-        # host handles before DELETE so PID reuse cannot masquerade as shutdown.
-        pending, hosts = [process.pid], []
-        while pending:
-            parent = pending.pop()
-            query = subprocess.run(
-                [
-                    "powershell.exe",
-                    "-NoProfile",
-                    "-Command",
-                    f"@(Get-CimInstance Win32_Process -Filter 'ParentProcessId={parent}' | Select-Object ProcessId,Name) | ConvertTo-Json -Compress",
-                ],
-                capture_output=True,
-                text=True,
-                check=True,
-            )
-            children = json.loads(query.stdout or "[]")
-            if isinstance(children, dict):
-                children = [children]
-            for child in children:
-                pending.append(child["ProcessId"])
-                if child["Name"].casefold() == host.name.casefold():
-                    hosts.append(child["ProcessId"])
-        kernel = ctypes.WinDLL("kernel32", use_last_error=True)
-        kernel.OpenProcess.restype = ctypes.c_void_p
-        handles = [(pid, kernel.OpenProcess(0x100000, False, pid)) for pid in hosts]
-        assert handles and all(handle for _, handle in handles), (
-            "Owned host process identity missing"
-        )
-        try:
-            request("DELETE", f"/session/{session}")
-            session = None
-            for pid, handle in handles:
-                exited = kernel.WaitForSingleObject(ctypes.c_void_p(handle), 15000) == 0
-                receipt.setdefault("host_shutdowns", []).append({"pid": pid, "exited": exited})
-                assert exited, (
-                    "Window removed but owned Tauri host remained alive after DELETE/session"
-                )
-        finally:
-            for _, handle in handles:
-                kernel.CloseHandle(ctypes.c_void_p(handle))
+        nonlocal session, owned_host
+        assert owned_host is not None, "Owned host identity missing"
+        pid = owned_host.pid
+        owned_host_records.extend(owned_process_rows(native_process_rows(), pid))
+        assert owned_host.poll() is None, "Owned host exited unexpectedly before requested product exit"
+        receipt.setdefault("requested_product_exits", []).append({"pid":pid,"requested":True})
+        if owned_host.poll() is None:
+            # Transport may close as the product exits; normal wait/code remain mandatory.
+            with suppress(OSError, RuntimeError):
+                native_command("exit_application")
+            owned_host.wait(timeout=15)
+        exited = owned_host.poll() == 0
+        receipt.setdefault("host_shutdowns", []).append({"pid":pid,"exited":exited,"exit_code":owned_host.returncode,"method":"product_exit_application_attached_observer"})
+        assert exited, "Owned host did not exit normally with product exit code 0"
+        if session:
+            # Host has already verifiably exited with code 0.
+            with suppress(OSError, RuntimeError):
+                request("DELETE", f"/session/{session}")
+        session = None
+        owned_host = None
 
     try:
         process = subprocess.Popen(
@@ -690,11 +637,19 @@ def main():
             except BaseException as capture_error:
                 receipt["screenshot_error"] = str(capture_error)
     finally:
+        if owned_host is not None:
+            try:
+                close_session()
+            except BaseException as error:
+                receipt["ok"] = False
+                receipt["owned_host_cleanup_error"] = type(error).__name__
+                cleanup = load("attach_cleanup", REPO / "scripts/runtime/dev.py")
+                cleanup.stop_owned_process(owned_host)
+                owned_host.wait(timeout=15)
         if session:
             try:
                 request("DELETE", f"/session/{session}")
-            except BaseException as error:
-                receipt["cleanup_error"] = str(error)
+            except BaseException:
                 receipt["ok"] = False
         if process and process.poll() is None:
             launcher = load("webdriver_dev", REPO / "scripts/runtime/dev.py")
@@ -706,6 +661,26 @@ def main():
                 receipt["owned_process_cleanup"] = False
                 receipt["cleanup_error"] = type(cleanup_error).__name__
                 receipt["ok"] = False
+        try:
+            rows = {row["pid"]: row for row in native_process_rows()}
+            remaining = [row["pid"] for row in owned_host_records
+                         if row["pid"] in rows and rows[row["pid"]]["created"] == row["created"]]
+            receipt["remaining_same_creation_owned_hosts"] = sorted(set(remaining))
+            if remaining:
+                raise RuntimeError("Owned host descendants remained after cleanup")
+            query = subprocess.run(["powershell.exe", "-NoProfile", "-Command",
+                "@(Get-NetTCPConnection -State Listen -ErrorAction Stop | Where-Object { $_.LocalPort -in @("
+                + ",".join(str(value) for value in attach_ports + [port, native])
+                + ") } | Select-Object LocalAddress,LocalPort,OwningProcess) | ConvertTo-Json -Compress"],
+                capture_output=True, text=True, check=True, timeout=15)
+            listeners = json.loads(query.stdout or "[]")
+            receipt["remaining_owned_port_listeners"] = listeners
+            if listeners:
+                raise RuntimeError("Owned attach/driver ports remained listening after cleanup")
+            receipt["owned_ports_released"] = True
+        except (OSError, RuntimeError, subprocess.SubprocessError, ValueError) as error:
+            receipt["owned_cleanup_readback_error"] = type(error).__name__
+            receipt["ok"] = False
         log.close()
         receipt["driver_log"] = identity(work / "driver.log")
         if native_log.is_file():

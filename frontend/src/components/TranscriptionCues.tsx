@@ -14,10 +14,12 @@ export async function utf8Sha256(text: string): Promise<string> {
   return Array.from(new Uint8Array(hash), value => value.toString(16).padStart(2, "0")).join("");
 }
 export async function transcriptionProof(sourceId:string, revision:string|undefined,
-  jobId:string, state:Record<string,unknown>, lossOutput:Record<string,unknown>):Promise<TranscriptionProof> {
+  jobId:string, state:Record<string,unknown>, lossOutput:Record<string,unknown>, sourceJob:Record<string,unknown>):Promise<TranscriptionProof> {
   if (!revision || !/^[a-f0-9]{64}$/i.test(revision) || state.job_id!==jobId || state.input_ref!==sourceId
-    || !Number.isSafeInteger(state.attempt) || Number(state.attempt)<1 || state.state!=="succeeded" || state.kind!=="transcribe"
+    || !Number.isSafeInteger(state.attempt) || Number(state.attempt)<1 || state.state!=="succeeded"
     || typeof lossOutput.content!=="string") throw new Error("transcription identity missing");
+  if (!sourceJob || sourceJob.job_id!==jobId || sourceJob.input_ref!==sourceId || sourceJob.kind!=="transcribe"
+    || sourceJob.state!=="succeeded" || sourceJob.attempt!==state.attempt) throw new Error("source job identity mismatch");
   const metadata=lossOutput.metadata as Record<string,unknown>|undefined;
   if (!metadata || metadata.kind!=="loss_report" || metadata.sha256!==await utf8Sha256(lossOutput.content)
     || metadata.byte_length!==new TextEncoder().encode(lossOutput.content).byteLength) throw new Error("transcription receipt digest mismatch");

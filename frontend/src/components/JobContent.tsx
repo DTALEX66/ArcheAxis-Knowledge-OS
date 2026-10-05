@@ -49,7 +49,7 @@ export function JobContent({sourceId,name,onKnowledge,sourceRevision,onTimeSeek,
    const state=record(stateValue),textOutput=record(rawText),structure=record(structureValue),loss=record(lossValue),saved=record(transformValue);
    if(typeof textOutput.content!=="string"||typeof structure.content!=="string"||typeof loss.content!=="string"
     ||saved.source_id!==sourceId||saved.job_id!==id||typeof saved.transform_id!=="number"||saved.content!==textOutput.content)throw new Error("persisted transform mismatch");
-   const verified=await transcriptionProof(sourceId,sourceRevision,id,state,loss);
+   const verified=await transcriptionProof(sourceId,sourceRevision,id,state,loss,successful);
    const parsedStructure=JSON.parse(structure.content),parsedLoss=JSON.parse(loss.content);
    if(!current())return;
    setTranscription(verified);setText(textOutput.content);setTransform(saved);setProof({structure:parsedStructure,loss:parsedLoss,quality});
@@ -76,7 +76,17 @@ export function JobContent({sourceId,name,onKnowledge,sourceRevision,onTimeSeek,
    const structureOutput=record(structure), lossOutput=record(loss);
    if(typeof structureOutput.content!=="string"||typeof lossOutput.content!=="string")throw new Error("invalid structured output");
    const parsedStructure=JSON.parse(structureOutput.content), parsedLoss=JSON.parse(lossOutput.content);
-   const verifiedTranscription=executionKind==="transcribe"?await transcriptionProof(sourceId,sourceRevision,job_id,state,lossOutput):null;
+   let actualSourceJob:Record<string,unknown>|null=null;
+   if(executionKind==="transcribe"){
+    const listing=record(await coreCommand("source_jobs",{source_id:sourceId}));
+    if(listing.source_id!==sourceId||!Array.isArray(listing.jobs)||listing.jobs.length>50)throw new Error("bounded source jobs mismatch");
+    const rows=listing.jobs.map(record);
+    if(rows.some(row=>row.input_ref!==sourceId))throw new Error("source jobs identity mismatch");
+    const matches=rows.filter(row=>row.job_id===job_id);
+    if(matches.length!==1)throw new Error("successful source job missing or ambiguous");
+    actualSourceJob=matches[0];
+   }
+   const verifiedTranscription=executionKind==="transcribe"?await transcriptionProof(sourceId,sourceRevision,job_id,state,lossOutput,actualSourceJob!):null;
    const sourceTransform=record(await coreCommand("source_job_transform",{source_id:sourceId,job_id}));
    if(sourceTransform.source_id!==sourceId||sourceTransform.job_id!==job_id||typeof sourceTransform.transform_id!=="number"||sourceTransform.content!==result.content)throw new Error("source transform mismatch");
    if(alive.current){if(verifiedTranscription)setTranscription(verifiedTranscription);setText(result.content);setTransform(sourceTransform);setCandidateId("");setSelection({start:0,end:0});setLatestState(state);setProof({structure:parsedStructure,loss:parsedLoss,quality});setMessage("真实转换已完成；下方文本、结构、损失及引擎回执均来自 Core。");}

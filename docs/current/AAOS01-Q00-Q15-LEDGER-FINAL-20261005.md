@@ -1,5 +1,25 @@
 # AAOS-01 Q00–Q15 当前执行台账（2026-10-05）
 
+当前增量（2026-10-06）：canonical Tauri CLI 宿主 SHA `05bdaeeeb869ccd3cc1a4ded2f62db6efd0c181ea49720865ab370c8ab04b85f` 实际完整12步及四次产品正常 exit0 PASS；收据 `aaos01-webdriver/8f28552761c640d8886183e99e908c30/receipt.json`（40,011字节，SHA `09a4ab1a1bb423d656d7c48342b16fa73a01469779d57e357bfd89d9df9e0b5e`）。独立无观察器 WM_CLOSE PASS，收据 `aaos01-owned-wmclose-preflight/85f62dcf00224515836feec1ccfbabe3/receipt.json` SHA `c052e36f2b4f9f723285bf9254b3fa21c6e169f0c59f7c3cbb6f5dfede62662f`，自有进程与端口无残留。
+
+同一宿主真实媒体闭环 PASS：公开合成 WAV 原件 SHA `838522e7a1c43673f88385a172a5abc921d34d99671e43490b711958cea52ebb`；单播放器 duration=5.22839s、实际播放推进并暂停；transcribe job `read_4d20b12c-0e14-46e9-81be-c50a73b1064d` attempt1 succeeded，实际本地 large-v3-turbo/cpu/int8，cue0–4560ms；located anchor `anc_6e152eef7bdfb38eb9aabf2f` 绑定原件/job/attempt/产物SHA和UTF8 checksum。完全重启后回执/CAS/锚点相等，自动读回 cues且未新增job；两次exit0、无自有残留。收据 `aaos01-webdriver/6832d94993b54ec48fda44cbab69bf2d/receipt.json` SHA `d1d2e77bc80d08b3a9bf06bc521fea018cb218f8560d5868feebf4e3533d9130`，两张非空截图。输入SYNTHETIC、产品执行REAL；不是真人准确率、视频解码、NSIS安装态或新exact-SHA CI。a16 Python是探针解释器；本收据未独立采集worker进程解释器路径，不由探针解释器推导worker身份。
+
+当前暂存 a16/rt/release manifest `75eedbdcc1fbb888aa1a255b2d2c756e28df8fa97d038cee236e29fadf6dc8ae`，Core `c5be10c8af4e5a582d3821c5d2af0ac203808f819ac79b082ac1a7651148729b`；19,502文件核对后只更新rt的Core及manifest，两旧文件已备份，runtime未再次整份复制。uv.lock未改。云端识别核验与专业依据分析仍只有分离的记录/保存语义；真正执行与重试尚未实现，prepared方案不算实现。旧库迁移、Owner决定及安装态完整验收仍缺。
+
+a14/a15去重已执行：两份原runtime及两份临时恢复树精确删除，逐文件恢复证明先PASS，删除后候选/rt/release与全部保留guard SHA不变。原重复payload1,251,227,904字节，保留恢复材料9,162,245字节，恢复材料口径逻辑减量1,242,065,659字节（另有小量清理收据成本）；临时证明不额外计回收，当前a16新增空间未从此口径扣除，整仓净变化/物理回收未测。收据 `aaos01-tools/a14-a15-runtime-cleanup.json`，保留donor、Core/workers/manifest和未知数据库。
+
+以下增量保留当时失败和修复过程；“正在重建/待实跑”属于历史状态，由上述新宿主结果更新，不能用历史构建替代当前CI。
+
+媒体身份修复增量：abc03 宿主实测单播放器、原件 duration=5.22839 秒、play() 实际成功、时间推进后 pause；转写 job/attempt 实际 succeeded，但 UI 拒绝结果。已定位为前端错误要求 jobs_get.kind：真实该接口没有 kind，source_jobs 才提供任务类型。现改用有界来源任务列表核实际 job ID/来源/kind/state/同 attempt，保留 jobs_get、SHA、字节数及 cue 校验；真实 DTO 形状的三项回归先 RED，再相关 23 tests/tsc GREEN，未为前端另改 Core 接口。失败收据 `aaos01-webdriver/4550f95f4bfd4fb6b94d25a01f209239/receipt.json` SHA `12950cd68d01734d9b1cba5abf594eee920fa93ee39f042efec4759f20a8c2fc` 保留，不把 worker succeeded 代替整 UI 旅程通过；修正版正在重建。
+
+新宿主验证增量：正式 Tauri CLI 生产嵌入宿主 `4af8ec822e4982c67fd1aa1a362ed8e668f256e4b5bab5b040036808762b7727` 的完整 12 步及四次正常 exit0 PASS，收据 `aaos01-webdriver/f7c6735bb4124408a3c49a7c3573e4f9/receipt.json`（40,030 字节，SHA `0465b0660872585d4b55eadd82b667cface8a8f6593c2c40e537ca351e59b793`）；独立 WM_CLOSE 收据 `aaos01-owned-wmclose-preflight/062dc38de48c4679b04bd995656a57b6/receipt.json`（2,231 字节，SHA `152ed324f70694adcd982aea123cac7dfd5fa7769b22444a233d5b9b63451346`）正常 exit0，无自有残留。此前直接 cargo release 构建漏用正式前端嵌入，导致开发地址 ERR_CONNECTION_REFUSED；错误构建两失败收据保留，不能算媒体业务失败或旅程通过。
+
+上述宿主媒体导入后的真实截图暴露重复播放器：MediaReader 和 JobContent 同层共用来源 ID key，重新打开来源会残留重复 DOM。定向 mock 原件回归先复现三播放器失败，再改为 media:/job: 各自唯一 key 后 GREEN；相关 10 tests/tsc PASS。该失败发生在转写之前，未虚构 ASR 或播放成功；修正版正在重建实测。
+
+正式生命周期修法已进入 canonical `scripts/probes/aaos01_tauri_webdriver_loop.py`：owned prelaunch + loopback debuggerAddress attach，保留原 12 步业务断言；退出必须经产品命令且 exit code 0，意外提前退出拒绝，最终核 PID/创建时间与调试/driver 端口释放。installer verifier 直接调用此探针，独立无观察器 WM_CLOSE 预检仍先执行且失败抛错。Ruff、29 项 CI/宿主合同回归 PASS；正式强化版本及新媒体 UI 尚待新宿主实跑与新 exact-SHA CI。
+
+权威暂存新 release 候选 a16：manifest SHA `75eedbdcc1fbb888aa1a255b2d2c756e28df8fa97d038cee236e29fadf6dc8ae`，Core SHA `c5be10c8af4e5a582d3821c5d2af0ac203808f819ac79b082ac1a7651148729b`；声明 source 4f747f03，声明来源仍 ASSERTED_NOT_VERIFIED，不冒充 exact-SHA CI。候选 `runtime/python.exe` 真实 import 四引擎 PASS（openpyxl3.1.5/pptx1.0.2/markitdown0.1.6/pytesseract0.3.13），各模块来自候选内部。a16 与当前 .rt 的 19,502 文件逐 SHA 对比仅 Core 不同；计划只备份/更新 Core 和 manifest，不整份复制运行时。
+
 2026-10-06 增量：现有资料库接入本地媒体播放器、独立 transcribe 入口及时间段引用；播放器使用已核 SHA 原件的 Blob URL，来源切换释放 URL，不自动播放。转写时间段在展示前核实际 job/source/attempt、loss_report UTF-8 内容 SHA 与字节数；创建引用后再核 Core 返回的版本、任务与位置身份，后续失败保留此前成功回执。前端 30 文件 201 tests、TypeScript、production build PASS；src-tauri fmt --check 与 cargo test 63 PASS/0 ignored。以上是组件/编译验证，尚未把新增播放器或转写入口计为真实 Tauri、安装态验收；来源重开后读取已持久转写结果正在补齐。固定 CI 仍为下述 8a79 失败运行，未以本地结果替代。
 
 来源重开读回已补齐：仅从 source_jobs 最近 50 条选择成功 transcribe，重新验证实际 job/输出/transform 回执，不自动重跑；最新失败独立展示，异步旧读回不能覆盖新执行。新增三项 mock 回归加相关整合共 32 tests PASS，tsc 和更新后的 production build PASS；仍待新宿主真实窗口验证。
@@ -84,11 +104,11 @@ a11 真实 Tauri 窗口旅程 `aaos01-webdriver/e4236d2bedb44a5882f2c03b480feb08
 | --- | --- | --- |
 | Q00 现场保护与最小对账 | PARTIAL | 已复核起始 SHA、工作树与工具路径；本轮使用独立候选及全新 Core 数据根。未知用户资产、旧库与历史回执保留；完整资产/schema/writer 身份不因本轮格式测试自动完成。 |
 | Q01 重构决定与目录登记 | TESTED_LOCAL | 已有 SUP-022 重构登记；本轮统一使用权威 `stage_backend_runtime.py` 产出候选，desktop-fast/build 使用相同准备步骤。此项不是旧编号中的“打包完成”；现行Directory/Language/RuntimeDelivery/ProjectContract及schema已按SUP-022最小同步，schema/引用回归PASS。 |
-| Q02 Tauri 启动与只读桥接 | TESTED_LOCAL / PARTIAL | 最终 src-tauri fmt --check PASS，cargo test 62 PASS/0 ignored，加1项有限核验分页边界测试5/5 PASS，包含真实候选解释器及统一首次启动/重试选择。真实 WebDriver 连续三轮读写/重启/恢复 PASS，最终两轮使用严格失败传播探针；独立安装态完整桥接仍待新 CI。 |
+| Q02 Tauri 启动与只读桥接 | TESTED_LOCAL / PARTIAL | 最终 src-tauri fmt --check PASS，cargo test 62 PASS/0 ignored，加1项有限核验分页边界测试5/5 PASS，包含真实候选解释器及统一首次启动/重试选择。最终05bda宿主正式owned attach完整12步及四次exit0、独立WM_CLOSE实际PASS，见上方非空收据；独立安装态完整桥接仍待新CI。 |
 | Q03 类型合同与权限 | PARTIAL | 既有启动契约、前缀隔离与权限测试保留；本轮未将单元测试提升为全部 DTO、对象权限与版本错误验收。生成合同、有限命令与对象范围需按任务书逐项读回。 |
 | Q04 原件与文档保存 | TESTED_LOCAL / PARTIAL | 已实现 schema11 CAS 原件、Document/Block、同事务 editor JSON/正文投影、稳定 block IDs、未知节点保真、乐观锁409、旧版本读取及恢复生成新版本；真实 file-backed Store/API 回归通过。25个约1MB文档的目录改为六字段摘要，全workspace --locked回归已PASS。独立备份演练继续见Q11；不能从API代推installedUI。 |
 | Q05 阅读与证据样板 | TESTED_LOCAL / PARTIAL | Tauri 已接有限命令、PDF.js、Tiptap、稳定块与版本、canonical引用；复用旧 Tauri DataTable/Section、Avalonia 来源链/折叠处理记录与导入回执布局。前端26文件176 tests、tsc、production build PASS；真实窗口中文阅读/保存/重启 PASS。物理IME与installed qualification未完成，PDF页锚点未伪写located。 |
-| Q06 A 波次多格式吸收 | TESTED_LOCAL / PARTIAL | a14独立A矩阵12/12通过，ZIP已走生产成员子任务：TXT/PDF/PNG/DOCX/XLSX/PPTX/HTML/Canvas/SRT/ZIP真实Core/worker/3产物/定位事实/损失及重启；PNG真实OCR文本、词boxes、stdin图像SHA已核实。矩阵WAV/MP4只media.probe头信息；另a14合成语音真实ASR与静音负例/重启通过，ASR时间锚点a15 debug真实验收通过；播放器、视频解码、真人质量及安装态仍缺。Office正/损坏四项均按预期成功/failed且重启一致。安装态逐格式与已知原生locator限制保留。 |
+| Q06 A 波次多格式吸收 | TESTED_LOCAL / PARTIAL | a14独立A矩阵12/12通过，ZIP已走生产成员子任务：TXT/PDF/PNG/DOCX/XLSX/PPTX/HTML/Canvas/SRT/ZIP真实Core/worker/3产物/定位事实/损失及重启；PNG真实OCR文本、词boxes、stdin图像SHA已核实。矩阵WAV/MP4只media.probe头信息；另a14合成语音真实ASR与静音负例/重启通过，ASR时间锚点a15 debug真实验收通过；播放器/合成语音原生闭环见当前增量；视频解码、真人质量及安装态仍缺。Office正/损坏四项均按预期成功/failed且重启一致。安装态逐格式与已知原生locator限制保留。 |
 | Q07 候选审核与纠正 | PARTIAL / AWAITING_OWNER | 新版审核同事务绑定实际knowledge version，过期409、machine403工程测试通过。已从权威任务书真实Source/job/transform摘录创建一个未接受候选，等待用户明确决定；工程设置human principal不当真人审核。 |
 | Q08 学习与 AI 资产闭环 | TESTED_LOCAL / PARTIAL | assessment/FSRS/幂等事件/机器任务/纠正入口已接有限Core。真实本机qwen3.5-4b经Core与候选worker回答公开工程夹具「37」，实际模型/提示版本/知识版本/任务及完全重启读回一致。该夹具审核明确AUTOMATED_FIXTURE_REVIEW_NOT_G4_HUMAN，结果unmeasured；真人决定、真人答案与纠正旅程仍缺，不虚构错误或效果。 |
 | Q09 搜索与完整能力目录 | TESTED_LOCAL / PARTIAL | 正典检索/审核页已接Core；从唯一CAPABILITY_ATLAS_V2.yaml与capability-map生成16个CAP目录及两源SHA，未来能力可浏览，握手/权限/调用证据分开，未匹配旧数字ID不伪造join。九个主导航复用正典页面与旧壳；生成检查/前端回归通过，完整真人检索旅程仍未验收。 |
