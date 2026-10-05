@@ -1,15 +1,16 @@
 import { useEffect, useRef, useState } from "react";
 import type { JSONContent } from "@tiptap/core";
 import { coreCommand } from "../api/core";
-import type { SourceDto, DocumentDto, DocumentSummaryDto, OriginalDto, AnchorDto, DocumentExportDto } from "../api/generated/core-contract";
+import type { SourceDto, DocumentDto, DocumentSummaryDto, OriginalDto, AnchorDto, DocumentExportDto, RevisionBasisDto } from "../api/generated/core-contract";
 import { Section } from "../components/RealData";
 import { DocumentEditor } from "../components/DocumentEditor";
 import { PdfReader } from "../components/PdfReader";
 import { JobContent } from "../components/JobContent";
+import { CheckPanel } from "../components/CheckPanel";
 import { BackupPanel } from "../components/BackupPanel";
 import "../components/content.css";
 
-export function CanonicalLibrarySpace({onKnowledge}:{onKnowledge?:()=>void}) {
+export function CanonicalLibrarySpace({onKnowledge,initialDocumentId,onDirtyChange}:{onKnowledge?:()=>void;initialDocumentId?:string;onDirtyChange?:(dirty:boolean)=>void}) {
   const [sources, setSources] = useState<SourceDto[]>([]);
   const [sourcePage, setSourcePage] = useState(0);
   const [documents, setDocuments] = useState<DocumentSummaryDto[]>([]);
@@ -27,7 +28,9 @@ export function CanonicalLibrarySpace({onKnowledge}:{onKnowledge?:()=>void}) {
   const [importing, setImporting] = useState(false);
   const [importReceipt,setImportReceipt]=useState<{name:string;bytes:number;state:string}|null>(null);
   const [exportProof, setExportProof] = useState<DocumentExportDto | null>(null);
+  const revisionBasis = useRef<RevisionBasisDto | null>(null);
   const dirty = useRef(false);
+  const editGeneration = useRef(0);
   const generation = useRef(0);
   const textRegion = useRef<HTMLPreElement>(null);
   useEffect(() => {
@@ -39,8 +42,9 @@ export function CanonicalLibrarySpace({onKnowledge}:{onKnowledge?:()=>void}) {
       if (!alive) return;
       setSources(sourcesResult.sources); setDocuments(docsResult.documents); setMessage("");
     }).catch(() => { if (alive) { setMessage("资料暂时无法读取，请检查本地核心。"); setFailure(true); } });
-    return () => { alive = false; generation.current += 1; window.dispatchEvent(new CustomEvent("archeaxis-draft-dirty", { detail: false })); };
+    return () => { alive = false; generation.current += 1; onDirtyChange?.(false); window.dispatchEvent(new CustomEvent("archeaxis-draft-dirty", { detail: false })); };
   }, []);
+  useEffect(()=>{if(initialDocumentId)void openDocument(initialDocumentId);},[initialDocumentId]);
   async function importFile(file: File) {
     setImportReceipt({name:file.name,bytes:file.size,state:"正在检查原件"});
     if (file.size > 5 * 1024 * 1024) { setMessage("当前导入上限为 5 MB，请选择较小样本。"); setFailure(true); setImportReceipt({name:file.name,bytes:file.size,state:"未导入：超过大小上限"}); return; }
@@ -57,7 +61,9 @@ export function CanonicalLibrarySpace({onKnowledge}:{onKnowledge?:()=>void}) {
   }
   async function open(selected: SourceDto) {
     if (dirty.current && !window.confirm("当前草稿尚未保存。仍要切换资料吗？请先保留文字。")) return;
+    revisionBasis.current = null;
     const epoch = ++generation.current;
+    const editingEpoch=editGeneration.current;
     setMessage("正在读取原件与文档…"); setFailure(false);
     let readStage="原件与引用读取";
     try {
@@ -65,7 +71,7 @@ export function CanonicalLibrarySpace({onKnowledge}:{onKnowledge?:()=>void}) {
         coreCommand<OriginalDto>("source_original", { source_id: selected.source_id }),
         coreCommand<{ anchors: AnchorDto[] }>("anchors_list", { source_id: selected.source_id }),
       ]);
-      if (epoch !== generation.current) return;
+      if (epoch !== generation.current || editingEpoch !== editGeneration.current) return;
       readStage="原件版本核对";
       if (asset.source_id!==selected.source_id||asset.sha256 !== selected.sha256) throw new Error("source identity mismatch");
       const decoded = Uint8Array.from(atob(asset.content_base64), (character) => character.charCodeAt(0));
@@ -75,16 +81,61 @@ export function CanonicalLibrarySpace({onKnowledge}:{onKnowledge?:()=>void}) {
       const linked = documents.find((item) => item.source_id === selected.source_id);
       readStage="草稿版本读取";
       const active = linked ? await coreCommand<DocumentDto>("document_get", { document_id: linked.document_id }) : null;
-      if (epoch !== generation.current) return;
+      if (epoch !== generation.current || editingEpoch !== editGeneration.current) return;
       setSource(selected); setOriginal(asset); setBytes(decoded); setDocument(active); setAnchors(evidence.anchors);
       setExportProof(null);
       setEditorEpoch((value) => value + 1); setPage(1); dirty.current = false; setMessage("原件哈希已核对；草稿与原件独立保存。");
-      window.dispatchEvent(new CustomEvent("archeaxis-draft-dirty", { detail: false }));
+      onDirtyChange?.(false); window.dispatchEvent(new CustomEvent("archeaxis-draft-dirty", { detail: false }));
     } catch { if (epoch === generation.current) { setFailure(true); setMessage(`${readStage}未完成；未替换当前内容，请保留原件重试。`); } }
+  }
+  async function openDocument(id: string) {
+    if (dirty.current && !window.confirm("当前草稿尚未保存。仍要切换文档吗？")) return;
+    revisionBasis.current = null;
+    const epoch = ++generation.current;
+    const editingEpoch=editGeneration.current;
+    try {
+      const active = await coreCommand<DocumentDto>("document_get", { document_id: id });
+      if (epoch !== generation.current || editingEpoch !== editGeneration.current) return;
+      setDocument(active); setSource(null); setOriginal(null); setBytes(null); setAnchors([]);
+      setEditorEpoch(value => value + 1); dirty.current = false; setExportProof(null);
+      setMessage("文档已读取；保存不要求来源引用或审核。"); setFailure(false);
+      onDirtyChange?.(false); window.dispatchEvent(new CustomEvent("archeaxis-draft-dirty", { detail: false }));
+      const linked = sources.find(item => item.source_id === active.source_id && item.source_revision === active.source_revision);
+      if (linked) {
+        try {
+          const [asset, evidence] = await Promise.all([
+            coreCommand<OriginalDto>("source_original", { source_id: linked.source_id }),
+            coreCommand<{anchors: AnchorDto[]}>("anchors_list", { source_id: linked.source_id }),
+          ]);
+          const decoded = Uint8Array.from(atob(asset.content_base64), char => char.charCodeAt(0));
+          const digest = Array.from(new Uint8Array(await crypto.subtle.digest("SHA-256", decoded))).map(value => value.toString(16).padStart(2,"0")).join("");
+          if (asset.source_id !== linked.source_id || asset.sha256 !== linked.sha256 || digest !== linked.sha256) throw new Error("source mismatch");
+          if (epoch === generation.current) { setSource(linked); setOriginal(asset); setBytes(decoded); setAnchors(evidence.anchors); setPage(1); }
+        } catch { if (epoch === generation.current) setMessage("文档已读取；关联原件未完成核验，仍可编辑保存文档。"); }
+      }
+    } catch { setMessage("文档读取未完成；当前内容仍保留。"); setFailure(true); }
+  }
+  async function createOriginal() {
+    if (dirty.current && !window.confirm("当前草稿尚未保存。仍要新建笔记吗？")) return;
+    const epoch=++generation.current;
+    const editingEpoch=editGeneration.current;
+    try {
+      const created = await coreCommand<DocumentDto>("document_create", { body: {
+        title: "原创笔记", editor_json: { type: "doc", content: [{ type: "paragraph" }] },
+      } });
+      setDocuments(previous=>[...previous,created]);
+      if(epoch!==generation.current||editingEpoch!==editGeneration.current){setMessage("原创笔记已建立，当前编辑内容仍保留；可从已保存文档打开新笔记。");return;}
+      revisionBasis.current = null;
+      setDocument(created);
+      setSource(null); setOriginal(null); setBytes(null); setAnchors([]); setExportProof(null);
+      setEditorEpoch(value => value + 1); dirty.current = false; setMessage("原创笔记已建立。"); setFailure(false);
+      onDirtyChange?.(false); window.dispatchEvent(new CustomEvent("archeaxis-draft-dirty", { detail: false }));
+    } catch { setMessage("原创笔记建立未确认；请重试。"); setFailure(true); }
   }
   async function create() {
     if (!source || !original || !bytes) return;
     const epoch = generation.current;
+    const editingEpoch=editGeneration.current;
     try {
       const plain = original.media_type.startsWith("text/") ? new TextDecoder().decode(bytes) : "";
       const created = await coreCommand<DocumentDto>("document_create", {
@@ -93,15 +144,17 @@ export function CanonicalLibrarySpace({onKnowledge}:{onKnowledge?:()=>void}) {
         editor_json: { type: "doc", content: [{ type: "paragraph", ...(plain ? { content: [{ type: "text", text: plain }] } : {}) }] },
         },
       });
-      if (epoch !== generation.current) return;
+      if (epoch !== generation.current || editingEpoch !== editGeneration.current) return;
       setDocument(created); setDocuments((previous) => [...previous, created]); setEditorEpoch((value) => value + 1); setMessage("草稿已建立并持久化。"); setFailure(false);
     } catch { setMessage("草稿建立失败；原件仍保留。"); setFailure(true); }
   }
   async function save(content: JSONContent, expectedVersion: number) {
     if (!document) throw new Error("document not loaded");
     const epoch = generation.current;
-    const saved = await coreCommand<DocumentDto>("document_draft", { document_id: document.document_id, body: { expected_version: expectedVersion, editor_json: content } });
+    const sentBasis = revisionBasis.current;
+    const saved = await coreCommand<DocumentDto>("document_draft", { document_id: document.document_id, body: { expected_version: expectedVersion, editor_json: content, ...(revisionBasis.current ? {revision_basis:revisionBasis.current} : {}) } });
     if (epoch === generation.current) {
+      if (revisionBasis.current === sentBasis) revisionBasis.current = null;
       setDocument(saved);
       setDocuments((previous) => previous.map((item) => item.document_id === saved.document_id ? saved : item));
     }
@@ -110,6 +163,7 @@ export function CanonicalLibrarySpace({onKnowledge}:{onKnowledge?:()=>void}) {
   async function restore() {
     if (!document) return;
     const epoch = generation.current;
+    const editingEpoch=editGeneration.current;
     const previous = Number(restoreVersion);
     if (!Number.isInteger(previous) || previous < 1 || previous > document.version) { setMessage("请输入已有的正整数版本。"); setFailure(true); return; }
     if (dirty.current && !window.confirm("恢复会替换尚未保存的草稿，请先保留文字。继续恢复吗？")) return;
@@ -117,9 +171,9 @@ export function CanonicalLibrarySpace({onKnowledge}:{onKnowledge?:()=>void}) {
       // Read the specific immutable version before requesting a new restored revision.
       await coreCommand<DocumentDto>("document_version", { document_id: document.document_id, version: previous });
       const restored = await coreCommand<DocumentDto>("document_restore", { document_id: document.document_id, body: { expected_version: document.version, restore_version: previous } });
-      if (epoch !== generation.current) return;
+      if (epoch !== generation.current || editingEpoch !== editGeneration.current) return;
       setDocument(restored); setEditorEpoch((value) => value + 1); dirty.current = false;
-      window.dispatchEvent(new CustomEvent("archeaxis-draft-dirty", { detail: false }));
+      onDirtyChange?.(false); window.dispatchEvent(new CustomEvent("archeaxis-draft-dirty", { detail: false }));
       setMessage(`已从版本 ${previous} 恢复为新版本 ${restored.version}。`); setFailure(false);
     } catch { setMessage("恢复失败或版本已变化；当前草稿仍保留。"); setFailure(true); }
   }
@@ -194,14 +248,18 @@ export function CanonicalLibrarySpace({onKnowledge}:{onKnowledge?:()=>void}) {
             })}
           </aside>
         </div>
+        {!document ? <button type="button" onClick={() => void create()}>建立版本化草稿</button> : null}
+      </div> : <p className="muted">选择一个原件开始阅读。</p>}
+    </div>
+    <button type="button" onClick={() => void createOriginal()}>新建原创笔记</button>
+    <nav aria-label="已保存文档">{documents.map(item => <button type="button" key={item.document_id} onClick={() => void openDocument(item.document_id)}>{item.title} · 文档</button>)}</nav>
         {document ? <>
-          <DocumentEditor key={`${document.document_id}:${editorEpoch}`} content={document.editor_json as JSONContent} version={document.version} onSave={save} onDirtyChange={(value) => { dirty.current = value; window.dispatchEvent(new CustomEvent("archeaxis-draft-dirty", { detail: value })); }} onCreateReference={cite} onReferenceActivate={jump} />
+          <DocumentEditor key={`${document.document_id}:${editorEpoch}`} content={document.editor_json as JSONContent} version={document.version} onSave={save} onDirtyChange={(value) => { dirty.current = value; if(value)editGeneration.current+=1; onDirtyChange?.(value); window.dispatchEvent(new CustomEvent("archeaxis-draft-dirty", { detail: value })); }} onCreateReference={source && original && bytes ? cite : undefined} onReferenceActivate={jump} />
+          <CheckPanel key={`checks:${document.document_id}:${document.version}`} document={document} onRevisionBasis={value=>{revisionBasis.current=value;}} />
           <div className="draft-restore"><label>恢复历史版本 <input type="number" min="1" max={document.version} value={restoreVersion} onChange={(event) => setRestoreVersion(event.target.value)} /></label><button type="button" onClick={() => void restore()}>读取并恢复版本</button></div>
           <div><button type="button" onClick={()=>void exportDocument("markdown")}>Markdown 导出到产品资料目录</button><button type="button" onClick={()=>void exportDocument("obsidian")}>Obsidian 包导出到产品资料目录</button></div>
           {exportProof?<details><summary>导出格式与损失回执</summary><pre>{JSON.stringify(exportProof,null,2)}</pre></details>:null}
-        </> : <button type="button" onClick={() => void create()}>建立版本化草稿</button>}
-      </div> : <p className="muted">选择一个原件开始阅读。</p>}
-    </div>
+        </> : null}
     {message ? <p role={failure ? "alert" : "status"}>{message}</p> : null}
     <BackupPanel />
   </Section>;

@@ -381,11 +381,26 @@ async fn document_draft_is_atomic_versioned_conflict_checked_and_restorable_afte
         );
         assert!(manifest["anchors"].as_array().unwrap().len() >= 2);
         assert!(!manifest["loss"].as_array().unwrap().is_empty());
+        let markdown = package["files"][0]["content"].as_str().unwrap();
+        assert!(markdown.contains(second["text_projection"].as_str().unwrap()));
+        assert!(!markdown.contains("[Immutable source](archeaxis://"));
+        assert!(!markdown.contains("[Evidence anchor](archeaxis://"));
+        let records: Vec<Value> = markdown
+            .lines()
+            .filter_map(|line| line.strip_prefix("    "))
+            .map(|record| serde_json::from_str(record).unwrap())
+            .collect();
+        assert_eq!(
+            records[0],
+            json!({"source_id":second["source_id"],"source_revision":second["source_revision"]})
+        );
+        assert_eq!(&records[1..], manifest["anchors"].as_array().unwrap());
         assert!(
-            package["files"][0]["content"]
-                .as_str()
+            manifest["loss"]
+                .as_array()
                 .unwrap()
-                .contains("archeaxis://sources/")
+                .iter()
+                .any(|item| item["code"] == "external_navigation_unavailable")
         );
     }
     assert_eq!(
@@ -554,5 +569,421 @@ async fn versioned_human_review_refuses_machine_and_stale_versions_without_parti
     assert_eq!(
         count, 0,
         "reading queue must not fabricate review or mastery"
+    );
+}
+
+#[tokio::test]
+async fn original_notes_and_version_bound_checks_remain_independent_and_restorable() {
+    let dir = tempfile::tempdir().unwrap();
+    let db = dir.path().join("original.sqlite");
+    let router = archeaxis_api::app(db.to_str().unwrap()).unwrap();
+    let editor = json!({"type":"doc","content":[{"type":"paragraph","attrs":{"block_id":"original-block"},"content":[{"type":"text","text":"原创，无来源，无认可仍保存"}]}]});
+    let body = json!({"title":"original","editor_json":editor});
+    assert_eq!(
+        call(
+            &router,
+            "POST",
+            "/api/v1/documents",
+            body.clone(),
+            "machine"
+        )
+        .await
+        .0,
+        403
+    );
+    assert_eq!(
+        call(
+            &router,
+            "POST",
+            "/api/v1/documents",
+            json!({"source_id":"absent","title":"invalid","editor_json":editor}),
+            "human"
+        )
+        .await
+        .0,
+        400
+    );
+    let (status, original) = call(&router, "POST", "/api/v1/documents", body, "human").await;
+    assert_eq!(status, 201, "{original}");
+    assert_eq!(
+        call(
+            &router,
+            "GET",
+            "/api/v1/search?q=%E5%8E%9F%E5%88%9B",
+            json!(null),
+            "machine"
+        )
+        .await
+        .1["documents"][0]["document_id"],
+        original["document_id"]
+    );
+    assert!(original["source_id"].is_null() && original["source_revision"].is_null());
+    let id = original["document_id"].as_str().unwrap();
+    let check_route = format!("/api/v1/documents/{id}/checks");
+    let initial = call(&router, "GET", &check_route, json!(null), "machine")
+        .await
+        .1;
+    assert_eq!(initial["checks"], json!([]));
+    assert_eq!(initial["default_status"], "unverified");
+    let request = json!({"version":1,"dimension":"professional_basis","provider_mode":"cloud"});
+    let (status, pending) = call(&router, "POST", &check_route, request, "machine").await;
+    assert_eq!(status, 201, "{pending}");
+    assert_eq!(pending["status"], "pending");
+    assert_eq!(pending["reason"], "worker_not_configured");
+    assert_eq!(pending["execution_verified"], false);
+    for fake in ["passed", "supported", "failed"] {
+        assert_eq!(call(&router,"POST",&check_route,json!({"version":1,"dimension":"professional_basis","provider_mode":"cloud","status":fake}),"human").await.0,400);
+    }
+    let manual = json!({"version":1,"dimension":"professional_basis","provider_mode":"manual","status":"supported","basis":"人工核对实验记录，非云执行","position":{"block_id":"original-block"}});
+    assert_eq!(
+        call(&router, "POST", &check_route, manual.clone(), "machine")
+            .await
+            .0,
+        403
+    );
+    let (status, support) = call(&router, "POST", &check_route, manual, "human").await;
+    assert_eq!(status, 201, "{support}");
+    assert_eq!(support["execution_state"], "reported_manual");
+    for status in ["uncertain", "original_unclear", "conflicting"] {
+        assert_eq!(call(&router,"POST",&check_route,json!({"version":1,"dimension":"recognition_fidelity","provider_mode":"manual","status":status}),"human").await.0,201);
+    }
+    assert_eq!(call(&router,"POST",&check_route,json!({"version":1,"dimension":"recognition_fidelity","provider_mode":"manual","status":"supported"}),"human").await.0,400);
+    assert_eq!(call(&router,"POST",&check_route,json!({"version":1,"dimension":"recognition_fidelity","provider_mode":"manual","status":"faithful","basis":"未经核实","position":{"type":"text","start":0,"end":1},"recognition_job_id":"unknown","recognition_result_sha256":"bad"}),"human").await.0,400);
+    let draft = format!("/api/v1/documents/{id}/draft");
+    assert_eq!(call(&router,"PUT",&draft,json!({"expected_version":1,"editor_json":editor,"revision_basis":{"rationale":"edit","human_approved":true}}),"human").await.0,400);
+    assert_eq!(call(&router,"PUT",&draft,json!({"expected_version":1,"editor_json":editor,"revision_basis":{"reference_version":9,"rationale":"edit"}}),"human").await.0,400);
+    let basis = json!({"reference_version":1,"check_id":support["check_id"],"position":{"block_id":"original-block"},"rationale":"保留旧版专业依据，非认可"});
+    let mut invalid_basis = basis.clone();
+    invalid_basis["position"] = json!({"block_id":"unknown-block"});
+    assert_eq!(
+        call(
+            &router,
+            "PUT",
+            &draft,
+            json!({"expected_version":1,"editor_json":editor,"revision_basis":invalid_basis}),
+            "human"
+        )
+        .await
+        .0,
+        400
+    );
+    let (status, saved) = call(
+        &router,
+        "PUT",
+        &draft,
+        json!({"expected_version":1,"editor_json":editor,"revision_basis":basis}),
+        "human",
+    )
+    .await;
+    assert_eq!(status, 200, "{saved}");
+    assert_eq!(saved["revision_basis"], basis);
+    assert_eq!(
+        call(&router, "GET", &check_route, json!(null), "human")
+            .await
+            .1["checks"],
+        json!([])
+    );
+    let historical = call(
+        &router,
+        "GET",
+        &format!("{check_route}?version=1"),
+        json!(null),
+        "human",
+    )
+    .await
+    .1;
+    assert_eq!(historical["historical"], true);
+    assert_eq!(historical["checks"].as_array().unwrap().len(), 5);
+    let (status, export) = call(
+        &router,
+        "GET",
+        &format!("/api/v1/documents/{id}/export?format=markdown"),
+        json!(null),
+        "human",
+    )
+    .await;
+    assert_eq!(status, 200, "{export}");
+    let (status, backup) = call(
+        &router,
+        "POST",
+        "/api/v1/workspace/backups",
+        json!({}),
+        "human",
+    )
+    .await;
+    assert_eq!(status, 201, "{backup}");
+    let artifact = dir
+        .path()
+        .join("backups")
+        .join(backup["filename"].as_str().unwrap());
+    let restored_path = dir.path().join("restored.sqlite");
+    let mut destination =
+        archeaxis_store_sqlite::init_workspace(restored_path.to_str().unwrap()).unwrap();
+    archeaxis_domain::backup::restore(artifact.to_str().unwrap(), &mut destination).unwrap();
+    assert_eq!(
+        archeaxis_domain::document::read(&destination, id, None).unwrap(),
+        saved
+    );
+    assert_eq!(
+        archeaxis_domain::document::checks(&destination, id, Some(1)).unwrap(),
+        historical
+    );
+    drop(destination);
+    drop(router);
+    let restarted = archeaxis_api::app(db.to_str().unwrap()).unwrap();
+    assert_eq!(
+        call(
+            &restarted,
+            "GET",
+            &format!("/api/v1/documents/{id}"),
+            json!(null),
+            "human"
+        )
+        .await
+        .1,
+        saved
+    );
+    assert_eq!(
+        call(
+            &restarted,
+            "GET",
+            &format!("{check_route}?version=1"),
+            json!(null),
+            "human"
+        )
+        .await
+        .1,
+        historical
+    );
+    // Save remains independent even after failed/pending checks and without a revision basis.
+    let updated = json!({"type":"doc","content":[{"type":"paragraph","content":[{"type":"text","text":"updated_search_only"}]}]});
+    assert_eq!(
+        call(
+            &restarted,
+            "PUT",
+            &draft,
+            json!({"expected_version":2,"editor_json":updated}),
+            "human"
+        )
+        .await
+        .0,
+        200
+    );
+    assert_eq!(
+        call(
+            &restarted,
+            "GET",
+            "/api/v1/search?q=updated_search_only",
+            json!(null),
+            "machine"
+        )
+        .await
+        .1["documents"][0]["version"],
+        3
+    );
+    assert_eq!(
+        call(
+            &restarted,
+            "GET",
+            "/api/v1/search?q=%E5%8E%9F%E5%88%9B",
+            json!(null),
+            "machine"
+        )
+        .await
+        .1["documents"],
+        json!([])
+    );
+    assert_eq!(
+        call(
+            &restarted,
+            "GET",
+            "/api/v1/search?q=%25",
+            json!(null),
+            "machine"
+        )
+        .await
+        .1["documents"],
+        json!([])
+    );
+}
+
+#[tokio::test]
+async fn completed_real_recognition_is_not_a_fidelity_basis_or_human_approval_by_itself() {
+    use archeaxis_application::{executor::Executor, jobs};
+    use archeaxis_domain::source::{self, ImportOutcome};
+    let dir = tempfile::tempdir().unwrap();
+    let python = std::path::PathBuf::from(std::env::var_os("ARCHEAXIS_PYTHON").unwrap());
+    let script = std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+        .join("../../services/python-workers/transport/text_ndjson.py");
+    let executor = Executor::open(
+        &dir.path().join("db.sqlite"),
+        &dir.path().join("staging"),
+        &python,
+        &script,
+    )
+    .await
+    .unwrap();
+    let source = executor
+        .store()
+        .submit(|conn| {
+            let id = match source::import_source(conn, "original text".as_bytes(), "test.txt", None)
+                .unwrap()
+            {
+                ImportOutcome::Imported { source_id, .. } => source_id,
+                _ => unreachable!(),
+            };
+            jobs::enqueue(conn, "recognition-job", "text", &id).unwrap();
+            let revision: String = conn
+                .query_row(
+                    "SELECT sha256 FROM sources WHERE source_id=?1",
+                    [&id],
+                    |r| r.get(0),
+                )
+                .unwrap();
+            (id, revision)
+        })
+        .await
+        .unwrap();
+    let router = archeaxis_api::runtime::router(executor.clone());
+    let response = router
+        .clone()
+        .oneshot(
+            Request::builder()
+                .method("POST")
+                .uri("/api/v1/jobs/recognition-job/executions")
+                .header("content-type", "application/json")
+                .header("idempotency-key", "real-recognition-check")
+                .body(Body::from("{\"deadline_ms\":5000}"))
+                .unwrap(),
+        )
+        .await
+        .unwrap();
+    assert_eq!(response.status(), 202);
+    tokio::time::timeout(std::time::Duration::from_secs(6), async {
+        loop {
+            let state = call(
+                &router,
+                "GET",
+                "/api/v1/jobs/recognition-job",
+                json!(null),
+                "human",
+            )
+            .await
+            .1;
+            if state["state"] == "succeeded" {
+                break;
+            }
+            assert!(
+                state["state"] == "running" || state["state"] == "queued",
+                "{state}"
+            );
+            tokio::time::sleep(std::time::Duration::from_millis(10)).await;
+        }
+    })
+    .await
+    .unwrap();
+    let editor = json!({"type":"doc","content":[{"type":"paragraph","content":[{"type":"text","text":"original text"}]}]});
+    let (status,doc)=call(&router,"POST","/api/v1/documents",json!({"source_id":source.0,"source_revision":source.1,"title":"recognition","editor_json":editor}),"human").await;
+    assert_eq!(status, 201, "{doc}");
+    let route = format!(
+        "/api/v1/documents/{}/checks",
+        doc["document_id"].as_str().unwrap()
+    );
+    assert_eq!(
+        call(&router, "GET", &route, json!(null), "human").await.1["checks"],
+        json!([]),
+        "recognition processing success must not create fidelity/basis/approval"
+    );
+    let output = call(
+        &router,
+        "GET",
+        "/api/v1/jobs/recognition-job/outputs/text",
+        json!(null),
+        "human",
+    )
+    .await
+    .1;
+    assert_eq!(output["content"], "original text");
+    use sha2::{Digest, Sha256};
+    let digest = format!(
+        "{:x}",
+        Sha256::digest(output["content"].as_str().unwrap().as_bytes())
+    );
+    let mut record = json!({"version":1,"dimension":"recognition_fidelity","provider_mode":"manual","status":"faithful","source_id":source.0,"source_revision":source.1,"recognition_job_id":"recognition-job","recognition_result_sha256":digest,"position":{"type":"text","start":0,"end":13},"basis":"Human compared actual original bytes and worker text"});
+    let mut wrong_position = record.clone();
+    wrong_position["position"]["end"] = json!(99999);
+    assert_eq!(
+        call(&router, "POST", &route, wrong_position, "human")
+            .await
+            .0,
+        400
+    );
+    let (status, receipt) = call(&router, "POST", &route, record.clone(), "human").await;
+    assert_eq!(status, 201, "{receipt}");
+    assert_eq!(receipt["execution_verified"], false);
+    assert_eq!(receipt["recognition_result_sha256"], digest);
+    record["recognition_result_sha256"] =
+        json!("ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff");
+    assert_eq!(call(&router, "POST", &route, record, "human").await.0, 400);
+    assert_eq!(
+        call(&router, "GET", &route, json!(null), "human").await.1["checks"]
+            .as_array()
+            .unwrap()
+            .len(),
+        1
+    );
+}
+
+#[tokio::test]
+async fn check_history_pagination_exposes_every_record_without_inheriting_new_version() {
+    let dir = tempfile::tempdir().unwrap();
+    let router = archeaxis_api::app(dir.path().join("history.sqlite").to_str().unwrap()).unwrap();
+    let doc = call(
+        &router,
+        "POST",
+        "/api/v1/documents",
+        json!({"title":"history","editor_json":{"type":"doc","content":[]}}),
+        "human",
+    )
+    .await
+    .1;
+    let route = format!(
+        "/api/v1/documents/{}/checks",
+        doc["document_id"].as_str().unwrap()
+    );
+    let body = json!({"version":1,"dimension":"professional_basis","provider_mode":"cloud"});
+    let mut last = Value::Null;
+    for _ in 0..1001 {
+        let (status, receipt) = call(&router, "POST", &route, body.clone(), "machine").await;
+        assert_eq!(status, 201, "{receipt}");
+        last = receipt;
+    }
+    let first = call(&router, "GET", &route, json!(null), "human").await.1;
+    assert_eq!(first["checks"].as_array().unwrap().len(), 1000);
+    assert_eq!(first["checks_capped"], true);
+    assert_eq!(first["next_offset"], 1000);
+    let second = call(
+        &router,
+        "GET",
+        &format!("{route}?offset=1000"),
+        json!(null),
+        "human",
+    )
+    .await
+    .1;
+    assert_eq!(second["checks"], json!([last]));
+    assert_eq!(second["checks_capped"], false);
+    assert!(second["next_offset"].is_null());
+    assert_eq!(
+        call(
+            &router,
+            "GET",
+            &format!("{route}?offset=-1"),
+            json!(null),
+            "human"
+        )
+        .await
+        .0,
+        400
     );
 }

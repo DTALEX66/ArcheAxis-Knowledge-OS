@@ -1,9 +1,9 @@
 schema: archeaxis.project-contract/v1
 schema_version: 1
 contract_version: 1.0.0-draft
-effective_at: "2026-09-04T00:00:00Z"
+effective_at: "2026-10-04T00:00:00Z"
 project: ArcheAxis Knowledge
-stage: vnext-updated-full-loop-2026-09-06
+stage: aaos01-quick-multiformat-loop-2026-10-04
 scope:
   included:
     - local Windows desktop knowledge workflow
@@ -20,11 +20,43 @@ scope:
     - unbounded autonomous web verification without budget
   planned_after_v01:
     - additional formats without a qualified engine
+# Normative requirements, not a receipt of implemented or verified behavior.
+content_policy:
+  evidence_uses:
+    recognition_fidelity: original_vs_local_extraction
+    professional_support: claim_vs_support_and_counterevidence
+  ordinary_save:
+    missing_external_source_or_evidence: allow
+    missing_cloud_verification: allow
+    failed_or_suspect_verification: allow
+    unsupported_claim: allow
+    not_human_reviewed: allow
+    permissions_structure_integrity: required
+    ui: no-mandatory-evidence-form-or-cloud-wait
+  preservation:
+    originals: retain
+    raw_results: retain
+    positions: retain
+    version_history: retain
+    source_traceability: preserve-original-revision-and-location
+  cloud_verification:
+    source_recognition_search_fact_check: separate
+    unconfigured_or_failed: retryable-not-fabricated
+    uncertainty_conflicts: retain
+    judgment_basis: original
+    empty_search: not-proof-of-falsehood
+    online_answers: never-overwrite-original
+  ai_use:
+    state: visible
+    hypotheses: allow-exploration
+    strict_evidence: filter-for-task-context
+  architecture: existing-tauri-finite-bridge-rust-single-writer-isolated-python-workers
 language_authority:
   desktop:
-    language: csharp
-    runtime: dotnet-10-lts
-    framework: avalonia-12.1.x
+    # SUP-022: frontend/ + src-tauri/; UI reaches Core through finite host commands.
+    language: rust
+    runtime: tauri-2
+    framework: react-typescript-vite
     may_authoritative_write: false
   core:
     language: rust

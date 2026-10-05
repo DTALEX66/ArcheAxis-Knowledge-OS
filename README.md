@@ -1,20 +1,19 @@
 # 星环知识平台（ArcheAxis Knowledge）
 
-> **当前权威入口（2026-09-23）**：本 README 保留产品介绍与历史兼容说明，
-> 不承担任务规划权威。当前执行必须从
+**当前版本**：`0.6.14`（开发源码版本；安装态资格与 Owner 接受另行验证）。
+
+> **当前权威入口（2026-10-05）**：从
 > [`docs/DOCUMENTATION_AUTHORITY_INDEX.md`](docs/DOCUMENTATION_AUTHORITY_INDEX.md)
-> 进入，再读取 R6 TaskPack、M0 覆盖、`R6-EXECUTION.md` 与 `R6-STATE.json`。
-> 旧版本、React/Tauri、R5/R3/R2 规划和发布摘要均为历史/兼容材料，不得当作
-> 当前实现或 Green 已替换证据。
+> 读取项目合同、SUP-022 与 AAOS-01 快速多格式闭环任务包。
+> [`PROJECT_CONTRACT.yaml`](PROJECT_CONTRACT.yaml) 的 `content_policy` 是内容保存和证据用途的规范；
+> 本轮实际进度与剩余缺口只登记在
+> [`AAOS-01 当前台账`](docs/current/AAOS01-Q00-Q15-LEDGER-FINAL-20261005.md)。
+> R6/M0 与旧任务包保留各自历史和证据，完成声明须核对实际运行及固定 SHA。
 
-<!-- Legacy/Migration names below are compatibility context only. -->
-
-> **v0.6.11 已发布（2026-08-27）**：exact-SHA CI、NSIS/Green/Portable 生命周期和 9 项公开资产读回已通过，正式 Release：[`v0.6.11`](https://github.com/DTALEX66/ArcheAxis-Knowledge-OS/releases/tag/v0.6.11)。该不可变版本随后被确认遗漏 OSUI v3 设计采用与中文一致性验收；发布工程通过不等于 UI 产品验收通过。修复只追加到后续版本，不改写 v0.6.11。
-
-> **前端现状**：正式 vNext 桌面壳是 `apps/ArcheAxis.Desktop/`（C#/Avalonia），
-> Rust Core 与隔离 Python worker 由 R6/M0 约束。React/Tauri 与旧 UI 仅作为
-> Green 兼容/行为参考，不是当前默认实现。P3 UI 仍需原生 GUI 首用验收；本地
-> build 或 headless smoke 不等于 Green 原位更新。
+> **当前实现方向**：React/TypeScript/Vite 内容界面 + Tauri 2/Rust 宿主，
+> 通过有限命令访问 Rust Core；Core 统一管理 SQLite/CAS 正典写入，Python workers 承担解析与模型计算。
+> 旧 Tauri 的导航、表格、恢复组件与 Avalonia 的来源/证据阅读布局作为可复用供体吸收。
+> 本地测试、固定 SHA 的 CI、真实安装态旅程和 Owner 接受分别验收。
 
 > **ArcheAxis Knowledge — a local-first, evidence-driven, bidirectional Human–AI Learning & Trusted-Knowledge Workspace for individuals and AI.**
 >
@@ -37,10 +36,11 @@
 - 能力图谱：[`docs/truth/CAPABILITY_ATLAS_V2.yaml`](docs/truth/CAPABILITY_ATLAS_V2.yaml)
 - 总蓝图：[`docs/blueprint/SYSTEM_MASTER_BLUEPRINT_V2.md`](docs/blueprint/SYSTEM_MASTER_BLUEPRINT_V2.md)
 
-**当前阶段**：R6/M0 本地 Green absorb-first，先完成真实 P0–P6 最短闭环；
-P3 Avalonia UI 是当前前端优先切片。未完成 Owner Gate、独立审计、Green
-备份/替换/回滚和安装验收前，不宣称全面 UI 闭环、发布或 Green 就绪。
-详见 [`docs/current/DOCUMENTATION-DRIFT-AUDIT-20260923.md`](docs/current/DOCUMENTATION-DRIFT-AUDIT-20260923.md)。
+**当前阶段**：按 AAOS-01 的真实导入、阅读编辑、版本、引用、审核、学习、AI 使用、导出、重启和副本恢复旅程推进。实际能力、媒体头信息探测限制、安装态失败和真人验收缺口见唯一当前台账；不凭构建或历史发布推定新产品已收口。
+
+**内容保存原则**：原创笔记、灵感、假设、未复核识别结果及待补依据的专业内容可以先保存、搜索、阅读和编辑。身份、写入权限、结构与完整性校验继续执行；普通保存不等待云端调用，也不要求先填证据表单。
+
+**两种证据用途**：识别核验对照原件检查本地解析/OCR/ASR 是否忠实；专业依据分析研究主张的支持、反驳与冲突。二者独立记录并绑定实际版本或片段。云端不可用保留待执行或失败状态，修订保留原始结果、位置、依据和版本历史。人工认可属于专用流程，保存本身不表示内容已证实。
 
 ---
 
@@ -58,10 +58,10 @@ P3 Avalonia UI 是当前前端优先切片。未完成 Owner Gate、独立审计
 | Tesseract 语言包 | OCR 中文/英文识别（chi_sim + eng） | https://github.com/tesseract-ocr/tessdata |
 | FFmpeg | 音视频处理 | https://ffmpeg.org/download.html |
 | Git | 版本控制 | https://git-scm.com/download/win |
-| .NET 10 SDK | 正式 C#/Avalonia 桌面构建 | https://dotnet.microsoft.com/download/dotnet/10.0 |
-| Rust toolchain | 正式 Rust Core 构建；不再作为 Tauri 产品壳工具链 | https://rustup.rs |
+| .NET 10 SDK | 保留的 Avalonia 供体与兼容回归 | https://dotnet.microsoft.com/download/dotnet/10.0 |
+| Rust toolchain | 正式 Rust Core 与 Tauri 宿主构建 | https://rustup.rs |
 | VS Build Tools (MSVC) | Rust Core 与 Windows 桌面本机构建链 | https://visualstudio.microsoft.com/visual-cpp-build-tools/ |
-| Node.js LTS | Legacy React/Tauri 恢复与行为回归（非正式产品壳） | https://nodejs.org/ |
+| Node.js LTS | 正式 React/TypeScript/Vite 界面构建 | https://nodejs.org/ |
 | Playwright 浏览器 | 浏览器自动化 | https://playwright.dev/python/docs/browsers |
 | scoop | Windows 包管理（可选） | https://scoop.sh |
 
@@ -98,14 +98,13 @@ bake-off 框架：[`shared/bakeoff.py`](shared/bakeoff.py) + [`shared/bakeoff_en
 
 ## 当前重点
 
-- **资料到知识的真实基础链**：网页、GitHub URL、本地文件导入 → candidate Research/Evidence → Knowledge/Learning/Mastery 治理；执行侧当前以 `read file:` 受限 Planner tracer 和局部闭环为主。
-- **个人学习与 AI 使用的双向反馈**：学习笔记、纠错、练习和人工审核不会自动提升为事实；AI 的来源、Claim、解释、任务结果和 Lesson 同样必须先经 Candidate 治理。
-- **可治理的本地运行时**：SQLite 持久化、Outbox/Receipt、失败不改状态、重试与回读，以及不暴露内部审计 ID 的公开投影。
-- **桌面 Workspace UI v3**：正式壳为 C#/Avalonia（`apps/ArcheAxis.Desktop/`）+ Rust Core；默认采用离线黑白深色基线。Archive Desk / Liquid Glass 仅作为历史设计参考。React/Tauri/Chromium 回归仅覆盖 legacy 兼容壳，不证明正式桌面 UI 已验收。当前 Avalonia 原生交互证据、Candidate 与 Green 安装证据分开记录；本地维护不创建新版本或改写公开资产。
-- **当前版本**：`0.6.14`；`v0.6.14` 是当前公开稳定 Release。当前 `main` 是不发新版本的维护主线；其路径选择 CI、全量资格化和 Green 安装态分别记录，不能互相替代；历史标签均不可改写。
-- **发布真相**：`v0.4.0` 是保留且不可原地改写的 historical release，但具有 **incomplete checksum payload coverage**；后续历史标签同样不重写。`v0.6.11` 的 tag/commit/tree、exact-SHA CI `33076417510`、Release run `33077810146`、三分发生命周期与 9 资产身份/摘要读回证据见 [`docs/RELEASE_LEDGER.md`](docs/RELEASE_LEDGER.md)。
+- **多格式内容闭环**：保全原件，记录解析结果、结构、定位、疑点、损失与错误，支持失败重试和重启读回。音视频现有回执仅为头信息探测，解码、ASR 与时间段闭环独立验收。
+- **独立保存与修订**：Document/Block 由 Core 版本化持久保存；无外部来源或未获得证据支持的原创内容不被审核入口阻塞。识别忠实度、专业依据与人工认可分别处理。
+- **人机双向学习**：保留实际知识候选、学习答案/计划、机器任务与纠正的来源和版本；探索性使用假设与要求严格依据的任务分别处理，未测量效果保持未评估。
+- **成熟能力复用**：继续使用已有 Tauri/Avalonia 资产、Tiptap/PDF.js、解析器、模型和搜索适配器；开源池登记项的许可证、版本与实际接入证据分别核验。
+- **可验证交付**：统一权威运行时暂存器、锁文件、有限宿主桥与单一 Core writer。发布和 Green 替换保留现有 Owner Gate；历史 Release 与本轮重构资格分开。
 
-Research candidate 仍必须经过人工审查和来源独立性验证，不能自动当作 verified truth。产品定位见 [`docs/PRODUCT_POSITIONING.md`](docs/PRODUCT_POSITIONING.md)；当前执行与任务状态见 [`docs/current/R6-EXECUTION.md`](docs/current/R6-EXECUTION.md) 与 [`docs/current/R6-STATE.json`](docs/current/R6-STATE.json)，验证规则见 [`docs/VERIFICATION_POLICY.md`](docs/VERIFICATION_POLICY.md)。[`docs/PROJECT_STATUS.md`](docs/PROJECT_STATUS.md) 是历史/冻结快照。
+执行规格见 [`AAOS-01 任务书`](docs/authority/taskpack-1004-aaos01/01_完整执行任务书.md)，产品规范见 [`项目合同`](PROJECT_CONTRACT.yaml)，实际结果见 [`当前台账`](docs/current/AAOS01-Q00-Q15-LEDGER-FINAL-20261005.md)。历史标签、许可证边界、用户资料及恢复基线保留原始身份。
 
 > **Historical snapshot: pre-R6 Research implementation.** The following
 > FastAPI/SQLite facade, routes and completion claims describe an earlier

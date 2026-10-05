@@ -314,6 +314,63 @@
       "deletion_authorization": "NOT_REQUESTED",
       "authorization": "Owner 2026-09-27 requested repository documentation/history audit, migration, consolidation and deletion of unused duplicates",
       "hash_scope": "original on-disk bytes, including existing checkout line endings"
+    },
+    {
+      "source_path": "docs/current/AAOS01-Q00-Q15-LEDGER-20261005.md",
+      "target_path": "docs/history/aaos01-20261005/AAOS01-Q00-Q15-LEDGER-20261005.md",
+      "action": "ARCHIVE_WITH_COMPATIBILITY_STUB",
+      "execution_date": "2026-10-05",
+      "owner": "ArcheAxis repository documentation",
+      "data_class": "HISTORICAL_RECORD",
+      "sha256": "e872950e0280f49c61b55e146d78f566de363be08cdc8ead2ce46fe58c8a833f",
+      "bytes": 5580,
+      "consumers": [
+        "docs/current/AAOS01-Q00-Q15-LEDGER-DELTA-20261005-R216.md"
+      ],
+      "rollback": "Copy hash-verified archive bytes to the original path only after preserving any newer user edits; retain the archive.",
+      "verification": "Absolute source/target constrained to this worktree/docs, absent target, original archive SHA-256 equality, compatibility stub and local links checked.",
+      "deletion_authorization": "APPROVED_FOR_EXACT_PATH",
+      "authorization": "Owner 2026-10-05 authorized AAOS project documentation consolidation; root approved these exact three superseded ledger paths and byte-preserving archive with compatibility stubs.",
+      "hash_scope": "original on-disk bytes including checkout line endings",
+      "superseded_by": "docs/current/AAOS01-Q00-Q15-LEDGER-FINAL-20261005.md"
+    },
+    {
+      "source_path": "docs/current/AAOS01-Q00-Q15-LEDGER-DELTA-20261005-R216.md",
+      "target_path": "docs/history/aaos01-20261005/AAOS01-Q00-Q15-LEDGER-DELTA-20261005-R216.md",
+      "action": "ARCHIVE_WITH_COMPATIBILITY_STUB",
+      "execution_date": "2026-10-05",
+      "owner": "ArcheAxis repository documentation",
+      "data_class": "HISTORICAL_RECORD",
+      "sha256": "e9ae782388af8bf7e65432cadf5320435555e3e68e9fe96a027efaa6c6afd9e0",
+      "bytes": 2380,
+      "consumers": [
+        "docs/current/AAOS01-RECORD-INDEX-AND-THE-SURPLUS-20261005.md"
+      ],
+      "rollback": "Copy hash-verified archive bytes to the original path only after preserving any newer user edits; retain the archive.",
+      "verification": "Absolute source/target constrained to this worktree/docs, absent target, original archive SHA-256 equality, compatibility stub and local links checked.",
+      "deletion_authorization": "APPROVED_FOR_EXACT_PATH",
+      "authorization": "Owner 2026-10-05 authorized AAOS project documentation consolidation; root approved these exact three superseded ledger paths and byte-preserving archive with compatibility stubs.",
+      "hash_scope": "original on-disk bytes including checkout line endings",
+      "superseded_by": "docs/current/AAOS01-Q00-Q15-LEDGER-FINAL-20261005.md"
+    },
+    {
+      "source_path": "docs/current/AAOS01-FIRST-PACKAGE-LEDGER.md",
+      "target_path": "docs/history/aaos01-20261005/AAOS01-FIRST-PACKAGE-LEDGER.md",
+      "action": "ARCHIVE_WITH_COMPATIBILITY_STUB",
+      "execution_date": "2026-10-05",
+      "owner": "ArcheAxis repository documentation",
+      "data_class": "HISTORICAL_RECORD",
+      "sha256": "a0f4c64a3687c70e0a59cf9baacbf1c207601143bf61e66397f50ff6109b6170",
+      "bytes": 17129,
+      "consumers": [
+        "docs/current/AAOS01-THE-HOST-NEEDS-NO-DATA-SUBDIR.md"
+      ],
+      "rollback": "Copy hash-verified archive bytes to the original path only after preserving any newer user edits; retain the archive.",
+      "verification": "Absolute source/target constrained to this worktree/docs, absent target, original archive SHA-256 equality, compatibility stub and local links checked.",
+      "deletion_authorization": "APPROVED_FOR_EXACT_PATH",
+      "authorization": "Owner 2026-10-05 authorized AAOS project documentation consolidation; root approved these exact three superseded ledger paths and byte-preserving archive with compatibility stubs.",
+      "hash_scope": "original on-disk bytes including checkout line endings",
+      "superseded_by": "docs/current/AAOS01-Q00-Q15-LEDGER-FINAL-20261005.md"
     }
   ]
 }

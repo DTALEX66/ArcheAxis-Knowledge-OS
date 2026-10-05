@@ -1,5 +1,6 @@
+import type { Editor } from "@tiptap/core";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { render, screen, waitFor } from "@testing-library/react";
+import { act, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { createHash, webcrypto } from "node:crypto";
 import { assertCoreDto } from "../api/generated/core-contract";
@@ -33,6 +34,70 @@ describe("canonical content sample", () => {
         default: throw new Error(operation);
       }
     });
+  });
+  it("does not let a late original creation discard newly edited text",async()=>{
+    let complete!:(value:unknown)=>void;
+    const previous=bridge.call.getMockImplementation()!;
+    bridge.call.mockImplementation((op:string,payload:Record<string,unknown>)=>op==="document_create"?new Promise(resolve=>{complete=resolve;}):previous(op,payload));
+    render(<CanonicalLibrarySpace/>);const user=userEvent.setup();
+    await user.click(await screen.findByRole("button",{name:"样板.txt · 文档"}));
+    const textbox=await screen.findByRole("textbox",{name:"文档草稿"});
+    await user.click(screen.getByRole("button",{name:"新建原创笔记"}));
+    fireEvent.compositionStart(textbox);act(()=>{(textbox as HTMLElement & {editor:Editor}).editor.commands.setContent({type:"doc",content:[{type:"paragraph",content:[{type:"text",text:"New unsaved text during request"}]}]},{emitUpdate:true});});
+    await screen.findByText(/尚未保存 · 当前持久化版本/);
+    await act(async()=>{complete({...doc,document_id:"late_original",source_id:null,source_revision:null,title:"late original",editor_json:{type:"doc",content:[{type:"paragraph"}]}});});
+    expect(screen.getByRole("textbox",{name:"文档草稿"})).toHaveTextContent("New unsaved text during request");
+    expect(screen.getByRole("button",{name:"late original · 文档"})).toBeInTheDocument();
+  });
+  it.each(["document_get","document_restore"])("preserves edits begun while %s is pending",async(operation)=>{
+    let complete!:(value:unknown)=>void;
+    const previous=bridge.call.getMockImplementation()!;
+    const other={...doc,document_id:"late-read",title:"late reader"};
+    bridge.call.mockImplementation((op:string,payload:Record<string,unknown>)=>{
+      if(op==="documents_list")return Promise.resolve({documents:[doc,other]});
+      if(op===operation&&(op!=="document_get"||payload.document_id==="late-read"))return new Promise(resolve=>{complete=resolve;});
+      return previous(op,payload);
+    });
+    render(<CanonicalLibrarySpace/>);const user=userEvent.setup();
+    await user.click(await screen.findByRole("button",{name:"样板.txt · 文档"}));
+    const textbox=await screen.findByRole("textbox",{name:"文档草稿"});
+    await user.click(screen.getByRole("button",{name:operation==="document_get"?"late reader · 文档":"读取并恢复版本"}));
+    fireEvent.compositionStart(textbox);act(()=>{(textbox as HTMLElement & {editor:Editor}).editor.commands.setContent({type:"doc",content:[{type:"paragraph",content:[{type:"text",text:"Preserved while read pending"}]}]},{emitUpdate:true});});
+    await screen.findByText(/尚未保存 · 当前持久化版本/);
+    await act(async()=>{complete(operation==="document_get"?other:{...doc,version:2});});
+    expect(screen.getByRole("textbox",{name:"文档草稿"})).toHaveTextContent("Preserved while read pending");
+  });
+  it("saves an explicitly selected revision basis without requiring check execution",async()=>{
+    const base=bridge.call.getMockImplementation();
+    bridge.call.mockImplementation(async(op:string,payload:Record<string,unknown>)=>{
+      if(op==="document_checks")return {document_id:doc.document_id,version:1,content_sha256:hash,historical:false,default_status:"unverified",checks_capped:false,next_offset:null,checks:[{check_id:"check1",document_id:doc.document_id,version:1,content_sha256:hash,dimension:"recognition_fidelity",provider_mode:"manual",status:"uncertain",actor:"human",execution_verified:false,execution_state:"recorded"}]};
+      return base?.(op,payload);
+    });
+    render(<CanonicalLibrarySpace/>);const user=userEvent.setup();
+    await user.click(await screen.findByRole("button",{name:"样板.txt · 文档"}));
+    await screen.findByText(/不确定 · 手动记录/);
+    await user.type(screen.getByLabelText("下一次修订理由"),"修订说明");await user.click(screen.getByRole("button",{name:"用于下一次修订"}));
+    await user.click(screen.getByRole("button",{name:"保存草稿"}));
+    await waitFor(()=>expect(bridge.call).toHaveBeenCalledWith("document_draft",{document_id:doc.document_id,body:{expected_version:1,editor_json:expect.anything(),revision_basis:{rationale:"修订说明",reference_version:1,check_id:"check1"}}}));
+  });
+  it("creates and edits an original note without source or review prerequisites", async()=>{
+    const originalDoc={...doc,source_id:null,source_revision:null,title:"原创笔记"};
+    const base=bridge.call.getMockImplementation();
+    bridge.call.mockImplementation(async(op:string,payload:Record<string,unknown>)=>{
+      if(op==="sources_list")return {sources:[]};
+      if(op==="documents_list")return {documents:[]};
+      if(op==="document_create")return originalDoc;
+      if(op==="document_draft")return {...originalDoc,version:2,editor_json:(payload.body as Record<string,unknown>).editor_json};
+      return base?.(op,payload);
+    });
+    render(<CanonicalLibrarySpace/>);
+    await userEvent.setup().click(screen.getByRole("button",{name:"新建原创笔记"}));
+    expect(await screen.findByLabelText("版本化草稿编辑器")).toBeInTheDocument();
+    expect(screen.queryByRole("button",{name:"引用当前页"})).not.toBeInTheDocument();
+    await userEvent.setup().click(screen.getByRole("button",{name:"保存草稿"}));
+    await waitFor(()=>expect(bridge.call).toHaveBeenCalledWith("document_draft",expect.anything()));
+    expect(bridge.call).toHaveBeenCalledWith("document_create",{body:{title:"原创笔记",editor_json:{type:"doc",content:[{type:"paragraph"}]}}});
+    expect(bridge.call.mock.calls.some(([op])=>op==="anchor_create"||op==="machine_answer")).toBe(false);
   });
   it("keeps the readback provenance folded and never upgrades an unverified locator",async()=>{
     const previous=bridge.call.getMockImplementation()!;

@@ -86,7 +86,7 @@ def test_the_launch_shape_split_adds_up():
     """Production method/path pairs differ from route mounts and omit manual receipts."""
     projections, conditional, runtime = router_mounts()
     inventory = tree_facts()["inventory_pairs"]
-    assert projections == 35, f"unconditional projection mounts changed: {projections}"
+    assert projections == 36, f"unconditional projection mounts changed: {projections}"
     assert conditional == 1, f"conditional manual receipt mounts changed: {conditional}"
     assert runtime == 19, f"runtime mounts changed: {runtime}"
     lib = (REPO / "crates/archeaxis-api/src/lib.rs").read_text(encoding="utf-8")
@@ -96,12 +96,12 @@ def test_the_launch_shape_split_adds_up():
     method_pattern = r"\b(?:get|post|put|patch|delete)\s*\("
     projection_pairs = len(re.findall(method_pattern, projection_builder))
     runtime_pairs = len(re.findall(method_pattern, runtime_builder))
-    assert projection_pairs == 39, f"projection method/path pairs changed: {projection_pairs}"
+    assert projection_pairs == 41, f"projection method/path pairs changed: {projection_pairs}"
     assert runtime_pairs == 19, f"runtime method/path pairs changed: {runtime_pairs}"
     assert projection_pairs + runtime_pairs == inventory
     contract = CONTRACT.read_text(encoding="utf-8")
-    assert "39 projection method/path pairs" in contract
-    assert "35 unconditional mounts" in contract
+    assert "41 projection method/path pairs" in contract
+    assert "36 unconditional mounts" in contract
     assert "manual legacy `/jobs/{id}/receipts` remains absent" in contract
 
 

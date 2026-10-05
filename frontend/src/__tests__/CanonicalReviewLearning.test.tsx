@@ -1,12 +1,50 @@
+import type { Editor } from "@tiptap/core";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { render, screen, waitFor } from "@testing-library/react";
+import { act, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { CanonicalKnowledgeSpace } from "../spaces/CanonicalKnowledgeSpace";
 import { CanonicalLearningSpace } from "../spaces/CanonicalLearningSpace";
 const bridge = vi.hoisted(()=>({call:vi.fn()}));
 vi.mock("../api/core",()=>({coreCommand:bridge.call}));
 describe("finite knowledge and learning commands",()=>{
- beforeEach(()=>bridge.call.mockReset());
+ beforeEach(()=>{bridge.call.mockReset();});
+ it("guards both closing and replacing an unsaved search document",async()=>{
+  const doc={document_id:"original",title:"原创内容",source_id:null,source_revision:null,version:1,content_sha256:"hash",editor_json:{type:"doc",content:[{type:"paragraph",content:[{type:"text",text:"随手记录"}]}]},text_projection:"随手记录",blocks:[]};
+  const second={...doc,document_id:"second",title:"第二文档"};
+  bridge.call.mockImplementation(async(op:string,payload:Record<string,unknown>)=>{
+   if(op==="search")return {items:[],transforms:[],documents:[{...doc,head:"note"},{...second,head:"second"}]};
+   if(op==="sources_list")return {sources:[]};if(op==="documents_list")return {documents:[doc,second]};
+   if(op==="document_get")return payload.document_id==="second"?second:doc;
+   throw new Error(op);
+  });
+  const confirm=vi.spyOn(window,"confirm").mockReturnValue(false);
+  render(<CanonicalKnowledgeSpace/>);const user=userEvent.setup();await user.click(screen.getByRole("button",{name:"搜索"}));
+  await user.click(await screen.findByRole("button",{name:"原创内容 · 版本 1"}));
+  const textbox=await screen.findByRole("textbox",{name:"文档草稿"});
+  fireEvent.compositionStart(textbox);act(()=>{(textbox as HTMLElement & {editor:Editor}).editor.commands.setContent({type:"doc",content:[{type:"paragraph",content:[{type:"text",text:"Unsaved searched document"}]}]},{emitUpdate:true});});
+  await screen.findByText(/尚未保存 · 当前持久化版本/);
+  await user.click(screen.getByRole("button",{name:"关闭搜索文档"}));
+  expect(screen.getByRole("textbox",{name:"文档草稿"})).toHaveTextContent("Unsaved searched document");
+  await user.click(screen.getByRole("button",{name:"第二文档 · 版本 1"}));
+  expect(screen.getByRole("textbox",{name:"文档草稿"})).toHaveTextContent("Unsaved searched document");
+  expect(confirm).toHaveBeenCalledTimes(2);confirm.mockRestore();
+ });
+ it("searches an original unverified document and opens the existing editor without knowledge acceptance",async()=>{
+  const doc={document_id:"original",title:"原创内容",source_id:null,source_revision:null,version:1,content_sha256:"hash",editor_json:{type:"doc",content:[{type:"paragraph",content:[{type:"text",text:"随手记录"}]}]},text_projection:"随手记录",blocks:[]};
+  bridge.call.mockImplementation(async(op:string,payload:Record<string,unknown>)=>{
+   if(op==="search")return {items:[],transforms:[],documents:[{...doc,head:"随手记录"}],document_count:1};
+   if(op==="sources_list")return {sources:[]};if(op==="documents_list")return {documents:[doc]};
+   if(op==="document_get")return doc;
+   if(op==="document_draft")return {...doc,version:2,editor_json:(payload.body as Record<string,unknown>).editor_json};
+   if(op==="document_checks")return {document_id:"original",version:1,content_sha256:"hash",historical:false,default_status:"unverified",checks_capped:false,next_offset:null,checks:[]};
+   throw new Error(op);
+  });
+  render(<CanonicalKnowledgeSpace/>);const user=userEvent.setup();await user.click(screen.getByRole("button",{name:"搜索"}));
+  await user.click(await screen.findByRole("button",{name:"原创内容 · 版本 1"}));
+  await screen.findByLabelText("版本化草稿编辑器");await user.click(screen.getByRole("button",{name:"保存草稿"}));
+  await waitFor(()=>expect(bridge.call).toHaveBeenCalledWith("document_draft",expect.anything()));
+  expect(screen.queryByRole("button",{name:"接受当前候选"})).not.toBeInTheDocument();
+ });
  it("shows evidence before a user's version-checked review and preserves note on conflict",async()=>{
   bridge.call.mockImplementation(async(op:string)=>{
    if(op==="search") return {items:[{knowledge_id:"k1",head:"候选正文",status:"candidate",active:false}],transforms:[]};

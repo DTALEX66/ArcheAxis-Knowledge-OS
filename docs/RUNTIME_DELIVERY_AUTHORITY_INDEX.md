@@ -11,8 +11,8 @@
 
 ## Formal vNext Windows product chain
 
-Current project authority sets `apps/ArcheAxis.Desktop/` (C#/Avalonia) as the
-formal desktop, the Rust service in `crates/archeaxis-api/` as the vNext Core
+SUP-022 sets `frontend/` (React/TypeScript/Vite) and `src-tauri/` (Rust/Tauri 2)
+as the formal desktop, the Rust service in `crates/archeaxis-api/` as the vNext Core
 and canonical writer, and isolated Python workers in
 `services/python-workers/`. The existing implementation still needs the R6
 Windows/full-loop qualification; this map does not claim a usable vNext package.
@@ -29,20 +29,25 @@ See [current R6 execution](current/R6-EXECUTION.md),
 
 | Layer | Formal vNext source | Boundary |
 | --- | --- | --- |
-| Formal desktop UI source | [`apps/ArcheAxis.Desktop/`](../apps/ArcheAxis.Desktop/) | C#/Avalonia product shell and Core supervisor. |
+| Formal desktop UI source | [`frontend/`](../frontend/) | React/TypeScript/Vite content UI uses generated contracts and finite HostAdapter commands. |
+| Formal desktop host | [`src-tauri/tauri.conf.json`](../src-tauri/tauri.conf.json) and [`src-tauri/src/main.rs`](../src-tauri/src/main.rs) | Tauri 2 owns the Core lifecycle and finite authenticated bridge; credentials stay in Rust memory. |
+| Formal UI build | `.project-local/build/frontend-dist/` | Embedded frontend output, not the recovery bootstrap or an installed Green identity. |
+| Formal candidate preparation | [`scripts/release/stage_backend_runtime.py`](../scripts/release/stage_backend_runtime.py) | One authoritative runtime/worker/Core candidate preparation for desktop-fast and desktop-build; actual hashes and locked-runtime imports must be verified. |
+| Preserved Avalonia reference | [`apps/ArcheAxis.Desktop/`](../apps/ArcheAxis.Desktop/) | Behavior/recovery donor, not a second default product shell. |
 | Canonical Core | [`crates/archeaxis-api/`](../crates/archeaxis-api/) | Rust API/Core owns the vNext database; no dual write to legacy data. |
 | Isolated capability workers | [`services/python-workers/`](../services/python-workers/) | Python workers receive bounded requests and do not own the vNext database. |
 
 ## Preserved Green v0.6.14 maintenance chain
 
 The following chain diagnoses the existing installed Green product only.
-It is not the formal vNext delivery route (SUP-007).
+It is not the formal vNext delivery route under SUP-022. Source paths below refer
+to the frozen v0.6.14 revision, not the current branch's formal Tauri/Core product.
 
 | Layer | Canonical location | Authority and verification boundary |
 | --- | --- | --- |
-| Legacy Green UI source | [`frontend/src/`](../frontend/src/) | Preserved React product surface for v0.6.14 maintenance/recovery; not the formal vNext desktop. Changes require its targeted legacy tests and build. |
+| Legacy Green UI source | `frontend/src/` at the frozen v0.6.14 revision | Historical React product surface for v0.6.14 maintenance/recovery; not the formal vNext desktop at that revision. Current branch files serve the SUP-022 formal UI. |
 | Legacy Green UI build | `.project-local/build/frontend-dist/` | Generated input to the legacy Tauri maintenance build; it is embedded, not loaded from a Green `bootstrap/` directory. The directory is intentionally absent from a clean source checkout. |
-| Legacy Green desktop host | [`src-tauri/tauri.conf.json`](../src-tauri/tauri.conf.json) and [`src-tauri/src/main.rs`](../src-tauri/src/main.rs) | `com.archeaxis.workspace`, title `星环知识平台（ArcheAxis Knowledge）`, and `WebviewUrl::App`; this host serves the existing Green installation only. |
+| Legacy Green desktop host | `src-tauri/tauri.conf.json` and `src-tauri/src/main.rs` at the frozen v0.6.14 revision | `com.archeaxis.workspace`, title `星环知识平台（ArcheAxis Knowledge）`, and `WebviewUrl::App` are historical identifiers; shared path/title alone does not identify the current executable or backend contract. |
 | Legacy Green maintenance candidate | `.project-local/build/tauri/release/ArcheAxis.exe` | Local build output only. Its SHA-256 must be read back before an authorized Green maintenance operation. |
 | Green deployment target | `D:/All projects/ArcheAxis.Knowledge.Green-x64/ArcheAxis.exe` | Existing `v0.6.14` maintenance target. Replace only while no `ArcheAxis.exe` process is running; save a hash-addressed backup and require candidate/target SHA-256 equality. |
 | Green GUI launcher | `D:/All projects/ArcheAxis.Knowledge.Green-x64/启动星环知识.vbs` | Silent GUI-only launch path. It starts the exact sibling `ArcheAxis.exe`; it must not invoke a console host. |
@@ -62,7 +67,7 @@ evidence establishes a separate dependency.
 ## Required evidence for an authorized legacy Green maintenance repair
 
 These steps apply only to a requested legacy Green maintenance operation after
-the exact-path R6/A16 Owner Gate authorizes it. They are not the vNext Avalonia
+the exact-path R6/A16 Owner Gate authorizes it. They are not the formal Tauri
 Candidate workflow.
 
 1. Identify the window title and executable path; reject an update if the
@@ -76,8 +81,8 @@ Candidate workflow.
    process path, version/status endpoint and visible UI result. Do not inspect,
    copy or clear Green `data/`.
 
-For the formal Avalonia desktop, use the R6 TaskPack Candidate gates and
-project-local isolated runtime evidence. A local build or UI run does not
+For the formal Tauri desktop, use the AAOS-01 Candidate gates under SUP-022,
+R6/M0 preservation boundaries and project-local isolated runtime evidence. A local build or UI run does not
 authorize Green replacement.
 
 ## Relationship to other authority records

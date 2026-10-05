@@ -946,6 +946,17 @@ jobs:
         id: document_loop
         working-directory: ${{ github.workspace }}
         run: python -B scripts/probes/aaos01_document_backup_loop.py --candidate .project-local/rt
+      - name: Verify ordinary saving and independent content checks
+        id: content_policy_loop
+        working-directory: ${{ github.workspace }}
+        run: python -B scripts/probes/aaos01_content_policy_runtime_loop.py --candidate .project-local/rt
+      - name: Upload content policy runtime receipt
+        if: ${{ always() && steps.content_policy_loop.outcome != 'skipped' }}
+        uses: actions/upload-artifact@834a144ee995460fba8ed112a2fc961b36a5ec5a
+        with:
+          name: desktop-fast-content-policy-${{ github.sha }}-${{ github.run_attempt }}
+          path: .project-local/task-runtime/aaos01-content-policy/**/receipt.json
+          if-no-files-found: error
       - name: Verify independent Q12 format and exchange loops
         id: light_loop
         working-directory: ${{ github.workspace }}

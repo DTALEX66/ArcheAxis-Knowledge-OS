@@ -69,7 +69,7 @@ paths:
                 $ref: "core-document.schema.json#/$defs/DocumentsListDto"
     post:
       operationId: createCanonicalDocument
-      description: "Human only; body source_id, source_revision, title, editor_json. Unknown fields rejected; source revision must exist."
+      description: "Human only; body title, editor_json and optional source_id/source_revision pair. Original notes need no external source; supplied pair must reference an existing source revision."
       x-contract-status: implemented-source-slice-not-owner-acceptance
       responses:
         "201":
@@ -98,6 +98,35 @@ paths:
               schema:
                 $ref: "core-document.schema.json#/$defs/DocumentDto"
         "404": {description: Referenced source/document/version not found}
+  /api/v1/documents/{document_id}/checks:
+    parameters:
+      - name: document_id
+        in: path
+        required: true
+        schema: {type: string}
+    get:
+      operationId: readDocumentChecks
+      description: "Version/hash bound fidelity and professional basis records; optional version and offset, paginated next_offset."
+      x-contract-status: implemented-source-slice-not-owner-acceptance
+      responses:
+        "200":
+          description: Independent verification records
+          content:
+            application/json:
+              schema:
+                $ref: "core-document.schema.json#/$defs/DocumentChecksDto"
+    post:
+      operationId: recordDocumentCheck
+      description: "Human-only explicit manual report or pending cloud request. Never a save prerequisite or human approval substitute."
+      x-contract-status: implemented-source-slice-not-owner-acceptance
+      responses:
+        "201":
+          description: Version-bound record
+          content:
+            application/json:
+              schema:
+                $ref: "core-document.schema.json#/$defs/DocumentCheckDto"
+        "403": {description: Machine actor cannot mutate this resource}
   /api/v1/documents/{document_id}/draft:
     parameters:
       - name: document_id
@@ -106,7 +135,7 @@ paths:
         schema: {type: string}
     put:
       operationId: saveCanonicalDocument
-      description: "Human only; body expected_version, editor_json. Unknown fields rejected; stale version returns 409 without overwrite."
+      description: "Human only; body expected_version, editor_json and optional revision_basis. Unknown fields rejected; stale version returns 409 without overwrite."
       x-contract-status: implemented-source-slice-not-owner-acceptance
       responses:
         "200":

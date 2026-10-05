@@ -65,6 +65,10 @@ pub fn projections(state: Store, manual_receipts: bool) -> Router {
         )
         .route("/api/v1/documents/:document_id", get(documents::read))
         .route(
+            "/api/v1/documents/:document_id/checks",
+            get(documents::checks).post(documents::record_check),
+        )
+        .route(
             "/api/v1/documents/:document_id/export",
             get(documents::export),
         )
@@ -1807,9 +1811,12 @@ async fn search_knowledge(
                     .collect(),
                 Err(e) => return (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()).into_response(),
             };
+            let documents=match archeaxis_domain::document::search(conn,&query.q){Ok(rows)=>rows,Err(e)=>return documents::failure(e)};
             Json(serde_json::json!({
                 "count": items.len(),
                 "items": items,
+                "document_count": documents.len(),
+                "documents": documents,
                 "transform_count": transforms.len(),
                 "transforms": transforms,
             }))

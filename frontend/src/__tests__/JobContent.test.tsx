@@ -5,6 +5,25 @@ import { JobContent } from "../components/JobContent";
 const bridge=vi.hoisted(()=>({call:vi.fn()}));vi.mock("../api/core",()=>({coreCommand:bridge.call}));
 describe("Core job content",()=>{
  beforeEach(()=>{bridge.call.mockReset();});
+ it("retains successful output when a later job fails and binds candidates to its successful transform",async()=>{
+  let latest="";let executions=0;
+  bridge.call.mockImplementation(async(op:string,payload:Record<string,unknown>)=>{
+   if(op==="capabilities_list")return {};
+   if(op==="job_enqueue"){latest=String((payload.body as Record<string,unknown>).job_id);return {job_id:latest};}
+   if(op==="job_execute"){executions++;return {};}
+   if(op==="jobs_get")return executions===1?{state:"succeeded"}:{state:"failed",error_code:"AAK-WORKER-003"};
+   if(op==="job_output")return {content:payload.kind==="text"?"保留正文": "[]"};
+   if(op==="job_quality")return {engine:"real"};
+   if(op==="source_job_transform")return {source_id:"s",job_id:latest,transform_id:42,content:"保留正文"};
+  });
+  render(<JobContent sourceId="s" name="sample.xlsx"/>);
+  const user=userEvent.setup();await user.click(screen.getByRole("button",{name:"执行真实内容转换"}));
+  expect(await screen.findByLabelText("Core 提取正文")).toHaveTextContent("保留正文");
+  await user.click(screen.getByRole("button",{name:"执行真实内容转换"}));
+  await screen.findByText(/转换未完成或产物读取失败/);
+  expect(screen.getByLabelText("Core 提取正文")).toHaveTextContent("保留正文");
+  expect(screen.getByText(/AAK-WORKER-003/)).toBeInTheDocument();
+ });
  it("requires real completion and reads all persisted outputs with actual engine proof",async()=>{
  bridge.call.mockImplementation(async(op:string,payload:Record<string,unknown>)=>{
   if(op==="capabilities_list")return {execution_verified:false};

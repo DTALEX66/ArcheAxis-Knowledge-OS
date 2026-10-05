@@ -98,10 +98,16 @@
           "type": "string"
         },
         "source_id": {
-          "type": "string"
+          "type": [
+            "string",
+            "null"
+          ]
         },
         "source_revision": {
-          "type": "string"
+          "type": [
+            "string",
+            "null"
+          ]
         },
         "title": {
           "type": "string"
@@ -121,7 +127,8 @@
           "items": {
             "$ref": "#/$defs/BlockDto"
           }
-        }
+        },
+        "revision_basis": {}
       },
       "required": [
         "document_id",
@@ -303,6 +310,15 @@
           "type": "integer"
         },
         "transform_count": {
+          "type": "integer"
+        },
+        "documents": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/DocumentSearchDto"
+          }
+        },
+        "document_count": {
           "type": "integer"
         }
       },
@@ -492,10 +508,16 @@
           "type": "string"
         },
         "source_id": {
-          "type": "string"
+          "type": [
+            "string",
+            "null"
+          ]
         },
         "source_revision": {
-          "type": "string"
+          "type": [
+            "string",
+            "null"
+          ]
         },
         "title": {
           "type": "string"
@@ -572,6 +594,219 @@
       "required": [
         "backups"
       ]
+    },
+    "RevisionBasisDto": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "rationale"
+      ],
+      "properties": {
+        "rationale": {
+          "type": "string"
+        },
+        "reference_version": {
+          "type": "integer"
+        },
+        "check_id": {
+          "type": "string"
+        },
+        "position": {
+          "type": "object"
+        }
+      }
+    },
+    "DocumentCheckDto": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": [
+        "check_id",
+        "document_id",
+        "version",
+        "content_sha256",
+        "dimension",
+        "provider_mode",
+        "status",
+        "actor",
+        "execution_verified",
+        "execution_state"
+      ],
+      "properties": {
+        "check_id": {
+          "type": "string"
+        },
+        "document_id": {
+          "type": "string"
+        },
+        "version": {
+          "type": "integer"
+        },
+        "content_sha256": {
+          "type": "string"
+        },
+        "dimension": {
+          "enum": [
+            "recognition_fidelity",
+            "professional_basis"
+          ]
+        },
+        "provider_mode": {
+          "enum": [
+            "manual",
+            "cloud"
+          ]
+        },
+        "status": {
+          "enum": [
+            "pending",
+            "unverified",
+            "uncertain",
+            "original_unclear",
+            "conflicting",
+            "failed",
+            "faithful",
+            "mismatch",
+            "supported",
+            "refuted",
+            "passed"
+          ]
+        },
+        "actor": {
+          "type": "string"
+        },
+        "execution_verified": {
+          "type": "boolean"
+        },
+        "execution_state": {
+          "type": "string"
+        },
+        "source_id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "source_revision": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "position": {},
+        "recognition_job_id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "recognition_result_sha256": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "basis": {},
+        "reason": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "recorded_at": {
+          "type": "string"
+        }
+      }
+    },
+    "DocumentChecksDto": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "document_id",
+        "version",
+        "content_sha256",
+        "historical",
+        "default_status",
+        "checks",
+        "checks_capped",
+        "next_offset"
+      ],
+      "properties": {
+        "document_id": {
+          "type": "string"
+        },
+        "version": {
+          "type": "integer"
+        },
+        "content_sha256": {
+          "type": "string"
+        },
+        "historical": {
+          "type": "boolean"
+        },
+        "default_status": {
+          "enum": [
+            "unverified"
+          ]
+        },
+        "checks": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/DocumentCheckDto"
+          }
+        },
+        "checks_capped": {
+          "type": "boolean"
+        },
+        "next_offset": {
+          "type": [
+            "integer",
+            "null"
+          ]
+        }
+      }
+    },
+    "DocumentSearchDto": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": [
+        "document_id",
+        "title",
+        "version",
+        "content_sha256",
+        "head"
+      ],
+      "properties": {
+        "document_id": {
+          "type": "string"
+        },
+        "title": {
+          "type": "string"
+        },
+        "version": {
+          "type": "integer"
+        },
+        "content_sha256": {
+          "type": "string"
+        },
+        "source_id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "source_revision": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "head": {
+          "type": "string"
+        },
+        "projection_capped": {
+          "type": "boolean"
+        }
+      }
     }
   }
 }

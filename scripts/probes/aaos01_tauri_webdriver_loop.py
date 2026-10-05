@@ -65,10 +65,13 @@ def main():
     )
     port, native = free_port(), free_port()
     env = dict(os.environ)
-    for key in ("ARCHEAXIS_DEV_EXTERNAL_BACKEND", "WEBVIEW2_ADDITIONAL_BROWSER_ARGUMENTS"):
+    for key in (
+        "ARCHEAXIS_DEV_EXTERNAL_BACKEND",
+        "WEBVIEW2_ADDITIONAL_BROWSER_ARGUMENTS",
+        "WEBVIEW2_USER_DATA_FOLDER",
+    ):
         env.pop(key, None)
     env["ARCHEAXIS_PORTABLE_ROOT"] = str(work / "data")
-    env["WEBVIEW2_USER_DATA_FOLDER"] = str(work / "webview")
     receipt = {
         "ok": False,
         "evidence_level": "REAL_TAURI_WEBDRIVER_CANDIDATE",
@@ -80,6 +83,9 @@ def main():
         "conditions": {
             "new_session_timeout_seconds": args.session_timeout,
             "ordinary_request_timeout_seconds": 45,
+            "webview_user_data_folder": str(work / "webview"),
+            "webview_user_data_folder_owner": "EdgeDriver webviewOptions.userDataFolder",
+            "webview_user_data_folder_strategy": "Fresh session-N profile per launch; canonical product data root unchanged",
         },
         "limitations": [
             "Candidate executable, not NSIS installed journey",
@@ -120,6 +126,21 @@ def main():
         return request(
             "POST", f"/session/{session}/execute/sync", {"script": script, "args": arguments or []}
         )
+
+    def ui_element(using, selector):
+        value = request("POST", f"/session/{session}/element", {"using": using, "value": selector})
+        return value["element-6066-11e4-a52e-4f735466cecf"]
+
+    def ui_click(text, scope=""):
+        selector = f"{scope}//button[normalize-space(.)='{text}']"
+        element = ui_element("xpath", selector)
+        request("POST", f"/session/{session}/element/{element}/click", {})
+        receipt.setdefault("ui_selectors", []).append({"action": "click", "selector": selector})
+
+    def ui_type(selector, text):
+        element = ui_element("css selector", selector)
+        request("POST", f"/session/{session}/element/{element}/value", {"text": text})
+        receipt.setdefault("ui_selectors", []).append({"action": "type", "selector": selector})
 
     def bridge(operation, payload=None):
         value = request(
@@ -164,12 +185,23 @@ def main():
     def launch():
         nonlocal session
         began = time.monotonic()
+        folder = work / "webview" / f"session-{len(receipt.get('launch_attempts', [])) + 1}"
+        receipt.setdefault("launch_attempts", []).append({
+            "user_data_folder": str(folder),
+            "previous_owned_hosts_exited": all(item["exited"] for item in receipt.get("host_shutdowns", [])),
+        })
         result = request(
             "POST",
             "/session",
             {
                 "capabilities": {
-                    "alwaysMatch": {"tauri:options": {"application": str(host), "args": []}}
+                    "alwaysMatch": {
+                        "tauri:options": {
+                            "application": str(host),
+                            "args": [],
+                            "webviewOptions": {"userDataFolder": str(folder)},
+                        }
+                    }
                 }
             },
         )
@@ -179,7 +211,7 @@ def main():
             "return [...document.querySelectorAll('button')].some(b=>b.textContent.trim().endsWith('资料库'))"
         )
         receipt.setdefault("launches", []).append(
-            {"seconds": time.monotonic() - began, "capabilities": result["capabilities"]}
+            {"seconds": time.monotonic() - began, "capabilities": result["capabilities"], "user_data_folder": str(folder)}
         )
         version = bridge("system_version")
         assert isinstance(version, dict)
@@ -415,6 +447,95 @@ def main():
             "Product consistent backup and list readback",
             "Native backup restore/retry and actual version rollback with original CAS readback",
         ]
+        # New product-principles journey: every mutation below uses rendered UI.
+        # Finite bridge reads verify canonical persistence; they do not perform writes.
+        # The preceding recovery mutation deliberately used the native command;
+        # reopen its window to obtain a fresh UI readiness handshake as well.
+        close_session()
+        launch()
+        js("[...document.querySelectorAll('button')].find(b=>b.textContent.trim().endsWith('资料库')).click()")
+        wait("return [...document.querySelectorAll('button')].some(b=>b.textContent==='新建原创笔记')")
+        before_ids = {item["document_id"] for item in bridge("documents_list")["documents"]}
+        ui_click("新建原创笔记")
+        wait("return !!document.querySelector('[aria-label=\"版本化草稿编辑器\"] .tiptap')")
+        ordinary_text = "原创未核验内容 Golden ordinary note 731"
+        ui_type('[aria-label="版本化草稿编辑器"] .tiptap', ordinary_text)
+        ui_click("保存草稿")
+        deadline = time.monotonic() + 30
+        ordinary = None
+        while time.monotonic() < deadline:
+            new_documents = [item for item in bridge("documents_list")["documents"] if item["document_id"] not in before_ids]
+            if len(new_documents) == 1:
+                ordinary = bridge("document_get", {"document_id": new_documents[0]["document_id"]})
+                if ordinary["text_projection"] == ordinary_text:
+                    break
+            time.sleep(0.15)
+        assert ordinary and ordinary["text_projection"] == ordinary_text
+        # Let the editor's existing 900 ms autosave settle before fixing the
+        # version used for restart equality and the later check records.
+        time.sleep(1.2)
+        ordinary = bridge("document_get", {"document_id": ordinary["document_id"]})
+        assert ordinary["text_projection"] == ordinary_text
+        assert ordinary["source_id"] is None and ordinary["source_revision"] is None
+        assert not js("return [...document.querySelectorAll('button')].some(b=>b.textContent==='引用当前页')")
+        receipt["ordinary_document_saved"] = ordinary
+        receipt["steps"].append("UI original note without source/review/model prerequisites saved by canonical writer")
+        close_session()
+        launch()
+        js("[...document.querySelectorAll('button')].find(b=>b.textContent.trim().endsWith('资料库')).click()")
+        wait("return [...document.querySelectorAll('button')].some(b=>b.textContent==='原创笔记 · 文档')")
+        ui_click("原创笔记 · 文档")
+        wait("return document.querySelector('[aria-label=\"版本化草稿编辑器\"]')?.textContent.includes('保存草稿')")
+        assert js("return document.querySelector('[aria-label=\"版本化草稿编辑器\"] .tiptap').textContent") == ordinary_text
+        persisted = bridge("document_get", {"document_id": ordinary["document_id"]})
+        assert persisted == ordinary
+        receipt["steps"].append("UI original note close/relaunch readback equals persisted version")
+        js("[...document.querySelectorAll('button')].find(b=>b.textContent.trim().endsWith('知识库')).click()")
+        wait("return [...document.querySelectorAll('label')].some(l=>l.textContent.includes('搜索内容'))")
+        search_input = ui_element("css selector", "form label input")
+        request("POST", f"/session/{session}/element/{search_input}/value", {"text": "ordinary note 731"})
+        ui_click("搜索")
+        wait("return [...document.querySelectorAll('button')].some(b=>b.textContent.startsWith('原创笔记 · 版本 '))")
+        ui_click(f"原创笔记 · 版本 {ordinary['version']}")
+        wait("return !!document.querySelector('[aria-label=\"内容核验\"]')")
+        assert js("return document.querySelector('[aria-label=\"版本化草稿编辑器\"] .tiptap').textContent") == ordinary_text
+        assert not js("return [...document.querySelectorAll('button')].some(b=>b.textContent==='接受当前候选')")
+        receipt["steps"].append("UI search finds ordinary unverified document and opens existing editor without knowledge acceptance")
+        for label, cloud_button, manual_summary in (
+            ("识别忠实度", "申请或重试识别云端核验", "手动记录识别核验"),
+            ("专业依据", "申请或重试专业云端核验", "手动记录专业核验"),
+        ):
+            scope = f"//section[@aria-label='{label}']"
+            summary = ui_element("xpath", f"{scope}//summary[normalize-space(.)='{manual_summary}']")
+            request("POST", f"/session/{session}/element/{summary}/click", {})
+            ui_click("明确提交手动核验记录", scope)
+            wait(f"return document.querySelector('[aria-label=\"{label}\"]').textContent.includes('不确定 · 手动记录')")
+            ui_click(cloud_button, scope)
+            wait(f"return document.querySelector('[aria-label=\"{label}\"]').textContent.includes('等待核验 · 云端尚未执行')")
+        checks = bridge("document_checks", {"document_id": ordinary["document_id"], "version": ordinary["version"]})
+        for dimension in ("recognition_fidelity", "professional_basis"):
+            entries = [item for item in checks["checks"] if item["dimension"] == dimension]
+            assert any(item["provider_mode"] == "manual" and item["status"] == "uncertain" for item in entries)
+            cloud = [item for item in entries if item["provider_mode"] == "cloud"]
+            assert cloud and all(item["status"] == "pending" and not item["execution_verified"] and item["execution_state"] == "not_executed" for item in cloud)
+        receipt["ordinary_document_checks"] = checks
+        receipt["steps"].append("UI separately records both manual uncertain checks and cloud pending requests; cloud remains not executed")
+        ui_type('[aria-label="内容核验"] > label textarea', "工程样板修订理由，不构成知识认可")
+        revision_button = ui_element("xpath", "(//button[normalize-space(.)='用于下一次修订'])[1]")
+        request("POST", f"/session/{session}/element/{revision_button}/click", {})
+        ui_click("保存草稿")
+        deadline = time.monotonic() + 30
+        while time.monotonic() < deadline:
+            revised = bridge("document_get", {"document_id": ordinary["document_id"]})
+            if revised["version"] > ordinary["version"] and revised.get("revision_basis"):
+                break
+            time.sleep(0.15)
+        assert revised["text_projection"] == ordinary_text
+        assert revised["revision_basis"]["rationale"] == "工程样板修订理由，不构成知识认可"
+        assert revised["revision_basis"]["reference_version"] == ordinary["version"]
+        receipt["ordinary_document_revision"] = revised
+        receipt["steps"].append("UI explicitly selected revision basis persists with next ordinary document save")
+        screenshot("ordinary-checks.png")
         close_session()
         receipt["ok"] = True
     except BaseException as error:
@@ -433,6 +554,7 @@ def main():
                     ],
                     capture_output=True,
                     text=True,
+                    errors="replace",
                     timeout=15,
                 )
                 receipt["owned_failure_processes"] = json.loads(diagnostic.stdout or "[]")

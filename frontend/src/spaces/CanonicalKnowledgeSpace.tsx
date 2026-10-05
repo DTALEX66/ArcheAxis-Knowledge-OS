@@ -1,6 +1,7 @@
 import { useRef, useState } from "react";
 import { coreCommand } from "../api/core";
 import { Section } from "../components/RealData";
+import { CanonicalLibrarySpace } from "./CanonicalLibrarySpace";
 import { MachineAnswerPanel } from "../components/MachineAnswerPanel";
 
 function record(value: unknown): Record<string, unknown> {
@@ -14,6 +15,8 @@ function records(value: unknown): Record<string, unknown>[] {
 export function CanonicalKnowledgeSpace({onLearning}: {onLearning?:()=>void}) {
   const [query, setQuery] = useState("");
   const [items, setItems] = useState<Record<string, unknown>[]>([]);
+  const [documents,setDocuments]=useState<Record<string,unknown>[]>([]);
+  const [documentId,setDocumentId]=useState<string|null>(null);
   const [transforms, setTransforms] = useState<Record<string, unknown>[]>([]);
   const [selected, setSelected] = useState<Record<string, unknown> | null>(null);
   const [qualification, setQualification] = useState<unknown>(null);
@@ -22,13 +25,20 @@ export function CanonicalKnowledgeSpace({onLearning}: {onLearning?:()=>void}) {
   const [message, setMessage] = useState("");
   const [busy, setBusy] = useState(false);
   const epoch = useRef(0);
+  const draftDirty = useRef(false);
+  function selectDocument(id:string|null) {
+    if(id===documentId)return;
+    if(draftDirty.current&&!window.confirm("草稿尚未保存，请先保留文字。仍要关闭或切换文档吗？"))return;
+    setDocumentId(id);
+  }
   async function search() {
     const current = ++epoch.current; setSelected(null); setMessage("");
     try {
       const result = record(await coreCommand("search", {q:query,active_only:false}));
-      const found = records(result.items), extracted = records(result.transforms);
+      const found = records(result.items), extracted = records(result.transforms), docs = records(result.documents ?? []);
+      if(docs.some(item=>typeof item.document_id!=="string"||typeof item.title!=="string"||typeof item.head!=="string"||typeof item.version!=="number"))throw new Error("invalid document search");
       if (found.some(item => typeof item.knowledge_id !== "string" || typeof item.head !== "string") || extracted.some(item => typeof item.source_id !== "string" || typeof item.head !== "string")) throw new Error("invalid search fields");
-      if (current === epoch.current) {setItems(found);setTransforms(extracted);}
+      if (current === epoch.current) {setItems(found);setTransforms(extracted);setDocuments(docs);}
     } catch {setMessage("搜索失败，请重试。不会将失败显示为空结果。");}
   }
   async function open(id: string) {
@@ -67,6 +77,8 @@ export function CanonicalKnowledgeSpace({onLearning}: {onLearning?:()=>void}) {
     <form onSubmit={event=>{event.preventDefault();void search();}}><label>搜索内容 <input value={query} onChange={event=>setQuery(event.target.value)} /></label><button>搜索</button></form>
     <ul>{items.map(item=><li key={String(item.knowledge_id)}><button onClick={()=>void open(String(item.knowledge_id))}>{String(item.head)}</button> · {String(item.status)} · {item.active === true ? "有效" : "非有效"}</li>)}</ul>
     <h4>来源提取文本</h4><ul>{transforms.map(item=><li key={String(item.transform_id)}>{String(item.head)} · 来源 {String(item.source_id)} · 引擎 {String(item.engine)}</li>)}</ul>
+    <h4>普通文档</h4><p>原创与未核验内容可读取编辑；搜索命中不等同知识接受或核验通过。</p><ul>{documents.map(item=><li key={String(item.document_id)}><button onClick={()=>selectDocument(String(item.document_id))}>{String(item.title)} · 版本 {String(item.version)}</button><p>{String(item.head)}</p></li>)}</ul>
+    {documentId?<div><button onClick={()=>selectDocument(null)}>关闭搜索文档</button><CanonicalLibrarySpace key={documentId} initialDocumentId={documentId} onDirtyChange={value=>{draftDirty.current=value;}}/></div>:null}
     {selected ? <article aria-label="候选对照"><h4>{String(selected.title)}</h4><pre>{String(selected.body)}</pre><p>状态 {String(selected.status)} · 版本 {String(selected.version)}</p><details open><summary>Core 证据与资格回执</summary><pre>{JSON.stringify(qualification,null,2)}</pre></details>
       <label>审核者 <input value={reviewer} onChange={event=>setReviewer(event.target.value)} /></label><label>审核备注 <textarea value={note} onChange={event=>setNote(event.target.value)} /></label>
       <button disabled={!reviewer.trim()||busy} onClick={()=>void review("accepted")}>接受当前候选</button><button disabled={!reviewer.trim()||busy} onClick={()=>void review("rejected")}>拒绝当前候选</button><button disabled={!reviewer.trim()||busy} onClick={()=>void review("deprecated")}>降级为弃用</button>

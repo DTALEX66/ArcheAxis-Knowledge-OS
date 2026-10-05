@@ -9,16 +9,17 @@ pub mod writer;
 // 7 adds the capability enable/disable record that R7/G1 needs; 8 adds the vault link graph that
 // G2 needs. Like the earlier additive steps both are applied on open rather than by rewriting
 // anything.
-pub const SCHEMA_VERSION: i64 = 10;
+pub const SCHEMA_VERSION: i64 = 11;
 
 const DOCUMENT_SCHEMA_SQL: &str = r#"
 CREATE TABLE IF NOT EXISTS documents (
     document_id TEXT PRIMARY KEY,
-    source_id TEXT NOT NULL REFERENCES sources(source_id),
-    source_revision TEXT NOT NULL,
+    source_id TEXT REFERENCES sources(source_id),
+    source_revision TEXT,
     title TEXT NOT NULL,
     current_version INTEGER NOT NULL CHECK(current_version >= 0),
-    created_at TEXT NOT NULL DEFAULT (datetime('now'))
+    created_at TEXT NOT NULL DEFAULT (datetime('now')),
+    CHECK ((source_id IS NULL) = (source_revision IS NULL))
 );
 CREATE TABLE IF NOT EXISTS document_versions (
     document_id TEXT NOT NULL REFERENCES documents(document_id),
@@ -26,8 +27,18 @@ CREATE TABLE IF NOT EXISTS document_versions (
     editor_json TEXT NOT NULL,
     text_projection TEXT NOT NULL,
     content_sha256 TEXT NOT NULL,
+    revision_basis TEXT,
     created_at TEXT NOT NULL DEFAULT (datetime('now')),
     PRIMARY KEY(document_id, version)
+);
+CREATE TABLE IF NOT EXISTS document_checks (
+    check_id TEXT PRIMARY KEY,
+    document_id TEXT NOT NULL,
+    version INTEGER NOT NULL,
+    dimension TEXT NOT NULL CHECK(dimension IN ('recognition_fidelity','professional_basis')),
+    receipt_json TEXT NOT NULL,
+    recorded_at TEXT NOT NULL DEFAULT (datetime('now')),
+    FOREIGN KEY(document_id,version) REFERENCES document_versions(document_id,version)
 );
 CREATE TABLE IF NOT EXISTS document_blocks (
     document_id TEXT NOT NULL,
@@ -301,6 +312,12 @@ pub fn init_workspace(db_path: &str) -> rusqlite::Result<Connection> {
         return Err(rusqlite::Error::InvalidQuery);
     }
     conn.execute_batch("PRAGMA journal_mode=WAL; PRAGMA foreign_keys=ON;")?;
+    // Rebuild the parent table atomically without rewriting child FK targets.
+    // SQLite requires foreign_keys to be disabled before this write transaction;
+    // validate every FK before commit and re-enable before returning the connection.
+    if version > 0 && version < 11 {
+        conn.execute_batch("PRAGMA foreign_keys=OFF;")?;
+    }
     let tx = conn.transaction_with_behavior(rusqlite::TransactionBehavior::Immediate)?;
     // Another opener may have migrated between the read-only preflight and
     // acquisition of the write transaction. Decide from the locked snapshot.
@@ -412,12 +429,35 @@ pub fn init_workspace(db_path: &str) -> rusqlite::Result<Connection> {
     }
 
     tx.execute_batch(COURSE_SCHEMA_SQL)?;
+    let old_documents: bool = tx.query_row("SELECT EXISTS(SELECT 1 FROM pragma_table_info('documents') WHERE name='source_id' AND \"notnull\"=1)", [], |r| r.get(0))?;
+    if old_documents {
+        tx.execute_batch("CREATE TABLE documents_optional (
+            document_id TEXT PRIMARY KEY,source_id TEXT REFERENCES sources(source_id),source_revision TEXT,
+            title TEXT NOT NULL,current_version INTEGER NOT NULL CHECK(current_version>=0),
+            created_at TEXT NOT NULL DEFAULT (datetime('now')),CHECK((source_id IS NULL)=(source_revision IS NULL)));
+            INSERT INTO documents_optional SELECT * FROM documents;
+            DROP TABLE documents;
+            ALTER TABLE documents_optional RENAME TO documents;")?;
+    }
     tx.execute_batch(DOCUMENT_SCHEMA_SQL)?;
+    let has_basis: bool = tx.query_row("SELECT EXISTS(SELECT 1 FROM pragma_table_info('document_versions') WHERE name='revision_basis')", [], |r| r.get(0))?;
+    if !has_basis {
+        tx.execute_batch("ALTER TABLE document_versions ADD COLUMN revision_basis TEXT;")?;
+    }
+    let broken_fk: bool = tx.query_row(
+        "SELECT EXISTS(SELECT 1 FROM pragma_foreign_key_check)",
+        [],
+        |r| r.get(0),
+    )?;
+    if broken_fk {
+        return Err(rusqlite::Error::InvalidQuery);
+    }
     tx.execute(
         "INSERT OR REPLACE INTO workspace_meta(key, value) VALUES('schema_version', ?1)",
         [SCHEMA_VERSION.to_string()],
     )?;
     tx.commit()?;
+    conn.execute_batch("PRAGMA foreign_keys=ON;")?;
     Ok(conn)
 }
 

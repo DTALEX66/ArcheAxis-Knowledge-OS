@@ -32,7 +32,7 @@ pub(crate) async fn export(
         let snapshot = match document::read(conn,&id,None) {Ok(value)=>value,Err(error)=>return failure(error)};
         let anchors = (|| -> rusqlite::Result<Vec<Value>> {
             let mut stmt=conn.prepare("SELECT anchor_id,source_revision,position FROM anchors WHERE source_id=?1 ORDER BY anchor_id")?;
-            stmt.query_map([snapshot["source_id"].as_str().unwrap()],|r|Ok(json!({"anchor_id":r.get::<_,String>(0)?,"source_revision":r.get::<_,String>(1)?,"position":r.get::<_,String>(2)?})))?.collect()
+            stmt.query_map([snapshot["source_id"].as_str()],|r|Ok(json!({"anchor_id":r.get::<_,String>(0)?,"source_revision":r.get::<_,String>(1)?,"position":r.get::<_,String>(2)?})))?.collect()
         })();
         let anchors=match anchors {Ok(value)=>value,Err(error)=>return failure(error.into())};
         let projection=snapshot["text_projection"].as_str().unwrap();
@@ -40,15 +40,16 @@ pub(crate) async fn export(
         let projection_sha256=format!("{:x}",Sha256::digest(projection.as_bytes()));
         let mut markdown=if query.format=="obsidian" {format!("---\narcheaxis_document: {}\narcheaxis_version: {}\narcheaxis_source_revision: {}\n---\n\n",serde_json::to_string(&id).unwrap(),snapshot["version"],snapshot["source_revision"])} else {String::new()};
         markdown.push_str(projection);
-        markdown.push_str(&format!("\n\n[Immutable source](archeaxis://sources/{})\n",snapshot["source_id"].as_str().unwrap()));
-        for anchor in &anchors { markdown.push_str(&format!("\n[Evidence anchor](archeaxis://anchors/{})\n",anchor["anchor_id"].as_str().unwrap())); }
-        let loss=json!([{"code":"markdown_projection","message":"Markdown contains a text projection; structured and unknown nodes are preserved in manifest.json"}]);
+        let source_record=json!({"source_id":snapshot["source_id"],"source_revision":snapshot["source_revision"]});
+        markdown.push_str(&format!("\n\n## Source identity\n\n    {}\n\n## Evidence records\n",serde_json::to_string(&source_record).unwrap()));
+        for anchor in &anchors { markdown.push_str(&format!("\n    {}\n",serde_json::to_string(anchor).unwrap())); }
+        let loss=json!([{"code":"markdown_projection","message":"Markdown contains a text projection; structured and unknown nodes are preserved in manifest.json"},{"code":"external_navigation_unavailable","message":"Source identity, revision and anchor positions are preserved as metadata; no external navigation handler is registered, so these records do not provide clickable navigation to original sources"}]);
         let manifest=json!({"schema":"archeaxis-document-export-1","document":snapshot,"anchors":anchors,"projection_sha256":projection_sha256,"loss":loss});
         Json(json!({"document_id":id,"version":manifest["document"]["version"],"format":query.format,"source_revision":manifest["document"]["source_revision"],"projection_sha256":projection_sha256,"files":[{"path":"document.md","media_type":"text/markdown","content":markdown},{"path":"manifest.json","media_type":"application/json","content":serde_json::to_string_pretty(&manifest).unwrap()}]})).into_response()
     }).await
 }
 
-fn failure(error: document::Error) -> Response {
+pub(crate) fn failure(error: document::Error) -> Response {
     match error {
         document::Error::Invalid(message) => (StatusCode::BAD_REQUEST,Json(json!({"code":"AAK-DOC-001","message":message}))).into_response(),
         document::Error::NotFound => (StatusCode::NOT_FOUND,Json(json!({"code":"AAK-DOC-002","message":"document or version not found"}))).into_response(),
@@ -64,8 +65,8 @@ fn human(headers: &HeaderMap) -> bool {
 #[derive(Deserialize)]
 #[serde(deny_unknown_fields)]
 pub(crate) struct Create {
-    source_id: String,
-    source_revision: String,
+    source_id: Option<String>,
+    source_revision: Option<String>,
     title: String,
     editor_json: Value,
 }
@@ -74,6 +75,7 @@ pub(crate) struct Create {
 pub(crate) struct Save {
     expected_version: i64,
     editor_json: Value,
+    revision_basis: Option<Value>,
 }
 #[derive(Deserialize)]
 #[serde(deny_unknown_fields)]
@@ -91,10 +93,10 @@ pub(crate) async fn create(
         return StatusCode::FORBIDDEN.into_response();
     }
     crate::with_store(state, move |conn| {
-        match document::create(
+        match document::create_optional(
             conn,
-            &body.source_id,
-            &body.source_revision,
+            body.source_id.as_deref(),
+            body.source_revision.as_deref(),
             &body.title,
             body.editor_json,
         ) {
@@ -114,7 +116,13 @@ pub(crate) async fn save(
         return StatusCode::FORBIDDEN.into_response();
     }
     crate::with_store(state, move |conn| {
-        match document::save(conn, &id, body.expected_version, body.editor_json) {
+        match document::save_with_basis(
+            conn,
+            &id,
+            body.expected_version,
+            body.editor_json,
+            body.revision_basis,
+        ) {
             Ok(value) => Json(value).into_response(),
             Err(error) => failure(error),
         }
@@ -221,4 +229,78 @@ pub(crate) async fn original(State(state): State<AppState>, Path(id): Path<Strin
         }
     })
     .await
+}
+
+#[derive(Deserialize)]
+#[serde(deny_unknown_fields)]
+pub(crate) struct CheckQuery {
+    version: Option<i64>,
+    offset: Option<i64>,
+}
+pub(crate) async fn checks(
+    State(state): State<AppState>,
+    Path(id): Path<String>,
+    Query(query): Query<CheckQuery>,
+) -> Response {
+    crate::with_store(state, move |conn| {
+        match document::checks_page(conn, &id, query.version, query.offset.unwrap_or(0)) {
+            Ok(value) => Json(value).into_response(),
+            Err(error) => failure(error),
+        }
+    })
+    .await
+}
+pub(crate) async fn record_check(
+    State(state): State<AppState>,
+    Path(id): Path<String>,
+    headers: HeaderMap,
+    Json(body): Json<CheckBody>,
+) -> Response {
+    let actor = match crate::request_actor(&headers) {
+        Ok(actor) => actor,
+        Err(status) => return status.into_response(),
+    };
+    if body.provider_mode == "manual" && actor != "human" {
+        return StatusCode::FORBIDDEN.into_response();
+    }
+    crate::with_store(state, move |conn| {
+        match document::record_check(
+            conn,
+            &id,
+            actor,
+            document::CheckInput {
+                version: body.version,
+                dimension: body.dimension,
+                provider_mode: body.provider_mode,
+                status: body.status,
+                source_id: body.source_id,
+                source_revision: body.source_revision,
+                position: body.position,
+                recognition_job_id: body.recognition_job_id,
+                recognition_result_sha256: body.recognition_result_sha256,
+                basis: body.basis,
+                reason: body.reason,
+            },
+        ) {
+            Ok(value) => (StatusCode::CREATED, Json(value)).into_response(),
+            Err(error) => failure(error),
+        }
+    })
+    .await
+}
+
+#[derive(Deserialize)]
+#[serde(deny_unknown_fields)]
+pub(crate) struct CheckBody {
+    version: i64,
+    dimension: String,
+    provider_mode: String,
+    status: Option<String>,
+    source_id: Option<String>,
+    source_revision: Option<String>,
+    position: Option<Value>,
+    recognition_job_id: Option<String>,
+    recognition_result_sha256: Option<String>,
+    basis: Option<String>,
+    reason: Option<String>,
 }

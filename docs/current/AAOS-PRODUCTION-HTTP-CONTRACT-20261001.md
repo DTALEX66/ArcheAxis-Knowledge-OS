@@ -15,7 +15,7 @@ are registered, while omitting the real `/api/v1/evidence/anchors`,
 `/api/v1/machine/tasks`, `/api/v1/learning/items/{item_key}/state` and others. A UI
 built against that outline would call routes that return 404.
 
-Source identity for every observation in this document:
+Historical identity for the original 2026-10-01 observations below (not the current expanded inventory):
 
 | Item | Value |
 | --- | --- |
@@ -26,6 +26,13 @@ Source identity for every observation in this document:
 | Contract string reported by Core | `0.1.0-outline` |
 | Launch protocol | `archeaxis.desktop-launch/v2` |
 
+Current-source inventory was extended on 2026-10-05 to 60 method/path pairs,
+including version-bound document checks and optional-source original documents.
+Schema11 and actual local Core persistence/restart/restore proofs are recorded in
+`AAOS01-Q00-Q15-LEDGER-FINAL-20261005.md`; those dirty-tree results are not the
+historical SHA above or installed qualification. The formal host now follows
+SUP-022 Tauri/React; retained Avalonia reader observations are donor history.
+
 ## 0. What the UI may do with this document
 
 `docs/LANGUAGE_BOUNDARY_AUTHORITY_INDEX.md` fixes what each layer owns, and the UI's side of that
@@ -33,7 +40,7 @@ boundary is a constraint on how this contract is used, not decoration:
 
 | Layer | Owns | Must not |
 | --- | --- | --- |
-| C#/Avalonia desktop (`apps/ArcheAxis.Desktop/`) | the UI and the Core supervisor | execute SQL, or **duplicate business rules** |
+| Tauri/React desktop (`src-tauri/`, `frontend/`) | the UI and the finite Core supervisor bridge | execute SQL, or **duplicate business rules** |
 | Rust (`crates/`) | the vNext domain, jobs, storage and API; **the one authoritative writer** | write the legacy database |
 | Python (`services/python-workers/`) | parsing, OCR, ASR, model and scheduling computation | hold a main-database handle, or grant human approval |
 
@@ -199,7 +206,7 @@ against what it launched; a mismatch means it is talking to a different Core.
 `runtime` and `contract` are hard-coded string literals, not derived from the crate
 version. Do not use them to infer a build.
 
-## 3. Route inventory (58 pairs in a `text_worker` launch)
+## 3. Route inventory (60 pairs in a `text_worker` launch)
 
 `PROD` = reachable in a production launch. `PROD` marks the routes the UI may rely on.
 All paths are relative to the loopback base URL.
@@ -289,7 +296,7 @@ These additions reflect the current Rust handlers and generated `core-document.s
 | 28 | `GET /api/v1/sources/{source_id}/original` | any token | `OriginalDto`; bounded original bytes in `content_base64`, name, media type and SHA. |
 | 29 | `GET /api/v1/sources/{source_id}/anchors` | any token | `AnchorsListDto`; `located`, `unverified` and `revision_mismatch` remain distinct. |
 | 30 | `GET /api/v1/documents` | any token | `DocumentsListDto` of metadata `DocumentSummaryDto`, not full editor content. |
-| 31 | `POST /api/v1/documents` | **human only** | Body `{source_id, source_revision, title, editor_json}`; real source revision required. Returns `DocumentDto`, stable block IDs; unknown node JSON preserved. |
+| 31 | `POST /api/v1/documents` | **human only** | Body `{title, editor_json}` with optional source_id/source_revision pair; real source revision required. Returns `DocumentDto`, stable block IDs; unknown node JSON preserved. |
 | 32 | `GET /api/v1/documents/{document_id}` | any token | Current `DocumentDto`, editor JSON, blocks and derived text in one version. |
 | 33 | `PUT /api/v1/documents/{document_id}/draft` | **human only** | Body `{expected_version, editor_json}`; atomic save returns new `DocumentDto`; stale version `409`. |
 | 34 | `GET /api/v1/documents/{document_id}/versions/{version}` | any token | Immutable historical `DocumentDto`; unknown document/version `404`. |
@@ -298,6 +305,8 @@ These additions reflect the current Rust handlers and generated `core-document.s
 | 37 | `POST /api/v1/knowledge/{id}/review/versioned` | **human only** | Body `{action, reviewer, expected_version, note?, new_body?}`; expected knowledge version required; stale `409` with `current_version`; machine `403`. Successful `{knowledge_id, version}` does not supply a human identity on behalf of the user. |
 | 38 | `GET /api/v1/workspace/backups` | any token | `BackupsListDto`; product-owned backup artifacts with SHA, bytes, schema/SQLite version and original source hashes. |
 | 39 | `POST /api/v1/workspace/backups` | **human only** | No caller path; creates a consistent product-owned backup and returns its manifest. Independent restore/readback remains a separate assertion. |
+| 40 | `GET /api/v1/documents/{document_id}/checks?version=&offset=` | any token | Actual version/hash bound records, 1000-row pages with next_offset. Current versions do not inherit old conclusions. |
+| 41 | `POST /api/v1/documents/{document_id}/checks` | **human only** | Independent recognition_fidelity / professional_basis. Manual reports are explicit; cloud request is pending/not_executed until a real authorized worker executes. |
 
 `AnchorBody` is `{revision, position, checksum?}`. For a UTF-8 text locator, `start`/`end` are byte offsets and `checksum` identifies the selected slice; Core validates the bytes and boundaries. A source revision alone is not proof of a located page or text range.
 
@@ -529,8 +538,8 @@ Before the fix this endpoint answered `500` with a raw FTS5 parser message for
 
 | Launch | Routes served | Consequence for the UI |
 | --- | --- | --- |
-| **no** `text_worker` | 39 projection method/path pairs (35 unconditional mounts, four dual-method mounts); manual legacy `/jobs/{id}/receipts` remains absent from production | `/jobs/{id}`, `/executions`, `/outputs`, `/cancel`, `/capabilities` and its enable/disable write are **absent** (`404`). |
-| **with** `text_worker` | 58 addresses (39 projection method/path pairs + 19 runtime method/path pairs) | All routes above are served. |
+| **no** `text_worker` | 41 projection method/path pairs (36 unconditional mounts, five dual-method mounts); manual legacy `/jobs/{id}/receipts` remains absent from production | `/jobs/{id}`, `/executions`, `/outputs`, `/cancel`, `/capabilities` and its enable/disable write are **absent** (`404`). |
+| **with** `text_worker` | 60 addresses (41 projection method/path pairs + 19 runtime method/path pairs) | All routes above are served. |
 
 The runtime builder carries **19** routes, mounted there rather than with the projections because
 the capability surface reads the executor's registered routes, and the executor is the runtime

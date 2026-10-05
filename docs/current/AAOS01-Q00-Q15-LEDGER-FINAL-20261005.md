@@ -1,5 +1,13 @@
 # AAOS-01 Q00–Q15 当前执行台账（2026-10-05）
 
+固定修复提交 `ff17047289e7a7e77f947419da75353e45fcc79a`，workflow `308098767`、run `37302789036`、attempt `1`，force_full最终FAILURE：前18个job均实际success；installer-lifecycle和a0-gates失败。安装态新原生日志3355字节、SHA-256 `72308ba5d01cc11a18ec633144ea95a4bcb3c10812b7b283adf06cada7d108d0`，实际InitSession报DevToolsActivePort file不存在，steps为空，仍不是安装UI通过。匹配153.0.4234.48工具回执成功。等待期间未推送。随后确认probe环境覆盖目录与driver能力目录分裂，改为官方tauri:options.webviewOptions.userDataFolder单一目录；本机154匹配工具真实七项窗口旅程PASS（aaos01-webdriver/4cb75755b42e447980c224ab11326da0/receipt.json），两次握手1.344/1.297秒，远端充分修复仍待新固定SHA。
+
+标准dev.py --pytest完整Windows回归3982 PASS、36 skipped、137 subtests PASS，exit0（aaos01-full-canonical-2150.log）。此前绕过--pytest额外嵌套临时目录的aaos01-os-final-full-2130运行45FAIL记录保留，不归因Q01、不冒称PASS。后续Language/RuntimeDelivery权威及引用20项定向PASS；宿主实现未再改动。
+
+Q01现行PROJECT_CONTRACT及schema、Directory/Language/RuntimeDelivery/CurrentArchitecture按SUP-022同步正式React/Tauri有限桥，Avalonia仅供体参考；Rust Core唯一writer和Owner Gate保留。没有改写R6/M0历史或UI旧合同。
+
+Q10后续显式修复：导出器不能生成无handler的archeaxis://可点击链接。保留用户原文投影、两固定文件及完整manifest，导出plain source/revision/anchor/position JSON记录并登记external_navigation_unavailable loss。真实Rust Router四项PASS，a10新Core实际两profile/文件读回/重启PASS（aaos01-exchange/ad8fba43066e405aa716960130d8342c/receipt.json）。a10 manifest SHA-256 `c149cb26e7dd7b9f061a2d6507dfdd39e568851524fd7c63d13117d6ad1b105f`，声明ff170但暂存时dirty，仅本地组件资格。原先Obsidian软件回执只覆盖旧正文和标签显示，不能覆盖新的导出或外部导航；外部导航仍未实现。
+
 固定扩展提交 `7c5a9a0fd2a434ad431e83772d02b647a6d20011`，workflow `308098767`、run `37297859142`、attempt `1`，force_full最终FAILURE：desktop-fast/build成功；test、workers、contracts、lint、installer-lifecycle及a0-gates失败。已按用户限定授权下载该run失败日志，六份均非空并记录SHA，仅显示脱敏摘要。安装态首次WebDriver握手45秒超时，UI旅程未执行，根因UNKNOWN；不得由旧720提交全绿代替本次结论。等待期间未推送。
 
 本次后续修复统一schema登记/$id、35挂载/58方法路径的真实路由合同、启动/重试Core安全断言、架构路径规则、CSV/TSV定位说明与真正loss的区分；有限宿主payload只接对象且默认空对象。针对性108测试及29子测试PASS，宿主62测试和fmt PASS。原生driver诊断日志纳入安装态artifact，首次握手独立有界120秒，失败仍非零，不声称超时根因已修。最新重建宿主真实WebDriver c023206cafe64edda23737a0946bff84完整读写/并发/重启/备份恢复PASS。新固定SHA门禁待执行。
@@ -12,16 +20,32 @@
 
 本轮起始 HEAD：`37bfe872ccbaed88a4825b8ff939ccf94aef8b92`，开工工作树 clean。已验证源码提交 `59b829d7724c2a1e3210e07d287ea9eb68722d4c` 的完整 CI 已执行：两桌面门禁成功，旧 NSIS 验收契约失败，因此完整运行 FAILURE。安装契约修复后的固定提交与最终 CI 结果须读回后登记；不得由 cancelled/skipped 运行推导通过。
 
+## 2026-10-05 产品保存原则实施与体积治理
+
+顶层 `PROJECT_CONTRACT.yaml` 与对应严格 schema 已纳入用户本日修正，权威索引/当前架构同步，普通保存不以外部 Source/Evidence、云端复核、专业支持或人工认可为门槛。不是取消鉴权、正典结构校验或专用知识认可流程。原创 Document 的 source 字段可为空；已有来源双字段仍必须成对且验证真实 CAS。schema10 非空迁移保留原有来源/版本/块，schema11 核验记录由同一 Rust/SQLite 写者管理。
+
+识别忠实度与专业依据独立、绑定实际版本和内容 SHA；问题位置与真实完成 job 输出 SHA 校验，修订依据关联历史版本/check。云端申请当前 **pending / not_executed / execution_verified=false**，尚未接通真实模型和联网检索，不能据此宣称完成云端核验或专业自动论证。manual 记录明确为手动报告，不冒充专用真人认可。改版不继承旧结论，历史记录分页可读；普通文档可搜索/阅读/编辑。
+
+本地三模块 Rust 回归 306 PASS，非空10→11迁移/真实job/1001条核验分页/独立备份恢复通过；前端172 PASS、tsc/Vite PASS；合同81 PASS及29 subtests。独立产品解释器 a11 真实 Core probe `aaos01-content-policy/b682754152484eb7aa8d7c1cb9a1249d/receipt.json`（45,871字节，SHA `dbcc878dd97631de93ce8fcce3e8d5be15691828b447b732e820c0decfb968d5`）9断言通过；原创无Source保存、pending不丢正文、人工疑点位置、修订历史、重启及独立restore/CAS一致。属于真实本地集成，不是安装态或真人认可。
+
+完整Python回归 `aaos01-policy-full-final.log` 实际3979 PASS、4 FAIL、36 skipped、137 subtests PASS。四失败分别是当前语言边界文案精确引用、增加核验路由后的第二份计数断言、探针XPath被绝对路径守卫识别，以及README遗漏开发版本锚点；已做最小真实一致性修复，保留所有守卫，定向39 PASS（aaos01-full-failure-regression2）。该旧完整运行仍为FAIL，不写成新全量PASS；后续固定SHA完整CI必须实际执行验收。
+
+同一 a11 Office probe `aaos01-office/072df220fadb49c38a1d30c083ab70f1/receipt.json`（43,527字节，SHA `0370e807f2390b78ccece998fb624a4fe0f73258659129f1492a3156e18ad517`）：XLSX/PPTX正样本成功，损坏两例failed符合预期，4/4重启一致。a11 manifest `34d5662561223b43c2adbb4561d51051b5b5c467be621b7c7591a597adf90d99`，Core `494493ab150c1d3f852ed7a4b80fd31f06cc8822c9cb235dd6135f116faad820`；uv.lock未改。来源为ff170加dirty diff，各receipt保留patch哈希，不能提升为固定SHA证据。
+
+a11 真实 Tauri 窗口旅程 `aaos01-webdriver/e4236d2bedb44a5882f2c03b480feb08/receipt.json`（30,348字节，SHA `6c6b8c7da8711f81057b248034e366b56865ae9e960992d73ed7abdfc3ada3a2`）12/12步骤PASS，宿主SHA `d7e3d4e1993edca20d36925090d1c1e503a52965e054acc58e580b8bfe5477d9`、target Core/profile与a11一致。新增五步写入由真实WebDriver界面操作，Core只读取对账；手动记录为工程样板，云端未执行。早先失败回执保留，恢复后的UI状态须冷重启才握手。后续两个未保存文字竞态已取得真实RED并修复：内部关闭/切换显式保护dirty，create/read/restore晚到响应校验编辑generation。定向18 PASS、完整前端176 PASS、同锁tsc/Vite PASS。最终宿主SHA `750a226bb8d658922a830c3cbfb867591324c2e9a2c5ac7a2df729d6257dcee3` 的真实窗口重验 `f1ba9492e2e84c1691b9514b33a0b39d/receipt.json`（32,557字节，SHA `7c7d3d0c4351c2a673c1e4f40bc7bd84e17baae86795d4f663f8573a9c4f471d`）12/12 PASS；四次会话各用独立driver-owned WebView profile，同一Core数据根重启读回，四host退出确认。先前prefs文件写失败保留；竞争锁的原因仍为推断，未自动重试掩盖失败。
+
+三份已失效旧台账原字节归档25,089字节、SHA相等，原路径兼容入口保留；唯一当前状态仍为本表。README及GitHub About/topics按现行Tauri/React + Rust Core和独立两维核验更新；默认分支README未因About更新而自动落地。旧内容与库不删除。历史28项已删路径仍不存在，合格未执行旧清单为空，28个归属不明数据库保留。本批仅清理12个已核实Cargo缓存子目录，14,060文件/4,241,169,479字节逻辑载荷，逐文件SHA清单非空、12/12删除后独立absent；运行Python、父目录、deps、数据及历史程序保留。另对 a8/a9/a10 历史 Python 副本先按精确文件/目录清单从保留 donor 真实重建并全树SHA相等，再删除3份 runtime；其Core/worker/shared/清单/回执保留，历史候选冻结为须按已保留recipe恢复后重运行。两批成功逻辑载荷合计6,117,890,639字节，证据/recipe新增29,106,016字节，时点净逻辑减量6,088,784,623字节（其他小文档变化另计）。物理磁盘释放量与用户所述全项目100GB/Green几十GB尚未全量测量，不重复累计历史69.83GB。执行路径与保留项详见现有清理文档，未新增第二份状态真值。
+
 ## 当前状态与剩余缺口
 
 | ID / 权威任务 | 当前状态 | 已有证据与实际剩余缺口 |
 | --- | --- | --- |
 | Q00 现场保护与最小对账 | PARTIAL | 已复核起始 SHA、工作树与工具路径；本轮使用独立候选及全新 Core 数据根。未知用户资产、旧库与历史回执保留；完整资产/schema/writer 身份不因本轮格式测试自动完成。 |
-| Q01 重构决定与目录登记 | PARTIAL | 已有 SUP-022 重构登记；本轮统一使用权威 `stage_backend_runtime.py` 产出候选，desktop-fast/build 使用相同准备步骤。此项不是旧编号中的“打包完成”；Authority 与目录完整验收仍按任务书核对。 |
-| Q02 Tauri 启动与只读桥接 | TESTED_LOCAL / PARTIAL | 最终 src-tauri fmt --check PASS，cargo test 62 PASS/0 ignored，包含真实候选解释器及统一首次启动/重试选择。真实 WebDriver 连续三轮读写/重启/恢复 PASS，最终两轮使用严格失败传播探针；独立安装态完整桥接仍待新 CI。 |
+| Q01 重构决定与目录登记 | TESTED_LOCAL | 已有 SUP-022 重构登记；本轮统一使用权威 `stage_backend_runtime.py` 产出候选，desktop-fast/build 使用相同准备步骤。此项不是旧编号中的“打包完成”；现行Directory/Language/RuntimeDelivery/ProjectContract及schema已按SUP-022最小同步，schema/引用回归PASS。 |
+| Q02 Tauri 启动与只读桥接 | TESTED_LOCAL / PARTIAL | 最终 src-tauri fmt --check PASS，cargo test 62 PASS/0 ignored，加1项有限核验分页边界测试5/5 PASS，包含真实候选解释器及统一首次启动/重试选择。真实 WebDriver 连续三轮读写/重启/恢复 PASS，最终两轮使用严格失败传播探针；独立安装态完整桥接仍待新 CI。 |
 | Q03 类型合同与权限 | PARTIAL | 既有启动契约、前缀隔离与权限测试保留；本轮未将单元测试提升为全部 DTO、对象权限与版本错误验收。生成合同、有限命令与对象范围需按任务书逐项读回。 |
-| Q04 原件与文档保存 | TESTED_LOCAL / PARTIAL | 已实现 schema10 CAS 原件、Document/Block、同事务 editor JSON/正文投影、稳定 block IDs、未知节点保真、乐观锁409、旧版本读取及恢复生成新版本；真实 file-backed Store/API 回归通过。25个约1MB文档的目录改为六字段摘要，全workspace --locked回归已PASS。独立备份演练继续见Q11；不能从API代推installedUI。 |
-| Q05 阅读与证据样板 | TESTED_LOCAL / PARTIAL | Tauri 已接有限命令、PDF.js、Tiptap、稳定块与版本、canonical引用；复用旧 Tauri DataTable/Section、Avalonia 来源链/折叠处理记录与导入回执布局。前端25文件164 tests、tsc、production build PASS；真实窗口中文阅读/保存/重启 PASS。物理IME与installed qualification未完成，PDF页锚点未伪写located。 |
+| Q04 原件与文档保存 | TESTED_LOCAL / PARTIAL | 已实现 schema11 CAS 原件、Document/Block、同事务 editor JSON/正文投影、稳定 block IDs、未知节点保真、乐观锁409、旧版本读取及恢复生成新版本；真实 file-backed Store/API 回归通过。25个约1MB文档的目录改为六字段摘要，全workspace --locked回归已PASS。独立备份演练继续见Q11；不能从API代推installedUI。 |
+| Q05 阅读与证据样板 | TESTED_LOCAL / PARTIAL | Tauri 已接有限命令、PDF.js、Tiptap、稳定块与版本、canonical引用；复用旧 Tauri DataTable/Section、Avalonia 来源链/折叠处理记录与导入回执布局。前端26文件176 tests、tsc、production build PASS；真实窗口中文阅读/保存/重启 PASS。物理IME与installed qualification未完成，PDF页锚点未伪写located。 |
 | Q06 A 波次多格式吸收 | TESTED_LOCAL / PARTIAL | a7独立A矩阵12/12通过：TXT/PDF/PNG/DOCX/XLSX/PPTX/HTML/Canvas/SRT/ZIP真实Core/worker/3产物/定位事实/损失及重启；PNG真实OCR文本、词boxes、stdin图像SHA已核实。WAV/MP4只media.probe头信息，不计解码、ASR或内容闭环。Office正/损坏四项均按预期成功/failed且重启一致。安装态逐格式与已知原生locator限制保留。 |
 | Q07 候选审核与纠正 | PARTIAL / AWAITING_OWNER | 新版审核同事务绑定实际knowledge version，过期409、machine403工程测试通过。已从权威任务书真实Source/job/transform摘录创建一个未接受候选，等待用户明确决定；工程设置human principal不当真人审核。 |
 | Q08 学习与 AI 资产闭环 | TESTED_LOCAL / PARTIAL | assessment/FSRS/幂等事件/机器任务/纠正入口已接有限Core。真实本机qwen3.5-4b经Core与候选worker回答公开工程夹具「37」，实际模型/提示版本/知识版本/任务及完全重启读回一致。该夹具审核明确AUTOMATED_FIXTURE_REVIEW_NOT_G4_HUMAN，结果unmeasured；真人决定、真人答案与纠正旅程仍缺，不虚构错误或效果。 |
@@ -30,7 +54,7 @@
 | Q11 备份与副本恢复 | TESTED_LOCAL / PARTIAL | 现有Store一致live backup→全新独立DB与CAS副本恢复→完整文档/版本/原件读回→继续编辑/第二次重启全部PASS；原生host恢复与retry同一Core、版本3→2、CAS一致PASS。备份哈希/manifest与源CAS严格核验，损坏回滚测试通过；实际SQLite3.51.3（rusqlite=0.39.0），全workspace --locked回归PASS。安装态独立副本资格仍待。 |
 | Q12 B 波次轻量扩展 | TESTED_LOCAL / PARTIAL | a9独立13/13（aaos01-light/2b89a2fce76a4a67b8c0226b59b9b995/receipt.json）：CSV/TSV、JSON/JSONL、YAML/TOML/XML、EPUB、EML九项，各有实际结构/原件SHA/输出字节SHA/锚点/损失/导出/重启；坏EPUB、unsafe YAML、XML DTD/外部entity、坏JSONL四项failed且无输出。EPUB章节/段落/nav/资产SHA和EML头/正文/附件SHA已逐样本断言，附件未独立解析明确loss，EPUB Core原生定位仍unverified。没有用Q06代验，安装态扩展资格仍待。 |
 | Q13 性能与故障验证 | TESTED_LOCAL / PARTIAL | 真实Core四故障场景无产物且后续正常job恢复PASS；20次真实Tauri新进程/新Core根/新WebView profile启动，预先3s/1GB预算下P95=1.422s、完整自有树最大468340736字节PASS（OS磁盘缓存保留）。创建时间绑定父子进程排除旧父PID重用；CDP观察器不计入产品内存，退出命令清理不冒认WM_CLOSE。无观察器的WM_CLOSE独立PASS；安装态整机故障旅程仍缺。 |
-| Q14 Windows 安装态资格化 | NOT_RUN | 本地构建、候选完整、Rust/Python 测试和 CI 均不能替代独立安装包的真实桌面旅程；尚无 Installed Qualified。 |
+| Q14 Windows 安装态资格化 | FAILED_CI / PARTIAL | 本地构建、候选完整、Rust/Python 测试和 CI 均不能替代独立安装包的真实桌面旅程；尚无 Installed Qualified。 |
 | Q15 第一包收口与第二包交接 | PARTIAL | 本表统一当前状态，47 份现场枚举的旧 Q02 逐轮记录已加历史指向、正文证据保留。Q14、核心完整旅程和 Owner Accepted 未完成，不能宣布第一包收口或冻结旧入口。 |
 
 ## 本轮工程与样本证据

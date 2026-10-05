@@ -115,5 +115,5 @@ def test_the_conditional_exceptions_are_still_conditional():
 
 def test_the_inventory_is_the_size_the_contract_claims():
     """The production inventory includes the thirteen AAOS-01 method/path additions."""
-    assert len(documented_routes()) == 58, (
+    assert len(documented_routes()) == 60, (
         "the inventory size changed; update §3's heading and this expectation together")

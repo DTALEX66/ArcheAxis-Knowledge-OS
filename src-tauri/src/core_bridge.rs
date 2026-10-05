@@ -42,6 +42,8 @@ pub enum Operation {
     DocumentDraft,
     DocumentVersion,
     DocumentRestore,
+    DocumentChecks,
+    DocumentCheckRecord,
     JobsGet,
     JobQuality,
     AnchorsList,
@@ -113,6 +115,35 @@ fn route(request: &Request) -> Result<(&'static str, String, Option<Value>), Str
         ),
         DocumentsList => ("GET", "/api/v1/documents".into(), None),
         DocumentCreate => ("POST", "/api/v1/documents".into(), Some(body()?)),
+        DocumentChecks => {
+            let base = format!("/api/v1/documents/{}/checks", id(p, "document_id")?);
+            let mut query = Vec::new();
+            if let Some(value) = p.get("version") {
+                let version = value
+                    .as_u64()
+                    .filter(|v| *v > 0)
+                    .ok_or("CORE_COMMAND_VERSION_INVALID")?;
+                query.push(format!("version={version}"));
+            }
+            if let Some(value) = p.get("offset") {
+                let offset = value
+                    .as_u64()
+                    .filter(|v| *v <= i64::MAX as u64)
+                    .ok_or("CORE_COMMAND_OFFSET_INVALID")?;
+                query.push(format!("offset={offset}"));
+            }
+            let path = if query.is_empty() {
+                base
+            } else {
+                format!("{base}?{}", query.join("&"))
+            };
+            ("GET", path, None)
+        }
+        DocumentCheckRecord => (
+            "POST",
+            format!("/api/v1/documents/{}/checks", id(p, "document_id")?),
+            Some(body()?),
+        ),
         DocumentGet => (
             "GET",
             format!("/api/v1/documents/{}", id(p, "document_id")?),
@@ -483,5 +514,30 @@ mod tests {
                 .unwrap();
         assert!(default.payload.is_object());
         assert!(route(&default).is_ok());
+    }
+    #[test]
+    fn check_history_queries_are_finite_and_numeric() {
+        let request = serde_json::from_value::<Request>(serde_json::json!({
+            "operation":"document_checks","payload":{"document_id":"doc-safe","version":2,"offset":1000}
+        })).unwrap();
+        let (method, path, body) = route(&request).unwrap();
+        assert_eq!(method, "GET");
+        assert_eq!(
+            path,
+            "/api/v1/documents/doc-safe/checks?version=2&offset=1000"
+        );
+        assert!(body.is_none());
+        for payload in [
+            serde_json::json!({"document_id":"doc-safe","version":0}),
+            serde_json::json!({"document_id":"doc-safe","offset":-1}),
+            serde_json::json!({"document_id":"doc-safe","offset":"0&actor=human"}),
+            serde_json::json!({"document_id":"../private"}),
+        ] {
+            let request = serde_json::from_value::<Request>(
+                serde_json::json!({"operation":"document_checks","payload":payload}),
+            )
+            .unwrap();
+            assert!(route(&request).is_err());
+        }
     }
 }

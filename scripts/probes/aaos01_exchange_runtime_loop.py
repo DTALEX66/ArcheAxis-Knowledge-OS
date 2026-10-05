@@ -129,6 +129,18 @@ def main():
                 == hashlib.sha256(document["text_projection"].encode()).hexdigest()
             )
             assert document["text_projection"] in markdown and anchor["anchor_id"] in markdown
+            assert "[Immutable source](archeaxis://" not in markdown
+            assert "[Evidence anchor](archeaxis://" not in markdown
+            records = [
+                json.loads(line[4:]) for line in markdown.splitlines() if line.startswith("    {")
+            ]
+            assert records == [
+                {"source_id": imported["source_id"], "source_revision": imported["sha256"]},
+                *manifest["anchors"],
+            ]
+            assert any(
+                item["code"] == "external_navigation_unavailable" for item in manifest["loss"]
+            )
             if format_name == "obsidian":
                 assert markdown.startswith("---\n") and "archeaxis_source_revision:" in markdown
             receipt["formats"].append(

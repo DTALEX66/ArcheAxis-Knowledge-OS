@@ -47,7 +47,9 @@
         "source_job_transform",
         "knowledge_from_transform",
         "workspace_backup",
-        "workspace_backups"
+        "workspace_backups",
+        "document_checks",
+        "document_check_record"
       ]
     },
     "payload": {
