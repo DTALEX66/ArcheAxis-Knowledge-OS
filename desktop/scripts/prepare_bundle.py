@@ -98,12 +98,47 @@ def prepare_bundle_runtime(*, repository: Path, destination: Path) -> Path:
     return staged_python
 
 
+def install_core(*, destination: Path, core: Path, workers: Path | None = None) -> Path:
+    """Place a built canonical Core, and optionally its workers, beside the runtime.
+
+    A bundle resource map can only name directories that exist when the bundle is built,
+    and this script otherwise prepares the Python runtime alone. Without a Core in the
+    staged tree the shell's discovery finds nothing and keeps the legacy entrypoint,
+    silently - so putting one here is what actually changes which backend ships.
+    """
+    if not core.is_file():
+        raise RuntimeError(f"core executable is missing: {core}")
+    staged = destination / "core"
+    staged.mkdir(parents=True, exist_ok=True)
+    shutil.copy2(core, staged / core.name)
+    if workers is not None:
+        if not workers.is_dir():
+            raise RuntimeError(f"workers directory is missing: {workers}")
+        shutil.copytree(
+            workers,
+            destination / "workers",
+            dirs_exist_ok=True,
+            ignore=shutil.ignore_patterns("__pycache__", "*.pyc", "*.pyo"),
+        )
+    return staged / core.name
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--repository", type=Path, required=True)
     parser.add_argument("--destination", type=Path, required=True)
+    parser.add_argument("--core", type=Path,
+                        help="built canonical Core to place beside the runtime")
+    parser.add_argument("--workers", type=Path,
+                        help="workers tree to place beside the runtime")
     args = parser.parse_args()
-    print(prepare_bundle_runtime(repository=args.repository, destination=args.destination))
+    if args.workers is not None and args.core is None:
+        parser.error("--workers requires --core")
+    destination = args.destination.resolve()
+    staged_python = prepare_bundle_runtime(repository=args.repository, destination=destination)
+    if args.core is not None:
+        install_core(destination=destination, core=args.core, workers=args.workers)
+    print(staged_python)
     return 0
 
 
