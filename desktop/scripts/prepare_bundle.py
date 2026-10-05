@@ -125,16 +125,30 @@ def install_core(*, destination: Path, core: Path, workers: Path | None = None) 
 
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--repository", type=Path, required=True)
+    # Not required by the parser: the Core-only path never touches the repository, and the
+    # runtime path needs it. Requiring it here would force a repository just to copy one file.
+    parser.add_argument("--repository", type=Path)
     parser.add_argument("--destination", type=Path, required=True)
     parser.add_argument("--core", type=Path,
                         help="built canonical Core to place beside the runtime")
+    parser.add_argument("--core-only", action="store_true",
+                        help="place the Core and workers only; do not reinstall the runtime")
     parser.add_argument("--workers", type=Path,
                         help="workers tree to place beside the runtime")
     args = parser.parse_args()
     if args.workers is not None and args.core is None:
         parser.error("--workers requires --core")
+    if args.core_only and args.core is None:
+        parser.error("--core-only requires --core")
+    if not args.core_only and args.repository is None:
+        parser.error("--repository is required unless --core-only is given")
     destination = args.destination.resolve()
+    # Placing the Core beside an already-prepared runtime must not reinstall the runtime:
+    # the install resolves and builds the whole locked dependency set, and a packaging step
+    # that only needs to copy one executable should not pay for that or risk changing it.
+    if args.core_only:
+        print(install_core(destination=destination, core=args.core, workers=args.workers))
+        return 0
     staged_python = prepare_bundle_runtime(repository=args.repository, destination=destination)
     if args.core is not None:
         install_core(destination=destination, core=args.core, workers=args.workers)
