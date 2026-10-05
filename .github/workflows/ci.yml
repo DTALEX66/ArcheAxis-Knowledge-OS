@@ -151,6 +151,15 @@ jobs:
           sudo apt-get update
           sudo apt-get install --yes --no-install-recommends ffmpeg tesseract-ocr tesseract-ocr-eng fonts-dejavu-core fonts-noto-cjk
           tesseract --list-langs | grep --fixed-strings --line-regexp eng
+          python - <<'PY'
+          import os, subprocess
+          from pathlib import Path
+          paths = subprocess.check_output(["dpkg", "-L", "tesseract-ocr-eng"], text=True).splitlines()
+          trained = [Path(path) for path in paths if path.endswith("/eng.traineddata") and Path(path).is_file()]
+          assert len(trained) == 1, "installed English OCR data must resolve uniquely"
+          with open(os.environ["GITHUB_ENV"], "a", encoding="utf8") as output:
+              output.write(f"TESSDATA_PREFIX={trained[0].parent}\n")
+          PY
 
       - name: Run OS-level tests
         run: python -m pytest tests/ -q --tb=short
@@ -1182,6 +1191,13 @@ jobs:
           path: .project-local/task-runtime/release-candidate
       - name: Prepare official matched Tauri WebDriver tools
         run: python -B scripts/ci/prepare_tauri_webdriver.py --root .project-local/task-runtime/aaos01-native-tools
+      - name: Prepare pinned project-local OCR for the installed format matrix
+        shell: pwsh
+        run: |
+          $sevenzip = (Get-Command 7z.exe -ErrorAction SilentlyContinue).Source
+          if (-not $sevenzip) { $sevenzip = 'C:/Program Files/7-Zip/7z.exe' }
+          python -B scripts/ci/prepare_windows_ocr.py --project-root . --root .project-local/task-runtime/aaos01-ocr-tools --sevenzip $sevenzip
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
       - name: Verify the installed NSIS lifecycle
         shell: pwsh
         env:
@@ -1208,6 +1224,7 @@ jobs:
             .project-local/task-runtime/aaos01-webdriver/**/driver.log
             .project-local/task-runtime/aaos01-webdriver/**/native-driver.log
             .project-local/task-runtime/aaos01-native-tools/receipt.json
+            .project-local/task-runtime/aaos01-ocr-tools/ocr-receipt.json
             .project-local/task-runtime/aaos01-native-tools/cargo-install.log
           if-no-files-found: error
 

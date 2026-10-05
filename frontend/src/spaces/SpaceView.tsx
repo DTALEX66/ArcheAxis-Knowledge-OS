@@ -15,16 +15,19 @@ import { AiAssetsSpace } from "./AiAssetsSpace";
 import { ExchangeSpace } from "./ExchangeSpace";
 import { SettingsSpace } from "./SettingsSpace";
 import type { InspectionTarget } from "../components/Inspector";
+import type { LibrarySection } from "../components/ContextNav";
 
 // SpaceView renders the active space content (AXW-UI-802).
 export function SpaceView({
   spaceId,
   onInspect,
   onNavigate,
+  libraryNavigation,
 }: {
   spaceId: SpaceId;
   onInspect: (target: InspectionTarget) => void;
   onNavigate: (id: SpaceId) => void;
+  libraryNavigation?: { section: LibrarySection; sequence: number };
 }) {
   const view = useRef<HTMLDivElement>(null);
   useEffect(() => {
@@ -46,7 +49,7 @@ export function SpaceView({
       case "library":
       case "intake":
       case "exchange":
-        return <CanonicalLibrarySpace onKnowledge={()=>onNavigate("vault")} onInspect={onInspect} />;
+        return <CanonicalLibrarySpace onKnowledge={()=>onNavigate("vault")} onInspect={onInspect} navigation={spaceId === "library" ? libraryNavigation : undefined} />;
       case "vault":
       case "evidence":
       case "ai-assets":

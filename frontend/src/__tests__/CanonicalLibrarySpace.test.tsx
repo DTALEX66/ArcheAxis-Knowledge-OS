@@ -35,6 +35,30 @@ describe("canonical content sample", () => {
       }
     });
   });
+  it("SIMULATED: same-space object navigation preserves dirty text and focuses actual version controls without writes", async () => {
+    const onDirtyChange = vi.fn();
+    const {rerender} = render(<CanonicalLibrarySpace onDirtyChange={onDirtyChange} />);
+    await userEvent.setup().click(await screen.findByRole("button", {name:"样板.txt · 文档"}));
+    const textbox = screen.getByRole("textbox", {name:"文档草稿"});
+    fireEvent.compositionStart(textbox);
+    act(() => {(textbox as HTMLElement & {editor:Editor}).editor.commands.setContent({type:"doc",content:[{type:"paragraph",content:[{type:"text",text:"导航仍保留未保存正文"}]}]},{emitUpdate:true});});
+    await screen.findByText(/尚未保存 · 当前持久化版本/);
+    bridge.call.mockClear(); onDirtyChange.mockClear();
+    rerender(<CanonicalLibrarySpace onDirtyChange={onDirtyChange} navigation={{section:"versions",sequence:1}} />);
+    expect(screen.getByLabelText("文档版本导航")).toHaveFocus();
+    expect(screen.getByRole("textbox", {name:"文档草稿"})).toBe(textbox);
+    expect(textbox).toHaveTextContent("导航仍保留未保存正文");
+    expect(onDirtyChange).not.toHaveBeenCalled(); expect(bridge.call).not.toHaveBeenCalled();
+  });
+  it("SIMULATED: object navigation does not invent a selected source or document", async () => {
+    const {rerender} = render(<CanonicalLibrarySpace navigation={{section:"anchors",sequence:1}} />);
+    expect(screen.getByText(/请先选择实际来源原件/)).toBeInTheDocument();
+    rerender(<CanonicalLibrarySpace navigation={{section:"versions",sequence:2}} />);
+    expect(screen.getByLabelText("文档版本导航")).toHaveFocus();
+    expect(screen.getByText(/请先选择已保存文档/)).toBeInTheDocument();
+    expect(bridge.call.mock.calls.some(([operation])=>operation==="document_get" || operation==="document_version" || operation==="document_restore")).toBe(false);
+    await screen.findByRole("button", {name:"样板.txt · 文档"});
+  });
   it("SIMULATED: reads historical text and revision basis without restoring or replacing the current draft", async () => {
     const previous = bridge.call.getMockImplementation()!;
     bridge.call.mockImplementation((operation: string, payload: Record<string, unknown>) => operation === "document_version" ? Promise.resolve({ ...doc, version: 1, text_projection: "历史正文独立保存", revision_basis: { rationale: "核对原件后修正年份", reference_version: 1 } }) : previous(operation, payload));

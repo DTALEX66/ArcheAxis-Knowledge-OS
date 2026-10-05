@@ -10,6 +10,7 @@ silent pass.
 
 from __future__ import annotations
 
+import os
 import importlib.util
 from pathlib import Path
 
@@ -23,7 +24,7 @@ WORKER = Path(__file__).resolve().parents[1] / "services" / "python-workers" / "
 # ships the traineddata under tools/tesseract/tessdata, and the ambient
 # TESSDATA_PREFIX in some shells points at a directory that does not exist, so the
 # route is exercised with the repository tessdata explicitly.
-TESSDATA = Path(__file__).resolve().parents[1] / "tools" / "tesseract" / "tessdata"
+TESSDATA = Path(os.environ.get("TESSDATA_PREFIX") or (Path(__file__).resolve().parents[1] / "tools" / "tesseract" / "tessdata"))
 
 
 def _load():

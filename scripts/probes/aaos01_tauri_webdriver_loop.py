@@ -839,6 +839,18 @@ def main():
         else:
             raise TimeoutError("Owned WebDriver readiness")
         launch()
+        # Same-space navigation must reach real object regions without writes
+        # or a workspace remount, even before any source/document exists.
+        object_scope = "//ul[@aria-label='资料库对象导航']"
+        wait("return document.querySelectorAll('ul[aria-label=\"资料库对象导航\"] button').length===4")
+        empty_sources = bridge("sources_list")
+        empty_documents = bridge("documents_list")
+        for label, region in [("来源锚点", "来源版本证据"), ("文档版本", "文档版本导航"), ("已保存文档", "已保存文档"), ("来源原件", "保留原件")]:
+            ui_click(label, object_scope)
+            wait(f"return document.activeElement?.getAttribute('aria-label')==={json.dumps(region)}")
+        assert bridge("sources_list") == empty_sources
+        assert bridge("documents_list") == empty_documents
+        receipt["library_object_navigation"] = {"sections": 4, "actual_focus_verified": True, "sources_unchanged": True, "documents_unchanged": True}
         content = "中文 WebDriver 原文证据 Golden native window 42.\n".encode()
         imported = bridge(
             "source_import",
@@ -985,6 +997,7 @@ def main():
         screenshot("restart.png")
         receipt["steps"] = [
             "Real Tauri WebDriver session/window",
+            "UI same-space source/document/anchor/version navigation focuses actual regions without creating objects",
             "Finite system_version bridge",
             "Import/read original bytes and rendered Chinese reader",
             "Finite bridge document save",

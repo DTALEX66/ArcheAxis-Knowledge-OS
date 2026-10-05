@@ -6,7 +6,7 @@ import { ActivityDock } from "../components/ActivityDock";
 import { Inspector, type InspectionTarget } from "../components/Inspector";
 import { SpaceView } from "../spaces/SpaceView";
 import { RecoveryShell } from "../components/RecoveryShell";
-import { ContextNav } from "../components/ContextNav";
+import { ContextNav, type LibrarySection } from "../components/ContextNav";
 import {
   enterRecoverySafeMode,
   getRecoveryStatus,
@@ -34,6 +34,7 @@ const RECOVERY_BOOT_TIMEOUT_MS = 30_000;
 export function App() {
   const desktop = Boolean(window.__TAURI__?.core?.invoke);
   const [activeSpace, setActiveSpace] = useState<SpaceId>(desktop ? "library" : "workspace");
+  const [libraryNavigation, setLibraryNavigation] = useState<{ section: LibrarySection; sequence: number }>({ section: "sources", sequence: 0 });
   const [inspectionTarget, setInspectionTarget] = useState<InspectionTarget | null>(null);
   const [inspectorOpen, setInspectorOpen] = useState(false);
   const [desktopReady, setDesktopReady] = useState(!desktop);
@@ -365,9 +366,9 @@ export function App() {
       />
       <div className="app-body">
         <SpaceRail active={activeSpace} onNavigate={navigate} spaces={SPACES} />
-        <ContextNav active={activeSpace} onNavigate={navigate} />
+        <ContextNav active={activeSpace} onNavigate={navigate} librarySection={libraryNavigation.section} onLibrarySection={desktop ? section => setLibraryNavigation(previous => ({section, sequence: previous.sequence + 1})) : undefined} />
         <main className="app-center" role="main" aria-label="当前空间内容">
-          <SpaceView spaceId={activeSpace} onInspect={inspect} onNavigate={navigate} />
+          <SpaceView spaceId={activeSpace} onInspect={inspect} onNavigate={navigate} libraryNavigation={libraryNavigation} />
         </main>
         {inspectorOpen ? <Inspector target={inspectionTarget} onClose={() => setInspectorOpen(false)} /> : null}
       </div>

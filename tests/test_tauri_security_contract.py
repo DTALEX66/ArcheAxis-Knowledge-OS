@@ -119,8 +119,13 @@ def test_desktop_keeps_launch_credentials_in_host_and_projects_only_ready() -> N
     assert not {"Http", "Request", "Url", "Shell", "ExecuteCommand"} & set(
         re.findall(r"\b\w+\b", operation.group(1))
     )
-    assert "value.len() > 128" in bridge
+    # Core allows bounded archive member job IDs; other path identifiers keep
+    # their narrower contract. A job-only exception must not relax all IDs.
+    assert 'let job_id = key == "job_id"' in bridge
+    assert "value.len() > if job_id { 200 } else { 128 }" in bridge
     assert "c.is_ascii_alphanumeric() || c == b'-' || c == b'_'" in bridge
+    assert "(job_id && c == b'.')" in bridge
+    assert 'matches!(value, "." | "..")' in bridge
     assert '"CORE_COMMAND_ID_INVALID"' in bridge
     assert "> 8 * 1024 * 1024" in bridge and '"CORE_COMMAND_BODY_TOO_LARGE"' in bridge
     assert ".no_proxy()" in bridge and "reqwest::redirect::Policy::none()" in bridge
