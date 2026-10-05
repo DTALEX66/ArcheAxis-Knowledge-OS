@@ -74,6 +74,8 @@ pub struct CoreSpec {
     pub workspace_db: std::path::PathBuf,
     pub cwd: std::path::PathBuf,
     pub data_dir: std::path::PathBuf,
+    /// The worker declaration, when the candidate carries one.
+    pub text_worker: Option<serde_json::Value>,
 }
 
 /// Build the launch document the Core reads from stdin.
@@ -81,15 +83,92 @@ pub struct CoreSpec {
 /// The two credentials must differ: the Core refuses a machine token equal to the
 /// launch token, and it requires the launch actor to be exactly `human` under the v2
 /// protocol.
-pub fn core_launch_document(token: &str, machine_token: &str, session_id: &str) -> String {
-    serde_json::json!({
+pub fn core_launch_document(
+    token: &str,
+    machine_token: &str,
+    session_id: &str,
+    text_worker: Option<&serde_json::Value>,
+) -> String {
+    let mut document = serde_json::json!({
         "launch_token": token,
         "session_id": session_id,
         "protocol": CORE_LAUNCH_PROTOCOL,
         "machine_token": machine_token,
         "actor": "human",
-    })
-    .to_string()
+    });
+    // Without a worker the Core mounts only its projections table. Declaring one is
+    // what makes the runtime table - and with it the capability routes - reachable.
+    if let Some(worker) = text_worker {
+        document["text_worker"] = worker.clone();
+    }
+    document.to_string()
+}
+
+/// The worker declaration the Core needs before it will mount its runtime routes.
+///
+/// Paths are absolute: the Core resolves a relative path against a declared root and
+/// refuses one that has no root, so deriving them here keeps that rule out of reach.
+fn text_worker_for(root: &Path, python: &Path, data_dir: &Path) -> Option<serde_json::Value> {
+    let workers = root.join("workers");
+    let script = workers.join("transport").join("text_ndjson.py");
+    if !script.is_file() {
+        return None;
+    }
+    let mut worker = serde_json::json!({
+        "python": python.to_string_lossy(),
+        "script": script.to_string_lossy(),
+        "staging": data_dir.join("worker-staging").to_string_lossy(),
+    });
+    // The single-source manifest names each capability and the worker that implements
+    // it. Reading it here rather than embedding a copy keeps one source of truth.
+    if let Ok(raw) = std::fs::read_to_string(workers.join("routes.json")) {
+        if let Ok(parsed) = serde_json::from_str::<serde_json::Value>(&raw) {
+            if let Some(map) = parsed.get("routes").and_then(serde_json::Value::as_object) {
+                let mut routes = Vec::new();
+                for (capability, scripts) in map {
+                    let Some(relative) = scripts
+                        .as_array()
+                        .and_then(|entries| entries.first())
+                        .and_then(serde_json::Value::as_str)
+                    else {
+                        continue;
+                    };
+                    routes.push(serde_json::json!({
+                        "capability": capability,
+                        "script": workers
+                            .join(relative.replace('/', "\\"))
+                            .to_string_lossy(),
+                    }));
+                }
+                worker["routes"] = serde_json::Value::Array(routes);
+            }
+        }
+    }
+    Some(worker)
+}
+
+impl CoreSpec {
+    /// Find the canonical Core beside the runtime the resolver chose.
+    ///
+    /// The resolver points at `<root>/runtime/python/python.exe`, so a candidate that
+    /// ships a Core carries it at `<root>/core/archeaxis-api.exe`. Returning `None`
+    /// when it is absent keeps the legacy entrypoint the default until a candidate
+    /// actually provides a Core.
+    pub fn beside_runtime(runtime: &RuntimeSpec) -> Option<Self> {
+        let root = runtime.python.parent()?.parent()?.parent()?.to_path_buf();
+        let executable = root.join("core").join("archeaxis-api.exe");
+        if !executable.is_file() {
+            return None;
+        }
+        let workspace_db = runtime.data_dir.join("archeaxis.sqlite");
+        Some(Self {
+            executable,
+            workspace_db,
+            cwd: runtime.data_dir.clone(),
+            data_dir: runtime.data_dir.clone(),
+            text_worker: text_worker_for(&root, &runtime.python, &runtime.data_dir),
+        })
+    }
 }
 
 type LogBuffer = Arc<Mutex<VecDeque<String>>>;
@@ -196,7 +275,12 @@ impl BackendProcess {
         // before it validates anything, so leaving the pipe open would hang the launch.
         match child.stdin.take() {
             Some(mut stdin) => {
-                let document = core_launch_document(&token, &machine_token, &session_id);
+                let document = core_launch_document(
+                    &token,
+                    &machine_token,
+                    &session_id,
+                    spec.text_worker.as_ref(),
+                );
                 if stdin.write_all(document.as_bytes()).is_err() {
                     let _ = child.kill();
                     let _ = child.wait();
@@ -682,7 +766,7 @@ mod tests {
         let token = "a".repeat(64);
         let machine = "b".repeat(64);
         let session = machine[..32].to_owned();
-        let document = core_launch_document(&token, &machine, &session);
+        let document = core_launch_document(&token, &machine, &session, None);
         let parsed: serde_json::Value =
             serde_json::from_str(&document).expect("the launch document is valid JSON");
         assert_eq!(parsed["protocol"], CORE_LAUNCH_PROTOCOL);
@@ -691,6 +775,22 @@ mod tests {
         assert_eq!(parsed["machine_token"].as_str().map(str::len), Some(64));
         assert_eq!(parsed["session_id"].as_str().map(str::len), Some(32));
         assert_ne!(parsed["launch_token"], parsed["machine_token"]);
+        // With no worker declared the document must not contain the field at all: an
+        // absent worker is what keeps the Core on its projections-only router.
+        assert!(parsed.get("text_worker").is_none());
+    }
+
+    #[test]
+    fn a_declared_worker_is_carried_into_the_launch_document() {
+        let worker = serde_json::json!({
+            "python": "C:/root/runtime/python/python.exe",
+            "script": "C:/root/workers/transport/text_ndjson.py",
+            "staging": "C:/data/worker-staging",
+            "routes": [{"capability": "pdf.extract", "script": "C:/root/workers/document/worker_pdf.py"}],
+        });
+        let document = core_launch_document(&"a".repeat(64), &"b".repeat(64), &"c".repeat(32), Some(&worker));
+        let parsed: serde_json::Value = serde_json::from_str(&document).expect("valid JSON");
+        assert_eq!(parsed["text_worker"]["routes"][0]["capability"], "pdf.extract");
     }
 
     #[test]

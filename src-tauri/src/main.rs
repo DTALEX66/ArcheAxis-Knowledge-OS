@@ -258,7 +258,7 @@ mod protocol;
 mod runtime;
 
 #[cfg(windows)]
-use backend::{run_restore_backup, BackendProcess};
+use backend::{run_restore_backup, BackendProcess, CoreSpec};
 #[cfg(windows)]
 use recovery::{
     enumerate_backups, stage_backup_for_restore, validate_enumerated_backup_name, EnumeratedBackup,
@@ -816,7 +816,15 @@ fn main() {
                         record_failure(&launch_state, RECOVERY_STATE_UNAVAILABLE);
                         return;
                     };
-                    match BackendProcess::launch(&runtime) {
+                    // Prefer the canonical Core when the candidate ships one. The host still
+                    // owns the port and the launch token; only the process behind them changes.
+                    // The legacy entrypoint remains the fallback so a candidate without a Core
+                    // keeps working exactly as before.
+                    let launched = match CoreSpec::beside_runtime(&runtime) {
+                        Some(spec) => BackendProcess::launch_core(&spec),
+                        None => BackendProcess::launch(&runtime),
+                    };
+                    match launched {
                         Ok(process) => {
                             if let Ok(mut slot) = launch_state.process.lock() {
                                 *slot = Some(process);
