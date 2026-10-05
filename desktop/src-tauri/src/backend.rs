@@ -741,6 +741,7 @@ mod tests {
     use std::thread;
     use std::time::{Duration, Instant};
     use crate::backend::core_launch_document;
+    use crate::backend::CoreSpec;
     use crate::backend::CORE_LAUNCH_PROTOCOL;
     use tempfile::tempdir;
 
@@ -786,6 +787,35 @@ mod tests {
         // With no worker declared the document must not contain the field at all: an
         // absent worker is what keeps the Core on its projections-only router.
         assert!(parsed.get("text_worker").is_none());
+    }
+
+    #[test]
+    fn core_discovery_accepts_both_interpreter_layouts() {
+        // The dependency stager writes a flat interpreter and an earlier packaging pass
+        // nested it. Discovery that assumes one depth finds nothing for the other layout,
+        // and the shell then silently falls back to the legacy entrypoint - the outcome the
+        // migration exists to replace, with no error to notice. So both are exercised.
+        for interpreter in ["runtime/python/python.exe", "runtime/python.exe"] {
+            let root = tempdir().expect("a temporary root");
+            let python = root.path().join(interpreter.replace('/', "\\"));
+            std::fs::create_dir_all(python.parent().expect("a parent")).expect("python dir");
+            std::fs::write(&python, b"").expect("python file");
+            let core = root.path().join("core").join("archeaxis-api.exe");
+            std::fs::create_dir_all(core.parent().expect("a parent")).expect("core dir");
+            std::fs::write(&core, b"").expect("core file");
+            let runtime = RuntimeSpec {
+                python,
+                cwd: root.path().to_path_buf(),
+                data_dir: root.path().to_path_buf(),
+                isolated: true,
+                external_dev: false,
+                profile: "installed-stable",
+            };
+            let spec = CoreSpec::beside_runtime(&runtime).unwrap_or_else(|| {
+                panic!("the Core beside a {interpreter} runtime was not found")
+            });
+            assert_eq!(spec.executable, core, "{interpreter}");
+        }
     }
 
     #[test]
