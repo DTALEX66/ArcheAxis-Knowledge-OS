@@ -108,6 +108,19 @@ pub fn core_launch_document(
 ///
 /// Paths are absolute: the Core resolves a relative path against a declared root and
 /// refuses one that has no root, so deriving them here keeps that rule out of reach.
+/// A canonical Windows path carries an extended-length prefix, `\\?\`, that the launch
+/// contract does not expect: the Core refuses such a path in the worker profile. Paths here
+/// are derived from a canonicalised root, so the prefix is removed as they cross into the
+/// document. Comparison still uses the canonical form; only the published text changes.
+fn contract_path(path: &Path) -> String {
+    let text = path.to_string_lossy();
+    let trimmed = text
+        .strip_prefix(r"\\?\")
+        .or_else(|| text.strip_prefix(r"\\.\"))
+        .unwrap_or(&text);
+    trimmed.to_owned()
+}
+
 fn text_worker_for(root: &Path, python: &Path, data_dir: &Path) -> Option<serde_json::Value> {
     let workers = root.join("workers");
     let script = workers.join("transport").join("text_ndjson.py");
@@ -115,9 +128,9 @@ fn text_worker_for(root: &Path, python: &Path, data_dir: &Path) -> Option<serde_
         return None;
     }
     let mut worker = serde_json::json!({
-        "python": python.to_string_lossy(),
-        "script": script.to_string_lossy(),
-        "staging": data_dir.join("worker-staging").to_string_lossy(),
+        "python": contract_path(python),
+        "script": contract_path(&script),
+        "staging": contract_path(&data_dir.join("worker-staging")),
     });
     // The single-source manifest names each capability and the worker that implements
     // it. Reading it here rather than embedding a copy keeps one source of truth.
@@ -135,9 +148,7 @@ fn text_worker_for(root: &Path, python: &Path, data_dir: &Path) -> Option<serde_
                     };
                     routes.push(serde_json::json!({
                         "capability": capability,
-                        "script": workers
-                            .join(relative.replace('/', "\\"))
-                            .to_string_lossy(),
+                        "script": contract_path(&workers.join(relative.replace('/', "\\"))),
                     }));
                 }
                 worker["routes"] = serde_json::Value::Array(routes);
@@ -306,6 +317,26 @@ impl BackendProcess {
         if let Err(error) = wait_for_readiness(&mut child, port, &token, &logs, CORE_VERSION_PATH) {
             let _ = child.kill();
             let _ = child.wait();
+            // A Core that starts and then disappears leaves no evidence anywhere else: what it
+            // said went into the log buffer, which normally only reaches the window. Writing it
+            // beside the data it was launched with is what makes that failure diagnosable after
+            // the fact, and it changes nothing about what the launch itself does.
+            let captured = logs
+                .lock()
+                .map(|lines| lines.iter().cloned().collect::<Vec<_>>().join("\n"))
+                .unwrap_or_default();
+            let _ = std::fs::write(spec.data_dir.join("core-launch-failure.log"), captured);
+            // Redacted: the document carries two credentials, and a diagnostic file is not a
+            // place to leave them. What matters for diagnosis is every other field.
+            let document = core_launch_document(
+                &token,
+                &machine_token,
+                &session_id,
+                spec.text_worker.as_ref(),
+            )
+            .replace(&token, "<launch-token>")
+            .replace(&machine_token, "<machine-token>");
+            let _ = std::fs::write(spec.data_dir.join("core-launch-document.json"), document);
             return Err(error);
         }
         Ok(Self {
@@ -759,7 +790,9 @@ mod tests {
         readiness_payload_valid, response_body, restore_receipt_valid, run_restore_backup,
         runtime_command, shutdown_job_owned_child,
     };
+    use crate::backend::contract_path;
     use crate::backend::core_launch_document;
+    use std::path::Path as TestPath;
     use crate::backend::core_version_identity_valid;
     use crate::backend::CoreSpec;
     use crate::backend::CORE_LAUNCH_PROTOCOL;
@@ -862,6 +895,20 @@ mod tests {
         assert_eq!(
             parsed["text_worker"]["routes"][0]["capability"],
             "pdf.extract"
+        );
+    }
+
+    #[test]
+    fn the_launch_contract_never_carries_a_verbatim_path_prefix() {
+        // A canonicalised Windows path starts with the extended-length prefix, and the Core
+        // refuses it in the worker profile. Every published path is stripped.
+        assert_eq!(
+            contract_path(TestPath::new(r"\\?\C:\bundle\runtime\python.exe")),
+            r"C:\bundle\runtime\python.exe",
+        );
+        assert_eq!(
+            contract_path(TestPath::new(r"C:\bundle\runtime\python.exe")),
+            r"C:\bundle\runtime\python.exe",
         );
     }
 

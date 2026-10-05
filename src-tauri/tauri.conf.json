@@ -38,7 +38,11 @@
       "../.project-local/rt/runtime": "runtime",
       "../.project-local/rt/core": "core",
       "../.project-local/rt/workers": "workers",
-      "../.project-local/rt/shared": "shared"
+      "../.project-local/rt/shared": "shared",
+      "../.project-local/rt/worker-profile.json": "worker-profile.json",
+      "../.project-local/rt/start-backend.py": "start-backend.py",
+      "../.project-local/rt/start-backend.cmd": "start-backend.cmd",
+      "../.project-local/rt/backend-runtime-manifest.json": "backend-runtime-manifest.json"
     }
   }
 }
