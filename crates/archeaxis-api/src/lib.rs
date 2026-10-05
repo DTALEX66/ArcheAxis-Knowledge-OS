@@ -1257,7 +1257,7 @@ async fn source_jobs(
              LEFT JOIN job_attempts a ON a.job_id=j.job_id
                  AND a.attempt=(SELECT MAX(latest.attempt) FROM job_attempts latest WHERE latest.job_id=j.job_id)
              WHERE j.input_ref=?1
-             ORDER BY j.completed_at DESC,j.created_at DESC,j.job_id ASC",
+             ORDER BY j.completed_at DESC,j.created_at DESC,j.job_id ASC LIMIT 51",
         ) {
             Ok(statement) => statement,
             Err(error) => return (StatusCode::INTERNAL_SERVER_ERROR, error.to_string()).into_response(),
@@ -1284,7 +1284,9 @@ async fn source_jobs(
                 Err(error) => return (StatusCode::INTERNAL_SERVER_ERROR, error.to_string()).into_response(),
             }
         }
-        (StatusCode::OK, Json(serde_json::json!({"source_id": source_id, "jobs": jobs}))).into_response()
+        let jobs_capped = jobs.len() > 50;
+        jobs.truncate(50);
+        (StatusCode::OK, Json(serde_json::json!({"source_id": source_id, "jobs": jobs, "jobs_capped": jobs_capped}))).into_response()
     }).await
 }
 

@@ -9,8 +9,9 @@ import { JobContent } from "../components/JobContent";
 import { CheckPanel } from "../components/CheckPanel";
 import { BackupPanel } from "../components/BackupPanel";
 import "../components/content.css";
+import type { InspectionTarget } from "../components/Inspector";
 
-export function CanonicalLibrarySpace({onKnowledge,initialDocumentId,onDirtyChange}:{onKnowledge?:()=>void;initialDocumentId?:string;onDirtyChange?:(dirty:boolean)=>void}) {
+export function CanonicalLibrarySpace({onKnowledge,initialDocumentId,onDirtyChange,onInspect}:{onKnowledge?:()=>void;initialDocumentId?:string;onDirtyChange?:(dirty:boolean)=>void;onInspect?:(target:InspectionTarget)=>void}) {
   const [sources, setSources] = useState<SourceDto[]>([]);
   const [sourcePage, setSourcePage] = useState(0);
   const [documents, setDocuments] = useState<DocumentSummaryDto[]>([]);
@@ -33,6 +34,18 @@ export function CanonicalLibrarySpace({onKnowledge,initialDocumentId,onDirtyChan
   const editGeneration = useRef(0);
   const generation = useRef(0);
   const textRegion = useRef<HTMLPreElement>(null);
+  useEffect(() => {
+    if (!document && !source) return;
+    onInspect?.({
+      title: document?.title ?? source!.original_name,
+      source: source ? "CAS 原件 / Rust Core" : "用户原创文档 / Rust Core",
+      lifecycle: document ? "已保存；核验与依据分析独立记录" : "原件已保留",
+      rawSha256: source?.sha256,
+      version: document ? String(document.version) : source?.source_revision,
+      updatedAt: source?.imported_at,
+      detail: document ? `文档 ${document.document_id}；正文指纹 ${document.content_sha256}；保存不表示已证实。` : `原件 ${source!.source_id}；${anchors.length} 条定位记录；处理状态以实际任务为准。`,
+    });
+  }, [document, source, anchors, onInspect]);
   useEffect(() => {
     let alive = true;
     Promise.all([

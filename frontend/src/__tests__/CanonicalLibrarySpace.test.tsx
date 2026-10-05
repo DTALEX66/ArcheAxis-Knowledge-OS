@@ -49,6 +49,15 @@ describe("canonical content sample", () => {
     expect(screen.getByRole("textbox",{name:"文档草稿"})).toHaveTextContent("New unsaved text during request");
     expect(screen.getByRole("button",{name:"late original · 文档"})).toBeInTheDocument();
   });
+  it("reuses the inspector with the actual saved version and source fingerprint without inventing review", async () => {
+    const onInspect = vi.fn(); render(<CanonicalLibrarySpace onInspect={onInspect} />);
+    await userEvent.setup().click(await screen.findByRole("button", { name: "样板.txt · 文档" }));
+    await waitFor(() => expect(onInspect).toHaveBeenCalledWith(expect.objectContaining({ version: "1", rawSha256: hash })));
+    const target = onInspect.mock.calls.at(-1)![0];
+    expect(target.detail).toContain(doc.document_id);
+    expect(target.lifecycle).toContain("核验与依据分析独立记录");
+    expect(target.review).toBeUndefined();
+  });
   it.each(["document_get","document_restore"])("preserves edits begun while %s is pending",async(operation)=>{
     let complete!:(value:unknown)=>void;
     const previous=bridge.call.getMockImplementation()!;

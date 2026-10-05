@@ -132,6 +132,41 @@ def check(record):
     record["native_locations"] = facts["locations"]
 
 
+def archive_members(client, base, token, source_id, payload):
+    """Run the jobs production already queued, then verify their own CAS/output."""
+    with zipfile.ZipFile(io.BytesIO(payload)) as archive:
+        expected = {name: archive.read(name) for name in archive.namelist() if not name.endswith("/")}
+    status, members = client.call(base, "GET", f"/api/v1/sources/{source_id}/members", token)
+    assert status == 200 and members["member_count"] == len(expected), members
+    results = []
+    for member in members["members"]:
+        raw = expected[member["member"]]
+        assert hashlib.sha256(raw).hexdigest() == member["sha256"]
+        status, original = client.call(base, "GET", f"/api/v1/sources/{member['source_id']}/original", token)
+        assert status == 200 and base64.b64decode(original["content_base64"]) == raw
+        job = member["job_id"]
+        assert job, "readable golden member must have a production-enqueued job"
+        status, queued = client.call(base, "GET", f"/api/v1/jobs/{job}", token)
+        assert status == 200 and queued["state"] == "queued", queued
+        status, executed = client.call(base, "POST", f"/api/v1/jobs/{job}/executions", token,
+            {"deadline_ms": 30000}, extra_headers={"idempotency-key": job})
+        assert status == 202, executed
+        deadline = time.monotonic() + 35
+        while time.monotonic() < deadline:
+            _, state = client.call(base, "GET", f"/api/v1/jobs/{job}", token)
+            if state.get("state") in ("succeeded", "failed", "rejected", "cancelled"):
+                break
+            time.sleep(.1)
+        snapshot = office.capture(client, base, token, job)
+        child = {"snapshot": snapshot, "wave": "A", "expected_text": raw.decode("utf-8"), "format": "txt"}
+        check(child)
+        assert snapshot["text"]["body"]["content"] == raw.decode("utf-8")
+        results.append({"job_id": job, "source_id": member["source_id"], "sha256": member["sha256"], "snapshot": snapshot})
+    status, members = client.call(base, "GET", f"/api/v1/sources/{source_id}/members", token)
+    assert status == 200 and members["readable_count"] == len(expected)
+    return {"members": members, "results": results}
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--candidate", type=Path, required=True)
@@ -195,6 +230,8 @@ def main():
                     time.sleep(.1)
                 record["snapshot"] = office.capture(client, base, token, job)
                 check(record)
+                if args.wave == "A" and extension == "zip":
+                    record["archive_expansion"] = archive_members(client, base, token, imported["source_id"], payload)
                 if args.wave == "B" and not record["corrupt"]:
                     projected = record["snapshot"]["text"]["body"]["content"]
                     loss = json.loads(record["snapshot"]["loss_report"]["body"]["content"])
@@ -249,6 +286,15 @@ def main():
                 status, original = client.call(base, "GET", f"/api/v1/sources/{record['import']['body']['source_id']}/original", token)
                 record["cas_restart_equal"] = status == 200 and hashlib.sha256(base64.b64decode(original["content_base64"])).hexdigest() == record["input"]["sha256"]
                 record["ok"] = record["ok"] and record["cas_restart_equal"]
+                if "archive_expansion" in record:
+                    expansion = record["archive_expansion"]
+                    status, members = client.call(base, "GET", f"/api/v1/sources/{record['import']['body']['source_id']}/members", token)
+                    assert status == 200 and members == expansion["members"], "container relations changed after restart"
+                    for member in expansion["results"]:
+                        assert office.capture(client, base, token, member["job_id"]) == member["snapshot"], "member outputs changed after restart"
+                        status, original = client.call(base, "GET", f"/api/v1/sources/{member['source_id']}/original", token)
+                        assert status == 200 and hashlib.sha256(base64.b64decode(original["content_base64"])).hexdigest() == member["sha256"], "member CAS changed after restart"
+                    expansion["restart_equal"] = True
                 if "export" in record:
                     status, exported = client.call(base, "GET", f"/api/v1/documents/{record['document_id']}/export?format=markdown", token)
                     record["export_restart_equal"] = status == 200 and exported == record["export"]

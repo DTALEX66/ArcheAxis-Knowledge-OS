@@ -3,6 +3,7 @@ import { act, fireEvent, render, screen, waitFor, within } from "@testing-librar
 import userEvent from "@testing-library/user-event";
 import { StrictMode } from "react";
 import { App } from "../app/App";
+import { coreCommand } from "../api/core";
 
 const recovery = vi.hoisted(() => ({
   getRecoveryStatus: vi.fn(),
@@ -44,6 +45,7 @@ function deferred<T>() {
 describe("Recovery Shell", () => {
   beforeEach(() => {
     vi.resetAllMocks();
+    vi.mocked(coreCommand).mockImplementation(async (operation) => (operation === "sources_list" ? { sources: [] } : { documents: [] }) as never);
     recovery.getRecoveryStatus.mockResolvedValue(failedRecovery);
     recovery.getRecoveryLogTail.mockResolvedValue({ lines: ["Core startup is unavailable"] });
     recovery.enterRecoverySafeMode.mockResolvedValue({ ...failedRecovery, safe_mode: true });

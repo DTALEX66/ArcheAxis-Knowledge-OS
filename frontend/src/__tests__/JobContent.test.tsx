@@ -5,6 +5,19 @@ import { JobContent } from "../components/JobContent";
 const bridge=vi.hoisted(()=>({call:vi.fn()}));vi.mock("../api/core",()=>({coreCommand:bridge.call}));
 describe("Core job content",()=>{
  beforeEach(()=>{bridge.call.mockReset();});
+ it.each([["sample.png","image","执行真实内容转换"],["sample.zip","archive","清点容器与登记成员"],["sample.canvas","canvas","执行真实内容转换"],["sample.srt","subtitles","执行真实内容转换"],["sample.xml","text","执行真实内容转换"],["sample.wav","media","执行媒体头信息探测"],["sample.mp4","media","执行媒体头信息探测"]])("routes existing %s worker without claiming unexecuted success",async(name,kind,label)=>{
+  bridge.call.mockImplementation(async(op:string,payload:Record<string,unknown>)=>{
+   if(op==="job_enqueue")return {job_id:(payload.body as Record<string,unknown>).job_id};
+   if(op==="jobs_get")return {state:"failed",error_code:"AAK-WORKER-003"};
+   return {};
+  });
+  render(<JobContent sourceId="src_format" name={name}/>);
+  await userEvent.setup().click(screen.getByRole("button",{name:label}));
+  await screen.findByText(/转换未完成或产物读取失败/);
+  expect(bridge.call).toHaveBeenCalledWith("job_enqueue",{body:{job_id:expect.any(String),kind,input_ref:"src_format"}});
+  expect(screen.queryByLabelText("Core 提取正文")).not.toBeInTheDocument();
+  if(kind==="media")expect(screen.getByText(/不表示已解码、转写或核对时间段内容/)).toBeInTheDocument();
+ });
  it("retains successful output when a later job fails and binds candidates to its successful transform",async()=>{
   let latest="";let executions=0;
   bridge.call.mockImplementation(async(op:string,payload:Record<string,unknown>)=>{

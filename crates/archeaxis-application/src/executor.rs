@@ -386,6 +386,11 @@ impl Executor {
                         ));
                     }
                 };
+                let artifact_root = if req.capability == "archive.inventory" {
+                    crate::container::attempt_root(&self.staging, &req.job_id, req.attempt)
+                } else {
+                    self.staging.clone()
+                };
                 let staging = self.staging.clone();
                 let python = self.python.clone();
                 let request = serde_json::to_string(&req).map_err(|e| e.to_string())?;
@@ -394,7 +399,14 @@ impl Executor {
                 let cancel = cancel.clone();
                 tokio::task::spawn_blocking(move || {
                     run_worker(
-                        &staging, &python, &worker, &req_copy, &input, &cancel, allow_site,
+                        &staging,
+                        &artifact_root,
+                        &python,
+                        &worker,
+                        &req_copy,
+                        &input,
+                        &cancel,
+                        allow_site,
                     )
                 })
                 .await
@@ -405,7 +417,11 @@ impl Executor {
         match result {
             Ok((response, bytes)) => {
                 let cancel = cancel.clone();
-                let artifact_root = self.staging.clone();
+                let artifact_root = if req.capability == "archive.inventory" {
+                    crate::container::attempt_root(&self.staging, &req.job_id, req.attempt)
+                } else {
+                    self.staging.clone()
+                };
                 self.store.submit_wait(move|conn|{
                     // Cancellation competes with completion at the writer boundary;
                     // once completion is committed it cannot be rolled back by cancel.
@@ -415,6 +431,27 @@ impl Executor {
                     }
                     match attempts::finish(conn,&req,&response,&bytes){
                         Ok(())=>{
+                            if req.capability == "archive.inventory" {
+                                if let Err(error) = crate::container::expand_members(conn, &artifact_root, &req.job_id) {
+                                    let reason = error.to_string();
+                                    let task = archeaxis_domain::machine::MachineTask {
+                                        task_id: &format!("{}-members-{}", req.job_id, req.attempt),
+                                        principal: "machine",
+                                        conditions: "archive inventory saved but member expansion failed",
+                                        knowledge_version: None,
+                                        method_version: Some("container.expand_members/v1"),
+                                        tool_version: Some("core"),
+                                        model_version: "not-a-model: deterministic core chaining",
+                                        scope: &req.job_id,
+                                        outcome: "failed",
+                                        failure: Some(&reason),
+                                        retest_of: None,
+                                    };
+                                    archeaxis_domain::machine::record_machine_task(conn, &task)
+                                        .map_err(|error| format!("{reason}; expansion failure receipt unavailable: {error}"))?;
+                                    return Err(format!("archive inventory saved; member expansion failed: {reason}"));
+                                }
+                            }
                             // R15/F06: a route that declares follow-up work gets it in the
                             // same commit, so a completed PDF job never leaves its declared
                             // pages unqueued. A chaining failure is recorded as a machine
@@ -573,6 +610,7 @@ pub const KNOWN_WORKER_IDENTITIES: &[&str] = &[
 
 fn run_worker(
     staging: &Path,
+    artifact_root: &Path,
     python: &Path,
     worker: &Path,
     req: &Request,
@@ -585,6 +623,7 @@ fn run_worker(
     if input.len() > 16 * 1024 * 1024 {
         return Err(Failure::Failed("text input exceeds 16 MiB".into()));
     }
+    std::fs::create_dir_all(staging)?;
     let dir = tempfile::tempdir_in(staging)?;
     std::fs::create_dir(dir.path().join("input"))?;
     std::fs::write(dir.path().join("input").join(&req.inputs[0].sha256), input)?;
@@ -600,7 +639,7 @@ fn run_worker(
     // the Core verifies those files later by digest. Only the routes that declare it
     // receive the flag, so every other launch shape stays unchanged.
     if crate::attempts::ARTIFACT_ROOT_CAPABILITIES.contains(&req.capability.as_str()) {
-        command.arg("--artifact-root").arg(staging);
+        command.arg("--artifact-root").arg(artifact_root);
     }
     command
         .current_dir(dir.path())

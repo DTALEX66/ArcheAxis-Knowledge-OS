@@ -62,6 +62,7 @@ async fn source_jobs_are_read_from_persisted_core_state_and_unknown_sources_are_
     let (status, payload) = get(&router, &format!("/api/v1/sources/{source_id}/jobs")).await;
     assert_eq!(status, 200, "{payload}");
     assert_eq!(payload["source_id"], source_id);
+    assert_eq!(payload["jobs_capped"], false);
     let jobs = payload["jobs"].as_array().unwrap();
     assert_eq!(jobs.len(), 4, "{payload}");
     assert_eq!(jobs[0]["job_id"], "job-failed");
@@ -92,4 +93,37 @@ async fn source_jobs_are_read_from_persisted_core_state_and_unknown_sources_are_
 
     let (status, _) = get(&router, "/api/v1/sources/src_does_not_exist/jobs").await;
     assert_eq!(status, 404);
+}
+
+#[tokio::test]
+async fn source_job_history_is_bounded_without_claiming_all_jobs_were_returned() {
+    let dir = tempfile::tempdir().unwrap();
+    let db = dir.path().join("bounded.sqlite");
+    let source_id =
+        {
+            let mut conn = init_workspace(db.to_str().unwrap()).unwrap();
+            let source_id =
+                match source::import_source(&mut conn, b"bounded history", "history.txt", None)
+                    .unwrap()
+                {
+                    ImportOutcome::Imported { source_id, .. }
+                    | ImportOutcome::Duplicate { source_id, .. } => source_id,
+                };
+            for index in 0..60 {
+                jobs::enqueue(&mut conn, &format!("job-{index:03}"), "text", &source_id).unwrap();
+            }
+            source_id
+        };
+    let router = app(db.to_str().unwrap()).unwrap();
+    let (status, payload) = get(&router, &format!("/api/v1/sources/{source_id}/jobs")).await;
+    assert_eq!(status, 200);
+    assert_eq!(payload["jobs_capped"], true);
+    assert_eq!(payload["jobs"].as_array().unwrap().len(), 50);
+    assert!(
+        payload["jobs"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .all(|job| job["input_ref"] == source_id)
+    );
 }

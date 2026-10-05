@@ -321,7 +321,13 @@ def main():
                         "tauri:options": {
                             "application": str(host),
                             "args": [],
-                            "webviewOptions": {"userDataFolder": str(folder)},
+                            "webviewOptions": {
+                                "userDataFolder": str(folder),
+                                "additionalBrowserArguments": [
+                                    "remote-debugging-port=0",
+                                    "remote-debugging-address=127.0.0.1",
+                                ],
+                            },
                         }
                     }
                 }

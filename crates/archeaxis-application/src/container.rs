@@ -22,6 +22,7 @@ use archeaxis_domain::source::{self, ImportOutcome, OriginInfo};
 use rusqlite::{Connection, OptionalExtension};
 use serde::Deserialize;
 use sha2::{Digest, Sha256};
+use std::io::Read;
 use std::path::{Path, PathBuf};
 
 /// The origin kind recorded for a member. The store's vocabulary is fixed
@@ -32,6 +33,15 @@ use std::path::{Path, PathBuf};
 /// module must not allow - `expand_members` therefore verifies the relation landed.
 pub const ORIGIN_KIND: &str = "import";
 const MEMBER_LIMIT: usize = 50;
+const MEMBER_BYTES_LIMIT: u64 = 64 * 1024 * 1024;
+
+/// Transfer artifacts belong to one claimed attempt, never the shared members root.
+pub fn attempt_root(staging: &Path, job_id: &str, attempt: u64) -> PathBuf {
+    staging
+        .join("archive-attempts")
+        .join(sha256_hex(job_id.as_bytes()))
+        .join(attempt.to_string())
+}
 
 /// One member the archive worker offered as a source.
 #[derive(Debug, Clone, Deserialize)]
@@ -96,7 +106,8 @@ pub fn declared_members(
 
 /// The route a member's own name selects, if any: (job kind, expected media type).
 fn route_for_member(name: &str) -> Option<(&'static str, &'static str)> {
-    for kind in ["text", "pdf", "image", "archive"] {
+    // Nested containers remain in custody; do not recursively enqueue expansion.
+    for kind in ["text", "pdf", "image"] {
         if let Ok(media) = attempts::resolve_media_type(kind, name) {
             return Some((kind, media));
         }
@@ -168,6 +179,13 @@ pub fn expand_members(
     if members.is_empty() {
         return Ok(expansion);
     }
+    if members.len() > MEMBER_LIMIT {
+        return Err(JobError::UnverifiableInput {
+            job: archive_job_id.to_string(),
+            reason: "declared archive members exceed the count budget".into(),
+        });
+    }
+    let mut remaining = MEMBER_BYTES_LIMIT;
     let container_source: String = conn
         .query_row(
             "SELECT j.input_ref FROM jobs j WHERE j.job_id=?1",
@@ -177,7 +195,13 @@ pub fn expand_members(
         .optional()?
         .unwrap_or_default();
 
-    for member in members.into_iter().take(MEMBER_LIMIT) {
+    for member in members {
+        if member.bytes > remaining {
+            return Err(JobError::UnverifiableInput {
+                job: archive_job_id.to_string(),
+                reason: "declared archive members exceed the byte budget".into(),
+            });
+        }
         // a declared file may not leave the transfer area, whatever it contains
         if Path::new(&member.file).components().count() != 1
             || member.file.contains("..")
@@ -189,10 +213,13 @@ pub fn expand_members(
             });
         }
         let path: PathBuf = staging_root.join("members").join(&member.file);
-        let bytes = std::fs::read(&path).map_err(|error| JobError::UnverifiableInput {
-            job: archive_job_id.to_string(),
-            reason: format!("declared member {:?} is unreadable: {error}", member.name),
-        })?;
+        let mut bytes = Vec::new();
+        std::fs::File::open(&path)
+            .and_then(|file| file.take(member.bytes + 1).read_to_end(&mut bytes))
+            .map_err(|error| JobError::UnverifiableInput {
+                job: archive_job_id.to_string(),
+                reason: format!("declared member {:?} is unreadable: {error}", member.name),
+            })?;
         if bytes.len() as u64 != member.bytes || sha256_hex(&bytes) != member.sha256 {
             return Err(JobError::UnverifiableInput {
                 job: archive_job_id.to_string(),
@@ -202,6 +229,7 @@ pub fn expand_members(
                 ),
             });
         }
+        remaining -= member.bytes;
         let origin_ref = format!("{container_source}#{}", member.name);
         let origin = OriginInfo {
             kind: ORIGIN_KIND,

@@ -85,7 +85,12 @@ def _extract_members(members, container, out_dir: Path | None) -> tuple[list[dic
             continue
         target = out_dir / _safe_member_name(index, info.filename)
         try:
-            payload = container.read(info)
+            remaining = MEMBER_BYTES_CAP - total
+            with container.open(info) as member:
+                payload = member.read(remaining + 1)
+            if len(payload) > remaining:
+                problems.append(f"member byte budget of {MEMBER_BYTES_CAP} reached while reading; member was not extracted")
+                break
             target.write_bytes(payload)
             total += len(payload)
             extracted.append(
@@ -115,7 +120,6 @@ def _line_anchors(text: str, cap: int = 5000) -> list[dict]:
 
 
 def extract(path: str, member_dir: Path | None = None) -> dict:
-    raw = Path(path).read_bytes()
     try:
         with zipfile.ZipFile(path) as container:
             members = container.infolist()
@@ -135,7 +139,7 @@ def extract(path: str, member_dir: Path | None = None) -> dict:
     nested = [name for name, *_ in files if name.lower().endswith(NESTED_SUFFIXES)]
     # The projection: the inventory as text, one member per line, deterministically
     # ordered exactly as the container lists them.
-    text = "".join(f"{name}\t{size}\n" for name, size, *_ in listing)
+    text = "".join(f"{name}\t{size}\n" for name, size, *_ in listing[:LISTED_CAP])
     structure = _line_anchors(text)
     losses: list[str] = []
     if len(listing) > LISTED_CAP:

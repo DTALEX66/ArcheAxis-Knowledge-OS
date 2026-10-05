@@ -13,6 +13,7 @@
         "system_version",
         "source_import",
         "sources_list",
+        "source_jobs",
         "source_original",
         "documents_list",
         "document_create",

@@ -807,6 +807,81 @@
           "type": "boolean"
         }
       }
+    },
+    "SourceJobDto": {
+      "type": "object",
+      "properties": {
+        "job_id": {
+          "type": "string"
+        },
+        "kind": {
+          "type": "string"
+        },
+        "state": {
+          "type": "string"
+        },
+        "input_ref": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "created_at": {
+          "type": "string"
+        },
+        "completed_at": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "attempt": {
+          "type": [
+            "integer",
+            "null"
+          ]
+        },
+        "error": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      },
+      "required": [
+        "job_id",
+        "kind",
+        "state",
+        "input_ref",
+        "created_at",
+        "completed_at",
+        "attempt",
+        "error"
+      ],
+      "additionalProperties": false
+    },
+    "SourceJobsDto": {
+      "type": "object",
+      "properties": {
+        "source_id": {
+          "type": "string"
+        },
+        "jobs": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/SourceJobDto"
+          }
+        },
+        "jobs_capped": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "source_id",
+        "jobs",
+        "jobs_capped"
+      ],
+      "additionalProperties": false
     }
   }
 }

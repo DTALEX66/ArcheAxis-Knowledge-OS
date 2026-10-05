@@ -35,6 +35,7 @@ pub enum Operation {
     SystemVersion,
     SourceImport,
     SourcesList,
+    SourceJobs,
     SourceOriginal,
     DocumentsList,
     DocumentCreate,
@@ -108,6 +109,11 @@ fn route(request: &Request) -> Result<(&'static str, String, Option<Value>), Str
         SystemVersion => ("GET", "/api/v1/system/version".into(), None),
         SourceImport => ("POST", "/api/v1/imports".into(), Some(body()?)),
         SourcesList => ("GET", "/api/v1/sources".into(), None),
+        SourceJobs => (
+            "GET",
+            format!("/api/v1/sources/{}/jobs", id(p, "source_id")?),
+            None,
+        ),
         SourceOriginal => (
             "GET",
             format!("/api/v1/sources/{}/original", id(p, "source_id")?),
@@ -491,6 +497,19 @@ mod tests {
         .is_err());
         let request = serde_json::from_str::<Request>(
             r#"{"operation":"source_original","payload":{"source_id":"../private"}}"#,
+        )
+        .unwrap();
+        assert!(route(&request).is_err());
+        let request = serde_json::from_value::<Request>(
+            serde_json::json!({"operation":"source_jobs","payload":{"source_id":"src-safe"}}),
+        )
+        .unwrap();
+        let (method, path, body) = route(&request).unwrap();
+        assert_eq!(method, "GET");
+        assert_eq!(path, "/api/v1/sources/src-safe/jobs");
+        assert!(body.is_none());
+        let request = serde_json::from_value::<Request>(
+            serde_json::json!({"operation":"source_jobs","payload":{"source_id":"../private"}}),
         )
         .unwrap();
         assert!(route(&request).is_err());

@@ -1,4 +1,5 @@
 import { SpaceId } from "./spaces";
+import { useEffect, useRef } from "react";
 import { WorkspaceSpace } from "./WorkspaceSpace";
 import { LibrarySpace } from "./LibrarySpace";
 import { CanonicalLibrarySpace } from "./CanonicalLibrarySpace";
@@ -25,6 +26,18 @@ export function SpaceView({
   onInspect: (target: InspectionTarget) => void;
   onNavigate: (id: SpaceId) => void;
 }) {
+  const view = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    // Reuse the Avalonia AaosTheme route opacity transition (180ms), keeping
+    // the existing content mounted so navigation never resets draft state.
+    if (window.matchMedia?.("(prefers-reduced-motion: reduce)").matches ||
+        typeof view.current?.animate !== "function") return;
+    const transition = view.current.animate(
+      [{ opacity: 0 }, { opacity: 1 }],
+      { duration: 180, easing: "ease-out" },
+    );
+    return () => transition.cancel();
+  }, [spaceId]);
   const content = (() => {
   if (window.__TAURI__?.core?.invoke) {
     switch (spaceId) {
@@ -33,7 +46,7 @@ export function SpaceView({
       case "library":
       case "intake":
       case "exchange":
-        return <CanonicalLibrarySpace onKnowledge={()=>onNavigate("vault")} />;
+        return <CanonicalLibrarySpace onKnowledge={()=>onNavigate("vault")} onInspect={onInspect} />;
       case "vault":
       case "evidence":
       case "ai-assets":
@@ -66,5 +79,5 @@ export function SpaceView({
   }
   })();
 
-  return <div className="space-view" data-motion="enter">{content}</div>;
+  return <div ref={view} className="space-view" data-motion="enter">{content}</div>;
 }
