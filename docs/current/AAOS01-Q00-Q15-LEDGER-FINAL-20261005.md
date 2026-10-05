@@ -2,7 +2,7 @@
 
 任务编号和完成条件以 `docs/authority/taskpack-1004-aaos01/01_完整执行任务书.md` 为准。本文件维护既有 AAOS-01 切片当前状态；不可变任务包仍是执行规格，不是完成证据。历史回执保留原始候选、SHA 和能力范围，不自动提升为本轮或安装态验收。
 
-本轮起始 HEAD：`37bfe872ccbaed88a4825b8ff939ccf94aef8b92`，开工工作树 clean。最终提交 SHA 和精确 SHA CI 结果须在提交、运行及读回之后登记；当前 **CI NOT_EXECUTED**，不得由旧 cancelled/skipped 运行推导通过。
+本轮起始 HEAD：`37bfe872ccbaed88a4825b8ff939ccf94aef8b92`，开工工作树 clean。已验证源码提交 `59b829d7724c2a1e3210e07d287ea9eb68722d4c` 的完整 CI 已执行：两桌面门禁成功，旧 NSIS 验收契约失败，因此完整运行 FAILURE。安装契约修复后的固定提交与最终 CI 结果须读回后登记；不得由 cancelled/skipped 运行推导通过。
 
 ## 当前状态与剩余缺口
 
@@ -41,7 +41,13 @@
 
 ## CI 与不可自签边界
 
-固定提交后的 `workflow_dispatch(force_full)`：**NOT_EXECUTED，等待固定 SHA**。需登记完整 SHA、workflow、run ID、attempt、headSha 及目标步骤实际执行结果；等待期间不推送，重跑使用 run ID。旧 `37262959180` 的 desktop-fast failure、desktop-build cancelled，其他 skipped/cancelled 运行仍按原始结论保留，不能计 PASS。
+`workflow_dispatch(force_full)`，workflow `308098767`，run `37277234733`，attempt `1`，headSha `59b829d7724c2a1e3210e07d287ea9eb68722d4c`：完整结果 FAILURE。desktop-fast/build 各目标准备、Tauri、真实 import、Office 持久化与打包步骤均实际 success；installer-lifecycle 的旧 nested Python / Python backend 验收失败，a0-gates 因此 failure，不计完整通过。
+
+固定 SHA Office 回执：`.project-local/task-runtime/aaos01-ci/37277234733-1/office/38bc0fb8b7554b82b132075d2c37abc1/receipt.json`，40,779 字节，SHA-256 `c95ab7dcd4219b72a62a34fc687a2ee79542d0c73b2a1160a2d4def0ab3aa950`；有效两格式 succeeded、损坏两格式 failed、四次冷启动快照一致。全部 worker 文件及锁文件哈希与固定提交逐项一致，启动解释器与 import 解释器一致。回执 source dirty=true 如实保留，不隐去；worker 哈希匹配仅证明这些文件，未推断未记录的 dirty diff。
+
+日志采集首次 gh 汇总超时显式失败；已通过官方 run/attempt ZIP 接口恢复，`logs.zip` 2,133,874 字节、`full.log` 7,281,586 字节，非空验证通过。未在等待该运行期间推送。
+
+后续安装验收修复：按 profile 与宿主规则识别实际解释器、核精确 Core 进程与 401 认证边界，保留 WM_CLOSE、强杀、字节码、升级、卸载保留与重装；使用安装内权威 launcher 独立合法 v2 session 读写宿主同一 `archeaxis.sqlite`，不读取宿主 token。候选 `.project-local/a5` 上的真实 helper seed/冷启动同 DB 读回通过（`.project-local/task-runtime/aaos01-installed-helper-local-2/helper-receipt.json`）；实际进程/CIM/401 helper 通过（`.project-local/task-runtime/aaos01-cim-auth-local/receipt.json`），均未执行本机 NSIS。受影响回归 109 PASS（run `f1256bcdf96b`）。新完整门禁待新固定 SHA，不把这部分本地验证记作安装生命周期通过。
 
 旧 98 表 Python 库与 Core `workspace_meta.schema_version` 不兼容。迁移与只读接入的数据语义仍须明确；保留原库与独立新数据根，不以泛化修复授权推断具体内容舍弃或映射。普通暂存布局与实现合并已授权自主处理，不再列为待用户决定。
 

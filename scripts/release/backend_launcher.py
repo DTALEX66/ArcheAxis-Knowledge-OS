@@ -177,7 +177,10 @@ def build_environment(root: Path) -> dict:
     return environment
 
 
-def start(data_root: Path, port: int) -> tuple[subprocess.Popen, str, dict, dict]:
+def start(data_root: Path, port: int, *, workspace_name: str = "workspace.sqlite") -> tuple[subprocess.Popen, str, dict, dict]:
+    """Launch a session, optionally reopening the product host's workspace file."""
+    if not workspace_name.strip() or any(character in workspace_name for character in "\\/:") or workspace_name in {".", ".."}:
+        raise LaunchFailure("unsafe workspace filename")
     core = require_file(safe_path(ROOT, str(CORE_RELATIVE)), "Core executable")
     profile = load_profile(ROOT)
     require_file(profile["python"], "scheduler interpreter (from worker profile)")
@@ -185,7 +188,7 @@ def start(data_root: Path, port: int) -> tuple[subprocess.Popen, str, dict, dict
 
     data_root = safe_path(ROOT, str(data_root))
     staging = safe_path(data_root, "worker-staging")
-    workspace = safe_path(data_root, "workspace.sqlite")
+    workspace = safe_path(data_root, workspace_name)
     data_root.mkdir(parents=True, exist_ok=True)
     staging.mkdir(parents=True, exist_ok=True)
 

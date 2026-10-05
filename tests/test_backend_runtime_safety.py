@@ -279,6 +279,34 @@ def test_ephemeral_port_and_stream_cleanup(monkeypatch, tmp_path):
     assert all(stream.closed for stream in [child.stdin, child.stdout, child.stderr])
 
 
+def test_launcher_reopens_the_host_workspace_file(monkeypatch, tmp_path):
+    children = dummy_core(monkeypatch, tmp_path, "import sys,time;sys.stdin.readline();print('archeaxis-api ready on http://127.0.0.1:1234');time.sleep(2)")
+    spawn = launcher.subprocess.Popen
+    arguments = []
+
+    def capture(args, **kwargs):
+        arguments.append(args)
+        return spawn(args, **kwargs)
+
+    monkeypatch.setattr(launcher.subprocess, "Popen", capture)
+    try:
+        child, _, receipt, _ = launcher.start(tmp_path / "data", 1234, workspace_name="archeaxis.sqlite")
+        expected = str(tmp_path / "data/archeaxis.sqlite")
+        assert arguments[0][1] == expected
+        assert receipt["workspace"] == expected
+    finally:
+        for child in children:
+            launcher.stop(child)
+
+
+@pytest.mark.parametrize("name", ["../other.sqlite", "folder/other.sqlite", "folder\\other.sqlite", "C:other.sqlite", ""])
+def test_launcher_workspace_name_cannot_escape_data_root(monkeypatch, tmp_path, name):
+    dummy_core(monkeypatch, tmp_path, "raise AssertionError('must not spawn')")
+    with pytest.raises(launcher.LaunchFailure, match="workspace filename"):
+        launcher.start(tmp_path / "data", 1234, workspace_name=name)
+    assert not (tmp_path / "data").exists()
+
+
 def test_early_exit_is_reaped_and_diagnostics_are_not_echoed(monkeypatch, tmp_path):
     children = dummy_core(monkeypatch, tmp_path, "import sys;sys.stderr.write(sys.stdin.readline());sys.exit(8)")
     with pytest.raises(launcher.LaunchFailure, match="exit 8") as error:
