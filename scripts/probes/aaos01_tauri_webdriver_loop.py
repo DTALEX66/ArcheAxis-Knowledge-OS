@@ -10,6 +10,7 @@ import json
 import os
 import socket
 import subprocess
+import threading
 import time
 import traceback
 import uuid
@@ -18,6 +19,97 @@ from urllib.error import HTTPError
 from urllib.request import Request, urlopen
 
 from aaos01_office_runtime_loop import REPO, identity, load
+
+
+def owned_process_rows(rows, root_pid):
+    """Reject recycled parent PIDs using observed creation times."""
+    indexed = {row["pid"]: row for row in rows}
+    if root_pid not in indexed:
+        raise RuntimeError("Owned driver identity unavailable")
+    owned = {root_pid}
+    changed = True
+    while changed:
+        changed = False
+        for row in rows:
+            parent = indexed.get(row["parent_pid"])
+            if parent and parent["pid"] in owned and row["created"] >= parent["created"] and row["pid"] not in owned:
+                owned.add(row["pid"])
+                changed = True
+    return [indexed[pid] for pid in sorted(owned)]
+
+
+def native_process_rows():
+    """Win32 metadata snapshot, without CIM, command lines or profile contents."""
+    from ctypes import wintypes
+
+    class Entry(ctypes.Structure):
+        _fields_ = [("size", wintypes.DWORD), ("usage", wintypes.DWORD),
+                    ("pid", wintypes.DWORD), ("heap", ctypes.c_size_t),
+                    ("module", wintypes.DWORD), ("threads", wintypes.DWORD),
+                    ("parent", wintypes.DWORD), ("priority", wintypes.LONG),
+                    ("flags", wintypes.DWORD), ("name", wintypes.WCHAR * 260)]
+
+    kernel = ctypes.WinDLL("kernel32", use_last_error=True)
+    kernel.CreateToolhelp32Snapshot.restype = ctypes.c_void_p
+    kernel.OpenProcess.restype = ctypes.c_void_p
+    kernel.CloseHandle.argtypes = [ctypes.c_void_p]
+    snapshot = kernel.CreateToolhelp32Snapshot(2, 0)
+    if snapshot == ctypes.c_void_p(-1).value:
+        raise ctypes.WinError(ctypes.get_last_error())
+    rows = []
+    entry = Entry()
+    entry.size = ctypes.sizeof(entry)
+    try:
+        found = kernel.Process32FirstW(ctypes.c_void_p(snapshot), ctypes.byref(entry))
+        while found:
+            handle = kernel.OpenProcess(0x1000, False, entry.pid)
+            if handle:
+                try:
+                    created, exited, system, user = (wintypes.FILETIME() for _ in range(4))
+                    if kernel.GetProcessTimes(ctypes.c_void_p(handle), ctypes.byref(created), ctypes.byref(exited), ctypes.byref(system), ctypes.byref(user)):
+                        rows.append({"pid": entry.pid, "parent_pid": entry.parent, "name": entry.name,
+                                     "created": (created.dwHighDateTime << 32) | created.dwLowDateTime})
+                finally:
+                    kernel.CloseHandle(handle)
+            found = kernel.Process32NextW(ctypes.c_void_p(snapshot), ctypes.byref(entry))
+    finally:
+        kernel.CloseHandle(snapshot)
+    return rows
+
+
+def profile_metadata(paths):
+    return [{"path": str(path), "exists": path.exists(),
+             "ebwebview_exists": (path / "EBWebView").exists(),
+             "devtools_active_port_exists": (path / "DevToolsActivePort").exists(),
+             "ebwebview_devtools_active_port_exists": (path / "EBWebView" / "DevToolsActivePort").exists()}
+            for path in paths]
+
+
+def process_elevation(pid):
+    """Read the elevation boolean of an already-owned process, not token data."""
+    from ctypes import wintypes
+
+    kernel = ctypes.WinDLL("kernel32", use_last_error=True)
+    security = ctypes.WinDLL("advapi32", use_last_error=True)
+    kernel.OpenProcess.restype = ctypes.c_void_p
+    kernel.CloseHandle.argtypes = [ctypes.c_void_p]
+    security.OpenProcessToken.argtypes = [ctypes.c_void_p, wintypes.DWORD, ctypes.POINTER(wintypes.HANDLE)]
+    security.GetTokenInformation.argtypes = [wintypes.HANDLE, ctypes.c_int, ctypes.c_void_p, wintypes.DWORD, ctypes.POINTER(wintypes.DWORD)]
+    process_handle = kernel.OpenProcess(0x1000, False, pid)
+    if not process_handle:
+        return {"elevation_verified": False, "error": ctypes.get_last_error()}
+    access_handle = wintypes.HANDLE()
+    try:
+        if not security.OpenProcessToken(process_handle, 0x0008, ctypes.byref(access_handle)):
+            return {"elevation_verified": False, "error": ctypes.get_last_error()}
+        elevated, returned = wintypes.DWORD(), wintypes.DWORD()
+        if not security.GetTokenInformation(access_handle, 20, ctypes.byref(elevated), ctypes.sizeof(elevated), ctypes.byref(returned)):
+            return {"elevation_verified": False, "error": ctypes.get_last_error()}
+        return {"elevation_verified": True, "elevated": bool(elevated.value)}
+    finally:
+        if access_handle:
+            kernel.CloseHandle(access_handle)
+        kernel.CloseHandle(process_handle)
 
 
 def free_port():
@@ -190,7 +282,37 @@ def main():
             "user_data_folder": str(folder),
             "previous_owned_hosts_exited": all(item["exited"] for item in receipt.get("host_shutdowns", [])),
         })
-        result = request(
+        observations = receipt["launch_attempts"][-1].setdefault("observations", [])
+        stop_monitor = threading.Event()
+        known_hosts = {}
+
+        def observe(elapsed):
+            sample = {"elapsed_seconds": elapsed, "driver_exited": process.poll() is not None,
+                      "profiles": profile_metadata([folder, work / "data"])}
+            try:
+                rows = owned_process_rows(native_process_rows(), process.pid) if not sample["driver_exited"] else []
+                for row in rows:
+                    row["elevation"] = process_elevation(row["pid"])
+                    if row["name"].casefold() == host.name.casefold():
+                        known_hosts[row["pid"]] = row["created"]
+                sample["processes"] = rows
+                sample["previously_observed_hosts"] = [
+                    {"pid": pid, "created": created, "present_same_identity": any(row["pid"] == pid and row["created"] == created for row in rows)}
+                    for pid, created in known_hosts.items()]
+            except (OSError, RuntimeError) as error:
+                sample["collection_error"] = type(error).__name__
+            observations.append(sample)
+
+        def monitor():
+            for elapsed in (1, 10, 30):
+                if stop_monitor.wait(max(0, began + elapsed - time.monotonic())):
+                    return
+                observe(elapsed)
+
+        observer = threading.Thread(target=monitor, daemon=True)
+        observer.start()
+        try:
+            result = request(
             "POST",
             "/session",
             {
@@ -204,7 +326,14 @@ def main():
                     }
                 }
             },
-        )
+            )
+        finally:
+            stop_monitor.set()
+            observer.join(timeout=2)
+            if observer.is_alive():
+                observations.append({"collection_error": "monitor_stop_timeout"})
+            else:
+                observe(time.monotonic() - began)
         session = result["sessionId"]
         request("POST", f"/session/{session}/timeouts", {"script": 30000})
         wait(
@@ -545,20 +674,8 @@ def main():
         if process and process.poll() is None:
             # Metadata only; no command lines, credentials or shared processes.
             try:
-                diagnostic = subprocess.run(
-                    [
-                        "powershell.exe",
-                        "-NoProfile",
-                        "-Command",
-                        f'$pending=@({process.pid});$result=@();while($pending.Count){{$parent=$pending[0];$pending=@($pending|Select-Object -Skip 1);$children=@(Get-CimInstance Win32_Process -Filter "ParentProcessId=$parent"|Select-Object ProcessId,ParentProcessId,Name);$result+=$children;$pending+=@($children.ProcessId)}};$result|ConvertTo-Json -Compress',
-                    ],
-                    capture_output=True,
-                    text=True,
-                    errors="replace",
-                    timeout=15,
-                )
-                receipt["owned_failure_processes"] = json.loads(diagnostic.stdout or "[]")
-            except (OSError, subprocess.TimeoutExpired, json.JSONDecodeError) as diagnostic_error:
+                receipt["owned_failure_processes"] = owned_process_rows(native_process_rows(), process.pid)
+            except (OSError, RuntimeError) as diagnostic_error:
                 receipt["owned_failure_processes"] = "diagnostic collection failed"
                 receipt["diagnostic_error"] = type(diagnostic_error).__name__
         if session:

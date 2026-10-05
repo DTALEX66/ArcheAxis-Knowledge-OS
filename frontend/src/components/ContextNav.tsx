@@ -1,3 +1,4 @@
+import { AaosIcon } from "./AaosIcon";
 import { RELATED } from "../spaces/related";
 import { SPACES, type SpaceId } from "../spaces/spaces";
 
@@ -19,7 +20,7 @@ export function ContextNav({ active, onNavigate }: { active: SpaceId; onNavigate
                 type="button"
                 onClick={() => onNavigate(id)}
               >
-                <span aria-hidden="true" style={{ width: 18, opacity: 0.7 }}>{space.icon}</span>
+                <span aria-hidden="true" style={{ width: 18, opacity: 0.7 }}><AaosIcon name={space.icon} /></span>
                 <span>
                   <b>{space.label}</b>
                   <small>{space.description}</small>

@@ -1,3 +1,4 @@
+import { AaosIcon } from "./AaosIcon";
 import { useRef } from "react";
 import type { SpaceDef, SpaceId } from "../spaces/spaces";
 
@@ -60,7 +61,7 @@ export function SpaceRail({
               onKeyDown={(event) => onKeyDown(event, index)}
               title={space.description}
             >
-              <span className="space-rail-icon" aria-hidden="true">{space.icon}</span>
+              <span className="space-rail-icon" aria-hidden="true"><AaosIcon name={space.icon} /></span>
               <span>{space.label}</span>
             </button>
           </li>

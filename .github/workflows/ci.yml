@@ -1198,6 +1198,7 @@ jobs:
           name: installed-native-journey-${{ github.sha }}-${{ github.run_attempt }}
           path: |
             .project-local/task-runtime/aaos01-webdriver/**/receipt.json
+            .project-local/task-runtime/aaos01-webdriver/**/install-preflight.json
             .project-local/task-runtime/aaos01-webdriver/**/*.png
             .project-local/task-runtime/aaos01-webdriver/**/driver.log
             .project-local/task-runtime/aaos01-webdriver/**/native-driver.log

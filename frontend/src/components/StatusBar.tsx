@@ -1,5 +1,6 @@
 import { SpaceId, SPACES } from "../spaces/spaces";
 import { CommandPalette } from "./CommandPalette";
+import brandMark from "../assets/aaos-brand-mark.svg";
 
 export type BackendDisplayState = "checking" | "available" | "unavailable" | "web";
 
@@ -36,8 +37,8 @@ export function StatusBar({
   return (
     <header className="status-bar" role="banner">
       <div className="status-bar-brand">
-        <span style={{ fontSize: 15 }}>◈</span>
-        <span>星环知识</span>
+        <img src={brandMark} width={28} height={28} alt="" aria-hidden="true" />
+        <span>星环知识平台</span>
         {externalDev ? <span className="dev-marker">开发</span> : null}
       </div>
       <CommandPalette onNavigate={onNavigate} />

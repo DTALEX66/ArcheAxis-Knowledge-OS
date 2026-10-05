@@ -1,5 +1,17 @@
 # AAOS-01 Q00–Q15 当前执行台账（2026-10-05）
 
+最新固定提交 `6776eaec695254b9c3768b8c42190cec9bc9fc0c`，workflow `308098767`、run `37313542770`、attempt `1`，workflow_dispatch(force_full)，headSha 已完整读回。最终 FAILURE：18 个 job 实际 success，installer-lifecycle 与 a0-gates failure。desktop-fast 的普通保存与独立核验、真实 Office、Q12/导出/故障、Rust fmt/test 目标步骤全部执行成功；desktop-build 实际构建 NSIS 成功，不能代替安装态资格。
+
+本次安装态第一次 POST /session 约60秒失败，DevToolsActivePort 不存在，steps=[]。typedartifact 已校验身份、非空 ZIP、CRC 与 SHA：native 包 `0af817deff5fe3227ff3fef6bfc028587756eafabe8cc67568d1d292c53aa04b`（6383字节）；native-driver.log 3596字节，driver.log 0字节不作证据。能力已带正确安装 exe 和独立 session-1 userDataFolder，匹配工具153.0.4234.48；因此此前目录分裂修复已生效，但不能解释或宣称修复此次失败。进程诊断自身超时，宿主早退、WebView创建失败及驱动连接失败尚不能区分。等待期间没有推送。
+
+Office typedreceipt SHA `98e4db8e9f6e72ca1120acb6b806a3f456f7a9682054583f80503d2b7b7b5327`：正常 XLSX/PPTX succeeded，损坏两件 failed/AAK-WORKER-003，四件重启一致；实际产品解释器与 worker 同为 `.project-local/rt/runtime/python.exe`，真实 import openpyxl3.1.5、pptx1.0.2，uv.lock SHA 未变。Contentpolicy typedreceipt SHA `3588d2c71ae1d89074ccc617e7c549a66c99368d0bf44bb29fe08c356e3b54a7`：九项断言通过，含无 Source 保存、未核验搜索、权限、版本依据、实际 job SHA/位置、重启与独立恢复。两 receipt 的 source.commit 匹配6776，但 dirty=true/patch SHA `6087d25363e7462a66ca2dc25cb74fe9542eaad5c7369be287c16924a6a419a2`，未归因前不冒称干净候选。release-candidate 包下载180秒超时，保留失败收据和部分文件，不当完整产物证据。以上证据位于 `.project-local/task-runtime/aaos01-ci-artifacts/37313542770-a1/`；没有采集本 run 原始 CI 日志。
+
+下面较早固定运行与候选记录按其原始 SHA 保留，不能覆盖本段最新失败结论。
+
+品牌标识后续已从 Avalonia Assets 原字节复用至当前 React 顶部状态栏，源/目标 SHA 同为 `4dfa88385b608811d0166e5af6f41b86b6b3d44b1675cd06116d7d9daa5bc08e`；替换临时字符，按现行 Naming Contract 使用“星环知识平台”。素材随 Vite 离线打包，无外部图片请求。相关24 tests、tsc、生产构建通过；不提升为已部署 Green 或安装态证据。
+
+后续实际复用 Avalonia `AaosIcon.axaml.cs` 的九项原始矢量路径，接入 React 主导航、二级导航和命令面板，替换几何字符；保留24-unit/1.7笔画 VI 与键盘行为。完整前端26文件176 tests、tsc、生产构建 PASS。此为源码和构建产物，尚未更新实际 Green；未声称菜单、动画全部复用。安装探针用 Win32 创建时间绑定进程元数据替代超时的 CIM，记录1/10/30秒与会话结束时的自有树、宿主存活及两profile存在性；只查询自有进程的 elevation 布尔，不读取访问令牌正文、命令行或浏览器正文。安装脚本在 WebDriver 前另存已完成的初始窗口/Core/WM_CLOSE事实。定向16 PASS、PowerShell parse/Ruff PASS；增强进程观察的真实本地12步窗口旅程 PASS（016dc5144a6345f2940b663e83b6388d，receipt SHA `1cc7a74de4a5f5ec1a9240eea226e9ec34929493745c9f0fd722f03d78ba3148`），四次自有 host/WebView 树采集无错误；后加 elevation 当前进程实际读回 false，该追加pytest受默认沙箱路径解析WinError5未执行，不伪报全项测试。随后通过平台审批按同一canonical入口完成包含elevation追加断言的16项回归PASS（aaos01-diag-delivery-approved），未改ACL或系统权限。远端安装根因仍 UNKNOWN。
+
 固定修复提交 `ff17047289e7a7e77f947419da75353e45fcc79a`，workflow `308098767`、run `37302789036`、attempt `1`，force_full最终FAILURE：前18个job均实际success；installer-lifecycle和a0-gates失败。安装态新原生日志3355字节、SHA-256 `72308ba5d01cc11a18ec633144ea95a4bcb3c10812b7b283adf06cada7d108d0`，实际InitSession报DevToolsActivePort file不存在，steps为空，仍不是安装UI通过。匹配153.0.4234.48工具回执成功。等待期间未推送。随后确认probe环境覆盖目录与driver能力目录分裂，改为官方tauri:options.webviewOptions.userDataFolder单一目录；本机154匹配工具真实七项窗口旅程PASS（aaos01-webdriver/4cb75755b42e447980c224ab11326da0/receipt.json），两次握手1.344/1.297秒，远端充分修复仍待新固定SHA。
 
 标准dev.py --pytest完整Windows回归3982 PASS、36 skipped、137 subtests PASS，exit0（aaos01-full-canonical-2150.log）。此前绕过--pytest额外嵌套临时目录的aaos01-os-final-full-2130运行45FAIL记录保留，不归因Q01、不冒称PASS。后续Language/RuntimeDelivery权威及引用20项定向PASS；宿主实现未再改动。

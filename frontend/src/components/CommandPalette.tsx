@@ -1,3 +1,4 @@
+import { AaosIcon } from "./AaosIcon";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { SPACES, type SpaceId } from "../spaces/spaces";
@@ -159,7 +160,7 @@ export function CommandPalette({ onNavigate }: { onNavigate: (id: SpaceId) => vo
           }}
           onClick={() => select(space.id)}
         >
-          <span className="command-icon" aria-hidden="true">{space.icon}</span>
+          <span className="command-icon" aria-hidden="true"><AaosIcon name={space.icon} /></span>
           <span><b>{space.label}</b><small>{space.description}</small></span>
         </button>)}
         {matches.length === 0 ? <p className="command-empty">没有匹配的可用空间</p> : null}

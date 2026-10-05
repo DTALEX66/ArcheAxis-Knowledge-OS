@@ -340,6 +340,30 @@ try {
     if ($NativeToolsReceipt) {
         $nativeTools = Get-Content -LiteralPath $NativeToolsReceipt -Raw | ConvertFrom-Json
         if ($nativeTools.ok -ne $true) { throw 'native driver preparation did not succeed' }
+        # Persist completed preflight facts before the independent WebDriver session.
+        # A failed session must not erase which installed lifecycle assertions ran.
+        $preflightDirectory = Join-Path ([IO.Path]::GetFullPath('.project-local/task-runtime/aaos01-webdriver')) ([Guid]::NewGuid().ToString('N'))
+        New-Item -ItemType Directory -Path $preflightDirectory -Force | Out-Null
+        [ordered]@{
+            schema = 'archeaxis/installed-preflight/v1'
+            complete_lifecycle_verified = $false
+            head_sha = $env:GITHUB_SHA
+            run_id = $env:GITHUB_RUN_ID
+            run_attempt = $env:GITHUB_RUN_ATTEMPT
+            installer_sha256 = (Get-FileHash -LiteralPath $Installer -Algorithm SHA256).Hash.ToLowerInvariant()
+            host_sha256 = (Get-FileHash -LiteralPath $executable -Algorithm SHA256).Hash.ToLowerInvariant()
+            core_sha256 = (Get-FileHash -LiteralPath $coreExecutable -Algorithm SHA256).Hash.ToLowerInvariant()
+            profile_python = $profile.python
+            installed_interpreter = $python
+            normal_host_pid = $activeShell.Id
+            normal_core_pid = $normal.Child.ProcessId
+            initial_backend_ready = $true
+            initial_visible_window = $true
+            wm_close_completed = $true
+            owned_core_absent_after_close = $true
+            canonical_database_exists = $true
+            next_operation = 'independent_webdriver_session'
+        } | ConvertTo-Json -Depth 4 | Set-Content -LiteralPath (Join-Path $preflightDirectory 'install-preflight.json') -Encoding utf8
         python -B scripts/probes/aaos01_tauri_webdriver_loop.py --host $executable --driver $nativeTools.driver --native-driver $nativeTools.native_driver --installer $Installer
         if ($LASTEXITCODE -ne 0) { throw 'actual installed Tauri WebDriver journey failed' }
     }
