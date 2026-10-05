@@ -35,7 +35,10 @@
       "icons/icon.png"
     ],
     "resources": {
-      "../.project-local/rt/runtime": "runtime"
+      "../.project-local/rt/runtime": "runtime",
+      "../.project-local/rt/core": "core",
+      "../.project-local/rt/workers": "workers",
+      "../.project-local/rt/shared": "shared"
     }
   }
 }
