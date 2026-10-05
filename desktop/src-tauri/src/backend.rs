@@ -635,10 +635,35 @@ fn probe_readiness(port: u16, token: &str, path: &str) -> Result<(), &'static st
     let Some(payload) = payload else {
         return Err("body");
     };
-    if !readiness_payload_valid(&payload) {
+    // The route answers for whichever backend was launched, and the two report different
+    // identities. The Python entrypoint publishes its readiness document; the Core answers
+    // its version route with its runtime name and a numeric schema version. Accepting the
+    // Core's route with the Python document would never succeed, so a Core that had started
+    // perfectly would still time out here.
+    let identified = if path == CORE_VERSION_PATH {
+        core_version_identity_valid(&payload)
+    } else {
+        readiness_payload_valid(&payload)
+    };
+    if !identified {
         return Err("identity");
     }
     Ok(())
+}
+
+/// Whether a response from the Core's version route identifies the canonical Core.
+///
+/// The route is the one the Core itself special-cases, so a payload naming the runtime is
+/// the Core answering. The schema version is required to be a number because that is what
+/// the Core reports and what the Python document, which carries it as a string, does not.
+fn core_version_identity_valid(payload: &str) -> bool {
+    let Ok(value) = serde_json::from_str::<serde_json::Value>(payload) else {
+        return false;
+    };
+    value.get("runtime").and_then(serde_json::Value::as_str) == Some("archeaxis-api")
+        && value
+            .get("schema_version")
+            .is_some_and(serde_json::Value::is_number)
 }
 
 fn response_body(headers: &str, body: &str) -> Option<String> {
@@ -735,6 +760,7 @@ mod tests {
         runtime_command, shutdown_job_owned_child,
     };
     use crate::backend::core_launch_document;
+    use crate::backend::core_version_identity_valid;
     use crate::backend::CoreSpec;
     use crate::backend::CORE_LAUNCH_PROTOCOL;
     use crate::runtime::RuntimeSpec;
@@ -837,6 +863,18 @@ mod tests {
             parsed["text_worker"]["routes"][0]["capability"],
             "pdf.extract"
         );
+    }
+
+    #[test]
+    fn the_two_backends_are_identified_by_their_own_documents() {
+        // A Core that answered perfectly must not be judged against the Python document,
+        // and the Python document must not be mistaken for a Core.
+        let core = r#"{"runtime":"archeaxis-api","contract":"0.1.0-outline","schema_version":6,"session_id":"c","workspace_db":"d"}"#;
+        assert!(core_version_identity_valid(core));
+        let python = r#"{"schema_version":"v1","product":"ArcheAxis Knowledge","workspace":"x"}"#;
+        // The Python document is not required to pass its own validator here - that is pinned
+        // by its own test - only that it is never mistaken for a Core.
+        assert!(!core_version_identity_valid(python));
     }
 
     #[test]
