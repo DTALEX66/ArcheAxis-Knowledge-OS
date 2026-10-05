@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { act, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { JobContent } from "../components/JobContent";
 const bridge=vi.hoisted(()=>({call:vi.fn()}));vi.mock("../api/core",()=>({coreCommand:bridge.call}));
@@ -74,5 +74,36 @@ describe("Core job content",()=>{
  bridge.call.mockImplementation(async(op:string,payload:Record<string,unknown>)=>op==="job_enqueue"?{job_id:(payload.body as Record<string,unknown>).job_id}:op==="jobs_get"?{state:"failed",error:"AAK-WORKER-003"}:{});
  render(<JobContent sourceId="src_bad" name="bad.pptx"/>);await userEvent.setup().click(screen.getByRole("button",{name:"执行真实内容转换"}));
  expect(await screen.findByText(/转换未完成/)).toBeInTheDocument();expect(screen.queryByLabelText("Core 提取正文")).not.toBeInTheDocument();expect(bridge.call.mock.calls.some(([op])=>op==="job_output")).toBe(false);
+ });
+
+ // SIMULATED late API receipts; the old request remains authorized on its source.
+ it.each(["success","failure"])("ignores old knowledge candidate %s receipt after revision switches",async(outcome)=>{
+  let resolveCandidate!:(value:unknown)=>void;
+  let rejectCandidate!:(reason:Error)=>void;
+  bridge.call.mockImplementation(async(op:string,payload:Record<string,unknown>)=>{
+   if(op==="source_jobs")return {source_id:payload.source_id,jobs:[],jobs_capped:false};
+   if(op==="job_enqueue")return {job_id:(payload.body as Record<string,unknown>).job_id};
+   if(op==="jobs_get")return {state:"succeeded"};
+   if(op==="job_output")return {content:payload.kind==="text"?"Known candidate source":"[]"};
+   if(op==="source_job_transform")return {source_id:payload.source_id,job_id:payload.job_id,transform_id:42,content:"Known candidate source"};
+   if(op==="knowledge_from_transform")return new Promise((resolve,reject)=>{resolveCandidate=resolve;rejectCandidate=reject;});
+   return {};
+  });
+  const view=render(<JobContent sourceId="source" sourceRevision={"a".repeat(64)} name="source.xlsx"/>);
+  fireEvent.click(screen.getByRole("button",{name:"执行真实内容转换"}));
+  await screen.findByLabelText("Core 提取正文");
+  fireEvent.select(screen.getByLabelText("选择实际引文"),{target:{selectionStart:0,selectionEnd:5}});
+  fireEvent.change(screen.getByLabelText("知识候选正文"),{target:{value:"candidate body"}});
+  fireEvent.click(screen.getByRole("button",{name:"创建知识候选"}));
+  await waitFor(()=>expect(resolveCandidate).toBeDefined());
+  expect(bridge.call.mock.calls.filter(call=>call[0]==="knowledge_from_transform")).toHaveLength(1);
+  view.rerender(<JobContent sourceId="source" sourceRevision={"b".repeat(64)} name="source.xlsx"/>);
+  await act(async()=>{
+   if(outcome==="success")resolveCandidate({status:"candidate",knowledge_id:"old-knowledge",anchor_id:"old-anchor"});
+   else rejectCandidate(new Error("old request failure"));
+  });
+  expect(screen.queryByText("已创建来源与引文绑定的知识候选，尚未接受。")).toBeNull();
+  expect(screen.queryByText("知识候选创建未确认，请保留正文与选区重试。")).toBeNull();
+  expect(screen.queryByText(/候选 old-knowledge/)).toBeNull();
  });
 });

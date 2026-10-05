@@ -1165,7 +1165,7 @@ jobs:
 
   installer-lifecycle:
     runs-on: windows-latest
-    timeout-minutes: 25
+    timeout-minutes: 45
     needs: [gateplan, desktop-build]
     if: ${{ always() && needs.desktop-build.result == 'success' && (needs.gateplan.result != 'success' || needs.gateplan.outputs.full_qualification == 'true' || contains(needs.gateplan.outputs.required_gates, 'installer-lifecycle')) }}
     steps:

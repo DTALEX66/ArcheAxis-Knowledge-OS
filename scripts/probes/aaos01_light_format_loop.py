@@ -181,7 +181,7 @@ def main():
                "sample_class": "PROJECT_AUTHORED_FIXTURES_REAL_CORE_EXECUTION",
                "evidence_scope": "CORE_WORKER_API_AND_FILE_READBACK_NOT_INSTALLED_UI",
                "limitations": ["Native Obsidian application not launched",
-                                "EPUB source chapter/paragraph facts asserted against the fixture; Core native locator remains unverified",
+                                "EPUB source chapter/paragraph facts asserted against the fixture; Core EPUB receipt-native locator validates immutable source, job/attempt, paragraph and result SHA; original visual layout is not rendered",
                                 "Audio/video use media.probe only; no decoding, ASR or time-range content claim"],
                "candidate_manifest": office.identity(candidate / "backend-runtime-manifest.json"),
                "worker_text": office.identity(candidate / "workers/document/worker_text.py"),
@@ -237,9 +237,47 @@ def main():
                     loss = json.loads(record["snapshot"]["loss_report"]["body"]["content"])
                     needle = b"Golden body 42" if extension == "eml" else b"Golden"
                     if extension == "epub":
-                        anchor_body = {"revision": imported["sha256"],
-                                       "position": json.dumps({"type": "epub", "chapter": 1, "paragraph": 1,
-                                                               "path": loss["params"]["format"]["locations"][0]["path"]})}
+                        location = loss["params"]["format"]["locations"][0]
+                        assert location["value"] == "Golden", location
+                        position = {
+                            "type": "epub",
+                            "chapter": 1,
+                            "paragraph": 1,
+                            "path": location["path"],
+                            "job_id": job,
+                            "attempt": record["snapshot"]["job"]["body"]["attempt"],
+                            "result_sha256": record["snapshot"]["loss_report"]["body"]["metadata"][
+                                "sha256"
+                            ],
+                        }
+                        checksum = hashlib.sha256(location["value"].encode("utf-8")).hexdigest()
+                        anchor_body = {
+                            "revision": imported["sha256"],
+                            "position": json.dumps(position),
+                            "checksum": checksum,
+                        }
+                        negatives = []
+                        for change in (
+                            {"chapter": 2},
+                            {"paragraph": 99},
+                            {"path": "OEBPS/wrong.xhtml"},
+                            {"result_sha256": "0" * 64},
+                            {"attempt": 99},
+                        ):
+                            status, response = client.call(
+                                base,
+                                "POST",
+                                f"/api/v1/sources/{imported['source_id']}/anchors",
+                                token,
+                                {
+                                    "revision": imported["sha256"],
+                                    "position": json.dumps({**position, **change}),
+                                    "checksum": checksum,
+                                },
+                            )
+                            assert status == 400, (change, status, response)
+                            negatives.append({"change": change, "status": status})
+                        record["negative_locators"] = negatives
                     else:
                         offset = payload.index(needle)
                         anchor_body = {"revision": imported["sha256"],
@@ -247,8 +285,12 @@ def main():
                                        "checksum": hashlib.sha256(needle).hexdigest()}
                     status, anchor = client.call(base, "POST", f"/api/v1/sources/{imported['source_id']}/anchors", token, anchor_body)
                     assert status == 201, anchor
-                    assert anchor["location_status"] == ("unverified" if extension == "epub" else "located")
+                    assert anchor["location_status"] == "located"
                     record["evidence_anchor"] = anchor
+                    if extension == "epub":
+                        status, stored_anchors = client.call(base, "GET", f"/api/v1/sources/{imported['source_id']}/anchors", token)
+                        assert status == 200 and any(item["anchor_id"] == anchor["anchor_id"] for item in stored_anchors["anchors"])
+                        record["evidence_anchor_list"] = stored_anchors
                     editor = {"type": "doc", "content": [
                         {"type": "paragraph", "content": [{"type": "text", "text": projected}]},
                         {"type": "formatReceipt", "attrs": {"job_id": job, "loss_receipt": loss}}]}
@@ -286,6 +328,10 @@ def main():
                 status, original = client.call(base, "GET", f"/api/v1/sources/{record['import']['body']['source_id']}/original", token)
                 record["cas_restart_equal"] = status == 200 and hashlib.sha256(base64.b64decode(original["content_base64"])).hexdigest() == record["input"]["sha256"]
                 record["ok"] = record["ok"] and record["cas_restart_equal"]
+                if "evidence_anchor_list" in record:
+                    status, anchors = client.call(base, "GET", f"/api/v1/sources/{record['import']['body']['source_id']}/anchors", token)
+                    assert status == 200 and anchors == record["evidence_anchor_list"], "EPUB anchor binding changed after independent Core restart"
+                    record["anchor_restart_equal"] = True
                 if "archive_expansion" in record:
                     expansion = record["archive_expansion"]
                     status, members = client.call(base, "GET", f"/api/v1/sources/{record['import']['body']['source_id']}/members", token)

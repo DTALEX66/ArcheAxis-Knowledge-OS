@@ -36,6 +36,7 @@ pub enum Operation {
     SourceImport,
     SourcesList,
     SourceJobs,
+    SourceMembers,
     SourceOriginal,
     DocumentsList,
     DocumentCreate,
@@ -87,11 +88,15 @@ fn id(payload: &Value, key: &str) -> Result<String, String> {
         .get(key)
         .and_then(Value::as_str)
         .ok_or("CORE_COMMAND_ID_REQUIRED")?;
+    // Core-generated archive jobs contain a file suffix and may be longer than
+    // source IDs. Match Core's bounded ASCII job vocabulary only for job_id.
+    let job_id = key == "job_id";
     if value.is_empty()
-        || value.len() > 128
+        || value.len() > if job_id { 200 } else { 128 }
+        || matches!(value, "." | "..")
         || !value
             .bytes()
-            .all(|c| c.is_ascii_alphanumeric() || c == b'-' || c == b'_')
+            .all(|c| c.is_ascii_alphanumeric() || c == b'-' || c == b'_' || (job_id && c == b'.'))
     {
         return Err("CORE_COMMAND_ID_INVALID".into());
     }
@@ -113,6 +118,11 @@ fn route(request: &Request) -> Result<(&'static str, String, Option<Value>), Str
         SourceJobs => (
             "GET",
             format!("/api/v1/sources/{}/jobs", id(p, "source_id")?),
+            None,
+        ),
+        SourceMembers => (
+            "GET",
+            format!("/api/v1/sources/{}/members", id(p, "source_id")?),
             None,
         ),
         SourceOriginal => (
@@ -521,6 +531,58 @@ mod tests {
         let request = serde_json::from_value::<Request>(
             serde_json::json!({"operation":"source_jobs","payload":{"source_id":"../private"}}),
         )
+        .unwrap();
+        assert!(route(&request).is_err());
+    }
+
+    #[test]
+    fn source_members_is_a_finite_read_with_validated_source_id() {
+        let request = serde_json::from_value::<Request>(
+            serde_json::json!({"operation":"source_members","payload":{"source_id":"src-safe"}}),
+        )
+        .unwrap();
+        let (method, path, body) = route(&request).unwrap();
+        assert_eq!(method, "GET");
+        assert_eq!(path, "/api/v1/sources/src-safe/members");
+        assert!(body.is_none());
+        for source_id in ["../private", "src-safe?token=x", "src-safe/members"] {
+            let request = serde_json::from_value::<Request>(
+                serde_json::json!({"operation":"source_members","payload":{"source_id":source_id}}),
+            )
+            .unwrap();
+            assert!(route(&request).is_err());
+        }
+    }
+
+    #[test]
+    fn archive_job_ids_match_core_without_relaxing_other_path_ids() {
+        for job_id in ["archive-member-0001-known.csv".to_owned(), "a".repeat(200)] {
+            let request = serde_json::from_value::<Request>(serde_json::json!({
+                "operation":"job_execute", "payload":{"job_id":job_id,"body":{"deadline_ms":30000}}
+            }))
+            .unwrap();
+            assert_eq!(
+                route(&request).unwrap().1,
+                format!("/api/v1/jobs/{job_id}/executions")
+            );
+        }
+        for job_id in [
+            ".".to_owned(),
+            "..".to_owned(),
+            "../private".to_owned(),
+            "id?x=1".to_owned(),
+            "id%2fprivate".to_owned(),
+            "a".repeat(201),
+        ] {
+            let request = serde_json::from_value::<Request>(serde_json::json!({
+                "operation":"jobs_get", "payload":{"job_id":job_id}
+            }))
+            .unwrap();
+            assert!(route(&request).is_err());
+        }
+        let request = serde_json::from_value::<Request>(serde_json::json!({
+            "operation":"source_original", "payload":{"source_id":"source.with.dot"}
+        }))
         .unwrap();
         assert!(route(&request).is_err());
     }

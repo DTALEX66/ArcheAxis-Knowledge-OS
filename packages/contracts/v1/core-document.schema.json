@@ -922,6 +922,83 @@
         "jobs_capped"
       ],
       "additionalProperties": false
+    },
+    "SourceMemberDto": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "source_id",
+        "member",
+        "origin_ref",
+        "original_name",
+        "sha256",
+        "readable",
+        "job_id"
+      ],
+      "properties": {
+        "source_id": {
+          "type": "string"
+        },
+        "member": {
+          "type": "string"
+        },
+        "origin_ref": {
+          "type": "string"
+        },
+        "original_name": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "sha256": {
+          "type": "string"
+        },
+        "readable": {
+          "type": "boolean"
+        },
+        "job_id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      }
+    },
+    "SourceMembersDto": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "container_source_id",
+        "member_count",
+        "readable_count",
+        "custody_only_count",
+        "members",
+        "note"
+      ],
+      "properties": {
+        "container_source_id": {
+          "type": "string"
+        },
+        "member_count": {
+          "type": "integer"
+        },
+        "readable_count": {
+          "type": "integer"
+        },
+        "custody_only_count": {
+          "type": "integer"
+        },
+        "members": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/SourceMemberDto"
+          }
+        },
+        "note": {
+          "type": "string"
+        }
+      }
     }
   }
 }

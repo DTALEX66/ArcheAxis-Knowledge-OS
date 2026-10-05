@@ -277,3 +277,78 @@ async fn time_anchor_binds_actual_receipt_and_preserves_old_attempt() {
         StatusCode::BAD_REQUEST
     );
 }
+
+// SIMULATED protocol receipts test the API guard; not EPUB worker execution evidence.
+#[tokio::test]
+async fn epub_locator_requires_exact_receipt_identity_and_retains_old_anchor() {
+    use sha2::{Digest, Sha256};
+    let dir = tempfile::tempdir().unwrap();
+    let db = dir.path().join("epub.sqlite");
+    let mut conn = init_workspace(db.to_str().unwrap()).unwrap();
+    let bytes = b"SIMULATED EPUB custody bytes";
+    let source = match source::import_source(&mut conn, bytes, "book.epub", None).unwrap() {
+        ImportOutcome::Imported { source_id, .. } | ImportOutcome::Duplicate { source_id, .. } => {
+            source_id
+        }
+    };
+    let revision = format!("{:x}", Sha256::digest(bytes));
+    archeaxis_application::jobs::enqueue(&mut conn, "epub-job", "text", &source).unwrap();
+    let loss = serde_json::json!({"params":{"format":{"format":"epub","parsed":true,"locations":[{"kind":"epub_chapter_paragraph","path":"book/ch.xhtml","chapter":1,"paragraph":1,"value":"Known paragraph 37"}]}}}).to_string();
+    let result_sha = format!("{:x}", Sha256::digest(loss.as_bytes()));
+    let checksum = format!("{:x}", Sha256::digest(b"Known paragraph 37"));
+    let request = serde_json::json!({"job_id":"epub-job","attempt":1,"capability":"text.extract","inputs":[{"sha256":revision,"media_type":"application/epub+zip"}]}).to_string();
+    conn.execute("INSERT INTO job_attempts(job_id,attempt,request_id,request_json,state) VALUES('epub-job',1,'epub-request',?1,'succeeded')",[request]).unwrap();
+    conn.execute(
+        "UPDATE jobs SET state='succeeded' WHERE job_id='epub-job'",
+        [],
+    )
+    .unwrap();
+    let metadata =
+        serde_json::json!({"kind":"loss_report","sha256":result_sha,"byte_length":loss.len()})
+            .to_string();
+    conn.execute("INSERT INTO job_outputs(job_id,attempt,kind,metadata_json,content) VALUES('epub-job',1,'loss_report',?1,?2)",rusqlite::params![metadata,loss]).unwrap();
+    let locator = serde_json::json!({"type":"epub","job_id":"epub-job","attempt":1,"chapter":1,"paragraph":1,"path":"book/ch.xhtml","result_sha256":result_sha});
+    for (field, value) in [
+        ("chapter", serde_json::json!(2)),
+        ("paragraph", serde_json::json!(99)),
+        ("path", serde_json::json!("book/other.xhtml")),
+        ("attempt", serde_json::json!(2)),
+        ("result_sha256", serde_json::json!("0".repeat(64))),
+    ] {
+        let mut wrong = locator.clone();
+        wrong[field] = value;
+        assert_eq!(
+            time_anchor_post(&db, &source, &revision, wrong, Some(&checksum))
+                .await
+                .0,
+            StatusCode::BAD_REQUEST
+        );
+    }
+    assert_eq!(
+        time_anchor_post(&db, &source, &revision, locator.clone(), Some("wrong"))
+            .await
+            .0,
+        StatusCode::BAD_REQUEST
+    );
+    let (_, unverified) = time_anchor_post(&db, &source, &revision, locator.clone(), None).await;
+    assert_eq!(unverified["location_status"], "unverified");
+    let (status, located) =
+        time_anchor_post(&db, &source, &revision, locator.clone(), Some(&checksum)).await;
+    assert_eq!(status, StatusCode::CREATED);
+    assert_eq!(located["location_status"], "located");
+    let id = located["anchor_id"].as_str().unwrap();
+    let original = anchor::get_anchor(&conn, id).unwrap().unwrap();
+    conn.execute("INSERT INTO job_attempts(job_id,attempt,request_id,request_json,state) VALUES('epub-job',2,'next-epub','{}','failed')",[]).unwrap();
+    assert_eq!(
+        time_anchor_post(&db, &source, &revision, locator, Some(&checksum))
+            .await
+            .0,
+        StatusCode::BAD_REQUEST
+    );
+    drop(conn);
+    let reopened = init_workspace(db.to_str().unwrap()).unwrap();
+    assert_eq!(
+        anchor::get_anchor(&reopened, id).unwrap().unwrap(),
+        original
+    );
+}

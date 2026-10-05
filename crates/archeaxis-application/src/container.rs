@@ -69,6 +69,22 @@ fn sha256_hex(bytes: &[u8]) -> String {
     hex::encode(hasher.finalize())
 }
 
+/// Preserve existing interoperable IDs; hash only filenames/parents that exceed
+/// the runtime job-ID grammar. The member's real name stays in its source origin.
+pub fn member_job_id(archive_job_id: &str, member_file: &str) -> String {
+    let legacy = format!("{archive_job_id}-member-{member_file}");
+    if legacy.len() <= 200
+        && legacy
+            .bytes()
+            .all(|byte| byte.is_ascii_alphanumeric() || b"-_.".contains(&byte))
+    {
+        legacy
+    } else {
+        let identity = format!("archeaxis.archive-member/v1\0{archive_job_id}\0{member_file}");
+        format!("member-{}", sha256_hex(identity.as_bytes()))
+    }
+}
+
 /// The members the newest finished attempt of `archive_job_id` declared.
 pub fn declared_members(
     conn: &Connection,
@@ -138,6 +154,7 @@ fn route_for_member(name: &str) -> Option<(&'static str, &'static str)> {
 pub struct MemberRow {
     pub source_id: String,
     pub member: String,
+    pub origin_ref: String,
     pub original_name: Option<String>,
     pub sha256: String,
     /// True when a transform exists, i.e. a route read the member's bytes.
@@ -175,6 +192,7 @@ pub fn members_of(
                     .strip_prefix(&prefix)
                     .unwrap_or(&reference)
                     .to_string(),
+                origin_ref: reference,
                 original_name: row.get(2)?,
                 sha256: row.get(3)?,
                 readable: row.get::<_, i64>(4)? == 1,
@@ -283,7 +301,7 @@ pub fn expand_members(
         expansion.sources.push(source_id.clone());
         match route_for_member(&member.name) {
             Some((kind, _media)) => {
-                let job_id = format!("{archive_job_id}-member-{}", member.file);
+                let job_id = member_job_id(archive_job_id, &member.file);
                 let existed: bool = conn.query_row(
                     "SELECT EXISTS(SELECT 1 FROM jobs WHERE job_id=?1)",
                     [&job_id],

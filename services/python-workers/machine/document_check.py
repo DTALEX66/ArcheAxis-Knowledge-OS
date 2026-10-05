@@ -5,6 +5,7 @@ from __future__ import annotations
 import base64
 import hashlib
 import importlib.util
+import io
 import json
 import os
 import re
@@ -160,6 +161,37 @@ def retrieve_context(query: str, timeout: int, limit: int, receipts: list[dict[s
     return material
 
 
+def original_image(raw: bytes, media: str) -> tuple[str, dict[str, Any]]:
+    """Validate an immutable original; never substitute OCR or re-encode pixels."""
+    from PIL import Image
+
+    try:
+        with Image.open(io.BytesIO(raw)) as image:
+            expected = "PNG" if media == "image/png" else "JPEG"
+            width, height = image.size
+            if (
+                image.format != expected
+                or not 0 < width <= 4096
+                or not 0 < height <= 4096
+                or width * height > 8_000_000
+                or getattr(image, "n_frames", 1) != 1
+            ):
+                raise CheckExecutionError("original_image_budget_or_format")
+            image.load()
+    except CheckExecutionError:
+        raise
+    except Exception:
+        raise CheckExecutionError("original_image_invalid") from None
+    return "data:" + media + ";base64," + base64.b64encode(raw).decode("ascii"), {
+        "sha256": sha(raw),
+        "media_type": media,
+        "byte_length": len(raw),
+        "width": width,
+        "height": height,
+        "representation": "immutable_original_bytes_not_ocr_or_reencoded",
+    }
+
+
 def execute(req: dict[str, Any]) -> dict[str, Any]:
     result = {
         "schema": "archeaxis.document-check.response/v1",
@@ -231,6 +263,8 @@ def execute(req: dict[str, Any]) -> dict[str, Any]:
         if endpoint is not None:
             public_url(endpoint)
         material = ""
+        image_data_url = None
+        image_identity = None
         if req["dimension"] == "recognition_fidelity":
             original = req.get("original")
             recognition = req.get("recognition")
@@ -245,15 +279,23 @@ def execute(req: dict[str, Any]) -> dict[str, Any]:
                 "text/markdown",
                 "text/csv",
                 "text/tab-separated-values",
+                "image/png",
+                "image/jpeg",
             ):
                 raise CheckExecutionError("unsupported_original_media")
             raw = base64.b64decode(original["content_base64"], validate=True)
             if len(raw) > 64_000 or sha(raw) != original["sha256"]:
                 raise CheckExecutionError("original_digest_mismatch")
-            try:
-                material = raw.decode("utf8")
-            except UnicodeDecodeError:
-                raise CheckExecutionError("original_not_utf8") from None
+            if original["media_type"] in ("image/png", "image/jpeg"):
+                image_data_url, image_identity = original_image(raw, original["media_type"])
+                material = "Immutable ORIGINAL IMAGE attached; identity: " + json.dumps(
+                    image_identity, sort_keys=True
+                )
+            else:
+                try:
+                    material = raw.decode("utf8")
+                except UnicodeDecodeError:
+                    raise CheckExecutionError("original_not_utf8") from None
             if (
                 not isinstance(recognition, dict)
                 or set(recognition) != {"job_id", "result_sha256", "text"}
@@ -293,6 +335,8 @@ def execute(req: dict[str, Any]) -> dict[str, Any]:
         kwargs = {"timeout": timeout, "num_retries": 0}
         if endpoint is not None:
             kwargs["api_base"] = endpoint
+        if image_data_url is not None:
+            kwargs["image_data_url"] = image_data_url
         try:
             answer = adapter.complete(prompt, model=model, max_tokens=tokens, **kwargs)
         except Exception:
@@ -343,6 +387,7 @@ def execute(req: dict[str, Any]) -> dict[str, Any]:
                 "response_sha256": sha(raw.encode()),
                 "finish_reason": answer.actual_finish_reason,
                 "tokens_used": answer.tokens_used,
+                **({"original_image": image_identity} if image_identity is not None else {}),
             },
         )
     except CheckExecutionError as exc:

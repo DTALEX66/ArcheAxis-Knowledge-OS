@@ -1074,6 +1074,96 @@ fn verify_time_anchor(
     )
 }
 
+fn verify_epub_anchor(
+    conn: &rusqlite::Connection,
+    source: &str,
+    revision: &str,
+    position: &serde_json::Value,
+    checksum: &str,
+) -> Option<bool> {
+    use sha2::{Digest, Sha256};
+    let job = position["job_id"].as_str()?;
+    let attempt = i64::try_from(position["attempt"].as_u64()?).ok()?;
+    let chapter = position["chapter"].as_u64()?;
+    let paragraph = position["paragraph"].as_u64()?;
+    let member_path = position["path"].as_str()?;
+    let expected = position["result_sha256"].as_str()?;
+    let (input, kind, job_state, state, wire, metadata, content, latest): (
+        String,
+        String,
+        String,
+        String,
+        String,
+        String,
+        String,
+        i64,
+    ) = conn
+        .query_row(
+            "SELECT j.input_ref,j.kind,j.state,a.state,a.request_json,o.metadata_json,o.content,
+         (SELECT MAX(attempt) FROM job_attempts WHERE job_id=j.job_id)
+         FROM jobs j JOIN job_attempts a ON a.job_id=j.job_id
+         JOIN job_outputs o ON o.job_id=a.job_id AND o.attempt=a.attempt AND o.kind='loss_report'
+         WHERE j.job_id=?1 AND a.attempt=?2",
+            rusqlite::params![job, attempt],
+            |r| {
+                Ok((
+                    r.get(0)?,
+                    r.get(1)?,
+                    r.get(2)?,
+                    r.get(3)?,
+                    r.get(4)?,
+                    r.get(5)?,
+                    r.get(6)?,
+                    r.get(7)?,
+                ))
+            },
+        )
+        .ok()?;
+    if input != source
+        || kind != "text"
+        || job_state != "succeeded"
+        || state != "succeeded"
+        || latest != attempt
+    {
+        return Some(false);
+    }
+    let request: serde_json::Value = serde_json::from_str(&wire).ok()?;
+    let meta: serde_json::Value = serde_json::from_str(&metadata).ok()?;
+    let loss: serde_json::Value = serde_json::from_str(&content).ok()?;
+    let hash = format!("{:x}", Sha256::digest(content.as_bytes()));
+    if request["capability"] != "text.extract"
+        || request["job_id"] != job
+        || request["attempt"] != attempt
+        || request["inputs"][0]["sha256"] != revision
+        || request["inputs"][0]["media_type"] != "application/epub+zip"
+        || meta["kind"] != "loss_report"
+        || meta["sha256"] != hash
+        || expected != hash
+        || meta["byte_length"].as_u64()? != content.len() as u64
+    {
+        return Some(false);
+    }
+    let output = &loss["params"]["format"];
+    if output["format"] != "epub" || output["parsed"] != true || chapter == 0 || paragraph == 0 {
+        return Some(false);
+    }
+    let locations = output["locations"].as_array()?;
+    let matching: Vec<_> = locations
+        .iter()
+        .filter(|location| {
+            location["kind"] == "epub_chapter_paragraph"
+                && location["chapter"].as_u64() == Some(chapter)
+                && location["paragraph"].as_u64() == Some(paragraph)
+                && location["path"].as_str() == Some(member_path)
+        })
+        .collect();
+    if matching.len() != 1 {
+        return Some(false);
+    }
+    let text = matching[0]["value"].as_str()?;
+    Some(!text.is_empty() && format!("{:x}", Sha256::digest(text.as_bytes())) == checksum)
+}
+
 #[derive(Deserialize)]
 struct AnchorBody {
     revision: String,
@@ -1130,6 +1220,9 @@ async fn create_anchor(
             let validation = (|| -> Option<bool> {
                 if position["type"] == "time" {
                     return verify_time_anchor(conn, &source_id, &body.revision, &position, &checksum);
+                }
+                if position["type"] == "epub" {
+                    return verify_epub_anchor(conn, &source_id, &body.revision, &position, &checksum);
                 }
                 if position["type"] != "text" {
                     return None;
@@ -1306,6 +1399,7 @@ async fn source_members(
                             .map(|member| serde_json::json!({
                                 "source_id": member.source_id,
                                 "member": member.member,
+                                "origin_ref": member.origin_ref,
                                 "original_name": member.original_name,
                                 "sha256": member.sha256,
                                 "readable": member.readable,

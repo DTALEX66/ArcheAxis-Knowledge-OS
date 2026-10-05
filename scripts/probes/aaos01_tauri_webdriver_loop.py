@@ -211,6 +211,341 @@ def free_port():
         return s.getsockname()[1]
 
 
+def archive_member_job_id(parent_job, member_file):
+    legacy = parent_job + "-member-" + member_file
+    if len(legacy.encode("utf-8")) <= 200 and all(character.isascii() and (character.isalnum() or character in "-_.") for character in legacy):
+        return legacy
+    identity = "archeaxis.archive-member/v1\0" + parent_job + "\0" + member_file
+    return "member-" + hashlib.sha256(identity.encode("utf-8")).hexdigest()
+
+
+def installed_format_import_loop(bridge, repo, proofs):
+    """Public fixtures through the installed host's finite authenticated bridge.
+
+    A candidate caller remains candidate evidence; installation context is supplied
+    by the existing installer verifier, never inferred from this helper.
+    """
+    import io
+    import tarfile
+
+    csv = b"key,value\ninstalled-format-value,37\n"
+    buffer = io.BytesIO()
+    with tarfile.open(fileobj=buffer, mode="w") as archive:
+        member = tarfile.TarInfo("notes/known.csv")
+        member.size = len(csv)
+        archive.addfile(member, io.BytesIO(csv))
+    light = load("installed_epub_public_fixture", repo / "scripts/probes/aaos01_light_format_loop.py")
+    samples = [
+        ("g3-known.epub", "text", light.samples()["epub"], "Chapter body 42"),
+        ("g3-known.xlsx", "office", (repo / "tests/fixtures/golden/golden-xlsx-anchor.xlsx").read_bytes(), "Sheet evidence anchor"),
+        ("g3-known.pptx", "office", (repo / "tests/fixtures/golden/golden-pptx-anchor.pptx").read_bytes(), "Slide evidence anchor"),
+        ("g3-known.csv", "text", csv, "installed-format-value"),
+        ("g3-known.tar", "archive", buffer.getvalue(), "notes/known.csv"),
+    ]
+
+    def execute(job):
+        bridge("job_execute", {"job_id": job, "body": {"deadline_ms": 120000}})
+        deadline = time.monotonic() + 130
+        while time.monotonic() < deadline:
+            state = bridge("jobs_get", {"job_id": job})
+            if state["state"] in ("succeeded", "failed", "rejected", "cancelled"):
+                assert state["state"] == "succeeded", f"Installed format job failed: {job}"
+                return
+            time.sleep(0.15)
+        raise TimeoutError(f"Installed format job deadline: {job}")
+
+    def snapshot(source_id, job):
+        original = bridge("source_original", {"source_id": source_id})
+        data = base64.b64decode(original["content_base64"], validate=True)
+        assert hashlib.sha256(data).hexdigest() == original["sha256"]
+        outputs = {kind: bridge("job_output", {"job_id": job, "kind": kind})
+                   for kind in ("text", "document_structure", "loss_report")}
+        for output in outputs.values():
+            assert hashlib.sha256(output["content"].encode()).hexdigest() == output["metadata"]["sha256"]
+            assert len(output["content"].encode()) == output["metadata"]["byte_length"]
+        anchors = json.loads(outputs["document_structure"]["content"])
+        loss = json.loads(outputs["loss_report"]["content"])
+        assert anchors and all(item["char_end"] > item["char_start"] for item in anchors)
+        assert loss["loss_note"].strip()
+        quality = bridge("job_quality", {"job_id": job})
+        assert quality["state"] == "succeeded" and quality["engine"] == loss["engine"]
+        assert quality["engine_version"] == loss["engine_version"]
+        return {"source_id": source_id, "job_id": job, "original": original,
+                "outputs": outputs, "quality": quality}
+
+    for name, kind, content, expected in samples:
+        imported = bridge("source_import", {"body": {"name": name, "content_base64": base64.b64encode(content).decode()}})
+        assert imported["sha256"] == hashlib.sha256(content).hexdigest()
+        job = "g3-format-" + uuid.uuid4().hex
+        bridge("job_enqueue", {"body": {"job_id": job, "kind": kind, "input_ref": imported["source_id"]}})
+        execute(job)
+        proof = snapshot(imported["source_id"], job)
+        assert expected in proof["outputs"]["text"]["content"]
+        loss = json.loads(proof["outputs"]["loss_report"]["content"])
+        if name.endswith("xlsx") or name.endswith("pptx"):
+            locators = loss["params"]["worker_structure"]
+            assert locators
+            if name.endswith("xlsx"):
+                assert loss["params"]["engine"] == "openpyxl"
+                assert locators[0]["kind"] == "sheet_row"
+                assert locators[0]["path"][0].startswith("sheet-")
+                assert any(row["path"][0] == "sheet-Evidence" and "A1=Sheet evidence anchor" in proof["outputs"]["text"]["content"][row["char_start"]:row["char_end"]] for row in locators)
+            else:
+                assert loss["params"]["engine"] == "python-pptx"
+                assert locators[0]["kind"] == "slide" and locators[0]["path"][0] == "slide-1"
+                assert any(row["path"][0] == "slide-1" and "Slide evidence anchor" in proof["outputs"]["text"]["content"][row["char_start"]:row["char_end"]] for row in locators)
+        if name.endswith("csv"):
+            facts = loss["params"]["format"]
+            assert facts["format"] == "csv" and facts["parsed"] is True
+            assert any(row["row"] == 2 and row["column"] == 2 and row["value"] == "37" for row in facts["locations"])
+        if name.endswith("epub"):
+            facts = loss["params"]["format"]
+            assert facts["format"] == "epub" and facts["parsed"] is True
+            assert facts["toc"][0] == {"href": "chapter.xhtml", "title": "Golden"}
+            rows = [row for row in facts["locations"] if row["value"] == "Chapter body 42"]
+            assert len(rows) == 1
+            row = rows[0]
+            assert row["kind"] == "epub_chapter_paragraph" and row["path"] == "OEBPS/chapter.xhtml"
+            assert row["chapter"] == 1 and row["paragraph"] == 2
+            state = bridge("jobs_get", {"job_id": job})
+            assert state["input_ref"] == imported["source_id"] and state["attempt"] >= 1
+            proof["epub_position"] = {"type": "epub", "job_id": job,
+                "attempt": state["attempt"], "result_sha256": proof["outputs"]["loss_report"]["metadata"]["sha256"],
+                "path": row["path"], "chapter": row["chapter"], "paragraph": row["paragraph"]}
+            proof["epub_value"] = row["value"]
+            proof["scope"] = "CHAPTER_PARAGRAPH_NOT_VISUAL_PAGINATION"
+        proofs.append(proof)
+        if kind == "archive":
+            declared = loss["params"]["structure"]["extractable_members"]
+            assert len(declared) == 1 and declared[0]["name"] == "notes/known.csv"
+            assert declared[0]["sha256"] == hashlib.sha256(csv).hexdigest()
+            # Reuse finite source list/jobs: no token access or arbitrary HTTP/file API.
+            matches = [item for item in bridge("sources_list")["sources"] if item["sha256"] == declared[0]["sha256"]]
+            assert len(matches) == 1
+            member_source = matches[0]["source_id"]
+            member_job = archive_member_job_id(job, declared[0]["file"])
+            candidates = bridge("source_jobs", {"source_id": member_source})["jobs"]
+            assert any(item["job_id"] == member_job and item["kind"] == "text" for item in candidates), "Core automatic member job missing"
+            execute(member_job)
+            child = snapshot(member_source, member_job)
+            assert "installed-format-value" in child["outputs"]["text"]["content"]
+            members = bridge("source_members", {"source_id": imported["source_id"]})
+            assert members["container_source_id"] == imported["source_id"]
+            assert members["member_count"] == len(members["members"])
+            assert members["readable_count"] + members["custody_only_count"] == members["member_count"]
+            matches = [item for item in members["members"] if item["member"] == declared[0]["name"]]
+            assert len(matches) == 1
+            member = matches[0]
+            assert member["source_id"] == member_source and member["sha256"] == declared[0]["sha256"]
+            assert member["origin_ref"] == imported["source_id"] + "#" + declared[0]["name"]
+            assert member["readable"] is True
+            # job_id is the earliest source job, not necessarily this archive's child;
+            # exact automatic child identity was already asserted through source_jobs.
+            child["container_source_id"] = imported["source_id"]
+            child["source_members"] = members
+            child["parent_archive_job"] = job
+            proofs.append(child)
+    return proofs
+
+
+def installed_format_readback(bridge, proofs):
+    for proof in proofs:
+        if "source_members" in proof:
+            assert bridge("source_members", {"source_id": proof["container_source_id"]}) == proof["source_members"]
+        assert bridge("source_original", {"source_id": proof["source_id"]}) == proof["original"]
+        assert bridge("jobs_get", {"job_id": proof["job_id"]})["state"] == "succeeded"
+        assert bridge("job_quality", {"job_id": proof["job_id"]}) == proof["quality"]
+        for kind, value in proof["outputs"].items():
+            assert bridge("job_output", {"job_id": proof["job_id"], "kind": kind}) == value
+
+
+def installed_epub_reader(bridge, js, wait, ui_click, proof, *, cite):
+    """Actual product Reader and persisted locator; no DOM injection or mocked bridge."""
+    js("[...document.querySelectorAll('button')].find(b=>b.textContent.trim().endsWith('工作台')).click()")
+    js("[...document.querySelectorAll('button')].find(b=>b.textContent.trim().endsWith('资料库')).click()")
+    wait("return [...document.querySelectorAll('[aria-label=\"保留原件\"] button')].some(b=>b.textContent==='g3-known.epub')")
+    ui_click("g3-known.epub", "//nav[@aria-label='保留原件']")
+    wait("return [...document.querySelectorAll('h2,h3,h4')].some(h=>h.textContent==='EPUB 章节段落') && document.body.textContent.includes('Chapter body 42')")
+    position = proof["epub_position"]
+    assert js("return document.body.textContent.includes(arguments[0])", [position["path"]])
+    scope = "//p[normalize-space(.)='Chapter body 42']/parent::div"
+    if cite:
+        ui_click("引用 EPUB 段落", scope)
+        wait("return document.body.textContent.includes('段落与解析回执关联已校验')")
+        anchors = bridge("anchors_list", {"source_id": proof["source_id"]})["anchors"]
+        candidates = [anchor for anchor in anchors if all(json.loads(anchor["position"]).get(key) == value for key, value in position.items())]
+        assert len(candidates) == 1
+        anchor = candidates[0]
+        assert anchor["source_id"] == proof["source_id"] and anchor["source_revision"] == proof["original"]["sha256"]
+        assert anchor["location_status"] == "located"
+        assert json.loads(anchor["position"])["checksum"] == hashlib.sha256(proof["epub_value"].encode()).hexdigest()
+        proof["epub_anchor"] = anchor
+        ui_click("定位 EPUB 段落", scope)
+    else:
+        anchors = bridge("anchors_list", {"source_id": proof["source_id"]})["anchors"]
+        assert proof["epub_anchor"] in anchors
+        ui_click("来源引用", "//aside[@aria-label='来源版本证据']")
+    wait("return document.querySelector('[data-epub-focused=\"true\"]')?.textContent==='Chapter body 42'")
+    assert js("return document.querySelector('[data-epub-focused=\"true\"]')?.textContent") == proof["epub_value"]
+
+
+def installed_remaining_matrix(bridge, bridge_status, repo, records):
+    """Existing canonical fixtures only; missing actual engines fail rather than skip."""
+    import io
+    import zipfile
+
+    light = load("installed_matrix_canonical_samples", repo / "scripts/probes/aaos01_light_format_loop.py")
+    public = light.samples()
+    cases = [(extension, "A", name, kind, (repo / "tests/fixtures/golden" / name).read_bytes(), expected, False)
+             for extension, (name, kind, expected) in light.A_SAMPLES.items()
+             if extension not in {"xlsx", "pptx"}]
+    cases += [(extension, "B", "g3-matrix." + extension, "text", content, "Golden", False)
+              for extension, content in public.items()
+              if extension not in {"csv", "epub"} and not extension.startswith("corrupt_")]
+    cases += [(extension.removeprefix("corrupt_"), "B", "g3-negative." + extension.removeprefix("corrupt_"), "text", content, None, True)
+              for extension, content in public.items() if extension.startswith("corrupt_")]
+    matrix_deadline = time.monotonic() + 900
+
+    raw_bridge, raw_status = bridge, bridge_status
+
+    def bounded_call(call, operation, payload):
+        if time.monotonic() >= matrix_deadline:
+            raise TimeoutError("Installed G3 aggregate deadline before finite read/write")
+        result = call(operation, payload)
+        if time.monotonic() >= matrix_deadline:
+            raise TimeoutError("Installed G3 aggregate deadline after finite read/write")
+        return result
+
+    def bridge(operation, payload):
+        return bounded_call(raw_bridge, operation, payload)
+
+    def bridge_status(operation, payload):
+        return bounded_call(raw_status, operation, payload)
+
+    def execute(job, failed=False):
+        if time.monotonic() >= matrix_deadline:
+            raise TimeoutError("Installed G3 aggregate 900-second deadline")
+        bridge("job_execute", {"job_id": job, "body": {"deadline_ms": 30000}})
+        deadline = min(matrix_deadline, time.monotonic() + 35)
+        while time.monotonic() < deadline:
+            state = bridge("jobs_get", {"job_id": job})
+            if state["state"] in {"succeeded", "failed", "rejected", "cancelled"}:
+                assert state["state"] == ("failed" if failed else "succeeded"), state
+                return state
+            time.sleep(0.15)
+        raise TimeoutError("Installed matrix job deadline: " + job)
+
+    def snapshot(source_id, job, state, failed=False):
+        original = bridge("source_original", {"source_id": source_id})
+        raw = base64.b64decode(original["content_base64"], validate=True)
+        assert original["source_id"] == source_id and hashlib.sha256(raw).hexdigest() == original["sha256"]
+        assert state["job_id"] == job and state["input_ref"] == source_id
+        quality = bridge("job_quality", {"job_id": job})
+        assert quality["state"] == state["state"]
+        proof = {"source_id": source_id, "job_id": job, "original": original, "state": state, "quality": quality, "failed": failed}
+        if failed:
+            assert "AAK-WORKER-003" in str(state.get("error")), state
+            statuses = {kind: bridge_status("job_output", {"job_id": job, "kind": kind})
+                        for kind in ("text", "document_structure", "loss_report")}
+            assert all(reply["status"] == 404 for reply in statuses.values()), statuses
+            proof["missing_outputs"] = statuses
+            proof["scope"] = "EXPECTED_MALFORMED_INPUT_FAILURE_NO_SUCCESS_OUTPUT"
+        else:
+            outputs = {kind: bridge("job_output", {"job_id": job, "kind": kind})
+                       for kind in ("text", "document_structure", "loss_report")}
+            for kind, output in outputs.items():
+                raw = output["content"].encode("utf-8")
+                assert output["metadata"]["kind"] == kind
+                assert output["metadata"]["byte_length"] == len(raw)
+                assert output["metadata"]["sha256"] == hashlib.sha256(raw).hexdigest()
+            loss = json.loads(outputs["loss_report"]["content"])
+            assert quality["engine"] == loss["engine"] and quality["engine_version"] == loss["engine_version"]
+            assert loss["engine"] and loss["engine_version"] and loss["loss_note"]
+            proof["outputs"] = outputs
+        return proof
+
+    for extension, wave, name, kind, content, expected, corrupt in cases:
+        record = {"format": extension, "wave": wave, "name": name, "corrupt": corrupt,
+                  "input": {"sha256": hashlib.sha256(content).hexdigest(), "bytes": len(content)}, "stage": "importing"}
+        records.append(record)  # preserve the exact failing row in the parent receipt
+        payload = {"body": {"name": name, "content_base64": base64.b64encode(content).decode()}}
+        assert len(json.dumps(payload["body"]).encode()) <= 8 * 1024 * 1024
+        imported = bridge("source_import", payload)
+        assert imported["sha256"] == record["input"]["sha256"]
+        job = "g3-matrix-" + uuid.uuid4().hex
+        record.update(source_id=imported["source_id"], job_id=job, stage="executing")
+        bridge("job_enqueue", {"body": {"job_id": job, "kind": kind, "input_ref": imported["source_id"]}})
+        state = execute(job, corrupt)
+        proof = snapshot(imported["source_id"], job, state, corrupt)
+        record["proof"] = proof
+        if not corrupt:
+            outputs = proof["outputs"]
+            canonical = {"format": extension, "wave": wave, "expected_text": expected,
+                         "input": record["input"], "snapshot": {"job": {"body": state},
+                         **{key: {"status": 200, "body": value} for key, value in outputs.items()},
+                         "quality": {"status": 200, "body": proof["quality"]}}}
+            light.check(canonical)  # reuse all canonical format-specific locator/structure assertions
+            record["scope"] = "HEADER_PROBE_ONLY_NO_DECODE_ASR_TIME_RANGE" if kind == "media" else "REAL_FINITE_HOST_JOB_OUTPUT_LOCATOR_LOSS_NOT_VISUAL_READER"
+            record["native_locations"] = canonical.get("native_locations")
+            if extension == "zip":
+                with zipfile.ZipFile(io.BytesIO(content)) as archive:
+                    members_bytes = {member: archive.read(member) for member in archive.namelist() if not member.endswith("/")}
+                members = bridge("source_members", {"source_id": imported["source_id"]})
+                assert members["member_count"] == len(members_bytes)
+                declared = json.loads(outputs["loss_report"]["content"])["params"]["structure"]["extractable_members"]
+                children = []
+                record["children"] = children
+                for member in members["members"]:
+                    raw = members_bytes[member["member"]]
+                    assert member["sha256"] == hashlib.sha256(raw).hexdigest()
+                    assert member["origin_ref"] == imported["source_id"] + "#" + member["member"]
+                    descriptor = next(item for item in declared if item["name"] == member["member"])
+                    child_job = archive_member_job_id(job, descriptor["file"])
+                    queued = bridge("source_jobs", {"source_id": member["source_id"]})["jobs"]
+                    assert any(item["job_id"] == child_job and item["state"] == "queued" for item in queued)
+                    child = snapshot(member["source_id"], child_job, execute(child_job))
+                    assert base64.b64decode(child["original"]["content_base64"], validate=True) == raw
+                    assert child["outputs"]["text"]["content"].strip()
+                    children.append(child)
+                record["source_members"] = bridge("source_members", {"source_id": imported["source_id"]})
+                assert all(member["readable"] for member in record["source_members"]["members"])
+        record["stage"] = "verified_before_full_restart"
+    assert len(records) == 21 and sum(record["corrupt"] for record in records) == 4
+
+
+def installed_remaining_readback(bridge, bridge_status, records):
+    readback_deadline = time.monotonic() + 180
+    raw_bridge, raw_status = bridge, bridge_status
+
+    def bounded_read(call, operation, payload):
+        if time.monotonic() >= readback_deadline:
+            raise TimeoutError("Installed matrix 180-second restart readback deadline")
+        result = call(operation, payload)
+        if time.monotonic() >= readback_deadline:
+            raise TimeoutError("Installed matrix restart readback transport exceeded deadline")
+        return result
+
+    def bridge(operation, payload):
+        return bounded_read(raw_bridge, operation, payload)
+
+    def bridge_status(operation, payload):
+        return bounded_read(raw_status, operation, payload)
+
+    for record in records:
+        proofs = [record["proof"], *record.get("children", [])]
+        for proof in proofs:
+            assert bridge("source_original", {"source_id": proof["source_id"]}) == proof["original"]
+            assert bridge("jobs_get", {"job_id": proof["job_id"]}) == proof["state"]
+            assert bridge("job_quality", {"job_id": proof["job_id"]}) == proof["quality"]
+            for kind, output in proof.get("outputs", {}).items():
+                assert bridge("job_output", {"job_id": proof["job_id"], "kind": kind}) == output
+            for kind, missing in proof.get("missing_outputs", {}).items():
+                assert bridge_status("job_output", {"job_id": proof["job_id"], "kind": kind}) == missing
+        if "source_members" in record:
+            assert bridge("source_members", {"source_id": record["source_id"]}) == record["source_members"]
+        record["stage"] = "verified_after_full_host_restart"
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--host", type=Path, required=True)
@@ -344,10 +679,19 @@ def main():
                 "args": [operation, payload or {}],
             },
         )
-        assert value["ok"], value
+        if not value["ok"]:
+            raise RuntimeError({"operation": operation, "job_id": (payload or {}).get("job_id"), "error": value.get("error")})
         reply = value["value"]
         assert 200 <= reply["status"] < 300, reply
         return reply["body"]
+
+    def bridge_status(operation, payload):
+        value = request("POST", f"/session/{session}/execute/async", {
+            "script": "const cb=arguments[arguments.length-1];window.__TAURI__.core.invoke('core_command',{request:{operation:arguments[0],payload:arguments[1]}}).then(v=>cb({ok:true,value:v}),e=>cb({ok:false,error:String(e)}));",
+            "args": [operation, payload],
+        })
+        assert value["ok"], value
+        return value["value"]
 
     def native_command(command, payload=None):
         value = request(
@@ -758,6 +1102,23 @@ def main():
         receipt["ordinary_document_revision"] = revised
         receipt["steps"].append("UI explicitly selected revision basis persists with next ordinary document save")
         screenshot("ordinary-checks.png")
+        format_proofs=receipt["format_proofs"]=[]
+        installed_format_import_loop(bridge,REPO,format_proofs)
+        epub_proof = next(proof for proof in format_proofs if "epub_position" in proof)
+        installed_epub_reader(bridge, js, wait, ui_click, epub_proof, cite=True)
+        receipt["steps"].append("Actual EPUB Reader chapter/paragraph, UI citation, source revision and persisted result-bound locator; no visual pagination claim")
+        receipt["steps"].append("Known XLSX/PPTX/CSV/TAR through finite installed/candidate host bridge with actual worker, locators, loss and automatic TAR member")
+        matrix_proofs = receipt["matrix_proofs"] = []
+        installed_remaining_matrix(bridge, bridge_status, REPO, matrix_proofs)
+        receipt["steps"].append("Remaining canonical A/B format rows and four malformed inputs use real host jobs; media probe only, missing engines fail")
+        close_session()
+        launch()
+        installed_format_readback(bridge,format_proofs)
+        installed_remaining_readback(bridge, bridge_status, matrix_proofs)
+        receipt["steps"].append("Full host restart reads every host matrix source/output/quality/origin and negative error state from Core")
+        installed_epub_reader(bridge, js, wait, ui_click, epub_proof, cite=False)
+        receipt["steps"].append("Full host restart restores actual EPUB Reader and persisted reference navigation to known paragraph")
+        receipt["steps"].append("Full host close/relaunch preserves known format originals, worker outputs, locators and loss byte hashes")
         close_session()
         receipt["ok"] = True
     except BaseException as error:
@@ -801,7 +1162,7 @@ def main():
                 launcher.stop_owned_process(process)
                 process.wait(timeout=15)
                 receipt["owned_process_cleanup"] = True
-            except (OSError, subprocess.TimeoutExpired) as cleanup_error:
+            except (OSError, RuntimeError, subprocess.TimeoutExpired) as cleanup_error:
                 receipt["owned_process_cleanup"] = False
                 receipt["cleanup_error"] = type(cleanup_error).__name__
                 receipt["ok"] = False
