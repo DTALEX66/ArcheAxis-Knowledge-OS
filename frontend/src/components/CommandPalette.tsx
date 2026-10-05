@@ -3,7 +3,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { SPACES, type SpaceId } from "../spaces/spaces";
 
-export function CommandPalette({ onNavigate }: { onNavigate: (id: SpaceId) => void }) {
+export function CommandPalette({ onNavigate, onOpenChange }: { onNavigate: (id: SpaceId) => void; onOpenChange?: (open: boolean) => void }) {
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
   const [activeIndex, setActiveIndex] = useState(-1);
@@ -13,6 +13,9 @@ export function CommandPalette({ onNavigate }: { onNavigate: (id: SpaceId) => vo
   const inputRef = useRef<HTMLInputElement>(null);
   const optionRefs = useRef<Array<HTMLButtonElement | null>>([]);
   const previousFocus = useRef<HTMLElement | null>(null);
+
+  useEffect(() => { onOpenChange?.(open); }, [open, onOpenChange]);
+  useEffect(() => () => { onOpenChange?.(false); }, [onOpenChange]);
 
   const openPalette = useCallback(() => {
     if (openRef.current) return;

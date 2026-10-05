@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import {
   dispatchDelivery,
   getActivity,
@@ -12,10 +12,28 @@ import { stateLabel, userErrorMessage } from "../presentation/labels";
 import { coreCommand } from "../api/core";
 import type { SourceDto, SourceJobDto, SourceJobsDto } from "../api/generated/core-contract";
 
-function CanonicalActivityDock({ onInspect }: { onInspect?: (target: InspectionTarget) => void }) {
+type DockProps = { onInspect?: (target: InspectionTarget) => void; commandPaletteOpen?: boolean };
+
+function useDockExpansion(commandPaletteOpen: boolean) {
+  const [expanded, setExpanded] = useState(false);
+  const toggle = useCallback(() => setExpanded(value => !value), []);
+  useEffect(() => {
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (commandPaletteOpen || event.defaultPrevented || event.repeat || event.isComposing || event.getModifierState("AltGraph")) return;
+      if (!event.ctrlKey || !event.altKey || event.shiftKey || event.metaKey || event.key.toLowerCase() !== "j") return;
+      event.preventDefault();
+      toggle();
+    };
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [commandPaletteOpen, toggle]);
+  return { expanded, toggle };
+}
+
+function CanonicalActivityDock({ onInspect, commandPaletteOpen = false }: DockProps) {
   const [jobs, setJobs] = useState<Array<SourceJobDto & { name: string }>>([]);
   const [message, setMessage] = useState("正在读取正典任务…");
-  const [expanded, setExpanded] = useState(false);
+  const { expanded, toggle } = useDockExpansion(commandPaletteOpen);
   const [refresh, setRefresh] = useState(0);
   useEffect(() => {
     let alive = true;
@@ -39,22 +57,22 @@ function CanonicalActivityDock({ onInspect }: { onInspect?: (target: InspectionT
     return () => { alive = false; window.removeEventListener("archeaxis-job-changed", changed); };
   }, [refresh]);
   return <footer id="activity-dock" className="activity-dock" aria-label="活动坞">
-    <div className="activity-dock-summary"><span className="activity-dock-indicator" aria-hidden="true" /><span className="activity-dock-item">{message}</span><button type="button" onClick={() => setRefresh(value => value + 1)}>刷新任务</button><button type="button" aria-label={expanded ? "折叠活动坞" : "展开活动坞"} aria-expanded={expanded} onClick={() => setExpanded(value => !value)}>{expanded ? "⌄" : "⌃"}</button></div>
+    <div className="activity-dock-summary"><span className="activity-dock-indicator" aria-hidden="true" /><span className="activity-dock-item">{message}</span><button type="button" onClick={() => setRefresh(value => value + 1)}>刷新任务</button><button type="button" aria-label={expanded ? "折叠活动坞" : "展开活动坞"} aria-expanded={expanded} title="展开/收起活动回执（Ctrl+Alt+J）" aria-keyshortcuts="Control+Alt+J" onClick={toggle}>{expanded ? "⌄" : "⌃"}</button></div>
     {expanded ? <div className="activity-dock-body">{jobs.map(job => <span className="activity-dock-item" key={job.job_id}>{job.name} · {stateLabel(job.state)} <button type="button" onClick={() => onInspect?.({ title: job.name, source: "Rust Core 任务记录", lifecycle: stateLabel(job.state), updatedAt: job.completed_at ?? job.created_at, detail: `任务 ${job.job_id}；尝试 ${job.attempt ?? "尚未执行"}${job.error ? "；存在处理错误，请在资料页面查看错误与重试" : ""}` })}>查看活动详情</button></span>)}<span className="activity-dock-item">处理成功不等同识别核验或专业依据已确认。</span></div> : null}
   </footer>;
 }
 
 // Bottom activity dock: always projects durable Job/Outbox state. It never
 // labels arbitrary controls as completed work.
-export function ActivityDock({ onInspect }: { onInspect?: (target: InspectionTarget) => void }) {
-  return window.__TAURI__?.core?.invoke ? <CanonicalActivityDock onInspect={onInspect} /> : <LegacyActivityDock onInspect={onInspect} />;
+export function ActivityDock({ onInspect, commandPaletteOpen = false }: DockProps) {
+  return window.__TAURI__?.core?.invoke ? <CanonicalActivityDock onInspect={onInspect} commandPaletteOpen={commandPaletteOpen} /> : <LegacyActivityDock onInspect={onInspect} commandPaletteOpen={commandPaletteOpen} />;
 }
 
-function LegacyActivityDock({ onInspect }: { onInspect?: (target: InspectionTarget) => void }) {
+function LegacyActivityDock({ onInspect, commandPaletteOpen = false }: DockProps) {
   const [items, setItems] = useState<ActivityItemDto[]>([]);
   const [summary, setSummary] = useState("正在读取活动…");
   const [delivery, setDelivery] = useState("投递状态：读取中");
-  const [expanded, setExpanded] = useState(false);
+  const { expanded, toggle } = useDockExpansion(commandPaletteOpen);
 
   async function refresh() {
     const [activity, currentDelivery] = await Promise.all([getActivity(5), getDelivery()]);
@@ -117,7 +135,7 @@ function LegacyActivityDock({ onInspect }: { onInspect?: (target: InspectionTarg
         <span className="activity-dock-indicator" aria-hidden="true" />
         <span className="activity-dock-item">{summary}</span>
         <span className="activity-dock-item">{delivery}</span>
-        <button type="button" aria-label={expanded ? "折叠活动坞" : "展开活动坞"} aria-expanded={expanded} onClick={() => setExpanded((value) => !value)}>{expanded ? "⌄" : "⌃"}</button>
+        <button type="button" aria-label={expanded ? "折叠活动坞" : "展开活动坞"} aria-expanded={expanded} title="展开/收起活动回执（Ctrl+Alt+J）" aria-keyshortcuts="Control+Alt+J" onClick={toggle}>{expanded ? "⌄" : "⌃"}</button>
       </div>
       {expanded ? <div className="activity-dock-body">
         {items.slice(0, 3).map((item) => <span className="activity-dock-item" key={item.public_ref}>{item.label} · {stateLabel(item.state)} <button type="button" onClick={() => void inspect(item)}>查看活动详情</button></span>)}

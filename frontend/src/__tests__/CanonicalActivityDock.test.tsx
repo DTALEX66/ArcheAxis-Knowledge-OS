@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { act, render, screen, waitFor } from "@testing-library/react";
+import { act, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { ActivityDock } from "../components/ActivityDock";
 
@@ -57,4 +57,43 @@ describe("canonical activity dock", () => {
     await screen.findByText("正典任务读取未完成，请刷新重试。");
     expect(screen.queryByRole("button", { name: "查看活动详情" })).not.toBeInTheDocument();
   });
+  it("shares keyboard and button expansion without editing a draft or making extra calls", async () => {
+    // SIMULATED bridge: keyboard behavior only, never native/IME qualification.
+    const invoke = bridge();
+    render(<><textarea aria-label="draft" defaultValue="unsaved words"/><ActivityDock /></>);
+    await screen.findByText("前 1 个原件的正典任务：1");
+    const calls = invoke.mock.calls.length;
+    fireEvent.keyDown(window, { key: "j", ctrlKey: true, altKey: true });
+    expect(screen.getByRole("button", {name:"折叠活动坞"})).toHaveAttribute("aria-expanded", "true");
+    fireEvent.click(screen.getByRole("button", {name:"折叠活动坞"}));
+    expect(screen.getByRole("button", {name:"展开活动坞"})).toHaveAttribute("aria-keyshortcuts", "Control+Alt+J");
+    expect(screen.getByRole("textbox", {name:"draft"})).toHaveValue("unsaved words");
+    expect(invoke).toHaveBeenCalledTimes(calls);
+  });
+  it("ignores repeat, composition, AltGraph and an open command palette", async () => {
+    bridge(); const view=render(<ActivityDock />);
+    await screen.findByText("前 1 个原件的正典任务：1");
+    fireEvent.keyDown(window, {key:"j",ctrlKey:true,altKey:true,repeat:true});
+    fireEvent.keyDown(window, {key:"j",ctrlKey:true,altKey:true,isComposing:true});
+    const graph=new KeyboardEvent("keydown",{key:"j",ctrlKey:true,altKey:true});
+    Object.defineProperty(graph,"getModifierState",{value:(key:string)=>key==="AltGraph"});
+    act(()=>window.dispatchEvent(graph));
+    expect(screen.getByRole("button",{name:"展开活动坞"})).toBeInTheDocument();
+    view.rerender(<ActivityDock commandPaletteOpen />);
+    fireEvent.keyDown(window,{key:"j",ctrlKey:true,altKey:true});
+    expect(screen.getByRole("button",{name:"展开活动坞"})).toBeInTheDocument();
+    view.rerender(<ActivityDock commandPaletteOpen={false} />);
+    fireEvent.keyDown(window,{key:"j",ctrlKey:true,altKey:true});
+    expect(screen.getByRole("button",{name:"折叠活动坞"})).toBeInTheDocument();
+  });
+  it("removes its exact shortcut listener on unmount", async () => {
+    bridge();const add=vi.spyOn(window,"addEventListener");const remove=vi.spyOn(window,"removeEventListener");
+    const view=render(<ActivityDock />);
+    await screen.findByText("前 1 个原件的正典任务：1");
+    const listener=add.mock.calls.find(([type])=>type==="keydown")?.[1];
+    expect(listener).toBeTypeOf("function");view.unmount();
+    expect(remove).toHaveBeenCalledWith("keydown",listener);
+    add.mockRestore();remove.mockRestore();
+  });
+
 });

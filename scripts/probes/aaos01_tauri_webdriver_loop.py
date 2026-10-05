@@ -1047,6 +1047,39 @@ def main():
         assert js("return document.querySelector('[aria-label=\"版本化草稿编辑器\"] .tiptap').textContent") == ordinary_text
         persisted = bridge("document_get", {"document_id": ordinary["document_id"]})
         assert persisted == ordinary
+        # Actual WebDriver trusted keyboard input; no synthetic dispatchEvent.
+        editor_selector = '[aria-label="版本化草稿编辑器"] .tiptap'
+        editor = ui_element("css selector", editor_selector)
+        request("POST", f"/session/{session}/element/{editor}/click", {})
+        wait("return document.activeElement?.matches('[aria-label=\"版本化草稿编辑器\"] .tiptap')")
+        assert js("return document.querySelector('#activity-dock button[aria-keyshortcuts=\"Control+Alt+J\"]').getAttribute('aria-expanded')") == "false"
+        js("""window.__shortcutProof={calls:[],events:[]};
+          window.__shortcutOriginalInvoke=window.__TAURI_INTERNALS__.invoke;
+          window.__TAURI_INTERNALS__.invoke=function(command,args,...rest){
+            window.__shortcutProof.calls.push({command,operation:args?.request?.operation??null});
+            return window.__shortcutOriginalInvoke.call(this,command,args,...rest);
+          };
+          window.__shortcutKeyObserver=e=>{if(e.key.toLowerCase()==='j')window.__shortcutProof.events.push({trusted:e.isTrusted,ctrl:e.ctrlKey,alt:e.altKey});};
+          window.addEventListener('keydown',window.__shortcutKeyObserver);""")
+        try:
+            for expected in ("true", "false"):
+                request("POST", f"/session/{session}/actions", {"actions": [{"type": "key", "id": "dock-shortcut", "actions": [
+                    {"type": "keyDown", "value": "\ue009"}, {"type": "keyDown", "value": "\ue00a"},
+                    {"type": "keyDown", "value": "j"}, {"type": "keyUp", "value": "j"},
+                    {"type": "keyUp", "value": "\ue00a"}, {"type": "keyUp", "value": "\ue009"}]}]})
+                wait(f"return document.querySelector('#activity-dock button[aria-keyshortcuts=\"Control+Alt+J\"]').getAttribute('aria-expanded')==={json.dumps(expected)}")
+                assert js("return document.activeElement?.matches('[aria-label=\"版本化草稿编辑器\"] .tiptap')") is True
+                assert js("return document.querySelector('[aria-label=\"版本化草稿编辑器\"] .tiptap').textContent") == ordinary_text
+            shortcut = js("return window.__shortcutProof")
+            assert len(shortcut["events"]) == 2 and all(event == {"trusted": True, "ctrl": True, "alt": True} for event in shortcut["events"])
+            allowed_reads = {"sources_list", "source_jobs", "documents_list", "document_get", "system_version"}
+            assert all((call["command"] == "core_command" and call["operation"] in allowed_reads) or (call["command"] == "recovery_status" and call["operation"] is None) for call in shortcut["calls"]), "Shortcut issued a mutation or unexpected native command"
+        finally:
+            js("window.__TAURI_INTERNALS__.invoke=window.__shortcutOriginalInvoke;window.removeEventListener('keydown',window.__shortcutKeyObserver);delete window.__shortcutOriginalInvoke;delete window.__shortcutKeyObserver;delete window.__shortcutProof;")
+            request("DELETE", f"/session/{session}/actions")
+        assert bridge("document_get", {"document_id": ordinary["document_id"]}) == persisted
+        receipt["native_activity_shortcut"] = {"trusted_key_events": 2, "expanded_then_collapsed": True, "editor_focus_preserved": True, "text_unchanged": True, "no_api_write": True, "persisted_version_unchanged": True}
+        receipt["steps"].append("Trusted native Ctrl+Alt+J expands/collapses activity dock without losing editor focus or issuing API writes")
         receipt["steps"].append("UI original note close/relaunch readback equals persisted version")
         js("[...document.querySelectorAll('button')].find(b=>b.textContent.trim().endsWith('知识库')).click()")
         wait("return [...document.querySelectorAll('label')].some(l=>l.textContent.includes('搜索内容'))")

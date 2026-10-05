@@ -9,6 +9,7 @@ interface StatusBarProps {
   backendState: BackendDisplayState;
   externalDev?: boolean;
   onNavigate?: (id: SpaceId) => void;
+  onCommandPaletteOpenChange?: (open: boolean) => void;
   inspectorOpen?: boolean;
   onToggleInspector?: () => void;
 }
@@ -26,6 +27,7 @@ export function StatusBar({
   backendState,
   externalDev = false,
   onNavigate = () => {},
+  onCommandPaletteOpenChange,
   inspectorOpen = true,
   onToggleInspector = () => {},
 }: StatusBarProps) {
@@ -41,7 +43,7 @@ export function StatusBar({
         <span>星环知识平台</span>
         {externalDev ? <span className="dev-marker">开发</span> : null}
       </div>
-      <CommandPalette onNavigate={onNavigate} />
+      <CommandPalette onNavigate={onNavigate} onOpenChange={onCommandPaletteOpenChange} />
       <div className="status-bar-center">
         <span
           className={`status-pill status-pill--${displayStatus}`}

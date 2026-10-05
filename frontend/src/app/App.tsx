@@ -43,6 +43,7 @@ export function App() {
     desktop ? checkingRecoveryStatus() : null,
   );
   const operation = useRef({ epoch: 0, mounted: true });
+  const [commandPaletteOpen, setCommandPaletteOpen] = useState(false);
   const draftDirty = useRef(false);
   const liveness = useRef<{
     generation: number;
@@ -361,6 +362,7 @@ export function App() {
           : verificationPending ? "checking" : desktopReady ? "available" : "unavailable"}
         externalDev={recoveryStatus?.external_dev === true}
         onNavigate={navigate}
+        onCommandPaletteOpenChange={setCommandPaletteOpen}
         inspectorOpen={inspectorOpen}
         onToggleInspector={() => setInspectorOpen((value) => !value)}
       />
@@ -372,7 +374,7 @@ export function App() {
         </main>
         {inspectorOpen ? <Inspector target={inspectionTarget} onClose={() => setInspectorOpen(false)} /> : null}
       </div>
-      <ActivityDock onInspect={inspect} />
+      <ActivityDock onInspect={inspect} commandPaletteOpen={commandPaletteOpen} />
     </div>
   );
 }

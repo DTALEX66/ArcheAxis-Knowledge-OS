@@ -52,7 +52,9 @@ def donor(name: str) -> ModuleType:
 
 
 class CheckExecutionError(Exception):
-    pass
+    def __init__(self, reason: str, safe_failure: dict[str, Any] | None = None):
+        super().__init__(reason)
+        self.safe_failure = safe_failure or {}
 
 
 def public_url(value: str) -> str:
@@ -65,8 +67,41 @@ def public_url(value: str) -> str:
 def bounded_fetch(http: ModuleType, *args: Any, **kwargs: Any) -> Any:
     try:
         return http.fetch(*args, **kwargs)
-    except Exception:
-        raise CheckExecutionError("retrieval_failed") from None
+    except Exception as exc:
+        # Classify only this project's typed SafeHTTP errors, never persist messages.
+        failure: dict[str, Any] = {"failure_code": "transport", "failure_stage": "transport"}
+        error_type = getattr(http, "SafeHTTPError", None)
+        if isinstance(error_type, type) and isinstance(exc, error_type):
+            message = str(exc)
+            if message.startswith("DNS resolution"):
+                failure = {
+                    "failure_code": "timeout" if "timed out" in message else "dns",
+                    "failure_stage": "dns",
+                }
+            elif message == "HTTP total timeout exceeded":
+                failure = {"failure_code": "timeout", "failure_stage": "transport"}
+            elif re.fullmatch(r"HTTP status [1-5][0-9]{2}", message):
+                failure = {
+                    "failure_code": "http_status",
+                    "failure_stage": "http_response",
+                    "http_status": int(message[-3:]),
+                }
+            elif message.startswith(
+                (
+                    "blocked address:",
+                    "invalid resolved address:",
+                    "URL must be",
+                    "invalid URL port",
+                    "blocked port:",
+                    "host is not allowlisted:",
+                    "HTTP method not allowed:",
+                    "Content-Type not allowed:",
+                    "response exceeds",
+                    "redirect",
+                )
+            ):
+                failure = {"failure_code": "policy", "failure_stage": "policy"}
+        raise CheckExecutionError("retrieval_failed", failure) from None
 
 
 def retrieve_context(query: str, timeout: int, limit: int, receipts: list[dict[str, Any]]) -> str:
@@ -435,7 +470,9 @@ def execute(req: dict[str, Any]) -> dict[str, Any]:
         if str(exc) == "no_search_results":
             result["status"] = "uncertain"
         if str(exc).startswith("retrieval_"):
-            result["retrieval_receipts"].append({"kind": "retrieval_failure", "reason": str(exc)})
+            result["retrieval_receipts"].append(
+                {"kind": "retrieval_failure", "reason": str(exc), **exc.safe_failure}
+            )
     except Exception:
         result["reason"] = (
             "execution_failed"  # never disclose SDK/network exception text or secrets

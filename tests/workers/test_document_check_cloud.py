@@ -211,3 +211,68 @@ def test_failed_provider_output_retained_with_budget(worker, monkeypatch, raw, f
     assert result["raw_response"] == (raw if len(encoded) <= 32000 else "")
     if len(encoded) > 32000:
         assert engine["raw_response_omission_reason"] == "response_budget_exceeded"
+
+
+@pytest.mark.parametrize(
+    "message,code,stage,status",
+    [
+        ("HTTP total timeout exceeded", "timeout", "transport", None),
+        ("DNS resolution failed for secret.example", "dns", "dns", None),
+        ("blocked address: private-address", "policy", "policy", None),
+        ("HTTP status 503", "http_status", "http_response", 503),
+    ],
+    ids=["timeout", "dns", "policy", "status"],
+)
+def test_retrieval_failure_safe_classification_is_durable(
+    worker, monkeypatch, message, code, stage, status
+):
+    # SIMULATED transport failure; no request or SDK call.
+    http = load(ROOT / "shared/safe_http.py", "classified_http_fixture")
+
+    def fail(*args, **kwargs):
+        raise http.SafeHTTPError(message)
+
+    monkeypatch.setattr(http, "fetch", fail)
+    monkeypatch.setattr(
+        worker,
+        "donor",
+        lambda name: (
+            http if name == "safe_http" else (_ for _ in ()).throw(AssertionError("SDK forbidden"))
+        ),
+    )
+    result = worker.execute(request())
+    assert result["outcome"] == "failed" and result["reason"] == "retrieval_failed"
+    failure = result["retrieval_receipts"][-1]
+    assert failure == {
+        "kind": "retrieval_failure",
+        "reason": "retrieval_failed",
+        "failure_code": code,
+        "failure_stage": stage,
+        **({"http_status": status} if status else {}),
+    }
+    assert message not in json.dumps(failure)
+
+
+def test_untyped_transport_module_failure_never_discloses_messages(worker, monkeypatch):
+    # SIMULATED custom donor lacks SafeHTTPError; fallback must stay compatible.
+    http = load(ROOT / "shared/safe_http.py", "generic_http_policy_fixture")
+    secret_message = "https://private.invalid/?token=fixture-secret proxy-address"
+
+    def fail(*args, **kwargs):
+        raise RuntimeError(secret_message)
+
+    fake = SimpleNamespace(SafeHTTPPolicy=http.SafeHTTPPolicy, fetch=fail)
+    monkeypatch.setattr(worker, "donor", lambda name: fake)
+    result = worker.execute(request())
+    assert result["outcome"] == "failed" and result["reason"] == "retrieval_failed"
+    assert result["retrieval_receipts"] == [
+        {
+            "kind": "retrieval_failure",
+            "reason": "retrieval_failed",
+            "failure_code": "transport",
+            "failure_stage": "transport",
+        }
+    ]
+    encoded = json.dumps(result)
+    assert "private.invalid" not in encoded and "fixture-secret" not in encoded
+    assert "proxy-address" not in encoded
