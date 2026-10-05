@@ -26,7 +26,7 @@ Historical identity for the original 2026-10-01 observations below (not the curr
 | Contract string reported by Core | `0.1.0-outline` |
 | Launch protocol | `archeaxis.desktop-launch/v2` |
 
-Current-source inventory was extended on 2026-10-05 to 60 method/path pairs,
+Current-source inventory was extended on 2026-10-05 to 61 method/path pairs,
 including version-bound document checks and optional-source original documents.
 Schema11 and actual local Core persistence/restart/restore proofs are recorded in
 `AAOS01-Q00-Q15-LEDGER-FINAL-20261005.md`; those dirty-tree results are not the
@@ -206,7 +206,7 @@ against what it launched; a mismatch means it is talking to a different Core.
 `runtime` and `contract` are hard-coded string literals, not derived from the crate
 version. Do not use them to infer a build.
 
-## 3. Route inventory (60 pairs in a `text_worker` launch)
+## 3. Route inventory (61 pairs in a `text_worker` launch)
 
 `PROD` = reachable in a production launch. `PROD` marks the routes the UI may rely on.
 All paths are relative to the loopback base URL.
@@ -307,6 +307,7 @@ These additions reflect the current Rust handlers and generated `core-document.s
 | 39 | `POST /api/v1/workspace/backups` | **human only** | No caller path; creates a consistent product-owned backup and returns its manifest. Independent restore/readback remains a separate assertion. |
 | 40 | `GET /api/v1/documents/{document_id}/checks?version=&offset=` | any token | Actual version/hash bound records, 1000-row pages with next_offset. Current versions do not inherit old conclusions. |
 | 41 | `POST /api/v1/documents/{document_id}/checks` | **human only** | Independent recognition_fidelity / professional_basis. Manual reports are explicit; cloud request is pending/not_executed until a real authorized worker executes. |
+| 42 | `POST /api/v1/documents/{document_id}/checks/execute` | **human only** | Explicit version/hash-bound attempt, separate from pending application and save. Body check_id, expected_content_sha256, optional retry_of_task_id; no arbitrary model/provider. Current unconfigured worker returns 201 durable failed/not_configured with execution_verified=false and execution_state=not_executed; retry references actual previous attempt. |
 
 `AnchorBody` is `{revision, position, checksum?}`. For a UTF-8 text locator, `start`/`end` are byte offsets and `checksum` identifies the selected slice; Core validates the bytes and boundaries. A source revision alone is not proof of a located page or text range.
 
@@ -538,8 +539,8 @@ Before the fix this endpoint answered `500` with a raw FTS5 parser message for
 
 | Launch | Routes served | Consequence for the UI |
 | --- | --- | --- |
-| **no** `text_worker` | 41 projection method/path pairs (36 unconditional mounts, five dual-method mounts); manual legacy `/jobs/{id}/receipts` remains absent from production | `/jobs/{id}`, `/executions`, `/outputs`, `/cancel`, `/capabilities` and its enable/disable write are **absent** (`404`). |
-| **with** `text_worker` | 60 addresses (41 projection method/path pairs + 19 runtime method/path pairs) | All routes above are served. |
+| **no** `text_worker` | 42 projection method/path pairs (37 unconditional mounts, five dual-method mounts); manual legacy `/jobs/{id}/receipts` remains absent from production | `/jobs/{id}`, `/executions`, `/outputs`, `/cancel`, `/capabilities` and its enable/disable write are **absent** (`404`). |
+| **with** `text_worker` | 61 addresses (42 projection method/path pairs + 19 runtime method/path pairs) | All routes above are served. |
 
 The runtime builder carries **19** routes, mounted there rather than with the projections because
 the capability surface reads the executor's registered routes, and the executor is the runtime

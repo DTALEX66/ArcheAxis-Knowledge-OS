@@ -1,5 +1,15 @@
 # AAOS-01 Q00–Q15 当前执行台账（2026-10-05）
 
+当前固定门禁：`29e7f08b84205cedbbdace6228383e8942146eb6`，workflow308098767/run37349719826/attempt1，完整headSha与workflow_dispatch核对一致，终态FAILURE，等待期间没有推送。desktop-fast、desktop-build实际PASS；rust-vnext在根工作区fmt失败，其后测试为SKIPPED；test(3.12)的OS测试失败；installer-lifecycle与a0-gates失败。根fmt遗漏已本地修正，canonical `cargo test --workspace --locked`完整exit0；实际production route inventory遗漏checks/execute已补齐61条，定向4tests PASS。完整Windows OS回归实际3985 PASS、36 skipped、137 subtests PASS、1 FAIL（第二份路由计数仍用36/41）；该唯一断言已同步真实37/42，计数/inventory/Tauri authority/CI a0四模块canonical定向41 PASS、exit0、无skip。完整运行本身仍为FAIL，不把旧CI失败或未复跑全量改写为通过。
+
+安装诊断artifact11362996823严格绑定上述四元组，6,243字节非空ZIP/CRC/SHA核对PASS，SHA `86b25deb619367bfc2cdb1ea69e0d91e46f89db6be03614953a5a65197efcd6e`。installed host SHA `19b7f50c2fba0459661f72024bb2ff7ce4f8cabf5c5b18c54fc05d50b3f3922a`：实际宿主/Core/WebView及可见窗口存在，WebView调试参数布尔为false，仅Core loopback监听；CDP40秒超时、steps=[]，未执行12步业务断言。proxy_environment_present=false。不能据此判NSIS产品未启动，也不能判业务成功。
+
+针对性本地修复：Tauri仅在明确进程级 `ARCHEAXIS_WEBDRIVER_CDP_PORT` 端口合法时通过native additional_browser_args传loopback调试参数，普通启动无调试端口，任意参数/越界/特权端口拒绝；探针绑定自有动态端口。src-tauri实际65tests PASS。Microsoft上游说明WebView2 150+ elevated宿主忽略环境覆盖，API参数仍有效（https://github.com/MicrosoftEdge/WebView2Feedback/issues/5645）；本次宿主完整性未采集，该根因仍为推断，修复尚待新exact-SHA安装门禁验证，不改注册表/全局环境。
+
+`93d9437ad75afab0b9942b6bb92b981fd1479c73`的未配置执行/显式重试实现已经包含在29e7固定提交；下文“本地未发布”及55e604是对应历史阶段记录。真正配置后的云端核验/专业检索实现正在准备，未执行真实云端调用，不能将待执行或fixture结果登记为已实现验收。
+
+29e7同run已取得Office artifact11361698454（5,844字节，ZIP SHA `81b908cf726bd28820ef3e46cf3d6b062f583cf53ac390ce5ce1c2ba0595f154`）及policy11362017967（5,016字节，ZIP SHA `abb7d57703ee6c4d66f5d48c6245a83597b000fb0893ce928afad8899afcd7cf`），完整绑定/CRC PASS。有效XLSX/PPTX已知内容与重启相等断言true；两个损坏样本验证错误状态及重启相等true。runtime实际import openpyxl3.1.5/pptx1.0.2，module路径、Core launch python同`.project-local/rt/runtime/python.exe`，解释器SHA `4d6f5f81a4bca11191c4c7c6b43632694d0a4ce74e068619d8fdc161d469859a`；uv.lock SHA `0f73ea804b0eca61a251013d199f75d88f35e6322bb155eb2581b8d10f69ce52`。policy九行为断言true，含独立restore equality；cloud_not_executed=true，人工fixture不是实际真人认可。上述为真实Core/worker执行、自编样本，不是安装态完整门禁通过。
+
 固定门禁增量：已正常推送 `55e60487aa97f2f629d081d2338b6cc5eace1e94` 并dispatch force_full，workflow308098767/run37345525360/attempt1/headSha完整核对一致；desktop-fast所有目标实际PASS，desktop-build/NSIS/候选暂存上传PASS；终态FAILURE：18个job实际成功；installer-lifecycle与a0-gates失败。安装typed artifact11360059690非空5,423字节、CRC/SHA/完整身份绑定PASS，ZIP SHA ab526ecaf480f9ccc66d856f97eb523030373f8c600234a1ece5ccf55d65326b；原生收据明确Owned attach CDP unavailable after40sec、steps=[]，失败发生在WebDriver建session之前。本地成功不能替代；尚缺失败启动时WebView真实参数/监听/窗口元数据，不能归因权限或NSIS编译feature。等待期间未推送；下面8a79是历史失败。
 
 本地未发布增量：新增 `/documents/:id/checks/execute` 与有限桥接/明确执行与显式重试按钮，绑定原pending check、实际不可变version/SHA及latest failed attempt；未配置明确failed/not_configured/not_executed，不调用云端。沿已有machine_tasks/document_checks同事务保存，无Source虚构，无第二库，无真人认可。8项file-backed API测试（普通保存/重启历史重试/权限与注入拒绝）、domain回归、内部事务回滚测试、7项SIMULATED UI回归/tsc、完整前端32文件208tests、src-tauri fmt和64tests PASS；旧异步回执不覆盖新文档。实际云端模型+联网原件对照与专业检索尚未实现，此增量不属于当前55e604 CI。

@@ -114,9 +114,14 @@ pub fn record_machine_task(conn: &mut Connection, task: &MachineTask<'_>) -> rus
 }
 
 /// Core-internal writer under an existing transaction; never independently commits.
-pub(crate) fn record_machine_task_in_transaction(conn: &Connection, task: &MachineTask<'_>) -> rusqlite::Result<()> {
+pub(crate) fn record_machine_task_in_transaction(
+    conn: &Connection,
+    task: &MachineTask<'_>,
+) -> rusqlite::Result<()> {
     if conn.is_autocommit() {
-        return Err(rusqlite::Error::InvalidParameterName("machine task requires an active transaction".into()));
+        return Err(rusqlite::Error::InvalidParameterName(
+            "machine task requires an active transaction".into(),
+        ));
     }
     if task.principal != "machine" {
         return Err(rusqlite::Error::InvalidParameterName(
@@ -272,20 +277,43 @@ pub fn machine_task_counts(conn: &Connection) -> rusqlite::Result<(i64, i64)> {
 mod transaction_writer_tests {
     use super::*;
     fn task<'a>(id: &'a str) -> MachineTask<'a> {
-        MachineTask {task_id:id,principal:"machine",conditions:"document snapshot",knowledge_version:None,
-            method_version:None,tool_version:None,model_version:"not_configured",scope:"runtime.document_check",
-            outcome:"failed",failure:Some("not_configured"),retest_of:None}
+        MachineTask {
+            task_id: id,
+            principal: "machine",
+            conditions: "document snapshot",
+            knowledge_version: None,
+            method_version: None,
+            tool_version: None,
+            model_version: "not_configured",
+            scope: "runtime.document_check",
+            outcome: "failed",
+            failure: Some("not_configured"),
+            retest_of: None,
+        }
     }
-    #[test] fn internal_writer_requires_transaction_and_rolls_back_with_owner() {
-        let mut c=Connection::open_in_memory().unwrap();
-        assert!(record_machine_task_in_transaction(&c,&task("a")).is_err());
+    #[test]
+    fn internal_writer_requires_transaction_and_rolls_back_with_owner() {
+        let mut c = Connection::open_in_memory().unwrap();
+        assert!(record_machine_task_in_transaction(&c, &task("a")).is_err());
         // Initialize through the existing atomic API, not a hand-written schema.
-        record_machine_task(&mut c,&task("baseline")).unwrap();
-        {let tx=c.transaction().unwrap();record_machine_task_in_transaction(&tx,&task("rolled_back")).unwrap();}
-        let count:i64=c.query_row("SELECT count(*) FROM machine_tasks",[],|r|r.get(0)).unwrap();assert_eq!(count,1);
-        let tx=c.transaction().unwrap();let mut denied=task("denied");denied.principal="human";
-        assert!(record_machine_task_in_transaction(&tx,&denied).is_err());
-        record_machine_task_in_transaction(&tx,&task("committed")).unwrap();tx.commit().unwrap();
-        let count:i64=c.query_row("SELECT count(*) FROM machine_tasks",[],|r|r.get(0)).unwrap();assert_eq!(count,2);
+        record_machine_task(&mut c, &task("baseline")).unwrap();
+        {
+            let tx = c.transaction().unwrap();
+            record_machine_task_in_transaction(&tx, &task("rolled_back")).unwrap();
+        }
+        let count: i64 = c
+            .query_row("SELECT count(*) FROM machine_tasks", [], |r| r.get(0))
+            .unwrap();
+        assert_eq!(count, 1);
+        let tx = c.transaction().unwrap();
+        let mut denied = task("denied");
+        denied.principal = "human";
+        assert!(record_machine_task_in_transaction(&tx, &denied).is_err());
+        record_machine_task_in_transaction(&tx, &task("committed")).unwrap();
+        tx.commit().unwrap();
+        let count: i64 = c
+            .query_row("SELECT count(*) FROM machine_tasks", [], |r| r.get(0))
+            .unwrap();
+        assert_eq!(count, 2);
     }
 }

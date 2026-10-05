@@ -313,17 +313,28 @@ pub(crate) struct CheckExecuteBody {
     retry_of_task_id: Option<String>,
 }
 pub(crate) async fn execute_check(
-    State(state): State<AppState>, Path(id): Path<String>, headers: HeaderMap,
+    State(state): State<AppState>,
+    Path(id): Path<String>,
+    headers: HeaderMap,
     Json(body): Json<CheckExecuteBody>,
 ) -> Response {
     match crate::request_actor(&headers) {
-        Ok("human")=>{}, Ok(_)=>return StatusCode::FORBIDDEN.into_response(),
-        Err(status)=>return status.into_response(),
+        Ok("human") => {}
+        Ok(_) => return StatusCode::FORBIDDEN.into_response(),
+        Err(status) => return status.into_response(),
     }
-    crate::with_store(state,move |conn| {
-        match document::execute_check_unconfigured(conn,&id,&body.check_id,
-            &body.expected_content_sha256,body.retry_of_task_id.as_deref()) {
-            Ok(value)=>(StatusCode::CREATED,Json(value)).into_response(),Err(error)=>failure(error),
-        }
-    }).await
+    crate::with_store(
+        state,
+        move |conn| match document::execute_check_unconfigured(
+            conn,
+            &id,
+            &body.check_id,
+            &body.expected_content_sha256,
+            body.retry_of_task_id.as_deref(),
+        ) {
+            Ok(value) => (StatusCode::CREATED, Json(value)).into_response(),
+            Err(error) => failure(error),
+        },
+    )
+    .await
 }

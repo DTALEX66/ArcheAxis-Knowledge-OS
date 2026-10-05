@@ -252,6 +252,7 @@ def main():
     env = dict(os.environ)
     for key in (
         "ARCHEAXIS_DEV_EXTERNAL_BACKEND",
+        "ARCHEAXIS_WEBDRIVER_CDP_PORT",
         "WEBVIEW2_ADDITIONAL_BROWSER_ARGUMENTS",
         "WEBVIEW2_USER_DATA_FOLDER",
     ):
@@ -270,6 +271,7 @@ def main():
             "ordinary_request_timeout_seconds": 45,
             "proxy_environment_present": any(key.lower() in ("http_proxy", "https_proxy", "all_proxy", "no_proxy") for key in os.environ),
             "local_http_transport": "explicit_loopback_no_proxy",
+            "cdp_arguments_transport": "validated_port_via_native_webview_api",
             "webview_user_data_folder": str(work / "webview"),
             "webview_user_data_folder_owner": "Owned host per-process WEBVIEW2_USER_DATA_FOLDER",
             "webview_user_data_folder_strategy": "Fresh session-N profile per launch; canonical product data root unchanged",
@@ -383,6 +385,7 @@ def main():
         host_env = dict(env)
         host_env["WEBVIEW2_USER_DATA_FOLDER"] = str(folder)
         host_env["WEBVIEW2_ADDITIONAL_BROWSER_ARGUMENTS"] = f"--remote-debugging-port={cdp_port} --remote-debugging-address=127.0.0.1"
+        host_env["ARCHEAXIS_WEBDRIVER_CDP_PORT"] = str(cdp_port)
         owned_host = subprocess.Popen([str(host)], cwd=host.parent, env=host_env)
         receipt.setdefault("owned_host_pids", []).append(owned_host.pid)
         root_identity = next((row for row in native_process_rows() if row["pid"] == owned_host.pid), None)

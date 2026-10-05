@@ -2,6 +2,51 @@
 
 #[cfg(windows)]
 mod core_bridge;
+
+// An explicit, process-local automation opt-in. WebView2 150+ ignores its
+// environment switch overrides for elevated hosts; pass only a validated
+// loopback debugging port through the native API. Ordinary launches omit it.
+#[cfg(windows)]
+fn webdriver_browser_args(port: Option<&str>) -> Result<Option<String>, &'static str> {
+    let Some(port) = port else { return Ok(None) };
+    if port.is_empty() || !port.bytes().all(|byte| byte.is_ascii_digit()) {
+        return Err("WEBDRIVER_CDP_PORT_INVALID");
+    }
+    let port = port
+        .parse::<u16>()
+        .map_err(|_| "WEBDRIVER_CDP_PORT_INVALID")?;
+    if port < 1024 {
+        return Err("WEBDRIVER_CDP_PORT_INVALID");
+    }
+    Ok(Some(format!(
+        "--remote-debugging-port={port} --remote-debugging-address=127.0.0.1"
+    )))
+}
+
+#[cfg(all(test, windows))]
+mod webdriver_browser_args_tests {
+    #[test]
+    fn ordinary_launch_has_no_debugging_and_opt_in_is_loopback_only() {
+        assert_eq!(super::webdriver_browser_args(None), Ok(None));
+        assert_eq!(
+            super::webdriver_browser_args(Some("43123")),
+            Ok(Some(
+                "--remote-debugging-port=43123 --remote-debugging-address=127.0.0.1".into()
+            ))
+        );
+        for invalid in [
+            "",
+            "0",
+            "1023",
+            "65536",
+            "-1",
+            "43123 --remote-debugging-address=0.0.0.0",
+            " 43123",
+        ] {
+            assert!(super::webdriver_browser_args(Some(invalid)).is_err());
+        }
+    }
+}
 #[cfg(windows)]
 #[path = "recovery.rs"]
 mod recovery;
@@ -860,10 +905,18 @@ fn main() {
                     None
                 }
             };
-            WebviewWindowBuilder::new(app, "main", WebviewUrl::App("index.html".into()))
-                .title("星环知识平台（ArcheAxis Knowledge）")
-                .inner_size(1280.0, 800.0)
-                .data_directory(webview_data_dir)
+            let mut window =
+                WebviewWindowBuilder::new(app, "main", WebviewUrl::App("index.html".into()))
+                    .title("星环知识平台（ArcheAxis Knowledge）")
+                    .inner_size(1280.0, 800.0)
+                    .data_directory(webview_data_dir);
+            let port = std::env::var("ARCHEAXIS_WEBDRIVER_CDP_PORT").ok();
+            if let Some(args) =
+                webdriver_browser_args(port.as_deref()).map_err(std::io::Error::other)?
+            {
+                window = window.additional_browser_args(&args);
+            }
+            window
                 .build()
                 .map_err(|_| std::io::Error::other("RECOVERY_WINDOW_CREATE_FAILED"))?;
             if let Some(runtime) = pending_runtime {

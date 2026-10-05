@@ -64,7 +64,10 @@ pub fn projections(state: Store, manual_receipts: bool) -> Router {
             get(documents::list).post(documents::create),
         )
         .route("/api/v1/documents/:document_id", get(documents::read))
-        .route("/api/v1/documents/:document_id/checks/execute", post(documents::execute_check))
+        .route(
+            "/api/v1/documents/:document_id/checks/execute",
+            post(documents::execute_check),
+        )
         .route(
             "/api/v1/documents/:document_id/checks",
             get(documents::checks).post(documents::record_check),

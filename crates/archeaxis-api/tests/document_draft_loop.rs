@@ -990,31 +990,76 @@ async fn check_history_pagination_exposes_every_record_without_inheriting_new_ve
 
 #[tokio::test]
 async fn unconfigured_document_check_is_human_only_version_bound_retryable_after_restart() {
-    let dir=tempfile::tempdir().unwrap(); let db=dir.path().join("checks.sqlite");
-    let router=archeaxis_api::app(db.to_str().unwrap()).unwrap();
+    let dir = tempfile::tempdir().unwrap();
+    let db = dir.path().join("checks.sqlite");
+    let router = archeaxis_api::app(db.to_str().unwrap()).unwrap();
     let (status,doc)=call(&router,"POST","/api/v1/documents",json!({"title":"ordinary","editor_json":{"type":"doc","content":[{"type":"paragraph","content":[{"type":"text","text":"original ordinary text"}]}]}}),"human").await;
-    assert_eq!(status,201,"{doc}"); assert!(doc["source_id"].is_null());
-    let path=format!("/api/v1/documents/{}",doc["document_id"].as_str().unwrap());
-    let checks=format!("{path}/checks"); let execute=format!("{checks}/execute");
-    let (status,pending)=call(&router,"POST",&checks,json!({"version":1,"dimension":"professional_basis","provider_mode":"cloud"}),"human").await;
-    assert_eq!(status,201,"{pending}");
+    assert_eq!(status, 201, "{doc}");
+    assert!(doc["source_id"].is_null());
+    let path = format!("/api/v1/documents/{}", doc["document_id"].as_str().unwrap());
+    let checks = format!("{path}/checks");
+    let execute = format!("{checks}/execute");
+    let (status, pending) = call(
+        &router,
+        "POST",
+        &checks,
+        json!({"version":1,"dimension":"professional_basis","provider_mode":"cloud"}),
+        "human",
+    )
+    .await;
+    assert_eq!(status, 201, "{pending}");
     assert_ne!(call(&router,"POST",&checks,json!({"version":1,"dimension":"professional_basis","provider_mode":"cloud","status":"supported"}),"human").await.0,201);
-    let body=json!({"check_id":pending["check_id"],"expected_content_sha256":doc["content_sha256"]});
-    assert_eq!(call(&router,"POST",&execute,body.clone(),"machine").await.0,403);
-    let mut unknown=body.clone(); unknown["model"]=json!("forbidden");
-    assert_eq!(call(&router,"POST",&execute,unknown,"human").await.0,422);
-    let mut wrong=body.clone();wrong["expected_content_sha256"]=json!("wrong");
-    assert_ne!(call(&router,"POST",&execute,wrong,"human").await.0,201);
-    let (status,a)=call(&router,"POST",&execute,body.clone(),"human").await;
-    assert_eq!(status,201,"{a}");assert_eq!(a["reason"],"not_configured");assert_eq!(a["execution_verified"],false);
-    assert_ne!(call(&router,"POST",&execute,body.clone(),"human").await.0,201);
+    let body =
+        json!({"check_id":pending["check_id"],"expected_content_sha256":doc["content_sha256"]});
+    assert_eq!(
+        call(&router, "POST", &execute, body.clone(), "machine")
+            .await
+            .0,
+        403
+    );
+    let mut unknown = body.clone();
+    unknown["model"] = json!("forbidden");
+    assert_eq!(
+        call(&router, "POST", &execute, unknown, "human").await.0,
+        422
+    );
+    let mut wrong = body.clone();
+    wrong["expected_content_sha256"] = json!("wrong");
+    assert_ne!(call(&router, "POST", &execute, wrong, "human").await.0, 201);
+    let (status, a) = call(&router, "POST", &execute, body.clone(), "human").await;
+    assert_eq!(status, 201, "{a}");
+    assert_eq!(a["reason"], "not_configured");
+    assert_eq!(a["execution_verified"], false);
+    assert_ne!(
+        call(&router, "POST", &execute, body.clone(), "human")
+            .await
+            .0,
+        201
+    );
     let (status,saved)=call(&router,"PUT",&format!("{path}/draft"),json!({"expected_version":1,"editor_json":{"type":"doc","content":[{"type":"paragraph","content":[{"type":"text","text":"still saveable"}]}]}}),"human").await;
-    assert_eq!(status,200,"{saved}"); assert_eq!(saved["version"],2);
-    drop(router);let restarted=archeaxis_api::app(db.to_str().unwrap()).unwrap();
-    let mut retry=body;retry["retry_of_task_id"]=a["attempt_id"].clone();
-    let (status,b)=call(&restarted,"POST",&execute,retry,"human").await;
-    assert_eq!(status,201,"{b}");assert_ne!(a["attempt_id"],b["attempt_id"]);assert_eq!(b["version"],1);
-    let history=call(&restarted,"GET",&format!("{checks}?version=1"),json!(null),"human").await.1;
-    assert_eq!(history["historical"],true);assert_eq!(history["checks"].as_array().unwrap().len(),3);
-    assert_eq!(call(&restarted,"GET",&path,json!(null),"human").await.1["text_projection"],saved["text_projection"]);
+    assert_eq!(status, 200, "{saved}");
+    assert_eq!(saved["version"], 2);
+    drop(router);
+    let restarted = archeaxis_api::app(db.to_str().unwrap()).unwrap();
+    let mut retry = body;
+    retry["retry_of_task_id"] = a["attempt_id"].clone();
+    let (status, b) = call(&restarted, "POST", &execute, retry, "human").await;
+    assert_eq!(status, 201, "{b}");
+    assert_ne!(a["attempt_id"], b["attempt_id"]);
+    assert_eq!(b["version"], 1);
+    let history = call(
+        &restarted,
+        "GET",
+        &format!("{checks}?version=1"),
+        json!(null),
+        "human",
+    )
+    .await
+    .1;
+    assert_eq!(history["historical"], true);
+    assert_eq!(history["checks"].as_array().unwrap().len(), 3);
+    assert_eq!(
+        call(&restarted, "GET", &path, json!(null), "human").await.1["text_projection"],
+        saved["text_projection"]
+    );
 }
