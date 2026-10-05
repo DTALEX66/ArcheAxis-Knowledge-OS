@@ -9,7 +9,40 @@ pub mod writer;
 // 7 adds the capability enable/disable record that R7/G1 needs; 8 adds the vault link graph that
 // G2 needs. Like the earlier additive steps both are applied on open rather than by rewriting
 // anything.
-pub const SCHEMA_VERSION: i64 = 9;
+pub const SCHEMA_VERSION: i64 = 10;
+
+const DOCUMENT_SCHEMA_SQL: &str = r#"
+CREATE TABLE IF NOT EXISTS documents (
+    document_id TEXT PRIMARY KEY,
+    source_id TEXT NOT NULL REFERENCES sources(source_id),
+    source_revision TEXT NOT NULL,
+    title TEXT NOT NULL,
+    current_version INTEGER NOT NULL CHECK(current_version >= 0),
+    created_at TEXT NOT NULL DEFAULT (datetime('now'))
+);
+CREATE TABLE IF NOT EXISTS document_versions (
+    document_id TEXT NOT NULL REFERENCES documents(document_id),
+    version INTEGER NOT NULL CHECK(version > 0),
+    editor_json TEXT NOT NULL,
+    text_projection TEXT NOT NULL,
+    content_sha256 TEXT NOT NULL,
+    created_at TEXT NOT NULL DEFAULT (datetime('now')),
+    PRIMARY KEY(document_id, version)
+);
+CREATE TABLE IF NOT EXISTS document_blocks (
+    document_id TEXT NOT NULL,
+    version INTEGER NOT NULL,
+    block_id TEXT NOT NULL,
+    ordinal INTEGER NOT NULL CHECK(ordinal >= 0),
+    kind TEXT NOT NULL,
+    node_json TEXT NOT NULL,
+    text_projection TEXT NOT NULL,
+    codec_status TEXT NOT NULL,
+    PRIMARY KEY(document_id, version, block_id),
+    UNIQUE(document_id, version, ordinal),
+    FOREIGN KEY(document_id, version) REFERENCES document_versions(document_id, version)
+);
+"#;
 
 const COURSE_SCHEMA_SQL: &str = r#"
 CREATE TABLE IF NOT EXISTS general_courses (
@@ -379,6 +412,7 @@ pub fn init_workspace(db_path: &str) -> rusqlite::Result<Connection> {
     }
 
     tx.execute_batch(COURSE_SCHEMA_SQL)?;
+    tx.execute_batch(DOCUMENT_SCHEMA_SQL)?;
     tx.execute(
         "INSERT OR REPLACE INTO workspace_meta(key, value) VALUES('schema_version', ?1)",
         [SCHEMA_VERSION.to_string()],

@@ -29,6 +29,16 @@ fn every_declared_route_selects_its_capability_and_media_type() {
         ("text", "text.extract", "text/markdown", "notes.md"),
         ("text", "text.extract", "text/csv", "table.csv"),
         ("text", "text.extract", "application/json", "payload.json"),
+        (
+            "text",
+            "text.extract",
+            "application/x-ndjson",
+            "payload.jsonl",
+        ),
+        ("text", "text.extract", "application/yaml", "payload.yaml"),
+        ("text", "text.extract", "application/toml", "payload.toml"),
+        ("text", "text.extract", "application/epub+zip", "book.epub"),
+        ("text", "text.extract", "message/rfc822", "mail.eml"),
         ("pdf", "pdf.extract", "application/pdf", "sample.pdf"),
         ("image", "image.ocr", "image/png", "shot.png"),
         ("image", "image.ocr", "image/jpeg", "shot.jpg"),
@@ -137,7 +147,7 @@ fn canvas_and_subtitle_names_resolve_to_the_routes_that_can_read_them() {
     // a saved mail message is text with its own structure
     assert_eq!(
         attempts::resolve_media_type("text", "message.eml").unwrap(),
-        "text/plain"
+        "message/rfc822"
     );
     // and they are refused by a route that cannot read them
     assert!(attempts::resolve_media_type("image", "vault.canvas").is_err());
@@ -147,10 +157,8 @@ fn canvas_and_subtitle_names_resolve_to_the_routes_that_can_read_them() {
 
 #[test]
 fn a_binary_container_name_is_refused_because_no_route_can_read_it() {
-    // .msg is a binary OLE container with no reader here, and .epub/.ods are binary
-    // archives no engine in this repository opens: decoding them as text would produce
-    // noise, so the Core refuses the name instead
-    for name in ["mail.msg", "book.epub", "sheet.ods"] {
+    // These containers have no declared reader; EPUB has its own text adapter.
+    for name in ["mail.msg", "sheet.ods"] {
         let error = attempts::resolve_media_type("text", name)
             .unwrap_err()
             .to_string();
@@ -197,7 +205,7 @@ fn an_unnamed_extension_is_refused_rather_than_guessed() {
         attempts::accepted_media_types("pdf.extract"),
         ["application/pdf"]
     );
-    assert_eq!(attempts::accepted_media_types("text.extract").len(), 7);
+    assert_eq!(attempts::accepted_media_types("text.extract").len(), 13);
     assert!(attempts::accepted_media_types("nothing.extract").is_empty());
 }
 

@@ -1,0 +1,76 @@
+import { useRef, useState } from "react";
+import { coreCommand } from "../api/core";
+import { Section } from "../components/RealData";
+import { MachineAnswerPanel } from "../components/MachineAnswerPanel";
+
+function record(value: unknown): Record<string, unknown> {
+  if (!value || typeof value !== "object" || Array.isArray(value)) throw new Error("invalid response");
+  return value as Record<string, unknown>;
+}
+function records(value: unknown): Record<string, unknown>[] {
+  if (!Array.isArray(value)) throw new Error("invalid list");
+  return value.map(record);
+}
+export function CanonicalKnowledgeSpace({onLearning}: {onLearning?:()=>void}) {
+  const [query, setQuery] = useState("");
+  const [items, setItems] = useState<Record<string, unknown>[]>([]);
+  const [transforms, setTransforms] = useState<Record<string, unknown>[]>([]);
+  const [selected, setSelected] = useState<Record<string, unknown> | null>(null);
+  const [qualification, setQualification] = useState<unknown>(null);
+  const [reviewer, setReviewer] = useState("");
+  const [note, setNote] = useState("");
+  const [message, setMessage] = useState("");
+  const [busy, setBusy] = useState(false);
+  const epoch = useRef(0);
+  async function search() {
+    const current = ++epoch.current; setSelected(null); setMessage("");
+    try {
+      const result = record(await coreCommand("search", {q:query,active_only:false}));
+      const found = records(result.items), extracted = records(result.transforms);
+      if (found.some(item => typeof item.knowledge_id !== "string" || typeof item.head !== "string") || extracted.some(item => typeof item.source_id !== "string" || typeof item.head !== "string")) throw new Error("invalid search fields");
+      if (current === epoch.current) {setItems(found);setTransforms(extracted);}
+    } catch {setMessage("搜索失败，请重试。不会将失败显示为空结果。");}
+  }
+  async function open(id: string) {
+    const current = ++epoch.current; setSelected(null); setQualification(null); setNote("");
+    try {
+      const [detail, proof] = await Promise.all([coreCommand("knowledge_get",{id}),coreCommand("knowledge_qualification",{id})]);
+      const data = record(detail);
+      if (data.knowledge_id !== id || typeof data.body !== "string" || typeof data.version !== "string" || !data.version) throw new Error("invalid knowledge fields");
+      if (current === epoch.current) {setSelected(data);setQualification(proof);setMessage("");}
+    } catch {setMessage("候选与证据读取失败，审核按钮不可用。");}
+  }
+  async function review(action: "accepted"|"rejected"|"deprecated") {
+    if (!selected || !reviewer.trim() || busy) return;
+    const current = epoch.current; setBusy(true);
+    try {
+      const receipt = record(await coreCommand("knowledge_review",{id:selected.knowledge_id,body:{action,reviewer:reviewer.trim(),note,expected_version:selected.version}}));
+      if (typeof receipt.knowledge_id !== "string" || typeof receipt.version !== "string") throw new Error("invalid review receipt");
+      if (current === epoch.current) {await open(receipt.knowledge_id);setMessage("审核决定已由本地核心记录。");}
+    } catch {setMessage("审核未完成，可能版本已变化。保留备注并重新读取候选后再决定。");}
+    finally {setBusy(false);}
+  }
+  async function study() {
+    if (!selected || busy) return;
+    setBusy(true);
+    const item_key = `assessment_${crypto.randomUUID()}`;
+    try {
+      const assessment = record(await coreCommand("assessment_create", {item_key,body:{knowledge_id:selected.knowledge_id}}));
+      if (assessment.item_key !== item_key || typeof assessment.assessment_id !== "string" || typeof assessment.question !== "string") throw new Error("invalid assessment");
+      await coreCommand("learning_reference", {item_key,body:{knowledge_id:selected.knowledge_id}});
+      setMessage("已创建绑定此知识版本的问题，请在学习队列打开。");
+      onLearning?.();
+    } catch {setMessage("学习问题创建失败；Core 仅允许当前有效、已接受的知识。");}
+    finally {setBusy(false);}
+  }
+  return <Section title="知识库"><p>候选、已接受知识和提取文本分别展示；审核由当前使用者作出。</p>
+    <form onSubmit={event=>{event.preventDefault();void search();}}><label>搜索内容 <input value={query} onChange={event=>setQuery(event.target.value)} /></label><button>搜索</button></form>
+    <ul>{items.map(item=><li key={String(item.knowledge_id)}><button onClick={()=>void open(String(item.knowledge_id))}>{String(item.head)}</button> · {String(item.status)} · {item.active === true ? "有效" : "非有效"}</li>)}</ul>
+    <h4>来源提取文本</h4><ul>{transforms.map(item=><li key={String(item.transform_id)}>{String(item.head)} · 来源 {String(item.source_id)} · 引擎 {String(item.engine)}</li>)}</ul>
+    {selected ? <article aria-label="候选对照"><h4>{String(selected.title)}</h4><pre>{String(selected.body)}</pre><p>状态 {String(selected.status)} · 版本 {String(selected.version)}</p><details open><summary>Core 证据与资格回执</summary><pre>{JSON.stringify(qualification,null,2)}</pre></details>
+      <label>审核者 <input value={reviewer} onChange={event=>setReviewer(event.target.value)} /></label><label>审核备注 <textarea value={note} onChange={event=>setNote(event.target.value)} /></label>
+      <button disabled={!reviewer.trim()||busy} onClick={()=>void review("accepted")}>接受当前候选</button><button disabled={!reviewer.trim()||busy} onClick={()=>void review("rejected")}>拒绝当前候选</button><button disabled={!reviewer.trim()||busy} onClick={()=>void review("deprecated")}>降级为弃用</button>
+      <button disabled={busy} onClick={()=>void open(String(selected.knowledge_id))}>重新读取候选</button><button disabled={busy||selected.status!=="accepted"} onClick={()=>void study()}>由当前知识建立学习问题</button></article>:null}
+    {selected?.status === "accepted" ? <MachineAnswerPanel key={`${String(selected.knowledge_id)}:${String(selected.version)}`} knowledgeId={String(selected.knowledge_id)} /> : null}
+    {message?<p role="status">{message}</p>:null}</Section>;
+}

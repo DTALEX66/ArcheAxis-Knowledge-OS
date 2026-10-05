@@ -1,0 +1,577 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "archeaxis/core-document/v1",
+  "$defs": {
+    "SourceDto": {
+      "type": "object",
+      "properties": {
+        "source_id": {
+          "type": "string"
+        },
+        "source_revision": {
+          "type": "string"
+        },
+        "sha256": {
+          "type": "string"
+        },
+        "original_name": {
+          "type": "string"
+        },
+        "imported_at": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "source_id",
+        "source_revision",
+        "sha256",
+        "original_name",
+        "imported_at"
+      ],
+      "additionalProperties": true
+    },
+    "OriginalDto": {
+      "type": "object",
+      "properties": {
+        "source_id": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "media_type": {
+          "type": "string"
+        },
+        "sha256": {
+          "type": "string"
+        },
+        "content_base64": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "source_id",
+        "name",
+        "media_type",
+        "sha256",
+        "content_base64"
+      ],
+      "additionalProperties": true
+    },
+    "BlockDto": {
+      "type": "object",
+      "properties": {
+        "block_id": {
+          "type": "string"
+        },
+        "kind": {
+          "type": "string"
+        },
+        "ordinal": {
+          "type": "integer"
+        },
+        "node_json": {},
+        "text_projection": {
+          "type": "string"
+        },
+        "codec_status": {
+          "enum": [
+            "known",
+            "preserved_unknown"
+          ]
+        }
+      },
+      "required": [
+        "block_id",
+        "kind",
+        "ordinal",
+        "node_json",
+        "text_projection",
+        "codec_status"
+      ],
+      "additionalProperties": true
+    },
+    "DocumentDto": {
+      "type": "object",
+      "properties": {
+        "document_id": {
+          "type": "string"
+        },
+        "source_id": {
+          "type": "string"
+        },
+        "source_revision": {
+          "type": "string"
+        },
+        "title": {
+          "type": "string"
+        },
+        "version": {
+          "type": "integer"
+        },
+        "editor_json": {},
+        "text_projection": {
+          "type": "string"
+        },
+        "content_sha256": {
+          "type": "string"
+        },
+        "blocks": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/BlockDto"
+          }
+        }
+      },
+      "required": [
+        "document_id",
+        "source_id",
+        "source_revision",
+        "title",
+        "version",
+        "editor_json",
+        "text_projection",
+        "content_sha256",
+        "blocks"
+      ],
+      "additionalProperties": true
+    },
+    "AnchorDto": {
+      "type": "object",
+      "properties": {
+        "anchor_id": {
+          "type": "string"
+        },
+        "source_id": {
+          "type": "string"
+        },
+        "source_revision": {
+          "type": "string"
+        },
+        "position": {
+          "type": "string"
+        },
+        "created_at": {
+          "type": "string"
+        },
+        "raw_sha256": {
+          "type": "string"
+        },
+        "quote": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "quote_sha256": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "location_status": {
+          "enum": [
+            "located",
+            "unverified",
+            "revision_mismatch"
+          ]
+        },
+        "checksum": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      },
+      "required": [
+        "anchor_id",
+        "source_id",
+        "source_revision",
+        "position"
+      ],
+      "additionalProperties": true
+    },
+    "SourcesListDto": {
+      "type": "object",
+      "properties": {
+        "sources": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/SourceDto"
+          }
+        }
+      },
+      "required": [
+        "sources"
+      ],
+      "additionalProperties": true
+    },
+    "SourceListDto": {
+      "$ref": "#/$defs/SourcesListDto"
+    },
+    "DocumentsListDto": {
+      "type": "object",
+      "properties": {
+        "documents": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/DocumentSummaryDto"
+          }
+        }
+      },
+      "required": [
+        "documents"
+      ],
+      "additionalProperties": true
+    },
+    "DocumentListDto": {
+      "$ref": "#/$defs/DocumentsListDto"
+    },
+    "AnchorsListDto": {
+      "type": "object",
+      "properties": {
+        "anchors": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/AnchorDto"
+          }
+        }
+      },
+      "required": [
+        "anchors"
+      ],
+      "additionalProperties": true
+    },
+    "SearchDto": {
+      "type": "object",
+      "properties": {
+        "items": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "knowledge_id": {
+                "type": "string"
+              },
+              "status": {
+                "type": "string"
+              },
+              "head": {
+                "type": "string"
+              },
+              "active": {
+                "type": "boolean"
+              }
+            },
+            "required": [
+              "knowledge_id",
+              "status",
+              "head",
+              "active"
+            ],
+            "additionalProperties": true
+          }
+        },
+        "transforms": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "transform_id": {
+                "type": "integer"
+              },
+              "source_id": {
+                "type": "string"
+              },
+              "engine": {
+                "type": "string"
+              },
+              "head": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "transform_id",
+              "source_id",
+              "engine",
+              "head"
+            ],
+            "additionalProperties": true
+          }
+        },
+        "count": {
+          "type": "integer"
+        },
+        "transform_count": {
+          "type": "integer"
+        }
+      },
+      "required": [
+        "items",
+        "transforms",
+        "count",
+        "transform_count"
+      ],
+      "additionalProperties": true
+    },
+    "KnowledgeDto": {
+      "type": "object",
+      "properties": {
+        "knowledge_id": {
+          "type": "string"
+        },
+        "body": {
+          "type": "string"
+        },
+        "version": {
+          "type": "string"
+        },
+        "status": {
+          "type": "string"
+        },
+        "source_id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "anchor_id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      },
+      "required": [
+        "knowledge_id",
+        "body",
+        "version",
+        "status",
+        "source_id",
+        "anchor_id"
+      ],
+      "additionalProperties": true
+    },
+    "LearningItemsDto": {
+      "type": "object",
+      "properties": {
+        "items": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "item_key": {
+                "type": "string"
+              },
+              "next_review": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              }
+            },
+            "required": [
+              "item_key",
+              "next_review"
+            ],
+            "additionalProperties": true
+          }
+        },
+        "count": {
+          "type": "integer"
+        }
+      },
+      "required": [
+        "items",
+        "count"
+      ],
+      "additionalProperties": true
+    },
+    "LearningStateDto": {
+      "type": "object",
+      "properties": {
+        "item_key": {
+          "type": "string"
+        },
+        "learner": {
+          "type": "object",
+          "properties": {
+            "event_count": {
+              "type": "integer"
+            },
+            "correct_streak": {
+              "type": "integer"
+            },
+            "scheduled_events": {
+              "type": "integer"
+            },
+            "unscheduled_events": {
+              "type": "integer"
+            }
+          },
+          "required": [
+            "event_count",
+            "correct_streak",
+            "scheduled_events",
+            "unscheduled_events"
+          ],
+          "additionalProperties": true
+        },
+        "machine": {
+          "type": "object"
+        }
+      },
+      "required": [
+        "item_key",
+        "learner"
+      ],
+      "additionalProperties": true
+    },
+    "DocumentExportDto": {
+      "type": "object",
+      "properties": {
+        "document_id": {
+          "type": "string"
+        },
+        "version": {
+          "type": "integer"
+        },
+        "format": {
+          "enum": [
+            "markdown",
+            "obsidian"
+          ]
+        },
+        "source_revision": {
+          "type": "string"
+        },
+        "projection_sha256": {
+          "type": "string"
+        },
+        "files": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "path": {
+                "enum": [
+                  "document.md",
+                  "manifest.json"
+                ]
+              },
+              "media_type": {
+                "type": "string"
+              },
+              "content": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "path",
+              "media_type",
+              "content"
+            ],
+            "additionalProperties": true
+          }
+        }
+      },
+      "required": [
+        "document_id",
+        "version",
+        "format",
+        "source_revision",
+        "projection_sha256",
+        "files"
+      ],
+      "additionalProperties": true
+    },
+    "DocumentSummaryDto": {
+      "type": "object",
+      "properties": {
+        "document_id": {
+          "type": "string"
+        },
+        "source_id": {
+          "type": "string"
+        },
+        "source_revision": {
+          "type": "string"
+        },
+        "title": {
+          "type": "string"
+        },
+        "version": {
+          "type": "integer"
+        },
+        "content_sha256": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "document_id",
+        "source_id",
+        "source_revision",
+        "title",
+        "version",
+        "content_sha256"
+      ],
+      "additionalProperties": false
+    },
+    "BackupDto": {
+      "type": "object",
+      "properties": {
+        "backup_id": {
+          "type": "string"
+        },
+        "filename": {
+          "type": "string"
+        },
+        "sha256": {
+          "type": "string"
+        },
+        "schema_version": {
+          "type": "string"
+        },
+        "sqlite_version": {
+          "type": "string"
+        },
+        "bytes": {
+          "type": "integer"
+        },
+        "source_sha_list": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "verified": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "backup_id",
+        "filename",
+        "sha256",
+        "schema_version",
+        "sqlite_version",
+        "bytes",
+        "source_sha_list"
+      ],
+      "additionalProperties": true
+    },
+    "BackupsListDto": {
+      "type": "object",
+      "properties": {
+        "backups": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/BackupDto"
+          }
+        }
+      },
+      "required": [
+        "backups"
+      ]
+    }
+  }
+}

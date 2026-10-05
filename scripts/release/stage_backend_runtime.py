@@ -440,12 +440,57 @@ def write_launcher(root: Path) -> Path:
     return launcher
 
 
+def stage_capability_manifest(root: Path, external_root: Path | None) -> dict:
+    """Carry declared tools with the workers resource; pin only declared OCR paths.
+
+    No directory search or external bytes are copied. A local candidate may record
+    its explicitly selected shared root; portable CI candidates keep declarations.
+    """
+    source = Path(__file__).resolve().parents[2] / "config/environment/capability-requirements.yaml"
+    reject_reparse(source)
+    text = source.read_text(encoding="utf-8")
+    measured = {}
+    if external_root is not None:
+        external_root = Path(os.path.abspath(external_root))
+        reject_reparse(external_root)
+        if not external_root.is_dir():
+            raise ValueError("declared external tool root does not exist")
+        for name, relative in {
+            "tesseract": "10-toolchains/scoop/apps/tesseract/current/tesseract.exe",
+            "tesseract-languages": "10-toolchains/scoop/apps/tesseract-languages/current",
+        }.items():
+            declared = external_root / relative
+            if not declared.exists():
+                measured[name] = {"status": "MISSING", "declared_path": relative}
+                continue
+            resolved = declared.resolve()
+            try:
+                pinned = resolved.relative_to(external_root).as_posix()
+            except ValueError as error:
+                raise ValueError("declared OCR path resolves outside selected external root") from error
+            text = text.replace('"' + relative + '"', '"' + pinned + '"')
+            entry = {"status": "PATH_RESOLVED_NOT_RUNTIME_VERIFIED", "path": str(resolved),
+                     "relative_path": pinned}
+            witness = resolved if resolved.is_file() else resolved / "eng.traineddata"
+            if witness.is_file():
+                entry["witness_sha256"] = sha256(witness)
+            measured[name] = entry
+        text += "\nartifact_external_root: " + json.dumps(str(external_root)) + "\n"
+    target = root / "workers/capability-requirements.yaml"
+    target.write_text(text, encoding="utf-8", newline="\n")
+    return {"source_sha256": sha256(source), "artifact_path": "workers/capability-requirements.yaml",
+            "artifact_sha256": sha256(target), "external_root": str(external_root) if external_root else None,
+            "ocr_paths": measured}
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--core", required=True, type=Path)
     parser.add_argument("--runtime", required=True, type=Path,
                         help="portable interpreter directory containing python.exe")
     parser.add_argument("--workers", required=True, type=Path)
+    parser.add_argument("--external-root", type=Path,
+                        help="explicit existing local shared tool root; referenced, never bundled")
     parser.add_argument("--shared", type=Path,
                         help="scheduler donor; defaults to <workers>/../shared/learning_scheduler.py")
     parser.add_argument("--dep-source", type=Path,
@@ -507,6 +552,7 @@ def main() -> int:
     shutil.copytree(filesystem_path(args.runtime), filesystem_path(root / "runtime"),
                     ignore=shutil.ignore_patterns("__pycache__", "*.pyc", "*.pyo"))
     copy_tree(args.workers, root / "workers")
+    capability_manifest = stage_capability_manifest(root, args.external_root)
     (root / "data").mkdir()
 
     # The scheduler worker imports the repository's shared donor rather than carrying a
@@ -594,6 +640,7 @@ def main() -> int:
              "protocol": PROFILE_SCHEMA, "version": "1"},
         ],
         "dependencies": dependencies,
+        "capability_manifest": capability_manifest,
         "startup_order": [
             "1. set ARCHEAXIS_WORKER_PROFILE to <root>/worker-profile.json",
             "2. launch core/archeaxis-api.exe with the workspace db and port",

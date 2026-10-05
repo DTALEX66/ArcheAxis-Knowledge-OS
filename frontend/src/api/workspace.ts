@@ -324,16 +324,8 @@ async function runtimeClient(): Promise<ApiClient> {
   if (!clientPromise) {
     clientPromise = (async () => {
       const invoke = window.__TAURI__?.core?.invoke;
-      const client = !invoke
-        ? createApiClient("", "")
-        : await (async () => {
-          const backend = await invoke("backend_info") as { port: number; token: string; scopes?: unknown } | null;
-          if (!backend) throw new Error("desktop backend is unavailable; open Recovery Shell to retry");
-          const scopes = Array.isArray(backend.scopes)
-            ? backend.scopes.filter((scope): scope is string => typeof scope === "string")
-            : [];
-          return createApiClient(`http://127.0.0.1:${backend.port}`, backend.token, scopes);
-        })();
+      if (invoke) throw new ApiError(503, "此旧入口尚未接入正典 Core，请使用资料库。", "unavailable");
+      const client = createApiClient("", "");
       // Do not allow a backend that failed the product/API handshake to serve
       // any UI projection. The launch token stays in the closure only.
       await client.handshake();

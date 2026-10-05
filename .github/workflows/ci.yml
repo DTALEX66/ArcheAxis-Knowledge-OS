@@ -942,6 +942,30 @@ jobs:
           name: desktop-fast-office-loop-${{ github.sha }}-${{ github.run_attempt }}
           path: .project-local/task-runtime/aaos01-office/**/receipt.json
           if-no-files-found: error
+      - name: Verify native document and independent backup restore
+        id: document_loop
+        working-directory: ${{ github.workspace }}
+        run: python -B scripts/probes/aaos01_document_backup_loop.py --candidate .project-local/rt
+      - name: Verify independent Q12 format and exchange loops
+        id: light_loop
+        working-directory: ${{ github.workspace }}
+        run: |
+          python -B scripts/probes/aaos01_light_format_loop.py --candidate .project-local/rt --wave B
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          python -B scripts/probes/aaos01_exchange_runtime_loop.py --candidate .project-local/rt
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          python -B scripts/probes/aaos01_fault_runtime_loop.py --candidate .project-local/rt
+      - name: Upload document and format loop evidence
+        if: ${{ always() && (steps.document_loop.outcome != 'skipped' || steps.light_loop.outcome != 'skipped') }}
+        uses: actions/upload-artifact@834a144ee995460fba8ed112a2fc961b36a5ec5a
+        with:
+          name: desktop-fast-document-format-${{ github.sha }}-${{ github.run_attempt }}
+          path: |
+            .project-local/task-runtime/aaos01-document-backup/**/receipt.json
+            .project-local/task-runtime/aaos01-light/**/receipt.json
+            .project-local/task-runtime/aaos01-exchange/**/receipt.json
+            .project-local/task-runtime/aaos01-fault/**/receipt.json
+          if-no-files-found: error
       - name: Test the canonical desktop recovery contracts
         working-directory: src-tauri
         env:
@@ -1008,6 +1032,13 @@ jobs:
       - name: Enforce OSUI design and Chinese-first frontend contracts
         working-directory: frontend
         run: npm test -- --run
+      - name: Verify generated native contracts and capability catalog
+        run: |
+          uv run --frozen python -B scripts/contracts/generate_core_document.py
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          uv run --frozen python -B scripts/contracts/generate_capability_catalog.py --check
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          git diff --exit-code -- frontend/src/api/generated/core-contract.ts
       - name: Prepare the installed Python runtime
         working-directory: ${{ github.workspace }}
         run: |
@@ -1118,7 +1149,7 @@ jobs:
 
   installer-lifecycle:
     runs-on: windows-latest
-    timeout-minutes: 15
+    timeout-minutes: 25
     needs: [gateplan, desktop-build]
     if: ${{ always() && needs.desktop-build.result == 'success' && (needs.gateplan.result != 'success' || needs.gateplan.outputs.full_qualification == 'true' || contains(needs.gateplan.outputs.required_gates, 'installer-lifecycle')) }}
     steps:
@@ -1133,6 +1164,8 @@ jobs:
         with:
           name: release-candidate
           path: .project-local/task-runtime/release-candidate
+      - name: Prepare official matched Tauri WebDriver tools
+        run: python -B scripts/ci/prepare_tauri_webdriver.py --root .project-local/task-runtime/aaos01-native-tools
       - name: Verify the installed NSIS lifecycle
         shell: pwsh
         env:
@@ -1146,7 +1179,19 @@ jobs:
           if ($candidate.schema -ne 'archeaxis/release-candidate/v1' -or $candidate.commit -ne $env:GITHUB_SHA) { throw 'candidate provenance commit mismatch' }
           $installer = Join-Path $candidateRoot $candidate.installer.name
           if (-not (Test-Path -LiteralPath $installer) -or (Get-FileHash $installer -Algorithm SHA256).Hash.ToLowerInvariant() -ne $candidate.installer.sha256) { throw 'candidate installer SHA-256 mismatch' }
-          ./desktop/scripts/verify_nsis_install.ps1 -Installer $installer -RequireCandidateIdentity
+          ./desktop/scripts/verify_nsis_install.ps1 -Installer $installer -RequireCandidateIdentity -NativeToolsReceipt .project-local/task-runtime/aaos01-native-tools/receipt.json
+      - name: Upload installed native journey evidence
+        if: ${{ always() }}
+        uses: actions/upload-artifact@834a144ee995460fba8ed112a2fc961b36a5ec5a
+        with:
+          name: installed-native-journey-${{ github.sha }}-${{ github.run_attempt }}
+          path: |
+            .project-local/task-runtime/aaos01-webdriver/**/receipt.json
+            .project-local/task-runtime/aaos01-webdriver/**/*.png
+            .project-local/task-runtime/aaos01-webdriver/**/driver.log
+            .project-local/task-runtime/aaos01-native-tools/receipt.json
+            .project-local/task-runtime/aaos01-native-tools/cargo-install.log
+          if-no-files-found: error
 
   a0-gates:
     timeout-minutes: 5

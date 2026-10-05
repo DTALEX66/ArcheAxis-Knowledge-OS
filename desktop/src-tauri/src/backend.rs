@@ -465,10 +465,9 @@ fn restore_receipt_valid(output: &[u8], truncated: bool) -> bool {
 pub fn run_restore_backup(runtime: &RuntimeSpec, backup_path: &Path) -> Result<(), String> {
     let job = Job::new()?;
     let deadline = Instant::now() + RESTORE_TIMEOUT;
-    let mut command = runtime_command(runtime);
+    let core = CoreSpec::beside_runtime(runtime);
+    let mut command = restore_command(runtime, backup_path, core.as_ref());
     command
-        .args(["-m", "app.runtime_entrypoint", "restore-backup"])
-        .arg(backup_path)
         .stdin(Stdio::null())
         .stdout(Stdio::piped())
         .stderr(Stdio::piped());
@@ -505,13 +504,109 @@ pub fn run_restore_backup(runtime: &RuntimeSpec, backup_path: &Path) -> Result<(
             String::from_utf8_lossy(&stderr.bytes)
         ));
     }
-    if !restore_receipt_valid(&stdout.bytes, stdout.truncated) {
+    let receipt_valid = match core {
+        Some(ref core) => core_restore_receipt_valid(
+            &stdout.bytes,
+            stdout.truncated,
+            &core.workspace_db,
+            backup_path,
+        ),
+        None => restore_receipt_valid(&stdout.bytes, stdout.truncated),
+    };
+    if !receipt_valid {
         return Err(format!(
             "offline restore returned an invalid receipt: {}",
             String::from_utf8_lossy(&stdout.bytes)
         ));
     }
     Ok(())
+}
+
+fn restore_command(runtime: &RuntimeSpec, backup_path: &Path, core: Option<&CoreSpec>) -> Command {
+    if let Some(core) = core {
+        let mut command = Command::new(&core.executable);
+        command
+            .args(["--maintenance-restore"])
+            .arg(&core.workspace_db)
+            .arg(backup_path)
+            .current_dir(&core.cwd);
+        #[cfg(windows)]
+        {
+            use std::os::windows::process::CommandExt;
+            command.creation_flags(0x08000000);
+        }
+        for name in SANITIZED_ENVIRONMENT {
+            command.env_remove(name);
+        }
+        command
+    } else {
+        let mut command = runtime_command(runtime);
+        command
+            .args(["-m", "app.runtime_entrypoint", "restore-backup"])
+            .arg(backup_path);
+        command
+    }
+}
+
+fn core_restore_receipt_valid(
+    output: &[u8],
+    truncated: bool,
+    database: &Path,
+    backup: &Path,
+) -> bool {
+    if truncated {
+        return false;
+    }
+    let Ok(value) = serde_json::from_slice::<serde_json::Value>(output) else {
+        return false;
+    };
+    let Some(object) = value.as_object() else {
+        return false;
+    };
+    if object.len() != 7
+        || value.get("ok") != Some(&serde_json::json!(true))
+        || value.get("verified") != Some(&serde_json::json!(true))
+        || value.get("action").and_then(|v| v.as_str()) != Some("restore")
+    {
+        return false;
+    }
+    let same_file = |key: &str, expected: &Path| {
+        value
+            .get(key)
+            .and_then(|v| v.as_str())
+            .map(Path::new)
+            .and_then(|p| p.canonicalize().ok())
+            .zip(expected.canonicalize().ok())
+            .is_some_and(|(actual, expected)| actual == expected)
+    };
+    if !same_file("database", database) || !same_file("backup", backup) {
+        return false;
+    }
+    let Some(preserved) = value
+        .get("preserved_previous")
+        .and_then(|v| v.as_str())
+        .map(Path::new)
+        .and_then(|p| p.canonicalize().ok())
+    else {
+        return false;
+    };
+    let Ok(database) = database.canonicalize() else {
+        return false;
+    };
+    let expected_prefix = format!(
+        "{}.pre-restore-",
+        database.file_name().unwrap_or_default().to_string_lossy()
+    );
+    preserved.parent() == database.parent()
+        && preserved.is_file()
+        && preserved.file_name().is_some_and(|name| {
+            name.to_string_lossy().starts_with(&expected_prefix)
+                && name.to_string_lossy().ends_with(".sqlite")
+        })
+        && value
+            .get("preserved_objects_directory")
+            .and_then(|v| v.as_str())
+            == Some(format!("{}.objects", preserved.display()).as_str())
 }
 
 fn runtime_command(runtime: &RuntimeSpec) -> Command {
@@ -1087,6 +1182,93 @@ mod tests {
             assert!(!restore_receipt_valid(invalid, false));
         }
         assert!(!restore_receipt_valid(b"{\"status\":\"restored\"}", true));
+    }
+
+    #[test]
+    fn core_restore_selects_canonical_binary_database_and_strict_receipt() {
+        let temp = tempdir().expect("temporary directory");
+        let root = temp.path();
+        fs::create_dir_all(root.join("runtime")).unwrap();
+        fs::create_dir_all(root.join("core")).unwrap();
+        fs::create_dir_all(root.join("data")).unwrap();
+        fs::write(
+            root.join("core/archeaxis-api.exe"),
+            b"command identity fixture",
+        )
+        .unwrap();
+        let runtime = RuntimeSpec {
+            python: root.join("runtime/python.exe"),
+            cwd: root.to_path_buf(),
+            data_dir: root.join("data"),
+            isolated: true,
+            external_dev: false,
+            profile: "portable",
+        };
+        let core = CoreSpec::beside_runtime(&runtime).expect("canonical Core selected");
+        let backup = root.join("snapshot.sqlite");
+        let command = super::restore_command(&runtime, &backup, Some(&core));
+        assert_eq!(command.get_program(), core.executable.as_os_str());
+        assert_eq!(
+            command.get_args().collect::<Vec<_>>(),
+            vec![
+                std::ffi::OsStr::new("--maintenance-restore"),
+                core.workspace_db.as_os_str(),
+                backup.as_os_str()
+            ]
+        );
+        let preserved = runtime
+            .data_dir
+            .join("archeaxis.sqlite.pre-restore-123.sqlite");
+        for path in [&backup, &core.workspace_db, &preserved] {
+            fs::write(path, b"fixture").unwrap();
+        }
+        let preserved = preserved.canonicalize().unwrap();
+        let good = serde_json::json!({"ok":true,"verified":true,"action":"restore",
+            "database":core.workspace_db.canonicalize().unwrap(),"backup":backup.canonicalize().unwrap(),
+            "preserved_previous":preserved,"preserved_objects_directory":format!("{}.objects",preserved.display())});
+        let bytes = serde_json::to_vec(&good).unwrap();
+        assert!(super::core_restore_receipt_valid(
+            &bytes,
+            false,
+            &core.workspace_db,
+            &backup
+        ));
+        assert!(!super::core_restore_receipt_valid(
+            &bytes,
+            true,
+            &core.workspace_db,
+            &backup
+        ));
+        for (key, invalid) in [
+            ("ok", serde_json::json!(false)),
+            ("verified", serde_json::json!(false)),
+            ("action", serde_json::json!("backup")),
+            ("database", serde_json::json!(backup)),
+            ("extra", serde_json::json!(true)),
+        ] {
+            let mut value = good.clone();
+            value[key] = invalid;
+            assert!(!super::core_restore_receipt_valid(
+                &serde_json::to_vec(&value).unwrap(),
+                false,
+                &core.workspace_db,
+                &backup
+            ));
+        }
+        assert!(!super::core_restore_receipt_valid(
+            b"{\"status\":\"restored\"}",
+            false,
+            &core.workspace_db,
+            &backup
+        ));
+        let mut noisy = bytes;
+        noisy.extend_from_slice(b"\nextra");
+        assert!(!super::core_restore_receipt_valid(
+            &noisy,
+            false,
+            &core.workspace_db,
+            &backup
+        ));
     }
 
     #[test]

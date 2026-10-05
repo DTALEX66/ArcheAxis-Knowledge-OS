@@ -318,6 +318,7 @@ mod tests {
 struct Session {
     launch: Launch,
     workspace_db: String,
+    sqlite_version: String,
 }
 
 /// Wrap every route, including fallbacks, before binding the production listener.
@@ -331,10 +332,14 @@ pub async fn protect(router: Router, store: &Store, launch: Launch) -> Result<Ro
             )
         })
         .await??;
+    let sqlite_version = store
+        .submit(|conn| conn.query_row("SELECT sqlite_version()", [], |r| r.get::<_, String>(0)))
+        .await??;
     Ok(router.layer(middleware::from_fn_with_state(
         Session {
             launch,
             workspace_db,
+            sqlite_version,
         },
         authenticate,
     )))
@@ -390,6 +395,7 @@ async fn authenticate(State(session): State<Session>, request: Request, next: Ne
     if request.method() == Method::GET && request.uri().path() == "/api/v1/system/version" {
         let mut version = serde_json::json!({"runtime":"archeaxis-api","contract":"0.1.0-outline",
             "schema_version":archeaxis_store_sqlite::SCHEMA_VERSION,
+            "sqlite_version":session.sqlite_version,
             "session_id":session.launch.session_id,"workspace_db":session.workspace_db});
         if let Some(protocol) = &session.launch.protocol {
             version["launch_protocol"] = serde_json::json!(protocol);

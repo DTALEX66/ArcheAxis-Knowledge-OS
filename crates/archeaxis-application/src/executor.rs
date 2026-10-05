@@ -88,7 +88,7 @@ impl Executor {
             .map_err(|e| e.to_string())?
             .map_err(|e| e.to_string())?;
         let mut routes: Vec<(String, PathBuf, bool)> =
-            vec![("text.extract".to_string(), default_worker.to_owned(), false)];
+            vec![("text.extract".to_string(), default_worker.to_owned(), true)];
         for (capability, path) in extra {
             if capability.trim().is_empty() {
                 return Err("route capability must not be empty".into());

@@ -1,6 +1,11 @@
 import { SpaceId } from "./spaces";
 import { WorkspaceSpace } from "./WorkspaceSpace";
 import { LibrarySpace } from "./LibrarySpace";
+import { CanonicalLibrarySpace } from "./CanonicalLibrarySpace";
+import { CanonicalKnowledgeSpace } from "./CanonicalKnowledgeSpace";
+import { CanonicalLearningSpace } from "./CanonicalLearningSpace";
+import { CanonicalCapabilitiesSpace } from "./CanonicalCapabilitiesSpace";
+import { BackupPanel } from "../components/BackupPanel";
 import { IntakeSpace } from "./IntakeSpace";
 import { VaultSpace } from "./VaultSpace";
 import { EvidenceSpace } from "./EvidenceSpace";
@@ -21,6 +26,24 @@ export function SpaceView({
   onNavigate: (id: SpaceId) => void;
 }) {
   const content = (() => {
+  if (window.__TAURI__?.core?.invoke) {
+    switch (spaceId) {
+      case "workspace":
+        return <><CanonicalCapabilitiesSpace onNavigate={onNavigate} /><BackupPanel /></>;
+      case "library":
+      case "intake":
+      case "exchange":
+        return <CanonicalLibrarySpace onKnowledge={()=>onNavigate("vault")} />;
+      case "vault":
+      case "evidence":
+      case "ai-assets":
+        return <CanonicalKnowledgeSpace onLearning={()=>onNavigate("learning")} />;
+      case "learning":
+        return <CanonicalLearningSpace />;
+      case "settings":
+        return <CanonicalCapabilitiesSpace onNavigate={onNavigate} />;
+    }
+  }
   switch (spaceId) {
     case "workspace":
       return <WorkspaceSpace onNavigate={onNavigate} />;

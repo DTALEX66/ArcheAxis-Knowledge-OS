@@ -46,6 +46,9 @@ pub const EXPORT_TABLES: &[&str] = &[
     "general_courses",
     "general_course_artifacts",
     "general_course_bindings",
+    "documents",
+    "document_versions",
+    "document_blocks",
 ];
 
 /// ARCHIVE-01: every export layout the **current** schema version actually shipped,
@@ -54,6 +57,34 @@ pub const EXPORT_TABLES: &[&str] = &[
 /// genuine archive of either shape must stay restorable. Anything else at this version is an
 /// unknown layout and is rejected rather than guessed.
 pub const CURRENT_LAYOUTS: &[&[&str]] = &[EXPORT_TABLES];
+/// The complete v9 layout before native documents were added in schema 10.
+pub const V9_LAYOUT: &[&str] = &[
+    "workspace_meta",
+    "sources",
+    "transforms",
+    "anchors",
+    "knowledge",
+    "review_events",
+    "learning_events",
+    "jobs",
+    "job_attempts",
+    "job_outputs",
+    "canvas_projections",
+    "canvas_projection_nodes",
+    "canvas_projection_edges",
+    "source_origins",
+    "learning_event_keys",
+    "knowledge_supersedes",
+    "knowledge_v3_metadata",
+    "learning_assessments",
+    "card_references",
+    "machine_tasks",
+    "capability_settings",
+    "vault_links",
+    "general_courses",
+    "general_course_artifacts",
+    "general_course_bindings",
+];
 
 /// Exact historical schema-8 layouts; retain every shipped table set after v9.
 pub const V8_LAYOUTS: &[&[&str]] = &[
@@ -245,6 +276,7 @@ fn archive_tables(manifest: &ArchiveManifest) -> Result<&'static [&'static str],
             .find(|layout| same_set(layout))
             .copied()
             .ok_or_else(|| ArchiveError::Table("unknown v8 archive layout".into())),
+        9 if same_set(V9_LAYOUT) => Ok(V9_LAYOUT),
         version if version == archeaxis_store_sqlite::SCHEMA_VERSION => CURRENT_LAYOUTS
             .iter()
             .find(|layout| same_set(layout))
@@ -634,7 +666,7 @@ fn json_to_value(v: serde_json::Value) -> rusqlite::types::Value {
 mod version_tests {
     use super::*;
     #[test]
-    fn every_shipped_v8_layout_restores_into_v9() {
+    fn every_shipped_v8_layout_restores_into_current_schema() {
         assert_eq!(
             V8_LAYOUTS.iter().map(|l| l.len()).collect::<Vec<_>>(),
             vec![16, 20, 21, 22]
@@ -654,7 +686,7 @@ mod version_tests {
                     |r| r.get::<_, String>(0)
                 )
                 .unwrap(),
-                "9"
+                archeaxis_store_sqlite::SCHEMA_VERSION.to_string()
             );
             assert_eq!(
                 conn.query_row("SELECT count(*) FROM general_courses", [], |r| r

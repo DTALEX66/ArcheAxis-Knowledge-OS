@@ -7,8 +7,10 @@
 
 pub mod ask;
 pub mod capabilities;
+mod documents;
 pub mod launch;
 pub mod runtime;
+mod workspace_backup;
 
 use archeaxis_application::container;
 use archeaxis_application::jobs::{self, LossReceipt};
@@ -22,7 +24,7 @@ use axum::{
     extract::{Path, Query, State},
     http::{HeaderMap, StatusCode},
     response::IntoResponse,
-    routing::{get, post},
+    routing::{get, post, put},
 };
 use rusqlite::{Connection, OptionalExtension};
 use serde::Deserialize;
@@ -52,10 +54,40 @@ pub fn router(state: Store) -> Router {
 /// Legacy manual receipts are only retained for in-process compatibility tests.
 pub fn projections(state: Store, manual_receipts: bool) -> Router {
     let routes = Router::new()
+        .route("/api/v1/sources", get(documents::sources))
+        .route(
+            "/api/v1/sources/:source_id/original",
+            get(documents::original),
+        )
+        .route(
+            "/api/v1/documents",
+            get(documents::list).post(documents::create),
+        )
+        .route("/api/v1/documents/:document_id", get(documents::read))
+        .route(
+            "/api/v1/documents/:document_id/export",
+            get(documents::export),
+        )
+        .route("/api/v1/documents/:document_id/draft", put(documents::save))
+        .route(
+            "/api/v1/documents/:document_id/versions/:version",
+            get(documents::version),
+        )
+        .route(
+            "/api/v1/documents/:document_id/restore",
+            post(documents::restore),
+        )
         .route("/api/v1/system/version", get(system_version))
+        .route(
+            "/api/v1/workspace/backups",
+            get(workspace_backup::list).post(workspace_backup::create),
+        )
         .route("/api/v1/imports", post(import_source))
         .route("/api/v1/jobs", post(enqueue_job))
-        .route("/api/v1/sources/:source_id/anchors", post(create_anchor))
+        .route(
+            "/api/v1/sources/:source_id/anchors",
+            get(documents::anchors).post(create_anchor),
+        )
         .route(
             "/api/v1/sources/:source_id/jobs/:job_id/transform",
             get(source_job_transform),
@@ -66,6 +98,10 @@ pub fn projections(state: Store, manual_receipts: bool) -> Router {
         )
         .route("/api/v1/knowledge-items", post(create_knowledge))
         .route("/api/v1/knowledge-items/:id/v3", get(knowledge_v3))
+        .route(
+            "/api/v1/knowledge/:id/review/versioned",
+            post(review_versioned),
+        )
         .route(
             "/api/v1/knowledge-items/:id/qualification",
             get(knowledge_qualification),
@@ -118,12 +154,24 @@ async fn with_store(
     }
 }
 
-async fn system_version() -> Json<serde_json::Value> {
-    Json(serde_json::json!({
-        "runtime": "archeaxis-api",
-        "contract": "0.1.0-outline",
-        "schema_version": archeaxis_store_sqlite::SCHEMA_VERSION,
-    }))
+async fn system_version(State(state): State<AppState>) -> axum::response::Response {
+    with_store(state, |conn| {
+        let sqlite_version: String =
+            match conn.query_row("SELECT sqlite_version()", [], |r| r.get(0)) {
+                Ok(value) => value,
+                Err(error) => {
+                    return (StatusCode::INTERNAL_SERVER_ERROR, error.to_string()).into_response();
+                }
+            };
+        Json(serde_json::json!({
+            "runtime": "archeaxis-api",
+            "contract": "0.1.0-outline",
+            "schema_version": archeaxis_store_sqlite::SCHEMA_VERSION,
+            "sqlite_version":sqlite_version,
+        }))
+        .into_response()
+    })
+    .await
 }
 
 #[derive(Deserialize)]
@@ -935,18 +983,81 @@ async fn record_learning_event(
 struct AnchorBody {
     revision: String,
     position: String,
+    checksum: Option<String>,
 }
 
 async fn create_anchor(
     State(state): State<AppState>,
     Path(source_id): Path<String>,
+    headers: HeaderMap,
     Json(body): Json<AnchorBody>,
 ) -> impl IntoResponse {
+    if request_actor(&headers) != Ok("human") {
+        return StatusCode::FORBIDDEN.into_response();
+    }
+    if body.position.len() > 16 * 1024
+        || serde_json::from_str::<serde_json::Value>(&body.position)
+            .ok()
+            .is_none_or(|v| !v.is_object())
+    {
+        return (
+            StatusCode::BAD_REQUEST,
+            "position must be a bounded JSON locator object",
+        )
+            .into_response();
+    }
     with_store(state, move |conn| {
-        match anchor::add_anchor(conn, &source_id, &body.revision, &body.position) {
+        let revision: rusqlite::Result<Option<String>> = conn
+            .query_row(
+                "SELECT sha256 FROM sources WHERE source_id=?1",
+                [&source_id],
+                |r| r.get(0),
+            )
+            .optional();
+        match revision {
+            Ok(Some(revision)) if revision == body.revision => {}
+            Ok(Some(_)) => {
+                return (
+                    StatusCode::BAD_REQUEST,
+                    "anchor revision must identify the immutable original",
+                )
+                    .into_response();
+            }
+            Ok(None) => return StatusCode::NOT_FOUND.into_response(),
+            Err(error) => {
+                return (StatusCode::INTERNAL_SERVER_ERROR, error.to_string()).into_response();
+            }
+        }
+        let mut position: serde_json::Value = serde_json::from_str(&body.position).unwrap();
+        let mut location_status = "unverified";
+        if let Some(checksum) = body.checksum {
+            use sha2::{Digest, Sha256};
+            let validation = (|| -> Option<bool> {
+                if position["type"] != "text" {
+                    return None;
+                }
+                let start = usize::try_from(position["start"].as_u64()?).ok()?;
+                let end = usize::try_from(position["end"].as_u64()?).ok()?;
+                let bytes = archeaxis_store_sqlite::raw_objects::read(conn, &body.revision).ok()?;
+                let text = std::str::from_utf8(&bytes).ok()?;
+                let excerpt = text.get(start..end)?;
+                Some(format!("{:x}", Sha256::digest(excerpt.as_bytes())) == checksum)
+            })();
+            if validation != Some(true) {
+                return (
+                    StatusCode::BAD_REQUEST,
+                    "text byte range/checksum does not match immutable UTF-8 original",
+                )
+                    .into_response();
+            }
+            position["checksum"] = serde_json::json!(checksum);
+            location_status = "located";
+        }
+        position["location_status"] = serde_json::json!(location_status);
+        match anchor::add_anchor(conn, &source_id, &body.revision, &position.to_string()) {
             Ok(id) => (
                 StatusCode::CREATED,
-                Json(serde_json::json!({"anchor_id": id})),
+                Json(serde_json::json!({"anchor_id": id,"source_id":source_id,"source_revision":body.revision,"position":position.to_string(),"checksum":position.get("checksum"),"location_status":location_status})),
             )
                 .into_response(),
             Err(e) => (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()).into_response(),
@@ -1377,6 +1488,7 @@ async fn knowledge_v3(State(state): State<AppState>, Path(id): Path<String>) -> 
                 "body": body,
                 "created_at": created_at,
                 "updated_at": updated_at,
+                "version": knowledge::review_version(conn,&knowledge_id).unwrap_or_default(),
             })),
         )
             .into_response()
@@ -1583,6 +1695,34 @@ struct ReviewBody {
     // successor is created with the new version, not a clone of the old body.
     #[serde(default)]
     new_body: Option<String>,
+}
+
+#[derive(Deserialize)]
+#[serde(deny_unknown_fields)]
+struct VersionedReviewBody {
+    action: String,
+    reviewer: String,
+    expected_version: String,
+    note: Option<String>,
+    new_body: Option<String>,
+}
+async fn review_versioned(
+    State(state): State<AppState>,
+    headers: HeaderMap,
+    Path(id): Path<String>,
+    Json(body): Json<VersionedReviewBody>,
+) -> axum::response::Response {
+    if request_actor(&headers) != Ok("human") {
+        return StatusCode::FORBIDDEN.into_response();
+    }
+    with_store(state, move |conn| {
+        match knowledge::review_checked(conn,&id,&body.action,&body.reviewer,body.note.as_deref(),body.new_body.as_deref(),Some(&body.expected_version)) {
+            Ok(kid)=>Json(serde_json::json!({"knowledge_id":kid,"version":knowledge::review_version(conn,&kid).unwrap_or_default()})).into_response(),
+            Err(rusqlite::Error::InvalidParameterName(message)) if message.starts_with("review_version_conflict:") => (StatusCode::CONFLICT,Json(serde_json::json!({"code":"AAK-REV-409","current_version":message.trim_start_matches("review_version_conflict:")}))).into_response(),
+            Err(rusqlite::Error::QueryReturnedNoRows)=>StatusCode::NOT_FOUND.into_response(),
+            Err(error)=>(StatusCode::BAD_REQUEST,error.to_string()).into_response(),
+        }
+    }).await
 }
 
 async fn review_decision(

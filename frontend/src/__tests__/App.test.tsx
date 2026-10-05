@@ -3,6 +3,8 @@ import { act, render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { App } from "../app/App";
 import { resetRuntimeClient } from "../api/workspace";
+import { SpaceView } from "../spaces/SpaceView";
+import type { SpaceId } from "../spaces/spaces";
 
 // AXW-UI-804: App shell — six-space navigation, default space, landmarks.
 // Rail buttons use the English product labels; space headings are Chinese.
@@ -12,6 +14,23 @@ describe("App shell", () => {
     resetRuntimeClient();
     delete window.__TAURI__;
     vi.unstubAllGlobals();
+  });
+  it.each([
+    ["workspace","探索与蓝图"], ["library","资料库"], ["intake","资料库"],
+    ["vault","知识库"], ["evidence","知识库"], ["ai-assets","知识库"],
+    ["learning","学习"], ["exchange","资料库"], ["settings","探索与蓝图"],
+  ] as [SpaceId,string][])("routes native %s to the existing canonical view",async(spaceId,heading)=>{
+    const invoke=vi.fn(async(command:string,args?:Record<string,unknown>)=>{
+      if(command!=="core_command")throw new Error("legacy native command forbidden");
+      const operation=(args?.request as Record<string,unknown>).operation;
+      const body=operation==="sources_list"?{sources:[]}:operation==="documents_list"?{documents:[]}:operation==="learning_items"?{items:[],count:0}:operation==="search"?{items:[],transforms:[],count:0,transform_count:0}:{capabilities:[]};
+      return {status:200,body};
+    });
+    const fetch=vi.fn();vi.stubGlobal("fetch",fetch);window.__TAURI__={core:{invoke}};
+    await act(async()=>{render(<SpaceView spaceId={spaceId} onInspect={vi.fn()} onNavigate={vi.fn()}/>);});
+    expect(screen.getByRole("heading",{name:heading})).toBeInTheDocument();
+    if(heading==="知识库"){const user=userEvent.setup();await user.type(screen.getByLabelText("搜索内容"),"样板");await user.click(screen.getByRole("button",{name:"搜索"}));}
+    expect(invoke).toHaveBeenCalled();expect(invoke.mock.calls.every(([command])=>command==="core_command")).toBe(true);expect(fetch).not.toHaveBeenCalled();
   });
 
   it("renders the shell landmarks (banner, navigation, main)", () => {
@@ -72,7 +91,7 @@ describe("App shell", () => {
           ? { state: "booting", safe_mode: false, backend_available: false, message: "正在启动", backups: [], external_dev: false }
           : { state: "ready", safe_mode: false, backend_available: true, message: "已就绪", backups: [], external_dev: false };
       }
-      if (command === "backend_info") return { port: 4312, token: "memory-only", scopes: ["workspace:write"] };
+      if (command === "core_command") return { status: 200, body: { runtime: "archeaxis-api", contract: "0.1.0-outline", schema_version: 7, sqlite_version: "3.51.3" } };
       throw new Error(`unexpected command ${command}`);
     }) } };
     vi.stubGlobal("fetch", vi.fn(async (input: RequestInfo | URL) => {
@@ -167,7 +186,7 @@ describe("App shell", () => {
     expect(await screen.findByRole("main", { name: "恢复工作台" })).toBeInTheDocument();
     expect(screen.queryByRole("navigation", { name: "主空间导航" })).not.toBeInTheDocument();
     expect(invoke).toHaveBeenNthCalledWith(1, "recovery_status");
-    expect(invoke).toHaveBeenNthCalledWith(2, "backend_info");
+    expect(invoke).toHaveBeenNthCalledWith(2, "core_command", { request: { operation: "system_version", payload: {} } });
     expect(invoke).toHaveBeenNthCalledWith(3, "recovery_status");
   });
 

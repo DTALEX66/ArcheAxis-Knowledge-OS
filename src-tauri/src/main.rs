@@ -1,6 +1,8 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
 #[cfg(windows)]
+mod core_bridge;
+#[cfg(windows)]
 #[path = "recovery.rs"]
 mod recovery;
 
@@ -289,6 +291,14 @@ const RECOVERY_RESTORE_FAILED: &str = "RECOVERY_RESTORE_FAILED";
 const RECOVERY_BACKUP_SELECTION_REJECTED: &str = "Backup selection was rejected";
 
 #[cfg(windows)]
+fn launch_product_backend(runtime: &runtime::RuntimeSpec) -> Result<BackendProcess, String> {
+    match CoreSpec::beside_runtime(runtime) {
+        Some(spec) => BackendProcess::launch_core(&spec),
+        None => BackendProcess::launch(runtime),
+    }
+}
+
+#[cfg(windows)]
 #[derive(Clone)]
 struct RuntimeResolutionContext {
     manifest_dir: PathBuf,
@@ -323,9 +333,7 @@ struct DesktopBackend {
 #[cfg(windows)]
 #[derive(Serialize)]
 struct BackendInfo {
-    port: u16,
-    token: String,
-    scopes: Vec<String>,
+    ready: bool,
 }
 
 #[cfg(windows)]
@@ -456,11 +464,66 @@ fn backend_info(state: State<'_, DesktopBackend>) -> Result<Option<BackendInfo>,
         .process
         .lock()
         .map_err(|_| RECOVERY_STATE_UNAVAILABLE.to_owned())?;
-    Ok(backend.as_ref().map(|process| BackendInfo {
-        port: process.port,
-        token: process.token.clone(),
-        scopes: vec!["workspace:write".to_owned()],
-    }))
+    Ok(backend.as_ref().map(|_| BackendInfo { ready: true }))
+}
+
+#[cfg(windows)]
+#[tauri::command]
+async fn core_command(
+    state: State<'_, DesktopBackend>,
+    request: core_bridge::Request,
+) -> Result<core_bridge::Reply, String> {
+    let state = state.inner().clone();
+    tauri::async_runtime::spawn_blocking(move || {
+        // Concurrent reader commands share a brief state refresh. Wait for that
+        // refresh instead of treating ordinary parallel reads as recovery work.
+        let operation = state
+            .operations
+            .lock()
+            .map_err(|_| RECOVERY_STATE_UNAVAILABLE.to_owned())?;
+        refresh_backend_state(&state)?;
+        let save_export = matches!(
+            request.operation,
+            core_bridge::Operation::DocumentExportSave
+        );
+        // Keep an export bound to the same workspace through both fetch and publication.
+        let (port, token) = {
+            let backend = state
+                .process
+                .lock()
+                .map_err(|_| RECOVERY_STATE_UNAVAILABLE)?;
+            let process = backend.as_ref().ok_or(RECOVERY_RUNTIME_UNAVAILABLE)?;
+            (process.port, process.token.clone())
+        };
+        let _export_operation = if save_export {
+            Some(operation)
+        } else {
+            drop(operation);
+            None
+        };
+        let reply = core_bridge::execute(port, &token, request)?;
+        {
+            let backend = state
+                .process
+                .lock()
+                .map_err(|_| RECOVERY_STATE_UNAVAILABLE)?;
+            if backend
+                .as_ref()
+                .is_none_or(|process| process.port != port || process.token != token)
+            {
+                return Err("CORE_WORKSPACE_CHANGED".into());
+            }
+        }
+        if save_export {
+            let runtime = current_runtime(&state)?.ok_or(RECOVERY_RUNTIME_UNAVAILABLE)?;
+            let body = core_bridge::save_export(&runtime.data_dir, &reply)?;
+            Ok(core_bridge::Reply { status: 200, body })
+        } else {
+            Ok(reply)
+        }
+    })
+    .await
+    .map_err(|_| RECOVERY_STATE_UNAVAILABLE.to_owned())?
 }
 
 #[cfg(windows)]
@@ -482,11 +545,8 @@ fn retry_backend_blocking(state: DesktopBackend) -> Result<BackendInfo, String> 
         .map_err(|_| RECOVERY_STATE_UNAVAILABLE.to_owned())?
         .as_ref()
     {
-        return Ok(BackendInfo {
-            port: existing.port,
-            token: existing.token.clone(),
-            scopes: vec!["workspace:write".to_owned()],
-        });
+        let _ = existing;
+        return Ok(BackendInfo { ready: true });
     }
     state
         .recovery
@@ -523,18 +583,14 @@ fn retry_backend_blocking(state: DesktopBackend) -> Result<BackendInfo, String> 
             }
         }
     };
-    let launched = match BackendProcess::launch(&runtime) {
+    let launched = match launch_product_backend(&runtime) {
         Ok(process) => process,
         Err(error) => {
             record_failure(&state, &error);
             return Err(RECOVERY_RETRY_FAILED.to_owned());
         }
     };
-    let info = BackendInfo {
-        port: launched.port,
-        token: launched.token.clone(),
-        scopes: vec!["workspace:write".to_owned()],
-    };
+    let info = BackendInfo { ready: true };
     *state
         .process
         .lock()
@@ -737,6 +793,7 @@ fn main() {
     let app = tauri::Builder::default()
         .manage(backend)
         .invoke_handler(tauri::generate_handler![
+            core_command,
             backend_info,
             recovery_status,
             recovery_log_tail,
@@ -820,10 +877,7 @@ fn main() {
                     // owns the port and the launch token; only the process behind them changes.
                     // The legacy entrypoint remains the fallback so a candidate without a Core
                     // keeps working exactly as before.
-                    let launched = match CoreSpec::beside_runtime(&runtime) {
-                        Some(spec) => BackendProcess::launch_core(&spec),
-                        None => BackendProcess::launch(&runtime),
-                    };
+                    let launched = launch_product_backend(&runtime);
                     match launched {
                         Ok(process) => {
                             if let Ok(mut slot) = launch_state.process.lock() {
@@ -857,6 +911,10 @@ fn main() {
                     .inner()
                     .clone();
                 cleanup_backend_on_exit(state);
+                // This product owns one shell window. Explicitly request process exit
+                // as well as window close; an attached WebView observer must not leave
+                // a windowless shell holding the workspace or runtime resources.
+                dispatch_exit_immediately(|code| window.app_handle().exit(code));
             }
         })
         .build(tauri::generate_context!())
@@ -906,7 +964,7 @@ mod candidate_runtime_tests {
         assert_eq!(worker["python"], expected.to_string_lossy().as_ref());
         assert!(!worker["python"].as_str().unwrap().starts_with(r"\\?\"));
         println!("host selected interpreter: {}", expected.display());
-        let mut process = crate::backend::BackendProcess::launch_core(&core)
+        let mut process = super::launch_product_backend(&runtime)
             .expect("real candidate Core readiness through product supervisor");
         assert!(process.exit_diagnostic().expect("Core state").is_none());
         process.shutdown();
@@ -914,5 +972,12 @@ mod candidate_runtime_tests {
             .exit_diagnostic()
             .expect("Core exit state")
             .is_some());
+        let mut restarted = super::launch_product_backend(&runtime)
+            .expect("retry uses the same canonical Core selection");
+        assert!(restarted
+            .exit_diagnostic()
+            .expect("restarted Core state")
+            .is_none());
+        restarted.shutdown();
     }
 }

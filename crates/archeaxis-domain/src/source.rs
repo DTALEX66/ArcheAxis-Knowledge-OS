@@ -83,8 +83,10 @@ pub fn import_source_with_origin(
     origin: Option<OriginInfo<'_>>,
 ) -> rusqlite::Result<ImportOutcome> {
     let digest = sha256_hex(bytes);
+    // Durable CAS publication precedes the short reference transaction. A failed
+    // commit can leave an unreferenced object, never a reference to missing bytes.
+    let raw_ref = archeaxis_store_sqlite::raw_objects::persist(conn, bytes)?;
     let tx = conn.transaction_with_behavior(rusqlite::TransactionBehavior::Immediate)?;
-    let raw_ref = archeaxis_store_sqlite::raw_objects::persist(&tx, bytes)?;
     let existing: Option<String> = tx
         .query_row(
             "SELECT source_id FROM sources WHERE sha256=?1",

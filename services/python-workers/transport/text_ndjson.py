@@ -212,6 +212,12 @@ ROUTES = {
             "application/json",
             "application/xml",
             "text/xml",
+            "application/x-ndjson",
+            "application/yaml",
+            "text/x-yaml",
+            "application/toml",
+            "application/epub+zip",
+            "message/rfc822",
         },
         "call": "path",
         # R15/F01: this worker derives format facts from the declared media type, so

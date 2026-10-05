@@ -1,0 +1,21 @@
+.canonical-library { display: grid; grid-template-columns: minmax(140px, 200px) minmax(0, 1fr); gap: 18px; }
+.canonical-sources { display: flex; flex-direction: column; gap: 8px; }
+.canonical-sources button { text-align: left; overflow-wrap: anywhere; }
+.canonical-sources button[aria-current="true"] { background: var(--ax-active); border-color: var(--ax-border-strong); }
+.canonical-content, .canonical-reading { min-width: 0; }
+.canonical-reading { display: grid; grid-template-columns: minmax(0, 1fr) 130px; gap: 14px; }
+.canonical-reading aside { display: flex; flex-direction: column; gap: 8px; }
+.canonical-reading pre { max-height: 55vh; white-space: pre-wrap; overflow: auto; overflow-wrap: anywhere; }
+.pdf-reader { max-height: 65vh; overflow: auto; background: var(--ax-raised); padding: 12px; }
+.pdf-reader canvas { display: block; margin: 12px auto; }
+.pdf-reader nav, .document-editor nav, .draft-restore { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.pdf-reader:focus-visible, .canonical-reading pre:focus-visible, .document-editor .tiptap:focus-visible { outline: 2px solid var(--ax-accent); outline-offset: 3px; }
+.document-editor { margin-top: 20px; }
+.document-editor .tiptap { min-height: 160px; padding: 14px; border: 1px solid var(--ax-border-strong); border-radius: var(--ax-radius-sm); background: var(--ax-raised); color: var(--ax-fg); overflow-wrap: anywhere; }
+.document-editor [data-evidence-reference] { cursor: pointer; border-bottom: 1px solid var(--ax-fg-secondary); }
+.document-editor [data-preserved-node] { padding: 10px; border: 1px dashed var(--ax-border-strong); color: var(--ax-fg-secondary); }
+.draft-restore input { width: 80px; margin-left: 8px; }
+@media (max-width: 900px) {
+  .canonical-library, .canonical-reading { grid-template-columns: minmax(0, 1fr); }
+  .canonical-sources { max-height: 180px; overflow-y: auto; }
+}

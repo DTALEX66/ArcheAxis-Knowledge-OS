@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 """ArcheAxis vNext document worker: plain text family (F01).
 
-Formats: TXT / MD / CSV / TSV / JSON / XML (textual sources).
+Formats: TXT / MD / CSV / TSV / JSON / JSONL / YAML / TOML / XML,
+and bounded EPUB spine / EML MIME-body projections.
 
 Isolation boundary: this worker NEVER opens the vNext database and never
 executes file content. It decodes bytes faithfully (encoding/line endings
@@ -14,7 +15,9 @@ facts the route can actually derive - markdown headings and links, CSV row and
 column shape, JSON depth and keys, XML root and element count - are reported in
 `loss_receipt.params["format"]`. A file that does not parse is still projected as
 text, and the fact says so: `parsed: false` with the reason, never silence and
-never a fabricated structure.
+never a fabricated structure (the existing JSON/XML projection contract).
+New structured-format parse or budget failures return nonzero instead. Native
+value locations travel as facts; canonical anchors locate projected text lines.
 
 Usage:
     python worker_text.py <input-file> [media-type]
@@ -27,6 +30,7 @@ import contextlib
 import csv
 import email
 import io
+import importlib.util
 import json
 import re
 import sys
@@ -408,16 +412,44 @@ def format_facts(text: str, media_type: str) -> dict:
 
 def extract(path: str, media_type: str = "text/plain") -> dict:
     raw = Path(path).read_bytes()
-    text, decode_note = decode_bytes(raw, source=path)
+    media = (media_type or "text/plain").split(";", 1)[0].strip().lower()
+    helper = Path(__file__).with_name("worker_light_formats.py")
+    light = None
+    if helper.is_file():
+        spec = importlib.util.spec_from_file_location("worker_light_formats", helper)
+        light = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(light)
+    if media in {"application/epub+zip", "message/rfc822"}:
+        structured_raw = raw
+        text, decode_note = "", {"encoding": "MIME/container charset", "loss_note": ""}
+    else:
+        text, decode_note = decode_bytes(raw, source=path)
+        structured_raw = text.encode("utf-8")
+    try:
+        parsed = light.parse(structured_raw, media) if light is not None else None
+    except (json.JSONDecodeError, ElementTree.ParseError):
+        # Preserve the existing explicit malformed JSON/XML projection contract.
+        if media not in {"application/json", "application/xml", "text/xml"}:
+            raise
+        parsed = None
+    if parsed is not None:
+        text, native_facts, native_losses = parsed
+    else:
+        if media in {"application/epub+zip", "message/rfc822"}:
+            raise ValueError("light format parser missing from runtime")
+        native_facts, native_losses = None, []
     structure = line_anchors(text)
     # Use the same line semantics as anchors (CR/LF/CRLF and Unicode separators).
     # A final separator terminates its line; it does not create an extra anchor.
     total = len(text.splitlines(keepends=True))
     covered = len(structure)
     losses = [decode_note["loss_note"]] if decode_note["loss_note"] else []
+    losses.extend(native_losses)
     if covered < total:
         losses.append("line anchors capped at 5000")
     facts = format_facts(text, media_type)
+    if native_facts is not None:
+        facts.update(native_facts)
     if facts.get("parsed") is False:
         losses.append(f"{facts['format']} structure could not be derived: {facts.get('error', 'parse failed')}")
     loss_receipt = {

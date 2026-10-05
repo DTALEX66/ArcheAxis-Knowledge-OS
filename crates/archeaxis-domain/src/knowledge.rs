@@ -355,6 +355,13 @@ fn utf16_offset_to_byte(text: &str, offset: usize) -> Option<usize> {
 /// updates the knowledge status. `action` must be one of accepted|rejected|modified|deprecated.
 /// C03: the status change and the review event are committed in ONE write
 /// transaction - a failure rolls back both (no accepted-without-event).
+pub fn review_version(conn: &Connection, knowledge_id: &str) -> rusqlite::Result<String> {
+    let row: (String,String,String,i64,i64) = conn.query_row("SELECT body,status,receipt_hash,(SELECT COUNT(*) FROM review_events WHERE knowledge_id=k.knowledge_id),(SELECT COUNT(*) FROM knowledge_supersedes WHERE old_knowledge_id=k.knowledge_id OR new_knowledge_id=k.knowledge_id) FROM knowledge k WHERE knowledge_id=?1",[knowledge_id],|r|Ok((r.get(0)?,r.get(1)?,r.get(2)?,r.get(3)?,r.get(4)?)))?;
+    Ok(hex::encode(Sha256::digest(
+        serde_json::to_vec(&row).unwrap(),
+    )))
+}
+
 pub fn review(
     conn: &mut Connection,
     knowledge_id: &str,
@@ -363,7 +370,27 @@ pub fn review(
     note: Option<&str>,
     new_body: Option<&str>,
 ) -> rusqlite::Result<String> {
+    review_checked(conn, knowledge_id, action, reviewer, note, new_body, None)
+}
+
+pub fn review_checked(
+    conn: &mut Connection,
+    knowledge_id: &str,
+    action: &str,
+    reviewer: &str,
+    note: Option<&str>,
+    new_body: Option<&str>,
+    expected_version: Option<&str>,
+) -> rusqlite::Result<String> {
     let tx = conn.transaction_with_behavior(rusqlite::TransactionBehavior::Immediate)?;
+    if let Some(expected) = expected_version {
+        let actual = review_version(&tx, knowledge_id)?;
+        if expected != actual {
+            return Err(rusqlite::Error::InvalidParameterName(format!(
+                "review_version_conflict:{actual}"
+            )));
+        }
+    }
     let row: Option<(String, String, String, Option<String>, String)> = tx
         .query_row(
             "SELECT knowledge_type, body, status, anchor_id, created_by FROM knowledge WHERE knowledge_id=?1",

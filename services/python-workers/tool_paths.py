@@ -79,6 +79,22 @@ def _external_root() -> Path | None:
         root = Path(raw)
         if root.is_absolute():
             return root
+    # A locally staged artifact can name the explicitly selected shared root.
+    # This declaration travels inside workers/, so the desktop resource mapping
+    # retains it; no global config or source manifest is modified.
+    staged = Path(__file__).resolve().parent / "capability-requirements.yaml"
+    if staged.is_file():
+        try:
+            import yaml
+            document = yaml.safe_load(staged.read_text(encoding="utf-8")) or {}
+            raw = document.get("artifact_external_root")
+        except (OSError, ValueError, ImportError) as error:
+            raise ManifestUnreadable("staged external-root declaration is unreadable") from error
+        if raw:
+            root = Path(raw)
+            if root.is_absolute() and not str(root).lower().startswith(("e:", "\\\\")):
+                return root
+            raise ManifestUnreadable("staged external-root declaration is not an allowed absolute local path")
     return None
 
 
@@ -95,6 +111,9 @@ def _manifest_path() -> Path:
     if raw:
         return Path(raw)
     here = Path(__file__).resolve()
+    worker_resource = here.parent / "capability-requirements.yaml"
+    if worker_resource.is_file():
+        return worker_resource
     beside = here.parent.parent / "config" / "environment" / "capability-requirements.yaml"
     if beside.is_file():
         return beside

@@ -12,13 +12,15 @@ const recovery = vi.hoisted(() => ({
   restoreRecoveryBackup: vi.fn(),
   exitRecoveryApplication: vi.fn(),
   resetRuntimeClient: vi.fn(),
-  getStatus: vi.fn(),
+  verifyCanonicalCore: vi.fn(),
 }));
 
 vi.mock("../api/workspace", async () => ({
   ...(await vi.importActual<typeof import("../api/workspace")>("../api/workspace")),
   ...recovery,
 }));
+
+vi.mock('../api/core', () => ({ verifyCanonicalCore: recovery.verifyCanonicalCore, coreCommand: vi.fn(async (operation: string) => operation === "sources_list" ? {sources:[]} : {documents:[]}) }));
 
 const failedRecovery = {
   state: "failed",
@@ -48,7 +50,7 @@ describe("Recovery Shell", () => {
     recovery.retryDesktopBackend.mockResolvedValue(undefined);
     recovery.restoreRecoveryBackup.mockResolvedValue({ status: "restored" });
     recovery.exitRecoveryApplication.mockResolvedValue(undefined);
-    recovery.getStatus.mockResolvedValue({ status: "available" });
+    recovery.verifyCanonicalCore.mockResolvedValue({ status: "available" });
     window.__TAURI__ = { core: { invoke: vi.fn() } };
   });
 
@@ -186,10 +188,10 @@ describe("Recovery Shell", () => {
         safe_mode: true,
         message: "安全模式已启用；本地核心保持停止。",
       });
-    recovery.getStatus.mockReturnValue(handshake.promise);
+    recovery.verifyCanonicalCore.mockReturnValue(handshake.promise);
 
     const firstGeneration = render(<App />);
-    await waitFor(() => expect(recovery.getStatus).toHaveBeenCalledOnce());
+    await waitFor(() => expect(recovery.verifyCanonicalCore).toHaveBeenCalledOnce());
     firstGeneration.unmount();
 
     render(<App />);
@@ -226,7 +228,7 @@ describe("Recovery Shell", () => {
     expect(screen.getByRole("main", { name: "恢复工作台" })).toBeInTheDocument();
     expect(screen.getByText("本地核心已停止。")).toBeInTheDocument();
     expect(recovery.getRecoveryStatus).toHaveBeenCalledTimes(2);
-    expect(recovery.getStatus).toHaveBeenCalledOnce();
+    expect(recovery.verifyCanonicalCore).toHaveBeenCalledOnce();
   });
 
   it("refreshes recovery status after a later authenticated liveness handshake fails", async () => {
@@ -247,7 +249,7 @@ describe("Recovery Shell", () => {
         state: "stopped",
         message: "Core stopped after handshake failure",
       });
-    recovery.getStatus
+    recovery.verifyCanonicalCore
       .mockResolvedValueOnce({ status: "available" })
       .mockRejectedValueOnce(new Error("handshake unavailable"));
 
@@ -260,7 +262,7 @@ describe("Recovery Shell", () => {
     expect(screen.getByRole("main", { name: "恢复工作台" })).toBeInTheDocument();
     expect(screen.getByText("本地核心与当前桌面版本不兼容。")).toBeInTheDocument();
     expect(recovery.getRecoveryStatus).toHaveBeenCalledTimes(3);
-    expect(recovery.getStatus).toHaveBeenCalledTimes(2);
+    expect(recovery.verifyCanonicalCore).toHaveBeenCalledTimes(2);
   });
 
   it("cleans up one non-overlapping liveness loop on unmount", async () => {
@@ -290,7 +292,7 @@ describe("Recovery Shell", () => {
     await act(async () => vi.advanceTimersByTimeAsync(30_000));
 
     expect(recovery.getRecoveryStatus).toHaveBeenCalledTimes(2);
-    expect(recovery.getStatus).toHaveBeenCalledOnce();
+    expect(recovery.verifyCanonicalCore).toHaveBeenCalledOnce();
   });
 
   it("names the active operation in the live progress region", async () => {
@@ -349,7 +351,7 @@ describe("Recovery Shell", () => {
     recovery.retryDesktopBackend.mockImplementation(async () => {
       order.push("retry");
     });
-    recovery.getStatus.mockImplementation(async () => {
+    recovery.verifyCanonicalCore.mockImplementation(async () => {
       order.push("handshake");
       return { status: "available" };
     });

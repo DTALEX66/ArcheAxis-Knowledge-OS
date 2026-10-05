@@ -91,6 +91,12 @@ pub const ROUTE_MEDIA_TYPES: &[(&str, &[&str])] = &[
             "text/csv",
             "text/tab-separated-values",
             "application/json",
+            "application/x-ndjson",
+            "application/yaml",
+            "text/x-yaml",
+            "application/toml",
+            "application/epub+zip",
+            "message/rfc822",
             "application/xml",
             "text/xml",
         ],
@@ -176,12 +182,17 @@ pub fn media_type_for_name(name: &str) -> Option<&'static str> {
     let extension = file.rsplit_once('.')?.1;
     Some(match extension {
         "txt" | "log" | "text" | "rs" | "py" | "ts" | "tsx" | "js" | "jsx" | "c" | "h" | "cpp"
-        | "hpp" | "go" | "java" | "cs" | "rb" | "sh" | "ps1" | "bat" | "toml" | "yaml" | "yml"
-        | "ini" | "cfg" | "sql" => "text/plain",
+        | "hpp" | "go" | "java" | "cs" | "rb" | "sh" | "ps1" | "bat" | "ini" | "cfg" | "sql" => {
+            "text/plain"
+        }
         "md" | "markdown" => "text/markdown",
         "csv" => "text/csv",
         "tsv" => "text/tab-separated-values",
         "json" | "canvas" => "application/json",
+        "jsonl" | "ndjson" => "application/x-ndjson",
+        "yaml" | "yml" => "application/yaml",
+        "toml" => "application/toml",
+        "epub" => "application/epub+zip",
         "xml" => "application/xml",
         // R15/F15: a container gets the archive route, not a text decode
         "zip" => "application/zip",
@@ -218,7 +229,7 @@ pub fn media_type_for_name(name: &str) -> Option<&'static str> {
         // a saved mail message is text (RFC 822) with its own structure, which the
         // worker reports as facts. A binary .msg container is deliberately NOT named:
         // no route can read it, so it is refused instead of decoded into noise.
-        "eml" => "text/plain",
+        "eml" => "message/rfc822",
         "pdf" => "application/pdf",
         "png" => "image/png",
         "jpg" | "jpeg" | "jpe" => "image/jpeg",
@@ -317,9 +328,10 @@ fn same_spans(found: &[Line], expected: &[Line]) -> bool {
 }
 
 fn identity(conn: &Connection, req: &Request) -> Result<(String, Option<String>), JobError> {
+    let attempt = i64::try_from(req.attempt).map_err(|_| JobError::Conflict)?;
     let row:Option<(String,Option<String>,String,i64)>=conn.query_row(
         "SELECT state,result_digest,request_json,(SELECT MAX(attempt) FROM job_attempts WHERE job_id=?1) FROM job_attempts WHERE job_id=?1 AND attempt=?2",
-        rusqlite::params![req.job_id,req.attempt],|r|Ok((r.get(0)?,r.get(1)?,r.get(2)?,r.get(3)?))).optional()?;
+        rusqlite::params![req.job_id,attempt],|r|Ok((r.get(0)?,r.get(1)?,r.get(2)?,r.get(3)?))).optional()?;
     let (state, digest, stored, latest) = row.ok_or(JobError::NotFound)?;
     if latest as u64 != req.attempt
         || stored != serde_json::to_string(req).map_err(|_| JobError::Conflict)?
@@ -458,10 +470,10 @@ pub fn finish(
     }
     for (output, content) in response.outputs.iter().zip(strings) {
         tx.execute("INSERT INTO job_outputs(job_id,attempt,kind,metadata_json,content) VALUES(?1,?2,?3,?4,?5)",
-            rusqlite::params![req.job_id,req.attempt,output.kind,serde_json::to_string(output).map_err(|_|JobError::Conflict)?,content])?;
+            rusqlite::params![req.job_id,i64::try_from(req.attempt).map_err(|_|JobError::Conflict)?,output.kind,serde_json::to_string(output).map_err(|_|JobError::Conflict)?,content])?;
     }
     tx.execute("UPDATE job_attempts SET state='succeeded',response_json=?1,result_digest=?2,completed_at=datetime('now') WHERE job_id=?3 AND attempt=?4",
-        rusqlite::params![wire,digest,req.job_id,req.attempt])?;
+        rusqlite::params![wire,digest,req.job_id,i64::try_from(req.attempt).map_err(|_|JobError::Conflict)?])?;
     tx.commit()?;
     Ok(())
 }
@@ -549,7 +561,10 @@ pub fn terminate(
     if state == status {
         let old: Option<String> = tx.query_row(
             "SELECT error FROM job_attempts WHERE job_id=?1 AND attempt=?2",
-            rusqlite::params![req.job_id, req.attempt],
+            rusqlite::params![
+                req.job_id,
+                i64::try_from(req.attempt).map_err(|_| JobError::Conflict)?
+            ],
             |r| r.get(0),
         )?;
         return if old.as_deref() == Some(error) {
@@ -562,7 +577,7 @@ pub fn terminate(
         return Err(JobError::InvalidState);
     }
     tx.execute("UPDATE job_attempts SET state=?1,error=?2,completed_at=datetime('now') WHERE job_id=?3 AND attempt=?4",
-        rusqlite::params![status,error,req.job_id,req.attempt])?;
+        rusqlite::params![status,error,req.job_id,i64::try_from(req.attempt).map_err(|_|JobError::Conflict)?])?;
     tx.execute(
         "UPDATE jobs SET state=?1,loss_receipt=?2,completed_at=datetime('now') WHERE job_id=?3",
         rusqlite::params![

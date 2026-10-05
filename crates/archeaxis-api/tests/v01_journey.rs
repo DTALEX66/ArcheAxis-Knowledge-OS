@@ -127,7 +127,8 @@ fn v01_twelve_step_journey() {
         &router,
         "POST",
         &format!("/api/v1/sources/{sid1}/anchors"),
-        r#"{"revision":"rev-1","position":"{\"start\":0,\"end\":10}"}"#.to_string(),
+        serde_json::json!({"revision":r1["sha256"],"position":"{\"start\":0,\"end\":10}"})
+            .to_string(),
     );
     let aid = ar["anchor_id"].as_str().unwrap().to_string();
     let conn = Connection::open_with_flags(

@@ -2,7 +2,8 @@ param(
     [Parameter(Mandatory = $true)]
     [string]$Installer,
     [switch]$RequireReleaseIdentity,
-    [switch]$RequireCandidateIdentity
+    [switch]$RequireCandidateIdentity,
+    [string]$NativeToolsReceipt
 )
 
 $ErrorActionPreference = 'Stop'
@@ -335,6 +336,12 @@ try {
     }
     if (-not (Test-Path -LiteralPath $persistedDatabase -PathType Leaf)) {
         throw 'installed host did not create its canonical user database'
+    }
+    if ($NativeToolsReceipt) {
+        $nativeTools = Get-Content -LiteralPath $NativeToolsReceipt -Raw | ConvertFrom-Json
+        if ($nativeTools.ok -ne $true) { throw 'native driver preparation did not succeed' }
+        python -B scripts/probes/aaos01_tauri_webdriver_loop.py --host $executable --driver $nativeTools.driver --native-driver $nativeTools.native_driver --installer $Installer
+        if ($LASTEXITCODE -ne 0) { throw 'actual installed Tauri WebDriver journey failed' }
     }
     $initialProof = Read-CoreCandidateProof -Mode seed
     $pycAfter = @(Get-ChildItem (Join-Path $installRoot 'runtime') -Filter '*.pyc' -File -Recurse).Count

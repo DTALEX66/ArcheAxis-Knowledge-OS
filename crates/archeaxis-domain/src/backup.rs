@@ -24,7 +24,14 @@ pub fn backup(conn: &Connection, dst_path: &str) -> rusqlite::Result<()> {
         .filter(|p| !p.as_os_str().is_empty())
         .unwrap_or(Path::new("."));
     let staging = tempfile::tempdir_in(parent).map_err(io_error)?;
-    let staged = staging.path().join("snapshot.sqlite");
+    // Canonicalize the existing internal staging directory: Windows SQLite's
+    // native file API needs its extended path for filenames beyond MAX_PATH.
+    // This is an IO-only path, never a launch-document or worker protocol value.
+    let staged = staging
+        .path()
+        .canonicalize()
+        .map_err(io_error)?
+        .join("snapshot.sqlite");
     let mut dst = Connection::open(&staged)?;
     {
         let bk = rusqlite::backup::Backup::new(conn, &mut dst)?;
@@ -88,8 +95,11 @@ impl Drop for Publication {
 /// The snapshot is opened read-only; content is copied via the Online Backup API.
 pub fn restore(snapshot_path: &str, dst: &mut Connection) -> rusqlite::Result<()> {
     raw_objects::reject_links(Path::new(snapshot_path))?;
-    let src =
-        Connection::open_with_flags(snapshot_path, rusqlite::OpenFlags::SQLITE_OPEN_READ_ONLY)?;
+    let internal_snapshot = Path::new(snapshot_path).canonicalize().map_err(io_error)?;
+    let src = Connection::open_with_flags(
+        &internal_snapshot,
+        rusqlite::OpenFlags::SQLITE_OPEN_READ_ONLY,
+    )?;
     // Keep validation and Online Backup on one SQLite read snapshot.
     let read_snapshot = src.unchecked_transaction()?;
     validate_workspace(&src)?;

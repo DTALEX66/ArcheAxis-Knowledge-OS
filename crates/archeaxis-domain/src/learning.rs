@@ -665,6 +665,8 @@ pub fn item_keys_with_latest_review(
          FROM (
              SELECT item_key FROM card_references
              UNION
+             SELECT item_key FROM learning_assessments
+             UNION
              SELECT item_key FROM learning_events
          ) items
          LEFT JOIN learning_events latest

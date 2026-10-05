@@ -20,6 +20,7 @@ from __future__ import annotations
 
 import argparse
 import contextlib
+import hashlib
 import importlib.util
 import json
 import math
@@ -41,6 +42,7 @@ LOW_CONFIDENCE_CAP = 200
 WORKER_IDENTITY = "python-worker-ocr-ndjson"
 
 SUPPORTED = {".png", ".jpg", ".jpeg", ".webp", ".bmp", ".tiff", ".tif"}
+MAX_IMAGE_BYTES = 64 * 1024 * 1024
 
 
 def _run(command: list[str], **kwargs) -> subprocess.CompletedProcess:
@@ -189,7 +191,7 @@ def _two_column_gutter(words: list[dict]) -> tuple[float, float] | None:
     edges = sorted({round(value, 1) for value in left_edges + right_edges})
     width = max(right_edges) - min(left_edges)
     best: tuple[float, float, float] | None = None
-    for left_edge, right_edge in zip(edges, edges[1:]):
+    for left_edge, right_edge in zip(edges, edges[1:], strict=False):
         band = right_edge - left_edge
         if band < COLUMN_MIN_GUTTER * width:
             continue
@@ -366,27 +368,32 @@ def extract(path: Path, lang: str, tessdata_dir: Path | None = None) -> dict:
     if path.suffix.lower() not in SUPPORTED:
         raise ValueError(f"unsupported image extension: {path.suffix}")
 
-    plain = _run(
-        [binary, str(path), "stdout", "-l", lang, "--psm", "6", *_tessdata_args(tessdata_dir)],
-        capture_output=True,
-        text=True,
-        encoding="utf-8",
-        errors="replace",
-        timeout=300,
+    # Feed the same bounded image bytes to both renderers. Native Leptonica
+    # fopen cannot reliably open extended Windows paths used by Core staging.
+    with path.open("rb") as image:
+        image_bytes = image.read(MAX_IMAGE_BYTES + 1)
+    if not image_bytes or len(image_bytes) > MAX_IMAGE_BYTES:
+        raise ValueError("input image is empty or exceeds the 64 MiB OCR budget")
+
+    def image_run(command: list[str]) -> subprocess.CompletedProcess:
+        result = _run(command, input=image_bytes, capture_output=True, timeout=300)
+        for field in ("stdout", "stderr"):
+            value = getattr(result, field)
+            if isinstance(value, bytes):
+                setattr(result, field, value.decode("utf-8", errors="replace"))
+        return result
+
+    plain = image_run(
+        [binary, "stdin", "stdout", "-l", lang, "--psm", "6", *_tessdata_args(tessdata_dir)],
     )
     if plain.returncode != 0:
         raise RuntimeError(f"tesseract failed: {plain.stderr[-400:]}")
 
-    tsv = _run(
+    tsv = image_run(
         # Language-only tessdata packages may omit configs/tsv. Tesseract's
         # documented -c parameter selects the same renderer without that file.
-        [binary, str(path), "stdout", "-l", lang, "--psm", "6", *_tessdata_args(tessdata_dir),
+        [binary, "stdin", "stdout", "-l", lang, "--psm", "6", *_tessdata_args(tessdata_dir),
          "-c", "tessedit_create_tsv=1"],
-        capture_output=True,
-        text=True,
-        encoding="utf-8",
-        errors="replace",
-        timeout=300,
     )
     if tsv.returncode != 0:
         raise RuntimeError(f"tesseract TSV failed: {tsv.stderr[-400:]}")
@@ -524,6 +531,8 @@ def extract(path: Path, lang: str, tessdata_dir: Path | None = None) -> dict:
             "engine": ENGINE,
             "engine_version": ENGINE_VERSION,
             "params": {"lang": lang, "psm": 6, "engine": "tesseract",
+                       "input_transport": "stdin", "input_bytes": len(image_bytes),
+                       "input_sha256": hashlib.sha256(image_bytes).hexdigest(),
                        "tessdata_dir": str(tessdata_dir) if tessdata_dir is not None else None,
                        "tsv_renderer": "tessedit_create_tsv=1", "warnings": warnings,
                        "coverage_unit": "line anchors",
