@@ -5,6 +5,7 @@ import type { SourceDto, DocumentDto, DocumentSummaryDto, OriginalDto, AnchorDto
 import { Section } from "../components/RealData";
 import { DocumentEditor } from "../components/DocumentEditor";
 import { PdfReader } from "../components/PdfReader";
+import { MediaReader } from "../components/MediaReader";
 import { JobContent } from "../components/JobContent";
 import { CheckPanel } from "../components/CheckPanel";
 import { BackupPanel } from "../components/BackupPanel";
@@ -22,6 +23,7 @@ export function CanonicalLibrarySpace({onKnowledge,initialDocumentId,onDirtyChan
   const [anchors, setAnchors] = useState<AnchorDto[]>([]);
   const [page, setPage] = useState(1);
   const [focusRequest, setFocusRequest] = useState(0);
+  const [mediaSeek,setMediaSeek]=useState<{sourceId:string;milliseconds:number;sequence:number}|undefined>();
   const [restoreVersion, setRestoreVersion] = useState("1");
   const [editorEpoch, setEditorEpoch] = useState(0);
   const [message, setMessage] = useState("正在读取资料…");
@@ -211,6 +213,7 @@ export function CanonicalLibrarySpace({onKnowledge,initialDocumentId,onDirtyChan
       textRegion.current?.focus();
       let location = attributes;
       if (typeof attributes.position === "string") {try {location=JSON.parse(attributes.position);} catch {return;}}
+      if(location.type==="time"&&typeof location.start_ms==="number"&&Number.isFinite(location.start_ms)&&location.start_ms>=0){setMediaSeek(previous=>({sourceId:source.source_id,milliseconds:Number(location.start_ms),sequence:(previous?.sequence??0)+1}));return;}
       if (bytes && location.type === "text" && Number.isInteger(location.start) && Number.isInteger(location.end)) {
         try {
           const decoder=new TextDecoder("utf-8",{fatal:true});
@@ -249,7 +252,8 @@ export function CanonicalLibrarySpace({onKnowledge,initialDocumentId,onDirtyChan
         <div className="canonical-reading">
           <div>
           {isPdf ? <PdfReader bytes={bytes} page={page} onPageChange={setPage} focusRequest={focusRequest} /> : original.media_type.startsWith("text/") ? <pre ref={textRegion} tabIndex={-1} aria-label="原件正文">{new TextDecoder().decode(bytes)}</pre> : null}
-          <JobContent key={source.source_id} sourceId={source.source_id} name={source.original_name} onKnowledge={onKnowledge} />
+          {original.media_type.startsWith("audio/")||original.media_type.startsWith("video/")?<MediaReader key={source.source_id} bytes={bytes} mediaType={original.media_type} seek={mediaSeek?.sourceId===source.source_id?mediaSeek:undefined}/>:null}
+          <JobContent key={source.source_id} sourceId={source.source_id} name={source.original_name} sourceRevision={source.source_revision} onKnowledge={onKnowledge} onTimeSeek={seconds=>setMediaSeek(previous=>({sourceId:source.source_id,milliseconds:seconds*1000,sequence:(previous?.sequence??0)+1}))} onAnchor={anchor=>setAnchors(previous=>previous.some(item=>item.anchor_id===anchor.anchor_id)?previous:[...previous,anchor])}/>
           </div>
           <aside aria-label="来源版本证据">
             <h4>来源与引用</h4>
