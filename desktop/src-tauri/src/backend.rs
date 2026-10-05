@@ -51,6 +51,47 @@ const SANITIZED_ENVIRONMENT: [&str; 28] = [
     "ALL_PROXY",
 ];
 
+/// The Python backend's readiness route, which reports its own identity.
+const DESKTOP_READY_PATH: &str = "/workspace/api/_desktop/ready";
+
+/// The canonical Core's version route, which answers once the launch document has
+/// been accepted and the router is serving.
+const CORE_VERSION_PATH: &str = "/api/v1/system/version";
+
+/// The exact protocol string the Core requires for a launch that carries a machine
+/// token. A near miss is refused rather than defaulted.
+pub const CORE_LAUNCH_PROTOCOL: &str = "archeaxis.desktop-launch/v2";
+
+/// The canonical Core's launch inputs.
+///
+/// Unlike the legacy Python entrypoint, which reads its identity from environment
+/// variables, the Core takes only its workspace database path and port as arguments
+/// and reads a JSON launch document from stdin. The launch token it is given here is
+/// the same one the frontend must present, so the host keeps ownership of it.
+#[derive(Clone, Debug)]
+pub struct CoreSpec {
+    pub executable: std::path::PathBuf,
+    pub workspace_db: std::path::PathBuf,
+    pub cwd: std::path::PathBuf,
+    pub data_dir: std::path::PathBuf,
+}
+
+/// Build the launch document the Core reads from stdin.
+///
+/// The two credentials must differ: the Core refuses a machine token equal to the
+/// launch token, and it requires the launch actor to be exactly `human` under the v2
+/// protocol.
+pub fn core_launch_document(token: &str, machine_token: &str, session_id: &str) -> String {
+    serde_json::json!({
+        "launch_token": token,
+        "session_id": session_id,
+        "protocol": CORE_LAUNCH_PROTOCOL,
+        "machine_token": machine_token,
+        "actor": "human",
+    })
+    .to_string()
+}
+
 type LogBuffer = Arc<Mutex<VecDeque<String>>>;
 
 pub struct BackendProcess {
@@ -98,7 +139,78 @@ impl BackendProcess {
             return Err(error);
         }
         drain_child_output(&mut child, Arc::clone(&logs), "core");
-        if let Err(error) = wait_for_readiness(&mut child, port, &token, &logs) {
+        if let Err(error) = wait_for_readiness(&mut child, port, &token, &logs, DESKTOP_READY_PATH) {
+            let _ = child.kill();
+            let _ = child.wait();
+            return Err(error);
+        }
+        Ok(Self {
+            port,
+            token,
+            child,
+            job: Some(job),
+            logs,
+        })
+    }
+
+    /// Launch the canonical Rust Core in place of the legacy Python entrypoint.
+    ///
+    /// The Core's contract differs from the entrypoint's in three ways, and all three
+    /// are load-bearing: it takes its workspace database and port as arguments rather
+    /// than through the environment; it reads its launch identity as a JSON document on
+    /// stdin and refuses the launch if that document is absent or malformed; and it
+    /// signals readiness by serving HTTP rather than by printing. Because this host
+    /// chooses the port itself, readiness is probed on the Core's own version route.
+    pub fn launch_core(spec: &CoreSpec) -> Result<Self, String> {
+        std::fs::create_dir_all(&spec.data_dir)
+            .map_err(|error| format!("failed to create desktop data directory: {error}"))?;
+        let job = Job::new()?;
+        let port = choose_loopback_port()?;
+        let token = launch_token()?;
+        // A second, distinct credential: the Core refuses a machine token equal to the
+        // launch token. The session identifier is the first half of it, which is already
+        // the thirty-two hex characters the Core requires.
+        let machine_token = launch_token()?;
+        let session_id = machine_token[..32].to_owned();
+        let logs = new_log_buffer();
+        let mut command = Command::new(&spec.executable);
+        command
+            .arg(&spec.workspace_db)
+            .arg(port.to_string())
+            .current_dir(&spec.cwd)
+            .stdin(Stdio::piped())
+            .stdout(Stdio::piped())
+            .stderr(Stdio::piped());
+        for name in SANITIZED_ENVIRONMENT {
+            command.env_remove(name);
+        }
+        let mut child = command
+            .spawn()
+            .map_err(|error| format!("failed to start canonical Core: {error}"))?;
+        if let Err(error) = job.assign(&child) {
+            let _ = child.kill();
+            let _ = child.wait();
+            return Err(error);
+        }
+        // Deliver the launch document, then close stdin: the Core reads to end of input
+        // before it validates anything, so leaving the pipe open would hang the launch.
+        match child.stdin.take() {
+            Some(mut stdin) => {
+                let document = core_launch_document(&token, &machine_token, &session_id);
+                if stdin.write_all(document.as_bytes()).is_err() {
+                    let _ = child.kill();
+                    let _ = child.wait();
+                    return Err("failed to deliver the Core launch document".to_owned());
+                }
+            }
+            None => {
+                let _ = child.kill();
+                let _ = child.wait();
+                return Err("Core launch input pipe is unavailable".to_owned());
+            }
+        }
+        drain_child_output(&mut child, Arc::clone(&logs), "core");
+        if let Err(error) = wait_for_readiness(&mut child, port, &token, &logs, CORE_VERSION_PATH) {
             let _ = child.kill();
             let _ = child.wait();
             return Err(error);
@@ -362,6 +474,7 @@ fn wait_for_readiness(
     port: u16,
     token: &str,
     logs: &LogBuffer,
+    path: &str,
 ) -> Result<(), String> {
     let deadline = Instant::now() + READINESS_TIMEOUT;
     loop {
@@ -374,7 +487,7 @@ fn wait_for_readiness(
                 format_logs(logs)
             ));
         }
-        if probe_readiness(port, token).is_ok() {
+        if probe_readiness(port, token, path).is_ok() {
             return Ok(());
         }
         if Instant::now() >= deadline {
@@ -387,14 +500,14 @@ fn wait_for_readiness(
     }
 }
 
-fn probe_readiness(port: u16, token: &str) -> Result<(), &'static str> {
+fn probe_readiness(port: u16, token: &str, path: &str) -> Result<(), &'static str> {
     let address = ([127, 0, 0, 1], port).into();
     let Ok(mut stream) = TcpStream::connect_timeout(&address, Duration::from_millis(300)) else {
         return Err("connect");
     };
     let _ = stream.set_read_timeout(Some(Duration::from_secs(3)));
     let request = format!(
-        "GET /workspace/api/_desktop/ready HTTP/1.0\r\nHost: 127.0.0.1:{port}\r\nX-ArcheAxis-Launch-Token: {token}\r\nConnection: close\r\n\r\n"
+        "GET {path} HTTP/1.0\r\nHost: 127.0.0.1:{port}\r\nX-ArcheAxis-Launch-Token: {token}\r\nConnection: close\r\n\r\n"
     );
     if stream.write_all(request.as_bytes()).is_err() {
         return Err("write");
@@ -535,6 +648,8 @@ mod tests {
     use std::process::{Command, Stdio};
     use std::thread;
     use std::time::{Duration, Instant};
+    use crate::backend::core_launch_document;
+    use crate::backend::CORE_LAUNCH_PROTOCOL;
     use tempfile::tempdir;
 
     #[test]
@@ -557,6 +672,25 @@ mod tests {
 
         assert_eq!(setting, Some(OsStr::new("1")));
         assert_eq!(arguments, [OsStr::new("-B"), OsStr::new("-I")]);
+    }
+
+    #[test]
+    fn core_launch_document_carries_exactly_the_contract_the_core_enforces() {
+        // These are the rules the Core refuses a launch for, so the host must satisfy
+        // all of them: sixty-four hex characters for each credential, thirty-two for the
+        // session, the exact protocol string, a human actor, and two differing tokens.
+        let token = "a".repeat(64);
+        let machine = "b".repeat(64);
+        let session = machine[..32].to_owned();
+        let document = core_launch_document(&token, &machine, &session);
+        let parsed: serde_json::Value =
+            serde_json::from_str(&document).expect("the launch document is valid JSON");
+        assert_eq!(parsed["protocol"], CORE_LAUNCH_PROTOCOL);
+        assert_eq!(parsed["actor"], "human");
+        assert_eq!(parsed["launch_token"].as_str().map(str::len), Some(64));
+        assert_eq!(parsed["machine_token"].as_str().map(str::len), Some(64));
+        assert_eq!(parsed["session_id"].as_str().map(str::len), Some(32));
+        assert_ne!(parsed["launch_token"], parsed["machine_token"]);
     }
 
     #[test]
