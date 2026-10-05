@@ -996,6 +996,27 @@ jobs:
           python -m desktop.scripts.prepare_bundle
           --repository .
           --destination .project-local/rt
+      # The resource map can only name directories that exist when the bundle is built, and
+      # the preparation step above stages the Python runtime alone. Without a Core in the
+      # staged tree the shell finds nothing to launch and keeps the legacy entrypoint, so
+      # the Core is built and placed here rather than assumed to be somewhere.
+      - name: Build the canonical Core
+        run: cargo build -p archeaxis-api --bin archeaxis-api --release
+      - name: Place the canonical Core beside the runtime
+        run: >-
+          python -m desktop.scripts.prepare_bundle
+          --core-only
+          --destination .project-local/rt
+          --core .project-local/build/tauri/release/archeaxis-api.exe
+          --workers services/python-workers
+      - name: Assert the bundle carries the Core and its workers
+        shell: pwsh
+        run: |
+          foreach ($relative in @('rt\core\archeaxis-api.exe', 'rt\workers\routes.json')) {
+            $path = Join-Path '.project-local' $relative
+            if (-not (Test-Path $path)) { throw "bundle is missing $relative" }
+            Write-Host "present: $relative"
+          }
       - name: Inject CI candidate identity
         shell: pwsh
         run: |
