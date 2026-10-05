@@ -52,12 +52,10 @@ def tree_facts() -> dict[str, int]:
 
 
 def router_mounts() -> tuple[int, int, int]:
-    """(projection mounts, conditional mounts, runtime mounts), from the router source.
+    """Count unconditional projection, optional manual receipt and runtime mounts.
 
-    Counted from the two builders rather than from the inventory, because this is what §6's
-    "26 projection routes + the 4 runtime routes" has to add up against. The projection builder
-    mounts 25 unconditional routes - one of them, `/learning/items/:item_key/assessment`, carries
-    both GET and POST - plus one conditional legacy mount, and the runtime builder mounts 4.
+    A mount with GET and POST is one mount and two production method/path pairs.
+    The conditional manual receipt is counted separately and excluded in production.
     """
     lib = (REPO / "crates/archeaxis-api/src/lib.rs").read_text(encoding="utf-8")
     runtime = (REPO / "crates/archeaxis-api/src/runtime/mod.rs").read_text(encoding="utf-8")
@@ -85,30 +83,26 @@ def test_the_contracts_route_counts_match_the_source():
 
 
 def test_the_launch_shape_split_adds_up():
-    """§6 splits the surface into projection routes plus the runtime routes.
-
-    The split is checked against the routers rather than repeated from the table, so the
-    arithmetic in §6 has to hold on its own. It does: the projection builder mounts 25
-    unconditional routes and one conditional legacy mount, which is 26 addresses, and the 19
-    runtime routes make 45 - the same total the inventory lists. A reader counting mounts will
-    see 25 and 19; a reader counting addresses will see 26 and 19. Both reach 45, and this test
-    records the distinction so neither number is mistaken for the other.
-
-    The runtime builder grew from 4 to 9 as R7 added the three capability paths, the machine answer, the cited Ask, the human correction, the retest, the vault link parse, the vault link record and the vault member classification. Adding them
-    to the runtime builder rather than to the projections is deliberate: the capability surface
-    reads the executor's registered routes, and the executor is the runtime router's state, while
-    the projection builder holds only the store.
-    """
+    """Production method/path pairs differ from route mounts and omit manual receipts."""
     projections, conditional, runtime = router_mounts()
     inventory = tree_facts()["inventory_pairs"]
-    assert projections == 25, (
-        f"the projection builder mounts {projections} routes; §3's own row count depends on this")
-    assert conditional == 1, f"conditional mounts changed: {conditional}"
-    assert runtime == 19, f"the runtime builder mounts {runtime} routes, §6 says 19"
-    assert projections + conditional + runtime == inventory, (
-        f"{projections} + {conditional} + {runtime} does not reach the inventory's {inventory}")
-    # and the inventory's pair count must account for the dual-method route
-    assert inventory - (projections + conditional + runtime) == 0
+    assert projections == 35, f"unconditional projection mounts changed: {projections}"
+    assert conditional == 1, f"conditional manual receipt mounts changed: {conditional}"
+    assert runtime == 19, f"runtime mounts changed: {runtime}"
+    lib = (REPO / "crates/archeaxis-api/src/lib.rs").read_text(encoding="utf-8")
+    projection_builder = lib[lib.index("pub fn projections("):lib.index("let routes = if manual_receipts")]
+    runtime_source = (REPO / "crates/archeaxis-api/src/runtime/mod.rs").read_text(encoding="utf-8")
+    runtime_builder = runtime_source[runtime_source.index("pub fn router("):runtime_source.index(".merge(projections)")]
+    method_pattern = r"\b(?:get|post|put|patch|delete)\s*\("
+    projection_pairs = len(re.findall(method_pattern, projection_builder))
+    runtime_pairs = len(re.findall(method_pattern, runtime_builder))
+    assert projection_pairs == 39, f"projection method/path pairs changed: {projection_pairs}"
+    assert runtime_pairs == 19, f"runtime method/path pairs changed: {runtime_pairs}"
+    assert projection_pairs + runtime_pairs == inventory
+    contract = CONTRACT.read_text(encoding="utf-8")
+    assert "39 projection method/path pairs" in contract
+    assert "35 unconditional mounts" in contract
+    assert "manual legacy `/jobs/{id}/receipts` remains absent" in contract
 
 
 def test_the_runbooks_case_counts_match_the_matrix():

@@ -1189,6 +1189,7 @@ jobs:
             .project-local/task-runtime/aaos01-webdriver/**/receipt.json
             .project-local/task-runtime/aaos01-webdriver/**/*.png
             .project-local/task-runtime/aaos01-webdriver/**/driver.log
+            .project-local/task-runtime/aaos01-webdriver/**/native-driver.log
             .project-local/task-runtime/aaos01-native-tools/receipt.json
             .project-local/task-runtime/aaos01-native-tools/cargo-install.log
           if-no-files-found: error

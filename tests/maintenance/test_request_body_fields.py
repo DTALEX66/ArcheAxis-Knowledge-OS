@@ -26,7 +26,7 @@ EXPECTED: dict[str, tuple[str, ...]] = {
     "ImportBody": ("name", "content_base64", "origin_kind?", "origin_ref?", "origin_name?",
                    "received_at?"),
     "EnqueueBody": ("job_id", "kind", "input_ref"),
-    "AnchorBody": ("revision", "position"),
+    "AnchorBody": ("revision", "position", "checksum?"),
     "KnowledgeBody": ("knowledge_type", "body", "status", "created_by", "v3?"),
     "KnowledgeFromTransformBody": ("knowledge_type", "body", "source_id", "job_id", "transform_id",
                                    "selection_start_utf16", "selection_end_utf16", "quote"),

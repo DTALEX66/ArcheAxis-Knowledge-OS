@@ -228,6 +228,7 @@ def parse(raw, media):
     if len(locations) > MAX_LOCATIONS:
         raise ValueError("light format location budget exceeded")
     return text, {"format": name, "parsed": True, "locations": locations,
-                  "locations_capped": capped if name in {"csv", "tsv"} else False}, [
-        "native value locations are structure facts; canonical anchors refer to projected text lines" +
-        ("; native cell locations capped at 2000" if name in {"csv", "tsv"} and capped else "")]
+                  "location_model": "native values; canonical anchors refer to projected text lines",
+                  "locations_capped": capped if name in {"csv", "tsv"} else False}, (
+        ["native cell locations capped at 2000"] if name in {"csv", "tsv"} and capped else []
+    )

@@ -7,8 +7,26 @@ use std::io::Read;
 #[serde(deny_unknown_fields)]
 pub struct Request {
     pub operation: Operation,
-    #[serde(default)]
+    #[serde(default = "empty_payload", deserialize_with = "object_payload")]
     pub payload: Value,
+}
+
+fn empty_payload() -> Value {
+    serde_json::json!({})
+}
+
+fn object_payload<'de, D>(deserializer: D) -> Result<Value, D::Error>
+where
+    D: serde::Deserializer<'de>,
+{
+    let value = Value::deserialize(deserializer)?;
+    if value.is_object() {
+        Ok(value)
+    } else {
+        Err(serde::de::Error::custom(
+            "CORE_COMMAND_PAYLOAD_OBJECT_REQUIRED",
+        ))
+    }
 }
 
 #[derive(Deserialize)]
@@ -445,5 +463,25 @@ mod tests {
         )
         .unwrap();
         assert!(route(&request).is_err());
+    }
+
+    #[test]
+    fn envelope_payload_matches_the_schema_object_boundary() {
+        for payload in [
+            Value::Null,
+            serde_json::json!([]),
+            serde_json::json!(42),
+            serde_json::json!("body"),
+        ] {
+            assert!(serde_json::from_value::<Request>(
+                serde_json::json!({"operation":"system_version","payload":payload})
+            )
+            .is_err());
+        }
+        let default =
+            serde_json::from_value::<Request>(serde_json::json!({"operation":"system_version"}))
+                .unwrap();
+        assert!(default.payload.is_object());
+        assert!(route(&default).is_ok());
     }
 }

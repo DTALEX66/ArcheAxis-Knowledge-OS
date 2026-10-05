@@ -255,6 +255,8 @@ def test_request_single_field_negatives_hit_expected_subpaths():
 def test_schema_matrix_coverage_status_is_explicit():
     # Positive/negative coverage status for every v1 schema (audit contract).
     status = {
+        "core-command.schema.json": "covered (finite command positives and denied fields/operations)",
+        "core-document.schema.json": "covered (canonical DTO definitions positive/negative cases)",
         "worker-protocol.schema.json": "covered (response negatives + hello/request here)",
         "job-status.schema.json": "covered",
         "anchor-coordinate.schema.json": "covered",
@@ -276,3 +278,39 @@ def test_schema_matrix_coverage_status_is_explicit():
     }
     present = {p.name for p in CONTRACTS.glob("*.schema.json")}
     assert set(status) == present
+
+
+def test_native_finite_command_schema_rejects_unknown_operations_and_top_level_credentials():
+    import copy
+    valid = {"operation": "document_get", "payload": {"document_id": "doc_fixture"}}
+    assert not _errors("core-command.schema.json", valid)
+    invalid = copy.deepcopy(valid)
+    invalid["operation"] = "arbitrary_http_request"
+    assert _errors("core-command.schema.json", invalid)
+    invalid = copy.deepcopy(valid)
+    invalid["token"] = "fixture-not-a-credential"
+    assert _errors("core-command.schema.json", invalid)
+
+
+def test_native_canonical_dto_definitions_validate_without_copying_the_schema():
+    import copy
+    schema = json.loads((CONTRACTS / "core-document.schema.json").read_text(encoding="utf-8"))
+    source = {"source_id":"src_fixture","source_revision":"a"*64,"sha256":"a"*64,"original_name":"fixture.txt","imported_at":"2026-10-05"}
+    document = {"document_id":"doc_fixture","source_id":source["source_id"],"source_revision":source["source_revision"],"title":"Fixture","version":1,"editor_json":{"type":"doc","content":[]},"text_projection":"","content_sha256":"b"*64,"blocks":[]}
+    cases = {
+        "SourcesListDto": {"sources":[source]},
+        "OriginalDto": {"source_id":source["source_id"],"name":"fixture.txt","media_type":"text/plain","sha256":"a"*64,"content_base64":"Rml4dHVyZQ=="},
+        "DocumentDto": document,
+        "DocumentsListDto": {"documents":[{key:document[key] for key in ("document_id","source_id","source_revision","title","version","content_sha256")}]},
+        "AnchorsListDto": {"anchors":[{"anchor_id":"anchor_fixture","source_id":source["source_id"],"source_revision":"a"*64,"position":"{}","location_status":"unverified"}]},
+    }
+    for name, valid in cases.items():
+        validator = Draft202012Validator({"$schema":schema["$schema"],"$defs":schema["$defs"],"$ref":f"#/$defs/{name}"})
+        assert not list(validator.iter_errors(valid)), name
+        invalid = copy.deepcopy(valid)
+        invalid.pop(next(iter(valid)))
+        assert list(validator.iter_errors(invalid)), name
+    invalid = copy.deepcopy(document)
+    invalid["version"] = "one"
+    validator = Draft202012Validator({"$defs":schema["$defs"],"$ref":"#/$defs/DocumentDto"})
+    assert list(validator.iter_errors(invalid))

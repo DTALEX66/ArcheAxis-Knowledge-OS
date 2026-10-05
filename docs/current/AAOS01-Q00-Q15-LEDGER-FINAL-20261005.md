@@ -1,5 +1,11 @@
 # AAOS-01 Q00–Q15 当前执行台账（2026-10-05）
 
+固定扩展提交 `7c5a9a0fd2a434ad431e83772d02b647a6d20011`，workflow `308098767`、run `37297859142`、attempt `1`，force_full最终FAILURE：desktop-fast/build成功；test、workers、contracts、lint、installer-lifecycle及a0-gates失败。已按用户限定授权下载该run失败日志，六份均非空并记录SHA，仅显示脱敏摘要。安装态首次WebDriver握手45秒超时，UI旅程未执行，根因UNKNOWN；不得由旧720提交全绿代替本次结论。等待期间未推送。
+
+本次后续修复统一schema登记/$id、35挂载/58方法路径的真实路由合同、启动/重试Core安全断言、架构路径规则、CSV/TSV定位说明与真正loss的区分；有限宿主payload只接对象且默认空对象。针对性108测试及29子测试PASS，宿主62测试和fmt PASS。原生driver诊断日志纳入安装态artifact，首次握手独立有界120秒，失败仍非零，不声称超时根因已修。最新重建宿主真实WebDriver c023206cafe64edda23737a0946bff84完整读写/并发/重启/备份恢复PASS。新固定SHA门禁待执行。
+
+当前较新本地worker候选a9 manifest SHA-256 `79cc58171213459badd2c93fdb185a65eaa1644c3a5a6da24f164892a7b6647e`，声明源7c5且暂存时dirty，仅证明组件实测。a8/rt为此前宿主验证资源，不冒称最终新SHA候选。全Windows pytest曾3971 PASS/8 FAIL，七合同类失败已针对性修复；一个深临时路径rmtree清理失败保留为本地fixture缺口，不声称全Windows测试通过。
+
 固定提交 `72039249a41f9ea98e38542feefbf8f74e013317` 的 workflow `308098767`、run `37280918681`、attempt `1`（workflow_dispatch、force_full）已核对 headSha，全部 20 个 job 实际完成且 success。desktop-fast、desktop-build、installer-lifecycle 的目标步骤及 a0-gates 均 success，没有从 skipped/cancelled 推导通过。原始 `run.json`、分页 `jobs.json`、`summary.json`、非空 `logs.zip`（2,132,560 字节）和 `full.log`（7,280,220 字节）保存在本工作树 `.project-local/task-runtime/aaos01-ci/37280918681-1/`。首次官方日志下载 90 秒超时并显式报错；同一绑定补采成功后才采纳结论。运行期间没有提交或推送。此 CI 只证明该固定提交，不能覆盖随后未提交的 Q04–Q12 扩展。
 
 任务编号和完成条件以 `docs/authority/taskpack-1004-aaos01/01_完整执行任务书.md` 为准。本文件维护既有 AAOS-01 切片当前状态；不可变任务包仍是执行规格，不是完成证据。历史回执保留原始候选、SHA 和能力范围，不自动提升为本轮或安装态验收。下述扩展已完成本地验证，尚待新固定 SHA 的完整 CI；不得由前述 72039249 的结果覆盖新代码。
@@ -12,17 +18,17 @@
 | --- | --- | --- |
 | Q00 现场保护与最小对账 | PARTIAL | 已复核起始 SHA、工作树与工具路径；本轮使用独立候选及全新 Core 数据根。未知用户资产、旧库与历史回执保留；完整资产/schema/writer 身份不因本轮格式测试自动完成。 |
 | Q01 重构决定与目录登记 | PARTIAL | 已有 SUP-022 重构登记；本轮统一使用权威 `stage_backend_runtime.py` 产出候选，desktop-fast/build 使用相同准备步骤。此项不是旧编号中的“打包完成”；Authority 与目录完整验收仍按任务书核对。 |
-| Q02 Tauri 启动与只读桥接 | TESTED_LOCAL / PARTIAL | 最终 src-tauri fmt --check PASS，cargo test 61 PASS/0 ignored，包含真实候选解释器及统一首次启动/重试选择。真实 WebDriver 连续三轮读写/重启/恢复 PASS，最终两轮使用严格失败传播探针；独立安装态完整桥接仍待新 CI。 |
+| Q02 Tauri 启动与只读桥接 | TESTED_LOCAL / PARTIAL | 最终 src-tauri fmt --check PASS，cargo test 62 PASS/0 ignored，包含真实候选解释器及统一首次启动/重试选择。真实 WebDriver 连续三轮读写/重启/恢复 PASS，最终两轮使用严格失败传播探针；独立安装态完整桥接仍待新 CI。 |
 | Q03 类型合同与权限 | PARTIAL | 既有启动契约、前缀隔离与权限测试保留；本轮未将单元测试提升为全部 DTO、对象权限与版本错误验收。生成合同、有限命令与对象范围需按任务书逐项读回。 |
-| Q04 原件与文档保存 | TESTED_LOCAL / PARTIAL | 已实现 schema10 CAS 原件、Document/Block、同事务 editor JSON/正文投影、稳定 block IDs、未知节点保真、乐观锁409、旧版本读取及恢复生成新版本；真实 file-backed Store/API 回归通过。25个约1MB文档的目录改为六字段摘要，尚待父代理最终统一回归。独立备份演练继续见Q11；不能从API代推installedUI。 |
+| Q04 原件与文档保存 | TESTED_LOCAL / PARTIAL | 已实现 schema10 CAS 原件、Document/Block、同事务 editor JSON/正文投影、稳定 block IDs、未知节点保真、乐观锁409、旧版本读取及恢复生成新版本；真实 file-backed Store/API 回归通过。25个约1MB文档的目录改为六字段摘要，全workspace --locked回归已PASS。独立备份演练继续见Q11；不能从API代推installedUI。 |
 | Q05 阅读与证据样板 | TESTED_LOCAL / PARTIAL | Tauri 已接有限命令、PDF.js、Tiptap、稳定块与版本、canonical引用；复用旧 Tauri DataTable/Section、Avalonia 来源链/折叠处理记录与导入回执布局。前端25文件164 tests、tsc、production build PASS；真实窗口中文阅读/保存/重启 PASS。物理IME与installed qualification未完成，PDF页锚点未伪写located。 |
 | Q06 A 波次多格式吸收 | TESTED_LOCAL / PARTIAL | a7独立A矩阵12/12通过：TXT/PDF/PNG/DOCX/XLSX/PPTX/HTML/Canvas/SRT/ZIP真实Core/worker/3产物/定位事实/损失及重启；PNG真实OCR文本、词boxes、stdin图像SHA已核实。WAV/MP4只media.probe头信息，不计解码、ASR或内容闭环。Office正/损坏四项均按预期成功/failed且重启一致。安装态逐格式与已知原生locator限制保留。 |
 | Q07 候选审核与纠正 | PARTIAL / AWAITING_OWNER | 新版审核同事务绑定实际knowledge version，过期409、machine403工程测试通过。已从权威任务书真实Source/job/transform摘录创建一个未接受候选，等待用户明确决定；工程设置human principal不当真人审核。 |
 | Q08 学习与 AI 资产闭环 | TESTED_LOCAL / PARTIAL | assessment/FSRS/幂等事件/机器任务/纠正入口已接有限Core。真实本机qwen3.5-4b经Core与候选worker回答公开工程夹具「37」，实际模型/提示版本/知识版本/任务及完全重启读回一致。该夹具审核明确AUTOMATED_FIXTURE_REVIEW_NOT_G4_HUMAN，结果unmeasured；真人决定、真人答案与纠正旅程仍缺，不虚构错误或效果。 |
 | Q09 搜索与完整能力目录 | TESTED_LOCAL / PARTIAL | 正典检索/审核页已接Core；从唯一CAPABILITY_ATLAS_V2.yaml与capability-map生成16个CAP目录及两源SHA，未来能力可浏览，握手/权限/调用证据分开，未匹配旧数字ID不伪造join。九个主导航复用正典页面与旧壳；生成检查/前端回归通过，完整真人检索旅程仍未验收。 |
-| Q10 导出与首个互通 profile | TESTED_LOCAL / PARTIAL | a7真实Rust Markdown/Obsidian固定两文件包、完整Document/未知节点/锚点/损失manifest、独立磁盘回读与Core重启导出相等通过。宿主有限导出仅写产品资料目录，无UI path输入。Obsidian应用尚未实际启动回读，不能把文件回读提升为外部软件验收。 |
+| Q10 导出与首个互通 profile | TESTED_LOCAL / PARTIAL | a7真实Rust Markdown/Obsidian固定两文件包、完整Document/未知节点/锚点/损失manifest、独立磁盘回读与Core重启导出相等通过。宿主有限导出仅写产品资料目录，无UI path输入。Obsidian1.13.7实际软件窗口回读document.md、已知正文与Source/EvidenceAnchor标签PASS（aaos01-obsidian-readback/receipt.json及actual-window.png非空）；链接目标未打开，链接互通保真仍未验收。 |
 | Q11 备份与副本恢复 | TESTED_LOCAL / PARTIAL | 现有Store一致live backup→全新独立DB与CAS副本恢复→完整文档/版本/原件读回→继续编辑/第二次重启全部PASS；原生host恢复与retry同一Core、版本3→2、CAS一致PASS。备份哈希/manifest与源CAS严格核验，损坏回滚测试通过；实际SQLite3.51.3（rusqlite=0.39.0），全workspace --locked回归PASS。安装态独立副本资格仍待。 |
-| Q12 B 波次轻量扩展 | TESTED_LOCAL / PARTIAL | a7独立13/13：CSV/TSV、JSON/JSONL、YAML/TOML/XML、EPUB、EML九项，各有实际结构/原件SHA/输出字节SHA/锚点/损失/导出/重启；坏EPUB、unsafe YAML、XML DTD/外部entity、坏JSONL四项failed且无输出。EPUB章节/段落/nav/资产SHA和EML头/正文/附件SHA已逐样本断言，附件未独立解析明确loss，EPUB Core原生定位仍unverified。没有用Q06代验，安装态扩展资格仍待。 |
+| Q12 B 波次轻量扩展 | TESTED_LOCAL / PARTIAL | a9独立13/13（aaos01-light/2b89a2fce76a4a67b8c0226b59b9b995/receipt.json）：CSV/TSV、JSON/JSONL、YAML/TOML/XML、EPUB、EML九项，各有实际结构/原件SHA/输出字节SHA/锚点/损失/导出/重启；坏EPUB、unsafe YAML、XML DTD/外部entity、坏JSONL四项failed且无输出。EPUB章节/段落/nav/资产SHA和EML头/正文/附件SHA已逐样本断言，附件未独立解析明确loss，EPUB Core原生定位仍unverified。没有用Q06代验，安装态扩展资格仍待。 |
 | Q13 性能与故障验证 | TESTED_LOCAL / PARTIAL | 真实Core四故障场景无产物且后续正常job恢复PASS；20次真实Tauri新进程/新Core根/新WebView profile启动，预先3s/1GB预算下P95=1.422s、完整自有树最大468340736字节PASS（OS磁盘缓存保留）。创建时间绑定父子进程排除旧父PID重用；CDP观察器不计入产品内存，退出命令清理不冒认WM_CLOSE。无观察器的WM_CLOSE独立PASS；安装态整机故障旅程仍缺。 |
 | Q14 Windows 安装态资格化 | NOT_RUN | 本地构建、候选完整、Rust/Python 测试和 CI 均不能替代独立安装包的真实桌面旅程；尚无 Installed Qualified。 |
 | Q15 第一包收口与第二包交接 | PARTIAL | 本表统一当前状态，47 份现场枚举的旧 Q02 逐轮记录已加历史指向、正文证据保留。Q14、核心完整旅程和 Owner Accepted 未完成，不能宣布第一包收口或冻结旧入口。 |

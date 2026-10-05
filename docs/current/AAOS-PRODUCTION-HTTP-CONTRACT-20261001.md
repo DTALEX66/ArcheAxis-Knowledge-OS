@@ -199,7 +199,7 @@ against what it launched; a mismatch means it is talking to a different Core.
 `runtime` and `contract` are hard-coded string literals, not derived from the crate
 version. Do not use them to infer a build.
 
-## 3. Route inventory (45 pairs in a `text_worker` launch)
+## 3. Route inventory (58 pairs in a `text_worker` launch)
 
 `PROD` = reachable in a production launch. `PROD` marks the routes the UI may rely on.
 All paths are relative to the loopback base URL.
@@ -278,6 +278,28 @@ is not registered is a `404` rather than a row about nothing.
 | 8 | `GET /api/v1/knowledge-items/{id}/v3` | any token | Knowledge V3 projection (`schema_version: "3.0.0"`). |
 | 9 | `GET /api/v1/knowledge-items/{id}/qualification` | any token | Qualification projection. |
 | 10 | `POST /api/v1/knowledge-items/{id}/review-decisions` | **human only** | Body `{action, reviewer, new_body?, note?}`; `action` ∈ `accepted`/`rejected`/`deprecated`/`modified`. Machine principal → `403`. This is the knowledge review and promotion path; R10 separately records machine-answer corrections; `modified` creates a successor revision. |
+
+### Native content and versioned review (AAOS-01 current source slice)
+
+These additions reflect the current Rust handlers and generated `core-document.schema.json` DTOs; they do not upgrade historical observations to a new exact-SHA CI or Owner qualification. Native UI calls the finite host bridge; credentials remain in the host. Document mutations reject unknown request fields and machine actors (`403`); stale `expected_version` is `409`, never a silent overwrite.
+
+| # | Method + path | Auth | Notes |
+| --- | --- | --- | --- |
+| 27 | `GET /api/v1/sources` | any token | `SourcesListDto`; immutable source revisions and original SHA. |
+| 28 | `GET /api/v1/sources/{source_id}/original` | any token | `OriginalDto`; bounded original bytes in `content_base64`, name, media type and SHA. |
+| 29 | `GET /api/v1/sources/{source_id}/anchors` | any token | `AnchorsListDto`; `located`, `unverified` and `revision_mismatch` remain distinct. |
+| 30 | `GET /api/v1/documents` | any token | `DocumentsListDto` of metadata `DocumentSummaryDto`, not full editor content. |
+| 31 | `POST /api/v1/documents` | **human only** | Body `{source_id, source_revision, title, editor_json}`; real source revision required. Returns `DocumentDto`, stable block IDs; unknown node JSON preserved. |
+| 32 | `GET /api/v1/documents/{document_id}` | any token | Current `DocumentDto`, editor JSON, blocks and derived text in one version. |
+| 33 | `PUT /api/v1/documents/{document_id}/draft` | **human only** | Body `{expected_version, editor_json}`; atomic save returns new `DocumentDto`; stale version `409`. |
+| 34 | `GET /api/v1/documents/{document_id}/versions/{version}` | any token | Immutable historical `DocumentDto`; unknown document/version `404`. |
+| 35 | `POST /api/v1/documents/{document_id}/restore` | **human only** | Body `{expected_version, restore_version}`; restore creates a new version, does not rewrite historical content. |
+| 36 | `GET /api/v1/documents/{document_id}/export?format=` | any token | `format=markdown` or `obsidian`; `DocumentExportDto` includes text projection and manifest preserving structured nodes and explicit loss. External application acceptance is separate. |
+| 37 | `POST /api/v1/knowledge/{id}/review/versioned` | **human only** | Body `{action, reviewer, expected_version, note?, new_body?}`; expected knowledge version required; stale `409` with `current_version`; machine `403`. Successful `{knowledge_id, version}` does not supply a human identity on behalf of the user. |
+| 38 | `GET /api/v1/workspace/backups` | any token | `BackupsListDto`; product-owned backup artifacts with SHA, bytes, schema/SQLite version and original source hashes. |
+| 39 | `POST /api/v1/workspace/backups` | **human only** | No caller path; creates a consistent product-owned backup and returns its manifest. Independent restore/readback remains a separate assertion. |
+
+`AnchorBody` is `{revision, position, checksum?}`. For a UTF-8 text locator, `start`/`end` are byte offsets and `checksum` identifies the selected slice; Core validates the bytes and boundaries. A source revision alone is not proof of a located page or text range.
 
 ### Search
 
@@ -507,8 +529,8 @@ Before the fix this endpoint answered `500` with a raw FTS5 parser message for
 
 | Launch | Routes served | Consequence for the UI |
 | --- | --- | --- |
-| **no** `text_worker` | 26 projection addresses (25 mounted routes, one of which carries GET and POST, plus the conditional legacy `/jobs/{id}/receipts`) | `/jobs/{id}`, `/executions`, `/outputs`, `/cancel`, `/capabilities` and its enable/disable write are **absent** (`404`). |
-| **with** `text_worker` | 45 addresses (the 26 projection addresses + the 19 runtime routes) | All routes above are served. |
+| **no** `text_worker` | 39 projection method/path pairs (35 unconditional mounts, four dual-method mounts); manual legacy `/jobs/{id}/receipts` remains absent from production | `/jobs/{id}`, `/executions`, `/outputs`, `/cancel`, `/capabilities` and its enable/disable write are **absent** (`404`). |
+| **with** `text_worker` | 58 addresses (39 projection method/path pairs + 19 runtime method/path pairs) | All routes above are served. |
 
 The runtime builder carries **19** routes, mounted there rather than with the projections because
 the capability surface reads the executor's registered routes, and the executor is the runtime

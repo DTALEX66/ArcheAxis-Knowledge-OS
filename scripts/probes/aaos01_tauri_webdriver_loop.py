@@ -32,17 +32,37 @@ def main():
     parser.add_argument("--driver", type=Path)
     parser.add_argument("--native-driver", type=Path)
     parser.add_argument(
+        "--session-timeout",
+        type=int,
+        default=120,
+        help="Bounded cold WebView2 handshake timeout; failure remains nonzero",
+    )
+    parser.add_argument(
         "--installer",
         type=Path,
         help="Exact parent-verified NSIS installer identity; does not itself establish installation",
     )
     args = parser.parse_args()
+    if not 45 <= args.session_timeout <= 180:
+        parser.error("session timeout must be between 45 and 180 seconds")
     host = args.host.resolve()
     tools = REPO / ".project-local/task-runtime/aaos01-tools"
     driver = (args.driver or tools / "tauri-driver-2.1.0/bin/tauri-driver.exe").resolve()
     edge = (args.native_driver or tools / "edge-154.0.4258.48/msedgedriver.exe").resolve()
     work = REPO / ".project-local/task-runtime/aaos01-webdriver" / uuid.uuid4().hex
     work.mkdir(parents=True)
+    native_log = work / "native-driver.log"
+    wrapper = work / "native-driver.cmd"
+    # Tauri forwards only its owned --port/--host arguments. The native driver
+    # otherwise discards diagnostics; capture them in this probe's own root.
+    wrapper.write_text(
+        '@echo off\r\n"'
+        + str(edge).replace("%", "%%")
+        + '" --log-level=INFO --log-path="'
+        + str(native_log).replace("%", "%%")
+        + '" %*\r\nexit /b %ERRORLEVEL%\r\n',
+        encoding="utf-8",
+    )
     port, native = free_port(), free_port()
     env = dict(os.environ)
     for key in ("ARCHEAXIS_DEV_EXTERNAL_BACKEND", "WEBVIEW2_ADDITIONAL_BROWSER_ARGUMENTS"):
@@ -57,6 +77,10 @@ def main():
         "edge": identity(edge),
         "data_root": str(work / "data"),
         "steps": [],
+        "conditions": {
+            "new_session_timeout_seconds": args.session_timeout,
+            "ordinary_request_timeout_seconds": 45,
+        },
         "limitations": [
             "Candidate executable, not NSIS installed journey",
             "Programmatic Chinese text, not physical native IME",
@@ -82,7 +106,8 @@ def main():
             headers={"Content-Type": "application/json"},
         )
         try:
-            with urlopen(req, timeout=45) as response:
+            timeout = args.session_timeout if method == "POST" and path == "/session" else 45
+            with urlopen(req, timeout=timeout) as response:
                 value = json.load(response)["value"]
         except HTTPError as error:
             body = error.read().decode("utf-8", "replace")
@@ -216,7 +241,7 @@ def main():
                 "--native-port",
                 str(native),
                 "--native-driver",
-                str(edge),
+                str(wrapper),
             ],
             env=env,
             cwd=work,
@@ -396,6 +421,24 @@ def main():
         receipt["ok"] = False
         receipt["error"] = f"{type(error).__name__}: {error}"
         receipt["traceback"] = traceback.format_exc()
+        if process and process.poll() is None:
+            # Metadata only; no command lines, credentials or shared processes.
+            try:
+                diagnostic = subprocess.run(
+                    [
+                        "powershell.exe",
+                        "-NoProfile",
+                        "-Command",
+                        f'$pending=@({process.pid});$result=@();while($pending.Count){{$parent=$pending[0];$pending=@($pending|Select-Object -Skip 1);$children=@(Get-CimInstance Win32_Process -Filter "ParentProcessId=$parent"|Select-Object ProcessId,ParentProcessId,Name);$result+=$children;$pending+=@($children.ProcessId)}};$result|ConvertTo-Json -Compress',
+                    ],
+                    capture_output=True,
+                    text=True,
+                    timeout=15,
+                )
+                receipt["owned_failure_processes"] = json.loads(diagnostic.stdout or "[]")
+            except (OSError, subprocess.TimeoutExpired, json.JSONDecodeError) as diagnostic_error:
+                receipt["owned_failure_processes"] = "diagnostic collection failed"
+                receipt["diagnostic_error"] = type(diagnostic_error).__name__
         if session:
             try:
                 screenshot("failure.png")
@@ -410,10 +453,18 @@ def main():
                 receipt["ok"] = False
         if process and process.poll() is None:
             launcher = load("webdriver_dev", REPO / "scripts/runtime/dev.py")
-            launcher.stop_owned_process(process)
-            receipt["owned_process_cleanup"] = True
-            process.wait(timeout=15)
+            try:
+                launcher.stop_owned_process(process)
+                process.wait(timeout=15)
+                receipt["owned_process_cleanup"] = True
+            except (OSError, subprocess.TimeoutExpired) as cleanup_error:
+                receipt["owned_process_cleanup"] = False
+                receipt["cleanup_error"] = type(cleanup_error).__name__
+                receipt["ok"] = False
         log.close()
+        receipt["driver_log"] = identity(work / "driver.log")
+        if native_log.is_file():
+            receipt["native_driver_log"] = identity(native_log)
         path = work / "receipt.json"
         path.write_text(json.dumps(receipt, ensure_ascii=False, indent=2), encoding="utf-8")
         print(

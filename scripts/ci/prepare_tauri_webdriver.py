@@ -29,10 +29,10 @@ def main():
         "scope": "Project local only; no registry or global configuration writes",
     }
     try:
-        webview = (
-            Path(os.environ.get("PROGRAMFILES(X86)", "C:/Program Files (x86)"))
-            / "Microsoft/EdgeWebView/Application"
-        )
+        program_files = os.environ.get("PROGRAMFILES(X86)")
+        if not program_files:
+            raise RuntimeError("Windows PROGRAMFILES(X86) environment path is missing")
+        webview = Path(program_files) / "Microsoft/EdgeWebView/Application"
         versions = []
         for item in webview.iterdir():
             if (
