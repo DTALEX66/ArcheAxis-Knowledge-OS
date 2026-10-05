@@ -39,7 +39,9 @@ fn project_root_for_resource(resource_dir: &Path) -> Option<PathBuf> {
     resource_dir
         .ancestors()
         .find(|candidate| {
-            if !candidate.join("pyproject.toml").is_file() || !candidate.join(".project-local").is_dir() {
+            if !candidate.join("pyproject.toml").is_file()
+                || !candidate.join(".project-local").is_dir()
+            {
                 return false;
             }
             let Ok(relative) = resource_dir.strip_prefix(candidate.join(".project-local")) else {
@@ -165,8 +167,8 @@ fn resolve_runtime_for_profile(
 #[cfg(test)]
 mod tests {
     use super::{
-        RuntimeSpec, external_dev_enabled, portable_root_from_marker, resolve_runtime,
-        resolve_runtime_for_profile, resolve_runtime_with_portable_root,
+        external_dev_enabled, portable_root_from_marker, resolve_runtime,
+        resolve_runtime_for_profile, resolve_runtime_with_portable_root, RuntimeSpec,
     };
     use std::ffi::OsStr;
     use std::fs;

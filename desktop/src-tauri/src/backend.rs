@@ -6,7 +6,7 @@ use std::io::{BufRead, BufReader, ErrorKind, Read, Write};
 use std::net::{TcpListener, TcpStream};
 use std::path::Path;
 use std::process::{Child, Command, Stdio};
-use std::sync::{Arc, Mutex, mpsc};
+use std::sync::{mpsc, Arc, Mutex};
 use std::thread;
 use std::time::{Duration, Instant};
 
@@ -226,7 +226,8 @@ impl BackendProcess {
             return Err(error);
         }
         drain_child_output(&mut child, Arc::clone(&logs), "core");
-        if let Err(error) = wait_for_readiness(&mut child, port, &token, &logs, DESKTOP_READY_PATH) {
+        if let Err(error) = wait_for_readiness(&mut child, port, &token, &logs, DESKTOP_READY_PATH)
+        {
             let _ = child.kill();
             let _ = child.wait();
             return Err(error);
@@ -733,6 +734,9 @@ mod tests {
         readiness_payload_valid, response_body, restore_receipt_valid, run_restore_backup,
         runtime_command, shutdown_job_owned_child,
     };
+    use crate::backend::core_launch_document;
+    use crate::backend::CoreSpec;
+    use crate::backend::CORE_LAUNCH_PROTOCOL;
     use crate::runtime::RuntimeSpec;
     use std::ffi::OsStr;
     use std::fs;
@@ -740,9 +744,6 @@ mod tests {
     use std::process::{Command, Stdio};
     use std::thread;
     use std::time::{Duration, Instant};
-    use crate::backend::core_launch_document;
-    use crate::backend::CoreSpec;
-    use crate::backend::CORE_LAUNCH_PROTOCOL;
     use tempfile::tempdir;
 
     #[test]
@@ -811,9 +812,8 @@ mod tests {
                 external_dev: false,
                 profile: "installed-stable",
             };
-            let spec = CoreSpec::beside_runtime(&runtime).unwrap_or_else(|| {
-                panic!("the Core beside a {interpreter} runtime was not found")
-            });
+            let spec = CoreSpec::beside_runtime(&runtime)
+                .unwrap_or_else(|| panic!("the Core beside a {interpreter} runtime was not found"));
             assert_eq!(spec.executable, core, "{interpreter}");
         }
     }
@@ -826,9 +826,17 @@ mod tests {
             "staging": "C:/data/worker-staging",
             "routes": [{"capability": "pdf.extract", "script": "C:/root/workers/document/worker_pdf.py"}],
         });
-        let document = core_launch_document(&"a".repeat(64), &"b".repeat(64), &"c".repeat(32), Some(&worker));
+        let document = core_launch_document(
+            &"a".repeat(64),
+            &"b".repeat(64),
+            &"c".repeat(32),
+            Some(&worker),
+        );
         let parsed: serde_json::Value = serde_json::from_str(&document).expect("valid JSON");
-        assert_eq!(parsed["text_worker"]["routes"][0]["capability"], "pdf.extract");
+        assert_eq!(
+            parsed["text_worker"]["routes"][0]["capability"],
+            "pdf.extract"
+        );
     }
 
     #[test]
