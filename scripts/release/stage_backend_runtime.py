@@ -130,6 +130,38 @@ def validate_tree(source: Path) -> None:
             validate_tree(entry)
 
 
+def reject_nested_links(member: Path) -> None:
+    """Reject links anywhere inside a distribution, without re-judging its module names.
+
+    A distribution's own tree is upstream code. Names inside it that collide with the
+    protected set - fastapi ships a directory called `.agents`, litellm ships `auth`
+    directories - are modules of that package, not agent state or credentials. The
+    protected-name rule still applies to the entry itself and to every path above it,
+    which is where private state would actually sit; inside a distribution only the
+    link rule is meaningful, because a link is what could leave the staged tree.
+    """
+    for dirpath, dirnames, filenames in os.walk(member):
+        for entry in (*dirnames, *filenames):
+            full = Path(dirpath) / entry
+            try:
+                info = full.lstat()
+            except OSError:
+                continue
+            if stat.S_ISLNK(info.st_mode) or getattr(info, "st_file_attributes", 0) & 0x400:
+                raise ValueError("linked staging path rejected")
+
+
+def copy_distribution_tree(source: Path, target: Path) -> None:
+    """Copy one distribution directory, checking links but not its module names.
+
+    Its entry has already faced the full rule, so re-judging every nested name here
+    would only re-reject upstream modules that happen to share a protected name.
+    """
+    reject_nested_links(source)
+    shutil.copytree(source, target, dirs_exist_ok=True,
+                    ignore=shutil.ignore_patterns("__pycache__", "*.pyc", "*.pyo"))
+
+
 def copy_tree(source: Path, target: Path) -> None:
     validate_tree(source)
     validate_tree(target)
@@ -158,7 +190,11 @@ def copy_distribution(name: str, site_packages: Path, target_site_packages: Path
     if not members:
         raise ValueError(f"dependency not present in {site_packages}: {name}")
     for member in members:
-        validate_tree(member)
+        # The entry itself still faces the full rule, so a distribution named after a
+        # protected path is refused. Inside it, only links are rejected: its own module
+        # names are upstream code and are not re-judged.
+        reject_reparse(member)
+        reject_nested_links(member)
     reject_reparse(target_site_packages)
     has_module = any(entry.is_file() or (entry.is_dir() and not entry.name.endswith(".dist-info"))
                      for entry in members)
@@ -171,7 +207,7 @@ def copy_distribution(name: str, site_packages: Path, target_site_packages: Path
         destination = target_site_packages / member.name
         reject_reparse(destination)
         if member.is_dir():
-            copy_tree(member, destination)
+            copy_distribution_tree(member, destination)
         else:
             shutil.copy2(member, destination)
         copied.append(member.name)
@@ -247,7 +283,15 @@ def main() -> int:
         if candidate is not None:
             reject_reparse(candidate)
     # Preflight all recursive donors before producing even a partial output root.
-    for candidate in (args.runtime, args.workers, args.dep_source):
+    #
+    # The dependency source is deliberately NOT scanned recursively. It is a shared
+    # site-packages holding every installed distribution, most of them irrelevant to
+    # this slice, and judging each of their internal module names reads upstream code
+    # as if it were private state - litellm ships `auth` directories, fastapi ships
+    # `.agents`, and neither holds a credential. Only the distributions actually being
+    # copied are inspected, each at copy time, where its own tree is known to be the
+    # thing being staged. The source root itself still faces the full rule above.
+    for candidate in (args.runtime, args.workers):
         if candidate is not None:
             validate_tree(candidate)
     if not shared_donor.is_file():
