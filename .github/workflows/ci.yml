@@ -1033,7 +1033,16 @@ jobs:
           Write-Host ("engine packages present: " + ($found -join ', '))
           $missing = @('openpyxl', 'pptx', 'markitdown', 'pytesseract') | Where-Object { $_ -notin $found }
           if ($missing.Count -gt 0) {
-            throw "staged runtime is missing format engines: " + ($missing -join ', ')
+            throw "staged runtime is missing format engines: " + ($missing -join ', ')"
+          }
+          # OCR is an optional engine and the binary is not a Python package, so it is reported
+          # rather than required. Whether it is reachable decides whether scanned input can be
+          # handled, and a silent absence would look like a format that simply does not work.
+          $ocr = Get-Command tesseract -ErrorAction SilentlyContinue
+          if ($ocr) {
+            Write-Host ("OCR engine: " + $ocr.Source)
+          } else {
+            Write-Host "OCR engine: not on PATH - scanned input cannot be handled in this bundle"
           }
       - name: Inject CI candidate identity
         shell: pwsh
