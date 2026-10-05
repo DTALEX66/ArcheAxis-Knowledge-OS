@@ -35,6 +35,18 @@ describe("canonical content sample", () => {
       }
     });
   });
+  it("SIMULATED: reads historical text and revision basis without restoring or replacing the current draft", async () => {
+    const previous = bridge.call.getMockImplementation()!;
+    bridge.call.mockImplementation((operation: string, payload: Record<string, unknown>) => operation === "document_version" ? Promise.resolve({ ...doc, version: 1, text_projection: "历史正文独立保存", revision_basis: { rationale: "核对原件后修正年份", reference_version: 1 } }) : previous(operation, payload));
+    render(<CanonicalLibrarySpace />);
+    const user = userEvent.setup();
+    await user.click(await screen.findByRole("button", { name: "样板.txt · 文档" }));
+    await user.click(screen.getByRole("button", { name: "只读查看历史版本" }));
+    expect(await screen.findByText("历史正文独立保存")).toBeInTheDocument();
+    expect(screen.getByRole("textbox", { name: "文档草稿" })).toHaveTextContent("已保存笔记");
+    expect(screen.getByText(/核对原件后修正年份/)).toBeInTheDocument();
+    expect(bridge.call.mock.calls.some(([operation]) => operation === "document_restore" || operation === "document_draft")).toBe(false);
+  });
   it("does not let a late original creation discard newly edited text",async()=>{
     let complete!:(value:unknown)=>void;
     const previous=bridge.call.getMockImplementation()!;

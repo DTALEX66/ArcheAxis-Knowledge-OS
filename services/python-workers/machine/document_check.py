@@ -342,7 +342,47 @@ def execute(req: dict[str, Any]) -> dict[str, Any]:
         except Exception:
             raise CheckExecutionError("provider_call_failed") from None
         raw = answer.content
-        if not raw.strip() or len(raw.encode()) > 32_000:
+        if not isinstance(raw, str):
+            raise CheckExecutionError("invalid_model_response")
+        raw_bytes = raw.encode("utf8")
+        # Preserve bounded provider output even when its verdict is unusable.
+        # Oversized output remains digest-only; no body or exception is logged.
+        if len(raw_bytes) <= 32_000:
+            result["raw_response"] = raw
+        if len(raw_bytes) > 32_000:
+            result["engine_receipt"] = {
+                "response_sha256": sha(raw_bytes),
+                "response_bytes": len(raw_bytes),
+                "raw_response_stored": False,
+                "raw_response_omission_reason": "response_budget_exceeded",
+            }
+        actual_model = getattr(answer, "actual_model", None)
+        if (
+            isinstance(actual_model, str)
+            and actual_model.strip()
+            and actual_model != "unknown"
+            and len(actual_model) <= 256
+            and isinstance(answer.actual_finish_reason, str)
+            and 0 < len(answer.actual_finish_reason) <= 64
+            and answer.actual_finish_reason not in ("unknown", "unverified")
+            and type(answer.tokens_used) is int
+            and answer.tokens_used >= 0
+        ):
+            result["engine_receipt"] = {
+                "provider": provider,
+                "requested_model": model,
+                "model": actual_model,
+                "prompt_sha256": sha(prompt.encode()),
+                "response_sha256": sha(raw_bytes),
+                "finish_reason": answer.actual_finish_reason,
+                "tokens_used": answer.tokens_used,
+                "response_bytes": len(raw_bytes),
+                "raw_response_stored": len(raw_bytes) <= 32_000,
+                "raw_response_omission_reason": (
+                    None if len(raw_bytes) <= 32_000 else "response_budget_exceeded"
+                ),
+            }
+        if not raw.strip() or len(raw_bytes) > 32_000:
             raise CheckExecutionError("invalid_model_response")
         if (
             not isinstance(answer.actual_finish_reason, str)

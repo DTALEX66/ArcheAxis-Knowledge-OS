@@ -105,7 +105,12 @@ def test_actual_sdk_finish_field_cannot_be_fabricated(worker, monkeypatch, finis
             == hashlib.sha256(result["raw_response"].encode()).hexdigest()
         )
     else:
-        assert result["outcome"] == "failed" and result["engine_receipt"] is None
+        assert result["outcome"] == "failed"
+        if finish in ("length", "tool_calls"):
+            assert result["engine_receipt"]["finish_reason"] == finish
+            assert result["raw_response"] == choice["message"]["content"]
+        else:
+            assert result["engine_receipt"] is None
 
 
 @pytest.mark.parametrize("model", ["missing", None, ""])
@@ -175,3 +180,34 @@ def test_actual_cli_input_byte_budget_before_sdk(worker):
     assert result.returncode == 1
     assert len(result.stdout) < worker.MAX_OUTPUT
     assert json.loads(result.stdout)["reason"] == "invalid_request"
+
+
+@pytest.mark.parametrize(
+    "raw,finish,reason",
+    [
+        ("not JSON", "stop", "execution_failed"),
+        ('{"status":"faithful","basis":"partial"}', "length", "model_response_truncated"),
+        ('{"status":"supported","basis":"wrong dimension"}', "stop", "invalid_model_verdict"),
+        ("界" * 11000, "stop", "invalid_model_response"),
+    ],
+    ids=["invalid-json", "truncated", "wrong-status", "oversize-utf8"],
+)
+def test_failed_provider_output_retained_with_budget(worker, monkeypatch, raw, finish, reason):
+    # SIMULATED SDK transport; no network/model accuracy assertion.
+    payload = {
+        "choices": [{"message": {"content": raw}, "finish_reason": finish}],
+        "model": "actual-sdk-model",
+        "usage": {"total_tokens": 9},
+    }
+    monkeypatch.setitem(sys.modules, "litellm", SimpleNamespace(completion=lambda **kw: payload))
+    result = worker.execute(request())
+    assert result["outcome"] == "failed" and result["reason"] == reason
+    engine = result["engine_receipt"]
+    encoded = raw.encode("utf8")
+    assert engine["response_sha256"] == hashlib.sha256(encoded).hexdigest()
+    assert engine["response_bytes"] == len(encoded)
+    assert engine["model"] == "actual-sdk-model"
+    assert engine["raw_response_stored"] is (len(encoded) <= 32000)
+    assert result["raw_response"] == (raw if len(encoded) <= 32000 else "")
+    if len(encoded) > 32000:
+        assert engine["raw_response_omission_reason"] == "response_budget_exceeded"

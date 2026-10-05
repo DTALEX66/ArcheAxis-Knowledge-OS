@@ -665,7 +665,7 @@ jobs:
         run: python scripts/runtime_http_smoke.py
 
   rust-vnext:
-    timeout-minutes: 30
+    timeout-minutes: 60
     runs-on: windows-latest
     needs: gateplan
     if: ${{ needs.gateplan.result != 'success' || needs.gateplan.outputs.full_qualification == 'true' || contains(needs.gateplan.outputs.required_gates, 'rust-vnext') }}

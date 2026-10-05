@@ -1134,6 +1134,93 @@ mod cloud_execution_tests {
         c
     }
     #[test]
+    fn failed_provider_output_survives_retry_and_database_reopen() {
+        // SIMULATED worker response; this verifies storage, never cloud execution.
+        let directory = tempfile::tempdir().unwrap();
+        let path = directory.path().join("checks.sqlite");
+        let memory = setup();
+        memory
+            .execute("VACUUM INTO ?1", [path.to_str().unwrap()])
+            .unwrap();
+        drop(memory);
+        let mut c = Connection::open(&path).unwrap();
+        let first = begin_check(&mut c, "d", "request", "old-sha", None).unwrap();
+        let raw = "not valid JSON: original provider output";
+        let mut response = failed_check_response(&first.running, "model_response_truncated");
+        response["raw_response"] = json!(raw);
+        response["engine_receipt"] = json!({
+            "provider":"explicit", "requested_model":"explicit/model",
+            "model":"actual-fixture-model", "finish_reason":"length", "tokens_used":9,
+            "prompt_sha256":"a".repeat(64),
+            "response_sha256":hex::encode(Sha256::digest(raw.as_bytes())),
+            "response_bytes":raw.len(), "raw_response_stored":true,
+            "raw_response_omission_reason":null
+        });
+        let original = finish_check(
+            &mut c,
+            &first.running,
+            &response,
+            "explicit",
+            "explicit/model",
+        )
+        .unwrap();
+        assert_eq!(original["status"], "failed");
+        assert_eq!(original["execution_verified"], false);
+        assert_eq!(original["execution_state"], "failed");
+        drop(c);
+        let mut c = Connection::open(&path).unwrap();
+        let read_receipt = |conn: &Connection, id: &str| -> Value {
+            let raw: String = conn
+                .query_row(
+                    "SELECT receipt_json FROM document_checks WHERE check_id=?1",
+                    [id],
+                    |r| r.get(0),
+                )
+                .unwrap();
+            serde_json::from_str(&raw).unwrap()
+        };
+        assert_eq!(
+            read_receipt(&c, original["check_id"].as_str().unwrap()),
+            original
+        );
+        let retry = begin_check(
+            &mut c,
+            "d",
+            "request",
+            "old-sha",
+            original["attempt_id"].as_str(),
+        )
+        .unwrap();
+        let failed = failed_check_response(&retry.running, "provider_call_failed");
+        let latest = finish_check(
+            &mut c,
+            &retry.running,
+            &failed,
+            "explicit",
+            "explicit/model",
+        )
+        .unwrap();
+        assert_ne!(latest["attempt_id"], original["attempt_id"]);
+        assert_eq!(latest["retry_of_task_id"], original["attempt_id"]);
+        drop(c);
+        let c = Connection::open(&path).unwrap();
+        assert_eq!(
+            read_receipt(&c, original["check_id"].as_str().unwrap()),
+            original
+        );
+        assert_eq!(
+            read_receipt(&c, latest["check_id"].as_str().unwrap()),
+            latest
+        );
+        assert_eq!(original["raw_response"], raw);
+        assert_eq!(original["engine_receipt"], response["engine_receipt"]);
+        let count: i64 = c
+            .query_row("SELECT COUNT(*) FROM document_checks", [], |r| r.get(0))
+            .unwrap();
+        assert_eq!(count, 5); // request + running/terminal for each attempt
+    }
+
+    #[test]
     fn append_only_attempt_binds_version_and_explicit_retry() {
         let mut c = setup();
         let a = begin_check(&mut c, "d", "request", "old-sha", None).unwrap();

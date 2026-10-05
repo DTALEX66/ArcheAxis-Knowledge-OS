@@ -27,6 +27,8 @@ export function CanonicalLibrarySpace({onKnowledge,initialDocumentId,onDirtyChan
   const [epubSeek,setEpubSeek]=useState<{sourceId:string;position:EpubPosition}|undefined>();
   const [mediaSeek,setMediaSeek]=useState<{sourceId:string;milliseconds:number;sequence:number}|undefined>();
   const [restoreVersion, setRestoreVersion] = useState("1");
+  const [historicalDocument, setHistoricalDocument] = useState<DocumentDto | null>(null);
+  const historyGeneration = useRef(0);
   const [editorEpoch, setEditorEpoch] = useState(0);
   const [message, setMessage] = useState("正在读取资料…");
   const [failure, setFailure] = useState(false);
@@ -177,6 +179,21 @@ export function CanonicalLibrarySpace({onKnowledge,initialDocumentId,onDirtyChan
     }
     return { content: saved.editor_json as JSONContent, version: saved.version };
   }
+  async function readHistory() {
+    if (!document) return;
+    const epoch = generation.current;
+    const request = ++historyGeneration.current;
+    const version = Number(restoreVersion);
+    if (!Number.isInteger(version) || version < 1 || version > document.version) { setMessage("请输入已有的正整数版本。"); setFailure(true); return; }
+    try {
+      const historical = await coreCommand<DocumentDto>("document_version", { document_id: document.document_id, version });
+      if (epoch !== generation.current || request !== historyGeneration.current) return;
+      if (historical.document_id !== document.document_id || historical.version !== version) throw new Error("history identity mismatch");
+      setHistoricalDocument(historical); setMessage("历史版本已读取，当前草稿保持不变。"); setFailure(false);
+    } catch {
+      if (epoch === generation.current && request === historyGeneration.current) { setMessage("历史版本未读取，请重试。"); setFailure(true); }
+    }
+  }
   async function restore() {
     if (!document) return;
     const epoch = generation.current;
@@ -276,7 +293,8 @@ export function CanonicalLibrarySpace({onKnowledge,initialDocumentId,onDirtyChan
         {document ? <>
           <DocumentEditor key={`${document.document_id}:${editorEpoch}`} content={document.editor_json as JSONContent} version={document.version} onSave={save} onDirtyChange={(value) => { dirty.current = value; if(value)editGeneration.current+=1; onDirtyChange?.(value); window.dispatchEvent(new CustomEvent("archeaxis-draft-dirty", { detail: value })); }} onCreateReference={source && original && bytes ? cite : undefined} onReferenceActivate={jump} />
           <CheckPanel key={`checks:${document.document_id}:${document.version}`} document={document} onRevisionBasis={value=>{revisionBasis.current=value;}} />
-          <div className="draft-restore"><label>恢复历史版本 <input type="number" min="1" max={document.version} value={restoreVersion} onChange={(event) => setRestoreVersion(event.target.value)} /></label><button type="button" onClick={() => void restore()}>读取并恢复版本</button></div>
+          <div className="draft-restore"><label>恢复历史版本 <input type="number" min="1" max={document.version} value={restoreVersion} onChange={(event) => setRestoreVersion(event.target.value)} /></label><button type="button" onClick={() => void readHistory()}>只读查看历史版本</button><button type="button" onClick={() => void restore()}>读取并恢复版本</button></div>
+          {historicalDocument?.document_id===document.document_id?<section aria-label="历史版本详情"><h4>历史版本 {historicalDocument.version}</h4><pre>{historicalDocument.text_projection}</pre>{historicalDocument.revision_basis?<details><summary>历史修订依据</summary><pre>{JSON.stringify(historicalDocument.revision_basis,null,2)}</pre></details>:<p>此版本没有记录修订依据。</p>}<button type="button" onClick={()=>{historyGeneration.current+=1;setHistoricalDocument(null);}}>关闭历史详情</button></section>:null}
           <div><button type="button" onClick={()=>void exportDocument("markdown")}>Markdown 导出到产品资料目录</button><button type="button" onClick={()=>void exportDocument("obsidian")}>Obsidian 包导出到产品资料目录</button></div>
           {exportProof?<details><summary>导出格式与损失回执</summary><pre>{JSON.stringify(exportProof,null,2)}</pre></details>:null}
         </> : null}

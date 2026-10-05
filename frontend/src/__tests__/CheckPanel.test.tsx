@@ -8,6 +8,15 @@ const document:DocumentDto={document_id:"d",source_id:null,source_revision:null,
 const check={check_id:"c",document_id:"d",version:2,content_sha256:"hash",dimension:"recognition_fidelity",provider_mode:"cloud",status:"pending",actor:"human",execution_verified:false,execution_state:"not_executed",reason:"worker_not_configured"};
 describe("independent document checks",()=>{
  beforeEach(()=>{bridge.call.mockReset();});
+ it("SIMULATED: displays failed original model output as inert text without successful verification",async()=>{
+  const raw="<img src=x onerror=alert(1)> invalid JSON";
+  bridge.call.mockResolvedValue({document_id:"d",version:2,content_sha256:"hash",historical:false,default_status:"unverified",checks_capped:false,next_offset:null,checks:[{...check,actor:"machine",status:"failed",execution_state:"failed",execution_verified:false,raw_response:raw,engine_receipt:{finish_reason:"length",raw_response_stored:true},reason:"model_response_truncated"}]});
+  const {container}=render(<CheckPanel document={document} onRevisionBasis={vi.fn()}/>);
+  expect(await screen.findByText(raw)).toBeInTheDocument();
+  expect(container.querySelector("img")).toBeNull();
+  expect(screen.getByText(/任务执行失败/)).toBeInTheDocument();
+  expect(screen.queryByText(/云端任务已执行/)).not.toBeInTheDocument();
+ });
  it("reads the next page for the selected historical version",async()=>{
   bridge.call.mockImplementation(async(_op:string,payload:Record<string,unknown>)=>({document_id:"d",version:payload.version,content_sha256:"hash",historical:payload.version===1,default_status:"unverified",checks_capped:!payload.offset,next_offset:payload.offset?null:1000,checks:[]}));
   render(<CheckPanel document={document} onRevisionBasis={vi.fn()}/>);const user=userEvent.setup();
