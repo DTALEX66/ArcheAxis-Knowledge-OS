@@ -183,6 +183,22 @@ def test_ci_builds_and_tests_the_windows_desktop_shell() -> None:
     assert 'Write-Host "NSIS installers found:' in desktop_job
 
 
+def test_desktop_jobs_prepare_the_same_authoritative_candidate() -> None:
+    import yaml
+
+    jobs = yaml.safe_load(WORKFLOW.read_text(encoding="utf-8"))["jobs"]
+    preparations = []
+    for job in ("desktop-fast", "desktop-build"):
+        step = next(item for item in jobs[job]["steps"]
+                    if item.get("name") == "Prepare the installed Python runtime")
+        preparations.append(step["run"])
+        assert step["working-directory"] == "${{ github.workspace }}"
+    assert preparations[0] == preparations[1]
+    assert "cargo build -p archeaxis-api --bin archeaxis-api --release --locked" in preparations[0]
+    assert "--backend-candidate" in preparations[0]
+    assert "--core-only" not in preparations[0]
+
+
 def test_desktop_build_has_a_process_level_deadline() -> None:
     """A hung Tauri child must not outlive the CI job timeout indefinitely."""
     workflow = WORKFLOW.read_text(encoding="utf-8")

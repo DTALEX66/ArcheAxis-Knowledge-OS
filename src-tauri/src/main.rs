@@ -877,3 +877,42 @@ fn main() {
 fn main() {
     panic!("ArcheAxis desktop shell is supported only on Windows");
 }
+
+#[cfg(all(test, windows))]
+mod candidate_runtime_tests {
+    #[test]
+    fn host_launches_the_core_with_the_candidate_profile_interpreter() {
+        let repository = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
+            .parent()
+            .expect("repository root");
+        let candidate = repository.join(".project-local/rt");
+        let data = tempfile::tempdir().expect("fresh candidate workspace");
+        let runtime = crate::runtime::resolve_runtime_with_portable_root(
+            std::path::Path::new(env!("CARGO_MANIFEST_DIR")),
+            &candidate,
+            data.path(),
+            false,
+            Some(data.path()),
+        )
+        .expect("resolve the actual product runtime");
+        let profile: serde_json::Value = serde_json::from_slice(
+            &std::fs::read(candidate.join("worker-profile.json")).expect("candidate profile"),
+        )
+        .expect("valid profile JSON");
+        let expected = candidate.join(profile["python"].as_str().expect("profile interpreter"));
+        assert_eq!(runtime.python, expected);
+        let core = crate::backend::CoreSpec::beside_runtime(&runtime).expect("candidate Core");
+        let worker = core.text_worker.as_ref().expect("runtime routes enabled");
+        assert_eq!(worker["python"], expected.to_string_lossy().as_ref());
+        assert!(!worker["python"].as_str().unwrap().starts_with(r"\\?\"));
+        println!("host selected interpreter: {}", expected.display());
+        let mut process = crate::backend::BackendProcess::launch_core(&core)
+            .expect("real candidate Core readiness through product supervisor");
+        assert!(process.exit_diagnostic().expect("Core state").is_none());
+        process.shutdown();
+        assert!(process
+            .exit_diagnostic()
+            .expect("Core exit state")
+            .is_some());
+    }
+}

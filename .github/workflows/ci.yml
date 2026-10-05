@@ -880,7 +880,7 @@ jobs:
 
   desktop-fast:
     runs-on: windows-latest
-    timeout-minutes: 15
+    timeout-minutes: 30
     needs: gateplan
     if: ${{ needs.gateplan.result != 'success' || needs.gateplan.outputs.full_qualification == 'true' || contains(needs.gateplan.outputs.required_gates, 'desktop-fast') }}
     steps:
@@ -916,15 +916,32 @@ jobs:
       - name: Install locked Python runtime
         run: uv sync --frozen
       - name: Prepare the installed Python runtime
-        run: >-
-          python -m desktop.scripts.prepare_bundle
-          --repository .
-          --destination .project-local/rt
+        working-directory: ${{ github.workspace }}
+        run: |
+          cargo build -p archeaxis-api --bin archeaxis-api --release --locked
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          python -m desktop.scripts.prepare_bundle --backend-candidate --repository . --destination .project-local/rt --core "$env:CARGO_TARGET_DIR/release/archeaxis-api.exe"
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
       - name: Test the canonical Windows desktop shell
         working-directory: src-tauri
         run: |
           cargo fmt --all -- --check
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           cargo test
+      - name: Assert the staged runtime carries the format engines
+        working-directory: ${{ github.workspace }}
+        run: python -B -m desktop.scripts.assert_runtime_engines --candidate .project-local/rt
+      - name: Verify real XLSX and PPTX persistence
+        id: office_loop
+        working-directory: ${{ github.workspace }}
+        run: python -B scripts/probes/aaos01_office_runtime_loop.py --candidate .project-local/rt
+      - name: Upload Office loop receipt
+        if: ${{ always() && steps.office_loop.outcome != 'skipped' }}
+        uses: actions/upload-artifact@834a144ee995460fba8ed112a2fc961b36a5ec5a
+        with:
+          name: desktop-fast-office-loop-${{ github.sha }}-${{ github.run_attempt }}
+          path: .project-local/task-runtime/aaos01-office/**/receipt.json
+          if-no-files-found: error
       - name: Test the canonical desktop recovery contracts
         working-directory: src-tauri
         env:
@@ -992,23 +1009,12 @@ jobs:
         working-directory: frontend
         run: npm test -- --run
       - name: Prepare the installed Python runtime
-        run: >-
-          python -m desktop.scripts.prepare_bundle
-          --repository .
-          --destination .project-local/rt
-      # The resource map can only name directories that exist when the bundle is built, and
-      # the preparation step above stages the Python runtime alone. Without a Core in the
-      # staged tree the shell finds nothing to launch and keeps the legacy entrypoint, so
-      # the Core is built and placed here rather than assumed to be somewhere.
-      - name: Build the canonical Core
-        run: cargo build -p archeaxis-api --bin archeaxis-api --release
-      - name: Place the canonical Core beside the runtime
-        run: >-
-          python -m desktop.scripts.prepare_bundle
-          --core-only
-          --destination .project-local/rt
-          --core .project-local/build/tauri/release/archeaxis-api.exe
-          --workers services/python-workers
+        working-directory: ${{ github.workspace }}
+        run: |
+          cargo build -p archeaxis-api --bin archeaxis-api --release --locked
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          python -m desktop.scripts.prepare_bundle --backend-candidate --repository . --destination .project-local/rt --core "$env:CARGO_TARGET_DIR/release/archeaxis-api.exe"
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
       - name: Assert the bundle carries the Core and its workers
         shell: pwsh
         run: |
@@ -1017,33 +1023,9 @@ jobs:
             if (-not (Test-Path $path)) { throw "bundle is missing $relative" }
             Write-Host "present: $relative"
           }
-      # The workers import their engines directly, and an engine that is not installed only
-      # shows up when a job of that format runs - which no gate does. A candidate staged from
-      # an older tree can also look complete while lacking them, because preparation reuses an
-      # existing runtime. Asserting the engines here turns both into a build failure instead of
-      # a format failing later for a reason that has to be rediscovered.
       - name: Assert the staged runtime carries the format engines
-        shell: pwsh
-        run: |
-          $runtime = '.project-local/rt/runtime'
-          if (-not (Test-Path $runtime)) { throw "staged runtime is missing: $runtime" }
-          $found = @(Get-ChildItem $runtime -Recurse -Directory -ErrorAction SilentlyContinue |
-                     Where-Object { $_.Name -in @('openpyxl', 'pptx', 'markitdown', 'pytesseract') } |
-                     ForEach-Object { $_.Name } | Sort-Object -Unique)
-          Write-Host ("engine packages present: " + ($found -join ', '))
-          $missing = @('openpyxl', 'pptx', 'markitdown', 'pytesseract') | Where-Object { $_ -notin $found }
-          if ($missing.Count -gt 0) {
-            throw "staged runtime is missing format engines: " + ($missing -join ', ')"
-          }
-          # OCR is an optional engine and the binary is not a Python package, so it is reported
-          # rather than required. Whether it is reachable decides whether scanned input can be
-          # handled, and a silent absence would look like a format that simply does not work.
-          $ocr = Get-Command tesseract -ErrorAction SilentlyContinue
-          if ($ocr) {
-            Write-Host ("OCR engine: " + $ocr.Source)
-          } else {
-            Write-Host "OCR engine: not on PATH - scanned input cannot be handled in this bundle"
-          }
+        working-directory: ${{ github.workspace }}
+        run: python -B -m desktop.scripts.assert_runtime_engines --candidate .project-local/rt
       - name: Inject CI candidate identity
         shell: pwsh
         run: |

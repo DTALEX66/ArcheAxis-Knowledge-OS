@@ -792,13 +792,13 @@ mod tests {
     };
     use crate::backend::contract_path;
     use crate::backend::core_launch_document;
-    use std::path::Path as TestPath;
     use crate::backend::core_version_identity_valid;
     use crate::backend::CoreSpec;
     use crate::backend::CORE_LAUNCH_PROTOCOL;
     use crate::runtime::RuntimeSpec;
     use std::ffi::OsStr;
     use std::fs;
+    use std::path::Path as TestPath;
     use std::path::PathBuf;
     use std::process::{Command, Stdio};
     use std::thread;
@@ -1129,22 +1129,37 @@ mod tests {
     fn core_shutdown_drops_the_job_and_bounds_forced_exit_polling() {
         let temp = tempdir().expect("temporary directory");
         let stubborn_core = temp.path().join("stubborn-core.cmd");
+        // Development environments need not include Windows system tools on PATH.
+        let system_root =
+            PathBuf::from(std::env::var_os("SystemRoot").expect("Windows system root"));
+        let ping = system_root.join("System32/ping.exe");
+        let powershell = system_root.join("System32/WindowsPowerShell/v1.0/powershell.exe");
+        assert!(ping.is_file(), "fixture ping executable is missing");
+        assert!(
+            powershell.is_file(),
+            "fixture PowerShell executable is missing"
+        );
         fs::write(
             &stubborn_core,
-            concat!(
-                "@echo off\r\n",
-                "ping.exe -n 2 127.0.0.1 >nul\r\n",
-                "start \"\" /b powershell.exe -NoProfile -NonInteractive ",
-                "-Command \"Start-Sleep -Seconds 5\"\r\n",
-                "powershell.exe -NoProfile -NonInteractive ",
-                "-Command \"Start-Sleep -Seconds 5\"\r\n"
+            format!(
+                concat!(
+                    "@echo off\r\n",
+                    "\"{}\" -n 2 127.0.0.1 >nul\r\n",
+                    "start \"\" /b \"{}\" -NoProfile -NonInteractive ",
+                    "-Command \"Start-Sleep -Seconds 5\"\r\n",
+                    "\"{}\" -NoProfile -NonInteractive ",
+                    "-Command \"Start-Sleep -Seconds 5\"\r\n"
+                ),
+                ping.display(),
+                powershell.display(),
+                powershell.display(),
             ),
         )
         .expect("write stubborn Core fixture");
         let mut child = Command::new(&stubborn_core)
             .stdin(Stdio::null())
             .stdout(Stdio::null())
-            .stderr(Stdio::null())
+            .stderr(Stdio::piped())
             .spawn()
             .expect("spawn stubborn Core fixture");
         let mut job = Some(crate::job::Job::new().expect("create Core test job"));
@@ -1153,6 +1168,15 @@ mod tests {
             .assign(&child)
             .expect("assign stubborn Core to Job");
         thread::sleep(Duration::from_millis(1200));
+        if let Some(status) = child.try_wait().expect("inspect fixture before shutdown") {
+            let mut errors = Vec::new();
+            std::io::Read::read_to_end(
+                &mut child.stderr.take().expect("fixture stderr"),
+                &mut errors,
+            )
+            .expect("read fixture diagnostics");
+            panic!("stubborn fixture exited early: {status}: {errors:?}");
+        }
         let started = Instant::now();
 
         shutdown_job_owned_child(

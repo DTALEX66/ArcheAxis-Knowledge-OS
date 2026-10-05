@@ -23,11 +23,115 @@ launcher = module("backend_launcher")
 stager = module("stage_backend_runtime")
 
 
+def test_runtime_accepts_recorded_distribution_internal_names(tmp_path):
+    runtime = tmp_path / "runtime"
+    packages = runtime / "Lib" / "site-packages"
+    (packages / "fastapi" / ".agents").mkdir(parents=True)
+    (packages / "fastapi" / ".agents" / "guide.md").write_text("upstream")
+    info = packages / "fastapi-1.0.dist-info"
+    info.mkdir()
+    (info / "METADATA").write_text("Name: fastapi\nVersion: 1.0\n")
+    (info / "RECORD").write_text("fastapi/.agents/guide.md,,\nfastapi-1.0.dist-info/METADATA,,\nfastapi-1.0.dist-info/RECORD,,\n")
+    stager.validate_runtime_tree(runtime)
+
+
+def test_runtime_rejects_unrecorded_private_names(tmp_path):
+    runtime = tmp_path / "runtime"
+    (runtime / "Lib" / "site-packages" / "unknown" / "auth").mkdir(parents=True)
+    with pytest.raises(ValueError, match="protected staging path"):
+        stager.validate_runtime_tree(runtime)
+
+
+def test_runtime_rejects_private_file_beside_recorded_package_files(tmp_path):
+    runtime = tmp_path / "runtime"
+    packages = runtime / "Lib" / "site-packages"
+    (packages / "fastapi" / "auth").mkdir(parents=True)
+    (packages / "fastapi" / "auth" / "module.py").write_text("# upstream")
+    (packages / "fastapi" / "auth" / ".env.local").write_text("synthetic fixture")
+    info = packages / "fastapi-1.0.dist-info"
+    info.mkdir()
+    (info / "RECORD").write_text("fastapi/auth/module.py,,\n")
+    with pytest.raises(ValueError, match="protected staging path"):
+        stager.validate_runtime_tree(runtime)
+
+
+@pytest.mark.parametrize("name", ["auth", ".agents", ".env.local"])
+def test_runtime_record_cannot_approve_top_level_private_entries(tmp_path, name):
+    runtime = tmp_path / "runtime"
+    packages = runtime / "Lib" / "site-packages"
+    info = packages / "example-1.0.dist-info"
+    info.mkdir(parents=True)
+    (packages / name).write_text("synthetic fixture")
+    (info / "RECORD").write_text(f"{name},,\n")
+    with pytest.raises(ValueError, match="protected staging path"):
+        stager.validate_runtime_tree(runtime)
+
+
+def test_runtime_rejects_recorded_distribution_links(tmp_path):
+    runtime = tmp_path / "runtime"
+    packages = runtime / "Lib" / "site-packages"
+    (packages / "fastapi").mkdir(parents=True)
+    info = packages / "fastapi-1.0.dist-info"
+    info.mkdir()
+    (info / "METADATA").write_text("Name: fastapi\nVersion: 1.0\n")
+    (info / "RECORD").write_text("fastapi/linked/file.py,,\n")
+    donor = tmp_path / "donor"
+    donor.mkdir()
+    directory_link(packages / "fastapi" / "linked", donor)
+    with pytest.raises(ValueError, match="linked staging path"):
+        stager.validate_runtime_tree(runtime)
+
+
 def directory_link(link, target):
     if os.name == "nt":
         subprocess.run(["cmd", "/c", "mklink", "/J", str(link), str(target)], check=True, capture_output=True)
     else:
         link.symlink_to(target, target_is_directory=True)
+
+
+@pytest.mark.skipif(os.name != "nt", reason="Windows extended-length filesystem paths")
+def test_stager_copies_long_runtime_files_and_keeps_contract_paths_ordinary(tmp_path, monkeypatch):
+    import hashlib
+
+    runtime = tmp_path / "runtime"
+    runtime.mkdir()
+    (runtime / "python.exe").write_bytes(b"synthetic interpreter")
+    member = Path("Lib/site-packages/example") / ("nested" * 12) / ("module" * 12 + ".py")
+    source = runtime / member
+    assert len(str(source)) > 260
+    stager.filesystem_path(source.parent).mkdir(parents=True)
+    payload = b"# synthetic long path package member\n"
+    stager.filesystem_path(source).write_bytes(payload)
+    workers = tmp_path / "workers"
+    (workers / "transport").mkdir(parents=True)
+    (workers / "transport/text_ndjson.py").write_text("# fixture")
+    core = tmp_path / "core.exe"
+    core.write_bytes(b"synthetic Core")
+    donor = tmp_path / "scheduler.py"
+    donor.write_text("# fixture")
+    output = tmp_path / "output"
+    monkeypatch.setattr(sys, "argv", [
+        "stage_backend_runtime.py", "--core", str(core), "--runtime", str(runtime),
+        "--workers", str(workers), "--shared", str(donor), "--out", str(output),
+        "--version", "test", "--source-commit", "synthetic", "--source-tree", "synthetic",
+    ])
+    monkeypatch.setattr(stager, "packager_identity", lambda: "synthetic-tooling")
+    monkeypatch.setattr(stager.os, "popen", lambda *_: io.StringIO("synthetic-version"))
+    assert stager.main() == 0
+    staged = output / "runtime" / member
+    assert stager.filesystem_path(staged).read_bytes() == payload
+    expected_hash = hashlib.sha256(payload).hexdigest()
+    assert stager.sha256(staged) == expected_hash
+    assert stager.ordinary_path(stager.filesystem_path(staged)) == staged
+    manifest_text = (output / "backend-runtime-manifest.json").read_text()
+    manifest = json.loads(manifest_text)
+    key = (Path("runtime") / member).as_posix()
+    assert manifest["files"][key] == {"bytes": len(payload), "sha256": expected_hash}
+    for name in ("worker-profile.json", "backend-runtime-manifest.json", "start-backend.cmd"):
+        assert "\\\\?\\" not in (output / name).read_text()
+    profile = json.loads((output / "worker-profile.json").read_text())
+    assert profile["python"] == "runtime/python.exe"
+    assert profile["script"] == "workers/transport/text_ndjson.py"
 
 
 def profile(root, **updates):

@@ -26,6 +26,7 @@ recorded by version and content hash in the manifest.
 from __future__ import annotations
 
 import argparse
+import csv
 import hashlib
 import importlib.util
 import json
@@ -61,6 +62,17 @@ ROUTE_SCRIPTS: dict[str, tuple[str, ...]] = worker_routes.load(prefix="workers/"
 PRIVATE_NAMES = set([".git", ".codex", ".dsh", ".zcode", ".hermes", ".openhuman", ".claude", ".agents", ".agent", ".cursor", ".continue", ".aider", ".gemini", ".opencode", ".openhands", ".cline", ".roo", ".kilocode", ".windsurf", ".copilot", ".ssh", ".aws", ".azure", ".gnupg", "agent-private", "private-agent-state", "sessions", "memories", "keychain", "credentials", "auth", "browser-data", ".npmrc", ".pypirc", ".netrc"])
 
 
+def filesystem_path(path: Path) -> Path:
+    """Use extended paths for Windows file I/O only, never in launch contracts."""
+    absolute = os.path.abspath(path)
+    return Path("\\\\?\\" + absolute) if os.name == "nt" and not absolute.startswith("\\\\") else Path(absolute)
+
+
+def ordinary_path(path: Path) -> Path:
+    raw = str(path)
+    return Path(raw[4:] if raw.startswith("\\\\?\\") else raw)
+
+
 def present_routes(root: Path) -> list[dict[str, str]]:
     """Declare the capability routes this staged tree can actually serve.
 
@@ -79,7 +91,7 @@ def present_routes(root: Path) -> list[dict[str, str]]:
 
 def sha256(path: Path) -> str:
     digest = hashlib.sha256()
-    with path.open("rb") as handle:
+    with filesystem_path(path).open("rb") as handle:
         for block in iter(lambda: handle.read(1 << 20), b""):
             digest.update(block)
     return digest.hexdigest()
@@ -117,7 +129,7 @@ def reject_reparse(path: Path) -> None:
         raise ValueError("protected staging path")
     for part in (*reversed(path.parents), path):
         try:
-            info = part.lstat()
+            info = filesystem_path(part).lstat()
         except (FileNotFoundError, NotADirectoryError):
             continue
         if stat.S_ISLNK(info.st_mode) or getattr(info, "st_file_attributes", 0) & 0x400:
@@ -126,9 +138,54 @@ def reject_reparse(path: Path) -> None:
 
 def validate_tree(source: Path) -> None:
     reject_reparse(source)
-    if source.is_dir():
-        for entry in source.iterdir():
-            validate_tree(entry)
+    if filesystem_path(source).is_dir():
+        for entry in filesystem_path(source).iterdir():
+            validate_tree(ordinary_path(entry))
+
+
+def validate_runtime_tree(source: Path) -> None:
+    """Allow recorded upstream package files, while rejecting private extras/links.
+
+    Runtime roots and stdlib still face the full path rule. Only paths listed in
+    an installed distribution's RECORD (and their parent directories) bypass
+    package-internal name checks, as copy_distribution already does.
+    """
+    reject_reparse(source)
+    source = Path(os.path.abspath(source))
+    packages = source / "Lib" / "site-packages"
+    allowed: set[Path] = set()
+    if packages.is_dir():
+        reject_reparse(packages)
+        reject_nested_links(packages)
+        for info in packages.glob("*.dist-info"):
+            reject_reparse(info)
+            record = info / "RECORD"
+            if not record.is_file():
+                continue
+            for row in csv.reader(record.read_text(encoding="utf-8").splitlines()):
+                if not row or not row[0]:
+                    continue
+                relative = Path(row[0])
+                if not relative.parts:
+                    continue
+                if relative.is_absolute() or relative.drive or ".." in relative.parts:
+                    continue  # Scripts outside site-packages keep the full rule.
+                member = packages / relative
+                # A top-level private name never becomes an approved donor.
+                reject_reparse(packages / relative.parts[0])
+                allowed.add(member)
+                allowed.update(parent for parent in member.parents if parent.is_relative_to(packages))
+
+    def visit(path: Path) -> None:
+        if path in allowed:
+            reject_links_along(path)
+        else:
+            reject_reparse(path)
+        if filesystem_path(path).is_dir():
+            for entry in filesystem_path(path).iterdir():
+                visit(ordinary_path(entry))
+
+    visit(source)
 
 
 def reject_nested_links(member: Path) -> None:
@@ -141,7 +198,7 @@ def reject_nested_links(member: Path) -> None:
     which is where private state would actually sit; inside a distribution only the
     link rule is meaningful, because a link is what could leave the staged tree.
     """
-    for dirpath, dirnames, filenames in os.walk(member):
+    for dirpath, dirnames, filenames in os.walk(filesystem_path(member)):
         for entry in (*dirnames, *filenames):
             full = Path(dirpath) / entry
             try:
@@ -162,7 +219,7 @@ def reject_links_along(path: Path) -> None:
     resolved = Path(os.path.abspath(path))
     for part in (*reversed(resolved.parents), resolved):
         try:
-            info = part.lstat()
+            info = filesystem_path(part).lstat()
         except (FileNotFoundError, NotADirectoryError):
             continue
         if stat.S_ISLNK(info.st_mode) or getattr(info, "st_file_attributes", 0) & 0x400:
@@ -176,14 +233,14 @@ def copy_distribution_tree(source: Path, target: Path) -> None:
     would only re-reject upstream modules that happen to share a protected name.
     """
     reject_nested_links(source)
-    shutil.copytree(source, target, dirs_exist_ok=True,
+    shutil.copytree(filesystem_path(source), filesystem_path(target), dirs_exist_ok=True,
                     ignore=shutil.ignore_patterns("__pycache__", "*.pyc", "*.pyo"))
 
 
 def copy_tree(source: Path, target: Path) -> None:
     validate_tree(source)
     validate_tree(target)
-    shutil.copytree(source, target, dirs_exist_ok=True,
+    shutil.copytree(filesystem_path(source), filesystem_path(target), dirs_exist_ok=True,
                     ignore=shutil.ignore_patterns("__pycache__", "*.pyc", "*.pyo"))
 
 
@@ -427,9 +484,8 @@ def main() -> int:
     # `.agents`, and neither holds a credential. Only the distributions actually being
     # copied are inspected, each at copy time, where its own tree is known to be the
     # thing being staged. The source root itself still faces the full rule above.
-    for candidate in (args.runtime, args.workers):
-        if candidate is not None:
-            validate_tree(candidate)
+    validate_runtime_tree(args.runtime)
+    validate_tree(args.workers)
     if not shared_donor.is_file():
         raise ValueError(f"scheduler donor is missing: {shared_donor}")
     if not args.core.is_file():
@@ -448,7 +504,8 @@ def main() -> int:
 
     (root / "core").mkdir(parents=True)
     shutil.copy2(args.core, root / "core" / "archeaxis-api.exe")
-    copy_tree(args.runtime, root / "runtime")
+    shutil.copytree(filesystem_path(args.runtime), filesystem_path(root / "runtime"),
+                    ignore=shutil.ignore_patterns("__pycache__", "*.pyc", "*.pyo"))
     copy_tree(args.workers, root / "workers")
     (root / "data").mkdir()
 
@@ -491,9 +548,9 @@ def main() -> int:
         return result or "unknown"
 
     files: dict[str, dict[str, object]] = {}
-    for path in sorted(p for p in root.rglob("*") if p.is_file()):
+    for path in sorted(ordinary_path(p) for p in filesystem_path(root).rglob("*") if p.is_file()):
         relative = path.relative_to(root).as_posix()
-        files[relative] = {"bytes": path.stat().st_size, "sha256": sha256(path)}
+        files[relative] = {"bytes": filesystem_path(path).stat().st_size, "sha256": sha256(path)}
 
     manifest = {
         "schema": MANIFEST_SCHEMA,
@@ -562,8 +619,8 @@ def main() -> int:
     if args.archive:
         archive_path = args.archive.absolute()
         with zipfile.ZipFile(archive_path, "w", compression=zipfile.ZIP_DEFLATED) as archive:
-            for path in sorted(p for p in root.rglob("*") if p.is_file()):
-                archive.write(path, (root.name / path.relative_to(root)).as_posix())
+            for path in sorted(p for p in filesystem_path(root).rglob("*") if p.is_file()):
+                archive.write(path, (root.name / ordinary_path(path).relative_to(root)).as_posix())
 
     print(json.dumps({
         "root": str(root), "manifest": str(manifest_path), "launcher": str(launcher),

@@ -1,3 +1,7 @@
+historical: true
+superseded-by: AAOS01-Q00-Q15-LEDGER-FINAL-20261005.md
+说明：仅当前状态声明由上述主表替代；本文历史正文与原始证据保留，不能作为当前验收结论。
+
 # AAOS-01 Q02 现场核对与 **Q01 结论更正**（2026-10-04）
 
 ## 0. 更正：Q01 里「`desktop/` 是分离的 Recovery Shell，不合并」**说错了一半**

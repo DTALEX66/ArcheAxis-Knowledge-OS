@@ -1,3 +1,7 @@
+historical: true
+superseded-by: AAOS01-Q00-Q15-LEDGER-FINAL-20261005.md
+说明：仅当前状态声明由上述主表替代；本文历史正文与原始证据保留，不能作为当前验收结论。
+
 # 🎯 AAOS-01 Q02：**确切契约 —— 而且是一条治理级设计**
 
 ## 1. 找到了最简写路由的处理器（`app/api/learning.py:218`）
