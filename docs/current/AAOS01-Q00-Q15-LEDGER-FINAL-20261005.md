@@ -1,5 +1,9 @@
 # AAOS-01 Q00–Q15 当前执行台账（2026-10-05）
 
+最新固定9940b981ca916021b6f8018f5a0d62673adfe028/workflow308098767/run37384994749/a1已终态FAILURE：17success/2failure/1skipped，desktop-fast、Rust、Python及合同实际PASS；desktop-build的Inject CI candidate identity失败，后续打包与installer-lifecycle未执行，不能按完整通过登记。根因已真实CLI复现：CI默认cwd D:/a/k为junction，身份注入遗漏canonical cwd override，触发既有link拒绝；相同CLI junction exit1且manifest未变/identity不存在，ordinary路径exit0登记成功，证据identity-junction-fixture-20261006/receipt.json。已一行修为github.workspace，不放宽链接或清单守卫；待下一固定SHA验证。
+
+精确Formal主Cargo中间清理实际PASS：10920项/6,352,845,335B全部ABSENT，清单SHA bd38b557f58eee2f6000899c777d632d3e0f603af85bdfa7b194fe5d871b52cc；fresh CIM0、顶层程序与源码guard前后SHA不变，收据cargo-2611-intermediate-cleanup-receipt.json。PDB/exe/DLL/lib/exp、build未知输出、58未知fingerprint及锁/资源保留；不重复已清空incremental及已ABSENT release资源，不宣称字节可重建或物理净量。
+
 安装端快捷键验收已接入现有WebDriver探针：保留此前20项断言，新增真实W3C Ctrl+Alt+J键操作及trusted事件、展开/收起、正文焦点、内容、无API写入、正典版本不变检查。现有shell合同4PASS、Ruff PASS；ignored Green预检严格兼容已知20/21完整序列，2正/16负结构用例PASS。新21步骤尚未实际执行，不把静态检查登记为原生通过；物理IME仍未验收。
 
 当前检索错误增量：document_check仅为既有retrieval_failure回执增加受控failure_code/failure_stage/http_status，不持久化异常正文或URL，不改变权限、SSRF、代理或网络配置。隔离worker定向27PASS、Ruff PASS；新字段实际Core持久化未验收。产品解释器执行当前worker公开检索实际约8秒后非零，安全分类timeout/transport，收据public-retrieval/c4e84fc7925d4c9f8e2af16deb5c8f8d/receipt.json SHA df7cc5255bdac76682cd6b93c77fc3c56fa23c7959bdbc3e8a1130bfdb560cf1。独立官方SQLite页面同一安全HTTP链实测200/27068B；不能归因为全网不可用，也不能宣称专业检索或云核验成功，目标服务具体超时原因UNKNOWN。

@@ -1084,6 +1084,7 @@ jobs:
         run: python -B -m desktop.scripts.assert_runtime_engines --candidate .project-local/rt
       - name: Inject CI candidate identity
         shell: pwsh
+        working-directory: ${{ github.workspace }}
         run: |
           $version = (Get-Content 'frontend/package.json' -Raw | ConvertFrom-Json).version
           $tree = (git rev-parse "$env:GITHUB_SHA^{tree}").Trim()
