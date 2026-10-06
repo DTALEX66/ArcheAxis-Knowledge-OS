@@ -1,7 +1,7 @@
 {
   "schema": "archeaxis/audit-snapshot/v1",
   "round": "AAOS-AUTHORITY-REPAIR-20261006",
-  "observed_at": "2026-10-06T18:15:00+08:00",
+  "observed_at": "2026-10-06T20:25:00+08:00",
   "timezone": "Asia/Shanghai",
   "scope": "文档与治理修复（权威入口、冲突 current、描述与覆盖矩阵、可重复审计）。不改产品架构、不批量化安装依赖、不发布。",
   "repository": {
@@ -186,14 +186,14 @@
     "note": "bare `python` 不在 Git Bash PATH；本地复现门禁必须用 --source index/head（Windows 工作树为 CRLF，--source worktree 会误报）；本机 locale 为 cp936，裸跑 pytest 会按 cp936 解码而以 UTF-8 断言失败，权威 runner 由 dev.py 自带 PYTHONUTF8=1，故套件应经 scripts/ci/run_tests.sh 运行"
   },
   "both_ends": {
-    "local_head": "1503710deecda3e042615843454f4231e8fa01d0",
-    "remote_branch_sha": "1503710deecda3e042615843454f4231e8fa01d0",
+    "local_head": "4ae65db55dcc984e22c2c118f533c21e01707248",
+    "remote_branch_sha": "4ae65db55dcc984e22c2c118f533c21e01707248",
     "remote_file_readback": "AUTHORITY.md 经 contents API 读回与本机一致（6065 字节、sha256 前 16 位 556663d7093d27f0）；本机 README.md sha256 前 16 位 0cb5a01995bb432d",
     "pr": 161,
     "default_branch_updated": false,
-    "default_branch_note": "远端分支已同步至 1503710d；main 未更新（本轮不含合并）；无 tag、无 release",
+    "default_branch_note": "远端分支已同步至 4ae65db5；main 未更新（本轮不含合并）；无 tag、无 release。本轮后续提交（Q00–Q15 读回、存储清理、探测脚本修正、账本引文门禁）均在此支；PR #161 仍 OPEN，head 即该 SHA",
     "ci": {
-      "run": 37450747243,
+      "run": 37462409958,
       "event": "push",
       "scope": "本次因改动脚本与测试，GatePlan 要求 test 车道，故 push 分类也执行了 test (3.12)：gateplan success、lint success、test (3.12) failure、a0-gates failure（后者因前者的失败而失败）",
       "pre_existing": "该 test 车道的两处失败**先于本提交存在**：同一 job 在 7eda1dcf（run 37448417919）与 d218abdc（run 37449622276）上同样 failure。本提交只改 5 个文件（1 脚本、1 测试、3 记录），不含失败用例所在文件",
@@ -206,7 +206,7 @@
   },
   "checkpoint": {
     "branch": "codex/dsh-aaos-real-multiformat-loop-20261001",
-    "last_ci_verified_sha": "1503710deecda3e042615843454f4231e8fa01d0",
+    "last_ci_verified_sha": "4ae65db55dcc984e22c2c118f533c21e01707248",
     "self_reference_note": "本快照在其后一次提交中落仓，故自身 SHA 由 PR/CI 定位；last_ci_verified_sha 指已由 CI 验证门禁的祖先提交，不写成包含自身的提交",
     "done": [
       "root AUTHORITY.md created and declared in the directory authority and its disposition record",
@@ -221,7 +221,12 @@
       "对 A01/A02/A06 完成内容哈希检索（Record 121 个文件 + 29,896 个 zip 成员 + 资料库），把 SOURCE_MISSING 建立在哈希而非文件名之上",
       "独立复核开源吸收证据并更正 OSS 证据文档的夸大表述：9 条 IMPLEMENTED_IN_SOURCE 中仅 A018-A021 是真客户端，A011 系域名假阳性；VENDORED 标签来自文件名而非上游实拷",
       "修复并重算吸收证据工具：改为按标识符判定（含 DataCiteClient/OpenAlexClient 跨词拼接）、注释与文档字符串只算提及、排除编译产物与生成目录、桩按命中处附近的不可用标记判定、shared/ 移出 vendor 根；分布更正为 DECLARED 25 / IMPLEMENTED_IN_SOURCE 6 / STUB_IN_SOURCE 2 / MENTIONED_IN_SOURCE 2 / NONE 12，并为四态与“无 __pycache__ 定位”加断言（3 passed）",
-      "核对脚本两次运行产出字节相同，确认结果确定性；证据文件 report.txt 与 disposition-evidence.json 已按修订后工具重算并登记哈希"
+      "核对脚本两次运行产出字节相同，确认结果确定性；证据文件 report.txt 与 disposition-evidence.json 已按修订后工具重算并登记哈希",
+      "Q00–Q15 逐条以**提交测试**读回：命令、计数与断言名写入各自台账行；其中 Q04 从撤销回到 TESTED_LOCAL，Q02/Q14 的安装态经 artifact 字段核对后纠正（含我先据 limitations 下调、再据 host/installation_context 纠正回来的过程）",
+      "探测脚本修正并加门禁：`installation_limitation()` 使收据不再自相矛盾（先证伪再采信），`test_tauri_shell_authority.py` 固定两个分支",
+      "账本引文门禁入 lint：核验每处测试引文与 `--test` 目标存在；实现前先证伪两个过宽版本（4 与 73 误报），最终 11 引文 + 6 目标全部解析、0 缺失",
+      "AAOS01-LAYERED-MIGRATION-CHAIN 的悬空下一步补记：MigrationOperator 已定位并接线于四处入口，24 Rust + 51 Python 断言通过；端到端 phase4 跑通**明确标注未做**",
+      "Q11 旧库迁移的验收与回滚口径七条写入台账，作为待 Owner 裁决的草案"
     ],
     "open": [
       "Q14 与更正文件的日期序列已核实记录；是否宣布资格化仍由 Owner 决定（不可变 checks/acceptance.json 仍为 NOT_RUN）",
@@ -230,7 +235,7 @@
       "开源吸收核对脚本的启发式已修复并重算（见 gaps）。剩下的精度边界由工具语义本身决定：IMPLEMENTED_IN_SOURCE 只断言“第一方代码命名了它”，A008/A009 的命中是使用点/导入探测而非捐赠项本体；文档词表与行取值的错配（5 个未定义判定词）仍待文档作者决定",
       "merge / release / install 未授权、未执行；无 tag、无 release"
     ],
-    "next_action": "按 Owner 指示决定 Q14 资格化口径与清理范围；吸收核对工具已修订，若要再提精度可把当前“命名级”判定提高到“调用点级”（区分使用点与捐赠项本体）"
+    "next_action": "三件待 Owner 裁决：(1) 跑一次 complete_lifecycle_verified 的安装态旅程，Q02/Q14 与其 AQ26/AQ27 才能收口；(2) Q11 旧库迁移的验收/回滚七条口径确认，并指定适用哪一份旧库、就地还是旁路、未读表如何处置；(3) runs/ 下 23 个 WinError 5 目录的提权枚举（另建议在环境注册 ARCHEAXIS_EXTERNAL_ROOT，否则权威 runner 会静默跳过 9 项工具相关格式用例）。账本引文门禁已入 lint，之后新增 Q 行须保持引文可解析"
   },
   "verification": {
     "capability_family_runs": {
