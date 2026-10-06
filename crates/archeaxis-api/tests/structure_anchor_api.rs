@@ -22,10 +22,17 @@ use archeaxis_api::app;
 use archeaxis_domain::source::{self, ImportOutcome};
 use archeaxis_store_sqlite::init_workspace;
 
-const TEXT: &str = "# Heading the first\n\nBody paragraph 6371\n";
+const TEXT: &str = "# Heading the first\n\nBody paragraph 6371\n\n星环 知识平台\n";
 const HEADING: (usize, usize) = (0, 19);
 const PARAGRAPH: (usize, usize) = (21, 40);
 const BLANK: (usize, usize) = (19, 21);
+// counted in characters, the way a Python worker counts them
+const CJK: (usize, usize) = (42, 49);
+
+/** A worker's span counted in characters, which is what `char_start`/`char_end` mean. */
+fn span(text: &str, chars: (usize, usize)) -> String {
+    text.chars().skip(chars.0).take(chars.1 - chars.0).collect()
+}
 
 fn digest(text: &str) -> String {
     format!("{:x}", Sha256::digest(text.as_bytes()))
@@ -55,6 +62,7 @@ fn seed(db: &str) -> (String, String, String) {
         ("text_node", json!(["n1"]), PARAGRAPH),
         ("cue", json!(["cue-4"]), PARAGRAPH),
         ("pdf_page", json!(["page-2"]), PARAGRAPH),
+        ("paragraph", json!(["document-1", "cjk"]), CJK),
         ("paragraph", json!(["document-1", "ambiguous"]), PARAGRAPH),
         ("paragraph", json!(["document-1", "ambiguous"]), PARAGRAPH),
         ("paragraph", json!(["document-1", "blank"]), BLANK),
@@ -74,6 +82,8 @@ fn seed(db: &str) -> (String, String, String) {
         {"kind": "line", "path": ["line-1"], "char_start": 0, "char_end": 20},
         {"kind": "line", "path": ["line-2"], "char_start": 20, "char_end": 21},
         {"kind": "line", "path": ["line-3"], "char_start": 21, "char_end": 41},
+        {"kind": "line", "path": ["line-4"], "char_start": 41, "char_end": 42},
+        {"kind": "line", "path": ["line-5"], "char_start": 42, "char_end": 50},
     ])
     .to_string();
     let request = json!({
@@ -151,7 +161,7 @@ async fn a_paragraph_named_by_the_worker_becomes_an_addressable_anchor() {
         .to_string();
     let (source_id, revision, _loss) = seed(&db);
 
-    let excerpt = &TEXT[PARAGRAPH.0..PARAGRAPH.1];
+    let excerpt = span(TEXT, PARAGRAPH);
     let (status, body) = post(
         &db,
         &source_id,
@@ -159,7 +169,7 @@ async fn a_paragraph_named_by_the_worker_becomes_an_addressable_anchor() {
             &json!(["document-1", "paragraph-1"]),
             "paragraph",
             1,
-            &digest(excerpt),
+            &digest(&excerpt),
             &revision,
         ),
     )
@@ -179,7 +189,7 @@ async fn a_paragraph_named_by_the_worker_becomes_an_addressable_anchor() {
             &json!(["document-1", "heading-1"]),
             "heading",
             1,
-            &digest(&TEXT[HEADING.0..HEADING.1]),
+            &digest(&span(TEXT, HEADING)),
             &revision,
         ),
     )
@@ -203,7 +213,7 @@ async fn every_semantic_location_a_worker_names_is_addressable_the_same_way() {
         .unwrap()
         .to_string();
     let (source_id, revision, _loss) = seed(&db);
-    let excerpt = &TEXT[PARAGRAPH.0..PARAGRAPH.1];
+    let excerpt = span(TEXT, PARAGRAPH);
     for (kind, path) in [
         ("sheet_row", json!(["sheet-Finance", "row-3"])),
         ("slide", json!(["slide-2"])),
@@ -214,12 +224,68 @@ async fn every_semantic_location_a_worker_names_is_addressable_the_same_way() {
         let (status, body) = post(
             &db,
             &source_id,
-            locator(&path, kind, 1, &digest(excerpt), &revision),
+            locator(&path, kind, 1, &digest(&excerpt), &revision),
         )
         .await;
         assert_eq!(status, StatusCode::CREATED, "{kind} {path}: {body}");
         assert_eq!(body["location_status"], "located", "{kind} {path}");
     }
+}
+
+#[tokio::test]
+async fn a_location_in_a_non_latin_projection_is_addressable_too() {
+    // The receipt's offsets count characters, the way the worker's own language does. Verifying
+    // them as byte offsets would refuse a Chinese paragraph with "not a codepoint boundary" and
+    // the refusal would look like a content problem rather than a unit-of-measure bug.
+    let dir = tempfile::tempdir().unwrap();
+    let db = dir.path().join("cjk.sqlite").to_str().unwrap().to_string();
+    let (source_id, revision, _loss) = seed(&db);
+    let excerpt = span(TEXT, CJK);
+    assert_eq!(excerpt, "星环 知识平台");
+    assert_ne!(
+        excerpt.len(),
+        CJK.1 - CJK.0,
+        "the span is characters, not bytes"
+    );
+
+    let (status, body) = post(
+        &db,
+        &source_id,
+        locator(
+            &json!(["document-1", "cjk"]),
+            "paragraph",
+            1,
+            &digest(&excerpt),
+            &revision,
+        ),
+    )
+    .await;
+    assert_eq!(status, StatusCode::CREATED, "{body}");
+    assert_eq!(body["location_status"], "located", "{body}");
+
+    // the same path with the digest of the byte slice is refused, so the unit is not negotiable
+    let as_bytes = TEXT.as_bytes()[CJK.0..CJK.0 + (CJK.1 - CJK.0)]
+        .to_vec()
+        .iter()
+        .map(|b| *b as char)
+        .collect::<String>();
+    let (status, _body) = post(
+        &db,
+        &source_id,
+        locator(
+            &json!(["document-1", "cjk"]),
+            "paragraph",
+            1,
+            &digest(&as_bytes),
+            &revision,
+        ),
+    )
+    .await;
+    assert_eq!(
+        status,
+        StatusCode::BAD_REQUEST,
+        "a byte-offset digest must not pass"
+    );
 }
 
 #[tokio::test]
@@ -241,7 +307,7 @@ async fn an_ambiguous_or_blank_location_is_refused_rather_than_guessed() {
             &json!(["document-1", "ambiguous"]),
             "paragraph",
             1,
-            &digest(&TEXT[PARAGRAPH.0..PARAGRAPH.1]),
+            &digest(&span(TEXT, PARAGRAPH)),
             &revision,
         ),
     )
@@ -256,7 +322,7 @@ async fn an_ambiguous_or_blank_location_is_refused_rather_than_guessed() {
             &json!(["document-1", "blank"]),
             "paragraph",
             1,
-            &digest(&TEXT[BLANK.0..BLANK.1]),
+            &digest(&span(TEXT, BLANK)),
             &revision,
         ),
     )
@@ -271,7 +337,7 @@ async fn an_ambiguous_or_blank_location_is_refused_rather_than_guessed() {
             &json!(["document-1", "paragraph-99"]),
             "paragraph",
             1,
-            &digest(&TEXT[PARAGRAPH.0..PARAGRAPH.1]),
+            &digest(&span(TEXT, PARAGRAPH)),
             &revision,
         ),
     )
@@ -308,7 +374,7 @@ async fn a_superseded_attempt_stops_addressing_the_document_it_described() {
         &json!(["document-1", "paragraph-1"]),
         "paragraph",
         1,
-        &digest(&TEXT[PARAGRAPH.0..PARAGRAPH.1]),
+        &digest(&span(TEXT, PARAGRAPH)),
         &revision,
     );
     let (status, body) = post(&db, &source_id, locator_body.clone()).await;

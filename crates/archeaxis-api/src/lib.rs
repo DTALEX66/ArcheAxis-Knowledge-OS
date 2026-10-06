@@ -1321,9 +1321,13 @@ fn verify_structure_anchor(
     if end <= start {
         return Some(false);
     }
-    let excerpt = text.get(start..end)?;
+    // A worker counts characters in its own projection (Python semantics), not bytes, so slicing
+    // this text by byte offsets would land mid-codepoint on any non-Latin document and refuse a
+    // location that really was read. Slice the way they counted.
+    let excerpt: String = text.chars().skip(start).take(end - start).collect();
     Some(
-        !excerpt.trim().is_empty()
+        excerpt.chars().count() == end - start
+            && !excerpt.trim().is_empty()
             && format!("{:x}", Sha256::digest(excerpt.as_bytes())) == checksum,
     )
 }
