@@ -1682,3 +1682,59 @@ test_environment_registry.py` → 12 passed；`tests/test_mfx001_supply_chain_le
 
 **回滚**：revert 这一次提交即撤销声明、worker 的 HOME 通道与记录；外置根里那两个目录是本机放置，
 删除需要单独授权（本轮不删）。
+
+## F03 的"没有浏览器"是假的：渲染通道接通了（2026-10-07）
+
+**被推翻的判断**：账本与矩阵里 F03 的缺口写的是 `there is still no browser`。实测本机
+`ArcheAxis-Knowledge-OS-ci-venv` 里 **playwright 1.61.0 已安装**（且 `pyproject.toml` 两个依赖组
+已声明 `playwright>=1.61,<1.62`、`uv.lock` 已锁——**没有新增依赖**），
+`C:\Users\ALEX\AppData\Local\ms-playwright` 里有 `chromium-1208/1228` 与两个 headless shell；
+启动得到 **Chrome 149.0.7827.55**（`chromium-1228/chrome-win64/chrome.exe`）。
+同一份脚本页：JS 开启时 `#rendered-only` 的文本可读，**关闭 JS 后该节点是 None**——
+所以"渲染后才有"与"服务端给了什么"是两件事，这一点是被测出来的，不是被说出来的。
+
+**做了一条什么通道**：
+- `worker_webpage.py` 的 `render()`：先按原有边界做**取字节**（策略、上限、时间戳都不变），
+  再用本机无头 chromium 打开同一 URL、按预算滚到底，把**渲染后的 DOM 与可见文本**写在服务端字节旁边，
+  收据记浏览器构建号、滚动覆盖（`scrolls / final_scroll_height / height_stabilized / budget_exhausted`）、
+  两个摘要，以及 `served_vs_rendered.same_digest` 是否为假；
+- **地址策略跑三次**：请求主机、重定向落点主机、以及浏览器**实际停在**的主机。
+  浏览器会自己跟随重定向，不询问这个 worker，所以取字节时放行不等于浏览器落地时放行；
+- 渲染出的 DOM 仍受 `MAX_BYTES` 约束，超限就**不写任何渲染件**；
+- 起不来的浏览器是**具名拒绝**，绝不把取字节的结果改名当成渲染；
+- `scripts/ingest/url_snapshot.py --render [--scroll-limit N]`：导入的是渲染文档，
+  同时把服务端摘要的 sha256/字节数一并记在凭证里（`mode: rendered`）。
+
+**踩到并修掉的两个我自己的坑（如实记）**：
+1. 第一版真机测试**跳过**：`PLAYWRIGHT_BROWSERS_PATH` 被会话指到项目内
+   `.project-local/cache/playwright`，而那里**没有** `chromium_headless_shell-1228`，
+   Playwright 只查自己的注册表。修法是给引擎一个**具名环境变量**
+   （`ARCHEAXIS_CHROMIUM_CMD`，形状与 antiword 一致，解析顺序 env→注册表，
+   指到不存在的文件就是具名错误，绝不猜），而不是偷偷改全局环境或再下载一份浏览器；
+2. 第一版断言**失败**：我用"标记串不在服务端 HTML 里"证明差异，而标记就写在内联 `<script>` 文本里，
+   所以那句话本来就是假的。把样本改成**文本由第二个请求 `/late` 交付**（只有执行了脚本的页面才会去取），
+   服务端字节里任何位置都不含该串，断言才真正成立。这两次都是**样本/仪器的错，不是产品的错**，
+   改的是测试与解析入口，没改产品规则。
+
+**新增测试**：`tests/workers/test_webpage_render.py` 11 passed（含那条真机证明），
+`tests/test_url_snapshot_driver.py` 原有 13 条与 20 个 subtest 仍全过。
+**度量口径与偏离**：新套件是在 **dev.py 之外**用 CI venv 解释器跑的，
+因为 dev.py/conftest 会把 `PLAYWRIGHT_BROWSERS_PATH` 指到空的 project-local 缓存，
+用 sanctioned runner 只会让真机那条 skip（全量套件里确实是 1 条 skip）；
+理由记在这里，不是忘记走 runner。
+- 全量 Python 套件（经 dev.py，**在矩阵 F03 行改写之前**启动）：4284 passed, 31 skipped, 14 warnings, 166 subtests passed in 420.49s (0:07:00)（日志 `.project-local/task-runtime/py-full-20261007-render.log`）；
+- 绑定最终提交字节的重跑：`tests/maintenance` 184 passed / 2 skipped（含读矩阵的那几条门禁测试），
+  `tests/workers/test_webpage_render.py + tests/test_url_snapshot_driver.py +
+  tests/workers/test_doc_engine.py` **42 passed / 0 skipped**
+  （11 条渲染 + 13 条驱动 + 18 条 `.doc`，日志 `.project-local/task-runtime/web-doc-final-20261007.txt`）。
+  两次全量的计数差也对得上：新增 11 条里有 1 条在 dev.py 环境下 skip，
+  所以净增正好是 10 passed（4274 → 4284）与 1 skipped（30 → 31）。
+矩阵门禁 exit 0：16 组 / 0 complete / 15 partial / 1 custody-only（F03 仍 `partial`，
+`required_output` 逐字未动，只改 `implemented_now`/`gap` 与 evidence 的 `code`/`tests`）。
+
+**仍未闭合**：截图不在这一条里；点击/登录后才出现的内容、以及超出滚动预算的懒加载列表仍拿不到
+（预算耗尽会报 `budget_exhausted`，不会假装到底了）；浏览器仍是**具名的宿主引擎**，
+没有进 `capability-requirements.yaml` 的声明清单；整条通道由脚本驱动，界面按 Owner 指示暂停。
+
+**回滚**：revert 这一次提交（worker 的 render/`_browser`/scroll、driver 的 `--render`、
+`tool_paths.OVERRIDES` 的 chromium 一项、新测试与两份记录、矩阵 F03 行）。取字节通道本身未改行为。

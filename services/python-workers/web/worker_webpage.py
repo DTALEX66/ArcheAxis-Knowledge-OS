@@ -7,12 +7,16 @@ chain tracking), writes the final HTML snapshot plus a fetch receipt into
 the caller-provided out-dir, and returns the final URL and status. Network
 failure never fabricates a snapshot: the error is recorded and returned.
 
-Dynamic rendering and screenshot capture are the F03 lane; ad/noise
-separation happens in the extraction lane (worker_html + later
-trafilatura-grade parsing).
+`--render` adds the F03 lane on top of that fetch: the same URL is opened in a
+local browser, scrolled to the bottom within a stated budget, and the DOM and
+text the scripts produced are written beside the served bytes. A missing
+browser is a named refusal - the fetch is never reported as if it had rendered.
+Screenshot capture is still not here; ad/noise separation happens in the
+extraction lane (worker_html + later trafilatura-grade parsing).
 
 Usage:
     python worker_webpage.py <url> --out-dir <dir>
+    python worker_webpage.py <url> --out-dir <dir> --render [--scroll-limit 40]
     python worker_webpage.py --probe
 """
 
@@ -22,6 +26,7 @@ import argparse
 import hashlib
 import ipaddress
 import json
+import os
 import socket
 import sys
 import urllib.request
@@ -30,11 +35,14 @@ from pathlib import Path
 from urllib.parse import urlparse
 
 ENGINE = "python-worker-webpage"
-ENGINE_VERSION = "0.1.0"
+ENGINE_VERSION = "0.2.0"
 
 TIMEOUT_S = 20
 MAX_BYTES = 5 * 1024 * 1024
 MAX_REDIRECTS = 8
+RENDER_SCROLL_LIMIT = 40
+RENDER_SETTLE_MS = 250
+RENDER_NAV_TIMEOUT_MS = 30_000
 USER_AGENT = "ArcheAxisKnowledgeOS/0.1 (local research snapshot; contact on file)"
 
 
@@ -112,11 +120,26 @@ def checked_open(request, timeout: float):
 
 
 def probe() -> dict:
+    try:
+        import playwright  # noqa: F401 - presence is the question
+        driver = "installed"
+    except ImportError:
+        driver = "missing"
     return {
         "capability": True,
         "engine": ENGINE,
-        "params": {"timeout_s": TIMEOUT_S, "max_bytes": MAX_BYTES, "max_redirects": MAX_REDIRECTS},
-        "note": "bounded fetch only; JS rendering and screenshots are the F03 lane",
+        "params": {
+            "timeout_s": TIMEOUT_S,
+            "max_bytes": MAX_BYTES,
+            "max_redirects": MAX_REDIRECTS,
+            "scroll_limit": RENDER_SCROLL_LIMIT,
+        },
+        "engines": {"playwright": driver == "installed"},
+        "note": (
+            "bounded fetch always; the render lane needs playwright (here: "
+            f"{driver}) and a chromium build it can launch, which is only established by an actual "
+            "render; screenshots are not taken by this worker"
+        ),
     }
 
 
@@ -215,11 +238,175 @@ def fetch(url: str, out_dir: Path) -> dict:
     }
 
 
+def _browser():
+    """Start the local browser the render lane needs, or name the missing part.
+
+    Playwright and the browser it drives are both host-side: the package may not be installed and
+    the browser may never have been downloaded. Either way this is a stated refusal, and the caller
+    must not quietly be handed the served-bytes snapshot instead, because "what the page looks like
+    after its scripts ran" and "what the server sent" are different facts.
+    """
+    try:
+        from playwright.sync_api import sync_playwright
+    except ImportError as exc:
+        raise RuntimeError(
+            f"render engine missing: playwright could not be imported ({exc}). "
+            "The bounded fetch still works and is not a render."
+        ) from exc
+    try:
+        session = sync_playwright().start()
+    except Exception as exc:  # noqa: BLE001 - the driver's own startup error is the message
+        raise RuntimeError(f"render engine missing: playwright could not start ({str(exc)[:200]})") from exc
+    launch_options: dict = {"headless": True}
+    configured = os.environ.get("ARCHEAXIS_CHROMIUM_CMD", "").strip()
+    if configured:
+        # a browser build elsewhere on this host, named rather than guessed: Playwright only looks
+        # under its own registry, and a project-local cache that never ran `playwright install`
+        # has nothing in it
+        if not Path(configured).is_file():
+            session.stop()
+            raise RuntimeError(
+                f"render engine missing: ARCHEAXIS_CHROMIUM_CMD names a file that does not exist "
+                f"({configured})"
+            )
+        launch_options["executable_path"] = configured
+    try:
+        browser = session.chromium.launch(**launch_options)
+    except Exception as exc:  # noqa: BLE001 - a browser that will not launch is the finding
+        session.stop()
+        raise RuntimeError(
+            "render engine missing: chromium could not be launched ("
+            f"{str(exc)[:200]}; PLAYWRIGHT_BROWSERS_PATH="
+            f"{os.environ.get('PLAYWRIGHT_BROWSERS_PATH', 'unset')}, "
+            f"ARCHEAXIS_CHROMIUM_CMD={configured or 'unset'})"
+        ) from exc
+    return session, browser
+
+
+def scroll_to_bottom(page, scroll_limit: int) -> dict:
+    """Scroll a page by viewports until its height stops growing, or the budget runs out.
+
+    A lazy-loading list grows as it is scrolled, so "the height no longer changed" is the only
+    in-page signal that the whole document has been reached. Running out of budget is reported
+    rather than presented as a complete page.
+    """
+    height = page.evaluate("document.body ? document.body.scrollHeight : 0")
+    scrolls = 0
+    stabilized = False
+    for _ in range(max(0, scroll_limit)):
+        page.evaluate("window.scrollBy(0, window.innerHeight)")
+        page.wait_for_timeout(RENDER_SETTLE_MS)
+        scrolls += 1
+        grown = page.evaluate("document.body ? document.body.scrollHeight : 0")
+        if grown == height:
+            stabilized = True
+            break
+        height = grown
+    return {
+        "scrolls": scrolls,
+        "scroll_limit": scroll_limit,
+        "final_scroll_height": height,
+        "height_stabilized": stabilized,
+        "budget_exhausted": not stabilized,
+    }
+
+
+def render(url: str, out_dir: Path, *, scroll_limit: int = RENDER_SCROLL_LIMIT) -> dict:
+    """Fetch the served bytes, then read the page again through a local browser.
+
+    The address policy runs three times on purpose: before the fetch, before the browser
+    navigates, and on the URL the browser actually landed on. A redirect can move a page from an
+    allowed host to a forbidden one, and a browser follows redirects without asking this worker.
+    """
+    served = fetch(url, out_dir)
+    parts = urlparse(url)
+    public_addresses(parts.hostname or "")
+    landing = urlparse(served["final_url"])
+    public_addresses(landing.hostname or "")
+
+    session, browser = _browser()
+    try:
+        page = browser.new_page(user_agent=USER_AGENT)
+        page.goto(url, timeout=RENDER_NAV_TIMEOUT_MS, wait_until="load")
+        landed = urlparse(page.url)
+        if landed.hostname != landing.hostname:
+            public_addresses(landed.hostname or "")
+        coverage = scroll_to_bottom(page, scroll_limit)
+        title = page.title()
+        text = page.inner_text("body")
+        dom = page.content()
+        browser_version = browser.version
+    finally:
+        browser.close()
+        session.stop()
+
+    body = dom.encode("utf-8")
+    if len(body) > MAX_BYTES:
+        raise ValueError(
+            f"rendered DOM exceeded the {MAX_BYTES} byte cap; nothing was written from the render")
+
+    rendered_path = out_dir / "rendered.html"
+    text_path = out_dir / "rendered-text.txt"
+    rendered_path.write_bytes(body)
+    text_path.write_text(text, encoding="utf-8")
+    rendered_sha = _sha256(rendered_path)
+    rendered_at = datetime.now(timezone.utc).isoformat()
+    difference = {
+        "served_bytes": served["snapshot"]["bytes"],
+        "rendered_bytes": len(body),
+        "same_digest": served["snapshot"]["sha256"] == rendered_sha,
+    }
+
+    losses = [
+        "the render is what this browser build read of the page at this moment: content behind a "
+        "click, a login, or an interaction the scroll budget did not reach is not captured, and a "
+        "feed that reloads older items would have moved rather than been collected",
+        "screenshot capture is not part of this lane, so nothing here is a picture of the page",
+        "the served document and the rendered document are reported separately; the render does "
+        "not replace the bytes that were actually sent",
+    ]
+    return {
+        "engine": ENGINE,
+        "engine_version": ENGINE_VERSION,
+        "final_url": served["final_url"],
+        "http_status": served["http_status"],
+        "title": title,
+        "snapshot": served["snapshot"],
+        "rendered": {
+            "path": str(rendered_path),
+            "text_path": str(text_path),
+            "sha256": rendered_sha,
+            "bytes": len(body),
+            "text_chars": len(text),
+            "rendered_at": rendered_at,
+        },
+        "fetched_at": served["fetched_at"],
+        "loss_receipt": {
+            "engine": ENGINE,
+            "engine_version": ENGINE_VERSION,
+            "params": {
+                "browser": f"chromium {browser_version}",
+                "headless": True,
+                "scroll": coverage,
+                "timeout_s": TIMEOUT_S,
+                "max_bytes": MAX_BYTES,
+                "served_sha256": served["snapshot"]["sha256"],
+                "served_vs_rendered": difference,
+            },
+            "losses": losses,
+            "loss_note": "; ".join(losses),
+        },
+    }
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description="ArcheAxis bounded webpage snapshot worker")
     parser.add_argument("url", nargs="?", help="http(s) URL")
     parser.add_argument("--out-dir", required=False)
     parser.add_argument("--probe", action="store_true")
+    parser.add_argument("--render", action="store_true",
+                        help="render the page in a local browser after the bounded fetch")
+    parser.add_argument("--scroll-limit", type=int, default=RENDER_SCROLL_LIMIT)
     args = parser.parse_args()
     if args.probe:
         print(json.dumps(probe(), ensure_ascii=False))
@@ -228,7 +415,8 @@ def main() -> int:
         print(json.dumps({"error": "usage: worker_webpage.py <url> --out-dir <dir>"}))
         return 2
     try:
-        out = fetch(args.url, Path(args.out_dir))
+        out = render(args.url, Path(args.out_dir), scroll_limit=args.scroll_limit) if args.render \
+            else fetch(args.url, Path(args.out_dir))
     except Exception as exc:  # noqa: BLE001 - network failures are recorded errors
         # distinguish capability/usage failures from fetch failures: fetch
         # failures already wrote a receipt with error; report structured error.

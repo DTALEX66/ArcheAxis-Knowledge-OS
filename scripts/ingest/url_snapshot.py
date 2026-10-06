@@ -56,8 +56,15 @@ def snapshot_name(url: str) -> str:
     return f"{(parts.hostname or 'host').strip('[]')}-{safe}"[:120]
 
 
-def run_snapshot(url: str, core_call, *, workspace: Path, dry_run: bool = False) -> dict:
-    """Fetch one URL and import the result as a source whose origin carries the capture time."""
+def run_snapshot(url: str, core_call, *, workspace: Path, dry_run: bool = False,
+                 render: bool = False, scroll_limit: int | None = None) -> dict:
+    """Fetch one URL and import the result as a source whose origin carries the capture time.
+
+    With `render`, the served body is still fetched and kept, and what gets imported is the DOM the
+    browser produced after the page's own scripts ran - a page that only builds its text in the
+    browser is otherwise unreadable here. A render that cannot happen is a failure, never a silent
+    fall back to the served bytes.
+    """
     webpage = _load("url_snapshot_webpage", REPO / "services/python-workers/web/worker_webpage.py")
     out_dir = workspace / "fetch" / hashlib.sha256(url.encode("utf-8")).hexdigest()[:16]
     record = {
@@ -65,22 +72,34 @@ def run_snapshot(url: str, core_call, *, workspace: Path, dry_run: bool = False)
         "url": url,
         "at": datetime.now(timezone.utc).isoformat(),
         "name": snapshot_name(url),
+        "mode": "rendered" if render else "served",
     }
     try:
-        fetched = webpage.fetch(url, out_dir)
-    except Exception as exc:  # noqa: BLE001 - a fetch that did not happen is recorded, not faked
+        if render:
+            capture = (webpage.render(url, out_dir, scroll_limit=scroll_limit)
+                       if scroll_limit is not None else webpage.render(url, out_dir))
+        else:
+            capture = webpage.fetch(url, out_dir)
+    except Exception as exc:  # noqa: BLE001 - a capture that did not happen is recorded, not faked
         record.update(status="failed", error=f"{type(exc).__name__}: {exc}", source_id=None, job_id=None)
         return record
-    snapshot = fetched["snapshot"]
-    body = Path(snapshot["path"]).read_bytes()
-    received_at = fetched["fetched_at"]
+    body_source = capture["rendered"] if render else capture["snapshot"]
+    body = Path(body_source["path"]).read_bytes()
+    received_at = capture["fetched_at"]
     record.update(
-        final_url=fetched["final_url"],
-        http_status=fetched["http_status"],
-        sha256=snapshot["sha256"],
-        bytes=snapshot["bytes"],
+        final_url=capture["final_url"],
+        http_status=capture["http_status"],
+        sha256=body_source["sha256"],
+        bytes=body_source["bytes"],
         received_at=received_at,
     )
+    if render:
+        record.update(
+            served_sha256=capture["snapshot"]["sha256"],
+            served_bytes=capture["snapshot"]["bytes"],
+            title=capture["title"],
+            scroll=capture["loss_receipt"]["params"]["scroll"],
+        )
     if dry_run:
         record.update(status="dry_run", source_id=None, job_id=None)
         return record
@@ -89,7 +108,7 @@ def run_snapshot(url: str, core_call, *, workspace: Path, dry_run: bool = False)
         "name": record["name"],
         "content_base64": base64.b64encode(body).decode("ascii"),
         "origin_kind": "url",
-        "origin_ref": fetched["final_url"],
+        "origin_ref": capture["final_url"],
         "origin_name": record["name"],
         "received_at": received_at,
     })
@@ -126,6 +145,9 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--manifest", type=Path)
     parser.add_argument("--workspace", type=Path)
     parser.add_argument("--dry-run", action="store_true")
+    parser.add_argument("--render", action="store_true",
+                        help="import the browser-rendered DOM instead of the served bytes")
+    parser.add_argument("--scroll-limit", type=int)
     parser.add_argument("--json", action="store_true")
     args = parser.parse_args(argv)
 
@@ -138,6 +160,8 @@ def main(argv: list[str] | None = None) -> int:
         lambda method, path, body: core.call(args.core_base, method, path, token, body),
         workspace=workspace,
         dry_run=args.dry_run,
+        render=args.render,
+        scroll_limit=args.scroll_limit,
     )
     if not args.dry_run:
         append_record(manifest, record)

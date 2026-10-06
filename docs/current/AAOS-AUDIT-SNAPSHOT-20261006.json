@@ -291,7 +291,8 @@
       "F01/F13 shared gap closed the second way round: a position a route reported in params.format.locations - JSON/XML path, mail part or header, ODF heading, paragraph, table cell or page, RTF paragraph, Python symbol - is addressable through a fifth position type (format_location), verified on the value rather than a span, with ambiguity refused unless narrowed by fields the receipt already carries",
       "F15: the last clause of the container chain is proven end to end - a real ZIP member read by its own job is promoted by a human actor into a candidate that requires human review, with its container origin intact and a quote that does not match the persisted transform refused",
       "P5/M0 whole-state restart read-back: one store holding a container member relation two levels deep, a transform, three locator kinds, a human-created candidate and a machine receipt keeps every published identity across two deliberate reopens (516 passed / 0 failed over 128 result lines) - so an anchor id or a receipt hash cannot silently re-point the workspace's citations after a restart",
-      "F14 `.doc`: the antiword sidecar is bound by declaration rather than found on PATH - the binary and its `.antiword` mapping tables are both declared in the capability manifest, the worker hands the mapping directory's parent to the engine as HOME and records which HOME it used, and a copy with only the binary declared was measured to fail outright (exit 1, no output) because the engine truncates a mapping requested by absolute path; with nothing declared the environment is left untouched, so an in-place install still works"
+      "F14 `.doc`: the antiword sidecar is bound by declaration rather than found on PATH - the binary and its `.antiword` mapping tables are both declared in the capability manifest, the worker hands the mapping directory's parent to the engine as HOME and records which HOME it used, and a copy with only the binary declared was measured to fail outright (exit 1, no output) because the engine truncates a mapping requested by absolute path; with nothing declared the environment is left untouched, so an in-place install still works",
+      "F03: the recorded \"there is still no browser\" was measured false - the web worker now opens the same URL in a local headless chromium after the bounded fetch, scrolls to the bottom within a stated budget and writes the rendered DOM and visible text beside the served bytes, re-runs the address policy on the redirect target and on the URL the browser actually landed on, and refuses by name when no browser launches; --render imports the rendered document while still recording the served digest"
     ],
     "open": [
       "Q14 与更正文件的日期序列已核实记录；是否宣布资格化仍由 Owner 决定（不可变 checks/acceptance.json 仍为 NOT_RUN）",
@@ -309,9 +310,10 @@
       "CI 环境没有 sidecar，真引擎用例在 CI 会 skip；skip 是关于主机的陈述不是通过。本机该用例真跑",
       "两种锚点类型（worker_structure / format_location）都只证明\"这条收据这么命名、值或跨度确在这份投影里\"：不是独立推出的页号；locations 列表受 worker 上限截断，被截掉的位置不可寻址；界面层没有消费（前端按 Owner 指示暂停）",
       "F13/F01 的位置在 params.format.locations 而非 worker_structure，本轮刻意未并入",
-      "antiword 已登记为 A025（SIDECAR / qualification [installed]）并已按声明绑定：外置工具根内 `10-toolchains/antiword/` 的二进制与 `.antiword` 映射表两条一起进入 capability-requirements，三个读取方在同一清单上一致（索引两条均 exists: true，见 verification.antiword_binding_20261007）。仍开的是：这台副本是 Git for Windows 构建的本地放置，该包更新时不会自动跟随，比对 A025 里的 sha256 才可信任；以及逐扩展真人验收 FMT-21 仍 NOT_RUN"
+      "antiword 已登记为 A025（SIDECAR / qualification [installed]）并已按声明绑定：外置工具根内 `10-toolchains/antiword/` 的二进制与 `.antiword` 映射表两条一起进入 capability-requirements，三个读取方在同一清单上一致（索引两条均 exists: true，见 verification.antiword_binding_20261007）。仍开的是：这台副本是 Git for Windows 构建的本地放置，该包更新时不会自动跟随，比对 A025 里的 sha256 才可信任；以及逐扩展真人验收 FMT-21 仍 NOT_RUN",
+      "F03 的动态页渲染已接通（真机证明：脚本生成的正文可读、同页关闭 JS 后节点不存在）；仍开的是截图、交互/登录后的内容、超出滚动预算的懒加载，以及浏览器尚未进入声明清单（现为 ARCHEAXIS_CHROMIUM_CMD 具名宿主引擎）"
     ],
-    "next_action": "1) 最多格式剩余：F02 的抓取已是驱动级事实（`scripts/ingest/url_snapshot.py`，产品路由不持网络是选择不是缺口），网络侧剩下的边界是网络层 egress 政策；F03 仍需要一个真正的浏览器（本仓库无浏览器，Playwright 仅测试用、Firecrawl 属 REVIEW-BLOCK），抓到的未脚本化正文 ≠ 渲染后的页面；F10 说话人分离无引擎亦无处置行；.doc/.ppt 无读取器（Tika 需 JVM 侧车）；跨 F05/F07/F08/F09/F12 的“把 worker 结构升级为寻址层”需 anchor 契约变更，应独立一刀；FMT-21 逐扩展名真实样本验收仍 NOT_RUN（本轮 .xls 夹具为自造件）；嵌套容器已闭合到有预算的展开，`.doc` 的候选 sidecar 实测在本机存在（Git 自带 antiword 0.37，只能读 .doc），是否登记处置行需单独一刀"
+    "next_action": "1) 最多格式剩余：F02 的抓取已是驱动级事实（`scripts/ingest/url_snapshot.py`，产品路由不持网络是选择不是缺口），网络侧剩下的边界是网络层 egress 政策；F03 已接通本机无头 chromium 渲染（`worker_webpage.render` ＋ `url_snapshot.py --render`，2026-10-07 实测 Chrome 149.0.7827.55；脚本页正文经二次请求交付，服务端字节不含该文本）；仍缺截图、交互/登录后内容、超滚动预算的懒加载，且浏览器尚未进声明清单（现为 ARCHEAXIS_CHROMIUM_CMD 具名宿主引擎）；F10 说话人分离无引擎亦无处置行；`.doc` 已绑定 antiword 声明引擎（A025；二进制与 `.antiword` 映射表必须成对声明，只声明二进制实测解析成功而读取失败）；`.ppt` 仍无读取器（Tika 需 JVM 侧车，本机无 JVM，本轮不装系统级软件）；跨 F05/F07/F08/F09/F12 的“把 worker 结构升级为寻址层”需 anchor 契约变更，应独立一刀；FMT-21 逐扩展名真实样本验收仍 NOT_RUN（本轮 .xls 夹具为自造件）；嵌套容器已闭合到有预算的展开，`.doc` 的 sidecar 已登记并绑定（A025，2026-10-07：处置行 + capability-requirements 成对声明）"
   },
   "verification": {
     "capability_family_runs": {
@@ -430,6 +432,39 @@
         "dev.py -- <script.py> cannot exec a .py directly on this host (WinError 193); the tracked test invokes the builder with an interpreter"
       ],
       "qualification_unchanged": "A025 stays ['installed']; a binding changes how the engine is resolved, not the evidence tier behind it"
+    },
+    "webpage_render_20261007": {
+      "command": "venv python -m pytest tests/workers/test_webpage_render.py tests/test_url_snapshot_driver.py -q -rs (outside dev.py: dev.py redirects PLAYWRIGHT_BROWSERS_PATH to a project cache with no chromium build)",
+      "env": "ARCHEAXIS_CHROMIUM_CMD=C:/Users/ALEX/AppData/Local/ms-playwright/chromium-1228/chrome-win64/chrome.exe",
+      "logs": {
+        "render_suite": ".project-local/task-runtime/render-suite-only-20261007.txt",
+        "full_python": ".project-local/task-runtime/py-full-20261007-render.log"
+      },
+      "render_suite": {
+        "passed": 11,
+        "skipped": 0,
+        "subtests": 0,
+        "summary": "11 passed in 1.32s"
+      },
+      "full_python": {
+        "passed": 4284,
+        "skipped": 31,
+        "subtests": 166,
+        "summary": "4284 passed, 31 skipped, 14 warnings, 166 subtests passed in 420.49s (0:07:00)"
+      },
+      "host_engine_measured": {
+        "playwright_distribution": "1.61.0",
+        "declared_in_pyproject": "playwright>=1.61,<1.62 (two dependency groups, already locked)",
+        "chromium_build": "C:/Users/ALEX/AppData/Local/ms-playwright/chromium-1228/chrome-win64/chrome.exe",
+        "browser_version_reported": "149.0.7827.55",
+        "js_enabled_node_visible": true,
+        "js_disabled_node": "None"
+      },
+      "self_corrections": [
+        "the first real-browser run skipped because PLAYWRIGHT_BROWSERS_PATH pointed at the empty project-local cache; fixed by a named engine variable, not by editing global environment or downloading another browser",
+        "the first fixture asserted the marker was absent from the served HTML and failed, because the marker sat in the inline script text; the sample now delivers the text through a second request that only a scripting page makes"
+      ],
+      "matrix": "F03 status stays partial; required_output untouched; evidence code/tests extended"
     }
   },
   "artifacts": [
