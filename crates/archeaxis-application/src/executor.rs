@@ -429,12 +429,14 @@ impl Executor {
                         ));
                     }
                 };
-                let artifact_root =
-                    if matches!(req.capability.as_str(), "archive.inventory" | "media.video") {
-                        crate::container::attempt_root(&self.staging, &req.job_id, req.attempt)
-                    } else {
-                        self.staging.clone()
-                    };
+                let artifact_root = if matches!(
+                    req.capability.as_str(),
+                    "archive.inventory" | "media.video" | "text.extract",
+                ) {
+                    crate::container::attempt_root(&self.staging, &req.job_id, req.attempt)
+                } else {
+                    self.staging.clone()
+                };
                 let staging = self.staging.clone();
                 let python = self.python.clone();
                 let request = serde_json::to_string(&req).map_err(|e| e.to_string())?;
@@ -461,12 +463,14 @@ impl Executor {
         match result {
             Ok((response, bytes)) => {
                 let cancel = cancel.clone();
-                let artifact_root =
-                    if matches!(req.capability.as_str(), "archive.inventory" | "media.video") {
-                        crate::container::attempt_root(&self.staging, &req.job_id, req.attempt)
-                    } else {
-                        self.staging.clone()
-                    };
+                let artifact_root = if matches!(
+                    req.capability.as_str(),
+                    "archive.inventory" | "media.video" | "text.extract",
+                ) {
+                    crate::container::attempt_root(&self.staging, &req.job_id, req.attempt)
+                } else {
+                    self.staging.clone()
+                };
                 self.store.submit_wait(move|conn|{
                     // Cancellation competes with completion at the writer boundary;
                     // once completion is committed it cannot be rolled back by cancel.
@@ -477,7 +481,7 @@ impl Executor {
                     let finished = if req.capability == "media.video" { attempts::finish_with_artifacts(conn,&req,&response,&bytes,&artifact_root) } else { attempts::finish(conn,&req,&response,&bytes) };
                     match finished {
                         Ok(())=>{
-                            if req.capability == "archive.inventory" {
+                            if matches!(req.capability.as_str(), "archive.inventory" | "text.extract") {
                                 if let Err(error) = crate::container::expand_members(conn, &artifact_root, &req.job_id) {
                                     let reason = error.to_string();
                                     let task = archeaxis_domain::machine::MachineTask {

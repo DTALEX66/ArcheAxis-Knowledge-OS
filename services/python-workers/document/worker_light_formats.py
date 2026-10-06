@@ -184,6 +184,85 @@ def mail(raw):
             "locations": locations, "attachments": attachments}, losses
 
 
+ATTACHMENT_JOB_CAP = 50
+ATTACHMENT_BYTES_CAP = 64 * 1024 * 1024
+
+
+def _safe_attachment_name(index: int, name: str) -> str:
+    """A flat, collision-free file name for one attachment.
+
+    An attachment's own name may contain separators, be absolute or try to escape, so the
+    written file is named by its index with a sanitised suffix. The true name travels in the
+    declaration, never in the path - the same rule the archive worker follows.
+    """
+    base = name.rsplit("/", 1)[-1].rsplit("\\", 1)[-1]
+    safe = "".join(char if char.isalnum() or char in "._-" else "_" for char in base)[-64:]
+    return f"{index:04d}-{safe or 'attachment'}"
+
+
+def mail_attachments(raw, member_dir):
+    """Write the attachments a mail carries and declare each one by digest.
+
+    The worker holds no database handle, so it writes bytes and reports them; the Core verifies
+    each digest and size, imports each attachment as its own source and queues the route the
+    attachment's own name selects. A part with no filename is a body part, not an attachment.
+    Anything over the count or byte budget is reported as a problem instead of being dropped.
+    """
+    import hashlib
+    from pathlib import Path as _Path
+
+    out = _Path(str(member_dir))
+    message = BytesParser(policy=email.policy.default).parsebytes(raw)
+    if message.defects:
+        raise ValueError("malformed EML MIME structure")
+    extracted: list[dict] = []
+    problems: list[str] = []
+    total = 0
+    seen = 0
+    for part in message.walk():
+        if part.is_multipart():
+            continue
+        filename = part.get_filename()
+        if not filename and part.get_content_disposition() != "attachment":
+            continue
+        seen += 1
+        if len(extracted) >= ATTACHMENT_JOB_CAP:
+            problems.append(
+                f"only the first {ATTACHMENT_JOB_CAP} of {seen} attachments were extracted"
+            )
+            break
+        try:
+            payload = part.get_payload(decode=True)
+        except Exception as exc:  # noqa: BLE001 - an undecodable part is a fact, not a crash
+            problems.append(
+                f"attachment {filename!r} could not be decoded: {type(exc).__name__}: {exc}"
+            )
+            continue
+        if payload is None:
+            problems.append(f"attachment {filename!r} carries no decodable payload")
+            continue
+        if total + len(payload) > ATTACHMENT_BYTES_CAP:
+            problems.append(
+                f"attachment byte budget of {ATTACHMENT_BYTES_CAP} reached; later attachments were not extracted"
+            )
+            break
+        try:
+            out.mkdir(parents=True, exist_ok=True)
+            target = out / _safe_attachment_name(seen, filename or "attachment")
+            target.write_bytes(payload)
+        except OSError as exc:
+            problems.append(f"attachment {filename!r} could not be written: {exc}")
+            continue
+        total += len(payload)
+        extracted.append({
+            "name": filename or f"attachment-{seen}",
+            "file": target.name,
+            "bytes": len(payload),
+            "sha256": hashlib.sha256(payload).hexdigest(),
+        })
+    return extracted, problems
+
+
 ODF_MEDIA = {
     "application/vnd.oasis.opendocument.text": "odt",
     "application/vnd.oasis.opendocument.spreadsheet": "ods",

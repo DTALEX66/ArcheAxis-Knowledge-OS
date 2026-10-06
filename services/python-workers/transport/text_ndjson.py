@@ -217,6 +217,12 @@ ROUTES = {
     "text.extract": {
         "version": "1",
         "worker": "services/python-workers/document/worker_text.py",
+        # A mail carries attachments the reader cannot see as text. They go through the same
+        # member channel a container uses: this table alone decides which media type gets a
+        # transfer directory, so no other text format is ever handed one.
+        "member_dir_by_media": {
+            "message/rfc822": {"dir": "members", "kwarg": "member_dir"},
+        },
         "media_types": {
             "text/plain",
             "text/markdown",
@@ -600,7 +606,16 @@ def _run_route(route, source: Path, media_type: str, artifact_root: Path | None 
         target = safe_path(artifact_root / route["artifact_dir"], missing=True)
         return module.extract(str(filesystem_path(source)), **{route.get("artifact_kwarg", "artifact_dir"): filesystem_path(target)})
     if route.get("media_type_arg"):
-        return module.extract(str(filesystem_path(source)), media_type.split(";", 1)[0].strip().lower())
+        media_name = media_type.split(";", 1)[0].strip().lower()
+        member = route.get("member_dir_by_media", {}).get(media_name)
+        if member is None:
+            return module.extract(str(filesystem_path(source)), media_name)
+        if artifact_root is None:
+            # No Core-owned transfer area means nothing is written and nothing is declared.
+            return module.extract(str(filesystem_path(source)), media_name)
+        target = safe_path(artifact_root / member["dir"], missing=True)
+        return module.extract(str(filesystem_path(source)), media_name,
+                              **{member["kwarg"]: filesystem_path(target)})
     if route.get("contract_adapter"):
         return _as_route_contract(module.extract(str(filesystem_path(source))), route.get("capability", "route"))
     return module.extract(str(filesystem_path(source)))

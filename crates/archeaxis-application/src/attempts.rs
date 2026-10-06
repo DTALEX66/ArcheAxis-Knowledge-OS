@@ -188,8 +188,16 @@ pub fn accepted_media_types(capability: &str) -> &'static [&'static str] {
 /// members the Core may import). The executor tells only these workers where the
 /// artifact root is, so every other route keeps its launch shape and an unexpected flag
 /// stays an error rather than being silently accepted.
-pub const ARTIFACT_ROOT_CAPABILITIES: &[&str] =
-    &["pdf.extract", "archive.inventory", "media.video"];
+///
+/// R15/F13 adds `text.extract` for one reason: a mail carries attachments, and the route
+/// table inside the transport decides that only `message/rfc822` may write into the area.
+/// Every other text media type is handed no directory and declares no member.
+pub const ARTIFACT_ROOT_CAPABILITIES: &[&str] = &[
+    "pdf.extract",
+    "archive.inventory",
+    "media.video",
+    "text.extract",
+];
 
 /// R15/F06: routes whose successful job is followed by Core-side work, done inside the
 /// same commit as the completion so there is no window in which the job says it

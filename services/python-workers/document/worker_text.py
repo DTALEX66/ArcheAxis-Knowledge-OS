@@ -410,7 +410,7 @@ def format_facts(text: str, media_type: str) -> dict:
     return {"format": "plain", "parsed": True, "note": "no format-specific structure is claimed for plain text"}
 
 
-def extract(path: str, media_type: str = "text/plain") -> dict:
+def extract(path: str, media_type: str = "text/plain", member_dir: str | None = None) -> dict:
     raw = Path(path).read_bytes()
     media = (media_type or "text/plain").split(";", 1)[0].strip().lower()
     helper = Path(__file__).with_name("worker_light_formats.py")
@@ -451,6 +451,21 @@ def extract(path: str, media_type: str = "text/plain") -> dict:
     covered = len(structure)
     losses = [decode_note["loss_note"]] if decode_note["loss_note"] else []
     losses.extend(native_losses)
+    members: list[dict] = []
+    if member_dir and media == "message/rfc822":
+        # A mail is a container of its own: the same declaration the archive worker makes is
+        # what lets the Core verify, import and queue each attachment by its own name.
+        if light is None:
+            raise ValueError("light format parser missing from runtime")
+        members, member_problems = light.mail_attachments(structured_raw, member_dir)
+        losses.extend(member_problems)
+        if members:
+            # The mail parser states that extraction is not performed; once it has been,
+            # that line would be a false claim sitting in the receipt.
+            losses[:] = [line for line in losses if "independent extraction is not performed" not in line]
+            losses.append(
+                f"{len(members)} attachments extracted for the Core to import as members"
+            )
     if covered < total:
         losses.append("line anchors capped at 5000")
     facts = format_facts(text, media_type)
@@ -464,7 +479,12 @@ def extract(path: str, media_type: str = "text/plain") -> dict:
         "params": {"decode": decode_note["encoding"], "cap_lines": 5000,
                    "coverage_unit": "line anchors", "line_splitting": "str.splitlines(keepends=True)",
                    "media_type": (media_type or "text/plain").split(";", 1)[0].strip().lower(),
-                   "format": facts},
+                   "format": facts,
+                   "structure": {"extractable_members": members},
+                   "attachment_extraction": {"count": len(members),
+                                             "requested": bool(member_dir),
+                                             "only_for": "message/rfc822"},
+        },
         "losses": losses,
         "covered": covered,
         "total": total,
