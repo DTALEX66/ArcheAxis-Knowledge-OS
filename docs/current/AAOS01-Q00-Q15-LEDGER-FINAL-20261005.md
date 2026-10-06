@@ -14,6 +14,8 @@
 
 固定578d安装包本地已完成严格解包：21727个登记成员逐SHA/bytes、无额外成员、NSIS真实宿主/manifest与release-identity绑定通过；收据aaos01-tools/unpack-578d-ad69fe4b56b649ebbc39a9fdf1edf948.json，状态PASS_EXTRACTED_NOT_RUNTIME_QUALIFIED。仍未本地启动、部署新Green或通过新媒体安装态；不要把此状态提升为安装完成。
 
+Green文档镜像核对（2026-10-06）：AAOS-01的dated权威文档镜像位于 `D:\All projects\ArcheAxis.Knowledge.Green-x64\AAOS01-文档同步-20261006`，清单 `docs/current/AAOS01-DOCUMENT-SYNC-20261006.json` 逐项登记10份镜像文件的SHA-256与字节数并记录源提交绑定。本轮修正了该绑定原先指向不含全部所哈希内容的提交，并复验Formal工作树与Green副本10项全部一致、清单自身双端字节一致。Green不是Git仓库，此镜像仅镜像文档，不代替Formal权威，不证明软件、默认入口或用户数据已迁移；与该镜像相关的docs-only运行不产生新的桌面资格，新候选本地启动与Green部署仍按上段状态执行。
+
 ## 当前状态与剩余缺口
 
 | ID / 权威任务 | 当前状态 | 已有证据与实际剩余缺口 |
