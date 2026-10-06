@@ -37,7 +37,7 @@ describe("StatusBar", () => {
     render(<StatusBar activeSpace="workspace" backendState="unavailable" />);
 
     expect(screen.getByText("后端状态：不可用")).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "打开全局命令" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "打开全局命令" })).toHaveAttribute("aria-keyshortcuts", "Control+K");
     expect(screen.queryByRole("button", { name: /重试后端|进入安全模式|恢复备份/ })).not.toBeInTheDocument();
   });
 

@@ -172,7 +172,7 @@ export function CommandPalette({ onNavigate, onOpenChange }: { onNavigate: (id: 
   </div> : null;
 
   return <>
-    <button ref={triggerRef} type="button" className="command-trigger" aria-label="打开全局命令" onClick={openPalette}>
+    <button ref={triggerRef} type="button" className="command-trigger" aria-label="打开全局命令" aria-keyshortcuts="Control+K" onClick={openPalette}>
       <span aria-hidden="true">⌕</span><span>搜索或前往</span><kbd>Ctrl K</kbd>
     </button>
     {overlay ? createPortal(overlay, document.body) : null}
