@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { coreCommand } from "../api/core";
+import { RawReceiptButton } from "./DiagnosticConsole";
 import type { AnchorDto } from "../api/generated/core-contract";
 import { Section } from "./RealData";
 
@@ -54,7 +55,7 @@ export function TranscriptionCues({proof,onTimeSeek,onAnchor}:{proof:Transcripti
       <p>处理状态：{String(proof.pipeline.pipeline_state??proof.pipeline.processing_status??proof.pipeline.alignment_status??"未提供")}；未定位片段：{Array.isArray(proof.pipeline.alignment_issues)?proof.pipeline.alignment_issues.length:0}。</p>
       {Array.isArray(proof.pipeline.visual_results)?<><p>抽样帧描述与语音原文独立；请求时间近似，未覆盖区间没有视觉分析，不代表连续视频理解。</p><ul>{proof.pipeline.visual_results.map((entry:unknown,index:number)=>{const item=entry&&typeof entry==="object"?entry as Record<string,unknown>:{};return <li key={index}><p>帧 {index+1}：{String(item.state??"未提供")}；请求时间 {typeof item.sampling_seek_requested_ms==="number"&&Number.isFinite(item.sampling_seek_requested_ms)?(Number(item.sampling_seek_requested_ms)/1000).toFixed(3):"未知"} 秒（近似）。</p>{typeof item.description==="string"?<p>{item.description}</p>:null}{item.state!=="succeeded"?<p>疑点：{String(item.reason??"识别未完成")}；可用语音原文仍保留。</p>:<p>模型描述仍需语义核验。</p>}</li>;})}</ul></>:null}
       {Array.isArray(proof.pipeline.alignment_issues)&&proof.pipeline.alignment_issues.length?<p>原始转写含无法定位的片段；正文没有截断，不提供这些片段的时间引用。</p>:null}
-      <details><summary>阶段与原始定位记录</summary><pre>{JSON.stringify({state:proof.pipeline.pipeline_state,stages:proof.pipeline.stages,processing_error:proof.pipeline.processing_error,alignment_issues:proof.pipeline.alignment_issues,visual_results:proof.pipeline.visual_results},null,2)}</pre></details>
+      <RawReceiptButton label="阶段与原始定位记录" payload={{state:proof.pipeline.pipeline_state,stages:proof.pipeline.stages,processing_error:proof.pipeline.processing_error,alignment_issues:proof.pipeline.alignment_issues,visual_results:proof.pipeline.visual_results}} />
     </section>:null}
     {message?<p role="status">{message}</p>:null}</Section>;
 }

@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { coreCommand } from "../api/core";
+import { RawReceiptButton } from "./DiagnosticConsole";
 function backup(value:unknown):Record<string,unknown>{
  if(!value||typeof value!=="object"||Array.isArray(value))throw new Error("invalid backup");
  const item=value as Record<string,unknown>;
@@ -18,5 +19,5 @@ export function BackupPanel(){
   try{const result=await coreCommand<unknown>("workspace_backups");if(!result||typeof result!=="object"||!("backups" in result)||!Array.isArray(result.backups))throw new Error("invalid backup list");setItems(result.backups.map(backup));setMessage("已读取产品自己的备份产物。");}
   catch{setMessage("备份列表读取失败，未替换已有回执。");}finally{setBusy(false);}
  }
- return <section aria-label="一致备份"><h4>产品资料备份</h4><button disabled={busy} onClick={()=>void create()}>创建一致备份</button><button disabled={busy} onClick={()=>void refresh()}>刷新备份产物</button>{message?<p role="status">{message}</p>:null}<ul>{items.map(item=><li key={String(item.backup_id)}><strong>{String(item.filename)}</strong><p>SHA-256 {String(item.sha256)} · {String(item.bytes)} 字节</p><p>数据结构版本 {String(item.schema_version)} · SQLite {String(item.sqlite_version)}</p><details><summary>来源 SHA 与核验回执</summary><pre>{JSON.stringify({source_sha_list:item.source_sha_list,verified:item.verified??"未提供"},null,2)}</pre></details></li>)}</ul></section>;
+ return <section aria-label="一致备份"><h4>产品资料备份</h4><button disabled={busy} onClick={()=>void create()}>创建一致备份</button><button disabled={busy} onClick={()=>void refresh()}>刷新备份产物</button>{message?<p role="status">{message}</p>:null}<ul>{items.map(item=><li key={String(item.backup_id)}><strong>{String(item.filename)}</strong><p>SHA-256 {String(item.sha256)} · {String(item.bytes)} 字节</p><p>数据结构版本 {String(item.schema_version)} · SQLite {String(item.sqlite_version)}</p><RawReceiptButton label="备份来源 SHA 与核验回执" payload={{source_sha_list:item.source_sha_list,verified:item.verified??"未提供"}} /></li>)}</ul></section>;
 }

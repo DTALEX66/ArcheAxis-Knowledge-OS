@@ -54,7 +54,11 @@ describe("finite knowledge and learning commands",()=>{
   });
   render(<CanonicalKnowledgeSpace/>);const user=userEvent.setup();
   await user.click(screen.getByRole("button",{name:"搜索"}));await user.click(await screen.findByRole("button",{name:"候选正文"}));
-  expect(await screen.findByText(/local_execution_pass/)).toHaveTextContent("false");
+  const qualificationDebug=vi.spyOn(console,"debug").mockImplementation(()=>{});
+  await user.click(screen.getByRole("button",{name:/Core 证据与资格回执/}));
+  expect(qualificationDebug.mock.calls.some(([,label,payload])=>label==="Core 证据与资格回执"&&JSON.stringify(payload).includes('"local_execution_pass":false'))).toBe(true);
+  expect(screen.queryByText(/local_execution_pass/)).not.toBeInTheDocument();
+  qualificationDebug.mockRestore();
   expect(screen.getByRole("button",{name:"接受当前候选"})).toBeDisabled();
   await user.type(screen.getByLabelText("审核者"),"测试使用者");await user.type(screen.getByLabelText("审核备注"),"保留判断依据");
   await user.click(screen.getByRole("button",{name:"接受当前候选"}));
@@ -69,7 +73,11 @@ describe("finite knowledge and learning commands",()=>{
    if(op==="learning_review") throw new Error("unconfirmed");
   });
   render(<CanonicalLearningSpace/>);const user=userEvent.setup();await user.click(await screen.findByRole("button",{name:"a1"}));
-  expect(await screen.findByText(/not_recorded/)).toBeInTheDocument();await user.type(screen.getByLabelText("本次答案"),"本次实际答案");
+  const machineDebug=vi.spyOn(console,"debug").mockImplementation(()=>{});
+  await user.click(await screen.findByRole("button",{name:/机器能力/}));
+  expect(machineDebug.mock.calls.some(([,label,payload])=>label==="机器能力"&&JSON.stringify(payload).includes("not_recorded"))).toBe(true);
+  expect(screen.queryByText(/not_recorded/)).not.toBeInTheDocument();
+  machineDebug.mockRestore();await user.type(screen.getByLabelText("本次答案"),"本次实际答案");
   await user.click(screen.getByRole("button",{name:"记录复习结果"}));await screen.findByText(/提交未确认/);
   await user.click(screen.getByRole("button",{name:"记录复习结果"}));
   const writes=bridge.call.mock.calls.filter(([op])=>op==="learning_review");expect(writes).toHaveLength(2);expect(writes[0][1]).toEqual(writes[1][1]);

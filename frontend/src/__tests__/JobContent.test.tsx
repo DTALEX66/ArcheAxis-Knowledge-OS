@@ -35,7 +35,12 @@ describe("Core job content",()=>{
   await user.click(screen.getByRole("button",{name:"执行真实内容转换"}));
   await screen.findByText(/转换未完成或产物读取失败/);
   expect(screen.getByLabelText("Core 提取正文")).toHaveTextContent("保留正文");
-  expect(screen.getByText(/AAK-WORKER-003/)).toBeInTheDocument();
+  // The failed attempt stays reachable verbatim through the diagnostic channel, not inline in the reading column.
+  const debug=vi.spyOn(console,"debug").mockImplementation(()=>{});
+  await user.click(screen.getByRole("button",{name:/最新处理状态与错误记录/}));
+  expect(debug.mock.calls.some(([,label,payload])=>label==="最新处理状态与错误记录"&&JSON.stringify(payload).includes("AAK-WORKER-003"))).toBe(true);
+  expect(screen.queryByText(/AAK-WORKER-003/)).not.toBeInTheDocument();
+  debug.mockRestore();
  });
  it("requires real completion and reads all persisted outputs with actual engine proof",async()=>{
  bridge.call.mockImplementation(async(op:string,payload:Record<string,unknown>)=>{
@@ -48,7 +53,12 @@ describe("Core job content",()=>{
   if(op==="knowledge_from_transform")return {status:"candidate",knowledge_id:"k1",anchor_id:"a1"};
   if(op==="job_output")return {metadata:{},content:payload.kind==="text"?"Sheet1 A1 真实单元格":JSON.stringify({kind:payload.kind})};
  });render(<JobContent sourceId="src_office" name="sample.xlsx"/>);await userEvent.setup().click(screen.getByRole("button",{name:"执行真实内容转换"}));
- expect(await screen.findByLabelText("Core 提取正文")).toHaveTextContent("真实单元格");expect(screen.getByText(/engine_version/)).toHaveTextContent("openpyxl");
+ expect(await screen.findByLabelText("Core 提取正文")).toHaveTextContent("真实单元格");
+ const engineDebug=vi.spyOn(console,"debug").mockImplementation(()=>{});
+ await userEvent.setup().click(screen.getByRole("button",{name:/损失、引擎与处理记录/}));
+ expect(engineDebug.mock.calls.some(([,label,payload])=>label==="损失、引擎与处理记录"&&JSON.stringify(payload).includes("openpyxl"))).toBe(true);
+ expect(screen.queryByText(/engine_version/)).not.toBeInTheDocument();
+ engineDebug.mockRestore();
  expect(bridge.call).toHaveBeenCalledWith("job_enqueue",{body:{job_id:expect.any(String),kind:"office",input_ref:"src_office"}});
  const selection=screen.getByLabelText("选择实际引文");fireEvent.select(selection,{target:{selectionStart:0,selectionEnd:6}});
  await userEvent.setup().type(screen.getByLabelText("知识候选正文"),"真实候选正文");await userEvent.setup().click(screen.getByRole("button",{name:"创建知识候选"}));
@@ -68,7 +78,8 @@ describe("Core job content",()=>{
  expect(await screen.findByRole("cell",{name:"sheet-预算 / row-1"})).toBeInTheDocument();
  expect(screen.getByRole("cell",{name:"A1=已知值"})).toBeInTheDocument();
  expect(screen.getByRole("cell",{name:"正文范围未提供或未匹配"})).toBeInTheDocument();
- expect(screen.getByText("更多信息：损失、引擎与处理记录").closest("details")).not.toHaveAttribute("open");
+ expect(screen.getByRole("button",{name:/损失、引擎与处理记录/})).toBeInTheDocument();
+ expect(screen.queryByText(/loss_note/)).not.toBeInTheDocument();
  });
  it("does not publish content when the actual job fails",async()=>{
  bridge.call.mockImplementation(async(op:string,payload:Record<string,unknown>)=>op==="job_enqueue"?{job_id:(payload.body as Record<string,unknown>).job_id}:op==="jobs_get"?{state:"failed",error:"AAK-WORKER-003"}:{});

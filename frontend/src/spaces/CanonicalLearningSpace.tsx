@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { coreCommand } from "../api/core";
+import { RawReceiptButton } from "../components/DiagnosticConsole";
 import { Section } from "../components/RealData";
 function record(value: unknown): Record<string, unknown> {
   if (!value || typeof value !== "object" || Array.isArray(value)) throw new Error("invalid response");
@@ -56,6 +57,6 @@ export function CanonicalLearningSpace() {
   return <Section title="学习"><p>学习者记录与机器能力分别显示。记录复习结果不会自动证明机器能力或知识正确性。</p><button onClick={()=>void refresh()}>刷新学习队列</button>
     <ul>{items.map(item=><li key={String(item.item_key)}><button disabled={busy} onClick={()=>void open(String(item.item_key))}>{String(item.item_key)}</button> · 下次复习 {typeof item.next_review === "string" ? item.next_review : "未安排"}</li>)}</ul>
     <form onSubmit={event=>{event.preventDefault();void open(itemKey);}}><label>学习项目键 <input value={itemKey} disabled={busy} onChange={event=>{epoch.current+=1;setItemKey(event.target.value);setState(null);}} /></label><button disabled={!itemKey.trim()||busy}>读取项目</button></form>
-    {state?<article><h4>学习者与实际问题</h4><pre>{JSON.stringify(state.learner,null,2)}</pre><h4>机器能力</h4><pre>{JSON.stringify(state.machine,null,2)}</pre><label>本次答案 <textarea value={answer} disabled={busy} onChange={event=>{setAnswer(event.target.value);eventId.current=null;}} /></label><label>自评结果 <select value={rating} disabled={busy} onChange={event=>{setRating(Number(event.target.value));eventId.current=null;}}><option value={1}>忘记 / 错误</option><option value={2}>困难但正确</option><option value={3}>正确</option><option value={4}>轻松正确</option></select></label><button disabled={busy||!record(state.learner).assessment} onClick={()=>void review()}>记录复习结果</button><details><summary>历史与回执</summary><pre>{JSON.stringify(history,null,2)}</pre></details></article>:null}
+    {state?<article><h4>学习者与实际问题</h4><RawReceiptButton label="学习者与实际问题" payload={state.learner} /><h4>机器能力</h4><RawReceiptButton label="机器能力" payload={state.machine} /><label>本次答案 <textarea value={answer} disabled={busy} onChange={event=>{setAnswer(event.target.value);eventId.current=null;}} /></label><label>自评结果 <select value={rating} disabled={busy} onChange={event=>{setRating(Number(event.target.value));eventId.current=null;}}><option value={1}>忘记 / 错误</option><option value={2}>困难但正确</option><option value={3}>正确</option><option value={4}>轻松正确</option></select></label><button disabled={busy||!record(state.learner).assessment} onClick={()=>void review()}>记录复习结果</button><details><summary>历史与回执</summary><pre>{JSON.stringify(history,null,2)}</pre></details></article>:null}
     {message?<p role="status">{message}</p>:null}</Section>;
 }

@@ -24,7 +24,7 @@ function unstyledClasses(file: string): string[] {
   const missing = new Set<string>();
   for (const match of source.matchAll(/className="([^"{}]+)"/g)) {
     for (const name of match[1].split(/\s+/)) {
-      if (name && !sheet.includes(`.${name}`)) missing.add(name);
+      if (name && !new RegExp("\." + name + "(?![-\w])").test(sheet)) missing.add(name);
     }
   }
   return [...missing];

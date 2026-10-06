@@ -20,7 +20,13 @@ describe("persisted mock transcription reopen",()=>{
  beforeEach(()=>bridge.call.mockReset());
  it("loads old success while retaining latest failure, without new execution",async()=>{
   await fixture();render(<JobContent sourceId="s" sourceRevision={revision} name="speech.wav"/>);
-  await screen.findByRole("button",{name:"引用时间段"});expect(screen.getByText(/AAK-WORKER-003/)).toBeInTheDocument();
+  await screen.findByRole("button",{name:"引用时间段"});
+  // The retained failure stays reachable verbatim through the diagnostic channel.
+  const debug=vi.spyOn(console,"debug").mockImplementation(()=>{});
+  await userEvent.setup().click(screen.getByRole("button",{name:/最新处理状态与错误记录/}));
+  expect(debug.mock.calls.some(([,label,payload])=>label==="最新处理状态与错误记录"&&JSON.stringify(payload).includes("AAK-WORKER-003"))).toBe(true);
+  expect(screen.queryByText(/AAK-WORKER-003/)).not.toBeInTheDocument();
+  debug.mockRestore();
   expect(bridge.call.mock.calls.some(([op])=>op==="job_execute"||op==="job_enqueue")).toBe(false);
  });
  it("refuses an unbounded list rather than following pages implicitly",async()=>{

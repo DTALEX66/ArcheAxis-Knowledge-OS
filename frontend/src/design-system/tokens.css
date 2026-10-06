@@ -548,6 +548,51 @@ input:disabled, textarea:disabled, select:disabled {
   width: 100%;
 }
 
+/* Diagnostics: raw backend payloads live here, never inside the reading column. */
+.diagnostic-console {
+  grid-column: 1 / -1;
+  display: grid;
+  gap: var(--ax-space-2);
+  padding-top: var(--ax-space-3);
+  border-top: 1px solid var(--ax-border);
+}
+
+.diagnostic-console-header {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--ax-space-3);
+}
+
+.diagnostic-console-count {
+  font-size: 12px;
+  color: var(--ax-fg-tertiary);
+}
+
+.diagnostic-console-empty {
+  font-size: 12px;
+  color: var(--ax-fg-tertiary);
+}
+
+.diagnostic-console-list {
+  display: grid;
+  gap: 4px;
+  max-height: 240px;
+  overflow: auto;
+}
+
+.diagnostic-console-list pre {
+  max-height: 200px;
+  overflow: auto;
+  font-size: 12px;
+  overflow-wrap: anywhere;
+}
+
+.raw-receipt {
+  font-size: 12px;
+  align-self: start;
+}
+
 /* Recovery workbench: without these the whole screen is one undivided text run, since the
    global reset removes every default margin and nothing else supplies structure. */
 .recovery-card {
@@ -2097,6 +2142,61 @@ tr:hover {
 @media (max-width: 1200px) {
   .ws-quick-actions {
     grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+/* Three fixed panes plus the reading column do not fit a 1024-wide window: measured at
+   1024x900 with the Inspector open the centre collapsed to 304px and its contents overflowed
+   by 21-58px. Narrow the chrome before the content, and let the content shrink at all. */
+@media (max-width: 1200px) {
+  .space-rail {
+    width: 172px;
+  }
+
+  .context-subnav {
+    width: 172px;
+    padding: var(--ax-space-3);
+  }
+
+  .inspector {
+    width: 264px;
+  }
+
+  .app-center {
+    min-width: min(420px, 100%);
+  }
+
+  .space-view,
+  .space-card {
+    min-width: 0;
+  }
+
+  .space-view ul,
+  .space-view ol {
+    min-width: 0;
+    overflow-wrap: anywhere;
+  }
+
+  /* The global button rule forbids wrapping, so a long Chinese label becomes a min-content
+     floor that pushes its container past the pane. */
+  .app-center button,
+  .context-subnav button {
+    white-space: normal;
+    overflow-wrap: anywhere;
+  }
+}
+
+@media (max-width: 1080px) {
+  .space-rail {
+    width: 148px;
+  }
+
+  .context-subnav {
+    width: 148px;
+  }
+
+  .inspector {
+    width: 232px;
   }
 }
 

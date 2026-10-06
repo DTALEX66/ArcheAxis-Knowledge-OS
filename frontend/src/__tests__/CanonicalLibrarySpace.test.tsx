@@ -68,7 +68,12 @@ describe("canonical content sample", () => {
     await user.click(screen.getByRole("button", { name: "只读查看历史版本" }));
     expect(await screen.findByText("历史正文独立保存")).toBeInTheDocument();
     expect(screen.getByRole("textbox", { name: "文档草稿" })).toHaveTextContent("已保存笔记");
-    expect(screen.getByText(/核对原件后修正年份/)).toBeInTheDocument();
+    // The revision basis is reachable verbatim through diagnostics instead of being printed inline.
+    const debug = vi.spyOn(console, "debug").mockImplementation(() => {});
+    await user.click(screen.getByRole("button", { name: /历史修订依据/ }));
+    expect(debug.mock.calls.some(([, label, payload]) => label === "历史修订依据" && JSON.stringify(payload).includes("核对原件后修正年份"))).toBe(true);
+    expect(screen.queryByText(/核对原件后修正年份/)).not.toBeInTheDocument();
+    debug.mockRestore();
     expect(bridge.call.mock.calls.some(([operation]) => operation === "document_restore" || operation === "document_draft")).toBe(false);
   });
   it("SIMULATED: historical Inspector preserves dirty editor and only uses the actual returned hash", async () => {

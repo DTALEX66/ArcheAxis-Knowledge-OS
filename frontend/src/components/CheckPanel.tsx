@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { coreCommand } from "../api/core";
+import { RawReceiptButton } from "./DiagnosticConsole";
 import { assertCoreDto, type DocumentDto, type DocumentCheckDto, type DocumentChecksDto, type RevisionBasisDto } from "../api/generated/core-contract";
 
 const labels: Record<string,string> = {pending:"等待核验",unverified:"未核验",uncertain:"不确定",original_unclear:"原件不清晰",conflicting:"存在冲突",failed:"核验失败",faithful:"识别忠实",mismatch:"识别不一致",supported:"有依据支持",refuted:"依据不支持",passed:"核验通过"};
@@ -87,9 +88,9 @@ export function CheckPanel({document,onRevisionBasis}:{document:DocumentDto;onRe
         {item.reason?<p>{item.reason==="worker_not_configured"?"该申请记录创建时引擎未配置；不代表当前配置状态，尚未执行。":item.reason}</p>:null}{item.basis?<p>依据：{String(item.basis)}</p>:null}
         {item.provider_mode==="cloud"&&result.next_offset==null&&(!item.attempt_id?!result.checks.some(other=>other.request_check_id===item.check_id&&typeof other.attempt_id==="string"):item.status==="failed"&&typeof item.attempt_id==="string"&&result.checks.slice().reverse().find(other=>other.request_check_id===item.request_check_id&&typeof other.attempt_id==="string")?.attempt_id===item.attempt_id)?<button disabled={busy||item.version!==document.version||item.content_sha256!==document.content_sha256} onClick={()=>void execute(item)}>{typeof item.attempt_id==="string"?"明确重试执行核验":"明确执行核验"}</button>:null}
         {item.execution_state==="failed"&&item.reported_status?<p>模型报告：{labels[String(item.reported_status)]??String(item.reported_status)}；任务失败，未验证执行成功。</p>:null}
-        {item.execution_verified&&item.execution_state==="executed"&&item.engine_receipt?<details><summary>实际引擎与检索回执</summary><pre>{JSON.stringify({engine:item.engine_receipt,retrieval:item.retrieval_receipts},null,2)}</pre></details>:null}
+        {item.execution_verified&&item.execution_state==="executed"&&item.engine_receipt?<RawReceiptButton label="实际引擎与检索回执" payload={{engine:item.engine_receipt,retrieval:item.retrieval_receipts}} />:null}
         {typeof item.raw_response==="string"&&item.raw_response.length>0?<details><summary>查看模型原始响应</summary><pre>{item.raw_response}</pre></details>:null}
-        {item.execution_state==="failed"&&item.engine_receipt?<details><summary>失败执行回执</summary><pre>{JSON.stringify(item.engine_receipt,null,2)}</pre></details>:null}
+        {item.execution_state==="failed"&&item.engine_receipt?<RawReceiptButton label="失败执行回执" payload={item.engine_receipt} />:null}
         {item.reason==="not_configured"?<p>执行尝试失败：核验引擎未配置，没有云端调用。</p>:null}
         <button disabled={!rationale.trim()} onClick={()=>{onRevisionBasis({rationale:rationale.trim(),reference_version:item.version,check_id:item.check_id,...(item.position&&typeof item.position==="object"&&!Array.isArray(item.position)?{position:item.position}: {})});setMessage("修订理由已选定，将随下一次正文保存记录。");}}>用于下一次修订</button>
       </div>):<p>该版本尚无核验记录。</p>:<p>核验状态尚未读取。</p>}
@@ -107,7 +108,7 @@ export function CheckPanel({document,onRevisionBasis}:{document:DocumentDto;onRe
       <label>已有结果指纹 <input value={hash} onChange={event=>setHash(event.target.value)}/></label>
     </details>
     <label>下一次修订理由 <textarea value={rationale} onChange={event=>setRationale(event.target.value)}/></label>
-    {document.revision_basis?<details><summary>本版本修订依据</summary><pre>{JSON.stringify(document.revision_basis,null,2)}</pre></details>:null}
+    {document.revision_basis?<RawReceiptButton label="本版本修订依据" payload={document.revision_basis} />:null}
     {message?<p role="status">{message}</p>:null}
   </section>;
 }
