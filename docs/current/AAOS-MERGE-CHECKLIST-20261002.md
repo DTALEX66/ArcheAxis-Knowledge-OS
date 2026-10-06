@@ -58,6 +58,22 @@ gh pr edit 158 --base main && gh pr merge 158 --merge
 Measured: #157 and #158 share **zero files** (119 and 14 files
 respectively against their shared base). No conflict re-check is needed between them.
 
+Correction measured 2026-10-07: that sentence is **not verifiable any more, and the method that
+produced it was wrong**. Re-running it today:
+
+* `git diff --name-only $(git merge-base <157head> <158head>)...<157head>` gives 650 files on the
+  #157 side, 14 on the #158 side and **10 shared** - but the 650 includes main's own divergence,
+  so it is not #157's contribution.
+* #157 has since been merged, so its head is an ancestor of `origin/main`: the same computation
+  against `merge-base(<157head>, origin/main)` returns **0 files**, and GitHub's
+  `gh pr diff 157 --name-only` also returns nothing for a merged PR.
+* Outcome: #157 MERGED (head 39cf312234089baf89909e586407747870a3ab66), #158 CLOSED without ever
+  being merged (head 627e74ffcc2b16e2109ab85c0a8183f1e4a6b21a, base `codex/Audit`).
+
+So the "zero files" and the "119 files" figures cannot be reproduced by any method available now,
+and a claim that cannot be re-measured must not be read as a verified one. No merge decision now
+rests on it: #158 was closed, and #157 landed under the retargeting this checklist required.
+
 Rollback: `git revert -m 1 <merge-commit>`.
 
 ## Do not
