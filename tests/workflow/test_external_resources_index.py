@@ -66,9 +66,11 @@ def test_every_declared_external_path_is_recorded():
     reason="no external root in the environment; resolution is skipped rather than assumed clean",
 )
 def test_declared_paths_resolve_on_this_host():
+    # Rebuild with the environment this test was given, stated rather than inherited implicitly,
+    # so the assertion is about the current manifest and a known external root.
     environment = {**os.environ}
-    # Rebuild so the assertion is about the current manifest, not a stale artifact.
-    subprocess.run([sys.executable, "-B", str(BUILDER)], check=True, capture_output=True, cwd=ROOT)
+    subprocess.run([sys.executable, "-B", str(BUILDER)], check=True, capture_output=True,
+                   cwd=ROOT, env=environment)
     index = json.loads(INDEX.read_text(encoding="utf-8"))
     assert index["root_present"], "the declared external root is not a directory"
     missing = [

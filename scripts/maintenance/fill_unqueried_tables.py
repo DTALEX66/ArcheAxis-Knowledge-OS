@@ -70,7 +70,8 @@ def export_tables(database: Path, out_dir: Path, names: list[str]) -> dict[str, 
     try:
         import sqlite_vec
     except ImportError as error:  # the reason this gap cannot be closed, named
-        raise SystemExit(f"sqlite_vec is not installed, so a vec0 table still cannot be read: {error}")
+        raise SystemExit(
+            f"sqlite_vec is not installed, so a vec0 table still cannot be read: {error}") from error
     connection = sqlite3.connect(f"file:{database}?mode=ro", uri=True)
     written: dict[str, dict] = {}
     try:
@@ -89,7 +90,7 @@ def export_tables(database: Path, out_dir: Path, names: list[str]) -> dict[str, 
             target = out_dir / export_filename(name)
             with target.open("w", encoding="utf-8", newline="\n") as handle:
                 for row in rows:
-                    record = {column: value_json(value) for column, value in zip(columns, row)}
+                    record = {column: value_json(value) for column, value in zip(columns, row, strict=True)}
                     handle.write(json.dumps(record, ensure_ascii=False, sort_keys=False) + "\n")
             payload = target.read_bytes()
             written[name] = {
@@ -133,7 +134,9 @@ def main() -> int:
     # would make the manifest fail its own verification. The field order and the ordering of the
     # entries mirror the Rust `manifest_digest` exactly, including sorting by UTF-8 bytes rather
     # than by code point, so the Rust verifier recomputes the same value.
-    by_bytes = lambda item: item[0].encode("utf-8")
+    def by_bytes(item: tuple[str, object]) -> bytes:
+        return item[0].encode("utf-8")
+
     hasher = hashlib.sha256()
     for name, table in sorted(manifest["tables"].items(), key=by_bytes):
         hasher.update(name.encode("utf-8"))

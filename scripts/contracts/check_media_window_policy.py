@@ -151,7 +151,8 @@ def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--check", action="store_true",
                         help="compare only; the default already writes nothing")
-    args = parser.parse_args()
+    # Accepted so the CI invocation reads as intended; comparing is the only mode there is.
+    parser.parse_args()
     policy = declared()
     problems = check()
     if problems:

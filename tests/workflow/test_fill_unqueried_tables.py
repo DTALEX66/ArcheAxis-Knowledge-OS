@@ -39,7 +39,9 @@ def load_filler():
 
 def rust_digest(tables: dict, unqueried: dict) -> str:
     """The Rust `manifest_digest`, written out independently of the module under test."""
-    by_bytes = lambda item: item[0].encode("utf-8")
+    def by_bytes(item: tuple[str, object]) -> bytes:
+        return item[0].encode("utf-8")
+
     hasher = hashlib.sha256()
     for name, table in sorted(tables.items(), key=by_bytes):
         hasher.update(name.encode("utf-8"))
