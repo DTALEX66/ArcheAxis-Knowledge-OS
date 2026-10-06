@@ -1314,3 +1314,12 @@ Python 全量 4256 passed, 30 skipped, 14 warnings, 166 subtests passed in 438.6
 逐一点名被改动的权威文件（矩阵行、HTTP 契约、供给链台账、发布清单、CI 工作流），
 依赖与许可变更写进标题，同一提交不混做“依赖升级 + Core 功能”。
 同一规则已写入审计快照的 `checkpoint.open`，供后续切片自检。
+
+
+## 遗留二进制引擎的本机实测（2026-10-07，只测不装）
+
+**`.doc` 有候选**：`C:\Program Files\Git\mingw64\bin\antiword.exe` 实测存在，284,448 字节，sha256 `d30a37489c64ada474d8d5aa5abb0778a6955d3ce6cdbb7c8c659e37b89d3da9`，自报 `Version: 0.37  (21 Oct 2005)`、`Status: GNU General Public License`、`Author: (C) 1998-2005 Adri van Os`；字符映射表目录 `C:\Program Files\Git\mingw64\share\antiword` 实测含 30 个 `*.txt`（含 `UTF-8.txt`）。它能读 Word 97 的 `.doc`，**不能读 `.ppt`**；它是 **Git for Windows 自带的 mingw64 包**，不是本机自装的工具链登记项，因此**尚未**写进 `config/environment/capability-requirements.yaml`，也**尚未**进供给链台账——绑定它需要一次单独的处置决定（登记为外置引擎并规定探针与环境变量，还是仅按 `PATH` 探测）。在它被登记之前，产品不得假设它存在：当前 `.doc` 仍是**具名拒绝**，这是事实而非缺口修复。
+
+**`.ppt` 与 Tika 侧车在本机不可达**：JVM 实测缺席——`C:\Program Files\Java`、`C:\Program Files\Eclipse Adoptium`、`C:\Program Files\Microsoft\jdk`、`D:\All projects\OS External Configuration\10-toolchains\java` 均无内容，`where java` 退出码 1（where.exe 的“未找到匹配文件”消息以 GBK 控制台编码返回，此处不复写其乱码字节）；扫描范围内也没有任何 Tika jar。台账 A010（Apache Tika, `document-legacy`, SIDECAR, qualification `[source]`）因此**不能**在本机升档：升它需要装系统级 Java，而本轮边界明确禁止装系统级软件。结论写死：`.ppt` 在本地没有合法读取路径，除非引入一个不需要 JVM 的读取器并另行验证——**不做无样本的自造实现**。
+
+**这条记录的作用**：把两条反复被引用却没有度量的判断（`.doc`/`.ppt` 无 reader、Tika 待装）换成有哈希、有字节数、有退出码的实测，并标明仍未决的是**处置**而不是**是否存在**。
