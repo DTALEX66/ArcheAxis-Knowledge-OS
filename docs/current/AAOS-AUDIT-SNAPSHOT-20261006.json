@@ -1,7 +1,7 @@
 {
   "schema": "archeaxis/audit-snapshot/v1",
   "round": "AAOS-AUTHORITY-REPAIR-20261006",
-  "observed_at": "2026-10-06T17:40:00+08:00",
+  "observed_at": "2026-10-06T18:15:00+08:00",
   "timezone": "Asia/Shanghai",
   "scope": "文档与治理修复（权威入口、冲突 current、描述与覆盖矩阵、可重复审计）。不改产品架构、不批量化安装依赖、不发布。",
   "repository": {
@@ -63,18 +63,63 @@
       "result": "input hashes: verified 5, outside-repository 4; document authority: single current record, root references resolve, input hashes match, coverage complete",
       "covers": "本轮新增：唯一 current、根入口引用可解析、输入哈希、覆盖矩阵完整性",
       "verified_by": "tests/workflow/test_document_authority_gate.py — 7 injected faults, each named"
+    },
+    {
+      "command": "python -B scripts/check_repository_conventions.py --source head",
+      "exit_code": 0,
+      "result": "repository convention check passed (head)",
+      "covers": "CI lint 作业第 1 步；在 8f163aae 上复现通过（5a6639f0 上为 exit 1，见 regressions）"
+    },
+    {
+      "command": "python -B scripts/check_path_conventions.py",
+      "exit_code": 0,
+      "result": "2954/2954 tracked paths owned (100.0%), 0 unowned and all recorded, 0 deny-commit paths tracked, 0 ambiguous, 66 top-level entries classified",
+      "covers": "CI lint 作业的目录权威步骤（AUTHORITY.md 已归位）"
+    },
+    {
+      "command": "python -B scripts/check_format_matrix.py --matrix docs/authority/taskpack-0910-r3/R15-FORMAT-STATUS.json",
+      "exit_code": 0,
+      "result": "16 groups carried, 0 complete, 14 partial, 2 custody only; every claimed route exists (13 core routes, 12 worker routes parsed)",
+      "covers": "CI lint 作业的格式矩阵步骤"
+    },
+    {
+      "command": "python -B scripts/check_language_boundaries.py",
+      "exit_code": 0,
+      "result": "protocol major 1 agreed by rust/python/schemas; database owner = crates/ only; workers and desktop shell hold no database handle",
+      "covers": "CI lint 作业的语言边界步骤"
+    },
+    {
+      "command": "python -B -m pytest tests/",
+      "wrapper_exit_code": 0,
+      "receipt": "4179 passed, 19 skipped, 144 subtests passed, 1 failed in 441.62s",
+      "failure": "tests/test_general_course_worker.py::test_real_subprocess_reads_one_json_and_creates_no_output_files",
+      "covers": "本机全量套件（Windows 默认代码页，未开 UTF-8 模式）",
+      "note": "包装命令退出码为 0，收据本身含 1 failed；此处按收据记失败，不按包装退出码记通过。该失败在 UTF-8 模式下不复现，见 gaps"
     }
   ],
   "checks_not_run_this_round": [
-    "未跑产品级全量测试与安装态验收：本轮范围为文档/治理，按提示词不为装饰重复全产品测试",
+    "产品级安装态与资格化验收未跑：本轮范围为文档/治理，不为装饰重复全产品验收。本机全量套件本轮实际跑过（见 commands：1 failed），但该 SHA 的 CI 为 push 分类，test 车道被跳过，故 test 作业本轮未在 CI 运行",
     "未改 GitHub About：先记录 before，随后由 API 更新并读回（见 about 字段）",
     "未在另一本地副本上比对：本机未发现第二工作副本被指为主副本"
+  ],
+  "regressions": [
+    {
+      "commit": "5a6639f0",
+      "detected_by": "CI push run 37447026168 / lint / Validate repository naming and encoding conventions（exit 1）",
+      "observed": "README.md: legacy-product-name：活动表面的 README 被判为未声明历史语境而含旧产品名（该旧名见 docs/truth/NAMING_CONTRACT_V1.md，此处不复写以免再触发同一规则）",
+      "cause": "该提交加长了 README 头部的权威块，令唯一的历史语境标记（命名说明中的 旧名 与 历史 措辞）落到该检查 600 字符头部窗口之外，于是处于活动表面的 README 被判定为未声明历史语境。父提交 daf6f1f5 的头部较短，标记仍在窗口内，故此前为绿",
+      "fix_commit": "8f163aae",
+      "fix": "在 README 头部显式声明 Legacy/Migration 兼容语境（HTML 注释），不再依赖某个措辞恰好落在字符窗口内",
+      "local_reproduction": "python -B scripts/check_repository_conventions.py --source head → 修复前 exit 1（仅 1 项），修复后 exit 0",
+      "false_pass_note": "首轮本地误判为通过：同一命令当时在另一分支（codex/Audit）工作树较短的 README 上执行；另注意在 Windows 工作树上用 --source worktree 会因 CRLF 报 72 项，复现必须用 --source index 或 --source head"
+    }
   ],
   "gaps": [
     "蓝图附录 5 条来源在 SOURCE_MISSING：A01、A02、A04、A06 与 U01/U02 的原始聊天（未导出）——见 docs/current/AAOS-INPUT-SOURCES-20261006.json；未据未读文件作任何判断",
     "Q14 经核实不是冲突而是日期序列：更正文件（2026-10-05）记 NOT_RUN，账本第 5/87 行记其后证据（run 37399470467 全 20 job SUCCESS、artifact 11385093136 的 21 步原生收据、NSIS host SHA 00b7ba9b…）；不可变 checks/acceptance.json 仍为 NOT_RUN，资格化未达成、不发行（初稿误标为冲突，已更正）",
     "A 组 14 项 CAP 已按套件实测取证（合计 370 passed，各 exit 0）；CAP-0070 动态解释与仿真本轮未找到独立套件，行内已写明课程/UI 动效用例提到动画不等于仿真已实现",
-    "F00—F14 与 I1—I6 均无实现证据，属目标"
+    "F00—F14 与 I1—I6 均无实现证据，属目标",
+    "测试工装编码缺陷（非本轮引入，按本轮范围只登记不改代码）：tests/test_general_course_worker.py::test_real_subprocess_reads_one_json_and_creates_no_output_files 在 locale=cp936 且未开 UTF-8 模式时失败，UTF-8 模式下同文件 13/13 通过。课程 worker 的 stdout 含 U+2014 破折号（合法 UTF-8，第 2118 字节 0x94 不可按 GBK 解码），父进程按 locale 解码即抛 UnicodeDecodeError，被 pytest 作为线程异常归到该用例。scripts/ci/run_tests.sh 与 scripts/ci/run_tests.ps1 均未设 UTF-8 模式，故 Windows 默认代码页下的全量运行都会命中；CI 的 test 作业在 Ubuntu（UTF-8）不命中。修复方向：该 subprocess.run 显式 encoding=utf-8"
   ],
   "about": {
     "before": "星环知识平台 ArcheAxis Knowledge：本地优先的多格式内容与人机双向学习工作台（开发中）。Tauri/React + Rust Core，SQLite/CAS 单写者。内容先保存；识别忠实度核验与专业依据分析独立、可追溯。",
@@ -99,43 +144,47 @@
   },
   "environment": {
     "platform": "Windows 10.0.26100 x64",
-    "interpreter_used": "OS External Configuration/ArcheAxis-Knowledge-OS-ci-venv/Scripts/python.exe",
-    "note": "bare `python` 不在 Git Bash PATH；CI 反红三次均因本地命令集与实际 job 环境不同（详见台账）"
+    "interpreter_used": ".project-local/build/be268a2d33/venv/Scripts/python.exe（本机 CI 同构虚拟环境，含 PyYAML）",
+    "note": "bare `python` 不在 Git Bash PATH；本地复现必须用 --source index/head（Windows 工作树为 CRLF，--source worktree 会误报）；locale 为 cp936，需 PYTHONUTF8=1 才与 CI 的 UTF-8 环境等价"
   },
   "both_ends": {
-    "local_head": "daf6f1f5bb93d0575511af07719a0139e2415cdd",
-    "remote_branch_sha": "daf6f1f5bb93d0575511af07719a0139e2415cdd",
-    "remote_file_readback": "AUTHORITY.md fetched through the contents API hashes to 556663d7093d27f0, identical to the local file",
+    "local_head": "8f163aae62949e78fd45eba3d163b3d39895abe3",
+    "remote_branch_sha": "8f163aae62949e78fd45eba3d163b3d39895abe3",
+    "remote_file_readback": "AUTHORITY.md 经 contents API 在 8f163aae 上读回：6065 字节、sha256 前 16 位 556663d7093d27f0，与本机文件一致；本机 README.md 在该提交为 25779 字节、sha256 前 16 位 0cb5a01995bb432d",
     "pr": 161,
     "default_branch_updated": false,
-    "default_branch_note": "远端分支已同步；main 未更新（本轮不含合并）",
+    "default_branch_note": "远端分支已同步至 8f163aae；main 未更新（本轮不含合并）",
     "ci": {
-      "run": 37446131749,
+      "run": 37447589524,
       "event": "push",
-      "scope": "push-classified: gateplan, lint and a0-gates executed; the heavy lanes were skipped by classification, so this is a document/gate verdict and NOT product qualification",
+      "scope": "push-classified：gateplan、lint、a0-gates 均执行并成功；重量车道（test、contracts-vnext、rust-vnext、desktop-build、installer-lifecycle 等 16 项）按分类跳过，因此这是文档/门禁结论，不是产品资格",
       "lint_job": "success",
-      "new_gate_step": "Reject document authority drift: completed/success",
-      "directory_authority_step": "Validate the tracked tree against the directory authority: completed/success"
+      "a0_gates_job": "success",
+      "previous_failing_run": 37447026168,
+      "previous_failing_scope": "同一 lint 步骤在该 run 上 exit 1；修复提交为 8f163aae"
     }
   },
   "checkpoint": {
     "branch": "codex/dsh-aaos-real-multiformat-loop-20261001",
-    "last_verified_sha": "252eb202",
+    "last_ci_verified_sha": "8f163aae62949e78fd45eba3d163b3d39895abe3",
+    "self_reference_note": "本快照在其后一次提交中落仓，故自身 SHA 由 PR/CI 定位；last_ci_verified_sha 指已由 CI 验证门禁的祖先提交，不写成包含自身的提交",
     "done": [
       "root AUTHORITY.md created and declared in the directory authority and its disposition record",
       "one current record across the live routing documents, corrected against AGENTS.md",
       "PDF.js contradiction resolved by measurement and recorded as SUP-023",
       "coverage matrix (CAP/Q/F/I), input-source record, audit snapshot",
       "document-authority gate in the lint job, falsified by 7 injected faults",
-      "About updated and read back; branch pushed and remote file hash matched"
+      "About updated and read back; branch pushed and remote file hash matched",
+      "README 头部恢复显式历史语境声明，修复 5a6639f0 引入的 lint 回归；8f163aae 的 CI push run 37447589524 lint 与 a0-gates 均成功",
+      "本机全量套件跑通并如实记录（4179 passed / 19 skipped / 1 failed，失败为测试工装编码缺陷，已登记）"
     ],
     "open": [
-      "Q14 conflict between the live ledger and the audit corrections is recorded but undecided by the owner",
-      "5 blueprint appendix sources remain SOURCE_MISSING (U01, U02, A01, A02, A04, A06) - not read",
-      "A-group CAP rows carry recorded status only; per-CAP run evidence still to be filed",
-      "merge / release / install remain unauthorized and undone"
+      "Q14 与更正文件的日期序列已核实记录；是否宣布资格化仍由 Owner 决定（不可变 checks/acceptance.json 仍为 NOT_RUN）",
+      "5 条蓝图附录来源仍为 SOURCE_MISSING（U01、U02、A01、A02、A04、A06）——未读即未判断",
+      "测试工装 UTF-8 解码缺陷待修（见 gaps），本轮按范围只登记",
+      "merge / release / install 未授权、未执行；无 tag、无 release"
     ],
-    "next_action": "file per-CAP run evidence into the coverage matrix rows, starting with the capability families that already have suites (multi-format, search, backup)"
+    "next_action": "按 Owner 指示把测试工装编码修正与其余代码缺口登记进唯一 current 台账；继续把 A 组 CAP 实测证据与 Q/F/I 证据补入覆盖矩阵"
   },
   "verification": {
     "capability_family_runs": {
