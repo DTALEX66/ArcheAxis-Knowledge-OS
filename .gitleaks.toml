@@ -24,6 +24,21 @@ regexes = [
   # attribute shape would still fail.
   '''AaosSurface2Brush''',
 ]
+# Stopwords target the extracted secret itself. "REDACTED" in a sentence of an
+# already-committed reconciliation doc is a redaction marker, not a credential.
+stopwords = [
+  '''REDACTED''',
+]
+
+[[allowlists]]
+description = "one historical docs commit whose only finding is the word REDACTED"
+# 2026-07-18 reconciliation report (migrations/reports/current-reconciliation/
+# DEEPSEEK_TASK_CATALOG.md:274). The finding is the literal word "REDACTED"; the
+# commit is named because a value-level rule does not suppress a history finding.
+# This is the one deliberate blind spot, and it is a docs-only commit.
+commits = [
+  "7846f90620811f5b52f8a114f09b23c6f4d88a85",
+]
 
 [[allowlists]]
 description = "build output, dependency and development trees are not source"

@@ -773,7 +773,21 @@ Q02/Q14/Q15 的收口此前都卡在同一处：`desktop/scripts/verify_nsis_ins
 
 另**加固一处既有门禁**：`StyleRuleCoverage.test.ts` 的类名查表写成 `new RegExp("." + name + "(?![\\w-])")`，前导点未转义即成了**通配符**——只要样式表里存在“以该类名为结尾”的规则（如 `.supercard` 之于 `.card`），它就会被判为“已有样式”，真实缺口被掩盖。已改为转义点（`"\\."`）并**证伪**：独立脚本对 `.supercard{…}` 用旧写法得 `styled=true`（掩盖缺口）、新写法得 `false`（正确报缺口）；对 `.card` 与 `.card-muted` 两写法一致。当前仓库两种写法都是 0 缺口，故此洞此前是**潜伏**的——本次是加固，不是修复既有漏报；同时补一条用例把“长选择器不得掩盖短类名”钉住。
 
-**这批测试已在 CI 实际执行并通过**：head_sha `99e6bbe6…` 的 pull_request 运行 37475869337 中 `test (3.12)` 车道 `completed/success`（该车道会跑前端套件）。本机那处 `CanonicalLibrarySpace` 超时**未在 CI 复现**，佐证其为**慢机时序抖动而非产品缺陷**。跑整个前端套件时 `CanonicalLibrarySpace.test.tsx` 的"reads hashed original…"一项失败（`waitFor` 1s 超时，用时 1146ms）。**已核实为本机时序抖动而非产品缺陷**：失败断言要求 `anchor_create` 的 `body.revision` 等于 `sha256("原文样板")=d74012a2…`，而实测收到的调用**正是**该值且 `source_id=src_test` 正确——行为已发生，只是慢于 1 秒阈值；该文件我未改动，单独运行同样超时，与本次新增无关。**故不宣称前端套件在本机全绿**，并留作后续可在慢机上放宽该 `waitFor` 的独立切片。
+**这批测试已在 CI 实际执行并通过**：head_sha `99e6bbe6…` 的 pull_request 运行 37475869337 中 `test (3.12)` 车道 `completed/success`（该车道会跑前端套件）。本机那处 `CanonicalLibrarySpace` 超时**未在 CI 复现**，佐证其为**慢机时序抖动而非产品缺陷**。
+
+## 开源吸收：gitleaks 由“仅报告”转为**强制**（2026-10-06，含一次自我纠错）
+
+**先纠正我上一轮的错判**：我此前记“Gitleaks 未吸收、本机无二进制约无法验证”，依据是 `.gitleaks.toml` 不存在、且我只看了 `security-targeted` job。**实测证伪**：`.github/workflows/ci.yml` 的 `test` job 早已有 gitleaks 8.30.1 步骤（钉版本 + 上游 sha256 校验，`continue-on-error: true` 仅报告），许可也已登记在 `docs/truth/SUPPLY_CHAIN_LEDGER.json` 的 `A024`——**吸收早已发生，缺的只是“跑干净后可转为强制”那一步**。这是我漏看既有接线导致的重复发现，如实记录。
+
+**本轮补齐的正是那一步**（按该步骤注释里的既定判据）：
+
+- **取得并核验二进制**：从上游 release 下载 `gitleaks_8.30.1_windows_x64.zip`，与上游 `gitleaks_8.30.1_checksums.txt` 对拍一致（sha256 `d29144deff3a68aa93ced33dddf84b7fdc26070add4aa0f4513094c8332afc4e`）；包内 `LICENSE`（MIT，1069 B，sha256 `e3884b252b3bfc…`）。只落在被忽略的 `.project-local/task-runtime/aaos01-secret-scan-20261006/`，**不提交二进制**。
+- **先证伪仪器再用**：向临时 fixture 注入假的 AWS Key 与 GitHub PAT，gitleaks 报出 2 项（`aws-access-token`、`github-pat`）——证明扫描器确在工作，再采信其“干净”结论。
+- **真值判定**：以 `git archive HEAD` 导出**与 CI 完全相同的跟踪树**（2964 文件 / 41.88 MB）扫描 → 发现 1 项误报（`apps/ArcheAxis.Desktop/Themes/AaosTheme.axaml` 的 Avalonia 主题键 `AaosSurface2Brush`，`apps/` 不在我早前的逐目录清单里，漏扫暴露）；`detect` 扫 **2480 个提交**又发现 1 项误报（旧文档里作为脱敏标记的单词 `REDACTED`）。两者都在 `.gitleaks.toml` 中**按字面值命名**，且该 allowlist 只用具体值/一个 docs-only 提交，**从不放行任何源码目录**。
+- **转为强制**：给既有步骤加 `--config .gitleaks.toml` 并**去掉 `continue-on-error`**（`--exit-code 1` 本就保留），使发现真实凭据即失败；`pip-audit` 因本机无 `uv` 无法验证干净，**仍保持仅报告**。
+- **护栏**：新增 `tests/workflow/test_secret_scan_config.py`（4 项）——默认规则必须开启、allowlist 只能命名具体值而不得放行源码目录、扫描步骤钉版本+校验且**必须非 report-only**。
+- **连带修复**（都被既有门禁抓到，未绕过）：`.gitleaks.toml` 是新跟踪路径，需同时登记进 `.worklab/project-validation.v1.yaml` 的 `ci-policy` 风险类（`tests/test_ci_classifier.py` 要求每个跟踪路径恰有一类）与 `docs/current/R5-PATH-DISPOSITION.json` 的 `top_level_disposition` 的 build-configuration 规则及其 `current_ownership` 度量（`unowned_paths/count/by_root`）。三类检查现已全部通过。
+- **验证**：`tests/test_ci_classifier.py`、`tests/test_ci_a0_gates.py`、`tests/workflow/`、`tests/test_approved_paths.py`、`tests/test_mfx001_supply_chain_ledger.py` 合计 **163 passed**；路径约定 2963/2964 已归属、1 未归属且已登记。跑整个前端套件时 `CanonicalLibrarySpace.test.tsx` 的"reads hashed original…"一项失败（`waitFor` 1s 超时，用时 1146ms）。**已核实为本机时序抖动而非产品缺陷**：失败断言要求 `anchor_create` 的 `body.revision` 等于 `sha256("原文样板")=d74012a2…`，而实测收到的调用**正是**该值且 `source_id=src_test` 正确——行为已发生，只是慢于 1 秒阈值；该文件我未改动，单独运行同样超时，与本次新增无关。**故不宣称前端套件在本机全绿**，并留作后续可在慢机上放宽该 `waitFor` 的独立切片。
 
 **权威 Python 套件的一个本地假失败（已定位，非回归）**：以 `scripts/ci/run_tests.sh --full` 跑得 **4214 passed、30 skipped、1 failed**，失败项为 `tests/workflow/test_workspace_layout_contract.py::test_no_entry_sits_outside_the_documented_layout`，其 `out_of_layout=['root: __pycache__/']`。**根因是本地裸跑 pytest 所致**：我此前用 `python -m pytest …` 直接调用（未经 `-B`/`PYTHONPYCACHEPREFIX`），pytest 编译根 `conftest.py` 时在仓库根写出 `__pycache__/conftest.cpython-312-pytest-9.1.1.pyc`。删除该目录并以 `PYTHONDONTWRITEBYTECODE=1` 重跑，四项全过（4 passed）。`scripts/ci/run_tests.sh` 走 `dev.py`（设 `PYTHONPYCACHEPREFIX`）故权威路径不会产生该假失败。结论：**非产品/仓库回归，属裸调用卫生问题**；后续本地跑套件应经 `scripts/ci/run_tests.sh` 或加 `-B`。
 

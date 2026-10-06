@@ -49,10 +49,21 @@ def test_the_allowlist_names_values_not_whole_source_trees() -> None:
         )
 
 
-def test_the_ci_step_is_pinned_verified_and_uses_this_config() -> None:
-    security = job_section("security-targeted", "py-compat")
+def test_the_secret_scan_is_pinned_verified_and_uses_this_config() -> None:
+    test_job = job_section("test", "format-targeted")
 
-    assert "gitleaks" in security
-    assert f"version={PINNED_VERSION}" in security, "the absorbed revision must be pinned"
-    assert "--config .gitleaks.toml" in security, "the reviewable allowlist must be the one used"
-    assert "sha256sum -c -" in security, "the downloaded scanner must be verified against upstream checksums"
+    assert "gitleaks" in test_job
+    assert f"version={PINNED_VERSION}" in test_job, "the absorbed revision must be pinned"
+    assert "--config .gitleaks.toml" in test_job, "the reviewable allowlist must be the one used"
+    assert "sha256sum --check --status" in test_job, "the scanner must be verified against upstream checksums"
+
+
+def test_the_secret_scan_is_enforcing_not_report_only() -> None:
+    test_job = job_section("test", "format-targeted")
+    # The scan step's own lines, up to the next step.
+    scan = test_job[test_job.index("Secret scan (gitleaks"):].split("- name:")[0]
+
+    assert "continue-on-error" not in scan, (
+        "a clean run is what the absorption required; leaving the scan report-only makes it decorative"
+    )
+    assert "--exit-code 1" in scan, "gitleaks must exit non-zero when it finds a leak"
