@@ -2,6 +2,8 @@
 
 **当前版本**：`0.6.14`（开发源码版本；安装态资格与 Owner 接受另行验证）。
 
+<!-- Legacy/Migration names below are compatibility context only. -->
+
 > **当前权威入口（2026-10-06）**：先是根入口 [`AUTHORITY.md`](AUTHORITY.md)——它给出完整母定义、本仓拥有/不拥有、
 > 当前能力的证据分级、未来能力入口、唯一 current（任务包与进度记录）与审计索引；
 > 再按 [`docs/DOCUMENTATION_AUTHORITY_INDEX.md`](docs/DOCUMENTATION_AUTHORITY_INDEX.md) 的读取顺序读项目合同、SUP-022 与 AAOS-01 任务书。
