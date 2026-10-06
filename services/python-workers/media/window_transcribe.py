@@ -105,7 +105,11 @@ def run_windows(plan: dict, per_window, staging: Path | None = None) -> dict:
         if record is None:
             try:
                 produced = per_window(window)
-                record = {"status": str(produced.get("status") or "failed"),
+                # Keep everything the window produced, not just the three fields the merge needs: a
+                # resumed window has to look exactly like a freshly produced one, and the caller's
+                # envelope is built from the first successful window's receipt.
+                record = {**produced,
+                          "status": str(produced.get("status") or "failed"),
                           "cues": list(produced.get("cues") or []),
                           "text": str(produced.get("text") or "")}
             except Exception as exc:  # one window must not discard the recording
@@ -121,6 +125,9 @@ def run_windows(plan: dict, per_window, staging: Path | None = None) -> dict:
     merged = merge_windows(collected, expected_total=expected)
     merged["windows_resumed"] = resumed
     merged["staging"] = str(staging) if staging is not None else None
+    # The full per-window records travel with the merge: the caller's receipt is built from a window's
+    # own canonical output, and a resumed run has to expose exactly what a fresh run would.
+    merged["windows_detail"] = collected
     return merged
 
 

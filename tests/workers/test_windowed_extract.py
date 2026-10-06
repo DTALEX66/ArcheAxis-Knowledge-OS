@@ -104,8 +104,13 @@ def test_real_windows_are_cut_and_cues_land_on_the_recording_timeline(tmp_path, 
 
     merged = worker.extract_windowed(str(source), None, "auto", "cpu", two_window_plan(), str(ffmpeg),
                                      staging=str(tmp_path / "staging"), work_dir=str(tmp_path / "work"))
-    assert merged["status"] == "complete"
-    assert merged["windows_missing"] == []
+    # The windowed path has to look like an ordinary transcribe receipt, or the Core's route contract
+    # cannot accept it: same engine identity, same loss receipt, same duration reference.
+    assert merged["engine"] == worker.ENGINE
+    assert "loss_receipt" in merged and merged["loss_receipt"]["engine"] == worker.ENGINE
+    assert merged["duration_ms"] == 3_000, "duration must be the recording's, not the last window's"
+    assert merged["windows"]["status"] == "complete"
+    assert merged["windows"]["windows_missing"] == []
     assert [cue["start_ms"] for cue in merged["cues"]] == [200, 1_200]
     assert [cue["end_ms"] for cue in merged["cues"]] == [900, 1_900]
     assert merged["window_identity"]["source"] == str(source)
@@ -129,7 +134,7 @@ def test_a_second_invocation_resumes_and_does_not_decode_again(tmp_path, monkeyp
     second = worker.extract_windowed(str(source), None, "auto", "cpu", two_window_plan(), str(ffmpeg),
                                      staging=staging, work_dir=str(tmp_path / "work2"))
     assert len(fake.calls) == decoded, "finished windows must not be decoded twice"
-    assert second["windows_resumed"] == [0, 1]
+    assert second["windows"]["windows_resumed"] == [0, 1]
     assert second["text"] == first["text"]
 
 

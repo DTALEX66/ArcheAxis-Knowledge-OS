@@ -280,17 +280,39 @@ def extract_windowed(path: str, model_path: str | None, language: str, device: s
         finished = subprocess.run(command, capture_output=True, text=True)
         if finished.returncode != 0 or not target.is_file():
             raise RuntimeError(f"ffmpeg failed for window {window['index']}: {finished.stderr[-200:]}")
-        raw, parts, _info, _error = _segment_cues(model, str(target), language)
+        # The canonical whole-file receipt is produced for the window's own wav, so a window cannot
+        # invent its own vocabulary: same engine, same loss receipt, same alignment rules.
+        receipt = extract(str(target), model_path, language, device)
         # Cues stay local to the window: merge_windows owns the offset onto the recording timeline,
         # and applying it here as well shifted every later window twice.
-        return {"status": "succeeded", "cues": raw,
-                "text": "\n".join(part for part in parts if part)}
+        return {"status": "succeeded", "cues": receipt["cues"], "text": receipt["text"],
+                "receipt": receipt}
 
     merged = windows.run_windows(plan, per_window, staging)
-    merged["window_identity"] = {"source": str(input_path),
-                                 "window_audio_ms": int(plan.get("window_audio_ms") or 0),
-                                 "policy": plan.get("policy")}
-    return merged
+    produced = next((item for item in merged["windows_detail"] if item.get("receipt")), None) if \
+        merged.get("windows_detail") else None
+    if produced is None:
+        raise RuntimeError("no window produced a receipt; nothing to report")
+    envelope = dict(produced["receipt"])
+    windows_planned = list(plan.get("windows") or [])
+    envelope.update(
+        text=merged["text"],
+        cues=merged["cues"],
+        raw_cues=merged["cues"],
+        # Each window enforced its own range while decoding, so nothing here is silently dropped;
+        # what the caller must see instead is which windows were missing from the recording.
+        alignment_issues=[],
+        alignment_status=("complete" if merged["status"] == "complete" else "partial"),
+        processing_status=("complete" if merged["status"] == "complete" else "partial"),
+        # The recording's duration, not the last decoded window's, so downstream offsets stay valid.
+        duration_ms=(int(windows_planned[-1]["end_ms"]) if windows_planned else envelope["duration_ms"]),
+        windows={key: merged[key] for key in
+                 ("status", "windows_expected", "windows_present", "windows_missing", "windows_resumed", "note")},
+        window_identity={"source": str(input_path),
+                         "window_audio_ms": int(plan.get("window_audio_ms") or 0),
+                         "policy": plan.get("policy")},
+    )
+    return envelope
 
 
 def main() -> int:
