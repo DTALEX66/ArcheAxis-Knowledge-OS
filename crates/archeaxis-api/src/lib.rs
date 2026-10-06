@@ -1332,6 +1332,102 @@ fn verify_structure_anchor(
     )
 }
 
+/// R15/F01/F13: the same locator for the families that report positions in `params.format.locations`
+/// - the JSON and XML paths, mail parts and headers, ODF headings, cells and pages, RTF paragraphs
+/// and Python symbols. Those routes report a value rather than a span, so the check is on the
+/// value: it must appear in the projection this attempt wrote, and it must hash to the checksum.
+///
+/// A location that the receipt names more than once under one kind and path is refused rather than
+/// resolved by picking one, because picking silently is how two different things become one claim.
+fn verify_format_location_anchor(
+    conn: &rusqlite::Connection,
+    source: &str,
+    revision: &str,
+    position: &serde_json::Value,
+    checksum: &str,
+) -> Option<bool> {
+    use sha2::{Digest, Sha256};
+    let job = position["job_id"].as_str()?;
+    let attempt = i64::try_from(position["attempt"].as_u64()?).ok()?;
+    let kind = position["kind"].as_str()?;
+    let path = position["path"].as_str()?;
+    let (input, job_state, attempt_state, loss, text, later): (
+        String,
+        String,
+        String,
+        String,
+        Option<String>,
+        i64,
+    ) = conn
+        .query_row(
+            "SELECT j.input_ref,j.state,a.state,o.content,
+                    (SELECT content FROM job_outputs WHERE job_id=j.job_id AND attempt=a.attempt AND kind='text'),
+                    (SELECT COUNT(*) FROM job_attempts WHERE job_id=j.job_id AND attempt>?2)
+             FROM jobs j JOIN job_attempts a ON a.job_id=j.job_id
+             JOIN job_outputs o ON o.job_id=a.job_id AND o.attempt=a.attempt AND o.kind='loss_report'
+             WHERE j.job_id=?1 AND a.attempt=?2",
+            rusqlite::params![job, attempt],
+            |r| {
+                Ok((
+                    r.get(0)?,
+                    r.get(1)?,
+                    r.get(2)?,
+                    r.get(3)?,
+                    r.get(4)?,
+                    r.get(5)?,
+                ))
+            },
+        )
+        .ok()?;
+    if input != source || job_state != "succeeded" || attempt_state != "succeeded" || later != 0 {
+        return Some(false);
+    }
+    let text = text?;
+    let wire: String = conn
+        .query_row(
+            "SELECT request_json FROM job_attempts WHERE job_id=?1 AND attempt=?2",
+            rusqlite::params![job, attempt],
+            |r| r.get(0),
+        )
+        .ok()?;
+    let request: serde_json::Value = serde_json::from_str(&wire).ok()?;
+    if request["job_id"] != job
+        || request["attempt"] != serde_json::json!(attempt)
+        || request["inputs"][0]["sha256"] != revision
+        || request["capability"].as_str().unwrap_or("").is_empty()
+    {
+        return Some(false);
+    }
+    let loss: serde_json::Value = serde_json::from_str(&loss).ok()?;
+    let entries = loss["params"]["format"]["locations"].as_array()?;
+    // Several families reuse one path for many locations - every import in a Python source is
+    // `/symbols/import`, for instance - so an optional `where` of reported fields can narrow the
+    // match. It compares what the receipt said, field for field; it invents no new discriminator.
+    let where_ = position
+        .get("where")
+        .cloned()
+        .unwrap_or_else(|| serde_json::Value::Object(Default::default()));
+    let where_map = where_.as_object()?;
+    let matching: Vec<&serde_json::Value> = entries
+        .iter()
+        .filter(|entry| {
+            entry["kind"].as_str() == Some(kind)
+                && entry["path"].as_str() == Some(path)
+                && where_map
+                    .iter()
+                    .all(|(field, value)| entry.get(field) == Some(value))
+        })
+        .collect();
+    if matching.len() != 1 {
+        return Some(false);
+    }
+    let value = matching[0]["value"].as_str()?;
+    if value.trim().is_empty() || !text.contains(value) {
+        return Some(false);
+    }
+    Some(format!("{:x}", Sha256::digest(value.as_bytes())) == checksum)
+}
+
 #[derive(Deserialize)]
 struct AnchorBody {
     revision: String,
@@ -1394,6 +1490,11 @@ async fn create_anchor(
                 }
                 if position["type"] == "worker_structure" {
                     return verify_structure_anchor(
+                        conn, &source_id, &body.revision, &position, &checksum,
+                    );
+                }
+                if position["type"] == "format_location" {
+                    return verify_format_location_anchor(
                         conn, &source_id, &body.revision, &position, &checksum,
                     );
                 }
