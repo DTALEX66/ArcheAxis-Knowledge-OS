@@ -71,6 +71,62 @@ describe("canonical content sample", () => {
     expect(screen.getByText(/核对原件后修正年份/)).toBeInTheDocument();
     expect(bridge.call.mock.calls.some(([operation]) => operation === "document_restore" || operation === "document_draft")).toBe(false);
   });
+  it("SIMULATED: historical Inspector preserves dirty editor and only uses the actual returned hash", async () => {
+    const previous = bridge.call.getMockImplementation()!;
+    const historicalHash = "b".repeat(64);
+    bridge.call.mockImplementation((op: string, payload: Record<string, unknown>) => op === "document_version"
+      ? Promise.resolve({...doc, content_sha256: historicalHash, source_id: null, source_revision: null}) : previous(op, payload));
+    const onInspect = vi.fn(); render(<CanonicalLibrarySpace onInspect={onInspect} />);
+    const user = userEvent.setup();
+    await user.click(await screen.findByRole("button", {name:"样板.txt · 文档"}));
+    const textbox = screen.getByRole("textbox", {name:"文档草稿"});
+    fireEvent.compositionStart(textbox);
+    act(() => {(textbox as HTMLElement & {editor:Editor}).editor.commands.setContent({type:"doc",content:[{type:"paragraph",content:[{type:"text",text:"历史检查保持未保存草稿"}]}]},{emitUpdate:true});});
+    await screen.findByText(/尚未保存 · 当前持久化版本/);
+    onInspect.mockClear(); bridge.call.mockClear();
+    await user.click(screen.getByRole("button", {name:"只读查看历史版本"}));
+    await waitFor(() => expect(onInspect).toHaveBeenCalledWith(expect.objectContaining({version:"1", lifecycle:expect.stringContaining("历史版本"), detail:expect.stringContaining(historicalHash)})));
+    expect(onInspect.mock.calls.at(-1)![0].rawSha256).toBeUndefined();
+    expect(onInspect.mock.calls.at(-1)![0].review).toBeUndefined();
+    expect(screen.getByRole("textbox", {name:"文档草稿"})).toBe(textbox);
+    expect(textbox).toHaveTextContent("历史检查保持未保存草稿");
+    expect(bridge.call.mock.calls.some(([op]) => op === "document_draft" || op === "document_restore")).toBe(false);
+  });
+  it("SIMULATED: late historical response cannot replace a new document Inspector", async () => {
+    const previous = bridge.call.getMockImplementation()!;
+    let complete!: (value: unknown) => void;
+    const other = {...doc, document_id:"other_history_doc", title:"其他历史目标"};
+    bridge.call.mockImplementation((op: string, payload: Record<string, unknown>) => {
+      if (op === "documents_list") return Promise.resolve({documents:[doc, other]});
+      if (op === "document_get" && payload.document_id === other.document_id) return Promise.resolve(other);
+      if (op === "document_version") return new Promise(resolve => {complete = resolve;});
+      return previous(op, payload);
+    });
+    const onInspect = vi.fn(); render(<CanonicalLibrarySpace onInspect={onInspect} />);
+    const user = userEvent.setup();
+    await user.click(await screen.findByRole("button", {name:"样板.txt · 文档"}));
+    await user.click(screen.getByRole("button", {name:"只读查看历史版本"}));
+    await user.click(screen.getByRole("button", {name:"其他历史目标 · 文档"}));
+    await waitFor(() => expect(onInspect.mock.calls.at(-1)![0].detail).toContain(other.document_id));
+    const count = onInspect.mock.calls.length;
+    await act(async () => {complete({...doc, text_projection:"不得覆盖的新旧回包"});});
+    expect(onInspect).toHaveBeenCalledTimes(count);
+    expect(screen.queryByText("不得覆盖的新旧回包")).not.toBeInTheDocument();
+  });
+  it("SIMULATED: mismatched historical identity leaves the current Inspector intact", async () => {
+    const previous = bridge.call.getMockImplementation()!;
+    bridge.call.mockImplementation((op: string, payload: Record<string, unknown>) => op === "document_version"
+      ? Promise.resolve({...doc, document_id:"wrong-history-id"}) : previous(op, payload));
+    const onInspect = vi.fn(); render(<CanonicalLibrarySpace onInspect={onInspect} />);
+    const user = userEvent.setup();
+    await user.click(await screen.findByRole("button", {name:"样板.txt · 文档"}));
+    await waitFor(() => expect(onInspect).toHaveBeenCalled());
+    onInspect.mockClear();
+    await user.click(screen.getByRole("button", {name:"只读查看历史版本"}));
+    await screen.findByText("历史版本未读取，请重试。");
+    expect(onInspect).not.toHaveBeenCalled();
+    expect(screen.getByRole("textbox", {name:"文档草稿"})).toHaveTextContent("已保存笔记");
+  });
   it("does not let a late original creation discard newly edited text",async()=>{
     let complete!:(value:unknown)=>void;
     const previous=bridge.call.getMockImplementation()!;

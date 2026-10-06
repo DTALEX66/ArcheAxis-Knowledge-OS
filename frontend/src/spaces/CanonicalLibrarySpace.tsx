@@ -30,6 +30,8 @@ export function CanonicalLibrarySpace({onKnowledge,initialDocumentId,onDirtyChan
   const [restoreVersion, setRestoreVersion] = useState("1");
   const [historicalDocument, setHistoricalDocument] = useState<DocumentDto | null>(null);
   const historyGeneration = useRef(0);
+  const currentDocument = useRef(document);
+  currentDocument.current = document;
   const [editorEpoch, setEditorEpoch] = useState(0);
   const [message, setMessage] = useState("正在读取资料…");
   const [failure, setFailure] = useState(false);
@@ -194,15 +196,29 @@ export function CanonicalLibrarySpace({onKnowledge,initialDocumentId,onDirtyChan
     if (!document) return;
     const epoch = generation.current;
     const request = ++historyGeneration.current;
+    const requestedDocument = document;
+    const isCurrentHistoryRequest = () => epoch === generation.current && request === historyGeneration.current
+      && currentDocument.current?.document_id === requestedDocument.document_id
+      && currentDocument.current?.version === requestedDocument.version
+      && currentDocument.current?.content_sha256 === requestedDocument.content_sha256;
     const version = Number(restoreVersion);
     if (!Number.isInteger(version) || version < 1 || version > document.version) { setMessage("请输入已有的正整数版本。"); setFailure(true); return; }
     try {
       const historical = await coreCommand<DocumentDto>("document_version", { document_id: document.document_id, version });
-      if (epoch !== generation.current || request !== historyGeneration.current) return;
+      if (!isCurrentHistoryRequest()) return;
       if (historical.document_id !== document.document_id || historical.version !== version) throw new Error("history identity mismatch");
       setHistoricalDocument(historical); setMessage("历史版本已读取，当前草稿保持不变。"); setFailure(false);
+      const historicalSource = sources.find(item => item.source_id === historical.source_id && item.source_revision === historical.source_revision);
+      onInspect?.({
+        title: historical.title,
+        source: historicalSource ? "CAS 原件 / Rust Core 历史文档" : "Rust Core 历史文档",
+        lifecycle: "历史版本；只读；核验与依据分析独立记录",
+        version: String(historical.version),
+        rawSha256: historicalSource?.sha256,
+        detail: `文档 ${historical.document_id}；历史正文指纹 ${historical.content_sha256}；当前草稿与最新版本保持不变；保存不表示已证实。`,
+      });
     } catch {
-      if (epoch === generation.current && request === historyGeneration.current) { setMessage("历史版本未读取，请重试。"); setFailure(true); }
+      if (isCurrentHistoryRequest()) { setMessage("历史版本未读取，请重试。"); setFailure(true); }
     }
   }
   async function restore() {
