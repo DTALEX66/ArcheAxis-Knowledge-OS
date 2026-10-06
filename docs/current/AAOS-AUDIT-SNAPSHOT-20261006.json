@@ -99,7 +99,9 @@
     {
       "command": "bash scripts/ci/run_tests.sh --full -q（权威 runner；dev.py 以子解释器启动 pytest，绑定 ARCHEAXIS_SOURCE_COMMIT=d218abdc，dirty=0）",
       "exit_code": 0,
-      "receipt": "4179 passed, 59 skipped, 144 subtests passed, 0 failed in 723.62s",
+      "receipt": "4214 passed, 30 skipped, 144 subtests passed, 0 failed in 429.86s",
+      "previous_same_shape": "4168 passed, 70 skipped, 0 failed —— 差额来自外部根绑定：修复后权威 runner 自动绑定 config/environment/external-resources-index.json 记录的根，40 项此前被跳过的工具相关用例（媒体/OCR/窗口抽取等）改为真跑；日志 .project-local/task-runtime/full-suite-postrootfix-20261006.log",
+      "root_binding": "本轮 dev.py 修复：无环境注册时回退到索引记录的根（仅当该路径真实存在），并把 ARCHEAXIS_EXTERNAL_ROOT 交给子进程；CI 不受影响（路径不存在即忽略）",
       "covers": "本轮修订后的全量套件（tests + knowledge_base/tests），在干净提交上绑定成功，无失败项"
     },
     {
