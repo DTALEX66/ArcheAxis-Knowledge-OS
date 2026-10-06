@@ -578,3 +578,18 @@ Rust 侧拥有逐表 sha256 与清单语义，本工具只补它读不了的，�
 用例 `tests/workflow/test_offline_database_recovery.py`（2 项）固定两半：被杀写者的旁文件在下次启动被恢复+清理+数据仍在；写者活着时 `prepare_runtime_database()` 抛 `requires the app to be offline`，写者一走同一调用即成功。
 
 未做、也不应冒充的：未把 Python 侧改为经 Core HTTP 读取，也未让两栈同时写同一库——单写者纪律不变。
+
+## 28 个待归属数据库：归属已解答（不自行删除）
+
+清账项：`AAOS01-CLEANUP-EXECUTED-AND-PENDING-20261005.md` 第 22 行的 28 个数据库（157,745,152 字节），原判 `OWNERSHIP_PROOF_INSUFFICIENT`，理由是只能得到"家族相似"。
+缺口在于那份审查只记了 `path/exists_now/bytes_now/historical_bytes`，**没看内容**。本轮读内容（经产品自身 sqlite-vec 通路，理由同前文 `vec0` 一节）。
+
+结论（证据文档 `docs/current/AAOS01-PENDING-DB-OWNERSHIP-EVIDENCE-20261006.md`）：
+
+- 28 条全形如 `.project-local\runs\be268a2d33\<run>\pytest-tmp\pytest-of-ALEX\pytest-0\<测试名>0\runtime.sqlite`，即 **pytest 自己的临时目录工厂**。
+- 内容全是测试词汇：`doc-new / verified candidate content / test`、`doc-old / previous active content`、`foreign-active / foreign-candidate / foreign-backup`，`migration_operator_runs` 记 `owner=vector.documents`、`recorded_at=2026-09-15`。无一条像真实用户内容。
+- 该词汇**在整个仓库只出现在 `tests/test_migration_runner.py`**，28 个库名与其中五个具名测试逐一对应。即：**产生者被指认 + 数据自证**，不是相似。
+
+故归属问题已解答：类别 = pytest 临时 scratch，产生者 = 那五个具名测试，输入 = 合成夹具，按定义可再生。
+**但本轮不删除**：上一轮对该批的明确动作是 `KEEP`，推翻一个明确的保留裁决需要业主背书。若业主同意，删除前取 28 条逐路径清单（含 bytes/sha256）存档作恢复引即可。
+`tests/workflow/test_pending_db_ownership_evidence.py`（3 项）固定证据链的支点——合成词汇只由那一个文件携带、五个产生者测试仍存在、证据文档同时载明产生者与"删除仍待业主"——以免文档结论悄悄过期。
