@@ -20,11 +20,14 @@ from __future__ import annotations
 
 import argparse
 import hashlib
+import ipaddress
 import json
+import socket
 import sys
 import urllib.request
 from datetime import datetime, timezone
 from pathlib import Path
+from urllib.parse import urlparse
 
 ENGINE = "python-worker-webpage"
 ENGINE_VERSION = "0.1.0"
@@ -33,6 +36,79 @@ TIMEOUT_S = 20
 MAX_BYTES = 5 * 1024 * 1024
 MAX_REDIRECTS = 8
 USER_AGENT = "ArcheAxisKnowledgeOS/0.1 (local research snapshot; contact on file)"
+
+
+def _is_public(address: str) -> bool:
+    """True only for an address a public host could actually be reached at."""
+    try:
+        ip = ipaddress.ip_address(address)
+    except ValueError:
+        return False
+    if ip.version == 6 and (ip.ipv4_mapped is not None or ip.sixtofour is not None):
+        # ::ffff:127.0.0.1 and 6to4 forms are the same host wearing another address family
+        inner = ip.ipv4_mapped or ip.sixtofour
+        return inner is not None and _is_public(str(inner))
+    return not (ip.is_private or ip.is_loopback or ip.is_link_local or ip.is_reserved
+                or ip.is_multicast or ip.is_unspecified
+                or (ip.version == 6 and ip.is_site_local))
+
+
+def public_addresses(host: str, resolver=None) -> list[str]:
+    """Every address this hostname resolves to, or a refusal.
+
+    A hostname that resolves partly to an internal address is refused as well: picking the
+    convenient answer would be the same mistake with extra steps. A literal IP address is
+    judged directly. Note the limit honestly - the address is checked when it is resolved, so
+    an authoritative name that answers differently between the check and the connection
+    (DNS rebinding) is not defeated here; egress policy at the network layer is that boundary.
+    """
+    if not host:
+        raise ValueError("a URL without a host cannot be checked")
+    # bound here rather than in the signature: a default captured at import time cannot be
+    # substituted by a caller or a test, which would leave this decision untestable
+    resolve = resolver or socket.getaddrinfo
+    bare = host.strip("[]")
+    try:
+        literal = ipaddress.ip_address(bare)
+    except ValueError:
+        literal = None
+    if literal is not None:
+        if not _is_public(str(literal)):
+            raise ValueError(f"refused {host}: it is not a public address")
+        return [str(literal)]
+    try:
+        answers = sorted({entry[4][0] for entry in resolve(host, None)})
+    except OSError as exc:
+        raise ValueError(f"refused {host}: it does not resolve ({exc})") from exc
+    if not answers:
+        raise ValueError(f"refused {host}: it resolves to nothing")
+    for address in answers:
+        if not _is_public(address.split("%", 1)[0]):
+            raise ValueError(f"refused {host}: it resolves to the non-public address {address}")
+    return answers
+
+
+class _GuardedRedirects(urllib.request.HTTPRedirectHandler):
+    """Re-apply the address policy to every redirect target.
+
+    urllib follows redirects by itself, so without this a public page could hand the worker an
+    internal URL and the policy would have inspected only the first one.
+    """
+
+    def redirect_request(self, req, fp, code, msg, headers, newurl):
+        target = urlparse(newurl)
+        if target.scheme.lower() not in ("http", "https"):
+            raise ValueError(f"refused redirect to unsupported scheme: {newurl[:120]}")
+        public_addresses(target.hostname or "")
+        return super().redirect_request(req, fp, code, msg, headers, newurl)
+
+
+OPENER = urllib.request.build_opener(_GuardedRedirects)
+
+
+def checked_open(request, timeout: float):
+    """Open a prepared request through the guarded opener."""
+    return OPENER.open(request, timeout=timeout)
 
 
 def probe() -> dict:
@@ -57,6 +133,11 @@ def fetch(url: str, out_dir: Path) -> dict:
     if not url.lower().startswith(("http://", "https://")):
         raise ValueError(f"unsupported URL scheme (http/https only): {url[:80]}")
 
+    parts = urlparse(url)
+    if parts.scheme.lower() not in ("http", "https"):
+        raise ValueError(f"unsupported URL scheme (http/https only): {url[:80]}")
+    # the policy runs before any packet leaves: an internal host is refused by address, not by name
+    public_addresses(parts.hostname or "")
     request = urllib.request.Request(url, headers={"User-Agent": USER_AGENT})
     final_url = url
     status = 0
@@ -64,7 +145,7 @@ def fetch(url: str, out_dir: Path) -> dict:
     content_type = ""
     error_record: str | None = None
     try:
-        with urllib.request.urlopen(request, timeout=TIMEOUT_S) as response:
+        with checked_open(request, TIMEOUT_S) as response:
             final_url = response.geturl()
             status = response.status
             content_type = response.headers.get("Content-Type", "")
@@ -80,8 +161,10 @@ def fetch(url: str, out_dir: Path) -> dict:
                 chunks.append(chunk)
                 total += len(chunk)
                 if total > MAX_BYTES:
-                    error_record = f"body exceeded {MAX_BYTES} byte cap; snapshot truncated"
-                    break
+                    # a half-read body is not a snapshot: nothing is written and the caller
+                    # is told the size it exceeded
+                    raise ValueError(
+                        f"body exceeded the {MAX_BYTES} byte cap; nothing was snapshotted")
             snapshot = b"".join(chunks)
     except Exception as exc:  # noqa: BLE001
         error_record = f"{type(exc).__name__}: {exc}"
