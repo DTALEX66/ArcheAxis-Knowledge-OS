@@ -186,22 +186,21 @@
     "note": "bare `python` 不在 Git Bash PATH；本地复现门禁必须用 --source index/head（Windows 工作树为 CRLF，--source worktree 会误报）；本机 locale 为 cp936，裸跑 pytest 会按 cp936 解码而以 UTF-8 断言失败，权威 runner 由 dev.py 自带 PYTHONUTF8=1，故套件应经 scripts/ci/run_tests.sh 运行"
   },
   "both_ends": {
-    "local_head": "4ae65db55dcc984e22c2c118f533c21e01707248",
-    "remote_branch_sha": "4ae65db55dcc984e22c2c118f533c21e01707248",
+    "local_head": "b466f5301eb7ef991f5a45a49331c90c4f52eebe",
+    "remote_branch_sha": "b466f5301eb7ef991f5a45a49331c90c4f52eebe",
     "remote_file_readback": "AUTHORITY.md 经 contents API 读回与本机一致（6065 字节、sha256 前 16 位 556663d7093d27f0）；本机 README.md sha256 前 16 位 0cb5a01995bb432d",
     "pr": 161,
     "default_branch_updated": false,
-    "default_branch_note": "远端分支已同步至 4ae65db5；main 未更新（本轮不含合并）；无 tag、无 release。本轮后续提交（Q00–Q15 读回、存储清理、探测脚本修正、账本引文门禁）均在此支；PR #161 仍 OPEN，head 即该 SHA",
+    "default_branch_note": "远端分支已同步至 b466f530；main 未更新（本轮不含合并）；无 tag、无 release。本轮的 Q00–Q15 读回、存储清理、探测脚本修正、账本引文门禁与记录更正均在此支；PR #161 仍 OPEN，head 即该 SHA",
     "ci": {
-      "run": 37462409958,
-      "event": "push",
-      "scope": "本次因改动脚本与测试，GatePlan 要求 test 车道，故 push 分类也执行了 test (3.12)：gateplan success、lint success、test (3.12) failure、a0-gates failure（后者因前者的失败而失败）",
-      "pre_existing": "该 test 车道的两处失败**先于本提交存在**：同一 job 在 7eda1dcf（run 37448417919）与 d218abdc（run 37449622276）上同样 failure。本提交只改 5 个文件（1 脚本、1 测试、3 记录），不含失败用例所在文件",
-      "failing_tests": [
-        "tests/test_axr060_completion_audit.py::test_tracked_current_surfaces_only_reference_declared_release_delta_or_source_objects —— 当前表面引用的 `aa8046996c14db7da8b01dab133b46de80e89614`（分支清理时建的保留点 tag 值）在 CI 检出中不是可达对象：该 tag 只在本地创建、从未推送，而按不发布约束也不得推送 tag",
-        "tests/workflow/test_workspace_layout_contract.py::test_no_entry_sits_outside_the_documented_layout —— CI runner 上 .project-local 出现 c/ 与 staging/，本机开发根没有这两项"
-      ],
-      "verdict": "这是两个环境性/先存缺陷，不是本提交的回归；本提交的本地权威全量套件为 0 failed"
+      "push_run": 37463354781,
+      "push_scope": "push 分类：gateplan、lint、a0-gates 均 success；重量车道按分类跳过",
+      "pr_run": 37463363575,
+      "pr_scope": "同一 SHA 的 pull_request 运行实际执行重量车道：gateplan、lint、test (3.12)、rust-vnext、workers-vnext、contracts-vnext、green-candidate-vnext、desktop-vnext、desktop-fast、browser-smoke 均 success；观察时 desktop-build 仍在运行（其后为 installer-lifecycle）",
+      "vnext_ci_run": 37463363630,
+      "vnext_ci": "success（cargo-test）",
+      "binding": "以上 run 均以 headSha=b466f5301eb7ef991f5a45a49331c90c4f52eebe 读回绑定。本快照上一版的 ci 节引用的是更早提交的运行，且其中一次被后续 push 取消——其 a0-gates failure 属取消引起的 fail-closed，不是产品失败；故此处按 SHA 绑定重写，不用运行列表的顺序推断归属",
+      "earlier_failures_resolved": "先前记录的两处 test 车道失败已修复并复验：tests/test_web_screenshot.py 与 tests/test_desktop_launch.py 的隔离缺陷（把 c/ 与 staging/ 泄漏进真实开发根）已修；tests/test_axr060_completion_audit.py 所引的已删分支 tip 已登记进 docs/current/BRANCH-CONVERGENCE.json。b466f530 的 test (3.12) 为 success"
     }
   },
   "checkpoint": {
