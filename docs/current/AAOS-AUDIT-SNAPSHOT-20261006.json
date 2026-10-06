@@ -109,6 +109,32 @@
     "pr": 161,
     "default_branch_updated": false,
     "default_branch_note": "远端分支已同步；main 未更新（本轮不含合并）",
-    "ci": "见 PR #161 上 daf6f1f5 的 checks；本快照不以绿色状态代替产品资格"
+    "ci": {
+      "run": 37446131749,
+      "event": "push",
+      "scope": "push-classified: gateplan, lint and a0-gates executed; the heavy lanes were skipped by classification, so this is a document/gate verdict and NOT product qualification",
+      "lint_job": "success",
+      "new_gate_step": "Reject document authority drift: completed/success",
+      "directory_authority_step": "Validate the tracked tree against the directory authority: completed/success"
+    }
+  },
+  "checkpoint": {
+    "branch": "codex/dsh-aaos-real-multiformat-loop-20261001",
+    "last_verified_sha": "252eb202",
+    "done": [
+      "root AUTHORITY.md created and declared in the directory authority and its disposition record",
+      "one current record across the live routing documents, corrected against AGENTS.md",
+      "PDF.js contradiction resolved by measurement and recorded as SUP-023",
+      "coverage matrix (CAP/Q/F/I), input-source record, audit snapshot",
+      "document-authority gate in the lint job, falsified by 7 injected faults",
+      "About updated and read back; branch pushed and remote file hash matched"
+    ],
+    "open": [
+      "Q14 conflict between the live ledger and the audit corrections is recorded but undecided by the owner",
+      "5 blueprint appendix sources remain SOURCE_MISSING (U01, U02, A01, A02, A04, A06) - not read",
+      "A-group CAP rows carry recorded status only; per-CAP run evidence still to be filed",
+      "merge / release / install remain unauthorized and undone"
+    ],
+    "next_action": "file per-CAP run evidence into the coverage matrix rows, starting with the capability families that already have suites (multi-format, search, backup)"
   }
 }
