@@ -89,3 +89,83 @@ def test_merge_refuses_a_duplicated_window():
     window = {"index": 0, "start_ms": 0, "end_ms": 10, "status": "succeeded", "cues": [], "text": ""}
     with pytest.raises(ValueError):
         window_transcribe.merge_windows([window, dict(window)], expected_total=1)
+
+
+def plan_of(*ranges):
+    return {
+        "windows": [{"index": i, "start_ms": start, "end_ms": end, "audio_ms": end - start,
+                     "estimated_ms": end - start} for i, (start, end) in enumerate(ranges)],
+        "windows_total": len(ranges),
+    }
+
+
+def test_a_second_run_resumes_the_windows_that_already_succeeded(tmp_path):
+    plan = plan_of((0, 1_000), (1_000, 2_000))
+    calls: list[int] = []
+
+    def per_window(window):
+        calls.append(int(window["index"]))
+        return {"status": "succeeded", "cues": [{"start_ms": 0, "end_ms": 500, "text": f"w{window['index']}"}],
+                "text": f"w{window['index']}"}
+
+    first = window_transcribe.run_windows(plan, per_window, staging=tmp_path)
+    assert calls == [0, 1]
+    assert first["windows_resumed"] == []
+    assert first["status"] == "complete"
+
+    calls.clear()
+    second = window_transcribe.run_windows(plan, per_window, staging=tmp_path)
+    assert calls == [], "a resumed window must not be transcribed again"
+    assert second["windows_resumed"] == [0, 1]
+    assert second["text"] == first["text"]
+
+
+def test_a_failed_window_is_attempted_again_instead_of_being_cached_as_done(tmp_path):
+    plan = plan_of((0, 1_000))
+    attempts: list[int] = []
+
+    def per_window(window):
+        attempts.append(int(window["index"]))
+        if len(attempts) == 1:
+            raise RuntimeError("engine hiccup")
+        return {"status": "succeeded", "cues": [], "text": "recovered"}
+
+    first = window_transcribe.run_windows(plan, per_window, staging=tmp_path)
+    assert first["status"] == "partial" and first["windows_missing"] == [0]
+    second = window_transcribe.run_windows(plan, per_window, staging=tmp_path)
+    assert attempts == [0, 0]
+    assert second["status"] == "complete" and second["text"] == "recovered"
+
+
+def test_one_broken_window_does_not_discard_the_others(tmp_path):
+    plan = plan_of((0, 1_000), (1_000, 2_000))
+
+    def per_window(window):
+        if window["index"] == 0:
+            raise ValueError("bad window")
+        return {"status": "succeeded", "cues": [], "text": "second"}
+
+    merged = window_transcribe.run_windows(plan, per_window, staging=tmp_path)
+    assert merged["status"] == "partial"
+    assert merged["windows_missing"] == [0]
+    assert merged["text"] == "second"
+
+
+def test_staging_leaves_no_temporary_file_behind(tmp_path):
+    plan = plan_of((0, 1_000))
+    window_transcribe.run_windows(
+        plan,
+        lambda window: {"status": "succeeded", "cues": [], "text": "x"},
+        staging=tmp_path,
+    )
+    assert sorted(path.name for path in tmp_path.iterdir()) == ["window-0000.json"]
+
+
+def test_a_plan_that_disagrees_with_itself_is_refused():
+    with pytest.raises(ValueError):
+        window_transcribe.run_windows({"windows": [], "windows_total": 0}, lambda window: None)
+    broken = plan_of((0, 1_000))
+    broken["windows_total"] = 3
+    with pytest.raises(ValueError):
+        window_transcribe.run_windows(broken, lambda window: None)
+

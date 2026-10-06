@@ -14,7 +14,10 @@ Three rules this module keeps, because each of them is a way the honest answer c
 
 from __future__ import annotations
 
+import json
+import os
 import re
+from pathlib import Path
 
 _DURATION = re.compile(r"Duration:\s*(\d+):(\d{2}):(\d{2})\.(\d{1,3})")
 
@@ -58,6 +61,67 @@ def offset_cues(cues: list[dict], offset_ms: int) -> list[dict]:
             raise ValueError(f"cue {index} has a non-positive duration after offsetting")
         shifted.append({**cue, "start_ms": start, "end_ms": end})
     return shifted
+
+
+def run_windows(plan: dict, per_window, staging: Path | None = None) -> dict:
+    """Run a window plan, resuming windows that already succeeded.
+
+    The Core caps a job at 300 s, so a long recording is expected to take several invocations.
+    That makes two behaviours load-bearing:
+
+    * a window that already succeeded on a previous invocation is reused, so work is not repeated
+      and the total cost falls as the run advances;
+    * a window that failed is *not* cached as done — it is attempted again, because caching a
+      failure would make a transient engine problem permanent.
+
+    A failure inside ``per_window`` is recorded as that window failing and the remaining windows are
+    still attempted: one bad window must not discard the rest of the recording. Results are written
+    per window so a run that is killed mid-way keeps everything already finished.
+    """
+    windows = list(plan.get("windows") or [])
+    if not windows:
+        raise ValueError("plan carries no windows")
+    expected = int(plan.get("windows_total") or len(windows))
+    if expected != len(windows):
+        raise ValueError("plan windows_total disagrees with the window list")
+    if staging is not None:
+        staging = Path(staging)
+        staging.mkdir(parents=True, exist_ok=True)
+
+    collected: list[dict] = []
+    resumed: list[int] = []
+    for window in windows:
+        index = int(window["index"])
+        cached = staging / f"window-{index:04d}.json" if staging is not None else None
+        record = None
+        if cached is not None and cached.is_file():
+            try:
+                stored = json.loads(cached.read_text(encoding="utf-8"))
+            except (OSError, ValueError):
+                stored = None
+            if isinstance(stored, dict) and stored.get("status") == "succeeded":
+                record = stored
+                resumed.append(index)
+        if record is None:
+            try:
+                produced = per_window(window)
+                record = {"status": str(produced.get("status") or "failed"),
+                          "cues": list(produced.get("cues") or []),
+                          "text": str(produced.get("text") or "")}
+            except Exception as exc:  # one window must not discard the recording
+                record = {"status": "failed", "cues": [], "text": "",
+                          "error": f"{type(exc).__name__}: {exc}"}
+            if cached is not None and record["status"] == "succeeded":
+                temporary = cached.with_suffix(".json.tmp")
+                temporary.write_text(json.dumps(record, ensure_ascii=False), encoding="utf-8")
+                os.replace(temporary, cached)
+        collected.append({"index": index, "start_ms": int(window["start_ms"]), "end_ms": int(window["end_ms"]),
+                          **record})
+
+    merged = merge_windows(collected, expected_total=expected)
+    merged["windows_resumed"] = resumed
+    merged["staging"] = str(staging) if staging is not None else None
+    return merged
 
 
 def merge_windows(windows: list[dict], expected_total: int) -> dict:
