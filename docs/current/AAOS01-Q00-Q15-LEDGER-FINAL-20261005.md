@@ -405,3 +405,13 @@ a11 真实 Tauri 窗口旅程 `aaos01-webdriver/e4236d2bedb44a5882f2c03b480feb08
 **这不是语义迁移**：现有代码只做保真导出与清点（`TypedExportManifest` 的 disposition 自述 `PRESERVED_NOT_SEMANTICALLY_MIGRATED`），本轮未把任何行并入 vNext 模式。要真正并入 `vec_episodes` 的向量内容，需要先决定是否引入 sqlite-vec 依赖（本构建不含），或改由影子表读取；两者都是待定决策，不在本轮擅自动手。
 
 边界：原作字节未变；未删除、未移动、未改写原始库；未发布。
+
+## 开源池处置实测核对（本轮）
+
+新增只读核对脚本 `scripts/audit/oss_disposition_evidence.py` 与证据报告 `docs/current/AAOS-OSS-DISPOSITION-EVIDENCE-20261006.md`，逐条核对 `AAOS-OSS-DONOR-DISPOSITION-V2-20261002.json` 的 47 条供应链处置。证据 `.project-local/task-runtime/aaos01-oss-evidence-20261006/report.txt`（SHA-256 `3eb0634b11ac1eb355d55822765fee3fc7a93507e44cdeded54e7666b314beee`）与 `disposition-evidence.json`（SHA-256 `158c1d800fe038c0622bbab43c08bce8647e1f25a795e739995adce592843711`）。
+
+实测：`DECLARED` 24、`IMPLEMENTED_IN_SOURCE` 9、`DECLARED_AND_VENDORED` 1、`VENDORED_ONLY` 1、`NONE` 12。12 条无证据中 9 条 `REVIEW-BLOCK`、1 条 `EVALUATE`（自洽），另两条值得追问：`A012 Crawlee Python`（判定 `SIDECAR`）、`A022 Syft`（判定 `ADOPT`）。
+
+更根本的问题：文档 `rule` 与 `verdict_definitions` 定义 `REFERENCE/ADAPTER/ABSORB/PROVIDER/SIDECAR/BENCHMARK/REJECT` 七个判定，但 47 行实际使用 `ADOPT/CURRENT/EVALUATE/REFERENCE/REJECT-CORE/REVIEW-BLOCK/SIDECAR`——其中 5 个判定词**文档从未定义**，仅 2 个重合。故该表当前不可逐条核对；本轮只提交事实，不改写该文档、不虚填 369 行、不安装任何捐赠项。
+
+自查纠错两处：核对脚本首版按子串匹配，`vad` 命中无关包名，把无声明项误判为已落地；且只查依赖清单，把已在 `.github/workflows/ci.yml` 实际调用的 pip-audit 与 Gitleaks 误判为未吸收。现改为整词匹配并把**流水线调用**与**源码实现**各列为独立证据来源；`C008 sqlite-vec` 一行另记：它在 Python 侧确有声明，而 Rust Core 读不了遗留库的 `vec0` 表（见上文遗留库一节）——"已声明"不等于"需要它的组件可用"，两者不可互推。
