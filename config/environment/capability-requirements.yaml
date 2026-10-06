@@ -253,6 +253,18 @@ capabilities:
       required_by: [asr-pipeline, bakeoff]
       local_only: true
 
+    - name: faster-whisper-large-v3-turbo
+      purpose: "真实转写实际使用的 large-v3-turbo 权重（从共享 Model library 读取；此前只能靠 ARCHEAXIS_ASR_MODEL_DIR 环境变量发现）"
+      version_range: "large-v3-turbo"
+      platform: windows-x64
+      license: "MIT"
+      source_url: "https://huggingface.co/Systran/faster-whisper-large-v3-turbo"
+      install_method: 下载安装器
+      healthcheck_command: "共享 Model library 内目录存在"
+      external_paths: ["../Model library/whisper/faster-whisper-large-v3-turbo"]
+      required_by: [asr-pipeline, bakeoff]
+      local_only: true
+
     - name: sense-voice-zh-en-ja-ko-yue
       purpose: "SenseVoice int8 模型（从共享 Model library 读取，不复制进 Git）"
       version_range: "2024-07-17"
