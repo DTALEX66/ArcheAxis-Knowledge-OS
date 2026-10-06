@@ -1167,3 +1167,39 @@ manifest 已登记）是本轮用 `xlwt 1.3.0` 一次性生成的**项目自造�
 **仍未闭合，不粉饰**：`.doc`/`.ppt` 无 reader 故仍命名拒绝；F14 的"转换件"是值级 CSV，不是版式或渲染；
 CSV 转换上限 32 表/64 MiB，超限在损失里具名；FMT-21 真实样本验收 NOT_RUN；
 "把 worker 结构升级为寻址层"这一条同时卡在 F05/F07/F08/F09/F12，需要 anchor 契约变更，本切片刻意未动。
+
+
+## 格式切片 F02+F03 URL 抓取（2026-10-07，工作树于 f53dc28e 之后）
+
+**这次补的是"抓取时间"的来源，不是又一个能力**：F02 的 gap 原文是"没有任何东西去抓 URL，
+抓取时间无法从文件本身得知（import origin 的 received_at 正是它的归处）"。
+Core 的导入接口**早就接受** `origin_kind="url"` + `origin_ref` + `received_at`（`ImportBody`，
+`ALLOWED_ORIGIN_KINDS` 含 url），缺的从来只是"有人去抓"。所以这一刀没动 Core 契约、没加 capability：
+`scripts/ingest/url_snapshot.py` 走 F15 目录驱动同一形状（脚本说 HTTP，不抢产品路由），
+调已有的有界快照 worker，导入时把**正文到达的那一刻**写进 `received_at`，再按 html 排队。
+
+**先补安全，再谈可达**：`worker_webpage.py` 原本只查 scheme/超时/字节上限，会把
+`http://127.0.0.1/`、`169.254.169.254`（链路本地元数据）、`::1`、`::ffff:127.0.0.1`、`10/172.16/192.168`
+一律当普通网址放过去，而且 urllib 会**自己跟重定向**——公网页面完全可以把内网地址递进来。
+现在加的是：`public_addresses()`（字面 IP 直接判定；主机名要求**每一个**解析答案都是公网单播，
+部分指内网即整体拒绝）+ `_GuardedRedirects`（每个重定向目标重新过政策，非 http(s) 直接拒）。
+**限制照实写进代码与 gap**：政策是在解析那一刻检查的，DNS rebinding 不在它的射程内——真正的边界是网络层 egress 政策。
+超上限的正文改为**拒绝并写明未写快照**（原来是悄悄截断还落盘）。
+
+**可测性逼出的一处真缺陷**：`public_addresses(host, resolver=socket.getaddrinfo)` 把默认值**绑在 import 时刻**，
+测试无论怎么 patch 模块属性都换不掉它——于是该决策在代码里不可注入。改成 `resolver=None` + 调用时绑定，
+测试才真正在测政策而不是测 DNS。同时承认两条我自己写错的期望（`example.com` 实解析出 Cloudflare 两台、
+`/v2/api` 的尾段是 `api` 不是 `v2`），改的是断言以符合**实测行为**，不是改行为迁就断言。
+
+**失败面**：抓取失败 → 收据记 `status=failed`、`source_id/job_id` 为 null、**不写 received_at**（没有到达就没有到达时间），
+且一次 Core 调用都不发；导入 413 → 记失败并带上游状态；`--dry-run` 不碰 Core 但仍如实报 received_at。
+
+**验证**：新增 `tests/test_url_snapshot_driver.py` 13 项 / 20 子测试（政策拒绝 12 类内部地址、重定向再检查、
+scheme 规则、上限不落盘、文件名不可逃逸/不无名、导入体携带 final_url 与 received_at、失败不外呼、
+dry-run 外呼为 0、收据逐行 JSONL）；`tests/test_worker_reachability.py + tests/maintenance` 合跑 **204 passed, 2 skipped, 22 subtests passed in 10.56s**；
+`check_format_matrix.py` exit 0（F02/F03 两行只改 implemented_now/gap，required_output 逐字未动）；
+路径约定与文档权威门禁通过；Python 全量 **4252 passed, 30 skipped, 14 warnings, 166 subtests passed in 443.34s (0:07:23)**；单元合跑（`tests/test_url_snapshot_driver.py + tests/test_worker_reachability.py`）在**已提交状态**下为 **20 passed, 20 subtests passed in 0.22s**，rc 0。**过程如实记录**：写作中途那次合跑曾报 `2 failed, 12 passed, 19 subtests passed in 0.21s`，两处失败是我自己写错的两条期望（`example.com` 实解析出两台 Cloudflare、`/v2/api` 的尾段是 `api` 不是 `v2`），改的是断言以符合实测行为，不是改行为迁就断言；该数字是中间态，不作为本切片的验收证据。
+**F02/F03 仍 partial**：F02 的抓取是驱动级，产品路由**依然**不持网络（这是选择不是缺口）；
+F03 要的是渲染与分页/滚动覆盖，本仓库无浏览器，抓到的"未脚本化的正文"不等于渲染后的页面。
+
+**回滚**：`git revert` 本切片提交即可（驱动 + worker 政策 + 两行矩阵 + 测试同属一次改动）。
