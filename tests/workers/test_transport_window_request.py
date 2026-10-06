@@ -32,8 +32,8 @@ def _record(kind, payload):
             stream.write(json.dumps({"kind": kind, **payload}, ensure_ascii=False) + "\\n")
 
 
-def extract(path, model_path=None, language="auto", device="cpu"):
-    _record("extract", {"path": path})
+def extract(path, model_path=None, language="auto", device="cpu", word_timestamps=False):
+    _record("extract", {"path": path, "word_timestamps": word_timestamps})
     return {"engine": "fixture", "engine_version": "1", "text": "unwindowed", "language": "en",
             "language_probability": 1.0, "duration_ms": 1000, "cues": [], "raw_cues": [],
             "alignment_issues": [], "alignment_status": "unlocated", "processing_status": "complete",
@@ -41,8 +41,10 @@ def extract(path, model_path=None, language="auto", device="cpu"):
             "loss_receipt": {"engine": "fixture", "engine_version": "1", "params": {}, "loss_note": "fixture"}}
 
 
-def extract_split(path, model_path=None, language="auto", device="cpu", ffmpeg=None, staging=None, remaining_ms=None):
-    _record("extract_split", {"path": path, "ffmpeg": ffmpeg, "staging": staging, "remaining_ms": remaining_ms})
+def extract_split(path, model_path=None, language="auto", device="cpu", ffmpeg=None, staging=None,
+                      remaining_ms=None, word_timestamps=False):
+    _record("extract_split", {"path": path, "ffmpeg": ffmpeg, "staging": staging,
+                  "remaining_ms": remaining_ms, "word_timestamps": word_timestamps})
     return {"engine": "fixture", "engine_version": "1", "text": "windowed", "language": "en",
             "language_probability": 1.0, "duration_ms": 3000, "cues": [{"start_ms": 2000, "end_ms": 2500, "text": "w"}],
             "raw_cues": [{"start_ms": 2000, "end_ms": 2500, "text": "w"}], "alignment_issues": [],
@@ -111,6 +113,22 @@ class WindowParameterTests(unittest.TestCase):
         self.assertGreater(call["remaining_ms"], 29_000)
         self.assertLessEqual(call["remaining_ms"], 30_000)
         self.assertNotIn("plan", call)
+
+    def test_word_timings_reach_the_split_worker_and_default_to_off(self):
+        # The bounded-window route is the one a long recording actually takes, so a word-timing
+        # request has to survive it rather than only the single-shot path.
+        for parameters, expected in ((self.split(words=True), True), (self.split(), False)):
+            with self.subTest(expected=expected):
+                log = self.staging / f"calls-{expected}.jsonl"
+                os.environ["AAOS_WINDOW_FIXTURE_LOG"] = str(log)
+                self.addCleanup(lambda: os.environ.pop("AAOS_WINDOW_FIXTURE_LOG", None))
+                self.transport._declared_tool_path = (
+                    lambda name: "declared-ffmpeg.exe" if name == "ffmpeg" else None
+                )
+                self.transport.execute(self.request(parameters), self.staging)
+                call = json.loads(log.read_text(encoding="utf-8").splitlines()[0])
+                self.assertEqual(call["kind"], "extract_split")
+                self.assertEqual(call["word_timestamps"], expected)
 
     def test_a_split_without_a_declared_decoder_is_refused(self):
         self.transport._declared_tool_path = lambda name: None
