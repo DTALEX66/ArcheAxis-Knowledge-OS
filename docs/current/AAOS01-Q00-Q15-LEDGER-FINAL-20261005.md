@@ -945,3 +945,36 @@ RTF 现在有命名路由，拒绝理由随之变成“该路由不接受此媒�
 `cargo test -p archeaxis-application --tests --offline` **21 个测试二进制结果全部 ok、CARGO_TEST_EXIT=0**。
 教训（与既有“本地跑子集不足以证明”一致）：**跨媒体类型表的改动必须跑该 crate 的全量测试**，
 只跑与改动直接相关的那一个测试文件会漏掉别处对同一张表的断言。
+
+## F13 的一处**假支持**由 CI 抓到、F10 词级时间落地（2026-10-07）
+
+**我引入的缺陷，CI 抓到的，本地没抓到**：F13 那一次我给 `attempts.rs` 命名了 `odt/ods/odp/rtf`，
+也改了 worker 的读取器，却没有改 `services/python-workers/transport/text_ndjson.py` 里那份
+**自己独立的** `media_types` 白名单。本地跑的相关套件全绿，而 CI 的 `workers-vnext` 与
+`test (3.12)` 直接把 ODF 作业拒在 worker 边界（`AAK-VAL-002`）——也就是说我当时交付的是
+“**Core 声称支持、worker 实际拒绝**”的假支持。修正在提交 `679c8292`：补齐 transport 白名单，
+并给 `scripts/check_format_matrix.py` 加**两侧一致性检查**（该能力在 Core 命名而 worker 不接受 → 红；
+worker 接受而 Core 从不命名 → 也红）。门禁先证伪再用：删掉 `application/rtf` 得
+`the Core names media types the worker rejects: ['application/rtf']`；塞进一个 Core 从未命名的
+`application/x-invented-type` 得反向失败；两处还原后 exit 0。同时把 F13 的四条路由**写进证据主张**
+（此前记录只声明 `text/plain`，所以门禁对它无话可说——这就是漏检能存在的结构性原因）。
+
+**同一轮 CI 还抓到第二处**：`striprtf` 只在项目主依赖里，两条 CI 车道都只装 `ci`/`ci-adapters`，
+于是 RTF 用例在 CI 里必红（本地因装了主依赖而看不出来）。按 xlsx 那次 `AAK-WORKER-003` 的先例处理：
+把 `striprtf>=0.0.32` 加进 `ci-adapters`（`b5bbfd84`），`uv lock` 仅 +2 行，manifest 摘要按既有约定只改
+digest；并让被引擎门控的用例**具名 skip**，另加一条不依赖引擎的用例断言“缺引擎必须以 RuntimeError 失败作业”，
+所以两条车道都仍在覆盖这段代码。**审计口径**：`uv export --frozen --only-group ci` 与升级后逐行相同
+（本机 diff 为空），故 pip-audit 的“干净”结论沿用，未被这次锁变更作废。
+
+**F10 词级时间（本条为真增量，不是记录）**：词时间沿 `split` 同一条参数通道走完全链——
+HTTP 体 `words`（可选，默认 false）→ Core 请求身份（`/parameters/words` 参与幂等比较，
+片段回执不得冒充词回执的应答）→ `Request::word_timings()`（非 `media.transcribe` 直接拒绝）→
+transport 校验并传参 → `_segment_cues(word_timestamps=…)` 记录每个词的毫秒级起止 →
+`offset_cues` **同时平移词时间**（漏掉就会让后窗口的词时间与全局 cue 错位），并拒绝平移后为负的
+词跨度。回执同时声明 `word_timings_requested` 与 `word_timings_produced`，模型没给词时间时**不会被读成已给**。
+验证：新增 `tests/workers/test_word_timings.py` 6 项（含“未请求就不发 flag 也不记词”“具名拒绝未知参数/
+`words:false`/非转写能力”）与 Rust 用例 `word_timings_reach_the_transcribe_request_and_are_refused_elsewhere`；
+`cargo test -p archeaxis-sidecar-protocol -p archeaxis-application -p archeaxis-api --tests --offline`
+**75 个结果全 ok**（含新用例实测执行），`cargo fmt --all --check` PASS，Python 侧相关三套 **16 passed**。
+**仍未闭合（不粉饰）**：说话人分离仍无引擎亦无处置行；词时间的**界面开关**按 Owner 指令（前端任务暂停）未做，
+目前只在 HTTP 边界可用；真实模型上的端到端词时间本轮未跑（单元层用替身模型验证接线）。

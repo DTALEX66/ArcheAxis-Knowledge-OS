@@ -1,7 +1,7 @@
 {
   "schema": "archeaxis/audit-snapshot/v1",
   "round": "AAOS-01-MULTI-FORMAT-ABSORB-20261007",
-  "observed_at": "2026-10-07T00:43:55+08:00",
+  "observed_at": "2026-10-07T01:20:58+08:00",
   "timezone": "Asia/Shanghai",
   "scope": "文档与治理修复（权威入口、冲突 current、描述与覆盖矩阵、可重复审计）。不改产品架构、不批量化安装依赖、不发布。",
   "repository": {
@@ -169,7 +169,8 @@
     "开源吸收核对脚本的启发式边界：已修复，不再是缺口。原脚本以‘整词命中任一来源’记 IMPLEMENTED_IN_SOURCE、以‘文件名含该项词’记 VENDORED，并把 __pycache__/*.pyc、README 词与生成目录字样计为证据；又因整词匹配 crossref 匹配不到 CrossrefClient，四条真客户端的判定实际由 .pyc 与文档字符串支撑。现按标识符判定、注释与文档字符串只算提及、编译产物与生成目录排除、桩按命中处附近的不可用标记判定、shared/ 移出 vendor 根；分布由 DECLARED 24 / IMPLEMENTED 9 / VENDORED 两类各 1 / NONE 12 更正为 DECLARED 25 / IMPLEMENTED_IN_SOURCE 6 / STUB_IN_SOURCE 2 / MENTIONED_IN_SOURCE 2 / NONE 12，并由 tests/workflow/test_oss_disposition_evidence.py 的断言固定四态",
     "CI test 车道的两处先存失败（均非本提交引入；同一 job 在 7eda1dcf 与 d218abdc 上同样 failure）：(1) 【已修】tests/workflow/test_workspace_layout_contract.py 在 runner 上把 .project-local/c 与 staging 判为越界——根因是两个**测试隔离缺陷**：tests/test_web_screenshot.py::test_screenshot_reports_browser_exit_code_when_no_png_is_written 未像同文件其他用例那样 patch _short_temp_root，于是 app/ingestion/web_screenshot.py:73 的 `(project_root/'c').mkdir` 沿祖先找到真实 .project-local 并创建 `c/`；tests/test_desktop_launch.py::test_prepare_accepts_project_local_staging_candidate 在真实 dev 根下建 `staging/launch-*` 且 finally 只删子目录、留下空 `staging/`。两处已按“修隔离、不放宽契约”修好（前者补同款 patch，后者在清理后 rmdir 空的父目录），并在权威 runner 设定的“TMP 落在 dev 根内”这一 CI 条件下复现验证：22 passed 且 dev 根未出现 c/ 或 staging/。(2) 【待决】tests/test_axr060_completion_audit.py 要求当前表面引用的 40 位哈希在检出中可达，记录引用的保留点 tag 值 aa804699… 因该分支 squash 合并后被删、tag 只在本地且不得推送而缺失；已在 docs/current/BRANCH-CONVERGENCE.json 登记该已删分支的 tip 与 merge_base（该文件正是该测试读取“已删分支 tip 可作证据”的白名单位置），并确认该分支在远端确已不存在",
     "命名空间提醒：`docs/current/AAOS-COVERAGE-MATRIX-20261006.md` 的 F00–F14 是**蓝图功能族**（F08=动态解释与仿真、F13=XR/AR），与 `docs/authority/taskpack-0910-r3/R15-FORMAT-STATUS.json` 的 F01–F16 **格式族**是两套编号，不可互推。本轮按代码实测更正的只有 R15 的 **F13**（原文把 ODF 写成 custody-only，实际 `grep -r opendocument` 零命中，现已实现；EPUB 早已有 spine 章节读取）；子智能体报告的 R15 **F05 页寻址**与 **F12 画布几何**“已实现却写成缺口”**我未亲验**，留作待核，不作为事实登记",
-    "F13 仍未闭合：邮件附件只具名清单与哈希、未抽取为独立来源；二进制 .msg 仍无读取器；ODF 样式/字段/内嵌对象/链接目标未跟随；A004 RapidOCR 的“桩还是真实使用”歧义未裁定"
+    "F13 仍未闭合：邮件附件只具名清单与哈希、未抽取为独立来源；二进制 .msg 仍无读取器；ODF 样式/字段/内嵌对象/链接目标未跟随；A004 RapidOCR 的“桩还是真实使用”歧义未裁定",
+    "F10 说话人分离仍无引擎且无处置行；词时间的界面开关按“前端任务暂停”未做，目前只在 HTTP 边界可用；真实模型上的词时间端到端本轮未跑（接线由替身模型在单元层验证）"
   ],
   "about": {
     "before": "星环知识平台 ArcheAxis Knowledge：本地优先的多格式内容与人机双向学习工作台（开发中）。Tauri/React + Rust Core，SQLite/CAS 单写者。内容先保存；识别忠实度核验与专业依据分析独立、可追溯。",
@@ -249,7 +250,10 @@
       "F08 PPTX 图表数据读通：worker 以标准库解析包内 chart part，投影 Series/类别=值 并给出 slide_chart 锚点；数值声明为文件自带缓存，仅有链接数据的系列具名为 no cached values；新增 3 项测试，与 office 套件合计 9 passed",
       "F13 ODF 与 RTF 在产品路径落地：attempts.rs 为 odt/ods/odp/rtf 命名媒体类型并加入 text.extract 接受集，读取器校验 mimetype 与声称类型一致、按 outline-level/表格单元格/draw:page 出锚点、行列重复声明超 512 时按上限报出；RTF 用已声明的 striprtf 剥控制字。route_capabilities 8 passed（两条真值断言因世界改变而更新并写明理由），fmt 与矩阵检查 exit 0，Python 35 passed",
       "吸收核对仪器纠正：A011 词由 mozilla 改 readabilipy（原为低估，且被测试钉住）、A010 词由 apache 改 tika（原为许可证词导致的虚报）、shared/models 补入 vendor 根使 A001 记为 DECLARED_AND_VENDORED；分布 25/2/12 → 24/1/13（DECLARED/VENDORED/NONE 口径见台账）",
-      "外溢数据追踪清理（只删已证实两项，合计 4,256,895 B（4,251,648 + 5,247；两次运行分删，第二次审计件的 freed 字段只含前者，不能当总量））：%TEMP% 中与主检出根逐字节相同的 4,251,648 B 副本 （脚本因审计件路径不存在先拒绝，核实真实归档路径后才删）与主检出根 __pycache__ 5,247 B（布局合同假失败源）；并更正一条旧记录：%LOCALAPPDATA%\\ArcheAxis Knowledge 在本机不存在"
+      "外溢数据追踪清理（只删已证实两项，合计 4,256,895 B（4,251,648 + 5,247；两次运行分删，第二次审计件的 freed 字段只含前者，不能当总量））：%TEMP% 中与主检出根逐字节相同的 4,251,648 B 副本 （脚本因审计件路径不存在先拒绝，核实真实归档路径后才删）与主检出根 __pycache__ 5,247 B（布局合同假失败源）；并更正一条旧记录：%LOCALAPPDATA%\\ArcheAxis Knowledge 在本机不存在",
+      "修掉一处**假支持**：F13 只在 Core 命名了 ODF/RTF 而未同步 transport 白名单，CI 两个车道把作业拒在 worker 边界（AAK-VAL-002）；已补白名单并给 check_format_matrix 加两侧一致性门禁（两个方向各注入一次证伪后还原 exit 0），F13 的四条路由也写进证据主张使门禁可见该声明",
+      "CI 车道缺 RTF 引擎：按 xlsx 先例把 striprtf 加入 ci-adapters（uv.lock +2 行，release manifest 摘要按约定只改 digest）；被引擎门控的用例具名 skip，另加不依赖引擎的“缺引擎必须失败作业”用例；审计口径不变（--only-group ci 导出逐行相同），故 pip-audit 结论沿用",
+      "F10 词级时间全链落地：HTTP words → 请求身份（片段回执不得应答词请求）→ word_timings()（非转写拒绝）→ transport → _segment_cues 记录毫秒词时间 → offset_cues 同步平移并拒绝负跨度；回执并列 word_timings_requested / produced。新增 6 项 Python + 1 项 Rust 用例；三 crate 75 结果全 ok、fmt 与矩阵检查 exit 0、Python 相关三套 16 passed"
     ],
     "open": [
       "Q14 与更正文件的日期序列已核实记录；是否宣布资格化仍由 Owner 决定（不可变 checks/acceptance.json 仍为 NOT_RUN）",
