@@ -1,5 +1,6 @@
 # AAOS-01 Q00–Q15 当前执行台账（2026-10-05）
 
+
 ## 当前结论（2026-10-06）
 
 最新固定资格578d06b784139e86c685191ecc7d0ccdd021fb27 / workflow308098767 / run37399470467 / attempt1 已终态SUCCESS，全部20项job实际执行成功，包括desktop-fast、desktop-build、installer-lifecycle与a0-gates；等待期间未推送。官方release-candidate artifact11384832309已完整下载193,116,309B，ZIP SHA17c1a886cf7c4364373330ef3a4a73114bd1de4aa8ca5834e20a53611c2c952f，四成员CRC及固定SHA/workflow/run/attempt绑定PASS。Office四样本与保存政策九项目标断言已逐项核验，不只读取ok字段。源码资格不代替Green部署或真人/云端验收；新候选实际解包与运行验证继续执行。
@@ -415,6 +416,14 @@ a11 真实 Tauri 窗口旅程 `aaos01-webdriver/e4236d2bedb44a5882f2c03b480feb08
 更根本的问题：文档 `rule` 与 `verdict_definitions` 定义 `REFERENCE/ADAPTER/ABSORB/PROVIDER/SIDECAR/BENCHMARK/REJECT` 七个判定，但 47 行实际使用 `ADOPT/CURRENT/EVALUATE/REFERENCE/REJECT-CORE/REVIEW-BLOCK/SIDECAR`——其中 5 个判定词**文档从未定义**，仅 2 个重合。故该表当前不可逐条核对；本轮只提交事实，不改写该文档、不虚填 369 行、不安装任何捐赠项。
 
 自查纠错两处：核对脚本首版按子串匹配，`vad` 命中无关包名，把无声明项误判为已落地；且只查依赖清单，把已在 `.github/workflows/ci.yml` 实际调用的 pip-audit 与 Gitleaks 误判为未吸收。现改为整词匹配并把**流水线调用**与**源码实现**各列为独立证据来源；`C008 sqlite-vec` 一行另记：它在 Python 侧确有声明，而 Rust Core 读不了遗留库的 `vec0` 表（见上文遗留库一节）——"已声明"不等于"需要它的组件可用"，两者不可互推。
+
+## Q00 现场身份只读核验与门禁（2026-10-06）
+
+Q00 的三项 `UNVERIFIED` 已按**只读**方式补核并落入 `docs/current/AAOS01-Q00-SCENE-RECEIPT.md` §6：声明位置（`config/defaults.yaml:11-13`，`data/archeaxis.sqlite` + `data/backups`）与实际磁盘内容（`data/cognitive_os.sqlite`，3,223,552 B，sha256 `b318c99e…`，`schema_version=121`，90 张表，旁带 `-shm`/`-wal`）**不一致**，该差异已登记为"必须登记的事实"而非当成已知；共享模型根只有环境变量声明（`capability-requirements.yaml:283`）且在本 shell **未绑定**——"存在≠已绑定"；CAS 根与备份 manifest 仍 `UNVERIFIED`（未声明、无 manifest、本轮未执行备份，属写操作需另行授权）。
+
+复核方式为**副本**读取（`.project-local/task-runtime/q00-identity-20261006/`），原库与官方数据根未写、未启动任何进程。
+
+新增门禁 `tests/workflow/test_q00_scene_receipt.py`：配置声明的每个存储位置、以及声明目录中实际存在的每个 `*.sqlite`，都必须在 Q00 回执里被点名；否则测试失败。**已依纪律先行证伪**——把声明路径临时改成未登记值后，测试如期失败并指出未登记项，随后恢复配置（`git diff config/defaults.yaml` 为空）。此项对应 Q00 完成条件"没有覆盖未知现场；现有可用项已标证据"；Q00 的其余未知项（CAS 根、备份恢复点、现役数据根是否即 `cognitive_os.sqlite`）仍需运行期读回，故 Q00 仍未整体完成。
 
 ## 绿色仓库已审计清理（2026-10-06）
 
