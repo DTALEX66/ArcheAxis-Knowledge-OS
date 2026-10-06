@@ -559,3 +559,22 @@ Rust 侧拥有逐表 sha256 与清单语义，本工具只补它读不了的，�
 另按仓库声明的完整 ruff 配置（`pyproject.toml` 的 E/F/W/I/N/UP/B/SIM）清理了本轮新增代码的 7 处问题（未用 import、未绑定参数、lambda 赋值、raise 未带 from、zip 缺 strict）。CI 的 lint 只用窄集 `E9,F63,F7,F82`，这些本不会挂 CI，但声明配置就是标准；已同时确认 CI 的窄集命令在全仓范围通过。
 
 教训（值得记住）：本轮三次"CI 抓到、本地没抓到"分别是 —— 门禁需要 PyYAML（CI 环境无）、Rust 未跑 fmt、架构守卫拦 `sys.path`。本地绿灯的边界只覆盖我实际跑过的命令。
+
+## 跨栈 WAL 阻断已解除（本轮实测）
+
+`docs/current/AAOS01-CROSS-STACK-WAL-BLOCKER.md` 记录的"Core 的 WAL 旁文件让 Python 只读直接拒绝 / 两栈在同一库上无法共存"，
+本轮按其 §6 自己提出的下一步做完并得到相反结论。已在原文顶部加"已解除"状态说明（保留原测量文本不删改）。
+
+实测（真实被杀死的写者，不是模拟；脚本走项目自身代码路径）：
+
+- 子进程以 WAL 写入并 `os._exit(0)`（等价于被终止的 Core）后：`-wal` **12,392 B**、`-shm` **32,768 B**；
+- 执行 `shared/backup.py::prepare_runtime_database()`（应用每次启动、取得唯一运行时租约后即执行）后：**两个旁文件全部消失**；
+- 紧随其后的 `validate_schema()` 越过"不带旁文件"的检查，只因该玩具库没有真实 schema 而报出下一层错误（`phase4 research schema migration is pending`）——即启动路径已正常推进。
+
+根因澄清：`_require_offline_database` 本就会**读写打开（自动恢复残留 WAL）→ `wal_checkpoint(TRUNCATE)` → `BEGIN EXCLUSIVE` 证明无他写者 → 删除旁文件**。
+所以障碍是**活着的写者**（`BEGIN EXCLUSIVE` 正确拒绝，这是单写者纪律），而不是旁文件的存在。
+本文档原来的表 3（"只读路径拒绝带旁文件的库"）为真，但由它推出的第 4 条（"两栈无法共存"）把"同时"与"任何时候"混为一谈。
+
+用例 `tests/workflow/test_offline_database_recovery.py`（2 项）固定两半：被杀写者的旁文件在下次启动被恢复+清理+数据仍在；写者活着时 `prepare_runtime_database()` 抛 `requires the app to be offline`，写者一走同一调用即成功。
+
+未做、也不应冒充的：未把 Python 侧改为经 Core HTTP 读取，也未让两栈同时写同一库——单写者纪律不变。
