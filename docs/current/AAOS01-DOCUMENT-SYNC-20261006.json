@@ -3,11 +3,19 @@
   "date": "2026-10-06",
   "scope": "dated documentation mirror, not second execution ledger or deployed product proof",
   "source_branch": "codex/dsh-aaos-real-multiformat-loop-20261001",
-  "mirror_verified_against_commit": "691a0ce7a48971a628b4f736ea8ec7e2770769a0",
+  "mirror_verified_against_commit": "586b1f4f84c0bc80088dbe2e09e38b0fb3cc5d09",
   "prior_baseline_commit": "b69c42a2afb53870847c08805c92171cc787533a",
-  "commit_binding_note": "Every hashed file is identical at both commits except the two 20261006 documents, which were first published by mirror_verified_against_commit; that commit is therefore the only source binding for this mirror.",
+  "commit_binding_note": "mirror_verified_against_commit is the source commit whose content every hashed file is taken from; prior_baseline_commit is the earlier AAOS-01 documentation commit kept only as history. This manifest is always updated one commit later because it cannot record the commit that contains itself.",
   "canonical_ledger": "docs/current/AAOS01-Q00-Q15-LEDGER-FINAL-20261005.md",
   "green_mirror": "D:\\All projects\\ArcheAxis.Knowledge.Green-x64\\AAOS01-文档同步-20261006",
+  "source_form": {
+    "materialize": "git archive <mirror_verified_against_commit> <path> | tar -x",
+    "note": "Hashed bytes are the bound commit's canonical file content, so a fresh checkout reproduces the mirror. The Formal worktree copy of AGENTS.md is a CRLF-local materialization that git status still reports clean because .gitattributes normalizes it; it is not the mirrored content.",
+    "agents_md_worktree_copy": {
+      "bytes": 11219,
+      "sha256": "598358974d8921d3bebc6378675f2f3e5ca22d8c1d1b81393745670e97537c1e"
+    }
+  },
   "files": [
     {
       "path": "README.md",
@@ -16,8 +24,8 @@
     },
     {
       "path": "AGENTS.md",
-      "bytes": 11219,
-      "sha256": "598358974d8921d3bebc6378675f2f3e5ca22d8c1d1b81393745670e97537c1e"
+      "bytes": 11062,
+      "sha256": "09fdb4f3772779128b64cb98a12a0b11c1660cd28e3bdc6dd987d585a3fc77cd"
     },
     {
       "path": "PROJECT_CONTRACT.yaml",
