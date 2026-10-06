@@ -368,3 +368,22 @@ a11 真实 Tauri 窗口旅程 `aaos01-webdriver/e4236d2bedb44a5882f2c03b480feb08
 旧 98 表 Python 库与 Core `workspace_meta.schema_version` 不兼容。迁移与只读接入的数据语义仍须明确；保留原库与独立新数据根，不以泛化修复授权推断具体内容舍弃或映射。普通暂存布局与实现合并已授权自主处理，不再列为待用户决定。
 
 历史纠偏出处保留在 `AAOS01-AUDIT-CORRECTIONS-20261005.md`、交接文件与 Git 历史；不在本表保留互相矛盾的 done/撤回当前状态。回退使用本次提交前代码与已保留旧候选/旧数据副本，不让旧程序打开新 schema；本轮未发布、未安装资格化、未声称 Owner Accepted。
+
+## 长音频分段执行（用户裁决落地）
+
+用户裁决：音视频不切分必然慢，界面要显示当前转换所需时间、由用户选择是否切分并按其选择执行。
+按此落地，不再把 300 s 作业上限当作不可逾越的缺口，也未抬高上限。
+
+- 界面：`JobContent` 先按同一策略给出原件时长与整体执行预计；整体在上限内时可整体执行，也可切分执行；整体预计超上限时整体动作显式停用（保留可见，避免误触上限），切分动作标注段数与可续跑。分段进度只从任务自身损失回执读取；重开一份仅覆盖部分录音的转写时，转写区直接说明未完成段，不把局部当整段。
+- 计划归属：窗口计划由 worker 用声明的 ffmpeg 探测录音真实时长后在本地派生，请求只携带“是否切分”。调用方传入的计划已被拒绝——一个留下空洞却格式合法的计划会静默丢掉洞内音频。
+- 复用与预算：已完成窗口以录音摘要为键落在 Core 自身 staging 下（不按作业编号，否则每轮重跑），单次执行在作业剩余时间内只启动仍有余量的窗口，遇到第一个放不下的窗口即停并把其余尾部窗口显式记为未完成——单次有界执行总是从录音开头推进，不跳段去解码更小的尾窗。
+- 通道边界：`parameters` 仅 `media.transcribe` 可携带且只允许 `{split:true, staging}`；解码器由声明的 capability manifest 解析，不由请求提供（否则等于让请求指定任意可执行文件）。
+
+真实证据（非单元测试）：`.project-local/task-runtime/aaos01-split-20261006/proof-output.txt`，SHA-256 `3c7964942375cd977a67cb122bbf4b54ee655545b1ea571cfa8c99af879d471b`，脚本 `prove-split.py` SHA-256 `0e4dbc109f160dabe2469ef4facc9fb6ac19d0c93ddfab1fdb55adf3a75efff3`，退出码 0。真实 ffmpeg 8.1.2 探测 300 s 合成音（9,600,044 字节），真实 faster-whisper 1.2.1 + faster-whisper-large-v3-turbo 解码：
+
+- 第 1 次 invocation（预算 150000 ms）：`split.duration_ms=300000`、`windows_total=3`、`window_audio_ms=140000`、`whole_exceeds_ceiling=true`；回执 `status=partial`、`windows_missing=[1,2]`；staging 仅 `window-0000.json`。
+- 第 2 次 invocation（无预算）：`status=complete`、`windows_missing=[]`、`windows_resumed=[0]`；staging 三个窗口文件；`alignment_status=complete`、`duration_ms=300000`。
+
+测试面：Rust 侧新增协议窗口边界、claim 持久化与 HTTP 窗口语义用例；Python worker 146 项 unittest 与 33 项 pytest 全通过；前端 270 项全通过，`tsc --noEmit` 通过。提交 `b8db1a34`、`22e3536b`、`02e15eff`、`a807ed27`，分支 `codex/dsh-aaos-real-multiformat-loop-20261001` 已推送。
+
+边界：本机未执行安装态/NSIS 验收，未发布，未新增 tag 或 release；合成音不含语音，因此该证据证明的是窗口计划、真实解码、预算中止与跨轮复用，不是识别质量。
