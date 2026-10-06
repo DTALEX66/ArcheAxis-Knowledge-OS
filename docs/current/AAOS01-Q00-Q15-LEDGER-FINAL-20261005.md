@@ -984,3 +984,54 @@ transport 校验并传参 → `_segment_cues(word_timestamps=…)` 记录每个�
 对 `tests/fixtures/golden/golden-audio-anchor.wav` 实跑：`word_timings_requested=true`、`word_timings_produced=true`，
 词时间 0–500 / 500–1180 / 1180–1800 ms 对应 Learning/Evidence/Anchor；该文件 **8 passed、0 skipped、16.11s**。
 仍未实测：窗口化与词时间的组合（需一段真超上限录音；偏移逻辑目前有单元层与“负跨度即报错”两层覆盖）。
+
+
+## 格式切片 F01 + F06（2026-10-07，提交 09f68a9c 与 41a34d3d，回归修复 6237c5f1）
+
+**F01 源代码符号（真增量）**：`.py` 现在沿完整路由链走到符号解析——
+`attempts.rs` 名称表与 `text.extract` 接受集（18 项）→ `text_ndjson.py` 的 `media_types` 声明 →
+`worker_text.py` 的结构化媒体集 → `worker_light_formats.python_source()`。符号取自解释器自带的 `ast`，
+是**该文件自身语法树的事实**：类、函数、异步函数、import 各带声明行；锚点仍是行基，符号只作为
+`loss_receipt.params.format` 里上报的事实存在。解析失败如实写 `parsed:false` + `parse_error` 且
+**符号列表为空**，正文仍按文本投影——不编造一份看起来合理的符号表。
+
+**F06 词尾那一环（真增量）**：OCR 结果现在回到它来时的那一页。每个链式页源以
+`import` 原点 `<pdf source_id>#page-N` 入库，并且**核验该关系确实落库**（原点是 INSERT OR IGNORE，
+静默丢弃会被读成"已记录"）；`ocr::pages_of` 与 `GET /api/v1/sources/:id/pages` 按页回答该页 OCR 出来的文本。
+未跑的页以 `recognised:false` + 无文本报告，`received_at` 保持 NULL——时钟值不虚构。
+
+**验证（数字取自当次日志）**：
+`cargo test --workspace --offline` → **120 个套件全部 ok，496 项通过、0 失败**；
+修复前一次同范围运行 71 套件 / 338 项亦全绿；
+新增两套 Rust 用例分跑 **2 套件 / 5 项全 ok**，
+且 `a_scanned_pdf_chains_into_a_real_ocr_job_and_its_text_is_stored` **未被跳过**（日志无 skipping 行，
+真实 tesseract + PyMuPDF 样本，3 项 4.11s）；
+`cargo fmt --all --check` PASS；
+Python 全量 `tests`（dev.py 车道）**4211 passed, 30 skipped, 14 warnings, 146 subtests passed in 467.60s (0:07:47)**；
+`check_format_matrix.py` exit 0（13 core routes / 12 worker routes 双向对齐）、
+`scripts/check_path_conventions.py` 与 `scripts/ci/check_document_authority.py` exit 0；
+CI 选择集的 ruff（`--select E9,F63,F7,F82`）对 services/tests/crates 全绿。
+矩阵 F01/F06 两行只改 `implemented_now`/`gap`/`evidence`，`required_output` 逐字未动。
+
+**我自己造成的缺陷，两处，如实登记**：
+(a) **分支遮蔽**：名称表里 `"py"` 原本已存在于**更早**的 `"txt" | … | "py" | …` => `text/plain` 分支，
+我新加的 `"py" => "text/x-python"` 因此永不可达——文件仍按纯文本走，而四张表看上去都"命名了它"。
+Python 侧三层用例当时全绿，只有 Rust 侧内容断言暴露它（`left:"text/plain" right:"text/x-python"`）。
+除了从旧分支删掉 `"py"`，我把 `resolve_media_type("text","tool.py")` 写成内容断言，并让 Python 用例
+直接检查 `text/plain` 分支不得再含 `"py"`；17→18 的计数守卫保留，但已不是该行为的唯一守卫。
+教训：**往 first-match 的表里加项，必须同时检查更早的分支是否已覆盖它**，"表里有"不等于"分支可达"。
+(b) **上一轮词时间提交破坏了已提交用例**：`tests/workers/test_transport_window_request.py` 的 fixture worker
+是真实 worker 的替身，签名缺 `word_timestamps`，而 transport 两条路径都无条件传该参数，于是该用例红
+（`TypeError: extract_split() got an unexpected keyword argument 'word_timestamps'`）。
+CI 当时未判（PR #161 pending），由本地全量 `tests/workers` 抓到。替身按真实契约补齐并记录其值，
+**新增 split+words 用例**——窗口化与词时间的组合此前零覆盖。已在 6237c5f1 单独提交。
+
+**仍未闭合，不粉饰**：符号解析只覆盖 Python，其余源代码语言仍按纯文本投影、不声称符号（这里没有它们的解析器）；
+容器成员路径复用同一名称表（`crates/archeaxis-application/src/container.rs:140` 调 `attempts::resolve_media_type`），
+按代码推断一个 `.py` 成员现在也会被命名为 `text/x-python`，但**没有成员级用例实测该组合**，故不记为已验证；
+transport 对 `text/x-python` 只由"该类型在其声明集内" + 矩阵双向门禁保证，未加经 `execute()` 的用例。
+F06 的回写是**关系而非合并**：文本仍住在页源上，PDF 自己的锚点仍只覆盖其文本层，
+扫描页在 PDF 文档内部没有可寻址区域；`pages_of` 的 HTTP 面尚无界面消费者（前端任务按 Owner 指令暂停）。
+
+**回滚**：`git revert 41a34d3d` 与 `git revert 09f68a9c` 各自独立可回；回归修复 6237c5f1 不建议回退，
+回退它会重新引入那条红用例。

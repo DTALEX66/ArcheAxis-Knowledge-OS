@@ -1,7 +1,7 @@
 {
   "schema": "archeaxis/audit-snapshot/v1",
   "round": "AAOS-01-MULTI-FORMAT-ABSORB-20261007",
-  "observed_at": "2026-10-07T01:20:58+08:00",
+  "observed_at": "2026-10-07T02:01:50+08:00",
   "timezone": "Asia/Shanghai",
   "scope": "文档与治理修复（权威入口、冲突 current、描述与覆盖矩阵、可重复审计）。不改产品架构、不批量化安装依赖、不发布。",
   "repository": {
@@ -158,6 +158,16 @@
       "cause": "该门禁把活动源码中出现遗留运行输出根路径判为边界违规；我写夹具时未先跑它。pip-audit 步骤本身在同一 job 里 已输出 No known vulnerabilities found，与本失败无关",
       "fix": "不动门禁，只把夹具来源改成中性的 ingest-samples/oxford-meaning.pdf（该项断言不依赖此字符串）；复验 1 passed，cargo test -p archeaxis-migration --tests --offline 六套件合计 27 passed",
       "status": "fixed"
+    },
+    {
+      "commit": "12d4a47c",
+      "detected_by": "本地全量 pytest tests/workers（在 worktree 内，dev.py 车道）；CI 当时未判（PR #161 pending）",
+      "observed": "tests/workers/test_transport_window_request.py::WindowParameterTests::test_a_split_reaches_the_worker_with_the_jobs_remaining_time → TypeError: extract_split() got an unexpected keyword argument 'word_timestamps'",
+      "cause": "该提交给 transport 两条转写路径都无条件加了 word_timestamps。真实 worker 接受该形参，用例里的替身不接受——替身是 worker 契约的 stand-in，签名未随契约同步，于是只有替身红",
+      "fix_commit": "6237c5f1",
+      "fix": "替身按真实 worker 补齐 extract/extract_split 形参并记录其值；新增 split×words 用例，使窗口化与词时间组合首次有覆盖（此前零覆盖）",
+      "local_reproduction": "PYTHONUTF8=1 python -B scripts/runtime/dev.py --pytest tests/workers -q → 修复前 1 failed / 332 passed；修复后 5 passed + 9 subtests（该文件），全量 tests 4211 passed / 30 skipped / 0 failed",
+      "false_pass_note": "同类误判还包括 F01 的 .py 命名：四张表都命名了它、Python 用例全绿，但 first-match 表里更早的 text/plain 分支已含 py，新分支不可达；只有 Rust 内容断言抓得到。两条都记于此，因为\"局部证据不足以支撑整链结论\"是本项目既有失败模式"
     }
   ],
   "gaps": [
@@ -253,7 +263,9 @@
       "外溢数据追踪清理（只删已证实两项，合计 4,256,895 B（4,251,648 + 5,247；两次运行分删，第二次审计件的 freed 字段只含前者，不能当总量））：%TEMP% 中与主检出根逐字节相同的 4,251,648 B 副本 （脚本因审计件路径不存在先拒绝，核实真实归档路径后才删）与主检出根 __pycache__ 5,247 B（布局合同假失败源）；并更正一条旧记录：%LOCALAPPDATA%\\ArcheAxis Knowledge 在本机不存在",
       "修掉一处**假支持**：F13 只在 Core 命名了 ODF/RTF 而未同步 transport 白名单，CI 两个车道把作业拒在 worker 边界（AAK-VAL-002）；已补白名单并给 check_format_matrix 加两侧一致性门禁（两个方向各注入一次证伪后还原 exit 0），F13 的四条路由也写进证据主张使门禁可见该声明",
       "CI 车道缺 RTF 引擎：按 xlsx 先例把 striprtf 加入 ci-adapters（uv.lock +2 行，release manifest 摘要按约定只改 digest）；被引擎门控的用例具名 skip，另加不依赖引擎的“缺引擎必须失败作业”用例；审计口径不变（--only-group ci 导出逐行相同），故 pip-audit 结论沿用",
-      "F10 词级时间全链落地：HTTP words → 请求身份（片段回执不得应答词请求）→ word_timings()（非转写拒绝）→ transport → _segment_cues 记录毫秒词时间 → offset_cues 同步平移并拒绝负跨度；回执并列 word_timings_requested / produced。新增 6 项 Python + 1 项 Rust 用例；三 crate 75 结果全 ok、fmt 与矩阵检查 exit 0、Python 相关三套 16 passed"
+      "F10 词级时间全链落地：HTTP words → 请求身份（片段回执不得应答词请求）→ word_timings()（非转写拒绝）→ transport → _segment_cues 记录毫秒词时间 → offset_cues 同步平移并拒绝负跨度；回执并列 word_timings_requested / produced。新增 6 项 Python + 1 项 Rust 用例；三 crate 75 结果全 ok、fmt 与矩阵检查 exit 0、Python 相关三套 16 passed",
+      "F01: a `.py` source reports the symbols its own AST declares, line-anchored (09f68a9c)",
+      "F06: a chained page answers with the text read from it, via origin + pages_of + GET /sources/:id/pages (41a34d3d)"
     ],
     "open": [
       "Q14 与更正文件的日期序列已核实记录；是否宣布资格化仍由 Owner 决定（不可变 checks/acceptance.json 仍为 NOT_RUN）",
@@ -287,7 +299,7 @@
     },
     "migration_crate": "cargo test -p archeaxis-migration --tests --offline -> 27 passed / 0 failed (含新增 selective_legacy_stage 3 项)；cargo fmt --all --check PASS",
     "dependency_scan_guards": "tests/workflow/test_dependency_scan_config.py 4 passed；三项注入（回退 report-only / 删 pipefail / 命令内加 --ignore-vuln）各自只弄红对应那项；tests/test_release_manifest.py 35 passed 0 failed（升锁后按提交 79332377 的约定只改 dependency_lock.digest，revision 保持 8）",
-    "format_slices_20261007": "tests/workers/test_pptx_chart_data.py + tests/workers/test_bulk_office.py 9 passed; tests/workers/test_light_formats_odf_rtf.py + tests/test_multiformat_extraction.py + tests/workers/test_bulk_html.py + tests/workers/test_bulk_legacy_adapters.py 35 passed; cargo test -p archeaxis-application --test route_capabilities --offline 8 passed; cargo fmt --all --check PASS; check_format_matrix.py exit 0; tests/workflow/test_oss_disposition_evidence.py 3 passed"
+    "format_slices_20261007": "tests/workers/test_pptx_chart_data.py + tests/workers/test_bulk_office.py 9 passed; tests/workers/test_light_formats_odf_rtf.py + tests/test_multiformat_extraction.py + tests/workers/test_bulk_html.py + tests/workers/test_bulk_legacy_adapters.py 35 passed; cargo test -p archeaxis-application --test route_capabilities --offline 8 passed; cargo fmt --all --check PASS; check_format_matrix.py exit 0; tests/workflow/test_oss_disposition_evidence.py 3 passed; F01 symbols: tests/workers/test_python_source_symbols.py 4 passed, F06 page write-back: crates/archeaxis-api/tests/source_pages_api.rs + crates/archeaxis-application/tests/pdf_ocr_chain.rs 5 passed with no skip, cargo test --workspace --offline 120 suites ok / 496 passed / 0 failed, full python tests: 4211 passed, 30 skipped, 14 warnings, 146 subtests passed in 467.60s (0:07:47)"
   },
   "artifacts": [
     {
