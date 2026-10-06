@@ -80,7 +80,7 @@ fn office_names_select_the_office_route_and_the_legacy_formats_are_refused() {
     assert!(error.contains("cannot accept media type"), "{error}");
     // the legacy binary formats have no reader here, so the name is refused rather than
     // handed to a route that cannot open it
-    for name in ["old.doc", "old.ppt", "old.xls", "old.rtf"] {
+    for name in ["old.doc", "old.ppt", "old.xls"] {
         let error = attempts::resolve_media_type("office", name)
             .unwrap_err()
             .to_string();
@@ -89,6 +89,19 @@ fn office_names_select_the_office_route_and_the_legacy_formats_are_refused() {
             "{name}: {error}"
         );
     }
+    // RTF now has a reader, but only behind the text route: naming it must not let it travel
+    // as an Office package, which is the invariant the loop above protects.
+    assert_eq!(
+        attempts::resolve_media_type("text", "old.rtf").unwrap(),
+        "application/rtf"
+    );
+    let rtf_error = attempts::resolve_media_type("office", "old.rtf")
+        .unwrap_err()
+        .to_string();
+    assert!(
+        rtf_error.contains("cannot accept media type"),
+        "rtf must be refused for a reason, not unnamed: {rtf_error}"
+    );
 }
 
 #[tokio::test]

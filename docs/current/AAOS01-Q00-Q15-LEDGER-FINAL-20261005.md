@@ -929,3 +929,19 @@ shared/adapter_fixtures.py:153（`readabilipy` 确在 `pyproject.toml:82` 声明
   全仓无归档副本，**必须保留**；`C:\Users\ALEX\.dsh`（339,240,921 B）是外部工具的家目录，非本项目资产；
   主检出根 `.venv`（960,392,331 B）虽 git-ignored 且可再生，但**绑定解释器且可能有并行会话在用**，
   本轮不动。审计与删除清单：`.project-local/task-runtime/spillover-audit-20261007/`。
+
+## 我自己引入的一处 Rust 真值测试回归（2026-10-07，本地全量抓到并当场修正）
+
+给 `odt/ods/odp/rtf` 命名媒体类型后，只跑 `route_capabilities` 是全绿的，但 **`cargo test -p archeaxis-application --tests --offline` 全量跑到 `office_job_end_to_end.rs:87` 失败**：
+`office_names_select_the_office_route_and_the_legacy_formats_are_refused` 把 `old.rtf` 与
+`old.doc/old.ppt/old.xls` 放在同一组，断言它们**连媒体类型都无法命名**（`cannot name a media type`）。
+RTF 现在有命名路由，拒绝理由随之变成“该路由不接受此媒体类型”——**拒绝仍然发生，但原因不同**，
+所以这条断言的旧前提（RTF 无任何读取器）已不成立。
+
+处理方式遵循“真值测试优先”：没有把整条断言放宽，而是**把 RTF 从“无名遗留二进制”组里分出来单独断言**，
+并且是**收紧**：`.rtf` 必须经 `text` 路由解析成功，同时 `office` 路由必须以 `cannot accept media type`
+拒绝它——即“命名了它”不得让 RTF 冒充 Office 包进入读 Office 的路由（那正是原测试要守的不变量）。
+`old.doc/old.ppt/old.xls` 三条原样保留。验证：`cargo fmt -p archeaxis-application` 后
+`cargo test -p archeaxis-application --tests --offline` **21 个测试二进制结果全部 ok、CARGO_TEST_EXIT=0**。
+教训（与既有“本地跑子集不足以证明”一致）：**跨媒体类型表的改动必须跑该 crate 的全量测试**，
+只跑与改动直接相关的那一个测试文件会漏掉别处对同一张表的断言。
