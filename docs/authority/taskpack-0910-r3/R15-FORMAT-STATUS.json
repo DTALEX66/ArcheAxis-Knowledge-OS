@@ -183,13 +183,13 @@
       "formats": "MP4/MOV/MKV/WebM",
       "required_output": "对齐的音轨、字幕、画面事件、采样覆盖",
       "status": "partial",
-      "implemented_now": "an MP4 or MOV reaches the media route, because video is binary too. The worker walks the ISO base media file boxes without interpreting payloads and reports the major brand, compatible brands, the box types present, the movie timescale and declared duration with the seconds that follow from them, and each track's handler (video, audio), timescale and duration. A truncated box stops the walk and is reported rather than guessed, and the receipt states that nothing was decoded: no frame event, no aligned audio track, no sampling coverage",
-      "gap": "no subtitle extraction, no frame events and no sampling coverage; MKV and WebM are refused by name because no reader here can read them, so those two formats remain custody-only inside a partially covered group",
+      "implemented_now": "MP4, MOV, MKV and WebM reach a video route, not only a header probe: `media.video` accepts video/mp4, video/quicktime, video/x-matroska and video/webm (attempts.rs:126-133) with worker `services/python-workers/media/worker_video.py`. That worker decodes what the probe could only describe -- it extracts a 16 kHz mono WAV of the audio track for the ASR lane and sampled keyframes as JPEGs carrying their media-time offsets, with `--frame-interval-ms` and `--max-frames` bounding the sample. The product job also transcribes the extracted audio and describes up to three sampled frames through the local vision adapter. Subtitle extraction is its own route rather than a gap: `subtitles.structure` accepts application/x-subrip and text/vtt (attempts.rs:156) with worker `document/worker_subtitles.py`, returning cue anchors that carry `offset_ms` and `duration_ms`. A truncated box or an unparseable subtitle fails or is reported rather than guessed. The limited header probe (`media.probe`) still refuses a format it cannot read.",
+      "gap": "coverage is by sampling and bounded, so the group is not complete on the required output: keyframes are sampled at an interval (default 10 s, at most 24) rather than reported as exhaustive frame events, and the product job describes at most three frames through the vision adapter. Nothing here separates speakers, and a video the decoder cannot open is still a named failure rather than a partial read.",
       "evidence": {
-        "core_routes": [{"kind": "media", "capability": "media.probe", "media_type": "video/mp4"}],
-        "worker_routes": [{"capability": "media.probe", "worker": "services/python-workers/document/worker_media.py"}],
-        "code": ["crates/archeaxis-application/src/attempts.rs", "services/python-workers/document/worker_media.py"],
-        "tests": ["tests/test_worker_media_route.py", "crates/archeaxis-application/tests/media_job_end_to_end.rs"],
+        "core_routes": [{"kind": "video", "capability": "media.video", "media_type": "video/mp4"}, {"kind": "subtitles", "capability": "subtitles.structure", "media_type": "application/x-subrip"}, {"kind": "media", "capability": "media.probe", "media_type": "video/mp4"}],
+        "worker_routes": [{"capability": "media.video", "worker": "services/python-workers/media/worker_video.py"}, {"capability": "subtitles.structure", "worker": "services/python-workers/document/worker_subtitles.py"}, {"capability": "media.probe", "worker": "services/python-workers/document/worker_media.py"}],
+        "code": ["crates/archeaxis-application/src/attempts.rs", "services/python-workers/media/worker_video.py", "services/python-workers/document/worker_subtitles.py", "services/python-workers/document/worker_media.py"],
+        "tests": ["tests/workers/test_video_pipeline.py", "tests/workers/test_bulk_media.py", "tests/workers/test_subtitle_precision.py", "tests/test_worker_media_route.py", "crates/archeaxis-application/tests/media_job_end_to_end.rs"],
         "legacy_reference": []
       }
     },
