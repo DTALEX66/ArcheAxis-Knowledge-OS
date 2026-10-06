@@ -194,7 +194,11 @@ def main() -> None:
     try:
         with sync_playwright() as playwright:
             browser = playwright.chromium.launch(headless=True)
-            for width, height in ((1440, 1000), (1280, 800), (390, 844), (360, 640)):
+            # 900 and 840 are the two widths the shell's own breakpoints live on: `<= 840` swaps the
+            # rail for a bottom bar and hides the context strip, and 901..1280 is the band where the
+            # context strip is shown at all. Without them neither branch was exercised - the matrix
+            # jumped from 1280 straight to 390, so a change scoped to 601..900 was unguarded.
+            for width, height in ((1440, 1000), (1280, 800), (900, 800), (840, 800), (390, 844), (360, 640)):
                 context = browser.new_context(
                     viewport={"width": width, "height": height},
                     reduced_motion="reduce",
@@ -241,7 +245,11 @@ def main() -> None:
                 }""")
                 assert geometry["scrollWidth"] <= geometry["clientWidth"], geometry
                 assert geometry["dock"]["bottom"] <= height + 0.5, geometry
-                if width <= 840:
+                # The phone layout is `max-width: 600px` in the stylesheet, and the check has to use
+                # the same boundary the stylesheet does. It used to demand that layout at 840, where
+                # the product deliberately keeps the context strip: hiding it removes the only
+                # section switcher in the library space.
+                if width <= 600:
                     assert geometry["rail"]["width"] >= width - 1, geometry
                     assert geometry["rail"]["height"] < 80, geometry
                     assert geometry["main"]["bottom"] <= geometry["dock"]["y"] + 0.5, geometry
@@ -249,6 +257,10 @@ def main() -> None:
                     assert not geometry["context"], geometry
                 else:
                     assert geometry["context"], geometry
+                    if width <= 1200:
+                        # 601..1200 is the band where the chrome narrows so the reading column can
+                        # survive: assert the column keeps the minimum the stylesheet declares.
+                        assert geometry["main"]["width"] >= 280, geometry
 
                 page.get_by_role("button", name="打开全局命令").click()
                 page.get_by_role("dialog", name="全局命令").wait_for()

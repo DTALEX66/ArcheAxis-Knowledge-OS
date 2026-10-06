@@ -131,3 +131,41 @@ def test_browser_smoke_records_the_dirty_candidate_without_writing_the_worktree_
         "worktree_diff_sha256": "9e3e63fac9c92100f0f15e616e1abf395028edc8912bebfc42044c65eb17e114",
     }
     assert ["git", "write-tree"] not in captured
+
+
+def test_the_viewport_matrix_covers_the_stylesheets_own_breakpoints():
+    """The matrix has to include the widths the shell actually branches on.
+
+    It used to jump from 1280 straight to 390, so the whole 601..1200 range — where the chrome
+    narrows to keep the reading column alive — was never rendered by any gate. Adding 900 and 840
+    immediately caught the boundary disagreeing with the stylesheet: the harness demanded the phone
+    layout at 840, where the product deliberately keeps the context strip.
+    """
+    import re
+
+    root = Path(__file__).resolve().parents[1]
+    smoke = (root / "scripts" / "a0_browser_smoke.py").read_text(encoding="utf-8")
+    styles = (root / "frontend" / "src" / "design-system" / "tokens.css").read_text(encoding="utf-8")
+
+    matrix = re.search(r"for width, height in \(\((.*?)\)\):", smoke)
+    assert matrix, "the viewport matrix could not be read"
+    widths = [int(value) for value in re.findall(r"\((\d+),\s*\d+\)", matrix.group(1))]
+    assert widths, matrix.group(1)
+    assert any(width <= 600 for width in widths), widths
+    assert any(601 <= width <= 900 for width in widths), widths
+    assert any(1200 < width for width in widths), widths
+
+    # The phone layout is the block that hides the context strip, and the harness must use that
+    # same boundary rather than a neighbouring round number.
+    mobile = re.search(r"@media \(max-width: (\d+)px\) \{[^@]*?\.context-subnav \{\s*display: none;",
+                       styles, re.S)
+    assert mobile, "the mobile block hiding the context strip could not be read"
+    harness = re.search(r"if width <= (\d+):", smoke)
+    assert harness, "the harness boundary could not be read"
+    assert int(harness.group(1)) == int(mobile.group(1)), (harness.group(1), mobile.group(1))
+
+    # The band between them asserts the reading column keeps its declared minimum.
+    assert re.search(
+        r"if width <= 1200:\s*\n(?:\s*#[^\n]*\n)*\s*assert geometry\[\"main\"\]\[\"width\"\] >= 280",
+        smoke,
+    )

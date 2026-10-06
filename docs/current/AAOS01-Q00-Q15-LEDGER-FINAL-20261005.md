@@ -415,3 +415,11 @@ a11 真实 Tauri 窗口旅程 `aaos01-webdriver/e4236d2bedb44a5882f2c03b480feb08
 更根本的问题：文档 `rule` 与 `verdict_definitions` 定义 `REFERENCE/ADAPTER/ABSORB/PROVIDER/SIDECAR/BENCHMARK/REJECT` 七个判定，但 47 行实际使用 `ADOPT/CURRENT/EVALUATE/REFERENCE/REJECT-CORE/REVIEW-BLOCK/SIDECAR`——其中 5 个判定词**文档从未定义**，仅 2 个重合。故该表当前不可逐条核对；本轮只提交事实，不改写该文档、不虚填 369 行、不安装任何捐赠项。
 
 自查纠错两处：核对脚本首版按子串匹配，`vad` 命中无关包名，把无声明项误判为已落地；且只查依赖清单，把已在 `.github/workflows/ci.yml` 实际调用的 pip-audit 与 Gitleaks 误判为未吸收。现改为整词匹配并把**流水线调用**与**源码实现**各列为独立证据来源；`C008 sqlite-vec` 一行另记：它在 Python 侧确有声明，而 Rust Core 读不了遗留库的 `vec0` 表（见上文遗留库一节）——"已声明"不等于"需要它的组件可用"，两者不可互推。
+
+## 601–900 视口带补测并修正门禁边界（本轮）
+
+A0 浏览器门禁 `scripts/a0_browser_smoke.py` 原视口矩阵为 1440/1280/390/360——从 1280 直接跳到 390，**601–1200 整段从未被任何门禁渲染**，而此前一处 CSS 修复正落在 601–900。本轮补入 900×800 与 840×800，并加用例 `test_the_viewport_matrix_covers_the_stylesheets_own_breakpoints` 把矩阵与样式表自身的断点绑在一起（须含 ≤600、601–900、>1200 三类，且窄屏判据必须等于样式表隐藏上下文条的那个断点）。
+
+补测立即发现一处真实不一致：门禁用 `width <= 840` 判定"窄屏"，断言该宽度下应出现手机布局（轨道满宽、无上下文条）；而样式表的手机布局是 `max-width: 600px`，840 属 601–900 带——产品在此**有意保留上下文条**，因为"完全隐藏会去掉库空间唯一的区段切换器"。即门禁在 840 要求了产品故意不做的布局。按"门禁与样式表用同一个断点"修正为 `width <= 600`，并为 601–1200 带补上"正文列不小于样式表声明的最小值 280px"断言。
+
+实测（真实 Chromium，六档）：1440/1280 桌面轨道 200px；900 轨道 148px、正文列 584px、上下文条可见；840 轨道 148px、正文列 524px、上下文条可见；390/360 手机布局（轨道满宽 56px、无上下文条）。六档 `scrollWidth == clientWidth`，无横向溢出，`errors` 为空，门禁 PASS。截图在 `.project-local/task-runtime/browser-smoke/canonical-shell-*.png`。
