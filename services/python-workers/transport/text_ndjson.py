@@ -465,7 +465,47 @@ def _as_route_contract(result: dict, route_capability: str) -> dict:
     return {**result, "structure": anchors, "loss_receipt": receipt}
 
 
-def _run_route(route, source: Path, media_type: str, artifact_root: Path | None = None, deadline: float | None = None) -> dict:
+_WINDOW_KEYS = {"index", "start_ms", "end_ms"}
+
+
+def request_window(capability: str, parameters) -> dict | None:
+    """The bounded window this job covers, or None.
+
+    A long recording cannot be transcribed inside the Core's 300 s job bound, so the caller plans
+    windows and sends one per job. That plan rides `parameters`, which every other route still
+    requires to be empty — a window is not a general-purpose parameter channel, it is the one
+    capability that has a bounded unit of work to describe.
+    """
+    if not isinstance(parameters, dict):
+        raise Rejected("parameters must be an object")
+    if parameters == {}:
+        return None
+    if capability != "media.transcribe":
+        raise Rejected(f"{capability} requires empty parameters")
+    unknown = set(parameters) - {"window", "ffmpeg", "staging"}
+    if unknown:
+        raise Rejected("window parameters may only carry window, ffmpeg and staging")
+    window = parameters.get("window")
+    if not isinstance(window, dict) or set(window) != _WINDOW_KEYS:
+        raise Rejected("window must carry exactly index, start_ms and end_ms")
+    for field in sorted(_WINDOW_KEYS):
+        value = window[field]
+        if isinstance(value, bool) or not isinstance(value, int):
+            raise Rejected(f"window.{field} must be an integer")
+    if window["index"] < 0 or window["start_ms"] < 0 or window["end_ms"] <= window["start_ms"]:
+        raise Rejected("window must be a positive range with a non-negative index")
+    ffmpeg = parameters.get("ffmpeg")
+    if not isinstance(ffmpeg, str) or not ffmpeg.strip():
+        raise Rejected("a windowed transcription must name the declared ffmpeg path")
+    staging = parameters.get("staging")
+    if staging is not None and (not isinstance(staging, str) or not staging.strip()):
+        raise Rejected("staging must be a non-empty path string when present")
+    return {"window": {key: window[key] for key in ("index", "start_ms", "end_ms")},
+            "ffmpeg": ffmpeg.strip(), "staging": staging}
+
+
+def _run_route(route, source: Path, media_type: str, artifact_root: Path | None = None, deadline: float | None = None,
+               window: dict | None = None) -> dict:
     """Load the route's worker and extract with its own entry-point shape."""
     relative_worker = Path(route["worker"])
     if relative_worker.parts[:2] == ("services", "python-workers"):
@@ -520,6 +560,16 @@ def _run_route(route, source: Path, media_type: str, artifact_root: Path | None 
         # transport does not pin one unless an operator has.
         kwargs["language"] = os.environ.get("ARCHEAXIS_ASR_LANG", "").strip() or "auto"
         kwargs["device"] = os.environ.get("ARCHEAXIS_ASR_DEVICE", "").strip() or "cpu"
+        if window is not None:
+            if not hasattr(module, "extract_windowed"):
+                raise Rejected("the transcribe worker does not support windowed transcription")
+            span = window["window"]["end_ms"] - window["window"]["start_ms"]
+            plan = {"windows": [{**window["window"], "audio_ms": span, "estimated_ms": span}],
+                    "windows_total": 1, "window_audio_ms": span}
+            return _as_route_contract(module.extract_windowed(
+                str(filesystem_path(view)), model_path=kwargs["model_path"], language=kwargs["language"],
+                device=kwargs["device"], plan=plan, ffmpeg=window["ffmpeg"],
+                staging=window["staging"]), route.get("capability", "route"))
         return _as_route_contract(module.extract(str(filesystem_path(view)), **kwargs),
                                   route.get("capability", "route"))
     if route.get("suffix_by_media"):
@@ -569,9 +619,10 @@ def execute(request, staging: Path, artifact_root: Path | None = None):
         raise Rejected("unsupported capability")
     if request["capability_version"] != route["version"] or request["protocol_minor"] != 0:
         raise Rejected("unsupported capability or protocol version", "AAK-PROTO-001")
-    if (not isinstance(request["parameters"], dict)
-            or request["parameters"] or not isinstance(request["inputs"], list) or len(request["inputs"]) != 1):
-        raise Rejected(f"{request['capability']} v{route['version']} requires one input, integer minor and empty parameters")
+    window = request_window(request["capability"], request["parameters"])
+    if not isinstance(request["inputs"], list) or len(request["inputs"]) != 1:
+        raise Rejected(f"{request['capability']} v{route['version']} requires one input, integer minor and "
+                       + ("window parameters" if window else "empty parameters"))
     deadline = time.monotonic() + request["deadline_ms"] / 1000
 
     def check_deadline():
@@ -598,7 +649,7 @@ def execute(request, staging: Path, artifact_root: Path | None = None):
         raise Rejected("input content hash mismatch", "AAK-HASH-001")
     check_deadline()
     result = (_run_route(route, source, asset["media_type"], artifact_root, deadline)
-              if route["call"] == "video_transcribe" else _run_route(route, source, asset["media_type"], artifact_root))
+              if route["call"] == "video_transcribe" else _run_route(route, source, asset["media_type"], artifact_root, window=window))
     reread, current_identity = read_regular(source, limit=input_limit)
     if current_identity != identity or reread != raw:
         raise Rejected("input changed during extraction", "AAK-HASH-001")
