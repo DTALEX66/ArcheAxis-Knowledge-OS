@@ -78,7 +78,7 @@
   ],
   "about": {
     "before": "星环知识平台 ArcheAxis Knowledge：本地优先的多格式内容与人机双向学习工作台（开发中）。Tauri/React + Rust Core，SQLite/CAS 单写者。内容先保存；识别忠实度核验与专业依据分析独立、可追溯。",
-    "after": null,
+    "after": "星环知识平台 ArcheAxis Knowledge：本地优先的个人知识与 Human-AI 双向学习系统（开发中）。当前可用：多格式资料保存/阅读/转换、Rust Core 单写者 + SQLite/CAS、Tauri/React 桌面宿主；方向：知识图谱、人的深度学习、AI 学习资产与未来 XR。内容先保存；识别忠实度与专业依据分开核验。",
     "after_recorded_by": "GitHub API 读回后回填；About 是 Git 外元数据，不能只提交 README 就称已改",
     "topics_before": [
       "knowledge-management",
@@ -92,11 +92,23 @@
       "react",
       "rust",
       "typescript"
-    ]
+    ],
+    "updated_at": "2026-10-06T17:48:20+08:00",
+    "readback": "gh api -X PATCH repos/... -f description=… then `gh repo view --json description` returned the same string; About is Git-external metadata and is recorded here rather than inferred from the README",
+    "topics_changed": false
   },
   "environment": {
     "platform": "Windows 10.0.26100 x64",
     "interpreter_used": "OS External Configuration/ArcheAxis-Knowledge-OS-ci-venv/Scripts/python.exe",
     "note": "bare `python` 不在 Git Bash PATH；CI 反红三次均因本地命令集与实际 job 环境不同（详见台账）"
+  },
+  "both_ends": {
+    "local_head": "daf6f1f5bb93d0575511af07719a0139e2415cdd",
+    "remote_branch_sha": "daf6f1f5bb93d0575511af07719a0139e2415cdd",
+    "remote_file_readback": "AUTHORITY.md fetched through the contents API hashes to 556663d7093d27f0, identical to the local file",
+    "pr": 161,
+    "default_branch_updated": false,
+    "default_branch_note": "远端分支已同步；main 未更新（本轮不含合并）",
+    "ci": "见 PR #161 上 daf6f1f5 的 checks；本快照不以绿色状态代替产品资格"
   }
 }
