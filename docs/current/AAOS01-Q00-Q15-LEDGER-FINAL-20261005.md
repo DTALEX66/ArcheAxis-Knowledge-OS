@@ -2,15 +2,45 @@
 
 ## 当前结论（2026-10-06）
 
-最新固定资格为7e8896447dfbfd5feda3f19fdb35d38a5462dd50 / workflow308098767 / run37397560144 / attempt1，已终态FAILURE：17项job实际success，desktop-build与a0-gates failure，installer-lifecycle skipped。desktop-build在中文界面合同步骤失败：capability-map已增加media.video而生成catalog仍旧SHA。已使用canonical generate_capability_catalog.py重新生成并通过--check，当前前端34文件243tests、tsc与生产构建PASS；尚需下一固定SHA完整CI，失败或跳过候选不得部署。当前普通内容迁移、媒体链和保存政策的实际范围见下方各自收据；不能将历史成功外推为新候选安装态。
+最新固定资格578d06b784139e86c685191ecc7d0ccdd021fb27 / workflow308098767 / run37399470467 / attempt1 已终态SUCCESS，全部20项job实际执行成功，包括desktop-fast、desktop-build、installer-lifecycle与a0-gates；等待期间未推送。官方release-candidate artifact11384832309已完整下载193,116,309B，ZIP SHA17c1a886cf7c4364373330ef3a4a73114bd1de4aa8ca5834e20a53611c2c952f，四成员CRC及固定SHA/workflow/run/attempt绑定PASS。Office四样本与保存政策九项目标断言已逐项核验，不只读取ok字段。源码资格不代替Green部署或真人/云端验收；新候选实际解包与运行验证继续执行。
 
 本地新增识别核验：PDF通过现有锁定pypdfium2将不可变原件全页栅格送入现有模型Adapter，限64,000B原件、1–3页、8M像素与64,000B合计PNG；超界明确失败，不截取首页冒称全件通过。原件/页序/各页SHA/实际renderer版本进入engine receipt。识别忠实度的辅助搜索失败、无结果或截断单独留状态，可继续对照原件；专业依据分析仍保留自身失败/不确定语义。正式Python54项PASS（SDK/检索为SIMULATED，PDFium实际渲染），格式化后四worker套件52项再验PASS；新增SQLite重开回归1项PASS、Ruff与cargo fmt --all --check PASS。云端图/PDF模型实调NOT_EXECUTED；音视频原件云端fidelity仍不支持，实际本地ASR/抽帧识别不代替该维度。
 
 最新清理已执行：仅既有审计清单中的934项再生Cargo中间文件实际删除525,695,796逻辑字节，全部选中路径ABSENT，26项PDB与程序/源码/恢复材料守卫不变。收据aaos01-tools/cargo-2611-934-cleanup-10e099d68bb2424ab21ffb77d0a1ecd4.json SHAa996b9f4615abdabf69f8ce7286a92acba8c4a12f755f883956eff441db84929，物理净回收UNMEASURED。Green80324项旧公开载荷续清已完成，详见下方稳定恢复目录收据。新媒体候选Green部署与原生UI增量待成功固定CI后执行；未改旧默认入口、未合并main或发布release。
 
+26个当前SHA PDB已另行完成完整CRC与逐文件实际解压SHA/bytes验证后精确删除，342,310,912逻辑字节、26路径全部ABSENT，34项程序/源码/恢复守卫不变。稳定恢复目录.project-local/recovery/cargo-msvc-pdb-latest-20261006，ZIP76,279,893B SHA01903cf8b42e0e3a24dd11bb06faee1363293846075c03364fccdf2a61347c81；实际删除收据prune-26-pdb-4f5d600733f74c72ab8de5b53b1d5290.json SHAd896062fb8daf320afa64b631801f4e8c4e3c9548ebee3edc466ca5432b5cd51。既有1296合成案例/3960成员仅核对历史精确prune覆盖且全部ABSENT，未重复删除或累计。物理净回收仍UNMEASURED，未知资产与恢复材料继续保留。
+
+路径/权威/报告定向收尾（2026-10-06）：文档与RuntimeDelivery入口对齐AAOS-01/SUP-022，共享资源索引明确当前Rust实际路径及旧DP边界的历史身份，Formal分支与Green描述区分源码/已部署对象，旧归并评审已标历史。47份Q02均已有历史替代头，不重复归并；相关五套权威/合同测试26项PASS，git diff --check PASS。首个测试启动命令错误与沙箱WinError5均保留失败记录，正常项目权限复验通过，未改ACL。该结果是本轮已识别具体漂移的收尾，不声明未知资产归属审计、完整旧库语义迁移或主线合并完成。
+
+固定578d安装包本地已完成严格解包：21727个登记成员逐SHA/bytes、无额外成员、NSIS真实宿主/manifest与release-identity绑定通过；收据aaos01-tools/unpack-578d-ad69fe4b56b649ebbc39a9fdf1edf948.json，状态PASS_EXTRACTED_NOT_RUNTIME_QUALIFIED。仍未本地启动、部署新Green或通过新媒体安装态；不要把此状态提升为安装完成。
+
+## 当前状态与剩余缺口
+
+| ID / 权威任务 | 当前状态 | 已有证据与实际剩余缺口 |
+| --- | --- | --- |
+| Q00 现场保护与最小对账 | PARTIAL | 已复核起始 SHA、工作树与工具路径；本轮使用独立候选及全新 Core 数据根。未知用户资产、旧库与历史回执保留；完整资产/schema/writer 身份不因本轮格式测试自动完成。 |
+| Q01 重构决定与目录登记 | TESTED_LOCAL | 已有 SUP-022 重构登记；本轮统一使用权威 `stage_backend_runtime.py` 产出候选，desktop-fast/build 使用相同准备步骤。此项不是旧编号中的“打包完成”；现行Directory/Language/RuntimeDelivery/ProjectContract及schema已按SUP-022最小同步，schema/引用回归PASS。 |
+| Q02 Tauri 启动与只读桥接 | INSTALLED_RUNTIME_VERIFIED / PARTIAL | 3dc完整CI的src-tauri fmt/test实际PASS；独立NSIS安装后有限桥接、原件中文阅读、保存/重启、备份/恢复/retry及核验记录十三步实际PASS，四次产品exit0、独立非调试WM_CLOSE及自有清理PASS，完整身份见本表顶部。物理IME/全部阅读器交互不能由此代验。 |
+| Q03 类型合同与权限 | PARTIAL | 既有启动契约、前缀隔离与权限测试保留；本轮未将单元测试提升为全部 DTO、对象权限与版本错误验收。生成合同、有限命令与对象范围需按任务书逐项读回。 |
+| Q04 原件与文档保存 | TESTED_LOCAL / PARTIAL | 已实现 schema11 CAS 原件、Document/Block、同事务 editor JSON/正文投影、稳定 block IDs、未知节点保真、乐观锁409、旧版本读取及恢复生成新版本；真实 file-backed Store/API 回归通过。25个约1MB文档的目录改为六字段摘要，全workspace --locked回归已PASS。独立备份演练继续见Q11；不能从API代推installedUI。578d独立副本恢复与普通保存策略九断言已逐项核验；不代替同资料真人学习闭环。 |
+| Q05 阅读与证据样板 | INSTALLED_RUNTIME_VERIFIED / PARTIAL | Tauri有限命令、PDF.js、Tiptap、稳定块/版本/正典引用保留；九项Avalonia SVG图标、主导航/命令面板/来源链/活动坞已吸收。固定d91安装态21步实际PASS，四区导航与Ctrl+Alt+J真实trusted键事件、焦点/正文/版本不变通过；不是未执行的复用设计。Green f151实际19步骤与普通VBS后端ready保留；新增媒体UI仅239项前端工程测试通过、尚未安装态执行，物理IME、完整旧菜单动画/原件视觉和真人Owner仍缺。 |
+| Q06 A 波次多格式吸收 | INSTALLED_RUNTIME_VERIFIED / PARTIAL | 已有安装矩阵保持XLSX/PPTX已知单元格/页文本、CSV、TAR/ZIP生产成员、EPUB Reader、PNG实际OCR及四损坏样本重启结果。新增REAL混合本地链已逐项通过MP3/WAV/M4A/FLAC/OGG/OPUS实际ASR与MP4/MOV/MKV/WebM解码、ASR、三帧LM Studio识别、Core时间锚点/派生CAS/重启及视频备份恢复；SRT/VTT各294句时间与独立锚点也已通过。损坏及无音轨MP4保留原件/错误与partial状态。各收据与边界见顶部，旧安装WAV/MP4仍只probe，不外推新增媒体已安装；人工语义质量、连续视觉全覆盖及新Green部署仍缺。 |
+| Q07 候选审核与纠正 | PARTIAL / AWAITING_OWNER | 新版审核同事务绑定实际knowledge version，过期409、machine403工程测试通过。已从权威任务书真实Source/job/transform摘录创建一个未接受候选，等待用户明确决定；工程设置human principal不当真人审核。 |
+| Q08 学习与 AI 资产闭环 | TESTED_LOCAL / PARTIAL | assessment/FSRS/幂等事件/机器任务/纠正入口已接有限Core。真实本机qwen3.5-4b经Core与候选worker回答公开工程夹具「37」，实际模型/提示版本/知识版本/任务及完全重启读回一致。该夹具审核明确AUTOMATED_FIXTURE_REVIEW_NOT_G4_HUMAN，结果unmeasured；真人决定、真人答案与纠正旅程仍缺，不虚构错误或效果。 |
+| Q09 搜索与完整能力目录 | INSTALLED_RUNTIME_VERIFIED / PARTIAL | 正典搜索、已保存未核验内容搜索/打开已有编辑器已走固定f471实际安装宿主；16个CAP目录从两权威源SHA生成，握手/权限/调用证据分开。九项主导航与旧壳供体已复用，四区同空间导航实际安装资格通过。专业联网检索DDG固定公开工程查询真实超时，而官方SQLite同安全策略控制HTTP200；目标特异连接/TLS/路由根因UNKNOWN。未提交worker增量保留安全timeout/transport分类（27单测及真实HTTP失败分类通过），不伪造搜索成功。全量开源供体许可/upstream固定及真人检索验收仍缺。 |
+| Q10 导出与首个互通 profile | TESTED_LOCAL / PARTIAL | a14真实Rust Markdown/Obsidian固定两文件包、完整Document/未知节点/锚点/损失manifest、独立磁盘回读与Core重启导出相等通过。宿主有限导出仅写产品资料目录，无UI path输入。a14新版导出在独立Obsidian实际窗口回读已知正文、Source身份与Evidence records通过（本表上方新收据与截图）；未知节点在manifest保留，external_navigation_unavailable loss明确，外部引用导航仍缺。578d exchange自己的两固定文件/投影SHA/未知节点/锚点/损失/重启证据通过；外部应用实际回读仍仅a14，导航缺口保留。 |
+| Q11 备份与副本恢复 | INSTALLED_RUNTIME_VERIFIED / PARTIAL | 现有Store一致live backup→全新独立DB/CAS副本恢复→完整文档/版本/原件读回→继续编辑/第二次重启PASS；3dc独立安装host真实backup/restore/retry、版本回退及CAS读回PASS，另候选Core独立副本恢复收据通过。备份哈希/manifest与源CAS严格核验，损坏回滚测试保留。正式用户旧库的迁移回退仍需定义语义及验收，不由全新夹具证明。578d独立恢复六行为及本run原生rollback/CAS已核验；旧库intake一行迁移不代表完整旧库迁移。 |
+| Q12 B 波次轻量扩展 | INSTALLED_RUNTIME_VERIFIED / PARTIAL | 本项自己的578d收据：artifact11384741425 / aaos01-light/25fc0b22c204403fabe1bc1b76f677e9/receipt.json，typed-format-final/typed-1.json；九正格式job succeeded、三输出200、locator/anchor对应Source、CAS/export/完整重启，四负格式job failed、三输出404、错误及原件重启一致，逐项校验PASS。source.commit绑定578d，dirty=true、patch SHA6087d25363e7462a66ca2dc25cb74fe9542eaad5c7369be287c16924a6a419a2；不声称clean。实际安装矩阵/EPUB Reader定位另经本run原生21步通过，不以Q06代验。真人质量与复杂Reader布局仍缺。 |
+| Q13 性能与故障验证 | TESTED_LOCAL / PARTIAL | 真实Core四故障场景无产物且后续正常job恢复PASS；20次真实Tauri新进程/新Core根/新WebView profile启动，预先3s/1GB预算下P95=1.422s、完整自有树最大468340736字节PASS（OS磁盘缓存保留）。创建时间绑定父子进程排除旧父PID重用；CDP观察器不计入产品内存，退出命令清理不冒认WM_CLOSE。无观察器的WM_CLOSE独立PASS；安装态整机故障旅程仍缺。578d四故障收据实际无产物且nextjob恢复：三项注入、一项真实坏字节；不声称安装态整机故障旅程完成。 |
+| Q14 Windows 安装态资格化 | INSTALLED_RUNTIME_VERIFIED / PARTIAL | 固定578d06b784139e86c685191ecc7d0ccdd021fb27 / workflow308098767 / run37399470467 / attempt1 全20job实际SUCCESS；artifact11385093136原生收据严格21步骤与canonical序列相同，四区导航、CtrlAltJ、五次host exit0、版本rollback/CAS与所有格式重启逐项PASS。release artifact11384832309已校验，NSIS host SHA00b7ba9b187b305d650458a424604dac1a38631e5ec5e7c57d8837a1c9b1f077。新候选本地解包/Green部署与新媒体UI仍执行中；旧默认入口、物理IME、真人Owner未验收，不发行。 |
+| Q15 第一包收口与第二包交接 | PARTIAL | 唯一本表维护当前事实，47份Q02与既有历史归并完成；顶层保存原则与AAOS-01权威入口已同步。本run完整门禁与原生21步通过，尚不能登记第一包收口：新Green真实部署/媒体UI、同资料审核学习纠正旅程、真人Owner、真实云核验/专业依据、音视频原件fidelity、用户旧库完整语义迁移与旧入口冻结仍缺。已审计公开文件清理实际执行，稳定恢复和未知归属资产保留；不把高难缺口改名低难交接。 |
+
+
 ## 历史执行记录
 
 以下记录保留各自运行、SHA及当时状态；其中“当前”“正在执行”“未提交”等只指该记录时点，不替代上方当前结论，也不证明不同SHA的资格。
+
+最新固定资格为7e8896447dfbfd5feda3f19fdb35d38a5462dd50 / workflow308098767 / run37397560144 / attempt1，已终态FAILURE：17项job实际success，desktop-build与a0-gates failure，installer-lifecycle skipped。desktop-build在中文界面合同步骤失败：capability-map已增加media.video而生成catalog仍旧SHA。已使用canonical generate_capability_catalog.py重新生成并通过--check，当前前端34文件243tests、tsc与生产构建PASS；尚需下一固定SHA完整CI，失败或跳过候选不得部署。当前普通内容迁移、媒体链和保存政策的实际范围见下方各自收据；不能将历史成功外推为新候选安装态。
 
 真实旧库普通内容迁移：已知89业务表旧库kb_documents/kb_cards均0行，独立intake scope仅ir_intake_cards实际1行完成typed原类型保留→Core普通Document v1/v2→过期写409→历史版本→重启一致；其余表仅schema/原库保留，不声明全库迁移。CLI两正七负9项PASS、Rust scope五项PASS，原DB SHA b318c99e5a58107f3fe57249b50e2560563b0dc6cca606505ef61ad19f64b411前后相同。原迁移收据dd761720734fa43f5c5c8d0f78d83cd81ea426f43d0128b2ceb733bdb23eb446的limits文案误指两空表，原件保留；独立只读重启收据aaos01-legacy-readback/cd9f954ff41a49fe8f538d2decdd2920/receipt.json SHA46eb5824bceb0712279757c4e0efdbd4efe2d4dc829a0a85221548bad48b7009绑定原证据/typed行/实际intake scope，五断言PASS，0重复导出/0新Document。无伪Source或真人认可；自有Core按creation退出/端口释放，不冒称产品正常退出资格。
 
@@ -244,26 +274,7 @@ a11 真实 Tauri 窗口旅程 `aaos01-webdriver/e4236d2bedb44a5882f2c03b480feb08
 
 三份已失效旧台账原字节归档25,089字节、SHA相等，原路径兼容入口保留；唯一当前状态仍为本表。README及GitHub About/topics按现行Tauri/React + Rust Core和独立两维核验更新；默认分支README未因About更新而自动落地。旧内容与库不删除。历史28项已删路径仍不存在，合格未执行旧清单为空，28个归属不明数据库保留。本批仅清理12个已核实Cargo缓存子目录，14,060文件/4,241,169,479字节逻辑载荷，逐文件SHA清单非空、12/12删除后独立absent；运行Python、父目录、deps、数据及历史程序保留。另对 a8/a9/a10 历史 Python 副本先按精确文件/目录清单从保留 donor 真实重建并全树SHA相等，再删除3份 runtime；其Core/worker/shared/清单/回执保留，历史候选冻结为须按已保留recipe恢复后重运行。两批成功逻辑载荷合计6,117,890,639字节，证据/recipe新增29,106,016字节，时点净逻辑减量6,088,784,623字节（其他小文档变化另计）。物理磁盘释放量与用户所述全项目100GB/Green几十GB尚未全量测量，不重复累计历史69.83GB。执行路径与保留项详见现有清理文档，未新增第二份状态真值。
 
-## 当前状态与剩余缺口
-
-| ID / 权威任务 | 当前状态 | 已有证据与实际剩余缺口 |
-| --- | --- | --- |
-| Q00 现场保护与最小对账 | PARTIAL | 已复核起始 SHA、工作树与工具路径；本轮使用独立候选及全新 Core 数据根。未知用户资产、旧库与历史回执保留；完整资产/schema/writer 身份不因本轮格式测试自动完成。 |
-| Q01 重构决定与目录登记 | TESTED_LOCAL | 已有 SUP-022 重构登记；本轮统一使用权威 `stage_backend_runtime.py` 产出候选，desktop-fast/build 使用相同准备步骤。此项不是旧编号中的“打包完成”；现行Directory/Language/RuntimeDelivery/ProjectContract及schema已按SUP-022最小同步，schema/引用回归PASS。 |
-| Q02 Tauri 启动与只读桥接 | INSTALLED_RUNTIME_VERIFIED / PARTIAL | 3dc完整CI的src-tauri fmt/test实际PASS；独立NSIS安装后有限桥接、原件中文阅读、保存/重启、备份/恢复/retry及核验记录十三步实际PASS，四次产品exit0、独立非调试WM_CLOSE及自有清理PASS，完整身份见本表顶部。物理IME/全部阅读器交互不能由此代验。 |
-| Q03 类型合同与权限 | PARTIAL | 既有启动契约、前缀隔离与权限测试保留；本轮未将单元测试提升为全部 DTO、对象权限与版本错误验收。生成合同、有限命令与对象范围需按任务书逐项读回。 |
-| Q04 原件与文档保存 | TESTED_LOCAL / PARTIAL | 已实现 schema11 CAS 原件、Document/Block、同事务 editor JSON/正文投影、稳定 block IDs、未知节点保真、乐观锁409、旧版本读取及恢复生成新版本；真实 file-backed Store/API 回归通过。25个约1MB文档的目录改为六字段摘要，全workspace --locked回归已PASS。独立备份演练继续见Q11；不能从API代推installedUI。 |
-| Q05 阅读与证据样板 | INSTALLED_RUNTIME_VERIFIED / PARTIAL | Tauri有限命令、PDF.js、Tiptap、稳定块/版本/正典引用保留；九项Avalonia SVG图标、主导航/命令面板/来源链/活动坞已吸收。固定d91安装态21步实际PASS，四区导航与Ctrl+Alt+J真实trusted键事件、焦点/正文/版本不变通过；不是未执行的复用设计。Green f151实际19步骤与普通VBS后端ready保留；新增媒体UI仅239项前端工程测试通过、尚未安装态执行，物理IME、完整旧菜单动画/原件视觉和真人Owner仍缺。 |
-| Q06 A 波次多格式吸收 | INSTALLED_RUNTIME_VERIFIED / PARTIAL | 已有安装矩阵保持XLSX/PPTX已知单元格/页文本、CSV、TAR/ZIP生产成员、EPUB Reader、PNG实际OCR及四损坏样本重启结果。新增REAL混合本地链已逐项通过MP3/WAV/M4A/FLAC/OGG/OPUS实际ASR与MP4/MOV/MKV/WebM解码、ASR、三帧LM Studio识别、Core时间锚点/派生CAS/重启及视频备份恢复；SRT/VTT各294句时间与独立锚点也已通过。损坏及无音轨MP4保留原件/错误与partial状态。各收据与边界见顶部，旧安装WAV/MP4仍只probe，不外推新增媒体已安装；人工语义质量、连续视觉全覆盖及新Green部署仍缺。 |
-| Q07 候选审核与纠正 | PARTIAL / AWAITING_OWNER | 新版审核同事务绑定实际knowledge version，过期409、machine403工程测试通过。已从权威任务书真实Source/job/transform摘录创建一个未接受候选，等待用户明确决定；工程设置human principal不当真人审核。 |
-| Q08 学习与 AI 资产闭环 | TESTED_LOCAL / PARTIAL | assessment/FSRS/幂等事件/机器任务/纠正入口已接有限Core。真实本机qwen3.5-4b经Core与候选worker回答公开工程夹具「37」，实际模型/提示版本/知识版本/任务及完全重启读回一致。该夹具审核明确AUTOMATED_FIXTURE_REVIEW_NOT_G4_HUMAN，结果unmeasured；真人决定、真人答案与纠正旅程仍缺，不虚构错误或效果。 |
-| Q09 搜索与完整能力目录 | INSTALLED_RUNTIME_VERIFIED / PARTIAL | 正典搜索、已保存未核验内容搜索/打开已有编辑器已走固定f471实际安装宿主；16个CAP目录从两权威源SHA生成，握手/权限/调用证据分开。九项主导航与旧壳供体已复用，四区同空间导航实际安装资格通过。专业联网检索DDG固定公开工程查询真实超时，而官方SQLite同安全策略控制HTTP200；目标特异连接/TLS/路由根因UNKNOWN。未提交worker增量保留安全timeout/transport分类（27单测及真实HTTP失败分类通过），不伪造搜索成功。全量开源供体许可/upstream固定及真人检索验收仍缺。 |
-| Q10 导出与首个互通 profile | TESTED_LOCAL / PARTIAL | a14真实Rust Markdown/Obsidian固定两文件包、完整Document/未知节点/锚点/损失manifest、独立磁盘回读与Core重启导出相等通过。宿主有限导出仅写产品资料目录，无UI path输入。a14新版导出在独立Obsidian实际窗口回读已知正文、Source身份与Evidence records通过（本表上方新收据与截图）；未知节点在manifest保留，external_navigation_unavailable loss明确，外部引用导航仍缺。 |
-| Q11 备份与副本恢复 | INSTALLED_RUNTIME_VERIFIED / PARTIAL | 现有Store一致live backup→全新独立DB/CAS副本恢复→完整文档/版本/原件读回→继续编辑/第二次重启PASS；3dc独立安装host真实backup/restore/retry、版本回退及CAS读回PASS，另候选Core独立副本恢复收据通过。备份哈希/manifest与源CAS严格核验，损坏回滚测试保留。正式用户旧库的迁移回退仍需定义语义及验收，不由全新夹具证明。 |
-| Q12 B 波次轻量扩展 | INSTALLED_RUNTIME_VERIFIED / PARTIAL | 固定f471自己的Q12收据：artifact11372438937/aaos01-light/1a3ede50368f405a9e3459a180ed74cc/receipt.json，146514B/SHAf11487ba544de6880c9bfcba939fe562b8ddeef3f716fcd6a603f34097d5a3d7，ok=true、CSV/TSV/JSON/JSONL/YAML/TOML/XML/EML/EPUB九正样本及坏EPUB/unsafe YAML/XML外部entity/坏JSONL四负样本，独立原件/结构/locator/loss/export/重启读回断言通过。固定安装态逐格式矩阵亦全部verified_after_full_host_restart，EPUB Reader章节/段落/引用/重启定位实际通过；附件未独立解析保持loss。历史a9的定位unverified与后续修复证据保留，不以Q06一句代验；真人质量与更复杂Reader布局仍缺。 |
-| Q13 性能与故障验证 | TESTED_LOCAL / PARTIAL | 真实Core四故障场景无产物且后续正常job恢复PASS；20次真实Tauri新进程/新Core根/新WebView profile启动，预先3s/1GB预算下P95=1.422s、完整自有树最大468340736字节PASS（OS磁盘缓存保留）。创建时间绑定父子进程排除旧父PID重用；CDP观察器不计入产品内存，退出命令清理不冒认WM_CLOSE。无观察器的WM_CLOSE独立PASS；安装态整机故障旅程仍缺。 |
-| Q14 Windows 安装态资格化 | INSTALLED_RUNTIME_VERIFIED / PARTIAL | 固定d91ab8b1c1507f5408172cb355cfc1bf8c547fe2/run37386325921/a1/workflow308098767终态SUCCESS，20job及21步NSIS原生旅程实际PASS。该NSIS21727登记成员已完整解包并逐SHA/bytes核对，manifest/source/run身份及无额外成员通过，尚未本地launch或部署Green。新媒体修改不在d91，需新固定SHA完整CI及本地媒体UI运行；Green f151独立部署保留，物理IME、真人Owner、旧根默认入口切换未验收，不发行。 |
-| Q15 第一包收口与第二包交接 | PARTIAL | 唯一本表维护当前事实，47份Q02标记、三旧台账及五份旧轮次记录归档已执行并保留原文SHA。f471完整固定CI与安装态资格实际通过，最新Green部署尚未通过；未提交UI/安全检索错误分类不冒认已部署。真实云核验/专业依据、真人Owner/学习、非文本原件核验扩展、用户旧库迁移、旧入口冻结及未知归属资产仍缺。已执行两批公开备份/编译中间产物精确回收与稳定恢复迁移，不宣布第一包收口，低难度交接不代替硬验收。 |
+现行任务状态见上方[当前状态与剩余缺口](#当前状态与剩余缺口)，此处不保留第二份任务表。
 
 ## 本轮工程与样本证据
 

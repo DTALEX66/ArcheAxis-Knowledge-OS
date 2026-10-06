@@ -14,8 +14,10 @@
 SUP-022 sets `frontend/` (React/TypeScript/Vite) and `src-tauri/` (Rust/Tauri 2)
 as the formal desktop, the Rust service in `crates/archeaxis-api/` as the vNext Core
 and canonical writer, and isolated Python workers in
-`services/python-workers/`. The existing implementation still needs the R6
-Windows/full-loop qualification; this map does not claim a usable vNext package.
+`services/python-workers/`. Qualification follows the AAOS-01 gates under
+SUP-022, retaining inherited R6/M0 evidence and no-release boundaries. Actual
+installed/Green status is recorded only in the current AAOS-01 ledger; this
+map itself does not establish a qualified package.
 Build/test commands use `scripts/runtime/dev.py` with `.project-local` outputs.
 For the main checkout, Cargo uses `.project-local/build/cargo`, matching
 the checked-in `.cargo/config.toml`; the launcher no longer creates a second
@@ -23,8 +25,9 @@ main-checkout Cargo cache. Linked worktrees launched through `dev.py` use
 `.project-local/build/<worktree-id>/cargo` under the owning repository.
 Other build outputs retain their worktree-specific paths. Historical outputs
 are preserved; this routing change does not migrate or delete them.
-See [current R6 execution](current/R6-EXECUTION.md),
-[M0 direction](current/M0-DIRECTION-OVERRIDE-20260920.md), and
+See [current AAOS-01 ledger](current/AAOS01-Q00-Q15-LEDGER-FINAL-20261005.md),
+[inherited R6 execution](current/R6-EXECUTION.md),
+[inherited M0 direction](current/M0-DIRECTION-OVERRIDE-20260920.md), and
 [language authority](LANGUAGE_BOUNDARY_AUTHORITY_INDEX.md).
 
 | Layer | Formal vNext source | Boundary |

@@ -12,12 +12,14 @@
    recognition-fidelity/professional-support and AI-use policy, validated by
    [its Schema](../.project/schemas/project-contract.schema.json). Policy text
    does not establish implementation or acceptance status.
-2. [R6 executor](authority/taskpack-0919-r6/EXECUTOR-START.md) and
-   [immutable TASKS](authority/taskpack-0919-r6/TASKS.json) — the single active
-   package, `AAK-LOCAL-GREEN-ABSORB-FIRST-20260919-R6`. Live progress is
-   [R6-EXECUTION](current/R6-EXECUTION.md) and [R6-STATE](current/R6-STATE.json).
-   The current priority overlay is
-   [M0 direction override](current/M0-DIRECTION-OVERRIDE-20260920.md).
+2. The active execution package is AAOS-01 (2026-10-04), applied by SUP-022
+   and the execution specification linked below.
+   [R6 executor](authority/taskpack-0919-r6/EXECUTOR-START.md),
+   [immutable TASKS](authority/taskpack-0919-r6/TASKS.json),
+   [R6-EXECUTION](current/R6-EXECUTION.md), [R6-STATE](current/R6-STATE.json)
+   and [M0 direction override](current/M0-DIRECTION-OVERRIDE-20260920.md)
+   retain inherited constraints and their own historical receipts; they do not
+   establish a parallel AAOS-01 execution queue.
    SUP-022 applies the owner-selected Tauri 2 + React/TypeScript/Vite refactor
    through the immutable [AAOS-01 execution specification](authority/taskpack-1004-aaos01/01_完整执行任务书.md)
    and [joint architecture rules](authority/taskpack-1004-aaos01/00_两包共同架构与交接规则.md).
