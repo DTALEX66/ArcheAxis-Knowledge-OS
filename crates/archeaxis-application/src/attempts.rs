@@ -157,6 +157,7 @@ pub const ROUTE_MEDIA_TYPES: &[(&str, &[&str])] = &[
             "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
             "application/vnd.openxmlformats-officedocument.presentationml.presentation",
             "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            "application/vnd.ms-excel",
         ],
     ),
     ("canvas.structure", &["application/json"]),
@@ -197,6 +198,7 @@ pub const ARTIFACT_ROOT_CAPABILITIES: &[&str] = &[
     "archive.inventory",
     "media.video",
     "text.extract",
+    "office.structure",
 ];
 
 /// R15/F06: routes whose successful job is followed by Core-side work, done inside the
@@ -261,12 +263,14 @@ pub fn media_type_for_name(name: &str) -> Option<&'static str> {
         "mov" => "video/quicktime",
         "mkv" => "video/x-matroska",
         "webm" => "video/webm",
-        // R15/F07-F09: the OOXML families this repository can read; the legacy binary
-        // formats (doc, ppt, xls) are deliberately NOT named, so they stay custody-only
-        // instead of being handed to a reader that cannot open them.
+        // R15/F07-F09: the OOXML families this repository can read. `.xls` joins them because
+        // a reader for it now exists (the declared xlrd engine); `.doc` and `.ppt` are still
+        // deliberately NOT named, so they stay custody-only instead of being handed to a reader
+        // that cannot open them.
         "docx" => "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
         "pptx" => "application/vnd.openxmlformats-officedocument.presentationml.presentation",
         "xlsx" => "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        "xls" => "application/vnd.ms-excel",
         // subtitles have their own media types, so a .srt is no longer declared as
         // plain text and cannot reach the text route by accident
         "srt" => "application/x-subrip",

@@ -13,8 +13,8 @@
   "coverage_summary": {
     "total": 16,
     "complete": 0,
-    "partial": 14,
-    "custody_only": 2
+    "partial": 15,
+    "custody_only": 1
   },
   "formats": [
     {
@@ -235,15 +235,15 @@
       "release_scope": "expansion",
       "formats": "DOC/PPT/XLS等旧Office",
       "required_output": "原件、转换件、损失报告",
-      "status": "custody_only",
-      "implemented_now": "the original file is preserved as bytes, which is the part of the requirement that must never be lost",
-      "gap": "no converter is wired, so there is no converted counterpart and no loss report - a loss report is only honest when a conversion was actually attempted",
+      "status": "partial",
+      "implemented_now": "the original file is preserved as bytes, which is the part of the requirement that must never be lost. `.xls` now has a reader - the declared xlrd engine - so it reaches `office.structure` by name instead of being refused: each sheet is projected with its cells typed as text, number, date, boolean, error or empty, a date is converted with the workbook's own datemode, and every sheet additionally comes out as a converted CSV written to the Core-owned transfer area and declared by digest the way a container declares members, so the Core verifies each one, imports it as its own source recording `<workbook source>#<sheet>.csv` and queues the text route for it. The loss report names what the conversion cannot carry: formulas are not recalculated (only the value the file caches), and number formats, styles, merged-cell spans, charts, images, pivots and macros do not cross into the CSV",
+      "gap": "only `.xls` of the three legacy binary families has a reader here - `.doc` and `.ppt` stay unnamed and custody-only because no engine for them exists in this repository; the committed fixture is project-authored (written once with `xlwt` as an authoring tool, which is not a declared dependency), so no Excel-authored document has been verified and FMT-21 per-extension real-sample acceptance stays NOT_RUN; the CSV counterpart is a value-level conversion, not a rendered or formatted one",
       "evidence": {
-        "core_routes": [],
-        "worker_routes": [],
-        "code": ["crates/archeaxis-domain/src/source.rs"],
-        "tests": ["crates/archeaxis-archive/tests/raw_recovery.rs"],
-        "legacy_reference": []
+        "core_routes": [{"kind": "office", "capability": "office.structure", "media_type": "application/vnd.ms-excel"}],
+        "worker_routes": [{"capability": "office.structure", "worker": "services/python-workers/document/worker_office.py"}],
+        "code": ["crates/archeaxis-domain/src/source.rs", "crates/archeaxis-application/src/attempts.rs", "crates/archeaxis-application/src/executor.rs", "crates/archeaxis-application/src/container.rs", "services/python-workers/document/worker_office.py", "services/python-workers/transport/text_ndjson.py"],
+        "tests": ["crates/archeaxis-archive/tests/raw_recovery.rs", "tests/workers/test_xls_engine.py", "crates/archeaxis-application/tests/xls_member_chain.rs", "crates/archeaxis-application/tests/office_job_end_to_end.rs"],
+        "legacy_reference": ["app/ingestion/multi_format.py"]
       }
     },
     {

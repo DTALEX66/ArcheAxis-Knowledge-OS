@@ -431,7 +431,7 @@ impl Executor {
                 };
                 let artifact_root = if matches!(
                     req.capability.as_str(),
-                    "archive.inventory" | "media.video" | "text.extract",
+                    "archive.inventory" | "media.video" | "text.extract" | "office.structure",
                 ) {
                     crate::container::attempt_root(&self.staging, &req.job_id, req.attempt)
                 } else {
@@ -465,7 +465,7 @@ impl Executor {
                 let cancel = cancel.clone();
                 let artifact_root = if matches!(
                     req.capability.as_str(),
-                    "archive.inventory" | "media.video" | "text.extract",
+                    "archive.inventory" | "media.video" | "text.extract" | "office.structure",
                 ) {
                     crate::container::attempt_root(&self.staging, &req.job_id, req.attempt)
                 } else {
@@ -481,7 +481,7 @@ impl Executor {
                     let finished = if req.capability == "media.video" { attempts::finish_with_artifacts(conn,&req,&response,&bytes,&artifact_root) } else { attempts::finish(conn,&req,&response,&bytes) };
                     match finished {
                         Ok(())=>{
-                            if matches!(req.capability.as_str(), "archive.inventory" | "text.extract") {
+                            if matches!(req.capability.as_str(), "archive.inventory" | "text.extract" | "office.structure") {
                                 if let Err(error) = crate::container::expand_members(conn, &artifact_root, &req.job_id) {
                                     let reason = error.to_string();
                                     let task = archeaxis_domain::machine::MachineTask {

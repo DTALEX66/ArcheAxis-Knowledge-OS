@@ -2,7 +2,7 @@
   "schema_version": 2,
   "ledger_name": "ArcheAxis Knowledge — Open Source Absorption Decision Ledger",
   "created": "2026-08-11",
-  "updated": "2026-08-29",
+  "updated": "2026-10-07",
   "source": "ArcheAxis_Workspace_Project_History_and_OSS_Absorption_Master_Atlas_v1.md",
   "product_boundary": "Local-first, evidence-driven Human–AI Learning & Knowledge Workspace. NOT an Agent OS, Cognitive OS, RAG platform, or Agent runtime.",
   "disposition_labels": {
@@ -707,14 +707,32 @@
       "disposition": "REJECT-CORE",
       "decision": "Upstream archived 2025-10-10 (read-only). Must not be selected as primary graph component. Remove from active candidate list.",
       "upstream_note": "ARCHIVED."
+    },
+    {
+      "id": "C048",
+      "name": "xlrd",
+      "version": "2.0.2",
+      "canonical_url": "https://pypi.org/project/xlrd/",
+      "capability": "legacy-binary-workbook-reader",
+      "code_license": "BSD",
+      "model_license": null,
+      "disposition": "CURRENT",
+      "qualification": [
+        "source",
+        "installed"
+      ],
+      "product_path": "services/python-workers/document/worker_office.py",
+      "evidence": "declared in the ci-adapters group and pinned in uv.lock; reads the committed project-authored fixture tests/fixtures/golden/golden-xls-anchor.xls through office.structure on this host, and converts each sheet to a declared CSV member the Core imports (crates/archeaxis-application/tests/xls_member_chain.rs). Licence file 3,771 bytes sha256 b5a5dbce60265e305a815a6cb83ed07f24519d8ba644f2a307994488bced8815. FMT-21 real-sample acceptance is NOT_RUN: the fixture is self-authored, not Excel-authored. Qualified to the source and installed tiers only: it is declared in uv.lock, installed in the declared worker environment on this host, and exercised by committed tests; no release artefact contains it, because no release is being made.",
+      "decision": "Absorbed as the reader for the BIFF .xls family only; xlrd 2.x cannot read .xlsx, which already has openpyxl. .doc and .ppt stay unnamed in the Core because no reader exists for them here.",
+      "upstream_note": "xlrd 2.0.2 supports BIFF versions 2.0 through 8 and accepts either an OLE2 compound document or a raw BIFF stream."
     }
   ],
-  "component_count": 47,
+  "component_count": 48,
   "disposition_summary": {
+    "REFERENCE": 1,
     "CURRENT": 12,
-    "ADOPT_PRODUCT_BASE": 0,
-    "ADOPT": 13,
     "EVALUATE": 9,
+    "ADOPT": 13,
     "SIDECAR": 3,
     "REVIEW-BLOCK": 9,
     "REJECT-CORE": 1

@@ -19,7 +19,19 @@ The release dependency contract is `pyproject.toml` plus the exact resolved
 Optional or development groups additionally declare `setuptools`,
 `playwright`, `httpx2`, `jinja2`, `jsonschema`, `pytest`, `ruff`, `tomli`,
 `newspaper4k`, `readabilipy`, `youtube-transcript-api`, `mypy`, `pre-commit`,
-`crawl4ai`, `langfuse`, and `promptfoo`. The desktop dependency contract is
+`crawl4ai`, `langfuse`, and `promptfoo`.
+
+Admitted 2026-10-07 for R15/F14: `xlrd` 2.0.2, declared in the `ci-adapters` group and read by
+`services/python-workers/document/worker_office.py` for the legacy binary `.xls` family. Licence
+as shipped: `BSD` in the package metadata, with two BSD-style clauses in its `LICENSE` file
+(3,771 bytes, sha256 `b5a5dbce60265e305a815a6cb83ed07f24519d8ba644f2a307994488bced8815`) - the main one covering Stephen John Machin / Lingfo Pty
+Ltd work, the second covering the 2001 David Gilbert contribution. Windows probe: the committed
+fixture `tests/fixtures/golden/golden-xls-anchor.xls` (5,632 bytes, sha256
+`3225b8bb590f799dc0a16a92118a1f80aec8cde53e0b4c71bc200f451aa72353`) was read on this host through
+the route, producing two sheet projections, cell-type counts and two declared CSV conversions.
+The fixture is project-authored synthetic content (no personal data); it was written once with
+`xlwt` 1.3.0 as an authoring tool, which is deliberately **not** a declared runtime or test
+dependency, so no lane needs it to reproduce the read. The desktop dependency contract is
 `desktop/package.json`, `desktop/package-lock.json`, `desktop/src-tauri/Cargo.toml`,
 and `desktop/src-tauri/Cargo.lock`.
 

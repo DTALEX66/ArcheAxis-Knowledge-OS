@@ -90,6 +90,15 @@
       "rights_basis": "project-authored synthetic test fixture",
       "privacy": "no personal data",
       "expected": {"text": "Sheet evidence anchor", "anchor": "sheet=Evidence"}
+    },
+    "golden-xls-anchor.xls": {
+      "format": "xls",
+      "sha256": "3225b8bb590f799dc0a16a92118a1f80aec8cde53e0b4c71bc200f451aa72353",
+      "rights_basis": "project-authored synthetic test fixture",
+      "privacy": "no personal data",
+      "generator": "xlwt 1.3.0, used as an authoring tool at fixture-creation time; not a runtime or test dependency",
+      "engine": "xlrd 2.0.2 (ci-adapters)",
+      "expected": {"text": "星环 知识平台", "anchor": "sheet=Evidence", "sheets": 2, "cells": {"date": 1, "boolean": 1}}
     }
   }
 }

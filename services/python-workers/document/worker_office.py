@@ -486,8 +486,158 @@ def _pdf_text(path: Path) -> dict:
         },
     }
 
+XLS_SHEET_CAP = 32
+XLS_BYTES_CAP = 64 * 1024 * 1024
+XLS_ERROR_TEXT = {0: "#NULL!", 1: "#DIV/0!", 2: "#VALUE!", 3: "#REF!", 4: "#NAME?",
+                  5: "#NUM!", 6: "#N/A", 7: "#GETTING_DATA"}
 
-def extract(path: str) -> dict:
+
+def _safe_csv_name(index: int, name: str) -> str:
+    """A flat, collision-free file name for one converted sheet."""
+    base = name.rsplit("/", 1)[-1].rsplit("\\", 1)[-1]
+    safe = "".join(char if char.isalnum() or char in "._-" else "_" for char in base)[-48:]
+    return f"sheet-{index:02d}-{safe or 'sheet'}.csv"
+
+
+def _xls_cell(sheet, book, row: int, col: int) -> tuple[str, str]:
+    """One cell as (displayed text, type name), using only what xlrd reports."""
+    import xlrd
+
+    value = sheet.cell_value(row, col)
+    kind = sheet.cell_type(row, col)
+    if kind == xlrd.XL_CELL_EMPTY:
+        return "", "empty"
+    if kind == xlrd.XL_CELL_TEXT:
+        return str(value), "text"
+    if kind == xlrd.XL_CELL_NUMBER:
+        return (repr(value)), "number"
+    if kind == xlrd.XL_CELL_DATE:
+        # the file says "a date"; the calendar it means is the workbook's own datemode
+        try:
+            converted = xlrd.xldate_as_datetime(value, book.datemode)
+        except (xlrd.XLDateError, ValueError, OverflowError):
+            return repr(value), "unconvertible_date"
+        return converted.isoformat(sep=" "), "date"
+    if kind == xlrd.XL_CELL_BOOLEAN:
+        return ("TRUE" if value else "FALSE"), "boolean"
+    if kind == xlrd.XL_CELL_ERROR:
+        return XLS_ERROR_TEXT.get(int(value), f"#ERROR{value}"), "error"
+    return str(value), "blank"
+
+
+def _xls_text(path: Path, member_dir: Path | None = None) -> dict:
+    try:
+        import xlrd
+    except ImportError as exc:
+        raise RuntimeError("xls engine missing (xlrd not installed)") from exc
+    try:
+        book = xlrd.open_workbook(str(path), on_demand=True)
+    except xlrd.XLRDError as exc:
+        raise ValueError(f"xls could not be opened: {exc}") from exc
+
+    text_parts: list[dict] = []
+    sheets: list[dict] = []
+    converted: list[dict] = []
+    losses: list[str] = []
+    members_written: list[dict] = []
+    type_counts: dict[str, int] = {}
+    total_bytes = 0
+    formulas_available = hasattr(book.sheet_by_index(0), "cell_formula_text") if book.nsheets else False
+
+    for index in range(book.nsheets):
+        if index >= XLS_SHEET_CAP:
+            losses.append(f"only the first {XLS_SHEET_CAP} of {book.nsheets} sheets were read")
+            break
+        sheet = book.sheet_by_index(index)
+        rows: list[list[str]] = []
+        cells = 0
+        for row in range(sheet.nrows):
+            line = []
+            for col in range(sheet.ncols):
+                display, kind = _xls_cell(sheet, book, row, col)
+                type_counts[kind] = type_counts.get(kind, 0) + 1
+                line.append(display)
+                if display:
+                    cells += 1
+            rows.append(line)
+        sheets.append({"name": sheet.name, "rows": sheet.nrows, "columns": sheet.ncols,
+                       "populated_cells": cells})
+        body = "\n".join(", ".join(f"{cell!r}" for cell in line if cell) for line in rows if any(line))
+        if body.strip():
+            text_parts.append({"kind": "sheet", "name": sheet.name, "text": body.strip()})
+        if member_dir is not None and index < XLS_SHEET_CAP:
+            import csv as _csv
+            import hashlib as _hashlib
+            import io as _io
+
+            buffer = _io.StringIO()
+            writer = _csv.writer(buffer)
+            for line in rows:
+                writer.writerow(line)
+            payload = buffer.getvalue().encode("utf-8")
+            if total_bytes + len(payload) > XLS_BYTES_CAP:
+                losses.append(f"converted byte budget of {XLS_BYTES_CAP} reached; "
+                              "later sheets were not converted")
+                break
+            out = Path(member_dir)
+            out.mkdir(parents=True, exist_ok=True)
+            target = out / _safe_csv_name(index + 1, sheet.name)
+            target.write_bytes(payload)
+            total_bytes += len(payload)
+            members_written.append({
+                "name": f"{sheet.name}.csv",
+                "file": target.name,
+                "bytes": len(payload),
+                "sha256": _hashlib.sha256(payload).hexdigest(),
+            })
+
+    # xlrd keeps the stream mapped while the book lives, and on Windows that holds the attempt's
+    # view file open; release it before anything else can raise or return.
+    book.release_resources()
+    if not text_parts:
+        raise ValueError("xls contains no readable cell values")
+    projection = "\n".join(part["text"] for part in text_parts)
+    structure = []
+    offset = 0
+    for part in text_parts:
+        start = projection.find(part["text"], offset)
+        if start < 0:
+            start = offset
+        structure.append({"kind": "sheet", "path": [f"sheet-{part['name']}"],
+                          "char_start": start, "char_end": start + len(part["text"])})
+        offset = start + len(part["text"])
+
+    losses.append(
+        "converted to one CSV per sheet of the values the file carries: formulas are not "
+        "recalculated, and number formats, styles, merged-cell spans, charts, images, pivots "
+        "and macros are not carried into the conversion; the original bytes stay the source of record"
+    )
+    if not formulas_available:
+        losses.append("the engine exposes no formula text for this file, so formulas are "
+                      "reported only as the cached value the file carries")
+    return {
+        "format": "xls",
+        "text": projection,
+        "structure": structure,
+        "loss_receipt": {
+            "engine": ENGINE,
+            "engine_version": ENGINE_VERSION,
+            "params": {
+                "engine": "xlrd",
+                "engine_version_reported": getattr(xlrd, "__version__", "unknown"),
+                "sheets": len(sheets),
+                "datemode": book.datemode,
+                "cell_types": type_counts,
+                "sheet_structure": sheets,
+                "structure": {"extractable_members": members_written},
+                "converted_member_count": len(members_written),
+                "converted_bytes": total_bytes,
+            },
+            "losses": losses,
+            "loss_note": "; ".join(losses),
+        },
+    }
+def extract(path: str, member_dir: str | None = None) -> dict:
     suffix = Path(path).suffix.lower()
     if not Path(path).is_file():
         raise ValueError(f"input file not found: {path}")
@@ -497,6 +647,8 @@ def extract(path: str) -> dict:
         return _pptx_text(Path(path))
     if suffix == ".xlsx":
         return _xlsx_text(Path(path))
+    if suffix == ".xls":
+        return _xls_text(Path(path), Path(member_dir) if member_dir else None)
     if suffix == ".pdf":
         return _pdf_text(Path(path))
     raise ValueError(f"unsupported office/document extension: {suffix}")

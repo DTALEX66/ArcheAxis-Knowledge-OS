@@ -78,9 +78,10 @@ fn office_names_select_the_office_route_and_the_legacy_formats_are_refused() {
         .unwrap_err()
         .to_string();
     assert!(error.contains("cannot accept media type"), "{error}");
-    // the legacy binary formats have no reader here, so the name is refused rather than
-    // handed to a route that cannot open it
-    for name in ["old.doc", "old.ppt", "old.xls"] {
+    // R15/F14: `.doc` and `.ppt` still have no reader, so their names are refused rather than
+    // handed to a route that cannot open them. `.xls` left this list when xlrd became the
+    // declared engine for it - and it must not be able to travel as text either.
+    for name in ["old.doc", "old.ppt"] {
         let error = attempts::resolve_media_type("office", name)
             .unwrap_err()
             .to_string();
@@ -89,6 +90,18 @@ fn office_names_select_the_office_route_and_the_legacy_formats_are_refused() {
             "{name}: {error}"
         );
     }
+    assert_eq!(
+        attempts::resolve_media_type("office", "old.xls").unwrap(),
+        "application/vnd.ms-excel"
+    );
+    let xls_text_error = attempts::resolve_media_type("text", "old.xls")
+        .unwrap_err()
+        .to_string();
+    assert!(
+        xls_text_error.contains("cannot name a media type")
+            || xls_text_error.contains("cannot accept"),
+        "a binary workbook must not reach the text route: {xls_text_error}"
+    );
     // RTF now has a reader, but only behind the text route: naming it must not let it travel
     // as an Office package, which is the invariant the loop above protects.
     assert_eq!(

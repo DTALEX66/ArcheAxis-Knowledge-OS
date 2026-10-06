@@ -319,13 +319,21 @@ ROUTES = {
             "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
             "application/vnd.openxmlformats-officedocument.presentationml.presentation",
             "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            # R15/F14: the legacy binary workbook, read by the declared xlrd engine
+            "application/vnd.ms-excel",
         },
         "call": "path",
+        # A converted sheet is a durable transfer file, so this route may receive the area
+        # for it - but only for the media type listed here, the way the mail route does.
+        "member_dir_by_media": {
+            "application/vnd.ms-excel": {"dir": "members", "kwarg": "member_dir"},
+        },
         # this worker dispatches on the file suffix, so it needs a suffixed view
         "suffix_by_media": {
             "application/vnd.openxmlformats-officedocument.wordprocessingml.document": ".docx",
             "application/vnd.openxmlformats-officedocument.presentationml.presentation": ".pptx",
             "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet": ".xlsx",
+            "application/vnd.ms-excel": ".xls",
         },
     },
     # R15/F12: the canvas and subtitle workers existed unreachable too; each produces
@@ -593,6 +601,15 @@ def _run_route(route, source: Path, media_type: str, artifact_root: Path | None 
             raise Rejected("unsupported media type for this capability", "AAK-VAL-002")
         # the worker's own structure is kept as a fact while the route contract carries
         # canonical line anchors, so both the worker's view and the contract hold
+        media_key = media_type.split(";", 1)[0].strip().lower()
+        member = route.get("member_dir_by_media", {}).get(media_key)
+        if member is not None and artifact_root is not None:
+            target = safe_path(artifact_root / member["dir"], missing=True)
+            return _as_route_contract(
+                module.extract(str(filesystem_path(_materialise_view(source, suffix))),
+                               **{member["kwarg"]: filesystem_path(target)}),
+                route.get("capability", "route"),
+            )
         return _as_route_contract(
             module.extract(str(filesystem_path(_materialise_view(source, suffix)))), route.get("capability", "route")
         )
