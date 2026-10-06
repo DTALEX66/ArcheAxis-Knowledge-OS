@@ -136,15 +136,23 @@ jobs:
           enable-cache: true
           cache-dependency-glob: uv.lock
 
+      # These exports, the scans below and their reports all live under the run root rather than the
+      # checkout: this job also runs the layout contract, which asserts the repository root holds
+      # nothing but tracked entries. Writing them here left `locked-ci*.txt` and the scan reports in
+      # the working tree, so the job failed its own layout check.
       - name: Install locked minimal test dependencies
         run: |
-          uv export --frozen --only-group ci --no-emit-project --format requirements-txt --output-file locked-ci.txt
-          uv pip install --system --require-hashes -r locked-ci.txt
+          artifacts="$ARCHEAXIS_RUN_ROOT/artifacts"
+          mkdir -p "$artifacts"
+          uv export --frozen --only-group ci --no-emit-project --format requirements-txt --output-file "$artifacts/locked-ci.txt"
+          uv pip install --system --require-hashes -r "$artifacts/locked-ci.txt"
 
       - name: Install locked adapter test dependencies
         run: |
-          uv export --frozen --only-group ci-adapters --no-emit-project --format requirements-txt --output-file locked-ci-adapters.txt
-          uv pip install --system --require-hashes -r locked-ci-adapters.txt
+          artifacts="$ARCHEAXIS_RUN_ROOT/artifacts"
+          mkdir -p "$artifacts"
+          uv export --frozen --only-group ci-adapters --no-emit-project --format requirements-txt --output-file "$artifacts/locked-ci-adapters.txt"
+          uv pip install --system --require-hashes -r "$artifacts/locked-ci-adapters.txt"
 
       # Absorbed from the OSS pool (ADOPT verdict, supplies-chain security group). Both are pinned and
       # hash-verified; the first runs are report-only so the repository reviews real findings before the
@@ -153,17 +161,22 @@ jobs:
       - name: Dependency vulnerability scan (pip-audit 2.10.1, pinned)
         continue-on-error: true
         run: |
-          uv tool run --from pip-audit==2.10.1 pip-audit --strict --requirement locked-ci.txt --format columns | tee pip-audit-report.txt
+          artifacts="$ARCHEAXIS_RUN_ROOT/artifacts"
+          uv tool run --from pip-audit==2.10.1 pip-audit --strict --requirement "$artifacts/locked-ci.txt" --format columns | tee "$artifacts/pip-audit-report.txt"
+
 
       - name: Secret scan (gitleaks 8.30.1, pinned and asset-hash verified)
         continue-on-error: true
         run: |
           version=8.30.1
           expected=551f6fc83ea457d62a0d98237cbad105af8d557003051f41f3e7ca7b3f2470eb
-          curl -sSLo gitleaks.tgz "https://github.com/gitleaks/gitleaks/releases/download/v${version}/gitleaks_${version}_linux_x64.tar.gz"
-          echo "${expected}  gitleaks.tgz" | sha256sum --check --status || { echo "gitleaks asset hash mismatch"; exit 1; }
-          tar -xzf gitleaks.tgz gitleaks
-          ./gitleaks detect --redact --no-banner --report-format json --report-path gitleaks-report.json --exit-code 1
+          artifacts="$ARCHEAXIS_RUN_ROOT/artifacts"
+          mkdir -p "$artifacts"
+          curl -sSLo "$artifacts/gitleaks.tgz" "https://github.com/gitleaks/gitleaks/releases/download/v${version}/gitleaks_${version}_linux_x64.tar.gz"
+          echo "${expected}  $artifacts/gitleaks.tgz" | sha256sum --check --status || { echo "gitleaks asset hash mismatch"; exit 1; }
+          tar -xzf "$artifacts/gitleaks.tgz" -C "$artifacts" gitleaks
+          # Scanned from the checkout (that is the point) but the report is not written into it.
+          "$artifacts/gitleaks" detect --redact --no-banner --report-format json --report-path "$artifacts/gitleaks-report.json" --exit-code 1
 
       - name: Install and verify local OCR engine
         run: |

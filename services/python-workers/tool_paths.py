@@ -192,11 +192,15 @@ def sibling_roots(root: Path, manifest: Path) -> dict[str, Path]:
 
 
 def _candidates(name: str, manifest: Path) -> list[Path]:
+    # The declaration is read first, always. An absent external root means nothing can resolve, but
+    # it must not mean the manifest goes unread: a manifest that exists and cannot be parsed is a
+    # fault to report, and returning early on a missing root turned that into "tool not declared".
+    entries = _declared_entries(manifest)
     root = _external_root()
     if root is None:
         return []
     found: list[Path] = []
-    for entry in _declared_entries(manifest):
+    for entry in entries:
         if entry.get("name") != name:
             continue
         sibling_name = entry.get("sibling_root")
