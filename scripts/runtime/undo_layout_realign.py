@@ -15,8 +15,40 @@ import sys
 from pathlib import Path
 
 REPO = Path(__file__).resolve().parents[2]
-SCRATCH = REPO / ".project-local" / "task-runtime" / "legacy-scratch-20261006"
-MANIFEST = SCRATCH / "manifest.json"
+# The archive was first written under `task-runtime/` and then relocated to the development root
+# because it exceeded that class's budget. The recorded per-entry `scratch_path` still names the old
+# place, so it cannot be trusted: the archive is located here, and each entry is derived from its
+# own `source` relative to the archive's own layout.
+SCRATCH_CANDIDATES = (
+    REPO / ".project-local" / "legacy-scratch-20261006",
+    REPO / ".project-local" / "task-runtime" / "legacy-scratch-20261006",
+)
+
+
+def archive_root() -> Path:
+    """The archive that actually exists, or a named failure.
+
+    Returning a path that does not exist is how the restore used to skip every entry and still
+    report success; a preservation point that cannot be found must say so.
+    """
+    for candidate in SCRATCH_CANDIDATES:
+        if (candidate / "manifest.json").is_file():
+            return candidate
+    raise SystemExit(
+        "no layout archive found; looked in " + ", ".join(str(c) for c in SCRATCH_CANDIDATES))
+
+
+def archived_copy(scratch: Path, entry: dict) -> Path:
+    """Where an entry's bytes live inside the archive, from its own recorded source.
+
+    `realign_dev_layout` keeps the two trees apart — `project-local/<name>` for entries that were
+    under `.project-local/`, `repo-root/<relative>` for the rest — so the location is derivable from
+    the source alone, which is what makes the archive relocatable at all.
+    """
+    source = entry["source"]
+    if source.startswith(".project-local/"):
+        return scratch / "project-local" / source.split("/", 1)[1]
+    return scratch / "repo-root" / source
 
 REFERENCE_DIRS = ("docs", ".project-local/task-runtime/aaos01-tools", "tests", "scripts", ".github")
 
@@ -40,36 +72,60 @@ def referenced(name: str) -> bool:
 
 
 def restore() -> int:
-    manifest = json.loads(MANIFEST.read_text(encoding="utf-8"))
-    restored = 0
-    for entry in manifest["moved"]:
+    scratch = archive_root()
+    manifest = json.loads((scratch / "manifest.json").read_text(encoding="utf-8"))
+    entries = manifest["moved"]
+    restored, missing, refused = 0, [], []
+    for entry in entries:
         source = REPO / entry["source"]
-        scratch_path = REPO / entry["scratch_path"]
+        scratch_path = archived_copy(scratch, entry)
         if not scratch_path.exists():
-            continue
+            # A previously recorded absolute path may still name the pre-relocation place; fall back
+            # to it, but a genuinely absent copy is reported rather than skipped.
+            recorded = REPO / entry.get("scratch_path", "")
+            if recorded.exists():
+                scratch_path = recorded
+            else:
+                missing.append(entry["source"])
+                continue
         source.parent.mkdir(parents=True, exist_ok=True)
         if source.exists():
-            print(f"refused: {source} already exists")
-            return 1
+            refused.append(entry["source"])
+            continue
         shutil.move(str(scratch_path), str(source))
         restored += 1
-    print(f"restored {restored} of {len(manifest['moved'])} moved entries")
+    print(f"archive: {scratch}")
+    print(f"restored {restored} of {len(entries)} moved entries")
+    for path in refused[:12]:
+        print(f"  refused (already present): {path}")
+    for path in missing[:12]:
+        print(f"  MISSING archived copy: {path}")
+    if missing or refused:
+        # Exit 0 here would report a restore that did not happen. The point of keeping an archive is
+        # that it can be relied on; a partial or refused restore has to be visible to a script.
+        print(f"incomplete: {len(missing)} missing, {len(refused)} refused")
+        return 1
     return 0
 
 
 def main() -> int:
     if "--restore" in sys.argv:
         return restore()
-    manifest = json.loads(MANIFEST.read_text(encoding="utf-8"))
-    kept, moved = [], []
-    for entry in manifest["moved"]:
-        name = entry["source"].split("/", 1)[-1]
-        if referenced(name):
-            kept.append(entry["source"])
+    scratch = archive_root()
+    manifest = json.loads((scratch / "manifest.json").read_text(encoding="utf-8"))
+    kept = [entry["source"] for entry in manifest["moved"]
+            if referenced(entry["source"].split("/", 1)[-1])]
+    present = [entry["source"] for entry in manifest["moved"]
+               if not archived_copy(scratch, entry).exists()]
+    print(f"archive: {scratch}")
+    print(f"entries: {len(manifest['moved'])}")
     print(f"referenced (must stay): {len(kept)}")
     for path in kept[:12]:
         print(f"  keep {path}")
-    return 0
+    print(f"entries whose archived copy is missing: {len(present)}")
+    for path in present[:12]:
+        print(f"  MISSING {path}")
+    return 1 if present else 0
 
 
 if __name__ == "__main__":

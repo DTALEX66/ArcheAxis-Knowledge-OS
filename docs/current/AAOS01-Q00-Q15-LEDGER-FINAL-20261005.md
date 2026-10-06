@@ -514,3 +514,22 @@ Rust 侧拥有逐表 sha256 与清单语义，本工具只补它读不了的，�
 回归：`tests/workflow` + `tests/maintenance` 共 250 项通过、4 项跳过。
 
 仍未做、也不应冒充的：**未做语义迁移**——没有把任何行并入 vNext 模式。`stage_demo_semantic_import` 只暂存 `notes`，其余表按设计记为 leftover；本轮的成果是"整库保真保留完成"，不是"已迁移"。
+
+## 布局归档的"恢复点"此前不可恢复（本轮自查修正）
+
+`171981a44` 之后那批"清理 197 项未被引用条目"的破坏性动作之所以可接受，是因为留了可恢复归档。本轮实测发现**该归档用不了**：
+
+- `scripts/runtime/undo_layout_realign.py` 的归档路径写的是 `.project-local/task-runtime/legacy-scratch-20261006`，而归档因超出 task-runtime 预算已迁到 `.project-local/legacy-scratch-20261006`；
+- 更关键：清单里每条 `scratch_path` 记的是**迁移前的绝对路径**，恢复时按它查找必然不存在，于是 `continue` 跳过每一条、打印"restored 0 of 197"，**并返回 0**。
+
+即"报告成功、实际什么都没恢复"——正是最不该出现的一类保留点。修正：
+
+- 归档位置改为按候选列表定位并**要求确实存在**，找不到就具名失败（不再返回一个不存在的路径）；
+- 每条的位置由**自身的 `source`** 相对归档布局推导（`.project-local/<x>` → `archive/project-local/<x>`，其余 → `archive/repo-root/<x>`），从而使归档可被搬动；记录的旧绝对路径仅作后备；
+- 结果如实分列 restored / refused（已存在）/ MISSING；只要存在缺失或被拒，退出码为 1 而非 0，审计模式同样如此。
+
+实测（真实归档）：`entries: 197`、`referenced (must stay): 0`、`archived copy missing: 0`，审计退出 0——即 197 项全部可恢复。
+
+用例 `tests/workflow/test_layout_archive_restore.py`（5 项）固定：能定位迁移后的归档；记录的陈旧路径不掩盖真实副本；恢复真的把字节放回；**副本缺失时审计与恢复都返回 1**（回归的那一条）；归档不存在时具名失败而非返回假路径。
+
+回归：`tests/workflow` + `tests/maintenance` + `tests/runtime-paths` 共 304 项通过、5 项跳过、11 项子测试通过。
