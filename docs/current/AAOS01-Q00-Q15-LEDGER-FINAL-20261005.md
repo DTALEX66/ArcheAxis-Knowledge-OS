@@ -425,6 +425,17 @@ a11 真实 Tauri 窗口旅程 `aaos01-webdriver/e4236d2bedb44a5882f2c03b480feb08
 
 **权威 runner 的绑定条件（已追到代码，非猜测）**：`dev.py:97 external_toolchain()` 只在环境里**注册了根**时才生效（读 `OS_EXTERNAL_CONFIG` / `ARCHEAXIS_EXTERNAL_ROOT`，`dev.py:110-116`；无根即返回 `{}`）；发现到的 MSVC/Rust/TESSDATA_PREFIX/PATH 由 `environment()` 在 `:266` 合并，子进程以 `env = dict(os.environ)` 继承后覆盖（`:413` / `:467`），所以**操作者自己导出即可生效**。本机这两个变量实测均为 None ⇒ `run_tests.sh --full` 会静默跳过这些格式用例，`cargo_test.bat` 也必须手工传参——这不是工具缺失，也不是代码缺陷。仓库自己的索引 `config/environment/external-resources-index.json` 已记录根路径且 `root_present: true`，但 dev.py **有意**不信任它：两个测试把该契约钉住（`test_no_registered_root_discovers_nothing` 断言无根时返回 `{}`；`test_complete_root_discovers_all_four` 断言键集合恰为四项）。因此"让权威 runner 自动回退到索引"是一次**契约变更决定**，不是可顺手改的实现细节；在此之前，本地覆盖率取决于是否导出 `ARCHEAXIS_EXTERNAL_ROOT`。
 
+## Green 工作树未提交工作的保留点（2026-10-06）
+
+绿色仓库 `.ui-task-tree/ArcheAxis-Knowledge-OS`（HEAD `7282e5a947df`，detached）此前被记为"34 行 dirty，需先固化差异"；**本轮实测远不止于此**：13 个已修改文件（**+2308 / −649**）与 21 个未跟踪文件（品牌标记/图标/记忆图谱/复习图等 Avalonia 视图、`AAOS-UI-FIDELITY-STATUS-20260927.md`、8 个桌面契约测试）。原记录把 porcelain 的**条目数**当成了改动行数。
+
+保留点已落仓，使该工作树进入"可删除待裁决"状态（约 2.0 GB）：
+
+- `docs/history/worktree-preserved-diffs/green-ui-task-tree-7282e5a9-20261006-preserved.zip`（101,071 B）内含 `git diff` 全量补丁（336,622 B）与 21 个未跟踪文件的**原始字节**；
+- 同目录 `...-inventory.json`（LF）记录：工作树 HEAD、13 个修改路径、21 个未跟踪路径各自的 `green_sha256`、补丁 SHA-256 与归档 SHA-256；
+- **为什么是 zip**：统一 diff 必然引用原文含行尾空白，无法通过本仓"非 Windows 命令文件仅 LF 且不得有行尾空白"的文本约定；归一化会破坏补丁、按哈希豁免则是特例。归档是二进制，文本扫描器跳过它且字节完全保真。
+- 读取绿色仓库全程只读（仅 `git diff` 与读文件），未改其索引或工作树；本批未删除绿色仓库任何内容，删除该工作树仍需 Owner 决定。
+
 ## 追加清理：未被引用的 rt-before-* 快照（2026-10-06）
 
 按 `REPOSITORY-LAYOUT-AND-RETENTION-20261006.md` §4（逐项清单 + 可恢复保留点）删除三条**未被任何提交引用**的 before 快照，保留点由结构保证：每条都是 *before* 状态，其 *after* 状态是仍在的 `rt`。
