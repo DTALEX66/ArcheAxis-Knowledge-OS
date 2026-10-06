@@ -483,3 +483,39 @@ async fn waiting_admission_does_not_block_cancellation_of_an_owned_worker() {
     assert_eq!(terminal(&router, "job").await["state"], "cancelled");
     terminal(&router, "other").await;
 }
+
+/// A window is the only extra input an execution body may carry, and it does not widen any other
+/// route. A malformed one is refused before a job is even looked up; a well-formed one on a route
+/// with no bounded unit of work is refused inside the claim, so no attempt row is ever created.
+#[tokio::test]
+async fn a_window_is_shape_checked_and_does_not_widen_other_routes() {
+    let dir = tempfile::tempdir().unwrap();
+    let executor = setup(dir.path(), false).await;
+    let router = archeaxis_api::runtime::router(executor);
+
+    for body in [
+        r#"{"deadline_ms":100,"window":{"index":0,"start_ms":10,"end_ms":10}}"#,
+        r#"{"deadline_ms":100,"window":{"index":0,"start_ms":0,"end_ms":10,"ffmpeg":"elsewhere.exe"}}"#,
+        r#"{"deadline_ms":100,"window":{"index":0,"start_ms":0}}"#,
+        r#"{"deadline_ms":100,"window":{"index":0,"start_ms":0,"end_ms":9007199254740992}}"#,
+    ] {
+        let (status, value) = call(&router, "POST", "/api/v1/jobs/job/executions", "bad-window", body).await;
+        assert_eq!(status, 422, "{body}");
+        assert_eq!(value["code"], "AAK-VAL-001", "{body}");
+    }
+
+    // The job is a text job: it has no bounded unit of work, so the window cannot be honoured.
+    let (status, _) = call(
+        &router,
+        "POST",
+        "/api/v1/jobs/job/executions",
+        "text-window",
+        r#"{"deadline_ms":100,"window":{"index":0,"start_ms":0,"end_ms":10}}"#,
+    )
+    .await;
+    assert_eq!(status, 409);
+    // No attempt row means no staging copy and no partial output was left behind either.
+    let (status, value) = call(&router, "GET", "/api/v1/jobs/job", "", "").await;
+    assert_eq!(status, 200);
+    assert!(value["attempt"].is_null(), "{value}");
+}

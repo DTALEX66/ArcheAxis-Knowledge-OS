@@ -167,3 +167,67 @@ fn invalid_content_and_injected_commit_failure_leave_zero_partial_outputs() {
     conn.execute_batch("DROP TRIGGER break_output").unwrap();
     attempts::finish(&mut conn, &req, &r, &b).unwrap();
 }
+
+/// A window is persisted with the attempt it belongs to, and only the transcribing route may have
+/// one. The stored `request_json` is the same bytes the worker receives, so replay compares against
+/// what actually ran rather than a shape the caller remembers.
+#[test]
+fn a_window_is_persisted_with_its_attempt_and_refused_for_other_routes() {
+    let dir = tempfile::tempdir().unwrap();
+    let (mut conn, _) = bootstrap(dir.path().join("window.sqlite").to_str().unwrap()).unwrap();
+    let sid = match source::import_source(&mut conn, b"RIFF....WAVEfmt ", "tone.wav", None).unwrap() {
+        ImportOutcome::Imported { source_id, .. } => source_id,
+        _ => unreachable!(),
+    };
+    jobs::enqueue(&mut conn, "w", "transcribe", &sid).unwrap();
+    let window = attempts::Window {
+        index: 2,
+        start_ms: 280_000,
+        end_ms: 420_000,
+        staging: dir.path().join("windows").join("w"),
+    };
+    let staged = window.staging.to_string_lossy().into_owned();
+    let request = attempts::claim_windowed(&mut conn, "w", "r-window", 300_000, Some(window)).unwrap();
+    assert_eq!(
+        request.parameters["window"],
+        json!({"index": 2, "start_ms": 280_000, "end_ms": 420_000})
+    );
+    assert_eq!(request.parameters["staging"], json!(staged));
+    // the window is Core-owned staging, not a caller path, and carries no executable
+    assert!(!request.parameters.contains_key("ffmpeg"));
+    let stored: String = conn
+        .query_row(
+            "SELECT request_json FROM job_attempts WHERE request_id='r-window'",
+            [],
+            |row| row.get(0),
+        )
+        .unwrap();
+    let stored: serde_json::Value = serde_json::from_str(&stored).unwrap();
+    assert_eq!(stored["parameters"]["window"]["index"], json!(2));
+
+    // a second attempt of the same job is refused while the first is running; a fresh job of the
+    // same kind still takes a plain, windowless claim
+    assert!(attempts::claim(&mut conn, "w", "r-again", 300_000).is_err());
+    jobs::enqueue(&mut conn, "w2", "transcribe", &sid).unwrap();
+    let plain = attempts::claim(&mut conn, "w2", "r-plain", 300_000).unwrap();
+    assert!(plain.parameters.is_empty());
+    // and a route with no bounded unit of work refuses a window
+    let sid_text = match source::import_source(&mut conn, b"plain text", "note.txt", None).unwrap() {
+        ImportOutcome::Imported { source_id, .. } => source_id,
+        _ => unreachable!(),
+    };
+    jobs::enqueue(&mut conn, "t", "text", &sid_text).unwrap();
+    assert!(attempts::claim_windowed(
+        &mut conn,
+        "t",
+        "r-text",
+        5000,
+        Some(attempts::Window {
+            index: 0,
+            start_ms: 0,
+            end_ms: 1000,
+            staging: dir.path().join("windows"),
+        }),
+    )
+    .is_err());
+}

@@ -482,9 +482,9 @@ def request_window(capability: str, parameters) -> dict | None:
         return None
     if capability != "media.transcribe":
         raise Rejected(f"{capability} requires empty parameters")
-    unknown = set(parameters) - {"window", "ffmpeg", "staging"}
+    unknown = set(parameters) - {"window", "staging"}
     if unknown:
-        raise Rejected("window parameters may only carry window, ffmpeg and staging")
+        raise Rejected("window parameters may only carry window and staging")
     window = parameters.get("window")
     if not isinstance(window, dict) or set(window) != _WINDOW_KEYS:
         raise Rejected("window must carry exactly index, start_ms and end_ms")
@@ -494,9 +494,14 @@ def request_window(capability: str, parameters) -> dict | None:
             raise Rejected(f"window.{field} must be an integer")
     if window["index"] < 0 or window["start_ms"] < 0 or window["end_ms"] <= window["start_ms"]:
         raise Rejected("window must be a positive range with a non-negative index")
-    ffmpeg = parameters.get("ffmpeg")
-    if not isinstance(ffmpeg, str) or not ffmpeg.strip():
-        raise Rejected("a windowed transcription must name the declared ffmpeg path")
+    # The decoder is the declared engine, never a caller-supplied binary: a path in the request
+    # would be a way to run an arbitrary executable through the worker. Resolving the declaration
+    # here uses the same resolver the OCR route already uses for tesseract, so there is one reader
+    # of `capability-requirements.yaml` rather than a second one in the Core.
+    ffmpeg = _declared_tool_path("ffmpeg")
+    if ffmpeg is None:
+        raise Rejected("no declared ffmpeg resolved for a windowed transcription")
+    ffmpeg = str(ffmpeg)
     staging = parameters.get("staging")
     if staging is not None and (not isinstance(staging, str) or not staging.strip()):
         raise Rejected("staging must be a non-empty path string when present")

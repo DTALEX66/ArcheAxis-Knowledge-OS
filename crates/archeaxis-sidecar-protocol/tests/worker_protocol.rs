@@ -125,3 +125,42 @@ fn schema_integer_spellings_and_failed_terminal_shape_are_checked() {
     frame["outputs"] = json!([]);
     assert!(decode_response(&frame.to_string(), &req).is_ok());
 }
+
+#[test]
+fn a_bounded_window_is_the_only_parameter_a_request_may_carry() {
+    use archeaxis_sidecar_protocol::worker::{Request, Window};
+    // Only the transcribing capability has a bounded unit of work, so only it may carry a window.
+    // Every other route keeps the empty-parameters invariant the protocol was built on.
+    let text = Request::text("r", "j", 1, &"a".repeat(64), "text/plain", 5000).unwrap();
+    assert!(
+        text.with_window(Window { index: 0, start_ms: 0, end_ms: 1000, staging: "staging" })
+            .is_err()
+    );
+
+    let media = || {
+        Request::job(
+            "r", "j", 1, "media.transcribe", &"a".repeat(64), "audio/mpeg", 5000,
+        )
+        .unwrap()
+    };
+    assert!(media().parameters.is_empty());
+    let windowed = media()
+        .with_window(Window { index: 2, start_ms: 280_000, end_ms: 420_000, staging: r"C:\staging\windows\job-1" })
+        .unwrap();
+    assert_eq!(
+        windowed.parameters["window"],
+        json!({"index": 2, "start_ms": 280_000, "end_ms": 420_000})
+    );
+    assert_eq!(windowed.parameters["staging"], json!(r"C:\staging\windows\job-1"));
+    // A window carries no ffmpeg path: the transport resolves the declared engine, so a request
+    // cannot name an arbitrary executable for the worker to run.
+    assert!(!windowed.parameters.contains_key("ffmpeg"));
+
+    for broken in [
+        Window { index: 0, start_ms: 10, end_ms: 10, staging: "s" },
+        Window { index: 0, start_ms: 0, end_ms: 9_007_199_254_740_992, staging: "s" },
+        Window { index: 0, start_ms: 0, end_ms: 1000, staging: "  " },
+    ] {
+        assert!(media().with_window(broken).is_err(), "{broken:?}");
+    }
+}

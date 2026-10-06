@@ -321,7 +321,19 @@ impl Executor {
         deadline_ms: u64,
         cancel: &Cancellation,
     ) -> Result<(), String> {
-        self.start(job_id, request_id, deadline_ms, cancel)
+        self.execute_windowed(job_id, request_id, deadline_ms, cancel, None)
+            .await
+    }
+    /// `execute` for one bounded window of a long recording.
+    pub async fn execute_windowed(
+        &self,
+        job_id: &str,
+        request_id: &str,
+        deadline_ms: u64,
+        cancel: &Cancellation,
+        window: Option<attempts::WindowSpan>,
+    ) -> Result<(), String> {
+        self.start_windowed(job_id, request_id, deadline_ms, cancel, window)
             .await?
             .await
             .map_err(|e| format!("execution task failed: {e}"))?
@@ -334,16 +346,30 @@ impl Executor {
         deadline_ms: u64,
         cancel: &Cancellation,
     ) -> Result<tokio::task::JoinHandle<Result<(), String>>, String> {
+        self.start_windowed(job_id, request_id, deadline_ms, cancel, None)
+            .await
+    }
+    /// `start` for one bounded window. The staging directory is Core-owned and derived here, so a
+    /// caller names only the span it wants transcribed.
+    pub async fn start_windowed(
+        &self,
+        job_id: &str,
+        request_id: &str,
+        deadline_ms: u64,
+        cancel: &Cancellation,
+        window: Option<attempts::WindowSpan>,
+    ) -> Result<tokio::task::JoinHandle<Result<(), String>>, String> {
         // Accepted jobs outlive a disconnected HTTP/UI waiter. Explicit owner
         // cancellation still propagates through the shared cancellation handle.
         let owned = self.clone();
         let job = job_id.to_owned();
         let request = request_id.to_owned();
         let cancel = cancel.clone();
+        let window = window.map(|span| attempts::Window::for_span(span, &self.staging, job_id));
         let (ack, accepted) = tokio::sync::oneshot::channel();
         let task = tokio::spawn(async move {
             owned
-                .execute_owned(&job, &request, deadline_ms, &cancel, ack)
+                .execute_owned(&job, &request, deadline_ms, &cancel, ack, window)
                 .await
         });
         match accepted.await {
@@ -362,6 +388,7 @@ impl Executor {
         deadline_ms: u64,
         cancel: &Cancellation,
         ack: tokio::sync::oneshot::Sender<()>,
+        window: Option<attempts::Window>,
     ) -> Result<(), String> {
         // Keep the one write to the child's pipe small enough to fit its initial
         // buffer. Configuration and IDs are Core-owned, not shell commands.
@@ -372,7 +399,7 @@ impl Executor {
         let id = request_id.to_owned();
         let req = self
             .store
-            .submit_wait(move |conn| attempts::claim(conn, &job, &id, deadline_ms))
+            .submit_wait(move |conn| attempts::claim_windowed(conn, &job, &id, deadline_ms, window))
             .await
             .map_err(|e| e.to_string())?
             .map_err(|e| e.to_string())?;

@@ -86,13 +86,14 @@ class WindowParameterTests(unittest.TestCase):
     def window(self, **overrides):
         window = {"index": 2, "start_ms": 280_000, "end_ms": 420_000}
         window.update(overrides)
-        return {"window": window, "ffmpeg": "ffmpeg.exe", "staging": str(self.staging / "windows")}
+        return {"window": window, "staging": str(self.staging / "windows")}
 
     def test_a_window_reaches_the_worker_as_a_single_window_plan(self):
         parameters = self.window()
         log = self.staging / "calls.jsonl"
         os.environ["AAOS_WINDOW_FIXTURE_LOG"] = str(log)
         self.addCleanup(lambda: os.environ.pop("AAOS_WINDOW_FIXTURE_LOG", None))
+        self.transport._declared_tool_path = lambda name: "declared-ffmpeg.exe" if name == "ffmpeg" else None
         outputs, _measurements, _losses = self.transport.execute(self.request(parameters), self.staging)
         # Reaching this line at all is the contract check: the windowed envelope had to satisfy the
         # canonical artifact pipeline (text, document structure and loss receipt) to get here.
@@ -104,8 +105,14 @@ class WindowParameterTests(unittest.TestCase):
         self.assertEqual(call["plan"]["windows_total"], 1)
         self.assertEqual(call["plan"]["windows"][0], {"index": 2, "start_ms": 280_000, "end_ms": 420_000,
                                                       "audio_ms": 140_000, "estimated_ms": 140_000})
-        self.assertEqual(call["ffmpeg"], "ffmpeg.exe")
+        # The decoder is the declared engine, not a path the request named.
+        self.assertEqual(call["ffmpeg"], "declared-ffmpeg.exe")
         self.assertEqual(call["staging"], parameters["staging"])
+
+    def test_a_window_without_a_declared_decoder_is_refused(self):
+        self.transport._declared_tool_path = lambda name: None
+        with self.assertRaises(self.transport.Rejected):
+            self.transport.execute(self.request(self.window()), self.staging)
 
     def test_another_capability_still_refuses_any_parameter(self):
         with self.assertRaises(self.transport.Rejected):
@@ -116,6 +123,7 @@ class WindowParameterTests(unittest.TestCase):
         for broken in (self.window(window={"index": 0, "start_ms": 10, "end_ms": 10}),
                        {"window": {"index": 0, "start_ms": 0, "end_ms": 10}},
                        {"ffmpeg": "ffmpeg.exe"},
+                       {**self.window(), "ffmpeg": "C:/somewhere/ffmpeg.exe"},
                        {**self.window(), "extra": 1}):
             with self.subTest(broken=broken):
                 with self.assertRaises(self.transport.Rejected):
