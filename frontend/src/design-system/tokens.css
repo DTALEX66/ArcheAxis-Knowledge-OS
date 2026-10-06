@@ -1900,7 +1900,7 @@ tr:hover {
   }
 }
 
-@media (max-width: 900px) {
+@media (min-width: 601px) and (max-width: 900px) {
   /* Hiding this entirely removes the only section switcher in the library space. */
   .context-subnav {
     width: 168px;
@@ -1943,6 +1943,11 @@ tr:hover {
 
   .app-body {
     flex-direction: column;
+  }
+
+  /* The phone layout is a single column; the A0 contract requires no context rail here. */
+  .context-subnav {
+    display: none;
   }
 
   .space-rail {
