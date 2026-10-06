@@ -1,7 +1,7 @@
 {
   "schema": "archeaxis/audit-snapshot/v1",
-  "round": "AAOS-AUTHORITY-REPAIR-20261006",
-  "observed_at": "2026-10-06T23:58:33+08:00",
+  "round": "AAOS-01-MULTI-FORMAT-ABSORB-20261007",
+  "observed_at": "2026-10-07T00:43:55+08:00",
   "timezone": "Asia/Shanghai",
   "scope": "文档与治理修复（权威入口、冲突 current、描述与覆盖矩阵、可重复审计）。不改产品架构、不批量化安装依赖、不发布。",
   "repository": {
@@ -168,7 +168,8 @@
     "编码误判已更正（同轮内自纠）：早先把该现象登记为‘项目 runner 未设 UTF-8 模式’是错的。现场核实 scripts/runtime/dev.py 为 pytest 子进程设置 PYTHONUTF8=1 与 PYTHONIOENCODING=utf-8（dev.py:233-234），且 --pytest 以子解释器启动（dev.py:443），因此权威路径 scripts/ci/run_tests.sh / run_tests.ps1 不受影响——在本机 shell 未设 UTF-8 时经该 runner 运行 tests/test_general_course_worker.py 为 13/13 通过。该失败只出现在绕开权威路径直接裸跑 pytest 时（本轮后台全量运行即裸跑）：课程 worker 的 stdout 含 U+2014 破折号（合法 UTF-8，第 2118 字节 0x94 不可按 GBK 解码），裸跑时 pytest 捕获按 locale 解码而抛错。可选的加固（非必需，未做）：该 subprocess.run 显式 encoding=utf-8，使断言不依赖父进程编码模式",
     "开源吸收核对脚本的启发式边界：已修复，不再是缺口。原脚本以‘整词命中任一来源’记 IMPLEMENTED_IN_SOURCE、以‘文件名含该项词’记 VENDORED，并把 __pycache__/*.pyc、README 词与生成目录字样计为证据；又因整词匹配 crossref 匹配不到 CrossrefClient，四条真客户端的判定实际由 .pyc 与文档字符串支撑。现按标识符判定、注释与文档字符串只算提及、编译产物与生成目录排除、桩按命中处附近的不可用标记判定、shared/ 移出 vendor 根；分布由 DECLARED 24 / IMPLEMENTED 9 / VENDORED 两类各 1 / NONE 12 更正为 DECLARED 25 / IMPLEMENTED_IN_SOURCE 6 / STUB_IN_SOURCE 2 / MENTIONED_IN_SOURCE 2 / NONE 12，并由 tests/workflow/test_oss_disposition_evidence.py 的断言固定四态",
     "CI test 车道的两处先存失败（均非本提交引入；同一 job 在 7eda1dcf 与 d218abdc 上同样 failure）：(1) 【已修】tests/workflow/test_workspace_layout_contract.py 在 runner 上把 .project-local/c 与 staging 判为越界——根因是两个**测试隔离缺陷**：tests/test_web_screenshot.py::test_screenshot_reports_browser_exit_code_when_no_png_is_written 未像同文件其他用例那样 patch _short_temp_root，于是 app/ingestion/web_screenshot.py:73 的 `(project_root/'c').mkdir` 沿祖先找到真实 .project-local 并创建 `c/`；tests/test_desktop_launch.py::test_prepare_accepts_project_local_staging_candidate 在真实 dev 根下建 `staging/launch-*` 且 finally 只删子目录、留下空 `staging/`。两处已按“修隔离、不放宽契约”修好（前者补同款 patch，后者在清理后 rmdir 空的父目录），并在权威 runner 设定的“TMP 落在 dev 根内”这一 CI 条件下复现验证：22 passed 且 dev 根未出现 c/ 或 staging/。(2) 【待决】tests/test_axr060_completion_audit.py 要求当前表面引用的 40 位哈希在检出中可达，记录引用的保留点 tag 值 aa804699… 因该分支 squash 合并后被删、tag 只在本地且不得推送而缺失；已在 docs/current/BRANCH-CONVERGENCE.json 登记该已删分支的 tip 与 merge_base（该文件正是该测试读取“已删分支 tip 可作证据”的白名单位置），并确认该分支在远端确已不存在",
-    "格式矩阵的 gap 文本仍有过期项（本轮按代码实测）：F05 页寻址、F12 画布几何、F13 EPUB/EML 结构均已实现却仍写成缺口；另有两个已绑定的引擎（Magika ONNX、RapidOCR）未接进 vNext worker 路径。required_output 是冻结条款，只改事实描述"
+    "格式矩阵的 gap 文本仍有过期项（本轮按代码实测）：F05 页寻址、F12 画布几何、F13 EPUB/EML 结构均已实现却仍写成缺口；另有两个已绑定的引擎（Magika ONNX、RapidOCR）未接进 vNext worker 路径。required_output 是冻结条款，只改事实描述",
+    "F13 仍未闭合：邮件附件只具名清单与哈希、未抽取为独立来源；二进制 .msg 仍无读取器；ODF 样式/字段/内嵌对象/链接目标未跟随；A004 RapidOCR 的“桩还是真实使用”歧义未裁定"
   ],
   "about": {
     "before": "星环知识平台 ArcheAxis Knowledge：本地优先的多格式内容与人机双向学习工作台（开发中）。Tauri/React + Rust Core，SQLite/CAS 单写者。内容先保存；识别忠实度核验与专业依据分析独立、可追溯。",
@@ -244,7 +245,11 @@
       "Green 暗工作树按 Owner 裁决删除：保留点独立复核全项 PASS 后，经属主检出 `git worktree remove --force` 移除并同步删除 worktree 管理项；逐文件遍历口径 2,692,920,775 B，首批移除 2,548,177,620 B，补删 3,703 个条目，残留 13 个条目 / 16,716 B（uv editable .whl 与 pytest 空目录，清只读位后仍 WinError 5，未提权未改 ACL）；同目录的 6.24 GB mainline 与 Owner 保留的 minimax 供体未触碰",
       "Q11 按 Owner 裁决（有用并入、无用去掉）实做：源库 data/cognitive_os.sqlite 只读审计前后 SHA 相同，89 张表中 67 张 0 行、22 张有行；新增 stage_legacy_library_selectively（写入走 domain::create_knowledge_v3，每表恰得一条具名处置），真实 89 表导出跑通得 merged 2 / discarded 77 / not_merged 10，intake_cards_staged=1、lessons_staged=1、row_errors=0，旁路暂存库 270,336 B（未写产品主库，验收仍属 Owner）",
       "Owner 三项裁决入档：Green 暗工作树删除（已执行）、失败模型原始输出继续留在界面（反粉饰规则不变）、Q11 以“审计—有用并入—无用去掉”为准则；300 秒作业上限与 build/cargo 清理属既有裁决，本轮未重开",
-      "pip-audit 由仅报告转强制：升 urllib3 2.8.0 / soupsieve 2.10（uv.lock 7 行），以同一钉版本先复现 CI 报的 5 项再证新锁干净（exit 0），去掉 continue-on-error 并修掉 `| tee` 在无 pipefail 下吞退出码的仪器缺陷，新增 4 项门禁并三项注入证伪有效；同步 app/release-manifest.json 的锁摘要"
+      "pip-audit 由仅报告转强制：升 urllib3 2.8.0 / soupsieve 2.10（uv.lock 7 行），以同一钉版本先复现 CI 报的 5 项再证新锁干净（exit 0），去掉 continue-on-error 并修掉 `| tee` 在无 pipefail 下吞退出码的仪器缺陷，新增 4 项门禁并三项注入证伪有效；同步 app/release-manifest.json 的锁摘要",
+      "F08 PPTX 图表数据读通：worker 以标准库解析包内 chart part，投影 Series/类别=值 并给出 slide_chart 锚点；数值声明为文件自带缓存，仅有链接数据的系列具名为 no cached values；新增 3 项测试，与 office 套件合计 9 passed",
+      "F13 ODF 与 RTF 在产品路径落地：attempts.rs 为 odt/ods/odp/rtf 命名媒体类型并加入 text.extract 接受集，读取器校验 mimetype 与声称类型一致、按 outline-level/表格单元格/draw:page 出锚点、行列重复声明超 512 时按上限报出；RTF 用已声明的 striprtf 剥控制字。route_capabilities 8 passed（两条真值断言因世界改变而更新并写明理由），fmt 与矩阵检查 exit 0，Python 35 passed",
+      "吸收核对仪器纠正：A011 词由 mozilla 改 readabilipy（原为低估，且被测试钉住）、A010 词由 apache 改 tika（原为许可证词导致的虚报）、shared/models 补入 vendor 根使 A001 记为 DECLARED_AND_VENDORED；分布 25/2/12 → 24/1/13（DECLARED/VENDORED/NONE 口径见台账）",
+      "外溢数据追踪清理（只删已证实两项，合计 4,256,895 B（4,251,648 + 5,247；两次运行分删，第二次审计件的 freed 字段只含前者，不能当总量））：%TEMP% 中与主检出根逐字节相同的 4,251,648 B 副本 （脚本因审计件路径不存在先拒绝，核实真实归档路径后才删）与主检出根 __pycache__ 5,247 B（布局合同假失败源）；并更正一条旧记录：%LOCALAPPDATA%\\ArcheAxis Knowledge 在本机不存在"
     ],
     "open": [
       "Q14 与更正文件的日期序列已核实记录；是否宣布资格化仍由 Owner 决定（不可变 checks/acceptance.json 仍为 NOT_RUN）",
@@ -256,7 +261,7 @@
       "build/ 清理边界：剩余的最大本地项是 build/cargo（约 16.6 GB 的可再生 target 缓存），它**在其 22 GB 策略预算之内**且不在 Owner 已圈定的“非 cargo、超预算”范围内，故未删；候选目录（ci-*、f151f4c7998a、local-242cc4c3）或被具名引用、或是台账所记“不在仓库内”收据的唯一本机副本，保留",
       "更正（2026-10-06 实测）：本机**有** uv 0.12.23（/c/Users/ALEX/.local/bin/uv），原条目“本机无 uv、无法验证干净、需 Owner 授权引入”前提不成立；Gitleaks 与 pip-audit 均已登记（A024 / A023）并以 CI 门禁形式吸收。pip-audit 在 run 37471031307 job 112294372735 实报 5 项（urllib3 2.7.0、soupsieve 2.8.4），已按修复版升为 urllib3 2.8.0 / soupsieve 2.10；同一钉版本对旧锁导出复现同样 5 项、对新锁导出报 No known vulnerabilities found（exit 0），故该步骤已去掉 continue-on-error 并补 set -o pipefail（此前 `pip-audit | tee` 在无 pipefail 的 `bash -e` 下退出码恒为 tee 的 0，即使命中漏洞也不会弄红）。CI 侧已读回：head_sha 5e5d102b 的 push run 37490490651 / job 112361733929 日志第 3079 行输出 No known vulnerabilities found，步骤在强制状态下实际执行并通过"
     ],
-    "next_action": "1) 推送后按 head_sha 读回 CI：确认 pip-audit 步骤在强制状态下 success（这是“已强制”的最后一步证据）；2) 把旁路暂存库交 Owner 验收，再定正式并入与旧入口冻结；3) 按 A 类缺口顺序推进 F02 抓取时间、F04 未知扩展名、F06 OCR 回写页、F08 图表数据（均无需新依赖）"
+    "next_action": "1) 继续最多格式：F06 OCR 结果回写其来源页、F02 抓取时间进入 import origin 的 received_at、F10 词级时间（faster-whisper 自带能力，无需新引擎）；2) 邮件附件抽取需先定“成员展开”是否复用 archive 路径；3) 外溢清理仍待处置的类别：3 个 ACL 拒绝的 %TEMP% 目录、960 MB 根 .venv（绑定解释器，未动）"
   },
   "verification": {
     "capability_family_runs": {
@@ -277,7 +282,8 @@
       "CAP-0070-simulation": "no independent suite found this round"
     },
     "migration_crate": "cargo test -p archeaxis-migration --tests --offline -> 27 passed / 0 failed (含新增 selective_legacy_stage 3 项)；cargo fmt --all --check PASS",
-    "dependency_scan_guards": "tests/workflow/test_dependency_scan_config.py 4 passed；三项注入（回退 report-only / 删 pipefail / 命令内加 --ignore-vuln）各自只弄红对应那项；tests/test_release_manifest.py 35 passed 0 failed（升锁后按提交 79332377 的约定只改 dependency_lock.digest，revision 保持 8）"
+    "dependency_scan_guards": "tests/workflow/test_dependency_scan_config.py 4 passed；三项注入（回退 report-only / 删 pipefail / 命令内加 --ignore-vuln）各自只弄红对应那项；tests/test_release_manifest.py 35 passed 0 failed（升锁后按提交 79332377 的约定只改 dependency_lock.digest，revision 保持 8）",
+    "format_slices_20261007": "tests/workers/test_pptx_chart_data.py + tests/workers/test_bulk_office.py 9 passed; tests/workers/test_light_formats_odf_rtf.py + tests/test_multiformat_extraction.py + tests/workers/test_bulk_html.py + tests/workers/test_bulk_legacy_adapters.py 35 passed; cargo test -p archeaxis-application --test route_capabilities --offline 8 passed; cargo fmt --all --check PASS; check_format_matrix.py exit 0; tests/workflow/test_oss_disposition_evidence.py 3 passed"
   },
   "artifacts": [
     {

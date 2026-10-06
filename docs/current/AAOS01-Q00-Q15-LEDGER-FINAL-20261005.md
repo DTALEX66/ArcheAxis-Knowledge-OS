@@ -859,3 +859,73 @@ Owner 没有选“旁路只迁笔记”，而是给出判断准则：**先审计
 - **真实旧库跑通**（`crates/archeaxis-migration/examples/selective_stage.rs`，对象为上文 89 表保真导出，清单摘要 `597027d4…` 经 Rust `verify_export` 接受，即跨语言哈希等价再次成立）：`intake_cards_staged=1`、`lessons_staged=1`、`row_errors=0`、处置合计 **merged 2 / discarded 77 / not_merged 10**；暂存库回读两行确为 `('PERSONAL_DEFINITION','candidate',…,'imported_legacy','human','none',1)` 与 `('OBSERVATION','candidate',…,'machine_candidate','machine','none',1)`，中文正文与“吸收/不吸收”列表逐字在位（收据与 270,336 B 暂存库在 `.project-local/task-runtime/q11-selective-stage/`，sha256 前缀 `35443751…`）。
 - **边界**：这是**旁路暂存**并入，未触碰产品主库；把暂存内容交给正式 Core 数据根、以及“这次迁移算完成”的判断，仍属 Owner 验收（与 Q07 的“机器不能自我接受”同一条线）。样例内容（3 条导入夹具正文）**未被并入**，若 Owner 认为它们也该进主线，走的是同一函数，判据需由 Owner 明确。
 - 交接件 §5 的第 4、5 项本轮不重开：300 秒作业上限已由既有裁决“保持上限 + 窗口化”落地，`build/cargo` 在 Owner 限定的“非 cargo、超预算”范围之外；失败模型原始输出 Owner 裁决**继续留在界面内**（反粉饰规则不变）。
+
+## F08 图表数据 与 F13 ODF/RTF 读通（2026-10-07，均无需新依赖）
+
+**先纠正继承来的清单**：上一轮子智能体把 F04 说成“未知扩展名被拒”，实际 `R15-FORMAT-STATUS.json`
+里 F04 是**图像族**（原图/OCR框/阅读顺序/图示描述）。所以本轮**以 JSON 的 `gap` 原文为准**逐族核对，
+没有按那份分类表施工。另一个纠正：F13 原文写“其余格式仍 custody-only，`.epub`、`.ods` 等无路由名者被拒”，
+但 EPUB 早已有 spine 章节读取，而 `grep -r opendocument crates services config shared app` **零命中**——
+即 **ODF 在产品路径里从来没有实现过**，`app/ingestion/multi_format.py` 里的 odt/rtf 属遗留兼容面。
+
+**F08 PPTX 图表数据**（提交 `4d781b7e`）：worker 用标准库直接解析包内 `ppt/charts/chartN.xml`，
+经幻灯片自己的 `.rels` 把 chart part 归到对应幻灯片，投影出 `Series <名称>: <类别>=<值>`，
+并给出 `slide_chart` 结构锚点；数值**是文件自带的缓存**，回执里以 `chart_data_source` 明说，
+只有链接工作簿而无缓存的系列被具名为“no cached values”而不是补数。新增
+`tests/workers/test_pptx_chart_data.py` 3 项（含“缓存清空后不得出现数值”“无图表包不得虚报”），
+与既有 office 套件合计 **9 passed**。
+
+**F13 ODF + RTF**：`crates/archeaxis-application/src/attempts.rs` 为 `odt/ods/odp/rtf` 命名媒体类型并
+加入 `text.extract` 接受集；`worker_text.py` 把四者交给 light-format 读取器；新 `odf()` 先校验
+`mimetype` 条目**与文件名声称的类型一致**（不一致即拒），再读 `content.xml`：标题按 `text:outline-level`
+带层级、正文段落、表格单元格携带文件自存的 `office:value` 与 `span`、演示页 `draw:page` 成为可寻址路径，
+`table:number-rows/columns-repeated` 超过 512 时**按上限报出并留损失项**而不是展开成假数据；
+`rtf()` 用**已声明的** `striprtf`（`pyproject.toml:39`）剥控制字并锚定段落。安全边界沿用 EPUB 的做法：
+条目数/展开字节上限、拒绝穿越名与符号链接成员、重复路径拒绝。
+
+**两条真值测试因世界改变而更新，不是为了让改动通过**：`route_capabilities.rs` 的
+`a_binary_container_name_is_refused_because_no_route_can_read_it` 原把 `sheet.ods` 列为“必须被拒”，
+其前提是“没有路由能读它”——该前提现已不成立，故只保留 `mail.msg` 并把原因写进注释；
+`accepted_media_types("text.extract").len()` 由 13 改为 17，并**补上四个显式成员断言**（含
+“ODF/RTF 不得进入 image 路由”），使该断言不再只是一个计数。验证：`cargo test -p archeaxis-application
+--test route_capabilities --offline` **8 passed / 0 failed**，`cargo fmt --all --check` PASS，
+`scripts/check_format_matrix.py --matrix ...` **exit 0（16 组，14 partial，2 custody_only）**，
+Python 侧 ODF/RTF 新 7 项与相邻三套格式套件合计 **35 passed**。
+
+## 吸收核对仪器的两处相反缺陷（2026-10-07，含一条被钉住的错分类）
+
+`Apache Tika` 因词根 `apache` 命中许可证文本而被记成“已声明”（本仓库根本没有该 sidecar），
+`Mozilla Readability` 因搜索词是 `mozilla` 而只匹配到文档域名，**且
+`tests/workflow/test_oss_disposition_evidence.py` 把 `MENTIONED_IN_SOURCE` 当断言钉住**——
+错的搜索词配一条通过的测试比失败的更危险。改词后实测：`A011` 得 `DECLARED` 且定位到
+shared/adapter_fixtures.py:153（`readabilipy` 确在 `pyproject.toml:82` 声明），
+`A010` 得 `NONE`，`A001` 因 `shared/models` 补入 vendor 根而得 `DECLARED_AND_VENDORED`；
+分布由 {"DECLARED": 25, "STUB_IN_SOURCE": 2, "MENTIONED_IN_SOURCE": 2, "IMPLEMENTED_IN_SOURCE": 6, "NONE": 12} 变为 {"DECLARED": 24, "DECLARED_AND_VENDORED": 1, "STUB_IN_SOURCE": 2, "MENTIONED_IN_SOURCE": 1, "IMPLEMENTED_IN_SOURCE": 6, "NONE": 13}。
+护栏改为断言事实，反证是改前那次运行本身。`A004 RapidOCR` 的“桩还是真用”歧义**本轮未裁定**。
+详见 `docs/current/AAOS-OSS-DISPOSITION-EVIDENCE-20261006.md` 新增的“更正三”一节。
+
+## 外溢数据追踪清理（2026-10-07，先审计后逐项精确路径）
+
+只读审计（子智能体）+ 本机复核后，**只删了两项已证实的**，其余全部保留：
+
+- 删除 `C:\Users\ALEX\AppData\Local\Temp\aaos-real-embed-4fzxe8g7\real.sqlite`
+  （**4,251,648 B**）：与主检出根 `.project-local/task-runtime/wsr/real-embed/real.sqlite`
+  **SHA-256 逐字节相同**（`6cebf2be…`），空父目录一并移除。
+  注意过程：审计件给的“归档副本”路径**不存在**，删除脚本据此**拒绝执行**；改正为核实到的真实路径
+  并重算哈希后才删——fail-closed 在这里救了场，子智能体的路径转述不可直接采信。
+- 删除主检出根 `D:\All projects\ArcheAxis-Knowledge-OS\__pycache__`（**5,247 B**，
+  仅 `conftest.cpython-312/313-pytest-9.1.1.pyc` 两项）：这正是此前
+  `tests/workflow/test_workspace_layout_contract.py` 报 `out_of_layout=['root: __pycache__/']`
+  假失败的来源；删除前逐项核对成员名，非预期成员即拒绝。
+  合计释放 **4,256,895 B**（4,251,648 + 5,247；两项分两次运行删除，第二次的审计件里
+  `__pycache__` 已记为 `already_absent`，故审计件的 `freed` 字段只含前者，不能当作总量）。
+- **更正一条旧记录**：`%LOCALAPPDATA%\ArcheAxis Knowledge` **在本机不存在**（也不存在
+  `ArcheAxis`/`Programs\ArcheAxis Knowledge`/Roaming 变体），故“旧安装宿主残留在本地安装目录”
+  不成立；本机唯一 archeaxis 相关项是 `com.archeaxis.workspace`（41,626,516 B，被
+  `RUNTIME_DELIVERY_AUTHORITY_INDEX.md:45` 与 `tauri.conf.json` 引用）——现役宿主状态，**不动**。
+- **保留并标注**：`%TEMP%` 下 3 个 `aaos-*` 目录属**真·ACL 拒绝**（`GetNamedSecurityInfoW` 连读
+  owner 都返回 error 5，非只读对象类，与 runs/ 那 434 个零字节同类），非提权不可且不宣称可回收字节；
+  `D:\All projects\dsh-acl-reports-20261003`（83,329 B）是对 Formal 库做过 ACL 写入的**唯一回滚载荷**，
+  全仓无归档副本，**必须保留**；`C:\Users\ALEX\.dsh`（339,240,921 B）是外部工具的家目录，非本项目资产；
+  主检出根 `.venv`（960,392,331 B）虽 git-ignored 且可再生，但**绑定解释器且可能有并行会话在用**，
+  本轮不动。审计与删除清单：`.project-local/task-runtime/spillover-audit-20261007/`。
