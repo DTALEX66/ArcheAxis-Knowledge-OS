@@ -74,7 +74,7 @@ vnext-ci FAILURE 根因与 AQ27 登记（2026-10-06，只读核对 run 374043890
 | Q00 现场保护与最小对账 | PARTIAL | 已复核起始 SHA、工作树与工具路径；本轮使用独立候选及全新 Core 数据根。未知用户资产、旧库与历史回执保留；完整资产/schema/writer 身份不因本轮格式测试自动完成。 |
 | Q01 重构决定与目录登记 | TESTED_LOCAL | 已有 SUP-022 重构登记；本轮统一使用权威 `stage_backend_runtime.py` 产出候选，desktop-fast/build 使用相同准备步骤。此项不是旧编号中的“打包完成”；现行Directory/Language/RuntimeDelivery/ProjectContract及schema已按SUP-022最小同步，schema/引用回归PASS。 |
 | Q02 Tauri 启动与只读桥接 | INSTALLED_RUNTIME_VERIFIED / PARTIAL | 3dc完整CI的src-tauri fmt/test实际PASS；独立NSIS安装后有限桥接、原件中文阅读、保存/重启、备份/恢复/retry及核验记录十三步实际PASS，四次产品exit0、独立非调试WM_CLOSE及自有清理PASS，完整身份见本表顶部。物理IME/全部阅读器交互不能由此代验。 |
-| Q03 类型合同与权限 | PARTIAL | 既有启动契约、前缀隔离与权限测试保留；本轮未将单元测试提升为全部 DTO、对象权限与版本错误验收。生成合同、有限命令与对象范围需按任务书逐项读回。 |
+| Q03 类型合同与权限 | TESTED_LOCAL | 本轮按任务书逐项读回。**生成 DTO**：四个契约检查全 exit 0（`generate_vocabulary.py --check` → `{"status":"pass","drift":[]}`；`generate_core_document.py --check`；`generate_capability_catalog.py --check`；`check_media_window_policy.py --check` → 2 处 Core 上限一致），产物为 `packages/contracts/v1/*.schema.json` 与 `frontend/src/api/generated/{core-contract,capability-catalog}.ts`，其中两项已接入 CI。**有限命令与对象权限**：经跟踪入口 `scripts/ci/cargo_test.bat test -p archeaxis-api --tests --offline` 实跑 48 个测试二进制、**232 passed / 0 failed**、exit 0，含 `contract_auth_boundaries`、`launch_auth`、`contract_absent_surfaces`（未挂载 404 与已挂载 405 的区分）、`contract_process_model`、`contract_constant_fields`、`contract_job_outputs`、`api_closed_loop`。**残留**：这是工程/契约层证据，不含 UI 运行期读回（未把 `src-tauri/gen/schemas/capabilities.json` 当作权限证据读取），安装态资格仍由 Q02/Q14 承担。 |
 | Q04 原件与文档保存 | TESTED_LOCAL / PARTIAL | 已实现 schema11 CAS 原件、Document/Block、同事务 editor JSON/正文投影、稳定 block IDs、未知节点保真、乐观锁409、旧版本读取及恢复生成新版本；真实 file-backed Store/API 回归通过。25个约1MB文档的目录改为六字段摘要，全workspace --locked回归已PASS。独立备份演练继续见Q11；不能从API代推installedUI。578d独立副本恢复与普通保存策略九断言已逐项核验；不代替同资料真人学习闭环。 |
 | Q05 阅读与证据样板 | INSTALLED_RUNTIME_VERIFIED / PARTIAL | Tauri有限命令、PDF.js、Tiptap、稳定块/版本/正典引用保留；九项Avalonia SVG图标、主导航/命令面板/来源链/活动坞已吸收。固定d91安装态21步实际PASS，四区导航与Ctrl+Alt+J真实trusted键事件、焦点/正文/版本不变通过；不是未执行的复用设计。Green f151实际19步骤与普通VBS后端ready保留；新增媒体UI仅239项前端工程测试通过、尚未安装态执行，物理IME、完整旧菜单动画/原件视觉和真人Owner仍缺。 |
 | Q06 A 波次多格式吸收 | INSTALLED_RUNTIME_VERIFIED / PARTIAL | 已有安装矩阵保持XLSX/PPTX已知单元格/页文本、CSV、TAR/ZIP生产成员、EPUB Reader、PNG实际OCR及四损坏样本重启结果。新增REAL混合本地链已逐项通过MP3/WAV/M4A/FLAC/OGG/OPUS实际ASR与MP4/MOV/MKV/WebM解码、ASR、三帧LM Studio识别、Core时间锚点/派生CAS/重启及视频备份恢复；SRT/VTT各294句时间与独立锚点也已通过。损坏及无音轨MP4保留原件/错误与partial状态。各收据与边界见顶部，旧安装WAV/MP4仍只probe，不外推新增媒体已安装；人工语义质量、连续视觉全覆盖及新Green部署仍缺。 |
@@ -416,6 +416,13 @@ a11 真实 Tauri 窗口旅程 `aaos01-webdriver/e4236d2bedb44a5882f2c03b480feb08
 更根本的问题：文档 `rule` 与 `verdict_definitions` 定义 `REFERENCE/ADAPTER/ABSORB/PROVIDER/SIDECAR/BENCHMARK/REJECT` 七个判定，但 47 行实际使用 `ADOPT/CURRENT/EVALUATE/REFERENCE/REJECT-CORE/REVIEW-BLOCK/SIDECAR`——其中 5 个判定词**文档从未定义**，仅 2 个重合。故该表当前不可逐条核对；本轮只提交事实，不改写该文档、不虚填 369 行、不安装任何捐赠项。
 
 自查纠错两处：核对脚本首版按子串匹配，`vad` 命中无关包名，把无声明项误判为已落地；且只查依赖清单，把已在 `.github/workflows/ci.yml` 实际调用的 pip-audit 与 Gitleaks 误判为未吸收。现改为整词匹配并把**流水线调用**与**源码实现**各列为独立证据来源；`C008 sqlite-vec` 一行另记：它在 Python 侧确有声明，而 Rust Core 读不了遗留库的 `vec0` 表（见上文遗留库一节）——"已声明"不等于"需要它的组件可用"，两者不可互推。
+
+## Q03 契约与权限读回 + 本轮权威套件（2026-10-06）
+
+- **契约/权限（Q03）**：`scripts/ci/cargo_test.bat test -p archeaxis-api --tests --offline` → 48 个测试二进制、**232 passed / 0 failed**、exit 0；完整日志落忽略目录 `.project-local/task-runtime/q03-cargo-tests-20261006.log`（不入库）。
+- **DTO 漂移检查**：`generate_vocabulary.py --check`（drift 为空）、`generate_core_document.py --check`、`generate_capability_catalog.py --check`、`check_media_window_policy.py --check`，四者 exit 0。
+- **权威全量套件**（`scripts/ci/run_tests.sh --full`）在干净提交 `921bd8c7`（dirty=0）上：**4168 passed、70 skipped、144 subtests passed、0 failed**，485.06s。与更早一次同口径运行相比，收集总数相同（4238）但 **11 项由 passed 变为 skipped**；已核查这些测试的跳过条件**不**引用本轮删除的 `candidates/`、`build/green-candidates`，故不是清理所致，成因未定——如实记录，不当作已知。
+- **本轮自身两次失误，均已发现并修正**：把 cargo 输出管道给 `tail`，只留下末 25 行、汇总丢失（已改为重定向到文件后重跑，取回 232/0）；守门脚本在一次编辑中丢失了引用检查（同回合内发现并恢复）。
 
 ## Q00 现场身份只读核验与门禁（2026-10-06）
 
