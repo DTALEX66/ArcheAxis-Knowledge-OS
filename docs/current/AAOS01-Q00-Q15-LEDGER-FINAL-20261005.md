@@ -1323,3 +1323,72 @@ Python 全量 4256 passed, 30 skipped, 14 warnings, 166 subtests passed in 438.6
 **`.ppt` 与 Tika 侧车在本机不可达**：JVM 实测缺席——`C:\Program Files\Java`、`C:\Program Files\Eclipse Adoptium`、`C:\Program Files\Microsoft\jdk`、`D:\All projects\OS External Configuration\10-toolchains\java` 均无内容，`where java` 退出码 1（where.exe 的“未找到匹配文件”消息以 GBK 控制台编码返回，此处不复写其乱码字节）；扫描范围内也没有任何 Tika jar。台账 A010（Apache Tika, `document-legacy`, SIDECAR, qualification `[source]`）因此**不能**在本机升档：升它需要装系统级 Java，而本轮边界明确禁止装系统级软件。结论写死：`.ppt` 在本地没有合法读取路径，除非引入一个不需要 JVM 的读取器并另行验证——**不做无样本的自造实现**。
 
 **这条记录的作用**：把两条反复被引用却没有度量的判断（`.doc`/`.ppt` 无 reader、Tika 待装）换成有哈希、有字节数、有退出码的实测，并标明仍未决的是**处置**而不是**是否存在**。
+
+
+## `.doc` 切片：把具名拒绝换成"按名路由 + 探针式外部 sidecar"（2026-10-07）
+
+**这一刀改变的是证据的性质，不只是多了一个格式。** `.doc` 此前在四层表里都**不命名**，
+所以它是具名拒绝；现在它命名，并交给一个**探针式外部二进制**（antiword）去读。
+关键不是"能读了"，而是**产品不再假装依赖存在**：
+解析顺序 `ARCHEAXIS_ANTIWORD_CMD` → 已声明的能力清单 → `PATH`；
+拿到候选以后先问它"你是谁"（`-h` 里必须自报 `MS-Word`），答不上来就当不是引擎；
+配置了却指向不存在的路径 → **具名失败，绝不改用别的二进制**（这正是 `tool_paths` 自己写的规则）；
+解析不到 → 作业以 `doc engine missing (…)` 失败，**不投影任何东西**。
+
+**踩到的坑全部来自实测，不是想象**（一条一条都进了代码注释或用例）：
+1. `-m <绝对路径>` 被 antiword **截到 32 字符**再接 `.txt` —— 53 字符的路径变成
+   `C:/Program Files/Git/mingw64/sha.txt` 并退出 1。所以产品**不请求映射文件**，
+   用引擎默认映射；实测默认映射还会**保留 `’`（U+2019）**，而 `-m UTF-8.txt` 把它压平成 ASCII。
+2. **批处理退出码不可信**：一份有效 + 一份无效 + 一份有效的混合批次**整体退出 0**，
+   错误只在 stderr。因此一律**一个进程读一个文件**（用例断言命令里只有一个文档参数）。
+3. `-x db` 对**不是 Word 的**输入仍然吐出 164 字节 XML 前导再退出 1 —— 有输出不等于读到了。
+   本切片只用 `-t`，且以**退出码为准**。
+4. 引擎把**输入绝对路径回显**在拒绝消息里（`<path> is not a Word Document.`）。
+   收据里剥掉路径前缀，只留引擎自己的理由：存下来的证据不该带着这台主机的目录结构。
+
+**夹具的证据强度换了一次**：`.xls` 的夹具是项目自造（`xlwt` 一次性写出，我已在账本里认过这一点）；
+`.doc` 用**真的 Word 文档**——Apache Tika 3.3.2（钉到 commit `b8a6916e…`）的
+`testWORD.doc`，32,768 字节，sha256 `5ca19b67…`，git blob `c1f4f3d0…`，
+OLE2 魔数 `D0CF11E0A1B11AE1`、Word97 `nFib 0x00C1`、注册块 `Word.Document.8`。
+它在 Apache-2.0 下带署名再分发，出处与哈希写进 `tests/fixtures/golden/manifest.json` 与
+`THIRD_PARTY_NOTICES.md`。**这是对我此前被纠正的"自造夹具"问题的一次实质改正。**
+
+**我改了两处已提交断言**（前提正是本切片替换的规则）：
+`office_job_end_to_end.rs` 与 `xls_member_chain.rs` 都把 `old.doc` 从"必须拒名"里移出，
+`.ppt` 保留拒绝；两处都新增 `.doc` **必须**命名为 `application/msword`、且**不得**当纯文本读。
+`route_capabilities.rs` 新增按内容断言；另在 Python 侧新增**首表可达性守卫**——
+读 `attempts.rs` 源码，要求 `"doc" => "application/msword"` 存在、
+且 `"doc"` **不出现在它之前的任何分支**里。这是 `.py` 那次"四张表都说支持、实际被更早分支遮蔽"
+事故的制度化，不是装饰。
+
+**我自己的两处缺陷，写在这里**：
+1. 更新 golden manifest 时我又用 `json.dumps` 整档重写，导致 **63 行无关重排**
+   （把别的紧凑 `expected` 对象展开）。已改回**按行插入**并复验 `git diff --numstat` 为
+   **+12/-0**。这与本账本此前记过的"整文件重写"教训同类，属于复发，不是新认识。
+2. 探针用例第一版用一个不存在的配置路径去测"引擎缺失"，与我刚立的"配置的绝对路径不存在即具名失败"
+   互相矛盾——修的是测试（改用 tmp 下真实存在的假二进制），**不是放宽产品行为**。
+
+**仍未闭合，不粉饰**：
+- antiword **没有**写进 `config/environment/capability-requirements.yaml`，也**没有**进供给链台账。
+  原因是**上游身份没实测到**：`packages.msys2.org` 的搜索 API 对 `antiword` 返回空结果、
+  包页面返回 307 重定向，我没有拿到可信的 canonical URL / 版本 / 许可版本，
+  因此**不写台账行**（编一个来源比缺一行更糟）。绑定它需要的下一步是把包身份钉死，
+  再决定是否把二进制放进外置工具库。
+- `.ppt` 在这台机器上**没有合法读取路径**：唯一候选是 JVM 侧车，而本机无 JVM 且本轮不许装系统级软件。
+- CI 侧车缺席 → `test_the_real_sidecar_reads_the_real_word_document` 在无 antiword 的运行环境里
+  会**skip**；skip 是关于主机的陈述，不是通过。本机这次它是**真跑过**的（12 passed 里含它）。
+- FMT-21 逐扩展名真人验收仍 NOT_RUN；`.doc` 的投影是引擎文本，**没有**标题级/样式/图片信息，
+  也不宣称有。
+
+**验证（度量口径）**：Rust `cargo test --workspace --offline` → cargo test --workspace --offline: 123 suites ok / 503 passed / 0 failed；
+Python 全量 `dev.py --pytest tests -q` → 4270 passed, 30 skipped, 14 warnings, 166 subtests passed in 423.30s (0:07:03)；
+新增 `tests/workers/test_doc_engine.py` **14 passed**（含真实引擎读真实 Word 文档那一项，
+以及一条走**真实 transport** 的端到端用例：输出三件套齐、`params.worker_structure` 保留 24 条、
+transport 自己派生的 60 条行锚其中 24 条非空——两者数量与含义都不同，收据里写明谁是谁）；
+`route_capabilities.rs` 3 passed、`office_job_end_to_end.rs` 8 passed、`xls_member_chain.rs` 2 passed；
+媒体/路由/传输选择集 248 passed 1 skipped；golden/fixture/notices 选择集 77 passed 3 skipped；
+`check_format_matrix.py` exit 0（F14 只改 implemented_now/gap/evidence，
+required_output 与 formats 逐字未动）；`cargo fmt --all --check` **PASS**（0 处 diff）。
+
+**回滚**：revert 本切片提交即可（worker 探针 + 四层命名 + 夹具与 manifest 行 +  notices 段 +
+两处断言更新同属一次改动）；回滚后 `.doc` 回到具名拒绝的旧状态。
