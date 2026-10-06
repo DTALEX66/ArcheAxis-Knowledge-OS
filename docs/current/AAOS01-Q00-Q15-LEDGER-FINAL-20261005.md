@@ -423,6 +423,8 @@ a11 真实 Tauri 窗口旅程 `aaos01-webdriver/e4236d2bedb44a5882f2c03b480feb08
 
 格式矩阵同期按代码更正 **F10**（`media.transcribe` 路由存在、MP3/M4A/FLAC 可经 `attempts.rs:137-140` 到达）与 **F11**（`media.video` 接受 MKV/WebM、`subtitles.structure` 存在）；矩阵各组 `gap` 是"每种声明格式还缺什么"的权威清单，仍未收敛为 complete（16 组：0 complete、14 partial、2 custody-only）。
 
+**权威 runner 的绑定条件（已追到代码，非猜测）**：`dev.py:97 external_toolchain()` 只在环境里**注册了根**时才生效（读 `OS_EXTERNAL_CONFIG` / `ARCHEAXIS_EXTERNAL_ROOT`，`dev.py:110-116`；无根即返回 `{}`）；发现到的 MSVC/Rust/TESSDATA_PREFIX/PATH 由 `environment()` 在 `:266` 合并，子进程以 `env = dict(os.environ)` 继承后覆盖（`:413` / `:467`），所以**操作者自己导出即可生效**。本机这两个变量实测均为 None ⇒ `run_tests.sh --full` 会静默跳过这些格式用例，`cargo_test.bat` 也必须手工传参——这不是工具缺失，也不是代码缺陷。仓库自己的索引 `config/environment/external-resources-index.json` 已记录根路径且 `root_present: true`，但 dev.py **有意**不信任它：两个测试把该契约钉住（`test_no_registered_root_discovers_nothing` 断言无根时返回 `{}`；`test_complete_root_discovers_all_four` 断言键集合恰为四项）。因此"让权威 runner 自动回退到索引"是一次**契约变更决定**，不是可顺手改的实现细节；在此之前，本地覆盖率取决于是否导出 `ARCHEAXIS_EXTERNAL_ROOT`。
+
 ## Q05 证据样板读回（2026-10-06）
 
 本轮只做"仓库内可复核"的那一半：`evidence_anchors_api` 5/5、`source_transform_readback` 4/4、Python 证据套件 20/1 skipped。断言本身即结论——`time_anchor_binds_actual_receipt_and_preserves_old_attempt` 与 `epub_locator_requires_exact_receipt_identity_and_retains_old_anchor` 要求锚点绑定**真实回执**并保留旧锚点，`a_source_that_does_not_own_the_job_is_refused` 要求来源不拥有该任务即被拒。**安装态那一段（d91 21 步、四区导航、Ctrl+Alt+J）本轮未重做**：它的收据在 `.project-local/` 与交接记录里，不在仓库内，因此只保留为自行记录，不并入本轮实测结论——这正是此前 Q04 被撤销的那类错误边界。日志 `.project-local/task-runtime/q05-tests-20261006.log`。
