@@ -75,6 +75,18 @@ export function App() {
     setInspectorOpen(true);
   }, []);
 
+  const toggleInspector = useCallback(() => setInspectorOpen((value) => !value), []);
+  useEffect(() => {
+    const shortcut = (event: KeyboardEvent) => {
+      if (commandPaletteOpen || event.repeat || event.isComposing || event.getModifierState("AltGraph")) return;
+      if (event.ctrlKey && event.altKey && !event.metaKey && !event.shiftKey && event.key.toLowerCase() === "i") {
+        event.preventDefault(); toggleInspector();
+      }
+    };
+    window.addEventListener("keydown", shortcut);
+    return () => window.removeEventListener("keydown", shortcut);
+  }, [commandPaletteOpen, toggleInspector]);
+
   const beginOperation = useCallback(() => {
     liveness.current.generation += 1;
     if (liveness.current.timeout !== null) {
@@ -364,7 +376,7 @@ export function App() {
         onNavigate={navigate}
         onCommandPaletteOpenChange={setCommandPaletteOpen}
         inspectorOpen={inspectorOpen}
-        onToggleInspector={() => setInspectorOpen((value) => !value)}
+        onToggleInspector={toggleInspector}
       />
       <div className="app-body">
         <SpaceRail active={activeSpace} onNavigate={navigate} spaces={SPACES} />

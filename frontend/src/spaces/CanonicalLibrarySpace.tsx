@@ -77,7 +77,7 @@ export function CanonicalLibrarySpace({onKnowledge,initialDocumentId,onDirtyChan
   useEffect(()=>{if(initialDocumentId)void openDocument(initialDocumentId);},[initialDocumentId]);
   async function importFile(file: File) {
     setImportReceipt({name:file.name,bytes:file.size,state:"正在检查原件"});
-    if (file.size > 5 * 1024 * 1024) { setMessage("当前导入上限为 5 MB，请选择较小样本。"); setFailure(true); setImportReceipt({name:file.name,bytes:file.size,state:"未导入：超过大小上限"}); return; }
+    if (file.size > 64 * 1024 * 1024) { setMessage("当前导入上限为 64 MiB，请选择不超过上限的原件。"); setFailure(true); setImportReceipt({name:file.name,bytes:file.size,state:"未导入：超过大小上限"}); return; }
     setImporting(true); setFailure(false); setMessage("正在导入原件…");
     try {
       const content = new Uint8Array(await file.arrayBuffer());

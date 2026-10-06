@@ -33,6 +33,53 @@ describe("App shell", () => {
     expect(invoke).toHaveBeenCalled();expect(invoke.mock.calls.every(([command])=>command==="core_command")).toBe(true);expect(fetch).not.toHaveBeenCalled();
   });
 
+  it("SIMULATED Inspector shortcut shares mouse toggle without navigation, focus loss or draft writes", async () => {
+    const user = userEvent.setup();
+    render(<App />);
+    const main = screen.getByRole("main");
+    const before = main.innerHTML;
+    const draft = document.createElement("textarea"); draft.value = "未保存草稿"; document.body.append(draft); draft.focus();
+    try {
+      act(() => window.dispatchEvent(new KeyboardEvent("keydown", {key:"i",ctrlKey:true,altKey:true,bubbles:true})));
+      expect(screen.getByRole("complementary", {name:"检查器"})).toBeInTheDocument();
+      expect(document.activeElement).toBe(draft); expect(draft.value).toBe("未保存草稿");
+      expect(main.innerHTML).toBe(before);
+      expect(screen.getByRole("button", {name:"折叠检查器"})).toHaveAttribute("aria-keyshortcuts", "Control+Alt+I");
+      await user.click(screen.getByRole("button", {name:"折叠检查器"}));
+      expect(screen.queryByRole("complementary", {name:"检查器"})).not.toBeInTheDocument();
+    } finally {draft.remove();}
+  });
+  it("SIMULATED Inspector shortcut ignores composition, repeat, AltGraph and extra modifiers", () => {
+    render(<App />);
+    const events = [
+      new KeyboardEvent("keydown", {key:"i",ctrlKey:true,altKey:true,repeat:true}),
+      new KeyboardEvent("keydown", {key:"i",ctrlKey:true,altKey:true,isComposing:true}),
+      new KeyboardEvent("keydown", {key:"i",ctrlKey:true,altKey:true,shiftKey:true}),
+      new KeyboardEvent("keydown", {key:"i",ctrlKey:true,altKey:true,metaKey:true}),
+      new KeyboardEvent("keydown", {key:"i",ctrlKey:true,altKey:true}),
+    ];
+    Object.defineProperty(events[4], "getModifierState", {value:(key:string)=>key==="AltGraph"});
+    for(const event of events) act(() => window.dispatchEvent(event));
+    expect(screen.queryByRole("complementary", {name:"检查器"})).not.toBeInTheDocument();
+  });
+  it("SIMULATED Inspector shortcut is blocked by the actual open command palette", async () => {
+    const user=userEvent.setup(); render(<App />);
+    await user.click(screen.getByRole("button", {name:"打开全局命令"}));
+    expect(screen.getByRole("dialog", {name:"全局命令"})).toBeInTheDocument();
+    act(() => window.dispatchEvent(new KeyboardEvent("keydown", {key:"i",ctrlKey:true,altKey:true})));
+    expect(document.querySelector('[aria-label="检查器"]')).toBeNull();
+    await user.keyboard("{Escape}");
+    act(() => window.dispatchEvent(new KeyboardEvent("keydown", {key:"i",ctrlKey:true,altKey:true})));
+    expect(screen.getByRole("complementary", {name:"检查器"})).toBeInTheDocument();
+  });
+  it("SIMULATED Inspector shortcut removes its exact listener on unmount", () => {
+    const add=vi.spyOn(window,"addEventListener"); const remove=vi.spyOn(window,"removeEventListener");
+    const view=render(<App />);
+    const listener=add.mock.calls.find(([type,handler])=>type==="keydown"&&typeof handler==="function"&&handler.name==="shortcut")?.[1];
+    expect(listener).toBeDefined();view.unmount();expect(remove).toHaveBeenCalledWith("keydown",listener);
+    add.mockRestore();remove.mockRestore();
+  });
+
   it("renders the shell landmarks (banner, navigation, main)", () => {
     render(<App />);
     expect(screen.getByRole("banner")).toBeInTheDocument();

@@ -464,3 +464,140 @@ async fn legitimate_material_failure_is_persisted_retryable_and_never_runs_worke
     assert_eq!(readback["content_sha256"], doc["content_sha256"]);
     assert_eq!(readback["text_projection"], text);
 }
+
+#[tokio::test]
+async fn retrieval_failure_details_survive_restart_without_blocking_ordinary_save() {
+    for (reason, reported, details) in [
+        (
+            "retrieval_failed",
+            "failed",
+            json!({"kind":"retrieval_failure","reason":"retrieval_failed","failure_code":"dns","failure_stage":"dns"}),
+        ),
+        (
+            "retrieval_failed",
+            "failed",
+            json!({"kind":"retrieval_failure","reason":"retrieval_failed","failure_code":"timeout","failure_stage":"transport"}),
+        ),
+        (
+            "retrieval_failed",
+            "failed",
+            json!({"kind":"retrieval_failure","reason":"retrieval_failed","failure_code":"policy","failure_stage":"policy"}),
+        ),
+        (
+            "retrieval_failed",
+            "failed",
+            json!({"kind":"retrieval_failure","reason":"retrieval_failed","failure_code":"http_status","failure_stage":"http_response","http_status":503}),
+        ),
+        (
+            "no_search_results",
+            "uncertain",
+            json!({"kind":"search","body_sha256":"a".repeat(64),"http_status":200,"bytes":13,"retrieved_at":1.0}),
+        ),
+    ] {
+        let dir = tempfile::tempdir().unwrap();
+        let db = dir.path().join("db.sqlite");
+        let script = dir.path().join("controlled-worker.py");
+        // Controlled protocol fixture: no SDK, network, model, or actual cloud acceptance.
+        let response = json!({"outcome":"failed","status":reported,"reason":reason,"basis":"","raw_response":"","engine_receipt":null,"retrieval_receipts":[details.clone()]});
+        let worker = format!(
+            "import json,sys\nrequest=json.load(sys.stdin)\nresult=json.loads({})\nresult.update(schema='archeaxis.document-check.response/v1')\nresult.update({{k:request[k] for k in ('attempt_id','request_check_id','document_id','version','content_sha256','dimension')}})\nprint(json.dumps(result))\nsys.exit(1)\n",
+            serde_json::to_string(&response.to_string()).unwrap()
+        );
+        std::fs::write(&script, worker).unwrap();
+        let python = std::path::PathBuf::from(std::env::var_os("ARCHEAXIS_PYTHON").unwrap());
+        let executor = Executor::open_routes(
+            &db,
+            &dir.path().join("staging"),
+            &python,
+            &script,
+            &[("machine.answer", script.clone())],
+        )
+        .await
+        .unwrap()
+        .with_document_check_config(Some(DocumentCheckConfig {
+            provider: "fixture".into(),
+            model: "fixture/explicit".into(),
+            endpoint: None,
+            max_tokens: 128,
+            timeout_seconds: 10,
+            search_limit: 1,
+        }))
+        .unwrap();
+        let router = archeaxis_api::runtime::router(executor.clone());
+        let (status,document)=call(&router,"POST","/api/v1/documents",json!({"title":"ordinary without external evidence","editor_json":{"type":"doc","content":[{"type":"paragraph","content":[{"type":"text","text":"OriginalNeverOverwritten"}]}]}}),"human").await;
+        assert_eq!(status, 201);
+        assert!(document["source_id"].is_null());
+        let path = format!(
+            "/api/v1/documents/{}",
+            document["document_id"].as_str().unwrap()
+        );
+        let checks = format!("{path}/checks");
+        let execute = format!("{checks}/execute");
+        let (_, pending) = call(
+            &router,
+            "POST",
+            &checks,
+            json!({"version":1,"dimension":"professional_basis","provider_mode":"cloud"}),
+            "human",
+        )
+        .await;
+        let body = json!({"check_id":pending["check_id"],"expected_content_sha256":document["content_sha256"]});
+        assert_eq!(
+            call(&router, "POST", &execute, body.clone(), "machine")
+                .await
+                .0,
+            403
+        );
+        let mut wrong = body.clone();
+        wrong["expected_content_sha256"] = json!("wrong");
+        assert_eq!(call(&router, "POST", &execute, wrong, "human").await.0, 400);
+        let (status, terminal) = call(&router, "POST", &execute, body.clone(), "human").await;
+        assert_eq!(status, 201, "{terminal}");
+        assert_eq!(terminal["reason"], reason, "{terminal}");
+        assert_eq!(terminal["execution_state"], "failed", "{terminal}");
+        assert_eq!(terminal["execution_verified"], false);
+        assert_eq!(terminal["status"], "failed");
+        assert_eq!(terminal["reported_status"], reported, "{terminal}");
+        assert_eq!(terminal["retrieval_receipts"], json!([details]));
+        assert!(terminal["engine_receipt"].is_null());
+        let (_,saved)=call(&router,"PUT",&format!("{path}/draft"),json!({"expected_version":1,"editor_json":{"type":"doc","content":[{"type":"paragraph","content":[{"type":"text","text":"StillSaveableAfterRetrievalFailure"}]}]}}),"human").await;
+        assert_eq!(saved["version"], 2);
+        drop(router);
+        drop(executor);
+        let restarted = archeaxis_api::app(db.to_str().unwrap()).unwrap();
+        let (_, history) = call(
+            &restarted,
+            "GET",
+            &format!("{checks}?version=1"),
+            json!(null),
+            "human",
+        )
+        .await;
+        assert_eq!(history["historical"], true);
+        assert!(history["checks"].as_array().unwrap().contains(&terminal));
+        assert_eq!(
+            call(&restarted, "GET", &path, json!(null), "human").await.1,
+            saved
+        );
+        let mut retry = body;
+        retry["retry_of_task_id"] = terminal["attempt_id"].clone();
+        let (status, retry_result) = call(&restarted, "POST", &execute, retry, "human").await;
+        assert_eq!(status, 201);
+        assert_ne!(retry_result["attempt_id"], terminal["attempt_id"]);
+        assert_eq!(retry_result["reason"], "not_configured");
+        let (_, history_after) = call(
+            &restarted,
+            "GET",
+            &format!("{checks}?version=1"),
+            json!(null),
+            "human",
+        )
+        .await;
+        assert!(
+            history_after["checks"]
+                .as_array()
+                .unwrap()
+                .contains(&terminal)
+        );
+    }
+}

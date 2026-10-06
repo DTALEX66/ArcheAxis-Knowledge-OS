@@ -46,12 +46,9 @@ def test_the_committed_record_passes_against_the_real_tree():
     assert failures == []
     assert detail["workers"] >= 11
     assert detail["routed"] >= 10
-    # Two exemptions: media/worker_video.py, which returns measurements and artifacts rather
-    # than a projected text, and machine/worker_machine_answer.py, which is reached by the Core
-    # route POST /api/v1/machine/answers instead of by job dispatch because the job protocol
-    # cannot carry its question. The ASR engine that was exempted for want of a model is routed
-    # as media.transcribe as of 2026-10-01.
-    assert detail["exempted"] == 2
+    # Video now serves actual media.video jobs; machine answers retain their owned API exemption.
+    assert detail["exempted"] == 1
+
 
 
 def test_the_discovery_rule_finds_the_workers_it_claims_to():
@@ -73,22 +70,22 @@ def test_every_routed_worker_is_really_named_by_a_route():
     assert "services/python-workers/document/worker_subtitles.py" in routed
     # the ASR engine is routed now, so it must appear in the route table
     assert "services/python-workers/media/worker_transcribe.py" in routed
-    # the remaining exempted one must not appear in the route table, or its exemption is stale
-    assert "services/python-workers/media/worker_video.py" not in routed
+    # Video is now routed; its former exemption must not remain.
+    assert "services/python-workers/media/worker_video.py" in routed
 
 
 def test_a_worker_with_no_route_and_no_reason_is_refused(tmp_path):
     record = _record_for(tmp_path, [])
     failures = _failures(record)
     assert any("is not named by any transport route and has no recorded reason" in line for line in failures)
-    assert any("worker_video.py" in line for line in failures)
+    assert any("worker_machine_answer.py" in line for line in failures)
 
 
 def test_an_exemption_with_no_reason_is_refused(tmp_path):
     record = _record_for(
         tmp_path,
         [
-            {"worker": "services/python-workers/media/worker_video.py", "engine": "python-worker-video"},
+            {"worker": "services/python-workers/machine/worker_machine_answer.py", "engine": "python-worker-machine-answer"},
         ],
     )
     failures = _failures(record)

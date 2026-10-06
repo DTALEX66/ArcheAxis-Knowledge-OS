@@ -110,7 +110,8 @@ bake-off 框架：[`shared/bakeoff.py`](shared/bakeoff.py) + [`shared/bakeoff_en
 > FastAPI/SQLite facade, routes and completion claims describe an earlier
 > architecture. They remain migration/compatibility evidence and do not define
 > the formal vNext shell, Core, current capability status or active queue.
-> Current execution is defined by R6/M0 and read back in `docs/current/R6-EXECUTION.md`.
+> R6/M0 receipts retain their historical scope. Current execution is defined by AAOS-01 and
+> read back only in `docs/current/AAOS01-Q00-Q15-LEDGER-FINAL-20261005.md`.
 
 ## Phase 4 Research Status
 

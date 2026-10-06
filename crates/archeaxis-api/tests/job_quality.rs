@@ -84,6 +84,7 @@ async fn a_queued_job_reports_facts_without_an_accuracy_claim() {
     assert_eq!(value["state"], "queued");
     assert_eq!(value["loss_count"], 0);
     assert_eq!(value["region_count"], 0);
+    assert!(value["core_artifact_adoption"].is_null());
     assert!(
         value["coverage"].is_null(),
         "no receipt yet means no coverage claim: {value}"

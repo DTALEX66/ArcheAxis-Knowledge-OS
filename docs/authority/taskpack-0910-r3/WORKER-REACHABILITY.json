@@ -5,12 +5,6 @@
   "routing_source": "services/python-workers/transport/text_ndjson.py",
   "unrouted": [
     {
-      "worker": "services/python-workers/media/worker_video.py",
-      "engine": "python-worker-video",
-      "reason": "three independent reasons, of which the recorded one was only the third. (1) It returns no projected text: its result is a duration, an extracted 16 kHz mono audio path and a list of sampled keyframes with hashes - real measurements, but no text. The route contract is a projected text and the Core derives canonical line anchors from it and refuses a receipt whose structure does not match, so no parameters field would make this worker routable. (2) It produces file artifacts (the audio WAV and the JPEG frames) and the attempt directory is temporary, so routing it also needs an artifact-transfer shape the PDF and archive routes have but this one would need in a different form. (3) It takes an output directory and frame interval/cap options, and parameters are currently required to be empty. Routing frame extraction therefore needs an artifact-and-measurement contract alongside, or instead of, the text-projection contract - a deliberate design decision, not a flag. Unrouted on purpose and recorded here.",
-      "what_it_would_serve": "F11 (MP4/MOV/MKV/WebM): frame events, sampling coverage, and a 16 kHz mono audio track for the ASR lane"
-    },
-    {
       "worker": "services/python-workers/machine/worker_machine_answer.py",
       "engine": "python-worker-machine-answer",
       "reason": "two reasons, and the first is what makes this entry unusual: the worker is **reachable**, just not through job dispatch. (1) It is served by the Core route `POST /api/v1/machine/answers`, which accepts a knowledge id and a question and runs this worker as a process through the same boundary every engine-calling capability uses. The job protocol cannot carry that route: a route in the transport table is validated with `parameters` required to be empty, so there is nowhere for the question to travel, and declaring one would be a route that fails its own validation. (2) Its result is an answer and a loss receipt rather than a projected text with canonical anchors, so the text-projection contract does not describe it either. Not a job route on purpose, reachable through an owned Core route, and recorded here so a reader can tell that from a missing capability.",

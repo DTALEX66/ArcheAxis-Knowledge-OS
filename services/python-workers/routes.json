@@ -26,6 +26,9 @@
     "media.probe": [
       "document/worker_media.py"
     ],
+    "media.video": [
+      "media/worker_video.py"
+    ],
     "media.transcribe": [
       "media/worker_transcribe.py"
     ],

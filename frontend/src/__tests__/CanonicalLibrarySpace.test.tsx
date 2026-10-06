@@ -155,9 +155,22 @@ describe("canonical content sample", () => {
     expect(details).toHaveTextContent(hash);
     expect(details).toHaveTextContent("原件字节与 Core 内容指纹已匹配");
   });
+  it.each([6,26])("SIMULATED: imports a %i MiB original without invoking conversion",async(size)=>{
+    const previous=bridge.call.getMockImplementation()!;
+    bridge.call.mockImplementation(async(op:string,payload:Record<string,unknown>)=>op==="source_import"?{source_id:"fixture-import",sha256:hash}:previous(op,payload));
+    render(<CanonicalLibrarySpace/>);
+    const raw=new Uint8Array(size*1024*1024);
+    const file=new File([raw],"fixture.mp3");
+    Object.defineProperty(file,"arrayBuffer",{value:async()=>raw.buffer});
+    await userEvent.setup().upload(screen.getByLabelText("导入原件"),file);
+    await waitFor(()=>expect(screen.getByLabelText("导入回执")).toHaveTextContent("原件已保留；转换尚未执行"),{timeout:12000});
+    const call=bridge.call.mock.calls.find(([op])=>op==="source_import")!;
+    expect(atob(call[1].body.content_base64).length).toBe(raw.byteLength);
+    expect(bridge.call.mock.calls.some(([op])=>op==="job_enqueue"||op==="job_execute")).toBe(false);
+  },15000);
   it("reports oversized import as not imported instead of conversion success",async()=>{
     render(<CanonicalLibrarySpace/>);
-    const file=new File([new Uint8Array(5*1024*1024+1)],"large.xlsx");
+    const file=new File([new Uint8Array(64*1024*1024+1)],"large.xlsx");
     await userEvent.setup().upload(screen.getByLabelText("导入原件"),file);
     expect(await screen.findByLabelText("导入回执")).toHaveTextContent("未导入：超过大小上限");
     expect(bridge.call.mock.calls.some(([operation])=>operation==="source_import")).toBe(false);

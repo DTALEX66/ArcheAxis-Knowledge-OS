@@ -352,3 +352,82 @@ async fn epub_locator_requires_exact_receipt_identity_and_retains_old_anchor() {
         original
     );
 }
+
+#[tokio::test]
+async fn subtitle_time_anchor_binds_unicode_quote_and_attempt_after_reopen() {
+    use sha2::{Digest, Sha256};
+    let dir = tempfile::tempdir().unwrap();
+    let db = dir.path().join("subtitle.sqlite");
+    let mut conn = init_workspace(db.to_str().unwrap()).unwrap();
+    let original = b"1\n00:00:00,008 --> 00:00:00,080\nvalue\n";
+    let source_id = match source::import_source(&mut conn, original, "known.srt", None).unwrap() {
+        ImportOutcome::Imported { source_id, .. } | ImportOutcome::Duplicate { source_id, .. } => {
+            source_id
+        }
+    };
+    let revision = format!("{:x}", Sha256::digest(original));
+    archeaxis_application::jobs::enqueue(&mut conn, "subtitle-job", "subtitles", &source_id)
+        .unwrap();
+    let text = "前言\n值37\n";
+    let quote = "值37";
+    let loss = serde_json::json!({"params":{"worker_structure":[{"kind":"cue","offset_ms":8,"duration_ms":72,"char_start":3,"char_end":6}]}}).to_string();
+    let result_sha = format!("{:x}", Sha256::digest(loss.as_bytes()));
+    let checksum = format!("{:x}", Sha256::digest(quote.as_bytes()));
+    let request=serde_json::json!({"job_id":"subtitle-job","attempt":1,"capability":"subtitles.structure","inputs":[{"sha256":revision}]}).to_string();
+    conn.execute("INSERT INTO job_attempts(job_id,attempt,request_id,request_json,state) VALUES('subtitle-job',1,'subtitle-request',?1,'succeeded')",[request]).unwrap();
+    conn.execute(
+        "UPDATE jobs SET state='succeeded' WHERE job_id='subtitle-job'",
+        [],
+    )
+    .unwrap();
+    for (kind, content) in [("text", text), ("loss_report", loss.as_str())] {
+        let metadata=serde_json::json!({"kind":kind,"sha256":format!("{:x}",Sha256::digest(content.as_bytes())),"byte_length":content.len()}).to_string();
+        conn.execute("INSERT INTO job_outputs(job_id,attempt,kind,metadata_json,content) VALUES('subtitle-job',1,?1,?2,?3)",rusqlite::params![kind,metadata,content]).unwrap();
+    }
+    drop(conn);
+    let position = serde_json::json!({"type":"time","job_id":"subtitle-job","attempt":1,"cue_index":0,"start_ms":8,"end_ms":80,"result_sha256":result_sha});
+    for (field, value) in [
+        ("start_ms", serde_json::json!(80)),
+        ("end_ms", serde_json::json!(800)),
+        ("attempt", serde_json::json!(2)),
+        ("result_sha256", serde_json::json!("wrong")),
+    ] {
+        let mut bad = position.clone();
+        bad[field] = value;
+        assert_eq!(
+            time_anchor_post(&db, &source_id, &revision, bad, Some(&checksum))
+                .await
+                .0,
+            StatusCode::BAD_REQUEST
+        );
+    }
+    assert_eq!(
+        time_anchor_post(&db, &source_id, &revision, position.clone(), Some("wrong"))
+            .await
+            .0,
+        StatusCode::BAD_REQUEST
+    );
+    let (status, located) = time_anchor_post(
+        &db,
+        &source_id,
+        &revision,
+        position.clone(),
+        Some(&checksum),
+    )
+    .await;
+    assert_eq!(status, StatusCode::CREATED);
+    assert_eq!(located["location_status"], "located");
+    let conn = init_workspace(db.to_str().unwrap()).unwrap();
+    conn.execute(
+        "UPDATE job_outputs SET content='tampered' WHERE job_id='subtitle-job' AND kind='text'",
+        [],
+    )
+    .unwrap();
+    drop(conn);
+    assert_eq!(
+        time_anchor_post(&db, &source_id, &revision, position, Some(&checksum))
+            .await
+            .0,
+        StatusCode::BAD_REQUEST
+    );
+}

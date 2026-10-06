@@ -26,6 +26,7 @@ pub const ENGINE_PROFILES: &[(&str, &str)] = &[
     // recording - but no route named it, so no job could reach it. A receipt may not report
     // this engine until the route below exists.
     ("python-worker-transcribe", "0.1.0"),
+    ("python-worker-video", "0.1.0"),
 ];
 
 /// R08: the extraction routes the Core can dispatch, declared once. A job's kind
@@ -67,6 +68,7 @@ pub const ROUTES: &[(&str, &str, &str)] = &[
     // projection is a transcript with time-coded cues, so it gets its own kind, capability
     // and worker rather than being probed as a container.
     ("transcribe", "media.transcribe", "audio/wav"),
+    ("video", "media.video", "video/mp4"),
 ];
 
 /// Resolve a job kind to its route: (capability, input media type).
@@ -116,7 +118,19 @@ pub const ROUTE_MEDIA_TYPES: &[(&str, &[&str])] = &[
         "archive.inventory",
         &["application/zip", "application/x-tar"],
     ),
-    ("media.probe", &["video/mp4", "audio/wav"]),
+    (
+        "media.probe",
+        &["video/mp4", "video/quicktime", "audio/wav"],
+    ),
+    (
+        "media.video",
+        &[
+            "video/mp4",
+            "video/quicktime",
+            "video/x-matroska",
+            "video/webm",
+        ],
+    ),
     (
         "media.transcribe",
         &[
@@ -167,7 +181,8 @@ pub fn accepted_media_types(capability: &str) -> &'static [&'static str] {
 /// members the Core may import). The executor tells only these workers where the
 /// artifact root is, so every other route keeps its launch shape and an unexpected flag
 /// stays an error rather than being silently accepted.
-pub const ARTIFACT_ROOT_CAPABILITIES: &[&str] = &["pdf.extract", "archive.inventory"];
+pub const ARTIFACT_ROOT_CAPABILITIES: &[&str] =
+    &["pdf.extract", "archive.inventory", "media.video"];
 
 /// R15/F06: routes whose successful job is followed by Core-side work, done inside the
 /// same commit as the completion so there is no window in which the job says it
@@ -200,9 +215,8 @@ pub fn media_type_for_name(name: &str) -> Option<&'static str> {
         // R15/F15: a container gets the archive route, not a text decode
         "zip" => "application/zip",
         "tar" => "application/x-tar",
-        // R15/F10-F11: the formats this repository can probe without decoding samples.
-        // mkv and webm are still deliberately NOT named: no reader here can read them, so a
-        // name that claims otherwise would be dispatched as noise.
+        // Name the actual container type; each capability separately limits what it reads.
+        // The video decoder accepts MKV/WebM; the limited header probe does not.
         //
         // The audio containers below WERE deliberately unnamed, on the grounds that no
         // reader here could read them. That stopped being true when the ASR route was
@@ -216,7 +230,10 @@ pub fn media_type_for_name(name: &str) -> Option<&'static str> {
         "flac" => "audio/flac",
         "ogg" | "oga" => "audio/ogg",
         "opus" => "audio/opus",
-        "mp4" | "m4v" | "mov" => "video/mp4",
+        "mp4" | "m4v" => "video/mp4",
+        "mov" => "video/quicktime",
+        "mkv" => "video/x-matroska",
+        "webm" => "video/webm",
         // R15/F07-F09: the OOXML families this repository can read; the legacy binary
         // formats (doc, ppt, xls) are deliberately NOT named, so they stay custody-only
         // instead of being handed to a reader that cannot open them.
@@ -403,6 +420,26 @@ pub fn finish(
     response: &Response,
     payloads: &[Vec<u8>],
 ) -> Result<(), JobError> {
+    finish_inner(conn, req, response, payloads, None)
+}
+
+pub fn finish_with_artifacts(
+    conn: &mut Connection,
+    req: &Request,
+    response: &Response,
+    payloads: &[Vec<u8>],
+    artifact_root: &std::path::Path,
+) -> Result<(), JobError> {
+    finish_inner(conn, req, response, payloads, Some(artifact_root))
+}
+
+fn finish_inner(
+    conn: &mut Connection,
+    req: &Request,
+    response: &Response,
+    payloads: &[Vec<u8>],
+    artifact_root: Option<&std::path::Path>,
+) -> Result<(), JobError> {
     let wire = serde_json::to_string(response).map_err(|_| JobError::Conflict)?;
     let response = decode_response(&wire, req).map_err(JobError::InvalidReceipt)?;
     if response.status != "succeeded" || payloads.len() != 3 {
@@ -456,6 +493,28 @@ pub fn finish(
         ));
     }
     let digest = hex::encode(Sha256::digest(wire.as_bytes()));
+    if req.capability == "media.video" {
+        let (state, old) = identity(conn, req)?;
+        if state == "succeeded" {
+            return if old.as_deref() == Some(&digest) {
+                Ok(())
+            } else {
+                Err(JobError::Conflict)
+            };
+        }
+        if state != "running" {
+            return Err(JobError::InvalidState);
+        }
+    }
+    let artifacts = if req.capability == "media.video" {
+        Some(crate::media_artifacts::prepare(
+            artifact_root.ok_or(JobError::InvalidReceipt("video artifact root missing"))?,
+            req,
+            &loss,
+        )?)
+    } else {
+        None
+    };
     let tx = conn.transaction_with_behavior(TransactionBehavior::Immediate)?;
     let (state, old) = identity(&tx, req)?;
     if state == "succeeded" {
@@ -468,7 +527,16 @@ pub fn finish(
     if state != "running" {
         return Err(JobError::InvalidState);
     }
-    jobs::complete_tx(&tx, &req.job_id, &loss.engine, text, Some(&loss))?;
+    let mut core_loss = loss.clone();
+    if let Some(artifacts) = artifacts {
+        let adoption = crate::media_artifacts::adopt_tx(&tx, req, &artifacts)?;
+        core_loss
+            .params
+            .as_object_mut()
+            .ok_or(JobError::InvalidReceipt("loss params must be object"))?
+            .insert("core_artifact_adoption".into(), adoption);
+    }
+    jobs::complete_tx(&tx, &req.job_id, &loss.engine, text, Some(&core_loss))?;
     if req.capability == "canvas.structure" {
         persist_canvas_projection(&tx, &req.job_id, &loss.params)?;
     }

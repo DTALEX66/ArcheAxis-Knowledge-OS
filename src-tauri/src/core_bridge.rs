@@ -416,13 +416,28 @@ fn reject_link(path: &std::path::Path) -> Result<(), String> {
     Ok(())
 }
 
+fn request_byte_limit(operation: &Operation) -> usize {
+    if matches!(operation, Operation::SourceImport) {
+        90 * 1024 * 1024
+    } else {
+        8 * 1024 * 1024
+    }
+}
+fn response_byte_limit(operation: &Operation) -> usize {
+    if matches!(operation, Operation::SourceOriginal) {
+        90 * 1024 * 1024
+    } else {
+        24 * 1024 * 1024
+    }
+}
+
 pub fn execute(port: u16, token: &str, request: Request) -> Result<Reply, String> {
     let (method, path, body) = route(&request)?;
     if let Some(ref body) = body {
         if serde_json::to_vec(body)
             .map_err(|_| "CORE_COMMAND_BODY_INVALID")?
             .len()
-            > 8 * 1024 * 1024
+            > request_byte_limit(&request.operation)
         {
             return Err("CORE_COMMAND_BODY_TOO_LARGE".into());
         }
@@ -459,12 +474,13 @@ pub fn execute(port: u16, token: &str, request: Request) -> Result<Reply, String
     }
     let response = builder.send().map_err(|_| "CORE_TRANSPORT_FAILED")?;
     let status = response.status().as_u16();
+    let response_limit = response_byte_limit(&request.operation);
     let mut bytes = Vec::new();
     response
-        .take(24 * 1024 * 1024 + 1)
+        .take(response_limit as u64 + 1)
         .read_to_end(&mut bytes)
         .map_err(|_| "CORE_RESPONSE_FAILED")?;
-    if bytes.len() > 24 * 1024 * 1024 {
+    if bytes.len() > response_limit {
         return Err("CORE_RESPONSE_TOO_LARGE".into());
     }
     let body = if bytes.is_empty() {
@@ -643,5 +659,34 @@ mod tests {
             .unwrap();
             assert!(route(&request).is_err());
         }
+    }
+}
+
+#[cfg(test)]
+mod media_bridge_budget_tests {
+    #[test]
+    fn enlarged_budgets_are_bound_to_original_transfer_operations() {
+        use super::*;
+        assert_eq!(
+            request_byte_limit(&Operation::SourceImport),
+            90 * 1024 * 1024
+        );
+        assert_eq!(
+            response_byte_limit(&Operation::SourceOriginal),
+            90 * 1024 * 1024
+        );
+        assert_eq!(
+            request_byte_limit(&Operation::DocumentDraft),
+            8 * 1024 * 1024
+        );
+        assert_eq!(response_byte_limit(&Operation::JobOutput), 24 * 1024 * 1024);
+        assert_eq!(
+            request_byte_limit(&Operation::SourceOriginal),
+            8 * 1024 * 1024
+        );
+        assert_eq!(
+            response_byte_limit(&Operation::SourceImport),
+            24 * 1024 * 1024
+        );
     }
 }

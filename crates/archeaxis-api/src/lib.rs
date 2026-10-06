@@ -96,7 +96,10 @@ pub(crate) fn projections_base(state: Store, manual_receipts: bool) -> Router {
             "/api/v1/workspace/backups",
             get(workspace_backup::list).post(workspace_backup::create),
         )
-        .route("/api/v1/imports", post(import_source))
+        .route(
+            "/api/v1/imports",
+            post(import_source).layer(axum::extract::DefaultBodyLimit::max(MAX_IMPORT_JSON_BYTES)),
+        )
         .route("/api/v1/jobs", post(enqueue_job))
         .route(
             "/api/v1/sources/:source_id/anchors",
@@ -203,15 +206,32 @@ struct ImportBody {
     received_at: Option<String>,
 }
 
+const MAX_IMPORT_BYTES: usize = 64 * 1024 * 1024;
+const MAX_IMPORT_JSON_BYTES: usize = 90 * 1024 * 1024;
+const MAX_IMPORT_BASE64_BYTES: usize = ((MAX_IMPORT_BYTES + 2) / 3) * 4;
+
+fn decode_import_content(encoded: &str) -> Result<Vec<u8>, StatusCode> {
+    // Reject oversized strings before decoding/allocation. Exact decoded length
+    // is checked too because the final base64 quantum can contain extra bytes.
+    if encoded.len() > MAX_IMPORT_BASE64_BYTES {
+        return Err(StatusCode::PAYLOAD_TOO_LARGE);
+    }
+    let bytes = base64_decode(encoded).ok_or(StatusCode::BAD_REQUEST)?;
+    if bytes.len() > MAX_IMPORT_BYTES {
+        return Err(StatusCode::PAYLOAD_TOO_LARGE);
+    }
+    Ok(bytes)
+}
+
 const ALLOWED_ORIGIN_KINDS: &[&str] = &["path", "url", "import", "manual"];
 
 async fn import_source(
     State(state): State<AppState>,
     Json(body): Json<ImportBody>,
 ) -> impl IntoResponse {
-    let bytes = match base64_decode(&body.content_base64) {
-        Some(b) => b,
-        None => return (StatusCode::BAD_REQUEST, "invalid content_base64").into_response(),
+    let bytes = match decode_import_content(&body.content_base64) {
+        Ok(bytes) => bytes,
+        Err(status) => return (status, "invalid or oversized content_base64").into_response(),
     };
     let origin_kind = body.origin_kind;
     let origin_ref = body.origin_ref;
@@ -1040,7 +1060,7 @@ fn verify_time_anchor(
         )
         .ok()?;
     if input != source
-        || kind != "transcribe"
+        || !matches!(kind.as_str(), "transcribe" | "video" | "subtitles")
         || job_state != "succeeded"
         || state != "succeeded"
         || latest != attempt
@@ -1051,7 +1071,14 @@ fn verify_time_anchor(
     let meta: serde_json::Value = serde_json::from_str(&metadata).ok()?;
     let loss: serde_json::Value = serde_json::from_str(&content).ok()?;
     let hash = format!("{:x}", Sha256::digest(content.as_bytes()));
-    if request["capability"] != "media.transcribe"
+    if request["capability"]
+        != (if kind == "video" {
+            "media.video"
+        } else if kind == "subtitles" {
+            "subtitles.structure"
+        } else {
+            "media.transcribe"
+        })
         || request["job_id"] != job
         || request["attempt"] != attempt
         || request["inputs"][0]["sha256"] != revision
@@ -1061,6 +1088,36 @@ fn verify_time_anchor(
         || meta["byte_length"].as_u64()? != content.len() as u64
     {
         return Some(false);
+    }
+    if kind == "subtitles" {
+        // Subtitle times verify the derived file declaration, never original ASR accuracy.
+        let cue = loss["params"]["worker_structure"].as_array()?.get(index)?;
+        let offset = cue["offset_ms"].as_u64()?;
+        let duration = cue["duration_ms"].as_u64()?;
+        let finish = offset.checked_add(duration)?;
+        let (text, text_metadata): (String, String) = conn.query_row(
+            "SELECT content,metadata_json FROM job_outputs WHERE job_id=?1 AND attempt=?2 AND kind='text'",
+            rusqlite::params![job, attempt], |r| Ok((r.get(0)?, r.get(1)?)),
+        ).ok()?;
+        let text_meta: serde_json::Value = serde_json::from_str(&text_metadata).ok()?;
+        if text_meta["kind"] != "text"
+            || text_meta["sha256"] != format!("{:x}", Sha256::digest(text.as_bytes()))
+            || text_meta["byte_length"].as_u64()? != text.len() as u64
+        {
+            return Some(false);
+        }
+        let first = usize::try_from(cue["char_start"].as_u64()?).ok()?;
+        let last = usize::try_from(cue["char_end"].as_u64()?).ok()?;
+        let chars: Vec<char> = text.chars().collect();
+        let quote: String = chars.get(first..last)?.iter().collect();
+        return Some(
+            cue["kind"] == "cue"
+                && !quote.is_empty()
+                && start < end
+                && offset == start
+                && finish == end
+                && format!("{:x}", Sha256::digest(quote.as_bytes())) == checksum,
+        );
     }
     let output = &loss["params"]["worker_output"];
     let cue = output["cues"].as_array()?.get(index)?;
@@ -2070,6 +2127,7 @@ async fn job_quality(
             "loss_count": loss_count,
             "region_count": region_count,
             "pages": params.get("pages").cloned().unwrap_or(serde_json::Value::Null),
+            "core_artifact_adoption": params.get("core_artifact_adoption").cloned().unwrap_or(serde_json::Value::Null),
             "note": "facts only; model or recogniser confidence is not accuracy",
         }))
         .into_response()
@@ -2212,4 +2270,28 @@ async fn job_receipt(
         }
     })
     .await
+}
+
+#[cfg(test)]
+mod import_byte_budget_tests {
+    use super::*;
+    use base64::Engine;
+    #[test]
+    fn overbudget_rejection_covers_encoded_length_and_last_quantum() {
+        assert_eq!(
+            decode_import_content(&"!".repeat(MAX_IMPORT_BASE64_BYTES + 1)).unwrap_err(),
+            StatusCode::PAYLOAD_TOO_LARGE
+        );
+        let encoded =
+            base64::engine::general_purpose::STANDARD.encode(vec![0u8; MAX_IMPORT_BYTES + 1]);
+        assert_eq!(encoded.len(), MAX_IMPORT_BASE64_BYTES);
+        assert_eq!(
+            decode_import_content(&encoded).unwrap_err(),
+            StatusCode::PAYLOAD_TOO_LARGE
+        );
+        assert_eq!(
+            decode_import_content("!").unwrap_err(),
+            StatusCode::BAD_REQUEST
+        );
+    }
 }

@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """ArcheAxis vNext media worker: local ASR transcription (F10).
 
-Formats: WAV / MP3 / M4A / FLAC (decoded through ffmpeg by faster-whisper).
+Formats: WAV / MP3 / M4A / FLAC / OGG / OPUS (decoded by faster-whisper/PyAV).
 
 Isolation boundary: this worker NEVER opens the vNext database. It probes
 the local model capability, transcribes with segment-level timestamps, and
@@ -160,25 +160,42 @@ def extract(path: str, model_path: str | None, language: str, device: str) -> di
         language=None if language == "auto" else language,
         vad_filter=True,
     )
-    cues: list[dict] = []
+    raw_cues: list[dict] = []
     text_parts: list[str] = []
-    for segment in segments:
-        cues.append(
-            {
-                "start_ms": int(segment.start * 1000),
-                "end_ms": int(segment.end * 1000),
-                "text": segment.text.strip(),
-            }
-        )
-        text_parts.append(segment.text.strip())
+    processing_error = None
+    try:
+        for segment in segments:
+            raw_cues.append(
+                {
+                    "start_ms": int(segment.start * 1000),
+                    "end_ms": int(segment.end * 1000),
+                    "text": segment.text.strip(),
+                }
+            )
+            text_parts.append(segment.text.strip())
+    except Exception as exc:
+        if not raw_cues:
+            raise RuntimeError("ASR segment iteration failed before any usable result") from exc
+        processing_error = {"stage": "segment_iteration", "error_type": type(exc).__name__}
+    processing_status = "partial" if processing_error else "complete"
     text = "\n".join(part for part in text_parts if part)
     language_code = getattr(info, "language", None) or "unknown"
     duration_ms = int((getattr(info, "duration", 0.0) or 0.0) * 1000)
+    cues: list[dict] = []
+    alignment_issues: list[dict] = []
+    for index, cue in enumerate(raw_cues):
+        start, end = cue["start_ms"], cue["end_ms"]
+        if not (0 <= start < end <= duration_ms):
+            alignment_issues.append({"index": index, "start_ms": start, "end_ms": end,
+                                     "reason": "invalid_or_out_of_duration", "location_status": "unlocated"})
+        else:
+            cues.append({**cue, "raw_index": index})
+    alignment_status = "partial" if alignment_issues else ("complete" if cues else "unlocated")
     loss_note = (
         "no speech segments detected (input may be silence/tone/noise); "
         "transcript kept empty and truthful"
-        if not cues
-        else f"{len(cues)} segments; VAD filtering applied"
+        if not raw_cues
+        else (f"{len(raw_cues)} raw segments; all positions unlocated; original transcript retained; VAD filtering applied" if not cues else f"{len(raw_cues)} raw segments; {len(cues)} valid located segments; original transcript retained; VAD filtering applied")
     )
     return {
         "engine": ENGINE,
@@ -188,6 +205,11 @@ def extract(path: str, model_path: str | None, language: str, device: str) -> di
         "language_probability": round(float(getattr(info, "language_probability", 0.0) or 0.0), 4),
         "duration_ms": duration_ms,
         "cues": cues,
+        "raw_cues": raw_cues,
+        "alignment_issues": alignment_issues,
+        "alignment_status": alignment_status,
+        "processing_status": processing_status,
+        "processing_error": processing_error,
         "loss_receipt": {
             "engine": ENGINE,
             "engine_version": ENGINE_VERSION,
@@ -198,7 +220,7 @@ def extract(path: str, model_path: str | None, language: str, device: str) -> di
                 "compute_type": "int8",
                 "vad_filter": True,
             },
-            "loss_note": loss_note,
+            "loss_note": ("ASR processing interrupted; yielded original text/raw cues retained; unprocessed remainder unknown; " if processing_error else "") + loss_note + (f"; {len(alignment_issues)} raw cues have invalid/out-of-duration positions; original text/raw_cues retained without clamping" if alignment_issues else ""),
         },
     }
 

@@ -11,6 +11,11 @@ scope:
     - bounded full-web research with cloud cross-check (advanced into this round per SUP-008)
     - source-independence clustering, claim-level comparison and source localization
     - human gold sets, CoverageReceipt and MachineCompetenceReceipt
+    # Current user direction extends the immutable AAOS-01 baseline; this is a requirement, not a PASS receipt.
+    - audio decoding and local transcription with preserved raw results, valid time anchors, losses and retryable failures
+    - video decoding, audio transcription and bounded LM Studio frame recognition with explicit sampling coverage
+    - media results persisted by Rust Core and verified after restart; header probing alone does not qualify audio or video
+    - reuse the declared shared model library and real learning material; missing sample formats may use traceable public sources or documented conversions
   excluded_until_v01_go:
     - system-level platform
     - WORK-LAB or DESIGN-LAB runtime contracts

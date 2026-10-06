@@ -73,7 +73,7 @@ fn media_names_select_the_media_route_and_never_the_text_route() {
     );
     assert_eq!(
         attempts::resolve_media_type("media", "movie.mov").unwrap(),
-        "video/mp4"
+        "video/quicktime"
     );
     // a media file cannot travel as text: no route may decode a binary container
     for name in ["tone.wav", "clip.mp4"] {
@@ -85,17 +85,21 @@ fn media_names_select_the_media_route_and_never_the_text_route() {
             "{name}: {error}"
         );
     }
-    // formats no reader here can read are refused by name rather than probed with a guess.
-    // The audio containers used to be in this list, on the grounds that no reader could read
-    // them; the `media.transcribe` route now has one, so they name their media type and the
-    // refusal moved to the route that genuinely cannot take them (asserted below).
-    for name in ["movie.mkv", "clip.webm"] {
+    // The video decoder accepts these named containers; the limited header probe does not.
+    for (name, media_type) in [
+        ("movie.mkv", "video/x-matroska"),
+        ("clip.webm", "video/webm"),
+    ] {
         let error = attempts::resolve_media_type("media", name)
             .unwrap_err()
             .to_string();
         assert!(
-            error.contains("cannot name a media type"),
+            error.contains("cannot accept media type"),
             "{name}: {error}"
+        );
+        assert_eq!(
+            attempts::resolve_media_type("video", name).unwrap(),
+            media_type
         );
     }
     // a named audio container is refused by the *probe*, not by the namer: the probe reads

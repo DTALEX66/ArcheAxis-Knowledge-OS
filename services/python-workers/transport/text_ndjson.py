@@ -32,6 +32,14 @@ def filesystem_path(path: Path) -> Path:
     return path
 
 
+def ordinary_path(path: Path) -> Path:
+    """Remove the local extended-path IO prefix before emitting product receipts."""
+    text = str(path)
+    if text.startswith("\\\\?\\"):
+        text = text[4:]
+    return safe_path(Path(text))
+
+
 _SCRIPT = Path(__file__).absolute()
 _BUNDLE_ROOT = _SCRIPT.parents[2]
 if (_BUNDLE_ROOT / "workers").is_dir():
@@ -45,6 +53,11 @@ else:
     WORKER_ROOT = ROOT / "services" / "python-workers"
 MAX_LINE_BYTES = 1024 * 1024
 MAX_INPUT_BYTES = 16 * 1024 * 1024
+MAX_MEDIA_INPUT_BYTES = 64 * 1024 * 1024
+
+
+def input_byte_limit(capability: str) -> int:
+    return MAX_MEDIA_INPUT_BYTES if capability in {"media.transcribe", "media.video"} else MAX_INPUT_BYTES
 MAX_SAFE_INTEGER = 2**53 - 1
 OUTPUT_SCHEMAS = ["archeaxis.text/v1", "archeaxis.document-structure/v1", "archeaxis.loss-receipt/v1"]
 
@@ -135,18 +148,18 @@ def safe_path(path: Path, *, missing=False) -> Path:
     return path
 
 
-def read_regular(path: Path) -> tuple[bytes, tuple]:
+def read_regular(path: Path, *, limit: int = MAX_INPUT_BYTES) -> tuple[bytes, tuple]:
     path = safe_path(path)
     before = filesystem_path(path).lstat()
     if not stat.S_ISREG(before.st_mode) or before.st_nlink != 1:
         raise Rejected("staging asset must be a regular file with exactly one link")
-    if before.st_size > MAX_INPUT_BYTES:
+    if before.st_size > limit:
         raise Rejected("staging asset exceeds byte limit", "AAK-VAL-003")
     with filesystem_path(path).open("rb") as handle:
         opened = os.fstat(handle.fileno())
         if (opened.st_dev, opened.st_ino, opened.st_nlink) != (before.st_dev, before.st_ino, 1):
             raise Rejected("staging asset identity changed while opening")
-        raw = handle.read(MAX_INPUT_BYTES + 1)
+        raw = handle.read(limit + 1)
         after = os.fstat(handle.fileno())
     safe_path(path)
     current = filesystem_path(path).lstat()
@@ -256,13 +269,19 @@ ROUTES = {
     "media.probe": {
         "version": "1",
         "worker": "services/python-workers/document/worker_media.py",
-        "media_types": {"video/mp4", "audio/wav"},
+        "media_types": {"video/mp4", "video/quicktime", "audio/wav"},
         "call": "path",
     },
     # The pack requires real audio before final closure. The ASR engine, its model and its
     # path resolution were all real and verified, but nothing declared the capability, so
     # no Core job could reach it. Audio formats are named here that the probe route
     # deliberately does not guess at, because this route has a reader for them.
+    "media.video": {
+        "version": "1",
+        "worker": "services/python-workers/media/worker_video.py",
+        "media_types": {"video/mp4", "video/quicktime", "video/x-matroska", "video/webm"},
+        "call": "video_transcribe",
+    },
     "media.transcribe": {
         "version": "1",
         "worker": "services/python-workers/media/worker_transcribe.py",
@@ -446,7 +465,7 @@ def _as_route_contract(result: dict, route_capability: str) -> dict:
     return {**result, "structure": anchors, "loss_receipt": receipt}
 
 
-def _run_route(route, source: Path, media_type: str, artifact_root: Path | None = None) -> dict:
+def _run_route(route, source: Path, media_type: str, artifact_root: Path | None = None, deadline: float | None = None) -> dict:
     """Load the route's worker and extract with its own entry-point shape."""
     relative_worker = Path(route["worker"])
     if relative_worker.parts[:2] == ("services", "python-workers"):
@@ -470,6 +489,21 @@ def _run_route(route, source: Path, media_type: str, artifact_root: Path | None 
         # the directory is one that actually holds that language.
         language = _ocr_language()
         return module.extract(filesystem_path(view), language, _ocr_tessdata(language))
+    if route["call"] == "video_transcribe":
+        if artifact_root is None:
+            raise Rejected("Video decoding needs the Core-owned artifact root", "AAK-VAL-002")
+        suffix = {"video/mp4": ".mp4", "video/quicktime": ".mov", "video/x-matroska": ".mkv", "video/webm": ".webm"}[media_type]
+        view = _materialise_view(source, suffix)
+        output_dir = safe_path(artifact_root / ("video-" + str(time.time_ns())), missing=True)
+        result = module.extract_job(filesystem_path(view), filesystem_path(output_dir),
+            os.environ.get("ARCHEAXIS_ASR_MODEL_DIR", "").strip() or None,
+            os.environ.get("ARCHEAXIS_ASR_LANG", "").strip() or "auto",
+            os.environ.get("ARCHEAXIS_ASR_DEVICE", "").strip() or "cpu", request_deadline=deadline)
+        if result["audio_wav"]:
+            result["audio_wav"]["path"] = str(ordinary_path(Path(result["audio_wav"]["path"])))
+        for frame in result["frames"]:
+            frame["path"] = str(ordinary_path(Path(frame["path"])))
+        return _as_route_contract(result, "media.video")
     if route["call"] == "transcribe":
         # The ASR worker dispatches on the suffix, and it takes its model directory and
         # language as arguments. Both default to the worker's own resolution - the declared
@@ -558,12 +592,14 @@ def execute(request, staging: Path, artifact_root: Path | None = None):
     if asset["media_type"].split(";", 1)[0].strip().lower() not in allowed_media:
         raise Rejected("unsupported media type for this capability", "AAK-VAL-002")
     source = staging / "input" / digest
-    raw, identity = read_regular(source)
+    input_limit = input_byte_limit(request["capability"])
+    raw, identity = read_regular(source, limit=input_limit)
     if hashlib.sha256(raw).hexdigest() != digest:
         raise Rejected("input content hash mismatch", "AAK-HASH-001")
     check_deadline()
-    result = _run_route(route, source, asset["media_type"], artifact_root)
-    reread, current_identity = read_regular(source)
+    result = (_run_route(route, source, asset["media_type"], artifact_root, deadline)
+              if route["call"] == "video_transcribe" else _run_route(route, source, asset["media_type"], artifact_root))
+    reread, current_identity = read_regular(source, limit=input_limit)
     if current_identity != identity or reread != raw:
         raise Rejected("input changed during extraction", "AAK-HASH-001")
     check_deadline()

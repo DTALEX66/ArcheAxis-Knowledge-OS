@@ -514,3 +514,461 @@ pub fn stage_legacy_learning_history(
     }
     Ok(result)
 }
+
+// Typed preservation export. This is not a semantic 98-table migration.
+use serde_json::json;
+
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
+pub struct TypedTableExport {
+    pub columns: Vec<String>,
+    pub rowid_alias: Option<String>,
+    pub rowid_disposition: String,
+    pub rows: u64,
+    pub file: String,
+    pub sha256: String,
+    pub bytes: u64,
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
+pub struct TypedExportManifest {
+    pub schema: String,
+    pub schema_file: String,
+    pub schema_sha256: String,
+    pub tables: BTreeMap<String, TypedTableExport>,
+    pub disposition: String,
+}
+
+fn invalid_export(message: &'static str) -> MigrationError {
+    MigrationError::Io(std::io::Error::new(
+        std::io::ErrorKind::InvalidInput,
+        message,
+    ))
+}
+
+fn reject_export_links(path: &Path) -> Result<(), MigrationError> {
+    for ancestor in path.ancestors() {
+        match std::fs::symlink_metadata(ancestor) {
+            Ok(metadata) => {
+                #[cfg(windows)]
+                let reparse = {
+                    use std::os::windows::fs::MetadataExt;
+                    metadata.file_attributes() & 0x400 != 0
+                };
+                #[cfg(not(windows))]
+                let reparse = false;
+                if metadata.file_type().is_symlink() || reparse {
+                    return Err(invalid_export("export path contains a link"));
+                }
+            }
+            Err(error) if error.kind() == std::io::ErrorKind::NotFound => {}
+            Err(error) => return Err(MigrationError::Io(error)),
+        }
+    }
+    Ok(())
+}
+
+fn typed_file_digest(path: &Path) -> Result<(String, u64), MigrationError> {
+    use std::io::Read;
+    let mut file = std::fs::File::open(path).map_err(MigrationError::Io)?;
+    let mut hash = Sha256::new();
+    let mut bytes = 0u64;
+    let mut buffer = [0u8; 64 * 1024];
+    loop {
+        let read = file.read(&mut buffer).map_err(MigrationError::Io)?;
+        if read == 0 {
+            break;
+        }
+        hash.update(&buffer[..read]);
+        bytes = bytes
+            .checked_add(read as u64)
+            .ok_or_else(|| invalid_export("export byte count overflow"))?;
+    }
+    Ok((hex::encode(hash.finalize()), bytes))
+}
+
+/// CLI boundary: outputs must be a fresh directory below the explicitly selected
+/// project's existing .project-local root. Never infer an external runtime DB.
+pub fn validate_typed_export_output(project: &Path, output: &Path) -> Result<(), MigrationError> {
+    reject_export_links(project)?;
+    reject_export_links(output)?;
+    let project = project.canonicalize().map_err(MigrationError::Io)?;
+    let allowed = project
+        .join(".project-local")
+        .canonicalize()
+        .map_err(MigrationError::Io)?;
+    let parent = output
+        .parent()
+        .ok_or_else(|| invalid_export("output lacks parent"))?
+        .canonicalize()
+        .map_err(MigrationError::Io)?;
+    if !parent.starts_with(&allowed) || output.exists() || output.file_name().is_none() {
+        return Err(invalid_export("output must be fresh and project-local"));
+    }
+    Ok(())
+}
+
+/// Preserve SQLite storage classes and exact cell bytes in a single read-only
+/// transaction. REAL is its IEEE-754 bit pattern, TEXT is bytes (not lossy UTF8).
+/// Schema SQL and all tables, including internal/unknown/shadow tables, are
+/// archived. No semantic import or reconstructed database is claimed.
+pub fn export_typed_jsonl(
+    db_path: &str,
+    out_dir: &str,
+) -> Result<TypedExportManifest, MigrationError> {
+    export_typed_snapshot(db_path, out_dir, || Ok(()))
+}
+
+fn export_typed_snapshot<F>(
+    db_path: &str,
+    out_dir: &str,
+    after_snapshot: F,
+) -> Result<TypedExportManifest, MigrationError>
+where
+    F: FnOnce() -> Result<(), MigrationError>,
+{
+    reject_export_links(Path::new(db_path))?;
+    let output = Path::new(out_dir);
+    reject_export_links(output)?;
+    if output.exists() {
+        return Err(invalid_export("export output already exists"));
+    }
+    let mut conn =
+        Connection::open_with_flags(db_path, rusqlite::OpenFlags::SQLITE_OPEN_READ_ONLY)?;
+    conn.execute_batch("PRAGMA query_only=ON")?;
+    let transaction = conn.transaction_with_behavior(rusqlite::TransactionBehavior::Deferred)?;
+    let schema_rows: Vec<serde_json::Value> = {
+        let mut stmt = transaction
+            .prepare("SELECT type,name,tbl_name,sql FROM sqlite_schema ORDER BY type,name")?;
+        let rows = stmt
+            .query_map([], |row| {
+                Ok(json!({
+                    "type": row.get::<_, String>(0)?, "name": row.get::<_, String>(1)?,
+                    "table": row.get::<_, String>(2)?, "sql": row.get::<_, Option<String>>(3)?
+                }))
+            })?
+            .collect::<Result<_, _>>()?;
+        rows
+    };
+    // The schema read above establishes the same SQLite snapshot used for rows.
+    after_snapshot()?;
+    std::fs::create_dir(output).map_err(MigrationError::Io)?;
+    let schema_bytes = serde_json::to_vec_pretty(&schema_rows)?;
+    std::fs::write(output.join("schema.json"), &schema_bytes).map_err(MigrationError::Io)?;
+    let mut manifest = TypedExportManifest {
+        schema: "archeaxis.legacy-typed-export/v1".into(),
+        schema_file: "schema.json".into(),
+        schema_sha256: hex_sha256_bytes(&schema_bytes),
+        tables: BTreeMap::new(),
+        disposition: "PRESERVED_NOT_SEMANTICALLY_MIGRATED".into(),
+    };
+    for object in schema_rows
+        .iter()
+        .filter(|object| object["type"] == "table")
+    {
+        let name = object["name"]
+            .as_str()
+            .ok_or_else(|| invalid_export("invalid table name"))?;
+        // Fixed SHA names bound Windows basenames; the manifest retains the exact original table name.
+        let filename = format!("table-{}.jsonl", hex_sha256_bytes(name.as_bytes()));
+        let file = std::fs::OpenOptions::new()
+            .create_new(true)
+            .write(true)
+            .open(output.join(&filename))
+            .map_err(MigrationError::Io)?;
+        let mut writer = std::io::BufWriter::new(file);
+        let columns: Vec<String> = {
+            let mut stmt =
+                transaction.prepare("SELECT name FROM pragma_table_xinfo(?1) ORDER BY cid")?;
+            let rows = stmt
+                .query_map([name], |row| row.get(0))?
+                .collect::<Result<_, _>>()?;
+            rows
+        };
+        let rowid_alias = ["rowid", "_rowid_", "oid"]
+            .iter()
+            .find(|alias| {
+                !columns
+                    .iter()
+                    .any(|column| column.eq_ignore_ascii_case(alias))
+            })
+            .filter(|alias| {
+                transaction
+                    .prepare(&format!(
+                        "SELECT {} FROM {} LIMIT 0",
+                        alias,
+                        quote_identifier(name)
+                    ))
+                    .is_ok()
+            })
+            .map(|alias| (*alias).to_owned());
+        let rowid_disposition = if rowid_alias.is_some() {
+            "available"
+        } else {
+            "without_rowid_or_shadowed_or_unavailable"
+        }
+        .to_owned();
+        let mut projection: Vec<String> = rowid_alias.iter().cloned().collect();
+        projection.extend(columns.iter().map(|column| quote_identifier(column)));
+        let mut statement = transaction.prepare(&format!(
+            "SELECT {} FROM {}",
+            projection.join(","),
+            quote_identifier(name)
+        ))?;
+        let cell_offset = usize::from(rowid_alias.is_some());
+        let mut rows = statement.query([])?;
+        let mut count = 0u64;
+        while let Some(row) = rows.next()? {
+            let mut cells = Vec::with_capacity(columns.len());
+            for index in 0..columns.len() {
+                use rusqlite::types::ValueRef;
+                cells.push(match row.get_ref(index + cell_offset)? {
+                    ValueRef::Null => json!({"type":"null"}),
+                    ValueRef::Integer(value) => json!({"type":"integer","value":value}),
+                    ValueRef::Real(value) => {
+                        json!({"type":"real","bits":format!("{:016x}",value.to_bits())})
+                    }
+                    ValueRef::Text(bytes) => json!({"type":"text","hex":hex::encode(bytes)}),
+                    ValueRef::Blob(bytes) => json!({"type":"blob","hex":hex::encode(bytes)}),
+                });
+            }
+            let rowid: Option<i64> = if rowid_alias.is_some() {
+                row.get(0)?
+            } else {
+                None
+            };
+            serde_json::to_writer(&mut writer, &json!({"rowid": rowid, "cells": cells}))?;
+            writer.write_all(b"\n").map_err(MigrationError::Io)?;
+            count += 1;
+        }
+        writer.flush().map_err(MigrationError::Io)?;
+        writer.get_ref().sync_all().map_err(MigrationError::Io)?;
+        drop(writer);
+        let (sha256, bytes) = typed_file_digest(&output.join(&filename))?;
+        manifest.tables.insert(
+            name.to_owned(),
+            TypedTableExport {
+                columns,
+                rowid_alias,
+                rowid_disposition,
+                rows: count,
+                file: filename,
+                sha256,
+                bytes,
+            },
+        );
+    }
+    transaction.commit()?;
+    let manifest_bytes = serde_json::to_vec_pretty(&manifest)?;
+    let mut file = std::fs::OpenOptions::new()
+        .create_new(true)
+        .write(true)
+        .open(output.join("typed-export-manifest.json"))
+        .map_err(MigrationError::Io)?;
+    file.write_all(&manifest_bytes)
+        .map_err(MigrationError::Io)?;
+    file.sync_all().map_err(MigrationError::Io)?;
+    Ok(manifest)
+}
+
+#[cfg(test)]
+mod typed_preservation_tests {
+    use super::*;
+
+    #[test]
+    fn typed_export_preserves_bytes_types_schema_and_source() {
+        let dir = tempfile::tempdir().unwrap();
+        let db = dir.path().join("legacy.sqlite");
+        let conn = Connection::open(&db).unwrap();
+        conn.execute_batch("CREATE TABLE \"未知表\"(t,b,r,n,i); CREATE INDEX legacy_index ON \"未知表\"(i);
+            INSERT INTO \"未知表\" VALUES(CAST(X'ff0061' AS TEXT),X'ff0061',1.2345678901234567,NULL,-9223372036854775808);
+            CREATE TABLE empty_unknown(x); CREATE TABLE sequenced(id INTEGER PRIMARY KEY AUTOINCREMENT); INSERT INTO sequenced DEFAULT VALUES;").unwrap();
+        drop(conn);
+        let before = std::fs::read(&db).unwrap();
+        let output = dir.path().join("typed");
+        let manifest = export_typed_jsonl(db.to_str().unwrap(), output.to_str().unwrap()).unwrap();
+        let table = &manifest.tables["未知表"];
+        let bytes = std::fs::read(output.join(&table.file)).unwrap();
+        let exported: serde_json::Value = serde_json::from_slice(&bytes).unwrap();
+        assert_eq!(exported["rowid"], 1);
+        let cells = exported["cells"].as_array().unwrap();
+        assert_eq!(cells[0], json!({"type":"text","hex":"ff0061"}));
+        assert_eq!(cells[1], json!({"type":"blob","hex":"ff0061"}));
+        assert_eq!(
+            cells[2]["bits"],
+            format!("{:016x}", 1.2345678901234567f64.to_bits())
+        );
+        assert_eq!(cells[3], json!({"type":"null"}));
+        assert_eq!(cells[4]["value"], i64::MIN);
+        assert_eq!(table.sha256, hex_sha256_bytes(&bytes));
+        assert_eq!(manifest.tables["empty_unknown"].rows, 0);
+        assert_eq!(manifest.tables["sqlite_sequence"].rows, 1);
+        let schema = std::fs::read(output.join("schema.json")).unwrap();
+        assert_eq!(manifest.schema_sha256, hex_sha256_bytes(&schema));
+        assert!(String::from_utf8(schema).unwrap().contains("legacy_index"));
+        assert_eq!(before, std::fs::read(&db).unwrap());
+        assert!(export_typed_jsonl(db.to_str().unwrap(), output.to_str().unwrap()).is_err());
+    }
+
+    #[test]
+    fn typed_export_uses_one_snapshot_even_after_other_connection_commits() {
+        let dir = tempfile::tempdir().unwrap();
+        let db = dir.path().join("legacy.sqlite");
+        let writer = Connection::open(&db).unwrap();
+        writer
+            .execute_batch(
+                "PRAGMA journal_mode=WAL; CREATE TABLE known(x); INSERT INTO known VALUES(37);",
+            )
+            .unwrap();
+        let output = dir.path().join("typed");
+        let manifest =
+            export_typed_snapshot(db.to_str().unwrap(), output.to_str().unwrap(), || {
+                writer.execute_batch("UPDATE known SET x=99; CREATE TABLE late_table(x);")?;
+                Ok(())
+            })
+            .unwrap();
+        assert!(!manifest.tables.contains_key("late_table"));
+        let exported: serde_json::Value = serde_json::from_slice(
+            &std::fs::read(output.join(&manifest.tables["known"].file)).unwrap(),
+        )
+        .unwrap();
+        assert_eq!(exported["cells"][0]["value"], 37);
+        assert_eq!(
+            writer
+                .query_row("SELECT x FROM known", [], |row| row.get::<_, i64>(0))
+                .unwrap(),
+            99
+        );
+    }
+
+    #[test]
+    fn typed_export_preserves_rowid_shadow_and_generated_columns() {
+        let dir = tempfile::tempdir().unwrap();
+        let db = dir.path().join("legacy.sqlite");
+        let conn = Connection::open(&db).unwrap();
+        conn.execute_batch("CREATE TABLE shadow(rowid TEXT,x INTEGER,y INTEGER GENERATED ALWAYS AS(x+1) VIRTUAL); INSERT INTO shadow(_rowid_,rowid,x) VALUES(37,'visible',8); CREATE TABLE no_rowid(k TEXT PRIMARY KEY) WITHOUT ROWID; INSERT INTO no_rowid VALUES('a');").unwrap();
+        drop(conn);
+        let out = dir.path().join("typed");
+        let manifest = export_typed_jsonl(db.to_str().unwrap(), out.to_str().unwrap()).unwrap();
+        let table = &manifest.tables["shadow"];
+        assert_eq!(table.rowid_alias.as_deref(), Some("_rowid_"));
+        let row: serde_json::Value =
+            serde_json::from_slice(&std::fs::read(out.join(&table.file)).unwrap()).unwrap();
+        assert_eq!(row["rowid"], 37);
+        assert_eq!(row["cells"][0]["hex"], hex::encode(b"visible"));
+        assert_eq!(row["cells"][2]["value"], 9);
+        let table = &manifest.tables["no_rowid"];
+        assert!(table.rowid_alias.is_none());
+        let row: serde_json::Value =
+            serde_json::from_slice(&std::fs::read(out.join(&table.file)).unwrap()).unwrap();
+        assert!(row["rowid"].is_null());
+    }
+
+    #[test]
+    fn typed_export_bounds_long_unicode_table_filenames_and_preserves_original_names() {
+        let dir = tempfile::tempdir().unwrap();
+        let db = dir.path().join("synthetic.sqlite");
+        let conn = Connection::open(&db).unwrap();
+        let names = [
+            format!("{}\"CON:/\\?", "知识资料".repeat(96)),
+            format!("{}续", "知识资料".repeat(96)),
+        ];
+        for name in &names {
+            conn.execute_batch(&format!(
+                "CREATE TABLE {}(x TEXT); INSERT INTO {} VALUES('kept');",
+                quote_identifier(name),
+                quote_identifier(name)
+            ))
+            .unwrap();
+        }
+        drop(conn);
+        let out = dir.path().join("export");
+        let manifest = export_typed_jsonl(db.to_str().unwrap(), out.to_str().unwrap()).unwrap();
+        assert_eq!(manifest.tables.len(), 2);
+        assert_ne!(
+            manifest.tables[&names[0]].file,
+            manifest.tables[&names[1]].file
+        );
+        for name in &names {
+            let table = &manifest.tables[name];
+            assert_eq!(
+                table.file,
+                format!("table-{}.jsonl", hex_sha256_bytes(name.as_bytes()))
+            );
+            assert_eq!(table.file.len(), 76);
+            assert!(table.file.is_ascii());
+            assert_eq!(table.rows, 1);
+            assert!(out.join(&table.file).is_file());
+        }
+        let stored: TypedExportManifest =
+            serde_json::from_slice(&std::fs::read(out.join("typed-export-manifest.json")).unwrap())
+                .unwrap();
+        assert_eq!(
+            stored.tables.keys().collect::<Vec<_>>(),
+            manifest.tables.keys().collect::<Vec<_>>()
+        );
+    }
+
+    #[test]
+    fn typed_export_streaming_hash_matches_large_multirow_expected_bytes() {
+        let dir = tempfile::tempdir().unwrap();
+        let db = dir.path().join("synthetic.sqlite");
+        let mut conn = Connection::open(&db).unwrap();
+        conn.execute_batch("CREATE TABLE many_rows(i INTEGER,t TEXT,b BLOB)")
+            .unwrap();
+        let count = 4097i64;
+        let text = "真实工程夹具".repeat(96);
+        let blob = [0u8, 0xff, 37, 83];
+        let mut expected_hash = Sha256::new();
+        let mut expected_bytes = 0u64;
+        {
+            let tx = conn.transaction().unwrap();
+            let mut insert = tx
+                .prepare("INSERT INTO many_rows VALUES(?1,?2,?3)")
+                .unwrap();
+            for i in 0..count {
+                insert
+                    .execute(rusqlite::params![i, &text, &blob[..]])
+                    .unwrap();
+                let expected = json!({"rowid":i+1,"cells":[{"type":"integer","value":i},{"type":"text","hex":hex::encode(text.as_bytes())},{"type":"blob","hex":hex::encode(blob)}]});
+                let bytes = serde_json::to_vec(&expected).unwrap();
+                expected_hash.update(&bytes);
+                expected_hash.update(b"\n");
+                expected_bytes += bytes.len() as u64 + 1;
+            }
+            drop(insert);
+            tx.commit().unwrap();
+        }
+        drop(conn);
+        let out = dir.path().join("export");
+        let manifest = export_typed_jsonl(db.to_str().unwrap(), out.to_str().unwrap()).unwrap();
+        let table = &manifest.tables["many_rows"];
+        assert_eq!(table.rows, count as u64);
+        assert!(expected_bytes > 100 * 64 * 1024);
+        assert_eq!(table.bytes, expected_bytes);
+        assert_eq!(table.sha256, hex::encode(expected_hash.finalize()));
+        assert_eq!(
+            std::fs::metadata(out.join(&table.file)).unwrap().len(),
+            expected_bytes
+        );
+    }
+
+    #[test]
+    fn typed_cli_boundary_rejects_external_existing_and_non_directory_outputs() {
+        let dir = tempfile::tempdir().unwrap();
+        let project = dir.path().join("project");
+        std::fs::create_dir_all(project.join(".project-local")).unwrap();
+        assert!(
+            validate_typed_export_output(&project, &project.join(".project-local/export")).is_ok()
+        );
+        assert!(validate_typed_export_output(&project, &dir.path().join("outside")).is_err());
+        std::fs::write(project.join(".project-local/existing"), b"keep").unwrap();
+        assert!(
+            validate_typed_export_output(&project, &project.join(".project-local/existing"))
+                .is_err()
+        );
+        assert!(
+            validate_typed_export_output(&project, &project.join(".project-local/../escape"))
+                .is_err()
+        );
+    }
+}

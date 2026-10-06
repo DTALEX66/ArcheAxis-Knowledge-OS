@@ -28,8 +28,9 @@ _TIMECODE = re.compile(r"(\d{1,2}):(\d{2}):(\d{2})[,.](\d{1,3})")
 
 
 def _to_ms(match: re.Match[str]) -> int:
-    hours, minutes, seconds, fraction = (int(g) for g in match.groups())
-    fraction = fraction * (10 ** (3 - len(str(fraction))))
+    hours, minutes, seconds = (int(g) for g in match.groups()[:3])
+    fraction_text = match.group(4)
+    fraction = int(fraction_text) * (10 ** (3 - len(fraction_text)))
     return ((hours * 60 + minutes) * 60 + seconds) * 1000 + fraction
 
 

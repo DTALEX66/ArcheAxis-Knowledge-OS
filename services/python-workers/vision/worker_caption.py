@@ -146,7 +146,7 @@ def probe(model: str | None = None) -> dict:
     }
 
 
-def _call(endpoint: dict, model: str, encoded: str, timeout_s: int) -> str:
+def _call(endpoint: dict, model: str, encoded: str, timeout_s: int, *, receipt: dict | None = None) -> str:
     """One vision request, in whichever protocol the endpoint speaks."""
     if endpoint["protocol"] == "openai":
         url = f"{endpoint['base']}/chat/completions"
@@ -158,7 +158,7 @@ def _call(endpoint: dict, model: str, encoded: str, timeout_s: int) -> str:
                 "content": [
                     {"type": "text", "text": PROMPT_TEMPLATE},
                     {"type": "image_url",
-                     "image_url": {"url": f"data:image/png;base64,{encoded}"}},
+                     "image_url": {"url": f"data:{receipt.get('mime', 'image/png') if receipt is not None else 'image/png'};base64,{encoded}"}},
                 ],
             }],
         }
@@ -182,26 +182,30 @@ def _call(endpoint: dict, model: str, encoded: str, timeout_s: int) -> str:
         # answer in `content`, and a small budget is consumed entirely by reasoning, leaving
         # `content` empty. Prefer the answer and fall back rather than reporting nothing.
         text = str(message.get("content") or "").strip()
-        if not text:
+        if not text and receipt is None:
             text = str(message.get("reasoning_content") or "").strip()
     else:
         text = str(payload.get("response", "")).strip()
+    if receipt is not None:
+        receipt.update(actual_model=payload.get("model"), requested_model=model,
+                       finish_reason=((payload.get("choices") or [{}])[0].get("finish_reason") if endpoint["protocol"] == "openai" else payload.get("done_reason")))
     return text
 
 
-def describe(image: Path, model: str | None = None, timeout_s: int = 300) -> dict:
+def describe(image: Path, model: str | None = None, timeout_s: int = 300, *, require_identity: bool = False, endpoint_override: dict | None = None) -> dict:
     if not image.is_file():
         raise ValueError(f"input image not found: {image}")
     supported = {".png", ".jpg", ".jpeg", ".webp", ".bmp", ".tiff"}
     if image.suffix.lower() not in supported:
         raise ValueError(f"unsupported image extension: {image.suffix}")
 
-    endpoint = _endpoint()
+    endpoint = endpoint_override if endpoint_override is not None else _endpoint()
     model = model or endpoint["model"]
     encoded = base64.b64encode(image.read_bytes()).decode("ascii")
     started = time.monotonic()
+    trace = {"mime": "image/jpeg" if image.suffix.lower() in {".jpg", ".jpeg"} else "image/png"}
     try:
-        description = _call(endpoint, model, encoded, timeout_s)
+        description = _call(endpoint, model, encoded, timeout_s, receipt=trace) if require_identity else _call(endpoint, model, encoded, timeout_s)
     except urllib.error.URLError as exc:
         raise RuntimeError(
             f"vision model call failed at {endpoint['base']} ({endpoint['protocol']}): {exc}") from exc
@@ -210,10 +214,15 @@ def describe(image: Path, model: str | None = None, timeout_s: int = 300) -> dic
     elapsed_s = round(time.monotonic() - started, 2)
     if not description:
         raise RuntimeError("vision model returned an empty description")
+    if require_identity and (not isinstance(trace.get("actual_model"), str) or not trace["actual_model"].strip() or trace.get("finish_reason") not in {"stop", "length"}):
+        raise RuntimeError("Vision actual model/finish identity unverified")
+    if require_identity:
+        trace["completion_state"] = "complete" if trace["finish_reason"] == "stop" else "partial"
     return {
         "engine": ENGINE,
         "engine_version": ENGINE_VERSION,
         "description": description,
+        "engine_receipt": trace if require_identity else None,
         "model": model,
         "endpoint": endpoint["base"],
         "protocol": endpoint["protocol"],

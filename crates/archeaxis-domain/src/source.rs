@@ -87,6 +87,31 @@ pub fn import_source_with_origin(
     // commit can leave an unreferenced object, never a reference to missing bytes.
     let raw_ref = archeaxis_store_sqlite::raw_objects::persist(conn, bytes)?;
     let tx = conn.transaction_with_behavior(rusqlite::TransactionBehavior::Immediate)?;
+    let outcome = register_source_tx(&tx, &digest, &raw_ref, original_name, origin)?;
+    tx.commit()?;
+    Ok(outcome)
+}
+
+/// Import verified derived bytes within the caller's single-writer transaction.
+/// A rolled back reference can leave only an immutable, unreferenced CAS object.
+pub fn import_source_tx(
+    tx: &rusqlite::Transaction<'_>,
+    bytes: &[u8],
+    original_name: &str,
+    origin: Option<OriginInfo<'_>>,
+) -> rusqlite::Result<ImportOutcome> {
+    let digest = sha256_hex(bytes);
+    let raw_ref = archeaxis_store_sqlite::raw_objects::persist(tx, bytes)?;
+    register_source_tx(tx, &digest, &raw_ref, original_name, origin)
+}
+
+fn register_source_tx(
+    tx: &rusqlite::Transaction<'_>,
+    digest: &str,
+    raw_ref: &str,
+    original_name: &str,
+    origin: Option<OriginInfo<'_>>,
+) -> rusqlite::Result<ImportOutcome> {
     let existing: Option<String> = tx
         .query_row(
             "SELECT source_id FROM sources WHERE sha256=?1",
@@ -97,15 +122,14 @@ pub fn import_source_with_origin(
     if let Some(sid) = existing {
         tx.execute(
             "UPDATE sources SET raw_path=?1 WHERE source_id=?2",
-            [&raw_ref, &sid],
+            rusqlite::params![raw_ref, sid],
         )?;
         if let Some(info) = origin {
             record_origin(&tx, &sid, info)?;
         }
-        tx.commit()?;
         return Ok(ImportOutcome::Duplicate {
             source_id: sid,
-            sha256: digest,
+            sha256: digest.to_owned(),
         });
     }
     let source_id = stable_id("src", &digest);
@@ -116,10 +140,9 @@ pub fn import_source_with_origin(
     if let Some(info) = origin {
         record_origin(&tx, &source_id, info)?;
     }
-    tx.commit()?;
     Ok(ImportOutcome::Imported {
         source_id,
-        sha256: digest,
+        sha256: digest.to_owned(),
     })
 }
 

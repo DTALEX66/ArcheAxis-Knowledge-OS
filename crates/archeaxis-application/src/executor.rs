@@ -395,11 +395,12 @@ impl Executor {
                         ));
                     }
                 };
-                let artifact_root = if req.capability == "archive.inventory" {
-                    crate::container::attempt_root(&self.staging, &req.job_id, req.attempt)
-                } else {
-                    self.staging.clone()
-                };
+                let artifact_root =
+                    if matches!(req.capability.as_str(), "archive.inventory" | "media.video") {
+                        crate::container::attempt_root(&self.staging, &req.job_id, req.attempt)
+                    } else {
+                        self.staging.clone()
+                    };
                 let staging = self.staging.clone();
                 let python = self.python.clone();
                 let request = serde_json::to_string(&req).map_err(|e| e.to_string())?;
@@ -426,11 +427,12 @@ impl Executor {
         match result {
             Ok((response, bytes)) => {
                 let cancel = cancel.clone();
-                let artifact_root = if req.capability == "archive.inventory" {
-                    crate::container::attempt_root(&self.staging, &req.job_id, req.attempt)
-                } else {
-                    self.staging.clone()
-                };
+                let artifact_root =
+                    if matches!(req.capability.as_str(), "archive.inventory" | "media.video") {
+                        crate::container::attempt_root(&self.staging, &req.job_id, req.attempt)
+                    } else {
+                        self.staging.clone()
+                    };
                 self.store.submit_wait(move|conn|{
                     // Cancellation competes with completion at the writer boundary;
                     // once completion is committed it cannot be rolled back by cancel.
@@ -438,7 +440,8 @@ impl Executor {
                         attempts::terminate(conn,&req,"cancelled","owner cancelled before commit").map_err(|e|e.to_string())?;
                         return Err("owner cancelled before commit".into());
                     }
-                    match attempts::finish(conn,&req,&response,&bytes){
+                    let finished = if req.capability == "media.video" { attempts::finish_with_artifacts(conn,&req,&response,&bytes,&artifact_root) } else { attempts::finish(conn,&req,&response,&bytes) };
+                    match finished {
                         Ok(())=>{
                             if req.capability == "archive.inventory" {
                                 if let Err(error) = crate::container::expand_members(conn, &artifact_root, &req.job_id) {
@@ -611,11 +614,20 @@ pub const KNOWN_WORKER_IDENTITIES: &[&str] = &[
     // the ASR route's identity; a route with no identity here is refused with
     // "unexpected worker identity" before it can serve anything
     "python-worker-transcribe-ndjson",
+    "python-worker-video-ndjson",
     // G4: the machine answer route. Registered so a launch may declare it; whether a Core job route
     // drives it is a separate question, and the capability registry answers that rather than this
     // list, which only says which identities are recognised at all.
     "python-worker-machine-answer-ndjson",
 ];
+
+fn worker_input_limit(capability: &str) -> usize {
+    if matches!(capability, "media.transcribe" | "media.video") {
+        64 * 1024 * 1024
+    } else {
+        16 * 1024 * 1024
+    }
+}
 
 fn run_worker(
     staging: &Path,
@@ -629,8 +641,10 @@ fn run_worker(
 ) -> Result<(Response, Vec<Vec<u8>>), Failure> {
     let deadline = Instant::now() + Duration::from_millis(req.deadline_ms);
     check(deadline, cancel)?;
-    if input.len() > 16 * 1024 * 1024 {
-        return Err(Failure::Failed("text input exceeds 16 MiB".into()));
+    if input.len() > worker_input_limit(&req.capability) {
+        return Err(Failure::Failed(
+            "worker input exceeds capability byte budget".into(),
+        ));
     }
     std::fs::create_dir_all(staging)?;
     let dir = tempfile::tempdir_in(staging)?;
@@ -1035,5 +1049,30 @@ impl Executor {
         })
         .await
         .map_err(|_| "worker_task_failed".to_string())?
+    }
+}
+
+#[cfg(test)]
+mod media_input_budget_tests {
+    #[test]
+    fn only_execution_media_capabilities_receive_the_larger_budget() {
+        assert_eq!(
+            super::worker_input_limit("media.transcribe"),
+            64 * 1024 * 1024
+        );
+        assert_eq!(super::worker_input_limit("media.video"), 64 * 1024 * 1024);
+        for capability in [
+            "text.extract",
+            "media.probe",
+            "image.ocr",
+            "office.structure",
+            "unknown",
+        ] {
+            assert_eq!(super::worker_input_limit(capability), 16 * 1024 * 1024);
+        }
+        assert_eq!(
+            archeaxis_sidecar_protocol::worker::MAX_FRAME_BYTES,
+            1024 * 1024
+        );
     }
 }
