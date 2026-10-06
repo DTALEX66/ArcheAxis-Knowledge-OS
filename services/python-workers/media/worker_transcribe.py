@@ -146,7 +146,7 @@ def probe(model_path: str | None) -> dict:
     }
 
 
-def _segment_cues(model, path: str, language: str):
+def _segment_cues(model, path: str, language: str, word_timestamps: bool = False):
     """One decode pass: the raw cues, their text, the decode info and any mid-iteration error.
 
     Shared by the whole-file and per-window paths so a window cannot drift from the canonical
@@ -156,6 +156,7 @@ def _segment_cues(model, path: str, language: str):
         str(path),
         language=None if language == "auto" else language,
         vad_filter=True,
+        word_timestamps=word_timestamps,
     )
     raw_cues: list[dict] = []
     text_parts: list[str] = []
@@ -167,6 +168,13 @@ def _segment_cues(model, path: str, language: str):
                     "start_ms": int(segment.start * 1000),
                     "end_ms": int(segment.end * 1000),
                     "text": segment.text.strip(),
+                    # Word timings are reported only when they were asked for: alignment is an
+                    # extra pass, and a cue that has none says so rather than being padded.
+                    **({"words": [
+                        {"start_ms": int(word.start * 1000), "end_ms": int(word.end * 1000),
+                         "text": (word.word or "").strip()}
+                        for word in (getattr(segment, "words", None) or [])]}
+                       if word_timestamps else {}),
                 }
             )
             text_parts.append(segment.text.strip())
@@ -177,7 +185,8 @@ def _segment_cues(model, path: str, language: str):
     return raw_cues, text_parts, info, processing_error
 
 
-def extract(path: str, model_path: str | None, language: str, device: str) -> dict:
+def extract(path: str, model_path: str | None, language: str, device: str,
+            word_timestamps: bool = False) -> dict:
     from faster_whisper import WhisperModel
 
     model_dir = _model_dir(model_path)
@@ -186,7 +195,8 @@ def extract(path: str, model_path: str | None, language: str, device: str) -> di
         raise ValueError(f"input media file not found: {input_path}")
 
     model = WhisperModel(str(model_dir), device=device, compute_type="int8")
-    raw_cues, text_parts, info, processing_error = _segment_cues(model, path, language)
+    raw_cues, text_parts, info, processing_error = _segment_cues(
+        model, path, language, word_timestamps)
     processing_status = "partial" if processing_error else "complete"
     text = "\n".join(part for part in text_parts if part)
     language_code = getattr(info, "language", None) or "unknown"
@@ -229,6 +239,10 @@ def extract(path: str, model_path: str | None, language: str, device: str) -> di
                 "device": device,
                 "compute_type": "int8",
                 "vad_filter": True,
+                # The receipt states the granularity actually produced, so a request for word
+                # timings that the model could not satisfy stays visible instead of looking met.
+                "word_timings_requested": word_timestamps,
+                "word_timings_produced": any(cue.get("words") for cue in raw_cues),
             },
             "loss_note": ("ASR processing interrupted; yielded original text/raw cues retained; unprocessed remainder unknown; " if processing_error else "") + loss_note + (f"; {len(alignment_issues)} raw cues have invalid/out-of-duration positions; original text/raw_cues retained without clamping" if alignment_issues else ""),
         },
@@ -250,7 +264,8 @@ def _window_module():
 
 def extract_windowed(path: str, model_path: str | None, language: str, device: str, plan: dict,
                      ffmpeg: str, staging: str | None = None, work_dir: str | None = None,
-                     budget_ms: int | None = None) -> dict:
+                     budget_ms: int | None = None,
+                     word_timestamps: bool = False) -> dict:
     """Transcribe one bounded window of the recording, resuming windows already finished.
 
     The Core caps a job at 300 s, so the caller drives successive invocations. `window_transcribe`
@@ -287,7 +302,8 @@ def extract_windowed(path: str, model_path: str | None, language: str, device: s
             raise RuntimeError(f"ffmpeg failed for window {window['index']}: {finished.stderr[-200:]}")
         # The canonical whole-file receipt is produced for the window's own wav, so a window cannot
         # invent its own vocabulary: same engine, same loss receipt, same alignment rules.
-        receipt = extract(str(target), model_path, language, device)
+        receipt = extract(str(target), model_path, language, device,
+                          word_timestamps=word_timestamps)
         # Cues stay local to the window: merge_windows owns the offset onto the recording timeline,
         # and applying it here as well shifted every later window twice.
         return {"status": "succeeded", "cues": receipt["cues"], "text": receipt["text"],
@@ -335,7 +351,8 @@ def _plan_module():
 
 def extract_split(path: str, model_path: str | None, language: str, device: str, ffmpeg: str,
                   staging: str | None = None, remaining_ms: int | None = None,
-                  work_dir: str | None = None) -> dict:
+                  work_dir: str | None = None,
+                  word_timestamps: bool = False) -> dict:
     """Transcribe a recording that cannot fit one job, by splitting it into bounded windows.
 
     The plan is derived here, from the recording's real duration, rather than accepted from the
@@ -359,7 +376,7 @@ def extract_split(path: str, model_path: str | None, language: str, device: str,
     # per-window estimate, so that declared overhead is held back from the job's remaining time.
     budget_ms = None if remaining_ms is None else max(0, int(remaining_ms) - planner.OVERHEAD_MS)
     envelope = extract_windowed(path, model_path, language, device, plan, ffmpeg, staging, work_dir,
-                               budget_ms)
+                               budget_ms, word_timestamps)
     envelope["split"] = {
         "duration_ms": duration_ms,
         "window_audio_ms": plan["window_audio_ms"],
@@ -406,6 +423,8 @@ def main() -> int:
     parser.add_argument("--ffmpeg", default=None, help="declared ffmpeg path used to cut a window")
     parser.add_argument("--window-staging", default=None,
                         help="directory holding finished windows so a later invocation resumes instead of repeating")
+    parser.add_argument("--word-timestamps", action="store_true",
+                        help="also align word-level timings (an extra pass; asked for, not assumed)")
     parser.add_argument("--split", action="store_true",
                         help="plan the windows from the recording's own duration and transcribe what this invocation's budget allows")
     parser.add_argument("--budget-ms", type=int, default=None,
@@ -424,7 +443,7 @@ def main() -> int:
             return 2
         try:
             out = extract_split(args.input, args.model_dir, args.language, args.device, args.ffmpeg,
-                                args.window_staging, args.budget_ms)
+                                args.window_staging, args.budget_ms, word_timestamps=args.word_timestamps)
         except Exception as exc:  # noqa: BLE001
             print(json.dumps({"error": str(exc)}, ensure_ascii=False))
             return 1
@@ -437,14 +456,16 @@ def main() -> int:
         try:
             out = extract_windowed(args.input, args.model_dir, args.language, args.device,
                                    json.loads(Path(args.window_plan).read_text(encoding="utf-8")),
-                                   args.ffmpeg, args.window_staging)
+                                   args.ffmpeg, args.window_staging,
+                                   word_timestamps=args.word_timestamps)
         except Exception as exc:  # noqa: BLE001
             print(json.dumps({"error": str(exc)}, ensure_ascii=False))
             return 1
         print(json.dumps(out, ensure_ascii=False))
         return 0
     try:
-        out = extract(args.input, args.model_dir, args.language, args.device)
+        out = extract(args.input, args.model_dir, args.language, args.device,
+                        word_timestamps=args.word_timestamps)
     except Exception as exc:  # noqa: BLE001
         print(json.dumps({"error": str(exc)}, ensure_ascii=False))
         return 1

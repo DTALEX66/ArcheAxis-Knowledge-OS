@@ -321,7 +321,7 @@ impl Executor {
         deadline_ms: u64,
         cancel: &Cancellation,
     ) -> Result<(), String> {
-        self.execute_splitting(job_id, request_id, deadline_ms, cancel, false)
+        self.execute_splitting(job_id, request_id, deadline_ms, cancel, false, false)
             .await
     }
     /// `execute` for a recording that is transcribed by splitting it into bounded windows.
@@ -332,8 +332,9 @@ impl Executor {
         deadline_ms: u64,
         cancel: &Cancellation,
         split: bool,
+        words: bool,
     ) -> Result<(), String> {
-        self.start_splitting(job_id, request_id, deadline_ms, cancel, split)
+        self.start_splitting(job_id, request_id, deadline_ms, cancel, split, words)
             .await?
             .await
             .map_err(|e| format!("execution task failed: {e}"))?
@@ -346,7 +347,7 @@ impl Executor {
         deadline_ms: u64,
         cancel: &Cancellation,
     ) -> Result<tokio::task::JoinHandle<Result<(), String>>, String> {
-        self.start_splitting(job_id, request_id, deadline_ms, cancel, false)
+        self.start_splitting(job_id, request_id, deadline_ms, cancel, false, false)
             .await
     }
     /// `start` for a split transcription. The staging directory is Core-owned and derived here, so
@@ -358,6 +359,7 @@ impl Executor {
         deadline_ms: u64,
         cancel: &Cancellation,
         split: bool,
+        words: bool,
     ) -> Result<tokio::task::JoinHandle<Result<(), String>>, String> {
         // Accepted jobs outlive a disconnected HTTP/UI waiter. Explicit owner
         // cancellation still propagates through the shared cancellation handle.
@@ -371,7 +373,7 @@ impl Executor {
         let (ack, accepted) = tokio::sync::oneshot::channel();
         let task = tokio::spawn(async move {
             owned
-                .execute_owned(&job, &request, deadline_ms, &cancel, ack, split)
+                .execute_owned(&job, &request, deadline_ms, &cancel, ack, split, words)
                 .await
         });
         match accepted.await {
@@ -391,6 +393,7 @@ impl Executor {
         cancel: &Cancellation,
         ack: tokio::sync::oneshot::Sender<()>,
         split: Option<attempts::Split>,
+        words: bool,
     ) -> Result<(), String> {
         // Keep the one write to the child's pipe small enough to fit its initial
         // buffer. Configuration and IDs are Core-owned, not shell commands.
@@ -401,7 +404,9 @@ impl Executor {
         let id = request_id.to_owned();
         let req = self
             .store
-            .submit_wait(move |conn| attempts::claim_split(conn, &job, &id, deadline_ms, split))
+            .submit_wait(move |conn| {
+                attempts::claim_split(conn, &job, &id, deadline_ms, split, words)
+            })
             .await
             .map_err(|e| e.to_string())?
             .map_err(|e| e.to_string())?;

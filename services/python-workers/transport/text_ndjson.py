@@ -489,9 +489,14 @@ def declared_split(capability: str, parameters) -> dict | None:
         return None
     if capability != "media.transcribe":
         raise Rejected(f"{capability} requires empty parameters")
-    unknown = set(parameters) - {"split", "staging"}
+    unknown = set(parameters) - {"split", "staging", "words"}
     if unknown:
-        raise Rejected("split parameters may only carry split and staging")
+        raise Rejected("split parameters may only carry split, staging and words")
+    if set(parameters) == {"words"}:
+        # Word timings without a split is the ordinary case for a short recording.
+        if parameters["words"] is not True:
+            raise Rejected("a word-timing request must set words to true")
+        return None
     if parameters.get("split") is not True:
         raise Rejected("a split transcription must set split to true")
     staging = parameters.get("staging")
@@ -508,7 +513,7 @@ def declared_split(capability: str, parameters) -> dict | None:
 
 
 def _run_route(route, source: Path, media_type: str, artifact_root: Path | None = None, deadline: float | None = None,
-               split: dict | None = None, remaining_ms: int | None = None) -> dict:
+               split: dict | None = None, remaining_ms: int | None = None, words: bool = False) -> dict:
     """Load the route's worker and extract with its own entry-point shape."""
     relative_worker = Path(route["worker"])
     if relative_worker.parts[:2] == ("services", "python-workers"):
@@ -563,13 +568,16 @@ def _run_route(route, source: Path, media_type: str, artifact_root: Path | None 
         # transport does not pin one unless an operator has.
         kwargs["language"] = os.environ.get("ARCHEAXIS_ASR_LANG", "").strip() or "auto"
         kwargs["device"] = os.environ.get("ARCHEAXIS_ASR_DEVICE", "").strip() or "cpu"
+        # Asked for is not the same as delivered: the worker reports which granularity it
+        # actually produced, and a request that received none is visible in the receipt.
+        kwargs["word_timestamps"] = bool(words)
         if split is not None:
             if not hasattr(module, "extract_split"):
                 raise Rejected("the transcribe worker does not support splitting")
             return _as_route_contract(module.extract_split(
                 str(filesystem_path(view)), model_path=kwargs["model_path"], language=kwargs["language"],
                 device=kwargs["device"], ffmpeg=split["ffmpeg"], staging=split["staging"],
-                remaining_ms=remaining_ms), route.get("capability", "route"))
+                remaining_ms=remaining_ms, word_timestamps=words), route.get("capability", "route"))
         return _as_route_contract(module.extract(str(filesystem_path(view)), **kwargs),
                                   route.get("capability", "route"))
     if route.get("suffix_by_media"):
@@ -620,6 +628,9 @@ def execute(request, staging: Path, artifact_root: Path | None = None):
     if request["capability_version"] != route["version"] or request["protocol_minor"] != 0:
         raise Rejected("unsupported capability or protocol version", "AAK-PROTO-001")
     split = declared_split(request["capability"], request["parameters"])
+    # `declared_split` already refused any parameter this capability may not carry, so what is
+    # left under "words" is a validated request for word-level timings.
+    words = bool(request["parameters"].get("words"))
     if not isinstance(request["inputs"], list) or len(request["inputs"]) != 1:
         raise Rejected(f"{request['capability']} v{route['version']} requires one input, integer minor and "
                        + ("split parameters" if split else "empty parameters"))
@@ -653,7 +664,7 @@ def execute(request, staging: Path, artifact_root: Path | None = None):
     remaining_ms = max(0, int((deadline - time.monotonic()) * 1000))
     result = (_run_route(route, source, asset["media_type"], artifact_root, deadline)
               if route["call"] == "video_transcribe"
-              else _run_route(route, source, asset["media_type"], artifact_root, split=split,
+              else _run_route(route, source, asset["media_type"], artifact_root, split=split, words=words,
                               remaining_ms=remaining_ms))
     reread, current_identity = read_regular(source, limit=input_limit)
     if current_identity != identity or reread != raw:

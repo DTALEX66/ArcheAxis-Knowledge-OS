@@ -318,7 +318,7 @@ pub fn claim(
     request_id: &str,
     deadline_ms: u64,
 ) -> Result<Request, JobError> {
-    claim_split(conn, job_id, request_id, deadline_ms, None)
+    claim_split(conn, job_id, request_id, deadline_ms, None, false)
 }
 
 /// `claim`, with the split choice the job carries persisted in the same transaction.
@@ -331,6 +331,7 @@ pub fn claim_split(
     request_id: &str,
     deadline_ms: u64,
     split: Option<Split>,
+    words: bool,
 ) -> Result<Request, JobError> {
     let tx = conn.transaction_with_behavior(TransactionBehavior::Immediate)?;
     let row:Option<(String,String,String,String)>=tx.query_row(
@@ -375,6 +376,11 @@ pub fn claim_split(
             .splitting(&Split::windows_of(&split.root, &sha).to_string_lossy())
             .map_err(JobError::InvalidReceipt)?,
         None => request,
+    };
+    let request = if words {
+        request.word_timings().map_err(JobError::InvalidReceipt)?
+    } else {
+        request
     };
     tx.execute("INSERT INTO job_attempts(job_id,attempt,request_id,request_json,state) VALUES(?1,?2,?3,?4,'running')",
         rusqlite::params![job_id,next,request_id,serde_json::to_string(&request).map_err(|_|JobError::Conflict)?])?;

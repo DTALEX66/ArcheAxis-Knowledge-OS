@@ -327,6 +327,12 @@ struct ExecuteBody {
     /// that drops audio while looking well-formed.
     #[serde(default)]
     split: bool,
+    /// Ask for word-level timings as well as segment cues (R15/F10).
+    ///
+    /// Absent and `false` mean the same thing: the granularity every transcription already
+    /// produces. Word alignment costs an extra pass, so it is asked for rather than assumed.
+    #[serde(default)]
+    words: bool,
 }
 
 /// `enabled` is a required boolean and unknown fields are refused.
@@ -488,13 +494,21 @@ async fn execute(
         );
     }
     let split = body.split;
+    let words = body.words;
     // The accepted HTTP operation outlives a disconnected waiter, including
     // the interval between durable claim, registration and worker completion.
-    tokio::spawn(async move { start(runtime, job, id, body.deadline_ms, split).await })
+    tokio::spawn(async move { start(runtime, job, id, body.deadline_ms, split, words).await })
         .await
         .unwrap_or_else(|_| unavailable())
 }
-async fn start(runtime: Runtime, job: String, id: String, deadline: u64, split: bool) -> Response {
+async fn start(
+    runtime: Runtime,
+    job: String,
+    id: String,
+    deadline: u64,
+    split: bool,
+    words: bool,
+) -> Response {
     let _admission = runtime.admission.lock().await;
     // R7/G1: name a disabled capability instead of letting it fall into the generic "cannot start in
     // its current state". The authoritative refusal is inside the claim transaction, which is what
@@ -548,7 +562,18 @@ async fn start(runtime: Runtime, job: String, id: String, deadline: u64, split: 
                 .and_then(Value::as_bool)
                 .unwrap_or(false)
                 == split;
-            return if old_job == job && request["deadline_ms"] == deadline && same_split {
+            // Word timings change what the receipt can honestly answer, so they are part of the
+            // identity as well: a segment-only receipt is not an answer to a word request.
+            let same_words = request
+                .pointer("/parameters/words")
+                .and_then(Value::as_bool)
+                .unwrap_or(false)
+                == words;
+            return if old_job == job
+                && request["deadline_ms"] == deadline
+                && same_split
+                && same_words
+            {
                 (
                     StatusCode::ACCEPTED,
                     Json(json!({"job_id":job,"request_id":id,"state":state,"replayed":true})),
@@ -573,7 +598,7 @@ async fn start(runtime: Runtime, job: String, id: String, deadline: u64, split: 
     let cancel = Cancellation::new();
     let task = match runtime
         .executor
-        .start_splitting(&job, &id, deadline, &cancel, split)
+        .start_splitting(&job, &id, deadline, &cancel, split, words)
         .await
     {
         Ok(task) => task,

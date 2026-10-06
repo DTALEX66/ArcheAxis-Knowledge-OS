@@ -171,6 +171,46 @@ fn invalid_content_and_injected_commit_failure_leave_zero_partial_outputs() {
 /// The split choice is persisted with the attempt it belongs to, and only the transcribing route
 /// may carry it. The stored `request_json` is the same bytes the worker receives, so replay
 /// compares against what actually ran rather than a shape the caller remembers.
+/// R15/F10: the word-timings choice is persisted with its attempt, and a route that cannot honour
+/// it is refused rather than silently ignoring the flag. The stored request is the bytes the worker
+/// receives, so a receipt claiming a granularity the request never asked for - or the reverse - stays
+/// visible to a reader.
+#[test]
+fn word_timings_reach_the_transcribe_request_and_are_refused_elsewhere() {
+    let dir = tempfile::tempdir().unwrap();
+    let (mut conn, _) = bootstrap(dir.path().join("words.sqlite").to_str().unwrap()).unwrap();
+    let sid = match source::import_source(&mut conn, b"RIFF....WAVEfmt ", "tone.wav", None).unwrap()
+    {
+        ImportOutcome::Imported { source_id, .. } => source_id,
+        _ => unreachable!(),
+    };
+    jobs::enqueue(&mut conn, "v", "transcribe", &sid).unwrap();
+    let request = attempts::claim_split(&mut conn, "v", "r-words", 300_000, None, true).unwrap();
+    assert_eq!(request.parameters["words"], json!(true));
+    assert!(
+        request.parameters.get("split").is_none(),
+        "asking for word timings must not imply a split"
+    );
+
+    // a plain claim stays parameter-free, and a route with no word timings refuses the flag with
+    // the protocol's own reason rather than dropping it
+    let sid_text = match source::import_source(&mut conn, b"plain text", "note.txt", None).unwrap()
+    {
+        ImportOutcome::Imported { source_id, .. } => source_id,
+        _ => unreachable!(),
+    };
+    jobs::enqueue(&mut conn, "u", "text", &sid_text).unwrap();
+    let refused = attempts::claim_split(&mut conn, "u", "r-words-text", 5000, None, true)
+        .err()
+        .expect("a text job must refuse the word-timings flag");
+    assert!(
+        refused.to_string().contains("only media.transcribe"),
+        "{refused}"
+    );
+    let plain = attempts::claim(&mut conn, "u", "r-plain-text", 5000).unwrap();
+    assert!(plain.parameters.is_empty());
+}
+
 #[test]
 fn a_split_choice_is_persisted_with_its_attempt_and_refused_for_other_routes() {
     let dir = tempfile::tempdir().unwrap();
@@ -184,7 +224,8 @@ fn a_split_choice_is_persisted_with_its_attempt_and_refused_for_other_routes() {
     let split = attempts::Split {
         root: dir.path().join("staging"),
     };
-    let request = attempts::claim_split(&mut conn, "w", "r-split", 300_000, Some(split)).unwrap();
+    let request =
+        attempts::claim_split(&mut conn, "w", "r-split", 300_000, Some(split), false).unwrap();
     assert_eq!(request.parameters["split"], json!(true));
     // Windows are keyed by the input's own digest, not by the job: a recording too long for one
     // job takes several, and each later one must see what the earlier ones finished.
@@ -234,6 +275,7 @@ fn a_split_choice_is_persisted_with_its_attempt_and_refused_for_other_routes() {
             Some(attempts::Split {
                 root: dir.path().join("staging"),
             }),
+            false,
         )
         .is_err()
     );

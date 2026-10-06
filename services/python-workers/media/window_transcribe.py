@@ -74,7 +74,19 @@ def offset_cues(cues: list[dict], offset_ms: int) -> list[dict]:
         end = int(cue["end_ms"]) + offset_ms
         if end <= start:
             raise ValueError(f"cue {index} has a non-positive duration after offsetting")
-        shifted.append({**cue, "start_ms": start, "end_ms": end})
+        moved = {**cue, "start_ms": start, "end_ms": end}
+        if cue.get("words"):
+            # Word timings ride inside the cue, so forgetting them here would leave a window whose
+            # cues are global while its words are still window-local.
+            words = []
+            for position, word in enumerate(cue["words"]):
+                word_start = int(word["start_ms"]) + offset_ms
+                word_end = int(word["end_ms"]) + offset_ms
+                if word_end < word_start:
+                    raise ValueError(f"cue {index} word {position} has a negative duration")
+                words.append({**word, "start_ms": word_start, "end_ms": word_end})
+            moved["words"] = words
+        shifted.append(moved)
     return shifted
 
 

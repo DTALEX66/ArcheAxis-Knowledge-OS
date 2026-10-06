@@ -225,6 +225,23 @@ impl Request {
             .insert("staging".into(), Value::String(staging.into()));
         Ok(self)
     }
+
+    /// Ask for word-level timings alongside the segment cues (R15/F10).
+    ///
+    /// Segment timing is what every transcription already returns; word timing costs an extra
+    /// alignment pass inside the model, so it is a choice rather than a default - asking for it
+    /// unconditionally would shorten the wall clock a bounded window can finish in.
+    ///
+    /// Like `splitting`, this widens nothing else: only `media.transcribe` may carry it, and the
+    /// worker decides *how* to honour it. A request that claims word timings and receives none
+    /// fails at the receipt, because the worker states which granularity it actually produced.
+    pub fn word_timings(mut self) -> Result<Self> {
+        if self.capability != "media.transcribe" {
+            return Err("only media.transcribe can ask for word timings");
+        }
+        self.parameters.insert("words".into(), Value::Bool(true));
+        Ok(self)
+    }
 }
 pub fn decode_hello(line: &str) -> Result<Hello> {
     let hello: Hello = parse(line)?;
