@@ -3,7 +3,9 @@
   "date": "2026-10-06",
   "scope": "dated documentation mirror, not second execution ledger or deployed product proof",
   "source_branch": "codex/dsh-aaos-real-multiformat-loop-20261001",
-  "base_commit": "b69c42a2afb53870847c08805c92171cc787533a",
+  "mirror_verified_against_commit": "691a0ce7a48971a628b4f736ea8ec7e2770769a0",
+  "prior_baseline_commit": "b69c42a2afb53870847c08805c92171cc787533a",
+  "commit_binding_note": "Every hashed file is identical at both commits except the two 20261006 documents, which were first published by mirror_verified_against_commit; that commit is therefore the only source binding for this mirror.",
   "canonical_ledger": "docs/current/AAOS01-Q00-Q15-LEDGER-FINAL-20261005.md",
   "green_mirror": "D:\\All projects\\ArcheAxis.Knowledge.Green-x64\\AAOS01-文档同步-20261006",
   "files": [
