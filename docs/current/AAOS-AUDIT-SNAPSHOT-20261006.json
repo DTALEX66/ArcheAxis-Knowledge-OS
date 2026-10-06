@@ -94,7 +94,25 @@
       "receipt": "4179 passed, 19 skipped, 144 subtests passed, 1 failed in 441.62s",
       "failure": "tests/test_general_course_worker.py::test_real_subprocess_reads_one_json_and_creates_no_output_files",
       "covers": "本机全量套件（Windows 默认代码页，未开 UTF-8 模式）",
-      "note": "包装命令退出码为 0，收据本身含 1 failed；此处按收据记失败，不按包装退出码记通过。该失败在 UTF-8 模式下不复现，见 gaps"
+      "note": "包装命令退出码为 0，收据本身含 1 failed；此处按收据记失败，不按包装退出码记通过。该失败在 UTF-8 模式下不复现，且权威 runner 不受影响，见 gaps"
+    },
+    {
+      "command": "复算本快照 artifacts 列表内 9 个文件的 SHA-256 并与记录值比对",
+      "exit_code": 0,
+      "result": "9/9 一致，0 drift；随后因本轮更正 input-sources 与 OSS 证据两文件的表述，其两条记录值已同步刷新",
+      "covers": "审计快照自身证据清单未漂移（记录值 = 当时磁盘值）"
+    },
+    {
+      "command": "内容哈希检索：D:/All projects/Record 递归 + 该目录下全部 zip 的成员 + D:/All projects/资料库 递归，与蓝图附录记录的 SHA-256 逐个比对",
+      "exit_code": 0,
+      "result": "121 个文件 + 29,896 个 zip 成员均已哈希；A01 7ecda3e3…、A02 771b1897…、A06 7d475862… 无字节相同副本；A04 3839646b… 命中本仓 docs/history/… 副本",
+      "covers": "把 A01/A02/A06 的 SOURCE_MISSING 从按文件名未找到升级为按内容哈希未找到；更正 A04 为 VERIFIED_MATCH（上一轮 maxdepth 5 检索漏掉了深度 6 的本仓副本）"
+    },
+    {
+      "command": "独立只读复核开源吸收证据：逐条要求已吸收项必须有被产品真正调用的证据（读 disposition 证据文档、SUPERSESSION_LEDGER、scripts/audit/oss_disposition_evidence.py 与相关源码/workflow）",
+      "exit_code": 0,
+      "result": "A018-A021、A022、A023/A024、C001 有真实调用方（PROVEN）；A002/A003/A006/A009/A011 的 IMPLEMENTED_IN_SOURCE 与 A008 一类 VENDORED 标签为启发式假阳性",
+      "covers": "对上一轮自身结论的独立核对与自我更正，已写入 OSS 证据文档第五节并把工具启发式边界登记为缺口"
     }
   ],
   "checks_not_run_this_round": [
@@ -119,7 +137,8 @@
     "Q14 经核实不是冲突而是日期序列：更正文件（2026-10-05）记 NOT_RUN，账本第 5/87 行记其后证据（run 37399470467 全 20 job SUCCESS、artifact 11385093136 的 21 步原生收据、NSIS host SHA 00b7ba9b…）；不可变 checks/acceptance.json 仍为 NOT_RUN，资格化未达成、不发行（初稿误标为冲突，已更正）",
     "A 组 14 项 CAP 已按套件实测取证（合计 370 passed，各 exit 0）；CAP-0070 动态解释与仿真本轮未找到独立套件，行内已写明课程/UI 动效用例提到动画不等于仿真已实现",
     "F00—F14 与 I1—I6 均无实现证据，属目标",
-    "测试工装编码缺陷（非本轮引入，按本轮范围只登记不改代码）：tests/test_general_course_worker.py::test_real_subprocess_reads_one_json_and_creates_no_output_files 在 locale=cp936 且未开 UTF-8 模式时失败，UTF-8 模式下同文件 13/13 通过。课程 worker 的 stdout 含 U+2014 破折号（合法 UTF-8，第 2118 字节 0x94 不可按 GBK 解码），父进程按 locale 解码即抛 UnicodeDecodeError，被 pytest 作为线程异常归到该用例。scripts/ci/run_tests.sh 与 scripts/ci/run_tests.ps1 均未设 UTF-8 模式，故 Windows 默认代码页下的全量运行都会命中；CI 的 test 作业在 Ubuntu（UTF-8）不命中。修复方向：该 subprocess.run 显式 encoding=utf-8"
+    "编码误判已更正（同轮内自纠）：早先把该现象登记为‘项目 runner 未设 UTF-8 模式’是错的。现场核实 scripts/runtime/dev.py 为 pytest 子进程设置 PYTHONUTF8=1 与 PYTHONIOENCODING=utf-8（dev.py:233-234），且 --pytest 以子解释器启动（dev.py:443），因此权威路径 scripts/ci/run_tests.sh / run_tests.ps1 不受影响——在本机 shell 未设 UTF-8 时经该 runner 运行 tests/test_general_course_worker.py 为 13/13 通过。该失败只出现在绕开权威路径直接裸跑 pytest 时（本轮后台全量运行即裸跑）：课程 worker 的 stdout 含 U+2014 破折号（合法 UTF-8，第 2118 字节 0x94 不可按 GBK 解码），裸跑时 pytest 捕获按 locale 解码而抛错。可选的加固（非必需，未做）：该 subprocess.run 显式 encoding=utf-8，使断言不依赖父进程编码模式",
+    "开源吸收核对脚本的启发式边界（本轮独立复核发现，未改工具代码）：scripts/audit/oss_disposition_evidence.py 以‘整词命中任一来源’记 IMPLEMENTED_IN_SOURCE、以‘文件名含该项词’记 VENDORED，于是 (a) 域名命中——term mozilla 命中 shared/cross_reference.py:36 的 developer.mozilla.org（MDN 文档，与 Mozilla Readability 无关）——与 (b) 文件名命中都被当作实现证据。已据此更正 docs/current/AAOS-OSS-DISPOSITION-EVIDENCE-20261006.md 的夸大表述（其第五节）。修正启发式会改变多行判定并需重算 disposition-evidence.json，故本轮登记不改代码"
   ],
   "about": {
     "before": "星环知识平台 ArcheAxis Knowledge：本地优先的多格式内容与人机双向学习工作台（开发中）。Tauri/React + Rust Core，SQLite/CAS 单写者。内容先保存；识别忠实度核验与专业依据分析独立、可追溯。",
@@ -145,7 +164,7 @@
   "environment": {
     "platform": "Windows 10.0.26100 x64",
     "interpreter_used": ".project-local/build/be268a2d33/venv/Scripts/python.exe（本机 CI 同构虚拟环境，含 PyYAML）",
-    "note": "bare `python` 不在 Git Bash PATH；本地复现必须用 --source index/head（Windows 工作树为 CRLF，--source worktree 会误报）；locale 为 cp936，需 PYTHONUTF8=1 才与 CI 的 UTF-8 环境等价"
+    "note": "bare `python` 不在 Git Bash PATH；本地复现门禁必须用 --source index/head（Windows 工作树为 CRLF，--source worktree 会误报）；本机 locale 为 cp936，裸跑 pytest 会按 cp936 解码而以 UTF-8 断言失败，权威 runner 由 dev.py 自带 PYTHONUTF8=1，故套件应经 scripts/ci/run_tests.sh 运行"
   },
   "both_ends": {
     "local_head": "8f163aae62949e78fd45eba3d163b3d39895abe3",
@@ -176,15 +195,19 @@
       "document-authority gate in the lint job, falsified by 7 injected faults",
       "About updated and read back; branch pushed and remote file hash matched",
       "README 头部恢复显式历史语境声明，修复 5a6639f0 引入的 lint 回归；8f163aae 的 CI push run 37447589524 lint 与 a0-gates 均成功",
-      "本机全量套件跑通并如实记录（4179 passed / 19 skipped / 1 failed，失败为测试工装编码缺陷，已登记）"
+      "本机全量套件跑通并如实记录（4179 passed / 19 skipped / 1 failed，失败为测试工装编码缺陷，已登记）",
+      "更正 A04 输入来源为 VERIFIED_MATCH：该文件就在本仓（docs/history/…/package-unpacked/），哈希与蓝图附录一致；上一轮按 maxdepth 5 检索而该路径深度为 6，故误判 SOURCE_MISSING",
+      "对 A01/A02/A06 完成内容哈希检索（Record 121 个文件 + 29,896 个 zip 成员 + 资料库），把 SOURCE_MISSING 建立在哈希而非文件名之上",
+      "独立复核开源吸收证据并更正 OSS 证据文档的夸大表述：9 条 IMPLEMENTED_IN_SOURCE 中仅 A018-A021 是真客户端，A011 系域名假阳性；VENDORED 标签来自文件名而非上游实拷"
     ],
     "open": [
       "Q14 与更正文件的日期序列已核实记录；是否宣布资格化仍由 Owner 决定（不可变 checks/acceptance.json 仍为 NOT_RUN）",
-      "5 条蓝图附录来源仍为 SOURCE_MISSING（U01、U02、A01、A02、A04、A06）——未读即未判断",
-      "测试工装 UTF-8 解码缺陷待修（见 gaps），本轮按范围只登记",
+      "5 条蓝图附录来源仍为 SOURCE_MISSING（U01、U02、A01、A02、A06）——A04 已改判 VERIFIED_MATCH；未读即未判断，不声称已读",
+      "编码误判已更正（见 gaps）：权威 runner 不受影响，仅裸跑 pytest 时命中；显式 encoding=utf-8 只是可选加固，未做",
+      "开源吸收核对脚本的启发式假阳性未修（见 gaps）：OSS 证据文档的表述已更正，scripts/audit/oss_disposition_evidence.py 的代码未改，disposition-evidence.json 未重算",
       "merge / release / install 未授权、未执行；无 tag、无 release"
     ],
-    "next_action": "按 Owner 指示把测试工装编码修正与其余代码缺口登记进唯一 current 台账；继续把 A 组 CAP 实测证据与 Q/F/I 证据补入覆盖矩阵"
+    "next_action": "先修 scripts/audit/oss_disposition_evidence.py 的整词/文件名启发式（消除域名与文件名假阳性）并重算 disposition-evidence.json；随后按 Owner 指示决定 Q14 资格化口径与清理范围"
   },
   "verification": {
     "capability_family_runs": {
@@ -237,15 +260,15 @@
     {
       "artifact": "input source record",
       "path": "docs/current/AAOS-INPUT-SOURCES-20261006.json",
-      "byte_size": 6860,
-      "byte_sha256": "5f363697caca7b9679b056347340f14e33fadf46d4ceaf096eb4f08ab9b687c5",
+      "byte_size": 8375,
+      "byte_sha256": "cc63bffa1c5f526cf7e50223a4a79b4efc81872f69dd8dbc5ce57b1cdd196bd0",
       "status": "present"
     },
     {
       "artifact": "open-source disposition evidence",
       "path": "docs/current/AAOS-OSS-DISPOSITION-EVIDENCE-20261006.md",
-      "byte_size": 4792,
-      "byte_sha256": "eb6c12a00057dbe14a392f5c17c487a2be573fd4f6b931f46cba71edab194bfc",
+      "byte_size": 7032,
+      "byte_sha256": "92a7cd53685e4b91afc72dfa27293d5243f6b207377d960446d91fab1e80ce44",
       "status": "present"
     },
     {
@@ -270,5 +293,5 @@
       "status": "present"
     }
   ],
-  "artifacts_note": "hashes were computed on this host in this round; the snapshot does not contain its own digest, so there is no self-reference"
+  "artifacts_note": "hashes were computed on this host in this round; the snapshot does not contain its own digest, so there is no self-reference. 先做了一次 9/9 的复算（0 drift），随后因本轮更正 input-sources 与 OSS 证据两文件的表述，其两条记录值已同步刷新为本文件的当前字节"
 }

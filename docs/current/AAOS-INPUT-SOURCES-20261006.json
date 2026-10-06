@@ -57,7 +57,7 @@
       "path_or_locator": "蓝图附录记为 sources/AAOS_快速重构与多格式闭环_完整方案_20261004.md",
       "byte_sha256": "7ecda3e3f9d22834d65df663ba4f42a3ac62e31d215ab5e7c59c08bfaf08441e",
       "status": "SOURCE_MISSING",
-      "limit": "已在 Record 根与仓库内按文件名检索（maxdepth 3/5），未找到；不能声称已读。存在同名近似文件 01_AAOS_快速重构_多格式闭环_启动提示词_20261004.txt，性质不同，不替代"
+      "limit": "未找到，不声称已读。同名近似文件 01_AAOS_快速重构_多格式闭环_启动提示词_20261004.txt 性质不同，不替代；其内容也不在 Record/AAOS_01_快速重构_多格式闭环_20261004.zip 内（该 zip 成员为任务书、registries、来源与快照，已逐个核对）。另经内容哈希检索确认无字节相同副本，见 missing_source_search_20261006"
     },
     {
       "source_id": "A02",
@@ -67,7 +67,7 @@
       "path_or_locator": "蓝图附录记为 sources/AAOS_未来延展与可持续架构_完整方案_20261004.md",
       "byte_sha256": "771b189740e94dfeaf65e363b919745c2a69bb795d461e2b2fbcc9c95b15e1e1",
       "status": "SOURCE_MISSING",
-      "limit": "同上，未找到，不声称已读"
+      "limit": "未找到，不声称已读；经内容哈希检索亦无字节相同副本（见 missing_source_search_20261006）"
     },
     {
       "source_id": "A03",
@@ -85,10 +85,12 @@
       "date": "2026-09-29",
       "title": "AAOS 完整历史/蓝图/吸收池总报告",
       "kind": "history_report",
-      "path_or_locator": "蓝图附录记为 sources/AAOS_完整历史规划蓝图吸收池与当前状态总报告_2026-09-29.md",
+      "path_or_locator": "docs/history/planning-blueprint-absorption/2026-09-29/package-unpacked/AAOS_完整历史规划蓝图吸收池与当前状态总报告_2026-09-29.md（本仓内，不是项目外文件）",
       "byte_sha256": "3839646bb60b811c5cc1ab3417625a69e71b70f5983b6b24ec796a664fa28ffb",
-      "status": "SOURCE_MISSING",
-      "limit": "未找到，不声称已读；Record/AAOS-project-archives/2026-09-29 只有该批次的 README，不是本文件"
+      "byte_size": 28565,
+      "status": "VERIFIED_MATCH",
+      "limit": null,
+      "note": "更正：本节上一轮判 SOURCE_MISSING 是错的。该文件确实在本仓内；上一轮按 maxdepth 5 检索，而该路径深度为 6，故漏判。2026-10-06 复核在本机对该文件取 SHA-256，与蓝图附录记录逐字节一致；scripts/check_repository_conventions.py 的 _PRESERVED_PACKAGE_MEMBER_HASHES 亦以同一哈希钉住它"
     },
     {
       "source_id": "A05",
@@ -108,7 +110,7 @@
       "path_or_locator": "蓝图附录记为 sources/CONTENT-COPY-V2.md",
       "byte_sha256": "7d475862fd307be46371ceeaead3407d6bbe939b429c37df1c28c4c6760fbeb2",
       "status": "SOURCE_MISSING",
-      "limit": "未找到。母定义中的对外命名采用蓝图正文与仓库 docs/truth/NAMING_CONTRACT_V2.md 的既有记录，未据此文件"
+      "limit": "未找到，不声称已读；经内容哈希检索亦无字节相同副本（见 missing_source_search_20261006）。母定义中的对外命名采用蓝图正文与仓库 docs/truth/NAMING_CONTRACT_V2.md 的既有记录，未据此文件"
     },
     {
       "source_id": "A07",
@@ -121,11 +123,21 @@
       "limit": "位于项目外工作目录；只核对哈希，不提交入仓"
     }
   ],
+  "missing_source_search_20261006": {
+    "method": "按内容哈希（SHA-256）检索，不依赖文件名，避免改名或同名近似导致漏判",
+    "scopes": [
+      "D:/All projects/Record 递归（121 个文件）",
+      "D:/All projects/Record 下全部 zip 的成员（29,896 个成员）",
+      "D:/All projects/资料库 递归"
+    ],
+    "result": "A01 7ecda3e3…、A02 771b1897…、A06 7d475862… 在上述范围内无任何字节相同的副本；A04 3839646b… 命中本仓 docs/history/… 的副本（故改判 VERIFIED_MATCH）",
+    "limit": "检索范围仅上述三处；未访问 E: 盘，未做全盘扫描，故不排除存在于未检索位置"
+  },
   "summary": {
     "appendix_entries": 9,
-    "verified_match": 3,
-    "source_missing": 6,
+    "verified_match": 4,
+    "source_missing": 5,
     "read_but_unhashed": 0,
-    "note": "9 = 3 VERIFIED_MATCH（A03、A05、A07）+ 6 SOURCE_MISSING（U01、U02、A01、A02、A04、A06）。U01/U02 属原始聊天未导出；A01/A02/A04/A06 为具名文件在本机未找到。因此本轮不得声称已读 A01、A02、A04、A06。"
+    "note": "9 = 4 VERIFIED_MATCH（A03、A04、A05、A07）+ 5 SOURCE_MISSING（U01、U02、A01、A02、A06）。U01/U02 属原始聊天未导出；A01/A02/A06 经内容哈希检索仍未找到。A04 于 2026-10-06 复核改判为 VERIFIED_MATCH（本仓内副本，哈希与附录一致）。因此本轮仍不得声称已读 A01、A02、A06。"
   }
 }

@@ -10,7 +10,7 @@
 | 实测状态 | 条数 | 含义 |
 | --- | --- | --- |
 | `DECLARED` | 24 | 在声明文件/流水线中确有该依赖或其调用 |
-| `IMPLEMENTED_IN_SOURCE` | 9 | 无依赖声明，但在本仓库源码中以自建客户端实现（Crossref / DataCite / OpenAlex / Wikidata 等 REST 项） |
+| `IMPLEMENTED_IN_SOURCE` | 9 | 无依赖声明，但源码中整词命中。**其中只有 4 条是真自建客户端**：A018 Crossref / A019 DataCite / A020 OpenAlex / A021 Wikidata（`shared/evidence_connectors.py`，被 `shared/public_evidence.py:12-17` 使用）；另 5 条是假阳性，更正见第五节 |
 | `DECLARED_AND_VENDORED` | 1 | 既有声明又有实拷 |
 | `VENDORED_ONLY` | 1 | 只有实拷，无依赖声明 |
 | `NONE` | 12 | 声明、流水线、源码、vendor 四处均无证据 |
@@ -37,7 +37,17 @@
 
 ## 三、本轮由实测发现并已修正的事实性错误
 
-先前的处置表述里，`A023 pip-audit` 与 `A024 Gitleaks` 一度被写成未吸收——更正依据是本轮实测：两者由 `.github/workflows/ci.yml`（第 153、152 行）以流水线工具形式实际调用，属于"以 CI 门禁形式吸收"，不体现在任何依赖清单里。核对脚本因此把**流水线调用**列为独立证据来源；只看依赖清单会给出一份与事实相反的结论。
+先前的处置表述里，`A023 pip-audit` 与 `A024 Gitleaks` 一度被写成未吸收——更正依据是本轮实测：两者由 `.github/workflows/ci.yml` 以流水线工具形式实际调用（2026-10-06 复核时 pip-audit 在第 165 行、gitleaks 在第 179 行；本文件原写的 153/152 是报告生成时的旧行号，ci.yml 在其后被编辑过），属于"以 CI 门禁形式吸收"，不体现在任何依赖清单里。核对脚本因此把**流水线调用**列为独立证据来源；只看依赖清单会给出一份与事实相反的结论。
+
+## 五、独立复核与表述更正（2026-10-06 二次只读核对）
+
+本节由一次独立的只读复核追加。判定标准是"已吸收必须有**被产品真正调用**的证据"——文件存在但无人调用不算吸收。结论：
+
+- **已证实有真实调用方**：A018—A021（`shared/evidence_connectors.py` 被 `shared/public_evidence.py:12-17` 使用，另有 `tests/test_public_evidence.py`）；A022（`scripts/release_sbom.py` 被 `.github/workflows/release.yml:202` 调用，产物 CycloneDX）；A023/A024（ci.yml 门禁）；C001 PDF.js（`frontend/package.json` 的 `pdfjs-dist`，`frontend/src/components/PdfReader.tsx:3-4` 导入，`frontend/src/spaces/CanonicalLibrarySpace.tsx:8,312` 渲染）。
+- **更正一：第一节 9 条 `IMPLEMENTED_IN_SOURCE` 的表述夸大。** 另 5 条并非"自建客户端实现"——A002/A003/A006 在 `shared/bakeoff_engines.py` 自述为 "unavailable-honest stubs"；A009 是 `shared/adapter_fixtures.py:135` 的导入探测；**A011 是术语假阳性**——`mozilla` 命中的是 `shared/cross_reference.py:36` 的域名 `developer.mozilla.org`（MDN 文档），与 Mozilla Readability 无关。
+- **更正二：`VENDORED` 标签来自文件名而非上游实拷。** `VENDORED_ONLY` 与 `DECLARED_AND_VENDORED` 各 1 条，其"实拷"证据是文件名命中；已核 `shared/audio_vad.py` 第 1—5 行自述为 Silero VAD 的 unavailable-honest 桩，不是上游代码。
+- **根因（工具启发式的边界）**：核对脚本把"整词命中任一来源"记为 `IMPLEMENTED_IN_SOURCE`、把"文件名含该项词"记为 `VENDORED`，于是域名命中与文件名命中都会充作实现证据。修正启发式属代码改动（会改变多行判定并需重算 `disposition-evidence.json`），本轮未改，已作为缺口登记在审计快照。
+- 本节不改动 §一—§四的事实陈述；若两者不一致，以本节的复核证据为准。
 
 ## 四、未做的部分（明确边界）
 
