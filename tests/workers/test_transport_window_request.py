@@ -1,9 +1,9 @@
-"""A windowed transcription request is accepted, and nothing else gains a parameter channel.
+"""A split transcription request is accepted, and nothing else gains a parameter channel.
 
-The Core can only send one bounded unit of work per job, so the transport has to carry a window —
-but widening `parameters` for every route would turn a closed protocol into a free-form one. These
-tests pin both halves: the window rides `media.transcribe` and reaches the worker as a one-window
-plan, and every other capability still refuses a non-empty parameter object.
+The Core can only send one bounded unit of work per job, so the transport has to carry the choice
+to split — but widening `parameters` for every route would turn a closed protocol into a free-form
+one. These tests pin both halves: the choice rides `media.transcribe` and reaches the worker with
+the job's remaining time, and every other capability still refuses a non-empty parameter object.
 """
 
 import importlib.util
@@ -41,8 +41,8 @@ def extract(path, model_path=None, language="auto", device="cpu"):
             "loss_receipt": {"engine": "fixture", "engine_version": "1", "params": {}, "loss_note": "fixture"}}
 
 
-def extract_windowed(path, model_path=None, language="auto", device="cpu", plan=None, ffmpeg=None, staging=None):
-    _record("extract_windowed", {"path": path, "plan": plan, "ffmpeg": ffmpeg, "staging": staging})
+def extract_split(path, model_path=None, language="auto", device="cpu", ffmpeg=None, staging=None, remaining_ms=None):
+    _record("extract_split", {"path": path, "ffmpeg": ffmpeg, "staging": staging, "remaining_ms": remaining_ms})
     return {"engine": "fixture", "engine_version": "1", "text": "windowed", "language": "en",
             "language_probability": 1.0, "duration_ms": 3000, "cues": [{"start_ms": 2000, "end_ms": 2500, "text": "w"}],
             "raw_cues": [{"start_ms": 2000, "end_ms": 2500, "text": "w"}], "alignment_issues": [],
@@ -83,48 +83,52 @@ class WindowParameterTests(unittest.TestCase):
                 "inputs": [{"uri": f"job://input/{digest}", "sha256": digest, "media_type": media_type}],
                 "parameters": parameters}
 
-    def window(self, **overrides):
-        window = {"index": 2, "start_ms": 280_000, "end_ms": 420_000}
-        window.update(overrides)
-        return {"window": window, "staging": str(self.staging / "windows")}
+    def split(self, **overrides):
+        parameters = {"split": True, "staging": str(self.staging / "windows")}
+        parameters.update(overrides)
+        return parameters
 
-    def test_a_window_reaches_the_worker_as_a_single_window_plan(self):
-        parameters = self.window()
+    def test_a_split_reaches_the_worker_with_the_jobs_remaining_time(self):
+        parameters = self.split()
         log = self.staging / "calls.jsonl"
         os.environ["AAOS_WINDOW_FIXTURE_LOG"] = str(log)
         self.addCleanup(lambda: os.environ.pop("AAOS_WINDOW_FIXTURE_LOG", None))
         self.transport._declared_tool_path = lambda name: "declared-ffmpeg.exe" if name == "ffmpeg" else None
         outputs, _measurements, _losses = self.transport.execute(self.request(parameters), self.staging)
-        # Reaching this line at all is the contract check: the windowed envelope had to satisfy the
+        # Reaching this line at all is the contract check: the split envelope had to satisfy the
         # canonical artifact pipeline (text, document structure and loss receipt) to get here.
         self.assertEqual({output["kind"] for output in outputs}, {"text", "document_structure", "loss_report"})
         recorded = [json.loads(line) for line in log.read_text(encoding="utf-8").splitlines()]
         self.assertEqual(len(recorded), 1)
         call = recorded[0]
-        self.assertEqual(call["kind"], "extract_windowed")
-        self.assertEqual(call["plan"]["windows_total"], 1)
-        self.assertEqual(call["plan"]["windows"][0], {"index": 2, "start_ms": 280_000, "end_ms": 420_000,
-                                                      "audio_ms": 140_000, "estimated_ms": 140_000})
+        self.assertEqual(call["kind"], "extract_split")
         # The decoder is the declared engine, not a path the request named.
         self.assertEqual(call["ffmpeg"], "declared-ffmpeg.exe")
         self.assertEqual(call["staging"], parameters["staging"])
+        # The worker is told how much of the job is left, not a window plan: the plan is derived
+        # from the recording's own duration inside the worker. The value is the wall clock still
+        # available, so it is bounded rather than exact.
+        self.assertGreater(call["remaining_ms"], 29_000)
+        self.assertLessEqual(call["remaining_ms"], 30_000)
+        self.assertNotIn("plan", call)
 
-    def test_a_window_without_a_declared_decoder_is_refused(self):
+    def test_a_split_without_a_declared_decoder_is_refused(self):
         self.transport._declared_tool_path = lambda name: None
         with self.assertRaises(self.transport.Rejected):
-            self.transport.execute(self.request(self.window()), self.staging)
+            self.transport.execute(self.request(self.split()), self.staging)
 
     def test_another_capability_still_refuses_any_parameter(self):
         with self.assertRaises(self.transport.Rejected):
-            self.transport.execute(self.request({"window": {"index": 0, "start_ms": 0, "end_ms": 1}}, capability="text.extract"),
-                                   self.staging)
+            self.transport.execute(self.request({"split": True}, capability="text.extract"), self.staging)
 
-    def test_a_malformed_window_is_refused_with_a_reason(self):
-        for broken in (self.window(window={"index": 0, "start_ms": 10, "end_ms": 10}),
-                       {"window": {"index": 0, "start_ms": 0, "end_ms": 10}},
+    def test_a_malformed_split_is_refused_with_a_reason(self):
+        for broken in ({"split": "yes"},
+                       {"split": False},
+                       {"staging": str(self.staging / "windows")},
                        {"ffmpeg": "ffmpeg.exe"},
-                       {**self.window(), "ffmpeg": "C:/somewhere/ffmpeg.exe"},
-                       {**self.window(), "extra": 1}):
+                       {**self.split(), "ffmpeg": "C:/somewhere/ffmpeg.exe"},
+                       {**self.split(), "window": {"index": 0, "start_ms": 0, "end_ms": 10}},
+                       {**self.split(), "extra": 1}):
             with self.subTest(broken=broken):
                 with self.assertRaises(self.transport.Rejected):
                     self.transport.execute(self.request(broken), self.staging)

@@ -319,30 +319,14 @@ fn valid_id(id: &str) -> bool {
 #[serde(deny_unknown_fields)]
 struct ExecuteBody {
     deadline_ms: u64,
-    /// The one bounded window this job covers. Absent means the whole input, which is what every
-    /// capability other than `media.transcribe` gets — and what it requires.
+    /// Ask for the recording to be split into bounded windows instead of decoded in one pass.
+    ///
+    /// `false` and an absent field mean the same thing — transcribe the input whole — so there is
+    /// no third state to guess at. The window plan itself is not accepted from the caller: it is
+    /// derived from the file's real duration inside the worker, so a request cannot describe a plan
+    /// that drops audio while looking well-formed.
     #[serde(default)]
-    window: Option<WindowBody>,
-}
-
-/// A window is `index`, `start_ms` and `end_ms` and nothing else: it is not a general parameter
-/// channel, and `deny_unknown_fields` means a misspelled key is a `422` rather than a silent no-op.
-#[derive(Deserialize)]
-#[serde(deny_unknown_fields)]
-struct WindowBody {
-    index: u64,
-    start_ms: u64,
-    end_ms: u64,
-}
-
-impl WindowBody {
-    fn span(&self) -> archeaxis_application::attempts::WindowSpan {
-        archeaxis_application::attempts::WindowSpan {
-            index: self.index,
-            start_ms: self.start_ms,
-            end_ms: self.end_ms,
-        }
-    }
+    split: bool,
 }
 
 /// `enabled` is a required boolean and unknown fields are refused.
@@ -496,37 +480,21 @@ async fn execute(
         || !valid_id(&job)
         || body.deadline_ms == 0
         || body.deadline_ms > 300_000
-        || body.window.as_ref().is_some_and(|window| !valid_window(window))
     {
         return error(
             422,
             "AAK-VAL-001",
-            "bounded execution identity, deadline and window required",
+            "bounded execution identity and deadline required",
         );
     }
-    let window = body.window.as_ref().map(WindowBody::span);
+    let split = body.split;
     // The accepted HTTP operation outlives a disconnected waiter, including
     // the interval between durable claim, registration and worker completion.
-    tokio::spawn(async move { start(runtime, job, id, body.deadline_ms, window).await })
+    tokio::spawn(async move { start(runtime, job, id, body.deadline_ms, split).await })
         .await
         .unwrap_or_else(|_| unavailable())
 }
-/// A window must be a positive range of safe-integer millisecond offsets.
-///
-/// The upper bound is the largest integer JSON can carry without losing precision; a larger one
-/// would be silently rounded by any consumer that reads it as a double, so it is refused here
-/// rather than accepted and then misreported downstream.
-fn valid_window(window: &WindowBody) -> bool {
-    const SAFE: u64 = 9_007_199_254_740_991;
-    window.end_ms > window.start_ms && window.index <= SAFE && window.end_ms <= SAFE
-}
-async fn start(
-    runtime: Runtime,
-    job: String,
-    id: String,
-    deadline: u64,
-    window: Option<archeaxis_application::attempts::WindowSpan>,
-) -> Response {
+async fn start(runtime: Runtime, job: String, id: String, deadline: u64, split: bool) -> Response {
     let _admission = runtime.admission.lock().await;
     // R7/G1: name a disabled capability instead of letting it fall into the generic "cannot start in
     // its current state". The authoritative refusal is inside the claim transaction, which is what
@@ -573,19 +541,14 @@ async fn start(
                 Ok(r) => r,
                 Err(_) => return unavailable(),
             };
-            // A window is part of the request identity: two windows of the same recording share a
-            // job but not a request, so replaying on the key alone would hand back window 3's
-            // receipt for window 4.
-            let same_window = match (window, request.pointer("/parameters/window")) {
-                (None, None) => true,
-                (Some(span), Some(stored)) => {
-                    stored["index"].as_u64() == Some(span.index)
-                        && stored["start_ms"].as_u64() == Some(span.start_ms)
-                        && stored["end_ms"].as_u64() == Some(span.end_ms)
-                }
-                _ => false,
-            };
-            return if old_job == job && request["deadline_ms"] == deadline && same_window {
+            // Whether the job was split is part of the request identity: the same key must not
+            // replay a whole-file receipt for a split request, or the reverse.
+            let same_split = request
+                .pointer("/parameters/split")
+                .and_then(Value::as_bool)
+                .unwrap_or(false)
+                == split;
+            return if old_job == job && request["deadline_ms"] == deadline && same_split {
                 (
                     StatusCode::ACCEPTED,
                     Json(json!({"job_id":job,"request_id":id,"state":state,"replayed":true})),
@@ -610,7 +573,7 @@ async fn start(
     let cancel = Cancellation::new();
     let task = match runtime
         .executor
-        .start_windowed(&job, &id, deadline, &cancel, window)
+        .start_splitting(&job, &id, deadline, &cancel, split)
         .await
     {
         Ok(task) => task,

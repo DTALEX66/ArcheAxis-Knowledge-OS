@@ -199,53 +199,32 @@ impl Request {
         .map_err(|_| "invalid text task identity or budget")
     }
 
-    /// Declare the one bounded window this job covers.
+    /// Declare that this job transcribes a recording too long for one pass, by splitting it.
     ///
     /// The Core refuses a job deadline above 300 s, so a long recording cannot be transcribed in
-    /// one pass on CPU. The caller plans windows and sends one per job; that plan rides
-    /// `parameters`, which every other route still requires to be empty. A window is therefore not
-    /// a general-purpose parameter channel — it is the single capability that has a bounded unit
-    /// of work to describe, and this refuses to widen any other.
+    /// one pass on CPU. That choice rides `parameters`, which every other route still requires to
+    /// be empty: it is not a general-purpose parameter channel, it is the single capability that
+    /// has a bounded unit of work to describe, and this refuses to widen any other.
+    ///
+    /// Only the *choice* travels. The window plan is derived from the recording's real duration
+    /// inside the worker, because a plan sent over the wire could leave a gap between two windows,
+    /// look well-formed, and silently drop the audio between them.
     ///
     /// `staging` is the Core-owned directory that holds finished windows. It is stable across
     /// attempts on purpose: a window that already succeeded is reused instead of repeated, so a
     /// long recording advances rather than restarting.
-    pub fn with_window(mut self, window: Window<'_>) -> Result<Self> {
+    pub fn splitting(mut self, staging: &str) -> Result<Self> {
         if self.capability != "media.transcribe" {
-            return Err("only media.transcribe carries a bounded window");
+            return Err("only media.transcribe can be split");
         }
-        if window.end_ms <= window.start_ms
-            || window.index > 9_007_199_254_740_991
-            || window.end_ms > 9_007_199_254_740_991
-            || window.staging.trim().is_empty()
-        {
-            return Err("invalid window or staging directory");
+        if staging.trim().is_empty() {
+            return Err("a split transcription needs a staging directory");
         }
-        self.parameters.insert(
-            "window".into(),
-            serde_json::json!({
-                "index": window.index,
-                "start_ms": window.start_ms,
-                "end_ms": window.end_ms,
-            }),
-        );
+        self.parameters.insert("split".into(), Value::Bool(true));
         self.parameters
-            .insert("staging".into(), Value::String(window.staging.into()));
+            .insert("staging".into(), Value::String(staging.into()));
         Ok(self)
     }
-}
-
-/// One bounded window of a recording, and the directory that holds finished windows.
-///
-/// The ffmpeg binary is not carried here: the transport resolves the declared engine the same way
-/// it resolves the declared OCR engine, so the Core does not grow a second, divergent reader of
-/// the capability manifest.
-#[derive(Debug, Clone, Copy)]
-pub struct Window<'a> {
-    pub index: u64,
-    pub start_ms: u64,
-    pub end_ms: u64,
-    pub staging: &'a str,
 }
 pub fn decode_hello(line: &str) -> Result<Hello> {
     let hello: Hello = parse(line)?;

@@ -249,7 +249,8 @@ def _window_module():
 
 
 def extract_windowed(path: str, model_path: str | None, language: str, device: str, plan: dict,
-                     ffmpeg: str, staging: str | None = None, work_dir: str | None = None) -> dict:
+                     ffmpeg: str, staging: str | None = None, work_dir: str | None = None,
+                     budget_ms: int | None = None) -> dict:
     """Transcribe one bounded window of the recording, resuming windows already finished.
 
     The Core caps a job at 300 s, so the caller drives successive invocations. `window_transcribe`
@@ -269,11 +270,15 @@ def extract_windowed(path: str, model_path: str | None, language: str, device: s
     if not Path(ffmpeg).is_file():
         raise ValueError(f"declared ffmpeg path does not exist: {ffmpeg}")
 
-    model = WhisperModel(str(_model_dir(model_path)), device=device, compute_type="int8")
     workspace = Path(work_dir) if work_dir else Path(tempfile.mkdtemp(prefix="archeaxis-window-"))
     workspace.mkdir(parents=True, exist_ok=True)
+    # Loaded on first real window: an invocation that only resumes finished windows must not pay for
+    # a model it never uses.
+    loaded: list = []
 
     def per_window(window):
+        if not loaded:
+            loaded.append(WhisperModel(str(_model_dir(model_path)), device=device, compute_type="int8"))
         target = workspace / f"window-{int(window['index']):04d}.wav"
         command = windows.window_command(str(ffmpeg), str(input_path), int(window["start_ms"]),
                                          int(window["end_ms"]), str(target))
@@ -288,7 +293,7 @@ def extract_windowed(path: str, model_path: str | None, language: str, device: s
         return {"status": "succeeded", "cues": receipt["cues"], "text": receipt["text"],
                 "receipt": receipt}
 
-    merged = windows.run_windows(plan, per_window, staging)
+    merged = windows.run_windows(plan, per_window, staging, budget_ms)
     produced = next((item for item in merged["windows_detail"] if item.get("receipt")), None) if \
         merged.get("windows_detail") else None
     if produced is None:
@@ -312,6 +317,56 @@ def extract_windowed(path: str, model_path: str | None, language: str, device: s
                          "window_audio_ms": int(plan.get("window_audio_ms") or 0),
                          "policy": plan.get("policy")},
     )
+    return envelope
+
+
+def _plan_module():
+    """The declared window policy and its arithmetic, loaded from this worker's own directory."""
+    import importlib.util
+
+    path = Path(__file__).resolve().parent / "window_plan.py"
+    spec = importlib.util.spec_from_file_location("transcribe_window_plan", path)
+    if spec is None or spec.loader is None:
+        raise RuntimeError("window_plan.py is missing beside this worker")
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
+
+
+def extract_split(path: str, model_path: str | None, language: str, device: str, ffmpeg: str,
+                  staging: str | None = None, remaining_ms: int | None = None,
+                  work_dir: str | None = None) -> dict:
+    """Transcribe a recording that cannot fit one job, by splitting it into bounded windows.
+
+    The plan is derived here, from the recording's real duration, rather than accepted from the
+    caller: the number that decides how many windows a file needs is the file's own length, and a
+    plan sent over the wire could drop audio by leaving a gap between two windows while still
+    looking well-formed. Only the *choice* to split rides the request.
+
+    Each invocation runs as many windows as the job's own budget allows and reports the rest as
+    not attempted, so a long recording advances across invocations instead of being killed
+    mid-decode with no statement about what was finished.
+    """
+    windows = _window_module()
+    planner = _plan_module()
+    if not Path(ffmpeg).is_file():
+        raise ValueError(f"declared ffmpeg path does not exist: {ffmpeg}")
+    if not Path(path).is_file():
+        raise ValueError(f"input media file not found: {path}")
+    duration_ms = windows.probe_duration_ms(str(ffmpeg), str(path))
+    plan = planner.plan_windows(duration_ms)
+    # Opening the input, loading the model and writing the first window all happen outside the
+    # per-window estimate, so that declared overhead is held back from the job's remaining time.
+    budget_ms = None if remaining_ms is None else max(0, int(remaining_ms) - planner.OVERHEAD_MS)
+    envelope = extract_windowed(path, model_path, language, device, plan, ffmpeg, staging, work_dir,
+                               budget_ms)
+    envelope["split"] = {
+        "duration_ms": duration_ms,
+        "window_audio_ms": plan["window_audio_ms"],
+        "windows_total": plan["windows_total"],
+        "whole_exceeds_ceiling": plan["whole_exceeds_ceiling"],
+        "policy": plan["policy"],
+    }
     return envelope
 
 
@@ -351,6 +406,10 @@ def main() -> int:
     parser.add_argument("--ffmpeg", default=None, help="declared ffmpeg path used to cut a window")
     parser.add_argument("--window-staging", default=None,
                         help="directory holding finished windows so a later invocation resumes instead of repeating")
+    parser.add_argument("--split", action="store_true",
+                        help="plan the windows from the recording's own duration and transcribe what this invocation's budget allows")
+    parser.add_argument("--budget-ms", type=int, default=None,
+                        help="wall-clock budget for this invocation; windows that do not fit are reported not attempted")
     args = parser.parse_args()
 
     if args.probe:
@@ -359,6 +418,18 @@ def main() -> int:
     if not args.input:
         print(json.dumps({"error": "usage: worker_transcribe.py <input-file> [options]"}))
         return 2
+    if args.split:
+        if not args.ffmpeg:
+            print(json.dumps({"error": "--split requires --ffmpeg"}, ensure_ascii=False))
+            return 2
+        try:
+            out = extract_split(args.input, args.model_dir, args.language, args.device, args.ffmpeg,
+                                args.window_staging, args.budget_ms)
+        except Exception as exc:  # noqa: BLE001
+            print(json.dumps({"error": str(exc)}, ensure_ascii=False))
+            return 1
+        print(json.dumps(out, ensure_ascii=False))
+        return 0
     if args.window_plan:
         if not args.ffmpeg:
             print(json.dumps({"error": "--window-plan requires --ffmpeg"}, ensure_ascii=False))

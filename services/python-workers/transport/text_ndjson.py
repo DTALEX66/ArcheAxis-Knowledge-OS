@@ -465,16 +465,17 @@ def _as_route_contract(result: dict, route_capability: str) -> dict:
     return {**result, "structure": anchors, "loss_receipt": receipt}
 
 
-_WINDOW_KEYS = {"index", "start_ms", "end_ms"}
+def declared_split(capability: str, parameters) -> dict | None:
+    """The split this job asks for, or None.
 
+    A long recording cannot be transcribed inside the Core's 300 s job bound, so it is split into
+    bounded windows. That choice rides `parameters`, which every other route still requires to be
+    empty: it is not a general-purpose parameter channel, it is the one capability that has a
+    bounded unit of work to describe.
 
-def request_window(capability: str, parameters) -> dict | None:
-    """The bounded window this job covers, or None.
-
-    A long recording cannot be transcribed inside the Core's 300 s job bound, so the caller plans
-    windows and sends one per job. That plan rides `parameters`, which every other route still
-    requires to be empty — a window is not a general-purpose parameter channel, it is the one
-    capability that has a bounded unit of work to describe.
+    Only the *choice* is carried. The window plan itself is derived from the recording's real
+    duration inside the worker, because a plan sent over the wire could leave a gap between two
+    windows, look well-formed, and silently drop the audio between them.
     """
     if not isinstance(parameters, dict):
         raise Rejected("parameters must be an object")
@@ -482,35 +483,26 @@ def request_window(capability: str, parameters) -> dict | None:
         return None
     if capability != "media.transcribe":
         raise Rejected(f"{capability} requires empty parameters")
-    unknown = set(parameters) - {"window", "staging"}
+    unknown = set(parameters) - {"split", "staging"}
     if unknown:
-        raise Rejected("window parameters may only carry window and staging")
-    window = parameters.get("window")
-    if not isinstance(window, dict) or set(window) != _WINDOW_KEYS:
-        raise Rejected("window must carry exactly index, start_ms and end_ms")
-    for field in sorted(_WINDOW_KEYS):
-        value = window[field]
-        if isinstance(value, bool) or not isinstance(value, int):
-            raise Rejected(f"window.{field} must be an integer")
-    if window["index"] < 0 or window["start_ms"] < 0 or window["end_ms"] <= window["start_ms"]:
-        raise Rejected("window must be a positive range with a non-negative index")
+        raise Rejected("split parameters may only carry split and staging")
+    if parameters.get("split") is not True:
+        raise Rejected("a split transcription must set split to true")
+    staging = parameters.get("staging")
+    if staging is not None and (not isinstance(staging, str) or not staging.strip()):
+        raise Rejected("staging must be a non-empty path string when present")
     # The decoder is the declared engine, never a caller-supplied binary: a path in the request
     # would be a way to run an arbitrary executable through the worker. Resolving the declaration
     # here uses the same resolver the OCR route already uses for tesseract, so there is one reader
     # of `capability-requirements.yaml` rather than a second one in the Core.
     ffmpeg = _declared_tool_path("ffmpeg")
     if ffmpeg is None:
-        raise Rejected("no declared ffmpeg resolved for a windowed transcription")
-    ffmpeg = str(ffmpeg)
-    staging = parameters.get("staging")
-    if staging is not None and (not isinstance(staging, str) or not staging.strip()):
-        raise Rejected("staging must be a non-empty path string when present")
-    return {"window": {key: window[key] for key in ("index", "start_ms", "end_ms")},
-            "ffmpeg": ffmpeg.strip(), "staging": staging}
+        raise Rejected("no declared ffmpeg resolved for a split transcription")
+    return {"ffmpeg": str(ffmpeg).strip(), "staging": staging}
 
 
 def _run_route(route, source: Path, media_type: str, artifact_root: Path | None = None, deadline: float | None = None,
-               window: dict | None = None) -> dict:
+               split: dict | None = None, remaining_ms: int | None = None) -> dict:
     """Load the route's worker and extract with its own entry-point shape."""
     relative_worker = Path(route["worker"])
     if relative_worker.parts[:2] == ("services", "python-workers"):
@@ -565,16 +557,13 @@ def _run_route(route, source: Path, media_type: str, artifact_root: Path | None 
         # transport does not pin one unless an operator has.
         kwargs["language"] = os.environ.get("ARCHEAXIS_ASR_LANG", "").strip() or "auto"
         kwargs["device"] = os.environ.get("ARCHEAXIS_ASR_DEVICE", "").strip() or "cpu"
-        if window is not None:
-            if not hasattr(module, "extract_windowed"):
-                raise Rejected("the transcribe worker does not support windowed transcription")
-            span = window["window"]["end_ms"] - window["window"]["start_ms"]
-            plan = {"windows": [{**window["window"], "audio_ms": span, "estimated_ms": span}],
-                    "windows_total": 1, "window_audio_ms": span}
-            return _as_route_contract(module.extract_windowed(
+        if split is not None:
+            if not hasattr(module, "extract_split"):
+                raise Rejected("the transcribe worker does not support splitting")
+            return _as_route_contract(module.extract_split(
                 str(filesystem_path(view)), model_path=kwargs["model_path"], language=kwargs["language"],
-                device=kwargs["device"], plan=plan, ffmpeg=window["ffmpeg"],
-                staging=window["staging"]), route.get("capability", "route"))
+                device=kwargs["device"], ffmpeg=split["ffmpeg"], staging=split["staging"],
+                remaining_ms=remaining_ms), route.get("capability", "route"))
         return _as_route_contract(module.extract(str(filesystem_path(view)), **kwargs),
                                   route.get("capability", "route"))
     if route.get("suffix_by_media"):
@@ -624,10 +613,10 @@ def execute(request, staging: Path, artifact_root: Path | None = None):
         raise Rejected("unsupported capability")
     if request["capability_version"] != route["version"] or request["protocol_minor"] != 0:
         raise Rejected("unsupported capability or protocol version", "AAK-PROTO-001")
-    window = request_window(request["capability"], request["parameters"])
+    split = declared_split(request["capability"], request["parameters"])
     if not isinstance(request["inputs"], list) or len(request["inputs"]) != 1:
         raise Rejected(f"{request['capability']} v{route['version']} requires one input, integer minor and "
-                       + ("window parameters" if window else "empty parameters"))
+                       + ("split parameters" if split else "empty parameters"))
     deadline = time.monotonic() + request["deadline_ms"] / 1000
 
     def check_deadline():
@@ -653,8 +642,13 @@ def execute(request, staging: Path, artifact_root: Path | None = None):
     if hashlib.sha256(raw).hexdigest() != digest:
         raise Rejected("input content hash mismatch", "AAK-HASH-001")
     check_deadline()
+    # The remaining wall clock is what a split invocation gets to work with; the worker subtracts
+    # its own declared overhead, so the policy has one owner.
+    remaining_ms = max(0, int((deadline - time.monotonic()) * 1000))
     result = (_run_route(route, source, asset["media_type"], artifact_root, deadline)
-              if route["call"] == "video_transcribe" else _run_route(route, source, asset["media_type"], artifact_root, window=window))
+              if route["call"] == "video_transcribe"
+              else _run_route(route, source, asset["media_type"], artifact_root, split=split,
+                              remaining_ms=remaining_ms))
     reread, current_identity = read_regular(source, limit=input_limit)
     if current_identity != identity or reread != raw:
         raise Rejected("input changed during extraction", "AAK-HASH-001")

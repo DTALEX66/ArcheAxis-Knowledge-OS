@@ -17,6 +17,8 @@ from __future__ import annotations
 import json
 import os
 import re
+import subprocess
+import time
 from pathlib import Path
 
 _DURATION = re.compile(r"Duration:\s*(\d+):(\d{2}):(\d{2})\.(\d{1,3})")
@@ -34,6 +36,19 @@ def parse_ffmpeg_duration_ms(stderr_text: str) -> int:
     hours, minutes, seconds, fraction = match.groups()
     millis = int(fraction.ljust(3, "0"))
     return ((int(hours) * 60 + int(minutes)) * 60 + int(seconds)) * 1000 + millis
+
+
+def probe_duration_ms(ffmpeg: str, source: str) -> int:
+    """How long the recording is, from the declared ffmpeg's own banner.
+
+    The plan is only as good as this number, so nothing is inferred: ffmpeg is asked to open the
+    input and its `Duration:` line is read, and a file it cannot read raises instead of yielding a
+    plan built on a guess. ffmpeg has no output file here, so it exits non-zero after printing its
+    banner; that exit status is not the signal and is deliberately ignored.
+    """
+    finished = subprocess.run([ffmpeg, "-hide_banner", "-nostdin", "-i", source],
+                              capture_output=True, text=True)
+    return parse_ffmpeg_duration_ms(finished.stderr)
 
 
 def window_command(ffmpeg: str, source: str, start_ms: int, end_ms: int, target: str) -> list[str]:
@@ -63,16 +78,20 @@ def offset_cues(cues: list[dict], offset_ms: int) -> list[dict]:
     return shifted
 
 
-def run_windows(plan: dict, per_window, staging: Path | None = None) -> dict:
+def run_windows(plan: dict, per_window, staging: Path | None = None,
+               budget_ms: int | None = None, clock=time.monotonic) -> dict:
     """Run a window plan, resuming windows that already succeeded.
 
     The Core caps a job at 300 s, so a long recording is expected to take several invocations.
-    That makes two behaviours load-bearing:
+    That makes three behaviours load-bearing:
 
     * a window that already succeeded on a previous invocation is reused, so work is not repeated
       and the total cost falls as the run advances;
     * a window that failed is *not* cached as done — it is attempted again, because caching a
-      failure would make a transient engine problem permanent.
+      failure would make a transient engine problem permanent;
+    * when a budget is given, a window is only *started* if its own estimate still fits inside it,
+      so the job returns a truthful partial result naming the windows it did not reach instead of
+      being killed mid-decode with no statement at all.
 
     A failure inside ``per_window`` is recorded as that window failing and the remaining windows are
     still attempted: one bad window must not discard the rest of the recording. Results are written
@@ -87,9 +106,11 @@ def run_windows(plan: dict, per_window, staging: Path | None = None) -> dict:
     if staging is not None:
         staging = Path(staging)
         staging.mkdir(parents=True, exist_ok=True)
+    started_at = clock()
 
     collected: list[dict] = []
     resumed: list[int] = []
+    attempted = 0
     for window in windows:
         index = int(window["index"])
         cached = staging / f"window-{index:04d}.json" if staging is not None else None
@@ -103,6 +124,15 @@ def run_windows(plan: dict, per_window, staging: Path | None = None) -> dict:
                 record = stored
                 resumed.append(index)
         if record is None:
+            if budget_ms is not None and attempted and \
+                    (clock() - started_at) * 1000 + float(window.get("estimated_ms") or 0) > budget_ms:
+                # Not reached in this invocation. Stated as such so the merge cannot present the
+                # recording as complete, and so the next invocation knows what is still outstanding.
+                collected.append({"index": index, "start_ms": int(window["start_ms"]),
+                                  "end_ms": int(window["end_ms"]), "status": "not_attempted",
+                                  "cues": [], "text": ""})
+                continue
+            attempted += 1
             try:
                 produced = per_window(window)
                 # Keep everything the window produced, not just the three fields the merge needs: a

@@ -6,6 +6,7 @@ a duration that cannot be read must fail rather than default.
 """
 
 import importlib.util
+import json
 from pathlib import Path
 
 import pytest
@@ -169,3 +170,80 @@ def test_a_plan_that_disagrees_with_itself_is_refused():
     with pytest.raises(ValueError):
         window_transcribe.run_windows(broken, lambda window: None)
 
+
+
+def test_a_budget_stops_before_a_window_that_does_not_fit(tmp_path):
+    """A bounded job stops between windows and says which windows it did not reach.
+
+    Being killed mid-decode would leave the same windows on disk but with no statement about them,
+    and a merge that cannot name what is missing is how a partial transcript gets presented as the
+    whole recording.
+    """
+    plan = plan_of((0, 100_000), (100_000, 200_000), (200_000, 300_000))
+    calls: list[int] = []
+    now = [0.0]
+
+    def clock():
+        return now[0]
+
+    def per_window(window):
+        calls.append(int(window["index"]))
+        now[0] += float(window["estimated_ms"]) / 1000  # a window really does take its estimate
+        return {"status": "succeeded", "cues": [], "text": f"w{window['index']}"}
+
+    # Each window estimates 100 s; after the first, only 50 s of a 150 s budget is left, so the
+    # second window would not fit and must not be started.
+    merged = window_transcribe.run_windows(plan, per_window, staging=tmp_path, budget_ms=150_000,
+                                           clock=clock)
+    assert calls == [0]
+    assert merged["status"] == "partial"
+    assert merged["windows_missing"] == [1, 2]
+    assert merged["text"] == "w0"
+
+
+def test_the_budget_never_prevents_the_first_window_from_running(tmp_path):
+    plan = plan_of((0, 100_000), (100_000, 200_000))
+    calls: list[int] = []
+
+    def per_window(window):
+        calls.append(int(window["index"]))
+        return {"status": "succeeded", "cues": [], "text": "x"}
+
+    merged = window_transcribe.run_windows(plan, per_window, staging=tmp_path, budget_ms=1)
+    assert calls == [0], "a budget smaller than one window must still make progress"
+    assert merged["windows_missing"] == [1]
+
+
+def test_a_budget_does_not_stop_a_run_that_only_resumes(tmp_path):
+    plan = plan_of((0, 100_000), (100_000, 200_000))
+    for window in plan["windows"]:
+        (tmp_path / f"window-{window['index']:04d}.json").write_text(
+            json.dumps({"status": "succeeded", "cues": [], "text": "cached"}), encoding="utf-8")
+
+    def per_window(window):  # pragma: no cover - must never be called
+        raise AssertionError("a fully cached run must not decode anything")
+
+    merged = window_transcribe.run_windows(plan, per_window, staging=tmp_path, budget_ms=1)
+    assert merged["status"] == "complete"
+    assert merged["windows_resumed"] == [0, 1]
+
+
+def test_duration_probe_reads_the_files_own_banner():
+    calls: list[list[str]] = []
+
+    class Finished:
+        returncode = 1  # ffmpeg exits non-zero when asked for no output; that is not the signal
+        stderr = "  Duration: 00:12:03.42, start: 0.000000, bitrate: 88 kb/s\n"
+
+    def run(command, **_kwargs):
+        calls.append(list(command))
+        return Finished()
+
+    original = window_transcribe.subprocess.run
+    window_transcribe.subprocess.run = run
+    try:
+        duration = window_transcribe.probe_duration_ms("ffmpeg.exe", "recording.mp3")
+    finally:
+        window_transcribe.subprocess.run = original
+    assert duration == 723_420
+    assert calls == [["ffmpeg.exe", "-hide_banner", "-nostdin", "-i", "recording.mp3"]]

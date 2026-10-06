@@ -127,15 +127,12 @@ fn schema_integer_spellings_and_failed_terminal_shape_are_checked() {
 }
 
 #[test]
-fn a_bounded_window_is_the_only_parameter_a_request_may_carry() {
-    use archeaxis_sidecar_protocol::worker::{Request, Window};
-    // Only the transcribing capability has a bounded unit of work, so only it may carry a window.
+fn splitting_is_the_only_parameter_a_request_may_carry() {
+    use archeaxis_sidecar_protocol::worker::Request;
+    // Only the transcribing capability has a bounded unit of work, so only it may carry this.
     // Every other route keeps the empty-parameters invariant the protocol was built on.
     let text = Request::text("r", "j", 1, &"a".repeat(64), "text/plain", 5000).unwrap();
-    assert!(
-        text.with_window(Window { index: 0, start_ms: 0, end_ms: 1000, staging: "staging" })
-            .is_err()
-    );
+    assert!(text.splitting("staging").is_err());
 
     let media = || {
         Request::job(
@@ -144,23 +141,13 @@ fn a_bounded_window_is_the_only_parameter_a_request_may_carry() {
         .unwrap()
     };
     assert!(media().parameters.is_empty());
-    let windowed = media()
-        .with_window(Window { index: 2, start_ms: 280_000, end_ms: 420_000, staging: r"C:\staging\windows\job-1" })
-        .unwrap();
-    assert_eq!(
-        windowed.parameters["window"],
-        json!({"index": 2, "start_ms": 280_000, "end_ms": 420_000})
-    );
-    assert_eq!(windowed.parameters["staging"], json!(r"C:\staging\windows\job-1"));
-    // A window carries no ffmpeg path: the transport resolves the declared engine, so a request
-    // cannot name an arbitrary executable for the worker to run.
-    assert!(!windowed.parameters.contains_key("ffmpeg"));
-
-    for broken in [
-        Window { index: 0, start_ms: 10, end_ms: 10, staging: "s" },
-        Window { index: 0, start_ms: 0, end_ms: 9_007_199_254_740_992, staging: "s" },
-        Window { index: 0, start_ms: 0, end_ms: 1000, staging: "  " },
-    ] {
-        assert!(media().with_window(broken).is_err(), "{broken:?}");
-    }
+    let split = media().splitting(r"C:\staging\windows\job-1").unwrap();
+    assert_eq!(split.parameters["split"], json!(true));
+    assert_eq!(split.parameters["staging"], json!(r"C:\staging\windows\job-1"));
+    // Neither an ffmpeg path nor a window list rides the request: the transport resolves the
+    // declared engine, and the worker derives the plan from the file's own duration, so a request
+    // can neither name an arbitrary executable nor describe a plan that drops audio.
+    assert!(!split.parameters.contains_key("ffmpeg"));
+    assert!(!split.parameters.contains_key("window"));
+    assert!(media().splitting("  ").is_err());
 }

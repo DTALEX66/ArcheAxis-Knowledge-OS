@@ -1,7 +1,7 @@
 //! Durable attempt identities and full text outputs, owned by the Core writer.
 //! Process IO and file reading belong outside this transaction boundary.
 use crate::jobs::{self, JobError, LossReceipt};
-use archeaxis_sidecar_protocol::worker::{self, Request, Response, decode_response};
+use archeaxis_sidecar_protocol::worker::{Request, Response, decode_response};
 use archeaxis_store_sqlite::capability_settings;
 use rusqlite::{Connection, OptionalExtension, TransactionBehavior};
 use serde::Deserialize;
@@ -279,36 +279,22 @@ pub fn resolve_media_type(kind: &str, original_name: &str) -> Result<&'static st
     }
 }
 
-/// The bounded span a caller asks for, before the Core attaches its own staging directory.
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub struct WindowSpan {
-    pub index: u64,
-    pub start_ms: u64,
-    pub end_ms: u64,
-}
-
-/// One bounded window a job covers, with the Core-owned directory that holds finished windows.
+/// A split transcription, with the Core-owned directory that holds finished windows.
 ///
-/// A window is the only extra input a job may carry, and only `media.transcribe` may carry one.
+/// Splitting is the only extra input a job may carry, and only `media.transcribe` may carry it.
 #[derive(Debug, Clone)]
-pub struct Window {
-    pub index: u64,
-    pub start_ms: u64,
-    pub end_ms: u64,
+pub struct Split {
     pub staging: std::path::PathBuf,
 }
 
-impl Window {
+impl Split {
     /// The Core's own staging directory for a job's windows.
     ///
     /// It sits beside the per-attempt temporary area rather than inside it, because a finished
-    /// window has to survive the attempt that produced it: reuse across jobs is the whole point of
-    /// splitting a long recording.
-    pub fn for_span(span: WindowSpan, staging_root: &std::path::Path, job_id: &str) -> Self {
+    /// window has to survive the attempt that produced it: reuse across attempts is the whole point
+    /// of splitting a recording too long for one job.
+    pub fn for_job(staging_root: &std::path::Path, job_id: &str) -> Self {
         Self {
-            index: span.index,
-            start_ms: span.start_ms,
-            end_ms: span.end_ms,
             staging: staging_root.join("windows").join(job_id),
         }
     }
@@ -320,19 +306,19 @@ pub fn claim(
     request_id: &str,
     deadline_ms: u64,
 ) -> Result<Request, JobError> {
-    claim_windowed(conn, job_id, request_id, deadline_ms, None)
+    claim_split(conn, job_id, request_id, deadline_ms, None)
 }
 
-/// `claim`, with the bounded window the job covers persisted in the same transaction.
+/// `claim`, with the split choice the job carries persisted in the same transaction.
 ///
-/// The window travels inside the stored `request_json`, so replay and idempotency compare against
+/// The choice travels inside the stored `request_json`, so replay and idempotency compare against
 /// what the worker actually received rather than a shape the caller remembers.
-pub fn claim_windowed(
+pub fn claim_split(
     conn: &mut Connection,
     job_id: &str,
     request_id: &str,
     deadline_ms: u64,
-    window: Option<Window>,
+    split: Option<Split>,
 ) -> Result<Request, JobError> {
     let tx = conn.transaction_with_behavior(TransactionBehavior::Immediate)?;
     let row:Option<(String,String,String,String)>=tx.query_row(
@@ -372,14 +358,9 @@ pub fn claim_windowed(
         deadline_ms,
     )
     .map_err(JobError::InvalidReceipt)?;
-    let request = match window {
-        Some(window) => request
-            .with_window(worker::Window {
-                index: window.index,
-                start_ms: window.start_ms,
-                end_ms: window.end_ms,
-                staging: &window.staging.to_string_lossy(),
-            })
+    let request = match split {
+        Some(split) => request
+            .splitting(&split.staging.to_string_lossy())
             .map_err(JobError::InvalidReceipt)?,
         None => request,
     };

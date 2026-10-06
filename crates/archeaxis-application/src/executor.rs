@@ -321,19 +321,19 @@ impl Executor {
         deadline_ms: u64,
         cancel: &Cancellation,
     ) -> Result<(), String> {
-        self.execute_windowed(job_id, request_id, deadline_ms, cancel, None)
+        self.execute_splitting(job_id, request_id, deadline_ms, cancel, false)
             .await
     }
-    /// `execute` for one bounded window of a long recording.
-    pub async fn execute_windowed(
+    /// `execute` for a recording that is transcribed by splitting it into bounded windows.
+    pub async fn execute_splitting(
         &self,
         job_id: &str,
         request_id: &str,
         deadline_ms: u64,
         cancel: &Cancellation,
-        window: Option<attempts::WindowSpan>,
+        split: bool,
     ) -> Result<(), String> {
-        self.start_windowed(job_id, request_id, deadline_ms, cancel, window)
+        self.start_splitting(job_id, request_id, deadline_ms, cancel, split)
             .await?
             .await
             .map_err(|e| format!("execution task failed: {e}"))?
@@ -346,18 +346,18 @@ impl Executor {
         deadline_ms: u64,
         cancel: &Cancellation,
     ) -> Result<tokio::task::JoinHandle<Result<(), String>>, String> {
-        self.start_windowed(job_id, request_id, deadline_ms, cancel, None)
+        self.start_splitting(job_id, request_id, deadline_ms, cancel, false)
             .await
     }
-    /// `start` for one bounded window. The staging directory is Core-owned and derived here, so a
-    /// caller names only the span it wants transcribed.
-    pub async fn start_windowed(
+    /// `start` for a split transcription. The staging directory is Core-owned and derived here, so
+    /// a caller says only whether the recording should be split.
+    pub async fn start_splitting(
         &self,
         job_id: &str,
         request_id: &str,
         deadline_ms: u64,
         cancel: &Cancellation,
-        window: Option<attempts::WindowSpan>,
+        split: bool,
     ) -> Result<tokio::task::JoinHandle<Result<(), String>>, String> {
         // Accepted jobs outlive a disconnected HTTP/UI waiter. Explicit owner
         // cancellation still propagates through the shared cancellation handle.
@@ -365,11 +365,11 @@ impl Executor {
         let job = job_id.to_owned();
         let request = request_id.to_owned();
         let cancel = cancel.clone();
-        let window = window.map(|span| attempts::Window::for_span(span, &self.staging, job_id));
+        let split = split.then(|| attempts::Split::for_job(&self.staging, job_id));
         let (ack, accepted) = tokio::sync::oneshot::channel();
         let task = tokio::spawn(async move {
             owned
-                .execute_owned(&job, &request, deadline_ms, &cancel, ack, window)
+                .execute_owned(&job, &request, deadline_ms, &cancel, ack, split)
                 .await
         });
         match accepted.await {
@@ -388,7 +388,7 @@ impl Executor {
         deadline_ms: u64,
         cancel: &Cancellation,
         ack: tokio::sync::oneshot::Sender<()>,
-        window: Option<attempts::Window>,
+        split: Option<attempts::Split>,
     ) -> Result<(), String> {
         // Keep the one write to the child's pipe small enough to fit its initial
         // buffer. Configuration and IDs are Core-owned, not shell commands.
@@ -399,7 +399,7 @@ impl Executor {
         let id = request_id.to_owned();
         let req = self
             .store
-            .submit_wait(move |conn| attempts::claim_windowed(conn, &job, &id, deadline_ms, window))
+            .submit_wait(move |conn| attempts::claim_split(conn, &job, &id, deadline_ms, split))
             .await
             .map_err(|e| e.to_string())?
             .map_err(|e| e.to_string())?;
