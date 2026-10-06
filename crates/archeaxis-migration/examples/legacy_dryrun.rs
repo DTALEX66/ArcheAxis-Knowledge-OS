@@ -6,7 +6,7 @@
 //! tables to JSONL + sha256 manifest in out-dir, and prints a dry-run summary.
 //! Never writes to the legacy database.
 
-use archeaxis_migration::{export_jsonl, inventory};
+use archeaxis_migration::{export_jsonl, inventory_reporting_unreadable};
 
 fn main() {
     let args: Vec<String> = std::env::args().collect();
@@ -17,9 +17,9 @@ fn main() {
     let db = &args[1];
     let out = &args[2];
 
-    match inventory(db) {
-        Ok(tables) => {
-            println!("inventory: {} user tables", tables.len());
+    match inventory_reporting_unreadable(db) {
+        Ok((tables, unreadable)) => {
+            println!("inventory: {} readable user tables", tables.len());
             for t in &tables {
                 println!(
                     "  {}: {} rows, {} cols",
@@ -27,6 +27,11 @@ fn main() {
                     t.row_count,
                     t.columns.len()
                 );
+            }
+            // Named, not swallowed: a table this build cannot read is a fact about the engine, and
+            // the export below will be short by exactly these tables.
+            for (name, reason) in &unreadable {
+                println!("  UNREADABLE {name}: {reason}");
             }
             match export_jsonl(db, out) {
                 Ok(manifest) => {

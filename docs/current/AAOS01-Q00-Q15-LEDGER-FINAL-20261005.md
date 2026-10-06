@@ -387,3 +387,21 @@ a11 真实 Tauri 窗口旅程 `aaos01-webdriver/e4236d2bedb44a5882f2c03b480feb08
 测试面：Rust 侧新增协议窗口边界、claim 持久化与 HTTP 窗口语义用例；Python worker 146 项 unittest 与 33 项 pytest 全通过；前端 270 项全通过，`tsc --noEmit` 通过。提交 `b8db1a34`、`22e3536b`、`02e15eff`、`a807ed27`，分支 `codex/dsh-aaos-real-multiformat-loop-20261001` 已推送。
 
 边界：本机未执行安装态/NSIS 验收，未发布，未新增 tag 或 release；合成音不含语音，因此该证据证明的是窗口计划、真实解码、预算中止与跨轮复用，不是识别质量。
+
+## 真实遗留库迁移的当前边界（AQ23）
+
+对象：项目内 `data/cognitive_os.sqlite`，3,223,552 字节，SHA-256 `b318c99e5a58107f3fe57249b50e2560563b0dc6cca606505ef61ad19f64b411`（本轮前后实测同一值，大小与 mtime 亦未变）。
+
+做法：不做整体删除或原地改写，先取字节副本再动。副本 `.project-local/task-runtime/aaos01-legacy-migration-20261006/snapshot/cognitive_os.sqlite` 与原件 `cmp` 相等、SHA 相等，随后只用只读连接清点、导出。
+
+结果（证据 `…/aaos01-legacy-migration-20261006/dryrun-log.txt`，SHA-256 `dd5386e16762fc1e02d0b7c1fb392010c9f93097bf2fd434c33479402806005e`）：
+
+- 清点出 **88 张可读用户表**，并**指名**一张读不了的表：`UNREADABLE vec_episodes: no such module: vec0`。
+- 该库使用 `sqlite-vec` 的 `vec0` 虚拟表；本构建不含该模块，因此 `export_jsonl` 在它上面中止（`export failed: sql: vec_episodes: no such module: vec0`），**逐表 JSONL 保留导出未完成**。
+- 值得记下的事实：vec0 的影子表本身是可读的——`vec_episodes_id_map` 5 行、`vec_episodes_rowids` 5 行、`vec_episodes_info` 4 行、`vec_episodes_chunks`/`vec_episodes_vector_chunks00` 各 1 行。即向量内容仍在盘上，缺的是解释虚拟表的模块，不是数据。
+
+本轮顺带修掉一个真实缺陷：`archeaxis-migration` 的 `inventory()` 遇到不可读表会整体中止，把"一张表缺扩展"报成"这个库读不了"。现新增 `inventory_reporting_unreadable()`：返回可读表清单与逐表原因；`inventory()` 保持全有全无语义（错误信息改为指名该表，仍全有全无），`legacy_dryrun` 示例改用新函数并按名列出不可读表。新增用例 `an_unreadable_table_is_named_beside_the_readable_ones`；`archeaxis-migration` 全部测试通过（20 项）。
+
+**这不是语义迁移**：现有代码只做保真导出与清点（`TypedExportManifest` 的 disposition 自述 `PRESERVED_NOT_SEMANTICALLY_MIGRATED`），本轮未把任何行并入 vNext 模式。要真正并入 `vec_episodes` 的向量内容，需要先决定是否引入 sqlite-vec 依赖（本构建不含），或改由影子表读取；两者都是待定决策，不在本轮擅自动手。
+
+边界：原作字节未变；未删除、未移动、未改写原始库；未发布。

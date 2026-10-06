@@ -47,7 +47,30 @@ fn manifest_digest(tables: &BTreeMap<String, TableExport>) -> String {
 }
 
 /// Inventory user tables of a legacy DB (read-only; excludes sqlite internals).
+///
+/// All-or-nothing: the first table this build cannot read fails the whole call, naming that table
+/// in the error. Use [`inventory_reporting_unreadable`] when the caller wants to see the readable
+/// tables beside the one that needs an engine this build does not carry.
 pub fn inventory(db_path: &str) -> rusqlite::Result<Vec<TableSummary>> {
+    let (readable, unreadable) = inventory_reporting_unreadable(db_path)?;
+    if let Some((name, reason)) = unreadable.into_iter().next() {
+        return Err(rusqlite::Error::SqliteFailure(
+            rusqlite::ffi::Error::new(rusqlite::ffi::SQLITE_ERROR),
+            Some(format!("{name}: {reason}")),
+        ));
+    }
+    Ok(readable)
+}
+
+/// Inventory user tables, separating the ones that could be read from the ones that could not.
+///
+/// A legacy database can legitimately use a module this build does not carry — the real legacy
+/// store here has a `sqlite-vec` `vec0` index table. Reporting that as "the inventory failed"
+/// turns "one table needs an extension" into "the database is unreadable", which sends someone
+/// looking for a corrupt file. The unreadable side keeps the engine's own reason per table.
+pub fn inventory_reporting_unreadable(
+    db_path: &str,
+) -> rusqlite::Result<(Vec<TableSummary>, BTreeMap<String, String>)> {
     let conn = Connection::open_with_flags(db_path, rusqlite::OpenFlags::SQLITE_OPEN_READ_ONLY)?;
     let mut stmt = conn.prepare(
         "SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%' AND name NOT LIKE 'knowledge_fts%' ORDER BY name",
@@ -56,12 +79,19 @@ pub fn inventory(db_path: &str) -> rusqlite::Result<Vec<TableSummary>> {
         .query_map([], |r| r.get(0))?
         .collect::<Result<_, _>>()?;
     let mut out = Vec::new();
+    let mut unreadable = BTreeMap::new();
     for name in names {
-        let count: i64 = conn.query_row(
+        let count: i64 = match conn.query_row(
             &format!("SELECT count(*) FROM {}", quote_identifier(&name)),
             [],
             |r| r.get(0),
-        )?;
+        ) {
+            Ok(count) => count,
+            Err(error) => {
+                unreadable.insert(name, error.to_string());
+                continue;
+            }
+        };
         let cols: Vec<String> = conn
             .prepare("SELECT name FROM pragma_table_info(?1)")?
             .query_map([&name], |r| r.get(0))?
@@ -72,7 +102,7 @@ pub fn inventory(db_path: &str) -> rusqlite::Result<Vec<TableSummary>> {
             columns: cols,
         });
     }
-    Ok(out)
+    Ok((out, unreadable))
 }
 
 /// Export every user table to JSONL in `out_dir`; returns per-table files with
