@@ -1,5 +1,17 @@
 # AAOS-01 Q00–Q15 当前执行台账（2026-10-05）
 
+## 当前结论（2026-10-06）
+
+最新固定资格为7e8896447dfbfd5feda3f19fdb35d38a5462dd50 / workflow308098767 / run37397560144 / attempt1，已终态FAILURE：17项job实际success，desktop-build与a0-gates failure，installer-lifecycle skipped。desktop-build在中文界面合同步骤失败：capability-map已增加media.video而生成catalog仍旧SHA。已使用canonical generate_capability_catalog.py重新生成并通过--check，当前前端34文件243tests、tsc与生产构建PASS；尚需下一固定SHA完整CI，失败或跳过候选不得部署。当前普通内容迁移、媒体链和保存政策的实际范围见下方各自收据；不能将历史成功外推为新候选安装态。
+
+本地新增识别核验：PDF通过现有锁定pypdfium2将不可变原件全页栅格送入现有模型Adapter，限64,000B原件、1–3页、8M像素与64,000B合计PNG；超界明确失败，不截取首页冒称全件通过。原件/页序/各页SHA/实际renderer版本进入engine receipt。识别忠实度的辅助搜索失败、无结果或截断单独留状态，可继续对照原件；专业依据分析仍保留自身失败/不确定语义。正式Python54项PASS（SDK/检索为SIMULATED，PDFium实际渲染），格式化后四worker套件52项再验PASS；新增SQLite重开回归1项PASS、Ruff与cargo fmt --all --check PASS。云端图/PDF模型实调NOT_EXECUTED；音视频原件云端fidelity仍不支持，实际本地ASR/抽帧识别不代替该维度。
+
+最新清理已执行：仅既有审计清单中的934项再生Cargo中间文件实际删除525,695,796逻辑字节，全部选中路径ABSENT，26项PDB与程序/源码/恢复材料守卫不变。收据aaos01-tools/cargo-2611-934-cleanup-10e099d68bb2424ab21ffb77d0a1ecd4.json SHAa996b9f4615abdabf69f8ce7286a92acba8c4a12f755f883956eff441db84929，物理净回收UNMEASURED。Green80324项旧公开载荷续清已完成，详见下方稳定恢复目录收据。新媒体候选Green部署与原生UI增量待成功固定CI后执行；未改旧默认入口、未合并main或发布release。
+
+## 历史执行记录
+
+以下记录保留各自运行、SHA及当时状态；其中“当前”“正在执行”“未提交”等只指该记录时点，不替代上方当前结论，也不证明不同SHA的资格。
+
 真实旧库普通内容迁移：已知89业务表旧库kb_documents/kb_cards均0行，独立intake scope仅ir_intake_cards实际1行完成typed原类型保留→Core普通Document v1/v2→过期写409→历史版本→重启一致；其余表仅schema/原库保留，不声明全库迁移。CLI两正七负9项PASS、Rust scope五项PASS，原DB SHA b318c99e5a58107f3fe57249b50e2560563b0dc6cca606505ef61ad19f64b411前后相同。原迁移收据dd761720734fa43f5c5c8d0f78d83cd81ea426f43d0128b2ceb733bdb23eb446的limits文案误指两空表，原件保留；独立只读重启收据aaos01-legacy-readback/cd9f954ff41a49fe8f538d2decdd2920/receipt.json SHA46eb5824bceb0712279757c4e0efdbd4efe2d4dc829a0a85221548bad48b7009绑定原证据/typed行/实际intake scope，五断言PASS，0重复导出/0新Document。无伪Source或真人认可；自有Core按creation退出/端口释放，不冒称产品正常退出资格。
 
 固定9a6/workflow308098767/run37395636243/attempt1已终态FAILURE：17job实际success，test(3.12)/rust-vnext/a0-gates失败；desktop-fast/build/installer-lifecycle实际PASS，完整结论不可登记成功。Python注释定位过时video/QuickTime/有限预算/README权威以及漏报能力归属，原路径定向42PASS；Rust本地完整workspace执行到route_capabilities实际两失败（旧video未注册断言），终态CI内存脱敏提取也确认仅同两测试215/233行失败，不保存或回显原日志。修复后该8项及application/其余七crate全PASS，API全套在前轮实际PASS。新scope/合同修复仍本地未推送，等待期间未推送或取消目标运行，需下一固定SHA完整资格。

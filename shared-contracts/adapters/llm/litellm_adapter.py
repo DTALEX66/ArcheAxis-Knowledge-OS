@@ -28,23 +28,32 @@ def complete(
     model: str = "deepseek/deepseek-chat",
     max_tokens: int = 2000,
     image_data_url: str | None = None,
+    image_data_urls: list[str] | None = None,
     **kwargs: Any,
 ) -> LLMResponse:
     """Execute a LiteLLM completion; provider errors propagate to the caller."""
     if not prompt.strip():
         raise ValueError("prompt is required")
     content: str | list[dict[str, Any]] = prompt
-    if image_data_url is not None:
-        prefixes = ("data:image/png;base64,", "data:image/jpeg;base64,")
-        if not isinstance(image_data_url, str) or not image_data_url.startswith(prefixes):
-            raise ValueError("only inline original PNG/JPEG is accepted")
-        encoded = image_data_url.split(",", 1)[1]
-        if len(encoded) > 85336 or len(base64.b64decode(encoded, validate=True)) > 64000:
-            raise ValueError("original image byte budget exceeded")
-        content = [
-            {"type": "text", "text": prompt},
-            {"type": "image_url", "image_url": {"url": image_data_url}},
-        ]
+    if image_data_url is not None and image_data_urls is not None:
+        raise ValueError("single and multi-image material are mutually exclusive")
+    images = [image_data_url] if image_data_url is not None else image_data_urls
+    if images is not None:
+        if not isinstance(images, list) or not 1 <= len(images) <= 3:
+            raise ValueError("bounded image list required")
+        content = [{"type": "text", "text": prompt}]
+        total = 0
+        for image in images:
+            prefixes = ("data:image/png;base64,", "data:image/jpeg;base64,")
+            if not isinstance(image, str) or not image.startswith(prefixes):
+                raise ValueError("only inline original or original-page PNG/JPEG is accepted")
+            encoded = image.split(",", 1)[1]
+            if len(encoded) > 85336:
+                raise ValueError("image byte budget exceeded")
+            total += len(base64.b64decode(encoded, validate=True))
+            if total > 64000:
+                raise ValueError("total image byte budget exceeded")
+            content.append({"type": "image_url", "image_url": {"url": image}})
     from litellm import completion
 
     response = completion(

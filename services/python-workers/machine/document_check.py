@@ -227,6 +227,57 @@ def original_image(raw: bytes, media: str) -> tuple[str, dict[str, Any]]:
     }
 
 
+def original_pdf(raw: bytes) -> tuple[list[str], dict[str, Any]]:
+    """Render every page or reject; never substitute extracted text for the original."""
+    import pypdfium2 as pdfium
+
+    images = []
+    pages = []
+    pixels = 0
+    encoded_bytes = 0
+    try:
+        with pdfium.PdfDocument(raw) as document:
+            count = len(document)
+            if not 1 <= count <= 3:
+                raise CheckExecutionError("original_pdf_page_budget")
+            for index in range(count):
+                page = document[index]
+                try:
+                    width, height = page.get_size()
+                    if not 0 < width <= 4096 or not 0 < height <= 4096:
+                        raise CheckExecutionError("original_pdf_pixel_budget")
+                    pixels += int(width + 1) * int(height + 1)
+                    if pixels > 8_000_000:
+                        raise CheckExecutionError("original_pdf_pixel_budget")
+                    bitmap = page.render(scale=1, may_draw_forms=True)
+                    try:
+                        image = bitmap.to_pil()
+                        buffer = io.BytesIO()
+                        image.save(buffer, format="PNG")
+                        image.close()
+                    finally:
+                        bitmap.close()
+                    rendered = buffer.getvalue()
+                    encoded_bytes += len(rendered)
+                    if encoded_bytes > 64_000:
+                        raise CheckExecutionError("original_pdf_render_byte_budget")
+                    url, identity = original_image(rendered, "image/png")
+                    images.append(url)
+                    pages.append({"page": index + 1, **identity})
+                finally:
+                    page.close()
+        return images, {"sha256": sha(raw), "media_type": "application/pdf",
+            "byte_length": len(raw), "page_count": count, "covered_pages": list(range(1, count + 1)),
+            "coverage": "all_pages", "render_scale": 1, "renderer": "pypdfium2", "renderer_version": str(pdfium.PYPDFIUM_INFO), "pdfium_version": str(pdfium.PDFIUM_INFO),
+            "rendered_bytes": encoded_bytes, "pages": pages,
+            "representation": "full_page_raster_of_immutable_original_not_extracted_text",
+            "limits": "raster excludes nonvisual metadata, attachments and interactivity; no native PDF byte transport"}
+    except CheckExecutionError:
+        raise
+    except Exception:
+        raise CheckExecutionError("original_pdf_invalid") from None
+
+
 def execute(req: dict[str, Any]) -> dict[str, Any]:
     result = {
         "schema": "archeaxis.document-check.response/v1",
@@ -300,6 +351,8 @@ def execute(req: dict[str, Any]) -> dict[str, Any]:
         material = ""
         image_data_url = None
         image_identity = None
+        pdf_images = None
+        pdf_identity = None
         if req["dimension"] == "recognition_fidelity":
             original = req.get("original")
             recognition = req.get("recognition")
@@ -316,12 +369,16 @@ def execute(req: dict[str, Any]) -> dict[str, Any]:
                 "text/tab-separated-values",
                 "image/png",
                 "image/jpeg",
+                "application/pdf",
             ):
                 raise CheckExecutionError("unsupported_original_media")
             raw = base64.b64decode(original["content_base64"], validate=True)
             if len(raw) > 64_000 or sha(raw) != original["sha256"]:
                 raise CheckExecutionError("original_digest_mismatch")
-            if original["media_type"] in ("image/png", "image/jpeg"):
+            if original["media_type"] == "application/pdf":
+                pdf_images, pdf_identity = original_pdf(raw)
+                material = "All ORIGINAL PDF page rasters attached; identity: " + json.dumps(pdf_identity, sort_keys=True)
+            elif original["media_type"] in ("image/png", "image/jpeg"):
                 image_data_url, image_identity = original_image(raw, original["media_type"])
                 material = "Immutable ORIGINAL IMAGE attached; identity: " + json.dumps(
                     image_identity, sort_keys=True
@@ -341,7 +398,21 @@ def execute(req: dict[str, Any]) -> dict[str, Any]:
             if not re.fullmatch("[0-9a-f]{64}", recognition["result_sha256"]):
                 raise CheckExecutionError("invalid_recognition_digest")
             material = "ORIGINAL:\n" + material + "\nRECOGNITION:\n" + recognition["text"]
-            auxiliary = retrieve_context(text, timeout, limit, result["retrieval_receipts"])
+            try:
+                auxiliary = retrieve_context(text, timeout, limit, result["retrieval_receipts"])
+                if any(row.get("truncated") is True for row in result["retrieval_receipts"]):
+                    raise CheckExecutionError("retrieval_truncated")
+            except CheckExecutionError as exc:
+                if str(exc) not in ("retrieval_failed", "no_search_results", "retrieval_truncated"):
+                    raise
+                if str(exc).startswith("retrieval_"):
+                    result["retrieval_receipts"].append(
+                        {"kind": "retrieval_failure", "reason": str(exc), **exc.safe_failure}
+                    )
+                result["retrieval_receipts"].append(
+                    {"kind": "auxiliary_unavailable", "reason": str(exc), **exc.safe_failure}
+                )
+                auxiliary = "Auxiliary public background unavailable; judge fidelity only against the immutable ORIGINAL. Absence of search results is not an original error."
             material += (
                 "\nAUXILIARY TERMINOLOGY/BACKGROUND ONLY:\n"
                 + auxiliary
@@ -351,7 +422,7 @@ def execute(req: dict[str, Any]) -> dict[str, Any]:
         else:
             material = retrieve_context(text, timeout, limit, result["retrieval_receipts"])
             statuses = ["supported", "refuted", "uncertain", "conflicting"]
-        if any(row.get("truncated") is True for row in result["retrieval_receipts"]):
+        if req["dimension"] == "professional_basis" and any(row.get("truncated") is True for row in result["retrieval_receipts"]):
             result["status"] = "uncertain"
             raise CheckExecutionError("retrieval_truncated")
         prompt = (
@@ -372,6 +443,8 @@ def execute(req: dict[str, Any]) -> dict[str, Any]:
             kwargs["api_base"] = endpoint
         if image_data_url is not None:
             kwargs["image_data_url"] = image_data_url
+        if pdf_images is not None:
+            kwargs["image_data_urls"] = pdf_images
         try:
             answer = adapter.complete(prompt, model=model, max_tokens=tokens, **kwargs)
         except Exception:
@@ -463,6 +536,7 @@ def execute(req: dict[str, Any]) -> dict[str, Any]:
                 "finish_reason": answer.actual_finish_reason,
                 "tokens_used": answer.tokens_used,
                 **({"original_image": image_identity} if image_identity is not None else {}),
+                **({"original_pdf": pdf_identity} if pdf_identity is not None else {}),
             },
         )
     except CheckExecutionError as exc:

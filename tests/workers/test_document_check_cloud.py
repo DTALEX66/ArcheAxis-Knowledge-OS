@@ -150,7 +150,7 @@ def test_invalid_bound_input_never_calls_sdk(worker, monkeypatch, case, reason):
     if case == "original":
         req["original"]["sha256"] = "c" * 64
     if case == "media":
-        req["original"]["media_type"] = "application/pdf"
+        req["original"]["media_type"] = "audio/wav"
     assert worker.execute(req)["reason"] == reason
 
 
@@ -240,7 +240,9 @@ def test_retrieval_failure_safe_classification_is_durable(
             http if name == "safe_http" else (_ for _ in ()).throw(AssertionError("SDK forbidden"))
         ),
     )
-    result = worker.execute(request())
+    req = request()
+    req["dimension"] = "professional_basis"
+    result = worker.execute(req)
     assert result["outcome"] == "failed" and result["reason"] == "retrieval_failed"
     failure = result["retrieval_receipts"][-1]
     assert failure == {
@@ -263,7 +265,9 @@ def test_untyped_transport_module_failure_never_discloses_messages(worker, monke
 
     fake = SimpleNamespace(SafeHTTPPolicy=http.SafeHTTPPolicy, fetch=fail)
     monkeypatch.setattr(worker, "donor", lambda name: fake)
-    result = worker.execute(request())
+    req = request()
+    req["dimension"] = "professional_basis"
+    result = worker.execute(req)
     assert result["outcome"] == "failed" and result["reason"] == "retrieval_failed"
     assert result["retrieval_receipts"] == [
         {

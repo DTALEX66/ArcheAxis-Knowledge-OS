@@ -1327,4 +1327,55 @@ mod cloud_execution_tests {
             2
         );
     }
+    #[test]
+    fn fidelity_auxiliary_failure_and_pdf_receipt_survive_reopen() {
+        // SIMULATED provider response; real SQLite append-only persistence only.
+        let dir = tempfile::tempdir().unwrap();
+        let path = dir.path().join("checks.sqlite");
+        let memory = setup();
+        memory.execute("UPDATE document_checks SET dimension='recognition_fidelity',receipt_json=json_set(receipt_json,'$.dimension','recognition_fidelity')", []).unwrap();
+        memory
+            .execute("VACUUM INTO ?1", [path.to_str().unwrap()])
+            .unwrap();
+        drop(memory);
+        let mut c = Connection::open(&path).unwrap();
+        let execution = begin_check(&mut c, "d", "request", "old-sha", None).unwrap();
+        let raw = r#"{"status":"uncertain","basis":"SIMULATED PDF original comparison"}"#;
+        let mut response = failed_check_response(&execution.running, "unused");
+        response["outcome"] = json!("succeeded");
+        response["status"] = json!("uncertain");
+        response["reason"] = Value::Null;
+        response["basis"] = json!("SIMULATED PDF original comparison");
+        response["raw_response"] = json!(raw);
+        response["retrieval_receipts"] = json!([
+            {"kind":"retrieval_failure","reason":"retrieval_failed","failure_code":"dns","failure_stage":"dns"},
+            {"kind":"auxiliary_unavailable","reason":"retrieval_failed","failure_code":"dns","failure_stage":"dns"}]);
+        response["engine_receipt"] = json!({"provider":"explicit","requested_model":"explicit/model","model":"SIMULATED-model","finish_reason":"stop","tokens_used":9,"prompt_sha256":"a".repeat(64),"response_sha256":hex::encode(Sha256::digest(raw.as_bytes())),"original_pdf":{"sha256":"b".repeat(64),"renderer_version":"fixture","pdfium_version":"fixture","coverage":"all_pages","covered_pages":[1],"pages":[{"page":1,"sha256":"c".repeat(64)}]}});
+        let terminal = finish_check(
+            &mut c,
+            &execution.running,
+            &response,
+            "explicit",
+            "explicit/model",
+        )
+        .unwrap();
+        assert_eq!(terminal["execution_verified"], true);
+        assert_eq!(terminal["status"], "uncertain");
+        assert_eq!(
+            terminal["retrieval_receipts"],
+            response["retrieval_receipts"]
+        );
+        assert_eq!(terminal["engine_receipt"], response["engine_receipt"]);
+        drop(c);
+        let reopened = Connection::open(&path).unwrap();
+        let stored: String = reopened
+            .query_row(
+                "SELECT receipt_json FROM document_checks WHERE check_id=?1",
+                [terminal["check_id"].as_str().unwrap()],
+                |row| row.get(0),
+            )
+            .unwrap();
+        assert_eq!(serde_json::from_str::<Value>(&stored).unwrap(), terminal);
+        assert_eq!(reopened.query_row("SELECT text_projection FROM document_versions WHERE document_id='d' AND version=1", [], |row| row.get::<_,String>(0)).unwrap(), "old");
+    }
 }

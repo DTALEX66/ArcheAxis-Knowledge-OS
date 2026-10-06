@@ -108,28 +108,15 @@ def test_fidelity_public_background_never_replaces_original(monkeypatch, mode, r
         },
     }
     result = worker.execute(req)
+    assert result["outcome"] == "succeeded" and result["status"] == "faithful"
+    prompt = calls[0]["messages"][0]["content"]
+    assert "ORIGINAL:\n" + original in prompt
+    assert "Never replace or repair original words using search" in prompt
     if reason:
-        assert (
-            result["outcome"] == "failed"
-            and result["reason"] == reason
-            and result["engine_receipt"] is None
-        )
-        assert not calls
+        assert any(x["kind"] == "auxiliary_unavailable" and x["reason"] == reason for x in result["retrieval_receipts"])
         if mode == "zero":
-            assert (
-                result["status"] == "uncertain"
-                and result["retrieval_receipts"][0]["result_count"] == 0
-            )
+            assert result["retrieval_receipts"][0]["result_count"] == 0
         if mode == "truncated":
-            assert result["status"] == "uncertain" and any(
-                x.get("truncated") for x in result["retrieval_receipts"]
-            )
+            assert any(x.get("truncated") for x in result["retrieval_receipts"])
     else:
-        assert result["outcome"] == "succeeded"
-        prompt = calls[0]["messages"][0]["content"]
-        assert "ORIGINAL:\n" + original in prompt
-        assert (
-            "AUXILIARY TERMINOLOGY/BACKGROUND ONLY" in prompt
-            and "Never replace or repair original words using search" in prompt
-        )
         assert len(result["retrieval_receipts"]) == 2
