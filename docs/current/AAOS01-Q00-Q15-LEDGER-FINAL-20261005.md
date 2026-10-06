@@ -436,6 +436,9 @@ Owner 就"需所有者指定"的四类给出范围：绿色仓库四个旧代候
 - **被守卫拒绝、未动**：`build/green-candidates` —— `git grep -F` 命中 `.github/workflows/ci.yml:801/809/816`；核对该处是 CI 的**写入/产出**路径（`--out` 生成并上传 zip），且 `tests/test_green_candidate_assembly.py` 只用 `tmp_path` 构造同名路径、不读真实目录，故早期脚本的半删不影响测试；剩余 220 个文件保留待明确。`legacy-scratch-20261006` 被独立盘点的子代理列为 SAFE，但本仓自身证据相反（`realign_dev_layout.py`、`undo_layout_realign.py` 与台账都引用它，是该次布局归档的**恢复清单**），故按"有引用不得移动"保留，不采纳子代理建议。
 - **受阻未完成**：`runs/2611ed9ca1`(6.27G) 删除时 `WinError 5`，与另外 23 个权限拒绝 run 目录同因；按约束不强制、不提权，等 Owner 提供枚举结果后再分类。
 
+- **同轮追加（同日第二批）**：主盘点继续沿同一守卫清理工作树自己的开发根——`.project-local/worktrees/dsh-backend-loop-20261001/.project-local/build/2611ed9ca1`(11.82G)、`aaos01-core`(0.85G)、`cargo-gnu`(0.23G)，共 12.90G，三项均 0 引用；保留该工作树**在用**的 `build/cargo`(14G，热缓存)。随后处理两个 `build/green-candidates`（主 0.88G、工作树 1.18G，共 2.07G）：守卫按其 `ci.yml` 引用拒绝，改用新增的 `--allow-cited --reason=…` 显式覆盖，理由已记录在被引用的审计 JSON 里——`ci.yml:801/809/816` 用 `--out` **写入**该路径并上传产物 zip，属产出路径而非依赖；实测该删除后 `tests/test_green_candidate_assembly.py` **7 passed / 1 skipped**，证明不影响测试。
+- **累计**：开发根 `.project-local` **113G → 79G**（-34G），绿色仓库 **15G → 9.1G**（-5.9G），合计约 **40G**。两次批次的审计 JSON 因脚本第二批复用了同名文件而只保留了后一批，两批清单以本节为准。
+
 ## 开源吸收核对脚本修订与来源更正（2026-10-06 复核）
 
 核对脚本 `scripts/audit/oss_disposition_evidence.py` 已修订，分布随之更正（上文原文保留不改写）：`DECLARED` 24→25、`IMPLEMENTED_IN_SOURCE` 9→6、新增 `STUB_IN_SOURCE` 2、新增 `MENTIONED_IN_SOURCE` 2、`VENDORED_ONLY` 1→0、`DECLARED_AND_VENDORED` 1→0、`NONE` 12 不变。原因：原脚本把"整词命中任一来源"当实现、把"文件名含该项词"当实拷，并把 `__pycache__/*.pyc`、README 词与生成目录字样计为证据；又因整词匹配，`crossref` 匹配不到 `CrossrefClient`，四条真客户端（A018—A021）的判定实际由 `.pyc` 与文档字符串支撑。现改为按标识符判定、注释与文档字符串只算提及、编译产物与生成目录排除、桩按命中处附近的不可用标记判定、`shared/` 移出 vendor 根；`tests/workflow/test_oss_disposition_evidence.py` 已加断言固定命名/桩/提及/实现四态。详见 `docs/current/AAOS-OSS-DISPOSITION-EVIDENCE-20261006.md` 第五节，修订前后两份证据的 SHA-256 并列记录在该文档首部。
