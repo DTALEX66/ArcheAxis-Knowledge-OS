@@ -63,6 +63,29 @@ def directory_size(path: Path) -> int:
     return total
 
 
+def protected_bytes(directory: Path) -> int:
+    """Bytes inside *directory* that a documented rule puts out of reach of this report.
+
+    The compile caches are that case: `dev.py` is explicit that no historical cache is moved or
+    removed, so counting them against a budget would only ever produce a permanent false alarm.
+    They are still measured and shown - the point is to see them, not to schedule their deletion.
+    """
+    total = 0
+    try:
+        children = sorted(directory.iterdir())
+    except OSError:
+        return 0
+    for child in children:
+        if not child.is_dir():
+            continue
+        name = child.name
+        if name.startswith("cargo"):  # <root>/cargo, <root>/cargo-gnu
+            total += directory_size(child)
+        elif name not in {".git"} and (child / "cargo").is_dir():  # <identity>/cargo
+            total += directory_size(child / "cargo")
+    return total
+
+
 def _git_root_names() -> set[str]:
     """Top-level names Git itself tracks — the authoritative expectation for the repository root.
 
@@ -75,8 +98,21 @@ def _git_root_names() -> set[str]:
 
     names: set[str] = set()
     try:
-        listing = subprocess.run(["git", "ls-files", "-z"], cwd=REPO, capture_output=True, text=True, check=True)
+        # Paths are decoded as UTF-8: this repository tracks non-ASCII names, and the platform
+        # default codec raises on their bytes, which turned the whole report into a crash instead
+        # of a measurement. `surrogateescape` keeps an undecodable name visible rather than fatal.
+        listing = subprocess.run(
+            ["git", "ls-files", "-z"],
+            cwd=REPO,
+            capture_output=True,
+            text=True,
+            encoding="utf-8",
+            errors="surrogateescape",
+            check=True,
+        )
     except (OSError, subprocess.CalledProcessError):
+        return names
+    if listing.stdout is None:
         return names
     for entry in listing.stdout.split("\0"):
         if entry:
@@ -108,13 +144,20 @@ def measure() -> dict:
                 out_of_layout.append(f".project-local: {name}/" if entry.is_dir() else f".project-local: {name}")
                 continue
             size = directory_size(entry)
+            # Compile caches are exempt from the budget rather than silently over it. `dev.py`
+            # states the rule - "Do not move or remove any historical cache" - so a class that is
+            # mostly that cache cannot be brought under a ceiling by deleting it, and a ceiling that
+            # is knowingly exceeded is noise. Only the rest of the class is budgeted.
+            protected = protected_bytes(entry) if entry.is_dir() else 0
             budget = DEV_BUDGET_GB.get(name) or DEV_BUDGET_GB.get(name.split("-")[0])
             dev_classes.append({
                 "name": name + "/" if entry.is_dir() else name,
                 "bytes": size,
                 "gb": round(size / 1024 ** 3, 2),
+                "protected_bytes": protected,
+                "budgeted_bytes": size - protected,
                 "budget_gb": budget,
-                "over_budget": bool(budget and size > budget * 1024 ** 3),
+                "over_budget": bool(budget and size - protected > budget * 1024 ** 3),
             })
     return {
         "repository": str(REPO),
@@ -131,11 +174,13 @@ def print_report(report: dict) -> None:
     print("root classes:")
     for entry in sorted(report["root"], key=lambda item: -item["bytes"]):
         print(f"  {entry['bytes'] / 1024 ** 3:8.2f} GB  {entry['name']}")
-    print(".project-local classes (budget in GB):")
+    print(".project-local classes (budget in GB; compile caches shown but not budgeted):")
     for entry in sorted(report["dev_root"], key=lambda item: -item["bytes"]):
         flag = f"  OVER budget {entry['budget_gb']}" if entry["over_budget"] else ""
         budget = f"{entry['budget_gb']}" if entry["budget_gb"] else "-"
-        print(f"  {entry['gb']:8.2f} GB  {entry['name']:<24} budget {budget}{flag}")
+        protected = entry.get("protected_bytes") or 0
+        held = f"  ({protected / 1024 ** 3:.2f} GB of it is a cache dev.py forbids removing)" if protected else ""
+        print(f"  {entry['gb']:8.2f} GB  {entry['name']:<24} budget {budget}{flag}{held}")
     if report["out_of_layout"]:
         print("OUT-OF-LAYOUT (needs a decision, not a silent delete):")
         for item in report["out_of_layout"]:
