@@ -147,6 +147,34 @@
       ]
     },
     {
+      "name": "antiword",
+      "category": "engines",
+      "purpose": "Word 97 .doc 纯文本旁路读取（MSYS2 打包 antiword 0.37；健康检查以 -h 自报身份，退出码非 0 是该引擎的正常行为）",
+      "local_only": true,
+      "healthcheck_command": "antiword -h",
+      "external_paths": [
+        {
+          "declared": "10-toolchains/antiword/antiword.exe",
+          "resolved": "D:\\All projects\\OS External Configuration\\10-toolchains\\antiword\\antiword.exe",
+          "exists": true
+        }
+      ]
+    },
+    {
+      "name": "antiword-mappings",
+      "category": "engines",
+      "purpose": "antiword 字符映射表目录（目录名必须为 .antiword；worker 把它的父目录作为 HOME 交给引擎，否则搬出安装目录的副本读不到 UTF-8.txt 就拒绝出文）",
+      "local_only": true,
+      "healthcheck_command": "antiword -h",
+      "external_paths": [
+        {
+          "declared": "10-toolchains/antiword/.antiword",
+          "resolved": "D:\\All projects\\OS External Configuration\\10-toolchains\\antiword\\.antiword",
+          "exists": true
+        }
+      ]
+    },
+    {
       "name": "ffmpeg",
       "category": "engines",
       "purpose": "音视频解码、格式转换、关键帧提取（只用 LGPL 子集）",

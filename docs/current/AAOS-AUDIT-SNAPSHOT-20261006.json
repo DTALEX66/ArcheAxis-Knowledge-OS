@@ -290,7 +290,8 @@
       "F05/F07/F08/F09/F12 shared gap closed one notch: a route's own semantic structure - paragraph, heading, sheet row, slide, canvas node, cue, page - is now an addressable, verifiable anchor through a fourth position type (worker_structure), additive so no existing anchor id or knowledge receipt hash changes",
       "F01/F13 shared gap closed the second way round: a position a route reported in params.format.locations - JSON/XML path, mail part or header, ODF heading, paragraph, table cell or page, RTF paragraph, Python symbol - is addressable through a fifth position type (format_location), verified on the value rather than a span, with ambiguity refused unless narrowed by fields the receipt already carries",
       "F15: the last clause of the container chain is proven end to end - a real ZIP member read by its own job is promoted by a human actor into a candidate that requires human review, with its container origin intact and a quote that does not match the persisted transform refused",
-      "P5/M0 whole-state restart read-back: one store holding a container member relation two levels deep, a transform, three locator kinds, a human-created candidate and a machine receipt keeps every published identity across two deliberate reopens (516 passed / 0 failed over 128 result lines) - so an anchor id or a receipt hash cannot silently re-point the workspace's citations after a restart"
+      "P5/M0 whole-state restart read-back: one store holding a container member relation two levels deep, a transform, three locator kinds, a human-created candidate and a machine receipt keeps every published identity across two deliberate reopens (516 passed / 0 failed over 128 result lines) - so an anchor id or a receipt hash cannot silently re-point the workspace's citations after a restart",
+      "F14 `.doc`: the antiword sidecar is bound by declaration rather than found on PATH - the binary and its `.antiword` mapping tables are both declared in the capability manifest, the worker hands the mapping directory's parent to the engine as HOME and records which HOME it used, and a copy with only the binary declared was measured to fail outright (exit 1, no output) because the engine truncates a mapping requested by absolute path; with nothing declared the environment is left untouched, so an in-place install still works"
     ],
     "open": [
       "Q14 与更正文件的日期序列已核实记录；是否宣布资格化仍由 Owner 决定（不可变 checks/acceptance.json 仍为 NOT_RUN）",
@@ -304,11 +305,11 @@
       "本切片改了三处已提交断言（container.rs 模块单元测试的 nested.zip/tar、archive_member_formats.rs 的夹具与作业计数、test_mail_attachment_members.py 的旧失败用例）；理由逐条写在账本里，评审人应核对是否接受被替换的前提",
       "CONTAINER_DEPTH_LIMIT=2 这个数值是本轮选择，未经真人验收；每层各有 50 项/64 MiB 预算，所以总量随深度指数增长，只被深度上限挡住",
       "提交范围自检（2026-10-07 立）：正文需逐一点名被改动的权威文件（矩阵 / HTTP 契约 / 供给链台账 / 发布清单 / CI 工作流），依赖或许可变更写进标题，同一提交不混做“依赖升级 + Core 功能”；已推送的 5e5d102b 不回改历史，只在账本里记实测差异",
-      "`.doc` 的 antiword 探针绑定与供给链处置行仍未决（本机实测已在 verification.host_engine_probe_20261007）；`.ppt` 在本机无合法读取路径（JVM 实测缺席，不做无样本的自造实现）",
+      "`.ppt` 在本机无合法读取路径（JVM 实测缺席，不做无样本的自造实现）；`.doc` 的 antiword 绑定已于 2026-10-07 落定（见 verification.antiword_binding_20261007），探针实测仍留在 verification.host_engine_probe_20261007",
       "CI 环境没有 sidecar，真引擎用例在 CI 会 skip；skip 是关于主机的陈述不是通过。本机该用例真跑",
       "两种锚点类型（worker_structure / format_location）都只证明\"这条收据这么命名、值或跨度确在这份投影里\"：不是独立推出的页号；locations 列表受 worker 上限截断，被截掉的位置不可寻址；界面层没有消费（前端按 Owner 指示暂停）",
       "F13/F01 的位置在 params.format.locations 而非 worker_structure，本轮刻意未并入",
-      "antiword 已登记为 A025（SIDECAR / qualification [installed]，含实测哈希与包索引版本 0.37-3、许可 GPL-3.0-or-later）；仍开的是**绑定**：把它放进外置工具根并写 capability-requirements 条目（该清单的三个读取方必须一致），在此之前解析只能是环境变量或 PATH"
+      "antiword 已登记为 A025（SIDECAR / qualification [installed]）并已按声明绑定：外置工具根内 `10-toolchains/antiword/` 的二进制与 `.antiword` 映射表两条一起进入 capability-requirements，三个读取方在同一清单上一致（索引两条均 exists: true，见 verification.antiword_binding_20261007）。仍开的是：这台副本是 Git for Windows 构建的本地放置，该包更新时不会自动跟随，比对 A025 里的 sha256 才可信任；以及逐扩展真人验收 FMT-21 仍 NOT_RUN"
     ],
     "next_action": "1) 最多格式剩余：F02 的抓取已是驱动级事实（`scripts/ingest/url_snapshot.py`，产品路由不持网络是选择不是缺口），网络侧剩下的边界是网络层 egress 政策；F03 仍需要一个真正的浏览器（本仓库无浏览器，Playwright 仅测试用、Firecrawl 属 REVIEW-BLOCK），抓到的未脚本化正文 ≠ 渲染后的页面；F10 说话人分离无引擎亦无处置行；.doc/.ppt 无读取器（Tika 需 JVM 侧车）；跨 F05/F07/F08/F09/F12 的“把 worker 结构升级为寻址层”需 anchor 契约变更，应独立一刀；FMT-21 逐扩展名真实样本验收仍 NOT_RUN（本轮 .xls 夹具为自造件）；嵌套容器已闭合到有预算的展开，`.doc` 的候选 sidecar 实测在本机存在（Git 自带 antiword 0.37，只能读 .doc），是否登记处置行需单独一刀"
   },
@@ -403,6 +404,32 @@
         "a re-posted identical position dedupes to the same anchor id"
       ],
       "scope_note": "Identity stability across store reopens only. It does not claim route-written and domain-written positions derive the same id: the route adds location_status/checksum to the position, so those are different position strings."
+    },
+    "antiword_binding_20261007": {
+      "command": "scripts/runtime/dev.py --pytest tests/workers/test_doc_engine.py -q",
+      "logs": {
+        "doc_engine": ".project-local/task-runtime/doc-engine-final-20261007.txt",
+        "full_python": ".project-local/task-runtime/py-full-20261007-final.log"
+      },
+      "doc_engine_passed": 18,
+      "full_python": {
+        "passed": 4274,
+        "skipped": 30,
+        "subtests": 166,
+        "summary": "4274 passed, 30 skipped, 14 warnings, 166 subtests passed in 423.04s (0:07:03)"
+      },
+      "placement": {
+        "binary": "D:/All projects/OS External Configuration/10-toolchains/antiword/antiword.exe",
+        "mappings": "D:/All projects/OS External Configuration/10-toolchains/antiword/.antiword",
+        "note": "byte-identical copy of the Git-for-Windows build; measured sizes and sha256 are stated in SUPPLY_CHAIN_LEDGER.json row A025, which this slice rewrote from disk"
+      },
+      "measured_traps": [
+        "a relocated antiword without a HOME override fails: exit 1, zero output, \"I can't open your mapping file (UTF-8.txt)\"",
+        "-m with an absolute mapping path is truncated to the engine's buffer and the default table is used instead",
+        "the generic registry prober appends --version, which antiword answers with usage text and exit 1, so the inventory reads available: true, probe: probe_failed",
+        "dev.py -- <script.py> cannot exec a .py directly on this host (WinError 193); the tracked test invokes the builder with an interpreter"
+      ],
+      "qualification_unchanged": "A025 stays ['installed']; a binding changes how the engine is resolved, not the evidence tier behind it"
     }
   },
   "artifacts": [

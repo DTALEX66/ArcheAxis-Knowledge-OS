@@ -192,6 +192,35 @@ capabilities:
       required_by: [ocr-pipeline]
       local_only: false
 
+    # R15/F14 `.doc`：antiword 是**旁路引擎**，本项目不打包、不代装、不改许可。
+    # 两条必须一起声明：antiword 只到 $HOME/.antiword 与 /usr/share/antiword 找字符映射表，
+    # 而 -m 传绝对路径会被截断后用默认表（实测），所以搬出安装目录的副本必须配一个
+    # 名为 .antiword 的映射目录，并把其父目录作为 HOME 交给引擎。只声明二进制那一条，
+    # 解析成功而读取失败。
+    - name: antiword
+      purpose: "Word 97 .doc 纯文本旁路读取（MSYS2 打包 antiword 0.37；健康检查以 -h 自报身份，退出码非 0 是该引擎的正常行为）"
+      version_range: "0.37"
+      platform: windows-x64
+      license: "GPL-3.0-or-later"
+      source_url: "https://github.com/msys2/MINGW-packages/tree/master/mingw-w64-antiword"
+      install_method: system
+      healthcheck_command: "antiword -h"
+      external_paths: ["10-toolchains/antiword/antiword.exe"]
+      required_by: [conversion]
+      local_only: true
+
+    - name: antiword-mappings
+      purpose: "antiword 字符映射表目录（目录名必须为 .antiword；worker 把它的父目录作为 HOME 交给引擎，否则搬出安装目录的副本读不到 UTF-8.txt 就拒绝出文）"
+      version_range: "0.37"
+      platform: windows-x64
+      license: "GPL-3.0-or-later"
+      source_url: "https://github.com/msys2/MINGW-packages/tree/master/mingw-w64-antiword"
+      install_method: system
+      healthcheck_command: "antiword -h"
+      external_paths: ["10-toolchains/antiword/.antiword"]
+      required_by: [conversion]
+      local_only: true
+
     - name: ffmpeg
       purpose: "音视频解码、格式转换、关键帧提取（只用 LGPL 子集）"
       version_range: ">=6.0"

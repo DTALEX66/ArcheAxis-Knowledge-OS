@@ -1617,3 +1617,68 @@ text 作业 → 该作业执行后 `transforms` 里有它的读数 → 以 **hum
 加多条按路径/标签跳过的 `skipping`。**按边界"非 CLEAN 不合并"，本轮不合并，也不做任何提权绕过。**
 
 **回滚**：revert 这一次提交（测试文件 + 账本/快照两段文字）即可；未改任何产品行为。
+
+## antiword 从"探测到"变成"声明绑定"（2026-10-07）
+
+**这一刀的前提是我自己写下的一条未完成**：F14 的缺口原话是"sidecar 尚未绑定在
+`config/environment/capability-requirements.yaml` 或 `docs/truth/SUPPLY_CHAIN_LEDGER.json` 里，
+所以处置未定"。也就是说 `.doc` 能读，靠的是本机恰好有个 Git-for-Windows 副本在 `PATH` 上——
+**盘上有 ≠ 绑定**，这在别处已经是我的教训。
+
+**测出来的硬事实（全部 stripped PATH 实测，2026-10-07）**：
+- 复制出去的 `antiword.exe` 与源**字节相同**（284,448 B，sha256 `d30a37489c64ada474d8d5aa5abb0778a6955d3ce6cdbb7c8c659e37b89d3da9`），
+  `-h` 也能自报身份，但**读文档直接失败**：exit 1、零输出、
+  `I can't open your mapping file (UTF-8.txt)`——它只到 `$HOME/.antiword` 与 `/usr/share/antiword` 找映射表；
+- `-m` 传绝对路径**不能用**：引擎把名字截断后再去那两处找（实测报出被截断的名字），仍失败；
+- 把 `HOME` 指向一个含 `.antiword/*.txt` 的目录，**同一份复制体读取真样本成功**
+  （exit 0，1,218 字符严格 UTF-8，首行 `Sample Word Document Title`）。
+
+所以绑定必须是**两条一起**：只声明二进制会得到"解析成功而读取失败"。
+
+**做了什么**：
+- 在外置工具根就位 `10-toolchains/antiword/antiword.exe` ＋ `10-toolchains/antiword/.antiword/`
+  （30 个映射表，306,272 B，含 `UTF-8.txt`）；放置脚本先断言目标目录不存在再写，未删除任何东西；
+- `capability-requirements.yaml` 新增 `antiword` 与 `antiword-mappings` 两条 engines
+  （`local_only: true`、`install_method: system`、`license: GPL-3.0-or-later`、source_url 用 A025 里
+  已登记的 MSYS2 打包页，不另编 URL）；
+- `worker_office._antiword_mapping_home()`：解析 `antiword-mappings`，目录名必须是 `.antiword`，
+  把其父目录作为 HOME 交给引擎，并把用了哪个 HOME 写进损失收据的 `mapping_home`；
+  **没有声明就不碰环境**（原地安装的引擎继续用自己的前缀，CI 上也就不存在伪绑定）；
+- 重新生成 `config/environment/external-resources-index.json`：两条都是 `exists: true`。
+  这里要如实记一条**我自己的操作失误**：我先用 `dev.py -- <script.py>` 直接跑生成器，得到
+  `[WinError 193] %1 不是有效的 Win32 应用程序`（exit 2，什么都没生成）；实际生成索引的是
+  `tests/workflow/test_external_resources_index.py` 内部对生成器的调用。**先怀疑仪器，再下结论**
+  ——这次是仪器的用法，不是数据的毛病；
+- A025 台账行的 evidence/decision 重写为"已按声明绑定"，`qualification` **没有**升档（仍是
+  `["installed"]`——绑定改变的是解析方式，不是资格层级）；
+- F14 矩阵的 `gap` 删掉"尚未绑定"那句、换成绑定后的真实剩余（外部二进制、不随项目分发、
+  Git 更新不同步此副本、无声明的主机仍报引擎缺失）；`status` 仍 `partial`，`required_output` 逐字未动；
+- `docs/environment/EXTERNAL_DEPENDENCIES.md` 同步一行（清单与人类可读文档必须两处一致）。
+
+**新增 4 条测试**（`tests/workers/test_doc_engine.py` 14 → 18）：声明了 `.antiword` 时 HOME
+确实被交出且收据记名；什么都没声明时**环境一字不动**；声明的目录不叫 `.antiword` 就**不去猜** HOME；
+以及一条真正走声明的对偶测试——两条声明都在时，用**声明里的二进制＋声明里的映射**读真 Word 文件，
+exit 0 且出文，缺任一即按解析器的原话 skip（skip 是这台机器的属性，不是 PASS）。
+
+**度量口径**：`tests/workers/test_doc_engine.py` → 18 passed；
+全量 Python 套件 → 4274 passed, 30 skipped, 14 warnings, 166 subtests passed in 423.04s (0:07:03)（日志 `.project-local/task-runtime/py-full-20261007-final.log`）。
+**这条数字绑的是哪一版字节**：`_doc_text` 的 env 传递在套件第一次跑到 9% 时被我改写了一次
+（把 `**({"env": env} if env else {})` 换成显式的 kwargs 组装，行为不变），
+所以我把整套**重跑了一遍**，上面这个 4274 passed, 30 skipped, 14 warnings, 166 subtests passed in 423.04s (0:07:03) 来自重跑那一次，测的是最终提交的字节；
+两次计数一致（4274 passed / 30 skipped / 166 subtests），
+这本身就是"该改写没有改变行为"的证据——脚本会比对两份日志的这三个数，不一致就拒绝记录。
+`tests/workflow/test_capability_requirements_manifest.py + test_external_resources_index.py +
+test_environment_registry.py` → 12 passed；`tests/test_mfx001_supply_chain_ledger.py` → 5 passed；
+矩阵门禁（与 CI 同样的 `--matrix docs/authority/taskpack-0910-r3/R15-FORMAT-STATUS.json`）exit 0，
+16 组 / 0 complete / 15 partial / 1 custody-only。Rust 侧本轮未改，故未重跑。
+
+**PR #161 在 `37d87487` 的读回**：`mergeable=MERGEABLE`，`mergeStateStatus=UNSTABLE`，
+39 条里除一条 `installer-lifecycle` 仍 pending 外全部 pass 或按路径跳过，**无 failure**；
+仍按"非 CLEAN 不合并"不动。
+
+**仍未闭合，照实写**：`probe` 这一栏在宿主清点里会是 `available: true, probe: probe_failed`——
+通用探针给命令追加 `--version`，而 antiword 用 exit 1 的用法文本回应，这不是引擎坏了，也不是绑定失败，
+是探针的形状容纳不下这个引擎；`.ppt` 仍无 JVM 路径；FMT-21 的逐扩展真人验收仍 NOT_RUN。
+
+**回滚**：revert 这一次提交即撤销声明、worker 的 HOME 通道与记录；外置根里那两个目录是本机放置，
+删除需要单独授权（本轮不删）。

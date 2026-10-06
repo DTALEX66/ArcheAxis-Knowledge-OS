@@ -27,6 +27,7 @@
 | Rust + MSVC | `10-toolchains/cargo/bin`、`10-toolchains/msvc` | 已存在；MSVC 环境注入后 Rust workspace 测试通过 |
 | Tesseract OCR | `10-toolchains/scoop/apps/tesseract/current` 及语言包 | 已存在；需在运行会话显式绑定 PATH/TESSDATA_PREFIX |
 | FFmpeg | `10-toolchains/scoop/apps/ffmpeg/current/bin` | 已存在；媒体适配器可按共享工具根解析 |
+| antiword（`.doc` 旁路，2026-10-07 就位） | `10-toolchains/antiword/antiword.exe`（284,448 B，sha256 `d30a3748…`）＋ `10-toolchains/antiword/.antiword/`（30 个映射表，306,272 B） | 已按声明成对绑定；**两条必须同时存在**：引擎只到 `$HOME/.antiword` 与 `/usr/share/antiword` 找映射表，绝对路径会被截断，所以 worker 把映射目录的父目录作为 HOME 交给它。本机副本取自 Git for Windows，不随项目分发、不自动安装，Git 更新不会自动同步此副本 |
 | DeepTutor | `10-toolchains/deeptutor/1.5.17` | 已存在；宿主内挂载与启动验收仍属 R10/R13 未闭合项 |
 | Ollama / 本地模型 | `Model library/ollama`（当前复核为模型 blob 存储，未发现 `ollama.exe`） | 模型资产目录存在；本机 Ollama 服务连通性尚未证明 |
 | Sherpa-ONNX / SenseVoice | `Model library/sherpa-onnx` | 已存在；音频管线实链需单独验收 |

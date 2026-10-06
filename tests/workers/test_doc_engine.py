@@ -17,6 +17,7 @@ from __future__ import annotations
 import hashlib
 import importlib.util
 import json
+import os
 import re
 import subprocess
 from pathlib import Path
@@ -61,6 +62,7 @@ class FakeRun:
 
     def __init__(self, stdout=TEXT, stderr="", returncode=0, not_word=False, honest=True):
         self.calls: list[list[str]] = []
+        self.envs: list[dict | None] = []
         self.stdout = stdout
         self.stderr = stderr
         self.returncode = returncode
@@ -69,6 +71,7 @@ class FakeRun:
 
     def __call__(self, command, **kwargs):
         self.calls.append(list(command))
+        self.envs.append(kwargs.get("env"))
         if len(command) == 2 and command[1] == "-h":
             return self._complete(USAGE if self.honest else "some other tool", "", 1)
         if "-t" not in command:
@@ -319,3 +322,100 @@ def test_the_real_sidecar_reads_the_real_word_document():
     assert "’" in result["text"], "the default mapping keeps the typographic apostrophe"
     assert len(result["structure"]) >= 20, result["structure"]
     assert result["loss_receipt"]["params"]["engine_version_reported"] == identity["version"]
+
+
+def _mapping_declaration(monkeypatch, mapping_dir):
+    """Answer only the `antiword-mappings` query, the way the declared registry would."""
+    monkeypatch.setattr(
+        worker,
+        "_declared_path",
+        lambda name: str(mapping_dir) if name == "antiword-mappings" else None,
+    )
+
+
+def test_a_declared_mapping_directory_is_handed_to_the_engine_as_home(
+    fake_engine, monkeypatch, tmp_path
+):
+    """A relocated antiword finds its tables only under $HOME/.antiword.
+
+    The engine refuses a mapping requested by absolute path - the name is truncated and its
+    default table is used instead - so the declaration has to become a HOME, not an argument.
+    """
+    run = fake_engine(FakeRun())
+    mappings = tmp_path / ".antiword"
+    mappings.mkdir()
+    _mapping_declaration(monkeypatch, mappings)
+
+    result = worker._doc_text(Path("sample.doc"))
+
+    assert run.envs[0] is None, "the identity probe needs no mapping table"
+    assert run.envs[1]["HOME"] == str(tmp_path)
+    assert result["loss_receipt"]["params"]["mapping_home"] == str(tmp_path)
+
+
+def test_no_mapping_declaration_leaves_the_engine_environment_alone(fake_engine, monkeypatch, tmp_path):
+    """An in-place install resolves its own prefix, so nothing is overridden when undeclared."""
+    run = fake_engine(FakeRun())
+    monkeypatch.setattr(worker, "_declared_path", lambda name: None)
+
+    result = worker._doc_text(Path("sample.doc"))
+
+    assert run.envs[1] is None
+    assert result["loss_receipt"]["params"]["mapping_home"] == "inherited from this process"
+
+
+def test_a_mapping_declaration_that_is_not_named_dot_antiword_is_not_used_as_home(
+    fake_engine, monkeypatch, tmp_path
+):
+    """The engine searches `$HOME/.antiword`, so any other directory name would miss.
+
+    A declaration that does not carry that name is not turned into a HOME by guessing: the
+    environment stays untouched and the engine's own refusal is what the run reports.
+    """
+    run = fake_engine(FakeRun())
+    mappings = tmp_path / "antiword-maps"
+    mappings.mkdir()
+    _mapping_declaration(monkeypatch, mappings)
+
+    worker._doc_text(Path("sample.doc"))
+
+    assert run.envs[1] is None
+
+
+def test_the_declared_sidecar_and_its_tables_are_a_working_pair():
+    """Where the engine is bound by declaration, the bound copy is the thing that reads the file.
+
+    Resolution by PATH alone proves nothing about the declaration, so this test asks the registry
+    for both entries and runs the declared binary with the declared tables - the layout the
+    capability manifest promises, checked rather than assumed. It is skipped with the resolver's
+    own reason where nothing is declared, and that skip is a fact about the host.
+    """
+    declared_binary = worker._declared_path("antiword")
+    declared_mappings = worker._declared_path("antiword-mappings")
+    if not declared_binary or not declared_mappings:
+        pytest.skip(
+            "no declared antiword binding on this host "
+            f"(binary={declared_binary!r} mappings={declared_mappings!r})"
+        )
+    mappings = Path(declared_mappings)
+    assert mappings.name == ".antiword", mappings
+    home = mappings.parent
+    assert (home / "antiword.exe").is_file() or Path(declared_binary).parent == home, (
+        "the declared binary must sit with the directory that becomes its HOME"
+    )
+    identity = worker._antiword_identity(declared_binary)
+    if identity is None:
+        pytest.skip(f"the declared binary did not identify itself as antiword: {declared_binary}")
+
+    run = subprocess.run(
+        [declared_binary, "-t", str(FIXTURE)],
+        capture_output=True,
+        text=True,
+        encoding="utf-8",
+        timeout=120,
+        env={**os.environ, "HOME": str(home)},
+    )
+
+    assert run.returncode == 0, (run.returncode, run.stderr)
+    assert "Sample Word Document Title" in run.stdout
+    assert (mappings / "UTF-8.txt").is_file(), "the default mapping has to be one of the tables"

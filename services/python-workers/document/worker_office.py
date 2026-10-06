@@ -656,13 +656,36 @@ def _line_anchors(text: str) -> list[dict]:
     return anchors
 
 
+def _antiword_mapping_home() -> str | None:
+    """The HOME to hand the sidecar so it can find its character mapping files.
+
+    antiword looks for a mapping in `$HOME/.antiword` and in `/usr/share/antiword`, and it will
+    not take an absolute path for one: a name longer than the engine's buffer is truncated and the
+    default mapping is used instead. So a copy that is relocated out of its own install tree needs
+    a HOME whose `.antiword` directory holds the tables - which is what the declared
+    `antiword-mappings` entry names.
+
+    Returning None leaves the environment untouched, and an in-place install keeps resolving its
+    own prefix. Nothing here guesses a directory.
+    """
+    declared = _declared_path("antiword-mappings")
+    if not declared:
+        return None
+    path = Path(declared)
+    if path.name != ".antiword":
+        return None
+    return str(path.parent)
+
+
 def _doc_text(path: Path) -> dict:
     engine = _antiword()
+    home = _antiword_mapping_home()
+    run_kwargs: dict = {"capture_output": True, "text": True, "encoding": "utf-8",
+                        "timeout": ANTIWORD_RUN_SECONDS}
+    if home:
+        run_kwargs["env"] = {**os.environ, "HOME": home}
     try:
-        run = _run(
-            [engine["path"], "-t", str(path)],
-            capture_output=True, text=True, encoding="utf-8", timeout=ANTIWORD_RUN_SECONDS,
-        )
+        run = _run([engine["path"], "-t", str(path)], **run_kwargs)
     except subprocess.TimeoutExpired:
         raise ValueError(
             "antiword did not finish within the run budget; nothing was projected"
@@ -703,6 +726,7 @@ def _doc_text(path: Path) -> dict:
                 "output_mode": "-t (plain text)",
                 "character_mapping": "the engine's own default (a named mapping file flattens "
                                       "typographic quotes, so none is requested)",
+                "mapping_home": home or "inherited from this process",
                 "lines_projected": len(structure),
                 "bytes_projected": len(text.encode("utf-8")),
             },
