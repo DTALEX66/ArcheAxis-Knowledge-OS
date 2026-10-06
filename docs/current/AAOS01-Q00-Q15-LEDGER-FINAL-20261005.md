@@ -740,3 +740,15 @@ Q02/Q14/Q15 的收口此前都卡在同一处：`desktop/scripts/verify_nsis_ins
 - **边界（不夸大）**：这是**证据落盘**修复，**不产生**新的安装态资格。`install-preflight.json` 保持 `false` 不变——它是阶段快照，为求好看而改它才是不诚实。本机未跑该 CI，故新收据**尚未存在**：Q02/Q14/Q15 的完整生命周期维度在新一次 `installer-lifecycle` 运行产出 `lifecycle-receipt.json` 之前**仍记为未证**。物理 IME、真人 Owner、新 Green 部署与音频 300 秒作业上限均不由此改变。
 - 护栏：`tests/test_release_manifest.py`（断言完成记录为 `$true` 且索引位置在尾部断言之后）与 `tests/test_ci_a0_gates.py`（断言上传清单含该文件名）。`checks/acceptance.json` 的 AQ26/AQ27 仍为 `NOT_RUN`，未改该不可变文件。
 - 验证：相关四文件 **98 passed**；脚本经 PowerShell AST 解析 `PARSE_OK`。回滚：一次提交即可撤销。
+
+## 更正：runs/ 的 "WinError 5 需提权" 判断有误——实为只读 git 对象，二次清理再释放 8.37 GB（2026-10-06）
+
+前面"追加清理：runs/ 下每轮临时目录"一节把 590 个被拒目录记成**需要提权的 ACL 阻塞**（8.59 GB）。逐目录实测证明**该判断是错的**：进入其中一个 `tmp` 后可见，被拒的是 pytest 在临时目录里创建的 **git 仓库的松散对象**（`tmp/**/.git/objects/**`）；Windows 上 git 把这些文件标为**只读**，而 Windows 删除只读文件即返回 `WinError 5`（拒绝访问）。在**同一目录**里逐个删除普通文件全部成功 ⇒ 这不是当前用户缺少权限，也**不需要提权**；此前把它归为"权限阻塞"是**未追到具体对象就下结论**。
+
+修正方式（`.project-local/task-runtime/prune-runs-scratch-20261006.py`，仅作用于 `runs/` 下名为 `tmp`/`pytest-tmp`/`pytest-cache` 的目录）：删除回调改为 `onexc`，**先清只读位再重试**，其余错误照常抛出（不吞、不强删）。重跑：
+
+- 计划 **594 目录 / 8.37 GB**；实际**释放 8.37 GB**（`removed 160/594` 是目录计数，字节已全部释放）。
+- `runs/` **13.45 → 4.86 GB**（逐文件遍历，跳过 146 个不可读项）；本批**全程未使用任何提权**，未改 ACL。
+- **残留**：434 个目录仍被拒，但合计 **0.00 GB**（空目录）；它们与上一类**不同**——`os.scandir` 都返回 `WinError 5`，是**真正的受限 ACL**，非只读位。因其为零字节且来源不明（未证实归属），**按"未知资产保留"不强行处置**，仅登记。
+- 审计清单 `.project-local/task-runtime/runs-scratch-prune-20261006-pass2-audit.json`。
+- 教训（与既有"先怀疑仪器"一致）：把 `WinError 5` 一律读成"需要提权"会掩盖真实对象；应进入目录、单独试删同类项，再判定。
