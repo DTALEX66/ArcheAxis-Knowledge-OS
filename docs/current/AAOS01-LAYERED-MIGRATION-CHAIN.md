@@ -58,3 +58,18 @@ research.migrate(db_path=DB, backup_dir=...)
 然后在**临时库**上跑完第 3 层，**调用握手**。
 
 **若它需要人工授权而现场没有，我就登记为阻塞并继续别的独立任务** —— 按包内「不因一个边界阻塞全部」。
+
+## 7. 2026-10-06 补记：第 3 层的驱动者**已存在且有测试**，但「跑完并握手」仍未做
+
+本节只补上自第 25 轮起缺失的定位结果，并明确区分**已核**与**未做**。
+
+**已核（仓库内可复核）**
+
+- `MigrationOperator` 在 `shared/migration_runner.py`，并已被四个入口使用：`app/cli.py:73-75`、`app/runtime_entrypoint.py:196-202`、`app/main.py:404-407`、`app/facades/research_runtime.py:40`（后者在库里以 `MigrationOperator(db_path=…, backup_dir=…).apply("core.sqlite")` 驱动）。即"下一轮第一件事"（定位它）已由后续工作完成，本文件此前未记录。
+- `shared/research_migration.py:192-195` 的 `_require_applied_connection` 是**读侧守卫**：库的 phase4 research schema 未应用时拒绝读取并报 `phase4 research schema migration is pending`。它不是在说"没有人能应用"，而是在说"应用必须走正当驱动者"——即本文件 §2 的那条约束。
+- 该驱动者的提交测试本轮实跑：`cargo_test.bat test -p archeaxis-migration --tests --offline` → **24 passed / 0 failed**，含 `non_empty_legacy_library_stages_notes_and_learning_history_without_touching_the_source`、`legacy_db_never_modified`、`staging_never_modifies_the_legacy_database_bytes`、`inventory_readonly`、`manifest_table_removal_is_rejected_before_any_write`、`tampered_jsonl_is_rejected_before_any_write`、`export_refuses_to_overwrite_existing_snapshot`；`tests/test_migration_runner.py` + `test_migrate_rowidless_tables.py` + `test_axw_data403_migrate.py` → **51 passed / 0 failed**（operator 侧 36 个用例，覆盖 apply/rollback 来源证明、owner 租约、schema 漂移时 fail-closed、并发单一 owner）。日志 `.project-local/task-runtime/q11-migration-rust-20261006.log`、`q11-migration-python-20261006.log`。
+
+**未做（本轮的明确边界）**
+
+- **没有**把 operator 真正跑在一个 phase4 待迁移库上以走完第 3 层并调用握手：本轮只验证了"驱动者存在、已接线、测试通过"，没有执行一次端到端迁移。因此第 3 层在"能力是否具备"上已有依据，在"本机是否已跑通"上**仍是未做**——两者不得互相代替。
+- 原库、官方 Green、官方资料库**零触碰**；未改任何实现文件。
