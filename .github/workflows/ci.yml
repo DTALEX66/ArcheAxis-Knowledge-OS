@@ -146,6 +146,25 @@ jobs:
           uv export --frozen --only-group ci-adapters --no-emit-project --format requirements-txt --output-file locked-ci-adapters.txt
           uv pip install --system --require-hashes -r locked-ci-adapters.txt
 
+      # Absorbed from the OSS pool (ADOPT verdict, supplies-chain security group). Both are pinned and
+      # hash-verified; the first runs are report-only so the repository reviews real findings before the
+      # gate can block a merge. Flip `continue-on-error` to false once a run is clean or every accepted
+      # finding is carried by an explicit ignore entry (--ignore-vuln / .gitleaks.toml allowlist).
+      - name: Dependency vulnerability scan (pip-audit 2.10.1, pinned)
+        continue-on-error: true
+        run: |
+          uv tool run --from pip-audit==2.10.1 pip-audit --strict --requirement locked-ci.txt --format columns | tee pip-audit-report.txt
+
+      - name: Secret scan (gitleaks 8.30.1, pinned and asset-hash verified)
+        continue-on-error: true
+        run: |
+          version=8.30.1
+          expected=551f6fc83ea457d62a0d98237cbad105af8d557003051f41f3e7ca7b3f2470eb
+          curl -sSLo gitleaks.tgz "https://github.com/gitleaks/gitleaks/releases/download/v${version}/gitleaks_${version}_linux_x64.tar.gz"
+          echo "${expected}  gitleaks.tgz" | sha256sum --check --status || { echo "gitleaks asset hash mismatch"; exit 1; }
+          tar -xzf gitleaks.tgz gitleaks
+          ./gitleaks detect --redact --no-banner --report-format json --report-path gitleaks-report.json --exit-code 1
+
       - name: Install and verify local OCR engine
         run: |
           sudo apt-get update
