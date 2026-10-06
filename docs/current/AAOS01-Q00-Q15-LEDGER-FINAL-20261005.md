@@ -1542,3 +1542,30 @@ revision、收据 `params.format.locations` 里 kind+path **恰好命中一次**
 所以 F15 的剩余项现在按事实写成三段：路径存在、路径严格、**从成员出发的端到端一条未跑**。
 这个区别决定下一刀是**写一条新路由**（错）还是**把已有的三段接起来证明**（对）。
 矩阵只改这一句 gap 的措辞；`status` 仍是 `partial`，`required_output` 逐字未动。
+
+
+## 容器成员 → 已读 → 知识 Candidate 这条链跑通了（2026-10-07）
+
+上一刀我只把 F15 的措辞改准（"路径存在、路径严格、**链未跑**"）。这一刀把链跑了：
+`crates/archeaxis-api/tests/member_to_knowledge_chain.rs` 用**真实**执行器与**真实** worker——
+真 ZIP 被 `archive.inventory` 展开 → 成员 `notes/index.md` 成为自己的 source 并取得**按名选定**的
+text 作业 → 该作业执行后 `transforms` 里有它的读数 → 以 **human** 行为者调用
+`POST /api/v1/knowledge-items/from-transform`，把读数里 `"6371 km"` 这一段按 **UTF-16 偏移**引为 quote
+升为对象。
+
+**它证明了什么，就只写什么**：
+- 产物是 `status=candidate` 且 `requires_human_review=true`，锚点 id 已铸造；
+  **升为被接受的知识仍是人的动作，产品不能替人做**——这一条我没验，也就不写；
+- 晋升**不打断来源关系**：成员的 origin 引用在晋升之后仍是
+  `{容器 source_id}#notes/index.md`，且仍然 `readable`；
+- 两道拒绝都成立：**machine 行为者 `403`**；把 quote 换成"偏移处不是这段话"（`9312 km`）
+  → `400`，拒绝消息点名是 quote 与持久化 transform 不符。
+  这两道就是"抽取不会被自动升格为真理"的机制保证，不是我的口头承诺。
+
+**F15 仍 partial**，理由照实列：没有界面入口（前端按 Owner 指示暂停）；关系仍是 origin 引用
+而不是可查询的一等边；驱动是脚本；超上限成员不展开；驱动认不出类型的文件仍不带作业。
+
+**度量口径**：`cargo test --workspace --offline` → 127 suites ok / 515 passed / 0 failed（新套件 1 passed，首跑即过）；
+`cargo fmt --all --check` PASS；矩阵只改 F15 的 gap 一句 + evidence 一项，`required_output` 逐字未动。
+
+**回滚**：revert 测试文件那一次提交即可（链本身只是断言，不改行为）。
