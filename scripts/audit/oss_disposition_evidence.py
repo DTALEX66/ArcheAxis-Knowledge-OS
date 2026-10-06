@@ -53,9 +53,11 @@ PIPELINE_GLOBS = [".github/workflows/*.yml", ".github/workflows/*.yaml", "script
 # unabsorbed, which is the opposite of the truth.
 SOURCE_ROOTS = ["shared", "services", "app", "crates", "frontend/src"]
 # `shared/` used to be listed here, which made any first-party module whose *filename* contained a
-# donor name (shared/audio_vad.py) look like a vendored upstream copy. A vendor root holds copies,
-# not this repository's own code.
-VENDOR_ROOTS = ["Inspiration-Research", "vendor", "third_party", "packages"]
+# A vendor root holds copies, not this repository's own code.
+# `shared/models` is a vendor root because it holds the vendored upstream model copy itself
+# (shared/models/magika/{model.onnx,config.min.json,LICENSE}); it contains no first-party module,
+# so crediting a directory name there cannot turn this repository's own code into a "copy".
+VENDOR_ROOTS = ["Inspiration-Research", "vendor", "third_party", "packages", "shared/models"]
 SKIP_DIRS = {"__pycache__", "node_modules", ".git", "target", "dist", "build", ".project-local",
              "generated"}
 TEXT_SUFFIXES = {".py", ".rs", ".ts", ".tsx", ".js", ".jsx", ".toml", ".yaml", ".yml", ".json",
@@ -100,6 +102,13 @@ EVIDENCE_TERMS = {
     "A022": ["syft"],
     "A023": ["pip-audit", "pip_audit"],
     "A024": ["gitleaks"],
+    # Two name corrections, in opposite directions, both found by reading the repository rather
+    # than the row. `apache` is a licence word that appears in a frontend lockfile and in several
+    # docstrings, which credited a Tika sidecar that exists nowhere here; the donor's own name is
+    # Tika. And Readability's identifier is `readabilipy`, which IS declared and used, while the
+    # term `mozilla` only ever matched documentation URLs - so that row understated the truth.
+    "A010": ["tika"],
+    "A011": ["readabilipy"],
 }
 
 # The document's `rule` names this vocabulary and `verdict_definitions` defines exactly it. The

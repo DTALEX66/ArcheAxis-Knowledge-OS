@@ -58,3 +58,30 @@
 - **未修改**该处置文档，未把任何行改写为"已吸收"或"未吸收"。本节只提交可核对的证据。
 - 369 池条目仍保持"判定框架"状态：文档 `not_done_here` 自述"本文件不安装任何项目……填充 369 行需要基准比较存在之后才是机械工作"。本轮未虚填。
 - 未安装任何捐赠项。`NONE` 的 12 条保持原状。
+
+## 更正三（2026-10-07 实测）：两处相反的仪器缺陷，以及一条被护栏钉住的错分类
+
+本轮按“先读仓库再读行”复核第四节点名的行，用同一份核对脚本改前改后各跑一次（输出
+`.project-local/task-runtime/format-slices-20261007/evidence.json` 与 `evidence2.json`）：
+
+- **A011 Mozilla Readability 此前被低估**：搜索词是 `mozilla`，只命中 `developer.mozilla.org`
+  这类文档域名；该捐赠项在此仓库的实际标识符是 `readabilipy`，它**既在 `pyproject.toml:82`
+  声明，也在 `shared/adapter_fixtures.py:153` 与 `app/ingestion/multi_format.py:694` 被使用**。
+  更要紧的是 `tests/workflow/test_oss_disposition_evidence.py` **把 `MENTIONED_IN_SOURCE` 当作
+  断言钉住了**——错的搜索词配一条通过的测试，比一条失败的测试更坏，因为它看起来像已核验。
+- **A010 Apache Tika 此前被高估**：词根 `apache` 命中的是 `frontend/package-lock.json:1582`
+  的许可证文本与若干文档字符串，于是把一个**本仓库里并不存在**的 sidecar 记成“已声明”。
+  改用捐赠项本名 `tika` 后该行为 `NONE`，与其 SIDECAR 裁决自洽。
+- **A001 Magika 此前只算“已声明”**：`shared/models/magika/`（`model.onnx` + `config.min.json` +
+  `LICENSE`）是真实的 vendored 副本，但 `shared/models` 不在 vendor 根清单里，所以只被记成提及。
+  加入该根后得 `DECLARED_AND_VENDORED`；`shared/` 整体仍**不是** vendor 根（第一轮修正的理由不变：
+  一方模块的文件名不是上游副本）。
+
+改后的分布（{"DECLARED": 24, "DECLARED_AND_VENDORED": 1, "STUB_IN_SOURCE": 2, "MENTIONED_IN_SOURCE": 1, "IMPLEMENTED_IN_SOURCE": 6, "NONE": 13}）与改前
+（{"DECLARED": 25, "STUB_IN_SOURCE": 2, "MENTIONED_IN_SOURCE": 2, "IMPLEMENTED_IN_SOURCE": 6, "NONE": 12}）逐项对照：`DECLARED` 25→24（Tika 不再虚报），
+`MENTIONED_IN_SOURCE` 2→1（Readability 归位），新增 `DECLARED_AND_VENDORED` 1（Magika），
+`NONE` 12→13。护栏同步改为断言**实测事实**（`readabilipy` 的声明与两处使用、`shared/models/magika`
+的实拷、Tika 为 `NONE`）；改前那次运行就是它的反证：沿用旧词时 `A011` 得 `MENTIONED_IN_SOURCE`，
+新断言必然失败。A004 RapidOCR 仍为 `DECLARED`，它同时被 `shared/bakeoff_engines.py` 的
+unavailable 标记判为桩、又被 `app/ingestion/rapid_ocr_adapter.py` 真实使用——这条歧义**本轮未解决**，
+留作独立判断，不在这里替它选一个答案。

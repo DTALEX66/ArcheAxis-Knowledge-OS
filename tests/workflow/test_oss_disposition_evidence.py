@@ -81,11 +81,20 @@ def test_the_check_marks_whether_the_name_is_implemented_named_or_merely_mention
         assert hits, rows[row_id]
         assert "shared/evidence_connectors.py" in hits[0], rows[row_id]
 
-    # Mozilla Readability is referenced, not implemented: the name appears in a docstring and in a
-    # string literal holding a documentation domain, and those are not an absorption.
-    mozilla = rows["A011"]
-    assert mozilla["evidence_state"] == "MENTIONED_IN_SOURCE", mozilla
-    assert not mozilla["source"], mozilla
+    # Readability's identifier is `readabilipy`, and it is both declared and used. The row used to
+    # be searched as `mozilla`, which only ever matched documentation URLs, and this assertion then
+    # pinned that under-claim as if it were a finding: a wrong term and a passing test together are
+    # worse than a failing one, because they look verified.
+    readability = rows["A011"]
+    assert readability["evidence_state"] == "DECLARED", readability
+    assert "shared/adapter_fixtures.py:153" in readability["source"]["readabilipy"], readability
+
+    # A vendored model copy is credited as one, and a donor that exists nowhere is not credited
+    # from a licence word: `apache` used to make the Tika sidecar look declared.
+    magika = rows["A001"]
+    assert magika["evidence_state"] == "DECLARED_AND_VENDORED", magika
+    assert magika["vendored"]["magika"] == ["shared/models/magika"], magika
+    assert rows["A010"]["evidence_state"] == "NONE", rows["A010"]
 
     # A stub registry names the capability where it declares itself unavailable, which is not the
     # same fact as implementing it.
