@@ -1426,7 +1426,9 @@ async fn evidence_anchors(State(state): State<AppState>) -> impl IntoResponse {
 /// The relation is the one recorded at import time (an `import` origin whose reference
 /// names the container), so this endpoint answers a question about provenance rather
 /// than inventing a second store of relations. A member whose name resolved to no route
-/// appears with `readable: false` and no job: it is kept, and it is visible.
+/// appears with `readable: false` and no job: it is kept, and it is visible. A member that is
+/// itself a container past the Core's nesting budget appears with `nesting_limited: true`,
+/// because its route exists and only its own expansion stopped.
 async fn source_members(
     State(state): State<AppState>,
     Path(source_id): Path<String>,
@@ -1445,29 +1447,46 @@ async fn source_members(
         match container::members_of(conn, &source_id) {
             Ok(members) => {
                 let readable = members.iter().filter(|member| member.readable).count();
+                // A kept member with no job is either unread or stopped by the nesting budget;
+                // calling both "custody only" would claim a route does not exist when it does.
+                let mut rows = Vec::with_capacity(members.len());
+                let mut nesting_limited = 0usize;
+                for member in members {
+                    let stopped = !member.readable
+                        && member.job_id.is_none()
+                        && matches!(
+                            container::member_lane(conn, &source_id, &member.member),
+                            Ok(container::MemberLane::NestingLimited)
+                        );
+                    if stopped {
+                        nesting_limited += 1;
+                    }
+                    rows.push(serde_json::json!({
+                        "source_id": member.source_id,
+                        "member": member.member,
+                        "origin_ref": member.origin_ref,
+                        "original_name": member.original_name,
+                        "sha256": member.sha256,
+                        "readable": member.readable,
+                        "job_id": member.job_id,
+                        "nesting_limited": stopped,
+                    }));
+                }
                 (
                     StatusCode::OK,
                     Json(serde_json::json!({
                         "container_source_id": source_id,
-                        "member_count": members.len(),
+                        "member_count": rows.len(),
                         "readable_count": readable,
-                        "custody_only_count": members.len() - readable,
-                        "members": members
-                            .into_iter()
-                            .map(|member| serde_json::json!({
-                                "source_id": member.source_id,
-                                "member": member.member,
-                                "origin_ref": member.origin_ref,
-                                "original_name": member.original_name,
-                                "sha256": member.sha256,
-                                "readable": member.readable,
-                                "job_id": member.job_id,
-                            }))
-                            .collect::<Vec<_>>(),
+                        "custody_only_count": rows.len() - readable - nesting_limited,
+                        "nesting_limited_count": nesting_limited,
+                        "members": rows,
                         "note": "these are the members imported from this container, not its whole inventory: \
                                  members beyond the extraction caps, encrypted members and unreadable ones are \
                                  reported by the archive job's own receipt, and readable means a transform exists \
-                                 rather than that the content was understood"
+                                 rather than that the content was understood. A member with nesting_limited true is \
+                                 itself a container whose own expansion stopped at the nesting budget, so it is \
+                                 kept and queued work was not created for it"
                     })),
                 )
                     .into_response()

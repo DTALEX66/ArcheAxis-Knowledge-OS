@@ -270,3 +270,104 @@ async fn an_ordinary_text_job_declares_no_members_and_creates_no_chain() {
         "the shared channel must not invent work for a text file"
     );
 }
+
+/// A mail whose only container-shaped attachment is itself a real ZIP.
+///
+/// The message is built with the standard library so the archive's own bytes are genuine;
+/// hand-writing base64 in Rust would test the test rather than the chain.
+fn eml_with_zip_bytes() -> Vec<u8> {
+    let script = "import io,sys,zipfile\n\
+                  from email.message import EmailMessage\n\
+                  buf=io.BytesIO()\n\
+                  with zipfile.ZipFile(buf,'w',zipfile.ZIP_DEFLATED) as c:\n\
+                  \x20   c.writestr('inner/note.md','# Inner\\nThe value is 6371 km.\\n')\n\
+                  m=EmailMessage()\n\
+                  m['From']='sender@example.invalid'\n\
+                  m['To']='reader@example.invalid'\n\
+                  m['Subject']='A bundled file'\n\
+                  m.set_content('The bundle is attached. 6371\\n')\n\
+                  m.add_attachment(buf.getvalue(),maintype='application',subtype='zip',filename='bundle.zip')\n\
+                  sys.stdout.buffer.write(m.as_bytes())\n";
+    match std::process::Command::new(python())
+        .arg("-c")
+        .arg(script)
+        .output()
+    {
+        Ok(out) if out.status.success() => out.stdout,
+        _ => Vec::new(),
+    }
+}
+
+#[tokio::test]
+async fn an_attachment_that_is_itself_a_container_expands_one_more_level() {
+    if eml_with_zip_bytes().is_empty() {
+        eprintln!("skipping: zipfile or the email module is unavailable for building a sample");
+        return;
+    }
+    let dir = tempfile::tempdir().unwrap();
+    // the archive route is the one a container member needs; the text route is already default
+    let executor = Executor::open_routes(
+        &dir.path().join("db.sqlite"),
+        &dir.path().join("staging"),
+        &python(),
+        &repo().join("services/python-workers/transport/text_ndjson.py"),
+        &[(
+            "archive.inventory",
+            repo().join("services/python-workers/document/worker_archive.py"),
+        )],
+    )
+    .await
+    .unwrap();
+    let mail_source = run_text_job(&executor, "job-nest", "letter.eml", eml_with_zip_bytes()).await;
+
+    // the mail declared the archive as one of its members
+    let rows = executor
+        .store()
+        .submit({
+            let source = mail_source.clone();
+            move |conn| container::members_of(conn, &source).unwrap()
+        })
+        .await
+        .unwrap();
+    let archive = rows
+        .iter()
+        .find(|row| row.member == "bundle.zip")
+        .unwrap_or_else(|| panic!("the zip attachment is a member: {rows:?}"));
+    let archive_job = archive
+        .job_id
+        .clone()
+        .expect("a routable attachment gets its own job");
+
+    // running the attachment's own job makes the archive inventory its members, and the Core
+    // expands them the same way it expands any container - the second level is not a special case
+    executor
+        .execute(
+            &archive_job,
+            "run-nest-archive",
+            120_000,
+            &Cancellation::new(),
+        )
+        .await
+        .unwrap();
+    let inner = executor
+        .store()
+        .submit({
+            let source = archive.source_id.clone();
+            move |conn| container::members_of(conn, &source).unwrap()
+        })
+        .await
+        .unwrap();
+    let note = inner
+        .iter()
+        .find(|row| row.member == "inner/note.md")
+        .unwrap_or_else(|| panic!("the archive's member became a source: {inner:?}"));
+    assert_eq!(
+        note.origin_ref,
+        format!("{}#inner/note.md", archive.source_id),
+        "the second level names the archive it came out of"
+    );
+    assert!(
+        note.job_id.is_some(),
+        "and the readable member is queued for its own route"
+    );
+}

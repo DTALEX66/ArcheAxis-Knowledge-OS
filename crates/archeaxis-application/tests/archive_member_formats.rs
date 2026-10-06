@@ -52,15 +52,22 @@ async fn open(dir: &Path) -> Executor {
     .unwrap()
 }
 fn payload() -> Vec<u8> {
-    let script = r#"import io,sys,zipfile
+    let script = r#"import io,sys,tarfile,zipfile
 from pathlib import Path
 root=Path(sys.argv[1])/'tests/fixtures/golden'
+inner=io.BytesIO()
+with zipfile.ZipFile(inner,'w') as q: q.writestr('deep/inside.txt','nested archive value 6371\n')
+tbody=io.BytesIO()
+with tarfile.open(fileobj=tbody,mode='w') as t:
+ data=b'nested tar value 6371\n'
+ info=tarfile.TarInfo('deep/tarinside.txt'); info.size=len(data)
+ t.addfile(info,io.BytesIO(data))
 buf=io.BytesIO()
 with zipfile.ZipFile(buf,'w') as z:
  for name in ('golden-xlsx-anchor.xlsx','golden-pptx-anchor.pptx','golden-web-anchor.html','golden-canvas-anchor.canvas','golden-subtitles-anchor.srt'): z.write(root/name,'members/'+name)
  z.writestr('members/ordinary.json','{"known":"ordinary-json-value"}')
- z.writestr('members/nested.zip',b'PK opaque nested container')
- z.writestr('members/nested.tar',b'opaque nested tar')
+ z.writestr('members/nested.zip',inner.getvalue())
+ z.writestr('members/nested.tar',tbody.getvalue())
  z.writestr('members/media.wav',b'opaque media no decode')
 sys.stdout.buffer.write(buf.getvalue())
 "#;
@@ -111,12 +118,14 @@ async fn existing_format_members_execute_preserving_structure_origin_loss_and_re
             "canvas" => Some("canvas"),
             "srt" => Some("subtitles"),
             "json" => Some("text"),
+            // a nested container is a member like any other now: its own archive job opens it
+            "zip" | "tar" => Some("archive"),
             _ => None,
         };
         let Some(kind) = kind else {
             assert!(
                 row.job_id.is_none(),
-                "nested archives/media remain custody: {}",
+                "media with no member route stays custody: {}",
                 row.member
             );
             continue;
@@ -157,8 +166,17 @@ async fn existing_format_members_execute_preserving_structure_origin_loss_and_re
             let revision:String=conn.query_row("SELECT sha256 FROM sources WHERE source_id=?1",[&id],|r|r.get(0)).unwrap();assert_eq!(revision,source_revision);
             assert!(!serde_json::from_str::<Value>(&structure).unwrap().as_array().unwrap().is_empty());
             let receipt:Value=serde_json::from_str(&loss).unwrap();assert!(!receipt["loss_note"].as_str().unwrap().is_empty());
-            let expected=if member.ends_with("xlsx") {"Sheet evidence anchor"}else if member.ends_with("pptx"){"Slide evidence anchor"}else if member.ends_with("html"){"Web evidence anchor"}else if member.ends_with("json"){"ordinary-json-value"}else{"Golden Journey Evidence"};assert!(text.contains(expected),"known member text not extracted: {member}");
-            if !member.ends_with("json") {
+            let expected=if member.ends_with("xlsx") {"Sheet evidence anchor"}else if member.ends_with("pptx"){"Slide evidence anchor"}else if member.ends_with("html"){"Web evidence anchor"}else if member.ends_with("json"){"ordinary-json-value"}else if member.ends_with("zip"){"deep/inside.txt"}else if member.ends_with("tar"){"deep/tarinside.txt"}else{"Golden Journey Evidence"};assert!(text.contains(expected),"known member text not extracted: {member}");
+            if member.ends_with("zip") || member.ends_with("tar") {
+                // the second level: the nested container's own job opened it, so its file is a
+                // member of it, recorded with this archive as its container
+                let inner = container::members_of(conn, &id).unwrap();
+                let named = inner.iter().any(|row| {
+                    row.member == "deep/inside.txt" || row.member == "deep/tarinside.txt"
+                });
+                assert!(named, "the nested container was opened by its own job: {inner:?}");
+            }
+            if !(member.ends_with("json") || member.ends_with("zip") || member.ends_with("tar")) {
                 let anchors=receipt["params"]["worker_structure"].as_array().unwrap();assert!(!anchors.is_empty(),"format structure retained in loss receipt");
                 let first=&anchors[0];assert!(!first["path"].as_array().unwrap().is_empty());
                 if member.ends_with("xlsx") {assert_eq!(first["kind"],"sheet_row");assert!(first["path"][0].as_str().unwrap().starts_with("sheet-"));}
@@ -171,7 +189,7 @@ async fn existing_format_members_execute_preserving_structure_origin_loss_and_re
         }).await.unwrap();
         snapshots.push(stored);
     }
-    assert_eq!(snapshots.len(), 6);
+    assert_eq!(snapshots.len(), 8);
     drop(executor);
     let reopened = open(dir.path()).await;
     reopened.store().submit(move |conn| {
@@ -181,6 +199,7 @@ async fn existing_format_members_execute_preserving_structure_origin_loss_and_re
             let actual:String=conn.query_row("SELECT origin_ref FROM source_origins WHERE source_id=?1 AND origin_kind='import'",[&id],|r|r.get(0)).unwrap();assert_eq!(actual,origin);
             let actual:String=conn.query_row("SELECT sha256 FROM sources WHERE source_id=?1",[&id],|r|r.get(0)).unwrap();assert_eq!(actual,revision);
         }
-        let count:i64=conn.query_row("SELECT count(*) FROM jobs WHERE job_id LIKE 'formats-member-%'",[],|r|r.get(0)).unwrap();assert_eq!(count,6,"no nested/media job after restart");
+        let count:i64=conn.query_row("SELECT count(*) FROM jobs WHERE job_id LIKE 'formats-member-%'",[],|r|r.get(0)).unwrap();assert_eq!(count,10,"the eight routed members plus one file job inside each nested container");
+        let media:i64=conn.query_row("SELECT count(*) FROM jobs j JOIN source_origins o ON o.source_id=j.input_ref WHERE o.origin_ref LIKE '%media.wav'",[],|r|r.get(0)).unwrap();assert_eq!(media,0,"a member no route can read still gets no job");
     }).await.unwrap();
 }

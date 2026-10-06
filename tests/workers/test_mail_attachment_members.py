@@ -159,14 +159,100 @@ def test_the_transport_hands_the_mail_route_a_transfer_area_and_nothing_else(tmp
     )
 
 
-def test_a_mail_with_only_attachments_still_fails_rather_than_succeeding_empty(tmp_path: Path):
+def _bodyless_mail(*, headers: bool = True, attachments: int = 1, empty_body: bool = False) -> bytes:
+    """A mail whose body lane carries no readable text: no part, an empty part, or both.
+
+    This is the shape that used to fail the whole job - "see attached" with nothing typed.
+    """
     message = EmailMessage()
-    message["From"] = "sender@example.invalid"
-    message.add_attachment(b"only a file", maintype="text", subtype="plain", filename="only.txt")
+    if headers:
+        message["From"] = "sender@example.invalid"
+        message["To"] = "reader@example.invalid"
+        message["Subject"] = "Only a file"
+        message["Date"] = "Wed, 07 Oct 2026 04:40:00 +0800"
+    if empty_body:
+        message.set_content("   \n")
+    for index in range(1, attachments + 1):
+        message.add_attachment(
+            f"attachment value {index} 6371\n".encode("utf-8"),
+            maintype="text",
+            subtype="plain",
+            filename=f"only-{index}.txt",
+        )
+    return message.as_bytes()
+
+
+def test_a_mail_with_no_readable_body_projects_its_own_headers(tmp_path: Path):
+    """A bodyless mail is not an unreadable one: its headers are the file's own text.
+
+    F13 names mail headers as a required output, so failing the job here lost the headers
+    together with the absent body. The projection is the header block, and the receipt says
+    that no body is claimed.
+    """
+    box = tmp_path / "members"
+    result = worker_text.extract(str(_write(tmp_path, _bodyless_mail())), "message/rfc822",
+                                 member_dir=str(box))
+    text = result["text"]
+    assert text.startswith("From: sender@example.invalid\nTo: reader@example.invalid\n"), text
+    assert "Subject: Only a file" in text and "Date: Wed, 07 Oct 2026 04:40:00 +0800" in text
+    assert "Please find" not in text, "no body may be claimed for a mail that has none"
+    assert len(result["structure"]) == 4, result["structure"]
+
+    facts = result["loss_receipt"]["params"]["format"]
+    assert facts["has_readable_body"] is False
+    assert facts["text_body_parts"] == 0
+    assert {item["kind"] for item in facts["locations"]} == {"mail_header"}
+    losses = " ".join(result["loss_receipt"]["losses"])
+    assert "no text body part exists" in losses
+    assert "no body is claimed" in losses
+    assert "mail MIME body decoded" not in losses, losses
+    # the extraction did happen, so the not-performed line must not survive into the receipt
+    assert "independent extraction is not performed" not in losses, losses
+    assert "1 attachments extracted" in losses, losses
+
+
+def test_a_mail_whose_text_part_is_empty_is_stated_as_empty(tmp_path: Path):
+    """The two shapes are different facts and must not collapse into one claim."""
+    result = worker_text.extract(str(_write(tmp_path, _bodyless_mail(empty_body=True))),
+                                 "message/rfc822")
+    losses = " ".join(result["loss_receipt"]["losses"])
+    assert "every text body part is empty" in losses, losses
+    assert "no text body part exists" not in losses, losses
+    assert result["loss_receipt"]["params"]["format"]["text_body_parts"] == 1
+
+
+def test_a_bodyless_mail_without_headers_still_reaches_its_attachments(tmp_path: Path):
+    """Without headers there is nothing to project, and the receipt says so rather than
+    inventing text - but the attachments are still declared for the Core to import."""
+    box = tmp_path / "members"
+    result = worker_text.extract(
+        str(_write(tmp_path, _bodyless_mail(headers=False))), "message/rfc822",
+        member_dir=str(box),
+    )
+    assert result["text"] == ""
+    assert result["structure"] == []
+    assert result["loss_receipt"]["coverage"] == 1.0
+    losses = " ".join(result["loss_receipt"]["losses"])
+    assert "the projection claims no text" in losses, losses
+    assert "no readable headers are present" in losses, losses
+    assert len(_members(result)) == 1, _members(result)
+
+
+def test_a_mail_with_nothing_readable_at_all_is_refused(tmp_path: Path):
+    raw = (b"MIME-Version: 1.0\r\nContent-Type: application/octet-stream\r\n\r\n")
     try:
-        worker_text.extract(str(_write(tmp_path, message.as_bytes())), "message/rfc822",
-                            member_dir=str(tmp_path / "members"))
+        worker_text.extract(str(_write(tmp_path, raw)), "message/rfc822")
     except ValueError as exc:
-        assert "no readable text body" in str(exc), exc
+        assert "no readable text body, headers or attachments" in str(exc), exc
     else:
-        raise AssertionError("a mail with no body must not be reported as a successful projection")
+        raise AssertionError("a mail with nothing readable must not be reported as a success")
+
+
+def test_a_mail_with_a_real_body_is_unchanged(tmp_path: Path):
+    result = worker_text.extract(str(_write(tmp_path, _mail(count=1))), "message/rfc822")
+    assert result["text"] == "Please find the two files.\n"
+    facts = result["loss_receipt"]["params"]["format"]
+    assert facts["has_readable_body"] is True and facts["text_body_parts"] == 1
+    assert {item["kind"] for item in facts["locations"]} == {"mail_mime_part"}
+    assert "mail MIME body decoded" in " ".join(result["loss_receipt"]["losses"])
+

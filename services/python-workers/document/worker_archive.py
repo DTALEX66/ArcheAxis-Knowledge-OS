@@ -267,7 +267,8 @@ def extract(path: str, member_dir: Path | None = None) -> dict:
         )
     if nested:
         losses.append(
-            f"{len(nested)} member(s) are themselves containers and are listed, not opened: {', '.join(nested[:5])}"
+            f"{len(nested)} member(s) are themselves containers and are listed, not opened by "
+            f"this worker; any opening is the Core's own member expansion: {', '.join(nested[:5])}"
         )
     if extraction_problems:
         losses.append("member extraction: " + "; ".join(extraction_problems))

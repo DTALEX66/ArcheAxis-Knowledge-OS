@@ -175,13 +175,37 @@ def mail(raw):
                 text = "\n".join(reader.parts)
             parts.append(text)
             locations.append({"kind": "mail_mime_part", "path": f"/parts/{index}", "value": text})
-    if not parts:
-        raise ValueError("EML has no readable text body")
-    losses = ["mail MIME body decoded; headers retained as facts; display formatting is not preserved"]
+    body_text = "\n".join(parts)
+    inventoried = "attachments inventoried with byte hashes; independent extraction is not performed"
+    if body_text.strip():
+        losses = ["mail MIME body decoded; headers retained as facts; display formatting is not preserved"]
+        if attachments:
+            losses.append(inventoried)
+        return body_text, {"format": "eml", "parsed": True, "headers": headers,
+                           "has_readable_body": True, "text_body_parts": len(parts),
+                           "locations": locations, "attachments": attachments}, losses
+    # The body carries no readable text: either no text part exists at all, or every text part
+    # is empty. A mail can still be readable here - its headers are the file's own text, and mail
+    # headers are a required output - so refusing would throw the headers away with the body.
+    header_block = [(key, f"{key}: {value}") for key, value in headers.items() if value.strip()]
+    if not parts and not header_block and not attachments:
+        raise ValueError("EML has no readable text body, headers or attachments")
+    absent = "no text body part exists" if not parts else "every text body part is empty"
+    if header_block:
+        locations = [
+            {"kind": "mail_header", "path": f"/headers/{key.lower()}", "value": line}
+            for key, line in header_block
+        ]
+        text = "\n".join(line for _, line in header_block)
+        losses = [f"{absent}; the projected text is the mail's own header block and no body is claimed"]
+    else:
+        text = ""
+        losses = [f"{absent} and no readable headers are present; the projection claims no text"]
     if attachments:
-        losses.append("attachments inventoried with byte hashes; independent extraction is not performed")
-    return "\n".join(parts), {"format": "eml", "parsed": True, "headers": headers,
-            "locations": locations, "attachments": attachments}, losses
+        losses.append(inventoried)
+    return text, {"format": "eml", "parsed": True, "headers": headers,
+                  "has_readable_body": False, "text_body_parts": len(parts),
+                  "locations": locations, "attachments": attachments}, losses
 
 
 ATTACHMENT_JOB_CAP = 50
