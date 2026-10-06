@@ -289,7 +289,8 @@
       "Evidence quality: the `.doc` fixture is a genuine Word-authored document redistributed under Apache-2.0 from a pinned Apache Tika commit (32,768 bytes, sha256 5ca19b67..., git blob c1f4f3d0...), attributed in THIRD_PARTY_NOTICES.md and hashed in the golden manifest - replacing the project-authored-fixture weakness I recorded for `.xls`",
       "F05/F07/F08/F09/F12 shared gap closed one notch: a route's own semantic structure - paragraph, heading, sheet row, slide, canvas node, cue, page - is now an addressable, verifiable anchor through a fourth position type (worker_structure), additive so no existing anchor id or knowledge receipt hash changes",
       "F01/F13 shared gap closed the second way round: a position a route reported in params.format.locations - JSON/XML path, mail part or header, ODF heading, paragraph, table cell or page, RTF paragraph, Python symbol - is addressable through a fifth position type (format_location), verified on the value rather than a span, with ambiguity refused unless narrowed by fields the receipt already carries",
-      "F15: the last clause of the container chain is proven end to end - a real ZIP member read by its own job is promoted by a human actor into a candidate that requires human review, with its container origin intact and a quote that does not match the persisted transform refused"
+      "F15: the last clause of the container chain is proven end to end - a real ZIP member read by its own job is promoted by a human actor into a candidate that requires human review, with its container origin intact and a quote that does not match the persisted transform refused",
+      "P5/M0 whole-state restart read-back: one store holding a container member relation two levels deep, a transform, three locator kinds, a human-created candidate and a machine receipt keeps every published identity across two deliberate reopens (516 passed / 0 failed over 128 result lines) - so an anchor id or a receipt hash cannot silently re-point the workspace's citations after a restart"
     ],
     "open": [
       "Q14 与更正文件的日期序列已核实记录；是否宣布资格化仍由 Owner 决定（不可变 checks/acceptance.json 仍为 NOT_RUN）",
@@ -384,6 +385,24 @@
         "tika_jar_found_in_scanned_scope": false,
         "consequence": "A010 Apache Tika cannot advance past qualification [source] without a system-level Java install, which this round's boundary forbids"
       }
+    },
+    "state_identity_restart_20261007": {
+      "command": "scripts/runtime/dev.py -- scripts/ci/cargo_test.bat test --workspace --offline",
+      "log": ".project-local/task-runtime/workspace-test-20261007-final.log",
+      "suites_with_results": 128,
+      "passed": 516,
+      "failed": 0,
+      "ignored": 0,
+      "test": "crates/archeaxis-api/tests/state_identity_restart.rs",
+      "assertions": [
+        "a_whole_state_keeps_every_identity_through_two_reopens",
+        "member source_id and readable flag survive two reopens",
+        "three anchor ids stay listed and the position JSON stays verbatim",
+        "the knowledge item still publishes its own anchor id",
+        "raw sha256, second-level origin_ref, machine receipt and transform text unchanged",
+        "a re-posted identical position dedupes to the same anchor id"
+      ],
+      "scope_note": "Identity stability across store reopens only. It does not claim route-written and domain-written positions derive the same id: the route adds location_status/checksum to the position, so those are different position strings."
     }
   },
   "artifacts": [

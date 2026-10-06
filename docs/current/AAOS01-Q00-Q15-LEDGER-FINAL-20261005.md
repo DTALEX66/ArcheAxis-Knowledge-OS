@@ -1569,3 +1569,51 @@ text 作业 → 该作业执行后 `transforms` 里有它的读数 → 以 **hum
 `cargo fmt --all --check` PASS；矩阵只改 F15 的 gap 一句 + evidence 一项，`required_output` 逐字未动。
 
 **回滚**：revert 测试文件那一次提交即可（链本身只是断言，不改行为）。
+
+## 一整份状态在重启后仍是同一批身份（2026-10-07）
+
+**为什么单独做这一刀**：格式那几刀都改了锚点身份的来源——`worker_structure`/`format_location`
+是**新增**的 position 类型，而 anchor_id 与 `knowledge.receipt_hash` 都是从**存下来的 position 字符串**
+派生的。位置 JSON 一旦被重新规范化（键序变动、Unicode 转义、空白压缩），所有指向它的引用都会
+**安静地改指到别处**。没有一条测试断言过"关掉存储、再打开两次，同一条记录还是同一条"。
+
+**新增套件**：`crates/archeaxis-api/tests/state_identity_restart.rs`（1 个测试
+`a_whole_state_keeps_every_identity_through_two_reopens`）。它一次写入本项目**每一类**所有权记录，
+然后经**发布这些身份的表面**读回三遍（写连接已释放后一遍，之后**刻意**再开两次）：
+
+- 两级容器关系：外层包 → 成员 `notes/index.md` 成为自己的 source → 成员里的 `inner/note.md`
+  又是第三层 source；读回经 `GET /sources/:id/members` 断言成员仍是那个 `source_id`、
+  仍 `readable`、`origin_ref` 仍是 `{容器}#notes/index.md`；第二层的 `origin_ref` 经 SQL 读回；
+- transform 文本（经 `transforms.text` 逐字比对）；
+- **三种 position 类型**：`worker_structure`、`format_location`、`text`——三者 id 都要在
+  `GET /sources/:id/anchors` 里仍列着，且存储里的 position JSON **逐字仍含** `"worker_structure"`
+  与 `paragraph-2`（没有被改写）；
+- 人的候选：`GET /knowledge-items/:id/v3` 的序列化里仍出现它自己的锚点 id；
+- 机器收据：`machine_tasks` 的 `outcome=failed` 与失败文本里的 "nesting budget" 仍在；
+- 原始字节：成员 source 的 `sha256` 与写入时一致。
+
+**顺带钉住的一条去重语义**：同一 (source, revision, position) 再写一次得到的是**同一个 anchor_id**，
+不是第二条记录——`INSERT OR IGNORE` + 内容派生 id 的组合，测试直接断言返回值相等。
+
+**这条测试不声称什么**（写死，避免以后被误读）：它**不**证明"经 HTTP 路由写的 position 与经
+领域函数写的 position 派生同一个 id"。路由会把 `location_status`（有校验和时还有 `checksum`）
+**写进** position，所以那本来就是不同的字符串、不同的身份。要验那一条得走 `structure_anchor_api.rs`
+那类路由测试，而它验的是拒绝与定位，不是重启。
+
+**度量口径**（数字由脚本从该次运行的日志解析，非手抄）：
+`scripts/runtime/dev.py -- scripts/ci/cargo_test.bat test --workspace --offline`
+→ **128 个 `test result:` 行合计 516 passed / 0 failed / 0 ignored**
+（上一条记录写的是 127 行 / 515 passed，即本套件加入之前；+1 行 +1 passed 恰为本刀新增的那一个测试，
+对得上）；日志 `.project-local/task-runtime/workspace-test-20261007-final.log`；`cargo fmt --all --check` PASS。
+新套件本身首跑即过（`-p archeaxis-api --test state_identity_restart` → 1 passed / 0 failed），
+两处编译警告（未使用的 `post` 助手、多余的 `mut`）清掉后复跑仍 1 passed；
+上面那一次全量运行**在清警告之后**启动，所以数字绑定的是最终提交的字节。
+另记一条口径缺陷与修正：本仓以往把 cargo 输出称为"127 suites"，实为 `Running` 行 120 条 +
+`test result:` 行 128 条两种计数，以后按 `test result:` 行数报，不再混称。
+
+**PR #161 读回**（head `235f6eda`，`gh pr checks` 39 条）：**无任何 failure**；
+`cargo-test`/`rust-vnext`/`lint`/`test (3.12)`/`a0-gates` 全 pass；
+`mergeable=MERGEABLE`，`mergeStateStatus=UNSTABLE`——成因为一条 `desktop-build` 仍 pending
+加多条按路径/标签跳过的 `skipping`。**按边界"非 CLEAN 不合并"，本轮不合并，也不做任何提权绕过。**
+
+**回滚**：revert 这一次提交（测试文件 + 账本/快照两段文字）即可；未改任何产品行为。
