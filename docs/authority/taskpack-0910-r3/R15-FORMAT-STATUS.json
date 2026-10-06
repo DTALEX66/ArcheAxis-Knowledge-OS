@@ -167,13 +167,13 @@
       "formats": "WAV/MP3/M4A/FLAC",
       "required_output": "转写、片段/词时间、音轨、质量标记",
       "status": "partial",
-      "implemented_now": "a WAV reaches its own route (`media.probe`), because audio is binary. The worker reads the WAV header and reports it as facts: channels, sample rate, sample width, compression, frame count and the duration that follows from them, with `declared_by` naming the header as the source of the claim. The projection is a fact listing with line anchors, and the receipt states that no sample was decoded and therefore that there is no waveform, transcript, timestamp or coverage fact",
-      "gap": "there is no transcription and no segment or word timing; MP3, M4A and FLAC are refused by name because no reader here can read them, so those three formats remain custody-only inside a partially covered group",
+      "implemented_now": "a real recording reaches a transcription route rather than only a header probe: `attempts.rs` declares kind `transcribe` -> capability `media.transcribe` (declared input type `audio/wav`) with worker `services/python-workers/media/worker_transcribe.py`, and the Core binds a transcript job's loss report to that capability. The projection is a transcript with time-coded cues. Long audio is split into windows by `media/window_plan.py` + `media/window_transcribe.py` under the single-sourced policy in `config/defaults.yaml` (ceiling/overhead/realtime factor), and a job carries the split as its one extra input, keyed so a resume continues instead of restarting. WAV/MP3/M4A/FLAC/OGG/OPUS are named container types precisely so a real recording reaches this route (attempts.rs:221-231); they stay outside `media.probe`'s accepted types, so the probe still refuses a format it cannot read.",
+      "gap": "segment-level cue timing exists, but the group is not complete on two counts. Timing stops at segment granularity: there is no word-level timing and no speaker separation. Coverage is bounded rather than total: a recording longer than the per-window budget stops at the first unreachable window and the remainder is reported `not_attempted` rather than transcribed, so a long file is partially transcribed by design and the receipt says so.",
       "evidence": {
-        "core_routes": [{"kind": "media", "capability": "media.probe", "media_type": "video/mp4"}],
-        "worker_routes": [{"capability": "media.probe", "worker": "services/python-workers/document/worker_media.py"}],
-        "code": ["crates/archeaxis-application/src/attempts.rs", "services/python-workers/document/worker_media.py"],
-        "tests": ["tests/test_worker_media_route.py", "crates/archeaxis-application/tests/media_job_end_to_end.rs"],
+        "core_routes": [{"kind": "transcribe", "capability": "media.transcribe", "media_type": "audio/wav"}, {"kind": "media", "capability": "media.probe", "media_type": "video/mp4"}],
+        "worker_routes": [{"capability": "media.transcribe", "worker": "services/python-workers/media/worker_transcribe.py"}, {"capability": "media.probe", "worker": "services/python-workers/document/worker_media.py"}],
+        "code": ["crates/archeaxis-application/src/attempts.rs", "services/python-workers/media/worker_transcribe.py", "services/python-workers/media/window_plan.py", "services/python-workers/media/window_transcribe.py", "services/python-workers/document/worker_media.py"],
+        "tests": ["tests/workers/test_window_transcribe.py", "tests/workers/test_transcribe_model_path.py", "tests/workers/test_asr_generator_partial.py", "tests/workers/test_asr_alignment_preservation.py", "tests/test_worker_media_route.py", "crates/archeaxis-application/tests/media_job_end_to_end.rs"],
         "legacy_reference": []
       }
     },
