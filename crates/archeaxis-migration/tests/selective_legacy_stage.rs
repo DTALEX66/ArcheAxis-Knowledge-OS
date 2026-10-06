@@ -46,7 +46,7 @@ fn make_legacy(dir: &std::path::Path) -> String {
     .unwrap();
     conn.execute(
         "INSERT INTO core_objects VALUES('obj_1','document','人生的意义 伊格尔顿',
-         '.hermes/task-runtime/ingest-samples/oxford-meaning.pdf','{}','2026-08-12T18:02:04')",
+         'ingest-samples/oxford-meaning.pdf','{}','2026-08-12T18:02:04')",
         [],
     )
     .unwrap();
