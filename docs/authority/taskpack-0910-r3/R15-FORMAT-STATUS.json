@@ -135,13 +135,13 @@
       "formats": "PPTX",
       "required_output": "幻灯片、文本、备注、图表引用",
       "status": "partial",
-      "implemented_now": "a PPTX reaches the `office.structure` route through the same worker (python-pptx 1.0.2 is available here and the worker's own probe reports it). It reads slide order, shape text, speaker notes and an image count, and its own structure is kept as a fact under `params.worker_structure` while the route contract carries line anchors over the projected text. A package whose engine is missing or unreadable fails the job rather than succeeding empty",
-      "gap": "slide and shape structure is a reported fact rather than an addressing level, chart data is not read, and nothing is rendered",
+      "implemented_now": "a PPTX reaches the `office.structure` route through the same worker (python-pptx 1.0.2 is available here and the worker's own probe reports it). It reads slide order, shape text, speaker notes and an image count, and its own structure is kept as a fact under `params.worker_structure` while the route contract carries line anchors over the projected text. A package whose engine is missing or unreadable fails the job rather than succeeding empty. Chart data is now read too: the worker parses the package's own chart parts with the standard library and projects each series as `Series <name>: <category>=<value>` under a `slide_chart` structure entry, so a chart contributes its numbers and its own anchor instead of only being counted; the values are the file's cached results (declared as `chart_data_source` in the receipt) and a series whose data lives only in a linked workbook is reported as carrying no cached values rather than filled in",
+      "gap": "slide and shape structure is a reported fact rather than an addressing level, and nothing is rendered; chart numbers are the cached ones the file carries, so a chart fed by a live spreadsheet reports no values until that workbook is resolved",
       "evidence": {
         "core_routes": [{"kind": "office", "capability": "office.structure", "media_type": "application/vnd.openxmlformats-officedocument.presentationml.presentation"}],
         "worker_routes": [{"capability": "office.structure", "worker": "services/python-workers/document/worker_office.py"}],
         "code": ["crates/archeaxis-application/src/attempts.rs", "services/python-workers/document/worker_office.py"],
-        "tests": ["crates/archeaxis-application/tests/office_job_end_to_end.rs", "tests/workers/test_bulk_office.py"],
+        "tests": ["crates/archeaxis-application/tests/office_job_end_to_end.rs", "tests/workers/test_bulk_office.py", "tests/workers/test_pptx_chart_data.py"],
         "legacy_reference": ["app/capability/builtin/converters_pptx.py"]
       }
     },

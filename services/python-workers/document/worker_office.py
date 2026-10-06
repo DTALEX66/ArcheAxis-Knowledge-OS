@@ -24,6 +24,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import posixpath
 import sys
 import zipfile
 from pathlib import Path
@@ -124,15 +125,144 @@ def _docx_text(path: Path) -> dict:
     }
 
 
+C_NS = "http://schemas.openxmlformats.org/drawingml/2006/chart"
+A_NS = "http://schemas.openxmlformats.org/drawingml/2006/main"
+CHART_REL_TYPE = (
+    "http://schemas.openxmlformats.org/officeDocument/2006/relationships/chart"
+)
+
+
+def _c(tag: str) -> str:
+    return f"{{{C_NS}}}{tag}"
+
+
+def _cached_points(container: ET.Element | None) -> list[str]:
+    """Return a cache's values in idx order, or [] when the series carries no cache at all.
+
+    A category or value element wraps a reference (`c:strRef` / `c:numRef`) which in turn wraps
+    the cache, so both levels are descended. A chart can point at a live spreadsheet instead of
+    storing values; this worker never opens a spreadsheet application, so an absent cache is
+    reported, never guessed."""
+    if container is None:
+        return []
+    for ref_tag in ("numRef", "strRef", "multiLvlStrRef"):
+        reference = container.find(_c(ref_tag))
+        if reference is not None:
+            container = reference
+            break
+    for cache_tag in ("strCache", "numCache", "multiLvlStrCache"):
+        cache = container.find(_c(cache_tag))
+        if cache is not None:
+            values = []
+            for point in cache.findall(_c("pt")):
+                node = point.find(_c("v"))
+                if node is None:
+                    node = point.find(_c("ptCount"))
+                values.append("" if node is None or node.text is None else node.text.strip())
+            return values
+    return []
+
+
+def _series_name(series: ET.Element) -> str:
+    tx = series.find(_c("tx"))
+    if tx is None:
+        return "(unnamed series)"
+    str_ref = tx.find(_c("strRef"))
+    if str_ref is None:
+        return "(unnamed series)"
+    cached = _cached_points(str_ref)
+    if cached and cached[0]:
+        return cached[0]
+    formula = str_ref.find(_c("f"))
+    if formula is not None and formula.text and formula.text.strip():
+        return f"(named by reference {formula.text.strip()})"
+    return "(unnamed series)"
+
+
+def _chart_text(root: ET.Element, part: str) -> tuple[str, bool]:
+    """Render one chart part's cached data as text. Returns (text, carried_any_values)."""
+    title_nodes = [node.text.strip() for node in root.iter(f"{{{A_NS}}}t") if node.text and node.text.strip()]
+    lines = [f"Chart: {title_nodes[0] if title_nodes else part}"]
+    plot_area = root.find(f"{_c('chart')}/{_c('plotArea')}")
+    carried = False
+    if plot_area is None:
+        return lines[0] + "\n  (no plot area in this chart part)", False
+    for element in plot_area:
+        tag = element.tag.split("}")[-1]
+        if not tag.endswith("Chart"):
+            continue
+        lines.append(f"  Type: {tag[:-5].lower() if len(tag) > 5 else tag}")
+        for series in element.findall(_c("ser")):
+            categories = _cached_points(series.find(_c("cat")))
+            values = _cached_points(series.find(_c("val")))
+            name = _series_name(series)
+            if not values:
+                lines.append(f"  Series {name}: no cached values in this file (linked data is not resolved)")
+                continue
+            carried = True
+            pairs = []
+            for position, value in enumerate(values):
+                label = categories[position] if position < len(categories) else f"#{position + 1}"
+                pairs.append(f"{label}={value}")
+            lines.append(f"  Series {name}: " + ", ".join(pairs))
+    return "\n".join(lines), carried
+
+
+def _pptx_charts(path: Path) -> dict[int, list[tuple[str, bool]]]:
+    """Map slide number -> [(chart text, carried values)] through the slide's relationships.
+
+    python-pptx reports that a shape is a chart but not what the chart holds, and the cached
+    categories/values are the only chart data present without a spreadsheet application."""
+    by_slide: dict[int, list[tuple[str, bool]]] = {}
+    with zipfile.ZipFile(path) as archive:
+        names = set(archive.namelist())
+        parts = sorted(
+            name for name in names
+            if name.startswith("ppt/charts/chart") and name.endswith(".xml")
+        )
+        rendered = {}
+        for part in parts:
+            try:
+                root = ET.fromstring(archive.read(part))
+            except ET.ParseError:
+                rendered[part] = (f"Chart: {part} (the chart part is not well-formed XML)", False)
+                continue
+            rendered[part] = _chart_text(root, part)
+        for name in sorted(n for n in names if n.startswith("ppt/slides/slide")):
+            digits = "".join(char for char in Path(name).stem if char.isdigit())
+            if not digits:
+                continue
+            rel_path = f"ppt/slides/_rels/{Path(name).name}.rels"
+            if rel_path not in names:
+                continue
+            try:
+                rels = ET.fromstring(archive.read(rel_path))
+            except ET.ParseError:
+                continue
+            for rel in rels:
+                target_name = rel.get("Target")
+                if rel.get("Type") != CHART_REL_TYPE or not target_name:
+                    continue
+                target = posixpath.normpath(
+                    posixpath.join(posixpath.dirname(name), target_name.lstrip("/"))
+                ).replace("\\", "/")
+                if target in rendered:
+                    by_slide.setdefault(int(digits), []).append(rendered[target])
+    return by_slide
+
+
 def _pptx_text(path: Path) -> dict:
     try:
         from pptx import Presentation
     except ImportError as exc:
         raise RuntimeError("pptx engine missing (python-pptx not installed)") from exc
     presentation = Presentation(str(path))
+    charts_by_slide = _pptx_charts(path)
     text_parts: list[dict] = []
     image_count = 0
     chart_count = 0
+    charts_with_values = 0
+    charts_without_values = 0
     for index, slide in enumerate(presentation.slides, start=1):
         for shape in slide.shapes:
             if getattr(shape, "has_text_frame", False) and shape.text_frame.text.strip():
@@ -141,6 +271,12 @@ def _pptx_text(path: Path) -> dict:
                 image_count += 1
             if getattr(shape, "has_chart", False):
                 chart_count += 1
+        for chart_text, carried in charts_by_slide.get(index, []):
+            if carried:
+                charts_with_values += 1
+            else:
+                charts_without_values += 1
+            text_parts.append({"kind": "slide_chart", "index": index, "text": chart_text})
         if slide.has_notes_slide:
             notes = slide.notes_slide.notes_text_frame.text.strip()
             if notes:
@@ -165,8 +301,18 @@ def _pptx_text(path: Path) -> dict:
         "loss_receipt": {
             "engine": ENGINE,
             "engine_version": ENGINE_VERSION,
-            "params": {"slides": len(presentation.slides._sldIdLst), "images": image_count, "charts": chart_count, "engine": "python-pptx"},
-            "loss_note": "slide order preserved; slide-image OCR and chart rendering are separate lanes",
+            "params": {
+                "slides": len(presentation.slides._sldIdLst),
+                "images": image_count,
+                "charts": chart_count,
+                "charts_with_cached_values": charts_with_values,
+                "charts_without_cached_values": charts_without_values,
+                "chart_data_source": "cached values stored in the chart part",
+                "engine": "python-pptx",
+            },
+            "loss_note": "slide order preserved; chart data is the file's own cached categories and "
+            "values, never recomputed, and a series that only references a live spreadsheet is "
+            "named as carrying no cached values; slide-image OCR and chart rendering are separate lanes",
         },
     }
 
