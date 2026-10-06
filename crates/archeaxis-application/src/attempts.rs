@@ -90,6 +90,7 @@ pub const ROUTE_MEDIA_TYPES: &[(&str, &[&str])] = &[
         &[
             "text/plain",
             "text/markdown",
+            "text/x-python",
             "text/csv",
             "text/tab-separated-values",
             "application/json",
@@ -205,11 +206,15 @@ pub fn media_type_for_name(name: &str) -> Option<&'static str> {
         .to_ascii_lowercase();
     let extension = file.rsplit_once('.')?.1;
     Some(match extension {
-        "txt" | "log" | "text" | "rs" | "py" | "ts" | "tsx" | "js" | "jsx" | "c" | "h" | "cpp"
-        | "hpp" | "go" | "java" | "cs" | "rb" | "sh" | "ps1" | "bat" | "ini" | "cfg" | "sql" => {
+        "txt" | "log" | "text" | "rs" | "ts" | "tsx" | "js" | "jsx" | "c" | "h" | "cpp" | "hpp"
+        | "go" | "java" | "cs" | "rb" | "sh" | "ps1" | "bat" | "ini" | "cfg" | "sql" => {
             "text/plain"
         }
         "md" | "markdown" => "text/markdown",
+        // R15/F01: only a source language with a reader here gets its own type. `.py` is read
+        // with the interpreter's own `ast`, so a symbol report is possible; the rest stay
+        // text/plain rather than being named for a parser that does not exist.
+        "py" => "text/x-python",
         "csv" => "text/csv",
         "tsv" => "text/tab-separated-values",
         "json" | "canvas" => "application/json",

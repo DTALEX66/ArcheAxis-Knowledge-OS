@@ -419,7 +419,7 @@ def extract(path: str, media_type: str = "text/plain") -> dict:
         spec = importlib.util.spec_from_file_location("worker_light_formats", helper)
         light = importlib.util.module_from_spec(spec)
         spec.loader.exec_module(light)
-    if media in {"application/epub+zip", "message/rfc822", "application/rtf",
+    if media in {"application/epub+zip", "message/rfc822", "application/rtf", "text/x-python",
                  "application/vnd.oasis.opendocument.text",
                  "application/vnd.oasis.opendocument.spreadsheet",
                  "application/vnd.oasis.opendocument.presentation"}:
@@ -438,7 +438,7 @@ def extract(path: str, media_type: str = "text/plain") -> dict:
     if parsed is not None:
         text, native_facts, native_losses = parsed
     else:
-        if media in {"application/epub+zip", "message/rfc822", "application/rtf",
+        if media in {"application/epub+zip", "message/rfc822", "application/rtf", "text/x-python",
                  "application/vnd.oasis.opendocument.text",
                  "application/vnd.oasis.opendocument.spreadsheet",
                  "application/vnd.oasis.opendocument.presentation"}:

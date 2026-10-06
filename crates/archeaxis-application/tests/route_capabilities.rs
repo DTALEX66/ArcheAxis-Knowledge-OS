@@ -230,7 +230,7 @@ fn an_unnamed_extension_is_refused_rather_than_guessed() {
         attempts::accepted_media_types("pdf.extract"),
         ["application/pdf"]
     );
-    assert_eq!(attempts::accepted_media_types("text.extract").len(), 17);
+    assert_eq!(attempts::accepted_media_types("text.extract").len(), 18);
     // R15/F13: the ODF families and RTF are named only because a reader exists for them here
     for (name, media) in [
         ("notes.odt", "application/vnd.oasis.opendocument.text"),
@@ -247,6 +247,12 @@ fn an_unnamed_extension_is_refused_rather_than_guessed() {
             "{name} must not reach a route that cannot read it"
         );
     }
+    // R15/F01: a Python source is named because a symbol reader exists for it here, and the
+    // count above is only a guard until this pair is checked by content as well.
+    assert_eq!(
+        attempts::resolve_media_type("text", "tool.py").unwrap(),
+        "text/x-python"
+    );
     assert!(attempts::accepted_media_types("nothing.extract").is_empty());
 }
 

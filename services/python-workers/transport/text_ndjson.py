@@ -220,6 +220,7 @@ ROUTES = {
         "media_types": {
             "text/plain",
             "text/markdown",
+            "text/x-python",
             "text/csv",
             "text/tab-separated-values",
             "application/json",

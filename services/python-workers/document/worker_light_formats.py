@@ -356,11 +356,56 @@ def rtf(raw):
         "embedded objects are not reconstructed"]
 
 
+def python_source(raw):
+    """Report the symbols a Python file actually declares, using the interpreter's own parser.
+
+    Only what `ast` states is reported: a name, its kind and the line it starts on. A file that
+    does not parse is reported as such - the text route still keeps every line as an anchor, so a
+    version mismatch or a template file never turns into a fabricated symbol list."""
+    text = raw.decode("utf-8-sig", "strict")
+    lines = text.splitlines()
+    try:
+        import ast as _ast
+
+        tree = _ast.parse(text)
+    except SyntaxError as exc:
+        return text, {"format": "python", "parsed": False,
+                     "location_model": "line anchors; symbols need a parseable module",
+                     "symbols": [], "parse_error": f"{type(exc).__name__}: {exc}"}, [
+            "Python source did not parse, so no symbols are claimed"]
+    symbols = []
+    for node in _ast.walk(tree):
+        if isinstance(node, (_ast.ClassDef, _ast.FunctionDef, _ast.AsyncFunctionDef)):
+            kind = "class" if isinstance(node, _ast.ClassDef) else (
+                "async_function" if isinstance(node, _ast.AsyncFunctionDef) else "function")
+            line = min(max(int(node.lineno), 1), len(lines)) if lines else 1
+            symbols.append({"kind": "python_symbol", "symbol_kind": kind, "name": node.name,
+                            "line": line, "path": f"/symbols/{node.name}",
+                            "value": (lines[line - 1].strip() if lines else node.name)})
+        elif isinstance(node, (_ast.Import, _ast.ImportFrom)):
+            count = len(node.names)
+            if count:
+                line = min(max(int(node.lineno), 1), len(lines)) if lines else 1
+                symbols.append({"kind": "python_symbol", "symbol_kind": "import",
+                                "name": getattr(node, "module", None) or node.names[0].name,
+                                "count": count, "line": line, "path": "/symbols/import",
+                                "value": (lines[line - 1].strip() if lines else "")})
+    if len(symbols) > MAX_LOCATIONS:
+        raise ValueError("light format location budget exceeded")
+    order = {(typ, name) for typ, name in ((s["symbol_kind"], s["name"]) for s in symbols)}
+    return text, {"format": "python", "parsed": True,
+                  "location_model": "ast symbols over the source lines; anchors remain line based",
+                  "locations": symbols, "symbol_count": len(symbols),
+                  "top_level_symbols": len(order)}, [
+        "Symbols come from the file's own syntax tree; decorators, docstrings and type hints are "
+        "not interpreted, and anchors stay line based"]
+
+
 def parse(raw, media):
     if media not in {"application/epub+zip", "message/rfc822", "text/csv",
                      "text/tab-separated-values", "application/x-ndjson", "application/yaml",
                      "text/x-yaml", "application/toml", "application/json", "application/xml", "text/xml",
-                     *ODF_MEDIA, "application/rtf"}:
+                     "text/x-python", *ODF_MEDIA, "application/rtf"}:
         return None
     if len(raw) > MAX_BYTES:
         raise ValueError("light format input exceeds byte budget")
@@ -372,6 +417,8 @@ def parse(raw, media):
         return odf(raw, media)
     if media == "application/rtf":
         return rtf(raw)
+    if media == "text/x-python":
+        return python_source(raw)
     text = raw.decode("utf-8-sig", "strict")
     if media in ("text/csv", "text/tab-separated-values"):
         rows = list(csv.reader(io.StringIO(text), delimiter="\t" if media.endswith("values") else ","))
