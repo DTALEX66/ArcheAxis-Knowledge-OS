@@ -494,3 +494,23 @@ A0 浏览器门禁 `scripts/a0_browser_smoke.py` 原视口矩阵为 1440/1280/39
 
 即：无需引入新依赖、无需 schema 决策即可保留这最后一张表。已加用例 `tests/workflow/test_legacy_vec0_readability.py` 固定这一区分：
 产品读取器对含 vec0 的库报"零张不可读"；而**不加载扩展**时同一张表抛 `no such module: vec0`——后者正是 Rust 清单里那条 `UNQUERIED` 的成因，说明它是关于读取器的陈述，若被读成"数据无法恢复"就错了。
+
+## 遗留库保留补齐：89 张表全部落地（本轮）
+
+补上最后一张表：新增 `scripts/maintenance/fill_unqueried_tables.py`，读取 Rust 导出清单里的 `unqueried_tables`，
+用**产品自身已加载的 sqlite-vec 通路**把这些表补导出来，并回写清单（表项、缺口、摘要）。它是与 Rust 导出**组合**而非取代：
+Rust 侧拥有逐表 sha256 与清单语义，本工具只补它读不了的，保证一份清单仍然描述整份导出。
+
+实测（对象为项目内 `data/cognitive_os.sqlite` 的只读快照，原件 SHA 仍为 `b318c99e…` 且未变）：
+
+- 补出 `vec_episodes`：**5 行**，`rowid` + 1536 字节 float32 embedding（hex 编码，与 Rust 导出对 BLOB 的写法一致）。
+- 清单由 88 表/1 缺口 → **89 表/0 缺口**，`manifest_sha256 5ed6c025…` → `597027d419dd6ff5d77aaef5d911b181ffecdcc577ab3c2f076d85419575ee2a`。
+- 完整性自检：清单 89 表 = 磁盘 89 个 `.jsonl`，无未登记文件、无缺失文件、逐表 SHA 全部相符。
+
+**跨语言摘要等价已实测**：用 Python 按本工具口径重算 Rust 记录的 `5ed6c025aef744f6adcdac2b16f43674de4a9d2933b00be6809953167cb3cbc3`，结果逐字节相同——
+即回写后的清单仍能通过 Rust 的 `verify_export`（该函数同时拒绝任何清单未登记的 `.jsonl`，故文件名规则也按 Rust 的 `export_filename` 镜像实现）。
+用例 `tests/workflow/test_fill_unqueried_tables.py` 固定：摘要布局金值、补洞后清单自洽、已完整导出不动原文件、越界路径被拒。
+
+回归：`tests/workflow` + `tests/maintenance` 共 250 项通过、4 项跳过。
+
+仍未做、也不应冒充的：**未做语义迁移**——没有把任何行并入 vNext 模式。`stage_demo_semantic_import` 只暂存 `notes`，其余表按设计记为 leftover；本轮的成果是"整库保真保留完成"，不是"已迁移"。
