@@ -977,4 +977,10 @@ transport 校验并传参 → `_segment_cues(word_timestamps=…)` 记录每个�
 `cargo test -p archeaxis-sidecar-protocol -p archeaxis-application -p archeaxis-api --tests --offline`
 **75 个结果全 ok**（含新用例实测执行），`cargo fmt --all --check` PASS，Python 侧相关三套 **16 passed**。
 **仍未闭合（不粉饰）**：说话人分离仍无引擎亦无处置行；词时间的**界面开关**按 Owner 指令（前端任务暂停）未做，
-目前只在 HTTP 边界可用；真实模型上的端到端词时间本轮未跑（单元层用替身模型验证接线）。
+目前只在 HTTP 边界可用。**真实引擎已实测**（不只是接线）：
+`tests/workers/test_word_timings.py::test_the_real_model_produces_word_timings_when_the_engine_and_model_are_bound`
+用项目声明的 `faster-whisper-large-v3-turbo`（权重路径经 `config/environment/external-resources-index.json` 的
+`resolved`+`exists` 解析；第一版我从检出目录猜父级，会在 worktree 里**静默跳过**，被自己的 -rs 输出抓出后改正）
+对 `tests/fixtures/golden/golden-audio-anchor.wav` 实跑：`word_timings_requested=true`、`word_timings_produced=true`，
+词时间 0–500 / 500–1180 / 1180–1800 ms 对应 Learning/Evidence/Anchor；该文件 **8 passed、0 skipped、16.11s**。
+仍未实测：窗口化与词时间的组合（需一段真超上限录音；偏移逻辑目前有单元层与“负跨度即报错”两层覆盖）。

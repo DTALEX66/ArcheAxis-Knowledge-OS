@@ -7,6 +7,7 @@ while the declared receipt fields keep the difference between "requested" and "p
 """
 
 import importlib.util
+import json
 import os
 import subprocess
 import sys
@@ -123,6 +124,52 @@ class WordTimingsTests(unittest.TestCase):
         )
         self.assertEqual(completed.returncode, 0, completed.stderr[-200:])
         self.assertIn("--word-timestamps", completed.stdout)
+
+    @staticmethod
+    def _bound_model_dir():
+        """Resolve the ASR weights the way the project does, rather than guessing a parent directory.
+
+        A worktree's parent is not the shared root, so path arithmetic from the checkout would skip
+        this case even where the model is genuinely bound. `external-resources-index.json` records
+        the resolved path of every declared external resource, and a guard test keeps it honest."""
+        index = ROOT / "config/environment/external-resources-index.json"
+        if not index.is_file():
+            return None
+        document = json.loads(index.read_text(encoding="utf-8"))
+        entries = document.get("entries") or document.get("resources") or []
+        for entry in entries:
+            if entry.get("name") != "faster-whisper-large-v3-turbo":
+                continue
+            for path in entry.get("external_paths", []):
+                if path.get("exists") and Path(path["resolved"], "model.bin").is_file():
+                    return Path(path["resolved"])
+        return None
+
+    def test_the_real_model_produces_word_timings_when_the_engine_and_model_are_bound(self):
+        """Skipped with a named reason when either is absent, never silently passed.
+
+        The stand-in model proves the wiring; this proves the claim the wiring makes - that the
+        declared model can actually deliver word boundaries - on the project's own audio anchor."""
+        model_dir = self._bound_model_dir()
+        wav = ROOT / "tests/fixtures/golden/golden-audio-anchor.wav"
+        try:
+            import faster_whisper  # noqa: F401
+        except ImportError:
+            self.skipTest("faster_whisper is not installed in this lane")
+        if model_dir is None:
+            self.skipTest("the declared large-v3-turbo weights are not bound in this checkout")
+        if not wav.is_file():
+            self.skipTest(f"the audio anchor fixture is missing: {wav}")
+        out = self.worker.extract(str(wav), str(model_dir), "auto", "cpu", word_timestamps=True)
+        params = out["loss_receipt"]["params"]
+        self.assertTrue(params["word_timings_requested"])
+        self.assertTrue(
+            params["word_timings_produced"],
+            "the model was asked for word timings and the receipt must not hide whether it gave any",
+        )
+        words = [word for cue in out["cues"] for word in cue.get("words", [])]
+        self.assertTrue(words, "the anchor recording contains speech")
+        self.assertTrue(all(word["start_ms"] <= word["end_ms"] for word in words))
 
 
 if __name__ == "__main__":
