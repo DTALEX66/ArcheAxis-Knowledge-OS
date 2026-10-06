@@ -1,0 +1,73 @@
+{
+  "document": "AAOS_OWNER_DECISIONS_REQUIRED",
+  "recorded_at": "2026-10-02T07:01:15.837733+00:00",
+  "why_this_exists": "the executor may not self-sign an audit, freeze a resource boundary or release; these are the points where progress stops until the Owner decides",
+  "decisions": [
+    {
+      "id": "A02",
+      "question": "the resource-root schema semantics for the model library and plugins",
+      "blocks": "G1 capability resolution by a stable root",
+      "note": "two concrete registry defects were found and are reported rather than fixed unilaterally: faster-whisper-large-v3-turbo is on disk but undeclared, and sherpa-onnx is declared with a root-escaping ../Model library path"
+    },
+    {
+      "id": "A16",
+      "question": "the Owner Gate for Green replacement",
+      "blocks": "G5's final replace step",
+      "note": "release stays FROZEN until this is granted"
+    },
+    {
+      "id": "A15",
+      "question": "independent audit sign-off",
+      "blocks": "any claim above TESTED_LOCAL",
+      "note": "the executor may not self-sign"
+    },
+    {
+      "id": "P6",
+      "question": "Local Green qualification and in-place replacement",
+      "blocks": "the last step of G5",
+      "note": "requires P0-P5 complete plus real migration plus backup/replace/rollback"
+    },
+    {
+      "id": "DP-F01",
+      "question": "typed loss receipt semantics",
+      "blocks": "a receipt shape richer than the summary projection",
+      "note": "do not let a UI invent fallback=true or parse a two-layer payload"
+    },
+    {
+      "id": "DP-A11 / P0-H01",
+      "question": "Research capability boundary, source_revision, provider/version and result status",
+      "blocks": "any research route",
+      "note": "the read-only gap analysis is complete; the DTO is not frozen"
+    },
+    {
+      "id": "MIGRATION",
+      "question": "authorise applying the verified baseline repair to the Owner's original database",
+      "blocks": "Legacy migration",
+      "note": "an isolated copy already proved the migration succeeds; the original is untouched"
+    },
+    {
+      "id": "RELEASE",
+      "question": "lift the release freeze and authorise publication",
+      "blocks": "RELEASED on the ladder",
+      "note": "the plan keeps this frozen"
+    },
+    {
+      "id": "WORKERS_PACKAGING",
+      "question": "should services/python-workers enter the wheel",
+      "blocks": "a wheel-only full loop",
+      "note": "the wheel omits them today by design"
+    },
+    {
+      "id": "H3_CONSUMPTION",
+      "question": "does AAOS consume the ComfyUI/H3 video stack",
+      "blocks": "a video-generation route",
+      "note": "the weights and runtime are installed and resolvable; the library README assigns that directory to DESIGN-LAB for writing, which does not restrict reading"
+    }
+  ],
+  "executor_may_do_without_a_decision": [
+    "G1's plugin registry, resolver, health and fallback",
+    "G2's software-compatibility adapters and cited ask/read",
+    "G3's UI-side wiring",
+    "G4's model task route and correction/retest binding"
+  ]
+}

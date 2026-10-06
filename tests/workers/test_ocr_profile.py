@@ -44,7 +44,13 @@ class OCRProfileTests(unittest.TestCase):
 
     def call_main(self, args):
         stream = io.StringIO()
-        with patch.object(sys, "argv", [str(SCRIPT), *args]), contextlib.redirect_stdout(stream):
+        # The worker resolves its engine from the declared external registry *before* it
+        # consults PATH (R6 A02), so an ambient `ARCHEAXIS_EXTERNAL_ROOT` would make the
+        # `shutil.which` mocks below represent nothing and let the probe report a capability
+        # the test never set up. These in-process tests therefore pin the mocked resolution.
+        # The declaration path itself is exercised by the subprocess-based real-tesseract test.
+        with patch.object(ocr, "_declared_path", return_value=None), \
+             patch.object(sys, "argv", [str(SCRIPT), *args]), contextlib.redirect_stdout(stream):
             try:
                 code = ocr.main()
             except SystemExit as exc:

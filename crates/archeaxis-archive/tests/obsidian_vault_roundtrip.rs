@@ -159,6 +159,17 @@ fn source_names(conn: &Connection) -> BTreeSet<String> {
     rows
 }
 
+/// The stored link graph as comparable rows: (target_ref, resolved target id).
+fn vault_graph(conn: &Connection) -> Vec<(String, Option<String>)> {
+    let mut stmt = conn
+        .prepare("SELECT target_ref, target_knowledge_id FROM vault_links ORDER BY ordinal")
+        .unwrap();
+    stmt.query_map([], |row| Ok((row.get(0)?, row.get(1)?)))
+        .unwrap()
+        .map(|row| row.unwrap())
+        .collect()
+}
+
 #[test]
 fn obsidian_vault_roundtrip_keeps_bytes_names_and_links_and_states_the_gaps() {
     let files = vault_files();
@@ -245,6 +256,62 @@ fn obsidian_vault_roundtrip_keeps_bytes_names_and_links_and_states_the_gaps() {
         names,
         "the vault paths are what the source names say"
     );
+
+    // The link graph, written before the export so the round trip has something to preserve. Two
+    // rows are enough and they are chosen to cover both halves of the design: one link whose target
+    // is a note this workspace holds, and one that dangles. A vault routinely links to a note that is
+    // not imported, and a dangling link is how a reader learns the vault is incomplete, so the
+    // round trip has to keep it rather than treat it as damage.
+    let index_id = archeaxis_domain::knowledge::create_knowledge(
+        &mut conn,
+        "NOTE",
+        &text_of(
+            &files
+                .iter()
+                .find(|(name, _)| name == "notes/index.md")
+                .unwrap()
+                .1,
+        ),
+        "accepted",
+        None,
+        None,
+        "human",
+    )
+    .unwrap();
+    let atomic_id = archeaxis_domain::knowledge::create_knowledge(
+        &mut conn,
+        "NOTE",
+        &text_of(
+            &files
+                .iter()
+                .find(|(name, _)| name == "notes/atomic.md")
+                .unwrap()
+                .1,
+        ),
+        "accepted",
+        None,
+        None,
+        "human",
+    )
+    .unwrap();
+    {
+        let tx = conn.transaction().unwrap();
+        for (target_ref, target, embed, ordinal) in [
+            ("atomic", Some(atomic_id.as_str()), 0i64, 0i64),
+            ("notes/not-here.md", None, 0i64, 1i64),
+        ] {
+            tx.execute(
+                "INSERT INTO vault_links(source_knowledge_id, target_ref, target_knowledge_id, embed,
+                                         fragment, fragment_is_block, syntax, ordinal)
+                 VALUES(?1,?2,?3,?4,NULL,0,'wiki',?5)",
+                rusqlite::params![index_id, target_ref, target, embed, ordinal],
+            )
+            .unwrap();
+        }
+        tx.commit().unwrap();
+    }
+    let graph_before = vault_graph(&conn);
+    assert_eq!(graph_before.len(), 2, "the fixture graph is two links");
     drop(conn);
 
     let manifest =
@@ -300,20 +367,24 @@ fn obsidian_vault_roundtrip_keeps_bytes_names_and_links_and_states_the_gaps() {
         0,
         "importing a vault must not invent anchors it did not parse"
     );
-    let mut stmt = restored
-        .prepare(
-            "SELECT name FROM sqlite_master WHERE type='table'
-             AND (lower(name) LIKE '%link%' OR lower(name) LIKE '%embed%')",
-        )
-        .unwrap();
-    let link_tables: Vec<String> = stmt
-        .query_map([], |r| r.get::<_, String>(0))
-        .unwrap()
-        .map(|r| r.unwrap())
-        .collect();
+    // The graph check this assertion was waiting for. The earlier version asserted that no link
+    // table existed, with a message saying to replace it with a real graph check once one landed
+    // rather than delete it. `vault_links` has landed, so this is that check: the same links, in the
+    // same order, with the same resolution state.
+    let graph_after = vault_graph(&restored);
+    assert_eq!(
+        graph_after, graph_before,
+        "the link graph must survive the archive round trip"
+    );
+    // And the dangling half specifically, because it is the half a careless restore would drop: a
+    // foreign key that required a target would have refused this row rather than kept it.
     assert!(
-        link_tables.is_empty(),
-        "if a link or embed table lands, replace this with a real graph check instead of deleting it: {link_tables:?}"
+        graph_after.iter().any(|row| row.1.is_none()),
+        "a link to a note that is not imported must survive as a dangling link: {graph_after:?}"
+    );
+    assert!(
+        graph_after.iter().any(|row| row.1.is_some()),
+        "a link to a note this workspace holds must survive as resolved: {graph_after:?}"
     );
     assert_eq!(
         attempts::route_for_kind("markdown").map(|route| route.0),

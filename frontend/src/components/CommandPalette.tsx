@@ -1,8 +1,9 @@
+import { AaosIcon } from "./AaosIcon";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import { SPACES, type SpaceId } from "../spaces/spaces";
+import { SPACES, spaceDescription, type SpaceId } from "../spaces/spaces";
 
-export function CommandPalette({ onNavigate }: { onNavigate: (id: SpaceId) => void }) {
+export function CommandPalette({ onNavigate, onOpenChange }: { onNavigate: (id: SpaceId) => void; onOpenChange?: (open: boolean) => void }) {
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
   const [activeIndex, setActiveIndex] = useState(-1);
@@ -12,6 +13,9 @@ export function CommandPalette({ onNavigate }: { onNavigate: (id: SpaceId) => vo
   const inputRef = useRef<HTMLInputElement>(null);
   const optionRefs = useRef<Array<HTMLButtonElement | null>>([]);
   const previousFocus = useRef<HTMLElement | null>(null);
+
+  useEffect(() => { onOpenChange?.(open); }, [open, onOpenChange]);
+  useEffect(() => () => { onOpenChange?.(false); }, [onOpenChange]);
 
   const openPalette = useCallback(() => {
     if (openRef.current) return;
@@ -60,7 +64,7 @@ export function CommandPalette({ onNavigate }: { onNavigate: (id: SpaceId) => vo
   const matches = useMemo(() => {
     const needle = query.trim().toLocaleLowerCase("zh-CN");
     if (!needle) return SPACES;
-    return SPACES.filter((space) => `${space.label} ${space.description}`.toLocaleLowerCase("zh-CN").includes(needle));
+    return SPACES.filter((space) => `${space.label} ${space.description} ${spaceDescription(space)}`.toLocaleLowerCase("zh-CN").includes(needle));
   }, [query]);
 
   useEffect(() => {
@@ -159,8 +163,8 @@ export function CommandPalette({ onNavigate }: { onNavigate: (id: SpaceId) => vo
           }}
           onClick={() => select(space.id)}
         >
-          <span className="command-icon" aria-hidden="true">{space.icon}</span>
-          <span><b>{space.label}</b><small>{space.description}</small></span>
+          <span className="command-icon" aria-hidden="true"><AaosIcon name={space.icon} /></span>
+          <span><b>{space.label}</b><small>{spaceDescription(space)}</small></span>
         </button>)}
         {matches.length === 0 ? <p className="command-empty">没有匹配的可用空间</p> : null}
       </div>
@@ -168,7 +172,7 @@ export function CommandPalette({ onNavigate }: { onNavigate: (id: SpaceId) => vo
   </div> : null;
 
   return <>
-    <button ref={triggerRef} type="button" className="command-trigger" aria-label="打开全局命令" onClick={openPalette}>
+    <button ref={triggerRef} type="button" className="command-trigger" aria-label="打开全局命令" aria-keyshortcuts="Control+K" onClick={openPalette}>
       <span aria-hidden="true">⌕</span><span>搜索或前往</span><kbd>Ctrl K</kbd>
     </button>
     {overlay ? createPortal(overlay, document.body) : null}

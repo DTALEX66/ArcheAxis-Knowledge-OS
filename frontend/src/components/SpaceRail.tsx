@@ -1,5 +1,6 @@
+import { AaosIcon } from "./AaosIcon";
 import { useRef } from "react";
-import type { SpaceDef, SpaceId } from "../spaces/spaces";
+import { spaceDescription, type SpaceDef, type SpaceId } from "../spaces/spaces";
 
 export function SpaceRail({
   active,
@@ -58,9 +59,9 @@ export function SpaceRail({
               aria-current={space.id === active ? "page" : undefined}
               onClick={() => onNavigate(space.id)}
               onKeyDown={(event) => onKeyDown(event, index)}
-              title={space.description}
+              title={spaceDescription(space)}
             >
-              <span className="space-rail-icon" aria-hidden="true">{space.icon}</span>
+              <span className="space-rail-icon" aria-hidden="true"><AaosIcon name={space.icon} /></span>
               <span>{space.label}</span>
             </button>
           </li>

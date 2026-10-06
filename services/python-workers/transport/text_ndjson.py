@@ -11,6 +11,7 @@ Core sends one request and closes stdin for this single-shot transport.
 from __future__ import annotations
 
 import argparse
+import contextlib
 import hashlib
 import importlib.util
 import json
@@ -21,6 +22,23 @@ import re
 import stat
 import sys
 import time
+
+
+def filesystem_path(path: Path) -> Path:
+    """Use extended Windows paths only at file IO boundaries, after validation."""
+    absolute = os.path.abspath(path)
+    if os.name == "nt" and len(absolute) >= 248 and not absolute.startswith("\\\\?\\"):
+        return Path("\\\\?\\" + absolute)
+    return path
+
+
+def ordinary_path(path: Path) -> Path:
+    """Remove the local extended-path IO prefix before emitting product receipts."""
+    text = str(path)
+    if text.startswith("\\\\?\\"):
+        text = text[4:]
+    return safe_path(Path(text))
+
 
 _SCRIPT = Path(__file__).absolute()
 _BUNDLE_ROOT = _SCRIPT.parents[2]
@@ -35,14 +53,77 @@ else:
     WORKER_ROOT = ROOT / "services" / "python-workers"
 MAX_LINE_BYTES = 1024 * 1024
 MAX_INPUT_BYTES = 16 * 1024 * 1024
+MAX_MEDIA_INPUT_BYTES = 64 * 1024 * 1024
+
+
+def input_byte_limit(capability: str) -> int:
+    return MAX_MEDIA_INPUT_BYTES if capability in {"media.transcribe", "media.video"} else MAX_INPUT_BYTES
 MAX_SAFE_INTEGER = 2**53 - 1
 OUTPUT_SCHEMAS = ["archeaxis.text/v1", "archeaxis.document-structure/v1", "archeaxis.loss-receipt/v1"]
+
+
+OCR_LANG_ENV = "ARCHEAXIS_OCR_LANG"
+OCR_TESSDATA_ENV = "ARCHEAXIS_OCR_TESSDATA"
 
 
 class Rejected(ValueError):
     def __init__(self, message, code="AAK-VAL-001"):
         super().__init__(message)
         self.code = code
+
+
+def _declared_tool_path(name: str) -> Path | None:
+    """The declared external path for a capability, or None.
+
+    Uses the same resolver the workers use, so the transport stops guessing where
+    language data lives. A manifest that cannot be read raises rather than reading as
+    "nothing declared".
+    """
+    tool_paths = _SCRIPT.parent.parent / "tool_paths.py"
+    if not tool_paths.is_file():
+        return None
+    spec = importlib.util.spec_from_file_location("transport_tool_paths", tool_paths)
+    if spec is None or spec.loader is None:
+        return None
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    resolved = module.declared_path(name)
+    return Path(resolved) if resolved else None
+
+
+def _ocr_language() -> str:
+    """The language the OCR route reads.
+
+    `ARCHEAXIS_OCR_LANG` selects it, defaulting to `eng`. It used to be hardcoded, which
+    meant a Chinese page was handed the English model and read as noise - the language is
+    a property of the material, not of the route.
+    """
+    return os.environ.get(OCR_LANG_ENV, "").strip() or "eng"
+
+
+def _ocr_tessdata(language: str) -> Path | None:
+    """Language data for this language, preferring one that can actually serve it.
+
+    Order: an explicit `ARCHEAXIS_OCR_TESSDATA`, the repository's bundled copy, then the
+    declared `tesseract-languages` entry. A candidate counts only if it holds the
+    requested language, so a directory of unrelated languages is not mistaken for usable.
+    The path is handed over in plain form because tesseract cannot open a Windows extended
+    (\\\\?\\\\) path, which a canonicalising caller such as the Rust executor would
+    otherwise supply.
+    """
+    candidates: list[Path] = []
+    configured = os.environ.get(OCR_TESSDATA_ENV, "").strip()
+    if configured:
+        candidates.append(Path(configured))
+    candidates.append(ROOT / "tools" / "tesseract" / "tessdata")
+    declared = _declared_tool_path("tesseract-languages")
+    if declared is not None:
+        candidates.extend([declared, declared / "tessdata"])
+    for candidate in candidates:
+        with contextlib.suppress(OSError):
+            if (candidate / f"{language}.traineddata").is_file():
+                return Path(str(candidate).replace("\\\\?\\", ""))
+    return None
 
 
 def safe_path(path: Path, *, missing=False) -> Path:
@@ -55,7 +136,7 @@ def safe_path(path: Path, *, missing=False) -> Path:
         raise Rejected("private agent paths are not staging")
     for part in (*reversed(path.parents), path):
         try:
-            info = part.lstat()
+            info = filesystem_path(part).lstat()
         except FileNotFoundError:
             if missing:
                 continue
@@ -67,21 +148,21 @@ def safe_path(path: Path, *, missing=False) -> Path:
     return path
 
 
-def read_regular(path: Path) -> tuple[bytes, tuple]:
+def read_regular(path: Path, *, limit: int = MAX_INPUT_BYTES) -> tuple[bytes, tuple]:
     path = safe_path(path)
-    before = path.lstat()
+    before = filesystem_path(path).lstat()
     if not stat.S_ISREG(before.st_mode) or before.st_nlink != 1:
         raise Rejected("staging asset must be a regular file with exactly one link")
-    if before.st_size > MAX_INPUT_BYTES:
+    if before.st_size > limit:
         raise Rejected("staging asset exceeds byte limit", "AAK-VAL-003")
-    with path.open("rb") as handle:
+    with filesystem_path(path).open("rb") as handle:
         opened = os.fstat(handle.fileno())
         if (opened.st_dev, opened.st_ino, opened.st_nlink) != (before.st_dev, before.st_ino, 1):
             raise Rejected("staging asset identity changed while opening")
-        raw = handle.read(MAX_INPUT_BYTES + 1)
+        raw = handle.read(limit + 1)
         after = os.fstat(handle.fileno())
     safe_path(path)
-    current = path.lstat()
+    current = filesystem_path(path).lstat()
     identity = lambda info: (info.st_dev, info.st_ino, info.st_size, info.st_mtime_ns, info.st_nlink)
     if identity(before) != identity(after) or identity(before) != identity(current) or len(raw) != before.st_size:
         raise Rejected("staging asset changed during read")
@@ -144,6 +225,12 @@ ROUTES = {
             "application/json",
             "application/xml",
             "text/xml",
+            "application/x-ndjson",
+            "application/yaml",
+            "text/x-yaml",
+            "application/toml",
+            "application/epub+zip",
+            "message/rfc822",
         },
         "call": "path",
         # R15/F01: this worker derives format facts from the declared media type, so
@@ -171,7 +258,7 @@ ROUTES = {
     "archive.inventory": {
         "version": "1",
         "worker": "services/python-workers/document/worker_archive.py",
-        "media_types": {"application/zip"},
+        "media_types": {"application/zip", "application/x-tar"},
         "call": "path",
         # R15/F15: the archive worker can offer its members to the Core as sources, so
         # it is told where durable transfer files may be written.
@@ -182,8 +269,33 @@ ROUTES = {
     "media.probe": {
         "version": "1",
         "worker": "services/python-workers/document/worker_media.py",
-        "media_types": {"video/mp4", "audio/wav"},
+        "media_types": {"video/mp4", "video/quicktime", "audio/wav"},
         "call": "path",
+    },
+    # The pack requires real audio before final closure. The ASR engine, its model and its
+    # path resolution were all real and verified, but nothing declared the capability, so
+    # no Core job could reach it. Audio formats are named here that the probe route
+    # deliberately does not guess at, because this route has a reader for them.
+    "media.video": {
+        "version": "1",
+        "worker": "services/python-workers/media/worker_video.py",
+        "media_types": {"video/mp4", "video/quicktime", "video/x-matroska", "video/webm"},
+        "call": "video_transcribe",
+    },
+    "media.transcribe": {
+        "version": "1",
+        "worker": "services/python-workers/media/worker_transcribe.py",
+        "media_types": {
+            "audio/mpeg",
+            "audio/mp4",
+            "audio/x-m4a",
+            "audio/flac",
+            "audio/ogg",
+            "audio/opus",
+            "audio/wav",
+            "audio/x-wav",
+        },
+        "call": "transcribe",
     },
     # R15/F07-F09: an Office package is a ZIP of XML parts; this route reaches the
     # worker that already read them since the 2026-09-05 slice but had no route.
@@ -248,6 +360,11 @@ ROUTES = {
             "image/bmp": ".bmp",
         },
     },
+    # G4's machine answer worker has **no route here on purpose**. A route in this table is validated
+    # against the job protocol, and that protocol requires `parameters` to be empty, so there is no
+    # way to carry the question the worker needs. Declaring a route here would be a route that fails
+    # its own validation. What the worker needs is a Core route that accepts a question, which does
+    # not exist yet, and inventing a route that cannot run would be worse than saying so.
 }
 
 
@@ -257,6 +374,19 @@ _IMAGE_SUFFIX = {
     "image/tiff": ".tiff",
     "image/webp": ".webp",
     "image/bmp": ".bmp",
+}
+
+# The ASR worker hands the path to its engine, which selects a decoder by suffix, so the
+# content-addressed staged name needs a route-local view carrying the real extension.
+_AUDIO_SUFFIX = {
+    "audio/mpeg": ".mp3",
+    "audio/mp4": ".m4a",
+    "audio/x-m4a": ".m4a",
+    "audio/flac": ".flac",
+    "audio/ogg": ".ogg",
+    "audio/opus": ".opus",
+    "audio/wav": ".wav",
+    "audio/x-wav": ".wav",
 }
 
 # R15/F07-F09 + F12: a worker that dispatches on the file suffix cannot read staging's
@@ -271,9 +401,10 @@ def _materialise_view(source: Path, suffix: str) -> Path:
     the caller; this only gives a suffix-dispatching worker the name it needs.
     """
     view = source.with_name(source.name + suffix)
-    if not view.exists():
-        with view.open("xb") as handle:
-            handle.write(source.read_bytes())
+    safe_path(view, missing=True)
+    if not filesystem_path(view).exists():
+        with filesystem_path(view).open("xb") as handle:
+            handle.write(filesystem_path(source).read_bytes())
     return view
 
 
@@ -334,12 +465,12 @@ def _as_route_contract(result: dict, route_capability: str) -> dict:
     return {**result, "structure": anchors, "loss_receipt": receipt}
 
 
-def _run_route(route, source: Path, media_type: str, artifact_root: Path | None = None) -> dict:
+def _run_route(route, source: Path, media_type: str, artifact_root: Path | None = None, deadline: float | None = None) -> dict:
     """Load the route's worker and extract with its own entry-point shape."""
     relative_worker = Path(route["worker"])
     if relative_worker.parts[:2] == ("services", "python-workers"):
         relative_worker = Path(*relative_worker.parts[2:])
-    spec = importlib.util.spec_from_file_location("route_worker", WORKER_ROOT / relative_worker)
+    spec = importlib.util.spec_from_file_location("route_worker", filesystem_path(WORKER_ROOT / relative_worker))
     if spec is None or spec.loader is None:
         raise Rejected("route worker module is missing")
     module = importlib.util.module_from_spec(spec)
@@ -352,22 +483,45 @@ def _run_route(route, source: Path, media_type: str, artifact_root: Path | None 
         suffix = _IMAGE_SUFFIX.get(media_type.split(";", 1)[0].strip().lower())
         if suffix is None:
             raise Rejected("unsupported image media type", "AAK-VAL-002")
-        view = source.with_name(source.name + suffix)
-        if not view.exists():
-            with view.open("xb") as handle:
-                handle.write(source.read_bytes())
-        # OCR keeps its own explicit parameters: language plus the tessdata dir.
-        # The repository ships eng.traineddata; an ambient TESSDATA_PREFIX may
-        # point elsewhere, so the repository copy wins when it exists. The path is
-        # passed in plain form because tesseract cannot open a Windows extended
-        # (\\?\) path - canonicalised callers such as the Rust executor would
-        # otherwise hand one over and OCR would fail to load its language data.
-        tessdata = ROOT / "tools" / "tesseract" / "tessdata"
-        tessdata_arg = tessdata if tessdata.is_dir() else None
-        if tessdata_arg is not None:
-            plain = str(tessdata_arg).replace("\\\\?\\", "")
-            tessdata_arg = Path(plain)
-        return module.extract(view, "eng", tessdata_arg)
+        view = _materialise_view(source, suffix)
+        # OCR keeps its own explicit parameters: language plus the tessdata dir. The
+        # language comes from the caller's configuration rather than being hardcoded, and
+        # the directory is one that actually holds that language.
+        language = _ocr_language()
+        return module.extract(filesystem_path(view), language, _ocr_tessdata(language))
+    if route["call"] == "video_transcribe":
+        if artifact_root is None:
+            raise Rejected("Video decoding needs the Core-owned artifact root", "AAK-VAL-002")
+        suffix = {"video/mp4": ".mp4", "video/quicktime": ".mov", "video/x-matroska": ".mkv", "video/webm": ".webm"}[media_type]
+        view = _materialise_view(source, suffix)
+        output_dir = safe_path(artifact_root / ("video-" + str(time.time_ns())), missing=True)
+        result = module.extract_job(filesystem_path(view), filesystem_path(output_dir),
+            os.environ.get("ARCHEAXIS_ASR_MODEL_DIR", "").strip() or None,
+            os.environ.get("ARCHEAXIS_ASR_LANG", "").strip() or "auto",
+            os.environ.get("ARCHEAXIS_ASR_DEVICE", "").strip() or "cpu", request_deadline=deadline)
+        if result["audio_wav"]:
+            result["audio_wav"]["path"] = str(ordinary_path(Path(result["audio_wav"]["path"])))
+        for frame in result["frames"]:
+            frame["path"] = str(ordinary_path(Path(frame["path"])))
+        return _as_route_contract(result, "media.video")
+    if route["call"] == "transcribe":
+        # The ASR worker dispatches on the suffix, and it takes its model directory and
+        # language as arguments. Both default to the worker's own resolution - the declared
+        # model and language detection - so the transport passes them only when an operator
+        # has configured them, rather than inventing a default here.
+        suffix = _AUDIO_SUFFIX.get(media_type.split(";", 1)[0].strip().lower())
+        view = source
+        if suffix is not None:
+            view = _materialise_view(source, suffix)
+        kwargs: dict = {}
+        model_dir = os.environ.get("ARCHEAXIS_ASR_MODEL_DIR", "").strip()
+        kwargs["model_path"] = model_dir or None
+        # Default to detection: the language is a property of the recording, so the
+        # transport does not pin one unless an operator has.
+        kwargs["language"] = os.environ.get("ARCHEAXIS_ASR_LANG", "").strip() or "auto"
+        kwargs["device"] = os.environ.get("ARCHEAXIS_ASR_DEVICE", "").strip() or "cpu"
+        return _as_route_contract(module.extract(str(filesystem_path(view)), **kwargs),
+                                  route.get("capability", "route"))
     if route.get("suffix_by_media"):
         suffix = route["suffix_by_media"].get(media_type.split(";", 1)[0].strip().lower())
         if suffix is None:
@@ -375,7 +529,7 @@ def _run_route(route, source: Path, media_type: str, artifact_root: Path | None 
         # the worker's own structure is kept as a fact while the route contract carries
         # canonical line anchors, so both the worker's view and the contract hold
         return _as_route_contract(
-            module.extract(str(_materialise_view(source, suffix))), route.get("capability", "route")
+            module.extract(str(filesystem_path(_materialise_view(source, suffix)))), route.get("capability", "route")
         )
     if route.get("artifact_dir"):
         # R15/F06+F15: the attempt directory is temporary, so durable transfer files
@@ -383,14 +537,14 @@ def _run_route(route, source: Path, media_type: str, artifact_root: Path | None 
         # Core owns and verifies later by digest. Without one, the worker declares
         # nothing and writes nothing.
         if artifact_root is None:
-            return module.extract(str(source))
+            return module.extract(str(filesystem_path(source)))
         target = safe_path(artifact_root / route["artifact_dir"], missing=True)
-        return module.extract(str(source), **{route.get("artifact_kwarg", "artifact_dir"): target})
+        return module.extract(str(filesystem_path(source)), **{route.get("artifact_kwarg", "artifact_dir"): filesystem_path(target)})
     if route.get("media_type_arg"):
-        return module.extract(str(source), media_type.split(";", 1)[0].strip().lower())
+        return module.extract(str(filesystem_path(source)), media_type.split(";", 1)[0].strip().lower())
     if route.get("contract_adapter"):
-        return _as_route_contract(module.extract(str(source)), route.get("capability", "route"))
-    return module.extract(str(source))
+        return _as_route_contract(module.extract(str(filesystem_path(source))), route.get("capability", "route"))
+    return module.extract(str(filesystem_path(source)))
 
 
 def execute(request, staging: Path, artifact_root: Path | None = None):
@@ -425,7 +579,7 @@ def execute(request, staging: Path, artifact_root: Path | None = None):
             raise TimeoutError("relative request execution budget exceeded; Core owns forced cancellation")
 
     staging = safe_path(staging)
-    if not staging.is_dir():
+    if not filesystem_path(staging).is_dir():
         raise Rejected("staging root must be a directory")
     asset = request["inputs"][0]
     if (not isinstance(asset, dict) or set(asset) != {"uri", "sha256", "media_type"}
@@ -438,12 +592,14 @@ def execute(request, staging: Path, artifact_root: Path | None = None):
     if asset["media_type"].split(";", 1)[0].strip().lower() not in allowed_media:
         raise Rejected("unsupported media type for this capability", "AAK-VAL-002")
     source = staging / "input" / digest
-    raw, identity = read_regular(source)
+    input_limit = input_byte_limit(request["capability"])
+    raw, identity = read_regular(source, limit=input_limit)
     if hashlib.sha256(raw).hexdigest() != digest:
         raise Rejected("input content hash mismatch", "AAK-HASH-001")
     check_deadline()
-    result = _run_route(route, source, asset["media_type"], artifact_root)
-    reread, current_identity = read_regular(source)
+    result = (_run_route(route, source, asset["media_type"], artifact_root, deadline)
+              if route["call"] == "video_transcribe" else _run_route(route, source, asset["media_type"], artifact_root))
+    reread, current_identity = read_regular(source, limit=input_limit)
     if current_identity != identity or reread != raw:
         raise Rejected("input changed during extraction", "AAK-HASH-001")
     check_deadline()
@@ -454,13 +610,13 @@ def execute(request, staging: Path, artifact_root: Path | None = None):
         ("loss_report", OUTPUT_SCHEMAS[2], "application/json", encode(result["loss_receipt"])),
     ]
     output_dir = safe_path(staging / "output", missing=True)
-    output_dir.mkdir(exist_ok=True)
+    filesystem_path(output_dir).mkdir(exist_ok=True)
     prepared = []
     # Check every pre-existing object before producing any new artifact.
     for kind, output_schema, media_type, data in artifacts:
         digest = hashlib.sha256(data).hexdigest()
         path = safe_path(output_dir / digest, missing=True)
-        if path.exists():
+        if filesystem_path(path).exists():
             previous, _ = read_regular(path)
             if previous != data:
                 raise Rejected("existing output hash path contains different bytes", "AAK-HASH-001")
@@ -469,8 +625,8 @@ def execute(request, staging: Path, artifact_root: Path | None = None):
     for kind, output_schema, media_type, data, digest, path in prepared:
         check_deadline()
         safe_path(path, missing=True)
-        if not path.exists():
-            with path.open("xb") as handle:
+        if not filesystem_path(path).exists():
+            with filesystem_path(path).open("xb") as handle:
                 handle.write(data)
                 handle.flush()
                 os.fsync(handle.fileno())
@@ -527,7 +683,7 @@ def serve_stdio(worker_name: str, capabilities: list[str], staging_root: Path, a
     except TimeoutError as exc:
         response.update(status="failed", outputs=[], error={"code": "AAK-WORKER-002", "message": str(exc), "retryable": True})
     except Exception as exc:
-        response.update(status="failed", outputs=[], error={"code": "AAK-WORKER-003", "message": str(exc), "retryable": False})
+        response.update(status="failed", outputs=[], error={"code": "AAK-WORKER-003", "message": str(exc).replace("\\\\?\\", ""), "retryable": False})
     emit(response)
     return 0 if response["status"] == "succeeded" else 1
 

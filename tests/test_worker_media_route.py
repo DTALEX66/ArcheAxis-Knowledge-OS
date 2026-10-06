@@ -152,7 +152,7 @@ def test_a_wav_header_that_lies_about_its_frames_is_reported_not_guessed(tmp_pat
 
 def test_the_transport_declares_the_media_route_and_its_media_types():
     route = transport.ROUTES["media.probe"]
-    assert route["media_types"] == {"video/mp4", "audio/wav"}
+    assert route["media_types"] == {"video/mp4", "video/quicktime", "audio/wav"}
     assert route["worker"] == "services/python-workers/document/worker_media.py"
     assert route["call"] == "path"
     # a media file must not be readable through the text route

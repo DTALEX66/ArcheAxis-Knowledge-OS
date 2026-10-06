@@ -5,8 +5,12 @@
 //! no full job orchestration). The standalone process wraps these internal
 //! projections with launch authentication; `app` alone is for in-process use.
 
+pub mod ask;
+pub mod capabilities;
+mod documents;
 pub mod launch;
 pub mod runtime;
+mod workspace_backup;
 
 use archeaxis_application::container;
 use archeaxis_application::jobs::{self, LossReceipt};
@@ -20,7 +24,7 @@ use axum::{
     extract::{Path, Query, State},
     http::{HeaderMap, StatusCode},
     response::IntoResponse,
-    routing::{get, post},
+    routing::{get, post, put},
 };
 use rusqlite::{Connection, OptionalExtension};
 use serde::Deserialize;
@@ -31,7 +35,7 @@ pub type AppState = Store;
 /// the launch middleware which OVERWRITES this header with the launch-session
 /// claim (C02), so a client cannot escalate. In-process projections default to
 /// human when the header is absent.
-fn request_actor(headers: &HeaderMap) -> Result<&'static str, StatusCode> {
+pub(crate) fn request_actor(headers: &HeaderMap) -> Result<&'static str, StatusCode> {
     match headers
         .get("x-archeaxis-actor")
         .and_then(|v| v.to_str().ok())
@@ -49,11 +53,58 @@ pub fn router(state: Store) -> Router {
 
 /// Legacy manual receipts are only retained for in-process compatibility tests.
 pub fn projections(state: Store, manual_receipts: bool) -> Router {
+    projections_base(state.clone(), manual_receipts).merge(
+        Router::new()
+            .route(
+                "/api/v1/documents/:document_id/checks/execute",
+                post(documents::execute_check),
+            )
+            .with_state(state),
+    )
+}
+pub(crate) fn projections_base(state: Store, manual_receipts: bool) -> Router {
     let routes = Router::new()
+        .route("/api/v1/sources", get(documents::sources))
+        .route(
+            "/api/v1/sources/:source_id/original",
+            get(documents::original),
+        )
+        .route(
+            "/api/v1/documents",
+            get(documents::list).post(documents::create),
+        )
+        .route("/api/v1/documents/:document_id", get(documents::read))
+        .route(
+            "/api/v1/documents/:document_id/checks",
+            get(documents::checks).post(documents::record_check),
+        )
+        .route(
+            "/api/v1/documents/:document_id/export",
+            get(documents::export),
+        )
+        .route("/api/v1/documents/:document_id/draft", put(documents::save))
+        .route(
+            "/api/v1/documents/:document_id/versions/:version",
+            get(documents::version),
+        )
+        .route(
+            "/api/v1/documents/:document_id/restore",
+            post(documents::restore),
+        )
         .route("/api/v1/system/version", get(system_version))
-        .route("/api/v1/imports", post(import_source))
+        .route(
+            "/api/v1/workspace/backups",
+            get(workspace_backup::list).post(workspace_backup::create),
+        )
+        .route(
+            "/api/v1/imports",
+            post(import_source).layer(axum::extract::DefaultBodyLimit::max(MAX_IMPORT_JSON_BYTES)),
+        )
         .route("/api/v1/jobs", post(enqueue_job))
-        .route("/api/v1/sources/:source_id/anchors", post(create_anchor))
+        .route(
+            "/api/v1/sources/:source_id/anchors",
+            get(documents::anchors).post(create_anchor),
+        )
         .route(
             "/api/v1/sources/:source_id/jobs/:job_id/transform",
             get(source_job_transform),
@@ -64,6 +115,10 @@ pub fn projections(state: Store, manual_receipts: bool) -> Router {
         )
         .route("/api/v1/knowledge-items", post(create_knowledge))
         .route("/api/v1/knowledge-items/:id/v3", get(knowledge_v3))
+        .route(
+            "/api/v1/knowledge/:id/review/versioned",
+            post(review_versioned),
+        )
         .route(
             "/api/v1/knowledge-items/:id/qualification",
             get(knowledge_qualification),
@@ -116,12 +171,24 @@ async fn with_store(
     }
 }
 
-async fn system_version() -> Json<serde_json::Value> {
-    Json(serde_json::json!({
-        "runtime": "archeaxis-api",
-        "contract": "0.1.0-outline",
-        "schema_version": archeaxis_store_sqlite::SCHEMA_VERSION,
-    }))
+async fn system_version(State(state): State<AppState>) -> axum::response::Response {
+    with_store(state, |conn| {
+        let sqlite_version: String =
+            match conn.query_row("SELECT sqlite_version()", [], |r| r.get(0)) {
+                Ok(value) => value,
+                Err(error) => {
+                    return (StatusCode::INTERNAL_SERVER_ERROR, error.to_string()).into_response();
+                }
+            };
+        Json(serde_json::json!({
+            "runtime": "archeaxis-api",
+            "contract": "0.1.0-outline",
+            "schema_version": archeaxis_store_sqlite::SCHEMA_VERSION,
+            "sqlite_version":sqlite_version,
+        }))
+        .into_response()
+    })
+    .await
 }
 
 #[derive(Deserialize)]
@@ -139,15 +206,32 @@ struct ImportBody {
     received_at: Option<String>,
 }
 
+const MAX_IMPORT_BYTES: usize = 64 * 1024 * 1024;
+const MAX_IMPORT_JSON_BYTES: usize = 90 * 1024 * 1024;
+const MAX_IMPORT_BASE64_BYTES: usize = ((MAX_IMPORT_BYTES + 2) / 3) * 4;
+
+fn decode_import_content(encoded: &str) -> Result<Vec<u8>, StatusCode> {
+    // Reject oversized strings before decoding/allocation. Exact decoded length
+    // is checked too because the final base64 quantum can contain extra bytes.
+    if encoded.len() > MAX_IMPORT_BASE64_BYTES {
+        return Err(StatusCode::PAYLOAD_TOO_LARGE);
+    }
+    let bytes = base64_decode(encoded).ok_or(StatusCode::BAD_REQUEST)?;
+    if bytes.len() > MAX_IMPORT_BYTES {
+        return Err(StatusCode::PAYLOAD_TOO_LARGE);
+    }
+    Ok(bytes)
+}
+
 const ALLOWED_ORIGIN_KINDS: &[&str] = &["path", "url", "import", "manual"];
 
 async fn import_source(
     State(state): State<AppState>,
     Json(body): Json<ImportBody>,
 ) -> impl IntoResponse {
-    let bytes = match base64_decode(&body.content_base64) {
-        Some(b) => b,
-        None => return (StatusCode::BAD_REQUEST, "invalid content_base64").into_response(),
+    let bytes = match decode_import_content(&body.content_base64) {
+        Ok(bytes) => bytes,
+        Err(status) => return (status, "invalid or oversized content_base64").into_response(),
     };
     let origin_kind = body.origin_kind;
     let origin_ref = body.origin_ref;
@@ -384,6 +468,13 @@ async fn record_machine_task(
     headers: HeaderMap,
     Json(body): Json<MachineTaskBody>,
 ) -> impl IntoResponse {
+    if body.scope.starts_with("runtime.") {
+        return (
+            StatusCode::FORBIDDEN,
+            "runtime receipt scopes are Core-owned",
+        )
+            .into_response();
+    }
     if request_actor(&headers).unwrap_or("human") != "machine" {
         return (
             StatusCode::FORBIDDEN,
@@ -922,22 +1013,299 @@ async fn record_learning_event(
     .await
 }
 
+// A located time anchor verifies a cue's provenance, not recognition accuracy.
+fn verify_time_anchor(
+    conn: &rusqlite::Connection,
+    source: &str,
+    revision: &str,
+    position: &serde_json::Value,
+    checksum: &str,
+) -> Option<bool> {
+    use sha2::{Digest, Sha256};
+    let job = position["job_id"].as_str()?;
+    let attempt = i64::try_from(position["attempt"].as_u64()?).ok()?;
+    let index = usize::try_from(position["cue_index"].as_u64()?).ok()?;
+    let start = position["start_ms"].as_u64()?;
+    let end = position["end_ms"].as_u64()?;
+    let expected = position["result_sha256"].as_str()?;
+    let (input, kind, job_state, state, wire, metadata, content, latest): (
+        String,
+        String,
+        String,
+        String,
+        String,
+        String,
+        String,
+        i64,
+    ) = conn
+        .query_row(
+            "SELECT j.input_ref,j.kind,j.state,a.state,a.request_json,o.metadata_json,o.content,
+         (SELECT MAX(attempt) FROM job_attempts WHERE job_id=j.job_id)
+         FROM jobs j JOIN job_attempts a ON a.job_id=j.job_id
+         JOIN job_outputs o ON o.job_id=a.job_id AND o.attempt=a.attempt AND o.kind='loss_report'
+         WHERE j.job_id=?1 AND a.attempt=?2",
+            rusqlite::params![job, attempt],
+            |r| {
+                Ok((
+                    r.get(0)?,
+                    r.get(1)?,
+                    r.get(2)?,
+                    r.get(3)?,
+                    r.get(4)?,
+                    r.get(5)?,
+                    r.get(6)?,
+                    r.get(7)?,
+                ))
+            },
+        )
+        .ok()?;
+    if input != source
+        || !matches!(kind.as_str(), "transcribe" | "video" | "subtitles")
+        || job_state != "succeeded"
+        || state != "succeeded"
+        || latest != attempt
+    {
+        return Some(false);
+    }
+    let request: serde_json::Value = serde_json::from_str(&wire).ok()?;
+    let meta: serde_json::Value = serde_json::from_str(&metadata).ok()?;
+    let loss: serde_json::Value = serde_json::from_str(&content).ok()?;
+    let hash = format!("{:x}", Sha256::digest(content.as_bytes()));
+    if request["capability"]
+        != (if kind == "video" {
+            "media.video"
+        } else if kind == "subtitles" {
+            "subtitles.structure"
+        } else {
+            "media.transcribe"
+        })
+        || request["job_id"] != job
+        || request["attempt"] != attempt
+        || request["inputs"][0]["sha256"] != revision
+        || meta["kind"] != "loss_report"
+        || meta["sha256"] != hash
+        || expected != hash
+        || meta["byte_length"].as_u64()? != content.len() as u64
+    {
+        return Some(false);
+    }
+    if kind == "subtitles" {
+        // Subtitle times verify the derived file declaration, never original ASR accuracy.
+        let cue = loss["params"]["worker_structure"].as_array()?.get(index)?;
+        let offset = cue["offset_ms"].as_u64()?;
+        let duration = cue["duration_ms"].as_u64()?;
+        let finish = offset.checked_add(duration)?;
+        let (text, text_metadata): (String, String) = conn.query_row(
+            "SELECT content,metadata_json FROM job_outputs WHERE job_id=?1 AND attempt=?2 AND kind='text'",
+            rusqlite::params![job, attempt], |r| Ok((r.get(0)?, r.get(1)?)),
+        ).ok()?;
+        let text_meta: serde_json::Value = serde_json::from_str(&text_metadata).ok()?;
+        if text_meta["kind"] != "text"
+            || text_meta["sha256"] != format!("{:x}", Sha256::digest(text.as_bytes()))
+            || text_meta["byte_length"].as_u64()? != text.len() as u64
+        {
+            return Some(false);
+        }
+        let first = usize::try_from(cue["char_start"].as_u64()?).ok()?;
+        let last = usize::try_from(cue["char_end"].as_u64()?).ok()?;
+        let chars: Vec<char> = text.chars().collect();
+        let quote: String = chars.get(first..last)?.iter().collect();
+        return Some(
+            cue["kind"] == "cue"
+                && !quote.is_empty()
+                && start < end
+                && offset == start
+                && finish == end
+                && format!("{:x}", Sha256::digest(quote.as_bytes())) == checksum,
+        );
+    }
+    let output = &loss["params"]["worker_output"];
+    let cue = output["cues"].as_array()?.get(index)?;
+    let text = cue["text"].as_str()?;
+    Some(
+        start < end
+            && end <= output["duration_ms"].as_u64()?
+            && cue["start_ms"].as_u64()? == start
+            && cue["end_ms"].as_u64()? == end
+            && format!("{:x}", Sha256::digest(text.as_bytes())) == checksum,
+    )
+}
+
+fn verify_epub_anchor(
+    conn: &rusqlite::Connection,
+    source: &str,
+    revision: &str,
+    position: &serde_json::Value,
+    checksum: &str,
+) -> Option<bool> {
+    use sha2::{Digest, Sha256};
+    let job = position["job_id"].as_str()?;
+    let attempt = i64::try_from(position["attempt"].as_u64()?).ok()?;
+    let chapter = position["chapter"].as_u64()?;
+    let paragraph = position["paragraph"].as_u64()?;
+    let member_path = position["path"].as_str()?;
+    let expected = position["result_sha256"].as_str()?;
+    let (input, kind, job_state, state, wire, metadata, content, latest): (
+        String,
+        String,
+        String,
+        String,
+        String,
+        String,
+        String,
+        i64,
+    ) = conn
+        .query_row(
+            "SELECT j.input_ref,j.kind,j.state,a.state,a.request_json,o.metadata_json,o.content,
+         (SELECT MAX(attempt) FROM job_attempts WHERE job_id=j.job_id)
+         FROM jobs j JOIN job_attempts a ON a.job_id=j.job_id
+         JOIN job_outputs o ON o.job_id=a.job_id AND o.attempt=a.attempt AND o.kind='loss_report'
+         WHERE j.job_id=?1 AND a.attempt=?2",
+            rusqlite::params![job, attempt],
+            |r| {
+                Ok((
+                    r.get(0)?,
+                    r.get(1)?,
+                    r.get(2)?,
+                    r.get(3)?,
+                    r.get(4)?,
+                    r.get(5)?,
+                    r.get(6)?,
+                    r.get(7)?,
+                ))
+            },
+        )
+        .ok()?;
+    if input != source
+        || kind != "text"
+        || job_state != "succeeded"
+        || state != "succeeded"
+        || latest != attempt
+    {
+        return Some(false);
+    }
+    let request: serde_json::Value = serde_json::from_str(&wire).ok()?;
+    let meta: serde_json::Value = serde_json::from_str(&metadata).ok()?;
+    let loss: serde_json::Value = serde_json::from_str(&content).ok()?;
+    let hash = format!("{:x}", Sha256::digest(content.as_bytes()));
+    if request["capability"] != "text.extract"
+        || request["job_id"] != job
+        || request["attempt"] != attempt
+        || request["inputs"][0]["sha256"] != revision
+        || request["inputs"][0]["media_type"] != "application/epub+zip"
+        || meta["kind"] != "loss_report"
+        || meta["sha256"] != hash
+        || expected != hash
+        || meta["byte_length"].as_u64()? != content.len() as u64
+    {
+        return Some(false);
+    }
+    let output = &loss["params"]["format"];
+    if output["format"] != "epub" || output["parsed"] != true || chapter == 0 || paragraph == 0 {
+        return Some(false);
+    }
+    let locations = output["locations"].as_array()?;
+    let matching: Vec<_> = locations
+        .iter()
+        .filter(|location| {
+            location["kind"] == "epub_chapter_paragraph"
+                && location["chapter"].as_u64() == Some(chapter)
+                && location["paragraph"].as_u64() == Some(paragraph)
+                && location["path"].as_str() == Some(member_path)
+        })
+        .collect();
+    if matching.len() != 1 {
+        return Some(false);
+    }
+    let text = matching[0]["value"].as_str()?;
+    Some(!text.is_empty() && format!("{:x}", Sha256::digest(text.as_bytes())) == checksum)
+}
+
 #[derive(Deserialize)]
 struct AnchorBody {
     revision: String,
     position: String,
+    checksum: Option<String>,
 }
 
 async fn create_anchor(
     State(state): State<AppState>,
     Path(source_id): Path<String>,
+    headers: HeaderMap,
     Json(body): Json<AnchorBody>,
 ) -> impl IntoResponse {
+    if request_actor(&headers) != Ok("human") {
+        return StatusCode::FORBIDDEN.into_response();
+    }
+    if body.position.len() > 16 * 1024
+        || serde_json::from_str::<serde_json::Value>(&body.position)
+            .ok()
+            .is_none_or(|v| !v.is_object())
+    {
+        return (
+            StatusCode::BAD_REQUEST,
+            "position must be a bounded JSON locator object",
+        )
+            .into_response();
+    }
     with_store(state, move |conn| {
-        match anchor::add_anchor(conn, &source_id, &body.revision, &body.position) {
+        let revision: rusqlite::Result<Option<String>> = conn
+            .query_row(
+                "SELECT sha256 FROM sources WHERE source_id=?1",
+                [&source_id],
+                |r| r.get(0),
+            )
+            .optional();
+        match revision {
+            Ok(Some(revision)) if revision == body.revision => {}
+            Ok(Some(_)) => {
+                return (
+                    StatusCode::BAD_REQUEST,
+                    "anchor revision must identify the immutable original",
+                )
+                    .into_response();
+            }
+            Ok(None) => return StatusCode::NOT_FOUND.into_response(),
+            Err(error) => {
+                return (StatusCode::INTERNAL_SERVER_ERROR, error.to_string()).into_response();
+            }
+        }
+        let mut position: serde_json::Value = serde_json::from_str(&body.position).unwrap();
+        let mut location_status = "unverified";
+        if let Some(checksum) = body.checksum {
+            use sha2::{Digest, Sha256};
+            let validation = (|| -> Option<bool> {
+                if position["type"] == "time" {
+                    return verify_time_anchor(conn, &source_id, &body.revision, &position, &checksum);
+                }
+                if position["type"] == "epub" {
+                    return verify_epub_anchor(conn, &source_id, &body.revision, &position, &checksum);
+                }
+                if position["type"] != "text" {
+                    return None;
+                }
+                let start = usize::try_from(position["start"].as_u64()?).ok()?;
+                let end = usize::try_from(position["end"].as_u64()?).ok()?;
+                let bytes = archeaxis_store_sqlite::raw_objects::read(conn, &body.revision).ok()?;
+                let text = std::str::from_utf8(&bytes).ok()?;
+                let excerpt = text.get(start..end)?;
+                Some(format!("{:x}", Sha256::digest(excerpt.as_bytes())) == checksum)
+            })();
+            if validation != Some(true) {
+                return (
+                    StatusCode::BAD_REQUEST,
+                    "locator/checksum does not match immutable source or verified ASR cue",
+                )
+                    .into_response();
+            }
+            position["checksum"] = serde_json::json!(checksum);
+            location_status = "located";
+        }
+        position["location_status"] = serde_json::json!(location_status);
+        match anchor::add_anchor(conn, &source_id, &body.revision, &position.to_string()) {
             Ok(id) => (
                 StatusCode::CREATED,
-                Json(serde_json::json!({"anchor_id": id})),
+                Json(serde_json::json!({"anchor_id": id,"source_id":source_id,"source_revision":body.revision,"position":position.to_string(),"checksum":position.get("checksum"),"location_status":location_status})),
             )
                 .into_response(),
             Err(e) => (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()).into_response(),
@@ -951,12 +1319,19 @@ async fn source_job_transform(
     Path((source_id, job_id)): Path<(String, String)>,
 ) -> impl IntoResponse {
     with_store(state, move |conn| {
+        // Every extraction route stores its projection in `transforms.text` - the PDF
+        // worker's extracted text, the OCR reading, a subtitle's cue text, an archive's
+        // inventory listing - so this route reads whichever one the job produced. It used to
+        // filter `j.kind='text'`, which answered `404` for a succeeded PDF, OCR, Office,
+        // HTML, canvas, subtitle, archive, media or ASR job that had a perfectly readable
+        // projection; nothing asserted that refusal, which is how a text-only filter
+        // survived under a route the contract lists as source-bound transform readback.
         let projection: rusqlite::Result<Option<(i64, String, String)>> = conn
             .query_row(
                 "SELECT t.transform_id, s.sha256, t.text
              FROM jobs j JOIN sources s ON s.source_id=j.input_ref
              JOIN transforms t ON t.transform_id=j.transform_id AND t.source_id=s.source_id
-             WHERE j.job_id=?1 AND j.input_ref=?2 AND j.kind='text' AND j.state='succeeded'",
+             WHERE j.job_id=?1 AND j.input_ref=?2 AND j.state='succeeded'",
                 rusqlite::params![job_id, source_id],
                 |row| Ok((row.get(0)?, row.get(1)?, row.get(2)?)),
             )
@@ -975,7 +1350,7 @@ async fn source_job_transform(
                 .into_response(),
             Ok(None) => (
                 StatusCode::NOT_FOUND,
-                "succeeded source-bound text transform not found",
+                "succeeded source-bound transform not found",
             )
                 .into_response(),
             Err(error) => (StatusCode::INTERNAL_SERVER_ERROR, error.to_string()).into_response(),
@@ -990,7 +1365,9 @@ async fn source_job_transform(
 async fn evidence_anchors(State(state): State<AppState>) -> impl IntoResponse {
     with_store(state, |conn| {
         let mut statement = match conn.prepare(
-            "SELECT a.anchor_id, a.source_id, s.sha256, a.source_revision, a.position, a.created_at
+            "SELECT a.anchor_id, a.source_id, s.sha256, a.source_revision, a.position, a.created_at, s.original_name,
+                    (SELECT k.knowledge_id FROM knowledge k WHERE k.anchor_id = a.anchor_id ORDER BY k.rowid DESC LIMIT 1),
+                    (SELECT k.status FROM knowledge k WHERE k.anchor_id = a.anchor_id ORDER BY k.rowid DESC LIMIT 1)
              FROM anchors a JOIN sources s ON s.source_id = a.source_id
              ORDER BY a.created_at ASC, a.anchor_id ASC",
         ) {
@@ -1000,13 +1377,28 @@ async fn evidence_anchors(State(state): State<AppState>) -> impl IntoResponse {
             }
         };
         let rows = match statement.query_map([], |row| {
+            // A bare positional anchor stores an opaque locator, while an anchor created from
+            // a transform stores the quoted selection inside that locator. The quote and the
+            // source's own file name are surfaced as their own fields so a reader does not have
+            // to parse the locator or resolve an id, and the quote stays null when there is none.
+            let position = row.get::<_, String>(4)?;
+            let quote = serde_json::from_str::<serde_json::Value>(&position)
+                .ok()
+                .and_then(|value| value.get("quote").and_then(|quote| quote.as_str()).map(str::to_string));
             Ok(serde_json::json!({
                 "anchor_id": row.get::<_, String>(0)?,
                 "source_id": row.get::<_, String>(1)?,
                 "raw_sha256": row.get::<_, String>(2)?,
                 "source_revision": row.get::<_, String>(3)?,
-                "position": row.get::<_, String>(4)?,
+                "position": position,
                 "created_at": row.get::<_, String>(5)?,
+                "source_name": row.get::<_, String>(6)?,
+                "quote": quote,
+                // The knowledge this anchor is attached to, when a review candidate cites it, so a
+                // reader can go from "this is the quoted evidence" to "review it" without a search.
+                // Null for a bare positional anchor that no knowledge row references.
+                "knowledge_id": row.get::<_, Option<String>>(7)?,
+                "knowledge_status": row.get::<_, Option<String>>(8)?,
             }))
         }) {
             Ok(rows) => rows,
@@ -1064,6 +1456,7 @@ async fn source_members(
                             .map(|member| serde_json::json!({
                                 "source_id": member.source_id,
                                 "member": member.member,
+                                "origin_ref": member.origin_ref,
                                 "original_name": member.original_name,
                                 "sha256": member.sha256,
                                 "readable": member.readable,
@@ -1109,7 +1502,7 @@ async fn source_jobs(
              LEFT JOIN job_attempts a ON a.job_id=j.job_id
                  AND a.attempt=(SELECT MAX(latest.attempt) FROM job_attempts latest WHERE latest.job_id=j.job_id)
              WHERE j.input_ref=?1
-             ORDER BY j.completed_at DESC,j.created_at DESC,j.job_id ASC",
+             ORDER BY j.completed_at DESC,j.created_at DESC,j.job_id ASC LIMIT 51",
         ) {
             Ok(statement) => statement,
             Err(error) => return (StatusCode::INTERNAL_SERVER_ERROR, error.to_string()).into_response(),
@@ -1136,7 +1529,9 @@ async fn source_jobs(
                 Err(error) => return (StatusCode::INTERNAL_SERVER_ERROR, error.to_string()).into_response(),
             }
         }
-        (StatusCode::OK, Json(serde_json::json!({"source_id": source_id, "jobs": jobs}))).into_response()
+        let jobs_capped = jobs.len() > 50;
+        jobs.truncate(50);
+        (StatusCode::OK, Json(serde_json::json!({"source_id": source_id, "jobs": jobs, "jobs_capped": jobs_capped}))).into_response()
     }).await
 }
 
@@ -1344,6 +1739,7 @@ async fn knowledge_v3(State(state): State<AppState>, Path(id): Path<String>) -> 
                 "body": body,
                 "created_at": created_at,
                 "updated_at": updated_at,
+                "version": knowledge::review_version(conn,&knowledge_id).unwrap_or_default(),
             })),
         )
             .into_response()
@@ -1552,6 +1948,34 @@ struct ReviewBody {
     new_body: Option<String>,
 }
 
+#[derive(Deserialize)]
+#[serde(deny_unknown_fields)]
+struct VersionedReviewBody {
+    action: String,
+    reviewer: String,
+    expected_version: String,
+    note: Option<String>,
+    new_body: Option<String>,
+}
+async fn review_versioned(
+    State(state): State<AppState>,
+    headers: HeaderMap,
+    Path(id): Path<String>,
+    Json(body): Json<VersionedReviewBody>,
+) -> axum::response::Response {
+    if request_actor(&headers) != Ok("human") {
+        return StatusCode::FORBIDDEN.into_response();
+    }
+    with_store(state, move |conn| {
+        match knowledge::review_checked(conn,&id,&body.action,&body.reviewer,body.note.as_deref(),body.new_body.as_deref(),Some(&body.expected_version)) {
+            Ok(kid)=>Json(serde_json::json!({"knowledge_id":kid,"version":knowledge::review_version(conn,&kid).unwrap_or_default()})).into_response(),
+            Err(rusqlite::Error::InvalidParameterName(message)) if message.starts_with("review_version_conflict:") => (StatusCode::CONFLICT,Json(serde_json::json!({"code":"AAK-REV-409","current_version":message.trim_start_matches("review_version_conflict:")}))).into_response(),
+            Err(rusqlite::Error::QueryReturnedNoRows)=>StatusCode::NOT_FOUND.into_response(),
+            Err(error)=>(StatusCode::BAD_REQUEST,error.to_string()).into_response(),
+        }
+    }).await
+}
+
 async fn review_decision(
     State(state): State<AppState>,
     headers: HeaderMap,
@@ -1634,9 +2058,12 @@ async fn search_knowledge(
                     .collect(),
                 Err(e) => return (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()).into_response(),
             };
+            let documents=match archeaxis_domain::document::search(conn,&query.q){Ok(rows)=>rows,Err(e)=>return documents::failure(e)};
             Json(serde_json::json!({
                 "count": items.len(),
                 "items": items,
+                "document_count": documents.len(),
+                "documents": documents,
                 "transform_count": transforms.len(),
                 "transforms": transforms,
             }))
@@ -1700,6 +2127,7 @@ async fn job_quality(
             "loss_count": loss_count,
             "region_count": region_count,
             "pages": params.get("pages").cloned().unwrap_or(serde_json::Value::Null),
+            "core_artifact_adoption": params.get("core_artifact_adoption").cloned().unwrap_or(serde_json::Value::Null),
             "note": "facts only; model or recogniser confidence is not accuracy",
         }))
         .into_response()
@@ -1774,6 +2202,9 @@ fn job_error_response(error: jobs::JobError) -> axum::response::Response {
         jobs::JobError::InvalidReceipt(_) => StatusCode::BAD_REQUEST,
         jobs::JobError::MediaTypeNotAccepted { .. } => StatusCode::BAD_REQUEST,
         jobs::JobError::UnverifiableInput { .. } => StatusCode::BAD_REQUEST,
+        // R7/G1: a disabled capability is a conflict with the workspace's own settings, not a
+        // malformed request, and the body names the capability so an operator knows what to change.
+        jobs::JobError::CapabilityDisabled { .. } => StatusCode::CONFLICT,
     };
     (status, error.to_string()).into_response()
 }
@@ -1839,4 +2270,28 @@ async fn job_receipt(
         }
     })
     .await
+}
+
+#[cfg(test)]
+mod import_byte_budget_tests {
+    use super::*;
+    use base64::Engine;
+    #[test]
+    fn overbudget_rejection_covers_encoded_length_and_last_quantum() {
+        assert_eq!(
+            decode_import_content(&"!".repeat(MAX_IMPORT_BASE64_BYTES + 1)).unwrap_err(),
+            StatusCode::PAYLOAD_TOO_LARGE
+        );
+        let encoded =
+            base64::engine::general_purpose::STANDARD.encode(vec![0u8; MAX_IMPORT_BYTES + 1]);
+        assert_eq!(encoded.len(), MAX_IMPORT_BASE64_BYTES);
+        assert_eq!(
+            decode_import_content(&encoded).unwrap_err(),
+            StatusCode::PAYLOAD_TOO_LARGE
+        );
+        assert_eq!(
+            decode_import_content("!").unwrap_err(),
+            StatusCode::BAD_REQUEST
+        );
+    }
 }

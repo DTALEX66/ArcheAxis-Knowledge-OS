@@ -13,6 +13,7 @@ The sample is synthetic and rendered here, so nothing private is involved.
 
 from __future__ import annotations
 
+import os
 import importlib.util
 from pathlib import Path
 
@@ -24,7 +25,7 @@ PIL_ImageDraw = pytest.importorskip("PIL.ImageDraw", reason="PIL required to bui
 REPO = Path(__file__).resolve().parents[1]
 WORKER = REPO / "services" / "python-workers" / "vision" / "worker_ocr.py"
 TRANSPORT = REPO / "services" / "python-workers" / "transport" / "text_ndjson.py"
-TESSDATA = REPO / "tools" / "tesseract" / "tessdata"
+TESSDATA = Path(os.environ.get("TESSDATA_PREFIX") or (REPO / "tools" / "tesseract" / "tessdata"))
 
 # (suffix, media type) exactly as the Core's ROUTE_MEDIA_TYPES declares them for
 # image.ocr; the suffix is what makes the name recognisable to the derivation.

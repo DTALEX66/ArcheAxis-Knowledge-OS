@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
-<Window xmlns="https://github.com/avaloniaui" xmlns:d="http://schemas.microsoft.com/expression/blend/2008" xmlns:local="using:ArcheAxis.Desktop" xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" xmlns:views="using:ArcheAxis.Desktop.Views" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" mc:Ignorable="d" d:DesignWidth="1920" d:DesignHeight="1080" Width="1440" Height="900" MinWidth="720" MinHeight="560" WindowStartupLocation="CenterScreen" x:Class="ArcheAxis.Desktop.MainWindow" Title="ArcheAxis Knowledge" AutomationProperties.Name="星环知识平台（ArcheAxis Knowledge）" Icon="/Assets/aaos-app-icon.ico" KeyDown="OnWindowKeyDown">
-  <Grid x:Name="MainFrameGrid" RowDefinitions="Auto,*,Auto,Auto" ColumnDefinitions="84,0,*,0" Background="{DynamicResource AaosBackgroundBrush}" SizeChanged="OnMainFrameSizeChanged">
+<Window xmlns="https://github.com/avaloniaui" xmlns:d="http://schemas.microsoft.com/expression/blend/2008" xmlns:local="using:ArcheAxis.Desktop" xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" xmlns:views="using:ArcheAxis.Desktop.Views" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" mc:Ignorable="d" d:DesignWidth="1920" d:DesignHeight="1080" Width="1440" Height="900" MinWidth="720" MinHeight="560" WindowStartupLocation="CenterScreen" TransparencyLevelHint="AcrylicBlur" Background="Transparent" x:Class="ArcheAxis.Desktop.MainWindow" Title="ArcheAxis Knowledge" AutomationProperties.Name="星环知识平台（ArcheAxis Knowledge）" Icon="/Assets/aaos-app-icon.ico" KeyDown="OnWindowKeyDown">
+  <Grid x:Name="MainFrameGrid" RowDefinitions="Auto,*,Auto,Auto" ColumnDefinitions="84,0,*,0" Background="Transparent" SizeChanged="OnMainFrameSizeChanged">
     <local:AaosBackdrop Grid.Row="0" Grid.RowSpan="4" Grid.Column="0" Grid.ColumnSpan="4" IsHitTestVisible="False" />
-    <Border x:Name="TopbarShell" Grid.Row="0" Grid.Column="2" Grid.ColumnSpan="2" MinHeight="78" Padding="24,12" Background="{DynamicResource AaosSidebarBrush}" BorderBrush="{DynamicResource AaosBorderBrush}" BorderThickness="0,0,0,1">
+    <Border x:Name="TopbarShell" Classes="aaos-glass shell-topbar" Grid.Row="0" Grid.Column="2" Grid.ColumnSpan="2" MinHeight="78" Padding="24,12" Background="{DynamicResource AaosGlassBrush}" BorderBrush="{DynamicResource AaosGlassRimBrush}" BorderThickness="0,0,0,1">
       <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="20">
         <StackPanel x:Name="TopbarBrand" Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center" IsVisible="{ReflectionBinding IsVisible, ElementName=MobileRail}" AutomationProperties.Name="ArcheAxis Knowledge">
           <local:AaosBrandMark Width="48" Height="48" VerticalAlignment="Center" />
@@ -182,7 +182,7 @@
         </Border>
       </Grid>
     </Border>
-    <Border x:Name="ContextSidebar" Grid.Row="1" Grid.Column="1" Padding="12,20" Background="{DynamicResource AaosSidebarBrush}" BorderBrush="{DynamicResource AaosBorderBrush}" BorderThickness="0,0,1,0" AutomationProperties.Name="当前空间的二级导航">
+    <Border x:Name="ContextSidebar" Classes="aaos-glass shell-context-sidebar" Grid.Row="1" Grid.Column="1" Padding="12,20" Background="{DynamicResource AaosGlassBrush}" BorderBrush="{DynamicResource AaosGlassRimBrush}" BorderThickness="0,0,1,0" AutomationProperties.Name="当前空间的二级导航">
       <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
         <StackPanel Spacing="14">
           <TextBlock Text="当前位置" FontSize="12" FontWeight="SemiBold" Foreground="{DynamicResource AaosMutedBrush}" />
@@ -207,18 +207,18 @@
           <StackPanel x:Name="ContextOriginalSubnav" IsVisible="False" Spacing="7">
             <TextBlock Text="原创 · 写作" Classes="rail-label" />
             <Button Content="原创编辑" AutomationProperties.Name="原创编辑" Click="OnOriginalEditorClick" HorizontalContentAlignment="Left" />
-            <TextBlock Text="持久草稿和版本历史 · 待接 Core" TextWrapping="Wrap" FontSize="11" Foreground="{DynamicResource AaosMutedBrush}" />
+            <TextBlock Text="草稿与版本历史 · 保存到 Core 尚未提供" TextWrapping="Wrap" FontSize="11" Foreground="{DynamicResource AaosMutedBrush}" />
           </StackPanel>
           <StackPanel x:Name="ContextLearningSubnav" IsVisible="False" Spacing="7">
             <TextBlock Text="人类学习" Classes="rail-label" />
             <Button Content="学习项目与评估" AutomationProperties.Name="学习项目与评估" Click="OnLearningNavigationClick" HorizontalContentAlignment="Left" />
             <Button Content="复习队列 / FSRS" AutomationProperties.Name="复习队列 / FSRS" Click="OnReviewClick" HorizontalContentAlignment="Left" />
-            <TextBlock Text="课程与学习产物 · 待开发" TextWrapping="Wrap" FontSize="11" Foreground="{DynamicResource AaosMutedBrush}" />
+            <TextBlock Text="课件候选：从知识页生成并审阅" TextWrapping="Wrap" FontSize="11" Foreground="{DynamicResource AaosMutedBrush}" />
           </StackPanel>
           <StackPanel x:Name="ContextMachineSubnav" IsVisible="False" Spacing="7">
             <TextBlock Text="机器学习" Classes="rail-label" />
             <Button Content="按 ID 查看任务" AutomationProperties.Name="按 ID 查看任务" Click="OnMachineGrowthClick" HorizontalContentAlignment="Left" />
-            <TextBlock Text="评估 / 纠错 / 重测 · 待接 Core" TextWrapping="Wrap" FontSize="11" Foreground="{DynamicResource AaosMutedBrush}" />
+            <TextBlock Text="选已接受的知识提问，用你的纠正让机器再答一次" TextWrapping="Wrap" FontSize="11" Foreground="{DynamicResource AaosMutedBrush}" />
           </StackPanel>
           <StackPanel x:Name="ContextProjectSubnav" IsVisible="False" Spacing="7">
             <TextBlock Text="工作区 · 项目" Classes="rail-label" />
@@ -233,7 +233,7 @@
           <StackPanel x:Name="ContextSearchSubnav" IsVisible="False" Spacing="7">
             <TextBlock Text="搜索 · 检索" Classes="rail-label" />
             <Button Content="词法搜索" AutomationProperties.Name="词法搜索" Click="OnSearchClick" HorizontalContentAlignment="Left" />
-            <TextBlock Text="语义 / 图谱搜索 · 待开发" TextWrapping="Wrap" FontSize="11" Foreground="{DynamicResource AaosMutedBrush}" />
+            <TextBlock Text="语义搜索：已确认知识 · 图谱搜索待开发" TextWrapping="Wrap" FontSize="11" Foreground="{DynamicResource AaosMutedBrush}" />
           </StackPanel>
           <StackPanel x:Name="ContextSystemSubnav" IsVisible="False" Spacing="7">
             <TextBlock Text="系统 · 状态" Classes="rail-label" />
@@ -270,7 +270,7 @@
         <Grid x:Name="WorkspaceHeadingBar" ColumnDefinitions="*,Auto,Auto" ColumnSpacing="10">
           <StackPanel Grid.Column="0" Spacing="5">
             <TextBlock x:Name="WorkspaceHeadingText" Text="首页" Classes="page-title" Focusable="True" IsTabStop="False" AutomationProperties.Name="当前工作区页面" />
-            <TextBlock x:Name="HomePageDescription" Text="Capture / Evidence / Originals / Memory / Review 统一在同一个知识操作系统中。" TextWrapping="Wrap" Foreground="{DynamicResource AaosMutedBrush}" />
+            <TextBlock x:Name="HomePageDescription" Text="捕获、证据、原文、记忆、复习，都在同一个知识工作台中。" TextWrapping="Wrap" Foreground="{DynamicResource AaosMutedBrush}" />
           </StackPanel>
           <StackPanel x:Name="HomePageActions" Grid.Column="1" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
             <Button Classes="primary-action" Padding="14,8" Click="OnCaptureClick" AutomationProperties.Name="开始捕获">
@@ -282,7 +282,7 @@
             <Button x:Name="HomeExportOverviewButton" Content="导出今日概览" IsEnabled="False" Padding="14,8" ToolTip.Tip="Core 尚未提供今日概览导出投影" AutomationProperties.Name="导出今日概览暂不可用，等待 Core 投影" />
           </StackPanel>
           <StackPanel x:Name="OriginalEditorPageActions" Grid.Column="1" IsVisible="False" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
-            <Button IsEnabled="False" Padding="14,8" ToolTip.Tip="Core Original 持久化契约尚未接入" AutomationProperties.Name="保存草稿暂不可用，等待 Core Original 契约">
+            <Button IsEnabled="False" Padding="14,8" ToolTip.Tip="保存到 Core 的功能尚未提供" AutomationProperties.Name="保存草稿暂不可用；保存到 Core 尚未提供">
               <StackPanel Orientation="Horizontal" Spacing="8">
                 <local:AaosIcon Width="16" Height="16" IconName="Save" />
                 <TextBlock Text="保存草稿" />
@@ -304,10 +304,10 @@
             </Border.Background>
             <Grid ColumnDefinitions="*,Auto" Margin="26,22">
               <StackPanel Spacing="8" VerticalAlignment="Center">
-                <TextBlock Text="继续探索真实的知识。" FontSize="28" FontWeight="SemiBold" Foreground="{DynamicResource AaosIvoryBrush}" />
-                <TextBlock Text="从捕获、证据到学习与记忆，每一步都有来源。" Foreground="{DynamicResource AaosMutedBrush}" TextWrapping="Wrap" />
+                <TextBlock Text="继续探索真实的知识。" FontSize="28" FontWeight="SemiBold" Foreground="{DynamicResource AaosHeroTextBrush}" />
+                <TextBlock Text="从捕获、证据到学习与记忆，每一步都有来源。" Foreground="{DynamicResource AaosHeroMutedBrush}" TextWrapping="Wrap" />
               </StackPanel>
-              <TextBlock Grid.Column="1" Text="ARCHEAXIS  ·  KNOWLEDGE" FontSize="10" LetterSpacing="2" Foreground="{DynamicResource AaosIvoryBrush}" VerticalAlignment="Bottom" />
+              <TextBlock Grid.Column="1" Text="ARCHEAXIS  ·  KNOWLEDGE" FontSize="10" LetterSpacing="2" Foreground="{DynamicResource AaosHeroTextBrush}" VerticalAlignment="Bottom" />
             </Grid>
           </Border>
           <Grid x:Name="HomeStatsSurface" IsVisible="True" ColumnDefinitions="*,*,*,*" ColumnSpacing="12">
@@ -315,7 +315,7 @@
               <StackPanel Spacing="5">
                 <TextBlock Text="证据条目" Foreground="{DynamicResource AaosMutedBrush}" />
                 <TextBlock x:Name="HomeEvidenceCountText" Text="—" Classes="kpi-value" />
-                <TextBlock Text="Core 持久化 evidence anchors" Foreground="{DynamicResource AaosMutedBrush}" />
+                <TextBlock Text="来自 Core 的证据条目" Foreground="{DynamicResource AaosMutedBrush}" />
               </StackPanel>
             </Border>
             <Border x:Name="HomeStatsKnowledgeCard" Grid.Column="1" Classes="aaos-kpi">
@@ -328,15 +328,15 @@
             <Border x:Name="HomeStatsLearningCard" Grid.Column="2" Classes="aaos-kpi">
               <StackPanel Spacing="5">
                 <TextBlock Text="待复习" Foreground="{DynamicResource AaosMutedBrush}" />
-                <TextBlock Text="—" Classes="kpi-value" />
-                <TextBlock Text="Core 未提供" Foreground="{DynamicResource AaosMutedBrush}" />
+                <TextBlock x:Name="HomeReviewDueValue" Text="—" Classes="kpi-value" />
+                <TextBlock x:Name="HomeReviewDueNote" Text="Core 未提供" Foreground="{DynamicResource AaosMutedBrush}" />
               </StackPanel>
             </Border>
             <Border x:Name="HomeStatsJobsCard" Grid.Column="3" Classes="aaos-kpi">
               <StackPanel Spacing="5">
-                <TextBlock Text="本月掌握" Foreground="{DynamicResource AaosMutedBrush}" />
-                <TextBlock Text="—" Classes="kpi-value" />
-                <TextBlock Text="Core 未提供" Foreground="{DynamicResource AaosMutedBrush}" />
+                <TextBlock Text="本月进展" Foreground="{DynamicResource AaosMutedBrush}" />
+                <TextBlock x:Name="HomeProgressValue" Text="—" Classes="kpi-value" />
+                <TextBlock x:Name="HomeProgressNote" Text="Core 未提供" Foreground="{DynamicResource AaosMutedBrush}" />
               </StackPanel>
             </Border>
           </Grid>
@@ -439,9 +439,9 @@
                     <DataTemplate x:DataType="{x:Type views:EvidenceAnchorRow}">
                       <Border Classes="aaos-card-compact" Padding="12" Margin="0,0,0,8">
                         <StackPanel Spacing="4">
-                          <TextBlock Text="{Binding AnchorId}" Classes="card-heading" TextTrimming="CharacterEllipsis" />
-                          <TextBlock Text="{Binding SourceId, StringFormat='来源 · {0}'}" Foreground="{DynamicResource AaosMutedBrush}" FontSize="12" TextTrimming="CharacterEllipsis" />
-                          <TextBlock Text="{Binding CreatedAt, StringFormat='登记时间 · {0}'}" Foreground="{DynamicResource AaosMutedBrush}" FontSize="11" TextTrimming="CharacterEllipsis" />
+                          <TextBlock Text="{Binding TitleDisplay}" Classes="card-heading" TextTrimming="CharacterEllipsis" />
+                          <TextBlock Text="{Binding SourceTitle, StringFormat='来源 · {0}'}" Foreground="{DynamicResource AaosMutedBrush}" FontSize="12" TextTrimming="CharacterEllipsis" />
+                          <TextBlock Text="{Binding CreatedAtDisplay, StringFormat='保存于 · {0}'}" Foreground="{DynamicResource AaosMutedBrush}" FontSize="11" TextTrimming="CharacterEllipsis" />
                         </StackPanel>
                       </Border>
                     </DataTemplate>
@@ -455,28 +455,28 @@
                 <Grid x:Name="HomeTodayProgressGrid" ColumnDefinitions="*,*,*,*" RowDefinitions="Auto" ColumnSpacing="10" IsVisible="True">
               <Border Classes="aaos-kpi">
                 <StackPanel Spacing="4">
-                  <TextBlock Text="Capture" Foreground="{DynamicResource AaosMutedBrush}" />
+                  <TextBlock Text="捕获" Foreground="{DynamicResource AaosMutedBrush}" />
                   <TextBlock Text="—" Classes="kpi-value" />
                   <TextBlock Text="Core 未提供" FontSize="11" Foreground="{DynamicResource AaosMutedBrush}" />
                 </StackPanel>
               </Border>
               <Border Grid.Column="1" Classes="aaos-kpi">
                 <StackPanel Spacing="4">
-                  <TextBlock Text="Evidence" Foreground="{DynamicResource AaosMutedBrush}" />
+                  <TextBlock Text="证据" Foreground="{DynamicResource AaosMutedBrush}" />
                   <TextBlock x:Name="HomeProgressEvidenceValue" Text="—" Classes="kpi-value" />
-                  <TextBlock Text="最近读取的 anchors" FontSize="11" Foreground="{DynamicResource AaosMutedBrush}" />
+                  <TextBlock Text="最近读取的证据" FontSize="11" Foreground="{DynamicResource AaosMutedBrush}" />
                 </StackPanel>
               </Border>
               <Border Grid.Column="2" Classes="aaos-kpi">
                 <StackPanel Spacing="4">
-                  <TextBlock Text="Review" Foreground="{DynamicResource AaosMutedBrush}" />
+                  <TextBlock Text="复习" Foreground="{DynamicResource AaosMutedBrush}" />
                   <TextBlock Text="—" Classes="kpi-value" />
                   <TextBlock Text="Core 未提供" FontSize="11" Foreground="{DynamicResource AaosMutedBrush}" />
                 </StackPanel>
               </Border>
               <Border Grid.Column="3" Classes="aaos-kpi">
                 <StackPanel Spacing="4">
-                  <TextBlock Text="Output" Foreground="{DynamicResource AaosMutedBrush}" />
+                  <TextBlock Text="产出" Foreground="{DynamicResource AaosMutedBrush}" />
                   <TextBlock Text="—" Classes="kpi-value" />
                   <TextBlock Text="Core 未提供" FontSize="11" Foreground="{DynamicResource AaosMutedBrush}" />
                 </StackPanel>
@@ -489,7 +489,7 @@
             <Border x:Name="HomeMemoryGraphCard" Grid.Column="0" Classes="aaos-card" Padding="18">
               <Grid RowDefinitions="Auto,*,Auto" RowSpacing="10">
                 <Border x:Name="HomeHeroAmbientGlow" Grid.RowSpan="3" Classes="aaos-home-ambient-glow" Background="{DynamicResource AaosAmbientGlowBrush}" Opacity="0.14" IsHitTestVisible="False" ZIndex="0" />
-                <TextBlock Grid.Row="0" Text="Memory Graph" Classes="section-heading" ZIndex="1" />
+                <TextBlock Grid.Row="0" Text="记忆图谱" Classes="section-heading" ZIndex="1" />
                 <Viewbox Grid.Row="1" MaxWidth="470" MaxHeight="360" Stretch="Uniform" HorizontalAlignment="Center" VerticalAlignment="Center" ZIndex="1">
                   <local:AaosMemoryGraphView x:Name="HomeHeroVisual" NodeSelected="OnHomeMemoryNodeSelected" />
                 </Viewbox>
@@ -499,7 +499,7 @@
             <Border x:Name="HomeNodeDetailsCard" Grid.Column="1" Classes="aaos-card" Padding="18">
               <StackPanel Spacing="12">
                 <TextBlock Text="节点详情" Classes="section-heading" />
-                <TextBlock x:Name="HomeMemoryNodeDetailsText" Text="点击 Memory Graph 节点查看关联说明。" TextWrapping="Wrap" Foreground="{DynamicResource AaosMutedBrush}" />
+                <TextBlock x:Name="HomeMemoryNodeDetailsText" Text="点击记忆图谱节点查看关联说明。" TextWrapping="Wrap" Foreground="{DynamicResource AaosMutedBrush}" />
                 <Border x:Name="HomeTrendCard" Classes="aaos-card-compact" Padding="14">
                   <StackPanel Spacing="8">
                     <TextBlock Text="知识演化" Classes="card-heading" />
@@ -684,7 +684,7 @@
                     <TextBox x:Name="CaptureDraftBox" AcceptsReturn="True" MinHeight="204" TextWrapping="Wrap" PlaceholderText="粘贴文本或写下快速笔记…" AutomationProperties.Name="捕获草稿；尚未保存到 Core" />
                   </Border>
                   <Grid ColumnDefinitions="*,Auto" ColumnSpacing="12">
-                    <TextBlock Text="草稿仅保留在当前界面；Core 写入合同接入前不会伪装成已保存来源。" TextWrapping="Wrap" FontSize="11" Classes="status-empty" VerticalAlignment="Center" />
+                    <TextBlock Text="草稿只保留在当前界面；保存到 Core 尚未提供，不会伪装成已保存来源。" TextWrapping="Wrap" FontSize="11" Classes="status-empty" VerticalAlignment="Center" />
                     <Button x:Name="CaptureSaveButton" Grid.Column="1" Content="保存到知识库" Classes="primary-action" IsEnabled="False" HorizontalAlignment="Right" Padding="16,8" ToolTip.Tip="Core 尚未提供文本捕获写入接口" AutomationProperties.Name="保存暂不可用；Core 写入接口尚未接入" />
                   </Grid>
                 </StackPanel>
@@ -735,7 +735,9 @@
               </Border>
               <TextBlock x:Name="CaptureSelectionText" Text="尚未选择资料。" IsVisible="False" />
               <TextBlock x:Name="CaptureImportStatusText" Text="尚未开始导入。" Classes="status-empty" AutomationProperties.Name="捕获导入状态" />
-              <TextBlock x:Name="CaptureReceiptText" Text="未创建虚构的 Core 状态；选择资料后仅显示真实来源与任务回执。" TextWrapping="Wrap" Classes="provenance-projection" />
+              <Expander x:Name="CaptureDiagnostics" Header="更多信息：导入记录" IsExpanded="False">
+                <TextBlock x:Name="CaptureReceiptText" Text="选择资料后可查看已保存的来源与任务记录。" TextWrapping="Wrap" Classes="provenance-projection" />
+              </Expander>
               <TextBlock x:Name="CaptureContextText" Text="本次导入上下文：尚未形成 Core 来源。" IsVisible="False" />
               <ListBox x:Name="CaptureContextsList" SelectionChanged="OnCaptureContextSelected" IsVisible="False" AutomationProperties.Name="当前会话捕获来源上下文" />
               <Button x:Name="CaptureImportButton" Content="选择资料" IsVisible="False" Click="OnImportClick" AutomationProperties.Name="选择资料" />
@@ -847,8 +849,10 @@
             </Border>
             <Border x:Name="LibrarySelectedDetailBorder" Grid.Row="1" Classes="aaos-card" Padding="14" IsVisible="False">
               <StackPanel Spacing="6">
-                <TextBlock Text="Evidence Detail · 当前选中投影" FontSize="14" FontWeight="SemiBold" Classes="provenance-evidence" />
-                <TextBlock Text="Header / Provenance / Boundary" FontSize="11" Classes="provenance-tag" />
+                <TextBlock Text="所选资料" FontSize="14" FontWeight="SemiBold" Classes="provenance-evidence" />
+                <TextBlock x:Name="LibrarySelectedSummaryText" TextWrapping="Wrap" Classes="card-heading" />
+                <Expander x:Name="LibraryDetailDiagnostics" Header="更多信息：资料身份与处理记录" IsExpanded="False">
+                <StackPanel Spacing="6">
                 <TextBlock x:Name="LibrarySelectedDetailText" Text="尚未选择搜索结果。" TextWrapping="Wrap" Classes="provenance-projection" />
                 <Grid ColumnDefinitions="Auto,*" RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto,Auto" ColumnSpacing="8" RowSpacing="4">
                   <TextBlock Text="类型" FontSize="11" Foreground="{DynamicResource AaosMutedBrush}" />
@@ -868,6 +872,8 @@
                 </Grid>
                 <TextBlock x:Name="LibraryDetailBoundaryText" Text="字段来自 Core 搜索响应；缺失字段不推断。" TextWrapping="Wrap" FontSize="11" Classes="status-empty" />
                 <TextBlock Text="字段来自 Core 搜索响应；缺失字段不推断为证据、原件或已验证知识。" FontSize="11" TextWrapping="Wrap" Foreground="{DynamicResource AaosMutedBrush}" />
+                </StackPanel>
+                </Expander>
                 <StackPanel Orientation="Horizontal" Spacing="8">
                   <Button Content="读取 Knowledge 详情" Padding="14,8" Click="OnOpenSelectedKnowledgeClick" AutomationProperties.Name="读取 Knowledge 详情" />
                   <Button x:Name="OpenLibrarySourceButton" Content="查看来源成员" IsEnabled="False" Padding="14,8" Click="OnOpenLibrarySourceClick" AutomationProperties.Name="查看来源成员" />
@@ -886,7 +892,7 @@
               <Border Classes="aaos-status" Padding="10,6" VerticalAlignment="Center">
                 <TextBlock x:Name="OriginalEditorSaveStateText" Text="只读 · 未载入 Original" Classes="status-empty" AutomationProperties.Name="原创编辑保存状态" />
               </Border>
-              <Button Content="保存草稿" IsEnabled="False" Padding="14,8" ToolTip.Tip="Core Original 写入契约尚未提供" AutomationProperties.Name="保存草稿暂不可用" />
+              <Button Content="保存草稿" IsEnabled="False" Padding="14,8" ToolTip.Tip="保存到 Core 的功能尚未提供" AutomationProperties.Name="保存草稿暂不可用；保存到 Core 尚未提供" />
             </StackPanel>
           </Grid>
           <Grid x:Name="OriginalEditorGrid" ColumnDefinitions="1.35*,0.95*" ColumnSpacing="14" RowSpacing="14">
@@ -1015,6 +1021,10 @@
                 </ComboBox>
               </StackPanel>
               <TextBlock x:Name="SearchPageStatusText" Text="搜索结果来自 Core；部分筛选项等待字段投影。" TextWrapping="Wrap" Classes="status-empty" />
+              <Button x:Name="SearchPageSemanticButton" Content="语义搜索已确认知识" Classes="aaos-compact" HorizontalAlignment="Left" Click="OnSemanticSearchClick" AutomationProperties.Name="显式语义搜索已确认知识" />
+              <Expander x:Name="SearchPageDiagnostics" Header="更多信息：搜索处理记录" IsExpanded="False">
+                <SelectableTextBlock x:Name="SearchPageDiagnosticsText" TextWrapping="Wrap" />
+              </Expander>
             </StackPanel>
           </Border>
           <Border Classes="aaos-card" Padding="14" MinHeight="520">
@@ -1038,12 +1048,15 @@
                     <ListBox.ItemTemplate>
                       <DataTemplate x:DataType="{x:Type local:LibraryResultRow}">
                         <Border Padding="10,12" Margin="0,0,0,2" CornerRadius="6" Background="{DynamicResource AaosSurfaceBrush}" BorderBrush="{DynamicResource AaosBorderBrush}" BorderThickness="0,0,0,1">
-                          <Grid ColumnDefinitions="*,*,*,*,*" ColumnSpacing="12">
+                          <Grid ColumnDefinitions="*,*,*,*,*" RowDefinitions="Auto,Auto" ColumnSpacing="12" RowSpacing="8">
                             <TextBlock Text="{Binding Head}" Foreground="{DynamicResource AaosIvoryBrush}" FontWeight="SemiBold" TextWrapping="NoWrap" TextTrimming="CharacterEllipsis" VerticalAlignment="Center" />
                             <TextBlock Grid.Column="1" Text="{Binding KindLabel}" Classes="provenance-evidence" FontSize="11" FontWeight="SemiBold" TextWrapping="Wrap" VerticalAlignment="Center" />
                             <TextBlock Grid.Column="2" Text="{Binding TopicLabel}" Classes="status-empty" FontSize="11" VerticalAlignment="Center" AutomationProperties.Name="主题字段状态" />
                             <TextBlock Grid.Column="3" Text="{Binding SourceLabel}" Foreground="{DynamicResource AaosMutedBrush}" FontSize="11" TextWrapping="NoWrap" TextTrimming="CharacterEllipsis" VerticalAlignment="Center" />
                             <TextBlock Grid.Column="4" Text="{Binding UpdatedLabel}" Classes="status-empty" FontSize="11" VerticalAlignment="Center" AutomationProperties.Name="更新时间字段状态" />
+                            <ScrollViewer Grid.Row="1" Grid.ColumnSpan="5" MaxHeight="220" IsVisible="{Binding HasBody}">
+                              <SelectableTextBlock Text="{Binding Body}" TextWrapping="Wrap" />
+                            </ScrollViewer>
                           </Grid>
                         </Border>
                       </DataTemplate>
@@ -1062,16 +1075,18 @@
           </Border>
         </StackPanel>
         <StackPanel x:Name="KnowledgeSurface" IsVisible="False" Spacing="14">
-          <TextBlock Text="读取指定 Knowledge V3 投影；页面不复制或推断 Core 知识状态。" TextWrapping="Wrap" Foreground="{DynamicResource AaosMutedBrush}" />
+          <TextBlock Text="查看知识内容、来源和复核状态，再选择学习或提出问题。" TextWrapping="Wrap" Foreground="{DynamicResource AaosMutedBrush}" />
           <TextBlock x:Name="KnowledgeStateText" Classes="status-empty" Text="尚未读取 Knowledge V3。" TextWrapping="Wrap" AutomationProperties.Name="知识库状态" />
+          <Expander x:Name="KnowledgeLookupDiagnostics" Header="更多信息：按标识读取知识" IsExpanded="False">
           <Grid x:Name="KnowledgeLoadGrid" Classes="aaos-toolbar" ColumnDefinitions="*,Auto" RowDefinitions="Auto" ColumnSpacing="10" RowSpacing="10">
             <TextBox x:Name="KnowledgeIdBox" PlaceholderText="输入 knowledge_id" TextChanged="OnKnowledgeIdChanged" KeyDown="OnToolbarInputKeyDown" AutomationProperties.Name="knowledge_id 输入" />
             <Button x:Name="KnowledgeLoadButton" Classes="primary-action" Grid.Column="1" Content="读取知识" Padding="16,9" Click="OnReadKnowledgeClick" AutomationProperties.Name="读取知识" />
           </Grid>
+          </Expander>
           <Border Classes="aaos-card-compact" Padding="14">
             <StackPanel Spacing="8">
-              <TextBlock Text="记录个人 Knowledge" Classes="card-heading" />
-              <TextBlock Text="人工提交的内容先保存为 Candidate；不会把导入文本自动确认为 Knowledge。当前 Core 创建接口不持久化 source_id/anchor_id，来源摘要须保留自己的出处说明。" TextWrapping="Wrap" FontSize="11" Classes="status-warning" />
+              <TextBlock Text="记录个人知识" Classes="card-heading" />
+              <TextBlock Text="先保存为待确认条目。请注明资料出处，复核后再接受为知识。" TextWrapping="Wrap" FontSize="11" Classes="status-warning" />
               <TextBlock Text="来源类型（必选；按实际来源标记）" FontSize="11" Foreground="{DynamicResource AaosMutedBrush}" />
               <ComboBox x:Name="KnowledgeDraftSourceTypeBox" SelectedIndex="-1" AutomationProperties.Name="Knowledge 来源类型">
                 <ComboBoxItem Content="个人笔记 · personal_note" Tag="personal_note" />
@@ -1092,8 +1107,8 @@
                 <ComboBoxItem Content="事实主张 · FACTUAL_CLAIM" Tag="FACTUAL_CLAIM" />
               </ComboBox>
               <TextBox x:Name="KnowledgeDraftBodyBox" MinHeight="90" AcceptsReturn="True" TextWrapping="Wrap" PlaceholderText="写下你要保存的个人知识；如基于资料，请自行注明出处。" AutomationProperties.Name="Knowledge 内容" />
-              <TextBlock Text="V3 治理元数据" Classes="card-heading" />
-              <TextBlock Text="支持级别与风险级别须由你明确选择。Core 仍按受信会话记录 owner=human，并保持 Candidate 需要人工复核；置信度留空表示未提供。" TextWrapping="Wrap" FontSize="11" Classes="status-info" />
+              <TextBlock Text="支持依据与风险" Classes="card-heading" />
+              <TextBlock Text="请选择支持依据与风险程度；置信度可以留空。保存后仍需人工复核。" TextWrapping="Wrap" FontSize="11" Classes="status-info" />
               <TextBlock Text="支持级别" FontSize="11" Foreground="{DynamicResource AaosMutedBrush}" />
               <ComboBox x:Name="KnowledgeDraftSupportLevelBox" SelectedIndex="0" AutomationProperties.Name="Knowledge 支持级别">
                 <ComboBoxItem Content="未声明支持 · none" Tag="none" />
@@ -1118,7 +1133,7 @@
                 <TextBox x:Name="KnowledgeDraftValidToBox" Grid.Column="1" PlaceholderText="Valid to" AutomationProperties.Name="Knowledge 有效截止时间（UTC，可选）" />
               </Grid>
               <TextBox x:Name="KnowledgeDraftExternalEvidenceBox" MinHeight="58" AcceptsReturn="True" TextWrapping="Wrap" PlaceholderText="外部证据引用；每行一项，可留空" AutomationProperties.Name="Knowledge 外部证据引用，每行一项（可选）" />
-              <Button x:Name="CreateKnowledgeCandidateButton" Classes="primary-action" Content="仅创建 Candidate；不自动接受" HorizontalAlignment="Left" Padding="16,9" Click="OnCreateKnowledgeCandidateClick" AutomationProperties.Name="创建 Knowledge Candidate" />
+              <Button x:Name="CreateKnowledgeCandidateButton" Classes="primary-action" Content="保存为待确认条目" HorizontalAlignment="Left" Padding="16,9" Click="OnCreateKnowledgeCandidateClick" AutomationProperties.Name="创建 Knowledge Candidate" />
               <TextBlock x:Name="KnowledgeDraftStatusText" Text="尚未创建 Knowledge。" TextWrapping="Wrap" Classes="status-empty" AutomationProperties.Name="Knowledge 创建状态" />
             </StackPanel>
           </Border>
@@ -1127,11 +1142,14 @@
           <Border Classes="aaos-card-compact" Padding="14">
             <StackPanel Spacing="8">
               <TextBlock Text="真人学习" Classes="card-heading" />
-              <TextBlock Text="Core 已读回的 accepted Knowledge 或个人定义可显式加入学习；Candidate 不会因此自动接受。Core 创建 Assessment 并把尚无 Review 的项目列入待学习队列。" TextWrapping="Wrap" FontSize="11" Classes="status-empty" />
-              <Button x:Name="AddKnowledgeToLearningButton" Classes="primary-action" Content="将此 Knowledge 加入学习" IsEnabled="False" HorizontalAlignment="Left" Padding="16,9" Click="OnAddKnowledgeToLearningClick" AutomationProperties.Name="将当前 Knowledge 加入学习" />
-              <TextBlock x:Name="KnowledgeLearningStatusText" Text="请先读取 eligible Knowledge V3。" TextWrapping="Wrap" Classes="status-empty" AutomationProperties.Name="加入学习状态" />
+              <TextBlock Text="已确认的知识或个人定义可以加入学习。加入后会生成学习题目，已有的复核状态会保留。" TextWrapping="Wrap" FontSize="11" Classes="status-empty" />
+              <Button x:Name="AddKnowledgeToLearningButton" Classes="primary-action" Content="加入我的学习" IsEnabled="False" HorizontalAlignment="Left" Padding="16,9" Click="OnAddKnowledgeToLearningClick" AutomationProperties.Name="将当前 Knowledge 加入学习" />
+              <Button x:Name="GenerateCourseButton" Content="从这条知识生成课件候选" IsEnabled="False" HorizontalAlignment="Left" Padding="16,9" Click="OnGenerateCourseClick" AutomationProperties.Name="从当前已确认知识生成待复核课件" />
+              <Button Content="让机器回答这条知识" HorizontalAlignment="Left" Padding="16,9" Click="OnUseKnowledgeForMachineClick" AutomationProperties.Name="使用当前知识提出机器学习问题" />
+              <TextBlock x:Name="KnowledgeLearningStatusText" Text="请先选择适合学习的知识。" TextWrapping="Wrap" Classes="status-empty" AutomationProperties.Name="加入学习状态" />
             </StackPanel>
           </Border>
+          <Expander x:Name="KnowledgeSourceDiagnostics" Header="更多信息：来源与版本" IsExpanded="False">
           <Border x:Name="KnowledgeEvidenceContextBorder" Classes="aaos-card-compact" Padding="14">
             <StackPanel Spacing="6">
               <TextBlock Text="证据上下文" FontSize="14" FontWeight="SemiBold" Classes="provenance-evidence" />
@@ -1139,18 +1157,24 @@
               <TextBlock x:Name="KnowledgeContextVersionText" Text="Knowledge 版本：未暴露" TextWrapping="Wrap" FontSize="11" Classes="provenance-projection" />
               <TextBlock x:Name="KnowledgeContextProjectionText" Text="当前投影：未读取" TextWrapping="Wrap" FontSize="11" Classes="status-info" />
               <TextBlock x:Name="KnowledgeContextBoundaryText" Text="字段缺失不推断；Knowledge 状态不等于学习掌握。" TextWrapping="Wrap" FontSize="11" Classes="status-empty" />
+              <TextBlock x:Name="KnowledgeQualificationText" Text="qualification · 尚未读取" TextWrapping="Wrap" Classes="status-empty" AutomationProperties.Name="Core Knowledge qualification 状态" />
             </StackPanel>
           </Border>
+          </Expander>
           <Border x:Name="KnowledgeObjectHeaderBorder" Classes="aaos-card" Padding="16">
             <StackPanel Spacing="5">
               <TextBlock Text="Knowledge 对象" FontSize="14" FontWeight="SemiBold" Classes="provenance-projection" />
               <TextBlock x:Name="KnowledgeObjectTitleText" Text="标题：未读取" Classes="section-heading" TextWrapping="Wrap" />
-              <TextBlock x:Name="KnowledgeObjectMetaText" Text="knowledge_id：未暴露 · owner：未暴露" FontSize="11" Foreground="{DynamicResource AaosMutedBrush}" TextWrapping="Wrap" />
+              <Expander Header="更多信息：知识身份" IsExpanded="False">
+                <TextBlock x:Name="KnowledgeObjectMetaText" Text="knowledge_id：未暴露 · owner：未暴露" FontSize="11" Foreground="{DynamicResource AaosMutedBrush}" TextWrapping="Wrap" />
+              </Expander>
             </StackPanel>
           </Border>
           <Border Padding="20" CornerRadius="10" Background="{DynamicResource AaosSurface2Brush}" BorderBrush="{DynamicResource AaosBorderBrush}" BorderThickness="1">
             <StackPanel Spacing="12">
-              <TextBlock x:Name="KnowledgeResultsText" Text="输入 knowledge_id 后读取 Core。" TextWrapping="Wrap" Foreground="{DynamicResource AaosMutedBrush}" />
+              <Expander x:Name="KnowledgeReadbackDiagnostics" Header="更多信息：读取记录" IsExpanded="False">
+                <TextBlock x:Name="KnowledgeResultsText" Text="尚未读取知识。" TextWrapping="Wrap" Foreground="{DynamicResource AaosMutedBrush}" />
+              </Expander>
               <Border Classes="aaos-card-compact" Padding="12">
                 <StackPanel Spacing="5">
                   <TextBlock Text="正文投影" FontSize="13" FontWeight="SemiBold" Classes="provenance-evidence" />
@@ -1186,9 +1210,9 @@
               </Grid>
               <Border x:Name="KnowledgeHumanReviewBorder" Padding="12" CornerRadius="8" Background="{DynamicResource AaosSurfaceBrush}" BorderBrush="{DynamicResource AaosBorderBrush}" BorderThickness="1">
                 <StackPanel Spacing="8">
-                  <TextBlock Text="人工复核 · Core 持久化决定" FontSize="13" FontWeight="SemiBold" Classes="provenance-evidence" />
-                  <TextBlock x:Name="KnowledgeQualificationText" Text="qualification · 尚未读取" TextWrapping="Wrap" Classes="status-empty" AutomationProperties.Name="Core Knowledge qualification 状态" />
-                  <TextBlock Text="仅对当前从 Core 读回且仍需人工复核的 Candidate 开放。动作由当前人类会话提交，完成后重新读取 V3 与 qualification。" TextWrapping="Wrap" FontSize="11" Classes="status-empty" />
+                  <TextBlock Text="人工复核" FontSize="13" FontWeight="SemiBold" Classes="provenance-evidence" />
+                  <TextBlock x:Name="KnowledgeReviewAvailabilityText" Text="选择知识后检查复核条件。" TextWrapping="Wrap" Classes="status-empty" AutomationProperties.Name="当前知识复核可用状态" />
+                  <TextBlock Text="请阅读内容和来源，再决定接受、拒绝或修订。你的决定会保存并重新核验。" TextWrapping="Wrap" FontSize="11" Classes="status-empty" />
                   <ComboBox x:Name="KnowledgeReviewActionBox" SelectedIndex="-1" SelectionChanged="OnKnowledgeReviewActionChanged" AutomationProperties.Name="人工复核决定">
                     <ComboBoxItem Content="接受 Candidate" Tag="accepted" />
                     <ComboBoxItem Content="拒绝 Candidate" Tag="rejected" />
@@ -1215,11 +1239,16 @@
           </WrapPanel>
           <Border Padding="14" CornerRadius="10" Background="{DynamicResource AaosSurface2Brush}" BorderBrush="{DynamicResource AaosBorderBrush}" BorderThickness="1">
             <StackPanel Spacing="8">
-              <TextBlock Text="Core 任务输出" Classes="card-heading" />
+              <TextBlock Text="任务结果" Classes="card-heading" />
+              <TextBlock x:Name="JobUserStatusText" Text="选择任务后查看处理结果。" TextWrapping="Wrap" Classes="status-empty" AutomationProperties.LiveSetting="Polite" />
+              <Expander x:Name="JobOutputDiagnostics" Header="更多信息：原始输出与处理记录" IsExpanded="False">
+              <StackPanel Spacing="8">
               <TextBlock Text="仅在最新尝试成功且前后身份一致时展示；取消请求需要继续刷新状态，已提交的成功结果不可撤销。" TextWrapping="Wrap" FontSize="11" Classes="status-empty" />
               <ScrollViewer MaxHeight="320" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
                 <TextBlock x:Name="JobOutputText" Text="选择当前会话的任务回执后读取输出。" TextWrapping="Wrap" Classes="status-empty" AutomationProperties.Name="Core 任务输出内容" />
               </ScrollViewer>
+              </StackPanel>
+              </Expander>
             </StackPanel>
           </Border>
         </StackPanel>
@@ -1229,12 +1258,36 @@
             <TextBlock Text="人类学习" FontSize="30" FontWeight="SemiBold" Foreground="{DynamicResource AaosIvoryBrush}" IsVisible="False" />
             <TextBlock Text="学习计划、知识卡片、能力追踪和 FSRS 复习" FontSize="13" TextWrapping="Wrap" Foreground="{DynamicResource AaosMutedBrush}" />
           </StackPanel>
+          <Border Classes="aaos-card" Padding="18">
+            <StackPanel Spacing="10">
+              <TextBlock Text="我的课件候选" Classes="section-heading" />
+              <TextBlock x:Name="CourseStatusText" Text="在知识页选择已确认知识，生成课件后可在这里审阅并开始学习。" Classes="status-empty" TextWrapping="Wrap" AutomationProperties.Name="课件候选状态" />
+              <StackPanel x:Name="CourseLessonBody" Spacing="8" IsVisible="False">
+                <TextBlock x:Name="CourseTitleText" Classes="card-heading" TextWrapping="Wrap" />
+                <TextBlock x:Name="CourseSourceText" Classes="provenance-original" TextWrapping="Wrap" />
+                <ScrollViewer MaxHeight="380" HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto">
+                  <SelectableTextBlock x:Name="CourseLessonText" TextWrapping="Wrap" AutomationProperties.Name="实际课件正文与学习目标" />
+                </ScrollViewer>
+                <Button x:Name="CourseStartLearningButton" Content="已审阅，开始学习" Classes="primary-action" HorizontalAlignment="Left" IsEnabled="False" Click="OnStartCourseLearningClick" AutomationProperties.Name="审阅课件后显式开始学习" />
+              </StackPanel>
+              <Expander x:Name="CourseDiagnostics" Header="更多信息：课件读回与诊断" IsExpanded="False">
+                <StackPanel Spacing="8">
+                  <TextBlock Text="高级读回适用于本入口生成的单条知识课件；会再次核验来源并读取课件，不会开始学习。课程数据和渲染回执仅供诊断。" TextWrapping="Wrap" Classes="status-info" />
+                  <TextBox x:Name="CourseIdReadbackBox" PlaceholderText="已保存的 course_id" AutomationProperties.Name="高级课件标识读回" />
+                  <Button x:Name="CourseReadbackButton" Content="重新读取课件" HorizontalAlignment="Left" Click="OnReadCourseClick" AutomationProperties.Name="高级操作：重新读取已保存课件" />
+                  <ScrollViewer MaxHeight="240" HorizontalScrollBarVisibility="Disabled">
+                    <SelectableTextBlock x:Name="CourseDiagnosticsText" TextWrapping="Wrap" />
+                  </ScrollViewer>
+                </StackPanel>
+              </Expander>
+            </StackPanel>
+          </Border>
           <WrapPanel x:Name="LearningMetricsGrid" ItemWidth="280" ItemHeight="126" HorizontalAlignment="Stretch">
             <Border Classes="aaos-card" Padding="18" Margin="0,0,14,12">
               <Grid ColumnDefinitions="*,Auto" RowDefinitions="Auto,*">
                 <StackPanel Spacing="5">
                   <TextBlock Text="—" Classes="kpi-value metric-unknown" Foreground="{DynamicResource AaosPrimaryBrush}" />
-                  <TextBlock Text="本月掌握" Classes="status-empty" />
+                  <TextBlock Text="本月进展" Classes="status-empty" />
                 </StackPanel>
                 <local:AaosIcon Grid.Column="1" Width="20" Height="20" IconName="Thinking" Foreground="{DynamicResource AaosPrimaryBrush}" Opacity="0.8" />
                 <TextBlock Grid.Row="1" Grid.ColumnSpan="2" Margin="0,8,0,0" Text="尚无 Core 掌握投影" FontSize="10" Classes="lifecycle-label" />
@@ -1364,8 +1417,8 @@
               <Grid ColumnDefinitions="*,*" ColumnSpacing="14">
                 <Border Classes="aaos-card" Padding="16">
                   <StackPanel Spacing="8">
-                    <TextBlock Text="最近 Capture（未关联）" FontSize="12" FontWeight="SemiBold" Foreground="{DynamicResource AaosMutedBrush}" />
-                    <TextBlock x:Name="LearningCaptureContextText" Text="最近 Capture：尚未形成；未证明与当前学习项目关联。" TextWrapping="Wrap" FontSize="11" Foreground="{DynamicResource AaosMutedBrush}" />
+                    <TextBlock Text="最近捕获（未关联）" FontSize="12" FontWeight="SemiBold" Foreground="{DynamicResource AaosMutedBrush}" />
+                    <TextBlock x:Name="LearningCaptureContextText" Text="最近捕获：尚未形成；未证明与当前学习项目关联。" TextWrapping="Wrap" FontSize="11" Foreground="{DynamicResource AaosMutedBrush}" />
                     <StackPanel x:Name="LearningCaptureActions" Orientation="Horizontal" Spacing="8">
                       <Button x:Name="OpenLearningCaptureSourceButton" Content="打开最近来源" IsEnabled="False" Padding="12,7" Click="OnOpenLatestSourceClick" AutomationProperties.Name="打开最近来源" />
                       <Button x:Name="OpenLearningCaptureJobButton" Content="查看最近任务" IsEnabled="False" Padding="12,7" Click="OnOpenLatestJobClick" AutomationProperties.Name="查看最近任务" />
@@ -1379,7 +1432,7 @@
                     <TextBlock x:Name="LearningEvidenceText" Classes="provenance-evidence" Text="尚未载入 Core 学习来源。" TextWrapping="Wrap" />
                     <TextBlock Text="原件" FontSize="12" Foreground="{DynamicResource AaosMutedBrush}" />
                     <TextBlock x:Name="LearningOriginalText" Classes="provenance-original" Text="原件正文未从学习投影直接暴露。" TextWrapping="Wrap" />
-                    <TextBlock Text="Knowledge / Assessment 版本" FontSize="12" Foreground="{DynamicResource AaosMutedBrush}" />
+                    <TextBlock Text="知识 / 评估版本" FontSize="12" Foreground="{DynamicResource AaosMutedBrush}" />
                     <TextBlock x:Name="LearningVersionText" Classes="provenance-projection" Text="尚未生成" TextWrapping="Wrap" />
                     <Button x:Name="OpenLearningKnowledgeButton" Content="打开当前 Knowledge 详情" IsEnabled="False" HorizontalAlignment="Left" Padding="14,8" Click="OnOpenLearningKnowledgeClick" AutomationProperties.Name="打开当前 Knowledge 详情" />
                     <TextBlock Text="记忆读回" FontSize="12" Classes="provenance-review" />
@@ -1393,7 +1446,7 @@
                   <TextBlock Text="Review Card · 当前复习" Classes="section-heading" />
                   <TextBlock Text="Learner Answer" FontSize="12" Classes="provenance-original" />
                   <TextBox x:Name="LearningAnswerBox" PlaceholderText="输入你的回答" IsEnabled="False" AutomationProperties.Name="学习回答输入框" />
-                  <TextBlock Text="Assessment 判断" FontSize="12" Classes="status-info" />
+                  <TextBlock Text="评估判断" FontSize="12" Classes="status-info" />
                   <ComboBox x:Name="ReviewOutcomeBox" Classes="review-control" IsEnabled="False" SelectedIndex="0" AutomationProperties.Name="Core 正确性结果">
                     <ComboBoxItem Content="选择结果" />
                     <ComboBoxItem Content="回答正确" />
@@ -1486,14 +1539,16 @@
                   </Grid.RenderTransform>
                   <StackPanel x:Name="ReviewQuestionFace" Spacing="16" VerticalAlignment="Center" HorizontalAlignment="Stretch">
                     <TextBlock Text="QUESTION · 当前问题" Classes="lifecycle-label" HorizontalAlignment="Center" />
-                    <TextBlock x:Name="ReviewPagePromptText" Text="载入 Core 复习队列后显示当前 Assessment 问题。" TextWrapping="Wrap" Classes="section-heading" FontSize="26" HorizontalAlignment="Center" TextAlignment="Center" />
+                    <TextBlock x:Name="ReviewPagePromptText" Text="载入 Core 复习队列后显示当前复习问题。" TextWrapping="Wrap" Classes="section-heading" FontSize="26" HorizontalAlignment="Center" TextAlignment="Center" />
                     <Button x:Name="ReviewRevealButton" Classes="primary-action" IsEnabled="False" Content="展开复习" HorizontalAlignment="Center" Padding="22,12" Click="OnReviewRevealClick" AutomationProperties.Name="展开复习回答区" />
                   </StackPanel>
                   <StackPanel x:Name="ReviewAnswerFace" IsVisible="False" Spacing="12">
                     <TextBlock Text="RECALL · 先回想，再记录" Classes="lifecycle-label" />
                     <TextBox x:Name="ReviewPageAnswerBox" PlaceholderText="写下你的回答" AcceptsReturn="True" TextWrapping="Wrap" MinHeight="96" IsEnabled="False" AutomationProperties.Name="FSRS 复习回答" />
-                    <TextBlock x:Name="ReviewPageReceiptText" Text="评分、Evidence、Knowledge 版本和排程以 Core 回执为准。" TextWrapping="Wrap" Classes="provenance-projection" />
-                    <TextBlock Text="Assessment 判断" Classes="lifecycle-label" />
+                    <Expander x:Name="ReviewPageDiagnostics" Header="更多信息：来源与排程" IsExpanded="False">
+                      <TextBlock x:Name="ReviewPageReceiptText" Text="评分、Evidence、Knowledge 版本和排程以 Core 回执为准。" TextWrapping="Wrap" Classes="provenance-projection" Margin="0,10,0,0" />
+                    </Expander>
+                    <TextBlock Text="评估判断" Classes="lifecycle-label" />
                     <ComboBox x:Name="ReviewPageOutcomeBox" Classes="review-control" IsEnabled="False" SelectedIndex="0" SelectionChanged="OnReviewPageOutcomeChanged" AutomationProperties.Name="复习回答正确性">
                       <ComboBoxItem Content="选择结果" />
                       <ComboBoxItem Content="回答正确" />
@@ -1517,13 +1572,66 @@
                   <TextBlock Text="记忆调度" Classes="card-heading" />
                   <TextBlock Grid.Column="1" Text="Core projection" Classes="lifecycle-label" />
                 </Grid>
-                <local:AaosReviewScheduleChart MinHeight="340" HorizontalAlignment="Stretch" />
+                <local:AaosReviewScheduleChart x:Name="ReviewScheduleChart" MinHeight="340" HorizontalAlignment="Stretch" />
               </StackPanel>
             </Border>
           </Grid>
         </StackPanel>
         <StackPanel x:Name="MachineKnowledgeSurface" IsVisible="False" Spacing="14">
-          <TextBlock Text="知识供给、模型理解、自动标签、知识关联" TextWrapping="Wrap" Foreground="{DynamicResource AaosMutedBrush}" />
+          <Border Classes="aaos-card" Padding="22">
+            <StackPanel Spacing="16">
+              <TextBlock Text="一起改进回答" Classes="section-heading" />
+              <TextBlock Text="选择已接受的知识，提出问题；发现错误时，用你的纠正让机器再答一次。" TextWrapping="Wrap" Foreground="{DynamicResource AaosMutedBrush}" />
+              <Border Classes="aaos-card-compact" Padding="14">
+                <StackPanel Spacing="8">
+                  <TextBlock Text="1 · 选择知识并提问" Classes="card-heading" />
+                  <TextBlock x:Name="MachineKnowledgePreviewText" Text="从知识库打开一条知识，点击“让机器回答这条知识”。" TextWrapping="Wrap" MaxHeight="180" />
+                  <Button Content="前往知识库" Click="OnKnowledgeClick" HorizontalAlignment="Left" Padding="14,8" AutomationProperties.Name="前往知识库选择已接受知识" />
+                  <TextBox x:Name="MachineQuestionBox" PlaceholderText="针对这条知识，你想问什么？" AcceptsReturn="True" TextWrapping="Wrap" MinHeight="80" MaxHeight="180" AutomationProperties.Name="机器学习问题" />
+                  <Button x:Name="MachineAskButton" Content="回答问题" Classes="primary-action" Click="OnMachineAnswerClick" HorizontalAlignment="Left" Padding="18,10" AutomationProperties.Name="使用已接受知识请求模型回答" />
+                </StackPanel>
+              </Border>
+              <Border Classes="aaos-card-compact aaos-animated-surface" Padding="14">
+                <StackPanel Spacing="9">
+                  <TextBlock Text="2 · 检查回答，写下纠正" Classes="card-heading" />
+                  <TextBlock x:Name="MachineAskedQuestionText" Text="先选择知识，再提出一个具体问题。" TextWrapping="Wrap" Foreground="{DynamicResource AaosMutedBrush}" />
+                  <SelectableTextBlock x:Name="MachineAnswerText" Text="回答会显示在这里，请对照知识自行判断。" TextWrapping="Wrap" />
+                  <TextBox x:Name="MachineErrorNoteBox" PlaceholderText="具体哪一处有错误？" IsEnabled="False" AcceptsReturn="True" TextWrapping="Wrap" MinHeight="64" AutomationProperties.Name="真人发现的具体错误" />
+                  <TextBox x:Name="MachineCorrectedAnswerBox" PlaceholderText="写下你认为正确的回答" IsEnabled="False" AcceptsReturn="True" TextWrapping="Wrap" MinHeight="80" AutomationProperties.Name="真人纠正后的回答" />
+                  <Button x:Name="MachineCorrectButton" Content="记录我的纠正" IsEnabled="False" Click="OnMachineCorrectionClick" HorizontalAlignment="Left" Padding="18,10" AutomationProperties.Name="保存真人纠正为待复核候选" />
+                </StackPanel>
+              </Border>
+              <Border Classes="aaos-card-compact" Padding="14">
+                <StackPanel Spacing="9">
+                  <TextBlock Text="3 · 复核纠正，再答原题" Classes="card-heading" />
+                  <TextBlock x:Name="MachineCorrectionPreviewText" Text="发现错误后，写下原因和你认为正确的回答。" TextWrapping="Wrap" />
+                  <WrapPanel Orientation="Horizontal">
+                    <Button x:Name="MachineAcceptCorrectionButton" Content="接受这条纠正" IsEnabled="False" Click="OnMachineAcceptCorrectionClick" Margin="0,0,8,8" Padding="18,10" AutomationProperties.Name="真人接受已显示的纠正候选" />
+                    <Button x:Name="MachineRetestButton" Content="使用纠正重答原题" Classes="primary-action" IsEnabled="False" Click="OnMachineRetestClick" Margin="0,0,0,8" Padding="18,10" AutomationProperties.Name="链接失败任务重新回答原题" />
+                  </WrapPanel>
+                  <SelectableTextBlock x:Name="MachineRetestAnswerText" Text="接受纠正后，再次回答同一个问题。" TextWrapping="Wrap" />
+                  <TextBlock Text="比较两次回答，判断纠正是否有帮助。保存记录不会自动训练模型。" TextWrapping="Wrap" Foreground="{DynamicResource AaosMutedBrush}" FontSize="12" />
+                  <Button x:Name="MachineJourneyReadbackButton" Content="重新读取已保存记录" IsEnabled="False" Click="OnMachineJourneyReadbackClick" HorizontalAlignment="Left" Padding="14,8" AutomationProperties.Name="重新读取已保存的机器学习旅程" />
+                </StackPanel>
+              </Border>
+              <ProgressBar x:Name="MachineJourneyProgress" IsIndeterminate="True" IsVisible="False" Height="4" AutomationProperties.Name="机器学习请求正在执行" />
+              <TextBlock x:Name="MachineJourneyWaitingText" Text="正在处理，请稍候…" IsVisible="False" Classes="status-info" AutomationProperties.LiveSetting="Polite" />
+              <TextBlock x:Name="MachineJourneyStatusText" Text="等待选择知识和问题。" TextWrapping="Wrap" Classes="status-empty" AutomationProperties.LiveSetting="Polite" />
+              <Expander Header="查看更早轮次的回答与纠正" IsExpanded="False">
+                <SelectableTextBlock x:Name="MachineJourneyHistoryText" Text="尚无更早轮次。" TextWrapping="Wrap" Margin="0,10,0,0" />
+              </Expander>
+              <Expander x:Name="MachineJourneyDiagnostics" Header="更多信息：身份与请求诊断" IsExpanded="False">
+                <StackPanel Spacing="10" Margin="0,10,0,0">
+                  <TextBlock Text="可从知识库带入条目，也可手动指定已接受知识。" TextWrapping="Wrap" />
+                  <TextBox x:Name="MachineKnowledgeIdBox" PlaceholderText="knowledge_id" AutomationProperties.Name="高级机器学习知识标识" />
+                  <SelectableTextBlock x:Name="MachineJourneyIdentityText" Text="尚无持久化身份。" TextWrapping="Wrap" />
+                  <SelectableTextBlock x:Name="MachineJourneyDiagnosticsText" Text="尚未发送请求。" TextWrapping="Wrap" />
+                </StackPanel>
+              </Expander>
+            </StackPanel>
+          </Border>
+          <Expander Header="更多信息：知识供给与模型指标" IsExpanded="False">
+            <StackPanel Spacing="14" Margin="0,10,0,0">
           <WrapPanel x:Name="MachineMetricGrid" Orientation="Horizontal" ItemWidth="250" ItemHeight="126" HorizontalAlignment="Stretch">
             <Border Classes="aaos-kpi" Padding="12,10" Margin="0,0,12,12" AutomationProperties.Name="知识模块指标，等待 Core 汇总">
               <StackPanel Spacing="4">
@@ -1608,7 +1716,9 @@
               </StackPanel>
             </Border>
           </Grid>
-          <Expander x:Name="MachineTaskReceiptDetails" Header="机器任务收据" IsExpanded="False" AutomationProperties.Name="展开机器任务收据查询">
+            </StackPanel>
+          </Expander>
+          <Expander x:Name="MachineTaskReceiptDetails" Header="恢复记录与任务诊断" IsExpanded="False" AutomationProperties.Name="展开机器任务收据查询">
             <StackPanel Spacing="12" Margin="0,10,0,0">
               <TextBlock Text="读取指定机器任务收据。回执是测量事实，不代表模型已训练或知识已自动升级。" TextWrapping="Wrap" Foreground="{DynamicResource AaosMutedBrush}" />
               <Grid x:Name="MachineTaskGrid" Classes="aaos-toolbar" ColumnDefinitions="*,Auto" RowDefinitions="Auto" ColumnSpacing="10" RowSpacing="10">
@@ -1623,7 +1733,6 @@
               </Border>
             </StackPanel>
           </Expander>
-          <TextBlock Text="Core 尚未提供机器知识 readiness 总览或历史趋势投影。" Classes="status-warning" FontSize="11" TextWrapping="Wrap" AutomationProperties.Name="FRONTEND_IMPLEMENTED_BACKEND_BLOCKED · 机器学习投影待 Core 接入" />
         </StackPanel>
         <StackPanel x:Name="RecoverySurface" IsVisible="False" Spacing="16">
           <Border Classes="aaos-card" Padding="20,18" Background="{DynamicResource AaosSurface2Brush}">
@@ -1671,7 +1780,9 @@
                 <Button x:Name="ReadRecoveryStatusButton" Grid.Column="1" Classes="primary-action" Content="读取当前边界" Padding="16,9" Click="OnReadRecoveryStatusClick" AutomationProperties.Name="读取恢复边界状态" ToolTip.Tip="读取 /api/v1/system/version 与 /api/v1/workspaces/info；不会执行恢复" />
               </Grid>
               <Border Padding="16" CornerRadius="10" Background="{DynamicResource AaosSurface2Brush}" BorderBrush="{DynamicResource AaosBorderBrush}" BorderThickness="1">
-                <TextBlock x:Name="RecoveryResultsText" Classes="status-empty" Text="empty · 点击读取 Core 状态。" TextWrapping="Wrap" AutomationProperties.Name="Core 恢复边界回读" AutomationProperties.LiveSetting="Polite" />
+                <Expander x:Name="RecoveryDiagnostics" Header="更多信息：恢复检查记录" IsExpanded="False">
+                  <TextBlock x:Name="RecoveryResultsText" Classes="status-empty" Text="empty · 点击读取 Core 状态。" TextWrapping="Wrap" AutomationProperties.Name="Core 恢复边界回读" AutomationProperties.LiveSetting="Polite" />
+                </Expander>
               </Border>
               <TextBlock Text="执行恢复仍需 Core 备份清单、目标版本校验、授权确认、事务结果及回滚回执；这些合同当前未接入。" Classes="status-warning" FontSize="11" TextWrapping="Wrap" />
             </StackPanel>
@@ -1688,16 +1799,18 @@
                   <local:AaosMemoryGraphView x:Name="MemoryMapMotherGraph" NodeSelected="OnMemoryMapNodeSelected" />
                 </Viewbox>
                 <TextBlock Grid.Row="2" Text="示意网络不代表 Core 知识条目或真实关系；真实图谱投影尚未提供。" Classes="status-empty" TextWrapping="Wrap" />
-                <Expander Grid.Row="3" Header="图谱控制与 Core Knowledge 谱系" IsExpanded="False" AutomationProperties.Name="展开记忆地图图谱控制与 Core 谱系">
+                <Expander Grid.Row="3" Header="高级：图谱控制与知识关系查询" IsExpanded="False" AutomationProperties.Name="展开记忆地图图谱控制与知识关系查询">
                   <StackPanel Spacing="10" Margin="0,8,0,0">
-                    <TextBlock x:Name="MemoryMapStatusText" Classes="status-empty" Text="尚未读取 Core Knowledge lineage。Core 尚未提供 Memory Graph 节点与关系投影。" TextWrapping="Wrap" AutomationProperties.Name="记忆地图状态；图形元素不代表实时 Core 数据" />
+                    <TextBlock x:Name="MemoryMapStatusText" Classes="status-empty" Text="尚未读取 Core 的知识谱系。Core 尚未提供记忆图谱的节点与关系投影。" TextWrapping="Wrap" AutomationProperties.Name="记忆地图状态；图形元素不代表实时 Core 数据" />
                     <Grid x:Name="MemoryMapToolbar" Classes="aaos-toolbar" ColumnDefinitions="*,Auto" RowDefinitions="Auto" ColumnSpacing="8" RowSpacing="8">
                       <TextBox x:Name="MemoryMapKnowledgeIdBox" PlaceholderText="knowledge_id" KeyDown="OnToolbarInputKeyDown" AutomationProperties.Name="记忆地图 knowledge_id 输入" />
                       <Button x:Name="MemoryMapLoadButton" Classes="primary-action" Grid.Column="1" Content="读取谱系" Padding="12,9" Click="OnMemoryMapLoadClick" AutomationProperties.Name="读取 Knowledge 谱系" />
                     </Grid>
                     <TextBlock x:Name="MemoryMapNodeDetailsText" Text="选择示意节点；真实关联详情等待 Core Graph projection。" TextWrapping="Wrap" Foreground="{DynamicResource AaosMutedBrush}" />
-                    <TextBlock x:Name="MemoryMapResultsText" Text="输入 knowledge_id 后读取 Core。" TextWrapping="Wrap" Classes="provenance-projection" AutomationProperties.Name="Knowledge 谱系结果" />
-                    <TextBlock Text="谱系不等于 Memory Graph；当前不展示随机关系或未绑定来源的结论。" TextWrapping="Wrap" FontSize="11" Classes="status-empty" />
+                    <Expander x:Name="MemoryMapDiagnostics" Header="更多信息：知识关系记录" IsExpanded="False">
+                      <TextBlock x:Name="MemoryMapResultsText" Text="输入 knowledge_id 后读取 Core。" TextWrapping="Wrap" Classes="provenance-projection" AutomationProperties.Name="Knowledge 谱系结果" />
+                    </Expander>
+                    <TextBlock Text="谱系不等于记忆图谱；当前不展示随机关系或未绑定来源的结论。" TextWrapping="Wrap" FontSize="11" Classes="status-empty" />
                   </StackPanel>
                 </Expander>
               </Grid>
@@ -1948,11 +2061,12 @@
                   <Grid ColumnDefinitions="*,190" ColumnSpacing="16">
                     <StackPanel Spacing="5" VerticalAlignment="Center">
                       <TextBlock Text="外观" Classes="section-heading" />
-                      <TextBlock Text="选择 Aurora Teal 或黑白深色主题。" Classes="status-empty" TextWrapping="Wrap" />
+                      <TextBlock Text="选择深空、白色或黑色主题。" Classes="status-empty" TextWrapping="Wrap" />
                     </StackPanel>
                     <ComboBox x:Name="SettingsThemePaletteBox" Grid.Column="1" SelectedIndex="0" MinHeight="44" VerticalAlignment="Center" AutomationProperties.Name="界面主题选择" ToolTip.Tip="切换主题配色；页面结构保持母版一致">
-                      <ComboBoxItem Content="Aurora Teal（默认）" />
-                      <ComboBoxItem Content="黑白深色" />
+                      <ComboBoxItem Content="深空主题（默认）" />
+                      <ComboBoxItem Content="白色主题" />
+                      <ComboBoxItem Content="黑色主题" />
                     </ComboBox>
                   </Grid>
                 </Border>
@@ -2016,7 +2130,7 @@
               <StackPanel Grid.Column="1" Spacing="6">
                 <TextBlock Text="任务回执" Classes="section-heading" />
                 <TextBlock Text="JOBS · CORE RECEIPTS" Classes="provenance-tag" FontSize="11" />
-                <TextBlock Text="查看本次桌面会话创建的导入任务，或按已知 job_id 读取 Core 回执。当前没有全量持久任务列表投影。" TextWrapping="Wrap" Foreground="{DynamicResource AaosMutedBrush}" />
+                <TextBlock Text="查看本次会话的资料导入进度和失败原因。历史任务可通过高级查询读取。" TextWrapping="Wrap" Foreground="{DynamicResource AaosMutedBrush}" />
               </StackPanel>
             </Grid>
           </Border>
@@ -2025,16 +2139,20 @@
               <Grid ColumnDefinitions="Auto,*" ColumnSpacing="10">
                 <local:AaosIcon Width="18" Height="18" IconName="Search" Foreground="{DynamicResource AaosPrimaryBrush}" />
                 <StackPanel Grid.Column="1" Spacing="3">
-                  <TextBlock Text="按任务 ID 查询" Classes="section-heading" />
-                  <TextBlock Text="读取指定 job_id 的 Core 回执；未找到不会被解释为成功。" Classes="status-empty" TextWrapping="Wrap" />
+                  <TextBlock Text="高级任务查询" Classes="section-heading" />
+                  <TextBlock Text="通过保存的任务标识读取详细记录。" Classes="status-empty" TextWrapping="Wrap" />
                 </StackPanel>
               </Grid>
+              <Expander x:Name="JobLookupAdvanced" Header="高级：按任务标识读取" IsExpanded="False">
               <Grid x:Name="JobLookupGrid" Classes="aaos-toolbar" ColumnDefinitions="*,Auto" RowDefinitions="Auto" ColumnSpacing="10" RowSpacing="10">
                 <TextBox x:Name="JobLookupIdBox" PlaceholderText="输入 job_id 读取回执" KeyDown="OnToolbarInputKeyDown" AutomationProperties.Name="job_id 输入" />
                 <Button x:Name="JobLookupButton" Grid.Column="1" Classes="primary-action" Content="读取任务回执" Padding="16,9" Click="OnReadJobReceiptClick" AutomationProperties.Name="读取指定任务回执" />
               </Grid>
+              </Expander>
               <Border Padding="14" CornerRadius="9" Background="{DynamicResource AaosSurface2Brush}" BorderBrush="{DynamicResource AaosBorderBrush}" BorderThickness="1">
-                <TextBlock x:Name="JobLookupResultsText" Classes="status-empty" Text="empty · 未读取指定任务回执。" TextWrapping="Wrap" AutomationProperties.Name="指定任务回执结果" AutomationProperties.LiveSetting="Polite" />
+                <Expander x:Name="JobLookupDiagnostics" Header="更多信息：任务读取记录" IsExpanded="False">
+                  <TextBlock x:Name="JobLookupResultsText" Classes="status-empty" Text="empty · 未读取指定任务回执。" TextWrapping="Wrap" AutomationProperties.Name="指定任务回执结果" AutomationProperties.LiveSetting="Polite" />
+                </Expander>
               </Border>
             </StackPanel>
           </Border>
@@ -2073,7 +2191,7 @@
                               <local:AaosIcon Width="17" Height="17" IconName="Import" Foreground="{DynamicResource AaosPrimaryBrush}" HorizontalAlignment="Center" VerticalAlignment="Center" />
                             </Border>
                             <StackPanel Grid.Column="1" Spacing="5">
-                              <TextBlock Text="Core job receipt · current session" FontSize="11" Foreground="{DynamicResource AaosMutedBrush}" />
+                              <TextBlock Text="本次会话的导入任务" FontSize="11" Foreground="{DynamicResource AaosMutedBrush}" />
                               <TextBlock Text="{Binding}" TextWrapping="Wrap" Foreground="{DynamicResource AaosIvoryBrush}" />
                               <TextBlock Text="不代表持久历史任务" FontSize="11" Foreground="{DynamicResource AaosMutedBrush}" />
                             </StackPanel>
@@ -2089,7 +2207,7 @@
         </StackPanel>
       </StackPanel>
     </ScrollViewer>
-    <Border x:Name="InspectorPanel" Classes="aaos-animated-surface inspector-drawer" Grid.Row="1" Grid.Column="3" Padding="18,24" Background="{DynamicResource AaosSidebarBrush}" BorderBrush="{DynamicResource AaosBorderBrush}" BorderThickness="1,0,0,0" Focusable="True" AutomationProperties.Name="来源与证据检查器">
+    <Border x:Name="InspectorPanel" Classes="aaos-animated-surface aaos-glass inspector-drawer" Grid.Row="1" Grid.Column="3" Padding="18,24" Background="{DynamicResource AaosGlassBrush}" BorderBrush="{DynamicResource AaosGlassRimBrush}" BorderThickness="1,0,0,0" Focusable="True" AutomationProperties.Name="来源与证据检查器">
       <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
         <StackPanel Spacing="18">
           <TextBlock Text="来源与证据" FontSize="12" FontWeight="SemiBold" Foreground="{DynamicResource AaosMutedBrush}" />
@@ -2103,6 +2221,8 @@
             <StackPanel Spacing="7">
               <TextBlock Text="当前上下文" FontSize="12" Foreground="{DynamicResource AaosMutedBrush}" />
               <TextBlock x:Name="InspectorSectionText" Text="首页" Classes="section-heading" AutomationProperties.Name="当前上下文" />
+              <Expander x:Name="InspectorIdentityDiagnostics" Header="更多信息：对象身份与来源" IsExpanded="False">
+              <StackPanel Spacing="7">
               <TextBlock x:Name="InspectorObjectText" Text="未选择对象" TextWrapping="Wrap" FontSize="14" FontWeight="SemiBold" Foreground="{DynamicResource AaosIvoryBrush}" AutomationProperties.Name="当前对象" />
               <TextBlock x:Name="InspectorDetailsText" Text="对象来源、版本和证据将在选择具体对象后显示。" TextWrapping="Wrap" FontSize="12" Foreground="{DynamicResource AaosMutedBrush}" AutomationProperties.Name="对象详情" />
               <TextBlock Text="结构化来源字段" FontSize="12" FontWeight="SemiBold" Foreground="{DynamicResource AaosMutedBrush}" Margin="0,8,0,0" />
@@ -2125,6 +2245,8 @@
                 </StackPanel>
               </Border>
               <TextBlock x:Name="InspectorProvenanceText" Text="未选择对象；来源链未加载。" TextWrapping="Wrap" FontSize="12" Foreground="{DynamicResource AaosMutedBrush}" AutomationProperties.Name="对象来源链" />
+              </StackPanel>
+              </Expander>
               <StackPanel x:Name="InspectorActionPanel" Orientation="Horizontal" Spacing="8" Margin="0,8,0,0">
                 <Button x:Name="InspectorOpenSourceButton" Content="打开来源" IsEnabled="False" Padding="12,7" Click="OnInspectorOpenSourceClick" AutomationProperties.Name="打开来源" />
                 <Button x:Name="InspectorOpenKnowledgeButton" Content="打开 Knowledge" IsEnabled="False" Padding="12,7" Click="OnInspectorOpenKnowledgeClick" AutomationProperties.Name="打开 Knowledge" />
@@ -2142,7 +2264,7 @@
         </StackPanel>
       </ScrollViewer>
     </Border>
-    <Border x:Name="ActivityDock" Classes="aaos-animated-surface" Grid.Row="2" Grid.Column="1" Grid.ColumnSpan="3" Padding="18,2" Background="{DynamicResource AaosSidebarBrush}" BorderBrush="{DynamicResource AaosBorderBrush}" BorderThickness="0,1,0,0">
+    <Border x:Name="ActivityDock" Classes="aaos-animated-surface aaos-glass" Grid.Row="2" Grid.Column="1" Grid.ColumnSpan="3" Padding="18,2" Background="{DynamicResource AaosGlassBrush}" BorderBrush="{DynamicResource AaosGlassRimBrush}" BorderThickness="0,1,0,0">
       <Grid x:Name="ActivityDockGrid" RowDefinitions="Auto">
         <Border x:Name="ActivityDockBrandFooter" Padding="0" IsVisible="True">
           <TextBlock Text="ArcheAxis · PRODUCT UI · LOCAL KNOWLEDGE WORKSPACE" FontSize="10" Foreground="{DynamicResource AaosMutedBrush}" VerticalAlignment="Center" />

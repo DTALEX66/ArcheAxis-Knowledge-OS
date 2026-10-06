@@ -4,16 +4,30 @@
 > a document; it never promotes a plan, handoff, test fixture, release tag, or
 > historical snapshot into live product evidence.
 
-## Current read order (2026-09-27)
+## Current read order (2026-10-05)
 
 1. [AGENTS](../AGENTS.md), [project contract](../PROJECT_CONTRACT.yaml) and
    [decision supersession ledger](../DECISION_SUPERSESSION_LEDGER.yaml).
-2. [R6 executor](authority/taskpack-0919-r6/EXECUTOR-START.md) and
-   [immutable TASKS](authority/taskpack-0919-r6/TASKS.json) — the single active
-   package, `AAK-LOCAL-GREEN-ABSORB-FIRST-20260919-R6`. Live progress is
-   [R6-EXECUTION](current/R6-EXECUTION.md) and [R6-STATE](current/R6-STATE.json).
-   The current priority overlay is
-   [M0 direction override](current/M0-DIRECTION-OVERRIDE-20260920.md).
+   `PROJECT_CONTRACT.content_policy` is the canonical normative content/save,
+   recognition-fidelity/professional-support and AI-use policy, validated by
+   [its Schema](../.project/schemas/project-contract.schema.json). Policy text
+   does not establish implementation or acceptance status.
+2. The active execution package is AAOS-01 (2026-10-04), applied by SUP-022
+   and the execution specification linked below.
+   [R6 executor](authority/taskpack-0919-r6/EXECUTOR-START.md),
+   [immutable TASKS](authority/taskpack-0919-r6/TASKS.json),
+   [R6-EXECUTION](current/R6-EXECUTION.md), [R6-STATE](current/R6-STATE.json)
+   and [M0 direction override](current/M0-DIRECTION-OVERRIDE-20260920.md)
+   retain inherited constraints and their own historical receipts; they do not
+   establish a parallel AAOS-01 execution queue.
+   SUP-022 applies the owner-selected Tauri 2 + React/TypeScript/Vite refactor
+   through the immutable [AAOS-01 execution specification](authority/taskpack-1004-aaos01/01_完整执行任务书.md)
+   and [joint architecture rules](authority/taskpack-1004-aaos01/00_两包共同架构与交接规则.md).
+   It preserves Rust Core as sole writer, isolated Python workers and R6/M0
+   evidence/no-release boundaries. The existing
+   [AAOS-01 current ledger](current/AAOS01-Q00-Q15-LEDGER-FINAL-20261005.md)
+   is the single live Q00–Q15 progress record; old planning registries and dated
+   handoffs do not create parallel state truth or override current requirements.
    A recorded drift and branch/path audit is the dated
    [REPOSITORY-DRIFT-CURRENT-RECEIPT-20260923](current/REPOSITORY-DRIFT-CURRENT-RECEIPT-20260923.md)
    snapshot; it is not live Git truth after 2026-09-23. The older
@@ -42,9 +56,10 @@
    [runtime delivery](RUNTIME_DELIVERY_AUTHORITY_INDEX.md).
 4. Historical evidence below, bound to its original date and tested SHA.
 
-The old G0 shadow-cutover, React/Tauri default, R5 taskpacks and R2/R3 plans
+The old G0 shadow-cutover, legacy React/Tauri default, R5 taskpacks and R2/R3 plans
 are superseded by the R6 TaskPack and M0 overlay. Their evidence remains
-historical and is never a current execution queue.
+historical and is never a current execution queue. SUP-022's formal Tauri/Core
+refactor does not reactivate the legacy Python backend or the old G0 sequence.
 
 ## Historical read order and evidence map
 
@@ -95,6 +110,8 @@ CI, release, or user-data migration unless it names that evidence layer.
 | Historical capability model and current execution state | [historical capability snapshot](truth/CURRENT_STATE_TRUTH.md) + [R6 state](current/R6-STATE.json) + [R6 execution](current/R6-EXECUTION.md) + [M0 priority](current/M0-DIRECTION-OVERRIDE-20260920.md) | `CURRENT_STATE_TRUTH.md` is the 2026-08-09 historical model only; its execution claims are superseded. R6/M0 are the current execution authorities. |
 | Frozen task baseline | [Frozen execution baseline](truth/FROZEN_EXECUTION_BASELINE_v1_2026-08-09.md) | Frozen; do not rewrite |
 | Active forward work | [R6 executor](authority/taskpack-0919-r6/EXECUTOR-START.md) + [R6 execution](current/R6-EXECUTION.md) + [M0 overlay](current/M0-DIRECTION-OVERRIDE-20260920.md) | Current task pack and priority overlay |
+| Current formal host and AAOS-01 increment | [SUP-022](../DECISION_SUPERSESSION_LEDGER.yaml) + [1004 specification](authority/taskpack-1004-aaos01/01_完整执行任务书.md) + [existing AAOS-01 ledger](current/AAOS01-Q00-Q15-LEDGER-FINAL-20261005.md) | Formal Tauri/React host and Rust Core; specification is not a completion receipt |
+| Content/save and AI-use policy | [Project contract](../PROJECT_CONTRACT.yaml) `content_policy` + [architecture explanation](architecture/CURRENT_ARCHITECTURE.md) | Normative; actual implementation and tests remain separately evidenced |
 | Drift / branch / output audit | [2026-09-23 receipt](current/REPOSITORY-DRIFT-CURRENT-RECEIPT-20260923.md) + [frozen audit](current/DOCUMENTATION-DRIFT-AUDIT-20260923.md) | Dated evidence only; neither authorizes deletion or merge |
 | Branch disposition | [2026-09-23 branch table](current/BRANCH-DISPOSITION-CURRENT-20260923.md) | Dated read-only snapshot; refresh from live refs. Merge/delete requires separate owner gate |
 | Dated local branch/worktree/data-lineage snapshot | [2026-09-25 readback](current/AAOS-LOCAL-REPOSITORY-LINEAGE-READBACK-20260925.md) | Cached refs and metadata only; remote/content provenance unknown; no cleanup/merge authorization |
@@ -139,7 +156,7 @@ release status, or task order:
 - `current/UI_PRODUCTION_ADOPTION_V3_2026-08-27.md`
 - `current/AAOS-CLOUD-AUDIT-RECONCILIATION-20260923.md`
 - `current/UI_V3_PRODUCT_ROADMAP.md` (mixed dated record: its opening current visual-authority statements align with C#/Avalonia; React/Tauri page inventory and P0R/P0.5/P1/P2 execution plans are historical snapshots, not current Avalonia implementation status)
-- `truth/ARCHITECTURE_FINAL.md` (2026-08 architecture proposal; its Tauri/React shell diagram is historical and superseded by current C#/Avalonia authority)
+- `truth/ARCHITECTURE_FINAL.md` (2026-08 architecture proposal; its shell diagram is historical, not the SUP-022 formal Tauri/Core implementation)
 - `truth/AUTHORITY_CONTRACT.md` (2026-08 authority-order snapshot; its frozen-baseline task-source rule is superseded by R6/M0)
 - `current/DSH-COMPLETION-REPORT-20260918.md`
 - `current/HERMES-FULL-AUDIT-PROMPT-20260918.md`
@@ -154,12 +171,21 @@ Their status banners are intentional. Physical relocation or deletion requires a
 separate path/hash/reference manifest and compatibility-link update; until then,
 preserve them as evidence and follow the R6/M0 files above.
 
+The three superseded AAOS-01 ledgers `AAOS01-Q00-Q15-LEDGER-20261005.md`,
+`AAOS01-Q00-Q15-LEDGER-DELTA-20261005-R216.md` and `AAOS01-FIRST-PACKAGE-LEDGER.md`
+have been archived byte-for-byte under `history/aaos01-20261005/`; their original
+`current/` paths retain compatibility entries pointing to the originals and the
+single current FINAL ledger. Exact source/target hashes, consumers and recovery
+are appended to the existing [consolidation manifest](history/DOCUMENT-CONSOLIDATION-20260927.json)
+with execution date 2026-10-05. Earlier manifest rows and the existing Q02
+supersession headers remain unchanged. No immutable package or raw receipt was deleted.
+
 ## Cleanup and migration safety
 
 - Tracked historical documents may be moved only after a path/hash/reference
   manifest, compatibility-link update and regression check. They are not
   disposable merely because their date is old.
-- The formal route is Avalonia/C#, a separate Rust-owned vNext database, and
+- The formal route under SUP-022 is Tauri 2/React with finite host commands, a separate Rust-owned vNext database, and
   isolated Python workers. Legacy data retains its existing writer until
   validated migration; no shared database or dual write.
 - No Green `data`, runtime database, ignored evidence, compatibility shim,

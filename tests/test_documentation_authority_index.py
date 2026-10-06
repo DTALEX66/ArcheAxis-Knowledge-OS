@@ -176,7 +176,8 @@ def test_readme_marks_pre_r6_capability_and_phase_roadmaps_as_historical() -> No
     readme = (ROOT / "README.md").read_text(encoding="utf-8")
     assert "Historical snapshot: pre-R6 Research implementation" in readme
     assert "Historical snapshot: pre-R6 program roadmap" in readme
-    assert "Current execution is defined by R6/M0" in readme
+    assert "Current execution is defined by AAOS-01" in readme
+    assert "AAOS01-Q00-Q15-LEDGER-FINAL-20261005.md" in readme
     assert "当前事实、限制和验证证据见 [`docs/PROJECT_STATUS.md`]" not in readme
 
 

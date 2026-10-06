@@ -1,0 +1,109 @@
+{
+  "schema": "archeaxis.capability-map/v1",
+  "note": "The join between the approved capability directory and what the runtime implements. The atlas (docs/truth/CAPABILITY_ATLAS_V2.yaml) owns capability_id and intent; services/python-workers/routes.json owns which worker serves which runtime capability. This file owns only the link between them, so no capability's implementation state is written down twice.",
+  "states": {
+    "worker_backed": "an approved capability realized by one or more declared worker routes",
+    "core_native": "realized by the Core's own routes rather than a worker; it has no worker capability",
+    "not_implemented": "approved and retained, with nothing implementing it yet"
+  },
+  "capabilities": [
+    {
+      "capability_id": "CAP-0010",
+      "state": "core_native",
+      "runtime_capabilities": []
+    },
+    {
+      "capability_id": "CAP-0020",
+      "state": "worker_backed",
+      "runtime_capabilities": [
+        "archive.inventory",
+        "canvas.structure",
+        "html.structure",
+        "image.caption",
+        "image.ocr",
+        "media.probe",
+        "media.transcribe",
+        "media.video",
+        "office.structure",
+        "pdf.extract",
+        "subtitles.structure"
+      ]
+    },
+    {
+      "capability_id": "CAP-0030",
+      "state": "core_native",
+      "runtime_capabilities": []
+    },
+    {
+      "capability_id": "CAP-0040",
+      "state": "core_native",
+      "runtime_capabilities": []
+    },
+    {
+      "capability_id": "CAP-0050",
+      "state": "worker_backed",
+      "runtime_capabilities": [
+        "machine.answer"
+      ]
+    },
+    {
+      "capability_id": "CAP-0060",
+      "state": "worker_backed",
+      "runtime_capabilities": [
+        "course.general"
+      ]
+    },
+    {
+      "capability_id": "CAP-0070",
+      "state": "not_implemented",
+      "runtime_capabilities": []
+    },
+    {
+      "capability_id": "CAP-0080",
+      "state": "not_implemented",
+      "runtime_capabilities": []
+    },
+    {
+      "capability_id": "CAP-0090",
+      "state": "core_native",
+      "runtime_capabilities": []
+    },
+    {
+      "capability_id": "CAP-0100",
+      "state": "not_implemented",
+      "runtime_capabilities": []
+    },
+    {
+      "capability_id": "CAP-0110",
+      "state": "worker_backed",
+      "runtime_capabilities": [
+        "search.semantic"
+      ]
+    },
+    {
+      "capability_id": "CAP-0120",
+      "state": "core_native",
+      "runtime_capabilities": []
+    },
+    {
+      "capability_id": "CAP-0130",
+      "state": "not_implemented",
+      "runtime_capabilities": []
+    },
+    {
+      "capability_id": "CAP-0140",
+      "state": "core_native",
+      "runtime_capabilities": []
+    },
+    {
+      "capability_id": "CAP-0150",
+      "state": "not_implemented",
+      "runtime_capabilities": []
+    },
+    {
+      "capability_id": "CAP-0160",
+      "state": "not_implemented",
+      "runtime_capabilities": []
+    }
+  ]
+}

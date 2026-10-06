@@ -144,7 +144,43 @@ pub struct ReviewReceipt {
 /// A rebuildable learner-state projection. It is deliberately marked open:
 /// review observations and FSRS scheduling do not establish Knowledge truth
 /// or a closed mastery claim.
-fn mastery_projection_json(schedule_json: &str, correct_streak: u32) -> String {
+/// What the learner actually did, re-derived from the event log alone.
+///
+/// These are counts and timestamps, not judgements. Nothing here needs a competence ledger, and
+/// reporting them is what lets the product show progress without closing a mastery claim.
+fn learner_observation(
+    conn: &Connection,
+    item_key: &str,
+) -> rusqlite::Result<(u32, u32, Option<String>)> {
+    conn.query_row(
+        "SELECT
+             count(*),
+             count(DISTINCT CASE WHEN COALESCE(json_extract(outcome, '$.outcome') = 'correct',
+                                               json_type(outcome, '$.correct') = 'true', 0)
+                                 THEN date(created_at) END),
+             max(CASE WHEN COALESCE(json_extract(outcome, '$.outcome') = 'correct',
+                                    json_type(outcome, '$.correct') = 'true', 0)
+                      THEN created_at END)
+         FROM learning_events
+         WHERE item_key = ?1 AND json_valid(outcome)",
+        [item_key],
+        |r| {
+            let attempts: i64 = r.get(0)?;
+            let days: i64 = r.get(1)?;
+            let last: Option<String> = r.get(2)?;
+            Ok((attempts.max(0) as u32, days.max(0) as u32, last))
+        },
+    )
+}
+
+fn mastery_projection_json(
+    schedule_json: &str,
+    correct_streak: u32,
+    attempts: u32,
+    distinct_correct_days: u32,
+    last_correct_at: Option<&str>,
+    next_review_at: Option<&str>,
+) -> String {
     let schedule: serde_json::Value =
         serde_json::from_str(schedule_json).unwrap_or_else(|_| serde_json::json!({}));
     serde_json::json!({
@@ -154,6 +190,12 @@ fn mastery_projection_json(schedule_json: &str, correct_streak: u32) -> String {
         "review_state": schedule["state"]["state"],
         "stability": schedule["state"]["stability"],
         "correct_streak": correct_streak,
+        // Counts and times the learner can recognise, added so the product can show progress
+        // without claiming mastery. They say what happened, never what it means.
+        "attempts": attempts,
+        "distinct_correct_days": distinct_correct_days,
+        "last_correct_at": last_correct_at,
+        "next_review_at": next_review_at,
     })
     .to_string()
 }
@@ -400,10 +442,12 @@ pub fn record_review_with_state_and_answer(
     } else {
         0
     };
-    let mastery_projection = mastery_projection_json(&schedule.schedule_json, streak_after);
+    // The projection describes the learner *after* this review, so it is derived once the event
+    // is on record. Deriving it first would report the state before the review being recorded -
+    // which is exactly the off-by-one the contract test caught.
     let outcome_json: String = tx.query_row(
-        "SELECT json_object('outcome', ?1, 'schedule', json(?2), 'answer', ?3, 'assessment_id', ?4, 'mastery_projection', json(?5))",
-        rusqlite::params![if correct { "correct" } else { "incorrect" }, schedule.schedule_json, answer, assessment_id, mastery_projection],
+        "SELECT json_object('outcome', ?1, 'schedule', json(?2), 'answer', ?3, 'assessment_id', ?4)",
+        rusqlite::params![if correct { "correct" } else { "incorrect" }, schedule.schedule_json, answer, assessment_id],
         |r| r.get(0),
     )?;
     tx.execute(
@@ -411,16 +455,36 @@ pub fn record_review_with_state_and_answer(
         rusqlite::params![item_key, kind, outcome_json, schedule.next_review],
     )?;
     let event_id = tx.last_insert_rowid();
+    let (attempts, distinct_correct_days, last_correct_at) = learner_observation(&tx, item_key)?;
+    let mastery_projection = mastery_projection_json(
+        &schedule.schedule_json,
+        streak_after,
+        attempts,
+        distinct_correct_days,
+        last_correct_at.as_deref(),
+        schedule.next_review.as_deref(),
+    );
+    tx.execute(
+        "UPDATE learning_events SET outcome = json_set(outcome, '$.mastery_projection', json(?1)) WHERE event_id = ?2",
+        rusqlite::params![mastery_projection, event_id],
+    )?;
     tx.execute("INSERT INTO learning_event_keys(event_key,item_key,payload_hash,event_id,streak_after,next_review_days)
                 VALUES(?1,?2,?3,?4,?5,?6)",
         rusqlite::params![client_event_key,item_key,payload_hash,event_id,streak_after,schedule.next_review_days])?;
+    // The receipt carries the row as stored, so a caller reading the projection gets the same
+    // value a later read of the event would.
+    let stored_outcome: String = tx.query_row(
+        "SELECT outcome FROM learning_events WHERE event_id = ?1",
+        [event_id],
+        |r| r.get(0),
+    )?;
     tx.commit()?;
     Ok(ReviewReceipt {
         event_id,
         streak_after,
         next_review_days: schedule.next_review_days,
         next_review: schedule.next_review,
-        outcome_json,
+        outcome_json: stored_outcome,
         duplicate: false,
     })
 }
@@ -600,6 +664,8 @@ pub fn item_keys_with_latest_review(
         "SELECT items.item_key, latest.next_review
          FROM (
              SELECT item_key FROM card_references
+             UNION
+             SELECT item_key FROM learning_assessments
              UNION
              SELECT item_key FROM learning_events
          ) items

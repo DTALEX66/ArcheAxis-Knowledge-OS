@@ -1,0 +1,195 @@
+{
+  "schema": "aaos.taskpack.planning/v1",
+  "production_configuration": false,
+  "pack": "quick-loop",
+  "status": "NOT_RUN",
+  "authority_note": "执行时映射到既有 current 台账，不成为第二 current truth",
+  "tasks": [
+    {
+      "id": "Q00",
+      "title": "现场保护与最小对账",
+      "depends_on": [],
+      "expected_output": "身份与现场保护回执",
+      "status": "NOT_RUN",
+      "evidence": [],
+      "owner": null
+    },
+    {
+      "id": "Q01",
+      "title": "重构决定与目录登记",
+      "depends_on": [
+        "Q00"
+      ],
+      "expected_output": "Authority delta 与新目录归属",
+      "status": "NOT_RUN",
+      "evidence": [],
+      "owner": null
+    },
+    {
+      "id": "Q02",
+      "title": "Tauri 启动与只读桥接",
+      "depends_on": [
+        "Q01"
+      ],
+      "expected_output": "实际 Core 生命周期和资料列表",
+      "status": "NOT_RUN",
+      "evidence": [],
+      "owner": null
+    },
+    {
+      "id": "Q03",
+      "title": "类型合同与权限",
+      "depends_on": [
+        "Q02"
+      ],
+      "expected_output": "生成 DTO 与最小权限",
+      "status": "NOT_RUN",
+      "evidence": [],
+      "owner": null
+    },
+    {
+      "id": "Q04",
+      "title": "原件与文档保存",
+      "depends_on": [
+        "Q03"
+      ],
+      "expected_output": "版本化文档和 CAS 回执",
+      "status": "NOT_RUN",
+      "evidence": [],
+      "owner": null
+    },
+    {
+      "id": "Q05",
+      "title": "阅读与证据样板",
+      "depends_on": [
+        "Q04"
+      ],
+      "expected_output": "真实桌面阅读/证据样板",
+      "status": "NOT_RUN",
+      "evidence": [],
+      "owner": null
+    },
+    {
+      "id": "Q06",
+      "title": "A 波次多格式吸收",
+      "depends_on": [
+        "Q03",
+        "Q04"
+      ],
+      "expected_output": "格式逐行证据",
+      "status": "NOT_RUN",
+      "evidence": [],
+      "owner": null
+    },
+    {
+      "id": "Q07",
+      "title": "候选审核与纠正",
+      "depends_on": [
+        "Q05",
+        "Q06"
+      ],
+      "expected_output": "真人候选处置与版本冲突证据",
+      "status": "NOT_RUN",
+      "evidence": [],
+      "owner": null
+    },
+    {
+      "id": "Q08",
+      "title": "学习与 AI 资产闭环",
+      "depends_on": [
+        "Q07"
+      ],
+      "expected_output": "事件/复习/AI纠正与冷启动",
+      "status": "NOT_RUN",
+      "evidence": [],
+      "owner": null
+    },
+    {
+      "id": "Q09",
+      "title": "搜索与完整能力目录",
+      "depends_on": [
+        "Q04"
+      ],
+      "expected_output": "可重建检索和能力差集",
+      "status": "NOT_RUN",
+      "evidence": [],
+      "owner": null
+    },
+    {
+      "id": "Q10",
+      "title": "导出与首个互通 profile",
+      "depends_on": [
+        "Q04",
+        "Q06"
+      ],
+      "expected_output": "独立源软件回读结果",
+      "status": "NOT_RUN",
+      "evidence": [],
+      "owner": null
+    },
+    {
+      "id": "Q11",
+      "title": "备份与副本恢复",
+      "depends_on": [
+        "Q04",
+        "Q08"
+      ],
+      "expected_output": "一致快照与独立恢复证据",
+      "status": "NOT_RUN",
+      "evidence": [],
+      "owner": null
+    },
+    {
+      "id": "Q12",
+      "title": "B 波次轻量扩展",
+      "depends_on": [
+        "Q06",
+        "Q11"
+      ],
+      "expected_output": "轻量新增格式真实样本",
+      "status": "NOT_RUN",
+      "evidence": [],
+      "owner": null
+    },
+    {
+      "id": "Q13",
+      "title": "性能与故障验证",
+      "depends_on": [
+        "Q05",
+        "Q06",
+        "Q07",
+        "Q08",
+        "Q09",
+        "Q10",
+        "Q11"
+      ],
+      "expected_output": "性能/故障/进程树记录",
+      "status": "NOT_RUN",
+      "evidence": [],
+      "owner": null
+    },
+    {
+      "id": "Q14",
+      "title": "Windows 安装态资格化",
+      "depends_on": [
+        "Q11",
+        "Q13"
+      ],
+      "expected_output": "实际安装产物与用户旅程",
+      "status": "NOT_RUN",
+      "evidence": [],
+      "owner": null
+    },
+    {
+      "id": "Q15",
+      "title": "第一包收口与第二包交接",
+      "depends_on": [
+        "Q14"
+      ],
+      "expected_output": "状态/接口/数据/恢复与下一任务",
+      "status": "NOT_RUN",
+      "evidence": [],
+      "owner": null
+    }
+  ]
+}

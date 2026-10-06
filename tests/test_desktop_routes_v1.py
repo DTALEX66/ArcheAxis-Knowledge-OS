@@ -176,9 +176,15 @@ def test_import_timeout_is_scoped_without_weakening_core_transport():
     supervisor = (ROOT / "apps/ArcheAxis.Desktop/CoreSupervisor.cs").read_text(encoding="utf-8")
     assert 'Timeout = TimeSpan.FromSeconds(5)' in supervisor
     assert 'Timeout = TimeSpan.FromSeconds(60)' in supervisor
+    # Model inference needs a longer deadline than an import; that is a third client, not a
+    # raised default. The scoping below is what keeps the longer deadlines from becoming the
+    # transport default: imports take the 60 s client, model routes the 125 s one, and every
+    # other call still falls through to the 5 s client.
+    assert 'Timeout = TimeSpan.FromSeconds(125)' in supervisor
     assert '!machine && method == HttpMethod.Post && path == "/api/v1/imports"' in supervisor
-    assert '? ImportHttp : Http;' in supervisor
+    assert '? ImportHttp' in supervisor
+    assert '? ModelHttp : Http;' in supervisor
     assert 'await client.SendAsync(request, ct)' in supervisor
-    assert supervisor.count('UseProxy = false, AllowAutoRedirect = false') == 2
+    assert supervisor.count('UseProxy = false, AllowAutoRedirect = false') == 3
     assert 'Core origin mismatch' in supervisor
     assert 'response.RequestMessage?.Headers.Remove("x-archeaxis-launch-token")' in supervisor

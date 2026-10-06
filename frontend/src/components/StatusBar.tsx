@@ -1,5 +1,6 @@
 import { SpaceId, SPACES } from "../spaces/spaces";
 import { CommandPalette } from "./CommandPalette";
+import brandMark from "../assets/aaos-brand-mark.svg";
 
 export type BackendDisplayState = "checking" | "available" | "unavailable" | "web";
 
@@ -8,6 +9,7 @@ interface StatusBarProps {
   backendState: BackendDisplayState;
   externalDev?: boolean;
   onNavigate?: (id: SpaceId) => void;
+  onCommandPaletteOpenChange?: (open: boolean) => void;
   inspectorOpen?: boolean;
   onToggleInspector?: () => void;
 }
@@ -25,6 +27,7 @@ export function StatusBar({
   backendState,
   externalDev = false,
   onNavigate = () => {},
+  onCommandPaletteOpenChange,
   inspectorOpen = true,
   onToggleInspector = () => {},
 }: StatusBarProps) {
@@ -36,23 +39,24 @@ export function StatusBar({
   return (
     <header className="status-bar" role="banner">
       <div className="status-bar-brand">
-        <span style={{ fontSize: 15 }}>◈</span>
-        <span>星环知识</span>
+        <img src={brandMark} width={28} height={28} alt="" aria-hidden="true" />
+        <span>星环知识平台</span>
         {externalDev ? <span className="dev-marker">开发</span> : null}
       </div>
-      <CommandPalette onNavigate={onNavigate} />
+      <CommandPalette onNavigate={onNavigate} onOpenChange={onCommandPaletteOpenChange} />
       <div className="status-bar-center">
         <span
           className={`status-pill status-pill--${displayStatus}`}
           data-status={displayStatus}
+          role="status"
         >
           {BACKEND_LABELS[backendState]}
         </span>
       </div>
-      <div className="status-bar-space" aria-label="当前空间">
+      <div className="status-bar-space" role="group" aria-label="当前空间">
         {activeLabel}
       </div>
-      <button type="button" className="inspector-trigger" aria-label={inspectorOpen ? "折叠检查器" : "展开检查器"} aria-expanded={inspectorOpen} onClick={onToggleInspector}>◧</button>
+      <button type="button" className="inspector-trigger" title="展开/折叠检查器（Ctrl+Alt+I）" aria-keyshortcuts="Control+Alt+I" aria-label={inspectorOpen ? "折叠检查器" : "展开检查器"} aria-expanded={inspectorOpen} onClick={onToggleInspector}>◧</button>
     </header>
   );
 }

@@ -1,7 +1,7 @@
 //! archeaxis-api standalone server (the process a Supervisor starts).
 //!
 //! Usage: archeaxis-api <workspace-db-path> [port]
-//! Requires a <=4096-byte launch JSON on stdin, closed by the parent within 5s.
+//! Requires a launch JSON of at most 64 KiB on stdin, closed by the parent within 5s.
 //! See packages/contracts/v1/protocol-mapping.md (native launch slice).
 //! Port defaults to 47831 (override with ARCHAXIS_VNEXT_PORT).
 //! Serves the vNext local HTTP API on 127.0.0.1 — the handshake target for the
@@ -12,13 +12,85 @@ use std::net::{Ipv4Addr, SocketAddr};
 use std::path::Path;
 use std::time::{SystemTime, UNIX_EPOCH};
 
+#[cfg(test)]
+mod maintenance_regression {
+    use super::*;
+    #[cfg(windows)]
+    #[tokio::test]
+    async fn long_backup_restores_to_a_new_independent_database_with_verified_rollback() {
+        let dir = tempfile::tempdir().unwrap();
+        let database = dir.path().join("source.sqlite");
+        let mut conn = archeaxis_store_sqlite::init_workspace(database.to_str().unwrap()).unwrap();
+        archeaxis_domain::source::import_source(
+            &mut conn,
+            b"maintenance original",
+            "evidence.txt",
+            None,
+        )
+        .unwrap();
+        drop(conn);
+        let mut parent = dir.path().to_path_buf();
+        while parent.to_string_lossy().len() < 280 {
+            parent.push("long-maintenance-component-012345");
+        }
+        std::fs::create_dir_all(&parent).unwrap();
+        let artifact = parent.join("snapshot.sqlite");
+        assert!(artifact.to_string_lossy().len() > 260);
+        let backup = run_maintenance("backup", &database, &artifact)
+            .await
+            .unwrap();
+        assert_eq!(backup["ok"], true, "{backup}");
+        let restored = parent.join("new-independent/workspace.sqlite");
+        assert!(!restored.exists());
+        let receipt = run_maintenance("restore", &restored, &artifact)
+            .await
+            .unwrap();
+        assert_eq!(receipt["ok"], true, "{receipt}");
+        assert_eq!(receipt["verified"], true);
+        assert!(Path::new(receipt["preserved_previous"].as_str().unwrap()).is_file());
+        let fresh = rusqlite::Connection::open(restored.canonicalize().unwrap()).unwrap();
+        let digest: String = fresh
+            .query_row("SELECT sha256 FROM sources", [], |r| r.get(0))
+            .unwrap();
+        assert_eq!(
+            archeaxis_store_sqlite::raw_objects::read(&fresh, &digest).unwrap(),
+            b"maintenance original"
+        );
+        drop(fresh);
+        let snapshot = rusqlite::Connection::open(artifact.canonicalize().unwrap()).unwrap();
+        let root = archeaxis_store_sqlite::raw_objects::root(&snapshot).unwrap();
+        drop(snapshot);
+        std::fs::write(root.join(digest), b"tampered").unwrap();
+        let rollback = run_maintenance("restore", &restored, &artifact)
+            .await
+            .unwrap();
+        assert_eq!(rollback["ok"], false, "{rollback}");
+        assert_eq!(rollback["rolled_back"], true, "{rollback}");
+        assert!(!rollback["error"].as_str().unwrap().is_empty());
+        let fresh = rusqlite::Connection::open(restored.canonicalize().unwrap()).unwrap();
+        let digest: String = fresh
+            .query_row("SELECT sha256 FROM sources", [], |r| r.get(0))
+            .unwrap();
+        assert_eq!(
+            archeaxis_store_sqlite::raw_objects::read(&fresh, &digest).unwrap(),
+            b"maintenance original"
+        );
+    }
+}
+
 async fn run_maintenance(
     action: &str,
     database: &Path,
     artifact: &Path,
 ) -> Result<serde_json::Value, String> {
-    if !database.is_file() {
+    if action == "backup" && !database.is_file() {
         return Err("workspace database does not exist".into());
+    }
+    if action == "restore" && !artifact.is_file() {
+        return Err("backup file does not exist".into());
+    }
+    if database.exists() && !database.is_file() {
+        return Err("workspace database must be a regular file or a new restore target".into());
     }
     archeaxis_store_sqlite::raw_objects::reject_links(database)
         .map_err(|error| error.to_string())?;
@@ -211,18 +283,38 @@ async fn main() {
         }
     };
     let (store, router) = if let Some(profile) = &launch.text_worker {
-        match archeaxis_application::executor::Executor::open(
+        // Routes are declared by the launch, never assumed from a checkout layout.
+        // An absent declaration keeps the single text route.
+        let extra = profile.extra_routes();
+        let extra_refs: Vec<(&str, std::path::PathBuf)> = extra
+            .iter()
+            .map(|(capability, script)| (capability.as_str(), script.clone()))
+            .collect();
+        match archeaxis_application::executor::Executor::open_routes(
             std::path::Path::new(db_path),
             &profile.staging,
             &profile.python,
             &profile.script,
+            &extra_refs,
         )
         .await
         {
-            Ok(executor) => (
-                executor.store().clone(),
-                archeaxis_api::runtime::router(executor),
-            ),
+            Ok(executor) => match executor
+                .with_document_check_config(launch.document_check_config.clone())
+                .and_then(|executor| {
+                    executor.with_document_check_config_error(
+                        launch.document_check_config_error.clone(),
+                    )
+                }) {
+                Ok(executor) => (
+                    executor.store().clone(),
+                    archeaxis_api::runtime::router(executor),
+                ),
+                Err(_) => {
+                    eprintln!("document check configuration unavailable");
+                    std::process::exit(1);
+                }
+            },
             Err(_) => {
                 eprintln!("failed to initialize execution workspace");
                 std::process::exit(1);

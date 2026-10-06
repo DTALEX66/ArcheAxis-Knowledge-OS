@@ -1,0 +1,76 @@
+{
+  "schema": "aaos.archive-manifest/v1",
+  "archive_date": "2026-10-02",
+  "classification": "HISTORICAL_RECORD_REFERENCE_NOT_CURRENT_AUTHORITY",
+  "provenance": {
+    "supplied_by": "the Owner",
+    "complete_source": "D:\\All projects\\Record\\AAOS_全历史恢复_云端对账_快速闭环_最终全套任务包_2026-10-02.md",
+    "how_obtained": "the Owner named this exact path on 2026-10-02 and the file was copied byte-for-byte",
+    "sections": 45,
+    "lines": 1019
+  },
+  "source_copies": [
+    {
+      "source": "D:\\All projects\\Record\\AAOS_全历史恢复_云端对账_快速闭环_最终全套任务包_2026-10-02.md",
+      "archive": "./docs/history/plan-recovery-2026-10-02/AAOS-R7-PLAN-2026-10-02.md",
+      "bytes": 29550,
+      "sha256": "54AC415CBBDD6AF05110AB8C05CE19CDDFD99E646965C68F1BEBB10A1337E85E",
+      "byte_identical": true,
+      "note": "the complete master taskpack, copied byte-for-byte from the Owner-named path"
+    }
+  ],
+  "expanded_entry_count": 1,
+  "integrity": "PASS",
+  "related_records": [
+    "docs/current/AAOS-PLAN-SUPERSESSION-20261002.md",
+    "docs/current/AAOS-R7-FAST-CLOSURE-TASKPACK-20261002.json",
+    "docs/history/planning-blueprint-absorption/2026-09-29/ARCHIVE_MANIFEST.json"
+  ],
+  "truncation": {
+    "observed": "RESOLVED - the 'E）' fragment in the session text was the tail of this complete document, not evidence of a missing sixteenth section",
+    "assessment": "wrong in the earlier record: the pasted text was a trimmed version of a forty-three-section taskpack, so no section was missing from the plan - the archive was",
+    "action_taken": "the complete document replaced the partial copy and its hash was re-verified",
+    "recorded_at": "2026-10-02T07:50:55.656035+00:00"
+  },
+  "superseded_partial_archive": {
+    "what_it_was": "the first archive held only the plan text pasted into the session: fifteen sections ending with a bare 'E）'",
+    "bytes": 14907,
+    "sha256": "936BB892095E40175B8566E0E6C4960487696DAA5B70164E9E768DF390C4FBB7",
+    "why_replaced": "an archive must hold the real document; the pasted text was a partial rendering of this one, and keeping it as the archive would have recorded the project as having a fifteen-section plan when it has forty-three",
+    "replaced_at": "2026-10-02T07:50:55.656027+00:00"
+  },
+  "multi_location_confirmation": {
+    "question": "the Owner supplied three Desktop copies plus the Record copy expecting four versions that needed consolidating",
+    "measured": [
+      {
+        "origin": "desktop",
+        "path": "C:\\Users\\ALEX\\Desktop\\AAOS_全历史恢复_云端对账_快速闭环_最终全套任务包_2026-10-02.md",
+        "bytes": 29550,
+        "sha256": "54AC415CBBDD6AF05110AB8C05CE19CDDFD99E646965C68F1BEBB10A1337E85E"
+      },
+      {
+        "origin": "desktop",
+        "path": "C:\\Users\\ALEX\\Desktop\\AAOS_全历史恢复_云端对账_快速闭环_最终全套任务包_2026-10-02 (1).md",
+        "bytes": 29550,
+        "sha256": "54AC415CBBDD6AF05110AB8C05CE19CDDFD99E646965C68F1BEBB10A1337E85E"
+      },
+      {
+        "origin": "desktop",
+        "path": "C:\\Users\\ALEX\\Desktop\\AAOS_全历史恢复_云端对账_快速闭环_最终全套任务包_2026-10-02 (2).md",
+        "bytes": 29550,
+        "sha256": "54AC415CBBDD6AF05110AB8C05CE19CDDFD99E646965C68F1BEBB10A1337E85E"
+      },
+      {
+        "origin": "record",
+        "path": "D:\\All projects\\Record\\AAOS_全历史恢复_云端对账_快速闭环_最终全套任务包_2026-10-02.md",
+        "bytes": 29550,
+        "sha256": "54AC415CBBDD6AF05110AB8C05CE19CDDFD99E646965C68F1BEBB10A1337E85E"
+      }
+    ],
+    "distinct_documents": 1,
+    "all_identical_to_the_archived_copy": true,
+    "verdict": "ONE_DOCUMENT",
+    "action": "none taken, because there is nothing to consolidate. Writing a merged file would invent a difference between copies that measure identical, and would break the byte-for-byte identity the archive records. The four paths are recorded here so the check is auditable rather than assumed.",
+    "recorded_at": "2026-10-02T08:29:48.927462+00:00"
+  }
+}

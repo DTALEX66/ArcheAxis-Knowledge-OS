@@ -1,0 +1,67 @@
+{
+  "document": "AAOS_R7_ACCEPTANCE_MATRIX",
+  "recorded_at": "2026-10-02T07:01:15.837733+00:00",
+  "ladder": [
+    "PLANNED",
+    "CONTRACT_ONLY",
+    "IMPLEMENTED",
+    "TESTED_LOCAL",
+    "INTEGRATED",
+    "REAL_INPUT_VERIFIED",
+    "GREEN_VERIFIED",
+    "RELEASED"
+  ],
+  "forbidden_inferences": [
+    "tests = product complete",
+    "a TaskPack = implemented",
+    "CI = a human closed loop",
+    "a candidate package = Green",
+    "model configuration = a runnable model",
+    "a plugin manifest = a finished plugin system"
+  ],
+  "gates": [
+    {
+      "gate": "G0",
+      "criterion": "every cloud and local asset has SHA, authority, status and disposition; the history archive verifies",
+      "level_now": "TESTED_LOCAL",
+      "evidence": "archive hashes re-computed 17/17; reconciliation produced",
+      "to_advance": "merge #156 -> #157 -> #158"
+    },
+    {
+      "gate": "G1",
+      "criterion": "register / resolve / disable / health-check a capability without editing the Core; no plugin writes the database",
+      "level_now": "IMPLEMENTED",
+      "evidence": "capability routes are launch-declared and the Core refuses an unknown worker",
+      "to_advance": "plugin registry, resolver surface, health, fallback"
+    },
+    {
+      "gate": "G2",
+      "criterion": "each first-batch format reaches an Evidence anchor and a Knowledge object from a real file; one external source imports",
+      "level_now": "INTEGRATED",
+      "evidence": "readiness 9 of 9 and real material 9 of 9 converted",
+      "to_advance": "software compatibility (Obsidian / Markdown folder / Git / Notion export) and cited ask/read"
+    },
+    {
+      "gate": "G3",
+      "criterion": "a person answers in the product UI; the schedule is recorded; a restart reads the same state back",
+      "level_now": "TESTED_LOCAL",
+      "evidence": "the learning routes exist and the M0 chain shows FSRS plus restart readback, but driven by a probe",
+      "to_advance": "a real human at the real UI"
+    },
+    {
+      "gate": "G4",
+      "criterion": "one real model runs on accepted knowledge; a human marks a real error; the correction is reviewed; a retest runs; nothing is auto-promoted",
+      "level_now": "PLANNED",
+      "evidence": "a local model runtime is measured working, but no route drives it",
+      "to_advance": "the capability route that runs a real task and records a candidate"
+    },
+    {
+      "gate": "G5",
+      "criterion": "the golden journey completes on a real file by a real person and a restart reads everything back",
+      "level_now": "PLANNED",
+      "evidence": "none",
+      "to_advance": "G4 plus the Owner Gate"
+    }
+  ],
+  "honest_note": "No gate is claimed above TESTED_LOCAL or INTEGRATED. The single highest existing level anywhere in this project is 'tested locally with real inputs', and the matrix says so rather than rounding up."
+}

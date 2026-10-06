@@ -55,7 +55,10 @@ def test_evidence_library_uses_b05_provenance_table_with_truthful_unavailable_fi
     }
     assert {"证据", "来源", "可信度", "主题", "引用", "状态"} <= header_text
     code = CODE.read_text(encoding="utf-8")
-    assert 'ConfidenceDisplay => "Core 未暴露"' in code
-    assert 'TopicDisplay => "Core 未暴露"' in code
-    assert 'CitationCountDisplay => "Core 未暴露"' in code
+    # The unavailable columns must stay explicitly unavailable — never 0, never a fabricated
+    # figure. The wording no longer names the Core, which is the de-jargon direction for a
+    # default page; what it must keep is that the field is reported as not supplied at all.
+    assert 'ConfidenceDisplay => "未提供"' in code
+    assert 'TopicDisplay => "未提供"' in code
+    assert 'CitationCountDisplay => "未提供"' in code
     assert "EvidenceLibraryTableHeader.IsVisible = width >= 1120;" in code

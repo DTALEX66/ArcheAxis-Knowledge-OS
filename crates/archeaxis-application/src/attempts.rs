@@ -2,6 +2,7 @@
 //! Process IO and file reading belong outside this transaction boundary.
 use crate::jobs::{self, JobError, LossReceipt};
 use archeaxis_sidecar_protocol::worker::{Request, Response, decode_response};
+use archeaxis_store_sqlite::capability_settings;
 use rusqlite::{Connection, OptionalExtension, TransactionBehavior};
 use serde::Deserialize;
 use serde_json::Value;
@@ -21,6 +22,11 @@ pub const ENGINE_PROFILES: &[(&str, &str)] = &[
     ("python-worker-subtitles", "0.1.0"),
     ("python-worker-html", "0.1.0"),
     ("python-worker-caption", "0.1.0"),
+    // The ASR engine. It was real and verified - 3,362 characters from a real Chinese
+    // recording - but no route named it, so no job could reach it. A receipt may not report
+    // this engine until the route below exists.
+    ("python-worker-transcribe", "0.1.0"),
+    ("python-worker-video", "0.1.0"),
 ];
 
 /// R08: the extraction routes the Core can dispatch, declared once. A job's kind
@@ -58,6 +64,11 @@ pub const ROUTES: &[(&str, &str, &str)] = &[
     // engine profile. What it produces is a candidate description, never extracted text,
     // and a missing model is a named failure rather than an empty success.
     ("caption", "image.caption", "image/png"),
+    // The pack requires real audio before final closure. A recording is binary and its
+    // projection is a transcript with time-coded cues, so it gets its own kind, capability
+    // and worker rather than being probed as a container.
+    ("transcribe", "media.transcribe", "audio/wav"),
+    ("video", "media.video", "video/mp4"),
 ];
 
 /// Resolve a job kind to its route: (capability, input media type).
@@ -82,6 +93,12 @@ pub const ROUTE_MEDIA_TYPES: &[(&str, &[&str])] = &[
             "text/csv",
             "text/tab-separated-values",
             "application/json",
+            "application/x-ndjson",
+            "application/yaml",
+            "text/x-yaml",
+            "application/toml",
+            "application/epub+zip",
+            "message/rfc822",
             "application/xml",
             "text/xml",
         ],
@@ -97,8 +114,36 @@ pub const ROUTE_MEDIA_TYPES: &[(&str, &[&str])] = &[
             "image/bmp",
         ],
     ),
-    ("archive.inventory", &["application/zip"]),
-    ("media.probe", &["video/mp4", "audio/wav"]),
+    (
+        "archive.inventory",
+        &["application/zip", "application/x-tar"],
+    ),
+    (
+        "media.probe",
+        &["video/mp4", "video/quicktime", "audio/wav"],
+    ),
+    (
+        "media.video",
+        &[
+            "video/mp4",
+            "video/quicktime",
+            "video/x-matroska",
+            "video/webm",
+        ],
+    ),
+    (
+        "media.transcribe",
+        &[
+            "audio/mpeg",
+            "audio/mp4",
+            "audio/x-m4a",
+            "audio/flac",
+            "audio/ogg",
+            "audio/opus",
+            "audio/wav",
+            "audio/x-wav",
+        ],
+    ),
     (
         "office.structure",
         &[
@@ -136,7 +181,8 @@ pub fn accepted_media_types(capability: &str) -> &'static [&'static str] {
 /// members the Core may import). The executor tells only these workers where the
 /// artifact root is, so every other route keeps its launch shape and an unexpected flag
 /// stays an error rather than being silently accepted.
-pub const ARTIFACT_ROOT_CAPABILITIES: &[&str] = &["pdf.extract", "archive.inventory"];
+pub const ARTIFACT_ROOT_CAPABILITIES: &[&str] =
+    &["pdf.extract", "archive.inventory", "media.video"];
 
 /// R15/F06: routes whose successful job is followed by Core-side work, done inside the
 /// same commit as the completion so there is no window in which the job says it
@@ -154,20 +200,40 @@ pub fn media_type_for_name(name: &str) -> Option<&'static str> {
     let extension = file.rsplit_once('.')?.1;
     Some(match extension {
         "txt" | "log" | "text" | "rs" | "py" | "ts" | "tsx" | "js" | "jsx" | "c" | "h" | "cpp"
-        | "hpp" | "go" | "java" | "cs" | "rb" | "sh" | "ps1" | "bat" | "toml" | "yaml" | "yml"
-        | "ini" | "cfg" | "sql" => "text/plain",
+        | "hpp" | "go" | "java" | "cs" | "rb" | "sh" | "ps1" | "bat" | "ini" | "cfg" | "sql" => {
+            "text/plain"
+        }
         "md" | "markdown" => "text/markdown",
         "csv" => "text/csv",
         "tsv" => "text/tab-separated-values",
         "json" | "canvas" => "application/json",
+        "jsonl" | "ndjson" => "application/x-ndjson",
+        "yaml" | "yml" => "application/yaml",
+        "toml" => "application/toml",
+        "epub" => "application/epub+zip",
         "xml" => "application/xml",
         // R15/F15: a container gets the archive route, not a text decode
         "zip" => "application/zip",
-        // R15/F10-F11: the formats this repository can probe without decoding samples.
-        // mp3, m4a, flac, mkv and webm are deliberately NOT named: no reader here can
-        // read them, so a name that claims otherwise would be dispatched as noise.
+        "tar" => "application/x-tar",
+        // Name the actual container type; each capability separately limits what it reads.
+        // The video decoder accepts MKV/WebM; the limited header probe does not.
+        //
+        // The audio containers below WERE deliberately unnamed, on the grounds that no
+        // reader here could read them. That stopped being true when the ASR route was
+        // declared: `media.transcribe` has a reader for exactly these, so naming them lets
+        // a real recording reach it instead of being custody-only. They stay out of
+        // `media.probe`'s accepted types, so the probe still refuses a format it cannot
+        // read rather than reporting a header it does not understand.
         "wav" => "audio/wav",
-        "mp4" | "m4v" | "mov" => "video/mp4",
+        "mp3" => "audio/mpeg",
+        "m4a" => "audio/mp4",
+        "flac" => "audio/flac",
+        "ogg" | "oga" => "audio/ogg",
+        "opus" => "audio/opus",
+        "mp4" | "m4v" => "video/mp4",
+        "mov" => "video/quicktime",
+        "mkv" => "video/x-matroska",
+        "webm" => "video/webm",
         // R15/F07-F09: the OOXML families this repository can read; the legacy binary
         // formats (doc, ppt, xls) are deliberately NOT named, so they stay custody-only
         // instead of being handed to a reader that cannot open them.
@@ -184,7 +250,7 @@ pub fn media_type_for_name(name: &str) -> Option<&'static str> {
         // a saved mail message is text (RFC 822) with its own structure, which the
         // worker reports as facts. A binary .msg container is deliberately NOT named:
         // no route can read it, so it is refused instead of decoded into noise.
-        "eml" => "text/plain",
+        "eml" => "message/rfc822",
         "pdf" => "application/pdf",
         "png" => "image/png",
         "jpg" | "jpeg" | "jpe" => "image/jpeg",
@@ -231,6 +297,15 @@ pub fn claim(
         Some((capability, _)) => capability,
         None => return Err(JobError::InvalidReceipt("undeclared job kind")),
     };
+    // R7/G1: a capability this workspace turned off is refused here, inside the claim transaction,
+    // so a disabled capability leaves no attempt row, no staging copy and no partial output behind.
+    // Checking after the worker started would make "disabled" mean "ran and was then discarded".
+    if !capability_settings::is_enabled(&tx, capability)? {
+        return Err(JobError::CapabilityDisabled {
+            capability: capability.to_string(),
+            job: job_id.to_string(),
+        });
+    }
     // the media type comes from what the file is, not from a value pinned to the kind
     let media_type = resolve_media_type(&kind, &name)?;
     let next: i64 = tx.query_row(
@@ -274,9 +349,10 @@ fn same_spans(found: &[Line], expected: &[Line]) -> bool {
 }
 
 fn identity(conn: &Connection, req: &Request) -> Result<(String, Option<String>), JobError> {
+    let attempt = i64::try_from(req.attempt).map_err(|_| JobError::Conflict)?;
     let row:Option<(String,Option<String>,String,i64)>=conn.query_row(
         "SELECT state,result_digest,request_json,(SELECT MAX(attempt) FROM job_attempts WHERE job_id=?1) FROM job_attempts WHERE job_id=?1 AND attempt=?2",
-        rusqlite::params![req.job_id,req.attempt],|r|Ok((r.get(0)?,r.get(1)?,r.get(2)?,r.get(3)?))).optional()?;
+        rusqlite::params![req.job_id,attempt],|r|Ok((r.get(0)?,r.get(1)?,r.get(2)?,r.get(3)?))).optional()?;
     let (state, digest, stored, latest) = row.ok_or(JobError::NotFound)?;
     if latest as u64 != req.attempt
         || stored != serde_json::to_string(req).map_err(|_| JobError::Conflict)?
@@ -344,6 +420,26 @@ pub fn finish(
     response: &Response,
     payloads: &[Vec<u8>],
 ) -> Result<(), JobError> {
+    finish_inner(conn, req, response, payloads, None)
+}
+
+pub fn finish_with_artifacts(
+    conn: &mut Connection,
+    req: &Request,
+    response: &Response,
+    payloads: &[Vec<u8>],
+    artifact_root: &std::path::Path,
+) -> Result<(), JobError> {
+    finish_inner(conn, req, response, payloads, Some(artifact_root))
+}
+
+fn finish_inner(
+    conn: &mut Connection,
+    req: &Request,
+    response: &Response,
+    payloads: &[Vec<u8>],
+    artifact_root: Option<&std::path::Path>,
+) -> Result<(), JobError> {
     let wire = serde_json::to_string(response).map_err(|_| JobError::Conflict)?;
     let response = decode_response(&wire, req).map_err(JobError::InvalidReceipt)?;
     if response.status != "succeeded" || payloads.len() != 3 {
@@ -397,6 +493,28 @@ pub fn finish(
         ));
     }
     let digest = hex::encode(Sha256::digest(wire.as_bytes()));
+    if req.capability == "media.video" {
+        let (state, old) = identity(conn, req)?;
+        if state == "succeeded" {
+            return if old.as_deref() == Some(&digest) {
+                Ok(())
+            } else {
+                Err(JobError::Conflict)
+            };
+        }
+        if state != "running" {
+            return Err(JobError::InvalidState);
+        }
+    }
+    let artifacts = if req.capability == "media.video" {
+        Some(crate::media_artifacts::prepare(
+            artifact_root.ok_or(JobError::InvalidReceipt("video artifact root missing"))?,
+            req,
+            &loss,
+        )?)
+    } else {
+        None
+    };
     let tx = conn.transaction_with_behavior(TransactionBehavior::Immediate)?;
     let (state, old) = identity(&tx, req)?;
     if state == "succeeded" {
@@ -409,16 +527,25 @@ pub fn finish(
     if state != "running" {
         return Err(JobError::InvalidState);
     }
-    jobs::complete_tx(&tx, &req.job_id, &loss.engine, text, Some(&loss))?;
+    let mut core_loss = loss.clone();
+    if let Some(artifacts) = artifacts {
+        let adoption = crate::media_artifacts::adopt_tx(&tx, req, &artifacts)?;
+        core_loss
+            .params
+            .as_object_mut()
+            .ok_or(JobError::InvalidReceipt("loss params must be object"))?
+            .insert("core_artifact_adoption".into(), adoption);
+    }
+    jobs::complete_tx(&tx, &req.job_id, &loss.engine, text, Some(&core_loss))?;
     if req.capability == "canvas.structure" {
         persist_canvas_projection(&tx, &req.job_id, &loss.params)?;
     }
     for (output, content) in response.outputs.iter().zip(strings) {
         tx.execute("INSERT INTO job_outputs(job_id,attempt,kind,metadata_json,content) VALUES(?1,?2,?3,?4,?5)",
-            rusqlite::params![req.job_id,req.attempt,output.kind,serde_json::to_string(output).map_err(|_|JobError::Conflict)?,content])?;
+            rusqlite::params![req.job_id,i64::try_from(req.attempt).map_err(|_|JobError::Conflict)?,output.kind,serde_json::to_string(output).map_err(|_|JobError::Conflict)?,content])?;
     }
     tx.execute("UPDATE job_attempts SET state='succeeded',response_json=?1,result_digest=?2,completed_at=datetime('now') WHERE job_id=?3 AND attempt=?4",
-        rusqlite::params![wire,digest,req.job_id,req.attempt])?;
+        rusqlite::params![wire,digest,req.job_id,i64::try_from(req.attempt).map_err(|_|JobError::Conflict)?])?;
     tx.commit()?;
     Ok(())
 }
@@ -506,7 +633,10 @@ pub fn terminate(
     if state == status {
         let old: Option<String> = tx.query_row(
             "SELECT error FROM job_attempts WHERE job_id=?1 AND attempt=?2",
-            rusqlite::params![req.job_id, req.attempt],
+            rusqlite::params![
+                req.job_id,
+                i64::try_from(req.attempt).map_err(|_| JobError::Conflict)?
+            ],
             |r| r.get(0),
         )?;
         return if old.as_deref() == Some(error) {
@@ -519,7 +649,7 @@ pub fn terminate(
         return Err(JobError::InvalidState);
     }
     tx.execute("UPDATE job_attempts SET state=?1,error=?2,completed_at=datetime('now') WHERE job_id=?3 AND attempt=?4",
-        rusqlite::params![status,error,req.job_id,req.attempt])?;
+        rusqlite::params![status,error,req.job_id,i64::try_from(req.attempt).map_err(|_|JobError::Conflict)?])?;
     tx.execute(
         "UPDATE jobs SET state=?1,loss_receipt=?2,completed_at=datetime('now') WHERE job_id=?3",
         rusqlite::params![

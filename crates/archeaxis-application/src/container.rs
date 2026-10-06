@@ -22,6 +22,7 @@ use archeaxis_domain::source::{self, ImportOutcome, OriginInfo};
 use rusqlite::{Connection, OptionalExtension};
 use serde::Deserialize;
 use sha2::{Digest, Sha256};
+use std::io::Read;
 use std::path::{Path, PathBuf};
 
 /// The origin kind recorded for a member. The store's vocabulary is fixed
@@ -32,6 +33,15 @@ use std::path::{Path, PathBuf};
 /// module must not allow - `expand_members` therefore verifies the relation landed.
 pub const ORIGIN_KIND: &str = "import";
 const MEMBER_LIMIT: usize = 50;
+const MEMBER_BYTES_LIMIT: u64 = 64 * 1024 * 1024;
+
+/// Transfer artifacts belong to one claimed attempt, never the shared members root.
+pub fn attempt_root(staging: &Path, job_id: &str, attempt: u64) -> PathBuf {
+    staging
+        .join("archive-attempts")
+        .join(sha256_hex(job_id.as_bytes()))
+        .join(attempt.to_string())
+}
 
 /// One member the archive worker offered as a source.
 #[derive(Debug, Clone, Deserialize)]
@@ -57,6 +67,22 @@ fn sha256_hex(bytes: &[u8]) -> String {
     let mut hasher = Sha256::new();
     hasher.update(bytes);
     hex::encode(hasher.finalize())
+}
+
+/// Preserve existing interoperable IDs; hash only filenames/parents that exceed
+/// the runtime job-ID grammar. The member's real name stays in its source origin.
+pub fn member_job_id(archive_job_id: &str, member_file: &str) -> String {
+    let legacy = format!("{archive_job_id}-member-{member_file}");
+    if legacy.len() <= 200
+        && legacy
+            .bytes()
+            .all(|byte| byte.is_ascii_alphanumeric() || b"-_.".contains(&byte))
+    {
+        legacy
+    } else {
+        let identity = format!("archeaxis.archive-member/v1\0{archive_job_id}\0{member_file}");
+        format!("member-{}", sha256_hex(identity.as_bytes()))
+    }
 }
 
 /// The members the newest finished attempt of `archive_job_id` declared.
@@ -96,7 +122,26 @@ pub fn declared_members(
 
 /// The route a member's own name selects, if any: (job kind, expected media type).
 fn route_for_member(name: &str) -> Option<(&'static str, &'static str)> {
-    for kind in ["text", "pdf", "image", "archive"] {
+    // MIME alone cannot distinguish .canvas from ordinary .json.
+    // Reuse only currently supported member routes; no nested expansion or media job.
+    let extension = Path::new(name)
+        .extension()
+        .and_then(|value| value.to_str())
+        .unwrap_or("")
+        .to_ascii_lowercase();
+    let preferred = match extension.as_str() {
+        "docx" | "pptx" | "xlsx" => Some("office"),
+        "html" | "htm" | "xhtml" => Some("html"),
+        "canvas" => Some("canvas"),
+        "srt" | "vtt" => Some("subtitles"),
+        _ => None,
+    };
+    if let Some(kind) = preferred {
+        return attempts::resolve_media_type(kind, name)
+            .ok()
+            .map(|media| (kind, media));
+    }
+    for kind in ["text", "pdf", "image"] {
         if let Ok(media) = attempts::resolve_media_type(kind, name) {
             return Some((kind, media));
         }
@@ -109,6 +154,7 @@ fn route_for_member(name: &str) -> Option<(&'static str, &'static str)> {
 pub struct MemberRow {
     pub source_id: String,
     pub member: String,
+    pub origin_ref: String,
     pub original_name: Option<String>,
     pub sha256: String,
     /// True when a transform exists, i.e. a route read the member's bytes.
@@ -146,6 +192,7 @@ pub fn members_of(
                     .strip_prefix(&prefix)
                     .unwrap_or(&reference)
                     .to_string(),
+                origin_ref: reference,
                 original_name: row.get(2)?,
                 sha256: row.get(3)?,
                 readable: row.get::<_, i64>(4)? == 1,
@@ -168,6 +215,13 @@ pub fn expand_members(
     if members.is_empty() {
         return Ok(expansion);
     }
+    if members.len() > MEMBER_LIMIT {
+        return Err(JobError::UnverifiableInput {
+            job: archive_job_id.to_string(),
+            reason: "declared archive members exceed the count budget".into(),
+        });
+    }
+    let mut remaining = MEMBER_BYTES_LIMIT;
     let container_source: String = conn
         .query_row(
             "SELECT j.input_ref FROM jobs j WHERE j.job_id=?1",
@@ -177,7 +231,13 @@ pub fn expand_members(
         .optional()?
         .unwrap_or_default();
 
-    for member in members.into_iter().take(MEMBER_LIMIT) {
+    for member in members {
+        if member.bytes > remaining {
+            return Err(JobError::UnverifiableInput {
+                job: archive_job_id.to_string(),
+                reason: "declared archive members exceed the byte budget".into(),
+            });
+        }
         // a declared file may not leave the transfer area, whatever it contains
         if Path::new(&member.file).components().count() != 1
             || member.file.contains("..")
@@ -189,10 +249,13 @@ pub fn expand_members(
             });
         }
         let path: PathBuf = staging_root.join("members").join(&member.file);
-        let bytes = std::fs::read(&path).map_err(|error| JobError::UnverifiableInput {
-            job: archive_job_id.to_string(),
-            reason: format!("declared member {:?} is unreadable: {error}", member.name),
-        })?;
+        let mut bytes = Vec::new();
+        std::fs::File::open(&path)
+            .and_then(|file| file.take(member.bytes + 1).read_to_end(&mut bytes))
+            .map_err(|error| JobError::UnverifiableInput {
+                job: archive_job_id.to_string(),
+                reason: format!("declared member {:?} is unreadable: {error}", member.name),
+            })?;
         if bytes.len() as u64 != member.bytes || sha256_hex(&bytes) != member.sha256 {
             return Err(JobError::UnverifiableInput {
                 job: archive_job_id.to_string(),
@@ -202,6 +265,7 @@ pub fn expand_members(
                 ),
             });
         }
+        remaining -= member.bytes;
         let origin_ref = format!("{container_source}#{}", member.name);
         let origin = OriginInfo {
             kind: ORIGIN_KIND,
@@ -237,7 +301,7 @@ pub fn expand_members(
         expansion.sources.push(source_id.clone());
         match route_for_member(&member.name) {
             Some((kind, _media)) => {
-                let job_id = format!("{archive_job_id}-member-{}", member.file);
+                let job_id = member_job_id(archive_job_id, &member.file);
                 let existed: bool = conn.query_row(
                     "SELECT EXISTS(SELECT 1 FROM jobs WHERE job_id=?1)",
                     [&job_id],
@@ -252,4 +316,36 @@ pub fn expand_members(
         }
     }
     Ok(expansion)
+}
+
+#[cfg(test)]
+mod supported_member_route_tests {
+    use super::route_for_member;
+    #[test]
+    fn existing_routes_are_selected_without_json_collision_or_recursive_media() {
+        for (name, expected) in [
+            ("a.docx", "office"),
+            ("a.pptx", "office"),
+            ("a.xlsx", "office"),
+            ("a.html", "html"),
+            ("a.htm", "html"),
+            ("a.xhtml", "html"),
+            ("a.CANVAS", "canvas"),
+            ("a.json", "text"),
+            ("a.srt", "subtitles"),
+            ("a.vtt", "subtitles"),
+        ] {
+            assert_eq!(route_for_member(name).unwrap().0, expected, "{name}");
+        }
+        for name in [
+            "nested.zip",
+            "nested.tar",
+            "video.mp4",
+            "audio.wav",
+            "audio.mp3",
+            "unknown.bin",
+        ] {
+            assert!(route_for_member(name).is_none(), "{name}");
+        }
+    }
 }

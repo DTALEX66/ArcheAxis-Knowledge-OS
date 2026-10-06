@@ -139,6 +139,7 @@ function PathInput({
           type="button"
           className="btn-browse"
           onClick={handleBrowse}
+          aria-label={`浏览选择${label}`}
           title={`浏览选择${label}`}
         >
           …

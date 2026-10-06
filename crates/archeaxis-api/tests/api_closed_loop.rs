@@ -46,6 +46,7 @@ async fn api_closed_loop() {
     let body = resp.into_body().collect().await.unwrap().to_bytes();
     let v: serde_json::Value = serde_json::from_slice(&body).unwrap();
     let source_id = v["source_id"].as_str().unwrap().to_string();
+    let source_revision = v["sha256"].as_str().unwrap().to_string();
     assert_eq!(v["duplicate"], false);
 
     // create knowledge (personal definition)
@@ -66,7 +67,8 @@ async fn api_closed_loop() {
     let kid = v["knowledge_id"].as_str().unwrap().to_string();
 
     // anchor on the source
-    let abody = format!(r#"{{"revision":"rev-1","position":"{{\"start\":0,\"end\":10}}"}}"#);
+    let abody =
+        format!(r#"{{"revision":"{source_revision}","position":"{{\"start\":0,\"end\":10}}"}}"#);
     let resp = router
         .clone()
         .oneshot(

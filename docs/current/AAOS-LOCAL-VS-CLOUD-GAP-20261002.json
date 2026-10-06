@@ -1,0 +1,64 @@
+{
+  "document": "AAOS_LOCAL_VS_CLOUD_GAP_20261002",
+  "recorded_at": "2026-10-02T07:01:15.837733+00:00",
+  "method": "compare the two local worktrees against the remote refs and the unmerged pull requests; no branch was written to",
+  "cloud": {
+    "main": "59498723 - 18 commits behind codex/Audit, holds nothing Audit lacks",
+    "codex/Audit": "1a981a44 - the newer line, unmerged to main",
+    "pr_156": "codex/aaos-ui-phase2-20261001 @ 1a981a44 -> main, 60 files, +8101/-1794",
+    "pr_157": "codex/dsh-aaos-real-multiformat-loop-20261001 @ dc848e13 -> codex/Audit, 76 files",
+    "pr_158": "codex/minimax-aaos-cosmic-ui-20261001 @ 627e74ff -> codex/Audit, 14 files"
+  },
+  "local": {
+    "root_checkout": {
+      "branch": "codex/Audit",
+      "sha": "1a981a4482b01f31989074e79c82a63400aa07a7",
+      "equals_remote": true,
+      "tracked_changes": 0,
+      "untracked_entries": 21,
+      "note": "the untracked docs/history material is the archive verified in AAOS-FULL-HISTORY-RECOVERY-20261002.json"
+    },
+    "backend_worktree": {
+      "branch": "codex/dsh-aaos-real-multiformat-loop-20261001",
+      "sha": "da13b621",
+      "equals_remote": true,
+      "tracked_changes": 0,
+      "note": "carries the R7 documents produced on 2026-10-02"
+    },
+    "minimax_worktree": {
+      "branch": "codex/minimax-aaos-cosmic-ui-20261001",
+      "sha": "627e74ff",
+      "equals_remote": true,
+      "tracked_changes": 0
+    },
+    "ui_worktree": {
+      "branch": "codex/aaos-ui-phase2-20261001",
+      "sha": "1a981a44",
+      "equals_remote": true,
+      "tracked_changes": 0
+    }
+  },
+  "gaps": [
+    {
+      "gap": "PR #156, #157 and #158 are all unmerged and all in draft",
+      "consequence": "the October work exists on the remote but is not on the line a user would clone",
+      "resolution": "merge in the order #156 -> #157 -> #158"
+    },
+    {
+      "gap": "main is 18 commits behind codex/Audit",
+      "consequence": "a reader taking main gets the pre-October state",
+      "resolution": "PR #156 closes this"
+    },
+    {
+      "gap": "#157 and #158 both edit apps/ArcheAxis.Desktop and the six UI contract tests",
+      "consequence": "the second merge may conflict and cannot be assumed clean",
+      "resolution": "re-check after the first of the two lands"
+    },
+    {
+      "gap": "the previous plan's goal is superseded by the 2026-10-02 plan",
+      "consequence": "unfinished keys in the previous disposition are not all still the priority",
+      "resolution": "AAOS-PLAN-SUPERSESSION-20261002.md; R7's G0-G5 is the single route"
+    }
+  ],
+  "conclusion": "Local and cloud are in sync ref-for-ref on all five branches, so nothing is stranded locally. What is not converged is the line itself: three draft PRs and a main that trails its own successor branch."
+}

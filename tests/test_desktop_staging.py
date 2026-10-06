@@ -178,3 +178,61 @@ def test_green_and_portable_archives_keep_the_shell_runtime_contract(
 def test_distribution_default_output_is_anchored_to_repository_root() -> None:
     expected = Path(__file__).resolve().parents[1] / ".project-local/task-runtime/release-assembly"
     assert _assembly_output(None) == expected
+
+
+def test_backend_candidate_delegates_layout_to_the_authoritative_stager(monkeypatch, tmp_path):
+    """Stub dependency installation, but execute the authority's actual layout code."""
+    import importlib.util
+    import io
+    import sys
+
+    from desktop.scripts import prepare_bundle
+
+    repository = Path(__file__).resolve().parents[1]
+    script = repository / "scripts/release/stage_backend_runtime.py"
+    spec = importlib.util.spec_from_file_location("candidate_stager_test", script)
+    authority = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(authority)
+    destination = tmp_path / "candidate"
+    core = tmp_path / "archeaxis-api.exe"
+    core.write_bytes(b"synthetic Core fixture")
+    observed = []
+    monkeypatch.delenv("CARGO_TARGET_DIR", raising=False)
+
+    def prepare_runtime(*, repository, destination):
+        python = destination / "runtime/python/python.exe"
+        python.parent.mkdir(parents=True)
+        python.write_bytes(b"synthetic interpreter fixture")
+        packages = python.parent / "Lib/site-packages"
+        (packages / "fastapi/.agents").mkdir(parents=True)
+        (packages / "fastapi/.agents/upstream.md").write_text("upstream")
+        info = packages / "fastapi-1.0.dist-info"
+        info.mkdir()
+        (info / "RECORD").write_text("fastapi/.agents/upstream.md,,\n")
+        return python
+
+    def stage(command, *, cwd, check):
+        observed.append(command)
+        assert command[:3] == [sys.executable, "-B", str(script)]
+        assert cwd == repository and check is True
+        with monkeypatch.context() as context:
+            context.setattr(sys, "argv", command[2:])
+            context.setattr(authority, "packager_identity", lambda: "synthetic-tooling")
+            context.setattr(authority.os, "popen", lambda *_: io.StringIO("synthetic-version"))
+            assert authority.main() == 0
+
+    monkeypatch.setattr(prepare_bundle, "prepare_bundle_runtime", prepare_runtime)
+    monkeypatch.setattr(prepare_bundle.subprocess, "check_output", lambda command, **_: "synthetic-tree\n" if "HEAD^{tree}" in command else "synthetic-commit\n")
+    monkeypatch.setattr(prepare_bundle.subprocess, "run", stage)
+    python = prepare_bundle.prepare_backend_candidate(repository=repository, destination=destination, core=core)
+
+    assert len(observed) == 1
+    assert python == destination / "runtime/python.exe"
+    assert python.read_bytes() == b"synthetic interpreter fixture"
+    config = json.loads((repository / "src-tauri/tauri.conf.json").read_text())
+    for resource in config["bundle"]["resources"].values():
+        assert (destination / resource).exists(), resource
+    profile = json.loads((destination / "worker-profile.json").read_text())
+    assert profile["python"] == "runtime/python.exe"
+    assert profile["script"] == "workers/transport/text_ndjson.py"
+    assert (destination / "runtime/Lib/site-packages/fastapi/.agents/upstream.md").is_file()

@@ -13,8 +13,9 @@ personal files. Config authority is indexed in `docs/CONFIGURATION_AUTHORITY_IND
 
 ArcheAxis Knowledge is a local-first, evidence-driven, bidirectional Human–AI
 Learning & Trusted-Knowledge Workspace. The current minimum closed loop is broad
-compatibility: absorbing mature capabilities from comparable software. The active
-execution baseline is R6 with the M0 shortest-complete-loop priority overlay.
+compatibility: absorbing mature capabilities from comparable software. The active execution baseline is the AAOS-01 2026-10-04 quick multi-format TaskPack
+(SUP-022), with the 2026-10-05 content saving principles in PROJECT_CONTRACT.yaml.
+R6 and M0 retain inherited constraints and historical receipts.
 R5 source import/conversion and Obsidian Vault/JSON Canvas records are historical
 evidence and compatibility context; they are not the current execution queue.
 Implementation prefers legal dependencies, SDKs/APIs/CLIs, fork/vendor, and
@@ -67,7 +68,18 @@ migration history are documented under `docs/truth/` and `workspace/intake/`.
 
 ## 6. Implementation Workflow
 
-The user-approved active plan is the R6 Local Green absorb-first pack installed at
+The current user-approved execution pack is `docs/authority/taskpack-1004-aaos01/`,
+starting with `01_完整执行任务书.md`; live AAOS-01 progress has one authority at
+`docs/current/AAOS01-Q00-Q15-LEDGER-FINAL-20261005.md`. SUP-022 makes
+`frontend/` and `src-tauri/` the formal Tauri/React host. Rust Core remains
+the only canonical SQLite/CAS writer, with isolated Python workers. Ordinary
+Document/Block saves do not require external evidence, cloud checks or human
+approval; recognition fidelity and professional basis are separate version-bound
+processes. Actual implementation status comes from tests/receipts and the live
+ledger, never from this rule. Preserve auth, structure, integrity and the special
+human knowledge approval workflow.
+
+The preceding R6 Local Green absorb-first pack is installed at
 `docs/authority/taskpack-0919-r6/` (plan_id `AAK-LOCAL-GREEN-ABSORB-FIRST-20260919-R6`,
 package_revision `R6`). Read its `EXECUTOR-START.md`, `TASKS.json` and
 `TASKPACK.md`. Live progress is maintained outside the immutable package
@@ -102,10 +114,10 @@ source of the inherited task text with its audit board
 (`docs/authority/taskpack-0907/EXECUTION.md`). The earlier 2026-09-06-r1 Full
 Loop TaskPack is superseded in the parts recorded in
 DECISION_SUPERSESSION_LEDGER.yaml SUP-012..SUP-018; its receipts keep their own
-SHAs (`docs/authority/taskpack-0906/EXECUTION.md`). The formal
-desktop is `apps/ArcheAxis.Desktop/` (C#/Avalonia), with the separate vNext Rust
-Core database and isolated Python workers. `frontend/`, `src-tauri/`, `desktop/`
-and the existing Green v0.6.14 remain recovery/behavior references. Do not dual-write
+SHAs (`docs/authority/taskpack-0906/EXECUTION.md`). The preceding formal desktop `apps/ArcheAxis.Desktop/` (C#/Avalonia) is now
+a behavior/component donor under SUP-022. The formal Tauri host reuses the
+existing `desktop/` lifecycle implementation; Green v0.6.14 remains a preserved
+recovery/behavior reference until its distinct Owner qualification. Do not dual-write
 legacy and vNext databases. The older G0/shadow-cutover route is superseded by
 `DECISION_SUPERSESSION_LEDGER.yaml`; historical receipts retain their tested SHA.
 

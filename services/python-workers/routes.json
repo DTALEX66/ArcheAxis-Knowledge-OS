@@ -1,0 +1,48 @@
+{
+  "schema": "archeaxis.worker-routes/v1",
+  "note": "The single mapping from capability to the worker that implements it, beside the workers it names. Every path is relative to services/python-workers; callers add the prefix their own layout uses. This replaced three hand-written copies that drifted and shipped 503s.",
+  "routes": {
+    "archive.inventory": [
+      "document/worker_archive.py"
+    ],
+    "canvas.structure": [
+      "document/worker_canvas.py"
+    ],
+    "course.general": [
+      "course/worker_general_course.py"
+    ],
+    "html.structure": [
+      "web/worker_html.py"
+    ],
+    "image.caption": [
+      "vision/worker_caption.py"
+    ],
+    "image.ocr": [
+      "vision/worker_ocr.py"
+    ],
+    "machine.answer": [
+      "machine/worker_machine_answer.py"
+    ],
+    "media.probe": [
+      "document/worker_media.py"
+    ],
+    "media.video": [
+      "media/worker_video.py"
+    ],
+    "media.transcribe": [
+      "media/worker_transcribe.py"
+    ],
+    "office.structure": [
+      "document/worker_office.py"
+    ],
+    "pdf.extract": [
+      "document/worker_pdf.py"
+    ],
+    "search.semantic": [
+      "search/semantic_ranking.py"
+    ],
+    "subtitles.structure": [
+      "document/worker_subtitles.py"
+    ]
+  }
+}

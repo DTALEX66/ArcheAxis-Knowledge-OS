@@ -1,0 +1,83 @@
+{
+  "schema": "aaos01-document-mirror-v1",
+  "date": "2026-10-06",
+  "scope": "dated documentation mirror, not second execution ledger or deployed product proof",
+  "source_branch": "codex/dsh-aaos-real-multiformat-loop-20261001",
+  "mirror_verified_against_commit": "586b1f4f84c0bc80088dbe2e09e38b0fb3cc5d09",
+  "prior_baseline_commit": "b69c42a2afb53870847c08805c92171cc787533a",
+  "commit_binding_note": "mirror_verified_against_commit is the source commit whose content every hashed file is taken from; prior_baseline_commit is the earlier AAOS-01 documentation commit kept only as history. This manifest is always updated one commit later because it cannot record the commit that contains itself.",
+  "canonical_ledger": "docs/current/AAOS01-Q00-Q15-LEDGER-FINAL-20261005.md",
+  "green_mirror": "D:\\All projects\\ArcheAxis.Knowledge.Green-x64\\AAOS01-文档同步-20261006",
+  "source_form": {
+    "materialize": "git archive <mirror_verified_against_commit> <path> | tar -x",
+    "note": "Hashed bytes are the bound commit's canonical file content, so a fresh checkout reproduces the mirror. The Formal worktree copy of AGENTS.md is a CRLF-local materialization that git status still reports clean because .gitattributes normalizes it; it is not the mirrored content.",
+    "agents_md_worktree_copy": {
+      "bytes": 11219,
+      "sha256": "598358974d8921d3bebc6378675f2f3e5ca22d8c1d1b81393745670e97537c1e"
+    }
+  },
+  "files": [
+    {
+      "path": "README.md",
+      "bytes": 24883,
+      "sha256": "6d585d34ced69a77f5f9c779d132d4f7681866c554ace7aa66519c4330187f03"
+    },
+    {
+      "path": "AGENTS.md",
+      "bytes": 11062,
+      "sha256": "09fdb4f3772779128b64cb98a12a0b11c1660cd28e3bdc6dd987d585a3fc77cd"
+    },
+    {
+      "path": "PROJECT_CONTRACT.yaml",
+      "bytes": 6648,
+      "sha256": "3eb024eee7748da4fbc5bb2bd04b6faaf1ed50e1754725f61c47b57661157a88"
+    },
+    {
+      "path": "docs/DOCUMENTATION_AUTHORITY_INDEX.md",
+      "bytes": 17064,
+      "sha256": "b99fee96255fa03e2779b0f4fc7f1a22b020d4425c01dce4b8dc7bf290fc76a9"
+    },
+    {
+      "path": "docs/RUNTIME_DELIVERY_AUTHORITY_INDEX.md",
+      "bytes": 8210,
+      "sha256": "1d4762f660f51464fb5edeaf0abf87cacaa78790266ccb0d745a55d572b20a00"
+    },
+    {
+      "path": "docs/SHARED_RESOURCE_PATH_INDEX.md",
+      "bytes": 14477,
+      "sha256": "523808a39dfac4e9b5195a679036f7b98ddb5ad35aa485ac9bef143bea411ef1"
+    },
+    {
+      "path": "docs/current/AAOS01-Q00-Q15-LEDGER-FINAL-20261005.md",
+      "bytes": 105643,
+      "sha256": "fc4d206e01732e00280588b343bd0a8961944c1a28d11d6361e2937f737597b4"
+    },
+    {
+      "path": "docs/current/AAOS01-RECORD-CONSOLIDATION-REVIEW-20261005.md",
+      "bytes": 2478,
+      "sha256": "3e0c2c205ae6d2802b83f2f44d09edfd456dd610e5985b186e9f13923388a6d6"
+    },
+    {
+      "path": "docs/current/AAOS01-CONVERSATION-TASK-SUMMARY-20261006.md",
+      "bytes": 9538,
+      "sha256": "fc28a5b6ae86ec08550698a152aba6297b95ca5a572b0e5cb1a5503e42df26fb"
+    },
+    {
+      "path": "docs/current/AAOS01-AGENT-HANDOFF-20261006.txt",
+      "bytes": 7680,
+      "sha256": "8a66beb140d377aabd692b3c1fd9def8af973d123e4f133a920178e7e75c7f53"
+    }
+  ],
+  "verified_files": 10,
+  "all_bytes_equal": true,
+  "excluded": [
+    "credentials",
+    "private sessions",
+    "original CI logs",
+    "user corpus",
+    "models",
+    "databases",
+    "runtime payloads",
+    "recovery archives"
+  ]
+}

@@ -1,11 +1,87 @@
 //! vNext database schema and workspace init (Rust sole writer).
 use rusqlite::Connection;
 
+pub mod capability_settings;
 pub mod raw_objects;
 pub mod writer;
 
 // Assessment and the V3 governance sidecar are additive schema changes.
-pub const SCHEMA_VERSION: i64 = 6;
+// 7 adds the capability enable/disable record that R7/G1 needs; 8 adds the vault link graph that
+// G2 needs. Like the earlier additive steps both are applied on open rather than by rewriting
+// anything.
+pub const SCHEMA_VERSION: i64 = 11;
+
+const DOCUMENT_SCHEMA_SQL: &str = r#"
+CREATE TABLE IF NOT EXISTS documents (
+    document_id TEXT PRIMARY KEY,
+    source_id TEXT REFERENCES sources(source_id),
+    source_revision TEXT,
+    title TEXT NOT NULL,
+    current_version INTEGER NOT NULL CHECK(current_version >= 0),
+    created_at TEXT NOT NULL DEFAULT (datetime('now')),
+    CHECK ((source_id IS NULL) = (source_revision IS NULL))
+);
+CREATE TABLE IF NOT EXISTS document_versions (
+    document_id TEXT NOT NULL REFERENCES documents(document_id),
+    version INTEGER NOT NULL CHECK(version > 0),
+    editor_json TEXT NOT NULL,
+    text_projection TEXT NOT NULL,
+    content_sha256 TEXT NOT NULL,
+    revision_basis TEXT,
+    created_at TEXT NOT NULL DEFAULT (datetime('now')),
+    PRIMARY KEY(document_id, version)
+);
+CREATE TABLE IF NOT EXISTS document_checks (
+    check_id TEXT PRIMARY KEY,
+    document_id TEXT NOT NULL,
+    version INTEGER NOT NULL,
+    dimension TEXT NOT NULL CHECK(dimension IN ('recognition_fidelity','professional_basis')),
+    receipt_json TEXT NOT NULL,
+    recorded_at TEXT NOT NULL DEFAULT (datetime('now')),
+    FOREIGN KEY(document_id,version) REFERENCES document_versions(document_id,version)
+);
+CREATE TABLE IF NOT EXISTS document_blocks (
+    document_id TEXT NOT NULL,
+    version INTEGER NOT NULL,
+    block_id TEXT NOT NULL,
+    ordinal INTEGER NOT NULL CHECK(ordinal >= 0),
+    kind TEXT NOT NULL,
+    node_json TEXT NOT NULL,
+    text_projection TEXT NOT NULL,
+    codec_status TEXT NOT NULL,
+    PRIMARY KEY(document_id, version, block_id),
+    UNIQUE(document_id, version, ordinal),
+    FOREIGN KEY(document_id, version) REFERENCES document_versions(document_id, version)
+);
+"#;
+
+const COURSE_SCHEMA_SQL: &str = r#"
+CREATE TABLE IF NOT EXISTS general_courses (
+    manifest_id TEXT PRIMARY KEY,
+    title TEXT NOT NULL,
+    manifest_json TEXT NOT NULL,
+    status TEXT NOT NULL CHECK(status='candidate'),
+    human_review_required INTEGER NOT NULL CHECK(human_review_required=1),
+    created_at TEXT NOT NULL DEFAULT (datetime('now'))
+);
+CREATE TABLE IF NOT EXISTS general_course_artifacts (
+    artifact_id TEXT PRIMARY KEY,
+    manifest_id TEXT NOT NULL REFERENCES general_courses(manifest_id),
+    artifact_json TEXT NOT NULL,
+    status TEXT NOT NULL CHECK(status='candidate'),
+    derived_only INTEGER NOT NULL CHECK(derived_only=1),
+    human_review_required INTEGER NOT NULL CHECK(human_review_required=1)
+);
+CREATE TABLE IF NOT EXISTS general_course_bindings (
+    manifest_id TEXT NOT NULL REFERENCES general_courses(manifest_id),
+    component_id TEXT NOT NULL,
+    knowledge_id TEXT NOT NULL REFERENCES knowledge(knowledge_id),
+    knowledge_version TEXT NOT NULL,
+    source_id TEXT NOT NULL REFERENCES sources(source_id),
+    source_revision TEXT NOT NULL,
+    PRIMARY KEY(manifest_id,component_id,source_id)
+);
+"#;
 
 const SCHEMA_SQL: &str = r#"
 CREATE TABLE IF NOT EXISTS workspace_meta (
@@ -124,6 +200,13 @@ CREATE TABLE IF NOT EXISTS learning_assessments (
     created_at TEXT NOT NULL DEFAULT (datetime('now')),
     UNIQUE(item_key, knowledge_id)
 );
+CREATE TABLE IF NOT EXISTS card_references (
+    item_key TEXT NOT NULL,
+    knowledge_id TEXT NOT NULL REFERENCES knowledge(knowledge_id),
+    created_event_id INTEGER,
+    referenced_at TEXT NOT NULL DEFAULT (datetime('now')),
+    PRIMARY KEY(item_key, knowledge_id)
+);
 CREATE TABLE IF NOT EXISTS job_attempts (
     job_id TEXT NOT NULL REFERENCES jobs(job_id),
     attempt INTEGER NOT NULL CHECK(attempt > 0),
@@ -170,6 +253,26 @@ CREATE TABLE IF NOT EXISTS canvas_projection_edges (
     color TEXT NOT NULL DEFAULT '#888',
     PRIMARY KEY(canvas_id, edge_id)
 );
+-- Machine receipts. Created on demand until now, which is why the archive omitted them:
+-- the export refuses to write an archive it cannot account for, and a table that only
+-- exists after the first machine task made the table set depend on usage history. Creating
+-- it with the rest of the schema makes the exported set a property of the schema version,
+-- which is what the archive layout depends on. The domain's own ensure_machine_tasks stays
+-- for databases created before this.
+CREATE TABLE IF NOT EXISTS machine_tasks (
+    task_id TEXT PRIMARY KEY,
+    principal TEXT NOT NULL,
+    conditions TEXT NOT NULL,
+    knowledge_version TEXT,
+    method_version TEXT,
+    tool_version TEXT,
+    model_version TEXT NOT NULL,
+    scope TEXT NOT NULL,
+    outcome TEXT NOT NULL,
+    failure TEXT,
+    retest_of TEXT,
+    recorded_at TEXT NOT NULL DEFAULT (datetime('now'))
+);
 "#;
 
 /// Open (or create) the vNext database and apply the schema.
@@ -209,6 +312,12 @@ pub fn init_workspace(db_path: &str) -> rusqlite::Result<Connection> {
         return Err(rusqlite::Error::InvalidQuery);
     }
     conn.execute_batch("PRAGMA journal_mode=WAL; PRAGMA foreign_keys=ON;")?;
+    // Rebuild the parent table atomically without rewriting child FK targets.
+    // SQLite requires foreign_keys to be disabled before this write transaction;
+    // validate every FK before commit and re-enable before returning the connection.
+    if version > 0 && version < 11 {
+        conn.execute_batch("PRAGMA foreign_keys=OFF;")?;
+    }
     let tx = conn.transaction_with_behavior(rusqlite::TransactionBehavior::Immediate)?;
     // Another opener may have migrated between the read-only preflight and
     // acquisition of the write transaction. Decide from the locked snapshot.
@@ -280,11 +389,75 @@ pub fn init_workspace(db_path: &str) -> rusqlite::Result<Connection> {
             );"
         )?;
     }
+    if version < 7 {
+        // An absent row means enabled, because a capability the launch registered and nobody
+        // disabled is what the Core serves. Only a disabled capability is written, so the table
+        // records decisions rather than restating the registration.
+        tx.execute_batch(
+            "CREATE TABLE IF NOT EXISTS capability_settings (
+                capability TEXT PRIMARY KEY,
+                enabled INTEGER NOT NULL CHECK(enabled IN (0,1)),
+                changed_at TEXT NOT NULL DEFAULT (datetime('now'))
+            );",
+        )?;
+    }
+    if version < 8 {
+        // G2: the Obsidian-style link graph of a vault note.
+        //
+        // `target_knowledge_id` is NULLABLE on purpose. A vault routinely links to a note that has
+        // not been imported, and a link to a note that is not here yet is a fact about the vault
+        // rather than a reason to refuse the link. Refusing it would silently drop exactly the
+        // links that tell a reader the vault is incomplete.
+        //
+        // `source_knowledge_id` is NOT NULL because the note declaring the link is always the one
+        // being read, so a link with no declaring note would be meaningless.
+        tx.execute_batch(
+            "CREATE TABLE IF NOT EXISTS vault_links (
+                source_knowledge_id TEXT NOT NULL REFERENCES knowledge(knowledge_id),
+                target_ref TEXT NOT NULL,
+                target_knowledge_id TEXT REFERENCES knowledge(knowledge_id),
+                embed INTEGER NOT NULL CHECK(embed IN (0,1)),
+                fragment TEXT,
+                fragment_is_block INTEGER NOT NULL DEFAULT 0 CHECK(fragment_is_block IN (0,1)),
+                syntax TEXT NOT NULL,
+                ordinal INTEGER NOT NULL,
+                created_at TEXT NOT NULL DEFAULT (datetime('now')),
+                PRIMARY KEY(source_knowledge_id, target_ref, ordinal)
+            );
+            CREATE INDEX IF NOT EXISTS vault_links_target ON vault_links(target_knowledge_id);",
+        )?;
+    }
+
+    tx.execute_batch(COURSE_SCHEMA_SQL)?;
+    let old_documents: bool = tx.query_row("SELECT EXISTS(SELECT 1 FROM pragma_table_info('documents') WHERE name='source_id' AND \"notnull\"=1)", [], |r| r.get(0))?;
+    if old_documents {
+        tx.execute_batch("CREATE TABLE documents_optional (
+            document_id TEXT PRIMARY KEY,source_id TEXT REFERENCES sources(source_id),source_revision TEXT,
+            title TEXT NOT NULL,current_version INTEGER NOT NULL CHECK(current_version>=0),
+            created_at TEXT NOT NULL DEFAULT (datetime('now')),CHECK((source_id IS NULL)=(source_revision IS NULL)));
+            INSERT INTO documents_optional SELECT * FROM documents;
+            DROP TABLE documents;
+            ALTER TABLE documents_optional RENAME TO documents;")?;
+    }
+    tx.execute_batch(DOCUMENT_SCHEMA_SQL)?;
+    let has_basis: bool = tx.query_row("SELECT EXISTS(SELECT 1 FROM pragma_table_info('document_versions') WHERE name='revision_basis')", [], |r| r.get(0))?;
+    if !has_basis {
+        tx.execute_batch("ALTER TABLE document_versions ADD COLUMN revision_basis TEXT;")?;
+    }
+    let broken_fk: bool = tx.query_row(
+        "SELECT EXISTS(SELECT 1 FROM pragma_foreign_key_check)",
+        [],
+        |r| r.get(0),
+    )?;
+    if broken_fk {
+        return Err(rusqlite::Error::InvalidQuery);
+    }
     tx.execute(
         "INSERT OR REPLACE INTO workspace_meta(key, value) VALUES('schema_version', ?1)",
         [SCHEMA_VERSION.to_string()],
     )?;
     tx.commit()?;
+    conn.execute_batch("PRAGMA foreign_keys=ON;")?;
     Ok(conn)
 }
 

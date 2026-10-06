@@ -1,8 +1,9 @@
 """Legacy React/Tauri recovery contracts and formal-shell authority guards."""
+
 from __future__ import annotations
 
-from pathlib import Path
 import json
+from pathlib import Path
 
 from fastapi.testclient import TestClient
 
@@ -17,8 +18,13 @@ def test_formal_product_shell_is_avalonia_and_web_shell_is_legacy() -> None:
 
     assert contract["productShell"]["base"] == "ArcheAxis C#/Avalonia"
     assert contract["productShell"]["mode"] == "formal-desktop-shell"
-    assert contract["productShell"]["productionEntrypoint"] == "apps/ArcheAxis.Desktop/ArcheAxis.Desktop.csproj"
-    assert contract["productShell"]["webCompatibilityRole"] == "legacy-recovery-and-behavior-reference"
+    assert (
+        contract["productShell"]["productionEntrypoint"]
+        == "apps/ArcheAxis.Desktop/ArcheAxis.Desktop.csproj"
+    )
+    assert (
+        contract["productShell"]["webCompatibilityRole"] == "legacy-recovery-and-behavior-reference"
+    )
 
 
 def test_loopback_workspace_no_longer_exposes_or_packages_a_second_product_ui() -> None:
@@ -47,6 +53,7 @@ def test_legacy_tauri_recovery_surface_remains_covered_by_compatibility_ci() -> 
 
     assert "星环知识平台" in frontend
     assert "ArcheAxis Knowledge" in frontend
+    assert "core_command," in tauri
     assert '.title("星环知识")' in desktop_lib
     assert "Enforce OSUI design and Chinese-first frontend contracts" in workflow
     assert "npm test -- --run" in workflow
@@ -54,10 +61,12 @@ def test_legacy_tauri_recovery_surface_remains_covered_by_compatibility_ci() -> 
 
 def test_tauri_creates_recovery_webview_before_blocking_backend_startup() -> None:
     source = (ROOT / "src-tauri/src/main.rs").read_text(encoding="utf-8")
-    setup = source[source.index(".setup(move |app|"):source.index(".on_window_event")]
+    setup = source[source.index(".setup(move |app|") : source.index(".on_window_event")]
 
     assert setup.index("WebviewWindowBuilder::new") < setup.index("std::thread::spawn")
-    assert setup.index("std::thread::spawn") < setup.index("BackendProcess::launch")
+    assert setup.index("std::thread::spawn") < setup.index("launch_product_backend(&runtime)")
+    retry = source[source.index("fn retry_backend_blocking(") : source.index("fn recovery_status(")]
+    assert "launch_product_backend(&runtime)" in retry
 
 
 def test_canonical_library_uses_the_validated_pdf_endpoint_and_sandbox() -> None:

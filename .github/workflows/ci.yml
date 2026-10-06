@@ -151,6 +151,15 @@ jobs:
           sudo apt-get update
           sudo apt-get install --yes --no-install-recommends ffmpeg tesseract-ocr tesseract-ocr-eng fonts-dejavu-core fonts-noto-cjk
           tesseract --list-langs | grep --fixed-strings --line-regexp eng
+          python - <<'PY'
+          import os, subprocess
+          from pathlib import Path
+          paths = subprocess.check_output(["dpkg", "-L", "tesseract-ocr-eng"], text=True).splitlines()
+          trained = [Path(path) for path in paths if path.endswith("/eng.traineddata") and Path(path).is_file()]
+          assert len(trained) == 1, "installed English OCR data must resolve uniquely"
+          with open(os.environ["GITHUB_ENV"], "a", encoding="utf8") as output:
+              output.write(f"TESSDATA_PREFIX={trained[0].parent}\n")
+          PY
 
       - name: Run OS-level tests
         run: python -m pytest tests/ -q --tb=short
@@ -665,7 +674,7 @@ jobs:
         run: python scripts/runtime_http_smoke.py
 
   rust-vnext:
-    timeout-minutes: 30
+    timeout-minutes: 60
     runs-on: windows-latest
     needs: gateplan
     if: ${{ needs.gateplan.result != 'success' || needs.gateplan.outputs.full_qualification == 'true' || contains(needs.gateplan.outputs.required_gates, 'rust-vnext') }}
@@ -692,6 +701,11 @@ jobs:
         run: |
           uv export --frozen --only-group ci --no-emit-project --format requirements-txt --output-file locked-ci.txt
           uv pip install --system --require-hashes -r locked-ci.txt
+          uv export --frozen --only-group ci-adapters --no-emit-project --format requirements-txt --output-file locked-ci-adapters.txt
+          uv pip install --system --require-hashes -r locked-ci-adapters.txt
+          # Bind worker tests to the interpreter that received the locked adapters,
+          # after setup-python rather than the runner's initial Python.
+          python -B scripts/runtime/dev.py --github-env
       - uses: Swatinem/rust-cache@v2
         with:
           workspaces: "."
@@ -880,7 +894,7 @@ jobs:
 
   desktop-fast:
     runs-on: windows-latest
-    timeout-minutes: 15
+    timeout-minutes: 30
     needs: gateplan
     if: ${{ needs.gateplan.result != 'success' || needs.gateplan.outputs.full_qualification == 'true' || contains(needs.gateplan.outputs.required_gates, 'desktop-fast') }}
     steps:
@@ -916,15 +930,67 @@ jobs:
       - name: Install locked Python runtime
         run: uv sync --frozen
       - name: Prepare the installed Python runtime
-        run: >-
-          python -m desktop.scripts.prepare_bundle
-          --repository .
-          --destination .project-local/rt
+        working-directory: ${{ github.workspace }}
+        run: |
+          cargo build -p archeaxis-api --bin archeaxis-api --release --locked
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          python -m desktop.scripts.prepare_bundle --backend-candidate --repository . --destination .project-local/rt --core "$env:CARGO_TARGET_DIR/release/archeaxis-api.exe"
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
       - name: Test the canonical Windows desktop shell
         working-directory: src-tauri
         run: |
           cargo fmt --all -- --check
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           cargo test
+      - name: Assert the staged runtime carries the format engines
+        working-directory: ${{ github.workspace }}
+        run: python -B -m desktop.scripts.assert_runtime_engines --candidate .project-local/rt
+      - name: Verify real XLSX and PPTX persistence
+        id: office_loop
+        working-directory: ${{ github.workspace }}
+        run: python -B scripts/probes/aaos01_office_runtime_loop.py --candidate .project-local/rt
+      - name: Upload Office loop receipt
+        if: ${{ always() && steps.office_loop.outcome != 'skipped' }}
+        uses: actions/upload-artifact@834a144ee995460fba8ed112a2fc961b36a5ec5a
+        with:
+          name: desktop-fast-office-loop-${{ github.sha }}-${{ github.run_attempt }}
+          path: .project-local/task-runtime/aaos01-office/**/receipt.json
+          if-no-files-found: error
+      - name: Verify native document and independent backup restore
+        id: document_loop
+        working-directory: ${{ github.workspace }}
+        run: python -B scripts/probes/aaos01_document_backup_loop.py --candidate .project-local/rt
+      - name: Verify ordinary saving and independent content checks
+        id: content_policy_loop
+        working-directory: ${{ github.workspace }}
+        run: python -B scripts/probes/aaos01_content_policy_runtime_loop.py --candidate .project-local/rt
+      - name: Upload content policy runtime receipt
+        if: ${{ always() && steps.content_policy_loop.outcome != 'skipped' }}
+        uses: actions/upload-artifact@834a144ee995460fba8ed112a2fc961b36a5ec5a
+        with:
+          name: desktop-fast-content-policy-${{ github.sha }}-${{ github.run_attempt }}
+          path: .project-local/task-runtime/aaos01-content-policy/**/receipt.json
+          if-no-files-found: error
+      - name: Verify independent Q12 format and exchange loops
+        id: light_loop
+        working-directory: ${{ github.workspace }}
+        run: |
+          python -B scripts/probes/aaos01_light_format_loop.py --candidate .project-local/rt --wave B
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          python -B scripts/probes/aaos01_exchange_runtime_loop.py --candidate .project-local/rt
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          python -B scripts/probes/aaos01_fault_runtime_loop.py --candidate .project-local/rt
+      - name: Upload document and format loop evidence
+        if: ${{ always() && (steps.document_loop.outcome != 'skipped' || steps.light_loop.outcome != 'skipped') }}
+        uses: actions/upload-artifact@834a144ee995460fba8ed112a2fc961b36a5ec5a
+        with:
+          name: desktop-fast-document-format-${{ github.sha }}-${{ github.run_attempt }}
+          path: |
+            .project-local/task-runtime/aaos01-document-backup/**/receipt.json
+            .project-local/task-runtime/aaos01-light/**/receipt.json
+            .project-local/task-runtime/aaos01-exchange/**/receipt.json
+            .project-local/task-runtime/aaos01-fault/**/receipt.json
+          if-no-files-found: error
       - name: Test the canonical desktop recovery contracts
         working-directory: src-tauri
         env:
@@ -991,13 +1057,34 @@ jobs:
       - name: Enforce OSUI design and Chinese-first frontend contracts
         working-directory: frontend
         run: npm test -- --run
+      - name: Verify generated native contracts and capability catalog
+        run: |
+          uv run --frozen python -B scripts/contracts/generate_core_document.py
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          uv run --frozen python -B scripts/contracts/generate_capability_catalog.py --check
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          git diff --exit-code -- frontend/src/api/generated/core-contract.ts
       - name: Prepare the installed Python runtime
-        run: >-
-          python -m desktop.scripts.prepare_bundle
-          --repository .
-          --destination .project-local/rt
+        working-directory: ${{ github.workspace }}
+        run: |
+          cargo build -p archeaxis-api --bin archeaxis-api --release --locked
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          python -m desktop.scripts.prepare_bundle --backend-candidate --repository . --destination .project-local/rt --core "$env:CARGO_TARGET_DIR/release/archeaxis-api.exe"
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+      - name: Assert the bundle carries the Core and its workers
+        shell: pwsh
+        run: |
+          foreach ($relative in @('rt\core\archeaxis-api.exe', 'rt\workers\routes.json')) {
+            $path = Join-Path '.project-local' $relative
+            if (-not (Test-Path $path)) { throw "bundle is missing $relative" }
+            Write-Host "present: $relative"
+          }
+      - name: Assert the staged runtime carries the format engines
+        working-directory: ${{ github.workspace }}
+        run: python -B -m desktop.scripts.assert_runtime_engines --candidate .project-local/rt
       - name: Inject CI candidate identity
         shell: pwsh
+        working-directory: ${{ github.workspace }}
         run: |
           $version = (Get-Content 'frontend/package.json' -Raw | ConvertFrom-Json).version
           $tree = (git rev-parse "$env:GITHUB_SHA^{tree}").Trim()
@@ -1008,6 +1095,7 @@ jobs:
             --version $version `
             --verification-ci-run-id $env:GITHUB_RUN_ID `
             --verification-ci-url "$env:GITHUB_SERVER_URL/$env:GITHUB_REPOSITORY/actions/runs/$env:GITHUB_RUN_ID" `
+            --manifest .project-local/rt/backend-runtime-manifest.json `
             --output .project-local/rt/runtime/release-identity.json
       - name: Audit locked Rust dependencies
         working-directory: src-tauri
@@ -1088,7 +1176,7 @@ jobs:
 
   installer-lifecycle:
     runs-on: windows-latest
-    timeout-minutes: 15
+    timeout-minutes: 45
     needs: [gateplan, desktop-build]
     if: ${{ always() && needs.desktop-build.result == 'success' && (needs.gateplan.result != 'success' || needs.gateplan.outputs.full_qualification == 'true' || contains(needs.gateplan.outputs.required_gates, 'installer-lifecycle')) }}
     steps:
@@ -1103,6 +1191,15 @@ jobs:
         with:
           name: release-candidate
           path: .project-local/task-runtime/release-candidate
+      - name: Prepare official matched Tauri WebDriver tools
+        run: python -B scripts/ci/prepare_tauri_webdriver.py --root .project-local/task-runtime/aaos01-native-tools
+      - name: Prepare pinned project-local OCR for the installed format matrix
+        shell: pwsh
+        run: |
+          $sevenzip = (Get-Command 7z.exe -ErrorAction SilentlyContinue).Source
+          if (-not $sevenzip) { $sevenzip = 'C:/Program Files/7-Zip/7z.exe' }
+          python -B scripts/ci/prepare_windows_ocr.py --project-root . --root .project-local/task-runtime/aaos01-ocr-tools --sevenzip $sevenzip
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
       - name: Verify the installed NSIS lifecycle
         shell: pwsh
         env:
@@ -1116,7 +1213,22 @@ jobs:
           if ($candidate.schema -ne 'archeaxis/release-candidate/v1' -or $candidate.commit -ne $env:GITHUB_SHA) { throw 'candidate provenance commit mismatch' }
           $installer = Join-Path $candidateRoot $candidate.installer.name
           if (-not (Test-Path -LiteralPath $installer) -or (Get-FileHash $installer -Algorithm SHA256).Hash.ToLowerInvariant() -ne $candidate.installer.sha256) { throw 'candidate installer SHA-256 mismatch' }
-          ./desktop/scripts/verify_nsis_install.ps1 -Installer $installer -RequireCandidateIdentity
+          ./desktop/scripts/verify_nsis_install.ps1 -Installer $installer -RequireCandidateIdentity -NativeToolsReceipt .project-local/task-runtime/aaos01-native-tools/receipt.json
+      - name: Upload installed native journey evidence
+        if: ${{ always() }}
+        uses: actions/upload-artifact@834a144ee995460fba8ed112a2fc961b36a5ec5a
+        with:
+          name: installed-native-journey-${{ github.sha }}-${{ github.run_attempt }}
+          path: |
+            .project-local/task-runtime/aaos01-webdriver/**/receipt.json
+            .project-local/task-runtime/aaos01-webdriver/**/install-preflight.json
+            .project-local/task-runtime/aaos01-webdriver/**/*.png
+            .project-local/task-runtime/aaos01-webdriver/**/driver.log
+            .project-local/task-runtime/aaos01-webdriver/**/native-driver.log
+            .project-local/task-runtime/aaos01-native-tools/receipt.json
+            .project-local/task-runtime/aaos01-ocr-tools/ocr-receipt.json
+            .project-local/task-runtime/aaos01-native-tools/cargo-install.log
+          if-no-files-found: error
 
   a0-gates:
     timeout-minutes: 5

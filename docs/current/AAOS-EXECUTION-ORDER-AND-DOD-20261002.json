@@ -1,0 +1,210 @@
+{
+  "document": "AAOS_EXECUTION_ORDER_AND_DOD_20261002",
+  "requested_as": "执行顺序与每项 DoD (section 42, last first-round item)",
+  "recorded_at": "2026-10-02T07:52:41.359570+00:00",
+  "one_route": "G0 -> G1 -> G2 -> G3 -> G4 -> G5. Section 16 and section 42 both forbid a second parallel route, and R7 is a label rather than a supersession of R6/M0.",
+  "rounds": [
+    {
+      "round": "first",
+      "instruction": "section 42: output and land records only; do not start large-scale code changes",
+      "items": [
+        {
+          "item": "CURRENT_AUTHORITY_SNAPSHOT",
+          "file": "AAOS-CURRENT-AUTHORITY-SNAPSHOT-20261002.json",
+          "dod": "R6/M0 named as the live authority, R7 marked a label, release FROZEN, and the four authority layers recorded as the plan defines them",
+          "status": "DONE"
+        },
+        {
+          "item": "HISTORY_COVERAGE_LEDGER",
+          "file": "AAOS-HISTORY-COVERAGE-LEDGER-20261002.json",
+          "dod": "every archived capability, requirement and history-mapping row lands in the section 34 vocabulary; MISSING is absent",
+          "status": "DONE"
+        },
+        {
+          "item": "BRANCH_CONVERGENCE_LEDGER",
+          "file": "AAOS-BRANCH-CONVERGENCE-LEDGER-20261002.json",
+          "dod": "all fourteen section 18 fields recorded per branch, unique content measured against each branch's own PR base, and the ordering hazard stated",
+          "status": "DONE"
+        },
+        {
+          "item": "LOCAL_CLOUD_RECONCILIATION",
+          "file": "AAOS-LOCAL-CLOUD-RECONCILIATION-20261002.json",
+          "dod": "git status, worktrees, stashes and local-only commits recorded, unknown state preserved, and none of the five prohibited git actions used",
+          "status": "DONE"
+        },
+        {
+          "item": "CORE_PLUGIN_BOUNDARY",
+          "file": "AAOS-CORE-PLUGIN-BOUNDARY-V1-20261002.json",
+          "dod": "the never-plugin list and the prefer-plugin list are both explicit, and the invariant that a provider never writes the canonical database is stated",
+          "status": "DONE"
+        },
+        {
+          "item": "CAPABILITY_REGISTRY_V1 (section 33 item 6)",
+          "file": "AAOS-CAPABILITY-REGISTRY-V1-20261002.json",
+          "dod": "the record shape a registry must carry is defined and the gap between it and the Core today is listed",
+          "status": "DONE"
+        },
+        {
+          "item": "FAST_CLOSURE_GOLDEN_PATH",
+          "file": "AAOS-FAST-CLOSURE-GOLDEN-PATH-V1-20261002.json",
+          "dod": "the chain is the Owner's own wording from section 15 and the measured position on it is stated without rounding up",
+          "status": "DONE"
+        },
+        {
+          "item": "UI_IA_FREEZE",
+          "file": "AAOS-UI-IA-FREEZE-V1-20261002.json",
+          "dod": "the six frozen domains, their contents, the object-detail rule and the no-faking rule are all recorded",
+          "status": "DONE"
+        },
+        {
+          "item": "OPEN_BLOCKERS_AND_OWNER_GATES",
+          "file": "AAOS-OPEN-BLOCKERS-AND-OWNER-GATES-20261002.json",
+          "dod": "each blocker marked as an Owner decision or as executor wiring, so the next actor is never ambiguous",
+          "status": "DONE"
+        }
+      ]
+    },
+    {
+      "round": "next",
+      "instruction": "section 42: only after the audit above may code execution begin",
+      "items": [
+        {
+          "item": "G0 close - branch convergence",
+          "dod": "PR #156 merged to main, then #157 and #158 converged to codex/Audit, each with exact-SHA CI green, or an explicit Owner decision to defer",
+          "depends_on": "the Owner's merge; the executor may not merge",
+          "status": "WAITING_ON_OWNER"
+        },
+        {
+          "item": "G1 plugin kernel",
+          "dod": "a capability can be listed, resolved by exact name, health-checked, disabled and re-enabled over HTTP without editing the Core, and a disabled capability is refused at claim time",
+          "depends_on": "A02 for a stable root, though a declarative root can start",
+          "status": "DONE",
+          "delivered_in": [
+            "5ab692da (the registry surface)",
+            "d3c8e539 (enable/disable as a barrier)",
+            "cf83fcfd (default and fallback, preferring a usable provider)"
+          ],
+          "remaining": [
+            "provider rollback",
+            "a second provider anywhere in production",
+            "per-capability permission"
+          ]
+        },
+        {
+          "item": "G2 universal knowledge",
+          "dod": "each first-batch format reaches an Evidence anchor and a Knowledge object from a real file, one external knowledge-software source imports, and Ask answers with a citation",
+          "depends_on": "nothing blocking",
+          "status": "READY",
+          "delivered_in": [
+            "b6ea4c26 (cited Ask: every answer is the cited excerpts themselves, with the knowledge id, anchor and source file, so a reader can check it)"
+          ],
+          "measured_this_round": {
+            "obsidian_shaped_markdown": "imported and extracted through the real Core, state `succeeded`. Front-matter, wiki-links, tags and an embedded attachment all survive in the projection, because `.md` maps to `text/markdown` and `text.extract` accepts that type. `.canvas` maps to `application/json`, which the same route accepts.",
+            "correction": "this item previously said G2 lacked knowledge-software compatibility outright. That overstated it: the *file* half works. What is missing is the *vault* half - walking a directory, reading a `.obsidian` configuration, building the link graph and importing each member with its own provenance - which needs a path-safety design the Core does not have yet."
+          },
+          "remaining": [
+            "vault-level import: walk a directory and import each member, with the path-safety boundary the Core currently avoids",
+            "Git repository source",
+            "Notion export (markdown plus CSV pairs)"
+          ]
+        },
+        {
+          "item": "G3 human learning lite",
+          "dod": "a person completes item -> assessment -> FSRS -> review in the product and a restart reads the same state back",
+          "depends_on": "a human at the UI; the backend routes already exist",
+          "status": "READY"
+        },
+        {
+          "item": "G4 machine co-learning lite",
+          "dod": "one real model answers from accepted knowledge over HTTP, a human records a specific error with the correction, the correction is stored as a candidate, and promotion runs only through human review",
+          "depends_on": "nothing measurable; the runtime is installed and serving",
+          "status": "READY",
+          "delivered_in": [
+            "facc4144 (the machine answer worker over the local model)",
+            "637a4bb7 (POST /api/v1/machine/answers: grounded in the knowledge item's own body)",
+            "a4acd1a8 (POST /api/v1/machine/corrections: the human half, as an un-promotable candidate)",
+            "c3b86628 (POST /api/v1/machine/retests: linked to the failed task, and it does not score itself)"
+          ],
+          "what_is_wired": {
+            "machine_answer": "POST /api/v1/machine/answers asks the local model one question about one accepted knowledge item, whose own body is the context",
+            "human_correction": "POST /api/v1/machine/corrections records the model's answer and the correction together with the specific error; a machine principal is 403",
+            "no_auto_promotion": "the correction is an OBSERVATION with status candidate and an UNSOURCED evidence status, and the domain refuses to accept or verify machine-origin content automatically; a machine principal is also refused the review action",
+            "retest_representable": "a retest is a machine task carrying `retest_of`, so the link exists; no route runs one yet"
+          },
+          "what_still_needs_a_person": [
+            "a real human finding a real error in a real answer, which is the step the gate is for",
+            "a human accepting the correction through POST /api/v1/knowledge-items/{id}/review-decisions"
+          ],
+          "remaining": [
+            "candidate generation beyond the correction itself"
+          ],
+          "loop_is_closed": [
+            "a model answers from accepted knowledge",
+            "a person marks a specific error and gives the correction",
+            "the correction is stored as a candidate, with the answer it corrects",
+            "the retest runs the same question and records itself with `retest_of`",
+            "promotion of the correction runs only through human review"
+          ],
+          "constraints_the_domain_enforces": {
+            "retest_of_a_failed_task_only": "the domain refuses a retest of anything that did not fail: `retest_of must reference an existing failed machine task`. \"Did the correction help\" only has a meaning when something went wrong, and this was found by a test rather than assumed.",
+            "no_self_scoring": "the retest returns the prior receipt beside the new answer and states that it does not decide whether the correction helped. A Core that scored its own retest would be marking its own work.",
+            "no_measurement_from_a_failed_run": "when the model cannot answer, the route fails by name and records nothing, because a task that could not run is not a measurement.",
+            "correction_needs_the_specific_error": "`error_note` is required, because \"it was wrong\" is not a reviewable finding.",
+            "a_machine_cannot_correct_or_accept": "recording a correction and accepting one are both refused to a machine principal."
+          },
+          "reachability": {
+            "question": "Can the product actually reach the capabilities this work added?",
+            "answer_before": "No. A launch that declared no routes registered only the built-in text.extract, so PDF, OCR, Office, media, canvas and the co-learning machine answer were all unreachable in the product's own launch path. Two readers disagreed: the staged runtime accepted `routes` and forwarded them after deb2238a, while the desktop's reader required exactly four fields and its supervisor never sent any.",
+            "answer_now": "Yes, measured, not inferred.",
+            "fixes": [
+              "95ce1ea4 declares machine.answer in the staged runtime's ROUTE_SCRIPTS, so the staged profile publishes 11 routes instead of 10",
+              "d6e9640f makes the desktop's profile reader accept `routes`, carry them on CoreTextWorker, and send them in the launch document; desktop_launch.py declares the same 11 capabilities",
+              "ad49dd46 fixes CS0136, a route-script local shadowing the text worker's script, which CI caught because no local .NET SDK was available to compile it"
+            ],
+            "measured_evidence": {
+              "probe": "scripts/probes/desktop_route_readback.py",
+              "observation": "a launch document carrying 11 routes, sent to the real archeaxis-api binary, yields 12 registered capabilities: the 11 declared plus the built-in text.extract",
+              "result": "missing: none; machine.answer registered: true; verdict REGISTERED",
+              "regression_guard": "tests/test_desktop_route_registration.py asserts that the desktop declares its routes, that the desktop and the staged runtime declare the same capabilities, that the C# carries and sends them under the names the Core accepts, and that the probe keeps a non-success verdict path"
+            },
+            "what_remains_unproven": [
+              "that the desktop's C# serializes the routes correctly at run time: the desktop-vnext CI job builds and smoke-runs the real host and is green on ad49dd46, but a green build is not a launched product",
+              "that every one of those eleven routes completes a real conversion: the readback reads the capability surface, it does not run a job on each route"
+            ]
+          }
+        },
+        {
+          "item": "G5 product / local Green",
+          "dod": "the golden path completes by a real person on a real file, then backup, restore, migration, candidate install, restart readback and rollback, with Independent Audit and the Owner Gate before any replacement",
+          "depends_on": "G4 plus A15, A16 and P6",
+          "status": "BLOCKED_BY_G4_AND_OWNER"
+        }
+      ]
+    }
+  ],
+  "definition_of_done_applies_to_every_claim": [
+    "an exact SHA",
+    "the test or runtime environment",
+    "the input level, real or synthetic",
+    "a log or receipt",
+    "restart/readback where state is involved",
+    "the remaining gap stated rather than omitted"
+  ],
+  "never_pass": [
+    "skipped",
+    "cancelled",
+    "unknown",
+    "blocked"
+  ],
+  "cross_reference": {
+    "taskpack_gates": [
+      "G0",
+      "G1",
+      "G2",
+      "G3",
+      "G4",
+      "G5"
+    ],
+    "acceptance_ladder": "AAOS-R7-ACCEPTANCE-MATRIX-20261002.json"
+  }
+}

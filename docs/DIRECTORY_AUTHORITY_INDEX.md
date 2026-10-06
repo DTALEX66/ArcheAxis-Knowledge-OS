@@ -7,7 +7,7 @@
 
 ## Authoritative topology
 
-The current ownership reconciliation is governed by R6/M0 and this index;
+The current ownership reconciliation is governed by R6/M0, SUP-022 and this index;
 [R5-PATH-DISPOSITION.json](current/R5-PATH-DISPOSITION.json) is historical evidence.
 The 0910 measurement keeps its original SHA and 69 historical gaps. R5 assigned
 metadata owners and maintenance-only legacy lanes; that historical assignment is
@@ -17,10 +17,10 @@ denied for commit.
 | Path / surface | Class | Canonical role | Normalization rule |
 | --- | --- | --- | --- |
 | `app/`, `shared/`, `knowledge_base/`, `inspiration_research/` | `LEGACY_SOURCE` / `MIGRATION_DONOR` | Preserved Python-era product/domain implementation for Green compatibility, recovery and migration. It is not the formal vNext desktop/Core or isolated Python-worker boundary. Existing legacy aggregates keep their current single writer until a validated, aggregate-specific migration. | Inventory consumers and writer ownership before changing a module boundary. |
-| `apps/ArcheAxis.Desktop/` | `SOURCE` | Formal Avalonia desktop | UI and Supervisor; no direct main database access. |
+| `apps/ArcheAxis.Desktop/` | `MIGRATION_DONOR` | Preserved Avalonia behavior and recovery reference under SUP-022 | Absorb qualified behavior into the formal host; retain old assets and do not claim installed takeover or Owner acceptance from this classification. |
 | `crates/`, `services/python-workers/`, `packages/contracts/` | `SOURCE` | Rust Core, isolated capabilities, shared contracts | One vNext writer; actual protocol output must be validated. |
-| `frontend/` | `LEGACY_SOURCE` | Preserved React UI | Behavior/design reference and bounded Green maintenance. |
-| `src-tauri/` | `LEGACY_SOURCE` | Preserved Green host | Existing installation and recovery, not the vNext default. |
+| `frontend/` | `SOURCE` | Formal React/TypeScript/Vite product UI under SUP-022 | Finite HostAdapter commands and generated contracts; no direct database, arbitrary file or Shell access. |
+| `src-tauri/` | `SOURCE` | Formal Tauri 2 host under SUP-022 | Own Core lifecycle and finite authenticated business bridge; Rust Core remains the sole canonical writer. |
 | `desktop/`, `desktop/bootstrap/` | `COMPATIBILITY_SHIM` | Separate recovery shell/fallback | Preserve until its production-use matrix and G1 gate close. |
 | `docs/current/`, `docs/truth/`, `docs/taskpacks/`, `docs/history/` | `CURRENT_RECORD`, `TRUTH_RECORD`, `PLAN`, `HISTORY` | Evidence, current records, plans and historical snapshots | Classify and link before archival; history is not deletion evidence. |
 | `.hermes/` | `LEGACY_MIXED_PRESERVE` | Historical mixed assets; regenerability unverified | No new development writes; no blanket deletion. |

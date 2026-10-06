@@ -7,6 +7,7 @@
   --ax-canvas: #050505;
   --ax-panel: #0b0b0b;
   --ax-raised: #121212;
+  --ax-bg-inset: #0d0d0d;
   --ax-elevated: #1a1a1a;
   --ax-hover: rgba(255, 255, 255, 0.07);
   --ax-active: rgba(255, 255, 255, 0.11);
@@ -14,7 +15,7 @@
   --ax-fg: #f5f5f5;
   --ax-fg-secondary: #d4d4d4;
   --ax-fg-tertiary: #a3a3a3;
-  --ax-fg-quaternary: #737373;
+  --ax-fg-quaternary: #808080;
 
   --ax-accent: #f5f5f5;
   --ax-accent-bright: #ffffff;
@@ -365,7 +366,7 @@ input:disabled, textarea:disabled, select:disabled {
 
 .receipt-grid {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
   gap: var(--ax-space-3);
   padding: var(--ax-space-4);
   background: var(--ax-raised);
@@ -386,6 +387,7 @@ input:disabled, textarea:disabled, select:disabled {
 .receipt-grid dd {
   font-size: 13px;
   color: var(--ax-fg);
+  overflow-wrap: anywhere;
 }
 
 .receipt-preview {
@@ -544,6 +546,184 @@ input:disabled, textarea:disabled, select:disabled {
   max-width: 760px;
   margin: 0 auto;
   width: 100%;
+}
+
+/* Diagnostics: raw backend payloads live here, never inside the reading column. */
+.diagnostic-console {
+  grid-column: 1 / -1;
+  display: grid;
+  gap: var(--ax-space-2);
+  padding-top: var(--ax-space-3);
+  border-top: 1px solid var(--ax-border);
+}
+
+.diagnostic-console-header {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--ax-space-3);
+}
+
+.diagnostic-console-count {
+  font-size: 12px;
+  color: var(--ax-fg-tertiary);
+}
+
+.diagnostic-console-empty {
+  font-size: 12px;
+  color: var(--ax-fg-tertiary);
+}
+
+.diagnostic-console-list {
+  display: grid;
+  gap: 4px;
+  max-height: 240px;
+  overflow: auto;
+}
+
+.diagnostic-console-list pre {
+  max-height: 200px;
+  overflow: auto;
+  font-size: 12px;
+  overflow-wrap: anywhere;
+}
+
+.raw-receipt {
+  font-size: 12px;
+  align-self: start;
+}
+
+/* Recovery workbench: without these the whole screen is one undivided text run, since the
+   global reset removes every default margin and nothing else supplies structure. */
+.recovery-card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ax-space-4);
+  padding: var(--ax-space-6);
+  background: var(--ax-panel);
+  border: 1px solid var(--ax-border);
+  border-radius: var(--ax-radius-lg);
+}
+
+.recovery-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--ax-space-3);
+}
+
+.recovery-kicker {
+  font-size: 11px;
+  font-weight: 510;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ax-fg-tertiary);
+  margin-bottom: 4px;
+}
+
+.recovery-message {
+  font-size: 14px;
+  color: var(--ax-fg);
+}
+
+.recovery-diagnostic {
+  font-size: 12px;
+  color: var(--ax-fg-tertiary);
+  overflow-wrap: anywhere;
+}
+
+.recovery-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--ax-space-2);
+}
+
+.recovery-field {
+  display: grid;
+  gap: 6px;
+}
+
+.recovery-confirm {
+  display: grid;
+  gap: var(--ax-space-2);
+  justify-items: start;
+  padding: var(--ax-space-3);
+  background: var(--ax-raised);
+  border: 1px solid var(--ax-border);
+  border-radius: var(--ax-radius-md);
+}
+
+.recovery-progress {
+  font-size: 13px;
+  color: var(--ax-fg-secondary);
+}
+
+.recovery-feedback {
+  display: grid;
+  gap: var(--ax-space-2);
+}
+
+.recovery-feedback:empty {
+  display: none;
+}
+
+.recovery-logs {
+  display: grid;
+  gap: var(--ax-space-2);
+  padding-top: var(--ax-space-4);
+  border-top: 1px solid var(--ax-border);
+}
+
+.recovery-logs ul {
+  display: grid;
+  gap: 4px;
+  max-height: 220px;
+  overflow: auto;
+  font-size: 12px;
+  color: var(--ax-fg-secondary);
+  overflow-wrap: anywhere;
+}
+
+/* Command palette: the trigger looked deliberate only by accident, inheriting the bare
+   button rule, and the option rows carried no layout of their own. */
+.command-trigger {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--ax-space-2);
+}
+
+.command-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+}
+
+.command-empty {
+  padding: var(--ax-space-4);
+  font-size: 13px;
+  color: var(--ax-fg-secondary);
+}
+
+/* Space surfaces */
+.space-view {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ax-space-4);
+}
+
+.space-title {
+  font-size: 15px;
+  font-weight: 590;
+}
+
+.content-import {
+  display: grid;
+  gap: var(--ax-space-3);
+  padding: var(--ax-space-4);
+  background: var(--ax-raised);
+  border: 1px solid var(--ax-border);
+  border-radius: var(--ax-radius-md);
 }
 
 /* Tables */
@@ -781,6 +961,13 @@ tr:hover {
   opacity: 1;
 }
 
+/* The current-item rule above carries a box-shadow of its own, which would otherwise win the
+   cascade and leave the selected item with no visible keyboard focus ring. */
+.space-rail-item[aria-current="page"]:focus-visible,
+.context-subnav button[aria-current="page"]:focus-visible {
+  box-shadow: 0 0 0 2px var(--ax-accent-soft), 0 0 0 4px rgba(255, 255, 255, 0.25);
+}
+
 .space-rail-icon {
   font-size: 14px;
   width: 18px;
@@ -907,10 +1094,58 @@ tr:hover {
 /* Inspector */
 .inspector {
   width: 300px;
+  min-width: 0;
+  flex-shrink: 1;
   border-left: 1px solid var(--ax-border);
   background: var(--ax-panel);
   padding: var(--ax-space-4);
   overflow-y: auto;
+}
+
+.inspector-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--ax-space-2);
+  margin-bottom: var(--ax-space-3);
+}
+
+.inspector-title {
+  font-size: 13px;
+  font-weight: 590;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--ax-fg-secondary);
+}
+
+.inspector-details {
+  display: grid;
+  grid-template-columns: minmax(72px, auto) 1fr;
+  gap: var(--ax-space-1) var(--ax-space-3);
+  align-items: start;
+}
+
+.inspector-details dt {
+  font-size: 11px;
+  font-weight: 510;
+  color: var(--ax-fg-tertiary);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.inspector-details dd {
+  font-size: 13px;
+  color: var(--ax-fg);
+  overflow-wrap: anywhere;
+}
+
+.inspector-empty {
+  font-size: 13px;
+  color: var(--ax-fg-secondary);
+}
+
+.inspector-empty-close {
+  margin-bottom: var(--ax-space-3);
 }
 
 /* Activity dock */
@@ -920,6 +1155,73 @@ tr:hover {
   padding: 8px var(--ax-space-4);
   min-height: 40px;
   flex-shrink: 0;
+}
+
+/* Expanded job/receipt rows; without this the dock renders one undivided text run. */
+.activity-dock-body {
+  display: grid;
+  gap: var(--ax-space-1);
+  margin-top: var(--ax-space-2);
+}
+
+/* Canvas board (web development surface; the desktop shell does not render it) */
+.canvas-board {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ax-space-3);
+}
+
+.canvas-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--ax-space-2);
+}
+
+.canvas-viewport {
+  position: relative;
+  min-height: 320px;
+  overflow: auto;
+  background: var(--ax-bg-inset);
+  border: 1px solid var(--ax-border);
+  border-radius: var(--ax-radius-md);
+}
+
+.canvas-node-card {
+  position: absolute;
+  width: 200px;
+  padding: var(--ax-space-3);
+  background: var(--ax-raised);
+  border: 1px solid var(--ax-border);
+  border-radius: var(--ax-radius-sm);
+  overflow-wrap: anywhere;
+}
+
+.canvas-node-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--ax-space-2);
+}
+
+.canvas-node-type {
+  font-size: 11px;
+  color: var(--ax-fg-tertiary);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.canvas-node-text {
+  font-size: 13px;
+  color: var(--ax-fg);
+}
+
+.canvas-node-actions {
+  display: flex;
+  gap: var(--ax-space-1);
+}
+
+.canvas-node-edit {
+  width: 100%;
 }
 
 .activity-dock-summary {
@@ -1843,9 +2145,77 @@ tr:hover {
   }
 }
 
-@media (max-width: 900px) {
+/* Three fixed panes plus the reading column do not fit a 1024-wide window: measured at
+   1024x900 with the Inspector open the centre collapsed to 304px and its contents overflowed
+   by 21-58px. Narrow the chrome before the content, and let the content shrink at all. */
+@media (max-width: 1200px) {
+  .space-rail {
+    width: 172px;
+  }
+
   .context-subnav {
+    width: 172px;
+    padding: var(--ax-space-3);
+  }
+
+  .inspector {
+    width: 264px;
+  }
+
+  .app-center {
+    min-width: min(420px, 100%);
+  }
+
+  .space-view,
+  .space-card {
+    min-width: 0;
+  }
+
+  .space-view ul,
+  .space-view ol {
+    min-width: 0;
+    overflow-wrap: anywhere;
+  }
+
+  /* The global button rule forbids wrapping, so a long Chinese label becomes a min-content
+     floor that pushes its container past the pane. */
+  .app-center button,
+  .context-subnav button {
+    white-space: normal;
+    overflow-wrap: anywhere;
+  }
+}
+
+@media (max-width: 1080px) {
+  .space-rail {
+    width: 148px;
+  }
+
+  .context-subnav {
+    width: 148px;
+  }
+
+  .inspector {
+    width: 232px;
+  }
+}
+
+@media (min-width: 601px) and (max-width: 900px) {
+  /* Hiding this entirely removes the only section switcher in the library space. */
+  .context-subnav {
+    width: 168px;
+    min-width: 0;
+    gap: var(--ax-space-3);
+  }
+
+  .context-subnav header,
+  .context-subnav p,
+  .context-subnav footer {
     display: none;
+  }
+
+  .app-center {
+    min-width: 280px;
   }
 }
 
@@ -1873,6 +2243,11 @@ tr:hover {
 
   .app-body {
     flex-direction: column;
+  }
+
+  /* The phone layout is a single column; the A0 contract requires no context rail here. */
+  .context-subnav {
+    display: none;
   }
 
   .space-rail {

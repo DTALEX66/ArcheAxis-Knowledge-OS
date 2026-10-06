@@ -1,0 +1,564 @@
+{
+  "document": "AAOS_UI_CONTRACT_VERIFICATION_20261002",
+  "requested_by": "prompts/03_DSH契约核对补充.txt of the 2026-10-02 UI adjustment package",
+  "recorded_at": "2026-10-02T08:05:52.632786+00:00",
+  "method": "the Core's own route registration was parsed from crates/archeaxis-api/src/lib.rs, conditional mounts were listed separately, and every /api/v1 path appearing only in a tests/ file was collected so a test-only route cannot be mistaken for production",
+  "route_table_measured": {
+    "explicitly_registered_routes": 26,
+    "unconditional_routes": 25,
+    "conditional_routes": [
+      {
+        "path": "/api/v1/jobs/:job_id/receipts",
+        "method": "POST",
+        "handler": "job_receipt",
+        "condition": "only when the launch mounts manual receipts"
+      }
+    ],
+    "arithmetic": "25 unconditional + 1 conditional = 26 total",
+    "methods_present": [
+      "GET",
+      "POST"
+    ],
+    "nested_prefixes": [],
+    "test_only_paths_seen": 313,
+    "test_only_note": "a path appearing in a tests/ file is not evidence of a production route; the production column below is the route table, not the test corpus"
+  },
+  "production_routes": [
+    {
+      "path": "/api/v1/system/version",
+      "method": "GET",
+      "handler": "system_version"
+    },
+    {
+      "path": "/api/v1/imports",
+      "method": "POST",
+      "handler": "import_source"
+    },
+    {
+      "path": "/api/v1/jobs",
+      "method": "POST",
+      "handler": "enqueue_job"
+    },
+    {
+      "path": "/api/v1/sources/:source_id/anchors",
+      "method": "POST",
+      "handler": "create_anchor"
+    },
+    {
+      "path": "/api/v1/sources/:source_id/jobs/:job_id/transform",
+      "method": "GET",
+      "handler": "source_job_transform"
+    },
+    {
+      "path": "/api/v1/knowledge-items/from-transform",
+      "method": "POST",
+      "handler": "create_knowledge_from_transform"
+    },
+    {
+      "path": "/api/v1/knowledge-items",
+      "method": "POST",
+      "handler": "create_knowledge"
+    },
+    {
+      "path": "/api/v1/knowledge-items/:id/v3",
+      "method": "GET",
+      "handler": "knowledge_v3"
+    },
+    {
+      "path": "/api/v1/knowledge-items/:id/qualification",
+      "method": "GET",
+      "handler": "knowledge_qualification"
+    },
+    {
+      "path": "/api/v1/knowledge-items/:id/review-decisions",
+      "method": "POST",
+      "handler": "review_decision"
+    },
+    {
+      "path": "/api/v1/learning/events",
+      "method": "POST",
+      "handler": "record_learning_event"
+    },
+    {
+      "path": "/api/v1/learning/reviews",
+      "method": "POST",
+      "handler": "record_stateful_review"
+    },
+    {
+      "path": "/api/v1/learning/events/:item_key",
+      "method": "GET",
+      "handler": "learning_history"
+    },
+    {
+      "path": "/api/v1/learning/items",
+      "method": "GET",
+      "handler": "learning_items"
+    },
+    {
+      "path": "/api/v1/learning/items/:item_key/references",
+      "method": "POST",
+      "handler": "record_item_reference"
+    },
+    {
+      "path": "/api/v1/learning/items/:item_key/assessment",
+      "method": "GET",
+      "handler": "read_assessment"
+    },
+    {
+      "path": "/api/v1/learning/items/:item_key/state",
+      "method": "GET",
+      "handler": "item_state"
+    },
+    {
+      "path": "/api/v1/machine/tasks",
+      "method": "POST",
+      "handler": "record_machine_task"
+    },
+    {
+      "path": "/api/v1/machine/tasks/:task_id",
+      "method": "GET",
+      "handler": "machine_task_readback"
+    },
+    {
+      "path": "/api/v1/search",
+      "method": "GET",
+      "handler": "search_knowledge"
+    },
+    {
+      "path": "/api/v1/jobs/:job_id/quality",
+      "method": "GET",
+      "handler": "job_quality"
+    },
+    {
+      "path": "/api/v1/evidence/anchors",
+      "method": "GET",
+      "handler": "evidence_anchors"
+    },
+    {
+      "path": "/api/v1/sources/:source_id/members",
+      "method": "GET",
+      "handler": "source_members"
+    },
+    {
+      "path": "/api/v1/sources/:source_id/jobs",
+      "method": "GET",
+      "handler": "source_jobs"
+    },
+    {
+      "path": "/api/v1/workspaces/info",
+      "method": "GET",
+      "handler": "workspace_info"
+    },
+    {
+      "path": "/api/v1/jobs/:job_id/receipts",
+      "method": "POST",
+      "handler": "job_receipt"
+    }
+  ],
+  "unconditional_production_routes": [
+    {
+      "path": "/api/v1/system/version",
+      "method": "GET",
+      "handler": "system_version"
+    },
+    {
+      "path": "/api/v1/imports",
+      "method": "POST",
+      "handler": "import_source"
+    },
+    {
+      "path": "/api/v1/jobs",
+      "method": "POST",
+      "handler": "enqueue_job"
+    },
+    {
+      "path": "/api/v1/sources/:source_id/anchors",
+      "method": "POST",
+      "handler": "create_anchor"
+    },
+    {
+      "path": "/api/v1/sources/:source_id/jobs/:job_id/transform",
+      "method": "GET",
+      "handler": "source_job_transform"
+    },
+    {
+      "path": "/api/v1/knowledge-items/from-transform",
+      "method": "POST",
+      "handler": "create_knowledge_from_transform"
+    },
+    {
+      "path": "/api/v1/knowledge-items",
+      "method": "POST",
+      "handler": "create_knowledge"
+    },
+    {
+      "path": "/api/v1/knowledge-items/:id/v3",
+      "method": "GET",
+      "handler": "knowledge_v3"
+    },
+    {
+      "path": "/api/v1/knowledge-items/:id/qualification",
+      "method": "GET",
+      "handler": "knowledge_qualification"
+    },
+    {
+      "path": "/api/v1/knowledge-items/:id/review-decisions",
+      "method": "POST",
+      "handler": "review_decision"
+    },
+    {
+      "path": "/api/v1/learning/events",
+      "method": "POST",
+      "handler": "record_learning_event"
+    },
+    {
+      "path": "/api/v1/learning/reviews",
+      "method": "POST",
+      "handler": "record_stateful_review"
+    },
+    {
+      "path": "/api/v1/learning/events/:item_key",
+      "method": "GET",
+      "handler": "learning_history"
+    },
+    {
+      "path": "/api/v1/learning/items",
+      "method": "GET",
+      "handler": "learning_items"
+    },
+    {
+      "path": "/api/v1/learning/items/:item_key/references",
+      "method": "POST",
+      "handler": "record_item_reference"
+    },
+    {
+      "path": "/api/v1/learning/items/:item_key/assessment",
+      "method": "GET",
+      "handler": "read_assessment"
+    },
+    {
+      "path": "/api/v1/learning/items/:item_key/state",
+      "method": "GET",
+      "handler": "item_state"
+    },
+    {
+      "path": "/api/v1/machine/tasks",
+      "method": "POST",
+      "handler": "record_machine_task"
+    },
+    {
+      "path": "/api/v1/machine/tasks/:task_id",
+      "method": "GET",
+      "handler": "machine_task_readback"
+    },
+    {
+      "path": "/api/v1/search",
+      "method": "GET",
+      "handler": "search_knowledge"
+    },
+    {
+      "path": "/api/v1/jobs/:job_id/quality",
+      "method": "GET",
+      "handler": "job_quality"
+    },
+    {
+      "path": "/api/v1/evidence/anchors",
+      "method": "GET",
+      "handler": "evidence_anchors"
+    },
+    {
+      "path": "/api/v1/sources/:source_id/members",
+      "method": "GET",
+      "handler": "source_members"
+    },
+    {
+      "path": "/api/v1/sources/:source_id/jobs",
+      "method": "GET",
+      "handler": "source_jobs"
+    },
+    {
+      "path": "/api/v1/workspaces/info",
+      "method": "GET",
+      "handler": "workspace_info"
+    }
+  ],
+  "retest_detail": {
+    "field_present": "retest_of",
+    "where": "GET /api/v1/machine/tasks/:task_id",
+    "meaning": "a retest is recorded as a machine task that links to the task it retests, so retest is representable today; what does not exist is a route that runs one"
+  },
+  "status_vocabulary": [
+    "已有",
+    "待接入",
+    "未实现",
+    "待核验"
+  ],
+  "verification": [
+    {
+      "group": "imports/jobs/source/knowledge/assessment/review",
+      "capability": "import a source",
+      "method": "POST",
+      "path": "/api/v1/imports",
+      "status": "已有",
+      "basis": "registered in the Core route table"
+    },
+    {
+      "group": "imports/jobs/source/knowledge/assessment/review",
+      "capability": "enqueue a job",
+      "method": "POST",
+      "path": "/api/v1/jobs",
+      "status": "已有",
+      "basis": "registered in the Core route table"
+    },
+    {
+      "group": "imports/jobs/source/knowledge/assessment/review",
+      "capability": "create an evidence anchor",
+      "method": "POST",
+      "path": "/api/v1/sources/:source_id/anchors",
+      "status": "已有",
+      "basis": "registered in the Core route table"
+    },
+    {
+      "group": "imports/jobs/source/knowledge/assessment/review",
+      "capability": "list anchors",
+      "method": "GET",
+      "path": "/api/v1/evidence/anchors",
+      "status": "已有",
+      "basis": "registered in the Core route table"
+    },
+    {
+      "group": "imports/jobs/source/knowledge/assessment/review",
+      "capability": "source members",
+      "method": "GET",
+      "path": "/api/v1/sources/:source_id/members",
+      "status": "已有",
+      "basis": "registered in the Core route table"
+    },
+    {
+      "group": "imports/jobs/source/knowledge/assessment/review",
+      "capability": "source jobs",
+      "method": "GET",
+      "path": "/api/v1/sources/:source_id/jobs",
+      "status": "已有",
+      "basis": "registered in the Core route table"
+    },
+    {
+      "group": "imports/jobs/source/knowledge/assessment/review",
+      "capability": "create a knowledge item",
+      "method": "POST",
+      "path": "/api/v1/knowledge-items",
+      "status": "已有",
+      "basis": "registered in the Core route table"
+    },
+    {
+      "group": "imports/jobs/source/knowledge/assessment/review",
+      "capability": "knowledge v3 projection",
+      "method": "GET",
+      "path": "/api/v1/knowledge-items/:id/v3",
+      "status": "已有",
+      "basis": "registered in the Core route table"
+    },
+    {
+      "group": "imports/jobs/source/knowledge/assessment/review",
+      "capability": "record a learning event (assessment)",
+      "method": "POST",
+      "path": "/api/v1/learning/events",
+      "status": "已有",
+      "basis": "registered in the Core route table"
+    },
+    {
+      "group": "imports/jobs/source/knowledge/assessment/review",
+      "capability": "record a stateful review (FSRS)",
+      "method": "POST",
+      "path": "/api/v1/learning/reviews",
+      "status": "已有",
+      "basis": "registered in the Core route table"
+    },
+    {
+      "group": "imports/jobs/source/knowledge/assessment/review",
+      "capability": "learning history",
+      "method": "GET",
+      "path": "/api/v1/learning/events/:item_key",
+      "status": "已有",
+      "basis": "registered in the Core route table"
+    },
+    {
+      "group": "imports/jobs/source/knowledge/assessment/review",
+      "capability": "learning items",
+      "method": "GET",
+      "path": "/api/v1/learning/items",
+      "status": "已有",
+      "basis": "registered in the Core route table"
+    },
+    {
+      "group": "imports/jobs/source/knowledge/assessment/review",
+      "capability": "item state",
+      "method": "GET",
+      "path": "/api/v1/learning/items/:item_key/state",
+      "status": "已有",
+      "basis": "registered in the Core route table"
+    },
+    {
+      "group": "imports/jobs/source/knowledge/assessment/review",
+      "capability": "search",
+      "method": "GET",
+      "path": "/api/v1/search",
+      "status": "已有",
+      "basis": "registered in the Core route table"
+    },
+    {
+      "group": "imports/jobs/source/knowledge/assessment/review",
+      "capability": "workspace info",
+      "method": "GET",
+      "path": "/api/v1/workspaces/info",
+      "status": "已有",
+      "basis": "registered in the Core route table"
+    },
+    {
+      "group": "imports/jobs/source/knowledge/assessment/review",
+      "capability": "system version",
+      "method": "GET",
+      "path": "/api/v1/system/version",
+      "status": "已有",
+      "basis": "registered in the Core route table"
+    },
+    {
+      "group": "imports/jobs/source/knowledge/assessment/review",
+      "capability": "job quality",
+      "method": "GET",
+      "path": "/api/v1/jobs/:job_id/quality",
+      "status": "已有",
+      "basis": "registered in the Core route table"
+    },
+    {
+      "group": "imports/jobs/source/knowledge/assessment/review",
+      "capability": "job receipt",
+      "method": "POST",
+      "path": "/api/v1/jobs/:job_id/receipts",
+      "status": "已有",
+      "basis": "registered in the Core route table"
+    },
+    {
+      "group": "machine task read",
+      "capability": "read a machine task",
+      "method": "GET",
+      "path": "/api/v1/machine/tasks/:task_id",
+      "status": "已有",
+      "basis": "registered in the Core route table"
+    },
+    {
+      "group": "machine task read",
+      "capability": "record a machine task",
+      "method": "POST",
+      "path": "/api/v1/machine/tasks",
+      "status": "已有",
+      "basis": "registered in the Core route table"
+    },
+    {
+      "group": "correction/retest",
+      "capability": "correction candidate",
+      "method": null,
+      "path": null,
+      "status": "未实现",
+      "basis": "no route is registered and none is proposed in this record"
+    },
+    {
+      "group": "correction/retest",
+      "capability": "human review of a correction",
+      "method": null,
+      "path": null,
+      "status": "未实现",
+      "basis": "no route is registered and none is proposed in this record"
+    },
+    {
+      "group": "correction/retest",
+      "capability": "retest recorded on a task receipt",
+      "method": "GET",
+      "path": "/api/v1/machine/tasks/:task_id",
+      "status": "已有",
+      "basis": "registered in the Core route table"
+    },
+    {
+      "group": "correction/retest",
+      "capability": "run a retest",
+      "method": null,
+      "path": null,
+      "status": "未实现",
+      "basis": "no route is registered and none is proposed in this record"
+    },
+    {
+      "group": "plugin lifecycle",
+      "capability": "list plugins",
+      "method": null,
+      "path": null,
+      "status": "未实现",
+      "basis": "no route is registered and none is proposed in this record"
+    },
+    {
+      "group": "plugin lifecycle",
+      "capability": "enable/disable a plugin",
+      "method": null,
+      "path": null,
+      "status": "未实现",
+      "basis": "no route is registered and none is proposed in this record"
+    },
+    {
+      "group": "plugin lifecycle",
+      "capability": "plugin health",
+      "method": null,
+      "path": null,
+      "status": "未实现",
+      "basis": "no route is registered and none is proposed in this record"
+    },
+    {
+      "group": "model/provider health",
+      "capability": "list models/providers",
+      "method": null,
+      "path": null,
+      "status": "未实现",
+      "basis": "no route is registered and none is proposed in this record"
+    },
+    {
+      "group": "model/provider health",
+      "capability": "model health",
+      "method": null,
+      "path": null,
+      "status": "未实现",
+      "basis": "no route is registered and none is proposed in this record"
+    },
+    {
+      "group": "graph/editor/version-history",
+      "capability": "graph projection",
+      "method": null,
+      "path": null,
+      "status": "未实现",
+      "basis": "no route is registered and none is proposed in this record"
+    },
+    {
+      "group": "graph/editor/version-history",
+      "capability": "original editor",
+      "method": null,
+      "path": null,
+      "status": "未实现",
+      "basis": "no route is registered and none is proposed in this record"
+    },
+    {
+      "group": "graph/editor/version-history",
+      "capability": "version history",
+      "method": null,
+      "path": null,
+      "status": "未实现",
+      "basis": "no route is registered and none is proposed in this record"
+    }
+  ],
+  "status_counts": {
+    "已有": 21,
+    "未实现": 11
+  },
+  "conclusion": "Every route the UI needs for imports, jobs, sources, anchors, knowledge, learning events, assessments, reviews, search and workspace info is registered in the Core, and machine task read exists. Retest is representable today through the `retest_of` field on a machine task receipt even though no route runs one. What has no route at all is the correction candidate and its human review, the plugin lifecycle, model/provider health, and graph / editor / version history; the UI must render those as not implemented rather than as not connected, because there is nothing to connect to yet.",
+  "does_not_do": [
+    "invents no path: a capability with no registered route is recorded as unimplemented, not given a hopeful URL",
+    "claims no test-only route as production",
+    "changes no Core code and merges no branch"
+  ]
+}

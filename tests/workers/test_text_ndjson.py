@@ -229,6 +229,39 @@ class TextNdjsonTests(unittest.TestCase):
         self.assertEqual(response["outputs"], [])
         self.assertEqual(path.read_bytes(), raw)
 
+    def test_media_input_budget_is_real_and_does_not_expand_text_or_probe(self):
+        spec = importlib.util.spec_from_file_location("media_budget_transport", SCRIPT)
+        module = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(module)
+        raw = b"x" * (26 * 1024 * 1024)
+        request = self.request(raw)
+        source = self.staging / "input" / request["inputs"][0]["sha256"]
+        with self.assertRaises(module.Rejected):
+            module.read_regular(source)
+        for capability, media_type in [("media.transcribe", "audio/mpeg"), ("media.video", "video/mp4")]:
+            media = {**request, "capability": capability, "inputs": [{**request["inputs"][0], "media_type": media_type}]}
+            with patch.object(module, "_run_route", return_value={"text": "SIMULATED budget fixture", "structure": [], "loss_receipt": {}}):
+                response = module.execute(media, self.staging)
+            self.assertEqual(len(response[0]), 3)
+        for capability in ["text.extract", "media.probe", "image.ocr", "unknown"]:
+            self.assertEqual(module.input_byte_limit(capability), 16 * 1024 * 1024)
+        self.assertEqual(module.MAX_LINE_BYTES, 1024 * 1024)
+
+    def test_over_media_budget_is_rejected_before_read_or_worker(self):
+        spec = importlib.util.spec_from_file_location("media_budget_transport", SCRIPT)
+        module = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(module)
+        request = self.request()
+        source = self.staging / "input" / request["inputs"][0]["sha256"]
+        with source.open("wb") as handle:
+            handle.truncate(64 * 1024 * 1024 + 1)
+        media = {**request, "capability": "media.transcribe", "inputs": [{**request["inputs"][0], "media_type": "audio/mpeg"}]}
+        with patch.object(module, "_run_route") as worker:
+            with self.assertRaises(module.Rejected) as caught:
+                module.execute(media, self.staging)
+        self.assertEqual(caught.exception.code, "AAK-VAL-003")
+        worker.assert_not_called()
+
     def test_relative_deadline_is_checked_before_parser_and_produces_no_outputs(self):
         request = self.request()
         self.assertTrue(SCRIPT.is_file(), "text NDJSON transport is not implemented")

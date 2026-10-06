@@ -6,7 +6,7 @@ use std::io::{BufRead, BufReader, ErrorKind, Read, Write};
 use std::net::{TcpListener, TcpStream};
 use std::path::Path;
 use std::process::{Child, Command, Stdio};
-use std::sync::{Arc, Mutex, mpsc};
+use std::sync::{mpsc, Arc, Mutex};
 use std::thread;
 use std::time::{Duration, Instant};
 
@@ -50,6 +50,304 @@ const SANITIZED_ENVIRONMENT: [&str; 28] = [
     "HTTPS_PROXY",
     "ALL_PROXY",
 ];
+
+/// The Python backend's readiness route, which reports its own identity.
+const DESKTOP_READY_PATH: &str = "/workspace/api/_desktop/ready";
+
+/// The canonical Core's version route, which answers once the launch document has
+/// been accepted and the router is serving.
+const CORE_VERSION_PATH: &str = "/api/v1/system/version";
+
+/// The exact protocol string the Core requires for a launch that carries a machine
+/// token. A near miss is refused rather than defaulted.
+pub const CORE_LAUNCH_PROTOCOL: &str = "archeaxis.desktop-launch/v2";
+
+/// Non-secret owner-selected configuration; no provider or model defaults.
+#[derive(serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+struct DocumentCheckConfig {
+    provider: String,
+    model: String,
+    endpoint: Option<String>,
+    max_tokens: u64,
+    timeout_seconds: u64,
+    search_limit: u64,
+}
+fn config_reparse(metadata: &std::fs::Metadata) -> bool {
+    if metadata.file_type().is_symlink() {
+        return true;
+    }
+    #[cfg(windows)]
+    {
+        use std::os::windows::fs::MetadataExt;
+        return metadata.file_attributes() & 0x400 != 0;
+    }
+    #[cfg(not(windows))]
+    {
+        false
+    }
+}
+fn config_same_file(left: &std::fs::Metadata, right: &std::fs::Metadata) -> bool {
+    if left.len() != right.len() || left.modified().ok() != right.modified().ok() {
+        return false;
+    }
+    #[cfg(windows)]
+    {
+        use std::os::windows::fs::MetadataExt;
+        return left.creation_time() == right.creation_time()
+            && left.file_attributes() == right.file_attributes();
+    }
+    #[cfg(unix)]
+    {
+        use std::os::unix::fs::MetadataExt;
+        return left.dev() == right.dev() && left.ino() == right.ino();
+    }
+    #[cfg(not(any(windows, unix)))]
+    {
+        true
+    }
+}
+fn document_check_config(data_dir: &Path) -> (Option<serde_json::Value>, Option<&'static str>) {
+    fn load(data_dir: &Path) -> Result<Option<serde_json::Value>, ()> {
+        let root = data_dir.canonicalize().map_err(|_| ())?;
+        let folder = root.join("config");
+        match std::fs::symlink_metadata(&folder) {
+            Ok(metadata) if config_reparse(&metadata) || !metadata.is_dir() => return Err(()),
+            Ok(_) => {}
+            Err(error) if error.kind() == ErrorKind::NotFound => return Ok(None),
+            Err(_) => return Err(()),
+        }
+        let folder_identity = folder.canonicalize().map_err(|_| ())?;
+        if !folder_identity.starts_with(&root) {
+            return Err(());
+        }
+        let path = folder.join("document-check.json");
+        let before = match std::fs::symlink_metadata(&path) {
+            Ok(metadata) => metadata,
+            Err(error) if error.kind() == ErrorKind::NotFound => return Ok(None),
+            Err(_) => return Err(()),
+        };
+        if !before.is_file() || config_reparse(&before) || before.len() > 16 * 1024 {
+            return Err(());
+        }
+        let identity = path.canonicalize().map_err(|_| ())?;
+        if identity.parent() != Some(folder_identity.as_path()) || !identity.starts_with(&root) {
+            return Err(());
+        }
+        let file = std::fs::File::open(&path).map_err(|_| ())?;
+        let opened = file.metadata().map_err(|_| ())?;
+        if !config_same_file(&before, &opened) {
+            return Err(());
+        }
+        let mut bytes = Vec::new();
+        (&file)
+            .take(16 * 1024 + 1)
+            .read_to_end(&mut bytes)
+            .map_err(|_| ())?;
+        let after = std::fs::symlink_metadata(&path).map_err(|_| ())?;
+        let final_opened = file.metadata().map_err(|_| ())?;
+        if bytes.len() > 16 * 1024
+            || config_reparse(&after)
+            || !config_same_file(&opened, &after)
+            || !config_same_file(&opened, &final_opened)
+            || path.canonicalize().map_err(|_| ())? != identity
+            || folder.canonicalize().map_err(|_| ())? != folder_identity
+            || config_reparse(&std::fs::symlink_metadata(&folder).map_err(|_| ())?)
+        {
+            return Err(());
+        }
+        let config: DocumentCheckConfig = serde_json::from_slice(&bytes).map_err(|_| ())?;
+        if config.provider.is_empty()
+            || config.provider.len() > 64
+            || !config
+                .provider
+                .bytes()
+                .all(|byte| byte.is_ascii_alphanumeric() || byte == b'_')
+            || config.model.len() > 256
+            || !config.model.starts_with(&format!("{}/", config.provider))
+            || config
+                .model
+                .split_once('/')
+                .is_none_or(|(_, name)| name.trim().is_empty())
+            || !(128..=4096).contains(&config.max_tokens)
+            || !(1..=120).contains(&config.timeout_seconds)
+            || !(1..=3).contains(&config.search_limit)
+        {
+            return Err(());
+        }
+        if let Some(endpoint) = &config.endpoint {
+            if !endpoint.starts_with("https://")
+                || endpoint.len() > 2048
+                || endpoint.contains(['@', '?', '#'])
+                || endpoint.chars().any(char::is_whitespace)
+            {
+                return Err(());
+            }
+            let parsed = url::Url::parse(endpoint).map_err(|_| ())?;
+            if parsed.host_str().is_none()
+                || !parsed.username().is_empty()
+                || parsed.password().is_some()
+            {
+                return Err(());
+            }
+        }
+        Ok(Some(serde_json::to_value(config).map_err(|_| ())?))
+    }
+    match load(data_dir) {
+        Ok(value) => (value, None),
+        Err(()) => (None, Some("invalid_config")),
+    }
+}
+fn configured_core_launch_document(
+    token: &str,
+    machine_token: &str,
+    session_id: &str,
+    spec: &CoreSpec,
+) -> String {
+    let mut document: serde_json::Value = serde_json::from_str(&core_launch_document(
+        token,
+        machine_token,
+        session_id,
+        spec.text_worker.as_ref(),
+    ))
+    .expect("generated launch document");
+    let (config, error) = document_check_config(&spec.data_dir);
+    if let Some(config) = config {
+        document["document_check_config"] = config;
+    }
+    if let Some(error) = error {
+        document["document_check_config_error"] = serde_json::json!(error);
+    }
+    document.to_string()
+}
+
+/// The canonical Core's launch inputs.
+///
+/// Unlike the legacy Python entrypoint, which reads its identity from environment
+/// variables, the Core takes only its workspace database path and port as arguments
+/// and reads a JSON launch document from stdin. The launch token it is given here is
+/// the same one the frontend must present, so the host keeps ownership of it.
+#[derive(Clone, Debug)]
+pub struct CoreSpec {
+    pub executable: std::path::PathBuf,
+    pub workspace_db: std::path::PathBuf,
+    pub cwd: std::path::PathBuf,
+    pub data_dir: std::path::PathBuf,
+    /// The worker declaration, when the candidate carries one.
+    pub text_worker: Option<serde_json::Value>,
+}
+
+/// Build the launch document the Core reads from stdin.
+///
+/// The two credentials must differ: the Core refuses a machine token equal to the
+/// launch token, and it requires the launch actor to be exactly `human` under the v2
+/// protocol.
+pub fn core_launch_document(
+    token: &str,
+    machine_token: &str,
+    session_id: &str,
+    text_worker: Option<&serde_json::Value>,
+) -> String {
+    let mut document = serde_json::json!({
+        "launch_token": token,
+        "session_id": session_id,
+        "protocol": CORE_LAUNCH_PROTOCOL,
+        "machine_token": machine_token,
+        "actor": "human",
+    });
+    // Without a worker the Core mounts only its projections table. Declaring one is
+    // what makes the runtime table - and with it the capability routes - reachable.
+    if let Some(worker) = text_worker {
+        document["text_worker"] = worker.clone();
+    }
+    document.to_string()
+}
+
+/// The worker declaration the Core needs before it will mount its runtime routes.
+///
+/// Paths are absolute: the Core resolves a relative path against a declared root and
+/// refuses one that has no root, so deriving them here keeps that rule out of reach.
+/// A canonical Windows path carries an extended-length prefix, `\\?\`, that the launch
+/// contract does not expect: the Core refuses such a path in the worker profile. Paths here
+/// are derived from a canonicalised root, so the prefix is removed as they cross into the
+/// document. Comparison still uses the canonical form; only the published text changes.
+fn contract_path(path: &Path) -> String {
+    let text = path.to_string_lossy();
+    let trimmed = text
+        .strip_prefix(r"\\?\")
+        .or_else(|| text.strip_prefix(r"\\.\"))
+        .unwrap_or(&text);
+    trimmed.to_owned()
+}
+
+fn text_worker_for(root: &Path, python: &Path, data_dir: &Path) -> Option<serde_json::Value> {
+    let workers = root.join("workers");
+    let script = workers.join("transport").join("text_ndjson.py");
+    if !script.is_file() {
+        return None;
+    }
+    let mut worker = serde_json::json!({
+        "python": contract_path(python),
+        "script": contract_path(&script),
+        "staging": contract_path(&data_dir.join("worker-staging")),
+    });
+    // The single-source manifest names each capability and the worker that implements
+    // it. Reading it here rather than embedding a copy keeps one source of truth.
+    if let Ok(raw) = std::fs::read_to_string(workers.join("routes.json")) {
+        if let Ok(parsed) = serde_json::from_str::<serde_json::Value>(&raw) {
+            if let Some(map) = parsed.get("routes").and_then(serde_json::Value::as_object) {
+                let mut routes = Vec::new();
+                for (capability, scripts) in map {
+                    let Some(relative) = scripts
+                        .as_array()
+                        .and_then(|entries| entries.first())
+                        .and_then(serde_json::Value::as_str)
+                    else {
+                        continue;
+                    };
+                    routes.push(serde_json::json!({
+                        "capability": capability,
+                        "script": contract_path(&workers.join(relative.replace('/', "\\"))),
+                    }));
+                }
+                worker["routes"] = serde_json::Value::Array(routes);
+            }
+        }
+    }
+    Some(worker)
+}
+
+impl CoreSpec {
+    /// Find the canonical Core beside the runtime the resolver chose.
+    ///
+    /// The resolver points at `<root>/runtime/python/python.exe`, so a candidate that
+    /// ships a Core carries it at `<root>/core/archeaxis-api.exe`. Returning `None`
+    /// when it is absent keeps the legacy entrypoint the default until a candidate
+    /// actually provides a Core.
+    pub fn beside_runtime(runtime: &RuntimeSpec) -> Option<Self> {
+        // The interpreter sits either at `<root>/runtime/python/python.exe` or at
+        // `<root>/runtime/python.exe`, so walk up until the Core appears rather than
+        // assuming a depth. The root is the directory the Core and workers sit in.
+        let root = (2..=3)
+            .filter_map(|levels| {
+                let mut path = runtime.python.clone();
+                for _ in 0..levels {
+                    path = path.parent()?.to_path_buf();
+                }
+                Some(path)
+            })
+            .find(|candidate| candidate.join("core").join("archeaxis-api.exe").is_file())?;
+        let executable = root.join("core").join("archeaxis-api.exe");
+        let workspace_db = runtime.data_dir.join("archeaxis.sqlite");
+        Some(Self {
+            executable,
+            workspace_db,
+            cwd: runtime.data_dir.clone(),
+            data_dir: runtime.data_dir.clone(),
+            text_worker: text_worker_for(&root, &runtime.python, &runtime.data_dir),
+        })
+    }
+}
 
 type LogBuffer = Arc<Mutex<VecDeque<String>>>;
 
@@ -98,9 +396,96 @@ impl BackendProcess {
             return Err(error);
         }
         drain_child_output(&mut child, Arc::clone(&logs), "core");
-        if let Err(error) = wait_for_readiness(&mut child, port, &token, &logs) {
+        if let Err(error) = wait_for_readiness(&mut child, port, &token, &logs, DESKTOP_READY_PATH)
+        {
             let _ = child.kill();
             let _ = child.wait();
+            return Err(error);
+        }
+        Ok(Self {
+            port,
+            token,
+            child,
+            job: Some(job),
+            logs,
+        })
+    }
+
+    /// Launch the canonical Rust Core in place of the legacy Python entrypoint.
+    ///
+    /// The Core's contract differs from the entrypoint's in three ways, and all three
+    /// are load-bearing: it takes its workspace database and port as arguments rather
+    /// than through the environment; it reads its launch identity as a JSON document on
+    /// stdin and refuses the launch if that document is absent or malformed; and it
+    /// signals readiness by serving HTTP rather than by printing. Because this host
+    /// chooses the port itself, readiness is probed on the Core's own version route.
+    pub fn launch_core(spec: &CoreSpec) -> Result<Self, String> {
+        std::fs::create_dir_all(&spec.data_dir)
+            .map_err(|error| format!("failed to create desktop data directory: {error}"))?;
+        let job = Job::new()?;
+        let port = choose_loopback_port()?;
+        let token = launch_token()?;
+        // A second, distinct credential: the Core refuses a machine token equal to the
+        // launch token. The session identifier is the first half of it, which is already
+        // the thirty-two hex characters the Core requires.
+        let machine_token = launch_token()?;
+        let session_id = machine_token[..32].to_owned();
+        let document = configured_core_launch_document(&token, &machine_token, &session_id, spec);
+        let logs = new_log_buffer();
+        let mut command = Command::new(&spec.executable);
+        command
+            .arg(&spec.workspace_db)
+            .arg(port.to_string())
+            .current_dir(&spec.cwd)
+            .stdin(Stdio::piped())
+            .stdout(Stdio::piped())
+            .stderr(Stdio::piped());
+        for name in SANITIZED_ENVIRONMENT {
+            command.env_remove(name);
+        }
+        let mut child = command
+            .spawn()
+            .map_err(|error| format!("failed to start canonical Core: {error}"))?;
+        if let Err(error) = job.assign(&child) {
+            let _ = child.kill();
+            let _ = child.wait();
+            return Err(error);
+        }
+        // Deliver the launch document, then close stdin: the Core reads to end of input
+        // before it validates anything, so leaving the pipe open would hang the launch.
+        match child.stdin.take() {
+            Some(mut stdin) => {
+                if stdin.write_all(document.as_bytes()).is_err() {
+                    let _ = child.kill();
+                    let _ = child.wait();
+                    return Err("failed to deliver the Core launch document".to_owned());
+                }
+            }
+            None => {
+                let _ = child.kill();
+                let _ = child.wait();
+                return Err("Core launch input pipe is unavailable".to_owned());
+            }
+        }
+        drain_child_output(&mut child, Arc::clone(&logs), "core");
+        if let Err(error) = wait_for_readiness(&mut child, port, &token, &logs, CORE_VERSION_PATH) {
+            let _ = child.kill();
+            let _ = child.wait();
+            // A Core that starts and then disappears leaves no evidence anywhere else: what it
+            // said went into the log buffer, which normally only reaches the window. Writing it
+            // beside the data it was launched with is what makes that failure diagnosable after
+            // the fact, and it changes nothing about what the launch itself does.
+            let captured = logs
+                .lock()
+                .map(|lines| lines.iter().cloned().collect::<Vec<_>>().join("\n"))
+                .unwrap_or_default();
+            let _ = std::fs::write(spec.data_dir.join("core-launch-failure.log"), captured);
+            // Redacted: the document carries two credentials, and a diagnostic file is not a
+            // place to leave them. What matters for diagnosis is every other field.
+            let document = document
+                .replace(&token, "<launch-token>")
+                .replace(&machine_token, "<machine-token>");
+            let _ = std::fs::write(spec.data_dir.join("core-launch-document.json"), document);
             return Err(error);
         }
         Ok(Self {
@@ -229,10 +614,9 @@ fn restore_receipt_valid(output: &[u8], truncated: bool) -> bool {
 pub fn run_restore_backup(runtime: &RuntimeSpec, backup_path: &Path) -> Result<(), String> {
     let job = Job::new()?;
     let deadline = Instant::now() + RESTORE_TIMEOUT;
-    let mut command = runtime_command(runtime);
+    let core = CoreSpec::beside_runtime(runtime);
+    let mut command = restore_command(runtime, backup_path, core.as_ref());
     command
-        .args(["-m", "app.runtime_entrypoint", "restore-backup"])
-        .arg(backup_path)
         .stdin(Stdio::null())
         .stdout(Stdio::piped())
         .stderr(Stdio::piped());
@@ -269,13 +653,109 @@ pub fn run_restore_backup(runtime: &RuntimeSpec, backup_path: &Path) -> Result<(
             String::from_utf8_lossy(&stderr.bytes)
         ));
     }
-    if !restore_receipt_valid(&stdout.bytes, stdout.truncated) {
+    let receipt_valid = match core {
+        Some(ref core) => core_restore_receipt_valid(
+            &stdout.bytes,
+            stdout.truncated,
+            &core.workspace_db,
+            backup_path,
+        ),
+        None => restore_receipt_valid(&stdout.bytes, stdout.truncated),
+    };
+    if !receipt_valid {
         return Err(format!(
             "offline restore returned an invalid receipt: {}",
             String::from_utf8_lossy(&stdout.bytes)
         ));
     }
     Ok(())
+}
+
+fn restore_command(runtime: &RuntimeSpec, backup_path: &Path, core: Option<&CoreSpec>) -> Command {
+    if let Some(core) = core {
+        let mut command = Command::new(&core.executable);
+        command
+            .args(["--maintenance-restore"])
+            .arg(&core.workspace_db)
+            .arg(backup_path)
+            .current_dir(&core.cwd);
+        #[cfg(windows)]
+        {
+            use std::os::windows::process::CommandExt;
+            command.creation_flags(0x08000000);
+        }
+        for name in SANITIZED_ENVIRONMENT {
+            command.env_remove(name);
+        }
+        command
+    } else {
+        let mut command = runtime_command(runtime);
+        command
+            .args(["-m", "app.runtime_entrypoint", "restore-backup"])
+            .arg(backup_path);
+        command
+    }
+}
+
+fn core_restore_receipt_valid(
+    output: &[u8],
+    truncated: bool,
+    database: &Path,
+    backup: &Path,
+) -> bool {
+    if truncated {
+        return false;
+    }
+    let Ok(value) = serde_json::from_slice::<serde_json::Value>(output) else {
+        return false;
+    };
+    let Some(object) = value.as_object() else {
+        return false;
+    };
+    if object.len() != 7
+        || value.get("ok") != Some(&serde_json::json!(true))
+        || value.get("verified") != Some(&serde_json::json!(true))
+        || value.get("action").and_then(|v| v.as_str()) != Some("restore")
+    {
+        return false;
+    }
+    let same_file = |key: &str, expected: &Path| {
+        value
+            .get(key)
+            .and_then(|v| v.as_str())
+            .map(Path::new)
+            .and_then(|p| p.canonicalize().ok())
+            .zip(expected.canonicalize().ok())
+            .is_some_and(|(actual, expected)| actual == expected)
+    };
+    if !same_file("database", database) || !same_file("backup", backup) {
+        return false;
+    }
+    let Some(preserved) = value
+        .get("preserved_previous")
+        .and_then(|v| v.as_str())
+        .map(Path::new)
+        .and_then(|p| p.canonicalize().ok())
+    else {
+        return false;
+    };
+    let Ok(database) = database.canonicalize() else {
+        return false;
+    };
+    let expected_prefix = format!(
+        "{}.pre-restore-",
+        database.file_name().unwrap_or_default().to_string_lossy()
+    );
+    preserved.parent() == database.parent()
+        && preserved.is_file()
+        && preserved.file_name().is_some_and(|name| {
+            name.to_string_lossy().starts_with(&expected_prefix)
+                && name.to_string_lossy().ends_with(".sqlite")
+        })
+        && value
+            .get("preserved_objects_directory")
+            .and_then(|v| v.as_str())
+            == Some(format!("{}.objects", preserved.display()).as_str())
 }
 
 fn runtime_command(runtime: &RuntimeSpec) -> Command {
@@ -362,6 +842,7 @@ fn wait_for_readiness(
     port: u16,
     token: &str,
     logs: &LogBuffer,
+    path: &str,
 ) -> Result<(), String> {
     let deadline = Instant::now() + READINESS_TIMEOUT;
     loop {
@@ -374,7 +855,7 @@ fn wait_for_readiness(
                 format_logs(logs)
             ));
         }
-        if probe_readiness(port, token).is_ok() {
+        if probe_readiness(port, token, path).is_ok() {
             return Ok(());
         }
         if Instant::now() >= deadline {
@@ -387,14 +868,14 @@ fn wait_for_readiness(
     }
 }
 
-fn probe_readiness(port: u16, token: &str) -> Result<(), &'static str> {
+fn probe_readiness(port: u16, token: &str, path: &str) -> Result<(), &'static str> {
     let address = ([127, 0, 0, 1], port).into();
     let Ok(mut stream) = TcpStream::connect_timeout(&address, Duration::from_millis(300)) else {
         return Err("connect");
     };
     let _ = stream.set_read_timeout(Some(Duration::from_secs(3)));
     let request = format!(
-        "GET /workspace/api/_desktop/ready HTTP/1.0\r\nHost: 127.0.0.1:{port}\r\nX-ArcheAxis-Launch-Token: {token}\r\nConnection: close\r\n\r\n"
+        "GET {path} HTTP/1.0\r\nHost: 127.0.0.1:{port}\r\nX-ArcheAxis-Launch-Token: {token}\r\nConnection: close\r\n\r\n"
     );
     if stream.write_all(request.as_bytes()).is_err() {
         return Err("write");
@@ -429,10 +910,35 @@ fn probe_readiness(port: u16, token: &str) -> Result<(), &'static str> {
     let Some(payload) = payload else {
         return Err("body");
     };
-    if !readiness_payload_valid(&payload) {
+    // The route answers for whichever backend was launched, and the two report different
+    // identities. The Python entrypoint publishes its readiness document; the Core answers
+    // its version route with its runtime name and a numeric schema version. Accepting the
+    // Core's route with the Python document would never succeed, so a Core that had started
+    // perfectly would still time out here.
+    let identified = if path == CORE_VERSION_PATH {
+        core_version_identity_valid(&payload)
+    } else {
+        readiness_payload_valid(&payload)
+    };
+    if !identified {
         return Err("identity");
     }
     Ok(())
+}
+
+/// Whether a response from the Core's version route identifies the canonical Core.
+///
+/// The route is the one the Core itself special-cases, so a payload naming the runtime is
+/// the Core answering. The schema version is required to be a number because that is what
+/// the Core reports and what the Python document, which carries it as a string, does not.
+fn core_version_identity_valid(payload: &str) -> bool {
+    let Ok(value) = serde_json::from_str::<serde_json::Value>(payload) else {
+        return false;
+    };
+    value.get("runtime").and_then(serde_json::Value::as_str) == Some("archeaxis-api")
+        && value
+            .get("schema_version")
+            .is_some_and(serde_json::Value::is_number)
 }
 
 fn response_body(headers: &str, body: &str) -> Option<String> {
@@ -528,9 +1034,15 @@ mod tests {
         readiness_payload_valid, response_body, restore_receipt_valid, run_restore_backup,
         runtime_command, shutdown_job_owned_child,
     };
+    use crate::backend::contract_path;
+    use crate::backend::core_launch_document;
+    use crate::backend::core_version_identity_valid;
+    use crate::backend::CoreSpec;
+    use crate::backend::CORE_LAUNCH_PROTOCOL;
     use crate::runtime::RuntimeSpec;
     use std::ffi::OsStr;
     use std::fs;
+    use std::path::Path as TestPath;
     use std::path::PathBuf;
     use std::process::{Command, Stdio};
     use std::thread;
@@ -557,6 +1069,181 @@ mod tests {
 
         assert_eq!(setting, Some(OsStr::new("1")));
         assert_eq!(arguments, [OsStr::new("-B"), OsStr::new("-I")]);
+    }
+
+    #[cfg(windows)]
+    #[test]
+    fn owner_document_check_config_rejects_owned_parent_junction() {
+        let root = tempfile::tempdir().unwrap();
+        let data = root.path().join("data");
+        let donor = root.path().join("donor");
+        std::fs::create_dir_all(&data).unwrap();
+        std::fs::create_dir_all(&donor).unwrap();
+        let status = std::process::Command::new("cmd")
+            .args(["/C", "mklink", "/J"])
+            .arg(data.join("config"))
+            .arg(&donor)
+            .stdout(std::process::Stdio::null())
+            .stderr(std::process::Stdio::null())
+            .status()
+            .unwrap();
+        assert!(status.success());
+        assert_eq!(
+            super::document_check_config(&data),
+            (None, Some("invalid_config"))
+        );
+        std::fs::remove_dir(data.join("config")).unwrap();
+    }
+    #[test]
+    fn owner_document_check_config_is_optional_bounded_and_nonsecret() {
+        let root = tempfile::tempdir().unwrap();
+        assert_eq!(super::document_check_config(root.path()), (None, None));
+        std::fs::create_dir(root.path().join("config")).unwrap();
+        let path = root.path().join("config/document-check.json");
+        let valid = serde_json::json!({"provider":"fixture","model":"fixture/exact-v1","endpoint":"https://fixture.invalid/v1","max_tokens":128,"timeout_seconds":10,"search_limit":1});
+        std::fs::write(&path, serde_json::to_vec(&valid).unwrap()).unwrap();
+        assert!(super::document_check_config(root.path()).0.is_some());
+        for bad in [
+            serde_json::json!({}),
+            {
+                let mut c = valid.clone();
+                c["provider"] = serde_json::json!("fixture-");
+                c
+            },
+            {
+                let mut c = valid.clone();
+                c["endpoint"] = serde_json::json!("https://fixture.invalid/ bad");
+                c
+            },
+            {
+                let mut c = valid.clone();
+                c["endpoint"] =
+                    serde_json::json!("https://fixture.invalid/".to_owned() + &"a".repeat(2048));
+                c
+            },
+            {
+                let mut c = valid.clone();
+                c["api_key"] = serde_json::json!("synthetic-forbidden");
+                c
+            },
+            {
+                let mut c = valid.clone();
+                c["endpoint"] = serde_json::json!("https://user:secret@fixture.invalid/v1");
+                c
+            },
+            {
+                let mut c = valid.clone();
+                c["model"] = serde_json::json!("default");
+                c
+            },
+        ] {
+            std::fs::write(&path, serde_json::to_vec(&bad).unwrap()).unwrap();
+            assert_eq!(
+                super::document_check_config(root.path()),
+                (None, Some("invalid_config"))
+            );
+        }
+        std::fs::write(&path, vec![b' '; 16 * 1024 + 1]).unwrap();
+        assert_eq!(
+            super::document_check_config(root.path()),
+            (None, Some("invalid_config"))
+        );
+    }
+    #[test]
+    fn core_launch_document_carries_exactly_the_contract_the_core_enforces() {
+        // These are the rules the Core refuses a launch for, so the host must satisfy
+        // all of them: sixty-four hex characters for each credential, thirty-two for the
+        // session, the exact protocol string, a human actor, and two differing tokens.
+        let token = "a".repeat(64);
+        let machine = "b".repeat(64);
+        let session = machine[..32].to_owned();
+        let document = core_launch_document(&token, &machine, &session, None);
+        let parsed: serde_json::Value =
+            serde_json::from_str(&document).expect("the launch document is valid JSON");
+        assert_eq!(parsed["protocol"], CORE_LAUNCH_PROTOCOL);
+        assert_eq!(parsed["actor"], "human");
+        assert_eq!(parsed["launch_token"].as_str().map(str::len), Some(64));
+        assert_eq!(parsed["machine_token"].as_str().map(str::len), Some(64));
+        assert_eq!(parsed["session_id"].as_str().map(str::len), Some(32));
+        assert_ne!(parsed["launch_token"], parsed["machine_token"]);
+        // With no worker declared the document must not contain the field at all: an
+        // absent worker is what keeps the Core on its projections-only router.
+        assert!(parsed.get("text_worker").is_none());
+    }
+
+    #[test]
+    fn core_discovery_accepts_both_interpreter_layouts() {
+        // The dependency stager writes a flat interpreter and an earlier packaging pass
+        // nested it. Discovery that assumes one depth finds nothing for the other layout,
+        // and the shell then silently falls back to the legacy entrypoint - the outcome the
+        // migration exists to replace, with no error to notice. So both are exercised.
+        for interpreter in ["runtime/python/python.exe", "runtime/python.exe"] {
+            let root = tempdir().expect("a temporary root");
+            let python = root.path().join(interpreter.replace('/', "\\"));
+            std::fs::create_dir_all(python.parent().expect("a parent")).expect("python dir");
+            std::fs::write(&python, b"").expect("python file");
+            let core = root.path().join("core").join("archeaxis-api.exe");
+            std::fs::create_dir_all(core.parent().expect("a parent")).expect("core dir");
+            std::fs::write(&core, b"").expect("core file");
+            let runtime = RuntimeSpec {
+                python,
+                cwd: root.path().to_path_buf(),
+                data_dir: root.path().to_path_buf(),
+                isolated: true,
+                external_dev: false,
+                profile: "installed-stable",
+            };
+            let spec = CoreSpec::beside_runtime(&runtime)
+                .unwrap_or_else(|| panic!("the Core beside a {interpreter} runtime was not found"));
+            assert_eq!(spec.executable, core, "{interpreter}");
+        }
+    }
+
+    #[test]
+    fn a_declared_worker_is_carried_into_the_launch_document() {
+        let worker = serde_json::json!({
+            "python": "C:/root/runtime/python/python.exe",
+            "script": "C:/root/workers/transport/text_ndjson.py",
+            "staging": "C:/data/worker-staging",
+            "routes": [{"capability": "pdf.extract", "script": "C:/root/workers/document/worker_pdf.py"}],
+        });
+        let document = core_launch_document(
+            &"a".repeat(64),
+            &"b".repeat(64),
+            &"c".repeat(32),
+            Some(&worker),
+        );
+        let parsed: serde_json::Value = serde_json::from_str(&document).expect("valid JSON");
+        assert_eq!(
+            parsed["text_worker"]["routes"][0]["capability"],
+            "pdf.extract"
+        );
+    }
+
+    #[test]
+    fn the_launch_contract_never_carries_a_verbatim_path_prefix() {
+        // A canonicalised Windows path starts with the extended-length prefix, and the Core
+        // refuses it in the worker profile. Every published path is stripped.
+        assert_eq!(
+            contract_path(TestPath::new(r"\\?\C:\bundle\runtime\python.exe")),
+            r"C:\bundle\runtime\python.exe",
+        );
+        assert_eq!(
+            contract_path(TestPath::new(r"C:\bundle\runtime\python.exe")),
+            r"C:\bundle\runtime\python.exe",
+        );
+    }
+
+    #[test]
+    fn the_two_backends_are_identified_by_their_own_documents() {
+        // A Core that answered perfectly must not be judged against the Python document,
+        // and the Python document must not be mistaken for a Core.
+        let core = r#"{"runtime":"archeaxis-api","contract":"0.1.0-outline","schema_version":6,"session_id":"c","workspace_db":"d"}"#;
+        assert!(core_version_identity_valid(core));
+        let python = r#"{"schema_version":"v1","product":"ArcheAxis Knowledge","workspace":"x"}"#;
+        // The Python document is not required to pass its own validator here - that is pinned
+        // by its own test - only that it is never mistaken for a Core.
+        assert!(!core_version_identity_valid(python));
     }
 
     #[test]
@@ -725,6 +1412,93 @@ mod tests {
     }
 
     #[test]
+    fn core_restore_selects_canonical_binary_database_and_strict_receipt() {
+        let temp = tempdir().expect("temporary directory");
+        let root = temp.path();
+        fs::create_dir_all(root.join("runtime")).unwrap();
+        fs::create_dir_all(root.join("core")).unwrap();
+        fs::create_dir_all(root.join("data")).unwrap();
+        fs::write(
+            root.join("core/archeaxis-api.exe"),
+            b"command identity fixture",
+        )
+        .unwrap();
+        let runtime = RuntimeSpec {
+            python: root.join("runtime/python.exe"),
+            cwd: root.to_path_buf(),
+            data_dir: root.join("data"),
+            isolated: true,
+            external_dev: false,
+            profile: "portable",
+        };
+        let core = CoreSpec::beside_runtime(&runtime).expect("canonical Core selected");
+        let backup = root.join("snapshot.sqlite");
+        let command = super::restore_command(&runtime, &backup, Some(&core));
+        assert_eq!(command.get_program(), core.executable.as_os_str());
+        assert_eq!(
+            command.get_args().collect::<Vec<_>>(),
+            vec![
+                std::ffi::OsStr::new("--maintenance-restore"),
+                core.workspace_db.as_os_str(),
+                backup.as_os_str()
+            ]
+        );
+        let preserved = runtime
+            .data_dir
+            .join("archeaxis.sqlite.pre-restore-123.sqlite");
+        for path in [&backup, &core.workspace_db, &preserved] {
+            fs::write(path, b"fixture").unwrap();
+        }
+        let preserved = preserved.canonicalize().unwrap();
+        let good = serde_json::json!({"ok":true,"verified":true,"action":"restore",
+            "database":core.workspace_db.canonicalize().unwrap(),"backup":backup.canonicalize().unwrap(),
+            "preserved_previous":preserved,"preserved_objects_directory":format!("{}.objects",preserved.display())});
+        let bytes = serde_json::to_vec(&good).unwrap();
+        assert!(super::core_restore_receipt_valid(
+            &bytes,
+            false,
+            &core.workspace_db,
+            &backup
+        ));
+        assert!(!super::core_restore_receipt_valid(
+            &bytes,
+            true,
+            &core.workspace_db,
+            &backup
+        ));
+        for (key, invalid) in [
+            ("ok", serde_json::json!(false)),
+            ("verified", serde_json::json!(false)),
+            ("action", serde_json::json!("backup")),
+            ("database", serde_json::json!(backup)),
+            ("extra", serde_json::json!(true)),
+        ] {
+            let mut value = good.clone();
+            value[key] = invalid;
+            assert!(!super::core_restore_receipt_valid(
+                &serde_json::to_vec(&value).unwrap(),
+                false,
+                &core.workspace_db,
+                &backup
+            ));
+        }
+        assert!(!super::core_restore_receipt_valid(
+            b"{\"status\":\"restored\"}",
+            false,
+            &core.workspace_db,
+            &backup
+        ));
+        let mut noisy = bytes;
+        noisy.extend_from_slice(b"\nextra");
+        assert!(!super::core_restore_receipt_valid(
+            &noisy,
+            false,
+            &core.workspace_db,
+            &backup
+        ));
+    }
+
+    #[test]
     fn restore_does_not_wait_for_a_descendant_holding_inherited_pipes() {
         let temp = tempdir().expect("temporary directory");
         let fake_python = temp.path().join("fake-python.cmd");
@@ -764,22 +1538,37 @@ mod tests {
     fn core_shutdown_drops_the_job_and_bounds_forced_exit_polling() {
         let temp = tempdir().expect("temporary directory");
         let stubborn_core = temp.path().join("stubborn-core.cmd");
+        // Development environments need not include Windows system tools on PATH.
+        let system_root =
+            PathBuf::from(std::env::var_os("SystemRoot").expect("Windows system root"));
+        let ping = system_root.join("System32/ping.exe");
+        let powershell = system_root.join("System32/WindowsPowerShell/v1.0/powershell.exe");
+        assert!(ping.is_file(), "fixture ping executable is missing");
+        assert!(
+            powershell.is_file(),
+            "fixture PowerShell executable is missing"
+        );
         fs::write(
             &stubborn_core,
-            concat!(
-                "@echo off\r\n",
-                "ping.exe -n 2 127.0.0.1 >nul\r\n",
-                "start \"\" /b powershell.exe -NoProfile -NonInteractive ",
-                "-Command \"Start-Sleep -Seconds 5\"\r\n",
-                "powershell.exe -NoProfile -NonInteractive ",
-                "-Command \"Start-Sleep -Seconds 5\"\r\n"
+            format!(
+                concat!(
+                    "@echo off\r\n",
+                    "\"{}\" -n 2 127.0.0.1 >nul\r\n",
+                    "start \"\" /b \"{}\" -NoProfile -NonInteractive ",
+                    "-Command \"Start-Sleep -Seconds 5\"\r\n",
+                    "\"{}\" -NoProfile -NonInteractive ",
+                    "-Command \"Start-Sleep -Seconds 5\"\r\n"
+                ),
+                ping.display(),
+                powershell.display(),
+                powershell.display(),
             ),
         )
         .expect("write stubborn Core fixture");
         let mut child = Command::new(&stubborn_core)
             .stdin(Stdio::null())
             .stdout(Stdio::null())
-            .stderr(Stdio::null())
+            .stderr(Stdio::piped())
             .spawn()
             .expect("spawn stubborn Core fixture");
         let mut job = Some(crate::job::Job::new().expect("create Core test job"));
@@ -788,6 +1577,15 @@ mod tests {
             .assign(&child)
             .expect("assign stubborn Core to Job");
         thread::sleep(Duration::from_millis(1200));
+        if let Some(status) = child.try_wait().expect("inspect fixture before shutdown") {
+            let mut errors = Vec::new();
+            std::io::Read::read_to_end(
+                &mut child.stderr.take().expect("fixture stderr"),
+                &mut errors,
+            )
+            .expect("read fixture diagnostics");
+            panic!("stubborn fixture exited early: {status}: {errors:?}");
+        }
         let started = Instant::now();
 
         shutdown_job_owned_child(

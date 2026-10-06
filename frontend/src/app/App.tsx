@@ -6,7 +6,7 @@ import { ActivityDock } from "../components/ActivityDock";
 import { Inspector, type InspectionTarget } from "../components/Inspector";
 import { SpaceView } from "../spaces/SpaceView";
 import { RecoveryShell } from "../components/RecoveryShell";
-import { ContextNav } from "../components/ContextNav";
+import { ContextNav, type LibrarySection } from "../components/ContextNav";
 import {
   enterRecoverySafeMode,
   getRecoveryStatus,
@@ -16,6 +16,7 @@ import {
   retryDesktopBackend,
 } from "../api/workspace";
 import { runtimeProjectionMessage } from "../api/client";
+import { verifyCanonicalCore } from "../api/core";
 import {
   checkingRecoveryStatus,
   failedRecoveryStatus,
@@ -32,7 +33,8 @@ const RECOVERY_BOOT_TIMEOUT_MS = 30_000;
 // right inspector | bottom activity dock.
 export function App() {
   const desktop = Boolean(window.__TAURI__?.core?.invoke);
-  const [activeSpace, setActiveSpace] = useState<SpaceId>("workspace");
+  const [activeSpace, setActiveSpace] = useState<SpaceId>(desktop ? "library" : "workspace");
+  const [libraryNavigation, setLibraryNavigation] = useState<{ section: LibrarySection; sequence: number }>({ section: "sources", sequence: 0 });
   const [inspectionTarget, setInspectionTarget] = useState<InspectionTarget | null>(null);
   const [inspectorOpen, setInspectorOpen] = useState(false);
   const [desktopReady, setDesktopReady] = useState(!desktop);
@@ -41,6 +43,8 @@ export function App() {
     desktop ? checkingRecoveryStatus() : null,
   );
   const operation = useRef({ epoch: 0, mounted: true });
+  const [commandPaletteOpen, setCommandPaletteOpen] = useState(false);
+  const draftDirty = useRef(false);
   const liveness = useRef<{
     generation: number;
     timeout: ReturnType<typeof globalThis.setTimeout> | null;
@@ -54,7 +58,14 @@ export function App() {
     };
   }, []);
 
+  useEffect(() => {
+    const listener = (event: Event) => { draftDirty.current = (event as CustomEvent<boolean>).detail === true; };
+    window.addEventListener("archeaxis-draft-dirty", listener);
+    return () => window.removeEventListener("archeaxis-draft-dirty", listener);
+  }, []);
+
   const navigate = useCallback((id: SpaceId) => {
+    if (draftDirty.current && !window.confirm("草稿尚未保存，请先保留文字。仍要离开吗？")) return;
     setActiveSpace(id);
     setInspectionTarget(null);
   }, []);
@@ -63,6 +74,18 @@ export function App() {
     setInspectionTarget(target);
     setInspectorOpen(true);
   }, []);
+
+  const toggleInspector = useCallback(() => setInspectorOpen((value) => !value), []);
+  useEffect(() => {
+    const shortcut = (event: KeyboardEvent) => {
+      if (commandPaletteOpen || event.repeat || event.isComposing || event.getModifierState("AltGraph")) return;
+      if (event.ctrlKey && event.altKey && !event.metaKey && !event.shiftKey && event.key.toLowerCase() === "i") {
+        event.preventDefault(); toggleInspector();
+      }
+    };
+    window.addEventListener("keydown", shortcut);
+    return () => window.removeEventListener("keydown", shortcut);
+  }, [commandPaletteOpen, toggleInspector]);
 
   const beginOperation = useCallback(() => {
     liveness.current.generation += 1;
@@ -91,7 +114,8 @@ export function App() {
       return false;
     }
     try {
-      await getStatus();
+      if (desktop) await verifyCanonicalCore();
+      else await getStatus();
       if (!isCurrent(epoch)) return false;
       setDesktopReady(true);
       return true;
@@ -110,7 +134,7 @@ export function App() {
       }
       return false;
     }
-  }, [isCurrent]);
+  }, [desktop, isCurrent]);
 
   useEffect(() => {
     if (!desktop) return;
@@ -220,7 +244,7 @@ export function App() {
         return;
       }
       try {
-        await getStatus();
+        await verifyCanonicalCore();
       } catch (error) {
         if (!loopIsCurrent()) return;
         await recoverHandshakeFailure(status, error);
@@ -350,18 +374,19 @@ export function App() {
           : verificationPending ? "checking" : desktopReady ? "available" : "unavailable"}
         externalDev={recoveryStatus?.external_dev === true}
         onNavigate={navigate}
+        onCommandPaletteOpenChange={setCommandPaletteOpen}
         inspectorOpen={inspectorOpen}
-        onToggleInspector={() => setInspectorOpen((value) => !value)}
+        onToggleInspector={toggleInspector}
       />
       <div className="app-body">
         <SpaceRail active={activeSpace} onNavigate={navigate} spaces={SPACES} />
-        <ContextNav active={activeSpace} onNavigate={navigate} />
+        <ContextNav active={activeSpace} onNavigate={navigate} librarySection={libraryNavigation.section} onLibrarySection={desktop ? section => setLibraryNavigation(previous => ({section, sequence: previous.sequence + 1})) : undefined} />
         <main className="app-center" role="main" aria-label="当前空间内容">
-          <SpaceView spaceId={activeSpace} onInspect={inspect} onNavigate={navigate} />
+          <SpaceView spaceId={activeSpace} onInspect={inspect} onNavigate={navigate} libraryNavigation={libraryNavigation} />
         </main>
         {inspectorOpen ? <Inspector target={inspectionTarget} onClose={() => setInspectorOpen(false)} /> : null}
       </div>
-      <ActivityDock onInspect={inspect} />
+      <ActivityDock onInspect={inspect} commandPaletteOpen={commandPaletteOpen} />
     </div>
   );
 }

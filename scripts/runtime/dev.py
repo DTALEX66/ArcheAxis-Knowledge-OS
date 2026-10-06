@@ -239,6 +239,9 @@ def environment(paths: dict[str, Path]) -> dict[str, str]:
         "npm_config_cache": str(cache / "npm"),
         "PLAYWRIGHT_BROWSERS_PATH": str(cache / "playwright"),
         "CARGO_TARGET_DIR": str(paths["cargo_build"]),
+        # Retain reusable compiled dependencies, without accumulating per-edit
+        # incremental object archives in this project's long-lived worktrees.
+        "CARGO_INCREMENTAL": "0",
         "CARGO_HOME": str(cache / "cargo"),
         "NUGET_PACKAGES": str(cache / "nuget"),
         "NUGET_HTTP_CACHE_PATH": str(cache / "nuget-http"),

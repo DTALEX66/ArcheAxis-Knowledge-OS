@@ -1,13 +1,36 @@
 from __future__ import annotations
 
+import os
+import shutil
 import tempfile
+from contextlib import contextmanager
 from pathlib import Path
 
 from scripts.release.assemble_green_candidate import assemble
 
 
+@contextmanager
+def candidate_fixture_directory():
+    # Keep the full canonical test-root depth. Only cleanup's private filesystem
+    # operation gets a Windows extended path; product inputs retain normal paths.
+    raw = tempfile.mkdtemp(prefix="aaos-candidate-scheduler-")
+    owned = Path(raw).absolute()
+    parent = Path(tempfile.gettempdir()).absolute()
+    assert owned.parent == parent and owned.name.startswith("aaos-candidate-scheduler-")
+    try:
+        yield raw
+    finally:
+        cleanup = str(owned)
+        if os.name == "nt" and not cleanup.startswith("\\\\?\\"):
+            cleanup = (
+                "\\\\?\\UNC\\" + cleanup[2:] if cleanup.startswith("\\\\") else "\\\\?\\" + cleanup
+            )
+        shutil.rmtree(cleanup)
+        assert not Path(cleanup).exists(), "owned candidate fixture cleanup failed"
+
+
 def test_candidate_launcher_binds_bundled_scheduler_python() -> None:
-    with tempfile.TemporaryDirectory(prefix="aaos-candidate-scheduler-") as raw:
+    with candidate_fixture_directory() as raw:
         temp = Path(raw)
         project = temp / "project"
         desktop = temp / "desktop"

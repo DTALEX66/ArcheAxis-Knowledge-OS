@@ -8,6 +8,7 @@ same job/attempt/error machinery as text instead of being separate CLIs.
 
 from __future__ import annotations
 
+import os
 import hashlib
 import importlib.util
 import json
@@ -18,7 +19,7 @@ import pytest
 
 REPO = Path(__file__).resolve().parents[1]
 TRANSPORT = REPO / "services" / "python-workers" / "transport" / "text_ndjson.py"
-TESSDATA = REPO / "tools" / "tesseract" / "tessdata"
+TESSDATA = Path(os.environ.get("TESSDATA_PREFIX") or (REPO / "tools" / "tesseract" / "tessdata"))
 
 
 def _load():

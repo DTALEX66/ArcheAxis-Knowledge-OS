@@ -1,0 +1,62 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "archeaxis/core-command/v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "operation"
+  ],
+  "properties": {
+    "operation": {
+      "type": "string",
+      "enum": [
+        "system_version",
+        "source_import",
+        "sources_list",
+        "source_jobs",
+        "source_members",
+        "source_original",
+        "documents_list",
+        "document_create",
+        "document_get",
+        "document_draft",
+        "document_version",
+        "document_restore",
+        "document_export",
+        "document_export_save",
+        "jobs_get",
+        "job_quality",
+        "anchors_list",
+        "anchor_create",
+        "search",
+        "knowledge_get",
+        "knowledge_qualification",
+        "knowledge_review",
+        "learning_items",
+        "learning_state",
+        "learning_history",
+        "learning_review",
+        "capabilities_list",
+        "job_enqueue",
+        "job_execute",
+        "job_output",
+        "assessment_create",
+        "assessment_get",
+        "learning_reference",
+        "machine_answer",
+        "machine_correction",
+        "machine_task_get",
+        "source_job_transform",
+        "knowledge_from_transform",
+        "workspace_backup",
+        "workspace_backups",
+        "document_checks",
+        "document_check_record",
+        "document_check_execute"
+      ]
+    },
+    "payload": {
+      "type": "object"
+    }
+  }
+}

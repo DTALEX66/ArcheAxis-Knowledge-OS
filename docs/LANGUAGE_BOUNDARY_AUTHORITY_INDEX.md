@@ -6,8 +6,8 @@ never guessed from old taskpacks or PATH.
 
 Current decisions: [project contract](../PROJECT_CONTRACT.yaml) and
 [supersession ledger](../DECISION_SUPERSESSION_LEDGER.yaml), including SUP-020
-and SUP-021 (R6 formal-shell priority; bounded TypeScript/JavaScript reuse is
-retained).
+and SUP-022 (the formal Tauri 2 + React/TypeScript/Vite host replaces SUP-021's
+Avalonia shell priority; Rust Core and isolated Python boundaries are retained).
 Execution: [R6 live ledger](current/R6-EXECUTION.md),
 [R6 task package](authority/taskpack-0919-r6/EXECUTOR-START.md), with the
 [M0 priority overlay](current/M0-DIRECTION-OVERRIDE-20260920.md).
@@ -18,10 +18,11 @@ Its old G0 cutover instructions are superseded; its recorded evidence is retaine
 
 | Responsibility | Current implementation target | Boundary |
 | --- | --- | --- |
-| Formal Windows desktop | C#/Avalonia in `apps/ArcheAxis.Desktop/` | UI and Supervisor; no direct SQL or duplicated business rules |
+| Formal Windows desktop | Rust/Tauri 2 in `src-tauri/`, React/TypeScript/Vite in `frontend/` | UI and Core lifecycle through finite authenticated host commands; no direct SQL or duplicated business rules; no arbitrary paths/Shell |
+| Preserved Avalonia reference | C#/Avalonia in `apps/ArcheAxis.Desktop/` | Behavior and recovery donor; preservation does not create a second default shell |
 | vNext domain, jobs, storage and API | Rust in `crates/` | Separate vNext database; one authoritative writer |
 | Parsing, OCR, ASR, model computation | Python in `services/python-workers/` | Isolated capabilities; no main database handle or human approval |
-| Protocol | `packages/contracts/` | Actual C#/Rust/Python output must pass the same contract |
+| Protocol | `packages/contracts/` | Generated TypeScript DTOs and actual Rust/Python output must pass the same contract; preserved C# consumers retain their own validation |
 | Existing Green v0.6.14 | Legacy Python, React/Tauri | Recovery and behavior reference; existing data is not migrated by declaration |
 
 The old G0 shadow-writer cutover route is superseded by SUP-003/006.

@@ -83,7 +83,11 @@ def load_profile(root: Path, explicit_path: str | None = None) -> dict:
         document = json.loads(path.read_text(encoding="utf-8"), object_pairs_hook=unique)
     except (json.JSONDecodeError, UnicodeError, OSError) as error:
         raise LaunchFailure("worker profile is not valid readable JSON") from error
-    if not isinstance(document, dict) or set(document) != {"schema", "python", "script", "staging"}:
+    allowed_fields = (
+        {"schema", "python", "script", "staging"},
+        {"schema", "python", "script", "staging", "routes"},
+    )
+    if not isinstance(document, dict) or set(document) not in allowed_fields:
         raise LaunchFailure("unsupported or incomplete worker profile fields")
     if document.get("schema") != PROFILE_SCHEMA:
         raise LaunchFailure(
@@ -96,6 +100,44 @@ def load_profile(root: Path, explicit_path: str | None = None) -> dict:
         resolved[key] = safe_path(path.parent, value)
     require_file(resolved["python"], "worker interpreter")
     require_file(resolved["script"], "worker script")
+    resolved["routes"] = _load_routes(document, path)
+    return resolved
+
+
+def _load_routes(document: dict, path: Path) -> list[dict]:
+    """The profile's optional capability routes, resolved and validated.
+
+    An absent list keeps the previous single-route behaviour. Each entry names one
+    capability and the worker script that serves it, relative to the profile, so the
+    staged runtime declares what it actually ships rather than the Core assuming a
+    layout. A malformed entry is refused by name instead of being silently dropped,
+    because a dropped route would surface later as an unexplained failed job.
+    """
+    routes = document.get("routes")
+    if routes is None:
+        return []
+    if not isinstance(routes, list):
+        raise LaunchFailure("worker profile routes must be a list")
+    resolved: list[dict] = []
+    seen: set[str] = set()
+    for index, entry in enumerate(routes):
+        if not isinstance(entry, dict) or set(entry) != {"capability", "script"}:
+            raise LaunchFailure(f"worker profile route {index} must be capability and script")
+        capability = entry.get("capability")
+        script = entry.get("script")
+        if not isinstance(capability, str) or not capability.strip():
+            raise LaunchFailure(f"worker profile route {index} has no capability")
+        if not isinstance(script, str) or not script.strip():
+            raise LaunchFailure(f"worker profile route {index} has no script")
+        capability = capability.strip()
+        if capability == "text.extract":
+            raise LaunchFailure("worker profile route must not redeclare text.extract")
+        if capability in seen:
+            raise LaunchFailure(f"duplicate worker profile route capability: {capability}")
+        seen.add(capability)
+        resolved_script = safe_path(path.parent, script)
+        require_file(resolved_script, f"worker route script for {capability}")
+        resolved.append({"capability": capability, "script": resolved_script})
     return resolved
 
 
@@ -135,7 +177,122 @@ def build_environment(root: Path) -> dict:
     return environment
 
 
-def start(data_root: Path, port: int) -> tuple[subprocess.Popen, str, dict, dict]:
+def document_check_config(data_root: Path) -> tuple[dict | None, str | None]:
+    """One fixed non-secret owner file; invalid config cannot block ordinary save."""
+    from urllib.parse import urlsplit
+
+    def reparse(metadata):
+        import stat
+
+        return stat.S_ISLNK(metadata.st_mode) or bool(
+            getattr(metadata, "st_file_attributes", 0) & 0x400
+        )
+
+    def identity(metadata):
+        return metadata.st_dev, metadata.st_ino, metadata.st_size, metadata.st_mtime_ns
+
+    try:
+        root = data_root.resolve(strict=True)
+        folder = root / "config"
+        try:
+            parent = folder.stat(follow_symlinks=False)
+        except FileNotFoundError:
+            return None, None
+        if reparse(parent) or not folder.is_dir():
+            return None, "invalid_config"
+        folder_identity = folder.resolve(strict=True)
+        if not folder_identity.is_relative_to(root):
+            return None, "invalid_config"
+        path = folder / "document-check.json"
+        try:
+            before = path.stat(follow_symlinks=False)
+        except FileNotFoundError:
+            return None, None
+        if reparse(before) or not path.is_file() or before.st_size > 16 * 1024:
+            return None, "invalid_config"
+        canonical = path.resolve(strict=True)
+        if canonical.parent != folder_identity or not canonical.is_relative_to(root):
+            return None, "invalid_config"
+        with path.open("rb") as handle:
+            import os
+
+            opened = os.fstat(handle.fileno())
+            if identity(before) != identity(opened):
+                return None, "invalid_config"
+            raw = handle.read(16 * 1024 + 1)
+            final_opened = os.fstat(handle.fileno())
+        after = path.stat(follow_symlinks=False)
+        if (
+            len(raw) > 16 * 1024
+            or reparse(after)
+            or identity(opened) != identity(after)
+            or identity(opened) != identity(final_opened)
+            or path.resolve(strict=True) != canonical
+            or folder.resolve(strict=True) != folder_identity
+            or reparse(folder.stat(follow_symlinks=False))
+        ):
+            return None, "invalid_config"
+        def unique_config(pairs):
+            result = {}
+            for key, value in pairs:
+                if key in result:
+                    raise ValueError("duplicate configuration field")
+                result[key] = value
+            return result
+
+        config = json.loads(raw, object_pairs_hook=unique_config)
+        required = {"provider", "model", "max_tokens", "timeout_seconds", "search_limit"}
+        if (
+            not isinstance(config, dict)
+            or not required <= config.keys()
+            or config.keys() - required - {"endpoint"}
+        ):
+            return None, "invalid_config"
+        provider, model = config["provider"], config["model"]
+        if (
+            not isinstance(provider, str)
+            or not provider
+            or len(provider.encode("utf-8")) > 64
+            or not all(c.isascii() and (c.isalnum() or c == "_") for c in provider)
+        ):
+            return None, "invalid_config"
+        if (
+            not isinstance(model, str)
+            or len(model.encode("utf-8")) > 256
+            or not model.startswith(provider + "/")
+            or not model.split("/", 1)[1].strip()
+        ):
+            return None, "invalid_config"
+        for field, low, high in (
+            ("max_tokens", 128, 4096),
+            ("timeout_seconds", 1, 120),
+            ("search_limit", 1, 3),
+        ):
+            if type(config[field]) is not int or not low <= config[field] <= high:
+                return None, "invalid_config"
+        endpoint = config.get("endpoint")
+        if endpoint is not None:
+            if (
+                not isinstance(endpoint, str)
+                or not endpoint.startswith("https://")
+                or len(endpoint.encode("utf-8")) > 2048
+                or any(c in endpoint for c in "@?#")
+                or any(c.isspace() for c in endpoint)
+            ):
+                return None, "invalid_config"
+            url = urlsplit(endpoint)
+            if not url.hostname or url.username is not None or url.password is not None:
+                return None, "invalid_config"
+            _ = url.port
+        return config, None
+    except (OSError, ValueError, TypeError):
+        return None, "invalid_config"
+
+
+def start(data_root: Path, port: int, *, workspace_name: str = "workspace.sqlite") -> tuple[subprocess.Popen, str, dict, dict]:
+    """Launch a session, optionally reopening the product host's workspace file."""
+    if not workspace_name.strip() or any(character in workspace_name for character in "\\/:") or workspace_name in {".", ".."}:
+        raise LaunchFailure("unsafe workspace filename")
     core = require_file(safe_path(ROOT, str(CORE_RELATIVE)), "Core executable")
     profile = load_profile(ROOT)
     require_file(profile["python"], "scheduler interpreter (from worker profile)")
@@ -143,7 +300,7 @@ def start(data_root: Path, port: int) -> tuple[subprocess.Popen, str, dict, dict
 
     data_root = safe_path(ROOT, str(data_root))
     staging = safe_path(data_root, "worker-staging")
-    workspace = safe_path(data_root, "workspace.sqlite")
+    workspace = safe_path(data_root, workspace_name)
     data_root.mkdir(parents=True, exist_ok=True)
     staging.mkdir(parents=True, exist_ok=True)
 
@@ -157,8 +314,19 @@ def start(data_root: Path, port: int) -> tuple[subprocess.Popen, str, dict, dict
             "python": str(profile["python"]),
             "script": str(profile["script"]),
             "staging": str(staging),
+            # Declared capability routes. An empty list would be identical to omitting
+            # the field, so it is only emitted when the runtime actually ships routes.
+            **({"routes": [
+                {"capability": route["capability"], "script": str(route["script"])}
+                for route in profile.get("routes", [])
+            ]} if profile.get("routes") else {}),
         },
     }
+    check_config, check_error = document_check_config(data_root)
+    if check_config is not None:
+        launch["document_check_config"] = check_config
+    if check_error is not None:
+        launch["document_check_config_error"] = check_error
     child = subprocess.Popen(
         [str(core), str(workspace), str(port)],
         stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
@@ -173,8 +341,7 @@ def start(data_root: Path, port: int) -> tuple[subprocess.Popen, str, dict, dict
         base = wait_for_readiness(child, port, STARTUP_TIMEOUT_SECONDS)
         receipt = {"core": str(core), "workspace": str(workspace), "port": port,
                    "text_worker": launch["text_worker"]}
-        tokens = {"x-archeaxis-launch-token": launch["launch_token"],
-                  "x-archeaxis-machine-token": launch["machine_token"]}
+        tokens = {"human": launch["launch_token"], "machine": launch["machine_token"]}
         return child, base, receipt, tokens
     except BaseException:
         stop(child)
@@ -236,19 +403,49 @@ def wait_for_readiness(child: subprocess.Popen, port: int, timeout: float) -> st
         raise
 
 
+def credential(tokens: dict | None, role: str) -> dict:
+    """The request header that authenticates *role* against the Core.
+
+    The Core reads exactly one credential header, `x-archeaxis-launch-token`, and
+    matches its value against either the launch token or the machine token before
+    deriving the actor from whichever matched (`launch.rs::authenticate`).  The
+    machine token therefore travels in that same header; there is no separate
+    `x-archeaxis-machine-token` header in the protocol, and sending one would be
+    ignored.  Selecting the value here means a caller cannot pick the wrong header
+    and silently act as the other principal.
+    """
+    if role not in {"human", "machine"}:
+        raise LaunchFailure(f"unknown credential role: {role}")
+    if not tokens:
+        raise LaunchFailure(f"no credentials were issued for role: {role}")
+    value = tokens.get(role)
+    if not value:
+        raise LaunchFailure(f"missing credential for role: {role}")
+    return {"x-archeaxis-launch-token": value}
+
+
 def call(base: str, method: str, path: str, body: dict | None = None,
-         tokens: dict | None = None) -> tuple[int, object]:
+         tokens: dict | None = None, *,
+         header_tokens: dict | None = None,
+         role: str | None = None) -> tuple[int, object]:
     """Every route is authenticated per request by the launch layer.
 
     The Core matches `x-archeaxis-launch-token` against the token it accepted on
     stdin and answers `AAK-AUTH-001` otherwise, so a caller that forgets it sees a
     bare 401 rather than a startup problem.
+
+    Pass `role` with the credentials returned by `start` to authenticate as that
+    principal.  `header_tokens` is the raw header mapping, for callers that build
+    their own headers.
     """
     data = json.dumps(body).encode("utf-8") if body is not None else None
     request = urllib.request.Request(base + path, data=data, method=method)
     if data is not None:
         request.add_header("content-type", "application/json")
-    for name, value in (tokens or {}).items():
+    headers = dict(header_tokens or {})
+    if role is not None:
+        headers.update(credential(tokens, role))
+    for name, value in headers.items():
         request.add_header(name, value)
     try:
         with urllib.request.urlopen(request, timeout=10) as response:
@@ -300,9 +497,11 @@ def main() -> int:
     receipt["base_url"] = base
     if args.smoke:
         try:
-            status, version = call(base, "GET", "/api/v1/system/version", tokens=tokens)
+            status, version = call(base, "GET", "/api/v1/system/version",
+                                   tokens=tokens, role="human")
             receipt["system_version"] = {"status": status, "body": version}
-            status, info = call(base, "GET", "/api/v1/workspaces/info", tokens=tokens)
+            status, info = call(base, "GET", "/api/v1/workspaces/info",
+                                tokens=tokens, role="human")
             receipt["workspaces_info"] = {"status": status, "body": info}
         finally:
             receipt["exit_code"] = stop(child)

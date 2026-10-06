@@ -13,7 +13,7 @@
     "withGlobalTauri": true,
     "windows": [],
     "security": {
-      "csp": "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data: blob:; font-src 'self' data:; connect-src 'self' http://127.0.0.1:*; frame-src blob:; object-src 'none'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'",
+      "csp": "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data: blob:; media-src 'self' blob:; font-src 'self' data:; connect-src 'self' http://127.0.0.1:*; frame-src blob:; object-src 'none'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'",
       "capabilities": [
         {
           "identifier": "main-window",
@@ -35,7 +35,14 @@
       "icons/icon.png"
     ],
     "resources": {
-      "../.project-local/rt/runtime": "runtime"
+      "../.project-local/rt/runtime": "runtime",
+      "../.project-local/rt/core": "core",
+      "../.project-local/rt/workers": "workers",
+      "../.project-local/rt/shared": "shared",
+      "../.project-local/rt/worker-profile.json": "worker-profile.json",
+      "../.project-local/rt/start-backend.py": "start-backend.py",
+      "../.project-local/rt/start-backend.cmd": "start-backend.cmd",
+      "../.project-local/rt/backend-runtime-manifest.json": "backend-runtime-manifest.json"
     }
   }
 }

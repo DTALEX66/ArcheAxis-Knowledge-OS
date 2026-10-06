@@ -6,6 +6,47 @@ use archeaxis_domain::{
 use archeaxis_store_sqlite::{init_workspace, raw_objects};
 use rusqlite::Connection;
 
+#[cfg(windows)]
+#[test]
+fn backup_and_restore_keep_long_internal_paths_and_original_objects() {
+    let dir = tempfile::tempdir().unwrap();
+    let mut conn = init_workspace(dir.path().join("source.sqlite").to_str().unwrap()).unwrap();
+    source::import_source(&mut conn, b"long-path original", "original.txt", None).unwrap();
+    let digest: String = conn
+        .query_row("SELECT sha256 FROM sources", [], |r| r.get(0))
+        .unwrap();
+    let mut parent = dir.path().to_path_buf();
+    while parent.to_string_lossy().len() < 280 {
+        parent.push("long-backup-component-0123456789");
+    }
+    std::fs::create_dir_all(&parent).unwrap();
+    let snapshot = parent.join("snapshot.sqlite");
+    assert!(snapshot.to_string_lossy().len() > 260);
+    backup::backup(&conn, snapshot.to_str().unwrap()).unwrap();
+    let canonical = snapshot.canonicalize().unwrap();
+    let snapshot_db =
+        Connection::open_with_flags(&canonical, rusqlite::OpenFlags::SQLITE_OPEN_READ_ONLY)
+            .unwrap();
+    assert!(backup::verify_counts(&conn, &snapshot_db).unwrap());
+    let restored = parent.join("new-restored.sqlite");
+    assert!(!restored.exists());
+    let mut dst = init_workspace(
+        parent
+            .canonicalize()
+            .unwrap()
+            .join("new-restored.sqlite")
+            .to_str()
+            .unwrap(),
+    )
+    .unwrap();
+    backup::restore(snapshot.to_str().unwrap(), &mut dst).unwrap();
+    assert!(backup::verify_counts(&conn, &dst).unwrap());
+    assert_eq!(
+        raw_objects::read(&dst, &digest).unwrap(),
+        b"long-path original"
+    );
+}
+
 #[test]
 fn backup_restore_preserves_machine_failure_retest_and_knowledge_binding() {
     let dir = tempfile::tempdir().unwrap();
