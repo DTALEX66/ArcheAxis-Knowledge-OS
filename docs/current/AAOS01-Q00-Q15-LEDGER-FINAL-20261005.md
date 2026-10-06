@@ -1112,3 +1112,58 @@ F07 主缺口"结构作为寻址层"仍未动——那是 anchor 契约变更，
 应作为独立一刀做，不在本切片顺手改。
 
 **回滚**：`git revert 807f6d8a`（worker、测试、矩阵行一起撤回；F08 行不受影响）。
+
+
+## 格式切片 F12 与 F14（2026-10-07，F12 提交 3cc446c1，F14 提交 a75d3487）
+
+**F12 画布事实**：节点除几何外还带回文件自己声明的 `color` 与 `style`（非空字符串才记，空白不是颜色），
+坐标必须是数字（字符串/null 直接丢弃，不强行换算）。**矩阵原句"canvas geometry is not projected（worker 自己这么说）"
+是过期的**：worker 已多轮把 x/y/width/height 作为事实上报；同时它的损失句声称"ports 未投影"也不实——
+边是**逐字保留**的，所以 fromSide/toSide/fromEnd/toEnd 本就跟边一起走。两处都按代码改正，
+并加 `tests/workers/test_canvas_node_facts.py` 把"实际做了什么/没做什么"钉住（含 golden 夹具字节不被改动）。
+
+**F14 `.xls`（新引擎真正吸收）**：`xlrd 2.0.2` 进 `ci-adapters`（BSD，LICENSE 3,771 B
+sha256 b5a5dbce…；METADATA `License: BSD`；两条 BSD 条款），`office.structure` 新增
+`application/vnd.ms-excel`，读取按 xlrd 自己的类型表把单元格分成 text/number/date/boolean/error/empty，
+日期用工作簿自带的 datemode 换算；**转换件**为每表一份 CSV，走 F13 刚验证过的成员通道声明（`{name,file,bytes,sha256}`），
+Core 校验后导入成自己的 source 并排队文本路由；**损失报告**点名转换带不走的东西
+（公式不重算、数字格式/样式/合并区/图表/图片/透视/宏）。
+`uv lock` 仅 +11 行；`uv export --only-group ci` 与被审计的 `locked-ci.txt` **去注释排序后逐行相同**
+（diff 0 行），所以 pip-audit 的结论沿用；release manifest 只按既有约定改 `dependency_lock.digest`。
+
+**四张表 + 一处真相测试一起改**：名称表、`accepted_media_types`、`ARTIFACT_ROOT_CAPABILITIES`、
+executor 的展开门；以及 `office_job_end_to_end.rs` 里断言 `old.xls` **必须被拒绝**的那条真相测试——
+它是"无 reader 就不命名"的守卫，如今 reader 存在，因此把 `.doc/.ppt` 留在拒绝列表、
+把 `.xls` 改为按名解析并**新增一条反向不变量**：`.xls` 不得走文本路由（二进制被当文本解只会产生噪声）。
+另外 xlrd 的 `on_demand` 会**占住在 Windows 上写出的视图文件**，测试里临时目录删除直接失败
+（WinError 32）；正解是 `book.release_resources()`——我先写的不存在的 `book.release()` 也被同一个测试当场抓出。
+
+**夹具来源如实写**：`tests/fixtures/golden/golden-xls-anchor.xls`（5,632 B，sha256 3225b8bb…，
+manifest 已登记）是本轮用 `xlwt 1.3.0` 一次性生成的**项目自造合成件**；xlwt 只在生成时当工具用，
+**装完即卸**（现在 venv 里 xlwt=False、xlrd=True），不进任何依赖声明。因此 FMT-21（.doc/.xls/.ppt
+逐扩展名用真实样本验收）仍是 **NOT_RUN**：自造件证明的是接线与读表能力，不等于 Excel 亲笔件的保真度。
+
+**顺带纠正的既有错账**：重算 `disposition_summary` 时发现，旧账把 1 个 `REFERENCE` 组件记成了 `CURRENT`
+（旧摘要 CURRENT 12 且无 REFERENCE 项；组件实际为 CURRENT 11 + REFERENCE 1）。现在按组件重算：
+`CURRENT 12（含 xlrd）/ REFERENCE 1 / ADOPT 13 / EVALUATE 9 / SIDECAR 3 / REVIEW-BLOCK 9 / REJECT-CORE 1 = 48`。
+另一次我误用 donor 文档的词表给 ledger 写了 `ABSORB`，被 `tests/test_mfx001_supply_chain_ledger.py`
+以"invalid disposition"直接判红——两套词表不是一个东西，改回 ledger 自己的 `CURRENT` +
+`qualification ["source","installed"]`（不宣称 release 级，因为本轮不发布）。
+
+**验证**：`cargo test --workspace --offline` **122 套件全绿 / 500 项通过**；`xls_member_chain.rs` **1 套件 / 2 项 ok**
+（两个转换表都成为 source、各有自己的作业、执行后正文含 `星环 知识平台`、`members_of` 读回可读；
+`.doc/.ppt` 仍被拒）；`tests/workers` + 合同/分类器合跑 **374 passed, 106 subtests passed in 61.20s (0:01:01)**；`tests/workers/test_canvas_node_facts.py`
+与既有画布/字幕套件 **328 passed, 1 warning, 106 subtests passed in 66.37s (0:01:06)**；门禁（release manifest / 供给链 ledger / workflow / maintenance）**334 passed, 2 skipped, 2 warnings, 2 subtests passed in 68.50s (0:01:08) — 同一条门禁在前一步曾判红：它拒了我给 ledger 写的 `ABSORB`（那是 donor 文档的词表），所以这里引的是改正后重跑的那次**；
+`cargo fmt --all --check` PASS；矩阵检查 exit 0 且**状态计数与行一致**（16 组：0 complete / 15 partial / 1 custody_only）；
+文档权威与路径约定门禁通过；Python 全量 **4239 passed, 30 skipped, 14 warnings, 146 subtests passed in 431.64s (0:07:11)**。
+
+**被 F14 反过来照出的第二处过期账**：`tests/test_format_matrix.py::test_a_hidden_gap_and_a_stale_summary_are_refused`
+硬编码拿 **F14** 当"没有路由声明的行"来注入 `status: complete` 违规。F14 一旦合法获得路由，
+这条注入就不再产生预期违规——门禁没坏，是**门禁自己的样本假设过期**（全量 Python 套件把它照了出来，
+而不是我事先想到）。修法与同文件里另一条守卫一致：**动态挑一条无路由声明的行**，
+并把"改了状态却没改摘要"的第二项断言写成不绑定具体桶名的形式
+（消息取自实跑输出，不凭记忆编造）。修完 `tests/test_format_matrix.py` 12 项全绿。
+
+**仍未闭合，不粉饰**：`.doc`/`.ppt` 无 reader 故仍命名拒绝；F14 的"转换件"是值级 CSV，不是版式或渲染；
+CSV 转换上限 32 表/64 MiB，超限在损失里具名；FMT-21 真实样本验收 NOT_RUN；
+"把 worker 结构升级为寻址层"这一条同时卡在 F05/F07/F08/F09/F12，需要 anchor 契约变更，本切片刻意未动。
