@@ -649,6 +649,16 @@
       "limitations": [
         "Manifest is read-only baseline; semantic equivalence and historical asset uniqueness require per-branch review."
       ]
+    },
+    {
+      "branch": "codex/github-delivery-docs-20260929",
+      "tip_sha": "aa8046996c14db7da8b01dab133b46de80e89614",
+      "merge_base": "d8f99a6357405054f1f9ee66eb2f88d36f7f5143",
+      "ahead": 1,
+      "behind": 510,
+      "deleted": true,
+      "preserve_ref": "preserve/github-delivery-docs-20260929 (local tag only; not pushed, per the no-release rule)",
+      "note": "Delivered as a squash merge (#154), so the tip is not an ancestor of main and is absent from a fresh clone. Recorded here because this file is the place the current-surface scan reads to admit a deleted branch's tip as evidence; the ledger cites this tip as the branch-cleanup preservation point, and without this entry a fresh checkout cannot distinguish it from a fabricated hash."
     }
   ],
   "qualification": {
