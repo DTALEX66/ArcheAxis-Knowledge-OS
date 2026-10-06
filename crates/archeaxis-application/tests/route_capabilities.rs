@@ -253,6 +253,14 @@ fn an_unnamed_extension_is_refused_rather_than_guessed() {
         attempts::resolve_media_type("text", "tool.py").unwrap(),
         "text/x-python"
     );
+    // R15/F14: a Word 97 binary is named for the office route because a sidecar is probed for
+    // it, and it must never resolve as text - a ZIP-of-XML or OLE2 body decoded as text is noise
+    // that would be stored as if it were reading.
+    assert_eq!(
+        attempts::resolve_media_type("office", "letter.doc").unwrap(),
+        "application/msword"
+    );
+    assert!(attempts::resolve_media_type("text", "letter.doc").is_err());
     assert!(attempts::accepted_media_types("nothing.extract").is_empty());
 }
 

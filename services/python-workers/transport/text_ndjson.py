@@ -321,6 +321,9 @@ ROUTES = {
             "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
             # R15/F14: the legacy binary workbook, read by the declared xlrd engine
             "application/vnd.ms-excel",
+            # R15/F14: the legacy binary document, read by a probed external sidecar. The route
+            # is declared, the engine is not assumed: an absent sidecar is a named failure.
+            "application/msword",
         },
         "call": "path",
         # A converted sheet is a durable transfer file, so this route may receive the area
@@ -334,6 +337,7 @@ ROUTES = {
             "application/vnd.openxmlformats-officedocument.presentationml.presentation": ".pptx",
             "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet": ".xlsx",
             "application/vnd.ms-excel": ".xls",
+            "application/msword": ".doc",
         },
     },
     # R15/F12: the canvas and subtitle workers existed unreachable too; each produces

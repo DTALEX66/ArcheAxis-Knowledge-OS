@@ -51,6 +51,7 @@ DEFAULT_MANIFEST = (Path(__file__).resolve().parents[2]
 OVERRIDES = {
     "tesseract": ("TESSERACT_CMD", "ARCHEAXIS_TESSERACT_CMD"),
     "ffmpeg": ("FFMPEG_CMD", "ARCHEAXIS_FFMPEG_CMD"),
+    "antiword": ("ARCHEAXIS_ANTIWORD_CMD",),
     "faster-whisper-large-v3-turbo": ("ARCHEAXIS_ASR_MODEL_DIR",),
     "faster-whisper-base": ("ARCHEAXIS_ASR_MODEL_DIR",),
 }

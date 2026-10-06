@@ -78,10 +78,11 @@ fn office_names_select_the_office_route_and_the_legacy_formats_are_refused() {
         .unwrap_err()
         .to_string();
     assert!(error.contains("cannot accept media type"), "{error}");
-    // R15/F14: `.doc` and `.ppt` still have no reader, so their names are refused rather than
-    // handed to a route that cannot open them. `.xls` left this list when xlrd became the
-    // declared engine for it - and it must not be able to travel as text either.
-    for name in ["old.doc", "old.ppt"] {
+    // R15/F14: `.doc` left the refused list when a probed external sidecar became the reader
+    // named for it; `.ppt` stays refused because no reader for it exists in this repository and
+    // no JVM is declared. `.xls` left earlier, when xlrd became the declared engine - and neither
+    // legacy family may travel as text.
+    for name in ["old.ppt"] {
         let error = attempts::resolve_media_type("office", name)
             .unwrap_err()
             .to_string();
@@ -90,6 +91,18 @@ fn office_names_select_the_office_route_and_the_legacy_formats_are_refused() {
             "{name}: {error}"
         );
     }
+    assert_eq!(
+        attempts::resolve_media_type("office", "old.doc").unwrap(),
+        "application/msword",
+        "a Word 97 binary is named because a sidecar is probed for it here"
+    );
+    let doc_text_error = attempts::resolve_media_type("text", "old.doc")
+        .unwrap_err()
+        .to_string();
+    assert!(
+        doc_text_error.contains("cannot accept media type"),
+        "a binary document must not be readable as text: {doc_text_error}"
+    );
     assert_eq!(
         attempts::resolve_media_type("office", "old.xls").unwrap(),
         "application/vnd.ms-excel"

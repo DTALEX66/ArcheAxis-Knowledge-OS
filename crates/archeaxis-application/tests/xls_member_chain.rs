@@ -175,7 +175,10 @@ async fn converted_sheets_become_sources_with_their_own_jobs() {
 
 #[tokio::test]
 async fn the_formats_with_no_reader_stay_unnamed_rather_than_reaching_a_route() {
-    for name in ["old.doc", "old.ppt"] {
+    // `.ppt` is the remaining legacy family with no reader here: no in-process engine, and no
+    // JVM declared for a sidecar that could provide one. Naming it would hand a document to a
+    // route that cannot open it, which is the failure this list exists to prevent.
+    for name in ["old.ppt"] {
         let error = attempts::resolve_media_type("office", name)
             .unwrap_err()
             .to_string();
@@ -188,5 +191,10 @@ async fn the_formats_with_no_reader_stay_unnamed_rather_than_reaching_a_route() 
         attempts::resolve_media_type("office", "book.xls").unwrap(),
         "application/vnd.ms-excel",
         "the workbook is named because a reader exists for it here"
+    );
+    assert_eq!(
+        attempts::resolve_media_type("office", "letter.doc").unwrap(),
+        "application/msword",
+        "the Word binary document is named because a sidecar is probed for it"
     );
 }

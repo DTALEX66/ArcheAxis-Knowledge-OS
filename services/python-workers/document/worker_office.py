@@ -9,6 +9,10 @@ Single worker entrypoint for structured office and PDF sources:
 - pptx: python-pptx engine (slide order, shape text, notes, image counts)
 - xlsx: openpyxl engine (sheets/cells, formula text + cached-value policy note,
         merged ranges; macros never executed)
+- xls : xlrd engine (BIFF values, per-sheet CSV through the member channel,
+        loss report of what the conversion cannot carry)
+- doc : antiword sidecar (external binary, probed and never assumed; the
+        engine's own text output, with its version and licence state recorded)
 - pdf : PyMuPDF engine (page blocks in reading order, per-page anchors,
         image inventory; scanned pages reported, OCR is a separate lane)
 
@@ -17,15 +21,19 @@ surfaces {"error": ...} with a non-zero exit.
 
 Usage:
     python worker_office.py --probe
-    python worker_office.py <input.docx|.pptx|.xlsx|.pdf>
+    python worker_office.py <input.docx|.pptx|.xlsx|.xls|.doc|.pdf>
 """
 
 from __future__ import annotations
 
 import argparse
+import importlib.util
 import json
+import os
 import posixpath
 import re
+import shutil
+import subprocess
 import sys
 import zipfile
 from pathlib import Path
@@ -43,12 +51,21 @@ W = lambda tag: f"{{{W_NS}}}{tag}"  # noqa: E731
 
 def probe() -> dict:
     engine_status: dict[str, tuple[bool, str]] = {"docx": (True, "stdlib-zip+xml")}
-    for module_name, format_name in (("pptx", "pptx"), ("openpyxl", "xlsx"), ("fitz", "pdf")):
+    for module_name, format_name in (("pptx", "pptx"), ("openpyxl", "xlsx"), ("fitz", "pdf"),
+                                     ("xlrd", "xls")):
         try:
             module = __import__(module_name)
             engine_status[format_name] = (True, getattr(module, "__version__", "unknown"))
         except ImportError:
             engine_status[format_name] = (False, "missing")
+    # `.doc` has no in-process engine at all: it is read by an external sidecar that may or may
+    # not be on this host, so the probe reports the resolution attempt rather than a guess.
+    try:
+        identity = _antiword()
+    except (RuntimeError, OSError) as exc:
+        engine_status["doc"] = (False, str(exc))
+    else:
+        engine_status["doc"] = (True, f"antiword {identity['version']} (sidecar)")
     engines = {fmt: ok for fmt, (ok, _version) in engine_status.items()}
     versions = {fmt: version for fmt, (_ok, version) in engine_status.items()}
     return {
@@ -56,7 +73,8 @@ def probe() -> dict:
         "engines": engines,
         "versions": versions,
         "formats": [fmt for fmt, ok in engines.items() if ok],
-        "note": "docx always enabled (stdlib); pptx/xlsx/pdf require their engines",
+        "note": "docx always enabled (stdlib); pptx/xls/xlsx/pdf require their engines; "
+                "doc requires the antiword sidecar, which is probed and never assumed",
     }
 
 
@@ -525,6 +543,175 @@ def _xls_cell(sheet, book, row: int, col: int) -> tuple[str, str]:
     return str(value), "blank"
 
 
+# R15/F14: a Word 97 binary is not a ZIP of XML, so no stdlib path in this worker can read it.
+# The only reader used here is the `antiword` sidecar, which is an external binary the worker
+# probes for and never assumes: an unprobed or unidentifiable binary is a named refusal, and a
+# document is never projected as if the engine had been there.
+ANTIWORD_PROBE_SECONDS = 10
+ANTIWORD_RUN_SECONDS = 120
+
+
+def _declared_path(name: str) -> str | None:
+    """The declared external path for *name*, or None when nothing is declared.
+
+    Same rule as the OCR lane: only a missing declaration becomes None. A manifest that exists
+    but cannot be read raises, because reporting that as "engine not installed" sends someone
+    looking in the wrong place.
+    """
+    module_path = Path(__file__).resolve().parent.parent / "tool_paths.py"
+    if not module_path.is_file():
+        return None
+    spec = importlib.util.spec_from_file_location("office_tool_paths", module_path)
+    if spec is None or spec.loader is None:
+        return None
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module.declared(name, __file__)
+
+
+def _run(command: list[str], **kwargs) -> subprocess.CompletedProcess:
+    return subprocess.run(
+        command,
+        creationflags=subprocess.CREATE_NO_WINDOW if os.name == "nt" else 0,
+        **kwargs,
+    )
+
+
+def _antiword_identity(binary: str) -> dict | None:
+    """Ask the binary who it is before trusting it with a document.
+
+    A stale shim can exist as a file after its package moves, and `-h` is how antiword states
+    its own version, author and licence status. The usage line is not an error here: antiword
+    prints it and exits non-zero, which is why the return code is deliberately not consulted.
+    """
+    try:
+        probe = _run(
+            [binary, "-h"],
+            capture_output=True, text=True, encoding="utf-8", errors="replace",
+            timeout=ANTIWORD_PROBE_SECONDS,
+        )
+    except (OSError, subprocess.TimeoutExpired):
+        return None
+    reported = probe.stdout + probe.stderr
+    if "MS-Word" not in reported:
+        return None
+    fields: dict[str, str] = {}
+    for line in reported.splitlines():
+        key, _, value = line.partition(":")
+        name = key.strip().lstrip("\t ")
+        if name and name not in fields:
+            fields[name] = value.strip()
+    return {
+        "path": binary,
+        "version": fields.get("Version", "unknown"),
+        "author": fields.get("Author", "unknown"),
+        "licence_status": fields.get("Status", "unknown"),
+    }
+
+
+def _antiword() -> dict:
+    """Resolve the sidecar: configured path, then declared registry, then PATH.
+
+    Nothing is installed here and no host directory is hard-coded. An explicit configuration
+    that does not resolve is an error rather than a cue to go looking elsewhere - silently
+    substituting a different binary is exactly what a declared engine must not do.
+    """
+    configured = os.environ.get("ARCHEAXIS_ANTIWORD_CMD", "").strip()
+    if configured:
+        if Path(configured).is_absolute() and not Path(configured).is_file():
+            raise RuntimeError(f"doc engine missing (configured path does not exist: {configured})")
+        identity = _antiword_identity(configured)
+        if identity is None:
+            raise RuntimeError(f"doc engine missing (configured path is not antiword: {configured})")
+        return identity
+    declared = _declared_path("antiword")
+    if declared:
+        identity = _antiword_identity(declared)
+        if identity is not None:
+            return identity
+    on_path = shutil.which("antiword")
+    if on_path:
+        identity = _antiword_identity(on_path)
+        if identity is not None:
+            return identity
+    raise RuntimeError(
+        "doc engine missing (no usable antiword sidecar: consulted "
+        "the declared capability manifest and PATH)"
+    )
+
+
+def _line_anchors(text: str) -> list[dict]:
+    """One anchor per line of the projection, including empty lines."""
+    anchors = []
+    offset = 0
+    number = 0
+    for line in text.splitlines(keepends=True):
+        number += 1
+        if line.strip():
+            anchors.append(
+                {"kind": "line", "path": [f"line-{number}"],
+                 "char_start": offset, "char_end": offset + len(line.rstrip("\r\n"))}
+            )
+        offset += len(line)
+    return anchors
+
+
+def _doc_text(path: Path) -> dict:
+    engine = _antiword()
+    try:
+        run = _run(
+            [engine["path"], "-t", str(path)],
+            capture_output=True, text=True, encoding="utf-8", timeout=ANTIWORD_RUN_SECONDS,
+        )
+    except subprocess.TimeoutExpired:
+        raise ValueError(
+            "antiword did not finish within the run budget; nothing was projected"
+        ) from None
+    except UnicodeDecodeError as exc:
+        raise ValueError(f"antiword output is not valid UTF-8: {exc}") from exc
+    if run.returncode != 0:
+        reason = (run.stderr or run.stdout or "").strip().splitlines()
+        stated = reason[0] if reason else f"exit code {run.returncode}"
+        # The engine quotes the full input path back. A stored receipt should name why the file
+        # was refused, not where this host keeps it.
+        if stated.startswith(str(path)):
+            stated = stated[len(str(path)):].strip()
+        raise ValueError(f"doc could not be read by antiword: {stated}")
+    text = run.stdout or ""
+    if not text.strip():
+        raise ValueError("doc contains no readable text through antiword")
+    structure = _line_anchors(text)
+    losses = [
+        "the projection is the sidecar's own text output: no heading level, style, font, "
+        "image or page information is claimed, and a table arrives as a character grid "
+        "rather than as cells; the original bytes stay the source of record",
+        "the document's own structure is not re-derived here; an addressable structure is a "
+        "separate contract change",
+    ]
+    return {
+        "format": "doc",
+        "text": text,
+        "structure": structure,
+        "loss_receipt": {
+            "engine": ENGINE,
+            "engine_version": ENGINE_VERSION,
+            "params": {
+                "engine": "antiword",
+                "engine_version_reported": engine["version"],
+                "engine_author": engine["author"],
+                "engine_licence_self_reported": engine["licence_status"],
+                "output_mode": "-t (plain text)",
+                "character_mapping": "the engine's own default (a named mapping file flattens "
+                                      "typographic quotes, so none is requested)",
+                "lines_projected": len(structure),
+                "bytes_projected": len(text.encode("utf-8")),
+            },
+            "losses": losses,
+            "loss_note": "; ".join(losses),
+        },
+    }
+
+
 def _xls_text(path: Path, member_dir: Path | None = None) -> dict:
     try:
         import xlrd
@@ -649,6 +836,8 @@ def extract(path: str, member_dir: str | None = None) -> dict:
         return _xlsx_text(Path(path))
     if suffix == ".xls":
         return _xls_text(Path(path), Path(member_dir) if member_dir else None)
+    if suffix == ".doc":
+        return _doc_text(Path(path))
     if suffix == ".pdf":
         return _pdf_text(Path(path))
     raise ValueError(f"unsupported office/document extension: {suffix}")
@@ -687,7 +876,7 @@ def main() -> int:
         )
 
     parser = argparse.ArgumentParser(description="ArcheAxis office/document engine worker")
-    parser.add_argument("input", nargs="?", help="input file (.docx/.pptx/.xlsx/.pdf)")
+    parser.add_argument("input", nargs="?", help="input file (.docx/.pptx/.xlsx/.xls/.doc/.pdf)")
     parser.add_argument("--probe", action="store_true", help="engine capability probe")
     args = parser.parse_args()
     if args.probe:

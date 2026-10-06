@@ -48,6 +48,35 @@ such as Git, GitHub CLI, Tesseract OCR, Node.js/npm, Rust/Cargo, and NSIS. They
 are not relicensed by this repository. Their presence in a build log is not
 proof that they are included in a published asset.
 
+### Probed external sidecar: antiword (not bundled, not required)
+
+Admitted as a *probed* reader on 2026-10-07 for R15/F14: `.doc` (Word 97 binary, OLE2) reaches
+`office.structure` through `antiword`, an external console binary. The product never assumes it
+exists. `services/python-workers/document/worker_office.py` resolves it from
+`ARCHEAXIS_ANTIWORD_CMD`, then the declared capability manifest, then `PATH`, and asks the binary
+who it is (`-h`) before handing it a document; an unresolved or unidentifiable binary is a named
+failure that projects nothing. Nothing is downloaded, installed, copied or relicensed by this
+repository. Measured on this host: `antiword.exe` 284,448 bytes, sha256 `d30a37489c64ada474d8d5aa5abb0778a6955d3ce6cdbb7c8c659e37b89d3da9`,
+self-reporting `Version: 0.37  (21 Oct 2005)`, `Author: (C) 1998-2005 Adri van Os`,
+`Status: GNU General Public License`, shipped inside the Git for Windows mingw64 bundle with 30
+character-mapping files beside it. Its own licence is stated by the binary without a version, so
+this notice records the self-report rather than a SPDX claim; the version and licence still have
+to be settled by the supply-chain disposition that binds it to a declared root, which has **not**
+been written yet.
+
+### Third-party test fixture: `tests/fixtures/golden/golden-word-anchor.doc`
+
+32,768 bytes, sha256 `5ca19b67876f284a0e04ed06df44a004f850629a871fe522d014e1fdff912799`, OLE2 container magic `D0 CF 11 E0 A1 B1 1A E1`, Word 97
+`nFib 0x00C1` with a `Word.Document.8` registration block - a genuine Word-authored document, not
+one written by tooling for this test. Published as Apache Tika's
+`tika-parser-microsoft-module/src/test/resources/test-documents/testWORD.doc`, retrieved from the
+pinned commit `b8a6916eab70ccdb5d4551c69be1a46af29c2cff` (annotated tag `3.3.2`), git blob
+`c1f4f3d0b0c1e475bf03e9eba3ed7c7ac166d557`, and redistributed here under the
+**Apache License, Version 2.0** of that project with attribution, as recorded in
+`tests/fixtures/golden/manifest.json`. It contains no personal data; its author is named by the
+file's own metadata as published by Tika. It is read through the sidecar above, so a host without
+the sidecar cannot reproduce the projection - which the fixture record states rather than hides.
+
 ## Vendored models
 
 | Asset | Version | License | Bundled location |
