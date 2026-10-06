@@ -125,7 +125,7 @@
         "core_routes": [{"kind": "office", "capability": "office.structure", "media_type": "application/vnd.openxmlformats-officedocument.wordprocessingml.document"}],
         "worker_routes": [{"capability": "office.structure", "worker": "services/python-workers/document/worker_office.py"}],
         "code": ["crates/archeaxis-application/src/attempts.rs", "services/python-workers/document/worker_office.py", "services/python-workers/transport/text_ndjson.py"],
-        "tests": ["crates/archeaxis-application/tests/office_job_end_to_end.rs", "tests/workers/test_bulk_office.py", "tests/workers/test_docx_heading_styles.py", "crates/archeaxis-api/tests/structure_anchor_api.rs"],
+        "tests": ["crates/archeaxis-application/tests/office_job_end_to_end.rs", "tests/workers/test_bulk_office.py", "tests/workers/test_docx_heading_styles.py", "crates/archeaxis-api/tests/structure_anchor_api.rs", "crates/archeaxis-api/tests/structure_anchor_live_worker.rs"],
         "legacy_reference": ["app/capability/builtin/converters_docx.py"]
       }
     },

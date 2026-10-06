@@ -1443,3 +1443,34 @@ required_output / formats / release_scope 逐字未动，计数仍 0 complete / 
 以及 `400` 与 `unverified` 的语义——加性变更不留隐式契约。
 
 **回滚**：revert 本切片提交即可（verifier 分支 + 新 suite + 五行矩阵 gap/evidence + 契约一行）。
+
+
+## 锚点切片的两条补充：一个我写错的度量单位，和一条我自己欠下的端到端（2026-10-07）
+
+**A. 度量单位写错（保守方向的错，但理由是错的）**
+`worker_structure` 的 `char_start`/`char_end` 是**字符**偏移——那是 Python 侧 `str` 索引的语义。
+我第一版 verifier 用 Rust 的 `&text[a..b]`，而 Rust 的字符串切片按**字节**。
+后果：**任何非拉丁文本的位置都会被"落在码点中间"为由拒掉**。
+失败方向是保守的（不会误接受一个假位置），但**拒绝的理由是错的**，
+而对一个中文文档来说等于"这个位置不存在"。
+现在按字符切片，并要求切出的**字符数与跨度相符**；新增用例用中文段落钉住两个方向：
+`星环 知识平台` 是 7 个字符、19 个字节，按字符的 digest **必须通过**，
+按字节截出来的那串东西的 digest **必须被拒**——单位不是可以商量的余地。
+**这条必须写清**：是我在写端到端用例时自己发现的，不是评审指出的，也不是 CI 报的。
+
+**B. 上一节我承认没做的那一条，现在做了**
+`crates/archeaxis-api/tests/structure_anchor_live_worker.rs`：用真实 `Executor` 跑真实 worker
+（仓库里已提交的 DOCX 夹具 → `office.structure` → 真实 `job_outputs`），
+然后**读回 worker 自己报的第一个位置**——`kind`、`path`、`char_start/char_end` 一律不硬编码——
+经 HTTP 建锚并校验 digest；再用一段"别处来的文本"的 digest 断言必须 `400`。
+它证明的是**约定的连通性**：将来任何一侧改了 span 约定而另一侧不动，这条会红。
+F07 的 evidence 列表同期加上这条（矩阵里只改 evidence 数组一处，required_output 逐字未动）。
+
+**验证（度量口径）**：`structure_anchor_api.rs` 由 5 → **6 passed**（新增中文段落用例）；
+新文件 `structure_anchor_live_worker.rs` **1 passed**；
+`cargo test --workspace --offline` → 125 suites ok / 510 passed / 0 failed；
+`cargo fmt --all --check` 在提交前为 **PASS**（中途 9 处 diff 是我手写对齐，格式化归零）。
+
+**边界没有变**：span 仍是 worker 自报的（锚点证明"这段文字确实在这个位置"，不是独立推出的页号）；
+`params.format.locations` 那一族（F13 的 ODF/EPUB/邮件、F01 的符号）仍**未**并入；
+界面层没有消费（前端按 Owner 指示暂停）。
