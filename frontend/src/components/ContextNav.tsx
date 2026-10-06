@@ -1,6 +1,6 @@
 import { AaosIcon } from "./AaosIcon";
 import { RELATED } from "../spaces/related";
-import { SPACES, type SpaceId } from "../spaces/spaces";
+import { SPACES, spaceDescription, type SpaceId } from "../spaces/spaces";
 
 export type LibrarySection = "sources" | "documents" | "anchors" | "versions";
 export const LIBRARY_SECTIONS: { id: LibrarySection; label: string }[] = [
@@ -15,7 +15,7 @@ export function ContextNav({ active, onNavigate, librarySection, onLibrarySectio
       <header role="presentation">
         <span>当前空间</span>
         <h2>{current.label}</h2>
-        <p>{current.description}</p>
+        <p>{spaceDescription(current)}</p>
       </header>
       {active === "library" && onLibrarySection ? <ul aria-label="资料库对象导航">{LIBRARY_SECTIONS.map(section => <li key={section.id}><button type="button" aria-current={librarySection === section.id ? "location" : undefined} onClick={() => onLibrarySection(section.id)}>{section.label}</button></li>)}</ul> : null}
       <ul aria-label="相关空间">
@@ -30,7 +30,7 @@ export function ContextNav({ active, onNavigate, librarySection, onLibrarySectio
                 <span aria-hidden="true" style={{ width: 18, opacity: 0.7 }}><AaosIcon name={space.icon} /></span>
                 <span>
                   <b>{space.label}</b>
-                  <small>{space.description}</small>
+                  <small>{spaceDescription(space)}</small>
                 </span>
               </button>
             </li>

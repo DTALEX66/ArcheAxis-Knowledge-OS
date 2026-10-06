@@ -32,3 +32,18 @@ export const SPACES: readonly SpaceDef[] = [
   { id: "exchange", label: "交换", icon: "Connection", description: "开放交换包的导出与验证" },
   { id: "settings", label: "设置", icon: "Settings", description: "系统与能力设置" },
 ] as const;
+
+// The desktop shell routes several of these ids to Canonical surfaces, so the label must not
+// promise a capability that surface does not offer. Web development mode keeps the legacy text.
+const DESKTOP_DESCRIPTIONS: Partial<Record<SpaceId, string>> = {
+  workspace: "任务、备份与能力状态",
+  intake: "导入原件与多格式转换",
+  vault: "文档、搜索与知识候选",
+  exchange: "导出与投递回执",
+  settings: "本机能力与状态",
+};
+
+export function spaceDescription(space: SpaceDef): string {
+  if (typeof window === "undefined" || !window.__TAURI__?.core?.invoke) return space.description;
+  return DESKTOP_DESCRIPTIONS[space.id] ?? space.description;
+}
