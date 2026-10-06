@@ -18,7 +18,11 @@
 `NONE` 的 12 条中 9 条是 `REVIEW-BLOCK`、1 条是 `EVALUATE`——这两类本就不该落地，无证据与判定自洽。真正值得追问的是另外两条：
 
 - **A012 Crawlee Python**，判定 `SIDECAR`。`SIDECAR` 是该文档**自己定义过**的判定（"runs beside the Core under the worker protocol"），意为已按 worker 协议侧挂运行；实测在声明、流水线、源码、vendor 四处均无 `crawlee` 证据。
+  **阻断原因是设计边界，不是漏做**：本仓的 HTML 路由只读**已保存的快照**——transport 在 `html.structure` 路由处写明 "Fetching a URL is not part of this route: the snapshot is the input, so no network client exists here"。
+  即 worker 侧**不持网络客户端**。要让 Crawlee 侧挂，先得决定是否允许 worker 出网；那是产品/安全决策，不在本轮擅自动手。
 - **A022 Syft**，判定 `ADOPT`。实测四处均无 `syft` 证据。（该判定词本身未在文档中定义，见下。）
+  **能力已由第一方实现**：`scripts/release_sbom.py` 生成 CycloneDX 的 SBOM（`"bomFormat": "CycloneDX"`），来源为 `uv.lock` / `package-lock.json` / `Cargo.lock`，并已接入 `.github/workflows/release.yml`。
+  故该行不是"缺一个捐赠包"，而是**能力已第一方重写**——按该文档自己的词表应记 `ABSORB`（"the capability is reimplemented first-party"）。判定更正记录为 `DECISION_SUPERSESSION_LEDGER.yaml` **SUP-024**，原行保留不改写。
 
 ## 二、判定词表与实际行不一致（比缺证据更根本）
 
