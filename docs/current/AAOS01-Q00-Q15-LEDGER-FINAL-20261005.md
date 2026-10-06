@@ -1203,3 +1203,83 @@ dry-run 外呼为 0、收据逐行 JSONL）；`tests/test_worker_reachability.py
 F03 要的是渲染与分页/滚动覆盖，本仓库无浏览器，抓到的"未脚本化的正文"不等于渲染后的页面。
 
 **回滚**：`git revert` 本切片提交即可（驱动 + worker 政策 + 两行矩阵 + 测试同属一次改动）。
+
+
+## 嵌套容器 + 无正文邮件（2026-10-07，工作树于 863fd3e6 之后）
+
+**这一刀修的是"具名拒绝"，不是新增能力。** `container::route_for_member` 把 `zip`/`tar` 写成
+`None`，并且有一条**已提交单元测试**断言"nested.zip 没有作业"；矩阵 F13 的 gap 于是把这规则
+描述成"附件抽取只有一层"。实测（下面的新测试）：邮件里的 `.zip` 附件此前**拿不到作业**，
+它内部的文件在任何深度都不可达——不是被拒绝读取，是根本不会被打开。
+
+**边界是新加的、可命名的，不是"放开"**：`CONTAINER_DEPTH_LIMIT = 2`。深度不是猜字符串，
+是从**已记录的 origin 链**walk 出来：成员关系是 `"<容器 source_id>#<成员名>"`，
+walk 只认 `origin_kind = "import"` 且**父 id 必须在 `sources` 里真实存在**，
+否则链到此为止（一条 `path` 来源里出现 `#` 不会被当成容器父级）。walk 上限 16 只是防退化，
+超过限额的判断不依赖它。超限的成员容器**仍然被导入并保留**，只是不再展开它自己。
+
+**为什么不叫它 custody-only**：`custody_only` 的既有含义是"没有路由能读它的字节"，
+而嵌套容器的路由**确实存在**——把它算进 custody 就是谎报能力缺失。所以 API 新增
+`nesting_limited`（每个成员）与 `nesting_limited_count`（总计），note 里写明其含义；
+`custody_only_count` 改为 `成员数 − 可读 − 嵌套限额`。HTTP 契约 §表中该行的描述同期补齐
+（此前只写"Source members."）。
+
+**我改了三处已提交的测试断言，逐条说明，不含糊**：
+1. `crates/archeaxis-application/src/container.rs` 的模块单元测试：`nested.zip`/`nested.tar`
+   从"必须 None"改为"必须 archive"；同一条测试**保留** `video.mp4`/`audio.wav`/`unknown.bin`
+   仍必须无作业。改的是被本切片替换掉的那条规则的前提，不是把期望调低。
+2. `crates/archeaxis-application/tests/archive_member_formats.rs`：**夹具原本是假字节**
+   （`b'PK opaque nested container'`、`b'opaque nested tar'`）——旧规则下它们不会被打扰，
+   新规则下作业会诚实地失败。夹具改为**真 ZIP / 真 TAR**（stdlib `zipfile`/`tarfile` 生成），
+   作业总数断言从 6 改为 **10**（8 个直属成员作业 + 每个嵌套容器内 1 个文件作业），
+   并**新增**"`media.wav` 仍无作业"的断言与"嵌套容器自己的 `members_of` 里出现
+   `deep/inside.txt` / `deep/tarinside.txt`"的断言——即测试现在比改之前更能证明第二层真被打开。
+3. `tests/workers/test_mail_attachment_members.py` 里
+   `test_a_mail_with_only_attachments_still_fails_rather_than_succeeding_empty`：
+   它断言的正是本切片要取消的旧行为，替换为 5 项覆盖四种形状的新用例。
+
+**邮件那半刀（F13 要求的"邮件头"此前会一起丢）**：`worker_light_formats.mail()` 对
+"无 text part 的邮件"抛 `ValueError("EML has no readable text body")`，作业整体失败，
+于是**邮件头也一起丢**——而 F13 的 required_output 逐字包含"邮件头"。现在：
+无正文邮件投影**它自己的邮件头块**（`From/To/Subject/Message-ID/Date` 里非空的项，
+顺序固定），锚点是 `mail_header`；损失句区分两种真实形状——"no text body part exists"
+与"every text body part is empty"；并且不再说 "mail MIME body decoded"（那种情况下那是假话）；
+`has_readable_body`/`text_body_parts` 进 receipt；**既无正文、又无邮件头、又无附件**才拒绝
+（新错句 `EML has no readable text body, headers or attachments`）。
+附件仍照常抽出并入队；`worker_text` 里"independent extraction is not performed"那句在附件
+被抽出后照旧被剔除，两种分支共用同一条规则。
+
+**顺带修正的措辞**：`worker_archive` 的损失句 "are listed, not opened" 会让 Core 已经开始展开
+嵌套容器后的收据变成误导，改为 "are listed, not opened **by this worker**; any opening is the
+Core's own member expansion"——保留 `tests/test_worker_archive_route.py` 所断言的子串，
+不改那条测试。
+
+**仍未闭合，不粉饰**：F15 的成员关系仍是 origin 引用（不是一等 container→file 边，
+只能一次查一个容器）；被读到的成员仍未升级为知识；目录批量仍是脚本；
+F13 的二进制 `.msg` 容器仍无读取器，ODF 样式/字段/内嵌对象/链接目标仍未跟随，RTF 表格/脚注
+仍未重建；`.doc`/`.ppt` 仍无 reader；FMT-21 逐扩展名真实样本验收仍 NOT_RUN；
+`CONTAINER_DEPTH_LIMIT` 的**数值**是本轮的选择（每层各有一套 50 项/64 MiB 预算），
+未由真人验收。
+
+**本机实测的另一条线索（记录以免下一轮重复探测）**：`.doc` 的候选 reader 在**本机确实存在**——
+`C:\Program Files\Git\mingw64\bin\antiword.exe`（284,448 B，自报 `Version 0.37 (21 Oct 2005)`，
+GPL，映射表在 `mingw64\share\antiword\`），但它**只能读 `.doc`，不能读 `.ppt`**；
+`soffice`/LibreOffice、`catdoc`、`wv`、任何 Tika jar 在本机扫描范围内**实测都不存在**；
+`olefile` 在三个解释器里都**未安装**。是否把它登记为处置行、如何绑定（它随 Git 发行而来，
+不是本机自装的工具链登记项），下一片单独裁。
+
+**验证（度量口径）**：Rust 全 workspace `cargo test --workspace --offline`
+**123 组 ok / 503 passed / 0 failed**（本切片前一次全量是 500 passed，增量为
+`nested_container_budget` 1 项 + `mail_member_chain` 1 项 + `source_members_api` 1 项）；
+`cargo fmt --all --check` PASS；
+新增 `crates/archeaxis-application/tests/nested_container_budget.rs` 1 passed、
+`crates/archeaxis-application/tests/mail_member_chain.rs` 3 passed、
+`crates/archeaxis-application/tests/archive_member_formats.rs` 1 passed、
+`crates/archeaxis-api/tests/source_members_api.rs` 3 passed、
+`tests/workers/test_mail_attachment_members.py` 11 passed；
+`check_format_matrix.py` exit 0（0 complete / 15 partial / 1 custody only，F13/F15 两行的
+required_output 逐字未动，只改 status 之外的字段）；`check_document_authority.py` exit 0；
+Python 全量 4256 passed, 30 skipped, 14 warnings, 166 subtests passed in 438.62s (0:07:18)。
+
+**回滚**：`git revert` 本切片提交即可（Core 深度决策 + API 字段 + worker 措辞 + 矩阵两行 +
+夹具与测试同属一次改动）；夹具改为真容器是**测试数据**变更，revert 后回到假字节 + 旧 6 项断言。
