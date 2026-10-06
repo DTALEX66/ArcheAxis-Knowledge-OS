@@ -51,27 +51,58 @@ def entries(document: dict) -> list[dict]:
     return found
 
 
-def resolve(declared: str, root: Path | None) -> tuple[str, bool]:
-    if root is None:
+def sibling_roots(root: Path, document: dict) -> dict[str, Path]:
+    """The declared sibling roots, resolved — the same bounded rule the runtime resolver applies.
+
+    This reader used to resolve the `../Model library/...` form itself, so the index recorded
+    `exists: true` for a model the worker could not reach: the runtime rejects `..`, and an index
+    that disagrees with the runtime is worse than no index, because it certifies the very failure
+    it was built to catch. Both now resolve through a root the manifest names.
+    """
+    declared = document.get("sibling_roots") or {}
+    resolved: dict[str, Path] = {}
+    for name, relative in declared.items():
+        if not isinstance(name, str) or not isinstance(relative, str):
+            continue
+        parts = Path(relative).parts
+        if len(parts) != 2 or parts[0] != ".." or Path(relative).is_absolute():
+            continue
+        candidate = (root / Path(relative)).resolve()
+        if candidate.is_dir():
+            resolved[name] = candidate
+    return resolved
+
+
+def resolve(declared: str, base: Path | None) -> tuple[str, bool]:
+    """The exact path a declaration names, and whether it exists — inside one declared root."""
+    if base is None:
         return "", False
-    # Every declaration is relative to the external root itself, including the `../Model library/...`
-    # form; resolving against root.parent and keeping the `..` double-stepped one level too high and
-    # reported a present model directory as missing.
-    candidate = (root / Path(declared)).resolve()
+    relative = Path(declared)
+    if relative.is_absolute() or ".." in relative.parts:
+        return "", False
+    candidate = (base / relative).resolve()
     return str(candidate), candidate.exists()
 
 
 def main() -> int:
     root = external_root()
     document = load_manifest()
+    siblings = sibling_roots(root, document) if root is not None else {}
     rows = []
     missing: list[str] = []
     for entry in entries(document):
         declared = [p for p in (entry.get("external_paths") or []) if isinstance(p, str)]
+        sibling_root = entry.get("sibling_root")
+        base: Path | None = root
+        if sibling_root is not None:
+            base = siblings.get(str(sibling_root))
+            if base is None:
+                missing.append(f"{entry.get('name')}: sibling root {sibling_root!r} does not resolve")
         resolutions = []
         for path in declared:
-            resolved, exists = resolve(path, root)
-            resolutions.append({"declared": path, "resolved": resolved, "exists": exists})
+            resolved, exists = resolve(path, base)
+            resolutions.append({"declared": path, "resolved": resolved, "exists": exists,
+                                **({"sibling_root": sibling_root} if sibling_root is not None else {})})
             if root is not None and not exists:
                 missing.append(f"{entry.get('name')}: {path}")
         rows.append({
@@ -89,6 +120,9 @@ def main() -> int:
         "roots_declared_by": list(ROOT_ENV),
         "external_root": str(root) if root else None,
         "root_present": bool(root and root.is_dir()),
+        # Which sibling roots resolved, so a reader can tell "the model library was found beside
+        # the external root" from "this host has no model library at all".
+        "sibling_roots": {name: str(path) for name, path in sorted(siblings.items())},
         "entries": rows,
         "missing_on_this_host": missing,
     }

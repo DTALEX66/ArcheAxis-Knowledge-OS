@@ -433,3 +433,35 @@ A0 浏览器门禁 `scripts/a0_browser_smoke.py` 原视口矩阵为 1440/1280/39
 新门禁按本项目既有做法先**自我证伪**再采用：`tests/workflow/test_media_window_policy.py` 逐项注入漂移并断言报错指向确切文件与字段（界面常量、worker 常量、Core 上限，以及"声明了一个无人强制的上限"），另断言 Rust 的 `300_000` 下划线字面量被整体读取——门禁首版正是把它读成 300 并报出一次并不存在的漂移，该 bug 由这一断言固定。
 
 验证：策略检查与 vocabulary 漂移检查均 pass；43 项 pytest 与 2 项跳过通过；`tsc --noEmit` 通过；相关前端 29 项通过。
+
+## 外置引用索引的"假通过"与其修复（本轮）
+
+本轮实测发现：`config/environment/external-resources-index.json` 为 `faster-whisper-large-v3-turbo` 记录
+`"resolved": "D:\All projects\Model library\whisper\faster-whisper-large-v3-turbo", "exists": true`，
+而运行期解析器 `tool_paths.tool_path("faster-whisper-large-v3-turbo")` 直接抛 `ToolNotFound`。同一份声明有两个读取方，
+索引声称"能找到"、worker 实际找不到——**索引认证的正是它本该拦下的那类失败**，属假通过。
+
+根因是三方读取规则不一致：`tool_paths.py` 与 `scripts/workflow/environment_registry.py` 都拒绝 `external_paths` 里的 `..`，
+而索引生成器 `build_external_resources_index.py` 自己把 `..` 解析掉了。同时该声明形式本就被 schema 禁止
+（`external_paths` pattern 含 `(?!.*\.\.)`），
+`tests/workflow/test_capability_requirements_manifest.py` 记录的偏差清单里就有它，而该测试此前一直在失败——
+是我上一轮新增该声明时引入的偏差、当时未跑这条门禁。
+
+修复方式不是放开 `..`（那会为了索引好看而让外置根边界失效），而是给共享 Model library 一个**声明式的家**：
+
+- schema 新增顶层 `sibling_roots`（名字 → 恰好 `../一个目录`）与条目级 `sibling_root`；`external_paths` 继续禁止 `..`。
+- 清单新增 `sibling_roots: {model-library: "../Model library"}`；两个模型条目改为 `sibling_root: model-library` +
+  相对路径（`whisper/faster-whisper-large-v3-turbo`、`sherpa-onnx`），`install_method` 改为枚举内的 `system`
+  （host 从共享库提供，非本项目安装）。
+- **三方读取方按同一规则解析**：worker 解析器、宿主清点 `environment_registry`、索引生成器；索引额外记录 `sibling_roots`
+  与每个路径命中的 `sibling_root`，不再自己走 `..`。
+
+实测（三处一致）：worker `tool_path` 解析出两个模型；`environment_registry` 报两模型 `available=True`；
+索引 `with_external_paths=8 missing=0`，两个模型条目均带 `sibling_root: model-library`。schema 偏差清单由 3 条降为 1 条
+（仅剩 `plugins minItems:1`——那是治理决策，未擅自修）；`worker_transcribe --probe` 仍报同一模型目录。
+
+新增门禁（均先证伪再用）：`test_the_index_and_the_runtime_resolver_agree_about_every_declared_path` 逐条比对
+"索引说存在"与"运行期是否真能解析"，无外置根时显式 skip 而非静默通过；
+`test_a_traversing_declaration_is_refused_by_both_readers` 用真实存在的目标目录证伪两个读取方对 `..` 的拒绝。
+
+回归：`tests/workflow`、`tests/workers`、`tests/maintenance` 共 523 项通过、2 项跳过、106 项子测试通过。

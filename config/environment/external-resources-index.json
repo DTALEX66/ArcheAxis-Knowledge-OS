@@ -8,6 +8,9 @@
   ],
   "external_root": "D:\\All projects\\OS External Configuration",
   "root_present": true,
+  "sibling_roots": {
+    "model-library": "D:\\All projects\\Model library"
+  },
   "entries": [
     {
       "name": "python",
@@ -205,9 +208,10 @@
       "healthcheck_command": "共享 Model library 内目录存在",
       "external_paths": [
         {
-          "declared": "../Model library/whisper/faster-whisper-large-v3-turbo",
+          "declared": "whisper/faster-whisper-large-v3-turbo",
           "resolved": "D:\\All projects\\Model library\\whisper\\faster-whisper-large-v3-turbo",
-          "exists": true
+          "exists": true,
+          "sibling_root": "model-library"
         }
       ]
     },
@@ -219,9 +223,10 @@
       "healthcheck_command": "Test-Path $env:ARCHEAXIS_MODEL_LIBRARY_DIR\\sherpa-onnx\\*\\model.int8.onnx",
       "external_paths": [
         {
-          "declared": "../Model library/sherpa-onnx",
+          "declared": "sherpa-onnx",
           "resolved": "D:\\All projects\\Model library\\sherpa-onnx",
-          "exists": true
+          "exists": true,
+          "sibling_root": "model-library"
         }
       ]
     },

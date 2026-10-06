@@ -78,3 +78,97 @@ def test_declared_paths_resolve_on_this_host():
         if not item["exists"]
     ]
     assert missing == []
+
+
+def test_the_index_and_the_runtime_resolver_agree_about_every_declared_path() -> None:
+    """The artefact that says a resource is findable must agree with the code that finds it.
+
+    This is the failure that actually happened: the index resolved the `../Model library/...` form
+    itself and recorded `exists: true` for the ASR weights, while the runtime resolver rejects `..`
+    and raised `ToolNotFound` for the same name. A verification artefact that certifies a path no
+    runtime can reach is worse than no artefact, because it hides the failure it exists to catch.
+    """
+    import importlib.util
+
+    root_value = ""
+    for name in ROOT_ENV:
+        root_value = os.environ.get(name, "").strip()
+        if root_value:
+            break
+    if not root_value:
+        pytest.skip("no external root in this environment; resolution cannot be compared")
+
+    index = json.loads(INDEX.read_text(encoding="utf-8"))
+    assert index["external_root"], index
+    spec = importlib.util.spec_from_file_location(
+        "cross_reader_tool_paths", ROOT / "services" / "python-workers" / "tool_paths.py")
+    assert spec and spec.loader
+    resolver = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(resolver)
+
+    compared = 0
+    for entry in index["entries"]:
+        for resolution in entry["external_paths"]:
+            compared += 1
+            try:
+                found = resolver.tool_path(entry["name"])
+            except Exception as error:  # the resolver's own named failure
+                assert not resolution["exists"], (
+                    f"the index claims {entry['name']} exists at {resolution['resolved']} "
+                    f"but the runtime resolver cannot reach it: {error}")
+                continue
+            assert resolution["exists"], (
+                f"the runtime resolver found {entry['name']} at {found} "
+                f"but the index recorded exists=false")
+    assert compared, "no declared external path was compared, which would make this test vacuous"
+
+
+def test_a_traversing_declaration_is_refused_by_both_readers(monkeypatch, tmp_path) -> None:
+    """`..` stays refused in `external_paths` by both readers; a shared resource is named instead.
+
+    Allowing the traversal would have made the index agree with reality at the cost of the
+    boundary, so the fix had to reach the sibling by declaring it. This falsifies both readers:
+    each must refuse a traversal even when the target really exists.
+    """
+    import importlib.util
+
+    root = tmp_path / "OS External Configuration"
+    (root / "inside").mkdir(parents=True)
+    outside = tmp_path / "Model library" / "weights"
+    outside.mkdir(parents=True)
+    monkeypatch.setenv("ARCHEAXIS_EXTERNAL_ROOT", str(root))
+
+    spec = importlib.util.spec_from_file_location(
+        "boundary_tool_paths", ROOT / "services" / "python-workers" / "tool_paths.py")
+    assert spec and spec.loader
+    resolver = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(resolver)
+
+    # The runtime resolver: a traversal reaches nothing, a declared sibling root reaches it.
+    traversing = {"capabilities": {"models": [
+        {"name": "probe", "external_paths": ["../Model library/weights"]}]}}
+    manifest = tmp_path / "traversing.yaml"
+    manifest.write_text(json.dumps(traversing), encoding="utf-8")
+    assert resolver._candidates("probe", manifest) == []
+
+    declared = {"capabilities": {"models": [
+        {"name": "probe", "sibling_root": "model-library",
+         "external_paths": ["weights"]}]}, "sibling_roots": {"model-library": "../Model library"}}
+    manifest.write_text(json.dumps(declared), encoding="utf-8")
+    assert resolver._candidates("probe", manifest) == [outside]
+
+    # The index builder's own resolver: same refusal, same reason.
+    spec = importlib.util.spec_from_file_location(
+        "boundary_index_builder", BUILDER)
+    assert spec and spec.loader
+    builder = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(builder)
+    assert builder.resolve("../Model library/weights", root) == ("", False)
+    assert builder.resolve("inside", root)[1] is True
+
+    # And the manifest this repository actually ships carries no traversal at all.
+    paths = [p for entry in declared_entries() for p in (entry.get("external_paths") or [])
+             if isinstance(p, str)]
+    assert paths, "no declared external path to check"
+    assert not [p for p in paths if ".." in Path(p).parts], (
+        "a declared external path traverses; use sibling_root instead")

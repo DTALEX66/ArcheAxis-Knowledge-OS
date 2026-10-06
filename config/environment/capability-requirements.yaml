@@ -33,6 +33,13 @@ updated: "2026-08-14"
 source_of_truth: "docs/environment/EXTERNAL_DEPENDENCIES.md"
 description: "ArcheAxis-Knowledge-OS 外置能力需求规范（机器可读清单）"
 
+# 命名邻近根：与外置根同级、但不在其内的共享资源。共享 Model library 就是这一类。
+# 条目通过 sibling_root 引用此处名字，external_paths 因此无需写 `..`；可到达的位置由本清单
+# 显式命名，而不是由路径遍历决定。三处读取方（worker 解析器、宿主清点、外置索引）都按同一
+# 规则解析，索引不再声称一个运行期无法到达的路径"存在"。
+sibling_roots:
+  model-library: "../Model library"
+
 capabilities:
   toolchains:
     - name: python
@@ -259,9 +266,10 @@ capabilities:
       platform: windows-x64
       license: "MIT"
       source_url: "https://huggingface.co/Systran/faster-whisper-large-v3-turbo"
-      install_method: 下载安装器
+      install_method: system
       healthcheck_command: "共享 Model library 内目录存在"
-      external_paths: ["../Model library/whisper/faster-whisper-large-v3-turbo"]
+      sibling_root: model-library
+      external_paths: ["whisper/faster-whisper-large-v3-turbo"]
       required_by: [asr-pipeline, bakeoff]
       local_only: true
 
@@ -271,9 +279,10 @@ capabilities:
       platform: windows-x64
       license: "Apache-2.0"
       source_url: "https://github.com/k2-fsa/sherpa-onnx"
-      install_method: shared-model-library
+      install_method: system
       healthcheck_command: "Test-Path $env:ARCHEAXIS_MODEL_LIBRARY_DIR\\sherpa-onnx\\*\\model.int8.onnx"
-      external_paths: ["../Model library/sherpa-onnx"]
+      sibling_root: model-library
+      external_paths: ["sherpa-onnx"]
       required_by: [asr-pipeline]
       local_only: true
 
