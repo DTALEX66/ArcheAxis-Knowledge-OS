@@ -380,16 +380,14 @@ def test_primary_navigation_rail_scrolls_when_window_height_cannot_show_all_rout
     for route_id in (
         "RailWorkspaceButton",
         "RailCaptureButton",
-        "RailKnowledgeButton",
-        "RailReaderButton",
+        "RailEvidenceButton",
+        "RailOriginalsButton",
         "RailLearningButton",
         "RailMachineButton",
-        "RailEvidenceButton",
-        "RailResearchButton",
-        "RailJobsButton",
-        "RailPluginsButton",
-        "RailModelsButton",
-        "RailSystemButton",
+        "RailWorkspaceTreeButton",
+        "RailMemoryMapButton",
+        "RailSearchButton",
+        "RailReviewButton",
     ):
         assert f'x:Name="{route_id}"' in scroll
 
@@ -692,8 +690,8 @@ def test_navigation_state_controls_visible_surfaces() -> None:
     assert 'JobsSurface.IsVisible = section == "jobs"' in code
     assert 'UnavailableSurface.IsVisible = section is "research" or "plugins" or "models";' in code
     assert 'OriginalEditorSurface.IsVisible = section == "original-editor";' in code
-    assert 'ContextKnowledgeSubnav.IsVisible = section is "library" or "search" or "source-reader" or "knowledge" or "original-editor" or "memory-map"' in code
-    assert 'ContextSystemSubnav.IsVisible = section is "jobs" or "recovery" or "settings"' in code
+    assert 'ContextKnowledgeSubnav.IsVisible = section is "evidence" or "library" or "source-reader" or "knowledge"' in code
+    assert 'ContextSystemSubnav.IsVisible = section is "jobs" or "recovery" or "settings" or "plugins" or "models"' in code
     assert 'x:Name="WorkspaceHeadingText"' in XAML.read_text(encoding="utf-8")
     assert 'Focusable="True"' in XAML.read_text(encoding="utf-8")
     assert 'WorkspaceHeadingText.Focus()' in code
@@ -998,7 +996,7 @@ def test_aaos_theme_tokens_replace_the_legacy_indigo_shell_palette() -> None:
     aurora = palettes.split('AuroraColors = new Dictionary', 1)[1]
     for color in ("#080A0C", "#101316", "#171A1D", "#202428", "#3B4146", "#E1E4E6", "#B6AA8D", "#F1F2F3", "#A5ADB3"):
         assert color in monochrome
-    for color in ("#061118", "#0C1C26", "#102630", "#1FC8C5", "#F3EFE6"):
+    for color in ("#081020", "#0C1728", "#101D2E", "#2EC4B6", "#F8F6EB"):
         assert color in aurora
     assert 'palette == Monochrome ? MonochromeColors : AuroraColors' in palettes
 
@@ -1044,10 +1042,11 @@ def test_aaos_brand_workspace_empty_and_kpi_typography_use_shared_tokens() -> No
         assert f'Classes="{selector}"' in xaml
     assert 'x:Name="WorkspaceHeadingText" Text="首页" Classes="page-title"' in xaml
     assert 'Classes="workspace-title"' not in xaml
-    assert _control("TopbarBrandName").get("Text") == "ArcheAxis"
-    assert _control("TopbarBrandName").get("AutomationProperties.Name") == "ArcheAxis Knowledge"
-    assert _control("TopbarBrandName").get("Foreground") == "{DynamicResource AaosIvoryBrush}"
-    assert _control("TopbarBrandTagline").get("Text") == "EVIDENCE · MEMORY · HUMAN + AI"
+    brand = _control("TopbarBrand")
+    assert brand.get("AutomationProperties.Name") == "ArcheAxis Knowledge"
+    assert any(child.tag.endswith("AaosBrandMark") for child in brand)
+    rail_brand = _control("PrimaryRailBrand")
+    assert any(child.get("Text") == "EVIDENCE · MEMORY · HUMAN + AI" for child in rail_brand.iter())
     for key in ("AaosFontBrand", "AaosFontLead", "AaosFontWorkspace", "AaosFontKpi", "AaosFontEmptyTitle"):
         assert f'x:Key="{key}"' in theme
 
@@ -1056,7 +1055,7 @@ def test_aaos_primary_rail_labels_use_a_shared_typography_class() -> None:
     xaml = XAML.read_text(encoding="utf-8")
     theme = THEME_XAML.read_text(encoding="utf-8")
     assert 'Selector="TextBlock.rail-label"' in theme
-    assert xaml.count('Classes="rail-label"') == 6
+    assert xaml.count('Classes="rail-label"') == 11
     assert 'FontSize="18"' not in xaml
 
 
@@ -2003,13 +2002,14 @@ def test_desktop_frame_has_bounded_responsive_column_behavior() -> None:
     assert 'GetAaosBreakpoint("AaosTabletBreakpoint", 1024)' in code
 
 
-def test_b10_home_keeps_sidebar_and_optional_inspector_without_legacy_context_column() -> None:
+def test_current_navigation_reveals_context_sidebar_at_desktop_width() -> None:
     code = CODE.read_text(encoding="utf-8")
 
     set_section = code.split("private void SetSection", 1)[1].split("private void", 1)[0]
     resize = _handler("ApplyResponsiveLayout")
-    assert 'ContextSidebar.IsVisible = false;' in set_section
-    assert 'var showContextSidebar = false;' in resize
+    assert 'ContextKnowledgeSubnav.IsVisible = section is "evidence" or "library" or "source-reader" or "knowledge";' in set_section
+    assert 'var showContextSidebar = !mobile && frameSize.Width >= 1120 && _activeSection != "home";' in resize
+    assert 'CompactContextNavigation.IsVisible = !showContextSidebar && _activeSection != "home";' in resize
     assert 'PrimaryRail.IsVisible = !mobile;' in resize
     assert "if (!_responsiveLayoutInitialized)" in resize
     assert "_inspectorDrawerOpen = false;" in resize
@@ -2091,7 +2091,7 @@ def test_primary_empty_states_and_settings_navigation_use_product_language() -> 
     for name in ("RailSystemButton", "MobileSystemButton"):
         settings = _control(name)
         assert settings.get("Click") == "OnSettingsClick"
-        assert settings.get("AutomationProperties.Name") == "打开设置"
+        assert settings.get("AutomationProperties.Name") == ("打开设置与恢复" if name == "RailSystemButton" else "打开设置")
     assert 'HomeEvidenceText.Text = "本次会话还没有资料接收回执。";' in code
     assert _control("HomeEvidenceText").get("Text") == "本次会话暂无活动回执。"
     assert 'string layer = "平台数据 · 类型暂不可用"' in code
@@ -2109,7 +2109,7 @@ def test_wide_desktop_keeps_inspector_optional_and_bounded_workspace_at_1920_256
     code = CODE.read_text(encoding="utf-8")
     theme = THEME_XAML.read_text(encoding="utf-8")
 
-    assert _control('MainFrameGrid').get('ColumnDefinitions') == '280,0,*,0'
+    assert _control('MainFrameGrid').get('ColumnDefinitions') == '84,0,*,0'
     assert 'x:Name="InspectorPanel"' in xaml
     assert 'GetAaosBreakpoint("AaosInspectorBreakpoint", 1440)' in code
     assert 'InspectorDrawerButton.IsVisible = true;' in code
@@ -2124,8 +2124,8 @@ def test_aaos_default_shell_uses_b10_chrome_and_collapsed_activity() -> None:
     code = CODE.read_text(encoding="utf-8")
 
     assert _control('MainFrameGrid').get('RowDefinitions') == 'Auto,*,Auto,Auto'
-    assert _control('MainFrameGrid').get('ColumnDefinitions') == '280,0,*,0'
-    assert _control('TopbarShell').get('Padding') == '22,12'
+    assert _control('MainFrameGrid').get('ColumnDefinitions') == '84,0,*,0'
+    assert _control('TopbarShell').get('Padding') == '24,12'
     assert 'x:Name="TopbarCommandButton"' in xaml
     assert _control('HomeHeroVisual').tag.endswith('AaosMemoryGraphView')
     assert 'ActivityDock.MinHeight = expanded ? 112 : 24;' in code
@@ -2473,7 +2473,7 @@ def test_core_learning_controls_expose_stable_automation_names_and_motion_tokens
     assert '<Setter Property="Opacity" Value="0.86" />' in theme
     palette = (ROOT / "apps/ArcheAxis.Desktop/ThemePalette.cs").read_text(encoding="utf-8")
     assert '["AaosPrimaryTextBrush"] = "#101214"' in palette
-    assert '["AaosPrimaryTextBrush"] = "#061118"' in palette
+    assert '["AaosPrimaryTextBrush"] = "#081020"' in palette
     assert '<Setter Property="Foreground" Value="{DynamicResource AaosPrimaryTextBrush}" />' in theme
     assert 'AAOS_REDUCED_MOTION' in code
     assert 'Grid.reduced-motion Button' in theme
@@ -2979,7 +2979,7 @@ def test_reused_ambient_illustrations_are_hidden_as_decorative_content() -> None
     assert hero.get("NodeSelected") == "OnHomeMemoryNodeSelected"
     trend = _control("HomeTrendIllustration")
     assert trend.get("AutomationProperties.AccessibilityView") == "Raw"
-    assert trend.get("AutomationProperties.Name") == "知识演化示意图，不表示真实时间序列"
+    assert trend.get("AutomationProperties.Name") == "知识演化趋势暂无 Core 数据"
     unavailable_start = xaml.index('x:Name="UnavailableSurface"')
     unavailable_end = xaml.index("</Border>", unavailable_start)
     assert "<Image " not in xaml[unavailable_start:unavailable_end]
@@ -3021,7 +3021,7 @@ def test_evidence_center_uses_a_distinct_transparent_anchor_illustration() -> No
     anchor = list(evidence_image)
     assert len(anchor) == 1 and anchor[0].tag.endswith("AaosIcon")
     assert anchor[0].get("IconName") == "Evidence"
-    assert anchor[0].get("Width") == "14" and anchor[0].get("Height") == "14"
+    assert anchor[0].get("Width") == "28" and anchor[0].get("Height") == "28"
 
 
 def test_native_menu_shortcuts_are_bound_to_the_advertised_view_actions() -> None:

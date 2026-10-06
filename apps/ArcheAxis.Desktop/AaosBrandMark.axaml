@@ -1,37 +1,19 @@
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              x:Class="ArcheAxis.Desktop.AaosBrandMark"
-             Width="48"
-             Height="48"
-             ClipToBounds="False"
-             AutomationProperties.Name="ArcheAxis brand mark">
-    <Grid ClipToBounds="False" IsHitTestVisible="False">
-        <Border x:Name="MarkSurface"
-                CornerRadius="16"
-                Background="{DynamicResource AaosBrandMarkBrush}"
-                BorderBrush="{DynamicResource AaosPrimaryBrush}"
-                BorderThickness="1"
-                Effect="{DynamicResource AaosBrandMarkGlowEffect}">
-            <Grid ClipToBounds="True">
-                <Ellipse x:Name="RadialHighlight"
-                         Width="34"
-                         Height="34"
-                         HorizontalAlignment="Left"
-                         VerticalAlignment="Top"
-                         Margin="3"
-                         Fill="{DynamicResource AaosPrimaryBrush}"
-                         Opacity="0.24">
-                    <Ellipse.Effect>
-                        <BlurEffect Radius="13" />
-                    </Ellipse.Effect>
-                </Ellipse>
-                <TextBlock Text="AA"
-                           HorizontalAlignment="Center"
-                           VerticalAlignment="Center"
-                           Foreground="{DynamicResource AaosPrimaryTextBrush}"
-                           FontWeight="Black"
-                           FontSize="16" />
-            </Grid>
-        </Border>
-    </Grid>
+             Width="48" Height="48"
+             AutomationProperties.Name="ArcheAxis 星环标志">
+  <Grid Width="48" Height="48" IsHitTestVisible="False">
+    <Ellipse Width="37" Height="37" Stroke="{DynamicResource AaosGoldBrush}" StrokeThickness="1.2" Opacity="0.9" />
+    <Ellipse Width="27" Height="27" Stroke="{DynamicResource AaosPrimaryBrush}" StrokeThickness="1" Opacity="0.8" />
+    <Ellipse Width="45" Height="17" Stroke="{DynamicResource AaosGoldBrush}" StrokeThickness="1" Opacity="0.85">
+      <Ellipse.RenderTransform><RotateTransform Angle="-16" /></Ellipse.RenderTransform>
+    </Ellipse>
+    <Path Data="M24,1 L24,47 M1,24 L47,24" Stroke="{DynamicResource AaosGoldBrush}" StrokeThickness="1.1" />
+    <Path Data="M24,12 L26.1,21.9 L36,24 L26.1,26.1 L24,36 L21.9,26.1 L12,24 L21.9,21.9 Z"
+          Fill="{DynamicResource AaosIvoryBrush}" Stroke="{DynamicResource AaosGoldBrush}" StrokeThickness="0.8" />
+    <Ellipse Width="6" Height="6" Fill="{DynamicResource AaosGoldBrush}" Opacity="0.75">
+      <Ellipse.Effect><BlurEffect Radius="5" /></Ellipse.Effect>
+    </Ellipse>
+  </Grid>
 </UserControl>

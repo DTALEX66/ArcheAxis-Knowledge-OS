@@ -1,8 +1,10 @@
 {
   "schema": "aaos.ui.asset-manifest/v1",
   "audited_at": "2026-10-01",
-  "scope": "Current formal Desktop source only; no installed Green runtime verification",
-  "b10_master": "D:/All projects/UI套件/10_B10_最终版高保真可部署UI/archeaxis_最终版_高保真可部署UI.zip!/index.html",
+  "scope": "Current formal Desktop source; prior B10 item roles are historical and require re-audit against user-specified 2026-10-01 PNGs",
+  "visual_master": "D:/All projects/UI套件/01_01_产品信息架构_Information_Architecture.png through 12_12_搜索与复习_Search_Review_FSRS.png",
+  "brand_reference": "D:/All projects/UI套件/01_01_品牌主视觉_Brand_Hero.png through 11_11_品牌应用_Applications_Left.png",
+  "b10_interaction_reference": "D:/All projects/UI套件/10_B10_最终版高保真可部署UI/archeaxis_最终版_高保真可部署UI.zip!/index.html",
   "asset_root": "apps/ArcheAxis.Desktop/Assets/",
   "reference_search": "Literal filename in apps/ArcheAxis.Desktop *.axaml, *.cs, *.csproj",
   "items": [
@@ -19,14 +21,14 @@
     },
     {
       "path": "apps/ArcheAxis.Desktop/Assets/aaos-brand-mark.svg",
-      "sha256": "1240b52cde125c6142812b9960402cc30d1e7fff702053bcfc8d300ca6840d3c",
-      "bytes": 2120,
+      "sha256": "4DFA88385B608811D0166E5AF6F41B86B6B3D44B1675CD06116D7D9DAA5BC08E",
+      "bytes": 821,
       "referenced_by_csproj": false,
       "referenced_by_xaml": false,
       "referenced_by_code": false,
-      "b10_role": "B10 brand mark candidate",
-      "deployment_status": "SOURCE_ONLY_UNREFERENCED",
-      "gap": "No direct Desktop resource/page reference; verify visual fit, source/license, both themes and intended data semantics before use."
+      "b10_role": "Superseded by 2026-10-01 star-and-orbit brand reference",
+      "deployment_status": "VECTOR_SOURCE_REDRAWN; LIVE_MARK_IN_AaosBrandMark_AXAML",
+      "gap": "SVG is a maintainable source; live visual uses matching theme-aware Avalonia vector."
     },
     {
       "path": "apps/ArcheAxis.Desktop/Assets/aaos-evidence-anchor-empty-state.png",
@@ -126,6 +128,28 @@
       "b10_role": "Home hero candidate / Monochrome",
       "deployment_status": "SOURCE_ONLY_UNREFERENCED",
       "gap": "No direct Desktop resource/page reference; verify visual fit, source/license, both themes and intended data semantics before use."
+    },
+    {
+      "path": "apps/ArcheAxis.Desktop/Assets/home-planet-hero-20261001.png",
+      "sha256": "EFE37347A7093AE411882C2FC611DE65258226501F4A617A3B884B71B07CEBDE",
+      "bytes": 1735082,
+      "referenced_by_csproj": true,
+      "referenced_by_xaml": true,
+      "referenced_by_code": true,
+      "b10_role": "2026-10-01 UI PNG inspired decorative Aurora Home planet hero",
+      "deployment_status": "DECLARED_RESOURCE_AND_HOME_RENDERED_LOCAL",
+      "gap": "Original Green deployment and full page fidelity remain pending."
+    },
+    {
+      "path": "apps/ArcheAxis.Desktop/Assets/home-planet-hero-monochrome-20261001.png",
+      "sha256": "04140308E30E7E5F6B4F90B44636F21FF28F9A29E9B9585B8F62F59EF070D987",
+      "bytes": 1663593,
+      "referenced_by_csproj": true,
+      "referenced_by_xaml": false,
+      "referenced_by_code": true,
+      "b10_role": "2026-10-01 monochrome companion decorative Home hero",
+      "deployment_status": "DECLARED_RESOURCE_AND_HOME_RENDERED_LOCAL",
+      "gap": "Original Green deployment and full page fidelity remain pending."
     },
     {
       "path": "apps/ArcheAxis.Desktop/Assets/aaos-knowledge-constellation-empty-state.png",

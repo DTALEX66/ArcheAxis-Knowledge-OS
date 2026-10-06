@@ -168,6 +168,8 @@ public partial class EvidenceCenterView : UserControl
             EvidenceEmptyStateImage.Width = emptyIconSize;
             EvidenceEmptyStateImage.Height = emptyIconSize;
         }
+        if (EvidenceEmptyStateImage.Child is AaosIcon emptyIcon)
+            emptyIcon.Width = emptyIcon.Height = Math.Min(28, Math.Max(14, EvidenceEmptyStateImage.Width * 0.4375));
         EvidenceEmptyStateImage.HorizontalAlignment = HorizontalAlignment.Left;
         EvidenceToolbar.ColumnDefinitions = narrowActions ? new ColumnDefinitions("*") : new ColumnDefinitions("Auto,*");
         EvidenceToolbar.RowDefinitions = narrowActions ? new RowDefinitions("Auto,Auto") : new RowDefinitions("Auto");

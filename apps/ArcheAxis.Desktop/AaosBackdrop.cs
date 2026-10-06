@@ -7,12 +7,14 @@ using System;
 
 namespace ArcheAxis.Desktop;
 
-/// <summary>Theme-aware grid and ambient light used by the B10 application shell.</summary>
+/// <summary>Theme-aware orbital light behind the application shell.</summary>
 internal sealed class AaosBackdrop : Control
 {
     private const double GridSpacing = 32;
-    private readonly DispatcherTimer _animationTimer = new() { Interval = TimeSpan.FromMilliseconds(40) };
+    // Ambient light moves slowly; a high-frequency full-window redraw adds no useful detail.
+    private readonly DispatcherTimer _animationTimer = new() { Interval = TimeSpan.FromMilliseconds(250) };
     private readonly bool _reducedMotion;
+    private Window? _hostWindow;
     private double _animationPhase;
 
     public AaosBackdrop()
@@ -26,14 +28,32 @@ internal sealed class AaosBackdrop : Control
     protected override void OnAttachedToVisualTree(VisualTreeAttachmentEventArgs e)
     {
         base.OnAttachedToVisualTree(e);
-        if (!_reducedMotion)
-            _animationTimer.Start();
+        _hostWindow = TopLevel.GetTopLevel(this) as Window;
+        if (_hostWindow is not null)
+        {
+            _hostWindow.Activated += OnWindowActivityChanged;
+            _hostWindow.Deactivated += OnWindowActivityChanged;
+        }
+        UpdateAnimationState();
     }
 
     protected override void OnDetachedFromVisualTree(VisualTreeAttachmentEventArgs e)
     {
         _animationTimer.Stop();
+        if (_hostWindow is not null)
+        {
+            _hostWindow.Activated -= OnWindowActivityChanged;
+            _hostWindow.Deactivated -= OnWindowActivityChanged;
+            _hostWindow = null;
+        }
         base.OnDetachedFromVisualTree(e);
+    }
+
+    protected override void OnPropertyChanged(AvaloniaPropertyChangedEventArgs change)
+    {
+        base.OnPropertyChanged(change);
+        if (change.Property == IsVisibleProperty)
+            UpdateAnimationState();
     }
 
     public override void Render(DrawingContext context)
@@ -52,6 +72,20 @@ internal sealed class AaosBackdrop : Control
             DrawAmbient(context, "AaosAmbientSecondaryBrush", new Point(width * 0.92, height * 0.18), 320, phase - 2 * Math.PI / 3);
             DrawAmbient(context, "AaosAmbientTertiaryBrush", new Point(width * 0.48, height * 0.98), 280, phase - 7 * Math.PI / 6);
         }
+
+        // The orbit is a restrained brand accent, kept away from the reading center.
+        var orbitCenter = new Point(width * 0.94, height * 0.10);
+        var orbitRadius = Math.Min(width, height) * 0.17;
+        var orbitBrush = ThemePalette.ResolveBrush("AaosGridBrush");
+        using (context.PushOpacity(0.30))
+        {
+            context.DrawEllipse(null, new Pen(orbitBrush, 1), orbitCenter, orbitRadius, orbitRadius * 0.43);
+            context.DrawEllipse(null, new Pen(orbitBrush, 0.8), orbitCenter, orbitRadius * 0.72, orbitRadius * 0.31);
+        }
+        // A fixed star keeps the low-frequency ambient timer from looking like stepped motion.
+        var starPoint = new Point(orbitCenter.X + orbitRadius, orbitCenter.Y);
+        using (context.PushOpacity(0.55))
+            context.DrawEllipse(ThemePalette.ResolveBrush("AaosAmbientPrimaryBrush"), null, starPoint, 3, 3);
 
         var maskRadius = Math.Max(width, height) * 0.95 / 2;
         var gridMask = new RadialGradientBrush
@@ -107,6 +141,16 @@ internal sealed class AaosBackdrop : Control
     }
 
     private void OnPaletteChanged(object? sender, System.EventArgs e) => InvalidateVisual();
+
+    private void OnWindowActivityChanged(object? sender, EventArgs e) => UpdateAnimationState();
+
+    private void UpdateAnimationState()
+    {
+        if (_reducedMotion || !IsVisible || _hostWindow is null || !_hostWindow.IsActive)
+            _animationTimer.Stop();
+        else
+            _animationTimer.Start();
+    }
 
     private void OnAnimationTick(object? sender, EventArgs e)
     {

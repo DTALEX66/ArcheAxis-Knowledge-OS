@@ -100,7 +100,7 @@
           <Border x:Name="EvidenceEmptyState" Grid.Row="1" Classes="aaos-empty-state" Padding="8,6" HorizontalAlignment="Stretch" VerticalAlignment="Top">
             <StackPanel x:Name="EvidenceEmptyStateContent" Orientation="Horizontal" Spacing="10">
               <Border x:Name="EvidenceEmptyStateImage" Width="64" Height="64" CornerRadius="32" BorderThickness="1" BorderBrush="{DynamicResource AaosPrimaryBrush}" Opacity="0.48" Background="Transparent" VerticalAlignment="Center" AutomationProperties.AccessibilityView="Raw" AutomationProperties.IsControlElementOverride="False">
-                <local:AaosIcon Width="14" Height="14" IconName="Evidence" Foreground="{DynamicResource AaosPrimaryBrush}" />
+                <local:AaosIcon Width="28" Height="28" IconName="Evidence" Foreground="{DynamicResource AaosPrimaryBrush}" />
               </Border>
               <StackPanel Spacing="7" VerticalAlignment="Center">
                 <TextBlock x:Name="EvidenceEmptyTitleText" Text="尚未读取 Evidence anchor" Classes="card-heading" />

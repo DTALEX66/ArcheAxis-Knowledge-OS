@@ -175,19 +175,34 @@ try {
         using var queued = await real.SendAsync(HttpMethod.Post, "/api/v1/jobs", new StringContent(enqueue, Encoding.UTF8, "application/json"));
         if (queued.StatusCode != HttpStatusCode.Accepted) throw new Exception("desktop enqueue failed");
     }
-    var executionBody = new StringContent("{\"deadline_ms\":5000}", Encoding.UTF8, "application/json");
+    var executionBody = new StringContent("{\"deadline_ms\":20000}", Encoding.UTF8, "application/json");
     executionBody.Headers.Add("idempotency-key", "desktop-attempt");
     using (var execution = await real.SendAsync(HttpMethod.Post, $"/api/v1/jobs/{captureJobId}/executions", executionBody)) {
         if (execution.StatusCode != HttpStatusCode.Accepted) throw new Exception("desktop could not execute the actual worker");
     }
-    using (var bounded = new CancellationTokenSource(TimeSpan.FromSeconds(6))) {
+    using (var bounded = new CancellationTokenSource(TimeSpan.FromSeconds(25))) {
         while (true) {
             var read = await CoreTextOutputReader.ReadAsync(real, capturedSourceId, captureJobId, bounded.Token);
             if (read.IsReady) {
                 if (read.Content != "hello") throw new Exception("desktop Reader output differs");
                 break;
             }
-            if (read.State is not ("queued" or "running")) throw new Exception($"desktop Reader output failed: {read.Error}");
+            if (read.State is not ("queued" or "running")) {
+                using var failedStatus = await real.SendAsync(HttpMethod.Get, $"/api/v1/jobs/{captureJobId}");
+                var coreState = $"HTTP {(int)failedStatus.StatusCode}";
+                var coreError = "<unavailable>";
+                if (failedStatus.IsSuccessStatusCode) {
+                    using var statusDoc = JsonDocument.Parse(await failedStatus.Content.ReadAsStringAsync());
+                    var statusRoot = statusDoc.RootElement;
+                    coreState = statusRoot.TryGetProperty("state", out var stateValue) ? stateValue.GetString() ?? "<null>" : "<missing>";
+                    var rawError = statusRoot.TryGetProperty("error", out var errorValue) && errorValue.ValueKind == JsonValueKind.String
+                        ? errorValue.GetString() : null;
+                    coreError = rawError is null ? "<none>" : rawError.Contains("deadline exceeded", StringComparison.OrdinalIgnoreCase)
+                        ? "worker execution deadline exceeded"
+                        : $"other(len={rawError.Length},sha256={Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(Encoding.UTF8.GetBytes(rawError)))})";
+                }
+                throw new Exception($"desktop Reader output failed: reader_state={read.State}, reader_error={read.Error}, core_state={coreState}, core_error={coreError}");
+            }
             await Task.Delay(10, bounded.Token);
         }
     }

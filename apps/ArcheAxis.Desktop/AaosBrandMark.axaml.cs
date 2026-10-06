@@ -2,7 +2,7 @@ using Avalonia.Controls;
 
 namespace ArcheAxis.Desktop;
 
-/// <summary>B10 gradient AA tile, with its palette supplied by dynamic theme resources.</summary>
+/// <summary>Scalable star-and-orbit mark based on the UI suite's brand construction board.</summary>
 public partial class AaosBrandMark : UserControl
 {
     public AaosBrandMark()
