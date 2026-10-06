@@ -1,11 +1,9 @@
-import { useEffect, useRef, useState, type CSSProperties } from "react";
+import { lazy, Suspense, useEffect, useRef, useState, type CSSProperties } from "react";
 import type { JSONContent } from "@tiptap/core";
 import { coreCommand } from "../api/core";
 import { RawReceiptButton } from "../components/DiagnosticConsole";
 import type { SourceDto, DocumentDto, DocumentSummaryDto, OriginalDto, AnchorDto, DocumentExportDto, RevisionBasisDto } from "../api/generated/core-contract";
 import { Section } from "../components/RealData";
-import { DocumentEditor } from "../components/DocumentEditor";
-import { PdfReader } from "../components/PdfReader";
 import { MediaReader } from "../components/MediaReader";
 import type { EpubPosition } from "../components/EpubParagraphs";
 import { JobContent } from "../components/JobContent";
@@ -14,6 +12,11 @@ import { BackupPanel } from "../components/BackupPanel";
 import "../components/content.css";
 import type { InspectionTarget } from "../components/Inspector";
 import type { LibrarySection } from "../components/ContextNav";
+
+// PDF.js is a large renderer and is needed only when the selected original is a PDF.
+const PdfReader = lazy(() => import("../components/PdfReader").then(module => ({ default: module.PdfReader })));
+// Tiptap/ProseMirror are needed only after a versioned document is selected.
+const DocumentEditor = lazy(() => import("../components/DocumentEditor").then(module => ({ default: module.DocumentEditor })));
 
 export function CanonicalLibrarySpace({onKnowledge,initialDocumentId,onDirtyChange,onInspect,navigation}:{onKnowledge?:()=>void;initialDocumentId?:string;onDirtyChange?:(dirty:boolean)=>void;onInspect?:(target:InspectionTarget)=>void;navigation?:{section:LibrarySection;sequence:number}}) {
   const [sources, setSources] = useState<SourceDto[]>([]);
@@ -374,16 +377,16 @@ export function CanonicalLibrarySpace({onKnowledge,initialDocumentId,onDirtyChan
               <header><h4>不可变原件</h4><p>{linkedOriginal ? "原件身份、版本与字节指纹已核对。" : "关联原件尚未核对或当前未提供，不以其他原件替代。"}</p></header>
               {linkedOriginal && documentBytes && documentOriginal && documentSource ? <>
                 <dl className="original-derived-identity"><div><dt>来源 ID</dt><dd>{documentSource.source_id}</dd></div><div><dt>来源版本</dt><dd>{documentSource.source_revision}</dd></div><div><dt>原件 SHA-256</dt><dd>{documentOriginal.sha256}</dd></div></dl>
-                {linkedPdf ? <PdfReader bytes={documentBytes} page={page} onPageChange={setPage} focusRequest={focusRequest} /> : documentOriginal.media_type.startsWith("text/") ? <pre tabIndex={0} aria-label="并排原件正文">{new TextDecoder().decode(documentBytes)}</pre> : documentOriginal.media_type.startsWith("image/") ? <img className="original-derived-image" src={`data:${documentOriginal.media_type};base64,${documentOriginal.content_base64}`} alt={`原件 ${documentSource.original_name}`} /> : documentOriginal.media_type.startsWith("audio/") || documentOriginal.media_type.startsWith("video/") ? <MediaReader key={`derived-media:${documentSource.source_id}`} bytes={documentBytes} mediaType={documentOriginal.media_type} seek={mediaSeek?.sourceId===documentSource.source_id?mediaSeek:undefined}/> : <p>此格式没有原生并排查看器；原件仍保存在 CAS，可从原件列表使用现有 Reader。</p>}
+                 {linkedPdf ? <Suspense fallback={<p role="status">正在载入 PDF 阅读器…</p>}><PdfReader bytes={documentBytes} page={page} onPageChange={setPage} focusRequest={focusRequest} /></Suspense> : documentOriginal.media_type.startsWith("text/") ? <pre tabIndex={0} aria-label="并排原件正文">{new TextDecoder().decode(documentBytes)}</pre> : documentOriginal.media_type.startsWith("image/") ? <img className="original-derived-image" src={`data:${documentOriginal.media_type};base64,${documentOriginal.content_base64}`} alt={`原件 ${documentSource.original_name}`} /> : documentOriginal.media_type.startsWith("audio/") || documentOriginal.media_type.startsWith("video/") ? <MediaReader key={`derived-media:${documentSource.source_id}`} bytes={documentBytes} mediaType={documentOriginal.media_type} seek={mediaSeek?.sourceId===documentSource.source_id?mediaSeek:undefined}/> : <p>此格式没有原生并排查看器；原件仍保存在 CAS，可从原件列表使用现有 Reader。</p>}
               </> : <p role="status">原件读取失败、身份不匹配或未绑定到此文档版本。正文指纹与原件指纹保持分开显示。</p>}
             </article>
             <article className="original-derived-pane" aria-label="派生文档与版本核验">
               <header><h4>派生文档</h4><p>文档版本 {document.version} · 正文 SHA-256 {document.content_sha256}</p></header>
-              <DocumentEditor key={`${document.document_id}:${editorEpoch}`} content={document.editor_json as JSONContent} version={document.version} onSave={save} onDirtyChange={(value) => { dirty.current = value; setDocumentDirty(value); if(value)editGeneration.current+=1; onDirtyChange?.(value); window.dispatchEvent(new CustomEvent("archeaxis-draft-dirty", { detail: value })); }} onCreateReference={source && original && bytes ? cite : undefined} onReferenceActivate={jump} />
+               <Suspense fallback={<p role="status">正在载入文档编辑器…</p>}><DocumentEditor key={`${document.document_id}:${editorEpoch}`} content={document.editor_json as JSONContent} version={document.version} onSave={save} onDirtyChange={(value) => { dirty.current = value; setDocumentDirty(value); if(value)editGeneration.current+=1; onDirtyChange?.(value); window.dispatchEvent(new CustomEvent("archeaxis-draft-dirty", { detail: value })); }} onCreateReference={source && original && bytes ? cite : undefined} onReferenceActivate={jump} /></Suspense>
               <CheckPanel key={`checks:${document.document_id}:${document.version}`} document={document} onRevisionBasis={value=>{revisionBasis.current=value;}} />
             </article>
           </section> : <>
-          <DocumentEditor key={`${document.document_id}:${editorEpoch}`} content={document.editor_json as JSONContent} version={document.version} onSave={save} onDirtyChange={(value) => { dirty.current = value; setDocumentDirty(value); if(value)editGeneration.current+=1; onDirtyChange?.(value); window.dispatchEvent(new CustomEvent("archeaxis-draft-dirty", { detail: value })); }} onCreateReference={source && original && bytes ? cite : undefined} onReferenceActivate={jump} />
+           <Suspense fallback={<p role="status">正在载入文档编辑器…</p>}><DocumentEditor key={`${document.document_id}:${editorEpoch}`} content={document.editor_json as JSONContent} version={document.version} onSave={save} onDirtyChange={(value) => { dirty.current = value; setDocumentDirty(value); if(value)editGeneration.current+=1; onDirtyChange?.(value); window.dispatchEvent(new CustomEvent("archeaxis-draft-dirty", { detail: value })); }} onCreateReference={source && original && bytes ? cite : undefined} onReferenceActivate={jump} /></Suspense>
           <CheckPanel key={`checks:${document.document_id}:${document.version}`} document={document} onRevisionBasis={value=>{revisionBasis.current=value;}} />
           </>}
           <div ref={versionNavigation} tabIndex={-1} aria-label="文档版本导航" className="draft-restore"><label>恢复历史版本 <input type="number" min="1" max={document.version} value={restoreVersion} onChange={(event) => setRestoreVersion(event.target.value)} /></label><button type="button" onClick={() => void readHistory()}>只读查看历史版本</button><button type="button" disabled={busy} onClick={() => void singleWrite(restore)}>读取并恢复版本</button></div>

@@ -39,7 +39,7 @@ describe("canonical content sample", () => {
     const onDirtyChange = vi.fn();
     const {rerender} = render(<CanonicalLibrarySpace onDirtyChange={onDirtyChange} />);
     await userEvent.setup().click(await screen.findByRole("button", {name:"样板.txt · 文档"}));
-    const textbox = screen.getByRole("textbox", {name:"文档草稿"});
+    const textbox = await screen.findByRole("textbox", {name:"文档草稿"});
     fireEvent.compositionStart(textbox);
     act(() => {(textbox as HTMLElement & {editor:Editor}).editor.commands.setContent({type:"doc",content:[{type:"paragraph",content:[{type:"text",text:"导航仍保留未保存正文"}]}]},{emitUpdate:true});});
     await screen.findByText(/尚未保存 · 当前持久化版本/);
