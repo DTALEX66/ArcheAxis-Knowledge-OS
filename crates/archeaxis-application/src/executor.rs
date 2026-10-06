@@ -365,7 +365,9 @@ impl Executor {
         let job = job_id.to_owned();
         let request = request_id.to_owned();
         let cancel = cancel.clone();
-        let split = split.then(|| attempts::Split::for_job(&self.staging, job_id));
+        let split = split.then(|| attempts::Split {
+            root: self.staging.clone(),
+        });
         let (ack, accepted) = tokio::sync::oneshot::channel();
         let task = tokio::spawn(async move {
             owned

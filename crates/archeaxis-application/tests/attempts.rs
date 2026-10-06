@@ -181,12 +181,17 @@ fn a_split_choice_is_persisted_with_its_attempt_and_refused_for_other_routes() {
     };
     jobs::enqueue(&mut conn, "w", "transcribe", &sid).unwrap();
     let split = attempts::Split {
-        staging: dir.path().join("windows").join("w"),
+        root: dir.path().join("staging"),
     };
-    let staged = split.staging.to_string_lossy().into_owned();
     let request = attempts::claim_split(&mut conn, "w", "r-split", 300_000, Some(split)).unwrap();
     assert_eq!(request.parameters["split"], json!(true));
-    assert_eq!(request.parameters["staging"], json!(staged));
+    // Windows are keyed by the input's own digest, not by the job: a recording too long for one
+    // job takes several, and each later one must see what the earlier ones finished.
+    let digest = request.inputs[0].sha256.clone();
+    assert_eq!(
+        request.parameters["staging"],
+        json!(dir.path().join("staging").join("windows").join(&digest).to_string_lossy())
+    );
     // the staging directory is Core-owned, and neither an executable nor a window plan is carried
     assert!(!request.parameters.contains_key("ffmpeg"));
     assert!(!request.parameters.contains_key("window"));
@@ -218,7 +223,7 @@ fn a_split_choice_is_persisted_with_its_attempt_and_refused_for_other_routes() {
         "r-text",
         5000,
         Some(attempts::Split {
-            staging: dir.path().join("windows"),
+            root: dir.path().join("staging"),
         }),
     )
     .is_err());

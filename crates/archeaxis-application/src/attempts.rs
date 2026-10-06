@@ -279,24 +279,22 @@ pub fn resolve_media_type(kind: &str, original_name: &str) -> Result<&'static st
     }
 }
 
-/// A split transcription, with the Core-owned directory that holds finished windows.
+/// A split transcription request: the Core-owned root under which windows are kept.
 ///
 /// Splitting is the only extra input a job may carry, and only `media.transcribe` may carry it.
 #[derive(Debug, Clone)]
 pub struct Split {
-    pub staging: std::path::PathBuf,
+    pub root: std::path::PathBuf,
 }
 
 impl Split {
-    /// The Core's own staging directory for a job's windows.
+    /// Where one recording's finished windows are kept.
     ///
-    /// It sits beside the per-attempt temporary area rather than inside it, because a finished
-    /// window has to survive the attempt that produced it: reuse across attempts is the whole point
-    /// of splitting a recording too long for one job.
-    pub fn for_job(staging_root: &std::path::Path, job_id: &str) -> Self {
-        Self {
-            staging: staging_root.join("windows").join(job_id),
-        }
+    /// Keyed by the input's own digest rather than by the job, because a recording too long for one
+    /// job is expected to take several: each of them is a separate job, and they must all see the
+    /// windows the earlier ones finished. Keying by job would restart the work every round.
+    pub fn windows_of(root: &std::path::Path, digest: &str) -> std::path::PathBuf {
+        root.join("windows").join(digest)
     }
 }
 
@@ -360,7 +358,7 @@ pub fn claim_split(
     .map_err(JobError::InvalidReceipt)?;
     let request = match split {
         Some(split) => request
-            .splitting(&split.staging.to_string_lossy())
+            .splitting(&Split::windows_of(&split.root, &sha).to_string_lossy())
             .map_err(JobError::InvalidReceipt)?,
         None => request,
     };
