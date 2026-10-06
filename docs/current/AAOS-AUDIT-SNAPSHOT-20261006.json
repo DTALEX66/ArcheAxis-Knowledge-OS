@@ -155,5 +155,71 @@
       "CAP-0150-model-provider": "33 passed, exit 0",
       "CAP-0070-simulation": "no independent suite found this round"
     }
-  }
+  },
+  "artifacts": [
+    {
+      "artifact": "root entry",
+      "path": "AUTHORITY.md",
+      "byte_size": 6065,
+      "byte_sha256": "556663d7093d27f0e5980b8c3425f10ef304202450bcac6a89cc00feb2bf5316",
+      "status": "present"
+    },
+    {
+      "artifact": "document authority gate",
+      "path": "scripts/ci/check_document_authority.py",
+      "byte_size": 11364,
+      "byte_sha256": "0d2f8cfb51c0b119f3f469931a89d12da1a56edaa5016870c6d61716eabf055d",
+      "status": "present"
+    },
+    {
+      "artifact": "gate falsification tests",
+      "path": "tests/workflow/test_document_authority_gate.py",
+      "byte_size": 6243,
+      "byte_sha256": "c5fa33011656dc79ee1022a3a74a07fcfe8a29edd9bb029eb7c34bf5f332befe",
+      "status": "present"
+    },
+    {
+      "artifact": "coverage matrix",
+      "path": "docs/current/AAOS-COVERAGE-MATRIX-20261006.md",
+      "byte_size": 14363,
+      "byte_sha256": "ee254f2a4f55f15e4557c3e828909cca0a0b9273f09bab50b54de7ee9f8aa868",
+      "status": "present"
+    },
+    {
+      "artifact": "input source record",
+      "path": "docs/current/AAOS-INPUT-SOURCES-20261006.json",
+      "byte_size": 6860,
+      "byte_sha256": "5f363697caca7b9679b056347340f14e33fadf46d4ceaf096eb4f08ab9b687c5",
+      "status": "present"
+    },
+    {
+      "artifact": "open-source disposition evidence",
+      "path": "docs/current/AAOS-OSS-DISPOSITION-EVIDENCE-20261006.md",
+      "byte_size": 4792,
+      "byte_sha256": "eb6c12a00057dbe14a392f5c17c487a2be573fd4f6b931f46cba71edab194bfc",
+      "status": "present"
+    },
+    {
+      "artifact": "decision supersession ledger",
+      "path": "DECISION_SUPERSESSION_LEDGER.yaml",
+      "byte_size": 17922,
+      "byte_sha256": "574411cc0fbfd0d4e2f9a5c160a7c4c6fdf24d3493b82d9f76044e2a1e3ae151",
+      "status": "present"
+    },
+    {
+      "artifact": "docx extraction tool",
+      "path": "scripts/maintenance/extract_docx_text.py",
+      "byte_size": 3062,
+      "byte_sha256": "90b2f417c5faaad448d9d64b38c5592747ec38ea1a42457cf593fe715c4e481d",
+      "status": "present"
+    },
+    {
+      "artifact": "extracted blueprint text",
+      "path": ".project-local/task-runtime/aaos01-blueprint-20261006/blueprint.txt",
+      "byte_size": 43734,
+      "byte_sha256": "10d7aae791b2a98f2d3491938376b51125afdc14767a9665357e0eff77db1cec",
+      "status": "present"
+    }
+  ],
+  "artifacts_note": "hashes were computed on this host in this round; the snapshot does not contain its own digest, so there is no self-reference"
 }

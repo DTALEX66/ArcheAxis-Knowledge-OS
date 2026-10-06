@@ -2,12 +2,14 @@
 
 **当前版本**：`0.6.14`（开发源码版本；安装态资格与 Owner 接受另行验证）。
 
-> **当前权威入口（2026-10-05）**：从
-> [`docs/DOCUMENTATION_AUTHORITY_INDEX.md`](docs/DOCUMENTATION_AUTHORITY_INDEX.md)
-> 读取项目合同、SUP-022 与 AAOS-01 快速多格式闭环任务包。
+> **当前权威入口（2026-10-06）**：先是根入口 [`AUTHORITY.md`](AUTHORITY.md)——它给出完整母定义、本仓拥有/不拥有、
+> 当前能力的证据分级、未来能力入口、唯一 current（任务包与进度记录）与审计索引；
+> 再按 [`docs/DOCUMENTATION_AUTHORITY_INDEX.md`](docs/DOCUMENTATION_AUTHORITY_INDEX.md) 的读取顺序读项目合同、SUP-022 与 AAOS-01 任务书。
 > [`PROJECT_CONTRACT.yaml`](PROJECT_CONTRACT.yaml) 的 `content_policy` 是内容保存和证据用途的规范；
 > 本轮实际进度与剩余缺口只登记在
-> [`AAOS-01 当前台账`](docs/current/AAOS01-Q00-Q15-LEDGER-FINAL-20261005.md)。
+> [`AAOS-01 当前台账`](docs/current/AAOS01-Q00-Q15-LEDGER-FINAL-20261005.md)，
+> 覆盖矩阵与审计快照见 [`AAOS-COVERAGE-MATRIX-20261006`](docs/current/AAOS-COVERAGE-MATRIX-20261006.md) 与
+> [`AAOS-AUDIT-SNAPSHOT-20261006`](docs/current/AAOS-AUDIT-SNAPSHOT-20261006.json)。
 > R6/M0 与旧任务包保留各自历史和证据，完成声明须核对实际运行及固定 SHA。
 
 > **当前实现方向**：React/TypeScript/Vite 内容界面 + Tauri 2/Rust 宿主，
