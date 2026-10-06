@@ -236,7 +236,7 @@
       "开源吸收核对脚本的启发式已修复并重算（见 gaps）。剩下的精度边界由工具语义本身决定：IMPLEMENTED_IN_SOURCE 只断言“第一方代码命名了它”，A008/A009 的命中是使用点/导入探测而非捐赠项本体；文档词表与行取值的错配（5 个未定义判定词）仍待文档作者决定",
       "merge / release / install 未授权、未执行；无 tag、无 release"
     ],
-    "next_action": "待 Owner 裁决：(1) 跑一次完整安装态旅程以产出 lifecycle-receipt.json（落盘修复已提交 8cc8238d，Q02/Q14 与其 AQ26/AQ27 届时才能收口）；(2) Q11 旧库迁移的验收/回滚七条口径确认，并指定适用哪一份旧库、就地还是旁路、未读表如何处置。（已解决，无需裁决）runs/ 的 WinError 5 已查明**不是提权问题**——是 pytest 临时目录里 git 的只读松散对象；清只读位后二次清理已释放 8.37 GB（runs/ 13.45→4.86 GB），全程未提权；仅余 434 个零字节空目录因真正受限 ACL 保留。ARCHEAXIS_EXTERNAL_ROOT 已由外部资源索引自绑定，无需手工注册。账本引文门禁已入 lint，之后新增 Q 行须保持引文可解析"
+    "next_action": "待 Owner 裁决：(1) （**已解决**）完整安装态旅程已由 workflow_dispatch run 37471031307（head_sha ccf0a4bc，19/19 job success）产出 lifecycle-receipt.json（complete_lifecycle_verified=true，收据 SHA-256 aeae1bd3…）；checks/acceptance.json 的 AQ26/AQ27 仍为 NOT_RUN（该文件不可变、未改），是否登记需 Owner 决定；(2) Q11 旧库迁移的验收/回滚七条口径确认，并指定适用哪一份旧库、就地还是旁路、未读表如何处置。（已解决，无需裁决）runs/ 的 WinError 5 已查明**不是提权问题**——是 pytest 临时目录里 git 的只读松散对象；清只读位后二次清理已释放 8.37 GB（runs/ 13.45→4.86 GB），全程未提权；仅余 434 个零字节空目录因真正受限 ACL 保留。ARCHEAXIS_EXTERNAL_ROOT 已由外部资源索引自绑定，无需手工注册。账本引文门禁已入 lint，之后新增 Q 行须保持引文可解析"
   },
   "verification": {
     "capability_family_runs": {
