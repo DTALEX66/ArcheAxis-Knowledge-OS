@@ -146,17 +146,14 @@ def probe(model_path: str | None) -> dict:
     }
 
 
-def extract(path: str, model_path: str | None, language: str, device: str) -> dict:
-    from faster_whisper import WhisperModel
+def _segment_cues(model, path: str, language: str):
+    """One decode pass: the raw cues, their text, the decode info and any mid-iteration error.
 
-    model_dir = _model_dir(model_path)
-    input_path = Path(path)
-    if not input_path.is_file():
-        raise ValueError(f"input media file not found: {input_path}")
-
-    model = WhisperModel(str(model_dir), device=device, compute_type="int8")
+    Shared by the whole-file and per-window paths so a window cannot drift from the canonical
+    behaviour. Returns exactly what the original inline loop produced.
+    """
     segments, info = model.transcribe(
-        str(input_path),
+        str(path),
         language=None if language == "auto" else language,
         vad_filter=True,
     )
@@ -177,6 +174,19 @@ def extract(path: str, model_path: str | None, language: str, device: str) -> di
         if not raw_cues:
             raise RuntimeError("ASR segment iteration failed before any usable result") from exc
         processing_error = {"stage": "segment_iteration", "error_type": type(exc).__name__}
+    return raw_cues, text_parts, info, processing_error
+
+
+def extract(path: str, model_path: str | None, language: str, device: str) -> dict:
+    from faster_whisper import WhisperModel
+
+    model_dir = _model_dir(model_path)
+    input_path = Path(path)
+    if not input_path.is_file():
+        raise ValueError(f"input media file not found: {input_path}")
+
+    model = WhisperModel(str(model_dir), device=device, compute_type="int8")
+    raw_cues, text_parts, info, processing_error = _segment_cues(model, path, language)
     processing_status = "partial" if processing_error else "complete"
     text = "\n".join(part for part in text_parts if part)
     language_code = getattr(info, "language", None) or "unknown"
@@ -225,6 +235,64 @@ def extract(path: str, model_path: str | None, language: str, device: str) -> di
     }
 
 
+def _window_module():
+    """The window arithmetic and resume rules, loaded from this worker's own directory."""
+    import importlib.util
+
+    path = Path(__file__).resolve().parent / "window_transcribe.py"
+    spec = importlib.util.spec_from_file_location("transcribe_windows", path)
+    if spec is None or spec.loader is None:
+        raise RuntimeError("window_transcribe.py is missing beside this worker")
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
+
+
+def extract_windowed(path: str, model_path: str | None, language: str, device: str, plan: dict,
+                     ffmpeg: str, staging: str | None = None, work_dir: str | None = None) -> dict:
+    """Transcribe one bounded window of the recording, resuming windows already finished.
+
+    The Core caps a job at 300 s, so the caller drives successive invocations. `window_transcribe`
+    owns the plan arithmetic, the resume rules and the merge; this function owns the two things it
+    cannot: cutting the window with the declared ffmpeg binary and running the model on it. The
+    offsets come from the window's own start, so a citation always points into the recording.
+    """
+    import subprocess
+    import tempfile
+
+    from faster_whisper import WhisperModel
+
+    windows = _window_module()
+    input_path = Path(path)
+    if not input_path.is_file():
+        raise ValueError(f"input media file not found: {input_path}")
+    if not Path(ffmpeg).is_file():
+        raise ValueError(f"declared ffmpeg path does not exist: {ffmpeg}")
+
+    model = WhisperModel(str(_model_dir(model_path)), device=device, compute_type="int8")
+    workspace = Path(work_dir) if work_dir else Path(tempfile.mkdtemp(prefix="archeaxis-window-"))
+    workspace.mkdir(parents=True, exist_ok=True)
+
+    def per_window(window):
+        target = workspace / f"window-{int(window['index']):04d}.wav"
+        command = windows.window_command(str(ffmpeg), str(input_path), int(window["start_ms"]),
+                                         int(window["end_ms"]), str(target))
+        finished = subprocess.run(command, capture_output=True, text=True)
+        if finished.returncode != 0 or not target.is_file():
+            raise RuntimeError(f"ffmpeg failed for window {window['index']}: {finished.stderr[-200:]}")
+        raw, parts, _info, _error = _segment_cues(model, str(target), language)
+        # Cues stay local to the window: merge_windows owns the offset onto the recording timeline,
+        # and applying it here as well shifted every later window twice.
+        return {"status": "succeeded", "cues": raw,
+                "text": "\n".join(part for part in parts if part)}
+
+    merged = windows.run_windows(plan, per_window, staging)
+    merged["window_identity"] = {"source": str(input_path),
+                                 "window_audio_ms": int(plan.get("window_audio_ms") or 0),
+                                 "policy": plan.get("policy")}
+    return merged
+
+
 def main() -> int:
     # The sidecar branch first, before the CLI parser: the Core spawns a worker with
     # `--staging-root` and speaks the NDJSON protocol on stdio. Without this mode the
@@ -256,6 +324,11 @@ def main() -> int:
     parser.add_argument("--language", default="auto")
     parser.add_argument("--device", default="cpu")
     parser.add_argument("--probe", action="store_true", help="capability probe only")
+    parser.add_argument("--window-plan", default=None,
+                        help="JSON window plan from window_plan.plan_windows(); runs one bounded window per invocation")
+    parser.add_argument("--ffmpeg", default=None, help="declared ffmpeg path used to cut a window")
+    parser.add_argument("--window-staging", default=None,
+                        help="directory holding finished windows so a later invocation resumes instead of repeating")
     args = parser.parse_args()
 
     if args.probe:
@@ -264,6 +337,19 @@ def main() -> int:
     if not args.input:
         print(json.dumps({"error": "usage: worker_transcribe.py <input-file> [options]"}))
         return 2
+    if args.window_plan:
+        if not args.ffmpeg:
+            print(json.dumps({"error": "--window-plan requires --ffmpeg"}, ensure_ascii=False))
+            return 2
+        try:
+            out = extract_windowed(args.input, args.model_dir, args.language, args.device,
+                                   json.loads(Path(args.window_plan).read_text(encoding="utf-8")),
+                                   args.ffmpeg, args.window_staging)
+        except Exception as exc:  # noqa: BLE001
+            print(json.dumps({"error": str(exc)}, ensure_ascii=False))
+            return 1
+        print(json.dumps(out, ensure_ascii=False))
+        return 0
     try:
         out = extract(args.input, args.model_dir, args.language, args.device)
     except Exception as exc:  # noqa: BLE001
