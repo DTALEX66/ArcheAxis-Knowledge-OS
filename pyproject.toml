@@ -82,6 +82,10 @@ ci-adapters = [
     "readabilipy>=0.3",
     "trafilatura>=1.6",
     "youtube-transcript-api>=1.2",
+    # The RTF reader in the light-format worker (R15/F13). Without it the CI lanes install no
+    # engine and the RTF case can only skip, which is how the xlsx worker once failed with
+    # AAK-WORKER-003 instead.
+    "striprtf>=0.0.32",
 ]
 # The MCP surface: scripts/mcp/archeaxis_mcp_server.py serves ArcheAxis capabilities to an
 # external MCP client, and scripts/probes/r11_mcp_client_smoke.py drives it with the official

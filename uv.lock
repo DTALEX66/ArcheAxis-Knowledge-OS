@@ -338,6 +338,7 @@ ci-adapters = [
     { name = "pymupdf" },
     { name = "rapidocr-onnxruntime", marker = "python_full_version < '3.13'" },
     { name = "readabilipy" },
+    { name = "striprtf" },
     { name = "trafilatura" },
     { name = "youtube-transcript-api" },
 ]
@@ -427,6 +428,7 @@ ci-adapters = [
     { name = "pymupdf", specifier = ">=1.24" },
     { name = "rapidocr-onnxruntime", marker = "python_full_version < '3.13'", specifier = ">=1.4" },
     { name = "readabilipy", specifier = ">=0.3" },
+    { name = "striprtf", specifier = ">=0.0.32" },
     { name = "trafilatura", specifier = ">=1.6" },
     { name = "youtube-transcript-api", specifier = ">=1.2" },
 ]
