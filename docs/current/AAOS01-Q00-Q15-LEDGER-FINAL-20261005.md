@@ -425,6 +425,15 @@ a11 真实 Tauri 窗口旅程 `aaos01-webdriver/e4236d2bedb44a5882f2c03b480feb08
 
 **权威 runner 的绑定条件（已追到代码，非猜测）**：`dev.py:97 external_toolchain()` 只在环境里**注册了根**时才生效（读 `OS_EXTERNAL_CONFIG` / `ARCHEAXIS_EXTERNAL_ROOT`，`dev.py:110-116`；无根即返回 `{}`）；发现到的 MSVC/Rust/TESSDATA_PREFIX/PATH 由 `environment()` 在 `:266` 合并，子进程以 `env = dict(os.environ)` 继承后覆盖（`:413` / `:467`），所以**操作者自己导出即可生效**。本机这两个变量实测均为 None ⇒ `run_tests.sh --full` 会静默跳过这些格式用例，`cargo_test.bat` 也必须手工传参——这不是工具缺失，也不是代码缺陷。仓库自己的索引 `config/environment/external-resources-index.json` 已记录根路径且 `root_present: true`，但 dev.py **有意**不信任它：两个测试把该契约钉住（`test_no_registered_root_discovers_nothing` 断言无根时返回 `{}`；`test_complete_root_discovers_all_four` 断言键集合恰为四项）。因此"让权威 runner 自动回退到索引"是一次**契约变更决定**，不是可顺手改的实现细节；在此之前，本地覆盖率取决于是否导出 `ARCHEAXIS_EXTERNAL_ROOT`。
 
+## 追加清理：未被引用的 rt-before-* 快照（2026-10-06）
+
+按 `REPOSITORY-LAYOUT-AND-RETENTION-20261006.md` §4（逐项清单 + 可恢复保留点）删除三条**未被任何提交引用**的 before 快照，保留点由结构保证：每条都是 *before* 状态，其 *after* 状态是仍在的 `rt`。
+
+- 守卫：对精确相对路径做 `git grep -F`（三条均 0 命中）、同目录的继任者 `rt` 必须存在、目录内不得有 `.git`；删除用 `\\?\` 扩展路径（这些树含深 site-packages，普通 rmtree 在 Windows 会上 MAX_PATH）。
+- 删除：`rt-before-longpath-fix`(627.3 MB/20,585 文件)、`rt-before-expanded-720`(608.8 MB/19,559)、`rt-before-codex-20261005`(81.3 MB/2,769)，共 **1.29 GB**。审计清单 `.project-local/task-runtime/rt-before-prune-audit-20261006.json`。
+- **保留（被引用即不动）**：`rt`(651M，继任者)、`legacy-scratch-20261006`（台账与清理交接文档引用）、`a1`/`a10`/`a1-python-input`（交接与探测记录引用）。
+- **量测口径提示**：本批后 `du -sh` 读出工作树开发根 39G、主仓开发根 41G，而更早几轮同命令读出过 113G 与 79G。差额中一部分是真实删除，另一部分是 `du` 在**权限拒绝子目录**上的行为差异（本机 23 个 WinError 5 目录无法枚举）。故此处只登记**已删条目与其字节数**，不据此宣称开发根的精确总量；总量应以 `scripts/runtime/storage_report.py` 的分类结果为准。
+
 ## Q11 旧库迁移的验收与回滚口径（2026-10-06 草案，待 Owner 裁决）
 
 把"仍需定义"的部分写成可裁决条目；依据是本轮实跑的迁移包断言（见 Q11 行）。**本轮未对 Owner 任何真实旧库执行迁移**，本节不冒认执行。
