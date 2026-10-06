@@ -17,22 +17,22 @@
 
 | ID | 能力范围（蓝图 §4） | 输入章节 | 记录值（V3 行） | 本轮找到的实现/测试证据 | 下一步 / 阻塞 |
 | --- | --- | --- | --- | --- | --- |
-| CAP-0010 | 原件资产与来源接入 | 5、6、16 | `binding_core / supported`（96/98） | 未在轮内单独复跑；来源导入与原件读取有既有测试目录 | 取证待补：按 `tests/` 中来源导入用例逐项登记 |
-| CAP-0020 | 多格式转换 | 6 | `binding_core / in_progress`（104/107） | 轮内复跑格式/路由套件 `tests/test_format_matrix.py`、`test_format_execution_v1.py`、`test_multiformat_extraction.py`、`tests/workers/test_text_ndjson.py` → **47 passed + 47 subtests** | 音视频仅头信息探测（见审计更正）；ASR 已实现分段执行但未在安装态验收 |
-| CAP-0030 | 证据锚定与交叉核验 | 3、7、11 | `binding_core / supported`（114/116） | 未在轮内单独复跑 | 取证待补；识别忠实度与专业依据须分别登记 |
-| CAP-0040 | 人类深度学习系统 | 8 | `binding_core / in_progress`（123/125） | 未在轮内单独复跑 | 诊断/路线/迁移/元认知的分项状态待登记 |
-| CAP-0050 | AI 学习资产与受控调用 | 9 | `binding_long_term / planned`（132/134） | 无 | 仅目标 |
-| CAP-0060 | LER 视觉教学与课件 | 10 | `binding_long_term / planned`（141/143） | 无 | 仅目标 |
-| CAP-0070 | 动态解释与仿真 | 10 | `binding_long_term / planned`（150/152） | 无 | 仅目标 |
-| CAP-0080 | 空间记忆与沉浸学习 | 12 | `binding_long_term / planned`（159/161） | 无 | 仅目标；3D/XR 为保留的长期能力 |
-| CAP-0090 | 研究、课程与项目空间 | 11 | `binding_long_term / planned`（168/170） | 无 | 仅目标 |
+| CAP-0010 | 原件资产与来源接入 | 5、6、16 | `binding_core / supported`（96/98） | 轮内复跑 `tests/test_vault_restore_api.py` + `test_vault_search_api.py` + `test_vault_write_api.py` → **16 passed，exit 0** | 其余来源接入/原件保全用例待登记；本行只登记已实测部分 |
+| CAP-0020 | 多格式转换 | 6 | `binding_core / in_progress`（104/107） | 轮内复跑 `tests/test_format_execution_v1.py` + `test_format_matrix.py` + `test_multiformat_extraction.py` + `test_format_intake_probe.py` → **34 passed，exit 0**（另加 `tests/workers` 146 项 unittest 全通过） | 音视频仅头信息探测（审计更正 §3）；ASR 分段执行为真实引擎但未安装态验收 |
+| CAP-0030 | 证据锚定与交叉核验 | 3、7、11 | `binding_core / supported`（114/116） | 轮内复跑 `tests/test_evidence_anchor.py` + `test_evidence_bundle.py` + `test_evidence_bundle_ledger.py` + `test_evidence_commands.py` + `test_anchor_and_loss_probe.py` → **47 passed，exit 0** | 识别忠实度与专业依据须继续分别登记，不得合并为单一可信度 |
+| CAP-0040 | 人类深度学习系统 | 8 | `binding_core / in_progress`（123/125） | 轮内复跑 `tests/test_learning_api_security.py` + `test_learning_artifact_card_projection.py` + `test_learning_artifact_contract.py` + `test_learning_event_store.py` → **21 passed，exit 0** | 诊断/路线/迁移/元认知仍未逐项取证；FSRS 不等于掌握或真值 |
+| CAP-0050 | AI 学习资产与受控调用 | 9 | `binding_long_term / planned`（132/134） | 轮内复跑 `tests/test_machine_actor_refusal_probe.py` + `test_machine_growth_v1.py` + `test_machine_knowledge_candidates.py` + `test_machine_knowledge_contract.py` → **21 passed，exit 0** | AI 资产/评测/认可/回流/撤回中仅候选与合同有实测，评测与回流未取证 |
+| CAP-0060 | LER 视觉教学与课件 | 10 | `binding_long_term / planned`（141/143） | 本轮未找到该能力的独立套件，故不填证据（状态一栏仍为记录值，不代表已验证） | 待登记：找到对应套件后再填，或明确记录该能力当前没有套件 |
+| CAP-0070 | 动态解释与仿真 | 10 | `binding_long_term / planned`（150/152） | 本轮未找到该能力的独立套件，故不填证据（状态一栏仍为记录值，不代表已验证） | 待登记：找到对应套件后再填，或明确记录该能力当前没有套件 |
+| CAP-0080 | 空间记忆与沉浸学习 | 12 | `binding_long_term / planned`（159/161） | 本轮未找到该能力的独立套件，故不填证据（状态一栏仍为记录值，不代表已验证） | 待登记：找到对应套件后再填，或明确记录该能力当前没有套件 |
+| CAP-0090 | 研究、课程与项目空间 | 11 | `binding_long_term / planned`（168/170） | 本轮未找到该能力的独立套件，故不填证据（状态一栏仍为记录值，不代表已验证） | 待登记：找到对应套件后再填，或明确记录该能力当前没有套件 |
 | CAP-0100 | 开放互操作与生态适配 | 13 | `binding_core / in_progress`（177/179） | 无（首互通 profile 属 Q10，见 B 组） | 仅目标 |
-| CAP-0110 | 搜索、图谱与索引 | 7 | `binding_core / in_progress`（186/188） | 未在轮内单独复跑 | 图谱/双链增量按 U02 属研究方向，未认定已实现 |
-| CAP-0120 | 桌面、平台与可选协作 | 14、16 | `binding_core / in_progress`（195/197） | 轮内复跑布局门禁与浏览器 smoke（见快照） | 正式宿主见 `AUTHORITY.md` §6（SUP-022） |
-| CAP-0130 | 受限受控执行探索 | 16 | `exploration / planned`（204/206） | 无 | 仅目标；不得扩为通用 Agent OS |
-| CAP-0140 | 备份、同步与发布 | 16、17 | `binding_long_term / in_progress`（213/215） | 未在轮内单独复跑 | 备份/恢复有既有实现，Q11 见 B 组 |
-| CAP-0150 | 模型、Provider 与数据出境治理 | 9、15、16 | `binding_long_term / planned`（222/224） | 无 | 仅目标 |
-| CAP-0160 | 可视化与空间学习表征 | 7、10、12 | `binding_long_term / planned`（231/233） | 无 | 仅目标 |
+| CAP-0110 | 搜索、图谱与索引 | 7 | `binding_core / in_progress`（186/188） | 轮内复跑 `tests/test_search_b05_contract.py` + `tests/test_graph_community.py` + `test_graph_index.py` + `test_graph_pipeline.py` + `test_graph_rag.py` → **22 passed，exit 0** | 图谱/双链增量按 U02 属研究方向；多跳 GraphRAG/探索未取证 |
+| CAP-0120 | 桌面、平台与可选协作 | 14、16 | `binding_core / in_progress`（195/197） | 轮内复跑 `scripts/a0_browser_smoke.py`（真实 Chromium 六档视口）**PASS**，`tests/workflow/test_workspace_layout_contract.py` 4 passed；见本轮快照 | 正式宿主见 `AUTHORITY.md` §6（SUP-022）；安装态与具体设备未取证 |
+| CAP-0130 | 受限受控执行探索 | 16 | `exploration / planned`（204/206） | 本轮未找到该能力的独立套件，故不填证据（状态一栏仍为记录值，不代表已验证） | 待登记：找到对应套件后再填，或明确记录该能力当前没有套件 |
+| CAP-0140 | 备份、同步与发布 | 16、17 | `binding_long_term / in_progress`（213/215） | 轮内复跑 `tests/test_backup.py` + `test_backup_leaves_library_untouched.py` + `test_backup_restore_probe.py` → **18 passed，exit 0**（另 Q11 见 B 组） | 真实副本恢复与身份核对有实现；跨设备同步未取证 |
+| CAP-0150 | 模型、Provider 与数据出境治理 | 9、15、16 | `binding_long_term / planned`（222/224） | 本轮未找到该能力的独立套件，故不填证据（状态一栏仍为记录值，不代表已验证） | 待登记：找到对应套件后再填，或明确记录该能力当前没有套件 |
+| CAP-0160 | 可视化与空间学习表征 | 7、10、12 | `binding_long_term / planned`（231/233） | 轮内复跑 `tests/test_canvas_projection.py` → **1 passed，exit 0** | 画布投影有实测；学习地图与空间投影未取证 |
 
 另：`docs/authority/taskpack-1004-aaos01/registries/capability_handoff.json` 对上述 16 项一律记 `implementation_status: UNVERIFIED`、
 `runtime_status: NOT_CHECKED`（CAP-0010 起每 11 行一条）。它是**交接登记**而非进度记录，故不与上表冲突；引用时须标明出处。
@@ -57,7 +57,7 @@
 | Q11 | 一致备份与副本恢复 | `INSTALLED_RUNTIME_VERIFIED / PARTIAL`（84） | — | — |
 | Q12 | 轻量格式增补 | `INSTALLED_RUNTIME_VERIFIED / PARTIAL`（85） | — | — |
 | Q13 | 性能与故障 | `TESTED_LOCAL / PARTIAL`（86） | — | — |
-| Q14 | Windows 安装态资格 | `INSTALLED_RUNTIME_VERIFIED / PARTIAL`（87） | **更正记录为 `NOT_RUN`**（更正文件第 74 行），且未做人工视觉确认 | **冲突未决**：账本与更正不一致，按更正从严；安装态资格不得声明已过 |
+| Q14 | Windows 安装态资格 | `INSTALLED_RUNTIME_VERIFIED / PARTIAL`（87） | 更正文件（2026-10-05）记 `NOT_RUN`，那是**当时**的状态；账本第 5/87 行记的是其后的证据（固定 SHA `578d06b7…` / run `37399470467` 全 20 job SUCCESS、artifact `11385093136` 的 21 步原生收据、NSIS host SHA `00b7ba9b…`） | 二者是**同一事项的不同日期，不是冲突**。仍然成立的是：不可变 `checks/acceptance.json` 记 `NOT_RUN`，旧默认入口、物理 IME、真人 Owner 未验收——**资格化未达成、不发行** |
 | Q15 | 第一包收口与未来交接 | `PARTIAL`（88） | — | — |
 
 冲突情况：`docs/authority/taskpack-1004-aaos01/registries/tasks.json` 对 Q00—Q15 一律记 `"status": "NOT_RUN"`。
@@ -106,7 +106,7 @@
 ## E. 本轮登记的缺口（不掩盖）
 
 1. A 组多数 CAP 只有记录状态、没有轮内复跑证据；已逐行写明"取证待补"，未用链接冒充。
-2. Q14 的账本与更正记录不一致，属**未决冲突**，已按从严口径标注。
+2. Q14 初稿被我标为「未决冲突」，**经核实不是冲突**：更正文件是 2026-10-05 的状态，账本记录的是其后的证据；此处保留该更正，以免把日期序列误读成两条互相否定的记录。资格化仍未达成（`checks/acceptance.json` 仍 `NOT_RUN`）。
 3. 蓝图附录 8 条来源中 5 条 SOURCE_MISSING（A01、A02、A04、A06 及 U01/U02 的原始聊天），见 `AAOS-INPUT-SOURCES-20261006.json`；
    本表未据未读文件作任何判断。
 4. I1—I6 与 F00—F14 无实现证据，属目标而非进度。

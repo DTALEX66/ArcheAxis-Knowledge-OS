@@ -72,8 +72,8 @@
   ],
   "gaps": [
     "蓝图附录 5 条来源在 SOURCE_MISSING：A01、A02、A04、A06 与 U01/U02 的原始聊天（未导出）——见 docs/current/AAOS-INPUT-SOURCES-20261006.json；未据未读文件作任何判断",
-    "Q14 冲突未决：唯一实时账本记 `INSTALLED_RUNTIME_VERIFIED / PARTIAL`，审计更正记 `NOT_RUN`；本表按从严口径标注，未擅自改判",
-    "A 组多数 CAP 只有记录状态、无轮内复跑证据，覆盖矩阵已逐行写明取证待补",
+    "Q14 经核实不是冲突而是日期序列：更正文件（2026-10-05）记 NOT_RUN，账本第 5/87 行记其后证据（run 37399470467 全 20 job SUCCESS、artifact 11385093136 的 21 步原生收据、NSIS host SHA 00b7ba9b…）；不可变 checks/acceptance.json 仍为 NOT_RUN，资格化未达成、不发行（初稿误标为冲突，已更正）",
+    "A 组 9 项 CAP（CAP-0010/0020/0030/0040/0050/0110/0120/0140/0160）已按套件实测取证并写入矩阵（各 exit 0，合计 180 passed）；其余 CAP 仍只有记录状态、无轮内独立套件，矩阵已逐行写明未取证",
     "F00—F14 与 I1—I6 均无实现证据，属目标"
   ],
   "about": {
@@ -136,5 +136,18 @@
       "merge / release / install remain unauthorized and undone"
     ],
     "next_action": "file per-CAP run evidence into the coverage matrix rows, starting with the capability families that already have suites (multi-format, search, backup)"
+  },
+  "verification": {
+    "capability_family_runs": {
+      "CAP-0010-vault-source": "16 passed, exit 0",
+      "CAP-0020-multiformat": "34 passed, exit 0",
+      "CAP-0030-evidence": "47 passed, exit 0",
+      "CAP-0040-learning": "21 passed, exit 0",
+      "CAP-0050-ai-assets": "21 passed, exit 0",
+      "CAP-0110-search-graph": "22 passed, exit 0",
+      "CAP-0140-backup": "18 passed, exit 0",
+      "CAP-0160-canvas": "1 passed, exit 0",
+      "total": "180 passed, every family exit 0"
+    }
   }
 }
