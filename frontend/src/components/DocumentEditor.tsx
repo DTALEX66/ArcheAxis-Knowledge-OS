@@ -58,6 +58,7 @@ export function DocumentEditor({ content, version, onSave, onDirtyChange, onCrea
   const [changes, setChanges] = useState(0);
   const composing = useRef(false);
   const saving = useRef(false);
+  const citing = useRef(false);
   const currentVersion = useRef(version);
   const mounted = useRef(true);
   const callbacks = useRef({ onSave, onDirtyChange, onCreateReference, onReferenceActivate });
@@ -118,10 +119,13 @@ export function DocumentEditor({ content, version, onSave, onDirtyChange, onCrea
     } finally { saving.current = false; }
   }
   async function cite() {
+    if (citing.current) return;
+    citing.current = true;
     try {
       const reference = await callbacks.current.onCreateReference?.();
       if (reference && mounted.current) editor?.chain().focus().insertContent(reference).run();
     } catch { setStatus("引用尚未保存；请重试。"); setFailure(true); }
+    finally { citing.current = false; }
   }
   useEffect(() => {
     if (!changes) return;

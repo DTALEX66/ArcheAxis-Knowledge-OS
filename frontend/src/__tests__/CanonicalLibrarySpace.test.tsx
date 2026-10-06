@@ -145,6 +145,20 @@ describe("canonical content sample", () => {
     expect(screen.queryByText("文档读取未完成；当前内容仍保留。")).not.toBeInTheDocument();
     expect(screen.getByText("文档已读取；保存不要求来源引用或审核。")).toBeInTheDocument();
   });
+  it("SIMULATED: a second click during an in-flight note creation issues exactly one write", async () => {
+    const previous = bridge.call.getMockImplementation()!;
+    let resolveCreate!: (value: unknown) => void;
+    bridge.call.mockImplementation((op: string, payload: Record<string, unknown>) =>
+      op === "document_create" ? new Promise((done) => { resolveCreate = done; }) : previous(op, payload));
+    render(<CanonicalLibrarySpace />);
+    const user = userEvent.setup();
+    const button = await screen.findByRole("button", { name: "新建原创笔记" });
+    await user.click(button);
+    expect(button).toBeDisabled();
+    fireEvent.click(button);
+    await act(async () => { resolveCreate({ ...doc, document_id: "created_once", title: "原创笔记" }); });
+    expect(bridge.call.mock.calls.filter(([op]) => op === "document_create")).toHaveLength(1);
+  });
   it("does not let a late original creation discard newly edited text",async()=>{
     let complete!:(value:unknown)=>void;
     const previous=bridge.call.getMockImplementation()!;

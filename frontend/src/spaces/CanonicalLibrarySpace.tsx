@@ -40,6 +40,8 @@ export function CanonicalLibrarySpace({onKnowledge,initialDocumentId,onDirtyChan
   const [exportProof, setExportProof] = useState<DocumentExportDto | null>(null);
   const revisionBasis = useRef<RevisionBasisDto | null>(null);
   const dirty = useRef(false);
+  const writeInFlight = useRef(false);
+  const [busy, setBusy] = useState(false);
   const editGeneration = useRef(0);
   const generation = useRef(0);
   const textRegion = useRef<HTMLPreElement>(null);
@@ -163,6 +165,13 @@ export function CanonicalLibrarySpace({onKnowledge,initialDocumentId,onDirtyChan
       setEditorEpoch(value => value + 1); dirty.current = false; setMessage("原创笔记已建立。"); setFailure(false);
       onDirtyChange?.(false); window.dispatchEvent(new CustomEvent("archeaxis-draft-dirty", { detail: false }));
     } catch { setMessage("原创笔记建立未确认；请重试。"); setFailure(true); }
+  }
+  // A second click during an in-flight create/restore/export would persist a duplicate
+  // document, version, or export, so only one such write may be outstanding.
+  async function singleWrite(action: () => Promise<unknown>) {
+    if (writeInFlight.current) return;
+    writeInFlight.current = true; setBusy(true);
+    try { await action(); } finally { writeInFlight.current = false; setBusy(false); }
   }
   async function create() {
     if (!source || !original || !bytes) return;
@@ -312,19 +321,19 @@ export function CanonicalLibrarySpace({onKnowledge,initialDocumentId,onDirtyChan
             })}
           </aside>
         </div>
-        {!document ? <button type="button" onClick={() => void create()}>建立版本化草稿</button> : null}
+        {!document ? <button type="button" disabled={busy} onClick={() => void singleWrite(create)}>建立版本化草稿</button> : null}
       </div> : <p className="muted">选择一个原件开始阅读。</p>}
     </div>
-    <button type="button" onClick={() => void createOriginal()}>新建原创笔记</button>
+    <button type="button" disabled={busy} onClick={() => void singleWrite(createOriginal)}>新建原创笔记</button>
     <nav ref={documentNavigation} tabIndex={-1} aria-label="已保存文档">{documents.map(item => <button type="button" key={item.document_id} onClick={() => void openDocument(item.document_id)}>{item.title} · 文档</button>)}</nav>
     {!source && navigation?.section === "anchors" ? <section ref={anchorNavigation} tabIndex={-1} aria-label="来源版本证据"><p>请先选择实际来源原件；原创笔记可以没有来源锚点。</p></section> : null}
     {!document && navigation?.section === "versions" ? <div ref={versionNavigation} tabIndex={-1} aria-label="文档版本导航"><p>请先选择已保存文档，再查看它的历史版本。</p></div> : null}
         {document ? <>
           <DocumentEditor key={`${document.document_id}:${editorEpoch}`} content={document.editor_json as JSONContent} version={document.version} onSave={save} onDirtyChange={(value) => { dirty.current = value; if(value)editGeneration.current+=1; onDirtyChange?.(value); window.dispatchEvent(new CustomEvent("archeaxis-draft-dirty", { detail: value })); }} onCreateReference={source && original && bytes ? cite : undefined} onReferenceActivate={jump} />
           <CheckPanel key={`checks:${document.document_id}:${document.version}`} document={document} onRevisionBasis={value=>{revisionBasis.current=value;}} />
-          <div ref={versionNavigation} tabIndex={-1} aria-label="文档版本导航" className="draft-restore"><label>恢复历史版本 <input type="number" min="1" max={document.version} value={restoreVersion} onChange={(event) => setRestoreVersion(event.target.value)} /></label><button type="button" onClick={() => void readHistory()}>只读查看历史版本</button><button type="button" onClick={() => void restore()}>读取并恢复版本</button></div>
+          <div ref={versionNavigation} tabIndex={-1} aria-label="文档版本导航" className="draft-restore"><label>恢复历史版本 <input type="number" min="1" max={document.version} value={restoreVersion} onChange={(event) => setRestoreVersion(event.target.value)} /></label><button type="button" onClick={() => void readHistory()}>只读查看历史版本</button><button type="button" disabled={busy} onClick={() => void singleWrite(restore)}>读取并恢复版本</button></div>
           {historicalDocument?.document_id===document.document_id?<section aria-label="历史版本详情"><h4>历史版本 {historicalDocument.version}</h4><pre>{historicalDocument.text_projection}</pre>{historicalDocument.revision_basis?<details><summary>历史修订依据</summary><pre>{JSON.stringify(historicalDocument.revision_basis,null,2)}</pre></details>:<p>此版本没有记录修订依据。</p>}<button type="button" onClick={()=>{historyGeneration.current+=1;setHistoricalDocument(null);}}>关闭历史详情</button></section>:null}
-          <div><button type="button" onClick={()=>void exportDocument("markdown")}>Markdown 导出到产品资料目录</button><button type="button" onClick={()=>void exportDocument("obsidian")}>Obsidian 包导出到产品资料目录</button></div>
+          <div><button type="button" disabled={busy} onClick={()=>void singleWrite(()=>exportDocument("markdown"))}>Markdown 导出到产品资料目录</button><button type="button" disabled={busy} onClick={()=>void singleWrite(()=>exportDocument("obsidian"))}>Obsidian 包导出到产品资料目录</button></div>
           {exportProof?<details><summary>导出格式与损失回执</summary><pre>{JSON.stringify(exportProof,null,2)}</pre></details>:null}
         </> : null}
     {message ? <p role={failure ? "alert" : "status"}>{message}</p> : null}
