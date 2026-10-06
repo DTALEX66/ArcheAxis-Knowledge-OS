@@ -70,6 +70,7 @@ pub enum Operation {
     LearningReference,
     MachineAnswer,
     MachineCorrection,
+    MachineRetest,
     MachineTaskGet,
     SourceJobTransform,
     KnowledgeFromTransform,
@@ -278,6 +279,7 @@ fn route(request: &Request) -> Result<(&'static str, String, Option<Value>), Str
         LearningReview => ("POST", "/api/v1/learning/reviews".into(), Some(body()?)),
         MachineAnswer => ("POST", "/api/v1/machine/answers".into(), Some(body()?)),
         MachineCorrection => ("POST", "/api/v1/machine/corrections".into(), Some(body()?)),
+        MachineRetest => ("POST", "/api/v1/machine/retests".into(), Some(body()?)),
         MachineTaskGet => (
             "GET",
             format!("/api/v1/machine/tasks/{}", id(p, "task_id")?),
@@ -426,6 +428,7 @@ fn transport_timeout(operation: &Operation) -> std::time::Duration {
         // transport cleanup; keep a finite margin for durable readback.
         Operation::DocumentCheckExecute => 160,
         Operation::MachineAnswer => 135,
+        Operation::MachineRetest => 135,
         Operation::WorkspaceBackup => 120,
         // The Core caps a job deadline at 300 seconds and the reader polls for 310; real media
         // jobs run past both, so the transport must outlive them.
@@ -675,6 +678,30 @@ mod tests {
             .unwrap();
             assert!(route(&request).is_err());
         }
+    }
+
+    #[test]
+    fn machine_retest_is_a_fixed_core_route_with_bounded_transport_time() {
+        let body = serde_json::json!({
+            "retest_of":"evaluation_answer123",
+            "knowledge_id":"correction123",
+            "question":"same question",
+            "max_tokens":2048,
+            "timeout_s":120
+        });
+        let request = serde_json::from_value::<Request>(serde_json::json!({
+            "operation": "machine_retest",
+            "payload": {"body": body}
+        }))
+        .unwrap();
+        let (method, path, actual_body) = route(&request).unwrap();
+        assert_eq!(method, "POST");
+        assert_eq!(path, "/api/v1/machine/retests");
+        assert_eq!(actual_body, Some(body));
+        assert_eq!(
+            transport_timeout(&request.operation),
+            std::time::Duration::from_secs(135)
+        );
     }
 }
 

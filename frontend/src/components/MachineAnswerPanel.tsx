@@ -20,6 +20,8 @@ export function MachineAnswerPanel({ knowledgeId }: { knowledgeId: string }) {
   const [reviewNote, setReviewNote] = useState("");
   const [correction, setCorrection] = useState<Record<string, unknown> | null>(null);
   const [candidate, setCandidate] = useState<Record<string, unknown> | null>(null);
+  const [retest, setRetest] = useState<Record<string, unknown> | null>(null);
+  const [retestTask, setRetestTask] = useState<unknown>(null);
   const [message, setMessage] = useState("");
   const [busy, setBusy] = useState(false);
   const alive = useRef(true);
@@ -37,7 +39,7 @@ export function MachineAnswerPanel({ knowledgeId }: { knowledgeId: string }) {
 
   async function ask() {
     if (!question.trim() || busy) return;
-    setBusy(true); setAnswer(null); setTask(null); setCorrection(null); setCandidate(null);
+    setBusy(true); setAnswer(null); setTask(null); setCorrection(null); setCandidate(null); setRetest(null); setRetestTask(null);
     setCorrected(""); setNote(""); setReviewNote(""); setMessage("正在执行本地机器回答，等待真实回执…");
     try {
       const response = record(await coreCommand("machine_answer", { body: { knowledge_id: knowledgeId, question: question.trim(), max_tokens: 2048, timeout_s: 120 } }));
@@ -67,7 +69,7 @@ export function MachineAnswerPanel({ knowledgeId }: { knowledgeId: string }) {
         || receipt.corrects_knowledge_id !== knowledgeId || receipt.question !== answer.question
         || receipt.machine_answer !== record(answer.answer).answer || receipt.corrected_answer !== corrected.trim()
         || receipt.error_note !== note.trim() || receipt.reviewer !== correctionAuthor.trim()
-        || typeof receipt.correction_candidate_id !== "string") throw new Error("invalid correction receipt");
+        || typeof receipt.correction_candidate_id !== "string" || typeof receipt.failed_task_id !== "string") throw new Error("invalid correction receipt");
       if (!alive.current) return;
       setCorrection(receipt);
       const value = await readCandidate(receipt.correction_candidate_id);
@@ -112,6 +114,34 @@ export function MachineAnswerPanel({ knowledgeId }: { knowledgeId: string }) {
     finally { if (alive.current) setBusy(false); }
   }
 
+  async function runIndependentRetest() {
+    if (!answer || !correction || !candidate || candidate.status !== "accepted" || retest || busy) return;
+    const failedTaskId = correction.failed_task_id;
+    const candidateId = String(candidate.knowledge_id);
+    const originalQuestion = String(answer.question);
+    const request = { retest_of: failedTaskId, knowledge_id: candidateId, question: originalQuestion, max_tokens: 2048, timeout_s: 120 };
+    setBusy(true); setMessage("正在以已审核纠正知识重答原问题；Core 回执与任务读回确认前不显示为完成…");
+    try {
+      const response = record(await coreCommand("machine_retest", { body: request }));
+      const machine = record(response.answer);
+      if (response.schema !== "archeaxis.machine-retest/v1" || response.retest_of !== failedTaskId
+        || response.knowledge_id !== candidateId || response.question !== originalQuestion
+        || response.authority !== "candidate" || typeof response.retest_task_id !== "string"
+        || typeof machine.answer !== "string" || !machine.answer.trim()) throw new Error("invalid retest receipt");
+      const proof = record(await coreCommand("machine_task_get", { task_id: response.retest_task_id }));
+      if (proof.task_id !== response.retest_task_id || typeof proof.conditions !== "string") throw new Error("invalid retest readback");
+      const stored = record(JSON.parse(proof.conditions));
+      if (stored.retest_of !== failedTaskId || stored.knowledge_id !== candidateId
+        || record(stored.answer).answer !== machine.answer || proof.outcome !== "unmeasured") throw new Error("retest identity or outcome mismatch");
+      if (alive.current) {
+        setRetest(response); setRetestTask(proof);
+        setMessage("Core 独立复测回执与持久化任务读回一致；复测结果仍是未测评候选，请真人对照两次回答。没有自动判定改进。");
+      }
+    } catch {
+      if (alive.current) setMessage("复测未完成或持久化读回未确认。保留纠正与原失败回执；可重试同一绑定请求，不能据此宣称完成。");
+    } finally { if (alive.current) setBusy(false); }
+  }
+
   return <section aria-label="知识到机器回答">
     <h4>基于当前知识的本地回答</h4>
     <label>实际问题 <textarea value={question} disabled={busy} onChange={event => setQuestion(event.target.value)} /></label>
@@ -149,7 +179,19 @@ export function MachineAnswerPanel({ knowledgeId }: { knowledgeId: string }) {
         <button disabled={busy || candidate.status !== "candidate" || !reviewer.trim() || !reviewNote.trim()} onClick={() => void reviewCorrection("rejected")}>拒绝纠正候选</button>
         <button disabled={busy} onClick={() => void reloadCandidate()}>重新读取审核版本</button>
         <button disabled={busy || candidate.status !== "accepted" || !reviewer.trim() || !reviewNote.trim()} onClick={() => void reviewCorrection("deprecated")}>撤回已接受纠正（标记为弃用）</button>
-        {candidate.status === "accepted" ? <p>独立复测暂不可用：当前桌面有限命令未暴露 Core `machine_retests` 操作。接受候选不等同复测通过。</p> : null}
+        {candidate.status === "accepted" ? <>
+          <p>已审核知识可用于重答原问题。Core 会校验先前失败任务和知识修订 lineage；接受知识本身不等同复测通过。</p>
+          <button disabled={busy || Boolean(retest)} onClick={() => void runIndependentRetest()}>{retest ? "独立复测已记录" : "以已接受纠正知识运行独立复测"}</button>
+          {retest ? <section aria-label="独立复测结果对照">
+            <h4>独立复测结果对照</h4>
+            <dl><div><dt>复测任务</dt><dd>{String(retest.retest_task_id)}</dd></div><div><dt>绑定失败任务</dt><dd>{String(retest.retest_of)}</dd></div><div><dt>作答知识 ID</dt><dd>{String(retest.knowledge_id)}</dd></div><div><dt>候选审核读回版本</dt><dd>{String(candidate.version)}</dd></div><div><dt>评价状态</dt><dd>未测评；等待真人比较</dd></div></dl>
+            <h5>原机器回答（失败样本）</h5><pre>{String(record(answer.answer).answer)}</pre>
+            <h5>纠正后复测回答（候选）</h5><pre aria-label="独立复测机器回答">{String(record(retest.answer).answer)}</pre>
+            <p>Core 仅记录独立复测及其失败任务绑定，不自动推断纠正有效；真人比较结果尚未记录。</p>
+            <RawReceiptButton label="复测任务持久化回执" payload={retestTask} />
+            <RawReceiptButton label="机器复测回执" payload={retest} />
+          </section> : null}
+        </> : null}
       </section> : null}
     </> : null}
   </section>;
