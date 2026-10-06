@@ -231,6 +231,12 @@ ROUTES = {
             "application/toml",
             "application/epub+zip",
             "message/rfc822",
+            # R15/F13: the Core names these for the text route, and this worker reads them;
+            # a one-sided list would make the product promise a format it then rejects here.
+            "application/vnd.oasis.opendocument.text",
+            "application/vnd.oasis.opendocument.spreadsheet",
+            "application/vnd.oasis.opendocument.presentation",
+            "application/rtf",
         },
         "call": "path",
         # R15/F01: this worker derives format facts from the declared media type, so

@@ -9,6 +9,8 @@ the lockfile, and every rejection is an error rather than an empty success.
 import importlib.util
 import io
 import os
+import sys
+import tempfile
 import unittest
 import zipfile
 from pathlib import Path
@@ -118,6 +120,10 @@ class LightFormatOdfRtfTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             self.light.parse(buffer.getvalue(), ODT)
 
+    @unittest.skipUnless(
+        importlib.util.find_spec("striprtf") is not None,
+        "striprtf is absent in this lane; the engine-less case below still runs",
+    )
     def test_rtf_projection_drops_control_words_and_anchors_paragraphs(self):
         source = ("{\\rtf1\\ansi\\deff0 {\\fonttbl{\\f0 Times;}}\n"
                   "\\f0\\fs24 星环第一段\\par\\par 第二段正文\\par}")
@@ -132,6 +138,55 @@ class LightFormatOdfRtfTests(unittest.TestCase):
 
     def test_an_unnamed_media_type_is_still_not_claimed(self):
         self.assertIsNone(self.light.parse(b"whatever", "application/vnd.oasis.opendocument.graphics"))
+
+
+    def test_the_text_route_delegates_an_odt_instead_of_decoding_it_as_text(self):
+        """Reach the reader the way a job does: through worker_text's media dispatch.
+
+        Calling the light-format parser directly would not prove the route accepts the type, and
+        the Core's list and the transport's list are two different tables."""
+        spec = importlib.util.spec_from_file_location(
+            "worker_text", LIGHT.parent / "worker_text.py"
+        )
+        worker_text = importlib.util.module_from_spec(spec)
+        sys.modules["worker_text"] = worker_text
+        spec.loader.exec_module(worker_text)
+        content = (
+            f'<office:document-content {NS}><office:body><office:text>'
+            '<text:p>路由层实测</text:p></office:text></office:body></office:document-content>'
+        )
+        with tempfile.TemporaryDirectory() as box:
+            path = Path(box) / "note.odt"
+            path.write_bytes(_package(ODT, content))
+            out = worker_text.extract(str(path), ODT)
+        # The route's own anchors stay line-based; the ODF structure rides as reported facts
+        # inside the receipt params, which is the same shape EPUB and CSV already use.
+        native = out["loss_receipt"]["params"]["format"]
+        self.assertEqual(native["format"], "odt")
+        self.assertIn("路由层实测", out["text"])
+        self.assertIn("odf_paragraph", [item["kind"] for item in native["locations"]])
+        self.assertEqual([item["path"][-1] for item in out["structure"]][:1], ["line-1"])
+
+
+    def test_a_missing_rtf_engine_fails_the_job_instead_of_projecting_nothing(self):
+        """Runs in every lane, including the ones without the engine.
+
+        Hiding an absent engine behind an empty projection is the failure mode the Office workers
+        already refuse, so the RTF reader states it the same way whether or not this lane can run
+        the real decode."""
+        original = {name: sys.modules.get(name) for name in ("striprtf", "striprtf.striprtf")}
+        try:
+            sys.modules["striprtf"] = None
+            sys.modules["striprtf.striprtf"] = None
+            with self.assertRaises(RuntimeError) as caught:
+                self.light.rtf(b"{\\rtf1\\ansi text}")
+            self.assertIn("rtf engine missing", str(caught.exception))
+        finally:
+            for name, value in original.items():
+                if value is None:
+                    sys.modules.pop(name, None)
+                else:
+                    sys.modules[name] = value
 
 
 if __name__ == "__main__":

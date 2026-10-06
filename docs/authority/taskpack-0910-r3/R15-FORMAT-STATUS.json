@@ -218,10 +218,14 @@
       "implemented_now": "a saved mail message (.eml) is resolved as the text it is and the route reports its RFC 822 structure as facts: the recognised headers (from, to, cc, subject, date, message-id), how many headers were found, the MIME part count, whether a text and an HTML body exist, and the attachments by name and size - listed, explicitly not extracted, with the message projected verbatim so the raw file stays the source of record. Detection is reported as a detection ('RFC 822 header shape, not by media type'), and a file that merely begins with 'From:' is not called a message. EPUB chapters were already read from the spine. ODT, ODS, ODP and RTF now have a reader in this path too: an ODF package is opened by its own content.xml (after its mimetype entry is checked against the media type the name claims), giving headings with their outline level, paragraphs, sheet cells carrying the file's own stored value, presentation pages, and a named cap when a row or column declares a repetition larger than 512; RTF is projected with its control words stripped by the declared engine. Each is anchored, and a package that lies about what it is, has no readable text or contains an unsafe member is refused rather than projected as an empty success",
       "gap": "no attachment extraction for mail (they are inventoried with hashes only), and the binary .msg container stays out of reach until a reader for it exists; ODF headings, cells and pages are reported facts rather than a navigation level, and ODF styles, fields, embedded objects and hyperlink targets are not followed; RTF tables, footnotes and styles are not reconstructed",
       "evidence": {
-        "core_routes": [{"kind": "text", "capability": "text.extract", "media_type": "text/plain"}],
+        "core_routes": [{"kind": "text", "capability": "text.extract", "media_type": "text/plain"},
+        {"kind": "text", "capability": "text.extract", "media_type": "application/vnd.oasis.opendocument.text"},
+        {"kind": "text", "capability": "text.extract", "media_type": "application/vnd.oasis.opendocument.spreadsheet"},
+        {"kind": "text", "capability": "text.extract", "media_type": "application/vnd.oasis.opendocument.presentation"},
+        {"kind": "text", "capability": "text.extract", "media_type": "application/rtf"}],
         "worker_routes": [{"capability": "text.extract", "worker": "services/python-workers/document/worker_text.py"}],
-        "code": ["crates/archeaxis-application/src/attempts.rs", "services/python-workers/document/worker_text.py"],
-        "tests": ["tests/test_text_format_facts.py", "crates/archeaxis-application/tests/route_capabilities.rs"],
+        "code": ["crates/archeaxis-application/src/attempts.rs", "services/python-workers/document/worker_text.py", "services/python-workers/document/worker_light_formats.py"],
+        "tests": ["tests/test_text_format_facts.py", "crates/archeaxis-application/tests/route_capabilities.rs", "tests/workers/test_light_formats_odf_rtf.py"],
         "legacy_reference": []
       }
     },
