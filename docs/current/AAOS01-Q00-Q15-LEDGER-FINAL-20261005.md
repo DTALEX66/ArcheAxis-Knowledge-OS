@@ -425,6 +425,15 @@ a11 真实 Tauri 窗口旅程 `aaos01-webdriver/e4236d2bedb44a5882f2c03b480feb08
 
 **权威 runner 的绑定条件（已追到代码，非猜测）**：`dev.py:97 external_toolchain()` 只在环境里**注册了根**时才生效（读 `OS_EXTERNAL_CONFIG` / `ARCHEAXIS_EXTERNAL_ROOT`，`dev.py:110-116`；无根即返回 `{}`）；发现到的 MSVC/Rust/TESSDATA_PREFIX/PATH 由 `environment()` 在 `:266` 合并，子进程以 `env = dict(os.environ)` 继承后覆盖（`:413` / `:467`），所以**操作者自己导出即可生效**。本机这两个变量实测均为 None ⇒ `run_tests.sh --full` 会静默跳过这些格式用例，`cargo_test.bat` 也必须手工传参——这不是工具缺失，也不是代码缺陷。仓库自己的索引 `config/environment/external-resources-index.json` 已记录根路径且 `root_present: true`，但 dev.py **有意**不信任它：两个测试把该契约钉住（`test_no_registered_root_discovers_nothing` 断言无根时返回 `{}`；`test_complete_root_discovers_all_four` 断言键集合恰为四项）。因此"让权威 runner 自动回退到索引"是一次**契约变更决定**，不是可顺手改的实现细节；在此之前，本地覆盖率取决于是否导出 `ARCHEAXIS_EXTERNAL_ROOT`。
 
+## 追加清理：runs/ 下每轮临时目录（保留全部收据）（2026-10-06）
+
+`runs/` 远超其 2 GB 预算（实测 16.3 GB），本轮按 §4 只清**可再生临时目录**，收据原地不动。只处理三种目录名且只作为 run 目录的直接子目录：`tmp`、`pytest-tmp`、`pytest-cache`；`artifacts/`、`logs/`、`runtime/`、`data/` 等一律不碰。
+
+- 计划命中 **6,452 个目录 / 10.44 GB**；实际删除 **5,862 个 / 释放 1.59 GB**，**590 个被拒**（`WinError 5`，未强删未提权）。
+- **仍被阻塞的临时目录 = 8.59 GB**（`tmp` 6.90 GB + `pytest-tmp` 1.69 GB）——这正是此前只笼统记为"23 个目录约 6.27 GB"的那一类，本轮把可从普通枚举得到的部分也列了出来，数字更可执行。
+- 位置：`runs/` 16.3 → **13.45 GB**；审计清单 `.project-local/task-runtime/runs-scratch-prune-audit-20261006.json`。
+- **度量口径更正**：本轮改用逐文件遍历求和（`os.walk` + 跳过不可读项）替代 `du -sh`，得到主仓开发根 **75.66 GB**（其中 worktrees 37.3 GB = 本工作树及其嵌套开发根）。此前 `du -sh` 曾读出 113/79/41 GB 三个互不相同的值，故**不采用 `du` 总量**；需要总量时报遍历值并注明跳过的不可读项。
+
 ## 追加清理：未被引用的 a&lt;编号&gt; 运行时副本（2026-10-06）
 
 对开发根每个 `a<编号>`/`rt*` 目录做**精确路径**引用检查（`git grep -F .project-local/<名>`），只删除既无引用、又确为运行时副本的目录：
