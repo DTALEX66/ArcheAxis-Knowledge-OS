@@ -1283,3 +1283,34 @@ Python 全量 4256 passed, 30 skipped, 14 warnings, 166 subtests passed in 438.6
 
 **回滚**：`git revert` 本切片提交即可（Core 深度决策 + API 字段 + worker 措辞 + 矩阵两行 +
 夹具与测试同属一次改动）；夹具改为真容器是**测试数据**变更，revert 后回到假字节 + 旧 6 项断言。
+
+
+## 提交范围核对：5e5d102b 的消息低估了自己携带的内容（2026-10-07 实测）
+
+**这条是被核出来的，不是猜的。** 该提交的标题与正文只讲一件事：把 `urllib3`/`soupsieve`
+升到 pip-audit 点名的修复版本，并按 `79332377` 的旧例改发布清单的锁摘要。
+按 `git show --numstat 5e5d102b` 逐文件实测，它同时携带了：
+- **Rust Core（archeaxis-migration）**：合计 +556 行 — `crates/archeaxis-migration/src/lib.rs` +290/-0; `crates/archeaxis-migration/tests/selective_legacy_stage.rs` +241/-0; `crates/archeaxis-migration/examples/selective_stage.rs` +25/-0
+- **Python 测试与门禁**：合计 +62 行 — `tests/workflow/test_dependency_scan_config.py` +62/-0
+- **CI 工作流**：合计 +9 行 — `.github/workflows/ci.yml` +9/-4
+- **锁文件与发布清单**：合计 +8 行 — `uv.lock` +7/-7; `app/release-manifest.json` +1/-1
+
+**消息里一个路径都没点到、且不属锁文件/记录文件的**：
+- `crates/archeaxis-migration/src/lib.rs` +290/-0
+- `crates/archeaxis-migration/tests/selective_legacy_stage.rs` +241/-0
+- `tests/workflow/test_dependency_scan_config.py` +62/-0
+- `crates/archeaxis-migration/examples/selective_stage.rs` +25/-0
+- `.github/workflows/ci.yml` +9/-4
+- `app/release-manifest.json` +1/-1
+
+**为什么这条要记**：`crates/archeaxis-migration` 是迁移车道，CI 里跑它的作业（migration-targeted）
+与依赖扫描（pip-audit / security-targeted）是两件事；一次以“升依赖”为名的提交把 556 行 Rust 迁移代码、
+它自己的 241 行测试、25 行 example、CI 工作流 +9/-4 行与依赖扫描测试 +62 行塞进同一提交，
+评审人按标题看不到它，回滚也只能整块回——这与本项目“一次改动、一个可回滚提交”的要求相反。
+该提交里的迁移代码本身是验证过的（`cargo test -p archeaxis-migration --tests --offline` 六套件
+27 passed，见同快照 `migration_crate` 条目），**问题只在范围声明，不在质量**。
+
+**处置**：不改写历史（已推送，不 force push）。以此为界采纳自我约束：后续每次提交在正文里
+逐一点名被改动的权威文件（矩阵行、HTTP 契约、供给链台账、发布清单、CI 工作流），
+依赖与许可变更写进标题，同一提交不混做“依赖升级 + Core 功能”。
+同一规则已写入审计快照的 `checkpoint.open`，供后续切片自检。
