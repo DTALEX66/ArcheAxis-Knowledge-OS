@@ -72,6 +72,14 @@
 - 页面布局、导航语义图标与区域构图以 B03 ArcheAxis 页面母版为准；B05 补充内容；B10 补充其覆盖的风格、交互和动效。发生冲突时不得反向覆盖用户确认的 B03 成品界面。
 - 当前验收矩阵为 16 路由 × 双主题 × 1440/720 DIP，共 64 张，实际像素受 Windows 125% 缩放影响；另有 4 张路线总览。100%/150%/200% DPI、多显示器与实际点击/焦点路径尚未逐项验证。
 
+## 2026-10-07 前端 UI 增量资产补记
+
+本次正式入口为 Tauri 2/React 前端。三套主题品牌资源已放在 `frontend/src/assets/aaos-brand-mark-{black,white,cosmic}.svg`，均从项目现有星环结构重新绘制为冷色版本，并由 `StatusBar.tsx` 根据活动主题实际引用。逐文件 SHA-256、字节数、引用和排除原因见本轮增量清单 [`AAOS-UI-ASSET-MANIFEST-20261007.json`](AAOS-UI-ASSET-MANIFEST-20261007.json)。
+
+继续复用 `frontend/src/components/AaosIcon.tsx` 现有 AAOS 几何，不将源设计板或整页截图裁成产品素材。`apps/ArcheAxis.Desktop/Assets/aaos-brand-mark.svg` 原件含暖金与温白，此轮未拷贝；Avalonia Home/empty-state PNG 有页面语义且旧索引记录为未引用/仅特定首页装饰，因此不作为通用三主题图，不借用其旧资产清单来声称已接入。Galaxy loader 仅以局部 CSS 适配，真实加载控件引用见 `GalaxyStates.tsx`；上游 MIT 与固定提交列于 `THIRD_PARTY_NOTICES.md`。
+
+Vite 在当前 Windows sandbox 下因 Node `realpath()` EPERM 无法完成 bundle，故资产“由 TS 源引用”已确认，但生产 bundle 收录和画面渲染仍 UNVERIFIED。此补记不修改旧候选、Green 或既有 PNG 收据。
+
 ## 当前预览与证据
 
 历史验收截图位于 `.project-local/acceptance/`，对应早期候选，不代表当前源码。Evidence Detail 需要真实 Core anchor；不能注入演示记录。

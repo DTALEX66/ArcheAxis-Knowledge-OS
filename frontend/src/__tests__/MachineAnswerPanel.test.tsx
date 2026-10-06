@@ -7,12 +7,29 @@ const answer={answer_id:"answer1",knowledge_id:"k1",question:"实际问题",answ
 describe("real machine candidate boundary",()=>{
  beforeEach(()=>bridge.call.mockReset());
  it("reads a persisted answer and requires explicit human correction fields without accepting",async()=>{
-  bridge.call.mockImplementation(async(op:string)=>op==="machine_answer"?answer:op==="machine_task_get"?{task_id:"answer1",conditions:JSON.stringify(answer),model_version:"local-model",outcome:"unmeasured"}:{answer_id:"answer1",correction_candidate_id:"correction1",status:"candidate"});
+  let candidateStatus="candidate",candidateVersion="correction-v1";
+  bridge.call.mockImplementation(async(op:string,payload:Record<string,unknown>={})=>{
+   if(op==="machine_answer")return answer;
+   if(op==="machine_task_get")return {task_id:"answer1",conditions:JSON.stringify(answer),model_version:"local-model",outcome:"unmeasured"};
+   if(op==="machine_correction")return {answer_id:"answer1",correction_candidate_id:"correction1",status:"candidate",authority:"candidate",corrects_knowledge_id:"k1",question:"实际问题",machine_answer:"实际机器回答",corrected_answer:"使用者纠正",error_note:"具体错误依据",reviewer:"实际使用者"};
+   if(op==="knowledge_get")return {knowledge_id:"correction1",body:"使用者纠正",version:candidateVersion,status:candidateStatus};
+   if(op==="knowledge_review"){candidateStatus=(payload.body as Record<string,unknown>).action as string;candidateVersion=candidateVersion==="correction-v1"?"correction-v2":"correction-v3";return {knowledge_id:"correction1",version:candidateVersion};}
+   if (op === undefined) return undefined;
+   throw new Error(`unexpected Core command: ${String(op)} ${JSON.stringify(payload)}`);
+  });
   render(<MachineAnswerPanel knowledgeId="k1"/>);const user=userEvent.setup();await user.type(screen.getByLabelText("实际问题"),"实际问题");await user.click(screen.getByRole("button",{name:"执行本地机器回答"}));
   expect(await screen.findByLabelText("真实机器回答")).toHaveTextContent("实际机器回答");expect(screen.getByRole("button",{name:"记录使用者纠正候选"})).toBeDisabled();
-  await user.type(screen.getByLabelText("正确答案"),"使用者纠正");await user.type(screen.getByLabelText("具体错误"),"具体错误依据");await user.type(screen.getByLabelText("纠正审核者"),"实际使用者");await user.click(screen.getByRole("button",{name:"记录使用者纠正候选"}));
+  await user.type(screen.getByLabelText("正确答案"),"使用者纠正");await user.type(screen.getByLabelText("具体错误依据"),"具体错误依据");await user.type(screen.getByLabelText("纠正提交者"),"实际使用者");await user.click(screen.getByRole("button",{name:"记录使用者纠正候选"}));
   await waitFor(()=>expect(bridge.call).toHaveBeenCalledWith("machine_correction",{body:{answer_id:"answer1",knowledge_id:"k1",question:"实际问题",machine_answer:"实际机器回答",corrected_answer:"使用者纠正",error_note:"具体错误依据",reviewer:"实际使用者"}}));
+  expect(await screen.findByText("candidate")).toBeInTheDocument();expect(screen.getByRole("region",{name:"纠正候选审核"})).toBeInTheDocument();
+  expect(screen.getByText("Core 候选正文读回").parentElement).toHaveTextContent("使用者纠正");
+  expect(screen.getByText("纠正候选修订").parentElement).toHaveTextContent("correction-v1");
   expect(bridge.call.mock.calls.some(([op])=>op==="knowledge_review")).toBe(false);
+  await user.type(screen.getByLabelText("审核依据"),"已对照专业来源");await user.click(screen.getByRole("button",{name:"接受纠正知识"}));
+  await waitFor(()=>expect(bridge.call).toHaveBeenCalledWith("knowledge_review",{id:"correction1",body:{action:"accepted",reviewer:"实际使用者",note:"已对照专业来源",expected_version:"correction-v1"}}));
+  expect(await screen.findByText(/独立复测暂不可用/)).toBeInTheDocument();
+  await user.click(screen.getByRole("button",{name:"撤回已接受纠正（标记为弃用）"}));
+  await waitFor(()=>expect(bridge.call).toHaveBeenCalledWith("knowledge_review",{id:"correction1",body:{action:"deprecated",reviewer:"实际使用者",note:"已对照专业来源",expected_version:"correction-v2"}}));
  });
  it("withholds an answer when the persistent task readback differs",async()=>{
   bridge.call.mockImplementation(async(op:string)=>op==="machine_answer"?answer:{task_id:"answer1",conditions:JSON.stringify({...answer,answer:{answer:"different"}})});

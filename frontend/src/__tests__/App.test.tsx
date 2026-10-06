@@ -6,7 +6,7 @@ import { resetRuntimeClient } from "../api/workspace";
 import { SpaceView } from "../spaces/SpaceView";
 import type { SpaceId } from "../spaces/spaces";
 
-// AXW-UI-804: App shell — six-space navigation, default space, landmarks.
+// AXW-UI-804: App shell — product routes, default space, landmarks.
 // Rail buttons use the English product labels; space headings are Chinese.
 describe("App shell", () => {
   afterEach(() => {
@@ -16,9 +16,9 @@ describe("App shell", () => {
     vi.unstubAllGlobals();
   });
   it.each([
-    ["workspace","探索与蓝图"], ["library","资料库"], ["intake","资料库"],
+    ["workspace","全能力目录"], ["library","资料库"], ["intake","资料库"],
     ["vault","知识库"], ["evidence","知识库"], ["ai-assets","知识库"],
-    ["learning","学习"], ["exchange","资料库"], ["settings","探索与蓝图"],
+    ["learning","学习"], ["exchange","资料库"], ["settings","全能力目录"],
   ] as [SpaceId,string][])("routes native %s to the existing canonical view",async(spaceId,heading)=>{
     const invoke=vi.fn(async(command:string,args?:Record<string,unknown>)=>{
       if(command!=="core_command")throw new Error("legacy native command forbidden");
@@ -104,6 +104,18 @@ describe("App shell", () => {
       "aria-current",
       "page",
     );
+  });
+
+  it("protects dirty versioned drafts when the host window closes", () => {
+    render(<App />);
+    act(() => { window.dispatchEvent(new CustomEvent("archeaxis-draft-dirty", { detail: true })); });
+    const event = new Event("beforeunload", { cancelable: true }) as BeforeUnloadEvent;
+    window.dispatchEvent(event);
+    expect(event.defaultPrevented).toBe(true);
+    act(() => { window.dispatchEvent(new CustomEvent("archeaxis-draft-dirty", { detail: false })); });
+    const cleanEvent = new Event("beforeunload", { cancelable: true }) as BeforeUnloadEvent;
+    window.dispatchEvent(cleanEvent);
+    expect(cleanEvent.defaultPrevented).toBe(false);
   });
 
   it("switches to Library on rail click and moves aria-current", async () => {

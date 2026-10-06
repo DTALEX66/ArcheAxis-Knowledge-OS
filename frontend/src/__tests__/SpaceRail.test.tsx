@@ -11,7 +11,7 @@ describe("SpaceRail", () => {
       <SpaceRail active="workspace" onNavigate={vi.fn()} spaces={SPACES} />,
     );
     const nav = screen.getByRole("navigation", { name: "主空间导航" });
-    expect(within(nav).getAllByRole("button")).toHaveLength(SPACES.length);
+    expect(within(nav).getAllByRole("list", { name: "产品空间" }).flatMap((list) => within(list).getAllByRole("button"))).toHaveLength(SPACES.length);
     for (const space of SPACES) {
       expect(
         within(nav).getByRole("button", { name: space.label }),
@@ -53,7 +53,7 @@ describe("SpaceRail", () => {
     render(
       <SpaceRail active="workspace" onNavigate={vi.fn()} spaces={SPACES} />,
     );
-    const buttons = screen.getAllByRole("button");
+    const buttons = within(screen.getByRole("list", { name: "产品空间" })).getAllByRole("button");
     expect(buttons).toHaveLength(SPACES.length);
 
     // Tab through the rail: each button must receive keyboard focus in order
@@ -88,5 +88,22 @@ describe("SpaceRail", () => {
     await user.keyboard("{Home}");
     expect(workspace).toHaveFocus();
     expect(onNavigate).toHaveBeenLastCalledWith("workspace");
+  });
+
+  it("shows the full catalog in collapsible groups with keyboard-reachable entries", async () => {
+    const onOpenCapability = vi.fn();
+    const user = userEvent.setup();
+    render(<SpaceRail active="workspace" onNavigate={vi.fn()} onOpenCapability={onOpenCapability} spaces={SPACES} />);
+    await user.click(screen.getByText("全能力目录"));
+    const groups = screen.getByRole("navigation", {name:"主空间导航"}).querySelectorAll(".capability-nav-group");
+    expect(groups.length).toBeGreaterThan(1);
+    const entries = screen.getAllByRole("button").filter(button => button.hasAttribute("data-capability-id"));
+    expect(entries.length).toBe(16);
+    for (const entry of entries) expect(entry.closest(".capability-nav-group")).toHaveAttribute("open");
+    entries[0].focus();
+    await user.keyboard("{ArrowDown}");
+    expect(entries[1]).toHaveFocus();
+    await user.keyboard("{Enter}");
+    expect(onOpenCapability).toHaveBeenCalledWith(entries[1].getAttribute("data-capability-id"));
   });
 });

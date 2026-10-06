@@ -1,6 +1,6 @@
 import type { Editor } from "@tiptap/core";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { act, fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { act, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { createHash, webcrypto } from "node:crypto";
 import { assertCoreDto } from "../api/generated/core-contract";
@@ -58,6 +58,65 @@ describe("canonical content sample", () => {
     expect(screen.getByText(/请先选择已保存文档/)).toBeInTheDocument();
     expect(bridge.call.mock.calls.some(([operation])=>operation==="document_get" || operation==="document_version" || operation==="document_restore")).toBe(false);
     await screen.findByRole("button", {name:"样板.txt · 文档"});
+  });
+  it("SIMULATED: keeps multiple saved documents as tabs and blocks switching away from a dirty editor", async () => {
+    const other = { ...doc, document_id: "doc_other", title: "第二份笔记", source_id: null, source_revision: null,
+      editor_json: { type: "doc", content: [{ type: "paragraph", content: [{ type: "text", text: "第二份正文" }] }] },
+      text_projection: "第二份正文" };
+    const records = new Map<string, Record<string, unknown>>([[doc.document_id, doc], [other.document_id, other]]);
+    bridge.call.mockImplementation(async (operation: string, payload: Record<string, unknown>) => {
+      if (operation === "sources_list") return { sources: [source] };
+      if (operation === "documents_list") return { documents: [...records.values()] };
+      if (operation === "document_get") return records.get(String(payload.document_id));
+      if (operation === "document_draft") {
+        const id = String(payload.document_id), current = records.get(id)!;
+        const saved = { ...current, version: Number(current.version) + 1, editor_json: (payload.body as Record<string, unknown>).editor_json };
+        records.set(id, saved); return saved;
+      }
+      if (operation === "anchors_list") return { anchors: [] };
+      if (operation === "source_original") return { source_id: source.source_id, name: source.original_name, media_type: "text/plain", sha256: hash, content_base64: Buffer.from("原文样板").toString("base64") };
+      throw new Error(operation);
+    });
+    const user = userEvent.setup();
+    render(<CanonicalLibrarySpace />);
+    await user.click(await screen.findByRole("button", { name: "样板.txt · 文档" }));
+    await user.click(await screen.findByRole("button", { name: "第二份笔记 · 文档" }));
+    const tabs = screen.getByRole("tablist", { name: "已打开文档标签" });
+    expect(within(tabs).getAllByRole("tab")).toHaveLength(2);
+    const secondTab = within(tabs).getByRole("tab", { name: /第二份笔记/ });
+    expect(secondTab).toHaveAttribute("aria-selected", "true");
+    const editor = screen.getByRole("textbox", { name: "文档草稿" });
+    fireEvent.compositionStart(editor);
+    act(() => { (editor as HTMLElement & { editor: Editor }).editor.commands.setContent({ type: "doc", content: [{ type: "paragraph", content: [{ type: "text", text: "第二份未保存正文" }] }] }, { emitUpdate: true }); });
+    const firstTab = within(tabs).getByRole("tab", { name: /样板.txt/ });
+    await user.click(firstTab);
+    expect(secondTab).toHaveAttribute("aria-selected", "true");
+    expect(editor).toHaveTextContent("第二份未保存正文");
+    expect(await screen.findByText(/请先保存，再切换标签/)).toBeInTheDocument();
+    expect(within(tabs).getByRole("button", { name: "关闭文档标签 第二份笔记" })).toBeDisabled();
+    expect(bridge.call.mock.calls.filter(([operation]) => operation === "document_get")).toHaveLength(2);
+  });
+  it("SIMULATED: shows an identity-bound original and derived draft side by side with separate hashes", async () => {
+    render(<CanonicalLibrarySpace />);
+    await userEvent.setup().click(await screen.findByRole("button", {name:"样板.txt · 文档"}));
+    const split = screen.getByRole("region", {name:"原件与派生文档并排阅读"});
+    expect(within(split).getByRole("article", {name:"不可变原件"})).toBeInTheDocument();
+    expect(within(split).getByRole("textbox", {name:"文档草稿"})).toHaveTextContent("已保存笔记");
+    expect(within(split).getByText("来源版本")).toBeInTheDocument();
+    expect(within(split).getByText("原件 SHA-256")).toBeInTheDocument();
+    expect(within(split).getAllByText(hash, {exact:true})).toHaveLength(2);
+    expect(within(split).getByText((_content, element) => element?.tagName === "P" && element.textContent?.includes(`正文 SHA-256 ${doc.content_sha256}`) === true)).toBeInTheDocument();
+    expect(within(split).getByLabelText("并排原件正文")).toHaveTextContent("原文样板");
+  });
+  it("SIMULATED: refuses to pair an original when the document source revision differs", async () => {
+    doc = {...doc, source_revision:"f".repeat(64)};
+    const user = userEvent.setup();
+    render(<CanonicalLibrarySpace />);
+    await user.click(await screen.findByRole("button", {name:"样板.txt · 文档"}));
+    const split = screen.getByRole("region", {name:"原件与派生文档并排阅读"});
+    expect(within(split).getByText(/原件读取失败、身份不匹配或未绑定/)).toBeInTheDocument();
+    expect(within(split).queryByLabelText("并排原件正文")).not.toBeInTheDocument();
+    expect(within(split).getByRole("textbox", {name:"文档草稿"})).toHaveTextContent("已保存笔记");
   });
   it("SIMULATED: reads historical text and revision basis without restoring or replacing the current draft", async () => {
     const previous = bridge.call.getMockImplementation()!;
@@ -179,11 +238,13 @@ describe("canonical content sample", () => {
     expect(screen.getByRole("button",{name:"late original · 文档"})).toBeInTheDocument();
   });
   it("reuses the inspector with the actual saved version and source fingerprint without inventing review", async () => {
+    doc = {...doc, source_revision:hash};
     const onInspect = vi.fn(); render(<CanonicalLibrarySpace onInspect={onInspect} />);
     await userEvent.setup().click(await screen.findByRole("button", { name: "样板.txt · 文档" }));
-    await waitFor(() => expect(onInspect).toHaveBeenCalledWith(expect.objectContaining({ version: "1", rawSha256: hash })));
+    await waitFor(() => expect(onInspect).toHaveBeenCalledWith(expect.objectContaining({ version: "1", rawSha256: undefined })));
     const target = onInspect.mock.calls.at(-1)![0];
     expect(target.detail).toContain(doc.document_id);
+    expect(target.detail).toContain(`关联原件 ${source.source_id}@${hash}`);
     expect(target.lifecycle).toContain("核验与依据分析独立记录");
     expect(target.review).toBeUndefined();
   });
