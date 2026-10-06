@@ -481,3 +481,16 @@ A0 浏览器门禁 `scripts/a0_browser_smoke.py` 原视口矩阵为 1440/1280/39
 - 实测顺带得到的事实：该库可读内容很小（13 行 schema_migrations、6 行 migration_operator_runs，其余多为空表）；`vec_episodes` 的影子表本身可读且已导出。
 
 仍未做、也不应冒充的：**未做语义迁移**（把任何行并入 vNext 模式）。要真正并入 `vec_episodes`，需先决定是否引入 sqlite-vec 依赖；这是待定决策，不在本轮擅自动手。
+
+## 更正：`vec0` 缺口属读取工具而非数据，且已有可用通路
+
+上两节曾写"要真正并入 `vec_episodes` 的向量内容，需先决定是否引入 sqlite-vec 依赖"。**该结论有误，现更正。**
+
+实测：`sqlite_vec` **已安装**（CI venv 内 0.1.9，可加载扩展 `sqlite_vec/vec0.dll`），且**产品自身已在使用**——`app/workspace/migrate.py::_load_available_extensions` 尽力加载该扩展、读取不了的表按名上报；`app/memory/vector_db.py` 同样在连接上加载它。`shared/migration_runner.py` 对 vec0 表专门跳过。
+
+因此正确表述是：**缺口属于 `archeaxis-migration` 这个 Rust 审计读取器，不属于数据、也不属于产品。** 用产品既有通路重读同一份快照：
+
+- `vec_episodes` 可读，**5 行**，列为 `(rowid, embedding)`，每行 embedding 为 **1536 字节 float32（1536 维）**；快照读后 SHA 不变（`b318c99e…`）。
+
+即：无需引入新依赖、无需 schema 决策即可保留这最后一张表。已加用例 `tests/workflow/test_legacy_vec0_readability.py` 固定这一区分：
+产品读取器对含 vec0 的库报"零张不可读"；而**不加载扩展**时同一张表抛 `no such module: vec0`——后者正是 Rust 清单里那条 `UNQUERIED` 的成因，说明它是关于读取器的陈述，若被读成"数据无法恢复"就错了。
