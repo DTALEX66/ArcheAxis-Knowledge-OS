@@ -113,11 +113,18 @@ def extract(path: str) -> dict:
             value = node.get(field)
             if isinstance(value, (int, float)) and not isinstance(value, bool) and math.isfinite(value):
                 geometry[field] = value
-        node_geometry.append({
+        entry = {
             "node_id": str(node.get("id", "")),
             "type": node.get("type", "text"),
             "geometry": geometry,
-        })
+        }
+        # A colour or style is reported exactly as the file declares it: resolving it to a
+        # swatch would be a rendering claim this worker cannot make.
+        for field in ("color", "style"):
+            declared = node.get(field)
+            if isinstance(declared, str) and declared.strip():
+                entry[field] = declared.strip()
+        node_geometry.append(entry)
 
     return {
         "engine": ENGINE,
@@ -132,8 +139,10 @@ def extract(path: str) -> dict:
             "engine_version": ENGINE_VERSION,
             "params": {"projection": "text-node order, per-node anchors"},
             "loss_note": (
-                "geometry is preserved as numeric node facts; colors/ports are not projected; "
-                "all edges preserved verbatim"
+                "node geometry, colour and style are preserved as the numeric and string facts the "
+                "file declares; a declared colour is not resolved to a rendered swatch, and "
+                "z-order, tabs and group containment are not read; edges are preserved "
+                "verbatim, so their sides and endpoint ports travel with the edge"
             ),
         },
     }
