@@ -146,6 +146,7 @@ pub(crate) fn projections_base(state: Store, manual_receipts: bool) -> Router {
         .route("/api/v1/jobs/:job_id/quality", get(job_quality))
         .route("/api/v1/evidence/anchors", get(evidence_anchors))
         .route("/api/v1/sources/:source_id/members", get(source_members))
+        .route("/api/v1/sources/:source_id/pages", get(source_pages))
         .route("/api/v1/sources/:source_id/jobs", get(source_jobs))
         .route("/api/v1/workspaces/info", get(workspace_info));
     let routes = if manual_receipts {
@@ -1467,6 +1468,63 @@ async fn source_members(
                                  members beyond the extraction caps, encrypted members and unreadable ones are \
                                  reported by the archive job's own receipt, and readable means a transform exists \
                                  rather than that the content was understood"
+                    })),
+                )
+                    .into_response()
+            }
+            Err(error) => (StatusCode::INTERNAL_SERVER_ERROR, error.to_string()).into_response(),
+        }
+    })
+    .await
+}
+
+/// Read the pages a PDF was rendered into, each with the text its own OCR job produced.
+///
+/// R15/F06: the render and the OCR job are two chained steps, so this answers from the
+/// relation recorded when the page was imported. A page whose OCR has not produced text is
+/// reported with `recognised` false and no text - absence is stated, never filled in.
+async fn source_pages(
+    State(state): State<AppState>,
+    Path(source_id): Path<String>,
+) -> impl IntoResponse {
+    with_store(state, move |conn| {
+        let exists: bool = conn
+            .query_row(
+                "SELECT EXISTS(SELECT 1 FROM sources WHERE source_id=?1)",
+                [&source_id],
+                |row| row.get(0),
+            )
+            .unwrap_or(false);
+        if !exists {
+            return (StatusCode::NOT_FOUND, "source not found").into_response();
+        }
+        match archeaxis_application::ocr::pages_of(conn, &source_id) {
+            Ok(pages) => {
+                let read = pages.iter().filter(|page| page.recognised).count();
+                (
+                    StatusCode::OK,
+                    Json(serde_json::json!({
+                        "pdf_source_id": source_id,
+                        "page_count": pages.len(),
+                        "recognised_count": read,
+                        "pages": pages
+                            .into_iter()
+                            .map(|page| {
+                                serde_json::json!({
+                                    "page": page.page,
+                                    "source_id": page.source_id,
+                                    "origin_ref": page.origin_ref,
+                                    "original_name": page.original_name,
+                                    "sha256": page.sha256,
+                                    "recognised": page.recognised,
+                                    "text": page.text,
+                                    "job_id": page.job_id,
+                                })
+                            })
+                            .collect::<Vec<_>>(),
+                        "note": "only the pages this source was rendered into are listed: a PDF whose own \
+                                 text layer was readable chains nothing, and recognised means the OCR route \
+                                 produced text for that page, not that the reading is correct"
                     })),
                 )
                     .into_response()

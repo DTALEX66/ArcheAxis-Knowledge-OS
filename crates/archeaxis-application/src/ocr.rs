@@ -14,11 +14,14 @@
 //! would be a fake success waiting to happen.
 
 use crate::jobs::{self, JobError};
-use archeaxis_domain::source::{self, ImportOutcome};
+use archeaxis_domain::source::{self, ImportOutcome, OriginInfo};
 use rusqlite::{Connection, OptionalExtension};
 use serde::Deserialize;
 use sha2::{Digest, Sha256};
 use std::path::{Path, PathBuf};
+
+/// The origin kind that ties a rendered page back to the PDF it was rendered from.
+const ORIGIN_KIND: &str = "import";
 
 /// One page a PDF job offered to the OCR route.
 #[derive(Debug, Clone, Deserialize)]
@@ -83,15 +86,20 @@ pub fn enqueue_pages(
     if candidates.is_empty() {
         return Ok(Vec::new());
     }
-    let source_name: String = conn
+    let Some((pdf_source_id, source_name)) = conn
         .query_row(
-            "SELECT COALESCE(s.original_name,'source') FROM jobs j
+            "SELECT j.input_ref, COALESCE(s.original_name,'source') FROM jobs j
              JOIN sources s ON s.source_id=j.input_ref WHERE j.job_id=?1",
             [pdf_job_id],
-            |row| row.get(0),
+            |row| Ok((row.get::<_, String>(0)?, row.get::<_, String>(1)?)),
         )
         .optional()?
-        .unwrap_or_else(|| "source".to_string());
+    else {
+        return Err(JobError::UnverifiableInput {
+            job: pdf_job_id.to_string(),
+            reason: "the PDF job has no source for its pages to come from".to_string(),
+        });
+    };
     let stem = Path::new(&source_name)
         .file_stem()
         .map(|value| value.to_string_lossy().to_string())
@@ -140,10 +148,35 @@ pub fn enqueue_pages(
                 ),
             });
         }
-        let source_id = match source::import_source(conn, &bytes, &name, None)? {
-            ImportOutcome::Imported { source_id, .. } => source_id,
-            ImportOutcome::Duplicate { source_id, .. } => source_id,
+        // R15/F06: the page is a source of its own, but it came from this PDF's page N, and
+        // that relation is the only thing that can later carry the recognised text back to
+        // the page it belongs to. `received_at` stays None - a clock value is never invented.
+        let origin_ref = format!("{pdf_source_id}#page-{}", candidate.page);
+        let origin = OriginInfo {
+            kind: ORIGIN_KIND,
+            origin_ref: &origin_ref,
+            original_name: Some(&name),
+            received_at: None,
         };
+        let source_id =
+            match source::import_source_with_origin(conn, &bytes, &name, None, Some(origin))? {
+                ImportOutcome::Imported { source_id, .. } => source_id,
+                ImportOutcome::Duplicate { source_id, .. } => source_id,
+            };
+        // The origin insert is INSERT OR IGNORE, so verify it landed instead of assuming it
+        // did: a page whose provenance was dropped in silence would look chained and not be.
+        let recorded = source::list_origins(conn, &source_id)?
+            .into_iter()
+            .any(|(kind, reference, _, _)| kind == ORIGIN_KIND && reference == origin_ref);
+        if !recorded {
+            return Err(JobError::UnverifiableInput {
+                job: pdf_job_id.to_string(),
+                reason: format!(
+                    "the page relation for page {} was not recorded (origin {ORIGIN_KIND}:{origin_ref})",
+                    candidate.page
+                ),
+            });
+        }
         let job_id = format!("{pdf_job_id}-page-{}", candidate.page);
         let existed: bool = conn.query_row(
             "SELECT EXISTS(SELECT 1 FROM jobs WHERE job_id=?1)",
@@ -156,4 +189,61 @@ pub fn enqueue_pages(
         }
     }
     Ok(enqueued)
+}
+
+/// One rendered page as the store knows it after chaining.
+#[derive(Debug, Clone)]
+pub struct PageRow {
+    pub page: Option<u32>,
+    pub source_id: String,
+    pub origin_ref: String,
+    pub original_name: String,
+    pub sha256: String,
+    /// True when the page image has its own transform, i.e. the OCR route read it.
+    pub recognised: bool,
+    /// The recognised text of that page, newest non-empty transform, when there is one.
+    pub text: Option<String>,
+    /// The job queued for this page, when the chain enqueued one.
+    pub job_id: Option<String>,
+}
+
+/// The pages rendered from one PDF, each with the text its own OCR job produced.
+///
+/// This is the second half of R15/F06. The PDF job renders the pages it could not read and
+/// chains an OCR job per page; the relation recorded at import time is what lets the answer
+/// come back to the page it came from instead of ending as an unrelated image source. A page
+/// with no recognised text is reported as such - absence is stated, never filled in.
+pub fn pages_of(conn: &Connection, pdf_source_id: &str) -> Result<Vec<PageRow>, JobError> {
+    let prefix = format!("{pdf_source_id}#page-");
+    let mut statement = conn.prepare(
+        "SELECT o.source_id, o.origin_ref, s.original_name, s.sha256,
+                (SELECT t.text FROM transforms t
+                  WHERE t.source_id=o.source_id AND t.text IS NOT NULL AND t.text<>''
+                  ORDER BY t.transform_id DESC LIMIT 1),
+                EXISTS(SELECT 1 FROM transforms t WHERE t.source_id=o.source_id),
+                (SELECT j.job_id FROM jobs j WHERE j.input_ref=o.source_id ORDER BY j.rowid LIMIT 1)
+         FROM source_origins o JOIN sources s ON s.source_id=o.source_id
+         WHERE o.origin_kind=?1 AND o.origin_ref LIKE ?2
+         ORDER BY o.imported_at, o.rowid",
+    )?;
+    let rows = statement.query_map(
+        rusqlite::params![ORIGIN_KIND, format!("{prefix}%")],
+        |row| {
+            let reference: String = row.get(1)?;
+            Ok(PageRow {
+                page: reference
+                    .strip_prefix(&prefix)
+                    .and_then(|tail| tail.parse::<u32>().ok()),
+                source_id: row.get(0)?,
+                origin_ref: reference,
+                original_name: row.get(2)?,
+                sha256: row.get(3)?,
+                text: row.get(4)?,
+                recognised: row.get::<_, i64>(5)? == 1,
+                job_id: row.get(6)?,
+            })
+        },
+    )?;
+    rows.collect::<rusqlite::Result<Vec<_>>>()
+        .map_err(JobError::from)
 }
