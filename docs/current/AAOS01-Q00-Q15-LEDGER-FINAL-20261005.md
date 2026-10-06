@@ -749,6 +749,14 @@ Q02/Q14/Q15 的收口此前都卡在同一处：`desktop/scripts/verify_nsis_ins
 
 - 计划 **594 目录 / 8.37 GB**；实际**释放 8.37 GB**（`removed 160/594` 是目录计数，字节已全部释放）。
 - `runs/` **13.45 → 4.86 GB**（逐文件遍历，跳过 146 个不可读项）；本批**全程未使用任何提权**，未改 ACL。
-- **残留**：434 个目录仍被拒，但合计 **0.00 GB**（空目录）；它们与上一类**不同**——`os.scandir` 都返回 `WinError 5`，是**真正的受限 ACL**，非只读位。因其为零字节且来源不明（未证实归属），**按"未知资产保留"不强行处置**，仅登记。
+- **残留**：434 个目录仍被拒，但合计 **0.00 GB**（空目录）；它们与上一类**不同**——`os.scandir` 与 `Get-Acl` 都返回 `WinError 5`（"该操作需要提升的权限"），是**真正的受限 ACL**（连 ACL 都读不到），非只读位。因其为零字节且来源不明（未证实归属），**按"未知资产保留"不强行处置**，仅登记；即便提权，可回收字节也约为 0。
 - 审计清单 `.project-local/task-runtime/runs-scratch-prune-20261006-pass2-audit.json`。
 - 教训（与既有"先怀疑仪器"一致）：把 `WinError 5` 一律读成"需要提权"会掩盖真实对象；应进入目录、单独试删同类项，再判定。
+
+## 归属实测：Green mainline 属沙箱身份、runs/ 残留属受限 ACL（2026-10-06）
+
+清理中两处"动不了"的目标，本轮追到**具体原因**，以免今后继续按猜测重试：
+
+- `ArcheAxis.Knowledge.Green-x64/.ui-task-tree/ArcheAxis-Knowledge-OS-mainline`（**6.24G**）：其所有者是 `DESKTOP-L26E3AC\CodexSandboxOnline`（SID 尾 `-1004`），当前用户是 `DESKTOP-L26E3AC\ALEX`（尾 `-1001`）；`git` 直接以 `detected dubious ownership` 拒绝一切读写。要操作它必须加 `safe.directory` 全局配置——那是**改全局配置**，不做；且它本就非当前身份资产，**按"保留 + 标注未解决"处理**，删除需 Owner 决定。
+- Green 的 `ArcheAxis-Knowledge-OS` worktree（**2.51G**）与 `minimax-aaos-cosmic-ui-20261001`（**0.65G**）所有者均为 ALEX（可操作）；前者 WIP 已固化为归档，属"可删除待裁决"；后者按 Owner 裁决保留为供体。
+- `runs/` 下 434 个残留目录：`Get-Acl` 本身即被拒（"该操作需要提升的权限"），是**受限 ACL**；因其零字节，即便提权可回收也约为 0。
