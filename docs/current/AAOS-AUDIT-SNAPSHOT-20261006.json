@@ -267,15 +267,15 @@
     {
       "artifact": "document authority gate",
       "path": "scripts/ci/check_document_authority.py",
-      "byte_size": 11364,
-      "byte_sha256": "0d2f8cfb51c0b119f3f469931a89d12da1a56edaa5016870c6d61716eabf055d",
+      "byte_size": 13693,
+      "byte_sha256": "0dd783b7b28bb44fab44098b1fea27be9ff7e5d3abe0f4b1dba6ff18259e4de7",
       "status": "present"
     },
     {
       "artifact": "gate falsification tests",
       "path": "tests/workflow/test_document_authority_gate.py",
-      "byte_size": 6243,
-      "byte_sha256": "c5fa33011656dc79ee1022a3a74a07fcfe8a29edd9bb029eb7c34bf5f332befe",
+      "byte_size": 7939,
+      "byte_sha256": "52806e3072d8ace1fa565ef797d3e8b8c5e964bc034fc53a4fa9d1d1c760d1b8",
       "status": "present"
     },
     {
