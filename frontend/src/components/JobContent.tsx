@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { coreCommand } from "../api/core";
-import { estimateMediaWork, formatEstimate, MEDIA_CEILING_MS, MEDIA_REALTIME_FACTOR } from "../presentation/mediaEstimate";
+import { estimateMediaWork, formatEstimate, describeSplit, splitProgressOf, MEDIA_CEILING_MS, MEDIA_REALTIME_FACTOR, type SplitProgress } from "../presentation/mediaEstimate";
 import { RawReceiptButton } from "./DiagnosticConsole";
 import { DataTable, Section } from "./RealData";
 import { TranscriptionCues, transcriptionProof, type TranscriptionProof } from "./TranscriptionCues";
@@ -8,30 +8,6 @@ import { EpubParagraphs, epubProof, type EpubProof, type EpubPosition } from "./
 import type { AnchorDto } from "../api/generated/core-contract";
 
 function record(value:unknown):Record<string,unknown>{if(!value||typeof value!=="object"||Array.isArray(value))throw new Error("invalid response");return value as Record<string,unknown>;}
-export interface SplitProgress {status:string;expected:number;present:number;missing:number[];resumed:number[];}
-/**
- * What a split run actually finished, read from the job's own loss receipt.
- *
- * The receipt is the only place this may come from: the number of windows a recording needs is
- * decided by the worker from the file's real duration, so a count computed here would be a second,
- * disagreeing opinion. `null` means the receipt carried no split record at all — not that nothing
- * ran.
- */
-export function splitProgressOf(loss:Record<string,unknown>):SplitProgress|null {
- const output=(loss as {params?:{worker_output?:Record<string,unknown>}}).params?.worker_output;
- const windows=output?.windows;
- if(!windows||typeof windows!=="object"||Array.isArray(windows))return null;
- const value=windows as Record<string,unknown>;
- const count=(input:unknown)=>Array.isArray(input)&&input.every(item=>Number.isSafeInteger(item))?input as number[]:[];
- if(!Number.isSafeInteger(value.windows_expected)||!Number.isSafeInteger(value.windows_present))return null;
- return {status:String(value.status??"unknown"),expected:Number(value.windows_expected),present:Number(value.windows_present),
-  missing:count(value.windows_missing),resumed:count(value.windows_resumed)};
-}
-export function describeSplit(progress:SplitProgress):string {
- const {status,expected,present,missing,resumed}=progress;
- if(status==="complete")return `分段全部完成（${present} / ${expected} 段${resumed.length?`，其中本次复用了 ${resumed.length} 段`:""}）。`;
- return `分段尚未全部完成（${present} / ${expected} 段${resumed.length?`，复用了 ${resumed.length} 段`:""}；未完成段 ${missing.length?missing.join("、"):"未提供"}）；正文只包含已完成分段，未完成部分没有被省略记录。`;
-}
 function StructurePreview({structure,text}:{structure:unknown;text:string}) {
  const [page,setPage]=useState(0);
  const nodes=Array.isArray(structure)?structure:[];

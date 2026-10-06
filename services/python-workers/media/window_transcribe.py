@@ -90,8 +90,9 @@ def run_windows(plan: dict, per_window, staging: Path | None = None,
     * a window that failed is *not* cached as done — it is attempted again, because caching a
       failure would make a transient engine problem permanent;
     * when a budget is given, a window is only *started* if its own estimate still fits inside it,
-      so the job returns a truthful partial result naming the windows it did not reach instead of
-      being killed mid-decode with no statement at all.
+      and the run then stops rather than skipping ahead to a later, smaller window: a bounded
+      invocation always advances from the start of the recording, and says which trailing windows it
+      did not reach, instead of being killed mid-decode with no statement at all.
 
     A failure inside ``per_window`` is recorded as that window failing and the remaining windows are
     still attempted: one bad window must not discard the rest of the recording. Results are written
@@ -111,7 +112,7 @@ def run_windows(plan: dict, per_window, staging: Path | None = None,
     collected: list[dict] = []
     resumed: list[int] = []
     attempted = 0
-    for window in windows:
+    for position, window in enumerate(windows):
         index = int(window["index"])
         cached = staging / f"window-{index:04d}.json" if staging is not None else None
         record = None
@@ -126,12 +127,15 @@ def run_windows(plan: dict, per_window, staging: Path | None = None,
         if record is None:
             if budget_ms is not None and attempted and \
                     (clock() - started_at) * 1000 + float(window.get("estimated_ms") or 0) > budget_ms:
-                # Not reached in this invocation. Stated as such so the merge cannot present the
-                # recording as complete, and so the next invocation knows what is still outstanding.
-                collected.append({"index": index, "start_ms": int(window["start_ms"]),
-                                  "end_ms": int(window["end_ms"]), "status": "not_attempted",
-                                  "cues": [], "text": ""})
-                continue
+                # Not reached in this invocation. The whole remainder is stated as such — rather than
+                # skipping ahead to a later window that happens to be smaller — so a bounded run
+                # always advances from the start of the recording, and the merge cannot present it
+                # as complete.
+                for pending in windows[position:]:
+                    collected.append({"index": int(pending["index"]), "start_ms": int(pending["start_ms"]),
+                                      "end_ms": int(pending["end_ms"]), "status": "not_attempted",
+                                      "cues": [], "text": ""})
+                break
             attempted += 1
             try:
                 produced = per_window(window)

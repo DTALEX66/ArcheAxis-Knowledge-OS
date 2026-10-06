@@ -247,3 +247,28 @@ def test_duration_probe_reads_the_files_own_banner():
         window_transcribe.subprocess.run = original
     assert duration == 723_420
     assert calls == [["ffmpeg.exe", "-hide_banner", "-nostdin", "-i", "recording.mp3"]]
+
+
+def test_a_budget_stops_at_the_first_window_it_cannot_reach(tmp_path):
+    """A bounded run advances from the start and does not skip ahead to a smaller later window.
+
+    Skipping the middle of a recording to decode its tail would be progress of a confusing kind:
+    the result would be partial either way, but the holes would be scattered instead of being the
+    trailing windows the caller has not got to yet.
+    """
+    plan = plan_of((0, 100_000), (100_000, 200_000), (200_000, 210_000))
+    calls: list[int] = []
+    now = [0.0]
+
+    def per_window(window):
+        calls.append(int(window["index"]))
+        now[0] += float(window["estimated_ms"]) / 1000
+        return {"status": "succeeded", "cues": [], "text": f"w{window['index']}"}
+
+    merged = window_transcribe.run_windows(plan, per_window, staging=tmp_path, budget_ms=150_000,
+                                           clock=lambda: now[0])
+    # Window 0 costs 100 s of a 150 s budget; window 1 would not fit, and the small window 2 is
+    # therefore not decoded ahead of it.
+    assert calls == [0]
+    assert merged["windows_missing"] == [1, 2]
+    assert merged["status"] == "partial"

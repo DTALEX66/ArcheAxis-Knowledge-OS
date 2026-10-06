@@ -80,6 +80,50 @@ export function estimateMediaWork(
   };
 }
 
+export interface SplitProgress {
+  status: string;
+  expected: number;
+  present: number;
+  missing: number[];
+  resumed: number[];
+}
+
+/**
+ * What a split run actually finished, read from the job's own loss receipt.
+ *
+ * The receipt is the only place this may come from: the number of windows a recording needs is
+ * decided by the worker from the file's real duration, so a count computed here would be a second,
+ * disagreeing opinion. `null` means the receipt carried no split record at all — not that nothing
+ * ran.
+ */
+export function splitProgressOf(loss: Record<string, unknown>): SplitProgress | null {
+  return splitProgressFromWorkerOutput((loss as { params?: { worker_output?: unknown } }).params?.worker_output);
+}
+
+/** The same reading, from an already-extracted worker output (the transcription proof's pipeline). */
+export function splitProgressFromWorkerOutput(output: unknown): SplitProgress | null {
+  const windows = (output as { windows?: unknown } | null | undefined)?.windows;
+  if (!windows || typeof windows !== "object" || Array.isArray(windows)) return null;
+  const value = windows as Record<string, unknown>;
+  const count = (input: unknown): number[] =>
+    Array.isArray(input) && input.every(item => Number.isSafeInteger(item)) ? (input as number[]) : [];
+  if (!Number.isSafeInteger(value.windows_expected) || !Number.isSafeInteger(value.windows_present)) return null;
+  return {
+    status: String(value.status ?? "unknown"),
+    expected: Number(value.windows_expected),
+    present: Number(value.windows_present),
+    missing: count(value.windows_missing),
+    resumed: count(value.windows_resumed),
+  };
+}
+
+export function describeSplit(progress: SplitProgress): string {
+  const { status, expected, present, missing, resumed } = progress;
+  const reused = resumed.length ? `，其中本次复用了 ${resumed.length} 段` : "";
+  if (status === "complete") return `分段全部完成（${present} / ${expected} 段${reused}）。`;
+  return `分段尚未全部完成（${present} / ${expected} 段${resumed.length ? `，复用了 ${resumed.length} 段` : ""}；未完成段 ${missing.length ? missing.join("、") : "未提供"}）；正文只包含已完成分段，未完成部分没有被省略记录。`;
+}
+
 export function formatEstimate(milliseconds: number): string {
   const totalSeconds = Math.round(milliseconds / 1000);
   const minutes = Math.floor(totalSeconds / 60);

@@ -75,4 +75,19 @@ describe("mock transcription UI integration",()=>{
   await user.click(within(row).getByRole("button",{name:"引用时间段"}));await screen.findByText(/时间引用未确认/);
   expect(JSON.parse(bridge.call.mock.calls[0][1].body.position).cue_index).toBe(30);expect(screen.queryByText(/关联已校验/)).not.toBeInTheDocument();
  });
+
+ it("says a reopened transcript is only part of the recording when its segments did not all finish",()=>{
+  const cues=[{start_ms:100,end_ms:900,text:"第一段"}];
+  const shown=(windows:unknown)=>render(<TranscriptionCues proof={{sourceId:"source",revision,jobId:"job",attempt:1,
+   resultSha256:"b".repeat(64),durationMs:4000,cues,pipeline:{windows}}}/>);
+  const partial=shown({status:"partial",windows_expected:3,windows_present:1,windows_missing:[1,2],windows_resumed:[]});
+  expect(screen.getByText(/分段尚未全部完成/)).toHaveTextContent("1、2");
+  partial.unmount();
+  // A finished recording adds no such warning, and neither does a receipt with no split record.
+  const done=shown({status:"complete",windows_expected:3,windows_present:3,windows_missing:[],windows_resumed:[0,1,2]});
+  expect(screen.queryByText(/分段尚未全部完成|分段全部完成/)).toBeNull();
+  done.unmount();
+  shown({});
+  expect(screen.queryByText(/分段尚未全部完成/)).toBeNull();
+ });
 });

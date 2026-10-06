@@ -1,7 +1,8 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { act, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { JobContent, describeSplit, splitProgressOf } from "../components/JobContent";
+import { JobContent } from "../components/JobContent";
+import { describeSplit, splitProgressOf } from "../presentation/mediaEstimate";
 const bridge=vi.hoisted(()=>({call:vi.fn()}));vi.mock("../api/core",()=>({coreCommand:bridge.call}));
 describe("Core job content",()=>{
  beforeEach(()=>{bridge.call.mockReset();});
