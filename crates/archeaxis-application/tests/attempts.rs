@@ -175,7 +175,8 @@ fn invalid_content_and_injected_commit_failure_leave_zero_partial_outputs() {
 fn a_split_choice_is_persisted_with_its_attempt_and_refused_for_other_routes() {
     let dir = tempfile::tempdir().unwrap();
     let (mut conn, _) = bootstrap(dir.path().join("split.sqlite").to_str().unwrap()).unwrap();
-    let sid = match source::import_source(&mut conn, b"RIFF....WAVEfmt ", "tone.wav", None).unwrap() {
+    let sid = match source::import_source(&mut conn, b"RIFF....WAVEfmt ", "tone.wav", None).unwrap()
+    {
         ImportOutcome::Imported { source_id, .. } => source_id,
         _ => unreachable!(),
     };
@@ -190,7 +191,13 @@ fn a_split_choice_is_persisted_with_its_attempt_and_refused_for_other_routes() {
     let digest = request.inputs[0].sha256.clone();
     assert_eq!(
         request.parameters["staging"],
-        json!(dir.path().join("staging").join("windows").join(&digest).to_string_lossy())
+        json!(
+            dir.path()
+                .join("staging")
+                .join("windows")
+                .join(&digest)
+                .to_string_lossy()
+        )
     );
     // the staging directory is Core-owned, and neither an executable nor a window plan is carried
     assert!(!request.parameters.contains_key("ffmpeg"));
@@ -212,19 +219,22 @@ fn a_split_choice_is_persisted_with_its_attempt_and_refused_for_other_routes() {
     let plain = attempts::claim(&mut conn, "w2", "r-plain", 300_000).unwrap();
     assert!(plain.parameters.is_empty());
     // and a route with no bounded unit of work refuses the split choice
-    let sid_text = match source::import_source(&mut conn, b"plain text", "note.txt", None).unwrap() {
+    let sid_text = match source::import_source(&mut conn, b"plain text", "note.txt", None).unwrap()
+    {
         ImportOutcome::Imported { source_id, .. } => source_id,
         _ => unreachable!(),
     };
     jobs::enqueue(&mut conn, "t", "text", &sid_text).unwrap();
-    assert!(attempts::claim_split(
-        &mut conn,
-        "t",
-        "r-text",
-        5000,
-        Some(attempts::Split {
-            root: dir.path().join("staging"),
-        }),
-    )
-    .is_err());
+    assert!(
+        attempts::claim_split(
+            &mut conn,
+            "t",
+            "r-text",
+            5000,
+            Some(attempts::Split {
+                root: dir.path().join("staging"),
+            }),
+        )
+        .is_err()
+    );
 }

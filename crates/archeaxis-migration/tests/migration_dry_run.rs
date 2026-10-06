@@ -105,10 +105,12 @@ fn an_unreadable_table_is_named_beside_the_readable_ones() {
         .unwrap();
         conn.cache_flush().unwrap();
     }
-    let (readable, unreadable) =
-        inventory_reporting_unreadable(db.to_str().unwrap()).unwrap();
+    let (readable, unreadable) = inventory_reporting_unreadable(db.to_str().unwrap()).unwrap();
     assert_eq!(
-        readable.iter().find(|t| t.name == "readable").map(|t| t.row_count),
+        readable
+            .iter()
+            .find(|t| t.name == "readable")
+            .map(|t| t.row_count),
         Some(1)
     );
     assert!(unreadable.contains_key("ghost"), "{unreadable:?}");
@@ -146,11 +148,26 @@ fn an_unreadable_table_is_named_in_the_manifest_and_the_rest_is_still_exported()
 
     assert_eq!(manifest.tables.len(), 1, "{:?}", manifest.tables);
     assert_eq!(manifest.tables["readable"].rows, 1);
-    assert!(out.join("readable.jsonl").is_file(), "the readable table must still be exported");
-    assert!(!out.join("ghost.jsonl").exists(), "an unreadable table has no file");
+    assert!(
+        out.join("readable.jsonl").is_file(),
+        "the readable table must still be exported"
+    );
+    assert!(
+        !out.join("ghost.jsonl").exists(),
+        "an unreadable table has no file"
+    );
 
-    assert_eq!(manifest.unqueried_tables.len(), 1, "{:?}", manifest.unqueried_tables);
-    assert!(manifest.unqueried_tables.contains_key("ghost"), "{:?}", manifest.unqueried_tables);
+    assert_eq!(
+        manifest.unqueried_tables.len(),
+        1,
+        "{:?}",
+        manifest.unqueried_tables
+    );
+    assert!(
+        manifest.unqueried_tables.contains_key("ghost"),
+        "{:?}",
+        manifest.unqueried_tables
+    );
     assert!(!manifest.unqueried_tables["ghost"].is_empty());
 
     // The digest covers the gap: an export of the same readable table *without* the unreadable one
@@ -170,7 +187,14 @@ fn an_unreadable_table_is_named_in_the_manifest_and_the_rest_is_still_exported()
         dir.path().join("export-clean").to_str().unwrap(),
     )
     .unwrap();
-    assert!(clean.unqueried_tables.is_empty(), "{:?}", clean.unqueried_tables);
-    assert_eq!(clean.tables["readable"].sha256, manifest.tables["readable"].sha256);
+    assert!(
+        clean.unqueried_tables.is_empty(),
+        "{:?}",
+        clean.unqueried_tables
+    );
+    assert_eq!(
+        clean.tables["readable"].sha256,
+        manifest.tables["readable"].sha256
+    );
     assert_ne!(clean.manifest_sha256, manifest.manifest_sha256);
 }

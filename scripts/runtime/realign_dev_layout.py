@@ -12,14 +12,30 @@ for the same reason: they are regenerable, but "regenerable" is not a licence to
 from __future__ import annotations
 
 import hashlib
+import importlib.util
 import json
 import shutil
 import subprocess
-import sys
 from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).resolve().parent))
-import storage_report  # noqa: E402  (same directory, same contract)
+
+def _load_sibling(filename: str):
+    """The sibling module, loaded by file path.
+
+    `sys.path.insert` is refused by the architecture guard, and each of these scripts is launched
+    directly rather than imported as a package, so the sibling is loaded from this file's own
+    directory the same way the workers load their shared helpers.
+    """
+    path = Path(__file__).resolve().parent / filename
+    spec = importlib.util.spec_from_file_location(path.stem, path)
+    if spec is None or spec.loader is None:
+        raise RuntimeError(f"{filename} is missing beside this script")
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
+
+
+storage_report = _load_sibling("storage_report.py")
 
 REPO = storage_report.REPO
 SCRATCH = REPO / ".project-local" / "legacy-scratch-20261006"

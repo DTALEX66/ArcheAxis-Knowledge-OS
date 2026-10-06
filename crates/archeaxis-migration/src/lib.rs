@@ -41,7 +41,10 @@ fn export_filename(name: &str) -> String {
 /// The tables that could *not* be read are hashed too. Leaving them out would make a manifest with
 /// a gap interchangeable with one without it — the same digest would describe both, so a later
 /// reader comparing digests could not tell that a table had been dropped.
-fn manifest_digest(tables: &BTreeMap<String, TableExport>, unqueried: &BTreeMap<String, String>) -> String {
+fn manifest_digest(
+    tables: &BTreeMap<String, TableExport>,
+    unqueried: &BTreeMap<String, String>,
+) -> String {
     let mut h = Sha256::new();
     for (name, table) in tables {
         h.update(name.as_bytes());
@@ -126,7 +129,8 @@ pub fn inventory_reporting_unreadable(
 pub fn export_jsonl(db_path: &str, out_dir: &str) -> Result<ExportManifest, MigrationError> {
     let conn = Connection::open_with_flags(db_path, rusqlite::OpenFlags::SQLITE_OPEN_READ_ONLY)?;
     std::fs::create_dir_all(out_dir).map_err(MigrationError::Io)?;
-    let (summary, unqueried) = inventory_reporting_unreadable(db_path).map_err(MigrationError::Sql)?;
+    let (summary, unqueried) =
+        inventory_reporting_unreadable(db_path).map_err(MigrationError::Sql)?;
     let mut manifest = ExportManifest {
         exported_at_unix: 0,
         tables: BTreeMap::new(),

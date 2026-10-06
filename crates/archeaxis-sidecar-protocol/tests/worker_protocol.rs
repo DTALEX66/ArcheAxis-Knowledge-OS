@@ -136,14 +136,23 @@ fn splitting_is_the_only_parameter_a_request_may_carry() {
 
     let media = || {
         Request::job(
-            "r", "j", 1, "media.transcribe", &"a".repeat(64), "audio/mpeg", 5000,
+            "r",
+            "j",
+            1,
+            "media.transcribe",
+            &"a".repeat(64),
+            "audio/mpeg",
+            5000,
         )
         .unwrap()
     };
     assert!(media().parameters.is_empty());
     let split = media().splitting(r"C:\staging\windows\job-1").unwrap();
     assert_eq!(split.parameters["split"], json!(true));
-    assert_eq!(split.parameters["staging"], json!(r"C:\staging\windows\job-1"));
+    assert_eq!(
+        split.parameters["staging"],
+        json!(r"C:\staging\windows\job-1")
+    );
     // Neither an ffmpeg path nor a window list rides the request: the transport resolves the
     // declared engine, and the worker derives the plan from the file's own duration, so a request
     // can neither name an arbitrary executable nor describe a plan that drops audio.

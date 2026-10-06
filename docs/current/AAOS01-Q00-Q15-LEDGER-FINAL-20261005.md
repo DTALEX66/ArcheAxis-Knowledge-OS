@@ -546,3 +546,16 @@ Rust 侧拥有逐表 sha256 与清单语义，本工具只补它读不了的，�
 现改为只停止收集、不清空，并加了"与 PyYAML 结果一致"的对照断言。
 
 验证：`python -B check_media_window_policy.py --check` 通过；`python -S -B ...` 同样通过；新增门禁用例 21 项通过、2 项跳过。
+
+## CI 抓到的两处自身缺陷（本轮已修）
+
+上一批提交把 CI 弄红了两处，本地都没发现——**本地只跑了我以为相关的东西**：
+
+1. `rust-vnext / cargo fmt --all -- --check` 失败：本轮改动与更早两轮的 Rust 编辑未过 rustfmt（长行换行）。我先前只跑了指定 crate 的 `cargo test`，从未跑 `fmt`。
+   已 `cargo fmt --all` 重排 6 个文件（`archeaxis-api/tests/runtime_jobs.rs`、`archeaxis-application/tests/attempts.rs`、`archeaxis-migration/{src/lib.rs,examples/legacy_dryrun.rs,tests/migration_dry_run.rs}`、`archeaxis-sidecar-protocol/tests/worker_protocol.rs`），`--check` 现通过。
+2. `lint / Validate architecture boundaries` 失败：`scripts/runtime/realign_dev_layout.py:21` 触发 `forbidden-sys-path-mutation`——那是本目标早前（`d31897f0`）我写的 `sys.path.insert(0, ...)`，用来 import 同目录的 `storage_report`。
+   已改为按文件路径 `importlib.util` 加载（与 worker 侧加载同目录助手的既有做法一致），不再改动 `sys.path`；本地 `check_architecture.py` 现输出 `architecture guard passed`。
+
+另按仓库声明的完整 ruff 配置（`pyproject.toml` 的 E/F/W/I/N/UP/B/SIM）清理了本轮新增代码的 7 处问题（未用 import、未绑定参数、lambda 赋值、raise 未带 from、zip 缺 strict）。CI 的 lint 只用窄集 `E9,F63,F7,F82`，这些本不会挂 CI，但声明配置就是标准；已同时确认 CI 的窄集命令在全仓范围通过。
+
+教训（值得记住）：本轮三次"CI 抓到、本地没抓到"分别是 —— 门禁需要 PyYAML（CI 环境无）、Rust 未跑 fmt、架构守卫拦 `sys.path`。本地绿灯的边界只覆盖我实际跑过的命令。

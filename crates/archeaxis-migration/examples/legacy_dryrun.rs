@@ -49,7 +49,10 @@ fn main() {
                         println!("preserved whole: every readable table was exported");
                         std::process::exit(0);
                     }
-                    println!("preserved with a named gap — {} table(s) not exported:", manifest.unqueried_tables.len());
+                    println!(
+                        "preserved with a named gap — {} table(s) not exported:",
+                        manifest.unqueried_tables.len()
+                    );
                     for (name, reason) in &manifest.unqueried_tables {
                         println!("  UNQUERIED {name}: {reason}");
                     }

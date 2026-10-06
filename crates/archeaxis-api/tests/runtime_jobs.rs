@@ -499,7 +499,14 @@ async fn the_split_choice_does_not_widen_other_routes() {
         r#"{"deadline_ms":100,"window":{"index":0,"start_ms":0,"end_ms":10}}"#,
         r#"{"deadline_ms":100,"split":true,"staging":"elsewhere"}"#,
     ] {
-        let (status, value) = call(&router, "POST", "/api/v1/jobs/job/executions", "bad-split", body).await;
+        let (status, value) = call(
+            &router,
+            "POST",
+            "/api/v1/jobs/job/executions",
+            "bad-split",
+            body,
+        )
+        .await;
         assert_eq!(status, 422, "{body}");
         assert_eq!(value["code"], "AAK-VAL-001", "{body}");
     }
