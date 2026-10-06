@@ -25,6 +25,7 @@ from __future__ import annotations
 import argparse
 import json
 import posixpath
+import re
 import sys
 import zipfile
 from pathlib import Path
@@ -59,6 +60,57 @@ def probe() -> dict:
     }
 
 
+W_NS = "http://schemas.openxmlformats.org/wordprocessingml/2006/main"
+
+
+def _docx_styles(root: ET.Element) -> dict[str, dict]:
+    """The document's own style definitions: id -> name and outline level.
+
+    A paragraph usually carries only a style id. The level a style means lives in the style
+    definition, so reading it from the file is the difference between "this paragraph is
+    called Heading1" and "the document defines Heading1 as outline level 1".
+    """
+    styles: dict[str, dict] = {}
+    for style in root.findall(W("style")):
+        style_id = style.get(W("styleId"))
+        if not style_id:
+            continue
+        name_el = style.find(W("name"))
+        properties = style.find(W("pPr"))
+        outline = properties.find(W("outlineLvl")) if properties is not None else None
+        entry = {"name": name_el.get(W("val")) if name_el is not None else None,
+                 "outline_level": None}
+        if outline is not None:
+            raw = (outline.get(W("val")) or "").strip()
+            if raw.isdigit():
+                entry["outline_level"] = int(raw) + 1
+        styles[style_id] = entry
+    return styles
+
+
+def _heading_level(properties, style_id: str | None, styles: dict[str, dict]) -> int | None:
+    """The outline level this paragraph's own file declares, or None when it declares none."""
+    if properties is not None:
+        direct = properties.find(W("outlineLvl"))
+        if direct is not None:
+            raw = (direct.get(W("val")) or "").strip()
+            if raw.isdigit():
+                return int(raw) + 1
+    if not style_id:
+        return None
+    definition = styles.get(style_id) or {}
+    if definition.get("outline_level") is not None:
+        return definition["outline_level"]
+    # Word names built-in heading styles "heading 1"; a file may also store the id verbatim.
+    for candidate in (definition.get("name"), style_id):
+        if not candidate:
+            continue
+        match = re.fullmatch(r"(?:heading|标题)\s*([1-9])", str(candidate).strip(), re.IGNORECASE)
+        if match:
+            return int(match.group(1))
+    return None
+
+
 def _docx_text(path: Path) -> dict:
     text_parts: list[dict] = []
     media: list[str] = []
@@ -68,7 +120,9 @@ def _docx_text(path: Path) -> dict:
         has_headers = any(n.startswith("word/header") for n in names)
         has_footers = any(n.startswith("word/footer") for n in names)
         document_xml = archive.read("word/document.xml")
+        styles_xml = archive.read("word/styles.xml") if "word/styles.xml" in names else None
     root = ET.fromstring(document_xml)
+    styles = _docx_styles(ET.fromstring(styles_xml)) if styles_xml is not None else {}
     body = root.find(W("body"))
     if body is None:
         raise ValueError("docx document.xml has no body")
@@ -78,7 +132,16 @@ def _docx_text(path: Path) -> dict:
             runs = child.findall(".//" + W("t"))
             paragraph_text = "".join(run.text or "" for run in runs)
             if paragraph_text.strip():
-                text_parts.append({"kind": "paragraph", "text": paragraph_text.strip()})
+                properties = child.find(W("pPr"))
+                style_el = properties.find(W("pStyle")) if properties is not None else None
+                style_id = style_el.get(W("val")) if style_el is not None else None
+                style_name = (styles.get(style_id) or {}).get("name") if style_id else None
+                part = {"kind": "paragraph", "text": paragraph_text.strip(),
+                        "style": style_name or style_id}
+                level = _heading_level(properties, style_id, styles)
+                if level is not None:
+                    part["heading_level"] = level
+                text_parts.append(part)
         elif tag == W("tbl"):
             for row in child.findall(".//" + W("tr")):
                 cells = []
@@ -99,9 +162,13 @@ def _docx_text(path: Path) -> dict:
         start = projection.find(part["text"], offset)
         if start < 0:
             start = offset
-        structure.append(
-            {"kind": part["kind"], "path": [f"{part['kind']}-{index}"], "char_start": start, "char_end": start + len(part["text"])}
-        )
+        entry = {"kind": part["kind"], "path": [f"{part['kind']}-{index}"],
+                 "char_start": start, "char_end": start + len(part["text"])}
+        if part.get("style"):
+            entry["style"] = part["style"]
+        if part.get("heading_level") is not None:
+            entry["heading_level"] = part["heading_level"]
+        structure.append(entry)
         offset = start + len(part["text"])
     return {
         "format": "docx",
@@ -115,6 +182,12 @@ def _docx_text(path: Path) -> dict:
                 "footers": has_footers,
                 "media_files": len(media),
                 "engine": "stdlib-zip+xml",
+                "style_definitions": len(styles),
+                "paragraph_count": len([p for p in text_parts if p["kind"] == "paragraph"]),
+                "heading_count": len([p for p in text_parts if p.get("heading_level") is not None]),
+                "headings": [{"level": p["heading_level"], "style": p.get("style"),
+                              "characters": len(p["text"])}
+                             for p in text_parts if p.get("heading_level") is not None][:200],
             },
             "loss_note": (
                 "paragraphs/tables extracted in document order; header/footer "
