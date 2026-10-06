@@ -117,4 +117,21 @@ describe("Core job content",()=>{
   expect(screen.queryByText("知识候选创建未确认，请保留正文与选区重试。")).toBeNull();
   expect(screen.queryByText(/候选 old-knowledge/)).toBeNull();
  });
+ it("SIMULATED: tells the user the expected cost before executing media, and refuses to promise a whole job past the ceiling",async()=>{
+  bridge.call.mockImplementation(async()=>({}));
+  const {rerender}=render(<JobContent sourceId="s" name="speech.wav" mediaDurationSeconds={83}/>);
+  expect(screen.getByText(/原件时长 约 1 分 23 秒/)).toBeInTheDocument();
+  expect(screen.getByText(/整体执行在上限内，可直接执行/)).toBeInTheDocument();
+  expect(screen.queryByText(/分窗执行通路尚未接入/)).toBeNull();
+  rerender(<JobContent sourceId="s" name="speech.wav" mediaDurationSeconds={720}/>);
+  expect(screen.getByText(/原件时长 约 12 分 0 秒/)).toBeInTheDocument();
+  const warning=screen.getByText(/分窗执行通路尚未接入/);
+  expect(warning).toHaveTextContent(/需分 6 段/);
+  expect(warning).toHaveTextContent(/单段预计 约 5 分 0 秒/);
+ });
+ it("SIMULATED: no estimate is shown for a format that has no local reading route",async()=>{
+  bridge.call.mockImplementation(async()=>({}));
+  render(<JobContent sourceId="s" name="budget.xlsx" mediaDurationSeconds={720}/>);
+  expect(screen.queryByText(/原件时长/)).toBeNull();
+ });
 });
