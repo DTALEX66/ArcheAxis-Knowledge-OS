@@ -159,7 +159,7 @@ export function RecoveryShell({
   return (
     <div className="recovery-page">
       <header className="recovery-header">
-        <span className="recovery-brand">星环知识</span>
+        <span className="recovery-brand">星环知识平台</span>
         {status.external_dev ? <span className="dev-marker">开发</span> : null}
       </header>
       <main className="recovery-shell" role="main" aria-label="恢复工作台">

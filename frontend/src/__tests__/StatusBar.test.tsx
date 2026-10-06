@@ -17,6 +17,8 @@ describe("StatusBar", () => {
     expect(badge).toBeInTheDocument();
     expect(badge.textContent?.trim()).not.toBe("");
     expect(badge).toHaveAttribute("data-status", "pending");
+    // The transient backend label is the one thing a non-visual user must hear change.
+    expect(badge).toHaveAttribute("role", "status");
   });
 
   it("renders a persistent text DEV marker only for explicit external development", () => {

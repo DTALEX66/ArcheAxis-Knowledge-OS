@@ -48,11 +48,12 @@ export function StatusBar({
         <span
           className={`status-pill status-pill--${displayStatus}`}
           data-status={displayStatus}
+          role="status"
         >
           {BACKEND_LABELS[backendState]}
         </span>
       </div>
-      <div className="status-bar-space" aria-label="当前空间">
+      <div className="status-bar-space" role="group" aria-label="当前空间">
         {activeLabel}
       </div>
       <button type="button" className="inspector-trigger" title="展开/折叠检查器（Ctrl+Alt+I）" aria-keyshortcuts="Control+Alt+I" aria-label={inspectorOpen ? "折叠检查器" : "展开检查器"} aria-expanded={inspectorOpen} onClick={onToggleInspector}>◧</button>

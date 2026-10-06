@@ -127,6 +127,24 @@ describe("canonical content sample", () => {
     expect(onInspect).not.toHaveBeenCalled();
     expect(screen.getByRole("textbox", {name:"文档草稿"})).toHaveTextContent("已保存笔记");
   });
+  it("SIMULATED: a failed superseded document read cannot stamp the newly opened document", async () => {
+    const previous = bridge.call.getMockImplementation()!;
+    const slow = { ...doc, document_id: "slow_doc", source_id: null, source_revision: null, title: "慢读取文档" };
+    let reject!: (error: unknown) => void;
+    bridge.call.mockImplementation((op: string, payload: Record<string, unknown>) => {
+      if (op === "documents_list") return Promise.resolve({ documents: [slow, doc] });
+      if (op === "document_get" && payload.document_id === slow.document_id) return new Promise((_, fail) => { reject = fail; });
+      return previous(op, payload);
+    });
+    render(<CanonicalLibrarySpace />);
+    const user = userEvent.setup();
+    await user.click(await screen.findByRole("button", { name: "慢读取文档 · 文档" }));
+    await user.click(screen.getByRole("button", { name: "样板.txt · 文档" }));
+    await screen.findByText("文档已读取；保存不要求来源引用或审核。");
+    await act(async () => { reject(new Error("superseded read")); });
+    expect(screen.queryByText("文档读取未完成；当前内容仍保留。")).not.toBeInTheDocument();
+    expect(screen.getByText("文档已读取；保存不要求来源引用或审核。")).toBeInTheDocument();
+  });
   it("does not let a late original creation discard newly edited text",async()=>{
     let complete!:(value:unknown)=>void;
     const previous=bridge.call.getMockImplementation()!;

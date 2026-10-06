@@ -7,6 +7,7 @@
   --ax-canvas: #050505;
   --ax-panel: #0b0b0b;
   --ax-raised: #121212;
+  --ax-bg-inset: #0d0d0d;
   --ax-elevated: #1a1a1a;
   --ax-hover: rgba(255, 255, 255, 0.07);
   --ax-active: rgba(255, 255, 255, 0.11);
@@ -365,7 +366,7 @@ input:disabled, textarea:disabled, select:disabled {
 
 .receipt-grid {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
   gap: var(--ax-space-3);
   padding: var(--ax-space-4);
   background: var(--ax-raised);
@@ -386,6 +387,7 @@ input:disabled, textarea:disabled, select:disabled {
 .receipt-grid dd {
   font-size: 13px;
   color: var(--ax-fg);
+  overflow-wrap: anywhere;
 }
 
 .receipt-preview {
@@ -781,6 +783,13 @@ tr:hover {
   opacity: 1;
 }
 
+/* The current-item rule above carries a box-shadow of its own, which would otherwise win the
+   cascade and leave the selected item with no visible keyboard focus ring. */
+.space-rail-item[aria-current="page"]:focus-visible,
+.context-subnav button[aria-current="page"]:focus-visible {
+  box-shadow: 0 0 0 2px var(--ax-accent-soft), 0 0 0 4px rgba(255, 255, 255, 0.25);
+}
+
 .space-rail-icon {
   font-size: 14px;
   width: 18px;
@@ -907,10 +916,58 @@ tr:hover {
 /* Inspector */
 .inspector {
   width: 300px;
+  min-width: 0;
+  flex-shrink: 1;
   border-left: 1px solid var(--ax-border);
   background: var(--ax-panel);
   padding: var(--ax-space-4);
   overflow-y: auto;
+}
+
+.inspector-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--ax-space-2);
+  margin-bottom: var(--ax-space-3);
+}
+
+.inspector-title {
+  font-size: 13px;
+  font-weight: 590;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--ax-fg-secondary);
+}
+
+.inspector-details {
+  display: grid;
+  grid-template-columns: minmax(72px, auto) 1fr;
+  gap: var(--ax-space-1) var(--ax-space-3);
+  align-items: start;
+}
+
+.inspector-details dt {
+  font-size: 11px;
+  font-weight: 510;
+  color: var(--ax-fg-tertiary);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.inspector-details dd {
+  font-size: 13px;
+  color: var(--ax-fg);
+  overflow-wrap: anywhere;
+}
+
+.inspector-empty {
+  font-size: 13px;
+  color: var(--ax-fg-secondary);
+}
+
+.inspector-empty-close {
+  margin-bottom: var(--ax-space-3);
 }
 
 /* Activity dock */
@@ -1844,8 +1901,21 @@ tr:hover {
 }
 
 @media (max-width: 900px) {
+  /* Hiding this entirely removes the only section switcher in the library space. */
   .context-subnav {
+    width: 168px;
+    min-width: 0;
+    gap: var(--ax-space-3);
+  }
+
+  .context-subnav header,
+  .context-subnav p,
+  .context-subnav footer {
     display: none;
+  }
+
+  .app-center {
+    min-width: 280px;
   }
 }
 

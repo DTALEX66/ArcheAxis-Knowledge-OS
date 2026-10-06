@@ -416,6 +416,24 @@ fn reject_link(path: &std::path::Path) -> Result<(), String> {
     Ok(())
 }
 
+/// How long the host waits for the Core before aborting the request.
+///
+/// A client timeout shorter than the operation's own bound aborts the transport while the Core is
+/// still working, so the durable result arrives after the UI has already reported failure.
+fn transport_timeout(operation: &Operation) -> std::time::Duration {
+    std::time::Duration::from_secs(match operation {
+        // The owned worker permits 120 seconds plus 20 seconds for bounded
+        // transport cleanup; keep a finite margin for durable readback.
+        Operation::DocumentCheckExecute => 160,
+        Operation::MachineAnswer => 135,
+        Operation::WorkspaceBackup => 120,
+        // The Core caps a job deadline at 300 seconds and the reader polls for 310; real media
+        // jobs run past both, so the transport must outlive them.
+        Operation::JobExecute => 320,
+        _ => 30,
+    })
+}
+
 fn request_byte_limit(operation: &Operation) -> usize {
     if matches!(operation, Operation::SourceImport) {
         90 * 1024 * 1024
@@ -445,19 +463,7 @@ pub fn execute(port: u16, token: &str, request: Request) -> Result<Reply, String
     let client = reqwest::blocking::Client::builder()
         .no_proxy()
         .redirect(reqwest::redirect::Policy::none())
-        .timeout(std::time::Duration::from_secs(
-            if matches!(request.operation, Operation::DocumentCheckExecute) {
-                // The owned worker permits 120 seconds plus 20 seconds for bounded
-                // transport cleanup; keep a finite margin for durable readback.
-                160
-            } else if matches!(request.operation, Operation::MachineAnswer) {
-                135
-            } else if matches!(request.operation, Operation::WorkspaceBackup) {
-                120
-            } else {
-                30
-            },
-        ))
+        .timeout(transport_timeout(&request.operation))
         .build()
         .map_err(|_| "CORE_TRANSPORT_UNAVAILABLE")?;
     let mut builder = client
@@ -495,6 +501,16 @@ pub fn execute(port: u16, token: &str, request: Request) -> Result<Reply, String
 #[cfg(test)]
 mod tests {
     use super::*;
+    #[test]
+    fn job_execute_transport_outlives_the_core_job_deadline() {
+        // The Core caps a job deadline at 300 seconds and the reader polls to 310; a shorter client
+        // timeout aborts the request while the job is still going to succeed durably.
+        assert!(transport_timeout(&Operation::JobExecute) >= std::time::Duration::from_secs(310));
+        assert_eq!(
+            transport_timeout(&Operation::SourceImport),
+            std::time::Duration::from_secs(30)
+        );
+    }
     #[test]
     fn exports_reject_traversal_before_creating_any_output() {
         let root = tempfile::tempdir().unwrap();
