@@ -43,7 +43,7 @@ export function JobContent({sourceId,name,onKnowledge,sourceRevision,onTimeSeek,
    if(rows.some(row=>row.input_ref!==sourceId))throw new Error("source jobs identity mismatch");
    const latest=rows.find(row=>row.kind===(extension==="epub"?"text":kind==="video"?"video":"transcribe"));
    const successful=rows.find(row=>row.kind===(extension==="epub"?"text":kind==="video"?"video":"transcribe")&&row.state==="succeeded");
-   if(!successful){if(current()){if(latest)setLatestState(latest);if(listing.jobs_capped===true)setMessage("仅检查最近 50 个来源任务；未找到其中的成功转写，不表示更早结果不存在。");}return;}
+   if(!successful){if(current()){if(latest){setLatestState(latest);setMessage(`最近一次转换任务状态为 ${String(latest.state)}；未找到成功产物，不表示此前结果不存在。`);}if(listing.jobs_capped===true)setMessage("仅检查最近 50 个来源任务；未找到其中的成功转写，不表示更早结果不存在。");}return;}
    if(typeof successful.job_id!=="string")throw new Error("persisted job identity missing");
    const id=successful.job_id;
    const [stateValue,rawText,structureValue,lossValue,quality,transformValue]=await Promise.all([

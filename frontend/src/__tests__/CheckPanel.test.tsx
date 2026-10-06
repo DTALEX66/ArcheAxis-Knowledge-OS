@@ -100,6 +100,20 @@ describe("independent document checks",()=>{
   expect(()=>checkExecutionLabel({...executed,status:"faithful",execution_verified:false} as any)).toThrow();
   expect(checkExecutionLabel({...check,status:"failed",execution_state:"failed",reason:"retrieval_empty",reported_status:"uncertain"} as any)).toMatch(/失败当作内容判断/);
  });
+ it("SIMULATED: a durable manual record is not announced as unconfirmed when only its readback fails",async()=>{
+  let reads=0;
+  bridge.call.mockImplementation(async(op:string)=>{
+   if(op==="document_checks"){reads++;if(reads>1)throw new Error("readback unavailable");return {document_id:"d",version:2,content_sha256:"hash",historical:false,default_status:"unverified",checks_capped:false,next_offset:null,checks:[]};}
+   if(op==="document_check_record")return {...check,dimension:"professional_basis",provider_mode:"manual",status:"uncertain",execution_state:"not_executed",execution_verified:false};
+   throw new Error("unexpected operation");
+  });
+  render(<CheckPanel document={document} onRevisionBasis={vi.fn()}/>);
+  const user=userEvent.setup();
+  await user.click(within(screen.getByLabelText("专业依据")).getByRole("button",{name:"明确提交手动核验记录"}));
+  expect(await screen.findByText(/核验记录已保存/)).toBeInTheDocument();
+  expect(screen.queryByText(/核验记录未确认/)).not.toBeInTheDocument();
+  expect(bridge.call.mock.calls.filter(([op])=>op==="document_check_record")).toHaveLength(1);
+ });
  it("SIMULATED: an actual executed uncertain receipt is displayed and cannot be retried as failed",async()=>{
   let checks:any[]=[check];
   const receipt={...check,check_id:"terminal",request_check_id:"c",attempt_id:"doccheck_verified",retry_of_task_id:null,status:"uncertain",execution_state:"executed",execution_verified:true,engine_receipt:{provider:"configured-fixture",requested_model:"fixture-v1",model:"fixture-v1",prompt_sha256:"a".repeat(64),response_sha256:"b".repeat(64),tokens_used:12,finish_reason:"stop"},retrieval_receipts:[]};

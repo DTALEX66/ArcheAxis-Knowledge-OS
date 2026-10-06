@@ -50,8 +50,10 @@ export function CheckPanel({document,onRevisionBasis}:{document:DocumentDto;onRe
       }});
       assertCoreDto("DocumentCheckDto",value);
       if(value.document_id!==document.document_id||value.version!==document.version||value.dimension!==dimension||value.provider_mode!==mode)throw new Error("check identity mismatch");
-      setVersion(String(document.version)); await read(document.version);
+      setVersion(String(document.version));
+      // The write already succeeded and is durable; a failed readback must not announce it as unconfirmed.
       setMessage(mode==="cloud"&&!value.execution_verified?"申请已记录；云端核验尚未执行。":"核验记录已保存；不会替代知识认可。");
+      try { await read(document.version); } catch { setMessage("核验记录已保存；但记录回读未完成，可稍后重新读取。"); }
     } catch {setMessage("核验记录未确认，请保留填写内容重试；正文仍可保存。");}finally{setBusy(false);}
   }
   async function execute(item:DocumentCheckDto) {

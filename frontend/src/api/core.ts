@@ -21,7 +21,15 @@ export async function coreCommand<T>(operation: CoreOperation, payload: Record<s
   const response = result as { status?: unknown; body?: unknown };
   if (typeof response.status !== "number" || !Number.isInteger(response.status)) throw new ApiError(502, "本地核心状态无效。", "incompatible");
   if (response.status < 200 || response.status >= 300) {
-    throw new ApiError(response.status, response.status === 409 ? "版本已变化，请保留当前草稿并重新读取。" : "本地核心未完成此操作。", response.status === 401 || response.status === 403 ? "unauthorized" : "unavailable");
+    // One sentence for every failure sends someone looking in the wrong place: a missing object,
+    // a refused argument and a core-side fault need different next actions.
+    const reason = response.status === 409 ? "版本已变化，请保留当前草稿并重新读取。"
+      : response.status === 401 || response.status === 403 ? "本地核心拒绝了此操作的身份。"
+      : response.status === 404 ? `本地核心找不到 ${operation} 所需的对象。`
+      : response.status === 429 ? "本地核心繁忙，请稍后重试。"
+      : response.status >= 500 ? `本地核心未能完成 ${operation}（${response.status}）。`
+      : `本地核心拒绝了 ${operation}（${response.status}）。`;
+    throw new ApiError(response.status, reason, response.status === 401 || response.status === 403 ? "unauthorized" : "unavailable");
   }
   const schema = responseSchemas[operation];
   try { return schema ? assertCoreDto<T>(schema, response.body) : response.body as T; }

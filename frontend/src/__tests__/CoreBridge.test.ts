@@ -17,6 +17,18 @@ describe("finite Core bridge", () => {
     await verifyCanonicalCore();
     expect(invoke).toHaveBeenCalledWith("core_command", { request: { operation: "system_version", payload: {} } });
   });
+  it("distinguishes a missing object, a refused argument, a core fault and an identity refusal", async () => {
+    const cases: Array<[number, RegExp]> = [
+      [404, /找不到 sources_list 所需的对象/],
+      [400, /拒绝了 sources_list（400）/],
+      [503, /未能完成 sources_list（503）/],
+      [403, /拒绝了此操作的身份/],
+    ];
+    for (const [status, pattern] of cases) {
+      window.__TAURI__ = { core: { invoke: vi.fn().mockResolvedValue({ status, body: {} }) } };
+      await expect(coreCommand("sources_list")).rejects.toThrowError(pattern);
+    }
+  });
   it("reports version conflict and rejects malformed status instead of returning success", async () => {
     const invoke = vi.fn().mockResolvedValue({ status: 409, body: {} });
     window.__TAURI__ = { core: { invoke } };
