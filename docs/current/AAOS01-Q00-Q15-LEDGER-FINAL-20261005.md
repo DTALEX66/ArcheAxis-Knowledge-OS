@@ -1496,3 +1496,34 @@ canonical URL / 版本 / 许可版本，因此**不写台账行**"。**前半句
 `config/environment/capability-requirements.yaml` 里**依然没有** antiword 条目，
 所以现在解析顺序里的第二档（已声明清单）永远是空的，实际生效的只有环境变量与 `PATH`；
 把它放进外置工具根需要该清单三个读取方一致，那是单独一刀。
+
+
+## 寻址层第二族：`params.format.locations` 的位置也可以被锚定（2026-10-07）
+
+上一节我明确写着"locations 那一族（F13 的 ODF/EPUB/邮件、F01 的符号）**未**并入"。这一刀把它接上，
+用的仍是**加性**办法：新增第五种 position 类型 `format_location`，验证条件全部落在已有数据上——
+该 attempt 是这个 source revision 的**最新 succeeded**、请求线里的 `inputs[0].sha256` 等于声明的
+revision、收据 `params.format.locations` 里 kind+path **恰好命中一次**、被报告的值**确实出现在
+这一次的投影文本里**且 digest 与声明一致。
+
+**两处刻意的"不放宽"**：
+1. **歧义就拒**。一个 Python 源里所有 import 共用 `path=/symbols/import`；不按更多字段收窄时，
+   这个 path 什么也没指。定位符因此可以带一个 `where`，但只允许**用收据已经报过的字段**
+   （如 `name`）做**精确相等**收窄；我没有发明序号、行号或任何新判别器。收窄不成立就 `400`，
+   而不是挑一个看起来对的。用例把三侧都钉住：不收窄被拒、按 `name` 收窄通过、
+   按收据里没有的 `name` 收窄仍被拒。
+2. **值必须真在投影里**。`xml_path` 一条被我故意写成"收据说有、正文里没有"，它必须被拒——
+   这条防的是"结构漂移被当成位置"。
+
+**这一族与上一族的差别被写进契约**：`worker_structure` 校验**字符跨度**，`format_location` 校验
+**值本身**（那些 worker 报的是值而不是跨度）。契约里 `POST /sources/(:source_id)/anchors` 那一行
+现在把五种类型各自的验证条件逐字列出。
+
+**度量口径**：新增 `crates/archeaxis-api/tests/format_location_anchor_api.rs` **4 passed**；
+`cargo test --workspace --offline` → 126 suites ok / 514 passed / 0 failed；`cargo fmt --all --check` PASS。
+矩阵只改 **F01 与 F13 的 gap 措辞与 evidence 列表**（`required_output` 逐字未动，计数仍 0/15/1）；
+`check_format_matrix.py`、`check_document_authority.py` exit 0。
+
+**仍未闭合**：锚点证明的是"这个值确实在这份投影里、这条收据确实这么命名它"，
+**不是**独立推出的页号或单元格坐标语义；locations 列表本身受 worker 的上限截断，
+被截掉的位置不可寻址；界面层没有消费（前端按 Owner 指示暂停）。
