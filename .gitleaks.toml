@@ -18,6 +18,11 @@ regexes = [
   '''test-jwt-secret-fedcba9876543210-HGFEDCBA''',
   '''-----BEGIN RSA PRIVATE KEY-----''',
   '''eyJhbGciOiJIUzI1NiJ9''',
+  # An Avalonia theme resource key (apps/ArcheAxis.Desktop/Themes/AaosTheme.axaml)
+  # whose name is high-entropy enough for the generic-api-key rule. It is a brush
+  # name, not a credential; the exact literal is named so a real secret in the same
+  # attribute shape would still fail.
+  '''AaosSurface2Brush''',
 ]
 
 [[allowlists]]
