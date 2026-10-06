@@ -1,7 +1,7 @@
 {
   "schema": "archeaxis/audit-snapshot/v1",
   "round": "AAOS-AUTHORITY-REPAIR-20261006",
-  "observed_at": "2026-10-06T23:39:18+08:00",
+  "observed_at": "2026-10-06T23:58:33+08:00",
   "timezone": "Asia/Shanghai",
   "scope": "文档与治理修复（权威入口、冲突 current、描述与覆盖矩阵、可重复审计）。不改产品架构、不批量化安装依赖、不发布。",
   "repository": {
@@ -138,8 +138,7 @@
   "checks_not_run_this_round": [
     "产品级安装态与资格化验收未跑：本轮范围为文档/治理，不为装饰重复全产品验收。本机全量套件本轮实际跑过（见 commands：1 failed），但该 SHA 的 CI 为 push 分类，test 车道被跳过，故 test 作业本轮未在 CI 运行",
     "未改 GitHub About：先记录 before，随后由 API 更新并读回（见 about 字段）",
-    "未在另一本地副本上比对：本机未发现第二工作副本被指为主副本",
-    "pip-audit 强制的 CI 侧读回未执行：本机已按 CI 同法（--python 3.12、同一 --frozen 导出）证得旧锁 5 项/新锁 0 项，但“去掉 continue-on-error 后该步骤在 CI success”需下一次运行确认，确认前不宣称已强制通过"
+    "未在另一本地副本上比对：本机未发现第二工作副本被指为主副本"
   ],
   "regressions": [
     {
@@ -151,6 +150,14 @@
       "fix": "在 README 头部显式声明 Legacy/Migration 兼容语境（HTML 注释），不再依赖某个措辞恰好落在字符窗口内",
       "local_reproduction": "python -B scripts/check_repository_conventions.py --source head → 修复前 exit 1（仅 1 项），修复后 exit 0",
       "false_pass_note": "首轮本地误判为通过：同一命令当时在另一分支（codex/Audit）工作树较短的 README 上执行；另注意在 Windows 工作树上用 --source worktree 会因 CRLF 报 72 项，复现必须用 --source index 或 --source head"
+    },
+    {
+      "commit": "5e5d102b",
+      "detected_by": "CI push run 37490490651 / test (3.12) job 112361733929 (FAILURE)",
+      "observed": "tests/maintenance/test_active_output_boundaries.py::test_active_sources_do_not_embed_machine_absolute_roots_or_legacy_runtime_output 失败，违规项是我新增的 crates/archeaxis-migration/tests/selective_legacy_stage.rs 夹具里的来源字符串 .hermes/task-runtime/ingest-samples/oxford-meaning.pdf",
+      "cause": "该门禁把活动源码中出现遗留运行输出根路径判为边界违规；我写夹具时未先跑它。pip-audit 步骤本身在同一 job 里 已输出 No known vulnerabilities found，与本失败无关",
+      "fix": "不动门禁，只把夹具来源改成中性的 ingest-samples/oxford-meaning.pdf（该项断言不依赖此字符串）；复验 1 passed，cargo test -p archeaxis-migration --tests --offline 六套件合计 27 passed",
+      "status": "fixed"
     }
   ],
   "gaps": [
@@ -247,7 +254,7 @@
       "merge / release / install 未授权、未执行；无 tag、无 release",
       "裸跑 pytest 的卫生边界（本轮实测）：`python -m pytest` 直接调用会在仓库根写出 `__pycache__/conftest.*.pyc`，从而触发 tests/workflow/test_workspace_layout_contract.py 的 out_of_layout 断言；权威路径 scripts/ci/run_tests.sh 走 dev.py（PYTHONPYCACHEPREFIX）不产生该假失败。已删除该目录并以 PYTHONDONTWRITEBYTECODE=1 复验 4/4 通过；后续本地跑套件须经 run_tests.sh 或加 -B",
       "build/ 清理边界：剩余的最大本地项是 build/cargo（约 16.6 GB 的可再生 target 缓存），它**在其 22 GB 策略预算之内**且不在 Owner 已圈定的“非 cargo、超预算”范围内，故未删；候选目录（ci-*、f151f4c7998a、local-242cc4c3）或被具名引用、或是台账所记“不在仓库内”收据的唯一本机副本，保留",
-      "更正（2026-10-06 实测）：本机**有** uv 0.12.23（/c/Users/ALEX/.local/bin/uv），原条目“本机无 uv、无法验证干净、需 Owner 授权引入”前提不成立；Gitleaks 与 pip-audit 均已登记（A024 / A023）并以 CI 门禁形式吸收。pip-audit 在 run 37471031307 job 112294372735 实报 5 项（urllib3 2.7.0、soupsieve 2.8.4），已按修复版升为 urllib3 2.8.0 / soupsieve 2.10；同一钉版本对旧锁导出复现同样 5 项、对新锁导出报 No known vulnerabilities found（exit 0），故该步骤已去掉 continue-on-error 并补 set -o pipefail（此前 `pip-audit | tee` 在无 pipefail 的 `bash -e` 下退出码恒为 tee 的 0，即使命中漏洞也不会弄红）。待读回：CI 侧该步骤在强制状态下真跑且通过"
+      "更正（2026-10-06 实测）：本机**有** uv 0.12.23（/c/Users/ALEX/.local/bin/uv），原条目“本机无 uv、无法验证干净、需 Owner 授权引入”前提不成立；Gitleaks 与 pip-audit 均已登记（A024 / A023）并以 CI 门禁形式吸收。pip-audit 在 run 37471031307 job 112294372735 实报 5 项（urllib3 2.7.0、soupsieve 2.8.4），已按修复版升为 urllib3 2.8.0 / soupsieve 2.10；同一钉版本对旧锁导出复现同样 5 项、对新锁导出报 No known vulnerabilities found（exit 0），故该步骤已去掉 continue-on-error 并补 set -o pipefail（此前 `pip-audit | tee` 在无 pipefail 的 `bash -e` 下退出码恒为 tee 的 0，即使命中漏洞也不会弄红）。CI 侧已读回：head_sha 5e5d102b 的 push run 37490490651 / job 112361733929 日志第 3079 行输出 No known vulnerabilities found，步骤在强制状态下实际执行并通过"
     ],
     "next_action": "1) 推送后按 head_sha 读回 CI：确认 pip-audit 步骤在强制状态下 success（这是“已强制”的最后一步证据）；2) 把旁路暂存库交 Owner 验收，再定正式并入与旧入口冻结；3) 按 A 类缺口顺序推进 F02 抓取时间、F04 未知扩展名、F06 OCR 回写页、F08 图表数据（均无需新依赖）"
   },

@@ -818,7 +818,9 @@ Q02/Q14/Q15 的收口此前都卡在同一处：`desktop/scripts/verify_nsis_ins
 
 **据此把该步骤转为强制**：去掉 `continue-on-error`（`--strict` 与 `--exit-code` 语义保留），并加 `set -o pipefail` 使管道真的能把步骤弄红。护栏新增 `tests/workflow/test_dependency_scan_config.py`（4 项：钉版本+`--strict`、非 report-only 且必须 pipefail、命令体内不得用 `--ignore-vuln` 点名放行、审计对象是 `uv export --frozen --only-group ci` 的锁导出而非 pyproject 区间）。**三项注入实测各自只弄红对应那一项**（改回 report-only / 删 pipefail / 在命令里加 `--ignore-vuln PYSEC-2026-4177`），还原后 4 项全过；ci.yml 以字节还原并断言一致。
 升锁连带命中一条**真值测试**：`tests/test_release_manifest.py::test_release_manifest_is_packaged_truth_and_matches_dependency_lock` 断言 `app/release-manifest.json` 的 `dependency_lock.digest` 必须等于 `sha256(uv.lock)`——它不是被我改坏的，而是**如实发现了清单与锁漂移**。按仓库既有约定（提交 `79332377` 只改 digest、`revision` 保持 8）用脚本重算并回写摘要，写后重新读回断言相等；该套件回到 **35 passed / 0 failed**。
-**仍未读回**：本机的“干净”不代替 CI 的“干净”——去掉 `continue-on-error` 后该步骤**在 CI 真跑并通过**这一步尚待下一次运行确认（与 gitleaks 当时的判据同一条），确认前不宣称“CI 已强制通过”。
+**CI 侧读回已取得**（head_sha `5e5d102b`，push run `37490490651`，job `112361733929`，日志第 3079 行）：强制状态下的该步骤**实际执行**并输出 `No known vulnerabilities found`，随后正常进入 gitleaks 步骤——即“去掉 `continue-on-error` 后仍能通过”已由 CI 自己证明，不再只是本机结论。
+
+**同一个 job 因我自己引入的一处回归而 FAILURE（如实记录，非他人改动）**：失败项是 `tests/maintenance/test_active_output_boundaries.py::test_active_sources_do_not_embed_machine_absolute_roots_or_legacy_runtime_output`。根因是我新增的 Rust 测试夹具把样例正文的来源写成 `.hermes/task-runtime/ingest-samples/...`，而该门禁把 `crates/` 等**活动源码**里出现遗留运行输出根路径判为违规。按“真值测试优先于新功能”处理：**不动门禁**，只把夹具里的来源改为中性的 `ingest-samples/oxford-meaning.pdf`（该项断言的是 `core_objects → not_merged`，与此字符串无关）。复验：该门禁 **1 passed**，`cargo test -p archeaxis-migration --tests --offline` 六个套件合计 **27 passed / 0 failed**。教训：往活动源码里写“真实历史路径”之前，应先跑该边界门禁。
 
 ## Green 暗工作树按 Owner 裁决删除（2026-10-06，逐项精确路径）
 
