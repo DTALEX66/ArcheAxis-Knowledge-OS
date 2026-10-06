@@ -28,6 +28,9 @@ Historical identity for the original 2026-10-01 observations below (not the curr
 
 Current-source inventory was extended on 2026-10-05 to 61 method/path pairs,
 including version-bound document checks and optional-source original documents.
+It was extended again on 2026-10-07 to 62 method/path pairs by
+`GET /api/v1/sources/{source_id}/pages`, the R15/F06 read-back of a rendered page's own
+recognised text; the 61 above stays as the 2026-10-05 measurement rather than being rewritten.
 Schema11 and actual local Core persistence/restart/restore proofs are recorded in
 `AAOS01-Q00-Q15-LEDGER-FINAL-20261005.md`; those dirty-tree results are not the
 historical SHA above or installed qualification. The formal host now follows
@@ -206,7 +209,7 @@ against what it launched; a mismatch means it is talking to a different Core.
 `runtime` and `contract` are hard-coded string literals, not derived from the crate
 version. Do not use them to infer a build.
 
-## 3. Route inventory (61 pairs in a `text_worker` launch)
+## 3. Route inventory (62 pairs in a `text_worker` launch)
 
 `PROD` = reachable in a production launch. `PROD` marks the routes the UI may rely on.
 All paths are relative to the loopback base URL.
@@ -273,6 +276,7 @@ is not registered is a `404` rather than a row about nothing.
 | 5 | `GET /api/v1/sources/{source_id}/jobs/{job_id}/transform` | any token | The succeeded job's stored projection, whatever its kind: every extraction route writes its projection to `transforms.text`, so a PDF, OCR, Office, HTML, canvas, subtitle, archive, media or ASR transform reads back here. A job with no stored projection is `404`, and the `source_id` binding is enforced rather than the job id alone. |
 | 24 | `GET /api/v1/sources/{source_id}/members` | any token | Source members. |
 | 25 | `GET /api/v1/sources/{source_id}/jobs` | any token | Jobs for a source. |
+| 43 | `GET /api/v1/sources/{source_id}/pages` | any token | The pages a PDF was rendered into, each with the text its own OCR job produced; `recognised` false and no text means the page has not been read, and a PDF whose own text layer was readable has no pages here. |
 
 ### Evidence and knowledge
 
@@ -539,8 +543,8 @@ Before the fix this endpoint answered `500` with a raw FTS5 parser message for
 
 | Launch | Routes served | Consequence for the UI |
 | --- | --- | --- |
-| **no** `text_worker` | 42 projection method/path pairs (37 unconditional mounts, five dual-method mounts); manual legacy `/jobs/{id}/receipts` remains absent from production | `/jobs/{id}`, `/executions`, `/outputs`, `/cancel`, `/capabilities` and its enable/disable write are **absent** (`404`). |
-| **with** `text_worker` | 61 addresses (41 base projection method/path pairs + 20 runtime method/path pairs) | All routes above are served. |
+| **no** `text_worker` | 43 projection method/path pairs (38 unconditional mounts, five dual-method mounts); manual legacy `/jobs/{id}/receipts` remains absent from production | `/jobs/{id}`, `/executions`, `/outputs`, `/cancel`, `/capabilities` and its enable/disable write are **absent** (`404`). |
+| **with** `text_worker` | 62 addresses (42 base projection method/path pairs + 20 runtime method/path pairs) | All routes above are served. |
 
 The runtime builder carries **20** routes, mounted there rather than with the projections because
 the capability surface reads the executor's registered routes, and the executor is the runtime
@@ -745,4 +749,4 @@ UI must show machine answering as not connected rather than calling anything.
    revision and the correction appears to vanish. The request-body table in §4 names every field
    for this reason.
 
-The projection-only launch retains its explicit unconfigured document-check execution handler. A text-worker launch instead mounts that same method/path once in the runtime builder; its 41 base projection pairs plus 20 runtime pairs total 61. This does not add a second endpoint or imply cloud configuration.
+The projection-only launch retains its explicit unconfigured document-check execution handler. A text-worker launch instead mounts that same method/path once in the runtime builder; its 42 base projection pairs plus 20 runtime pairs total 62. This does not add a second endpoint or imply cloud configuration.
