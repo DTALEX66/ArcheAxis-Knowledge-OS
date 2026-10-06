@@ -760,3 +760,13 @@ Q02/Q14/Q15 的收口此前都卡在同一处：`desktop/scripts/verify_nsis_ins
 - `ArcheAxis.Knowledge.Green-x64/.ui-task-tree/ArcheAxis-Knowledge-OS-mainline`（**6.24G**）：其所有者是 `DESKTOP-L26E3AC\CodexSandboxOnline`（SID 尾 `-1004`），当前用户是 `DESKTOP-L26E3AC\ALEX`（尾 `-1001`）；`git` 直接以 `detected dubious ownership` 拒绝一切读写。要操作它必须加 `safe.directory` 全局配置——那是**改全局配置**，不做；且它本就非当前身份资产，**按"保留 + 标注未解决"处理**，删除需 Owner 决定。
 - Green 的 `ArcheAxis-Knowledge-OS` worktree（**2.51G**）与 `minimax-aaos-cosmic-ui-20261001`（**0.65G**）所有者均为 ALEX（可操作）；前者 WIP 已固化为归档，属"可删除待裁决"；后者按 Owner 裁决保留为供体。
 - `runs/` 下 434 个残留目录：`Get-Acl` 本身即被拒（"该操作需要提升的权限"），是**受限 ACL**；因其零字节，即便提权可回收也约为 0。
+
+## 追加清理：未被引用的 build/ 根（3.05 GB）与一次前端测试探查（2026-10-06）
+
+对开发根 `build/` 的每个较大条目做**精确路径**引用核对（在跟踪工作树内按名字检索），删除四条**在 `build/` 路径下无任何引用且可再生**的构建产物：
+
+- `build/22cad761f8`（2.43G）：它是**已删除** worktree `aaos-ui-phase2-integrate` 的按 worktree 构建根（含 `cargo/`+`dotnet/`+`phase2-d6bd374-publish-20261001/`）。两处文档提到 `22cad761f8` 时指向的是 `.project-local/runs/22cad761f8/...`（收据截图），**那是另一棵树且已保留**——已实测 `runs/22cad761f8/ui-icon-preview-20261001/icons.png`（11,971 B）仍在，`phase2-d6bd374` 在 `docs/` 下零引用。
+- `build/desktop-publish-r20`（0.21G）、`build/ui-detail-20261003-v2`（0.20G）、`build/ui-detail-20261003-v3`（0.20G）：三条 dotnet publish，在跟踪工作树内**零引用**（同名的 `ui-detail-20261003` 被引用故保留）。
+- 只用精确路径（无 glob、无父目录递归），清只读位后重试删除；审计清单 `.project-local/task-runtime/prune-uncited-build-roots-20261006-audit.json`。`build/cargo`、`build/dotnet`、`build/rust-msvc` 等工具链/缓存与所有被引用条目**未动**。测试节点 `build/be268a2d33`（主检出构建根，被 `AAOS-AUDIT-SNAPSHOT` 等引用）保留。
+
+**前端测试探查（如实记录，未改产品代码）**：新增两个组件测试 `frontend/src/__tests__/RealData.test.tsx`（7 项）与 `frontend/src/__tests__/CommandPalette.test.tsx`（6 项），本地 13 项通过，补齐审计曾点名的组件级测试缺口。跑整个前端套件时 `CanonicalLibrarySpace.test.tsx` 的"reads hashed original…"一项失败（`waitFor` 1s 超时，用时 1146ms）。**已核实为本机时序抖动而非产品缺陷**：失败断言要求 `anchor_create` 的 `body.revision` 等于 `sha256("原文样板")=d74012a2…`，而实测收到的调用**正是**该值且 `source_id=src_test` 正确——行为已发生，只是慢于 1 秒阈值；该文件我未改动，单独运行同样超时，与本次新增无关。**故不宣称前端套件在本机全绿**，并留作后续可在慢机上放宽该 `waitFor` 的独立切片。

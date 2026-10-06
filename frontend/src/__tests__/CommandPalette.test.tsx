@@ -1,0 +1,70 @@
+import { describe, expect, it, vi } from "vitest";
+import { fireEvent, render, screen, within } from "@testing-library/react";
+import { CommandPalette } from "../components/CommandPalette";
+import { SPACES } from "../spaces/spaces";
+
+// AXW-UI-804: CommandPalette - the global command dialog. These tests pin the
+// keyboard entry points, the assistive-tech containment while it is open, the
+// filter contract, and that selecting an option navigates then closes.
+function renderPalette(onNavigate: (id: (typeof SPACES)[number]["id"]) => void = () => {}) {
+  render(<CommandPalette onNavigate={onNavigate} />);
+  return screen.getByRole("button", { name: "打开全局命令" });
+}
+
+describe("CommandPalette", () => {
+  it("advertises its keyboard shortcut on the trigger", () => {
+    const trigger = renderPalette();
+    expect(trigger).toHaveAttribute("aria-keyshortcuts", "Control+K");
+  });
+
+  it("opens on Ctrl+K and hides the app shell from assistive technology while open", () => {
+    const shell = document.createElement("div");
+    shell.className = "app-shell";
+    document.body.appendChild(shell);
+    try {
+      renderPalette();
+      fireEvent.keyDown(window, { key: "k", ctrlKey: true });
+      expect(screen.getByRole("dialog", { name: "全局命令" })).toBeInTheDocument();
+      expect(shell).toHaveAttribute("inert");
+      expect(shell).toHaveAttribute("aria-hidden", "true");
+    } finally {
+      shell.remove();
+    }
+  });
+
+  it("closes on Escape", () => {
+    renderPalette();
+    fireEvent.click(screen.getByRole("button", { name: "打开全局命令" }));
+    expect(screen.getByRole("dialog", { name: "全局命令" })).toBeInTheDocument();
+    fireEvent.keyDown(window, { key: "Escape" });
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+  });
+
+  it("lists every space as an option when the query is empty", () => {
+    renderPalette();
+    fireEvent.click(screen.getByRole("button", { name: "打开全局命令" }));
+    const listbox = screen.getByRole("listbox", { name: "可用命令" });
+    expect(within(listbox).getAllByRole("option")).toHaveLength(SPACES.length);
+  });
+
+  it("drops to the empty message when nothing matches the query", () => {
+    renderPalette();
+    fireEvent.click(screen.getByRole("button", { name: "打开全局命令" }));
+    fireEvent.change(screen.getByRole("searchbox", { name: "搜索空间或命令" }), {
+      target: { value: "zzz-no-such-space" },
+    });
+    expect(screen.getByText("没有匹配的可用空间")).toBeInTheDocument();
+    expect(screen.queryByRole("option")).not.toBeInTheDocument();
+  });
+
+  it("navigates to the selected space and closes the dialog", () => {
+    const onNavigate = vi.fn();
+    render(<CommandPalette onNavigate={onNavigate} />);
+    fireEvent.click(screen.getByRole("button", { name: "打开全局命令" }));
+    const listbox = screen.getByRole("listbox", { name: "可用命令" });
+    fireEvent.click(within(listbox).getAllByRole("option")[0]);
+    expect(onNavigate).toHaveBeenCalledTimes(1);
+    expect(onNavigate).toHaveBeenCalledWith(SPACES[0].id);
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+  });
+});
