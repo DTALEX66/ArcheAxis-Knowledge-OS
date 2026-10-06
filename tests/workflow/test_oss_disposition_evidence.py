@@ -1,11 +1,19 @@
 """The donor-disposition check reports what it found, including the document's own inconsistency.
 
-Two failures this pins, both of which made an earlier version of the check misleading:
+Failures this pins, each of which made an earlier version of the check misleading:
 
 * matching on substrings reported donors as present because `vad` appears inside unrelated package
   names, so a row with no declaration at all looked installed;
 * searching only dependency manifests reported pip-audit and gitleaks as unabsorbed while both are
-  actually invoked by the CI workflow.
+  actually invoked by the CI workflow;
+* matching whole words could not see the four REST clients the check exists to find — the term is
+  `crossref`, the identifier is `CrossrefClient` and no word boundary separates them, so their rows
+  were credited to `.pyc` caches and docstrings instead;
+* a name mentioned in prose or in a string literal was reported as an implementation, which is how
+  a donor the repository never adopted (`mozilla`, matching a `developer.mozilla.org` domain entry)
+  read as absorbed;
+* a first-party module whose *filename* contained a donor name (`shared/audio_vad.py`) was reported
+  as a vendored upstream copy.
 
 It also pins the vocabulary finding, because it is the reason a per-row verdict cannot be scored:
 the rows use five verdicts the document never defines.
@@ -58,6 +66,43 @@ def test_the_check_separates_evidence_from_the_rows_verdict(tmp_path):
 
     # Every row carries both facts, and the verdict's own definition status is one of them.
     assert all("verdict_defined" in row and "evidence_state" in row for row in document["rows"])
+
+
+def test_the_check_marks_whether_the_name_is_implemented_named_or_merely_mentioned(tmp_path):
+    """Naming a capability in code, naming it only where it is unavailable, and naming it in prose
+    are three different findings, and the report must not collapse them."""
+    report, document = run_check(tmp_path)
+    rows = {row["id"]: row for row in document["rows"]}
+
+    # The four clients are found by their identifiers, in the module that defines them.
+    for row_id, term in (("A018", "crossref"), ("A019", "datacite"),
+                         ("A020", "openalex"), ("A021", "wikidata")):
+        hits = rows[row_id]["source"][term]
+        assert hits, rows[row_id]
+        assert "shared/evidence_connectors.py" in hits[0], rows[row_id]
+
+    # Mozilla Readability is referenced, not implemented: the name appears in a docstring and in a
+    # string literal holding a documentation domain, and those are not an absorption.
+    mozilla = rows["A011"]
+    assert mozilla["evidence_state"] == "MENTIONED_IN_SOURCE", mozilla
+    assert not mozilla["source"], mozilla
+
+    # A stub registry names the capability where it declares itself unavailable, which is not the
+    # same fact as implementing it.
+    for row_id in ("A002", "A003"):
+        stub = rows[row_id]
+        assert stub["evidence_state"] == "STUB_IN_SOURCE", stub
+        assert "shared/bakeoff_engines.py" in list(stub["stub_source"].values())[0][0], stub
+
+    # A first-party module is not a vendored upstream copy, whatever its filename says.
+    assert rows["A016"]["evidence_state"] != "DECLARED_AND_VENDORED", rows["A016"]
+    assert not rows["A008"]["vendored"] and not rows["A016"]["vendored"], (rows["A008"], rows["A016"])
+
+    # Compiled caches and build output are never evidence.
+    every_locator = [hit for row in document["rows"]
+                     for group in ("evidence", "source", "stub_source", "mentions", "vendored")
+                     for hits in row[group].values() for hit in hits]
+    assert not any("__pycache__" in hit or hit.endswith(".pyc") for hit in every_locator), every_locator[:5]
 
 
 def test_the_document_defines_fewer_verdicts_than_its_rows_use(tmp_path):

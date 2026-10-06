@@ -416,6 +416,12 @@ a11 真实 Tauri 窗口旅程 `aaos01-webdriver/e4236d2bedb44a5882f2c03b480feb08
 
 自查纠错两处：核对脚本首版按子串匹配，`vad` 命中无关包名，把无声明项误判为已落地；且只查依赖清单，把已在 `.github/workflows/ci.yml` 实际调用的 pip-audit 与 Gitleaks 误判为未吸收。现改为整词匹配并把**流水线调用**与**源码实现**各列为独立证据来源；`C008 sqlite-vec` 一行另记：它在 Python 侧确有声明，而 Rust Core 读不了遗留库的 `vec0` 表（见上文遗留库一节）——"已声明"不等于"需要它的组件可用"，两者不可互推。
 
+## 开源吸收核对脚本修订与来源更正（2026-10-06 复核）
+
+核对脚本 `scripts/audit/oss_disposition_evidence.py` 已修订，分布随之更正（上文原文保留不改写）：`DECLARED` 24→25、`IMPLEMENTED_IN_SOURCE` 9→6、新增 `STUB_IN_SOURCE` 2、新增 `MENTIONED_IN_SOURCE` 2、`VENDORED_ONLY` 1→0、`DECLARED_AND_VENDORED` 1→0、`NONE` 12 不变。原因：原脚本把"整词命中任一来源"当实现、把"文件名含该项词"当实拷，并把 `__pycache__/*.pyc`、README 词与生成目录字样计为证据；又因整词匹配，`crossref` 匹配不到 `CrossrefClient`，四条真客户端（A018—A021）的判定实际由 `.pyc` 与文档字符串支撑。现改为按标识符判定、注释与文档字符串只算提及、编译产物与生成目录排除、桩按命中处附近的不可用标记判定、`shared/` 移出 vendor 根；`tests/workflow/test_oss_disposition_evidence.py` 已加断言固定命名/桩/提及/实现四态。详见 `docs/current/AAOS-OSS-DISPOSITION-EVIDENCE-20261006.md` 第五节，修订前后两份证据的 SHA-256 并列记录在该文档首部。
+
+同轮更正两处输入来源判定：**A04**（`AAOS_完整历史规划蓝图吸收池与当前状态总报告_2026-09-29.md`）原记 SOURCE_MISSING，实为本仓 `docs/history/planning-blueprint-absorption/2026-09-29/package-unpacked/` 内文件、哈希与蓝图附录逐字节一致——上一轮按 maxdepth 5 检索而该路径深度为 6，故漏判；**A01/A02/A06** 经内容哈希检索（Record 121 个文件 + 该目录下 29,896 个 zip 成员 + 资料库）确认无字节相同副本，SOURCE_MISSING 由"按文件名未找到"升级为"按内容哈希未找到"。来源记录见 `docs/current/AAOS-INPUT-SOURCES-20261006.json`。
+
 ## 601–900 视口带补测并修正门禁边界（本轮）
 
 A0 浏览器门禁 `scripts/a0_browser_smoke.py` 原视口矩阵为 1440/1280/390/360——从 1280 直接跳到 390，**601–1200 整段从未被任何门禁渲染**，而此前一处 CSS 修复正落在 601–900。本轮补入 900×800 与 840×800，并加用例 `test_the_viewport_matrix_covers_the_stylesheets_own_breakpoints` 把矩阵与样式表自身的断点绑在一起（须含 ≤600、601–900、>1200 三类，且窄屏判据必须等于样式表隐藏上下文条的那个断点）。
