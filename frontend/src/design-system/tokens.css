@@ -15,7 +15,7 @@
   --ax-fg: #f5f5f5;
   --ax-fg-secondary: #d4d4d4;
   --ax-fg-tertiary: #a3a3a3;
-  --ax-fg-quaternary: #737373;
+  --ax-fg-quaternary: #808080;
 
   --ax-accent: #f5f5f5;
   --ax-accent-bright: #ffffff;
@@ -977,6 +977,73 @@ tr:hover {
   padding: 8px var(--ax-space-4);
   min-height: 40px;
   flex-shrink: 0;
+}
+
+/* Expanded job/receipt rows; without this the dock renders one undivided text run. */
+.activity-dock-body {
+  display: grid;
+  gap: var(--ax-space-1);
+  margin-top: var(--ax-space-2);
+}
+
+/* Canvas board (web development surface; the desktop shell does not render it) */
+.canvas-board {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ax-space-3);
+}
+
+.canvas-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--ax-space-2);
+}
+
+.canvas-viewport {
+  position: relative;
+  min-height: 320px;
+  overflow: auto;
+  background: var(--ax-bg-inset);
+  border: 1px solid var(--ax-border);
+  border-radius: var(--ax-radius-md);
+}
+
+.canvas-node-card {
+  position: absolute;
+  width: 200px;
+  padding: var(--ax-space-3);
+  background: var(--ax-raised);
+  border: 1px solid var(--ax-border);
+  border-radius: var(--ax-radius-sm);
+  overflow-wrap: anywhere;
+}
+
+.canvas-node-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--ax-space-2);
+}
+
+.canvas-node-type {
+  font-size: 11px;
+  color: var(--ax-fg-tertiary);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.canvas-node-text {
+  font-size: 13px;
+  color: var(--ax-fg);
+}
+
+.canvas-node-actions {
+  display: flex;
+  gap: var(--ax-space-1);
+}
+
+.canvas-node-edit {
+  width: 100%;
 }
 
 .activity-dock-summary {
