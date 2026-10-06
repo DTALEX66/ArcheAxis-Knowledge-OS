@@ -411,6 +411,7 @@
     },
     {
       "paths": [
+        "AUTHORITY.md",
         "AGENTS.md",
         "PROJECT_CONTRACT.yaml",
         "DIRECTORY_AUTHORITY.yaml",
@@ -425,7 +426,7 @@
       "class": "governance",
       "disposition": "active",
       "owner_doc": "DIRECTORY_AUTHORITY.yaml",
-      "note": "root governance and legal documents; several are protected files and need a grant to change"
+      "note": "root governance and legal documents; several are protected files and need a grant to change AUTHORITY.md added 2026-10-06: the root navigational entry, checked by scripts/ci/check_document_authority.py."
     },
     {
       "paths": [
