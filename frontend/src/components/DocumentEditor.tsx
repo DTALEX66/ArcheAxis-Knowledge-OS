@@ -45,11 +45,12 @@ export function encodeEditorContent(content: JSONContent): JSONContent {
   return { ...content, ...(Object.keys(merged).length ? { attrs: merged } : { attrs: undefined }), ...(content.content ? { content: content.content.map(encodeEditorContent) } : {}) };
 }
 
-export function DocumentEditor({ content, version, onSave, onDirtyChange, onCreateReference, onReferenceActivate }: {
+export function DocumentEditor({ content, version, onSave, onDirtyChange, onDraftChange, onCreateReference, onReferenceActivate }: {
   content: JSONContent;
   version: number;
   onSave: (content: JSONContent, expectedVersion: number) => Promise<{ content: JSONContent; version: number }>;
   onDirtyChange?: (dirty: boolean) => void;
+  onDraftChange?: (content: JSONContent, baseVersion: number) => void;
   onCreateReference?: () => Promise<JSONContent>;
   onReferenceActivate?: (attributes: Record<string, unknown>) => void;
 }) {
@@ -61,8 +62,8 @@ export function DocumentEditor({ content, version, onSave, onDirtyChange, onCrea
   const citing = useRef(false);
   const currentVersion = useRef(version);
   const mounted = useRef(true);
-  const callbacks = useRef({ onSave, onDirtyChange, onCreateReference, onReferenceActivate });
-  callbacks.current = { onSave, onDirtyChange, onCreateReference, onReferenceActivate };
+  const callbacks = useRef({ onSave, onDirtyChange, onDraftChange, onCreateReference, onReferenceActivate });
+  callbacks.current = { onSave, onDirtyChange, onDraftChange, onCreateReference, onReferenceActivate };
   const editor = useEditor({
     extensions: [StarterKit.configure({ link: { openOnClick: false } }), BlockIdentity, PreservedUnknown, EvidenceReference],
     content: decodeEditorContent(content),
@@ -89,6 +90,7 @@ export function DocumentEditor({ content, version, onSave, onDirtyChange, onCrea
         if (blockTypes.includes(node.type.name) && !node.attrs.block_id) transaction.setNodeMarkup(position, undefined, { ...node.attrs, block_id: crypto.randomUUID() });
       });
       if (transaction.docChanged) editor.view.dispatch(transaction);
+      callbacks.current.onDraftChange?.(encodeEditorContent(editor.getJSON()), currentVersion.current);
       setStatus("尚未保存");
       setFailure(false);
       setChanges((value) => value + 1);
@@ -111,6 +113,7 @@ export function DocumentEditor({ content, version, onSave, onDirtyChange, onCrea
         setFailure(false);
         callbacks.current.onDirtyChange?.(false);
       } else {
+        callbacks.current.onDraftChange?.(encodeEditorContent(editor.getJSON()), saved.version);
         setStatus("尚未保存");
         setChanges((value) => value + 1);
       }

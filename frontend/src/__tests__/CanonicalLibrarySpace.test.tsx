@@ -59,7 +59,7 @@ describe("canonical content sample", () => {
     expect(bridge.call.mock.calls.some(([operation])=>operation==="document_get" || operation==="document_version" || operation==="document_restore")).toBe(false);
     await screen.findByRole("button", {name:"样板.txt · 文档"});
   });
-  it("SIMULATED: keeps multiple saved documents as tabs and blocks switching away from a dirty editor", async () => {
+  it("SIMULATED: keeps independent dirty drafts when switching between document tabs", async () => {
     const other = { ...doc, document_id: "doc_other", title: "第二份笔记", source_id: null, source_revision: null,
       editor_json: { type: "doc", content: [{ type: "paragraph", content: [{ type: "text", text: "第二份正文" }] }] },
       text_projection: "第二份正文" };
@@ -90,11 +90,19 @@ describe("canonical content sample", () => {
     act(() => { (editor as HTMLElement & { editor: Editor }).editor.commands.setContent({ type: "doc", content: [{ type: "paragraph", content: [{ type: "text", text: "第二份未保存正文" }] }] }, { emitUpdate: true }); });
     const firstTab = within(tabs).getByRole("tab", { name: /样板.txt/ });
     await user.click(firstTab);
+    expect(firstTab).toHaveAttribute("aria-selected", "true");
+    expect(await screen.findByRole("textbox", { name: "文档草稿" })).toHaveTextContent("已保存笔记");
+    expect(secondTab).toHaveTextContent("未保存");
+    await user.click(secondTab);
     expect(secondTab).toHaveAttribute("aria-selected", "true");
-    expect(editor).toHaveTextContent("第二份未保存正文");
-    expect(await screen.findByText(/请先保存，再切换标签/)).toBeInTheDocument();
-    expect(within(tabs).getByRole("button", { name: "关闭文档标签 第二份笔记" })).toBeDisabled();
-    expect(bridge.call.mock.calls.filter(([operation]) => operation === "document_get")).toHaveLength(2);
+    expect(await screen.findByRole("textbox", { name: "文档草稿" })).toHaveTextContent("第二份未保存正文");
+    expect(bridge.call.mock.calls.filter(([operation]) => operation === "document_get")).toHaveLength(4);
+    const confirm = vi.spyOn(window, "confirm").mockReturnValue(true);
+    await user.click(within(tabs).getByRole("button", { name: "关闭文档标签 第二份笔记" }));
+    expect(confirm).toHaveBeenCalledWith(expect.stringContaining("关闭标签将丢弃仅保存在内存中的草稿"));
+    expect(within(tabs).queryByRole("tab", { name: /第二份笔记/ })).not.toBeInTheDocument();
+    expect(records.get("doc_other")?.text_projection).toBe("第二份正文");
+    confirm.mockRestore();
   });
   it("SIMULATED: shows an identity-bound original and derived draft side by side with separate hashes", async () => {
     render(<CanonicalLibrarySpace />);
