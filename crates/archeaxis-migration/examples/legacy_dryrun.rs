@@ -5,6 +5,11 @@
 //! Opens the legacy database READ-ONLY, inventories its tables, exports user
 //! tables to JSONL + sha256 manifest in out-dir, and prints a dry-run summary.
 //! Never writes to the legacy database.
+//!
+//! Exit codes distinguish three outcomes a caller scripts on: 0 preserved whole, 3 preserved with
+//! named unqueried tables, 1 failed. A partial preservation is a real result — the real legacy
+//! store has one `sqlite-vec` table this build cannot open — and reporting it as either "done" or
+//! "failed" would hide which of the three happened.
 
 use archeaxis_migration::{export_jsonl, inventory_reporting_unreadable};
 
@@ -40,7 +45,15 @@ fn main() {
                     for (name, tf) in &manifest.tables {
                         println!("  {}: {} rows sha256={}", name, tf.rows, &tf.sha256[..12]);
                     }
-                    std::process::exit(0);
+                    if manifest.unqueried_tables.is_empty() {
+                        println!("preserved whole: every readable table was exported");
+                        std::process::exit(0);
+                    }
+                    println!("preserved with a named gap — {} table(s) not exported:", manifest.unqueried_tables.len());
+                    for (name, reason) in &manifest.unqueried_tables {
+                        println!("  UNQUERIED {name}: {reason}");
+                    }
+                    std::process::exit(3);
                 }
                 Err(e) => {
                     eprintln!("export failed: {e}");

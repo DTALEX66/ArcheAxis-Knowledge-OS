@@ -36,12 +36,22 @@ fn export_filename(name: &str) -> String {
     }
 }
 
-fn manifest_digest(tables: &BTreeMap<String, TableExport>) -> String {
+/// The digest that identifies this export.
+///
+/// The tables that could *not* be read are hashed too. Leaving them out would make a manifest with
+/// a gap interchangeable with one without it — the same digest would describe both, so a later
+/// reader comparing digests could not tell that a table had been dropped.
+fn manifest_digest(tables: &BTreeMap<String, TableExport>, unqueried: &BTreeMap<String, String>) -> String {
     let mut h = Sha256::new();
     for (name, table) in tables {
         h.update(name.as_bytes());
         h.update(table.rows.to_le_bytes());
         h.update(table.sha256.as_bytes());
+    }
+    for (name, reason) in unqueried {
+        h.update(b"unqueried:");
+        h.update(name.as_bytes());
+        h.update(reason.as_bytes());
     }
     hex::encode(h.finalize())
 }
@@ -105,15 +115,22 @@ pub fn inventory_reporting_unreadable(
     Ok((out, unreadable))
 }
 
-/// Export every user table to JSONL in `out_dir`; returns per-table files with
-/// a content manifest. One line per row (JSON object of column -> value).
+/// Export every *readable* user table to JSONL in `out_dir`; returns per-table files with a content
+/// manifest naming any table it could not read. One line per row (JSON object of column -> value).
+///
+/// A table this build cannot open is recorded in `unqueried_tables` with the engine's reason rather
+/// than failing the whole export: the real legacy store has a `sqlite-vec` virtual table and no such
+/// module here, and aborting on it preserved nothing at all — 88 readable tables went unexported
+/// because one needed an extension. The gap is named, so a partial preservation is never mistaken
+/// for a complete one.
 pub fn export_jsonl(db_path: &str, out_dir: &str) -> Result<ExportManifest, MigrationError> {
     let conn = Connection::open_with_flags(db_path, rusqlite::OpenFlags::SQLITE_OPEN_READ_ONLY)?;
     std::fs::create_dir_all(out_dir).map_err(MigrationError::Io)?;
-    let summary = inventory(db_path).map_err(MigrationError::Sql)?;
+    let (summary, unqueried) = inventory_reporting_unreadable(db_path).map_err(MigrationError::Sql)?;
     let mut manifest = ExportManifest {
         exported_at_unix: 0,
         tables: BTreeMap::new(),
+        unqueried_tables: unqueried,
         manifest_sha256: String::new(),
     };
     for t in &summary {
@@ -158,7 +175,7 @@ pub fn export_jsonl(db_path: &str, out_dir: &str) -> Result<ExportManifest, Migr
             },
         );
     }
-    manifest.manifest_sha256 = manifest_digest(&manifest.tables);
+    manifest.manifest_sha256 = manifest_digest(&manifest.tables, &manifest.unqueried_tables);
     let mpath = Path::new(out_dir).join("export-manifest.json");
     let mut manifest_file = std::fs::OpenOptions::new()
         .write(true)
@@ -181,6 +198,10 @@ pub struct TableExport {
 pub struct ExportManifest {
     pub exported_at_unix: u64,
     pub tables: BTreeMap<String, TableExport>,
+    /// Tables this build could not read, with the engine's own reason. Named, never omitted: an
+    /// export that silently dropped a table would look complete.
+    #[serde(default)]
+    pub unqueried_tables: BTreeMap<String, String>,
     #[serde(default)]
     pub manifest_sha256: String,
 }
@@ -243,7 +264,7 @@ fn hex_sha256_bytes(data: &[u8]) -> String {
 
 /// Verify every exported table file against the manifest (hash + row count).
 fn verify_export(export_dir: &str, manifest: &ExportManifest) -> Result<(), MigrationError> {
-    if manifest.manifest_sha256 != manifest_digest(&manifest.tables) {
+    if manifest.manifest_sha256 != manifest_digest(&manifest.tables, &manifest.unqueried_tables) {
         return Err(MigrationError::Io(std::io::Error::new(
             std::io::ErrorKind::InvalidData,
             "export manifest digest mismatch",

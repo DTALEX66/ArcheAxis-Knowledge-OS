@@ -465,3 +465,19 @@ A0 浏览器门禁 `scripts/a0_browser_smoke.py` 原视口矩阵为 1440/1280/39
 `test_a_traversing_declaration_is_refused_by_both_readers` 用真实存在的目标目录证伪两个读取方对 `..` 的拒绝。
 
 回归：`tests/workflow`、`tests/workers`、`tests/maintenance` 共 523 项通过、2 项跳过、106 项子测试通过。
+
+## 遗留库保真导出完成（带具名缺口）——取代上文"导出未完成"
+
+上文记录"逐表 JSONL 保留导出未完成"。本轮改为：**单张表读不了不再中止整份导出**，而是把它记进清单并继续。
+
+实现：`ExportManifest` 新增 `unqueried_tables`（表名 → 引擎原话）；`export_jsonl` 改用 `inventory_reporting_unreadable`，可读表照常导出、不可读表进入 `unqueried_tables`；
+`manifest_digest` 把缺口一并计入摘要，否则"有缺口"的清单会与"无缺口"的清单摘要相同，后来者只比对摘要就分辨不出丢过表。
+`legacy_dryrun` 退出码区分三态：0 完整保留、3 带具名缺口保留、1 失败——把部分保留报成"完成"或"失败"都会掩盖实际发生的是哪一种。
+
+真实结果（对象为项目内 `data/cognitive_os.sqlite`，3,223,552 字节，SHA-256 `b318c99e5a58107f3fe57249b50e2560563b0dc6cca606505ef61ad19f64b411`，本轮前后同值、大小与 mtime 亦未变）：
+
+- **88 张可读表全部导出**，合计 65 行；缺口具名一条：`vec_episodes: no such module: vec0`。
+- 清单摘要 `manifest_sha256=5ed6c025aef744f6adcdac2b16f43674de4a9d2933b00be6809953167cb3cbc3`；导出目录 `.project-local/task-runtime/aaos01-legacy-migration-20261006/preserved-jsonl`（89 个文件 = 88 表 + 清单，3.9 MB）；日志 `preservation-log.txt` SHA-256 `2efe6b9e858ff68a9afc6f61c2d7c0baa182a1da6dd42af446607dbbeb58212f`。
+- 实测顺带得到的事实：该库可读内容很小（13 行 schema_migrations、6 行 migration_operator_runs，其余多为空表）；`vec_episodes` 的影子表本身可读且已导出。
+
+仍未做、也不应冒充的：**未做语义迁移**（把任何行并入 vNext 模式）。要真正并入 `vec_episodes`，需先决定是否引入 sqlite-vec 依赖；这是待定决策，不在本轮擅自动手。
