@@ -416,6 +416,17 @@ a11 真实 Tauri 窗口旅程 `aaos01-webdriver/e4236d2bedb44a5882f2c03b480feb08
 
 自查纠错两处：核对脚本首版按子串匹配，`vad` 命中无关包名，把无声明项误判为已落地；且只查依赖清单，把已在 `.github/workflows/ci.yml` 实际调用的 pip-audit 与 Gitleaks 误判为未吸收。现改为整词匹配并把**流水线调用**与**源码实现**各列为独立证据来源；`C008 sqlite-vec` 一行另记：它在 Python 侧确有声明，而 Rust Core 读不了遗留库的 `vec0` 表（见上文遗留库一节）——"已声明"不等于"需要它的组件可用"，两者不可互推。
 
+## 绿色仓库已审计清理（2026-10-06）
+
+先做只读清点（逐项 `du`、`git worktree list` 注册核对、`origin/main` 可达性、记录引用核查），再按**精确路径**移除两条干净且已交付的注册 worktree，每条先建保留点：
+
+- `ArcheAxis.Knowledge.Green-x64/.ui-task-tree/aaos-ui-phase2-integrate`（分支 `codex/aaos-ui-phase2-20261001` @ `1a981a44`，dirty=0，为 `origin/main` 祖先）→ 保留点 `preserve/aaos-ui-phase2-integrate` = `1a981a4482b01f31989074e79c82a63400aa07a7`，随后 `git worktree remove` 该精确路径；
+- `ArcheAxis.Knowledge.Green-x64/.ui-task-tree/AAOS-integration-verification-413ad3a0`（detached `62f23189`，dirty=0，为 `origin/main` 祖先）→ 保留点 `preserve/AAOS-integration-verification-413ad3a0` = `62f23189c3bd607967f3313d7809e4d636f58f1b`，随后移除。
+
+结果：Green 根 15G → 13G。全程未按目录名批量删除、未用 glob、未 `rm -rf`（符合 Green `README.md` 第 9、25 行"不按目录名整删"的约束）；未推送任何 tag。
+
+仍保留并记录原因：`ArcheAxis-Knowledge-OS` worktree（2.0G，34 行未提交改动，需先固化差异）、`ArcheAxis-Knowledge-OS-mainline`（4.4G，其文档禁止当作临时目录清理）、四个候选包 `AAOS-v18a00075`/`AAOS-v82e8d28c`/`AAOS-vd6bd374`/`AAOS-Tauri-578d06b78413`（约 3.4G，README 禁止按目录名删除，需逐项决定）、`minimax-aaos-cosmic-ui-20261001`（673M，Owner 已决定保留为供体）、以及 `data`/`backups`/`runtime`/`AAOS-Tauri-f151f4c7998a` 等被记录引用的目录。
+
 ## 开源吸收核对脚本修订与来源更正（2026-10-06 复核）
 
 核对脚本 `scripts/audit/oss_disposition_evidence.py` 已修订，分布随之更正（上文原文保留不改写）：`DECLARED` 24→25、`IMPLEMENTED_IN_SOURCE` 9→6、新增 `STUB_IN_SOURCE` 2、新增 `MENTIONED_IN_SOURCE` 2、`VENDORED_ONLY` 1→0、`DECLARED_AND_VENDORED` 1→0、`NONE` 12 不变。原因：原脚本把"整词命中任一来源"当实现、把"文件名含该项词"当实拷，并把 `__pycache__/*.pyc`、README 词与生成目录字样计为证据；又因整词匹配，`crossref` 匹配不到 `CrossrefClient`，四条真客户端（A018—A021）的判定实际由 `.pyc` 与文档字符串支撑。现改为按标识符判定、注释与文档字符串只算提及、编译产物与生成目录排除、桩按命中处附近的不可用标记判定、`shared/` 移出 vendor 根；`tests/workflow/test_oss_disposition_evidence.py` 已加断言固定命名/桩/提及/实现四态。详见 `docs/current/AAOS-OSS-DISPOSITION-EVIDENCE-20261006.md` 第五节，修订前后两份证据的 SHA-256 并列记录在该文档首部。
