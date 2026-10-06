@@ -533,3 +533,16 @@ Rust 侧拥有逐表 sha256 与清单语义，本工具只补它读不了的，�
 用例 `tests/workflow/test_layout_archive_restore.py`（5 项）固定：能定位迁移后的归档；记录的陈旧路径不掩盖真实副本；恢复真的把字节放回；**副本缺失时审计与恢复都返回 1**（回归的那一条）；归档不存在时具名失败而非返回假路径。
 
 回归：`tests/workflow` + `tests/maintenance` + `tests/runtime-paths` 共 304 项通过、5 项跳过、11 项子测试通过。
+
+## 自查：新门禁把 CI 弄红了（本轮已修）
+
+本轮新增的 `Reject media window policy drift` 步骤在 CI 的 `cargo-test` job 直接失败：`ModuleNotFoundError: No module named 'yaml'`。
+原因是该 job 只装隔离 worker 环境、不含 PyYAML（相邻的 vocabulary 漂移检查之所以一直通过，是因为它只用标准库）。
+我在本地用带 yaml 的解释器验证，因此没发现——**本地通过不等于 CI 通过**，这次是 CI 先发现。
+
+修法不是加依赖，而是让门禁**不依赖任何第三方包**：`read_policy()` 用受约束的窄解析读取 `media:` → `window_policy:` → 三个数值键，
+认不出就具名失败；并用 `-S`（不加载 site-packages，等价于 CI 条件）实测通过。
+同一处还暴露并修掉一个真 bug：`read_policy` 首版在离开 `media:` 段时清空了已收集结果，导致线上文件也读不到值——
+现改为只停止收集、不清空，并加了"与 PyYAML 结果一致"的对照断言。
+
+验证：`python -B check_media_window_policy.py --check` 通过；`python -S -B ...` 同样通过；新增门禁用例 21 项通过、2 项跳过。

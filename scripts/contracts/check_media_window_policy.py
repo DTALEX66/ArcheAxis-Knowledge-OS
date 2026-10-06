@@ -35,18 +35,57 @@ TS_CONSTANTS = {
 }
 
 
-def declared() -> dict[str, float]:
-    """The policy as declared, read with the same YAML parser the rest of the tooling uses."""
-    import yaml
+def read_policy(text: str) -> dict[str, float]:
+    """The declared policy, read without needing a YAML parser.
 
-    document = yaml.safe_load(DEFAULTS.read_text(encoding="utf-8")) or {}
-    policy = (document.get("media") or {}).get("window_policy")
-    if not isinstance(policy, dict):
-        raise ValueError("config/defaults.yaml has no media.window_policy")
-    missing = [name for name in TS_CONSTANTS if name not in policy]
+    The CI job that runs this gate installs only the isolated worker environment, which has no
+    PyYAML — the neighbouring vocabulary gate is stdlib-only for the same reason, and this one first
+    failed in CI with `No module named 'yaml'`. Reading by hand is acceptable here only because it is
+    narrow and checked: it accepts exactly `media:` then `window_policy:` then the three numeric
+    keys, refuses anything it does not recognise, and `test_media_window_policy.py` asserts it
+    returns what PyYAML returns for the real file.
+    """
+    wanted = TS_CONSTANTS.keys()
+    section: list[str] = []
+    depth: dict[str, int | None] = {"media": None, "window_policy": None}
+    for raw in text.splitlines():
+        line = raw.split("#", 1)[0].rstrip()
+        if not line.strip():
+            continue
+        indent = len(line) - len(line.lstrip())
+        stripped = line.strip()
+        for name in depth:
+            if depth[name] is not None and indent <= depth[name]:
+                # Left the section. What was already collected stays collected: clearing here threw
+                # away every captured key the moment the next top-level key began.
+                depth[name] = None
+        if depth["media"] is None and stripped == "media:":
+            depth["media"] = indent
+            continue
+        if depth["media"] is not None and depth["window_policy"] is None and stripped == "window_policy:":
+            depth["window_policy"] = indent
+            continue
+        if depth["window_policy"] is not None and indent > depth["window_policy"]:
+            key, separator, value = stripped.partition(":")
+            if separator and key in wanted:
+                section.append(f"{key}={value.strip()}")
+    policy: dict[str, float] = {}
+    for item in section:
+        key, _, value = item.partition("=")
+        try:
+            policy[key] = float(value)
+        except ValueError as error:
+            raise ValueError(f"media.window_policy.{key} is not a number: {value!r}") from error
+    missing = [name for name in wanted if name not in policy]
     if missing:
-        raise ValueError(f"media.window_policy is missing {', '.join(missing)}")
-    return {name: policy[name] for name in TS_CONSTANTS}
+        raise ValueError(
+            "config/defaults.yaml has no media.window_policy with " + ", ".join(sorted(wanted))
+            + f"; missing {', '.join(sorted(missing))}")
+    return policy
+
+
+def declared() -> dict[str, float]:
+    return read_policy(DEFAULTS.read_text(encoding="utf-8"))
 
 
 def planner_values() -> dict[str, float]:
