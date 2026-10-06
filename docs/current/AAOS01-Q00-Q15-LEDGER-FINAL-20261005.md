@@ -425,6 +425,15 @@ a11 真实 Tauri 窗口旅程 `aaos01-webdriver/e4236d2bedb44a5882f2c03b480feb08
 
 **权威 runner 的绑定条件（已追到代码，非猜测）**：`dev.py:97 external_toolchain()` 只在环境里**注册了根**时才生效（读 `OS_EXTERNAL_CONFIG` / `ARCHEAXIS_EXTERNAL_ROOT`，`dev.py:110-116`；无根即返回 `{}`）；发现到的 MSVC/Rust/TESSDATA_PREFIX/PATH 由 `environment()` 在 `:266` 合并，子进程以 `env = dict(os.environ)` 继承后覆盖（`:413` / `:467`），所以**操作者自己导出即可生效**。本机这两个变量实测均为 None ⇒ `run_tests.sh --full` 会静默跳过这些格式用例，`cargo_test.bat` 也必须手工传参——这不是工具缺失，也不是代码缺陷。仓库自己的索引 `config/environment/external-resources-index.json` 已记录根路径且 `root_present: true`，但 dev.py **有意**不信任它：两个测试把该契约钉住（`test_no_registered_root_discovers_nothing` 断言无根时返回 `{}`；`test_complete_root_discovers_all_four` 断言键集合恰为四项）。因此"让权威 runner 自动回退到索引"是一次**契约变更决定**，不是可顺手改的实现细节；在此之前，本地覆盖率取决于是否导出 `ARCHEAXIS_EXTERNAL_ROOT`。
 
+## 追加清理：未被引用的 a&lt;编号&gt; 运行时副本（2026-10-06）
+
+对开发根每个 `a<编号>`/`rt*` 目录做**精确路径**引用检查（`git grep -F .project-local/<名>`），只删除既无引用、又确为运行时副本的目录：
+
+- 删除 8 个：`a6`(608.2MB)、`a7`(608.2MB)、`a11`(609.6MB)、`a16`(608.6MB)、`a12`(11.9MB)、`a13`(11.9MB)、`a14`(11.9MB)、`a15`(15.2MB)，共 **2.43 GB**。每个都先确认含 `backend-runtime-manifest.json` 与 `core`/`runtime`/`data`（即运行时副本而非源码），且无 `.git`；保留点由结构保证——现役 `rt` 与 `a1` 仍在。
+- 保留（有引用即不动）：`rt`（`.github/workflows/ci.yml`、`release.yml` 引用）、`a1`、`a3`、`a3-python-input`、`a5`、`a8`、`a9`、`a10`（台账与清理/保留记录引用）。
+- **一处冲突按"文档胜过本机检索"处理**：`a1-python-input` 在本轮 grep 中**无引用**，但 `REPOSITORY-LAYOUT-AND-RETENTION-20261006.md` 的勘误明确记载它是上一次 220 项批量移动**误删过的恢复目标**，故**不删**。这正是该文件记录的教训，不能因为检测器这次没命中就重犯。
+- 审计清单 `.project-local/task-runtime/a-bundle-prune-audit-20261006.json`（先写清单再删）。工作树开发根 `du` 读数 39G → **37G**（口径见前节提示：`du` 总量不逐轮可比，按条目字节记账）。
+
 ## Green 工作树未提交工作的保留点（2026-10-06）
 
 绿色仓库 `.ui-task-tree/ArcheAxis-Knowledge-OS`（HEAD `7282e5a947df`，detached）此前被记为"34 行 dirty，需先固化差异"；**本轮实测远不止于此**：13 个已修改文件（**+2308 / −649**）与 21 个未跟踪文件（品牌标记/图标/记忆图谱/复习图等 Avalonia 视图、`AAOS-UI-FIDELITY-STATUS-20260927.md`、8 个桌面契约测试）。原记录把 porcelain 的**条目数**当成了改动行数。
