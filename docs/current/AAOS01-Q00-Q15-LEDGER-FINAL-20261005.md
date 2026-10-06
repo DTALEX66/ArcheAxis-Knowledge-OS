@@ -1392,3 +1392,54 @@ required_output 与 formats 逐字未动）；`cargo fmt --all --check` **PASS**
 
 **回滚**：revert 本切片提交即可（worker 探针 + 四层命名 + 夹具与 manifest 行 +  notices 段 +
 两处断言更新同属一次改动）；回滚后 `.doc` 回到具名拒绝的旧状态。
+
+
+## 寻址层切片：worker 自己描述的位置成为可验证锚点（2026-10-07）
+
+**这条横跨 F05/F07/F08/F09/F12 的缺口是同一句话**："结构是**被报告的事实**，不是**寻址层**"。
+它此前被我反复写进"本切片刻意未动"，因为动它要动锚点契约。这一刀动了，但**是加性的**：
+
+- 锚点存储本来就把 `position` 当作**没有 schema 的不透明 JSON**
+  （`anchors(anchor_id, source_id, source_revision, position)`，`position` 无 CHECK、无 kind 词表），
+  所以**不需要迁表、不需要新枚举**；
+- 新增的是**第四种 position 类型** `worker_structure`：`{type, job_id, attempt, kind, path[]}` + checksum；
+- 验证条件全部落在**已经存在**的数据上：该 attempt 必须是这个 source 的**最新 succeeded**
+  （有更新的尝试即拒）；请求线里 `inputs[0].sha256` 必须等于所声明的 revision；
+  收据的 `params.worker_structure` 必须把这对 `kind`+`path` **恰好命名一次**；
+  它记录的 span 在**同一次尝试的 text 输出**里切出的字节必须 hash 成所声明的 checksum，且不得是纯空白。
+
+**为什么不重算任何已有锚点**：`anchor_id` 由 `source|revision|position_json` 派生，
+knowledge 的 `receipt_hash` 又混入 `anchor_id`。因此我**只加类型、不改任何已有 position 的形状**——
+改形状会静默地让历史锚与知识收据的哈希全部失效，那才是真正的破坏性变更。
+
+**刻意不吹大的四条边界**：
+1. span 是 worker 自己报的。锚点证明的是"这段文字确实在这份 projection 的这个位置"，
+   **不是**独立推出的页号；
+2. F13 的 ODF/EPUB/邮件位置在 `params.format.locations` 里，**不在** `worker_structure` 里，
+   所以 F13 与 F01 的旧措辞**没有被顺手改掉**——写记录的脚本里放了断言防止我越界
+   （`assert "navigation level" in rows["F13"]["gap"]`、`assert "anchors remain line based" in rows["F01"]["gap"]`）；
+3. 界面层没有消费它（前端按 Owner 指示暂停），所以这条目前**只在 HTTP 边界成立**；
+4. 表格里"单个 cell"仍不是一个位置（worker 报的是 `sheet_row`）。
+
+**这些用例证明了什么、没证明什么（重要）**：种入数据用的是**手写的 `job_attempts`/`job_outputs` 行**
+（按契约形状写请求线、text 输出、canonical 行锚与 loss 收据），所以它们证明的是
+**锚点契约本身**——接受条件、拒绝条件与不重算旧锚的边界；
+"把某个真实 worker 的真实结构一路接到真实锚点"的端到端一条**仍未做**，不写成已完成。
+
+**验证（度量口径）**：新增 `crates/archeaxis-api/tests/structure_anchor_api.rs` **5 passed**：
+段落/标题可寻址；sheet_row、slide、text_node、cue、pdf_page 五种族路径用同一机制可寻址；
+路径被命名两次 → 拒；span 只含换行 → 拒；路径不存在 → 拒；checksum 不符 → 拒；
+出现更新的 succeeded 尝试后旧定位 → 拒；不带 checksum → 仍**存下**且写 `unverified`。
+既有锚契约没有被削弱：`evidence_anchors_api.rs` 4 passed、`contract_constant_fields.rs` 5 passed。
+Rust `cargo test --workspace --offline` → 124 suites ok / 508 passed / 0 failed；
+`cargo fmt --all --check` PASS；
+`tests/maintenance + tests/workflow` **282 passed, 2 skipped, 2 subtests passed in 63.44s (0:01:03)**；
+`check_format_matrix.py` exit 0（**只改五行 gap 与五行 evidence 列表**，
+required_output / formats / release_scope 逐字未动，计数仍 0 complete / 15 partial / 1 custody only）；
+`check_document_authority.py` 与 `check_path_conventions.py` rc 0。
+
+**契约文档**：`POST /api/v1/sources/(:source_id)/anchors` 那一行原先只写 "Anchor creation."，
+现在逐字列出四种 position 类型（`text`/`time`/`epub`/`worker_structure`）与各自验证条件，
+以及 `400` 与 `unverified` 的语义——加性变更不留隐式契约。
+
+**回滚**：revert 本切片提交即可（verifier 分支 + 新 suite + 五行矩阵 gap/evidence + 契约一行）。
