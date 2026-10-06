@@ -1,7 +1,7 @@
 {
   "schema": "archeaxis/audit-snapshot/v1",
   "round": "AAOS-AUTHORITY-REPAIR-20261006",
-  "observed_at": "2026-10-06T22:20:00+08:00",
+  "observed_at": "2026-10-06T23:39:18+08:00",
   "timezone": "Asia/Shanghai",
   "scope": "文档与治理修复（权威入口、冲突 current、描述与覆盖矩阵、可重复审计）。不改产品架构、不批量化安装依赖、不发布。",
   "repository": {
@@ -138,7 +138,8 @@
   "checks_not_run_this_round": [
     "产品级安装态与资格化验收未跑：本轮范围为文档/治理，不为装饰重复全产品验收。本机全量套件本轮实际跑过（见 commands：1 failed），但该 SHA 的 CI 为 push 分类，test 车道被跳过，故 test 作业本轮未在 CI 运行",
     "未改 GitHub About：先记录 before，随后由 API 更新并读回（见 about 字段）",
-    "未在另一本地副本上比对：本机未发现第二工作副本被指为主副本"
+    "未在另一本地副本上比对：本机未发现第二工作副本被指为主副本",
+    "pip-audit 强制的 CI 侧读回未执行：本机已按 CI 同法（--python 3.12、同一 --frozen 导出）证得旧锁 5 项/新锁 0 项，但“去掉 continue-on-error 后该步骤在 CI success”需下一次运行确认，确认前不宣称已强制通过"
   ],
   "regressions": [
     {
@@ -159,7 +160,8 @@
     "F00—F14 与 I1—I6 均无实现证据，属目标",
     "编码误判已更正（同轮内自纠）：早先把该现象登记为‘项目 runner 未设 UTF-8 模式’是错的。现场核实 scripts/runtime/dev.py 为 pytest 子进程设置 PYTHONUTF8=1 与 PYTHONIOENCODING=utf-8（dev.py:233-234），且 --pytest 以子解释器启动（dev.py:443），因此权威路径 scripts/ci/run_tests.sh / run_tests.ps1 不受影响——在本机 shell 未设 UTF-8 时经该 runner 运行 tests/test_general_course_worker.py 为 13/13 通过。该失败只出现在绕开权威路径直接裸跑 pytest 时（本轮后台全量运行即裸跑）：课程 worker 的 stdout 含 U+2014 破折号（合法 UTF-8，第 2118 字节 0x94 不可按 GBK 解码），裸跑时 pytest 捕获按 locale 解码而抛错。可选的加固（非必需，未做）：该 subprocess.run 显式 encoding=utf-8，使断言不依赖父进程编码模式",
     "开源吸收核对脚本的启发式边界：已修复，不再是缺口。原脚本以‘整词命中任一来源’记 IMPLEMENTED_IN_SOURCE、以‘文件名含该项词’记 VENDORED，并把 __pycache__/*.pyc、README 词与生成目录字样计为证据；又因整词匹配 crossref 匹配不到 CrossrefClient，四条真客户端的判定实际由 .pyc 与文档字符串支撑。现按标识符判定、注释与文档字符串只算提及、编译产物与生成目录排除、桩按命中处附近的不可用标记判定、shared/ 移出 vendor 根；分布由 DECLARED 24 / IMPLEMENTED 9 / VENDORED 两类各 1 / NONE 12 更正为 DECLARED 25 / IMPLEMENTED_IN_SOURCE 6 / STUB_IN_SOURCE 2 / MENTIONED_IN_SOURCE 2 / NONE 12，并由 tests/workflow/test_oss_disposition_evidence.py 的断言固定四态",
-    "CI test 车道的两处先存失败（均非本提交引入；同一 job 在 7eda1dcf 与 d218abdc 上同样 failure）：(1) 【已修】tests/workflow/test_workspace_layout_contract.py 在 runner 上把 .project-local/c 与 staging 判为越界——根因是两个**测试隔离缺陷**：tests/test_web_screenshot.py::test_screenshot_reports_browser_exit_code_when_no_png_is_written 未像同文件其他用例那样 patch _short_temp_root，于是 app/ingestion/web_screenshot.py:73 的 `(project_root/'c').mkdir` 沿祖先找到真实 .project-local 并创建 `c/`；tests/test_desktop_launch.py::test_prepare_accepts_project_local_staging_candidate 在真实 dev 根下建 `staging/launch-*` 且 finally 只删子目录、留下空 `staging/`。两处已按“修隔离、不放宽契约”修好（前者补同款 patch，后者在清理后 rmdir 空的父目录），并在权威 runner 设定的“TMP 落在 dev 根内”这一 CI 条件下复现验证：22 passed 且 dev 根未出现 c/ 或 staging/。(2) 【待决】tests/test_axr060_completion_audit.py 要求当前表面引用的 40 位哈希在检出中可达，记录引用的保留点 tag 值 aa804699… 因该分支 squash 合并后被删、tag 只在本地且不得推送而缺失；已在 docs/current/BRANCH-CONVERGENCE.json 登记该已删分支的 tip 与 merge_base（该文件正是该测试读取“已删分支 tip 可作证据”的白名单位置），并确认该分支在远端确已不存在"
+    "CI test 车道的两处先存失败（均非本提交引入；同一 job 在 7eda1dcf 与 d218abdc 上同样 failure）：(1) 【已修】tests/workflow/test_workspace_layout_contract.py 在 runner 上把 .project-local/c 与 staging 判为越界——根因是两个**测试隔离缺陷**：tests/test_web_screenshot.py::test_screenshot_reports_browser_exit_code_when_no_png_is_written 未像同文件其他用例那样 patch _short_temp_root，于是 app/ingestion/web_screenshot.py:73 的 `(project_root/'c').mkdir` 沿祖先找到真实 .project-local 并创建 `c/`；tests/test_desktop_launch.py::test_prepare_accepts_project_local_staging_candidate 在真实 dev 根下建 `staging/launch-*` 且 finally 只删子目录、留下空 `staging/`。两处已按“修隔离、不放宽契约”修好（前者补同款 patch，后者在清理后 rmdir 空的父目录），并在权威 runner 设定的“TMP 落在 dev 根内”这一 CI 条件下复现验证：22 passed 且 dev 根未出现 c/ 或 staging/。(2) 【待决】tests/test_axr060_completion_audit.py 要求当前表面引用的 40 位哈希在检出中可达，记录引用的保留点 tag 值 aa804699… 因该分支 squash 合并后被删、tag 只在本地且不得推送而缺失；已在 docs/current/BRANCH-CONVERGENCE.json 登记该已删分支的 tip 与 merge_base（该文件正是该测试读取“已删分支 tip 可作证据”的白名单位置），并确认该分支在远端确已不存在",
+    "格式矩阵的 gap 文本仍有过期项（本轮按代码实测）：F05 页寻址、F12 画布几何、F13 EPUB/EML 结构均已实现却仍写成缺口；另有两个已绑定的引擎（Magika ONNX、RapidOCR）未接进 vNext worker 路径。required_output 是冻结条款，只改事实描述"
   ],
   "about": {
     "before": "星环知识平台 ArcheAxis Knowledge：本地优先的多格式内容与人机双向学习工作台（开发中）。Tauri/React + Rust Core，SQLite/CAS 单写者。内容先保存；识别忠实度核验与专业依据分析独立、可追溯。",
@@ -231,7 +233,11 @@
       "安装态完整生命周期证据落盘：verify_nsis_install.ps1 在尾部断言后写 lifecycle-receipt.json，CI 上传之；workflow_dispatch run 37471031307（head_sha ccf0a4bc）19/19 job success 产出该收据（complete_lifecycle_verified=true、各步布尔全 true、pyc_growth=0），阶段快照 install-preflight.json 仍如实为 false",
       "存储清理并更正一处误判：runs/ 的 WinError 5 实为 pytest 临时目录里 git 的只读松散对象（非提权问题），清只读位后二次清理释放 8.37 GB（runs/ 13.45→4.86 GB，全程未提权）；另按精确路径删除四条无引用 build/ 根释放 3.05 GB，其被引用的收据（runs/22cad761f8/ui-icon-preview-20261001/icons.png）实测仍在",
       "前端补齐审计点名的组件级测试：RealData/CommandPalette/CanvasBoard/SpaceView/SettingsSpace 共 28 项（CI test(3.12) 于 head_sha 99e6bbe6 实际执行通过）；并加固 StyleRuleCoverage 的类名匹配（转义前导点）——以独立脚本证伪旧写法把 .supercard 误判为已满足 .card",
-      "归属实测：Green 的 AAOS-Tauri-...-mainline 克隆属 CodexSandboxOnline 身份（git 以 dubious ownership 拒绝），按非本身份资产保留；runs/ 残余 434 个零字节目录为受限 ACL，提权可回收亦约为 0"
+      "归属实测：Green 的 AAOS-Tauri-...-mainline 克隆属 CodexSandboxOnline 身份（git 以 dubious ownership 拒绝），按非本身份资产保留；runs/ 残余 434 个零字节目录为受限 ACL，提权可回收亦约为 0",
+      "Green 暗工作树按 Owner 裁决删除：保留点独立复核全项 PASS 后，经属主检出 `git worktree remove --force` 移除并同步删除 worktree 管理项；逐文件遍历口径 2,692,920,775 B，首批移除 2,548,177,620 B，补删 3,703 个条目，残留 13 个条目 / 16,716 B（uv editable .whl 与 pytest 空目录，清只读位后仍 WinError 5，未提权未改 ACL）；同目录的 6.24 GB mainline 与 Owner 保留的 minimax 供体未触碰",
+      "Q11 按 Owner 裁决（有用并入、无用去掉）实做：源库 data/cognitive_os.sqlite 只读审计前后 SHA 相同，89 张表中 67 张 0 行、22 张有行；新增 stage_legacy_library_selectively（写入走 domain::create_knowledge_v3，每表恰得一条具名处置），真实 89 表导出跑通得 merged 2 / discarded 77 / not_merged 10，intake_cards_staged=1、lessons_staged=1、row_errors=0，旁路暂存库 270,336 B（未写产品主库，验收仍属 Owner）",
+      "Owner 三项裁决入档：Green 暗工作树删除（已执行）、失败模型原始输出继续留在界面（反粉饰规则不变）、Q11 以“审计—有用并入—无用去掉”为准则；300 秒作业上限与 build/cargo 清理属既有裁决，本轮未重开",
+      "pip-audit 由仅报告转强制：升 urllib3 2.8.0 / soupsieve 2.10（uv.lock 7 行），以同一钉版本先复现 CI 报的 5 项再证新锁干净（exit 0），去掉 continue-on-error 并修掉 `| tee` 在无 pipefail 下吞退出码的仪器缺陷，新增 4 项门禁并三项注入证伪有效；同步 app/release-manifest.json 的锁摘要"
     ],
     "open": [
       "Q14 与更正文件的日期序列已核实记录；是否宣布资格化仍由 Owner 决定（不可变 checks/acceptance.json 仍为 NOT_RUN）",
@@ -241,9 +247,9 @@
       "merge / release / install 未授权、未执行；无 tag、无 release",
       "裸跑 pytest 的卫生边界（本轮实测）：`python -m pytest` 直接调用会在仓库根写出 `__pycache__/conftest.*.pyc`，从而触发 tests/workflow/test_workspace_layout_contract.py 的 out_of_layout 断言；权威路径 scripts/ci/run_tests.sh 走 dev.py（PYTHONPYCACHEPREFIX）不产生该假失败。已删除该目录并以 PYTHONDONTWRITEBYTECODE=1 复验 4/4 通过；后续本地跑套件须经 run_tests.sh 或加 -B",
       "build/ 清理边界：剩余的最大本地项是 build/cargo（约 16.6 GB 的可再生 target 缓存），它**在其 22 GB 策略预算之内**且不在 Owner 已圈定的“非 cargo、超预算”范围内，故未删；候选目录（ci-*、f151f4c7998a、local-242cc4c3）或被具名引用、或是台账所记“不在仓库内”收据的唯一本机副本，保留",
-      "开源吸收边界：Gitleaks/pip-audit 仍**未吸收**——本机既无该二进制也无 uv，无法在接必过 CI 前验证白名单（误报会直接把构建弄红）；pip-audit 还需改 uv.lock，本机无 uv 无法重生成。属需 Owner 授权的工具安装事项，不擅自下载运行第三方二进制"
+      "更正（2026-10-06 实测）：本机**有** uv 0.12.23（/c/Users/ALEX/.local/bin/uv），原条目“本机无 uv、无法验证干净、需 Owner 授权引入”前提不成立；Gitleaks 与 pip-audit 均已登记（A024 / A023）并以 CI 门禁形式吸收。pip-audit 在 run 37471031307 job 112294372735 实报 5 项（urllib3 2.7.0、soupsieve 2.8.4），已按修复版升为 urllib3 2.8.0 / soupsieve 2.10；同一钉版本对旧锁导出复现同样 5 项、对新锁导出报 No known vulnerabilities found（exit 0），故该步骤已去掉 continue-on-error 并补 set -o pipefail（此前 `pip-audit | tee` 在无 pipefail 的 `bash -e` 下退出码恒为 tee 的 0，即使命中漏洞也不会弄红）。待读回：CI 侧该步骤在强制状态下真跑且通过"
     ],
-    "next_action": "待 Owner 裁决：(1) （**已解决**）完整安装态旅程已由 workflow_dispatch run 37471031307（head_sha ccf0a4bc，19/19 job success）产出 lifecycle-receipt.json（complete_lifecycle_verified=true，收据 SHA-256 aeae1bd3…）；checks/acceptance.json 的 AQ26/AQ27 仍为 NOT_RUN（该文件不可变、未改），是否登记需 Owner 决定；(2) Q11 旧库迁移的验收/回滚七条口径确认，并指定适用哪一份旧库、就地还是旁路、未读表如何处置。（已解决，无需裁决）runs/ 的 WinError 5 已查明**不是提权问题**——是 pytest 临时目录里 git 的只读松散对象；清只读位后二次清理已释放 8.37 GB（runs/ 13.45→4.86 GB），全程未提权；仅余 434 个零字节空目录因真正受限 ACL 保留。ARCHEAXIS_EXTERNAL_ROOT 已由外部资源索引自绑定，无需手工注册。账本引文门禁已入 lint，之后新增 Q 行须保持引文可解析"
+    "next_action": "1) 推送后按 head_sha 读回 CI：确认 pip-audit 步骤在强制状态下 success（这是“已强制”的最后一步证据）；2) 把旁路暂存库交 Owner 验收，再定正式并入与旧入口冻结；3) 按 A 类缺口顺序推进 F02 抓取时间、F04 未知扩展名、F06 OCR 回写页、F08 图表数据（均无需新依赖）"
   },
   "verification": {
     "capability_family_runs": {
@@ -262,7 +268,9 @@
       "CAP-0130-agent-plugin": "21 passed, exit 0",
       "CAP-0150-model-provider": "33 passed, exit 0",
       "CAP-0070-simulation": "no independent suite found this round"
-    }
+    },
+    "migration_crate": "cargo test -p archeaxis-migration --tests --offline -> 27 passed / 0 failed (含新增 selective_legacy_stage 3 项)；cargo fmt --all --check PASS",
+    "dependency_scan_guards": "tests/workflow/test_dependency_scan_config.py 4 passed；三项注入（回退 report-only / 删 pipefail / 命令内加 --ignore-vuln）各自只弄红对应那项；tests/test_release_manifest.py 35 passed 0 failed（升锁后按提交 79332377 的约定只改 dependency_lock.digest，revision 保持 8）"
   },
   "artifacts": [
     {

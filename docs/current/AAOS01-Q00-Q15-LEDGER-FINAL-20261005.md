@@ -802,3 +802,58 @@ Q02/Q14/Q15 的收口此前都卡在同一处：`desktop/scripts/verify_nsis_ins
 **由此闭合"完整生命周期"这一证据缺口**：安装态旅程、就地升级、强杀后宿主/端口零残留、卸载保留用户数据、重装回读、最终卸载干净——由**同一次**运行内的具名布尔与绑定 SHA 共同给出；阶段快照的 `false` 与完成记录的 `true` 并存，不靠改快照达成。
 
 **仍未收口（不夸大）**：`checks/acceptance.json` 的 AQ26/AQ27 仍为 `NOT_RUN`（该文件不可变，未改）；物理 IME、真人 Owner 交互、新 Green 实际部署、音频 300 秒作业上限、用户旧库完整语义迁移均不由此改变；本收据来自 CI 安装态，不代替 Green 部署或真人验收。
+
+## 更正：本机**有** uv，交接前提失效；pip-audit 实报的 5 项已升到修复版（2026-10-06）
+
+交接件 §4.1/§5.1 写“本机无 uv，无法证明跑干净”，并据此把 pip-audit 转强制列为需 Owner 授权。**实测证伪**：`uv 0.12.23 (2026-10-03)` 在 PATH（`/c/Users/ALEX/.local/bin/uv`），`uvx` 同版本；因此不需要“引入 uv”也不需要改 CI 依赖，Owner 的那一项授权前提不成立。同一条更正也适用于 `Crawlee 需重生成 uv.lock` ——锁文件本机可重生成。**这是既有教训的又一次命中：断言“做不了”之前先实测工具是否存在。**
+
+判据不靠本机感觉，靠 CI 既有报告：完整资格 run `37471031307` 的 `test (3.12)` job `112294372735` 日志第 3084 行原文为 `Found 5 known vulnerabilities in 2 packages`——`urllib3 2.7.0`（PYSEC-2026-4175/4176/4177，修复 2.8.0）与 `soupsieve 2.8.4`（PYSEC-2026-4170/4171，修复 2.9.0+）。两者都是传递依赖（urllib3 ← courlan/htmldate/requests，soupsieve ← beautifulsoup4），`pyproject.toml` 未对其设上限，故**按修复版升级而不是加 `--ignore-vuln` 放行**：`uv lock --upgrade-package urllib3 --upgrade-package soupsieve` 得 `urllib3 2.8.0`、`soupsieve 2.10`，`uv.lock` 仅 7 行变动（版本与哈希）。
+
+**顺带查出一处 CI 仪器缺陷（比“仅报告”更弱）**：该步骤写成 `pip-audit … | tee "$artifacts/pip-audit-report.txt"`，而 runner 默认 shell 是 `bash -e {0}`（**不带 pipefail**），管道退出码取自 `tee`——即 `tee` 恒为 0。因此**即便日后去掉 `continue-on-error`，该步骤也无法因发现漏洞而失败**。已加 `set -o pipefail` 使管道的真实状态得以保留；`continue-on-error` 在同一次改动里去掉——前提见下一段（本机已按 CI 同法证得“旧锁报 5、新锁干净”）。
+
+本机复跑的根因也定位了（不是索引缺版本）：`uv tool run` 默认挑了 **CPython 3.14.7**，而 `onnxruntime==1.20.1` 没有 cp314 轮子，pip 在临时 venv 里解析失败并被 pip-audit 报成 `Failed to install packages`——这是**运行方式**问题；改为 `--python 3.12`（对齐 CI 的 3.12.14）后，同一个钉版本 pip-audit 对**同一份 CI 导出的 locked-ci.txt**给出结论：
+
+- 旧锁导出 → `AUDIT_EXIT=1`，报告逐行等于 CI 的那 5 项（urllib3 2.7.0 ×3、soupsieve 2.8.4 ×2）——**先证伪仪器**；
+- 新锁导出 → **`No known vulnerabilities found`，`AUDIT_EXIT=0`**。
+
+**据此把该步骤转为强制**：去掉 `continue-on-error`（`--strict` 与 `--exit-code` 语义保留），并加 `set -o pipefail` 使管道真的能把步骤弄红。护栏新增 `tests/workflow/test_dependency_scan_config.py`（4 项：钉版本+`--strict`、非 report-only 且必须 pipefail、命令体内不得用 `--ignore-vuln` 点名放行、审计对象是 `uv export --frozen --only-group ci` 的锁导出而非 pyproject 区间）。**三项注入实测各自只弄红对应那一项**（改回 report-only / 删 pipefail / 在命令里加 `--ignore-vuln PYSEC-2026-4177`），还原后 4 项全过；ci.yml 以字节还原并断言一致。
+升锁连带命中一条**真值测试**：`tests/test_release_manifest.py::test_release_manifest_is_packaged_truth_and_matches_dependency_lock` 断言 `app/release-manifest.json` 的 `dependency_lock.digest` 必须等于 `sha256(uv.lock)`——它不是被我改坏的，而是**如实发现了清单与锁漂移**。按仓库既有约定（提交 `79332377` 只改 digest、`revision` 保持 8）用脚本重算并回写摘要，写后重新读回断言相等；该套件回到 **35 passed / 0 failed**。
+**仍未读回**：本机的“干净”不代替 CI 的“干净”——去掉 `continue-on-error` 后该步骤**在 CI 真跑并通过**这一步尚待下一次运行确认（与 gitleaks 当时的判据同一条），确认前不宣称“CI 已强制通过”。
+
+## Green 暗工作树按 Owner 裁决删除（2026-10-06，逐项精确路径）
+
+Owner 裁决“删（归档已复核）”。删除前**独立重跑**保留点核验（`.project-local/task-runtime/green-dark-worktree-20261006/verify-preservation.py`，全项 PASS 才允许删除）：`archive_sha256`（zip 101,071 B = `681bd720…`）、`patch_sha256_in_archive`（336,622 B = `81dc481d…`）、`untracked_members_match`（21 项逐哈希）、`live_head`（`7282e5a9…` 未变）、`live_modified_match`/`live_untracked_match`（现场未提交状态与清单一致，未新增 WIP）、`untracked_bytes_unchanged`（21 个未跟踪文件磁盘哈希仍相符）。
+
+执行（先 dry-run 出清单再 `--apply`；审计 `prune-audit.json` + `finish-audit.json`）：
+
+- 口径为**逐文件遍历求和（跳过不可读项）**：删除前 `2,692,920,775 B`（=2.51 GiB，与交接一致）。
+- 经**属主检出** `git worktree remove --force` 移除，其管理项 `.git/worktrees/ArcheAxis-Knowledge-OS1` 一并消失；`git worktree list` 由 6 项降为 **5 项**。该命令在深层缓存上返回 `Invalid argument`，故按既有做法以 `\\?\` 扩展前缀补完剩余条目并清只读位重试。
+- 实际移除 **3703 个条目**，残留 **13 个条目 / 16,716 B**（占原体积 0.0006%）：uv 的 `sdists-v9/editable/**/archeaxis_workspace-0.6.14-0.editable-py3-none-any.whl`（16,716 B，属主 ALEX、模式 644 **非只读**，清只读位与 `\\?\` 均仍 `WinError 5`）与若干 `pytest-cache`/`pytest-temp` 空目录（`GetFileAttributesW` = `0x10`，无重解析点）。**与上一轮 `runs/` 的 434 个零字节受限目录同类**，判为被句柄/ACL 持有的再生缓存，**未提权、未改 ACL**，按“未知资产保留并标注”登记。
+- 净效果：暗工作树内容与 worktree 注册关系**已消失**，Green 侧只剩一个 16.7 KB 壳；`.ui-task-tree/ArcheAxis-Knowledge-OS-mainline`（6.24 GB，CodexSandboxOnline 所有）与 `minimax-aaos-cosmic-ui-20261001`（Owner 裁决保留）**未触碰**。
+- 回滚配方写入审计件：`git worktree add …-Green….ui-task-tree\ArcheAxis-Knowledge-OS 7282e5a9…` + 应用 `green-ui-task-tree-7282e5a9-20261006.patch` + 从归档 zip 复原 21 个未跟踪文件。
+
+## Q11 旧库逐表审计与**选择性并入**（2026-10-06，Owner 裁决：有用的并入主线，没用的去掉）
+
+Owner 没有选“旁路只迁笔记”，而是给出判断准则：**先审计，有用并入，无用去掉**。据此做了三步，全部只读源库、写在**旁路暂存库**里（Rust Core 仍是唯一规范写者；未写产品主库、未双写）。
+
+**1）逐表实测**（`.project-local/task-runtime/q11-legacy-table-audit-20261006/audit_legacy_tables.py`，SQLite 以 `mode=ro` URI 打开）：`data/cognitive_os.sqlite`（3,223,552 B，`b318c99e…`）**审计前后 SHA 相同**；**89 张表 / 67 张 0 行 / 22 张有行**。加载产品同款 `sqlite_vec` 扩展后 `vec_episodes` 可读（5 行）。
+
+**2）内容判读（纠正我自己的一处先验）**：我原以为“episodic 内容全空、向量整条无价值”，实测**episodic_memory 5 行中仅 2 行为空**，且 5 条向量里 **3 条是非零向量**（非零字节 1534/756/1535）——**假设被自己的仪器证伪**。进一步读正文：3 条有内容的行来源分别是 `.hermes/task-runtime/ingest-samples/oxford-meaning.pdf`、`manual-test`、`.hermes/task-runtime/ingest-samples/course.docx`，即**导入样例与手工测试夹具**，不是用户本人的知识。据此定的“有用/无用”判据是内容层面的、可复核的：
+
+| 表 | 处置 | 依据 |
+| --- | --- | --- |
+| `ir_intake_cards` | **并入** | 1 行是真人撰写的吸收决策（考霸学习法 - 目标设定模块，含“吸收/不吸收”清单、目标仓库、风险） |
+| `machine_lessons` | **并入** | 1 行是机器教训（模式/类型/今后约束/证据链），按合同只能作为**机器候选** |
+| `core_objects`/`episodic_memory`/`memory_records`/`execution_traces` | 不并入，保留在保真导出 | 正文即上述样例；`memory_records`/`episodic_memory` 与 `core_objects` 同 id 同正文，重复并入只会造出重复知识 |
+| `vec_episodes*` | 不并入，保留在保真导出 | 主线**尚无向量表**；这些是上述内容行的向量影子 |
+| `*_fts_config`/`*_fts_data` | 去掉 | 全文影子存储，由内容表重建 |
+| `schema_migrations`/`migration_operator_runs` | 去掉 | 旧库记账；vNext 记自己的历史 |
+| 67 张 0 行表 | 去掉 | 无内容可携带 |
+
+**3）实现与证据**：`crates/archeaxis-migration` 新增 `stage_legacy_library_selectively`（+ `LegacyTableDisposition`/`SelectiveStageResult`）。它**先** `verify_export`（清单摘要 + 逐文件哈希 + 行数 + 拒绝未登记 `.jsonl`），**再**写暂存库；写入走 `archeaxis_domain::knowledge::create_knowledge_v3`（不手搓 INSERT），因此受合同约束：人类旧库内容 → `PERSONAL_DEFINITION` + `source_type=imported_legacy` + `owner=human`；机器教训 → `OBSERVATION` + `source_type=machine_candidate` + `owner=machine`（validate_v3 明确禁止机器候选被自动接受）；两者 `status='candidate'`、`support_level='none'`（不虚构支持度）、`requires_human_review=1`。`created_by` 携带 `legacy_cognitive_os:<表>:<旧行 id>` 保证同一正文的不同旧行不合并，且重跑只计 `reused`。**每一张表都得到恰好一条具名处置**（merged/discarded/not_merged + 理由），所以“去掉”是被记录的判断而不是静默丢失。
+
+- 新增测试 `crates/archeaxis-migration/tests/selective_legacy_stage.rs`（3 项）：`useful_tables_merge_and_every_other_table_is_named`（含“未合并表也各有处置项、处置数=导出表数+不可读表数”）、`tampered_export_is_rejected_before_any_staging_write`（篡改后**不创建**暂存库）、`the_legacy_library_bytes_are_untouched`。
+- 实测：`cargo test -p archeaxis-migration --tests --offline` → 本 crate **27 passed / 0 failed**（新 3 + 原 24）；`cargo fmt --all --check` **PASS**。
+- **真实旧库跑通**（`crates/archeaxis-migration/examples/selective_stage.rs`，对象为上文 89 表保真导出，清单摘要 `597027d4…` 经 Rust `verify_export` 接受，即跨语言哈希等价再次成立）：`intake_cards_staged=1`、`lessons_staged=1`、`row_errors=0`、处置合计 **merged 2 / discarded 77 / not_merged 10**；暂存库回读两行确为 `('PERSONAL_DEFINITION','candidate',…,'imported_legacy','human','none',1)` 与 `('OBSERVATION','candidate',…,'machine_candidate','machine','none',1)`，中文正文与“吸收/不吸收”列表逐字在位（收据与 270,336 B 暂存库在 `.project-local/task-runtime/q11-selective-stage/`，sha256 前缀 `35443751…`）。
+- **边界**：这是**旁路暂存**并入，未触碰产品主库；把暂存内容交给正式 Core 数据根、以及“这次迁移算完成”的判断，仍属 Owner 验收（与 Q07 的“机器不能自我接受”同一条线）。样例内容（3 条导入夹具正文）**未被并入**，若 Owner 认为它们也该进主线，走的是同一函数，判据需由 Owner 明确。
+- 交接件 §5 的第 4、5 项本轮不重开：300 秒作业上限已由既有裁决“保持上限 + 窗口化”落地，`build/cargo` 在 Owner 限定的“非 cargo、超预算”范围之外；失败模型原始输出 Owner 裁决**继续留在界面内**（反粉饰规则不变）。

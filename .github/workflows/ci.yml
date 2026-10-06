@@ -154,12 +154,17 @@ jobs:
           uv export --frozen --only-group ci-adapters --no-emit-project --format requirements-txt --output-file "$artifacts/locked-ci-adapters.txt"
           uv pip install --system --require-hashes -r "$artifacts/locked-ci-adapters.txt"
 
-      # Absorbed from the OSS pool (ADOPT verdict, supplies-chain security group). Both are pinned and
-      # hash-verified. pip-audit stays report-only until a run is clean or every accepted finding is
-      # carried by an explicit ignore entry (--ignore-vuln).
+      # Absorbed from the OSS pool (ADOPT verdict, supplies-chain security group), pinned and
+      # hash-verified, and now enforcing. run 37471031307 reported 5 findings (urllib3 2.7.0,
+      # soupsieve 2.8.4); both were raised to the versions pip-audit names as the fix rather than
+      # waved through with --ignore-vuln, and the same pinned tool against the same CI export now
+      # reports "No known vulnerabilities found" (exit 0) while still reporting the 5 against the
+      # old export - the instrument was falsified before it was trusted. `set -o pipefail` is
+      # required: the runner's default shell is `bash -e` without pipefail, so `pip-audit | tee`
+      # would report tee's status (always 0) and this step could never fail on a real finding.
       - name: Dependency vulnerability scan (pip-audit 2.10.1, pinned)
-        continue-on-error: true
         run: |
+          set -o pipefail
           artifacts="$ARCHEAXIS_RUN_ROOT/artifacts"
           uv tool run --from pip-audit==2.10.1 pip-audit --strict --requirement "$artifacts/locked-ci.txt" --format columns | tee "$artifacts/pip-audit-report.txt"
 
