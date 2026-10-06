@@ -188,21 +188,21 @@
     "note": "bare `python` 不在 Git Bash PATH；本地复现门禁必须用 --source index/head（Windows 工作树为 CRLF，--source worktree 会误报）；本机 locale 为 cp936，裸跑 pytest 会按 cp936 解码而以 UTF-8 断言失败，权威 runner 由 dev.py 自带 PYTHONUTF8=1，故套件应经 scripts/ci/run_tests.sh 运行"
   },
   "both_ends": {
-    "local_head": "b466f5301eb7ef991f5a45a49331c90c4f52eebe",
-    "remote_branch_sha": "b466f5301eb7ef991f5a45a49331c90c4f52eebe",
-    "remote_file_readback": "AUTHORITY.md 经 contents API 读回与本机一致（6065 字节、sha256 前 16 位 556663d7093d27f0）；本机 README.md sha256 前 16 位 0cb5a01995bb432d",
+    "local_head": "564e760fceaeb45bdfa6464744a60b41a5f3c993",
+    "remote_branch_sha": "564e760fceaeb45bdfa6464744a60b41a5f3c993",
+    "remote_file_readback": "docs/current/AAOS01-Q00-Q15-LEDGER-FINAL-20261005.md 经 contents API 读回与本机逐字节一致（sha256 前 16 位 a3951bb97c278614）；AUTHORITY.md 此前核对为 6065 字节、sha256 前 16 位 556663d7093d27f0",
     "pr": 161,
     "default_branch_updated": false,
-    "default_branch_note": "远端分支已同步至 b466f530；main 未更新（本轮不含合并）；无 tag、无 release。本轮的 Q00–Q15 读回、存储清理、探测脚本修正、账本引文门禁与记录更正均在此支；PR #161 仍 OPEN，head 即该 SHA",
+    "default_branch_note": "远端分支已同步至 564e760f；main 未更新（本轮不含合并）；无 tag、无 release。本轮完成：安装态完整生命周期证据落盘并在 run 37471031307 收口、runs/ 二次清理释放 8.37 GB、build/ 四条无引用根清理 3.05 GB、四个前端组件/路由测试（24 项）；PR #161 仍 OPEN，head 即该 SHA",
     "ci": {
-      "push_run": 37463354781,
-      "push_scope": "push 分类：gateplan、lint、a0-gates 均 success；重量车道按分类跳过",
-      "pr_run": 37463363575,
-      "pr_scope": "同一 SHA 的 pull_request 运行实际执行重量车道：gateplan、lint、test (3.12)、rust-vnext、workers-vnext、contracts-vnext、green-candidate-vnext、desktop-vnext、desktop-fast、browser-smoke 均 success；观察时 desktop-build 仍在运行（其后为 installer-lifecycle）",
-      "vnext_ci_run": 37463363630,
-      "vnext_ci": "success（cargo-test）",
-      "binding": "以上 run 均以 headSha=b466f5301eb7ef991f5a45a49331c90c4f52eebe 读回绑定。本快照上一版的 ci 节引用的是更早提交的运行，且其中一次被后续 push 取消——其 a0-gates failure 属取消引起的 fail-closed，不是产品失败；故此处按 SHA 绑定重写，不用运行列表的顺序推断归属",
-      "earlier_failures_resolved": "先前记录的两处 test 车道失败已修复并复验：tests/test_web_screenshot.py 与 tests/test_desktop_launch.py 的隔离缺陷（把 c/ 与 staging/ 泄漏进真实开发根）已修；tests/test_axr060_completion_audit.py 所引的已删分支 tip 已登记进 docs/current/BRANCH-CONVERGENCE.json。b466f530 的 test (3.12) 为 success"
+      "full_qualification_run": 37471031307,
+      "full_qualification_scope": "workflow_dispatch force_full，head_sha=ccf0a4bc48aff0054d1d6717877faf10d7312941，19/19 job success（含 desktop-build、desktop-fast、installer-lifecycle、rust-vnext、test(3.12)、workers-vnext、contracts-vnext、desktop-vnext、green-candidate-vnext、browser-smoke、py-compat 3.11/3.13、format/migration/security-targeted、wheel-smoke、windows-runtime-smoke、gateplan、lint）；该 run 的 installer-lifecycle 产出 lifecycle-receipt.json（complete_lifecycle_verified=true）",
+      "push_run": 37474779194,
+      "push_scope": "564e760f 的 push 车道，按分类运行（文档与测试改动）",
+      "pr_run": 37474787543,
+      "pr_scope": "564e760f 的 pull_request 车道，按分类运行",
+      "vnext_ci_run": 37474787559,
+      "binding": "以上 run 均以 headSha 精确读回绑定（gh run list --json headSha 过滤），不用运行列表顺序推断归属；更早的 b466f530/ccf0a4bc 记录保留在台账历史中"
     }
   },
   "checkpoint": {
