@@ -88,12 +88,12 @@
       "required_output": "页、段、表、图片引用、锚点",
       "status": "partial",
       "implemented_now": "the pdf.extract route runs PyMuPDF, returns the text with canonical page/line anchors and coverage over lines, and reports what the engine really exposed in loss_receipt.params.structure: per-page character and engine-block counts, image references, engine text blocks with their bounding boxes and first lines, and tables the engine's own finder detects with their row and column counts. Engine chatter is captured into the receipt instead of being printed, because the stdio protocol is one JSON envelope per line. The reading order of the projected text is decided by the worker and reported as a fact with its reason: the model is one vertical gutter with text on both sides, then column by column and top to bottom, applied to the page only when that holds, and it may only REORDER - it is refused whenever its reconstruction would change which lines the page holds, and it stands down entirely when the engine text carries blank separator lines, because a line-level reconstruction would not carry them; a single-column page is returned exactly as the engine gave it, and every page records whether the model applied, how many columns it saw and why it stood down",
-      "gap": "the model handles one gutter, so it reads two-column pages rather than an arbitrary layout, and it stands down when a line crosses the gutter or the engine text carries blank lines; blocks are engine blocks rather than linguistic paragraphs and a table detection is a detection, not a guarantee; pages are reported as facts rather than as an addressing level in the structure",
+      "gap": "the model handles one gutter, so it reads two-column pages rather than an arbitrary layout, and it stands down when a line crosses the gutter or the engine text carries blank lines; blocks are engine blocks rather than linguistic paragraphs and a table detection is a detection, not a guarantee; a page the worker named is addressable through a verified `worker_structure` anchor, while the page numbering itself remains the worker's own statement",
       "evidence": {
         "core_routes": [{"kind": "pdf", "capability": "pdf.extract", "media_type": "application/pdf"}],
         "worker_routes": [{"capability": "pdf.extract", "worker": "services/python-workers/document/worker_pdf.py"}],
         "code": ["crates/archeaxis-application/src/attempts.rs", "services/python-workers/document/worker_pdf.py"],
-        "tests": ["tests/test_worker_pdf_native.py", "tests/test_worker_pdf_structure.py", "tests/test_pdf_sidecar_job.py", "crates/archeaxis-application/tests/pdf_job_end_to_end.rs", "tests/test_worker_pdf_reading_order.py"],
+        "tests": ["tests/test_worker_pdf_native.py", "tests/test_worker_pdf_structure.py", "tests/test_pdf_sidecar_job.py", "crates/archeaxis-application/tests/pdf_job_end_to_end.rs", "tests/test_worker_pdf_reading_order.py", "crates/archeaxis-api/tests/structure_anchor_api.rs"],
         "legacy_reference": []
       }
     },
@@ -120,12 +120,12 @@
       "required_output": "标题、段落、表、图片、来源位置",
       "status": "partial",
       "implemented_now": "a DOCX reaches its own route (`office.structure`). The worker that reads it has existed since the 2026-09-05 slice but had no route pointing at it, so the capability was unreachable through the job contract; it is now wired (its own worker identity, media type and engine profile). It extracts the paragraph text (verified end to end: the paragraph text reaches the store) and returns its own structure - paragraphs, tables, a media inventory and header/footer notes - which the transport keeps as a fact under `params.worker_structure` while the route contract carries canonical line anchors over the projected text. A package the worker cannot read fails the job with no text artifact. Headings are now separated from body paragraphs by what the file declares: a paragraph carries the style it references (the style definition's display name when the document defines one), and its outline level comes from its own `w:outlineLvl`, else the level that style definition assigns, else a built-in heading style name in English or Chinese; the receipt reports `style_definitions`, `paragraph_count`, `heading_count` and the heading list. A paragraph none of those describe stays a plain paragraph with no level - no outline is inferred from text, length or capitalisation",
-      "gap": "the worker's own paragraph and table structure is reported as a fact rather than as an addressing level, so navigation stays on line anchors; a heading is a reported fact rather than an addressing level; formatting carried on runs rather than on the paragraph style is not read, list numbering is not reconstructed, and nothing is rendered",
+      "gap": "a paragraph, table row or heading the worker named is addressable through a verified `worker_structure` anchor; what remains is that the recorded span is the worker's own rather than an independently derived page number, and no screen consumes the new locator yet because the interface lane is paused; formatting carried on runs rather than on the paragraph style is not read, list numbering is not reconstructed, and nothing is rendered",
       "evidence": {
         "core_routes": [{"kind": "office", "capability": "office.structure", "media_type": "application/vnd.openxmlformats-officedocument.wordprocessingml.document"}],
         "worker_routes": [{"capability": "office.structure", "worker": "services/python-workers/document/worker_office.py"}],
         "code": ["crates/archeaxis-application/src/attempts.rs", "services/python-workers/document/worker_office.py", "services/python-workers/transport/text_ndjson.py"],
-        "tests": ["crates/archeaxis-application/tests/office_job_end_to_end.rs", "tests/workers/test_bulk_office.py", "tests/workers/test_docx_heading_styles.py"],
+        "tests": ["crates/archeaxis-application/tests/office_job_end_to_end.rs", "tests/workers/test_bulk_office.py", "tests/workers/test_docx_heading_styles.py", "crates/archeaxis-api/tests/structure_anchor_api.rs"],
         "legacy_reference": ["app/capability/builtin/converters_docx.py"]
       }
     },
@@ -136,12 +136,12 @@
       "required_output": "幻灯片、文本、备注、图表引用",
       "status": "partial",
       "implemented_now": "a PPTX reaches the `office.structure` route through the same worker (python-pptx 1.0.2 is available here and the worker's own probe reports it). It reads slide order, shape text, speaker notes and an image count, and its own structure is kept as a fact under `params.worker_structure` while the route contract carries line anchors over the projected text. A package whose engine is missing or unreadable fails the job rather than succeeding empty. Chart data is now read too: the worker parses the package's own chart parts with the standard library and projects each series as `Series <name>: <category>=<value>` under a `slide_chart` structure entry, so a chart contributes its numbers and its own anchor instead of only being counted; the values are the file's cached results (declared as `chart_data_source` in the receipt) and a series whose data lives only in a linked workbook is reported as carrying no cached values rather than filled in",
-      "gap": "slide and shape structure is a reported fact rather than an addressing level, and nothing is rendered; chart numbers are the cached ones the file carries, so a chart fed by a live spreadsheet reports no values until that workbook is resolved",
+      "gap": "a slide the worker named is addressable through a verified `worker_structure` anchor, while shape geometry stays a reported fact and nothing is rendered; chart numbers are the cached ones the file carries, so a chart fed by a live spreadsheet reports no values until that workbook is resolved",
       "evidence": {
         "core_routes": [{"kind": "office", "capability": "office.structure", "media_type": "application/vnd.openxmlformats-officedocument.presentationml.presentation"}],
         "worker_routes": [{"capability": "office.structure", "worker": "services/python-workers/document/worker_office.py"}],
         "code": ["crates/archeaxis-application/src/attempts.rs", "services/python-workers/document/worker_office.py"],
-        "tests": ["crates/archeaxis-application/tests/office_job_end_to_end.rs", "tests/workers/test_bulk_office.py", "tests/workers/test_pptx_chart_data.py"],
+        "tests": ["crates/archeaxis-application/tests/office_job_end_to_end.rs", "tests/workers/test_bulk_office.py", "tests/workers/test_pptx_chart_data.py", "crates/archeaxis-api/tests/structure_anchor_api.rs"],
         "legacy_reference": ["app/capability/builtin/converters_pptx.py"]
       }
     },
@@ -152,12 +152,12 @@
       "required_output": "sheet/cell、公式文本与缓存值、表",
       "status": "partial",
       "implemented_now": "an XLSX reaches the `office.structure` route through the same worker (openpyxl 3.1.5 is available here and the worker's own probe reports it). It reads sheets and cells, the formula text with the cached-value policy it states, and merged ranges, with macros never executed; its own structure is kept as a fact under `params.worker_structure` while the route contract carries line anchors. A workbook the engine cannot read fails the job rather than succeeding empty",
-      "gap": "sheet and cell structure is a reported fact rather than an addressing level, formula results are not calculated (only the cached value the file carries), and nothing is rendered",
+      "gap": "a sheet row the worker named is addressable through a verified `worker_structure` anchor, while a single cell is not a location of its own and formula results are not calculated (only the cached value the file carries), and nothing is rendered",
       "evidence": {
         "core_routes": [{"kind": "office", "capability": "office.structure", "media_type": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"}],
         "worker_routes": [{"capability": "office.structure", "worker": "services/python-workers/document/worker_office.py"}],
         "code": ["crates/archeaxis-application/src/attempts.rs", "services/python-workers/document/worker_office.py"],
-        "tests": ["crates/archeaxis-application/tests/office_job_end_to_end.rs", "tests/workers/test_bulk_office.py"],
+        "tests": ["crates/archeaxis-application/tests/office_job_end_to_end.rs", "tests/workers/test_bulk_office.py", "crates/archeaxis-api/tests/structure_anchor_api.rs"],
         "legacy_reference": ["app/capability/builtin/converters_xlsx.py"]
       }
     },
@@ -200,12 +200,12 @@
       "required_output": "时间锚/节点及关系",
       "status": "partial",
       "implemented_now": "a .canvas reaches its own route (`canvas.structure`) and the worker behind it existed in this repository since the 2026-09-05 slice with no route pointing at it. It validates the canvas (an edge naming an unknown node is refused), projects the text nodes and returns node anchors that carry the node ids, plus the edges and the file/link references; the transport keeps that structure and those edges as facts under `params.worker_structure` and `params.worker_output` while the route contract carries canonical line anchors. SRT and VTT likewise have their own route (`subtitles.structure`) and their own media types (application/x-subrip, text/vtt), so a subtitle is no longer declared as plain text: the worker parses the cues and returns cue anchors that carry `offset_ms` and `duration_ms`. A subtitle file the worker cannot parse fails the job. Each canvas node also comes back with the geometry the file declares - `x`, `y`, `width`, `height`, numbers only, a string or null coordinate is dropped rather than coerced - plus its `color` and `style` when they are non-blank strings, and every edge is preserved verbatim so an edge's sides and endpoint ports travel with it",
-      "gap": "the node and cue anchors are kept as facts rather than as an addressing level in the projection, a declared colour is reported as the string the file holds, not resolved to a rendered swatch, and z-order, tabs and group containment are not computed, and the text route's JSON reading of a canvas remains available without being the structure path",
+      "gap": "a canvas node or subtitle cue the worker named is addressable through a verified `worker_structure` anchor, a declared colour is reported as the string the file holds, not resolved to a rendered swatch, and z-order, tabs and group containment are not computed, and the text route's JSON reading of a canvas remains available without being the structure path",
       "evidence": {
         "core_routes": [{"kind": "canvas", "capability": "canvas.structure", "media_type": "application/json"}, {"kind": "subtitles", "capability": "subtitles.structure", "media_type": "application/x-subrip"}],
         "worker_routes": [{"capability": "canvas.structure", "worker": "services/python-workers/document/worker_canvas.py"}, {"capability": "subtitles.structure", "worker": "services/python-workers/document/worker_subtitles.py"}],
         "code": ["crates/archeaxis-application/src/attempts.rs", "services/python-workers/document/worker_canvas.py", "services/python-workers/document/worker_subtitles.py", "services/python-workers/transport/text_ndjson.py"],
-        "tests": ["crates/archeaxis-application/tests/canvas_subtitles_job_end_to_end.rs", "tests/test_text_format_facts.py", "crates/archeaxis-archive/tests/obsidian_vault_roundtrip.rs", "tests/workers/test_canvas_node_facts.py"],
+        "tests": ["crates/archeaxis-application/tests/canvas_subtitles_job_end_to_end.rs", "tests/test_text_format_facts.py", "crates/archeaxis-archive/tests/obsidian_vault_roundtrip.rs", "tests/workers/test_canvas_node_facts.py", "crates/archeaxis-api/tests/structure_anchor_api.rs"],
         "legacy_reference": []
       }
     },

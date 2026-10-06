@@ -1222,6 +1222,112 @@ fn verify_epub_anchor(
     Some(!text.is_empty() && format!("{:x}", Sha256::digest(text.as_bytes())) == checksum)
 }
 
+/// R15/F07-F09/F12: an anchor that names the location the worker described.
+///
+/// A route's canonical line anchors are the addressing level the Core validates, and a worker's
+/// own structure - which paragraph, which sheet row, which slide - was until now a reported fact
+/// inside the loss receipt, which is what "a heading is a fact rather than an addressing level"
+/// meant. This makes that description a locator that can be checked: the same attempt must be the
+/// latest succeeded one for this source and revision, the receipt must name this kind and path
+/// exactly once, and the text at the span it records must hash to the checksum being claimed.
+///
+/// What is deliberately NOT claimed: the span is the worker's own, so the anchor proves where this
+/// text sits in this projection revision, not an independently derived page number.
+fn verify_structure_anchor(
+    conn: &rusqlite::Connection,
+    source: &str,
+    revision: &str,
+    position: &serde_json::Value,
+    checksum: &str,
+) -> Option<bool> {
+    use sha2::{Digest, Sha256};
+    let job = position["job_id"].as_str()?;
+    let attempt = i64::try_from(position["attempt"].as_u64()?).ok()?;
+    let kind = position["kind"].as_str()?;
+    let claimed: Vec<&str> = position["path"]
+        .as_array()?
+        .iter()
+        .filter_map(|v| v.as_str())
+        .collect();
+    if claimed.is_empty() || claimed.len() != position["path"].as_array()?.len() {
+        return Some(false);
+    }
+    let row: (String, String, String, String, Option<String>, Option<String>, i64) = conn
+        .query_row(
+            "SELECT j.input_ref,j.state,a.state,o.content,
+                    (SELECT content FROM job_outputs WHERE job_id=j.job_id AND attempt=a.attempt AND kind='text'),
+                    (SELECT content FROM job_outputs WHERE job_id=j.job_id AND attempt=a.attempt AND kind='document_structure'),
+                    (SELECT COUNT(*) FROM job_attempts WHERE job_id=j.job_id AND attempt>?2)
+             FROM jobs j JOIN job_attempts a ON a.job_id=j.job_id
+             JOIN job_outputs o ON o.job_id=a.job_id AND o.attempt=a.attempt AND o.kind='loss_report'
+             WHERE j.job_id=?1 AND a.attempt=?2",
+            rusqlite::params![job, attempt],
+            |r| {
+                Ok((
+                    r.get(0)?,
+                    r.get(1)?,
+                    r.get(2)?,
+                    r.get(3)?,
+                    r.get(4)?,
+                    r.get(5)?,
+                    r.get(6)?,
+                ))
+            },
+        )
+        .ok()?;
+    let (input, job_state, attempt_state, loss_content, text, structure, later) = row;
+    if input != source || job_state != "succeeded" || attempt_state != "succeeded" || later != 0 {
+        return Some(false);
+    }
+    // the projection the structure was derived from, and the canonical anchors of the same attempt
+    let text = text?;
+    let structure: serde_json::Value = serde_json::from_str(&structure?).ok()?;
+    if !structure.is_array() {
+        return Some(false);
+    }
+    let wire: String = conn
+        .query_row(
+            "SELECT request_json FROM job_attempts WHERE job_id=?1 AND attempt=?2",
+            rusqlite::params![job, attempt],
+            |r| r.get(0),
+        )
+        .ok()?;
+    let request: serde_json::Value = serde_json::from_str(&wire).ok()?;
+    if request["job_id"] != job
+        || request["attempt"] != serde_json::json!(attempt)
+        || request["inputs"][0]["sha256"] != revision
+        || request["capability"].as_str().unwrap_or("").is_empty()
+    {
+        return Some(false);
+    }
+    let loss: serde_json::Value = serde_json::from_str(&loss_content).ok()?;
+    let entries = loss["params"]["worker_structure"].as_array()?;
+    let matching: Vec<&serde_json::Value> = entries
+        .iter()
+        .filter(|entry| {
+            entry["kind"].as_str() == Some(kind)
+                && entry["path"].as_array().is_some_and(|path| {
+                    path.iter()
+                        .filter_map(|v| v.as_str())
+                        .eq(claimed.iter().copied())
+                })
+        })
+        .collect();
+    if matching.len() != 1 {
+        return Some(false);
+    }
+    let start = usize::try_from(matching[0]["char_start"].as_u64()?).ok()?;
+    let end = usize::try_from(matching[0]["char_end"].as_u64()?).ok()?;
+    if end <= start {
+        return Some(false);
+    }
+    let excerpt = text.get(start..end)?;
+    Some(
+        !excerpt.trim().is_empty()
+            && format!("{:x}", Sha256::digest(excerpt.as_bytes())) == checksum,
+    )
+}
+
 #[derive(Deserialize)]
 struct AnchorBody {
     revision: String,
@@ -1282,6 +1388,11 @@ async fn create_anchor(
                 if position["type"] == "epub" {
                     return verify_epub_anchor(conn, &source_id, &body.revision, &position, &checksum);
                 }
+                if position["type"] == "worker_structure" {
+                    return verify_structure_anchor(
+                        conn, &source_id, &body.revision, &position, &checksum,
+                    );
+                }
                 if position["type"] != "text" {
                     return None;
                 }
@@ -1295,7 +1406,8 @@ async fn create_anchor(
             if validation != Some(true) {
                 return (
                     StatusCode::BAD_REQUEST,
-                    "locator/checksum does not match immutable source or verified ASR cue",
+                    "locator/checksum does not match the immutable source, a verified ASR cue, an \
+                     epub paragraph, or the worker structure named by this attempt",
                 )
                     .into_response();
             }
