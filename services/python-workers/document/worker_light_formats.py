@@ -184,10 +184,183 @@ def mail(raw):
             "locations": locations, "attachments": attachments}, losses
 
 
+ODF_MEDIA = {
+    "application/vnd.oasis.opendocument.text": "odt",
+    "application/vnd.oasis.opendocument.spreadsheet": "ods",
+    "application/vnd.oasis.opendocument.presentation": "odp",
+}
+# ODF names its elements and attributes by namespace, so both are matched in Clark notation.
+ODF_NS = {
+    "office": "urn:oasis:names:tc:opendocument:xmlns:office:1.0",
+    "table": "urn:oasis:names:tc:opendocument:xmlns:table:1.0",
+    "text": "urn:oasis:names:tc:opendocument:xmlns:text:1.0",
+    "draw": "urn:oasis:names:tc:opendocument:xmlns:drawing:1.0",
+    "meta": "urn:oasis:names:tc:opendocument:xmlns:meta:1.0",
+}
+
+
+def _odf(namespace, name):
+    return f"{{{ODF_NS[namespace]}}}{name}"
+
+
+# An ODF cell or row may declare itself repeated, and a template can declare the whole grid
+# (16384 columns), so expansion is bounded and a bounded row is reported rather than hidden.
+ODF_REPEAT_CAP = 512
+
+
+def _local(tag):
+    return tag.rsplit("}", 1)[-1]
+
+
+def _odf_safe(archive):
+    infos = archive.infolist()
+    if len(infos) > 128 or sum(item.file_size for item in infos) > MAX_BYTES:
+        raise ValueError("ODF entry/expanded-byte budget exceeded")
+    names = [item.filename for item in infos]
+    if len(set(names)) != len(names):
+        raise ValueError("ODF duplicate paths are forbidden")
+    for item in infos:
+        if (item.filename.startswith(("/", "\\")) or "\\" in item.filename
+                or ".." in item.filename.split("/") or item.file_size > 2 * 1024 * 1024
+                or item.flag_bits & 1 or (item.external_attr >> 16) & 0o170000 == 0o120000):
+            raise ValueError("unsafe ODF member")
+    return names
+
+
+def _odf_text(element):
+    return "".join(element.itertext()).strip()
+
+
+def _odf_repeat(element, namespace, attribute):
+    declared = element.get(_odf(namespace, attribute))
+    try:
+        value = int(declared) if declared else 1
+    except ValueError:
+        value = 1
+    value = max(1, value)
+    return min(value, ODF_REPEAT_CAP), value > ODF_REPEAT_CAP
+
+
+def odf(raw, media):
+    """Read an ODF package's own content.xml: headings, paragraphs, cells and pages."""
+    name = ODF_MEDIA[media]
+    with zipfile.ZipFile(io.BytesIO(raw)) as archive:
+        names = _odf_safe(archive)
+        if "mimetype" not in names:
+            raise ValueError("ODF mimetype entry missing")
+        declared = archive.read("mimetype").decode("ascii", "ignore").strip()
+        if declared != media:
+            raise ValueError(f"ODF mimetype declares {declared!r}, not {media}")
+        if "content.xml" not in names:
+            raise ValueError("ODF content.xml missing")
+        root, _ = xml(archive.read("content.xml"))
+        title = None
+        if "meta.xml" in names:
+            meta, _ = xml(archive.read("meta.xml"))
+            for node in meta.iter(_odf("meta", "title")):
+                if node.text and node.text.strip():
+                    title = node.text.strip()
+                    break
+        body = [element for element in root.iter()
+                if element.tag in {_odf("text", "h"), _odf("text", "p"), _odf("table", "table"),
+                                   _odf("table", "table-row"), _odf("table", "table-cell"),
+                                   _odf("draw", "page")}]
+
+    blocks, locations, losses = [], [], []
+    capped = False
+    sheet = None
+    page = None
+    row = 0
+    column = 0
+    for element in body:
+        tag = element.tag
+        if tag == _odf("table", "table"):
+            sheet = element.get(_odf("table", "name")) or f"sheet-{len(locations) + 1}"
+            column = 0
+        elif tag == _odf("table", "table-row"):
+            repeat, hit_cap = _odf_repeat(element, "table", "number-rows-repeated")
+            capped = capped or hit_cap
+            row += repeat
+            column = 0
+        elif tag == _odf("table", "table-cell"):
+            if sheet is None:
+                continue
+            value = element.get(_odf("office", "value"))
+            text = _odf_text(element)
+            display = value if value not in (None, "") else text
+            repeat, hit_cap = _odf_repeat(element, "table", "number-columns-repeated")
+            capped = capped or hit_cap
+            if not display:
+                column += repeat
+                continue
+            column += 1
+            locations.append({"kind": "odf_table_cell", "sheet": sheet, "row": row,
+                              "column": column, "span": repeat,
+                              "value_type": element.get(_odf("office", "value-type")) or "text",
+                              "value": display, "path": f"{sheet}/r{row}c{column}"})
+            blocks.append(f"{sheet}!R{row}C{column}: {display}")
+            column += repeat - 1
+        elif tag == _odf("draw", "page"):
+            page = element.get(_odf("draw", "name")) or f"page-{len(locations) + 1}"
+            blocks.append(f"Page: {page}")
+            locations.append({"kind": "odf_page", "path": page, "value": page,
+                              "position": len(blocks)})
+        elif tag == _odf("text", "h"):
+            text = _odf_text(element)
+            if not text:
+                continue
+            level = element.get(_odf("text", "outline-level")) or "1"
+            path = "/".join(part for part in (page, sheet, f"heading-{level}") if part)
+            blocks.append(text)
+            locations.append({"kind": "odf_heading", "path": path, "level": level,
+                              "value": text, "position": len(blocks)})
+        elif tag == _odf("text", "p"):
+            text = _odf_text(element)
+            if not text:
+                continue
+            path = "/".join(part for part in (page, sheet, "paragraph") if part)
+            blocks.append(text)
+            locations.append({"kind": "odf_paragraph", "path": path, "value": text,
+                              "position": len(blocks)})
+    if capped:
+        losses.append(f"row/column repeat expansion capped at {ODF_REPEAT_CAP}; a template that "
+                      "declares a larger grid is reported at the cap, not inflated")
+    if not blocks:
+        raise ValueError("ODF carries no readable text")
+    losses.append("ODF body read from content.xml; styles, fields, embedded objects and "
+                  "hyperlink targets are not followed")
+    return "\n".join(blocks), {"format": name, "parsed": True, "title": title,
+            "location_model": "odf content.xml elements; canonical anchors refer to projected lines",
+            "locations": locations[:MAX_LOCATIONS],
+            "locations_capped": len(locations) > MAX_LOCATIONS}, losses
+
+
+def rtf(raw):
+    """Strip RTF control words with the declared engine; a missing engine fails the job."""
+    try:
+        from striprtf.striprtf import rtf_to_text
+    except ImportError as exc:
+        raise RuntimeError("rtf engine missing (striprtf not installed)") from exc
+    text = (rtf_to_text(raw.decode("utf-8", "replace")) or "").strip()
+    if not text:
+        raise ValueError("RTF carries no readable text")
+    paragraphs = [item.strip() for item in text.split("\n\n") if item.strip()]
+    if len(paragraphs) > MAX_LOCATIONS:
+        raise ValueError("light format location budget exceeded")
+    locations = [{"kind": "rtf_paragraph", "path": f"/paragraphs/{index}", "value": paragraph,
+                  "position": index} for index, paragraph in enumerate(paragraphs, 1)]
+    return text, {"format": "rtf", "parsed": True,
+            "location_model": "RTF paragraphs after control words are stripped",
+            "locations": locations}, [
+        "RTF control words stripped by the declared engine; tables, footnotes, styles and "
+        "embedded objects are not reconstructed"]
+
+
 def parse(raw, media):
     if media not in {"application/epub+zip", "message/rfc822", "text/csv",
                      "text/tab-separated-values", "application/x-ndjson", "application/yaml",
-                     "text/x-yaml", "application/toml", "application/json", "application/xml", "text/xml"}:
+                     "text/x-yaml", "application/toml", "application/json", "application/xml", "text/xml",
+                     *ODF_MEDIA, "application/rtf"}:
         return None
     if len(raw) > MAX_BYTES:
         raise ValueError("light format input exceeds byte budget")
@@ -195,6 +368,10 @@ def parse(raw, media):
         return epub(raw)
     if media == "message/rfc822":
         return mail(raw)
+    if media in ODF_MEDIA:
+        return odf(raw, media)
+    if media == "application/rtf":
+        return rtf(raw)
     text = raw.decode("utf-8-sig", "strict")
     if media in ("text/csv", "text/tab-separated-values"):
         rows = list(csv.reader(io.StringIO(text), delimiter="\t" if media.endswith("values") else ","))

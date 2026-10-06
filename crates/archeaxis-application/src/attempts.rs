@@ -99,6 +99,12 @@ pub const ROUTE_MEDIA_TYPES: &[(&str, &[&str])] = &[
             "application/toml",
             "application/epub+zip",
             "message/rfc822",
+            // R15/F13: the light-format reader handles these containers itself, so the route
+            // that owns it accepts them rather than leaving them unnamed and refused.
+            "application/vnd.oasis.opendocument.text",
+            "application/vnd.oasis.opendocument.spreadsheet",
+            "application/vnd.oasis.opendocument.presentation",
+            "application/rtf",
             "application/xml",
             "text/xml",
         ],
@@ -211,6 +217,14 @@ pub fn media_type_for_name(name: &str) -> Option<&'static str> {
         "yaml" | "yml" => "application/yaml",
         "toml" => "application/toml",
         "epub" => "application/epub+zip",
+        // R15/F13: ODF carries its body in content.xml and RTF in its own control words, and a
+        // reader for each exists here, so naming them lets the file reach that reader instead of
+        // being refused as an unknown suffix. The legacy binary Microsoft containers stay
+        // unnamed for the same reason they were left out of the Office group.
+        "odt" => "application/vnd.oasis.opendocument.text",
+        "ods" => "application/vnd.oasis.opendocument.spreadsheet",
+        "odp" => "application/vnd.oasis.opendocument.presentation",
+        "rtf" => "application/rtf",
         "xml" => "application/xml",
         // R15/F15: a container gets the archive route, not a text decode
         "zip" => "application/zip",
