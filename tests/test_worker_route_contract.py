@@ -71,14 +71,16 @@ def test_every_routed_worker_projects_a_text():
         f"{missing}")
 
 
-def test_the_unrouted_video_worker_really_has_no_projection():
-    """The exemption reason must stay true, or it stops explaining anything."""
+def test_the_routed_video_worker_has_real_projection_and_route():
+    """Video is a declared route with raw text, time cues and sampled frames."""
     video = REPO / "services" / "python-workers" / "media" / "worker_video.py"
     keys = _returned_dict_keys(video)
-    assert "text" not in keys, (
-        "worker_video now projects a text, so its recorded exemption is stale")
+    assert {"text", "cues", "raw_cues", "visual_results"} <= keys
+    route = _load_transport().ROUTES["media.video"]
+    assert route["worker"] == "services/python-workers/media/worker_video.py"
+    assert route["call"] == "video_transcribe"
     assert {"frames", "duration_ms", "audio_wav"} <= keys, (
-        f"worker_video's shape changed; revisit its exemption. keys={sorted(keys)}")
+        f"worker_video projection fields missing. keys={sorted(keys)}")
 
 
 def test_every_route_has_an_in_repo_worker_with_engine_and_extract():
@@ -104,4 +106,4 @@ def test_every_route_has_an_in_repo_worker_with_engine_and_extract():
         # `transcribe` was added for the ASR route: it hands the worker a suffixed view of
         # the audio plus the configured model path, language and device, which `path` (one
         # positional argument) and `ocr` (language plus tessdata) cannot express.
-        assert route.get("call") in {"path", "ocr", "transcribe"}
+        assert route.get("call") in {"path", "ocr", "transcribe", "video_transcribe"}

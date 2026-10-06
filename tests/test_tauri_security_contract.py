@@ -127,7 +127,11 @@ def test_desktop_keeps_launch_credentials_in_host_and_projects_only_ready() -> N
     assert "(job_id && c == b'.')" in bridge
     assert 'matches!(value, "." | "..")' in bridge
     assert '"CORE_COMMAND_ID_INVALID"' in bridge
-    assert "> 8 * 1024 * 1024" in bridge and '"CORE_COMMAND_BODY_TOO_LARGE"' in bridge
+    assert "> request_byte_limit(&request.operation)" in bridge and '"CORE_COMMAND_BODY_TOO_LARGE"' in bridge
+    limits = bridge[bridge.index("fn request_byte_limit"):bridge.index("pub fn execute(")]
+    assert "Operation::SourceImport" in limits and "90 * 1024 * 1024" in limits
+    assert "8 * 1024 * 1024" in limits
+    assert "Operation::SourceOriginal" in limits and "24 * 1024 * 1024" in limits
     assert ".no_proxy()" in bridge and "reqwest::redirect::Policy::none()" in bridge
     assert 'format!("http://127.0.0.1:{port}{path}")' in bridge
     assert '.header("X-ArcheAxis-Launch-Token", token)' in bridge

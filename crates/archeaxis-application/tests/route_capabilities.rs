@@ -45,6 +45,10 @@ fn every_declared_route_selects_its_capability_and_media_type() {
         ("image", "image.ocr", "image/tiff", "shot.tif"),
         ("image", "image.ocr", "image/webp", "shot.webp"),
         ("image", "image.ocr", "image/bmp", "shot.bmp"),
+        ("video", "media.video", "video/mp4", "clip.mp4"),
+        ("video", "media.video", "video/quicktime", "clip.mov"),
+        ("video", "media.video", "video/x-matroska", "clip.mkv"),
+        ("video", "media.video", "video/webm", "clip.webm"),
     ];
     for (kind, capability, media, name) in cases {
         let (_dir, mut conn) = seed(kind, b"%PDF-1.4 payload", name);
@@ -211,7 +215,7 @@ fn an_unnamed_extension_is_refused_rather_than_guessed() {
 
 #[test]
 fn an_unknown_job_kind_is_refused_at_claim_time() {
-    let (_dir, mut conn) = seed("video", b"not a supported route", "clip.mp4");
+    let (_dir, mut conn) = seed("undeclared-video", b"not a supported route", "clip.mp4");
     assert!(
         attempts::claim(&mut conn, "job", "req-2", 5000).is_err(),
         "an undeclared route must not be claimed as if it were text"
@@ -230,6 +234,10 @@ fn route_lookup_is_explicit_about_unknown_kinds() {
     assert!(attempts::route_for_kind("text").is_some());
     assert!(attempts::route_for_kind("pdf").is_some());
     assert!(attempts::route_for_kind("image").is_some());
-    assert!(attempts::route_for_kind("video").is_none());
+    assert_eq!(
+        attempts::route_for_kind("video"),
+        Some(("media.video", "video/mp4"))
+    );
+    assert!(attempts::route_for_kind("undeclared-video").is_none());
     assert!(attempts::route_for_kind("").is_none());
 }

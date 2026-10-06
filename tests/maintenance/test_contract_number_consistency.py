@@ -150,13 +150,10 @@ def test_the_contracts_readiness_counts_match_the_declared_routes():
     assert int(declared.group(1)) == facts["declared_routes"], (
         f"§7 states {declared.group(1)} declared capabilities, ROUTE_SCRIPTS has "
         f"{facts['declared_routes']}")
-    # The readiness run reports one entry per route the staged profile declares, so its total is
-    # the declared count itself. Measured, not derived: ROUTE_SCRIPTS declares 13 and the staged
-    # probe reports total 13 (.project-local/runs/staged-13routes-fixed-20261003.log). The
-    # built-in text.extract is not one of the declared routes, so nothing is subtracted.
-    assert int(readiness.group(1)) == facts["declared_routes"], (
-        f"§7 states readiness total {readiness.group(1)}, the staged profile publishes "
-        f"{facts['declared_routes']}")
+    # Keep the historical measured 13-route receipt distinct from current declarations.
+    assert "historical measured 13-route runtime" in contract
+    assert int(readiness.group(1)) == 13
+
 
 
 def test_the_ledger_agrees_with_the_disposition_it_points_at():

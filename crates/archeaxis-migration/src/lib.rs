@@ -536,6 +536,8 @@ pub struct TypedExportManifest {
     pub schema_sha256: String,
     pub tables: BTreeMap<String, TypedTableExport>,
     pub disposition: String,
+    #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
+    pub unqueried_tables: BTreeMap<String, String>,
 }
 
 fn invalid_export(message: &'static str) -> MigrationError {
@@ -618,10 +620,45 @@ pub fn export_typed_jsonl(
     export_typed_snapshot(db_path, out_dir, || Ok(()))
 }
 
+/// Exact product document/card scope. Other tables remain in schema only and in
+/// the unchanged original database; no all-table or semantic qualification.
+/// Lease/credential/Agent-memory rows are never selected by this entrypoint.
+pub fn export_typed_document_content_jsonl(
+    db_path: &str,
+    out_dir: &str,
+) -> Result<TypedExportManifest, MigrationError> {
+    export_typed_snapshot_scoped(
+        db_path,
+        out_dir,
+        || Ok(()),
+        Some(&["kb_documents", "kb_cards"]),
+    )
+}
+
+/// Exact legacy intake-card scope; all other rows remain unqueried in the retained original.
+pub fn export_typed_intake_content_jsonl(
+    db_path: &str,
+    out_dir: &str,
+) -> Result<TypedExportManifest, MigrationError> {
+    export_typed_snapshot_scoped(db_path, out_dir, || Ok(()), Some(&["ir_intake_cards"]))
+}
+
 fn export_typed_snapshot<F>(
     db_path: &str,
     out_dir: &str,
     after_snapshot: F,
+) -> Result<TypedExportManifest, MigrationError>
+where
+    F: FnOnce() -> Result<(), MigrationError>,
+{
+    export_typed_snapshot_scoped(db_path, out_dir, after_snapshot, None)
+}
+
+fn export_typed_snapshot_scoped<F>(
+    db_path: &str,
+    out_dir: &str,
+    after_snapshot: F,
+    selected_tables: Option<&[&str]>,
 ) -> Result<TypedExportManifest, MigrationError>
 where
     F: FnOnce() -> Result<(), MigrationError>,
@@ -649,6 +686,16 @@ where
             .collect::<Result<_, _>>()?;
         rows
     };
+    if let Some(selected) = selected_tables {
+        for required in selected {
+            if !schema_rows
+                .iter()
+                .any(|object| object["type"] == "table" && object["name"] == *required)
+            {
+                return Err(invalid_export("selected content scope is incomplete"));
+            }
+        }
+    }
     // The schema read above establishes the same SQLite snapshot used for rows.
     after_snapshot()?;
     std::fs::create_dir(output).map_err(MigrationError::Io)?;
@@ -659,7 +706,13 @@ where
         schema_file: "schema.json".into(),
         schema_sha256: hex_sha256_bytes(&schema_bytes),
         tables: BTreeMap::new(),
-        disposition: "PRESERVED_NOT_SEMANTICALLY_MIGRATED".into(),
+        disposition: if selected_tables.is_some() {
+            "SELECTED_CONTENT_PRESERVED_ORIGINAL_RETAINED_NOT_SEMANTICALLY_MIGRATED"
+        } else {
+            "PRESERVED_NOT_SEMANTICALLY_MIGRATED"
+        }
+        .into(),
+        unqueried_tables: BTreeMap::new(),
     };
     for object in schema_rows
         .iter()
@@ -668,14 +721,15 @@ where
         let name = object["name"]
             .as_str()
             .ok_or_else(|| invalid_export("invalid table name"))?;
+        if selected_tables.is_some_and(|selected| !selected.contains(&name)) {
+            manifest.unqueried_tables.insert(
+                name.to_owned(),
+                "schema_only_outside_authorized_content_scope_original_retained".into(),
+            );
+            continue;
+        }
         // Fixed SHA names bound Windows basenames; the manifest retains the exact original table name.
         let filename = format!("table-{}.jsonl", hex_sha256_bytes(name.as_bytes()));
-        let file = std::fs::OpenOptions::new()
-            .create_new(true)
-            .write(true)
-            .open(output.join(&filename))
-            .map_err(MigrationError::Io)?;
-        let mut writer = std::io::BufWriter::new(file);
         let columns: Vec<String> = {
             let mut stmt =
                 transaction.prepare("SELECT name FROM pragma_table_xinfo(?1) ORDER BY cid")?;
@@ -684,6 +738,32 @@ where
                 .collect::<Result<_, _>>()?;
             rows
         };
+        if selected_tables.is_some()
+            && columns.iter().any(|column| {
+                let name = column.to_ascii_lowercase();
+                [
+                    "token",
+                    "secret",
+                    "password",
+                    "credential",
+                    "api_key",
+                    "cookie",
+                    "oauth",
+                ]
+                .iter()
+                .any(|part| name.contains(part))
+            })
+        {
+            return Err(invalid_export(
+                "selected content table contains protected columns",
+            ));
+        }
+        let file = std::fs::OpenOptions::new()
+            .create_new(true)
+            .write(true)
+            .open(output.join(&filename))
+            .map_err(MigrationError::Io)?;
+        let mut writer = std::io::BufWriter::new(file);
         let rowid_alias = ["rowid", "_rowid_", "oid"]
             .iter()
             .find(|alias| {

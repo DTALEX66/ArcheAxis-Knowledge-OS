@@ -23,6 +23,7 @@
         "image.ocr",
         "media.probe",
         "media.transcribe",
+        "media.video",
         "office.structure",
         "pdf.extract",
         "subtitles.structure"
