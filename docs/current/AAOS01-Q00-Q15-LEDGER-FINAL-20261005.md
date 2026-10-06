@@ -427,6 +427,15 @@ a11 真实 Tauri 窗口旅程 `aaos01-webdriver/e4236d2bedb44a5882f2c03b480feb08
 
 仍保留并记录原因：`ArcheAxis-Knowledge-OS` worktree（2.0G，34 行未提交改动，需先固化差异）、`ArcheAxis-Knowledge-OS-mainline`（4.4G，其文档禁止当作临时目录清理）、四个候选包 `AAOS-v18a00075`/`AAOS-v82e8d28c`/`AAOS-vd6bd374`/`AAOS-Tauri-578d06b78413`（约 3.4G，README 禁止按目录名删除，需逐项决定）、`minimax-aaos-cosmic-ui-20261001`（673M，Owner 已决定保留为供体）、以及 `data`/`backups`/`runtime`/`AAOS-Tauri-f151f4c7998a` 等被记录引用的目录。
 
+## 本轮按授权范围的清理（2026-10-06，Owner 选定三类）
+
+Owner 就"需所有者指定"的四类给出范围：绿色仓库四个旧代候选包、开发根 `candidates/` 与 `build/green-candidates`、`build/` 中非 cargo 的超预算产物；并选择"由 Owner 自己提权后提供 23 个权限拒绝 run 目录的枚举结果"。据此执行，全程逐项核对并以**精确路径**删除（无 glob、无递归模式）：
+
+- **绿色仓库**：删除 `AAOS-v18a00075-20261001-x64`(0.80G)、`AAOS-v82e8d28c-20261002-x64`(0.88G)、`AAOS-vd6bd374-20261001-x64`(0.80G)、`AAOS-Tauri-578d06b78413`(0.71G)。删除前先把各自的 `candidate-manifest.json`/`backend-runtime-manifest.json`、`worker-profile.json` 等元数据文件复制到保留类 `.project-local/recovery/green-candidates-20261006/` 并记 SHA-256。绿色仓库 **15G → 9.1G**。
+- **开发根**：删除 `build/2611ed9ca1`(15.36G)、`build/cargo-junction`(1.70G)、`build/gc-r20`(1.23G)、`build/aaos01-tauri`(1.25G)、`candidates/AAOS-b421ddee-audit` 残留(0.64G)。每项删除前用 `git grep -F` 对**精确相对路径**查引用，全部 0 命中；`be268a2d33`（本会话工具链所用的构建根）列入 KEEP 不动。开发根 **113G → 93G**。审计清单：`.project-local/task-runtime/build-root-prune-audit-20261006.json` 与 `candidate-prune-audit-20261006.json`。
+- **被守卫拒绝、未动**：`build/green-candidates` —— `git grep -F` 命中 `.github/workflows/ci.yml:801/809/816`；核对该处是 CI 的**写入/产出**路径（`--out` 生成并上传 zip），且 `tests/test_green_candidate_assembly.py` 只用 `tmp_path` 构造同名路径、不读真实目录，故早期脚本的半删不影响测试；剩余 220 个文件保留待明确。`legacy-scratch-20261006` 被独立盘点的子代理列为 SAFE，但本仓自身证据相反（`realign_dev_layout.py`、`undo_layout_realign.py` 与台账都引用它，是该次布局归档的**恢复清单**），故按"有引用不得移动"保留，不采纳子代理建议。
+- **受阻未完成**：`runs/2611ed9ca1`(6.27G) 删除时 `WinError 5`，与另外 23 个权限拒绝 run 目录同因；按约束不强制、不提权，等 Owner 提供枚举结果后再分类。
+
 ## 开源吸收核对脚本修订与来源更正（2026-10-06 复核）
 
 核对脚本 `scripts/audit/oss_disposition_evidence.py` 已修订，分布随之更正（上文原文保留不改写）：`DECLARED` 24→25、`IMPLEMENTED_IN_SOURCE` 9→6、新增 `STUB_IN_SOURCE` 2、新增 `MENTIONED_IN_SOURCE` 2、`VENDORED_ONLY` 1→0、`DECLARED_AND_VENDORED` 1→0、`NONE` 12 不变。原因：原脚本把"整词命中任一来源"当实现、把"文件名含该项词"当实拷，并把 `__pycache__/*.pyc`、README 词与生成目录字样计为证据；又因整词匹配，`crossref` 匹配不到 `CrossrefClient`，四条真客户端（A018—A021）的判定实际由 `.pyc` 与文档字符串支撑。现改为按标识符判定、注释与文档字符串只算提及、编译产物与生成目录排除、桩按命中处附近的不可用标记判定、`shared/` 移出 vendor 根；`tests/workflow/test_oss_disposition_evidence.py` 已加断言固定命名/桩/提及/实现四态。详见 `docs/current/AAOS-OSS-DISPOSITION-EVIDENCE-20261006.md` 第五节，修订前后两份证据的 SHA-256 并列记录在该文档首部。
