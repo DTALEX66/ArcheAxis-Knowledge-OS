@@ -72,7 +72,7 @@
 ### 已吸收（代码/依赖已并入）
 
 JiWER、RapidFuzz、JSON Canvas（格式）、Crossref/DataCite/OpenAlex/Wikidata（API 连接器）、py-fsrs、Magika（ONNX 模型 vendored）、MarkItDown、Trafilatura、pytesseract、sqlite-vec、NetworkX、LiteLLM、Langfuse、Loguru、structlog、APScheduler、PDF.js（vendored）。
-权威决策账本：[`docs/truth/SUPPLY_CHAIN_LEDGER.json`](docs/truth/SUPPLY_CHAIN_LEDGER.json)。
+权威决策账本：[`docs/truth/SUPPLY_CHAIN_LEDGER.json`](docs/truth/SUPPLY_CHAIN_LEDGER.json)。其中 PDF.js（C001）在账本里仍是 `REFERENCE`，与上表不符：那是 2026-08-29 的记录，前提是"React/Tauri 界面已退役"；正式宿主在 2026-10-04 改为 Tauri+React 后该前提不再成立（[`DECISION_SUPERSESSION_LEDGER.yaml`](DECISION_SUPERSESSION_LEDGER.yaml) SUP-022 → SUP-023），实测 `frontend/src/components/PdfReader.tsx` 正在导入它。历史行保留不改写。
 
 ### 吸收不了 / 许可或边界阻断（外置保留，仅链接）
 

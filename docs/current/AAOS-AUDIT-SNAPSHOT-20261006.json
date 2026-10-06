@@ -1,0 +1,102 @@
+{
+  "schema": "archeaxis/audit-snapshot/v1",
+  "round": "AAOS-AUTHORITY-REPAIR-20261006",
+  "observed_at": "2026-10-06T17:40:00+08:00",
+  "timezone": "Asia/Shanghai",
+  "scope": "文档与治理修复（权威入口、冲突 current、描述与覆盖矩阵、可重复审计）。不改产品架构、不批量化安装依赖、不发布。",
+  "repository": {
+    "canonical_identity": "DTALEX66/ArcheAxis-Knowledge-OS",
+    "remote_transport": "ssh (git@github.com)",
+    "default_branch": "main",
+    "worktree": "D:/All projects/ArcheAxis-Knowledge-OS/.project-local/worktrees/dsh-backend-loop-20261001",
+    "branch": "codex/dsh-aaos-real-multiformat-loop-20261001",
+    "base_sha": "e2c64db3ed47d77d228b4f1d96a5f56f5d7f8528",
+    "base_sha_meaning": "本轮改动开始时的 HEAD；最终提交 SHA 由 PR/CI 定位，本快照不含自身 digest（禁止自引用哈希）",
+    "dirty_at_base": 0,
+    "open_pr_at_base": 161,
+    "rulesets": [
+      "main-protection (branch, active)",
+      "tag-protection (tag, active)"
+    ],
+    "release_state": "未发布：无 tag、无 release"
+  },
+  "authority_inputs": [
+    {
+      "what": "执行提示词",
+      "path": "D:/All projects/Record/01_AAOS_权威修复_双端描述同步_可审计执行提示词_20261006.txt",
+      "byte_sha256": "59115842299c51e01d7a74f5ea640c5cdcc08e969cf03bec4eecdc52025103f6"
+    },
+    {
+      "what": "输入蓝图（权威）",
+      "path": "D:/All projects/Record/01_AAOS_完整项目描述与未来蓝图_20261006.docx",
+      "byte_sha256": "2c99e7ae7dd52298ee425c8360c90b63a40d02f41af4c1b151cad6efd55d1ed9",
+      "hash_gate": "与提示词要求的输入哈希一致，采用本版本"
+    },
+    {
+      "what": "审计更正（蓝图附录 A03，本机取哈希核对）",
+      "path": "docs/current/AAOS01-AUDIT-CORRECTIONS-20261005.md",
+      "byte_sha256": "da9998ee673086ed12dab824d951e76c2611efb92e72edccf276b91ed8d92d4d"
+    }
+  ],
+  "commands": [
+    {
+      "command": "python -B -m pytest tests/test_truth_authority_supersession.py tests/test_documentation_authority_index.py tests/test_project_contract_references.py tests/test_authority_sha_consistency.py tests/maintenance -q",
+      "exit_code": 0,
+      "result": "209 passed, 2 skipped, 2 subtests passed",
+      "covers": "权威顺序、唯一 current、引用解析、来源哈希一致性、任务包权威"
+    },
+    {
+      "command": "python -B scripts/check_architecture.py",
+      "exit_code": 0,
+      "result": "architecture guard passed",
+      "covers": "架构边界与新增 sys.path 变更"
+    },
+    {
+      "command": "python -m ruff check app shared knowledge_base inspiration_research Inspiration-Research shared-contracts/adapters app/workflow integration-tests scripts --select E9,F63,F7,F82",
+      "exit_code": 0,
+      "result": "All checks passed",
+      "covers": "CI 实际运行的 lint 选择集"
+    },
+    {
+      "command": "python -B scripts/ci/check_document_authority.py",
+      "exit_code": 0,
+      "result": "input hashes: verified 5, outside-repository 4; document authority: single current record, root references resolve, input hashes match, coverage complete",
+      "covers": "本轮新增：唯一 current、根入口引用可解析、输入哈希、覆盖矩阵完整性",
+      "verified_by": "tests/workflow/test_document_authority_gate.py — 7 injected faults, each named"
+    }
+  ],
+  "checks_not_run_this_round": [
+    "未跑产品级全量测试与安装态验收：本轮范围为文档/治理，按提示词不为装饰重复全产品测试",
+    "未改 GitHub About：先记录 before，随后由 API 更新并读回（见 about 字段）",
+    "未在另一本地副本上比对：本机未发现第二工作副本被指为主副本"
+  ],
+  "gaps": [
+    "蓝图附录 5 条来源在 SOURCE_MISSING：A01、A02、A04、A06 与 U01/U02 的原始聊天（未导出）——见 docs/current/AAOS-INPUT-SOURCES-20261006.json；未据未读文件作任何判断",
+    "Q14 冲突未决：唯一实时账本记 `INSTALLED_RUNTIME_VERIFIED / PARTIAL`，审计更正记 `NOT_RUN`；本表按从严口径标注，未擅自改判",
+    "A 组多数 CAP 只有记录状态、无轮内复跑证据，覆盖矩阵已逐行写明取证待补",
+    "F00—F14 与 I1—I6 均无实现证据，属目标"
+  ],
+  "about": {
+    "before": "星环知识平台 ArcheAxis Knowledge：本地优先的多格式内容与人机双向学习工作台（开发中）。Tauri/React + Rust Core，SQLite/CAS 单写者。内容先保存；识别忠实度核验与专业依据分析独立、可追溯。",
+    "after": null,
+    "after_recorded_by": "GitHub API 读回后回填；About 是 Git 外元数据，不能只提交 README 就称已改",
+    "topics_before": [
+      "knowledge-management",
+      "learning-system",
+      "local-first",
+      "sqlite",
+      "personal-knowledge-management",
+      "tauri",
+      "multi-format",
+      "provenance",
+      "react",
+      "rust",
+      "typescript"
+    ]
+  },
+  "environment": {
+    "platform": "Windows 10.0.26100 x64",
+    "interpreter_used": "OS External Configuration/ArcheAxis-Knowledge-OS-ci-venv/Scripts/python.exe",
+    "note": "bare `python` 不在 Git Bash PATH；CI 反红三次均因本地命令集与实际 job 环境不同（详见台账）"
+  }
+}

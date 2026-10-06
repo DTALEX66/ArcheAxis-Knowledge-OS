@@ -593,3 +593,25 @@ Rust 侧拥有逐表 sha256 与清单语义，本工具只补它读不了的，�
 故归属问题已解答：类别 = pytest 临时 scratch，产生者 = 那五个具名测试，输入 = 合成夹具，按定义可再生。
 **但本轮不删除**：上一轮对该批的明确动作是 `KEEP`，推翻一个明确的保留裁决需要业主背书。若业主同意，删除前取 28 条逐路径清单（含 bytes/sha256）存档作恢复引即可。
 `tests/workflow/test_pending_db_ownership_evidence.py`（3 项）固定证据链的支点——合成词汇只由那一个文件携带、五个产生者测试仍存在、证据文档同时载明产生者与"删除仍待业主"——以免文档结论悄悄过期。
+
+## 权威修复与双端描述同步（AAOS 专项，本轮）
+
+按外部执行提示词与输入蓝图（字节 SHA-256 `2c99e7ae…1ed9`，与提示词要求一致）执行文档/治理修复。范围仅限文档与治理：不改产品架构、不装依赖、不发布。
+
+**根入口**：新建 [`AUTHORITY.md`](../../AUTHORITY.md)，使两处记录的 `AUTHORITY_REFERENCE_MISSING` 可解析；它是导航入口而非新真值源，母定义直接引用蓝图 §2 原文。
+
+**唯一 current**：修复三处指向冲突——`docs/truth/README.md` 原把 R6 写作"当前活动基础包"、`docs/taskpacks/README.md` 原自称"唯一当前推进任务包"、`docs/DOCUMENTATION_AUTHORITY_INDEX.md` 的 "Active forward work" 行同样指向 R6。
+按现行 `AGENTS.md` §6 更正为：当前任务包 `taskpack-1004-aaos01`，R6 为**前一个**任务包（约束与回执继承），AAOS-01 唯一实时进度记录仍为本表。
+**本执行者自身纠错**：我首版曾把 R6 当当前包（沿用了会话开始时那份较旧的 AGENTS 摘录），是新门禁比对现行 AGENTS 后指出并更正的——记录在此，不隐藏。
+
+**描述真伪**：README 把 PDF.js(C001) 列在"已吸收"，而 `SUPPLY_CHAIN_LEDGER.json` 记 `REFERENCE`。实测以证据判定**账本是过期的一方**：`frontend/package.json` 声明 `pdfjs-dist 6.4.299`、`frontend/src/components/PdfReader.tsx` 正在导入、且有专门测试；账本行成于 2026-08-29，前提是"React/Tauri 界面已退役"，该前提被 SUP-022（正式宿主改为 Tauri+React）取代。
+故新增 `DECISION_SUPERSESSION_LEDGER.yaml` **SUP-023** 取代 C001 的前提与判定，历史行原样保留；README 保留该条并加指向 SUP-023 的说明。
+
+**可重复审计**：新增 `scripts/ci/check_document_authority.py`（已接入 `ci.yml` lint job），四项门禁——live 路由文档只能指向一个 progress 记录与一个任务包；根入口引用必须可解析；输入记录哈希须与主机一致；覆盖矩阵不得漏 ID。**先证伪再用**：`tests/workflow/test_document_authority_gate.py` 7 项注入各自命名，含"重新长回冲突指针"一项。
+配套 `docs/current/AAOS-COVERAGE-MATRIX-20261006.md`（CAP 16 / Q 16 / F 15 / I 6 逐项）、`docs/current/AAOS-INPUT-SOURCES-20261006.json`（3 VERIFIED_MATCH、6 SOURCE_MISSING）、`docs/current/AAOS-AUDIT-SNAPSHOT-20261006.json`。
+另记一个易错点：本仓 `R15-FORMAT-STATUS.json` 的 `F01—F16` 是格式覆盖切片，**不是**蓝图 §17.2 的 `F00—F14`，矩阵中已分别标注以防误配。
+
+**来源可得性**：蓝图附录 9 条中 3 条本机取哈希逐字节相符（A03、A05、A07），6 条 `SOURCE_MISSING`（U01、U02、A01、A02、A04、A06）——**未声称已读**未找到者。
+`scripts/maintenance/extract_docx_text.py` 为可复现的 .docx 文本提取命令（两次提取逐字节一致）。
+
+验证：门禁 exit 0；文档/权威/维护与 workflow 套件 291 passed, 4 skipped（含 7 项门禁证伪）；`check_architecture.py` exit 0；ruff 通过。

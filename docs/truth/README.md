@@ -2,12 +2,15 @@
 
 本目录保存 ArcheAxis Knowledge 的稳定决策基线与可审计执行记录。它不以规划、版本号、测试夹具或模型判断代替真实运行证据。
 
-## 当前执行权威（2026-09-26）
+## 当前执行权威（2026-10-06 更正）
 
-- 当前活动基础包为 [`R6 Executor Start`](../authority/taskpack-0919-r6/EXECUTOR-START.md)，实时进度见 [`R6-EXECUTION`](../current/R6-EXECUTION.md) 与 [`R6-STATE`](../current/R6-STATE.json)，优先级覆盖见 [`M0`](../current/M0-DIRECTION-OVERRIDE-20260920.md)。
+- **当前任务包**为 [`AAOS-01 任务书`](../authority/taskpack-1004-aaos01/01_完整执行任务书.md)（`docs/authority/taskpack-1004-aaos01/`），以根 `AGENTS.md` §6 为准。
+- **前一个任务包**为 [`R6 Executor Start`](../authority/taskpack-0919-r6/EXECUTOR-START.md)：R6 的约束、证据规则与回执按继承保留，进度见 [`R6-EXECUTION`](../current/R6-EXECUTION.md) 与 [`R6-STATE`](../current/R6-STATE.json)；[`M0`](../current/M0-DIRECTION-OVERRIDE-20260920.md) 优先级覆盖仍作继承约束。
+  本页原先只列 R6 为"当前活动基础包"，该读法已过期；以 `AGENTS.md` 为准更正，R6 的历史记录不改写。
+- **AAOS-01（Q00—Q15）工作流只有一个实时状态记录**：[`AAOS01-Q00-Q15-LEDGER-FINAL-20261005.md`](../current/AAOS01-Q00-Q15-LEDGER-FINAL-20261005.md)；同名旧台账已归档并保留兼容入口，不再新增第二份状态真值。任务包与进度账本不是两份并行账本：前者是任务源，后者是这条工作流的进度记录。
 - [`CURRENT_STATE_TRUTH.md`](CURRENT_STATE_TRUTH.md) 保留 2026-08-09 的真值方法与当时状态；其旧任务顺序和阶段状态是 **HISTORICAL / SUPERSEDED**，不能作为当前执行队列。
 - [`AUTHORITY_CONTRACT.md`](AUTHORITY_CONTRACT.md) 保留 2026-08-09 的权威顺序快照；其把旧冻结包列为当前唯一任务源的规则已被 **HISTORICAL / SUPERSEDED**。原文保留，不据此覆盖当前 `AGENTS.md`、R6 与 M0 权威入口。
-- [`ARCHITECTURE_FINAL.md`](ARCHITECTURE_FINAL.md) 保留 2026-08-14 的架构收敛提案；其中 Tauri/React 壳层图是历史方案，当前正式桌面壳以 C#/Avalonia 为准。
+- [`ARCHITECTURE_FINAL.md`](ARCHITECTURE_FINAL.md) 保留 2026-08-14 的架构收敛提案。**其中"当前正式桌面壳以 C#/Avalonia 为准"一句已被取代**：产品主线为 Tauri 2 + React/TypeScript/Vite（`frontend/`、`src-tauri/`）＋ Rust Core 单写者，Avalonia 桌面（`apps/ArcheAxis.Desktop`）作为行为/组件供体并冻结。机器可核的取代记录：[`DECISION_SUPERSESSION_LEDGER.yaml`](../../DECISION_SUPERSESSION_LEDGER.yaml) **SUP-021 → SUP-022**（`supersedes` 指向正式壳优先级，`reason` 记录 2026-10-04 业主裁决）；冻结与复用证据见 [`AAOS01-Q00-Q15-LEDGER-FINAL-20261005.md`](../current/AAOS01-Q00-Q15-LEDGER-FINAL-20261005.md)（"审计件断言纠正与 Avalonia 供体冻结"一节）：`src-tauri/src/main.rs` 直接内含 `desktop/src-tauri` 的生命周期实现，`frontend/src/components/AaosIcon.tsx` 首行注明几何逐字复用。原文保留，不据此恢复 Avalonia 作为主线。
 - [`check_r6_taskpack_authority.py`](../../scripts/maintenance/check_r6_taskpack_authority.py) 只校验 R6 权威包的冻结身份；它**不校验全部 2026-08 冻结文档和增补包的 SHA-256**。旧包的 `.sha256` 文件和 Git 历史是历史完整性依据，不应误称为当前仓库 convention gate 的覆盖范围。
 
 ## 权威顺序

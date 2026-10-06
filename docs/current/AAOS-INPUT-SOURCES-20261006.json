@@ -1,0 +1,131 @@
+{
+  "schema": "archeaxis/input-sources/v1",
+  "round": "AAOS-AUTHORITY-REPAIR-20261006",
+  "observed_at": "2026-10-06T17:30:00+08:00",
+  "timezone": "Asia/Shanghai",
+  "rule": "A source that cannot be found is recorded SOURCE_MISSING and is never described as read. A hash is recorded only when the bytes were hashed on this host in this round.",
+  "inputs_read_this_round": [
+    {
+      "source_id": "PROMPT-AAOS-AUTHORITY-REPAIR-20261006",
+      "kind": "execution_prompt",
+      "path_or_locator": "D:/All projects/Record/01_AAOS_权威修复_双端描述同步_可审计执行提示词_20261006.txt",
+      "observed_at": "2026-10-06T17:26:00+08:00",
+      "byte_sha256": "59115842299c51e01d7a74f5ea640c5cdcc08e969cf03bec4eecdc52025103f6",
+      "byte_size": 13284,
+      "read_scope": "全文 59 行，本回合完整读取",
+      "limit": "位于项目外的工作目录；不提交入仓，仅在证据中引用路径与哈希"
+    },
+    {
+      "source_id": "BLUEPRINT-AAOS-20261006",
+      "kind": "authoritative_input_blueprint",
+      "path_or_locator": "D:/All projects/Record/01_AAOS_完整项目描述与未来蓝图_20261006.docx",
+      "observed_at": "2026-10-06T17:16:00+08:00",
+      "byte_sha256": "2c99e7ae7dd52298ee425c8360c90b63a40d02f41af4c1b151cad6efd55d1ed9",
+      "byte_size": 63230,
+      "hash_gate": "与执行提示词要求的输入哈希逐字节一致，故采用本版本；不一致时应先记录差异再决定",
+      "extracted_text": ".project-local/task-runtime/aaos01-blueprint-20261006/blueprint.txt（356 行，43,734 字符；由 scripts/maintenance/extract_docx_text.py 提取）",
+      "read_scope": "正文 19 章 + 附录 8 条来源；本回合完整读取，含授权与禁止条款、16 CAP、Q00—Q15、F00—F14、I1—I6",
+      "limit": "整理稿，不自动替代 Authority；章节/阶段名为本次整理，不是生产 Schema 或新任务 ID"
+    }
+  ],
+  "appendix_sources": [
+    {
+      "source_id": "U01",
+      "date": "2026-10-06",
+      "title": "最新保存/证据/双学习规则",
+      "kind": "session_context_summary",
+      "path_or_locator": "本会话提供的上下文及检索到的历史决策摘要（蓝图附录原文：未作为原始聊天全文导出）",
+      "byte_sha256": null,
+      "status": "SOURCE_MISSING",
+      "limit": "原始聊天未导出；摘要不能冒充原始聊天。其内容仅作为上下文，不作为独立证据"
+    },
+    {
+      "source_id": "U02",
+      "date": "2026-10-06",
+      "title": "AAOS 图谱/双链研究增量",
+      "kind": "session_context_summary",
+      "path_or_locator": "同 U01 的位置说明",
+      "byte_sha256": null,
+      "status": "SOURCE_MISSING",
+      "limit": "同上；图谱/双链的具体供体与缺口为研究方向，未认定已采纳或已实现"
+    },
+    {
+      "source_id": "A01",
+      "date": "2026-10-04",
+      "title": "AAOS 快速重构与多格式闭环完整方案",
+      "kind": "plan_document",
+      "path_or_locator": "蓝图附录记为 sources/AAOS_快速重构与多格式闭环_完整方案_20261004.md",
+      "byte_sha256": "7ecda3e3f9d22834d65df663ba4f42a3ac62e31d215ab5e7c59c08bfaf08441e",
+      "status": "SOURCE_MISSING",
+      "limit": "已在 Record 根与仓库内按文件名检索（maxdepth 3/5），未找到；不能声称已读。存在同名近似文件 01_AAOS_快速重构_多格式闭环_启动提示词_20261004.txt，性质不同，不替代"
+    },
+    {
+      "source_id": "A02",
+      "date": "2026-10-04",
+      "title": "AAOS 未来延展与可持续架构完整方案",
+      "kind": "plan_document",
+      "path_or_locator": "蓝图附录记为 sources/AAOS_未来延展与可持续架构_完整方案_20261004.md",
+      "byte_sha256": "771b189740e94dfeaf65e363b919745c2a69bb795d461e2b2fbcc9c95b15e1e1",
+      "status": "SOURCE_MISSING",
+      "limit": "同上，未找到，不声称已读"
+    },
+    {
+      "source_id": "A03",
+      "date": "2026-10-05",
+      "title": "AAOS01 审计更正",
+      "kind": "audit_record",
+      "path_or_locator": "docs/current/AAOS01-AUDIT-CORRECTIONS-20261005.md",
+      "byte_sha256": "da9998ee673086ed12dab824d951e76c2611efb92e72edccf276b91ed8d92d4d",
+      "status": "VERIFIED_MATCH",
+      "limit": null,
+      "note": "本回合在本机对该文件取 SHA-256，与蓝图附录记录逐字节一致"
+    },
+    {
+      "source_id": "A04",
+      "date": "2026-09-29",
+      "title": "AAOS 完整历史/蓝图/吸收池总报告",
+      "kind": "history_report",
+      "path_or_locator": "蓝图附录记为 sources/AAOS_完整历史规划蓝图吸收池与当前状态总报告_2026-09-29.md",
+      "byte_sha256": "3839646bb60b811c5cc1ab3417625a69e71b70f5983b6b24ec796a664fa28ffb",
+      "status": "SOURCE_MISSING",
+      "limit": "未找到，不声称已读；Record/AAOS-project-archives/2026-09-29 只有该批次的 README，不是本文件"
+    },
+    {
+      "source_id": "A05",
+      "date": "2026-10-02",
+      "title": "AAOS 全历史恢复与快速闭环任务包",
+      "kind": "taskpack",
+      "path_or_locator": "D:/All projects/Record/AAOS_全历史恢复_云端对账_快速闭环_最终全套任务包_2026-10-02.md",
+      "byte_sha256": "54ac415cbbdd6af05110ab8c05ce19cddfd99e646965c68f1bebb10a1337e85e",
+      "status": "VERIFIED_MATCH",
+      "limit": "位于项目外工作目录；只核对哈希，不提交入仓"
+    },
+    {
+      "source_id": "A06",
+      "date": "2026-10-06",
+      "title": "CONTENT-COPY-V2 命名段",
+      "kind": "naming_segment",
+      "path_or_locator": "蓝图附录记为 sources/CONTENT-COPY-V2.md",
+      "byte_sha256": "7d475862fd307be46371ceeaead3407d6bbe939b429c37df1c28c4c6760fbeb2",
+      "status": "SOURCE_MISSING",
+      "limit": "未找到。母定义中的对外命名采用蓝图正文与仓库 docs/truth/NAMING_CONTRACT_V2.md 的既有记录，未据此文件"
+    },
+    {
+      "source_id": "A07",
+      "date": "2026-10-04",
+      "title": "AAOS 完整执行任务包",
+      "kind": "taskpack",
+      "path_or_locator": "D:/All projects/Record/AAOS_完整执行任务包_20261004.md",
+      "byte_sha256": "d6bb6432a6850dcf39c451b0a88e97ace668be040bbddf915e09f2b33b7ba1d9",
+      "status": "VERIFIED_MATCH",
+      "limit": "位于项目外工作目录；只核对哈希，不提交入仓"
+    }
+  ],
+  "summary": {
+    "appendix_entries": 9,
+    "verified_match": 3,
+    "source_missing": 6,
+    "read_but_unhashed": 0,
+    "note": "9 = 3 VERIFIED_MATCH（A03、A05、A07）+ 6 SOURCE_MISSING（U01、U02、A01、A02、A04、A06）。U01/U02 属原始聊天未导出；A01/A02/A04/A06 为具名文件在本机未找到。因此本轮不得声称已读 A01、A02、A04、A06。"
+  }
+}

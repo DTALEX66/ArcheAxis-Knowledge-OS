@@ -6,6 +6,10 @@
 
 ## Current read order (2026-10-05)
 
+Start at the [root entry](../AUTHORITY.md) (`AUTHORITY.md`): it is the navigational document, not a
+second source of truth, and it names the single current task pack, the single live progress record
+and the audit index. The entries below are what it routes to, in order.
+
 1. [AGENTS](../AGENTS.md), [project contract](../PROJECT_CONTRACT.yaml) and
    [decision supersession ledger](../DECISION_SUPERSESSION_LEDGER.yaml).
    `PROJECT_CONTRACT.content_policy` is the canonical normative content/save,
@@ -109,7 +113,8 @@ CI, release, or user-data migration unless it names that evidence layer.
 | Live/current reconciliation | Live Git/runtime readback; [2026-09-23 repository drift receipt](current/REPOSITORY-DRIFT-CURRENT-RECEIPT-20260923.md) is dated evidence | The receipt is stale for current facts; re-read live values |
 | Historical capability model and current execution state | [historical capability snapshot](truth/CURRENT_STATE_TRUTH.md) + [R6 state](current/R6-STATE.json) + [R6 execution](current/R6-EXECUTION.md) + [M0 priority](current/M0-DIRECTION-OVERRIDE-20260920.md) | `CURRENT_STATE_TRUTH.md` is the 2026-08-09 historical model only; its execution claims are superseded. R6/M0 are the current execution authorities. |
 | Frozen task baseline | [Frozen execution baseline](truth/FROZEN_EXECUTION_BASELINE_v1_2026-08-09.md) | Frozen; do not rewrite |
-| Active forward work | [R6 executor](authority/taskpack-0919-r6/EXECUTOR-START.md) + [R6 execution](current/R6-EXECUTION.md) + [M0 overlay](current/M0-DIRECTION-OVERRIDE-20260920.md) | Current task pack and priority overlay |
+| Active forward work | [AAOS-01 task book](authority/taskpack-1004-aaos01/01_完整执行任务书.md) + [AAOS-01 ledger](current/AAOS01-Q00-Q15-LEDGER-FINAL-20261005.md) | Current task pack per `AGENTS.md` §6, with its single live progress record |
+| Preceding pack (constraints and receipts inherited) | [R6 executor](authority/taskpack-0919-r6/EXECUTOR-START.md) + [R6 execution](current/R6-EXECUTION.md) + [M0 overlay](current/M0-DIRECTION-OVERRIDE-20260920.md) | R6 is the preceding pack, not the current one; its contracts, evidence rules and the M0 priority overlay remain in force as inherited constraints |
 | Current formal host and AAOS-01 increment | [SUP-022](../DECISION_SUPERSESSION_LEDGER.yaml) + [1004 specification](authority/taskpack-1004-aaos01/01_完整执行任务书.md) + [existing AAOS-01 ledger](current/AAOS01-Q00-Q15-LEDGER-FINAL-20261005.md) | Formal Tauri/React host and Rust Core; specification is not a completion receipt |
 | Content/save and AI-use policy | [Project contract](../PROJECT_CONTRACT.yaml) `content_policy` + [architecture explanation](architecture/CURRENT_ARCHITECTURE.md) | Normative; actual implementation and tests remain separately evidenced |
 | Drift / branch / output audit | [2026-09-23 receipt](current/REPOSITORY-DRIFT-CURRENT-RECEIPT-20260923.md) + [frozen audit](current/DOCUMENTATION-DRIFT-AUDIT-20260923.md) | Dated evidence only; neither authorizes deletion or merge |
