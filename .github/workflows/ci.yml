@@ -1258,6 +1258,7 @@ jobs:
           path: |
             .project-local/task-runtime/aaos01-webdriver/**/receipt.json
             .project-local/task-runtime/aaos01-webdriver/**/install-preflight.json
+            .project-local/task-runtime/aaos01-webdriver/**/lifecycle-receipt.json
             .project-local/task-runtime/aaos01-webdriver/**/*.png
             .project-local/task-runtime/aaos01-webdriver/**/driver.log
             .project-local/task-runtime/aaos01-webdriver/**/native-driver.log

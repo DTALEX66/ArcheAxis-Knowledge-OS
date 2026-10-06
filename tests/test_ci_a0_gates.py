@@ -171,6 +171,7 @@ def test_ci_builds_and_tests_the_windows_desktop_shell() -> None:
     assert "timeout-minutes: 30" in desktop_job
     lifecycle_job = _job_section(workflow, "installer-lifecycle", "a0-gates")
     assert "./desktop/scripts/verify_nsis_install.ps1" in lifecycle_job
+    assert "lifecycle-receipt.json" in lifecycle_job
     assert "actions/upload-artifact@" in desktop_job
     assert "actions/download-artifact@" in lifecycle_job
     assert (

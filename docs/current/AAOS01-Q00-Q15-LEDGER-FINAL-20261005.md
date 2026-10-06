@@ -730,3 +730,13 @@ Rust 侧拥有逐表 sha256 与清单语义，本工具只补它读不了的，�
 `scripts/maintenance/extract_docx_text.py` 为可复现的 .docx 文本提取命令（两次提取逐字节一致）。
 
 验证：门禁 exit 0；文档/权威/维护与 workflow 套件 291 passed, 4 skipped（含 7 项门禁证伪）；`check_architecture.py` exit 0；ruff 通过。
+
+## 安装态完整生命周期证据落盘（2026-10-06，代码已改，待下一次完整运行产出收据）
+
+Q02/Q14/Q15 的收口此前都卡在同一处：`desktop/scripts/verify_nsis_install.ps1` **确实**执行并断言了完整生命周期（首次安装与启动 → 可信关窗 → 就地升级 → 强杀清理 → 卸载保留用户数据 → 重装回读 → 最终卸载），任一步失败即 `throw`；但其结果只写进脚本 stdout，而 CI 只上传 `aaos01-webdriver/**`，其中 `install-preflight.json` 是在 WebDriver 会话**之前**写的阶段快照，故按设计写 `complete_lifecycle_verified=$false`。"完整生命周期已跑过"这件事因此**没有落进可下载的 artifact**，台账只能如实记成未证。
+
+本轮只补**证据落盘**，不新增也不放松任何断言：脚本在全部尾部断言通过**之后**写入 `lifecycle-receipt.json`（schema `archeaxis/installed-lifecycle-receipt/v1`，`complete_lifecycle_verified=$true`，含 `in_place_upgrade`/`forced_tree_cleanup`/`clean_uninstall`/`uninstall_retains_data`/`reinstall_readback`/`pyc_growth` 等逐项布尔值、installer SHA-256、product/schema 版本与持久 job id）；写入位置即该次运行的 `aaos01-webdriver` preflight 同目录，故 artifact 内"阶段快照=false"与"完成记录=true"并存且语义清楚；CI 上传清单增加该文件名（`ci.yml` installer-lifecycle 步骤）。
+
+- **边界（不夸大）**：这是**证据落盘**修复，**不产生**新的安装态资格。`install-preflight.json` 保持 `false` 不变——它是阶段快照，为求好看而改它才是不诚实。本机未跑该 CI，故新收据**尚未存在**：Q02/Q14/Q15 的完整生命周期维度在新一次 `installer-lifecycle` 运行产出 `lifecycle-receipt.json` 之前**仍记为未证**。物理 IME、真人 Owner、新 Green 部署与音频 300 秒作业上限均不由此改变。
+- 护栏：`tests/test_release_manifest.py`（断言完成记录为 `$true` 且索引位置在尾部断言之后）与 `tests/test_ci_a0_gates.py`（断言上传清单含该文件名）。`checks/acceptance.json` 的 AQ26/AQ27 仍为 `NOT_RUN`，未改该不可变文件。
+- 验证：相关四文件 **98 passed**；脚本经 PowerShell AST 解析 `PARSE_OK`。回滚：一次提交即可撤销。

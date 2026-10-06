@@ -568,6 +568,33 @@ def test_nsis_lifecycle_checks_in_place_upgrade_and_retained_data_readback() -> 
     assert "ReinstallReadback = $true" in lifecycle
 
 
+def test_nsis_lifecycle_persists_a_completion_receipt_for_the_uploaded_artifact() -> None:
+    """The lifecycle result must survive as evidence, not only on stdout.
+
+    ``install-preflight.json`` is written before the independent WebDriver
+    session and states ``complete_lifecycle_verified = $false`` by design, so an
+    uploaded artifact carrying only that file could not show that the
+    upgrade/uninstall/reinstall tail actually ran. The completion receipt is
+    written after every tail assertion has passed.
+    """
+    root = Path(__file__).resolve().parents[1]
+    lifecycle = (root / "desktop" / "scripts" / "verify_nsis_install.ps1").read_text(
+        encoding="utf-8"
+    )
+
+    assert "archeaxis/installed-lifecycle-receipt/v1" in lifecycle
+    assert "complete_lifecycle_verified = $true" in lifecycle
+    assert "lifecycle-receipt.json" in lifecycle
+    # Completion is recorded only after the tail assertions, never before the
+    # WebDriver session whose failure the preflight snapshot must outlive.
+    assert lifecycle.index("complete_lifecycle_verified = $true") > lifecycle.index(
+        "NSIS final uninstall removed retained user data"
+    )
+    assert lifecycle.index("lifecycle-receipt.json") > lifecycle.index(
+        "complete_lifecycle_verified = $true"
+    )
+
+
 @pytest.mark.parametrize("requirement", ["candidate", "release"])
 def test_nsis_embedded_identity_validation_rejects_wrong_product_or_publication(requirement):
     """Execute the installed probe's actual identity assertions with controlled inputs."""
