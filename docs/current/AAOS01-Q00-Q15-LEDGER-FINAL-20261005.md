@@ -1035,3 +1035,53 @@ F06 的回写是**关系而非合并**：文本仍住在页源上，PDF 自己�
 
 **回滚**：`git revert 41a34d3d` 与 `git revert 09f68a9c` 各自独立可回；回归修复 6237c5f1 不建议回退，
 回退它会重新引入那条红用例。
+
+
+## 格式切片 F13 邮件附件（2026-10-07，提交 e52fc4c3）
+
+**这是真增量**：`.eml` 的附件不再只是"列出+哈希"。有 Core 给的转移区时，worker 把每个附件写到
+`<attempt root>/members/<扁平安全名>`，并**按容器同一张声明表**上报 `{name,file,bytes,sha256}`
+（`params.structure.extractable_members`）；Core 侧复用现成的 `container::expand_members`：逐项校验
+摘要与字节数、以 `import` 原点 `<mail source_id>#<附件名>` 把附件导入成自己的 source，并按**附件自己的文件名**
+选路由队一个作业。实测链：`notes/index.md` → 自有 source + `job-mail-member-0001-index.md` → 执行后
+`transforms.text` 含 6371；`opaque/blob.bin` 无路由可读 → 保留为 custody-only 且 `readable` 仍为 false。
+**被否证的旧声明**：矩阵 F13 行原文写着"listed, explicitly not extracted"，本轮改为事实描述；
+`gap` 里"no attachment extraction for mail"同步删除，换成新的真实边界。
+
+**三层路由知识（缺一层就静默不支持）**：
+1. `attempts::media_type_for_name` 是 **first-match** `match`——往表里加项必须检查更早的分支是否已覆盖它（F01 就栽在这）。
+2. 只有列在 `attempts::ARTIFACT_ROOT_CAPABILITIES` 的能力，executor 才会把转移区路径通过 `--artifact-root` 交给 worker；
+   本轮把 `text.extract` 加进去，而**是否真的写转移区由 transport 的路由表按 media type 决定**
+   （`member_dir_by_media` 只声明 `message/rfc822`），其余文本格式拿到根目录也不建目录、不声明成员——
+   这条不变性有专门用例（`an_ordinary_text_job_declares_no_members_and_creates_no_chain`、
+   `test_a_non_mail_media_type_is_never_handed_a_transfer_directory`）。
+3. `worker_text.extract(..., member_dir=…)` 只有 `message/rfc822` 才走抽取；
+   并且一旦真的抽取，就必须**删掉** mail() 那句"independent extraction is not performed"的损失行，
+   否则回执里留下一条已被自己行为否证的假话。
+
+**验证（数字取自当次日志）**：
+`cargo test --workspace --offline` → **121 套件全部 ok / 498 项通过**；
+新增 `crates/archeaxis-application/tests/mail_member_chain.rs`（真实 transport+真实 worker，
+1 套件 / 2 项 ok，含"附件自有作业执行后可读、custody 项不被冒充为已读"）；
+新增 `tests/workers/test_mail_attachment_members.py` 7 项（扁平安全名、真名留在声明里、预算 50/51 具名报告、
+无转移区不声明、非邮件 media 不得拿到目录、transport 层双向用例）；
+`cargo fmt --all --check` PASS；`tests/maintenance` **184 passed, 2 skipped, 2 subtests passed in 10.55s**（合同数字一致性 + 路由清单双向）；
+Python 全量 `tests` **4218 passed, 30 skipped, 14 warnings, 146 subtests passed in 482.76s (0:08:02)**。
+**门禁反证**：往 F13 行注入一条不存在的 `application/x-not-a-route` 路由声明后
+`scripts/check_format_matrix.py` **rc=1** 并指名该三元组，说明"每条声明都在表里"这条断言不是空转；
+恢复后 rc=0。`check_document_authority.py`、`check_path_conventions.py` 亦 exit 0。
+
+**合同联动（新增 HTTP 路由必须一起动的数字）**：`GET /api/v1/sources/:id/pages` 使
+`AAOS-PRODUCTION-HTTP-CONTRACT-20261001.md` 的 §3 标题 61→**62** pairs、§3 表新增编号 **43** 行、
+§6 "42 projection pairs (37 unconditional mounts)"→**43 (38)**、§6 "61 addresses (41 base + 20 runtime)"→
+**62 (42 + 20)**、正文"41 base … total 61"→**42 … total 62**；对应测试常量
+`projections 37→38`、`len(base) 41→42`、`len(wrapper|base) 42→43`、`documented_routes() 61→62`。
+2026-10-05 那句"extended … to 61 pairs"是**历史记录**，不改写，另加一行 2026-10-07 的 62 说明。
+两处 gate 在我只改部分数字时确实报红，改全后才绿——所以这组数字是被验证过的，不是照着猜的。
+
+**仍未闭合，不粉饰**：附件抽取只有一层——附件本身是容器时会被导入但不再展开（`route_for_member` 明确不做嵌套）；
+只有附件、没有正文的邮件以 `ValueError("EML has no readable text body")` **失败作业**而非空成功；
+`.msg` 二进制容器仍无 reader；抽取上限 50 个/64 MiB（与容器同一套预算），超限项在损失里具名而不是消失；
+`GET /sources/:id/pages` 尚无界面消费者（前端任务按 Owner 指令暂停）。
+
+**回滚**：本轮 F13 代码一次提交可独立 revert；合同数字与其同属该提交，revert 即一起回到 61/42/37。
