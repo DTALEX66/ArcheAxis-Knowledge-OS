@@ -51,6 +51,24 @@ CURRENTNESS = re.compile(r"(当前|现行|current|live)", re.IGNORECASE)
 LEDGER_PATH = re.compile(r"(docs/current/[A-Za-z0-9._-]*LEDGER[A-Za-z0-9._-]*\.md)")
 PACK_NAME = re.compile(r"(taskpack-[0-9a-z.\-]+)")
 LIVE_LEDGER = "docs/current/AAOS01-Q00-Q15-LEDGER-FINAL-20261005.md"
+
+# Test citations, in the forms the ledger uses: a repo path, a crate-relative path, or
+# a bare root test module. Deliberately narrow -- the ledger also names record files and
+# ignored run receipts, which are not repository paths and must not be flagged here.
+TEST_CITATION = re.compile(
+    r"`((?:crates/[A-Za-z0-9._-]+/tests/[A-Za-z0-9_]+\.rs|tests/[A-Za-z0-9_]+\.py"
+    r"|[A-Za-z0-9._-]+/tests/[A-Za-z0-9_]+\.rs))`"
+)
+CARGO_TEST_TARGET = re.compile(r"--test\s+([a-z0-9_]+)")
+
+
+def _resolve_test_citation(token: str) -> Path | None:
+    if token.startswith(("crates/", "tests/")):
+        return REPO / token
+    crate, separator, rest = token.partition("/tests/")
+    if separator and crate and rest.endswith(".rs"):
+        return REPO / "crates" / crate / "tests" / rest
+    return None
 # Taken from the current AGENTS.md, the top-ranked repository authority: the current user-approved
 # execution pack is taskpack-1004-aaos01, and R6 is the *preceding* pack whose constraints and
 # receipts are inherited. An earlier version of this gate assumed R6 was current, which is exactly
@@ -231,12 +249,44 @@ def check_coverage_matrix() -> list[str]:
     return problems
 
 
+def check_ledger_citations() -> list[str]:
+    """Every test the live ledger cites has to exist.
+
+    A row that names a test is making a checkable claim, and a renamed or recalled path
+    makes the evidence unrunnable while still reading as complete. That mistake was made
+    once here already -- a filename remembered from an audit rather than read from the
+    tree, which collected nothing and looked green -- so the citations are verified like
+    any other claim. Only test citations are checked: the ledger also names bare record
+    filenames and run-relative receipts, which are not repository paths.
+    """
+    ledger = REPO / LIVE_LEDGER
+    if not ledger.is_file():
+        return [f"{LIVE_LEDGER}: missing; its test citations cannot be checked"]
+    text = ledger.read_text(encoding="utf-8")
+    problems: list[str] = []
+    for token in sorted(set(TEST_CITATION.findall(text))):
+        path = _resolve_test_citation(token)
+        if path is None or not path.is_file():
+            problems.append(
+                f"{LIVE_LEDGER}: cites {token}, which is not a file in this repository")
+    crates = REPO / "crates"
+    for name in sorted(set(CARGO_TEST_TARGET.findall(text))):
+        if (REPO / "tests" / f"{name}.py").is_file():
+            continue
+        if crates.is_dir() and any(crates.rglob(f"tests/{name}.rs")):
+            continue
+        problems.append(
+            f"{LIVE_LEDGER}: cites `--test {name}`, which matches no test file")
+    return problems
+
+
 def main() -> int:
     problems: list[str] = []
     problems += check_single_current()
     problems += check_authority_references()
     problems += check_input_hashes()
     problems += check_coverage_matrix()
+    problems += check_ledger_citations()
     if problems:
         print("document authority drift:")
         for problem in problems:

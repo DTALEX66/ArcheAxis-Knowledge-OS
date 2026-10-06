@@ -91,6 +91,38 @@ def test_the_clean_fixture_passes(monkeypatch, tmp_path):
     assert gate.main() == 0
 
 
+def test_a_cited_test_that_does_not_exist_is_reported(monkeypatch, tmp_path):
+    """A row naming a test makes a checkable claim; an invented path must fail.
+
+    This is the mistake the row author made once already -- a filename recalled from an
+    audit rather than read from the tree, which collected nothing and looked green.
+    """
+    gate = wire(monkeypatch, tmp_path)
+    ledger = tmp_path / "docs" / "current" / Path(LEDGER).name
+    ledger.write_text(
+        "| Q99 | x | cites `crates/archeaxis-api/tests/not_a_real_test.rs` and `--test also_not_real` |\n",
+        encoding="utf-8")
+    problems = gate.check_ledger_citations()
+    assert len(problems) == 2, problems
+    assert any("not_a_real_test.rs" in problem for problem in problems)
+    assert any("also_not_real" in problem for problem in problems)
+
+
+def test_every_citation_form_the_ledger_uses_resolves(monkeypatch, tmp_path):
+    """Repo path, crate-relative path and bare root module all have to resolve."""
+    gate = wire(monkeypatch, tmp_path)
+    (tmp_path / "tests").mkdir(exist_ok=True)
+    (tmp_path / "tests" / "test_fixture_target.py").write_text("x\n", encoding="utf-8")
+    crate_tests = tmp_path / "crates" / "archeaxis-api" / "tests"
+    crate_tests.mkdir(parents=True)
+    (crate_tests / "fixture_target.rs").write_text("// fixture\n", encoding="utf-8")
+    ledger = tmp_path / "docs" / "current" / Path(LEDGER).name
+    ledger.write_text(
+        "`tests/test_fixture_target.py` `crates/archeaxis-api/tests/fixture_target.rs` "
+        "`archeaxis-api/tests/fixture_target.rs` `--test fixture_target`\n", encoding="utf-8")
+    assert gate.check_ledger_citations() == []
+
+
 def test_a_second_current_ledger_is_named(monkeypatch, tmp_path, capsys):
     other = "docs/current/AAOS01-Q00-Q15-LEDGER-OTHER.md"
     gate = wire(monkeypatch, tmp_path)
