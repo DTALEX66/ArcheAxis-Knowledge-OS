@@ -97,6 +97,12 @@
       "note": "包装命令退出码为 0，收据本身含 1 failed；此处按收据记失败，不按包装退出码记通过。该失败在 UTF-8 模式下不复现，且权威 runner 不受影响，见 gaps"
     },
     {
+      "command": "bash scripts/ci/run_tests.sh --full -q（权威 runner；dev.py 以子解释器启动 pytest，绑定 ARCHEAXIS_SOURCE_COMMIT=d218abdc，dirty=0）",
+      "exit_code": 0,
+      "receipt": "4179 passed, 59 skipped, 144 subtests passed, 0 failed in 723.62s",
+      "covers": "本轮修订后的全量套件（tests + knowledge_base/tests），在干净提交上绑定成功，无失败项"
+    },
+    {
       "command": "复算本快照 artifacts 列表内 9 个文件的 SHA-256 并与记录值比对",
       "exit_code": 0,
       "result": "9/9 一致，0 drift；随后因本轮更正 input-sources 与 OSS 证据两文件的表述，其两条记录值已同步刷新",
@@ -150,7 +156,8 @@
     "A 组 14 项 CAP 已按套件实测取证（合计 370 passed，各 exit 0）；CAP-0070 动态解释与仿真本轮未找到独立套件，行内已写明课程/UI 动效用例提到动画不等于仿真已实现",
     "F00—F14 与 I1—I6 均无实现证据，属目标",
     "编码误判已更正（同轮内自纠）：早先把该现象登记为‘项目 runner 未设 UTF-8 模式’是错的。现场核实 scripts/runtime/dev.py 为 pytest 子进程设置 PYTHONUTF8=1 与 PYTHONIOENCODING=utf-8（dev.py:233-234），且 --pytest 以子解释器启动（dev.py:443），因此权威路径 scripts/ci/run_tests.sh / run_tests.ps1 不受影响——在本机 shell 未设 UTF-8 时经该 runner 运行 tests/test_general_course_worker.py 为 13/13 通过。该失败只出现在绕开权威路径直接裸跑 pytest 时（本轮后台全量运行即裸跑）：课程 worker 的 stdout 含 U+2014 破折号（合法 UTF-8，第 2118 字节 0x94 不可按 GBK 解码），裸跑时 pytest 捕获按 locale 解码而抛错。可选的加固（非必需，未做）：该 subprocess.run 显式 encoding=utf-8，使断言不依赖父进程编码模式",
-    "开源吸收核对脚本的启发式边界：已修复，不再是缺口。原脚本以‘整词命中任一来源’记 IMPLEMENTED_IN_SOURCE、以‘文件名含该项词’记 VENDORED，并把 __pycache__/*.pyc、README 词与生成目录字样计为证据；又因整词匹配 crossref 匹配不到 CrossrefClient，四条真客户端的判定实际由 .pyc 与文档字符串支撑。现按标识符判定、注释与文档字符串只算提及、编译产物与生成目录排除、桩按命中处附近的不可用标记判定、shared/ 移出 vendor 根；分布由 DECLARED 24 / IMPLEMENTED 9 / VENDORED 两类各 1 / NONE 12 更正为 DECLARED 25 / IMPLEMENTED_IN_SOURCE 6 / STUB_IN_SOURCE 2 / MENTIONED_IN_SOURCE 2 / NONE 12，并由 tests/workflow/test_oss_disposition_evidence.py 的断言固定四态"
+    "开源吸收核对脚本的启发式边界：已修复，不再是缺口。原脚本以‘整词命中任一来源’记 IMPLEMENTED_IN_SOURCE、以‘文件名含该项词’记 VENDORED，并把 __pycache__/*.pyc、README 词与生成目录字样计为证据；又因整词匹配 crossref 匹配不到 CrossrefClient，四条真客户端的判定实际由 .pyc 与文档字符串支撑。现按标识符判定、注释与文档字符串只算提及、编译产物与生成目录排除、桩按命中处附近的不可用标记判定、shared/ 移出 vendor 根；分布由 DECLARED 24 / IMPLEMENTED 9 / VENDORED 两类各 1 / NONE 12 更正为 DECLARED 25 / IMPLEMENTED_IN_SOURCE 6 / STUB_IN_SOURCE 2 / MENTIONED_IN_SOURCE 2 / NONE 12，并由 tests/workflow/test_oss_disposition_evidence.py 的断言固定四态",
+    "CI test 车道的两处先存失败（已定位，未修；先于本提交存在，同一 job 在 7eda1dcf 与 d218abdc 上同样 failure）：(1) tests/test_axr060_completion_audit.py 要求当前表面引用的 40 位哈希在检出中可达，而记录引用的保留点 tag 值 aa804699… 只在本地创建、从未推送，且按不发布约束不得推送 tag——需决定如何让该保留点证据在远端可解析（例如把被删分支的差异作为仓库内证据留档）；(2) tests/workflow/test_workspace_layout_contract.py 在 CI runner 上把 .project-local/c 与 staging 判为越界，本机开发根无此两项，需查明 runner 上由哪一步创建"
   ],
   "about": {
     "before": "星环知识平台 ArcheAxis Knowledge：本地优先的多格式内容与人机双向学习工作台（开发中）。Tauri/React + Rust Core，SQLite/CAS 单写者。内容先保存；识别忠实度核验与专业依据分析独立、可追溯。",
@@ -179,25 +186,27 @@
     "note": "bare `python` 不在 Git Bash PATH；本地复现门禁必须用 --source index/head（Windows 工作树为 CRLF，--source worktree 会误报）；本机 locale 为 cp936，裸跑 pytest 会按 cp936 解码而以 UTF-8 断言失败，权威 runner 由 dev.py 自带 PYTHONUTF8=1，故套件应经 scripts/ci/run_tests.sh 运行"
   },
   "both_ends": {
-    "local_head": "8f163aae62949e78fd45eba3d163b3d39895abe3",
-    "remote_branch_sha": "8f163aae62949e78fd45eba3d163b3d39895abe3",
-    "remote_file_readback": "AUTHORITY.md 经 contents API 在 8f163aae 上读回：6065 字节、sha256 前 16 位 556663d7093d27f0，与本机文件一致；本机 README.md 在该提交为 25779 字节、sha256 前 16 位 0cb5a01995bb432d",
+    "local_head": "1503710deecda3e042615843454f4231e8fa01d0",
+    "remote_branch_sha": "1503710deecda3e042615843454f4231e8fa01d0",
+    "remote_file_readback": "AUTHORITY.md 经 contents API 读回与本机一致（6065 字节、sha256 前 16 位 556663d7093d27f0）；本机 README.md sha256 前 16 位 0cb5a01995bb432d",
     "pr": 161,
     "default_branch_updated": false,
-    "default_branch_note": "远端分支已同步至 8f163aae；main 未更新（本轮不含合并）",
+    "default_branch_note": "远端分支已同步至 1503710d；main 未更新（本轮不含合并）；无 tag、无 release",
     "ci": {
-      "run": 37447589524,
+      "run": 37450747243,
       "event": "push",
-      "scope": "push-classified：gateplan、lint、a0-gates 均执行并成功；重量车道（test、contracts-vnext、rust-vnext、desktop-build、installer-lifecycle 等 16 项）按分类跳过，因此这是文档/门禁结论，不是产品资格",
-      "lint_job": "success",
-      "a0_gates_job": "success",
-      "previous_failing_run": 37447026168,
-      "previous_failing_scope": "同一 lint 步骤在该 run 上 exit 1；修复提交为 8f163aae"
+      "scope": "本次因改动脚本与测试，GatePlan 要求 test 车道，故 push 分类也执行了 test (3.12)：gateplan success、lint success、test (3.12) failure、a0-gates failure（后者因前者的失败而失败）",
+      "pre_existing": "该 test 车道的两处失败**先于本提交存在**：同一 job 在 7eda1dcf（run 37448417919）与 d218abdc（run 37449622276）上同样 failure。本提交只改 5 个文件（1 脚本、1 测试、3 记录），不含失败用例所在文件",
+      "failing_tests": [
+        "tests/test_axr060_completion_audit.py::test_tracked_current_surfaces_only_reference_declared_release_delta_or_source_objects —— 当前表面引用的 `aa8046996c14db7da8b01dab133b46de80e89614`（分支清理时建的保留点 tag 值）在 CI 检出中不是可达对象：该 tag 只在本地创建、从未推送，而按不发布约束也不得推送 tag",
+        "tests/workflow/test_workspace_layout_contract.py::test_no_entry_sits_outside_the_documented_layout —— CI runner 上 .project-local 出现 c/ 与 staging/，本机开发根没有这两项"
+      ],
+      "verdict": "这是两个环境性/先存缺陷，不是本提交的回归；本提交的本地权威全量套件为 0 failed"
     }
   },
   "checkpoint": {
     "branch": "codex/dsh-aaos-real-multiformat-loop-20261001",
-    "last_ci_verified_sha": "8f163aae62949e78fd45eba3d163b3d39895abe3",
+    "last_ci_verified_sha": "1503710deecda3e042615843454f4231e8fa01d0",
     "self_reference_note": "本快照在其后一次提交中落仓，故自身 SHA 由 PR/CI 定位；last_ci_verified_sha 指已由 CI 验证门禁的祖先提交，不写成包含自身的提交",
     "done": [
       "root AUTHORITY.md created and declared in the directory authority and its disposition record",
