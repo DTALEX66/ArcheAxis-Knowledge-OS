@@ -38,6 +38,21 @@ pipeline:
   default_actions: ["extract", "tag", "summarize", "index"]
   auto_ingest: true
 
+# Bounded-window transcription policy: the single declared source for the three constants that
+# decide how a long recording is split. Two implementations must agree with it — the worker's
+# `services/python-workers/media/window_plan.py` (which plans and enforces) and the interface's
+# `frontend/src/presentation/mediaEstimate.ts` (which shows the user the estimate) — so the number
+# a user is shown cannot drift from the number the worker acts on.
+#   ceiling_ms      the Core's job-deadline cap; a job above it is refused, not accepted and killed
+#   overhead_ms     process start plus model load before the first segment
+#   realtime_factor wall-clock seconds per audio second, declared high so a window is never
+#                   *expected* to overrun the ceiling
+media:
+  window_policy:
+    ceiling_ms: 300000
+    overhead_ms: 20000
+    realtime_factor: 2.0
+
 search:
   fts5_enabled: true
   vector_enabled: true

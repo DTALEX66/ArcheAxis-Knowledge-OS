@@ -8,7 +8,10 @@
  *
  * Keep the constants and the arithmetic identical to the worker module: the user-facing
  * estimate and the worker's actual windowing must not disagree. The numbers are the same
- * measured policy (overhead 20 s, factor 2.0 wall-clock seconds per audio second).
+ * measured policy (overhead 20 s, factor 2.0 wall-clock seconds per audio second), declared once
+ * in `config/defaults.yaml` under `media.window_policy`. Drift between this file, the worker and
+ * the Core's own deadline cap fails the build:
+ * `scripts/contracts/check_media_window_policy.py`.
  */
 export const MEDIA_CEILING_MS = 300_000;
 export const MEDIA_OVERHEAD_MS = 20_000;

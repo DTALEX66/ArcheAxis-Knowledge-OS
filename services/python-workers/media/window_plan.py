@@ -26,6 +26,9 @@ returning a plan that could exceed it.
 
 from __future__ import annotations
 
+# Declared in `config/defaults.yaml` under `media.window_policy`; the interface's own copy lives in
+# `frontend/src/presentation/mediaEstimate.ts`. `scripts/contracts/check_media_window_policy.py`
+# fails the build when any copy — including the Core's own deadline cap — disagrees.
 CEILING_MS = 300_000
 OVERHEAD_MS = 20_000
 REALTIME_FACTOR = 2.0

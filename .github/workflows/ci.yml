@@ -876,6 +876,8 @@ jobs:
         run: python scripts/ci/check_vnext_contracts.py
       - name: Reject generated vocabulary drift
         run: python -B scripts/contracts/generate_vocabulary.py --check
+      - name: Reject media window policy drift
+        run: python -B scripts/contracts/check_media_window_policy.py --check
       - name: Run real Python contract and vocabulary regressions
         run: python -B scripts/runtime/dev.py --pytest tests/contract --noconftest -q
 

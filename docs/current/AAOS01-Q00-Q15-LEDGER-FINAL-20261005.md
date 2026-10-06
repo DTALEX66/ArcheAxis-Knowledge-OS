@@ -423,3 +423,13 @@ A0 浏览器门禁 `scripts/a0_browser_smoke.py` 原视口矩阵为 1440/1280/39
 补测立即发现一处真实不一致：门禁用 `width <= 840` 判定"窄屏"，断言该宽度下应出现手机布局（轨道满宽、无上下文条）；而样式表的手机布局是 `max-width: 600px`，840 属 601–900 带——产品在此**有意保留上下文条**，因为"完全隐藏会去掉库空间唯一的区段切换器"。即门禁在 840 要求了产品故意不做的布局。按"门禁与样式表用同一个断点"修正为 `width <= 600`，并为 601–1200 带补上"正文列不小于样式表声明的最小值 280px"断言。
 
 实测（真实 Chromium，六档）：1440/1280 桌面轨道 200px；900 轨道 148px、正文列 584px、上下文条可见；840 轨道 148px、正文列 524px、上下文条可见；390/360 手机布局（轨道满宽 56px、无上下文条）。六档 `scrollWidth == clientWidth`，无横向溢出，`errors` 为空，门禁 PASS。截图在 `.project-local/task-runtime/browser-smoke/canonical-shell-*.png`。
+
+## 分段策略单一来源与漂移门禁（本轮）
+
+分段转录的三个策略常量此前被手工镜像在三处：worker 的 `window_plan.py`（执行并强制）、界面的 `mediaEstimate.ts`（向用户展示预计）。两处数字一旦不同，用户看到的耗时就不再是 worker 实际切分的依据，且运行时不会有任何提示——这是本项目最不愿出现的一类缺陷。
+
+现改为：`config/defaults.yaml` 新增 `media.window_policy`（`ceiling_ms` 300000、`overhead_ms` 20000、`realtime_factor` 2.0）作为**唯一声明来源**；新增 `scripts/contracts/check_media_window_policy.py` 把每一个镜像与声明逐字段比对，并额外比对 **Core 自身的截止上限**（`crates/archeaxis-api/src/runtime/mod.rs`、`crates/archeaxis-application/src/executor.rs` 的 `deadline_ms > 300_000`）——若声明上限与 Core 实际拒绝的上限不同，声明就是假的，故一并门禁。两处镜像与声明处均加注指针。门禁已接入 `ci.yml` 与 `vnext-ci.yml`（紧随既有 vocabulary 漂移检查），路径 `scripts/contracts/**` 与 `config/**` 均已由 `.worklab/project-validation.v1.yaml` 分类，`unknown_paths` 为空。
+
+新门禁按本项目既有做法先**自我证伪**再采用：`tests/workflow/test_media_window_policy.py` 逐项注入漂移并断言报错指向确切文件与字段（界面常量、worker 常量、Core 上限，以及"声明了一个无人强制的上限"），另断言 Rust 的 `300_000` 下划线字面量被整体读取——门禁首版正是把它读成 300 并报出一次并不存在的漂移，该 bug 由这一断言固定。
+
+验证：策略检查与 vocabulary 漂移检查均 pass；43 项 pytest 与 2 项跳过通过；`tsc --noEmit` 通过；相关前端 29 项通过。

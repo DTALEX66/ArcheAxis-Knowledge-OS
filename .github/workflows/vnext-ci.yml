@@ -95,6 +95,8 @@ jobs:
         run: '& $env:ARCHEAXIS_PYTHON -B -m pytest tests/test_worker_schedule.py -q'
       - name: Reject generated vocabulary drift
         run: python -B scripts/contracts/generate_vocabulary.py --check
+      - name: Reject media window policy drift
+        run: python -B scripts/contracts/check_media_window_policy.py --check
       - name: Parse shared vocabulary wire cases with Python
         run: python -B -m unittest discover -s tests/contract -p "test_vocabulary_generation.py"
 
