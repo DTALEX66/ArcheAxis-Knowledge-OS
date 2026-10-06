@@ -59,10 +59,12 @@ failure that projects nothing. Nothing is downloaded, installed, copied or relic
 repository. Measured on this host: `antiword.exe` 284,448 bytes, sha256 `d30a37489c64ada474d8d5aa5abb0778a6955d3ce6cdbb7c8c659e37b89d3da9`,
 self-reporting `Version: 0.37  (21 Oct 2005)`, `Author: (C) 1998-2005 Adri van Os`,
 `Status: GNU General Public License`, shipped inside the Git for Windows mingw64 bundle with 30
-character-mapping files beside it. Its own licence is stated by the binary without a version, so
-this notice records the self-report rather than a SPDX claim; the version and licence still have
-to be settled by the supply-chain disposition that binds it to a declared root, which has **not**
-been written yet.
+character-mapping files beside it. The package index that redistributes it names the licence as GPL-3.0-or-later and
+the version as 0.37-3; the binary itself states only
+`Status: GNU General Public License`, so both are recorded rather than merged into one
+claim. `docs/truth/SUPPLY_CHAIN_LEDGER.json` row A025 now carries this disposition. What
+is still open is the binding to a declared external root, which is why the capability
+manifest has no antiword entry and resolution today is environment or PATH.
 
 ### Third-party test fixture: `tests/fixtures/golden/golden-word-anchor.doc`
 

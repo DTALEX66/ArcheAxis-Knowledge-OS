@@ -301,10 +301,10 @@
       "CONTAINER_DEPTH_LIMIT=2 这个数值是本轮选择，未经真人验收；每层各有 50 项/64 MiB 预算，所以总量随深度指数增长，只被深度上限挡住",
       "提交范围自检（2026-10-07 立）：正文需逐一点名被改动的权威文件（矩阵 / HTTP 契约 / 供给链台账 / 发布清单 / CI 工作流），依赖或许可变更写进标题，同一提交不混做“依赖升级 + Core 功能”；已推送的 5e5d102b 不回改历史，只在账本里记实测差异",
       "`.doc` 的 antiword 探针绑定与供给链处置行仍未决（本机实测已在 verification.host_engine_probe_20261007）；`.ppt` 在本机无合法读取路径（JVM 实测缺席，不做无样本的自造实现）",
-      "antiword 未登记：capability-requirements.yaml 与 SUPPLY_CHAIN_LEDGER.json 都还没有它的行。原因实测：packages.msys2.org 搜索 API 返回空、包页 307，我没有拿到可信的 canonical URL / 版本 / 许可版本，宁缺不造。绑定它需要先钉住包身份，再决定是否把二进制放进外置工具库",
       "CI 环境没有 sidecar，真引擎用例在 CI 会 skip；skip 是关于主机的陈述不是通过。本机该用例真跑",
       "worker_structure 锚点的真实端到端已补（structure_anchor_live_worker.rs，读真实 worker 报的第一个位置）；仍未并入的是 params.format.locations 那一族（F13 的 ODF/EPUB/邮件、F01 的符号）",
-      "F13/F01 的位置在 params.format.locations 而非 worker_structure，本轮刻意未并入"
+      "F13/F01 的位置在 params.format.locations 而非 worker_structure，本轮刻意未并入",
+      "antiword 已登记为 A025（SIDECAR / qualification [installed]，含实测哈希与包索引版本 0.37-3、许可 GPL-3.0-or-later）；仍开的是**绑定**：把它放进外置工具根并写 capability-requirements 条目（该清单的三个读取方必须一致），在此之前解析只能是环境变量或 PATH"
     ],
     "next_action": "1) 最多格式剩余：F02 的抓取已是驱动级事实（`scripts/ingest/url_snapshot.py`，产品路由不持网络是选择不是缺口），网络侧剩下的边界是网络层 egress 政策；F03 仍需要一个真正的浏览器（本仓库无浏览器，Playwright 仅测试用、Firecrawl 属 REVIEW-BLOCK），抓到的未脚本化正文 ≠ 渲染后的页面；F10 说话人分离无引擎亦无处置行；.doc/.ppt 无读取器（Tika 需 JVM 侧车）；跨 F05/F07/F08/F09/F12 的“把 worker 结构升级为寻址层”需 anchor 契约变更，应独立一刀；FMT-21 逐扩展名真实样本验收仍 NOT_RUN（本轮 .xls 夹具为自造件）；嵌套容器已闭合到有预算的展开，`.doc` 的候选 sidecar 实测在本机存在（Git 自带 antiword 0.37，只能读 .doc），是否登记处置行需单独一刀"
   },
@@ -355,7 +355,25 @@
         ],
         "provenance": "bundled with Git for Windows (mingw64), not a project-registered toolchain",
         "registered_in_capability_requirements": false,
-        "registered_in_supply_chain_ledger": false
+        "registered_in_supply_chain_ledger": true,
+        "ledger_row": "A025",
+        "package_index": {
+          "name": "mingw-w64-antiword",
+          "version": "0.37-3",
+          "licenses": [
+            [
+              "GPL3+"
+            ]
+          ],
+          "upstream_url": "http://www.winfield.demon.nl/",
+          "packaging_source": "https://github.com/msys2/MINGW-packages/tree/master/mingw-w64-antiword",
+          "repos": [
+            "clang64",
+            "clangarm64",
+            "ucrt64"
+          ],
+          "queried": "https://packages.msys2.org/api/search?query=antiword&qtype=pkg"
+        }
       },
       "jvm": {
         "candidate_dirs_with_content": [],
