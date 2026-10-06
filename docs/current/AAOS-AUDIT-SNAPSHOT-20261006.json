@@ -1,7 +1,7 @@
 {
   "schema": "archeaxis/audit-snapshot/v1",
   "round": "AAOS-01-MULTI-FORMAT-ABSORB-20261007",
-  "observed_at": "2026-10-07T02:44:46+08:00",
+  "observed_at": "2026-10-07T03:10:05+08:00",
   "timezone": "Asia/Shanghai",
   "scope": "文档与治理修复（权威入口、冲突 current、描述与覆盖矩阵、可重复审计）。不改产品架构、不批量化安装依赖、不发布。",
   "repository": {
@@ -267,7 +267,8 @@
       "F01: a `.py` source reports the symbols its own AST declares, line-anchored (09f68a9c)",
       "F06: a chained page answers with the text read from it, via origin + pages_of + GET /sources/:id/pages (41a34d3d)",
       "F13: a mail's attachments are extracted and imported as members with their own jobs (e52fc4c3)",
-      "Production HTTP contract route counts moved together: 62 pairs, 43 projection pairs, 38 unconditional mounts; both maintenance gates re-run green"
+      "Production HTTP contract route counts moved together: 62 pairs, 43 projection pairs, 38 unconditional mounts; both maintenance gates re-run green",
+      "F07: a DOCX heading is separated from a body paragraph by the file's own style definition (807f6d8a)"
     ],
     "open": [
       "Q14 与更正文件的日期序列已核实记录；是否宣布资格化仍由 Owner 决定（不可变 checks/acceptance.json 仍为 NOT_RUN）",
@@ -301,7 +302,7 @@
     },
     "migration_crate": "cargo test -p archeaxis-migration --tests --offline -> 27 passed / 0 failed (含新增 selective_legacy_stage 3 项)；cargo fmt --all --check PASS",
     "dependency_scan_guards": "tests/workflow/test_dependency_scan_config.py 4 passed；三项注入（回退 report-only / 删 pipefail / 命令内加 --ignore-vuln）各自只弄红对应那项；tests/test_release_manifest.py 35 passed 0 failed（升锁后按提交 79332377 的约定只改 dependency_lock.digest，revision 保持 8）",
-    "format_slices_20261007": "tests/workers/test_pptx_chart_data.py + tests/workers/test_bulk_office.py 9 passed; tests/workers/test_light_formats_odf_rtf.py + tests/test_multiformat_extraction.py + tests/workers/test_bulk_html.py + tests/workers/test_bulk_legacy_adapters.py 35 passed; cargo test -p archeaxis-application --test route_capabilities --offline 8 passed; cargo fmt --all --check PASS; check_format_matrix.py exit 0; tests/workflow/test_oss_disposition_evidence.py 3 passed; F01 symbols: tests/workers/test_python_source_symbols.py 4 passed, F06 page write-back: crates/archeaxis-api/tests/source_pages_api.rs + crates/archeaxis-application/tests/pdf_ocr_chain.rs 5 passed with no skip, cargo test --workspace --offline 120 suites ok / 496 passed / 0 failed, full python tests: 4211 passed, 30 skipped, 14 warnings, 146 subtests passed in 467.60s (0:07:47); F13 mail attachments: tests/workers/test_mail_attachment_members.py 7 passed, crates/archeaxis-application/tests/mail_member_chain.rs 2 passed, cargo test --workspace --offline 121 suites ok / 498 passed, tests/maintenance 184 passed, 2 skipped, 2 subtests passed in 10.55s, full python tests 4218 passed, 30 skipped, 14 warnings, 146 subtests passed in 482.76s (0:08:02), matrix gate falsified by an injected core_routes claim of application/x-not-a-route (rc 1, names the triple), then restored to rc 0"
+    "format_slices_20261007": "tests/workers/test_pptx_chart_data.py + tests/workers/test_bulk_office.py 9 passed; tests/workers/test_light_formats_odf_rtf.py + tests/test_multiformat_extraction.py + tests/workers/test_bulk_html.py + tests/workers/test_bulk_legacy_adapters.py 35 passed; cargo test -p archeaxis-application --test route_capabilities --offline 8 passed; cargo fmt --all --check PASS; check_format_matrix.py exit 0; tests/workflow/test_oss_disposition_evidence.py 3 passed; F01 symbols: tests/workers/test_python_source_symbols.py 4 passed, F06 page write-back: crates/archeaxis-api/tests/source_pages_api.rs + crates/archeaxis-application/tests/pdf_ocr_chain.rs 5 passed with no skip, cargo test --workspace --offline 120 suites ok / 496 passed / 0 failed, full python tests: 4211 passed, 30 skipped, 14 warnings, 146 subtests passed in 467.60s (0:07:47); F13 mail attachments: tests/workers/test_mail_attachment_members.py 7 passed, crates/archeaxis-application/tests/mail_member_chain.rs 2 passed, cargo test --workspace --offline 121 suites ok / 498 passed, tests/maintenance 184 passed, 2 skipped, 2 subtests passed in 10.55s, full python tests 4218 passed, 30 skipped, 14 warnings, 146 subtests passed in 482.76s (0:08:02), matrix gate falsified by an injected core_routes claim of application/x-not-a-route (rc 1, names the triple), then restored to rc 0; F07 DOCX headings: tests/workers/test_docx_heading_styles.py 5 passed (tests/workers 316 passed, 106 subtests passed in 57.91s), office+mail Rust e2e 5 passed, check_format_matrix.py exit 0, full python tests 4223 passed, 30 skipped, 14 warnings, 146 subtests passed in 485.17s (0:08:05)"
   },
   "artifacts": [
     {

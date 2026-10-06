@@ -1085,3 +1085,30 @@ Python 全量 `tests` **4218 passed, 30 skipped, 14 warnings, 146 subtests passe
 `GET /sources/:id/pages` 尚无界面消费者（前端任务按 Owner 指令暂停）。
 
 **回滚**：本轮 F13 代码一次提交可独立 revert；合同数字与其同属该提交，revert 即一起回到 61/42/37。
+
+
+## 格式切片 F07 DOCX 标题分层（2026-10-07，提交 807f6d8a）
+
+**真增量**：读取段落的样式与其**在文件里定义的**大纲级别，优先级为
+段落自身 `w:outlineLvl` → 所引用样式定义的 `outlineLvl` → 内建标题样式名（`heading 1` / `标题 3` 中英文皆读）。
+回执新增 `style_definitions`、`paragraph_count`、`heading_count` 与 `headings`（级别/样式/字符数，上限 200 项）。
+**级别一律来自文件自身的声明**：不从文本、长度或大写"猜"标题——那是伪造目录的开始。
+样式只在 `word/styles.xml` 存在时才解析；段落引用了未定义的样式时，回执报的是**文件里真实存在的标识**
+（例如 `标题 3`），不会替它编一个显示名。
+`kind`/`path` 逐字未变（仍 `paragraph-N`），所以这仍是"上报事实"，不是新的寻址层——导航仍按行锚。
+
+**验证**：新增 `tests/workers/test_docx_heading_styles.py` 5 项（golden 夹具、样式定义给级别、段落级优先、
+中文样式名、无声明即无标题、kinds/paths 不变），`tests/workers` 全量 **316 passed, 106 subtests passed in 57.91s**；
+`cargo test --test office_job_end_to_end --test mail_member_chain --offline` **2 套件 /
+5 项 ok**（office 端到端未被我的结构改动破坏）；`check_format_matrix.py` exit 0；
+Python 全量 `tests` **4223 passed, 30 skipped, 14 warnings, 146 subtests passed in 485.17s (0:08:05)**。
+**改一处矩阵行差点误伤另一处**：F07 与 F08 引用同一组 office 测试，未限定行范围的替换会有两个合法匹配；
+改成只在 `"format_id": "F07"` 与 `"format_id": "F08"` 之间做替换，并**反向断言 F08 的引用列表未被改动**。
+（第一次的自检断言本身写错了——它假设 F08 只引用 2 项，而 F08 本轮已合法地引用 3 项；
+修正的是我的断言，不是被检查的对象。）
+
+**仍未闭合，不粉饰**：run 级直接格式（不走段落样式）不读；列表编号不还原；样式表缺失时只能靠样式名；
+F07 主缺口"结构作为寻址层"仍未动——那是 anchor 契约变更，会同时影响 F05/F08/F09/F12 四行的同类子句，
+应作为独立一刀做，不在本切片顺手改。
+
+**回滚**：`git revert 807f6d8a`（worker、测试、矩阵行一起撤回；F08 行不受影响）。
