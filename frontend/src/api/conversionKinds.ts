@@ -19,6 +19,10 @@ export const EXTENSION_TO_KIND: Record<string, string> = {
   c: "text", h: "text", cpp: "text", hpp: "text", go: "text", java: "text", cs: "text",
   rb: "text", sh: "text", ps1: "text", bat: "text",
   epub: "text", eml: "text",
+  // F13: ODF/RTF reach the same text.extract reader (kind "text", proven by the Rust
+  // format_location_anchor_api path). Legacy binary MS Office (.doc/.xls/.ppt) stays unmapped
+  // because the Core names no media type or reader for it.
+  odt: "text", ods: "text", odp: "text", rtf: "text",
 };
 
 export function conversionKindFor(name: string): string | null {

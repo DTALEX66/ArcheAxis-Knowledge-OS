@@ -214,11 +214,15 @@ describe("Core job content",()=>{
  });
  // A04: source and config extensions with an existing text route must reach the UI instead of being
  // reported as read-only custody.
- it.each([["notes.py"],["main.rs"],["App.tsx"],["server.go"],["notes.log"],["settings.ini"],["query.sql"],["readme.markdown"]])("maps text-route source %s to the reading conversion action",async(name)=>{
+ it.each([["notes.py"],["main.rs"],["App.tsx"],["server.go"],["notes.log"],["settings.ini"],["query.sql"],["readme.markdown"],["document.odt"],["sheet.ods"],["slides.odp"],["notes.rtf"]])("maps text-route source %s to the reading conversion action",async(name)=>{
   expect(conversionKindFor(name)).toBe("text");
  });
  it("keeps unregistered extensions without a conversion route",()=>{
   expect(conversionKindFor("archive.7z")).toBeNull();
   expect(conversionKindFor("vector.eps")).toBeNull();
+  // Legacy binary MS Office has no named Core reader, so it must not gain a false action.
+  expect(conversionKindFor("old.doc")).toBeNull();
+  expect(conversionKindFor("old.xls")).toBeNull();
+  expect(conversionKindFor("old.ppt")).toBeNull();
  });
 });
