@@ -134,35 +134,37 @@ def test_browser_smoke_records_the_dirty_candidate_without_writing_the_worktree_
 
 
 def test_the_viewport_matrix_covers_the_stylesheets_own_breakpoints():
-    """The matrix has to include the widths the shell actually branches on.
+    """The matrix must render both sides of every width the shell actually branches on.
 
-    It used to jump from 1280 straight to 390, so the whole 601..1200 range — where the chrome
-    narrows to keep the reading column alive — was never rendered by any gate. Adding 900 and 840
-    immediately caught the boundary disagreeing with the stylesheet: the harness demanded the phone
-    layout at 840, where the product deliberately keeps the context strip.
+    The phone end was retired by owner decision on 2026-10-07, so this no longer asks for a
+    sub-600 viewport. It asks for the stronger thing instead: that no phone block survived the
+    retirement, and that each remaining breakpoint has a matrix entry on both sides of it.
     """
     import re
 
     root = Path(__file__).resolve().parents[1]
     smoke = (root / "scripts" / "a0_browser_smoke.py").read_text(encoding="utf-8")
-    styles = (root / "frontend" / "src" / "design-system" / "tokens.css").read_text(encoding="utf-8")
+    styles = "".join((root / "frontend" / "src" / "design-system" / name).read_text(encoding="utf-8")
+                     for name in ("tokens.css", "themes.css"))
 
-    matrix = re.search(r"for width, height in \(\((.*?)\)\):", smoke)
-    assert matrix, "the viewport matrix could not be read"
-    widths = [int(value) for value in re.findall(r"\((\d+),\s*\d+\)", matrix.group(1))]
-    assert widths, matrix.group(1)
-    assert any(width <= 600 for width in widths), widths
-    assert any(601 <= width <= 900 for width in widths), widths
-    assert any(1200 < width for width in widths), widths
+    entries = re.findall(r"\(\"[^\"]+\", (\d+), \d+, [\d.]+\)", smoke)
+    assert entries, "the desktop viewport matrix could not be read"
+    widths = [int(value) for value in entries]
 
-    # The phone layout is the block that hides the context strip, and the harness must use that
-    # same boundary rather than a neighbouring round number.
-    mobile = re.search(r"@media \(max-width: (\d+)px\) \{[^@]*?\.context-subnav \{\s*display: none;",
-                       styles, re.S)
-    assert mobile, "the mobile block hiding the context strip could not be read"
-    harness = re.search(r"if width <= (\d+):", smoke)
-    assert harness, "the harness boundary could not be read"
-    assert int(harness.group(1)) == int(mobile.group(1)), (harness.group(1), mobile.group(1))
+    # Only what a @media condition branches on; a plain `max-width: 120px` declaration on an
+    # element is a size, not a breakpoint, and the first draft of this check confused the two.
+    breakpoints = sorted({int(value) for value in re.findall(r"@media[^{]*max-width: (\d+)px", styles)})
+    assert breakpoints, "the stylesheet declares no width breakpoint at all"
+    for limit in breakpoints:
+        assert any(width <= limit for width in widths), (limit, widths)
+        assert any(width > limit for width in widths), (limit, widths)
+
+    assert not re.search(r"@media \(max-width: \d+px\) \{[^@]*?\.context-subnav \{\s*display: none;", styles, re.S), \
+        "a phone block that hides the context strip came back after the owner retired that end"
+    # A conditional branch is legitimate (the reading-column floor uses one); a branch at phone
+    # width is not, because that end was retired.
+    branches = [int(value) for value in re.findall(r"if width <= (\d+):", smoke)]
+    assert all(branch > 600 for branch in branches), branches
 
     # The band between them asserts the reading column keeps its declared minimum.
     assert re.search(

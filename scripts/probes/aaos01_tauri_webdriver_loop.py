@@ -334,7 +334,9 @@ def installed_format_import_loop(bridge, repo, proofs):
         proofs.append(proof)
         if kind == "archive":
             declared = loss["params"]["structure"]["extractable_members"]
-            assert len(declared) == 1 and declared[0]["name"] == "notes/known.csv"
+            assert len(declared) == 1 and declared[0]["name"] == "notes/known.csv", \
+                {"route_media_type": loss["params"].get("media_type"), "declared": declared,
+                 "member_dir_requested": loss["params"].get("attachment_extraction")}
             assert declared[0]["sha256"] == hashlib.sha256(csv).hexdigest()
             # Reuse finite source list/jobs: no token access or arbitrary HTTP/file API.
             matches = [item for item in bridge("sources_list")["sources"] if item["sha256"] == declared[0]["sha256"]]
