@@ -53,6 +53,11 @@ def test_screenshot_reports_browser_exit_code_when_no_png_is_written(monkeypatch
         lambda *args, **kwargs: subprocess.CompletedProcess(args=args[0], returncode=0, stdout=b"", stderr=b""),
     )
     monkeypatch.setattr(web_screenshot, "_wait_for_screenshot", lambda _: False)
+    # Without this the browser profile root walks up to the nearest `.project-local`
+    # ancestor -- on CI that is the real development root, so the test creates an
+    # unsanctioned `c/` there and fails the layout contract. The sibling tests below
+    # patch the same helper for the same reason.
+    monkeypatch.setattr(web_screenshot, "_short_temp_root", lambda out: tmp_path)
 
     with pytest.raises(web_screenshot.WebScreenshotError, match=r"exit_code=0"):
         web_screenshot.screenshot_web("file:///fixture.html", tmp_path / "missing.png")

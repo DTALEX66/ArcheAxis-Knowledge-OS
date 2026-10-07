@@ -1,3 +1,18 @@
+## 2026-10-06 本轮状态（最新，先读这一节）
+
+状态仍 `PARTIAL`。本轮按 Owner 就"需所有者指定"的四类给出的范围执行，逐项审计后按**精确路径**删除，累积减少约 **40G**：
+
+| 目标 | 前 | 后 | 减少 |
+| --- | --- | --- | --- |
+| 开发根 `.project-local` | 113G | **79G** | 34G |
+| 绿色仓库 `ArcheAxis.Knowledge.Green-x64` | 15G | **9.1G** | 5.9G |
+
+- 绿色仓库：四条旧代候选（`v18a00075`、`v82e8d28c`、`vd6bd374`、`AAOS-Tauri-578d06b78413`）连同先前的两条 worktree 一并清理；候选的 `candidate-manifest.json`/`backend-runtime-manifest.json`/`worker-profile.json` 在删除前复制进 `.project-local/recovery/green-candidates-20261006/` 并记 SHA-256。
+- 开发根：`build/2611ed9ca1`(15.4G)、`build/cargo-junction`(1.7G)、`build/gc-r20`(1.2G)、`build/aaos01-tauri`(1.3G)、`candidates/AAOS-b421ddee-audit`(0.6G)，以及工作树自己的 `build/2611ed9ca1`(11.8G)、`aaos01-core`(0.9G)、`cargo-gnu`(0.2G) 与两个 `build/green-candidates`(2.1G)。每项删除前以 `git grep -F` 对**精确相对路径**查引用；`ci.yml` 引用 `build/green-candidates` 一处经阅读确认是**写入/产出**路径（`--out` + 上传 zip），故以显式 `--allow-cited --reason=…` 覆盖，并跑 `tests/test_green_candidate_assembly.py` 验证（7 passed / 1 skipped）。
+- 明确保留：`build/cargo`(14G，热缓存)、`recovery/`(8G)、`mig/`(4.3G)、`cache/`(3.2G)、`task-runtime/` 与 `candidates/`（均在预算内）、`legacy-scratch-20261006/`（`realign_dev_layout.py`/`undo_layout_realign.py` 引用的恢复清单）。
+- **仍受阻**：`runs/2611ed9ca1`(6.27G) 与另外 23 个 run 目录枚举/删除时 `WinError 5`。按约束不强制、不提权；等 Owner 在提权会话跑一次递归枚举并给出体积后，再并入下一批。
+- 上文 2026-10-01 各节的体积数字是当时口径（可读元数据下界，权限拒绝/私有/Git 排除），**不覆盖**本节读数；本节数字来自 `du -sh` 实测。
+
 ## 继续审计与删除（2026-10-01 后续回合）
 
 状态 PARTIAL。本回合已删除 1,886 个旧 obj/fingerprint、R6 SDK 和旧 Debug 文件，源载荷 127,910,013 B，新增精确清单和恢复包 1,994,686 B，已删批次净逻辑减少 125,915,327 B；另一个待归属复核的 28 DB 本地恢复包及映射新增 655,258 B，源没有删除，扣除此成本后本回合净逻辑减少 125,260,069 B；统一净账本累计 69,832,500,108 B。台账旧 gross/recovery 字段属于较早快照，当前累计只使用逐批一次计账的 combined_net 字段；非 NTFS 空闲增量。

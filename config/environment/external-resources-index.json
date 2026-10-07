@@ -1,0 +1,305 @@
+{
+  "schema": "archeaxis/external-resources-index/v1",
+  "generated_by": "scripts/environment/build_external_resources_index.py",
+  "manifest": "config/environment/capability-requirements.yaml",
+  "roots_declared_by": [
+    "ARCHEAXIS_EXTERNAL_ROOT",
+    "OS_EXTERNAL_CONFIG"
+  ],
+  "external_root": "D:\\All projects\\OS External Configuration",
+  "root_present": true,
+  "sibling_roots": {
+    "model-library": "D:\\All projects\\Model library"
+  },
+  "entries": [
+    {
+      "name": "python",
+      "category": "toolchains",
+      "purpose": "主运行时解释器（3.11 主 / 3.14 辅，scoop 管理）",
+      "local_only": false,
+      "healthcheck_command": "python --version",
+      "external_paths": []
+    },
+    {
+      "name": "uv",
+      "category": "toolchains",
+      "purpose": "依赖锁定、虚拟环境、包安装",
+      "local_only": false,
+      "healthcheck_command": "uv --version",
+      "external_paths": []
+    },
+    {
+      "name": "dotnet",
+      "category": "toolchains",
+      "purpose": "正式 Avalonia 桌面壳构建与测试",
+      "local_only": true,
+      "healthcheck_command": "dotnet --version",
+      "external_paths": [
+        {
+          "declared": "10-toolchains/dotnet/dotnet.exe",
+          "resolved": "D:\\All projects\\OS External Configuration\\10-toolchains\\dotnet\\dotnet.exe",
+          "exists": true
+        }
+      ]
+    },
+    {
+      "name": "git",
+      "category": "toolchains",
+      "purpose": "版本控制",
+      "local_only": false,
+      "healthcheck_command": "git --version",
+      "external_paths": []
+    },
+    {
+      "name": "nodejs-lts",
+      "category": "toolchains",
+      "purpose": "legacy Tauri/React recovery 与兼容构建（非正式桌面壳）",
+      "local_only": false,
+      "healthcheck_command": "node --version",
+      "external_paths": []
+    },
+    {
+      "name": "rust",
+      "category": "toolchains",
+      "purpose": "legacy Tauri recovery/行为参考构建（非正式桌面壳）",
+      "local_only": true,
+      "healthcheck_command": "rustc --version",
+      "external_paths": [
+        {
+          "declared": "10-toolchains/cargo/bin/rustc.exe",
+          "resolved": "D:\\All projects\\OS External Configuration\\10-toolchains\\cargo\\bin\\rustc.exe",
+          "exists": true
+        }
+      ]
+    },
+    {
+      "name": "msvc",
+      "category": "toolchains",
+      "purpose": "MSVC 编译链（VS Build Tools：C++ 桌面工作负载 + Windows SDK）",
+      "local_only": true,
+      "healthcheck_command": "vswhere.exe",
+      "external_paths": [
+        {
+          "declared": "10-toolchains/msvc/VC/Auxiliary/Build/vcvars64.bat",
+          "resolved": "D:\\All projects\\OS External Configuration\\10-toolchains\\msvc\\VC\\Auxiliary\\Build\\vcvars64.bat",
+          "exists": true
+        }
+      ]
+    },
+    {
+      "name": "playwright-chromium",
+      "category": "toolchains",
+      "purpose": "browser-smoke / e2e 测试浏览器，亦是 F03 渲染通道使用的无头浏览器（缓存于 toolchains/playwright）",
+      "local_only": true,
+      "healthcheck_command": "playwright --version",
+      "external_paths": [
+        {
+          "declared": "10-toolchains/playwright/chromium-1228/chrome-win64/chrome.exe",
+          "resolved": "D:\\All projects\\OS External Configuration\\10-toolchains\\playwright\\chromium-1228\\chrome-win64\\chrome.exe",
+          "exists": true
+        }
+      ]
+    },
+    {
+      "name": "webview2-evergreen",
+      "category": "runtimes",
+      "purpose": "桌面壳 WebView2 运行时（Evergreen 自动更新，OS 级）",
+      "local_only": true,
+      "healthcheck_command": "Get-ItemProperty 'HKLM:\\SOFTWARE\\WOW6432Node\\Microsoft\\EdgeUpdate\\Clients\\{F3017226-FE2A-4295-8BDF-00C3A9A7E4C5}'",
+      "external_paths": []
+    },
+    {
+      "name": "archeaxis-ci-venv",
+      "category": "runtimes",
+      "purpose": "CI/开发虚拟环境（UV_PROJECT_ENVIRONMENT 指向外部仓）",
+      "local_only": true,
+      "healthcheck_command": "uv run python --version",
+      "external_paths": []
+    },
+    {
+      "name": "desktop-runtime-v1",
+      "category": "runtimes",
+      "purpose": "桌面运行时 v1（runtimes/desktop-runtime-v1）",
+      "local_only": true,
+      "healthcheck_command": "Test-Path runtimes/desktop-runtime-v1",
+      "external_paths": []
+    },
+    {
+      "name": "tesseract",
+      "category": "engines",
+      "purpose": "图像 OCR 引擎（scoop 5.5.0 + leptonica 1.85.0）",
+      "local_only": false,
+      "healthcheck_command": "tesseract --version",
+      "external_paths": [
+        {
+          "declared": "10-toolchains/scoop/apps/tesseract/current/tesseract.exe",
+          "resolved": "D:\\All projects\\OS External Configuration\\10-toolchains\\scoop\\apps\\tesseract\\5.5.0.20241111\\tesseract.exe",
+          "exists": true
+        }
+      ]
+    },
+    {
+      "name": "tesseract-languages",
+      "category": "engines",
+      "purpose": "Tesseract 语言包（chi_sim 中文简体 + eng 英文；TESSDATA_PREFIX 指向 4.1.0 目录）",
+      "local_only": false,
+      "healthcheck_command": "tesseract --list-langs",
+      "external_paths": [
+        {
+          "declared": "10-toolchains/scoop/apps/tesseract-languages/current",
+          "resolved": "D:\\All projects\\OS External Configuration\\10-toolchains\\scoop\\apps\\tesseract-languages\\4.1.0",
+          "exists": true
+        }
+      ]
+    },
+    {
+      "name": "antiword",
+      "category": "engines",
+      "purpose": "Word 97 .doc 纯文本旁路读取（MSYS2 打包 antiword 0.37；健康检查以 -h 自报身份，退出码非 0 是该引擎的正常行为）",
+      "local_only": true,
+      "healthcheck_command": "antiword -h",
+      "external_paths": [
+        {
+          "declared": "10-toolchains/antiword/antiword.exe",
+          "resolved": "D:\\All projects\\OS External Configuration\\10-toolchains\\antiword\\antiword.exe",
+          "exists": true
+        }
+      ]
+    },
+    {
+      "name": "antiword-mappings",
+      "category": "engines",
+      "purpose": "antiword 字符映射表目录（目录名必须为 .antiword；worker 把它的父目录作为 HOME 交给引擎，否则搬出安装目录的副本读不到 UTF-8.txt 就拒绝出文）",
+      "local_only": true,
+      "healthcheck_command": "antiword -h",
+      "external_paths": [
+        {
+          "declared": "10-toolchains/antiword/.antiword",
+          "resolved": "D:\\All projects\\OS External Configuration\\10-toolchains\\antiword\\.antiword",
+          "exists": true
+        }
+      ]
+    },
+    {
+      "name": "zulu-jre",
+      "category": "engines",
+      "purpose": "Apache Tika 运行所需的 JVM（Azul Zulu Community 21.0.12.1，x64 Windows，无 JavaFX）",
+      "local_only": true,
+      "healthcheck_command": "java -version",
+      "external_paths": [
+        {
+          "declared": "10-toolchains/java/zulu-jre-21.0.12.1/bin/java.exe",
+          "resolved": "D:\\All projects\\OS External Configuration\\10-toolchains\\java\\zulu-jre-21.0.12.1\\bin\\java.exe",
+          "exists": true
+        }
+      ]
+    },
+    {
+      "name": "apache-tika",
+      "category": "engines",
+      "purpose": "旧二进制演示文稿 `.ppt` 的读取旁路（Apache Tika 4.1.0 tika-app 发行包，含 lib/ 与 plugins/）",
+      "local_only": true,
+      "healthcheck_command": "java -jar 10-toolchains/tika/4.1.0/tika-app-4.1.0.jar --version",
+      "external_paths": [
+        {
+          "declared": "10-toolchains/tika/4.1.0/tika-app-4.1.0.jar",
+          "resolved": "D:\\All projects\\OS External Configuration\\10-toolchains\\tika\\4.1.0\\tika-app-4.1.0.jar",
+          "exists": true
+        }
+      ]
+    },
+    {
+      "name": "ffmpeg",
+      "category": "engines",
+      "purpose": "音视频解码、格式转换、关键帧提取（只用 LGPL 子集）",
+      "local_only": false,
+      "healthcheck_command": "ffmpeg -version",
+      "external_paths": [
+        {
+          "declared": "10-toolchains/scoop/apps/ffmpeg/current/bin/ffmpeg.exe",
+          "resolved": "D:\\All projects\\OS External Configuration\\10-toolchains\\scoop\\apps\\ffmpeg\\8.1.2\\bin\\ffmpeg.exe",
+          "exists": true
+        }
+      ]
+    },
+    {
+      "name": "rapidocr",
+      "category": "engines",
+      "purpose": "三语种 OCR 引擎（ONNX 无重框架，bake-off 实测 CER 最优）",
+      "local_only": false,
+      "healthcheck_command": "uv run python -c \"import rapidocr_onnxruntime\"",
+      "external_paths": []
+    },
+    {
+      "name": "faster-whisper",
+      "category": "engines",
+      "purpose": "ASR 转写引擎（base 模型首次运行自动下载至 HF 缓存 ~150MB）",
+      "local_only": false,
+      "healthcheck_command": "uv run python -c \"import faster_whisper\"",
+      "external_paths": []
+    },
+    {
+      "name": "sherpa-onnx",
+      "category": "engines",
+      "purpose": "SenseVoice 本地 ASR 运行时（优先使用项目隔离环境，模型从共享 Model library 读取）",
+      "local_only": false,
+      "healthcheck_command": "uv run --extra asr-sensevoice python -c \"import sherpa_onnx\"",
+      "external_paths": []
+    },
+    {
+      "name": "rapidocr-ppocr-onnx",
+      "category": "models",
+      "purpose": "PP-OCR ONNX 模型（RapidOCR 首次运行自动下载 ~15MB）",
+      "local_only": true,
+      "healthcheck_command": "首次运行验证",
+      "external_paths": []
+    },
+    {
+      "name": "faster-whisper-base",
+      "category": "models",
+      "purpose": "Whisper base 模型（~150MB；运行时由 dev.py 将 HF 缓存路由到项目 `.project-local/runs/<run-id>/cache`）",
+      "local_only": true,
+      "healthcheck_command": "首次运行验证",
+      "external_paths": []
+    },
+    {
+      "name": "faster-whisper-large-v3-turbo",
+      "category": "models",
+      "purpose": "真实转写实际使用的 large-v3-turbo 权重（从共享 Model library 读取；此前只能靠 ARCHEAXIS_ASR_MODEL_DIR 环境变量发现）",
+      "local_only": true,
+      "healthcheck_command": "共享 Model library 内目录存在",
+      "external_paths": [
+        {
+          "declared": "whisper/faster-whisper-large-v3-turbo",
+          "resolved": "D:\\All projects\\Model library\\whisper\\faster-whisper-large-v3-turbo",
+          "exists": true,
+          "sibling_root": "model-library"
+        }
+      ]
+    },
+    {
+      "name": "sense-voice-zh-en-ja-ko-yue",
+      "category": "models",
+      "purpose": "SenseVoice int8 模型（从共享 Model library 读取，不复制进 Git）",
+      "local_only": true,
+      "healthcheck_command": "Test-Path $env:ARCHEAXIS_MODEL_LIBRARY_DIR\\sherpa-onnx\\*\\model.int8.onnx",
+      "external_paths": [
+        {
+          "declared": "sherpa-onnx",
+          "resolved": "D:\\All projects\\Model library\\sherpa-onnx",
+          "exists": true,
+          "sibling_root": "model-library"
+        }
+      ]
+    },
+    {
+      "name": "magika-standard-v3",
+      "category": "models",
+      "purpose": "文件类型检测 ONNX 模型（优先共享 Model library；仓库副本仅作离线回退）",
+      "local_only": true,
+      "healthcheck_command": "Test-Path $env:ARCHEAXIS_MAGIKA_MODEL_DIR\\model.onnx",
+      "external_paths": []
+    }
+  ],
+  "missing_on_this_host": []
+}

@@ -45,6 +45,7 @@
         "learning_reference",
         "machine_answer",
         "machine_correction",
+        "machine_retest",
         "machine_task_get",
         "source_job_transform",
         "knowledge_from_transform",

@@ -88,8 +88,13 @@ class ExternalToolchainTest(unittest.TestCase):
             self.os.environ["OS_EXTERNAL_CONFIG"] = str(root)
             found = dev.external_toolchain()
             self.assertEqual(
-                set(found), {"ARCHEAXIS_MSVC_VCVARS", "ARCHEAXIS_RUST_TOOLCHAINS", "PATH", "TESSDATA_PREFIX"}
+                set(found),
+                {"ARCHEAXIS_EXTERNAL_ROOT", "ARCHEAXIS_MSVC_VCVARS", "ARCHEAXIS_RUST_TOOLCHAINS",
+                 "PATH", "TESSDATA_PREFIX"},
             )
+            # The child gets the root variable too: the worker tool resolver reads it to find
+            # a declared ffmpeg, and without it the windowed and OCR cases skip.
+            self.assertEqual(found["ARCHEAXIS_EXTERNAL_ROOT"], str(root))
             self.assertTrue(Path(found["ARCHEAXIS_MSVC_VCVARS"]).is_file())
             self.assertTrue((Path(found["ARCHEAXIS_RUST_TOOLCHAINS"]) / "cargo" / "bin" / "cargo.exe").is_file())
             self.assertTrue(found["PATH"].startswith(str(root / "10-toolchains" / "scoop" / "apps" / "tesseract" / "current")))
@@ -103,6 +108,7 @@ class ExternalToolchainTest(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             root = _fake_root(Path(tmp), msvc=False, rust=True, tesseract=False, tessdata=False)
             self.os.environ["ARCHEAXIS_EXTERNAL_ROOT"] = str(root)
+            # ARCHEAXIS_EXTERNAL_ROOT is already set here, so it is not re-added.
             self.assertEqual(set(dev.external_toolchain()), {"ARCHEAXIS_RUST_TOOLCHAINS"})
 
     def test_a_valid_inherited_value_wins(self) -> None:
@@ -135,6 +141,32 @@ class ExternalToolchainTest(unittest.TestCase):
             self.os.environ["OS_EXTERNAL_CONFIG"] = str(root)
             self.os.environ["PATH"] = tesseract + self.os.pathsep + self.os.environ.get("PATH", "")
             self.assertNotIn("PATH", dev.external_toolchain())
+
+    def test_a_recorded_root_is_used_when_the_environment_registers_none(self) -> None:
+        """The tracked index may supply the host's root, but never override the environment.
+
+        Without this, a host whose root is recorded but not exported silently skips the nine
+        tool-backed format cases -- 287 passed with 9 skipped instead of 296 with none. A
+        recorded path that does not exist is ignored, which is what keeps CI unaffected.
+        """
+        import json
+        import tempfile
+
+        with tempfile.TemporaryDirectory() as tmp:
+            repo = Path(tmp)
+            (repo / "config" / "environment").mkdir(parents=True)
+            index = repo / "config" / "environment" / "external-resources-index.json"
+            root = _fake_root(repo / "host", msvc=False, rust=False, tesseract=True, tessdata=False)
+            index.write_text(json.dumps({"external_root": str(root)}), encoding="utf-8")
+            found = dev.external_toolchain(repo)
+            self.assertEqual(found.get("ARCHEAXIS_EXTERNAL_ROOT"), str(root))
+
+            index.write_text(json.dumps({"external_root": str(repo / "absent")}), encoding="utf-8")
+            self.assertEqual(dev.external_toolchain(repo), {})
+
+            # An exported root still wins over the index.
+            self.os.environ["ARCHEAXIS_EXTERNAL_ROOT"] = str(repo / "absent")
+            self.assertEqual(dev.external_toolchain(repo), {})
 
 
 if __name__ == "__main__":

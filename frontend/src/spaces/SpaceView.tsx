@@ -23,11 +23,13 @@ export function SpaceView({
   onInspect,
   onNavigate,
   libraryNavigation,
+  selectedCapabilityId,
 }: {
   spaceId: SpaceId;
   onInspect: (target: InspectionTarget) => void;
   onNavigate: (id: SpaceId) => void;
   libraryNavigation?: { section: LibrarySection; sequence: number };
+  selectedCapabilityId?: string | null;
 }) {
   const view = useRef<HTMLDivElement>(null);
   useEffect(() => {
@@ -42,10 +44,13 @@ export function SpaceView({
     return () => transition.cancel();
   }, [spaceId]);
   const content = (() => {
+  if (selectedCapabilityId) {
+    return <CanonicalCapabilitiesSpace onNavigate={onNavigate} selectedCapabilityId={selectedCapabilityId} />;
+  }
   if (window.__TAURI__?.core?.invoke) {
     switch (spaceId) {
       case "workspace":
-        return <><CanonicalCapabilitiesSpace onNavigate={onNavigate} /><BackupPanel /></>;
+        return <><CanonicalCapabilitiesSpace onNavigate={onNavigate} selectedCapabilityId={selectedCapabilityId} /><BackupPanel /></>;
       case "library":
       case "intake":
       case "exchange":
@@ -57,7 +62,7 @@ export function SpaceView({
       case "learning":
         return <CanonicalLearningSpace />;
       case "settings":
-        return <CanonicalCapabilitiesSpace onNavigate={onNavigate} />;
+        return <CanonicalCapabilitiesSpace onNavigate={onNavigate} selectedCapabilityId={selectedCapabilityId} />;
     }
   }
   switch (spaceId) {

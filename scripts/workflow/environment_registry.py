@@ -42,7 +42,27 @@ def _probe_version(executable: str | None, path: str | None) -> tuple[str | None
     return (line[0].strip()[:200] if line and line[0].strip() else None), "probed"
 
 
-def _external_path(entry: dict) -> str | None:
+def sibling_root(root: Path, declared: object, name: object) -> Path | None:
+    """The declared sibling root `name` resolves to, or None.
+
+    A shared resource beside the external root — the model library is the real case — is reached
+    through a root this manifest names, never by writing `..` into `external_paths`. One level up
+    and one directory down is the whole allowance, so the reachable set is what the manifest says
+    rather than wherever a traversal happens to point.
+    """
+    if not isinstance(declared, dict) or not isinstance(name, str):
+        return None
+    relative = declared.get(name)
+    if not isinstance(relative, str):
+        return None
+    parts = Path(relative).parts
+    if len(parts) != 2 or parts[0] != ".." or Path(relative).is_absolute():
+        return None
+    candidate = (root / Path(relative)).resolve()
+    return candidate if candidate.is_dir() else None
+
+
+def _external_path(entry: dict, siblings: object = None) -> str | None:
     """Resolve a declared shared-tool path without guessing or installing.
 
     The root is supplied explicitly by the caller so a missing PATH entry does
@@ -55,14 +75,20 @@ def _external_path(entry: dict) -> str | None:
     root = Path(root_value).expanduser()
     if not root.is_absolute():
         return None
+    base = root.resolve()
+    if entry.get("sibling_root") is not None:
+        resolved = sibling_root(root, siblings, entry.get("sibling_root"))
+        if resolved is None:
+            return None
+        base = resolved
     for candidate in entry.get("external_paths", []) or []:
         if not isinstance(candidate, str) or not candidate.strip():
             continue
         relative = Path(candidate)
         if relative.is_absolute() or ".." in relative.parts:
             continue
-        path = (root / relative).resolve()
-        if (path.is_file() or path.is_dir()) and path.is_relative_to(root.resolve()):
+        path = (base / relative).resolve()
+        if (path.is_file() or path.is_dir()) and path.is_relative_to(base):
             return str(path)
     return None
 
@@ -79,6 +105,7 @@ def resolve(manifest: Path) -> dict:
         raise RuntimeError("PyYAML is required to resolve the environment registry")
     data = yaml.safe_load(manifest.read_text(encoding="utf-8")) or {}
     capabilities = data.get("capabilities", {})
+    siblings = data.get("sibling_roots")
     resolved: list[dict] = []
     for category, entries in capabilities.items():
         for entry in entries or []:
@@ -87,7 +114,7 @@ def resolve(manifest: Path) -> dict:
             path = shutil.which(executable) if executable else None
             external = False
             if not path:
-                path = _external_path(entry)
+                path = _external_path(entry, siblings)
                 external = bool(path)
             version, probe_status = _probe_version(executable, path)
             resolved.append({

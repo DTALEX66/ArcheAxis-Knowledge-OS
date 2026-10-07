@@ -7,6 +7,7 @@ import { Inspector, type InspectionTarget } from "../components/Inspector";
 import { SpaceView } from "../spaces/SpaceView";
 import { RecoveryShell } from "../components/RecoveryShell";
 import { ContextNav, type LibrarySection } from "../components/ContextNav";
+import { EFFECTIVE_NAVIGATION_ENTRIES, resolveNavigationHash } from "../presentation/navigation";
 import {
   enterRecoverySafeMode,
   getRecoveryStatus,
@@ -28,15 +29,17 @@ const DESKTOP_LIVENESS_INTERVAL_MS = 10_000;
 const RECOVERY_BOOT_POLL_MS = 250;
 const RECOVERY_BOOT_TIMEOUT_MS = 30_000;
 
-// AXW-UI-802: six-space shell following task pack §15.3 fixed structure:
-// top status bar | left rail (six spaces) | context subnav | center view |
-// right inspector | bottom activity dock.
+// AXW-UI-802: composite left navigation, central task area, on-demand inspector,
+// and activity dock. Capability entries share one generated navigation projection.
 export function App() {
   const desktop = Boolean(window.__TAURI__?.core?.invoke);
-  const [activeSpace, setActiveSpace] = useState<SpaceId>(desktop ? "library" : "workspace");
+  const [initialNavigation] = useState(() => resolveNavigationHash(window.location.hash));
+  const [activeSpace, setActiveSpace] = useState<SpaceId>(initialNavigation?.spaceId ?? (desktop ? "library" : "workspace"));
+  const [selectedCapabilityId, setSelectedCapabilityId] = useState<string | null>(initialNavigation?.capabilityId ?? null);
   const [libraryNavigation, setLibraryNavigation] = useState<{ section: LibrarySection; sequence: number }>({ section: "sources", sequence: 0 });
   const [inspectionTarget, setInspectionTarget] = useState<InspectionTarget | null>(null);
   const [inspectorOpen, setInspectorOpen] = useState(false);
+  const [learningFocus, setLearningFocus] = useState(false);
   const [desktopReady, setDesktopReady] = useState(!desktop);
   const [verificationPending, setVerificationPending] = useState(desktop);
   const [recoveryStatus, setRecoveryStatus] = useState<RecoveryStatusDto | null>(
@@ -45,6 +48,7 @@ export function App() {
   const operation = useRef({ epoch: 0, mounted: true });
   const [commandPaletteOpen, setCommandPaletteOpen] = useState(false);
   const draftDirty = useRef(false);
+  const navigationHash = useRef(window.location.hash);
   const liveness = useRef<{
     generation: number;
     timeout: ReturnType<typeof globalThis.setTimeout> | null;
@@ -64,11 +68,67 @@ export function App() {
     return () => window.removeEventListener("archeaxis-draft-dirty", listener);
   }, []);
 
+  useEffect(() => {
+    const protectDocumentClose = (event: BeforeUnloadEvent) => {
+      if (!draftDirty.current) return;
+      event.preventDefault();
+      event.returnValue = "";
+    };
+    window.addEventListener("beforeunload", protectDocumentClose);
+    return () => window.removeEventListener("beforeunload", protectDocumentClose);
+  }, []);
+
+  useEffect(() => {
+    const listener = (event: Event) => {
+      const focused = (event as CustomEvent<boolean>).detail === true;
+      setLearningFocus(focused);
+      if (focused) setInspectorOpen(false);
+    };
+    window.addEventListener("archeaxis-learning-focus", listener);
+    return () => window.removeEventListener("archeaxis-learning-focus", listener);
+  }, []);
+
   const navigate = useCallback((id: SpaceId) => {
     if (draftDirty.current && !window.confirm("草稿尚未保存，请先保留文字。仍要离开吗？")) return;
     setActiveSpace(id);
+    if(id!=="learning"&&learningFocus){setLearningFocus(false);window.dispatchEvent(new CustomEvent("archeaxis-learning-focus",{detail:false}));}
+    setSelectedCapabilityId(null);
     setInspectionTarget(null);
-  }, []);
+    const nextHash = `#space=${encodeURIComponent(id)}`;
+    if (window.location.hash !== nextHash) window.history.replaceState(null, "", `${window.location.pathname}${window.location.search}${nextHash}`);
+    navigationHash.current = nextHash;
+  }, [learningFocus]);
+
+  const openCapability = useCallback((id: string) => {
+    const entry = EFFECTIVE_NAVIGATION_ENTRIES.find((item) => item.entry_id === id && item.capability);
+    if (!entry?.capability) return;
+    if (draftDirty.current && !window.confirm("草稿尚未保存，请先保留文字。仍要离开吗？")) return;
+    setActiveSpace("settings");
+    if(learningFocus){setLearningFocus(false);window.dispatchEvent(new CustomEvent("archeaxis-learning-focus",{detail:false}));}
+    setSelectedCapabilityId(id);
+    setInspectionTarget(null);
+    const nextHash = `#capability/${encodeURIComponent(id)}`;
+    if (window.location.hash !== nextHash) window.history.replaceState(null, "", `${window.location.pathname}${window.location.search}${nextHash}`);
+    navigationHash.current = nextHash;
+  }, [learningFocus]);
+
+  useEffect(() => {
+    const onHashChange = () => {
+      if (draftDirty.current && !window.confirm("草稿尚未保存，请先保留文字。仍要离开吗？")) {
+        window.history.replaceState(null, "", `${window.location.pathname}${window.location.search}${navigationHash.current}`);
+        return;
+      }
+      const target = resolveNavigationHash(window.location.hash);
+      if (!target) return;
+      if(target.spaceId!=="learning"&&learningFocus){setLearningFocus(false);window.dispatchEvent(new CustomEvent("archeaxis-learning-focus",{detail:false}));}
+      navigationHash.current = window.location.hash;
+      setActiveSpace(target.spaceId);
+      setSelectedCapabilityId(target.capabilityId);
+      setInspectionTarget(null);
+    };
+    window.addEventListener("hashchange", onHashChange);
+    return () => window.removeEventListener("hashchange", onHashChange);
+  }, [learningFocus]);
 
   const inspect = useCallback((target: InspectionTarget) => {
     setInspectionTarget(target);
@@ -374,19 +434,23 @@ export function App() {
           : verificationPending ? "checking" : desktopReady ? "available" : "unavailable"}
         externalDev={recoveryStatus?.external_dev === true}
         onNavigate={navigate}
+        onOpenCapability={openCapability}
+        selectedCapabilityId={selectedCapabilityId}
         onCommandPaletteOpenChange={setCommandPaletteOpen}
         inspectorOpen={inspectorOpen}
         onToggleInspector={toggleInspector}
       />
       <div className="app-body">
-        <SpaceRail active={activeSpace} onNavigate={navigate} spaces={SPACES} />
-        <ContextNav active={activeSpace} onNavigate={navigate} librarySection={libraryNavigation.section} onLibrarySection={desktop ? section => setLibraryNavigation(previous => ({section, sequence: previous.sequence + 1})) : undefined} />
+        {!learningFocus && <aside className="navigation-sidebar" aria-label="产品导航">
+          <SpaceRail active={activeSpace} onNavigate={navigate} onOpenCapability={openCapability} activeCapabilityId={selectedCapabilityId} spaces={SPACES} />
+          {!selectedCapabilityId && <ContextNav active={activeSpace} onNavigate={navigate} librarySection={libraryNavigation.section} onLibrarySection={desktop ? section => setLibraryNavigation(previous => ({section, sequence: previous.sequence + 1})) : undefined} />}
+        </aside>}
         <main className="app-center" role="main" aria-label="当前空间内容">
-          <SpaceView spaceId={activeSpace} onInspect={inspect} onNavigate={navigate} libraryNavigation={libraryNavigation} />
+          <SpaceView spaceId={activeSpace} onInspect={inspect} onNavigate={navigate} libraryNavigation={libraryNavigation} selectedCapabilityId={selectedCapabilityId} />
         </main>
-        {inspectorOpen ? <Inspector target={inspectionTarget} onClose={() => setInspectorOpen(false)} /> : null}
+        {inspectorOpen && !selectedCapabilityId && !learningFocus ? <Inspector target={inspectionTarget} onClose={() => setInspectorOpen(false)} /> : null}
       </div>
-      <ActivityDock onInspect={inspect} commandPaletteOpen={commandPaletteOpen} />
+      {!learningFocus && <ActivityDock onInspect={inspect} commandPaletteOpen={commandPaletteOpen} />}
     </div>
   );
 }

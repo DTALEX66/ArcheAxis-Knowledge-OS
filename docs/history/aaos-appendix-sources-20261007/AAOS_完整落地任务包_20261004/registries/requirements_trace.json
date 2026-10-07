@@ -1,0 +1,132 @@
+{
+  "requirements": [
+    {
+      "requirement_id": "U01",
+      "text": "独立思考，不盲从用户和 DSH",
+      "task_ids": [
+        "W01"
+      ]
+    },
+    {
+      "requirement_id": "U02",
+      "text": "专用知识/学习 Agent 与原定位一致",
+      "task_ids": [
+        "W30"
+      ]
+    },
+    {
+      "requirement_id": "U03",
+      "text": "开源池吸收按证据对账",
+      "task_ids": [
+        "W03",
+        "W25",
+        "W32"
+      ]
+    },
+    {
+      "requirement_id": "U04",
+      "text": "优质开源/获奖 UI 与 OpenHuman 参考",
+      "task_ids": [
+        "W10",
+        "W14"
+      ]
+    },
+    {
+      "requirement_id": "U05",
+      "text": "学习科研研发 API/平台能力优先",
+      "task_ids": [
+        "W19",
+        "W20",
+        "W25",
+        "W26",
+        "W30",
+        "W32"
+      ]
+    },
+    {
+      "requirement_id": "U06",
+      "text": "插件/技能/来源/调用关系明确显示",
+      "task_ids": [
+        "W09",
+        "W13",
+        "W14",
+        "W19"
+      ]
+    },
+    {
+      "requirement_id": "U07",
+      "text": "加入原雷达并保留通知真实性",
+      "task_ids": [
+        "W35"
+      ]
+    },
+    {
+      "requirement_id": "U08",
+      "text": "成熟可执行、可恢复与受控审批",
+      "task_ids": [
+        "W00",
+        "W04",
+        "W05",
+        "W06",
+        "W07",
+        "W09",
+        "W15",
+        "W16",
+        "W18",
+        "W31",
+        "W33",
+        "W34",
+        "W36"
+      ]
+    },
+    {
+      "requirement_id": "U09",
+      "text": "所有现有/未来有效能力可发现并可折叠",
+      "task_ids": [
+        "W02",
+        "W12",
+        "W17",
+        "W24"
+      ]
+    },
+    {
+      "requirement_id": "U10",
+      "text": "原生界面必须好看，视觉独立验收",
+      "task_ids": [
+        "W08",
+        "W10",
+        "W11",
+        "W12",
+        "W14",
+        "W17",
+        "W24",
+        "W32"
+      ]
+    },
+    {
+      "requirement_id": "U11",
+      "text": "本次对话完整任务包与交接",
+      "task_ids": [
+        "W01",
+        "W33"
+      ]
+    },
+    {
+      "requirement_id": "U12",
+      "text": "知识库全部适用能力+双向无缝转换，缺口加入专项",
+      "task_ids": [
+        "W01",
+        "W03",
+        "W12",
+        "W21",
+        "W22",
+        "W23",
+        "W24",
+        "W27",
+        "W28",
+        "W29",
+        "W32"
+      ]
+    }
+  ]
+}

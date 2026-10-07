@@ -217,9 +217,16 @@ ROUTES = {
     "text.extract": {
         "version": "1",
         "worker": "services/python-workers/document/worker_text.py",
+        # A mail carries attachments the reader cannot see as text. They go through the same
+        # member channel a container uses: this table alone decides which media type gets a
+        # transfer directory, so no other text format is ever handed one.
+        "member_dir_by_media": {
+            "message/rfc822": {"dir": "members", "kwarg": "member_dir"},
+        },
         "media_types": {
             "text/plain",
             "text/markdown",
+            "text/x-python",
             "text/csv",
             "text/tab-separated-values",
             "application/json",
@@ -231,6 +238,12 @@ ROUTES = {
             "application/toml",
             "application/epub+zip",
             "message/rfc822",
+            # R15/F13: the Core names these for the text route, and this worker reads them;
+            # a one-sided list would make the product promise a format it then rejects here.
+            "application/vnd.oasis.opendocument.text",
+            "application/vnd.oasis.opendocument.spreadsheet",
+            "application/vnd.oasis.opendocument.presentation",
+            "application/rtf",
         },
         "call": "path",
         # R15/F01: this worker derives format facts from the declared media type, so
@@ -306,13 +319,29 @@ ROUTES = {
             "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
             "application/vnd.openxmlformats-officedocument.presentationml.presentation",
             "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            # R15/F14: the legacy binary workbook, read by the declared xlrd engine
+            "application/vnd.ms-excel",
+            # R15/F14: the legacy binary document, read by a probed external sidecar. The route
+            # is declared, the engine is not assumed: an absent sidecar is a named failure.
+            "application/msword",
+            # R15/F14: the legacy binary presentation, read by the declared Tika sidecar over a
+            # declared JVM. Same rule: the route names it, the probe decides whether it runs.
+            "application/vnd.ms-powerpoint",
         },
         "call": "path",
+        # A converted sheet is a durable transfer file, so this route may receive the area
+        # for it - but only for the media type listed here, the way the mail route does.
+        "member_dir_by_media": {
+            "application/vnd.ms-excel": {"dir": "members", "kwarg": "member_dir"},
+        },
         # this worker dispatches on the file suffix, so it needs a suffixed view
         "suffix_by_media": {
             "application/vnd.openxmlformats-officedocument.wordprocessingml.document": ".docx",
             "application/vnd.openxmlformats-officedocument.presentationml.presentation": ".pptx",
             "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet": ".xlsx",
+            "application/vnd.ms-excel": ".xls",
+            "application/msword": ".doc",
+            "application/vnd.ms-powerpoint": ".ppt",
         },
     },
     # R15/F12: the canvas and subtitle workers existed unreachable too; each produces
@@ -465,7 +494,49 @@ def _as_route_contract(result: dict, route_capability: str) -> dict:
     return {**result, "structure": anchors, "loss_receipt": receipt}
 
 
-def _run_route(route, source: Path, media_type: str, artifact_root: Path | None = None, deadline: float | None = None) -> dict:
+def declared_split(capability: str, parameters) -> dict | None:
+    """The split this job asks for, or None.
+
+    A long recording cannot be transcribed inside the Core's 300 s job bound, so it is split into
+    bounded windows. That choice rides `parameters`, which every other route still requires to be
+    empty: it is not a general-purpose parameter channel, it is the one capability that has a
+    bounded unit of work to describe.
+
+    Only the *choice* is carried. The window plan itself is derived from the recording's real
+    duration inside the worker, because a plan sent over the wire could leave a gap between two
+    windows, look well-formed, and silently drop the audio between them.
+    """
+    if not isinstance(parameters, dict):
+        raise Rejected("parameters must be an object")
+    if parameters == {}:
+        return None
+    if capability != "media.transcribe":
+        raise Rejected(f"{capability} requires empty parameters")
+    unknown = set(parameters) - {"split", "staging", "words"}
+    if unknown:
+        raise Rejected("split parameters may only carry split, staging and words")
+    if set(parameters) == {"words"}:
+        # Word timings without a split is the ordinary case for a short recording.
+        if parameters["words"] is not True:
+            raise Rejected("a word-timing request must set words to true")
+        return None
+    if parameters.get("split") is not True:
+        raise Rejected("a split transcription must set split to true")
+    staging = parameters.get("staging")
+    if staging is not None and (not isinstance(staging, str) or not staging.strip()):
+        raise Rejected("staging must be a non-empty path string when present")
+    # The decoder is the declared engine, never a caller-supplied binary: a path in the request
+    # would be a way to run an arbitrary executable through the worker. Resolving the declaration
+    # here uses the same resolver the OCR route already uses for tesseract, so there is one reader
+    # of `capability-requirements.yaml` rather than a second one in the Core.
+    ffmpeg = _declared_tool_path("ffmpeg")
+    if ffmpeg is None:
+        raise Rejected("no declared ffmpeg resolved for a split transcription")
+    return {"ffmpeg": str(ffmpeg).strip(), "staging": staging}
+
+
+def _run_route(route, source: Path, media_type: str, artifact_root: Path | None = None, deadline: float | None = None,
+               split: dict | None = None, remaining_ms: int | None = None, words: bool = False) -> dict:
     """Load the route's worker and extract with its own entry-point shape."""
     relative_worker = Path(route["worker"])
     if relative_worker.parts[:2] == ("services", "python-workers"):
@@ -520,6 +591,16 @@ def _run_route(route, source: Path, media_type: str, artifact_root: Path | None 
         # transport does not pin one unless an operator has.
         kwargs["language"] = os.environ.get("ARCHEAXIS_ASR_LANG", "").strip() or "auto"
         kwargs["device"] = os.environ.get("ARCHEAXIS_ASR_DEVICE", "").strip() or "cpu"
+        # Asked for is not the same as delivered: the worker reports which granularity it
+        # actually produced, and a request that received none is visible in the receipt.
+        kwargs["word_timestamps"] = bool(words)
+        if split is not None:
+            if not hasattr(module, "extract_split"):
+                raise Rejected("the transcribe worker does not support splitting")
+            return _as_route_contract(module.extract_split(
+                str(filesystem_path(view)), model_path=kwargs["model_path"], language=kwargs["language"],
+                device=kwargs["device"], ffmpeg=split["ffmpeg"], staging=split["staging"],
+                remaining_ms=remaining_ms, word_timestamps=words), route.get("capability", "route"))
         return _as_route_contract(module.extract(str(filesystem_path(view)), **kwargs),
                                   route.get("capability", "route"))
     if route.get("suffix_by_media"):
@@ -528,6 +609,15 @@ def _run_route(route, source: Path, media_type: str, artifact_root: Path | None 
             raise Rejected("unsupported media type for this capability", "AAK-VAL-002")
         # the worker's own structure is kept as a fact while the route contract carries
         # canonical line anchors, so both the worker's view and the contract hold
+        media_key = media_type.split(";", 1)[0].strip().lower()
+        member = route.get("member_dir_by_media", {}).get(media_key)
+        if member is not None and artifact_root is not None:
+            target = safe_path(artifact_root / member["dir"], missing=True)
+            return _as_route_contract(
+                module.extract(str(filesystem_path(_materialise_view(source, suffix))),
+                               **{member["kwarg"]: filesystem_path(target)}),
+                route.get("capability", "route"),
+            )
         return _as_route_contract(
             module.extract(str(filesystem_path(_materialise_view(source, suffix)))), route.get("capability", "route")
         )
@@ -541,7 +631,16 @@ def _run_route(route, source: Path, media_type: str, artifact_root: Path | None 
         target = safe_path(artifact_root / route["artifact_dir"], missing=True)
         return module.extract(str(filesystem_path(source)), **{route.get("artifact_kwarg", "artifact_dir"): filesystem_path(target)})
     if route.get("media_type_arg"):
-        return module.extract(str(filesystem_path(source)), media_type.split(";", 1)[0].strip().lower())
+        media_name = media_type.split(";", 1)[0].strip().lower()
+        member = route.get("member_dir_by_media", {}).get(media_name)
+        if member is None:
+            return module.extract(str(filesystem_path(source)), media_name)
+        if artifact_root is None:
+            # No Core-owned transfer area means nothing is written and nothing is declared.
+            return module.extract(str(filesystem_path(source)), media_name)
+        target = safe_path(artifact_root / member["dir"], missing=True)
+        return module.extract(str(filesystem_path(source)), media_name,
+                              **{member["kwarg"]: filesystem_path(target)})
     if route.get("contract_adapter"):
         return _as_route_contract(module.extract(str(filesystem_path(source))), route.get("capability", "route"))
     return module.extract(str(filesystem_path(source)))
@@ -569,9 +668,13 @@ def execute(request, staging: Path, artifact_root: Path | None = None):
         raise Rejected("unsupported capability")
     if request["capability_version"] != route["version"] or request["protocol_minor"] != 0:
         raise Rejected("unsupported capability or protocol version", "AAK-PROTO-001")
-    if (not isinstance(request["parameters"], dict)
-            or request["parameters"] or not isinstance(request["inputs"], list) or len(request["inputs"]) != 1):
-        raise Rejected(f"{request['capability']} v{route['version']} requires one input, integer minor and empty parameters")
+    split = declared_split(request["capability"], request["parameters"])
+    # `declared_split` already refused any parameter this capability may not carry, so what is
+    # left under "words" is a validated request for word-level timings.
+    words = bool(request["parameters"].get("words"))
+    if not isinstance(request["inputs"], list) or len(request["inputs"]) != 1:
+        raise Rejected(f"{request['capability']} v{route['version']} requires one input, integer minor and "
+                       + ("split parameters" if split else "empty parameters"))
     deadline = time.monotonic() + request["deadline_ms"] / 1000
 
     def check_deadline():
@@ -597,8 +700,13 @@ def execute(request, staging: Path, artifact_root: Path | None = None):
     if hashlib.sha256(raw).hexdigest() != digest:
         raise Rejected("input content hash mismatch", "AAK-HASH-001")
     check_deadline()
+    # The remaining wall clock is what a split invocation gets to work with; the worker subtracts
+    # its own declared overhead, so the policy has one owner.
+    remaining_ms = max(0, int((deadline - time.monotonic()) * 1000))
     result = (_run_route(route, source, asset["media_type"], artifact_root, deadline)
-              if route["call"] == "video_transcribe" else _run_route(route, source, asset["media_type"], artifact_root))
+              if route["call"] == "video_transcribe"
+              else _run_route(route, source, asset["media_type"], artifact_root, split=split, words=words,
+                              remaining_ms=remaining_ms))
     reread, current_identity = read_regular(source, limit=input_limit)
     if current_identity != identity or reread != raw:
         raise Rejected("input changed during extraction", "AAK-HASH-001")

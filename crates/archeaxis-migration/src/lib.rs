@@ -36,18 +36,54 @@ fn export_filename(name: &str) -> String {
     }
 }
 
-fn manifest_digest(tables: &BTreeMap<String, TableExport>) -> String {
+/// The digest that identifies this export.
+///
+/// The tables that could *not* be read are hashed too. Leaving them out would make a manifest with
+/// a gap interchangeable with one without it — the same digest would describe both, so a later
+/// reader comparing digests could not tell that a table had been dropped.
+fn manifest_digest(
+    tables: &BTreeMap<String, TableExport>,
+    unqueried: &BTreeMap<String, String>,
+) -> String {
     let mut h = Sha256::new();
     for (name, table) in tables {
         h.update(name.as_bytes());
         h.update(table.rows.to_le_bytes());
         h.update(table.sha256.as_bytes());
     }
+    for (name, reason) in unqueried {
+        h.update(b"unqueried:");
+        h.update(name.as_bytes());
+        h.update(reason.as_bytes());
+    }
     hex::encode(h.finalize())
 }
 
 /// Inventory user tables of a legacy DB (read-only; excludes sqlite internals).
+///
+/// All-or-nothing: the first table this build cannot read fails the whole call, naming that table
+/// in the error. Use [`inventory_reporting_unreadable`] when the caller wants to see the readable
+/// tables beside the one that needs an engine this build does not carry.
 pub fn inventory(db_path: &str) -> rusqlite::Result<Vec<TableSummary>> {
+    let (readable, unreadable) = inventory_reporting_unreadable(db_path)?;
+    if let Some((name, reason)) = unreadable.into_iter().next() {
+        return Err(rusqlite::Error::SqliteFailure(
+            rusqlite::ffi::Error::new(rusqlite::ffi::SQLITE_ERROR),
+            Some(format!("{name}: {reason}")),
+        ));
+    }
+    Ok(readable)
+}
+
+/// Inventory user tables, separating the ones that could be read from the ones that could not.
+///
+/// A legacy database can legitimately use a module this build does not carry — the real legacy
+/// store here has a `sqlite-vec` `vec0` index table. Reporting that as "the inventory failed"
+/// turns "one table needs an extension" into "the database is unreadable", which sends someone
+/// looking for a corrupt file. The unreadable side keeps the engine's own reason per table.
+pub fn inventory_reporting_unreadable(
+    db_path: &str,
+) -> rusqlite::Result<(Vec<TableSummary>, BTreeMap<String, String>)> {
     let conn = Connection::open_with_flags(db_path, rusqlite::OpenFlags::SQLITE_OPEN_READ_ONLY)?;
     let mut stmt = conn.prepare(
         "SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%' AND name NOT LIKE 'knowledge_fts%' ORDER BY name",
@@ -56,12 +92,19 @@ pub fn inventory(db_path: &str) -> rusqlite::Result<Vec<TableSummary>> {
         .query_map([], |r| r.get(0))?
         .collect::<Result<_, _>>()?;
     let mut out = Vec::new();
+    let mut unreadable = BTreeMap::new();
     for name in names {
-        let count: i64 = conn.query_row(
+        let count: i64 = match conn.query_row(
             &format!("SELECT count(*) FROM {}", quote_identifier(&name)),
             [],
             |r| r.get(0),
-        )?;
+        ) {
+            Ok(count) => count,
+            Err(error) => {
+                unreadable.insert(name, error.to_string());
+                continue;
+            }
+        };
         let cols: Vec<String> = conn
             .prepare("SELECT name FROM pragma_table_info(?1)")?
             .query_map([&name], |r| r.get(0))?
@@ -72,18 +115,26 @@ pub fn inventory(db_path: &str) -> rusqlite::Result<Vec<TableSummary>> {
             columns: cols,
         });
     }
-    Ok(out)
+    Ok((out, unreadable))
 }
 
-/// Export every user table to JSONL in `out_dir`; returns per-table files with
-/// a content manifest. One line per row (JSON object of column -> value).
+/// Export every *readable* user table to JSONL in `out_dir`; returns per-table files with a content
+/// manifest naming any table it could not read. One line per row (JSON object of column -> value).
+///
+/// A table this build cannot open is recorded in `unqueried_tables` with the engine's reason rather
+/// than failing the whole export: the real legacy store has a `sqlite-vec` virtual table and no such
+/// module here, and aborting on it preserved nothing at all — 88 readable tables went unexported
+/// because one needed an extension. The gap is named, so a partial preservation is never mistaken
+/// for a complete one.
 pub fn export_jsonl(db_path: &str, out_dir: &str) -> Result<ExportManifest, MigrationError> {
     let conn = Connection::open_with_flags(db_path, rusqlite::OpenFlags::SQLITE_OPEN_READ_ONLY)?;
     std::fs::create_dir_all(out_dir).map_err(MigrationError::Io)?;
-    let summary = inventory(db_path).map_err(MigrationError::Sql)?;
+    let (summary, unqueried) =
+        inventory_reporting_unreadable(db_path).map_err(MigrationError::Sql)?;
     let mut manifest = ExportManifest {
         exported_at_unix: 0,
         tables: BTreeMap::new(),
+        unqueried_tables: unqueried,
         manifest_sha256: String::new(),
     };
     for t in &summary {
@@ -128,7 +179,7 @@ pub fn export_jsonl(db_path: &str, out_dir: &str) -> Result<ExportManifest, Migr
             },
         );
     }
-    manifest.manifest_sha256 = manifest_digest(&manifest.tables);
+    manifest.manifest_sha256 = manifest_digest(&manifest.tables, &manifest.unqueried_tables);
     let mpath = Path::new(out_dir).join("export-manifest.json");
     let mut manifest_file = std::fs::OpenOptions::new()
         .write(true)
@@ -151,6 +202,10 @@ pub struct TableExport {
 pub struct ExportManifest {
     pub exported_at_unix: u64,
     pub tables: BTreeMap<String, TableExport>,
+    /// Tables this build could not read, with the engine's own reason. Named, never omitted: an
+    /// export that silently dropped a table would look complete.
+    #[serde(default)]
+    pub unqueried_tables: BTreeMap<String, String>,
     #[serde(default)]
     pub manifest_sha256: String,
 }
@@ -213,7 +268,7 @@ fn hex_sha256_bytes(data: &[u8]) -> String {
 
 /// Verify every exported table file against the manifest (hash + row count).
 fn verify_export(export_dir: &str, manifest: &ExportManifest) -> Result<(), MigrationError> {
-    if manifest.manifest_sha256 != manifest_digest(&manifest.tables) {
+    if manifest.manifest_sha256 != manifest_digest(&manifest.tables, &manifest.unqueried_tables) {
         return Err(MigrationError::Io(std::io::Error::new(
             std::io::ErrorKind::InvalidData,
             "export manifest digest mismatch",
@@ -510,6 +565,296 @@ pub fn stage_legacy_learning_history(
                 }
             }
             Err(_) => result.row_errors += 1,
+        }
+    }
+    Ok(result)
+}
+
+// ---------- Owner ruling 2026-10-06: merge what is useful, drop what is not ----------
+// Every table in the export gets exactly one named disposition, so "dropped" is always a
+// recorded decision and never a silent omission.
+
+/// One table's decision in the selective migration.
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
+pub struct LegacyTableDisposition {
+    pub table: String,
+    /// "merged", "discarded" (nothing to carry) or "not_merged" (kept in the export, no target).
+    pub action: String,
+    pub reason: String,
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone, Default, PartialEq)]
+pub struct SelectiveStageResult {
+    pub intake_cards_seen: u64,
+    pub intake_cards_staged: u64,
+    pub lessons_seen: u64,
+    pub lessons_staged: u64,
+    pub reused: u64,
+    pub row_errors: u64,
+    pub dispositions: Vec<LegacyTableDisposition>,
+    pub losses: Vec<String>,
+}
+
+/// Bookkeeping belongs to the database that made it; vNext records its own history.
+const LEGACY_BOOKKEEPING: &[&str] = &["schema_migrations", "migration_operator_runs"];
+/// Tables whose semantics the mainline can carry as Knowledge candidates.
+const MERGED_TABLES: &[&str] = &["ir_intake_cards", "machine_lessons"];
+
+fn json_text(row: &serde_json::Value, key: &str) -> String {
+    row.get(key)
+        .and_then(serde_json::Value::as_str)
+        .unwrap_or("")
+        .trim()
+        .to_string()
+}
+
+/// A JSON array column rendered as a bullet list; an empty or unparsable list yields "".
+fn json_list_as_lines(row: &serde_json::Value, key: &str) -> String {
+    let raw = json_text(row, key);
+    let parsed: Vec<String> = match serde_json::from_str::<Vec<serde_json::Value>>(&raw) {
+        Ok(items) => items
+            .iter()
+            .filter_map(|item| item.as_str().map(str::to_string))
+            .collect(),
+        Err(_) => vec![raw],
+    };
+    parsed
+        .iter()
+        .map(|item| format!("- {item}\n"))
+        .collect::<Vec<_>>()
+        .join("")
+}
+
+fn disposition(table: &str, action: &str, reason: &str) -> LegacyTableDisposition {
+    LegacyTableDisposition {
+        table: table.to_string(),
+        action: action.to_string(),
+        reason: reason.to_string(),
+    }
+}
+
+/// Stage the tables the mainline can express as Knowledge candidates and name the fate of
+/// every remaining exported table. Fidelity rules:
+/// - human intake cards become PERSONAL_DEFINITION candidates owned by `human`, source_type
+///   `imported_legacy`, with no claimed support and human review still required;
+/// - machine lessons become OBSERVATION candidates owned by `machine` (contract: a machine
+///   owner must use `machine_candidate`, which cannot be accepted automatically);
+/// - the writer is `archeaxis_domain::knowledge`, never a hand-rolled insert;
+/// - a re-run replays the same rows (reused) instead of duplicating them.
+pub fn stage_legacy_library_selectively(
+    export_dir: &str,
+    staging_db: &str,
+) -> Result<SelectiveStageResult, MigrationError> {
+    let manifest_raw = std::fs::read_to_string(Path::new(export_dir).join("export-manifest.json"))
+        .map_err(MigrationError::Io)?;
+    let manifest: ExportManifest =
+        serde_json::from_str(&manifest_raw).map_err(MigrationError::Json)?;
+    verify_export(export_dir, &manifest)?;
+
+    let mut conn =
+        archeaxis_store_sqlite::init_workspace(staging_db).map_err(MigrationError::Sql)?;
+    let mut result = SelectiveStageResult::default();
+
+    let mut stage_one = |table: &str,
+                         kind: &str,
+                         owner: &str,
+                         source_type: &str,
+                         build: &dyn Fn(&serde_json::Value) -> (Option<String>, Option<String>)|
+     -> Result<(), MigrationError> {
+        let Some(entry) = manifest.tables.get(table) else {
+            return Ok(());
+        };
+        if entry.rows == 0 {
+            return Ok(());
+        }
+        let raw = std::fs::read_to_string(Path::new(export_dir).join(export_filename(table)))
+            .map_err(MigrationError::Io)?;
+        for (index, line) in raw.lines().enumerate() {
+            if line.trim().is_empty() {
+                continue;
+            }
+            let row: serde_json::Value =
+                serde_json::from_str(line).map_err(MigrationError::Json)?;
+            let legacy_id = row
+                .get("id")
+                .and_then(|value| match value {
+                    serde_json::Value::String(text) => Some(text.clone()),
+                    other => other.as_i64().map(|number| number.to_string()),
+                })
+                .unwrap_or_else(|| format!("line{}", index + 1));
+            let (body, loss) = build(&row);
+            let Some(body) = body else {
+                if let Some(reason) = loss {
+                    result.row_errors += 1;
+                    result.losses.push(format!("{table} {legacy_id}: {reason}"));
+                }
+                continue;
+            };
+            let risk = match json_text(&row, "risk_level").as_str() {
+                "medium" | "high" | "critical" => json_text(&row, "risk_level"),
+                _ => "low".to_string(),
+            };
+            let metadata = archeaxis_domain::knowledge::KnowledgeV3Metadata {
+                source_type: source_type.to_string(),
+                owner: owner.to_string(),
+                support_level: "none".to_string(),
+                confidence: None,
+                risk_level: risk,
+                valid_from: None,
+                valid_to: None,
+                external_evidence: vec![],
+                requires_human_review: true,
+            };
+            let created_by = format!("legacy_cognitive_os:{table}:{legacy_id}");
+            match archeaxis_domain::knowledge::create_knowledge_v3(
+                &mut conn,
+                kind,
+                &body,
+                "candidate",
+                Some("UNSOURCED"),
+                None,
+                &created_by,
+                Some(&metadata),
+            ) {
+                Ok(_) => match table {
+                    "ir_intake_cards" => result.intake_cards_staged += 1,
+                    _ => result.lessons_staged += 1,
+                },
+                Err(error) => {
+                    let duplicate = matches!(
+                        &error,
+                        rusqlite::Error::SqliteFailure(failure, _)
+                            if failure.code == rusqlite::ErrorCode::ConstraintViolation
+                    );
+                    if duplicate {
+                        result.reused += 1;
+                    } else {
+                        result.row_errors += 1;
+                        result
+                            .losses
+                            .push(format!("{table} {legacy_id}: refused ({error})"));
+                    }
+                }
+            }
+        }
+        Ok(())
+    };
+
+    if let Some(entry) = manifest.tables.get("ir_intake_cards") {
+        result.intake_cards_seen = entry.rows;
+    }
+    if let Some(entry) = manifest.tables.get("machine_lessons") {
+        result.lessons_seen = entry.rows;
+    }
+    stage_one(
+        "ir_intake_cards",
+        "PERSONAL_DEFINITION",
+        "human",
+        "imported_legacy",
+        &|row| {
+            let title = json_text(row, "title");
+            let why = json_text(row, "why");
+            if title.is_empty() && why.is_empty() {
+                return (
+                    None,
+                    Some("empty title and why; nothing to carry".to_string()),
+                );
+            }
+            let mut body = format!("{title}\n\n");
+            if !why.is_empty() {
+                body.push_str(&format!("Why: {why}\n\n"));
+            }
+            let absorb = json_list_as_lines(row, "what_to_absorb_json");
+            if !absorb.is_empty() {
+                body.push_str(&format!("Absorb:\n{absorb}\n"));
+            }
+            let refuse = json_list_as_lines(row, "what_not_to_absorb_json");
+            if !refuse.is_empty() {
+                body.push_str(&format!("Refuse:\n{refuse}\n"));
+            }
+            for (label, key) in [("Target", "target_repo"), ("Risk", "risk_level")] {
+                let value = json_text(row, key);
+                if !value.is_empty() {
+                    body.push_str(&format!("{label}: {value}\n"));
+                }
+            }
+            (Some(body), None)
+        },
+    )?;
+    stage_one(
+        "machine_lessons",
+        "OBSERVATION",
+        "machine",
+        "machine_candidate",
+        &|row| {
+            let pattern = json_text(row, "pattern");
+            let constraint = json_text(row, "future_constraint");
+            if pattern.is_empty() && constraint.is_empty() {
+                return (None, Some("empty pattern and constraint".to_string()));
+            }
+            let mut body = String::new();
+            for (label, key) in [
+                ("Pattern", "pattern"),
+                ("Lesson type", "lesson_type"),
+                ("Future constraint", "future_constraint"),
+                ("Evidence trace", "evidence_trace_id"),
+            ] {
+                let value = json_text(row, key);
+                if !value.is_empty() {
+                    body.push_str(&format!("{label}: {value}\n"));
+                }
+            }
+            (Some(body), None)
+        },
+    )?;
+
+    for table in manifest.tables.keys() {
+        let rows = manifest.tables[table].rows;
+        let merged = MERGED_TABLES.contains(&table.as_str()) && rows > 0;
+        let outcome = if merged {
+            disposition(table, "merged", "staged as a Knowledge candidate")
+        } else if rows == 0 {
+            disposition(table, "discarded", "exported with 0 rows; nothing to carry")
+        } else if table.contains("_fts") || table.ends_with("_FTS") {
+            disposition(
+                table,
+                "discarded",
+                "full-text shadow storage, rebuilt from its content table",
+            )
+        } else if LEGACY_BOOKKEEPING.contains(&table.as_str()) {
+            disposition(
+                table,
+                "discarded",
+                "legacy bookkeeping; the vNext schema records its own history",
+            )
+        } else if table.starts_with("vec_") {
+            disposition(
+                table,
+                "not_merged",
+                "vector storage for content rows this library holds; the mainline has no vector table yet",
+            )
+        } else {
+            disposition(
+                table,
+                "not_merged",
+                "preserved in the fidelity export; no mainline target named for it",
+            )
+        };
+        result.dispositions.push(outcome);
+    }
+    for (table, reason) in &manifest.unqueried_tables {
+        result.dispositions.push(LegacyTableDisposition {
+            table: table.clone(),
+            action: "not_merged".to_string(),
+            reason: format!("this build could not read it: {reason}"),
+        });
+    }
+
+    for &table in MERGED_TABLES {
+        if manifest.tables.contains_key(table) && manifest.tables[table].rows > 0 {
+            result.losses.push(format!(
+                "{table}.created_at (legacy) is not carried: vNext records its own import time"
+            ));
         }
     }
     Ok(result)

@@ -1,0 +1,165 @@
+{
+  "what": "uncommitted work in the Green tree's ArcheAxis-Knowledge-OS worktree",
+  "worktree": "D:\\All projects\\ArcheAxis.Knowledge.Green-x64\\.ui-task-tree\\ArcheAxis-Knowledge-OS",
+  "head": "7282e5a947dfcd7896e0a55af81635b8a013fee0",
+  "modified": [
+    "apps/ArcheAxis.Desktop/Assets/aaos-app-icon.ico",
+    "apps/ArcheAxis.Desktop/MainWindow.axaml",
+    "apps/ArcheAxis.Desktop/MainWindow.axaml.cs",
+    "apps/ArcheAxis.Desktop/Themes/AaosTheme.axaml",
+    "apps/ArcheAxis.Desktop/Views/EvidenceCenterView.axaml",
+    "apps/ArcheAxis.Desktop/Views/EvidenceCenterView.axaml.cs",
+    "apps/ArcheAxis.Desktop/Views/SourceReaderView.axaml",
+    "docs/current/AAOS_VISUAL_QA.md",
+    "docs/current/UI_IMPLEMENTATION_REPORT.md",
+    "docs/current/UI_V3_PRODUCT_ROADMAP.md",
+    "tests/test_avalonia_visual_authority.py",
+    "tests/test_desktop_navigation_contract.py",
+    "tests/test_desktop_routes_v1.py"
+  ],
+  "patch": {
+    "file": "green-ui-task-tree-7282e5a9-20261006.patch",
+    "bytes": 336622,
+    "sha256": "81dc481db7e47b7a0d04d8ef1d331829b61d0dd4a0434a98330911ef0e372b4a"
+  },
+  "untracked": [
+    {
+      "path": "apps/ArcheAxis.Desktop/AaosBrandMark.axaml",
+      "bytes": 1803,
+      "sha256": "cd5060953e823411b3aa9c730e5b033f4f51cb6ea8a091c3cade565a277d8bca"
+    },
+    {
+      "path": "apps/ArcheAxis.Desktop/AaosBrandMark.axaml.cs",
+      "bytes": 2228,
+      "sha256": "b634ab5e57508691615a15bb890c89c7e12a1466b1e6a585a9d889f5a8dfadca"
+    },
+    {
+      "path": "apps/ArcheAxis.Desktop/AaosIcon.axaml",
+      "bytes": 1012,
+      "sha256": "f80b67950d089fc44dfc2c63a106dd95da04c68cdba2737d7a76a82a993c75ee"
+    },
+    {
+      "path": "apps/ArcheAxis.Desktop/AaosIcon.axaml.cs",
+      "bytes": 3407,
+      "sha256": "0bbbfec489259f7503ce5bb50e9906f6bfe58e0b826fa41bf028f9500e915dae"
+    },
+    {
+      "path": "apps/ArcheAxis.Desktop/AaosMemoryGraphView.axaml",
+      "bytes": 6184,
+      "sha256": "ee4456d31c7c4c414b63e52db362a7d9e9cd9193d64177bd36987699db4953d9"
+    },
+    {
+      "path": "apps/ArcheAxis.Desktop/AaosMemoryGraphView.axaml.cs",
+      "bytes": 1921,
+      "sha256": "eca7234d98f1a36a45df0299fea74e41ee5b63c83bf5ebfd97b57c6b5b8a2dd9"
+    },
+    {
+      "path": "apps/ArcheAxis.Desktop/AaosMemoryMapConstellation.axaml",
+      "bytes": 843,
+      "sha256": "4d50911395b47c359a3597ae75d584a3386748fb6ce1a3dfd5e8e59d8a1da918"
+    },
+    {
+      "path": "apps/ArcheAxis.Desktop/AaosMemoryMapConstellation.axaml.cs",
+      "bytes": 3345,
+      "sha256": "b9e3859bf7715123fa5646370b0ee71d8530a564051af047c58c8c485dfbbf0e"
+    },
+    {
+      "path": "apps/ArcheAxis.Desktop/AaosReviewScheduleChart.axaml",
+      "bytes": 2670,
+      "sha256": "1f1cec5f9ffeae5a1e3974b65aa32d39bdf4ed754333a179d2f125b0db5aaae5"
+    },
+    {
+      "path": "apps/ArcheAxis.Desktop/AaosReviewScheduleChart.axaml.cs",
+      "bytes": 200,
+      "sha256": "489075e427e4b45710504d32bdb4b63f57364f39718bf79bae5ee9b52e3ad770"
+    },
+    {
+      "path": "apps/ArcheAxis.Desktop/Assets/aaos-brand-mark.svg",
+      "bytes": 581,
+      "sha256": "df906c51fbee74e855f3805fe2ba93ccc050564bca273c1d3d0f77ab593c2729"
+    },
+    {
+      "path": "apps/ArcheAxis.Desktop/ThemePalette.cs",
+      "bytes": 4458,
+      "sha256": "09f4a138a656f393bfba01aaf52eadda68a792f5b11ec3373c25a307b3cbf6bc"
+    },
+    {
+      "path": "docs/current/AAOS-UI-FIDELITY-STATUS-20260927.md",
+      "bytes": 43385,
+      "sha256": "d10386270d63b491d3e1ca46af4872244f86348a83ea544499340adf99840c3f"
+    },
+    {
+      "path": "tests/test_aaos_icon_b10_contract.py",
+      "bytes": 2277,
+      "sha256": "855f725c86a262e67564f1b8f106d2f978eefdf0d8b4d96717eee8d259a4279e"
+    },
+    {
+      "path": "tests/test_b10_brand_mark_contract.py",
+      "bytes": 1460,
+      "sha256": "f279b89809527dbc2e1ed3cc9f15dcbb97fcd6505d46fcfd7fade393e1237e1a"
+    },
+    {
+      "path": "tests/test_evidence_detail_master_contract.py",
+      "bytes": 2415,
+      "sha256": "304da74e9547a55c6c920ec6367fab8ac22c71762223412956f700941613028b"
+    },
+    {
+      "path": "tests/test_human_learning_b05_contract.py",
+      "bytes": 1568,
+      "sha256": "0bb0e5a93f3b09df4962509c60b6f56ab8d4b1c3ad207be49fee9daee15926e1"
+    },
+    {
+      "path": "tests/test_machine_learning_b05_contract.py",
+      "bytes": 2243,
+      "sha256": "1ae6cd254e4532b81a40a62acfd2ace84c177a966f3fa44b134c66ba060ea6b0"
+    },
+    {
+      "path": "tests/test_review_chart_master_contract.py",
+      "bytes": 1925,
+      "sha256": "f5f601f1dd92312fc2d2a99479a7e27dbacfe2a24d83cfdc60eaacb9ca9f3b4b"
+    },
+    {
+      "path": "tests/test_search_b05_contract.py",
+      "bytes": 1929,
+      "sha256": "6760e3a81ecb29c761a3563cf94f57caab7a1bcfee7a9866686878825eb595ed"
+    },
+    {
+      "path": "tests/test_workspace_b05_contract.py",
+      "bytes": 1098,
+      "sha256": "5cdb10796dcc0e20f7f03125ddab79defeba36cee8d036704a88aa4cb01fa5f7"
+    }
+  ],
+  "rule": "preservation point required before the worktree can be removed",
+  "archive": {
+    "file": "green-ui-task-tree-7282e5a9-20261006-preserved.zip",
+    "bytes": 101071,
+    "sha256": "681bd7201c83467345caf5fcb73c13ef327ba329505bf33256ccd83118a76efc",
+    "members": {
+      "green-ui-task-tree-7282e5a9-20261006.patch": "81dc481db7e47b7a0d04d8ef1d331829b61d0dd4a0434a98330911ef0e372b4a",
+      "untracked": {
+        "apps/ArcheAxis.Desktop/AaosBrandMark.axaml": "cd5060953e823411b3aa9c730e5b033f4f51cb6ea8a091c3cade565a277d8bca",
+        "apps/ArcheAxis.Desktop/AaosBrandMark.axaml.cs": "b634ab5e57508691615a15bb890c89c7e12a1466b1e6a585a9d889f5a8dfadca",
+        "apps/ArcheAxis.Desktop/AaosIcon.axaml": "f80b67950d089fc44dfc2c63a106dd95da04c68cdba2737d7a76a82a993c75ee",
+        "apps/ArcheAxis.Desktop/AaosIcon.axaml.cs": "0bbbfec489259f7503ce5bb50e9906f6bfe58e0b826fa41bf028f9500e915dae",
+        "apps/ArcheAxis.Desktop/AaosMemoryGraphView.axaml": "ee4456d31c7c4c414b63e52db362a7d9e9cd9193d64177bd36987699db4953d9",
+        "apps/ArcheAxis.Desktop/AaosMemoryGraphView.axaml.cs": "eca7234d98f1a36a45df0299fea74e41ee5b63c83bf5ebfd97b57c6b5b8a2dd9",
+        "apps/ArcheAxis.Desktop/AaosMemoryMapConstellation.axaml": "4d50911395b47c359a3597ae75d584a3386748fb6ce1a3dfd5e8e59d8a1da918",
+        "apps/ArcheAxis.Desktop/AaosMemoryMapConstellation.axaml.cs": "b9e3859bf7715123fa5646370b0ee71d8530a564051af047c58c8c485dfbbf0e",
+        "apps/ArcheAxis.Desktop/AaosReviewScheduleChart.axaml": "1f1cec5f9ffeae5a1e3974b65aa32d39bdf4ed754333a179d2f125b0db5aaae5",
+        "apps/ArcheAxis.Desktop/AaosReviewScheduleChart.axaml.cs": "489075e427e4b45710504d32bdb4b63f57364f39718bf79bae5ee9b52e3ad770",
+        "apps/ArcheAxis.Desktop/Assets/aaos-brand-mark.svg": "df906c51fbee74e855f3805fe2ba93ccc050564bca273c1d3d0f77ab593c2729",
+        "apps/ArcheAxis.Desktop/ThemePalette.cs": "09f4a138a656f393bfba01aaf52eadda68a792f5b11ec3373c25a307b3cbf6bc",
+        "docs/current/AAOS-UI-FIDELITY-STATUS-20260927.md": "d10386270d63b491d3e1ca46af4872244f86348a83ea544499340adf99840c3f",
+        "tests/test_aaos_icon_b10_contract.py": "855f725c86a262e67564f1b8f106d2f978eefdf0d8b4d96717eee8d259a4279e",
+        "tests/test_b10_brand_mark_contract.py": "f279b89809527dbc2e1ed3cc9f15dcbb97fcd6505d46fcfd7fade393e1237e1a",
+        "tests/test_evidence_detail_master_contract.py": "304da74e9547a55c6c920ec6367fab8ac22c71762223412956f700941613028b",
+        "tests/test_human_learning_b05_contract.py": "0bb0e5a93f3b09df4962509c60b6f56ab8d4b1c3ad207be49fee9daee15926e1",
+        "tests/test_machine_learning_b05_contract.py": "1ae6cd254e4532b81a40a62acfd2ace84c177a966f3fa44b134c66ba060ea6b0",
+        "tests/test_review_chart_master_contract.py": "f5f601f1dd92312fc2d2a99479a7e27dbacfe2a24d83cfdc60eaacb9ca9f3b4b",
+        "tests/test_search_b05_contract.py": "6760e3a81ecb29c761a3563cf94f57caab7a1bcfee7a9866686878825eb595ed",
+        "tests/test_workspace_b05_contract.py": "5cdb10796dcc0e20f7f03125ddab79defeba36cee8d036704a88aa4cb01fa5f7"
+      }
+    },
+    "why_zip": "a diff quotes original whitespace, so the payload is stored as bytes in an archive rather than normalised or exempted"
+  }
+}

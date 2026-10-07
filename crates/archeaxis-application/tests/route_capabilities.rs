@@ -39,6 +39,26 @@ fn every_declared_route_selects_its_capability_and_media_type() {
         ("text", "text.extract", "application/toml", "payload.toml"),
         ("text", "text.extract", "application/epub+zip", "book.epub"),
         ("text", "text.extract", "message/rfc822", "mail.eml"),
+        // R15/F13: an ODF package and an RTF file must reach the reader that exists for them.
+        (
+            "text",
+            "text.extract",
+            "application/vnd.oasis.opendocument.text",
+            "notes.odt",
+        ),
+        (
+            "text",
+            "text.extract",
+            "application/vnd.oasis.opendocument.spreadsheet",
+            "grid.ods",
+        ),
+        (
+            "text",
+            "text.extract",
+            "application/vnd.oasis.opendocument.presentation",
+            "deck.odp",
+        ),
+        ("text", "text.extract", "application/rtf", "letter.rtf"),
         ("pdf", "pdf.extract", "application/pdf", "sample.pdf"),
         ("image", "image.ocr", "image/png", "shot.png"),
         ("image", "image.ocr", "image/jpeg", "shot.jpg"),
@@ -161,8 +181,9 @@ fn canvas_and_subtitle_names_resolve_to_the_routes_that_can_read_them() {
 
 #[test]
 fn a_binary_container_name_is_refused_because_no_route_can_read_it() {
-    // These containers have no declared reader; EPUB has its own text adapter.
-    for name in ["mail.msg", "sheet.ods"] {
+    // These containers have no declared reader; EPUB has its own text adapter and the ODF
+    // families are read from their own content.xml, so neither appears here any more.
+    for name in ["mail.msg"] {
         let error = attempts::resolve_media_type("text", name)
             .unwrap_err()
             .to_string();
@@ -209,7 +230,37 @@ fn an_unnamed_extension_is_refused_rather_than_guessed() {
         attempts::accepted_media_types("pdf.extract"),
         ["application/pdf"]
     );
-    assert_eq!(attempts::accepted_media_types("text.extract").len(), 13);
+    assert_eq!(attempts::accepted_media_types("text.extract").len(), 18);
+    // R15/F13: the ODF families and RTF are named only because a reader exists for them here
+    for (name, media) in [
+        ("notes.odt", "application/vnd.oasis.opendocument.text"),
+        ("grid.ods", "application/vnd.oasis.opendocument.spreadsheet"),
+        (
+            "deck.odp",
+            "application/vnd.oasis.opendocument.presentation",
+        ),
+        ("letter.rtf", "application/rtf"),
+    ] {
+        assert_eq!(attempts::resolve_media_type("text", name).unwrap(), media);
+        assert!(
+            attempts::resolve_media_type("image", name).is_err(),
+            "{name} must not reach a route that cannot read it"
+        );
+    }
+    // R15/F01: a Python source is named because a symbol reader exists for it here, and the
+    // count above is only a guard until this pair is checked by content as well.
+    assert_eq!(
+        attempts::resolve_media_type("text", "tool.py").unwrap(),
+        "text/x-python"
+    );
+    // R15/F14: a Word 97 binary is named for the office route because a sidecar is probed for
+    // it, and it must never resolve as text - a ZIP-of-XML or OLE2 body decoded as text is noise
+    // that would be stored as if it were reading.
+    assert_eq!(
+        attempts::resolve_media_type("office", "letter.doc").unwrap(),
+        "application/msword"
+    );
+    assert!(attempts::resolve_media_type("text", "letter.doc").is_err());
     assert!(attempts::accepted_media_types("nothing.extract").is_empty());
 }
 

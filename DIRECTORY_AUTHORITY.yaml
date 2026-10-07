@@ -73,6 +73,14 @@ authorities:
     write_mode: serial-grant
     note: R5 exact-path ownership; changes still require the applicable owner scope.
     protected_resource: repository-metadata
+  - path: AUTHORITY.md
+    owner: repository-governance
+    execution_lane: owner
+    write_mode: serial-grant
+    note: Root navigational entry (2026-10-06). It routes a reader to the current task pack, the live
+      progress record and the audit index; it is not a second source of truth, and its references are
+      checked by scripts/ci/check_document_authority.py.
+    protected_resource: repository-metadata
   - path: CHANGELOG.md
     owner: repository-governance
     execution_lane: owner

@@ -34,6 +34,27 @@ def load_probe(monkeypatch):
     return module
 
 
+def test_installation_limitation_matches_the_run_it_describes(monkeypatch):
+    """A receipt must not call the executable a candidate when a parent supplied the installed host.
+
+    The literal string used to be unconditional, so the CI receipts carried a limitation that
+    contradicted their own ``installation_context`` and ``host.path`` -- the installed host under
+    the per-user install directory. Reading only that string is enough to conclude the journey did
+    not run an installed build, which is the opposite of what the receipt records.
+    """
+    probe = load_probe(monkeypatch)
+
+    local = probe.installation_limitation(None)
+    assert "Candidate executable" in local
+
+    installed = probe.installation_limitation(Path("ArcheAxis Knowledge_0.6.14_x64-setup.exe"))
+    assert "Candidate executable" not in installed, (
+        "a parent-supplied installed host is not a candidate executable; saying so contradicts "
+        "the receipt's own installation_context"
+    )
+    assert "parent installer verifier" in installed
+
+
 def test_native_observer_excludes_recycled_parent_pid_and_unrelated_processes(monkeypatch):
     probe = load_probe(monkeypatch)
     rows = [

@@ -26,6 +26,16 @@
       "type": "string",
       "minLength": 1
     },
+    "sibling_roots": {
+      "type": "object",
+      "description": "命名的邻近根：与本外置根同级的共享资源（如共享 Model library）。条目用 sibling_root 引用这里的名字，因此 external_paths 永远不必写 `..`；可到达的位置由本清单显式命名，而不是由路径遍历决定。",
+      "propertyNames": { "pattern": "^[a-z][a-z0-9-]*$" },
+      "additionalProperties": {
+        "type": "string",
+        "pattern": "^\\.\\.[/\\\\][^/\\\\]+$",
+        "description": "恰好上移一级再进入一个目录，如 ../Model library"
+      }
+    },
     "capabilities": {
       "type": "object",
       "additionalProperties": false,
@@ -135,7 +145,12 @@
             "minLength": 1,
             "pattern": "^(?![A-Za-z]:)(?!/)(?!\\\\)(?!.*\\.\\.).+$"
           },
-          "description": "共享外置库根目录下的相对候选路径；仅在显式外置根环境变量下探测"
+          "description": "共享外置库根目录下的相对候选路径；仅在显式外置根环境变量下探测。不接受 `..`：要引用同级共享资源请用 sibling_root，让可到达的位置由本清单显式命名"
+        },
+        "sibling_root": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9-]*$",
+          "description": "本条目的 external_paths 相对哪个命名邻近根解析（见顶层 sibling_roots）；缺省即相对外置根。共享 Model library 这类不位于外置根之内的资源用它声明，从而无需写 `..`"
         },
         "required_by": {
           "type": "array",

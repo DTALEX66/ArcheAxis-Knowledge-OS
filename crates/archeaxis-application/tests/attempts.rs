@@ -167,3 +167,116 @@ fn invalid_content_and_injected_commit_failure_leave_zero_partial_outputs() {
     conn.execute_batch("DROP TRIGGER break_output").unwrap();
     attempts::finish(&mut conn, &req, &r, &b).unwrap();
 }
+
+/// The split choice is persisted with the attempt it belongs to, and only the transcribing route
+/// may carry it. The stored `request_json` is the same bytes the worker receives, so replay
+/// compares against what actually ran rather than a shape the caller remembers.
+/// R15/F10: the word-timings choice is persisted with its attempt, and a route that cannot honour
+/// it is refused rather than silently ignoring the flag. The stored request is the bytes the worker
+/// receives, so a receipt claiming a granularity the request never asked for - or the reverse - stays
+/// visible to a reader.
+#[test]
+fn word_timings_reach_the_transcribe_request_and_are_refused_elsewhere() {
+    let dir = tempfile::tempdir().unwrap();
+    let (mut conn, _) = bootstrap(dir.path().join("words.sqlite").to_str().unwrap()).unwrap();
+    let sid = match source::import_source(&mut conn, b"RIFF....WAVEfmt ", "tone.wav", None).unwrap()
+    {
+        ImportOutcome::Imported { source_id, .. } => source_id,
+        _ => unreachable!(),
+    };
+    jobs::enqueue(&mut conn, "v", "transcribe", &sid).unwrap();
+    let request = attempts::claim_split(&mut conn, "v", "r-words", 300_000, None, true).unwrap();
+    assert_eq!(request.parameters["words"], json!(true));
+    assert!(
+        request.parameters.get("split").is_none(),
+        "asking for word timings must not imply a split"
+    );
+
+    // a plain claim stays parameter-free, and a route with no word timings refuses the flag with
+    // the protocol's own reason rather than dropping it
+    let sid_text = match source::import_source(&mut conn, b"plain text", "note.txt", None).unwrap()
+    {
+        ImportOutcome::Imported { source_id, .. } => source_id,
+        _ => unreachable!(),
+    };
+    jobs::enqueue(&mut conn, "u", "text", &sid_text).unwrap();
+    let refused = attempts::claim_split(&mut conn, "u", "r-words-text", 5000, None, true)
+        .err()
+        .expect("a text job must refuse the word-timings flag");
+    assert!(
+        refused.to_string().contains("only media.transcribe"),
+        "{refused}"
+    );
+    let plain = attempts::claim(&mut conn, "u", "r-plain-text", 5000).unwrap();
+    assert!(plain.parameters.is_empty());
+}
+
+#[test]
+fn a_split_choice_is_persisted_with_its_attempt_and_refused_for_other_routes() {
+    let dir = tempfile::tempdir().unwrap();
+    let (mut conn, _) = bootstrap(dir.path().join("split.sqlite").to_str().unwrap()).unwrap();
+    let sid = match source::import_source(&mut conn, b"RIFF....WAVEfmt ", "tone.wav", None).unwrap()
+    {
+        ImportOutcome::Imported { source_id, .. } => source_id,
+        _ => unreachable!(),
+    };
+    jobs::enqueue(&mut conn, "w", "transcribe", &sid).unwrap();
+    let split = attempts::Split {
+        root: dir.path().join("staging"),
+    };
+    let request =
+        attempts::claim_split(&mut conn, "w", "r-split", 300_000, Some(split), false).unwrap();
+    assert_eq!(request.parameters["split"], json!(true));
+    // Windows are keyed by the input's own digest, not by the job: a recording too long for one
+    // job takes several, and each later one must see what the earlier ones finished.
+    let digest = request.inputs[0].sha256.clone();
+    assert_eq!(
+        request.parameters["staging"],
+        json!(
+            dir.path()
+                .join("staging")
+                .join("windows")
+                .join(&digest)
+                .to_string_lossy()
+        )
+    );
+    // the staging directory is Core-owned, and neither an executable nor a window plan is carried
+    assert!(!request.parameters.contains_key("ffmpeg"));
+    assert!(!request.parameters.contains_key("window"));
+    let stored: String = conn
+        .query_row(
+            "SELECT request_json FROM job_attempts WHERE request_id='r-split'",
+            [],
+            |row| row.get(0),
+        )
+        .unwrap();
+    let stored: serde_json::Value = serde_json::from_str(&stored).unwrap();
+    assert_eq!(stored["parameters"]["split"], json!(true));
+
+    // a second attempt of the same job is refused while the first is running; a fresh job of the
+    // same kind still takes a plain claim, which carries no parameters at all
+    assert!(attempts::claim(&mut conn, "w", "r-again", 300_000).is_err());
+    jobs::enqueue(&mut conn, "w2", "transcribe", &sid).unwrap();
+    let plain = attempts::claim(&mut conn, "w2", "r-plain", 300_000).unwrap();
+    assert!(plain.parameters.is_empty());
+    // and a route with no bounded unit of work refuses the split choice
+    let sid_text = match source::import_source(&mut conn, b"plain text", "note.txt", None).unwrap()
+    {
+        ImportOutcome::Imported { source_id, .. } => source_id,
+        _ => unreachable!(),
+    };
+    jobs::enqueue(&mut conn, "t", "text", &sid_text).unwrap();
+    assert!(
+        attempts::claim_split(
+            &mut conn,
+            "t",
+            "r-text",
+            5000,
+            Some(attempts::Split {
+                root: dir.path().join("staging"),
+            }),
+            false,
+        )
+        .is_err()
+    );
+}

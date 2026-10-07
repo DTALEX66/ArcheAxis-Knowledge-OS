@@ -146,6 +146,7 @@ pub(crate) fn projections_base(state: Store, manual_receipts: bool) -> Router {
         .route("/api/v1/jobs/:job_id/quality", get(job_quality))
         .route("/api/v1/evidence/anchors", get(evidence_anchors))
         .route("/api/v1/sources/:source_id/members", get(source_members))
+        .route("/api/v1/sources/:source_id/pages", get(source_pages))
         .route("/api/v1/sources/:source_id/jobs", get(source_jobs))
         .route("/api/v1/workspaces/info", get(workspace_info));
     let routes = if manual_receipts {
@@ -1221,6 +1222,212 @@ fn verify_epub_anchor(
     Some(!text.is_empty() && format!("{:x}", Sha256::digest(text.as_bytes())) == checksum)
 }
 
+/// R15/F07-F09/F12: an anchor that names the location the worker described.
+///
+/// A route's canonical line anchors are the addressing level the Core validates, and a worker's
+/// own structure - which paragraph, which sheet row, which slide - was until now a reported fact
+/// inside the loss receipt, which is what "a heading is a fact rather than an addressing level"
+/// meant. This makes that description a locator that can be checked: the same attempt must be the
+/// latest succeeded one for this source and revision, the receipt must name this kind and path
+/// exactly once, and the text at the span it records must hash to the checksum being claimed.
+///
+/// What is deliberately NOT claimed: the span is the worker's own, so the anchor proves where this
+/// text sits in this projection revision, not an independently derived page number.
+fn verify_structure_anchor(
+    conn: &rusqlite::Connection,
+    source: &str,
+    revision: &str,
+    position: &serde_json::Value,
+    checksum: &str,
+) -> Option<bool> {
+    use sha2::{Digest, Sha256};
+    let job = position["job_id"].as_str()?;
+    let attempt = i64::try_from(position["attempt"].as_u64()?).ok()?;
+    let kind = position["kind"].as_str()?;
+    let claimed: Vec<&str> = position["path"]
+        .as_array()?
+        .iter()
+        .filter_map(|v| v.as_str())
+        .collect();
+    if claimed.is_empty() || claimed.len() != position["path"].as_array()?.len() {
+        return Some(false);
+    }
+    let row: (String, String, String, String, Option<String>, Option<String>, i64) = conn
+        .query_row(
+            "SELECT j.input_ref,j.state,a.state,o.content,
+                    (SELECT content FROM job_outputs WHERE job_id=j.job_id AND attempt=a.attempt AND kind='text'),
+                    (SELECT content FROM job_outputs WHERE job_id=j.job_id AND attempt=a.attempt AND kind='document_structure'),
+                    (SELECT COUNT(*) FROM job_attempts WHERE job_id=j.job_id AND attempt>?2)
+             FROM jobs j JOIN job_attempts a ON a.job_id=j.job_id
+             JOIN job_outputs o ON o.job_id=a.job_id AND o.attempt=a.attempt AND o.kind='loss_report'
+             WHERE j.job_id=?1 AND a.attempt=?2",
+            rusqlite::params![job, attempt],
+            |r| {
+                Ok((
+                    r.get(0)?,
+                    r.get(1)?,
+                    r.get(2)?,
+                    r.get(3)?,
+                    r.get(4)?,
+                    r.get(5)?,
+                    r.get(6)?,
+                ))
+            },
+        )
+        .ok()?;
+    let (input, job_state, attempt_state, loss_content, text, structure, later) = row;
+    if input != source || job_state != "succeeded" || attempt_state != "succeeded" || later != 0 {
+        return Some(false);
+    }
+    // the projection the structure was derived from, and the canonical anchors of the same attempt
+    let text = text?;
+    let structure: serde_json::Value = serde_json::from_str(&structure?).ok()?;
+    if !structure.is_array() {
+        return Some(false);
+    }
+    let wire: String = conn
+        .query_row(
+            "SELECT request_json FROM job_attempts WHERE job_id=?1 AND attempt=?2",
+            rusqlite::params![job, attempt],
+            |r| r.get(0),
+        )
+        .ok()?;
+    let request: serde_json::Value = serde_json::from_str(&wire).ok()?;
+    if request["job_id"] != job
+        || request["attempt"] != serde_json::json!(attempt)
+        || request["inputs"][0]["sha256"] != revision
+        || request["capability"].as_str().unwrap_or("").is_empty()
+    {
+        return Some(false);
+    }
+    let loss: serde_json::Value = serde_json::from_str(&loss_content).ok()?;
+    let entries = loss["params"]["worker_structure"].as_array()?;
+    let matching: Vec<&serde_json::Value> = entries
+        .iter()
+        .filter(|entry| {
+            entry["kind"].as_str() == Some(kind)
+                && entry["path"].as_array().is_some_and(|path| {
+                    path.iter()
+                        .filter_map(|v| v.as_str())
+                        .eq(claimed.iter().copied())
+                })
+        })
+        .collect();
+    if matching.len() != 1 {
+        return Some(false);
+    }
+    let start = usize::try_from(matching[0]["char_start"].as_u64()?).ok()?;
+    let end = usize::try_from(matching[0]["char_end"].as_u64()?).ok()?;
+    if end <= start {
+        return Some(false);
+    }
+    // A worker counts characters in its own projection (Python semantics), not bytes, so slicing
+    // this text by byte offsets would land mid-codepoint on any non-Latin document and refuse a
+    // location that really was read. Slice the way they counted.
+    let excerpt: String = text.chars().skip(start).take(end - start).collect();
+    Some(
+        excerpt.chars().count() == end - start
+            && !excerpt.trim().is_empty()
+            && format!("{:x}", Sha256::digest(excerpt.as_bytes())) == checksum,
+    )
+}
+
+/// R15/F01/F13: the same locator for the families that report positions in `params.format.locations`
+/// - the JSON and XML paths, mail parts and headers, ODF headings, cells and pages, RTF paragraphs
+/// and Python symbols. Those routes report a value rather than a span, so the check is on the
+/// value: it must appear in the projection this attempt wrote, and it must hash to the checksum.
+///
+/// A location that the receipt names more than once under one kind and path is refused rather than
+/// resolved by picking one, because picking silently is how two different things become one claim.
+fn verify_format_location_anchor(
+    conn: &rusqlite::Connection,
+    source: &str,
+    revision: &str,
+    position: &serde_json::Value,
+    checksum: &str,
+) -> Option<bool> {
+    use sha2::{Digest, Sha256};
+    let job = position["job_id"].as_str()?;
+    let attempt = i64::try_from(position["attempt"].as_u64()?).ok()?;
+    let kind = position["kind"].as_str()?;
+    let path = position["path"].as_str()?;
+    let (input, job_state, attempt_state, loss, text, later): (
+        String,
+        String,
+        String,
+        String,
+        Option<String>,
+        i64,
+    ) = conn
+        .query_row(
+            "SELECT j.input_ref,j.state,a.state,o.content,
+                    (SELECT content FROM job_outputs WHERE job_id=j.job_id AND attempt=a.attempt AND kind='text'),
+                    (SELECT COUNT(*) FROM job_attempts WHERE job_id=j.job_id AND attempt>?2)
+             FROM jobs j JOIN job_attempts a ON a.job_id=j.job_id
+             JOIN job_outputs o ON o.job_id=a.job_id AND o.attempt=a.attempt AND o.kind='loss_report'
+             WHERE j.job_id=?1 AND a.attempt=?2",
+            rusqlite::params![job, attempt],
+            |r| {
+                Ok((
+                    r.get(0)?,
+                    r.get(1)?,
+                    r.get(2)?,
+                    r.get(3)?,
+                    r.get(4)?,
+                    r.get(5)?,
+                ))
+            },
+        )
+        .ok()?;
+    if input != source || job_state != "succeeded" || attempt_state != "succeeded" || later != 0 {
+        return Some(false);
+    }
+    let text = text?;
+    let wire: String = conn
+        .query_row(
+            "SELECT request_json FROM job_attempts WHERE job_id=?1 AND attempt=?2",
+            rusqlite::params![job, attempt],
+            |r| r.get(0),
+        )
+        .ok()?;
+    let request: serde_json::Value = serde_json::from_str(&wire).ok()?;
+    if request["job_id"] != job
+        || request["attempt"] != serde_json::json!(attempt)
+        || request["inputs"][0]["sha256"] != revision
+        || request["capability"].as_str().unwrap_or("").is_empty()
+    {
+        return Some(false);
+    }
+    let loss: serde_json::Value = serde_json::from_str(&loss).ok()?;
+    let entries = loss["params"]["format"]["locations"].as_array()?;
+    // Several families reuse one path for many locations - every import in a Python source is
+    // `/symbols/import`, for instance - so an optional `where` of reported fields can narrow the
+    // match. It compares what the receipt said, field for field; it invents no new discriminator.
+    let where_ = position
+        .get("where")
+        .cloned()
+        .unwrap_or_else(|| serde_json::Value::Object(Default::default()));
+    let where_map = where_.as_object()?;
+    let matching: Vec<&serde_json::Value> = entries
+        .iter()
+        .filter(|entry| {
+            entry["kind"].as_str() == Some(kind)
+                && entry["path"].as_str() == Some(path)
+                && where_map
+                    .iter()
+                    .all(|(field, value)| entry.get(field) == Some(value))
+        })
+        .collect();
+    if matching.len() != 1 {
+        return Some(false);
+    }
+    let value = matching[0]["value"].as_str()?;
+    if value.trim().is_empty() || !text.contains(value) {
+        return Some(false);
+    }
+    Some(format!("{:x}", Sha256::digest(value.as_bytes())) == checksum)
+}
+
 #[derive(Deserialize)]
 struct AnchorBody {
     revision: String,
@@ -1281,6 +1488,16 @@ async fn create_anchor(
                 if position["type"] == "epub" {
                     return verify_epub_anchor(conn, &source_id, &body.revision, &position, &checksum);
                 }
+                if position["type"] == "worker_structure" {
+                    return verify_structure_anchor(
+                        conn, &source_id, &body.revision, &position, &checksum,
+                    );
+                }
+                if position["type"] == "format_location" {
+                    return verify_format_location_anchor(
+                        conn, &source_id, &body.revision, &position, &checksum,
+                    );
+                }
                 if position["type"] != "text" {
                     return None;
                 }
@@ -1294,7 +1511,8 @@ async fn create_anchor(
             if validation != Some(true) {
                 return (
                     StatusCode::BAD_REQUEST,
-                    "locator/checksum does not match immutable source or verified ASR cue",
+                    "locator/checksum does not match the immutable source, a verified ASR cue, an \
+                     epub paragraph, or the worker structure named by this attempt",
                 )
                     .into_response();
             }
@@ -1425,7 +1643,9 @@ async fn evidence_anchors(State(state): State<AppState>) -> impl IntoResponse {
 /// The relation is the one recorded at import time (an `import` origin whose reference
 /// names the container), so this endpoint answers a question about provenance rather
 /// than inventing a second store of relations. A member whose name resolved to no route
-/// appears with `readable: false` and no job: it is kept, and it is visible.
+/// appears with `readable: false` and no job: it is kept, and it is visible. A member that is
+/// itself a container past the Core's nesting budget appears with `nesting_limited: true`,
+/// because its route exists and only its own expansion stopped.
 async fn source_members(
     State(state): State<AppState>,
     Path(source_id): Path<String>,
@@ -1444,29 +1664,103 @@ async fn source_members(
         match container::members_of(conn, &source_id) {
             Ok(members) => {
                 let readable = members.iter().filter(|member| member.readable).count();
+                // A kept member with no job is either unread or stopped by the nesting budget;
+                // calling both "custody only" would claim a route does not exist when it does.
+                let mut rows = Vec::with_capacity(members.len());
+                let mut nesting_limited = 0usize;
+                for member in members {
+                    let stopped = !member.readable
+                        && member.job_id.is_none()
+                        && matches!(
+                            container::member_lane(conn, &source_id, &member.member),
+                            Ok(container::MemberLane::NestingLimited)
+                        );
+                    if stopped {
+                        nesting_limited += 1;
+                    }
+                    rows.push(serde_json::json!({
+                        "source_id": member.source_id,
+                        "member": member.member,
+                        "origin_ref": member.origin_ref,
+                        "original_name": member.original_name,
+                        "sha256": member.sha256,
+                        "readable": member.readable,
+                        "job_id": member.job_id,
+                        "nesting_limited": stopped,
+                    }));
+                }
                 (
                     StatusCode::OK,
                     Json(serde_json::json!({
                         "container_source_id": source_id,
-                        "member_count": members.len(),
+                        "member_count": rows.len(),
                         "readable_count": readable,
-                        "custody_only_count": members.len() - readable,
-                        "members": members
-                            .into_iter()
-                            .map(|member| serde_json::json!({
-                                "source_id": member.source_id,
-                                "member": member.member,
-                                "origin_ref": member.origin_ref,
-                                "original_name": member.original_name,
-                                "sha256": member.sha256,
-                                "readable": member.readable,
-                                "job_id": member.job_id,
-                            }))
-                            .collect::<Vec<_>>(),
+                        "custody_only_count": rows.len() - readable - nesting_limited,
+                        "nesting_limited_count": nesting_limited,
+                        "members": rows,
                         "note": "these are the members imported from this container, not its whole inventory: \
                                  members beyond the extraction caps, encrypted members and unreadable ones are \
                                  reported by the archive job's own receipt, and readable means a transform exists \
-                                 rather than that the content was understood"
+                                 rather than that the content was understood. A member with nesting_limited true is \
+                                 itself a container whose own expansion stopped at the nesting budget, so it is \
+                                 kept and queued work was not created for it"
+                    })),
+                )
+                    .into_response()
+            }
+            Err(error) => (StatusCode::INTERNAL_SERVER_ERROR, error.to_string()).into_response(),
+        }
+    })
+    .await
+}
+
+/// Read the pages a PDF was rendered into, each with the text its own OCR job produced.
+///
+/// R15/F06: the render and the OCR job are two chained steps, so this answers from the
+/// relation recorded when the page was imported. A page whose OCR has not produced text is
+/// reported with `recognised` false and no text - absence is stated, never filled in.
+async fn source_pages(
+    State(state): State<AppState>,
+    Path(source_id): Path<String>,
+) -> impl IntoResponse {
+    with_store(state, move |conn| {
+        let exists: bool = conn
+            .query_row(
+                "SELECT EXISTS(SELECT 1 FROM sources WHERE source_id=?1)",
+                [&source_id],
+                |row| row.get(0),
+            )
+            .unwrap_or(false);
+        if !exists {
+            return (StatusCode::NOT_FOUND, "source not found").into_response();
+        }
+        match archeaxis_application::ocr::pages_of(conn, &source_id) {
+            Ok(pages) => {
+                let read = pages.iter().filter(|page| page.recognised).count();
+                (
+                    StatusCode::OK,
+                    Json(serde_json::json!({
+                        "pdf_source_id": source_id,
+                        "page_count": pages.len(),
+                        "recognised_count": read,
+                        "pages": pages
+                            .into_iter()
+                            .map(|page| {
+                                serde_json::json!({
+                                    "page": page.page,
+                                    "source_id": page.source_id,
+                                    "origin_ref": page.origin_ref,
+                                    "original_name": page.original_name,
+                                    "sha256": page.sha256,
+                                    "recognised": page.recognised,
+                                    "text": page.text,
+                                    "job_id": page.job_id,
+                                })
+                            })
+                            .collect::<Vec<_>>(),
+                        "note": "only the pages this source was rendered into are listed: a PDF whose own \
+                                 text layer was readable chains nothing, and recognised means the OCR route \
+                                 produced text for that page, not that the reading is correct"
                     })),
                 )
                     .into_response()

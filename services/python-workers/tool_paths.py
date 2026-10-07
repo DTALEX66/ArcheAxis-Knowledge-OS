@@ -51,6 +51,10 @@ DEFAULT_MANIFEST = (Path(__file__).resolve().parents[2]
 OVERRIDES = {
     "tesseract": ("TESSERACT_CMD", "ARCHEAXIS_TESSERACT_CMD"),
     "ffmpeg": ("FFMPEG_CMD", "ARCHEAXIS_FFMPEG_CMD"),
+    "antiword": ("ARCHEAXIS_ANTIWORD_CMD",),
+    "chromium": ("ARCHEAXIS_CHROMIUM_CMD",),
+    "zulu-jre": ("ARCHEAXIS_JAVA_CMD",),
+    "apache-tika": ("ARCHEAXIS_TIKA_JAR",),
     "faster-whisper-large-v3-turbo": ("ARCHEAXIS_ASR_MODEL_DIR",),
     "faster-whisper-base": ("ARCHEAXIS_ASR_MODEL_DIR",),
 }
@@ -120,17 +124,16 @@ def _manifest_path() -> Path:
     return here.parents[2] / "config" / "environment" / "capability-requirements.yaml"
 
 
-def _declared_entries(manifest: Path) -> list[dict]:
-    """The declared capability entries.
+def _manifest_document(manifest: Path) -> dict:
+    """The parsed manifest, or `{}` when there is simply no manifest.
 
-    An absent manifest means nothing is declared. A manifest that is present but cannot
-    be read is a different matter and raises: the resolver needs a YAML parser, and
-    without one every declared engine would silently look undeclared. That is how a
-    runtime interpreter lacking PyYAML reported "tesseract binary not found on PATH" for
-    an installed, declared engine.
+    An absent manifest means nothing is declared. A manifest that is present but cannot be read is
+    a different matter and raises: the resolver needs a YAML parser, and without one every declared
+    engine would silently look undeclared. That is how a runtime interpreter lacking PyYAML reported
+    "tesseract binary not found on PATH" for an installed, declared engine.
     """
     if not manifest.is_file():
-        return []
+        return {}
     try:
         import yaml
     except ImportError as error:
@@ -143,33 +146,85 @@ def _declared_entries(manifest: Path) -> list[dict]:
     except OSError as error:
         raise ManifestUnreadable(f"{manifest}: cannot be read ({error})") from error
     try:
-        data = yaml.safe_load(text) or {}
+        return yaml.safe_load(text) or {}
     except Exception as error:  # noqa: BLE001 - a parse failure is not a missing tool
         raise ManifestUnreadable(f"{manifest}: cannot be parsed ({error})") from error
+
+
+def _declared_entries(manifest: Path) -> list[dict]:
+    """The declared capability entries."""
     entries: list[dict] = []
-    for group in (data.get("capabilities") or {}).values():
+    for group in (_manifest_document(manifest).get("capabilities") or {}).values():
         for entry in group or []:
             if isinstance(entry, dict):
                 entries.append(entry)
     return entries
 
 
+SIBLING_ROOTS_KEY = "sibling_roots"
+
+
+def sibling_roots(root: Path, manifest: Path) -> dict[str, Path]:
+    """The declared sibling roots beside the external root, by name.
+
+    Some shared resources live *beside* the external root rather than inside it — the model library
+    is the real case. Naming those roots here is what lets a declaration reach them without turning
+    the external root into a boundary that `..` walks straight through: a traversal in
+    `external_paths` is still refused, and an entry reaches a sibling only through a root this
+    manifest names.
+
+    A sibling root must step exactly one level up and then down into one directory, and it must
+    exist. `../../etc` and `..` alone are refused, so the set of reachable places stays the declared
+    one rather than "anywhere the process can read".
+    """
+    declared = _manifest_document(manifest).get(SIBLING_ROOTS_KEY) or {}
+    if not isinstance(declared, dict):
+        raise ManifestUnreadable(f"{manifest}: {SIBLING_ROOTS_KEY} must be a mapping")
+    resolved: dict[str, Path] = {}
+    for name, relative in declared.items():
+        if not isinstance(name, str) or not isinstance(relative, str):
+            raise ManifestUnreadable(f"{manifest}: every sibling root must be name: path")
+        parts = Path(relative).parts
+        if len(parts) != 2 or parts[0] != ".." or Path(relative).is_absolute():
+            raise ManifestUnreadable(
+                f"{manifest}: sibling root {name} must be exactly '..' plus one directory, not {relative!r}")
+        path = (root / Path(relative)).resolve()
+        if not path.is_dir():
+            raise ManifestUnreadable(f"{manifest}: sibling root {name} is not a directory: {relative}")
+        resolved[name] = path
+    return resolved
+
+
 def _candidates(name: str, manifest: Path) -> list[Path]:
+    # The declaration is read first, always. An absent external root means nothing can resolve, but
+    # it must not mean the manifest goes unread: a manifest that exists and cannot be parsed is a
+    # fault to report, and returning early on a missing root turned that into "tool not declared".
+    entries = _declared_entries(manifest)
     root = _external_root()
+    if root is None:
+        return []
     found: list[Path] = []
-    for entry in _declared_entries(manifest):
+    for entry in entries:
         if entry.get("name") != name:
             continue
+        sibling_name = entry.get("sibling_root")
+        base: Path | None = root
+        if sibling_name is not None:
+            if not isinstance(sibling_name, str):
+                raise ManifestUnreadable(f"{manifest}: sibling_root on {name} must be a name")
+            base = sibling_roots(root, manifest).get(sibling_name)
+            if base is None:
+                raise ManifestUnreadable(f"{manifest}: {name} names undeclared sibling root {sibling_name!r}")
         for candidate in entry.get("external_paths") or []:
             if not isinstance(candidate, str) or not candidate.strip():
                 continue
             relative = Path(candidate)
-            # A declaration may only name a location inside the declared root.
+            # A declaration may only name a location inside the root it resolved against. That is
+            # the external root normally, or one declared sibling root for the shared resources
+            # that live beside it — never an arbitrary traversal.
             if relative.is_absolute() or ".." in relative.parts:
                 continue
-            if root is None:
-                continue
-            path = root / relative
+            path = base / relative
             if path.is_file() or path.is_dir():
                 found.append(path)
     return found

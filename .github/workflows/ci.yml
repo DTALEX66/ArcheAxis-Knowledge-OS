@@ -136,15 +136,55 @@ jobs:
           enable-cache: true
           cache-dependency-glob: uv.lock
 
+      # These exports, the scans below and their reports all live under the run root rather than the
+      # checkout: this job also runs the layout contract, which asserts the repository root holds
+      # nothing but tracked entries. Writing them here left `locked-ci*.txt` and the scan reports in
+      # the working tree, so the job failed its own layout check.
       - name: Install locked minimal test dependencies
         run: |
-          uv export --frozen --only-group ci --no-emit-project --format requirements-txt --output-file locked-ci.txt
-          uv pip install --system --require-hashes -r locked-ci.txt
+          artifacts="$ARCHEAXIS_RUN_ROOT/artifacts"
+          mkdir -p "$artifacts"
+          uv export --frozen --only-group ci --no-emit-project --format requirements-txt --output-file "$artifacts/locked-ci.txt"
+          uv pip install --system --require-hashes -r "$artifacts/locked-ci.txt"
 
       - name: Install locked adapter test dependencies
         run: |
-          uv export --frozen --only-group ci-adapters --no-emit-project --format requirements-txt --output-file locked-ci-adapters.txt
-          uv pip install --system --require-hashes -r locked-ci-adapters.txt
+          artifacts="$ARCHEAXIS_RUN_ROOT/artifacts"
+          mkdir -p "$artifacts"
+          uv export --frozen --only-group ci-adapters --no-emit-project --format requirements-txt --output-file "$artifacts/locked-ci-adapters.txt"
+          uv pip install --system --require-hashes -r "$artifacts/locked-ci-adapters.txt"
+
+      # Absorbed from the OSS pool (ADOPT verdict, supplies-chain security group), pinned and
+      # hash-verified, and now enforcing. run 37471031307 reported 5 findings (urllib3 2.7.0,
+      # soupsieve 2.8.4); both were raised to the versions pip-audit names as the fix rather than
+      # waved through with --ignore-vuln, and the same pinned tool against the same CI export now
+      # reports "No known vulnerabilities found" (exit 0) while still reporting the 5 against the
+      # old export - the instrument was falsified before it was trusted. `set -o pipefail` is
+      # required: the runner's default shell is `bash -e` without pipefail, so `pip-audit | tee`
+      # would report tee's status (always 0) and this step could never fail on a real finding.
+      - name: Dependency vulnerability scan (pip-audit 2.10.1, pinned)
+        run: |
+          set -o pipefail
+          artifacts="$ARCHEAXIS_RUN_ROOT/artifacts"
+          uv tool run --from pip-audit==2.10.1 pip-audit --strict --requirement "$artifacts/locked-ci.txt" --format columns | tee "$artifacts/pip-audit-report.txt"
+
+
+      # gitleaks is now enforcing. `detect` reads the whole history (2480 commits at the time of the
+      # flip); a run is clean under .gitleaks.toml, whose allowlist names the fake test-fixture values,
+      # one Avalonia theme token and one docs-only historical commit - never a source tree - so a real
+      # credential fails this step. The asset is pinned and verified before it runs, so a flaky download
+      # network is the only way this step can fail for a reason other than a real finding.
+      - name: Secret scan (gitleaks 8.30.1, pinned and asset-hash verified)
+        run: |
+          version=8.30.1
+          expected=551f6fc83ea457d62a0d98237cbad105af8d557003051f41f3e7ca7b3f2470eb
+          artifacts="$ARCHEAXIS_RUN_ROOT/artifacts"
+          mkdir -p "$artifacts"
+          curl -sSLo "$artifacts/gitleaks.tgz" "https://github.com/gitleaks/gitleaks/releases/download/v${version}/gitleaks_${version}_linux_x64.tar.gz"
+          echo "${expected}  $artifacts/gitleaks.tgz" | sha256sum --check --status || { echo "gitleaks asset hash mismatch"; exit 1; }
+          tar -xzf "$artifacts/gitleaks.tgz" -C "$artifacts" gitleaks
+          # Scanned from the checkout (that is the point) but the report is not written into it.
+          "$artifacts/gitleaks" detect --config .gitleaks.toml --redact --no-banner --report-format json --report-path "$artifacts/gitleaks-report.json" --exit-code 1
 
       - name: Install and verify local OCR engine
         run: |
@@ -313,6 +353,8 @@ jobs:
 
       - name: Run ruff
         run: python -m ruff check app shared knowledge_base inspiration_research Inspiration-Research shared-contracts/adapters app/workflow integration-tests scripts --select E9,F63,F7,F82
+      - name: Reject document authority drift
+        run: python -B scripts/ci/check_document_authority.py
 
   wheel-smoke:
     timeout-minutes: 10
@@ -857,6 +899,8 @@ jobs:
         run: python scripts/ci/check_vnext_contracts.py
       - name: Reject generated vocabulary drift
         run: python -B scripts/contracts/generate_vocabulary.py --check
+      - name: Reject media window policy drift
+        run: python -B scripts/contracts/check_media_window_policy.py --check
       - name: Run real Python contract and vocabulary regressions
         run: python -B scripts/runtime/dev.py --pytest tests/contract --noconftest -q
 
@@ -1222,6 +1266,7 @@ jobs:
           path: |
             .project-local/task-runtime/aaos01-webdriver/**/receipt.json
             .project-local/task-runtime/aaos01-webdriver/**/install-preflight.json
+            .project-local/task-runtime/aaos01-webdriver/**/lifecycle-receipt.json
             .project-local/task-runtime/aaos01-webdriver/**/*.png
             .project-local/task-runtime/aaos01-webdriver/**/driver.log
             .project-local/task-runtime/aaos01-webdriver/**/native-driver.log

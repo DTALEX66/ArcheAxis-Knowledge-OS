@@ -1,0 +1,61 @@
+{
+  "example_only": true,
+  "do_not_install": true,
+  "run_id": null,
+  "profile_id": null,
+  "source": {
+    "platform": null,
+    "version": null,
+    "workspace_ref": null,
+    "snapshot_sha256": null
+  },
+  "target": {
+    "platform": "AAOS",
+    "version": null,
+    "workspace_ref": null
+  },
+  "adapter": {
+    "id": null,
+    "version": null,
+    "code_sha": null
+  },
+  "permission": {
+    "source_read": false,
+    "target_write": false,
+    "source_writeback": false
+  },
+  "mode": "DRY_RUN",
+  "id_mapping": [],
+  "objects": [],
+  "asset_checks": [],
+  "losses": [
+    {
+      "object_ref": null,
+      "field_path": null,
+      "category": "EXAMPLE_UNSUPPORTED_FIELD",
+      "source_value_ref": null,
+      "target_behavior": null,
+      "severity": null,
+      "preserved_raw_ref": null,
+      "user_decision": null
+    }
+  ],
+  "unknowns": [],
+  "stats": {
+    "source_count": null,
+    "imported_count": null,
+    "unresolved_count": null,
+    "reason": "NOT_RUN"
+  },
+  "verification": {
+    "byte_integrity": "NOT_RUN",
+    "structure": "NOT_RUN",
+    "semantics": "NOT_RUN",
+    "behavior": "NOT_RUN",
+    "source_app_roundtrip": "NOT_RUN"
+  },
+  "result": "UNVERIFIED",
+  "approved_loss": false,
+  "checkpoint": null,
+  "rollback_scope": null
+}

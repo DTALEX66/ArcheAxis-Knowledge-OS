@@ -2,7 +2,7 @@
   "schema_version": 2,
   "ledger_name": "ArcheAxis Knowledge — Open Source Absorption Decision Ledger",
   "created": "2026-08-11",
-  "updated": "2026-08-29",
+  "updated": "2026-10-07",
   "source": "ArcheAxis_Workspace_Project_History_and_OSS_Absorption_Master_Atlas_v1.md",
   "product_boundary": "Local-first, evidence-driven Human–AI Learning & Knowledge Workspace. NOT an Agent OS, Cognitive OS, RAG platform, or Agent runtime.",
   "disposition_labels": {
@@ -365,10 +365,14 @@
       "model_license": null,
       "disposition": "SIDECAR",
       "qualification": [
-        "source"
+        "source",
+        "installed"
       ],
-      "decision": "Legacy/rare format rescue sidecar. Java 17+ dependency, subcomponent licenses shown separately. Not a primary engine; does not replace main conversion chain.",
-      "upstream_note": "1000+ formats. Java sidecar — resource/capability probe required."
+      "decision": "Legacy/rare format rescue sidecar for `.ppt` only, resolved as a pair: a JVM and the Tika jar, each declared in `config/environment/capability-requirements.yaml` (`zulu-jre`, `apache-tika`). Declaring only the jar would resolve and then fail, which is the same shape as the antiword mapping-table trap. Not a primary engine, not bundled, not installed by this repository, and it does not replace the main conversion chain; an unresolvable pair is a named failure that projects nothing.",
+      "upstream_note": "1000+ formats claimed upstream; only the `.ppt` text path is asserted here, and only because a real legacy presentation was read through it on this host.",
+      "version": "4.1.0 (tika-app distribution)",
+      "product_path": "services/python-workers/document/worker_office.py",
+      "evidence": "Installed and exercised on this host, not merely catalogued. The official Apache distribution `tika-app-4.1.0.zip` (55,617,982 bytes, sha512 `e8ffd4b85f08b2c96790cbb8c7679ec29c41f10e4add8a72ca2047ca56b450e198c0671ca0517c977c00d3a95a9c08dc0b026ee9379e67d35e92425487c8745d` as published beside it) was placed under the declared external tool root and verified byte-for-byte before use; the runnable jar inside it is `10-toolchains/tika/4.1.0/tika-app-4.1.0.jar`, 122724 bytes, sha256 `4344806e966fef4d0d75f4f977b17ff745cf935e8138de7f5ed845ee2de76bd5`, with `lib/` and `plugins/` beside it and its own `LICENSE` read as Apache-2.0 rather than assumed. `java -jar … --version` answers `Apache Tika 4.1.0`, and the worker's own declared lane read a genuine PowerPoint 97 file (`tests/fixtures/golden/golden-ppt-anchor.ppt`, 16,384 bytes, sha256 `499ccd0de7c0778afa4f6ed08793afd2406b62547373a619a5a78658ae65c4b7`, the Apache Tika microsoft-module test document at the pinned release tag 3.3.2, whose commit is recorded in tests/fixtures/golden/manifest.json) into the projection `Sample Powerpoint Slide / Created with Microsoft Powerpoint X for Mac Service Release 1`. tests/workers/test_ppt_engine.py 12 passed on this host, and its real-engine case skips with the resolver's own reason where the pair is absent - a statement about the host, not a pass. Measured trap that shapes the code: Tika's CLI writes its startup notice to stderr and the document text to stdout, so a projection built from both streams would be noise; the notice also says single-file CLI mode turns on several non-default features (TIKA-2374, TIKA-4017, TIKA-4354, TIKA-4472), which is stated in the loss receipt instead of hidden."
     },
     {
       "id": "A011",
@@ -550,7 +554,10 @@
         "source"
       ],
       "decision": "Python dependency vulnerability scan. Part of minimum supply-chain toolset.",
-      "upstream_note": null
+      "upstream_note": null,
+      "adopted_revision": "2.10.1",
+      "adopted_kind": "CI tool (pinned via uv tool run --from pip-audit==2.10.1)",
+      "adopted_wired_at": ".github/workflows/ci.yml test job; report-only until a run is clean"
     },
     {
       "id": "A024",
@@ -563,8 +570,13 @@
       "qualification": [
         "source"
       ],
-      "decision": "Secret scanning. CI/release tool. NOT packaged into product.",
-      "upstream_note": null
+      "decision": "Secret scanning. CI/release tool. NOT packaged into product. Enforcing since 2026-10-06.",
+      "upstream_note": "Local admission probe 2026-10-06: upstream checksums verified the downloaded asset (windows_x64 sha256 d29144deff3a68aa93ced33dddf84b7fdc26070add4aa0f4513094c8332afc4e; packaged LICENSE 1069 bytes, sha256 e3884b252b3bfc045e55be43a34d1e80da070bc6f804ac95bf4660e97d62ebc6). gitleaks 8.30.1 detected a planted AWS access key and GitHub PAT in a fixture and reported nothing else; detect over the 2480-commit history and the tracked checkout is clean under .gitleaks.toml.",
+      "adopted_revision": "8.30.1",
+      "adopted_kind": "CI tool (release asset verified by sha256 before use)",
+      "adopted_asset": "gitleaks_8.30.1_linux_x64.tar.gz",
+      "adopted_asset_sha256": "551f6fc83ea457d62a0d98237cbad105af8d557003051f41f3e7ca7b3f2470eb",
+      "adopted_wired_at": ".github/workflows/ci.yml test job; enforcing since 2026-10-06 - continue-on-error removed after a clean run, scan runs with --config .gitleaks.toml"
     },
     {
       "id": "B001",
@@ -699,15 +711,86 @@
       "disposition": "REJECT-CORE",
       "decision": "Upstream archived 2025-10-10 (read-only). Must not be selected as primary graph component. Remove from active candidate list.",
       "upstream_note": "ARCHIVED."
+    },
+    {
+      "id": "C048",
+      "name": "xlrd",
+      "version": "2.0.2",
+      "canonical_url": "https://pypi.org/project/xlrd/",
+      "capability": "legacy-binary-workbook-reader",
+      "code_license": "BSD",
+      "model_license": null,
+      "disposition": "CURRENT",
+      "qualification": [
+        "source",
+        "installed"
+      ],
+      "product_path": "services/python-workers/document/worker_office.py",
+      "evidence": "declared in the ci-adapters group and pinned in uv.lock; reads the committed project-authored fixture tests/fixtures/golden/golden-xls-anchor.xls through office.structure on this host, and converts each sheet to a declared CSV member the Core imports (crates/archeaxis-application/tests/xls_member_chain.rs). Licence file 3,771 bytes sha256 b5a5dbce60265e305a815a6cb83ed07f24519d8ba644f2a307994488bced8815. FMT-21 real-sample acceptance is NOT_RUN: the fixture is self-authored, not Excel-authored. Qualified to the source and installed tiers only: it is declared in uv.lock, installed in the declared worker environment on this host, and exercised by committed tests; no release artefact contains it, because no release is being made.",
+      "decision": "Absorbed as the reader for the BIFF .xls family only; xlrd 2.x cannot read .xlsx, which already has openpyxl. .doc and .ppt stay unnamed in the Core because no reader exists for them here.",
+      "upstream_note": "xlrd 2.0.2 supports BIFF versions 2.0 through 8 and accepts either an OLE2 compound document or a raw BIFF stream."
+    },
+    {
+      "id": "A025",
+      "name": "antiword (probed sidecar binary)",
+      "version": "MSYS2 packaging 0.37-3; the binary self-reports 'Version: 0.37  (21 Oct 2005)'",
+      "canonical_url": "https://github.com/msys2/MINGW-packages/tree/master/mingw-w64-antiword",
+      "capability": "document-legacy",
+      "code_license": "GPL-3.0-or-later per the MSYS2 package index ([\"GPL3+\"]); the binary self-reports 'Status: GNU General Public License' without naming a version",
+      "model_license": null,
+      "disposition": "SIDECAR",
+      "qualification": [
+        "installed"
+      ],
+      "product_path": "services/python-workers/document/worker_office.py",
+      "evidence": "Bound as a declared external engine on this host, not merely probed. Two entries were added to `config/environment/capability-requirements.yaml` and regenerated into `config/environment/external-resources-index.json` with `exists: true` for both: `antiword` -> `D:\\All projects\\OS External Configuration\\10-toolchains\\antiword\\antiword.exe` (284448 bytes, sha256 `d30a37489c64ada474d8d5aa5abb0778a6955d3ce6cdbb7c8c659e37b89d3da9`, byte-identical to the Git-for-Windows copy at `C:\\Program Files\\Git\\mingw64\\bin\\antiword.exe`, 284448 bytes, sha256 `d30a37489c64ada474d8d5aa5abb0778a6955d3ce6cdbb7c8c659e37b89d3da9`), and `antiword-mappings` -> `D:\\All projects\\OS External Configuration\\10-toolchains\\antiword\\.antiword` (30 `*.txt` tables, 306272 bytes, UTF-8 table present: true). The second entry is not decoration and is the reason this row changed at all: antiword looks for its character mapping only in `$HOME/.antiword` and `/usr/share/antiword`, a mapping named by absolute path is truncated to the engine's buffer and its default table is used instead (measured), and a copy outside the install tree fails with \"I can't open your mapping file (UTF-8.txt)\" - exit 1, zero output - so the tables directory must be declared and its parent handed to the process as HOME. `worker_office._antiword_mapping_home()` does exactly that and records `mapping_home` in the loss receipt; with nothing declared it leaves the environment untouched, which is what keeps an in-place install working and keeps CI honest. Measured through the real reader: tests/workers/test_doc_engine.py 18 passed on this host, including the declared-pair case and the two end-to-end cases that call `_doc_text` on the real Word file while the declaration is what resolves. The binary is still not bundled and still not installed by this repository; `probe` for it is the generic registry prober appending `--version`, which antiword answers with its usage text and exit 1, so the inventory shows `available: true, probe: probe_failed` for this engine - stated here because a passing resolution and a failing generic probe are both true at once.",
+      "decision": "Isolated, removable sidecar for `.doc` only, now bound by declaration to the external tool root instead of resolved by PATH luck. Not a core dependency, not bundled, not installed by this repository and not relicensed by it; it never replaces the main conversion chain. The copy under `10-toolchains/antiword/` is a local placement of the Git-for-Windows binary: if that package updates, the placed copy does not follow it, and the row's sha256 is the identity to compare against before trusting either. `.ppt` stays unprovided: the JVM-backed candidate cannot be qualified without a system-level runtime install, which the current boundary forbids.",
+      "upstream_note": "Upstream stated by the package index: http://www.winfield.demon.nl/ (not fetched from this run; the packaging repository above is the source of record here). Repositories carrying the package: clang64, clangarm64, ucrt64 - note the Git-for-Windows copy measured here is from its mingw64 bundle."
+    },
+    {
+      "id": "A049",
+      "name": "Chromium (the Playwright browser build this host already carries)",
+      "version": "build 1228; the launched browser self-reported 149.0.7827.55",
+      "canonical_url": "https://playwright.dev/python/docs/browsers",
+      "capability": "web-render",
+      "code_license": "BSD-3-Clause (Chromium), as recorded by the capability manifest entry",
+      "model_license": null,
+      "disposition": "SIDECAR",
+      "qualification": [
+        "installed"
+      ],
+      "product_path": "services/python-workers/web/worker_webpage.py",
+      "evidence": "Used by the F03 render lane, so it is recorded here rather than left as a test-only tool. Measured on this host: `D:/All projects/OS External Configuration/10-toolchains/playwright/chromium-1228/chrome-win64/chrome.exe` 4059648 bytes, sha256 `b798f9e53a98d29eb7f36f8c409f905d3184780a04d2bcb56989067194784bd1`, declared in `config/environment/capability-requirements.yaml` as the `external_paths` of the pre-existing `playwright-chromium` entry, which until now carried a name and no location - the same class of gap as the antiword row: present on disk is not declared, and declared by name is not resolvable. The `playwright` Python package itself is a locked first-party dependency (`playwright>=1.61,<1.62` in `pyproject.toml`), not an added one; this row is about the browser binary the product launches. Resolution order in `services/python-workers/web/worker_webpage.py` is `ARCHEAXIS_CHROMIUM_CMD`, then the declared path, then Playwright's own registry, and a configured path that fails is reported as that failure rather than answered with the declared browser - no substitution. Two host traps shaped the code: a session can redirect `PLAYWRIGHT_BROWSERS_PATH` to a project-local cache that holds no build (which is why the real render test skipped before this row existed), and the declared path carries the build number `chromium-1228`, so a Playwright upgrade invalidates this one entry instead of silently pointing the render at some other browser. Verified through the sanctioned runner with no browser environment variable set: tests/workers/test_webpage_render.py plus the manifest and index workflow tests reported 20 passed / 0 skipped, and the full `tests` suite moved from 4284 passed / 31 skipped to 4286 passed / 30 skipped - the +2 / -1 being the new no-substitution test and the real browser test that the declaration stopped skipping.",
+      "decision": "Isolated, removable sidecar for the dynamic-page render lane. Not bundled, not installed by this repository, and not relicensed by it; the repository never assumes the browser exists and a host without it gets a named refusal that writes nothing. Advancing this row's qualification further (an `release`-grade claim) would need a per-page human acceptance on real targets, which this round does not have; screenshots, interaction-gated content and lazy content past the scroll budget remain open in the F03 row.",
+      "upstream_note": "Chromium is upstream for the engine; the build measured here was placed on this host by Playwright's own browser download, and the manifest names the same source URL. No copy was made by this repository: the declared path is the build already under `10-toolchains/playwright/`."
+    },
+    {
+      "id": "A050",
+      "name": "Azul Zulu Community JRE 21 (the runtime the Tika sidecar needs)",
+      "version": "Zulu build unknown, JAVA_VERSION 21.0.12.1",
+      "canonical_url": "https://cdn.azul.com/zulu/bin/zulu21.52.203-ca-jre21.0.12.1-win_x64.zip",
+      "capability": "document-legacy",
+      "code_license": "GPL-2.0-or-later with Classpath Exception, read from legal/java.base (LICENSE plus ASSEMBLY_EXCEPTION) inside the distribution",
+      "model_license": null,
+      "disposition": "SIDECAR",
+      "qualification": [
+        "installed"
+      ],
+      "product_path": "services/python-workers/document/worker_office.py",
+      "evidence": "Placed under the declared external tool root as `10-toolchains/java/zulu-jre-21.0.12.1/` (50624-byte launcher, sha256 `3dd3b8ca1b9402119060e1085a5aec44b00e600e61944ead36057c4f7f4da29f`) after verifying the download against Azul's own metadata API - package `zulu21.52.203-ca-jre21.0.12.1-win_x64.zip`, 49,264,410 bytes, sha256 `37ad372b04da388c326f0507abec38b8e1d11e3bddf6128b215c8f0a06ff8177`, fetched 2026-10-07. `java -version` exits 0 and self-reports `openjdk version \"21.0.12.1\" 2026-08-18 LTS`; the worker asks that question before handing over a document, so a file that exists but cannot state what it is is refused. Temurin was the first choice and its API publishes the same checksum field, but its download host is unreachable from this machine, so the runtime came from a second publisher whose CDN answers; the record names which, because 'a JVM' is not a supply-chain statement.",
+      "decision": "Removable local runtime for the `.ppt` sidecar only. Not bundled, not a system install, not registered anywhere outside the external tool root, and never substituted for another JVM by the product. If Tika is ever dropped, this row goes with it.",
+      "upstream_note": "Azul states Zulu Community builds are GPLv2 with the Classpath Exception; the text in this distribution (legal/java.base/LICENSE and ASSEMBLY_EXCEPTION) is what the row relies on rather than that statement alone. The distribution also carries a DISCLAIMER from Azul."
     }
   ],
-  "component_count": 47,
+  "component_count": 51,
   "disposition_summary": {
     "CURRENT": 12,
     "ADOPT_PRODUCT_BASE": 0,
     "ADOPT": 13,
     "EVALUATE": 9,
-    "SIDECAR": 3,
+    "SIDECAR": 6,
+    "REFERENCE": 1,
+    "DEFER": 0,
     "REVIEW-BLOCK": 9,
     "REJECT-CORE": 1
   }

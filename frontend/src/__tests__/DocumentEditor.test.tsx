@@ -23,4 +23,24 @@ describe("versioned content editor", () => {
     expect(await screen.findByRole("alert")).toHaveTextContent("草稿尚未保存");
     expect(editor).toHaveTextContent("中文写作");
   });
+  it("keeps the version it was given and the dirty state when a save is refused", async () => {
+    // A refused save must not move the editor's idea of the current version: the retry has to
+    // present the same baseline or the Core can no longer see that it is writing over a version
+    // it has already rejected. The dirty flag is the other half - clearing it would tell the
+    // user the text is safe when nothing was accepted.
+    const save = vi.fn().mockRejectedValue(new Error("409 version conflict"));
+    const onDirtyChange = vi.fn();
+    render(<DocumentEditor content={content} version={1} onSave={save} onDirtyChange={onDirtyChange} />);
+    const editor = await screen.findByRole("textbox", { name: "文档草稿" });
+    editor.querySelector("p")!.textContent = "未送达的修改";
+    fireEvent.input(editor);
+    fireEvent.click(screen.getByRole("button", { name: "保存草稿" }));
+    await waitFor(() => expect(save).toHaveBeenCalledTimes(1));
+    expect(save.mock.calls[0][1]).toBe(1);
+    fireEvent.click(screen.getByRole("button", { name: "保存草稿" }));
+    await waitFor(() => expect(save).toHaveBeenCalledTimes(2));
+    expect(save.mock.calls[1][1]).toBe(1);
+    expect(editor).toHaveTextContent("未送达的修改");
+    expect(onDirtyChange).not.toHaveBeenCalledWith(false);
+  });
 });

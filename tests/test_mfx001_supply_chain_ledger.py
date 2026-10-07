@@ -76,3 +76,31 @@ def test_blocked_components_not_in_default_engine_chain() -> None:
     # (zotero was never REVIEW-BLOCK — it is not in this disposition)
     for name in {"mineru", "funasr / sensevoice", "searxng", "marker"}:
         assert name in blocked, f"{name} expected REVIEW-BLOCK in ledger"
+
+
+def test_disposition_labels_stay_definitions_and_summary_covers_them() -> None:
+    """The label map defines each disposition; the summary counts every one of them.
+
+    A script that overwrote `disposition_labels` with counts passed this file unchanged, so the
+    ledger's own test was blind to the damage it had to repair. Both shapes are pinned here: a
+    definition is a non-empty string, and a summary key set is exactly the label vocabulary.
+    """
+    ledger = _ledger()
+    labels = ledger["disposition_labels"]
+    assert isinstance(labels, dict) and labels, "disposition_labels must be a non-empty mapping"
+    for label, definition in labels.items():
+        assert isinstance(definition, str) and definition.strip(), (
+            f"{label}: a disposition label must carry a definition, not a count"
+        )
+
+    summary = ledger["disposition_summary"]
+    assert set(summary) == set(labels), (
+        f"disposition_summary and the label vocabulary disagree: "
+        f"{sorted(set(summary) ^ set(labels))}"
+    )
+    counts: dict[str, int] = {}
+    for component in ledger["components"]:
+        counts[component["disposition"]] = counts.get(component["disposition"], 0) + 1
+    assert summary == {label: counts.get(label, 0) for label in labels}, (
+        "disposition_summary must be the count of the rows that exist, zero included"
+    )

@@ -411,6 +411,7 @@
     },
     {
       "paths": [
+        "AUTHORITY.md",
         "AGENTS.md",
         "PROJECT_CONTRACT.yaml",
         "DIRECTORY_AUTHORITY.yaml",
@@ -425,7 +426,7 @@
       "class": "governance",
       "disposition": "active",
       "owner_doc": "DIRECTORY_AUTHORITY.yaml",
-      "note": "root governance and legal documents; several are protected files and need a grant to change"
+      "note": "root governance and legal documents; several are protected files and need a grant to change AUTHORITY.md added 2026-10-06: the root navigational entry, checked by scripts/ci/check_document_authority.py."
     },
     {
       "paths": [
@@ -452,12 +453,13 @@
         ".editorconfig",
         ".gitattributes",
         ".gitignore",
+        ".gitleaks.toml",
         ".pre-commit-config.yaml"
       ],
       "class": "build-configuration",
       "disposition": "active",
       "owner_doc": "DIRECTORY_AUTHORITY.yaml",
-      "note": "dependency locks and build configuration; the locks are protected resources"
+      "note": "dependency locks and build configuration; the locks are protected resources. .gitleaks.toml added 2026-10-06: the secret-scan allowlist the ci.yml test job enforces."
     },
     {
       "paths": [
@@ -521,12 +523,12 @@
   "legacy_manifest_total_entries": 1246,
   "legacy_manifest_note": "LEGACY_MANIFEST.yaml holds 1246 inventoried assets and every one of them is still INVENTORIED_NOT_SEMANTICALLY_REVIEWED, so nothing in it may be read as absorbed capability. Bulk cleanup or moving directories is not semantic absorption.",
   "current_ownership": {
-    "unowned_paths": [],
-    "unowned_count": 0,
-    "unowned_by_root": {},
+    "unowned_paths": [".gitleaks.toml"],
+    "unowned_count": 1,
+    "unowned_by_root": {"(root)": 1},
     "source_baseline": "c06b234ca335b9cbb2c1fde270851e2390c36b89",
     "authority": "DIRECTORY_AUTHORITY.yaml plus current uncommitted R5 diff",
-    "note": "69 historical gaps assigned; classification is not migration or product qualification."
+    "note": "69 historical gaps assigned; classification is not migration or product qualification. .gitleaks.toml added 2026-10-06: a root-level config with no DIRECTORY_AUTHORITY owner, recorded here and dispositioned by the build-configuration rule."
   },
   "current_finding": "Current ownership gaps closed by exact metadata rules and maintenance-only legacy classification; historical measured/unowned fields above remain unchanged.",
   "historical_source": "docs/authority/taskpack-0910-r3/R15-PATH-DISPOSITION.json"

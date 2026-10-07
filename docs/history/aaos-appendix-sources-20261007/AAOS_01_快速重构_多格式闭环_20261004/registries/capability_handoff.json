@@ -1,0 +1,183 @@
+{
+  "schema": "aaos.taskpack.capability-handoff/v1",
+  "production_configuration": false,
+  "scope_note": "16 个稳定顶级 ID 的衔接；不是全部历史子能力复原，须与 current Authority 和有效最新要求做差集",
+  "items": [
+    {
+      "capability_id": "CAP-0010",
+      "name": "原件资产与来源接入",
+      "quick_scope": "Q04/Q06",
+      "future_scope": "F01/F03",
+      "source": "CAPABILITY_ATLAS_V2.yaml at inspected PR head",
+      "implementation_status": "UNVERIFIED",
+      "runtime_status": "NOT_CHECKED",
+      "ui_discovery": "NOT_RUN",
+      "evidence": []
+    },
+    {
+      "capability_id": "CAP-0020",
+      "name": "多格式转换",
+      "quick_scope": "Q06/Q12",
+      "future_scope": "F01/复杂解析",
+      "source": "CAPABILITY_ATLAS_V2.yaml at inspected PR head",
+      "implementation_status": "UNVERIFIED",
+      "runtime_status": "NOT_CHECKED",
+      "ui_discovery": "NOT_RUN",
+      "evidence": []
+    },
+    {
+      "capability_id": "CAP-0030",
+      "name": "证据锚定与交叉核验",
+      "quick_scope": "Q05/Q07",
+      "future_scope": "F01/F06",
+      "source": "CAPABILITY_ATLAS_V2.yaml at inspected PR head",
+      "implementation_status": "UNVERIFIED",
+      "runtime_status": "NOT_CHECKED",
+      "ui_discovery": "NOT_RUN",
+      "evidence": []
+    },
+    {
+      "capability_id": "CAP-0040",
+      "name": "人类深度学习系统",
+      "quick_scope": "Q08",
+      "future_scope": "F04",
+      "source": "CAPABILITY_ATLAS_V2.yaml at inspected PR head",
+      "implementation_status": "UNVERIFIED",
+      "runtime_status": "NOT_CHECKED",
+      "ui_discovery": "NOT_RUN",
+      "evidence": []
+    },
+    {
+      "capability_id": "CAP-0050",
+      "name": "AI 学习资产与受控调用",
+      "quick_scope": "Q08 现有功能/完整详情",
+      "future_scope": "F07",
+      "source": "CAPABILITY_ATLAS_V2.yaml at inspected PR head",
+      "implementation_status": "UNVERIFIED",
+      "runtime_status": "NOT_CHECKED",
+      "ui_discovery": "NOT_RUN",
+      "evidence": []
+    },
+    {
+      "capability_id": "CAP-0060",
+      "name": "LER 视觉教学与课件",
+      "quick_scope": "可发现详情与现有课程路径",
+      "future_scope": "F05",
+      "source": "CAPABILITY_ATLAS_V2.yaml at inspected PR head",
+      "implementation_status": "UNVERIFIED",
+      "runtime_status": "NOT_CHECKED",
+      "ui_discovery": "NOT_RUN",
+      "evidence": []
+    },
+    {
+      "capability_id": "CAP-0070",
+      "name": "动态解释与仿真",
+      "quick_scope": "可发现详情",
+      "future_scope": "F08",
+      "source": "CAPABILITY_ATLAS_V2.yaml at inspected PR head",
+      "implementation_status": "UNVERIFIED",
+      "runtime_status": "NOT_CHECKED",
+      "ui_discovery": "NOT_RUN",
+      "evidence": []
+    },
+    {
+      "capability_id": "CAP-0080",
+      "name": "空间记忆与沉浸学习",
+      "quick_scope": "可发现详情",
+      "future_scope": "F09/F13",
+      "source": "CAPABILITY_ATLAS_V2.yaml at inspected PR head",
+      "implementation_status": "UNVERIFIED",
+      "runtime_status": "NOT_CHECKED",
+      "ui_discovery": "NOT_RUN",
+      "evidence": []
+    },
+    {
+      "capability_id": "CAP-0090",
+      "name": "研究、课程与项目工作空间",
+      "quick_scope": "可发现详情/既有研究路径",
+      "future_scope": "F05/F06",
+      "source": "CAPABILITY_ATLAS_V2.yaml at inspected PR head",
+      "implementation_status": "UNVERIFIED",
+      "runtime_status": "NOT_CHECKED",
+      "ui_discovery": "NOT_RUN",
+      "evidence": []
+    },
+    {
+      "capability_id": "CAP-0100",
+      "name": "开放互操作与生态适配器",
+      "quick_scope": "Q10 首个限定 profile",
+      "future_scope": "F03",
+      "source": "CAPABILITY_ATLAS_V2.yaml at inspected PR head",
+      "implementation_status": "UNVERIFIED",
+      "runtime_status": "NOT_CHECKED",
+      "ui_discovery": "NOT_RUN",
+      "evidence": []
+    },
+    {
+      "capability_id": "CAP-0110",
+      "name": "搜索、图谱与索引",
+      "quick_scope": "Q09",
+      "future_scope": "F02/检索扩展",
+      "source": "CAPABILITY_ATLAS_V2.yaml at inspected PR head",
+      "implementation_status": "UNVERIFIED",
+      "runtime_status": "NOT_CHECKED",
+      "ui_discovery": "NOT_RUN",
+      "evidence": []
+    },
+    {
+      "capability_id": "CAP-0120",
+      "name": "桌面、平台与可选协作",
+      "quick_scope": "Q02/Q14",
+      "future_scope": "F10/F12/F13",
+      "source": "CAPABILITY_ATLAS_V2.yaml at inspected PR head",
+      "implementation_status": "UNVERIFIED",
+      "runtime_status": "NOT_CHECKED",
+      "ui_discovery": "NOT_RUN",
+      "evidence": []
+    },
+    {
+      "capability_id": "CAP-0130",
+      "name": "受限受控执行探索",
+      "quick_scope": "Q03 权限与可发现详情",
+      "future_scope": "F11",
+      "source": "CAPABILITY_ATLAS_V2.yaml at inspected PR head",
+      "implementation_status": "UNVERIFIED",
+      "runtime_status": "NOT_CHECKED",
+      "ui_discovery": "NOT_RUN",
+      "evidence": []
+    },
+    {
+      "capability_id": "CAP-0140",
+      "name": "备份、同步与发布",
+      "quick_scope": "Q11/Q14",
+      "future_scope": "F10/F12/F14",
+      "source": "CAPABILITY_ATLAS_V2.yaml at inspected PR head",
+      "implementation_status": "UNVERIFIED",
+      "runtime_status": "NOT_CHECKED",
+      "ui_discovery": "NOT_RUN",
+      "evidence": []
+    },
+    {
+      "capability_id": "CAP-0150",
+      "name": "模型、Provider 与数据出境治理",
+      "quick_scope": "Q03/Q06/Q08",
+      "future_scope": "F07/F11/F12",
+      "source": "CAPABILITY_ATLAS_V2.yaml at inspected PR head",
+      "implementation_status": "UNVERIFIED",
+      "runtime_status": "NOT_CHECKED",
+      "ui_discovery": "NOT_RUN",
+      "evidence": []
+    },
+    {
+      "capability_id": "CAP-0160",
+      "name": "可视化与空间学习表征",
+      "quick_scope": "Q09 能力地图与现有 Canvas 读取",
+      "future_scope": "F05/F08/F09",
+      "source": "CAPABILITY_ATLAS_V2.yaml at inspected PR head",
+      "implementation_status": "UNVERIFIED",
+      "runtime_status": "NOT_CHECKED",
+      "ui_discovery": "NOT_RUN",
+      "evidence": []
+    }
+  ]
+}

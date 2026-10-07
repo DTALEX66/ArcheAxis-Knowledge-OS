@@ -90,6 +90,7 @@ pub const ROUTE_MEDIA_TYPES: &[(&str, &[&str])] = &[
         &[
             "text/plain",
             "text/markdown",
+            "text/x-python",
             "text/csv",
             "text/tab-separated-values",
             "application/json",
@@ -99,6 +100,12 @@ pub const ROUTE_MEDIA_TYPES: &[(&str, &[&str])] = &[
             "application/toml",
             "application/epub+zip",
             "message/rfc822",
+            // R15/F13: the light-format reader handles these containers itself, so the route
+            // that owns it accepts them rather than leaving them unnamed and refused.
+            "application/vnd.oasis.opendocument.text",
+            "application/vnd.oasis.opendocument.spreadsheet",
+            "application/vnd.oasis.opendocument.presentation",
+            "application/rtf",
             "application/xml",
             "text/xml",
         ],
@@ -150,6 +157,9 @@ pub const ROUTE_MEDIA_TYPES: &[(&str, &[&str])] = &[
             "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
             "application/vnd.openxmlformats-officedocument.presentationml.presentation",
             "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            "application/vnd.ms-excel",
+            "application/msword",
+            "application/vnd.ms-powerpoint",
         ],
     ),
     ("canvas.structure", &["application/json"]),
@@ -181,8 +191,17 @@ pub fn accepted_media_types(capability: &str) -> &'static [&'static str] {
 /// members the Core may import). The executor tells only these workers where the
 /// artifact root is, so every other route keeps its launch shape and an unexpected flag
 /// stays an error rather than being silently accepted.
-pub const ARTIFACT_ROOT_CAPABILITIES: &[&str] =
-    &["pdf.extract", "archive.inventory", "media.video"];
+///
+/// R15/F13 adds `text.extract` for one reason: a mail carries attachments, and the route
+/// table inside the transport decides that only `message/rfc822` may write into the area.
+/// Every other text media type is handed no directory and declares no member.
+pub const ARTIFACT_ROOT_CAPABILITIES: &[&str] = &[
+    "pdf.extract",
+    "archive.inventory",
+    "media.video",
+    "text.extract",
+    "office.structure",
+];
 
 /// R15/F06: routes whose successful job is followed by Core-side work, done inside the
 /// same commit as the completion so there is no window in which the job says it
@@ -199,11 +218,15 @@ pub fn media_type_for_name(name: &str) -> Option<&'static str> {
         .to_ascii_lowercase();
     let extension = file.rsplit_once('.')?.1;
     Some(match extension {
-        "txt" | "log" | "text" | "rs" | "py" | "ts" | "tsx" | "js" | "jsx" | "c" | "h" | "cpp"
-        | "hpp" | "go" | "java" | "cs" | "rb" | "sh" | "ps1" | "bat" | "ini" | "cfg" | "sql" => {
+        "txt" | "log" | "text" | "rs" | "ts" | "tsx" | "js" | "jsx" | "c" | "h" | "cpp" | "hpp"
+        | "go" | "java" | "cs" | "rb" | "sh" | "ps1" | "bat" | "ini" | "cfg" | "sql" => {
             "text/plain"
         }
         "md" | "markdown" => "text/markdown",
+        // R15/F01: only a source language with a reader here gets its own type. `.py` is read
+        // with the interpreter's own `ast`, so a symbol report is possible; the rest stay
+        // text/plain rather than being named for a parser that does not exist.
+        "py" => "text/x-python",
         "csv" => "text/csv",
         "tsv" => "text/tab-separated-values",
         "json" | "canvas" => "application/json",
@@ -211,6 +234,14 @@ pub fn media_type_for_name(name: &str) -> Option<&'static str> {
         "yaml" | "yml" => "application/yaml",
         "toml" => "application/toml",
         "epub" => "application/epub+zip",
+        // R15/F13: ODF carries its body in content.xml and RTF in its own control words, and a
+        // reader for each exists here, so naming them lets the file reach that reader instead of
+        // being refused as an unknown suffix. The legacy binary Microsoft containers stay
+        // unnamed for the same reason they were left out of the Office group.
+        "odt" => "application/vnd.oasis.opendocument.text",
+        "ods" => "application/vnd.oasis.opendocument.spreadsheet",
+        "odp" => "application/vnd.oasis.opendocument.presentation",
+        "rtf" => "application/rtf",
         "xml" => "application/xml",
         // R15/F15: a container gets the archive route, not a text decode
         "zip" => "application/zip",
@@ -234,12 +265,19 @@ pub fn media_type_for_name(name: &str) -> Option<&'static str> {
         "mov" => "video/quicktime",
         "mkv" => "video/x-matroska",
         "webm" => "video/webm",
-        // R15/F07-F09: the OOXML families this repository can read; the legacy binary
-        // formats (doc, ppt, xls) are deliberately NOT named, so they stay custody-only
-        // instead of being handed to a reader that cannot open them.
+        // R15/F07-F09: the OOXML families this repository can read. `.xls` joins them because
+        // a reader for it now exists (the declared xlrd engine); `.doc` and `.ppt` join it because
+        // external sidecars are now probed for them - and a document whose sidecar is absent fails
+        // with the engine's own named reason, which is a reported state, not a silent one.
+        // `.ppt` is named now: a JVM and Apache Tika are declared external sidecars, so the
+        // legacy binary presentation has a reader instead of staying custody-only by default.
+        // The route is the declaration; the engine is still probed and never assumed.
         "docx" => "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
         "pptx" => "application/vnd.openxmlformats-officedocument.presentationml.presentation",
         "xlsx" => "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        "xls" => "application/vnd.ms-excel",
+        "doc" => "application/msword",
+        "ppt" => "application/vnd.ms-powerpoint",
         // subtitles have their own media types, so a .srt is no longer declared as
         // plain text and cannot reach the text route by accident
         "srt" => "application/x-subrip",
@@ -279,11 +317,45 @@ pub fn resolve_media_type(kind: &str, original_name: &str) -> Result<&'static st
     }
 }
 
+/// A split transcription request: the Core-owned root under which windows are kept.
+///
+/// Splitting is the only extra input a job may carry, and only `media.transcribe` may carry it.
+#[derive(Debug, Clone)]
+pub struct Split {
+    pub root: std::path::PathBuf,
+}
+
+impl Split {
+    /// Where one recording's finished windows are kept.
+    ///
+    /// Keyed by the input's own digest rather than by the job, because a recording too long for one
+    /// job is expected to take several: each of them is a separate job, and they must all see the
+    /// windows the earlier ones finished. Keying by job would restart the work every round.
+    pub fn windows_of(root: &std::path::Path, digest: &str) -> std::path::PathBuf {
+        root.join("windows").join(digest)
+    }
+}
+
 pub fn claim(
     conn: &mut Connection,
     job_id: &str,
     request_id: &str,
     deadline_ms: u64,
+) -> Result<Request, JobError> {
+    claim_split(conn, job_id, request_id, deadline_ms, None, false)
+}
+
+/// `claim`, with the split choice the job carries persisted in the same transaction.
+///
+/// The choice travels inside the stored `request_json`, so replay and idempotency compare against
+/// what the worker actually received rather than a shape the caller remembers.
+pub fn claim_split(
+    conn: &mut Connection,
+    job_id: &str,
+    request_id: &str,
+    deadline_ms: u64,
+    split: Option<Split>,
+    words: bool,
 ) -> Result<Request, JobError> {
     let tx = conn.transaction_with_behavior(TransactionBehavior::Immediate)?;
     let row:Option<(String,String,String,String)>=tx.query_row(
@@ -323,6 +395,17 @@ pub fn claim(
         deadline_ms,
     )
     .map_err(JobError::InvalidReceipt)?;
+    let request = match split {
+        Some(split) => request
+            .splitting(&Split::windows_of(&split.root, &sha).to_string_lossy())
+            .map_err(JobError::InvalidReceipt)?,
+        None => request,
+    };
+    let request = if words {
+        request.word_timings().map_err(JobError::InvalidReceipt)?
+    } else {
+        request
+    };
     tx.execute("INSERT INTO job_attempts(job_id,attempt,request_id,request_json,state) VALUES(?1,?2,?3,?4,'running')",
         rusqlite::params![job_id,next,request_id,serde_json::to_string(&request).map_err(|_|JobError::Conflict)?])?;
     tx.execute(

@@ -22,6 +22,23 @@ from urllib.request import HTTPRedirectHandler, ProxyHandler, Request, build_ope
 from aaos01_office_runtime_loop import REPO, identity, load
 
 
+def installation_limitation(installer) -> str:
+    """The limitation this run can honestly state about installation.
+
+    This probe never establishes installation -- a parent verifier does that. Calling the
+    executable a candidate is false once `--installer` records that a parent supplied the
+    installed host, and stating it there produced a receipt whose `limitations[0]` directly
+    contradicted its own `installation_context` and `host.path`.
+    """
+    if installer is not None:
+        return (
+            "This probe does not itself establish installation; the parent installer verifier "
+            "supplied the installed host and this receipt hashes that installer"
+        )
+    return "Candidate executable, not NSIS installed journey"
+
+
+
 def owned_process_rows(rows, root_pid):
     """Reject recycled parent PIDs using observed creation times."""
     indexed = {row["pid"]: row for row in rows}
@@ -317,7 +334,9 @@ def installed_format_import_loop(bridge, repo, proofs):
         proofs.append(proof)
         if kind == "archive":
             declared = loss["params"]["structure"]["extractable_members"]
-            assert len(declared) == 1 and declared[0]["name"] == "notes/known.csv"
+            assert len(declared) == 1 and declared[0]["name"] == "notes/known.csv", \
+                {"route_media_type": loss["params"].get("media_type"), "declared": declared,
+                 "member_dir_requested": loss["params"].get("attachment_extraction")}
             assert declared[0]["sha256"] == hashlib.sha256(csv).hexdigest()
             # Reuse finite source list/jobs: no token access or arbitrary HTTP/file API.
             matches = [item for item in bridge("sources_list")["sources"] if item["sha256"] == declared[0]["sha256"]]
@@ -612,7 +631,7 @@ def main():
             "webview_user_data_folder_strategy": "Fresh session-N profile per launch; canonical product data root unchanged",
         },
         "limitations": [
-            "Candidate executable, not NSIS installed journey",
+            installation_limitation(args.installer),
             "Programmatic Chinese text, not physical native IME",
             "No human review decision or approval performed",
             "One engineering run, not whole UI P95 acceptance",

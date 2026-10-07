@@ -321,7 +321,20 @@ impl Executor {
         deadline_ms: u64,
         cancel: &Cancellation,
     ) -> Result<(), String> {
-        self.start(job_id, request_id, deadline_ms, cancel)
+        self.execute_splitting(job_id, request_id, deadline_ms, cancel, false, false)
+            .await
+    }
+    /// `execute` for a recording that is transcribed by splitting it into bounded windows.
+    pub async fn execute_splitting(
+        &self,
+        job_id: &str,
+        request_id: &str,
+        deadline_ms: u64,
+        cancel: &Cancellation,
+        split: bool,
+        words: bool,
+    ) -> Result<(), String> {
+        self.start_splitting(job_id, request_id, deadline_ms, cancel, split, words)
             .await?
             .await
             .map_err(|e| format!("execution task failed: {e}"))?
@@ -334,16 +347,33 @@ impl Executor {
         deadline_ms: u64,
         cancel: &Cancellation,
     ) -> Result<tokio::task::JoinHandle<Result<(), String>>, String> {
+        self.start_splitting(job_id, request_id, deadline_ms, cancel, false, false)
+            .await
+    }
+    /// `start` for a split transcription. The staging directory is Core-owned and derived here, so
+    /// a caller says only whether the recording should be split.
+    pub async fn start_splitting(
+        &self,
+        job_id: &str,
+        request_id: &str,
+        deadline_ms: u64,
+        cancel: &Cancellation,
+        split: bool,
+        words: bool,
+    ) -> Result<tokio::task::JoinHandle<Result<(), String>>, String> {
         // Accepted jobs outlive a disconnected HTTP/UI waiter. Explicit owner
         // cancellation still propagates through the shared cancellation handle.
         let owned = self.clone();
         let job = job_id.to_owned();
         let request = request_id.to_owned();
         let cancel = cancel.clone();
+        let split = split.then(|| attempts::Split {
+            root: self.staging.clone(),
+        });
         let (ack, accepted) = tokio::sync::oneshot::channel();
         let task = tokio::spawn(async move {
             owned
-                .execute_owned(&job, &request, deadline_ms, &cancel, ack)
+                .execute_owned(&job, &request, deadline_ms, &cancel, ack, split, words)
                 .await
         });
         match accepted.await {
@@ -362,6 +392,8 @@ impl Executor {
         deadline_ms: u64,
         cancel: &Cancellation,
         ack: tokio::sync::oneshot::Sender<()>,
+        split: Option<attempts::Split>,
+        words: bool,
     ) -> Result<(), String> {
         // Keep the one write to the child's pipe small enough to fit its initial
         // buffer. Configuration and IDs are Core-owned, not shell commands.
@@ -372,7 +404,9 @@ impl Executor {
         let id = request_id.to_owned();
         let req = self
             .store
-            .submit_wait(move |conn| attempts::claim(conn, &job, &id, deadline_ms))
+            .submit_wait(move |conn| {
+                attempts::claim_split(conn, &job, &id, deadline_ms, split, words)
+            })
             .await
             .map_err(|e| e.to_string())?
             .map_err(|e| e.to_string())?;
@@ -395,12 +429,14 @@ impl Executor {
                         ));
                     }
                 };
-                let artifact_root =
-                    if matches!(req.capability.as_str(), "archive.inventory" | "media.video") {
-                        crate::container::attempt_root(&self.staging, &req.job_id, req.attempt)
-                    } else {
-                        self.staging.clone()
-                    };
+                let artifact_root = if matches!(
+                    req.capability.as_str(),
+                    "archive.inventory" | "media.video" | "text.extract" | "office.structure",
+                ) {
+                    crate::container::attempt_root(&self.staging, &req.job_id, req.attempt)
+                } else {
+                    self.staging.clone()
+                };
                 let staging = self.staging.clone();
                 let python = self.python.clone();
                 let request = serde_json::to_string(&req).map_err(|e| e.to_string())?;
@@ -427,12 +463,14 @@ impl Executor {
         match result {
             Ok((response, bytes)) => {
                 let cancel = cancel.clone();
-                let artifact_root =
-                    if matches!(req.capability.as_str(), "archive.inventory" | "media.video") {
-                        crate::container::attempt_root(&self.staging, &req.job_id, req.attempt)
-                    } else {
-                        self.staging.clone()
-                    };
+                let artifact_root = if matches!(
+                    req.capability.as_str(),
+                    "archive.inventory" | "media.video" | "text.extract" | "office.structure",
+                ) {
+                    crate::container::attempt_root(&self.staging, &req.job_id, req.attempt)
+                } else {
+                    self.staging.clone()
+                };
                 self.store.submit_wait(move|conn|{
                     // Cancellation competes with completion at the writer boundary;
                     // once completion is committed it cannot be rolled back by cancel.
@@ -443,7 +481,7 @@ impl Executor {
                     let finished = if req.capability == "media.video" { attempts::finish_with_artifacts(conn,&req,&response,&bytes,&artifact_root) } else { attempts::finish(conn,&req,&response,&bytes) };
                     match finished {
                         Ok(())=>{
-                            if req.capability == "archive.inventory" {
+                            if matches!(req.capability.as_str(), "archive.inventory" | "text.extract" | "office.structure") {
                                 if let Err(error) = crate::container::expand_members(conn, &artifact_root, &req.job_id) {
                                     let reason = error.to_string();
                                     let task = archeaxis_domain::machine::MachineTask {

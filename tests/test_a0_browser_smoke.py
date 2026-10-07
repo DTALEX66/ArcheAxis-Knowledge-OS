@@ -131,3 +131,43 @@ def test_browser_smoke_records_the_dirty_candidate_without_writing_the_worktree_
         "worktree_diff_sha256": "9e3e63fac9c92100f0f15e616e1abf395028edc8912bebfc42044c65eb17e114",
     }
     assert ["git", "write-tree"] not in captured
+
+
+def test_the_viewport_matrix_covers_the_stylesheets_own_breakpoints():
+    """The matrix must render both sides of every width the shell actually branches on.
+
+    The phone end was retired by owner decision on 2026-10-07, so this no longer asks for a
+    sub-600 viewport. It asks for the stronger thing instead: that no phone block survived the
+    retirement, and that each remaining breakpoint has a matrix entry on both sides of it.
+    """
+    import re
+
+    root = Path(__file__).resolve().parents[1]
+    smoke = (root / "scripts" / "a0_browser_smoke.py").read_text(encoding="utf-8")
+    styles = "".join((root / "frontend" / "src" / "design-system" / name).read_text(encoding="utf-8")
+                     for name in ("tokens.css", "themes.css"))
+
+    entries = re.findall(r"\(\"[^\"]+\", (\d+), \d+, [\d.]+\)", smoke)
+    assert entries, "the desktop viewport matrix could not be read"
+    widths = [int(value) for value in entries]
+
+    # Only what a @media condition branches on; a plain `max-width: 120px` declaration on an
+    # element is a size, not a breakpoint, and the first draft of this check confused the two.
+    breakpoints = sorted({int(value) for value in re.findall(r"@media[^{]*max-width: (\d+)px", styles)})
+    assert breakpoints, "the stylesheet declares no width breakpoint at all"
+    for limit in breakpoints:
+        assert any(width <= limit for width in widths), (limit, widths)
+        assert any(width > limit for width in widths), (limit, widths)
+
+    assert not re.search(r"@media \(max-width: \d+px\) \{[^@]*?\.context-subnav \{\s*display: none;", styles, re.S), \
+        "a phone block that hides the context strip came back after the owner retired that end"
+    # A conditional branch is legitimate (the reading-column floor uses one); a branch at phone
+    # width is not, because that end was retired.
+    branches = [int(value) for value in re.findall(r"if width <= (\d+):", smoke)]
+    assert all(branch > 600 for branch in branches), branches
+
+    # The band between them asserts the reading column keeps its declared minimum.
+    assert re.search(
+        r"if width <= 1200:\s*\n(?:\s*#[^\n]*\n)*\s*assert geometry\[\"main\"\]\[\"width\"\] >= 280",
+        smoke,
+    )

@@ -33,6 +33,13 @@ updated: "2026-08-14"
 source_of_truth: "docs/environment/EXTERNAL_DEPENDENCIES.md"
 description: "ArcheAxis-Knowledge-OS 外置能力需求规范（机器可读清单）"
 
+# 命名邻近根：与外置根同级、但不在其内的共享资源。共享 Model library 就是这一类。
+# 条目通过 sibling_root 引用此处名字，external_paths 因此无需写 `..`；可到达的位置由本清单
+# 显式命名，而不是由路径遍历决定。三处读取方（worker 解析器、宿主清点、外置索引）都按同一
+# 规则解析，索引不再声称一个运行期无法到达的路径"存在"。
+sibling_roots:
+  model-library: "../Model library"
+
 capabilities:
   toolchains:
     - name: python
@@ -116,14 +123,19 @@ capabilities:
       local_only: true
 
     - name: playwright-chromium
-      purpose: "browser-smoke / e2e 测试浏览器（缓存于 toolchains/playwright）"
+      purpose: "browser-smoke / e2e 测试浏览器，亦是 F03 渲染通道使用的无头浏览器（缓存于 toolchains/playwright）"
       version_range: ">=1228"
       platform: windows-x64
       license: "BSD-3-Clause (Chromium)"
       source_url: "https://playwright.dev/python/docs/browsers"
       install_method: playwright-install
       healthcheck_command: "playwright --version"
-      required_by: [browser-smoke, e2e]
+      # 渲染通道要的是**这一个** exe：Playwright 只查自己的注册表，而会话把它指到一个
+      # 空的 project-local 缓存，所以声明这条路径才是让 worker 找到已就位浏览器的办法。
+      # 目录名带构建号（chromium-1228），升级 playwright 后若构建号变了，这一条会先失效——
+      # 失效的表现是具名的"render engine missing"，不是拿别的浏览器顶替。
+      external_paths: ["10-toolchains/playwright/chromium-1228/chrome-win64/chrome.exe"]
+      required_by: [browser-smoke, e2e, conversion]
       local_only: true
 
   runtimes:
@@ -184,6 +196,63 @@ capabilities:
       external_paths: ["10-toolchains/scoop/apps/tesseract-languages/current"]
       required_by: [ocr-pipeline]
       local_only: false
+
+    # R15/F14 `.doc`：antiword 是**旁路引擎**，本项目不打包、不代装、不改许可。
+    # 两条必须一起声明：antiword 只到 $HOME/.antiword 与 /usr/share/antiword 找字符映射表，
+    # 而 -m 传绝对路径会被截断后用默认表（实测），所以搬出安装目录的副本必须配一个
+    # 名为 .antiword 的映射目录，并把其父目录作为 HOME 交给引擎。只声明二进制那一条，
+    # 解析成功而读取失败。
+    - name: antiword
+      purpose: "Word 97 .doc 纯文本旁路读取（MSYS2 打包 antiword 0.37；健康检查以 -h 自报身份，退出码非 0 是该引擎的正常行为）"
+      version_range: "0.37"
+      platform: windows-x64
+      license: "GPL-3.0-or-later"
+      source_url: "https://github.com/msys2/MINGW-packages/tree/master/mingw-w64-antiword"
+      install_method: system
+      healthcheck_command: "antiword -h"
+      external_paths: ["10-toolchains/antiword/antiword.exe"]
+      required_by: [conversion]
+      local_only: true
+
+    - name: antiword-mappings
+      purpose: "antiword 字符映射表目录（目录名必须为 .antiword；worker 把它的父目录作为 HOME 交给引擎，否则搬出安装目录的副本读不到 UTF-8.txt 就拒绝出文）"
+      version_range: "0.37"
+      platform: windows-x64
+      license: "GPL-3.0-or-later"
+      source_url: "https://github.com/msys2/MINGW-packages/tree/master/mingw-w64-antiword"
+      install_method: system
+      healthcheck_command: "antiword -h"
+      external_paths: ["10-toolchains/antiword/.antiword"]
+      required_by: [conversion]
+      local_only: true
+
+    # R15/F14 `.ppt`：Apache Tika 是 Java 程序，所以这一族需要**两条一起**声明——JVM 与 jar。
+    # 只声明 jar 会得到"解析成功而跑不起来"，形状与 antiword 缺映射表完全一致。
+    # 许可不是凭印象写的：两者都从**分发自带的许可文件**读出来（Tika 的 LICENSE 是 Apache-2.0，
+    # Zulu 的 legal/java.base 里同时有 GPL 全文与 ASSEMBLY_EXCEPTION）。
+    - name: zulu-jre
+      purpose: "Apache Tika 运行所需的 JVM（Azul Zulu Community 21.0.12.1，x64 Windows，无 JavaFX）"
+      version_range: ">=21,<22"
+      platform: windows-x64
+      license: "GPL-2.0-or-later with Classpath Exception (read from legal/java.base in the distribution)"
+      source_url: "https://cdn.azul.com/zulu/bin/zulu21.52.203-ca-jre21.0.12.1-win_x64.zip"
+      install_method: 自动下载
+      healthcheck_command: "java -version"
+      external_paths: ["10-toolchains/java/zulu-jre-21.0.12.1/bin/java.exe"]
+      required_by: [conversion]
+      local_only: true
+
+    - name: apache-tika
+      purpose: "旧二进制演示文稿 `.ppt` 的读取旁路（Apache Tika 4.1.0 tika-app 发行包，含 lib/ 与 plugins/）"
+      version_range: ">=4.1,<5"
+      platform: windows-x64
+      license: "Apache-2.0 (read from the LICENSE shipped in the distribution)"
+      source_url: "https://dlcdn.apache.org/tika/4.1.0/tika-app-4.1.0.zip"
+      install_method: 自动下载
+      healthcheck_command: "java -jar 10-toolchains/tika/4.1.0/tika-app-4.1.0.jar --version"
+      external_paths: ["10-toolchains/tika/4.1.0/tika-app-4.1.0.jar"]
+      required_by: [conversion]
+      local_only: true
 
     - name: ffmpeg
       purpose: "音视频解码、格式转换、关键帧提取（只用 LGPL 子集）"
@@ -253,15 +322,29 @@ capabilities:
       required_by: [asr-pipeline, bakeoff]
       local_only: true
 
+    - name: faster-whisper-large-v3-turbo
+      purpose: "真实转写实际使用的 large-v3-turbo 权重（从共享 Model library 读取；此前只能靠 ARCHEAXIS_ASR_MODEL_DIR 环境变量发现）"
+      version_range: "large-v3-turbo"
+      platform: windows-x64
+      license: "MIT"
+      source_url: "https://huggingface.co/Systran/faster-whisper-large-v3-turbo"
+      install_method: system
+      healthcheck_command: "共享 Model library 内目录存在"
+      sibling_root: model-library
+      external_paths: ["whisper/faster-whisper-large-v3-turbo"]
+      required_by: [asr-pipeline, bakeoff]
+      local_only: true
+
     - name: sense-voice-zh-en-ja-ko-yue
       purpose: "SenseVoice int8 模型（从共享 Model library 读取，不复制进 Git）"
       version_range: "2024-07-17"
       platform: windows-x64
       license: "Apache-2.0"
       source_url: "https://github.com/k2-fsa/sherpa-onnx"
-      install_method: shared-model-library
+      install_method: system
       healthcheck_command: "Test-Path $env:ARCHEAXIS_MODEL_LIBRARY_DIR\\sherpa-onnx\\*\\model.int8.onnx"
-      external_paths: ["../Model library/sherpa-onnx"]
+      sibling_root: model-library
+      external_paths: ["sherpa-onnx"]
       required_by: [asr-pipeline]
       local_only: true
 

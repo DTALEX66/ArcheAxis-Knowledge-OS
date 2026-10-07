@@ -68,11 +68,12 @@ risk_classes:
     gates: [release-verify]
 
   - id: ci-policy
-    description: CI workflow, classifier, gate registry, release scripts
+    description: CI workflow, classifier, gate registry, release scripts, secret-scan policy
     paths:
       - ".github/**"
       - ".worklab/**"
       - ".project/**"
+      - ".gitleaks.toml"
       - "scripts/ci/**"
       - "scripts/release_*.py"
     gates: [static, lint]

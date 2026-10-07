@@ -2,6 +2,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { act, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { JobContent } from "../components/JobContent";
+import { describeSplit, splitProgressOf } from "../presentation/mediaEstimate";
 const bridge=vi.hoisted(()=>({call:vi.fn()}));vi.mock("../api/core",()=>({coreCommand:bridge.call}));
 describe("Core job content",()=>{
  beforeEach(()=>{bridge.call.mockReset();});
@@ -116,5 +117,39 @@ describe("Core job content",()=>{
   expect(screen.queryByText("已创建来源与引文绑定的知识候选，尚未接受。")).toBeNull();
   expect(screen.queryByText("知识候选创建未确认，请保留正文与选区重试。")).toBeNull();
   expect(screen.queryByText(/候选 old-knowledge/)).toBeNull();
+ });
+ it("SIMULATED: tells the user the expected cost before executing media, and refuses to promise a whole job past the ceiling",async()=>{
+  bridge.call.mockImplementation(async()=>({}));
+  const {rerender}=render(<JobContent sourceId="s" name="speech.wav" mediaDurationSeconds={83}/>);
+  expect(screen.getByText(/原件时长 约 1 分 23 秒/)).toBeInTheDocument();
+  expect(screen.getByText(/整体执行在上限内，可直接执行/)).toBeInTheDocument();
+  expect(screen.getByRole("button",{name:"整体执行"})).toBeEnabled();
+  expect(screen.getByRole("button",{name:/切分执行（1 段/})).toBeInTheDocument();
+  rerender(<JobContent sourceId="s" name="speech.wav" mediaDurationSeconds={720}/>);
+  expect(screen.getByText(/原件时长 约 12 分 0 秒/)).toBeInTheDocument();
+  const warning=screen.getByText(/请选择“切分执行”/);
+  expect(warning).toHaveTextContent(/需分 6 段/);
+  expect(warning).toHaveTextContent(/单段预计 约 5 分 0 秒/);
+  // the whole-file action is offered but disabled, so the ceiling cannot be walked into by accident
+  expect(screen.getByRole("button",{name:/整体执行（超过单作业上限，已停用）/})).toBeDisabled();
+  expect(screen.getByRole("button",{name:/切分执行（6 段，可续跑）/})).toBeEnabled();
+ });
+ it("reads split progress from the receipt, and claims nothing when the receipt has none",()=>{
+  const receipt=(windows:unknown)=>({params:{worker_output:{windows}}});
+  expect(splitProgressOf(receipt({status:"complete",windows_expected:6,windows_present:6,windows_missing:[],windows_resumed:[0,1]})))
+   .toEqual({status:"complete",expected:6,present:6,missing:[],resumed:[0,1]});
+  expect(describeSplit({status:"complete",expected:6,present:6,missing:[],resumed:[0,1]})).toContain("复用了 2 段");
+  // A partial receipt names the windows it did not reach instead of presenting the text as whole.
+  const partial=splitProgressOf(receipt({status:"partial",windows_expected:6,windows_present:2,windows_missing:[2,3,4,5],windows_resumed:[]}))!;
+  expect(describeSplit(partial)).toContain("2 / 6");
+  expect(describeSplit(partial)).toContain("2、3、4、5");
+  // No split record, or one that cannot be read, is not evidence that nothing ran.
+  expect(splitProgressOf({})).toBeNull();
+  expect(splitProgressOf(receipt({status:"complete",windows_expected:"6",windows_present:6}))).toBeNull();
+ });
+ it("SIMULATED: no estimate is shown for a format that has no local reading route",async()=>{
+  bridge.call.mockImplementation(async()=>({}));
+  render(<JobContent sourceId="s" name="budget.xlsx" mediaDurationSeconds={720}/>);
+  expect(screen.queryByText(/原件时长/)).toBeNull();
  });
 });

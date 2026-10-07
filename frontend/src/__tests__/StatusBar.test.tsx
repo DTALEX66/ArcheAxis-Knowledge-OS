@@ -1,6 +1,9 @@
 import { describe, expect, it } from "vitest";
 import { render, screen, within } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import { StatusBar } from "../components/StatusBar";
+import { ThemeProvider } from "../design-system/ThemeProvider";
+import { AAOS_THEME_REGISTRY } from "../design-system/theme";
 
 // AXW-UI-804: StatusBar — product name, active space, text-bearing status badge.
 describe("StatusBar", () => {
@@ -47,5 +50,28 @@ describe("StatusBar", () => {
     const badge = screen.getByText(/浏览器开发模式/);
     expect(badge).toHaveAttribute("data-status", "development");
     expect(screen.queryByText("后端状态：本地可用")).not.toBeInTheDocument();
+  });
+
+  it("switches the root theme and the rendered AAOS brand asset together", async () => {
+    const preferenceKey = "aaos.ui.theme.v1";
+    const previousPreference = window.localStorage.getItem(preferenceKey);
+    window.localStorage.removeItem(preferenceKey);
+    const user = userEvent.setup();
+    try {
+      render(<ThemeProvider><StatusBar activeSpace="workspace" backendState="web" /></ThemeProvider>);
+      const picker = screen.getByRole("combobox", { name: "界面主题" });
+      const mark = document.querySelector<HTMLImageElement>(".status-bar-brand img");
+      expect(mark).not.toBeNull();
+
+      for (const id of ["black", "white", "cosmic"] as const) {
+        await user.selectOptions(picker, id);
+        expect(document.documentElement.dataset.aaosTheme).toBe(id);
+        expect(mark!.getAttribute("src")).toBe(AAOS_THEME_REGISTRY[id].brandMark);
+      }
+    } finally {
+      if (previousPreference === null) window.localStorage.removeItem(preferenceKey);
+      else window.localStorage.setItem(preferenceKey, previousPreference);
+      delete document.documentElement.dataset.aaosTheme;
+    }
   });
 });

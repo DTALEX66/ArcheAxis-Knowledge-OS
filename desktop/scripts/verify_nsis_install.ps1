@@ -13,6 +13,7 @@ $uninstallKey = 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Uninstall\*'
 $appDataExisted = Test-Path $appData
 $ownsInstall = $false
 $activeShell = $null
+$evidenceDirectory = $null
 
 if (-not ('ArcheAxisWindow' -as [type])) {
     Add-Type -TypeDefinition @'
@@ -344,6 +345,7 @@ try {
         # A failed session must not erase which installed lifecycle assertions ran.
         $preflightDirectory = Join-Path ([IO.Path]::GetFullPath('.project-local/task-runtime/aaos01-webdriver')) ([Guid]::NewGuid().ToString('N'))
         New-Item -ItemType Directory -Path $preflightDirectory -Force | Out-Null
+        $evidenceDirectory = $preflightDirectory
         [ordered]@{
             schema = 'archeaxis/installed-preflight/v1'
             complete_lifecycle_verified = $false
@@ -464,6 +466,35 @@ try {
         -not (Test-Path -LiteralPath $persistenceSentinel -PathType Leaf)) {
         throw 'NSIS final uninstall removed retained user data'
     }
+
+    # install-preflight.json above is a phase snapshot taken before the
+    # independent WebDriver session and deliberately states
+    # complete_lifecycle_verified = $false. The completion record below is
+    # written only after every in-place upgrade, forced-kill, clean-uninstall,
+    # uninstall-retains-data and reinstall-readback assertion above has passed,
+    # so it is the durable evidence that the whole lifecycle ran in this job.
+    if (-not $evidenceDirectory) {
+        $evidenceDirectory = Join-Path ([IO.Path]::GetFullPath('.project-local/task-runtime/aaos01-installed-lifecycle')) ([Guid]::NewGuid().ToString('N'))
+    }
+    New-Item -ItemType Directory -Path $evidenceDirectory -Force | Out-Null
+    [ordered]@{
+        schema = 'archeaxis/installed-lifecycle-receipt/v1'
+        complete_lifecycle_verified = $true
+        head_sha = $env:GITHUB_SHA
+        run_id = $env:GITHUB_RUN_ID
+        run_attempt = $env:GITHUB_RUN_ATTEMPT
+        installer_sha256 = (Get-FileHash -LiteralPath $Installer -Algorithm SHA256).Hash.ToLowerInvariant()
+        product_version = $initialProof.product_version
+        core_schema_version = $initialProof.schema_version
+        persisted_job = $initialProof.job_id
+        graceful_shutdown = $true
+        in_place_upgrade = $true
+        forced_tree_cleanup = $true
+        clean_uninstall = $true
+        uninstall_retains_data = $true
+        reinstall_readback = $true
+        pyc_growth = $pycAfter - $pycBefore
+    } | ConvertTo-Json -Depth 4 | Set-Content -LiteralPath (Join-Path $evidenceDirectory 'lifecycle-receipt.json') -Encoding utf8
 
     [pscustomobject]@{
         Version = $initialProof.product_version

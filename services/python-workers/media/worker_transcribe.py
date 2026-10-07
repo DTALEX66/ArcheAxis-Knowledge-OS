@@ -146,19 +146,17 @@ def probe(model_path: str | None) -> dict:
     }
 
 
-def extract(path: str, model_path: str | None, language: str, device: str) -> dict:
-    from faster_whisper import WhisperModel
+def _segment_cues(model, path: str, language: str, word_timestamps: bool = False):
+    """One decode pass: the raw cues, their text, the decode info and any mid-iteration error.
 
-    model_dir = _model_dir(model_path)
-    input_path = Path(path)
-    if not input_path.is_file():
-        raise ValueError(f"input media file not found: {input_path}")
-
-    model = WhisperModel(str(model_dir), device=device, compute_type="int8")
+    Shared by the whole-file and per-window paths so a window cannot drift from the canonical
+    behaviour. Returns exactly what the original inline loop produced.
+    """
     segments, info = model.transcribe(
-        str(input_path),
+        str(path),
         language=None if language == "auto" else language,
         vad_filter=True,
+        word_timestamps=word_timestamps,
     )
     raw_cues: list[dict] = []
     text_parts: list[str] = []
@@ -170,6 +168,13 @@ def extract(path: str, model_path: str | None, language: str, device: str) -> di
                     "start_ms": int(segment.start * 1000),
                     "end_ms": int(segment.end * 1000),
                     "text": segment.text.strip(),
+                    # Word timings are reported only when they were asked for: alignment is an
+                    # extra pass, and a cue that has none says so rather than being padded.
+                    **({"words": [
+                        {"start_ms": int(word.start * 1000), "end_ms": int(word.end * 1000),
+                         "text": (word.word or "").strip()}
+                        for word in (getattr(segment, "words", None) or [])]}
+                       if word_timestamps else {}),
                 }
             )
             text_parts.append(segment.text.strip())
@@ -177,6 +182,21 @@ def extract(path: str, model_path: str | None, language: str, device: str) -> di
         if not raw_cues:
             raise RuntimeError("ASR segment iteration failed before any usable result") from exc
         processing_error = {"stage": "segment_iteration", "error_type": type(exc).__name__}
+    return raw_cues, text_parts, info, processing_error
+
+
+def extract(path: str, model_path: str | None, language: str, device: str,
+            word_timestamps: bool = False) -> dict:
+    from faster_whisper import WhisperModel
+
+    model_dir = _model_dir(model_path)
+    input_path = Path(path)
+    if not input_path.is_file():
+        raise ValueError(f"input media file not found: {input_path}")
+
+    model = WhisperModel(str(model_dir), device=device, compute_type="int8")
+    raw_cues, text_parts, info, processing_error = _segment_cues(
+        model, path, language, word_timestamps)
     processing_status = "partial" if processing_error else "complete"
     text = "\n".join(part for part in text_parts if part)
     language_code = getattr(info, "language", None) or "unknown"
@@ -219,10 +239,152 @@ def extract(path: str, model_path: str | None, language: str, device: str) -> di
                 "device": device,
                 "compute_type": "int8",
                 "vad_filter": True,
+                # The receipt states the granularity actually produced, so a request for word
+                # timings that the model could not satisfy stays visible instead of looking met.
+                "word_timings_requested": word_timestamps,
+                "word_timings_produced": any(cue.get("words") for cue in raw_cues),
             },
             "loss_note": ("ASR processing interrupted; yielded original text/raw cues retained; unprocessed remainder unknown; " if processing_error else "") + loss_note + (f"; {len(alignment_issues)} raw cues have invalid/out-of-duration positions; original text/raw_cues retained without clamping" if alignment_issues else ""),
         },
     }
+
+
+def _window_module():
+    """The window arithmetic and resume rules, loaded from this worker's own directory."""
+    import importlib.util
+
+    path = Path(__file__).resolve().parent / "window_transcribe.py"
+    spec = importlib.util.spec_from_file_location("transcribe_windows", path)
+    if spec is None or spec.loader is None:
+        raise RuntimeError("window_transcribe.py is missing beside this worker")
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
+
+
+def extract_windowed(path: str, model_path: str | None, language: str, device: str, plan: dict,
+                     ffmpeg: str, staging: str | None = None, work_dir: str | None = None,
+                     budget_ms: int | None = None,
+                     word_timestamps: bool = False) -> dict:
+    """Transcribe one bounded window of the recording, resuming windows already finished.
+
+    The Core caps a job at 300 s, so the caller drives successive invocations. `window_transcribe`
+    owns the plan arithmetic, the resume rules and the merge; this function owns the two things it
+    cannot: cutting the window with the declared ffmpeg binary and running the model on it. The
+    offsets come from the window's own start, so a citation always points into the recording.
+    """
+    import subprocess
+    import tempfile
+
+    from faster_whisper import WhisperModel
+
+    windows = _window_module()
+    input_path = Path(path)
+    if not input_path.is_file():
+        raise ValueError(f"input media file not found: {input_path}")
+    if not Path(ffmpeg).is_file():
+        raise ValueError(f"declared ffmpeg path does not exist: {ffmpeg}")
+
+    workspace = Path(work_dir) if work_dir else Path(tempfile.mkdtemp(prefix="archeaxis-window-"))
+    workspace.mkdir(parents=True, exist_ok=True)
+    # Loaded on first real window: an invocation that only resumes finished windows must not pay for
+    # a model it never uses.
+    loaded: list = []
+
+    def per_window(window):
+        if not loaded:
+            loaded.append(WhisperModel(str(_model_dir(model_path)), device=device, compute_type="int8"))
+        target = workspace / f"window-{int(window['index']):04d}.wav"
+        command = windows.window_command(str(ffmpeg), str(input_path), int(window["start_ms"]),
+                                         int(window["end_ms"]), str(target))
+        finished = subprocess.run(command, capture_output=True, text=True)
+        if finished.returncode != 0 or not target.is_file():
+            raise RuntimeError(f"ffmpeg failed for window {window['index']}: {finished.stderr[-200:]}")
+        # The canonical whole-file receipt is produced for the window's own wav, so a window cannot
+        # invent its own vocabulary: same engine, same loss receipt, same alignment rules.
+        receipt = extract(str(target), model_path, language, device,
+                          word_timestamps=word_timestamps)
+        # Cues stay local to the window: merge_windows owns the offset onto the recording timeline,
+        # and applying it here as well shifted every later window twice.
+        return {"status": "succeeded", "cues": receipt["cues"], "text": receipt["text"],
+                "receipt": receipt}
+
+    merged = windows.run_windows(plan, per_window, staging, budget_ms)
+    produced = next((item for item in merged["windows_detail"] if item.get("receipt")), None) if \
+        merged.get("windows_detail") else None
+    if produced is None:
+        raise RuntimeError("no window produced a receipt; nothing to report")
+    envelope = dict(produced["receipt"])
+    windows_planned = list(plan.get("windows") or [])
+    envelope.update(
+        text=merged["text"],
+        cues=merged["cues"],
+        raw_cues=merged["cues"],
+        # Each window enforced its own range while decoding, so nothing here is silently dropped;
+        # what the caller must see instead is which windows were missing from the recording.
+        alignment_issues=[],
+        alignment_status=("complete" if merged["status"] == "complete" else "partial"),
+        processing_status=("complete" if merged["status"] == "complete" else "partial"),
+        # The recording's duration, not the last decoded window's, so downstream offsets stay valid.
+        duration_ms=(int(windows_planned[-1]["end_ms"]) if windows_planned else envelope["duration_ms"]),
+        windows={key: merged[key] for key in
+                 ("status", "windows_expected", "windows_present", "windows_missing", "windows_resumed", "note")},
+        window_identity={"source": str(input_path),
+                         "window_audio_ms": int(plan.get("window_audio_ms") or 0),
+                         "policy": plan.get("policy")},
+    )
+    return envelope
+
+
+def _plan_module():
+    """The declared window policy and its arithmetic, loaded from this worker's own directory."""
+    import importlib.util
+
+    path = Path(__file__).resolve().parent / "window_plan.py"
+    spec = importlib.util.spec_from_file_location("transcribe_window_plan", path)
+    if spec is None or spec.loader is None:
+        raise RuntimeError("window_plan.py is missing beside this worker")
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
+
+
+def extract_split(path: str, model_path: str | None, language: str, device: str, ffmpeg: str,
+                  staging: str | None = None, remaining_ms: int | None = None,
+                  work_dir: str | None = None,
+                  word_timestamps: bool = False) -> dict:
+    """Transcribe a recording that cannot fit one job, by splitting it into bounded windows.
+
+    The plan is derived here, from the recording's real duration, rather than accepted from the
+    caller: the number that decides how many windows a file needs is the file's own length, and a
+    plan sent over the wire could drop audio by leaving a gap between two windows while still
+    looking well-formed. Only the *choice* to split rides the request.
+
+    Each invocation runs as many windows as the job's own budget allows and reports the rest as
+    not attempted, so a long recording advances across invocations instead of being killed
+    mid-decode with no statement about what was finished.
+    """
+    windows = _window_module()
+    planner = _plan_module()
+    if not Path(ffmpeg).is_file():
+        raise ValueError(f"declared ffmpeg path does not exist: {ffmpeg}")
+    if not Path(path).is_file():
+        raise ValueError(f"input media file not found: {path}")
+    duration_ms = windows.probe_duration_ms(str(ffmpeg), str(path))
+    plan = planner.plan_windows(duration_ms)
+    # Opening the input, loading the model and writing the first window all happen outside the
+    # per-window estimate, so that declared overhead is held back from the job's remaining time.
+    budget_ms = None if remaining_ms is None else max(0, int(remaining_ms) - planner.OVERHEAD_MS)
+    envelope = extract_windowed(path, model_path, language, device, plan, ffmpeg, staging, work_dir,
+                               budget_ms, word_timestamps)
+    envelope["split"] = {
+        "duration_ms": duration_ms,
+        "window_audio_ms": plan["window_audio_ms"],
+        "windows_total": plan["windows_total"],
+        "whole_exceeds_ceiling": plan["whole_exceeds_ceiling"],
+        "policy": plan["policy"],
+    }
+    return envelope
 
 
 def main() -> int:
@@ -256,6 +418,17 @@ def main() -> int:
     parser.add_argument("--language", default="auto")
     parser.add_argument("--device", default="cpu")
     parser.add_argument("--probe", action="store_true", help="capability probe only")
+    parser.add_argument("--window-plan", default=None,
+                        help="JSON window plan from window_plan.plan_windows(); runs one bounded window per invocation")
+    parser.add_argument("--ffmpeg", default=None, help="declared ffmpeg path used to cut a window")
+    parser.add_argument("--window-staging", default=None,
+                        help="directory holding finished windows so a later invocation resumes instead of repeating")
+    parser.add_argument("--word-timestamps", action="store_true",
+                        help="also align word-level timings (an extra pass; asked for, not assumed)")
+    parser.add_argument("--split", action="store_true",
+                        help="plan the windows from the recording's own duration and transcribe what this invocation's budget allows")
+    parser.add_argument("--budget-ms", type=int, default=None,
+                        help="wall-clock budget for this invocation; windows that do not fit are reported not attempted")
     args = parser.parse_args()
 
     if args.probe:
@@ -264,8 +437,35 @@ def main() -> int:
     if not args.input:
         print(json.dumps({"error": "usage: worker_transcribe.py <input-file> [options]"}))
         return 2
+    if args.split:
+        if not args.ffmpeg:
+            print(json.dumps({"error": "--split requires --ffmpeg"}, ensure_ascii=False))
+            return 2
+        try:
+            out = extract_split(args.input, args.model_dir, args.language, args.device, args.ffmpeg,
+                                args.window_staging, args.budget_ms, word_timestamps=args.word_timestamps)
+        except Exception as exc:  # noqa: BLE001
+            print(json.dumps({"error": str(exc)}, ensure_ascii=False))
+            return 1
+        print(json.dumps(out, ensure_ascii=False))
+        return 0
+    if args.window_plan:
+        if not args.ffmpeg:
+            print(json.dumps({"error": "--window-plan requires --ffmpeg"}, ensure_ascii=False))
+            return 2
+        try:
+            out = extract_windowed(args.input, args.model_dir, args.language, args.device,
+                                   json.loads(Path(args.window_plan).read_text(encoding="utf-8")),
+                                   args.ffmpeg, args.window_staging,
+                                   word_timestamps=args.word_timestamps)
+        except Exception as exc:  # noqa: BLE001
+            print(json.dumps({"error": str(exc)}, ensure_ascii=False))
+            return 1
+        print(json.dumps(out, ensure_ascii=False))
+        return 0
     try:
-        out = extract(args.input, args.model_dir, args.language, args.device)
+        out = extract(args.input, args.model_dir, args.language, args.device,
+                        word_timestamps=args.word_timestamps)
     except Exception as exc:  # noqa: BLE001
         print(json.dumps({"error": str(exc)}, ensure_ascii=False))
         return 1

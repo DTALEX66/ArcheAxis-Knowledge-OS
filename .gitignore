@@ -59,3 +59,9 @@ knowledge_base/data/
 /src-tauri/gen/android/
 /src-tauri/gen/apple/
 /target/
+
+# Generated at the repository root by ad-hoc local runs; the sanctioned build output lives under
+# .project-local/build. Kept ignorant on purpose so these never enter version control again.
+/build/
+__pycache__/
+*.egg-info/

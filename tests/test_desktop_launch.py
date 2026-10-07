@@ -315,3 +315,10 @@ def test_prepare_accepts_project_local_staging_candidate(tmp_path, monkeypatch):
     finally:
         remove_receipt_artifact(receipt)
         shutil.rmtree(fixture_root, ignore_errors=True)
+        # Drop the parent too when this test was the only user: the development root's
+        # layout contract does not sanction a `staging/` class, and leaving an empty one
+        # behind fails it on a clean CI run while passing on a machine that already has it.
+        try:
+            fixture_root.parent.rmdir()
+        except OSError:
+            pass

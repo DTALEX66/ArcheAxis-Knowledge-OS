@@ -51,6 +51,22 @@ export function sourceLabel(value: unknown, index = 0): string {
 
 const SAFE_ERROR = "本地数据暂时不可用，请稍后重试或打开系统诊断。";
 
+const PRODUCT_LAYER_LABELS: Record<string, string> = {
+  Workspace: "工作台",
+  Library: "资料库",
+  Evidence: "证据",
+  Learning: "学习",
+  "AI Assets": "机器知识",
+  Desktop: "桌面宿主",
+  Exploration: "探索",
+  Settings: "设置",
+};
+
+/** The navigation projection groups by the Core's English layer enum; the rail must not show it raw. */
+export function productLayerLabel(layer: string): string {
+  return PRODUCT_LAYER_LABELS[layer] ?? layer;
+}
+
 export function userErrorMessage(value: unknown): string {
   if (typeof value !== "string") return SAFE_ERROR;
   const message = value.trim().slice(0, 180);

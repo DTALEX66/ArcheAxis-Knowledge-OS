@@ -28,6 +28,9 @@ Historical identity for the original 2026-10-01 observations below (not the curr
 
 Current-source inventory was extended on 2026-10-05 to 61 method/path pairs,
 including version-bound document checks and optional-source original documents.
+It was extended again on 2026-10-07 to 62 method/path pairs by
+`GET /api/v1/sources/{source_id}/pages`, the R15/F06 read-back of a rendered page's own
+recognised text; the 61 above stays as the 2026-10-05 measurement rather than being rewritten.
 Schema11 and actual local Core persistence/restart/restore proofs are recorded in
 `AAOS01-Q00-Q15-LEDGER-FINAL-20261005.md`; those dirty-tree results are not the
 historical SHA above or installed qualification. The formal host now follows
@@ -206,7 +209,7 @@ against what it launched; a mismatch means it is talking to a different Core.
 `runtime` and `contract` are hard-coded string literals, not derived from the crate
 version. Do not use them to infer a build.
 
-## 3. Route inventory (61 pairs in a `text_worker` launch)
+## 3. Route inventory (62 pairs in a `text_worker` launch)
 
 `PROD` = reachable in a production launch. `PROD` marks the routes the UI may rely on.
 All paths are relative to the loopback base URL.
@@ -271,14 +274,15 @@ is not registered is a `404` rather than a row about nothing.
 | R4 | `GET /api/v1/jobs/{job_id}/outputs/{kind}` | any token | `200` with `{content, metadata}`; `metadata` carries `kind`, `schema`, `sha256`, `byte_length` and `authority_effect: "candidate_or_measurement_only"`. A text job writes `text`, `document_structure` and `loss_report`. **Every other answer is `404 AAK-VAL-004` "output not found"** — a kind this job never writes, a kind no route writes, a job that does not exist, *and* a job that has not finished. The status cannot distinguish those, so resolve with the job's own state: `running`/`queued` → retry, `succeeded` → it will never appear. Reads the **latest attempt's** rows, so a replay does not blank them. |
 | 22 | `GET /api/v1/jobs/{job_id}/quality` | any token | Aggregate projection; not a typed loss receipt. |
 | 5 | `GET /api/v1/sources/{source_id}/jobs/{job_id}/transform` | any token | The succeeded job's stored projection, whatever its kind: every extraction route writes its projection to `transforms.text`, so a PDF, OCR, Office, HTML, canvas, subtitle, archive, media or ASR transform reads back here. A job with no stored projection is `404`, and the `source_id` binding is enforced rather than the job id alone. |
-| 24 | `GET /api/v1/sources/{source_id}/members` | any token | Source members. |
+| 24 | `GET /api/v1/sources/{source_id}/members` | any token | The members imported from one container: `member_count`, `readable_count`, `custody_only_count`, `nesting_limited_count`, and per member its `source_id`, name, origin reference, digest, `readable` (a transform exists) and `job_id`. An unknown source is a `404` and an unexpanded container is empty rather than absent. `nesting_limited` true (field added 2026-10-07) means the member is itself a container whose own expansion stopped at the Core's stated nesting budget - its route exists, so a consumer must not read it as custody-only. |
 | 25 | `GET /api/v1/sources/{source_id}/jobs` | any token | Jobs for a source. |
+| 43 | `GET /api/v1/sources/{source_id}/pages` | any token | The pages a PDF was rendered into, each with the text its own OCR job produced; `recognised` false and no text means the page has not been read, and a PDF whose own text layer was readable has no pages here. |
 
 ### Evidence and knowledge
 
 | # | Method + path | Auth | Notes |
 | --- | --- | --- | --- |
-| 4 | `POST /api/v1/sources/{source_id}/anchors` | any token | Anchor creation. |
+| 4 | `POST /api/v1/sources/{source_id}/anchors` | any token | Anchor creation. `position` is a bounded JSON object; when a `checksum` is supplied it is verified against the immutable source through one of the known locator types - `text` (a byte range of the stored object), `time` (a verified ASR cue), `epub` (a chapter paragraph named by the attempt's own receipt), `worker_structure` (added 2026-10-07: the semantic path a route reported for itself - paragraph, heading, sheet row, slide, canvas node, cue or page - accepted only when that attempt is the latest succeeded one for this source revision, the receipt names the path exactly once, and the text at its recorded character span hashes to the checksum) and `format_location` (added the same day: a position the route reported in its format facts - JSON or XML path, mail part or header, ODF heading, paragraph, table cell or page, RTF paragraph, Python symbol - where the receipt names the kind and path exactly once, optionally narrowed by an exact match on fields the receipt already carries, and the reported value must both appear in that attempt's projection and hash to the checksum). An unknown type, a path the receipt cannot name unambiguously, a superseded attempt or a mismatched digest is `400`; a location without a `checksum` is stored and says `unverified`. |
 | 23 | `GET /api/v1/evidence/anchors` | any token | Anchor listing. Not a complete cross-domain evidence service. |
 | 6 | `POST /api/v1/knowledge-items/from-transform` | any token | Body carries `knowledge_type` and `body` (both **required**, no defaults), plus `source_id`, `job_id`, `transform_id`, UTF-16 selection range and `quote`. Core validates the **persisted** transform and selection. Returns a **candidate** + anchor. |
 | 7 | `POST /api/v1/knowledge-items` | any token | Direct candidate creation. Body `{knowledge_type, body, status, created_by, v3?}` — all four are **required**. **There is no `review_state` field**, and an unknown field is silently ignored, so sending `review_state:"accepted"` leaves the item at whatever `status` you sent; to make an item assessable, send `status:"accepted"`. See the request-body table in §4. |
@@ -539,8 +543,8 @@ Before the fix this endpoint answered `500` with a raw FTS5 parser message for
 
 | Launch | Routes served | Consequence for the UI |
 | --- | --- | --- |
-| **no** `text_worker` | 42 projection method/path pairs (37 unconditional mounts, five dual-method mounts); manual legacy `/jobs/{id}/receipts` remains absent from production | `/jobs/{id}`, `/executions`, `/outputs`, `/cancel`, `/capabilities` and its enable/disable write are **absent** (`404`). |
-| **with** `text_worker` | 61 addresses (41 base projection method/path pairs + 20 runtime method/path pairs) | All routes above are served. |
+| **no** `text_worker` | 43 projection method/path pairs (38 unconditional mounts, five dual-method mounts); manual legacy `/jobs/{id}/receipts` remains absent from production | `/jobs/{id}`, `/executions`, `/outputs`, `/cancel`, `/capabilities` and its enable/disable write are **absent** (`404`). |
+| **with** `text_worker` | 62 addresses (42 base projection method/path pairs + 20 runtime method/path pairs) | All routes above are served. |
 
 The runtime builder carries **20** routes, mounted there rather than with the projections because
 the capability surface reads the executor's registered routes, and the executor is the runtime
@@ -745,4 +749,4 @@ UI must show machine answering as not connected rather than calling anything.
    revision and the correction appears to vanish. The request-body table in §4 names every field
    for this reason.
 
-The projection-only launch retains its explicit unconfigured document-check execution handler. A text-worker launch instead mounts that same method/path once in the runtime builder; its 41 base projection pairs plus 20 runtime pairs total 61. This does not add a second endpoint or imply cloud configuration.
+The projection-only launch retains its explicit unconfigured document-check execution handler. A text-worker launch instead mounts that same method/path once in the runtime builder; its 42 base projection pairs plus 20 runtime pairs total 62. This does not add a second endpoint or imply cloud configuration.

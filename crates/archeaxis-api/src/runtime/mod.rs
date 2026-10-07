@@ -319,6 +319,20 @@ fn valid_id(id: &str) -> bool {
 #[serde(deny_unknown_fields)]
 struct ExecuteBody {
     deadline_ms: u64,
+    /// Ask for the recording to be split into bounded windows instead of decoded in one pass.
+    ///
+    /// `false` and an absent field mean the same thing — transcribe the input whole — so there is
+    /// no third state to guess at. The window plan itself is not accepted from the caller: it is
+    /// derived from the file's real duration inside the worker, so a request cannot describe a plan
+    /// that drops audio while looking well-formed.
+    #[serde(default)]
+    split: bool,
+    /// Ask for word-level timings as well as segment cues (R15/F10).
+    ///
+    /// Absent and `false` mean the same thing: the granularity every transcription already
+    /// produces. Word alignment costs an extra pass, so it is asked for rather than assumed.
+    #[serde(default)]
+    words: bool,
 }
 
 /// `enabled` is a required boolean and unknown fields are refused.
@@ -479,13 +493,22 @@ async fn execute(
             "bounded execution identity and deadline required",
         );
     }
+    let split = body.split;
+    let words = body.words;
     // The accepted HTTP operation outlives a disconnected waiter, including
     // the interval between durable claim, registration and worker completion.
-    tokio::spawn(async move { start(runtime, job, id, body.deadline_ms).await })
+    tokio::spawn(async move { start(runtime, job, id, body.deadline_ms, split, words).await })
         .await
         .unwrap_or_else(|_| unavailable())
 }
-async fn start(runtime: Runtime, job: String, id: String, deadline: u64) -> Response {
+async fn start(
+    runtime: Runtime,
+    job: String,
+    id: String,
+    deadline: u64,
+    split: bool,
+    words: bool,
+) -> Response {
     let _admission = runtime.admission.lock().await;
     // R7/G1: name a disabled capability instead of letting it fall into the generic "cannot start in
     // its current state". The authoritative refusal is inside the claim transaction, which is what
@@ -532,7 +555,25 @@ async fn start(runtime: Runtime, job: String, id: String, deadline: u64) -> Resp
                 Ok(r) => r,
                 Err(_) => return unavailable(),
             };
-            return if old_job == job && request["deadline_ms"] == deadline {
+            // Whether the job was split is part of the request identity: the same key must not
+            // replay a whole-file receipt for a split request, or the reverse.
+            let same_split = request
+                .pointer("/parameters/split")
+                .and_then(Value::as_bool)
+                .unwrap_or(false)
+                == split;
+            // Word timings change what the receipt can honestly answer, so they are part of the
+            // identity as well: a segment-only receipt is not an answer to a word request.
+            let same_words = request
+                .pointer("/parameters/words")
+                .and_then(Value::as_bool)
+                .unwrap_or(false)
+                == words;
+            return if old_job == job
+                && request["deadline_ms"] == deadline
+                && same_split
+                && same_words
+            {
                 (
                     StatusCode::ACCEPTED,
                     Json(json!({"job_id":job,"request_id":id,"state":state,"replayed":true})),
@@ -555,7 +596,11 @@ async fn start(runtime: Runtime, job: String, id: String, deadline: u64) -> Resp
         }
     }
     let cancel = Cancellation::new();
-    let task = match runtime.executor.start(&job, &id, deadline, &cancel).await {
+    let task = match runtime
+        .executor
+        .start_splitting(&job, &id, deadline, &cancel, split, words)
+        .await
+    {
         Ok(task) => task,
         Err(_) => return error(409, "AAK-CON-003", "job cannot start in its current state"),
     };

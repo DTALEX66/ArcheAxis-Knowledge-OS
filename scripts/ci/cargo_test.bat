@@ -9,6 +9,12 @@ rem Environment it reads (all optional, each with a named failure instead of a g
 rem   ARCHEAXIS_MSVC_VCVARS   full path to vcvars64.bat (MSVC toolchain import)
 rem   ARCHEAXIS_RUST_TOOLCHAINS  parent directory holding cargo\ and rustup\
 rem   ARCHEAXIS_PYTHON        interpreter the worker tests must use
+rem   ARCHEAXIS_CARGO_HOME      cargo home holding registry\; the canonical dev.py
+rem                             cache. Without it the dependency cache is the
+rem                             toolchain's own, which may not hold the locked crates
+rem                             and makes an offline resolution fail on a crate the
+rem                             canonical cache has. Setting it is what lets this
+rem                             tracked script reproduce dev.py's offline build.
 rem   ARCHEAXIS_CARGO_TARGET_DIR  override for the sealed target directory
 rem   CARGO_TARGET_DIR          inherited canonical dev.py worktree build root
 rem
@@ -45,6 +51,16 @@ if defined ARCHEAXIS_RUST_TOOLCHAINS (
   rem above has run, so PATH became "\bin;<old PATH>" and the "where cargo" check
   rem below could never pass from ARCHEAXIS_RUST_TOOLCHAINS alone.
   set "PATH=!CARGO_HOME!\bin;%PATH%"
+)
+
+rem The canonical dependency cache. Applied after the toolchain default above so an
+rem explicit cache root wins, and only when the directory actually holds a registry.
+if defined ARCHEAXIS_CARGO_HOME (
+  if not exist "%ARCHEAXIS_CARGO_HOME%\registry" (
+    echo cargo_test: ARCHEAXIS_CARGO_HOME holds no registry: "%ARCHEAXIS_CARGO_HOME%" 1>&2
+    exit /b 2
+  )
+  set "CARGO_HOME=%ARCHEAXIS_CARGO_HOME%"
 )
 
 if defined ARCHEAXIS_CARGO_TARGET_DIR set "CARGO_TARGET_DIR=%ARCHEAXIS_CARGO_TARGET_DIR%"

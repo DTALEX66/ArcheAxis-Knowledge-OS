@@ -1,9 +1,10 @@
 // Minimal real-data view primitives (no mock mixing).
 import type { ReactNode } from "react";
 import { userErrorMessage } from "../presentation/labels";
+import { AaosSpinner } from "./GalaxyStates";
 
 export function Loading({ label }: { label: string }) {
-  return <div className="space-card">加载中：{label}…</div>;
+  return <div className="space-card"><AaosSpinner label={`加载中：${label}…`} /></div>;
 }
 
 export function DataError({ label, message }: { label: string; message: string }) {

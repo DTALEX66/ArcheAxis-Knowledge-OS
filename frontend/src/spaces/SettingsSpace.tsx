@@ -14,6 +14,7 @@ import {
   verifyBackup,
 } from "../api/workspace";
 import { stateLabel, userErrorMessage } from "../presentation/labels";
+import { AaosStatusBadge } from "../components/AaosStatusBadge";
 
 const DOMAIN_LABELS: Record<string, string> = {
   source_archive: "源文件归档库",
@@ -333,8 +334,8 @@ export function SettingsSpace() {
                     <div className="muted health-card-path">{selectedDomains[domain] ?? "—"}</div>
                     <div className="health-card-badges">
                       {freeBytes !== null && <span className="badge badge-info">{formatBytes(freeBytes)} 可用</span>}
-                      {readonly === true && <span className="badge badge-warning">只读</span>}
-                      {readonly === false && <span className="badge badge-success">可写</span>}
+                      {readonly === true && <AaosStatusBadge tone="warning">只读</AaosStatusBadge>}
+                      {readonly === false && <AaosStatusBadge tone="success">可写</AaosStatusBadge>}
                       {domainHealth?.filesystem && <span className="badge badge-info">{domainHealth.filesystem}</span>}
                     </div>
                   </div>
@@ -377,9 +378,9 @@ export function SettingsSpace() {
                 <div className="readiness-item-title">{READINESS_LABELS[step.id] ?? "设置检查"}</div>
                 <div className="muted readiness-item-desc">{readinessMessage(step.state)}</div>
               </div>
-              <span className={`badge ${step.state === "ready" || step.state === "completed" ? "badge-success" : step.state === "pending" ? "badge-warning" : "badge-danger"}`}>
+              <AaosStatusBadge tone={step.state === "ready" || step.state === "completed" ? "success" : step.state === "pending" ? "warning" : "danger"}>
                 {stateLabel(step.state)}
-              </span>
+              </AaosStatusBadge>
             </div>
           ))}
         </div>

@@ -1,5 +1,16 @@
 # AAOS-01 **实测到的跨栈硬约束**：Core 的 WAL 旁文件让 Python 只读访问**直接拒绝**
 
+> **状态（2026-10-06 更新）：已解除，本文结论不再成立。**
+> 下文把"Core 留下 WAL 旁文件"读成了"两栈不能在同一个库上工作"。实测表明障碍是**活着的写者**，
+> 不是旁文件本身：`shared/backup.py::prepare_runtime_database`（应用每次启动、取得唯一运行时租约后执行）
+> 会以读写方式打开库（自动恢复残留 WAL）、执行 `wal_checkpoint(TRUNCATE)`、用 `BEGIN EXCLUSIVE`
+> 证明没有别的写者、并删除旁文件；随后 `validate_schema` 正常通过。
+> 复现（真实被杀死的写者，非模拟）：被杀后 `-wal` 12,392 B、`-shm` 32,768 B → `prepare_runtime_database()`
+> 之后**两者全部消失** → `validate_schema` 越过旁文件检查、只因玩具库缺真实 schema 而报出下一层错误。
+> 证据与用例：`tests/workflow/test_offline_database_recovery.py`（2 项）与本轮台账。
+> 仍然为真的是：**Core 正在运行时** Python 侧会被 `BEGIN EXCLUSIVE` 正确拒绝——那是单写者纪律，不是无法共存。
+> 下文保留为当时的实测记录，不删改。
+
 ## 1. 这一轮真的把两栈放在一起跑了
 
 1. 重新构建 Rust Core（**显式 target dir**，`EXE 97883043 bytes 10/04 18:27:19`）—— **对 HEAD 是最新的**，先前那个「旧构建」的顾虑**不再存在**；

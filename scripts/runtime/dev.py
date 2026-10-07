@@ -94,7 +94,27 @@ def _newest_child(directory: Path, required: Path) -> Path | None:
     return candidates[-1] if candidates else None
 
 
-def external_toolchain() -> dict[str, str]:
+def _indexed_external_root(repo_root: Path | None) -> str:
+    """The root the tracked index records, when that path actually exists.
+
+    The operator's environment stays authoritative. This is only a fallback, so a host
+    whose root is recorded but not exported stops silently skipping the tests that need
+    it -- nine tool-backed format cases were being skipped here for exactly that reason.
+    A recorded path that is not a directory is ignored, so CI is unaffected.
+    """
+    if repo_root is None:
+        return ""
+    index = repo_root / "config" / "environment" / "external-resources-index.json"
+    try:
+        recorded = json.loads(index.read_text(encoding="utf-8")).get("external_root")
+    except (OSError, ValueError):
+        return ""
+    if isinstance(recorded, str) and recorded.strip() and Path(recorded).is_dir():
+        return recorded.strip()
+    return ""
+
+
+def external_toolchain(repo_root: Path | None = None) -> dict[str, str]:
     """Environment for the registered external toolchain, discovered rather than guessed.
 
     `ARCHEAXIS_MSVC_VCVARS` and `ARCHEAXIS_RUST_TOOLCHAINS` are what the tracked Rust
@@ -113,9 +133,17 @@ def external_toolchain() -> dict[str, str]:
         if root_text:
             break
     if not root_text:
+        root_text = _indexed_external_root(repo_root)
+    if not root_text:
         return {}
     root = Path(root_text)
+    if not root.is_dir():
+        return {}
     discovered: dict[str, str] = {}
+    # Give the child the root variable as well: the worker tool resolver reads it to locate
+    # a declared ffmpeg, and without it the windowed and OCR cases skip rather than run.
+    if not os.environ.get("ARCHEAXIS_EXTERNAL_ROOT", "").strip():
+        discovered["ARCHEAXIS_EXTERNAL_ROOT"] = str(root)
 
     msvc = _newest_child(
         root / "10-toolchains" / "msvc" / "VC" / "Tools" / "MSVC",
@@ -263,7 +291,7 @@ def environment(paths: dict[str, Path]) -> dict[str, str]:
             safe_path(Path(value))
     # Applied after the validation above: the registered external root is a real
     # absolute path outside the checkout, and an already-set operator value wins.
-    result.update(external_toolchain())
+    result.update(external_toolchain(paths["root"]))
     return result
 
 

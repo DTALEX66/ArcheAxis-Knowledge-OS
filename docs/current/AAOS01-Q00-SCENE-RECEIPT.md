@@ -53,3 +53,18 @@
 ## 5. 与上一轮的衔接
 
 上一个任务包（`AAOS_完整执行任务包_20261004`）的工作停在本分支 `9fd94501`，双端一致、工作树 CLEAN。本轮**不重做**其已收敛项；其中 **`routes.json` 已集中路由**，新包也要求"不重复重做三份映射收敛"（启动提示词第 7 行），与本仓库现状一致。
+
+## 6. 现场身份核验（2026-10-06，只读；补 §1 的三项 UNVERIFIED）
+
+本轮以**只读**方式补核 §1 的三项 `UNVERIFIED`。原文件与官方数据根未被写入：数据库身份取自**副本**，副本制作前后原文件未变。
+
+| 项目 | 已观察的事实 | 证据 |
+| --- | --- | --- |
+| 声明的存储位置 | `config/defaults.yaml:11-13`：`database.path = data/archeaxis.sqlite`、`journal_mode = WAL`、`backup_dir = data/backups` | 读 `config/defaults.yaml` |
+| 实际存在的数据库 | 本工作树 `data/` 下**没有** `archeaxis.sqlite`；实际是 `cognitive_os.sqlite`（3,223,552 B，sha256 `b318c99e5a58107f…`），旁带 `-shm`（32,768 B，sha256 `fd4c9fda…`）与 `-wal`（0 B，空文件 sha256 `e3b0c442…`）；`data/backups` 不存在 | `ls -la data`；对副本取 SHA-256 |
+| 该库的身份 | `PRAGMA schema_version=121`、`user_version=0`、`application_id=0`、`page_size=4096`、`journal_mode=wal`；`sqlite_master` 计 90 张表 | 副本置于 `.project-local/task-runtime/q00-identity-20261006/` 后打开读取；WAL 为空，故副本忠实于原库 |
+| 必须登记的差异 | **声明路径与实际文件名不一致**：配置指向 `archeaxis.sqlite`，磁盘上是 `cognitive_os.sqlite`。库文件 mtime 为 2026-08-13，而 `-shm` 为 2026-10-06（近期被打开过），因此**不能**断言它就是现役产品库 | 文件名与 mtime |
+| 共享模型 root | 仅以环境变量声明：`config/environment/capability-requirements.yaml:283` 的健康检查引用 `$env:ARCHEAXIS_MODEL_LIBRARY_DIR\sherpa-onnx\*\model.int8.onnx`。本 shell 中该变量**未绑定**（None）；磁盘上 `D:\All projects\Model library` 存在（ComfyUI、Qwen、ggml-org、ollama 等）。**存在不等于已绑定**，故模型服务状态仍 `UNVERIFIED` | 环境变量读取；目录存在性 |
+| CAS 与备份 manifest | **仍 `UNVERIFIED`**：`config/defaults.yaml` 未声明 CAS 根；仓库内唯一含 "cas" 的路径是任务产物 `.project-local/task-runtime/aaos01-tools/media-cas-patch`；未找到任何备份 manifest，且声明的 `data/backups` 不存在。本轮未执行备份（那是写操作），故恢复点身份仍 `NOT_RUN` | 声明与文件检索 |
+
+**本轮仍未覆盖的未知现场**（保留标注，不当作已知）：CAS 根的位置与内容身份；备份/恢复点（需要一次真实备份，属写操作，须另行授权）；`data/cognitive_os.sqlite` 是否即现役产品数据根（需要 Core 运行期读回，本轮未启动任何进程，故 `NOT_RUN`）。
