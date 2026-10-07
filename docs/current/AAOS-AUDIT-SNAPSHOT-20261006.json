@@ -487,7 +487,7 @@
       "placed_artifacts": {
         "tika_distribution": "tika-app-4.1.0.zip, 55,617,982 bytes, sha512 verified against the published .sha512 beside it; the runnable jar needs the lib/ and plugins/ directories shipped with it",
         "jvm_distribution": "zulu21.52.203-ca-jre21.0.12.1-win_x64.zip, 49,264,410 bytes, sha256 verified against Azul's per-package metadata API",
-        "fixture": "golden-ppt-anchor.ppt from the pinned Tika commit b8a6916eab70ccdb5d4551c69be1a46af29c2cff"
+        "fixture": "golden-ppt-anchor.ppt from the Tika test document pinned at release tag 3.3.2, commit recorded in tests/fixtures/golden/manifest.json"
       },
       "publisher_unreachability": "Adoptium/Temurin's API publishes the same checksum shape but its download host is unreachable from this machine (curl http=000, urllib RemoteDisconnected); the runtime came from a second publisher whose CDN answers, and the row names which",
       "test_expectation_changed": "tests/workflow/test_oss_disposition_evidence.py pinned A010 as NONE while nothing in the repository mentioned Tika; the worker now calls it, so the row is credited as IMPLEMENTED_IN_SOURCE with the call site asserted - the premise went stale, not the standard",

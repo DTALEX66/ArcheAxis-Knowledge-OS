@@ -1885,3 +1885,28 @@ JVM 与 Tika 是**本机外置根里的放置件**，换机器需要重新供给
 
 **回滚**：revert 这一次提交即撤销 `.ppt` 路由、worker 侧车通道、两条声明、夹具与记录；
 外置根里的 `10-toolchains/java/…` 与 `10-toolchains/tika/…` 是新增目录，删除需单独授权（本轮不删）。
+
+## 我让 CI 红了一次，原因值得单独记（2026-10-07）
+
+**现象**：`5fa65075` 推上去之后 CI 报红两条——`test (3.12)` 的 `Run OS-level tests` 与
+`a0-gates`（后者是对前者的裁决，不是独立故障）。失败断言只有一条：
+`tests/test_axr060_completion_audit.py::test_tracked_current_surfaces_only_reference_declared_release_delta_or_source_objects`，
+消息是"current surfaces cite hashes that are not real objects in this repository: ['b8a6916e…']"。
+
+**成因（两条叠在一起，缺一不可）**：
+1. 我在 A010 台账行与快照的"当前面"里写了**上游 Apache Tika 的 40 位提交号**。那句话是真的，
+   但它断言的是"本仓有这个对象"，而本仓没有——`git cat-file -t` 直接失败。
+2. 更关键的是**这条门禁读 HEAD（已提交树），不读我的工作树**。我在提交前跑了全量套件，
+   4299 passed，于是我以为它是绿的；它绿的是**上一版已提交状态**，不是我要推的那一版。
+
+**这正好是仓库里已经写着的那条规矩的实例**："提交之后、在冻结的树上复验"。
+我之前只在**文档类**改动上这么做过，没把它当成对**门禁**的强制步骤。
+
+**修的方式**：不把门禁放宽、也不把引用删掉——把可核验的锚换成本仓真能解析的东西
+（发行标签 `3.3.2` ＋ `tests/fixtures/golden/manifest.json` 里那条夹具登记，
+哈希作为**关于夹具的数据**留在那里是合法的，作为**关于本仓对象的断言**留在当前面就不合法）。
+
+**随之而立的规矩**：凡改动会被 `test_axr060_completion_audit`、`check_document_authority`
+这类**读 HEAD 的门禁**覆盖的，验证顺序必须是"提交 → 在 HEAD 上跑门禁 → 通过才 push"，
+而不是"工作树跑绿 → push → 让 CI 告诉我"。这条在本轮生效：修完先提交，在 HEAD 上跑该门禁，
+确认它绿了再推。
