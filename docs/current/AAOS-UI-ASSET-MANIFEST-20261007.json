@@ -40,7 +40,7 @@
       "path": "frontend/src/components/galaxy-states.css",
       "sha256": "2dda45be48a229f42081fce3d475fb08a7447129ad70bb5cee14c1776236ee45",
       "bytes": 1616,
-      "source": "Uiverse/Galaxy MIT fixed source adaptation; taskpack source-lock commit adbd2adde0a299a3956ea288fb444ec01891ca41",
+      "source": "Uiverse/Galaxy MIT fixed source adaptation; upstream pin recorded in docs/integrations/AAOS_UI_UPSTREAM_PINS.md",
       "referenced_by": [
         "frontend/src/components/GalaxyStates.tsx",
         "frontend/src/components/RealData.tsx"
