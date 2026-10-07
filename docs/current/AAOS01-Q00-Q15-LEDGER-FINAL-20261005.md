@@ -1738,3 +1738,41 @@ test_environment_registry.py` → 12 passed；`tests/test_mfx001_supply_chain_le
 
 **回滚**：revert 这一次提交（worker 的 render/`_browser`/scroll、driver 的 `--render`、
 `tool_paths.OVERRIDES` 的 chromium 一项、新测试与两份记录、矩阵 F03 行）。取字节通道本身未改行为。
+
+## 补记：上一条里"浏览器尚未声明"这句，20 分钟后就不成立了（2026-10-07）
+
+**上一条的哪一句作废**：`浏览器仍是具名的宿主引擎，没有进 capability-requirements.yaml 的声明清单`。
+写它的时候确实如此；随后我去看外置工具根，发现 **`10-toolchains/playwright/` 里本来就有**
+`chromium-1228/chrome-win64/chrome.exe`（4059648 字节，sha256 `b798f9e53a98d29eb7f36f8c409f905d3184780a04d2bcb56989067194784bd1`）
+与 `chromium_headless_shell-1228/`——清单里也**已经有** `playwright-chromium` 这一条，
+只是它**没有 `external_paths`**，所以名字在、位置没人读。这是"盘上有 ≠ 绑定"的第三种形态：
+**声明了名字 ≠ 声明了位置**。
+
+**改了什么**：
+- `playwright-chromium` 条目补上 `external_paths: ["10-toolchains/playwright/chromium-1228/chrome-win64/chrome.exe"]`，
+  `required_by` 加 `conversion`（渲染通道确实是转换侧使用者），重新生成索引：该路径 `exists: true`；
+- `worker_webpage._browser()` 的解析顺序定为 **`ARCHEAXIS_CHROMIUM_CMD` → 声明清单 → Playwright 注册表**，
+  失败消息里点名 `browser source=`；声明不存在时不猜、不用别的浏览器顶替；
+- worker 侧新增 `_declared_browser()`，与其他 worker 一样从自己树里的 `tool_paths.py` 读声明
+  （清单读不动就抛错，绝不当成"没声明"）。
+
+**决定性验证（这一条才是买到的东西）**：
+`scripts/runtime/dev.py --pytest tests/workers/test_webpage_render.py …` ——
+**不设任何浏览器环境变量**、且 dev.py 会把 `PLAYWRIGHT_BROWSERS_PATH` 指到空的 project-local 缓存，
+渲染套件 **20 passed in 7.77s**（日志 `.project-local/task-runtime/render-declared-final-20261007.txt`）。
+也就是说：真机那条浏览器证明现在**由声明本身**跑通，而不是由我临时导的一个变量跑通。
+
+**顺带记一条门禁的行为**：第一次跑索引对比测试**失败**（`assert [] == ['10-toolchai…chrome.exe']`），
+那不是回归，是**索引陈旧守卫**在正常工作——它拿已提交的索引和新改的清单对账；
+重新生成后再跑同一命令即 20 passed（12 条渲染 + 8 条清单/索引门禁），0 skipped。这一守卫两次拦住我把"声明了但没人读"当成已绑定，值得点名。
+
+**全量套件的对照数（同一台机、同一个 runner，只差这一条声明）**：声明之前
+`tests` 报 **4284 passed / 31 skipped**，声明之后报 **4286 passed / 30 skipped**
+（日志 `.project-local/task-runtime/py-full-20261007-browser.log`）。
+差值恰好是 +2 passed 与 -1 skipped：新增的一条"配置路径失败时不得改用声明浏览器"测试，
+加上那条原本因空缓存而 skip 的真机渲染现在**由声明本身跑通**。
+这两个数字是同一口径下唯一被我拿来当证据的全量计数，绑定的是本次提交的字节。
+
+**矩阵与快照同步**：F03 `gap` 里"浏览器尚未声明"那句替换为解析顺序与构建号耦合的事实
+（升级 Playwright 会让这一条声明失效，而不是安静地换一个浏览器）；
+`status` 仍 `partial`，`required_output` 逐字未动。快照的未决条目与 `next_action` 同步更正。

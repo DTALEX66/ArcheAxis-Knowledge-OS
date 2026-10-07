@@ -311,9 +311,9 @@
       "两种锚点类型（worker_structure / format_location）都只证明\"这条收据这么命名、值或跨度确在这份投影里\"：不是独立推出的页号；locations 列表受 worker 上限截断，被截掉的位置不可寻址；界面层没有消费（前端按 Owner 指示暂停）",
       "F13/F01 的位置在 params.format.locations 而非 worker_structure，本轮刻意未并入",
       "antiword 已登记为 A025（SIDECAR / qualification [installed]）并已按声明绑定：外置工具根内 `10-toolchains/antiword/` 的二进制与 `.antiword` 映射表两条一起进入 capability-requirements，三个读取方在同一清单上一致（索引两条均 exists: true，见 verification.antiword_binding_20261007）。仍开的是：这台副本是 Git for Windows 构建的本地放置，该包更新时不会自动跟随，比对 A025 里的 sha256 才可信任；以及逐扩展真人验收 FMT-21 仍 NOT_RUN",
-      "F03 的动态页渲染已接通（真机证明：脚本生成的正文可读、同页关闭 JS 后节点不存在）；仍开的是截图、交互/登录后的内容、超出滚动预算的懒加载，以及浏览器尚未进入声明清单（现为 ARCHEAXIS_CHROMIUM_CMD 具名宿主引擎）"
+      "F03 的动态页渲染已接通（真机证明：脚本生成的正文可读、同页关闭 JS 后节点不存在）；仍开的是截图、交互/登录后内容、超出滚动预算的懒加载；浏览器已于 2026-10-07 进入声明清单（`playwright-chromium` 现在带 external_paths，渲染解析顺序为 环境变量→声明→Playwright 注册表，声明条目带构建号 chromium-1228）"
     ],
-    "next_action": "1) 最多格式剩余：F02 的抓取已是驱动级事实（`scripts/ingest/url_snapshot.py`，产品路由不持网络是选择不是缺口），网络侧剩下的边界是网络层 egress 政策；F03 已接通本机无头 chromium 渲染（`worker_webpage.render` ＋ `url_snapshot.py --render`，2026-10-07 实测 Chrome 149.0.7827.55；脚本页正文经二次请求交付，服务端字节不含该文本）；仍缺截图、交互/登录后内容、超滚动预算的懒加载，且浏览器尚未进声明清单（现为 ARCHEAXIS_CHROMIUM_CMD 具名宿主引擎）；F10 说话人分离无引擎亦无处置行；`.doc` 已绑定 antiword 声明引擎（A025；二进制与 `.antiword` 映射表必须成对声明，只声明二进制实测解析成功而读取失败）；`.ppt` 仍无读取器（Tika 需 JVM 侧车，本机无 JVM，本轮不装系统级软件）；跨 F05/F07/F08/F09/F12 的“把 worker 结构升级为寻址层”需 anchor 契约变更，应独立一刀；FMT-21 逐扩展名真实样本验收仍 NOT_RUN（本轮 .xls 夹具为自造件）；嵌套容器已闭合到有预算的展开，`.doc` 的 sidecar 已登记并绑定（A025，2026-10-07：处置行 + capability-requirements 成对声明）"
+    "next_action": "1) 最多格式剩余：F02 的抓取已是驱动级事实（`scripts/ingest/url_snapshot.py`，产品路由不持网络是选择不是缺口），网络侧剩下的边界是网络层 egress 政策；F03 已接通本机无头 chromium 渲染（`worker_webpage.render` ＋ `url_snapshot.py --render`，2026-10-07 实测 Chrome 149.0.7827.55；脚本页正文经二次请求交付，服务端字节不含该文本）；仍缺截图、交互/登录后内容、超滚动预算的懒加载；浏览器已进声明清单（playwright-chromium 带 external_paths，解析顺序 环境变量→声明→注册表）；F10 说话人分离无引擎亦无处置行；`.doc` 已绑定 antiword 声明引擎（A025；二进制与 `.antiword` 映射表必须成对声明，只声明二进制实测解析成功而读取失败）；`.ppt` 仍无读取器（Tika 需 JVM 侧车，本机无 JVM，本轮不装系统级软件）；跨 F05/F07/F08/F09/F12 的“把 worker 结构升级为寻址层”需 anchor 契约变更，应独立一刀；FMT-21 逐扩展名真实样本验收仍 NOT_RUN（本轮 .xls 夹具为自造件）；嵌套容器已闭合到有预算的展开，`.doc` 的 sidecar 已登记并绑定（A025，2026-10-07：处置行 + capability-requirements 成对声明）"
   },
   "verification": {
     "capability_family_runs": {
@@ -465,6 +465,18 @@
         "the first fixture asserted the marker was absent from the served HTML and failed, because the marker sat in the inline script text; the sample now delivers the text through a second request that only a scripting page makes"
       ],
       "matrix": "F03 status stays partial; required_output untouched; evidence code/tests extended"
+    },
+    "browser_declared_20261007": {
+      "command": "scripts/runtime/dev.py --pytest tests/workers/test_webpage_render.py tests/workflow/test_external_resources_index.py tests/workflow/test_capability_requirements_manifest.py -q -rs",
+      "env": "no ARCHEAXIS_CHROMIUM_CMD, no PLAYWRIGHT_BROWSERS_PATH override (dev.py points it at the empty project-local cache)",
+      "log": ".project-local/task-runtime/render-declared-final-20261007.txt",
+      "result": "20 passed in 7.77s",
+      "first_run_behaviour": "the index-vs-manifest guard failed on the stale committed index (assert [] == ['10-toolchains/...chrome.exe']); after regeneration the same command passed",
+      "declared_browser_identity": {
+        "path": "D:\\All projects\\OS External Configuration\\10-toolchains\\playwright\\chromium-1228\\chrome-win64\\chrome.exe",
+        "bytes": 4059648,
+        "sha256": "b798f9e53a98d29eb7f36f8c409f905d3184780a04d2bcb56989067194784bd1"
+      }
     }
   },
   "artifacts": [

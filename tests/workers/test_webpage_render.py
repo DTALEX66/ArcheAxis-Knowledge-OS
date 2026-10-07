@@ -17,6 +17,7 @@ from __future__ import annotations
 
 import base64
 import importlib.util
+import os
 import threading
 import unittest
 from http.server import BaseHTTPRequestHandler, HTTPServer
@@ -224,6 +225,28 @@ class RenderLifecycleTests(unittest.TestCase):
         self.assertIn("render engine missing", str(caught.exception))
         self.assertFalse((Path(box) / "rendered.html").exists(),
                          "a render that did not happen must not leave an artefact behind")
+
+    def test_a_configured_browser_that_is_not_there_is_not_answered_with_the_declared_one(self):
+        """An explicit operator choice that fails is reported, not silently replaced.
+
+        Without this the declared lane would turn a wrong `ARCHEAXIS_CHROMIUM_CMD` into "it worked",
+        which is how the wrong engine gets used without anyone noticing.
+        """
+        def must_not_be_read():
+            raise AssertionError("the declared lane was consulted after a configured path failed")
+
+        with mock.patch.dict(os.environ, {"ARCHEAXIS_CHROMIUM_CMD": "C:/definitely/not/here.exe"}), \
+                mock.patch.object(webpage, "_declared_browser", must_not_be_read):
+            try:
+                session, browser = webpage._browser()
+            except RuntimeError as exc:
+                message = str(exc)
+            else:
+                browser.close()
+                session.stop()
+                self.fail("a missing configured browser launched something anyway")
+
+        self.assertIn("names a file that does not exist", message)
 
     def test_the_probe_states_the_engine_state_without_launching_anything(self):
         report = webpage.probe()

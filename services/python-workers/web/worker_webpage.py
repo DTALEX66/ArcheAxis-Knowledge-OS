@@ -24,6 +24,7 @@ from __future__ import annotations
 
 import argparse
 import hashlib
+import importlib.util
 import ipaddress
 import json
 import os
@@ -238,6 +239,24 @@ def fetch(url: str, out_dir: Path) -> dict:
     }
 
 
+def _declared_browser() -> str | None:
+    """The browser the capability manifest declares, or None when nothing is declared.
+
+    Same rule as the other worker lanes: only a missing declaration becomes None. A manifest that
+    exists but cannot be read raises, because reporting that as "no browser on this host" sends
+    someone looking in the wrong place.
+    """
+    module_path = Path(__file__).resolve().parent.parent / "tool_paths.py"
+    if not module_path.is_file():
+        return None
+    spec = importlib.util.spec_from_file_location("webpage_tool_paths", module_path)
+    if spec is None or spec.loader is None:
+        return None
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module.declared("playwright-chromium", __file__)
+
+
 def _browser():
     """Start the local browser the render lane needs, or name the missing part.
 
@@ -245,6 +264,10 @@ def _browser():
     the browser may never have been downloaded. Either way this is a stated refusal, and the caller
     must not quietly be handed the served-bytes snapshot instead, because "what the page looks like
     after its scripts ran" and "what the server sent" are different facts.
+
+    The browser is named, never guessed: `ARCHEAXIS_CHROMIUM_CMD` wins, then the declared
+    capability path, then Playwright's own registry. The middle lane exists because a session can
+    redirect that registry to a project-local cache that holds no build at all.
     """
     try:
         from playwright.sync_api import sync_playwright
@@ -259,10 +282,8 @@ def _browser():
         raise RuntimeError(f"render engine missing: playwright could not start ({str(exc)[:200]})") from exc
     launch_options: dict = {"headless": True}
     configured = os.environ.get("ARCHEAXIS_CHROMIUM_CMD", "").strip()
+    source = "ARCHEAXIS_CHROMIUM_CMD"
     if configured:
-        # a browser build elsewhere on this host, named rather than guessed: Playwright only looks
-        # under its own registry, and a project-local cache that never ran `playwright install`
-        # has nothing in it
         if not Path(configured).is_file():
             session.stop()
             raise RuntimeError(
@@ -270,14 +291,21 @@ def _browser():
                 f"({configured})"
             )
         launch_options["executable_path"] = configured
+    else:
+        declared = _declared_browser()
+        if declared and Path(declared).is_file():
+            launch_options["executable_path"] = declared
+            source = "declared capability manifest"
+        else:
+            source = "playwright registry"
     try:
         browser = session.chromium.launch(**launch_options)
     except Exception as exc:  # noqa: BLE001 - a browser that will not launch is the finding
         session.stop()
         raise RuntimeError(
             "render engine missing: chromium could not be launched ("
-            f"{str(exc)[:200]}; PLAYWRIGHT_BROWSERS_PATH="
-            f"{os.environ.get('PLAYWRIGHT_BROWSERS_PATH', 'unset')}, "
+            f"{str(exc)[:200]}; browser source={source}, "
+            f"PLAYWRIGHT_BROWSERS_PATH={os.environ.get('PLAYWRIGHT_BROWSERS_PATH', 'unset')}, "
             f"ARCHEAXIS_CHROMIUM_CMD={configured or 'unset'})"
         ) from exc
     return session, browser

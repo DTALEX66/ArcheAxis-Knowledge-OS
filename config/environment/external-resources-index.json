@@ -89,10 +89,16 @@
     {
       "name": "playwright-chromium",
       "category": "toolchains",
-      "purpose": "browser-smoke / e2e 测试浏览器（缓存于 toolchains/playwright）",
+      "purpose": "browser-smoke / e2e 测试浏览器，亦是 F03 渲染通道使用的无头浏览器（缓存于 toolchains/playwright）",
       "local_only": true,
       "healthcheck_command": "playwright --version",
-      "external_paths": []
+      "external_paths": [
+        {
+          "declared": "10-toolchains/playwright/chromium-1228/chrome-win64/chrome.exe",
+          "resolved": "D:\\All projects\\OS External Configuration\\10-toolchains\\playwright\\chromium-1228\\chrome-win64\\chrome.exe",
+          "exists": true
+        }
+      ]
     },
     {
       "name": "webview2-evergreen",
