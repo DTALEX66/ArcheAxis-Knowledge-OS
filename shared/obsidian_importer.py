@@ -24,6 +24,7 @@ from pathlib import Path
 from typing import Any
 
 from shared.backlinks import index_document_links, parse_links
+from shared.paths import native_path
 
 # ── Vault folder → KB asset type mapping ────────────────
 
@@ -69,11 +70,15 @@ def scan_vault(vault_root: str, max_files: int = 500) -> dict[str, Any]:
     }
 
     count = 0
-    for md_file in root.rglob("*.md"):
+    # Walk under the verbatim root: a Vault nested in a project-local run tree is deeper than
+    # the plain-create limit, and an unwalkable root silently inventories as "no notes".
+    # Relativity is computed against that same prefixed root, so nothing stored carries it.
+    walk_root = Path(native_path(root))
+    for md_file in walk_root.rglob("*.md"):
         if count >= max_files:
             break
         # Skip .obsidian, .trash, templates
-        rel = md_file.relative_to(root)
+        rel = md_file.relative_to(walk_root)
         if any(p.startswith(".") for p in rel.parts):
             continue
         if "90_模板" in str(rel):
@@ -166,10 +171,11 @@ def _build_target_index(vault_root: str) -> dict[str, str | None]:
     """Map unique Vault note names/paths to stable IDs; retain ambiguity."""
     index: dict[str, str | None] = {}
     root = Path(vault_root)
-    for note in root.rglob("*.md"):
-        if any(part.startswith(".") for part in note.relative_to(root).parts):
+    walk = Path(native_path(root))
+    for note in walk.rglob("*.md"):
+        if any(part.startswith(".") for part in note.relative_to(walk).parts):
             continue
-        rel = note.relative_to(root).as_posix()
+        rel = note.relative_to(walk).as_posix()
         stable_id = _stable_asset_id(rel)
         keys = {rel.casefold(), rel[:-3].casefold(), note.stem.casefold()}
         for key in keys:
@@ -209,9 +215,15 @@ def _attachment_facts(vault_root: str, links: list[dict[str, Any]]) -> list[dict
             relative = candidate.relative_to(root).as_posix()
         except ValueError:
             continue
-        if relative in seen or not candidate.is_file():
+        if relative in seen:
             continue
-        blob = candidate.read_bytes()
+        # Existence is checked on the same verbatim name the read uses: at depth a plain
+        # `is_file()` answers False for a file that is really there, which would drop the
+        # attachment from the facts without any error to read back.
+        io_candidate = Path(native_path(candidate))
+        if not io_candidate.is_file():
+            continue
+        blob = io_candidate.read_bytes()
         facts.append(
             {
                 "path": relative,
@@ -239,10 +251,11 @@ def import_file(
         Dict with status, asset_type, kb_id (if not dry_run).
     """
     full_path = Path(vault_root) / rel_path
-    if not full_path.exists():
+    io_path = Path(native_path(full_path))
+    if not io_path.exists():
         return {"error": "file not found", "path": str(rel_path)}
 
-    text = full_path.read_text(encoding="utf-8", errors="replace")
+    text = io_path.read_text(encoding="utf-8", errors="replace")
     fm, body = _parse_frontmatter(text)
     folder = Path(rel_path).parts[0] if "/" in rel_path or "\\" in rel_path else ""
     mapping = VAULT_FOLDER_MAP.get(
@@ -434,18 +447,19 @@ def import_course_to_cards(
     by headings, and creates knowledge cards.
     """
     course_dir = Path(vault_root) / course_path
-    if not course_dir.exists():
+    walk_dir = Path(native_path(course_dir))
+    if not walk_dir.exists():
         return {"error": f"course not found: {course_path}"}
 
     from knowledge_base.cards.generator import generate_from_markdown
     from shared.storage import fts5_sync, insert
 
     results = []
-    for md_file in sorted(course_dir.glob("*.md")):
+    for md_file in sorted(walk_dir.glob("*.md")):
         text = md_file.read_text(encoding="utf-8", errors="replace")
         _fm, body = _parse_frontmatter(text)
 
-        cards = generate_from_markdown(body, source_doc_id=str(md_file), max_cards=5)
+        cards = generate_from_markdown(body, source_doc_id=str(course_dir / md_file.name), max_cards=5)
 
         for card in cards:
             if dry_run:
@@ -462,7 +476,7 @@ def import_course_to_cards(
 
     return {
         "course": course_path,
-        "file_count": len(list(course_dir.glob("*.md"))),
+        "file_count": len(list(walk_dir.glob("*.md"))),
         "cards_generated": len(results),
         "dry_run": dry_run,
         "items": results[:20],
