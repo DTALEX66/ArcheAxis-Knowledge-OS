@@ -2022,3 +2022,29 @@ U01 `71219c25…`、U02 `a3d94956…` 与恢复包自带 `SHA256SUMS.txt` 一致
 
 2026-10-07 F09 工作簿单元格成为自己的位置（分支 `codex/f09-cell-anchor-20261007`，提交 `f928c928`，并入 `origin/main=ec502cf3` 后为 `0d1b27f4`）：跨 F05/F07/F08/F09/F12 那句"结构是被报告的事实，不是寻址层"里，F09 那一格此前是反的——xlsx 投影最小可寻址单位是**行**（一行里若干格以 `" | "` 相连），引一句单格原话只能锚到连邻居一起被主张的位置；`.xls` 更糟，投影单位是**整张表体**，行列都不可寻址。两个引擎现在都填 Core 已有的通用合同 `params.format.locations`：唯一 `path` 为 `工作表名!坐标`，`value` 就是该投影实际显示的那个 token（xlsx 为 `A1=值`，xls 为引擎显示文本被投影自己的 `repr` 引号包住），并附带可用于收窄的 `sheet/coordinate/row/column`（xls 另带引擎自报的 `cell_type`）。上限 5000 写在回执里而不是静默截断：xlsx 说明溢出部分仍可按行寻址，xls 说明溢出部分不可寻址，因为那个投影没有行单位。`crates/archeaxis-api/tests/format_location_anchor_api.rs` 加入同一行两格（`半径!A1`、`半径!B1`），使 cell 这一族在锚点机制里被证而不是只被期待。
 **齿证**：分别删掉 xlsx 与 xls 的 `locations.append` 块，各自 2 项变红（`2 failed, 5 passed`，红在"必须有位置"与"值必须出现在投影里"两处断言），还原后文件字节一致（`restored byte-for-byte: True`，`git status` 该文件 0 行改动）。**验证**：`tests/workers` ＋ `test_text_format_facts.py` ＋ `test_worker_route_lists_agree.py` ＋ `test_obsidian_importer_deep_path.py` 共 `425 passed / 106 subtests`（51.10s）退出 0；`-p archeaxis-api --test format_location_anchor_api --test evidence_anchors_api` 分别 `4 passed`/`5 passed`，`cargo fmt --all --check` 退出 0；Rust 经追踪入口 `scripts/ci/cargo_test.bat` 与声明工具根（`ARCHEAXIS_RUST_TOOLCHAINS=10-toolchains`、`ARCHEAXIS_MSVC_VCVARS=10-toolchains\msvc\VC\Auxiliary\Build\vcvars64.bat`、canonical `ARCHEAXIS_CARGO_HOME`）执行，未改 ACL 未复制缓存。**仍未闭**：产品作业里对 xlsx/xls 单格提交锚点并读回 `location_status=located` 的界面旅程 NOT_EXECUTED；FMT-21 逐扩展名真样本验收仍 NOT_RUN（`.xlsx` 夹具为仓库内 `tests/fixtures/sample.xlsx`，`.xls` 为 `tests/fixtures/golden/golden-xls-anchor.xls`，SHA `3225b8bb…2353` 已由既有测试钉住）；`>5000` 格的溢出路径只有断言与文案，未在真实大表上实测。
+
+2026-10-07 暂存残留清理读回与静默期决定（分支 `codex/cleanup-readback-20261007`，基线 `origin/main=881657be`）：本条全部数字由脚本 `os.walk`/`getmtime` 现测现取，来源记录是 `.project-local/task-runtime/` 里的 `staging-residue-audit-20261007.json`、`staging-cleanup-candidates-20261007.json`（41 项逐条判定）、`staging-cleanup-citation-check-20261007.json` 与 `staging-cleanup-executed-20261007.json`。
+
+**更正此前状态**：之前记的"未执行删除"已过期。执行回执 `executed_utc=2026-10-07T08:34:08Z`，`items_removed=22`，`mib_freed=4165.6`，`complete=true`；今日对回执里 22 条精确路径逐一 `exists()` 复核，**22 条确已不存在**。
+
+清单原判 deletable 共 34 项；今日仍在盘上 12 项，已消失 22 项。仍在的按可否引用分两类：
+（一）**被引用的恢复/证据目标 3 项，不得删**：
+  - `D:\All projects\ArcheAxis-Knowledge-OS\.project-local\runs\be268a2d33\evidence-build-20260925` 135,364,699 B（mtime 2026-09-25T05:03:15）；引用：`docs/current/R6-EXECUTION.md:2622` 记录其中 `bin/ArcheAxis.Desktop.dll` 的受测 SHA-256
+  - `D:\All projects\ArcheAxis-Knowledge-OS\.project-local\runs\be268a2d33\aaos-ui-theme-20260926-02` 133,572,310 B（mtime 2026-10-06T21:15:32）；引用：`docs/history/storage-cleanup/2026-09-30/storage-cleanup-current-goal-20260930.md:162` 记其已归档后删除
+  - `D:\All projects\ArcheAxis-Knowledge-OS\.project-local\runs\r10-live-retry-20260915\deeptutor-web` 81,901,290 B（mtime 2026-09-15T23:15:54）；引用：`docs/current/R5-EXECUTION.md:1564`、`apps/ArcheAxis.Desktop/DeepTutorSupervisor.cs:89`、`scripts/launch/deeptutor_web.py:135` 的启动回执路径
+
+（二）**今日由活动切面写出、未过静默期的 9 项，合计 1,572,068,859 B（1499.2 MiB），本轮不删**。这些是运行目录，可再生，但写出时刻都在今天，可能有进程仍持有；精确路径逐条列出（处理时只按逐条精确路径，不用 glob、不用按目录名递归删）：
+  - `D:\All projects\ArcheAxis-Knowledge-OS\.project-local\runs\2611ed9ca1\f1eef714ef4e` 236,151,391 B（mtime 2026-10-07T11:56:03）
+  - `D:\All projects\ArcheAxis-Knowledge-OS\.project-local\runs\95ab4b1752\d34b6b30803f` 235,316,592 B（mtime 2026-10-07T12:09:55）
+  - `D:\All projects\ArcheAxis-Knowledge-OS\.project-local\runs\9db175b4c0\ba67d14fc1ba` 235,304,630 B（mtime 2026-10-07T12:02:56）
+  - `D:\All projects\ArcheAxis-Knowledge-OS\.project-local\runs\9db175b4c0\wi-pytest-nofail-1` 233,570,746 B（mtime 2026-10-07T11:40:29）
+  - `D:\All projects\ArcheAxis-Knowledge-OS\.project-local\runs\95ab4b1752\bf3c2c20-full-suite` 231,514,140 B（mtime 2026-10-07T13:56:57）
+  - `D:\All projects\ArcheAxis-Knowledge-OS\.project-local\runs\2611ed9ca1\control-premerge-pytest-1` 230,135,765 B（mtime 2026-10-07T11:48:24）
+  - `D:\All projects\ArcheAxis-Knowledge-OS\.project-local\runs\4232e62f45\ceba3de4d827` 56,691,866 B（mtime 2026-10-07T14:31:43）
+  - `D:\All projects\ArcheAxis-Knowledge-OS\.project-local\runs\4232e62f45\c08ef054d93f` 56,691,865 B（mtime 2026-10-07T14:54:28）
+  - `D:\All projects\ArcheAxis-Knowledge-OS\.project-local\runs\4232e62f45\7d8d8479eab6` 56,691,864 B（mtime 2026-10-07T14:53:48）
+
+preserve 今日仍在 6 项：`ArcheAxis.Knowledge.Green-v0.0.0-q04candidate-x64` 1,069,447,659 B；`ArcheAxis.Knowledge.Green-v0.0.0-q04c-x64` 970,771,559 B；`candidate-current-final` 292,921,821 B；`build-current` 222,491,231 B；`artifacts` 100,330,152 B；`core-candidate-r16` 97,726,878 B。
+decide：`D:\All projects\ArcheAxis-Knowledge-OS\.project-local\runs\be268a2d33\f6998359de9b` 今日仍在，实测 133,536,505 B；判定理由原文：2 child path(s) could not be read; recoverability is not proven yet
+**点名的未解事实冲突**：`aaos-ui-theme-20260926-02` 今日仍在盘上，而 2026-09-30 的历史记录称该精确历史目录已"完整归档后删除"（1,195 源文件 / 58 目录 / 264,282,128 B，恢复件 `aaos-ui-theme-candidate-packed-20261001.zip` + manifest）。本轮既不删也不改写那段历史，只把矛盾交出来待裁决。
+再生路径（可恢复性）：run 目录由 `scripts/runtime/dev.py` 或 `scripts/ci/run_tests.ps1|.sh` 依已提交配方再生；`cargo build -p archeaxis-api --release`；`tauri build --bundles nsis`；`uv sync --frozen` 与 `python -m desktop.scripts.prepare_bundle`。**不得动** `.project-local/cache/*`（含 cargo 注册表，只能重下）、`.project-local/wi`、`.project-local/rt*`，以及 `D:\All projects\OS External Configuration` 下的共享工具根。本轮未删除任何文件、未发布、未改 ACL、未提权。
