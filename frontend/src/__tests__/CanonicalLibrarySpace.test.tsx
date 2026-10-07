@@ -386,6 +386,23 @@ describe("canonical content sample", () => {
     await waitFor(()=>expect(bridge.call).toHaveBeenCalledWith("document_export_save",{document_id:"doc_test",format:"markdown"}));
     expect(await screen.findByText(/已导出到产品资料目录/)).toHaveTextContent("外部应用读取仍需单独验证");
   });
+  it("refuses an export whose save receipt does not agree with the export it just proved", async () => {
+    // The save receipt is a second, independent answer about the same bytes. A directory that
+    // cannot be named, or a version that is not the exported one, means the product has not
+    // exported what it claimed - so nothing may be presented as exported.
+    for (const broken of [{files:["document.md"]}, {directory:"exports/doc_test/markdown/version-1",files:["document.md"]}]) {
+      const served = bridge.call.getMockImplementation()!;
+      bridge.call.mockImplementation(async(op:string,payload:Record<string,unknown>)=>
+        op==="document_export_save" ? broken : served(op,payload));
+      const view = render(<CanonicalLibrarySpace />);
+      const user = userEvent.setup();
+      await user.click(await screen.findByRole("button",{name:"样板.txt"}));
+      await user.click(await screen.findByRole("button",{name:"Markdown 导出到产品资料目录"}));
+      expect(await screen.findByText(/导出未确认/)).toBeInTheDocument();
+      expect(screen.queryByText(/已导出到产品资料目录/)).not.toBeInTheDocument();
+      view.unmount();
+    }
+  });
   it("bounds the source navigation DOM while allowing later originals to be reached", async () => {
     const sources=Array.from({length:501},(_,index)=>({...source,source_id:`src_${index}`,original_name:`source-${index}.txt`}));
     bridge.call.mockImplementation(async(operation:string)=>operation==="sources_list"?{sources}:{documents:[]});
