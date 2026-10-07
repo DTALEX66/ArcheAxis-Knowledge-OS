@@ -60,13 +60,14 @@ def _unavailable(reason: str, missing: list[str]) -> dict:
         "engine_version": ENGINE_VERSION,
         "text": "",
         "structure": {"capability": "speaker_diarization", "state": "unavailable", "segments": []},
+        # The job contract accepts a fixed receipt shape, so the reason and the exact missing
+        # artefacts travel inside `params`; a refusal without them is indistinguishable from a
+        # silent empty result.
         "loss_receipt": {
             "engine": ENGINE,
             "engine_version": ENGINE_VERSION,
-            "state": "unavailable",
-            "reason": reason,
-            "missing_artifacts": missing,
-            "claim": "no diarization was produced, so none is asserted",
+            "params": {"state": "unavailable", "reason": reason, "missing_artifacts": missing,
+                       "claim": "no diarization was produced, so none is asserted"},
         },
     }
 
@@ -168,21 +169,55 @@ def diarize(path: str, models_dir: str | None = None, num_speakers: int = -1) ->
         "loss_receipt": {
             "engine": ENGINE,
             "engine_version": ENGINE_VERSION,
-            "state": "diarized",
-            "boundaries_only": True,
-            "claim": "who spoke when, from the declared ONNX models; no words, no transcript, no "
-                     "identity of who the speaker is",
+            "params": {
+                "state": "diarized",
+                "boundaries_only": True,
+                "claim": "who spoke when, from the declared ONNX models; no words, no transcript, "
+                         "no identity of who the speaker is",
+            },
         },
     }
 
 
+def extract(path: str) -> dict:
+    """The transport's entry-point shape: one input path, one contract envelope.
+
+    A refusal is raised, not returned: empty text with no reason is indistinguishable from a
+    diarization of a silent recording, which is a claim this product does not get to make.
+    """
+    result = diarize(path)
+    if result["structure"]["state"] != "diarized":
+        params = result["loss_receipt"]["params"]
+        missing = ", ".join(params.get("missing_artifacts") or [])
+        raise RuntimeError(f"{params['reason']}" + (f" (missing: {missing})" if missing else ""))
+    return result
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
-    parser.add_argument("input")
+    parser.add_argument("input", nargs="?")
     parser.add_argument("--models-dir", default=None)
     parser.add_argument("--num-speakers", type=int, default=-1,
                         help="-1 lets the clusterer decide; a wrong fixed count is not a guess to make here")
+    parser.add_argument("--staging-root", type=Path, default=None)
+    parser.add_argument("--artifact-root", type=Path, default=None)
     arguments = parser.parse_args(argv)
+    if arguments.staging_root is not None:
+        # Launched by the Core: serve the shared job loop over stdin, so a registered route can
+        # actually be reached by a job instead of only existing in the tables.
+        import importlib.util
+
+        transport_path = Path(__file__).resolve().parent.parent / "transport" / "text_ndjson.py"
+        spec = importlib.util.spec_from_file_location("diarize_transport", transport_path)
+        if spec is None or spec.loader is None:
+            print(json.dumps({"error": "transport module is missing", "engine": ENGINE}))
+            return 1
+        transport = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(transport)
+        return transport.serve_stdio(
+            WORKER_IDENTITY, ["media.diarize"], arguments.staging_root, arguments.artifact_root)
+    if not arguments.input:
+        parser.error("input is required outside a Core launch")
     print(json.dumps(diarize(arguments.input, arguments.models_dir, arguments.num_speakers),
                      ensure_ascii=False))
     return 0
