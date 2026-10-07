@@ -46,6 +46,10 @@ ROW_CAP = 50_000
 # must say so: a partial header presented as the whole one silently misaligns a reader
 # field by field, so the cut is named by `header_capped` (and by the note) instead.
 HEADER_CAP = 32
+# F01: a delimited file's rows were the smallest thing an anchor could name, so a quote from one
+# cell claimed every other cell on its line. Cells are reported through the generic
+# `params.format.locations` contract, and like every other derived list here the cut is stated.
+TABLE_CELL_CAP = 5000
 FRONTMATTER = re.compile(r"\A---\r?\n(.*?)\r?\n---\r?\n", re.DOTALL)
 # a wiki-link is not an embed: `![[x]]` is counted separately, so the link pattern
 # must not match inside it (counting both would double-report one occurrence)
@@ -307,6 +311,16 @@ def _markdown_facts(text: str) -> dict:
     return facts
 
 
+def _column_letters(index: int) -> str:
+    """Zero-based column index as spreadsheet letters, so a cell path reads like `csv!B3`."""
+    letters = ""
+    position = index + 1
+    while position:
+        position, remainder = divmod(position - 1, 26)
+        letters = chr(ord("A") + remainder) + letters
+    return letters
+
+
 def _delimited_facts(text: str, delimiter: str) -> dict:
     rows = list(csv.reader(io.StringIO(text), delimiter=delimiter))
     rows = rows[:ROW_CAP]
@@ -324,8 +338,27 @@ def _delimited_facts(text: str, delimiter: str) -> dict:
             f"; the header is reported as its first {HEADER_CAP} of {len(header)} fields, "
             "and header_capped says so instead of presenting a partial header as the whole one"
         )
+    kind = "tsv" if delimiter == "\t" else "csv"
+    locations = []
+    for row_number, row in enumerate(rows, start=1):
+        for column_index, value in enumerate(row):
+            if not value:
+                continue
+            locations.append({
+                "kind": "table_cell", "path": f"{kind}!{_column_letters(column_index)}{row_number}",
+                "value": value, "coordinate": f"{_column_letters(column_index)}{row_number}",
+                "row": row_number, "column": column_index + 1,
+                "column_name": header[column_index] if column_index < len(header) else None,
+                "in_projection": value in text,
+            })
+    if any(not entry["in_projection"] for entry in locations):
+        note += ("; a cell whose value the projection does not contain verbatim is flagged "
+                 "in_projection=false and cannot be anchored by value")
+    if len(locations) > TABLE_CELL_CAP:
+        note += (f"; cell locations are capped at {TABLE_CELL_CAP} of {len(locations)}, the rest "
+                 "are not addressable")
     return {
-        "format": "tsv" if delimiter == "\t" else "csv",
+        "format": kind,
         "parsed": True,
         "delimiter": delimiter,
         "row_count": len(rows),
@@ -334,6 +367,12 @@ def _delimited_facts(text: str, delimiter: str) -> dict:
         "header": header[:HEADER_CAP],
         "header_capped": header_capped,
         "ragged_rows": ragged,
+        "location_model": "spreadsheet-style coordinate over the file's own rows and columns; "
+                          "the value is the parsed field, not the raw bytes around it",
+        "locations": locations[:TABLE_CELL_CAP],
+        "locations_reported": min(len(locations), TABLE_CELL_CAP),
+        "locations_total": len(locations),
+        "locations_capped": len(locations) > TABLE_CELL_CAP,
         "note": note,
     }
 
