@@ -662,7 +662,10 @@ pub const KNOWN_WORKER_IDENTITIES: &[&str] = &[
 ];
 
 fn worker_input_limit(capability: &str) -> usize {
-    if matches!(capability, "media.transcribe" | "media.video" | "media.diarize") {
+    if matches!(
+        capability,
+        "media.transcribe" | "media.video" | "media.diarize"
+    ) {
         64 * 1024 * 1024
     } else {
         16 * 1024 * 1024
