@@ -159,6 +159,7 @@ pub const ROUTE_MEDIA_TYPES: &[(&str, &[&str])] = &[
             "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
             "application/vnd.ms-excel",
             "application/msword",
+            "application/vnd.ms-powerpoint",
         ],
     ),
     ("canvas.structure", &["application/json"]),
@@ -265,17 +266,18 @@ pub fn media_type_for_name(name: &str) -> Option<&'static str> {
         "mkv" => "video/x-matroska",
         "webm" => "video/webm",
         // R15/F07-F09: the OOXML families this repository can read. `.xls` joins them because
-        // a reader for it now exists (the declared xlrd engine); `.doc` joins them because an
-        // external sidecar is now probed for it - and a document whose sidecar is absent fails
+        // a reader for it now exists (the declared xlrd engine); `.doc` and `.ppt` join it because
+        // external sidecars are now probed for them - and a document whose sidecar is absent fails
         // with the engine's own named reason, which is a reported state, not a silent one.
-        // `.ppt` is still deliberately NOT named: no reader for it exists in this repository
-        // and no JVM is declared, so it stays custody-only instead of being handed to a reader
-        // that cannot open it.
+        // `.ppt` is named now: a JVM and Apache Tika are declared external sidecars, so the
+        // legacy binary presentation has a reader instead of staying custody-only by default.
+        // The route is the declaration; the engine is still probed and never assumed.
         "docx" => "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
         "pptx" => "application/vnd.openxmlformats-officedocument.presentationml.presentation",
         "xlsx" => "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
         "xls" => "application/vnd.ms-excel",
         "doc" => "application/msword",
+        "ppt" => "application/vnd.ms-powerpoint",
         // subtitles have their own media types, so a .srt is no longer declared as
         // plain text and cannot reach the text route by accident
         "srt" => "application/x-subrip",

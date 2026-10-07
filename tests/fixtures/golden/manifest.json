@@ -111,6 +111,18 @@
       "engine": "antiword 0.37 sidecar (external binary, probed and never assumed)",
       "bytes": 32768,
       "expected": {"text": "Sample Word Document Title", "anchor": "line_number=2", "markers": ["This is a sample Microsoft Word Document", "|This is a table"]}
+    },
+    "golden-ppt-anchor.ppt": {
+      "format": "application/vnd.ms-powerpoint",
+      "sha256": "499ccd0de7c0778afa4f6ed08793afd2406b62547373a619a5a78658ae65c4b7",
+      "rights_basis": "third-party test fixture redistributed under the Apache-2.0 licence of the project that publishes it; attribution recorded in THIRD_PARTY_NOTICES.md",
+      "privacy": "no personal data",
+      "origin": "Microsoft PowerPoint 97 binary presentation (OLE2 container with a 'PowerPoint Document' stream); not authored for this test",
+      "source": "Apache Tika tika-parser-microsoft-module src/test/resources/test-documents/testPPT.ppt",
+      "pinned": "commit b8a6916eab70ccdb5d4551c69be1a46af29c2cff (annotated tag 3.3.2), git blob sha1 b48cfaf2bd7045c21c5f65e1478725e8cee84ed7",
+      "engine": "Apache Tika 4.1.0 sidecar over a declared JVM (external, probed and never assumed)",
+      "bytes": 16384,
+      "expected": {"text": "Sample Powerpoint Slide", "anchor": "line_number=2", "markers": ["Sample Powerpoint Slide", "Created with Microsoft"]}
     }
   }
 }

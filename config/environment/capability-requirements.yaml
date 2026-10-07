@@ -226,6 +226,34 @@ capabilities:
       required_by: [conversion]
       local_only: true
 
+    # R15/F14 `.ppt`：Apache Tika 是 Java 程序，所以这一族需要**两条一起**声明——JVM 与 jar。
+    # 只声明 jar 会得到"解析成功而跑不起来"，形状与 antiword 缺映射表完全一致。
+    # 许可不是凭印象写的：两者都从**分发自带的许可文件**读出来（Tika 的 LICENSE 是 Apache-2.0，
+    # Zulu 的 legal/java.base 里同时有 GPL 全文与 ASSEMBLY_EXCEPTION）。
+    - name: zulu-jre
+      purpose: "Apache Tika 运行所需的 JVM（Azul Zulu Community 21.0.12.1，x64 Windows，无 JavaFX）"
+      version_range: ">=21,<22"
+      platform: windows-x64
+      license: "GPL-2.0-or-later with Classpath Exception (read from legal/java.base in the distribution)"
+      source_url: "https://cdn.azul.com/zulu/bin/zulu21.52.203-ca-jre21.0.12.1-win_x64.zip"
+      install_method: 自动下载
+      healthcheck_command: "java -version"
+      external_paths: ["10-toolchains/java/zulu-jre-21.0.12.1/bin/java.exe"]
+      required_by: [conversion]
+      local_only: true
+
+    - name: apache-tika
+      purpose: "旧二进制演示文稿 `.ppt` 的读取旁路（Apache Tika 4.1.0 tika-app 发行包，含 lib/ 与 plugins/）"
+      version_range: ">=4.1,<5"
+      platform: windows-x64
+      license: "Apache-2.0 (read from the LICENSE shipped in the distribution)"
+      source_url: "https://dlcdn.apache.org/tika/4.1.0/tika-app-4.1.0.zip"
+      install_method: 自动下载
+      healthcheck_command: "java -jar 10-toolchains/tika/4.1.0/tika-app-4.1.0.jar --version"
+      external_paths: ["10-toolchains/tika/4.1.0/tika-app-4.1.0.jar"]
+      required_by: [conversion]
+      local_only: true
+
     - name: ffmpeg
       purpose: "音视频解码、格式转换、关键帧提取（只用 LGPL 子集）"
       version_range: ">=6.0"

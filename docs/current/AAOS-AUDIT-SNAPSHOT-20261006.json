@@ -292,7 +292,8 @@
       "F15: the last clause of the container chain is proven end to end - a real ZIP member read by its own job is promoted by a human actor into a candidate that requires human review, with its container origin intact and a quote that does not match the persisted transform refused",
       "P5/M0 whole-state restart read-back: one store holding a container member relation two levels deep, a transform, three locator kinds, a human-created candidate and a machine receipt keeps every published identity across two deliberate reopens (516 passed / 0 failed over 128 result lines) - so an anchor id or a receipt hash cannot silently re-point the workspace's citations after a restart",
       "F14 `.doc`: the antiword sidecar is bound by declaration rather than found on PATH - the binary and its `.antiword` mapping tables are both declared in the capability manifest, the worker hands the mapping directory's parent to the engine as HOME and records which HOME it used, and a copy with only the binary declared was measured to fail outright (exit 1, no output) because the engine truncates a mapping requested by absolute path; with nothing declared the environment is left untouched, so an in-place install still works",
-      "F03: the recorded \"there is still no browser\" was measured false - the web worker now opens the same URL in a local headless chromium after the bounded fetch, scrolls to the bottom within a stated budget and writes the rendered DOM and visible text beside the served bytes, re-runs the address policy on the redirect target and on the URL the browser actually landed on, and refuses by name when no browser launches; --render imports the rendered document while still recording the served digest"
+      "F03: the recorded \"there is still no browser\" was measured false - the web worker now opens the same URL in a local headless chromium after the bounded fetch, scrolls to the bottom within a stated budget and writes the rendered DOM and visible text beside the served bytes, re-runs the address policy on the redirect target and on the URL the browser actually landed on, and refuses by name when no browser launches; --render imports the rendered document while still recording the served digest",
+      "F14 `.ppt`: the legacy binary presentation now has a legal read path on this host - a declared Apache Tika 4.1.0 distribution verified against the ASF sha512 runs on a declared Azul Zulu JRE 21 verified against Azul's own metadata sha256, the pair is asked to identify itself before a document is handed over, and a genuine PowerPoint 97 file from the already-pinned Tika commit is projected line by line with Tika's own startup notice excluded from the text"
     ],
     "open": [
       "Q14 与更正文件的日期序列已核实记录；是否宣布资格化仍由 Owner 决定（不可变 checks/acceptance.json 仍为 NOT_RUN）",
@@ -476,6 +477,25 @@
         "path": "D:\\All projects\\OS External Configuration\\10-toolchains\\playwright\\chromium-1228\\chrome-win64\\chrome.exe",
         "bytes": 4059648,
         "sha256": "b798f9e53a98d29eb7f36f8c409f905d3184780a04d2bcb56989067194784bd1"
+      }
+    },
+    "ppt_tika_sidecar_20261007": {
+      "command": "scripts/runtime/dev.py --pytest tests/workers/test_ppt_engine.py -q -rs",
+      "log": ".project-local/task-runtime/ppt-tests-20261007.txt",
+      "result": "12 passed / 0 skipped",
+      "full_python": "4299 passed, 30 skipped, 14 warnings, 166 subtests passed in 496.44s (0:08:16)",
+      "placed_artifacts": {
+        "tika_distribution": "tika-app-4.1.0.zip, 55,617,982 bytes, sha512 verified against the published .sha512 beside it; the runnable jar needs the lib/ and plugins/ directories shipped with it",
+        "jvm_distribution": "zulu21.52.203-ca-jre21.0.12.1-win_x64.zip, 49,264,410 bytes, sha256 verified against Azul's per-package metadata API",
+        "fixture": "golden-ppt-anchor.ppt from the pinned Tika commit b8a6916eab70ccdb5d4551c69be1a46af29c2cff"
+      },
+      "publisher_unreachability": "Adoptium/Temurin's API publishes the same checksum shape but its download host is unreachable from this machine (curl http=000, urllib RemoteDisconnected); the runtime came from a second publisher whose CDN answers, and the row names which",
+      "test_expectation_changed": "tests/workflow/test_oss_disposition_evidence.py pinned A010 as NONE while nothing in the repository mentioned Tika; the worker now calls it, so the row is credited as IMPLEMENTED_IN_SOURCE with the call site asserted - the premise went stale, not the standard",
+      "ledger": {
+        "A010": "qualification [source] -> [source, installed]",
+        "A050": "Azul Zulu JRE added as the runtime half of the pair",
+        "component_count": "50 -> 51, computed from the rows",
+        "disposition_labels": "untouched"
       }
     }
   },

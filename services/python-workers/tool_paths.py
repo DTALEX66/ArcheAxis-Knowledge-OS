@@ -53,6 +53,8 @@ OVERRIDES = {
     "ffmpeg": ("FFMPEG_CMD", "ARCHEAXIS_FFMPEG_CMD"),
     "antiword": ("ARCHEAXIS_ANTIWORD_CMD",),
     "chromium": ("ARCHEAXIS_CHROMIUM_CMD",),
+    "zulu-jre": ("ARCHEAXIS_JAVA_CMD",),
+    "apache-tika": ("ARCHEAXIS_TIKA_JAR",),
     "faster-whisper-large-v3-turbo": ("ARCHEAXIS_ASR_MODEL_DIR",),
     "faster-whisper-base": ("ARCHEAXIS_ASR_MODEL_DIR",),
 }

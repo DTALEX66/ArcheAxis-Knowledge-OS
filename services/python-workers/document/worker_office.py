@@ -66,6 +66,15 @@ def probe() -> dict:
         engine_status["doc"] = (False, str(exc))
     else:
         engine_status["doc"] = (True, f"antiword {identity['version']} (sidecar)")
+    # `.ppt` is the same shape with a different dependency: Tika runs on a JVM, so both halves
+    # have to resolve, and the probe reports which one did not.
+    try:
+        jvm = _resolve_jvm()
+        tika = _resolve_tika(jvm)
+    except (RuntimeError, OSError) as exc:
+        engine_status["ppt"] = (False, str(exc))
+    else:
+        engine_status["ppt"] = (True, f"apache-tika {tika['version']} on jvm {jvm['version']} (sidecar)")
     engines = {fmt: ok for fmt, (ok, _version) in engine_status.items()}
     versions = {fmt: version for fmt, (_ok, version) in engine_status.items()}
     return {
@@ -677,6 +686,130 @@ def _antiword_mapping_home() -> str | None:
     return str(path.parent)
 
 
+TIKA_PROBE_SECONDS = 60
+TIKA_RUN_SECONDS = 600
+
+
+def _resolve_jvm() -> dict:
+    """Find the JVM the legacy presentation reader runs on, or say which part is missing.
+
+    Environment first, then the declared capability manifest, then PATH - the same order the
+    document sidecars use. A JVM is only trusted once it has stated what it is, because a stale
+    shim can exist as a file and still not start.
+    """
+    configured = os.environ.get("ARCHEAXIS_JAVA_CMD", "").strip()
+    candidate = configured or _declared_path("zulu-jre") or shutil.which("java") or shutil.which("java.exe")
+    if not candidate:
+        raise RuntimeError(
+            "ppt engine missing: no JVM resolved (consulted ARCHEAXIS_JAVA_CMD, the declared "
+            "capability manifest and PATH)"
+        )
+    if configured and not Path(configured).is_file():
+        raise RuntimeError(f"ppt engine missing (configured JVM does not exist: {configured})")
+    try:
+        probe = _run([candidate, "-version"], capture_output=True, text=True,
+                     encoding="utf-8", errors="replace", timeout=TIKA_PROBE_SECONDS)
+    except (OSError, subprocess.TimeoutExpired) as exc:
+        raise RuntimeError(f"ppt engine missing (JVM could not be started: {exc})") from exc
+    stated = f"{probe.stdout}{probe.stderr}"
+    match = re.search(r'(?:openjdk|java) version "([^"]+)', stated)
+    if probe.returncode != 0 or match is None:
+        raise RuntimeError(
+            f"ppt engine missing (the resolved JVM did not identify itself: {stated.strip()[:160]})"
+        )
+    return {"path": candidate, "version": match.group(1)}
+
+
+def _resolve_tika(jvm: dict) -> dict:
+    """Resolve the Tika application jar and let it name its own version.
+
+    The jar is a declared external artefact; a missing one is a named failure rather than a cue to
+    try a different parser, because which extractor produced a projection is part of the evidence.
+    """
+    configured = os.environ.get("ARCHEAXIS_TIKA_JAR", "").strip()
+    jar = configured or _declared_path("apache-tika")
+    if not jar:
+        raise RuntimeError(
+            "ppt engine missing: no Apache Tika jar resolved (consulted ARCHEAXIS_TIKA_JAR and "
+            "the declared capability manifest)"
+        )
+    if not Path(jar).is_file():
+        raise RuntimeError(f"ppt engine missing (Tika jar does not exist: {jar})")
+    try:
+        probe = _run([jvm["path"], "-jar", jar, "--version"], capture_output=True, text=True,
+                     encoding="utf-8", errors="replace", timeout=TIKA_PROBE_SECONDS)
+    except (OSError, subprocess.TimeoutExpired) as exc:
+        raise RuntimeError(f"ppt engine missing (Tika could not be started: {exc})") from exc
+    stated = (probe.stdout or "").strip()
+    if probe.returncode != 0 or not stated.startswith("Apache Tika"):
+        raise RuntimeError(
+            f"ppt engine missing (the jar did not answer as Apache Tika: "
+            f"{(stated or probe.stderr or '').strip()[:160]})"
+        )
+    return {"jar": jar, "version": stated.split()[-1], "jvm": jvm}
+
+
+def _ppt_text(path: Path) -> dict:
+    """Project a legacy binary presentation through Tika, one file per process.
+
+    Tika's CLI writes its own log lines to stderr and the document's text to stdout, so the
+    projection is stdout alone. Exit codes are consulted here, unlike the batch mode of the
+    document sidecar, because this invocation processes exactly one named file.
+    """
+    jvm = _resolve_jvm()
+    engine = _resolve_tika(jvm)
+    try:
+        run = _run(
+            [jvm["path"], "-jar", engine["jar"], "--text", str(path)],
+            capture_output=True, text=True, encoding="utf-8", timeout=TIKA_RUN_SECONDS,
+        )
+    except subprocess.TimeoutExpired:
+        raise ValueError(
+            "Tika did not finish within the run budget; nothing was projected"
+        ) from None
+    except UnicodeDecodeError as exc:
+        raise ValueError(f"Tika output is not valid UTF-8: {exc}") from exc
+    if run.returncode != 0:
+        reasons = [
+            line for line in (run.stderr or "").splitlines()
+            if line and "INFO" not in line[:24] and "WARN" not in line[:24]
+        ]
+        raise ValueError(f"ppt could not be read by Tika: {(reasons[:1] or ['exit code %s' % run.returncode])[0][:200]}")
+    text = run.stdout or ""
+    if not text.strip():
+        raise ValueError("ppt contains no readable text through Tika")
+
+    structure = _line_anchors(text)
+    losses = [
+        "the projection is Tika's own text extraction: slide order follows the parser's reading of "
+        "the document, and layout, speaker notes, masters, embedded objects and media are not "
+        "presented as a rendered slide would be; the original bytes stay the source of record",
+        "Tika's single-file CLI mode turns on several non-default features for convenience "
+        "(its own startup notice names TIKA-2374, TIKA-4017, TIKA-4354 and TIKA-4472), so the "
+        "reading is that configuration's reading, not a neutral default one",
+    ]
+    return {
+        "format": "ppt",
+        "text": text,
+        "structure": structure,
+        "loss_receipt": {
+            "engine": ENGINE,
+            "engine_version": ENGINE_VERSION,
+            "params": {
+                "engine": "apache-tika",
+                "engine_version_reported": engine["version"],
+                "jvm": f"{jvm['path']} (version {jvm['version']})",
+                "jar": engine["jar"],
+                "output_mode": "--text",
+                "lines_projected": len(structure),
+                "bytes_projected": len(text.encode("utf-8")),
+            },
+            "losses": losses,
+            "loss_note": "; ".join(losses),
+        },
+    }
+
+
 def _doc_text(path: Path) -> dict:
     engine = _antiword()
     home = _antiword_mapping_home()
@@ -862,6 +995,8 @@ def extract(path: str, member_dir: str | None = None) -> dict:
         return _xls_text(Path(path), Path(member_dir) if member_dir else None)
     if suffix == ".doc":
         return _doc_text(Path(path))
+    if suffix == ".ppt":
+        return _ppt_text(Path(path))
     if suffix == ".pdf":
         return _pdf_text(Path(path))
     raise ValueError(f"unsupported office/document extension: {suffix}")

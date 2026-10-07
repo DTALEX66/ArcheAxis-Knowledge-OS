@@ -175,10 +175,11 @@ async fn converted_sheets_become_sources_with_their_own_jobs() {
 
 #[tokio::test]
 async fn the_formats_with_no_reader_stay_unnamed_rather_than_reaching_a_route() {
-    // `.ppt` is the remaining legacy family with no reader here: no in-process engine, and no
-    // JVM declared for a sidecar that could provide one. Naming it would hand a document to a
-    // route that cannot open it, which is the failure this list exists to prevent.
-    for name in ["old.ppt"] {
+    // `.ppt` left this list on 2026-10-07, when a declared Tika-over-JVM pair became the reader
+    // named for it. `.pps` stays: the sidecar is asked for presentations, and a slideshow file has
+    // no verified path here, so naming it would hand a document to a route that cannot open it -
+    // which is the failure this list exists to prevent.
+    for name in ["show.pps"] {
         let error = attempts::resolve_media_type("office", name)
             .unwrap_err()
             .to_string();
@@ -187,6 +188,11 @@ async fn the_formats_with_no_reader_stay_unnamed_rather_than_reaching_a_route() 
             "{name}: {error}"
         );
     }
+    assert_eq!(
+        attempts::resolve_media_type("office", "deck.ppt").unwrap(),
+        "application/vnd.ms-powerpoint",
+        "the PowerPoint 97 binary is named because its sidecar pair is declared and probed"
+    );
     assert_eq!(
         attempts::resolve_media_type("office", "book.xls").unwrap(),
         "application/vnd.ms-excel",

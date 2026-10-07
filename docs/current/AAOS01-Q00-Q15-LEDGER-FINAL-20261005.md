@@ -1807,3 +1807,81 @@ test_environment_registry.py` → 12 passed；`tests/test_mfx001_supply_chain_le
 **可复用的教训**：改一份机器可读台账时，"这个字段看起来像计数表"不能替代
 "我知道这个字段是什么"。**任何覆盖式写入前先看一次 HEAD 里该键的类型**；
 以及 `git diff` 要在 commit 前读，而不是 commit 后。
+
+## `.ppt` 不再是"本机无合法读取路径"（2026-10-07）
+
+**这条判断被推翻的过程**：账本连续几轮写着 `.ppt` 无 reader，理由是"唯一候选要 JVM，而本机无 JVM，
+且本轮不许装系统级软件"。三句当时都真。但**边界禁的是"系统级安装"，不是"放进外置工具根"**——
+而目标里明写"缺工具下载到工具库"。于是这一刀先做的是**核对可达性与校验和**，不是写代码。
+
+**实测就位过程（每一步都留了数）**：
+1. Temurin 的 API 给出与 Adoptium 同形的 `package.checksum`，**但它的下载主机在本机不可达**
+   （`curl` 到 github.com 释放域名 → http=000；urllib 则 `RemoteDisconnected`）。
+   记录这一点，是因为"官方优先"不等于"官方主机在本机可达"，换一个发行方不是降级，
+   而是把来源说清楚。
+2. 改取 **Azul Zulu Community JRE 21.0.12.1（build 21.52.203）**：Azul 的每包元数据 API
+   直接给 `sha256_hash`；下载 49,264,410 字节，**算得的 sha256 与元数据一致**才解包。
+   许可**不凭印象**：从分发自带的 `legal/java.base/LICENSE` 与 `ASSEMBLY_EXCEPTION` 读出
+   GPLv2 + Classpath Exception。
+3. **Apache Tika 4.1.0 官方发行包** `tika-app-4.1.0.zip`（55,617,982 字节），
+   与站内发布的 `.sha512` 逐字节核对；解出的 jar 只有 122,724 字节，
+   真正跑起来靠同批的 `lib/` 与 `plugins/`，所以**不能只看 jar 大小**（Maven 上那个同名 thin jar
+   不是可执行体）。许可取自包内 `LICENSE`（Apache-2.0）。
+4. 样本仍走已被接受的路子：**不是自造件**——Apache Tika microsoft-module 的
+   `testPPT.ppt`，固定在**已经在用的那个提交** `b8a6916ea…`（tag 3.3.2），
+   16,384 字节，sha256 `499ccd0de7c0778afa4f6ed08793afd2406b62547373a619a5a78658ae65c4b7`，
+   git blob `b48cfaf2bd7045c21c5f65e1478725e8cee84ed7`。
+   容器判据也实测过：OLE2 魔数 + **UTF-16LE 的 `PowerPoint Document` 流名**
+   （我用 ASCII 字节搜它时守卫直接拒绝过——一个搜不到的守卫比没有守卫更糟，改的是守卫）。
+
+**产品侧落成的形状**（刻意复用 antiword 那一刀的教训）：
+- 五层全打通：`.ppt → application/vnd.ms-powerpoint`（`media_type_for_name`，注释里那句
+  "`.ppt` is still deliberately NOT named" 已替换为事实）、`office.structure` 的 media_types、
+  transport 的 `suffix_by_media`、worker 的 `extract` 分派；
+- **两条一起声明**：`zulu-jre` 与 `apache-tika`。只声明 jar 会"解析成功而跑不起来"，
+  与 antiword 缺映射表同形；索引重生成后两条都 `exists: true`；
+- 引擎先自报身份再交文档：`java -version` 必须说出自己是哪个 JVM，
+  jar 必须答 `Apache Tika <版本>`；答不出就是具名拒绝，**不出文**；
+- 一个进程只读一个文件；退出码在这里是可信的（与 antiword 的批模式不同，这里只传一个具名文件），
+  失败消息取 stderr 里**非 INFO/WARN 的那一行**，而不是引擎的日志噪声；
+- 投影只取 stdout；损失报告点名 Tika 单文件模式**自作主张开启的非默认特性**（TIKA-2374/4017/4354/4472）。
+
+**度量口径**：`tests/workers/test_ppt_engine.py` **12 passed**（含真机用例；经 sanctioned runner，
+没有导任何环境变量，解析完全由声明完成，日志 `.project-local/task-runtime/ppt-tests-20261007.txt`）；
+全量 Python 套件 4299 passed, 30 skipped, 14 warnings, 166 subtests passed in 496.44s (0:08:16)（日志 `.project-local/task-runtime/py-full-20261007-ppt.log`）；
+`tests/workflow` 里那条把 A010 钉成 `NONE` 的断言**如实改了预期**——
+它原先钉的是"仓库里没人提 Tika"，现在 worker 真的调用它，
+所以 `IMPLEMENTED_IN_SOURCE` 才是对的分类，改的是**样本过期**而不是放宽标准（代码里写了原因）；
+供给链台账门禁 6 passed（含上一刀补的标签定义守卫）；矩阵门禁 exit 0（16 组 / 0 complete /
+15 partial / 1 custody-only），F14 仍 `partial`，`required_output` 逐字未动；
+台账新增 **A050 Azul Zulu JRE**，A010 的 qualification 由 `[source]` 升为 `[source, installed]`，
+`component_count` 50 → 51，SIDECAR 5 → 6，两个数都由行表现算，**`disposition_labels` 未触碰**。
+
+**我改了两条已提交的 Rust 断言，逐条写清**：`.ppt` 一进名，两条把"没有 reader 的族"钉成清单的测试
+就撞上了——`office_job_end_to_end.rs::office_names_select_the_office_route_and_the_legacy_formats_are_refused`
+与 `xls_member_chain.rs::the_formats_with_no_reader_stay_unnamed_rather_than_reaching_a_route`，
+两处都是 `unwrap_err()` 收到 `Ok("application/vnd.ms-powerpoint")`（第一次跑 RUST_EXIT=101）。
+这两条断言的前提是"本仓没有 `.ppt` 的 reader 也没有声明 JVM"，该前提已被本刀**主动改变**，
+所以改的是**过期的例子**而不是放宽标准：拒绝清单换成本来就仍无路径的 `.pps`，
+并新增 `.ppt` 必须被点名、且**不得**作为 text 通过的断言。改完两条各自 3 passed / 2 passed。
+
+**Rust 侧度量口径**：`cargo fmt --all --check` PASS（先前我写的一行断言超长，fmt 先失败，
+按格式化后的多行形状改好后再检）；
+`cargo test --workspace --offline` 在最终字节上 **128 个 `test result:` 行合计 516 passed / 0 failed**
+（日志 `.project-local/task-runtime/rust-ppt-final2.log`；上一轮在旧字节上是 73 行 / 329 passed 且
+带 1 条 FAILED，那条 FAILED 就是上面这双过期断言之一）。
+
+**一条我没有归因清楚的数**：全量 Python 从 4286 passed / 30 skipped 变成 4299 passed, 30 skipped, 14 warnings, 166 subtests passed in 496.44s (0:08:16)，
+净增 **13**，其中 **12** 条确实是新增的 `tests/workers/test_ppt_engine.py`
+（`--collect-only` 实测 12 tests collected）。余下 1 条我没有把解释编出来：
+查过 `test_bulk_office.py`（读清单但不按夹具参数化，6 collected）、
+`test_p1_quality_matrix.py`（11）、`test_f01_real_quality.py`（5）、
+`test_worker_reachability.py`（7），都不是按夹具条目或媒体类型展开的参数化，
+所以这一条在此**只报数、不给理由**。
+
+**仍未闭合**：`.ppt` 的**版式语义**（母版、备注、图表、嵌入对象）不进投影；
+FMT-21 逐扩展名真人验收仍 NOT_RUN；`.xls` 夹具仍是自造件；
+JVM 与 Tika 是**本机外置根里的放置件**，换机器需要重新供给，产品不代装。
+
+**回滚**：revert 这一次提交即撤销 `.ppt` 路由、worker 侧车通道、两条声明、夹具与记录；
+外置根里的 `10-toolchains/java/…` 与 `10-toolchains/tika/…` 是新增目录，删除需单独授权（本轮不删）。

@@ -181,6 +181,34 @@
       ]
     },
     {
+      "name": "zulu-jre",
+      "category": "engines",
+      "purpose": "Apache Tika 运行所需的 JVM（Azul Zulu Community 21.0.12.1，x64 Windows，无 JavaFX）",
+      "local_only": true,
+      "healthcheck_command": "java -version",
+      "external_paths": [
+        {
+          "declared": "10-toolchains/java/zulu-jre-21.0.12.1/bin/java.exe",
+          "resolved": "D:\\All projects\\OS External Configuration\\10-toolchains\\java\\zulu-jre-21.0.12.1\\bin\\java.exe",
+          "exists": true
+        }
+      ]
+    },
+    {
+      "name": "apache-tika",
+      "category": "engines",
+      "purpose": "旧二进制演示文稿 `.ppt` 的读取旁路（Apache Tika 4.1.0 tika-app 发行包，含 lib/ 与 plugins/）",
+      "local_only": true,
+      "healthcheck_command": "java -jar 10-toolchains/tika/4.1.0/tika-app-4.1.0.jar --version",
+      "external_paths": [
+        {
+          "declared": "10-toolchains/tika/4.1.0/tika-app-4.1.0.jar",
+          "resolved": "D:\\All projects\\OS External Configuration\\10-toolchains\\tika\\4.1.0\\tika-app-4.1.0.jar",
+          "exists": true
+        }
+      ]
+    },
+    {
       "name": "ffmpeg",
       "category": "engines",
       "purpose": "音视频解码、格式转换、关键帧提取（只用 LGPL 子集）",

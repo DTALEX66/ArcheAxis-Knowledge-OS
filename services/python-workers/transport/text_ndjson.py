@@ -324,6 +324,9 @@ ROUTES = {
             # R15/F14: the legacy binary document, read by a probed external sidecar. The route
             # is declared, the engine is not assumed: an absent sidecar is a named failure.
             "application/msword",
+            # R15/F14: the legacy binary presentation, read by the declared Tika sidecar over a
+            # declared JVM. Same rule: the route names it, the probe decides whether it runs.
+            "application/vnd.ms-powerpoint",
         },
         "call": "path",
         # A converted sheet is a durable transfer file, so this route may receive the area
@@ -338,6 +341,7 @@ ROUTES = {
             "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet": ".xlsx",
             "application/vnd.ms-excel": ".xls",
             "application/msword": ".doc",
+            "application/vnd.ms-powerpoint": ".ppt",
         },
     },
     # R15/F12: the canvas and subtitle workers existed unreachable too; each produces

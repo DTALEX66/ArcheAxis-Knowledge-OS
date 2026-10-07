@@ -94,7 +94,13 @@ def test_the_check_marks_whether_the_name_is_implemented_named_or_merely_mention
     magika = rows["A001"]
     assert magika["evidence_state"] == "DECLARED_AND_VENDORED", magika
     assert magika["vendored"]["magika"] == ["shared/models/magika"], magika
-    assert rows["A010"]["evidence_state"] == "NONE", rows["A010"]
+    # This used to assert NONE, which was the truthful finding while nothing in the repository
+    # mentioned Tika at all. `.ppt` now resolves and invokes the declared Tika jar in the office
+    # worker, so NONE would be an under-claim and STUB would be a lie: the row must be credited
+    # exactly where the call is.
+    tika = rows["A010"]
+    assert tika["evidence_state"] == "IMPLEMENTED_IN_SOURCE", tika
+    assert any("worker_office.py" in hit for hits in tika["source"].values() for hit in hits), tika
 
     # A stub registry names the capability where it declares itself unavailable, which is not the
     # same fact as implementing it.

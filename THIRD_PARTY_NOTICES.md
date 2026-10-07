@@ -111,3 +111,6 @@ license text is preserved alongside the model; inference code is
 上述项目在通过独立的 exact-revision RDR（ReuseDecisionRecord）且 Owner 明确授权前不得进入依赖锁、vendor 目录或发行物。现有已接入组件（LiteLLM、Langfuse）继续保留薄 Adapter 模式，不扩大能力声明。
 
 权威吸收决策见 `docs/truth/SUPPLY_CHAIN_LEDGER.json`（v2，46 组件）。
+- Apache Tika 4.1.0 (`tika-app` distribution), Apache License 2.0 - https://tika.apache.org/ ; used only as a probed external sidecar for `.ppt` text extraction, resolved from the declared external tool root and never bundled with this repository.
+- Azul Zulu Community JRE 21.0.12.1 (build 21.52.203), GPLv2 with the Classpath Exception - https://www.azul.com/downloads/ ; the runtime that executes the Tika sidecar above. Local placement under the external tool root, not a system install and not redistributed here.
+- Third-party test fixture: `tests/fixtures/golden/golden-ppt-anchor.ppt` - a Microsoft PowerPoint 97 presentation redistributed under Apache-2.0 from Apache Tika's microsoft-module test resources, pinned commit b8a6916eab70ccdb5d4551c69be1a46af29c2cff (tag 3.3.2), 16,384 bytes, sha256 499ccd0de7c0778afa4f6ed08793afd2406b62547373a619a5a78658ae65c4b7, git blob b48cfaf2bd7045c21c5f65e1478725e8cee84ed7.
