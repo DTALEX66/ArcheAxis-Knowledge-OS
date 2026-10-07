@@ -12,6 +12,7 @@ from typing import Any
 from uuid import uuid4
 
 from shared.config import config, resolve_runtime_path
+from shared.paths import native_path
 from shared.stable_hash import stable_hash_text
 
 
@@ -364,8 +365,8 @@ REQUIRED_SCHEMA_TABLES = frozenset(
 
 
 def _conn() -> sqlite3.Connection:
-    DB_PATH.parent.mkdir(parents=True, exist_ok=True)
-    c = sqlite3.connect(str(DB_PATH), timeout=30.0)
+    Path(native_path(DB_PATH.parent)).mkdir(parents=True, exist_ok=True)
+    c = sqlite3.connect(native_path(DB_PATH), timeout=30.0)
     c.execute("PRAGMA busy_timeout=30000")
     c.execute("PRAGMA journal_mode=WAL")
     c.row_factory = sqlite3.Row
@@ -426,7 +427,7 @@ def validate_schema() -> None:
 
     from shared import research_migration
 
-    if not DB_PATH.is_file():
+    if not Path(native_path(DB_PATH)).is_file():
         raise RuntimeError(f"SQLite schema has not been migrated: {DB_PATH}")
     try:
         with research_migration._connect_readonly(DB_PATH) as connection:
@@ -438,10 +439,10 @@ def validate_schema() -> None:
 def validate_schema_online() -> None:
     """Validate the live WAL-capable Runtime schema without mutating or checkpointing it."""
 
-    if not DB_PATH.is_file():
+    if not Path(native_path(DB_PATH)).is_file():
         raise RuntimeError(f"SQLite schema has not been migrated: {DB_PATH}")
     try:
-        with sqlite3.connect(str(DB_PATH), timeout=30.0) as connection:
+        with sqlite3.connect(native_path(DB_PATH), timeout=30.0) as connection:
             connection.execute("PRAGMA busy_timeout=30000")
             connection.execute("PRAGMA query_only=ON")
             connection.row_factory = sqlite3.Row
@@ -506,7 +507,7 @@ class FtsIndexRollback:
 
     def rollback(self) -> None:
         """Restore the pre-activation FTS rows and remove migration tables."""
-        connection = sqlite3.connect(self.db_path)
+        connection = sqlite3.connect(native_path(self.db_path))
         quoted_active = f'"{self.active_table}"'
         quoted_backup = f'"{self.backup_table}"'
         quoted_candidate = f'"{self.candidate_table}"'
@@ -567,7 +568,7 @@ class FtsIndexCandidate:
         _, _, columns, source_columns = spec
         quoted_columns = ", ".join(f'"{column}"' for column in columns)
         try:
-            with sqlite3.connect(self.db_path) as connection:
+            with sqlite3.connect(native_path(self.db_path)) as connection:
                 connection.row_factory = sqlite3.Row
                 candidate_rows = connection.execute(
                     f'SELECT rowid, {quoted_columns} FROM "{self.table_name}" ORDER BY rowid'
@@ -608,7 +609,7 @@ class FtsIndexCandidate:
         quoted_candidate = f'"{self.table_name}"'
         quoted_backup = f'"{backup_table}"'
         quoted_columns = ", ".join(f'"{column}"' for column in self.columns)
-        connection = sqlite3.connect(self.db_path)
+        connection = sqlite3.connect(native_path(self.db_path))
         connection.row_factory = sqlite3.Row
         try:
             _validated_table(connection, self.active_table)
@@ -657,7 +658,7 @@ class FtsIndexCandidate:
 
     def discard(self) -> None:
         """Drop this inactive candidate; the active index is never touched."""
-        with sqlite3.connect(self.db_path) as connection:
+        with sqlite3.connect(native_path(self.db_path)) as connection:
             connection.execute(f'DROP TABLE IF EXISTS "{self.table_name}"')
             connection.commit()
 
@@ -865,7 +866,7 @@ def build_fts_candidate(
         raise ValueError(f"unsupported FTS source table: {source_table}")
     active_table, create_sql, columns, source_columns = spec
     database = Path(db_path or DB_PATH)
-    connection = sqlite3.connect(str(database))
+    connection = sqlite3.connect(native_path(database))
     connection.row_factory = sqlite3.Row
     candidate_table = f"{active_table}__candidate_{uuid4().hex}"
     quoted_candidate = f'"{candidate_table}"'

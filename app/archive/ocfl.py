@@ -8,6 +8,7 @@ from pathlib import Path
 from typing import Any
 
 from app.contracts.source_anchor_v2 import AnchorV2, SourceObjectV2
+from shared.paths import native_path
 
 
 def _json_bytes(value: object) -> bytes:
@@ -15,10 +16,10 @@ def _json_bytes(value: object) -> bytes:
 
 
 def _write(path: Path, content: bytes) -> None:
-    path.parent.mkdir(parents=True, exist_ok=True)
+    Path(native_path(path.parent)).mkdir(parents=True, exist_ok=True)
     temporary = path.with_suffix(path.suffix + ".tmp")
-    temporary.write_bytes(content)
-    os.replace(temporary, path)
+    Path(native_path(temporary)).write_bytes(content)
+    os.replace(native_path(temporary), native_path(path))
 
 
 def _sha512(path: Path) -> str:
@@ -33,7 +34,7 @@ def export_object(
     anchors: list[AnchorV2],
 ) -> dict[str, Any]:
     destination = Path(root)
-    if destination.exists() and any(destination.iterdir()):
+    if Path(native_path(destination)).exists() and any(Path(native_path(destination)).iterdir()):
         raise ValueError("OCFL export destination must be empty")
     actual_sha256 = hashlib.sha256(content).hexdigest()
     if actual_sha256 != source.sha256 or len(content) != source.byte_size:
@@ -91,7 +92,7 @@ def validate_object(root: str | Path) -> dict[str, Any]:
     for digest, paths in inventory.get("manifest", {}).items():
         for relative in paths:
             candidate = object_root / relative
-            if not candidate.is_file() or _sha512(candidate) != digest:
+            if not Path(native_path(candidate)).is_file() or _sha512(candidate) != digest:
                 raise ValueError(f"content fixity mismatch: {relative}")
             checked += 1
     return {

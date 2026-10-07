@@ -5,6 +5,7 @@ from typing import Any
 
 from app.schemas import CoreObject
 from shared.approved_paths import ApprovedRoots, ApprovedRootsError
+from shared.paths import native_path, ordinary_path
 
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
 APPROVED_ROOTS = ApprovedRoots(source_roots=[PROJECT_ROOT])
@@ -44,9 +45,9 @@ def _relative_source(path: Path) -> str:
 
 
 def _read_text(path: Path, max_bytes: int = MAX_FILE_BYTES) -> str:
-    if not path.exists():
+    if not Path(native_path(path)).exists():
         raise IngestionError(f"file does not exist: {_relative_source(path)}")
-    if not path.is_file():
+    if not Path(native_path(path)).is_file():
         raise IngestionError(f"path is not a file: {_relative_source(path)}")
     if path.suffix.lower() not in DEFAULT_EXTENSIONS:
         raise IngestionError(f"unsupported file extension: {path.suffix}")
@@ -111,15 +112,15 @@ def ingest_directory(
     metadata: dict[str, Any] | None = None,
 ) -> list[CoreObject]:
     resolved = _resolve_project_path(path)
-    if not resolved.exists():
+    if not Path(native_path(resolved)).exists():
         raise IngestionError(f"directory does not exist: {_relative_source(resolved)}")
-    if not resolved.is_dir():
+    if not Path(native_path(resolved)).is_dir():
         raise IngestionError(f"path is not a directory: {_relative_source(resolved)}")
 
     safe_limit = max(1, min(int(limit), MAX_DIRECTORY_FILES))
     docs: list[CoreObject] = []
-    for file_path in sorted(resolved.rglob(pattern)):
-        if not file_path.is_file():
+    for file_path in sorted(ordinary_path(p) for p in Path(native_path(resolved)).rglob(pattern)):
+        if not Path(native_path(file_path)).is_file():
             continue
         if file_path.suffix.lower() not in DEFAULT_EXTENSIONS:
             continue

@@ -27,6 +27,8 @@ from pathlib import Path
 from typing import Any, Literal
 from uuid import uuid4
 
+from shared.paths import native_path
+
 MIN_EVALUATION_USAGES = 3
 RETIRE_SUCCESS_RATE = 0.4
 PATCH_SUCCESS_RATE = 0.8
@@ -92,7 +94,7 @@ class SkillPatch:
 
 
 def _connect(db: str | Path) -> sqlite3.Connection:
-    conn = sqlite3.connect(Path(db))
+    conn = sqlite3.connect(native_path(db))
     conn.row_factory = sqlite3.Row
     conn.executescript(_SCHEMA)
     return conn

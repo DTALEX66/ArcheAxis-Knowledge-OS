@@ -13,6 +13,7 @@ from pathlib import Path
 
 from app.ingestion.raw_asset import RawAssetStore
 from app.workspace.job_outbox import record_command_in_transaction
+from shared.paths import native_path
 
 
 class ImportJobError(RuntimeError):
@@ -51,7 +52,7 @@ def run_import_with_receipt(
     no orphaned outbox event points at a job that never completed.
     """
     wrote_original = False
-    with sqlite3.connect(store.db_path) as connection:
+    with sqlite3.connect(native_path(store.db_path)) as connection:
         connection.row_factory = sqlite3.Row
         connection.execute("BEGIN IMMEDIATE")
         try:

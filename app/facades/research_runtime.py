@@ -14,6 +14,7 @@ from app.core.trace import log_trace
 from app.evaluation.governance import EvaluationCandidate, create_evaluation_candidate
 from app.schemas import ExecutionTrace
 from shared.migration_runner import MigrationOperator
+from shared.paths import native_path
 
 
 class ArtifactRuntimeResult(BaseModel):
@@ -34,8 +35,8 @@ def run_reviewed_artifact_task(
         raise ValueError("artifact task requires human review")
     trace = execute(projection.task, permission)
     database = Path(db_path)
-    database.parent.mkdir(parents=True, exist_ok=True)
-    with sqlite3.connect(database):
+    Path(native_path(database.parent)).mkdir(parents=True, exist_ok=True)
+    with sqlite3.connect(native_path(database)):
         pass
     MigrationOperator(db_path=database, backup_dir=database.parent / "backups").apply("core.sqlite")
     log_trace(trace, db_path=database)

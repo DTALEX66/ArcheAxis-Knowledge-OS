@@ -24,6 +24,8 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
+from shared.paths import native_path, ordinary_path
+
 BENCHMARK_SCHEMA_VERSION = "v1"
 
 
@@ -110,15 +112,20 @@ def hardware_identity() -> dict[str, Any]:
 def corpus_metrics(corpus_dir: str | Path) -> dict[str, Any]:
     """Data-size metrics for a corpus directory (files, bytes, kinds)."""
     root = Path(corpus_dir)
-    if not root.is_dir():
+    if not Path(native_path(root)).is_dir():
         raise BenchmarkError(f"corpus directory not found: {root}")
-    files = [p for p in root.rglob("*") if p.is_file()]
+    # Prefixed enumeration reaches files a plain name cannot; the list keeps plain ones.
+    files = [
+        ordinary_path(p)
+        for p in Path(native_path(root)).rglob("*")
+        if Path(native_path(p)).is_file()
+    ]
     sizes: dict[str, int] = {}
     count_by_suffix: dict[str, int] = {}
     for file_path in files:
         suffix = file_path.suffix.lower() or "(none)"
         count_by_suffix[suffix] = count_by_suffix.get(suffix, 0) + 1
-        sizes[suffix] = sizes.get(suffix, 0) + file_path.stat().st_size
+        sizes[suffix] = sizes.get(suffix, 0) + Path(native_path(file_path)).stat().st_size
     return {
         "file_count": len(files),
         "total_bytes": sum(sizes.values()),
@@ -272,8 +279,8 @@ def build_report(
 def write_report(report: dict[str, Any], destination: str | Path) -> Path:
     """Write the report as JSON (the canonical machine-readable form)."""
     destination = Path(destination)
-    destination.parent.mkdir(parents=True, exist_ok=True)
-    destination.write_text(
+    Path(native_path(destination.parent)).mkdir(parents=True, exist_ok=True)
+    Path(native_path(destination)).write_text(
         json.dumps(report, ensure_ascii=False, indent=2, sort_keys=True),
         encoding="utf-8",
     )

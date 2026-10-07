@@ -9,6 +9,7 @@ import os
 import re
 import sqlite3
 from contextlib import closing, contextmanager, suppress
+from shared.paths import native_path, sqlite_readonly_target
 from dataclasses import asdict, dataclass
 from datetime import datetime, timezone
 from pathlib import Path
@@ -43,12 +44,8 @@ CREATE TABLE IF NOT EXISTS {_LOCK_TABLE} (
 
 
 def _native_path(path: Path) -> str | Path:
-    """Use the Windows extended-length prefix for deep project-local paths."""
-    if os.name == "nt" and len(str(path)) >= 240:
-        value = str(path)
-        if not value.startswith("\\\\?\\"):
-            return "\\\\?\\" + value
-    return path
+    """Name the path so Windows still creates it; see `shared.paths.native_path`."""
+    return native_path(path)
 
 _SQL_IDENTIFIER_RE = re.compile(r"^[A-Za-z_][A-Za-z0-9_]*$")
 _SHADOW_SUFFIX_RE = re.compile(r"^[0-9a-f]{32}$")
@@ -134,7 +131,7 @@ def default_registry(_db_path: str | Path = migration.DB_PATH) -> MigrationRegis
 
 def _sha256(path: Path) -> str:
     digest = hashlib.sha256()
-    with path.open("rb") as stream:
+    with open(_native_path(path), "rb") as stream:
         for chunk in iter(lambda: stream.read(1024 * 1024), b""):
             digest.update(chunk)
     return digest.hexdigest()
@@ -224,7 +221,7 @@ class MigrationOperator:
         self.backup_dir = Path(backup_dir).resolve()
         self.registry = registry or default_registry(self.db_path)
         self._lock_database = self._lock_database_for_target(self.db_path)
-        if not self.db_path.is_file():
+        if not Path(_native_path(self.db_path)).is_file():
             raise FileNotFoundError(f"SQLite database not found: {self.db_path}")
         with closing(self._connect_readonly()) as connection:
             result = connection.execute("PRAGMA integrity_check").fetchone()[0]
@@ -239,14 +236,18 @@ class MigrationOperator:
 
     def _connect_readonly(self) -> sqlite3.Connection:
         sidecars = [Path(f"{self.db_path}{suffix}") for suffix in ("-wal", "-shm")]
-        present = [sidecar.name for sidecar in sidecars if sidecar.exists()]
+        present = [sidecar.name for sidecar in sidecars if Path(_native_path(sidecar)).exists()]
         if present:
             raise RuntimeError(
                 "read-only migration status requires a checkpointed database without "
                 f"SQLite sidecars: {', '.join(present)}"
             )
-        uri = f"{self.db_path.as_uri()}?mode=ro&immutable=1"
-        connection = sqlite3.connect(uri, uri=True, timeout=30.0)
+        # A `file:` URI cannot carry the verbatim prefix, so a deep database is named directly and
+        # guarded by SQLite's own query_only pragma instead of the URI mode.
+        target, is_uri = sqlite_readonly_target(self.db_path)
+        connection = sqlite3.connect(
+            f"{target}&immutable=1" if is_uri else target, uri=is_uri, timeout=30.0
+        )
         connection.execute("PRAGMA busy_timeout=30000")
         connection.execute("PRAGMA query_only=ON")
         connection.row_factory = sqlite3.Row
@@ -260,7 +261,10 @@ class MigrationOperator:
         return resolved.with_name(f".{resolved.name}.{digest}.migration_operator_locks.lockdb")
 
     def _lock_connect(self) -> sqlite3.Connection:
-        self._lock_database.parent.mkdir(parents=True, exist_ok=True)
+        # The lock name is generated: `.{db name}.{16-hex}.migration_operator_locks.lockdb` sits sixty
+        # characters under a directory that is itself ordinary, so only the caller can know the
+        # final length and the prefix cannot be conditional on the directory.
+        Path(_native_path(self._lock_database.parent)).mkdir(parents=True, exist_ok=True)
         connection = sqlite3.connect(_native_path(self._lock_database), timeout=30.0)
         connection.execute("PRAGMA busy_timeout=30000")
         return connection

@@ -8,6 +8,7 @@ from pathlib import Path
 from typing import Any
 
 from shared.config import config, resolve_runtime_path
+from shared.paths import native_path
 from shared.research_boundary import unreviewed_research_references
 
 DB_PATH = resolve_runtime_path(str(config.get("database.path", "data/archeaxis.sqlite")))
@@ -117,8 +118,8 @@ CREATE INDEX IF NOT EXISTS idx_permission_task ON permission_decisions(task_id);
 
 def _get_conn(db_path: str | Path | None = None) -> sqlite3.Connection:
     database = Path(db_path) if db_path is not None else DB_PATH
-    database.parent.mkdir(parents=True, exist_ok=True)
-    conn = sqlite3.connect(str(database), timeout=30.0)
+    Path(native_path(database.parent)).mkdir(parents=True, exist_ok=True)
+    conn = sqlite3.connect(native_path(database), timeout=30.0)
     conn.execute("PRAGMA busy_timeout=30000")
     conn.execute("PRAGMA journal_mode=WAL")
     conn.execute("PRAGMA foreign_keys=ON")

@@ -20,12 +20,13 @@ from pathlib import Path
 from typing import Any
 
 from app.adapters.mastery_signal import from_learning_snapshots
+from shared.paths import native_path
 
 STABILITY_MASTERED_THRESHOLD_DAYS = 21.0  # ~3 weeks of stable recall
 
 
 def _connect(db: str | Path) -> sqlite3.Connection:
-    conn = sqlite3.connect(Path(db))
+    conn = sqlite3.connect(native_path(db))
     return conn
 
 

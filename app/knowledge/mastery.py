@@ -8,6 +8,7 @@ from pathlib import Path
 from app.adapters.mastery_signal import from_learning_snapshots
 from app.contracts.v1 import MasterySignalV1
 from shared import core_schema
+from shared.paths import native_path
 
 
 def persist_mastery_signal_on_connection(
@@ -41,7 +42,7 @@ def persist_mastery_signal(
     card_id: str, *, db_path: str | Path, calculated_at: str
 ) -> MasterySignalV1:
     database = Path(db_path)
-    with sqlite3.connect(database) as connection:
+    with sqlite3.connect(native_path(database)) as connection:
         connection.row_factory = sqlite3.Row
         connection.execute("BEGIN IMMEDIATE")
         try:

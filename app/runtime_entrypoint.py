@@ -15,6 +15,8 @@ from contextlib import closing
 from pathlib import Path
 from typing import NoReturn
 
+from shared.paths import native_path, sqlite_readonly_target
+
 UVICORN_WORKER_ARGS = ["--workers", "1"]
 
 
@@ -47,11 +49,17 @@ def _database_path() -> Path:
 
 def _prepare_database_file() -> Path:
     database = _database_path()
-    database.parent.mkdir(parents=True, exist_ok=True)
-    if not database.is_file():
+    Path(native_path(database.parent)).mkdir(parents=True, exist_ok=True)
+    if not Path(native_path(database)).is_file():
         return database
-    uri = f"{database.resolve().as_uri()}?mode=ro&immutable=1"
-    with closing(sqlite3.connect(uri, uri=True, timeout=30.0)) as connection:
+    target, is_uri = sqlite_readonly_target(database)
+    if is_uri:
+        connector = sqlite3.connect(f"{target}&immutable=1", uri=True, timeout=30.0)
+    else:
+        connector = sqlite3.connect(target, timeout=30.0)
+    with closing(connector) as connection:
+        if not is_uri:
+            connection.execute("PRAGMA query_only=ON")
         if connection.execute("PRAGMA integrity_check").fetchone()[0] != "ok":
             raise RuntimeError(f"SQLite integrity check failed for {database}")
     return database
@@ -59,7 +67,7 @@ def _prepare_database_file() -> Path:
 
 def _ensure_database_file() -> Path:
     database = _database_path()
-    database.parent.mkdir(parents=True, exist_ok=True)
+    Path(native_path(database.parent)).mkdir(parents=True, exist_ok=True)
     database.touch(exist_ok=True)
     return database
 
@@ -236,7 +244,11 @@ def run_migration_status(_: argparse.Namespace) -> int:
 
 def run_integrity(_: argparse.Namespace) -> int:
     database = _validate_storage_schema()
-    with sqlite3.connect(f"{database.resolve().as_uri()}?mode=ro", uri=True) as connection:
+    target, is_uri = sqlite_readonly_target(database)
+    connection = sqlite3.connect(target, uri=True) if is_uri else sqlite3.connect(target)
+    if not is_uri:
+        connection.execute("PRAGMA query_only=ON")
+    with connection:
         result = connection.execute("PRAGMA integrity_check").fetchone()[0]
     if result != "ok":
         raise RuntimeError(f"SQLite integrity check failed for {database}: {result}")

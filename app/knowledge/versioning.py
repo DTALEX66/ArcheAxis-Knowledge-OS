@@ -11,6 +11,7 @@ from typing import Literal
 from pydantic import BaseModel, ConfigDict, Field
 
 from shared import knowledge_governance_migration
+from shared.paths import native_path
 
 
 class KnowledgeVersionProposal(BaseModel):
@@ -63,7 +64,7 @@ def register_candidate_knowledge_version(
     version_id = _stable_id("knowledge-version", proposal.proposal_id)
     from app.evidence.ledger import get_human_reviewed_bundle_on_connection
 
-    with sqlite3.connect(database) as connection:
+    with sqlite3.connect(native_path(database)) as connection:
         connection.row_factory = sqlite3.Row
         connection.execute("BEGIN IMMEDIATE")
         try:
@@ -136,7 +137,7 @@ def deprecate_candidate_knowledge_version(
 ) -> None:
     database = Path(db_path)
     knowledge_governance_migration.require_applied(db_path=database, live_wal=True)
-    with sqlite3.connect(database) as connection:
+    with sqlite3.connect(native_path(database)) as connection:
         connection.row_factory = sqlite3.Row
         connection.execute("BEGIN IMMEDIATE")
         try:

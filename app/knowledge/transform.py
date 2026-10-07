@@ -22,6 +22,8 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
+from shared.paths import native_path
+
 _SCHEMA = """
 CREATE TABLE IF NOT EXISTS transformation_records (
     transform_id TEXT PRIMARY KEY,
@@ -72,7 +74,7 @@ class Transformation:
 
 
 def _connect(db: str | Path) -> sqlite3.Connection:
-    conn = sqlite3.connect(Path(db))
+    conn = sqlite3.connect(native_path(db))
     conn.executescript(_SCHEMA)
     return conn
 
