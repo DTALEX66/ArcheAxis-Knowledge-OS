@@ -424,7 +424,9 @@ def intake_upload(*, file_name: str, content: bytes, db_path: str | Path) -> dic
         raise ValueError("uploaded file name must not include a path")
     database = Path(db_path)
     upload_dir = database.parent / "intake_uploads"
-    upload_dir.mkdir(parents=True, exist_ok=True)
+    # A plain mkdir past the Windows limit raises FileNotFoundError from the parent walk, so an
+    # intake into a deep workspace died before a single byte was read.
+    Path(native_path(upload_dir)).mkdir(parents=True, exist_ok=True)
     # Preserve the original before creating a conversion temp file. The source
     # archive is content-addressed, so retries cannot overwrite the bytes that
     # an anchor or future EvidenceBundle refers to.
@@ -433,15 +435,20 @@ def intake_upload(*, file_name: str, content: bytes, db_path: str | Path) -> dic
     suffix = Path(safe_name).suffix.casefold()
     stored_path = upload_dir / f"{sha256(content).hexdigest()}{suffix}"
     with tempfile.NamedTemporaryFile(
-        dir=upload_dir, prefix=".upload-", suffix=suffix, delete=False
+        dir=native_path(upload_dir), prefix=".upload-", suffix=suffix, delete=False
     ) as temporary:
         temporary.write(content)
         temporary_path = Path(temporary.name)
+    # The converter receives the verbatim name on purpose. A plain deep name does not fail as a path
+    # problem: the engine chain reports "No engine could convert xlsx file", so an operator would
+    # rebuild engines that were never at fault. Nothing here stores either name.
+    io_path = Path(native_path(temporary_path))
+    stored_io_path = Path(native_path(stored_path))
     try:
         markdown, engine, trace, plugin_provenance = _convert_file_for_intake(
-            temporary_path, include_plugin_provenance=True
+            io_path, include_plugin_provenance=True
         )
-        source_format = detect_format(temporary_path)
+        source_format = detect_format(io_path)
         from app.evidence.anchor import (
             build_evidence_anchor,
             ensure_evidence_anchor_schema,
@@ -454,7 +461,7 @@ def intake_upload(*, file_name: str, content: bytes, db_path: str | Path) -> dic
         from app.ingestion.structured_conversion import build_workspace_conversion_run
 
         conversion_run = build_workspace_conversion_run(
-            source_path=temporary_path,
+            source_path=io_path,
             raw_sha256=original.sha256,
             source_name=safe_name,
             source_format=source_format,
@@ -494,14 +501,14 @@ def intake_upload(*, file_name: str, content: bytes, db_path: str | Path) -> dic
             raw_asset_sha256=original.sha256,
             before_commit=before_commit,
         )
-        if stored_path.exists():
-            if stored_path.read_bytes() != content:
+        if stored_io_path.exists():
+            if stored_io_path.read_bytes() != content:
                 raise RuntimeError("uploaded content hash conflicts with an existing local source")
-            temporary_path.unlink(missing_ok=True)
+            io_path.unlink(missing_ok=True)
         else:
-            temporary_path.replace(stored_path)
+            io_path.replace(stored_io_path)
     except Exception:
-        temporary_path.unlink(missing_ok=True)
+        io_path.unlink(missing_ok=True)
         raw_store._record_failure(original.sha256, safe_name, "upload conversion failed")
         raise
     return {
