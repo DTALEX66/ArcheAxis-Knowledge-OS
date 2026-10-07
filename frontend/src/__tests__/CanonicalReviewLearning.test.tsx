@@ -68,16 +68,19 @@ describe("finite knowledge and learning commands",()=>{
  it("separates machine state and retries the same review event after unconfirmed response",async()=>{
   bridge.call.mockImplementation(async(op:string)=>{
    if(op==="learning_items") return {items:[{item_key:"a1",next_review:null}]};
-   if(op==="learning_state") return {item_key:"a1",learner:{assessment:{assessment_id:"assess",question:"实际问题",knowledge_version:"kv"}},machine:{status:"not_recorded"}};
+   if(op==="learning_state") return {item_key:"a1",learner:{assessment:{assessment_id:"assess",question:"实际问题",content:"绑定修订中的核对内容",knowledge_version:"kv"}},machine:{status:"not_recorded"}};
    if(op==="learning_history") return {events:[]};
    if(op==="learning_review") throw new Error("unconfirmed");
   });
   render(<CanonicalLearningSpace/>);const user=userEvent.setup();await user.click(await screen.findByRole("button",{name:"a1"}));
   const machineDebug=vi.spyOn(console,"debug").mockImplementation(()=>{});
   await user.click(await screen.findByRole("button",{name:/机器能力/}));
-  expect(machineDebug.mock.calls.some(([,label,payload])=>label==="机器能力"&&JSON.stringify(payload).includes("not_recorded"))).toBe(true);
+  expect(machineDebug.mock.calls.some(([,label,payload])=>label==="机器能力记录回执"&&JSON.stringify(payload).includes("not_recorded"))).toBe(true);
   expect(screen.queryByText(/not_recorded/)).not.toBeInTheDocument();
   machineDebug.mockRestore();await user.type(screen.getByLabelText("本次答案"),"本次实际答案");
+  expect(screen.getByText("实际问题")).toBeInTheDocument();expect(screen.queryByText("绑定修订中的核对内容")).not.toBeInTheDocument();
+  await user.click(screen.getByRole("button",{name:"查看答案与核对内容"}));expect(screen.getByText("绑定修订中的核对内容")).toBeInTheDocument();
+  await user.click(screen.getByLabelText("回答不正确"));await user.selectOptions(screen.getByLabelText("学习者自评"),"1");
   await user.click(screen.getByRole("button",{name:"记录复习结果"}));await screen.findByText(/提交未确认/);
   await user.click(screen.getByRole("button",{name:"记录复习结果"}));
   const writes=bridge.call.mock.calls.filter(([op])=>op==="learning_review");expect(writes).toHaveLength(2);expect(writes[0][1]).toEqual(writes[1][1]);

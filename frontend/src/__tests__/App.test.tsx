@@ -4,9 +4,10 @@ import userEvent from "@testing-library/user-event";
 import { App } from "../app/App";
 import { resetRuntimeClient } from "../api/workspace";
 import { SpaceView } from "../spaces/SpaceView";
+import { canNavigateToCapability, EFFECTIVE_NAVIGATION_ENTRIES } from "../presentation/navigation";
 import type { SpaceId } from "../spaces/spaces";
 
-// AXW-UI-804: App shell — six-space navigation, default space, landmarks.
+// AXW-UI-804: App shell — product routes, default space, landmarks.
 // Rail buttons use the English product labels; space headings are Chinese.
 describe("App shell", () => {
   afterEach(() => {
@@ -16,9 +17,9 @@ describe("App shell", () => {
     vi.unstubAllGlobals();
   });
   it.each([
-    ["workspace","探索与蓝图"], ["library","资料库"], ["intake","资料库"],
+    ["workspace","全能力目录"], ["library","资料库"], ["intake","资料库"],
     ["vault","知识库"], ["evidence","知识库"], ["ai-assets","知识库"],
-    ["learning","学习"], ["exchange","资料库"], ["settings","探索与蓝图"],
+    ["learning","学习"], ["exchange","资料库"], ["settings","全能力目录"],
   ] as [SpaceId,string][])("routes native %s to the existing canonical view",async(spaceId,heading)=>{
     const invoke=vi.fn(async(command:string,args?:Record<string,unknown>)=>{
       if(command!=="core_command")throw new Error("legacy native command forbidden");
@@ -104,6 +105,43 @@ describe("App shell", () => {
       "aria-current",
       "page",
     );
+  });
+
+  it("keeps future capabilities selectable in command search and opens their full details", async () => {
+    const initialHash = window.location.hash;
+    const user = userEvent.setup();
+    render(<App />);
+    await user.click(screen.getByRole("button", { name: "打开全局命令" }));
+    await user.type(screen.getByRole("searchbox", { name: "搜索空间或命令" }), "CAP-0080");
+
+    const option = document.querySelector<HTMLButtonElement>('[data-entry-id="CAP-0080"]');
+    expect(option).not.toBeNull();
+    expect(option!.textContent).toContain("空间记忆与沉浸学习");
+    const futureEntry = EFFECTIVE_NAVIGATION_ENTRIES.find((entry) => entry.entry_id === "CAP-0080");
+    expect(futureEntry?.capability).toBeDefined();
+    expect(canNavigateToCapability(futureEntry!.capability!)).toBe(false);
+    expect(option!).not.toHaveAttribute("aria-disabled");
+    await user.keyboard("{ArrowDown}{Enter}");
+
+    const details = await screen.findByRole("article", { name: "能力详情" });
+    expect(details).toHaveTextContent("CAP-0080");
+    expect(details).toHaveTextContent("下一步：");
+    expect(details).toHaveTextContent("执行前提：");
+    expect(details).toHaveTextContent("依赖声明：");
+    expect(details).toHaveTextContent("降级与回退：");
+    window.history.replaceState(null, "", `${window.location.pathname}${window.location.search}${initialHash}`);
+  });
+
+  it("protects dirty versioned drafts when the host window closes", () => {
+    render(<App />);
+    act(() => { window.dispatchEvent(new CustomEvent("archeaxis-draft-dirty", { detail: true })); });
+    const event = new Event("beforeunload", { cancelable: true }) as BeforeUnloadEvent;
+    window.dispatchEvent(event);
+    expect(event.defaultPrevented).toBe(true);
+    act(() => { window.dispatchEvent(new CustomEvent("archeaxis-draft-dirty", { detail: false })); });
+    const cleanEvent = new Event("beforeunload", { cancelable: true }) as BeforeUnloadEvent;
+    window.dispatchEvent(cleanEvent);
+    expect(cleanEvent.defaultPrevented).toBe(false);
   });
 
   it("switches to Library on rail click and moves aria-current", async () => {

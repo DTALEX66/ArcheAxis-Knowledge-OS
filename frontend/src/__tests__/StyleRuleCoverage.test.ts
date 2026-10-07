@@ -5,10 +5,15 @@ import { dirname, join, relative, sep } from "node:path";
 import { describe, expect, it } from "vitest";
 
 const src = join(dirname(fileURLToPath(import.meta.url)), "..");
-const sheet = [
-  readFileSync(join(src, "design-system", "tokens.css"), "utf8"),
-  readFileSync(join(src, "components", "content.css"), "utf8"),
-].join("\n");
+function styles(dir: string, found: string[] = []): string[] {
+  for (const entry of readdirSync(dir, { withFileTypes: true })) {
+    const full = join(dir, entry.name);
+    if (entry.isDirectory()) styles(full, found);
+    else if (/\.css$/.test(entry.name)) found.push(readFileSync(full, "utf8"));
+  }
+  return found;
+}
+const sheet = styles(src).join("\n");
 
 function sources(dir: string, found: string[] = []): string[] {
   for (const entry of readdirSync(dir, { withFileTypes: true })) {

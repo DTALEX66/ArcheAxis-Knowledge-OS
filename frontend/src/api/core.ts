@@ -9,6 +9,7 @@ const responseSchemas: Partial<Record<CoreOperation, string>> = {
   document_version: "DocumentDto", document_restore: "DocumentDto", anchors_list: "AnchorsListDto", anchor_create: "AnchorDto",
   search: "SearchDto", knowledge_get: "KnowledgeDto", learning_items: "LearningItemsDto",
   learning_state: "LearningStateDto", document_export: "DocumentExportDto",
+  machine_retest: "MachineRetestDto",
 };
 
 export async function coreCommand<T>(operation: CoreOperation, payload: Record<string, unknown> = {}): Promise<T> {

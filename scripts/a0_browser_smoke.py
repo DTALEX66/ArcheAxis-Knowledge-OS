@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
-"""Real-browser smoke for the legacy React/Tauri compatibility shell.
+"""Real-browser geometry and theme gate for the formal Tauri/React desktop UI (SUP-022).
 
-The formal desktop authority is C#/Avalonia; this probe remains a behavior and
-recovery reference and must not be presented as the production desktop gate.
+This proves the rendered shell in Chromium at desktop viewports; it does not prove the
+installed WebView2 host, physical IME, or Owner acceptance, which stay separate Q14 tiers.
 """
 from __future__ import annotations
 
@@ -37,6 +37,25 @@ PORT = browser_smoke_port()
 URL = f"http://127.0.0.1:{PORT}"
 API_PREFIX = "/" + "api"
 WORKSPACE_PREFIX = "/" + "workspace"
+
+# The owner scoped the formal UI to the desktop host on 2026-10-07 and retired the phone
+# end, so this matrix is Windows desktop resolutions plus the CSS viewports that
+# 125/150/200% display scaling leaves behind them (physical pixels / scale).
+DESKTOP_MATRIX: tuple[tuple[str, int, int, float], ...] = (
+    ("1920x1080@100", 1920, 1080, 1.0),
+    ("2560x1440@100", 2560, 1440, 1.0),
+    ("1440x1000@100", 1440, 1000, 1.0),
+    ("1280x800@100", 1280, 800, 1.0),
+    ("1024x768@100", 1024, 768, 1.0),
+    # 900 and 840 sit either side of the shell's own 900px breakpoint; without them a change
+    # scoped to the 601-900 band was never exercised by the gate.
+    ("900x800@100", 900, 800, 1.0),
+    ("840x800@100", 840, 800, 1.0),
+    ("1920x1080@125", 1536, 864, 1.25),
+    ("1920x1080@150", 1280, 720, 1.5),
+    ("1920x1080@200", 960, 540, 2.0),
+)
+AAOS_THEME_IDS = ("black", "white", "cosmic")
 
 HANDSHAKE = {
     "product_id": "archeaxis-workspace",
@@ -191,16 +210,14 @@ def main() -> None:
     process, log = start_vite(RUNTIME / "a0-canonical-vite.log")
     errors: list[str] = []
     viewports: dict[str, object] = {}
+    themes: dict[str, object] = {}
     try:
         with sync_playwright() as playwright:
             browser = playwright.chromium.launch(headless=True)
-            # 900 and 840 are the two widths the shell's own breakpoints live on: `<= 840` swaps the
-            # rail for a bottom bar and hides the context strip, and 901..1280 is the band where the
-            # context strip is shown at all. Without them neither branch was exercised - the matrix
-            # jumped from 1280 straight to 390, so a change scoped to 601..900 was unguarded.
-            for width, height in ((1440, 1000), (1280, 800), (900, 800), (840, 800), (390, 844), (360, 640)):
+            for label, width, height, scale in DESKTOP_MATRIX:
                 context = browser.new_context(
                     viewport={"width": width, "height": height},
+                    device_scale_factor=scale,
                     reduced_motion="reduce",
                 )
                 page = context.new_page()
@@ -233,38 +250,71 @@ def main() -> None:
                       return rect && {x:rect.x,y:rect.y,width:rect.width,height:rect.height,bottom:rect.bottom};
                     };
                     const context = document.querySelector('.context-subnav');
+                    const bar = [...(document.querySelector('.status-bar')?.children ?? [])];
+                    const overlaps = [];
+                    for (let i = 0; i < bar.length; i++) for (let j = i + 1; j < bar.length; j++) {
+                      const a = bar[i].getBoundingClientRect(), b = bar[j].getBoundingClientRect();
+                      const width = Math.min(a.right, b.right) - Math.max(a.left, b.left);
+                      const height = Math.min(a.bottom, b.bottom) - Math.max(a.top, b.top);
+                      if (width > 1 && height > 1) {
+                        overlaps.push([bar[i].className || bar[i].tagName, bar[j].className || bar[j].tagName, +width.toFixed(1)]);
+                      }
+                    }
                     return {
                       scrollWidth: document.documentElement.scrollWidth,
                       clientWidth: document.documentElement.clientWidth,
+                      devicePixelRatio: window.devicePixelRatio,
                       rail: box('.space-rail'),
                       dock: box('.activity-dock'),
                       main: box('.app-center'),
                       inspector: Boolean(document.querySelector('.inspector')),
                       context: Boolean(context) && getComputedStyle(context).display !== 'none',
+                      statusBarOverlaps: overlaps,
+                      motionFast: getComputedStyle(document.documentElement).getPropertyValue('--ax-motion-fast').trim(),
                     };
                 }""")
                 assert geometry["scrollWidth"] <= geometry["clientWidth"], geometry
                 assert geometry["dock"]["bottom"] <= height + 0.5, geometry
-                # The phone layout is `max-width: 600px` in the stylesheet, and the check has to use
-                # the same boundary the stylesheet does. It used to demand that layout at 840, where
-                # the product deliberately keeps the context strip: hiding it removes the only
-                # section switcher in the library space.
-                if width <= 600:
-                    assert geometry["rail"]["width"] >= width - 1, geometry
-                    assert geometry["rail"]["height"] < 80, geometry
-                    assert geometry["main"]["bottom"] <= geometry["dock"]["y"] + 0.5, geometry
-                    assert not geometry["inspector"], geometry
-                    assert not geometry["context"], geometry
-                else:
-                    assert geometry["context"], geometry
-                    if width <= 1200:
-                        # 601..1200 is the band where the chrome narrows so the reading column can
-                        # survive: assert the column keeps the minimum the stylesheet declares.
-                        assert geometry["main"]["width"] >= 280, geometry
+                assert 140 <= geometry["rail"]["width"] <= 300, geometry
+                assert geometry["main"]["x"] >= geometry["rail"]["width"] - 1, geometry
+                assert geometry["main"]["bottom"] <= geometry["dock"]["y"] + 0.5, geometry
+                assert not geometry["inspector"], geometry
+                assert geometry["context"], geometry
+                assert geometry["devicePixelRatio"] == scale, geometry
+                assert not geometry["statusBarOverlaps"], geometry
+                assert geometry["motionFast"] == "0ms", geometry
+                if width <= 1200:
+                    # 601..1200 is where the chrome narrows so the reading column can survive; the
+                    # floor is what the stylesheet promises, and it once silently collapsed to 304px.
+                    assert geometry["main"]["width"] >= 280, geometry
 
                 page.get_by_role("button", name="打开全局命令").click()
                 page.get_by_role("dialog", name="全局命令").wait_for()
                 page.get_by_role("button", name="关闭全局命令").click()
+                # Focus contract, measured in the browser rather than in jsdom: closing
+                # with Escape returns focus to the trigger that opened it, and Ctrl+K
+                # lands the caret in the search field.
+                page.get_by_role("button", name="打开全局命令").click()
+                page.get_by_role("dialog", name="全局命令").wait_for()
+                page.keyboard.press("Escape")
+                page.get_by_role("dialog", name="全局命令").wait_for(state="detached")
+                # Radix restores focus on the next frame, so read it after a settle rather
+                # than in the same tick as the detach.
+                page.wait_for_timeout(200)
+                restored = page.evaluate(
+                    "() => { const el = document.activeElement;"
+                    " return el && {tag: el.tagName, label: el.getAttribute('aria-label'), cls: el.className}; }"
+                )
+                assert restored == {"tag": "BUTTON", "label": "打开全局命令", "cls": "command-trigger"}, restored
+                page.keyboard.press("Control+k")
+                page.get_by_role("dialog", name="全局命令").wait_for()
+                page.wait_for_timeout(200)
+                opened = page.evaluate(
+                    "() => { const el = document.activeElement; return el && {tag: el.tagName, label: el.getAttribute('aria-label')}; }"
+                )
+                assert opened == {"tag": "INPUT", "label": "搜索空间或命令"}, opened
+                page.keyboard.press("Escape")
+                page.get_by_role("dialog", name="全局命令").wait_for(state="detached")
                 page.locator('[data-space-id="learning"]').click()
                 page.locator("#space-learning").wait_for()
                 assert page.get_by_role("button", name="视觉课件").count() == 0
@@ -272,9 +322,28 @@ def main() -> None:
                 page.get_by_role("button", name="展开活动坞").click()
                 assert page.get_by_role("button", name="取消投递（不可用）").count() == 0
 
-                screenshot = ARTIFACTS / f"canonical-shell-{width}x{height}.png"
+                if label == DESKTOP_MATRIX[0][0]:
+                    for theme in AAOS_THEME_IDS:
+                        page.get_by_label("界面主题").select_option(theme)
+                        page.wait_for_timeout(150)
+                        applied = page.evaluate("document.documentElement.dataset.aaosTheme")
+                        brand = page.locator(".status-bar-brand img").get_attribute("src") or ""
+                        surface = page.evaluate("getComputedStyle(document.body).backgroundColor")
+                        assert applied == theme, (applied, theme)
+                        assert theme in brand, brand
+                        shot = ARTIFACTS / f"canonical-theme-{theme}-{label}.png"
+                        page.screenshot(path=str(shot))
+                        themes[theme] = {
+                            "root_attribute": applied,
+                            "brand_mark": brand,
+                            "body_surface": surface,
+                            "screenshot": str(shot.relative_to(ROOT)),
+                        }
+                    page.get_by_label("界面主题").select_option("black")
+
+                screenshot = ARTIFACTS / f"canonical-shell-{label}.png"
                 page.screenshot(path=str(screenshot), full_page=True)
-                viewports[f"{width}x{height}"] = {
+                viewports[label] = {
                     "geometry": geometry,
                     "screenshot": str(screenshot.relative_to(ROOT)),
                 }
@@ -286,11 +355,12 @@ def main() -> None:
     assert not errors, errors
     revision = source_revision()
     report = {
-        "schema": "archeaxis/canonical-browser-smoke/v2",
+        "schema": "archeaxis/canonical-browser-smoke/v3",
         "status": "PASS",
         "source_revision": revision,
         "errors": errors,
         "viewports": viewports,
+        "themes": themes,
     }
     output = ARTIFACTS / "canonical-browser-smoke.json"
     output.write_text(json.dumps(report, ensure_ascii=False, indent=2), encoding="utf-8")

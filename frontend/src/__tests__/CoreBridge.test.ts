@@ -43,4 +43,12 @@ describe("finite Core bridge", () => {
     invoke.mockRejectedValue("CORE_RESPONSE_INVALID private transport details");
     await expect(coreCommand("sources_list")).rejects.toMatchObject({status:502,message:"本地核心暂时无法响应，请保留草稿后重试。"});
   });
+  it("accepts only a structurally complete machine retest receipt", async () => {
+    const receipt={schema:"archeaxis.machine-retest/v1",retest_task_id:"retest_1",answer_id:"retest_1",retest_of:"evaluation_1",knowledge_id:"knowledge_1",question:"fixture question",answer:{answer:"fixture answer"},authority:"candidate",prior:{},request:{},note:"human comparison required"};
+    const invoke=vi.fn().mockResolvedValue({status:200,body:receipt});
+    window.__TAURI__={core:{invoke}};
+    await expect(coreCommand("machine_retest",{body:{retest_of:"evaluation_1",knowledge_id:"knowledge_1",question:"fixture question"}})).resolves.toEqual(receipt);
+    invoke.mockResolvedValue({status:200,body:{...receipt,authority:"accepted"}});
+    await expect(coreCommand("machine_retest",{body:{}})).rejects.toMatchObject({status:502,code:"incompatible"});
+  });
 });

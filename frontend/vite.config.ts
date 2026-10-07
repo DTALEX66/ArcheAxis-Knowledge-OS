@@ -1,5 +1,6 @@
 /// <reference types="vitest" />
 import { fileURLToPath } from "node:url";
+import { join } from "node:path";
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 
@@ -11,9 +12,14 @@ import react from "@vitejs/plugin-react";
 // may invoke the frontend through a Windows Junction to shorten NSIS paths;
 // a cwd-derived root would then make index.html appear outside the bundle.
 const frontendRoot = fileURLToPath(new URL(".", import.meta.url));
+const projectRunRoot = process.env.ARCHEAXIS_RUN_ROOT;
+const viteCacheRoot = projectRunRoot
+  ? join(projectRunRoot, "cache", "vite")
+  : fileURLToPath(new URL("../.project-local/build/vite-cache", import.meta.url));
 
 export default defineConfig({
   root: frontendRoot,
+  cacheDir: viteCacheRoot,
   plugins: [react()],
   server: {
     host: "127.0.0.1",

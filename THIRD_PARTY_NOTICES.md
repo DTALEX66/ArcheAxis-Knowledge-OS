@@ -92,6 +92,21 @@ license text is preserved alongside the model; inference code is
 
 ## 2026-08-11 上游许可纠错与补充
 
+## 2026-10-07 AAOS UI adapters
+
+| Component/source | Pinned source | License | Product use |
+|---|---|---|---|
+| `@radix-ui/react-dialog` | npm `1.2.0`; source snapshot `radix-ui/primitives@1fe601abb217f23c92253ec1c42fa81b14fa710d` | MIT | Dialog focus, dismissal and modal behavior through `frontend/src/design-system/AaosPrimitives.tsx` |
+| `@radix-ui/react-tabs` | npm `1.1.22`; source snapshot `radix-ui/primitives@1fe601abb217f23c92253ec1c42fa81b14fa710d` | MIT | Tab keyboard behavior through the AAOS adapter |
+| shadcn/ui | `shadcn-ui/ui@debae9baea4d5c6bd0b1a857b09664db4b925818` | MIT | Structural reference only; adapted product components are under `frontend/src/design-system/`, no production import from `vendor/` |
+| Uiverse/Galaxy | `uiverse-io/galaxy@adbd2adde0a299a3956ea288fb444ec01891ca41`; spinner `AHMED-MIT_curly-rabbit-4.html`, skeleton `1osm_light-chipmunk-10.html` | MIT | CSS behavior adapted into `frontend/src/components/GalaxyStates.tsx` and scoped stylesheet; upstream paths, branding and colors are not shipped |
+
+The package snapshot source paths, Git blob IDs, SHA-256 values, byte lengths,
+fixed URLs and license declarations are preserved in the immutable task pack's
+`spec/source-lock.json`. The installed npm dependency tree is locked in
+`frontend/package-lock.json`. Magic UI was not imported. This notice records
+source and package licensing; it does not claim a built or released artifact.
+
 本轮吸收审计（来源：`ArcheAxis_Workspace_Project_History_and_OSS_Absorption_Master_Atlas_v1.md`）
 在上游仓库当前默认分支上重新核验了以下项目的许可证，发现多处历史记录需更正：
 

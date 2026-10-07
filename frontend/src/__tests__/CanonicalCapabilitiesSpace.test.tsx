@@ -31,6 +31,6 @@ describe("single-source capability exploration",()=>{
  });
  it("preserves the formal directory when current health is unavailable",async()=>{
   bridge.call.mockImplementation(async()=>{throw new Error("unavailable");});await act(async()=>{render(<CanonicalCapabilitiesSpace onNavigate={vi.fn()}/>);});
-  expect(screen.getByRole("status")).toHaveTextContent("显示未知");expect(screen.getAllByRole("button").filter(button=>button.textContent?.startsWith("CAP-"))).toHaveLength(CAPABILITY_CATALOG.entries.length);
+  expect(screen.getByRole("status")).toHaveTextContent("显示未知");expect(document.querySelectorAll("button[data-entry-id]")).toHaveLength(CAPABILITY_CATALOG.entries.length);
  });
 });

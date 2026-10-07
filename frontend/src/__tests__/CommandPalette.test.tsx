@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 import { fireEvent, render, screen, within } from "@testing-library/react";
 import { CommandPalette } from "../components/CommandPalette";
+import { EFFECTIVE_NAVIGATION_ENTRIES } from "../presentation/navigation";
 import { SPACES } from "../spaces/spaces";
 
 // AXW-UI-804: CommandPalette - the global command dialog. These tests pin the
@@ -36,7 +37,9 @@ describe("CommandPalette", () => {
     renderPalette();
     fireEvent.click(screen.getByRole("button", { name: "打开全局命令" }));
     expect(screen.getByRole("dialog", { name: "全局命令" })).toBeInTheDocument();
-    fireEvent.keyDown(window, { key: "Escape" });
+    // The palette is a Radix dialog now, whose dismiss layer listens on the document;
+    // an event fired on window never reaches it.
+    fireEvent.keyDown(screen.getByRole("searchbox", { name: "搜索空间或命令" }), { key: "Escape" });
     expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
   });
 
@@ -44,7 +47,11 @@ describe("CommandPalette", () => {
     renderPalette();
     fireEvent.click(screen.getByRole("button", { name: "打开全局命令" }));
     const listbox = screen.getByRole("listbox", { name: "可用命令" });
-    expect(within(listbox).getAllByRole("option")).toHaveLength(SPACES.length);
+    const options = within(listbox).getAllByRole("option");
+    expect(options).toHaveLength(EFFECTIVE_NAVIGATION_ENTRIES.length);
+    for (const space of SPACES) {
+      expect(options.some((option) => option.textContent?.includes(space.label))).toBe(true);
+    }
   });
 
   it("drops to the empty message when nothing matches the query", () => {

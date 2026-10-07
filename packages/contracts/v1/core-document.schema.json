@@ -443,6 +443,24 @@
       ],
       "additionalProperties": true
     },
+    "MachineRetestDto": {
+      "type": "object",
+      "properties": {
+        "schema": {"enum": ["archeaxis.machine-retest/v1"]},
+        "retest_task_id": {"type": "string"},
+        "answer_id": {"type": "string"},
+        "retest_of": {"type": "string"},
+        "knowledge_id": {"type": "string"},
+        "question": {"type": "string"},
+        "answer": {"type": "object"},
+        "authority": {"enum": ["candidate"]},
+        "prior": {"type": "object"},
+        "request": {"type": "object"},
+        "note": {"type": "string"}
+      },
+      "required": ["schema", "retest_task_id", "answer_id", "retest_of", "knowledge_id", "question", "answer", "authority", "prior", "request", "note"],
+      "additionalProperties": true
+    },
     "DocumentExportDto": {
       "type": "object",
       "properties": {

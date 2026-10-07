@@ -1,0 +1,65 @@
+{
+  "schema": "aaos.ui.asset-manifest/v1",
+  "date": "2026-10-07",
+  "scope": "frontend AAOS theme brand marks introduced in the UI taskpack increment",
+  "items": [
+    {
+      "path": "frontend/src/assets/aaos-brand-mark-black.svg",
+      "sha256": "f9c09abb241e2aec3887fcaa0dbc7cc574654a4852f5f5317adcfd54c5c47b95",
+      "bytes": 644,
+      "source": "AAOS-owned SVG adapted from existing star-orbit geometry; cool black-theme tokens",
+      "referenced_by": [
+        "frontend/src/design-system/theme.ts",
+        "frontend/src/components/StatusBar.tsx"
+      ],
+      "status": "SOURCE_IMPORT_CONFIRMED; BUILD_CONFIRMED"
+    },
+    {
+      "path": "frontend/src/assets/aaos-brand-mark-white.svg",
+      "sha256": "84cb8d2aca60170019c3cc3207643ac4d3ea55528d9d0563a14044adceeda9eb",
+      "bytes": 644,
+      "source": "AAOS-owned SVG adapted from existing star-orbit geometry; cool pearl-white tokens",
+      "referenced_by": [
+        "frontend/src/design-system/theme.ts",
+        "frontend/src/components/StatusBar.tsx"
+      ],
+      "status": "SOURCE_IMPORT_CONFIRMED; BUILD_CONFIRMED"
+    },
+    {
+      "path": "frontend/src/assets/aaos-brand-mark-cosmic.svg",
+      "sha256": "702e0758e7a80d93abb334964416b0eda23e80f040abbb863cfe176c22b30b01",
+      "bytes": 644,
+      "source": "AAOS-owned SVG adapted from existing star-orbit geometry; cool deep-space tokens",
+      "referenced_by": [
+        "frontend/src/design-system/theme.ts",
+        "frontend/src/components/StatusBar.tsx"
+      ],
+      "status": "SOURCE_IMPORT_CONFIRMED; BUILD_CONFIRMED"
+    },
+    {
+      "path": "frontend/src/components/galaxy-states.css",
+      "sha256": "2dda45be48a229f42081fce3d475fb08a7447129ad70bb5cee14c1776236ee45",
+      "bytes": 1616,
+      "source": "Uiverse/Galaxy MIT fixed source adaptation; upstream pin recorded in docs/integrations/AAOS_UI_UPSTREAM_PINS.md",
+      "referenced_by": [
+        "frontend/src/components/GalaxyStates.tsx",
+        "frontend/src/components/RealData.tsx"
+      ],
+      "status": "COMPONENT_IMPORT_CONFIRMED; BUILD_CONFIRMED"
+    }
+  ],
+  "excluded": [
+    {
+      "path": "apps/ArcheAxis.Desktop/Assets/aaos-brand-mark.svg",
+      "reason": "gold and warm pearl palette conflicts with current UI decision; no copy made"
+    },
+    {
+      "path": "apps/ArcheAxis.Desktop/Assets/aaos-home-hero-aurora*.png",
+      "reason": "legacy Aurora/home context; not verified as three-theme generic artwork"
+    },
+    {
+      "path": "apps/ArcheAxis.Desktop/Assets/aaos-evidence-anchor-empty-state.png",
+      "reason": "historically unreferenced Avalonia-only candidate; preserve rather than repurpose without content/theme validation"
+    }
+  ]
+}

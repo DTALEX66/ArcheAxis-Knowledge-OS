@@ -5,6 +5,7 @@ import {
 } from "../api/workspace";
 import type { RecoveryStatusDto } from "../runtime/recovery";
 import { stateLabel } from "../presentation/labels";
+import { AaosStatusBadge } from "./AaosStatusBadge";
 
 interface RecoveryShellProps {
   status: RecoveryStatusDto;
@@ -169,9 +170,9 @@ export function RecoveryShell({
               <p className="recovery-kicker">本地桌面恢复</p>
               <h1 id="recovery-title">恢复工作台</h1>
             </div>
-            <span className={`badge ${status.state === "ready" ? "badge-success" : status.state === "failed" ? "badge-danger" : "badge-warning"}`}>
+            <AaosStatusBadge tone={status.state === "ready" ? "success" : status.state === "failed" ? "danger" : "warning"}>
               {stateLabel(status.state)}
-            </span>
+            </AaosStatusBadge>
           </div>
           <p className="recovery-message" aria-live="polite">{primaryMessage}</p>
           {diagnostic ? <p className="recovery-diagnostic">诊断：{diagnostic}</p> : null}
