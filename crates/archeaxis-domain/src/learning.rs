@@ -353,6 +353,7 @@ pub fn record_review_with_state(
         canonical_request,
         None,
         None,
+        None,
         resolve,
     )
 }
@@ -369,6 +370,7 @@ pub fn record_review_with_state_and_answer(
     canonical_request: &str,
     answer: Option<&str>,
     assessment_id: Option<&str>,
+    expected_previous_fsrs_state: Option<Option<String>>,
     resolve: impl FnOnce(&Connection) -> rusqlite::Result<ReviewSchedule>,
 ) -> rusqlite::Result<ReviewReceipt> {
     let invalid = |message: &str| rusqlite::Error::InvalidParameterName(message.into());
@@ -432,6 +434,14 @@ pub fn record_review_with_state_and_answer(
     )?;
     if reserved {
         return Err(invalid("event_key conflict: incomplete legacy receipt"));
+    }
+    // When the caller scheduled outside the writer, its schedule was computed from a card snapshot.
+    // Confirm that snapshot is still current before recording it, so a review that moved the card in
+    // the interim cannot be silently overwritten by a stale schedule.
+    if let Some(expected_basis) = expected_previous_fsrs_state {
+        if latest_fsrs_state_json(&tx, item_key)? != expected_basis {
+            return Err(invalid("schedule basis conflict: review state moved during scheduling"));
+        }
     }
     let schedule = resolve(&tx)?;
     if !review_schedule_is_valid(&tx, &schedule)? {
