@@ -18,7 +18,13 @@
       "purpose": "主运行时解释器（3.11 主 / 3.14 辅，scoop 管理）",
       "local_only": false,
       "healthcheck_command": "python --version",
-      "external_paths": []
+      "external_paths": [
+        {
+          "declared": "10-toolchains/scoop/apps/python/current/python.exe",
+          "resolved": "D:\\All projects\\OS External Configuration\\10-toolchains\\scoop\\apps\\python\\3.14.6\\python.exe",
+          "exists": true
+        }
+      ]
     },
     {
       "name": "uv",
@@ -48,7 +54,13 @@
       "purpose": "版本控制",
       "local_only": false,
       "healthcheck_command": "git --version",
-      "external_paths": []
+      "external_paths": [
+        {
+          "declared": "10-toolchains/scoop/apps/git/current/bin/git.exe",
+          "resolved": "D:\\All projects\\OS External Configuration\\10-toolchains\\scoop\\apps\\git\\2.54.0\\bin\\git.exe",
+          "exists": true
+        }
+      ]
     },
     {
       "name": "nodejs-lts",
@@ -56,7 +68,13 @@
       "purpose": "legacy Tauri/React recovery 与兼容构建（非正式桌面壳）",
       "local_only": false,
       "healthcheck_command": "node --version",
-      "external_paths": []
+      "external_paths": [
+        {
+          "declared": "10-toolchains/scoop/apps/nodejs-lts/current/node.exe",
+          "resolved": "D:\\All projects\\OS External Configuration\\10-toolchains\\scoop\\apps\\nodejs-lts\\24.18.0\\node.exe",
+          "exists": true
+        }
+      ]
     },
     {
       "name": "rust",
@@ -114,7 +132,13 @@
       "purpose": "CI/开发虚拟环境（UV_PROJECT_ENVIRONMENT 指向外部仓）",
       "local_only": true,
       "healthcheck_command": "uv run python --version",
-      "external_paths": []
+      "external_paths": [
+        {
+          "declared": "ArcheAxis-Knowledge-OS-ci-venv/Scripts/python.exe",
+          "resolved": "D:\\All projects\\OS External Configuration\\ArcheAxis-Knowledge-OS-ci-venv\\Scripts\\python.exe",
+          "exists": true
+        }
+      ]
     },
     {
       "name": "desktop-runtime-v1",
@@ -228,7 +252,13 @@
       "purpose": "三语种 OCR 引擎（ONNX 无重框架，bake-off 实测 CER 最优）",
       "local_only": false,
       "healthcheck_command": "uv run python -c \"import rapidocr_onnxruntime\"",
-      "external_paths": []
+      "external_paths": [
+        {
+          "declared": "ArcheAxis-Knowledge-OS-ci-venv/Lib/site-packages/rapidocr_onnxruntime",
+          "resolved": "D:\\All projects\\OS External Configuration\\ArcheAxis-Knowledge-OS-ci-venv\\Lib\\site-packages\\rapidocr_onnxruntime",
+          "exists": true
+        }
+      ]
     },
     {
       "name": "faster-whisper",
@@ -236,7 +266,13 @@
       "purpose": "ASR 转写引擎（base 模型首次运行自动下载至 HF 缓存 ~150MB）",
       "local_only": false,
       "healthcheck_command": "uv run python -c \"import faster_whisper\"",
-      "external_paths": []
+      "external_paths": [
+        {
+          "declared": "ArcheAxis-Knowledge-OS-ci-venv/Lib/site-packages/faster_whisper",
+          "resolved": "D:\\All projects\\OS External Configuration\\ArcheAxis-Knowledge-OS-ci-venv\\Lib\\site-packages\\faster_whisper",
+          "exists": true
+        }
+      ]
     },
     {
       "name": "sherpa-onnx",
@@ -244,7 +280,13 @@
       "purpose": "SenseVoice 本地 ASR 运行时（优先使用项目隔离环境，模型从共享 Model library 读取）",
       "local_only": false,
       "healthcheck_command": "uv run --extra asr-sensevoice python -c \"import sherpa_onnx\"",
-      "external_paths": []
+      "external_paths": [
+        {
+          "declared": "ArcheAxis-Knowledge-OS-ci-venv/Lib/site-packages/sherpa_onnx",
+          "resolved": "D:\\All projects\\OS External Configuration\\ArcheAxis-Knowledge-OS-ci-venv\\Lib\\site-packages\\sherpa_onnx",
+          "exists": true
+        }
+      ]
     },
     {
       "name": "rapidocr-ppocr-onnx",
@@ -252,7 +294,23 @@
       "purpose": "PP-OCR ONNX 模型（RapidOCR 首次运行自动下载 ~15MB）",
       "local_only": true,
       "healthcheck_command": "首次运行验证",
-      "external_paths": []
+      "external_paths": [
+        {
+          "declared": "ArcheAxis-Knowledge-OS-ci-venv/Lib/site-packages/rapidocr_onnxruntime/models/ch_PP-OCRv4_det_infer.onnx",
+          "resolved": "D:\\All projects\\OS External Configuration\\ArcheAxis-Knowledge-OS-ci-venv\\Lib\\site-packages\\rapidocr_onnxruntime\\models\\ch_PP-OCRv4_det_infer.onnx",
+          "exists": true
+        },
+        {
+          "declared": "ArcheAxis-Knowledge-OS-ci-venv/Lib/site-packages/rapidocr_onnxruntime/models/ch_PP-OCRv4_rec_infer.onnx",
+          "resolved": "D:\\All projects\\OS External Configuration\\ArcheAxis-Knowledge-OS-ci-venv\\Lib\\site-packages\\rapidocr_onnxruntime\\models\\ch_PP-OCRv4_rec_infer.onnx",
+          "exists": true
+        },
+        {
+          "declared": "ArcheAxis-Knowledge-OS-ci-venv/Lib/site-packages/rapidocr_onnxruntime/models/ch_ppocr_mobile_v2.0_cls_infer.onnx",
+          "resolved": "D:\\All projects\\OS External Configuration\\ArcheAxis-Knowledge-OS-ci-venv\\Lib\\site-packages\\rapidocr_onnxruntime\\models\\ch_ppocr_mobile_v2.0_cls_infer.onnx",
+          "exists": true
+        }
+      ]
     },
     {
       "name": "faster-whisper-base",
@@ -260,7 +318,13 @@
       "purpose": "Whisper base 模型（~150MB；运行时由 dev.py 将 HF 缓存路由到项目 `.project-local/runs/<run-id>/cache`）",
       "local_only": true,
       "healthcheck_command": "首次运行验证",
-      "external_paths": []
+      "external_paths": [
+        {
+          "declared": "40-models/huggingface/hub/models--Systran--faster-whisper-base/snapshots/ebe41f70d5b6dfa9166e2c581c45c9c0cfc57b66/model.bin",
+          "resolved": "D:\\All projects\\OS External Configuration\\40-models\\huggingface\\hub\\models--Systran--faster-whisper-base\\snapshots\\ebe41f70d5b6dfa9166e2c581c45c9c0cfc57b66\\model.bin",
+          "exists": true
+        }
+      ]
     },
     {
       "name": "faster-whisper-large-v3-turbo",
@@ -298,7 +362,13 @@
       "purpose": "文件类型检测 ONNX 模型（优先共享 Model library；仓库副本仅作离线回退）",
       "local_only": true,
       "healthcheck_command": "Test-Path $env:ARCHEAXIS_MAGIKA_MODEL_DIR\\model.onnx",
-      "external_paths": []
+      "external_paths": [
+        {
+          "declared": "ArcheAxis-Knowledge-OS-ci-venv/Lib/site-packages/magika/models/standard_v3_3",
+          "resolved": "D:\\All projects\\OS External Configuration\\ArcheAxis-Knowledge-OS-ci-venv\\Lib\\site-packages\\magika\\models\\standard_v3_3",
+          "exists": true
+        }
+      ]
     }
   ],
   "missing_on_this_host": []
