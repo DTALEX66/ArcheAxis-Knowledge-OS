@@ -177,16 +177,18 @@ def assemble(
     if workers is not None:
         _reject_reparse(workers)
 
-    output.mkdir(parents=True, exist_ok=True)
+    os.makedirs(_native_path(output), exist_ok=True)
     root = output / f"ArcheAxis.Knowledge.Green-v{version}-x64"
-    if root.exists():
+    if Path(_native_path(root)).exists():
         _remove_tree(root)
-    (root / "desktop").mkdir(parents=True)
-    (root / "core").mkdir()
+    # The layout below is four short names, but each is the parent of a copied tree whose
+    # own members are long, so the same naming rule the copy loop already uses applies here.
+    os.makedirs(_native_path(root / "desktop"))
+    os.makedirs(_native_path(root / "core"))
     if runtime is not None:
-        (root / "runtime").mkdir()
+        os.makedirs(_native_path(root / "runtime"))
     if workers is not None:
-        (root / "workers").mkdir()
+        os.makedirs(_native_path(root / "workers"))
     copied_files: list[Path] = []
     for source, relative in _iter_files(desktop):
         target = root / "desktop" / relative

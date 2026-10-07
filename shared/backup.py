@@ -188,7 +188,7 @@ def runtime_lease(database: Path | None = None) -> Iterator[None]:
 
 def _sha256(path: Path) -> str:
     digest = hashlib.sha256()
-    with path.open("rb") as stream:
+    with Path(_native_path(path)).open("rb") as stream:
         for chunk in iter(lambda: stream.read(1024 * 1024), b""):
             digest.update(chunk)
     return digest.hexdigest()
@@ -257,7 +257,7 @@ def _validate_sqlite_database(path: Path) -> dict[str, object]:
         raise RuntimeError(f"SQLite backup invariants failed; pending migrations: {pending}")
     return {
         "sha256": _sha256(path),
-        "size_bytes": path.stat().st_size,
+        "size_bytes": Path(_native_path(path)).stat().st_size,
         "schema_migrations": ledger,
         "migration_status": status,
         "domain_invariants": {
@@ -366,7 +366,7 @@ def restore(backup_path: str) -> str:
     backup_manifest = _verify_manifest(backup_file, kind=BACKUP_KIND)
     backup_hash = str(backup_manifest["backup"]["sha256"])  # type: ignore[index]
     candidate_dir = BACKUP_DIR / "restore-candidates"
-    candidate_dir.mkdir(parents=True, exist_ok=True)
+    Path(_native_path(candidate_dir)).mkdir(parents=True, exist_ok=True)
     final = candidate_dir / f"restore_{datetime.now(timezone.utc).strftime('%Y%m%dT%H%M%S_%fZ')}.sqlite"
     temporary = candidate_dir / f".{final.name}.{uuid4().hex}.tmp"
     try:
