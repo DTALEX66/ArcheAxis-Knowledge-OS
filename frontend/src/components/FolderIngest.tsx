@@ -189,8 +189,9 @@ export function FolderIngest() {
   // the same bounded, cancellable path a single source uses, and reflect the real terminal state.
   async function executeBatch() {
     if (running.current) return;
-    running.current = true; setBusy(true); stopped.current = false;
     const targets = rows.filter((row) => row.executable && row.job_id);
+    if (!targets.length) { setMessage("本批次没有等待执行的作业。"); return; }
+    running.current = true; setBusy(true); stopped.current = false;
     const updated = [...rows];
     for (let index = 0; index < updated.length; index += 1) {
       const row = updated[index];
@@ -272,7 +273,7 @@ export function FolderIngest() {
         />
       </label>
       {folder ? <p>当前批次「{folder}」· 批次标识 {batchId?.slice(0, 8)}…；来源关系记为该批次标识下的相对路径。浏览器不把磁盘绝对路径交给产品，所以此处不声称绝对路径，父目录链也无法核验。</p> : null}
-      <div className="folder-actions">
+      <div>
         {remaining > 0 ? <button type="button" disabled={busy} onClick={() => void runBatch([...rows])}>下一批（剩余 {remaining}）</button> : null}
         {rows.some((row) => row.executable) ? <button type="button" disabled={busy} onClick={() => void executeBatch()}>执行本批次转换</button> : null}
         <button type="button" disabled={!busy} onClick={() => { stopped.current = true; }}>停止</button>
@@ -282,7 +283,7 @@ export function FolderIngest() {
         <DataTable columns={[{ key: "relative", label: "文件夹内路径" }, { key: "bytes", label: "字节" },
           { key: "state", label: "结果" }, { key: "detail", label: "说明" },
           { key: "action", label: "操作" }]}
-          rows={rows.map((row, index) => ({ relative: row.relative, bytes: String(row.bytes), state: row.state,
+          rows={rows.map((row) => ({ relative: row.relative, bytes: String(row.bytes), state: row.state,
             detail: row.detail,
             action: row.job_id && (["失败待重试", "failed", "执行失败"].includes(row.state) || row.state.startsWith("已cancelled") || row.state.startsWith("已rejected"))
               ? <button type="button" onClick={() => void asyncRetry(row)}>重试</button> : null }))}

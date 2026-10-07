@@ -31,7 +31,7 @@ describe("persisted mock transcription reopen",()=>{
  });
  it("refuses an unbounded list rather than following pages implicitly",async()=>{
   await fixture({source_id:"s",jobs:Array.from({length:51},()=>({input_ref:"s",kind:"transcribe",state:"succeeded",job_id:"saved-job"}))});
-  render(<JobContent sourceId="s" sourceRevision={revision} name="speech.wav"/>);await screen.findByText(/持久化转写读回未完成/);
+  render(<JobContent sourceId="s" sourceRevision={revision} name="speech.wav"/>);await screen.findByText(/持久化结果读回未完成/);
   expect(bridge.call.mock.calls.filter(([op])=>op==="source_jobs")).toHaveLength(1);expect(screen.queryByRole("button",{name:"引用时间段"})).not.toBeInTheDocument();
  });
  it("does not let old reopen readback overwrite a newer execution",async()=>{
