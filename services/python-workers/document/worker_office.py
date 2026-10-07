@@ -417,6 +417,9 @@ def _pptx_text(path: Path) -> dict:
     }
 
 
+CELL_LOCATION_CAP = 5000
+
+
 def _xlsx_text(path: Path) -> dict:
     try:
         from openpyxl import load_workbook
@@ -424,6 +427,7 @@ def _xlsx_text(path: Path) -> dict:
         raise RuntimeError("xlsx engine missing (openpyxl not installed)") from exc
     workbook = load_workbook(str(path), data_only=False)
     text_parts: list[dict] = []
+    locations: list[dict] = []
     formula_count = 0
     for sheet in workbook.worksheets:
         for row in sheet.iter_rows():
@@ -434,7 +438,15 @@ def _xlsx_text(path: Path) -> dict:
                 value = cell.value
                 if isinstance(value, str) and value.startswith("="):
                     formula_count += 1
-                cells.append(f"{cell.coordinate}={value}")
+                token = f"{cell.coordinate}={value}"
+                cells.append(token)
+                # F09: one cell was not a location of its own - the row was the smallest
+                # addressable thing, so a quote from a single cell could only be anchored to a
+                # line that also carried its neighbours. The token is what the projection shows.
+                locations.append({"kind": "cell", "path": f"{sheet.title}!{cell.coordinate}",
+                                  "value": token, "sheet": sheet.title,
+                                  "coordinate": cell.coordinate,
+                                  "row": cell.row, "column": cell.column})
             if cells:
                 text_parts.append({"kind": "sheet_row", "sheet": sheet.title, "text": " | ".join(cells)})
     if not text_parts:
@@ -457,11 +469,23 @@ def _xlsx_text(path: Path) -> dict:
         "loss_receipt": {
             "engine": ENGINE,
             "engine_version": ENGINE_VERSION,
-            "params": {"sheets": len(workbook.worksheets), "formula_cells": formula_count, "engine": "openpyxl"},
+            "params": {
+                "sheets": len(workbook.worksheets), "formula_cells": formula_count, "engine": "openpyxl",
+                "format": {
+                    "location_model": "openpyxl cell coordinates; each value is that cell's own "
+                                      "projected token as the text shows it",
+                    "locations": locations[:CELL_LOCATION_CAP],
+                    "locations_reported": min(len(locations), CELL_LOCATION_CAP),
+                    "locations_total": len(locations),
+                    "locations_capped": len(locations) > CELL_LOCATION_CAP,
+                },
+            },
             "loss_note": (
                 "cell values include formula text (data_only=False); cached "
                 "computed values are NOT presented as live calculations; "
                 "macros never executed; merged ranges reported per sheet only"
+                + (f"; cell locations capped at {CELL_LOCATION_CAP} of {len(locations)}, the rest "
+                   "stay addressable by row only" if len(locations) > CELL_LOCATION_CAP else "")
             ),
         },
     }
@@ -899,6 +923,7 @@ def _xls_text(path: Path, member_dir: Path | None = None) -> dict:
     converted: list[dict] = []
     losses: list[str] = []
     members_written: list[dict] = []
+    locations: list[dict] = []
     type_counts: dict[str, int] = {}
     total_bytes = 0
     formulas_available = hasattr(book.sheet_by_index(0), "cell_formula_text") if book.nsheets else False
@@ -918,6 +943,14 @@ def _xls_text(path: Path, member_dir: Path | None = None) -> dict:
                 line.append(display)
                 if display:
                     cells += 1
+                    # F09: for xls the projected unit was the whole sheet body, so neither a row
+                    # nor a cell was addressable. The token is the cell exactly as the line shows
+                    # it - the engine's own display text, repr-quoted by the projection.
+                    locations.append({
+                        "kind": "cell", "path": f"{sheet.name}!{xlrd.colname(col)}{row + 1}",
+                        "value": f"{display!r}", "sheet": sheet.name,
+                        "coordinate": f"{xlrd.colname(col)}{row + 1}",
+                        "row": row + 1, "column": col + 1, "cell_type": kind})
             rows.append(line)
         sheets.append({"name": sheet.name, "rows": sheet.nrows, "columns": sheet.ncols,
                        "populated_cells": cells})
@@ -974,6 +1007,9 @@ def _xls_text(path: Path, member_dir: Path | None = None) -> dict:
     if not formulas_available:
         losses.append("the engine exposes no formula text for this file, so formulas are "
                       "reported only as the cached value the file carries")
+    if len(locations) > CELL_LOCATION_CAP:
+        losses.append(f"cell locations capped at {CELL_LOCATION_CAP} of {len(locations)}; the rest "
+                      "are not addressable")
     return {
         "format": "xls",
         "text": projection,
@@ -991,6 +1027,14 @@ def _xls_text(path: Path, member_dir: Path | None = None) -> dict:
                 "structure": {"extractable_members": members_written},
                 "converted_member_count": len(members_written),
                 "converted_bytes": total_bytes,
+                "format": {
+                    "location_model": "xlrd sheet name plus A1-style coordinate; each value is the "
+                                      "engine's display text exactly as the projection quotes it",
+                    "locations": locations[:CELL_LOCATION_CAP],
+                    "locations_reported": min(len(locations), CELL_LOCATION_CAP),
+                    "locations_total": len(locations),
+                    "locations_capped": len(locations) > CELL_LOCATION_CAP,
+                },
             },
             "losses": losses,
             "loss_note": "; ".join(losses),
