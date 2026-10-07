@@ -9,6 +9,7 @@ import type { EpubPosition } from "../components/EpubParagraphs";
 import { JobContent } from "../components/JobContent";
 import { CheckPanel } from "../components/CheckPanel";
 import { BackupPanel } from "../components/BackupPanel";
+import { ContainerMemberChain } from "../components/ContainerMemberChain";
 import "../components/content.css";
 import type { InspectionTarget } from "../components/Inspector";
 import type { LibrarySection } from "../components/ContextNav";
@@ -366,6 +367,7 @@ export function CanonicalLibrarySpace({onKnowledge,initialDocumentId,onDirtyChan
           {isPdf ? <PdfReader bytes={bytes} page={page} onPageChange={setPage} focusRequest={focusRequest} /> : original.media_type.startsWith("text/") ? <pre ref={textRegion} tabIndex={-1} aria-label="原件正文">{new TextDecoder().decode(bytes)}</pre> : null}
           {original.media_type.startsWith("audio/")||original.media_type.startsWith("video/")?<MediaReader key={`media:${source.source_id}`} bytes={bytes} mediaType={original.media_type} seek={mediaSeek?.sourceId===source.source_id?mediaSeek:undefined} onDuration={seconds=>setMediaDuration({sourceId:source.source_id,seconds})}/>:null}
           <JobContent key={`job:${source.source_id}`} sourceId={source.source_id} name={source.original_name} sourceRevision={source.source_revision} epubSeek={epubSeek?.sourceId===source.source_id?epubSeek.position:undefined} onEpubSeek={position=>setEpubSeek({sourceId:source.source_id,position})} onKnowledge={onKnowledge} onTimeSeek={seconds=>setMediaSeek(previous=>({sourceId:source.source_id,milliseconds:seconds*1000,sequence:(previous?.sequence??0)+1}))} onAnchor={anchor=>setAnchors(previous=>previous.some(item=>item.anchor_id===anchor.anchor_id)?previous:[...previous,anchor])} mediaDurationSeconds={mediaDuration?.sourceId===source.source_id?mediaDuration.seconds:undefined}/>
+          <ContainerMemberChain key={`members:${source.source_id}`} sourceId={source.source_id} />
           </div>
           <aside ref={anchorNavigation} tabIndex={-1} aria-label="来源版本证据">
             <h4>来源与引用</h4>
