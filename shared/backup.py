@@ -10,6 +10,7 @@ import shutil
 import sqlite3
 import sys
 from collections.abc import Iterator
+from shared.paths import native_path, sqlite_readonly_target
 from contextlib import closing, contextmanager
 from datetime import datetime, timezone
 from pathlib import Path
@@ -46,23 +47,21 @@ INVARIANT_TABLES = (
 
 
 def _native_path(path: Path) -> str | Path:
-    """Use the Windows extended-length prefix for deep project-local paths."""
-    if os.name == "nt" and len(str(path)) >= 240:
-        value = str(path)
-        if not value.startswith("\\\\?\\"):
-            return "\\\\?\\" + value
-    return path
+    """Name the path so Windows still creates it; `shared.paths.native_path` explains why.
+
+    There is no length test here any more. A 194-character directory is ordinary, and the file
+    written inside it is what passes the limit - and only the call that makes the name knows it.
+    """
+    return native_path(path)
 
 
 def _sqlite_uri(path: Path) -> tuple[str, bool]:
-    """Return a read-only connection target, preserving Windows long paths."""
-    resolved = path.resolve()
-    if os.name == "nt" and len(str(resolved)) >= 240:
-        native_path = str(resolved)
-        if not native_path.startswith("\\\\?\\"):
-            native_path = "\\\\?\\" + native_path
-        return native_path, False
-    return f"{resolved.as_uri()}?mode=ro", True
+    """Return a read-only connection target, preserving Windows long paths.
+
+    The decision itself lives in `shared.paths.sqlite_readonly_target` so a reader and a
+    backup cannot drift apart on how a deep path and a `file:` URI are reconciled.
+    """
+    return sqlite_readonly_target(path)
 
 
 def _manifest_path(path: Path) -> Path:
@@ -189,7 +188,7 @@ def runtime_lease(database: Path | None = None) -> Iterator[None]:
 
 def _sha256(path: Path) -> str:
     digest = hashlib.sha256()
-    with path.open("rb") as stream:
+    with Path(_native_path(path)).open("rb") as stream:
         for chunk in iter(lambda: stream.read(1024 * 1024), b""):
             digest.update(chunk)
     return digest.hexdigest()
@@ -199,7 +198,7 @@ def _sqlite_backup(source: Path, destination: Path) -> None:
     destination.parent.mkdir(parents=True, exist_ok=True)
     source_target, source_uri = _sqlite_uri(source)
     with closing(sqlite3.connect(source_target, uri=source_uri)) as src, closing(
-        sqlite3.connect(str(destination))
+        sqlite3.connect(_native_path(destination))
     ) as dst:
         if not source_uri:
             src.execute("PRAGMA query_only=ON")
@@ -220,7 +219,7 @@ def _migration_ledger(connection: sqlite3.Connection) -> list[dict[str, object]]
 
 
 def _validate_sqlite_database(path: Path) -> dict[str, object]:
-    if not path.is_file():
+    if not Path(_native_path(path)).is_file():
         raise FileNotFoundError(f"SQLite database not found: {path}")
     try:
         target, uri = _sqlite_uri(path)
@@ -258,7 +257,7 @@ def _validate_sqlite_database(path: Path) -> dict[str, object]:
         raise RuntimeError(f"SQLite backup invariants failed; pending migrations: {pending}")
     return {
         "sha256": _sha256(path),
-        "size_bytes": path.stat().st_size,
+        "size_bytes": Path(_native_path(path)).stat().st_size,
         "schema_migrations": ledger,
         "migration_status": status,
         "domain_invariants": {
@@ -367,15 +366,15 @@ def restore(backup_path: str) -> str:
     backup_manifest = _verify_manifest(backup_file, kind=BACKUP_KIND)
     backup_hash = str(backup_manifest["backup"]["sha256"])  # type: ignore[index]
     candidate_dir = BACKUP_DIR / "restore-candidates"
-    candidate_dir.mkdir(parents=True, exist_ok=True)
+    Path(_native_path(candidate_dir)).mkdir(parents=True, exist_ok=True)
     final = candidate_dir / f"restore_{datetime.now(timezone.utc).strftime('%Y%m%dT%H%M%S_%fZ')}.sqlite"
     temporary = candidate_dir / f".{final.name}.{uuid4().hex}.tmp"
     try:
-        shutil.copyfile(backup_file, temporary)
+        shutil.copyfile(_native_path(backup_file), _native_path(temporary))
         candidate_metadata = _validate_sqlite_database(temporary)
         if candidate_metadata["sha256"] != backup_hash:
             raise RuntimeError("restore candidate does not exactly match the backup hash")
-        temporary.replace(final)
+        Path(_native_path(temporary)).replace(_native_path(final))
         manifest = {
             "manifest_version": MANIFEST_VERSION,
             "kind": CANDIDATE_KIND,

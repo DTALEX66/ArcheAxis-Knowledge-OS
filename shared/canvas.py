@@ -21,6 +21,7 @@ from typing import Any
 _PROJECT_ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(_PROJECT_ROOT))
 
+from shared.paths import native_path  # noqa: E402
 from shared.research_boundary import unreviewed_research_references  # noqa: E402
 from shared.storage import DB_PATH, insert, select_all, select_one  # noqa: E402
 
@@ -243,7 +244,7 @@ def delete_canvas(canvas_id: str) -> bool:
     """Delete a canvas and all its contents."""
     import sqlite3
 
-    conn = sqlite3.connect(str(DB_PATH))
+    conn = sqlite3.connect(native_path(DB_PATH))
     try:
         conn.execute("DELETE FROM canvases WHERE id=?", (canvas_id,))
         conn.execute("DELETE FROM canvas_nodes WHERE canvas_id=?", (canvas_id,))

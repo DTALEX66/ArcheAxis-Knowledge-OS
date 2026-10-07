@@ -19,6 +19,8 @@ from dataclasses import dataclass
 from pathlib import Path
 from threading import Lock
 
+from shared.paths import native_path
+
 
 class RawAssetStoreError(ValueError):
     """Raised on invalid input or an unrecoverable storage failure."""
@@ -66,14 +68,14 @@ class RawAssetStore:
 
     def __init__(self, root: Path | None = None) -> None:
         self.root = (root or _default_root()).resolve()
-        self.root.mkdir(parents=True, exist_ok=True)
+        Path(native_path(self.root)).mkdir(parents=True, exist_ok=True)
         self._failures_dir = self.root / "_failures"
-        self._failures_dir.mkdir(parents=True, exist_ok=True)
+        Path(native_path(self._failures_dir)).mkdir(parents=True, exist_ok=True)
         # Sidecar metadata makes the archive inspectable without exposing a
         # storage path to the product UI. The original content remains the
         # source of truth; a missing/corrupt sidecar must never hide it.
         self._metadata_dir = self.root / "_metadata"
-        self._metadata_dir.mkdir(parents=True, exist_ok=True)
+        Path(native_path(self._metadata_dir)).mkdir(parents=True, exist_ok=True)
 
     def _original_path(self, digest: str) -> Path:
         return self.root / digest
@@ -84,25 +86,29 @@ class RawAssetStore:
     def _metadata_path(self, digest: str) -> Path:
         return self._metadata_dir / f"{digest}.json"
 
+    def _io(self, path: Path) -> Path:
+        """The same path as the Windows file API needs it; validation stays on the plain form."""
+        return Path(native_path(path))
+
     def has(self, digest: str) -> bool:
-        return self._original_path(digest).exists()
+        return self._io(self._original_path(digest)).exists()
 
     def remove_original(self, digest: str) -> bool:
         """Delete a stored original by digest. Returns True if it existed and
         was removed. Used to clean up an orphaned file when an enclosing
         import transaction is rolled back after the byte write."""
-        p = self._original_path(digest)
+        p = self._io(self._original_path(digest))
         if p.exists():
             p.unlink()
             return True
         return False
 
     def has_failure(self, digest: str) -> bool:
-        return self._failure_path(digest).exists()
+        return self._io(self._failure_path(digest)).exists()
 
     def resolve(self, digest: str) -> Path:
         p = self._original_path(digest)
-        if not p.exists():
+        if not self._io(p).exists():
             raise RawAssetStoreError(f"raw asset not present: {digest}")
         return p
 
@@ -128,22 +134,22 @@ class RawAssetStore:
         # content-addressed destination. Two identical concurrent uploads must
         # never observe each other's partially-written bytes.
         with _write_lock(digest):
-            if not dest.exists():
+            if not self._io(dest).exists():
                 temporary_path: Path | None = None
                 try:
                     with tempfile.NamedTemporaryFile(
-                        mode="wb", dir=self.root, prefix=f".{digest}.", delete=False
+                        mode="wb", dir=str(self._io(self.root)), prefix=f".{digest}.", delete=False
                     ) as temporary:
                         temporary.write(blob)
                         temporary_path = Path(temporary.name)
                     if _sha256(temporary_path.read_bytes()) != digest:
                         raise RawAssetStoreError("raw asset hash mismatch before publish")
-                    os.replace(temporary_path, dest)
+                    os.replace(temporary_path, str(self._io(dest)))
                     temporary_path = None
                 finally:
                     if temporary_path is not None:
                         temporary_path.unlink(missing_ok=True)
-            if _sha256(dest.read_bytes()) != digest:
+            if _sha256(self._io(dest).read_bytes()) != digest:
                 raise RawAssetStoreError("raw asset hash mismatch after publish")
         record = RawAssetRecord(
             sha256=digest,
@@ -154,7 +160,7 @@ class RawAssetStore:
             save_state="saved",
             converted=None,
         )
-        metadata_path = self._metadata_path(digest)
+        metadata_path = self._io(self._metadata_path(digest))
         if not metadata_path.exists():
             metadata_path.write_text(
                 json.dumps(
@@ -182,7 +188,7 @@ class RawAssetStore:
         needs attention.
         """
         records: list[RawAssetRecord] = []
-        for asset in sorted(self.root.iterdir(), key=lambda item: item.name):
+        for asset in sorted(self._io(self.root).iterdir(), key=lambda item: item.name):
             digest = asset.name
             if (
                 not asset.is_file()
@@ -192,7 +198,7 @@ class RawAssetStore:
                 continue
             metadata: dict[str, object] = {}
             try:
-                candidate = json.loads(self._metadata_path(digest).read_text(encoding="utf-8"))
+                candidate = json.loads(self._io(self._metadata_path(digest)).read_text(encoding="utf-8"))
                 if isinstance(candidate, dict):
                     metadata = candidate
             except (OSError, json.JSONDecodeError):
@@ -218,7 +224,7 @@ class RawAssetStore:
 
     def _read_failure_reason(self, digest: str) -> str | None:
         """Return the durable failure reason for one digest, if recorded."""
-        failure = self._failure_path(digest)
+        failure = self._io(self._failure_path(digest))
         if not failure.exists():
             return None
         try:
@@ -237,7 +243,7 @@ class RawAssetStore:
             "error": error,
             "original_retained": True,
         }
-        fp = self._failure_path(digest)
+        fp = self._io(self._failure_path(digest))
         if not fp.exists():
             fp.write_text(json.dumps(payload, ensure_ascii=True, indent=2), encoding="utf-8")
 

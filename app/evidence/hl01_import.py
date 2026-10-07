@@ -12,6 +12,7 @@ from typing import Literal
 from app.contracts.source_anchor_v2 import SourceObjectV2
 from app.evidence.source_store_v2 import SourceStoreV2
 from app.workspace.job_outbox import record_completed_command
+from shared.paths import native_path
 
 RightsStatus = Literal["owned", "licensed", "public-domain", "permission-recorded"]
 
@@ -29,7 +30,7 @@ class HL01ImportReceipt:
 
 def verify_registry_receipt(db_path: str | Path, command_id: str) -> dict[str, object]:
     """Read back and validate a persisted HL01 command receipt."""
-    with sqlite3.connect(Path(db_path)) as connection:
+    with sqlite3.connect(native_path(db_path)) as connection:
         connection.row_factory = sqlite3.Row
         row = connection.execute(
             "SELECT r.command_id, r.command_type, r.job_id, r.result_json, "
@@ -77,7 +78,7 @@ def _resolve_source_path(
     roots = [repo_root, *registry_path.parents]
     for root in roots:
         resolved = (root / candidate).resolve()
-        if resolved.is_relative_to(repo_root) and resolved.is_file():
+        if resolved.is_relative_to(repo_root) and Path(native_path(resolved)).is_file():
             return resolved
     raise FileNotFoundError(source_path)
 
@@ -167,7 +168,7 @@ def import_registry_candidates(
             "source_ids_sha256": hashlib.sha256("\n".join(source_ids).encode("utf-8")).hexdigest(),
             "rights_status": rights_status,
         }
-        with sqlite3.connect(store.db_path) as connection:
+        with sqlite3.connect(native_path(store.db_path)) as connection:
             connection.row_factory = sqlite3.Row
             connection.execute("BEGIN IMMEDIATE")
             command_result = record_completed_command(

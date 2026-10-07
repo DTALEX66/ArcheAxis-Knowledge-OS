@@ -30,6 +30,8 @@ from dataclasses import dataclass
 from pathlib import Path
 from uuid import uuid4
 
+from shared.paths import native_path
+
 _ENTITY_TABLE = "graph_entities"
 _RELATION_TABLE = "graph_relations"
 
@@ -91,7 +93,7 @@ class GraphIndexRollback:
         before_commit: Callable[[sqlite3.Connection], None] | None = None,
     ) -> None:
         """Restore the pre-activation graph rows and remove migration tables."""
-        connection = sqlite3.connect(self.db_path)
+        connection = sqlite3.connect(native_path(self.db_path))
         connection.row_factory = sqlite3.Row
         try:
             connection.execute("BEGIN IMMEDIATE")
@@ -172,7 +174,7 @@ class GraphIndexCandidate:
         close_after = connection is None
         try:
             if connection is None:
-                connection = sqlite3.connect(self.db_path)
+                connection = sqlite3.connect(native_path(self.db_path))
                 connection.row_factory = sqlite3.Row
 
             for t in (self.entity_table, self.relation_table, _ENTITY_TABLE, _RELATION_TABLE):
@@ -249,7 +251,7 @@ class GraphIndexCandidate:
             db_path=self.db_path,
         )
 
-        connection = sqlite3.connect(self.db_path)
+        connection = sqlite3.connect(native_path(self.db_path))
         connection.row_factory = sqlite3.Row
         try:
             connection.execute("BEGIN IMMEDIATE")
@@ -308,7 +310,7 @@ class GraphIndexCandidate:
 
     def discard(self) -> None:
         """Drop this inactive candidate; active tables are never touched."""
-        connection = sqlite3.connect(self.db_path)
+        connection = sqlite3.connect(native_path(self.db_path))
         try:
             for t in (self.entity_table, self.relation_table):
                 connection.execute(f"DROP TABLE IF EXISTS {t}")
@@ -335,7 +337,7 @@ def build_graph_candidate(db_path: str | Path) -> GraphIndexCandidate:
         RuntimeError: If candidate verification fails.
     """
     database = Path(db_path).resolve()
-    connection = sqlite3.connect(str(database))
+    connection = sqlite3.connect(native_path(database))
     connection.row_factory = sqlite3.Row
     suffix = uuid4().hex
     entity_candidate = f"{_ENTITY_TABLE}__candidate_{suffix}"

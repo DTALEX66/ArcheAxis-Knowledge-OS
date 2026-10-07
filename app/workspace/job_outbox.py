@@ -9,6 +9,8 @@ from hashlib import sha256
 from pathlib import Path
 from typing import Any
 
+from shared.paths import native_path
+
 
 def _now() -> str:
     return datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
@@ -233,7 +235,7 @@ def enqueue_command(
     """Atomically write one command receipt, queued job, and pending outbox event."""
 
     database = Path(db_path)
-    with closing(sqlite3.connect(database)) as connection:
+    with closing(sqlite3.connect(native_path(database))) as connection:
         connection.row_factory = sqlite3.Row
         connection.execute("PRAGMA busy_timeout=30000")
         connection.execute("BEGIN IMMEDIATE")

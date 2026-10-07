@@ -17,6 +17,7 @@ from pathlib import Path
 
 from shared.approved_paths import ApprovedRoots, ApprovedRootsError
 from shared.compat.models import VaultFile
+from shared.paths import native_path, ordinary_path
 
 _SCHEMA = """
 CREATE TABLE IF NOT EXISTS compat_files (
@@ -126,10 +127,10 @@ class ImportSession:
     def __init__(self, store: Path, vault_root: Path) -> None:
         self.store = store
         self.vault_root = vault_root.resolve()
-        if not self.vault_root.is_dir():
+        if not Path(native_path(self.vault_root)).is_dir():
             raise ValueError(f"vault root is not a directory: {vault_root}")
         self.approved = ApprovedRoots(source_roots=[self.vault_root])
-        self._conn = sqlite3.connect(store)
+        self._conn = sqlite3.connect(native_path(store))
         self._conn.execute(_SCHEMA)
         columns = {
             row[1] for row in self._conn.execute("PRAGMA table_info(compat_files)")
@@ -155,8 +156,10 @@ class ImportSession:
     def _scan_paths(self) -> list[Path]:
         """Enumerate files under the vault, rejecting symlink escapes."""
         results: list[Path] = []
-        for root_name, dirs, files in os.walk(self.vault_root, topdown=True, followlinks=False):
-            root = Path(root_name)
+        for root_name, dirs, files in os.walk(native_path(self.vault_root), topdown=True, followlinks=False):
+            # The walk is prefixed so deep directories yield at all; containment and the
+            # returned records keep the plain path.
+            root = ordinary_path(root_name)
             # drop symlink dirs that escape the approved root
             kept: list[str] = []
             for d in dirs:

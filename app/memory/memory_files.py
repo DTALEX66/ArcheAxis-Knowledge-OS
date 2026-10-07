@@ -26,6 +26,7 @@ from pathlib import Path
 from typing import Any
 
 from app.memory.memory_layers import MemoryLayer, _connect as _layers_connect
+from shared.paths import native_path
 
 _ENTRY_HEADER = re.compile(
     r"^## \[([^\]]+)\] (L[1-4]_\w+) \| tags: ([^|]*) \| importance: ([0-9.]+)$"
@@ -71,7 +72,7 @@ def _entries(db: str | Path) -> list[ExportedEntry]:
 
 
 def _principles(db: str | Path) -> list[dict[str, Any]]:
-    conn = sqlite3.connect(Path(db))
+    conn = sqlite3.connect(native_path(db))
     conn.row_factory = sqlite3.Row
     conn.executescript(
         "CREATE TABLE IF NOT EXISTS reasoning_principles (principle_id TEXT PRIMARY KEY, "
@@ -89,7 +90,7 @@ def _principles(db: str | Path) -> list[dict[str, Any]]:
 def export_markdown(db: str | Path, out_dir: str | Path) -> dict[str, int]:
     """Export layered memory + principles to markdown files (human-editable)."""
     out = Path(out_dir)
-    out.mkdir(parents=True, exist_ok=True)
+    Path(native_path(out)).mkdir(parents=True, exist_ok=True)
     counts: dict[str, int] = {}
 
     by_layer: dict[str, list[ExportedEntry]] = {}
@@ -102,7 +103,7 @@ def export_markdown(db: str | Path, out_dir: str | Path) -> dict[str, int]:
             lines.append(f"## [{e.created_at}] {e.layer} | tags: {','.join(e.tags)} | importance: {e.importance}")
             lines.append(e.content)
             lines.append(_SEPARATOR)
-        (out / f"{layer.value}.md").write_text("\n".join(lines) + "\n", encoding="utf-8")
+        Path(native_path(out / f"{layer.value}.md")).write_text("\n".join(lines) + "\n", encoding="utf-8")
         counts[layer.value] = len(entries)
 
     principles = _principles(db)
@@ -111,7 +112,7 @@ def export_markdown(db: str | Path, out_dir: str | Path) -> dict[str, int]:
         plines.append(f"## [{p['created_at']}] {p['category']} | confidence: {p['confidence']} | status: {p['status']}")
         plines.append(p["statement"])
         plines.append(_SEPARATOR)
-    (out / "principles.md").write_text("\n".join(plines) + "\n", encoding="utf-8")
+    Path(native_path(out / "principles.md")).write_text("\n".join(plines) + "\n", encoding="utf-8")
     counts["principles"] = len(principles)
     return counts
 
@@ -148,12 +149,12 @@ def _parse_file(path: Path) -> list[ExportedEntry]:
 def import_markdown(db: str | Path, in_dir: str | Path) -> dict[str, int]:
     """Parse exported markdown files back into the layered memory store."""
     folder = Path(in_dir)
-    if not folder.is_dir():
+    if not Path(native_path(folder)).is_dir():
         raise MemoryFilesError(f"not a directory: {folder}")
     counts: dict[str, int] = {}
     conn = _layers_connect(db)
     try:
-        for path in sorted(folder.glob("L*_*.md")):
+        for path in sorted(Path(native_path(folder)).glob("L*_*.md")):
             layer_name = path.stem
             entries = _parse_file(path)
             for e in entries:

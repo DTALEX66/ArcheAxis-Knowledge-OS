@@ -9,6 +9,7 @@ from pydantic import BaseModel, ConfigDict, Field
 
 from app.contracts.v1 import MachineKnowledgeUnitV1, MasterySignalV1
 from shared import core_schema, knowledge_governance_migration
+from shared.paths import native_path
 
 
 class MachineKnowledgeApproval(BaseModel):
@@ -52,7 +53,7 @@ def create_machine_knowledge_candidate_on_connection(
 def create_machine_knowledge_candidate(
     signal_id: str, *, title: str, content: str, db_path: str | Path, scope: str | None = None
 ) -> MachineKnowledgeUnitV1:
-    with sqlite3.connect(Path(db_path)) as connection:
+    with sqlite3.connect(native_path(db_path)) as connection:
         connection.row_factory = sqlite3.Row
         connection.execute("BEGIN IMMEDIATE")
         try:
@@ -69,7 +70,7 @@ def create_machine_knowledge_candidate(
 def deprecate_machine_knowledge_candidate(approval: MachineKnowledgeApproval, *, db_path: str | Path) -> MachineKnowledgeUnitV1:
     database = Path(db_path)
     knowledge_governance_migration.require_applied(db_path=database, live_wal=True)
-    with sqlite3.connect(database) as connection:
+    with sqlite3.connect(native_path(database)) as connection:
         connection.row_factory = sqlite3.Row
         core_schema.validate(connection)
         connection.execute("BEGIN IMMEDIATE")
@@ -113,7 +114,7 @@ def list_runtime_machine_knowledge(
     consumption. GOV-001: when a retrieval scope is supplied, only approved
     units whose scope matches (or that are generic/scope-less) are returned.
     """
-    with sqlite3.connect(Path(db_path)) as connection:
+    with sqlite3.connect(native_path(db_path)) as connection:
         connection.row_factory = sqlite3.Row
         core_schema.validate(connection)
         rows = connection.execute(

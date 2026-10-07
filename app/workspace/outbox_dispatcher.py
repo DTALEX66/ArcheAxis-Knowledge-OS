@@ -10,6 +10,8 @@ from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Any
 
+from shared.paths import native_path
+
 _LEASE_SECONDS = 30
 
 
@@ -99,7 +101,7 @@ def dispatch_once(
     if not worker_name:
         raise ValueError("workspace dispatcher requires a worker name")
     database = Path(db_path)
-    with closing(sqlite3.connect(database, timeout=30.0)) as connection:
+    with closing(sqlite3.connect(native_path(database), timeout=30.0)) as connection:
         connection.row_factory = sqlite3.Row
         connection.execute("PRAGMA busy_timeout=30000")
         connection.execute("BEGIN IMMEDIATE")
@@ -132,7 +134,7 @@ def dispatch_once(
         delivered_at = _timestamp(_now())
 
     finished_at = _now()
-    with closing(sqlite3.connect(database, timeout=30.0)) as connection:
+    with closing(sqlite3.connect(native_path(database), timeout=30.0)) as connection:
         connection.row_factory = sqlite3.Row
         connection.execute("PRAGMA busy_timeout=30000")
         connection.execute("BEGIN IMMEDIATE")

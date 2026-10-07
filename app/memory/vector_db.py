@@ -29,6 +29,7 @@ from uuid import uuid4
 import numpy as np
 
 from shared.config import config, resolve_runtime_path
+from shared.paths import native_path
 from shared.stable_hash import stable_hash_text
 
 DEFAULT_DB_PATH = resolve_runtime_path(str(config.get("database.path", "data/archeaxis.sqlite")))
@@ -209,7 +210,7 @@ class VectorDB:
     # ── connection ──────────────────────────────────────
 
     def _get_conn(self) -> sqlite3.Connection:
-        conn = sqlite3.connect(self.db_path)
+        conn = sqlite3.connect(native_path(self.db_path))
         conn.enable_load_extension(True)
         import sqlite_vec as sv  # noqa: F811 — loaded at call time
 

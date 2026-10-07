@@ -9,6 +9,7 @@ from pathlib import Path
 from typing import Any, Literal
 
 from app.knowledge.dual_mastery import HumanEvidence, HumanMasteryLevel, human_mastery_level
+from shared.paths import native_path
 
 EventType = Literal[
     "review",
@@ -63,7 +64,7 @@ class HumanLearningProjection:
 
 
 def _connect(path: str | Path) -> sqlite3.Connection:
-    connection = sqlite3.connect(str(Path(path)), timeout=30)
+    connection = sqlite3.connect(native_path(path), timeout=30)
     connection.row_factory = sqlite3.Row
     connection.execute("PRAGMA foreign_keys=ON")
     tables = {

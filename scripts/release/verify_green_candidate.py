@@ -28,9 +28,16 @@ REQUIRED = (
 
 
 def _native_path(path: Path) -> str | Path:
-    """Use the Windows extended-length prefix for deep Candidate paths."""
-    if path.drive and path.drive.upper() not in {"E:", "F:"} and len(str(path)) >= 240:
-        return "\\\\?\\" + str(path)
+    """Prefix a Candidate path, keeping the E:/F: boundary this script must never cross.
+
+    No length test: the directory it is handed is ordinary and the worker, key or manifest
+    entry read underneath it is what passes the Windows limit.
+    """
+    text = str(path)
+    if text.startswith("\\\\?\\"):
+        return text
+    if path.drive and path.drive.upper() not in {"E:", "F:"}:
+        return "\\\\?\\" + text
     return path
 WORKER_REQUIRED = ("worker-profile.json", "workers/transport/text_ndjson.py")
 _SHA256_RE = re.compile(r"^[0-9a-f]{64}$")
@@ -136,12 +143,12 @@ def verify(
     candidate = candidate.resolve()
     manifest_path = candidate / "candidate-manifest.json"
     problems: list[str] = []
-    if not candidate.is_dir():
+    if not Path(_native_path(candidate)).is_dir():
         return {"ok": False, "problems": ["candidate directory is missing"]}
-    if not manifest_path.is_file():
+    if not Path(_native_path(manifest_path)).is_file():
         return {"ok": False, "problems": ["candidate-manifest.json is missing"]}
     try:
-        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+        manifest = json.loads(Path(_native_path(manifest_path)).read_text(encoding="utf-8"))
     except (OSError, json.JSONDecodeError) as exc:
         return {"ok": False, "problems": [f"manifest unreadable: {exc}"]}
     if manifest.get("schema") != "archeaxis.green-candidate/v1":
@@ -183,7 +190,7 @@ def verify(
     for relative in REQUIRED:
         path = candidate / relative
         entry = files.get(relative)
-        if not path.is_file() or not isinstance(entry, dict):
+        if not Path(_native_path(path)).is_file() or not isinstance(entry, dict):
             problems.append(f"required file missing from candidate: {relative}")
             continue
         if _sha256(path) != entry.get("sha256"):
@@ -196,7 +203,7 @@ def verify(
         for relative in WORKER_REQUIRED:
             path = candidate / relative
             entry = files.get(relative)
-            if not path.is_file() or not isinstance(entry, dict):
+            if not Path(_native_path(path)).is_file() or not isinstance(entry, dict):
                 problems.append(f"required worker file missing from candidate: {relative}")
                 continue
             if _sha256(path) != entry.get("sha256"):

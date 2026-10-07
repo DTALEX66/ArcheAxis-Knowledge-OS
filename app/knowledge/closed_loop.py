@@ -17,6 +17,7 @@ from app.knowledge.learning_artifact import (
 from app.knowledge.machine_knowledge import create_machine_knowledge_candidate_on_connection
 from app.knowledge.mastery import persist_mastery_signal_on_connection
 from shared import knowledge_governance_migration
+from shared.paths import native_path
 
 
 @dataclass(frozen=True)
@@ -62,7 +63,7 @@ def start_and_approve_learning_candidate(
         rationale=rationale,
         reviewed_at=reviewed_at,
     )
-    with sqlite3.connect(database) as connection:
+    with sqlite3.connect(native_path(database)) as connection:
         connection.row_factory = sqlite3.Row
         connection.execute("BEGIN IMMEDIATE")
         try:
@@ -118,7 +119,7 @@ def record_practice_evidence(
     database = Path(db_path)
     knowledge_governance_migration.require_applied(db_path=database, live_wal=True)
     review_id = "practice_" + sha256(command_id.encode()).hexdigest()[:24]
-    with sqlite3.connect(database) as connection:
+    with sqlite3.connect(native_path(database)) as connection:
         connection.row_factory = sqlite3.Row
         connection.execute("BEGIN IMMEDIATE")
         try:
@@ -203,7 +204,7 @@ def record_practice_evidence(
 
 def audit_closed_loop(artifact_id: str, *, db_path: str | Path) -> list[ClosedLoopAuditEvent]:
     database = Path(db_path)
-    with sqlite3.connect(database) as connection:
+    with sqlite3.connect(native_path(database)) as connection:
         connection.row_factory = sqlite3.Row
         artifact = connection.execute(
             "SELECT artifact_json, created_at FROM knowledge_candidate_learning_artifacts_v1 WHERE id=?", (artifact_id,)

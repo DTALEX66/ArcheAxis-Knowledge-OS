@@ -8,6 +8,7 @@ from contextlib import closing
 from datetime import datetime, timezone
 from pathlib import Path
 
+from shared.paths import native_path
 from shared.research_store import load_research_package
 
 
@@ -49,7 +50,7 @@ def make_intake_research_handler(
             raise RuntimeError("workspace research consumer graph binding is invalid")
         proof = {"package_id": package_id}
         proof_json = _canonical_json(proof)
-        with closing(sqlite3.connect(database, timeout=30.0)) as connection:
+        with closing(sqlite3.connect(native_path(database), timeout=30.0)) as connection:
             connection.execute("PRAGMA busy_timeout=30000")
             connection.execute("BEGIN IMMEDIATE")
             try:

@@ -12,6 +12,8 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from urllib.parse import unquote, urlparse
 
+from shared.paths import native_path
+
 
 @dataclass(frozen=True)
 class VaultLink:
@@ -166,9 +168,9 @@ def _exists_target(target: str, note: Path, root: Path) -> bool:
     candidate = _local_target(target, note, root)
     if candidate is None:
         return True
-    if candidate.exists():
+    if Path(native_path(candidate)).exists():
         return True
-    return any(item.name == candidate.name for item in root.rglob(candidate.name))
+    return any(item.name == candidate.name for item in Path(native_path(root)).rglob(candidate.name))
 
 
 def _is_missing_note(target: str, note: Path, root: Path) -> bool:
@@ -179,7 +181,7 @@ def _is_missing_note(target: str, note: Path, root: Path) -> bool:
         return False
     if "/" in target or "\\" in target or Path(target).suffix:
         return not _exists_target(target, note, root)
-    return not any(item.stem == target for item in root.rglob("*.md"))
+    return not any(item.stem == target for item in Path(native_path(root)).rglob("*.md"))
 
 
 def _is_external(target: str) -> bool:
