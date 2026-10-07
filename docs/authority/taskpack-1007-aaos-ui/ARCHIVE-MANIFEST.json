@@ -1,0 +1,274 @@
+{
+  "commit_policy": "task text only; the pack's evidence/ tree duplicates this repository's own authority documents and assets/donors is frozen donor material, so both are hashed here and not committed",
+  "committed_files": {
+    "CODEX_START_HERE.md": {
+      "bytes": 4593,
+      "sha256": "0dd2ec79843525aa90482d6d02acd90fbbd451cfd814b9b45b0eb735e33bcc48"
+    },
+    "docs/01_对话整合与取代决定.md": {
+      "bytes": 2795,
+      "sha256": "8433b7b51d62b68b5fd703ff0905d5676cd6f380a033c3537b3eef81d07697fa"
+    },
+    "docs/02_权威与当前代码对照.md": {
+      "bytes": 3538,
+      "sha256": "6db6b738a877253bfa4217e43d7cebc946b46da05bdb238d2d914b1976412977"
+    },
+    "docs/03_三主题与视觉规格.md": {
+      "bytes": 3602,
+      "sha256": "6119346d1938fdd895a7c93677c5c7e0d28e2dff2521519223d5824da94223c2"
+    },
+    "docs/04_完整组件目录.md": {
+      "bytes": 16910,
+      "sha256": "df87c8fbf1783005f627e4f233ce69563f974daa171ed6ecc0c4ea8622d22fae"
+    },
+    "docs/05_关键组件合同.md": {
+      "bytes": 5776,
+      "sha256": "3ab400c616b07035f0356a4d73d71753689cc7e1fcf61e34b2fe3e132aac1478"
+    },
+    "docs/06_全能力导航规格.md": {
+      "bytes": 2667,
+      "sha256": "195b9c49584f012cc3117c291e5d3b61f8079565025062a35dacf524c0c2916c"
+    },
+    "docs/07_原组件池找回与适配选择.md": {
+      "bytes": 5544,
+      "sha256": "59923ecbe9fdd330e56fe518ce4310566439a9283e4100bc48b04a2fd09e2b5e"
+    },
+    "docs/08_下载部署与回退.md": {
+      "bytes": 6493,
+      "sha256": "80c52494a2f2fffcd95442d3cd656cba3438d4e9b1e900c30c22496c1b760d16"
+    },
+    "docs/09_实施任务与QF映射.md": {
+      "bytes": 2864,
+      "sha256": "1d19708053ea927269e6bdf4fb58cf7b3c346b68022ba2a94ccdf38ff4d846d3"
+    },
+    "docs/10_主图配图图标迁移.md": {
+      "bytes": 2761,
+      "sha256": "81b43285d11ea19e17d90dad63cd3a104467cdcaaa73623fc91aa7a689ece0b1"
+    },
+    "docs/11_验证与验收矩阵.md": {
+      "bytes": 2752,
+      "sha256": "9ba28fae956b4286d88905bc3d1ee721568dd962103125e7b6641e296a0f8f44"
+    },
+    "docs/12_未来能力界面边界.md": {
+      "bytes": 2003,
+      "sha256": "93d9d27df2f31503320d1fdb5ab54889121f8af112416d40c92dc75f45017eab"
+    }
+  },
+  "hashed_not_committed": {
+    "README.md": {
+      "bytes": 3788,
+      "sha256": "29a77cb313db76fafa8a979774ee7f4e5637d40f5979215455cc9d7aef4cf80c"
+    },
+    "THIRD_PARTY_NOTICES.md": {
+      "bytes": 1622,
+      "sha256": "ba411633f0f9fcac5264795b0969fcbbcd38532f017eca3c6cb16099de5ae5db"
+    },
+    "adapters/AaosBrandMark.tsx": {
+      "bytes": 975,
+      "sha256": "60bd811dacc19abf0dc62e5bd3cb5d2a8e0bb5d08f5079b736d6d6e84595de59"
+    },
+    "adapters/AaosPrimitives.tsx": {
+      "bytes": 4113,
+      "sha256": "d83e9f2967e2d1ff96c2adec0008e07d3ed423ba12ebd7940627dec9193bff3a"
+    },
+    "adapters/GalaxyStates.tsx": {
+      "bytes": 742,
+      "sha256": "7fd33817d96b7cc4b737e1351fedb60a53c8fff35f842556a85b6f06c9b24520"
+    },
+    "adapters/galaxy-states.css": {
+      "bytes": 1451,
+      "sha256": "34bbf74cc62d0a6ed2cbab0294e59143ce13fbf01ec350b66612f01a7a899c81"
+    },
+    "adapters/primitives.css": {
+      "bytes": 2433,
+      "sha256": "442c6238259c31abb3cd813f6a8f63a591dbce1790b0c692c85f5c4d1bc5baf9"
+    },
+    "adapters/themes.css": {
+      "bytes": 2137,
+      "sha256": "cd6910f5e8d42af351e33631638a656270dcd59c8d12bcf27f2c80cca91639ec"
+    },
+    "assets/donors/apps/ArcheAxis.Desktop/AaosBrandMark.axaml": {
+      "bytes": 1292,
+      "sha256": "5fc46df426cef290bb39ca7e4ae2c3327e098d94e5f87b8716a219af05172b22"
+    },
+    "assets/donors/apps/ArcheAxis.Desktop/Assets/aaos-brand-mark.svg": {
+      "bytes": 821,
+      "sha256": "4dfa88385b608811d0166e5af6f41b86b6b3d44b1675cd06116d7d9daa5bc08e"
+    },
+    "assets/donors/frontend/src/components/AaosIcon.tsx": {
+      "bytes": 1777,
+      "sha256": "700c60fe2161382bab858da14e2402d9918d03ba09ed3f3c441dbfdb5ddca6c4"
+    },
+    "evidence/adapter-typecheck-dependencies.json": {
+      "bytes": 1225,
+      "sha256": "589ae571de81255d9fa57ab5d0390279323e913cd501cdd3baddcacb0490c2e7"
+    },
+    "evidence/authority/docs/DOCUMENTATION_AUTHORITY_INDEX.md": {
+      "bytes": 17064,
+      "sha256": "b99fee96255fa03e2779b0f4fc7f1a22b020d4425c01dce4b8dc7bf290fc76a9"
+    },
+    "evidence/authority/docs/architecture/CURRENT_ARCHITECTURE.md": {
+      "bytes": 6583,
+      "sha256": "80bb8cd6d1e863a487da2aadec59f610348b07ae54fddd80cc519aa4bd0276ae"
+    },
+    "evidence/authority/docs/authority/taskpack-1004-aaos01/01_完整执行任务书.md": {
+      "bytes": 22479,
+      "sha256": "211f5e1219d6c9fe5d4aef5b1e5674585954ac1723480bb191956afe752df2ea"
+    },
+    "evidence/authority/docs/current/AAOS01-Q00-Q15-LEDGER-FINAL-20261005.md": {
+      "bytes": 140324,
+      "sha256": "aaf6186a4396e9f5c95d5eae21b97917c23c8bcb6e72a0853eac67eb253da203"
+    },
+    "evidence/authority/docs/truth/CAPABILITY_ATLAS_V2.yaml": {
+      "bytes": 10318,
+      "sha256": "c290b342f47d38e79f3e1539175d21f822808495a902b465ea1b0d42b99cc39a"
+    },
+    "evidence/current-host/AGENTS.md": {
+      "bytes": 11062,
+      "sha256": "09fdb4f3772779128b64cb98a12a0b11c1660cd28e3bdc6dd987d585a3fc77cd"
+    },
+    "evidence/current-host/frontend/package.json": {
+      "bytes": 981,
+      "sha256": "1a5d67274fbd006bce149fb75811602328633234b47fff7b2403c3cef41cc784"
+    },
+    "evidence/current-host/scripts/runtime/dev.py": {
+      "bytes": 25241,
+      "sha256": "7994b92f526b5b84c04b62538043c7c9ed0b60c926ba97a6bac605caaeed2c7c"
+    },
+    "evidence/source-receipt.json": {
+      "bytes": 1792,
+      "sha256": "5edbf346bda298e7d61603fc01a04943143f3eceefa87a60c0a4d454b044bf2a"
+    },
+    "evidence/taskpack-validation.json": {
+      "bytes": 4155,
+      "sha256": "c748bbe1daa87a647555184dac11c5a8718d4bce8ae9e48398e939678e067132"
+    },
+    "preview/AAOS_UI_Visual_Analysis.html": {
+      "bytes": 25216581,
+      "sha256": "2b5df9efbe9fc397830e1efd60a988e4757fb94368fca0d94392763a6cf1f6fb"
+    },
+    "preview/components-lab.html": {
+      "bytes": 27400,
+      "sha256": "70d52d232c00ff688bee9edf35043acd9264c47765121c71cccae249f6e1c5f8"
+    },
+    "scripts/Common.ps1": {
+      "bytes": 2361,
+      "sha256": "ebe62c50a0f3e98bc72b67b7a67859b43d5196c1084c1ed2c171e1a8b2663d70"
+    },
+    "scripts/check-powershell.ps1": {
+      "bytes": 560,
+      "sha256": "c0f6adcbe3e78074c2de01d09c3efe4718d3b5bdc1287ee918ffd1ba4d91f86e"
+    },
+    "scripts/get-sources.ps1": {
+      "bytes": 2638,
+      "sha256": "2ddabd475fb47e896fccaa6ec92b054faf40ac1302af6fe89d848fe7ccc7bf34"
+    },
+    "scripts/install-ui.ps1": {
+      "bytes": 5390,
+      "sha256": "33eb4573bbad99fe8e5ed6c47edf8aa61dd81cc27ed765669862bc4b1b59b62c"
+    },
+    "scripts/preflight.ps1": {
+      "bytes": 1524,
+      "sha256": "3a44188b184fb630f43a4260d35481d713585b0e807aa9b78566fcc583ab25d4"
+    },
+    "scripts/verify_pack.py": {
+      "bytes": 1621,
+      "sha256": "3f2417b6f7405c0b3855bd3cd9c990f8717cf3385a4364ca27f59fec253bf809"
+    },
+    "spec/components.csv": {
+      "bytes": 18893,
+      "sha256": "a74fdf6e9b9c6e9992c5a83596e72836e82b0c7f91b06494894ee2de8ca703fb"
+    },
+    "spec/components.json": {
+      "bytes": 175039,
+      "sha256": "1e170d582244c64aca04c874b639c855616a14de4b7c01e49baec10261c35d1a"
+    },
+    "spec/contrast.json": {
+      "bytes": 3496,
+      "sha256": "dd7259e20ece6d223f24a29c044191ce828426a4573ccc539d8b1e85962d139f"
+    },
+    "spec/npm-profiles.json": {
+      "bytes": 1258,
+      "sha256": "0127628fb7d7d22564ec2b393965e75d19b933a15320c5d8aa5e314729e0ab44"
+    },
+    "spec/package-integrity.json": {
+      "bytes": 11381,
+      "sha256": "2411c7d462f2cdce77febdf5ff5a176963c143d4dbfa1d93293732dc5600c4ae"
+    },
+    "spec/pool-revisions.json": {
+      "bytes": 1798,
+      "sha256": "e9f6b33bf8d4b85e0aacb2ff7f46249990713d311d37b125d623c0360a961bfc"
+    },
+    "spec/reference-images.json": {
+      "bytes": 2439,
+      "sha256": "f4e9c2d7d1c8419a192e741b3b93c550799120d0cef54ea2cab3976e68b3ed02"
+    },
+    "spec/source-lock.json": {
+      "bytes": 8842,
+      "sha256": "7fdd8bd77b0c2b737ca1ad947b7f23349c6b0fee668d62a40459688a33964e5d"
+    },
+    "spec/themes.json": {
+      "bytes": 2330,
+      "sha256": "05bca922efa82e0d346c545ff71f174e2a0871a050ee19caf7c2c0451f75fdc3"
+    },
+    "vendor/magicuidesign__magicui/LICENSE.md": {
+      "bytes": 1060,
+      "sha256": "0147b84235ed916b8b4e89c1f80655351c5afe7d211b629be61f553a227b34ba"
+    },
+    "vendor/magicuidesign__magicui/apps/www/registry/magicui/border-beam.tsx": {
+      "bytes": 2462,
+      "sha256": "ccdfb52cb8f2089e7823a9edfe9c3a52e52ab6759ed5b91d184b1e2bb80cf414"
+    },
+    "vendor/magicuidesign__magicui/apps/www/registry/magicui/orbiting-circles.tsx": {
+      "bytes": 1735,
+      "sha256": "859b88b6c22144e5cd4bf04ab49d339090eea13b422d3085a80584e6b9d4da68"
+    },
+    "vendor/radix-ui__primitives/LICENSE": {
+      "bytes": 1063,
+      "sha256": "0e80a2d229d2fd4fc7e8636142ec5d0ff0bc031f14c15b682e2ac01dfd5b5138"
+    },
+    "vendor/radix-ui__primitives/packages/react/dialog/package.json": {
+      "bytes": 2426,
+      "sha256": "9e320decd352431921a4ae62004862935dbc34f41908aced614df762e0fd4fd5"
+    },
+    "vendor/shadcn-ui__ui/LICENSE.md": {
+      "bytes": 1063,
+      "sha256": "1564074e13439397221ffd522e2e504d56561994a23d371aa5e3ad43e4f5423f"
+    },
+    "vendor/shadcn-ui__ui/apps/v4/registry/new-york-v4/ui/button.tsx": {
+      "bytes": 2382,
+      "sha256": "79dd6f75f8136394442202d6b8b922fb269eaad0a5dba579397c9d5b41f893bb"
+    },
+    "vendor/shadcn-ui__ui/apps/v4/registry/new-york-v4/ui/dialog.tsx": {
+      "bytes": 4304,
+      "sha256": "2ade6074e5fad0a4eb171ead44c43d3301a3c83d186d7236fb1fdbea80ee556b"
+    },
+    "vendor/shadcn-ui__ui/apps/v4/registry/new-york-v4/ui/input.tsx": {
+      "bytes": 952,
+      "sha256": "0c9457181f6ddc80969bcf854e92c362903a55b6e889fbef3fd85343ecc4af5b"
+    },
+    "vendor/shadcn-ui__ui/apps/v4/registry/new-york-v4/ui/tabs.tsx": {
+      "bytes": 3772,
+      "sha256": "e1df6e2f95ece373ca909c1d54b8ba8cf4c47dd425c1784bbb9a01c38dd0936b"
+    },
+    "vendor/uiverse-io__galaxy/Cards/1osm_light-chipmunk-10.html": {
+      "bytes": 1208,
+      "sha256": "73c10ab7491f37398d6318f1afbfe2c97d9e8d7da316b7ab15bfd27468002276"
+    },
+    "vendor/uiverse-io__galaxy/LICENSE": {
+      "bytes": 1067,
+      "sha256": "7feadcd7a611d37a4546c99f63a162bdf65656137828ebcba92e57dccfa368a4"
+    },
+    "vendor/uiverse-io__galaxy/README.md": {
+      "bytes": 1790,
+      "sha256": "9ba53017977494b2a6efc86916c9f272d7592a3d1f1fa0f71443e46aed5283df"
+    },
+    "vendor/uiverse-io__galaxy/loaders/AHMED-MIT_curly-rabbit-4.html": {
+      "bytes": 664,
+      "sha256": "f4a1898dfba693d04fe27e901b0cd928da3b2bef72f3bb0cb96ca7eea777b00a"
+    }
+  },
+  "installed_from": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\inputs\\AAOS_UI_Taskpack_20261007\\AAOS_UI_Taskpack_20261007",
+  "pack_name": "AAOS_UI_Taskpack_20261007",
+  "schema": "archeaxis.taskpack.archive/v1"
+}
