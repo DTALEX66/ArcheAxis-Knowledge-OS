@@ -21,6 +21,7 @@
         "html.structure",
         "image.caption",
         "image.ocr",
+        "media.diarize",
         "media.probe",
         "media.transcribe",
         "media.video",
