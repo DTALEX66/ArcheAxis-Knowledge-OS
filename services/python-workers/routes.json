@@ -11,6 +11,9 @@
     "course.general": [
       "course/worker_general_course.py"
     ],
+    "document.detect": [
+      "document/worker_detect.py"
+    ],
     "html.structure": [
       "web/worker_html.py"
     ],
