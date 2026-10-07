@@ -23,6 +23,9 @@
     "machine.answer": [
       "machine/worker_machine_answer.py"
     ],
+    "media.diarize": [
+      "media/worker_diarize.py"
+    ],
     "media.probe": [
       "document/worker_media.py"
     ],
