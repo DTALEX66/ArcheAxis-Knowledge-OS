@@ -20,7 +20,8 @@ use archeaxis_api::app;
 use archeaxis_domain::source::{self, ImportOutcome};
 use archeaxis_store_sqlite::init_workspace;
 
-const TEXT: &str = "结论\n半径 6371 千米\ndef load():\n    import os\n    import json\n";
+const TEXT: &str =
+    "结论\n半径 6371 千米\ndef load():\n    import os\n    import json\nA1=6371 | B1=km\n";
 
 fn digest(value: &str) -> String {
     format!("{:x}", Sha256::digest(value.as_bytes()))
@@ -36,6 +37,12 @@ fn locations() -> Vec<Value> {
                "path": "/symbols/import", "value": "import os"}),
         json!({"kind": "python_symbol", "symbol_kind": "import", "name": "json", "line": 5,
                "path": "/symbols/import", "value": "import json"}),
+        // F09: two cells of one workbook row. The projected line carries both, so a row-level
+        // anchor would claim more than one cell of evidence; each must be nameable alone.
+        json!({"kind": "cell", "sheet": "半径", "coordinate": "A1", "row": 1, "column": 1,
+               "path": "半径!A1", "value": "A1=6371"}),
+        json!({"kind": "cell", "sheet": "半径", "coordinate": "B1", "row": 1, "column": 2,
+               "path": "半径!B1", "value": "B1=km"}),
         // a location whose value is not in the projection at all: the receipt drifted
         json!({"kind": "xml_path", "path": "/root/radius", "value": "6371 km, unprojected"}),
     ]
@@ -124,6 +131,8 @@ async fn a_heading_or_paragraph_named_by_the_receipt_is_addressable() {
         ("odf_heading", "/text:h/1", "结论"),
         ("odf_paragraph", "/text:p/1", "半径 6371 千米"),
         ("python_symbol", "/symbols/load", "def load():"),
+        ("cell", "半径!A1", "A1=6371"),
+        ("cell", "半径!B1", "B1=km"),
     ] {
         let (status, payload) = post(
             &db,
