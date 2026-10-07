@@ -297,7 +297,7 @@ def extract_windowed(path: str, model_path: str | None, language: str, device: s
         target = workspace / f"window-{int(window['index']):04d}.wav"
         command = windows.window_command(str(ffmpeg), str(input_path), int(window["start_ms"]),
                                          int(window["end_ms"]), str(target))
-        finished = subprocess.run(command, capture_output=True, text=True)
+        finished = subprocess.run(command, capture_output=True, text=True, encoding="utf-8")
         if finished.returncode != 0 or not target.is_file():
             raise RuntimeError(f"ffmpeg failed for window {window['index']}: {finished.stderr[-200:]}")
         # The canonical whole-file receipt is produced for the window's own wav, so a window cannot
