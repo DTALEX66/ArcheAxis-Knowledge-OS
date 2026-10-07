@@ -83,6 +83,31 @@ def test_frozen_original_bytes_are_preserved_and_mutations_rejected(path):
         }
 
 
+_RECOVERY = "docs/history/aaos-appendix-sources-20261007/QODER_AAOS_RECOVERY_20261007"
+# A06 is registered by hash outside this repository, so none of these five may be rewritten to
+# satisfy a formatting rule; the pin is what makes the exception safe, not the path.
+_RECOVERY_EXPORTS = [
+    f"{_RECOVERY}/sources/AAOS_快速重构与多格式闭环_完整方案_20261004.md",
+    f"{_RECOVERY}/sources/AAOS_未来延展与可持续架构_完整方案_20261004.md",
+    f"{_RECOVERY}/sources/CONTENT-COPY-V2.md",
+    f"{_RECOVERY}/records/U01_2026-10-06_最新保存_证据_双学习规则_RECOVERED.md",
+    f"{_RECOVERY}/records/U02_2026-10-06_AAOS图谱_双链研究增量_RECOVERED.md",
+]
+
+
+@pytest.mark.parametrize('path', _RECOVERY_EXPORTS)
+def test_pinned_recovery_exports_keep_their_bytes_and_their_format_is_not_general(path):
+    original = (ROOT / path).read_bytes()
+    assert scan_text_bytes(path, original) == []
+    # the same bytes under an unpinned name are still held to the rule, so the pin is per file
+    loose = {issue.code for issue in scan_text_bytes(f"docs/copied/{Path(path).name}", original)}
+    if Path(path).name.startswith(("CONTENT-COPY", "U01_", "U02_")):
+        assert 'trailing-whitespace' in loose, path
+    assert 'frozen-original-mismatch' in {
+        issue.code for issue in scan_text_bytes(path, original + b'x')
+    }
+
+
 def test_registry_resolves_canonical_ids_and_deprecated_aliases() -> None:
     registry = load_naming_registry(ROOT / "config" / "naming-registry.yaml")
 
