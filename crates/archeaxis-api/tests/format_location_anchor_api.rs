@@ -20,8 +20,7 @@ use archeaxis_api::app;
 use archeaxis_domain::source::{self, ImportOutcome};
 use archeaxis_store_sqlite::init_workspace;
 
-const TEXT: &str =
-    "结论\n半径 6371 千米\ndef load():\n    import os\n    import json\nA1=6371 | B1=km\n";
+const TEXT: &str = "结论\n半径 6371 千米\ndef load():\n    import os\n    import json\nA1=6371 | B1=km\nname,radius,note\nEarth,6371,round\n";
 
 fn digest(value: &str) -> String {
     format!("{:x}", Sha256::digest(value.as_bytes()))
@@ -43,6 +42,12 @@ fn locations() -> Vec<Value> {
                "path": "半径!A1", "value": "A1=6371"}),
         json!({"kind": "cell", "sheet": "半径", "coordinate": "B1", "row": 1, "column": 2,
                "path": "半径!B1", "value": "B1=km"}),
+        // F01: one delimited row carries three cells, so a row-level anchor named more than the
+        // evidence a single value supports. Each cell is reported by its own coordinate.
+        json!({"kind": "table_cell", "path": "csv!B2", "value": "6371", "coordinate": "B2",
+               "row": 2, "column": 2, "column_name": "radius", "in_projection": true}),
+        json!({"kind": "table_cell", "path": "csv!C2", "value": "round", "coordinate": "C2",
+               "row": 2, "column": 3, "column_name": "note", "in_projection": true}),
         // a location whose value is not in the projection at all: the receipt drifted
         json!({"kind": "xml_path", "path": "/root/radius", "value": "6371 km, unprojected"}),
     ]
@@ -133,6 +138,8 @@ async fn a_heading_or_paragraph_named_by_the_receipt_is_addressable() {
         ("python_symbol", "/symbols/load", "def load():"),
         ("cell", "半径!A1", "A1=6371"),
         ("cell", "半径!B1", "B1=km"),
+        ("table_cell", "csv!B2", "6371"),
+        ("table_cell", "csv!C2", "round"),
     ] {
         let (status, payload) = post(
             &db,
@@ -148,6 +155,48 @@ async fn a_heading_or_paragraph_named_by_the_receipt_is_addressable() {
         assert_eq!(status, StatusCode::CREATED, "{kind} {path}: {payload}");
         assert_eq!(payload["location_status"], "located", "{payload}");
     }
+}
+
+#[tokio::test]
+async fn a_delimited_cell_can_be_narrowed_by_the_column_the_header_named() {
+    let dir = tempfile::tempdir().unwrap();
+    let db = dir
+        .path()
+        .join("columns.sqlite")
+        .to_str()
+        .unwrap()
+        .to_string();
+    let (source_id, revision) = seed(&db);
+
+    let (status, payload) = post(
+        &db,
+        &source_id,
+        body(
+            &revision,
+            json!({"type": "format_location", "job_id": "text-job", "attempt": 1,
+                   "kind": "table_cell", "path": "csv!B2",
+                   "where": {"column_name": "radius"}}),
+            &digest("6371"),
+        ),
+    )
+    .await;
+    assert_eq!(status, StatusCode::CREATED, "{payload}");
+
+    // the same coordinate under a column name the receipt does not carry is refused, even though
+    // the digest itself would fit - narrowing must select, not invent
+    let (status, _payload) = post(
+        &db,
+        &source_id,
+        body(
+            &revision,
+            json!({"type": "format_location", "job_id": "text-job", "attempt": 1,
+                   "kind": "table_cell", "path": "csv!B2",
+                   "where": {"column_name": "note"}}),
+            &digest("6371"),
+        ),
+    )
+    .await;
+    assert_eq!(status, StatusCode::BAD_REQUEST);
 }
 
 #[tokio::test]
