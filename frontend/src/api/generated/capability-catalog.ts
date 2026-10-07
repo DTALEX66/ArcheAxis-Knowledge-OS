@@ -7,7 +7,7 @@ export const CAPABILITY_CATALOG = {
     },
     {
       "path": "config/capability-map.v1.json",
-      "sha256": "e8359301c10a38533341d9e67db37096946660d7d53567fb49b1a5039654f4cb"
+      "sha256": "e24d5c54320028b292254744fb369e3c66f491c1258bb12f22665efadaaf0cc9"
     }
   ],
   "note": "Read-only projection. Atlas declarations and implementation links are not runtime execution evidence.",
@@ -116,6 +116,7 @@ export const CAPABILITY_CATALOG = {
           "html.structure",
           "image.caption",
           "image.ocr",
+          "media.diarize",
           "media.probe",
           "media.transcribe",
           "media.video",
