@@ -2,12 +2,15 @@
 """ArcheAxis vNext speaker-diarization worker (F10): who spoke when, or nothing at all.
 
 The runtime is `sherpa-onnx`'s offline diarizer, which needs **two** ONNX assets - a pyannote
-segmentation model and a speaker-embedding model. Neither is in the shared model library yet, and the
-publishers that ship them in ONNX form are unreachable from this host (measured 2026-10-07, recorded in
-`docs/integrations/AAOS_SPEAKER_MODEL_SUPPLY_20261007.md`). So the rule for this worker is that it
-either reports a real diarization or reports exactly which artifact is missing. It never emits a
-plausible segment: an invented `speaker 0` would be indistinguishable from a result downstream, and a
-count of speakers nobody measured is the kind of claim this repository's rules forbid.
+segmentation model and a speaker-embedding model. Both are in the shared model library since
+2026-10-07 (`sherpa-onnx/speaker-diarization/`, provenance beside them): the earlier "unreachable from
+this host" reading was wrong in its cause - the publishers are reachable through a mirror, and what
+actually blocked the route was **ONNX metadata**, which is the only channel sherpa reads
+`sample_rate`/`framework` from. Supply is still resolved from the environment rather than from a
+declared external resource, so this worker keeps its rule: either report a real diarization or report
+exactly which artifact is missing. It never emits a plausible segment: an invented `speaker 0` would be
+indistinguishable from a result downstream, and a count of speakers nobody measured is the kind of
+claim this repository's rules forbid.
 
 Input is 16-bit mono PCM WAV. Other containers are refused by name rather than decoded through a
 guess: `media.probe` already states that a header is a claim by the file, not a measurement.
@@ -20,6 +23,7 @@ Output: {"engine","engine_version","text","structure","loss_receipt"}
 from __future__ import annotations
 
 import argparse
+import importlib.util
 import json
 import os
 import sys
@@ -44,12 +48,44 @@ def _library_root(override: str | None) -> Path | None:
     return None
 
 
+def _declared_models_dir() -> Path | None:
+    """The directory the capability manifest declares for these two assets.
+
+    Same rule as the OCR and Office lanes: a missing declaration is None, while a manifest that
+    exists and cannot be read raises - reporting that as "models not installed" would send someone
+    looking at the model library when the fault is the manifest.
+    """
+    module_path = Path(__file__).resolve().parent.parent / "tool_paths.py"
+    if not module_path.is_file():
+        return None
+    spec = importlib.util.spec_from_file_location("diarize_tool_paths", module_path)
+    if spec is None or spec.loader is None:
+        return None
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    declared = module.declared("sherpa-onnx-speaker-diarization", __file__)
+    return Path(declared) if declared else None
+
+
 def model_paths(models_dir: str | None = None) -> dict[str, Path]:
-    """The exact files this capability consumes, whether or not they exist."""
-    root = _library_root(models_dir)
-    if root is None:
+    """The exact files this capability consumes, whether or not they exist.
+
+    Supply resolves in the order the rest of the project uses: an explicit argument, then the
+    environment, then the capability manifest's declaration. A host with no declaration is not a
+    host with no models installed - the two answers are worded differently on purpose.
+    """
+    directory = None
+    override = (models_dir or "").strip()
+    if override:
+        directory = Path(override) / SUBDIRECTORY
+    else:
+        root = _library_root(models_dir)
+        if root is not None:
+            directory = root / SUBDIRECTORY
+        else:
+            directory = _declared_models_dir()
+    if directory is None:
         return {}
-    directory = root / SUBDIRECTORY
     return {"segmentation": directory / SEGMENTATION_FILE, "embedding": directory / EMBEDDING_FILE}
 
 
