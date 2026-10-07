@@ -456,7 +456,7 @@ mod verbatim_path_tests {
     fn an_absolute_member_path_is_named_verbatim_and_only_once() {
         let deep = Path::new(r"D:\work\archive-attempts\0123456789abcdef\1\members\0001-a.csv");
         let text = verbatim(deep).to_string_lossy().to_string();
-        assert_eq!(text, format!(r"\\?\{deep}"));
+        assert_eq!(text, format!(r"\\?\{}", deep.display()));
         // a second pass must not add a second prefix: an already-verbatim path is returned as is
         assert_eq!(verbatim(Path::new(&text)).to_string_lossy(), text);
     }
