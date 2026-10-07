@@ -43,6 +43,25 @@ pub fn attempt_root(staging: &Path, job_id: &str, attempt: u64) -> PathBuf {
         .join(attempt.to_string())
 }
 
+/// The same absolute path in a form the Windows API opens at any depth.
+///
+/// `attempt_root` carries a 64-character job digest as one component, so a member path passes
+/// MAX_PATH inside an ordinary worktree rather than only in an exotic one. Windows answers such
+/// an open with ERROR_FILE_NOT_FOUND, which `expand_members` would otherwise report as a member
+/// the worker failed to write. The worker writes those bytes through the same prefix
+/// (`worker_archive._long_path`), so this is the read half of one contract, not a second path
+/// space. Non-Windows and already-verbatim paths are returned unchanged.
+fn verbatim(path: &Path) -> PathBuf {
+    #[cfg(windows)]
+    {
+        let text = path.as_os_str().to_string_lossy();
+        if path.is_absolute() && !text.starts_with(r"\\?\") {
+            return PathBuf::from(format!(r"\\?\{text}"));
+        }
+    }
+    path.to_path_buf()
+}
+
 /// One member the archive worker offered as a source.
 #[derive(Debug, Clone, Deserialize)]
 pub struct ArchiveMember {
@@ -329,7 +348,7 @@ pub fn expand_members(
         }
         let path: PathBuf = staging_root.join("members").join(&member.file);
         let mut bytes = Vec::new();
-        std::fs::File::open(&path)
+        std::fs::File::open(verbatim(&path))
             .and_then(|file| file.take(member.bytes + 1).read_to_end(&mut bytes))
             .map_err(|error| JobError::UnverifiableInput {
                 job: archive_job_id.to_string(),
@@ -423,6 +442,42 @@ mod supported_member_route_tests {
         }
         for name in ["video.mp4", "audio.wav", "audio.mp3", "unknown.bin"] {
             assert!(route_for_member(name).is_none(), "{name}");
+        }
+    }
+}
+
+#[cfg(test)]
+mod verbatim_path_tests {
+    use super::verbatim;
+    use std::path::Path;
+
+    #[cfg(windows)]
+    #[test]
+    fn an_absolute_member_path_is_named_verbatim_and_only_once() {
+        let deep = Path::new(r"D:\work\archive-attempts\0123456789abcdef\1\members\0001-a.csv");
+        let text = verbatim(deep).to_string_lossy().to_string();
+        assert_eq!(text, format!(r"\\?\{deep}"));
+        // a second pass must not add a second prefix: an already-verbatim path is returned as is
+        assert_eq!(verbatim(Path::new(&text)).to_string_lossy(), text);
+    }
+
+    #[cfg(windows)]
+    #[test]
+    fn a_relative_path_is_left_alone() {
+        // The verbatim form of a relative path is meaningless, and would then name a file under
+        // whatever the process working directory happens to be rather than the caller's.
+        let relative = Path::new(r"members\0001-a.csv");
+        assert_eq!(verbatim(relative), relative.to_path_buf());
+    }
+
+    #[cfg(not(windows))]
+    #[test]
+    fn the_prefix_is_never_added_off_windows() {
+        for path in [
+            Path::new("/work/members/0001-a.csv"),
+            Path::new("members/0001-a.csv"),
+        ] {
+            assert_eq!(verbatim(path), path.to_path_buf(), "{path:?}");
         }
     }
 }

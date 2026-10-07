@@ -73,6 +73,20 @@ def _safe_member_name(index: int, name: str) -> str:
     return f"{index:04d}-{safe or 'member'}"
 
 
+def _long_path(path: Path) -> str:
+    """A path string that still creates a file inside a deep workspace.
+
+    Windows answers a create whose full path passes MAX_PATH with ERROR_FILE_NOT_FOUND, so
+    the failure reads as "the directory vanished" instead of "the name is too long". The
+    transfer area here is keyed by a 64-character container digest, so an ordinary worktree
+    reaches that limit on its own; the extended-length prefix removes the limit.
+    """
+    text = str(path)
+    if sys.platform == "win32" and not text.startswith("\\\\?\\") and Path(text).is_absolute():
+        return "\\\\" + "?\\" + text
+    return text
+
+
 def _extract_members(members, container, out_dir: Path | None) -> tuple[list[dict], list[str]]:
     """Write the members the Core may import, and declare each one by digest.
 
@@ -85,7 +99,7 @@ def _extract_members(members, container, out_dir: Path | None) -> tuple[list[dic
     problems: list[str] = []
     if out_dir is None:
         return extracted, problems
-    out_dir.mkdir(parents=True, exist_ok=True)
+    Path(_long_path(out_dir)).mkdir(parents=True, exist_ok=True)
     total = 0
     files = [info for info in members if not info.is_dir()]
     for index, info in enumerate(files, start=1):
@@ -112,7 +126,7 @@ def _extract_members(members, container, out_dir: Path | None) -> tuple[list[dic
                     f"member byte budget of {MEMBER_BYTES_CAP} reached while reading; member was not extracted"
                 )
                 break
-            target.write_bytes(payload)
+            Path(_long_path(target)).write_bytes(payload)
             total += len(payload)
             extracted.append(
                 {
