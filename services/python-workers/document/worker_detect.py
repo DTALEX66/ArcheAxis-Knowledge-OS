@@ -66,7 +66,13 @@ def detect(path: str, repo_root: str | None = None) -> dict:
     if not target.is_file():
         return _unavailable(f"input is not a file: {target.name}", [])
 
-    from shared.file_detection import detect as magika_detect
+    try:
+        from shared.file_detection import detect as magika_detect
+    except ImportError as exc:
+        # The detector is vendored; what can be absent is the runtime that reads it. Name it, so a
+        # missing dependency is never reported as "the file has no type".
+        return _unavailable(f"the vendored detector cannot be loaded: {exc}",
+                            ["python package onnxruntime"])
 
     blob = target.read_bytes()
     verdict = magika_detect(blob)

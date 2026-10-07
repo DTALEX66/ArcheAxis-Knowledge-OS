@@ -109,7 +109,11 @@ def test_a_missing_runtime_is_named_as_the_gap_not_left_empty(monkeypatch) -> No
     result = worker.diarize("anything.wav")
     assert result["structure"]["state"] == "unavailable"
     assert result["loss_receipt"]["params"]["reason"] == "sherpa-onnx not installed"
-    assert result["loss_receipt"]["params"]["missing_artifacts"] == ["python package sherpa-onnx"]
+    assert result["loss_receipt"]["params"]["missing_artifacts"] == [
+        "python package sherpa-onnx",
+        f"sherpa-onnx/speaker-diarization/{worker.SEGMENTATION_FILE}",
+        f"sherpa-onnx/speaker-diarization/{worker.EMBEDDING_FILE}",
+    ]
 
 
 def test_names_the_exact_file_when_only_one_model_is_present(tmp_path: Path, monkeypatch) -> None:

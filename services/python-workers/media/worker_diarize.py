@@ -77,8 +77,13 @@ def probe(models_dir: str | None = None) -> dict:
     try:
         import sherpa_onnx  # noqa: F401
     except ImportError:
+        # Name every part of the supply chain this capability consumes, not just the first one
+        # found: which half is missing is a host fact, and a refusal that only names the runtime
+        # leaves the reader to guess whether the models are there.
         return {"capability": False, "reason": "sherpa-onnx not installed", "engine": ENGINE,
-                "missing_artifacts": ["python package sherpa-onnx"]}
+                "missing_artifacts": ["python package sherpa-onnx",
+                                      f"{SUBDIRECTORY}/{SEGMENTATION_FILE}",
+                                      f"{SUBDIRECTORY}/{EMBEDDING_FILE}"]}
     paths = model_paths(models_dir)
     if not paths:
         return {"capability": False, "engine": ENGINE,
