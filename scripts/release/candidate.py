@@ -24,6 +24,27 @@ SCHEMA = "archeaxis.candidate/v1"
 MANIFEST_NAME = "CANDIDATE.json"
 
 
+def _native_path(path: Path) -> str | Path:
+    """Name a bundle path so the Windows limit cannot make a present file read as absent.
+
+    No length test: every caller here treats a failed name as "missing" — the link check skips,
+    the source snapshot records `missing`, the manifest records a required file as absent, and
+    `os.walk` returns nothing for a directory it cannot open. A deep candidate would then verify
+    green while carrying an unchecked reparse point and unrecorded payload.
+    """
+    text = str(path)
+    if text.startswith("\\\\?\\"):
+        return text
+    if path.drive and path.drive.upper() not in {"E:", "F:"}:
+        return "\\\\?\\" + text
+    return path
+
+
+def _plain_path(path: str) -> Path:
+    """Undo the verbatim prefix on a walked directory so names stay comparable."""
+    return Path(path[len("\\\\?\\"):] if path.startswith("\\\\?\\") else path)
+
+
 def safe_bundle_path(root: Path, relative: str = "") -> Path:
     if os.fspath(root).replace('\\', '/').casefold().startswith(('e:', 'f:', '//')):
         raise ValueError("unsafe bundle root")
@@ -37,7 +58,7 @@ def safe_bundle_path(root: Path, relative: str = "") -> Path:
     target = root / relative
     for path in (*reversed(target.parents), target):
         try:
-            info = path.lstat()
+            info = Path(_native_path(path)).lstat()
         except FileNotFoundError:
             continue
         if stat.S_ISLNK(info.st_mode) or getattr(info, 'st_file_attributes', 0) & 0x400:
@@ -98,13 +119,13 @@ def read_source_snapshot(path: Path, *, project_root: Path) -> dict[str, str | i
         raise ValueError("source snapshot receipt must stay under project .project-local/runs") from exc
     for ancestor in (*reversed(path.parents), path):
         try:
-            info = ancestor.lstat()
+            info = Path(_native_path(ancestor)).lstat()
         except FileNotFoundError:
             continue
         if stat.S_ISLNK(info.st_mode) or getattr(info, "st_file_attributes", 0) & 0x400:
             raise ValueError("linked source snapshot receipt path is not allowed")
     try:
-        payload = json.loads(Path(path).read_text(encoding="utf-8"))
+        payload = json.loads(Path(_native_path(path)).read_text(encoding="utf-8"))
     except (OSError, json.JSONDecodeError) as exc:
         raise ValueError(f"source snapshot receipt is unreadable: {exc}") from exc
     if not isinstance(payload, dict) or payload.get("schema") != "aaos.source-snapshot-receipt/v1":
@@ -172,12 +193,12 @@ def working_tree_snapshot(root: Path) -> dict[str, str | int]:
 
         path = root.joinpath(*parts)
         try:
-            info = path.lstat()
+            info = Path(_native_path(path)).lstat()
         except FileNotFoundError:
             entries.append((normalized, "missing", ""))
             continue
         if stat.S_ISLNK(info.st_mode):
-            link_target = os.readlink(path).encode("utf-8", "surrogateescape")
+            link_target = os.readlink(_native_path(path)).encode("utf-8", "surrogateescape")
             content_digest = hashlib.sha256(link_target).hexdigest()
             kind = "symlink"
         elif stat.S_ISREG(info.st_mode):
@@ -211,7 +232,7 @@ def working_tree_snapshot(root: Path) -> dict[str, str | int]:
 
 def sha256_of(path: Path) -> str:
     digest = hashlib.sha256()
-    with path.open("rb") as handle:
+    with open(_native_path(path), "rb") as handle:
         for chunk in iter(lambda: handle.read(1024 * 1024), b""):
             digest.update(chunk)
     return digest.hexdigest()
@@ -221,7 +242,7 @@ def file_fact(path: Path, root: Path) -> dict:
     """One recorded file: its path relative to the bundle, its size and its digest."""
     return {
         "path": path.relative_to(root).as_posix(),
-        "bytes": path.stat().st_size,
+        "bytes": Path(_native_path(path)).stat().st_size,
         "sha256": sha256_of(path),
     }
 
@@ -329,27 +350,28 @@ def verify_manifest(
             problems.append(f"duplicate manifest file path: {relative}")
             continue
         seen.add(identity)
-        if not target.is_file():
+        if not Path(_native_path(target)).is_file():
             problems.append(f"{relative} is recorded but missing from the bundle")
             continue
-        if target.stat().st_size != entry.get("bytes"):
+        if Path(_native_path(target)).stat().st_size != entry.get("bytes"):
             problems.append(
-                f"{relative} is {target.stat().st_size} bytes, the manifest records {entry.get('bytes')}"
+                f"{relative} is {Path(_native_path(target)).stat().st_size} bytes, the manifest records {entry.get('bytes')}"
             )
         digest = sha256_of(target)
         if digest != entry.get("sha256"):
             problems.append(f"{relative} hashes to {digest[:16]}..., the manifest records {str(entry.get('sha256'))[:16]}...")
 
-    for directory, dirs, files in os.walk(root, followlinks=False):
+    for directory, dirs, files in os.walk(_native_path(root), followlinks=False):
+        plain_directory = _plain_path(directory)
         for name in list(dirs):
-            relative = (Path(directory) / name).relative_to(root).as_posix()
+            relative = (plain_directory / name).relative_to(root).as_posix()
             try:
                 safe_bundle_path(root, relative)
             except (ValueError, OSError):
                 dirs.remove(name)
                 problems.append("unsafe directory in bundle")
         for name in files:
-            relative = (Path(directory) / name).relative_to(root).as_posix()
+            relative = (plain_directory / name).relative_to(root).as_posix()
             try:
                 safe_bundle_path(root, relative)
             except (ValueError, OSError):
@@ -421,7 +443,7 @@ def readme_text(manifest: dict) -> str:
 
 
 def write_json(path: Path, payload: dict) -> None:
-    path.write_text(json.dumps(payload, ensure_ascii=False, indent=2, sort_keys=False) + "\n", encoding="utf-8", newline="\n")
+    Path(_native_path(path)).write_text(json.dumps(payload, ensure_ascii=False, indent=2, sort_keys=False) + "\n", encoding="utf-8", newline="\n")
 
 
 def write_bundle(root: Path, files: list[Path], **manifest_kwargs) -> dict:
@@ -434,7 +456,7 @@ def write_bundle(root: Path, files: list[Path], **manifest_kwargs) -> dict:
     """
     draft = build_manifest(root, files, **manifest_kwargs)
     readme = root / "README.md"
-    readme.write_text(readme_text(draft), encoding="utf-8", newline="\n")
+    Path(_native_path(readme)).write_text(readme_text(draft), encoding="utf-8", newline="\n")
     final = build_manifest(root, [*files, readme], **manifest_kwargs)
     if readme_text(final) != readme_text(draft):
         raise RuntimeError("the README depends on the file list, so it cannot be recorded by the manifest it is generated from")

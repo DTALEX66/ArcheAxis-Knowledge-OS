@@ -143,12 +143,12 @@ def verify(
     candidate = candidate.resolve()
     manifest_path = candidate / "candidate-manifest.json"
     problems: list[str] = []
-    if not candidate.is_dir():
+    if not Path(_native_path(candidate)).is_dir():
         return {"ok": False, "problems": ["candidate directory is missing"]}
-    if not manifest_path.is_file():
+    if not Path(_native_path(manifest_path)).is_file():
         return {"ok": False, "problems": ["candidate-manifest.json is missing"]}
     try:
-        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+        manifest = json.loads(Path(_native_path(manifest_path)).read_text(encoding="utf-8"))
     except (OSError, json.JSONDecodeError) as exc:
         return {"ok": False, "problems": [f"manifest unreadable: {exc}"]}
     if manifest.get("schema") != "archeaxis.green-candidate/v1":
@@ -190,7 +190,7 @@ def verify(
     for relative in REQUIRED:
         path = candidate / relative
         entry = files.get(relative)
-        if not path.is_file() or not isinstance(entry, dict):
+        if not Path(_native_path(path)).is_file() or not isinstance(entry, dict):
             problems.append(f"required file missing from candidate: {relative}")
             continue
         if _sha256(path) != entry.get("sha256"):
@@ -203,7 +203,7 @@ def verify(
         for relative in WORKER_REQUIRED:
             path = candidate / relative
             entry = files.get(relative)
-            if not path.is_file() or not isinstance(entry, dict):
+            if not Path(_native_path(path)).is_file() or not isinstance(entry, dict):
                 problems.append(f"required worker file missing from candidate: {relative}")
                 continue
             if _sha256(path) != entry.get("sha256"):

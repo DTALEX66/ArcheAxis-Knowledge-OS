@@ -230,7 +230,7 @@ def assemble(
             for capability, relative in sorted(route_workers.items())
             if Path(_native_path(root / relative)).is_file()
         ]
-        profile.write_text(json.dumps({
+        Path(_native_path(profile)).write_text(json.dumps({
             "schema": "archeaxis.worker-profile/v1",
             "python": "runtime/python.exe",
             "script": "workers/transport/text_ndjson.py",
@@ -239,9 +239,9 @@ def assemble(
         }, ensure_ascii=False, indent=2) + "\n", encoding="utf-8", newline="\n")
         copied_files.append(profile)
     donor = project_root / "shared" / "learning_scheduler.py"
-    if workers is not None and donor.is_file():
+    if workers is not None and Path(_native_path(donor)).is_file():
         target = root / "shared" / "learning_scheduler.py"
-        target.parent.mkdir(parents=True, exist_ok=True)
+        Path(_native_path(target.parent)).mkdir(parents=True, exist_ok=True)
         shutil.copy2(_native_path(donor), _native_path(target))
         copied_files.append(target)
 
@@ -278,7 +278,7 @@ shell.Environment("PROCESS")("ARCHAXIS_WORKER_PROFILE") = root & "\\worker-profi
 shell.Environment("PROCESS")("ARCHAXIS_SCHEDULER_WORKER") = root & "\\workers\\learning\\worker_schedule.py"
 shell.Run Chr(34) & executable & Chr(34), 1, False
 '''
-    launcher.write_text(launcher_text, encoding="utf-8", newline="\r\n")
+    Path(_native_path(launcher)).write_text(launcher_text, encoding="utf-8", newline="\r\n")
     copied_files.append(launcher)
 
     files: dict[str, dict[str, int | str]] = {}
