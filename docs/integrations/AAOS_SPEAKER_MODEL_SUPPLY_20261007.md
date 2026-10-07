@@ -30,20 +30,31 @@
    `campplus|3dspeaker|eres2net|sv_zh|speaker|diar` 零命中；`sherpa-onnx\` 下只有两个 **ASR** 模型
    （SenseVoice、streaming-zipformer），`40-models`、`60-cache` 同样零命中。
 5. 运行侧：CI venv 已装 `onnxruntime 1.20.1`、`faster_whisper 1.2.1`、`ctranslate2 4.8.1`、`numpy`；
-   **未装** `torch`、`torchaudio`、`sherpa-onnx`、`pyannote.audio`、`speechbrain`、`scikit-learn`、`scipy`、
-   `soundfile`、`librosa`。而 `sherpa-onnx` 已在 `config/environment/capability-requirements.yaml`
-   作为引擎声明并配了模型条目——即"声明了但未安装"这一条本身也是待办的对账项。
+   **未装** `torch`、`torchaudio`、`pyannote.audio`、`speechbrain`、`scikit-learn`、`scipy`、
+   `soundfile`、`librosa`。
+6. 一处**我自己的误判已更正**：先前把 `sherpa-onnx` 记成"已声明但未安装"的治理缺陷。读声明本体后不成立：
+   `config/environment/capability-requirements.yaml:291-300` 写的是 `install_method: uv`，健康检查是
+   `uv run --extra asr-sensevoice python -c "import sherpa_onnx"`，即它本来就该在项目隔离环境里按需解析，
+   而不是躺在 CI venv 中。判一个引擎是否"绑定"要按声明自身的安装方式来核，不能拿另一个 venv 的清单当尺子。
+7. 镜像主机也不能供货（实测）：`hf-mirror.com` 的**搜索**接口一次返回了 7 个 CAM++ ONNX 候选仓库名，
+   但紧接着逐文件树接口一次超时、三次 `WinError 10060` 连接失败，文件 `resolve` 路径因此无从验证。
+   搜索答过一次而文件服务不通，与"完全没有这个源"是两件事；本机的代理环境确实存在（宿主收据
+   `conditions.proxy_environment_present: true`），所以这类主机的表现是间歇性的。
+   规则不变：**拿不到发布方自己的逐文件校验和，就不下载**。
+   候选仓库名（未采信，仅供后续若网络策略改变时复核）：`welcomyou/campplus-3dspeaker-200k-onnx`、
+   `bitsydarel/campplus-onnx`、`Alkd/campplus-zh-cn-common-200k-onnx`、
+   `Serkan007/Speaker-Diarization-ONNX-sherpa`、`Serkan007/Speaker-ID-ONNX-sherpa`。
 
 ## 结论与下一步的前置条件
 
-F10（说话人分离）当前的真实卡点是**供给路径**，不是意愿：可用的发布方式只剩"已知仓库名 + 逐文件校验和"
-这一条，而它给出的是需要 torch 的权重；能免 torch 的 ONNX 导出恰好落在本机不可达的两个主机上。
+F10（说话人分离）当前唯一的真实卡点是**一个能给出逐文件校验和且本机可达的 ONNX 源**：
 
-因此要继续 F10，需要下列之一（都需要 Owner 或网络侧决策，不能由我单方越过）：
+- 运行时不是卡点。`sherpa-onnx` 已按 `uv` extra 声明（见上第 6 条），`onnxruntime` 也已在 CI venv 内；
+  目标里"缺工具下载到工具库"这一条在这台机器上有可用通道。
+- 模型是卡点。可达且带校验和的发布源只给出需要 torch 的权重；免 torch 的 ONNX 导出分别在
+  GitHub Release（不可达）、`huggingface.co`（超时）与 `hf-mirror.com`（搜索答过一次，文件与树接口
+  连接失败）三处，均无法在下载前核验。
 
-- 允许把 `sherpa-onnx`（PyPI 可达，`uv` 已验证可解析）装进**项目自有**的 venv，并由我按其文档指定的
-  镜像取 ONNX 嵌入模型；或
-- 提供一条可达的、逐文件发布校验和的 ONNX 下载源；或
-- 接受 torch 权重路线（体量与维护成本明显更高）。
-
-在这之前，F10 在格式矩阵里保持 `PARTIAL`，`gap` 文本"仍无说话人分离"是对的，不改。
+因此要继续 F10，需要下列之一：允许我在网络策略上把镜像主机的 `resolve` 路径当作可用源重试（并只在
+拿到发布方 SHA-256 时才落盘）；或由 Owner 提供一条可达、逐文件发布校验和的 ONNX 源。二者都不具备时，
+F10 在格式矩阵里保持 `PARTIAL`，`gap` 文本"仍无说话人分离"是对的，不改。
