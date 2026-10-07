@@ -12,6 +12,7 @@ import { BackupPanel } from "../components/BackupPanel";
 import { ContainerMemberChain } from "../components/ContainerMemberChain";
 import { ContentDetectionPanel } from "../components/ContentDetectionPanel";
 import { PdfPageRecognition } from "../components/PdfPageRecognition";
+import { FolderIngest } from "../components/FolderIngest";
 import "../components/content.css";
 import type { InspectionTarget } from "../components/Inspector";
 import type { LibrarySection } from "../components/ContextNav";
@@ -357,6 +358,7 @@ export function CanonicalLibrarySpace({onKnowledge,initialDocumentId,onDirtyChan
     <p className="muted">原件保留其不可变版本；草稿自动保存到本地核心，引用绑定原件版本。</p>
     <label className="content-import">导入原件 <input type="file" aria-label="导入原件" disabled={importing} onChange={(event) => { const file = event.target.files?.[0]; if (file) void importFile(file); event.target.value = ""; }} /></label>
     {importReceipt?<dl className="receipt-grid" aria-label="导入回执"><div><dt>来源文件</dt><dd>{importReceipt.name}</dd></div><div><dt>原件大小</dt><dd>{importReceipt.bytes} 字节</dd></div><div><dt>导入状态</dt><dd>{importReceipt.state}</dd></div><div><dt>下一步</dt><dd>选择原件阅读或执行转换，再从实际引文整理待审核知识。</dd></div></dl>:null}
+    <FolderIngest />
     <div className="canonical-library">
       <nav ref={sourceNavigation} tabIndex={-1} className="canonical-sources" aria-label="保留原件">
         {sources.length === 0 ? <p>暂无原件。</p> : sources.slice(sourcePage*30,(sourcePage+1)*30).map((item) => <button type="button" key={item.source_id} aria-current={source?.source_id === item.source_id ? "true" : undefined} onClick={() => void open(item)}>{item.original_name}</button>)}
