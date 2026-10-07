@@ -310,6 +310,25 @@ ROUTES = {
         },
         "call": "transcribe",
     },
+    # F10: the diarizer was declared and Core-registered, and this table is what makes a job
+    # actually reach it. Without the row here the worker answers "unsupported capability".
+    "media.diarize": {
+        "version": "1",
+        "worker": "services/python-workers/media/worker_diarize.py",
+        "media_types": {"audio/wav", "audio/x-wav"},
+        "call": "path",
+        # The route contract needs canonical line anchors over the projected text; the worker's own
+        # boundary structure is kept beside it as a fact rather than sent as the structure.
+        "contract_adapter": True,
+    },
+    # F04: the content judgement over bytes the extension could not name.
+    "document.detect": {
+        "version": "1",
+        "worker": "services/python-workers/document/worker_detect.py",
+        "media_types": {"application/octet-stream"},
+        "call": "path",
+        "contract_adapter": True,
+    },
     # R15/F07-F09: an Office package is a ZIP of XML parts; this route reaches the
     # worker that already read them since the 2026-09-05 slice but had no route.
     "office.structure": {

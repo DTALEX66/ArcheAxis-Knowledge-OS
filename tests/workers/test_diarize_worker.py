@@ -96,11 +96,11 @@ def test_refuses_without_a_declared_library_and_names_both_artifacts(monkeypatch
     assert result["structure"]["state"] == "unavailable"
     assert result["text"] == ""
     assert result["structure"]["segments"] == []
-    assert result["loss_receipt"]["missing_artifacts"] == [
+    assert result["loss_receipt"]["params"]["missing_artifacts"] == [
         f"sherpa-onnx/speaker-diarization/{worker.SEGMENTATION_FILE}",
         f"sherpa-onnx/speaker-diarization/{worker.EMBEDDING_FILE}",
     ]
-    assert "no diarization was produced" in result["loss_receipt"]["claim"]
+    assert "no diarization was produced" in result["loss_receipt"]["params"]["claim"]
 
 
 def test_a_missing_runtime_is_named_as_the_gap_not_left_empty(monkeypatch) -> None:
@@ -108,8 +108,12 @@ def test_a_missing_runtime_is_named_as_the_gap_not_left_empty(monkeypatch) -> No
     monkeypatch.setitem(sys.modules, "sherpa_onnx", None)
     result = worker.diarize("anything.wav")
     assert result["structure"]["state"] == "unavailable"
-    assert result["loss_receipt"]["reason"] == "sherpa-onnx not installed"
-    assert result["loss_receipt"]["missing_artifacts"] == ["python package sherpa-onnx"]
+    assert result["loss_receipt"]["params"]["reason"] == "sherpa-onnx not installed"
+    assert result["loss_receipt"]["params"]["missing_artifacts"] == [
+        "python package sherpa-onnx",
+        f"sherpa-onnx/speaker-diarization/{worker.SEGMENTATION_FILE}",
+        f"sherpa-onnx/speaker-diarization/{worker.EMBEDDING_FILE}",
+    ]
 
 
 def test_names_the_exact_file_when_only_one_model_is_present(tmp_path: Path, monkeypatch) -> None:
@@ -142,7 +146,7 @@ def test_projects_real_segments_and_passes_the_actual_audio_buffer(tmp_path: Pat
     assert result["structure"]["segments"][1] == {"speaker": 0, "start": 0.5, "end": 1.0, "duration": 0.5}
     assert result["structure"]["models"]["segmentation"].endswith(worker.SEGMENTATION_FILE)
     assert len(_FakeDiarizer.received[0]) == 16000, "the buffer handed over is the file's own frames"
-    assert result["loss_receipt"]["boundaries_only"] is True
+    assert result["loss_receipt"]["params"]["boundaries_only"] is True
 
 
 def test_a_wav_the_diarizer_cannot_consume_is_refused_by_name(tmp_path: Path, monkeypatch) -> None:
@@ -154,5 +158,14 @@ def test_a_wav_the_diarizer_cannot_consume_is_refused_by_name(tmp_path: Path, mo
     ):
         result = worker.diarize(str(_wav(tmp_path / f"x{rate}{channels}.wav", seconds, rate, channels)), str(library))
         assert result["structure"]["state"] == "unavailable"
-        assert expected in result["loss_receipt"]["reason"], result["loss_receipt"]
+        assert expected in result["loss_receipt"]["params"]["reason"], result["loss_receipt"]
         assert _FakeDiarizer.received == [], "a refused file must never reach the model"
+
+
+def test_a_job_refusal_names_the_missing_artefacts_instead_of_settling_empty(tmp_path, monkeypatch) -> None:
+    # The Core launches the worker through `extract`, where an empty result cannot be returned:
+    # silence would read as "a recording with no speakers" rather than as nothing being supplied.
+    with pytest.raises(RuntimeError) as raised:
+        worker.extract(str(_wav(tmp_path / "a.wav")))
+    message = str(raised.value)
+    assert worker.SEGMENTATION_FILE in message and worker.EMBEDDING_FILE in message, message

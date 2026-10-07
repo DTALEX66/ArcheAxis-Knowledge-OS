@@ -18,6 +18,7 @@
       "runtime_capabilities": [
         "archive.inventory",
         "canvas.structure",
+        "document.detect",
         "html.structure",
         "image.caption",
         "image.ocr",
