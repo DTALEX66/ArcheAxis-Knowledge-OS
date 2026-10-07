@@ -12,6 +12,7 @@ import builtins
 import hashlib
 import importlib.util
 import json
+import shutil
 import subprocess
 import sys
 import tempfile
@@ -180,6 +181,51 @@ class XlsRouteTests(unittest.TestCase):
             cwd=REPO, capture_output=True, text=True, encoding="utf-8",
         )
         self.assertEqual(completed.returncode, 0, (completed.stdout + completed.stderr)[-300:])
+
+
+class XlsMemberDepthTests(unittest.TestCase):
+    """A converted sheet lands in the same attempt-keyed transfer area as a container's members.
+
+    That directory reaches 247 characters in an ordinary worktree, and this fixture's own sheet
+    titles put the written file past the length Windows enforces on a plain path - where the
+    create fails as ERROR_FILE_NOT_FOUND. The premise is measured on the machine running this, so
+    a host that lifts the limit is reported rather than silently passed.
+    """
+
+    def test_a_sheet_is_still_declared_at_the_depth_the_host_transfer_area_has(self):
+        if sys.platform != "win32":
+            self.skipTest("the plain-path limit is a Windows fact")
+        box = Path(tempfile.mkdtemp())
+        try:
+            node = box
+            if len(str(node)) < 239:
+                node = node / ("c" * (239 - len(str(node)) - 1))
+            if len(str(node)) > 243:
+                self.skipTest("the temporary base is already too deep to express the host shape")
+            node.mkdir(parents=True, exist_ok=True)
+            members = node / "members"
+            members.mkdir()
+            target = members / "sheet-01-Evidence.csv"
+            self.assertLessEqual(len(str(members)), 251)
+            self.assertGreaterEqual(len(str(target)), 261)
+            try:
+                target.write_bytes(b"x")
+                reachable = True
+            except OSError:
+                reachable = False
+            if reachable:
+                self.skipTest("this machine creates files past the limit, so the shape is absent")
+
+            out = worker.extract(str(GOLDEN), member_dir=str(members))
+            declared = out["loss_receipt"]["params"]["structure"]["extractable_members"]
+            self.assertEqual([item["name"] for item in declared],
+                             ["Evidence.csv", "Numbers.csv"], declared)
+            for item in declared:
+                written = transport.filesystem_path(members / item["file"]).read_bytes()
+                self.assertEqual(len(written), item["bytes"])
+                self.assertEqual(hashlib.sha256(written).hexdigest(), item["sha256"])
+        finally:
+            shutil.rmtree(transport.filesystem_path(box), ignore_errors=True)
 
 
 if __name__ == "__main__":

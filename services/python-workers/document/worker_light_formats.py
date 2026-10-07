@@ -224,6 +224,23 @@ def _safe_attachment_name(index: int, name: str) -> str:
     return f"{index:04d}-{safe or 'attachment'}"
 
 
+def _long_path(path) -> str:
+    """Name an absolute transfer path in a form Windows still creates inside a deep workspace.
+
+    The transport prefixes only the directory it hands over, and Windows answers a create whose
+    full path passes the limit with ERROR_FILE_NOT_FOUND, so a part whose own name is a dozen
+    characters longer than that directory simply stops existing. Same convention as
+    `worker_archive._long_path`; the Core reads these bytes back through the same prefix.
+    """
+    import sys
+    from pathlib import Path as _Path
+
+    text = str(path)
+    if sys.platform == "win32" and not text.startswith("\\\\?\\") and _Path(text).is_absolute():
+        return "\\\\" + "?\\" + text
+    return text
+
+
 def mail_attachments(raw, member_dir):
     """Write the attachments a mail carries and declare each one by digest.
 
@@ -271,9 +288,9 @@ def mail_attachments(raw, member_dir):
             )
             break
         try:
-            out.mkdir(parents=True, exist_ok=True)
+            _Path(_long_path(out)).mkdir(parents=True, exist_ok=True)
             target = out / _safe_attachment_name(seen, filename or "attachment")
-            target.write_bytes(payload)
+            _Path(_long_path(target)).write_bytes(payload)
         except OSError as exc:
             problems.append(f"attachment {filename!r} could not be written: {exc}")
             continue

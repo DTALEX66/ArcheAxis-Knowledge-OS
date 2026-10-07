@@ -11,8 +11,13 @@ from __future__ import annotations
 import hashlib
 import importlib.util
 import json
+import shutil
+import sys
+import tempfile
 from email.message import EmailMessage
 from pathlib import Path
+
+import pytest
 
 REPO = Path(__file__).resolve().parents[2]
 TEXT = REPO / "services" / "python-workers" / "document" / "worker_text.py"
@@ -256,3 +261,47 @@ def test_a_mail_with_a_real_body_is_unchanged(tmp_path: Path):
     assert {item["kind"] for item in facts["locations"]} == {"mail_mime_part"}
     assert "mail MIME body decoded" in " ".join(result["loss_receipt"]["losses"])
 
+
+
+@pytest.mark.skipif(sys.platform != "win32", reason="the plain-path limit is a Windows fact")
+def test_an_attachment_is_still_declared_at_the_depth_the_host_transfer_area_has():
+    """The attempt-keyed transfer area reaches 247 characters in an ordinary worktree.
+
+    A mail's own attachment name puts the written file past the length Windows enforces on a
+    plain path, where the create fails as ERROR_FILE_NOT_FOUND and the worker reported the part
+    as unwritable - so the mail declared zero members while the Core was never told a limit was
+    hit. The premise is measured here, not assumed: the same plain write is refused before the
+    worker is asked to do it, and the declared bytes are read back through the transport's own
+    IO-boundary helper.
+    """
+    box = Path(tempfile.mkdtemp())
+    try:
+        node = box
+        if len(str(node)) < 239:
+            node = node / ("c" * (239 - len(str(node)) - 1))
+        if len(str(node)) > 243:
+            pytest.skip("the temporary base is already too deep to express the host shape")
+        node.mkdir(parents=True, exist_ok=True)
+        members = node / "members"
+        members.mkdir()
+        target = members / "0001-note-1.txt"
+        assert len(str(members)) <= 251 and len(str(target)) >= 261
+        try:
+            target.write_bytes(b"x")
+        except OSError:
+            pass
+        else:
+            pytest.skip("this machine creates files past the limit, so the shape is absent")
+
+        source = node / "letter.eml"
+        source.write_bytes(_mail())
+        result = worker_text.extract(str(source), "message/rfc822", member_dir=str(members))
+        declared = _members(result)
+        assert {item["name"] for item in declared} == {"note-1.txt", "note-2.txt"}, declared
+        assert not any("could not be written" in line
+                       for line in result["loss_receipt"]["losses"]), result["loss_receipt"]["losses"]
+        for item in declared:
+            written = transport.filesystem_path(members / item["file"]).read_bytes()
+            assert hashlib.sha256(written).hexdigest() == item["sha256"]
+    finally:
+        shutil.rmtree(transport.filesystem_path(box), ignore_errors=True)

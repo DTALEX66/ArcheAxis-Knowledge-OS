@@ -526,6 +526,21 @@ def _safe_csv_name(index: int, name: str) -> str:
     return f"sheet-{index:02d}-{safe or 'sheet'}.csv"
 
 
+def _long_path(path: Path) -> str:
+    """Name an absolute transfer path in a form Windows still creates inside a deep workspace.
+
+    A sheet's converted CSV lands in the same attempt-keyed transfer area as a container's
+    members, and its name carries up to 48 characters of the sheet's own title. The transport
+    prefixes only the directory it hands over, and Windows answers a create whose full path
+    passes the limit with ERROR_FILE_NOT_FOUND. Same convention as `worker_archive._long_path`;
+    the Core reads these bytes back through the same prefix.
+    """
+    text = str(path)
+    if sys.platform == "win32" and not text.startswith("\\\\?\\") and Path(text).is_absolute():
+        return "\\\\" + "?\\" + text
+    return text
+
+
 def _xls_cell(sheet, book, row: int, col: int) -> tuple[str, str]:
     """One cell as (displayed text, type name), using only what xlrd reports."""
     import xlrd
@@ -924,9 +939,9 @@ def _xls_text(path: Path, member_dir: Path | None = None) -> dict:
                               "later sheets were not converted")
                 break
             out = Path(member_dir)
-            out.mkdir(parents=True, exist_ok=True)
+            Path(_long_path(out)).mkdir(parents=True, exist_ok=True)
             target = out / _safe_csv_name(index + 1, sheet.name)
-            target.write_bytes(payload)
+            Path(_long_path(target)).write_bytes(payload)
             total_bytes += len(payload)
             members_written.append({
                 "name": f"{sheet.name}.csv",
