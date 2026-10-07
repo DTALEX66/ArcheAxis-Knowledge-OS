@@ -440,7 +440,9 @@ pub fn record_review_with_state_and_answer(
     // the interim cannot be silently overwritten by a stale schedule.
     if let Some(expected_basis) = expected_previous_fsrs_state {
         if latest_fsrs_state_json(&tx, item_key)? != expected_basis {
-            return Err(invalid("schedule basis conflict: review state moved during scheduling"));
+            return Err(invalid(
+                "schedule basis conflict: review state moved during scheduling",
+            ));
         }
     }
     let schedule = resolve(&tx)?;

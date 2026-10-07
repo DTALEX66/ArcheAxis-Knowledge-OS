@@ -26,19 +26,38 @@ fn unscheduled() -> ReviewSchedule {
 fn matching_basis_records_and_mismatched_basis_is_rejected() {
     let (_dir, mut conn) = workspace();
     // The item has no prior FSRS card, so the correct basis is "no state".
-    assert_eq!(learning::latest_fsrs_state_json(&conn, "card").unwrap(), None);
+    assert_eq!(
+        learning::latest_fsrs_state_json(&conn, "card").unwrap(),
+        None
+    );
 
     let ok = learning::record_review_with_state_and_answer(
-        &mut conn, "card", "review", true, "key-match", "canonical-match", None, None,
-        Some(None), |_| Ok(unscheduled()),
+        &mut conn,
+        "card",
+        "review",
+        true,
+        "key-match",
+        "canonical-match",
+        None,
+        None,
+        Some(None),
+        |_| Ok(unscheduled()),
     )
     .expect("a schedule computed from the current (absent) basis records normally");
     assert!(!ok.duplicate);
 
     // A stale, non-null basis must be refused: it never reaches the insert.
     let stale = learning::record_review_with_state_and_answer(
-        &mut conn, "card", "review", true, "key-stale", "canonical-stale", None, None,
-        Some(Some("{}".to_string())), |_| panic!("a rejected basis must not resolve a schedule"),
+        &mut conn,
+        "card",
+        "review",
+        true,
+        "key-stale",
+        "canonical-stale",
+        None,
+        None,
+        Some(Some("{}".to_string())),
+        |_| panic!("a rejected basis must not resolve a schedule"),
     );
     match stale {
         Err(rusqlite::Error::InvalidParameterName(message)) => {
@@ -55,8 +74,16 @@ fn unguarded_callers_keep_their_previous_behaviour() {
     let (_dir, mut conn) = workspace();
     // Passing no expectation never checks the basis, matching the legacy wrapper path.
     let result = learning::record_review_with_state_and_answer(
-        &mut conn, "card", "review", true, "key-unguarded", "canonical-unguarded", None, None,
-        None, |_| Ok(unscheduled()),
+        &mut conn,
+        "card",
+        "review",
+        true,
+        "key-unguarded",
+        "canonical-unguarded",
+        None,
+        None,
+        None,
+        |_| Ok(unscheduled()),
     )
     .expect("unguarded callers are unaffected by the new basis parameter");
     assert_eq!(result.next_review_days, SCHEDULE_UNAVAILABLE);

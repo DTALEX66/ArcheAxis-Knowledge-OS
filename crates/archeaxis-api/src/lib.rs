@@ -872,15 +872,19 @@ async fn record_stateful_review(
     // writer while it does, so a slow schedule cannot block document saves or other reads.
     let snapshot_key = body.item_key.clone();
     let snapshot_now = body.now.clone();
-    let (previous_fsrs_state, instant) = match state.clone().submit_wait(move |conn| -> rusqlite::Result<(Option<String>, String)> {
-        let previous = learning::latest_fsrs_state_json(conn, &snapshot_key)?;
-        let instant = match snapshot_now.as_ref() {
-            Some(now) => now.clone(),
-            None => conn.query_row("SELECT strftime('%Y-%m-%dT%H:%M:%fZ','now')", [], |r| r.get::<_, String>(0))?,
-        };
-        Ok((previous, instant))
-    })
-    .await
+    let (previous_fsrs_state, instant) = match state
+        .clone()
+        .submit_wait(move |conn| -> rusqlite::Result<(Option<String>, String)> {
+            let previous = learning::latest_fsrs_state_json(conn, &snapshot_key)?;
+            let instant = match snapshot_now.as_ref() {
+                Some(now) => now.clone(),
+                None => conn.query_row("SELECT strftime('%Y-%m-%dT%H:%M:%fZ','now')", [], |r| {
+                    r.get::<_, String>(0)
+                })?,
+            };
+            Ok((previous, instant))
+        })
+        .await
     {
         Ok(Ok(value)) => value,
         Ok(Err(e)) => return (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()).into_response(),
