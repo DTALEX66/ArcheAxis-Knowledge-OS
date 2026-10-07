@@ -174,3 +174,25 @@ def test_a_traversing_declaration_is_refused_by_both_readers(monkeypatch, tmp_pa
     assert paths, "no declared external path to check"
     assert not [p for p in paths if ".." in Path(p).parts], (
         "a declared external path traverses; use sibling_root instead")
+
+
+def test_the_index_is_written_with_lf_on_every_host(tmp_path, monkeypatch) -> None:
+    """A tracked generated file must not change line endings depending on who regenerated it.
+
+    This host's own test rebuilds the index in place, so platform newlines left the tree modified
+    after an otherwise clean run - and a dirty tree makes a development receipt unattributable to
+    the change it claims to record.
+    """
+    import importlib.util
+
+    spec = importlib.util.spec_from_file_location("newline_index_builder", BUILDER)
+    assert spec and spec.loader
+    builder = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(builder)
+    target = tmp_path / "external-resources-index.json"
+    monkeypatch.setattr(builder, "INDEX", target)
+    assert builder.main() == 0
+    written = target.read_bytes()
+    assert b"\r" not in written, "the builder wrote platform newlines into a tracked artefact"
+    assert json.loads(written.decode("utf-8"))["schema"] == "archeaxis/external-resources-index/v1"
+    assert b"\r" not in INDEX.read_bytes(), "the committed index is not the LF form the builder writes"
