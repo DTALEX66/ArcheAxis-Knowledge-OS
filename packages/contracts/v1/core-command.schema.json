@@ -15,6 +15,7 @@
         "sources_list",
         "source_jobs",
         "source_members",
+        "source_pages",
         "source_original",
         "documents_list",
         "document_create",
