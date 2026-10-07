@@ -9,6 +9,7 @@ goes looking for an engine that was never at fault.
 
 from __future__ import annotations
 
+import os
 from pathlib import Path
 
 import pytest
@@ -49,12 +50,22 @@ def _deep_database(tmp_path: Path) -> Path:
     return database
 
 
-def _patch_converter(monkeypatch) -> list[str]:
-    """Patch the engine seam itself, so the name the converters receive is observable."""
-    seen: list[str] = []
+def _patch_converter(monkeypatch) -> list[dict]:
+    """Patch the engine seam itself, so the name the converters receive is observable.
+
+    The read is taken inside the seam because the upload's temp file is unlinked once conversion
+    returns; opening it afterwards would observe the absence, not the name.
+    """
+    seen: list[dict] = []
 
     def fake(source: Path):
-        seen.append(str(source))
+        observation: dict = {"name": str(source)}
+        try:
+            observation["bytes"] = Path(source).read_bytes()
+        except OSError as exc:
+            observation["bytes"] = None
+            observation["error"] = f"{type(exc).__name__}: {exc}"
+        seen.append(observation)
         trace = ConversionTrace(attempted_engines=("fake",), fallback_used=False, fallback_reason="")
         return "converted paragraph content", "fake-engine", trace
 
@@ -70,8 +81,16 @@ def test_the_converter_receives_the_verbatim_name_of_the_temp_file(tmp_path: Pat
         file_name="notes.txt", content=b"hello deep intake", db_path=database
     )
     assert seen, "no conversion happened, so the seam was not exercised"
-    assert seen[0].startswith("\\\\?\\"), (
-        f"the converters were handed an ordinary name, which past the limit they cannot open: {seen[0]}")
+    handed = seen[0]["name"]
+    # The name must be openable by the converter on every host; the verbatim prefix is what the
+    # Windows limit needs and exists on no other platform, so only that half is platform-bound.
+    assert seen[0]["bytes"] == b"hello deep intake", (
+        f"the handed name does not open as the uploaded bytes: {handed} "
+        f"({seen[0].get('error', 'read returned other bytes')})")
+    if os.name == "nt":
+        assert handed.startswith("\\\\?\\"), (
+            f"the converters were handed an ordinary name, which past the limit they cannot open: "
+            f"{handed}")
     assert result.get("raw_sha256"), result
 
 
