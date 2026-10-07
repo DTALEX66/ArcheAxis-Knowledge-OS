@@ -204,6 +204,113 @@ def source_revision() -> dict[str, object]:
     }
 
 
+
+HOST_BRIDGE_STUB = """
+(() => {
+  // Enough of a Tauri host for the formal surfaces to mount. The app decides it is on the desktop
+  // host by the presence of `window.__TAURI__.core.invoke`, and the recovery contract decides
+  // whether it shows the shell or the recovery screen; nothing here claims to be the native host.
+  const bodies = {
+    sources_list: { sources: [] },
+    documents_list: { documents: [] },
+    learning_items: { items: [] },
+    capabilities_list: { capabilities: [] },
+    anchors_list: { anchors: [] },
+    workspace_backups: { backups: [] },
+    system_version: { runtime: "archeaxis-api", contract: "0.1.0-outline", schema_version: 1,
+                      sqlite_version: "3.51.3" },
+  };
+  window.__TAURI__ = {
+    core: {
+      invoke: async (command, request) => {
+        if (command === "recovery_status") {
+          return { state: "ready", safe_mode: false, backend_available: true,
+                   message: "browser smoke host", backups: [], external_dev: false };
+        }
+        if (command === "core_command") {
+          return { status: 200, body: bodies[request?.request?.operation] ?? {} };
+        }
+        return null;
+      },
+    },
+  };
+})();
+"""
+
+
+def canonical_host_surface(browser, problems: list[str]) -> dict[str, object]:
+    """Render the formal Tauri host UI in a real Chromium engine, once, and read its affordances.
+
+    Until now this job only ever drove the browser *fallback* surface: `SpaceView` mounts the
+    canonical spaces only when `window.__TAURI__` exists. WebView2 is the same engine family as
+    Chromium, so this is where a host-only affordance such as the directory picker becomes a
+    measurement rather than a jsdom assumption. It does not open a native dialog, and claims none.
+    """
+    label, width, height, scale = DESKTOP_MATRIX[0]
+    context = browser.new_context(
+        viewport={"width": width, "height": height},
+        device_scale_factor=scale,
+        reduced_motion="reduce",
+    )
+    page = context.new_page()
+    page.on("pageerror", lambda error: problems.append(f"canonical-pageerror:{error}"))
+    page.on(
+        "console",
+        lambda message: problems.append(f"canonical-console:{message.text}")
+        if message.type == "error" else None,
+    )
+
+    def route_api(route: Route) -> None:
+        path = urlsplit(route.request.url).path
+        if path.startswith(f"{API_PREFIX}/") or path.startswith(f"{WORKSPACE_PREFIX}/api/"):
+            route.fulfill(
+                status=200,
+                content_type="application/json",
+                body=json.dumps(api_payload(route.request.url)),
+            )
+        else:
+            route.continue_()
+
+    context.add_init_script(HOST_BRIDGE_STUB)
+    page.route("**/*", route_api)
+    page.goto(URL, wait_until="networkidle")
+
+    assert page.evaluate("() => Boolean(window.__TAURI__?.core?.invoke)"), "the host stub did not reach the page"
+    # The desktop surface names its own liveness, which the browser fallback never shows; that is
+    # the discriminator between "mounted the host UI" and "silently rendered the fallback shell".
+    page.locator("ul[aria-label='产品空间']").first.wait_for()
+    assert page.get_by_text("后端状态：本地可用").first.is_visible(), "no desktop liveness on the surface"
+    assert page.get_by_text("本地桌面恢复").count() == 0, "the canonical surface fell back to the recovery shell"
+
+    page.locator('[data-space-id="library"]').click()
+    page.get_by_role("heading", name="资料库").first.wait_for()
+    folder = page.locator("input[aria-label='选择文件夹']")
+    folder.wait_for()
+    # `选择文件夹` exists only on the canonical library surface, so its presence is also the proof
+    # that this page really mounted the host UI rather than the fallback one.
+    affordance = folder.evaluate(
+        "(node) => ({directory: node.webkitdirectory === true, multiple: node.multiple,"
+        " hasDirectoryAttribute: node.hasAttribute('directory')})"
+    )
+    assert affordance == {"directory": True, "multiple": True, "hasDirectoryAttribute": True}, affordance
+    single_file_inputs = page.locator("input[aria-label='导入原件']").count()
+    assert single_file_inputs == 1, single_file_inputs
+
+    shot = ARTIFACTS / f"canonical-host-library-{label}.png"
+    page.screenshot(path=str(shot), full_page=True)
+    result: dict[str, object] = {
+        "viewport": label,
+        "host_bridge_stubbed": True,
+        "recovery_shell": False,
+        "canonical_library_mounted": True,
+        "single_file_import_inputs": single_file_inputs,
+        "folder_affordance": affordance,
+        "screenshot": str(shot.relative_to(ROOT)),
+    }
+    context.close()
+    return result
+
+
 def main() -> None:
     RUNTIME.mkdir(parents=True, exist_ok=True)
     ARTIFACTS.mkdir(parents=True, exist_ok=True)
@@ -211,6 +318,8 @@ def main() -> None:
     errors: list[str] = []
     viewports: dict[str, object] = {}
     themes: dict[str, object] = {}
+    canonical_problems: list[str] = []
+    canonical: dict[str, object] = {}
     try:
         with sync_playwright() as playwright:
             browser = playwright.chromium.launch(headless=True)
@@ -348,19 +457,23 @@ def main() -> None:
                     "screenshot": str(screenshot.relative_to(ROOT)),
                 }
                 context.close()
+            canonical = canonical_host_surface(browser, canonical_problems)
             browser.close()
     finally:
         stop_vite(process, log)
 
     assert not errors, errors
+    assert not canonical_problems, canonical_problems
     revision = source_revision()
     report = {
-        "schema": "archeaxis/canonical-browser-smoke/v3",
+        "schema": "archeaxis/canonical-browser-smoke/v4",
         "status": "PASS",
         "source_revision": revision,
         "errors": errors,
         "viewports": viewports,
         "themes": themes,
+        "canonical_host_surface": canonical,
+        "canonical_host_problems": canonical_problems,
     }
     output = ARTIFACTS / "canonical-browser-smoke.json"
     output.write_text(json.dumps(report, ensure_ascii=False, indent=2), encoding="utf-8")
