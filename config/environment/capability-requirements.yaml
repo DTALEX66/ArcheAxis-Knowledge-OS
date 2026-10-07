@@ -49,6 +49,7 @@ capabilities:
       license: "PSF-2.0"
       source_url: "https://www.python.org/downloads/windows/"
       install_method: scoop
+      external_paths: ["10-toolchains/scoop/apps/python/current/python.exe"]
       healthcheck_command: "python --version"
       required_by: [core-runtime, ci, tests]
       local_only: false
@@ -83,6 +84,7 @@ capabilities:
       license: "GPL-2.0-only"
       source_url: "https://git-scm.com/download/win"
       install_method: scoop
+      external_paths: ["10-toolchains/scoop/apps/git/current/bin/git.exe"]
       healthcheck_command: "git --version"
       required_by: [ci, tests, core-runtime]
       local_only: false
@@ -94,6 +96,7 @@ capabilities:
       license: "MIT"
       source_url: "https://nodejs.org/"
       install_method: scoop
+      external_paths: ["10-toolchains/scoop/apps/nodejs-lts/current/node.exe"]
       healthcheck_command: "node --version"
       required_by: [desktop-build]
       local_only: false
@@ -157,6 +160,7 @@ capabilities:
       license: "n/a"
       source_url: "n/a"
       install_method: uv-sync
+      external_paths: ["ArcheAxis-Knowledge-OS-ci-venv/Scripts/python.exe"]
       healthcheck_command: "uv run python --version"
       required_by: [ci, tests]
       local_only: true
@@ -273,6 +277,7 @@ capabilities:
       license: "Apache-2.0"
       source_url: "https://github.com/RapidAI/RapidOCR"
       install_method: uv
+      external_paths: ["ArcheAxis-Knowledge-OS-ci-venv/Lib/site-packages/rapidocr_onnxruntime"]
       healthcheck_command: "uv run python -c \"import rapidocr_onnxruntime\""
       required_by: [ocr-pipeline, bakeoff]
       local_only: false
@@ -284,6 +289,7 @@ capabilities:
       license: "MIT"
       source_url: "https://github.com/SYSTRAN/faster-whisper"
       install_method: uv
+      external_paths: ["ArcheAxis-Knowledge-OS-ci-venv/Lib/site-packages/faster_whisper"]
       healthcheck_command: "uv run python -c \"import faster_whisper\""
       required_by: [asr-pipeline, bakeoff]
       local_only: false
@@ -296,6 +302,7 @@ capabilities:
       source_url: "https://github.com/k2-fsa/sherpa-onnx"
       install_method: uv
       healthcheck_command: "uv run --extra asr-sensevoice python -c \"import sherpa_onnx\""
+      external_paths: ["ArcheAxis-Knowledge-OS-ci-venv/Lib/site-packages/sherpa_onnx"]
       required_by: [asr-pipeline]
       local_only: false
 
@@ -307,6 +314,7 @@ capabilities:
       license: "Apache-2.0"
       source_url: "https://github.com/RapidAI/RapidOCR"
       install_method: 自动下载
+      external_paths: ["ArcheAxis-Knowledge-OS-ci-venv/Lib/site-packages/rapidocr_onnxruntime/models/ch_PP-OCRv4_det_infer.onnx", "ArcheAxis-Knowledge-OS-ci-venv/Lib/site-packages/rapidocr_onnxruntime/models/ch_PP-OCRv4_rec_infer.onnx", "ArcheAxis-Knowledge-OS-ci-venv/Lib/site-packages/rapidocr_onnxruntime/models/ch_ppocr_mobile_v2.0_cls_infer.onnx"]
       healthcheck_command: "首次运行验证"
       required_by: [ocr-pipeline, bakeoff]
       local_only: true
@@ -318,6 +326,7 @@ capabilities:
       license: "MIT"
       source_url: "https://huggingface.co/Systran/faster-whisper-base"
       install_method: 自动下载
+      external_paths: ["40-models/huggingface/hub/models--Systran--faster-whisper-base/snapshots/ebe41f70d5b6dfa9166e2c581c45c9c0cfc57b66/model.bin"]
       healthcheck_command: "首次运行验证"
       required_by: [asr-pipeline, bakeoff]
       local_only: true
@@ -350,11 +359,13 @@ capabilities:
 
     - name: magika-standard-v3
       purpose: "文件类型检测 ONNX 模型（优先共享 Model library；仓库副本仅作离线回退）"
-      version_range: "standard_v3_0"
+      version_range: "standard_v3_3"
       platform: windows-x64
       license: "Apache-2.0"
       source_url: "vendored"
       install_method: 内置
+      external_paths: ["ArcheAxis-Knowledge-OS-ci-venv/Lib/site-packages/magika/models/standard_v3_3"]
       healthcheck_command: "Test-Path $env:ARCHEAXIS_MAGIKA_MODEL_DIR\\model.onnx"
+      # 绑定的是本机实际存在的资产：magika 0.6.3 随包发行 standard_v3_3，故版本字段与路径同批改为 v3_3。
       required_by: [file-detection]
       local_only: true
