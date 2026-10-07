@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { coreCommand } from "../api/core";
+import { conversionKindFor } from "../api/conversionKinds";
 import { estimateMediaWork, formatEstimate, describeSplit, splitProgressOf, MEDIA_CEILING_MS, MEDIA_REALTIME_FACTOR, type SplitProgress } from "../presentation/mediaEstimate";
 import { RawReceiptButton } from "./DiagnosticConsole";
 import { DataTable, Section } from "./RealData";
@@ -30,8 +31,7 @@ export function JobContent({sourceId,name,onKnowledge,sourceRevision,onTimeSeek,
  const [latestState,setLatestState]=useState<unknown>(null);
  const [splitProgress,setSplitProgress]=useState<SplitProgress|null>(null);
  const [transform,setTransform]=useState<Record<string,unknown>|null>(null);const [selection,setSelection]=useState({start:0,end:0});const [candidateBody,setCandidateBody]=useState("");const [candidateId,setCandidateId]=useState("");
- const routes:Record<string,string>={xlsx:"office",pptx:"office",docx:"office",html:"html",htm:"html",xhtml:"html",pdf:"pdf",png:"image",jpg:"image",jpeg:"image",tif:"image",tiff:"image",webp:"image",bmp:"image",zip:"archive",tar:"archive",canvas:"canvas",srt:"subtitles",vtt:"subtitles",wav:"transcribe",mp3:"transcribe",m4a:"transcribe",flac:"transcribe",ogg:"transcribe",opus:"transcribe",mp4:"video",mov:"video",mkv:"video",webm:"video",txt:"text",md:"text",csv:"text",tsv:"text",json:"text",jsonl:"text",yaml:"text",yml:"text",toml:"text",xml:"text",epub:"text",eml:"text"};
- const kind=extension?routes[extension]??null:null;
+ const kind=conversionKindFor(name);
  // The Core refuses a job deadline above the ceiling, so the user is told what the current
  // recording is expected to cost before anything is executed.
  const mediaEstimate=mediaDurationSeconds&&(kind==="transcribe"||kind==="video")?estimateMediaWork(Math.round(mediaDurationSeconds*1000)):null;
