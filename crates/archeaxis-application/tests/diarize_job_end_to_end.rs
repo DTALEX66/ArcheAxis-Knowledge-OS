@@ -57,7 +57,9 @@ async fn a_diarize_job_without_its_models_fails_naming_the_exact_artefacts() {
     // This scenario is about supply, so it pins supply instead of borrowing the host's. A machine
     // that has the declared diarization assets must not turn "absent models refuse" into a success,
     // and a machine without them must not be the only place the refusal is real.
-    let worker = dir.path().join("diarize_worker_with_supply_pinned_absent.py");
+    let worker = dir
+        .path()
+        .join("diarize_worker_with_supply_pinned_absent.py");
     let real_worker = repo()
         .join("services/python-workers/media/worker_diarize.py")
         .display()
