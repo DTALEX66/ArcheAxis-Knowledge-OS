@@ -151,13 +151,13 @@
       "formats": "XLSX",
       "required_output": "sheet/cell、公式文本与缓存值、表",
       "status": "partial",
-      "implemented_now": "an XLSX reaches the `office.structure` route through the same worker (openpyxl 3.1.5 is available here and the worker's own probe reports it). It reads sheets and cells, the formula text with the cached-value policy it states, and merged ranges, with macros never executed; its own structure is kept as a fact under `params.worker_structure` while the route contract carries line anchors. A workbook the engine cannot read fails the job rather than succeeding empty",
-      "gap": "a sheet row the worker named is addressable through a verified `worker_structure` anchor, while a single cell is not a location of its own and formula results are not calculated (only the cached value the file carries), and nothing is rendered",
+      "implemented_now": "an XLSX reaches the `office.structure` route through the same worker (openpyxl 3.1.5 is available here and the worker's own probe reports it). It reads sheets and cells, the formula text with the cached-value policy it states, and merged ranges, with macros never executed; its own structure is kept as a fact under `params.worker_structure` while the route contract carries line anchors. A workbook the engine cannot read fails the job rather than succeeding empty. Each populated cell is additionally reported as a location of its own in `params.format.locations` - path `工作表名!坐标`, the value exactly as the projection shows it, plus `sheet`/`coordinate`/`row`/`column` to narrow a match - so one cell can be anchored apart from the row line that carries it, in `.xlsx` and in `.xls` alike, under a stated 5000 cap the receipt names instead of applying silently",
+      "gap": "a sheet row and a single cell are both addressable now - the row through the verified `worker_structure` anchor, the cell through `params.format.locations`; what remains is that formula results are not calculated (only the cached value the file carries is presented), merged ranges are reported per sheet only, cells past the stated 5000-location cap stay unaddressable, and nothing is rendered",
       "evidence": {
         "core_routes": [{"kind": "office", "capability": "office.structure", "media_type": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"}],
         "worker_routes": [{"capability": "office.structure", "worker": "services/python-workers/document/worker_office.py"}],
         "code": ["crates/archeaxis-application/src/attempts.rs", "services/python-workers/document/worker_office.py"],
-        "tests": ["crates/archeaxis-application/tests/office_job_end_to_end.rs", "tests/workers/test_bulk_office.py", "crates/archeaxis-api/tests/structure_anchor_api.rs"],
+        "tests": ["crates/archeaxis-application/tests/office_job_end_to_end.rs", "tests/workers/test_bulk_office.py", "crates/archeaxis-api/tests/structure_anchor_api.rs", "tests/workers/test_xlsx_cell_locations.py", "crates/archeaxis-api/tests/format_location_anchor_api.rs"],
         "legacy_reference": ["app/capability/builtin/converters_xlsx.py"]
       }
     },
