@@ -33,41 +33,69 @@
       "source_id": "U01",
       "date": "2026-10-06",
       "title": "最新保存/证据/双学习规则",
-      "kind": "session_context_summary",
-      "path_or_locator": "本会话提供的上下文及检索到的历史决策摘要（蓝图附录原文：未作为原始聊天全文导出）",
-      "byte_sha256": null,
-      "status": "SOURCE_MISSING",
-      "limit": "原始聊天未导出；摘要不能冒充原始聊天。其内容仅作为上下文，不作为独立证据"
+      "kind": "recovered_canonical_export",
+      "path_or_locator": "docs/history/aaos-appendix-sources-20261007/QODER_AAOS_RECOVERY_20261007/records/U01_2026-10-06_最新保存_证据_双学习规则_RECOVERED.md",
+      "byte_sha256": "71219c25a1dd133f6aa3070f85b46f7918f420be6d64c1e84bef3375ec1669fe",
+      "status": "VERIFIED_MATCH",
+      "limit": "2026-10-07：本仓已归档该**规范化恢复导出**并核验其哈希；它仍不是原始聊天全文——母版当时就记明原始聊天未导出，所以这条 VERIFIED_MATCH 断言的是\"归档文件与恢复包声明哈希一致\"，不是\"原始会话文件被找回\"",
+      "recovered": {
+        "observed_at": "2026-10-07",
+        "archive": "QODER_AAOS_RECOVERY_20261007.zip",
+        "archive_bytes": 43882,
+        "archive_sha256": "2214afc2cb0317e2ff2ef86c3493f27cfd998a6195f4ef530ca39ff96d9bae98",
+        "declared_by": "the recovery package's own SHA256SUMS.txt and RECOVERY-MANIFEST.md, whose expected A01/A02/A06 values equal the hashes the 2026-10-06 blueprint appendix registered"
+      }
     },
     {
       "source_id": "U02",
       "date": "2026-10-06",
       "title": "AAOS 图谱/双链研究增量",
-      "kind": "session_context_summary",
-      "path_or_locator": "同 U01 的位置说明",
-      "byte_sha256": null,
-      "status": "SOURCE_MISSING",
-      "limit": "同上；图谱/双链的具体供体与缺口为研究方向，未认定已采纳或已实现"
+      "kind": "recovered_canonical_export",
+      "path_or_locator": "docs/history/aaos-appendix-sources-20261007/QODER_AAOS_RECOVERY_20261007/records/U02_2026-10-06_AAOS图谱_双链研究增量_RECOVERED.md",
+      "byte_sha256": "a3d94956c5b2cc0a011943ba4b2dc6638bdbfc925211cfad60a843939005bc8f",
+      "status": "VERIFIED_MATCH",
+      "limit": "2026-10-07：本仓已归档该**规范化恢复导出**并核验其哈希；它仍不是原始聊天全文——母版当时就记明原始聊天未导出，所以这条 VERIFIED_MATCH 断言的是\"归档文件与恢复包声明哈希一致\"，不是\"原始会话文件被找回\"",
+      "recovered": {
+        "observed_at": "2026-10-07",
+        "archive": "QODER_AAOS_RECOVERY_20261007.zip",
+        "archive_bytes": 43882,
+        "archive_sha256": "2214afc2cb0317e2ff2ef86c3493f27cfd998a6195f4ef530ca39ff96d9bae98",
+        "declared_by": "the recovery package's own SHA256SUMS.txt and RECOVERY-MANIFEST.md, whose expected A01/A02/A06 values equal the hashes the 2026-10-06 blueprint appendix registered"
+      }
     },
     {
       "source_id": "A01",
       "date": "2026-10-04",
       "title": "AAOS 快速重构与多格式闭环完整方案",
       "kind": "plan_document",
-      "path_or_locator": "蓝图附录记为 sources/AAOS_快速重构与多格式闭环_完整方案_20261004.md",
+      "path_or_locator": "docs/history/aaos-appendix-sources-20261007/QODER_AAOS_RECOVERY_20261007/sources/AAOS_快速重构与多格式闭环_完整方案_20261004.md",
       "byte_sha256": "7ecda3e3f9d22834d65df663ba4f42a3ac62e31d215ab5e7c59c08bfaf08441e",
-      "status": "SOURCE_MISSING",
-      "limit": "未找到，不声称已读。同名近似文件 01_AAOS_快速重构_多格式闭环_启动提示词_20261004.txt 性质不同，不替代；其内容也不在 Record/AAOS_01_快速重构_多格式闭环_20261004.zip 内（该 zip 成员为任务书、registries、来源与快照，已逐个核对）。另经内容哈希检索确认无字节相同副本，见 missing_source_search_20261006"
+      "status": "VERIFIED_MATCH",
+      "limit": "2026-10-07：原件已恢复并归档，哈希与蓝图附录登记值逐字节一致；此前\"按内容哈希未找到\"的判定是检索范围之误，不是文件不存在",
+      "recovered": {
+        "observed_at": "2026-10-07",
+        "archive": "QODER_AAOS_RECOVERY_20261007.zip",
+        "archive_bytes": 43882,
+        "archive_sha256": "2214afc2cb0317e2ff2ef86c3493f27cfd998a6195f4ef530ca39ff96d9bae98",
+        "declared_by": "the recovery package's own SHA256SUMS.txt and RECOVERY-MANIFEST.md, whose expected A01/A02/A06 values equal the hashes the 2026-10-06 blueprint appendix registered"
+      }
     },
     {
       "source_id": "A02",
       "date": "2026-10-04",
       "title": "AAOS 未来延展与可持续架构完整方案",
       "kind": "plan_document",
-      "path_or_locator": "蓝图附录记为 sources/AAOS_未来延展与可持续架构_完整方案_20261004.md",
+      "path_or_locator": "docs/history/aaos-appendix-sources-20261007/QODER_AAOS_RECOVERY_20261007/sources/AAOS_未来延展与可持续架构_完整方案_20261004.md",
       "byte_sha256": "771b189740e94dfeaf65e363b919745c2a69bb795d461e2b2fbcc9c95b15e1e1",
-      "status": "SOURCE_MISSING",
-      "limit": "未找到，不声称已读；经内容哈希检索亦无字节相同副本（见 missing_source_search_20261006）"
+      "status": "VERIFIED_MATCH",
+      "limit": "2026-10-07：原件已恢复并归档，哈希与蓝图附录登记值逐字节一致；此前\"按内容哈希未找到\"的判定是检索范围之误，不是文件不存在",
+      "recovered": {
+        "observed_at": "2026-10-07",
+        "archive": "QODER_AAOS_RECOVERY_20261007.zip",
+        "archive_bytes": 43882,
+        "archive_sha256": "2214afc2cb0317e2ff2ef86c3493f27cfd998a6195f4ef530ca39ff96d9bae98",
+        "declared_by": "the recovery package's own SHA256SUMS.txt and RECOVERY-MANIFEST.md, whose expected A01/A02/A06 values equal the hashes the 2026-10-06 blueprint appendix registered"
+      }
     },
     {
       "source_id": "A03",
@@ -107,10 +135,17 @@
       "date": "2026-10-06",
       "title": "CONTENT-COPY-V2 命名段",
       "kind": "naming_segment",
-      "path_or_locator": "蓝图附录记为 sources/CONTENT-COPY-V2.md",
+      "path_or_locator": "docs/history/aaos-appendix-sources-20261007/QODER_AAOS_RECOVERY_20261007/sources/CONTENT-COPY-V2.md",
       "byte_sha256": "7d475862fd307be46371ceeaead3407d6bbe939b429c37df1c28c4c6760fbeb2",
-      "status": "SOURCE_MISSING",
-      "limit": "未找到，不声称已读；经内容哈希检索亦无字节相同副本（见 missing_source_search_20261006）。母定义中的对外命名采用蓝图正文与仓库 docs/truth/NAMING_CONTRACT_V2.md 的既有记录，未据此文件"
+      "status": "VERIFIED_MATCH",
+      "limit": "2026-10-07：原件已恢复并归档，哈希与蓝图附录登记值逐字节一致；此前\"按内容哈希未找到\"的判定是检索范围之误，不是文件不存在",
+      "recovered": {
+        "observed_at": "2026-10-07",
+        "archive": "QODER_AAOS_RECOVERY_20261007.zip",
+        "archive_bytes": 43882,
+        "archive_sha256": "2214afc2cb0317e2ff2ef86c3493f27cfd998a6195f4ef530ca39ff96d9bae98",
+        "declared_by": "the recovery package's own SHA256SUMS.txt and RECOVERY-MANIFEST.md, whose expected A01/A02/A06 values equal the hashes the 2026-10-06 blueprint appendix registered"
+      }
     },
     {
       "source_id": "A07",
@@ -135,9 +170,15 @@
   },
   "summary": {
     "appendix_entries": 9,
-    "verified_match": 4,
-    "source_missing": 5,
+    "verified_match": 9,
+    "source_missing": 0,
     "read_but_unhashed": 0,
-    "note": "9 = 4 VERIFIED_MATCH（A03、A04、A05、A07）+ 5 SOURCE_MISSING（U01、U02、A01、A02、A06）。U01/U02 属原始聊天未导出；A01/A02/A06 经内容哈希检索仍未找到。A04 于 2026-10-06 复核改判为 VERIFIED_MATCH（本仓内副本，哈希与附录一致）。因此本轮仍不得声称已读 A01、A02、A06。"
+    "note": "9 = 9 VERIFIED_MATCH（U01、U02、A01、A02、A03、A04、A05、A06、A07），本轮无 SOURCE_MISSING。A04 于 2026-10-06 复核改判 VERIFIED_MATCH（本仓内副本）。A01/A02/A06 与 U01/U02 于 2026-10-07 由 Record 恢复包归档并核验哈希；U01/U02 是规范化恢复导出，仍非原始聊天全文，其证明力按此限定。"
+  },
+  "recovery_20261007": {
+    "attached_by": "owner, via D:/All projects/Record",
+    "archived_under": "docs/history/aaos-appendix-sources-20261007/",
+    "archive_manifest": "docs/history/aaos-appendix-sources-20261007/ARCHIVE-MANIFEST.json",
+    "method": "member CRC32 + extracted sha256 recomputed here and compared with the publisher's SHA256SUMS and the appendix's registered source hashes"
   }
 }

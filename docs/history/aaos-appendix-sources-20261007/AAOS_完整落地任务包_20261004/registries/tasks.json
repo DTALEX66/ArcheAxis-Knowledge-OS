@@ -1,0 +1,810 @@
+{
+  "purpose": "交接任务图，不是新 current state",
+  "tasks": [
+    {
+      "task_id": "W00",
+      "stage": "E0",
+      "title": "确认真实根/HEAD/工作树与唯一写者",
+      "owner": "Hermes",
+      "depends_on": [],
+      "gates": [
+        "G0"
+      ],
+      "acceptance": "只读身份与保护回执，不覆盖工作树",
+      "requirements": [
+        "U08"
+      ],
+      "status": "PENDING_RECONCILIATION",
+      "evidence": [],
+      "owner_approval_required": false,
+      "scope_note": "核对已完成实现后复用；依赖仅对本任务，勿把长期全部能力变当前 M0 门禁"
+    },
+    {
+      "task_id": "W01",
+      "stage": "E0",
+      "title": "读取有效 Authority 与本轮需求差异",
+      "owner": "Hermes",
+      "depends_on": [
+        "W00"
+      ],
+      "gates": [
+        "G0"
+      ],
+      "acceptance": "U01–U12 全部映射，保留 R6/M0，登记新兼容目标",
+      "requirements": [
+        "U01",
+        "U11",
+        "U12"
+      ],
+      "status": "PENDING_RECONCILIATION",
+      "evidence": [],
+      "owner_approval_required": false,
+      "scope_note": "核对已完成实现后复用；依赖仅对本任务，勿把长期全部能力变当前 M0 门禁"
+    },
+    {
+      "task_id": "W02",
+      "stage": "E0",
+      "title": "现有/未来能力与 IA 对账",
+      "owner": "Codex",
+      "depends_on": [
+        "W01"
+      ],
+      "gates": [
+        "G0",
+        "G1"
+      ],
+      "acceptance": "批准能力集合与当前菜单差集，不以 seed 充全史",
+      "requirements": [
+        "U09"
+      ],
+      "status": "PENDING_RECONCILIATION",
+      "evidence": [],
+      "owner_approval_required": false,
+      "scope_note": "核对已完成实现后复用；依赖仅对本任务，勿把长期全部能力变当前 M0 门禁"
+    },
+    {
+      "task_id": "W03",
+      "stage": "E0",
+      "title": "供体与知识库既有实现证据盘点 K0",
+      "owner": "DSH",
+      "depends_on": [
+        "W01"
+      ],
+      "gates": [
+        "G0",
+        "G3"
+      ],
+      "acceptance": "区分参考/代码/可用/往返，复用已有成果",
+      "requirements": [
+        "U03",
+        "U12"
+      ],
+      "status": "PENDING_RECONCILIATION",
+      "evidence": [],
+      "owner_approval_required": false,
+      "scope_note": "核对已完成实现后复用；依赖仅对本任务，勿把长期全部能力变当前 M0 门禁"
+    },
+    {
+      "task_id": "W04",
+      "stage": "E1",
+      "title": "单源 runtime manifest 兼容迁移 C1",
+      "owner": "DSH",
+      "depends_on": [
+        "W00",
+        "W01"
+      ],
+      "gates": [
+        "G2"
+      ],
+      "acceptance": "三脚本读取单一映射，最终包逐必需能力调用",
+      "requirements": [
+        "U08"
+      ],
+      "status": "PENDING_RECONCILIATION",
+      "evidence": [],
+      "owner_approval_required": false,
+      "scope_note": "核对已完成实现后复用；依赖仅对本任务，勿把长期全部能力变当前 M0 门禁"
+    },
+    {
+      "task_id": "W05",
+      "stage": "E1",
+      "title": "启动输入与安装根 B3",
+      "owner": "DSH",
+      "depends_on": [
+        "W04"
+      ],
+      "gates": [
+        "G2"
+      ],
+      "acceptance": "有界 UTF-8、路径/共享根、安全握手测试",
+      "requirements": [
+        "U08"
+      ],
+      "status": "PENDING_RECONCILIATION",
+      "evidence": [],
+      "owner_approval_required": false,
+      "scope_note": "核对已完成实现后复用；依赖仅对本任务，勿把长期全部能力变当前 M0 门禁"
+    },
+    {
+      "task_id": "W06",
+      "stage": "E1",
+      "title": "学习事件/投影/幂等 C2 C5",
+      "owner": "DSH",
+      "depends_on": [
+        "W01"
+      ],
+      "gates": [
+        "G2"
+      ],
+      "acceptance": "首次/重复/失败/重启计数和回执一致",
+      "requirements": [
+        "U08"
+      ],
+      "status": "PENDING_RECONCILIATION",
+      "evidence": [],
+      "owner_approval_required": false,
+      "scope_note": "核对已完成实现后复用；依赖仅对本任务，勿把长期全部能力变当前 M0 门禁"
+    },
+    {
+      "task_id": "W07",
+      "stage": "E1",
+      "title": "真实 bind 0 端口握手 C3",
+      "owner": "DSH",
+      "depends_on": [
+        "W05"
+      ],
+      "gates": [
+        "G2"
+      ],
+      "acceptance": "实际监听器+就绪身份，不释放后再抢端口",
+      "requirements": [
+        "U08"
+      ],
+      "status": "PENDING_RECONCILIATION",
+      "evidence": [],
+      "owner_approval_required": false,
+      "scope_note": "核对已完成实现后复用；依赖仅对本任务，勿把长期全部能力变当前 M0 门禁"
+    },
+    {
+      "task_id": "W08",
+      "stage": "E1",
+      "title": "进程捕获与原生截图框架 C4",
+      "owner": "Hermes",
+      "depends_on": [
+        "W00"
+      ],
+      "gates": [
+        "G1",
+        "G4"
+      ],
+      "acceptance": "持续消费输出，截图可解码，测试进程树归零",
+      "requirements": [
+        "U10"
+      ],
+      "status": "PENDING_RECONCILIATION",
+      "evidence": [],
+      "owner_approval_required": false,
+      "scope_note": "核对已完成实现后复用；依赖仅对本任务，勿把长期全部能力变当前 M0 门禁"
+    },
+    {
+      "task_id": "W09",
+      "stage": "E1",
+      "title": "错误/缺失/故障状态合同 B5",
+      "owner": "DSH",
+      "depends_on": [
+        "W01"
+      ],
+      "gates": [
+        "G2"
+      ],
+      "acceptance": "unknown 不是 0，错误正文正确解析",
+      "requirements": [
+        "U08",
+        "U06"
+      ],
+      "status": "PENDING_RECONCILIATION",
+      "evidence": [],
+      "owner_approval_required": false,
+      "scope_note": "核对已完成实现后复用；依赖仅对本任务，勿把长期全部能力变当前 M0 门禁"
+    },
+    {
+      "task_id": "W10",
+      "stage": "E1",
+      "title": "视觉参考/主题/母版裁决",
+      "owner": "Codex",
+      "depends_on": [
+        "W02"
+      ],
+      "gates": [
+        "G1"
+      ],
+      "acceptance": "单一主题，参考记录，未经认可样板不扩散",
+      "requirements": [
+        "U04",
+        "U10"
+      ],
+      "status": "PENDING_RECONCILIATION",
+      "evidence": [],
+      "owner_approval_required": false,
+      "scope_note": "核对已完成实现后复用；依赖仅对本任务，勿把长期全部能力变当前 M0 门禁"
+    },
+    {
+      "task_id": "W11",
+      "stage": "E1",
+      "title": "原生阅读-证据复核样板",
+      "owner": "Codex",
+      "depends_on": [
+        "W08",
+        "W09",
+        "W10"
+      ],
+      "gates": [
+        "G1"
+      ],
+      "acceptance": "真实内容主次、同屏锚点、全部导航不挤压正文",
+      "requirements": [
+        "U10"
+      ],
+      "status": "PENDING_RECONCILIATION",
+      "evidence": [],
+      "owner_approval_required": false,
+      "scope_note": "核对已完成实现后复用；依赖仅对本任务，勿把长期全部能力变当前 M0 门禁"
+    },
+    {
+      "task_id": "W12",
+      "stage": "E2",
+      "title": "全能力折叠菜单与正式详情",
+      "owner": "Codex",
+      "depends_on": [
+        "W02",
+        "W10"
+      ],
+      "gates": [
+        "G1"
+      ],
+      "acceptance": "有效能力零未映射/死链，未来状态可读可发现",
+      "requirements": [
+        "U09",
+        "U10",
+        "U12"
+      ],
+      "status": "PENDING_RECONCILIATION",
+      "evidence": [],
+      "owner_approval_required": false,
+      "scope_note": "核对已完成实现后复用；依赖仅对本任务，勿把长期全部能力变当前 M0 门禁"
+    },
+    {
+      "task_id": "W13",
+      "stage": "E2",
+      "title": "能力目录/实现/连接/回执联接",
+      "owner": "DSH",
+      "depends_on": [
+        "W02",
+        "W04",
+        "W09"
+      ],
+      "gates": [
+        "G2"
+      ],
+      "acceptance": "同 ID 不多份真值，API/技能/参考分离",
+      "requirements": [
+        "U06"
+      ],
+      "status": "PENDING_RECONCILIATION",
+      "evidence": [],
+      "owner_approval_required": false,
+      "scope_note": "核对已完成实现后复用；依赖仅对本任务，勿把长期全部能力变当前 M0 门禁"
+    },
+    {
+      "task_id": "W14",
+      "stage": "E2",
+      "title": "OpenHuman 参考的能力中心",
+      "owner": "Codex",
+      "depends_on": [
+        "W12",
+        "W13"
+      ],
+      "gates": [
+        "G1",
+        "G2"
+      ],
+      "acceptance": "任务能力优先、平台动作真实、未来依旧可见",
+      "requirements": [
+        "U04",
+        "U06",
+        "U10"
+      ],
+      "status": "PENDING_RECONCILIATION",
+      "evidence": [],
+      "owner_approval_required": false,
+      "scope_note": "核对已完成实现后复用；依赖仅对本任务，勿把长期全部能力变当前 M0 门禁"
+    },
+    {
+      "task_id": "W15",
+      "stage": "E3",
+      "title": "真实候选审批与版本守卫 A1",
+      "owner": "DSH",
+      "depends_on": [
+        "W06",
+        "W11"
+      ],
+      "gates": [
+        "G2",
+        "G4"
+      ],
+      "acceptance": "人完成逐条处置，机器 actor 拒绝，历史可纠正",
+      "requirements": [
+        "U08"
+      ],
+      "status": "PENDING_RECONCILIATION",
+      "evidence": [],
+      "owner_approval_required": true,
+      "scope_note": "核对已完成实现后复用；依赖仅对本任务，勿把长期全部能力变当前 M0 门禁"
+    },
+    {
+      "task_id": "W16",
+      "stage": "E3",
+      "title": "学习产品语义与草稿 B1 B2 B7",
+      "owner": "DSH",
+      "depends_on": [
+        "W06",
+        "W09"
+      ],
+      "gates": [
+        "G2"
+      ],
+      "acceptance": "进展语义、草稿持久化、队列只读自动载入",
+      "requirements": [
+        "U08"
+      ],
+      "status": "PENDING_RECONCILIATION",
+      "evidence": [],
+      "owner_approval_required": false,
+      "scope_note": "核对已完成实现后复用；依赖仅对本任务，勿把长期全部能力变当前 M0 门禁"
+    },
+    {
+      "task_id": "W17",
+      "stage": "E3",
+      "title": "资料库/学习/AI学习全页精修",
+      "owner": "Codex",
+      "depends_on": [
+        "W11",
+        "W12",
+        "W14",
+        "W16"
+      ],
+      "gates": [
+        "G1"
+      ],
+      "acceptance": "全部实际路由逐页截图/交互，拒绝通用四KPI模板",
+      "requirements": [
+        "U09",
+        "U10"
+      ],
+      "status": "PENDING_RECONCILIATION",
+      "evidence": [],
+      "owner_approval_required": false,
+      "scope_note": "核对已完成实现后复用；依赖仅对本任务，勿把长期全部能力变当前 M0 门禁"
+    },
+    {
+      "task_id": "W18",
+      "stage": "E3",
+      "title": "备份/冷启动/恢复副本演练 A3",
+      "owner": "Hermes",
+      "depends_on": [
+        "W05",
+        "W07",
+        "W15",
+        "W16"
+      ],
+      "gates": [
+        "G2",
+        "G4"
+      ],
+      "acceptance": "新进程、真实回读、旧程序+副本恢复实测",
+      "requirements": [
+        "U08"
+      ],
+      "status": "PENDING_RECONCILIATION",
+      "evidence": [],
+      "owner_approval_required": true,
+      "scope_note": "核对已完成实现后复用；依赖仅对本任务，勿把长期全部能力变当前 M0 门禁"
+    },
+    {
+      "task_id": "W19",
+      "stage": "E4a",
+      "title": "外部提供方权限/预算/缓存合同",
+      "owner": "DSH",
+      "depends_on": [
+        "W13"
+      ],
+      "gates": [
+        "G3",
+        "G4"
+      ],
+      "acceptance": "三数据等级、Key 安全引用、限流、预算/取消",
+      "requirements": [
+        "U05",
+        "U06"
+      ],
+      "status": "PENDING_RECONCILIATION",
+      "evidence": [],
+      "owner_approval_required": false,
+      "scope_note": "核对已完成实现后复用；依赖仅对本任务，勿把长期全部能力变当前 M0 门禁"
+    },
+    {
+      "task_id": "W20",
+      "stage": "E4a",
+      "title": "Crossref 与 OpenAlex 首条路径",
+      "owner": "DSH",
+      "depends_on": [
+        "W19"
+      ],
+      "gates": [
+        "G3"
+      ],
+      "acceptance": "公开查询→选定来源→保存回执→重启可读",
+      "requirements": [
+        "U05"
+      ],
+      "status": "PENDING_RECONCILIATION",
+      "evidence": [],
+      "owner_approval_required": false,
+      "scope_note": "核对已完成实现后复用；依赖仅对本任务，勿把长期全部能力变当前 M0 门禁"
+    },
+    {
+      "task_id": "W21",
+      "stage": "E4b",
+      "title": "知识交换封装与迁移 session K1",
+      "owner": "DSH",
+      "depends_on": [
+        "W03",
+        "W06",
+        "W13"
+      ],
+      "gates": [
+        "G3",
+        "G4"
+      ],
+      "acceptance": "扩现有合同，ID/资产/损失/幂等/staging/撤销",
+      "requirements": [
+        "U12"
+      ],
+      "status": "PENDING_RECONCILIATION",
+      "evidence": [],
+      "owner_approval_required": false,
+      "scope_note": "核对已完成实现后复用；依赖仅对本任务，勿把长期全部能力变当前 M0 门禁"
+    },
+    {
+      "task_id": "W22",
+      "stage": "E4b",
+      "title": "Markdown/Obsidian 首个双向 profile",
+      "owner": "DSH",
+      "depends_on": [
+        "W21"
+      ],
+      "gates": [
+        "G3"
+      ],
+      "acceptance": "原软件副本两个方向回读，结构/资产/链接证书",
+      "requirements": [
+        "U12"
+      ],
+      "status": "PENDING_RECONCILIATION",
+      "evidence": [],
+      "owner_approval_required": false,
+      "scope_note": "核对已完成实现后复用；依赖仅对本任务，勿把长期全部能力变当前 M0 门禁"
+    },
+    {
+      "task_id": "W23",
+      "stage": "E4b",
+      "title": "Notion 页面/结构 profile K2",
+      "owner": "DSH",
+      "depends_on": [
+        "W21",
+        "W19"
+      ],
+      "gates": [
+        "G3"
+      ],
+      "acceptance": "能力矩阵、属性/关系/损失，不能扁平化即全兼容",
+      "requirements": [
+        "U12"
+      ],
+      "status": "PENDING_RECONCILIATION",
+      "evidence": [],
+      "owner_approval_required": false,
+      "scope_note": "核对已完成实现后复用；依赖仅对本任务，勿把长期全部能力变当前 M0 门禁"
+    },
+    {
+      "task_id": "W24",
+      "stage": "E4b",
+      "title": "原生迁移/损失/平台能力矩阵界面",
+      "owner": "Codex",
+      "depends_on": [
+        "W12",
+        "W21"
+      ],
+      "gates": [
+        "G1",
+        "G3"
+      ],
+      "acceptance": "dry-run 与写入区分，方向状态和未完成差距可见",
+      "requirements": [
+        "U09",
+        "U10",
+        "U12"
+      ],
+      "status": "PENDING_RECONCILIATION",
+      "evidence": [],
+      "owner_approval_required": false,
+      "scope_note": "核对已完成实现后复用；依赖仅对本任务，勿把长期全部能力变当前 M0 门禁"
+    },
+    {
+      "task_id": "W25",
+      "stage": "E4c",
+      "title": "学习缺口验证与 DeepTutor 单能力试验",
+      "owner": "DSH",
+      "depends_on": [
+        "W16",
+        "W19"
+      ],
+      "gates": [
+        "G3"
+      ],
+      "acceptance": "先复用，再试供体；讲解/练习/反馈回 AAOS",
+      "requirements": [
+        "U03",
+        "U05"
+      ],
+      "status": "PENDING_RECONCILIATION",
+      "evidence": [],
+      "owner_approval_required": false,
+      "scope_note": "核对已完成实现后复用；依赖仅对本任务，勿把长期全部能力变当前 M0 门禁"
+    },
+    {
+      "task_id": "W26",
+      "stage": "E4a",
+      "title": "百科/Zotero/GitHub/HF 按需适配",
+      "owner": "DSH",
+      "depends_on": [
+        "W19",
+        "W20"
+      ],
+      "gates": [
+        "G3"
+      ],
+      "acceptance": "每来源权限/版本/限额与真实引用；不下载执行仓库",
+      "requirements": [
+        "U05"
+      ],
+      "status": "PENDING_RECONCILIATION",
+      "evidence": [],
+      "owner_approval_required": false,
+      "scope_note": "核对已完成实现后复用；依赖仅对本任务，勿把长期全部能力变当前 M0 门禁"
+    },
+    {
+      "task_id": "W27",
+      "stage": "E4b",
+      "title": "结构库/文献/学习平台扩展 K3",
+      "owner": "DSH",
+      "depends_on": [
+        "W22",
+        "W23"
+      ],
+      "gates": [
+        "G3"
+      ],
+      "acceptance": "SiYuan/Joplin/Logseq/Zotero/Anki 逐 profile 回读",
+      "requirements": [
+        "U12"
+      ],
+      "status": "PENDING_RECONCILIATION",
+      "evidence": [],
+      "owner_approval_required": false,
+      "scope_note": "核对已完成实现后复用；依赖仅对本任务，勿把长期全部能力变当前 M0 门禁"
+    },
+    {
+      "task_id": "W28",
+      "stage": "E4b",
+      "title": "数据库/Wiki/协作/AI知识能力 K4",
+      "owner": "DSH",
+      "depends_on": [
+        "W21",
+        "W27"
+      ],
+      "gates": [
+        "G3"
+      ],
+      "acceptance": "全部适用能力登记，公式/ACL/评论/视图差距不隐去",
+      "requirements": [
+        "U12"
+      ],
+      "status": "PENDING_RECONCILIATION",
+      "evidence": [],
+      "owner_approval_required": false,
+      "scope_note": "核对已完成实现后复用；依赖仅对本任务，勿把长期全部能力变当前 M0 门禁"
+    },
+    {
+      "task_id": "W29",
+      "stage": "E4b",
+      "title": "增量双向同步与冲突 K5",
+      "owner": "DSH",
+      "depends_on": [
+        "W22",
+        "W27"
+      ],
+      "gates": [
+        "G3",
+        "G4"
+      ],
+      "acceptance": "按基准合并/tombstone/断点/取消，源写回另授权",
+      "requirements": [
+        "U12"
+      ],
+      "status": "PENDING_RECONCILIATION",
+      "evidence": [],
+      "owner_approval_required": true,
+      "scope_note": "核对已完成实现后复用；依赖仅对本任务，勿把长期全部能力变当前 M0 门禁"
+    },
+    {
+      "task_id": "W30",
+      "stage": "E5",
+      "title": "三种受控知识技能/Agent",
+      "owner": "DSH",
+      "depends_on": [
+        "W13",
+        "W16",
+        "W19",
+        "W25"
+      ],
+      "gates": [
+        "G2",
+        "G3",
+        "G4"
+      ],
+      "acceptance": "有界计划/工具/预算/审批/回执/取消/恢复",
+      "requirements": [
+        "U02",
+        "U05"
+      ],
+      "status": "PENDING_RECONCILIATION",
+      "evidence": [],
+      "owner_approval_required": false,
+      "scope_note": "核对已完成实现后复用；依赖仅对本任务，勿把长期全部能力变当前 M0 门禁"
+    },
+    {
+      "task_id": "W31",
+      "stage": "E6",
+      "title": "精确集成候选/PR 顺序 A4",
+      "owner": "Hermes",
+      "depends_on": [
+        "W17",
+        "W18"
+      ],
+      "gates": [
+        "G5"
+      ],
+      "acceptance": "核对 main/codex-Audit/PR依赖；CI/GUI针对集成版本",
+      "requirements": [
+        "U08"
+      ],
+      "status": "PENDING_RECONCILIATION",
+      "evidence": [],
+      "owner_approval_required": false,
+      "scope_note": "核对已完成实现后复用；依赖仅对本任务，勿把长期全部能力变当前 M0 门禁"
+    },
+    {
+      "task_id": "W32",
+      "stage": "E6",
+      "title": "后续切片资格化与兼容报告",
+      "owner": "Hermes",
+      "depends_on": [
+        "W20",
+        "W22",
+        "W23",
+        "W24",
+        "W25",
+        "W30"
+      ],
+      "gates": [
+        "G1",
+        "G2",
+        "G3",
+        "G4"
+      ],
+      "acceptance": "首批领域/兼容切片单独出证书，长期缺口仍在",
+      "requirements": [
+        "U03",
+        "U05",
+        "U10",
+        "U12"
+      ],
+      "status": "PENDING_RECONCILIATION",
+      "evidence": [],
+      "owner_approval_required": false,
+      "scope_note": "核对已完成实现后复用；依赖仅对本任务，勿把长期全部能力变当前 M0 门禁"
+    },
+    {
+      "task_id": "W33",
+      "stage": "E6",
+      "title": "更新原台账与中断交接 B6",
+      "owner": "Hermes",
+      "depends_on": [
+        "W01"
+      ],
+      "gates": [
+        "G0"
+      ],
+      "acceptance": "每次切片完成时执行，不预填总完成",
+      "requirements": [
+        "U08",
+        "U11"
+      ],
+      "status": "PENDING_RECONCILIATION",
+      "evidence": [],
+      "owner_approval_required": false,
+      "scope_note": "核对已完成实现后复用；依赖仅对本任务，勿把长期全部能力变当前 M0 门禁"
+    },
+    {
+      "task_id": "W34",
+      "stage": "OPTIONAL",
+      "title": "另一账户临时目录清理 A2",
+      "owner": "Owner",
+      "depends_on": [
+        "W00"
+      ],
+      "gates": [
+        "G4"
+      ],
+      "acceptance": "仅单目录、可再生、ACL/链接可核验且获授权才操作",
+      "requirements": [
+        "U08"
+      ],
+      "status": "PENDING_RECONCILIATION",
+      "evidence": [],
+      "owner_approval_required": true,
+      "scope_note": "核对已完成实现后复用；依赖仅对本任务，勿把长期全部能力变当前 M0 门禁"
+    },
+    {
+      "task_id": "W35",
+      "stage": "E0",
+      "title": "雷达专项状态与范围确认",
+      "owner": "Hermes",
+      "depends_on": [
+        "W01"
+      ],
+      "gates": [
+        "G0"
+      ],
+      "acceptance": "保留现有任务，不重复创建，不把启用当已开启推送",
+      "requirements": [
+        "U07"
+      ],
+      "status": "PENDING_RECONCILIATION",
+      "evidence": [],
+      "owner_approval_required": false,
+      "scope_note": "核对已完成实现后复用；依赖仅对本任务，勿把长期全部能力变当前 M0 门禁"
+    },
+    {
+      "task_id": "W36",
+      "stage": "E6",
+      "title": "正式部署/源写回/Release 决策",
+      "owner": "Owner",
+      "depends_on": [
+        "W31"
+      ],
+      "gates": [
+        "G5"
+      ],
+      "acceptance": "分开人工批准，不由此计划或 CI 自动解冻",
+      "requirements": [
+        "U08"
+      ],
+      "status": "PENDING_RECONCILIATION",
+      "evidence": [],
+      "owner_approval_required": true,
+      "scope_note": "核对已完成实现后复用；依赖仅对本任务，勿把长期全部能力变当前 M0 门禁"
+    }
+  ]
+}

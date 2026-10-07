@@ -1,0 +1,33 @@
+{
+  "type": "assistant_recorded_read_scope_not_raw_connector_dump",
+  "recorded_on": "2026-10-04",
+  "github": {
+    "repository": "DTALEX66/ArcheAxis-Knowledge-OS",
+    "pr157": {
+      "state": "open",
+      "draft": true,
+      "merged": false,
+      "base": "codex/Audit",
+      "head_sha": "0134c433bdfc98533ec8fb9e3b3c5b70015146b5"
+    },
+    "r6_execution": {
+      "branch": "default/main as returned",
+      "lines_requested": [
+        1,
+        120
+      ],
+      "blob_sha": "67bf5121f94a7ea8d67392200af15b8230801cf3"
+    },
+    "full_code_audit": false,
+    "runtime_tests": false
+  },
+  "automation": {
+    "task_id": "6aac9f3727f88191ab082b5d0b1eeff7",
+    "specialty_in_prompt": true,
+    "is_enabled": true,
+    "notifications_enabled": false,
+    "email_enabled": false,
+    "schedule_changed_this_package": false
+  },
+  "warning": "只读快照；后续执行必须刷新。没有完整复制仓库或历史库文件。"
+}

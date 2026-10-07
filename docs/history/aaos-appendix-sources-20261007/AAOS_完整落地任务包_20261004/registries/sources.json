@@ -1,0 +1,221 @@
+{
+  "schema": "taskpack-source-register-v1",
+  "sources": [
+    {
+      "source_id": "S01",
+      "title": "DSH 用户上传 16 问原文",
+      "location": "sources/GPT-PROMPT-OWNER-QUESTIONS-20261004.md",
+      "evidence_type": "USER_UPLOAD",
+      "checked_on": "2026-10-04",
+      "scope": "全文读取并保留原字节；背景与测试数为 DSH 书面回报，不是本轮运行"
+    },
+    {
+      "source_id": "S02",
+      "title": "OpenHuman 官方仓库",
+      "location": "https://github.com/tinyhumansai/openhuman",
+      "evidence_type": "OFFICIAL_DOC_CHECKED",
+      "checked_on": "2026-10-04",
+      "scope": "本轮读取 README：Early Beta、Rust 核心、Tauri 桌面、GPL-3.0；不采用其营销性能比较"
+    },
+    {
+      "source_id": "S03",
+      "title": "Avalonia Testing",
+      "location": "https://docs.avaloniaui.net/docs/testing/",
+      "evidence_type": "OFFICIAL_DOC_CHECKED",
+      "checked_on": "2026-10-04",
+      "scope": "单测、Headless、Skia 视觉与真实窗口分层测试"
+    },
+    {
+      "source_id": "S04",
+      "title": "Crossref Access and authentication",
+      "location": "https://www.crossref.org/documentation/retrieve-metadata/rest-api/access-and-authentication/",
+      "evidence_type": "OFFICIAL_DOC_CHECKED",
+      "checked_on": "2026-10-04",
+      "scope": "公共/Polite/Plus 访问与限流响应；未用用户账号调用"
+    },
+    {
+      "source_id": "S05",
+      "title": "OpenAlex Authentication",
+      "location": "https://help.openalex.org/api/authentication/",
+      "evidence_type": "OFFICIAL_DOC_CHECKED",
+      "checked_on": "2026-10-04",
+      "scope": "无 Key 基础查询、Key、预算/限流字段；旧 docs URL 跳转失败，改读此官方页面"
+    },
+    {
+      "source_id": "S06",
+      "title": "SQLite Backup API",
+      "location": "https://sqlite.org/backup.html",
+      "evidence_type": "OFFICIAL_DOC_CHECKED",
+      "checked_on": "2026-10-04",
+      "scope": "在线备份能力与一致快照；不证明用户库已经恢复"
+    },
+    {
+      "source_id": "S07",
+      "title": "SQLite Transactions",
+      "location": "https://sqlite.org/lang_transaction.html",
+      "evidence_type": "OFFICIAL_DOC_CHECKED",
+      "checked_on": "2026-10-04",
+      "scope": "事务、COMMIT 失败与重试/回滚语义"
+    },
+    {
+      "source_id": "S08",
+      "title": "SQLite RETURNING",
+      "location": "https://sqlite.org/lang_returning.html",
+      "evidence_type": "OFFICIAL_DOC_CHECKED",
+      "checked_on": "2026-10-04",
+      "scope": "返回语句直接修改行的值，不能覆盖额外触发器变更语义"
+    },
+    {
+      "source_id": "S09",
+      "title": "Rust TcpListener",
+      "location": "https://doc.rust-lang.org/std/net/struct.TcpListener.html",
+      "evidence_type": "OFFICIAL_DOC_CHECKED",
+      "checked_on": "2026-10-04",
+      "scope": "bind 端口 0 与 local_addr；实现需对照本地依赖"
+    },
+    {
+      "source_id": "S10",
+      "title": "ProcessStartInfo RedirectStandardOutput",
+      "location": "https://learn.microsoft.com/en-us/dotnet/api/system.diagnostics.processstartinfo.redirectstandardoutput",
+      "evidence_type": "OFFICIAL_DOC_CHECKED",
+      "checked_on": "2026-10-04",
+      "scope": "输出重定向与等待死锁注意项，不证明原 $null 是根因"
+    },
+    {
+      "source_id": "S11",
+      "title": "Windows Job Objects",
+      "location": "https://learn.microsoft.com/en-us/windows/win32/procthread/job-objects",
+      "evidence_type": "OFFICIAL_DOC_CHECKED",
+      "checked_on": "2026-10-04",
+      "scope": "进程组和 kill-on-job-close；不对系统其他进程树操作"
+    },
+    {
+      "source_id": "S12",
+      "title": "Windows takeown",
+      "location": "https://learn.microsoft.com/en-us/windows-server/administration/windows-commands/takeown",
+      "evidence_type": "OFFICIAL_DOC_CHECKED",
+      "checked_on": "2026-10-04",
+      "scope": "所有权操作及 /D 参数；未在用户电脑执行"
+    },
+    {
+      "source_id": "S13",
+      "title": "Windows icacls",
+      "location": "https://learn.microsoft.com/en-us/windows-server/administration/windows-commands/icacls",
+      "evidence_type": "OFFICIAL_DOC_CHECKED",
+      "checked_on": "2026-10-04",
+      "scope": "DACL 保存/修改，不是完整安全描述符备份"
+    },
+    {
+      "source_id": "S14",
+      "title": "FSRS The Algorithm",
+      "location": "https://github.com/open-spaced-repetition/awesome-fsrs/wiki/The-Algorithm",
+      "evidence_type": "OFFICIAL_DOC_CHECKED",
+      "checked_on": "2026-10-04",
+      "scope": "稳定度/可提取性/难度模型；参数含义应对照采用版本"
+    },
+    {
+      "source_id": "S15",
+      "title": "WCAG Contrast Minimum",
+      "location": "https://www.w3.org/WAI/WCAG22/Understanding/contrast-minimum.html",
+      "evidence_type": "OFFICIAL_DOC_CHECKED",
+      "checked_on": "2026-10-04",
+      "scope": "普通文字 4.5:1 等对比说明；不宣称桌面认证"
+    },
+    {
+      "source_id": "S16",
+      "title": "Apple Design Awards 2017",
+      "location": "https://www.apple.com/newsroom/2017/06/apple-design-awards-celebrate-the-best-in-innovation-and-creativity/",
+      "evidence_type": "OFFICIAL_DOC_CHECKED",
+      "checked_on": "2026-10-04",
+      "scope": "Bear 与 Things 3 奖项身份，不据此复制其资源"
+    },
+    {
+      "source_id": "S17",
+      "title": "App Store Awards 2021",
+      "location": "https://www.apple.com/newsroom/2021/12/app-store-awards-honor-the-best-apps-and-games-of-2021/",
+      "evidence_type": "OFFICIAL_DOC_CHECKED",
+      "checked_on": "2026-10-04",
+      "scope": "Craft 的 Mac App of the Year 与 Apple Design Award 不混淆"
+    },
+    {
+      "source_id": "S18",
+      "title": "Notion Export your content",
+      "location": "https://www.notion.com/help/export-your-content",
+      "evidence_type": "OFFICIAL_DOC_CHECKED",
+      "checked_on": "2026-10-04",
+      "scope": "导出不等于可重新上传复建整个 workspace"
+    },
+    {
+      "source_id": "S19",
+      "title": "Obsidian Import Markdown",
+      "location": "https://obsidian.md/help/import/markdown",
+      "evidence_type": "OFFICIAL_DOC_CHECKED",
+      "checked_on": "2026-10-04",
+      "scope": "Markdown 主要格式与导入；不据此宣称 Canvas/插件等全兼容"
+    },
+    {
+      "source_id": "S20",
+      "title": "Joplin Importing and exporting",
+      "location": "https://joplinapp.org/help/apps/import_export/",
+      "evidence_type": "OFFICIAL_DOC_CHECKED",
+      "checked_on": "2026-10-04",
+      "scope": "JEX 保留所列数据；AAOS 实现仍须独立往返验证"
+    },
+    {
+      "source_id": "S21",
+      "title": "Anki Exporting",
+      "location": "https://docs.ankiweb.net/exporting.html",
+      "evidence_type": "OFFICIAL_DOC_CHECKED",
+      "checked_on": "2026-10-04",
+      "scope": "apkg/colpkg、调度和媒体选项、collection 替换风险"
+    },
+    {
+      "source_id": "S22",
+      "title": "Zotero standardized formats",
+      "location": "https://www.zotero.org/support/kb/importing_standardized_formats",
+      "evidence_type": "OFFICIAL_DOC_CHECKED",
+      "checked_on": "2026-10-04",
+      "scope": "文献交换格式列表，不等于整库完全保留"
+    },
+    {
+      "source_id": "S23",
+      "title": "AAOS 2026-10-02 历史总任务包",
+      "location": "Library:file_00000000338081fd9717d4845d849911",
+      "evidence_type": "HISTORICAL_FILE_EXCERPTS",
+      "checked_on": "2026-10-04",
+      "scope": "本轮读取兼容定义、IA、旧云端基线等片段；未把旧包完整复制进本包"
+    },
+    {
+      "source_id": "S24",
+      "title": "GitHub PR #157 元数据",
+      "location": "https://github.com/DTALEX66/ArcheAxis-Knowledge-OS/pull/157",
+      "evidence_type": "CONNECTOR_READ_CHECKED",
+      "checked_on": "2026-10-04",
+      "scope": "本轮只读：open/Draft/未合并；base codex/Audit；head 0134c433bdfc98533ec8fb9e3b3c5b70015146b5；未复跑 CI"
+    },
+    {
+      "source_id": "S25",
+      "title": "R6-EXECUTION.md 前 120 行",
+      "location": "https://github.com/DTALEX66/ArcheAxis-Knowledge-OS/blob/main/docs/current/R6-EXECUTION.md",
+      "evidence_type": "CONNECTOR_PARTIAL_READ",
+      "checked_on": "2026-10-04",
+      "scope": "blob SHA 67bf5121f94a7ea8d67392200af15b8230801cf3；只读历史切片，不能代表后续全部状态"
+    },
+    {
+      "source_id": "S26",
+      "title": "GitHub Pull request merges",
+      "location": "https://docs.github.com/en/pull-requests/reference/pull-request-merges",
+      "evidence_type": "OFFICIAL_DOC_CHECKED",
+      "checked_on": "2026-10-04",
+      "scope": "merge/squash/rebase 行为与仓库设置；实际规则以仓库为准"
+    },
+    {
+      "source_id": "S27",
+      "title": "本次可见对话与最新用户补充",
+      "location": "current_conversation",
+      "evidence_type": "USER_REQUIREMENTS",
+      "checked_on": "2026-10-04",
+      "scope": "独立判断、完整任务包、OpenHuman 参考、API/开源池、全部未来能力可发现、界面必须好看、全部知识库能力和无缝转换"
+    }
+  ]
+}

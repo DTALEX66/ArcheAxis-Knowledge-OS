@@ -1,0 +1,12 @@
+{
+  "status": "PASS",
+  "scope": "TASK_PACKAGE_ONLY",
+  "product_runtime": "NOT_EXECUTED",
+  "file_count": 32,
+  "requirements": 12,
+  "work_items": 37,
+  "acceptance_cases": 42,
+  "capability_seeds": 125,
+  "initial_platform_targets": 35,
+  "checked_on": "2026-10-04"
+}

@@ -179,7 +179,7 @@
     }
   ],
   "gaps": [
-    "蓝图附录 5 条来源仍 SOURCE_MISSING：U01、U02 的原始聊天未导出，A01、A02、A06 经内容哈希检索未找到——见 docs/current/AAOS-INPUT-SOURCES-20261006.json；未据未读文件作任何判断（A04 已于 2026-10-06 复核改判 VERIFIED_MATCH，本仓内有副本）",
+    "蓝图附录 9 条来源已全部 VERIFIED_MATCH（2026-10-07：A01/A02/A06 原件由 Record 恢复包归档并核验哈希，U01/U02 为规范化恢复导出——其哈希可核验，但它们仍不是原始聊天全文，证明力按此限定；A04 于 2026-10-06 改判，本仓内有副本）——见 docs/current/AAOS-INPUT-SOURCES-20261006.json；未据未读文件作任何判断",
     "Q14 经核实不是冲突而是日期序列：更正文件（2026-10-05）记 NOT_RUN，账本第 5/87 行记其后证据（run 37399470467 全 20 job SUCCESS、artifact 11385093136 的 21 步原生收据、NSIS host SHA 00b7ba9b…）；不可变 checks/acceptance.json 仍为 NOT_RUN，资格化未达成、不发行（初稿误标为冲突，已更正）",
     "A 组 14 项 CAP 已按套件实测取证（合计 370 passed，各 exit 0）；CAP-0070 动态解释与仿真本轮未找到独立套件，行内已写明课程/UI 动效用例提到动画不等于仿真已实现",
     "F00—F14 与 I1—I6 均无实现证据，属目标",
@@ -293,11 +293,12 @@
       "P5/M0 whole-state restart read-back: one store holding a container member relation two levels deep, a transform, three locator kinds, a human-created candidate and a machine receipt keeps every published identity across two deliberate reopens (516 passed / 0 failed over 128 result lines) - so an anchor id or a receipt hash cannot silently re-point the workspace's citations after a restart",
       "F14 `.doc`: the antiword sidecar is bound by declaration rather than found on PATH - the binary and its `.antiword` mapping tables are both declared in the capability manifest, the worker hands the mapping directory's parent to the engine as HOME and records which HOME it used, and a copy with only the binary declared was measured to fail outright (exit 1, no output) because the engine truncates a mapping requested by absolute path; with nothing declared the environment is left untouched, so an in-place install still works",
       "F03: the recorded \"there is still no browser\" was measured false - the web worker now opens the same URL in a local headless chromium after the bounded fetch, scrolls to the bottom within a stated budget and writes the rendered DOM and visible text beside the served bytes, re-runs the address policy on the redirect target and on the URL the browser actually landed on, and refuses by name when no browser launches; --render imports the rendered document while still recording the served digest",
-      "F14 `.ppt`: the legacy binary presentation now has a legal read path on this host - a declared Apache Tika 4.1.0 distribution verified against the ASF sha512 runs on a declared Azul Zulu JRE 21 verified against Azul's own metadata sha256, the pair is asked to identify itself before a document is handed over, and a genuine PowerPoint 97 file from the already-pinned Tika commit is projected line by line with Tika's own startup notice excluded from the text"
+      "F14 `.ppt`: the legacy binary presentation now has a legal read path on this host - a declared Apache Tika 4.1.0 distribution verified against the ASF sha512 runs on a declared Azul Zulu JRE 21 verified against Azul's own metadata sha256, the pair is asked to identify itself before a document is handed over, and a genuine PowerPoint 97 file from the already-pinned Tika commit is projected line by line with Tika's own startup notice excluded from the text",
+      "appendix sources: the five SOURCE_MISSING entries are closed - A01, A02 and A06 arrived as the original markdown whose sha256 equals what the blueprint appendix registered, and U01/U02 as a normalised recovery export whose hash is verifiable without claiming the raw conversation was found; all four attached packages are archived member by member under docs/history/aaos-appendix-sources-20261007/ with CRC32 and per-member sha256, deduplicated by content and verified against each package's own SHA256SUMS"
     ],
     "open": [
       "Q14 与更正文件的日期序列已核实记录；是否宣布资格化仍由 Owner 决定（不可变 checks/acceptance.json 仍为 NOT_RUN）",
-      "5 条蓝图附录来源仍为 SOURCE_MISSING（U01、U02、A01、A02、A06）——A04 已改判 VERIFIED_MATCH；未读即未判断，不声称已读",
+      "蓝图附录 9 条来源已全部 VERIFIED_MATCH（2026-10-07：A01/A02/A06 原件与 U01/U02 恢复导出已归档并核验哈希；U01/U02 仍非原始聊天全文，证明力按此限定）",
       "编码误判已更正（见 gaps）：权威 runner 不受影响，仅裸跑 pytest 时命中；显式 encoding=utf-8 只是可选加固，未做",
       "开源吸收核对脚本的启发式已修复并重算（见 gaps）。剩下的精度边界由工具语义本身决定：IMPLEMENTED_IN_SOURCE 只断言“第一方代码命名了它”，A008/A009 的命中是使用点/导入探测而非捐赠项本体；文档词表与行取值的错配（5 个未定义判定词）仍待文档作者决定",
       "merge / release / install 未授权、未执行；无 tag、无 release",
@@ -497,6 +498,37 @@
         "component_count": "50 -> 51, computed from the rows",
         "disposition_labels": "untouched"
       }
+    },
+    "appendix_source_recovery_20261007": {
+      "attached_by": "owner, via D:/All projects/Record",
+      "command": ".project-local/task-runtime/format-slices-20261007/archive_appendix_sources.py + record_source_recovery.py + regenerate_source_summaries.py",
+      "archived_under": "docs/history/aaos-appendix-sources-20261007/",
+      "manifest": {
+        "rows": 68,
+        "stored_files": 61,
+        "declared_and_verified": 59,
+        "missing": 0
+      },
+      "source_table": {
+        "appendix_entries": 9,
+        "verified_match": 9,
+        "source_missing": 0,
+        "read_but_unhashed": 0,
+        "note": "9 = 9 VERIFIED_MATCH（U01、U02、A01、A02、A03、A04、A05、A06、A07），本轮无 SOURCE_MISSING。A04 于 2026-10-06 复核改判 VERIFIED_MATCH（本仓内副本）。A01/A02/A06 与 U01/U02 于 2026-10-07 由 Record 恢复包归档并核验哈希；U01/U02 是规范化恢复导出，仍非原始聊天全文，其证明力按此限定。"
+      },
+      "verified_hashes": {
+        "U01": "71219c25a1dd133f6aa3070f85b46f7918f420be6d64c1e84bef3375ec1669fe",
+        "U02": "a3d94956c5b2cc0a011943ba4b2dc6638bdbfc925211cfad60a843939005bc8f",
+        "A01": "7ecda3e3f9d22834d65df663ba4f42a3ac62e31d215ab5e7c59c08bfaf08441e",
+        "A02": "771b189740e94dfeaf65e363b919745c2a69bb795d461e2b2fbcc9c95b15e1e1",
+        "A03": "da9998ee673086ed12dab824d951e76c2611efb92e72edccf276b91ed8d92d4d",
+        "A04": "3839646bb60b811c5cc1ab3417625a69e71b70f5983b6b24ec796a664fa28ffb",
+        "A05": "54ac415cbbdd6af05110ab8c05ce19cddfd99e646965c68f1bebb10a1337e85e",
+        "A06": "7d475862fd307be46371ceeaead3407d6bbe939b429c37df1c28c4c6760fbeb2",
+        "A07": "d6bb6432a6850dcf39c451b0a88e97ace668be040bbddf915e09f2b33b7ba1d9"
+      },
+      "correction": "the 2026-10-06 claim that A01/A02/A06 were absent had been upgraded to 'absent by content hash'; the hash sweep had not covered the packages the owner supplied on 2026-10-07, so the negative was a statement about the search scope, not about the files - stated here with that limit",
+      "zip_name_encoding": "member names are UTF-8 bytes without the zip UTF-8 flag; repaired via cp437->utf-8, with already-correct names left alone"
     }
   },
   "artifacts": [

@@ -1,0 +1,26 @@
+接管《AAOS_02_未来延展_可持续架构_20261004》。目标是基于第一包真实Tauri/Rust产品持续兑现全部有效未来能力，优先复用成熟公开组件、SDK/API和选定模块。保持同一个Core、内容合同和知识真值，不另建产品或重新做宿主二选一。
+
+先读README、01_完整架构与未来扩展任务书、00_两包共同架构与交接规则、第一包Q15真实回执；再按当前F任务读任务表、供体表、兼容平台、能力和验收表。核对当前Authority/CAP Atlas与已有实现，只补差。旧报告、seed、README宣传和安装成功都不算能力验收。
+
+架构固定：Tauri2/React/TypeScript/Vite；Rust Core唯一业务写者；SQLite/CAS；隔离worker；内容组件经HostAdapter，提供方/编辑器/阅读器/调度/渲染器/互通经明确Adapter。默认无常驻Node/Next.js、Redis/Neo4j或第二记忆真值库。引擎相关载荷与规范化对象绑定同一revision，稳定对象ID、来源版本、证据、事件与恢复贯穿全部模块。
+
+按F00–F14依赖推进：
+F00真实基线→F01编辑和文档→F02集合/关系/公式/视图→F03完整知识库互通；
+F04诊断与辅导、F05课程、F06科研研发、F07AI资产按缺口推进；
+F08仿真、F09空间3D、F10同步协同、F11插件/技能/知识Agent、F12移动/Web/加密、F13XR/AR、F14持续维护按依赖切片。
+未来目标全部可发现，但不把所有目标塞进每次发行门禁，不以占位页面算完成。
+
+默认主编辑器Tiptap/ProseMirror，PDF.js阅读，React Flow关系图，Excalidraw手绘，TanStack交互视图，现有FSRS先保留；fsrs-rs经对照再迁移。BlockSuite只有主工作区需要文档/无边界画布同模型且真实验证胜出时替换主编辑器，不并行维护两套默认。
+
+DeepTutor取选定辅导/练习/研究能力，OpenMAIC取课程DSL/renderer/交换模块；LearningMAP/OpenTutor做具体方法或组件候选。Docling、PaperQA作为隔离worker按质量收益引入。严格记录repo/revision、许可及包级例外、资源、合同、回归、补丁、升级和退出；Tiptap收费扩展、AFFiNE不同目录许可、OpenMAIC mathml2omml等独立条款、Docling模型许可分别核验，不因root许可宽松就整套搬运。不自动安装上游整套Next.js/PostgreSQL/账户/runtime。
+
+功能等价、数据保真、两方向往返、连续互操作分别验收。继续沿用六类compatibility状态。Obsidian/Notion/思源/Joplin/Logseq/Zotero/Anki、内容协作平台、AI知识平台和持续候选全部登记。指定版本/profile在独立源软件真实回读；未知字段保留不算功能等价；源侧接口不暴露的信息保持缺口。增量用基准/三方差异/tombstone，不静默last-write-wins或删除。
+
+人类学习区分FSRS调度与掌握证据；AI学习区分候选记忆/规则/技能与权重训练，评测和人类认可后有范围使用、可撤回。课程是可版本化可离线恢复对象；视频动画与参数仿真分别实现。空间合同同一知识ID跨2D/2.5D/Three.js3D/GodotOpenXR，XR与AR按具体设备独立验收，不假定WebView能驱动头显。
+
+同步/协同不绕过Core授权；Yjs只处理可变草稿协同，认可知识仍版本化。插件不自授权限，生成代码/课程脚本不进入有IPC的主窗口。知识Agent只调用已接通工具、受限预算、可取消/恢复/审计，不重建通用AgentOS。MCP是可选受限接口；WORK-LAB/DESIGN-LAB是独立可选协作，不改它们的仓库。
+
+每一切片同时交付领域合同、Core提交/版本、真实引擎、可操作入口、恢复/导出、代表性旅程、许可和资源结果。所有状态从NOT_RUN开始映射现有current台账，不建立第二真值。保留旧数据副本与恢复点，不自动覆盖唯一正式库、付费、批量下载模型或公开发布。
+
+先给F00最小现场回执并继续实际实现。每轮只读当前切片必要文件，按真实收益收敛依赖；不把无期限全网选型当交付。第一包关键可靠性未通过时继续原任务，未来页面不能掩盖它。
+
