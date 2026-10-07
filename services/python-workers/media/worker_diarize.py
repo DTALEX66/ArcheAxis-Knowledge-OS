@@ -2,12 +2,15 @@
 """ArcheAxis vNext speaker-diarization worker (F10): who spoke when, or nothing at all.
 
 The runtime is `sherpa-onnx`'s offline diarizer, which needs **two** ONNX assets - a pyannote
-segmentation model and a speaker-embedding model. Neither is in the shared model library yet, and the
-publishers that ship them in ONNX form are unreachable from this host (measured 2026-10-07, recorded in
-`docs/integrations/AAOS_SPEAKER_MODEL_SUPPLY_20261007.md`). So the rule for this worker is that it
-either reports a real diarization or reports exactly which artifact is missing. It never emits a
-plausible segment: an invented `speaker 0` would be indistinguishable from a result downstream, and a
-count of speakers nobody measured is the kind of claim this repository's rules forbid.
+segmentation model and a speaker-embedding model. Both are in the shared model library since
+2026-10-07 (`sherpa-onnx/speaker-diarization/`, provenance beside them): the earlier "unreachable from
+this host" reading was wrong in its cause - the publishers are reachable through a mirror, and what
+actually blocked the route was **ONNX metadata**, which is the only channel sherpa reads
+`sample_rate`/`framework` from. Supply is still resolved from the environment rather than from a
+declared external resource, so this worker keeps its rule: either report a real diarization or report
+exactly which artifact is missing. It never emits a plausible segment: an invented `speaker 0` would be
+indistinguishable from a result downstream, and a count of speakers nobody measured is the kind of
+claim this repository's rules forbid.
 
 Input is 16-bit mono PCM WAV. Other containers are refused by name rather than decoded through a
 guess: `media.probe` already states that a header is a claim by the file, not a measurement.

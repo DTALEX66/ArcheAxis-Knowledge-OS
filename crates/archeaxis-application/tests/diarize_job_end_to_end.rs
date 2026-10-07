@@ -2,8 +2,9 @@
 //!
 //! The route was declared and Core-registered before this suite existed, which is exactly the
 //! failure shape this file pins: a job kind that resolves, a capability that is claimed, and no
-//! process able to answer it. Here the two ONNX assets are genuinely absent on this host, so the
-//! honest outcome is a failed job naming the artefacts - never a succeeded job with no segments,
+//! process able to answer it. The refusal scenario pins its own supply (a wrapper that clears the
+//! model-library environment before exec'ing the real worker), so the honest outcome is a failed job
+//! naming the artefacts on any host - never a succeeded job with no segments,
 //! which downstream would read as "this recording had no speakers".
 
 use archeaxis_application::{
@@ -53,15 +54,30 @@ fn the_diarization_route_is_declared_and_dispatchable() {
 #[tokio::test]
 async fn a_diarize_job_without_its_models_fails_naming_the_exact_artefacts() {
     let dir = tempfile::tempdir().unwrap();
+    // This scenario is about supply, so it pins supply instead of borrowing the host's. A machine
+    // that has the declared diarization assets must not turn "absent models refuse" into a success,
+    // and a machine without them must not be the only place the refusal is real.
+    let worker = dir.path().join("diarize_worker_with_supply_pinned_absent.py");
+    let real_worker = repo()
+        .join("services/python-workers/media/worker_diarize.py")
+        .display()
+        .to_string();
+    std::fs::write(
+        &worker,
+        format!(
+            "import os, runpy\n\
+             for _name in ('ARCHEAXIS_DIARIZATION_MODEL_DIR', 'ARCHEAXIS_MODEL_LIBRARY_DIR'):\n\
+             \x20\x20\x20\x20os.environ[_name] = ''\n\
+             runpy.run_path(r'{real_worker}', run_name='__main__')\n"
+        ),
+    )
+    .unwrap();
     let executor = Executor::open_routes(
         &dir.path().join("db.sqlite"),
         &dir.path().join("staging"),
         &python(),
         &repo().join("services/python-workers/transport/text_ndjson.py"),
-        &[(
-            "media.diarize",
-            repo().join("services/python-workers/media/worker_diarize.py"),
-        )],
+        &[("media.diarize", worker.clone())],
     )
     .await
     .unwrap();
