@@ -37,6 +37,7 @@ pub enum Operation {
     SourcesList,
     SourceJobs,
     SourceMembers,
+    SourcePages,
     SourceOriginal,
     DocumentsList,
     DocumentCreate,
@@ -124,6 +125,11 @@ fn route(request: &Request) -> Result<(&'static str, String, Option<Value>), Str
         SourceMembers => (
             "GET",
             format!("/api/v1/sources/{}/members", id(p, "source_id")?),
+            None,
+        ),
+        SourcePages => (
+            "GET",
+            format!("/api/v1/sources/{}/pages", id(p, "source_id")?),
             None,
         ),
         SourceOriginal => (
@@ -583,6 +589,25 @@ mod tests {
         for source_id in ["../private", "src-safe?token=x", "src-safe/members"] {
             let request = serde_json::from_value::<Request>(
                 serde_json::json!({"operation":"source_members","payload":{"source_id":source_id}}),
+            )
+            .unwrap();
+            assert!(route(&request).is_err());
+        }
+    }
+
+    #[test]
+    fn source_pages_is_a_finite_read_with_validated_source_id() {
+        let request = serde_json::from_value::<Request>(
+            serde_json::json!({"operation":"source_pages","payload":{"source_id":"src-safe"}}),
+        )
+        .unwrap();
+        let (method, path, body) = route(&request).unwrap();
+        assert_eq!(method, "GET");
+        assert_eq!(path, "/api/v1/sources/src-safe/pages");
+        assert!(body.is_none());
+        for source_id in ["../private", "src-safe?token=x", "src-safe/pages"] {
+            let request = serde_json::from_value::<Request>(
+                serde_json::json!({"operation":"source_pages","payload":{"source_id":source_id}}),
             )
             .unwrap();
             assert!(route(&request).is_err());

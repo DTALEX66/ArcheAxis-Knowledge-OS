@@ -1017,6 +1017,86 @@
           "type": "string"
         }
       }
+    },
+    "SourcePageDto": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "page",
+        "source_id",
+        "origin_ref",
+        "original_name",
+        "sha256",
+        "recognised",
+        "text",
+        "job_id"
+      ],
+      "properties": {
+        "page": {
+          "type": [
+            "integer",
+            "null"
+          ]
+        },
+        "source_id": {
+          "type": "string"
+        },
+        "origin_ref": {
+          "type": "string"
+        },
+        "original_name": {
+          "type": "string"
+        },
+        "sha256": {
+          "type": "string"
+        },
+        "recognised": {
+          "type": "boolean"
+        },
+        "text": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "job_id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      }
+    },
+    "SourcePagesDto": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "pdf_source_id",
+        "page_count",
+        "recognised_count",
+        "pages",
+        "note"
+      ],
+      "properties": {
+        "pdf_source_id": {
+          "type": "string"
+        },
+        "page_count": {
+          "type": "integer"
+        },
+        "recognised_count": {
+          "type": "integer"
+        },
+        "pages": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/SourcePageDto"
+          }
+        },
+        "note": {
+          "type": "string"
+        }
+      }
     }
   }
 }

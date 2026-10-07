@@ -117,7 +117,7 @@ P0-H01 provider-routing 契约切片（当前 subject：`5a53d9a6445935e755df5f3
 
 
 P0-H01 identity hardening（当前 subject：`5a53d9a6445935e755df5f3ac263bd7922839aa7`）：Astra 当前-SHA 复核发现 provider/capability/fallback 标识首尾空白归一化不一致；新增 RED→GREEN 回归并统一拒绝空白身份，避免快照解析成功但执行查找失败。契约与相关回归 `62 passed, 3 warnings`，Ruff、py_compile、git diff --check 通过；正式宿主仍未接入。
-P0-H01 host lifecycle 边界（当前 subject：`a5ef4f5f4d29203bda4137ecb9cc026658ecb309`）：正式宿主仍未接入统一 provider routing；已形成 `provider-routing.json` sidecar 提案，要求 CapabilityStore 原子写、Rust Core 只读、Core 为唯一 Canonical writer。该卡标记 `BLOCKED_BY_AUTHORITY_DECISION`，不得把 test-only worker 生命周期升格为 M0 完成。当前 Rust/API 运行还受外置 Windows SDK `kernel32.lib`（历史 `LNK1181`）阻塞。
+P0-H01 host lifecycle 边界（当前 subject：`a5ef4f5f4d29203bda4137ecb9cc026658ecb309`）：正式宿主仍未接入统一 provider routing；已形成 `provider-routing.json` sidecar 提案，要求 CapabilityStore 原子写、Rust Core 只读、Core 为唯一 Canonical writer。该卡标记 `BLOCKED_BY_AUTHORITY_DECISION`，不得把 test-only worker 生命周期升格为 M0 完成。**其中"当前 Rust/API 运行还受外置 Windows SDK `kernel32.lib`（历史 `LNK1181`）阻塞"这一句已被实测推翻（2026-10-07 更正）：以声明工具根 `10-toolchains\msvc\VC\Auxiliary\Build\vcvars64.bat` 导入 MSVC 环境后，`cargo build -p archeaxis-api --bin archeaxis-api --release --offline` 退出 0，`cd src-tauri; cargo test --offline` 73 passed / 0 failed；历史 `LNK1181` 未复现。仍然成立的是同一句前半段：正式宿主尚未接入统一 provider routing，该卡仍是 `BLOCKED_BY_AUTHORITY_DECISION`。**
 
 P0-H01 CapabilityStore sidecar feasibility（当前 subject：`90573dcef2573029da3fc70f706349fb9d272221`）：只读审计确认 manifest/record 没有 capability、route、generation、health 的权威输入，且 pack move、index replace、sidecar replace 不是单一事务；disable/enable 的 fallback 语义也未冻结。相关回归 `36 passed, 2 warnings`，实现保持 `BLOCKED_BY_AUTHORITY_DECISION`。
 
