@@ -9,7 +9,7 @@
     "old_aliases": "Atlas origin_requirement_ids and legacy space aliases remain resolvable."
   },
   "source_hashes": {
-    "capability_catalog_ts_sha256": "2747e32af0bd1bf7a0a33e7d8a87cbac17d87a03ea558b006b5e0339c2231f21",
+    "capability_catalog_ts_sha256": "845d16de34c6117c2b29078422978f4b270712a27d0c1733e7064fd4b7e87770",
     "spaces_ts_sha256": "b88a3d46f1dccbba9c14166276bd33aa3f87727753ac9fcec8de175d81a58ae5",
     "navigation_ts_sha256": "f83e519e1b35f5efd69e7a9d22d99a468e166fd24d5f460083898054b9281a8a",
     "authority_sources": [
@@ -19,7 +19,7 @@
       },
       {
         "path": "config/capability-map.v1.json",
-        "sha256": "e24d5c54320028b292254744fb369e3c66f491c1258bb12f22665efadaaf0cc9"
+        "sha256": "d5873a524c04d5b6213dbd3f5f39d20c0056e5fc96e4d3c977daf7d4f572ed0e"
       }
     ]
   },
@@ -201,6 +201,7 @@
       "runtime_capabilities": [
         "archive.inventory",
         "canvas.structure",
+        "document.detect",
         "html.structure",
         "image.caption",
         "image.ocr",

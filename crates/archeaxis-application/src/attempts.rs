@@ -30,6 +30,8 @@ pub const ENGINE_PROFILES: &[(&str, &str)] = &[
     // F10: who spoke when. The route is dispatchable now; the two ONNX assets are not in the
     // shared model library yet, so a job that reaches it settles with the refusal naming them.
     ("python-worker-diarize", "0.1.0"),
+    // F04: the vendored Magika ONNX names bytes a file's own extension could not name.
+    ("python-worker-detect", "0.1.0"),
 ];
 
 /// R08: the extraction routes the Core can dispatch, declared once. A job's kind
@@ -75,6 +77,9 @@ pub const ROUTES: &[(&str, &str, &str)] = &[
     // F10: boundaries only - who spoke when, with no words and no speaker identity. Its own kind
     // because its output structure is not a transcript and must not be read as one.
     ("diarize", "media.diarize", "audio/wav"),
+    // F04: naming bytes the extension cannot name is a route of its own, because its output is a
+    // model judgement about the bytes and must never be mistaken for an extracted projection.
+    ("detect", "document.detect", "application/octet-stream"),
 ];
 
 /// Resolve a job kind to its route: (capability, input media type).
@@ -163,6 +168,13 @@ pub const ROUTE_MEDIA_TYPES: &[(&str, &[&str])] = &[
         // transcribable but not yet diarizable here, and that is the worker's fact, not a guess.
         "media.diarize",
         &["audio/wav", "audio/x-wav"],
+    ),
+    (
+        // The detector reads bytes, so the only type it is handed is the one the Core uses when a
+        // name says nothing. A file whose extension DOES name a type is not this route's work:
+        // its own route already exists and answers with the real projection.
+        "document.detect",
+        &["application/octet-stream"],
     ),
     (
         "office.structure",
@@ -321,6 +333,10 @@ pub fn resolve_media_type(kind: &str, original_name: &str) -> Result<&'static st
     let derived = media_type_for_name(original_name);
     match derived {
         Some(media) if accepted.contains(&media) => Ok(media),
+        // F04: a source whose extension names nothing is the input this route exists for, and the
+        // vendored model reads bytes rather than names. Every other route still refuses, because
+        // for them an unnameable name is a guess, not evidence.
+        None if capability == "document.detect" => Ok("application/octet-stream"),
         _ => Err(JobError::MediaTypeNotAccepted {
             kind: kind.to_string(),
             name: original_name.to_string(),
