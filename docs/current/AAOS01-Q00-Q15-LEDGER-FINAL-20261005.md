@@ -1776,3 +1776,34 @@ test_environment_registry.py` → 12 passed；`tests/test_mfx001_supply_chain_le
 **矩阵与快照同步**：F03 `gap` 里"浏览器尚未声明"那句替换为解析顺序与构建号耦合的事实
 （升级 Playwright 会让这一条声明失效，而不是安静地换一个浏览器）；
 `status` 仍 `partial`，`required_output` 逐字未动。快照的未决条目与 `next_action` 同步更正。
+
+## Chromium 进供给链台账，以及我自己写坏的一次台账（2026-10-07）
+
+**做了什么**：渲染通道用的浏览器现在有据可查——新增 **A049 Chromium**
+（`SIDECAR` / qualification `["installed"]` / capability `web-render`），
+身份是从盘上读的：`10-toolchains/playwright/chromium-1228/chrome-win64/chrome.exe`，
+**4,059,648 字节，sha256 `b798f9e53a98d29eb7f36f8c409f905d3184780a04d2bcb56989067194784bd1`**，
+启动自报 **149.0.7827.55**。`component_count` 49 → 50，
+`disposition_summary` 的 SIDECAR 4 → 5，**两个数都由行表现算出来，不是手填**。
+`playwright` Python 包本身是本仓**已锁**的第一方依赖（`playwright>=1.61,<1.62`），
+这一行记的是产品实际启动的那个二进制。
+
+**我自己造成的破坏（如实写）**：追加行的脚本用了"任何含 `SIDECAR` 的字典都是计数表"这个匹配，
+于是把台账里 **`disposition_labels`（每个处置标签的**定义**，含两个当前没人用的标签
+`ADOPT_PRODUCT_BASE`、`DEFER`）整体覆盖成了计数**。
+在提交**之前**读 `git diff` 时发现：那一段 -9/+7 是定义文本没了。
+处理方式：从 `HEAD` 逐字节恢复定义，只在 `disposition_summary` 上重算计数，
+并让计数**按标签表全词汇展开**（没人用的标签显示为 0，而不是从表里消失）。
+所以这次提交里没有留下损伤；但**缺陷发生过，就必须进账本**。
+
+**这条破坏暴露的真缺口，以及它的补法（已落地，不是待办）**：
+`tests/test_mfx001_supply_chain_ledger.py` 原本 5 passed 全程没拦住它——该测试校验行字段与处置词汇，
+**不校验 `disposition_labels` 是"字符串定义映射"、也不校验 `disposition_summary` 的键集合**。
+补了一条 `test_disposition_labels_stay_definitions_and_summary_covers_them`（现 6 passed），
+并**先证伪再用**：把台账临时改成我这次实际造成的那种破坏（labels ← 计数），
+该测试如期 FAILED 1 条；随后从哈希一致的备份恢复（`restored identical: yes`）。
+没有这一步，"补了个门禁"只是一句自我声明。
+
+**可复用的教训**：改一份机器可读台账时，"这个字段看起来像计数表"不能替代
+"我知道这个字段是什么"。**任何覆盖式写入前先看一次 HEAD 里该键的类型**；
+以及 `git diff` 要在 commit 前读，而不是 commit 后。

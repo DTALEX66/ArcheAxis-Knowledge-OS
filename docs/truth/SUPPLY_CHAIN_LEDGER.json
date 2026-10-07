@@ -742,15 +742,34 @@
       "evidence": "Bound as a declared external engine on this host, not merely probed. Two entries were added to `config/environment/capability-requirements.yaml` and regenerated into `config/environment/external-resources-index.json` with `exists: true` for both: `antiword` -> `D:\\All projects\\OS External Configuration\\10-toolchains\\antiword\\antiword.exe` (284448 bytes, sha256 `d30a37489c64ada474d8d5aa5abb0778a6955d3ce6cdbb7c8c659e37b89d3da9`, byte-identical to the Git-for-Windows copy at `C:\\Program Files\\Git\\mingw64\\bin\\antiword.exe`, 284448 bytes, sha256 `d30a37489c64ada474d8d5aa5abb0778a6955d3ce6cdbb7c8c659e37b89d3da9`), and `antiword-mappings` -> `D:\\All projects\\OS External Configuration\\10-toolchains\\antiword\\.antiword` (30 `*.txt` tables, 306272 bytes, UTF-8 table present: true). The second entry is not decoration and is the reason this row changed at all: antiword looks for its character mapping only in `$HOME/.antiword` and `/usr/share/antiword`, a mapping named by absolute path is truncated to the engine's buffer and its default table is used instead (measured), and a copy outside the install tree fails with \"I can't open your mapping file (UTF-8.txt)\" - exit 1, zero output - so the tables directory must be declared and its parent handed to the process as HOME. `worker_office._antiword_mapping_home()` does exactly that and records `mapping_home` in the loss receipt; with nothing declared it leaves the environment untouched, which is what keeps an in-place install working and keeps CI honest. Measured through the real reader: tests/workers/test_doc_engine.py 18 passed on this host, including the declared-pair case and the two end-to-end cases that call `_doc_text` on the real Word file while the declaration is what resolves. The binary is still not bundled and still not installed by this repository; `probe` for it is the generic registry prober appending `--version`, which antiword answers with its usage text and exit 1, so the inventory shows `available: true, probe: probe_failed` for this engine - stated here because a passing resolution and a failing generic probe are both true at once.",
       "decision": "Isolated, removable sidecar for `.doc` only, now bound by declaration to the external tool root instead of resolved by PATH luck. Not a core dependency, not bundled, not installed by this repository and not relicensed by it; it never replaces the main conversion chain. The copy under `10-toolchains/antiword/` is a local placement of the Git-for-Windows binary: if that package updates, the placed copy does not follow it, and the row's sha256 is the identity to compare against before trusting either. `.ppt` stays unprovided: the JVM-backed candidate cannot be qualified without a system-level runtime install, which the current boundary forbids.",
       "upstream_note": "Upstream stated by the package index: http://www.winfield.demon.nl/ (not fetched from this run; the packaging repository above is the source of record here). Repositories carrying the package: clang64, clangarm64, ucrt64 - note the Git-for-Windows copy measured here is from its mingw64 bundle."
+    },
+    {
+      "id": "A049",
+      "name": "Chromium (the Playwright browser build this host already carries)",
+      "version": "build 1228; the launched browser self-reported 149.0.7827.55",
+      "canonical_url": "https://playwright.dev/python/docs/browsers",
+      "capability": "web-render",
+      "code_license": "BSD-3-Clause (Chromium), as recorded by the capability manifest entry",
+      "model_license": null,
+      "disposition": "SIDECAR",
+      "qualification": [
+        "installed"
+      ],
+      "product_path": "services/python-workers/web/worker_webpage.py",
+      "evidence": "Used by the F03 render lane, so it is recorded here rather than left as a test-only tool. Measured on this host: `D:/All projects/OS External Configuration/10-toolchains/playwright/chromium-1228/chrome-win64/chrome.exe` 4059648 bytes, sha256 `b798f9e53a98d29eb7f36f8c409f905d3184780a04d2bcb56989067194784bd1`, declared in `config/environment/capability-requirements.yaml` as the `external_paths` of the pre-existing `playwright-chromium` entry, which until now carried a name and no location - the same class of gap as the antiword row: present on disk is not declared, and declared by name is not resolvable. The `playwright` Python package itself is a locked first-party dependency (`playwright>=1.61,<1.62` in `pyproject.toml`), not an added one; this row is about the browser binary the product launches. Resolution order in `services/python-workers/web/worker_webpage.py` is `ARCHEAXIS_CHROMIUM_CMD`, then the declared path, then Playwright's own registry, and a configured path that fails is reported as that failure rather than answered with the declared browser - no substitution. Two host traps shaped the code: a session can redirect `PLAYWRIGHT_BROWSERS_PATH` to a project-local cache that holds no build (which is why the real render test skipped before this row existed), and the declared path carries the build number `chromium-1228`, so a Playwright upgrade invalidates this one entry instead of silently pointing the render at some other browser. Verified through the sanctioned runner with no browser environment variable set: tests/workers/test_webpage_render.py plus the manifest and index workflow tests reported 20 passed / 0 skipped, and the full `tests` suite moved from 4284 passed / 31 skipped to 4286 passed / 30 skipped - the +2 / -1 being the new no-substitution test and the real browser test that the declaration stopped skipping.",
+      "decision": "Isolated, removable sidecar for the dynamic-page render lane. Not bundled, not installed by this repository, and not relicensed by it; the repository never assumes the browser exists and a host without it gets a named refusal that writes nothing. Advancing this row's qualification further (an `release`-grade claim) would need a per-page human acceptance on real targets, which this round does not have; screenshots, interaction-gated content and lazy content past the scroll budget remain open in the F03 row.",
+      "upstream_note": "Chromium is upstream for the engine; the build measured here was placed on this host by Playwright's own browser download, and the manifest names the same source URL. No copy was made by this repository: the declared path is the build already under `10-toolchains/playwright/`."
     }
   ],
-  "component_count": 49,
+  "component_count": 50,
   "disposition_summary": {
-    "REFERENCE": 1,
     "CURRENT": 12,
-    "EVALUATE": 9,
+    "ADOPT_PRODUCT_BASE": 0,
     "ADOPT": 13,
-    "SIDECAR": 4,
+    "EVALUATE": 9,
+    "SIDECAR": 5,
+    "REFERENCE": 1,
+    "DEFER": 0,
     "REVIEW-BLOCK": 9,
     "REJECT-CORE": 1
   }
