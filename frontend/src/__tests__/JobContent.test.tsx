@@ -19,6 +19,38 @@ describe("Core job content",()=>{
   expect(screen.queryByLabelText("Core 提取正文")).not.toBeInTheDocument();
   if(kind==="media")expect(screen.getByText(/不表示已解码、转写或核对时间段内容/)).toBeInTheDocument();
  });
+ it("publishes nothing when ASR is still leased at the wait deadline, and stays retryable",async()=>{
+  // The wait loop has a deadline, not an error channel: a job that never reaches a terminal state
+  // must not be reported as a failure of the product, and must not be reported as success either.
+  const now=vi.spyOn(Date,"now");let step=0;now.mockImplementation(()=>((step+=100_000)-100_000));
+  bridge.call.mockImplementation(async(op:string,payload:Record<string,unknown>)=>{
+   if(op==="capabilities_list")return {};
+   if(op==="job_enqueue")return {job_id:(payload.body as Record<string,unknown>).job_id};
+   if(op==="job_execute")return {};
+   if(op==="jobs_get")return {job_id:String(payload.job_id),state:"leased",attempt:1};
+   if(op==="job_output")throw new Error("a timed-out job has no product to read");
+   return {};
+  });
+  render(<JobContent sourceId="src_asr" name="sample.wav"/>);
+  const user=userEvent.setup();
+  try{
+   await user.click(screen.getByRole("button",{name:"执行真实语音转写"}));
+   expect(await screen.findByText(/转换未完成或产物读取失败/)).toBeInTheDocument();
+   expect(screen.queryByText(/真实转换已完成/)).not.toBeInTheDocument();
+   expect(screen.queryByLabelText("Core 提取正文")).not.toBeInTheDocument();
+   expect(bridge.call).not.toHaveBeenCalledWith("job_output",expect.anything());
+   expect(step).toBeGreaterThan(310_000); // the deadline was reached, not skipped by an early terminal state
+   // the unfinished state stays reachable verbatim, so the operator can see what was actually left running
+   const debug=vi.spyOn(console,"debug").mockImplementation(()=>{});
+   await user.click(screen.getByRole("button",{name:/最新处理状态与错误记录/}));
+   expect(debug.mock.calls.some(([,label,payload])=>label==="最新处理状态与错误记录"&&JSON.stringify(payload).includes("leased"))).toBe(true);
+   debug.mockRestore();
+  }finally{
+   now.mockRestore();
+  }
+  // releasing the busy flag is what keeps a timeout recoverable instead of a dead end
+  await waitFor(()=>expect(screen.getByRole("button",{name:"执行真实语音转写"})).toBeEnabled());
+ });
  it("retains successful output when a later job fails and binds candidates to its successful transform",async()=>{
   let latest="";let executions=0;
   bridge.call.mockImplementation(async(op:string,payload:Record<string,unknown>)=>{
