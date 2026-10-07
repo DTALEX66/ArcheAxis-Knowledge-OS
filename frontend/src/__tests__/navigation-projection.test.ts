@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { readFileSync } from "node:fs";
-import { resolve } from "node:path";
+import { basename, resolve } from "node:path";
 import { CAPABILITY_CATALOG } from "../api/generated/capability-catalog";
 import {
   EFFECTIVE_NAVIGATION_ENTRIES,
@@ -9,6 +9,8 @@ import {
   resolveNavigationHash,
   validateNavigationProjection,
 } from "../presentation/navigation";
+
+const repository = basename(process.cwd()) === "frontend" ? resolve(process.cwd(), "..") : process.cwd();
 
 describe("effective navigation projection", () => {
   it("projects each formal capability once and resolves stable IDs, historical aliases and deep links", () => {
@@ -32,7 +34,7 @@ describe("effective navigation projection", () => {
   });
 
   it("keeps the checked-in entry matrix aligned with the live read-only projection", () => {
-    const matrix = JSON.parse(readFileSync(resolve(process.cwd(), "docs/current/AAOS-UI-CAPABILITY-ENTRY-MATRIX-20261007.json"), "utf8")) as {
+    const matrix = JSON.parse(readFileSync(resolve(repository, "docs/current/AAOS-UI-CAPABILITY-ENTRY-MATRIX-20261007.json"), "utf8")) as {
       capability_count: number;
       capabilities: Array<{ entry_id: string; route: string; menu_visible: boolean; command_search_visible: boolean; detail_available: boolean; destination_space: string | null; legacy_aliases: Array<{ alias: string; resolves_to_entry_id: string }> }>;
     };

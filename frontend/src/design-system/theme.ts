@@ -1,3 +1,7 @@
+import blackBrandMark from "../assets/aaos-brand-mark-black.svg";
+import whiteBrandMark from "../assets/aaos-brand-mark-white.svg";
+import cosmicBrandMark from "../assets/aaos-brand-mark-cosmic.svg";
+
 export const AAOS_THEMES = [
   { id: "black", label: "黑色" },
   { id: "white", label: "珍珠白" },
@@ -5,6 +9,14 @@ export const AAOS_THEMES = [
 ] as const;
 
 export type AaosThemeId = (typeof AAOS_THEMES)[number]["id"];
+
+/** Theme-specific decorative resources share one source with the theme IDs. */
+export const AAOS_THEME_REGISTRY = {
+  black: { id: "black", brandMark: blackBrandMark },
+  white: { id: "white", brandMark: whiteBrandMark },
+  cosmic: { id: "cosmic", brandMark: cosmicBrandMark },
+} as const satisfies Record<AaosThemeId, { id: AaosThemeId; brandMark: string }>;
+
 const PREFERENCE_KEY = "aaos.ui.theme.v1";
 
 export function readThemePreference(storage?: Pick<Storage, "getItem">): AaosThemeId {

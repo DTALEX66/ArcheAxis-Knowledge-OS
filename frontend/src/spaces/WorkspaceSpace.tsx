@@ -85,9 +85,10 @@ function valueOf(value: unknown, key?: string): string {
   return "未知";
 }
 
-function stateClass(value: string): string {
+export function workspaceStateClass(value: string): string {
   if (["可用", "已完成", "已发布", "已批准", "是", "已记录"].includes(value)) return "state-ok";
-  if (["不可用", "失败", "未连接", "已弃用"].includes(value)) return "state-warn";
+  if (["不可用", "失败"].includes(value)) return "state-danger";
+  if (["未连接", "已弃用"].includes(value)) return "state-warn";
   if (["待处理", "候选", "待复核", "需要依赖"].includes(value)) return "state-pending";
   return "";
 }
@@ -96,7 +97,7 @@ function StatCard({ label: lbl, value }: { label: string; value: string }) {
   return (
     <div className="stat-card">
       <span className="stat-label">{lbl}</span>
-      <span className={`stat-value ${stateClass(value)}`}>{value}</span>
+    <span className={`stat-value ${workspaceStateClass(value)}`}>{value}</span>
     </div>
   );
 }
@@ -193,7 +194,7 @@ export function WorkspaceSpace({ onNavigate }: { onNavigate: (id: SpaceId) => vo
                   {activity.map((item) => (
                     <li key={item.public_ref}>
                       <span className="ws-activity-label">{item.label}</span>
-                      <span className={`ws-activity-state ${stateClass(valueOf(item.state))}`}>{valueOf(item.state)}</span>
+                      <span className={`ws-activity-state ${workspaceStateClass(valueOf(item.state))}`}>{valueOf(item.state)}</span>
                     </li>
                   ))}
                 </ul>

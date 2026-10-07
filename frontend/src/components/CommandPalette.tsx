@@ -134,7 +134,6 @@ export function CommandPalette({ onNavigate, onOpenCapability, onOpenChange }: {
           role="option"
           aria-selected={activeIndex === index}
           onFocus={() => setActiveIndex(index)}
-          aria-disabled={entry.capability ? !canNavigateToCapability(entry.capability) : undefined}
           onKeyDown={(event) => {
             if (event.key === "ArrowDown") {
               event.preventDefault();

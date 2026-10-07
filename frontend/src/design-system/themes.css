@@ -20,7 +20,7 @@
   --ax-control-border: var(--aaos-control-border);
   --aaos-ornament: #acbfd6;
   --aaos-success: #22c55e;
-  --aaos-warning: #aebed5;
+  --aaos-warning: #70c6ff;
   --aaos-danger: #ff6a95;
   --aaos-info: #a5c5ff;
   --aaos-selected: #232a33;
@@ -43,7 +43,7 @@
   --ax-success: var(--aaos-success);
   --ax-success-soft: #22c55e26;
   --ax-warning: var(--aaos-warning);
-  --ax-warning-soft: #aebed526;
+  --ax-warning-soft: #70c6ff26;
   --ax-danger: var(--aaos-danger);
   --ax-danger-soft: #ff6a9526;
   --ax-border: #ffffff14;
@@ -75,7 +75,7 @@
   --ax-control-border: var(--aaos-control-border);
   --aaos-ornament: #456589;
   --aaos-success: #116958;
-  --aaos-warning: #53657d;
+  --aaos-warning: #14577f;
   --aaos-danger: #b72253;
   --aaos-info: #285ca5;
   --aaos-selected: #dcecf2;
@@ -98,7 +98,7 @@
   --ax-success: var(--aaos-success);
   --ax-success-soft: #11695820;
   --ax-warning: var(--aaos-warning);
-  --ax-warning-soft: #53657d20;
+  --ax-warning-soft: #70c6ff28;
   --ax-danger: var(--aaos-danger);
   --ax-danger-soft: #b7225320;
   --ax-border: #73839840;
@@ -130,7 +130,7 @@
   --ax-control-border: var(--aaos-control-border);
   --aaos-ornament: #b8d4ff;
   --aaos-success: #37c99a;
-  --aaos-warning: #b7c8e5;
+  --aaos-warning: #75d8f4;
   --aaos-danger: #ff7aa8;
   --aaos-info: #8bb9ff;
   --aaos-selected: #173b47;
@@ -153,7 +153,7 @@
   --ax-success: var(--aaos-success);
   --ax-success-soft: #37c99a26;
   --ax-warning: var(--aaos-warning);
-  --ax-warning-soft: #b7c8e526;
+  --ax-warning-soft: #75d8f426;
   --ax-danger: var(--aaos-danger);
   --ax-danger-soft: #ff7aa826;
   --ax-border: #b8d4ff1f;
@@ -256,7 +256,7 @@
   box-shadow: 0 0 0 1px #b7225330;
 }
 :root[data-aaos-theme="white"] .badge-success { color: var(--aaos-success); background: #11695820; }
-:root[data-aaos-theme="white"] .badge-warning { color: var(--aaos-warning); background: #53657d20; }
+:root[data-aaos-theme="white"] .badge-warning { color: var(--aaos-warning); background: var(--ax-warning-soft); }
 :root[data-aaos-theme="white"] .badge-danger { color: var(--aaos-danger); background: #b7225320; }
 
 .navigation-sidebar {
@@ -334,13 +334,6 @@
 @media (max-width: 900px) {
   .navigation-sidebar { flex-basis: 220px; }
   .navigation-sidebar .context-subnav { max-height: 24%; }
-}
-@media (max-width: 600px) {
-  .navigation-sidebar { flex-basis: 190px; }
-  .navigation-sidebar .context-subnav { display: none; }
-  .navigation-sidebar .space-rail { overflow-x: hidden; }
-  .navigation-sidebar .space-rail-list { overflow: auto; }
-  .navigation-sidebar .capability-rail[open] { position: fixed; z-index: 20; left: 8px; top: 100px; bottom: 10px; width: min(360px, calc(100vw - 24px)); max-height: calc(100vh - 116px); overflow: auto; padding: 8px; border: 1px solid var(--aaos-control-border); border-radius: var(--ax-radius-md); background: var(--aaos-surface); box-shadow: 0 12px 40px #0008; }
 }
 
 @media (prefers-reduced-motion: reduce) {

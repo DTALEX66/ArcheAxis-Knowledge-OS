@@ -1,14 +1,9 @@
 import { SpaceId, SPACES } from "../spaces/spaces";
 import { useAaosTheme } from "../design-system/ThemeProvider";
+import { AAOS_THEME_REGISTRY } from "../design-system/theme";
 import { CAPABILITY_CATALOG } from "../api/generated/capability-catalog";
 import { CommandPalette } from "./CommandPalette";
 import { ThemePicker } from "./ThemePicker";
-import blackBrandMark from "../assets/aaos-brand-mark-black.svg";
-import whiteBrandMark from "../assets/aaos-brand-mark-white.svg";
-import cosmicBrandMark from "../assets/aaos-brand-mark-cosmic.svg";
-
-const BRAND_MARKS = { black: blackBrandMark, white: whiteBrandMark, cosmic: cosmicBrandMark };
-
 export type BackendDisplayState = "checking" | "available" | "unavailable" | "web";
 
 interface StatusBarProps {
@@ -53,7 +48,7 @@ export function StatusBar({
   return (
     <header className="status-bar" role="banner">
       <div className="status-bar-brand">
-        <img src={BRAND_MARKS[theme]} width={28} height={28} alt="" aria-hidden="true" />
+        <img src={AAOS_THEME_REGISTRY[theme].brandMark} width={28} height={28} alt="" aria-hidden="true" />
         <span>星环知识平台</span>
         {externalDev ? <span className="dev-marker">开发</span> : null}
       </div>

@@ -9,6 +9,7 @@
       "bytes": 644,
       "source": "AAOS-owned SVG adapted from existing star-orbit geometry; cool black-theme tokens",
       "referenced_by": [
+        "frontend/src/design-system/theme.ts",
         "frontend/src/components/StatusBar.tsx"
       ],
       "status": "SOURCE_IMPORT_CONFIRMED; BUILD_CONFIRMED"
@@ -19,6 +20,7 @@
       "bytes": 644,
       "source": "AAOS-owned SVG adapted from existing star-orbit geometry; cool pearl-white tokens",
       "referenced_by": [
+        "frontend/src/design-system/theme.ts",
         "frontend/src/components/StatusBar.tsx"
       ],
       "status": "SOURCE_IMPORT_CONFIRMED; BUILD_CONFIRMED"
@@ -29,6 +31,7 @@
       "bytes": 644,
       "source": "AAOS-owned SVG adapted from existing star-orbit geometry; cool deep-space tokens",
       "referenced_by": [
+        "frontend/src/design-system/theme.ts",
         "frontend/src/components/StatusBar.tsx"
       ],
       "status": "SOURCE_IMPORT_CONFIRMED; BUILD_CONFIRMED"

@@ -3,6 +3,7 @@ import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { SpaceRail } from "../components/SpaceRail";
 import { SPACES } from "../spaces/spaces";
+import { CAPABILITY_NAVIGATION_ENTRIES } from "../presentation/navigation";
 
 // AXW-UI-804: SpaceRail navigation accessibility & interaction tests.
 describe("SpaceRail", () => {
@@ -98,7 +99,9 @@ describe("SpaceRail", () => {
     const groups = screen.getByRole("navigation", {name:"主空间导航"}).querySelectorAll(".capability-nav-group");
     expect(groups.length).toBeGreaterThan(1);
     const entries = screen.getAllByRole("button").filter(button => button.hasAttribute("data-capability-id"));
-    expect(entries.length).toBe(16);
+    const entryIds = entries.map(entry => entry.getAttribute("data-entry-id"));
+    expect(entryIds).toHaveLength(CAPABILITY_NAVIGATION_ENTRIES.length);
+    expect(new Set(entryIds)).toEqual(new Set(CAPABILITY_NAVIGATION_ENTRIES.map(entry => entry.entry_id)));
     for (const entry of entries) expect(entry.closest(".capability-nav-group")).toHaveAttribute("open");
     entries[0].focus();
     await user.keyboard("{ArrowDown}");
