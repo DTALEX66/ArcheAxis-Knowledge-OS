@@ -45,9 +45,12 @@ def probe_duration_ms(ffmpeg: str, source: str) -> int:
     input and its `Duration:` line is read, and a file it cannot read raises instead of yielding a
     plan built on a guess. ffmpeg has no output file here, so it exits non-zero after printing its
     banner; that exit status is not the signal and is deliberately ignored.
+    The banner names the input, and ffmpeg writes that name as UTF-8 whatever the host codepage is,
+    so the pipe declares UTF-8 instead of inheriting the locale: on a cp936 host an inherited decode
+    of a Chinese file name does not mojibake, it destroys the whole stderr.
     """
     finished = subprocess.run([ffmpeg, "-hide_banner", "-nostdin", "-i", source],
-                              capture_output=True, text=True)
+                              capture_output=True, text=True, encoding="utf-8")
     return parse_ffmpeg_duration_ms(finished.stderr)
 
 

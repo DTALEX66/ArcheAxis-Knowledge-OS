@@ -1,6 +1,7 @@
 import copy
 import importlib.util
 import json
+import os
 from pathlib import Path
 import subprocess
 import sys
@@ -63,8 +64,12 @@ def test_missing_donor_explicitly_unavailable(monkeypatch):
 
 def test_real_subprocess_reads_one_json_and_creates_no_output_files(tmp_path):
     before = list(tmp_path.iterdir())
+    # The worker's contract output is UTF-8 JSON, so the journey declares it on both ends instead
+    # of inheriting the host codepage twice: an em dash kills a cp936 pipe on the read side.
     result = subprocess.run([sys.executable, "-B", str(WORKER)], cwd=tmp_path,
-                            input=json.dumps(request()) + "\n", text=True, capture_output=True, timeout=15)
+                            input=json.dumps(request()) + "\n", text=True, encoding="utf-8",
+                            env={**os.environ, "PYTHONUTF8": "1"},
+                            capture_output=True, timeout=15)
     assert result.returncode == 0, result.stderr
     assert json.loads(result.stdout)["status"] == "DERIVED"
     assert list(tmp_path.iterdir()) == before
