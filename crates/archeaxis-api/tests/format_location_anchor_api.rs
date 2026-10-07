@@ -20,8 +20,7 @@ use archeaxis_api::app;
 use archeaxis_domain::source::{self, ImportOutcome};
 use archeaxis_store_sqlite::init_workspace;
 
-const TEXT: &str =
-    "结论\n半径 6371 千米\ndef load():\n    import os\n    import json\nname,radius,note\nEarth,6371,round\n";
+const TEXT: &str = "结论\n半径 6371 千米\ndef load():\n    import os\n    import json\nname,radius,note\nEarth,6371,round\n";
 
 fn digest(value: &str) -> String {
     format!("{:x}", Sha256::digest(value.as_bytes()))
@@ -153,7 +152,12 @@ async fn a_heading_or_paragraph_named_by_the_receipt_is_addressable() {
 #[tokio::test]
 async fn a_delimited_cell_can_be_narrowed_by_the_column_the_header_named() {
     let dir = tempfile::tempdir().unwrap();
-    let db = dir.path().join("columns.sqlite").to_str().unwrap().to_string();
+    let db = dir
+        .path()
+        .join("columns.sqlite")
+        .to_str()
+        .unwrap()
+        .to_string();
     let (source_id, revision) = seed(&db);
 
     let (status, payload) = post(
