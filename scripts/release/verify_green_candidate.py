@@ -28,9 +28,16 @@ REQUIRED = (
 
 
 def _native_path(path: Path) -> str | Path:
-    """Use the Windows extended-length prefix for deep Candidate paths."""
-    if path.drive and path.drive.upper() not in {"E:", "F:"} and len(str(path)) >= 240:
-        return "\\\\?\\" + str(path)
+    """Prefix a Candidate path, keeping the E:/F: boundary this script must never cross.
+
+    No length test: the directory it is handed is ordinary and the worker, key or manifest
+    entry read underneath it is what passes the Windows limit.
+    """
+    text = str(path)
+    if text.startswith("\\\\?\\"):
+        return text
+    if path.drive and path.drive.upper() not in {"E:", "F:"}:
+        return "\\\\?\\" + text
     return path
 WORKER_REQUIRED = ("worker-profile.json", "workers/transport/text_ndjson.py")
 _SHA256_RE = re.compile(r"^[0-9a-f]{64}$")

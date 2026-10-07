@@ -34,16 +34,16 @@ class AssemblyResult:
     zip_path: Path
 
 
-def _native_path(path: Path, *, force: bool = False) -> str | Path:
-    """Use the Windows extended-length prefix for deep managed run paths."""
+def _native_path(path: Path) -> str | Path:
+    """Prefix a managed run path, keeping the E:/F: boundary this script must never cross.
+
+    No length test: the directory these calls receive is ordinary and the file, key or child
+    name created under it is what passes the Windows limit.
+    """
     text = str(path)
     if text.startswith("\\\\?\\"):
         return text
-    if (
-        path.drive
-        and path.drive.upper() not in {"E:", "F:"}
-        and (force or len(text) >= 240)
-    ):
+    if path.drive and path.drive.upper() not in {"E:", "F:"}:
         return "\\\\?\\" + text
     return path
 
@@ -64,7 +64,7 @@ def _is_file(path: Path) -> bool:
 def _iter_files(root: Path):
     """Walk a bundle tree using extended paths and yield normal paths + relatives."""
     _reject_reparse(root)
-    native_root = os.fspath(_native_path(root, force=True))
+    native_root = os.fspath(_native_path(root))
     root_prefix = native_root.rstrip("\\/")
 
     def raise_walk_error(error: OSError) -> None:

@@ -9,6 +9,7 @@ import os
 import re
 import sqlite3
 from contextlib import closing, contextmanager, suppress
+from shared.paths import native_path
 from dataclasses import asdict, dataclass
 from datetime import datetime, timezone
 from pathlib import Path
@@ -43,12 +44,8 @@ CREATE TABLE IF NOT EXISTS {_LOCK_TABLE} (
 
 
 def _native_path(path: Path) -> str | Path:
-    """Use the Windows extended-length prefix for deep project-local paths."""
-    if os.name == "nt" and len(str(path)) >= 240:
-        value = str(path)
-        if not value.startswith("\\\\?\\"):
-            return "\\\\?\\" + value
-    return path
+    """Name the path so Windows still creates it; see `shared.paths.native_path`."""
+    return native_path(path)
 
 _SQL_IDENTIFIER_RE = re.compile(r"^[A-Za-z_][A-Za-z0-9_]*$")
 _SHADOW_SUFFIX_RE = re.compile(r"^[0-9a-f]{32}$")

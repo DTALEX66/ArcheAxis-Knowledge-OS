@@ -10,6 +10,7 @@ import shutil
 import sqlite3
 import sys
 from collections.abc import Iterator
+from shared.paths import native_path
 from contextlib import closing, contextmanager
 from datetime import datetime, timezone
 from pathlib import Path
@@ -46,12 +47,12 @@ INVARIANT_TABLES = (
 
 
 def _native_path(path: Path) -> str | Path:
-    """Use the Windows extended-length prefix for deep project-local paths."""
-    if os.name == "nt" and len(str(path)) >= 240:
-        value = str(path)
-        if not value.startswith("\\\\?\\"):
-            return "\\\\?\\" + value
-    return path
+    """Name the path so Windows still creates it; `shared.paths.native_path` explains why.
+
+    There is no length test here any more. A 194-character directory is ordinary, and the file
+    written inside it is what passes the limit - and only the call that makes the name knows it.
+    """
+    return native_path(path)
 
 
 def _sqlite_uri(path: Path) -> tuple[str, bool]:
@@ -199,7 +200,7 @@ def _sqlite_backup(source: Path, destination: Path) -> None:
     destination.parent.mkdir(parents=True, exist_ok=True)
     source_target, source_uri = _sqlite_uri(source)
     with closing(sqlite3.connect(source_target, uri=source_uri)) as src, closing(
-        sqlite3.connect(str(destination))
+        sqlite3.connect(_native_path(destination))
     ) as dst:
         if not source_uri:
             src.execute("PRAGMA query_only=ON")
