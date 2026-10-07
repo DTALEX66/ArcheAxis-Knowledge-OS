@@ -10,7 +10,7 @@ import shutil
 import sqlite3
 import sys
 from collections.abc import Iterator
-from shared.paths import native_path
+from shared.paths import native_path, sqlite_readonly_target
 from contextlib import closing, contextmanager
 from datetime import datetime, timezone
 from pathlib import Path
@@ -56,14 +56,12 @@ def _native_path(path: Path) -> str | Path:
 
 
 def _sqlite_uri(path: Path) -> tuple[str, bool]:
-    """Return a read-only connection target, preserving Windows long paths."""
-    resolved = path.resolve()
-    if os.name == "nt" and len(str(resolved)) >= 240:
-        native_path = str(resolved)
-        if not native_path.startswith("\\\\?\\"):
-            native_path = "\\\\?\\" + native_path
-        return native_path, False
-    return f"{resolved.as_uri()}?mode=ro", True
+    """Return a read-only connection target, preserving Windows long paths.
+
+    The decision itself lives in `shared.paths.sqlite_readonly_target` so a reader and a
+    backup cannot drift apart on how a deep path and a `file:` URI are reconciled.
+    """
+    return sqlite_readonly_target(path)
 
 
 def _manifest_path(path: Path) -> Path:
@@ -221,7 +219,7 @@ def _migration_ledger(connection: sqlite3.Connection) -> list[dict[str, object]]
 
 
 def _validate_sqlite_database(path: Path) -> dict[str, object]:
-    if not path.is_file():
+    if not Path(_native_path(path)).is_file():
         raise FileNotFoundError(f"SQLite database not found: {path}")
     try:
         target, uri = _sqlite_uri(path)
@@ -372,11 +370,11 @@ def restore(backup_path: str) -> str:
     final = candidate_dir / f"restore_{datetime.now(timezone.utc).strftime('%Y%m%dT%H%M%S_%fZ')}.sqlite"
     temporary = candidate_dir / f".{final.name}.{uuid4().hex}.tmp"
     try:
-        shutil.copyfile(backup_file, temporary)
+        shutil.copyfile(_native_path(backup_file), _native_path(temporary))
         candidate_metadata = _validate_sqlite_database(temporary)
         if candidate_metadata["sha256"] != backup_hash:
             raise RuntimeError("restore candidate does not exactly match the backup hash")
-        temporary.replace(final)
+        Path(_native_path(temporary)).replace(_native_path(final))
         manifest = {
             "manifest_version": MANIFEST_VERSION,
             "kind": CANDIDATE_KIND,

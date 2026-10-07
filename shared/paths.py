@@ -49,3 +49,19 @@ def ordinary_path(path: Path | str) -> Path:
     if text.startswith(VERBATIM_PREFIX):
         text = text[len(VERBATIM_PREFIX):]
     return Path(text)
+
+
+def sqlite_readonly_target(path: Path | str) -> tuple[str, bool]:
+    """Where SQLite should open `path` read-only, and whether that is a URI.
+
+    A verbatim prefix is meaningless inside a ``file:`` URI, so the two read-only mechanisms
+    cannot both be used. A path that needs the prefix is opened by name with SQLite's own
+    ``query_only`` guard instead - the caller must run that pragma when this returns ``False``.
+    This is the choice `shared.backup` already made for backups; it lives here so the reader
+    side stops inventing its own.
+    """
+    resolved = Path(path).resolve() if isinstance(path, Path) else Path(path)
+    native = native_path(resolved)
+    if native != str(resolved):
+        return native, False
+    return f"{Path(str(resolved)).as_uri()}?mode=ro", True

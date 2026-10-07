@@ -15,6 +15,7 @@ import shutil
 import sqlite3
 from collections.abc import Callable
 from contextlib import closing
+from shared.paths import native_path, sqlite_readonly_target
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from pathlib import Path
@@ -126,15 +127,12 @@ class MigrationRun:
 
 
 def _connect(path: Path, *, read_only: bool = False) -> sqlite3.Connection:
-    resolved = path.resolve()
-    use_uri = read_only
-    if read_only and os.name == "nt" and len(str(resolved)) >= 240:
-        target = str(resolved)
-        if not target.startswith("\\\\?\\"):
-            target = "\\\\?\\" + target
-        use_uri = False
+    # `sqlite_readonly_target` decides between the `file:` URI and a verbatim name; a
+    # read-write open always takes the name, because a URI cannot carry the prefix either.
+    if read_only:
+        target, use_uri = sqlite_readonly_target(path)
     else:
-        target = f"{resolved.as_uri()}?mode=ro" if read_only else str(path)
+        target, use_uri = native_path(path), False
     connection = sqlite3.connect(target, timeout=30.0, uri=use_uri)
     if read_only and not use_uri:
         connection.execute("PRAGMA query_only=ON")
@@ -153,7 +151,7 @@ def _table_exists(connection: sqlite3.Connection, table: str) -> bool:
 
 
 def _validate_database(path: Path) -> None:
-    if not path.is_file():
+    if not Path(native_path(path)).is_file():
         raise FileNotFoundError(f"SQLite database not found: {path}")
     with closing(_connect(path, read_only=True)) as connection:
         result = connection.execute("PRAGMA integrity_check").fetchone()[0]
@@ -189,7 +187,7 @@ def _create_backup(
     *,
     operator_run_id: str | None = None,
 ) -> Path:
-    backup_dir.mkdir(parents=True, exist_ok=True)
+    Path(native_path(backup_dir)).mkdir(parents=True, exist_ok=True)
     stamp = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%S_%fZ")
     destination = backup_dir / f"pre_migration_{stamp}_{uuid4().hex[:8]}.sqlite"
     manifest = _backup_manifest_path(destination)

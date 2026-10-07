@@ -5,6 +5,7 @@ import json
 import os
 import sqlite3
 from pathlib import Path
+from shared.paths import sqlite_readonly_target
 from typing import Any
 
 from app.adapters.deeptutor.authority import (
@@ -41,9 +42,14 @@ class DeepTutorBridge:
         self.adapter = DeepTutorAuthorityAdapter(self.projection_root)
 
     def _connect_readonly(self) -> sqlite3.Connection:
-        connection = sqlite3.connect(
-            f"file:{self.db_path.as_posix()}?mode=ro", uri=True, timeout=30
-        )
+        # A verbatim prefix is meaningless inside a `file:` URI, so one of the two read-only
+        # mechanisms has to give: `sqlite_readonly_target` picks the URI when the path fits and
+        # falls back to SQLite's own query_only guard when it does not. Same rule shared.backup
+        # already follows for backups, so the reader cannot drift from it.
+        target, use_uri = sqlite_readonly_target(self.db_path)
+        connection = sqlite3.connect(target, uri=use_uri, timeout=30)
+        if not use_uri:
+            connection.execute("PRAGMA query_only=ON")
         connection.row_factory = sqlite3.Row
         return connection
 
