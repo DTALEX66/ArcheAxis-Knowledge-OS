@@ -5,8 +5,12 @@ must land on the recording's timeline, a window that produced nothing must be re
 a duration that cannot be read must fail rather than default.
 """
 
+import ast
 import importlib.util
 import json
+import os
+import subprocess
+import sys
 from pathlib import Path
 
 import pytest
@@ -272,3 +276,79 @@ def test_a_budget_stops_at_the_first_window_it_cannot_reach(tmp_path):
     assert calls == [0]
     assert merged["windows_missing"] == [1, 2]
     assert merged["status"] == "partial"
+
+# --- ffmpeg's banner is UTF-8 bytes, so the pipe that reads it must not inherit the host codepage ---
+# Measured on a Windows host whose locale codec is cp936: the route did not mojibake, it lost the
+# whole stderr. subprocess's reader thread raised UnicodeDecodeError, `.stderr` came back None, and
+# the honest refusal "ffmpeg output carries no Duration line" was blamed on ffmpeg.
+
+CHINESE_NAME = "两个说话人-录音.wav"
+UTF8_BANNER = (
+    f"  Input #0, wav, from '{CHINESE_NAME}':\n"
+    "  Duration: 00:00:05.61, start: 0.000000, bitrate: 32 kb/s\n"
+).encode()
+
+
+def stub_ffmpeg(tmp_path):
+    """An executable that behaves like `ffmpeg -i FILE` with no output file: UTF-8 banner, exit 1."""
+    script = tmp_path / "stub_ffmpeg.py"
+    script.write_text(
+        "import sys\n"
+        f"sys.stderr.buffer.write({UTF8_BANNER!r})\n"
+        "sys.exit(1)\n",
+        encoding="utf-8",
+    )
+    if os.name == "nt":
+        launcher = tmp_path / "ffmpeg.cmd"
+        launcher.write_text(f'@echo off\r\n"{sys.executable}" -B "{script}" %*\r\n', encoding="utf-8")
+    else:
+        launcher = tmp_path / "ffmpeg.sh"
+        launcher.write_text(f'#!/bin/sh\nexec "{sys.executable}" -B "{script}" "$@"\n', encoding="utf-8")
+        launcher.chmod(0o755)
+    return str(launcher)
+
+
+def test_the_host_codec_that_was_measured_cannot_read_this_banner():
+    # The fixture guards the simulation below: were cp936 able to decode these bytes, naming the
+    # encoding in the product would prove nothing.
+    with pytest.raises(UnicodeDecodeError):
+        UTF8_BANNER.decode("cp936")
+
+
+def test_probe_duration_reads_a_utf_8_named_input_through_a_real_pipe(tmp_path):
+    assert window_transcribe.probe_duration_ms(
+        stub_ffmpeg(tmp_path), str(tmp_path / CHINESE_NAME)) == 5_610
+
+
+def test_a_text_pipe_that_declares_no_encoding_is_read_as_the_host_codepage(monkeypatch):
+    requested = {}
+
+    def run_like_the_stdlib(command, capture_output, text, **kwargs):
+        # text=True with no encoding decodes with the locale's preferred codec; the host this was
+        # found on answers cp936, so that is the branch an un-declared pipe is held to.
+        requested["encoding"] = kwargs.get("encoding")
+        codec = kwargs.get("encoding") or "cp936"
+        return subprocess.CompletedProcess(command, 1, stdout="",
+                                           stderr=UTF8_BANNER.decode(codec, kwargs.get("errors", "strict")))
+
+    monkeypatch.setattr(window_transcribe.subprocess, "run", run_like_the_stdlib)
+    assert window_transcribe.probe_duration_ms("ffmpeg", CHINESE_NAME) == 5_610
+    assert requested["encoding"] == "utf-8", "the ASR duration probe inherited the host codepage"
+
+
+def test_every_text_pipe_in_the_two_asr_workers_names_its_encoding():
+    """Both ASR seams read a child that echoes the user's own file name, so both must name the codec."""
+    offenders = []
+    for relative in ("services/python-workers/media/window_transcribe.py",
+                     "services/python-workers/media/worker_transcribe.py"):
+        tree = ast.parse((HERE / relative).read_text(encoding="utf-8"))
+        for node in ast.walk(tree):
+            function = getattr(node, "func", None)
+            if not (isinstance(node, ast.Call) and getattr(function, "attr", "") == "run"
+                    and getattr(getattr(function, "value", None), "id", "") == "subprocess"):
+                continue
+            keywords = {keyword.arg: keyword.value for keyword in node.keywords}
+            text_flag = keywords.get("text")
+            if isinstance(text_flag, ast.Constant) and text_flag.value is True and "encoding" not in keywords:
+                offenders.append(f"{relative}:{node.lineno}")
+    assert offenders == []
