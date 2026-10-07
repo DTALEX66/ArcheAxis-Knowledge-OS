@@ -653,6 +653,8 @@ pub const KNOWN_WORKER_IDENTITIES: &[&str] = &[
     // "unexpected worker identity" before it can serve anything
     "python-worker-transcribe-ndjson",
     "python-worker-video-ndjson",
+    // F10: the diarization route's identity, so a job can reach the worker that names its own gap.
+    "python-worker-diarize-ndjson",
     // G4: the machine answer route. Registered so a launch may declare it; whether a Core job route
     // drives it is a separate question, and the capability registry answers that rather than this
     // list, which only says which identities are recognised at all.
@@ -660,7 +662,10 @@ pub const KNOWN_WORKER_IDENTITIES: &[&str] = &[
 ];
 
 fn worker_input_limit(capability: &str) -> usize {
-    if matches!(capability, "media.transcribe" | "media.video") {
+    if matches!(
+        capability,
+        "media.transcribe" | "media.video" | "media.diarize"
+    ) {
         64 * 1024 * 1024
     } else {
         16 * 1024 * 1024
@@ -1099,6 +1104,7 @@ mod media_input_budget_tests {
             64 * 1024 * 1024
         );
         assert_eq!(super::worker_input_limit("media.video"), 64 * 1024 * 1024);
+        assert_eq!(super::worker_input_limit("media.diarize"), 64 * 1024 * 1024);
         for capability in [
             "text.extract",
             "media.probe",

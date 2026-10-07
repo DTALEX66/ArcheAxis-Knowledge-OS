@@ -69,6 +69,9 @@ fn every_declared_route_selects_its_capability_and_media_type() {
         ("video", "media.video", "video/quicktime", "clip.mov"),
         ("video", "media.video", "video/x-matroska", "clip.mkv"),
         ("video", "media.video", "video/webm", "clip.webm"),
+        // F10: a recording reaches the diarizer as its own kind, so its boundaries cannot be
+        // mistaken for a transcript by anything reading the job table.
+        ("diarize", "media.diarize", "audio/wav", "speech.wav"),
     ];
     for (kind, capability, media, name) in cases {
         let (_dir, mut conn) = seed(kind, b"%PDF-1.4 payload", name);

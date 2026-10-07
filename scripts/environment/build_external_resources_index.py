@@ -126,7 +126,11 @@ def main() -> int:
         "entries": rows,
         "missing_on_this_host": missing,
     }
-    INDEX.write_text(json.dumps(index, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+    # LF always: the index is a tracked file this host's own test regenerates in place, and platform
+    # newlines made every Windows run leave it modified, which makes a dirty-tree development
+    # receipt unattributable to a change that did not touch it.
+    INDEX.write_text(json.dumps(index, ensure_ascii=False, indent=2) + "\n", encoding="utf-8",
+                     newline="\n")
 
     readable = [row for row in rows if row["external_paths"]]
     print(f"root={index['external_root']} entries={len(rows)} with_external_paths={len(readable)} missing={len(missing)}")
