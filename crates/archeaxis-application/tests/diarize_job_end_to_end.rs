@@ -60,17 +60,23 @@ async fn a_diarize_job_without_its_models_fails_naming_the_exact_artefacts() {
     let worker = dir
         .path()
         .join("diarize_worker_with_supply_pinned_absent.py");
+    let empty_models = dir.path().join("models-pinned-empty");
+    std::fs::create_dir_all(&empty_models).unwrap();
     let real_worker = repo()
         .join("services/python-workers/media/worker_diarize.py")
         .display()
         .to_string();
+    // Pointing the environment at a directory that exists but holds neither asset is what makes
+    // this a scenario rather than a host condition: the manifest's declared model library is
+    // outranked, so a machine that really has the files still sees the refusal.
     std::fs::write(
         &worker,
         format!(
             "import os, runpy\n\
              for _name in ('ARCHEAXIS_DIARIZATION_MODEL_DIR', 'ARCHEAXIS_MODEL_LIBRARY_DIR'):\n\
-             \x20\x20\x20\x20os.environ[_name] = ''\n\
-             runpy.run_path(r'{real_worker}', run_name='__main__')\n"
+             \x20\x20\x20\x20os.environ[_name] = r'{}'\n\
+             runpy.run_path(r'{real_worker}', run_name='__main__')\n",
+            empty_models.display()
         ),
     )
     .unwrap();

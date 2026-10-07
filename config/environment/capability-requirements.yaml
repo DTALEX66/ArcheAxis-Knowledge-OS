@@ -357,6 +357,19 @@ capabilities:
       required_by: [asr-pipeline]
       local_only: true
 
+    - name: sherpa-onnx-speaker-diarization
+      purpose: "F10 说话人分离的两枚 ONNX（pyannote 分割 + 说话人嵌入），从共享 Model library 读取，不复制进 Git"
+      version_range: "segmentation-3.0 / wespeaker-voxceleb-resnet34-LM"
+      platform: windows-x64
+      license: "MIT (pyannote/segmentation-3.0, Copyright (c) 2022 CNRS) + CC-BY-4.0 (upstream WeSpeaker card; the k2-fsa mirror repo ships no licence file)"
+      source_url: "https://hf-mirror.com/csukuangfj/sherpa-onnx-pyannote-segmentation-3-0"
+      install_method: system
+      healthcheck_command: "Test-Path (Join-Path $env:ARCHEAXIS_MODEL_LIBRARY_DIR 'sherpa-onnx/speaker-diarization/segmentation-3.0.onnx')"
+      sibling_root: model-library
+      external_paths: ["sherpa-onnx/speaker-diarization"]
+      required_by: [asr-pipeline]
+      local_only: true
+
     - name: magika-standard-v3
       purpose: "文件类型检测 ONNX 模型（优先共享 Model library；仓库副本仅作离线回退）"
       version_range: "standard_v3_3"

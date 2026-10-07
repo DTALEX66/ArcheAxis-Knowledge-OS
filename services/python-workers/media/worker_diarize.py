@@ -23,6 +23,7 @@ Output: {"engine","engine_version","text","structure","loss_receipt"}
 from __future__ import annotations
 
 import argparse
+import importlib.util
 import json
 import os
 import sys
@@ -47,12 +48,44 @@ def _library_root(override: str | None) -> Path | None:
     return None
 
 
+def _declared_models_dir() -> Path | None:
+    """The directory the capability manifest declares for these two assets.
+
+    Same rule as the OCR and Office lanes: a missing declaration is None, while a manifest that
+    exists and cannot be read raises - reporting that as "models not installed" would send someone
+    looking at the model library when the fault is the manifest.
+    """
+    module_path = Path(__file__).resolve().parent.parent / "tool_paths.py"
+    if not module_path.is_file():
+        return None
+    spec = importlib.util.spec_from_file_location("diarize_tool_paths", module_path)
+    if spec is None or spec.loader is None:
+        return None
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    declared = module.declared("sherpa-onnx-speaker-diarization", __file__)
+    return Path(declared) if declared else None
+
+
 def model_paths(models_dir: str | None = None) -> dict[str, Path]:
-    """The exact files this capability consumes, whether or not they exist."""
-    root = _library_root(models_dir)
-    if root is None:
+    """The exact files this capability consumes, whether or not they exist.
+
+    Supply resolves in the order the rest of the project uses: an explicit argument, then the
+    environment, then the capability manifest's declaration. A host with no declaration is not a
+    host with no models installed - the two answers are worded differently on purpose.
+    """
+    directory = None
+    override = (models_dir or "").strip()
+    if override:
+        directory = Path(override) / SUBDIRECTORY
+    else:
+        root = _library_root(models_dir)
+        if root is not None:
+            directory = root / SUBDIRECTORY
+        else:
+            directory = _declared_models_dir()
+    if directory is None:
         return {}
-    directory = root / SUBDIRECTORY
     return {"segmentation": directory / SEGMENTATION_FILE, "embedding": directory / EMBEDDING_FILE}
 
 
