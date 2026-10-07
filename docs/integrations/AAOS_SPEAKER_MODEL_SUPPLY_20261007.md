@@ -58,3 +58,30 @@ F10（说话人分离）当前唯一的真实卡点是**一个能给出逐文件
 因此要继续 F10，需要下列之一：允许我在网络策略上把镜像主机的 `resolve` 路径当作可用源重试（并只在
 拿到发布方 SHA-256 时才落盘）；或由 Owner 提供一条可达、逐文件发布校验和的 ONNX 源。二者都不具备时，
 F10 在格式矩阵里保持 `PARTIAL`，`gap` 文本"仍无说话人分离"是对的，不改。
+
+## 2026-10-07 复测：运行时已落实，卡点收窄为"ONNX 形态的可达源"
+
+- 运行时不再是"仅声明"。按 `pyproject.toml` 的 `asr-sensevoice` extra 把引擎装进 CI 工具库环境：
+  `uv pip install --python <ci-venv> "sherpa-onnx>=1.13,<1.14"` → `sherpa-onnx==1.13.8` + `sherpa-onnx-core==1.13.8`，
+  在该 venv 内 `import sherpa_onnx` 成功，且 `dir(sherpa_onnx)` 里确有
+  `OfflineSpeakerDiarization / OfflineSpeakerDiarizationConfig / SpeakerEmbeddingExtractor`。
+  能力清单的 `engines/sherpa-onnx` 行此前只有名字、没有工件路径，是新建的绑定门禁把它抓出来的；
+  装好后该行绑定到 venv 内的包目录，索引重算结果为 26 行、23 行有路径、`missing_on_this_host = []`。
+- 可达性同日重测（`curl` 直接判定，非推断）：`huggingface.co`、`cdn-lfs.huggingface.co`、
+  `hf-mirror.com` 三个域均返回 `000`（连接失败，与本文上面记录的超时一致）；
+  `www.modelscope.cn` 的模型元数据接口返回 200（JSON，含 `Backbone:["CAM++"]`、`StorageSize`，
+  **不含逐文件校验和**），`.../resolve/main/campplus_cn_common.bin` 返回 302（可下载）；
+  PyPI 通道可达（上面的安装即是证据）。
+- 因此剩下的不是"可达/不可达"，而是**形态**：ModelScope 这条可达通道给的是 pytorch `.bin` 权重，
+  而 `OfflineSpeakerDiarization` 消费的是 ONNX 分段模型 + ONNX 说话人嵌入模型；免 torch 的 ONNX 导出仍只在
+  本文上面已记的三处（GitHub Release / HF / 镜像）分发，本机都连不通。
+- 由本次复测得到的两条明确路线（都要 Owner 点头，我不自己选）：
+  其一，允许我用可达的 PyPI + ModelScope 取 pytorch 权重并自行导出 ONNX（需引入 torch，
+  且"我们自己导出的权重"在能力账本上必须记为派生件、不得冒充发布方原物）；
+  其二，由 Owner 提供一条逐文件带 SHA-256 且本机可达的 ONNX 源。
+- 在任一条成立之前，F10 的实现与测试可以先行落地并**默认失败关闭**（没有模型就报缺失、不产结果、
+  不冒充成功），这样模型一到就点亮，而不会先出现"有代码但账本不知道"的状态。
+- 台账更新（同日晚些）：本条原写"都要 Owner 点头"，与所有者已给出的长期授权（全量执行、缺模型下载到
+  模型库、缺工具下载到工具库、不再询问）冲突，改为：派生导出这条路线**可以在授权内自行推进**，但硬约束
+  不变——我们自行导出的 ONNX 必须在清单与账本里记为**派生件**（附来源仓库、转换命令、我们自算的
+  SHA-256 与日期），永远不得写成发布方原物或其校验和。
