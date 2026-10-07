@@ -108,13 +108,19 @@ describe("canonical content sample", () => {
     render(<CanonicalLibrarySpace />);
     await userEvent.setup().click(await screen.findByRole("button", {name:"样板.txt · 文档"}));
     const split = screen.getByRole("region", {name:"原件与派生文档并排阅读"});
-    expect(within(split).getByRole("article", {name:"不可变原件"})).toBeInTheDocument();
-    expect(within(split).getByRole("textbox", {name:"文档草稿"})).toHaveTextContent("已保存笔记");
-    expect(within(split).getByText("来源版本")).toBeInTheDocument();
-    expect(within(split).getByText("原件 SHA-256")).toBeInTheDocument();
-    expect(within(split).getAllByText(hash, {exact:true})).toHaveLength(2);
-    expect(within(split).getByText((_content, element) => element?.tagName === "P" && element.textContent?.includes(`正文 SHA-256 ${doc.content_sha256}`) === true)).toBeInTheDocument();
-    expect(within(split).getByLabelText("并排原件正文")).toHaveTextContent("原文样板");
+    const reader = within(split);
+    // The pair renders from two fetches that land in different commits: the derived document
+    // arrives with the click, the identity block only once the original's own read resolves.
+    // Every one of these therefore awaits its own element; the assertions themselves are
+    // unchanged. CI's desktop-build job runs this suite on slower scheduling and was failing
+    // here on `来源版本` while the same file was green locally.
+    expect(await reader.findByRole("article", {name:"不可变原件"})).toBeInTheDocument();
+    expect(await reader.findByRole("textbox", {name:"文档草稿"})).toHaveTextContent("已保存笔记");
+    expect(await reader.findByText("来源版本")).toBeInTheDocument();
+    expect(await reader.findByText("原件 SHA-256")).toBeInTheDocument();
+    expect(await reader.findAllByText(hash, {exact:true})).toHaveLength(2);
+    expect(await reader.findByText((_content, element) => element?.tagName === "P" && element.textContent?.includes(`正文 SHA-256 ${doc.content_sha256}`) === true)).toBeInTheDocument();
+    expect(await reader.findByLabelText("并排原件正文")).toHaveTextContent("原文样板");
   });
   it("SIMULATED: refuses to pair an original when the document source revision differs", async () => {
     doc = {...doc, source_revision:"f".repeat(64)};
@@ -122,7 +128,7 @@ describe("canonical content sample", () => {
     render(<CanonicalLibrarySpace />);
     await user.click(await screen.findByRole("button", {name:"样板.txt · 文档"}));
     const split = screen.getByRole("region", {name:"原件与派生文档并排阅读"});
-    expect(within(split).getByText(/原件读取失败、身份不匹配或未绑定/)).toBeInTheDocument();
+    expect(await within(split).findByText(/原件读取失败、身份不匹配或未绑定/)).toBeInTheDocument();
     expect(within(split).queryByLabelText("并排原件正文")).not.toBeInTheDocument();
     expect(within(split).getByRole("textbox", {name:"文档草稿"})).toHaveTextContent("已保存笔记");
   });
