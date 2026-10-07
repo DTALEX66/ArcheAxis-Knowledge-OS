@@ -85,8 +85,11 @@ class _FakeSherpa:
 
 @pytest.fixture(autouse=True)
 def _isolated(monkeypatch):
+    # Supply is pinned, not inherited: the environment names and the capability manifest's
+    # declaration are both cleared, so "unavailable" here means the scenario removed it.
     for name in ("ARCHEAXIS_DIARIZATION_MODEL_DIR", "ARCHEAXIS_MODEL_LIBRARY_DIR"):
         monkeypatch.delenv(name, raising=False)
+    monkeypatch.setattr(worker, "_declared_models_dir", lambda: None)
     _FakeDiarizer.received, _FakeDiarizer.segments = [], []
 
 

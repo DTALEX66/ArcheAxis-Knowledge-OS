@@ -357,6 +357,21 @@
       ]
     },
     {
+      "name": "sherpa-onnx-speaker-diarization",
+      "category": "models",
+      "purpose": "F10 说话人分离的两枚 ONNX（pyannote 分割 + 说话人嵌入），从共享 Model library 读取，不复制进 Git",
+      "local_only": true,
+      "healthcheck_command": "Test-Path (Join-Path $env:ARCHEAXIS_MODEL_LIBRARY_DIR 'sherpa-onnx/speaker-diarization/segmentation-3.0.onnx')",
+      "external_paths": [
+        {
+          "declared": "sherpa-onnx/speaker-diarization",
+          "resolved": "D:\\All projects\\Model library\\sherpa-onnx\\speaker-diarization",
+          "exists": true,
+          "sibling_root": "model-library"
+        }
+      ]
+    },
+    {
       "name": "magika-standard-v3",
       "category": "models",
       "purpose": "文件类型检测 ONNX 模型（优先共享 Model library；仓库副本仅作离线回退）",
