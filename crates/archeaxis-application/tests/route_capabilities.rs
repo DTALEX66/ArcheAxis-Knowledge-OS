@@ -295,3 +295,26 @@ fn route_lookup_is_explicit_about_unknown_kinds() {
     assert!(attempts::route_for_kind("undeclared-video").is_none());
     assert!(attempts::route_for_kind("").is_none());
 }
+
+#[test]
+fn only_the_detection_route_accepts_a_name_that_names_nothing() {
+    // F04: an unnameable extension stays a refusal for every route whose output is a projection -
+    // guessing a type there is the failure the requirement forbids. The detection route is the one
+    // whose job IS the unnameable case, and it is handed the bytes, not a guessed label.
+    assert!(matches!(
+        attempts::resolve_media_type("text", "field_notes"),
+        Err(jobs::JobError::MediaTypeNotAccepted { derived: None, .. })
+    ));
+    assert_eq!(
+        attempts::resolve_media_type("detect", "field_notes").unwrap(),
+        "application/octet-stream"
+    );
+    // and a name that DOES declare a type is not this route's work: its own route already answers.
+    assert!(matches!(
+        attempts::resolve_media_type("detect", "notes.txt"),
+        Err(jobs::JobError::MediaTypeNotAccepted {
+            derived: Some("text/plain"),
+            ..
+        })
+    ));
+}

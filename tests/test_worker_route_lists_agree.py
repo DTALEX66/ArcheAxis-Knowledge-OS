@@ -8,6 +8,7 @@ source and check that each caller reads it rather than carrying its own copy.
 
 import importlib.util
 import json
+import re
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -85,3 +86,46 @@ def test_the_loader_refuses_a_manifest_that_is_not_ours():
             pass
     finally:
         MANIFEST.write_bytes(original)
+
+
+def test_the_transport_dispatches_exactly_the_declared_routes() -> None:
+    """`routes.json` is what the Core may enqueue; the transport table is what answers.
+
+    The two were allowed to differ, and that is how a route ends up registered in the Core,
+    claimed by a capability, and still answered with `unsupported capability` the moment a real
+    job arrives - a declaration nobody can reach. The diarization route hit exactly this.
+    """
+    import importlib.util
+
+    spec = importlib.util.spec_from_file_location(
+        "route_transport", ROOT / "services" / "python-workers" / "transport" / "text_ndjson.py")
+    assert spec and spec.loader
+    transport = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(transport)
+
+    declared = set(_routes())
+    dispatched = set(transport.ROUTES)
+    rust_kinds = Path(ROOT / "crates" / "archeaxis-application" / "src" / "attempts.rs").read_text(
+        encoding="utf-8")
+    rust_caps = {match.group(2) for match in re.finditer(
+        r'^\s*\("([a-z._-]+)", "([a-z._-]+)", "[^"]+"\),', rust_kinds, re.MULTILINE)}
+    for capability in sorted(declared - dispatched):
+        # A capability may sit outside the job transport only while no Core job kind reaches it:
+        # the derived trio answer over their own request contracts, and the transport says so -
+        # its job protocol requires empty parameters, so a route there would fail its own
+        # validation. The moment a job kind names one, that exemption becomes a dead declaration.
+        assert capability not in rust_caps, (
+            f"{capability} is enqueued as a Core job but the transport cannot serve it: a real job "
+            "would be answered 'unsupported capability', which is how the diarization route was left")
+    for capability, route in transport.ROUTES.items():
+        if capability not in declared:
+            # the one other-direction asymmetry kept on purpose: the Core's native text capability
+            # keeps its legacy alias here without being declared as a worker route.
+            assert capability == "text.extract", capability
+            continue
+        worker = ROOT / Path(route["worker"])
+        assert worker.is_file(), f"{capability} dispatches to a missing {route['worker']}"
+        # the Core's own mapping names the same script, or the two tables disagree about who runs
+        assert [Path(ROOT / "services" / "python-workers" / script).name
+                for script in _routes()[capability]] == [worker.name], capability
+        assert route["media_types"], f"{capability} dispatches but accepts nothing"

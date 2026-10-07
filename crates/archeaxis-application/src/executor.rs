@@ -655,6 +655,8 @@ pub const KNOWN_WORKER_IDENTITIES: &[&str] = &[
     "python-worker-video-ndjson",
     // F10: the diarization route's identity, so a job can reach the worker that names its own gap.
     "python-worker-diarize-ndjson",
+    // F04: the content-detection route's identity.
+    "python-worker-detect-ndjson",
     // G4: the machine answer route. Registered so a launch may declare it; whether a Core job route
     // drives it is a separate question, and the capability registry answers that rather than this
     // list, which only says which identities are recognised at all.
