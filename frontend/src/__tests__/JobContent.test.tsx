@@ -2,11 +2,12 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { act, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { JobContent } from "../components/JobContent";
+import { conversionKindFor } from "../api/conversionKinds";
 import { describeSplit, splitProgressOf } from "../presentation/mediaEstimate";
 const bridge=vi.hoisted(()=>({call:vi.fn()}));vi.mock("../api/core",()=>({coreCommand:bridge.call}));
 describe("Core job content",()=>{
  beforeEach(()=>{bridge.call.mockReset();});
- it.each([["sample.png","image","执行真实内容转换"],["sample.zip","archive","清点容器与登记成员"],["sample.tar","archive","清点容器与登记成员"],["sample.canvas","canvas","执行真实内容转换"],["sample.srt","subtitles","执行真实内容转换"],["sample.xml","text","执行真实内容转换"],["sample.wav","media","执行媒体头信息探测"],["sample.mp4","media","执行媒体头信息探测"]])("routes existing %s worker without claiming unexecuted success",async(name,kind,label)=>{
+ it.each([["sample.png","image","执行真实内容转换"],["sample.zip","archive","清点容器与登记成员"],["sample.tar","archive","清点容器与登记成员"],["sample.canvas","canvas","执行真实内容转换"],["sample.srt","subtitles","执行真实内容转换"],["sample.xml","text","执行真实内容转换"],["sample.py","text","执行真实内容转换"],["sample.wav","media","执行媒体头信息探测"],["sample.mp4","media","执行媒体头信息探测"]])("routes existing %s worker without claiming unexecuted success",async(name,kind,label)=>{
   bridge.call.mockImplementation(async(op:string,payload:Record<string,unknown>)=>{
    if(op==="job_enqueue")return {job_id:(payload.body as Record<string,unknown>).job_id};
    if(op==="jobs_get")return {state:"failed",error_code:"AAK-WORKER-003"};
@@ -183,5 +184,41 @@ describe("Core job content",()=>{
   bridge.call.mockImplementation(async()=>({}));
   render(<JobContent sourceId="s" name="budget.xlsx" mediaDurationSeconds={720}/>);
   expect(screen.queryByText(/原件时长/)).toBeNull();
+ });
+ // A05: reopening an ordinary conversion result must read it back from storage under its own route
+ // kind, without starting a job or forcing it through the transcription-specific proof.
+ it("reopens a persisted office result with no new job and no transcription proof",async()=>{
+  const content="Sheet1 真实单元格已保存";
+  bridge.call.mockImplementation(async(op:string,payload:Record<string,unknown>)=>{
+   if(op==="capabilities_list")return {};
+   if(op==="source_jobs")return {source_id:payload.source_id,jobs:[{job_id:"job-office-1",kind:"office",input_ref:payload.source_id,state:"succeeded",attempt:1}],jobs_capped:false};
+   if(op==="jobs_get")return {job_id:payload.job_id,state:"succeeded",attempt:1};
+   if(op==="job_output"){
+    if(payload.kind==="text")return {content};
+    if(payload.kind==="document_structure")return {content:JSON.stringify([{kind:"sheet_row",path:["S1","r1"],char_start:0,char_end:5}])};
+    return {content:"{}"};
+   }
+   if(op==="job_quality")return {engine:"openpyxl",engine_version:"3.1.5"};
+   if(op==="source_job_transform")return {source_id:payload.source_id,job_id:payload.job_id,transform_id:7,content};
+   throw new Error(`unexpected op ${op}`);
+  });
+  render(<JobContent sourceId="src_office_reopen" sourceRevision={"a".repeat(64)} name="report.xlsx"/>);
+  expect(await screen.findByLabelText("Core 提取正文")).toHaveTextContent("真实单元格已保存");
+  expect(screen.getByText(/已读回持久化转换结果/)).toBeInTheDocument();
+  // No transcription cue section, and no fresh job was enqueued or executed.
+  expect(screen.queryByText(/真实转写时间段/)).not.toBeInTheDocument();
+  expect(bridge.call).not.toHaveBeenCalledWith("job_enqueue",expect.anything());
+  expect(bridge.call).not.toHaveBeenCalledWith("job_execute",expect.anything());
+  // The structure preview reflects the persisted transform, not a re-run.
+  expect(await screen.findByRole("cell",{name:"S1 / r1"})).toBeInTheDocument();
+ });
+ // A04: source and config extensions with an existing text route must reach the UI instead of being
+ // reported as read-only custody.
+ it.each([["notes.py"],["main.rs"],["App.tsx"],["server.go"],["notes.log"],["settings.ini"],["query.sql"],["readme.markdown"]])("maps text-route source %s to the reading conversion action",async(name)=>{
+  expect(conversionKindFor(name)).toBe("text");
+ });
+ it("keeps unregistered extensions without a conversion route",()=>{
+  expect(conversionKindFor("archive.7z")).toBeNull();
+  expect(conversionKindFor("vector.eps")).toBeNull();
  });
 });
