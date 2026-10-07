@@ -2,6 +2,7 @@ import { AaosIcon } from "./AaosIcon";
 import { useRef, useState } from "react";
 import { spaceDescription, type SpaceDef, type SpaceId } from "../spaces/spaces";
 import { CAPABILITY_NAVIGATION_ENTRIES } from "../presentation/navigation";
+import { productLayerLabel } from "../presentation/labels";
 
 export function SpaceRail({
   active,
@@ -89,7 +90,7 @@ export function SpaceRail({
       <details className="capability-rail" open={capabilitiesOpen} onToggle={(event) => setCapabilitiesOpen(event.currentTarget.open)}>
         <summary aria-label="展开全能力目录">全能力目录</summary>
         {Array.from(new Set(orderedCapabilities.map((entry) => entry.group_id))).map((group) => <details key={group} className="capability-nav-group" open>
-          <summary>{group}</summary>
+          <summary>{productLayerLabel(group)}</summary>
           <ul className="capability-rail-list">
             {orderedCapabilities.map((entry) => {
               if (entry.group_id !== group) return null;

@@ -109,4 +109,12 @@ describe("SpaceRail", () => {
     await user.keyboard("{Enter}");
     expect(onOpenCapability).toHaveBeenCalledWith(entries[1].getAttribute("data-capability-id"));
   });
+
+  it("titles capability groups with Chinese product-layer names, never the Core enum", () => {
+    render(<SpaceRail active="workspace" onNavigate={vi.fn()} spaces={SPACES} />);
+    const titles = [...document.querySelectorAll<HTMLElement>(".capability-nav-group > summary")].map((summary) => summary.textContent ?? "");
+    expect(titles.length).toBeGreaterThan(1);
+    for (const title of titles) expect(title).toMatch(/^[一-鿿]/);
+    expect(titles).not.toContain("Workspace");
+  });
 });
