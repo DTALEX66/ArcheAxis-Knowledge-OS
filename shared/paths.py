@@ -33,20 +33,30 @@ import os
 from pathlib import Path
 
 VERBATIM_PREFIX = "\\\\?\\"
+UNC_VERBATIM = VERBATIM_PREFIX + "UNC\\"
 
 
 def native_path(path: Path | str) -> str:
     """The same absolute path in the form the Windows file API opens at any depth."""
     text = str(path)
-    if os.name == "nt" and not text.startswith(VERBATIM_PREFIX) and Path(text).is_absolute():
-        return VERBATIM_PREFIX + text
-    return text
+    if os.name != "nt" or text.startswith(VERBATIM_PREFIX):
+        return text
+    if not Path(text).is_absolute():
+        return text
+    # A UNC name is not "a drive path with a leading slash": the verbatim form of
+    # `\\server\share\x` is `\\?\UNC\server\share\x`. Prefixing it naively produced
+    # `\\?\\\server\...`, which SQLite then reported as `invalid uri authority: %3F`.
+    if text.startswith("\\\\"):
+        return UNC_VERBATIM + text[2:]
+    return VERBATIM_PREFIX + text
 
 
 def ordinary_path(path: Path | str) -> Path:
     """Strip the input/output prefix so a path can be stored, returned or hashed."""
     text = str(path)
-    if text.startswith(VERBATIM_PREFIX):
+    if text.startswith(UNC_VERBATIM):
+        text = "\\\\" + text[len(UNC_VERBATIM):]
+    elif text.startswith(VERBATIM_PREFIX):
         text = text[len(VERBATIM_PREFIX):]
     return Path(text)
 
@@ -62,6 +72,9 @@ def sqlite_readonly_target(path: Path | str) -> tuple[str, bool]:
     """
     resolved = Path(path).resolve() if isinstance(path, Path) else Path(path)
     native = native_path(resolved)
-    if native != str(resolved):
+    # A name that already carries the prefix cannot be put inside a `file:` URI either - SQLite
+    # reads `?` as an authority and answers `invalid uri authority: %3F`. Callers that build
+    # verbatim names themselves (the UNC long-path migration test does) land here.
+    if native != str(resolved) or str(resolved).startswith(VERBATIM_PREFIX):
         return native, False
     return f"{Path(str(resolved)).as_uri()}?mode=ro", True

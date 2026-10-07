@@ -14,6 +14,7 @@ from urllib.parse import urlsplit
 
 from app.ingestion.raw_asset import RawAssetRecord, RawAssetStore
 from app.workspace.job_outbox import command_request_fingerprint, record_completed_command
+from shared.paths import native_path
 
 # Heavy dependencies loaded lazily inside functions to avoid numpy/vector chain at import time.
 # Each intake function calls _import_heavy() before use.
@@ -399,7 +400,7 @@ def ingest_local_file(*, source_path: str | Path, db_path: str | Path) -> dict[s
         with _BATCH_INGEST_LOCK:
             ensure_conversion_run_schema(database)
             ensure_evidence_anchor_schema(database)
-            with sqlite3.connect(database, timeout=30.0) as connection:
+            with sqlite3.connect(native_path(database), timeout=30.0) as connection:
                 store_conversion_run_on_connection(connection, conversion_run)
                 store_evidence_anchor_on_connection(connection, anchor)
                 connection.commit()
@@ -527,7 +528,7 @@ def intake_job(*, job_id: str, db_path: str | Path) -> dict[str, object]:
     _import_heavy()
     if not job_id.startswith("job_") or len(job_id) != 28:
         raise ValueError("workspace job id is invalid")
-    with sqlite3.connect(Path(db_path)) as connection:
+    with sqlite3.connect(native_path(Path(db_path))) as connection:
         connection.row_factory = sqlite3.Row
         rows = connection.execute(
             "SELECT j.job_id, j.command_id, j.job_type, j.aggregate_id, j.state, "
@@ -617,7 +618,7 @@ def intake_job(*, job_id: str, db_path: str | Path) -> dict[str, object]:
 def workspace_jobs(*, db_path: str | Path) -> dict[str, object]:
     """Return strict, non-identifying projections for the local Job Center."""
 
-    with sqlite3.connect(Path(db_path)) as connection:
+    with sqlite3.connect(native_path(Path(db_path))) as connection:
         connection.row_factory = sqlite3.Row
         rows = connection.execute(
             "SELECT j.job_id, j.command_id, j.job_type, j.state, j.payload_json, "
@@ -692,7 +693,7 @@ def workspace_library(*, db_path: str | Path) -> dict[str, object]:
     """
     archive = RawAssetStore(root=_source_archive_root(Path(db_path)))
     try:
-        with sqlite3.connect(Path(db_path), timeout=30.0) as connection:
+        with sqlite3.connect(native_path(Path(db_path)), timeout=30.0) as connection:
             items = [_library_item(record, connection) for record in archive.list_records()]
     except sqlite3.Error:
         items = [_library_item(record, None) for record in archive.list_records()]
@@ -804,7 +805,7 @@ def workspace_converted_content(
     archive = RawAssetStore(root=_source_archive_root(Path(db_path)))
     if not archive.has(raw_sha256):
         raise LookupError("source archive content was not found")
-    with sqlite3.connect(Path(db_path), timeout=30.0) as connection:
+    with sqlite3.connect(native_path(Path(db_path)), timeout=30.0) as connection:
         connection.row_factory = sqlite3.Row
         latest = _latest_conversion(connection, raw_sha256)
         if latest is None:
@@ -841,7 +842,7 @@ def workspace_conversion_run_detail(
         (item for item in archive.list_records() if item.sha256 == raw_sha256),
         None,
     )
-    with sqlite3.connect(Path(db_path), timeout=30.0) as connection:
+    with sqlite3.connect(native_path(Path(db_path)), timeout=30.0) as connection:
         connection.row_factory = sqlite3.Row
         latest = _latest_conversion(connection, raw_sha256)
         if latest is None:
@@ -969,7 +970,7 @@ def workspace_delivery(*, db_path: str | Path) -> dict[str, object]:
     """Project Job, Outbox, and Delivery Receipt state without internal identities."""
     from collections import Counter
 
-    with sqlite3.connect(Path(db_path), timeout=30.0) as connection:
+    with sqlite3.connect(native_path(Path(db_path)), timeout=30.0) as connection:
         connection.row_factory = sqlite3.Row
         rows = connection.execute(
             "SELECT j.state AS job_state, j.attempt_count AS job_attempts, "
@@ -1027,7 +1028,7 @@ def retry_failed_delivery(*, db_path: str | Path) -> dict[str, object]:
     from datetime import datetime, timezone
 
     now = datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
-    with sqlite3.connect(Path(db_path), timeout=30.0) as connection:
+    with sqlite3.connect(native_path(Path(db_path)), timeout=30.0) as connection:
         connection.execute("PRAGMA busy_timeout=30000")
         connection.execute("BEGIN IMMEDIATE")
         row = connection.execute(
@@ -1059,7 +1060,7 @@ def workspace_status(*, db_path: str | Path) -> dict[str, object]:
         ).fetchall()
         return {str(state): int(count) for state, count in rows}
 
-    with sqlite3.connect(Path(db_path), timeout=30.0) as connection:
+    with sqlite3.connect(native_path(Path(db_path)), timeout=30.0) as connection:
         connection.execute("PRAGMA busy_timeout=30000")
         connection.execute("PRAGMA query_only=ON")
         counts = {
@@ -1109,7 +1110,7 @@ def workspace_status(*, db_path: str | Path) -> dict[str, object]:
 
 def research_review_queue(*, db_path: str | Path) -> dict[str, object]:
     """Return user-readable pending Research without exposing persistence IDs."""
-    with sqlite3.connect(Path(db_path), timeout=30.0) as connection:
+    with sqlite3.connect(native_path(Path(db_path)), timeout=30.0) as connection:
         connection.execute("PRAGMA busy_timeout=30000")
         connection.execute("PRAGMA query_only=ON")
         rows = connection.execute(
@@ -1135,7 +1136,7 @@ def research_review_queue(*, db_path: str | Path) -> dict[str, object]:
 
 def promote_research_source(*, command_id: str, source: str, reviewer_id: str, rationale: str,
                             db_path: str | Path) -> dict:
-    with sqlite3.connect(Path(db_path), timeout=30.0) as connection:
+    with sqlite3.connect(native_path(Path(db_path)), timeout=30.0) as connection:
         row = connection.execute(
             "SELECT id FROM research_packages_v1 WHERE canonical_url=? "
             "AND status IN ('candidate', 'ready_for_review') AND requires_human_review=1", (source,)
@@ -1153,7 +1154,7 @@ def now_utc() -> str:
 def _require_matching_promotion_command(
     *, command_id: str, package_id: str, reviewer_id: str, rationale: str, db_path: str | Path
 ) -> None:
-    with sqlite3.connect(Path(db_path)) as connection:
+    with sqlite3.connect(native_path(Path(db_path))) as connection:
         row = connection.execute(
             "SELECT package_id, reviewer_id, decision, rationale "
             "FROM knowledge_candidate_governance_events_v1 WHERE approval_id=?",
@@ -1170,7 +1171,7 @@ def _require_matching_promotion_command(
 def _require_matching_learning_command(
     *, command_id: str, unit_id: str, reviewer_id: str, rationale: str, db_path: str | Path
 ) -> None:
-    with sqlite3.connect(Path(db_path)) as connection:
+    with sqlite3.connect(native_path(Path(db_path))) as connection:
         row = connection.execute(
             "SELECT source_unit_id, reviewer_id, rationale "
             "FROM knowledge_candidate_learning_artifacts_v1 WHERE approval_id=?",
@@ -1186,7 +1187,7 @@ def _require_matching_practice_command(
     *, command_id: str, artifact_id: str, quality: int, db_path: str | Path
 ) -> None:
     review_id = "practice_" + sha256(command_id.encode()).hexdigest()[:24]
-    with sqlite3.connect(Path(db_path)) as connection:
+    with sqlite3.connect(native_path(Path(db_path))) as connection:
         row = connection.execute(
             "SELECT card_id, quality FROM kb_reviews WHERE id=?", (review_id,)
         ).fetchone()
@@ -1314,7 +1315,7 @@ def _workspace_source_artifact(
 
 def workspace_knowledge(*, db_path: str | Path) -> dict[str, object]:
     """Return source-oriented Knowledge candidates without persistence IDs."""
-    with sqlite3.connect(Path(db_path), timeout=30.0) as connection:
+    with sqlite3.connect(native_path(Path(db_path)), timeout=30.0) as connection:
         connection.row_factory = sqlite3.Row
         rows = connection.execute(
             "SELECT rp.canonical_url AS source, "
@@ -1341,7 +1342,7 @@ def workspace_knowledge(*, db_path: str | Path) -> dict[str, object]:
 
 def workspace_learning(*, db_path: str | Path) -> dict[str, object]:
     """Return source-oriented Learning artifacts and practice state."""
-    with sqlite3.connect(Path(db_path), timeout=30.0) as connection:
+    with sqlite3.connect(native_path(Path(db_path)), timeout=30.0) as connection:
         connection.row_factory = sqlite3.Row
         rows = connection.execute(
             "SELECT la.id, la.artifact_json, la.status, rp.canonical_url AS source "
@@ -1375,7 +1376,7 @@ def workspace_learning(*, db_path: str | Path) -> dict[str, object]:
 def start_learning_source(*, command_id: str, source: str, db_path: str | Path) -> dict[str, object]:
     """Start the first reviewed claim for a source using server-owned provenance."""
     database = Path(db_path)
-    with sqlite3.connect(database, timeout=30.0) as connection:
+    with sqlite3.connect(native_path(database), timeout=30.0) as connection:
         connection.row_factory = sqlite3.Row
         existing = _workspace_source_artifact(connection, source)
         if existing is not None:
@@ -1413,7 +1414,7 @@ def record_practice_source(*, command_id: str, source: str, quality: int, db_pat
     from app.contracts.v1 import MachineKnowledgeUnitV1
 
     database = Path(db_path)
-    with sqlite3.connect(database, timeout=30.0) as connection:
+    with sqlite3.connect(native_path(database), timeout=30.0) as connection:
         connection.row_factory = sqlite3.Row
         row = _workspace_source_artifact(connection, source)
     if row is None:
@@ -1426,7 +1427,7 @@ def record_practice_source(*, command_id: str, source: str, quality: int, db_pat
     )
     machine_candidate_id = result.get("machine_candidate_id")
     if machine_candidate_id:
-        with sqlite3.connect(database, timeout=30.0) as connection:
+        with sqlite3.connect(native_path(database), timeout=30.0) as connection:
             connection.row_factory = sqlite3.Row
             candidate = connection.execute(
                 "SELECT unit_json FROM machine_knowledge_candidates_v1 WHERE id=?",
@@ -1454,7 +1455,7 @@ def workspace_evolution(*, db_path: str | Path) -> dict[str, object]:
     """Return aggregate Mastery and machine-candidate state."""
     from app.contracts.v1 import MasterySignalV1
 
-    with sqlite3.connect(Path(db_path), timeout=30.0) as connection:
+    with sqlite3.connect(native_path(Path(db_path)), timeout=30.0) as connection:
         connection.row_factory = sqlite3.Row
         signals = connection.execute(
             "SELECT signal_json FROM mastery_signals_v1 ORDER BY calculated_at, id"
@@ -1492,7 +1493,7 @@ def workspace_runtime_candidates(*, db_path: str | Path) -> dict[str, object]:
     """Return candidate and approved machine knowledge for the governance page."""
     from app.contracts.v1 import MachineKnowledgeUnitV1
 
-    with sqlite3.connect(Path(db_path), timeout=30.0) as connection:
+    with sqlite3.connect(native_path(Path(db_path)), timeout=30.0) as connection:
         connection.row_factory = sqlite3.Row
         rows = connection.execute(
             "SELECT unit_json, lifecycle_status FROM machine_knowledge_candidates_v1 "
@@ -1529,7 +1530,7 @@ def _decide_runtime_title(
     )
 
     database = Path(db_path)
-    with sqlite3.connect(database, timeout=30.0) as connection:
+    with sqlite3.connect(native_path(database), timeout=30.0) as connection:
         connection.row_factory = sqlite3.Row
         existing = connection.execute(
             "SELECT candidate_id, decision FROM machine_knowledge_approval_events_v1 "
@@ -1600,7 +1601,7 @@ def workspace_lifecycle(*, db_path: str | Path) -> dict[str, object]:
     """Expose aggregate Core lifecycle evidence without persistence identifiers."""
 
     database = Path(db_path)
-    with sqlite3.connect(database, timeout=30.0) as connection:
+    with sqlite3.connect(native_path(database), timeout=30.0) as connection:
         connection.row_factory = sqlite3.Row
 
         def table_exists(name: str) -> bool:

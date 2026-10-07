@@ -26,6 +26,8 @@ from enum import Enum
 from pathlib import Path
 from typing import Any
 
+from shared.paths import native_path
+
 WORKING_MEMORY_CAPACITY = 50  # L1 ring buffer size
 
 _L2_MARKERS = ("project", "work-lab", "design-lab", "任务", "项目", "工单", "迭代",
@@ -70,7 +72,7 @@ CREATE INDEX IF NOT EXISTS idx_lm_layer ON layered_memory(layer, created_at);
 
 
 def _connect(db: str | Path) -> sqlite3.Connection:
-    conn = sqlite3.connect(Path(db))
+    conn = sqlite3.connect(native_path(db))
     conn.row_factory = sqlite3.Row
     conn.executescript(_SCHEMA)
     return conn

@@ -79,6 +79,14 @@ def test_the_helper_prefixes_without_a_threshold_and_round_trips(monkeypatch) ->
     assert paths.native_path(native) == native, "a second pass must not double-prefix"
     assert paths.native_path(Path("relative/only")) == str(Path("relative/only")), \
         "a relative path has no meaning under the verbatim form"
+    # a UNC name is not a drive path with a leading slash: the naive prefix produced
+    # `\\?\\\server\...`, which SQLite then reported as `invalid uri authority: %3F`
+    unc = paths.native_path(Path("\\\\server\\share\\store\\a.sqlite"))
+    assert unc == "\\\\?\\UNC\\server\\share\\store\\a.sqlite", unc
+    assert paths.ordinary_path(unc) == Path("\\\\server\\share\\store\\a.sqlite"), "the round trip must be exact"
+    # a caller that built the verbatim name itself must still be opened by name, not as a URI
+    target, is_uri = paths.sqlite_readonly_target("\\\\?\\D:\\deep\\workspace.sqlite")
+    assert is_uri is False and target.startswith("\\\\?\\"), (target, is_uri)
 
 
 @pytest.mark.skipif(sys.platform != "win32", reason="the refusal being guarded against is Windows-only")

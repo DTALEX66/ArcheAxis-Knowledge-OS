@@ -15,7 +15,7 @@ import shutil
 import sqlite3
 from collections.abc import Callable
 from contextlib import closing
-from shared.paths import native_path, sqlite_readonly_target
+from shared.paths import native_path, ordinary_path, sqlite_readonly_target
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from pathlib import Path
@@ -150,6 +150,15 @@ def _table_exists(connection: sqlite3.Connection, table: str) -> bool:
     )
 
 
+def _resolved(path: Path) -> Path:
+    """The canonical plain name of `path`, resolved at any depth.
+
+    `resolve(strict=True)` opens the file to follow reparse points, so it needs the verbatim form;
+    what it returns is written into a backup manifest and compared as an identity, so the prefix is
+    stripped again before it leaves here.
+    """
+    return ordinary_path(Path(native_path(path)).resolve(strict=True))
+
 def _validate_database(path: Path) -> None:
     if not Path(native_path(path)).is_file():
         raise FileNotFoundError(f"SQLite database not found: {path}")
@@ -161,7 +170,7 @@ def _validate_database(path: Path) -> None:
 
 def _sha256(path: Path) -> str:
     digest = hashlib.sha256()
-    with path.open("rb") as stream:
+    with open(native_path(path), "rb") as stream:
         for chunk in iter(lambda: stream.read(1024 * 1024), b""):
             digest.update(chunk)
     return digest.hexdigest()
@@ -172,12 +181,13 @@ def _backup_manifest_path(backup: Path) -> Path:
 
 
 def _native_path(path: Path) -> str | Path:
-    """Use the Windows extended-length prefix for deep project-local paths."""
-    if os.name == "nt" and len(str(path)) >= 240:
-        value = str(path)
-        if not value.startswith("\\\\?\\"):
-            return "\\\\?\\" + value
-    return path
+    """Name the path so Windows still opens it; see `shared.paths.native_path`.
+
+    This used to test `len(path) >= 240` first, which is the bug in another shape: the backup
+    database itself fits, and the manifest written beside it - `...sqlite.manifest.json` - does
+    not, so the same directory was readable and unreadable depending on the suffix.
+    """
+    return native_path(path)
 
 
 def _create_backup(
@@ -199,7 +209,7 @@ def _create_backup(
         payload = {
             "schema_version": 1,
             "migration": migration_name,
-            "source_database": str(database.resolve(strict=True)),
+            "source_database": str(_resolved(database)),
             "backup_sha256": _sha256(destination),
             "operator_run_id": operator_run_id,
         }
@@ -515,10 +525,10 @@ def rollback(
     database = Path(db_path)
     _validate_database(backup)
     manifest_path = _backup_manifest_path(backup)
-    if not manifest_path.is_file():
+    if not Path(native_path(manifest_path)).is_file():
         raise RuntimeError("backup provenance manifest is missing")
     try:
-        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+        manifest = json.loads(Path(native_path(manifest_path)).read_text(encoding="utf-8"))
     except (OSError, json.JSONDecodeError) as exc:
         raise RuntimeError("backup provenance manifest is invalid") from exc
     recorded_migrations = set(str(manifest.get("migration", "")).split("+"))
@@ -535,12 +545,12 @@ def rollback(
     ):
         raise RuntimeError("backup provenance manifest is invalid")
     expected_database = Path(str(manifest.get("source_database", "")))
-    if expected_database != database.resolve(strict=True):
+    if expected_database != _resolved(database):
         raise RuntimeError("backup target does not match provenance manifest")
     _validate_database(database)
     sidecars = [Path(f"{database}{suffix}") for suffix in ("-wal", "-shm")]
     try:
-        with closing(sqlite3.connect(str(database), timeout=0)) as offline_probe:
+        with closing(sqlite3.connect(native_path(database), timeout=0)) as offline_probe:
             journal_mode = str(offline_probe.execute("PRAGMA journal_mode").fetchone()[0]).lower()
             if journal_mode == "wal":
                 checkpoint = offline_probe.execute("PRAGMA wal_checkpoint(TRUNCATE)").fetchone()
@@ -556,21 +566,21 @@ def rollback(
     except sqlite3.OperationalError as exc:
         raise RuntimeError("database rollback requires offline mode") from exc
 
-    active_sidecars = [path for path in sidecars if path.exists()]
+    active_sidecars = [path for path in sidecars if Path(native_path(path)).exists()]
     if active_sidecars:
         raise RuntimeError("database rollback requires offline mode without WAL/SHM sidecars")
 
-    database.parent.mkdir(parents=True, exist_ok=True)
+    Path(native_path(database.parent)).mkdir(parents=True, exist_ok=True)
     temporary = database.with_name(f".{database.name}.rollback-{uuid4().hex}.tmp")
     try:
-        shutil.copyfile(backup, temporary)
+        shutil.copyfile(native_path(backup), native_path(temporary))
         _validate_database(temporary)
         if prepare_replacement is not None:
             prepare_replacement(temporary)
             _validate_database(temporary)
-        temporary.replace(database)
+        Path(native_path(temporary)).replace(native_path(database))
     finally:
-        temporary.unlink(missing_ok=True)
+        Path(native_path(temporary)).unlink(missing_ok=True)
     _validate_database(database)
     return database
 

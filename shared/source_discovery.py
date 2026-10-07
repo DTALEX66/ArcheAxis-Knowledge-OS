@@ -15,6 +15,8 @@ from typing import Any
 _PROJECT_ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(_PROJECT_ROOT))
 
+from shared.paths import native_path, ordinary_path  # noqa: E402
+
 SOURCE_EXTENSIONS: dict[str, str] = {
     ".pdf": "pdf",
     ".mp4": "video",
@@ -58,13 +60,14 @@ def discover_sources(
         {root, total_found, by_type: {pdf: N, video: N, ...}, files: [...]}.
     """
     root = Path(root_dir)
-    if not root.exists():
+    if not Path(native_path(root)).exists():
         return {"error": f"directory not found: {root_dir}"}
 
     by_type: dict[str, list[dict]] = {}
     total = 0
 
-    for fpath in root.rglob("*"):
+    named_root = Path(native_path(root))
+    for fpath in named_root.rglob("*"):
         if total >= max_files:
             break
         # Skip hidden and excluded dirs
@@ -89,7 +92,7 @@ def discover_sources(
 
         by_type[stype].append(
             {
-                "path": str(fpath),
+                "path": str(ordinary_path(fpath)),
                 "name": fpath.name,
                 "size_mb": round(size_mb, 2),
                 "type": stype,

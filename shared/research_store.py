@@ -14,6 +14,7 @@ from pydantic import BaseModel, Field, ValidationError
 
 from app.contracts.v1 import ClaimV1, EvidenceV1, ResearchPackageV1, SourceRecordV1
 from shared import research_migration
+from shared.paths import native_path
 
 
 class ResearchPersistenceError(RuntimeError):
@@ -69,7 +70,7 @@ def _database_path(db_path: str | Path | None) -> Path:
 
 
 def _connect(database: Path) -> sqlite3.Connection:
-    connection = sqlite3.connect(str(database), timeout=30.0)
+    connection = sqlite3.connect(native_path(database), timeout=30.0)
     connection.execute("PRAGMA busy_timeout=30000")
     connection.row_factory = sqlite3.Row
     connection.execute("PRAGMA foreign_keys=ON")
@@ -641,7 +642,7 @@ def load_research_package(
     """Load and strictly validate a persisted research package graph."""
 
     database = _database_path(db_path)
-    if not database.is_file():
+    if not Path(native_path(database)).is_file():
         raise RuntimeError("phase4 research schema migration is pending")
     connector = research_migration._connect_consumer_readonly if live_wal else research_migration._connect_readonly
     with closing(connector(database)) as connection:

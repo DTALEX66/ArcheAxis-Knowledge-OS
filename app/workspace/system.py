@@ -21,6 +21,7 @@ from fastapi.responses import JSONResponse
 from app.workspace.router import _require_desktop_write_request, _require_local_request
 from app.workspace.supervisor import BackendSupervisorState, supervisor
 from shared.config import resolve_runtime_path
+from shared.paths import sqlite_readonly_target
 from shared.runtime_profile import resolve_runtime_mode
 from shared.storage import DB_PATH
 
@@ -59,9 +60,10 @@ def _source_commit() -> str:
 def _schema_version() -> int:
     """Read the SQLite user_version from the live DB, or 1 when unavailable."""
     try:
-        with sqlite3.connect(
-            f"file:{DB_PATH}?mode=ro", uri=True, timeout=5.0
-        ) as connection:
+        target, is_uri = sqlite_readonly_target(DB_PATH)
+        with sqlite3.connect(target, uri=is_uri, timeout=5.0) as connection:
+            if not is_uri:
+                connection.execute("PRAGMA query_only=ON")
             row = connection.execute("PRAGMA user_version").fetchone()
             version = int(row[0]) if row and row[0] else 0
             return version if version > 0 else 1

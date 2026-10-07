@@ -22,6 +22,8 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
+from shared.paths import native_path, ordinary_path
+
 BACKUP_SCHEMA_VERSION = "v1"
 _BACKUP_MANIFEST = "backup-manifest.json"
 
@@ -50,7 +52,7 @@ class BackupEntry:
 
 def _sha256_file(path: Path) -> str:
     digest = hashlib.sha256()
-    with path.open("rb") as handle:
+    with Path(native_path(path)).open("rb") as handle:
         for chunk in iter(lambda: handle.read(1024 * 1024), b""):
             digest.update(chunk)
     return digest.hexdigest()
@@ -88,8 +90,8 @@ _TRANSIENT_RUNTIME_SUFFIXES = (".runtime.lock", ".lockdb")
 
 def _iter_files(root: Path) -> list[Path]:
     return sorted(
-        p
-        for p in root.rglob("*")
+        ordinary_path(p)
+        for p in Path(native_path(root)).rglob("*")
         if p.is_file() and not p.name.endswith(_TRANSIENT_RUNTIME_SUFFIXES)
     )
 
@@ -98,22 +100,22 @@ def create_backup(*, source: str | Path, backup_dir: str | Path) -> dict[str, An
     """Snapshot ``source`` into ``backup_dir`` with a verifiable manifest."""
     source = Path(source)
     backup_dir = Path(backup_dir)
-    if not source.is_dir():
+    if not Path(native_path(source)).is_dir():
         raise BackupError(f"backup source is not a directory: {source}")
-    if backup_dir.exists() and any(backup_dir.iterdir()):
+    if Path(native_path(backup_dir)).exists() and any(Path(native_path(backup_dir)).iterdir()):
         raise BackupError(
             f"backup destination is not empty: {backup_dir} "
             "(refusing to mix snapshots; use a fresh directory)"
         )
-    backup_dir.mkdir(parents=True, exist_ok=True)
+    Path(native_path(backup_dir)).mkdir(parents=True, exist_ok=True)
 
     entries: list[BackupEntry] = []
     for file_path in _iter_files(source):
         relative = file_path.relative_to(source).as_posix()
         digest = _sha256_file(file_path)
         target = backup_dir / relative
-        target.parent.mkdir(parents=True, exist_ok=True)
-        shutil.copy2(file_path, target)
+        Path(native_path(target.parent)).mkdir(parents=True, exist_ok=True)
+        shutil.copy2(native_path(file_path), native_path(target))
         entries.append(BackupEntry(relative_path=relative, sha256=digest, size=file_path.stat().st_size))
 
     manifest: dict[str, Any] = {
@@ -125,7 +127,7 @@ def create_backup(*, source: str | Path, backup_dir: str | Path) -> dict[str, An
         "files": [entry.to_dict() for entry in entries],
     }
     manifest_path = backup_dir / _BACKUP_MANIFEST
-    manifest_path.write_text(
+    Path(native_path(manifest_path)).write_text(
         json.dumps(manifest, ensure_ascii=False, indent=2, sort_keys=True),
         encoding="utf-8",
     )
@@ -140,7 +142,7 @@ def verify_backup(backup_dir: str | Path) -> dict[str, Any]:
     """
     backup_dir = Path(backup_dir)
     manifest_path = backup_dir / _BACKUP_MANIFEST
-    if not manifest_path.is_file():
+    if not Path(native_path(manifest_path)).is_file():
         raise BackupError(
             f"backup verification failed: {_BACKUP_MANIFEST} missing "
             f"(partial or interrupted backup): {backup_dir}"
@@ -175,7 +177,7 @@ def verify_backup(backup_dir: str | Path) -> dict[str, Any]:
         except BackupError as exc:
             failures.append(str(exc))
             continue
-        if not target.is_file():
+        if not Path(native_path(target)).is_file():
             failures.append(f"missing backup file: {entry.relative_path}")
             continue
         if _sha256_file(target) != entry.sha256:
@@ -229,7 +231,7 @@ def restore_backup(
     for raw_entry in manifest["files"]:
         entry = BackupEntry.from_dict(raw_entry)
         destination = _safe_target(target, entry.relative_path)
-        state = "create" if not destination.exists() else "overwrite"
+        state = "create" if not Path(native_path(destination)).exists() else "overwrite"
         if state == "overwrite" and not overwrite:
             raise BackupError(
                 f"restore refused: {entry.relative_path} already exists at {target} "
@@ -251,15 +253,15 @@ def restore_backup(
             "source_backup": str(backup_dir.resolve()),
         }
 
-    target.mkdir(parents=True, exist_ok=True)
+    Path(native_path(target)).mkdir(parents=True, exist_ok=True)
     restored: list[dict[str, Any]] = []
     for entry in (BackupEntry.from_dict(raw) for raw in manifest["files"]):
         source_file = _safe_target(backup_dir, entry.relative_path)
         destination = _safe_target(target, entry.relative_path)
-        destination.parent.mkdir(parents=True, exist_ok=True)
+        Path(native_path(destination.parent)).mkdir(parents=True, exist_ok=True)
         temp = destination.with_name(destination.name + ".restore-tmp")
-        shutil.copy2(source_file, temp)
-        temp.replace(destination)
+        shutil.copy2(native_path(source_file), native_path(temp))
+        Path(native_path(temp)).replace(native_path(destination))
         restored.append(
             {"path": entry.relative_path, "sha256": entry.sha256, "action": "restored"}
         )
@@ -270,7 +272,7 @@ def restore_backup(
         "restored_files": len(restored),
         "files": restored,
     }
-    (target / "restore-receipt.json").write_text(
+    Path(native_path(target / "restore-receipt.json")).write_text(
         json.dumps(receipt, ensure_ascii=False, indent=2, sort_keys=True),
         encoding="utf-8",
     )

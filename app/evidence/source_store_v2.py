@@ -7,6 +7,7 @@ from pathlib import Path
 from typing import Any
 
 from app.contracts.source_anchor_v2 import AnchorV2, ProvenanceActivityV2, SourceObjectV2
+from shared.paths import native_path
 
 
 class SourceConflictError(ValueError):
@@ -22,7 +23,7 @@ class SourceStoreV2:
         self.db_path = Path(db_path)
 
     def _connect(self) -> sqlite3.Connection:
-        connection = sqlite3.connect(str(self.db_path), timeout=30)
+        connection = sqlite3.connect(native_path(self.db_path), timeout=30)
         connection.row_factory = sqlite3.Row
         connection.execute("PRAGMA foreign_keys=ON")
         names = {

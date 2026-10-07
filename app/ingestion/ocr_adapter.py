@@ -18,6 +18,7 @@ from pathlib import Path
 from typing import Any
 
 from shared.adapter_contract import AdapterResult
+from shared.paths import native_path
 
 def _is_usable_tesseract(candidate: str | Path) -> bool:
     """Check that a Tesseract candidate is runnable, not merely present."""
@@ -67,7 +68,7 @@ def _resolve_tesseract() -> str:
         if normalized in seen:
             continue
         seen.add(normalized)
-        if Path(candidate).is_file() and _is_usable_tesseract(candidate):
+        if Path(native_path(candidate)).is_file() and _is_usable_tesseract(candidate):
             return candidate
     return ""
 
@@ -86,7 +87,7 @@ def configure_tesseract() -> tuple[str, str]:
     binary = _resolve_tesseract()
 
     def valid_tessdata(candidate: Path) -> bool:
-        return candidate.is_dir() and any(candidate.glob("*.traineddata"))
+        return Path(native_path(candidate)).is_dir() and any(Path(native_path(candidate)).glob("*.traineddata"))
 
     tessdata = ""
     env_prefix = os.environ.get("TESSDATA_PREFIX", "")
@@ -137,7 +138,7 @@ _LANG_HINTS = {
 
 def _sha256(file_path: str | Path) -> str:
     h = hashlib.sha256()
-    with open(file_path, "rb") as fh:
+    with open(native_path(file_path), "rb") as fh:
         for chunk in iter(lambda: fh.read(65536), b""):
             h.update(chunk)
     return h.hexdigest()
@@ -189,7 +190,7 @@ def _extract_pages(path: Path, lang: str) -> tuple[list[dict[str, Any]], list[st
                 text, engine = _ocr_image(tmp, lang)
             finally:
                 with contextlib.suppress(OSError):
-                    tmp.unlink()
+                    Path(native_path(tmp)).unlink()
             # An engine can return whitespace for a page it could not read. That is
             # empty content, so it is recorded as a loss instead of becoming a
             # successful block with blank text.
@@ -212,7 +213,7 @@ def _extract_pages(path: Path, lang: str) -> tuple[list[dict[str, Any]], list[st
 def convert_ocr(file_path: str | Path, lang: str = "eng+chi_sim") -> AdapterResult:
     """OCR a scanned PDF or image into per-page/region blocks."""
     path = Path(file_path)
-    if not path.is_file():
+    if not Path(native_path(path)).is_file():
         return AdapterResult(success=False, content="", engine="ocr-adapter", error="file not found")
 
     try:

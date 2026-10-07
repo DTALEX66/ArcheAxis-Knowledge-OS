@@ -29,6 +29,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
+from shared.paths import native_path, ordinary_path
 from shared.plugin_manifest import PluginManifest, load_manifest_from_mapping
 from shared.plugin_manifest import load as load_plugin_manifest
 
@@ -52,16 +53,16 @@ def _utc_now() -> str:
 def _compute_content_hash(pack_dir: Path) -> str:
     """SHA-256 over the manifest bytes plus every other file (path+bytes),
     sorted by relative path — any file tamper changes the digest."""
-    if not pack_dir.is_dir():
+    if not Path(native_path(pack_dir)).is_dir():
         raise CapabilityStoreError(f"pack directory missing: {pack_dir}")
     manifest_path = pack_dir / MANIFEST_FILENAME
-    if not manifest_path.is_file():
+    if not Path(native_path(manifest_path)).is_file():
         raise CapabilityStoreError(f"pack has no {MANIFEST_FILENAME}: {pack_dir}")
     hasher = hashlib.sha256()
     entries: list[tuple[str, bytes]] = []
-    for path in sorted(pack_dir.rglob("*")):
+    for path in sorted(Path(native_path(pack_dir)).rglob("*")):
         if path.is_file():
-            rel = path.relative_to(pack_dir).as_posix()
+            rel = ordinary_path(path).relative_to(pack_dir).as_posix()
             if rel in (STAGE_SIDECAR, CAPABILITY_SIDECAR, QUARANTINE_JOURNAL):
                 continue
             entries.append((rel, path.read_bytes()))
@@ -125,14 +126,14 @@ class CapabilityStore:
         self.packages_dir = self.root / "packages"
         self.plugins_dir = self.root / "plugins"
         for partition in PARTITIONS:
-            (self.root / partition).mkdir(parents=True, exist_ok=True)
+            Path(native_path(self.root / partition)).mkdir(parents=True, exist_ok=True)
         self._index_path = self.registry_dir / "index.json"
         self._activators: dict[str, Callable[[], Any]] = {}
 
     # ── registry index ──────────────────────────────────────────────────
 
     def _read_index(self) -> dict[str, dict[str, Any]]:
-        if not self._index_path.exists():
+        if not Path(native_path(self._index_path)).exists():
             return {}
         try:
             data = json.loads(self._index_path.read_text(encoding="utf-8"))
@@ -146,8 +147,8 @@ class CapabilityStore:
     def _write_index(self, records: dict[str, dict[str, Any]]) -> None:
         payload = {"version": REGISTRY_INDEX_VERSION, "records": records}
         tmp = self._index_path.with_suffix(".tmp")
-        tmp.write_text(json.dumps(payload, indent=2, sort_keys=True) + "\n", encoding="utf-8")
-        tmp.replace(self._index_path)
+        Path(native_path(tmp)).write_text(json.dumps(payload, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+        Path(native_path(tmp)).replace(native_path(self._index_path))
 
     def _record(self, plugin_id: str) -> CapabilityRecord:
         records = self._read_index()
@@ -161,9 +162,9 @@ class CapabilityStore:
         """Copy a pack directory into staging after manifest validation."""
         source = Path(pack_path)
         manifest_path = source / MANIFEST_FILENAME
-        if not source.is_dir():
+        if not Path(native_path(source)).is_dir():
             raise CapabilityStoreError(f"pack is not a directory: {source}")
-        if not manifest_path.is_file():
+        if not Path(native_path(manifest_path)).is_file():
             raise CapabilityStoreError(
                 f"pack has no {MANIFEST_FILENAME}; refusing to stage {source}"
             )
@@ -172,9 +173,9 @@ class CapabilityStore:
         manifest_bytes = manifest_path.read_bytes()
         staged_id = hashlib.sha256(manifest_bytes).hexdigest()[:16]
         staged_dir = self.staging_dir / staged_id
-        if staged_dir.exists():
+        if Path(native_path(staged_dir)).exists():
             shutil.rmtree(staged_dir)
-        shutil.copytree(source, staged_dir)
+        shutil.copytree(native_path(source), native_path(staged_dir))
 
         content_hash = _compute_content_hash(staged_dir)
         now = _utc_now()
@@ -186,7 +187,7 @@ class CapabilityStore:
             "staged_at": now,
             "status": "staged",
         }
-        (staged_dir / STAGE_SIDECAR).write_text(
+        Path(native_path(staged_dir / STAGE_SIDECAR)).write_text(
             json.dumps(sidecar, indent=2, sort_keys=True) + "\n", encoding="utf-8"
         )
         return CapabilityRecord(
@@ -203,7 +204,7 @@ class CapabilityStore:
         """Verify the staged pack hash, then atomically move it to installed/."""
         staged_dir = self.staging_dir / staged_id
         sidecar_path = staged_dir / STAGE_SIDECAR
-        if not staged_dir.is_dir() or not sidecar_path.is_file():
+        if not Path(native_path(staged_dir)).is_dir() or not Path(native_path(sidecar_path)).is_file():
             raise CapabilityStoreError(f"unknown staged pack: {staged_id}")
         try:
             sidecar = json.loads(sidecar_path.read_text(encoding="utf-8"))
@@ -220,11 +221,11 @@ class CapabilityStore:
         plugin_id = sidecar["plugin_id"]
         version = sidecar["version"]
         target = self.installed_dir / f"{plugin_id}@{version}"
-        if target.exists():
+        if Path(native_path(target)).exists():
             raise CapabilityStoreError(f"already installed: {plugin_id}@{version}")
 
         # Atomic move (same volume): staging/<id> → installed/<id>@<version>
-        os.replace(staged_dir, target)
+        os.replace(native_path(staged_dir), native_path(target))
 
         now = _utc_now()
         records = self._read_index()
@@ -238,7 +239,7 @@ class CapabilityStore:
         ).to_dict()
         self._write_index(records)
 
-        (target / CAPABILITY_SIDECAR).write_text(
+        Path(native_path(target / CAPABILITY_SIDECAR)).write_text(
             json.dumps(records[plugin_id], indent=2, sort_keys=True) + "\n",
             encoding="utf-8",
         )
@@ -280,7 +281,7 @@ class CapabilityStore:
         records = self._read_index()
         existing = records.get(plugin_id)
 
-        if target.is_dir():
+        if Path(native_path(target)).is_dir():
             actual_hash = _compute_content_hash(target)
             if existing is None or existing.get("content_hash") != actual_hash:
                 raise CapabilityStoreError(
@@ -293,8 +294,8 @@ class CapabilityStore:
                 f"{existing.get('status')!r}"
             )
 
-        target.mkdir(parents=True, exist_ok=False)
-        (target / MANIFEST_FILENAME).write_text(
+        Path(native_path(target)).mkdir(parents=True, exist_ok=False)
+        Path(native_path(target / MANIFEST_FILENAME)).write_text(
             json.dumps(parsed.to_dict(), indent=2, sort_keys=True) + "\n", encoding="utf-8"
         )
         content_hash = _compute_content_hash(target)
@@ -308,10 +309,10 @@ class CapabilityStore:
         )
         records[plugin_id] = record.to_dict()
         self._write_index(records)
-        (target / CAPABILITY_SIDECAR).write_text(
+        Path(native_path(target / CAPABILITY_SIDECAR)).write_text(
             json.dumps(records[plugin_id], indent=2, sort_keys=True) + "\n", encoding="utf-8"
         )
-        (self.plugins_dir / f"{plugin_id}.json").write_text(
+        Path(native_path(self.plugins_dir / f"{plugin_id}.json")).write_text(
             json.dumps(
                 {
                     "kind": "builtin",
@@ -344,11 +345,11 @@ class CapabilityStore:
             raise CapabilityStoreError(f"capability {plugin_id} is not installed")
         source = self.installed_dir / f"{plugin_id}@{record.version}"
         target = self.disabled_dir / f"{plugin_id}@{record.version}"
-        if not source.is_dir():
+        if not Path(native_path(source)).is_dir():
             raise CapabilityStoreError(f"installed pack missing: {source}")
-        if target.exists():
+        if Path(native_path(target)).exists():
             raise CapabilityStoreError(f"disabled pack already exists: {target}")
-        os.replace(source, target)
+        os.replace(native_path(source), native_path(target))
 
         records = self._read_index()
         updated = CapabilityRecord(
@@ -370,11 +371,11 @@ class CapabilityStore:
             raise CapabilityStoreError(f"capability {plugin_id} is not disabled")
         source = self.disabled_dir / f"{plugin_id}@{record.version}"
         target = self.installed_dir / f"{plugin_id}@{record.version}"
-        if not source.is_dir():
+        if not Path(native_path(source)).is_dir():
             raise CapabilityStoreError(f"disabled pack missing: {source}")
-        if target.exists():
+        if Path(native_path(target)).exists():
             raise CapabilityStoreError(f"installed pack already exists: {target}")
-        os.replace(source, target)
+        os.replace(native_path(source), native_path(target))
 
         records = self._read_index()
         updated = CapabilityRecord(
@@ -400,14 +401,14 @@ class CapabilityStore:
         source_partition = self.installed_dir if record.status == "installed" else self.disabled_dir
         source = source_partition / f"{plugin_id}@{record.version}"
         target = self.quarantine_dir / f"{plugin_id}@{record.version}"
-        if not source.is_dir():
+        if not Path(native_path(source)).is_dir():
             raise CapabilityStoreError(f"pack missing: {source}")
-        if target.exists():
+        if Path(native_path(target)).exists():
             raise CapabilityStoreError(f"quarantine target already exists: {target}")
-        os.replace(source, target)
+        os.replace(native_path(source), native_path(target))
 
         now = _utc_now()
-        (target / QUARANTINE_JOURNAL).write_text(
+        Path(native_path(target / QUARANTINE_JOURNAL)).write_text(
             json.dumps(
                 {"plugin_id": plugin_id, "reason": reason, "quarantined_at": now},
                 indent=2,

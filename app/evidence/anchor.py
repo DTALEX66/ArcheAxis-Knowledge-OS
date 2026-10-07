@@ -16,6 +16,8 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
+from shared.paths import native_path
+
 
 def _stable_id(prefix: str, *parts: object) -> str:
     payload = json.dumps(parts, ensure_ascii=True, sort_keys=True, separators=(",", ":"))
@@ -84,7 +86,7 @@ _ANCHOR_CURSOR_PREFIX = "evidence-anchor-v1:"
 
 def ensure_evidence_anchor_schema(db: str | Path) -> None:
     """Create the evidence-anchor schema before a caller-owned transaction."""
-    with sqlite3.connect(Path(db)) as connection:
+    with sqlite3.connect(native_path(db)) as connection:
         connection.executescript(_ANCHOR_SCHEMA)
 
 
@@ -122,13 +124,13 @@ def store_evidence_anchor_on_connection(
 
 def store_evidence_anchor(db: str | Path, anchor: EvidenceAnchor) -> None:
     ensure_evidence_anchor_schema(db)
-    with sqlite3.connect(Path(db)) as connection:
+    with sqlite3.connect(native_path(db)) as connection:
         store_evidence_anchor_on_connection(connection, anchor)
         connection.commit()
 
 
 def resolve_evidence_anchor(db: str | Path, anchor_id: str) -> EvidenceAnchor | None:
-    with sqlite3.connect(Path(db)) as conn:
+    with sqlite3.connect(native_path(db)) as conn:
         conn.row_factory = sqlite3.Row
         conn.executescript(_ANCHOR_SCHEMA)
         row = conn.execute(
@@ -146,7 +148,7 @@ def resolve_evidence_anchor(db: str | Path, anchor_id: str) -> EvidenceAnchor | 
 
 def list_evidence_anchors(db: str | Path) -> list[EvidenceAnchor]:
     """Return every stored evidence anchor (insertion order)."""
-    with sqlite3.connect(Path(db)) as conn:
+    with sqlite3.connect(native_path(db)) as conn:
         conn.row_factory = sqlite3.Row
         conn.executescript(_ANCHOR_SCHEMA)
         rows = conn.execute(
@@ -188,7 +190,7 @@ def list_evidence_anchor_page(
     if not 1 <= limit <= 100:
         raise ValueError("evidence anchor page limit must be between 1 and 100")
     after_rowid = _decode_anchor_cursor(cursor) if cursor else 0
-    with sqlite3.connect(Path(db)) as conn:
+    with sqlite3.connect(native_path(db)) as conn:
         conn.row_factory = sqlite3.Row
         conn.executescript(_ANCHOR_SCHEMA)
         rows = conn.execute(
@@ -232,7 +234,7 @@ def mark_index_revision(
         source_revision=source_revision,
         rebuild_count=1,
     )
-    with sqlite3.connect(Path(db)) as conn:
+    with sqlite3.connect(native_path(db)) as conn:
         conn.executescript(_INDEX_SCHEMA)
         conn.execute(
             "INSERT OR REPLACE INTO index_revisions "
@@ -254,7 +256,7 @@ def rebuild_index_revision(
 ) -> IndexRevision | None:
     """Rebuild an existing derived index against a (possibly newer) source
     revision, incrementing the rebuild count. Returns None if unknown."""
-    with sqlite3.connect(Path(db)) as conn:
+    with sqlite3.connect(native_path(db)) as conn:
         conn.row_factory = sqlite3.Row
         conn.executescript(_INDEX_SCHEMA)
         row = conn.execute(

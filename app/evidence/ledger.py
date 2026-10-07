@@ -12,6 +12,7 @@ from typing import Any, Literal
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 from shared import knowledge_governance_migration
+from shared.paths import native_path
 
 
 class EvidenceBundleError(ValueError):
@@ -102,7 +103,7 @@ def _fingerprint(draft: EvidenceBundleDraft) -> str:
 
 def _connect(database: Path) -> sqlite3.Connection:
     knowledge_governance_migration.require_applied(db_path=database, live_wal=True)
-    connection = sqlite3.connect(database)
+    connection = sqlite3.connect(native_path(database))
     connection.row_factory = sqlite3.Row
     connection.execute("PRAGMA foreign_keys=ON")
     return connection

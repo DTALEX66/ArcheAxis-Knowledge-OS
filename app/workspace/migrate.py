@@ -32,6 +32,7 @@ import sqlite3
 from datetime import datetime, timezone
 from pathlib import Path
 
+from shared.paths import native_path, ordinary_path, sqlite_readonly_target
 from shared.workspace_manifest import create_workspace
 from shared.workspace_manifest import load as load_manifest
 
@@ -65,7 +66,7 @@ def _utc_stamp() -> str:
 
 def _sha256_file(path: Path) -> str:
     hasher = hashlib.sha256()
-    with open(path, "rb") as handle:
+    with open(native_path(path), "rb") as handle:
         for chunk in iter(lambda: handle.read(1 << 16), b""):
             hasher.update(chunk)
     return hasher.hexdigest()
@@ -128,7 +129,7 @@ def unreadable_tables(path: str | Path) -> list[str]:
     the logical hash covered the whole database asks here instead of assuming it did.
     """
     database = Path(path)
-    if not database.is_file():
+    if not Path(native_path(database)).is_file():
         return []
     with _connect(database, readonly=True) as connection:
         _load_available_extensions(connection)
@@ -180,16 +181,15 @@ def _quote_ident(name: str) -> str:
 
 
 def _connect(path: Path, *, readonly: bool = False) -> sqlite3.Connection:
-    raw = str(path)
-    # SQLite's file: URI parser cannot express the \\?\ extended-path prefix
-    # (invalid uri authority). Extended paths connect natively on Windows;
-    # keep the URI readonly mode for plain paths only.
-    is_extended = raw.startswith("\\\\?\\")
-    if readonly and not is_extended:
-        uri = f"{path.resolve().as_uri()}?mode=ro"
-        connection = sqlite3.connect(uri, uri=True, timeout=30.0)
+    if readonly:
+        target, is_uri = sqlite_readonly_target(path)
+        if is_uri:
+            connection = sqlite3.connect(target, uri=True, timeout=30.0)
+        else:
+            connection = sqlite3.connect(target, timeout=30.0)
+            connection.execute("PRAGMA query_only=ON")
     else:
-        connection = sqlite3.connect(raw, timeout=30.0)
+        connection = sqlite3.connect(native_path(path), timeout=30.0)
     connection.execute("PRAGMA busy_timeout=30000")
     return connection
 
@@ -248,17 +248,17 @@ def _workspace_manifest(workspace_root: str | Path):
     """Load the workspace manifest, creating the workspace when absent."""
     root = Path(workspace_root)
     marker = root / "manifest.json"
-    if marker.is_file():
+    if Path(native_path(marker)).is_file():
         return load_manifest(marker)
     return create_workspace(root.parent, root.name)
 
 
 def _find_backup_for_hash(backup_dir: Path, digest: str) -> Path | None:
-    if not backup_dir.is_dir():
+    if not Path(native_path(backup_dir)).is_dir():
         return None
-    for candidate in sorted(backup_dir.glob(f"{BACKUP_PREFIX}*{BACKUP_SUFFIX}")):
+    for candidate in sorted(Path(native_path(backup_dir)).glob(f"{BACKUP_PREFIX}*{BACKUP_SUFFIX}")):
         if f"-{digest[:8]}{BACKUP_SUFFIX}" in candidate.name:
-            return candidate
+            return ordinary_path(candidate)
     return None
 
 
@@ -278,7 +278,7 @@ def backup(
     """
     source = Path(db_path)
     target_dir = Path(backup_dir)
-    if not source.is_file():
+    if not Path(native_path(source)).is_file():
         return {
             "status": "ok",
             "skipped": True,
@@ -287,7 +287,7 @@ def backup(
             "source_hash": None,
         }
     digest = source_hash_value or content_hash(source)
-    target_dir.mkdir(parents=True, exist_ok=True)
+    Path(native_path(target_dir)).mkdir(parents=True, exist_ok=True)
     existing = _find_backup_for_hash(target_dir, digest)
     if existing is not None:
         return {
@@ -361,7 +361,7 @@ def _plan(db_path: Path, manifest) -> dict[str, object]:
 def dry_run(db_path: str | Path, workspace_root: str | Path) -> dict[str, object]:
     """Read-only migration plan (table list / row counts / target paths)."""
     source = Path(db_path)
-    if not source.is_file():
+    if not Path(native_path(source)).is_file():
         return {
             "status": "ok",
             "skipped": True,
@@ -419,8 +419,8 @@ def _extract_blob_rows(
         digest = hashlib.sha256(payload).hexdigest()
         relative = f"{name}/{digest}.bin"
         target = domain_dir / relative
-        target.parent.mkdir(parents=True, exist_ok=True)
-        target.write_bytes(payload)
+        Path(native_path(target.parent)).mkdir(parents=True, exist_ok=True)
+        Path(native_path(target)).write_bytes(payload)
         entries.append(
             {
                 "table": name,
@@ -466,8 +466,8 @@ def _write_text_rows(
         content = str(row[text_index]) if text_index is not None else json.dumps(list(row))
         relative = f"{name}/{rid}{suffix}"
         target = domain_dir / relative
-        target.parent.mkdir(parents=True, exist_ok=True)
-        target.write_text(content, encoding="utf-8")
+        Path(native_path(target.parent)).mkdir(parents=True, exist_ok=True)
+        Path(native_path(target)).write_text(content, encoding="utf-8")
         entries.append({"table": name, "row_id": rid, "file": relative, "chars": len(content)})
     return entries
 
@@ -488,8 +488,8 @@ def _write_json_rows(
         }
         relative = f"{name}/{rid}.json"
         target = domain_dir / relative
-        target.parent.mkdir(parents=True, exist_ok=True)
-        target.write_text(json.dumps(payload, indent=2, sort_keys=True), encoding="utf-8")
+        Path(native_path(target.parent)).mkdir(parents=True, exist_ok=True)
+        Path(native_path(target)).write_text(json.dumps(payload, indent=2, sort_keys=True), encoding="utf-8")
         entries.append({"table": name, "row_id": rid, "file": relative})
     return entries
 
@@ -507,7 +507,7 @@ def migrate(
     result without creating another backup.
     """
     source = Path(db_path)
-    if not source.is_file():
+    if not Path(native_path(source)).is_file():
         return {
             "status": "ok",
             "skipped": True,
@@ -518,7 +518,7 @@ def migrate(
     digest = content_hash(source)
 
     marker_path = root / MIGRATION_MANIFEST_NAME
-    if marker_path.is_file():
+    if Path(native_path(marker_path)).is_file():
         try:
             previous = json.loads(marker_path.read_text(encoding="utf-8"))
         except (OSError, json.JSONDecodeError):
@@ -574,9 +574,9 @@ def migrate(
         "files": files,
         "targets": plan["targets"],
         "unreadable_tables": plan.get("unreadable_tables", []),
-        "legacy_db_kept": source.is_file(),
+        "legacy_db_kept": Path(native_path(source)).is_file(),
     }
-    marker_path.write_text(
+    Path(native_path(marker_path)).write_text(
         json.dumps(result, indent=2, sort_keys=True) + "\n", encoding="utf-8"
     )
     result["migration_manifest"] = str(marker_path)
@@ -594,7 +594,7 @@ def rollback_readback(
     candidate. The restore target is the backup file itself; the current
     workspace state is never overwritten."""
     backup_file = Path(backup_path)
-    if not backup_file.is_file():
+    if not Path(native_path(backup_file)).is_file():
         return {
             "status": "error",
             "reason": f"backup file not found: {backup_file}",
@@ -635,10 +635,10 @@ def rollback_readback(
 def list_backups(backup_dir: str | Path) -> list[str]:
     """Timestamped backup files, newest first (read-only helper)."""
     directory = Path(backup_dir)
-    if not directory.is_dir():
+    if not Path(native_path(directory)).is_dir():
         return []
     return sorted(
-        (str(path) for path in directory.glob(f"{BACKUP_PREFIX}*{BACKUP_SUFFIX}")),
+        (str(ordinary_path(path)) for path in Path(native_path(directory)).glob(f"{BACKUP_PREFIX}*{BACKUP_SUFFIX}")),
         reverse=True,
     )
 

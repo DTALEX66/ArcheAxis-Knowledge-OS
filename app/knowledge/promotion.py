@@ -12,6 +12,7 @@ from pydantic import BaseModel, ConfigDict, Field
 
 from app.contracts.v1 import KnowledgeUnitV1, RelationV1
 from shared import knowledge_governance_migration
+from shared.paths import native_path
 from shared.research_store import load_research_package
 
 
@@ -128,7 +129,7 @@ def promote_research_package_to_candidates(approval: ResearchKnowledgeApproval, 
     graph = load_research_package(approval.package_id, db_path=database, live_wal=True)
     promotion_id = _stable_id("knowledge-promotion", approval.package_id)
     fingerprint = sha256(json.dumps(graph.model_dump(), sort_keys=True, separators=(",", ":")).encode()).hexdigest()
-    with sqlite3.connect(database) as connection:
+    with sqlite3.connect(native_path(database)) as connection:
         connection.row_factory = sqlite3.Row
         connection.execute("BEGIN IMMEDIATE")
         try:

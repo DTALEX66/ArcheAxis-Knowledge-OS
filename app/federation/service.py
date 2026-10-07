@@ -33,6 +33,7 @@ from app.contracts.federation_v1 import (
     ReviewDecisionV1,
     RightsRecordV1,
 )
+from shared.paths import native_path
 
 _SCHEMA = """
 CREATE TABLE IF NOT EXISTS federation_candidates_v1 (
@@ -105,8 +106,8 @@ class SubmissionResult:
 
 def _connect(db: str | Path) -> sqlite3.Connection:
     path = Path(db)
-    path.parent.mkdir(parents=True, exist_ok=True)
-    conn = sqlite3.connect(path)
+    Path(native_path(path.parent)).mkdir(parents=True, exist_ok=True)
+    conn = sqlite3.connect(native_path(path))
     conn.row_factory = sqlite3.Row
     conn.executescript(_SCHEMA)
     columns = {row["name"] for row in conn.execute("PRAGMA table_info(federation_candidates_v1)")}

@@ -21,6 +21,8 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
+from shared.paths import native_path
+
 _SCHEMA = """
 CREATE TABLE IF NOT EXISTS long_term_memory (
     memory_id TEXT PRIMARY KEY,
@@ -49,7 +51,7 @@ class MemoryHit:
 
 
 def _connect(db: str | Path) -> sqlite3.Connection:
-    conn = sqlite3.connect(Path(db))
+    conn = sqlite3.connect(native_path(db))
     conn.row_factory = sqlite3.Row
     conn.executescript(_SCHEMA)
     return conn

@@ -11,6 +11,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from uuid import uuid4
 
+from shared.paths import native_path
 from shared.stable_hash import stable_hash_text
 
 _FTS_SOURCE_SPECS = {
@@ -103,7 +104,7 @@ class FtsIndexRollback:
         before_commit: Callable[[sqlite3.Connection], None] | None = None,
     ) -> None:
         """Restore the pre-activation FTS rows and remove migration tables."""
-        connection = sqlite3.connect(self.db_path)
+        connection = sqlite3.connect(native_path(self.db_path))
         connection.row_factory = sqlite3.Row
         quoted_active = f'"{self.active_table}"'
         quoted_backup = f'"{self.backup_table}"'
@@ -174,7 +175,7 @@ class FtsIndexCandidate:
         quoted_columns = ", ".join(f'"{column}"' for column in columns)
         try:
             if connection is None:
-                with sqlite3.connect(self.db_path) as owned_connection:
+                with sqlite3.connect(native_path(self.db_path)) as owned_connection:
                     owned_connection.row_factory = sqlite3.Row
                     return self.verify(connection=owned_connection)
             candidate_rows = connection.execute(
@@ -230,7 +231,7 @@ class FtsIndexCandidate:
             columns=self.columns,
             db_path=self.db_path,
         )
-        connection = sqlite3.connect(self.db_path)
+        connection = sqlite3.connect(native_path(self.db_path))
         connection.row_factory = sqlite3.Row
         try:
             connection.execute("BEGIN IMMEDIATE")
@@ -278,7 +279,7 @@ class FtsIndexCandidate:
 
     def discard(self) -> None:
         """Drop this inactive candidate; the active index is never touched."""
-        with sqlite3.connect(self.db_path) as connection:
+        with sqlite3.connect(native_path(self.db_path)) as connection:
             connection.execute(f'DROP TABLE IF EXISTS "{self.table_name}"')
             connection.commit()
 
@@ -290,7 +291,7 @@ def build_fts_candidate(source_table: str, *, db_path: str | Path) -> FtsIndexCa
         raise ValueError(f"unsupported FTS source table: {source_table}")
     active_table, create_sql, columns, source_columns = spec
     database = Path(db_path).resolve()
-    connection = sqlite3.connect(str(database))
+    connection = sqlite3.connect(native_path(database))
     connection.row_factory = sqlite3.Row
     candidate_table = f"{active_table}__candidate_{uuid4().hex}"
     quoted_candidate = f'"{candidate_table}"'

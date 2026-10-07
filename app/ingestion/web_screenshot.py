@@ -15,6 +15,8 @@ import time
 from pathlib import Path
 from typing import Any
 
+from shared.paths import native_path
+
 
 def _edge_candidates() -> tuple[Path, ...]:
     roots = (os.environ.get("PROGRAMFILES(X86)", ""), os.environ.get("PROGRAMFILES", ""))
@@ -45,7 +47,7 @@ def find_browser() -> str:
         if from_path:
             return from_path
     for candidate in _edge_candidates():
-        if candidate.is_file():
+        if Path(native_path(candidate)).is_file():
             return str(candidate)
     raise WebScreenshotError("no supported Chromium-family browser was found")
 
@@ -70,7 +72,7 @@ def _browser_temp_root(out: Path) -> tuple[Path, Path | None]:
     # Keep the project-owned profile anchor present even when the actual
     # Chromium socket must use a shorter ephemeral root; cleanup tests and
     # operators can then verify the project anchor is empty after failure.
-    (project_root / "c").mkdir(parents=True, exist_ok=True)
+    Path(native_path(project_root / "c")).mkdir(parents=True, exist_ok=True)
     # Chromium's Unix singleton socket has a hard path limit.  Hosted runners
     # can exceed it even after trimming to .project-local.  Keep the screenshot
     # and receipts in the project, while placing only the disposable browser
@@ -86,7 +88,7 @@ def _browser_temp_root(out: Path) -> tuple[Path, Path | None]:
         # Pin the disposable browser root to POSIX /tmp so the socket path is
         # actually short.
         posix_tmp = Path(os.sep) / "tmp"
-        short_root = Path(tempfile.mkdtemp(prefix="aa-browser-", dir=str(posix_tmp)))
+        short_root = Path(tempfile.mkdtemp(prefix="aa-browser-", dir=native_path(posix_tmp)))
         return short_root, short_root
     return project_root, None
 
@@ -121,7 +123,7 @@ def _browser_environment(out: Path, temp_root: Path | None = None) -> dict[str, 
 
 def _has_nonempty_file(path: Path) -> bool:
     try:
-        return path.is_file() and path.stat().st_size > 0
+        return Path(native_path(path)).is_file() and path.stat().st_size > 0
     except OSError:
         return False
 
@@ -165,11 +167,11 @@ def screenshot_web(url: str, out_path: str | Path, *, width: int = 1280) -> dict
     """
     browser = find_browser()
     out = Path(out_path)
-    out.parent.mkdir(parents=True, exist_ok=True)
+    Path(native_path(out.parent)).mkdir(parents=True, exist_ok=True)
     browser_root, ephemeral_root = _browser_temp_root(out)
     profile_root = browser_root / "c"
-    profile_root.mkdir(parents=True, exist_ok=True)
-    profile = tempfile.mkdtemp(prefix="p-", dir=profile_root)
+    Path(native_path(profile_root)).mkdir(parents=True, exist_ok=True)
+    profile = tempfile.mkdtemp(prefix="p-", dir=native_path(profile_root))
     try:
         proc = subprocess.run(
             [
@@ -199,7 +201,7 @@ def screenshot_web(url: str, out_path: str | Path, *, width: int = 1280) -> dict
             raise WebScreenshotError(
                 f"browser profile cleanup failed: {profile}: {error}"
             ) from error
-        if Path(profile).exists():
+        if Path(native_path(profile)).exists():
             raise WebScreenshotError(f"browser profile cleanup incomplete: {profile}")
         if ephemeral_root is not None:
             try:
