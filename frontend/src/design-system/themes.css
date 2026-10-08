@@ -363,3 +363,5 @@
 .nav-trail-current { border: 1px solid transparent; color: var(--ax-fg-secondary); }
 .nav-trail-detail { color: var(--ax-fg-quaternary); font-size: 11px; }
 .nav-trail-notice { margin: 6px 0; color: var(--ax-fg-secondary); font-size: 12px; }
+/* UI-03: the classified failure reason sits beside the generic sentence, never replacing it. */
+.state-reason { margin: 6px 0; padding-left: 8px; border-left: 2px solid var(--ax-border); color: var(--ax-fg-secondary); font-size: 12px; overflow-wrap: anywhere; }
