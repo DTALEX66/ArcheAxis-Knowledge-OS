@@ -66,11 +66,49 @@ DESKTOP_MATRIX: tuple[tuple[str, int, int, float], ...] = (
     # scoped to the 601-900 band was never exercised by the gate.
     ("900x800@100", 900, 800, 1.0),
     ("840x800@100", 840, 800, 1.0),
+    # 760 and 640 are inside the shell's supported range; 640x480 is the exact floor the
+    # window now refuses to go below, so the gate measures the boundary rather than a
+    # fictional one. Measured before the minimum was declared: 640 renders clean, 520 pushes
+    # 120px of the reading column outside the viewport.
+    ("760x800@100", 760, 800, 1.0),
+    ("640x800@100", 640, 800, 1.0),
+    ("640x480@100", 640, 480, 1.0),
     ("1920x1080@125", 1536, 864, 1.25),
     ("1920x1080@150", 1280, 720, 1.5),
     ("1920x1080@200", 960, 540, 2.0),
 )
 AAOS_THEME_IDS = ("black", "white", "cosmic")
+
+# The landmark bands the non-stacking check must find, declared per surface instead of discovered
+# from whatever the page happened to mount: an overlap check over a silently-shrinking landmark set
+# still "passes", so an absent band is a finding rather than a skipped pair. `templates` belongs to
+# the canonical library surface, and `SpaceView` mounts the canonical spaces only when
+# `window.__TAURI__` exists - so the browser-fallback sweep must not be required to find it, and the
+# host sweep must not be allowed to stop looking for it either.
+CHROME_BANDS: dict[str, str] = {
+    "rail": ".space-rail",
+    "context": ".context-subnav",
+    "center": ".app-center",
+    "dock": ".activity-dock",
+}
+LIBRARY_BANDS: dict[str, str] = {**CHROME_BANDS, "templates": "details.template-launcher"}
+# The 学科模板 workspace is the widest component on this product entry, so it is measured at every
+# narrow size the window will actually render down to its declared 640x480 floor.
+LIBRARY_GEOMETRY_VIEWPORTS = ("900x800@100", "840x800@100", "760x800@100", "640x800@100", "640x480@100")
+
+BRAND_ASSET_DIR = ROOT / "frontend" / "src" / "assets"
+
+
+def png_size(path: Path) -> tuple[int, int]:
+    """The canvas an asset was cut at, read from its own IHDR.
+
+    The browser-side brand assertions compare against this rather than a number written into the
+    gate, so re-cutting the artwork at a new size moves the expectation with it - and a mismatch
+    between the file and what the page decoded is still a red.
+    """
+    header = path.read_bytes()[:24]
+    assert header[:8] == b"\x89PNG\r\n\x1a\n" and header[12:16] == b"IHDR", f"not a PNG: {path}"
+    return int.from_bytes(header[16:20], "big"), int.from_bytes(header[20:24], "big")
 
 HANDSHAKE = {
     "product_id": "archeaxis-workspace",
@@ -434,6 +472,181 @@ def read_navigation_levels(page) -> dict[str, object]:
     }
 
 
+def measure_geometry(page, bands: dict[str, str]) -> dict[str, object]:
+    """Measure the named landmark bands the way the engine paints them.
+
+    Two rules, learned the hard way:
+
+    * A band's box is not what the user sees. A tall descendant of a scroll container keeps a
+      `getBoundingClientRect` that runs past the container's edge while painting nothing there, so
+      comparing raw boxes reports "stacking" for ordinary scrolling. Each band is therefore reduced
+      to its visible box by intersecting with every clipping ancestor and with the viewport, and a
+      pair only counts as overlapping if those visible boxes intersect and neither paints inside
+      the other's own subtree.
+    * Clipped is not the same as reachable. A band that is clipped by an ancestor which cannot
+      scroll is invisible with no way back, which is worse than overlap - so every clipped band is
+      checked against its nearest scroll ancestor, and one that cannot be scrolled into view is
+      reported separately rather than passing as "no overlap".
+    """
+    return page.evaluate(
+        """(selectors) => {
+          const VISIBLE_OVERFLOW = 'visible';
+          const box = (selector) => {
+            const rect = document.querySelector(selector)?.getBoundingClientRect();
+            return rect && {x:rect.x,y:rect.y,width:rect.width,height:rect.height,bottom:rect.bottom};
+          };
+          const clipBox = (node) => {
+            const rect = node.getBoundingClientRect();
+            let box = {left: rect.left, top: rect.top, right: rect.right, bottom: rect.bottom};
+            // A fixed-position band is out of flow: ancestor overflow does not clip it, so
+            // intersecting its ancestors would report a real painted overlap as "no overlap".
+            if (getComputedStyle(node).position === 'fixed') {
+              return {left: Math.max(box.left, 0), top: Math.max(box.top, 0),
+                      right: Math.min(box.right, window.innerWidth),
+                      bottom: Math.min(box.bottom, window.innerHeight)};
+            }
+            let ancestor = node.parentElement;
+            while (ancestor) {
+              const style = getComputedStyle(ancestor);
+              if (style.overflowY !== VISIBLE_OVERFLOW || style.overflowX !== VISIBLE_OVERFLOW) {
+                const outer = ancestor.getBoundingClientRect();
+                box.left = Math.max(box.left, outer.left);
+                box.top = Math.max(box.top, outer.top);
+                box.right = Math.min(box.right, outer.right);
+                box.bottom = Math.min(box.bottom, outer.bottom);
+              }
+              if (style.position === 'fixed') break;
+              ancestor = ancestor.parentElement;
+            }
+            box.left = Math.max(box.left, 0);
+            box.top = Math.max(box.top, 0);
+            box.right = Math.min(box.right, window.innerWidth);
+            box.bottom = Math.min(box.bottom, window.innerHeight);
+            return box;
+          };
+          const scrollAncestor = (node) => {
+            let ancestor = node.parentElement;
+            while (ancestor) {
+              const style = getComputedStyle(ancestor);
+              if (['auto', 'scroll'].includes(style.overflowY)) return ancestor;
+              if (['hidden', 'clip'].includes(style.overflowY)) return null;
+              ancestor = ancestor.parentElement;
+            }
+            return null;
+          };
+          const context = document.querySelector('.context-subnav');
+          const bar = [...(document.querySelector('.status-bar')?.children ?? [])];
+          const overlaps = [];
+          for (let i = 0; i < bar.length; i++) for (let j = i + 1; j < bar.length; j++) {
+            const a = clipBox(bar[i]), b = clipBox(bar[j]);
+            const width = Math.min(a.right, b.right) - Math.max(a.left, b.left);
+            const height = Math.min(a.bottom, b.bottom) - Math.max(a.top, b.top);
+            if (width > 1 && height > 1) {
+              overlaps.push([bar[i].className || bar[i].tagName, bar[j].className || bar[j].tagName, +width.toFixed(1)]);
+            }
+          }
+          const bands = {};
+          const missingBands = [];
+          for (const [name, selector] of Object.entries(selectors)) {
+            const node = document.querySelector(selector);
+            if (!node || getComputedStyle(node).display === 'none') {
+              missingBands.push(name);
+              continue;
+            }
+            const rect = node.getBoundingClientRect();
+            if (rect.width > 0 && rect.height > 0) {
+              bands[name] = {node, rect, visible: clipBox(node)};
+            } else missingBands.push(name);
+          }
+          const contains = (outer, inner) => inner.left >= outer.left - 1
+            && inner.top >= outer.top - 1
+            && inner.right <= outer.right + 1 && inner.bottom <= outer.bottom + 1;
+          const landmarkOverlaps = [];
+          const names = Object.keys(bands).sort();
+          for (let i = 0; i < names.length; i++) for (let j = i + 1; j < names.length; j++) {
+            const a = bands[names[i]], b = bands[names[j]];
+            if (contains(a.visible, b.visible) || contains(b.visible, a.visible)) continue;
+            const width = Math.min(a.visible.right, b.visible.right) - Math.max(a.visible.left, b.visible.left);
+            const height = Math.min(a.visible.bottom, b.visible.bottom) - Math.max(a.visible.top, b.visible.top);
+            if (width <= 2 || height <= 2) continue;
+            // The boxes agree; record who actually paints at the crossing so a red names the
+            // element to look at instead of a pair of numbers.
+            const x = (Math.max(a.visible.left, b.visible.left) + Math.min(a.visible.right, b.visible.right)) / 2;
+            const y = (Math.max(a.visible.top, b.visible.top) + Math.min(a.visible.bottom, b.visible.bottom)) / 2;
+            const hit = document.elementFromPoint(x, y);
+            landmarkOverlaps.push([names[i], names[j], +width.toFixed(1), +height.toFixed(1),
+              hit ? `${hit.tagName}.${String(hit.className).slice(0, 32)}` : 'nothing']);
+          }
+          const clippedBands = names.filter((name) => bands[name].visible.right > window.innerWidth + 1
+            || bands[name].visible.left < -1);
+          const unreachableBands = [];
+          for (const name of names) {
+            const band = bands[name];
+            const spilled = band.rect.bottom > band.visible.bottom + 1 || band.rect.right > band.visible.right + 1
+              || band.rect.top < band.visible.top - 1;
+            if (!spilled) continue;
+            const scroller = scrollAncestor(band.node);
+            if (!scroller || scroller.scrollHeight <= scroller.clientHeight) {
+              unreachableBands.push([name, +band.rect.height.toFixed(1), +band.visible.bottom.toFixed(1)]);
+            }
+          }
+          return {
+            scrollWidth: document.documentElement.scrollWidth,
+            clientWidth: document.documentElement.clientWidth,
+            devicePixelRatio: window.devicePixelRatio,
+            expectedBands: Object.keys(selectors).sort(),
+            rail: box('.space-rail'),
+            dock: box('.activity-dock'),
+            main: box('.app-center'),
+            inspector: Boolean(document.querySelector('.inspector')),
+            context: Boolean(context) && getComputedStyle(context).display !== 'none',
+            statusBarOverlaps: overlaps,
+            landmarkOverlaps: landmarkOverlaps,
+            clippedBands: clippedBands,
+            missingBands: missingBands,
+            unreachableBands: unreachableBands,
+            landmarkCount: names.length,
+            motionFast: getComputedStyle(document.documentElement).getPropertyValue('--ax-motion-fast').trim(),
+          };
+        }""",
+        bands,
+    )
+
+
+def check_geometry(
+    geometry: dict[str, object],
+    *,
+    width: int,
+    height: int,
+    scale: float,
+    bands: dict[str, str],
+) -> dict[str, object]:
+    """Fail unless every declared band is present, none overlaps, and none escapes the viewport."""
+    assert geometry["scrollWidth"] <= geometry["clientWidth"], geometry
+    assert geometry["dock"]["bottom"] <= height + 0.5, geometry
+    assert 140 <= geometry["rail"]["width"] <= 300, geometry
+    assert geometry["main"]["x"] >= geometry["rail"]["width"] - 1, geometry
+    assert geometry["main"]["bottom"] <= geometry["dock"]["y"] + 0.5, geometry
+    assert not geometry["inspector"], geometry
+    assert geometry["context"], geometry
+    assert geometry["devicePixelRatio"] == scale, geometry
+    assert not geometry["statusBarOverlaps"], geometry
+    assert not geometry["missingBands"], geometry
+    assert geometry["landmarkCount"] == len(bands), geometry
+    assert geometry["expectedBands"] == sorted(bands), geometry
+    assert not geometry["landmarkOverlaps"], geometry
+    assert not geometry["clippedBands"], geometry
+    # A band that runs past its container is only acceptable if the container can bring it back:
+    # clipped-and-unreachable would pass an overlap check while showing the user nothing.
+    assert not geometry["unreachableBands"], geometry
+    assert geometry["motionFast"] == "0ms", geometry
+    if width <= 1200:
+        # 601..1200 is where the chrome narrows so the reading column can survive; the
+        # floor is what the stylesheet promises, and it once silently collapsed to 304px.
+        assert geometry["main"]["width"] >= 280, geometry
+    return geometry
+
+
 def open_library_page(
     browser,
     problems: list[str],
@@ -691,6 +904,45 @@ def read_template_reachability(browser, viewport: tuple[str, int, int, float], p
         context.close()
 
 
+def read_library_geometry(
+    browser, viewport: tuple[str, int, int, float], problems: list[str]
+) -> dict[str, object]:
+    """The 资料库 landmark set at a real window size, collapsed and expanded.
+
+    The browser-fallback sweep cannot reach this surface, and the template disclosure is the
+    widest component on the product entry, so without this the non-stacking check would stop at
+    the sizes where nothing is likely to stack. Both states are measured: the collapsed row is
+    what the user sees first, the expanded workspace is where a non-wrapping grid escapes.
+    """
+    label, width, height, scale = viewport
+    context, page = open_library_page(browser, problems, stub=host_bridge_stub(), viewport=viewport)
+    try:
+        summary = page.locator("details.template-launcher > summary")
+        summary.first.wait_for()
+        collapsed = check_geometry(
+            measure_geometry(page, CHROME_BANDS),
+            width=width, height=height, scale=scale, bands=CHROME_BANDS,
+        )
+        summary.first.click()
+        page.locator(TEMPLATE_SECTION_SELECTOR).first.wait_for(state="attached")
+        expanded = check_geometry(
+            measure_geometry(page, LIBRARY_BANDS),
+            width=width, height=height, scale=scale, bands=LIBRARY_BANDS,
+        )
+        shot = ARTIFACTS / f"canonical-host-library-geometry-{label}.png"
+        page.screenshot(path=str(shot), full_page=True)
+        summary.first.click()
+        page.locator(TEMPLATE_SECTION_SELECTOR).first.wait_for(state="detached")
+        return {
+            "viewport": label,
+            "collapsed": collapsed,
+            "expanded": expanded,
+            "screenshot": _recorded(shot),
+        }
+    finally:
+        context.close()
+
+
 def canonical_host_surface(browser, problems: list[str]) -> dict[str, object]:
     """Render the formal Tauri host UI in a real Chromium engine, once, and read its affordances.
 
@@ -783,6 +1035,11 @@ def canonical_host_surface(browser, problems: list[str]) -> dict[str, object]:
         for viewport in DESKTOP_MATRIX
         if viewport[0] in TEMPLATE_NARROW_VIEWPORTS
     ]
+    result["library_geometry"] = [
+        read_library_geometry(browser, viewport, problems)
+        for viewport in DESKTOP_MATRIX
+        if viewport[0] in LIBRARY_GEOMETRY_VIEWPORTS
+    ]
     return result
 
 
@@ -828,49 +1085,10 @@ def main() -> None:
                 page.route("**/*", route_api)
                 page.goto(URL, wait_until="networkidle")
                 page.get_by_role("heading", name="工作台").first.wait_for()
-                geometry = page.evaluate("""() => {
-                    const box = (selector) => {
-                      const rect = document.querySelector(selector)?.getBoundingClientRect();
-                      return rect && {x:rect.x,y:rect.y,width:rect.width,height:rect.height,bottom:rect.bottom};
-                    };
-                    const context = document.querySelector('.context-subnav');
-                    const bar = [...(document.querySelector('.status-bar')?.children ?? [])];
-                    const overlaps = [];
-                    for (let i = 0; i < bar.length; i++) for (let j = i + 1; j < bar.length; j++) {
-                      const a = bar[i].getBoundingClientRect(), b = bar[j].getBoundingClientRect();
-                      const width = Math.min(a.right, b.right) - Math.max(a.left, b.left);
-                      const height = Math.min(a.bottom, b.bottom) - Math.max(a.top, b.top);
-                      if (width > 1 && height > 1) {
-                        overlaps.push([bar[i].className || bar[i].tagName, bar[j].className || bar[j].tagName, +width.toFixed(1)]);
-                      }
-                    }
-                    return {
-                      scrollWidth: document.documentElement.scrollWidth,
-                      clientWidth: document.documentElement.clientWidth,
-                      devicePixelRatio: window.devicePixelRatio,
-                      rail: box('.space-rail'),
-                      dock: box('.activity-dock'),
-                      main: box('.app-center'),
-                      inspector: Boolean(document.querySelector('.inspector')),
-                      context: Boolean(context) && getComputedStyle(context).display !== 'none',
-                      statusBarOverlaps: overlaps,
-                      motionFast: getComputedStyle(document.documentElement).getPropertyValue('--ax-motion-fast').trim(),
-                    };
-                }""")
-                assert geometry["scrollWidth"] <= geometry["clientWidth"], geometry
-                assert geometry["dock"]["bottom"] <= height + 0.5, geometry
-                assert 140 <= geometry["rail"]["width"] <= 300, geometry
-                assert geometry["main"]["x"] >= geometry["rail"]["width"] - 1, geometry
-                assert geometry["main"]["bottom"] <= geometry["dock"]["y"] + 0.5, geometry
-                assert not geometry["inspector"], geometry
-                assert geometry["context"], geometry
-                assert geometry["devicePixelRatio"] == scale, geometry
-                assert not geometry["statusBarOverlaps"], geometry
-                assert geometry["motionFast"] == "0ms", geometry
-                if width <= 1200:
-                    # 601..1200 is where the chrome narrows so the reading column can survive; the
-                    # floor is what the stylesheet promises, and it once silently collapsed to 304px.
-                    assert geometry["main"]["width"] >= 280, geometry
+                geometry = check_geometry(
+                    measure_geometry(page, CHROME_BANDS),
+                    width=width, height=height, scale=scale, bands=CHROME_BANDS,
+                )
 
                 page.get_by_role("button", name="打开全局命令").click()
                 page.get_by_role("dialog", name="全局命令").wait_for()
@@ -907,14 +1125,49 @@ def main() -> None:
                 assert page.get_by_role("button", name="取消投递（不可用）").count() == 0
 
                 if label == DESKTOP_MATRIX[0][0]:
+                    glows: dict[str, str] = {}
                     for theme in AAOS_THEME_IDS:
                         page.get_by_label("界面主题").select_option(theme)
                         page.wait_for_timeout(150)
                         applied = page.evaluate("document.documentElement.dataset.aaosTheme")
-                        brand = page.locator(".status-bar-brand img").get_attribute("src") or ""
+                        brand = page.evaluate(
+                            """() => {
+                              const img = document.querySelector('.status-bar-brand img');
+                              if (!img) return null;
+                              const rect = img.getBoundingClientRect();
+                              return {
+                                src: img.getAttribute('src'),
+                                decoded: [img.naturalWidth, img.naturalHeight],
+                                attributes: [img.width, img.height],
+                                complete: img.complete,
+                                box: [+rect.width.toFixed(1), +rect.height.toFixed(1)],
+                                glow: getComputedStyle(img).filter,
+                                token: getComputedStyle(document.documentElement)
+                                  .getPropertyValue('--ax-brand-glow').trim(),
+                              };
+                            }"""
+                        )
                         surface = page.evaluate("getComputedStyle(document.body).backgroundColor")
                         assert applied == theme, (applied, theme)
-                        assert theme in brand, brand
+                        assert brand and brand["complete"], (theme, brand)
+                        assert theme in (brand["src"] or ""), brand
+                        # The asset on disk is the expectation: an <img> whose file went missing
+                        # keeps its 31x28 box and paints nothing, which a DOM-only check would
+                        # read as a correct brand mark.
+                        expected = png_size(BRAND_ASSET_DIR / f"aaos-brand-mark-{theme}.png")
+                        assert tuple(brand["decoded"]) == expected, (theme, brand["decoded"], expected)
+                        # The layout box is the declared slot, and the slot keeps the artwork's own
+                        # ratio: an <img> stretched to a box of a different aspect is the classic
+                        # way a logo silently distorts, and nothing in the DOM notices.
+                        assert brand["box"] == [float(value) for value in brand["attributes"]], brand
+                        drawn = brand["box"][0] / brand["box"][1]
+                        assert abs(drawn - expected[0] / expected[1]) < 0.02, (theme, drawn, expected)
+                        assert 20 <= brand["box"][1] <= 40, (theme, brand["box"])
+                        # The light effect is part of the mark now, and it is the theme's own: a
+                        # glow that never changed across themes would mean the token is dead CSS.
+                        assert brand["glow"].startswith("drop-shadow"), (theme, brand["glow"])
+                        assert brand["token"], (theme, brand)
+                        glows[theme] = brand["token"]
                         shot = ARTIFACTS / f"canonical-theme-{theme}-{label}.png"
                         page.screenshot(path=str(shot))
                         themes[theme] = {
@@ -923,6 +1176,7 @@ def main() -> None:
                             "body_surface": surface,
                             "screenshot": _recorded(shot),
                         }
+                    assert len(set(glows.values())) == len(AAOS_THEME_IDS), glows
                     page.get_by_label("界面主题").select_option("black")
 
                 screenshot = ARTIFACTS / f"canonical-shell-{label}.png"

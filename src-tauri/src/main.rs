@@ -909,6 +909,12 @@ fn main() {
                 WebviewWindowBuilder::new(app, "main", WebviewUrl::App("index.html".into()))
                     .title("星环知识平台（ArcheAxis Knowledge）")
                     .inner_size(1280.0, 800.0)
+                    // The formal host had no minimum while the recovery entry declared one, so
+                    // the product window could be dragged below the shell's layout floor: at a
+                    // 520px viewport the measured scrollWidth is 640, i.e. 120px of the reading
+                    // column sits outside the window. 640x480 is the smallest size the browser
+                    // gate verifies as overlap-free and overflow-free.
+                    .min_inner_size(640.0, 480.0)
                     .data_directory(webview_data_dir);
             let port = std::env::var("ARCHEAXIS_WEBDRIVER_CDP_PORT").ok();
             if let Some(args) =

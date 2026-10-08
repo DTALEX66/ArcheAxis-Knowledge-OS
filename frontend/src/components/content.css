@@ -44,7 +44,14 @@
 .template-launcher > summary { padding:8px 12px; font-weight:600; cursor:pointer; overflow-wrap:anywhere; }
 .template-launcher > summary:focus-visible { outline:2px solid var(--ax-accent); outline-offset:-2px; }
 .template-launcher[open] > summary { border-bottom:1px solid var(--ax-border); }
-.template-launcher > section { display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:10px; padding:12px; min-width:0; }
+/* The track list is fluid rather than breakpoint-driven, and `min(150px,100%)` is what makes that
+   safe: one column becomes the *result* of a container too narrow for two instead of a rule that
+   forces it, so the grid can neither spill sideways nor stack twice as tall as it needs to be.
+   Measured at the window's declared 640x480 floor: a forced single column made this workspace
+   396.6px tall inside a 396px reading column, so its layout box ended 69px past the column's edge
+   and crossed the activity dock band; the fluid list lays it out at 281.4px, which the column
+   holds. Nothing here caps a height - the workspace is shorter because it used the width it had. */
+.template-launcher > section { display:grid; grid-template-columns:repeat(auto-fit,minmax(min(150px,100%),1fr)); gap:10px; padding:12px; min-width:0; }
 .template-launcher > section > p, .template-launcher > section > nav, .template-launcher > section > h3,
 .template-launcher > section > aside, .template-launcher > section > section,
 .template-launcher > section > div { grid-column:1 / -1; min-width:0; }
@@ -60,7 +67,10 @@
 .template-launcher > section [aria-label="引用式画布"] { border:1px dashed var(--ax-border-strong); border-radius:var(--ax-radius-sm); }
 .template-launcher > section pre { max-width:100%; overflow:auto; white-space:pre-wrap; overflow-wrap:anywhere; }
 @media (max-width: 900px) {
-  .template-launcher > section { grid-template-columns:minmax(0,1fr); }
+  /* The two-column surfaces below genuinely cannot seat both tracks side by side here, so they
+     collapse. `.template-launcher > section` is deliberately absent: its own track list already
+     collapses when the container is too narrow, and forcing it here is what made the expanded
+     workspace taller than the reading column at the window floor. */
   .canonical-library, .canonical-reading { grid-template-columns: minmax(0, 1fr); }
   .original-derived-split { grid-template-columns:minmax(0,1fr); }
   .canonical-sources { max-height: 180px; overflow-y: auto; }
