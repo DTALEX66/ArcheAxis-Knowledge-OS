@@ -50,6 +50,7 @@
 | 浏览器几何 | `scripts/a0_browser_smoke.py` → `"status": "PASS"`，10 视口×3 主题，`source_revision.base_commit=9005b2d2`、`worktree_dirty=false`，`canonical_host_problems=[]`，三级导航 `primary 9 / secondary 4 / focused anchors / tertiary src_a0_nav3` | **SIMULATED**（stub 桥，只证布局，不证 Core 调用） |
 | Python 门禁 | 11 个套件合并跑 → **101 passed**（`.project-local/receipts/pytest-consolidated-414a4513.txt`） | REAL（本机） |
 | 真实 Core 写读 | 见 U4 | **REAL** |
+| 解析稳健性（自测复现） | `tests/workflow/test_external_resources_index.py` 从仓库根 / `services/python-workers` / `frontend/src` 三种 cwd 各 **12 passed**（同一结果，解析不依赖当前目录）；把 `ARCHEAXIS_EXTERNAL_ROOT` 指向不存在目录后 **2 failed / 10 passed**（`test_external_resources_index.py:245`），即缺资源明确变红而不静默回落 PATH | REAL |
 | 文档/目录检查 | `check_path_conventions.py` 3122/3123 归属、0 deny 被跟踪、0 歧义；`check_document_authority.py` 单一当前记录、根引用可解析、输入哈希相符；`check_repository_conventions.py` 通过 | REAL |
 | 远端 CI / 安装资格 / 人工验收 | 未执行 | **NOT_RUN**（本地绿不等于远端绿；未 push） |
 
@@ -85,4 +86,4 @@
 
 五路 writer 路径互不重叠，整合**无冲突**（`git merge --no-ff` 五次全部 exit 0）。回退：任一分支提交可单独 `git revert`；文档搬迁的回退由清单逐行给出（`git mv` 反向 + 目标字节与哈希比对）；未使用任何破坏性操作，故不存在需要恢复的用户数据。
 
-工作树占用说明：本轮为并行 writer 新增 5 个 worktree（`gov-ui`、`a-gates`、`b-surfaces`、`c-resources`、`d-docs`、`e-honesty`、`f-oss`、`g-coredemo` 中除 gov-ui 外均为临时协作位），分支已提交，整合确认后由我按 `git worktree remove` 逐个回收——这是本轮**唯一**我认领的删除，且发生在被忽略目录内。
+工作树占用说明：本轮为并行 writer 新增 7 个 worktree（`gov-ui` 与 `a-gates`/`b-surfaces`/`c-resources`/`d-docs`/`e-honesty`/`f-oss`/`g-coredemo`）。它们**本轮不删除**：其中 4 个的 `frontend/node_modules` 是指向 `f15-folder-ingest-20261007` 共享安装的 junction，而递归删除会跟随 junction 删掉共享源。安全顺序是先 `cmd /c rmdir <junction>`（只卸链接，不碰目标），再 `git worktree remove`；分支提交仍在，随时可重开工作树。此清单已列入 §6 待授权项，执行前需逐项确认链接方向。
