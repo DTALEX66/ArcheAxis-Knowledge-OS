@@ -37,7 +37,30 @@
 .original-derived-pane .document-editor { margin-top:8px; }
 .original-derived-pane .pdf-reader { max-height:72vh; }
 .original-derived-image { display:block; max-width:100%; max-height:70vh; object-fit:contain; margin:12px auto; }
+/* 学科模板 launcher. It is the only disclosure on this surface that opens a whole workspace, and it
+   inherited no rule at all (the capability rail styles its own `details` by class), so it read as a
+   stray line of body text. Scoped to `.template-launcher` so `.capability-rail` is untouched. */
+.template-launcher { margin:0 0 14px; border:1px solid var(--ax-border-strong); border-radius:var(--ax-radius-sm); background:var(--ax-panel); }
+.template-launcher > summary { padding:8px 12px; font-weight:600; cursor:pointer; overflow-wrap:anywhere; }
+.template-launcher > summary:focus-visible { outline:2px solid var(--ax-accent); outline-offset:-2px; }
+.template-launcher[open] > summary { border-bottom:1px solid var(--ax-border); }
+.template-launcher > section { display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:10px; padding:12px; min-width:0; }
+.template-launcher > section > p, .template-launcher > section > nav, .template-launcher > section > h3,
+.template-launcher > section > aside, .template-launcher > section > section,
+.template-launcher > section > div { grid-column:1 / -1; min-width:0; }
+.template-launcher > section > p { margin:0; overflow-wrap:anywhere; }
+.template-launcher > section > nav { display:flex; flex-wrap:wrap; gap:8px; }
+.template-launcher > section > nav p { margin:0; }
+/* The list's own state line: it answers "is this empty, or did the read fail?", so it must read as
+   an annotation on the list rather than as one more template row. */
+.template-launcher > section > nav > .template-list-state { width:100%; color:var(--ax-fg-secondary); font-size:.8rem; overflow-wrap:anywhere; }
+.template-launcher > section label { display:grid; gap:4px; font-size:.8rem; min-width:0; overflow-wrap:anywhere; }
+.template-launcher > section select, .template-launcher > section input { min-width:0; max-width:100%; }
+.template-launcher > section > button { min-width:64px; }
+.template-launcher > section [aria-label="引用式画布"] { border:1px dashed var(--ax-border-strong); border-radius:var(--ax-radius-sm); }
+.template-launcher > section pre { max-width:100%; overflow:auto; white-space:pre-wrap; overflow-wrap:anywhere; }
 @media (max-width: 900px) {
+  .template-launcher > section { grid-template-columns:minmax(0,1fr); }
   .canonical-library, .canonical-reading { grid-template-columns: minmax(0, 1fr); }
   .original-derived-split { grid-template-columns:minmax(0,1fr); }
   .canonical-sources { max-height: 180px; overflow-y: auto; }

@@ -77,4 +77,50 @@ describe("SIMULATED host binding; Core persistence is separately integrated",()=
     expect(confirm).toHaveBeenCalled();expect(details.open).toBe(true);
     expect(screen.getByLabelText("status")).toHaveValue("draft");confirm.mockRestore();
   });
+  it("a collapsed launcher renders no workspace and no live region of its own",async()=>{
+    // The library page already owns one outcome region, so an always-mounted workspace would put a
+    // second status element on the surface before the user asked for anything.
+    const view=render(<TemplateLauncher onOpen={vi.fn()}/>);
+    expect(view.container.querySelector("section[aria-label='学科模板工作区']")).toBeNull();
+    await new Promise(r=>setTimeout(r,0));
+    expect(view.container.querySelectorAll('[role="status"],[role="alert"],[aria-live]:not([aria-live="off"])')).toHaveLength(0);
+  });
+  it("names an empty template collection instead of leaving a blank list",async()=>{
+    api.call.mockImplementation(async(operation:string)=>{
+      if(operation==="documents_list")return {documents:[]};
+      throw new Error(operation);
+    });
+    render(<TemplateWorkspace onOpen={vi.fn()}/>);
+    const state=await screen.findByText("尚无已保存的模板对象；选择学科与模板后创建第一个。");
+    expect(state.closest("nav")).toHaveAttribute("aria-label","已保存模板");
+    expect(state.hasAttribute("role")).toBe(false);
+    // The count is the read that happened, and the invalid-metadata advisory is not noise here.
+    expect(screen.getByText(/本次读回 0 个文档对象，其中 0 个带可解析模板属性/)).toBeInTheDocument();
+    expect(screen.queryByText(/无效模板属性不参与集合汇总/)).toBeNull();
+  });
+  it("reports a failed template read as a failed read, not as an empty collection",async()=>{
+    // "Core answered nothing" does not establish "there are no template objects"; claiming the
+    // second from the first is the fabrication this pins out, and listing the unread document is
+    // the fabrication in the other direction.
+    api.call.mockImplementation(async(operation:string)=>{
+      if(operation==="documents_list")return {documents:[{document_id:"doc_x",source_id:null,source_revision:null,title:"未读回的文档",version:1,content_sha256:"h"}]};
+      throw new Error("本地核心未能完成 document_get（503）。");
+    });
+    render(<TemplateWorkspace onOpen={vi.fn()}/>);
+    const announced=await screen.findByText("模板对象读取失败，请重试。");
+    expect(announced).toHaveAttribute("role","status");
+    const state=await screen.findByText(/列表为空只表示读取失败，不表示没有模板对象/);
+    expect(state.hasAttribute("role")).toBe(false);
+    expect(screen.queryByText(/尚无已保存的模板对象/)).toBeNull();
+    expect(screen.queryByText(/本次读回/)).toBeNull();
+    expect(screen.queryByRole("button",{name:"未读回的文档 · v1"})).toBeNull();
+  });
+  it("only warns about invalid template attributes when some document actually failed to parse",async()=>{
+    stored=[doc("target"),(()=>{const bad=doc("broken");bad.editor_json={type:"doc",attrs:{archeaxis_template:{schema:"other/v1"}}};return bad;})()];
+    render(<TemplateWorkspace onOpen={vi.fn()}/>);
+    await screen.findByRole("button",{name:"target · v1"});
+    expect(screen.getByText(/无效模板属性不参与集合汇总/)).toBeInTheDocument();
+    expect(screen.getByText(/本次读回 2 个文档对象，其中 1 个带可解析模板属性/)).toBeInTheDocument();
+    expect(screen.queryByText(/尚无已保存的模板对象/)).toBeNull();
+  });
 });
