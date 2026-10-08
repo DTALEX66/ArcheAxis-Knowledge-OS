@@ -205,17 +205,18 @@ def source_revision() -> dict[str, object]:
 
 
 
-HOST_BRIDGE_STUB = """
+HOST_BRIDGE_STUB_TEMPLATE = """
 (() => {
   // Enough of a Tauri host for the formal surfaces to mount. The app decides it is on the desktop
   // host by the presence of `window.__TAURI__.core.invoke`, and the recovery contract decides
   // whether it shows the shell or the recovery screen; nothing here claims to be the native host.
   const bodies = {
-    sources_list: { sources: [] },
+    sources_list: { sources: __A0_SOURCES__ },
     documents_list: { documents: [] },
     learning_items: { items: [] },
     capabilities_list: { capabilities: [] },
     anchors_list: { anchors: [] },
+    source_original: __A0_ORIGINAL__,
     workspace_backups: { backups: [] },
     system_version: { runtime: "archeaxis-api", contract: "0.1.0-outline", schema_version: 1,
                       sqlite_version: "3.51.3" },
@@ -236,6 +237,74 @@ HOST_BRIDGE_STUB = """
   };
 })();
 """
+
+# The page re-hashes the returned bytes and refuses to open an original whose digest differs,
+# so the fixture digest has to be the real one rather than a plausible-looking string.
+A0_ORIGINAL_CONTENT = "YTAg6Zeo56aB5qC35p2/5Y6f5Lu277ya5LuF5L6b5a6/5Li75Zue6K+75a+86Iiq5bGC57qn5L2/55So"
+A0_SOURCE = {
+    "source_id": "src_a0_nav3",
+    "source_revision": "sha256:de81c167a8e05757e6fba2e6",
+    "sha256": "de81c167a8e05757e6fba2e6123703873fb3d4219cb3a3ef01b55af7cbfb471e",
+    "original_name": "a0-nav3-sample.txt",
+    "imported_at": "2026-10-08T00:00:00Z",
+}
+
+
+def host_bridge_stub() -> str:
+    import json
+
+    return (
+        HOST_BRIDGE_STUB_TEMPLATE.replace("__A0_SOURCES__", json.dumps([A0_SOURCE]))
+        .replace("__A0_ORIGINAL__", json.dumps({
+            "source_id": A0_SOURCE["source_id"],
+            "name": A0_SOURCE["original_name"],
+            "media_type": "text/plain",
+            "sha256": A0_SOURCE["sha256"],
+            "content_base64": A0_ORIGINAL_CONTENT,
+        }))
+    )
+
+
+def read_navigation_levels(page) -> dict[str, object]:
+    """UI-02 in a real layout engine: primary labels, secondary groups, tertiary object path."""
+    # The icon span sits in the same button; only the label span carries text. Selecting the
+    # label explicitly is what the requirement is about: a primary entry the user can read.
+    labels = page.evaluate(
+        """() => [...document.querySelectorAll("ul[aria-label='产品空间'] .space-rail-item > span:not(.space-rail-icon)")]
+          .map((node) => ({ text: node.textContent.trim(), width: node.getBoundingClientRect().width }))"""
+    )
+    assert labels and all(entry["width"] > 8 for entry in labels), labels
+    assert len(labels) == 9, labels
+    assert [entry["text"] for entry in labels][:3] == ["工作台", "资料库", "导入"], labels
+
+    sections = page.locator("ul[aria-label='资料库对象导航'] button")
+    section_count = sections.count()
+    assert section_count == 4, section_count
+    widths = [sections.nth(index).bounding_box()["width"] for index in range(section_count)]
+    assert all(width > 60 for width in widths), widths
+
+    sections.filter(has_text="来源锚点").first.click()
+    focused = page.evaluate("() => document.activeElement?.dataset?.section ?? null")
+    assert focused == "anchors", focused
+
+    page.locator("nav[aria-label='保留原件'] button").first.click()
+    page.locator("nav[aria-label='对象导航路径']").wait_for()
+    trail = page.inner_text("nav[aria-label='对象导航路径']")
+    assert A0_SOURCE["source_id"] in trail, trail
+    assert A0_SOURCE["source_revision"] in trail, trail
+
+    page.locator('[data-space-id="learning"]').click()
+    page.get_by_role("heading", name="学习").first.wait_for()
+    review = page.locator("ul[aria-label='学习对象导航'] button").filter(has_text="复习队列")
+    assert review.count() == 1, review.count()
+    assert review.first.bounding_box()["width"] > 40
+    return {
+        "primary_label_count": len(labels),
+        "secondary_section_count": section_count,
+        "secondary_focused_region": focused,
+        "tertiary_trail_identity": A0_SOURCE["source_id"],
+        "learning_review_group_present": True,
+    }
 
 
 def canonical_host_surface(browser, problems: list[str]) -> dict[str, object]:
@@ -271,7 +340,7 @@ def canonical_host_surface(browser, problems: list[str]) -> dict[str, object]:
         else:
             route.continue_()
 
-    context.add_init_script(HOST_BRIDGE_STUB)
+    context.add_init_script(host_bridge_stub())
     page.route("**/*", route_api)
     page.goto(URL, wait_until="networkidle")
 
@@ -296,6 +365,7 @@ def canonical_host_surface(browser, problems: list[str]) -> dict[str, object]:
     single_file_inputs = page.locator("input[aria-label='导入原件']").count()
     assert single_file_inputs == 1, single_file_inputs
 
+    navigation = read_navigation_levels(page)
     shot = ARTIFACTS / f"canonical-host-library-{label}.png"
     page.screenshot(path=str(shot), full_page=True)
     result: dict[str, object] = {
@@ -305,6 +375,7 @@ def canonical_host_surface(browser, problems: list[str]) -> dict[str, object]:
         "canonical_library_mounted": True,
         "single_file_import_inputs": single_file_inputs,
         "folder_affordance": affordance,
+        "navigation_levels": navigation,
         "screenshot": str(shot.relative_to(ROOT)),
     }
     context.close()
