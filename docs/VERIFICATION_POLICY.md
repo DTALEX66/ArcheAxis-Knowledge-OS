@@ -101,6 +101,16 @@ WORK-LAB 是一个独立仓库，仅作为可选外部工作流协调工具通�
 
 不在路线图、技能和多个报告中复制易过期的测试数量、文件数量和中间失败日志。Git 历史与 CI 日志是执行证据，文档只记录稳定规则和当前决策。
 
+### 任务运行不得膨胀（2026-10-08 落实）
+
+规则由现有 launcher 与目录约定执行，不新建平行体系；`scripts/runtime/dev.py::layout()` 已经强制：精确 worktree 根、`.project-local/` 必须被 Git 忽略、按 worktree 身份哈希分目录、每个 run 独立 `runs/<identity>/<run_id>/{tmp,logs,artifacts}`，并导出 `ARCHEAXIS_RUN_ID`。在此之上补充以下必须项：
+
+- 一次运行只新增必要增量证据；不得把整棵源码树、整个依赖环境或完整任务包复制进新的报告目录。同一来源完整内容只保留一份，当前视图通过稳定 ID、路径、哈希与生成器复用。
+- 可共用的只读依赖缓存按项目机制复用：`frontend/node_modules` 用 Windows junction 指向已有安装（`New-Item -ItemType Junction`，移除只能用 `cmd /c rmdir`，`rm -rf` 会跟随链接删源），新 worktree 不复制大型共用资源；外置工具链与模型权重只经声明根解析，禁止为"统一归档"复制进项目。
+- 任务写入必须隔离在 run 目录内；共享文件（如 `config/environment/external-resources-index.json`、供应链台账）由生成器重建或按 hunk 整合，不得被两个 writer 同时改写。
+- 任务收尾必须列出产物归属：路径、归属依据、用途、可否重建、仍被谁引用、回收条件。被当前版本、未合并变更、验收记录或恢复路径引用的证据不得自动清除。
+- 可重建缓存与必须保留的原始证据分别治理；worktree 归档先保存必要修改与恢复身份，再按授权操作。归属不清的目录保留并标记未解决，不用定时删除器代替归属判定，也不按目录名批量删除。
+
 ## 本地与云端健康
 
 - 新开发临时数据统一由 `scripts/runtime/dev.py` 分配到被忽略的

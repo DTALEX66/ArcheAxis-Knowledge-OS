@@ -103,3 +103,65 @@
 4. 若再次瘦身，只能引用新的精确路径清单和对应回读收据；不得删除 `.project-local/runs`、未知历史、私有状态、外置库或现有 Green。
 
 状态语义：本报告记录的是 `IMPLEMENTED_LOCAL` 的清理动作、`TESTED_LOCAL` 的既有 A04 收据、`REMOTE_READBACK_BLOCKED` 的当前 SSH 限制，以及仍为 `BLOCKED/UNVERIFIED` 的未完任务；没有把本地删除、提交或候选包宣称成发布、安装或独立审计通过。
+
+## 2026-10-08 批次：分类实测、收敛落地与可审核回收清单
+
+本轮**未使用任何删除授权**：没有递归删除、hard reset、`git clean`、历史改写、远程 ref 操作或覆盖未知内容。全部动作是非破坏性的索引、引用修复、目录收敛（`git mv`）与验证。口径：`du -sk`（Git Bash GNU du，1K 块，`.git` 除外）、`git count-objects -v`、`git ls-tree -r -l` 的 blob 字节和、`stat -c%s`、`sha256sum` 逐字节。以下数字均为本任务内实测，不引用上一轮报告的汇总。
+
+### 1. 体积分类（不能只给一个总数）
+
+| 类别 | 实测 | 可否重建 | 本轮变化 |
+| --- | --- | --- | --- |
+| Git 对象与历史 | `in-pack` 36,361 对象 / `size-pack` 498,483 KB / 3 个 pack；loose 24 对象 56 KB | 否 | **未减少，也不会减少**：只能靠历史改写或远程 ref 删除，二者不在默认授权内，明列于此不作隐藏 |
+| 跟踪工作树（blob 合计） | 基线 `a8d2e0bb` 3,121 文件 / 77,460,200 bytes → 本轮 HEAD 3,123 文件 / 77,866,780 bytes | 否 | **+406,580 bytes（变大了）**：新增硬化门禁、共享扫描器、live-region 测试与合同字段。文档收敛没有在 Git 上省字节，见下 |
+| `docs/current/` | 405 → 342 跟踪文件；6,023,823 → 5,689,506 bytes | 否 | 分散度收敛；字节进入 `docs/history/`（167 → 230 文件，19,998,278 → 20,482,048 bytes），**Git 总量不降**，这是收敛而非瘦身 |
+| 可重建构建输出 | `.project-local/build` 41,888,601 KB | 是 | 未动。主检出 `build/cargo` 是共享暖缓存（1.1 GB registry），删它等于把重建成本转给下一轮 |
+| 运行证据 | `.project-local/runs` 10,145,977 KB / 2,196 个 run 目录 | **否** | 未动，列为保护类 |
+| 恢复件 | `.project-local/recovery` 8,337,113 KB（含 cargo-msvc-pdb、cargo-gnu-binaries、green-maintenance-wal） | 否 | 未动，恢复路径引用中 |
+| 迁移归档 | `.project-local/mig` 4,509,062 KB | 否 | 未动 |
+| 依赖缓存 | `.project-local/cache` 3,459,607 KB（nuget/uv/cargo/npm） | 是 | 未动（暖缓存，删除即重建） |
+| 工件 | `.project-local/artifacts` 2,505,796 KB | 部分 | 未动；含本轮被更正引用的证据目录，见诚实性批次 |
+| 工作树合计 | `.project-local/worktrees` 81,086,691 KB / 42 条目；最大 dsh-backend-loop 38,373,469 KB、aaos-p04-doc-loop 26,268,792 KB、ui02-nav3 8,487,689 KB | 混合 | **本轮自己新增了 5 个 writer 工作树**（见第 4 节），这是并行写作的必要成本，不是瘦身成果 |
+| `.venv` / `.hermes` | 1,044,942 KB / 526,955 KB（`.hermes/rt/runtime` 525,499 KB） | 是 / 否 | 未动；`.hermes` 按 AGENTS.md 既不新增写入也不整删 |
+
+### 2. 重复占用实测（junction 机制此前从未规模化）
+
+`frontend/node_modules` 现状：**10 份真实副本 vs 7 个 junction**（PowerShell `Attributes -match ReparsePoint` 实测计数）。单份约 203,917 KB，即约 **2.07 GB 属同一锁文件的重复安装**。本轮新增的 4 个工作树全部改用 junction 复用 `f15-folder-ingest-20261007/frontend/node_modules`（`package-lock.json` 与基线 SHA-256 逐字节相同：`bad160497be687b5…`），新工作树**未复制大型共用资源**。规则已写入 `docs/VERIFICATION_POLICY.md`「任务运行不得膨胀」。
+
+未注册的遗留目录（不是工作树，`git worktree list` 无记录）：`pycache-full` 82,158 KB、`pycache-f06ui` 37,836 KB、`pycache-172` 34,033 KB、`pycache-f09` 32,844 KB（合计 186,871 KB，`__pycache__` 派生物，可重建、无引用）；外壳残留 `aaos-p02-readback-20261007` 28 KB、`aaos-p03-folder-batch-20261007` 28 KB、`dp-f01-20260925` 20 KB、`worker-outside-test` 0 KB。
+
+### 3. 主检出的未跟踪历史资产：唯一性已实测，归属待定
+
+主检出（`codex/Audit`，实测为 `origin/main` 的祖先、落后 750 提交）工作树内有一批 **既未跟踪、.gitignore 也未覆盖** 的 `docs/history/` 内容，且我逐目录核对其在真实基线 `a8d2e0bb` 的跟踪状态为 **0 文件**——即这些字节目前只存在于该工作树，删掉不可从 Git 恢复：
+
+| 路径 | 文件 | `du -sk` | 基线是否跟踪 |
+| --- | --- | --- | --- |
+| `docs/history/task-artifacts` | 817 | 344,955 KB | 否 |
+| `docs/history/desktop-attachments` | 17 | 124,520 KB | 否 |
+| `docs/history/evidence` | 68 | 1,028 KB | 否 |
+| `docs/history/closure-tasks` | 12 | 68 KB | 否 |
+| `docs/history/skill-call-index.json` | 1 | 4 KB | 否 |
+| `docs/history/worktree-preserved-diffs` | 9 | 44 KB | 部分（3 个补丁在基线已跟踪） |
+
+处置：本轮**不动一个字节**。需要业主二选一：作为历史证据纳入提交，或显式纳入忽略并保留清单与哈希。风险是它现在处于最坏状态——`git add .` 会把 468 MB 一次性带入提交，而任何清理命令又会使其不可恢复。
+
+### 4. 可审核回收清单（仅清单，未执行）
+
+| exact path | 归属依据 | 用途 | 可重建 | 仍被谁引用 | 目标位置 | 建议操作 | 回退方法 |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| `.project-local/worktrees/{a-gates,b-surfaces,c-resources,d-docs,e-honesty,f-oss,g-coredemo}-20261008` ＋ `gov-ui-20261008` | 本任务创建，分支已提交，`git worktree list` 注册 | 一 checkout 一 writer 的并行写作位 | 是（分支保留即可重开） | 本轮各分支提交 | 整合完成后 `git worktree remove` | **由我在整合确认后执行**（唯一我认领的删除） | `git worktree add` 回同一 SHA |
+| `.project-local/worktrees/pycache-*`（4 个） | 未注册、非工作树、名字与内容均为 `__pycache__` 派生 | 无 | 是 | 实测无引用（不在 `git worktree list`，不在任何收据路径） | — | 待授权回收 186,871 KB | 重跑测试即再生 |
+| 10 份重复 `frontend/node_modules` | 同 `package-lock.json` 哈希 | 依赖安装 | 是 | 各工作树自身 | 改为 junction | 待授权：逐树替换为 junction，约回收 1.87 GB | `npm ci` 或重建副本 |
+| `.project-local/inputs/diarization-candidates-20261007` 中 `speaker-embedding.onnx` 26,530,550 bytes | 与共享根 `Model library/sherpa-onnx/speaker-diarization/speaker-embedding.onnx` **逐字节同哈希** | F10 分离的暂存输入 | 是（共享根为源） | F10 供给切片 | 只留共享根引用 | 待 F10 结论后回收；`.PATCHED.onnx` 为**已修改件，不得按同名处理** | 重新暂存 |
+| `.project-local/build/*` 按身份哈希目录 | 构建输出 | 编译产物 | 是 | 部分证据引用具体二进制身份 | — | 不在本轮提议：暖缓存重建代价高，需按证据引用逐目录判定 | 重新构建 |
+
+### 5. 明确不属于本轮授权 / 未执行的不可逆项
+
+1. Git 历史清理、历史改写、远程 ref 删除、强推——未执行，需单独授权。
+2. `.project-local/runs`（10,145,977 KB）、`recovery`、`mig`、`artifacts`、`docs/**` 历史与 `worktree-preserved-diffs` 补丁——被验收或恢复引用，不得自动清除。
+3. 主检出未跟踪的 468 MB `docs/history/` 资产——归属待业主判定（见第 3 节），本轮只登记。
+4. `.ui-task-tree/ArcheAxis-Knowledge-OS-mainline` 5,783,275 KB——属 `CodexSandboxOnline`，git 以 dubious ownership 拒绝，非本项目 writer 所有，不动。
+5. 外置工具根与 `Model library`（29,826,359 KB / 107,665,128 KB）——只读解析，未复制、未重组、未修改全局环境。
+6. 任何 ACL 修改、进程终止、全局环境变量变更、Green 日用安装件覆盖或用户 sqlite/CAS 迁移——一律未执行。
+
+状态语义：本节全部为 `IMPLEMENTED_LOCAL`（索引、`git mv` 收敛、引用修复、规则落地）与 `PROPOSED_AWAITING_AUTHORIZATION`（回收清单），没有任何一项被宣称成远端 CI、安装资格、发布或人工验收通过。
