@@ -5,6 +5,7 @@ import { RawReceiptButton } from "../components/DiagnosticConsole";
 import { CAPABILITY_CATALOG, type CapabilityCatalogEntry } from "../api/generated/capability-catalog";
 import { canNavigateToCapability, CAPABILITY_NAVIGATION_ENTRIES, getCapabilityDestination, getCapabilityNextStep, navigationEntryMatches } from "../presentation/navigation";
 import { Section } from "../components/RealData";
+import { coreFailureReason } from "../presentation/labels";
 import type { SpaceId } from "./spaces";
 import type { ObjectTrailLevel } from "../components/NavTrail";
 
@@ -19,6 +20,7 @@ export function CanonicalCapabilitiesSpace({ onNavigate, selectedCapabilityId, n
   const [query, setQuery] = useState("");
   const [live, setLive] = useState<Map<string, Record<string, unknown>> | null>(null);
   const [message, setMessage] = useState("");
+  const [failureReason, setFailureReason] = useState<string | null>(null);
 
   async function refresh() {
     try {
@@ -28,9 +30,10 @@ export function CanonicalCapabilitiesSpace({ onNavigate, selectedCapabilityId, n
       if (rows.some((row) => typeof row.capability !== "string")) throw new Error("invalid capability identity");
       setLive(new Map(rows.map((row) => [String(row.capability), row])));
       setMessage("已读取当前 Core worker 握手；不代表引擎产物通过。");
-    } catch {
+    } catch (error) {
       setLive(null);
       setMessage("当前健康与权限读取失败，显示未知；目录详情仍可浏览。");
+      setFailureReason(coreFailureReason(error));
     }
   }
 
@@ -98,6 +101,7 @@ export function CanonicalCapabilitiesSpace({ onNavigate, selectedCapabilityId, n
       { id: "details", label: "能力详情", content: details },
     ]} />
     {message ? <p role="status">{message}</p> : null}
+    {failureReason ? <p className="state-reason">{failureReason}</p> : null}
     <p>此视图使用生成的 Atlas/implementation 投影，不建立第二份能力真值。</p>
     <RawReceiptButton label="目录投影来源与哈希" payload={CAPABILITY_CATALOG.sources} />
   </Section>;

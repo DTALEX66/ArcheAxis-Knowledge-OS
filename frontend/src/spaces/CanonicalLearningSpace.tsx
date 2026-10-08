@@ -4,6 +4,7 @@ import { ApiError } from "../api/client";
 import { RawReceiptButton } from "../components/DiagnosticConsole";
 import { Section } from "../components/RealData";
 import type { ObjectTrailLevel } from "../components/NavTrail";
+import { coreFailureReason } from "../presentation/labels";
 function record(value: unknown): Record<string, unknown> {
   if (!value || typeof value !== "object" || Array.isArray(value)) throw new Error("invalid response");
   return value as Record<string, unknown>;
@@ -20,6 +21,7 @@ export function CanonicalLearningSpace({onTrail}:{onTrail?:(levels:readonly Obje
   const [answerRevealed, setAnswerRevealed] = useState(false);
   const ratingConsistent = rating !== "" && checkedCorrect !== null && ((Number(rating) === 1) === !checkedCorrect);
   const [message, setMessage] = useState("");
+  const [failureReason, setFailureReason] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const epoch = useRef(0);
   const eventId = useRef<string|null>(null);
@@ -30,7 +32,7 @@ export function CanonicalLearningSpace({onTrail}:{onTrail?:(levels:readonly Obje
       const rows = list.items.map(record);
       if (rows.some(row=>typeof row.item_key !== "string")) throw new Error("invalid item key");
       setItems(rows);
-    } catch {setMessage("学习队列读取失败，请重试。");}
+    } catch (error) {setMessage("学习队列读取失败，请重试。");setFailureReason(coreFailureReason(error));}
   }
   useEffect(()=>{void refresh();return()=>{epoch.current+=1;};},[]);
   useEffect(() => {
@@ -51,7 +53,7 @@ export function CanonicalLearningSpace({onTrail}:{onTrail?:(levels:readonly Obje
       const data = record(raw);
       if (data.item_key !== key || !data.learner || !data.machine) throw new Error("invalid learning state");
       if (current === epoch.current) {setState(data);setHistory(events);setMessage("");}
-    } catch {setMessage("学习记录读取失败，暂时不能提交结果。");}
+    } catch (error) {setMessage("学习记录读取失败，暂时不能提交结果。");setFailureReason(coreFailureReason(error));}
   }
   async function review() {
     if (!state || busy) return;
@@ -92,5 +94,6 @@ export function CanonicalLearningSpace({onTrail}:{onTrail?:(levels:readonly Obje
       <button disabled={busy||!assessment||!answer.trim()||!ratingConsistent} onClick={()=>void review()}>记录复习结果</button>
       <h4>机器能力状态</h4><p>{record(state.machine).status==="not_recorded"?"尚无机器能力记录。": "机器能力按 Core 回执单独记录。"}</p><RawReceiptButton label="机器能力记录回执" payload={state.machine} />
     </>})()}<details tabIndex={-1} data-section="record" aria-label="复习记录与回执"><summary>历史与回执</summary><pre>{JSON.stringify(history,null,2)}</pre></details></article>:null}
-    {message?<p role="status">{message}</p>:null}</Section>;
+    {message?<p role="status">{message}</p>:null}
+    {failureReason ? <p className="state-reason">{failureReason}</p> : null}</Section>;
 }

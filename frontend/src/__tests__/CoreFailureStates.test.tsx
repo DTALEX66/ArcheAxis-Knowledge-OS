@@ -3,6 +3,8 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { CanonicalKnowledgeSpace } from "../spaces/CanonicalKnowledgeSpace";
+import { CanonicalLearningSpace } from "../spaces/CanonicalLearningSpace";
+import { CanonicalCapabilitiesSpace } from "../spaces/CanonicalCapabilitiesSpace";
 import { ApiError } from "../api/client";
 import { coreFailureReason } from "../presentation/labels";
 
@@ -30,7 +32,7 @@ describe("UI-03 distinct failure states", () => {
     [new ApiError(404, "本地核心找不到 search 所需的对象。", "unavailable"), "缺失"],
     [new ApiError(429, "本地核心繁忙，请稍后重试。", "unavailable"), "繁忙"],
     [new ApiError(502, "本地核心未能完成 search（502）。", "incompatible"), "不兼容"],
-  ])("names %s as %s without dropping the generic sentence", async (error, label) => {
+  ])("names a %s failure as %s without dropping the generic sentence", async (error, label) => {
     const found = await failSearch(error);
     expect(found.textContent).toContain(label);
     expect(await screen.findByText("搜索失败，请重试。不会将失败显示为空结果。")).toBeInTheDocument();
@@ -57,6 +59,19 @@ describe("UI-03 distinct failure states", () => {
     await screen.findByText("搜索失败，请重试。不会将失败显示为空结果。");
     expect(await screen.findByText(/^冲突：/)).toBeInTheDocument();
     expect(screen.getAllByRole("status")).toHaveLength(1);
+  });
+
+  // Pages that host several sub-surfaces legitimately own more than one live
+  // region, so the pin here is that the reason itself is never a live region.
+  it.each([
+    ["学习", () => render(<CanonicalLearningSpace />), new ApiError(404, "本地核心找不到 learning_items 所需的对象。", "unavailable"), /^缺失：/],
+    ["全能力目录", () => render(<CanonicalCapabilitiesSpace onNavigate={() => {}} />), new ApiError(429, "本地核心繁忙，请稍后重试。", "unavailable"), /^繁忙：/],
+  ])("shows the classified reason on %s as plain text, not as a second announcement", async (_page, renderPage, error, pattern) => {
+    bridge.call.mockRejectedValue(error);
+    renderPage();
+    const reason = await screen.findByText(pattern);
+    expect(reason.hasAttribute("role")).toBe(false);
+    expect(reason).toHaveClass("state-reason");
   });
 
   it("keeps the six classified reasons distinct, digit-free and free of transport detail", () => {

@@ -16,6 +16,7 @@ import { FolderIngest } from "../components/FolderIngest";
 import "../components/content.css";
 import type { InspectionTarget } from "../components/Inspector";
 import type { ObjectTrailLevel } from "../components/NavTrail";
+import { coreFailureReason } from "../presentation/labels";
 
 // PDF.js is a large renderer and is needed only when the selected original is a PDF.
 const PdfReader = lazy(() => import("../components/PdfReader").then(module => ({ default: module.PdfReader })));
@@ -52,6 +53,7 @@ export function CanonicalLibrarySpace({onKnowledge,initialDocumentId,onDirtyChan
   const [editorEpoch, setEditorEpoch] = useState(0);
   const [message, setMessage] = useState("正在读取资料…");
   const [failure, setFailure] = useState(false);
+  const [failureReason, setFailureReason] = useState<string | null>(null);
   const [importing, setImporting] = useState(false);
   const [importReceipt,setImportReceipt]=useState<{name:string;bytes:number;state:string}|null>(null);
   const [exportProof, setExportProof] = useState<DocumentExportDto | null>(null);
@@ -127,7 +129,7 @@ export function CanonicalLibrarySpace({onKnowledge,initialDocumentId,onDirtyChan
     ]).then(([sourcesResult, docsResult]) => {
       if (!alive) return;
       setSources(sourcesResult.sources); setDocuments(docsResult.documents); setMessage("");
-    }).catch(() => { if (alive) { setMessage("资料暂时无法读取，请检查本地核心。"); setFailure(true); } });
+    }).catch((error: unknown) => { if (alive) { setMessage("资料暂时无法读取，请检查本地核心。"); setFailureReason(coreFailureReason(error)); setFailure(true); } });
     return () => { alive = false; generation.current += 1; onDirtyChange?.(false); window.dispatchEvent(new CustomEvent("archeaxis-draft-dirty", { detail: false })); };
   }, []);
   useEffect(()=>{if(initialDocumentId)void openDocument(initialDocumentId);},[initialDocumentId]);
@@ -170,10 +172,10 @@ export function CanonicalLibrarySpace({onKnowledge,initialDocumentId,onDirtyChan
       setSource(selected); setOriginal(asset); setBytes(decoded); setDocument(active); setAnchors(evidence.anchors);
       setDocumentSource(active ? selected : null); setDocumentOriginal(active ? asset : null); setDocumentBytes(active ? decoded : null);
       if (active) setOpenedDocuments(previous => previous.some(item => item.document_id === active.document_id) ? previous : [...previous, active]);
-      setExportProof(null);
+      setExportProof(null); setFailureReason(null);
       setEditorEpoch((value) => value + 1); setPage(1); setMessage("原件哈希已核对；草稿与原件独立保存。");
       publishDirtyState();
-    } catch { if (epoch === generation.current) { setFailure(true); setMessage(`${readStage}未完成；未替换当前内容，请保留原件重试。`); } }
+    } catch (error) { if (epoch === generation.current) { setFailure(true); setMessage(`${readStage}未完成；未替换当前内容，请保留原件重试。`); setFailureReason(coreFailureReason(error)); } }
   }
   async function openDocument(id: string) {
     if (currentDocument.current?.document_id === id) return;
@@ -307,7 +309,7 @@ export function CanonicalLibrarySpace({onKnowledge,initialDocumentId,onDirtyChan
       setOpenedDocuments(previous => previous.map(item => item.document_id === restored.document_id ? restored : item));
       setDocumentSource(source); setDocumentOriginal(original); setDocumentBytes(bytes);
       setMessage(`已从版本 ${previous} 恢复为新版本 ${restored.version}。`); setFailure(false);
-    } catch { if (epoch === generation.current && editingEpoch === editGeneration.current) { setMessage("恢复失败或版本已变化；当前草稿仍保留。"); setFailure(true); } }
+    } catch (error) { if (epoch === generation.current && editingEpoch === editGeneration.current) { setMessage("恢复失败或版本已变化；当前草稿仍保留。"); setFailureReason(coreFailureReason(error)); setFailure(true); } }
   }
   async function cite(): Promise<JSONContent> {
     if (!source) throw new Error("source not loaded");
@@ -445,6 +447,7 @@ export function CanonicalLibrarySpace({onKnowledge,initialDocumentId,onDirtyChan
           {exportProof?<RawReceiptButton label="导出格式与损失回执" payload={exportProof} />:null}
         </> : null}
     {message ? <p role={failure ? "alert" : "status"}>{message}</p> : null}
+    {failureReason ? <p className="state-reason">{failureReason}</p> : null}
     <BackupPanel />
   </Section>;
 }
