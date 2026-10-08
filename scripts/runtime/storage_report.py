@@ -20,6 +20,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import sys
 from pathlib import Path
 
@@ -50,14 +51,69 @@ def dev_allowed(name: str) -> bool:
     return name in DEV_ALLOWED or bool(DEV_ALLOWED_PATTERN.match(name))
 
 
+def is_link(entry: os.DirEntry) -> bool:
+    """A symlink or a Windows junction - either way, the bytes it reaches live elsewhere.
+
+    `Path.is_symlink()` reports False for a junction and `is_dir(follow_symlinks=False)` reports
+    True for one, so a walk that only consults those two descends straight through it.
+    """
+    try:
+        if entry.is_junction():
+            return True
+    except (AttributeError, OSError):
+        pass
+    return entry.is_symlink()
+
+
+def is_reparse_point(path: Path) -> bool:
+    try:
+        return bool(getattr(path.stat(follow_symlinks=False), "st_reparse_tag", 0)) or path.is_symlink()
+    except OSError:
+        return False
+
+
+def links_under(path: Path) -> list[dict[str, str]]:
+    """Links inside *path* with their targets, so shared bytes are attributed to their one owner
+    instead of being counted into every directory that points at them."""
+    found: list[dict[str, str]] = []
+    stack = [path]
+    while stack:
+        current = stack.pop()
+        try:
+            with os.scandir(current) as entries:
+                for entry in entries:
+                    candidate = Path(entry.path)
+                    if is_link(entry):
+                        try:
+                            target = os.readlink(entry.path)
+                        except OSError:
+                            target = ""
+                        found.append({"link": str(candidate), "target": str(target)})
+                    elif entry.is_dir(follow_symlinks=False):
+                        stack.append(candidate)
+        except OSError:
+            continue
+    return sorted(found, key=lambda item: item["link"])
+
+
 def directory_size(path: Path) -> int:
+    """Bytes owned by *path*, not bytes reachable from it.
+
+    A worktree's frontend/node_modules is a link to the single shared install; following it made
+    every worktree report the same ~190 MB as its own, which is the double-count this report exists
+    to prevent. `links_under` names those bytes once, at their target.
+    """
+    if is_reparse_point(path):
+        return 0
     total = 0
     stack = [path]
     while stack:
         current = stack.pop()
         try:
-            with __import__("os").scandir(current) as entries:
+            with os.scandir(current) as entries:
                 for entry in entries:
+                    if is_link(entry):
+                        continue
                     if entry.is_file(follow_symlinks=False):
                         total += entry.stat(follow_symlinks=False).st_size
                     elif entry.is_dir(follow_symlinks=False):
