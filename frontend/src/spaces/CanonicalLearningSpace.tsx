@@ -7,7 +7,7 @@ function record(value: unknown): Record<string, unknown> {
   if (!value || typeof value !== "object" || Array.isArray(value)) throw new Error("invalid response");
   return value as Record<string, unknown>;
 }
-export function CanonicalLearningSpace() {
+export function CanonicalLearningSpace({initialItemKey}:{initialItemKey?:string} = {}) {
   const [focusMode, setFocusMode] = useState(false);
   const [items, setItems] = useState<Record<string, unknown>[]>([]);
   const [itemKey, setItemKey] = useState("");
@@ -32,6 +32,7 @@ export function CanonicalLearningSpace() {
     } catch {setMessage("学习队列读取失败，请重试。");}
   }
   useEffect(()=>{void refresh();return()=>{epoch.current+=1;};},[]);
+  useEffect(()=>{if(initialItemKey)void open(initialItemKey);},[initialItemKey]);
   async function open(key: string) {
     const current = ++epoch.current; setState(null);setHistory(null);setItemKey(key);setAnswer("");setRating("");setCheckedCorrect(null);setAnswerRevealed(false);eventId.current=null;
     try {

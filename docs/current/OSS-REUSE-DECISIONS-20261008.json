@@ -1,0 +1,555 @@
+{
+  "schema": "archeaxis.oss-reuse-decisions/v1",
+  "note": "Reviewed alias map and conservative source decisions. A is only derived from result evidence; historical claims stay in original_record.",
+  "decisions": [
+    {
+      "canonical_name": "adbar/trafilatura",
+      "aliases": [
+        "Trafilatura",
+        "trafilatura"
+      ],
+      "category": "B",
+      "capability_id": "html.structure",
+      "reason": "Locked 2.1.0 donor now used by the existing saved-snapshot worker for explicit article/main pages; generic fragments and failed extraction retain the stdlib fallback.",
+      "reevaluate_when": "A saved article requires noise separation or an observed extraction loss; do not add another primary HTML engine.",
+      "evidence": [
+        "uv.lock",
+        "services/python-workers/web/worker_html.py",
+        "crates/archeaxis-api/tests/oss_template_reuse.rs"
+      ]
+    },
+    {
+      "canonical_name": "microsoft/markitdown",
+      "aliases": [
+        "MarkItDown[pdf]",
+        "MarkItDown"
+      ],
+      "category": "B",
+      "capability_id": "legacy.document.convert",
+      "reason": "Real conversion is in app/ingestion/multi_format.py. shared-contracts adapter is a text-only placeholder. The current Office/PDF worker uses separate concrete parsers, so this donor is not qualified as its runtime engine.",
+      "reevaluate_when": "A needed format fails the existing native parser and this bounded legacy conversion can meet the current worker contract.",
+      "evidence": [
+        "app/ingestion/multi_format.py",
+        "shared-contracts/adapters/converters/markitdown_adapter.py",
+        "uv.lock"
+      ]
+    },
+    {
+      "canonical_name": "mozilla/pdf.js",
+      "aliases": [
+        "PDF.js",
+        "pdfjs-dist"
+      ],
+      "category": "B",
+      "capability_id": "pdf.read",
+      "reason": "Frontend lock is 6.4.299; PdfReader imports it and CanonicalLibrarySpace uses PdfReader. Native desktop rendering was not run this task.",
+      "reevaluate_when": "A PDF original must be read or a renderer regression occurs; use this single renderer.",
+      "evidence": [
+        "frontend/package-lock.json",
+        "frontend/src/components/PdfReader.tsx",
+        "frontend/src/spaces/CanonicalLibrarySpace.tsx"
+      ]
+    },
+    {
+      "canonical_name": "pymupdf/PyMuPDF",
+      "aliases": [
+        "PyMuPDF",
+        "pymupdf"
+      ],
+      "category": "B",
+      "capability_id": "pdf.extract",
+      "reason": "Existing native PDF worker gives page/line locations. This is not PyMuPDF4LLM; do not merge their identities or licensing claims.",
+      "reevaluate_when": "Native text or page-location quality fails a real source; scanned pages require a qualified OCR path.",
+      "evidence": [
+        "uv.lock",
+        "services/python-workers/document/worker_pdf.py",
+        "tests/fixtures/golden/golden-journey-evidence.pdf"
+      ]
+    },
+    {
+      "canonical_name": "open-spaced-repetition/py-fsrs",
+      "aliases": [
+        "py-fsrs",
+        "fsrs"
+      ],
+      "category": "B",
+      "capability_id": "learning.fsrs",
+      "reason": "Rust scheduler calls worker_schedule and the existing shared donor independently of routes.json. State persistence and retry deduplication use Core, not a second learning store.",
+      "reevaluate_when": "Review scheduling needs recalibration against real review data; a due date never certifies practical mastery.",
+      "evidence": [
+        "uv.lock",
+        "crates/archeaxis-application/src/scheduler.rs",
+        "services/python-workers/learning/worker_schedule.py",
+        "shared/learning_scheduler.py",
+        "crates/archeaxis-api/tests/learning_state_api.rs"
+      ]
+    },
+    {
+      "canonical_name": "tesseract-ocr/tesseract",
+      "aliases": [
+        "pytesseract + Tesseract-OCR",
+        "Tesseract"
+      ],
+      "category": "B",
+      "capability_id": "image.ocr",
+      "reason": "Existing worker and explicit tool/model-data resolver are present; executable, language data and actual image result must be separately verified.",
+      "reevaluate_when": "A real image or scanned page needs text; use the existing OCR path before another model engine.",
+      "evidence": [
+        "services/python-workers/vision/worker_ocr.py",
+        "services/python-workers/tool_paths.py"
+      ]
+    },
+    {
+      "canonical_name": "SYSTRAN/faster-whisper",
+      "aliases": [
+        "faster-whisper"
+      ],
+      "category": "B",
+      "capability_id": "media.transcribe",
+      "reason": "Worker route is present but no model transcription is run in this task. Code and weight/license validation remain separate.",
+      "reevaluate_when": "A concrete audio learning task has an authorized input and registered model; measure text and time cues, not handshake.",
+      "evidence": [
+        "services/python-workers/media/worker_transcribe.py",
+        "services/python-workers/routes.json"
+      ]
+    },
+    {
+      "canonical_name": "k2-fsa/sherpa-onnx",
+      "aliases": [
+        "sherpa-onnx"
+      ],
+      "category": "B",
+      "capability_id": "media.transcribe.sensevoice",
+      "reason": "Existing optional SenseVoice adapter is retained; no second default inference stack is activated.",
+      "reevaluate_when": "The chosen ASR fails the actual language/resource constraint and the existing alternative is qualified.",
+      "evidence": [
+        "pyproject.toml",
+        "services/python-workers/media/worker_transcribe.py"
+      ]
+    },
+    {
+      "canonical_name": "JSON Canvas",
+      "aliases": [],
+      "category": "C",
+      "capability_id": "canvas.structure",
+      "reason": "Concrete node/edge/file-reference format behavior is retained and exercised through the existing worker, with bounded losses.",
+      "reference_result": "docs/current/OSS-REFERENCE-EXTRACTIONS-20261008.md",
+      "reevaluate_when": "A canvas format must round-trip a real platform/version; one fixture does not qualify all platforms.",
+      "evidence": [
+        "shared/json_canvas.py",
+        "services/python-workers/document/worker_canvas.py",
+        "tests/fixtures/golden/golden-canvas-anchor.canvas"
+      ]
+    },
+    {
+      "canonical_name": "json-schema-org/json-schema-spec",
+      "aliases": [],
+      "category": "C",
+      "capability_id": "contract.json-schema",
+      "reason": "Versioned finite field/type validation is a concrete reference result used in current contracts and generated UI DTO checks.",
+      "reference_result": "docs/current/OSS-REFERENCE-EXTRACTIONS-20261008.md",
+      "reevaluate_when": "A changed contract introduces unrecognized states or fields; extend the existing schema generation.",
+      "evidence": [
+        "packages/contracts",
+        "frontend/src/api/generated/core-contract.ts",
+        "tests/test_worker_route_contract.py"
+      ]
+    },
+    {
+      "canonical_name": "OAI/OpenAPI-Specification",
+      "aliases": [],
+      "category": "C",
+      "capability_id": "contract.openapi",
+      "reason": "Finite versioned business routes and typed DTOs are concretely mapped and validated; a declaration is distinguished from a live API result.",
+      "reference_result": "docs/current/OSS-REFERENCE-EXTRACTIONS-20261008.md",
+      "reevaluate_when": "A needed finite product command is absent; extend the current contract/bridge rather than arbitrary HTTP routing.",
+      "evidence": [
+        "packages/contracts/v1/openapi-outline.yaml",
+        "src-tauri/src/core_bridge.rs",
+        "crates/archeaxis-api/tests/oss_template_reuse.rs"
+      ]
+    },
+    {
+      "canonical_name": "Crossref REST",
+      "aliases": [],
+      "category": "B",
+      "capability_id": "evidence.crossref",
+      "reason": "Real client exists in shared/evidence_connectors.py and has a caller in shared/public_evidence.py; no live service request or current Core binding is qualified this task.",
+      "reevaluate_when": "A research object needs DOI bibliographic metadata absent locally; preserve original source and access time.",
+      "evidence": [
+        "shared/evidence_connectors.py",
+        "shared/public_evidence.py"
+      ]
+    },
+    {
+      "canonical_name": "DataCite REST",
+      "aliases": [],
+      "category": "B",
+      "capability_id": "evidence.datacite",
+      "reason": "Existing client and local caller are retained; target product entry and live API response remain unverified.",
+      "reevaluate_when": "A real research object needs dataset DOI metadata absent locally.",
+      "evidence": [
+        "shared/evidence_connectors.py",
+        "shared/public_evidence.py"
+      ]
+    },
+    {
+      "canonical_name": "OpenAlex",
+      "aliases": [],
+      "category": "B",
+      "capability_id": "evidence.openalex",
+      "reason": "Existing client is not a stub; no live or native-host result is run this task.",
+      "reevaluate_when": "A specific work/author/source relationship cannot be answered from local records.",
+      "evidence": [
+        "shared/evidence_connectors.py",
+        "shared/public_evidence.py"
+      ]
+    },
+    {
+      "canonical_name": "Wikidata",
+      "aliases": [],
+      "category": "B",
+      "capability_id": "evidence.wikidata",
+      "reason": "Existing client can support concept navigation; it is not independent methodological evidence and is not live-qualified here.",
+      "reevaluate_when": "A concrete concept/entity disambiguation needs navigation beyond local knowledge.",
+      "evidence": [
+        "shared/evidence_connectors.py",
+        "shared/public_evidence.py"
+      ]
+    },
+    {
+      "canonical_name": "asg017/sqlite-vec",
+      "aliases": [
+        "sqlite-vec"
+      ],
+      "category": "B",
+      "capability_id": "search.semantic",
+      "reason": "Existing optional dependency and semantic worker retained; FTS5 is the minimal default and no embedding/model run is performed here.",
+      "reevaluate_when": "Measured local FTS misses a representative query and registered embeddings improve it within resource bounds.",
+      "evidence": [
+        "pyproject.toml",
+        "services/python-workers/search/semantic_ranking.py"
+      ]
+    },
+    {
+      "canonical_name": "networkx/networkx",
+      "aliases": [
+        "NetworkX"
+      ],
+      "category": "B",
+      "capability_id": "legacy.graph.compute",
+      "reason": "Legacy computation dependency exists; it is not proof of current document backlinks or an adopted formal graph store.",
+      "reevaluate_when": "A bounded graph computation cannot be served by existing document-reference projections.",
+      "evidence": [
+        "pyproject.toml",
+        "uv.lock"
+      ]
+    },
+    {
+      "canonical_name": "ueberdosis/tiptap",
+      "aliases": [
+        "Tiptap"
+      ],
+      "category": "B",
+      "capability_id": "document.edit",
+      "reason": "Locked Tiptap/ProseMirror editor is called by the formal library; native desktop interaction is NOT_RUN. Template root metadata preservation is covered by frontend tests.",
+      "reevaluate_when": "A real document loses a supported node/attribute or input behavior; keep one primary editor.",
+      "evidence": [
+        "frontend/package-lock.json",
+        "frontend/src/components/DocumentEditor.tsx"
+      ]
+    },
+    {
+      "canonical_name": "ProseMirror/prosemirror",
+      "aliases": [],
+      "category": "B",
+      "capability_id": "document.edit",
+      "reason": "Used through the existing Tiptap package graph; no independent second editor is installed.",
+      "reevaluate_when": "The chosen editor fails a required stable block or reference behavior.",
+      "evidence": [
+        "frontend/package-lock.json",
+        "frontend/src/components/DocumentEditor.tsx"
+      ]
+    },
+    {
+      "canonical_name": "kuzudb/kuzu",
+      "aliases": [
+        "Kùzu"
+      ],
+      "category": "E",
+      "capability_id": "graph.core-replacement",
+      "reason": "Not adopted as the canonical store: it would add a second formal graph database. Alternative: existing Rust-owned SQLite plus rebuildable bounded reference views. Archived original remains preserved.",
+      "reevaluate_when": "Only an explicitly approved read-only sidecar for a measured graph query could be reevaluated; never an automatic core replacement.",
+      "evidence": [
+        "PROJECT_CONTRACT.yaml",
+        "docs/truth/SUPPLY_CHAIN_LEDGER.json"
+      ]
+    },
+    {
+      "canonical_name": "anchore/syft",
+      "aliases": [
+        "Syft"
+      ],
+      "category": "D",
+      "capability_id": "sbom.tool",
+      "reason": "Not installed. Existing scripts/release_sbom.py implements the required CycloneDX output; do not attribute its first-party behavior to Syft.",
+      "reevaluate_when": "The current lockfile-based SBOM misses a real shipped component that this tool can discover; release remains frozen.",
+      "evidence": [
+        "scripts/release_sbom.py"
+      ]
+    },
+    {
+      "canonical_name": "google/magika",
+      "aliases": [
+        "Magika"
+      ],
+      "category": "B",
+      "capability_id": "file.detect",
+      "reason": "Existing bounded byte detector uses registered standard_v3_0 data; model execution was not qualified in this task.",
+      "reevaluate_when": "A real ambiguous file requires type routing; qualify code and model terms separately.",
+      "evidence": [
+        "services/python-workers/document/worker_detect.py",
+        "pyproject.toml",
+        "config/environment/capability-requirements.yaml"
+      ]
+    },
+    {
+      "canonical_name": "RapidAI/RapidOCR",
+      "aliases": [
+        "RapidOCR"
+      ],
+      "category": "B",
+      "capability_id": "legacy.image.ocr",
+      "reason": "Existing optional bakeoff function is implemented despite its historical _stub name; no current primary route or model result qualified.",
+      "reevaluate_when": "Registered Tesseract fails a representative image and the bounded existing fallback has verified model terms.",
+      "evidence": [
+        "shared/bakeoff_engines.py",
+        "pyproject.toml",
+        "config/environment/capability-requirements.yaml"
+      ]
+    },
+    {
+      "canonical_name": "apache/tika",
+      "aliases": [
+        "Apache Tika"
+      ],
+      "category": "B",
+      "capability_id": "office.ppt",
+      "reason": "Existing legacy PPT sidecar adapter resolves declared Java/JAR; current task DOCX result does not qualify Tika or PPT.",
+      "reevaluate_when": "A real legacy PPT must be converted and existing declared sidecar can be measured; no new JVM platform.",
+      "evidence": [
+        "services/python-workers/document/worker_office.py",
+        "pyproject.toml",
+        "config/environment/capability-requirements.yaml"
+      ]
+    },
+    {
+      "canonical_name": "jitsi/jiwer",
+      "aliases": [
+        "JiWER"
+      ],
+      "category": "B",
+      "capability_id": "quality.text",
+      "reason": "Existing CER/WER functions implemented; this is an evaluation tool, not transcription or automatic truth.",
+      "reevaluate_when": "Authorized human truth/prediction pairs require a text quality measure.",
+      "evidence": [
+        "shared/text_quality.py",
+        "pyproject.toml",
+        "config/environment/capability-requirements.yaml"
+      ]
+    },
+    {
+      "canonical_name": "FFmpeg/FFmpeg",
+      "aliases": [
+        "FFmpeg"
+      ],
+      "category": "B",
+      "capability_id": "media.video",
+      "reason": "Existing declared-binary worker extracts actual frames; no model/audio/video input executed here.",
+      "reevaluate_when": "A concrete authorized media source needs time-bound derivations; metadata alone is not content.",
+      "evidence": [
+        "services/python-workers/media/worker_video.py",
+        "pyproject.toml",
+        "config/environment/capability-requirements.yaml"
+      ]
+    },
+    {
+      "canonical_name": "unclecode/crawl4ai",
+      "aliases": [
+        "Crawl4AI"
+      ],
+      "category": "B",
+      "capability_id": "legacy.web.fetch",
+      "reason": "Existing real adapter/fallback chain; saved-snapshot HTML qualification does not qualify network crawling.",
+      "reevaluate_when": "A concrete template needs web-dynamic and current minimal primary fails; qualify this existing bounded path before new code.",
+      "evidence": [
+        "shared-contracts/adapters/crawlers/crawl4ai_adapter.py",
+        "docs/truth/SUPPLY_CHAIN_LEDGER.json"
+      ]
+    },
+    {
+      "canonical_name": "BerriAI/litellm",
+      "aliases": [
+        "LiteLLM"
+      ],
+      "category": "B",
+      "capability_id": "legacy.llm.gateway",
+      "reason": "Existing provider adapter; no credentials or model invocation used, not a current template prerequisite.",
+      "reevaluate_when": "A concrete template needs llm-provider-router and current minimal primary fails; qualify this existing bounded path before new code.",
+      "evidence": [
+        "shared-contracts/adapters/llm/litellm_adapter.py",
+        "docs/truth/SUPPLY_CHAIN_LEDGER.json"
+      ]
+    },
+    {
+      "canonical_name": "langfuse/langfuse",
+      "aliases": [
+        "Langfuse"
+      ],
+      "category": "B",
+      "capability_id": "legacy.observability",
+      "reason": "Existing bounded optional event adapter; no service account or remote write qualified.",
+      "reevaluate_when": "A concrete template needs observability and current minimal primary fails; qualify this existing bounded path before new code.",
+      "evidence": [
+        "shared-contracts/adapters/observability/langfuse_adapter.py",
+        "docs/truth/SUPPLY_CHAIN_LEDGER.json"
+      ]
+    },
+    {
+      "canonical_name": "Delgan/loguru",
+      "aliases": [
+        "Loguru"
+      ],
+      "category": "B",
+      "capability_id": "runtime.logging",
+      "reason": "Existing Loguru source and locked dependency; log output is not product capability qualification.",
+      "reevaluate_when": "A concrete template needs logging and current minimal primary fails; qualify this existing bounded path before new code.",
+      "evidence": [
+        "shared/logging.py",
+        "docs/truth/SUPPLY_CHAIN_LEDGER.json"
+      ]
+    },
+    {
+      "canonical_name": "hynek/structlog",
+      "aliases": [
+        "structlog"
+      ],
+      "category": "B",
+      "capability_id": "runtime.structured-logging",
+      "reason": "Declared and locked structlog dependency; no current routed result proof.",
+      "reevaluate_when": "A concrete template needs structured-logging and current minimal primary fails; qualify this existing bounded path before new code.",
+      "evidence": [
+        "pyproject.toml",
+        "docs/truth/SUPPLY_CHAIN_LEDGER.json"
+      ]
+    },
+    {
+      "canonical_name": "agronholm/apscheduler",
+      "aliases": [
+        "APScheduler"
+      ],
+      "category": "B",
+      "capability_id": "legacy.runtime.scheduler",
+      "reason": "Declared APScheduler dependency; not the py-fsrs review scheduler and not a new workflow platform.",
+      "reevaluate_when": "A concrete template needs scheduling and current minimal primary fails; qualify this existing bounded path before new code.",
+      "evidence": [
+        "pyproject.toml",
+        "docs/truth/SUPPLY_CHAIN_LEDGER.json"
+      ]
+    },
+    {
+      "canonical_name": "snakers4/silero-vad",
+      "aliases": [
+        "Silero VAD"
+      ],
+      "category": "B",
+      "capability_id": "legacy.audio.vad",
+      "reason": "Existing optional Silero function; no torch.hub download/inference performed or weight terms qualified.",
+      "reevaluate_when": "A concrete template needs voice-activity-detection and current minimal primary fails; qualify this existing bounded path before new code.",
+      "evidence": [
+        "shared/audio_vad.py",
+        "docs/truth/SUPPLY_CHAIN_LEDGER.json"
+      ]
+    },
+    {
+      "canonical_name": "rapidfuzz/RapidFuzz",
+      "aliases": [
+        "RapidFuzz"
+      ],
+      "category": "B",
+      "capability_id": "quality.text.similarity",
+      "reason": "Existing RapidFuzz comparison used with explicit truth/prediction inputs; no automatic ground truth.",
+      "reevaluate_when": "A concrete template needs text-alignment and current minimal primary fails; qualify this existing bounded path before new code.",
+      "evidence": [
+        "shared/text_quality.py",
+        "docs/truth/SUPPLY_CHAIN_LEDGER.json"
+      ]
+    },
+    {
+      "canonical_name": "xlrd",
+      "aliases": [],
+      "category": "B",
+      "capability_id": "office.xls",
+      "reason": "Existing xlrd BIFF adapter; DOCX representative result cannot qualify XLS.",
+      "reevaluate_when": "A concrete template needs legacy-binary-workbook-reader and current minimal primary fails; qualify this existing bounded path before new code.",
+      "evidence": [
+        "services/python-workers/document/worker_office.py",
+        "docs/truth/SUPPLY_CHAIN_LEDGER.json"
+      ]
+    },
+    {
+      "canonical_name": "msys2/MINGW-packages/tree/master/mingw-w64-antiword",
+      "aliases": [
+        "antiword (probed sidecar binary)"
+      ],
+      "category": "B",
+      "capability_id": "office.doc",
+      "reason": "Existing antiword declared binary/mapping resolver; legacy DOC result NOT_RUN in current task.",
+      "reevaluate_when": "A concrete template needs document-legacy and current minimal primary fails; qualify this existing bounded path before new code.",
+      "evidence": [
+        "services/python-workers/document/worker_office.py",
+        "docs/truth/SUPPLY_CHAIN_LEDGER.json"
+      ]
+    },
+    {
+      "canonical_name": "Chromium (the Playwright browser build this host already carries)",
+      "aliases": [],
+      "category": "B",
+      "capability_id": "web.snapshot.dynamic",
+      "reason": "Existing Playwright browser snapshot worker with resource declarations; current saved HTML is not a live browser snapshot qualification.",
+      "reevaluate_when": "A concrete template needs web-render and current minimal primary fails; qualify this existing bounded path before new code.",
+      "evidence": [
+        "services/python-workers/web/worker_webpage.py",
+        "docs/truth/SUPPLY_CHAIN_LEDGER.json"
+      ]
+    },
+    {
+      "canonical_name": "Azul Zulu Community JRE 21 (the runtime the Tika sidecar needs)",
+      "aliases": [],
+      "category": "B",
+      "capability_id": "runtime.jvm",
+      "reason": "Existing explicit JVM resource resolver for Tika; no independent JRE runtime platform or current PPT execution qualification.",
+      "reevaluate_when": "A concrete template needs document-legacy and current minimal primary fails; qualify this existing bounded path before new code.",
+      "evidence": [
+        "services/python-workers/document/worker_office.py",
+        "docs/truth/SUPPLY_CHAIN_LEDGER.json"
+      ]
+    },
+    {
+      "canonical_name": "ArcheAxis Core Knowledge",
+      "aliases": [
+        "Core Knowledge",
+        "Canonical knowledge and source lifecycle"
+      ],
+      "category": "B",
+      "capability_id": "document.save",
+      "reason": "Actual first-party Core document/version API and Rust SQLite writer are used by templates; not an external donor or second knowledge store.",
+      "reevaluate_when": "A measured canonical document/source operation is missing; extend the existing finite contract.",
+      "evidence": [
+        "crates/archeaxis-api",
+        "crates/archeaxis-store-sqlite",
+        "crates/archeaxis-api/tests/oss_template_reuse.rs"
+      ]
+    }
+  ]
+}

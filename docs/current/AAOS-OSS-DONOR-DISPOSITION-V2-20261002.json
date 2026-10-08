@@ -405,5 +405,11 @@
       "Cognee"
     ]
   },
-  "not_done_here": "no project is installed by this document. The verdicts above are the frame; filling the 369 rows is mechanical once the benchmark comparison exists, and installing any of them is a separate, deliberate act."
+  "not_done_here": "no project is installed by this document. The verdicts above are the frame; filling the 369 rows is mechanical once the benchmark comparison exists, and installing any of them is a separate, deliberate act.",
+  "current_evidence_overlay": {
+    "recorded_at": "2026-10-08",
+    "crosswalk": "docs/current/OSS-REUSE-CROSSWALK-20261008.json",
+    "verification": "docs/current/OSS-REUSE-VERIFICATION-20261008.json",
+    "note": "Original frame, 47 archived components and not_done_here remain historical. Current overlay supplies all 369 row verdicts with scope-limited result evidence; no installation or full-platform certificate."
+  }
 }
