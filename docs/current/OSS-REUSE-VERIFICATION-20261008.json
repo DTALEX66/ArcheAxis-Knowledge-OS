@@ -1,0 +1,313 @@
+{
+  "schema": "archeaxis.oss-reuse-verification/v1",
+  "observed_at": "2026-10-08",
+  "baseline": "4b9828c4058901c0b1fd2c75c528238c55e0ec89",
+  "branch": "codex/oss-reuse-templates-20261008",
+  "environment": {
+    "os": "Windows x64",
+    "python": "3.12.14",
+    "task_scope": "isolated worktree, task venv/cache/run directories; project-authored fixtures only",
+    "python_direct_packages": "fixed versions from uv.lock; pip transitive resolution is not a full uv sync",
+    "tesseract": "v5.5.0.20241111",
+    "eng_traineddata_sha256": "7d4322bd2a7749724879683fc3912cb542f19906c83bcc1a52132556427170b2",
+    "node": "24.18.0",
+    "frontend_install": "npm ci --ignore-scripts cancelled after stalled incomplete download. Remaining PDF.js archive downloaded from exact official lock URL, SHA512 integrity matched before task-only extraction. npm-ci completion NOT_VERIFIED; TypeScript and Vite build executed successfully."
+  },
+  "capabilities": {
+    "html.structure": {
+      "status": "PASS",
+      "level": "INTEGRATED",
+      "entry": "POST /api/v1/imports -> POST /api/v1/jobs -> POST /api/v1/jobs/{id}/executions -> GET /api/v1/jobs/{id}/outputs/{kind}",
+      "assertions": [
+        "article text retained, nav/footer removed, trafilatura selected, outputs identical after Core reopen"
+      ],
+      "run_ids": [
+        "oss-core-ocr"
+      ]
+    },
+    "pdf.extract": {
+      "status": "PASS",
+      "level": "INTEGRATED",
+      "entry": "POST /api/v1/imports -> POST /api/v1/jobs -> POST /api/v1/jobs/{id}/executions -> GET /api/v1/jobs/{id}/outputs/{kind}",
+      "assertions": [
+        "golden PDF text and page marker retained, structure returned, outputs identical after Core reopen"
+      ],
+      "run_ids": [
+        "oss-core-ocr"
+      ]
+    },
+    "office.structure": {
+      "status": "PASS",
+      "level": "INTEGRATED",
+      "entry": "POST /api/v1/imports -> POST /api/v1/jobs -> POST /api/v1/jobs/{id}/executions -> GET /api/v1/jobs/{id}/outputs/{kind}",
+      "assertions": [
+        "DOCX marker and no-personal-data sentence retained, real reported paragraph addressable via anchor API, outputs survive reopen"
+      ],
+      "run_ids": [
+        "oss-core-ocr"
+      ]
+    },
+    "canvas.structure": {
+      "status": "PASS",
+      "level": "INTEGRATED",
+      "entry": "POST /api/v1/imports -> POST /api/v1/jobs -> POST /api/v1/jobs/{id}/executions -> GET /api/v1/jobs/{id}/outputs/{kind}",
+      "assertions": [
+        "existing JSON Canvas fixture yields nonempty text, structure and loss report; outputs survive reopen"
+      ],
+      "run_ids": [
+        "oss-core-ocr"
+      ]
+    },
+    "image.ocr": {
+      "status": "PASS",
+      "level": "INTEGRATED",
+      "entry": "POST /api/v1/imports -> POST /api/v1/jobs -> POST /api/v1/jobs/{id}/executions -> GET /api/v1/jobs/{id}/outputs/{kind}",
+      "assertions": [
+        "registered Tesseract recognizes OCR GOLDEN ANCHOR from project-authored PNG, structure and loss report returned, outputs survive reopen"
+      ],
+      "run_ids": [
+        "oss-core-ocr"
+      ]
+    },
+    "learning.fsrs": {
+      "status": "PASS",
+      "level": "INTEGRATED",
+      "entry": "Rust learning review API -> scheduler -> worker_schedule -> shared.learning_scheduler -> fsrs",
+      "assertions": [
+        "real donor returns state, answer/review state survives reopen, repeated event ID writes once and conflict is rejected"
+      ],
+      "run_ids": [
+        "oss-learning-qualified"
+      ]
+    },
+    "document.save": {
+      "status": "PASS",
+      "level": "INTEGRATED",
+      "entry": "POST documents -> PUT documents/{id}/draft -> GET documents/{id}",
+      "assertions": [
+        "template root attrs persisted by Rust Core, stale expected version returns 409, reopen returns identical object"
+      ],
+      "run_ids": [
+        "oss-core-ocr"
+      ]
+    }
+  },
+  "suites": [
+    {
+      "run_id": "oss-core-ocr",
+      "passed_tests": 2,
+      "level": "INTEGRATED",
+      "scope": "named suite in execution receipt",
+      "receipt_path": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\runs\\c3b20e76da\\oss-core-ocr\\artifacts\\execution.json",
+      "receipt_sha256": "fc95b91d728b8c3a7a36b73f78fa114363283f4c0c5cfa1d43a4e96a95e160e4",
+      "command_exit_code": 0
+    },
+    {
+      "run_id": "oss-final-core",
+      "passed_tests": 3,
+      "level": "INTEGRATED",
+      "scope": "named suite in execution receipt",
+      "receipt_path": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\runs\\c3b20e76da\\oss-final-core\\artifacts\\execution.json",
+      "receipt_sha256": "5c6701e2ec6aa12a5728039b22d5c8082014ffc9ef2630187ca915d4794174d2",
+      "command_exit_code": 0
+    },
+    {
+      "run_id": "oss-search-links",
+      "passed_tests": 14,
+      "level": "INTEGRATED",
+      "scope": "named suite in execution receipt",
+      "receipt_path": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\runs\\c3b20e76da\\oss-search-links\\artifacts\\execution.json",
+      "receipt_sha256": "08e081585f066903f7b00de148cea8ef56137d5c1ac640a4a1a248efd0b6bdfc",
+      "command_exit_code": 0
+    },
+    {
+      "run_id": "oss-py-reuse",
+      "passed_tests": 66,
+      "level": "SYNTHETIC",
+      "scope": "named suite in execution receipt",
+      "receipt_path": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\runs\\c3b20e76da\\oss-py-reuse\\artifacts\\execution.json",
+      "receipt_sha256": "be378c00d2f20e1fecc9b13b6a6fc6c0df2229ba238d0d1fad6fe8d66370ceaa",
+      "command_exit_code": 0
+    },
+    {
+      "run_id": "oss-final-audit",
+      "passed_tests": 23,
+      "level": "SYNTHETIC",
+      "scope": "named suite in execution receipt",
+      "receipt_path": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\runs\\c3b20e76da\\oss-final-audit\\artifacts\\execution.json",
+      "receipt_sha256": "e4eb39aa5a37ea6d796503130f3afb07812457d13fb2dd2e455e4d945a7a4aaa",
+      "command_exit_code": 0
+    },
+    {
+      "run_id": "oss-learning-qualified",
+      "passed_tests": 11,
+      "level": "INTEGRATED",
+      "receipt_path": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\runs\\c3b20e76da\\oss-learning-qualified\\artifacts\\execution.json",
+      "receipt_sha256": "d4628ed3b57d55df5f197513d724c64658771f37c1166c074bc933faf01f6396",
+      "command_exit_code": 0
+    },
+    {
+      "run_id": "oss-ui-utf8",
+      "passed_tests": 44,
+      "level": "SIMULATED",
+      "receipt_path": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\runs\\c3b20e76da\\oss-ui-utf8\\artifacts\\execution.json",
+      "receipt_sha256": "ac159aaaf3865d6c2c399e2cbe997353880c9c97227a7074c7e52df9955d8224",
+      "command_exit_code": 0
+    },
+    {
+      "run_id": "oss-template-final",
+      "passed_tests": 8,
+      "level": "SIMULATED",
+      "receipt_path": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\runs\\c3b20e76da\\oss-template-final\\artifacts\\execution.json",
+      "receipt_sha256": "0f209612e941e7c45e26d7b15270d93c336db958f7847e1e1feaf0faa677f931",
+      "command_exit_code": 0
+    },
+    {
+      "run_id": "oss-types-final",
+      "passed_tests": null,
+      "level": "BUILD",
+      "receipt_path": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\runs\\c3b20e76da\\oss-types-final\\artifacts\\execution.json",
+      "receipt_sha256": "06558bdd5c00dd25f0f5311e2c441971a9e5a1469d06e7786c2e61e743650d76",
+      "command_exit_code": 0
+    },
+    {
+      "run_id": "oss-vite-utf8",
+      "passed_tests": null,
+      "level": "BUILD",
+      "receipt_path": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\runs\\c3b20e76da\\oss-vite-utf8\\artifacts\\execution.json",
+      "receipt_sha256": "ccde47ca31d60c462c908fd94f325abe79f772602adccd5f9b8e0cde0de16903",
+      "command_exit_code": 0
+    },
+    {
+      "run_id": "oss-crosswalk-final",
+      "passed_tests": 8,
+      "level": "SYNTHETIC",
+      "receipt_path": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\runs\\c3b20e76da\\oss-crosswalk-final\\artifacts\\execution.json",
+      "receipt_sha256": "4f5fd7955cfc62185d28acbffb8a9c561308d6c4bfe17094a5177e8cf1ec5b45",
+      "command_exit_code": 0
+    },
+    {
+      "run_id": "oss-ledger-frozen",
+      "passed_tests": 8,
+      "level": "SYNTHETIC",
+      "receipt_path": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\runs\\c3b20e76da\\oss-ledger-frozen\\artifacts\\execution.json",
+      "receipt_sha256": "f2b27864bb533d400f072c3add08cd61c36124d384da92ac8b18267fb0dd633f",
+      "command_exit_code": 0
+    },
+    {
+      "run_id": "oss-build-frozen",
+      "passed_tests": null,
+      "level": "BUILD",
+      "receipt_path": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\runs\\c3b20e76da\\oss-build-frozen\\artifacts\\execution.json",
+      "receipt_sha256": "d289cdd6126a69432823bdffeef979a987308ef85e1ae1899e0949da85729956",
+      "command_exit_code": 0
+    }
+  ],
+  "frontend": {
+    "status": "PASS",
+    "level": "SIMULATED",
+    "tests": 46,
+    "scope": "44 passing tests plus two added protection regressions in separately passing 8-test suite; finite-host mocks, Core persistence tested separately",
+    "not_native_desktop": true,
+    "typescript": "PASS",
+    "vite_build": "PASS"
+  },
+  "licenses": {
+    "trafilatura": {
+      "version": "2.1.0",
+      "code": "Apache-2.0",
+      "license_file_sha256": "a6cba85bc92e0cff7a450b1d873c0eaa2e9fc96bf472df0247a26bec77bf3ff9",
+      "weights": "NOT_APPLICABLE"
+    },
+    "fsrs": {
+      "version": "6.3.2",
+      "code": "MIT",
+      "license_file_sha256": "021bff58ad2685d7e5b30d307429bc7cfdca108ad620ce889abb38d7acd89ace",
+      "weights": "NOT_APPLICABLE"
+    },
+    "markitdown": {
+      "version": "0.1.6",
+      "code": "MIT (wheel metadata)",
+      "license_file_sha256": "UNVERIFIED: installed wheel omits license file",
+      "current_core_runtime": "NOT_ADOPTED"
+    },
+    "pymupdf": {
+      "version": "1.28.2",
+      "code": "AGPL-3.0 or Artifex commercial (installed metadata)",
+      "license_file_sha256": "40e60697600535eabfb5ae05f72829d88cfe8d02dd4792f5a754f6f51dabe55b",
+      "weights": "NOT_APPLICABLE"
+    },
+    "tesseract": {
+      "code": "Apache-2.0 declared registry; binary distribution license bytes NOT_REQUALIFIED",
+      "weights": "tessdata Apache-2.0 declared registry; installed eng lineage/license-file hash UNVERIFIED",
+      "model_data_sha256": "7d4322bd2a7749724879683fc3912cb542f19906c83bcc1a52132556427170b2"
+    },
+    "pdfjs-dist": {
+      "version": "6.4.299",
+      "code": "Apache-2.0 (included LICENSE)",
+      "license_file_sha256": "0d542e0c8804e39aa7f37eb00da5a762149dc682d7829451287e11b938e94594",
+      "weights": "NOT_APPLICABLE",
+      "native_desktop": "NOT_RUN"
+    }
+  },
+  "NOT_RUN": [
+    "native Tauri desktop and installed Green qualification",
+    "packaged Windows installer",
+    "macOS/Linux desktop",
+    "live Crossref/DataCite/OpenAlex/Wikidata service and native Core binding",
+    "ASR/audio model inference and weight terms",
+    "semantic embedding/model inference",
+    "all-platform import/export compatibility matrix",
+    "exact-commit CI/release"
+  ],
+  "limits": [
+    "Integrated tests call actual Core API Router with real Python child processes and disposable SQLite/CAS, not packaged desktop.",
+    "Synthetic fixtures do not establish general document fidelity, multilingual OCR accuracy or practical mastery.",
+    "Historical source and installed labels are not result evidence.",
+    "No new canonical DB, graph store or learning store. Worker receives staged files and returns derivations; Rust performs persistence.",
+    "First UI/build launcher attempts failed on Windows GBK output encoding; successful task-process PYTHONUTF8 runs retained separately. Failed/cancelled attempts not counted as PASS."
+  ],
+  "source_inputs": {
+    "pyproject.toml": {
+      "sha256": "8df2995c350abea2dcb4d8b6f13e80c165abe9d7b2f5ca7d503ace3a6006a63c"
+    },
+    "uv.lock": {
+      "sha256": "0e3db03c3dcd71e24acc13022839591b575f10e42f1dbdfde8b86ec77fc8f2e3"
+    },
+    "Cargo.toml": {
+      "sha256": "49f617fd8267c7ee96c947cdaff60a9b7f835beb412571c4af3b56363c85ec13"
+    },
+    "Cargo.lock": {
+      "sha256": "47129ad221b2aebf2c9a6a58dec429ef9a0709203fd54b77497f9c4a96b3a88b"
+    },
+    "frontend/package.json": {
+      "sha256": "7a4a4c2416dd200f2d5307a7fa7829e47a8dfb54460eaa859cd6e51f0ee922d6"
+    },
+    "frontend/package-lock.json": {
+      "sha256": "bad160497be687b50a3c03241942fce9fff5741f7f2657dc5da953baace48897"
+    },
+    "services/python-workers/routes.json": {
+      "sha256": "0ac3068fe9a9179eb6575609305d3eaf88e7d9d485a0794b7948333c0a70706f"
+    },
+    "AUTHORITY.md": {
+      "sha256": "556663d7093d27f0e5980b8c3425f10ef304202450bcac6a89cc00feb2bf5316"
+    },
+    "PROJECT_CONTRACT.yaml": {
+      "sha256": "3eb024eee7748da4fbc5bb2bd04b6faaf1ed50e1754725f61c47b57661157a88"
+    },
+    "DECISION_SUPERSESSION_LEDGER.yaml": {
+      "sha256": "574411cc0fbfd0d4e2f9a5c160a7c4c6fdf24d3493b82d9f76044e2a1e3ae151"
+    }
+  },
+  "task_source_sha256": {
+    "services/python-workers/web/worker_html.py": "926964070cb51ab9217c02affc7f55144ad91c6e075f93ab0109cd73286edfd0",
+    "crates/archeaxis-api/tests/oss_template_reuse.rs": "f41ed4a482f62dd0760401b844f3ac7974e6f529dd115e2ef9860a2cee1ceb96",
+    "frontend/src/templates/bindings.ts": "8bb2b33ad92c2a1a1efaae2d8c0d72228ea02753ed0e99deaf8d60111301c5a4",
+    "frontend/src/templates/disciplines.ts": "fc5e3adb7a3bb2c1a387e9e9081c6156b80c8fc2b757d6880a63fad19cc05b61",
+    "frontend/src/templates/TemplateWorkspace.tsx": "011b1a3a85148c48492fc37e0d1ffa31654005a26091fadab512975b292adfc3",
+    "frontend/src/components/DocumentEditor.tsx": "66cd4f0f535e2581507f276cf837bf08ed6f6a999977cd89810bc6d854f75d80",
+    "frontend/src/spaces/CanonicalLibrarySpace.tsx": "c4767a126b6e5e8f5ed316447be272e5587260eeef95224d6eb6bc7e68507fe9",
+    "frontend/src/spaces/CanonicalLearningSpace.tsx": "ef98bf344b761751a49be2e0748ad90467136fd4e057727f3b5f270d9aeecb99",
+    "scripts/audit/build_oss_reuse_inventory.py": "8cc1af1e2b78614026a0856863ff221c07b7539833eb23b47679fa99f962db79"
+  }
+}

@@ -13,6 +13,7 @@ import { ContainerMemberChain } from "../components/ContainerMemberChain";
 import { ContentDetectionPanel } from "../components/ContentDetectionPanel";
 import { PdfPageRecognition } from "../components/PdfPageRecognition";
 import { FolderIngest } from "../components/FolderIngest";
+import { TemplateLauncher } from "../templates/TemplateWorkspace";
 import "../components/content.css";
 import type { InspectionTarget } from "../components/Inspector";
 import type { ObjectTrailLevel } from "../components/NavTrail";
@@ -381,6 +382,7 @@ export function CanonicalLibrarySpace({onKnowledge,initialDocumentId,onDirtyChan
   // page read announce several times. The text stays where the editor appears.
   const documentEditor = document ? <Suspense fallback={<p>正在载入文档编辑器…</p>}><DocumentEditor key={`${document.document_id}:${editorEpoch}`} content={documentDrafts[document.document_id]?.content ?? document.editor_json as JSONContent} version={documentDrafts[document.document_id]?.baseVersion ?? document.version} onSave={save} onDirtyChange={value=>reportEditorDirty(document.document_id,value)} onDraftChange={(content,baseVersion)=>rememberDraft(document.document_id,content,baseVersion)} onCreateReference={source && original && bytes ? cite : undefined} onReferenceActivate={jump} /></Suspense> : null;
   return <Section title="资料库">
+    <TemplateLauncher onOpen={id=>void openDocument(id)} onDirtyChange={value=>{if(value)dirtyDocumentIds.current.add("template-properties");else dirtyDocumentIds.current.delete("template-properties");publishDirtyState();}} />
     <p className="muted">原件保留其不可变版本；草稿自动保存到本地核心，引用绑定原件版本。</p>
     <label className="content-import" data-section="import" tabIndex={-1}>导入原件 <input type="file" aria-label="导入原件" disabled={importing} onChange={(event) => { const file = event.target.files?.[0]; if (file) void importFile(file); event.target.value = ""; }} /></label>
     {importReceipt?<dl className="receipt-grid" aria-label="导入回执"><div><dt>来源文件</dt><dd>{importReceipt.name}</dd></div><div><dt>原件大小</dt><dd>{importReceipt.bytes} 字节</dd></div><div><dt>导入状态</dt><dd>{importReceipt.state}</dd></div><div><dt>下一步</dt><dd>选择原件阅读或执行转换，再从实际引文整理待审核知识。</dd></div></dl>:null}

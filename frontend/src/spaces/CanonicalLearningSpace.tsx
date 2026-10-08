@@ -31,7 +31,7 @@ function historySummary(history: unknown): string {
   if (value.receipt !== undefined && value.receipt !== null) parts.push("已记录本次提交的 Core 回执。");
   return parts.join("");
 }
-export function CanonicalLearningSpace({onTrail}:{onTrail?:(levels:readonly ObjectTrailLevel[])=>void}) {
+export function CanonicalLearningSpace({onTrail, initialItemKey}:{onTrail?:(levels:readonly ObjectTrailLevel[])=>void; initialItemKey?:string} = {}) {
   const [focusMode, setFocusMode] = useState(false);
   const [items, setItems] = useState<Record<string, unknown>[]>([]);
   const [itemKey, setItemKey] = useState("");
@@ -57,6 +57,7 @@ export function CanonicalLearningSpace({onTrail}:{onTrail?:(levels:readonly Obje
     } catch (error) {setMessage("学习队列读取失败，请重试。");setFailureReason(coreFailureReason(error));}
   }
   useEffect(()=>{void refresh();return()=>{epoch.current+=1;};},[]);
+  useEffect(()=>{if(initialItemKey)void open(initialItemKey);},[initialItemKey]);
   useEffect(() => {
     const levels: ObjectTrailLevel[] = [];
     if (itemKey && state) {

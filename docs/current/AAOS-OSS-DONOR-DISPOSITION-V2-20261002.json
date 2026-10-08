@@ -405,5 +405,11 @@
       "Cognee"
     ]
   },
-  "not_done_here": "no project is installed by this document. The verdicts above are the frame; filling the 369 rows is mechanical once the benchmark comparison exists, and installing any of them is a separate, deliberate act."
+  "not_done_here": "no project is installed by this document. The verdicts above are the frame; filling the 369 rows is mechanical once the benchmark comparison exists, and installing any of them is a separate, deliberate act.",
+  "current_evidence_overlay": {
+    "recorded_at": "2026-10-08",
+    "crosswalk": "docs/current/OSS-REUSE-CROSSWALK-20261008.manifest.json",
+    "verification": "docs/current/OSS-REUSE-VERIFICATION-20261008.json",
+    "note": "Original frame, 47 archived components and not_done_here remain historical. The crosswalk supplies a verdict for all 369 pool rows; it does not supply result evidence for all of them. Measured from the generated payload on 2026-10-08: 19 rows carry any evidence record (A=2, B=13, C=2, D=1, E=1) and 350 rows carry the generator's own reason 'No qualified result or concrete extracted reference is recorded for this source row'. A D verdict is a deferred candidate with a stated need trigger, not an adoption, an installation or a result. The full payload is regenerated, not committed; see the manifest."
+  }
 }

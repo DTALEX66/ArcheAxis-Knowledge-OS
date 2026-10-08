@@ -17,7 +17,7 @@ const BlockIdentity = Extension.create({
   addGlobalAttributes() { return [{ types: blockTypes, attributes: {
     block_id: { default: null },
     originalAttrs: { default: null, rendered: false },
-  } }]; },
+  } }, {types:["doc"],attributes:{originalAttrs:{default:null,rendered:false}}}]; },
 });
 const PreservedUnknown = Node.create({
   name: "preservedUnknown",
@@ -34,7 +34,7 @@ function decodeNode(node: JSONContent): JSONContent {
   return { ...node, ...(node.attrs ? { attrs: { ...node.attrs, originalAttrs: node.attrs } } : {}), ...(node.content ? { content: node.content.map(decodeNode) } : {}) };
 }
 export function decodeEditorContent(content: JSONContent): JSONContent {
-  return { ...content, content: (content.content ?? []).map((node) => unsupported(node)
+  return { ...content, ...(content.attrs?{attrs:{originalAttrs:content.attrs}}:{}), content: (content.content ?? []).map((node) => unsupported(node)
     ? { type: "preservedUnknown", attrs: { raw: node } } : decodeNode(node)) };
 }
 export function encodeEditorContent(content: JSONContent): JSONContent {
