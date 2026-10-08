@@ -31,7 +31,7 @@ are absent at `6621aab7` and present at `1a981a44`. `origin/codex/Audit` also po
 
 Root-level facts observed before any change:
 
-* `AUTHORITY.md` is absent → `AUTHORITY_REFERENCE_MISSING` (consistent with the audit).
+* `AUTHORITY.md` is absent → `AUTHORITY_REFERENCE_MISSING` (consistent with the audit). 2026-10-08 复核：根 `AUTHORITY.md` 现已存在并且是导航入口；本行保留为 2026-10-01 的实测记录，不再作为当前断言。
 * Root checkout has 1 modified tracked file and 22 untracked paths; all were left
   untouched. This work happened in an isolated worktree.
 * Local `main` (`d8f99a63`) differs from `origin/main` (`59498723`); `main` is not an

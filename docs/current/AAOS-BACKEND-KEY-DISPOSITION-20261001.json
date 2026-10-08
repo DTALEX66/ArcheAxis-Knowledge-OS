@@ -467,7 +467,7 @@
       "prior_audit_verdict": "TESTED_LOCAL",
       "status": "TESTED_LOCAL",
       "evidence_level": "REAL",
-      "disposition": "PASS — authority state read; AUTHORITY_REFERENCE_MISSING recorded because the root AUTHORITY.md is absent, and no authority was rebuilt from an old package",
+      "disposition": "PASS — authority state read; AUTHORITY_REFERENCE_MISSING recorded because the root AUTHORITY.md is absent, and no authority was rebuilt from an old package（2026-10-08 复核：根 AUTHORITY.md 已存在且为导航入口；本句是 2026-10-01 的实测记录，保留来源，不再作为当前断言）",
       "acceptance_reference": [
         "state and authority validation recorded"
       ]
