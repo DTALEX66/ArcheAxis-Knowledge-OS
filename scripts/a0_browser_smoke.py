@@ -123,14 +123,61 @@ def api_payload(url: str) -> dict[str, object]:
     return {}
 
 
+def _declared_node() -> str | None:
+    """Resolve Node through the project's declared resource index, not an ambient PATH.
+
+    This gate used to need `node` already on PATH, so it died with "Vite requires Node" on a
+    host where the sanctioned interpreter exists only under the registered external root -
+    the result depended on which shell or agent launched it.
+    """
+    index = ROOT / "config" / "environment" / "external-resources-index.json"
+    if not index.is_file():
+        return None
+    try:
+        document = json.loads(index.read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        return None
+
+    def walk(node: object):
+        if isinstance(node, dict):
+            if node.get("resource_id") == "ext.toolchains.nodejs-lts" or node.get("name") == "nodejs-lts":
+                yield node
+            for value in node.values():
+                yield from walk(value)
+        elif isinstance(node, list):
+            for value in node:
+                yield from walk(value)
+
+    for row in walk(document):
+        candidates = [row.get("resolved_absolute")]
+        candidates += [
+            entry.get("resolved")
+            for entry in row.get("external_paths", [])
+            if isinstance(entry, dict)
+        ]
+        for candidate in candidates:
+            if candidate and Path(candidate).is_file():
+                return str(candidate)
+    return None
+
+
 def start_vite(log_path: Path) -> tuple[subprocess.Popen[bytes], object]:
     log = log_path.open("wb")
     if os.name == "nt":
-        node = shutil.which("node")
+        from_path = shutil.which("node")
+        node = from_path or _declared_node()
         vite = ROOT / "frontend" / "node_modules" / "vite" / "bin" / "vite.js"
         if not node or not vite.is_file():
             log.close()
-            raise RuntimeError("Vite requires Node and frontend/node_modules/vite/bin/vite.js")
+            consulted = [
+                "PATH" if not from_path else None,
+                "config/environment/external-resources-index.json (ext.toolchains.nodejs-lts)",
+            ]
+            raise RuntimeError(
+                "Vite needs Node and frontend/node_modules/vite/bin/vite.js; resolved no Node from "
+                + ", ".join(item for item in consulted if item)
+                + f"; vite present: {vite.is_file()}"
+            )
         # Running Vite through cmd/npm can orphan the actual Node server when
         # cmd.exe exits. Start the server process itself so taskkill /T can
         # deterministically reclaim the smoke-run process tree.
