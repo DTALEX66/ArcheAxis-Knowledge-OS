@@ -93,7 +93,7 @@ def test_the_manifest_is_the_one_the_registry_consumes() -> None:
     manifest = yaml.safe_load(MANIFEST.read_text(encoding="utf-8"))
     report = environment_registry.resolve(MANIFEST)
 
-    assert report["schema"] == "archeaxis.environment-registry/v1"
+    assert report["schema"] == "archeaxis.environment-registry/v2"
     assert report["install_performed"] is False
     assert report["private_state_opened"] is False
     declared = sum(len(entries or []) for entries in manifest["capabilities"].values())

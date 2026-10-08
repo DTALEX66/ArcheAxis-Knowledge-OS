@@ -152,6 +152,129 @@
           "pattern": "^[a-z][a-z0-9-]*$",
           "description": "本条目的 external_paths 相对哪个命名邻近根解析（见顶层 sibling_roots）；缺省即相对外置根。共享 Model library 这类不位于外置根之内的资源用它声明，从而无需写 `..`"
         },
+        "resource_id": {
+          "type": "string",
+          "pattern": "^ext\\.(toolchains|runtimes|engines|models|plugins)\\.[a-z0-9][a-z0-9-]*$",
+          "description": "稳定资源 ID（ext.<类别>.<名字>）。索引与消费方用它对齐；改名是破坏性变更，name 与 category 变了必须同步此值"
+        },
+        "type": {
+          "type": "string",
+          "enum": ["toolchain", "runtime", "engine", "model", "model_endpoint"],
+          "description": "资源类型；model_endpoint 表示经 HTTP 访问的本机模型通道，而不是磁盘上的文件"
+        },
+        "role": {
+          "type": "string",
+          "enum": ["caption", "embedding", "rerank", "asr", "ocr", "conversion"],
+          "description": "消费方按用途取用哪一条（例如 caption worker 只取 role=caption 的通道），避免用途不同的条目被混为一谈"
+        },
+        "version_identification": {
+          "type": "string",
+          "minLength": 4,
+          "description": "版本/身份**具体怎么确定**（跑哪个命令取第一行、读哪个注册表值、看哪个接口字段）。防止把\"看起来有版本\"当成已核实"
+        },
+        "asset_license": {
+          "type": "string",
+          "minLength": 4,
+          "description": "权重/数据资产条款，与 license（代码许可）**分开**记录"
+        },
+        "project_entry": {
+          "type": "string",
+          "minLength": 4,
+          "description": "项目内的调用入口（哪个函数按什么资源名读取它）；一处声明、处处同解的依据"
+        },
+        "required_env": {
+          "type": "object",
+          "propertyNames": { "pattern": "^[A-Z][A-Z0-9_]*$" },
+          "additionalProperties": {
+            "type": "string",
+            "pattern": "^(?![A-Za-z]:)(?!/)(?!\\\\)(?!.*\\.\\.).+$"
+          },
+          "description": "该资源真正运行所需的进程级环境变量，值为**相对声明根**的路径（不接受绝对与 `..`，与 external_paths 同一规则）。rust 缺 RUSTUP_HOME 会死、tesseract 缺 TESSDATA_PREFIX 会 abort：文件在而跑不起来的形状必须在这里声明，四处读取方才共用同一份绑定"
+        },
+        "writability": {
+          "type": "string",
+          "enum": ["shared_read_only", "shared_writable_by_project", "project_writable"],
+          "description": "共享但只读 / 共享且由项目写入（uv-sync、缓存）/ 项目可写。决定清理归属，不决定授权"
+        },
+        "fallback": {
+          "type": "string",
+          "minLength": 4,
+          "description": "该资源不在时项目的回退/恢复做法（必须是不猜测、不自动下载、不改全局配置的具名行为）"
+        },
+        "failure_message": {
+          "type": "string",
+          "minLength": 4,
+          "description": "资源不可用时消费者看到的具名信息"
+        },
+        "endpoint": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["protocol", "base_url"],
+          "properties": {
+            "protocol": { "type": "string", "enum": ["ollama", "openai"] },
+            "base_url": { "type": "string", "pattern": "^https?://(127\\.0\\.0\\.1|localhost)(:[0-9]+)?(/.*)?$", "description": "只允许 loopback：本机模型通道不是公网调用的入口" },
+            "list_path": { "type": "string", "pattern": "^/" },
+            "embed_path": { "type": "string", "pattern": "^/" },
+            "rerank_path": { "type": "string", "pattern": "^/" },
+            "model_id": { "type": "string", "minLength": 1 }
+          },
+          "description": "经 HTTP 访问的本机模型通道声明（protocol + loopback base + 各操作路径 + 期望模型 id）。索引的探针按此实测本机答了什么，而不是沿用任何历史说法"
+        },
+        "probe": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["kind", "reaches"],
+          "description": "健康检查的**绑定**：真正执行什么、期望看到什么、以及这一次通过最高能证明到哪一级。verification_level 由索引生成器按此实测写入，不在本清单声明",
+          "properties": {
+            "kind": {
+              "type": "string",
+              "enum": ["command", "cmd_chain", "interpreter_import", "path_exists", "glob_exists", "registry_key", "http_get", "http_roundtrip", "list_langs", "ocr_roundtrip", "not_run"]
+            },
+            "args": { "type": "array", "items": { "type": "string" }, "description": "kind=command：追加到已解析可执行物之后的参数。绝不把健康检查字符串削减成一个 token 再拿去跑 PATH" },
+            "also": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": ["path"],
+                "properties": {
+                  "path": { "type": "string", "pattern": "^(?![A-Za-z]:)(?!/)(?!\\\\)(?!.*\\.\\.).+$" },
+                  "args": { "type": "array", "items": { "type": "string" } },
+                  "expect_pattern": { "type": "string" }
+                }
+              },
+              "description": "需要一起成立的第二条声明路径（例如 rustc 与 cargo 必须来自同一个 toolchain 绑定）"
+            },
+            "cwd": { "type": "string", "pattern": "^(?![A-Za-z]:)(?!/)(?!\\\\)(?!.*\\.\\.).+$", "description": "kind=cmd_chain：先切到该声明目录（本机 vcvars64.bat 只有相对调用才初始化成功）" },
+            "lines": { "type": "array", "items": { "type": "string" }, "description": "kind=cmd_chain：cmd 批处理里逐行执行的命令" },
+            "interpreter": { "type": "string", "description": "kind=interpreter_import / list_langs：用哪个**已声明条目**的可执行物/解释器来跑（按资源名，不写绝对路径）" },
+            "module": { "type": "string", "description": "kind=interpreter_import：导入的模块名" },
+            "version_attribute": { "type": "string", "description": "kind=interpreter_import：从模块读取哪个属性作为版本" },
+            "paths": { "type": "array", "items": { "type": "string", "pattern": "^(?![A-Za-z]:)(?!/)(?!\\\\)(?!.*\\.\\.).+$" }, "description": "kind=path_exists：相对条目基准根的文件/目录，必须全部存在" },
+            "patterns": { "type": "array", "items": { "type": "string" }, "description": "kind=glob_exists：相对基准根的 glob，任一命中即可" },
+            "hive": { "type": "string", "enum": ["HKLM", "HKCU"] },
+            "fallback_hive": { "type": "string", "enum": ["HKLM", "HKCU"] },
+            "key": { "type": "string" },
+            "value": { "type": "string" },
+            "expect_status": { "type": "integer", "minimum": 100, "maximum": 599 },
+            "body_template": { "type": "string", "description": "kind=http_roundtrip：请求体模板，{model_id} 会被替换为端点声明的模型 id" },
+            "expect_json_path": { "type": "string", "description": "kind=http_roundtrip：点号路径（含数组下标），必须存在" },
+            "min_vector_length": { "type": "integer", "minimum": 1 },
+            "min_languages": { "type": "integer", "minimum": 1 },
+            "require_values": { "type": "array", "items": { "type": "string" }, "description": "kind=list_langs：输出必须包含这些语言标签" },
+            "expect_pattern": { "type": "string", "description": "输出（stdout，或 stderr_is_normal 时为 stderr）必须匹配的正则；不匹配即不认证" },
+            "accept_rc": { "type": "array", "items": { "type": "integer" }, "description": "可接受的退出码；antiword -h 这类以非 0 表达正常的引擎要显式声明" },
+            "stderr_is_normal": { "type": "boolean", "description": "true = 身份写在 stderr（java -version 等），不要只看 stdout" },
+            "timeout_seconds": { "type": "integer", "minimum": 1, "maximum": 600 },
+            "reaches": {
+              "type": "string",
+              "enum": ["REGISTERED", "FILE_EXISTS", "VERSION_PROBED", "RESULT_VERIFIED"],
+              "description": "本次探针通过所能证明的**上限**；索引按实测写 verification_level，跑不了的一律降级并说明"
+            },
+            "reason": { "type": "string", "minLength": 8, "description": "kind=not_run：为什么本机无法通过项目入口证明这一条（实测证据写在这里，不写成缺失）" }
+          }
+        },
+
         "required_by": {
           "type": "array",
           "minItems": 1,

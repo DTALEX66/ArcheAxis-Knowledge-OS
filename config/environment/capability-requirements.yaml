@@ -5,33 +5,67 @@
 # 本文件：  机器可读需求清单，供 host inventory / CI / 环境审计消费。
 # 同步规则：新增系统工具、模型、外部服务必须同时登记两处。
 #
+# 这一份清单是**唯一的绑定来源**。四处读取方（worker 解析器
+# services/python-workers/tool_paths.py、宿主清点 scripts/workflow/environment_registry.py、
+# 外置索引 scripts/environment/build_external_resources_index.py、开发入口
+# scripts/runtime/dev.py）都读同一份声明，而不是各猜各的：
+#   · 声明路径优先，PATH 只在没有声明时作为**具名的** unbound_path_fallback 被记录，
+#     绝不当作项目的绑定（一次全局 PATH 命中顶掉项目声明 = 静默替换）；
+#   · 一个条目只有用它**自己的解释器**跑它**自己的**健康检查才算数；
+#     `uv run python -c "import X"` 被削减成 token `uv` 再拿 uv 的版本 certify 引擎，
+#     是伪造 RESULT_VERIFIED；目录也永远不能满足版本探针；
+#   · 跑不了的探针记 unavailable / NOT_RUN 并写明原因，绝不继承包装二进制的版本。
+#
 # 类别说明：
 #   toolchains — 工具链（编译器、包管理器、浏览器二进制等）
 #   runtimes   — 运行时环境（WebView2 运行时、虚拟环境、桌面运行时包）
 #   engines    — 引擎（OCR / ASR / 媒体转换等能力引擎）
-#   models     — 模型资产（ONNX 权重、whisper 模型等）
-#   plugins    — 内置插件资产（vendored 前端库等）
+#   models     — 模型资产（ONNX 权重、whisper 模型）与本机模型服务通道（type: model_endpoint）
+#   plugins    — 内置插件资产（vendored 前端库等；本清单当前未声明任何 vendored 插件，见
+#                tests/workflow/test_capability_requirements_manifest.py 的已记录偏差）
 #
 # 字段说明（与 config/schemas/capability-requirements.schema.json 严格对应）：
 #   name            唯一标识（小写连字符）
+#   resource_id     稳定资源 ID（ext.<类别>.<名字>）；改名是破坏性变更，索引与消费方都用它
+#   type            toolchain | runtime | engine | model | model_endpoint
 #   purpose         用途（人类可读）
 #   version_range   兼容范围（不锁死；semver 区间或自由文本，见 schema pattern）
-#   platform        平台（windows-x64 等）
-#   license         SPDX 标识或明确许可声明
+#   version_identification  版本/身份**具体怎么确定**（哪个命令的第一行、哪个注册表值、
+#                   哪个 /v1/models 字段），避免"看起来有版本"被当成已核实
+#   platform        声明所适用的平台；本平台之外的解析必须给出具名 unavailable
+#   license         **代码**许可（SPDX 或明确声明）
+#   asset_license   权重/数据资产条款，与代码许可**分开**记录（缺省表示本条目无资产条款）
 #   source_url      官方来源（https URL；内置资产可写 "vendored"）
 #   install_method  scoop | uv | rustup | playwright-install | 下载安装器 |
 #                   自动下载 | 内置 | uv-sync | system
-#   healthcheck_command  健康检查命令（缺失时 inventory 记为 missing）
+#   external_paths  相对声明根的候选路径（不接受绝对路径与 `..`）
+#   sibling_root    本条目相对哪个命名邻近根解析（见顶层 sibling_roots）
+#   project_entry   项目内的**调用入口**（哪个函数按什么名字读它）；一处声明，处处同解
+#   required_env    该资源真正运行所需的**进程级环境变量**，值为相对声明根的路径；
+#                   绝对路径与 `..` 一律拒绝（rust 无 RUSTUP_HOME 会死、tesseract 无
+#                   TESSDATA_PREFIX 会 abort，都是"文件在、跑不起来"的实测形状）
+#   writability     shared_read_only | shared_writable_by_project | project_writable
+#   healthcheck_command  健康检查命令（人类可读说明；真正执行由 probe 声明决定）
+#   probe           绑定到具体可执行物/解释器/接口探针：kind + 参数 + 期望 + 该次通过
+#                   **最高**能证明到哪一级（reaches: FILE_EXISTS | VERSION_PROBED |
+#                   RESULT_VERIFIED）；跑不了的一律 kind: not_run 并写 reason
+#   fallback        回退/恢复路径（这个资源不在时项目怎么办）
+#   failure_message 资源不可用时消费者看到的具名信息
 #   required_by     依赖方（哪些测试/流程）：ci | tests | core-runtime |
 #                   desktop-build | desktop-runtime | browser-smoke | e2e |
 #                   ocr-pipeline | asr-pipeline | conversion | bakeoff |
-#                   file-detection | workspace-ui
+#                   file-detection | workspace-ui | media-pipeline
 #   local_only      true = 必须在本机/本外部能力仓存在，不随项目分发、不自动安装
+#
+# verification_level 不在这里声明：它是**测出来的**，由索引生成器逐条执行 probe 后写入
+# config/environment/external-resources-index.json（REGISTERED / FILE_EXISTS /
+# VERSION_PROBED / RESULT_VERIFIED / NOT_RUN / unavailable）。本清单只声明 intent（
+# probe.reaches = 该探针通过所能证明的上限），索引记录实测；两者不符时测试必须红。
 # =============================================================================
 schema_version: "1.0"
-updated: "2026-08-14"
+updated: "2026-10-08"
 source_of_truth: "docs/environment/EXTERNAL_DEPENDENCIES.md"
-description: "ArcheAxis-Knowledge-OS 外置能力需求规范（机器可读清单）"
+description: "ArcheAxis-Knowledge-OS 外置能力需求规范（机器可读清单，四处读取方共用的唯一绑定）"
 
 # 命名邻近根：与外置根同级、但不在其内的共享资源。共享 Model library 就是这一类。
 # 条目通过 sibling_root 引用此处名字，external_paths 因此无需写 `..`；可到达的位置由本清单
@@ -43,161 +77,358 @@ sibling_roots:
 capabilities:
   toolchains:
     - name: python
+      resource_id: ext.toolchains.python
+      type: toolchain
       purpose: "主运行时解释器（3.11 主 / 3.14 辅，scoop 管理）"
       version_range: ">=3.11,<3.15"
+      version_identification: "python --version 第一行"
       platform: windows-x64
       license: "PSF-2.0"
       source_url: "https://www.python.org/downloads/windows/"
       install_method: scoop
       external_paths: ["10-toolchains/scoop/apps/python/current/python.exe"]
+      project_entry: "tool_paths.tool_path(\"python\")"
+      writability: shared_read_only
       healthcheck_command: "python --version"
+      probe:
+        kind: command
+        args: ["--version"]
+        expect_pattern: "Python 3\\."
+        reaches: VERSION_PROBED
+      fallback: "声明缺失即具名失败；不猜 PATH，不自动安装"
       required_by: [core-runtime, ci, tests]
       local_only: false
 
     - name: uv
+      resource_id: ext.toolchains.uv
+      type: toolchain
       purpose: "依赖锁定、虚拟环境、包安装"
       version_range: ">=0.7"
+      version_identification: "uv --version 第一行"
       platform: windows-x64
       license: "MIT OR Apache-2.0"
       source_url: "https://github.com/astral-sh/uv/releases"
       install_method: scoop
+      # 本机实测：外置根内**没有** uv.exe（`find <root> -maxdepth 4 -name uv.exe` 为空），
+      # 唯一可执行物是宿主自管的 `C:\Users\ALEX\.local\bin\uv.EXE`。所以这一条只能是
+      # unbound_path_fallback：索引把它记为"未绑定"，而不是假装它属于项目声明。
+      # 引擎条目也不再借用 uv 做探针（见 faster-whisper / rapidocr / sherpa-onnx）。
       healthcheck_command: "uv --version"
+      project_entry: "无声明路径可绑：本机 uv 由宿主自管（`%USERPROFILE%\\.local\\bin`），项目只读取其答案"
+      writability: shared_read_only
+      probe:
+        kind: command
+        args: ["--version"]
+        expect_pattern: "uv [0-9]+\\."
+        reaches: VERSION_PROBED
+      fallback: "uv 不在则 uv-sync 类条目（ci-venv）记 unavailable，改用已声明解释器直接跑探针"
       required_by: [core-runtime, ci, tests]
       local_only: false
 
     - name: dotnet
-      purpose: "正式 Avalonia 桌面壳构建与测试"
+      resource_id: ext.toolchains.dotnet
+      type: toolchain
+      purpose: "Avalonia 供体（apps/ArcheAxis.Desktop）的构建与测试；SUP-022 后它是冻结的行为/组件供体，不是正式桌面壳"
       version_range: ">=10,<11"
+      version_identification: "dotnet --version 第一行"
       platform: windows-x64
       license: "MIT OR proprietary runtime components"
       source_url: "https://dotnet.microsoft.com/download/dotnet/10.0"
       install_method: system
       healthcheck_command: "dotnet --version"
       external_paths: ["10-toolchains/dotnet/dotnet.exe"]
+      project_entry: "tool_paths.tool_path(\"dotnet\")"
+      writability: shared_read_only
+      probe:
+        kind: command
+        args: ["--version"]
+        expect_pattern: "^1[0-9]\\.0\\."
+        reaches: VERSION_PROBED
+      fallback: "供体构建不可用时只读源码，不产出双写数据库"
       required_by: [desktop-build, desktop-runtime]
       local_only: true
 
     - name: git
+      resource_id: ext.toolchains.git
+      type: toolchain
       purpose: "版本控制"
       version_range: ">=2.40"
+      version_identification: "git --version 第一行"
       platform: windows-x64
       license: "GPL-2.0-only"
       source_url: "https://git-scm.com/download/win"
       install_method: scoop
       external_paths: ["10-toolchains/scoop/apps/git/current/bin/git.exe"]
+      project_entry: "tool_paths.tool_path(\"git\")"
+      writability: shared_read_only
       healthcheck_command: "git --version"
+      probe:
+        kind: command
+        args: ["--version"]
+        expect_pattern: "git version 2\\."
+        reaches: VERSION_PROBED
+      fallback: "声明缺失即具名失败；工作树身份仍由 scripts/runtime/dev.py 的 git 边界给出"
       required_by: [ci, tests, core-runtime]
       local_only: false
 
     - name: nodejs-lts
-      purpose: "legacy Tauri/React recovery 与兼容构建（非正式桌面壳）"
+      resource_id: ext.toolchains.nodejs-lts
+      type: toolchain
+      purpose: "正式桌面宿主的构建运行时：SUP-022 下 frontend/ + src-tauri/（Tauri 2 + React/TypeScript/Vite）是正式产品宿主，node 驱动其安装、构建、Vitest 与 tauri 打包"
       version_range: ">=22,<25"
+      version_identification: "node --version 第一行"
       platform: windows-x64
       license: "MIT"
       source_url: "https://nodejs.org/"
       install_method: scoop
       external_paths: ["10-toolchains/scoop/apps/nodejs-lts/current/node.exe"]
+      project_entry: "tool_paths.tool_path(\"nodejs-lts\")"
+      writability: shared_read_only
       healthcheck_command: "node --version"
+      probe:
+        kind: command
+        args: ["--version"]
+        expect_pattern: "^v2[2-4]"
+        reaches: VERSION_PROBED
+      fallback: "node 不可得时前端门不跑，具名报告 host 缺工具，不用其它解释器顶替"
       required_by: [desktop-build]
       local_only: false
 
     - name: rust
-      purpose: "legacy Tauri recovery/行为参考构建（非正式桌面壳）"
+      resource_id: ext.toolchains.rust
+      type: toolchain
+      purpose: "正式宿主的 Rust Core 工具链：SUP-022 下 crates/ 的 Rust Core 是唯一的 SQLite/CAS 规范写入方，src-tauri/ 的正式桌面壳由它编译"
       version_range: ">=1.80"
+      version_identification: "rustc --version 与 cargo --version 的第一行（同一个 toolchain 绑定下的两条读数必须一致）"
       platform: windows-x64
       license: "MIT OR Apache-2.0"
       source_url: "https://rustup.rs"
       install_method: rustup
-      healthcheck_command: "rustc --version"
-      external_paths: ["10-toolchains/cargo/bin/rustc.exe"]
+      # 实测（2026-10-08，本机）三根冲突的真相：
+      #   · 旧声明 `10-toolchains/cargo/bin/rustc.exe` **裸跑失败**：
+      #     `error: Missing manifest in toolchain 'stable-x86_64-pc-windows-msvc'`（rc 1）——
+      #     cargo/bin 下是 rustup 代理，不是独立编译器，它按 RUSTUP_HOME 找 toolchain；
+      #   · 不设 RUSTUP_HOME 时 `cargo.exe --version` 竟答 **1.98.1**（宿主 `~/.rustup` 的
+      #     默认通道），设了才答与 rustc 一致的 **1.97.1** —— 这就是同一个"rust 条目"下
+      #     rustc 失败而 cargo 静默换版本；
+      #   · `dev.py` 声明的是另一个根（`toolchains/rust`），`scripts/ci/cargo_test.bat:45-53`
+      #     从 ARCHEAXIS_RUST_TOOLCHAINS 又推出第三个（RUSTUP_HOME/CARGO_HOME），而跑的恰恰是
+      #     后两者。
+      # 唯一绑定因此定在 `toolchains/rust`：它同时被两个代理证明可用（rustc 1.97.1 /
+      # cargo 1.97.1），并且它的 `cargo/registry` 是 1.1GB 的暖缓存（`10-toolchains/cargo/registry`
+      # 只有 207MB），换过去会在无网主机上触发重新下载。ARCHEAXIS_RUST_TOOLCHAINS = 该目录
+      # （其下同时有 cargo/ 与 rustup/），正是 cargo_test.bat 已经展开的形状。
+      external_paths: ["toolchains/rust/cargo/bin/rustc.exe", "toolchains/rust/cargo/bin/cargo.exe"]
+      project_entry: "tool_paths.tool_path(\"rust\") + tool_paths.required_environment(\"rust\") -> dev.external_toolchain()"
+      required_env:
+        RUSTUP_HOME: "toolchains/rust/rustup"
+        CARGO_HOME: "toolchains/rust/cargo"
+      writability: shared_read_only
+      healthcheck_command: "rustc --version && cargo --version（需 RUSTUP_HOME/CARGO_HOME，见 required_env）"
+      probe:
+        kind: command
+        args: ["--version"]
+        expect_pattern: "rustc 1\\.9[0-9]"
+        also:
+          - path: "toolchains/rust/cargo/bin/cargo.exe"
+            args: ["--version"]
+            expect_pattern: "cargo 1\\.9[0-9]"
+        reaches: VERSION_PROBED
+      fallback: "缺 RUSTUP_HOME 时按具名失败处理；不把 cargo/bin 下的代理当独立编译器，不回落到宿主 ~/.rustup（该树缺 manifest，正是失败来源），也不为凑版本换根"
+      failure_message: "rust: declared toolchain did not answer (RUSTUP_HOME/CARGO_HOME from required_env are the binding; the proxies in toolchains/rust/cargo/bin resolve a toolchain only through RUSTUP_HOME)"
       required_by: [desktop-build]
       local_only: true
 
     - name: msvc
-      purpose: "MSVC 编译链（VS Build Tools：C++ 桌面工作负载 + Windows SDK）"
+      resource_id: ext.toolchains.msvc
+      type: toolchain
+      purpose: "MSVC 编译链（VS Build Tools：C++ 桌面工作负载 + Windows SDK），为 Rust Core 提供 link.exe/cl.exe"
       version_range: ">=17.0"
+      version_identification: "vcvars64.bat 初始化后 where cl.exe 得到的绝对路径中的 14.xx 版本目录"
       platform: windows-x64
       license: "Proprietary (Microsoft EULA)"
       source_url: "https://visualstudio.microsoft.com/visual-cpp-build-tools/"
       install_method: 下载安装器
-      healthcheck_command: "vswhere.exe"
+      # 实测：`vcvars64.bat --version`（旧探针的做法）得到的是
+      # `[ERROR:vcvarsall.bat] Invalid argument found`，被当成版本号记进 RESULT_VERIFIED。
+      # 能成立的形式是**先 cd 进 Build 目录再用相对名 call**（绝对路径 call 在本机 rc 1：
+      # "The filename, directory name, or volume label syntax is incorrect"），然后
+      # `where cl.exe` → `...\MSVC\14.44.35207\bin\Hostx64\x64\cl.exe`，rc 0。
       external_paths: ["10-toolchains/msvc/VC/Auxiliary/Build/vcvars64.bat"]
+      project_entry: "tool_paths.tool_path(\"msvc\") + dev.external_toolchain() -> ARCHEAXIS_MSVC_VCVARS"
+      writability: shared_read_only
+      healthcheck_command: "cd /d <VC/Auxiliary/Build> && call vcvars64.bat && where cl.exe"
+      probe:
+        kind: cmd_chain
+        cwd: "10-toolchains/msvc/VC/Auxiliary/Build"
+        lines: ["call vcvars64.bat", "where cl.exe"]
+        expect_pattern: "cl\\.exe$"
+        timeout_seconds: 120
+        reaches: RESULT_VERIFIED
+      fallback: "初始化失败即具名失败；不猜宿主 VSINSTALLDIR，也不改全局注册表"
+      failure_message: "msvc: vcvars64.bat did not initialize, or cl.exe was not found after initialization (cwd-relative call is the form this host answers)"
       required_by: [desktop-build]
       local_only: true
 
     - name: playwright-chromium
+      resource_id: ext.toolchains.playwright-chromium
+      type: toolchain
       purpose: "browser-smoke / e2e 测试浏览器，亦是 F03 渲染通道使用的无头浏览器（缓存于 toolchains/playwright）"
       version_range: ">=1228"
+      version_identification: "声明的构建目录名 chromium-1228 与该目录内 chrome.exe 的存在性。本机实测：Windows 版 chrome.exe --version **不报版本**（它输出的是一条会话占用提示，带 --user-data-dir 时直接拉起浏览器进程并因沙箱权限失败），所以这一条**不**以运行 chrome.exe 为探针，只证明被声明的那一个文件在位"
       platform: windows-x64
       license: "BSD-3-Clause (Chromium)"
       source_url: "https://playwright.dev/python/docs/browsers"
       install_method: playwright-install
-      healthcheck_command: "playwright --version"
       # 渲染通道要的是**这一个** exe：Playwright 只查自己的注册表，而会话把它指到一个
       # 空的 project-local 缓存，所以声明这条路径才是让 worker 找到已就位浏览器的办法。
       # 目录名带构建号（chromium-1228），升级 playwright 后若构建号变了，这一条会先失效——
       # 失效的表现是具名的"render engine missing"，不是拿别的浏览器顶替。
       external_paths: ["10-toolchains/playwright/chromium-1228/chrome-win64/chrome.exe"]
+      project_entry: "tool_paths.tool_path(\"playwright-chromium\") / ARCHEAXIS_CHROMIUM_CMD override"
+      writability: shared_read_only
+      healthcheck_command: "chrome.exe present at the declared build directory"
+      probe:
+        kind: path_exists
+        paths: ["10-toolchains/playwright/chromium-1228/chrome-win64/chrome.exe"]
+        reaches: FILE_EXISTS
+      fallback: "构建号不符则报具名缺失；不自动 playwright install，不使用系统 Edge 顶替，不为探版本而拉起浏览器"
       required_by: [browser-smoke, e2e, conversion]
       local_only: true
 
   runtimes:
     - name: webview2-evergreen
-      purpose: "桌面壳 WebView2 运行时（Evergreen 自动更新，OS 级）"
+      resource_id: ext.runtimes.webview2-evergreen
+      type: runtime
+      purpose: "桌面宿主 WebView2 运行时（Evergreen 自动更新，OS 级）；SUP-022 下正式宿主是 Tauri 2，WebView2 仍是 Edge/WebView 通道的系统运行时"
       version_range: "evergreen"
+      version_identification: "EdgeUpdate Clients 键的 pv 值（winreg 读 HKLM，回退 HKCU）"
       platform: windows-x64
       license: "Proprietary (Microsoft)"
       source_url: "https://developer.microsoft.com/microsoft-edge/webview2/"
       install_method: system
-      healthcheck_command: "Get-ItemProperty 'HKLM:\\SOFTWARE\\WOW6432Node\\Microsoft\\EdgeUpdate\\Clients\\{F3017226-FE2A-4295-8BDF-00C3A9A7E4C5}'"
+      # 旧 healthcheck 是一条 PowerShell Get-ItemProperty，Python 侧无法执行 → 永远被记成
+      # "missing"，而它其实装着（本机实测 pv=154.0.4258.62）。改成注册表探针。
+      healthcheck_command: "HKLM:\\SOFTWARE\\WOW6432Node\\Microsoft\\EdgeUpdate\\Clients\\{F3017226-FE2A-4295-8BDF-00C3A9A7E4C5} pv"
+      project_entry: "scripts/workflow/environment_registry.py probe kind registry_key（winreg，不经 PowerShell）"
+      writability: project_writable
+      probe:
+        kind: registry_key
+        hive: HKLM
+        fallback_hive: HKCU
+        key: "SOFTWARE\\WOW6432Node\\Microsoft\\EdgeUpdate\\Clients\\{F3017226-FE2A-4295-8BDF-00C3A9A7E4C5}"
+        value: pv
+        expect_pattern: "^[0-9]+\\.[0-9]+"
+        reaches: VERSION_PROBED
+      fallback: "注册表读不到即具名 unavailable（该主机没有 Evergreen 运行时），不再谎报 missing"
+      failure_message: "webview2-evergreen: EdgeUpdate Clients pv not present in HKLM or HKCU on this host"
       required_by: [desktop-runtime]
       local_only: true
 
     - name: archeaxis-ci-venv
-      purpose: "CI/开发虚拟环境（UV_PROJECT_ENVIRONMENT 指向外部仓）"
+      resource_id: ext.runtimes.archeaxis-ci-venv
+      type: runtime
+      purpose: "CI/开发虚拟环境（UV_PROJECT_ENVIRONMENT 指向外部仓）；引擎探针用它**自己的** python 跑，不再借 uv 顶替"
       version_range: "python>=3.11"
+      version_identification: "<ci-venv>/Scripts/python.exe --version 第一行"
       platform: windows-x64
       license: "n/a"
       source_url: "n/a"
       install_method: uv-sync
       external_paths: ["ArcheAxis-Knowledge-OS-ci-venv/Scripts/python.exe"]
-      healthcheck_command: "uv run python --version"
+      project_entry: "tool_paths.tool_path(\"archeaxis-ci-venv\")"
+      writability: shared_writable_by_project
+      healthcheck_command: "<ci-venv>/Scripts/python.exe --version"
+      probe:
+        kind: command
+        args: ["--version"]
+        expect_pattern: "Python 3\\.1[0-9]"
+        reaches: VERSION_PROBED
+      fallback: "环境不在则引擎条目一并记 unavailable 并具名解释器；不新建第二份库副本"
       required_by: [ci, tests]
       local_only: true
 
     - name: desktop-runtime-v1
-      purpose: "桌面运行时 v1（runtimes/desktop-runtime-v1）"
+      resource_id: ext.runtimes.desktop-runtime-v1
+      type: runtime
+      purpose: "桌面运行时 v1（外置根 20-runtimes/desktop-runtime-v1，历史打包运行时，供体）"
       version_range: "v1"
+      version_identification: "声明目录存在性（路径即身份；其内部构建号不作为版本上报）"
       platform: windows-x64
       license: "n/a"
       source_url: "n/a"
       install_method: 内置
-      healthcheck_command: "Test-Path runtimes/desktop-runtime-v1"
+      # 旧 healthcheck 是 PowerShell `Test-Path ...`，Python 跑不了 → 记成 missing。
+      # 现在用 path_exists 探针，走同一个声明根；本机实测 20-runtimes/ 为空目录，
+      # 该运行时在 2026-08-07 审计清理中已移出外置根，所以这条的正确结论是
+      # **unavailable（声明的路径不存在）**，而不是"探针跑不了所以缺失"。
+      healthcheck_command: "path exists: 20-runtimes/desktop-runtime-v1"
+      project_entry: "scripts/workflow/environment_registry.py probe kind path_exists"
+      writability: shared_read_only
+      probe:
+        kind: path_exists
+        paths: ["20-runtimes/desktop-runtime-v1"]
+        reaches: FILE_EXISTS
+      fallback: "缺失时 WebView2/系统通道继续用；不重新下载该 349MB 运行时，也不伪造其存在"
+      failure_message: "desktop-runtime-v1: declared path 20-runtimes/desktop-runtime-v1 is not present under the external root (removed by the 2026-08-07 audit cleanup)"
       required_by: [desktop-runtime]
       local_only: true
 
   engines:
     - name: tesseract
+      resource_id: ext.engines.tesseract
+      type: engine
       purpose: "图像 OCR 引擎（scoop 5.5.0 + leptonica 1.85.0）"
       version_range: ">=5.0,<6"
+      version_identification: "tesseract --version 第一行（含 leptonica 行）"
       platform: windows-x64
       license: "Apache-2.0"
       source_url: "https://github.com/UB-Mannheim/tesseract/wiki"
       install_method: scoop
-      healthcheck_command: "tesseract --version"
       external_paths: ["10-toolchains/scoop/apps/tesseract/current/tesseract.exe"]
+      project_entry: "tool_paths.tool_path(\"tesseract\") + tool_paths.required_environment(\"tesseract\")"
+      # AGENTS.md §7：扫描版 PDF 需要 OCR 且要求 TESSDATA_PREFIX 已设。此前**没有一处读取方**
+      # 声明它。实测形状：裸 tesseract 的 `--list-langs` 直接
+      # `terminate called … filesystem_error: directory iterator cannot advance`（rc 3），
+      # 设了 TESSDATA_PREFIX 才报 163 种语言并对探针图返回 ‘Arche Axis OCR PROBE 42。
+      required_env:
+        TESSDATA_PREFIX: "10-toolchains/scoop/apps/tesseract-languages/current"
+      writability: shared_read_only
+      healthcheck_command: "tesseract --version && tesseract --list-langs（需 TESSDATA_PREFIX）"
+      probe:
+        kind: ocr_roundtrip
+        expect_pattern: "ARCHEAXIS OCR PROBE 42"
+        min_languages: 3
+        timeout_seconds: 120
+        reaches: RESULT_VERIFIED
+      fallback: "TESSDATA_PREFIX 声明路径不存在 → 具名 unavailable（AGENTS.md §7 的 OCR 前置不成立），不退回语言包缺失的裸引擎"
+      failure_message: "tesseract: engine present but OCR did not round-trip the probe string (check TESSDATA_PREFIX from required_env)"
       required_by: [ocr-pipeline, conversion]
       local_only: false
 
     - name: tesseract-languages
+      resource_id: ext.engines.tesseract-languages
+      type: engine
       purpose: "Tesseract 语言包（chi_sim 中文简体 + eng 英文；TESSDATA_PREFIX 指向 4.1.0 目录）"
       version_range: "4.1.0"
+      version_identification: "tesseract --list-langs 首行的语言计数（本机实测 163）"
       platform: windows-x64
       license: "Apache-2.0"
       source_url: "https://github.com/tesseract-ocr/tessdata"
       install_method: scoop
-      healthcheck_command: "tesseract --list-langs"
       external_paths: ["10-toolchains/scoop/apps/tesseract-languages/current"]
+      project_entry: "tool_paths.tool_path(\"tesseract-languages\") = TESSDATA_PREFIX 的值"
+      writability: shared_read_only
+      healthcheck_command: "tesseract --list-langs（以 tesseract 为解释器、以本目录为 TESSDATA_PREFIX）"
+      # 目录本身不能满足版本探针（旧代码对目录跑 --version → probe_failed 却被记成 available）。
+      # 这一条的真探针是：用它作为 TESSDATA_PREFIX、用 tesseract.exe 跑 --list-langs。
+      probe:
+        kind: list_langs
+        interpreter: tesseract
+        expect_pattern: "available languages in .* \\(([0-9]+)\\)"
+        require_values: [eng, chi_sim]
+        reaches: RESULT_VERIFIED
+      fallback: "语言包缺失则 OCR 只能跑内建语言；不下载语言包，不把 eng 当三语种能力"
       required_by: [ocr-pipeline]
       local_only: false
 
@@ -207,26 +438,50 @@ capabilities:
     # 名为 .antiword 的映射目录，并把其父目录作为 HOME 交给引擎。只声明二进制那一条，
     # 解析成功而读取失败。
     - name: antiword
+      resource_id: ext.engines.antiword
+      type: engine
       purpose: "Word 97 .doc 纯文本旁路读取（MSYS2 打包 antiword 0.37；健康检查以 -h 自报身份，退出码非 0 是该引擎的正常行为）"
       version_range: "0.37"
+      version_identification: "antiword -h 的用法输出首行（该引擎不以退出码 0 表达成功）"
       platform: windows-x64
       license: "GPL-3.0-or-later"
       source_url: "https://github.com/msys2/MINGW-packages/tree/master/mingw-w64-antiword"
       install_method: system
-      healthcheck_command: "antiword -h"
       external_paths: ["10-toolchains/antiword/antiword.exe"]
+      project_entry: "tool_paths.tool_path(\"antiword\") / ARCHEAXIS_ANTIWORD_CMD override"
+      required_env:
+        HOME: "10-toolchains/antiword"
+      writability: shared_read_only
+      healthcheck_command: "antiword -h"
+      probe:
+        kind: command
+        args: ["-h"]
+        expect_pattern: "antiword"
+        accept_rc: [0, 1, 2]
+        reaches: VERSION_PROBED
+      fallback: "映射表缺失时 .doc 走 Tika/其它旁路；不放宽 HOME 到用户主目录"
       required_by: [conversion]
       local_only: true
 
     - name: antiword-mappings
+      resource_id: ext.engines.antiword-mappings
+      type: engine
       purpose: "antiword 字符映射表目录（目录名必须为 .antiword；worker 把它的父目录作为 HOME 交给引擎，否则搬出安装目录的副本读不到 UTF-8.txt 就拒绝出文）"
       version_range: "0.37"
+      version_identification: "UTF-8.txt 映射文件存在性（目录名 + 文件名共同构成身份）"
       platform: windows-x64
       license: "GPL-3.0-or-later"
       source_url: "https://github.com/msys2/MINGW-packages/tree/master/mingw-w64-antiword"
       install_method: system
-      healthcheck_command: "antiword -h"
       external_paths: ["10-toolchains/antiword/.antiword"]
+      project_entry: "tool_paths.tool_path(\"antiword-mappings\") 的父目录 = antiword 的 HOME"
+      writability: shared_read_only
+      healthcheck_command: "mapping file present: 10-toolchains/antiword/.antiword/UTF-8.txt"
+      probe:
+        kind: path_exists
+        paths: ["10-toolchains/antiword/.antiword/UTF-8.txt"]
+        reaches: FILE_EXISTS
+      fallback: "缺 UTF-8.txt 即具名拒绝出文，不回落到默认映射给出乱码"
       required_by: [conversion]
       local_only: true
 
@@ -235,150 +490,446 @@ capabilities:
     # 许可不是凭印象写的：两者都从**分发自带的许可文件**读出来（Tika 的 LICENSE 是 Apache-2.0，
     # Zulu 的 legal/java.base 里同时有 GPL 全文与 ASSEMBLY_EXCEPTION）。
     - name: zulu-jre
+      resource_id: ext.engines.zulu-jre
+      type: engine
       purpose: "Apache Tika 运行所需的 JVM（Azul Zulu Community 21.0.12.1，x64 Windows，无 JavaFX）"
       version_range: ">=21,<22"
+      version_identification: "java -version 第一行"
       platform: windows-x64
       license: "GPL-2.0-or-later with Classpath Exception (read from legal/java.base in the distribution)"
       source_url: "https://cdn.azul.com/zulu/bin/zulu21.52.203-ca-jre21.0.12.1-win_x64.zip"
       install_method: 自动下载
       healthcheck_command: "java -version"
       external_paths: ["10-toolchains/java/zulu-jre-21.0.12.1/bin/java.exe"]
+      project_entry: "tool_paths.tool_path(\"zulu-jre\") / ARCHEAXIS_JAVA_CMD override"
+      writability: shared_read_only
+      probe:
+        kind: command
+        args: ["-version"]
+        expect_pattern: 'openjdk version "21\.'
+        stderr_is_normal: true
+        reaches: VERSION_PROBED
+      fallback: "JVM 缺失则 .ppt 走具名失败；不下载 JRE，不使用宿主其它 JVM 顶替"
       required_by: [conversion]
       local_only: true
 
     - name: apache-tika
+      resource_id: ext.engines.apache-tika
+      type: engine
       purpose: "旧二进制演示文稿 `.ppt` 的读取旁路（Apache Tika 4.1.0 tika-app 发行包，含 lib/ 与 plugins/）"
       version_range: ">=4.1,<5"
+      version_identification: "tika-app jar 文件名声明的发行版本 + jar 存在性（JVM 侧另有 zulu-jre 条目）"
       platform: windows-x64
       license: "Apache-2.0 (read from the LICENSE shipped in the distribution)"
       source_url: "https://dlcdn.apache.org/tika/4.1.0/tika-app-4.1.0.zip"
       install_method: 自动下载
-      healthcheck_command: "java -jar 10-toolchains/tika/4.1.0/tika-app-4.1.0.jar --version"
+      healthcheck_command: "jar present: 10-toolchains/tika/4.1.0/tika-app-4.1.0.jar"
       external_paths: ["10-toolchains/tika/4.1.0/tika-app-4.1.0.jar"]
+      project_entry: "tool_paths.tool_path(\"apache-tika\") + tool_paths.tool_path(\"zulu-jre\")"
+      writability: shared_read_only
+      # 实测：`java -jar tika-app-4.1.0.jar --version` 在本机超过 120 秒（fat jar + 它会把
+      # stdin 当作待处理输入），所以**不**把它放进每次索引重建的探针里。jar 存在性是这里
+      # 能真实证明的上限；能跑起来的证明由 conversion 侧的 .ppt 读取测试给出。
+      probe:
+        kind: path_exists
+        paths: ["10-toolchains/tika/4.1.0/tika-app-4.1.0.jar"]
+        reaches: FILE_EXISTS
+      fallback: "jar 不在即具名缺失；不自动下载发行包，不改 zulu-jre 的选择"
       required_by: [conversion]
       local_only: true
 
     - name: ffmpeg
+      resource_id: ext.engines.ffmpeg
+      type: engine
       purpose: "音视频解码、格式转换、关键帧提取（只用 LGPL 子集）"
       version_range: ">=6.0"
+      version_identification: "ffmpeg -version 第一行"
       platform: windows-x64
       license: "LGPL-2.1-or-later"
       source_url: "https://ffmpeg.org/download.html"
       install_method: scoop
       healthcheck_command: "ffmpeg -version"
       external_paths: ["10-toolchains/scoop/apps/ffmpeg/current/bin/ffmpeg.exe"]
+      project_entry: "tool_paths.tool_path(\"ffmpeg\") / ARCHEAXIS_FFMPEG_CMD override"
+      writability: shared_read_only
+      probe:
+        kind: command
+        args: ["-version"]
+        expect_pattern: "ffmpeg version .*[0-9]+\\.[0-9]+"
+        reaches: VERSION_PROBED
+      fallback: "缺失即具名失败；媒体通道降级为不转码，不下载静态构建"
       required_by: [conversion, media-pipeline]
       local_only: false
 
     - name: rapidocr
+      resource_id: ext.engines.rapidocr
+      type: engine
       purpose: "三语种 OCR 引擎（ONNX 无重框架，bake-off 实测 CER 最优）"
       version_range: ">=1.4"
+      version_identification: "ci-venv 的 python 导入 rapidocr_onnxruntime 后读 __version__"
       platform: windows-x64
       license: "Apache-2.0"
       source_url: "https://github.com/RapidAI/RapidOCR"
       install_method: uv
       external_paths: ["ArcheAxis-Knowledge-OS-ci-venv/Lib/site-packages/rapidocr_onnxruntime"]
-      healthcheck_command: "uv run python -c \"import rapidocr_onnxruntime\""
+      project_entry: "tool_paths.tool_path(\"rapidocr\") + interpreter archeaxis-ci-venv"
+      writability: shared_writable_by_project
+      # 旧探针是 `uv run python -c "import rapidocr_onnxruntime"`，被 _command_name() 削减成
+      # token `uv`，于是拿**环境里**的 uv --version  certify 了引擎。现在用条目自己的解释器。
+      healthcheck_command: "<ci-venv>/Scripts/python.exe -c \"import rapidocr_onnxruntime\""
+      probe:
+        kind: interpreter_import
+        interpreter: archeaxis-ci-venv
+        module: rapidocr_onnxruntime
+        version_attribute: "__version__"
+        reaches: VERSION_PROBED
+      fallback: "导入失败即具名 NOT_VERIFIED；不拿 uv/pip 的存在当作引擎可用，也不装第二份"
       required_by: [ocr-pipeline, bakeoff]
       local_only: false
 
     - name: faster-whisper
+      resource_id: ext.engines.faster-whisper
+      type: engine
       purpose: "ASR 转写引擎（base 模型首次运行自动下载至 HF 缓存 ~150MB）"
       version_range: ">=1.1"
+      version_identification: "ci-venv 的 python 导入 faster_whisper 后读 __version__（本机实测 1.2.1）"
       platform: windows-x64
       license: "MIT"
       source_url: "https://github.com/SYSTRAN/faster-whisper"
       install_method: uv
       external_paths: ["ArcheAxis-Knowledge-OS-ci-venv/Lib/site-packages/faster_whisper"]
-      healthcheck_command: "uv run python -c \"import faster_whisper\""
+      project_entry: "tool_paths.tool_path(\"faster-whisper\") + interpreter archeaxis-ci-venv"
+      writability: shared_writable_by_project
+      healthcheck_command: "<ci-venv>/Scripts/python.exe -c \"import faster_whisper\""
+      probe:
+        kind: interpreter_import
+        interpreter: archeaxis-ci-venv
+        module: faster_whisper
+        version_attribute: "__version__"
+        reaches: VERSION_PROBED
+      fallback: "导入失败即具名 NOT_VERIFIED；权重另见 models/faster-whisper-base 与 faster-whisper-large-v3-turbo"
       required_by: [asr-pipeline, bakeoff]
       local_only: false
 
     - name: sherpa-onnx
+      resource_id: ext.engines.sherpa-onnx
+      type: engine
       purpose: "SenseVoice 本地 ASR 运行时（优先使用项目隔离环境，模型从共享 Model library 读取）"
       version_range: ">=1.13,<1.14"
+      version_identification: "ci-venv 的 python 导入 sherpa_onnx 后读 __version__（本机实测 1.13.8）"
       platform: windows-x64
       license: "Apache-2.0"
       source_url: "https://github.com/k2-fsa/sherpa-onnx"
       install_method: uv
-      healthcheck_command: "uv run --extra asr-sensevoice python -c \"import sherpa_onnx\""
+      healthcheck_command: "<ci-venv>/Scripts/python.exe -c \"import sherpa_onnx\""
       external_paths: ["ArcheAxis-Knowledge-OS-ci-venv/Lib/site-packages/sherpa_onnx"]
+      project_entry: "tool_paths.tool_path(\"sherpa-onnx\") + interpreter archeaxis-ci-venv"
+      writability: shared_writable_by_project
+      probe:
+        kind: interpreter_import
+        interpreter: archeaxis-ci-venv
+        module: sherpa_onnx
+        version_attribute: "__version__"
+        reaches: VERSION_PROBED
+      fallback: "导入失败即具名 NOT_VERIFIED；额外 extra 缺失不静默换成其它 ASR 运行时"
       required_by: [asr-pipeline]
       local_only: false
 
   models:
     - name: rapidocr-ppocr-onnx
+      resource_id: ext.models.rapidocr-ppocr-onnx
+      type: model
       purpose: "PP-OCR ONNX 模型（RapidOCR 首次运行自动下载 ~15MB）"
       version_range: "latest"
+      version_identification: "三枚 .onnx 文件存在性（det/rec/cls 齐全才算这一条可用）"
       platform: windows-x64
-      license: "Apache-2.0"
+      license: "Apache-2.0 (RapidOCR code licence; the weights are the same upstream project's published ONNX models)"
+      asset_license: "PP-OCR ONNX weights redistributed by RapidOCR under Apache-2.0; no separate model-card terms recorded on this host"
       source_url: "https://github.com/RapidAI/RapidOCR"
       install_method: 自动下载
       external_paths: ["ArcheAxis-Knowledge-OS-ci-venv/Lib/site-packages/rapidocr_onnxruntime/models/ch_PP-OCRv4_det_infer.onnx", "ArcheAxis-Knowledge-OS-ci-venv/Lib/site-packages/rapidocr_onnxruntime/models/ch_PP-OCRv4_rec_infer.onnx", "ArcheAxis-Knowledge-OS-ci-venv/Lib/site-packages/rapidocr_onnxruntime/models/ch_ppocr_mobile_v2.0_cls_infer.onnx"]
-      healthcheck_command: "首次运行验证"
+      project_entry: "tool_paths.tool_path(\"rapidocr-ppocr-onnx\")"
+      writability: shared_writable_by_project
+      healthcheck_command: "weight files present (det + rec + cls)"
+      probe:
+        kind: path_exists
+        reaches: FILE_EXISTS
+      fallback: "缺任一枚即具名不可用；不在运行时静默下载进项目目录"
       required_by: [ocr-pipeline, bakeoff]
       local_only: true
 
     - name: faster-whisper-base
+      resource_id: ext.models.faster-whisper-base
+      type: model
       purpose: "Whisper base 模型（~150MB；运行时由 dev.py 将 HF 缓存路由到项目 `.project-local/runs/<run-id>/cache`）"
       version_range: "base"
+      version_identification: "HF 缓存 snapshot 目录名（commit sha ebe41f70…）下的 model.bin 存在性"
       platform: windows-x64
-      license: "MIT"
+      license: "MIT (the faster-whisper code licence; it does not license the weights)"
+      asset_license: "Whisper base weights, Systran/faster-whisper-base model card, MIT per the upstream card; downloaded to the HF cache, not vendored in Git"
       source_url: "https://huggingface.co/Systran/faster-whisper-base"
       install_method: 自动下载
       external_paths: ["40-models/huggingface/hub/models--Systran--faster-whisper-base/snapshots/ebe41f70d5b6dfa9166e2c581c45c9c0cfc57b66/model.bin"]
-      healthcheck_command: "首次运行验证"
+      project_entry: "tool_paths.tool_path(\"faster-whisper-base\") / ARCHEAXIS_ASR_MODEL_DIR override"
+      writability: shared_writable_by_project
+      healthcheck_command: "weight file present"
+      probe:
+        kind: path_exists
+        reaches: FILE_EXISTS
+      fallback: "权重不在则 ASR 走 large-v3-turbo 或具名失败；缓存目录由 dev.py 限定在项目 run 路径内"
       required_by: [asr-pipeline, bakeoff]
       local_only: true
 
     - name: faster-whisper-large-v3-turbo
+      resource_id: ext.models.faster-whisper-large-v3-turbo
+      type: model
       purpose: "真实转写实际使用的 large-v3-turbo 权重（从共享 Model library 读取；此前只能靠 ARCHEAXIS_ASR_MODEL_DIR 环境变量发现）"
       version_range: "large-v3-turbo"
+      version_identification: "共享 Model library 内该目录存在 + 目录名即版本身份（model.bin/tokenizer 由引擎自校验）"
       platform: windows-x64
-      license: "MIT"
+      license: "MIT (the faster-whisper code licence; it does not license the weights)"
+      asset_license: "Whisper large-v3-turbo weights under the upstream Systran model-card terms (MIT); shared library copy, never copied into Git"
       source_url: "https://huggingface.co/Systran/faster-whisper-large-v3-turbo"
       install_method: system
-      healthcheck_command: "共享 Model library 内目录存在"
+      healthcheck_command: "directory present in the shared model library"
       sibling_root: model-library
       external_paths: ["whisper/faster-whisper-large-v3-turbo"]
+      project_entry: "tool_paths.tool_path(\"faster-whisper-large-v3-turbo\") via sibling root model-library"
+      writability: shared_read_only
+      probe:
+        kind: path_exists
+        reaches: FILE_EXISTS
+      fallback: "邻近根不解析则具名 unavailable（绝不写 `..` 遍历，也不复制权重进仓库）"
       required_by: [asr-pipeline, bakeoff]
       local_only: true
 
     - name: sense-voice-zh-en-ja-ko-yue
+      resource_id: ext.models.sense-voice-zh-en-ja-ko-yue
+      type: model
       purpose: "SenseVoice int8 模型（从共享 Model library 读取，不复制进 Git）"
       version_range: "2024-07-17"
+      version_identification: "共享 Model library 的 sherpa-onnx 目录下 model.int8.onnx 存在性"
       platform: windows-x64
-      license: "Apache-2.0"
+      license: "Apache-2.0 (sherpa-onnx runtime licence; it does not license the weights)"
+      asset_license: "SenseVoice weights (FunAudioLLM) redistributed by k2-fsa; terms read from the model directory on the shared library, not re-stated here"
       source_url: "https://github.com/k2-fsa/sherpa-onnx"
       install_method: system
-      healthcheck_command: "Test-Path $env:ARCHEAXIS_MODEL_LIBRARY_DIR\\sherpa-onnx\\*\\model.int8.onnx"
+      healthcheck_command: "path exists: sherpa-onnx model.int8.onnx in the shared model library"
       sibling_root: model-library
       external_paths: ["sherpa-onnx"]
+      project_entry: "tool_paths.tool_path(\"sense-voice-zh-en-ja-ko-yue\") / ARCHEAXIS_MODEL_LIBRARY_DIR"
+      writability: shared_read_only
+      probe:
+        kind: glob_exists
+        patterns: ["sherpa-onnx/*/model.int8.onnx", "sherpa-onnx/**/model.int8.onnx"]
+        reaches: FILE_EXISTS
+      fallback: "缺 int8 权重则 SenseVoice 具名不可用，回退 faster-whisper 通道"
       required_by: [asr-pipeline]
       local_only: true
 
     - name: sherpa-onnx-speaker-diarization
+      resource_id: ext.models.sherpa-onnx-speaker-diarization
+      type: model
       purpose: "F10 说话人分离的两枚 ONNX（pyannote 分割 + 说话人嵌入），从共享 Model library 读取，不复制进 Git"
       version_range: "segmentation-3.0 / wespeaker-voxceleb-resnet34-LM"
+      version_identification: "两枚 .onnx 同时存在（本机实测文件名：segmentation-3.0.onnx 与 speaker-embedding.onnx；缺任一枚则该能力不可用）"
       platform: windows-x64
-      license: "MIT (pyannote/segmentation-3.0, Copyright (c) 2022 CNRS) + CC-BY-4.0 (upstream WeSpeaker card; the k2-fsa mirror repo ships no licence file)"
+      license: "Apache-2.0 for the sherpa-onnx runtime that loads them; the ONNX assets are licensed separately (see asset_license)"
+      asset_license: "MIT (pyannote/segmentation-3.0, Copyright (c) 2022 CNRS) + CC-BY-4.0 (upstream WeSpeaker card; the k2-fsa mirror repo ships no licence file)"
       source_url: "https://hf-mirror.com/csukuangfj/sherpa-onnx-pyannote-segmentation-3-0"
       install_method: system
-      healthcheck_command: "Test-Path (Join-Path $env:ARCHEAXIS_MODEL_LIBRARY_DIR 'sherpa-onnx/speaker-diarization/segmentation-3.0.onnx')"
+      healthcheck_command: "both files present under sherpa-onnx/speaker-diarization"
       sibling_root: model-library
       external_paths: ["sherpa-onnx/speaker-diarization"]
+      project_entry: "tool_paths.tool_path(\"sherpa-onnx-speaker-diarization\")"
+      writability: shared_read_only
+      probe:
+        kind: path_exists
+        paths: ["sherpa-onnx/speaker-diarization/segmentation-3.0.onnx", "sherpa-onnx/speaker-diarization/speaker-embedding.onnx"]
+        reaches: FILE_EXISTS
+      fallback: "任一枚缺失则 F10 具名不可用；不自动接受 pyannote gated 下载"
       required_by: [asr-pipeline]
       local_only: true
 
     - name: magika-standard-v3
+      resource_id: ext.models.magika-standard-v3
+      type: model
       purpose: "文件类型检测 ONNX 模型（优先共享 Model library；仓库副本仅作离线回退）"
       version_range: "standard_v3_3"
+      version_identification: "绑定目录内的 model.onnx + config 存在性（版本由目录名 standard_v3_3 声明）"
       platform: windows-x64
-      license: "Apache-2.0"
-      source_url: "vendored"
+      license: "Apache-2.0 (magika code licence)"
+      asset_license: "magika standard_v3_3 ONNX weights, Apache-2.0 upstream; shipped with the installed magika 0.6.3 package"
+      source_url: "https://github.com/google/magika"
       install_method: 内置
       external_paths: ["ArcheAxis-Knowledge-OS-ci-venv/Lib/site-packages/magika/models/standard_v3_3"]
-      healthcheck_command: "Test-Path $env:ARCHEAXIS_MAGIKA_MODEL_DIR\\model.onnx"
-      # 绑定的是本机实际存在的资产：magika 0.6.3 随包发行 standard_v3_3，故版本字段与路径同批改为 v3_3。
+      project_entry: "tool_paths.tool_path(\"magika-standard-v3\") / ARCHEAXIS_MAGIKA_MODEL_DIR override"
+      writability: shared_writable_by_project
+      healthcheck_command: "path exists: standard_v3_3/model.onnx"
+      probe:
+        kind: path_exists
+        paths: ["ArcheAxis-Knowledge-OS-ci-venv/Lib/site-packages/magika/models/standard_v3_3/model.onnx"]
+        reaches: FILE_EXISTS
+      fallback: "缺 model.onnx 则文件检测退回规则判定并具名记录，不静默下载权重"
       required_by: [file-detection]
+      local_only: true
+
+    # 以下四条是**项目真实消费的本机模型通道**（此前只写死在 Python 源码里，索引完全没有
+    # 覆盖）：worker_caption.py / machine/worker_machine_answer.py 硬编码
+    # http://127.0.0.1:11434 与 http://127.0.0.1:1234/v1，只能被 ARCHEAXIS_CAPTION_* 顶掉。
+    # 本机 2026-10-08 实测（不是沿用任何历史说法）：11434 **连接被拒绝**（WinError 10061，
+    # 端口关闭），1234 **在线**并列出 6 个模型，/v1/embeddings 真跑通（1024 维，2.8s）。
+    # 因此这里不写"Ollama 被阻塞"，只写探针在本机答了什么。
+    - name: ollama-local-runtime
+      resource_id: ext.models.ollama-local-runtime
+      type: model_endpoint
+      role: caption
+      purpose: "Ollama 本机推理通道（worker_caption 早期唯一写死的通道，/api/tags 列模型、/api/generate 出文）"
+      version_range: "any local build"
+      version_identification: "GET /api/tags 应答的 models[].name 列表"
+      platform: windows-x64
+      license: "MIT (the Ollama runtime licence; per-model weights carry their own cards)"
+      asset_license: "Served weights are licensed per upstream model card; nothing here restates them"
+      source_url: "https://ollama.com/"
+      install_method: system
+      endpoint:
+        protocol: ollama
+        base_url: "http://127.0.0.1:11434"
+        list_path: /api/tags
+      project_entry: "tool_paths.endpoint_resources(role=\"caption\") -> services/python-workers/vision/worker_caption.py"
+      writability: project_writable
+      healthcheck_command: "GET http://127.0.0.1:11434/api/tags"
+      probe:
+        kind: http_get
+        expect_status: 200
+        expect_pattern: "models"
+        timeout_seconds: 5
+        reaches: VERSION_PROBED
+      fallback: "通道不答即记 unavailable 并写出实测错误；不自动拉起 ollama serve，不改宿主服务配置"
+      failure_message: "ollama-local-runtime: no HTTP answer on 127.0.0.1:11434 (this host refused the connection); caption lane falls back to any OpenAI-compatible lane the declaration names"
+      required_by: [workspace-ui, asr-pipeline]
+      local_only: true
+
+    - name: openai-compatible-local-runtime
+      resource_id: ext.models.openai-compatible-local-runtime
+      type: model_endpoint
+      role: caption
+      purpose: "OpenAI 兼容的本机模型通道（LM Studio 形态：/v1/models 列模型、/v1/chat/completions 出文），本机的视觉描述 lane 实际由它答"
+      version_range: "any OpenAI-compatible server"
+      version_identification: "GET /v1/models 的 data[].id 列表（本机实测 6 项）"
+      platform: windows-x64
+      license: "n/a (the lane is a protocol, not a shipped component; the serving app is the host's own install)"
+      asset_license: "Served weights are licensed per upstream model card; per-model rows below name the identity the host answers with"
+      source_url: "https://platform.openai.com/docs/api-reference/chat"
+      install_method: system
+      endpoint:
+        protocol: openai
+        base_url: "http://127.0.0.1:1234/v1"
+        list_path: /models
+      project_entry: "tool_paths.endpoint_resources(role=\"caption\") -> services/python-workers/vision/worker_caption.py"
+      writability: project_writable
+      healthcheck_command: "GET http://127.0.0.1:1234/v1/models"
+      probe:
+        kind: http_get
+        expect_status: 200
+        expect_pattern: "qwen2\\.5-vl-7b-instruct"
+        timeout_seconds: 10
+        reaches: VERSION_PROBED
+      fallback: "不答则 caption 具名不可用并回 pillow-metadata；绝不静默下载权重或改指公网服务"
+      failure_message: "openai-compatible-local-runtime: /v1/models did not answer on 127.0.0.1:1234"
+      required_by: [workspace-ui]
+      local_only: true
+
+    - name: local-vision-caption-model
+      resource_id: ext.models.local-vision-caption-model
+      type: model
+      role: caption
+      purpose: "图示/场景描述使用的视觉模型身份（两个本机 runtime 对同一权重命名不同：ollama 的 qwen2.5vl:7b 与 OpenAI 通道的 qwen2.5-vl-7b-instruct）"
+      version_range: "qwen2.5-vl-7b-instruct"
+      version_identification: "所属 lane 的模型列表里出现该 id（身份由 lane 答出的 id 确定，不是由源码常量确定）"
+      platform: windows-x64
+      license: "n/a (model asset only)"
+      asset_license: "Qwen2.5-VL-7B-Instruct weights under the upstream Qwen model-card terms; served by the host's own install, no weights vendored in Git"
+      source_url: "https://huggingface.co/Qwen/Qwen2.5-VL-7B-Instruct"
+      install_method: system
+      endpoint:
+        protocol: openai
+        base_url: "http://127.0.0.1:1234/v1"
+        list_path: /models
+        model_id: qwen2.5-vl-7b-instruct
+      project_entry: "worker_caption._endpoint() resolved through tool_paths.endpoint_resources(role=\"caption\")"
+      writability: project_writable
+      healthcheck_command: "GET http://127.0.0.1:1234/v1/models contains qwen2.5-vl-7b-instruct"
+      probe:
+        kind: http_get
+        expect_status: 200
+        expect_pattern: "qwen2\\.5-vl-7b-instruct"
+        timeout_seconds: 10
+        reaches: VERSION_PROBED
+      fallback: "id 不在列表则具名 unavailable（错误信息列出该 lane 实际装了哪些模型），描述 lane 退回元数据而不是空文本"
+      failure_message: "local-vision-caption-model: no served vision model id matched the declaration on any declared lane; the lanes' own model lists are printed in the error"
+      required_by: [workspace-ui]
+      local_only: true
+
+    - name: local-embedding-model
+      resource_id: ext.models.local-embedding-model
+      type: model
+      role: embedding
+      purpose: "检索 embedding 通道（config/model-profiles/r6-capability-pool.json 的 ollama/qwen3:8b 与 app/rag/embedder.py 写死的 127.0.0.1:11434；本机实际由 OpenAI 兼容 lane 的 qwen3-embedding-0.6b 作答）"
+      version_range: "text-embedding-qwen3-embedding-0.6b"
+      version_identification: "POST /v1/embeddings 返回向量维度（真跑一次小输入，不是看模型列表）"
+      platform: windows-x64
+      license: "n/a (model asset only; the hash-embedding fallback in config/models.yaml is first-party code)"
+      asset_license: "Qwen3-Embedding-0.6B weights under the upstream Qwen model-card terms; served by the host's own install"
+      source_url: "https://huggingface.co/Qwen/Qwen3-Embedding-0.6B"
+      install_method: system
+      endpoint:
+        protocol: openai
+        base_url: "http://127.0.0.1:1234/v1"
+        embed_path: /embeddings
+        model_id: text-embedding-qwen3-embedding-0.6b
+      project_entry: "tool_paths.endpoint_resources(role=\"embedding\")；app/rag/embedder.py 的写死 lane 尚未改为读声明（见执行报告未证实项）"
+      writability: project_writable
+      healthcheck_command: "POST http://127.0.0.1:1234/v1/embeddings {model, input}"
+      probe:
+        kind: http_roundtrip
+        expect_status: 200
+        body_template: '{"model": "{model_id}", "input": ["ArcheAxis resource probe"]}'
+        expect_json_path: "data.0.embedding"
+        min_vector_length: 8
+        timeout_seconds: 60
+        reaches: RESULT_VERIFIED
+      fallback: "不答则退回 config/models.yaml 的 hash-embedding 并在证据里具名标记为降级通道；不静默下载权重"
+      failure_message: "local-embedding-model: the declared embedding lane returned no vector"
+      required_by: [core-runtime]
+      local_only: true
+
+    - name: local-rerank-model
+      resource_id: ext.models.local-rerank-model
+      type: model
+      role: rerank
+      purpose: "重排通道（qwen3-reranker-0.6b 由本机 lane 列出，但该 runtime 不提供 /v1/rerank：实测 POST /v1/rerank 返回 {\"error\":\"Unexpected endpoint or method\"}）"
+      version_range: "qwen3-reranker-0.6b"
+      version_identification: "模型 id 出现在所属 lane 的 /v1/models 列表里（重排调用本身在本机没有可跑的接口）"
+      platform: windows-x64
+      license: "n/a (model asset only)"
+      asset_license: "Qwen3-Reranker-0.6B weights under the upstream Qwen model-card terms; served by the host's own install"
+      source_url: "https://huggingface.co/Qwen/Qwen3-Reranker-0.6B"
+      install_method: system
+      endpoint:
+        protocol: openai
+        base_url: "http://127.0.0.1:1234/v1"
+        list_path: /models
+        rerank_path: /rerank
+        model_id: qwen3-reranker-0.6b
+      project_entry: "tool_paths.endpoint_resources(role=\"rerank\")"
+      writability: project_writable
+      healthcheck_command: "GET http://127.0.0.1:1234/v1/models contains qwen3-reranker-0.6b (the rerank call itself is NOT_RUN on this host)"
+      probe:
+        kind: not_run
+        reason: "the model id is served, but the host's runtime answers POST /v1/rerank with {\"error\":\"Unexpected endpoint or method. (POST /v1/rerank)\"} (measured 2026-10-08). No rerank round-trip can be certified through the project entry on this host; the row is recorded NOT_RUN rather than as a version or a result."
+        reaches: REGISTERED
+      fallback: "重排不可用则检索只按向量分数排序，并在证据里写明未重排；不引入第二个 reranker"
+      failure_message: "local-rerank-model: NOT_RUN - model listed by the lane, no rerank endpoint on this host"
+      required_by: [core-runtime]
       local_only: true
