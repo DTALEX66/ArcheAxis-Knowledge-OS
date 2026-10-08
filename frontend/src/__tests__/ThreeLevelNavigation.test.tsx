@@ -51,6 +51,21 @@ describe("UI-02 secondary level covers every space", () => {
     expect(todo.every((section) => section.reason && section.reason.length > 8)).toBe(true);
   });
 
+  it("reaches and activates a secondary group by keyboard only", async () => {
+    const onSection = vi.fn();
+    render(<ContextNav active="library" onNavigate={() => {}} sections={spaceSectionsFor("library", "canonical_library")} activeSection="sources" onSection={onSection} />);
+    const user = userEvent.setup();
+    const target = screen.getByRole("button", { name: /来源锚点/ });
+    let steps = 0;
+    while (document.activeElement !== target && steps < 40) {
+      await user.tab();
+      steps += 1;
+    }
+    expect(document.activeElement, `tab reachability after ${steps} stops`).toBe(target);
+    await user.keyboard("{Enter}");
+    expect(onSection).toHaveBeenCalledWith(expect.objectContaining({ id: "anchors" }));
+  });
+
   it("resolves the surface from the same predicate the shell routes on", () => {
     expect(canonicalSurface("vault", true)).toBe("canonical_knowledge");
     expect(canonicalSurface("vault", false)).toBe("legacy");
