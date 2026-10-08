@@ -21,6 +21,20 @@ from urllib.request import urlopen
 from playwright.sync_api import Route, sync_playwright
 
 ROOT = Path(__file__).resolve().parents[1]
+
+
+def _recorded(path: Path) -> str:
+    """A printable location for an artefact, without assuming where the run root is.
+
+    `relative_to` raises when the artefact sits outside the repository, which is the normal
+    case for a linked worktree whose run root the launcher places in the shared
+    `.project-local`; a recorded path must never be able to fail a passing gate.
+    """
+    try:
+        return str(path.relative_to(ROOT))
+    except ValueError:
+        return str(path)
+
 RUN_ROOT = Path(os.environ.get("ARCHEAXIS_RUN_ROOT", ROOT / ".project-local" / "task-runtime"))
 RUNTIME = RUN_ROOT / ("runtime" if os.environ.get("ARCHEAXIS_RUN_ROOT") else "")
 ARTIFACTS = (RUN_ROOT / "artifacts" / "browser-smoke") if os.environ.get("ARCHEAXIS_RUN_ROOT") else (RUN_ROOT / "browser-smoke")
@@ -567,7 +581,7 @@ def read_template_surface(page, label: str) -> dict[str, object]:
         "section_buttons": by_text,
         "saved_template_rows": 0,
         "empty_state": empty_state,
-        "screenshot": str(shot.relative_to(ROOT)),
+        "screenshot": _recorded(shot),
     }
 
 
@@ -610,7 +624,7 @@ def read_template_failure(browser, problems: list[str]) -> dict[str, object]:
             "listed_rows": 0,
             "empty_state": empty_state,
             "launcher_live_regions": spoken,
-            "screenshot": str(shot.relative_to(ROOT)),
+            "screenshot": _recorded(shot),
         }
     finally:
         context.close()
@@ -671,7 +685,7 @@ def read_template_reachability(browser, viewport: tuple[str, int, int, float], p
             "expanded_rect": rect,
             "launcher_box": launcher_box,
             "overflow": overflow,
-            "screenshot": str(narrow_shot.relative_to(ROOT)),
+            "screenshot": _recorded(narrow_shot),
         }
     finally:
         context.close()
@@ -757,8 +771,8 @@ def canonical_host_surface(browser, problems: list[str]) -> dict[str, object]:
         "folder_affordance": affordance,
         "template_workspace": templates,
         "navigation_levels": navigation,
-        "screenshot": str(shot.relative_to(ROOT)),
-        "navigation_screenshot": str(navigation_shot.relative_to(ROOT)),
+        "screenshot": _recorded(shot),
+        "navigation_screenshot": _recorded(navigation_shot),
     }
     context.close()
     # Separate contexts: the outage fixture and the narrow windows must not contaminate the
@@ -907,7 +921,7 @@ def main() -> None:
                             "root_attribute": applied,
                             "brand_mark": brand,
                             "body_surface": surface,
-                            "screenshot": str(shot.relative_to(ROOT)),
+                            "screenshot": _recorded(shot),
                         }
                     page.get_by_label("界面主题").select_option("black")
 
@@ -915,7 +929,7 @@ def main() -> None:
                 page.screenshot(path=str(screenshot), full_page=True)
                 viewports[label] = {
                     "geometry": geometry,
-                    "screenshot": str(screenshot.relative_to(ROOT)),
+                    "screenshot": _recorded(screenshot),
                 }
                 context.close()
             canonical = canonical_host_surface(browser, canonical_problems)
