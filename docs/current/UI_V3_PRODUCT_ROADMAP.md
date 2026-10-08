@@ -1,14 +1,14 @@
 # UI v3 产品路线图
 
-- 当前正式轨道：C#/Avalonia 桌面壳 + Rust Core；React/Tauri 只作 legacy 行为参考与恢复验证
-- 正式桌面入口：`apps/ArcheAxis.Desktop/`；legacy `/workspace` 产品页返回 410，仅保留兼容 API
+- 当前正式轨道（2026-10-08 更正）：Tauri 2 + React/TypeScript/Vite 宿主（`frontend/`、`src-tauri/`）＋ Rust Core 唯一 SQLite/CAS 写者；依据 `DECISION_SUPERSESSION_LEDGER.yaml` SUP-021 → SUP-022（2026-10-04 业主裁决）与根 `AGENTS.md` §6。本文件此前写"当前正式轨道：C#/Avalonia 桌面壳；React/Tauri 只作 legacy"，那是 SUP-021 时代的读法，保留于此作为更正记录，不再作为当前结论。
+- 正式桌面入口：`src-tauri/tauri.conf.json`；`apps/ArcheAxis.Desktop/`（C#/Avalonia）为冻结行为/组件供体；`desktop/` 是独立恢复入口（标识 `com.archeaxis.workspace.recovery`）；legacy `/workspace` 产品页返回 410，仅保留兼容 API
 - 设计底座：用户采用的 B10 最终可部署母版；Aurora 与黑白深色两套配色共用布局及状态
 - 语言：中文优先
 
 ## 视觉权威与历史参考
 
 - 当前用户采用提示词指定的 **B10 最终高保真可部署母版是最高视觉依据**，决定其覆盖的页面布局、导航、区域关系、整体构图与交互；不能由旧测试、原型或较早 B03 参考反向覆盖。此前 B03 优先解释属于历史阶段，已被本次明确方向取代。
-- 母版上的深空黑蓝、Ivory、Aurora Teal 与少量星辉金为 AAOS 品牌皮肤。用户同时要求保留黑白深色方案并提供配套主题化：两套主题共用 ArcheAxis 母版布局、组件状态、页面密度和缩放规则；只切换已定义的色彩资源。主题切换只更新 Avalonia 前端资源，不更改 Core 配置或知识数据。
+- 母版上的深空黑蓝、Ivory、Aurora Teal 与少量星辉金为 AAOS 品牌皮肤。用户同时要求保留黑白深色方案并提供配套主题化：两套主题共用 ArcheAxis 母版布局、组件状态、页面密度和缩放规则；只切换已定义的色彩资源。主题切换只更新前端宿主资源，不更改 Core 配置或知识数据。
 - B03/B05 页面参考、B04 组件与 tokens、B06/B07 响应式和工程合同、B09 交互补充仅在不冲突 B10 和当前用户指令时吸收。B10 中的示例计数、证据与图谱不能充当 Core 真值；保留真实数据、未知/不可用状态、键盘可达和减少动画边界。双主题采用同构页面，只切换已定义配色资源。
 - Archive Desk / Liquid Glass 是历史参考，不是默认主题。其他主题方向仍须有独立设计决策、
   可访问性/性能验收和用户明确确认；不得借“路线图”或旧截图直接替换生产界面。
@@ -70,7 +70,7 @@
 
 ### P0R — 单壳收敛与前端真值（HISTORICAL SNAPSHOT：当时为 React/Tauri 单壳）
 
-> 下方 `[x]` 记录的是当时（React/Tauri 阶段）的收敛结果，**不是当前正式壳**。当前正式轨道是 C#/Avalonia（`apps/ArcheAxis.Desktop/`）；`frontend/` 与 `src-tauri/` 自 2026-09 起只作 legacy 行为参考与恢复验证，见 `config/product/UI_CONTRACT_V2.json` 的 `productShell.webCompatibilityRole`。
+> 下方 `[x]` 记录的是当时（React/Tauri 阶段）的收敛结果。**2026-10-08 更正**：SUP-022（2026-10-04 业主裁决）之后 `frontend/` 与 `src-tauri/` 重新成为正式产品宿主，所以本节标题里的"当时为 React/Tauri 单壳"读法如今与主线一致，但它仍是历史快照，不代表当时的验收；本文件旧版本在此写"当前正式轨道是 C#/Avalonia，React/Tauri 只作 legacy 行为参考，见 `config/product/UI_CONTRACT_V2.json` 的 `productShell.webCompatibilityRole`"，该字段已随合同收敛删除，现行字段是 `productShell.productionEntrypoint`、`productShell.donorShell` 与 `productShell.recoveryEntry`。
 
 - [x] （历史）canonical shell 当时锁定为 `frontend/src/app/App.tsx` + `src-tauri/`；该“canonical”称谓已作废，现为 legacy behavior reference。
 - [x] 全局命令、当前空间二级导航、可折叠 Inspector/Activity Dock。

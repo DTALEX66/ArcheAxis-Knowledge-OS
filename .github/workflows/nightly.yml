@@ -122,10 +122,10 @@ jobs:
           uv sync --frozen --group ci --group ci-adapters --group browser
       - name: Install Chromium
         run: uv run --frozen --group browser python -m playwright install --with-deps chromium
-      - name: Install legacy frontend tooling (locked)
-        # `frontend/` is the legacy React behavior reference, not the formal
-        # desktop shell: the formal shell is `apps/ArcheAxis.Desktop/`
-        # (C#/Avalonia), per config/product/UI_CONTRACT_V2.json.
+      - name: Install frontend tooling (locked)
+        # `frontend/` + `src-tauri/` is the formal product host (SUP-022); the
+        # Avalonia app under apps/ArcheAxis.Desktop/ is the frozen donor. See
+        # config/product/UI_CONTRACT_V2.json productShell.
         run: npm ci --prefix frontend --ignore-scripts --no-audit --no-fund
       - name: Workspace API suite
         run: |

@@ -6,11 +6,21 @@
   },
   "authority": "ArcheAxis",
   "productShell": {
-    "base": "ArcheAxis C#/Avalonia",
+    "base": "ArcheAxis Tauri 2 + React/TypeScript/Vite",
     "mode": "formal-desktop-shell",
-    "productionEntrypoint": "apps/ArcheAxis.Desktop/ArcheAxis.Desktop.csproj",
-    "webCompatibilityEntrypoint": "frontend/src/app/App.tsx",
-    "webCompatibilityRole": "legacy-recovery-and-behavior-reference"
+    "productionEntrypoint": "src-tauri/tauri.conf.json",
+    "reactUiEntry": "frontend/src/app/App.tsx",
+    "authorityDecision": "SUP-022",
+    "donorShell": {
+      "base": "ArcheAxis C#/Avalonia",
+      "path": "apps/ArcheAxis.Desktop/ArcheAxis.Desktop.csproj",
+      "role": "frozen-behavior-and-component-donor"
+    },
+    "recoveryEntry": {
+      "path": "desktop/src-tauri",
+      "identifier": "com.archeaxis.workspace.recovery",
+      "role": "separate-recovery-entry"
+    }
   },
   "sidecars": {
     "deeptutor": {

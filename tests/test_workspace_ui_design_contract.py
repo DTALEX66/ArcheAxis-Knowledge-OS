@@ -13,17 +13,26 @@ ROOT = Path(__file__).resolve().parents[1]
 ROUTER = ROOT / "app/workspace/router.py"
 
 
-def test_formal_product_shell_is_avalonia_and_web_shell_is_legacy() -> None:
+def test_formal_product_shell_is_tauri_react_and_avalonia_is_the_donor() -> None:
     contract = json.loads((ROOT / "config/product/UI_CONTRACT_V2.json").read_text(encoding="utf-8"))
 
-    assert contract["productShell"]["base"] == "ArcheAxis C#/Avalonia"
+    assert contract["productShell"]["base"] == "ArcheAxis Tauri 2 + React/TypeScript/Vite"
     assert contract["productShell"]["mode"] == "formal-desktop-shell"
     assert (
         contract["productShell"]["productionEntrypoint"]
+        == "src-tauri/tauri.conf.json"
+    )
+    assert (
+        contract["productShell"]["donorShell"]["path"]
         == "apps/ArcheAxis.Desktop/ArcheAxis.Desktop.csproj"
     )
     assert (
-        contract["productShell"]["webCompatibilityRole"] == "legacy-recovery-and-behavior-reference"
+        contract["productShell"]["donorShell"]["role"]
+        == "frozen-behavior-and-component-donor"
+    )
+    assert (
+        contract["productShell"]["recoveryEntry"]["identifier"]
+        == "com.archeaxis.workspace.recovery"
     )
 
 

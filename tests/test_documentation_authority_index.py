@@ -167,7 +167,7 @@ def test_current_ui_roadmap_declares_b10_authority_and_shared_dual_themes() -> N
     assert "B10 最终高保真可部署母版是最高视觉依据" in roadmap
     assert "Aurora 与黑白深色两套配色共用布局及状态" in roadmap
     assert "两套主题共用 ArcheAxis 母版布局、组件状态、页面密度和缩放规则" in roadmap
-    assert "主题切换只更新 Avalonia 前端资源，不更改 Core 配置或知识数据" in roadmap
+    assert "主题切换只更新前端宿主资源，不更改 Core 配置或知识数据" in roadmap
     assert "历史参考，不是默认主题" in roadmap
     assert "设计底座：Archive Desk + Liquid Glass" not in roadmap
 
@@ -196,9 +196,17 @@ def test_r6_formal_shell_supersedes_web_first_priority_without_banning_reuse() -
     assert "status: effective" in sup021
     assert "first-release shell priority" in sup021
     assert "TypeScript/JavaScript" in sup021
-    assert ui_contract["productShell"]["base"] == "ArcheAxis C#/Avalonia"
-    assert ui_contract["productShell"]["webCompatibilityRole"] == (
-        "legacy-recovery-and-behavior-reference"
+    # SUP-022 supersedes SUP-021's formal-shell priority, so the machine-readable UI contract
+    # must carry the Tauri/React host rather than the donor it replaced.
+    sup022 = ledger.split("  - id: SUP-022\n", 1)[1].split("  - id: SUP-023\n", 1)[0]
+    assert "status: effective" in sup022
+    assert "SUP-021 formal-shell priority only" in sup022
+    assert "Tauri 2 with React" in sup022
+    assert ui_contract["productShell"]["base"] == "ArcheAxis Tauri 2 + React/TypeScript/Vite"
+    assert ui_contract["productShell"]["authorityDecision"] == "SUP-022"
+    assert ui_contract["productShell"]["donorShell"]["base"] == "ArcheAxis C#/Avalonia"
+    assert ui_contract["productShell"]["donorShell"]["role"] == (
+        "frozen-behavior-and-component-donor"
     )
 
 
