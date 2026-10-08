@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import json
 import os
+import re
 import shutil
 import socket
 import subprocess
@@ -259,7 +260,7 @@ HOST_BRIDGE_STUB_TEMPLATE = """
   // whether it shows the shell or the recovery screen; nothing here claims to be the native host.
   const bodies = {
     sources_list: { sources: __A0_SOURCES__ },
-    documents_list: { documents: [] },
+    documents_list: { documents: __A0_DOCUMENTS__ },
     learning_items: { items: [] },
     capabilities_list: { capabilities: [] },
     anchors_list: { anchors: [] },
@@ -268,6 +269,9 @@ HOST_BRIDGE_STUB_TEMPLATE = """
     system_version: { runtime: "archeaxis-api", contract: "0.1.0-outline", schema_version: 1,
                       sqlite_version: "3.51.3" },
   };
+  // A declared outage, not a silent one: the named operations answer with this status so the gate
+  // can read what the surface claims when a Core read cannot be finished.
+  const faults = __A0_FAULTS__;
   window.__TAURI__ = {
     core: {
       invoke: async (command, request) => {
@@ -276,7 +280,11 @@ HOST_BRIDGE_STUB_TEMPLATE = """
                    message: "browser smoke host", backups: [], external_dev: false };
         }
         if (command === "core_command") {
-          return { status: 200, body: bodies[request?.request?.operation] ?? {} };
+          const operation = request?.request?.operation;
+          if (Object.prototype.hasOwnProperty.call(faults, operation)) {
+            return { status: faults[operation], body: {} };
+          }
+          return { status: 200, body: bodies[operation] ?? {} };
         }
         return null;
       },
@@ -295,13 +303,29 @@ A0_SOURCE = {
     "original_name": "a0-nav3-sample.txt",
     "imported_at": "2026-10-08T00:00:00Z",
 }
+# One saved document, so `documents_list` answers non-empty while `document_get` is out of reach:
+# the shape of a partial Core outage, which is the case a template list must not paper over.
+A0_DOCUMENT_SUMMARY = {
+    "document_id": "doc_a0_unreadable",
+    "source_id": None,
+    "source_revision": None,
+    "title": "a0 读取失败样本",
+    "version": 1,
+    "content_sha256": A0_SOURCE["sha256"],
+}
 
 
-def host_bridge_stub() -> str:
+def host_bridge_stub(
+    *,
+    documents: list[dict[str, object]] | None = None,
+    failing_operations: dict[str, int] | None = None,
+) -> str:
     import json
 
     return (
         HOST_BRIDGE_STUB_TEMPLATE.replace("__A0_SOURCES__", json.dumps([A0_SOURCE]))
+        .replace("__A0_DOCUMENTS__", json.dumps(documents if documents is not None else []))
+        .replace("__A0_FAULTS__", json.dumps(failing_operations or {}))
         .replace("__A0_ORIGINAL__", json.dumps({
             "source_id": A0_SOURCE["source_id"],
             "name": A0_SOURCE["original_name"],
@@ -310,6 +334,48 @@ def host_bridge_stub() -> str:
             "content_base64": A0_ORIGINAL_CONTENT,
         }))
     )
+
+
+TEMPLATE_SUMMARY_TEXT = "学科模板 · 知识网络 / 研究与项目 / 学习与实践"
+TEMPLATE_SECTION_SELECTOR = "section[aria-label='学科模板工作区']"
+LIVE_REGION_SELECTOR = (
+    '[role="status"],[role="alert"],[role="log"],[role="timer"],[role="marquee"],'
+    '[aria-live]:not([aria-live="off"])'
+)
+# The narrowest two viewports the matrix already covers: 900 is the shell's own breakpoint and
+# 840 is the widest scaled desktop column, so the disclosure has to survive both.
+TEMPLATE_NARROW_VIEWPORTS = ("900x800@100", "840x800@100")
+
+
+def template_catalog() -> tuple[list[str], list[str]]:
+    """The discipline and template labels the page renders, read from the source it renders from.
+
+    The gate must not pin 28: pinning the number keeps the gate green when a discipline is added
+    to `disciplines.ts` and the `<select>` silently stops offering it.
+    """
+    source = (ROOT / "frontend" / "src" / "templates" / "disciplines.ts").read_text(encoding="utf-8")
+    disciplines_block = source.split("export const DISCIPLINES", 1)[1].split("];", 1)[0]
+    templates_block = source.split("export const TEMPLATES", 1)[1].split("] as const", 1)[0]
+
+    def labels(block: str) -> list[str]:
+        return re.findall(r'\{id:"[^"]+",name:"([^"]+)"', block)
+
+    disciplines, templates = labels(disciplines_block), labels(templates_block)
+    assert len(disciplines) == disciplines_block.count('{id:"'), (len(disciplines), disciplines_block.count('{id:"'))
+    assert len(templates) == templates_block.count('{id:"'), (len(templates), templates_block.count('{id:"'))
+    assert disciplines and templates, (disciplines, templates)
+    return disciplines, templates
+
+
+def live_region_texts(page, scope: str = "") -> list[str]:
+    """Every region assistive tech would treat as live, optionally only those inside `scope`."""
+    return page.evaluate(
+        """({selector, scope}) => [...document.querySelectorAll(selector)]
+          .filter((node) => !scope || Boolean(node.closest(scope)))
+          .map((node) => node.textContent.trim())""",
+        {"selector": LIVE_REGION_SELECTOR, "scope": scope},
+    )
+
 
 
 def read_navigation_levels(page) -> dict[str, object]:
@@ -352,6 +418,263 @@ def read_navigation_levels(page) -> dict[str, object]:
         "tertiary_trail_identity": A0_SOURCE["source_id"],
         "learning_review_group_present": True,
     }
+
+
+def open_library_page(
+    browser,
+    problems: list[str],
+    *,
+    stub: str,
+    viewport: tuple[str, int, int, float],
+) -> tuple[object, object]:
+    """A canonical-host page parked on 资料库, with the same console wiring as the main probe.
+
+    The template probes each need their own browsing context (a faulted transport must not leak
+    into the geometry run and back), so the shared set-up lives here rather than being copied.
+    """
+    _, width, height, scale = viewport
+    context = browser.new_context(
+        viewport={"width": width, "height": height},
+        device_scale_factor=scale,
+        reduced_motion="reduce",
+    )
+    page = context.new_page()
+    page.on("pageerror", lambda error: problems.append(f"canonical-pageerror:{error}"))
+    page.on(
+        "console",
+        lambda message: problems.append(f"canonical-console:{message.text}")
+        if message.type == "error" else None,
+    )
+
+    def route_api(route: Route) -> None:
+        path = urlsplit(route.request.url).path
+        if path.startswith(f"{API_PREFIX}/") or path.startswith(f"{WORKSPACE_PREFIX}/api/"):
+            route.fulfill(
+                status=200,
+                content_type="application/json",
+                body=json.dumps(api_payload(route.request.url)),
+            )
+        else:
+            route.continue_()
+
+    context.add_init_script(stub)
+    page.route("**/*", route_api)
+    page.goto(URL, wait_until="networkidle")
+    page.locator('[data-space-id="library"]').click()
+    page.get_by_role("heading", name="资料库").first.wait_for()
+    page.locator("details.template-launcher > summary").first.wait_for()
+    return context, page
+
+
+def launcher_is_open(page) -> bool:
+    """The disclosure's real open state, and nothing else.
+
+    `open` belongs to the `<details>`, not to its `<summary>`: reading it off the wrong element
+    yields undefined, which turns an assertion that should describe the product into one that can
+    never pass. The type check makes a mis-planted selector fail here rather than as a false claim.
+    """
+    state = page.evaluate("() => document.querySelector('details.template-launcher')?.open ?? null")
+    assert isinstance(state, bool), f"no template disclosure found to read (got {state!r})"
+    return state
+
+
+def read_template_surface(page, label: str) -> dict[str, object]:
+    """What the 学科模板 disclosure actually offers once opened, measured in a real layout engine.
+
+    jsdom already covers the create/save/reference loop (TemplateBindings.test.tsx). What jsdom
+    cannot answer is whether the row is reachable, whether the workspace has a box at all, and
+    whether the surface lies when Core cannot be read - so this measures exactly those.
+    """
+    disciplines, templates = template_catalog()
+    launcher = page.locator("details.template-launcher")
+    summary = launcher.locator("> summary")
+    assert summary.count() == 1, f"expected exactly one 学科模板 disclosure on 资料库, found {summary.count()}"
+    assert summary.first.inner_text().strip() == TEMPLATE_SUMMARY_TEXT, summary.first.inner_text()
+    box = summary.first.bounding_box()
+    assert box and box["width"] > 120 and box["height"] > 16, box
+    # Default-collapsed is a deliberate product decision (the launcher must not push the library
+    # reading column down), so the gate pins it: an always-open workspace would be a different UI.
+    assert not launcher_is_open(page), "the template workspace is open by default"
+    assert page.locator(TEMPLATE_SECTION_SELECTOR).count() == 0, "the workspace mounted before it was opened"
+    # A closed disclosure must contribute no announcement of its own: the page outcome region
+    # already speaks for this surface. This is the browser-side half of LiveRegionBudget.
+    assert live_region_texts(page, "details.template-launcher") == [], live_region_texts(page, "details.template-launcher")
+
+    summary.first.click()
+    section = page.locator(TEMPLATE_SECTION_SELECTOR)
+    section.first.wait_for(state="attached")
+    assert section.count() == 1, section.count()
+    rect = section.first.bounding_box()
+    assert rect and rect["width"] > 200 and rect["height"] > 100, rect
+
+    selects = page.evaluate(
+        """(selector) => {
+          const root = document.querySelector(selector);
+          const read = {};
+          for (const node of root.querySelectorAll(":scope > label")) {
+            const select = node.querySelector("select");
+            if (select) read[node.childNodes[0].textContent.trim()] = [...select.options].map(o => o.textContent.trim());
+          }
+          return read;
+        }""",
+        TEMPLATE_SECTION_SELECTOR,
+    )
+    assert selects.get("学科") == disciplines, selects.get("学科")
+    assert selects.get("模板") == templates, selects.get("模板")
+
+    buttons = page.evaluate(
+        """(selector) => [...document.querySelectorAll(selector + " > button")].map((b) => ({
+          text: b.textContent.trim(), width: +b.getBoundingClientRect().width.toFixed(1), disabled: b.disabled,
+        }))""",
+        TEMPLATE_SECTION_SELECTOR,
+    )
+    by_text = {entry["text"]: entry for entry in buttons}
+    for name in ("创建学科对象", "重新读取模板集合"):
+        assert name in by_text, sorted(by_text)
+        assert by_text[name]["width"] > 60, by_text[name]
+        assert by_text[name]["disabled"] is False, by_text[name]
+    # No selection exists yet, so a save affordance here would advertise an action with no object.
+    assert "保存模板属性与关系" not in by_text, by_text
+
+    list_buttons = page.locator("nav[aria-label='已保存模板'] button")
+    list_state = page.locator("nav[aria-label='已保存模板'] p")
+    assert list_buttons.count() == 0, list_buttons.count()
+    assert list_state.count() == 1, list_state.count()
+    # Read once and reuse: the disclosure is collapsed below, so a later lookup would time out
+    # against a detached element rather than report what the surface said.
+    empty_state = list_state.first.inner_text()
+    assert "尚无已保存的模板对象" in empty_state, empty_state
+    assert list_state.first.get_attribute("role") is None, "the empty list speaks twice"
+    text = section.first.inner_text()
+    # The count line has to report the read it performed, not a plausible collection.
+    assert "本次读回 0 个文档对象，其中 0 个带可解析模板属性" in text, text
+    assert "无效模板属性不参与集合汇总" not in text, text
+    assert live_region_texts(page, "details.template-launcher") == [""], live_region_texts(page, "details.template-launcher")
+
+    shot = ARTIFACTS / f"canonical-host-templates-{label}.png"
+    page.screenshot(path=str(shot), full_page=True)
+    # Closing from the same control is part of the affordance, and it leaves the surface as found
+    # so the frames captured after this one still depict what their names claim.
+    summary.first.click()
+    section.first.wait_for(state="detached")
+    assert not launcher_is_open(page)
+    return {
+        "viewport": label,
+        "summary_box": box,
+        "expanded_rect": rect,
+        "discipline_option_count": len(disciplines),
+        "template_options": templates,
+        "section_buttons": by_text,
+        "saved_template_rows": 0,
+        "empty_state": empty_state,
+        "screenshot": str(shot.relative_to(ROOT)),
+    }
+
+
+def read_template_failure(browser, problems: list[str]) -> dict[str, object]:
+    """What the surface says when Core cannot finish the read - the only honest answer available.
+
+    `documents_list` names one saved document and `document_get` answers 503 for it, which is a
+    partial outage rather than an empty library. A list that then reads "no template objects yet"
+    would be a fabricated negative, and a list that renders the document it never retrieved would
+    be a fabricated positive.
+    """
+    context, page = open_library_page(
+        browser,
+        problems,
+        stub=host_bridge_stub(
+            documents=[A0_DOCUMENT_SUMMARY],
+            failing_operations={"document_get": 503},
+        ),
+        viewport=DESKTOP_MATRIX[0],
+    )
+    try:
+        page.locator("details.template-launcher > summary").first.click()
+        section = page.locator(TEMPLATE_SECTION_SELECTOR)
+        section.first.wait_for(state="attached")
+        page.wait_for_timeout(400)
+        assert section.first.get_by_text("模板对象读取失败，请重试。").count() == 1, section.first.inner_text()
+        assert page.locator("nav[aria-label='已保存模板'] button").count() == 0, "an unretrieved object was listed"
+        empty_state = page.locator("nav[aria-label='已保存模板'] p").first.inner_text()
+        assert "读取失败" in empty_state and "不表示没有模板对象" in empty_state, empty_state
+        assert "本次读回" not in section.first.inner_text(), section.first.inner_text()
+        # One event, one region: the failure is announced from the launcher's own status element
+        # and from nowhere else on the page.
+        spoken = live_region_texts(page, "details.template-launcher")
+        assert spoken == ["模板对象读取失败，请重试。"], spoken
+        assert live_region_texts(page).count("模板对象读取失败，请重试。") == 1, live_region_texts(page)
+        shot = ARTIFACTS / f"canonical-host-templates-unreadable-{DESKTOP_MATRIX[0][0]}.png"
+        page.screenshot(path=str(shot), full_page=True)
+        return {
+            "failure_message": "模板对象读取失败，请重试。",
+            "listed_rows": 0,
+            "empty_state": empty_state,
+            "launcher_live_regions": spoken,
+            "screenshot": str(shot.relative_to(ROOT)),
+        }
+    finally:
+        context.close()
+
+
+def read_template_reachability(browser, viewport: tuple[str, int, int, float], problems: list[str]) -> dict[str, object]:
+    """Keyboard-only reach and narrow-window geometry for the disclosure, in a real layout engine."""
+    label, width, height, scale = viewport
+    context, page = open_library_page(browser, problems, stub=host_bridge_stub(), viewport=viewport)
+    try:
+        summary = page.locator("details.template-launcher > summary")
+        assert not launcher_is_open(page), f"open by default at {label}"
+        on_summary = "() => document.activeElement === document.querySelector('details.template-launcher > summary')"
+        page.evaluate("() => document.activeElement?.blur()")
+        presses = 0
+        while presses < 150 and not page.evaluate(on_summary):
+            page.keyboard.press("Tab")
+            presses += 1
+        assert page.evaluate(on_summary), f"the disclosure is not a Tab stop at {label} after {presses} presses"
+
+        page.keyboard.press("Enter")
+        section = page.locator(TEMPLATE_SECTION_SELECTOR)
+        section.first.wait_for(state="attached")
+        rect = section.first.bounding_box()
+        assert rect and rect["width"] > 0 and rect["height"] > 0, rect
+        assert page.evaluate(on_summary), f"Enter moved focus off the disclosure at {label}"
+        launcher_box = page.locator("details.template-launcher").first.bounding_box()
+        assert launcher_box["x"] + launcher_box["width"] <= width + 0.5, (launcher_box, width)
+        # The workspace must stay inside its own disclosure: a child escaping the launcher is how
+        # a grid column overflow reads as "the page scrolls sideways".
+        assert rect["x"] >= launcher_box["x"] - 0.5, (rect, launcher_box)
+        assert rect["x"] + rect["width"] <= launcher_box["x"] + launcher_box["width"] + 0.5, (rect, launcher_box)
+        overflow = page.evaluate(
+            """() => {
+              const launcher = document.querySelector('details.template-launcher');
+              return {
+                scrollWidth: document.documentElement.scrollWidth,
+                clientWidth: document.documentElement.clientWidth,
+                launcherScroll: launcher.scrollWidth,
+                launcherClient: launcher.clientWidth,
+              };
+            }"""
+        )
+        assert overflow["scrollWidth"] <= overflow["clientWidth"], (label, overflow)
+        assert overflow["launcherScroll"] <= overflow["launcherClient"] + 1, (label, overflow)
+        page.keyboard.press("Enter")
+        section.first.wait_for(state="detached")
+        assert page.evaluate(on_summary), f"closing moved focus off the disclosure at {label}"
+        # Geometry says it fits; the frame is what says it still reads. Named for the viewport it
+        # was taken in, so a frame cannot be cited as evidence for a window it does not depict.
+        narrow_shot = ARTIFACTS / f"canonical-host-templates-keyboard-{label}.png"
+        page.keyboard.press("Enter")
+        section.first.wait_for(state="attached")
+        page.screenshot(path=str(narrow_shot), full_page=True)
+        return {
+            "viewport": label,
+            "tab_presses_to_reach": presses,
+            "expanded_rect": rect,
+            "launcher_box": launcher_box,
+            "overflow": overflow,
+            "screenshot": str(narrow_shot.relative_to(ROOT)),
+        }
+    finally:
+        context.close()
 
 
 def canonical_host_surface(browser, problems: list[str]) -> dict[str, object]:
@@ -418,6 +741,9 @@ def canonical_host_surface(browser, problems: list[str]) -> dict[str, object]:
     # as library evidence inherited that mismatch.
     shot = ARTIFACTS / f"canonical-host-library-{label}.png"
     page.screenshot(path=str(shot), full_page=True)
+    # The one genuinely new visible surface on this product entry, asserted here because nothing
+    # guarded it before: deleting the launcher entirely left every prior gate green.
+    templates = read_template_surface(page, label)
     navigation = read_navigation_levels(page)
     # The navigation probe ends on the learning space; keep that frame under its own name.
     navigation_shot = ARTIFACTS / f"canonical-host-learning-{label}.png"
@@ -429,11 +755,20 @@ def canonical_host_surface(browser, problems: list[str]) -> dict[str, object]:
         "canonical_library_mounted": True,
         "single_file_import_inputs": single_file_inputs,
         "folder_affordance": affordance,
+        "template_workspace": templates,
         "navigation_levels": navigation,
         "screenshot": str(shot.relative_to(ROOT)),
         "navigation_screenshot": str(navigation_shot.relative_to(ROOT)),
     }
     context.close()
+    # Separate contexts: the outage fixture and the narrow windows must not contaminate the
+    # affordance run above, and each declares its own viewport rather than inheriting one.
+    result["template_unreadable"] = read_template_failure(browser, problems)
+    result["template_reachability"] = [
+        read_template_reachability(browser, viewport, problems)
+        for viewport in DESKTOP_MATRIX
+        if viewport[0] in TEMPLATE_NARROW_VIEWPORTS
+    ]
     return result
 
 

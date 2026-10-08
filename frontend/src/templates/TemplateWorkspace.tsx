@@ -8,7 +8,7 @@ import { backlinks, binding, collection, createTemplate, loadTemplateDocuments, 
 export function TemplateLauncher({onOpen,onDirtyChange}:{onOpen:(id:string)=>void;onDirtyChange?:(value:boolean)=>void}) {
   const [open,setOpen]=useState(false);
   const dirty=useRef(false);
-  return <details onToggle={event=>{
+  return <details className="template-launcher" onToggle={event=>{
     if(!event.currentTarget.open&&dirty.current&&!window.confirm("模板属性尚未保存，是否放弃这些属性修改？")){event.currentTarget.open=true;return;}
     setOpen(event.currentTarget.open);
   }}><summary>学科模板 · 知识网络 / 研究与项目 / 学习与实践</summary>
@@ -23,11 +23,14 @@ export function TemplateWorkspace({onOpen,onDirtyChange}:{onOpen:(id:string)=>vo
   const [target,setTarget]=useState("");const [targetBlock,setTargetBlock]=useState("");const [relation,setRelation]=useState("");
   const [resolved,setResolved]=useState<{document:DocumentDto;text:string}|null>(null);
   const [message,setMessage]=useState("");const [busy,setBusy]=useState(false);const epoch=useRef(0);
+  // "Core answered nothing" and "Core answered but no object carries template metadata" are different
+  // facts; collapsing them into one empty list would state something the read never established.
+  const [unreadable,setUnreadable]=useState(false);
   const dirty=useRef(false);const callbacks=useRef(onDirtyChange);callbacks.current=onDirtyChange;
   const pack=DISCIPLINES.find(p=>p.id===(draft?.discipline_id??discipline))!;
   function change(next:TemplateBinding){dirty.current=true;callbacks.current?.(true);setDraft(next);}
-  async function refresh(){const data=await loadTemplateDocuments();setDocuments(data.documents);setBounded(data.bounded);return data.documents;}
-  useEffect(()=>{let live=true;loadTemplateDocuments().then(data=>{if(live){setDocuments(data.documents);setBounded(data.bounded);}}).catch(()=>{if(live)setMessage("模板对象读取失败，请重试。");});return()=>{live=false;epoch.current++;callbacks.current?.(false);};},[]);
+  async function refresh(){const data=await loadTemplateDocuments();setUnreadable(false);setDocuments(data.documents);setBounded(data.bounded);return data.documents;}
+  useEffect(()=>{let live=true;loadTemplateDocuments().then(data=>{if(live){setUnreadable(false);setDocuments(data.documents);setBounded(data.bounded);}}).catch(()=>{if(live){setUnreadable(true);setMessage("模板对象读取失败，请重试。");}});return()=>{live=false;epoch.current++;callbacks.current?.(false);};},[]);
   function select(document:DocumentDto){
     if(dirty.current&&!window.confirm("模板属性尚未保存，是否放弃这些属性修改？"))return;
     epoch.current++;dirty.current=false;callbacks.current?.(false);setSelected(document);setDraft(binding(document));setResolved(null);setMessage("");
@@ -43,15 +46,18 @@ export function TemplateWorkspace({onOpen,onDirtyChange}:{onOpen:(id:string)=>vo
     change({...draft,references:[...draft.references,reference]});
   }
   const currentCollection=collection(documents,pack.id);
+  const savedTemplates=documents.filter(d=>readableBinding(d));
   const incoming=selected?backlinks(documents,selected.document_id):[];
   return <section aria-label="学科模板工作区">
     <label>学科<select value={discipline} disabled={busy} onChange={event=>setDiscipline(event.target.value)}>{DISCIPLINES.map(p=><option key={p.id} value={p.id}>{p.name}</option>)}</select></label>
     <label>模板<select value={template} disabled={busy} onChange={event=>setTemplate(event.target.value)}>{TEMPLATES.map(t=><option key={t.id} value={t.id}>{t.name}</option>)}</select></label>
     <button disabled={busy} onClick={()=>void action(create)}>创建学科对象</button>
     <button disabled={busy||dirty.current} onClick={()=>void action(async()=>{await refresh();})}>重新读取模板集合</button>
-    <p>集合从已保存文档重建；当前读取最多 100 个对象{bounded?"，结果可能不完整":""}。</p>
-    <nav aria-label="已保存模板">{documents.filter(d=>readableBinding(d)).map(d=><button key={d.document_id} disabled={busy} onClick={()=>select(d)}>{d.title} · v{d.version}</button>)}</nav>
-    <p>无效模板属性不参与集合汇总；原文仍可在资料库打开。</p>
+    <p>{unreadable?"集合读取未完成，下列计数不代表真实数量。":`集合从已保存文档重建；本次读回 ${documents.length} 个文档对象，其中 ${savedTemplates.length} 个带可解析模板属性；当前读取最多 100 个对象${bounded?"，结果可能不完整":""}。`}</p>
+    <nav aria-label="已保存模板">{savedTemplates.map(d=><button key={d.document_id} disabled={busy} onClick={()=>select(d)}>{d.title} · v{d.version}</button>)}
+      {unreadable?<p className="template-list-state">模板集合未能从本地核心读回；列表为空只表示读取失败，不表示没有模板对象。</p>:savedTemplates.length?null:<p className="template-list-state">{documents.length?`已读回的 ${documents.length} 个文档对象中，没有带可解析模板属性的对象。`:"尚无已保存的模板对象；选择学科与模板后创建第一个。"}</p>}
+    </nav>
+    {documents.length>savedTemplates.length?<p>无效模板属性不参与集合汇总；原文仍可在资料库打开。</p>:null}
     {selected&&draft?<>
       <h3>{selected.title}</h3><button onClick={()=>onOpen(selected.document_id)}>打开真实文档与正文</button>
       <p>{pack.activity}；评价：{pack.evaluation}。普通笔记与假设允许保存，复习间隔不证明实操掌握。</p>
