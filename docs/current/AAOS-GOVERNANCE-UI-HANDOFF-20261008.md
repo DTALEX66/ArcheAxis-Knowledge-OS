@@ -53,6 +53,9 @@
 | 解析稳健性（自测复现） | `tests/workflow/test_external_resources_index.py` 从仓库根 / `services/python-workers` / `frontend/src` 三种 cwd 各 **12 passed**（同一结果，解析不依赖当前目录）；把 `ARCHEAXIS_EXTERNAL_ROOT` 指向不存在目录后 **2 failed / 10 passed**（`test_external_resources_index.py:245`），即缺资源明确变红而不静默回落 PATH | REAL |
 | 文档/目录检查 | `check_path_conventions.py` 3122/3123 归属、0 deny 被跟踪、0 歧义；`check_document_authority.py` 单一当前记录、根引用可解析、输入哈希相符；`check_repository_conventions.py` 通过 | REAL |
 | 远端 CI / 安装资格 / 人工验收 | 未执行 | **NOT_RUN**（本地绿不等于远端绿；未 push） |
+| 写入隔离（自测复现） | 先删 `%TEMP%\archeaxis-resource-probe`，再以 `ARCHEAXIS_RESOURCE_PROBE_WORKDIR` 与 `ARCHEAXIS_INDEX_OUTPUT` 指向任务目录跑生成器：探针目录只在 run 路径内生成、`%TEMP%` 无残留、输出 76,369 bytes 落在任务路径、`git status config/` 为 0 修改 | REAL |
+| 缺资源与未运行项（生成器实测表） | `local-embedding-model` → `1024-dim vector returned`（RESULT_VERIFIED）；`local-rerank-model` → **`NOT_RUN`，原因随行走廊**（模型 id 被服务但宿主端点应答不符）；被跟踪索引当前等级分布经复算为 VERSION_PROBED 16 / RESULT_VERIFIED 4 / FILE_EXISTS 9 / unavailable 2 / NOT_RUN 1，共 32 行 | REAL |
+| 生成器不再污染治理记录（本轮缺陷修复） | `test_declared_paths_resolve_on_this_host` 曾以子进程就地重写被跟踪索引：干净跑一次该文件，被跟踪 blob 由 `4c8bf6aeebcb…` 变为 `7910abe4ad85…`，即"跑测试"本身改写治理记录，且该文件含主机绝对路径，谁最后跑谁决定提交内容。改为 `ARCHEAXIS_INDEX_OUTPUT` 可重定向后：正常根 `12 passed` 且 blob 保持 `4c8bf6ae`；把根指向不存在目录时 **4 项点名失败**而 blob 仍 `4c8bf6ae` | REAL（`e0e52a21`） |
 
 依赖变化：**无**。`package.json`/`package-lock.json`/`Cargo.toml`/`Cargo.lock`/`pyproject`/`uv.lock`/`.csproj` 均未被本轮改动（`git diff --name-only` 过滤实证）；新 worktree 经 junction 复用既有 `node_modules`，未复制大型共用资源。
 
