@@ -13,7 +13,7 @@ import {
   type SetupStatusDto,
   verifyBackup,
 } from "../api/workspace";
-import { stateLabel, userErrorMessage } from "../presentation/labels";
+import { failureMessage, stateLabel } from "../presentation/labels";
 import { AaosStatusBadge } from "../components/AaosStatusBadge";
 
 const DOMAIN_LABELS: Record<string, string> = {
@@ -45,7 +45,7 @@ function defaultRoot(status: SetupStatusDto | null): string {
 }
 
 function errorMessage(error: unknown): string {
-  return userErrorMessage(error instanceof Error ? error.message : error);
+  return failureMessage(error);
 }
 
 function readinessMessage(state: string): string {
@@ -173,7 +173,7 @@ export function SettingsSpace() {
         setQuickRoot(defaultRoot(status));
         if (status.ready) setStage("complete");
       })
-      .catch((requestError: Error) => { if (alive) setError(userErrorMessage(requestError.message)); })
+      .catch((requestError: unknown) => { if (alive) setError(failureMessage(requestError)); })
       .finally(() => { if (alive) setLoading(false); });
     return () => { alive = false; };
   }, []);

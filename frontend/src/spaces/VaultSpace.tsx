@@ -35,6 +35,7 @@ export function VaultSpace() {
   const [searchQuery, setSearchQuery] = useState("");
   const [searchResults, setSearchResults] = useState<VaultSearchResultDto[]>([]);
   const [backups, setBackups] = useState<Array<{ backup_name: string; file_size: number; modified: number }>>([]);
+  const [backupsUnknown, setBackupsUnknown] = useState(false);
   const [busy, setBusy] = useState<"open" | "read" | "save" | "search" | "restore" | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
@@ -68,12 +69,14 @@ export function VaultSpace() {
       setOpenFile(file);
       setEditing(file.raw_text);
       setBackups([]);
+      setBackupsUnknown(false);
       if (entry.kind !== "attachment") {
         try {
           const backupPage = await listVaultBackups(root, entry.relative_path);
           setBackups(backupPage.backups);
         } catch {
-          setBackups([]);
+          // A failed listing is not an empty listing: claiming "no backups" would be a fabricated result.
+          setBackupsUnknown(true);
         }
       }
       setMessage(`已读取：${entry.relative_path}`);
@@ -222,6 +225,7 @@ export function VaultSpace() {
                     spellCheck={false}
                   />
                 )}
+                {backupsUnknown ? <p className="state-reason">备份列表未能读取；这不代表该文件没有备份。</p> : null}
                 {backups.length > 0 ? (
                   <section className="vault-backups" aria-label="文件备份">
                     <h5>可恢复备份</h5>
