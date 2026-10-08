@@ -17,6 +17,9 @@ This checker measures it and then refuses to let the measurement drift:
   * unowned paths are allowed to exist but may not exist *unrecorded*: the set the
     record lists must equal the set measured, so a new unowned path fails the check
     until somebody classifies it or records it;
+  * ownership class `rebuildable-cache` is enforced on disk as well as in the index: a
+    declared shared install may exist as a real copy in at most one clean-and-merged
+    worktree, because ten copies of one lock file is how the last round grew 2 GB;
   * every top-level entry of the tracked tree must be matched by exactly one
     disposition rule in the record, with an existing `owner_doc`, so no directory
     is unowned in silence;
@@ -33,6 +36,7 @@ reports the coverage that exists so the owner can close it.
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import re
 import subprocess
@@ -213,6 +217,126 @@ def legacy_manifest_counts(root: Path = ROOT) -> tuple[dict[str, int], dict[str,
     return entries, unreviewed, total
 
 
+REPARSE_POINT_ATTRIBUTE = 0x400  # FILE_ATTRIBUTE_REPARSE_POINT
+
+
+def _is_link(path: Path) -> bool:
+    """True for a symlink or a Windows junction -- the compliant form of a shared install."""
+    try:
+        stat_result = path.lstat()
+    except OSError:
+        return False
+    return bool(getattr(stat_result, "st_file_attributes", 0) & REPARSE_POINT_ATTRIBUTE)
+
+
+def shared_resource_rules(root: Path = ROOT) -> tuple[str, list[dict]]:
+    """The declared development root and the installs that must not be copied."""
+    authority = yaml.safe_load((root / "DIRECTORY_AUTHORITY.yaml").read_text(encoding="utf-8"))
+    block = authority.get("shared_resource_install_rules") or {}
+    rules = [item for item in block.get("shared_install_paths") or [] if item.get("relative_path")]
+    return str(block.get("development_root") or ""), rules
+
+
+def worktree_list(root: Path = ROOT) -> list[dict]:
+    """Registered worktrees from `git worktree list --porcelain`."""
+    result = subprocess.run(
+        ["git", "-C", str(root), "worktree", "list", "--porcelain"],
+        capture_output=True, text=True, encoding="utf-8", errors="replace",
+    )
+    if result.returncode != 0:
+        raise RuntimeError(result.stderr.strip() or "git worktree list failed")
+    entries: list[dict] = []
+    current: dict = {}
+    for line in result.stdout.splitlines():
+        if not line.strip():
+            if current:
+                entries.append(current)
+                current = {}
+            continue
+        key, _, value = line.partition(" ")
+        if key == "worktree":
+            current["path"] = value.strip()
+        elif key == "HEAD":
+            current["head"] = value.strip()
+        elif key == "branch":
+            current["branch"] = value.strip()
+    if current:
+        entries.append(current)
+    return [entry for entry in entries if entry.get("path")]
+
+
+def _lock_digest(path: Path) -> str | None:
+    if not path.is_file():
+        return None
+    digest = hashlib.sha256()
+    with path.open("rb") as handle:
+        for chunk in iter(lambda: handle.read(1 << 20), b""):
+            digest.update(chunk)
+    return digest.hexdigest()
+
+
+def copied_shared_resources(root: Path = ROOT) -> list[dict]:
+    """Worktrees holding a copied shared install instead of reaching it through a link.
+
+    Ownership class `rebuildable-cache` permits exactly one real copy of a given dependency
+    lock across the worktree set; every other worktree links to it. A worktree is exempt only
+    when reconfiguring it could disturb work that exists nowhere else: it has uncommitted
+    changes, or its HEAD is not an ancestor of the checked-out baseline. So the gate is quiet
+    on a dirty tree and loud on a clean one, which is the opposite of a name-pattern sweep.
+    """
+    baseline = subprocess.run(["git", "-C", str(root), "rev-parse", "HEAD"],
+                              capture_output=True, text=True, encoding="utf-8", errors="replace")
+    if baseline.returncode != 0:
+        return []
+    development_root, rules = shared_resource_rules(root)
+    if not development_root or not rules:
+        return []
+    marker = f"/{development_root.strip('/')}/"
+    scoped = [w for w in worktree_list(root) if marker in w["path"].replace("\\", "/")]
+    groups: dict[tuple[str, str, str], list[dict]] = {}
+    for rule in rules:
+        relative = rule["relative_path"]
+        lock_relative = rule.get("lock_file")
+        identity_relative = rule.get("installed_tree_identity")
+        for worktree in scoped:
+            base = Path(worktree["path"])
+            install = base / relative
+            if not install.exists() or _is_link(install):
+                continue
+            lock_sha = _lock_digest(base / lock_relative) if lock_relative else None
+            if lock_sha is None:
+                continue
+            # two copies are the same shared install only when the declared lock and the
+            # install's own recorded identity agree; a missing identity is its own group
+            identity_sha = (_lock_digest(base / identity_relative) if identity_relative
+                            else "no-declared-identity") or "absent-installed-tree-identity"
+            porcelain = subprocess.run(["git", "-C", str(base), "status", "--porcelain"],
+                                       capture_output=True, text=True, encoding="utf-8",
+                                       errors="replace")
+            clean = porcelain.returncode == 0 and porcelain.stdout.strip() == ""
+            merged = subprocess.run(
+                ["git", "-C", str(root), "merge-base", "--is-ancestor",
+                 worktree.get("head", ""), baseline.stdout.strip()],
+                capture_output=True, text=True, encoding="utf-8", errors="replace").returncode == 0
+            if not (clean and merged):
+                continue
+            groups.setdefault((relative, lock_sha, identity_sha), []).append(
+                {"worktree": str(base).replace("\\", "/"),
+                 "install": str(install).replace("\\", "/"),
+                 "clean": clean, "head_is_ancestor_of_baseline": merged})
+    return [
+        {
+            "relative_path": relative,
+            "lock_sha256": lock_sha,
+            "installed_tree_identity_sha256": identity_sha,
+            "copy_count": len(members),
+            "copies": sorted(members, key=lambda item: item["install"]),
+        }
+        for (relative, lock_sha, identity_sha), members in sorted(groups.items())
+        if len(members) > 1
+    ]
+
+
 def _commit_exists(root: Path, sha: str) -> bool:
     if not re.fullmatch(r"[0-9a-fA-F]{7,40}", sha):
         return False
@@ -242,6 +366,19 @@ def check(root: Path = ROOT, record_path: Path = RECORD) -> tuple[list[str], dic
         failures.append(
             f"{len(measured['ambiguous'])} tracked path(s) match authority rules ambiguously: "
             + ", ".join(item["path"] for item in measured["ambiguous"][:5])
+        )
+
+    # ownership class `rebuildable-cache`: a shared install is copied at most once, so the
+    # next round of worktrees cannot re-sprawl the same dependency tree onto disk.
+    duplicated = copied_shared_resources(root)
+    for group in duplicated:
+        failures.append(
+            f"copied shared resource: {group['copy_count']} real copies of "
+            f"'{group['relative_path']}' for lock {group['lock_sha256'][:12]} "
+            f"(installed-tree identity {group['installed_tree_identity_sha256'][:12] if len(group['installed_tree_identity_sha256']) > 12 else group['installed_tree_identity_sha256']}) "
+            f"exist across clean-and-merged worktrees; keep one and link the rest with "
+            f"`cmd /c mklink /J` (unmount only with `cmd /c rmdir`): "
+            + ", ".join(item["install"] for item in group["copies"])
         )
 
     stated = record.get("measured") or {}
@@ -365,6 +502,7 @@ def check(root: Path = ROOT, record_path: Path = RECORD) -> tuple[list[str], dic
         "coverage_percent": measured["coverage_percent"],
         "denied_but_tracked": len(measured["denied_but_tracked"]),
         "ambiguous": len(measured["ambiguous"]),
+        "copied_shared_resource_groups": len(duplicated),
         "top_level_entries": len(covered),
         "legacy_manifest_entries": total_assets,
         "legacy_roots_recorded": len(recorded_legacy),
@@ -404,6 +542,7 @@ def main(argv: list[str] | None = None) -> int:
             f"{detail['owned']}/{detail['tracked_paths']} tracked paths owned "
             f"({detail['coverage_percent']}%), {detail['unowned']} unowned and all recorded, "
             f"{detail['denied_but_tracked']} deny-commit paths tracked, {detail['ambiguous']} ambiguous, "
+            f"{detail['copied_shared_resource_groups']} duplicated shared install group(s), "
             f"{detail['top_level_entries']} top-level entries classified, "
             f"{detail['legacy_manifest_entries']} legacy assets inventoried across {detail['legacy_roots_recorded']} legacy roots"
         )
