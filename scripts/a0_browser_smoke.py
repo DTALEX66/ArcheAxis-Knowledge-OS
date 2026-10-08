@@ -412,9 +412,16 @@ def canonical_host_surface(browser, problems: list[str]) -> dict[str, object]:
     single_file_inputs = page.locator("input[aria-label='导入原件']").count()
     assert single_file_inputs == 1, single_file_inputs
 
-    navigation = read_navigation_levels(page)
+    # The frame must show the surface its name claims. read_navigation_levels() navigates away
+    # to the learning space, so capturing after it produced a file called
+    # "canonical-host-library-*.png" that actually depicted 学习 - and the ledger row citing it
+    # as library evidence inherited that mismatch.
     shot = ARTIFACTS / f"canonical-host-library-{label}.png"
     page.screenshot(path=str(shot), full_page=True)
+    navigation = read_navigation_levels(page)
+    # The navigation probe ends on the learning space; keep that frame under its own name.
+    navigation_shot = ARTIFACTS / f"canonical-host-learning-{label}.png"
+    page.screenshot(path=str(navigation_shot), full_page=True)
     result: dict[str, object] = {
         "viewport": label,
         "host_bridge_stubbed": True,
@@ -424,6 +431,7 @@ def canonical_host_surface(browser, problems: list[str]) -> dict[str, object]:
         "folder_affordance": affordance,
         "navigation_levels": navigation,
         "screenshot": str(shot.relative_to(ROOT)),
+        "navigation_screenshot": str(navigation_shot.relative_to(ROOT)),
     }
     context.close()
     return result
