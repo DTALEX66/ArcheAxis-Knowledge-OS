@@ -40,3 +40,44 @@
 | GC-05 受控实施与回读 | 逐个 exact path/ref 执行；删除前复核目标仍在允许范围、归档可恢复、无运行进程占用；后运行 worktree/branch/引用清单、启动器与原生回归。 | `NOT_EXECUTED`。不使用 `git clean -fdx`、hard reset、递归批量删除或跨 shell 拼路径。 |
 
 现阶段只确认目录身份；不把 GC-01 视为 GC-02/03 完成。任何实际移除须先有该 exact path/ref 的逐项证据与恢复方案，且不触碰用户暂停保护类。
+
+## 2026-10-08 复测：身份冲突与纯净边界（本任务只读实测）
+
+工具与口径：Git Bash GNU `du -sk`（1K 块）、`stat -c%s` 字节数、`sha256sum` 逐字节哈希、PowerShell `VersionInfo` 取版本元数据。本轮**未删除、未迁移、未覆盖、未改 ACL、未终止进程**，也没有把任何候选冒充为当前可用版本。
+
+| 类别 | 实测 | 归属判定 |
+| --- | --- | --- |
+| 目录合计（排除所有嵌套 `.git`） | `du -sk --exclude=.git .` = 8,183,566 KB | — |
+| `.ui-task-tree/`（含其嵌套 `.git`） | `du -sk .ui-task-tree` = 6,471,511 KB | 开发材料，不属于绿色版部署目录 |
+| ┗ `ArcheAxis-Knowledge-OS-mainline` | 5,321,502 KB（不含自身 `.git`；加 `.git` 461,773 KB = 5,783,275 KB） | **独立克隆，属 `DESKTOP-L26E3AC/CodexSandboxOnline`（S-1-5-21-…-1004）**；git 以 dubious ownership 拒绝读写，非本任务 writer 所有，保持原样不动 |
+| ┗ `minimax-aaos-cosmic-ui-20261001` | 688,172 KB | 主仓库注册的 worktree（`codex/minimax-aaos-cosmic-ui-20261001`），仍属开发占用 |
+| ┗ `ArcheAxis-Knowledge-OS` | 60 KB | `git -C` 返回 "not a git repository"：残留外壳，非工作树；保留待业主判定 |
+| ┗ `ci-green-candidate-6621aab7` | 0 KB | 空目录，不是 Git 仓库 |
+| `AAOS-Tauri-f151f4c7998a/` | 694,424 KB | 已安装的 Tauri 候选运行件（含 `core/archeaxis-api.exe`） |
+| `runtime/python/` | 690,385 KB | 该版本运行所需运行时 |
+| `backups/` | 453,047 KB | 恢复清单类，须保留 |
+| `AAOS-Frontend-Acceptance-v4/` | 240,858 KB | 验收/候选类，非当前默认入口 |
+| `EBWebView/` | 42,928 KB | 可重建缓存 |
+| `data/` ＋ 根 `archeaxis.sqlite` | `data/` 40,651 KB；根库 987,136 bytes、`data/archeaxis.sqlite` 1,110,016 bytes（`du` 读为 964/1084 KB 块）；`.cognitive-volume-id` = `4cddc70d-3aaa-40d4-8e98-17ee51ddd22b` | **用户数据与 CAS 指向，禁止迁移或删除** |
+
+### 身份冲突（已实测，不可仅凭名称推定）
+
+三个文件同名 `ArcheAxis.exe`，`FileVersion` 与 `ProductVersion` 均为 `0.6.14`，但字节与哈希互不相同——版本号在此目录不具备身份区分力：
+
+| 路径 | 字节 | SHA-256（逐字节） |
+| --- | --- | --- |
+| `ArcheAxis.exe`（根，v0.6.14 安装件） | 9,094,656 | `132f1c8ccc5344cd8b709826b79c59ba01cf59b919073fd36a67ec249c5a0538` |
+| `AAOS-Tauri-f151f4c7998a/ArcheAxis.exe`（新 Tauri 构建） | 16,650,752 | `0e70ff43bdcc877f390d01f035a032326bef0f30216d8feb5a972e37773344ab` |
+| `backups/inplace-main-shell-20260903/ArcheAxis.exe` | 9,204,224 | `453147309147492d17dee8a997a2ea5f06ea9b40b112bf3e7dec494152969ddf` |
+
+因此"当前可用版本"只能由 SHA + `release-identity.json` + 目录角色三者共同确定；上表第二行是**候选构建**，未通过发布资格，不得充当当前版本。
+
+### 新发现：README 指向的恢复入口已断
+
+`README.md` 第 13 行把启动器指向 `AAOS-vd6bd374-20261001-x64\desktop\ArcheAxis.Desktop.exe`；本轮 `test -e` 结果为 **MISSING**。该悬空引用是恢复路径缺陷（不是体积问题），修正方式是更新清单指向实际存在的安装件，或在清单中明确标注该恢复目标已不可用；本轮**未改动 README**，因为改动启动目标属于版本切换决策，须业主授权。
+
+### GC 状态（本轮）
+
+GC-01 清单：以本表更新——`.ui-task-tree/` 现存 4 个目录（2026-10-01 记录中的 `aaos-ui-phase2-integrate` 与 `AAOS-integration-verification-413ad3a0` 已不在当前列表，说明该目录自 10-01 起已变动，历史行保留不改写）。GC-02 引用保护：完成身份与用户数据清点。GC-03 目录规范：**待业主裁决**——6.47 GB 开发占用是否应从部署目录迁出、迁往何处。GC-04/GC-05：`NOT_EXECUTED`，无任何删除授权被使用。
+
+边界结论：绿色版只承载"已验证版本运行所需内容 + 该版本的最小身份/审计/恢复清单"。当前它额外承载 6,471,511 KB 开发材料与一个不属于本项目的沙箱属主克隆；前者需业主授权后按 exact path 迁移，后者我不动。
