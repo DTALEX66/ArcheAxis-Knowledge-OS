@@ -4,39 +4,6 @@
   "scope": "frontend AAOS theme brand marks introduced in the UI taskpack increment",
   "items": [
     {
-      "path": "frontend/src/assets/aaos-brand-mark-black.svg",
-      "sha256": "f9c09abb241e2aec3887fcaa0dbc7cc574654a4852f5f5317adcfd54c5c47b95",
-      "bytes": 644,
-      "source": "AAOS-owned SVG adapted from existing star-orbit geometry; cool black-theme tokens",
-      "referenced_by": [
-        "frontend/src/design-system/theme.ts",
-        "frontend/src/components/StatusBar.tsx"
-      ],
-      "status": "SOURCE_IMPORT_CONFIRMED; BUILD_CONFIRMED"
-    },
-    {
-      "path": "frontend/src/assets/aaos-brand-mark-white.svg",
-      "sha256": "84cb8d2aca60170019c3cc3207643ac4d3ea55528d9d0563a14044adceeda9eb",
-      "bytes": 644,
-      "source": "AAOS-owned SVG adapted from existing star-orbit geometry; cool pearl-white tokens",
-      "referenced_by": [
-        "frontend/src/design-system/theme.ts",
-        "frontend/src/components/StatusBar.tsx"
-      ],
-      "status": "SOURCE_IMPORT_CONFIRMED; BUILD_CONFIRMED"
-    },
-    {
-      "path": "frontend/src/assets/aaos-brand-mark-cosmic.svg",
-      "sha256": "702e0758e7a80d93abb334964416b0eda23e80f040abbb863cfe176c22b30b01",
-      "bytes": 644,
-      "source": "AAOS-owned SVG adapted from existing star-orbit geometry; cool deep-space tokens",
-      "referenced_by": [
-        "frontend/src/design-system/theme.ts",
-        "frontend/src/components/StatusBar.tsx"
-      ],
-      "status": "SOURCE_IMPORT_CONFIRMED; BUILD_CONFIRMED"
-    },
-    {
       "path": "frontend/src/components/galaxy-states.css",
       "sha256": "2dda45be48a229f42081fce3d475fb08a7447129ad70bb5cee14c1776236ee45",
       "bytes": 1616,
@@ -46,6 +13,80 @@
         "frontend/src/components/RealData.tsx"
       ],
       "status": "COMPONENT_IMPORT_CONFIRMED; BUILD_CONFIRMED"
+    },
+    {
+      "path": "frontend/src/assets/aaos-brand-mark-black.png",
+      "sha256": "4a7c019bd335a414f5fc69043f8d2c4c610310a019ad2619d7d958d977669d6b",
+      "bytes": 12926,
+      "source": "cut from the owner's logo master Three_Project_Logos_BW_4K_0001_图层 3.jpg (sha256 670eb8238380992436960333af8950aaf6aa90029847cf0ab98b3f2c7e4b1617); alpha = stretched luminance, RGB = the theme's own --aaos-text",
+      "role": "status-bar brand mark, drawn at 31x28 CSS px",
+      "referenced_by": [
+        "frontend/src/design-system/theme.ts",
+        "frontend/src/components/StatusBar.tsx"
+      ],
+      "status": "SOURCE_IMPORT_CONFIRMED; RENDER_VERIFIED_IN_CHROMIUM",
+      "canvas": [
+        182,
+        165
+      ]
+    },
+    {
+      "path": "frontend/src/assets/aaos-brand-mark-white.png",
+      "sha256": "48d2558aabce6cb62a6db90474527f1ba4ceec499ca4e4aae1168b8ca9ce1168",
+      "bytes": 13328,
+      "source": "cut from the owner's logo master Three_Project_Logos_BW_4K_0001_图层 3.jpg (sha256 670eb8238380992436960333af8950aaf6aa90029847cf0ab98b3f2c7e4b1617); alpha = stretched luminance, RGB = the theme's own --aaos-text",
+      "role": "status-bar brand mark, drawn at 31x28 CSS px",
+      "referenced_by": [
+        "frontend/src/design-system/theme.ts",
+        "frontend/src/components/StatusBar.tsx"
+      ],
+      "status": "SOURCE_IMPORT_CONFIRMED; RENDER_VERIFIED_IN_CHROMIUM",
+      "canvas": [
+        182,
+        165
+      ]
+    },
+    {
+      "path": "frontend/src/assets/aaos-brand-mark-cosmic.png",
+      "sha256": "31dc146b938fe395eedb0710244b39f0124e2590e9af455a7e5b383c92b2dc77",
+      "bytes": 12919,
+      "source": "cut from the owner's logo master Three_Project_Logos_BW_4K_0001_图层 3.jpg (sha256 670eb8238380992436960333af8950aaf6aa90029847cf0ab98b3f2c7e4b1617); alpha = stretched luminance, RGB = the theme's own --aaos-text",
+      "role": "status-bar brand mark, drawn at 31x28 CSS px",
+      "referenced_by": [
+        "frontend/src/design-system/theme.ts",
+        "frontend/src/components/StatusBar.tsx"
+      ],
+      "status": "SOURCE_IMPORT_CONFIRMED; RENDER_VERIFIED_IN_CHROMIUM",
+      "canvas": [
+        182,
+        165
+      ]
+    },
+    {
+      "path": "src-tauri/icons/icon.png",
+      "sha256": "8bebca3ffae4768f3d84751437d89235e48946fcfba3012ad5551139c0f19803",
+      "bytes": 16875,
+      "source": "cut from the owner's logo master Three_Project_Logos_BW_4K_0001_图层 3.jpg (sha256 670eb8238380992436960333af8950aaf6aa90029847cf0ab98b3f2c7e4b1617); alpha = stretched luminance, RGB = the theme's own --aaos-text",
+      "role": "window/taskbar/installer icon (256 px)",
+      "referenced_by": [
+        "src-tauri/tauri.conf.json"
+      ],
+      "status": "SOURCE_IMPORT_CONFIRMED; RENDER_VERIFIED_IN_CHROMIUM",
+      "canvas": [
+        256,
+        256
+      ]
+    },
+    {
+      "path": "src-tauri/icons/icon.ico",
+      "sha256": "238c0f89223cad5229d51c32b93212a129664aaf9b244e4648fc56cb1f9897aa",
+      "bytes": 37187,
+      "source": "cut from the owner's logo master Three_Project_Logos_BW_4K_0001_图层 3.jpg (sha256 670eb8238380992436960333af8950aaf6aa90029847cf0ab98b3f2c7e4b1617); alpha = stretched luminance, RGB = the theme's own --aaos-text",
+      "role": "shell icon, sizes 16-256",
+      "referenced_by": [
+        "src-tauri/tauri.conf.json"
+      ],
+      "status": "SOURCE_IMPORT_CONFIRMED; RENDER_VERIFIED_IN_CHROMIUM"
     }
   ],
   "excluded": [
@@ -61,5 +102,49 @@
       "path": "apps/ArcheAxis.Desktop/Assets/aaos-evidence-anchor-empty-state.png",
       "reason": "historically unreferenced Avalonia-only candidate; preserve rather than repurpose without content/theme validation"
     }
-  ]
+  ],
+  "superseded": [
+    {
+      "path": "frontend/src/assets/aaos-brand-mark-black.svg",
+      "sha256": "f9c09abb241e2aec3887fcaa0dbc7cc574654a4852f5f5317adcfd54c5c47b95",
+      "bytes": 644,
+      "superseded_on": "2026-10-08",
+      "superseded_by": "frontend/src/assets/aaos-brand-mark-black.png",
+      "was": "AAOS-owned SVG adapted from existing star-orbit geometry; cool black-theme tokens",
+      "last_present_at": "29c3cb98"
+    },
+    {
+      "path": "frontend/src/assets/aaos-brand-mark-white.svg",
+      "sha256": "84cb8d2aca60170019c3cc3207643ac4d3ea55528d9d0563a14044adceeda9eb",
+      "bytes": 644,
+      "superseded_on": "2026-10-08",
+      "superseded_by": "frontend/src/assets/aaos-brand-mark-white.png",
+      "was": "AAOS-owned SVG adapted from existing star-orbit geometry; cool pearl-white tokens",
+      "last_present_at": "29c3cb98"
+    },
+    {
+      "path": "frontend/src/assets/aaos-brand-mark-cosmic.svg",
+      "sha256": "702e0758e7a80d93abb334964416b0eda23e80f040abbb863cfe176c22b30b01",
+      "bytes": 644,
+      "superseded_on": "2026-10-08",
+      "superseded_by": "frontend/src/assets/aaos-brand-mark-cosmic.png",
+      "was": "AAOS-owned SVG adapted from existing star-orbit geometry; cool deep-space tokens",
+      "last_present_at": "29c3cb98"
+    }
+  ],
+  "revision_date": "2026-10-08",
+  "revision_note": "品牌图从自绘近似 SVG 换为业主 2026-10-08 提供的黑白标志母版抠图；抠图配方与尺寸见 .project-local/runs/logo-extract-20261008/extract_logo_assets.py，母版 SHA-256 与逐文件哈希由该脚本按磁盘字节计算。",
+  "logo_master": {
+    "file": "Three_Project_Logos_BW_4K_0001_图层 3.jpg",
+    "sha256": "670eb8238380992436960333af8950aaf6aa90029847cf0ab98b3f2c7e4b1617",
+    "bytes": 295557,
+    "emblem_master_canvas": [
+      973,
+      879
+    ],
+    "lockup_master_canvas": [
+      1036,
+      1053
+    ]
+  }
 }

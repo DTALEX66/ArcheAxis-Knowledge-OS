@@ -1,6 +1,6 @@
 import { SpaceId, SPACES } from "../spaces/spaces";
 import { useAaosTheme } from "../design-system/ThemeProvider";
-import { AAOS_THEME_REGISTRY } from "../design-system/theme";
+import { AAOS_THEME_REGISTRY, BRAND_MARK_SLOT } from "../design-system/theme";
 import { CAPABILITY_CATALOG } from "../api/generated/capability-catalog";
 import { CommandPalette } from "./CommandPalette";
 import { ThemePicker } from "./ThemePicker";
@@ -48,7 +48,7 @@ export function StatusBar({
   return (
     <header className="status-bar" role="banner">
       <div className="status-bar-brand">
-        <img src={AAOS_THEME_REGISTRY[theme].brandMark} width={28} height={28} alt="" aria-hidden="true" />
+        <img className="brand-mark" src={AAOS_THEME_REGISTRY[theme].brandMark} width={BRAND_MARK_SLOT.width} height={BRAND_MARK_SLOT.height} alt="" aria-hidden="true" />
         <span>星环知识平台</span>
         {externalDev ? <span className="dev-marker">开发</span> : null}
       </div>

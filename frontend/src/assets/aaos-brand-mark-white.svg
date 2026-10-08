@@ -1,9 +1,0 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" role="img" aria-label="ArcheAxis 星环标记">
-  <g fill="none" stroke-linecap="round" stroke-linejoin="round">
-    <circle cx="24" cy="24" r="18.5" stroke="#456589" stroke-width="1.2"/>
-    <circle cx="24" cy="24" r="13.5" stroke="#087F8C" stroke-width="1"/>
-    <ellipse cx="24" cy="24" rx="22.5" ry="8.5" transform="rotate(-16 24 24)" stroke="#456589" stroke-width="1"/>
-    <path d="M24 1v46M1 24h46" stroke="#456589" stroke-width="1.1"/>
-    <path d="M24 12l2.1 9.9L36 24l-9.9 2.1L24 36l-2.1-9.9L12 24l9.9-2.1Z" fill="#FFFFFF" stroke="#456589" stroke-width=".8"/>
-  </g>
-</svg>

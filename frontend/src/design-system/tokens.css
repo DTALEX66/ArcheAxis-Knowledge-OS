@@ -855,6 +855,14 @@ tr:hover {
   min-width: 180px;
 }
 
+/* The brand mark is the owner's logo cut to transparency, so what a theme changes here is how it
+   lights, not what it draws: a static halo is what keeps a 28px line-art emblem readable on a
+   dark surface. Nothing animates, so there is no filter to interpolate per frame and reduced
+   motion has no motion left to stop. */
+.status-bar-brand .brand-mark {
+  filter: drop-shadow(0 0 4px var(--ax-brand-glow));
+}
+
 .status-bar-brand small {
   font-weight: 400;
   font-size: 12px;

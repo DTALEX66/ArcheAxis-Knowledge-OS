@@ -1,6 +1,8 @@
-import blackBrandMark from "../assets/aaos-brand-mark-black.svg";
-import whiteBrandMark from "../assets/aaos-brand-mark-white.svg";
-import cosmicBrandMark from "../assets/aaos-brand-mark-cosmic.svg";
+// Cut from the owner's black/white logo master (2026-10-08); see
+// docs/current/AAOS-UI-MASTER-ASSET-AUDIT-20261001.md for the source hash and the per-slot sizes.
+import blackBrandMark from "../assets/aaos-brand-mark-black.png";
+import whiteBrandMark from "../assets/aaos-brand-mark-white.png";
+import cosmicBrandMark from "../assets/aaos-brand-mark-cosmic.png";
 
 export const AAOS_THEMES = [
   { id: "black", label: "黑色" },
@@ -16,6 +18,10 @@ export const AAOS_THEME_REGISTRY = {
   white: { id: "white", brandMark: whiteBrandMark },
   cosmic: { id: "cosmic", brandMark: cosmicBrandMark },
 } as const satisfies Record<AaosThemeId, { id: AaosThemeId; brandMark: string }>;
+
+/** The CSS box the status bar draws the brand mark in. The cut-out carries this aspect, so a
+    re-cut at a different ratio shows up as a failed contract test rather than as a squashed logo. */
+export const BRAND_MARK_SLOT = { width: 31, height: 28 } as const;
 
 const PREFERENCE_KEY = "aaos.ui.theme.v1";
 

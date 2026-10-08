@@ -16,6 +16,7 @@
   --aaos-text: #f5f5f5;
   --aaos-muted: #a5adb3;
   --aaos-primary: #f5f5f5;
+  --ax-brand-glow: #f5f5f559;
   --aaos-on-primary: #101214;
   --ax-control-border: var(--aaos-control-border);
   --aaos-ornament: #acbfd6;
@@ -71,6 +72,7 @@
   --aaos-text: #172033;
   --aaos-muted: #536277;
   --aaos-primary: #087f8c;
+  --ax-brand-glow: #087f8c33;
   --aaos-on-primary: #ffffff;
   --ax-control-border: var(--aaos-control-border);
   --aaos-ornament: #456589;
@@ -126,6 +128,7 @@
   --aaos-text: #eef3ff;
   --aaos-muted: #a8b8d0;
   --aaos-primary: #2ec4b6;
+  --ax-brand-glow: #2ec4b666;
   --aaos-on-primary: #081020;
   --ax-control-border: var(--aaos-control-border);
   --aaos-ornament: #b8d4ff;

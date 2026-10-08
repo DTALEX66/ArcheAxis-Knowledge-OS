@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { readFileSync } from "node:fs";
 import { basename, resolve } from "node:path";
-import { AAOS_THEMES, AAOS_THEME_REGISTRY, applyTheme, readThemePreference, writeThemePreference } from "../design-system/theme";
+import { AAOS_THEMES, AAOS_THEME_REGISTRY, BRAND_MARK_SLOT, applyTheme, readThemePreference, writeThemePreference } from "../design-system/theme";
 
 const frontend = basename(process.cwd()) === "frontend" ? process.cwd() : resolve(process.cwd(), "frontend");
 
@@ -13,7 +13,16 @@ describe("AAOS theme preferences", () => {
   it("maps one real AAOS brand mark to each theme through the shared registry", () => {
     expect(Object.keys(AAOS_THEME_REGISTRY)).toEqual(AAOS_THEMES.map(({ id }) => id));
     for (const theme of AAOS_THEMES) {
-      expect(AAOS_THEME_REGISTRY[theme.id].brandMark).toMatch(/aaos-brand-mark-(black|white|cosmic)\.svg$/);
+      const mark = AAOS_THEME_REGISTRY[theme.id].brandMark;
+      expect(mark).toMatch(/aaos-brand-mark-(black|white|cosmic)\.png$/);
+      const bytes = readFileSync(resolve(frontend, "src/assets", basename(mark)));
+      expect(bytes.subarray(1, 4).toString("latin1")).toBe("PNG");
+      // IHDR carries the canvas size, so the artwork itself is checked against the box the status
+      // bar draws it in: a re-cut at another ratio would squash the logo and no DOM assertion sees
+      // that, because the element keeps whatever width it was given.
+      const [width, height] = [bytes.readUInt32BE(16), bytes.readUInt32BE(20)];
+      expect(Math.abs(width / height - BRAND_MARK_SLOT.width / BRAND_MARK_SLOT.height)).toBeLessThan(0.01);
+      expect(height).toBeGreaterThanOrEqual(BRAND_MARK_SLOT.height * 4);
     }
     expect(new Set(Object.values(AAOS_THEME_REGISTRY).map(({ brandMark }) => brandMark)).size).toBe(3);
   });
