@@ -4321,3 +4321,26 @@ Owner 裁决：执行 2/3/4，5 给出说明。本轮先做**方案 B 的 Core �
 **验证**：`cargo fmt --all -- --check` exit 0；`archeaxis-api` 套件 **204 passed / 0 failed**。
 
 **方案 B 的剩余部分**：界面 —— 首页卡片 `本月掌握` 更名为 `本月进展`，用这些字段展示可复述的事实并**常驻**「不构成掌握结论」限定。下一轮做。
+
+---
+
+## 2026-10-08 分支 `codex/aaos-ui02-nav3-20261008` 的 Rust 门禁与一条新暴露的主线缺口
+
+**本轮实跑**（回执 `.project-local/artifacts/evidence/ui-branch-rust-all-gates-20261008/receipt.json`，
+tip `5ce27acb`，基线 `origin/main@4b9828c4`）：经跟踪入口 `scripts/ci/cargo_test.bat` 先 `fmt --check`
+（`FMT_CHECK_EXIT=0`，0 处 diff），再 `test --workspace --offline --no-fail-fast`
+（`CARGO_TEST_EXIT=0`，**524 passed / 0 failed / 0 ignored**，130 条 `test result:` 行，两份日志各带 sha256）。
+这不引用冻结候选 `72a0bbc2` 的 526/0，也不引用任何历史日志。
+
+**新缺口（有主，属主线）**：候选件那轮比本分支多出的唯一测试二进制是
+`crates/archeaxis-domain/tests/learning_schedule_basis_guard.rs`。本轮用
+`git ls-tree -r --name-only <ref> -- <path>` 逐 ref 核实：候选 `72a0bbc2` 有，基线 `4b9828c4` 无，
+本分支 tip 无。也就是说 **P05 的 FSRS 排期依据守卫只活在未合并的候选分支上**，主线的 P05 并不受该测试保护。
+把该文件移植到主线是一片的真实待办，不能拿候选件的绿色 CI 顶替。
+
+**同一分支的前端门禁**：`ui-branch-frontend-all-gates-20261008/receipt.json` —— vitest **381/381（56 文件）**、
+`tsc --noEmit` exit 0 且零诊断，采集于 `a48174f2`（其后仅文档提交），已在 open-work register 的 UI-02/UI-03 行内引用。
+
+**仍未做**：安装后的 WebView2 宿主内回读、物理 IME/DPI/P95/冷启动、九步人工旅程、本分支的 CI 资格化
+（需一次性 push+PR+`force_full` 授权）、`p08`/`p09-11` 两份 log-derived 回执的层级改写（本轮只在
+`counting_notes.slice_coverage_by_name` 记录 45/45 与 62/62 的名字在本轮同样通过，没有动它们的层级）。
