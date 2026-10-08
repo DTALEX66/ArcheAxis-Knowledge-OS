@@ -85,6 +85,14 @@
 
 未达成的部分如实保留：新增 Rust 测试 `crates/archeaxis-api/tests/oss_template_reuse.rs` 本地 **NOT_RUN**（需 cargo 构建，未跑就不主张）；模板在 jsdom 下渲染属 SIMULATED/INTEGRATED，不等于真实知识库操作；OSS 侧的 T1/T2/T3 与 28 学科配置经整合后由 `TemplateBindings.test.tsx` 与 `test_oss_reuse_crosswalk.py` 覆盖，未经真人学习配对验证。
 
+### 已核实的门禁边界（对我先前一句过宽说法的收窄）
+
+穷尽 `grep TemplateLauncher frontend/src` 的结果只有三处：`CanonicalLibrarySpace.tsx:16` 导入、`:385` 挂载、`TemplateBindings.test.tsx:5/:71` **独立渲染该组件**。因此准确说法是：
+
+- **已有守卫**：`TemplateBindings.test.tsx` 覆盖组件自身逻辑，包括"拒绝放弃脏模板属性时保持展开"这条真实行为（`window.confirm` 返回 false → `details.open` 仍为 true、草稿值保留）。
+- **确实无守卫**：**没有任何测试断言资料库页面挂载了它**（`grep 学科模板 frontend/src/__tests__/*.tsx` 为空），浏览器门禁也不覆盖。删掉 `:385` 那一行，58 文件 / 436 测试与 A0 全绿。
+- 该缺口由并行线 2（`codex/aaos-ui-templates-20261008`）关闭，要求含"拆掉挂载必须变红"的反证；本轮不在我的工作树重复实现，以免与它在前端文件上互相覆盖。
+
 ## 6. 需业主决定的具体事项
 
 1. **push 与远端 CI 资格化**：分支 `codex/aaos-gov-ui-20261008`（HEAD 见 §7）未推送；`a0-gates`/`browser-smoke` 需一次 push 才能取得当前分支的 CI 结论。
