@@ -590,6 +590,18 @@ def measure_geometry(page, bands: dict[str, str]) -> dict[str, object]:
               unreachableBands.push([name, +band.rect.height.toFixed(1), +band.visible.bottom.toFixed(1)]);
             }
           }
+          // The band box fitting its own slot says nothing about what is inside it: a landmark can
+          // be the clipper, and then its own overflowing content is cut with no way back. That is
+          // how a nav row ends mid-label under a dock while every rect still "fits".
+          const unscrollableBands = [];
+          for (const name of names) {
+            const band = bands[name];
+            const style = getComputedStyle(band.node);
+            if (band.node.scrollHeight > band.node.clientHeight + 1
+                && !['auto', 'scroll'].includes(style.overflowY)) {
+              unscrollableBands.push([name, band.node.scrollHeight, band.node.clientHeight, style.overflowY]);
+            }
+          }
           return {
             scrollWidth: document.documentElement.scrollWidth,
             clientWidth: document.documentElement.clientWidth,
@@ -605,6 +617,7 @@ def measure_geometry(page, bands: dict[str, str]) -> dict[str, object]:
             clippedBands: clippedBands,
             missingBands: missingBands,
             unreachableBands: unreachableBands,
+            unscrollableBands: unscrollableBands,
             landmarkCount: names.length,
             motionFast: getComputedStyle(document.documentElement).getPropertyValue('--ax-motion-fast').trim(),
           };
@@ -639,6 +652,7 @@ def check_geometry(
     # A band that runs past its container is only acceptable if the container can bring it back:
     # clipped-and-unreachable would pass an overlap check while showing the user nothing.
     assert not geometry["unreachableBands"], geometry
+    assert not geometry["unscrollableBands"], geometry
     assert geometry["motionFast"] == "0ms", geometry
     if width <= 1200:
         # 601..1200 is where the chrome narrows so the reading column can survive; the

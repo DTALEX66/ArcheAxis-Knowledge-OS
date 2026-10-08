@@ -67,11 +67,14 @@ def test_the_gate_measures_painted_overlap_not_bounding_boxes() -> None:
     nothing there."""
     source = (ROOT / "scripts" / "a0_browser_smoke.py").read_text(encoding="utf-8")
     for key in ("landmarkOverlaps", "clippedBands", "landmarkCount", "missingBands",
-                "expectedBands", "unreachableBands"):
+                "expectedBands", "unreachableBands", "unscrollableBands"):
         assert key in source, f"the geometry probe no longer reports {key}"
     assert 'assert not geometry["landmarkOverlaps"]' in source
     assert 'assert not geometry["missingBands"]' in source
     assert 'assert not geometry["unreachableBands"]' in source
+    # A band can be the clipper rather than the clipped, and then its own content is cut with no
+    # way back while every rect still fits.
+    assert 'assert not geometry["unscrollableBands"]' in source
     # The two things that make the verdict mean something: the box is reduced by every clipping
     # ancestor before comparison, and the crossing point is hit-tested so a red names a real
     # painted element.
