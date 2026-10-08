@@ -2091,3 +2091,21 @@ decide：`D:\All projects\ArcheAxis-Knowledge-OS\.project-local\runs\be268a2d33\
 
 2026-10-07 F15 的权威行随产品入口改写（分支 `codex/f15-status-row-20261007`，基线 `origin/main=b9799378`，即 #180 的合并点）：`docs/authority/taskpack-0910-r3/R15-FORMAT-STATUS.json` 的 F15 行此前写着"目录批量是一个会发 HTTP 的脚本，不是 Core 路由也不是界面入口，所以文件夹是靠**跑脚本**入库而不是靠**问产品**入库"——这句在 #180 并入后已经不成立，留着就是权威面撒谎。改写三处（`3 增 3 删`，coverage_summary 未动）：`implemented_now` 补上产品入口的事实与它继承的拒绝语义（私有状态目录→整夹拒绝且不导入任何文件、隐藏与依赖目录→跳过并计数、超过 Core 的 64 MiB→不读字节就拒、单次 200 个上限→明写而不是静默截断），并记下扩展名→作业种类那张表从 `JobContent` 内联改为**两处界面共用一个模块**；`gap` 删掉那句已假的，换成真实的剩余边界（浏览器没有文件系统，所以界面**没有**脚本那份 JSONL 断点账，幂等改由 Core 承担——同哈希报 `duplicate`、重复作业报 409，各自是自己的回执状态而不是失败；父目录链不可核验，因为浏览器不交绝对路径）；`evidence` 补 `frontend/src/components/FolderIngest.tsx`、`frontend/src/api/conversionKinds.ts`、`frontend/src/__tests__/FolderIngest.test.tsx`、`scripts/a0_browser_smoke.py`。`status` 仍为 `partial`，不因为加了入口就升格。
 **齿证与验证**：脚本改前用 `json.loads` 解析并逐条检查 `evidence.code`＋`evidence.tests` 里**每一个路径在本树真实存在**（缺失清单为空才写盘），改后再解析一次确认 F15 行可读且状态未变；`tests/test_format_matrix.py` `12 passed`。**顺带测出一个与本轮无关的既有事实**：`scripts/check_format_matrix.py` 在**未改动的同一棵树**上同样退出 2（它默认找 R6 包布局下的 R5 矩阵，本机布局里没有），所以那不该被算成本刀的回归，也不该被误当作门在守这条路。未删除、未移动、未发布。
+
+## 更正：`machine-answer-real-release-core-20261008` 的 `receipt_sha256` 不指向该目录内的任何字节（2026-10-08）
+
+独立审计指出该证据的 `summary.receipt_sha256` 与同目录 `receipt.raw.log` 的字节哈希不符。本轮用 `stat -c%s` 与 `sha256sum` 逐字节复算，**复核成立**（数字为本轮实测，非转述）：
+
+| 对象 | 字节 | 本轮实测 SHA-256（原始字节） |
+| --- | --- | --- |
+| `.project-local/artifacts/evidence/machine-answer-real-release-core-20261008/receipt.raw.log` | 4,114 | `0cf9deba8d2a5ecc212bae0aa1172076882bd97ea208c230c808c197d20381b4` |
+| 同目录 `summary.json` | 1,865 | `0294d344a8a838aad6001b760ffed2b6e3ab9cdba2d3c33d64a972687a5ed5f4` |
+| `summary.json:11` 记录的 `receipt_sha256` | — | `2d3c69a50d8a8b7d12a26ee276325d9c9b788b0e1156c56a193d66c608a8cf4b` |
+
+**实际被哈希的对象与规则查到了什么**：`2d3c69a5…` 不等于 `receipt.raw.log` 也不等于 `summary.json` 的任何一种可辨识形式——已逐一排除原始字节、rstrip 行尾、CRLF↔LF 互换、UTF-16LE、UTF-8-BOM、摘要文件本身、以及 JSON 重序列化（排序/缩进/紧凑、带与不带尾换行）；对 `.project-local/artifacts/` 全树按原始字节与 rstrip 两种口径穷举亦无匹配，全仓 `grep 2d3c69a50d8a8b7d` 只命中 `summary.json:11` 自身。因此**该字段既不是"规范化摘要"也不是"原始字节摘要"，其来源在本轮证据内不可证**；不猜测它是哪一步算出来的，也不重跑一次去凑一个匹配值。
+
+**同时测出的捕获缺陷**：`receipt.raw.log` 共 102 行，其 JSON 正文恰好在第 4000 个字符处被截断（`json.loads` 报 `Invalid control character at: line 101 column 200 (char 4000)`，尾部为 `…ed about ArcheAxis Knowle\nCO_EXIT=0 `），而 `summary.json:8` 的 `coverage_caveat` 声称回执"从未被截断"。截断是**捕获环节**的缺陷，不是那次执行的缺陷：`CO_EXIT=0` 与截断前的内容仍是原工件的一部分，按本轮边界一律保留原字节与旧值，不改写、不删除、不重新生成。
+
+**引用面**：被跟踪的台账此前**并未**引用该目录（`git grep machine-answer-real-release-core` 在 `docs/`、`tests/`、`scripts/` 内为空），实际引用它的是主检出 `.project-local/artifacts/plans/20261007-AAOS01-fast-complete/` 下四份未跟踪本地报告（`EVIDENCE-LOCAL-SLICES-20261007.md`、`P-COMPLETION-AUDIT-20261008.md`、`HANDOFF-AUDIT-FOR-EXTERNAL-MODEL-20261008.md`、`OWNER-ACTION-AND-STATE-20261008.md`）。共享的 `.project-local/` 不属本轮 writer 所有，故未替它们改写；本节即该事实在仓库内的唯一持久记录，后续任何表面引用 `receipt_sha256` 时须带本节的限定。
+
+**状态影响**：`machine.answer` 的 REAL 判定不因本条降格——它建立在回执正文内容与 release Core 身份之上；但**其 `receipt_sha256` 字段单独记为 `UNVERIFIED`（哈希不可解析）**，且"回执完整未截断"这一条改为 `REFUTED`。新增可复算工具：`scripts/audit/reference_validation.py`（严格引用完整性，区分 PASS / UNRESOLVED / AMBIGUOUS / HASH_MISMATCH / HISTORICAL，同名歧义与越出声明根一律拒绝）与 `scripts/audit/emission_discipline.py`（生成器不得把打字进去的结论伪装成重算值），配套 `tests/test_reference_validation.py` `18 passed`、`tests/test_emission_discipline.py` `13 passed`。未删除、未移动、未推送、未重新执行任何模型调用。
