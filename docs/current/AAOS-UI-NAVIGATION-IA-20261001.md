@@ -1,6 +1,6 @@
 # AAOS 正式桌面导航信息架构（2026-10-01，实施中）
 
-依据用户 2026-10-01 最新要求、UI 套件 `01_01_产品信息架构` / `02_02_模块地图` / `03_03_导航结构`、`AGENTS.md`、R6/M0、`docs/truth/CAPABILITY_ATLAS_V2.yaml`，并对照 9 月 28 日完整包与 9 月 30 日 UI 包。B10 的平铺菜单仅为交互原型。项目权威仍由 `docs/CONFIGURATION_AUTHORITY_INDEX.md` 索引；根 `AUTHORITY.md` 缺失标记 `AUTHORITY_REFERENCE_MISSING`。
+依据用户 2026-10-01 最新要求、UI 套件 `01_01_产品信息架构` / `02_02_模块地图` / `03_03_导航结构`、`AGENTS.md`、R6/M0、`docs/truth/CAPABILITY_ATLAS_V2.yaml`，并对照 9 月 28 日完整包与 9 月 30 日 UI 包。B10 的平铺菜单仅为交互原型。项目权威由根 [`AUTHORITY.md`](../../AUTHORITY.md)（导航入口）与 `docs/DOCUMENTATION_AUTHORITY_INDEX.md`、`docs/CONFIGURATION_AUTHORITY_INDEX.md` 索引；本文件原记「根 `AUTHORITY.md` 缺失标记 `AUTHORITY_REFERENCE_MISSING`」，那是 2026-10-01 的实测，保留来源，不再作为当前断言。
 
 三级导航规则：一级选择日常工作流；二级选择该工作流下的对象或任务；三级进入真实对象的详情、版本或动作。第三级须有对象 ID/真实 Core 投影或明确显示 `待开发`，不得以样例对象充当用户数据。空状态与接口未接状态单独表达。设置与恢复在底部系统区；未来能力独立为只读蓝图区，不混入当前日常工作流。
 

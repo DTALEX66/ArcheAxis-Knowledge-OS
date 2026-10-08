@@ -6,7 +6,7 @@
 
 - 主仓库 `D:\All projects\ArcheAxis-Knowledge-OS`；当前实现worktree `D:\All projects\ArcheAxis-Knowledge-OS\.project-local\worktrees\dsh-backend-loop-20261001`；分支 `codex/dsh-aaos-real-multiformat-loop-20261001`。进入前动态读取branch/HEAD/status，若与交接不同先解释，不reset或覆盖。
 - Green `D:\All projects\ArcheAxis.Knowledge.Green-x64`，根目录不是Gitrepo，里面有真实库、运行包和主repo管理的嵌套worktrees。共享工具和模型只按现有索引消费，不迁移、不删、不上传权重。
-- 依次读最近AGENTS、LESSONS_LEARNED、`docs/CONFIGURATION_AUTHORITY_INDEX.md`、R6 `EXECUTOR-START.md/TASKS.json/TASKPACK.md`、M0 overlay、R6 live state/execution、`docs/current/AAOS-CLOSURE-GAP-AUDIT-20261003.md`及`AAOS-INDEPENDENT-AUDIT-20261003.md`。R7标签不自动成为新Authority；不存在的权威报AUTHORITY_REFERENCE_MISSING。
+- 依次读最近AGENTS、LESSONS_LEARNED、根 [`AUTHORITY.md`](../../AUTHORITY.md)（导航入口，2026-10-08 复核已存在）、`docs/DOCUMENTATION_AUTHORITY_INDEX.md`、`docs/CONFIGURATION_AUTHORITY_INDEX.md`、R6 `EXECUTOR-START.md/TASKS.json/TASKPACK.md`、M0 overlay、R6 live state/execution、`docs/current/AAOS-CLOSURE-GAP-AUDIT-20261003.md`及`AAOS-INDEPENDENT-AUDIT-20261003.md`。R7标签不自动成为新Authority；本提示词成文时（2026-10-03）根 `AUTHORITY.md` 尚不存在，故当时要求"不存在的权威报AUTHORITY_REFERENCE_MISSING"，该写法保留为历史口径，当前执行者改为读根 `AUTHORITY.md` 并按其 §5 顺序解析权威。
 - 既定架构：C#/Avalonia正式UI，Rust Core唯一canonical SQLite写者，隔离Python workers；禁止UI/worker直写主库、legacy/vNext双写。
 - 用户选定 **MINIMAX视觉＋DSH功能**。保留已移植cosmic/theme/glass、诊断折叠、点击反馈、reduced-motion、多轮纠正。不得整体切回某分支覆盖当前融合结果。
 - 用户要求项目同步：可提交和正常推送经过核验的任务所属源码、项目合同、脱敏审计文档/证据；禁止force push、history rewrite、直接破坏保护分支。merge/main和Release不得从“上传”推导授权；Release保持FROZEN。

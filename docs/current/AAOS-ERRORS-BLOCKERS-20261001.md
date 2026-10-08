@@ -4,7 +4,7 @@
 
 | 项 | 已观察证据 | 下一步 / 验收边界 |
 | --- | --- | --- |
-| 权威入口 | 根 `AUTHORITY.md` 缺失：`AUTHORITY_REFERENCE_MISSING`；项目实际 Authority 索引和 R6/M0 文件存在。 | 遵循已有索引，不从历史任务包重建权威。 |
+| 权威入口 | 2026-10-01 实测：根 `AUTHORITY.md` 缺失，记为 `AUTHORITY_REFERENCE_MISSING`（该结论是当时的实测，保留不改写，不再作为当前断言）；2026-10-08 复核：根 [`AUTHORITY.md`](../../AUTHORITY.md) 已存在且是导航入口，项目 Authority 索引与 R6/M0 文件同在。 | 遵循根 `AUTHORITY.md` 与既有索引，不从历史任务包重建权威。 |
 | 正式 UI | 阶段 Native 64 张截图覆盖 16 route、两主题、720/1280；未完成逐页母版像素/交互/DPI/IME/UIA 验收。 | 用 12 张产品母版与品牌图逐页核对；补空/加载/错误/离线，并重建最新源码安装候选。 |
 | 图标/配图/动效 | 现有 Lucide 矢量有局部部署；其余 UI01–UI14 为候选库，不能把 React 库直接当 Avalonia 控件。 | 核具体版本、许可证与引用路径；按母版做本地资产和低频光效，验证 reduced motion。 |
 | 真实后端 | iv32 原生握手和阶段 Home/Evidence 空态 Core 回读已见证据；原创持久化、全路由对象导航、多格式质量、真实模型纠错、重启回读未闭合。 | 按 `AAOS-UI-BACKEND-MAP-20261001.md` 与 R6/M0 用真实输入逐跳验收，未知保持 UNKNOWN。 |

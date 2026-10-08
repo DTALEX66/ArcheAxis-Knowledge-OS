@@ -65,6 +65,19 @@ are superseded by the R6 TaskPack and M0 overlay. Their evidence remains
 historical and is never a current execution queue. SUP-022's formal Tauri/Core
 refactor does not reactivate the legacy Python backend or the old G0 sequence.
 
+## Five routing questions, one existing file each (2026-10-08)
+
+This table adds no new authority: every answer is a file that already existed before this batch.
+It exists so a reader can resolve the five standing questions from this index alone.
+
+| Question | Resolves to | Why that file and no other |
+| --- | --- | --- |
+| What do we execute now? | [AAOS-01 execution specification](authority/taskpack-1004-aaos01/01_完整执行任务书.md) | Root `AUTHORITY.md` §6 and `AGENTS.md` §6 name this single active package; R6/M0 are inherited constraints, not a parallel queue. |
+| What tasks are still open? | [AAOS-01 live ledger](current/AAOS01-Q00-Q15-LEDGER-FINAL-20261005.md) | The single live Q00–Q15 progress record. Dated registers such as `current/AAOS-OPEN-WORK-REGISTER-20261001.md` give only their own day's view and now say so. |
+| Where are implementation and evidence? | [coverage matrix](current/AAOS-COVERAGE-MATRIX-20261006.md) plus [audit snapshot](current/AAOS-AUDIT-SNAPSHOT-20261006.json) | The matrix maps CAP/Q/F/I to its landing point; the snapshot carries observed_at, SHA, command and exit code. Chain receipts live in [LIVE-CHAIN-RECEIPTS.json](current/receipts/LIVE-CHAIN-RECEIPTS.json). Status is read from tests and receipts, never from document wording. |
+| Where do external tools and models resolve? | [shared resource path index](SHARED_RESOURCE_PATH_INDEX.md) plus [external dependency boundary](environment/EXTERNAL_DEPENDENCIES.md) | Machine tool/model roots resolve in the first, product-internal model and tool registries (`config/models.yaml`, `config/tools.yaml`) in [the configuration authority index](CONFIGURATION_AUTHORITY_INDEX.md). Neither is agent provider routing. |
+| Which material is history only? | [docs/history/](history/) plus the section below | Anything dated and superseded lives here or is listed below; the [relocation manifest](history/DOCUMENT-CONSOLIDATION-20260927.json) gives the exact path, hashes and rollback for every moved record. |
+
 ## Historical read order and evidence map
 
 1. [Project operating boundary](../AGENTS.md) and the
@@ -184,6 +197,45 @@ single current FINAL ledger. Exact source/target hashes, consumers and recovery
 are appended to the existing [consolidation manifest](history/DOCUMENT-CONSOLIDATION-20260927.json)
 with execution date 2026-10-05. Earlier manifest rows and the existing Q02
 supersession headers remain unchanged. No immutable package or raw receipt was deleted.
+
+### 2026-10-08 relocation batch
+
+A second batch moved 63 dated records out of `current/` into `history/`: the 48 records that
+already carried `historical: true` plus `superseded-by:` (the AAOS-01 per-step narrative series,
+into `history/aaos01-20261005/`), and the superseded members of the UI handoff, goal/state,
+cloud-audit, UI asset-audit, R5 handoff, R5 audit-delta and DSH backend audit groups. Each moved
+markdown record carries one dated archival marker line naming the surviving current entry; JSON
+records moved byte-for-byte with no content change. Nothing was deleted and no record was rewritten.
+Source path, target path, byte counts, pre-move and post-move SHA-256, rollback and verification
+are 63 rows appended to the same [consolidation manifest](history/DOCUMENT-CONSOLIDATION-20260927.json)
+with `execution_date: 2026-10-08`; the 20 rows from earlier rounds keep their own dates and SHAs.
+`current/` therefore holds 342 tracked files instead of 405, and `history/` 230 instead of 167.
+
+### Duplicate groups that could not be collapsed by relocation at this baseline
+
+Relocating these would break a citation inside a surface this batch is not permitted to edit, so
+they stay in `current/` as dated records rather than being rewritten or left dangling:
+
+| Record or group | Held in place by |
+| --- | --- |
+| `current/AXR_060_*` (11 files) | `LEGACY_MANIFEST.yaml` and `docs/authority/legacy/T17-inventory-audit-2026-09-05.json`, plus `tests/test_axr060_completion_audit.py` |
+| `current/AAOS-UI-COVERAGE-MATRIX-20261001.md`, `current/AAOS-BACKEND-LOOP-EVIDENCE-20261001.md` | Root `AUTHORITY.md` routes to both and declares them measured-at-the-time records to preserve verbatim |
+| `current/AAOS-VISUAL-QA-20261001.md`, `current/AAOS-UI-MASTER-ASSET-AUDIT-20261001.md` | `current/AAOS-ALL-TASKS-DISPOSITION-20261001.csv` |
+| `current/AAOS-UI-COMMERCIAL-AUDIT-20260923.md`, `current/AAOS-UI-SUITE-COVERAGE-20260923.md`, `current/AAOS-UI-SUITE-ABSORPTION-AUDIT-20260922.md`, `current/AAOS-P3-UI-PUSH-SUMMARY-20260922.md`, `current/BRANCH-DISPOSITION-CURRENT-20260923.md`, `current/AAOS-BRANCH-DISPOSITION-REVIEW-20260925.json` | `current/AAOS-BRANCH-COMMIT-PATH-AUDIT-20260925.json`, and for two of them `current/R6-EXECUTION.md` |
+| `current/AAOS-UI-ASSET-MANIFEST-20261001.json` | `current/AAOS-UI-COVERAGE-MATRIX-20261001.md`, whose root-declared preservation forbids rewriting its citation |
+| `current/DSH-DP-TASK-ASSIGNMENTS-20260925.md` | `current/dsh-review/` records |
+| `current/AAOS-CLOUD-AUDIT-RECONCILIATION-20260923.md` | `tests/test_axr060_completion_audit.py` |
+| `current/AAOS-CLOUD-AUDIT-HANDOFF-20260926.md`, `current/AAOS-DSH-TAKEOVER-CHECKPOINT-20260926.md` | `tests/test_ci_classifier.py` and `.worklab/project-validation.v1.yaml` |
+| `current/AAOS_VISUAL_QA.md`, `current/DSH-GOVERNANCE-ALIGNMENT-20260927.md` | `workspace/intake/` notes, outside any path this batch may edit |
+| `current/BRANCH-DISPOSITION-20260918.md`, `current/R5-VERIFICATION-SUMMARY-20260914.md` | `current/R5-EXECUTION.md` and `current/R5-STATE.json` |
+| `current/DSH-BACKEND-HANDOFF-20260927.md` | `current/R6-EXECUTION.md` |
+| `current/DSH-BACKEND-CONTRACT-20260927.md` | Rust contract tests under `crates/archeaxis-api/tests/` |
+| `current/DSH-BACKEND-EVIDENCE-20260927.json` | `current/DSH-BACKEND-GAP-MAP-20260927.md` |
+
+Closing these needs a batch authorised to edit the citing surfaces first; it is not a reason to
+rewrite the cited records. The 100 further unreferenced AAOS-01 step records that carry no
+`historical: true` marker were also left in place: relocating them would mean declaring a
+supersession the repository has not yet stated, which is an Owner decision, not a consolidation.
 
 ## Cleanup and migration safety
 

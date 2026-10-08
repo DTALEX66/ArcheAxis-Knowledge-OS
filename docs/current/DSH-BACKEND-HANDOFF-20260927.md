@@ -152,7 +152,7 @@
 | tree | `2a5ee19bea2e5e6282ca0875529da545425e6dec`（与上文一致） |
 | committer date | `2026-09-27T00:05:33+08:00`（上文"提交日期 2026-09-27"成立） |
 | 远端引用（本回合已读） | `refs/heads/main` = `refs/heads/codex/aaos-p3-ui-convergence-20260922` = `666d01b3…` |
-| dirty/untracked | `apps/ArcheAxis.Desktop/MainWindow.axaml.cs`（M），加上既有未跟踪历史目录，以及本交接自身两个未跟踪文件 `docs/current/DSH-BACKEND-HANDOFF-20260927.md`、`docs/current/DSH-BACKEND-EXECUTION-PROMPT-20260927.md`。本回合未认领、未清理任何一项。 |
+| dirty/untracked | `apps/ArcheAxis.Desktop/MainWindow.axaml.cs`（M），加上既有未跟踪历史目录，以及本交接自身两个未跟踪文件 `docs/current/DSH-BACKEND-HANDOFF-20260927.md`、`docs/history/dsh-backend-20260927/DSH-BACKEND-EXECUTION-PROMPT-20260927.md`。本回合未认领、未清理任何一项。 |
 
 **上文 §1 声称的引用路径全部存在**（已逐一 `Test-Path`）：`docs/current/dsh-review/` 下 17 个文件（含
 `branch-batch-01/02/03.md|json`）、`dp-nf-handoff-20260925.md`、`dp-handoff-20260925.md`、
@@ -501,7 +501,7 @@ A02 / P0-H01 / F01 D1–D5 / Research DTO 四项 **Owner 决策不变**；真实
 
 - `git diff --stat`（本报告写入**前**的基线）：**空**（无未提交的已跟踪改动）；本节写入后为 `docs/current/DSH-BACKEND-HANDOFF-20260927.md` 一个文件（doc-only）。
 - `git status --short`（同一基线）：仅 ` M apps/ArcheAxis.Desktop/MainWindow.axaml.cs`（**既存、属前端写范围，本任务从未触碰**）与既存 `?? docs/history/**`。
-- 第一轮（阻塞修复 + 转述审计）的改动**全部已提交**在 `95f6638a`：`scripts/runtime/dev.py`、`tests/runtime-paths/test_external_toolchain.py`、`scripts/probes/core_learning_api_smoke.py`、`docs/current/R6-EXECUTION.md`、`docs/current/DSH-BACKEND-HANDOFF-20260927.md`、`docs/current/DSH-BACKEND-EXECUTION-PROMPT-20260927.md`；本节随其后的 doc-only 提交发布（其后 `git diff --stat` 复归为空）。
+- 第一轮（阻塞修复 + 转述审计）的改动**全部已提交**在 `95f6638a`：`scripts/runtime/dev.py`、`tests/runtime-paths/test_external_toolchain.py`、`scripts/probes/core_learning_api_smoke.py`、`docs/current/R6-EXECUTION.md`、`docs/current/DSH-BACKEND-HANDOFF-20260927.md`、`docs/history/dsh-backend-20260927/DSH-BACKEND-EXECUTION-PROMPT-20260927.md`；本节随其后的 doc-only 提交发布（其后 `git diff --stat` 复归为空）。
 - 后端与 UI 写范围**分离**：本任务对 `apps/**` 零改动，未改 Avalonia 视图/主题/视图模型/页面事件；`main` = 分支 = `95f6638a`，其 CI run `36292355530` **success**。
 
 **本任务两个提交的 CI 读回（必须连着"跑了什么"一起读，否则会高估）**：
