@@ -3,11 +3,12 @@ import { coreCommand } from "../api/core";
 import { ApiError } from "../api/client";
 import { RawReceiptButton } from "../components/DiagnosticConsole";
 import { Section } from "../components/RealData";
+import type { ObjectTrailLevel } from "../components/NavTrail";
 function record(value: unknown): Record<string, unknown> {
   if (!value || typeof value !== "object" || Array.isArray(value)) throw new Error("invalid response");
   return value as Record<string, unknown>;
 }
-export function CanonicalLearningSpace() {
+export function CanonicalLearningSpace({onTrail}:{onTrail?:(levels:readonly ObjectTrailLevel[])=>void}) {
   const [focusMode, setFocusMode] = useState(false);
   const [items, setItems] = useState<Record<string, unknown>[]>([]);
   const [itemKey, setItemKey] = useState("");
@@ -32,6 +33,17 @@ export function CanonicalLearningSpace() {
     } catch {setMessage("学习队列读取失败，请重试。");}
   }
   useEffect(()=>{void refresh();return()=>{epoch.current+=1;};},[]);
+  useEffect(() => {
+    const levels: ObjectTrailLevel[] = [];
+    if (itemKey && state) {
+      const item = items.find((row) => row.item_key === itemKey);
+      levels.push(
+        { id: "section:review", label: "复习队列", region: "review" },
+        { id: `item:${itemKey}`, label: itemKey, detail: typeof item?.next_review === "string" ? `下次复习 ${item.next_review}` : "下次复习未安排", region: "review" },
+      );
+    }
+    onTrail?.(levels);
+  }, [itemKey, state, items, onTrail]);
   async function open(key: string) {
     const current = ++epoch.current; setState(null);setHistory(null);setItemKey(key);setAnswer("");setRating("");setCheckedCorrect(null);setAnswerRevealed(false);eventId.current=null;
     try {
@@ -64,7 +76,7 @@ export function CanonicalLearningSpace() {
     finally {setBusy(false);}
   }
   return <Section title="学习"><button type="button" aria-pressed={focusMode} onClick={()=>{setFocusMode(value=>{const next=!value;window.dispatchEvent(new CustomEvent("archeaxis-learning-focus",{detail:next}));return next;});}}>{focusMode?"退出聚焦模式":"进入聚焦模式"}</button><p>学习者记录与机器能力分别显示。记录复习结果不会自动证明机器能力或知识正确性。</p>{!focusMode?<button onClick={()=>void refresh()}>刷新学习队列</button>:null}
-    <ul>{items.map(item=><li key={String(item.item_key)}><button disabled={busy} onClick={()=>void open(String(item.item_key))}>{String(item.item_key)}</button> · 下次复习 {typeof item.next_review === "string" ? item.next_review : "未安排"}</li>)}</ul>
+    <ul tabIndex={-1} data-section="review" aria-label="复习队列">{items.map(item=><li key={String(item.item_key)}><button disabled={busy} onClick={()=>void open(String(item.item_key))}>{String(item.item_key)}</button> · 下次复习 {typeof item.next_review === "string" ? item.next_review : "未安排"}</li>)}</ul>
     <form onSubmit={event=>{event.preventDefault();void open(itemKey);}}><label>学习项目键 <input value={itemKey} disabled={busy} onChange={event=>{epoch.current+=1;setItemKey(event.target.value);setState(null);}} /></label><button disabled={!itemKey.trim()||busy}>读取项目</button></form>
     {state?<article>{(()=>{const learner=record(state.learner);const assessment=learner.assessment?record(learner.assessment):null;return <>
       <h3>复习题</h3>
@@ -79,6 +91,6 @@ export function CanonicalLearningSpace() {
       {rating&&checkedCorrect!==null&&!ratingConsistent?<p role="alert">所选难度与对错不符合当前 Core 规则；答错选“忘记”，答对选择其他难度。</p>:null}
       <button disabled={busy||!assessment||!answer.trim()||!ratingConsistent} onClick={()=>void review()}>记录复习结果</button>
       <h4>机器能力状态</h4><p>{record(state.machine).status==="not_recorded"?"尚无机器能力记录。": "机器能力按 Core 回执单独记录。"}</p><RawReceiptButton label="机器能力记录回执" payload={state.machine} />
-    </>})()}<details><summary>历史与回执</summary><pre>{JSON.stringify(history,null,2)}</pre></details></article>:null}
+    </>})()}<details tabIndex={-1} data-section="record" aria-label="复习记录与回执"><summary>历史与回执</summary><pre>{JSON.stringify(history,null,2)}</pre></details></article>:null}
     {message?<p role="status">{message}</p>:null}</Section>;
 }

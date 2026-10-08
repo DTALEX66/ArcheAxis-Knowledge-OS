@@ -6,13 +6,14 @@ import { CAPABILITY_CATALOG, type CapabilityCatalogEntry } from "../api/generate
 import { canNavigateToCapability, CAPABILITY_NAVIGATION_ENTRIES, getCapabilityDestination, getCapabilityNextStep, navigationEntryMatches } from "../presentation/navigation";
 import { Section } from "../components/RealData";
 import type { SpaceId } from "./spaces";
+import type { ObjectTrailLevel } from "../components/NavTrail";
 
 function record(value: unknown): Record<string, unknown> {
   if (!value || typeof value !== "object" || Array.isArray(value)) throw new Error("invalid response");
   return value as Record<string, unknown>;
 }
 
-export function CanonicalCapabilitiesSpace({ onNavigate, selectedCapabilityId }: { onNavigate: (id: SpaceId) => void; selectedCapabilityId?: string | null }) {
+export function CanonicalCapabilitiesSpace({ onNavigate, selectedCapabilityId, navigation, onTrail }: { onNavigate: (id: SpaceId) => void; selectedCapabilityId?: string | null; navigation?: { section: string; sequence: number }; onTrail?: (levels: readonly ObjectTrailLevel[]) => void }) {
   const [selected, setSelected] = useState<CapabilityCatalogEntry | null>(() => CAPABILITY_CATALOG.entries.find((entry) => entry.atlas.capability_id === selectedCapabilityId) ?? null);
   const [activeTab, setActiveTab] = useState(selectedCapabilityId ? "details" : "catalog");
   const [query, setQuery] = useState("");
@@ -39,10 +40,20 @@ export function CanonicalCapabilitiesSpace({ onNavigate, selectedCapabilityId }:
     setSelected(entry);
     if (entry) setActiveTab("details");
   }, [selectedCapabilityId]);
+  useEffect(() => {
+    if (!navigation?.sequence) return;
+    setActiveTab(navigation.section === "details" ? "details" : "catalog");
+  }, [navigation?.section, navigation?.sequence]);
+  useEffect(() => {
+    onTrail?.(selected ? [
+      { id: "section:catalog", label: "能力目录与搜索", region: "catalog" },
+      { id: selected.atlas.capability_id, label: selected.atlas.canonical_name, detail: `${selected.atlas.capability_id} · ${selected.implementation.state}`, region: "details" },
+    ] : []);
+  }, [selected, onTrail]);
 
   const visible = CAPABILITY_NAVIGATION_ENTRIES.filter((entry) => navigationEntryMatches(entry, query));
   const destination = selected ? getCapabilityDestination(selected) : undefined;
-  const catalog = <>
+  const catalog = <div className="space-section-region" data-section="catalog" tabIndex={-1} aria-label="能力目录与搜索">
     <p>入口身份与别名由 Atlas 投影生成；能力声明、实际实现和运行资格分别核对。未来条目仍可查看用途与前提。</p>
     <AaosField label="查找能力" value={query} onChange={(event) => setQuery(event.currentTarget.value)} placeholder="名称、ID、对象、依赖或旧入口别名" />
     <div className="capability-actions"><AaosButton variant="secondary" onClick={() => void refresh()}>刷新当前健康与权限</AaosButton>
@@ -53,9 +64,9 @@ export function CanonicalCapabilitiesSpace({ onNavigate, selectedCapabilityId }:
       </button>
       <span>{navigationEntry.capability.implementation.state === "not_implemented" ? "尚未实现" : navigationEntry.capability.implementation.state === "worker_backed" ? "worker 实现声明" : "Core 原生实现声明"}</span>
     </li>)}</ul>
-  </>;
+  </div>;
 
-  const details = selected ? <article aria-label="能力详情">
+  const details = <div className="space-section-region" data-section="details" tabIndex={-1} aria-label="能力详情">{selected ? <article aria-label="能力详情">
     <h4>{selected.atlas.canonical_name}</h4>
     <p>稳定入口 ID {selected.atlas.capability_id}</p>
     <p>目录声明：{selected.atlas.authority_status} · 技术 {selected.atlas.technical_state} · 路线 {selected.atlas.roadmap_state} · 时段 {selected.atlas.activation_horizon}</p>
@@ -79,7 +90,7 @@ export function CanonicalCapabilitiesSpace({ onNavigate, selectedCapabilityId }:
       disabledReason={!destination ? "当前没有可打开的产品入口" : undefined} onClick={() => { if (destination) onNavigate(destination); }}>
       {destination ? "打开当前产品入口" : "当前执行入口尚未提供"}
     </AaosButton>
-  </article> : <p>从目录选择能力，查看用途、前提、依赖、状态、降级和下一步。</p>;
+  </article> : <p>从目录选择能力，查看用途、前提、依赖、状态、降级和下一步。</p>}</div>;
 
   return <Section title="全能力目录">
     <AaosTabs label="能力目录视图" value={activeTab} onValueChange={setActiveTab} tabs={[

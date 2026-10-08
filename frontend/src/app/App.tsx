@@ -4,9 +4,11 @@ import { StatusBar } from "../components/StatusBar";
 import { SpaceRail } from "../components/SpaceRail";
 import { ActivityDock } from "../components/ActivityDock";
 import { Inspector, type InspectionTarget } from "../components/Inspector";
-import { SpaceView } from "../spaces/SpaceView";
+import { SpaceView, canonicalSurface } from "../spaces/SpaceView";
 import { RecoveryShell } from "../components/RecoveryShell";
-import { ContextNav, type LibrarySection } from "../components/ContextNav";
+import { ContextNav } from "../components/ContextNav";
+import { NavTrail, type ObjectTrailLevel } from "../components/NavTrail";
+import { focusSpaceSection, spaceSectionsFor, type SpaceSectionDef } from "../presentation/spaceSections";
 import { EFFECTIVE_NAVIGATION_ENTRIES, resolveNavigationHash } from "../presentation/navigation";
 import {
   enterRecoverySafeMode,
@@ -36,7 +38,9 @@ export function App() {
   const [initialNavigation] = useState(() => resolveNavigationHash(window.location.hash));
   const [activeSpace, setActiveSpace] = useState<SpaceId>(initialNavigation?.spaceId ?? (desktop ? "library" : "workspace"));
   const [selectedCapabilityId, setSelectedCapabilityId] = useState<string | null>(initialNavigation?.capabilityId ?? null);
-  const [libraryNavigation, setLibraryNavigation] = useState<{ section: LibrarySection; sequence: number }>({ section: "sources", sequence: 0 });
+  const [sectionNavigation, setSectionNavigation] = useState<{ spaceId: SpaceId; section: string; sequence: number }>({ spaceId: "library", section: "sources", sequence: 0 });
+  const [objectTrail, setObjectTrail] = useState<readonly ObjectTrailLevel[]>([]);
+  const [sectionNotice, setSectionNotice] = useState<string | null>(null);
   const [inspectionTarget, setInspectionTarget] = useState<InspectionTarget | null>(null);
   const [inspectorOpen, setInspectorOpen] = useState(false);
   const [learningFocus, setLearningFocus] = useState(false);
@@ -89,14 +93,17 @@ export function App() {
   }, []);
 
   const navigate = useCallback((id: SpaceId) => {
-    if (draftDirty.current && !window.confirm("草稿尚未保存，请先保留文字。仍要离开吗？")) return;
+    if (draftDirty.current && !window.confirm("草稿尚未保存，请先保留文字。仍要离开吗？")) return false;
     setActiveSpace(id);
     if(id!=="learning"&&learningFocus){setLearningFocus(false);window.dispatchEvent(new CustomEvent("archeaxis-learning-focus",{detail:false}));}
     setSelectedCapabilityId(null);
     setInspectionTarget(null);
+    setObjectTrail([]);
+    setSectionNotice(null);
     const nextHash = `#space=${encodeURIComponent(id)}`;
     if (window.location.hash !== nextHash) window.history.replaceState(null, "", `${window.location.pathname}${window.location.search}${nextHash}`);
     navigationHash.current = nextHash;
+    return true;
   }, [learningFocus]);
 
   const openCapability = useCallback((id: string) => {
@@ -107,6 +114,8 @@ export function App() {
     if(learningFocus){setLearningFocus(false);window.dispatchEvent(new CustomEvent("archeaxis-learning-focus",{detail:false}));}
     setSelectedCapabilityId(id);
     setInspectionTarget(null);
+    setObjectTrail([]);
+    setSectionNotice(null);
     const nextHash = `#capability/${encodeURIComponent(id)}`;
     if (window.location.hash !== nextHash) window.history.replaceState(null, "", `${window.location.pathname}${window.location.search}${nextHash}`);
     navigationHash.current = nextHash;
@@ -125,6 +134,8 @@ export function App() {
       setActiveSpace(target.spaceId);
       setSelectedCapabilityId(target.capabilityId);
       setInspectionTarget(null);
+      setObjectTrail([]);
+      setSectionNotice(null);
     };
     window.addEventListener("hashchange", onHashChange);
     return () => window.removeEventListener("hashchange", onHashChange);
@@ -134,6 +145,36 @@ export function App() {
     setInspectionTarget(target);
     setInspectorOpen(true);
   }, []);
+
+  const surface = canonicalSurface(activeSpace, desktop);
+  const sections = spaceSectionsFor(activeSpace, surface);
+  const activeSection = sectionNavigation.spaceId === activeSpace
+    ? sectionNavigation.section
+    : sections.find((section) => section.state === "ready")?.id;
+
+  const focusRegion = useCallback((region: string) => {
+    if (focusSpaceSection(region)) { setSectionNotice(null); return; }
+    // A tab-mounted region only exists after the surface re-renders, so retry once
+    // before telling the user the group has nothing open.
+    globalThis.setTimeout(() => {
+      if (!focusSpaceSection(region)) setSectionNotice("这个分组当前没有可打开的区域；请先在当前视图选择具体对象。");
+    }, 0);
+  }, []);
+
+  const activateSection = useCallback((section: SpaceSectionDef) => {
+    if (section.state !== "ready") return;
+    if (section.goto) {
+      const target = section.goto;
+      if (!navigate(target.space)) return;
+      setSectionNavigation((previous) => ({ spaceId: target.space, section: target.section, sequence: previous.sequence + 1 }));
+      const region = spaceSectionsFor(target.space, canonicalSurface(target.space, desktop))
+        .find((item) => item.id === target.section)?.region;
+      if (region) focusRegion(region);
+      return;
+    }
+    setSectionNavigation((previous) => ({ spaceId: activeSpace, section: section.id, sequence: previous.sequence + 1 }));
+    if (section.region) focusRegion(section.region);
+  }, [activeSpace, desktop, focusRegion, navigate]);
 
   const toggleInspector = useCallback(() => setInspectorOpen((value) => !value), []);
   useEffect(() => {
@@ -425,6 +466,13 @@ export function App() {
     );
   }
 
+  const currentSpaceLabel = SPACES.find((space) => space.id === activeSpace)?.label ?? "";
+  const firstReadyRegion = sections.find((section) => section.state === "ready" && section.region)?.region;
+  const trailLevels: readonly ObjectTrailLevel[] = objectTrail.length === 0 ? [] : [
+    { id: `space:${activeSpace}`, label: currentSpaceLabel, ...(firstReadyRegion ? { region: firstReadyRegion } : {}) },
+    ...objectTrail,
+  ];
+
   return (
     <div className="app-shell">
       <StatusBar
@@ -443,10 +491,12 @@ export function App() {
       <div className="app-body">
         {!learningFocus && <aside className="navigation-sidebar" aria-label="产品导航">
           <SpaceRail active={activeSpace} onNavigate={navigate} onOpenCapability={openCapability} activeCapabilityId={selectedCapabilityId} spaces={SPACES} />
-          {!selectedCapabilityId && <ContextNav active={activeSpace} onNavigate={navigate} librarySection={libraryNavigation.section} onLibrarySection={desktop ? section => setLibraryNavigation(previous => ({section, sequence: previous.sequence + 1})) : undefined} />}
+          {!selectedCapabilityId && <ContextNav active={activeSpace} onNavigate={navigate} sections={sections} activeSection={activeSection} onSection={activateSection} />}
         </aside>}
         <main className="app-center" role="main" aria-label="当前空间内容">
-          <SpaceView spaceId={activeSpace} onInspect={inspect} onNavigate={navigate} libraryNavigation={libraryNavigation} selectedCapabilityId={selectedCapabilityId} />
+          <NavTrail levels={trailLevels} onJump={focusRegion} />
+          {sectionNotice ? <p className="nav-trail-notice" role="status">{sectionNotice}</p> : null}
+          <SpaceView spaceId={activeSpace} onInspect={inspect} onNavigate={navigate} navigation={sectionNavigation} selectedCapabilityId={selectedCapabilityId} onTrail={setObjectTrail} />
         </main>
         {inspectorOpen && !selectedCapabilityId && !learningFocus ? <Inspector target={inspectionTarget} onClose={() => setInspectorOpen(false)} /> : null}
       </div>

@@ -15,14 +15,14 @@ import { PdfPageRecognition } from "../components/PdfPageRecognition";
 import { FolderIngest } from "../components/FolderIngest";
 import "../components/content.css";
 import type { InspectionTarget } from "../components/Inspector";
-import type { LibrarySection } from "../components/ContextNav";
+import type { ObjectTrailLevel } from "../components/NavTrail";
 
 // PDF.js is a large renderer and is needed only when the selected original is a PDF.
 const PdfReader = lazy(() => import("../components/PdfReader").then(module => ({ default: module.PdfReader })));
 // Tiptap/ProseMirror are needed only after a versioned document is selected.
 const DocumentEditor = lazy(() => import("../components/DocumentEditor").then(module => ({ default: module.DocumentEditor })));
 
-export function CanonicalLibrarySpace({onKnowledge,initialDocumentId,onDirtyChange,onInspect,navigation}:{onKnowledge?:()=>void;initialDocumentId?:string;onDirtyChange?:(dirty:boolean)=>void;onInspect?:(target:InspectionTarget)=>void;navigation?:{section:LibrarySection;sequence:number}}) {
+export function CanonicalLibrarySpace({onKnowledge,initialDocumentId,onDirtyChange,onInspect,navigation,onTrail}:{onKnowledge?:()=>void;initialDocumentId?:string;onDirtyChange?:(dirty:boolean)=>void;onInspect?:(target:InspectionTarget)=>void;navigation?:{section:string;sequence:number};onTrail?:(levels:readonly ObjectTrailLevel[])=>void}) {
   const [sources, setSources] = useState<SourceDto[]>([]);
   const [sourcePage, setSourcePage] = useState(0);
   const [documents, setDocuments] = useState<DocumentSummaryDto[]>([]);
@@ -82,10 +82,31 @@ export function CanonicalLibrarySpace({onKnowledge,initialDocumentId,onDirtyChan
   }
   useEffect(() => {
     if (!navigation?.sequence) return;
-    const target = {sources:sourceNavigation,documents:documentNavigation,anchors:anchorNavigation,versions:versionNavigation}[navigation.section].current;
-    target?.scrollIntoView?.({block:"nearest",behavior:"auto"});
+    const regions: Record<string, { current: HTMLElement | null } | undefined> = {
+      sources: sourceNavigation, documents: documentNavigation, anchors: anchorNavigation, versions: versionNavigation,
+    };
+    const target = regions[navigation.section]?.current;
+    target?.scrollIntoView?.({ block: "nearest", behavior: "auto" });
     target?.focus();
   }, [navigation?.section, navigation?.sequence, source?.source_id, document?.document_id]);
+  useEffect(() => {
+    const levels: ObjectTrailLevel[] = [];
+    if (source) {
+      levels.push(
+        { id: "section:sources", label: "来源原件", region: "sources" },
+        { id: `source:${source.source_id}`, label: source.original_name, detail: `${source.source_id}@${source.source_revision}${document ? ` · 文档 v${document.version}` : ""}`, region: "sources" },
+      );
+    } else if (document) {
+      levels.push(
+        { id: "section:documents", label: "已保存文档", region: "documents" },
+        { id: `document:${document.document_id}`, label: document.title, detail: `${document.document_id} · v${document.version}`, region: "documents" },
+      );
+    }
+    if (document && historicalDocument?.document_id === document.document_id) {
+      levels.push({ id: `version:${historicalDocument.version}`, label: `历史版本 v${historicalDocument.version}`, detail: historicalDocument.content_sha256, region: "versions" });
+    }
+    onTrail?.(levels);
+  }, [source, document, historicalDocument, onTrail]);
   useEffect(() => {
     if (!document && !source) return;
     onInspect?.({
@@ -356,11 +377,11 @@ export function CanonicalLibrarySpace({onKnowledge,initialDocumentId,onDirtyChan
   const documentEditor = document ? <Suspense fallback={<p role="status">正在载入文档编辑器…</p>}><DocumentEditor key={`${document.document_id}:${editorEpoch}`} content={documentDrafts[document.document_id]?.content ?? document.editor_json as JSONContent} version={documentDrafts[document.document_id]?.baseVersion ?? document.version} onSave={save} onDirtyChange={value=>reportEditorDirty(document.document_id,value)} onDraftChange={(content,baseVersion)=>rememberDraft(document.document_id,content,baseVersion)} onCreateReference={source && original && bytes ? cite : undefined} onReferenceActivate={jump} /></Suspense> : null;
   return <Section title="资料库">
     <p className="muted">原件保留其不可变版本；草稿自动保存到本地核心，引用绑定原件版本。</p>
-    <label className="content-import">导入原件 <input type="file" aria-label="导入原件" disabled={importing} onChange={(event) => { const file = event.target.files?.[0]; if (file) void importFile(file); event.target.value = ""; }} /></label>
+    <label className="content-import" data-section="import" tabIndex={-1}>导入原件 <input type="file" aria-label="导入原件" disabled={importing} onChange={(event) => { const file = event.target.files?.[0]; if (file) void importFile(file); event.target.value = ""; }} /></label>
     {importReceipt?<dl className="receipt-grid" aria-label="导入回执"><div><dt>来源文件</dt><dd>{importReceipt.name}</dd></div><div><dt>原件大小</dt><dd>{importReceipt.bytes} 字节</dd></div><div><dt>导入状态</dt><dd>{importReceipt.state}</dd></div><div><dt>下一步</dt><dd>选择原件阅读或执行转换，再从实际引文整理待审核知识。</dd></div></dl>:null}
-    <FolderIngest />
+    <div className="space-section-region" data-section="folder" tabIndex={-1} aria-label="目录批量导入"><FolderIngest /></div>
     <div className="canonical-library">
-      <nav ref={sourceNavigation} tabIndex={-1} className="canonical-sources" aria-label="保留原件">
+      <nav ref={sourceNavigation} tabIndex={-1} className="canonical-sources" data-section="sources" aria-label="保留原件">
         {sources.length === 0 ? <p>暂无原件。</p> : sources.slice(sourcePage*30,(sourcePage+1)*30).map((item) => <button type="button" key={item.source_id} aria-current={source?.source_id === item.source_id ? "true" : undefined} onClick={() => void open(item)}>{item.original_name}</button>)}
         {sources.length>30?<div><button disabled={sourcePage===0} onClick={()=>setSourcePage(value=>value-1)}>上一组原件</button><span>{sourcePage+1} / {Math.ceil(sources.length/30)}</span><button disabled={(sourcePage+1)*30>=sources.length} onClick={()=>setSourcePage(value=>value+1)}>下一组原件</button></div>:null}
       </nav>
@@ -375,7 +396,7 @@ export function CanonicalLibrarySpace({onKnowledge,initialDocumentId,onDirtyChan
           {original && original.media_type === "application/octet-stream" ? <ContentDetectionPanel key={`detect:${source.source_id}`} sourceId={source.source_id} name={source.original_name} /> : null}
           <PdfPageRecognition key={`pages:${source.source_id}`} sourceId={source.source_id} />
           </div>
-          <aside ref={anchorNavigation} tabIndex={-1} aria-label="来源版本证据">
+          <aside ref={anchorNavigation} tabIndex={-1} data-section="anchors" aria-label="来源版本证据">
             <h4>来源与引用</h4>
             <p>引用绑定不可变原件版本，选择引用可回到已记录位置。</p>
             <details><summary>更多信息：来源链与内容指纹</summary><dl className="receipt-grid"><div><dt>来源</dt><dd>{source.original_name}</dd></div><div><dt>来源 ID</dt><dd>{source.source_id}</dd></div><div><dt>来源版本（原件指纹）</dt><dd>{source.source_revision}</dd></div><div><dt>原件 SHA-256</dt><dd>{original.sha256}</dd></div><div><dt>读取核验</dt><dd>原件字节与 Core 内容指纹已匹配</dd></div></dl></details>
@@ -397,9 +418,9 @@ export function CanonicalLibrarySpace({onKnowledge,initialDocumentId,onDirtyChan
       </div>)}
     </nav> : null}
     <button type="button" disabled={busy} onClick={() => void singleWrite(createOriginal)}>新建原创笔记</button>
-    <nav ref={documentNavigation} tabIndex={-1} aria-label="已保存文档">{documents.map(item => <button type="button" key={item.document_id} onClick={() => void openDocument(item.document_id)}>{item.title} · 文档</button>)}</nav>
-    {!source && navigation?.section === "anchors" ? <section ref={anchorNavigation} tabIndex={-1} aria-label="来源版本证据"><p>请先选择实际来源原件；原创笔记可以没有来源锚点。</p></section> : null}
-    {!document && navigation?.section === "versions" ? <div ref={versionNavigation} tabIndex={-1} aria-label="文档版本导航"><p>请先选择已保存文档，再查看它的历史版本。</p></div> : null}
+    <nav ref={documentNavigation} tabIndex={-1} data-section="documents" aria-label="已保存文档">{documents.map(item => <button type="button" key={item.document_id} onClick={() => void openDocument(item.document_id)}>{item.title} · 文档</button>)}</nav>
+    {!source && navigation?.section === "anchors" ? <section ref={anchorNavigation} tabIndex={-1} data-section="anchors" aria-label="来源版本证据"><p>请先选择实际来源原件；原创笔记可以没有来源锚点。</p></section> : null}
+    {!document && navigation?.section === "versions" ? <div ref={versionNavigation} tabIndex={-1} data-section="versions" aria-label="文档版本导航"><p>请先选择已保存文档，再查看它的历史版本。</p></div> : null}
         {document ? <>
           {document.source_id ? <section className="original-derived-split" aria-label="原件与派生文档并排阅读" style={{"--derived-focus":1} as CSSProperties}>
             <article className="original-derived-pane" aria-label="不可变原件">
@@ -418,9 +439,9 @@ export function CanonicalLibrarySpace({onKnowledge,initialDocumentId,onDirtyChan
            {documentEditor}
           <CheckPanel key={`checks:${document.document_id}:${document.version}`} document={document} onRevisionBasis={value=>{revisionBasis.current=value;}} />
           </>}
-          <div ref={versionNavigation} tabIndex={-1} aria-label="文档版本导航" className="draft-restore"><label>恢复历史版本 <input type="number" min="1" max={document.version} value={restoreVersion} onChange={(event) => setRestoreVersion(event.target.value)} /></label><button type="button" onClick={() => void readHistory()}>只读查看历史版本</button><button type="button" disabled={busy} onClick={() => void singleWrite(restore)}>读取并恢复版本</button></div>
+          <div ref={versionNavigation} tabIndex={-1} data-section="versions" aria-label="文档版本导航" className="draft-restore"><label>恢复历史版本 <input type="number" min="1" max={document.version} value={restoreVersion} onChange={(event) => setRestoreVersion(event.target.value)} /></label><button type="button" onClick={() => void readHistory()}>只读查看历史版本</button><button type="button" disabled={busy} onClick={() => void singleWrite(restore)}>读取并恢复版本</button></div>
           {historicalDocument?.document_id===document.document_id?<section aria-label="历史版本详情"><h4>历史版本 {historicalDocument.version}</h4><pre>{historicalDocument.text_projection}</pre>{historicalDocument.revision_basis?<RawReceiptButton label="历史修订依据" payload={historicalDocument.revision_basis} />:<p>此版本没有记录修订依据。</p>}<button type="button" onClick={()=>{historyGeneration.current+=1;setHistoricalDocument(null);}}>关闭历史详情</button></section>:null}
-          <div><button type="button" disabled={busy} onClick={()=>void singleWrite(()=>exportDocument("markdown"))}>Markdown 导出到产品资料目录</button><button type="button" disabled={busy} onClick={()=>void singleWrite(()=>exportDocument("obsidian"))}>Obsidian 包导出到产品资料目录</button></div>
+          <div className="space-section-region" data-section="export" tabIndex={-1} aria-label="文档导出"><button type="button" disabled={busy} onClick={()=>void singleWrite(()=>exportDocument("markdown"))}>Markdown 导出到产品资料目录</button><button type="button" disabled={busy} onClick={()=>void singleWrite(()=>exportDocument("obsidian"))}>Obsidian 包导出到产品资料目录</button></div>
           {exportProof?<RawReceiptButton label="导出格式与损失回执" payload={exportProof} />:null}
         </> : null}
     {message ? <p role={failure ? "alert" : "status"}>{message}</p> : null}

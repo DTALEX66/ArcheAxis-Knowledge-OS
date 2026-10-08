@@ -1,9 +1,10 @@
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { coreCommand } from "../api/core";
 import { RawReceiptButton } from "../components/DiagnosticConsole";
 import { Section } from "../components/RealData";
 import { CanonicalLibrarySpace } from "./CanonicalLibrarySpace";
 import { MachineAnswerPanel } from "../components/MachineAnswerPanel";
+import type { ObjectTrailLevel } from "../components/NavTrail";
 
 function record(value: unknown): Record<string, unknown> {
   if (!value || typeof value !== "object" || Array.isArray(value)) throw new Error("invalid response");
@@ -13,7 +14,7 @@ function records(value: unknown): Record<string, unknown>[] {
   if (!Array.isArray(value)) throw new Error("invalid list");
   return value.map(record);
 }
-export function CanonicalKnowledgeSpace({onLearning}: {onLearning?:()=>void}) {
+export function CanonicalKnowledgeSpace({onLearning,onTrail}:{onLearning?:()=>void;onTrail?:(levels:readonly ObjectTrailLevel[])=>void}) {
   const [query, setQuery] = useState("");
   const [items, setItems] = useState<Record<string, unknown>[]>([]);
   const [documents,setDocuments]=useState<Record<string,unknown>[]>([]);
@@ -74,11 +75,21 @@ export function CanonicalKnowledgeSpace({onLearning}: {onLearning?:()=>void}) {
     } catch {setMessage("学习问题创建失败；Core 仅允许当前有效、已接受的知识。");}
     finally {setBusy(false);}
   }
+  useEffect(() => {
+    const levels: ObjectTrailLevel[] = [];
+    if (selected) {
+      levels.push(
+        { id: "section:candidates", label: "知识候选与审核", region: "candidates" },
+        { id: `knowledge:${String(selected.knowledge_id)}`, label: String(selected.title), detail: `${String(selected.knowledge_id)} · 版本 ${String(selected.version)} · ${String(selected.status)}`, region: "candidates" },
+      );
+    }
+    onTrail?.(levels);
+  }, [selected, onTrail]);
   return <Section title="知识库"><p>候选、已接受知识和提取文本分别展示；审核由当前使用者作出。</p>
-    <form onSubmit={event=>{event.preventDefault();void search();}}><label>搜索内容 <input value={query} onChange={event=>setQuery(event.target.value)} /></label><button>搜索</button></form>
-    <ul>{items.map(item=><li key={String(item.knowledge_id)}><button onClick={()=>void open(String(item.knowledge_id))}>{String(item.head)}</button> · {String(item.status)} · {item.active === true ? "有效" : "非有效"}</li>)}</ul>
-    <h4>来源提取文本</h4><ul>{transforms.map(item=><li key={String(item.transform_id)}>{String(item.head)} · 来源 {String(item.source_id)} · 引擎 {String(item.engine)}</li>)}</ul>
-    <h4>普通文档</h4><p>原创与未核验内容可读取编辑；搜索命中不等同知识接受或核验通过。</p><ul>{documents.map(item=><li key={String(item.document_id)}><button onClick={()=>selectDocument(String(item.document_id))}>{String(item.title)} · 版本 {String(item.version)}</button><p>{String(item.head)}</p></li>)}</ul>
+    <form onSubmit={event=>{event.preventDefault();void search();}} tabIndex={-1} data-section="search"><label>搜索内容 <input value={query} onChange={event=>setQuery(event.target.value)} /></label><button>搜索</button></form>
+    <ul tabIndex={-1} data-section="candidates" aria-label="知识候选列表">{items.map(item=><li key={String(item.knowledge_id)}><button onClick={()=>void open(String(item.knowledge_id))}>{String(item.head)}</button> · {String(item.status)} · {item.active === true ? "有效" : "非有效"}</li>)}</ul>
+    <h4>来源提取文本</h4><ul tabIndex={-1} data-section="transforms" aria-label="来源提取文本列表">{transforms.map(item=><li key={String(item.transform_id)}>{String(item.head)} · 来源 {String(item.source_id)} · 引擎 {String(item.engine)}</li>)}</ul>
+    <h4>普通文档</h4><p>原创与未核验内容可读取编辑；搜索命中不等同知识接受或核验通过。</p><ul tabIndex={-1} data-section="documents" aria-label="普通文档列表">{documents.map(item=><li key={String(item.document_id)}><button onClick={()=>selectDocument(String(item.document_id))}>{String(item.title)} · 版本 {String(item.version)}</button><p>{String(item.head)}</p></li>)}</ul>
     {documentId?<div><button onClick={()=>selectDocument(null)}>关闭搜索文档</button><CanonicalLibrarySpace key={documentId} initialDocumentId={documentId} onDirtyChange={value=>{draftDirty.current=value;}}/></div>:null}
     {selected ? <article aria-label="候选对照"><h4>类型 {String(selected.title)}</h4><pre>{String(selected.body)}</pre><p>状态 {String(selected.status)} · 版本 {String(selected.version)}</p><RawReceiptButton label="Core 证据与资格回执" payload={qualification} />
       <label>审核者 <input value={reviewer} onChange={event=>setReviewer(event.target.value)} /></label><label>审核备注 <textarea value={note} onChange={event=>setNote(event.target.value)} /></label>

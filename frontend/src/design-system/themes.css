@@ -341,3 +341,25 @@
   *, *::before, *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; scroll-behavior: auto !important; }
   .aaos-motion { animation: none !important; transition: none !important; }
 }
+
+/* UI-02: the secondary object groups and the tertiary object path. */
+.space-section-group { display: grid; gap: var(--ax-space-2); margin: 0 0 10px; }
+.space-section-group h3 { margin: 0; color: var(--ax-fg-quaternary); font-size: 11px; font-weight: 600; }
+.space-section-group ul { list-style: none; display: grid; gap: 1px; margin: 0; padding: 0; }
+.space-section-button { display: grid; justify-items: start; gap: 2px; width: 100%; min-height: 34px; padding: 5px 8px; text-align: left; border: 1px solid transparent; border-radius: var(--ax-radius); background: transparent; color: inherit; font: inherit; cursor: pointer; }
+.space-section-button small { color: var(--ax-fg-secondary); font-size: 11px; }
+.space-section-button[aria-current="location"] { border-color: var(--ax-border); background: var(--ax-panel); }
+.space-section-todo { display: grid; gap: 2px; min-height: 34px; padding: 5px 8px; border: 1px dashed var(--ax-border); border-radius: var(--ax-radius); color: var(--ax-fg-secondary); }
+.space-section-todo small { font-size: 11px; overflow-wrap: anywhere; }
+.space-section-badge { margin-left: 6px; padding: 1px 5px; border: 1px solid var(--ax-control-border); border-radius: var(--ax-radius); font-size: 10px; font-weight: 600; }
+.space-section-region { scroll-margin-block: 12px; }
+.space-section-region:focus-visible { outline: 2px solid currentColor; outline-offset: 2px; }
+.nav-trail { margin: 0 0 10px; }
+.nav-trail-list { display: flex; flex-wrap: wrap; align-items: center; gap: 2px; margin: 0; padding: 0; list-style: none; }
+.nav-trail-item { display: flex; align-items: center; gap: 2px; min-width: 0; }
+.nav-trail-separator { color: var(--ax-fg-quaternary); padding: 0 2px; }
+.nav-trail-link, .nav-trail-current { display: grid; gap: 1px; max-width: 100%; padding: 3px 7px; border-radius: var(--ax-radius); font-size: 12px; text-align: left; overflow-wrap: anywhere; }
+.nav-trail-link { border: 1px solid var(--ax-border); background: var(--ax-panel); color: inherit; cursor: pointer; }
+.nav-trail-current { border: 1px solid transparent; color: var(--ax-fg-secondary); }
+.nav-trail-detail { color: var(--ax-fg-quaternary); font-size: 11px; }
+.nav-trail-notice { margin: 6px 0; color: var(--ax-fg-secondary); font-size: 12px; }

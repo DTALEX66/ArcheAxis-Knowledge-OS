@@ -1,14 +1,21 @@
 import { AaosIcon } from "./AaosIcon";
 import { RELATED } from "../spaces/related";
 import { SPACES, spaceDescription, type SpaceId } from "../spaces/spaces";
+import type { SpaceSectionDef } from "../presentation/spaceSections";
 
-export type LibrarySection = "sources" | "documents" | "anchors" | "versions";
-export const LIBRARY_SECTIONS: { id: LibrarySection; label: string }[] = [
-  { id: "sources", label: "来源原件" }, { id: "documents", label: "已保存文档" },
-  { id: "anchors", label: "来源锚点" }, { id: "versions", label: "文档版本" },
-];
-
-export function ContextNav({ active, onNavigate, librarySection, onLibrarySection }: { active: SpaceId; onNavigate: (id: SpaceId) => void; librarySection?: LibrarySection; onLibrarySection?: (section: LibrarySection) => void }) {
+export function ContextNav({
+  active,
+  onNavigate,
+  sections,
+  activeSection,
+  onSection,
+}: {
+  active: SpaceId;
+  onNavigate: (id: SpaceId) => void;
+  sections: readonly SpaceSectionDef[];
+  activeSection?: string;
+  onSection?: (section: SpaceSectionDef) => void;
+}) {
   const current = SPACES.find((space) => space.id === active) ?? SPACES[0];
   return (
     <nav className="context-subnav" aria-label="当前空间导航">
@@ -17,7 +24,31 @@ export function ContextNav({ active, onNavigate, librarySection, onLibrarySectio
         <h2>{current.label}</h2>
         <p>{spaceDescription(current)}</p>
       </header>
-      {active === "library" && onLibrarySection ? <ul aria-label="资料库对象导航">{LIBRARY_SECTIONS.map(section => <li key={section.id}><button type="button" aria-current={librarySection === section.id ? "location" : undefined} onClick={() => onLibrarySection(section.id)}>{section.label}</button></li>)}</ul> : null}
+      <div className="space-section-group" role="group" aria-labelledby="space-section-heading">
+        <h3 id="space-section-heading">对象分组</h3>
+        <ul aria-label={`${current.label}对象导航`}>
+          {sections.map((section) => (
+            <li key={section.id}>
+              {section.state === "ready" ? (
+                <button
+                  type="button"
+                  className="space-section-button"
+                  aria-current={activeSection === section.id ? "location" : undefined}
+                  onClick={() => onSection?.(section)}
+                >
+                  <b>{section.label}</b>
+                  <small>{section.goto ? `转到 ${SPACES.find((space) => space.id === section.goto!.space)?.label ?? section.goto.section}` : section.description}</small>
+                </button>
+              ) : (
+                <div className="space-section-todo">
+                  <b>{section.label}<span className="space-section-badge">待开发</span></b>
+                  <small>{section.reason}</small>
+                </div>
+              )}
+            </li>
+          ))}
+        </ul>
+      </div>
       <ul aria-label="相关空间">
         {RELATED[active].filter((id) => id !== active).map((id) => {
           const space = SPACES.find((item) => item.id === id)!;
@@ -37,7 +68,7 @@ export function ContextNav({ active, onNavigate, librarySection, onLibrarySectio
           );
         })}
       </ul>
-      <footer>只显示已接入的产品空间</footer>
+      <footer>待开发项只显示缺少的合同，不提供假入口</footer>
     </nav>
   );
 }
