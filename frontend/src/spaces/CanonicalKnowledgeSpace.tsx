@@ -4,6 +4,7 @@ import { RawReceiptButton } from "../components/DiagnosticConsole";
 import { Section } from "../components/RealData";
 import { CanonicalLibrarySpace } from "./CanonicalLibrarySpace";
 import { MachineAnswerPanel } from "../components/MachineAnswerPanel";
+import { coreFailureReason } from "../presentation/labels";
 import type { ObjectTrailLevel } from "../components/NavTrail";
 
 function record(value: unknown): Record<string, unknown> {
@@ -25,6 +26,7 @@ export function CanonicalKnowledgeSpace({onLearning,onTrail}:{onLearning?:()=>vo
   const [reviewer, setReviewer] = useState("");
   const [note, setNote] = useState("");
   const [message, setMessage] = useState("");
+  const [failureReason, setFailureReason] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const epoch = useRef(0);
   const draftDirty = useRef(false);
@@ -34,23 +36,23 @@ export function CanonicalKnowledgeSpace({onLearning,onTrail}:{onLearning?:()=>vo
     setDocumentId(id);
   }
   async function search() {
-    const current = ++epoch.current; setSelected(null); setMessage("");
+    const current = ++epoch.current; setSelected(null); setMessage(""); setFailureReason(null);
     try {
       const result = record(await coreCommand("search", {q:query,active_only:false}));
       const found = records(result.items), extracted = records(result.transforms), docs = records(result.documents ?? []);
       if(docs.some(item=>typeof item.document_id!=="string"||typeof item.title!=="string"||typeof item.head!=="string"||typeof item.version!=="number"))throw new Error("invalid document search");
       if (found.some(item => typeof item.knowledge_id !== "string" || typeof item.head !== "string") || extracted.some(item => typeof item.source_id !== "string" || typeof item.head !== "string")) throw new Error("invalid search fields");
       if (current === epoch.current) {setItems(found);setTransforms(extracted);setDocuments(docs);}
-    } catch {setMessage("搜索失败，请重试。不会将失败显示为空结果。");}
+    } catch (error) {setMessage("搜索失败，请重试。不会将失败显示为空结果。");setFailureReason(coreFailureReason(error));}
   }
   async function open(id: string) {
-    const current = ++epoch.current; setSelected(null); setQualification(null); setNote("");
+    const current = ++epoch.current; setSelected(null); setQualification(null); setNote(""); setFailureReason(null);
     try {
       const [detail, proof] = await Promise.all([coreCommand("knowledge_get",{id}),coreCommand("knowledge_qualification",{id})]);
       const data = record(detail);
       if (data.knowledge_id !== id || typeof data.body !== "string" || typeof data.version !== "string" || !data.version) throw new Error("invalid knowledge fields");
       if (current === epoch.current) {setSelected(data);setQualification(proof);setMessage("");}
-    } catch {setMessage("候选与证据读取失败，审核按钮不可用。");}
+    } catch (error) {setMessage("候选与证据读取失败，审核按钮不可用。");setFailureReason(coreFailureReason(error));}
   }
   async function review(action: "accepted"|"rejected"|"deprecated") {
     if (!selected || !reviewer.trim() || busy) return;
@@ -59,7 +61,7 @@ export function CanonicalKnowledgeSpace({onLearning,onTrail}:{onLearning?:()=>vo
       const receipt = record(await coreCommand("knowledge_review",{id:selected.knowledge_id,body:{action,reviewer:reviewer.trim(),note,expected_version:selected.version}}));
       if (typeof receipt.knowledge_id !== "string" || typeof receipt.version !== "string") throw new Error("invalid review receipt");
       if (current === epoch.current) {await open(receipt.knowledge_id);setMessage("审核决定已由本地核心记录。");}
-    } catch {setMessage("审核未完成，可能版本已变化。保留备注并重新读取候选后再决定。");}
+    } catch (error) {setMessage("审核未完成，可能版本已变化。保留备注并重新读取候选后再决定。");setFailureReason(coreFailureReason(error));}
     finally {setBusy(false);}
   }
   async function study() {
@@ -96,5 +98,6 @@ export function CanonicalKnowledgeSpace({onLearning,onTrail}:{onLearning?:()=>vo
       <button disabled={!reviewer.trim()||busy} onClick={()=>void review("accepted")}>接受当前候选</button><button disabled={!reviewer.trim()||busy} onClick={()=>void review("rejected")}>拒绝当前候选</button><button disabled={!reviewer.trim()||busy} onClick={()=>void review("deprecated")}>降级为弃用</button>
       <button disabled={busy} onClick={()=>void open(String(selected.knowledge_id))}>重新读取候选</button><button disabled={busy||selected.status!=="accepted"} onClick={()=>void study()}>由当前知识建立学习问题</button></article>:null}
     {selected?.status === "accepted" ? <MachineAnswerPanel key={`${String(selected.knowledge_id)}:${String(selected.version)}`} knowledgeId={String(selected.knowledge_id)} /> : null}
-    {message?<p role="status">{message}</p>:null}</Section>;
+    {message?<p role="status">{message}</p>:null}
+    {failureReason?<p className="state-reason">{failureReason}</p>:null}</Section>;
 }

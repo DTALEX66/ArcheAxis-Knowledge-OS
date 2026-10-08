@@ -51,6 +51,21 @@ export function sourceLabel(value: unknown, index = 0): string {
 
 const SAFE_ERROR = "本地数据暂时不可用，请稍后重试或打开系统诊断。";
 
+// UI-03: 离线、冲突、权限、缺失对象是四种不同的用户处境，合并成一句话会让人去查错误的地方。
+// 只分类本地核心的已知失败形状，其它错误不编造原因。
+export function coreFailureReason(error: unknown): string | null {
+  const value = error as { status?: unknown; code?: unknown } | null;
+  if (!value || typeof value !== "object") return null;
+  if (value.code === "offline") return "离线：此功能需要本地桌面宿主；数据仍留在本机，未被替换。";
+  if (value.status === 409) return "冲突：对象版本已变化。已保留你当前的输入，请重新读取后再决定。";
+  if (value.code === "unauthorized") return "权限：本地核心拒绝了这次操作的身份，内容未改动。";
+  if (value.status === 404) return "缺失：本地核心找不到这个对象；列表可能已变化，页面内容未被替换。";
+  if (value.status === 429) return "繁忙：本地核心正在处理其它任务，稍后重试；本次结果未知。";
+  if (value.code === "incompatible") return "不兼容：本地核心的返回不符合当前合同，已停止而未按成功显示。";
+  if (value.code === "unavailable") return "不可用：本地核心没有完成这次操作，当前内容保持不变。";
+  return null;
+}
+
 const PRODUCT_LAYER_LABELS: Record<string, string> = {
   Workspace: "工作台",
   Library: "资料库",
