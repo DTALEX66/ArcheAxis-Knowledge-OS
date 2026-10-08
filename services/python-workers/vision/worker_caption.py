@@ -40,17 +40,57 @@ ENGINE_VERSION = "0.2.0"
 WORKER_IDENTITY = "python-worker-caption-ndjson"
 
 # Two local runtimes can serve a vision model, and which one exists is a property of the machine
-# rather than something to hardcode. Ollama is tried first because that is what this worker was
-# written against; any OpenAI-compatible server (LM Studio, and others) is accepted as well, which
-# is what makes the route usable on a host that has one and not the other.
+# rather than something to hardcode. The declaration names them
+# (`config/environment/capability-requirements.yaml`, `models/*` rows with an `endpoint`), and this
+# module reads that declaration first. The constants below are the *undeclared-host* fallback only:
+# a staged runtime with no manifest beside it still behaves as it always did rather than going
+# silent. Ollama is tried before the OpenAI-compatible lane because that is what this worker was
+# written against, and the same weights are named differently by each runtime
+# (`qwen2.5vl:7b` against `qwen2.5-vl-7b-instruct`), which is why the model is resolved with the
+# lane instead of being fixed here.
 OLLAMA_BASE = "http://127.0.0.1:11434"
 OLLAMA_MODEL = "qwen2.5vl:7b"
 OPENAI_BASE = "http://127.0.0.1:1234/v1"
 OPENAI_MODEL = "qwen2.5-vl-7b-instruct"
 
-# The model a caller gets when it names none. It is resolved from the endpoint rather than fixed,
-# because the two local runtimes name the same model differently; this constant is what a caller
-# that passes no model ends up with on a host that serves the default endpoint.
+FALLBACK_LANES = [
+    {"protocol": "ollama", "base": OLLAMA_BASE, "model": OLLAMA_MODEL, "name": "undeclared-fallback"},
+    {"protocol": "openai", "base": OPENAI_BASE, "model": OPENAI_MODEL, "name": "undeclared-fallback"},
+]
+
+
+def _declared_lanes() -> list[dict]:
+    """The caption lanes the capability manifest declares, or the fallback list.
+
+    Resolution is by file path because a worker runs as a standalone script with no package
+    import path. A declaration that cannot be read is not treated as "no lanes": it is reported
+    by the caller through the same `declared: False` marker this returns, so an unread manifest
+    cannot quietly become an unreachable model.
+    """
+    module_path = Path(__file__).resolve().parent.parent / "tool_paths.py"
+    if not module_path.is_file():
+        return [dict(lane, declared=False) for lane in FALLBACK_LANES]
+    import importlib.util
+
+    spec = importlib.util.spec_from_file_location("worker_caption_tool_paths", module_path)
+    if spec is None or spec.loader is None:
+        return [dict(lane, declared=False) for lane in FALLBACK_LANES]
+    module = importlib.util.module_from_spec(spec)
+    try:
+        spec.loader.exec_module(module)
+        lanes = module.local_runtime_lanes(role="caption")
+    except Exception:  # noqa: BLE001 - an unread declaration must not look like an empty host
+        return [dict(lane, declared=False) for lane in FALLBACK_LANES]
+    if not lanes:
+        return [dict(lane, declared=False) for lane in FALLBACK_LANES]
+    return [{**lane, "model": lane.get("model") or (
+        OPENAI_MODEL if lane["protocol"] == "openai" else OLLAMA_MODEL), "declared": True}
+        for lane in lanes]
+
+
+# The model a caller gets when it names none. It is resolved from the declaration rather than
+# fixed, because the two local runtimes name the same model differently; this constant is only
+# what a host with no readable declaration ends up with on the first fallback lane.
 DEFAULT_MODEL = OLLAMA_MODEL
 
 PROMPT_TEMPLATE = (
@@ -70,10 +110,11 @@ def _env(name: str) -> str:
 def _endpoint() -> dict:
     """Which vision endpoint to use, and under which protocol.
 
-    Explicit configuration wins; otherwise the two known local servers are probed in turn and the
-    first that answers is used. The result carries the protocol because the request body and the
-    response field differ between them, and a caller that assumed one shape would break on the
-    other.
+    Explicit configuration wins; otherwise every lane the capability declaration names is
+    probed in declared order and the first that answers is used. The result carries the
+    protocol because the request body and the response field differ between them, and a caller
+    that assumed one shape would break on the other. When nothing answers, the failure names
+    each declared lane and where it came from, instead of pointing at one hardcoded address.
     """
     explicit = _env("ARCHEAXIS_CAPTION_ENDPOINT")
     if explicit:
@@ -86,19 +127,23 @@ def _endpoint() -> dict:
             or (OPENAI_MODEL if protocol == "openai" else OLLAMA_MODEL),
             "discovered": False,
         }
-    for candidate in (
-        {"protocol": "ollama", "base": OLLAMA_BASE, "model": OLLAMA_MODEL},
-        {"protocol": "openai", "base": OPENAI_BASE, "model": OPENAI_MODEL},
-    ):
+    lanes = _declared_lanes()
+    for candidate in lanes:
         try:
             with urllib.request.urlopen(
                     f"{candidate['base']}/{'models' if candidate['protocol'] == 'openai' else 'api/tags'}",
                     timeout=3):
-                return {**candidate, "discovered": True}
+                return {key: candidate[key] for key in ("protocol", "base", "model")} | {
+                    "discovered": True, "resource": candidate.get("name")}
         except Exception:  # noqa: BLE001 - a candidate that is not running is not an error
             continue
-    # Nothing answered: report the first candidate so the failure names a concrete endpoint.
-    return {"protocol": "ollama", "base": OLLAMA_BASE, "model": OLLAMA_MODEL, "discovered": False}
+    # Nothing answered: report the first declared lane so the failure names a concrete endpoint,
+    # and say which declaration the lanes came from so an unread manifest is visible here.
+    first = lanes[0]
+    return {"protocol": first["protocol"], "base": first["base"], "model": first["model"],
+            "discovered": False, "resource": first.get("name"),
+            "declared_lanes": [{"protocol": lane["protocol"], "base": lane["base"],
+                                "from_declaration": bool(lane.get("declared"))} for lane in lanes]}
 
 
 def _installed_models(endpoint: dict) -> list[str]:
@@ -118,9 +163,14 @@ def probe(model: str | None = None) -> dict:
     model = model or endpoint["model"]
     installed = _installed_models(endpoint)
     if not installed:
+        lanes = endpoint.get("declared_lanes") or [
+            {"protocol": endpoint["protocol"], "base": endpoint["base"]}]
         return {
             "capability": False,
-            "reason": f"no vision endpoint answered at {endpoint['base']}",
+            "reason": ("no declared vision lane answered: "
+                       + "; ".join(f"{lane['protocol']}@{lane['base']}"
+                                    + ("" if lane.get("from_declaration") is not False else " (undeclared fallback)")
+                                    for lane in lanes)),
             "engine": ENGINE,
             "endpoint": endpoint["base"],
             "protocol": endpoint["protocol"],

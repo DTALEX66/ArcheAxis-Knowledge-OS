@@ -86,14 +86,6 @@ def layout(root: Path, run_id: str | None = None) -> dict[str, Path]:
     return paths
 
 
-def _newest_child(directory: Path, required: Path) -> Path | None:
-    """Newest immediate child of ``directory`` that contains ``required``."""
-    if not directory.is_dir():
-        return None
-    candidates = [child for child in sorted(directory.iterdir()) if (child / required).exists()]
-    return candidates[-1] if candidates else None
-
-
 def _indexed_external_root(repo_root: Path | None) -> str:
     """The root the tracked index records, when that path actually exists.
 
@@ -114,8 +106,53 @@ def _indexed_external_root(repo_root: Path | None) -> str:
     return ""
 
 
-def external_toolchain(repo_root: Path | None = None) -> dict[str, str]:
-    """Environment for the registered external toolchain, discovered rather than guessed.
+def _declared_resolver(repo_root: Path | None):
+    """The worker tool resolver, loaded by file path from the tree being launched.
+
+    `services/python-workers/tool_paths.py` is the single place the declaration is read.
+    This loader used to derive tool paths itself, and named a Rust root
+    (`toolchains/rust`) that the manifest (`10-toolchains/cargo/bin/rustc.exe`) and
+    `scripts/ci/cargo_test.bat` (`RUSTUP_HOME` under `ARCHEAXIS_RUST_TOOLCHAINS`) did not
+    name — three roots for one tool, and only the ones nobody declared were the ones that
+    actually worked. Reading the declaration is now the only way discovery happens, so a
+    path that is not declared cannot be exported by accident.
+    """
+    root = repo_root or Path(__file__).resolve().parents[2]
+    module_path = root / "services" / "python-workers" / "tool_paths.py"
+    if not module_path.is_file():
+        return None
+    import importlib.util
+
+    spec = importlib.util.spec_from_file_location("dev_tool_paths", module_path)
+    if spec is None or spec.loader is None:
+        return None
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
+
+
+# Variables a resource may need for *its own* child process but that must never be set on
+# every child this launcher spawns. `HOME` is the live case: antiword only finds its character
+# maps in `$HOME/.antiword`, so the mapping directory's parent is handed to that engine by the
+# conversion worker, and the docstring rule "never changes HOME" still holds here.
+GLOBAL_ENV_DENYLIST = frozenset({
+    "HOME", "USERPROFILE", "PATH", "TMP", "TEMP", "TMPDIR", "HOMEDRIVE", "HOMEPATH",
+    # `CARGO_HOME` is the dependency cache this launcher routes to the project's own cache
+    # directory a few lines below, and `scripts/ci/cargo_test.bat` derives the toolchain's
+    # CARGO_HOME from `ARCHEAXIS_RUST_TOOLCHAINS` on its own. Exporting the declared value here
+    # would silently move every Rust build onto the shared registry, so the declaration stays
+    # available to probes and consumers while the launcher keeps its own cache routing.
+    "CARGO_HOME",
+})
+
+# Resources whose consumers look them up by bare name (a worker calling `tesseract`, a shell
+# calling `cargo`), so their declared directory belongs on the child PATH. Prepend only, never
+# replace, and never a directory that is already there.
+PATH_LOOKUP_RESOURCES = ("tesseract", "ffmpeg")
+
+
+def external_toolchain(repo_root: Path | None = None, run_tmp: Path | None = None) -> dict[str, str]:
+    """Environment for the declared external toolchain, read from the declaration.
 
     `ARCHEAXIS_MSVC_VCVARS` and `ARCHEAXIS_RUST_TOOLCHAINS` are what the tracked Rust
     entry point `scripts/ci/cargo_test.bat` reads, and the OCR workers need tesseract
@@ -144,48 +181,79 @@ def external_toolchain(repo_root: Path | None = None) -> dict[str, str]:
     # a declared ffmpeg, and without it the windowed and OCR cases skip rather than run.
     if not os.environ.get("ARCHEAXIS_EXTERNAL_ROOT", "").strip():
         discovered["ARCHEAXIS_EXTERNAL_ROOT"] = str(root)
+    resolver = _declared_resolver(repo_root)
+    if resolver is None:
+        # No resolver to read the declaration with: the root is still correct to export, and
+        # nothing else may be invented. A run tree without `services/python-workers/tool_paths.py`
+        # gets a named root and no tool bindings, rather than a guessed layout.
+        return discovered
 
-    msvc = _newest_child(
-        root / "10-toolchains" / "msvc" / "VC" / "Tools" / "MSVC",
-        Path("bin") / "Hostx64" / "x64" / "link.exe",
-    )
-    if msvc is not None:
-        # msvc is <root>/VC/Tools/MSVC/<version>; vcvars64.bat lives under VC/.
-        vcvars = msvc.parents[2] / "Auxiliary" / "Build" / "vcvars64.bat"
-        if vcvars.is_file() and not Path(os.environ.get("ARCHEAXIS_MSVC_VCVARS", "")).is_file():
-            discovered["ARCHEAXIS_MSVC_VCVARS"] = str(vcvars)
+    def usable(variable: str, value: str) -> bool:
+        """An inherited value counts only when the location it names really exists."""
+        if variable in {"ARCHEAXIS_MSVC_VCVARS"}:
+            return Path(value).is_file()
+        return bool(value.strip()) and (Path(value).is_file() or Path(value).is_dir())
 
-    rust = root / "toolchains" / "rust"
-    if (rust / "cargo" / "bin" / "cargo.exe").is_file() and not (
-        Path(os.environ.get("ARCHEAXIS_RUST_TOOLCHAINS", "")) / "cargo" / "bin" / "cargo.exe"
-    ).is_file():
-        discovered["ARCHEAXIS_RUST_TOOLCHAINS"] = str(rust)
+    for name in resolver.declared_names():
+        for variable, value in resolver.required_environment(name, root=root).items():
+            if variable in GLOBAL_ENV_DENYLIST:
+                continue
+            inherited = os.environ.get(variable, "").strip()
+            if inherited and usable(variable, inherited):
+                continue
+            discovered[variable] = value
 
-    tesseract = root / "10-toolchains" / "scoop" / "apps" / "tesseract" / "current"
+    msvc = resolver.declared_location("msvc", root=root)
+    if msvc and not Path(os.environ.get("ARCHEAXIS_MSVC_VCVARS", "")).is_file():
+        discovered["ARCHEAXIS_MSVC_VCVARS"] = msvc
+
+    # One Rust binding, shared with the manifest and cargo_test.bat: the declared rustc/cargo
+    # live in `<root>/toolchains/rust/cargo/bin`, `RUSTUP_HOME` comes from the declaration, and
+    # `ARCHEAXIS_RUST_TOOLCHAINS` is the directory holding both `cargo/` and `rustup/` — exactly
+    # the contract cargo_test.bat:45-53 expands into `%ARCHEAXIS_RUST_TOOLCHAINS%\cargo` and
+    # `\rustup`. `RUSTUP_HOME` is not decoration: without it the declared rustc dies with
+    # ``Missing manifest in toolchain`` while the neighbouring cargo proxy quietly answers a
+    # *different* version from the host default.
+    rust_location = resolver.declared_location("rust", root=root)
+    rust_rustup = discovered.get("RUSTUP_HOME") or os.environ.get("RUSTUP_HOME", "").strip()
+    if rust_location and rust_rustup:
+        common = Path(rust_location).parents[2]          # <root>/toolchains/rust (holds cargo/ and rustup/)
+        if (Path(rust_rustup).parent == common
+                and (common / "cargo" / "bin" / "cargo.exe").is_file()):
+            inherited_rust = os.environ.get("ARCHEAXIS_RUST_TOOLCHAINS", "").strip()
+            if not (inherited_rust and (Path(inherited_rust) / "cargo" / "bin" / "cargo.exe").is_file()):
+                discovered["ARCHEAXIS_RUST_TOOLCHAINS"] = str(common)
+
     existing_path = os.environ.get("PATH", "")
     # The scoop shims on this host are stale - they point at a sibling `toolchains`
     # tree that does not exist, so a shim is present but cannot start its target. The
     # application trees themselves are intact, so expose those instead of the shims.
     prepend: list[str] = []
-    if (tesseract / "tesseract.exe").is_file() and str(tesseract) not in existing_path:
-        prepend.append(str(tesseract))
-    ffmpeg_bin = root / "10-toolchains" / "scoop" / "apps" / "ffmpeg" / "current" / "bin"
-    if (ffmpeg_bin / "ffmpeg.exe").is_file() and str(ffmpeg_bin) not in existing_path:
-        prepend.append(str(ffmpeg_bin))
+    for name in PATH_LOOKUP_RESOURCES:
+        located = resolver.declared_location(name, root=root)
+        if located:
+            directory = str(Path(located).parent)
+            if directory not in existing_path:
+                prepend.append(directory)
+    if rust_location:
+        cargo_bin = str(Path(rust_location).parent)
+        if (Path(cargo_bin) / "cargo.exe").is_file() and cargo_bin not in existing_path:
+            prepend.append(cargo_bin)
     if prepend:
         discovered["PATH"] = os.pathsep.join(
             [*prepend, existing_path] if existing_path else prepend
         )
 
-    tessdata = root / "10-toolchains" / "scoop" / "apps" / "tesseract-languages" / "current"
-    # An inherited TESSDATA_PREFIX is kept only when it actually exists: this host's
-    # shell profile points it at a sibling tree that is absent, and honouring that
-    # value is what produced the worker's AAK-WORKER-003. The emptiness check is
-    # explicit because ``Path("")`` is ``Path(".")``, which ``is_dir()`` reports as
-    # True - an unset variable must not read as a valid directory.
-    inherited_tessdata = os.environ.get("TESSDATA_PREFIX", "").strip()
-    if tessdata.is_dir() and not (inherited_tessdata and Path(inherited_tessdata).is_dir()):
-        discovered["TESSDATA_PREFIX"] = str(tessdata)
+    # The resource probe sample (a rendered OCR image the engine reads back) belongs to this
+    # run, not to the machine temp, so a verification step cannot leave task-scoped residue.
+    probe_tmp = run_tmp if run_tmp is not None else os.environ.get("ARCHEAXIS_RUN_TMP", "").strip()
+    if probe_tmp:
+        directory = Path(probe_tmp) if isinstance(probe_tmp, str) else probe_tmp
+        # An explicitly named run directory is created by the consumer (`mkdir(parents=True)`),
+        # so it is not required to exist yet here; an inherited string is checked.
+        if (run_tmp is not None or directory.is_dir()) and not os.environ.get(
+                "ARCHEAXIS_RESOURCE_PROBE_WORKDIR", ""):
+            discovered["ARCHEAXIS_RESOURCE_PROBE_WORKDIR"] = str(directory / "resource-probe")
 
     return discovered
 
@@ -291,7 +359,7 @@ def environment(paths: dict[str, Path]) -> dict[str, str]:
             safe_path(Path(value))
     # Applied after the validation above: the registered external root is a real
     # absolute path outside the checkout, and an already-set operator value wins.
-    result.update(external_toolchain(paths["root"]))
+    result.update(external_toolchain(paths["root"], paths["tmp"]))
     return result
 
 

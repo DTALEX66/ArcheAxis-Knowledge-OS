@@ -72,6 +72,36 @@ PROMPT_TEMPLATE = (
 PROMPT_VERSION = "archeaxis.vnext/v1 2026-10-02"
 
 
+def _declared_lanes() -> list[dict]:
+    """The local runtime lanes the capability manifest declares, in declared order.
+
+    Falls back to this module's own two addresses only when no declaration can be read (a staged
+    runtime without a manifest beside it), and the model id is this route's own per protocol.
+    """
+    per_protocol_model = {"ollama": OLLAMA_MODEL, "openai": OPENAI_MODEL}
+    module_path = Path(__file__).resolve().parent.parent / "tool_paths.py"
+    lanes: list[dict] = []
+    if module_path.is_file():
+        import importlib.util
+
+        spec = importlib.util.spec_from_file_location("machine_tool_paths", module_path)
+        if spec is not None and spec.loader is not None:
+            module = importlib.util.module_from_spec(spec)
+            try:
+                spec.loader.exec_module(module)
+                lanes = [{"protocol": lane["protocol"], "base": lane["base"],
+                          "model": per_protocol_model.get(lane["protocol"], OLLAMA_MODEL),
+                          "resource": lane.get("name")}
+                         for lane in module.local_runtime_lanes()
+                         if lane.get("protocol") in per_protocol_model]
+            except Exception:  # noqa: BLE001 - an unread declaration must not look like an empty host
+                lanes = []
+    if lanes:
+        return lanes
+    return [{"protocol": "ollama", "base": OLLAMA_BASE, "model": OLLAMA_MODEL, "resource": None},
+            {"protocol": "openai", "base": OPENAI_BASE, "model": OPENAI_MODEL, "resource": None}]
+
+
 def _env(name: str) -> str:
     return os.environ.get(name, "").strip()
 
@@ -79,9 +109,12 @@ def _env(name: str) -> str:
 def _endpoint() -> dict:
     """Which text endpoint to use, and under which protocol.
 
-    Explicit configuration wins; otherwise the two known local servers are probed in turn and the
-    first that answers is used. The result carries the protocol because the request body and the
-    response field differ between them.
+    Explicit configuration wins; otherwise every local lane the capability declaration names is
+    probed in declared order and the first that answers is used. The result carries the protocol
+    because the request body and the response field differ between them. The addresses come from
+    `config/environment/capability-requirements.yaml` (the `models/*` rows carrying an `endpoint`);
+    the constants below are what this route asks each protocol for, since the model a text answer
+    needs is this worker's own choice, not the lane's declared vision identity.
     """
     explicit = _env("ARCHEAXIS_MACHINE_ENDPOINT")
     if explicit:
@@ -94,10 +127,7 @@ def _endpoint() -> dict:
             or (OPENAI_MODEL if protocol == "openai" else OLLAMA_MODEL),
             "discovered": False,
         }
-    for candidate in (
-        {"protocol": "ollama", "base": OLLAMA_BASE, "model": OLLAMA_MODEL},
-        {"protocol": "openai", "base": OPENAI_BASE, "model": OPENAI_MODEL},
-    ):
+    for candidate in _declared_lanes():
         try:
             with urllib.request.urlopen(
                     f"{candidate['base']}/{'models' if candidate['protocol'] == 'openai' else 'api/tags'}",
@@ -105,8 +135,9 @@ def _endpoint() -> dict:
                 return {**candidate, "discovered": True}
         except Exception:  # noqa: BLE001 - a candidate that is not running is not an error
             continue
-    # Nothing answered: report the first candidate so the failure names a concrete endpoint.
-    return {"protocol": "ollama", "base": OLLAMA_BASE, "model": OLLAMA_MODEL, "discovered": False}
+    # Nothing answered: report the first declared lane so the failure names a concrete endpoint.
+    first = _declared_lanes()[0]
+    return {**first, "discovered": False}
 
 
 def _installed_models(endpoint: dict) -> list[str]:

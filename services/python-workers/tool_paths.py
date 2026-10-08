@@ -75,6 +75,14 @@ class ManifestUnreadable(RuntimeError):
     """
 
 
+class PlatformUnavailable(RuntimeError):
+    """The resource is declared for a platform this host is not.
+
+    A cross-platform contract has to say which platform it is refusing, and name what was
+    consulted, instead of returning an empty answer that reads like a missing install.
+    """
+
+
 def _external_root() -> Path | None:
     for name in _ROOT_ENV:
         raw = os.environ.get(name, "").strip()
@@ -195,12 +203,12 @@ def sibling_roots(root: Path, manifest: Path) -> dict[str, Path]:
     return resolved
 
 
-def _candidates(name: str, manifest: Path) -> list[Path]:
+def _candidates(name: str, manifest: Path, root: Path | None = None) -> list[Path]:
     # The declaration is read first, always. An absent external root means nothing can resolve, but
     # it must not mean the manifest goes unread: a manifest that exists and cannot be parsed is a
     # fault to report, and returning early on a missing root turned that into "tool not declared".
     entries = _declared_entries(manifest)
-    root = _external_root()
+    root = _external_root() if root is None else root
     if root is None:
         return []
     found: list[Path] = []
@@ -251,14 +259,19 @@ def tool_path(name: str, *, guess_on_path: bool = False) -> str:
     for path in _candidates(name, manifest):
         return str(path)
 
-    consulted = [var for var in OVERRIDES.get(name, ())] + [
-        f"{MANIFEST_ENV} or {DEFAULT_MANIFEST}",
-        f"external root from {' / '.join(_ROOT_ENV)}",
-    ]
+    consulted = [var for var in OVERRIDES.get(name, ())] + roots_consulted(name)
     hint = ""
+    entry = entry_by_name(name)
+    if entry is not None and not platform_supported(entry):
+        hint = (f"; declared for platform {entry.get('platform')}, this host is {host_platform()}"
+                " - nothing is guessed for a platform this host does not provide")
+    elif entry is not None and entry.get("required_env"):
+        missing = sorted(set(entry["required_env"]) - set(required_environment(name)))
+        if missing:
+            hint = f"; declared process environment not present on this host: {', '.join(missing)}"
     if guess_on_path:
         found = shutil.which(name)
-        hint = f"; PATH would offer {found}" if found else "; PATH offers nothing"
+        hint += f"; PATH would offer {found}" if found else "; PATH offers nothing"
     raise ToolNotFound(
         f"{name}: no declared path resolved (consulted: {', '.join(consulted)}){hint}")
 
@@ -274,6 +287,198 @@ def declared_path(name: str) -> str | None:
         return tool_path(name)
     except ToolNotFound:
         return None
+
+
+def entry_by_name(name: str, manifest: Path | None = None) -> dict | None:
+    """The declared entry for *name*, exactly as the manifest carries it.
+
+    The other readers (host inventory, the external-resource index, the development
+    launcher) need the binding data around a path - which process environment the resource
+    requires, which probe certifies it, which platform it was declared for. Reading it from
+    the same parsed manifest this module already resolves against is what keeps one
+    declaration serving every reader instead of four copies drifting apart.
+    """
+    for entry in _declared_entries(manifest or _manifest_path()):
+        if entry.get("name") == name:
+            return entry
+    return None
+
+
+def host_platform() -> str:
+    """This host in the manifest's own vocabulary (`windows-x64`, `linux-x64`, ...)."""
+    import platform as _platform
+
+    system = _platform.system().lower()
+    machine = _platform.machine().lower()
+    if system.startswith("win"):
+        return "windows-x64" if machine in ("amd64", "x86_64") else f"windows-{machine}"
+    if system == "linux":
+        return "linux-x64" if machine in ("amd64", "x86_64") else f"linux-{machine}"
+    if system == "darwin":
+        return "macos-arm64" if machine == "arm64" else "macos-x64"
+    return f"{system}-{machine}"
+
+
+def platform_supported(entry: dict) -> bool:
+    """Whether *entry* was declared for a platform this host can serve."""
+    declared = str(entry.get("platform") or "any").strip().lower()
+    return declared in ("", "any") or declared == host_platform()
+
+
+def _relative_to_base(declared: str, base: Path) -> Path | None:
+    """A declared relative location inside one root, or None when it is not allowed."""
+    relative = Path(declared)
+    if relative.is_absolute() or ".." in relative.parts:
+        return None
+    return base / relative
+
+
+def _entry_base(entry: dict, name: str, root: Path, manifest: Path) -> Path | None:
+    """The root an entry's declarations are relative to: the external root, or its sibling root."""
+    sibling_name = entry.get("sibling_root")
+    if sibling_name is None:
+        return root
+    if not isinstance(sibling_name, str):
+        raise ManifestUnreadable(f"{manifest}: sibling_root on {name} must be a name")
+    base = sibling_roots(root, manifest).get(sibling_name)
+    if base is None:
+        raise ManifestUnreadable(f"{manifest}: {name} names undeclared sibling root {sibling_name!r}")
+    return base
+
+
+def required_environment(name: str, *, only_existing: bool = True,
+                         root: Path | str | None = None) -> dict[str, str]:
+    """The process environment a declared resource needs, with paths resolved.
+
+    Some resources resolve to a real file and still cannot run: the rustup proxies in
+    `toolchains/rust/cargo/bin` are present on this host yet `rustc.exe` dies with
+    ``error: Missing manifest in toolchain 'stable-x86_64-pc-windows-msvc'`` unless
+    `RUSTUP_HOME` names the toolchain tree beside it (and bare `cargo.exe` then answers a
+    *different* toolchain's version from the host default), while tesseract aborts on
+    `--list-langs` without `TESSDATA_PREFIX`. The declaration therefore carries the
+    environment, and every reader gets the same one instead of each re-deriving it.
+
+    Values are paths relative to the same root the entry's `external_paths` use; absolute
+    and `..` declarations are refused here exactly as they are there, so binding data
+    cannot widen the boundary. A declared path that does not exist is skipped when
+    `only_existing` - discovery must not hand a child a variable pointing at nothing.
+    """
+    entry = entry_by_name(name)
+    if entry is None:
+        return {}
+    declared = entry.get("required_env") or {}
+    if not isinstance(declared, dict):
+        raise ManifestUnreadable(f"{name}: required_env must be a mapping of VARIABLE: relative path")
+    if root is not None:
+        supplied = Path(root)
+        root = supplied if supplied.is_absolute() else None
+    else:
+        root = _external_root()
+    if root is None:
+        return {}
+    try:
+        base = _entry_base(entry, name, root, _manifest_path())
+    except ManifestUnreadable:
+        # The resource reaches a shared library this host does not have, so no environment for it
+        # can be handed to a child. `tool_path(name)` still raises by name for a caller that wants
+        # the resource itself; a launcher walking the whole declaration must not die on one row.
+        return {}
+    if base is None:
+        return {}
+    found: dict[str, str] = {}
+    for variable, location in declared.items():
+        if not isinstance(variable, str) or not isinstance(location, str) or not location.strip():
+            raise ManifestUnreadable(f"{name}: required_env {variable!r} must name a relative path")
+        path = _relative_to_base(location, base)
+        if path is None:
+            raise ManifestUnreadable(
+                f"{name}: required_env {variable} must stay inside the declared root, not {location!r}")
+        if only_existing and not (path.is_file() or path.is_dir()):
+            continue
+        found[variable] = str(path)
+    return found
+
+
+def declared_endpoint(name: str) -> dict | None:
+    """The declared HTTP lane for a model served by a local runtime, or None.
+
+    A caption or embedding model is not a file: it is an endpoint plus a model id, and the
+    only honest statement about it is what the host actually answers. The declaration names
+    the lane; `probe` decides whether it is there.
+    """
+    entry = entry_by_name(name)
+    if entry is None:
+        return None
+    endpoint = entry.get("endpoint")
+    return dict(endpoint) if isinstance(endpoint, dict) else None
+
+
+def endpoint_resources(role: str | None = None) -> list[dict]:
+    """Every declared model lane reached over HTTP, in declaration order.
+
+    The caption and machine-answer workers used to carry their own hardcoded list of
+    loopback addresses, so what the product talks to was written in two Python modules and
+    nowhere in the declaration the index publishes. This is the read that makes the
+    declaration the entry point: each row is `{name, endpoint}` for an entry that names an
+    `endpoint`, and `role` narrows it to the lanes one capability actually consumes.
+    """
+    found: list[dict] = []
+    for entry in _declared_entries(_manifest_path()):
+        endpoint = entry.get("endpoint")
+        if not isinstance(endpoint, dict):
+            continue
+        if role and role not in (entry.get("required_by") or []) + [entry.get("role")]:
+            continue
+        found.append({"name": entry.get("name"), "entry": entry, "endpoint": dict(endpoint)})
+    return found
+
+
+def declared_names() -> list[str]:
+    """Every declared resource name, in manifest order.
+
+    The development launcher walks the whole declaration to build a child environment
+    instead of carrying its own list of tools; that is what stopped `dev.py` naming a Rust
+    root the manifest and `scripts/ci/cargo_test.bat` did not name.
+    """
+    return [str(entry.get("name")) for entry in _declared_entries(_manifest_path())
+            if entry.get("name")]
+
+
+def declared_location(name: str, *, root: Path | str | None = None) -> str | None:
+    """The declared path for *name* that exists, or None — without raising and without guessing.
+
+    `root` lets a caller that already selected a root (the development launcher may take it from
+    the tracked index rather than the environment) resolve through the same rule instead of
+    re-implementing it. Absolute and `..` declarations stay refused either way.
+    """
+    override = Path(root) if root is not None else None
+    if override is not None and not override.is_absolute():
+        return None
+    for path in _candidates(name, _manifest_path(), override):
+        return str(path)
+    return None
+
+
+def roots_consulted(name: str) -> list[str]:
+    """What was looked at when a resource could not be resolved - for the failure message."""
+    consulted = [f"{MANIFEST_ENV} or {DEFAULT_MANIFEST}"]
+    root = _external_root()
+    consulted.append("external root from " + " / ".join(_ROOT_ENV)
+                     + (f" = {root}" if root else " (none in this environment)"))
+    entry = entry_by_name(name)
+    if entry is not None and entry.get("sibling_root") is not None and root is not None:
+        try:
+            siblings = sibling_roots(root, _manifest_path())
+        except ManifestUnreadable:
+            siblings = {}
+        consulted.append(f"sibling root {entry['sibling_root']!r} = "
+                         + (str(siblings.get(str(entry['sibling_root'])))
+                            if siblings.get(str(entry["sibling_root"])) else "does not resolve"))
+    for variable in OVERRIDES.get(name, ()):
+        raw = os.environ.get(variable, "").strip()
+        consulted.append(f"{variable}" + (f" = {raw}" if raw else " (unset)"))
+    return consulted
+
 
 
 def transport_path(worker_file: str) -> Path:
@@ -306,6 +511,35 @@ def transport_path(worker_file: str) -> Path:
     if source_form.is_file():
         return source_form
     return sibling_form
+
+
+def local_runtime_lanes(role: str | None = None) -> list[dict]:
+    """The declared local model lanes, normalized for a worker about to call one.
+
+    Deduplicated by `(protocol, base_url)` in declaration order. A worker that names a model
+    itself (the text-answer route asks for a text model) uses the address only; a worker that
+    must use the identity the declaration names passes `role` and reads `model`.
+
+    This exists because two addresses were written into Python source instead of the
+    declaration: a host that serves the models on the OpenAI-compatible lane while Ollama is
+    down had no way to say so, and the index said nothing about either lane at all.
+    """
+    seen: dict[tuple[str, str], dict] = {}
+    for resource in endpoint_resources(role):
+        endpoint = resource["endpoint"]
+        protocol = str(endpoint.get("protocol") or "")
+        base = str(endpoint.get("base_url") or "").rstrip("/")
+        if protocol not in ("ollama", "openai") or not base:
+            continue
+        key = (protocol, base)
+        record = {"protocol": protocol, "base": base, "model": endpoint.get("model_id"),
+                  "resource": resource["name"], "name": resource["name"]}
+        existing = seen.get(key)
+        if existing is None:
+            seen[key] = record
+        elif not existing.get("model") and record.get("model"):
+            existing["model"] = record["model"]
+    return list(seen.values())
 
 
 def resolve(name: str) -> str | None:
