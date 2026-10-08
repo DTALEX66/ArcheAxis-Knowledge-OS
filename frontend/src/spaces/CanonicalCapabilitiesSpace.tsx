@@ -3,7 +3,7 @@ import { AaosButton, AaosField, AaosTabs } from "../design-system/AaosPrimitives
 import { coreCommand } from "../api/core";
 import { RawReceiptButton } from "../components/DiagnosticConsole";
 import { CAPABILITY_CATALOG, type CapabilityCatalogEntry } from "../api/generated/capability-catalog";
-import { absorptionClassification, templatesRequiring } from "../templates/capabilityRequirements";
+import { absorptionClassification, SURFACE_CLASS_LABEL, templatesRequiring } from "../templates/capabilityRequirements";
 import { canNavigateToCapability, CAPABILITY_NAVIGATION_ENTRIES, getCapabilityDestination, getCapabilityNextStep, navigationEntryMatches } from "../presentation/navigation";
 import { Section } from "../components/RealData";
 import { coreFailureReason } from "../presentation/labels";
@@ -60,7 +60,7 @@ export function CanonicalCapabilitiesSpace({ onNavigate, selectedCapabilityId, n
   // The reverse read of the template suite: derived from the same declarations the template surface
   // resolves against, so the two views cannot disagree, and it owns no second template list.
   const requiring = selected ? templatesRequiring(selected.atlas.capability_id) : [];
-  const absorption = absorptionClassification();
+  const absorption = selected ? absorptionClassification(selected.atlas.capability_id) : null;
   const catalog = <div className="space-section-region" data-section="catalog" tabIndex={-1} aria-label="能力目录与搜索">
     <p>入口身份与别名由 Atlas 投影生成；能力声明、实际实现和运行资格分别核对。未来条目仍可查看用途与前提。</p>
     <AaosField label="查找能力" value={query} onChange={(event) => setQuery(event.currentTarget.value)} placeholder="名称、ID、对象、依赖或旧入口别名" />
@@ -86,7 +86,10 @@ export function CanonicalCapabilitiesSpace({ onNavigate, selectedCapabilityId, n
     <p>旧入口别名：{selected.atlas.origin_requirement_ids.join("、") || "目录未列旧别名"}</p>
     <p>下一步：{getCapabilityNextStep(selected)}</p>
     <p>供体映射未建立；不按相似名称推断已吸收关系。</p>
-    <p>吸收来源分类：{absorption.label}。候选类别为 {absorption.classes.map((item) => item.label).join("、")}；{absorption.reason}</p>
+    <p>吸收来源分类：{absorption?.label}。{absorption?.sources.length
+      ? <ul>{absorption!.sources.map((row) => <li key={`${row.source}/${row.surface_class}`}>{row.source}<p>类别：{SURFACE_CLASS_LABEL[row.surface_class]} · 验证层级 {row.verification_tier ?? "未分层"} · 当前可用：{row.currently_usable ? "是" : "否"} · 跨词汇表分歧 {row.conflicts} 条</p></li>)}</ul>
+      : <>候选类别为 {absorption!.classes.map((item) => item.label).join("、")}；{absorption?.reason}</>}
+    </p>
     <h4>使用此能力的模板</h4>
     {requiring.length ? <ul className="capability-directory">{requiring.map((reference) => <li key={`${reference.template_id}:${reference.declared}`}>
       <b>{reference.template_id} {reference.template_name}</b>

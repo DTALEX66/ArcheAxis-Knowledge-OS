@@ -16,6 +16,9 @@
  * and `canvas.references` does not become `canvas.structure` because both mention a canvas.
  */
 import { CAPABILITY_CATALOG, type CapabilityCatalogEntry } from "../api/generated/capability-catalog";
+import { ABSORPTION_SURFACE_BY_CAPABILITY,
+  type AbsorptionSurfaceClass, type AbsorptionSurfaceRow,
+} from "../api/generated/absorption-surface";
 import { TEMPLATES, type TemplateDefinition, type TemplateRequirement } from "./disciplines";
 
 /** One live handshake row, narrowed to the fields this resolver is allowed to read. */
@@ -240,43 +243,64 @@ export function templatesRequiring(capability_id: string): TemplateRequirementRe
   return rows;
 }
 
-/** Owner's absorption-source classes. A capability may only be displayed in one of these buckets
- *  once a machine-readable crosswalk says so; nothing here guesses the bucket from a name. */
-export const ABSORPTION_CLASSES = [
-  { id: "frontend_plugin", label: "前端插件（可启停）" },
-  { id: "absorbed_algorithm", label: "吸收算法" },
-  { id: "experience_donor", label: "体验供体" },
-  { id: "format_spec", label: "格式规范" },
-  { id: "base_dependency", label: "基础依赖" },
-  { id: "future_candidate", label: "未来候选" },
-] as const;
+/** The same seven classes, in the words the surface shows. Keyed by the generated union, so a new
+ *  class in the crosswalk fails to compile here instead of rendering as a blank label. */
+export const SURFACE_CLASS_LABEL: Record<AbsorptionSurfaceClass, string> = {
+  enableable_plugin: "前端插件（可启停）",
+  absorbed_algorithm: "吸收算法",
+  ux_donor: "体验供体",
+  format_spec: "格式规范",
+  base_dependency: "基础依赖",
+  future_candidate: "未来候选",
+  not_adopted: "未采用",
+};
 
+/** The closed vocabulary, derived from the label map rather than repeated here. The list used to
+ *  name six buckets with its own ids (`frontend_plugin`, `experience_donor`) and omit `not_adopted`,
+ *  so the surface could display a class the crosswalk never emits. */
+export const ABSORPTION_CLASSES: readonly { id: AbsorptionSurfaceClass; label: string }[] =
+  Object.entries(SURFACE_CLASS_LABEL).map(([id, label]) => ({ id: id as AbsorptionSurfaceClass, label }));
 export type AbsorptionClassification = {
   confirmed: boolean;
   label: string;
   reason: string;
   donor_mapping: string;
-  classes: readonly { id: string; label: string }[];
+  sources: readonly AbsorptionSurfaceRow[];
+  classes: readonly { id: AbsorptionSurfaceClass; label: string }[];
 };
 
 /**
- * Absorption-source classification for one catalogued capability.
+ * Absorption-source classification for one catalogued capability, read from the generated
+ * projection of `docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json`.
  *
- * Today it is not machine-readable, and the honest answer is 分类未确认: the two OSS reuse records
- * (`docs/current/OSS-REUSE-DECISIONS-20261008.json`, `...-VERIFICATION-20261008.json`) key their
- * entries by *runtime* names in a field they also call `capability_id`, while the catalog's IDs are
- * `CAP-00NN`; the file that owns that crosswalk is still being produced, and no generated projection
- * the front end can read carries a per-capability class. The generated catalog itself states
- * `donor_mapping: "not_established"`, which is the value read here. When a generator starts emitting
- * a per-ID class, the branch to add is `confirmed: true` with that class — never a name match.
+ * A capability with no row in that projection still answers 分类未确认. The projection is keyed by
+ * stable capability id only, so a donor that joins to nothing cannot borrow a neighbour's class -
+ * which is the whole reason the crosswalk carries its 115 vocabulary disagreements instead of
+ * resolving them here.
  */
-export function absorptionClassification(): AbsorptionClassification {
+export function absorptionClassification(capability_id: string): AbsorptionClassification {
   const donor_mapping = CAPABILITY_CATALOG.donor_mapping;
+  const rows = ABSORPTION_SURFACE_BY_CAPABILITY[capability_id] ?? [];
+  if (!rows.length) {
+    return {
+      confirmed: false,
+      label: "分类未确认",
+      reason: `吸收来源跨接中没有以 ${capability_id} 为键的行；没有联接就不按相似名称推断分类。`,
+      donor_mapping,
+      sources: [],
+      classes: ABSORPTION_CLASSES,
+    };
+  }
+  const conflicts = rows.reduce((total, row) => total + row.conflicts, 0);
   return {
-    confirmed: false,
-    label: "分类未确认",
-    reason: `目录投影记录 donor_mapping=${donor_mapping}；OSS 复用记录以运行时名称为键，尚未有按 CAP ID 落地的分类生成物。在跨接建立前，本视图不把任何条目宣称为已吸收来源，也不按相似名称推断。`,
+    confirmed: true,
+    label: [...new Set(rows.map((row) => SURFACE_CLASS_LABEL[row.surface_class]))].join("、"),
+    reason: `来自 ${rows.length} 条已联接来源的派生分类`
+      + (conflicts ? `；其中 ${conflicts} 条带跨词汇表分歧，按原样保留，不由本视图判定胜负` : "")
+      + `。可启停仅指 ${rows.filter((row) => row.surface_class === "enableable_plugin").length} 条，`
+      + "其余是算法、供体、格式规范、基础依赖或候选。",
     donor_mapping,
+    sources: rows,
     classes: ABSORPTION_CLASSES,
   };
 }

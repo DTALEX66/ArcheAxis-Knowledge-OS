@@ -136,13 +136,25 @@ describe("template capability resolver", () => {
     expect(templatesRequiring("CAP-0110")).toEqual([]);
     expect(templatesRequiring("CAP-0010")).toEqual([]);
   });
-  it("declares the absorption class unconfirmed while no crosswalk projection exists", () => {
-    const classification = absorptionClassification();
-    expect(classification.confirmed).toBe(false);
-    expect(classification.label).toBe("分类未确认");
-    expect(classification.donor_mapping).toBe(CAPABILITY_CATALOG.donor_mapping);
-    expect(classification.classes.map((item) => item.label)).toEqual([
-      "前端插件（可启停）", "吸收算法", "体验供体", "格式规范", "基础依赖", "未来候选",
+  it("names the joined classes, and stays unconfirmed where the crosswalk has no row", () => {
+    const unjoined = absorptionClassification("CAP-0060");
+    expect(unjoined.confirmed).toBe(false);
+    expect(unjoined.label).toBe("分类未确认");
+    expect(unjoined.sources).toEqual([]);
+    // CAP-0020 is joined by the crosswalk, so the surface must stop saying 未确认 and name the
+    // classes it actually has - and must not present every one of them as enable-able.
+    const joined = absorptionClassification("CAP-0020");
+    expect(joined.confirmed).toBe(true);
+    expect(joined.label).toContain("前端插件（可启停）");
+    expect(joined.label).toContain("吸收算法");
+    expect(joined.sources.length).toBeGreaterThan(1);
+    expect(joined.sources.some((row) => row.surface_class !== "enableable_plugin")).toBe(true);
+    expect(joined.reason).toContain("可启停仅指");
+    expect(unjoined.donor_mapping).toBe(CAPABILITY_CATALOG.donor_mapping);
+    // Seven, matching the generator's closed set; the old list had six with its own ids and no
+    // `not_adopted`, so the surface could name a bucket the crosswalk never emits.
+    expect(unjoined.classes.map((item) => item.label)).toEqual([
+      "前端插件（可启停）", "吸收算法", "体验供体", "格式规范", "基础依赖", "未来候选", "未采用",
     ]);
   });
 });
@@ -265,16 +277,28 @@ describe("capability detail is the plugin side of the same join", () => {
     expect(detail.textContent).toContain("模板套件当前没有声明此能力");
     expect(screen.queryByRole("button", { name: "到资料库打开学科模板" })).toBeNull();
   });
-  it("classifies absorption sources as unconfirmed instead of naming a donor", async () => {
+  it("shows each joined absorption source with its own class, and does not call them all plugins", async () => {
     render(<CanonicalCapabilitiesSpace onNavigate={vi.fn()} />);
     await screen.findByText(/已读取当前 Core worker 握手/);
     await userEvent.setup().click(screen.getByRole("button", { name: /CAP-0020/ }));
     const detail = screen.getByRole("article", { name: "能力详情" });
-    expect(detail.textContent).toContain("吸收来源分类：分类未确认");
-    expect(detail.textContent).toContain("格式规范");
-    expect(detail.textContent).toContain("供体映射未建立");
-    // No capability may be presented as an enable-able plugin on the strength of a similar name.
+    // The class now comes from the generated crosswalk projection, so a joined capability names its
+    // sources instead of hiding behind 分类未确认.
+    expect(detail.textContent).toContain("吸收来源分类：");
+    expect(detail.textContent).toContain("faster-whisper");
+    expect(detail.textContent).toContain("类别：吸收算法");
+    expect(detail.textContent).toContain("跨词汇表分歧");
+    expect(detail.textContent).not.toContain("分类未确认");
+    // Displaying a donor is not the same as offering to switch it on.
     expect(detail.textContent).not.toMatch(/已吸收自|来源插件已启用/);
+  });
+  it("still says 分类未确认 for a capability the crosswalk does not join", async () => {
+    render(<CanonicalCapabilitiesSpace onNavigate={vi.fn()} />);
+    await screen.findByText(/已读取当前 Core worker 握手/);
+    await userEvent.setup().click(screen.getByRole("button", { name: /CAP-0060/ }));
+    const detail = screen.getByRole("article", { name: "能力详情" });
+    expect(detail.textContent).toContain("吸收来源分类：分类未确认");
+    expect(detail.textContent).toContain("候选类别为");
   });
 });
 
