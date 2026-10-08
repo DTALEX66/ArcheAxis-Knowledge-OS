@@ -434,3 +434,15 @@ def test_planted_faults_were_invisible_to_the_retired_rule(tree) -> None:
     missing = ".project-local/evidence/run-a-20261008/no-such-receipt.json"
     assert _verdict(tree, missing).verdict == rv.UNRESOLVED
     assert _retired_basename_rule(cited.parent, missing) is False
+
+
+def test_a_backticked_cli_flag_is_not_read_as_a_citation() -> None:
+    """Documenting an interface has to use flag names, and `--a/--b` carries a slash and a dot.
+
+    Counting those as dangling references buries the real ones, which is how a strict gate gets
+    ignored; a path that happens to start with a dash is still checked when it names a file.
+    """
+    record = "options: `--record/--scan-evidence/--root/--json`, see `docs/truth/README.md`\n"
+    assert rv.extract_citations(record) == ["docs/truth/README.md"]
+    # Only a token that *begins* as a flag is excused: a real path with a dash inside stays checked.
+    assert rv.extract_citations("`notes/-b.md`") == ["notes/-b.md"]

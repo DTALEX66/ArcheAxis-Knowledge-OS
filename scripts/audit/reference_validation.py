@@ -539,7 +539,7 @@ def extract_citations(text: str) -> list[str]:
         token = _normalize(raw)
         if not token:
             continue
-        if token.startswith(("http://", "https://", "git@", "<")):
+        if token.startswith(("http://", "https://", "git@", "<", "--")):
             continue
         if any(ch in token for ch in ("{", "}", "<", ">", "→", "|")):
             continue
