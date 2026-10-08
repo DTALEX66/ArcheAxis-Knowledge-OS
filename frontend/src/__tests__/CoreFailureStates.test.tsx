@@ -61,8 +61,10 @@ describe("UI-03 distinct failure states", () => {
     expect(screen.getAllByRole("status")).toHaveLength(1);
   });
 
-  // Pages that host several sub-surfaces legitimately own more than one live
-  // region, so the pin here is that the reason itself is never a live region.
+  // A classified reason is supplementary reading text: promoting it would make one failed read
+  // announce twice. This is now the rule for every space page, not just the ones below — see the
+  // page-level bound in LiveRegionBudget.test.tsx and the "keeps exactly one status live region"
+  // case above.
   it.each([
     ["学习", () => render(<CanonicalLearningSpace />), new ApiError(404, "本地核心找不到 learning_items 所需的对象。", "unavailable"), /^缺失：/],
     ["全能力目录", () => render(<CanonicalCapabilitiesSpace onNavigate={() => {}} />), new ApiError(429, "本地核心繁忙，请稍后重试。", "unavailable"), /^繁忙：/],
@@ -72,6 +74,19 @@ describe("UI-03 distinct failure states", () => {
     const reason = await screen.findByText(pattern);
     expect(reason.hasAttribute("role")).toBe(false);
     expect(reason).toHaveClass("state-reason");
+  });
+
+  // The reason carries no role AND the page keeps exactly one live region: a page that owned several
+  // regions for one failure would let a supplementary sentence steal the announcement, which is what
+  // the knowledge-page case above already pins for a single surface.
+  it.each([
+    ["学习", () => render(<CanonicalLearningSpace />), new ApiError(404, "本地核心找不到 learning_items 所需的对象。", "unavailable")],
+    ["全能力目录", () => render(<CanonicalCapabilitiesSpace onNavigate={() => {}} />), new ApiError(429, "本地核心繁忙，请稍后重试。", "unavailable")],
+  ])("leaves %s with exactly one status live region while the same read fails", async (_page, renderPage, error) => {
+    bridge.call.mockRejectedValue(error);
+    renderPage();
+    await screen.findByText(/^缺失：|^繁忙：/);
+    expect(screen.getAllByRole("status")).toHaveLength(1);
   });
 
   it("keeps the legacy pages' 5xx wording while naming the classes they used to flatten", () => {

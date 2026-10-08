@@ -86,7 +86,9 @@ export function CanonicalCapabilitiesSpace({ onNavigate, selectedCapabilityId, n
     {selected.implementation.runtime_capabilities.length ? <ul>{selected.implementation.runtime_capabilities.map((capability) => {
       const observation = live?.get(capability);
       return <li key={capability}>{capability}<p>连接/权限：{typeof observation?.enabled === "boolean" ? (observation.enabled ? "允许" : "已禁用") : "未知"} · 即时健康：{typeof observation?.health === "string" ? observation.health : "未观察"}</p>
-        {observation ? <details><summary>Core 握手原始读回</summary><pre>{JSON.stringify(observation, null, 2)}</pre></details> : null}</li>;
+        {/* The line above is the human-readable reading surface; the untouched handshake readback goes
+            to the diagnostic console, the same channel this file already uses for the catalog sources. */}
+        {observation ? <RawReceiptButton label={`Core 握手原始读回 · ${capability}`} payload={observation} /> : null}</li>;
     })}</ul> : <p>{selected.implementation.state === "not_implemented" ? "没有当前运行实现，执行动作不可用。" : "此项声明为 Core 原生；worker 握手不提供该项的运行证据。"}</p>}
     <p>实际引擎身份、版本与产物质量需在具体 job 的质量回执核验。</p>
     <AaosButton variant="primary" disabled={!destination || !canNavigateToCapability(selected)}

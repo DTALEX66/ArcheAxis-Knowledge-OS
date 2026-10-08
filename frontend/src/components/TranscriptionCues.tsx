@@ -55,7 +55,10 @@ export function TranscriptionCues({proof,onTimeSeek,onAnchor}:{proof:Transcripti
   // than looking like the whole recording.
   const split=splitProgressFromWorkerOutput(proof.pipeline);
   return <Section title="真实转写时间段"><p>来自成功任务 {proof.jobId}，尝试 {proof.attempt}；定位校验不代表识别正确。</p>
-    {split&&split.status!=="complete"?<p role="status">{describeSplit(split)}</p>:null}
+    {/* A property of the persisted receipt (this transcript covers only the finished windows), stated
+        in plain text every time the panel opens. The panel's announce path is the message below, so a
+        reopen never re-announces the same partial-coverage fact. */}
+    {split&&split.status!=="complete"?<p>{describeSplit(split)}</p>:null}
     {proof.cues.length?<><table className="data-table"><thead><tr><th>时间</th><th>转写文本</th><th>操作</th></tr></thead><tbody>{proof.cues.slice(page*30,(page+1)*30).map((cue,offset)=>{const index=page*30+offset;return <tr key={index}><td>{(cue.start_ms/1000).toFixed(3)}–{(cue.end_ms/1000).toFixed(3)} 秒</td><td>{cue.text}</td><td>{onTimeSeek?<button onClick={()=>onTimeSeek(cue.start_ms/1000)}>定位到媒体时间</button>:null}<button disabled={busy} onClick={()=>void cite(index)}>引用时间段</button></td></tr>;})}</tbody></table>{proof.cues.length>30?<nav aria-label="转写时间段分页"><button disabled={page===0} onClick={()=>setPage(value=>value-1)}>上一组时间段</button><span>{page+1} / {Math.ceil(proof.cues.length/30)}</span><button disabled={(page+1)*30>=proof.cues.length} onClick={()=>setPage(value=>value+1)}>下一组时间段</button></nav>:null}</>:<p>没有通过时间范围校验的语音片段；原始文本与无法定位记录仍在损失回执，不能据此判断没有语音。</p>}
     {proof.pipeline?<section aria-label={Array.isArray(proof.pipeline.visual_results)?"独立视频帧识别结果":"转写定位状态"}>
       <p>处理状态：{String(proof.pipeline.pipeline_state??proof.pipeline.processing_status??proof.pipeline.alignment_status??"未提供")}；未定位片段：{Array.isArray(proof.pipeline.alignment_issues)?proof.pipeline.alignment_issues.length:0}。</p>

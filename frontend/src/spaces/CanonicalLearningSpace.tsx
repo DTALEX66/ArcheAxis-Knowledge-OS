@@ -9,6 +9,28 @@ function record(value: unknown): Record<string, unknown> {
   if (!value || typeof value !== "object" || Array.isArray(value)) throw new Error("invalid response");
   return value as Record<string, unknown>;
 }
+/**
+ * Reading surface for the history readback: what is known, in plain terms, and nothing invented.
+ * The untouched payload never appears here — it goes to the diagnostic console via RawReceiptButton,
+ * the same channel this file already uses for the machine-capability receipt. The state is either the
+ * bare `learning_history` readback or a submitted receipt wrapping the readback it was taken with, so
+ * the event count is looked for in both shapes rather than guessed at.
+ */
+function eventCount(value: Record<string, unknown>): number | null {
+  if (Array.isArray(value.events)) return value.events.length;
+  const nested = value.history;
+  if (nested && typeof nested === "object" && !Array.isArray(nested)) return eventCount(nested as Record<string, unknown>);
+  return null;
+}
+function historySummary(history: unknown): string {
+  if (history === null || history === undefined) return "尚未读回复习历史。";
+  if (typeof history !== "object" || Array.isArray(history)) return "复习历史已读回，这条记录无法在此摘要；未改写的回执见诊断控制台。";
+  const value = history as Record<string, unknown>;
+  const events = eventCount(value);
+  const parts: string[] = [events === null ? "本次回执未附带可数的复习事件记录。" : `已读回 ${events} 条复习事件记录。`];
+  if (value.receipt !== undefined && value.receipt !== null) parts.push("已记录本次提交的 Core 回执。");
+  return parts.join("");
+}
 export function CanonicalLearningSpace({onTrail}:{onTrail?:(levels:readonly ObjectTrailLevel[])=>void}) {
   const [focusMode, setFocusMode] = useState(false);
   const [items, setItems] = useState<Record<string, unknown>[]>([]);
@@ -93,7 +115,7 @@ export function CanonicalLearningSpace({onTrail}:{onTrail?:(levels:readonly Obje
       {rating&&checkedCorrect!==null&&!ratingConsistent?<p role="alert">所选难度与对错不符合当前 Core 规则；答错选“忘记”，答对选择其他难度。</p>:null}
       <button disabled={busy||!assessment||!answer.trim()||!ratingConsistent} onClick={()=>void review()}>记录复习结果</button>
       <h4>机器能力状态</h4><p>{record(state.machine).status==="not_recorded"?"尚无机器能力记录。": "机器能力按 Core 回执单独记录。"}</p><RawReceiptButton label="机器能力记录回执" payload={state.machine} />
-    </>})()}<details tabIndex={-1} data-section="record" aria-label="复习记录与回执"><summary>历史与回执</summary><pre>{JSON.stringify(history,null,2)}</pre></details></article>:null}
+    </>})()}<details tabIndex={-1} data-section="record" aria-label="复习记录与回执"><summary>历史与回执</summary><p>{historySummary(history)}</p><RawReceiptButton label="复习历史与 Core 提交回执" payload={history} /></details></article>:null}
     {message?<p role="status">{message}</p>:null}
     {failureReason ? <p className="state-reason">{failureReason}</p> : null}</Section>;
 }
