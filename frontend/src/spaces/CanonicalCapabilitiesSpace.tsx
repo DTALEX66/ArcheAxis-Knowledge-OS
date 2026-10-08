@@ -3,6 +3,7 @@ import { AaosButton, AaosField, AaosTabs } from "../design-system/AaosPrimitives
 import { coreCommand } from "../api/core";
 import { RawReceiptButton } from "../components/DiagnosticConsole";
 import { CAPABILITY_CATALOG, type CapabilityCatalogEntry } from "../api/generated/capability-catalog";
+import { absorptionClassification, templatesRequiring } from "../templates/capabilityRequirements";
 import { canNavigateToCapability, CAPABILITY_NAVIGATION_ENTRIES, getCapabilityDestination, getCapabilityNextStep, navigationEntryMatches } from "../presentation/navigation";
 import { Section } from "../components/RealData";
 import { coreFailureReason } from "../presentation/labels";
@@ -56,6 +57,10 @@ export function CanonicalCapabilitiesSpace({ onNavigate, selectedCapabilityId, n
 
   const visible = CAPABILITY_NAVIGATION_ENTRIES.filter((entry) => navigationEntryMatches(entry, query));
   const destination = selected ? getCapabilityDestination(selected) : undefined;
+  // The reverse read of the template suite: derived from the same declarations the template surface
+  // resolves against, so the two views cannot disagree, and it owns no second template list.
+  const requiring = selected ? templatesRequiring(selected.atlas.capability_id) : [];
+  const absorption = absorptionClassification();
   const catalog = <div className="space-section-region" data-section="catalog" tabIndex={-1} aria-label="能力目录与搜索">
     <p>入口身份与别名由 Atlas 投影生成；能力声明、实际实现和运行资格分别核对。未来条目仍可查看用途与前提。</p>
     <AaosField label="查找能力" value={query} onChange={(event) => setQuery(event.currentTarget.value)} placeholder="名称、ID、对象、依赖或旧入口别名" />
@@ -81,6 +86,14 @@ export function CanonicalCapabilitiesSpace({ onNavigate, selectedCapabilityId, n
     <p>旧入口别名：{selected.atlas.origin_requirement_ids.join("、") || "目录未列旧别名"}</p>
     <p>下一步：{getCapabilityNextStep(selected)}</p>
     <p>供体映射未建立；不按相似名称推断已吸收关系。</p>
+    <p>吸收来源分类：{absorption.label}。候选类别为 {absorption.classes.map((item) => item.label).join("、")}；{absorption.reason}</p>
+    <h4>使用此能力的模板</h4>
+    {requiring.length ? <ul className="capability-directory">{requiring.map((reference) => <li key={`${reference.template_id}:${reference.declared}`}>
+      <b>{reference.template_id} {reference.template_name}</b>
+      <small>{reference.declared} · {reference.join_label} · {reference.status_label}</small>
+    </li>)}</ul> : <p>模板套件当前没有声明此能力；这不代表能力无用，只代表联接尚未建立。</p>}
+    <p>{requiring.length ? "此处只列声明了该 ID 的模板；模板不复制插件代码、依赖安装或连接配置。对象在资料库的「学科模板」展开区，本视图不建立第二份模板清单。" : "无声明联接时不提供跳转，避免打开一个没有对象的入口。"}</p>
+    {requiring.length ? <AaosButton variant="secondary" onClick={() => onNavigate("library")}>到资料库打开学科模板</AaosButton> : null}
     <h4>当前运行联接、权限与健康</h4>
     <p>实现声明来源：config/capability-map.v1.json · {selected.implementation.state}。声明本身不证明本轮执行。</p>
     {selected.implementation.runtime_capabilities.length ? <ul>{selected.implementation.runtime_capabilities.map((capability) => {

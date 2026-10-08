@@ -496,7 +496,7 @@ export function App() {
         <main className="app-center" role="main" aria-label="当前空间内容">
           <NavTrail levels={trailLevels} onJump={focusRegion} />
           {sectionNotice ? <p className="nav-trail-notice" role="status">{sectionNotice}</p> : null}
-          <SpaceView spaceId={activeSpace} onInspect={inspect} onNavigate={navigate} navigation={sectionNavigation} selectedCapabilityId={selectedCapabilityId} onTrail={setObjectTrail} />
+          <SpaceView spaceId={activeSpace} onInspect={inspect} onNavigate={navigate} onOpenCapability={openCapability} navigation={sectionNavigation} selectedCapabilityId={selectedCapabilityId} onTrail={setObjectTrail} />
         </main>
         {inspectorOpen && !selectedCapabilityId && !learningFocus ? <Inspector target={inspectionTarget} onClose={() => setInspectorOpen(false)} /> : null}
       </div>

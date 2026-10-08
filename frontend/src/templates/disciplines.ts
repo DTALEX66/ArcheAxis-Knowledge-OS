@@ -1,4 +1,6 @@
 // One small configuration per discipline; the three templates share Core engines.
+import type { CoreOperation } from "../api/generated/core-contract";
+
 export type DisciplinePack = { id:string; name:string; fields:string[]; relations:string[]; activity:string; evaluation:string; sample:string };
 export const DISCIPLINES: DisciplinePack[] = [
   {id:"math",name:"数学",fields:["定义域","条件"],relations:["推导自","反例"],activity:"证明或构造反例",evaluation:"核对每步条件和推导",sample:"比较两种勾股定理证明的前提"},
@@ -30,8 +32,41 @@ export const DISCIPLINES: DisciplinePack[] = [
   {id:"architecture",name:"建筑",fields:["场地","使用需求"],relations:["约束","参照"],activity:"比较空间方案",evaluation:"尺度、规范与使用证据",sample:"比较公共空间的动线方案"},
   {id:"sport",name:"体育",fields:["活动","训练条件"],relations:["练习","反馈"],activity:"记录练习与表现",evaluation:"训练记录、表现与复习状态分开",sample:"记录一次动作练习及反馈"},
 ];
-export const TEMPLATES = [
-  {id:"T1",name:"知识网络",capabilities:["document.save","document.reference","document.backlinks","document.local-graph","canvas.references"]},
-  {id:"T2",name:"研究与项目",capabilities:["document.save","document.collection","document.reference","search.local","html.structure","pdf.extract","office.structure"]},
-  {id:"T3",name:"学习与实践",capabilities:["document.save","learning.review","learning.state","learning.fsrs","course.general"]},
+// A template requirement is what the template asks the platform to do, stated so a reader can
+// audit the join instead of trusting it:
+//  - `declared` keeps the name the template has always declared.
+//  - `capability_id` carries the stable Atlas ID only where the declaration genuinely joins an
+//    existing entry: either the dotted name appears verbatim in config/capability-map.v1.json's
+//    runtime_capabilities, or the Atlas entry's own objects/views/dependencies name the same
+//    concern (the resolver reports which of the two it is). Anything else stays null — inventing an
+//    ID would be a rename/demote decision reserved to the Owner by the Atlas tombstone rule.
+//  - `served_by` names the first-party Core commands the template really calls today. The type
+//    annotation below checks every entry against the generated contract, so a stale or invented
+//    command is a compile error rather than a claim on screen.
+export type TemplateRequirement = { declared: string; capability_id: string | null; served_by?: readonly CoreOperation[] };
+export type TemplateDefinition = { id: string; name: string; capabilities: readonly TemplateRequirement[] };
+export const TEMPLATES: readonly TemplateDefinition[] = [
+  {id:"T1",name:"知识网络",capabilities:[
+    {declared:"document.save",capability_id:null,served_by:["document_create","document_draft"]},
+    {declared:"document.reference",capability_id:null,served_by:["document_get","document_version"]},
+    {declared:"document.backlinks",capability_id:null,served_by:["documents_list","document_get"]},
+    {declared:"document.local-graph",capability_id:null,served_by:["documents_list","document_get"]},
+    {declared:"canvas.references",capability_id:null,served_by:["document_draft","document_version"]},
+  ]},
+  {id:"T2",name:"研究与项目",capabilities:[
+    {declared:"document.save",capability_id:null,served_by:["document_create","document_draft"]},
+    {declared:"document.collection",capability_id:null,served_by:["documents_list","document_get"]},
+    {declared:"document.reference",capability_id:null,served_by:["document_get","document_version"]},
+    {declared:"search.local",capability_id:null},
+    {declared:"html.structure",capability_id:"CAP-0020"},
+    {declared:"pdf.extract",capability_id:"CAP-0020"},
+    {declared:"office.structure",capability_id:"CAP-0020"},
+  ]},
+  {id:"T3",name:"学习与实践",capabilities:[
+    {declared:"document.save",capability_id:null,served_by:["document_create","document_draft"]},
+    {declared:"learning.review",capability_id:"CAP-0040"},
+    {declared:"learning.state",capability_id:"CAP-0040",served_by:["learning_state"]},
+    {declared:"learning.fsrs",capability_id:"CAP-0040"},
+    {declared:"course.general",capability_id:"CAP-0060"},
+  ]},
 ] as const;

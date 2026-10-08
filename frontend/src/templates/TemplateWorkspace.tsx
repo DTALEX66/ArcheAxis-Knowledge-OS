@@ -3,19 +3,63 @@ import { coreCommand } from "../api/core";
 import type { DocumentDto } from "../api/generated/core-contract";
 import { CanonicalLearningSpace } from "../spaces/CanonicalLearningSpace";
 import { DISCIPLINES, TEMPLATES } from "./disciplines";
+import { resolveTemplateRequirements, templateDefinition, type CapabilityRead, type LiveCapabilityRow } from "./capabilityRequirements";
 import { backlinks, binding, collection, createTemplate, loadTemplateDocuments, readableBinding, resolveReference, saveBinding, type TemplateBinding } from "./bindings";
 
-export function TemplateLauncher({onOpen,onDirtyChange}:{onOpen:(id:string)=>void;onDirtyChange?:(value:boolean)=>void}) {
+/** One live `capabilities_list` readback, validated the same way the capability directory validates
+ *  its own read: a row without a string identity is not a partial success, it is a failed read. */
+function readCapabilityHandshake(value: unknown): CapabilityRead {
+  const rows = (value as { capabilities?: unknown }).capabilities;
+  if (!Array.isArray(rows) || rows.some((row) => typeof (row as LiveCapabilityRow | null)?.capability !== "string")) {
+    return { state: "read_failed" };
+  }
+  return { state: "read", rows: new Map(rows.map((row) => [String((row as LiveCapabilityRow).capability), row as LiveCapabilityRow])) };
+}
+
+/** What the template declares it needs, and what the platform can actually answer today.
+ *  The reading surface carries no raw payload and no live role: the workspace owns one outcome
+ *  region below, and this table describes persisted declarations rather than a fresh event. */
+function TemplateCapabilityRequirements({ templateId, read, pending, busy, onRefresh, onOpenCapability }: {
+  templateId: string;
+  read: CapabilityRead;
+  pending: boolean;
+  busy: boolean;
+  onRefresh: () => void;
+  onOpenCapability?: (id: string) => void;
+}) {
+  const template = templateDefinition(templateId);
+  const rows = resolveTemplateRequirements(templateId, read);
+  const bound = rows.filter((row) => row.navigable).length;
+  return <section aria-label="模板能力需求">
+    <h4>{template?.name ?? templateId} · 所需能力</h4>
+    <p className="template-list-state">{pending ? "正在读取 Core 能力握手…" : read.state === "read_failed" ? "本轮能力握手读取失败，运行状态显示未知。" : read.state === "not_read" ? "本轮未读取运行状态（NOT_RUN）。" : `本轮已读回 ${read.rows.size} 条 Core 握手记录。`} 本表只陈述联接与状态：不复制插件代码、依赖安装或连接配置，未联接到稳定 ID 的声明不显示为可跳转。</p>
+    <div className="capability-actions"><button disabled={busy} onClick={onRefresh}>重新读取运行状态</button><span>{rows.length} 项声明需求；其中 {bound} 项联接到稳定 ID。</span></div>
+    <table className="data-table">
+      <caption>模板 {templateId} 的能力需求、当前提供方、可用性与缺失原因</caption>
+      <thead><tr><th>需求与提供方</th><th>状态</th><th>缺失原因</th><th>插件详情</th></tr></thead>
+      <tbody>{rows.map((row) => <tr key={row.declared}>
+        <td><b>{row.declared}</b><small className="table-sub">{row.capability_id ?? "无稳定 ID"}{row.capability_name ? ` · ${row.capability_name}` : ""}</small><small className="table-sub">{row.join_label} · {row.provider}</small></td>
+        <td>{row.status_label}<small className="table-sub">{row.availability_label}{row.health ? ` · ${row.health}` : ""}</small></td>
+        <td>{row.missing_reason}</td>
+        <td>{row.navigable && onOpenCapability
+          ? <button disabled={busy} aria-label={`打开能力详情 ${row.capability_id} · ${row.declared}`} onClick={() => onOpenCapability(row.capability_id as string)}>能力详情</button>
+          : <span className="muted">{row.navigable ? "当前视图未提供能力入口" : "无 ID，不可跳转"}</span>}</td>
+      </tr>)}</tbody>
+    </table>
+  </section>;
+}
+
+export function TemplateLauncher({onOpen,onDirtyChange,onOpenCapability}:{onOpen:(id:string)=>void;onDirtyChange?:(value:boolean)=>void;onOpenCapability?:(id:string)=>void}) {
   const [open,setOpen]=useState(false);
   const dirty=useRef(false);
   return <details className="template-launcher" onToggle={event=>{
     if(!event.currentTarget.open&&dirty.current&&!window.confirm("模板属性尚未保存，是否放弃这些属性修改？")){event.currentTarget.open=true;return;}
     setOpen(event.currentTarget.open);
   }}><summary>学科模板 · 知识网络 / 研究与项目 / 学习与实践</summary>
-    {open?<TemplateWorkspace onOpen={onOpen} onDirtyChange={value=>{dirty.current=value;onDirtyChange?.(value);}}/>:null}
+    {open?<TemplateWorkspace onOpen={onOpen} onOpenCapability={onOpenCapability} onDirtyChange={value=>{dirty.current=value;onDirtyChange?.(value);}}/>:null}
   </details>;
 }
-export function TemplateWorkspace({onOpen,onDirtyChange}:{onOpen:(id:string)=>void;onDirtyChange?:(value:boolean)=>void}) {
+export function TemplateWorkspace({onOpen,onDirtyChange,onOpenCapability}:{onOpen:(id:string)=>void;onDirtyChange?:(value:boolean)=>void;onOpenCapability?:(id:string)=>void}) {
   const [documents,setDocuments]=useState<DocumentDto[]>([]);
   const [bounded,setBounded]=useState(false);
   const [template,setTemplate]=useState("T1");const [discipline,setDiscipline]=useState("math");
@@ -26,11 +70,25 @@ export function TemplateWorkspace({onOpen,onDirtyChange}:{onOpen:(id:string)=>vo
   // "Core answered nothing" and "Core answered but no object carries template metadata" are different
   // facts; collapsing them into one empty list would state something the read never established.
   const [unreadable,setUnreadable]=useState(false);
+  // The requirement table separates "the map declares an implementation" from "this host reported a
+  // handshake". That second half only exists if capabilities_list was actually read, so its state is
+  // tracked apart from the document read and never defaults to a friendly value.
+  const [capabilityRead,setCapabilityRead]=useState<CapabilityRead>({state:"not_read"});
+  const [capabilityPending,setCapabilityPending]=useState(true);
+  const [capabilityEpoch,setCapabilityEpoch]=useState(0);
   const dirty=useRef(false);const callbacks=useRef(onDirtyChange);callbacks.current=onDirtyChange;
   const pack=DISCIPLINES.find(p=>p.id===(draft?.discipline_id??discipline))!;
   function change(next:TemplateBinding){dirty.current=true;callbacks.current?.(true);setDraft(next);}
   async function refresh(){const data=await loadTemplateDocuments();setUnreadable(false);setDocuments(data.documents);setBounded(data.bounded);return data.documents;}
   useEffect(()=>{let live=true;loadTemplateDocuments().then(data=>{if(live){setUnreadable(false);setDocuments(data.documents);setBounded(data.bounded);}}).catch(()=>{if(live){setUnreadable(true);setMessage("模板对象读取失败，请重试。");}});return()=>{live=false;epoch.current++;callbacks.current?.(false);};},[]);
+  // One read of the live capability handshake per mount or explicit refresh. It writes no message into
+  // the workspace's single outcome region — a handshake state is a persisted readout the user reads in
+  // place, and promoting it would make one mount announce twice.
+  useEffect(()=>{let live=true;setCapabilityPending(true);coreCommand("capabilities_list")
+    .then(value=>{if(live)setCapabilityRead(readCapabilityHandshake(value));})
+    .catch(()=>{if(live)setCapabilityRead({state:"read_failed"});})
+    .finally(()=>{if(live)setCapabilityPending(false);});
+    return()=>{live=false;};},[capabilityEpoch]);
   function select(document:DocumentDto){
     if(dirty.current&&!window.confirm("模板属性尚未保存，是否放弃这些属性修改？"))return;
     epoch.current++;dirty.current=false;callbacks.current?.(false);setSelected(document);setDraft(binding(document));setResolved(null);setMessage("");
@@ -54,6 +112,7 @@ export function TemplateWorkspace({onOpen,onDirtyChange}:{onOpen:(id:string)=>vo
     <button disabled={busy} onClick={()=>void action(create)}>创建学科对象</button>
     <button disabled={busy||dirty.current} onClick={()=>void action(async()=>{await refresh();})}>重新读取模板集合</button>
     <p>{unreadable?"集合读取未完成，下列计数不代表真实数量。":`集合从已保存文档重建；本次读回 ${documents.length} 个文档对象，其中 ${savedTemplates.length} 个带可解析模板属性；当前读取最多 100 个对象${bounded?"，结果可能不完整":""}。`}</p>
+    <TemplateCapabilityRequirements templateId={draft?.template_id??template} read={capabilityRead} pending={capabilityPending} busy={busy} onRefresh={()=>setCapabilityEpoch(value=>value+1)} onOpenCapability={onOpenCapability} />
     <nav aria-label="已保存模板">{savedTemplates.map(d=><button key={d.document_id} disabled={busy} onClick={()=>select(d)}>{d.title} · v{d.version}</button>)}
       {unreadable?<p className="template-list-state">模板集合未能从本地核心读回；列表为空只表示读取失败，不表示没有模板对象。</p>:savedTemplates.length?null:<p className="template-list-state">{documents.length?`已读回的 ${documents.length} 个文档对象中，没有带可解析模板属性的对象。`:"尚无已保存的模板对象；选择学科与模板后创建第一个。"}</p>}
     </nav>

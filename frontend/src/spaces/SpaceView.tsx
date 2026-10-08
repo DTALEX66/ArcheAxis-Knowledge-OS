@@ -52,6 +52,7 @@ export function SpaceView({
   spaceId,
   onInspect,
   onNavigate,
+  onOpenCapability,
   navigation,
   selectedCapabilityId,
   onTrail,
@@ -59,6 +60,7 @@ export function SpaceView({
   spaceId: SpaceId;
   onInspect: (target: InspectionTarget) => void;
   onNavigate: (id: SpaceId) => void;
+  onOpenCapability?: (id: string) => void;
   navigation?: SpaceNavigation;
   selectedCapabilityId?: string | null;
   onTrail?: (levels: readonly ObjectTrailLevel[]) => void;
@@ -89,7 +91,9 @@ export function SpaceView({
       case "library":
       case "intake":
       case "exchange":
-        return <CanonicalLibrarySpace onKnowledge={()=>onNavigate("vault")} onInspect={onInspect} navigation={navigationFor(spaceId, navigation)} onTrail={onTrail} />;
+        // The template suite lives here, and its requirement table links into the capability detail
+        // through the shell's one capability route rather than a route of its own.
+        return <CanonicalLibrarySpace onKnowledge={()=>onNavigate("vault")} onInspect={onInspect} onOpenCapability={onOpenCapability} navigation={navigationFor(spaceId, navigation)} onTrail={onTrail} />;
       case "vault":
       case "evidence":
       case "ai-assets":
