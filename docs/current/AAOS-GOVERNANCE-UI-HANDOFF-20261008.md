@@ -198,3 +198,80 @@
 - Python：`tests/test_window_minimum_size.py` 5 passed、`tests/test_ui_asset_manifest.py` 4 passed、`tests/test_reference_validation.py` 24 passed（新增一条：反引号里的 CLI 标志不得当路径引用，`--record/--scan-evidence/--root/--json` 此前被算成 6 条悬空引用）。
 - 交接文档自身的引用被同一把尺子量：初测 62 条里 31 条不合规（裸文件名歧义 + 指向主检出被忽略产物根/绿色仓库的路径），按"反引号=本检出可解析、`未跟踪 <路径>`=故意不可解析"的约定重写后 51 PASS / 1 AMBIGUOUS，剩下那条是并行线正在新建的 `tests/workflow/test_oss_reuse_crosswalk.py`，落地后补全路径。
 - 仍未达成：已安装 WebView2 宿主内的品牌图与图标观感、Windows 资源管理器/任务栏对 `icon.ico` 各尺寸的渲染、业主肉眼验收 —— 均 `NOT_EXECUTED`，不由 Chromium 结果代替。
+
+## 10. 第二轮：体积按总量重测、分支收敛、绿色仓库审计（2026-10-08 晚）
+
+上一轮我把体积线报成"闭环"，实际只回收了 148.6 GB 里的 7%。业主用资源管理器戳穿了这一点。
+本轮先把总量重新测出来，再按类别动手，所有数字都注明来自哪条命令。
+
+### 体积（`scripts/runtime/storage_report.py` 与 `未跟踪 .project-local/runs/volume-map-20261008/` 两个脚本各测一遍）
+
+| 范围 | 前 | 后 | 依据 |
+| --- | --- | --- | --- |
+| 项目主体整盘 | 148.6 GB（159,551,857,557 B） | **80.7 GB（86,618,369,845 B）** | `未跟踪 .project-local/runs/volume-map-20261008/where_the_bytes_are.py` 单次遍历，链接不跟随 |
+| `.project-local` | 145.96 GB | **48.48 GB** | `未跟踪 .project-local/runs/volume-map-20261008/drill_dev_root.py` 单次遍历 |
+| 其中 `worktrees/` | 71.04 GB | 3.12 GB | 18 个已合并且干净的工作树移除，41.97+26.20 GB |
+| 其中 `build/` | 41.01 GB | 15.95 GB | 按 dev.py 自身的 `sha256(casefold(root))[:10]` 反查归属，只删孤儿 |
+| 其中 `runs/` | 9.48 GB | 9.28 GB | 4 项证据先归档后删（229,614,206 B / 247 文件） |
+| 其中 `recovery/` `mig` `cache` `artifacts` | 18.68 GB | 18.77 GB | 归档落进 `mig/`，净增即归档开销 |
+| 云端侧（对照用） | Git 包 510,446,592 B、跟踪源码 65,931,381 B / 2,448 文件、2,813 可达提交 | 不变 | `count-objects -v` + `ls-tree -r -l` |
+
+**关键对照**：148 GB 全部是本机忽略产物，一字节都不上云；源码侧不到 0.6 GB。
+不可约的 Git 历史 510 MB 按原样列出，没有靠"改写历史"去藏它（未授权）。
+
+### 分支：44 → 10
+
+- 33 条用 `git branch -d` 退役，全部由 git 自身的合并检查放行；每条退役前记 tip SHA，可按名恢复。一次没用 `-D`。
+- 1 条（`codex/github-delivery-docs-20260929`）本轮先 `--no-ff` 合并再退役：它唯一提交的内容与线上**逐字节相同**，
+  且线上落笔晚 1 小时 43 分（PR #154），所以合并是空内容的对账，目的是让它成为祖先、让 `-d` 能自己放行。
+- 剩 10 条：`main` 与 8 条已并入本线但**仍挂着工作树**；1 条未合并——
+  `codex/minimax-aaos-cosmic-ui-20261001`（+2 提交，14 文件，+365/−96，"cosmic UI 层：背景、玻璃壳、诚实占位"
+  与调色板不变量）。它动的是 **SUP-022 已冻结的 Avalonia 供体**一侧，且工作树有未提交改动。
+  按"不自动合并主线"的边界，这条留给业主裁：要供体侧的视觉层就合，不要就连工作树一起处置。
+- 2 条 `-d` 拒绝的原因已查明并记录：`codex/f15-status-row-20261007` 已并入本线，但其 upstream
+  `origin/…` 缺这些提交 → 要删需先推送（业主）；`codex/Audit` 被主检出占用。
+
+### 绿色仓库：审计成功，删除被 NTFS 挡住
+
+见 `docs/current/AAOS-GREEN-REPOSITORY-BOUNDARY-AUDIT-20261001.md` 的"2026-10-08 授权轮"。要点：
+三个原以为"外部账户所有、不能碰"的路径**全部可读**，所以"不能审计就删"这条没触发；克隆里 23 个 ref
+全部能在主仓解析、无未推送提交，但有 **98 个文件的未提交 Avalonia 工作别处没有**——已归档
+（补丁 758,982 B + 79 个未跟踪文件，合计 11,160,518 B），并**在基线提交的临时 worktree 里重放补丁验证过**
+（恢复出 19 条跟踪改动）。真正删不动的原因是 `rmdir` 对属主为 `CodexSandboxOnline` 的内层文件报
+"拒绝访问"，而 `takeown` 因本会话非管理员被拒；6.89 GB 因此原地保留，命令已写给业主。
+`aaos-vnext-data` 里是 `workspace.sqlite` 加 WAL/SHM，属用户数据与 CAS，**有权限也不删**。
+本轮绿色仓库净回收 280,873 B。
+
+### 证据归档（4 项，已核验）
+
+`未跟踪 .project-local/mig/evidence-archive-20261008/`：4 个 zip 全部 `testzip()` 通过
+（成员 225/14/7/1，合计 82,615,053 B），对应源目录已不在，逐项目录带 manifest。
+其余 `未跟踪 runs / recovery / mig / artifacts 四类` 未处理——负责这条的执行体在 150 轮上限处中断，
+所以剩下 28 GB 仍是"未做引用判定"，不是"判定过但保留"。
+
+### 本轮终验（HEAD `231ea600`，运行前后工作树哈希同为 `d9151ad78b2d`，故可归因）
+
+| 层 | 结果 |
+| --- | --- |
+| 前端 | 59 文件 / **473 通过** |
+| 类型 | `tsc --noEmit` 零输出 |
+| **生产构建** | `vite build` exit 0，三张品牌 PNG 以哈希名落进 `dist/assets`（未被内联，资源管线成立） |
+| Python | **535 通过 / 3 跳过 / 0 失败**（范围写进回执，含 4 个子目录 + 10 个具名文件） |
+| 能力目录 | `generate_capability_catalog.py --check` exit 0 |
+| 吸收跨接 | `build_oss_absorption_crosswalk.py --check` current：68 条、仅 7 条可启停、115 条分歧保留 |
+| 浏览器门禁 | **PASS**，13 视口 × 3 主题，0 错误，5 个资料库尺寸零叠加/零不可达/零自裁切 |
+| 引用完整性 | 交接 **55/55**、品牌记录 **9/9**，零悬空零歧义 |
+
+### 我自己这一轮的两处执行错误（都记下来）
+
+1. 终验驱动脚本我写错了两次：一次 `cd` 指到共享 runs 根（脚本在工作树自己的 runs 根），
+   包装层照样报 exit 0；一次把 `run()` 返回的 dict 当对象取属性。**两次都是"通知说完成了"但活没干**。
+2. 回收脚本第二次运行把第一次的回执**覆盖**在同一文件名上。原始 JSON 回执丢了一份，
+   我从两份运行日志重建了合并清单——但这是补救，不是没犯错。
+
+### 仍未达成（不是本地能关掉的）
+
+远端 CI 资格化与 push、装机验收、九步人工旅程、物理 IME/DPI/P95/冷启动、
+`docs/authority/taskpack-1004-aaos01/checks/acceptance.json` 的 AQ26/AQ27（保持 `NOT_RUN`）、UI-01 的 12 张页面母版（`BLOCKED-ON-SUPPLY`）、
+cross-encoder 重排（业主装载模型）、绿色仓库 6.89 GB（需提权）、
+`minimax` 供体分支（需裁决）、剩余 28 GB 证据的引用判定。
