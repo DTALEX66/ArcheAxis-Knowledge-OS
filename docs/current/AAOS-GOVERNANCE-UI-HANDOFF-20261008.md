@@ -48,7 +48,7 @@
 | 前端全量 | `node node_modules/vitest/vitest.mjs run --reporter=basic --no-color` → **57 files / 428 tests passed**（基线 56/381；A +25、B +22 并存无冲突） | INTEGRATED（jsdom） |
 | 前端类型 | `tsc --noEmit -p tsconfig.json` → exit 0，0 行输出 | — |
 | 浏览器几何 | `scripts/a0_browser_smoke.py` → `"status": "PASS"`，10 视口×3 主题，`source_revision.base_commit=9005b2d2`、`worktree_dirty=false`，`canonical_host_problems=[]`，三级导航 `primary 9 / secondary 4 / focused anchors / tertiary src_a0_nav3` | **SIMULATED**（stub 桥，只证布局，不证 Core 调用） |
-| Python 门禁 | 11 个套件合并跑 → **101 passed**（`.project-local/receipts/pytest-consolidated-414a4513.txt`） | REAL（本机） |
+| Python 门禁 | 11 个套件合并跑 → **101 passed**（`.project-local/runs/f714401b40/gov-ui-20261008/artifacts/receipts/pytest-consolidated-414a4513.txt`） | REAL（本机） |
 | 真实 Core 写读 | 见 U4 | **REAL** |
 | 解析稳健性（自测复现） | `tests/workflow/test_external_resources_index.py` 从仓库根 / `services/python-workers` / `frontend/src` 三种 cwd 各 **12 passed**（同一结果，解析不依赖当前目录）；把 `ARCHEAXIS_EXTERNAL_ROOT` 指向不存在目录后 **2 failed / 10 passed**（`test_external_resources_index.py:245`），即缺资源明确变红而不静默回落 PATH | REAL |
 | 文档/目录检查 | `check_path_conventions.py` 3122/3123 归属、0 deny 被跟踪、0 歧义；`check_document_authority.py` 单一当前记录、根引用可解析、输入哈希相符；`check_repository_conventions.py` 通过 | REAL |
@@ -63,10 +63,10 @@
 
 | 层 | 实测 | 收据 |
 | --- | --- | --- |
-| 前端全量 | **58 files / 436 tests passed**，exit 0 | `.project-local/receipts/vitest-merged-fb630015.txt` |
-| 类型 | `tsc --noEmit -p tsconfig.json` exit 0，**0 行输出** | `.project-local/receipts/tsc-merged-fb630015.txt` |
-| Python 18 套件 | **190 passed**，exit 0；跑后被跟踪索引 blob 仍为 `4c8bf6aeebcb…`（零污染），`git status` 干净 | `.project-local/receipts/pytest-merged-fb630015.txt` |
-| 浏览器几何 | `a0_browser_smoke.py` → `status PASS`、`errors []`、`canonical_host_problems []`、10 视口 × 3 主题、`base_commit fb630015`、`worktree_dirty False`、导航 `primary 9 / secondary 4 / anchors / tertiary src_a0_nav3 / 复习队列存在` | `.project-local/receipts/A0-MERGED.txt` ＋ `a0final/artifacts/browser-smoke/*.png` |
+| 前端全量 | **58 files / 436 tests passed**，exit 0 | `.project-local/runs/f714401b40/gov-ui-20261008/artifacts/receipts/vitest-merged-fb630015.txt` |
+| 类型 | `tsc --noEmit -p tsconfig.json` exit 0，**0 行输出** | `.project-local/runs/f714401b40/gov-ui-20261008/artifacts/receipts/tsc-merged-fb630015.txt` |
+| Python 18 套件 | **190 passed**，exit 0；跑后被跟踪索引 blob 仍为 `4c8bf6aeebcb…`（零污染），`git status` 干净 | `.project-local/runs/f714401b40/gov-ui-20261008/artifacts/receipts/pytest-merged-fb630015.txt` |
+| 浏览器几何 | `a0_browser_smoke.py` → `status PASS`、`errors []`、`canonical_host_problems []`、10 视口 × 3 主题、`base_commit fb630015`、`worktree_dirty False`、导航 `primary 9 / secondary 4 / anchors / tertiary src_a0_nav3 / 复习队列存在` | `.project-local/runs/f714401b40/gov-ui-20261008/artifacts/receipts/A0-MERGED.txt` ＋ `a0final/artifacts/browser-smoke/*.png` |
 | 可视复核 | 我打开两帧确认：library 帧显示资料库（4 个对象分组、人类可读文案、无 JSON），learning 帧显示学习页（失败态"不兼容：本地核心的返回不符合当前合同，已停止而未按成功显示"）——文件名与画面内容一致 | 同上 |
 | 未跑项 | 新增 Rust 测试 `crates/archeaxis-api/tests/oss_template_reuse.rs` **NOT_RUN**（未跑就不主张）；远端 CI、安装资格、真人旅程、日用安装验收 **NOT_RUN** | — |
 
