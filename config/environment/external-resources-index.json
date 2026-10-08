@@ -1723,7 +1723,9 @@
         "embed_path": "/embeddings",
         "model_id": "text-embedding-qwen3-embedding-0.6b"
       },
-      "external_paths": []
+      "external_paths": [],
+      "verification_scope": "provider-session",
+      "verification_note": "RESULT_VERIFIED was observed against the loopback provider on 2026-10-08; the row is not re-provable while that provider is not running, and no installed artifact stands behind it (resolvable_location is null). A re-check that cannot reach the provider reports NOT_REPROVED_HERE; it does not restate the historical result and does not downgrade it."
     },
     {
       "resource_id": "ext.models.local-rerank-model",

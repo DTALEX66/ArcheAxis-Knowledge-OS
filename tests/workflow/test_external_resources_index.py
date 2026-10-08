@@ -154,6 +154,13 @@ def test_a_green_index_cannot_certify_a_row_that_does_not_answer_again():
     `rustc` failed standalone, `tesseract --list-langs` aborted, MSVC recorded an error string as
     its version, and four engines inherited `uv`'s version. A row that claims a result must
     produce it again here, or the run is red.
+
+    One class of claim is different in kind, and the index now says so: a row verified against a
+    running provider with no installed artifact behind it (`verification_scope: provider-session`)
+    can only be re-proved while that provider is up. Those rows are re-asserted when the provider
+    answers and reported when it does not - the historical result is neither restated nor
+    downgraded - while every other row stays a hard failure. A gate that could exempt its way to
+    an empty set would certify nothing, so the split itself is asserted.
     """
     sys.path.insert(0, str(ROOT))
     from scripts.workflow import environment_registry
@@ -164,13 +171,35 @@ def test_a_green_index_cannot_certify_a_row_that_does_not_answer_again():
     claimed = [item for item in index_document()["entries"]
                if item["verification_level"] == "RESULT_VERIFIED"]
     assert claimed, "no RESULT_VERIFIED row exists, which would make this gate vacuous"
+    session_bound = [item for item in claimed
+                     if item.get("verification_scope") == "provider-session"]
+    reprovable = [item for item in claimed if item not in session_bound]
+    assert reprovable, "every RESULT_VERIFIED row was declared provider-session bound"
+    for item in session_bound:
+        assert item.get("verification_note"), \
+            f"{item['name']}: a provider-session row must state what its claim means"
+        # The exemption is only for a claim with nothing installed behind it. Without this,
+        # marking `msvc` provider-session-bound would quietly retire a real gate.
+        assert item.get("resolvable_location") is None and item.get("category") == "models", (
+            f"{item['name']}: only a provider-backed row with no installed artifact may claim "
+            "provider-session scope")
+
     drift = []
-    for item in claimed:
+    for item in reprovable:
         fresh = rows[f"{item['category']}/{item['name']}"]
         if fresh["verification_level"] != "RESULT_VERIFIED":
             drift.append(f"{item['name']}: index says RESULT_VERIFIED, a re-run gives "
                          f"{fresh['verification_level']} ({fresh['probe_evidence'].get('reason')})")
     assert drift == [], "; ".join(drift)
+
+    not_reproved = []
+    for item in session_bound:
+        fresh = rows[f"{item['category']}/{item['name']}"]
+        if fresh["verification_level"] != "RESULT_VERIFIED":
+            not_reproved.append(f"{item['name']}: NOT_REPROVED_HERE - "
+                                f"{fresh['probe_evidence'].get('reason')}")
+    if not_reproved:
+        print("provider-session rows not re-proved in this run: " + "; ".join(not_reproved))
 
 
 def test_the_index_and_the_runtime_resolver_agree_about_every_declared_path() -> None:
