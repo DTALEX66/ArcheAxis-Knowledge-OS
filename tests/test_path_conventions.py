@@ -17,8 +17,11 @@ from __future__ import annotations
 
 import importlib.util
 import json
+import shutil
 import subprocess
 from pathlib import Path
+
+import yaml
 
 REPO = Path(__file__).resolve().parents[1]
 MODULE = REPO / "scripts/check_path_conventions.py"
@@ -275,3 +278,93 @@ def test_legacy_roots_may_not_claim_absorption():
         assert entry["not_semantically_reviewed"] == entry["manifest_entries"]
         assert entry["manifest_entries"] > 0
     assert "not_semantically_reviewed" in record["legacy_manifest_note"] or "semantic absorption" in record["legacy_manifest_note"]
+
+
+# --------------------------------------------------- ownership classes on disk
+
+
+OWNERSHIP_CLASSES = {
+    "source-contract-index",
+    "run-evidence",
+    "rebuildable-cache",
+    "shared-by-declaration",
+}
+
+
+def _fixture_repo(tmp_path: Path) -> Path:
+    """A real repository with two registered worktrees that share one dependency lock.
+
+    The worktree paths sit under the declared development root, `node_modules/` is ignored so
+    the copies do not make the worktree dirty, and the lock is tracked: that is the layout the
+    gate has to judge, not a stand-in for it.
+    """
+    import yaml
+
+    repo = tmp_path / "repo"
+    repo.mkdir()
+    rules = yaml.safe_load((REPO / "DIRECTORY_AUTHORITY.yaml").read_text(encoding="utf-8"))
+    (repo / "DIRECTORY_AUTHORITY.yaml").write_text(
+        yaml.safe_dump({"authorities": [], "ownership_classes": rules["ownership_classes"],
+                        "shared_resource_install_rules": rules["shared_resource_install_rules"]},
+                       sort_keys=False),
+        encoding="utf-8")
+    (repo / ".gitignore").write_text("node_modules/\n", encoding="utf-8")
+    frontend = repo / "frontend"
+    frontend.mkdir()
+    (frontend / "package-lock.json").write_text('{"name":"x","lockfileVersion":3}\n', encoding="utf-8")
+
+    def git(*args: str) -> str:
+        return subprocess.run(
+            ["git", "-c", "user.name=Fixture", "-c", "user.email=fixture@example.invalid",
+             "-C", str(repo), *args],
+            check=True, capture_output=True, text=True).stdout
+
+    git("init", "-q")
+    git("add", "DIRECTORY_AUTHORITY.yaml", ".gitignore", "frontend/package-lock.json")
+    git("commit", "-qm", "baseline")
+    head = git("rev-parse", "HEAD").strip()
+    for name in ("w1", "w2"):
+        git("worktree", "add", "--detach", str(repo / ".project-local/worktrees" / name), head)
+        install = repo / ".project-local/worktrees" / name / "frontend/node_modules/pkg"
+        install.mkdir(parents=True)
+        (install / "index.js").write_text("same bytes\n", encoding="utf-8")
+        (install.parent / ".package-lock.json").write_text('{"installed":"same"}\n', encoding="utf-8")
+    return repo
+
+
+def test_a_worktree_that_duplicates_a_shared_install_is_refused(tmp_path):
+    """Class `rebuildable-cache` is enforced by a predicate, not by a paragraph.
+
+    The declaration is checked first because a gate that reads an optional block would pass
+    vacuously the moment somebody deleted it: four classes must each carry a machine predicate
+    and a failure condition, and the duplication scan must actually refuse two clean, merged
+    worktrees that hold the same install.
+    """
+    authority = yaml.safe_load((REPO / "DIRECTORY_AUTHORITY.yaml").read_text(encoding="utf-8"))
+    classes = {item["id"]: item for item in authority["ownership_classes"]["classes"]}
+    assert set(classes) == OWNERSHIP_CLASSES, "the four ownership classes are the contract"
+    for identifier, rule in classes.items():
+        assert rule.get("machine_predicate"), f"{identifier} declares no machine predicate"
+        assert rule.get("fails_when"), f"{identifier} declares no failure condition"
+    assert "shared_resource_install_rules" in authority, (
+        "the copied-shared-install gate reads this block; without it the checker passes vacuously")
+
+    repo = _fixture_repo(tmp_path)
+    installs = {name: str((repo / ".project-local/worktrees" / name / "frontend/node_modules"))
+                .replace("\\", "/") for name in ("w1", "w2")}
+
+    groups = paths.copied_shared_resources(repo)
+    assert len(groups) == 1, "two identical clean-and-merged copies must be refused"
+    assert groups[0]["copy_count"] == 2
+    assert {item["install"] for item in groups[0]["copies"]} == set(installs.values())
+
+    # a different installed-tree identity is a different install, not a duplicate to collapse:
+    # conflating them would point a worktree at bytes it never installed.
+    (repo / ".project-local/worktrees/w2/frontend/node_modules/.package-lock.json").write_text(
+        '{"installed":"other"}\n', encoding="utf-8")
+    assert paths.copied_shared_resources(repo) == [], (
+        "same lock file but different installed-tree identity must not be grouped together")
+
+    # and the compliant end-state: one real copy, the other worktree holds nothing local.
+    shutil.rmtree(str(repo / ".project-local/worktrees/w2/frontend/node_modules"))
+    assert paths.copied_shared_resources(repo) == []
