@@ -59,9 +59,26 @@
 
 依赖变化：**无**。`package.json`/`package-lock.json`/`Cargo.toml`/`Cargo.lock`/`pyproject`/`uv.lock`/`.csproj` 均未被本轮改动（`git diff --name-only` 过滤实证）；新 worktree 经 junction 复用既有 `node_modules`，未复制大型共用资源。
 
-## 5. 待整合（两路 writer 运行中，落地后在此节追加）
+## 5. 在飞工作（本轮结束时仍未提交，接手者按此续做）
 
-`e-honesty-20261008`（证据哈希更正 / 引用严格化 / 生成器诚实性）、`f-oss-20261008`（OSS 复用与 T1/T2/T3 模板整合）。
+两路 writer 在**各自独立 worktree/分支**上运行，基线均为 `969c6130`；我未替它们提交，避免与仍在写入的进程抢同一 checkout。
+
+| writer | worktree / 分支 | 实测进度 | 剩余动作 |
+| --- | --- | --- | --- |
+| 诚实性（审计项 4/5/6） | `.project-local/worktrees/e-honesty-20261008` / `codex/aaos-gov-honesty-20261008` | 未提交；已产出 `scripts/audit/reference_validation.py` 580 行、`scripts/audit/emission_discipline.py` 221 行、`tests/test_reference_validation.py` 357 行 | 让它跑完并自证；若中断：由接手者运行该测试文件、把证据哈希更正写入 `docs/current/AAOS01-Q00-Q15-LEDGER-FINAL-20261005.md`（该文件由它独占），再 `git merge --no-ff` 进本分支 |
+| OSS 与模板整合（P3） | `.project-local/worktrees/f-oss-20261008` / `codex/aaos-gov-oss-20261008` | `git merge 15f79cf7` 进行中：23 项变更，唯一未合并文件 `frontend/src/spaces/CanonicalLearningSpace.tsx` **已无冲突标记（0 处）待 stage**；已生成 `docs/current/OSS-REUSE-CROSSWALK-20261008.manifest.json` 与 `tests/workflow/test_oss_reuse_artifact_manifest.py`（即"大表只留清单+哈希+生成器"的落地） | `git add` 该文件 → 跑全量 vitest/tsc 与该两个新测试 → 提交 merge → 整合进本分支 |
+
+接手命令（在本 worktree）：
+
+```bash
+git -C .project-local/worktrees/e-honesty-20261008 status --porcelain
+git -C .project-local/worktrees/f-oss-20261008 diff --name-only --diff-filter=U
+# 两分支各自提交后：
+git merge --no-ff codex/aaos-gov-honesty-20261008
+git merge --no-ff codex/aaos-gov-oss-20261008
+```
+
+整合后必须重跑：`frontend` 全量 vitest（基线 57 files / 428 tests）、`tsc --noEmit`、§4 的 11 套件 Python 合并跑（基线 101 passed）、`scripts/a0_browser_smoke.py`（基线 PASS，且现在会同时产出 `canonical-host-library-*` 与 `canonical-host-learning-*` 两帧）。
 
 ## 6. 需业主决定的具体事项
 
