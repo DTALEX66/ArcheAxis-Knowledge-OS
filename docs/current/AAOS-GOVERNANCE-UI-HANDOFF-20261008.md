@@ -57,28 +57,33 @@
 | 缺资源与未运行项（生成器实测表） | `local-embedding-model` → `1024-dim vector returned`（RESULT_VERIFIED）；`local-rerank-model` → **`NOT_RUN`，原因随行走廊**（模型 id 被服务但宿主端点应答不符）；被跟踪索引当前等级分布经复算为 VERSION_PROBED 16 / RESULT_VERIFIED 4 / FILE_EXISTS 9 / unavailable 2 / NOT_RUN 1，共 32 行 | REAL |
 | 生成器不再污染治理记录（本轮缺陷修复） | `test_declared_paths_resolve_on_this_host` 曾以子进程就地重写被跟踪索引：干净跑一次该文件，被跟踪 blob 由 `4c8bf6aeebcb…` 变为 `7910abe4ad85…`，即"跑测试"本身改写治理记录，且该文件含主机绝对路径，谁最后跑谁决定提交内容。改为 `ARCHEAXIS_INDEX_OUTPUT` 可重定向后：正常根 `12 passed` 且 blob 保持 `4c8bf6ae`；把根指向不存在目录时 **4 项点名失败**而 blob 仍 `4c8bf6ae` | REAL（`e0e52a21`） |
 
+### 整合后终验（七路全部并树后，HEAD `fb630015`）
+
+两条各自验证过的分支首次同树，故整体重跑：
+
+| 层 | 实测 | 收据 |
+| --- | --- | --- |
+| 前端全量 | **58 files / 436 tests passed**，exit 0 | `.project-local/receipts/vitest-merged-fb630015.txt` |
+| 类型 | `tsc --noEmit -p tsconfig.json` exit 0，**0 行输出** | `.project-local/receipts/tsc-merged-fb630015.txt` |
+| Python 18 套件 | **190 passed**，exit 0；跑后被跟踪索引 blob 仍为 `4c8bf6aeebcb…`（零污染），`git status` 干净 | `.project-local/receipts/pytest-merged-fb630015.txt` |
+| 浏览器几何 | `a0_browser_smoke.py` → `status PASS`、`errors []`、`canonical_host_problems []`、10 视口 × 3 主题、`base_commit fb630015`、`worktree_dirty False`、导航 `primary 9 / secondary 4 / anchors / tertiary src_a0_nav3 / 复习队列存在` | `.project-local/receipts/A0-MERGED.txt` ＋ `a0final/artifacts/browser-smoke/*.png` |
+| 可视复核 | 我打开两帧确认：library 帧显示资料库（4 个对象分组、人类可读文案、无 JSON），learning 帧显示学习页（失败态"不兼容：本地核心的返回不符合当前合同，已停止而未按成功显示"）——文件名与画面内容一致 | 同上 |
+| 未跑项 | 新增 Rust 测试 `crates/archeaxis-api/tests/oss_template_reuse.rs` **NOT_RUN**（未跑就不主张）；远端 CI、安装资格、真人旅程、日用安装验收 **NOT_RUN** | — |
+
 依赖变化：**无**。`package.json`/`package-lock.json`/`Cargo.toml`/`Cargo.lock`/`pyproject`/`uv.lock`/`.csproj` 均未被本轮改动（`git diff --name-only` 过滤实证）；新 worktree 经 junction 复用既有 `node_modules`，未复制大型共用资源。
 
-## 5. 在飞工作（本轮结束时仍未提交，接手者按此续做）
+## 5. 诚实性与 OSS 整合（已落地，原为在飞）
 
-两路 writer 在**各自独立 worktree/分支**上运行，基线均为 `969c6130`；我未替它们提交，避免与仍在写入的进程抢同一 checkout。
+两路 writer 中途停摆且未提交，由我停止其代理、接管各自 checkout 后收口（保持"一个 checkout 一个 writer"）。
 
-| writer | worktree / 分支 | 实测进度 | 剩余动作 |
+| 项 | 落地 | 提交 | 实测 |
 | --- | --- | --- | --- |
-| 诚实性（审计项 4/5/6） | `.project-local/worktrees/e-honesty-20261008` / `codex/aaos-gov-honesty-20261008` | 未提交；已产出 `scripts/audit/reference_validation.py` 580 行、`scripts/audit/emission_discipline.py` 221 行、`tests/test_reference_validation.py` 357 行 | 让它跑完并自证；若中断：由接手者运行该测试文件、把证据哈希更正写入 `docs/current/AAOS01-Q00-Q15-LEDGER-FINAL-20261005.md`（该文件由它独占），再 `git merge --no-ff` 进本分支 |
-| OSS 与模板整合（P3） | `.project-local/worktrees/f-oss-20261008` / `codex/aaos-gov-oss-20261008` | `git merge 15f79cf7` 进行中：23 项变更，唯一未合并文件 `frontend/src/spaces/CanonicalLearningSpace.tsx` **已无冲突标记（0 处）待 stage**；已生成 `docs/current/OSS-REUSE-CROSSWALK-20261008.manifest.json` 与 `tests/workflow/test_oss_reuse_artifact_manifest.py`（即"大表只留清单+哈希+生成器"的落地） | `git add` 该文件 → 跑全量 vitest/tsc 与该两个新测试 → 提交 merge → 整合进本分支 |
+| 审计项 5 引用完整性 | `scripts/audit/reference_validation.py`（580 行，带 `--record/--scan-evidence/--root/--json` CLI）取代按 basename 全树 `rglob` 的旧法：精确路径 + 声明根内解析、按记录哈希或提交核身份、同名歧义列双方并拒绝、裸 basename 永不通过、绝对路径与越出根的 `..` 一律拒、历史引用可解析但标记且不被同名件自动满足、判定类不折叠 | `15f0e6de` | `tests/test_reference_validation.py` **18 passed**，含"旧规则对这些故障全盲"的反证用例 |
+| 审计项 6 生成器诚实性 | `scripts/audit/emission_discipline.py`：数字必须来自 resolver（模板里留字面数字即构造期拒绝）、不可重算者以 `CLAIM`/`INSUFFICIENT-EVIDENCE` 具名输出、手写标记被 `scan_unproduced` 拒、`check_written` 复核**落盘字节**、生成器打印自己算出的 tally 而不再声称"全部由磁盘重算" | `15f0e6de` | `tests/test_emission_discipline.py` **13 passed**（把审计里 `（前端 365、Rust 526）`、`PASS/CI(force_full)` 原文当作栽入故障） |
+| 审计项 4 证据哈希 | 台账新增带日期更正节：`receipt.raw.log` 4,114 B / `0cf9deba…`、`summary.json` 1,865 B / `0294d344…`、记录值 `2d3c69a5…` 对两者任何可辨识形式均不匹配且穷举 artifacts 无命中 → 来源记为**不可证**，不猜测、不重跑凑值；同时记捕获缺陷（JSON 正文恰在 char 4000 截断，与 `coverage_caveat` 的"从未截断"矛盾，该条改判 REFUTED，而 `machine.answer` 的 REAL 判定按回执内容与 Core 身份保留）；原工件与旧值未改 | `15f0e6de` | 两个哈希由我本轮 `sha256sum` 独立复算，非转述 |
+| P3 OSS 与 T1/T2/T3 模板 | `git merge 15f79cf7` 按 hunk 整合：`CanonicalLearningSpace` 保留本轮 `historySummary`+`RawReceiptButton` 诊断路由、无 role 的 `failureReason` 与单一 live region，仅取 OSS 侧 `initialItemKey` 学习项绑定；`DocumentEditor`/`CanonicalLibrarySpace` 取模板根属性与 dirty 保护而不丢 nav/onTrail；20,584 行 / 992,500 字节生成表**不再入库**，改为跟踪生成器 + `OSS-REUSE-CROSSWALK-20261008.manifest.json`（记录产生命令、输入、原始字节与 CRLF 规范化两种摘要），并由测试重新生成比对、生成器自身变更即失效；PDF.js 由 REFERENCE 改 CURRENT（`frontend/package.json:21` 声明 `pdfjs-dist 6.4.299`、`PdfReader.tsx:3` 实际导入，旧桶位是假陈述），改为直接钉"只能主张 source 存在" | `ea1e1700` → 整合 `fb630015` | 前端 **58 files / 436 tests**、tsc 零输出、`test_mfx001`+crosswalk+manifest+html_donor **23 passed** |
 
-接手命令（在本 worktree）：
-
-```bash
-git -C .project-local/worktrees/e-honesty-20261008 status --porcelain
-git -C .project-local/worktrees/f-oss-20261008 diff --name-only --diff-filter=U
-# 两分支各自提交后：
-git merge --no-ff codex/aaos-gov-honesty-20261008
-git merge --no-ff codex/aaos-gov-oss-20261008
-```
-
-整合后必须重跑：`frontend` 全量 vitest（基线 57 files / 428 tests）、`tsc --noEmit`、§4 的 11 套件 Python 合并跑（基线 101 passed）、`scripts/a0_browser_smoke.py`（基线 PASS，且现在会同时产出 `canonical-host-library-*` 与 `canonical-host-learning-*` 两帧）。
+未达成的部分如实保留：新增 Rust 测试 `crates/archeaxis-api/tests/oss_template_reuse.rs` 本地 **NOT_RUN**（需 cargo 构建，未跑就不主张）；模板在 jsdom 下渲染属 SIMULATED/INTEGRATED，不等于真实知识库操作；OSS 侧的 T1/T2/T3 与 28 学科配置经整合后由 `TemplateBindings.test.tsx` 与 `test_oss_reuse_crosswalk.py` 覆盖，未经真人学习配对验证。
 
 ## 6. 需业主决定的具体事项
 
