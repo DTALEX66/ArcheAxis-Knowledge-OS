@@ -128,7 +128,7 @@
 5. **体积回收：本轮已执行的部分与仍待授权的部分**
    - 已执行（在"体积清理"指令范围内，逐项先归档、先证可恢复、先查引用）：4 个未注册 `pycache-*` 与 2 个空壳、4 份重复 `node_modules` 改 junction，合计 **1,002,595 KB**；清单与核验件在 `未跟踪 d-docs-20261008/.project-local/volume-20261008/`，孤儿 `.pyc` 归档 zip 逐成员验过 CRC32 与 SHA-256。
    - 仍待授权：`speaker-embedding.onnx` 26,530,550 bytes 与共享根逐字节同哈希的副本（同目录 `.PATCHED.onnx` 是修改件，**不得按同名处理**）；其余 6 份重复 `node_modules`（含锁相同但安装树不同的 `oss-reuse`，需按树摘要逐个判）；`.project-local/build`未跟踪 未跟踪  中真正孤儿仅 54,154 KB，其余 41.8 GB 属**在册活跃工作树**的重建成本，回收等于把成本转给下一轮，需业主就"退役哪些工作树"一并决定；Git 历史清理/改写/远程 ref 删除/强推不在默认授权内。
-6. **分支与工作树退役**：§6 线 3 给出 31 项 retire-ready 及精确命令（`worktree remove` 先于 `branch -d`，一律 `-d` 不 `-D`），以及 3 个含独有提交的不可退役分支。**本轮一个分支、一个工作树都没删**。
+6. **分支与工作树退役**：§6 线 3 给出 31 项 retire-ready 及精确命令（`worktree remove` 先于 `branch -d`，一律 `-d` 不 `-D`），以及 3 个含独有提交的不可退役分支。**同日稍后更新**：31 项 retire-ready 中的 9 个兄弟工作树已按上述二次证明移除（分支与 ref 未动，无 `--force`）；分支本身仍未退役任何一条。。**本轮一个分支、一个工作树都没删**。
 7. **UI-01 的 12 张页面母版**：8 个权威根内不存在 → 保持 `BLOCKED-ON-SUPPLY`，不编造母版一致性。因此"布局是否还原母版"目前无法判定，本轮只自证内部一致。
 8. **不能自签项**：`docs/authority/taskpack-1004-aaos01/checks/acceptance.json` 的 AQ26/AQ27 保持 `NOT_RUN`未跟踪 未跟踪 ；物理 IME/DPI/P95/冷启动、九步人工旅程、真人学习配对、日用安装验收需业主执行。
 9. **cross-encoder 重排**：fail-closed 属业主模型装载，非代码缺陷；caption/embedding/rerank 属 loopback 端点，`11434` 关闭而 `1234` 曾被证实可用，不得称"Ollama 阻塞"。
@@ -156,6 +156,9 @@
 九次 `git merge --no-ff` 全部 exit 0，**无一次冲突需要人工取舍**（各线路径互不重叠；唯一重叠风险 `frontend/src/spaces/CanonicalLearningSpace.tsx` 由 OSS 线按 hunk 解决并已验证）。回退：任一分支提交可单独 `git revert`；文档搬迁的回退由清单逐行给出（`git mv` 反向 + 目标字节与哈希比对）；被删除的体积项全部先归档并逐成员核验，`.pyc` 可由现存源重生成；用户数据、数据库、CAS、恢复件未被触碰。
 
 工作树占用说明：本轮共使用 8 个 writer worktree（`gov-ui` 加 `a-gates`/`b-surfaces`/`c-resources`/`d-docs`/`e-honesty`/`f-oss`/`g-coredemo`），**未新建任何 worktree**（后三线复用已合并的空闲位，避免为并行再增加体积）。它们**本轮不删除**：其中 4 个的 `frontend/node_modules` 是指向 `f15-folder-ingest-20261007` 共享安装的 junction，递归删除会跟随链接删掉共享源。安全顺序是先 `cmd /c rmdir <junction>`（只卸链接），再 `git worktree remove`；分支提交仍在，随时可重开工作树。此项已列入 §7 第 6 条待授权清单。
+
+**更正（同日稍后，提交 `978043bf`）**：上面「本轮不删除」与 §7 第 6 条「一个工作树都没删」已被同一轮稍后的处置取代。9 个兄弟工作树在逐项二次证明（`git status --short` 空、`git log --oneline 29c3cb98..<branch>` 空、`merge-base --is-ancestor` 通过、HEAD 附着于分支）后**已全部移除**，`git worktree list` 由 38 项降到 29 项；4 个 `frontend/node_modules` 链接先以 `cmd /c rmdir` 卸载再删工作树，共享安装在六个测量点恒为 8,078 文件 / 190,195,893 字节，且经本工作树链接与直接路径各数一遍一致。**分支与 ref 一个未删**，任何 `git worktree remove` 都未使用 `--force`；回执先归档（18,807,969 字节）后才动目录。逐条证据、回退命令（9 × `git worktree add` + 3 × `cmd /c mklink /J`）与 11 项未授权保留项见 `docs/current/REPOSITORY-CLEANUP-HANDOFF-20260921.md` 的「2026-10-08 批次 B」。
+仍待业主裁决的是另一回事：`§7` 第 5 条列出的重复 `node_modules`、`speaker-embedding.onnx` 副本与 `.project-local/build` 中属于在册工作树的 41.8 GB，本轮未动。
 
 ## 9. 第二轮：品牌图、窗口缩放与几何门禁（提交 `4611e8a4`、`27da2816`）
 
