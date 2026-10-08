@@ -102,7 +102,7 @@ nightly 在 `main` 的失败：2026-09-21 至 09-26 连续 6 次，失败作业 
 | `reflog expire --expire-unreachable=now` 作为回滚手段 | 方向相反：它会**清除**恢复信息 |
 | SSH/HTTPS 排查（标为高优先级） | `ssh -T` 已成功认证、`credential.helper=manager`、URL 改写均已就位——零工作量 |
 
-详见 `docs/current/AAOS-EXTERNAL-AUDIT-VERIFICATION-20260926.md`（含附录 A）。
+详见 `docs/history/cloud-audit-20260926/AAOS-EXTERNAL-AUDIT-VERIFICATION-20260926.md`（含附录 A）。
 
 ## 7. 未验证边界
 
