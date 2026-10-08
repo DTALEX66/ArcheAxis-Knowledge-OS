@@ -54,7 +54,16 @@ def test_approved_default_engines_present() -> None:
         assert data[key] in {"CURRENT", "ADOPT"}, (
             f"{name} expected CURRENT/ADOPT, got {data[key]}"
         )
-    assert data["pdf.js"] == "REFERENCE"
+    # PDF.js left the REFERENCE bucket on 2026-10-08, and the bucket was the stale part of the
+    # record, not the honest part: `frontend/package.json` declares `pdfjs-dist` 6.4.299 and
+    # `frontend/src/components/PdfReader.tsx` imports it, while `frontend/` + `src-tauri/` are the
+    # formal host under SUP-022. "Not a dependency" was no longer a true sentence about it, so the
+    # ledger now says CURRENT. What actually has to stay guarded is narrower than the old bucket, so
+    # it is pinned directly rather than smuggled through a disposition string.
+    pdfjs = next(c for c in _ledger()["components"] if "pdf.js" in c["name"].lower())
+    assert set(pdfjs["qualification"]) <= {"source"}, (
+        f"PDF.js may only claim source presence, got {pdfjs['qualification']}"
+    )
 
 
 def test_blocked_components_not_in_default_engine_chain() -> None:

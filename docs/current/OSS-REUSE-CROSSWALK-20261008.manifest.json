@@ -1,0 +1,156 @@
+{
+  "schema": "archeaxis.generated-artifact-manifest/v1",
+  "artifact_name": "oss-reuse-crosswalk-20261008",
+  "recorded_at": "2026-10-08",
+  "decision": {
+    "what": "The generator is tracked; the full tables it produces are not.",
+    "why": "A 20,584-line / 992,500-byte machine-generated table is a build output, not a source of truth: every byte of it is derivable from the tracked generator plus the tracked inputs named below. Committing it makes every future edit to any input either a stale table in Git or a 20k-line diff, and it hides the fact that the table's own embedded provenance can be out of date.",
+    "authority": "AGENTS.md 3. Safety Rules - project-owned development outputs use the ignored <repo>/.project-local/ root; do not commit generated databases or caches.",
+    "incoming_payload": "The full tables remain in commit 15f79cf7fc35a2bcd56f82480fe2ca6a90c9f0a5 on branch codex/oss-reuse-templates-20261008. Nothing was deleted from history; this branch simply tracks the pointer instead of the payload."
+  },
+  "generator": {
+    "path": "scripts/audit/build_oss_reuse_inventory.py",
+    "bytes": 8562,
+    "sha256": "8cc1af1e2b78614026a0856863ff221c07b7539833eb23b47679fa99f962db79",
+    "sha256_line_normalised": "8cc1af1e2b78614026a0856863ff221c07b7539833eb23b47679fa99f962db79"
+  },
+  "producing_command": [
+    "<python>",
+    "scripts/audit/build_oss_reuse_inventory.py",
+    "--root",
+    "<absolute worktree root>",
+    "--decisions",
+    "docs/current/OSS-REUSE-DECISIONS-20261008.json",
+    "--verification",
+    "docs/current/OSS-REUSE-VERIFICATION-20261008.json",
+    "--output",
+    "<artifact_root>/OSS-REUSE-CROSSWALK-20261008.json"
+  ],
+  "producing_command_note": "One invocation writes both tables: --output receives the JSON and the script derives the sibling CSV from output.with_suffix('.csv').",
+  "artifact_root": {
+    "layout_rule": ".project-local/runs/<identity>/<run-id>/artifacts/ (scripts/runtime/dev.py layout())",
+    "identity_rule": "sha256(absolute worktree root, casefolded).hexdigest()[:10]",
+    "deviation": "dev.py anchors runs at the OWNER checkout's .project-local. This task is confined to its own worktree and must not write the shared main-checkout .project-local, so the same layout is anchored at this worktree's ignored .project-local/ instead. The identity therefore differs per worktree by design.",
+    "identity_at_recording": "e5e9628f43",
+    "run_id": "oss-reuse-20261008",
+    "relative_path_at_recording": ".project-local\\runs\\e5e9628f43\\oss-reuse-20261008\\artifacts"
+  },
+  "inputs": {
+    "docs/current/AAOS-OSS-DONOR-DISPOSITION-V2-20261002.json": {
+      "sha256_of_bytes_read_by_generator": "29810dc3978cd90f4bcf8a8859e489655d3a52ff564eabb80ae17c52a82d2917",
+      "sha256_of_current_file": "29810dc3978cd90f4bcf8a8859e489655d3a52ff564eabb80ae17c52a82d2917",
+      "recorded_rows": 58,
+      "matches_current_file": true
+    },
+    "docs/history/planning-blueprint-absorption/2026-09-29/package-unpacked/AAOS_OSS_RESEARCH_POOL_369_2026-08-11.csv": {
+      "sha256_of_bytes_read_by_generator": "7a9e032739cefa6c8db1acc7be83a64d80740691409928c9eed2294565fb942f",
+      "sha256_of_current_file": "7a9e032739cefa6c8db1acc7be83a64d80740691409928c9eed2294565fb942f",
+      "recorded_rows": 369,
+      "matches_current_file": true
+    },
+    "docs/truth/CAPABILITY_ABSORPTION_REGISTRY.yaml": {
+      "sha256_of_bytes_read_by_generator": "a5241e1f2e2ec634e957bcd2551dc78eefe216c596b91f08181b4ba5f5d046a8",
+      "sha256_of_current_file": "a5241e1f2e2ec634e957bcd2551dc78eefe216c596b91f08181b4ba5f5d046a8",
+      "recorded_rows": 11,
+      "matches_current_file": true
+    },
+    "docs/truth/SUPPLY_CHAIN_LEDGER.json": {
+      "sha256_of_bytes_read_by_generator": "91e3da2c2c3771a5fffb1eba8e82fde973308821e0b1d9fd55b0068992642169",
+      "sha256_of_current_file": "91e3da2c2c3771a5fffb1eba8e82fde973308821e0b1d9fd55b0068992642169",
+      "recorded_rows": 51,
+      "matches_current_file": true
+    },
+    "inspiration_research/resources/open_source_absorption_ledger.json": {
+      "sha256_of_bytes_read_by_generator": "c69ecfda72bc6f92b058010c097e8daf7f21cc66b101f8fc671d88c858aa826a",
+      "sha256_of_current_file": "c69ecfda72bc6f92b058010c097e8daf7f21cc66b101f8fc671d88c858aa826a",
+      "recorded_rows": 101,
+      "matches_current_file": true
+    },
+    "inspiration_research/resources/open_source_project_registry.json": {
+      "sha256_of_bytes_read_by_generator": "61d63eacfcd2a999de35e24642d402c83110ec317d6ed51e8a2e98c380e057a8",
+      "sha256_of_current_file": "61d63eacfcd2a999de35e24642d402c83110ec317d6ed51e8a2e98c380e057a8",
+      "recorded_rows": 101,
+      "matches_current_file": true
+    }
+  },
+  "outputs": {
+    "json": {
+      "file": "OSS-REUSE-CROSSWALK-20261008.json",
+      "bytes": 992500,
+      "sha256": "a9239a4e5d835359a3394a369fd03bd124505056434d1a59862d9136244464ce",
+      "sha256_portable": "4671bd273a1c40248dbee0be1012c9ffeece6edb9c259a3398767a9b39f50e19",
+      "line_terminator": "CRLF",
+      "line_count": 20584,
+      "record_count": 691,
+      "pool_record_count": 369,
+      "pool_counts": {
+        "D": 351,
+        "B": 13,
+        "A": 2,
+        "E": 1,
+        "C": 2
+      },
+      "schema": "archeaxis.oss-reuse-crosswalk/v1"
+    },
+    "csv": {
+      "file": "OSS-REUSE-CROSSWALK-20261008.csv",
+      "bytes": 303497,
+      "sha256": "c7d6a6cfbc5ce08edbdca07ba605223ae40937ae8cf53730c323551265a40c42",
+      "sha256_portable": "a6e157469313150c6a742b8c19a82129571ed1637f9b9176dba0fe364a33e78f",
+      "line_terminator": "CRLF",
+      "line_count": 692,
+      "data_rows": 691,
+      "columns": [
+        "record_key",
+        "scope",
+        "original_id",
+        "original_name",
+        "canonical_name",
+        "match_basis",
+        "category",
+        "capability_id",
+        "reason",
+        "value",
+        "reevaluate_when"
+      ]
+    }
+  },
+  "portability": {
+    "why_two_digests": "build_oss_reuse_inventory.py writes the JSON with Path.write_text in text mode and the CSV through csv.writer without an explicit lineterminator, so on Windows both land as CRLF while .gitattributes pins tracked text to LF. sha256 is what this machine wrote; sha256_portable is the same bytes with CRLF folded to LF and is the value a checker must assert after regenerating.",
+    "asserted_field": "outputs.*.sha256_portable"
+  },
+  "verify": {
+    "command": "<python> -m pytest tests/workflow/test_oss_reuse_artifact_manifest.py",
+    "checks": [
+      "the manifest exists and parses",
+      "the tracked generator still hashes to the value recorded here",
+      "regenerating from the tracked inputs reproduces sha256_portable for both tables",
+      "a payload present at the recorded artifact root matches the manifest byte for byte",
+      "neither generated table is tracked by Git again"
+    ],
+    "failure_meaning": "Any of these failing means the table a reader would find no longer corresponds to the tracked inputs. It does not mean the rows are wrong; it means the pairing is stale and must be regenerated and re-recorded."
+  },
+  "not_proved_by_this_manifest": [
+    "That any row's verdict is correct. The manifest proves the payload is reproducible, nothing more.",
+    "That the tables were verified in the incoming commit. The committed payload hashes two of its six inputs at values that match no committed revision of those files; see the integration report.",
+    "Any installation, packaged-desktop or release qualification."
+  ],
+  "tracked_pointer_replacements": {
+    "docs/truth/SUPPLY_CHAIN_LEDGER.json": "current_crosswalk now names this manifest",
+    "docs/current/AAOS-OSS-DONOR-DISPOSITION-V2-20261002.json": "current_evidence_overlay.crosswalk now names this manifest"
+  },
+  "paths_removed_from_git": [
+    "docs/current/OSS-REUSE-CROSSWALK-20261008.json",
+    "docs/current/OSS-REUSE-CROSSWALK-20261008.csv"
+  ],
+  "decisions_input": {
+    "path": "docs/current/OSS-REUSE-DECISIONS-20261008.json",
+    "bytes": 23384,
+    "sha256": "ba938bc36d74551a08b7ab94b4b1513122b4d853353e6d41c15feedab86cbe38"
+  },
+  "verification_input": {
+    "path": "docs/current/OSS-REUSE-VERIFICATION-20261008.json",
+    "bytes": 14105,
+    "sha256": "67c25efebac6d42ab4a20e82c27b4f771acaffeafff0a5d913cab38b45ae2cf0"
+  }
+}

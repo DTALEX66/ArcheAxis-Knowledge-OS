@@ -2,7 +2,7 @@
   "schema_version": 2,
   "ledger_name": "ArcheAxis Knowledge — Open Source Absorption Decision Ledger",
   "created": "2026-08-11",
-  "updated": "2026-10-07",
+  "updated": "2026-10-08",
   "source": "ArcheAxis_Workspace_Project_History_and_OSS_Absorption_Master_Atlas_v1.md",
   "product_boundary": "Local-first, evidence-driven Human–AI Learning & Knowledge Workspace. NOT an Agent OS, Cognitive OS, RAG platform, or Agent runtime.",
   "disposition_labels": {
@@ -26,53 +26,125 @@
     {
       "id": "C001",
       "name": "PDF.js",
-      "version": "6.2.108",
+      "version": "6.4.299 (frontend/package-lock.json)",
       "canonical_url": "https://github.com/mozilla/pdf.js",
       "capability": "pdf-viewer",
       "code_license": "Apache-2.0",
       "model_license": null,
-      "disposition": "REFERENCE",
-      "qualification": [],
-      "product_path": null,
-      "evidence": "Historical loopback UI dependency removed when the duplicate product surface was retired; no PDF.js bytes are packaged or shipped.",
-      "decision": "Reference only for the retired React/Tauri shell. Its backend-validated PDF endpoint and sandboxed Blob frame are historical behavior evidence; they do not describe the formal C#/Avalonia desktop PDF path.",
-      "upstream_note": "The former 6.2.108 vendored assets and license remain recoverable from Git history but are absent from current release inputs."
+      "disposition": "CURRENT",
+      "qualification": [
+        "source"
+      ],
+      "product_path": "frontend/src/components/PdfReader.tsx; frontend/src/spaces/CanonicalLibrarySpace.tsx",
+      "evidence": "Current Tauri/React frontend imports locked pdfjs-dist 6.4.299. Native desktop PDF rendering NOT_RUN in OSS task 2026-10-08.",
+      "decision": "Existing primary original-PDF reader. Historical removal/Avalonia statement does not describe SUP-022 current authority; source presence is not installed or release qualification.",
+      "upstream_note": "Code-license declaration Apache-2.0; installed distribution license hash to be qualified separately.",
+      "history": [
+        {
+          "recorded_at": "2026-10-08",
+          "reason": "Current source/result correction; original claim retained, not deleted.",
+          "original_record": {
+            "id": "C001",
+            "name": "PDF.js",
+            "version": "6.2.108",
+            "canonical_url": "https://github.com/mozilla/pdf.js",
+            "capability": "pdf-viewer",
+            "code_license": "Apache-2.0",
+            "model_license": null,
+            "disposition": "REFERENCE",
+            "qualification": [],
+            "product_path": null,
+            "evidence": "Historical loopback UI dependency removed when the duplicate product surface was retired; no PDF.js bytes are packaged or shipped.",
+            "decision": "Reference only for the retired React/Tauri shell. Its backend-validated PDF endpoint and sandboxed Blob frame are historical behavior evidence; they do not describe the formal C#/Avalonia desktop PDF path.",
+            "upstream_note": "The former 6.2.108 vendored assets and license remain recoverable from Git history but are absent from current release inputs."
+          }
+        }
+      ],
+      "current_task_verification": "docs/current/OSS-REUSE-VERIFICATION-20261008.json"
     },
     {
       "id": "C002",
       "name": "MarkItDown[pdf]",
-      "version": "uv.lock",
+      "version": "0.1.6 (uv.lock)",
       "canonical_url": "https://github.com/microsoft/markitdown",
       "capability": "document-conversion",
       "code_license": "MIT",
       "model_license": null,
       "disposition": "CURRENT",
       "qualification": [
-        "source",
-        "installed"
+        "source"
       ],
       "product_path": "app/ingestion/multi_format.py",
-      "evidence": "PDF/DOCX/PPTX/XLSX conversion paths",
-      "decision": "Lightweight baseline for text-native PDF and Office. Disable default LLM OCR. pdfminer-six/pdfplumber/pypdfium2 transitive deps recorded separately.",
-      "upstream_note": "MIT; optional [docx] group requires separate python-docx decision."
+      "evidence": "Real legacy conversion: app/ingestion/multi_format.py. shared-contracts/adapters/converters/markitdown_adapter.py is only a txt/md placeholder. Current Core Office/PDF worker is not this adapter.",
+      "decision": "Retain existing legacy converter as bounded fallback; do not claim current Core integration or installed qualification for this donor.",
+      "upstream_note": "Task wheel metadata MIT; wheel does not contain a LICENSE file. Exact upstream license-file hash remains UNVERIFIED.",
+      "history": [
+        {
+          "recorded_at": "2026-10-08",
+          "reason": "Current source/result correction; original claim retained, not deleted.",
+          "original_record": {
+            "id": "C002",
+            "name": "MarkItDown[pdf]",
+            "version": "uv.lock",
+            "canonical_url": "https://github.com/microsoft/markitdown",
+            "capability": "document-conversion",
+            "code_license": "MIT",
+            "model_license": null,
+            "disposition": "CURRENT",
+            "qualification": [
+              "source",
+              "installed"
+            ],
+            "product_path": "app/ingestion/multi_format.py",
+            "evidence": "PDF/DOCX/PPTX/XLSX conversion paths",
+            "decision": "Lightweight baseline for text-native PDF and Office. Disable default LLM OCR. pdfminer-six/pdfplumber/pypdfium2 transitive deps recorded separately.",
+            "upstream_note": "MIT; optional [docx] group requires separate python-docx decision."
+          }
+        }
+      ],
+      "current_task_verification": "docs/current/OSS-REUSE-VERIFICATION-20261008.json"
     },
     {
       "id": "C003",
       "name": "Trafilatura",
-      "version": ">=1.8 (Apache-2.0)",
+      "version": "2.1.0 (uv.lock and task environment metadata)",
       "canonical_url": "https://github.com/adbar/trafilatura",
       "capability": "web-extraction",
       "code_license": "Apache-2.0",
       "model_license": null,
       "disposition": "CURRENT",
       "qualification": [
-        "source",
-        "installed"
+        "source"
       ],
-      "product_path": "app/ingestion/multi_format.py; shared/web_search.py",
-      "evidence": "Static HTML baseline extraction",
-      "decision": "Must lock to modern Apache-2.0 versions (>=1.8). Older versions were GPL-3.0+. Add source-snapshot evidence.",
-      "upstream_note": "License changed at 1.8 from GPL-3.0+ to Apache-2.0. Verify locked version."
+      "product_path": "services/python-workers/web/worker_html.py; app/ingestion/multi_format.py; shared/web_search.py",
+      "evidence": "Core import/job/execution/output routes run the actual Trafilatura 2.1.0 donor on saved article bytes, suppress nav/footer and persist outputs across Core reopen. Generic snippets or donor failure use recorded stdlib fallback. See OSS-REUSE-VERIFICATION-20261008.json.",
+      "decision": "Single article/main static extraction donor; pyproject range is not an installed version. Installed task license file Apache-2.0 SHA256 a6cba85bc92e0cff7a450b1d873c0eaa2e9fc96bf472df0247a26bec77bf3ff9. No network fetch or worker knowledge-store writes.",
+      "upstream_note": "Test scope: isolated Windows Core API + Python environment. Packaged/installed desktop and release NOT_RUN.",
+      "history": [
+        {
+          "recorded_at": "2026-10-08",
+          "reason": "Current source/result correction; original claim retained, not deleted.",
+          "original_record": {
+            "id": "C003",
+            "name": "Trafilatura",
+            "version": ">=1.8 (Apache-2.0)",
+            "canonical_url": "https://github.com/adbar/trafilatura",
+            "capability": "web-extraction",
+            "code_license": "Apache-2.0",
+            "model_license": null,
+            "disposition": "CURRENT",
+            "qualification": [
+              "source",
+              "installed"
+            ],
+            "product_path": "app/ingestion/multi_format.py; shared/web_search.py",
+            "evidence": "Static HTML baseline extraction",
+            "decision": "Must lock to modern Apache-2.0 versions (>=1.8). Older versions were GPL-3.0+. Add source-snapshot evidence.",
+            "upstream_note": "License changed at 1.8 from GPL-3.0+ to Apache-2.0. Verify locked version."
+          }
+        }
+      ],
+      "current_task_verification": "docs/current/OSS-REUSE-VERIFICATION-20261008.json"
     },
     {
       "id": "C004",
@@ -441,8 +513,31 @@
       "qualification": [
         "source"
       ],
-      "decision": "Interval/scheduling for learning cards. Each card must point back to an EvidenceAnchor. H4 target.",
-      "upstream_note": null
+      "decision": "Existing py-fsrs path remains the single review scheduler; scheduling is not proof of practical mastery. No second learning-state database.",
+      "upstream_note": "Task distribution MIT LICENSE SHA256 021bff58ad2685d7e5b30d307429bc7cfdca108ad620ce889abb38d7acd89ace. Installed desktop/release qualification NOT_RUN.",
+      "history": [
+        {
+          "recorded_at": "2026-10-08",
+          "reason": "Current source/result correction; original claim retained, not deleted.",
+          "original_record": {
+            "id": "A015",
+            "name": "py-fsrs",
+            "canonical_url": "https://github.com/open-spaced-repetition/py-fsrs",
+            "capability": "spaced-repetition",
+            "code_license": "MIT",
+            "model_license": null,
+            "disposition": "ADOPT",
+            "qualification": [
+              "source"
+            ],
+            "decision": "Interval/scheduling for learning cards. Each card must point back to an EvidenceAnchor. H4 target.",
+            "upstream_note": null
+          }
+        }
+      ],
+      "version": "6.3.2 (uv.lock and task environment metadata)",
+      "evidence": "Rust scheduler -> services/python-workers/learning/worker_schedule.py -> shared/learning_scheduler.py independent of routes.json. Core learning_state_api and learning_events_api pass save/reopen and retry deduplication tests on 2026-10-08.",
+      "current_task_verification": "docs/current/OSS-REUSE-VERIFICATION-20261008.json"
     },
     {
       "id": "A016",
@@ -784,14 +879,15 @@
   ],
   "component_count": 51,
   "disposition_summary": {
-    "CURRENT": 12,
+    "CURRENT": 13,
     "ADOPT_PRODUCT_BASE": 0,
     "ADOPT": 13,
     "EVALUATE": 9,
     "SIDECAR": 6,
-    "REFERENCE": 1,
+    "REFERENCE": 0,
     "DEFER": 0,
     "REVIEW-BLOCK": 9,
     "REJECT-CORE": 1
-  }
+  },
+  "current_crosswalk": "docs/current/OSS-REUSE-CROSSWALK-20261008.manifest.json"
 }
