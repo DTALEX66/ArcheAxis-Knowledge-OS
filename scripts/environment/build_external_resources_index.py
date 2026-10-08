@@ -216,11 +216,15 @@ def main() -> int:
                            "RESULT_VERIFIED says the declared functional round-trip succeeded, "
                            "and unavailable/NOT_RUN say what could not be run and why"),
     }
-    # LF always: the index is a tracked file this host's own test regenerates in place, and platform
-    # newlines made every Windows run leave it modified, which makes a dirty-tree development
-    # receipt unattributable to a change that did not touch it.
-    INDEX.write_text(json.dumps(index, ensure_ascii=False, indent=2) + "\n", encoding="utf-8",
-                     newline="\n")
+    # LF always: platform newlines made every Windows run leave the tracked file modified, which
+    # makes a dirty-tree development receipt unattributable to a change that did not touch it.
+    # The output is also relocatable: a probe run that only wants to answer "do the declared
+    # paths resolve on this host" must not rewrite a tracked file, because this index records
+    # host-specific absolute paths and regenerating it in place makes the committed record
+    # depend on which machine ran the tests last.
+    target = Path(os.environ.get("ARCHEAXIS_INDEX_OUTPUT", "").strip() or str(INDEX))
+    target.write_text(json.dumps(index, ensure_ascii=False, indent=2) + "\n", encoding="utf-8",
+                      newline="\n")
 
     readable = [row for row in rows if row["external_paths"]]
     print(f"root={index['external_root']} entries={len(rows)} with_external_paths={len(readable)} "

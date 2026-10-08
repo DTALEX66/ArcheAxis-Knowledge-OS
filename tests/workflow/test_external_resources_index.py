@@ -122,13 +122,17 @@ def test_no_row_claims_a_level_above_its_own_probe():
     not any(os.environ.get(name, "").strip() for name in ROOT_ENV),
     reason="no external root in the environment; resolution is skipped rather than assumed clean",
 )
-def test_declared_paths_resolve_on_this_host():
+def test_declared_paths_resolve_on_this_host(tmp_path):
     # Rebuild with the environment this test was given, stated rather than inherited implicitly,
-    # so the assertion is about the current manifest and a known external root.
-    environment = {**os.environ}
+    # so the assertion is about the current manifest and a known external root. The rebuild goes
+    # to a temporary target: this index records host-specific absolute paths, and regenerating it
+    # into the tracked file made every test run leave the tree modified, so a development receipt
+    # could no longer be attributed to the change it claimed to record.
+    output = tmp_path / "external-resources-index.json"
+    environment = {**os.environ, "ARCHEAXIS_INDEX_OUTPUT": str(output)}
     subprocess.run([sys.executable, "-B", str(BUILDER)], check=True, capture_output=True,
                    cwd=ROOT, env=environment)
-    index = index_document()
+    index = json.loads(output.read_text(encoding="utf-8"))
     assert index["root_present"], "the declared external root is not a directory"
     missing = [
         f"{row['name']}: {item['declared']}"
