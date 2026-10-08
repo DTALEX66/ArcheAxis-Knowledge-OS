@@ -44,6 +44,39 @@ def test_the_measurement_names_its_own_reference_point():
     assert "data" in report["ignored_root"], "local runtime data must be a sanctioned ignored path"
 
 
+def test_no_run_directory_sits_at_the_wrong_depth():
+    """`runs/` holds identity digests and nothing else, and an exception has to be written down.
+
+    The launcher builds `runs/<identity>/<run_id>`, so anything else at that level was improvised.
+    This is the depth the rest of this file cannot see: the checks below look at direct children of
+    `.project-local`, which is why 2,163 shallow entries and 1,866 loose files sat in the primary
+    checkout while every one of those tests passed.
+
+    Following `check_path_conventions.py`'s rule, an exception may exist but not unrecorded: the
+    measured set must equal the baseline, so a new shallow directory fails and a stale baseline fails
+    too. The recorded entries are directories an NTFS ACL refuses this account and ones holding a
+    junction into the shared frontend install - neither is something this suite may force past.
+    """
+    import json
+
+    module = load_report()
+    baseline = json.loads((REPO / "docs" / "current"
+                           / "AAOS-RUNS-LAYOUT-BASELINE-20261008.json").read_text(encoding="utf-8"))
+    measured: set[str] = set()
+    for root in module.checkout_roots(REPO):
+        for finding in module.runs_layout(root / ".project-local", root)[0]:
+            # Each finding is `runs: <name> (reason)`; the baseline records bare names so a reader
+            # can diff it against `ls`, which means the prefix has to come off here.
+            measured.add(finding.split("runs: ", 1)[1].split(" (")[0].rstrip("/"))
+    recorded = set(baseline["blocked_entries"])
+    assert not measured - recorded, (
+        f"new entries at the wrong depth under runs/: {sorted(measured - recorded)}"
+        " — move them with scripts/runtime/realign_dev_layout.py")
+    assert not recorded - measured, (
+        f"the runs baseline names paths that are no longer there: {sorted(recorded - measured)}"
+        " — regenerate the baseline, do not leave a stale exemption")
+
+
 def test_growth_budgets_are_recorded_and_respected():
     module = load_report()
     assert module.DEV_BUDGET_GB, "each class that grows needs a budget"

@@ -52,7 +52,7 @@
 
 - 新增 `scripts/maintenance/audit_monitoring_workbook.py` 及其定向测试；脚本只读 XLSX，拒绝 E: / UNC 输入，并将可选 JSON 输出限制在项目 `.project-local`。
 - 使用项目外部 CI Python 实跑桌面原件：退出码 0；`STRUCTURAL_AUDIT_ONLY`，46,283 bytes，SHA-256 `42528b02714eab50a1f31a7e7f6ae4b03132fe560b885b1bd4da4f5f6b9c42c3`，10 个工作表，98 个公式单元格，其中 17 个公式文本含除法；输入审计期间大小和 mtime 未变。
-- 证据输出：`.project-local/runs/monitoring-audit-20260915/artifacts/monitoring-workbook-structural.json`。公式未求值，故仍不能证明除零、负时长或非整数次数已修复；下一步是隔离副本上的边界回归设计与实现。
+- 证据输出：`.project-local/legacy-scratch-20261008/runs-dirs/monitoring-audit-20260915/artifacts/monitoring-workbook-structural.json`。公式未求值，故仍不能证明除零、负时长或非整数次数已修复；下一步是隔离副本上的边界回归设计与实现。
 
 ### MON-AX-04 现有分离合同回归
 
@@ -63,17 +63,17 @@
 
 - 只读 `Test-Path/Get-Item` 复核确认 `D:\All projects\ceshi`、`D:\All projects\资料库`、`D:\All projects\ArcheAxis.Knowledge.Green-x64`、`D:\All projects\Model library`、`D:\All projects\OS External Configuration` 五个根均存在且为目录。
 - 未递归读取资料、模型、Green 数据或私有配置；该结果只证明路径存在，不能证明 profile 绑定、真实导入授权、模型服务连通或 Green 闭环，因此 `MON-AX-03` 继续保持 `BLOCKED_NEEDS_RESOURCE_AND_OWNER_RECONCILIATION`。
-- 在批准的测试副本 `D:\All projects\ceshi\Obsidian知识库` 上运行 `scripts/pipeline/source_preflight.py`：退出码 0，发现 22,224 个文件、835 个目录；脚本未打开任何源文件、未修改源文件，明确排除真实资料库和 Green 数据。证据写入 `.project-local/runs/monitoring-audit-20260915/artifacts/ceshi-source-preflight.json`。
-- 使用隔离输出根执行 `convert_directory_resumable` 的 3 个 Markdown 小样本：`processed=3`，3 条 manifest 记录均为 `converted`，源/输出 SHA-256 一致，退出码 0。回执位于 `.project-local/runs/monitoring-audit-20260915/artifacts/ceshi-import/manifest.jsonl`；该结果只证明项目转换器的小样本路径可用，不提升为 Green 首次导入、全量质量或学习重启闭环。
+- 在批准的测试副本 `D:\All projects\ceshi\Obsidian知识库` 上运行 `scripts/pipeline/source_preflight.py`：退出码 0，发现 22,224 个文件、835 个目录；脚本未打开任何源文件、未修改源文件，明确排除真实资料库和 Green 数据。证据写入 `.project-local/legacy-scratch-20261008/runs-dirs/monitoring-audit-20260915/artifacts/ceshi-source-preflight.json`。
+- 使用隔离输出根执行 `convert_directory_resumable` 的 3 个 Markdown 小样本：`processed=3`，3 条 manifest 记录均为 `converted`，源/输出 SHA-256 一致，退出码 0。回执位于 `.project-local/legacy-scratch-20261008/runs-dirs/monitoring-audit-20260915/artifacts/ceshi-import/manifest.jsonl`；该结果只证明项目转换器的小样本路径可用，不提升为 Green 首次导入、全量质量或学习重启闭环。
 - 对同一 manifest 第二次运行验证续跑：前 3 条正确标为 `resumed`，随后按 `max_files=3` 处理下一批 3 条，累计 `summary.converted=6`；未重复覆盖已完成输出。该结果证明小样本续跑语义可用，仍不等于全量质量或学习闭环。
 - 项目回归 `tests/test_directory_batch.py tests/test_axw096c_pipeline_integration.py tests/test_axw_run202_profiles.py`：`29 passed, 1 warning`，退出码 0；验证目录最新尝试语义、管线集成和四种运行 profile 仍通过。警告来自外部 `newspaper` 可选 NLTK，不影响本次 Markdown passthrough。
 - 项目闭环定向回归 `tests/test_learning_loop_e2e.py tests/test_workspace_public_closed_loop.py tests/test_workspace_pipeline_multiformat.py tests/test_workspace_crash_recovery.py tests/test_workspace_research_consumer.py`：`13 passed, 2 warnings`，退出码 0；覆盖隔离数据库中的导入、学习、来源绑定、多格式入口、崩溃恢复和研究消费。该证据仍不替代真实 Green 资料库验收。
 - `source_preflight` 已接入 `scripts/pipeline/pipeline_audio.py` 与 `pipeline_video.py`：以 `D:\All projects\资料库` 作为输入时立即拒绝且不扫描；项目 `.project-local` 空源的音频、视频入口均退出码 0。执行入口现在与独立门禁使用同一批准路径策略。
-- 媒体入口新增 `--max-files` 小样本参数并完成真实音频尝试：`ceshi\升级你的学习力...\音频课` 选取 1 个 MP3，管线退出码 0 但回执为 `ok=0/fail=1/sensevoice empty`。该结果是模型/音频质量未通过的真实证据，不能按进程退出码冒充成功；回执在 `.project-local/runs/monitoring-audit-20260915/artifacts/pipeline/audio/audio_full_receipt.json`。
+- 媒体入口新增 `--max-files` 小样本参数并完成真实音频尝试：`ceshi\升级你的学习力...\音频课` 选取 1 个 MP3，管线退出码 0 但回执为 `ok=0/fail=1/sensevoice empty`。该结果是模型/音频质量未通过的真实证据，不能按进程退出码冒充成功；回执在 `.project-local/legacy-scratch-20261008/runs-dirs/monitoring-audit-20260915/artifacts/pipeline/audio/audio_full_receipt.json`。
 - ASR 调试已定位为环境缺口：FFmpeg 能将该 MP3 解码为 16kHz/mono PCM（约 26:28），共享 SenseVoice 模型文件存在，但项目 CI Python 导入 `sherpa_onnx` 返回 `ModuleNotFoundError`。已修正 `asr_adapter._sense_voice_dir()` 以发现共享模型目录并加 2 个回归测试；运行时依赖仍未安装，故媒体任务保持 `ENVIRONMENT_FAIL/NOT RUN`，不修改共享 venv。
 - ASR/媒体适配器回归 `tests/test_asr_adapter.py tests/test_media_extractor.py tests/test_axw023b_f_adapters.py`：`25 passed, 1 warning`，退出码 0；验证解码器与适配器合同，不能替代缺失的 `sherpa_onnx` 实链。
 - SenseVoice 缺失后的 faster-whisper 兜底已加入并有 2 个回归测试（模型解析/兜底共 `4 passed`）；对同一 26:28 MP3 的 CPU 兜底实跑超过 5 分钟仍无回执，已中止自有进程，保持 `NOT RUN/PERFORMANCE_BLOCKED`。下一步需明确的 ASR 运行时与时限策略，不能把长音频无限等待当作通过。
-- 使用项目 `.project-local/build/asr-sherpa-venv` 隔离环境安装 `sherpa-onnx==1.13.8`（未改共享 venv），并设置 `PYTHONPATH` 指向该环境后复跑同一 MP3：SenseVoice 成功，6,273 字符，单文件耗时 252.9 秒，退出码 0。回执 `.project-local/runs/monitoring-audit-20260915/artifacts/pipeline/audio/audio_full_receipt.json`；`pyproject.toml` 新增可选组 `asr-sensevoice`（`>=1.13,<1.14`）。
+- 使用项目 `.project-local/build/asr-sherpa-venv` 隔离环境安装 `sherpa-onnx==1.13.8`（未改共享 venv），并设置 `PYTHONPATH` 指向该环境后复跑同一 MP3：SenseVoice 成功，6,273 字符，单文件耗时 252.9 秒，退出码 0。回执 `.project-local/legacy-scratch-20261008/runs-dirs/monitoring-audit-20260915/artifacts/pipeline/audio/audio_full_receipt.json`；`pyproject.toml` 新增可选组 `asr-sensevoice`（`>=1.13,<1.14`）。
 - `config/environment/capability-requirements.yaml` 已登记 `sherpa-onnx` 引擎和 SenseVoice 模型（共享 Model library 路径、许可、健康检查）；能力/ASR 配置回归 `11 passed`，避免实现、依赖和路径索引分离。
 - `uv lock` 在线解析成功并将 `sherpa-onnx==1.13.8` 写入 `uv.lock`；随后 `uv lock --check` 通过。离线解析曾因缓存缺少 litellm 失败，未把该失败误报为锁定完成。
 - `MON-AX-05` 资源核验：项目代码与两个共享库顶层目录均未发现 NeoMME/Neo MME 实现、权重或许可记录；当前 `app/rag/embedder.py` 的配置提供方仍为 `local` 简单嵌入，LLM 分支也仅是可选 LiteLLM 路径。结论为 `BLOCKED_NEEDS_RESOURCE_VERIFICATION`，不新增依赖、不把候选名称当成可用提供方。

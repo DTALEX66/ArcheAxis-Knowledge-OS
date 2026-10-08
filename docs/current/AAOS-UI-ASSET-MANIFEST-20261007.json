@@ -133,7 +133,7 @@
     }
   ],
   "revision_date": "2026-10-08",
-  "revision_note": "品牌图从自绘近似 SVG 换为业主 2026-10-08 提供的黑白标志母版抠图；抠图配方与尺寸见 .project-local/runs/logo-extract-20261008/extract_logo_assets.py，母版 SHA-256 与逐文件哈希由该脚本按磁盘字节计算。",
+  "revision_note": "品牌图从自绘近似 SVG 换为业主 2026-10-08 提供的黑白标志母版抠图；抠图配方与尺寸见 .project-local/legacy-scratch-20261008/runs-dirs/logo-extract-20261008/extract_logo_assets.py，母版 SHA-256 与逐文件哈希由该脚本按磁盘字节计算。",
   "logo_master": {
     "file": "Three_Project_Logos_BW_4K_0001_图层 3.jpg",
     "sha256": "670eb8238380992436960333af8950aaf6aa90029847cf0ab98b3f2c7e4b1617",

@@ -38,7 +38,6 @@ def _load_sibling(filename: str):
 storage_report = _load_sibling("storage_report.py")
 
 REPO = storage_report.REPO
-SCRATCH = REPO / ".project-local" / "legacy-scratch-20261006"
 
 
 def file_digest(path: Path) -> str | None:
@@ -51,61 +50,99 @@ def file_digest(path: Path) -> str | None:
     return digest.hexdigest()
 
 
-def referenced_exactly(relative: str) -> bool:
+def worktree_roots(repo: Path) -> list[Path]:
+    """Every checkout of this repository, because a citation may live on another branch."""
+    import subprocess
+
+    roots = [repo]
+    listing = subprocess.run(["git", "-C", str(repo), "worktree", "list", "--porcelain"],
+                             capture_output=True, text=True, encoding="utf-8", errors="replace")
+    for line in (listing.stdout or "").splitlines():
+        if line.startswith("worktree "):
+            path = Path(line[len("worktree "):].strip())
+            if path.is_dir() and path != repo:
+                roots.append(path)
+    return roots
+
+
+def referenced_exactly(relative: str, repo: Path) -> bool:
     """Whether any tracked document, receipt or test names this exact path.
 
     Substring matching is not enough and cost a full restore: `.project-local/a10` is a documented
     restore target and `.project-local/rt` is cited by hand-off notes, while a loose
     `.project-local/rust-ws-12.log` is named by nothing. The question is whether the path itself is
-    pointed at, so the path itself is what gets searched.
+    pointed at, so the path itself is what gets searched. Every checkout is searched, not just this
+    one: the handoff that cites a receipt lives on the delivery branch, and reading only the primary
+    checkout's tracked text would call such a path unreferenced and move it out from under its own
+    evidence trail.
     """
     needle = relative.replace("\\", "/")
-    try:
-        found = subprocess.run(["git", "grep", "-l", "-F", needle],
-                               cwd=REPO, capture_output=True, text=True)
-    except OSError:
-        return True
-    return found.returncode == 0 and bool(found.stdout.strip())
+    for root in worktree_roots(repo):
+        try:
+            found = subprocess.run(["git", "grep", "-l", "-F", needle],
+                                   cwd=root, capture_output=True, text=True)
+        except OSError:
+            return True
+        if found.returncode == 0 and found.stdout.strip():
+            return True
+    return False
 
 
-def plan_moves() -> tuple[list[tuple[Path, Path]], list[str]]:
-    report = storage_report.measure()
+def plan_moves(repo: Path, scratch: Path) -> tuple[list[tuple[Path, Path]], list[str]]:
+    report = storage_report.measure(repo)
     moves: list[tuple[Path, Path]] = []
     skipped: list[str] = []
     for name in report["dev_strays"]:
-        source = REPO / name
+        source = repo / name
         if not source.exists():
             continue
         relative = name
-        if referenced_exactly(relative):
+        if referenced_exactly(relative, repo):
             skipped.append(f"{relative}: referenced by a tracked file")
             continue
-        moves.append((source, SCRATCH / "project-local" / name.split("/", 1)[1]))
+        moves.append((source, scratch / "project-local" / name.split("/", 1)[1]))
     for name in [item for item in report["out_of_layout"] if item.startswith("root:")]:
         relative = name[len("root: "):].rstrip("/")
-        source = REPO / relative
+        source = repo / relative
         if not source.exists():
             continue
         if relative == "data":
             skipped.append("data/ is sanctioned local runtime state")
             continue
-        if referenced_exactly(relative):
+        if referenced_exactly(relative, repo):
             skipped.append(f"{relative}: referenced by a tracked file")
             continue
-        moves.append((source, SCRATCH / "repo-root" / relative))
+        moves.append((source, scratch / "repo-root" / relative))
     return moves, skipped
 
 
 def main() -> int:
-    moves, skipped = plan_moves()
+    import argparse
+
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--repo", default=None,
+                        help="checkout whose dev root to realign (default: this script's repository)")
+    parser.add_argument("--stamp", default="20261006",
+                        help="date suffix for the scratch area and its manifest")
+    parser.add_argument("--dry-run", action="store_true")
+    args = parser.parse_args()
+    repo = Path(args.repo).resolve() if args.repo else REPO
+    scratch = repo / ".project-local" / f"legacy-scratch-{args.stamp}"
+
+    moves, skipped = plan_moves(repo, scratch)
+    if args.dry_run:
+        print(json.dumps({"repo": str(repo), "scratch": str(scratch),
+                          "would_move": [str(s.relative_to(repo)).replace("\\", "/") for s, _ in moves],
+                          "skipped": skipped}, ensure_ascii=False, indent=1))
+        return 0
     manifest = {
         "schema": "archeaxis/layout-scratch/v1",
-        "scratch": str(SCRATCH),
+        "scratch": str(scratch),
         "moved": [],
         "skipped": skipped,
         "note": "restore by moving each source back to the repository root; nothing was deleted",
     }
-    SCRATCH.mkdir(parents=True, exist_ok=True)
+    scratch.mkdir(parents=True, exist_ok=True)
     for source, target in moves:
         digest = file_digest(source)
         size = source.stat().st_size if source.is_file() else storage_report.directory_size(source)
@@ -115,20 +152,21 @@ def main() -> int:
             return 1
         shutil.move(str(source), str(target))
         manifest["moved"].append({
-            "source": str(source.relative_to(REPO)).replace("\\", "/"),
-            "scratch_path": str(target.relative_to(REPO)).replace("\\", "/"),
+            "source": str(source.relative_to(repo)).replace("\\", "/"),
+            "scratch_path": str(target.relative_to(repo)).replace("\\", "/"),
             "kind": "file" if digest else "dir",
             "bytes": size,
             "sha256": digest,
             "recover": f"move {target} back to {source}",
         })
-    scratch_manifest = SCRATCH / "manifest.json"
+    scratch_manifest = scratch / f"manifest-{args.stamp}.json"
     scratch_manifest.write_text(json.dumps(manifest, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
 
-    after = storage_report.measure()
-    print(f"moved {len(manifest['moved'])} entries to {SCRATCH}")
+    after = storage_report.measure(repo)
+    print(f"moved {len(manifest['moved'])} entries to {scratch}")
     print(f"manifest: {scratch_manifest}")
-    print(f"remaining drift: root={[x for x in after['out_of_layout'] if x.startswith('root')]} dev={len(after['dev_strays'])}")
+    print(f"remaining drift: root={[x for x in after['out_of_layout'] if x.startswith('root')]} "
+          f"dev={len(after['dev_strays'])} runs={len(after['runs_layout'])}")
     return 0 if not [x for x in after["out_of_layout"] if x.startswith("root")] else 1
 
 

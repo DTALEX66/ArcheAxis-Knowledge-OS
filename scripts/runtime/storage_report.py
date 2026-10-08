@@ -34,7 +34,15 @@ ALLOWED_IGNORED = {".git", ".github", ".worklab", ".project-local", ".project", 
                    # deleting it only makes the layout test red again on the next run
                    "__pycache__",
                    # documented local runtime state: a convenience copy, never a source of truth
-                   "data"}
+                   "data",
+                   # declared-ignored but load-bearing, so "ignored" is not "drift":
+                   # `/tools/tesseract/tessdata/` is named by `.gitignore:50` and resolved by
+                   # crates/archeaxis-application/tests/ocr_job_end_to_end.rs,
+                   # tests/pdf_ocr_chain.rs and scripts/launch/core_launch.py
+                   "tools",
+                   # agent session state: the same ownership class as .hermes and .codex above,
+                   # neither this project's output nor anything this report may read or relocate
+                   ".zcode"}
 DEV_ALLOWED = {"build", "runs", "task-runtime", "candidates", "recovery", "mig", "cache",
                "a3-python-input", "worktrees", "legacy-scratch",
                # named by a tracked document, so it stays; sanctioned rather than re-flagged forever
@@ -146,7 +154,7 @@ def protected_bytes(directory: Path) -> int:
     return total
 
 
-def _git_root_names() -> set[str]:
+def _git_root_names(repo: Path | None = None) -> set[str]:
     """Top-level names Git itself tracks — the authoritative expectation for the repository root.
 
     A hand-written allowlist flagged `.gitignore`, `.editorconfig` and every other tracked
@@ -156,6 +164,7 @@ def _git_root_names() -> set[str]:
     """
     import subprocess
 
+    repo = REPO if repo is None else Path(repo)
     names: set[str] = set()
     try:
         # Paths are decoded as UTF-8: this repository tracks non-ASCII names, and the platform
@@ -163,7 +172,7 @@ def _git_root_names() -> set[str]:
         # of a measurement. `surrogateescape` keeps an undecodable name visible rather than fatal.
         listing = subprocess.run(
             ["git", "ls-files", "-z"],
-            cwd=REPO,
+            cwd=repo,
             capture_output=True,
             text=True,
             encoding="utf-8",
@@ -180,11 +189,72 @@ def _git_root_names() -> set[str]:
     return names
 
 
-def measure() -> dict:
+def checkout_roots(repo: Path) -> list[Path]:
+    """This repository's primary checkout plus every linked worktree that still exists.
+
+    A layout contract is only worth as much as its coverage: the dev roots of the other checkouts
+    are where the residue actually accumulated, so measuring just the one the script lives in
+    certified a clean tree beside a dirty one.
+    """
+    import subprocess
+
+    roots = [repo]
+    listing = subprocess.run(["git", "-C", str(repo), "worktree", "list", "--porcelain"],
+                             capture_output=True, text=True, encoding="utf-8", errors="replace")
+    for line in (listing.stdout or "").splitlines():
+        if line.startswith("worktree "):
+            path = Path(line[len("worktree "):].strip())
+            if path.is_dir() and path != repo:
+                roots.append(path)
+    return roots
+
+
+def known_run_identities(repo: Path) -> set[str]:
+    """The identity digests `dev.py` would produce for every checkout registered right now.
+
+    `dev.py` builds each run root as `runs/<identity>/<run_id>` with
+    `identity = sha256(str(root).casefold())[:10]`, so a name at the first level of `runs/` that is
+    not one of these digests was not created by the launcher - it is an agent that improvised a
+    directory one level too shallow. That was the actual state of this repository: hundreds of such
+    directories and loose files had piled up while every existing check stayed green, because the
+    checks only inspected direct children of `.project-local`.
+    """
+    import hashlib
+
+    return {hashlib.sha256(str(root).casefold().encode()).hexdigest()[:10]
+            for root in checkout_roots(repo)}
+
+
+def runs_layout(dev: Path, repo: Path) -> tuple[list[str], list[str]]:
+    """Split `runs/` into (wrong depth or shape, right shape but the checkout is gone).
+
+    The first is a contract violation and belongs in `out_of_layout`. The second is not a violation:
+    the evidence of a retired worktree is still evidence, and deciding to archive it is a call about
+    retention, so it is reported separately and never auto-moved.
+    """
+    import re
+
+    runs = dev / "runs"
+    if not runs.is_dir():
+        return [], []
+    identities = known_run_identities(repo)
+    violations, stale = [], []
+    for entry in sorted(runs.iterdir()):
+        if not entry.is_dir():
+            violations.append(f"runs: {entry.name} (loose file; runs/ holds only identity digests)")
+        elif not re.fullmatch(r"[0-9a-f]{10}", entry.name):
+            violations.append(f"runs: {entry.name}/ (not a launcher identity digest)")
+        elif entry.name not in identities:
+            stale.append(f"runs: {entry.name}/ (run root of a checkout that no longer exists)")
+    return violations, stale
+
+
+def measure(repo: Path | None = None) -> dict:
+    repo = REPO if repo is None else Path(repo)
     out_of_layout: list[str] = []
-    tracked = _git_root_names()
+    tracked = _git_root_names(repo)
     root_entries = []
-    for entry in sorted(REPO.iterdir()):
+    for entry in sorted(repo.iterdir()):
         name = entry.name
         if name in tracked:
             if entry.is_dir():
@@ -201,7 +271,7 @@ def measure() -> dict:
             continue
         out_of_layout.append(f"root: {name}/" if entry.is_dir() else f"root: {name}")
 
-    dev = REPO / ".project-local"
+    dev = repo / ".project-local"
     dev_classes, dev_strays = [], []
     if dev.is_dir():
         for entry in sorted(dev.iterdir()):
@@ -226,13 +296,16 @@ def measure() -> dict:
                 "budget_gb": budget,
                 "over_budget": bool(budget and size - protected > budget * 1024 ** 3),
             })
+    runs_violations, runs_stale = runs_layout(dev, repo)
     return {
-        "repository": str(REPO),
+        "repository": str(repo),
         "root": root_entries,
         "ignored_root": sorted(ALLOWED_IGNORED),
         "dev_root": dev_classes,
-        "dev_strays": [str(path.relative_to(REPO)).replace("\\", "/") for path in dev_strays],
-        "out_of_layout": out_of_layout,
+        "dev_strays": [str(path.relative_to(repo)).replace("\\", "/") for path in dev_strays],
+        "runs_layout": runs_violations,
+        "runs_stale_identity": runs_stale,
+        "out_of_layout": out_of_layout + runs_violations,
     }
 
 
@@ -251,10 +324,24 @@ def print_report(report: dict) -> None:
         protected = entry.get("protected_bytes") or 0
         held = f"  ({protected / 1024 ** 3:.2f} GB of it is a cache dev.py forbids removing)" if protected else ""
         print(f"  {entry['gb']:8.2f} GB  {entry['name']:<24} budget {budget}{flag}{held}")
-    if report["out_of_layout"]:
-        print("OUT-OF-LAYOUT (needs a decision, not a silent delete):")
-        for item in report["out_of_layout"]:
+    runs = report.get("runs_layout") or []
+    stale = report.get("runs_stale_identity") or []
+    if runs or stale:
+        # Two thousand lines of detail would bury the report, so the count leads and only a sample is
+        # printed. The full lists are in the JSON, which is what a realignment tool consumes.
+        print(f"runs/: {len(runs)} entries at the wrong depth or shape, "
+              f"{len(stale)} identity dirs whose checkout is gone")
+        for item in runs[:5]:
             print(f"  - {item}")
+        for item in stale[:5]:
+            print(f"  - {item}")
+    out = report["out_of_layout"]
+    if out:
+        print(f"OUT-OF-LAYOUT ({len(out)} entries, needs a decision, not a silent delete):")
+        for item in out[:10]:
+            print(f"  - {item}")
+        if len(out) > 10:
+            print(f"  ... {len(out) - 10} more, see --json")
     else:
         print("layout: every entry is inside the documented set")
 
@@ -262,8 +349,13 @@ def print_report(report: dict) -> None:
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--json", default=None)
+    # The linked worktrees hold the current scripts while the checked-out repositories hold the
+    # dev roots, so measuring a *different* checkout has to be a parameter rather than a reason to
+    # copy this file over or to edit the other checkout.
+    parser.add_argument("--repo", default=None,
+                        help="checkout to measure (default: the repository this script lives in)")
     args = parser.parse_args()
-    report = measure()
+    report = measure(Path(args.repo) if args.repo else None)
     print_report(report)
     if args.json:
         Path(args.json).write_text(json.dumps(report, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")

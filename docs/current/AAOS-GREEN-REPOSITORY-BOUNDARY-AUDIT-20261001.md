@@ -179,7 +179,7 @@ GC-01 清单：以本表更新——`.ui-task-tree/` 现存 4 个目录（2026-1
 
 ### archive → verify → remove（本轮唯一实际移除）
 
-归档落点：`D:/All projects/ArcheAxis-Knowledge-OS/.project-local/worktrees/gov-ui-20261008/.project-local/runs/final-verify-20261008/archive-20261008/`（项目自有 `.project-local`，非 Green 运行树）。
+归档落点：`D:/All projects/ArcheAxis-Knowledge-OS/.project-local/worktrees/gov-ui-20261008/.project-local/legacy-scratch-20261008/runs-dirs/final-verify-20261008/archive-20261008/`（项目自有 `.project-local`，非 Green 运行树）。
 
 | 归档 | 字节 | archive SHA-256 | 成员 | 逐成员校验(name+size+CRC32+SHA256, 抽取件 vs 源) | 清单 SHA-256（写后逐字节复读） |
 | --- | --- | --- | --- | --- | --- |

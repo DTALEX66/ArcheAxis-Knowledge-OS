@@ -131,12 +131,12 @@
 
 - `MON-AX-02` 原始工作簿只读核对：46,283 bytes，SHA-256 `42528b02714eab50a1f31a7e7f6ae4b03132fe560b885b1bd4da4f5f6b9c42c3` 与审计 JSON 一致；读取到 10 个工作表，计价相关表无数据验证且未保护。该结构证据不等于公式边界回归通过，除零、负时长、非整数次数仍保持待修。
 
-- `MON-AX-02` 新增可重复脚本 `scripts/maintenance/audit_monitoring_workbook.py` 与 3 个定向测试；项目外部 CI Python 下测试 `3 passed`、Ruff 通过。真实桌面原件实跑退出码 0，报告写入 `.project-local/runs/monitoring-audit-20260915/artifacts/monitoring-workbook-structural.json`；状态仍为 `STRUCTURAL_AUDIT_ONLY`，不提升为公式回归完成。
+- `MON-AX-02` 新增可重复脚本 `scripts/maintenance/audit_monitoring_workbook.py` 与 3 个定向测试；项目外部 CI Python 下测试 `3 passed`、Ruff 通过。真实桌面原件实跑退出码 0，报告写入 `.project-local/legacy-scratch-20261008/runs-dirs/monitoring-audit-20260915/artifacts/monitoring-workbook-structural.json`；状态仍为 `STRUCTURAL_AUDIT_ONLY`，不提升为公式回归完成。
 - `MON-AX-04` 复用证据/主张分离回归：grounded answer、证据边界、关系冲突与覆盖率测试合计 `26 passed`，退出码 0；证明局部合同可用，真实资料和模型精度仍未验收。
-- `MON-AX-02` 审计报告现额外列出 17 个含除法公式的位置，统一标为未求值且需要边界回归；真实报告已刷新到 `.project-local/runs/monitoring-audit-20260915/artifacts/monitoring-workbook-structural.json`。这只是风险定位，尚未声称公式缺陷已修复。
+- `MON-AX-02` 审计报告现额外列出 17 个含除法公式的位置，统一标为未求值且需要边界回归；真实报告已刷新到 `.project-local/legacy-scratch-20261008/runs-dirs/monitoring-audit-20260915/artifacts/monitoring-workbook-structural.json`。这只是风险定位，尚未声称公式缺陷已修复。
 - `MON-AX-03` 只读元数据复核确认五个指定外置根均存在：`ceshi`、`资料库`、Green、Model library、OS External Configuration；未递归读取内容或私有配置，故仍不能证明 profile、资源绑定或真实导入闭环。
-- `MON-AX-03` 在批准测试副本 `ceshi\Obsidian知识库` 上完成 source preflight：22,224 文件、835 目录，退出码 0；未打开/修改源文件，报告位于 `.project-local/runs/monitoring-audit-20260915/artifacts/ceshi-source-preflight.json`。这只是输入前置门禁，不是导入或学习闭环。
-- `MON-AX-03` 进一步以隔离输出根转换 3 个 Markdown 样本：3 条记录均 `converted`，每条源/输出 SHA-256 一致，退出码 0；manifest 位于 `.project-local/runs/monitoring-audit-20260915/artifacts/ceshi-import/manifest.jsonl`。仍不等于 Green 真实资料库、全量导入或学习重启验收。
+- `MON-AX-03` 在批准测试副本 `ceshi\Obsidian知识库` 上完成 source preflight：22,224 文件、835 目录，退出码 0；未打开/修改源文件，报告位于 `.project-local/legacy-scratch-20261008/runs-dirs/monitoring-audit-20260915/artifacts/ceshi-source-preflight.json`。这只是输入前置门禁，不是导入或学习闭环。
+- `MON-AX-03` 进一步以隔离输出根转换 3 个 Markdown 样本：3 条记录均 `converted`，每条源/输出 SHA-256 一致，退出码 0；manifest 位于 `.project-local/legacy-scratch-20261008/runs-dirs/monitoring-audit-20260915/artifacts/ceshi-import/manifest.jsonl`。仍不等于 Green 真实资料库、全量导入或学习重启验收。
 - 同一 manifest 第二次运行读回前 3 条为 `resumed`，再处理下一批 3 条，累计 converted=6；续跑未重复覆盖已完成输出。此为小样本可恢复性证据，不提升 Green/全量/学习验收等级。
 - 目录续跑、管线集成与运行 profile 回归 `29 passed, 1 warning`，退出码 0；可选 NLTK 警告来自外部依赖，未改变本次结果。
 - 学习/工作区定向闭环回归 `13 passed, 2 warnings`，退出码 0；覆盖隔离库导入、学习回读、来源绑定、多格式入口、崩溃恢复与研究消费，仍不等于 Green 真实资料库验收。

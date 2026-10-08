@@ -167,7 +167,7 @@
 | 项 | 落地 | 实测依据 |
 | --- | --- | --- |
 | 品牌图来源 | 业主 2026-10-08 提供的黑白标志母版抠图，替换三张自绘近似 SVG | 母版 `未跟踪 Three_Project_Logos_BW_4K_0001_图层 3.jpg` 1280x1384、295,557 字节、SHA-256 `670eb8238380992436960333af8950aaf6aa90029847cf0ab98b3f2c7e4b1617`；逐文件哈希登记在 `docs/current/AAOS-UI-ASSET-MANIFEST-20261007.json`（含被替换 SVG 的原哈希与原提交 `29c3cb98`） |
-| 抠图方式 | 亮度拉伸直接作 alpha，RGB 取各主题自身 `--aaos-text`，不重绘任何笔画 | 配方与逐尺寸对照：`.project-local/runs/logo-extract-20261008/extract_logo_assets.py`、`未跟踪 .project-local/runs/logo-extract-20261008/compare_small_sizes.py` |
+| 抠图方式 | 亮度拉伸直接作 alpha，RGB 取各主题自身 `--aaos-text`，不重绘任何笔画 | 配方与逐尺寸对照：`.project-local/legacy-scratch-20261008/runs-dirs/logo-extract-20261008/extract_logo_assets.py`、`未跟踪 .project-local/legacy-scratch-20261008/runs-dirs/logo-extract-20261008/compare_small_sizes.py` |
 | 尺寸按槽位取 | 状态栏 28 CSS px 高，标志按其自身 1.107 比例画成 31x28（资产画布 182x165）；方形画布会把标志压到约 20 px 高 | 28 px 下线性 alpha 丢细轨道，`gamma 0.6` 是四档对照中唯一保住轨道的取值 |
 | 光效 | 静态 `drop-shadow`，颜色取每主题新增令牌 `--ax-brand-glow`；无动画，故 reduced motion 无需拦截 | Chromium 计算样式逐主题不同，断言见下 |
 | 命名冲突 | 母版中文行是「星环知识系统」，`docs/truth/NAMING_CONTRACT_V2.md` 锁「星环知识平台」→ 产品内只用图形 emblem，名称仍由文本承担 | 属业主裁决项，见 §7 第 10 条 |
@@ -190,7 +190,7 @@
 | 改动前样式表 | 亦 `PASS` —— 上面那条撤回的依据 |
 | 植入 `details.template-launcher { position: fixed; top: 430px }` | `A0_EXIT=1`，红在 `assert not geometry["landmarkOverlaps"]`，即它本该抓的那条规则 |
 
-驱动与回执：`.project-local/runs/a0semantics-20261008/run_semantics_probe.py`、`未跟踪 .project-local/runs/a0semantics-20261008/summary-as-is-planted-painted-overlap.json`。
+驱动与回执：`.project-local/legacy-scratch-20261008/runs-dirs/a0semantics-20261008/run_semantics_probe.py`、`未跟踪 .project-local/legacy-scratch-20261008/runs-dirs/a0semantics-20261008/summary-as-is-planted-painted-overlap.json`。
 
 ### 本轮这一段的验证
 
@@ -275,3 +275,49 @@
 `docs/authority/taskpack-1004-aaos01/checks/acceptance.json` 的 AQ26/AQ27（保持 `NOT_RUN`）、UI-01 的 12 张页面母版（`BLOCKED-ON-SUPPLY`）、
 cross-encoder 重排（业主装载模型）、绿色仓库 6.89 GB（需提权）、
 `minimax` 供体分支（需裁决）、剩余 28 GB 证据的引用判定。
+
+## 11. 第三轮：两个仓库的目录文件规范化（2026-10-08 深夜）
+
+业主指令为"项目本体仓库目录文件治理规范化，绿色仓库目录文件治理规范化，该归档的归档，没用的过时的该删除的删除"。本轮实际改的是**布局与分类**，并顺带纠正了我自己的一个会毁掉交付物的判据错误。
+
+### 11.1 先前所有布局检查都看不到的深度
+
+`dev.py:75` 构造 `runs/<identity>/<run_id>`（`identity = sha256(str(root).casefold())[:10]`），因此 `runs/` 第一层任何非 10 位十六进制名都不是启动器产物，而是会话临时抢出来的目录。既有四项布局断言只遍历 `.project-local` 的**直接子项**，从不进入 `runs/`，于是主检出在全部检查绿灯的同时攒下 **2,206 个第一层条目：297 个浅层目录（3.89 GB）+ 1,866 个散文件（27.4 MB）**，另有 169 个 `.project-local` 顶层散项。工作树自身也有 13 个，包括我自己本轮写的 `runs/final-verify-20261008/`。修法分两步：`scripts/runtime/storage_report.py` 新增 `runs_layout()`（区分"深度/形状违规"与"形状正确但工作树已退役"）与 `checkout_roots()`，`--repo` 参数使同一份逻辑能测另一个检出；`tests/workflow/test_workspace_layout_contract.py` 的 `test_no_run_directory_sits_at_the_wrong_depth` 按 `scripts/check_path_conventions.py` 的既有惯例执行"允许存在但不允许未登记"：测量集合必须等于基线集合，新增红、基线过期也红。双向证过：清空后 5 passed，`mkdir .project-local/runs/planted-shallow-20261008` 后该测试立刻 FAILED。
+
+### 11.2 已执行的迁移与归档
+
+| 对象 | 处置 | 计数 |
+| --- | --- | --- |
+| 主检出 `runs/` 浅层条目 | 按 regenerable / evidence / unknown / empty 分类后移入 `legacy-scratch-20261008/`（含清单与 sha256） | 移动 2,126，**23 项 WinError 5 拒绝访问**（他人账户 ACL，记录未强攻） |
+| 本工作树 `runs/` | 同上 | 13 → 只剩 `f714401b40/` |
+| `aaos-longpath-app` / `aaos-ui-core-integration` / `aaos-ui-newui` 三个工作树 `runs/` | 同上 | 3 / 3 / 56 全部移动 |
+| `.project-local` 顶层散项 | 用**既有** `scripts/runtime/realign_dev_layout.py`（加 `--repo/--stamp/--dry-run`，并把引用判定扩到所有检出的 `git worktree list`） | 169 → 移动 123，50 项因被跟踪文档点名而跳过 |
+| 根层 4 项 | `p-w7n3ehdf/` 空目录 `rmdir` 移除；`archeaxis_workspace.egg-info/` 移入 scratch；`tools/` 与 `.zcode/` **是检查器的错而非文件系统的错**，登记进 `ALLOWED_IGNORED` | 根层漂移归零 |
+| 被移动的 13 个目录的引用 | 只改交付分支（主检出是待合并旧副本，两边都改会造出两条互相矛盾的记录） | 16 个文件、36 条引用重写，重写即时校验 56/56 与 9/9；本节写完后终值 62/62 与 9/9 |
+
+`未跟踪 tools/tesseract/tessdata/eng.traineddata`（4,113,088 B）差点被我删掉：`find -maxdepth 2` 只看到目录、`rmdir` 因此拒绝（这一步本身就是证明），实查 `.gitignore:50` 声明该路径、`crates/archeaxis-application/tests/ocr_job_end_to_end.rs`、`crates/archeaxis-application/tests/pdf_ocr_chain.rs`、`scripts/launch/core_launch.py:77` 三处解析它。结论：声明式忽略但承重，不是漂移。
+
+### 11.3 撤回：我说 3.3 GB 是可再生缓存，这是错的
+
+第一版判据是"目录树里出现 `venv`/`site-packages`/`node_modules`/`__pycache__` 即 regenerable"，据此列出 16 项 3.324 GB 待删。加"可再生字节占比 ≥90%"闸门后同一批目录全部降到 0%–62%，逐项看结构才知道它们是什么：`candidate-q04b` = `ArcheAxis.Knowledge.Green-v0.0.0-q04candidate-x64/`（1,019.9 MB）+ 同名 `.zip`（318.8 MB），`candidate-q04c` 同形；`aaos-ui-current-candidate-20260926`（521 MB）是 B10 断点/命令面板 UIA 读回 JSON 的 `artifacts/`；`r10-live-retry-20260915` 是 `deeptutor-web/` 一份副本。**绿色候选发布件自带 Python 运行时，所以"含 venv"必然误判整份构建为缓存**；按第一版判据执行会连两个候选交付物及其 ZIP 一起销毁。实际删除：1 项 `pip-cache`（≈0 B）。**本轮体积回收为 0.00 GB**，3.3 GB 属"候选件与证据留不留"的业主裁决，不是我能靠目录名替业主决定的。
+
+### 11.4 绿色仓库（非 Git 目录，是安装态部署根）
+
+先只读盘点（独立子代理，禁止任何写/移/删，且明令不得进入 `.ui-task-tree/` 中他人账户的克隆、不得读 `data/`/`backups/`/`aaos-vnext-data*/`/sqlite 内容），再据证据执行 11 项：
+
+- 三个 `启动星环知识-AAOS*.vbs` 的 appRoot（`AAOS-vd6bd374-20261001-x64`、`AAOS-v18a00075-20261001-x64`、`AAOS-v82e8d28c-20261002-x64`）**全部不存在**，各自在自身检查处 `WScript.Quit 1`；它们与其独占的三个 `aaos-vnext-data*` 数据根、两份 37 天无持有者的锁文件（`tasklist` 无 ArcheAxis/wscript，根库无 `-wal/-shm` 即已干净关闭）、`AAOS01-文档同步-20261006` 文档快照，一并归档进 `backups/green-normalize-20261008.zip`（235,411 B，SHA-256 `e74fac6ded3b56735b2a4e4daead923f61bea0635ff2cb5115e43ac81632a190`，**31 个成员逐个按名称/大小/CRC32 核验后才删原件**，清单 `未跟踪 backups/green-normalize-20261008-manifest.json`）。归档落在部署自身的 `backups/` 而不是我的 run 目录——唯一副本的压缩包放在会被下次清理掉的暂存区里等于没有归档。
+- 文件名损坏的 `README-þ++Þë¦þëê.txt`：字节流 `FE 2B 2B DE EB A6 FE EB EA` 在 GBK/GB18030/Big5/Shift_JIS/EUC-KR 下均非法，**名称不可无损还原**；但真名由生成它的脚本确定——`desktop/scripts/assemble_distributions.py:77` 写 `未跟踪 README-绿色版.txt` 且正文逐字节相同（去 CR 后 md5 `0318b68ed9782cf9aec2b1fdf61244da` 两侧一致，138 B）。按此改名恢复，SHA-256 `da189627868bc02a5aa76c415558d69fc2c1a7e24fbb078ea9ea1b53ffc640d6`。我自己的"改名后归档"顺序先归档了旧名又删了新名，使这条发布说明一度从活目录消失，已按清单核验取回。
+- `README.md` 两处失效入口已更正（保留历史陈述、只改当前入口）：恢复件 `AAOS-vd6bd374-…` 段落后追加带日期的规范化更正；台账链接原指 `未跟踪 .project-local/worktrees/dsh-backend-loop-20261001/…`，该工作树已退役（台账在 6 个现存检出里都有，且它是被跟踪文件），改指仓库根 `docs/current/`，并写明部署说明不得引用可回收的工作树路径。
+- 根层条目 33 → 24。`output/`、`reports/`、`licenses/` 实测为空但**保留**：无法证明二进制不在启动时依赖它们，空目录零成本，而猜错的代价是宿主起不来；同时 `licenses/` 为空本身是发布合规缺口，记为发现而非清理项。`未跟踪 apply_migrations.py` 根副本 `from shared.core_schema import apply` 而 `shared/` 只存在于 `AAOS-Tauri-f151f4c7998a/` 内 → 根副本不能独立运行，属发现（不复制第二份库，那正是 §3 禁止的）。
+- 遗留边界：`.ui-task-tree/` 中 5.78 GB 属 `CodexSandboxOnline` 独立克隆（`du` Permission denied、git dubious ownership、`takeown` 因非管理员被拒），`AAOS-Frontend-Acceptance-v4/`（235 MB，Avalonia 验收候选，ProductVersion `1.0.0+d8f99a6…` 与当前 0.6.14 不同身份）是否迁出仍需位置与版本裁决。
+
+### 11.5 本轮终验（HEAD 未变，工作树按登记状态）
+
+| 层 | 结果 |
+| --- | --- |
+| Python 宽范围 | **536 passed / 3 skipped / 0 failed**（295.15 s；比上轮 +1 即新增的 runs 布局断言），`PYTEST_EXIT=0` 读自日志而非包装器 |
+| 布局契约 | `tests/workflow/test_workspace_layout_contract.py` 5 passed；植入浅层目录后同一条立刻 FAILED，移除即恢复 |
+| 引用 | 交接记录 62/62 PASS、母版审计 9/9 PASS，UNRESOLVED / AMBIGUOUS / HASH_MISMATCH / HISTORICAL 均 0（本节新写的 12 条引用先被判红，逐条改为可解析路径或标 `未跟踪` 后归零） |
+| 路径归属 | `check_path_conventions` 3156/3157 归属，唯一未归属项 `.gitleaks.toml` 已在册（不是缺陷） |
+| 体积 | 主检出 `du` 实测 50.08 GB（本账户可读部分；业主 Explorer 口径含不可读部分），绿色根 2.73 GB 可读。**回收 0.00 GB**，理由见 §11.3 |
+| 仍未达成 | §7 全部业主项不变；新增：25 项 ACL 拒绝访问的 `runs/` 条目、35 个身份目录属已退役检出（5.36 GB）、`legacy-scratch-20261008` 内 3.3 GB 候选件与证据的留存裁决、绿色 `AAOS-Frontend-Acceptance-v4` 与 5.78 GB 他人克隆的位置裁决 |

@@ -68,7 +68,7 @@
 
 | 改动 | 位置 | 性质 |
 | --- | --- | --- |
-| 从 Green 候选**复制**了 `archeaxis-api.exe`，并用 scratch DB 试运行 | `.project-local/runs/rust-core-probe/` | **只读 Green + 本地副本** |
+| 从 Green 候选**复制**了 `archeaxis-api.exe`，并用 scratch DB 试运行 | `.project-local/legacy-scratch-20261008/runs-dirs/rust-core-probe/` | **只读 Green + 本地副本** |
 
 **未改任何仓库文件**；**未触碰官方 Green 的 `data/` 与资料库**；
 **Green 目录内未创建/修改/删除任何文件**；**未执行任何安装**。

@@ -34,7 +34,12 @@ TRACKED_TABLES = (
     "docs/current/OSS-REUSE-CROSSWALK-20261008.json",
     "docs/current/OSS-REUSE-CROSSWALK-20261008.csv",
 )
-VERIFY_SCRATCH = ROOT / ".project-local/runs/manifest-verify/artifacts"
+# This is a live output directory, not a citation, so it follows the layout `dev.py` builds rather
+# than the archive the moved run directories went to: `runs/<identity>/<run_id>/artifacts`, with the
+# same identity digest the launcher uses, so a linked worktree never writes into another's run root.
+VERIFY_SCRATCH = (ROOT / ".project-local" / "runs"
+                  / hashlib.sha256(str(ROOT).casefold().encode()).hexdigest()[:10]
+                  / "oss-manifest-verify" / "artifacts")
 
 CRLF = bytes([13, 10])
 LF = bytes([10])
