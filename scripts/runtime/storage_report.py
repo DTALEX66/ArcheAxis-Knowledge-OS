@@ -188,7 +188,14 @@ def measure() -> dict:
         name = entry.name
         if name in tracked:
             if entry.is_dir():
-                root_entries.append({"name": name + "/", "bytes": directory_size(entry), "tracked": True})
+                record = {"name": name + "/", "bytes": directory_size(entry), "tracked": True}
+                # Name what was excluded. A directory that reports 1.1 MB while a 190 MB install
+                # sits behind a link inside it is only honest if the link and its target are shown;
+                # otherwise the shared bytes look like they vanished from the measurement.
+                links = links_under(entry)
+                if links:
+                    record["links"] = links
+                root_entries.append(record)
             continue
         if name in ALLOWED_IGNORED:
             continue
@@ -233,7 +240,10 @@ def print_report(report: dict) -> None:
     print(f"repository {report['repository']}")
     print("root classes:")
     for entry in sorted(report["root"], key=lambda item: -item["bytes"]):
-        print(f"  {entry['bytes'] / 1024 ** 3:8.2f} GB  {entry['name']}")
+        # Say so out loud: the number is owned bytes, and what it left out is named here.
+        links = entry.get("links") or []
+        shared = f"   links out -> {', '.join(link['target'] for link in links)}" if links else ""
+        print(f"  {entry['bytes'] / 1024 ** 3:8.2f} GB  {entry['name']}{shared}")
     print(".project-local classes (budget in GB; compile caches shown but not budgeted):")
     for entry in sorted(report["dev_root"], key=lambda item: -item["bytes"]):
         flag = f"  OVER budget {entry['budget_gb']}" if entry["over_budget"] else ""

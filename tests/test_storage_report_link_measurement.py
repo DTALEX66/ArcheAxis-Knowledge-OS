@@ -78,3 +78,27 @@ def test_is_link_distinguishes_a_junction_from_a_real_directory(tree: Path, tmp_
     with os.scandir(tmp_path) as scanned:
         found = {entry.name: entry for entry in scanned}
     assert report.is_link(found["plain-dir"]) is False
+
+
+def test_the_report_names_the_link_it_excluded(tmp_path: Path, monkeypatch) -> None:
+    """Excluding shared bytes silently would read as "the install disappeared".
+
+    The record has to carry the link and its target, so a reader can see that 190 MB is someone
+    else's line rather than missing from this one.
+    """
+    subprocess.run(["git", "init", "-q", str(tmp_path / "repo")], check=True)
+    repo = tmp_path / "repo"
+    frontend = repo / "frontend"
+    frontend.mkdir()
+    (frontend / "app.ts").write_bytes(b"y" * 1000)
+    shared = tmp_path / "shared-install"
+    shared.mkdir()
+    (shared / "big.js").write_bytes(b"x" * 5000)
+    make_junction(frontend / "node_modules", shared)
+    subprocess.run(["git", "add", "-A"], cwd=repo, check=True)
+
+    monkeypatch.setattr(report, "REPO", repo)
+    measured = report.measure()
+    entry = next(item for item in measured["root"] if item["name"] == "frontend/")
+    assert entry["bytes"] == 1000, entry
+    assert [Path(link["target"]).name for link in entry["links"]] == ["shared-install"], entry
