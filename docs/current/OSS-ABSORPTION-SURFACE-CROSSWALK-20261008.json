@@ -6,7 +6,7 @@
   "purpose": "One honest surface_class per open-source absorption entry, joining the A-E reuse-verification vocabulary to the capability absorption registry's allowed_absorption_modes, so the UI can show absorption sources without rendering all of them as enable-able plugins.",
   "generator": {
     "path": "scripts/audit/build_oss_absorption_crosswalk.py",
-    "sha256": "dd07faad4ba31c6bf8f3cbd41cc28053a53c6e72e245b4e536e7ff6c15024312"
+    "sha256": "f4802c4f4be790fef0ca385fc528211992714f91c7edebbe4af0c57df555d45c"
   },
   "producing_command": [
     "<python>",
