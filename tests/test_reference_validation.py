@@ -126,11 +126,75 @@ def test_missing_cited_file_with_no_namesake_is_unresolved(tree) -> None:
 
 
 def test_bare_basename_citation_is_never_a_pass(tree) -> None:
-    """The retired tool accepted these; a name asserts no location, so it must not resolve."""
+    """The retired tool accepted these. The invariant is that the citation is refused, not
+    which sentence says so: a slashless name resolves only as an exact root-relative file,
+    so when that file is absent it must not be satisfied by a same-named file found elsewhere
+    -- and a slashless token with no extension names no location at all."""
     verdict = _verdict(tree, "summary.json")
+    assert verdict.verdict != rv.PASS
     assert verdict.verdict == rv.AMBIGUOUS
-    assert "basename" in verdict.reason
+    assert "does not exist" in verdict.reason
     assert len(verdict.candidates) == 2
+    extensionless = _verdict(tree, "evidence-dir")
+    assert extensionless.verdict != rv.PASS
+    assert "basename" in extensionless.reason
+
+
+def test_a_directory_citation_resolves_without_claiming_file_identity(tree) -> None:
+    """Operating documents cite folders. A trailing slash means that directory and nothing
+    else, and it must not be reported as a missing file nor be given a byte identity it has
+    no bytes to back."""
+    present = _verdict(tree, "evidence/run-a-20261008/")
+    assert present.verdict == rv.PASS
+    assert "directory" in present.reason and "no file identity" in present.reason
+    assert present.measured_sha256 is None
+    missing = _verdict(tree, "evidence/no-such-run/")
+    assert missing.verdict != rv.PASS
+
+
+def test_a_pattern_citation_stands_for_the_set_it_matches(tree) -> None:
+    """`evidence/*/summary.json` is a legitimate citation of a family; it passes only because
+    the pattern actually matches, and it names the match count rather than vouching for one
+    verified file."""
+    matched = _verdict(tree, "evidence/*/summary.json")
+    assert matched.verdict == rv.PASS
+    assert "2 path(s)" in matched.reason
+    unmatched = _verdict(tree, "evidence/run-c-*/summary.json")
+    assert unmatched.verdict != rv.PASS, "a pattern that matches nothing cannot pass"
+
+
+def test_record_relative_citations_resolve_only_exactly(tmp_path, capsys) -> None:
+    """An index page cites its neighbours relative to itself. That is still an exact path:
+    a same-named file elsewhere in the tree must not rescue a wrong citation."""
+    repo = tmp_path / "repo"
+    (repo / "docs" / "current").mkdir(parents=True)
+    (repo / "docs" / "current" / "thing.md").write_text("real\n", encoding="utf-8")
+    (repo / "docs" / "history").mkdir(parents=True)
+    (repo / "docs" / "history" / "thing.md").write_text("elsewhere\n", encoding="utf-8")
+    index = repo / "docs" / "INDEX.md"
+    index.write_text("see `current/thing.md` and also `missing-thing.md`\n", encoding="utf-8")
+
+    assert rv.main(["--record", str(index), "--root", f"repo={repo}", "--json"]) == 1
+    payload = json.loads(capsys.readouterr().out)
+    by_citation = {item["citation"]: item for item in payload["verdicts"]}
+    assert by_citation["current/thing.md"]["verdict"] == rv.PASS
+    assert "record's own directory" in by_citation["current/thing.md"]["reason"]
+    assert by_citation["missing-thing.md"]["verdict"] != rv.PASS, (
+        "docs/history/thing.md must not satisfy a citation for a root-level file")
+
+
+def test_a_root_relative_filename_still_resolves_exactly(tree) -> None:
+    """The refinement that the above depends on: `README.md` means <repo>/README.md and is a
+    PASS only when that exact file is there, never because a copy was located by searching."""
+    repo, _, _, _ = tree
+    (repo / "README.md").write_text("root level\n", encoding="utf-8")
+    assert _verdict(tree, "README.md").verdict == rv.PASS
+    (repo / "README.md").unlink()
+    hidden = repo / "docs" / "history"
+    hidden.mkdir(parents=True, exist_ok=True)
+    (hidden / "README.md").write_text("elsewhere\n", encoding="utf-8")
+    buried = _verdict(tree, "README.md")
+    assert buried.verdict != rv.PASS, "a deeper same-named file must not satisfy a root citation"
 
 
 # ---------------------------------------------------------- planted fault 4: hash mismatch

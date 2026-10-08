@@ -97,7 +97,7 @@ class Reference:
     label: str = ""
     absolute: bool = False
 
-    def exact(self, roots: Mapping[str, Path]) -> Path | None:
+    def exact(self, roots: Mapping[str, Path], *, kind: str = "file") -> Path | None:
         if self.relative is None or self.absolute:
             return None
         base = roots.get(self.root)
@@ -114,6 +114,8 @@ class Reference:
             return None
         if not resolved.is_relative_to(resolved_root):
             return None
+        if kind == "directory":
+            return resolved if resolved.is_dir() else None
         return resolved if resolved.is_file() else None
 
 
@@ -160,6 +162,10 @@ def _normalize(token: str) -> str:
 
 
 _ABSOLUTE_TOKEN = re.compile(r"^(?:[A-Za-z]:[\\/]|[\\/]{2}|[\\/])")
+#: Extensions that mark a slashless token as a real filename, hence an explicit
+#: root-relative citation rather than a location-free basename.
+_KNOWN_EXTENSIONS = (".py", ".ts", ".tsx", ".json", ".md", ".rs", ".yaml", ".yml",
+                     ".txt", ".log", ".toml", ".ini", ".csv", ".ps1", ".sh", ".bat")
 
 
 def parse_reference(token: str, roots: Sequence[Root], *, default_root: str | None = None,
@@ -195,6 +201,14 @@ def parse_reference(token: str, roots: Sequence[Root], *, default_root: str | No
         fallback = default_root or (roots[0].name if roots else "")
         return Reference(text, fallback, text, expected_sha256, commit, historical, label)
     fallback = default_root or (roots[0].name if roots else "")
+    # A slashless token that carries a known file extension is an explicit root-relative
+    # citation: `AGENTS.md` means <repo>/AGENTS.md and nothing else. That is still an exact
+    # path, so it cannot be satisfied by a same-named file discovered by searching, and it is
+    # UNRESOLVED when the root file itself is absent even if copies exist deeper in the tree.
+    # A slashless token with no extension names no location at all and stays a bare basename,
+    # which can never pass.
+    if text.endswith(_KNOWN_EXTENSIONS):
+        return Reference(text, fallback, text, expected_sha256, commit, historical, label)
     return Reference(text, fallback, None, expected_sha256, commit, historical, label)
 
 
@@ -290,6 +304,31 @@ def validate_reference(ref: Reference, roots: Mapping[str, Path], *,
         return Verdict(**base, verdict=PASS, reason="exact path resolved and identity holds",
                        resolved_path=str(target), measured_sha256=measured,
                        measured_sha256_lf=measured_lf)
+
+    if target is None and ref.relative is not None and not ref.absolute:
+        # Operating documents cite directories (`apps/ArcheAxis.Desktop/`) and glob families
+        # (`config/profiles/*.yaml`). Both are legitimate exact citations: a trailing slash
+        # means that directory and nothing else, and a pattern stands for the set it matches.
+        # Neither may be satisfied by a same-named file found by searching.
+        if ref.relative.endswith("/"):
+            directory = ref.exact(roots, kind="directory")
+            if directory is not None:
+                return Verdict(**base, verdict=PASS,
+                               reason="directory resolved exactly; a directory citation "
+                                      "claims no file identity",
+                               resolved_path=str(directory))
+        if any(ch in ref.relative for ch in "*?["):
+            base_root = roots.get(ref.root)
+            try:
+                matches = sorted(base_root.glob(ref.relative)) if base_root else []
+            except (OSError, ValueError, re.error):
+                matches = []
+            if matches:
+                return Verdict(**base, verdict=PASS,
+                               reason=f"pattern matched {len(matches)} path(s) under root "
+                                      f"{ref.root!r}; the citation stands for that set, not "
+                                      f"for one verified file",
+                               resolved_path=str(matches[0]))
 
     name = PurePosixPath(ref.citation).name
     if ref.absolute:
@@ -545,9 +584,34 @@ def main(argv: Sequence[str] | None = None) -> int:
     for record_path in args.record:
         path = Path(record_path)
         text = path.read_text(encoding="utf-8")
+        # The neighbour base has to be expressed *relative to the root*: an absolute
+        # record path would otherwise build an absolute citation, which the strict rules
+        # refuse by design, and the fallback would silently never fire.
+        try:
+            record_dir_rel = path.parent.resolve().relative_to(
+                Path(roots[0].directory).resolve())
+        except (ValueError, OSError):
+            record_dir_rel = None
         for token in extract_citations(text):
             ref = parse_reference(token, roots, default_root=roots[0].name)
-            verdicts.append(validate_reference(ref, roots_map, repo=repo))
+            verdict = validate_reference(ref, roots_map, repo=repo)
+            if verdict.verdict not in SATISFIED and record_dir_rel is not None \
+                    and str(record_dir_rel) not in (".", ""):
+                # A citation written inside a document may be relative to that document, which
+                # is how the markdown indexes name their neighbours. Retrying the exact
+                # record-relative path is still an exact resolution and never a search, so a
+                # same-named file somewhere else still cannot satisfy a wrong citation.
+                from dataclasses import replace
+
+                neighbour = parse_reference((record_dir_rel / token).as_posix(), roots,
+                                            default_root=roots[0].name)
+                neighbour_verdict = validate_reference(neighbour, roots_map, repo=repo)
+                if neighbour_verdict.verdict in SATISFIED:
+                    verdict = replace(
+                        neighbour_verdict, citation=token,
+                        reason=f"resolved against the record's own directory; "
+                               f"{neighbour_verdict.reason}")
+            verdicts.append(verdict)
 
     findings: list[RecordFinding] = []
     for directory in args.scan_evidence:
