@@ -7,6 +7,7 @@
 - `authority_base`: R6 immutable TaskPack `AAK-LOCAL-GREEN-ABSORB-FIRST-20260919-R6`
 - `supersession_record`: `DECISION_SUPERSESSION_LEDGER.yaml` `SUP-020`
 - `scope`: 这是 R6 的优先级覆盖和执行收敛记录，不是并行 TaskPack，不删除、不重写 R5/R6/审计/收据。
+- `status_at_2026-10-08`: 按根 `AUTHORITY.md` §6 与 `DECISION_SUPERSESSION_LEDGER.yaml` SUP-022，本文件保留为**继承约束与历史记录**，当前活动任务包是 `docs/authority/taskpack-1004-aaos01/`，唯一实时进度记录是 `docs/current/AAOS01-Q00-Q15-LEDGER-FINAL-20261005.md`。下文各节带日期的"现场读回"（如 2026-09-23 的"本地 `HEAD`、`origin/main` 与 GitHub `main` 一致"、候选 `452b5d0…` 的 `ok=true`、快速 CI `35524185122` `success`）只描述其记录时点，不构成当前分支的验收；当前分支的验收必须来自本轮源码、远端与运行回读。
 
 ### 当前现场读回（2026-09-23）
 
