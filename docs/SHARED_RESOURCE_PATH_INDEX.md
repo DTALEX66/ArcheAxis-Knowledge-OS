@@ -7,7 +7,7 @@
 
 AAOS-01 / SUP-022 是当前执行包，唯一进度见[现行台账](current/AAOS01-Q00-Q15-LEDGER-FINAL-20261005.md)。下方带日期的工具和候选记录保留原身份，不代表当前默认工具或当前资格。旧表中的“本轮DP”限制属于其记录时点；当前用户已授权指定Green目录的独立候选部署及按精确审核清单清理，仍不得据目录名删除未知资产或覆盖旧默认数据。真实资料库不因该授权成为测试输出目录。
 
-当前本地Cargo调用明确使用 `D:\All projects\OS External Configuration\toolchains\rust\cargo\bin\cargo.exe`，`RUSTUP_HOME` 为 `D:\All projects\OS External Configuration\toolchains\rust\rustup`；2026-10-06已核存在，不能替换成历史 `10-toolchains` Rust路径。项目CI Python为 `D:\All projects\OS External Configuration\ArcheAxis-Knowledge-OS-ci-venv\Scripts\python.exe`，产品解释器必须从实际候选manifest、launcher及进程身份核验，不能用此测试解释器代替。共享模型与工具根不变；LM Studio模型调用沿已有授权和产品profile，不修改全局provider/endpoint。
+当前本地Cargo调用明确使用 `D:\All projects\OS External Configuration\toolchains\rust\cargo\bin\cargo.exe`，`RUSTUP_HOME` 为 `D:\All projects\OS External Configuration\toolchains\rust\rustup`；2026-10-06已核存在，不能替换成历史 `10-toolchains` Rust路径。**机器可读使用入口（2026-10-08）**：本文件只登记资源根与职责；每项资源的声明路径、当前可解析位置、版本识别方法、所需进程级环境、许可与可用性等级，以 [`../config/environment/capability-requirements.yaml`](../config/environment/capability-requirements.yaml) 为唯一声明源，由生成器重建的 [`../config/environment/external-resources-index.json`](../config/environment/external-resources-index.json) 记录实测结果，运行时统一经 [`../services/python-workers/tool_paths.py`](../services/python-workers/tool_paths.py) 与 `scripts/runtime/dev.py` 解析；某个 Agent 的私人记忆或临时 Shell 环境不构成第二套路径说明。索引行的 `verification_level` 区分 REGISTERED / FILE_EXISTS / VERSION_PROBED / RESULT_VERIFIED，因此本文件登记了某路径、或索引里存在某行，都不等于该资源可用。项目CI Python为 `D:\All projects\OS External Configuration\ArcheAxis-Knowledge-OS-ci-venv\Scripts\python.exe`，产品解释器必须从实际候选manifest、launcher及进程身份核验，不能用此测试解释器代替。共享模型与工具根不变；LM Studio模型调用沿已有授权和产品profile，不修改全局provider/endpoint。
 
 ## 固定路径与职责
 
