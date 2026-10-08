@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { DataError, Section } from "../components/RealData";
 import { exportExchange, importExchange, verifyExchange, type ExchangeExportDto, type ExchangeImportDto } from "../api/workspace";
-import { userErrorMessage } from "../presentation/labels";
+import { failureMessage } from "../presentation/labels";
 
 export function ExchangeSpace() {
   const [exportName, setExportName] = useState("exchange");
@@ -26,7 +26,7 @@ export function ExchangeSpace() {
       setMessage(`已导出 ${result.item_count} 项知识交换包`);
     } catch (e) {
       setMessage(null);
-      setError(userErrorMessage(e instanceof Error ? e.message : e));
+      setError(failureMessage(e));
     } finally {
       setBusy(null);
     }
@@ -43,7 +43,7 @@ export function ExchangeSpace() {
       setMessage("交换包验证通过：清单与全部文件哈希一致。");
     } catch (e) {
       setMessage(null);
-      setError(userErrorMessage(e instanceof Error ? e.message : e));
+      setError(failureMessage(e));
     } finally {
       setBusy(null);
     }
@@ -65,7 +65,7 @@ export function ExchangeSpace() {
       setMessage(`已从交换包创建工作区「${wsName}」：${result.item_count} 项。原始工作区未受影响。`);
     } catch (e) {
       setMessage(null);
-      setError(userErrorMessage(e instanceof Error ? e.message : e));
+      setError(failureMessage(e));
     } finally {
       setBusy(null);
     }

@@ -6,7 +6,7 @@ import { CanonicalKnowledgeSpace } from "../spaces/CanonicalKnowledgeSpace";
 import { CanonicalLearningSpace } from "../spaces/CanonicalLearningSpace";
 import { CanonicalCapabilitiesSpace } from "../spaces/CanonicalCapabilitiesSpace";
 import { ApiError } from "../api/client";
-import { coreFailureReason } from "../presentation/labels";
+import { coreFailureReason, failureMessage } from "../presentation/labels";
 
 const bridge = vi.hoisted(() => ({ call: vi.fn() }));
 vi.mock("../api/core", () => ({ coreCommand: bridge.call }));
@@ -72,6 +72,17 @@ describe("UI-03 distinct failure states", () => {
     const reason = await screen.findByText(pattern);
     expect(reason.hasAttribute("role")).toBe(false);
     expect(reason).toHaveClass("state-reason");
+  });
+
+  it("keeps the legacy pages' 5xx wording while naming the classes they used to flatten", () => {
+    expect(failureMessage(new ApiError(0, "local Core is offline", "offline"))).toMatch(/^离线：/);
+    expect(failureMessage(new ApiError(403, "desktop write scope is unavailable", "unauthorized"))).toMatch(/^权限：/);
+    expect(failureMessage(new ApiError(503, "workspace migration is in progress", "migrating"))).toMatch(/^迁移中：/);
+    expect(failureMessage(new ApiError(503, "workspace migration is unavailable", "backend_starting"))).toMatch(/^正在启动：/);
+    // A transport failure the Core contract does not describe keeps the established sentence.
+    expect(failureMessage(new ApiError(500, "/workspace/api/v1/home -> 500", "unavailable"))).toBe(
+      "本地数据暂时不可用，请稍后重试或打开系统诊断。",
+    );
   });
 
   it("keeps the six classified reasons distinct, digit-free and free of transport detail", () => {

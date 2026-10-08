@@ -15,7 +15,7 @@ import {
   type VaultInspectDto,
   type VaultSearchResultDto,
 } from "../api/workspace";
-import { userErrorMessage } from "../presentation/labels";
+import { failureMessage, userErrorMessage } from "../presentation/labels";
 
 const KIND_LABELS: Record<string, string> = {
   markdown: "Markdown",
@@ -51,7 +51,7 @@ export function VaultSpace() {
       setSearchResults([]);
       setMessage(`已打开知识库：${result.root_name} · ${result.files.length} 个文件`);
     } catch (e) {
-      setError(userErrorMessage(e instanceof Error ? e.message : e));
+      setError(failureMessage(e));
     } finally {
       setBusy(null);
     }
@@ -78,7 +78,7 @@ export function VaultSpace() {
       }
       setMessage(`已读取：${entry.relative_path}`);
     } catch (e) {
-      setError(userErrorMessage(e instanceof Error ? e.message : e));
+      setError(failureMessage(e));
     } finally {
       setBusy(null);
     }
@@ -129,7 +129,7 @@ export function VaultSpace() {
       setSearchResults(result.results);
       setMessage(`搜索「${query}」：${result.results.length} 处匹配`);
     } catch (e) {
-      setError(userErrorMessage(e instanceof Error ? e.message : e));
+      setError(failureMessage(e));
     } finally {
       setBusy(null);
     }
@@ -149,7 +149,7 @@ export function VaultSpace() {
       setEditing(refreshed.raw_text);
       setMessage("已从备份恢复并重新读取。");
     } catch (e) {
-      setError(userErrorMessage(e instanceof Error ? e.message : e));
+      setError(failureMessage(e));
     } finally {
       setBusy(null);
     }

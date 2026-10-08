@@ -11,7 +11,7 @@ import {
   type ResearchCandidateDto,
 } from "../api/workspace";
 import type { InspectionTarget } from "../components/Inspector";
-import { sourceLabel, stateLabel, userErrorMessage } from "../presentation/labels";
+import { failureMessage, sourceLabel, stateLabel } from "../presentation/labels";
 
 export function EvidenceSpace({ onInspect }: { onInspect: (target: InspectionTarget) => void }) {
   const [rows, setRows] = useState<EvidenceAnchorDto[]>([]);
@@ -43,7 +43,7 @@ export function EvidenceSpace({ onInspect }: { onInspect: (target: InspectionTar
       setNextAnchorCursor(data.next_cursor);
       setError(null);
     } catch (e) {
-      setMessage(userErrorMessage(e instanceof Error ? e.message : e));
+      setMessage(failureMessage(e));
     } finally {
       setAnchorPageLoading(false);
     }
@@ -57,20 +57,20 @@ export function EvidenceSpace({ onInspect }: { onInspect: (target: InspectionTar
         setRows(d.items);
         setNextAnchorCursor(d.next_cursor);
       })
-      .catch((e: Error) => { if (alive) setError(userErrorMessage(e.message)); })
+      .catch((e: Error) => { if (alive) setError(failureMessage(e)); })
       .finally(() => { if (alive) setLoading(false); });
     return () => { alive = false; };
   }, []);
 
   useEffect(() => {
-    refreshCandidates().catch((e: Error) => setMessage(userErrorMessage(e.message)));
+    refreshCandidates().catch((e: Error) => setMessage(failureMessage(e)));
   }, []);
 
   useEffect(() => {
     let alive = true;
     listEvidenceBundles(50)
       .then((data) => { if (alive) setBundles(data.items); })
-      .catch((e: Error) => { if (alive) setMessage(userErrorMessage(e.message)); });
+      .catch((e: Error) => { if (alive) setMessage(failureMessage(e)); });
     return () => { alive = false; };
   }, []);
 
@@ -93,7 +93,7 @@ export function EvidenceSpace({ onInspect }: { onInspect: (target: InspectionTar
         })),
       });
     } catch (e) {
-      setMessage(userErrorMessage(e instanceof Error ? e.message : e));
+      setMessage(failureMessage(e));
     }
   }
 
@@ -164,7 +164,7 @@ export function EvidenceSpace({ onInspect }: { onInspect: (target: InspectionTar
               setMessage("已批准并写入证据治理账本");
               await refreshCandidates();
             } catch (e) {
-              setMessage(userErrorMessage(e instanceof Error ? e.message : e));
+              setMessage(failureMessage(e));
             }
           }}>批准入账</button></li>
         ))}</ul>

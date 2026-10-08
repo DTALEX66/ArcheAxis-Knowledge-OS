@@ -12,7 +12,7 @@ import {
   type QuizItem,
   type TeachBackInput,
 } from "../api/learning";
-import { userErrorMessage } from "../presentation/labels";
+import { failureMessage, userErrorMessage } from "../presentation/labels";
 
 type Tab = "review" | "mastery" | "teachback" | "quiz" | "path";
 
@@ -60,7 +60,7 @@ function ReviewQueueView({ api }: { api: LearningApiExt }) {
         }
       })
       .catch((e: unknown) => {
-        if (alive) setError(userErrorMessage(e instanceof Error ? e.message : e));
+        if (alive) setError(failureMessage(e));
       });
     return () => {
       alive = false;
@@ -88,7 +88,7 @@ function ReviewQueueView({ api }: { api: LearningApiExt }) {
             });
             setSubmitted(`已提交复习结果（质量 ${quality}）`);
           } catch (err) {
-            setError(userErrorMessage(err instanceof Error ? err.message : err));
+            setError(failureMessage(err));
           }
         }}
       >
@@ -135,7 +135,7 @@ function MasteryView({ api }: { api: LearningApiExt }) {
       const r = await api.mastery(cardId.trim());
       setState(r.state);
     } catch (e: unknown) {
-      setError(userErrorMessage(e instanceof Error ? e.message : e));
+      setError(failureMessage(e));
       setState(null);
     } finally {
       setBusy(false);
@@ -230,7 +230,7 @@ function TeachBackView({ api }: { api: LearningApiExt }) {
     try {
       setResult(await api.teachBack(input));
     } catch (e: unknown) {
-      setError(userErrorMessage(e instanceof Error ? e.message : e));
+      setError(failureMessage(e));
       setResult(null);
     } finally {
       setBusy(false);
@@ -362,7 +362,7 @@ function PathView({ api }: { api: LearningApiExt }) {
       const r = await api.learningPath({ goal: requestedGoal, graph: { nodes, edges } });
       setSteps(r.steps);
     } catch (e) {
-      setError(userErrorMessage(e instanceof Error ? e.message : e));
+      setError(failureMessage(e));
       setSteps(null);
     } finally {
       setBusy(false);
