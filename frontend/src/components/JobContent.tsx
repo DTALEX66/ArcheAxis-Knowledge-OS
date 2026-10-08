@@ -47,9 +47,15 @@ export function JobContent({sourceId,name,onKnowledge,sourceRevision,onTimeSeek,
    if(listing.source_id!==sourceId||!Array.isArray(listing.jobs)||listing.jobs.length>50)throw new Error("bounded source jobs mismatch");
    const rows=listing.jobs as Array<Record<string,unknown>>;
    if(rows.some(row=>row.input_ref!==sourceId))throw new Error("source jobs identity mismatch");
-   const latest=rows.find(row=>row.kind===(extension==="epub"?"text":kind==="video"?"video":"transcribe"));
-   const successful=rows.find(row=>row.kind===(extension==="epub"?"text":kind==="video"?"video":"transcribe")&&row.state==="succeeded");
-   if(!successful){if(current()){if(latest){setLatestState(latest);setMessage(`最近一次转换任务状态为 ${String(latest.state)}；未找到成功产物，不表示此前结果不存在。`);}if(listing.jobs_capped===true)setMessage("仅检查最近 50 个来源任务；未找到其中的成功转写，不表示更早结果不存在。");}return;}
+   // Read the persisted result back under the same route kind the conversion produced. A
+   // text/office/pdf/html/image/archive result must reopen from storage without starting a job,
+   // so it can no longer be searched for under a hardcoded "transcribe".
+   const targetKind=extension==="epub"?"text":kind;
+   const isMediaRoute=kind==="transcribe"||kind==="video";
+   const resultLabel=isMediaRoute?"转写":extension==="epub"?"章节内容":"转换结果";
+   const latest=rows.find(row=>row.kind===targetKind);
+   const successful=rows.find(row=>row.kind===targetKind&&row.state==="succeeded");
+   if(!successful){if(current()){if(latest){setLatestState(latest);setMessage(`最近一次转换任务状态为 ${String(latest.state)}；未找到成功产物，不表示此前结果不存在。`);}if(listing.jobs_capped===true)setMessage(`仅检查最近 50 个来源任务；未找到其中的成功${resultLabel}，不表示更早结果不存在。`);}return;}
    if(typeof successful.job_id!=="string")throw new Error("persisted job identity missing");
    const id=successful.job_id;
    const [stateValue,rawText,structureValue,lossValue,quality,transformValue]=await Promise.all([
@@ -60,13 +66,13 @@ export function JobContent({sourceId,name,onKnowledge,sourceRevision,onTimeSeek,
    if(typeof textOutput.content!=="string"||typeof structure.content!=="string"||typeof loss.content!=="string"
     ||saved.source_id!==sourceId||saved.job_id!==id||typeof saved.transform_id!=="number"||saved.content!==textOutput.content)throw new Error("persisted transform mismatch");
    const verifiedEpub=extension==="epub"?await epubProof(sourceId,sourceRevision,id,state,loss,successful):null;
-   const verified=extension!=="epub"?await transcriptionProof(sourceId,sourceRevision,id,state,loss,successful,kind==="video"?"video":"transcribe"):null;
+   const verified=isMediaRoute?await transcriptionProof(sourceId,sourceRevision,id,state,loss,successful,kind==="video"?"video":"transcribe"):null;
    const parsedStructure=JSON.parse(structure.content),parsedLoss=JSON.parse(loss.content);
    if(!current())return;
    if(verified)setTranscription(verified);if(verifiedEpub)setEpub(verifiedEpub);setText(textOutput.content);setTransform(saved);setProof({structure:parsedStructure,loss:parsedLoss,quality});
    setJob(typeof latest?.job_id==="string"?latest.job_id:id);setLatestState(latest??state);
-   setMessage(`已读回持久化转写；最新处理状态与已成功的内容分别保留。${listing.jobs_capped===true?"仅检查最近 50 个来源任务。":""}`);
-  })().catch(()=>{if(current())setMessage("持久化转写读回未完成；不会自动重新转写。");});
+   setMessage(`已读回持久化${resultLabel}；最新处理状态与已成功的内容分别保留。${listing.jobs_capped===true?"仅检查最近 50 个来源任务。":""}`);
+  })().catch(()=>{if(current())setMessage("持久化结果读回未完成；不会自动重新执行任务。");});
   return()=>{active=false;};
  },[sourceId,sourceRevision,extension]);
 

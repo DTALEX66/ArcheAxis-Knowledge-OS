@@ -867,10 +867,49 @@ async fn record_stateful_review(
         "exposure_id":body.exposure_id,"assist_strategy":body.assist_strategy,
         "rating_version":body.rating_version,"correction_id":body.correction_id})
     .to_string();
+    // Phase 1 (short writer read): snapshot the FSRS card and the effective review instant, then
+    // release the writer. The scheduler may wait up to 20s, and must not hold the single canonical
+    // writer while it does, so a slow schedule cannot block document saves or other reads.
+    let snapshot_key = body.item_key.clone();
+    let snapshot_now = body.now.clone();
+    let (previous_fsrs_state, instant) = match state
+        .clone()
+        .submit_wait(move |conn| -> rusqlite::Result<(Option<String>, String)> {
+            let previous = learning::latest_fsrs_state_json(conn, &snapshot_key)?;
+            let instant = match snapshot_now.as_ref() {
+                Some(now) => now.clone(),
+                None => conn.query_row("SELECT strftime('%Y-%m-%dT%H:%M:%fZ','now')", [], |r| {
+                    r.get::<_, String>(0)
+                })?,
+            };
+            Ok((previous, instant))
+        })
+        .await
+    {
+        Ok(Ok(value)) => value,
+        Ok(Err(e)) => return (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()).into_response(),
+        Err(e) => return (StatusCode::SERVICE_UNAVAILABLE, e.to_string()).into_response(),
+    };
+
+    // Phase 2 (off the writer): compute the schedule from the snapshot. No DB write lock is held here.
+    let card: serde_json::Value = match previous_fsrs_state.as_ref() {
+        Some(value) => serde_json::from_str(value).unwrap_or_else(|_| serde_json::json!({})),
+        None => serde_json::json!({}),
+    };
+    let schedule_request = serde_json::json!({
+        "item_key": body.item_key.as_str(), "rating": rating, "state": card, "now": instant,
+    })
+    .to_string();
+    let schedule_result = archeaxis_application::scheduler::SchedulerClient::from_env()
+        .and_then(|client| client.review(&schedule_request));
+
+    // Phase 3 (short writer transaction): validate the request, guard that the card the schedule was
+    // computed from is unchanged, and record. Only the fast DB validation of the precomputed
+    // schedule happens here; the slow FSRS subprocess already completed outside the writer.
     with_store(state, move |conn| {
         if let Some(now) = body.now.as_deref() {
             match learning::valid_review_timestamp(conn, now) {
-                Ok(true) => {},
+                Ok(true) => {}
                 Ok(false) => return (StatusCode::BAD_REQUEST, "now must be an ISO timestamp with timezone").into_response(),
                 Err(e) => return (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()).into_response(),
             }
@@ -886,20 +925,8 @@ async fn record_stateful_review(
             }
         }
         let result = learning::record_review_with_state_and_answer(conn, &body.item_key, "review", body.correct,
-            &body.client_event_id, &canonical, body.answer.as_deref(), assessment_id.as_deref(), |connection| {
-                let previous = learning::latest_fsrs_state_json(connection, &body.item_key)?;
-                let card: serde_json::Value = match previous {
-                    Some(value) => serde_json::from_str(&value).map_err(|_| rusqlite::Error::InvalidQuery)?,
-                    None => serde_json::json!({}),
-                };
-                let instant = match body.now.as_ref() {
-                    Some(now) => now.clone(),
-                    None => connection.query_row("SELECT strftime('%Y-%m-%dT%H:%M:%fZ','now')", [], |r| r.get::<_, String>(0))?,
-                };
-                let request = serde_json::json!({"item_key":body.item_key,"rating":rating,"state":card,"now":instant});
-                checked_review_schedule(connection, archeaxis_application::scheduler::SchedulerClient::from_env()
-                    .and_then(|client| client.review(&request.to_string())))
-            });
+            &body.client_event_id, &canonical, body.answer.as_deref(), assessment_id.as_deref(),
+            Some(previous_fsrs_state), move |connection| checked_review_schedule(connection, schedule_result));
         match result {
             Ok(receipt) => {
                 let outcome: serde_json::Value = match serde_json::from_str(&receipt.outcome_json) {
@@ -914,7 +941,7 @@ async fn record_stateful_review(
                     "answer":outcome["answer"],
                     "mastery_projection":outcome["mastery_projection"]}))).into_response()
             },
-            Err(rusqlite::Error::InvalidParameterName(message)) if message.starts_with("event_key conflict:") =>
+            Err(rusqlite::Error::InvalidParameterName(message)) if message.starts_with("event_key conflict:") || message.starts_with("schedule basis conflict:") =>
                 (StatusCode::CONFLICT, message).into_response(),
             Err(e) => (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()).into_response(),
         }
