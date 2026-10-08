@@ -166,6 +166,9 @@ _ABSOLUTE_TOKEN = re.compile(r"^(?:[A-Za-z]:[\\/]|[\\/]{2}|[\\/])")
 #: root-relative citation rather than a location-free basename.
 _KNOWN_EXTENSIONS = (".py", ".ts", ".tsx", ".json", ".md", ".rs", ".yaml", ".yml",
                      ".txt", ".log", ".toml", ".ini", ".csv", ".ps1", ".sh", ".bat")
+#: A trailing `:13`, `:13-19` or `:13:5` anchor. It locates a line inside a file; it is not
+#: part of the path, and treating it as one made every line-anchored citation look dangling.
+_LINE_ANCHOR = re.compile(r":(?P<anchor>\d+(?:[-,]\d+)*(?::\d+(?:[-,]\d+)*)?)$")
 
 
 def parse_reference(token: str, roots: Sequence[Root], *, default_root: str | None = None,
@@ -180,9 +183,21 @@ def parse_reference(token: str, roots: Sequence[Root], *, default_root: str | No
     text = _normalize(token)
     if not text:
         raise ValueError(f"empty citation: {token!r}")
+    # `docs/truth/README.md:13` is the dominant citation shape in this repository's
+    # documents. Resolving the whole token as a path makes every line-anchored reference
+    # look dangling, which is a fast way to get a strict gate switched off; the anchor is
+    # therefore split off for resolution while the printed citation keeps it.
+    anchor = _LINE_ANCHOR.search(text)
+    anchor_text = ""
+    if anchor:
+        # group("anchor") excludes the leading colon on purpose, so the slice must use the
+        # whole match or a bare `:` is left glued to the path.
+        anchor_text = anchor.group(0)
+        text = text[:len(text) - len(anchor_text)]
+    display = token.strip("`").strip() if anchor_text else text
     if _ABSOLUTE_TOKEN.match(text):
         fallback = default_root or (roots[0].name if roots else "")
-        return Reference(text, fallback, None, expected_sha256, commit, historical, label,
+        return Reference(display, fallback, None, expected_sha256, commit, historical, label,
                          absolute=True)
     best: Root | None = None
     for root in roots:
@@ -196,10 +211,10 @@ def parse_reference(token: str, roots: Sequence[Root], *, default_root: str | No
         relative = text[len(_normalize(best.marker)):].lstrip("/")
         if not relative:
             raise ValueError(f"citation {token!r} names the root only")
-        return Reference(text, best.name, relative, expected_sha256, commit, historical, label)
+        return Reference(display, best.name, relative, expected_sha256, commit, historical, label)
     if "/" in text:
         fallback = default_root or (roots[0].name if roots else "")
-        return Reference(text, fallback, text, expected_sha256, commit, historical, label)
+        return Reference(display, fallback, text, expected_sha256, commit, historical, label)
     fallback = default_root or (roots[0].name if roots else "")
     # A slashless token that carries a known file extension is an explicit root-relative
     # citation: `AGENTS.md` means <repo>/AGENTS.md and nothing else. That is still an exact
@@ -208,8 +223,8 @@ def parse_reference(token: str, roots: Sequence[Root], *, default_root: str | No
     # A slashless token with no extension names no location at all and stays a bare basename,
     # which can never pass.
     if text.endswith(_KNOWN_EXTENSIONS):
-        return Reference(text, fallback, text, expected_sha256, commit, historical, label)
-    return Reference(text, fallback, None, expected_sha256, commit, historical, label)
+        return Reference(display, fallback, text, expected_sha256, commit, historical, label)
+    return Reference(display, fallback, None, expected_sha256, commit, historical, label)
 
 
 def _git(repo: Path, *args: str) -> subprocess.CompletedProcess:
@@ -527,6 +542,12 @@ def extract_citations(text: str) -> list[str]:
         if token.startswith(("http://", "https://", "git@", "<")):
             continue
         if any(ch in token for ch in ("{", "}", "<", ">", "→", "|")):
+            continue
+        # A backticked token with whitespace inside is a command, a shell fragment or prose,
+        # not a path: `git rev-list --left-right --count origin/main...HEAD` contains a slash
+        # and a dot but cites nothing. Counting those as dangling references buries the real
+        # ones and is exactly why a strict gate gets ignored.
+        if re.search(r"\s", token):
             continue
         # A branch/ref name is not a path citation; checking it would turn the gate red
         # for the wrong reason. Paths that merely *look* like one are still checked when

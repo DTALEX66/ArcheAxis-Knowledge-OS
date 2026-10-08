@@ -183,6 +183,21 @@ def test_record_relative_citations_resolve_only_exactly(tmp_path, capsys) -> Non
         "docs/history/thing.md must not satisfy a citation for a root-level file")
 
 
+def test_a_line_anchor_is_stripped_for_resolution_but_kept_in_the_report(tree) -> None:
+    """`path.py:12` is how this repository cites lines. Resolving the whole token makes
+    every such reference look dangling, which is how a strict gate gets switched off."""
+    repo, _, _, _ = tree
+    (repo / "docs").mkdir(parents=True, exist_ok=True)
+    (repo / "docs" / "truth.md").write_text("line one\nline two\n", encoding="utf-8")
+    anchored = _verdict(tree, "docs/truth.md:2")
+    assert anchored.verdict == rv.PASS, anchored.reason
+    assert anchored.citation == "docs/truth.md:2", "the printed citation keeps its anchor"
+    missing = _verdict(tree, "docs/truth.md:999")
+    assert missing.verdict == rv.PASS, "a line number beyond the file is not this tool's claim"
+    absent = _verdict(tree, "docs/nope.md:2")
+    assert absent.verdict != rv.PASS
+
+
 def test_a_root_relative_filename_still_resolves_exactly(tree) -> None:
     """The refinement that the above depends on: `README.md` means <repo>/README.md and is a
     PASS only when that exact file is there, never because a copy was located by searching."""
