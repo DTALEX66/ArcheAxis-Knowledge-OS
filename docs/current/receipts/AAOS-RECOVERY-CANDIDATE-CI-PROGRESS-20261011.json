@@ -1,0 +1,49 @@
+{
+  "schema": "archeaxis.candidate-progress/v1",
+  "date": "2026-10-11",
+  "whole_scope": "PARTIAL",
+  "prior_ci": {
+    "run_id": 38083440673,
+    "sha": "3ffbe73c791a53b150e3ce3a1c1224085abdc98c",
+    "status": "FAIL",
+    "artifact_id": 11682170724,
+    "receipt_sha256": "224d9c182eccb4b986432f5896c37e779562f469f576d7fdf4a912e59607f893",
+    "source_consistent": true,
+    "grouped_stages": [
+      {
+        "id": "import",
+        "status": "PASS"
+      },
+      {
+        "id": "read",
+        "status": "PASS"
+      },
+      {
+        "id": "anchor",
+        "status": "PASS"
+      }
+    ],
+    "failure": "UI knowledge candidate creation unconfirmed; navigation to knowledge review unavailable; underlying create/readback error UNVERIFIED",
+    "failure_screenshot_sha256": "723a49d91a7150d86df5e38e8b1288f6766d654841669347d31f139a22ca2b97",
+    "compatibility_child_ok": true
+  },
+  "successor_ci": {
+    "run_id": 38085061981,
+    "sha": "a2aca3b7314ffe644ab62f5ab00576e8d6866e70",
+    "status": "QUEUED_AT_DISPATCH",
+    "url": "https://github.com/DTALEX66/ArcheAxis-Knowledge-OS/actions/runs/38085061981",
+    "includes": [
+      "document/grant recovery",
+      "Chinese base pin repair",
+      "ASR independent dependency repair"
+    ],
+    "not_a_pass": true
+  },
+  "remaining": [
+    "new Rust execution and formatting",
+    "actual Core ASR three formats",
+    "native source candidate creation cause/fix",
+    "actual text model service and whole nine-step journey",
+    "Owner acceptance"
+  ]
+}
