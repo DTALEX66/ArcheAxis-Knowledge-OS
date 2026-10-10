@@ -14,3 +14,16 @@ def test_formal_tauri_build_watches_its_effective_frontend() -> None:
     assert 'watch_tree(&manifest.join(frontend_dist))' in source
     assert 'cargo:rerun-if-env-changed=TAURI_CONFIG' in source
     assert 'cargo:rerun-if-changed=' in source
+
+
+def test_shell_ci_supplies_built_routed_frontend_and_effective_configuration() -> None:
+    import yaml
+    workflow = yaml.safe_load((ROOT / ".github/workflows/ci.yml").read_text(encoding="utf-8"))
+    steps = workflow["jobs"]["desktop-fast"]["steps"]
+    build_index = next(index for index, step in enumerate(steps) if "scripts/runtime/frontend.py" in step.get("run", ""))
+    test_index = next(index for index, step in enumerate(steps) if "cargo test" in step.get("run", ""))
+    assert build_index < test_index
+    assert "npm ci --prefix frontend --ignore-scripts" in steps[build_index]["run"]
+    assert "--node $node build" in steps[build_index]["run"]
+    assert "$env:ARCHEAXIS_FRONTEND_BUILD_CONTEXT = $env:ARCHEAXIS_RUN_ROOT" in steps[build_index]["run"]
+    assert "$env:TAURI_CONFIG = Get-Content -LiteralPath $env:ARCHEAXIS_TAURI_CONFIG -Raw" in steps[test_index]["run"]

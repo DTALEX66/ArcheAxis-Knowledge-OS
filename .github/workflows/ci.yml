@@ -1006,6 +1006,19 @@ jobs:
       - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
         with:
           python-version: "3.12"
+      - uses: actions/setup-node@1a4442cacd436585916779262731d5b162bc6ec7
+        with:
+          node-version: "24"
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - name: Build the run-scoped canonical frontend for shell tests
+        run: |
+          npm ci --prefix frontend --ignore-scripts
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          $node = (Get-Command node -ErrorAction Stop).Source
+          $env:ARCHEAXIS_FRONTEND_BUILD_CONTEXT = $env:ARCHEAXIS_RUN_ROOT
+          python -B scripts/runtime/frontend.py --node $node build
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
       - uses: astral-sh/setup-uv@d0cc045d04ccac9d8b7881df0226f9e82c39688e
         with:
           enable-cache: true
@@ -1035,6 +1048,7 @@ jobs:
         id: desktop_shell
         working-directory: src-tauri
         run: |
+          $env:TAURI_CONFIG = Get-Content -LiteralPath $env:ARCHEAXIS_TAURI_CONFIG -Raw
           cargo fmt --all -- --check
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           cargo test

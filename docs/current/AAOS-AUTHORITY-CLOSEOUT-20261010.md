@@ -62,3 +62,7 @@ H01 原始容器属于 Owner 本地保全来源，现有测试声明其不是默
 完整运行 `38064586894` 对应 `f938e171d9b83c056e5d48f819c3f9ae3de91261`：Rust 全工作区含真实 OCR 测试通过；Python 主套件 4567 PASS、2 FAIL、81 skipped、166 subtests PASS。剩余失败是新增 HTTP 章节未登记检查入口，以及云端错误要求本机 NTFS 历史目录存在。章节已登记路由/数量回归；NTFS 例外只用于 baseline.repository 对应的真实 Git owning root，其他检出使用空例外，不继承本机路径豁免。新增负控验证此边界，相关定向回归 27 PASS，run `be268a2d33/35e0c84a837e`。
 
 浏览器模板保存的另一条旧提示已修复，并等待实际 v2 列表行以排除旧成功提示串扰；正式宿主复用的 desktop backend 模块唯一格式差异按云端原始 diff 修复。格式失败补丁采集覆盖该精确复用模块。此前本轮证据目录已同盘移动到 launcher 身份/run 层级，RUN-LOCATION.json 登记原址与现址；14 份原正文的备份哈希和后缀 readback 再次全部通过。当前三检出在 f938e171 同步；后续提交须再次回读，完整资格仍待最终 SHA。
+
+完整运行 `38065487542` 对应 `4b939c5aecdeb301c60befb04027b01534a877f8`：Python 作业（OS/KB/integration）、Rust 全工作区与新版浏览器完整回归均 PASS。正式宿主格式已 PASS，随后 build.rs 因 routed frontend/TAURI_CONFIG 缺失失败；未取消路径一致性校验。desktop-fast 补齐锁文件依赖、在现有 canonical run 中实际构建前端，并显式把该 run 的有效 Tauri 配置传入 cargo test。构建上下文/配置顺序和本地 CI 回归 6 PASS，run `be268a2d33/31df3f1c02a5`；新 SHA 仍须完整验证。
+
+同步回读另发现本地 main 引用仍指向 `59498723a8d4e94c6314e490473ba6d60847c247`，虽云端与当前工作区已更新，切回该本地分支会重现旧权威。确认它是新 HEAD 的祖先且没有 main 检出后，使用带旧值核验的正常快进更新；本地与远端 main、codex/Audit、gov-ui 已一致为 4b939c5a，三当前检出干净。未改写历史或上传历史检出的未知修改。远端默认分支为 main，公开描述已回读为当前 Tauri/React、Rust 单写者、统一主题、唯一权威路由和 Owner 暂停状态。
