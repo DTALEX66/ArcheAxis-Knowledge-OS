@@ -421,3 +421,6 @@ a2aca3b7完整CI38085061981：rust-vnext因新增两个文件格式失败，测�
 JobContent非法source_note已改canonical NOTE，不放宽Core枚举、人审或来源/正文读回；挂载transport读取实际权威词汇schema，旧代码先RED复现不能进入审核，隔离43项通过。根最终120文件/1106全前端、TypeScript/production build、architecture/diff检查PASS，源码一致。原3ff HTTP错误正文未观测，不伪称该次400或安装故障完全关闭；实际Core/native后继验收仍待执行，当前a2 CI保留不取消。详见[候选类型修复](receipts/AAOS-SOURCE-CANDIDATE-TYPE-REPAIR-20261011.json)。
 
 当前Owner恢复范围另确认三个作业入口冻结identity仅组件内存，跨卸载/重启未实现；隔离正在增加Core-owned typed pending journal、先CAS确认再执行、原请求预算不可变、精确终态清理及恢复候选隔离，不自动执行/启用。尚无实现或运行资格，不能把现场恢复通过扩大为跨重启恢复。整体继续PARTIAL。
+
+
+a2实际desktop-fast已终止FAIL：中文Core step PASS；固定FFmpeg和公开ASR资产准备PASS，下载artifact11682491118独立核对五模型组件/fixture/工具ZIP和pin均等于exact候选lock。实际speech probe formats=[]/NOT_EXECUTED，在host Python解析capability YAML时缺yaml，尚未启动Core，source_consistent=false因失败早于source采集；不把模型/工具成功当三格式通过。候选runtime engine assert当前仅检查四Office/OCR模块，未证明yaml/ASR模块导入；隔离只读正在确定候选解释器预检与路径读回，避免host/candidate ABI混用或无依据安装。详见[实际ASR资产与失败进展](receipts/AAOS-ASR-ASSET-ACTUAL-PROGRESS-20261011.json)。a2桌面构建live，不取消有用安装结果，整体PARTIAL。

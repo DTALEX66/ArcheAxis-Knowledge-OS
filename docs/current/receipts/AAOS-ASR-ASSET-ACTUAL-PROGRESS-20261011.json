@@ -1,0 +1,48 @@
+{
+  "schema": "archeaxis.asr-asset-runtime-progress/v1",
+  "date": "2026-10-11",
+  "whole_scope": "PARTIAL",
+  "ci_run_id": 38085061981,
+  "candidate_sha": "a2aca3b7314ffe644ab62f5ab00576e8d6866e70",
+  "artifact_id": 11682491118,
+  "asset_identity": {
+    "status": "PASS",
+    "qualification": "PUBLIC_ASSET_IDENTITY_VERIFIED_ASR_CORE_NOT_EXECUTED",
+    "all_five_public_components_equal_exact_candidate_lock": true,
+    "public_fixture_equal_exact_candidate_lock": true,
+    "pin_sha256": "92fb9d7a3267fa3f168bc71f919943ddfa5f5dc0a10f4c11be6156d92b3d2506"
+  },
+  "ffmpeg": {
+    "status": "PASS",
+    "qualification": "CI_TOOL_VERSION_ENCODERS_VERIFIED_NOT_MEDIA_ASR_CORE",
+    "archive_equal_exact_candidate_lock": true,
+    "selected_members_and_required_encoders_match": true,
+    "pin_sha256": "7cceabefa72e0475f12cd5bb3706ed3a295c3701cde571cb0d88dea57d789de5",
+    "license": "GPL-3.0-or-later; CI only, not product distribution qualification"
+  },
+  "actual_speech_probe": {
+    "status": "FAIL",
+    "qualification": "NOT_EXECUTED",
+    "format_count": 0,
+    "source_consistent": false,
+    "reason": "Host probe Python lacks yaml when resolving declared ffmpeg via capability-requirements.yaml; failure before source identity capture, before Core startup and format execution",
+    "next": "Use validated candidate Python for dependency-requiring preflight; read back import identities; no host/candidate ABI mixing or global install",
+    "fix": "NOT_IMPLEMENTED"
+  },
+  "receipts": [
+    {
+      "path": ".project-local/runs/be268a2d33/closedloop-integration-20261011/speech-a2/task-runtime/common-asr-assets/receipt.json",
+      "sha256": "efb43f116a7f1ec09804db3b746a5c57bbf109fab9956f494167052980d3b8c0"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/closedloop-integration-20261011/speech-a2/task-runtime/ci-ffmpeg/receipt.json",
+      "sha256": "2f1d4ac22ac7c7c92b389978a3e42803bcfdea46186dc6ebe995ac46bffe03c3"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/closedloop-integration-20261011/speech-a2/runs/fd2a08c715/5f24124ef079/artifacts/common-speech.json",
+      "sha256": "8ba1c7b02cf73a088587c658216960bf4c340c5672c33f1cbcccd2de427bbb7a"
+    }
+  ],
+  "current_ci": "Desktop build remains IN_PROGRESS at last readback; preserve useful installed outputs",
+  "overall_actual_core_asr": "UNVERIFIED; WAV/MP3/MP4 not qualified by assets or local worker results"
+}
