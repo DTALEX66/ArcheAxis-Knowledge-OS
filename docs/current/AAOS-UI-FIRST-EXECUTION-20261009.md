@@ -367,3 +367,10 @@ fc940dc 的完整 CI 38077876660 已终止 SUCCESS，20 个 job 包括 installer
 候选 a8f93be5 的 rust-vnext 在 cargo fmt 失败，新请求恢复回归因此 required skip，不记 PASS。下载该 exact-SHA 的 rustfmt-repair artifact，唯一文件 runtime_jobs.rs 对候选 Git blob/preimage 核对后应用；仅两个新增回归的换行、缩进和可选尾逗号，不删除/变更断言。本地既有 rustfmt 权限拒绝不重试/绕过。详见[请求恢复格式修复](receipts/AAOS-REQUEST-RECOVERY-FORMAT-REPAIR-20261011.json)。当前其他 CI jobs 仍运行，保留语音/安装有用结果，未发替代 dispatch；本修复仍待后继候选的 Rust 执行资格。
 
 Office/text-PDF probe 补结束时 worktree identity 核对，执行中源码变动或身份缺失必须 ok=false/NOT_QUALIFIED；8 定向检查（含实际本地四格式parser与SIMULATED结束时漂移正反控制）、critical Ruff、architecture PASS，源指纹一致。联合32 PASS/6 OCR-ASR opt-in skip保持 PARTIAL，未当实际运行通过。下载99精确SHA Office/PDF/light/中文回执重新核对成功作业、正文/结构/损失输出digest与字节数、独立新job、重启；旧Office回执没有结束指纹字段，明确UNVERIFIED不补造历史。详见[多格式源码保护与分项证据](receipts/AAOS-COMMON-FORMAT-SOURCE-GUARD-20261011.json)。当前a8 CI继续保留未结束的实际Core/安装结果，新保护待后继候选。
+
+
+## 2026-10-11 ASR CI 前置修复与 TXT 独立覆盖（PARTIAL）
+
+a8 desktop-fast 失败已核对实际 job 日志：Windows runner 无 ffmpeg.exe，第一行 Get-Command 失败，模型下载尚未开始、实际 Core ASR required skip；此前没有JSON故障回执导致上传也失败。现补显式固定版本8.1.2的项目local CI-only工具准备，GitHub发布者bytes/digest独立读回一致；fresh路径、ZIP预算/成员/摘要/链接、版本及encoder严格核对，保留GPLv3 LICENSE，不能伪标LGPL产品发行资格。无需全局安装/PATH修改，产品缺失时具名失败fallback不改；ZIP/二进制不进入release-candidate/Green/上传，只有JSON。前置独立失败回执提前建立，actual speech仍必跑，if-no-files-found:error不弱化。
+
+TXT加入common light独立Core探针，中文/换行/emoji后UTF8原件定位由实际本地parser验证；Core重解析/重启待后继候选。根联合52 PASS无skip、critical Ruff、architecture、YAML与精确PowerShell AST通过，源码一致；其中tool/asset guards为SYNTHETIC，未实际下载/执行新FFmpeg，未签署Core ASR。详见[ASR CI前置修复](receipts/AAOS-ASR-CI-PREREQUISITE-REPAIR-20261011.json)。当前a8安装构建仍有用且live，不取消/替代dispatch。整体目标仍PARTIAL；真实文本模型服务询问待答，其他任务继续。

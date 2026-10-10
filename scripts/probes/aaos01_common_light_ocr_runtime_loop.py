@@ -11,14 +11,15 @@ from pathlib import Path
 import aaos01_office_runtime_loop as office
 
 REPO = Path(__file__).resolve().parents[2]
-KINDS = {"md":"text", "csv":"text", "json":"text", "html":"html", "srt":"subtitles", "vtt":"subtitles", "canvas":"canvas", "png":"image", "jpeg":"image", "pdf":"pdf"}
-MARKERS = {"md": ("中文标题", "正文甲", "子标题乙"), "csv": ("中文姓名", "复合中文", "第二行"), "json": ("中文主题", "第一项", "第二项"), "html": ("网页中文标题", "正文甲", "正文乙"), "srt": ("字幕中文甲", "字幕中文乙"), "vtt": ("字幕中文甲", "字幕中文乙"), "canvas": ("节点中文甲", "节点中文乙"), "png": ("OCR PAGE ONE 6371",), "jpeg": ("OCR PAGE ONE 6371",)}
+KINDS = {"txt":"text", "md":"text", "csv":"text", "json":"text", "html":"html", "srt":"subtitles", "vtt":"subtitles", "canvas":"canvas", "png":"image", "jpeg":"image", "pdf":"pdf"}
+MARKERS = {"txt": ("中文正文甲", "中文正文乙", "末尾证据"), "md": ("中文标题", "正文甲", "子标题乙"), "csv": ("中文姓名", "复合中文", "第二行"), "json": ("中文主题", "第一项", "第二项"), "html": ("网页中文标题", "正文甲", "正文乙"), "srt": ("字幕中文甲", "字幕中文乙"), "vtt": ("字幕中文甲", "字幕中文乙"), "canvas": ("节点中文甲", "节点中文乙"), "png": ("OCR PAGE ONE 6371",), "jpeg": ("OCR PAGE ONE 6371",)}
 GENERATOR = r'''
 import json,sys
 from pathlib import Path
 import fitz
 root=Path(sys.argv[1]);root.mkdir(parents=True,exist_ok=True)
 values={
+'txt':'中文正文甲\n\n中文正文乙 🌌\n末尾证据\n',
 'md':'# 中文标题\n\n正文甲 [链接](https://example.invalid)\n\n## 子标题乙\n- 列表中文\n```text\n# 不应成为标题\n```\n',
 'csv':'中文姓名,内容,数量\n甲,"复合中文,带逗号",42\n乙,"第二行\n多行中文",7\n',
 'json':json.dumps({'主题':'中文主题','列表':[{'值':'第一项'},{'值':'第二项'}],'嵌套':{'数值':42}},ensure_ascii=False),
@@ -88,8 +89,8 @@ def location_body(extension, source, job, snapshot, raw):
     if extension in ('csv','json'):
         p=next(p for p in loss['params']['format']['locations'] if isinstance(p.get('value'),str) and ('中文' in p['value'] or p['value']=='第二项'))
         locator={'type':'format_location',**common,'kind':p['kind'],'path':p['path']};excerpt=p['value']
-    elif extension=='md':
-        excerpt='正文甲';needle=excerpt.encode();start=raw.index(needle)
+    elif extension in ('txt','md'):
+        excerpt='末尾证据' if extension=='txt' else '正文甲';needle=excerpt.encode();start=raw.index(needle)
         locator={'type':'text','start':start,'end':start+len(needle)}
     elif extension in ('png','jpeg'):
         p=next(p for p in json.loads(snapshot['document_structure']['body']['content']) if '6371' in text[p['char_start']:p['char_end']] or '8429' in text[p['char_start']:p['char_end']])

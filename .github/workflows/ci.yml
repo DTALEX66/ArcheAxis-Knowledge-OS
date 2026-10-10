@@ -1134,13 +1134,20 @@ jobs:
         id: common_asr_assets
         working-directory: ${{ github.workspace }}
         run: |
-          $ffmpeg = (Get-Command ffmpeg.exe -ErrorAction Stop).Source
+          $prerequisiteReceipt = '.project-local/task-runtime/common-asr-prerequisites.json'
+          @{ok=$false; qualification='NOT_EXECUTED'; stage='CI_TOOL_PREPARATION'; scope='CI-only; no runtime fallback or global PATH change'} | ConvertTo-Json | Out-File -FilePath $prerequisiteReceipt -Encoding utf8
+          python -B scripts/ci/prepare_windows_ffmpeg.py --root .project-local/task-runtime/ci-ffmpeg
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          $toolReceipt = Get-Content -LiteralPath '.project-local/task-runtime/ci-ffmpeg/receipt.json' -Raw | ConvertFrom-Json
+          if (-not $toolReceipt.ok -or $toolReceipt.qualification -ne 'CI_TOOL_VERSION_ENCODERS_VERIFIED_NOT_MEDIA_ASR_CORE') { throw 'Pinned CI ffmpeg preparation not qualified' }
+          $ffmpeg = $toolReceipt.ffmpeg
           $env:FFMPEG_CMD = $ffmpeg
           "FFMPEG_CMD=$ffmpeg" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
           $ffmpegVersion = & $ffmpeg -version
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-          $ffmpegIdentity = @{path=$ffmpeg; sha256=(Get-FileHash -LiteralPath $ffmpeg -Algorithm SHA256).Hash.ToLower(); bytes=(Get-Item -LiteralPath $ffmpeg).Length; version=$ffmpegVersion[0]; selection='Explicit existing CI tool declaration; no download or installation'}
+          $ffmpegIdentity = @{path=$ffmpeg; sha256=(Get-FileHash -LiteralPath $ffmpeg -Algorithm SHA256).Hash.ToLower(); bytes=(Get-Item -LiteralPath $ffmpeg).Length; version=$ffmpegVersion[0]; selection='Explicit pinned project-local CI tool; binaries excluded from distribution'; license=$toolReceipt.license; tool_pin_sha256=$toolReceipt.pin_sha256}
           $ffmpegIdentity | ConvertTo-Json | Out-File -FilePath .project-local/task-runtime/common-asr-ffmpeg.json -Encoding utf8
+          @{ok=$true; qualification='CI_TOOL_PREPARED_ASR_CORE_NOT_EXECUTED'; stage='PUBLIC_ASR_ASSET_PREPARATION'; tool_receipt='.project-local/task-runtime/ci-ffmpeg/receipt.json'} | ConvertTo-Json | Out-File -FilePath $prerequisiteReceipt -Encoding utf8
           python -B scripts/ci/prepare_common_asr.py --root .project-local/task-runtime/common-asr-assets
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           New-Item -ItemType Directory -Path .project-local/task-runtime/common-asr-derived -ErrorAction Stop | Out-Null
@@ -1161,6 +1168,8 @@ jobs:
             .project-local/runs/**/artifacts/common-speech.json
             .project-local/task-runtime/common-asr-assets/receipt.json
             .project-local/task-runtime/common-asr-ffmpeg.json
+            .project-local/task-runtime/common-asr-prerequisites.json
+            .project-local/task-runtime/ci-ffmpeg/receipt.json
           if-no-files-found: error
       - name: Upload common-format qualification receipt
         if: ${{ always() }}

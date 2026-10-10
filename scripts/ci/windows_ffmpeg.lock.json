@@ -1,0 +1,21 @@
+{
+  "schema": "archeaxis/ci-only-ffmpeg/v1",
+  "version": "8.1.2",
+  "variant": "essentials_build",
+  "platform": "windows-x64",
+  "license": "GPL-3.0-or-later",
+  "scope": "EXPLICIT_CI_TOOL_ONLY_NOT_PRODUCT_DISTRIBUTION_QUALIFIED",
+  "official_download_index": "https://ffmpeg.org/download.html",
+  "publisher": "https://www.gyan.dev/ffmpeg/builds/",
+  "release_api": "https://api.github.com/repos/GyanD/codexffmpeg/releases/tags/8.1.2",
+  "checksum_url": "https://www.gyan.dev/ffmpeg/builds/packages/ffmpeg-8.1.2-essentials_build.zip.sha256",
+  "url": "https://github.com/GyanD/codexffmpeg/releases/download/8.1.2/ffmpeg-8.1.2-essentials_build.zip",
+  "bytes": 109728040,
+  "sha256": "db580001caa24ac104c8cb856cd113a87b0a443f7bdf47d8c12b1d740584a2ec",
+  "prefix": "ffmpeg-8.1.2-essentials_build",
+  "selected": ["bin/ffmpeg.exe", "bin/ffprobe.exe", "LICENSE"],
+  "maximum_entries": 8192,
+  "maximum_expanded_bytes": 536870912,
+  "required_encoders": ["pcm_s16le", "libmp3lame", "mpeg4", "aac"],
+  "distribution": "Keep ZIP and binaries only in ignored project-local CI paths; never release-candidate, Green, or uploaded artifacts. Retain publisher LICENSE. No product runtime download fallback change."
+}

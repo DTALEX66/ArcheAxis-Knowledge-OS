@@ -1,0 +1,90 @@
+{
+  "schema": "archeaxis.common-asr-ci-prerequisite-repair/v1",
+  "date": "2026-10-11",
+  "basis_commit": "edb5cb1937ce78ef68fc16aa8246d7ff3c7ec4d9",
+  "status": "IMPLEMENTED_TESTED_LOCAL_NOT_RUNTIME_QUALIFIED",
+  "observed_failure": {
+    "run_id": 38081667307,
+    "head_sha": "a8f93be52cf08ed4f0cac1c9689561ef5b9d961e",
+    "job_id": 114299802142,
+    "step": "Prepare exact public assets for the existing ASR model",
+    "error": "Get-Command ffmpeg.exe not found on Windows runner; no model download or Core ASR performed",
+    "artifact_upload": "FAIL no receipt files; required speech probe SKIPPED",
+    "log_sha256": "8026e4409ea4ffed8efa7ff5c0fd7702c2215c8a4d1e22a085e978d895a1634d"
+  },
+  "tool": {
+    "version": "8.1.2",
+    "source": "https://github.com/GyanD/codexffmpeg/releases/download/8.1.2/ffmpeg-8.1.2-essentials_build.zip",
+    "release_api": "https://api.github.com/repos/GyanD/codexffmpeg/releases/tags/8.1.2",
+    "bytes": 109728040,
+    "sha256": "db580001caa24ac104c8cb856cd113a87b0a443f7bdf47d8c12b1d740584a2ec",
+    "native_api_bytes_digest_match": true,
+    "license": "GPL-3.0-or-later; retained publisher LICENSE; not LGPL binary qualification",
+    "scope": "Explicit project-local CI-only preparation. No global install/PATH/product missing-tool fallback changes. ZIP/binaries never uploaded or included in release-candidate/Green.",
+    "actual_download_execution": "NOT_EXECUTED"
+  },
+  "changes": [
+    "Fresh dedicated root guarded by existing path/link boundary; unknown root preserved, archive byte/SHA/expansion/member guards; required version and encoders.",
+    "Independent prerequisite failure JSON established before preparation; success is tool-only, never ASR success.",
+    "Required actual speech step and if-no-files-found:error retained; only JSON receipts uploaded.",
+    "TXT explicitly added to common light Core probe: full Chinese/newline/astral text and immutable UTF8 original span; actual local parser proven, candidate Core reparse/restart pending."
+  ],
+  "checks": [
+    {
+      "scope": "52 tool/asset/light checks, no skip",
+      "status": "PASS",
+      "receipt": ".project-local/runs/be268a2d33/7b9840c172a6/artifacts/execution.json",
+      "sha256": "d5922122e106287eaa61fef5ff0c3145647dc5f4703dd504c852728b279706b3",
+      "source_patch_sha256": "897a4292d62bc4fe5f01217bef8351cf3cbb8357ca99cc4c39e449084a34807d"
+    },
+    {
+      "scope": "critical Ruff",
+      "status": "PASS",
+      "receipt": ".project-local/runs/be268a2d33/2c9ba4cc3f37/artifacts/execution.json",
+      "sha256": "41c78c7a0f23a316d240fe61bc2aa47e84e856b3d6ce05f93ced951839585f52",
+      "source_patch_sha256": "897a4292d62bc4fe5f01217bef8351cf3cbb8357ca99cc4c39e449084a34807d"
+    },
+    {
+      "scope": "architecture guard",
+      "status": "PASS",
+      "receipt": ".project-local/runs/be268a2d33/d48ad9f934ca/artifacts/execution.json",
+      "sha256": "4f6f3b4f34e7d684f53bb13e8d2400e7f15dc8db5ede7222b510c5303d258c09",
+      "source_patch_sha256": "897a4292d62bc4fe5f01217bef8351cf3cbb8357ca99cc4c39e449084a34807d"
+    }
+  ],
+  "syntax_checks": {
+    "YAML": "PASS",
+    "exact_preparation_PowerShell_AST": "PASS",
+    "artifact_paths": "PASS_JSON_ONLY"
+  },
+  "source_files": [
+    {
+      "path": ".github/workflows/ci.yml",
+      "sha256": "556688595b57824d5812c34f2ccadf7c9a65b9478ea85b24b6e27f2589b97f01"
+    },
+    {
+      "path": "scripts/ci/prepare_windows_ffmpeg.py",
+      "sha256": "da56b2d1421d69a2fa650de0f8f8c0125c2d10e87d84c95f6c045457e6df8b9d"
+    },
+    {
+      "path": "scripts/ci/windows_ffmpeg.lock.json",
+      "sha256": "7cceabefa72e0475f12cd5bb3706ed3a295c3701cde571cb0d88dea57d789de5"
+    },
+    {
+      "path": "tests/test_prepare_windows_ffmpeg.py",
+      "sha256": "7335c078d227048ab2e3041c21f3837625b4c2cae4bf304c86da309823cfa411"
+    },
+    {
+      "path": "scripts/probes/aaos01_common_light_ocr_runtime_loop.py",
+      "sha256": "93bbfebef845ebabd89c09d77245c84c05fcf375509765305188b14c843feb0d"
+    },
+    {
+      "path": "tests/test_common_light_ocr_runtime_probe.py",
+      "sha256": "198423005ab3bba3ae7a7a5cf42af1115716bdaf68f231516eb81f4df260898c"
+    }
+  ],
+  "qualification": "NOT_QUALIFIED: no real ffmpeg download/execute, Core ASR or repaired installed journey in this local helper run",
+  "current_a8_ci": "Other useful installer work remains live; successor not dispatched/cancelled",
+  "whole_goal": "PARTIAL",
+  "text_model_service": "Awaiting Owner existing service/path; not modified or replaced"
+}

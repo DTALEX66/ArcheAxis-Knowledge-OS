@@ -27,14 +27,14 @@ def snapshot(result):
     contents={'text':result['text'],'document_structure':json.dumps(result['structure'],ensure_ascii=False),'loss_report':json.dumps(result['loss_receipt'],ensure_ascii=False)}
     return {'job':{'status':200,'body':{'state':'succeeded','attempt':1}},'quality':{'status':200,'body':{}},**{key:{'status':200,'body':{'content':body,'metadata':{'sha256':hashlib.sha256(body.encode()).hexdigest(),'byte_length':len(body.encode())}}} for key,body in contents.items()}}
 
-@pytest.mark.parametrize('extension',['md','csv','json','html','srt','vtt','canvas'])
+@pytest.mark.parametrize('extension',['txt','md','csv','json','html','srt','vtt','canvas'])
 def test_actual_chinese_light_parsers_and_locator_selection(probe,materials,extension):
     transport=probe.load_worker('light_actual_transport_'+extension,ROOT/'services/python-workers/transport/text_ndjson.py')
     route=('web','worker_html.py') if extension=='html' else ('document','worker_subtitles.py') if extension in ('srt','vtt') else ('document','worker_canvas.py') if extension=='canvas' else ('document','worker_text.py')
     worker=probe.load_worker('light_actual_'+extension,ROOT/'services/python-workers'/route[0]/route[1])
     path=materials/f'complex.{extension}'
-    if extension in ('md','csv','json'):
-        result=worker.extract(str(path),{'md':'text/markdown','csv':'text/csv','json':'application/json'}[extension])
+    if extension in ('txt','md','csv','json'):
+        result=worker.extract(str(path),{'txt':'text/plain','md':'text/markdown','csv':'text/csv','json':'application/json'}[extension])
     else:
         result=transport._as_route_contract(worker.extract(str(path)),probe.KINDS[extension])
     snap=snapshot(result);text,loss=probe.validate_outputs(extension,snap)
@@ -42,7 +42,11 @@ def test_actual_chinese_light_parsers_and_locator_selection(probe,materials,exte
     source={'source_id':'authored','sha256':hashlib.sha256(path.read_bytes()).hexdigest()}
     body=probe.location_body(extension,source,'actual-helper-job',snap,path.read_bytes())
     locator=json.loads(body['position']);assert body['checksum']!='0'*64
-    assert locator['type']==('text' if extension=='md' else 'format_location' if extension in ('csv','json') else 'worker_structure')
+    assert locator['type']==('text' if extension in ('txt','md') else 'format_location' if extension in ('csv','json') else 'worker_structure')
+    if extension=='txt':
+        raw=path.read_bytes();assert text==raw.decode('utf-8')
+        assert raw[locator['start']:locator['end']]=='末尾证据'.encode('utf-8')
+        assert body['checksum']==hashlib.sha256('末尾证据'.encode('utf-8')).hexdigest()
     bad=copy.deepcopy(snap);bad['text']['body']['metadata']['sha256']='0'*64
     with pytest.raises(AssertionError): probe.validate_outputs(extension,bad)
     bad=copy.deepcopy(snap);bad['job']['body']['state']='failed'
