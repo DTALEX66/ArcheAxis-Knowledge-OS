@@ -1,0 +1,39 @@
+{
+  "schema": "archeaxis.chinese-ocr-ci-wiring/v1",
+  "date": "2026-10-11",
+  "base_commit": "fc940dc89c431d275eec1e9b748dbfab02b0288f",
+  "status": "TESTED_LOCAL_NOT_RUNTIME_QUALIFIED",
+  "scope": "Selected authored Chinese PNG/JPEG/scanned PDF through existing Core worker and canonical OCR locators",
+  "implementation": [
+    "Optional require-chinese preparation preserves default English preparation; downloads both language assets and rejects byte/hash/list-langs mismatch",
+    "desktop-fast keeps the English/light probe and adds a separate required Chinese Core probe with explicit prepared engine/data paths",
+    "Installed lifecycle default preparation remains English; no installation or global configuration change"
+  ],
+  "pin": {
+    "official_file": "https://github.com/tesseract-ocr/tessdata_fast/blob/4.1.0/chi_sim.traineddata",
+    "url": "https://raw.githubusercontent.com/tesseract-ocr/tessdata_fast/4.1.0/chi_sim.traineddata",
+    "version": "4.1.0",
+    "bytes": 2469156,
+    "sha256": "a5fcb6f0db1e1d6d8522f39db4e848f05984669172e584e8d76b6b3141e1f730",
+    "hash_authority": "Measured declared local asset. Official versioned file existence verified; downloaded upstream byte equality still UNVERIFIED. CI must independently match."
+  },
+  "local_checks": {
+    "status": "PASS",
+    "tests": 27,
+    "required_skips": 0,
+    "receipt": ".project-local/runs/be268a2d33/42869c413759/artifacts/execution.json",
+    "source_patch_sha256": "4ef470943d5fe3721601412bb32b3e0333a8639d6c00cde1446a3260d46464bc",
+    "source_consistent": true,
+    "coverage": "Seven preparation/CI helpers plus eight Chinese OCR/parser tests and twelve light-format/parser helpers; actual existing chi_sim recognition is local parser evidence, not Core/native evidence",
+    "architecture_and_ci_critical_ruff": "PASS"
+  },
+  "retained_attempts": [
+    "Shell upstream download failed DNS 11004 in the isolated workspace; no upstream bytes claim",
+    "Original CRLF patch failed git apply --check before mutation; reviewed root/preimage and patch normalized only CRLF to LF, then applied",
+    "Premature helper invocation collected zero tests because new file was not yet imported: be268a2d33/0df697f5351c, NOT_EXECUTED",
+    "Final pytest returned exit 0 with all 27 PASS; interpreter shutdown emitted a pyreadline3 Console destructor warning, retained in log"
+  ],
+  "runtime": "NOT_EXECUTED",
+  "delivery": "PENDING_NEXT_CANDIDATE; preserve live fc940dc complete CI run 38077876660",
+  "whole_goal": "NOT_QUALIFIED"
+}

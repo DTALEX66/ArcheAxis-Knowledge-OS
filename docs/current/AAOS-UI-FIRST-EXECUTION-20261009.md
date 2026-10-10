@@ -323,3 +323,7 @@ Owner 当前目标为完整核心框架、常见常用格式与最短闭环，�
 新修复保留严格身份和正文保护：候选独立已保存正文读回后才解除旧编辑 guard；场景 CAS 不冒充内容草稿；编辑器不再产生 JSON 传输丢失的 own `attrs: undefined`。后者回归先复现与安装截图相同的工作状态回执不一致，修复后相关 22 项通过。轻量格式探针在全部导入完成后冻结同源最终 anchors，先拒绝任何历史行消失，再检查重启后集合严格相等；PNG/PDF 去重导致合法增加的 anchors 不再与过早快照比较，原失败不改写为 PASS。
 
 最终前端 116 文件/1061 项、TypeScript 与 production build PASS，源码指纹一致；20 项中文 OCR/轻量 parser/helper 无 skip，通过现有引擎对自编 PNG/JPEG/扫描 PDF 实际中文识别。新增中文 Core wrapper 尚未实际执行，ASR 仍 NOT_EXECUTED。architecture 与 CI 选定 Ruff critical selector PASS；额外默认全规则 Ruff 93 项 style FAIL 保留，不宣称全仓风格通过。详见[本次运行修复回执](receipts/AAOS-CLOSED-LOOP-RUNTIME-REPAIR-20261011.json)。当前修复待上传与精确 SHA 完整 CI，正式新 UI 九步、能力拒绝恢复、安装态及 Owner 验收仍未收口。主题及冻结范围不变，整体目标继续 NOT_QUALIFIED。
+
+运行修复已发布为 `fc940dc89c431d275eec1e9b748dbfab02b0288f`，GitHub 原生 API 独立核对 Audit SHA 一致；完整 CI [38077876660](https://github.com/DTALEX66/ArcheAxis-Knowledge-OS/actions/runs/38077876660) 已启动，检查时 IN_PROGRESS，不记完整通过。主树的后续中文 CI 接线不属于该运行源码。
+
+中文 OCR 准备脚本增加可选 `--require-chinese`，保留 eng 默认；desktop-fast 同时准备 eng/chi_sim，在英文/light 探针后增加必需中文 Core 探针。官方版本文件存在已核实，本地资源 bytes/SHA pin 不伪称上游发布摘要；CI 下载须独立严格匹配。主树 27 项 parser/准备/helper PASS 无 skip，architecture 与 CI critical Ruff PASS；未执行云端下载或新的中文 Core runtime，详见[中文 CI 接线回执](receipts/AAOS-CHINESE-OCR-CI-WIRING-20261011.json)。此前 CRLF patch 检查失败、未导入 helper 导致零测试及 interpreter shutdown warning 均保留；后续候选等待当前有用运行终止，未取消它。

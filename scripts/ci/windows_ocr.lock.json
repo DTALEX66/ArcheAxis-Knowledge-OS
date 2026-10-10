@@ -288,5 +288,10 @@
   ],
   "binary_sha256": "ccd044d6cf16eaaad151260e1fcc5e3e1504cd1b8644e940b4f7ae3e315dd0d3",
   "hash_authority": "Pinned installed Scoop manifest and byte hashes; download must independently match, not an upstream published checksum claim",
-  "engine_version": "5.5.0.20241111"
+  "engine_version": "5.5.0.20241111",
+  "chi_sim_url": "https://raw.githubusercontent.com/tesseract-ocr/tessdata_fast/4.1.0/chi_sim.traineddata",
+  "chi_sim_sha256": "a5fcb6f0db1e1d6d8522f39db4e848f05984669172e584e8d76b6b3141e1f730",
+  "chi_sim_bytes": 2469156,
+  "chi_sim_version": "4.1.0",
+  "chi_sim_hash_authority": "Declared local resource SHA/bytes pin; official 4.1.0 file existence verified, CI download must independently match. Upstream byte equality not yet measured locally."
 }
