@@ -73,3 +73,17 @@ regexes = [
   '''^cd3036cd93ebd26d0be1d882936630a4ea5df3f2a5248f42feeb06142c7ee564$''',
   '''^d3fe0a2d071b8770e5f8a6d71d8dccc3e2a73819e7f676621795095bad2dfb67$''',
 ]
+
+# CI 38085061981 finding independently equals committed public test-source bytes.
+# Match one exact digest in one receipt; keep every other finding enforcing.
+[[allowlists]]
+description = "exact verified context-grant test source digest in integration receipt"
+condition = "AND"
+targetRules = ["generic-api-key"]
+regexTarget = "secret"
+paths = [
+  '''^docs/current/receipts/AAOS-DOCUMENT-GRANT-RECOVERY-INTEGRATION-20261011\.json$''',
+]
+regexes = [
+  '''^9eeaa0bba3b60043179b9873b72a20bc63c6a28029fdf1397e49b28f03588d22$''',
+]

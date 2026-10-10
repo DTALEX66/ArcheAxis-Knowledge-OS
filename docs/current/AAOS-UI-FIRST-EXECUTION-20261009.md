@@ -407,3 +407,10 @@ YAML/唯一ID/前置顺序及324取消/成功/失败/跳过条件组合通过，
 根56定向、120文件/1105全前端、20原生helper、TypeScript/production build、architecture/critical Ruff/diff检查PASS，源码指纹一致。前端为SIMULATED，新增Rust与实际安装恢复未执行；既有本地Rust权限拒绝未绕过。合并前未保存原稿永久归档仍未实现且UI明示，不能将工作草稿当不可变历史。详见[恢复集成回执](receipts/AAOS-DOCUMENT-GRANT-RECOVERY-INTEGRATION-20261011.json)。当前3ff安装验证live不取消；Python/desktop-fast旧pin失败修复待后继候选，实际文本模型服务及全九步仍有缺口。整体PARTIAL，主题与冻结范围不变。
 
 恢复集成已正常发布 Audit，远端原生API SHA核对为a2aca3b7314ffe644ab62f5ab00576e8d6866e70。暂存检查另发现新测试EOF多空行，后继仅移除空行并保留原源码测试指纹，未伪称已测试后继全树。3ff CI38083440673 terminal FAIL，安装兼容child PASS，新grouped import/read/anchor推进，实际完整引文已选后候选创建未确认；底层创建/读回错误UNVERIFIED，隔离继续核实。下载artifact11682170724及截图保全；不取消旧运行，终止后才启动新完整候选[38085061981](https://github.com/DTALEX66/ArcheAxis-Knowledge-OS/actions/runs/38085061981)，exact SHA为a2aca3b7，尚无PASS。详见[候选CI进展](receipts/AAOS-RECOVERY-CANDIDATE-CI-PROGRESS-20261011.json)。
+
+
+## 2026-10-11 恢复候选前置失败修复（PARTIAL）
+
+a2aca3b7完整CI38085061981：rust-vnext因新增两个文件格式失败，测试required skip；下载exact artifact11682675317，候选Git preimage核对后应用，审阅及非逗号token/字符串完全相等，仅换行与可选尾逗号。未绕过既有本地Rust权限拒绝，修复源码仍待实际Rust执行。OS test job在secret-scan失败；脱敏location artifact11681609791唯一命中恢复集成回执第21行的public test源码SHA，独立核对候选Git blob及修改前工作文件完全相等，确认误报。仅exact path AND exact digest AND generic-api-key的allowlist，TOML及正反检查PASS，实际scanner复验未执行；不关闭全规则或排除整个文件/commit。详见[前置修复回执](receipts/AAOS-RECOVERY-CI-PREREQUISITE-REPAIR-20261011.json)。
+
+安装3ff候选创建另确认源码合同缺陷：JobContent发送source_note，Core正式KNOWLEDGE_TYPES不含此值；原次400响应未观察，仍不补造HTTP证据。隔离修复改NOTE并让挂载夹具按canonical enum拒绝非法类型，当前尚未合入。a2实际桌面/格式/安装任务仍live，保留有用结果不取消，整体PARTIAL。

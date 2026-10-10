@@ -20,18 +20,31 @@ pub(super) fn retest_request(body: &RetestBody) -> Value {
         "context_grant":body.context_grant,"asset_context_grant":body.asset_context_grant,
         "client_request_id":null,"retest_of":body.retest_of}})
 }
-pub(super) fn inspect(conn: &Connection, grant: Option<&Consumption>, request: &Value) -> rusqlite::Result<Option<Value>> {
-    let Some(grant) = grant else { return Ok(None); };
-    if grant.document_id.is_empty() || grant.document_id.len() > 256 || grant.version < 1
+pub(super) fn inspect(
+    conn: &Connection,
+    grant: Option<&Consumption>,
+    request: &Value,
+) -> rusqlite::Result<Option<Value>> {
+    let Some(grant) = grant else {
+        return Ok(None);
+    };
+    if grant.document_id.is_empty()
+        || grant.document_id.len() > 256
+        || grant.version < 1
         || grant.content_sha256.len() != 64
-        || !grant.content_sha256.bytes().all(|b| b.is_ascii_digit() || (b'a'..=b'f').contains(&b)) {
+        || !grant
+            .content_sha256
+            .bytes()
+            .all(|b| b.is_ascii_digit() || (b'a'..=b'f').contains(&b))
+    {
         return Ok(None);
     }
     if !archeaxis_store_sqlite::authorization_fence::grant_is_fenced(conn, &grant.document_id)? {
         return Ok(None);
     }
     // serde_json's default sorted map serializes the normalized, finite request deterministically.
-    Ok(Some(json!({"schema":"archeaxis.context-admission-refusal/v1",
+    Ok(Some(
+        json!({"schema":"archeaxis.context-admission-refusal/v1",
         "reason_code":"RESTORED_GRANT_FENCED","execution_state":"NOT_EXECUTED",
         "execution_scope":"CURRENT_INVOCATION","prior_request_execution":"UNVERIFIED",
         "answer_published":false,"operation":request["operation"],
@@ -39,7 +52,8 @@ pub(super) fn inspect(conn: &Connection, grant: Option<&Consumption>, request: &
         "client_request_id":request["request"]["client_request_id"],
         "retest_of":request["request"]["retest_of"],
         "request_sha256":withheld::digest(&request.to_string()),
-        "grant":{"document_id":grant.document_id,"version":grant.version,"content_sha256":grant.content_sha256}})))
+        "grant":{"document_id":grant.document_id,"version":grant.version,"content_sha256":grant.content_sha256}}),
+    ))
 }
 
 #[cfg(test)]
@@ -53,17 +67,31 @@ mod tests {
             "context_grant":{"document_id":"g","version":1,"content_sha256":"a".repeat(64),"purpose":"purpose"}
         })).unwrap();
         let normalized = answer_request(&body);
-        assert_eq!(normalized["request"]["timeout_s"],120);
-        assert_eq!(normalized["request"]["max_tokens"],2048);
-        assert_eq!(normalized["request"]["asset_context_grant"],Value::Null);
+        assert_eq!(normalized["request"]["timeout_s"], 120);
+        assert_eq!(normalized["request"]["max_tokens"], 2048);
+        assert_eq!(normalized["request"]["asset_context_grant"], Value::Null);
         let digest = withheld::digest(&normalized.to_string());
-        for pointer in ["/request/question","/request/context_grant/purpose","/request/asset_context_grant","/operation"] {
+        for pointer in [
+            "/request/question",
+            "/request/context_grant/purpose",
+            "/request/asset_context_grant",
+            "/operation",
+        ] {
             let mut changed = normalized.clone();
             *changed.pointer_mut(pointer).unwrap() = json!("different");
-            assert_ne!(withheld::digest(&changed.to_string()),digest);
+            assert_ne!(withheld::digest(&changed.to_string()), digest);
         }
-        let retest: RetestBody = serde_json::from_value(json!({"knowledge_id":"k","question":"question","retest_of":"failed"})).unwrap();
-        assert_eq!(retest_request(&retest)["request"]["client_request_id"],Value::Null);
-        assert_ne!(withheld::digest(&retest_request(&retest).to_string()),digest);
+        let retest: RetestBody = serde_json::from_value(
+            json!({"knowledge_id":"k","question":"question","retest_of":"failed"}),
+        )
+        .unwrap();
+        assert_eq!(
+            retest_request(&retest)["request"]["client_request_id"],
+            Value::Null
+        );
+        assert_ne!(
+            withheld::digest(&retest_request(&retest).to_string()),
+            digest
+        );
     }
 }

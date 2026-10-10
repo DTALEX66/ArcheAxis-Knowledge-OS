@@ -1,0 +1,40 @@
+{
+  "schema": "archeaxis.candidate-prerequisite-repair/v1",
+  "date": "2026-10-11",
+  "status": "IMPLEMENTED_LOCAL",
+  "whole_scope": "PARTIAL",
+  "candidate_sha": "a2aca3b7314ffe644ab62f5ab00576e8d6866e70",
+  "ci_run_id": 38085061981,
+  "rustfmt_artifact_id": 11682675317,
+  "patch_sha256": "c6e9fc328a7dc4e2295dddf45b57a3bcd57a624df100b45c8e761b0da048537a",
+  "files": [
+    {
+      "path": "crates/archeaxis-api/src/runtime/context_refusal.rs",
+      "candidate_lf_sha256": "32cdf86b2e1ad3dcf6c1a5224cac9a60f4279eb8a8b2ae0ff392b22fa875c15e",
+      "repaired_sha256": "d0544502dda9326e975438452855d4bfd18a8e62ba0acf8da8c4cb880e9ebb77",
+      "review": "Whitespace and optional trailing commas only; all non-comma tokens including string contents unchanged"
+    },
+    {
+      "path": "crates/archeaxis-api/tests/context_grant_api.rs",
+      "candidate_lf_sha256": "9eeaa0bba3b60043179b9873b72a20bc63c6a28029fdf1397e49b28f03588d22",
+      "repaired_sha256": "10a67a8772b29da9ccf84da1f4e5a6b70026e24d8209bf91a31e13dd5b59e63f",
+      "review": "Whitespace and optional trailing commas only; all non-comma tokens including string contents unchanged"
+    }
+  ],
+  "rustfmt_source_binding": "Exact candidate Git bytes verified before apply; git apply check PASS; reviewed token equivalence after apply",
+  "actual_new_rust_tests": "REQUIRED_SKIP in candidate because fmt failed; repaired candidate execution pending",
+  "gitleaks": {
+    "artifact_id": 11681609791,
+    "rule": "generic-api-key",
+    "file": "docs/current/receipts/AAOS-DOCUMENT-GRANT-RECOVERY-INTEGRATION-20261011.json",
+    "line": 21,
+    "finding_classification": "FALSE_POSITIVE_VERIFIED_PUBLIC_SOURCE_SHA256",
+    "public_source_digest": "9eeaa0bba3b60043179b9873b72a20bc63c6a28029fdf1397e49b28f03588d22",
+    "independent_proof": "matches exact candidate Git blob and pre-repair working file SHA256",
+    "repair": "one exact path AND one exact digest AND only generic-api-key rule; no whole-file or commit exclusion",
+    "toml_and_positive_negative_controls": "PASS",
+    "actual_scan_rerun": "NOT_EXECUTED"
+  },
+  "current_ci": "IN_PROGRESS; keep useful desktop/runtime/installer results; no successor dispatch yet",
+  "permissions": "No local Rust/rustfmt permission bypass, global tools, secrets, merge, release, Green replacement or real user data write"
+}
