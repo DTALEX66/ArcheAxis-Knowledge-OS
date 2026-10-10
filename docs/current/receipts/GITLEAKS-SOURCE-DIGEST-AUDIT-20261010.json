@@ -1,0 +1,310 @@
+{
+  "schema": "archeaxis.receipt-source-digest-audit/v1",
+  "role": "HISTORICAL_SOURCE_HASH_AUDIT_NOT_RUNTIME_QUALIFICATION",
+  "findings": [
+    {
+      "File": "docs/current/receipts/AAOS-CANVAS-STAGE-20261010.json",
+      "StartLine": 19,
+      "EndLine": 19,
+      "RuleID": "generic-api-key",
+      "Fingerprint": "bc2ffe37866b494e39f97e0ec3cc2ba692550324:docs/current/receipts/AAOS-CANVAS-STAGE-20261010.json:generic-api-key:19",
+      "Commit": "bc2ffe37866b494e39f97e0ec3cc2ba692550324",
+      "source_path": "crates/archeaxis-api/tests/expression_state_api.rs",
+      "source_sha256": "d3fe0a2d071b8770e5f8a6d71d8dccc3e2a73819e7f676621795095bad2dfb67",
+      "registered_map": [
+        "/source_files"
+      ],
+      "committed_source_hash_match": true,
+      "committed_source_crlf_hash_match": false
+    },
+    {
+      "File": "docs/current/receipts/AAOS-AI-STAGE-20261010.json",
+      "StartLine": 20,
+      "EndLine": 20,
+      "RuleID": "generic-api-key",
+      "Fingerprint": "bc2ffe37866b494e39f97e0ec3cc2ba692550324:docs/current/receipts/AAOS-AI-STAGE-20261010.json:generic-api-key:20",
+      "Commit": "bc2ffe37866b494e39f97e0ec3cc2ba692550324",
+      "source_path": "crates/archeaxis-api/tests/ai_assets_api.rs",
+      "source_sha256": "4c35d8878a18a4da737eff80a82c7cad38a3840eb8f2ce5487526694c32311a4",
+      "registered_map": [
+        "/source_files"
+      ],
+      "committed_source_hash_match": true,
+      "committed_source_crlf_hash_match": false
+    },
+    {
+      "File": "docs/current/receipts/AAOS-AI-STAGE-20261010.json",
+      "StartLine": 21,
+      "EndLine": 21,
+      "RuleID": "generic-api-key",
+      "Fingerprint": "bc2ffe37866b494e39f97e0ec3cc2ba692550324:docs/current/receipts/AAOS-AI-STAGE-20261010.json:generic-api-key:21",
+      "Commit": "bc2ffe37866b494e39f97e0ec3cc2ba692550324",
+      "source_path": "crates/archeaxis-api/tests/launch_auth.rs",
+      "source_sha256": "82d161388b707b36b49ac87b12bdbc272901fe616a8889791cebcc2fd2adc751",
+      "registered_map": [
+        "/source_files"
+      ],
+      "committed_source_hash_match": true,
+      "committed_source_crlf_hash_match": false
+    },
+    {
+      "File": "docs/current/receipts/AAOS-AI-STAGE-20261010.json",
+      "StartLine": 22,
+      "EndLine": 22,
+      "RuleID": "generic-api-key",
+      "Fingerprint": "bc2ffe37866b494e39f97e0ec3cc2ba692550324:docs/current/receipts/AAOS-AI-STAGE-20261010.json:generic-api-key:22",
+      "Commit": "bc2ffe37866b494e39f97e0ec3cc2ba692550324",
+      "source_path": "crates/archeaxis-api/tests/machine_asset_context_api.rs",
+      "source_sha256": "b8adf28fe7567f830d5267ced9bffb756042d8df6e519bf84afb824a193a8e8b",
+      "registered_map": [
+        "/source_files"
+      ],
+      "committed_source_hash_match": true,
+      "committed_source_crlf_hash_match": false
+    },
+    {
+      "File": "docs/current/receipts/AAOS-AI-STAGE-20261010.json",
+      "StartLine": 23,
+      "EndLine": 23,
+      "RuleID": "generic-api-key",
+      "Fingerprint": "bc2ffe37866b494e39f97e0ec3cc2ba692550324:docs/current/receipts/AAOS-AI-STAGE-20261010.json:generic-api-key:23",
+      "Commit": "bc2ffe37866b494e39f97e0ec3cc2ba692550324",
+      "source_path": "crates/archeaxis-api/tests/machine_withheld_api.rs",
+      "source_sha256": "9e14d6c214222823c4ac4ddcd34d5dda943b89a14e78666252fbf276618c0826",
+      "registered_map": [
+        "/source_files"
+      ],
+      "committed_source_hash_match": true,
+      "committed_source_crlf_hash_match": false
+    },
+    {
+      "File": "docs/current/receipts/AAOS-AI-STAGE-20261010.json",
+      "StartLine": 96,
+      "EndLine": 96,
+      "RuleID": "generic-api-key",
+      "Fingerprint": "bc2ffe37866b494e39f97e0ec3cc2ba692550324:docs/current/receipts/AAOS-AI-STAGE-20261010.json:generic-api-key:96",
+      "Commit": "bc2ffe37866b494e39f97e0ec3cc2ba692550324",
+      "source_path": "frontend/src/design-system/tokens.css",
+      "source_sha256": "4cc8047b67a9d174558e3700e8b81df9c04230cdd209049b367ba3619d673191",
+      "registered_map": [
+        "/source_files"
+      ],
+      "committed_source_hash_match": true,
+      "committed_source_crlf_hash_match": false
+    },
+    {
+      "File": "docs/current/receipts/AAOS-RESEARCH-STAGE-20261010.json",
+      "StartLine": 13,
+      "EndLine": 13,
+      "RuleID": "generic-api-key",
+      "Fingerprint": "bc2ffe37866b494e39f97e0ec3cc2ba692550324:docs/current/receipts/AAOS-RESEARCH-STAGE-20261010.json:generic-api-key:13",
+      "Commit": "bc2ffe37866b494e39f97e0ec3cc2ba692550324",
+      "source_path": "crates/archeaxis-api/tests/collection_state_api.rs",
+      "source_sha256": "cd3036cd93ebd26d0be1d882936630a4ea5df3f2a5248f42feeb06142c7ee564",
+      "registered_map": [
+        "/source_files"
+      ],
+      "committed_source_hash_match": true,
+      "committed_source_crlf_hash_match": false
+    },
+    {
+      "File": "docs/current/receipts/AAOS-RESEARCH-STAGE-20261010.json",
+      "StartLine": 14,
+      "EndLine": 14,
+      "RuleID": "generic-api-key",
+      "Fingerprint": "bc2ffe37866b494e39f97e0ec3cc2ba692550324:docs/current/receipts/AAOS-RESEARCH-STAGE-20261010.json:generic-api-key:14",
+      "Commit": "bc2ffe37866b494e39f97e0ec3cc2ba692550324",
+      "source_path": "crates/archeaxis-api/tests/research_state_api.rs",
+      "source_sha256": "5f8393df1b41965895501782d904efac05b7f6793d739f29351096b9c514859d",
+      "registered_map": [
+        "/source_files"
+      ],
+      "committed_source_hash_match": true,
+      "committed_source_crlf_hash_match": false
+    },
+    {
+      "File": "docs/current/receipts/AAOS-RESEARCH-STAGE-20261010.json",
+      "StartLine": 41,
+      "EndLine": 41,
+      "RuleID": "generic-api-key",
+      "Fingerprint": "bc2ffe37866b494e39f97e0ec3cc2ba692550324:docs/current/receipts/AAOS-RESEARCH-STAGE-20261010.json:generic-api-key:41",
+      "Commit": "bc2ffe37866b494e39f97e0ec3cc2ba692550324",
+      "source_path": "frontend/src/design-system/tokens.css",
+      "source_sha256": "4cc8047b67a9d174558e3700e8b81df9c04230cdd209049b367ba3619d673191",
+      "registered_map": [
+        "/source_files"
+      ],
+      "committed_source_hash_match": true,
+      "committed_source_crlf_hash_match": false
+    },
+    {
+      "File": "docs/current/receipts/AAOS-TEACHING-STAGE-20261010.json",
+      "StartLine": 227,
+      "EndLine": 227,
+      "RuleID": "generic-api-key",
+      "Fingerprint": "bc2ffe37866b494e39f97e0ec3cc2ba692550324:docs/current/receipts/AAOS-TEACHING-STAGE-20261010.json:generic-api-key:227",
+      "Commit": "bc2ffe37866b494e39f97e0ec3cc2ba692550324",
+      "source_path": "frontend/src/design-system/tokens.css",
+      "source_sha256": "4cc8047b67a9d174558e3700e8b81df9c04230cdd209049b367ba3619d673191",
+      "registered_map": [
+        "/evidence/visual/source_sha256"
+      ],
+      "committed_source_hash_match": true,
+      "committed_source_crlf_hash_match": false
+    },
+    {
+      "File": "docs/current/receipts/AAOS-CANVAS-STAGE-20261010.json",
+      "StartLine": 19,
+      "EndLine": 19,
+      "RuleID": "generic-api-key",
+      "Fingerprint": "f0454f8da9992f9c7e9719b25af8cd3f9544a799:docs/current/receipts/AAOS-CANVAS-STAGE-20261010.json:generic-api-key:19",
+      "Commit": "f0454f8da9992f9c7e9719b25af8cd3f9544a799",
+      "source_path": "crates/archeaxis-api/tests/expression_state_api.rs",
+      "source_sha256": "d3fe0a2d071b8770e5f8a6d71d8dccc3e2a73819e7f676621795095bad2dfb67",
+      "registered_map": [
+        "/source_files"
+      ],
+      "committed_source_hash_match": true,
+      "committed_source_crlf_hash_match": false
+    },
+    {
+      "File": "docs/current/receipts/AAOS-TEACHING-STAGE-20261010.json",
+      "StartLine": 227,
+      "EndLine": 227,
+      "RuleID": "generic-api-key",
+      "Fingerprint": "f0454f8da9992f9c7e9719b25af8cd3f9544a799:docs/current/receipts/AAOS-TEACHING-STAGE-20261010.json:generic-api-key:227",
+      "Commit": "f0454f8da9992f9c7e9719b25af8cd3f9544a799",
+      "source_path": "frontend/src/design-system/tokens.css",
+      "source_sha256": "4cc8047b67a9d174558e3700e8b81df9c04230cdd209049b367ba3619d673191",
+      "registered_map": [
+        "/evidence/visual/source_sha256"
+      ],
+      "committed_source_hash_match": true,
+      "committed_source_crlf_hash_match": false
+    },
+    {
+      "File": "docs/current/receipts/AAOS-RESEARCH-STAGE-20261010.json",
+      "StartLine": 13,
+      "EndLine": 13,
+      "RuleID": "generic-api-key",
+      "Fingerprint": "f0454f8da9992f9c7e9719b25af8cd3f9544a799:docs/current/receipts/AAOS-RESEARCH-STAGE-20261010.json:generic-api-key:13",
+      "Commit": "f0454f8da9992f9c7e9719b25af8cd3f9544a799",
+      "source_path": "crates/archeaxis-api/tests/collection_state_api.rs",
+      "source_sha256": "cd3036cd93ebd26d0be1d882936630a4ea5df3f2a5248f42feeb06142c7ee564",
+      "registered_map": [
+        "/source_files"
+      ],
+      "committed_source_hash_match": true,
+      "committed_source_crlf_hash_match": false
+    },
+    {
+      "File": "docs/current/receipts/AAOS-RESEARCH-STAGE-20261010.json",
+      "StartLine": 14,
+      "EndLine": 14,
+      "RuleID": "generic-api-key",
+      "Fingerprint": "f0454f8da9992f9c7e9719b25af8cd3f9544a799:docs/current/receipts/AAOS-RESEARCH-STAGE-20261010.json:generic-api-key:14",
+      "Commit": "f0454f8da9992f9c7e9719b25af8cd3f9544a799",
+      "source_path": "crates/archeaxis-api/tests/research_state_api.rs",
+      "source_sha256": "5f8393df1b41965895501782d904efac05b7f6793d739f29351096b9c514859d",
+      "registered_map": [
+        "/source_files"
+      ],
+      "committed_source_hash_match": true,
+      "committed_source_crlf_hash_match": false
+    },
+    {
+      "File": "docs/current/receipts/AAOS-RESEARCH-STAGE-20261010.json",
+      "StartLine": 41,
+      "EndLine": 41,
+      "RuleID": "generic-api-key",
+      "Fingerprint": "f0454f8da9992f9c7e9719b25af8cd3f9544a799:docs/current/receipts/AAOS-RESEARCH-STAGE-20261010.json:generic-api-key:41",
+      "Commit": "f0454f8da9992f9c7e9719b25af8cd3f9544a799",
+      "source_path": "frontend/src/design-system/tokens.css",
+      "source_sha256": "4cc8047b67a9d174558e3700e8b81df9c04230cdd209049b367ba3619d673191",
+      "registered_map": [
+        "/source_files"
+      ],
+      "committed_source_hash_match": true,
+      "committed_source_crlf_hash_match": false
+    },
+    {
+      "File": "docs/current/receipts/AAOS-AI-STAGE-20261010.json",
+      "StartLine": 20,
+      "EndLine": 20,
+      "RuleID": "generic-api-key",
+      "Fingerprint": "f0454f8da9992f9c7e9719b25af8cd3f9544a799:docs/current/receipts/AAOS-AI-STAGE-20261010.json:generic-api-key:20",
+      "Commit": "f0454f8da9992f9c7e9719b25af8cd3f9544a799",
+      "source_path": "crates/archeaxis-api/tests/ai_assets_api.rs",
+      "source_sha256": "4c35d8878a18a4da737eff80a82c7cad38a3840eb8f2ce5487526694c32311a4",
+      "registered_map": [
+        "/source_files"
+      ],
+      "committed_source_hash_match": true,
+      "committed_source_crlf_hash_match": false
+    },
+    {
+      "File": "docs/current/receipts/AAOS-AI-STAGE-20261010.json",
+      "StartLine": 21,
+      "EndLine": 21,
+      "RuleID": "generic-api-key",
+      "Fingerprint": "f0454f8da9992f9c7e9719b25af8cd3f9544a799:docs/current/receipts/AAOS-AI-STAGE-20261010.json:generic-api-key:21",
+      "Commit": "f0454f8da9992f9c7e9719b25af8cd3f9544a799",
+      "source_path": "crates/archeaxis-api/tests/launch_auth.rs",
+      "source_sha256": "82d161388b707b36b49ac87b12bdbc272901fe616a8889791cebcc2fd2adc751",
+      "registered_map": [
+        "/source_files"
+      ],
+      "committed_source_hash_match": true,
+      "committed_source_crlf_hash_match": false
+    },
+    {
+      "File": "docs/current/receipts/AAOS-AI-STAGE-20261010.json",
+      "StartLine": 22,
+      "EndLine": 22,
+      "RuleID": "generic-api-key",
+      "Fingerprint": "f0454f8da9992f9c7e9719b25af8cd3f9544a799:docs/current/receipts/AAOS-AI-STAGE-20261010.json:generic-api-key:22",
+      "Commit": "f0454f8da9992f9c7e9719b25af8cd3f9544a799",
+      "source_path": "crates/archeaxis-api/tests/machine_asset_context_api.rs",
+      "source_sha256": "b8adf28fe7567f830d5267ced9bffb756042d8df6e519bf84afb824a193a8e8b",
+      "registered_map": [
+        "/source_files"
+      ],
+      "committed_source_hash_match": true,
+      "committed_source_crlf_hash_match": false
+    },
+    {
+      "File": "docs/current/receipts/AAOS-AI-STAGE-20261010.json",
+      "StartLine": 23,
+      "EndLine": 23,
+      "RuleID": "generic-api-key",
+      "Fingerprint": "f0454f8da9992f9c7e9719b25af8cd3f9544a799:docs/current/receipts/AAOS-AI-STAGE-20261010.json:generic-api-key:23",
+      "Commit": "f0454f8da9992f9c7e9719b25af8cd3f9544a799",
+      "source_path": "crates/archeaxis-api/tests/machine_withheld_api.rs",
+      "source_sha256": "9e14d6c214222823c4ac4ddcd34d5dda943b89a14e78666252fbf276618c0826",
+      "registered_map": [
+        "/source_files"
+      ],
+      "committed_source_hash_match": true,
+      "committed_source_crlf_hash_match": false
+    },
+    {
+      "File": "docs/current/receipts/AAOS-AI-STAGE-20261010.json",
+      "StartLine": 96,
+      "EndLine": 96,
+      "RuleID": "generic-api-key",
+      "Fingerprint": "f0454f8da9992f9c7e9719b25af8cd3f9544a799:docs/current/receipts/AAOS-AI-STAGE-20261010.json:generic-api-key:96",
+      "Commit": "f0454f8da9992f9c7e9719b25af8cd3f9544a799",
+      "source_path": "frontend/src/design-system/tokens.css",
+      "source_sha256": "4cc8047b67a9d174558e3700e8b81df9c04230cdd209049b367ba3619d673191",
+      "registered_map": [
+        "/source_files"
+      ],
+      "committed_source_hash_match": true,
+      "committed_source_crlf_hash_match": false
+    }
+  ],
+  "status": "20_OF_20_COMMITTED_SOURCE_BYTE_HASH_MATCH",
+  "secrets_or_match_text_included": false,
+  "scanner_configuration_reference": "https://github.com/gitleaks/gitleaks/blob/v8.30.1/README.md",
+  "exception_policy": "AND exact receipt path + exact previously verified source digest; generic-api-key only; no commit-wide or file-wide waiver"
+}

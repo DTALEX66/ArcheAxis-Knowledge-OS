@@ -218,7 +218,12 @@ fn schema_ten_nonempty_documents_migrate_without_losing_versions_blocks_or_forei
     conn.execute("INSERT INTO documents(document_id,title,current_version) VALUES('doc_original','no fabricated source',0)",[]).unwrap();
     assert!(conn.execute("INSERT INTO documents(document_id,source_id,title,current_version) VALUES('half','src_migration','invalid',0)",[]).is_err());
     for table in ["teaching_records", "teaching_withdrawals"] {
-        assert_eq!(conn.query_row(&format!("SELECT count(*) FROM {table}"), [], |r| r.get::<_, i64>(0)).unwrap(), 0);
+        assert_eq!(
+            conn.query_row(&format!("SELECT count(*) FROM {table}"), [], |r| r
+                .get::<_, i64>(0))
+                .unwrap(),
+            0
+        );
     }
     assert_eq!(conn.query_row(
         "SELECT count(*) FROM sqlite_master WHERE type='trigger' AND name IN ('teaching_records_no_update','teaching_records_no_delete','teaching_withdrawals_no_update','teaching_withdrawals_no_delete')",

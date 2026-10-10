@@ -161,12 +161,23 @@ pub(crate) async fn create(
 
 #[derive(Deserialize)]
 #[serde(deny_unknown_fields)]
-pub(crate) struct PreviewRequest { pub backup_id: String, pub expected_sha256: String }
+pub(crate) struct PreviewRequest {
+    pub backup_id: String,
+    pub expected_sha256: String,
+}
 
 /// Version 2 recovery contract; v1 create/list remains byte-compatible.
-pub(crate) async fn preview(State(state): State<AppState>, headers: HeaderMap, Json(body): Json<PreviewRequest>) -> Response {
-    if crate::request_actor(&headers) != Ok("human") { return StatusCode::FORBIDDEN.into_response(); }
-    if !hex(&body.backup_id,32) || !hex(&body.expected_sha256,64) { return StatusCode::BAD_REQUEST.into_response(); }
+pub(crate) async fn preview(
+    State(state): State<AppState>,
+    headers: HeaderMap,
+    Json(body): Json<PreviewRequest>,
+) -> Response {
+    if crate::request_actor(&headers) != Ok("human") {
+        return StatusCode::FORBIDDEN.into_response();
+    }
+    if !hex(&body.backup_id, 32) || !hex(&body.expected_sha256, 64) {
+        return StatusCode::BAD_REQUEST.into_response();
+    }
     crate::with_store(state, move |conn| {
         let result=(|| -> rusqlite::Result<serde_json::Value> {
             let root=directory(conn)?;

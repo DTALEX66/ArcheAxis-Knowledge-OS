@@ -1018,11 +1018,27 @@ jobs:
           python -m desktop.scripts.prepare_bundle --backend-candidate --repository . --destination .project-local/rt --core "$env:CARGO_TARGET_DIR/release/archeaxis-api.exe"
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
       - name: Test the canonical Windows desktop shell
+        id: desktop_shell
         working-directory: src-tauri
         run: |
           cargo fmt --all -- --check
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           cargo test
+      - name: Capture formal host formatting repair without qualifying modified source
+        if: ${{ failure() && steps.desktop_shell.outcome == 'failure' }}
+        working-directory: src-tauri
+        run: |
+          cargo fmt --all
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          python -c "import os,subprocess; from pathlib import Path; p=Path(os.environ['ARCHEAXIS_RUN_ROOT'])/'artifacts'/'tauri-rustfmt.patch'; p.parent.mkdir(parents=True,exist_ok=True); p.write_bytes(subprocess.check_output(['git','-C',os.environ['GITHUB_WORKSPACE'],'diff','--binary','--','src-tauri']))"
+      - name: Upload formal host formatting repair
+        if: ${{ failure() && steps.desktop_shell.outcome == 'failure' }}
+        uses: actions/upload-artifact@834a144ee995460fba8ed112a2fc961b36a5ec5a
+        with:
+          name: tauri-rustfmt-repair-${{ github.sha }}
+          path: ${{ env.ARCHEAXIS_RUN_ROOT }}/artifacts/tauri-rustfmt.patch
+          if-no-files-found: error
+          retention-days: 7
       - name: Assert the staged runtime carries the format engines
         working-directory: ${{ github.workspace }}
         run: python -B -m desktop.scripts.assert_runtime_engines --candidate .project-local/rt

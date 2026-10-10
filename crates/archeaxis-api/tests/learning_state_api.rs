@@ -400,14 +400,27 @@ async fn core_creates_and_reads_back_assessment_bound_to_accepted_knowledge() {
         "projection"
     );
     assert_eq!(review_response["mastery_projection"]["closed"], false);
-    for key in ["question_version", "knowledge_version", "exposure_id", "assist_strategy", "rating_version", "correction_id"] {
+    for key in [
+        "question_version",
+        "knowledge_version",
+        "exposure_id",
+        "assist_strategy",
+        "rating_version",
+        "correction_id",
+    ] {
         assert_eq!(review_response["review_evidence"][key], replay_body[key]);
     }
-    assert_eq!(review_response["review_evidence"]["schema"], "archeaxis.learning-review-evidence/v2");
+    assert_eq!(
+        review_response["review_evidence"]["schema"],
+        "archeaxis.learning-review-evidence/v2"
+    );
     let (replay_status, replay_response) = post(&router, replay_body, "human").await;
     assert_eq!(replay_status, StatusCode::OK, "{replay_response}");
     assert_eq!(replay_response["answer"], review_response["answer"]);
-    assert_eq!(replay_response["review_evidence"], review_response["review_evidence"]);
+    assert_eq!(
+        replay_response["review_evidence"],
+        review_response["review_evidence"]
+    );
     assert_eq!(
         replay_response["mastery_projection"],
         review_response["mastery_projection"]
@@ -428,12 +441,20 @@ async fn core_creates_and_reads_back_assessment_bound_to_accepted_knowledge() {
     let bytes = response.into_body().collect().await.unwrap().to_bytes();
     let readback: Value = serde_json::from_slice(&bytes).unwrap();
     assert_eq!(readback, assessment);
-    let response = reopened.clone().oneshot(Request::get("/api/v1/learning/events/card-assessment")
-        .body(Body::empty()).unwrap()).await.unwrap();
+    let response = reopened
+        .clone()
+        .oneshot(
+            Request::get("/api/v1/learning/events/card-assessment")
+                .body(Body::empty())
+                .unwrap(),
+        )
+        .await
+        .unwrap();
     assert_eq!(response.status(), StatusCode::OK);
     let bytes = response.into_body().collect().await.unwrap().to_bytes();
     let history: Value = serde_json::from_slice(&bytes).unwrap();
-    let saved: Value = serde_json::from_str(history["events"][0]["outcome"].as_str().unwrap()).unwrap();
+    let saved: Value =
+        serde_json::from_str(history["events"][0]["outcome"].as_str().unwrap()).unwrap();
     assert_eq!(saved["review_evidence"], review_response["review_evidence"]);
     assert_eq!(history["count"], 1);
 }

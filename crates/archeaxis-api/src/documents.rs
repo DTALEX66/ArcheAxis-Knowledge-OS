@@ -105,8 +105,9 @@ pub(crate) async fn create(
     if !human(&headers) {
         return StatusCode::FORBIDDEN.into_response();
     }
-    crate::with_store(state, move |conn| {
-        match document::create_optional_with_request(
+    crate::with_store(
+        state,
+        move |conn| match document::create_optional_with_request(
             conn,
             body.source_id.as_deref(),
             body.source_revision.as_deref(),
@@ -116,8 +117,8 @@ pub(crate) async fn create(
         ) {
             Ok(value) => (StatusCode::CREATED, Json(value)).into_response(),
             Err(error) => failure(error),
-        }
-    })
+        },
+    )
     .await
 }
 pub(crate) async fn save(
@@ -169,21 +170,67 @@ pub(crate) async fn read(State(state): State<AppState>, Path(id): Path<String>) 
 }
 #[derive(Deserialize)]
 #[serde(deny_unknown_fields)]
-pub(crate) struct RelationsQuery { version: Option<i64>, cursor: Option<String> }
+pub(crate) struct RelationsQuery {
+    version: Option<i64>,
+    cursor: Option<String>,
+}
 #[derive(Deserialize)]
 #[serde(deny_unknown_fields)]
-pub(crate) struct CollectionQuery { view_id: String, version: Option<i64>, offset: Option<usize>, limit: Option<usize> }
-pub(crate) async fn collection(State(state): State<AppState>, Path(id): Path<String>, Query(query):Query<CollectionQuery>) -> Response {
-    if query.version.is_some_and(|v|v<1) {return failure(document::Error::Invalid("collection version must be positive"));}
-    crate::with_store(state,move|conn|match archeaxis_domain::collection::query(conn,&id,query.version,&query.view_id,query.offset.unwrap_or(0),query.limit.unwrap_or(20)) {
-        Ok(value)=>Json(value).into_response(),Err(error)=>failure(error),
-    }).await
+pub(crate) struct CollectionQuery {
+    view_id: String,
+    version: Option<i64>,
+    offset: Option<usize>,
+    limit: Option<usize>,
 }
-pub(crate) async fn relations(State(state): State<AppState>, Path(id): Path<String>, Query(query):Query<RelationsQuery>) -> Response {
-    if query.version.is_some_and(|v|v<1) {return failure(document::Error::Invalid("relation center version must be positive"));}
-    crate::with_store(state,move|conn|match archeaxis_domain::relation_projection::query(conn,&id,query.version,query.cursor.as_deref()) {
-        Ok(value)=>Json(value).into_response(),Err(error)=>failure(error),
-    }).await
+pub(crate) async fn collection(
+    State(state): State<AppState>,
+    Path(id): Path<String>,
+    Query(query): Query<CollectionQuery>,
+) -> Response {
+    if query.version.is_some_and(|v| v < 1) {
+        return failure(document::Error::Invalid(
+            "collection version must be positive",
+        ));
+    }
+    crate::with_store(
+        state,
+        move |conn| match archeaxis_domain::collection::query(
+            conn,
+            &id,
+            query.version,
+            &query.view_id,
+            query.offset.unwrap_or(0),
+            query.limit.unwrap_or(20),
+        ) {
+            Ok(value) => Json(value).into_response(),
+            Err(error) => failure(error),
+        },
+    )
+    .await
+}
+pub(crate) async fn relations(
+    State(state): State<AppState>,
+    Path(id): Path<String>,
+    Query(query): Query<RelationsQuery>,
+) -> Response {
+    if query.version.is_some_and(|v| v < 1) {
+        return failure(document::Error::Invalid(
+            "relation center version must be positive",
+        ));
+    }
+    crate::with_store(
+        state,
+        move |conn| match archeaxis_domain::relation_projection::query(
+            conn,
+            &id,
+            query.version,
+            query.cursor.as_deref(),
+        ) {
+            Ok(value) => Json(value).into_response(),
+            Err(error) => failure(error),
+        },
+    )
+    .await
 }
 pub(crate) async fn version(
     State(state): State<AppState>,
@@ -199,27 +246,69 @@ pub(crate) async fn version(
 }
 #[derive(Deserialize)]
 #[serde(deny_unknown_fields)]
-pub(crate) struct ListQuery { cursor: Option<String> }
+pub(crate) struct ListQuery {
+    cursor: Option<String>,
+}
 
 #[derive(Deserialize)]
 #[serde(deny_unknown_fields)]
-struct CursorWire { v: u8, watermark_rowid: i64, snapshot_count: i64, after_created_at: String, after_document_id: String }
+struct CursorWire {
+    v: u8,
+    watermark_rowid: i64,
+    snapshot_count: i64,
+    after_created_at: String,
+    after_document_id: String,
+}
 
 fn decode_cursor(encoded: &str) -> Result<document::ListCursor, document::Error> {
     let invalid = || document::Error::Invalid("invalid document cursor");
-    if encoded.is_empty() || encoded.len()>1024 || !encoded.bytes().all(|b| b.is_ascii_alphanumeric() || b==b'-' || b==b'_') { return Err(invalid()); }
-    let bytes = base64::engine::general_purpose::URL_SAFE_NO_PAD.decode(encoded).map_err(|_|invalid())?;
-    if bytes.len()>768 { return Err(invalid()); }
-    let value: CursorWire = serde_json::from_slice(&bytes).map_err(|_|invalid())?;
-    if value.v!=1 || value.watermark_rowid<1 || value.snapshot_count<1
-        || value.after_created_at.is_empty() || value.after_created_at.len()>64 || value.after_created_at.chars().any(char::is_control)
-        || value.after_document_id.is_empty() || value.after_document_id.len()>128
-        || !value.after_document_id.bytes().all(|b|b.is_ascii_alphanumeric() || b==b'-' || b==b'_') { return Err(invalid()); }
-    Ok(document::ListCursor {v:value.v,watermark_rowid:value.watermark_rowid,snapshot_count:value.snapshot_count,after_created_at:value.after_created_at,after_document_id:value.after_document_id})
+    if encoded.is_empty()
+        || encoded.len() > 1024
+        || !encoded
+            .bytes()
+            .all(|b| b.is_ascii_alphanumeric() || b == b'-' || b == b'_')
+    {
+        return Err(invalid());
+    }
+    let bytes = base64::engine::general_purpose::URL_SAFE_NO_PAD
+        .decode(encoded)
+        .map_err(|_| invalid())?;
+    if bytes.len() > 768 {
+        return Err(invalid());
+    }
+    let value: CursorWire = serde_json::from_slice(&bytes).map_err(|_| invalid())?;
+    if value.v != 1
+        || value.watermark_rowid < 1
+        || value.snapshot_count < 1
+        || value.after_created_at.is_empty()
+        || value.after_created_at.len() > 64
+        || value.after_created_at.chars().any(char::is_control)
+        || value.after_document_id.is_empty()
+        || value.after_document_id.len() > 128
+        || !value
+            .after_document_id
+            .bytes()
+            .all(|b| b.is_ascii_alphanumeric() || b == b'-' || b == b'_')
+    {
+        return Err(invalid());
+    }
+    Ok(document::ListCursor {
+        v: value.v,
+        watermark_rowid: value.watermark_rowid,
+        snapshot_count: value.snapshot_count,
+        after_created_at: value.after_created_at,
+        after_document_id: value.after_document_id,
+    })
 }
 
-pub(crate) async fn list(State(state): State<AppState>, Query(query): Query<ListQuery>) -> Response {
-    let cursor = match query.cursor.as_deref().map(decode_cursor).transpose() { Ok(value)=>value, Err(error)=>return failure(error) };
+pub(crate) async fn list(
+    State(state): State<AppState>,
+    Query(query): Query<ListQuery>,
+) -> Response {
+    let cursor = match query.cursor.as_deref().map(decode_cursor).transpose() {
+        Ok(value) => value,
+        Err(error) => return failure(error),
+    };
     crate::with_store(state, move |conn| match document::list_page(conn,cursor) {
         Ok((documents,next,count)) => {
             let next_cursor = next.map(|value|base64::engine::general_purpose::URL_SAFE_NO_PAD.encode(serde_json::to_vec(&json!({"v":value.v,"watermark_rowid":value.watermark_rowid,"snapshot_count":value.snapshot_count,"after_created_at":value.after_created_at,"after_document_id":value.after_document_id})).unwrap()));

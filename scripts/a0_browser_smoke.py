@@ -137,8 +137,9 @@ def check_navigation_drawer(page) -> dict[str, object]:
     trigger.click()
     drawer = page.get_by_role("dialog", name="产品导航")
     drawer.wait_for()
-    # Owner-selected Oct09 UI plan includes all 22 page identities.
-    expected = {f'{number:02d}' for number in range(1, 23)}
+    # Oct09 layout exposes five daily entry groups and two fixed entries;
+    # child pages belong to their active group, rather than a flat 22-item rail.
+    expected = {"01", "02", "06", "13", "15", "17", "19"}
     actual = drawer.locator('[data-page-id]').evaluate_all(
         '(nodes) => nodes.map(node => node.dataset.pageId)')
     assert len(actual) == len(expected) and set(actual) == expected, actual
@@ -149,7 +150,7 @@ def check_navigation_drawer(page) -> dict[str, object]:
     drawer.wait_for(state="detached")
     page.wait_for_timeout(150)
     assert trigger.evaluate("node => document.activeElement === node"), "drawer did not restore trigger focus"
-    return {"state":"PASS", "drawer_required":True, "page_count":len(expected), "focus_trapped":True}
+    return {"state":"PASS", "drawer_required":True, "primary_entry_count":len(expected), "focus_trapped":True}
 
 BRAND_ASSET_DIR = ROOT / "frontend" / "src" / "assets"
 
@@ -548,8 +549,10 @@ def read_navigation_levels(page) -> dict[str, object]:
           .map((node) => ({ text: node.textContent.trim(), width: node.getBoundingClientRect().width }))"""
     )
     assert labels and all(entry["width"] > 8 for entry in labels), labels
-    assert len(labels) == 21, labels
-    assert [entry["text"] for entry in labels][:3] == ["今日工作台", "知识库", "阅读与编辑"], labels
+    assert len(labels) == 10, labels  # seven primary entries + three knowledge children
+    assert [entry["text"] for entry in labels][:5] == ["工作台", "知识", "学习", "AI", "资源"], labels
+    assert {entry["text"] for entry in labels[5:]} == {
+        "阅读与编辑", "双链与图谱", "研究空间", "全部能力", "设置"}, labels
 
     sections = page.locator("ul[aria-label='资料库对象导航'] button")
     section_count = sections.count()

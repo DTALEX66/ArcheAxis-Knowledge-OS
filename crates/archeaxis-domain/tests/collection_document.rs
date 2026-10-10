@@ -1,9 +1,13 @@
 //! Candidate regressions. Run only after owner exports collection and wires Document validation.
-use archeaxis_domain::{collection::{self,Collection,ENGINE_VERSION},document};
+use archeaxis_domain::{
+    collection::{self, Collection, ENGINE_VERSION},
+    document,
+};
 use archeaxis_store_sqlite::init_workspace;
-use serde_json::{json,Value};
+use serde_json::{Value, json};
 
-fn definition(target:&str)->Value {json!({"schema":"archeaxis.collection/v1","properties":[
+fn definition(target: &str) -> Value {
+    json!({"schema":"archeaxis.collection/v1","properties":[
  {"property_id":"score","name":"分值","kind":"number"},
  {"property_id":"name","name":"名称","kind":"text"},
  {"property_id":"links","name":"真实关系","kind":"relation"},
@@ -11,35 +15,326 @@ fn definition(target:&str)->Value {json!({"schema":"archeaxis.collection/v1","pr
  ],"records":[
  {"record_id":"row_b","reference":{"kind":"document","document_id":target,"version":1},"values":{"score":20,"name":"Beta","links":[{"kind":"document","document_id":target,"version":1}]}},
  {"record_id":"row_a","reference":{"kind":"document","document_id":target,"version":1},"values":{"score":10,"name":"Alpha"},"source_payload":{"unknown":{"keep":[1,2,3]}}}
- ],"views":[{"view_id":"all","name":"全部","kind":"table","sort":[{"property_id":"score","descending":false}]},{"view_id":"filtered","name":"过滤","kind":"list","filter":{"op":"greater_than","property_id":"score","value":15}}],"source_payload":{"original_view":{"layout":"kept"}}})}
-fn target(conn:&mut rusqlite::Connection)->String {document::create_optional(conn,None,None,"真实目标",json!({"type":"doc","content":[] })).unwrap()["document_id"].as_str().unwrap().into()}
-fn envelope(value:Value)->Value {json!({"type":"doc","attrs":{"archeaxis_collection":value,"foreign_attr":{"keep":true}},"content":[]})}
-fn save_collection(conn:&mut rusqlite::Connection,raw:Value)->Value {let editor=envelope(raw);collection::validate_document(conn,&editor).unwrap();document::create_optional(conn,None,None,"集合",editor).unwrap()}
+ ],"views":[{"view_id":"all","name":"全部","kind":"table","sort":[{"property_id":"score","descending":false}]},{"view_id":"filtered","name":"过滤","kind":"list","filter":{"op":"greater_than","property_id":"score","value":15}}],"source_payload":{"original_view":{"layout":"kept"}}})
+}
+fn target(conn: &mut rusqlite::Connection) -> String {
+    document::create_optional(
+        conn,
+        None,
+        None,
+        "真实目标",
+        json!({"type":"doc","content":[] }),
+    )
+    .unwrap()["document_id"]
+        .as_str()
+        .unwrap()
+        .into()
+}
+fn envelope(value: Value) -> Value {
+    json!({"type":"doc","attrs":{"archeaxis_collection":value,"foreign_attr":{"keep":true}},"content":[]})
+}
+fn save_collection(conn: &mut rusqlite::Connection, raw: Value) -> Value {
+    let editor = envelope(raw);
+    collection::validate_document(conn, &editor).unwrap();
+    document::create_optional(conn, None, None, "集合", editor).unwrap()
+}
 #[test]
-fn definition_members_values_and_unknown_payload_survive_real_sqlite_restart() {let dir=tempfile::tempdir().unwrap();let path=dir.path().join("collection.sqlite");let mut conn=init_workspace(path.to_str().unwrap()).unwrap();let id=target(&mut conn);let raw=definition(&id);let saved=save_collection(&mut conn,raw.clone());let collection_id=saved["document_id"].as_str().unwrap().to_owned();drop(conn);let conn=init_workspace(path.to_str().unwrap()).unwrap();let read=document::read(&conn,&collection_id,Some(1)).unwrap();assert_eq!(read["editor_json"]["attrs"]["archeaxis_collection"],raw);assert_eq!(read["editor_json"]["attrs"]["foreign_attr"],json!({"keep":true}));let projection=collection::query(&conn,&collection_id,Some(1),"all",0,1).unwrap();assert_eq!(projection["items"][0]["record_id"],"row_a");assert_eq!(projection["items"][0]["values"]["double"],20.0);assert_eq!(projection["next_offset"],1);assert_eq!(projection["version"],1);}
+fn definition_members_values_and_unknown_payload_survive_real_sqlite_restart() {
+    let dir = tempfile::tempdir().unwrap();
+    let path = dir.path().join("collection.sqlite");
+    let mut conn = init_workspace(path.to_str().unwrap()).unwrap();
+    let id = target(&mut conn);
+    let raw = definition(&id);
+    let saved = save_collection(&mut conn, raw.clone());
+    let collection_id = saved["document_id"].as_str().unwrap().to_owned();
+    drop(conn);
+    let conn = init_workspace(path.to_str().unwrap()).unwrap();
+    let read = document::read(&conn, &collection_id, Some(1)).unwrap();
+    assert_eq!(read["editor_json"]["attrs"]["archeaxis_collection"], raw);
+    assert_eq!(
+        read["editor_json"]["attrs"]["foreign_attr"],
+        json!({"keep":true})
+    );
+    let projection = collection::query(&conn, &collection_id, Some(1), "all", 0, 1).unwrap();
+    assert_eq!(projection["items"][0]["record_id"], "row_a");
+    assert_eq!(projection["items"][0]["values"]["double"], 20.0);
+    assert_eq!(projection["next_offset"], 1);
+    assert_eq!(projection["version"], 1);
+}
 #[test]
-fn filter_is_applied_before_pagination_not_after_an_initial_truncation() {let dir=tempfile::tempdir().unwrap();let mut conn=init_workspace(dir.path().join("filter.sqlite").to_str().unwrap()).unwrap();let id=target(&mut conn);let saved=save_collection(&mut conn,definition(&id));let p=collection::query(&conn,saved["document_id"].as_str().unwrap(),None,"filtered",0,1).unwrap();assert_eq!(p["total"],1);assert_eq!(p["items"][0]["record_id"],"row_b");assert!(p["next_offset"].is_null());}
+fn filter_is_applied_before_pagination_not_after_an_initial_truncation() {
+    let dir = tempfile::tempdir().unwrap();
+    let mut conn = init_workspace(dir.path().join("filter.sqlite").to_str().unwrap()).unwrap();
+    let id = target(&mut conn);
+    let saved = save_collection(&mut conn, definition(&id));
+    let p = collection::query(
+        &conn,
+        saved["document_id"].as_str().unwrap(),
+        None,
+        "filtered",
+        0,
+        1,
+    )
+    .unwrap();
+    assert_eq!(p["total"], 1);
+    assert_eq!(p["items"][0]["record_id"], "row_b");
+    assert!(p["next_offset"].is_null());
+}
 #[test]
-fn changed_definition_creates_new_version_and_old_view_uses_old_members() {let dir=tempfile::tempdir().unwrap();let mut conn=init_workspace(dir.path().join("versions.sqlite").to_str().unwrap()).unwrap();let id=target(&mut conn);let saved=save_collection(&mut conn,definition(&id));let collection_id=saved["document_id"].as_str().unwrap();let mut editor=saved["editor_json"].clone();editor["attrs"]["archeaxis_collection"]["records"].as_array_mut().unwrap().remove(0);collection::validate_document(&conn,&editor).unwrap();document::save(&mut conn,collection_id,1,editor).unwrap();assert_eq!(collection::query(&conn,collection_id,Some(1),"all",0,100).unwrap()["total"],2);assert_eq!(collection::query(&conn,collection_id,Some(2),"all",0,100).unwrap()["total"],1);}
+fn changed_definition_creates_new_version_and_old_view_uses_old_members() {
+    let dir = tempfile::tempdir().unwrap();
+    let mut conn = init_workspace(dir.path().join("versions.sqlite").to_str().unwrap()).unwrap();
+    let id = target(&mut conn);
+    let saved = save_collection(&mut conn, definition(&id));
+    let collection_id = saved["document_id"].as_str().unwrap();
+    let mut editor = saved["editor_json"].clone();
+    editor["attrs"]["archeaxis_collection"]["records"]
+        .as_array_mut()
+        .unwrap()
+        .remove(0);
+    collection::validate_document(&conn, &editor).unwrap();
+    document::save(&mut conn, collection_id, 1, editor).unwrap();
+    assert_eq!(
+        collection::query(&conn, collection_id, Some(1), "all", 0, 100).unwrap()["total"],
+        2
+    );
+    assert_eq!(
+        collection::query(&conn, collection_id, Some(2), "all", 0, 100).unwrap()["total"],
+        1
+    );
+}
 #[test]
-fn missing_doc_version_or_block_relation_is_rejected_without_title_resolution() {let dir=tempfile::tempdir().unwrap();let mut conn=init_workspace(dir.path().join("refs.sqlite").to_str().unwrap()).unwrap();let id=target(&mut conn);for reference in [json!({"kind":"document","document_id":"not_real_title","version":1}),json!({"kind":"document","document_id":id,"version":999}),json!({"kind":"document","document_id":id,"version":1,"block_id":"absent_block"})]{let mut raw=definition(&id);raw["records"][0]["values"]["links"]=json!([reference]);let c:Collection=collection::parse(&raw).unwrap();assert!(collection::validate(&conn,&c).is_err());}}
+fn missing_doc_version_or_block_relation_is_rejected_without_title_resolution() {
+    let dir = tempfile::tempdir().unwrap();
+    let mut conn = init_workspace(dir.path().join("refs.sqlite").to_str().unwrap()).unwrap();
+    let id = target(&mut conn);
+    for reference in [
+        json!({"kind":"document","document_id":"not_real_title","version":1}),
+        json!({"kind":"document","document_id":id,"version":999}),
+        json!({"kind":"document","document_id":id,"version":1,"block_id":"absent_block"}),
+    ] {
+        let mut raw = definition(&id);
+        raw["records"][0]["values"]["links"] = json!([reference]);
+        let c: Collection = collection::parse(&raw).unwrap();
+        assert!(collection::validate(&conn, &c).is_err());
+    }
+}
 #[test]
-fn wrong_property_type_manual_formula_value_and_unknown_field_fail_closed() {let dir=tempfile::tempdir().unwrap();let mut conn=init_workspace(dir.path().join("types.sqlite").to_str().unwrap()).unwrap();let id=target(&mut conn);for (key,value) in [("score",json!("20")),("double",Value::Null),("undeclared",json!(1))]{let mut raw=definition(&id);raw["records"][0]["values"][key]=value;assert!(collection::validate(&conn,&collection::parse(&raw).unwrap()).is_err());}let mut raw=definition(&id);raw["unknown_future"]=json!({"retain":"readonly-original"});assert!(collection::parse(&raw).is_err());assert_eq!(raw["unknown_future"]["retain"],"readonly-original");}
+fn wrong_property_type_manual_formula_value_and_unknown_field_fail_closed() {
+    let dir = tempfile::tempdir().unwrap();
+    let mut conn = init_workspace(dir.path().join("types.sqlite").to_str().unwrap()).unwrap();
+    let id = target(&mut conn);
+    for (key, value) in [
+        ("score", json!("20")),
+        ("double", Value::Null),
+        ("undeclared", json!(1)),
+    ] {
+        let mut raw = definition(&id);
+        raw["records"][0]["values"][key] = value;
+        assert!(collection::validate(&conn, &collection::parse(&raw).unwrap()).is_err());
+    }
+    let mut raw = definition(&id);
+    raw["unknown_future"] = json!({"retain":"readonly-original"});
+    assert!(collection::parse(&raw).is_err());
+    assert_eq!(raw["unknown_future"]["retain"], "readonly-original");
+}
 #[test]
-fn bounded_formula_division_by_zero_is_an_explicit_projection_error_not_zero() {let dir=tempfile::tempdir().unwrap();let mut conn=init_workspace(dir.path().join("formula.sqlite").to_str().unwrap()).unwrap();let id=target(&mut conn);let mut raw=definition(&id);raw["properties"][3]["formula"]["expression"]["op"]=json!("divide");raw["properties"][3]["formula"]["expression"]["right"]["value"]=json!(0);let saved=save_collection(&mut conn,raw);let p=collection::query(&conn,saved["document_id"].as_str().unwrap(),None,"all",0,100).unwrap();assert_eq!(p["items"][0]["formulas"][0]["status"],"error");assert!(p["items"][0]["formula_errors"]["double"].as_str().unwrap().contains("DivisionByZero"));assert!(p["items"][0]["values"].get("double").is_none());}
+fn bounded_formula_division_by_zero_is_an_explicit_projection_error_not_zero() {
+    let dir = tempfile::tempdir().unwrap();
+    let mut conn = init_workspace(dir.path().join("formula.sqlite").to_str().unwrap()).unwrap();
+    let id = target(&mut conn);
+    let mut raw = definition(&id);
+    raw["properties"][3]["formula"]["expression"]["op"] = json!("divide");
+    raw["properties"][3]["formula"]["expression"]["right"]["value"] = json!(0);
+    let saved = save_collection(&mut conn, raw);
+    let p = collection::query(
+        &conn,
+        saved["document_id"].as_str().unwrap(),
+        None,
+        "all",
+        0,
+        100,
+    )
+    .unwrap();
+    assert_eq!(p["items"][0]["formulas"][0]["status"], "error");
+    assert!(
+        p["items"][0]["formula_errors"]["double"]
+            .as_str()
+            .unwrap()
+            .contains("DivisionByZero")
+    );
+    assert!(p["items"][0]["values"].get("double").is_none());
+}
 #[test]
-fn external_formula_dialect_is_preserved_and_never_executed_as_source_code() {let dir=tempfile::tempdir().unwrap();let mut conn=init_workspace(dir.path().join("dialect.sqlite").to_str().unwrap()).unwrap();let id=target(&mut conn);let mut raw=definition(&id);raw["properties"][3]["formula"]["dialect"]=json!("notion/source-unqualified");raw["properties"][3]["formula"]["expression"]=json!("dangerous imported JavaScript text");let saved=save_collection(&mut conn,raw.clone());let p=collection::query(&conn,saved["document_id"].as_str().unwrap(),None,"all",0,100).unwrap();assert_eq!(p["definition"],raw);assert!(p["items"][0]["formula_errors"]["double"].as_str().unwrap().contains("preserved_not_executed"));}
+fn external_formula_dialect_is_preserved_and_never_executed_as_source_code() {
+    let dir = tempfile::tempdir().unwrap();
+    let mut conn = init_workspace(dir.path().join("dialect.sqlite").to_str().unwrap()).unwrap();
+    let id = target(&mut conn);
+    let mut raw = definition(&id);
+    raw["properties"][3]["formula"]["dialect"] = json!("notion/source-unqualified");
+    raw["properties"][3]["formula"]["expression"] = json!("dangerous imported JavaScript text");
+    let saved = save_collection(&mut conn, raw.clone());
+    let p = collection::query(
+        &conn,
+        saved["document_id"].as_str().unwrap(),
+        None,
+        "all",
+        0,
+        100,
+    )
+    .unwrap();
+    assert_eq!(p["definition"], raw);
+    assert!(
+        p["items"][0]["formula_errors"]["double"]
+            .as_str()
+            .unwrap()
+            .contains("preserved_not_executed")
+    );
+}
 #[test]
-fn imported_unknown_ast_dependency_metadata_and_script_op_are_not_executable() {let dir=tempfile::tempdir().unwrap();let mut conn=init_workspace(dir.path().join("ast.sqlite").to_str().unwrap()).unwrap();let id=target(&mut conn);for field in ["ast","dependencies"]{let mut raw=definition(&id);if field=="ast"{raw["properties"][3]["formula"]["expression"]=json!({"op":"eval","code":"process.exit()"});}else{raw["properties"][3]["formula"]["dependencies"]=json!([]);}assert!(collection::validate(&conn,&collection::parse(&raw).unwrap()).is_err());}}
+fn imported_unknown_ast_dependency_metadata_and_script_op_are_not_executable() {
+    let dir = tempfile::tempdir().unwrap();
+    let mut conn = init_workspace(dir.path().join("ast.sqlite").to_str().unwrap()).unwrap();
+    let id = target(&mut conn);
+    for field in ["ast", "dependencies"] {
+        let mut raw = definition(&id);
+        if field == "ast" {
+            raw["properties"][3]["formula"]["expression"] =
+                json!({"op":"eval","code":"process.exit()"});
+        } else {
+            raw["properties"][3]["formula"]["dependencies"] = json!([]);
+        }
+        assert!(collection::validate(&conn, &collection::parse(&raw).unwrap()).is_err());
+    }
+}
 #[test]
-fn failed_formula_in_filter_is_not_an_empty_success() {let dir=tempfile::tempdir().unwrap();let mut conn=init_workspace(dir.path().join("bad_filter.sqlite").to_str().unwrap()).unwrap();let id=target(&mut conn);let mut raw=definition(&id);raw["records"][0]["values"].as_object_mut().unwrap().remove("score");raw["views"][1]["filter"]["property_id"]=json!("double");let saved=save_collection(&mut conn,raw);assert!(collection::query(&conn,saved["document_id"].as_str().unwrap(),None,"filtered",0,100).is_err());}
+fn failed_formula_in_filter_is_not_an_empty_success() {
+    let dir = tempfile::tempdir().unwrap();
+    let mut conn = init_workspace(dir.path().join("bad_filter.sqlite").to_str().unwrap()).unwrap();
+    let id = target(&mut conn);
+    let mut raw = definition(&id);
+    raw["records"][0]["values"]
+        .as_object_mut()
+        .unwrap()
+        .remove("score");
+    raw["views"][1]["filter"]["property_id"] = json!("double");
+    let saved = save_collection(&mut conn, raw);
+    assert!(
+        collection::query(
+            &conn,
+            saved["document_id"].as_str().unwrap(),
+            None,
+            "filtered",
+            0,
+            100
+        )
+        .is_err()
+    );
+}
 #[test]
-fn duplicate_ids_unknown_view_filter_type_and_page_limits_are_rejected() {let dir=tempfile::tempdir().unwrap();let mut conn=init_workspace(dir.path().join("limits.sqlite").to_str().unwrap()).unwrap();let id=target(&mut conn);let mut raw=definition(&id);raw["records"][1]["record_id"]=raw["records"][0]["record_id"].clone();assert!(collection::validate(&conn,&collection::parse(&raw).unwrap()).is_err());let mut raw=definition(&id);raw["views"][1]["filter"]["property_id"]=json!("name");assert!(collection::validate(&conn,&collection::parse(&raw).unwrap()).is_err());let saved=save_collection(&mut conn,definition(&id));let id=saved["document_id"].as_str().unwrap();assert!(collection::query(&conn,id,None,"absent",0,1).is_err());assert!(collection::query(&conn,id,None,"all",0,0).is_err());assert!(collection::query(&conn,id,None,"all",0,101).is_err());}
+fn duplicate_ids_unknown_view_filter_type_and_page_limits_are_rejected() {
+    let dir = tempfile::tempdir().unwrap();
+    let mut conn = init_workspace(dir.path().join("limits.sqlite").to_str().unwrap()).unwrap();
+    let id = target(&mut conn);
+    let mut raw = definition(&id);
+    raw["records"][1]["record_id"] = raw["records"][0]["record_id"].clone();
+    assert!(collection::validate(&conn, &collection::parse(&raw).unwrap()).is_err());
+    let mut raw = definition(&id);
+    raw["views"][1]["filter"]["property_id"] = json!("name");
+    assert!(collection::validate(&conn, &collection::parse(&raw).unwrap()).is_err());
+    let saved = save_collection(&mut conn, definition(&id));
+    let id = saved["document_id"].as_str().unwrap();
+    assert!(collection::query(&conn, id, None, "absent", 0, 1).is_err());
+    assert!(collection::query(&conn, id, None, "all", 0, 0).is_err());
+    assert!(collection::query(&conn, id, None, "all", 0, 101).is_err());
+}
 #[test]
-fn datetime_is_versioned_explicit_date_type_not_arbitrary_title_or_locale_string() {let dir=tempfile::tempdir().unwrap();let mut conn=init_workspace(dir.path().join("dates.sqlite").to_str().unwrap()).unwrap();let id=target(&mut conn);let mut raw=definition(&id);raw["properties"].as_array_mut().unwrap().push(json!({"property_id":"day","name":"日期","kind":"date","timezone":"Asia/Shanghai"}));raw["records"][0]["values"]["day"]=json!("2024-02-29");raw["views"].as_array_mut().unwrap().push(json!({"view_id":"calendar","name":"日历","kind":"calendar","date_property":"day"}));assert!(collection::validate(&conn,&collection::parse(&raw).unwrap()).is_ok());for invalid in ["2023-02-29","2024-13-01","昨天","2024-02-29T00:00:00Z"]{raw["records"][0]["values"]["day"]=json!(invalid);assert!(collection::validate(&conn,&collection::parse(&raw).unwrap()).is_err());}}
+fn datetime_is_versioned_explicit_date_type_not_arbitrary_title_or_locale_string() {
+    let dir = tempfile::tempdir().unwrap();
+    let mut conn = init_workspace(dir.path().join("dates.sqlite").to_str().unwrap()).unwrap();
+    let id = target(&mut conn);
+    let mut raw = definition(&id);
+    raw["properties"]
+        .as_array_mut()
+        .unwrap()
+        .push(json!({"property_id":"day","name":"日期","kind":"date","timezone":"Asia/Shanghai"}));
+    raw["records"][0]["values"]["day"] = json!("2024-02-29");
+    raw["views"]
+        .as_array_mut()
+        .unwrap()
+        .push(json!({"view_id":"calendar","name":"日历","kind":"calendar","date_property":"day"}));
+    assert!(collection::validate(&conn, &collection::parse(&raw).unwrap()).is_ok());
+    for invalid in ["2023-02-29", "2024-13-01", "昨天", "2024-02-29T00:00:00Z"] {
+        raw["records"][0]["values"]["day"] = json!(invalid);
+        assert!(collection::validate(&conn, &collection::parse(&raw).unwrap()).is_err());
+    }
+}
 #[test]
-fn query_is_readonly_and_formula_values_do_not_become_a_second_writer() {let dir=tempfile::tempdir().unwrap();let mut conn=init_workspace(dir.path().join("readonly.sqlite").to_str().unwrap()).unwrap();let id=target(&mut conn);let saved=save_collection(&mut conn,definition(&id));let id=saved["document_id"].as_str().unwrap();let before=document::read(&conn,id,None).unwrap();let _=collection::query(&conn,id,None,"all",0,100).unwrap();let after=document::read(&conn,id,None).unwrap();assert_eq!(before,after);assert!(after["editor_json"]["attrs"]["archeaxis_collection"]["records"][0]["values"].get("double").is_none());}
+fn query_is_readonly_and_formula_values_do_not_become_a_second_writer() {
+    let dir = tempfile::tempdir().unwrap();
+    let mut conn = init_workspace(dir.path().join("readonly.sqlite").to_str().unwrap()).unwrap();
+    let id = target(&mut conn);
+    let saved = save_collection(&mut conn, definition(&id));
+    let id = saved["document_id"].as_str().unwrap();
+    let before = document::read(&conn, id, None).unwrap();
+    let _ = collection::query(&conn, id, None, "all", 0, 100).unwrap();
+    let after = document::read(&conn, id, None).unwrap();
+    assert_eq!(before, after);
+    assert!(
+        after["editor_json"]["attrs"]["archeaxis_collection"]["records"][0]["values"]
+            .get("double")
+            .is_none()
+    );
+}
 #[test]
-fn cyclic_formula_dependencies_are_explicit_errors_and_do_not_recurse_forever() {let dir=tempfile::tempdir().unwrap();let mut conn=init_workspace(dir.path().join("cycle.sqlite").to_str().unwrap()).unwrap();let id=target(&mut conn);let mut raw=definition(&id);raw["properties"][0]["kind"]=json!("formula");raw["properties"][0]["formula"]=json!({"dialect":ENGINE_VERSION,"engine_version":ENGINE_VERSION,"expression":{"op":"property","key":"double"},"dependencies":["double"],"output_type":"number"});for r in raw["records"].as_array_mut().unwrap(){r["values"].as_object_mut().unwrap().remove("score");}raw["views"][0]["sort"]=json!([]);let saved=save_collection(&mut conn,raw);let p=collection::query(&conn,saved["document_id"].as_str().unwrap(),None,"all",0,100).unwrap();assert!(p["items"][0]["formula_errors"]["score"].as_str().unwrap().contains("cyclic_dependency"));assert!(p["items"][0]["formula_errors"]["double"].as_str().unwrap().contains("cyclic_dependency"));}
+fn cyclic_formula_dependencies_are_explicit_errors_and_do_not_recurse_forever() {
+    let dir = tempfile::tempdir().unwrap();
+    let mut conn = init_workspace(dir.path().join("cycle.sqlite").to_str().unwrap()).unwrap();
+    let id = target(&mut conn);
+    let mut raw = definition(&id);
+    raw["properties"][0]["kind"] = json!("formula");
+    raw["properties"][0]["formula"] = json!({"dialect":ENGINE_VERSION,"engine_version":ENGINE_VERSION,"expression":{"op":"property","key":"double"},"dependencies":["double"],"output_type":"number"});
+    for r in raw["records"].as_array_mut().unwrap() {
+        r["values"].as_object_mut().unwrap().remove("score");
+    }
+    raw["views"][0]["sort"] = json!([]);
+    let saved = save_collection(&mut conn, raw);
+    let p = collection::query(
+        &conn,
+        saved["document_id"].as_str().unwrap(),
+        None,
+        "all",
+        0,
+        100,
+    )
+    .unwrap();
+    assert!(
+        p["items"][0]["formula_errors"]["score"]
+            .as_str()
+            .unwrap()
+            .contains("cyclic_dependency")
+    );
+    assert!(
+        p["items"][0]["formula_errors"]["double"]
+            .as_str()
+            .unwrap()
+            .contains("cyclic_dependency")
+    );
+}
 #[test]
-fn metadata_search_projection_and_reference_export_preserve_definition_not_computed_truth() {let raw=definition("doc_real");let editor=envelope(raw.clone());let text=collection::text_projection(&editor).unwrap();assert!(text.contains("Alpha"));assert!(text.contains("分值"));let exported=collection::export_metadata(&editor).unwrap();assert_eq!(exported["definition"],raw);assert_eq!(exported["full_media_package"],false);assert!(exported["computed_values"].as_str().unwrap().contains("NOT_EMBEDDED"));}
+fn metadata_search_projection_and_reference_export_preserve_definition_not_computed_truth() {
+    let raw = definition("doc_real");
+    let editor = envelope(raw.clone());
+    let text = collection::text_projection(&editor).unwrap();
+    assert!(text.contains("Alpha"));
+    assert!(text.contains("分值"));
+    let exported = collection::export_metadata(&editor).unwrap();
+    assert_eq!(exported["definition"], raw);
+    assert_eq!(exported["full_media_package"], false);
+    assert!(
+        exported["computed_values"]
+            .as_str()
+            .unwrap()
+            .contains("NOT_EMBEDDED")
+    );
+}

@@ -161,8 +161,13 @@ pub fn verify_counts(a: &Connection, b: &Connection) -> rusqlite::Result<bool> {
 /// Verify the complete raw restored DB/CAS before installing a fresh authorization
 /// fence. Keep raw restore available for an exact failure rollback; it is not a
 /// successful user restore until this function returns true.
-pub fn finalize_restore_authorization(source: &Connection, target: &mut Connection) -> rusqlite::Result<bool> {
-    if !verify_counts(source, target)? { return Ok(false); }
+pub fn finalize_restore_authorization(
+    source: &Connection,
+    target: &mut Connection,
+) -> rusqlite::Result<bool> {
+    if !verify_counts(source, target)? {
+        return Ok(false);
+    }
     let source_view = source.unchecked_transaction()?;
     let transaction = target.transaction()?;
     archeaxis_store_sqlite::authorization_fence::install_after_restore(&transaction)?;
@@ -176,7 +181,10 @@ pub fn finalize_restore_authorization(source: &Connection, target: &mut Connecti
 
 /// Explicit post-restore verifier. The general exact verify_counts remains
 /// unchanged and deliberately reports false after a successful fenced restore.
-pub fn verify_restored_authorization(source: &Connection, target: &Connection) -> rusqlite::Result<bool> {
+pub fn verify_restored_authorization(
+    source: &Connection,
+    target: &Connection,
+) -> rusqlite::Result<bool> {
     let source_view = source.unchecked_transaction()?;
     let target_view = target.unchecked_transaction()?;
     let result = verify_restored_authorization_views(&source_view, &target_view)?;
@@ -185,42 +193,96 @@ pub fn verify_restored_authorization(source: &Connection, target: &Connection) -
     Ok(result)
 }
 
-fn verify_restored_authorization_views(source: &Connection, target: &Connection) -> rusqlite::Result<bool> {
+fn verify_restored_authorization_views(
+    source: &Connection,
+    target: &Connection,
+) -> rusqlite::Result<bool> {
     use archeaxis_store_sqlite::authorization_fence::{KEY, SCHEMA};
     use rusqlite::OptionalExtension;
     validate_workspace(source)?;
     validate_workspace(target)?;
     verify_source_objects(source)?;
     verify_source_objects(target)?;
-    if schema_objects(source)? != schema_objects(target)? || table_names(source)? != table_names(target)? {
+    if schema_objects(source)? != schema_objects(target)?
+        || table_names(source)? != table_names(target)?
+    {
         return Ok(false);
     }
     for table in table_names(source)? {
         let equal = if table == "workspace_meta" {
             metadata_content_without_fence(source)? == metadata_content_without_fence(target)?
-        } else { table_content_digest(source, &table)? == table_content_digest(target, &table)? };
-        if !equal { return Ok(false); }
-    }
-    let raw: Option<String> = target.query_row("SELECT value FROM workspace_meta WHERE key=?1", [KEY], |r|r.get(0)).optional()?;
-    let Some(raw) = raw else { return Ok(false); };
-    let Ok(fence) = serde_json::from_str::<serde_json::Value>(&raw) else { return Ok(false); };
-    let Some(object) = fence.as_object() else { return Ok(false); };
-    let Some(epoch) = fence["epoch"].as_str() else { return Ok(false); };
-    if object.len() != 3 || fence["schema"] != SCHEMA || epoch.len() != 32
-        || !epoch.bytes().all(|b| b.is_ascii_digit() || (b'a'..=b'f').contains(&b)) { return Ok(false); }
-    let prior: Option<String> = source.query_row("SELECT value FROM workspace_meta WHERE key=?1", [KEY], |r|r.get(0)).optional()?;
-    if let Some(prior) = prior {
-        if prior == raw { return Ok(false); }
-        if let Ok(old) = serde_json::from_str::<serde_json::Value>(&prior) {
-            if old["epoch"].as_str() == Some(epoch) { return Ok(false); }
+        } else {
+            table_content_digest(source, &table)? == table_content_digest(target, &table)?
+        };
+        if !equal {
+            return Ok(false);
         }
     }
-    let expected = source.prepare("SELECT DISTINCT document_id FROM document_versions
+    let raw: Option<String> = target
+        .query_row(
+            "SELECT value FROM workspace_meta WHERE key=?1",
+            [KEY],
+            |r| r.get(0),
+        )
+        .optional()?;
+    let Some(raw) = raw else {
+        return Ok(false);
+    };
+    let Ok(fence) = serde_json::from_str::<serde_json::Value>(&raw) else {
+        return Ok(false);
+    };
+    let Some(object) = fence.as_object() else {
+        return Ok(false);
+    };
+    let Some(epoch) = fence["epoch"].as_str() else {
+        return Ok(false);
+    };
+    if object.len() != 3
+        || fence["schema"] != SCHEMA
+        || epoch.len() != 32
+        || !epoch
+            .bytes()
+            .all(|b| b.is_ascii_digit() || (b'a'..=b'f').contains(&b))
+    {
+        return Ok(false);
+    }
+    let prior: Option<String> = source
+        .query_row(
+            "SELECT value FROM workspace_meta WHERE key=?1",
+            [KEY],
+            |r| r.get(0),
+        )
+        .optional()?;
+    if let Some(prior) = prior {
+        if prior == raw {
+            return Ok(false);
+        }
+        if let Ok(old) = serde_json::from_str::<serde_json::Value>(&prior) {
+            if old["epoch"].as_str() == Some(epoch) {
+                return Ok(false);
+            }
+        }
+    }
+    let expected = source
+        .prepare(
+            "SELECT DISTINCT document_id FROM document_versions
         WHERE json_type(editor_json,'$.attrs.archeaxis_context_grant') IS NOT NULL
            OR json_type(editor_json,'$.attrs.archeaxis_asset_context_grant') IS NOT NULL
-        ORDER BY document_id")?.query_map([], |r|r.get::<_,String>(0))?.collect::<rusqlite::Result<Vec<_>>>()?;
-    let Some(actual) = fence["blocked_grant_ids"].as_array() else { return Ok(false); };
-    if actual.len() != expected.len() || actual.iter().zip(expected.iter()).any(|(a,b)|a.as_str()!=Some(b.as_str())) { return Ok(false); }
+        ORDER BY document_id",
+        )?
+        .query_map([], |r| r.get::<_, String>(0))?
+        .collect::<rusqlite::Result<Vec<_>>>()?;
+    let Some(actual) = fence["blocked_grant_ids"].as_array() else {
+        return Ok(false);
+    };
+    if actual.len() != expected.len()
+        || actual
+            .iter()
+            .zip(expected.iter())
+            .any(|(a, b)| a.as_str() != Some(b.as_str()))
+    {
+        return Ok(false);
+    }
     Ok(true)
 }
 
@@ -280,7 +342,9 @@ fn metadata_content_without_fence(conn: &Connection) -> rusqlite::Result<(u64, S
         .map(|ordinal| ordinal.to_string())
         .collect::<Vec<_>>()
         .join(", ");
-    let mut stmt = conn.prepare(&format!("SELECT * FROM {quoted} WHERE key != ?1 ORDER BY {order}"))?;
+    let mut stmt = conn.prepare(&format!(
+        "SELECT * FROM {quoted} WHERE key != ?1 ORDER BY {order}"
+    ))?;
     let mut rows = stmt.query([archeaxis_store_sqlite::authorization_fence::KEY])?;
     let mut digest = Sha256::new();
     digest.update((column_count as u64).to_le_bytes());
@@ -369,7 +433,10 @@ fn verify_source_objects(conn: &Connection) -> rusqlite::Result<()> {
 /// Read-only preflight. Opens no writer, creates no workspace and validates CAS.
 pub fn preview(snapshot_path: &Path) -> rusqlite::Result<()> {
     raw_objects::reject_links(snapshot_path)?;
-    let source = Connection::open_with_flags(snapshot_path.canonicalize().map_err(io_error)?, rusqlite::OpenFlags::SQLITE_OPEN_READ_ONLY)?;
+    let source = Connection::open_with_flags(
+        snapshot_path.canonicalize().map_err(io_error)?,
+        rusqlite::OpenFlags::SQLITE_OPEN_READ_ONLY,
+    )?;
     let view = source.unchecked_transaction()?;
     validate_workspace(&view)?;
     verify_source_objects(&view)?;

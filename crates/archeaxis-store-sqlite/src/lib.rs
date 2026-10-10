@@ -1,8 +1,8 @@
 //! vNext database schema and workspace init (Rust sole writer).
 use rusqlite::Connection;
 
-pub mod capability_settings;
 pub mod authorization_fence;
+pub mod capability_settings;
 pub mod raw_objects;
 pub mod writer;
 

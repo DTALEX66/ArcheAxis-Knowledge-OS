@@ -228,10 +228,14 @@ fn real_course_and_assessment_bindings_are_verified_without_fsrs_mutation() {
     let kid = knowledge_fixture(&mut conn, "one");
     let other = knowledge_fixture(&mut conn, "other");
     let cid = course_fixture(&mut conn, &kid, "course-one");
-    for mut record in [row(RecordKind::Requirement, "req", None, &kid),
+    for mut record in [
+        row(RecordKind::Requirement, "req", None, &kid),
         row(RecordKind::Proposal, "prop", Some("req"), &kid),
-        row(RecordKind::Delivery, "delivery", Some("prop"), &kid)] {
-        if record.kind == RecordKind::Delivery {record.course_id = Some(cid.clone());}
+        row(RecordKind::Delivery, "delivery", Some("prop"), &kid),
+    ] {
+        if record.kind == RecordKind::Delivery {
+            record.course_id = Some(cid.clone());
+        }
         put(&mut conn, &record).unwrap();
     }
     let wrong = course_fixture(&mut conn, &other, "course-other");
@@ -596,55 +600,85 @@ fn canonical_hash_preserves_content_array_order_and_authority_metadata() {
 
 #[test]
 fn personal_scope_ancestor_cannot_escape_through_exportable_child() {
-    let mut conn = open(":memory:"); let kid = knowledge_fixture(&mut conn, "scope");
+    let mut conn = open(":memory:");
+    let kid = knowledge_fixture(&mut conn, "scope");
     let mut root = row(RecordKind::Requirement, "personal", None, &kid);
     root.scope = RecordScope::Personal;
     put(&mut conn, &root).unwrap();
     let child = row(RecordKind::Proposal, "shared-child", Some("personal"), &kid);
     put(&mut conn, &child).unwrap();
-    assert!(matches!(export_bundle(&conn, "shared-child"), Err(TeachingError::Conflict(_))));
-    assert!(matches!(export_bundle(&conn, "personal"), Err(TeachingError::Conflict(_))));
+    assert!(matches!(
+        export_bundle(&conn, "shared-child"),
+        Err(TeachingError::Conflict(_))
+    ));
+    assert!(matches!(
+        export_bundle(&conn, "personal"),
+        Err(TeachingError::Conflict(_))
+    ));
 }
 #[test]
 fn feedback_keeps_original_delivery_course_until_explicit_revision() {
-    let mut conn = open(":memory:"); let kid = knowledge_fixture(&mut conn, "course-context");
+    let mut conn = open(":memory:");
+    let kid = knowledge_fixture(&mut conn, "course-context");
     let a = course_fixture(&mut conn, &kid, "course-context-a");
     let b = course_fixture(&mut conn, &kid, "course-context-b");
-    for mut record in [row(RecordKind::Requirement, "req-a", None, &kid),
+    for mut record in [
+        row(RecordKind::Requirement, "req-a", None, &kid),
         row(RecordKind::Proposal, "prop-a", Some("req-a"), &kid),
-        row(RecordKind::Delivery, "delivery-a", Some("prop-a"), &kid)] {
-        record.course_id=Some(a.clone()); put(&mut conn,&record).unwrap();
+        row(RecordKind::Delivery, "delivery-a", Some("prop-a"), &kid),
+    ] {
+        record.course_id = Some(a.clone());
+        put(&mut conn, &record).unwrap();
     }
-    let before=count(&conn);
-    for kind in [RecordKind::TeachBack,RecordKind::Feedback] {
-        let mut changed=row(kind,"wrong-context",Some("delivery-a"),&kid);
-        changed.course_id=Some(b.clone()); assert!(put(&mut conn,&changed).is_err());
-        changed.course_id=None; assert!(put(&mut conn,&changed).is_err());
+    let before = count(&conn);
+    for kind in [RecordKind::TeachBack, RecordKind::Feedback] {
+        let mut changed = row(kind, "wrong-context", Some("delivery-a"), &kid);
+        changed.course_id = Some(b.clone());
+        assert!(put(&mut conn, &changed).is_err());
+        changed.course_id = None;
+        assert!(put(&mut conn, &changed).is_err());
     }
-    let mut wrong=row(RecordKind::Delivery,"delivery-b",Some("prop-a"),&kid);
-    wrong.course_id=Some(b.clone()); assert!(put(&mut conn,&wrong).is_err());
-    assert_eq!(count(&conn),before);
-    let mut feedback=row(RecordKind::Feedback,"feedback-a",Some("delivery-a"),&kid);
-    feedback.course_id=Some(a.clone());put(&mut conn,&feedback).unwrap();
-    let mut revised=row(RecordKind::Revision,"revision-b",Some("feedback-a"),&kid);
-    revised.course_id=Some(b.clone());put(&mut conn,&revised).unwrap();
-    wrong.parent_id=Some("revision-b".into());put(&mut conn,&wrong).unwrap();
-    assert_eq!(get(&conn,"delivery-a").unwrap().unwrap().record.course_id,Some(a));
-    assert_eq!(get(&conn,"delivery-b").unwrap().unwrap().record.course_id,Some(b));
+    let mut wrong = row(RecordKind::Delivery, "delivery-b", Some("prop-a"), &kid);
+    wrong.course_id = Some(b.clone());
+    assert!(put(&mut conn, &wrong).is_err());
+    assert_eq!(count(&conn), before);
+    let mut feedback = row(RecordKind::Feedback, "feedback-a", Some("delivery-a"), &kid);
+    feedback.course_id = Some(a.clone());
+    put(&mut conn, &feedback).unwrap();
+    let mut revised = row(RecordKind::Revision, "revision-b", Some("feedback-a"), &kid);
+    revised.course_id = Some(b.clone());
+    put(&mut conn, &revised).unwrap();
+    wrong.parent_id = Some("revision-b".into());
+    put(&mut conn, &wrong).unwrap();
+    assert_eq!(
+        get(&conn, "delivery-a").unwrap().unwrap().record.course_id,
+        Some(a)
+    );
+    assert_eq!(
+        get(&conn, "delivery-b").unwrap().unwrap().record.course_id,
+        Some(b)
+    );
 }
 
 // Insert malformed restored rows into a fresh fixture. Production append-only
 // triggers remain enabled; no UPDATE/DELETE bypass is used.
-fn restored_row(conn: &Connection, record: &TeachingRecord, sql_parent: Option<&str>, sql_kind: &str) {
+fn restored_row(
+    conn: &Connection,
+    record: &TeachingRecord,
+    sql_parent: Option<&str>,
+    sql_kind: &str,
+) {
     use sha2::{Digest, Sha256};
     fn sorted(value: serde_json::Value) -> serde_json::Value {
         match value {
             serde_json::Value::Object(map) => {
                 let mut fields: Vec<_> = map.into_iter().collect();
-                fields.sort_by(|a,b| a.0.cmp(&b.0));
-                serde_json::Value::Object(fields.into_iter().map(|(k,v)| (k,sorted(v))).collect())
+                fields.sort_by(|a, b| a.0.cmp(&b.0));
+                serde_json::Value::Object(fields.into_iter().map(|(k, v)| (k, sorted(v))).collect())
             }
-            serde_json::Value::Array(items) => serde_json::Value::Array(items.into_iter().map(sorted).collect()),
+            serde_json::Value::Array(items) => {
+                serde_json::Value::Array(items.into_iter().map(sorted).collect())
+            }
             other => other,
         }
     }
@@ -657,43 +691,78 @@ fn restored_row(conn: &Connection, record: &TeachingRecord, sql_parent: Option<&
 #[test]
 fn restored_sql_parent_cannot_hide_withdrawn_json_ancestor() {
     let mut conn = open(":memory:");
-    let kid = knowledge_fixture(&mut conn,"restore-parent");
-    let root = row(RecordKind::Requirement,"root",None,&kid);
-    put(&mut conn,&root).unwrap();
-    withdraw(&mut conn,&Withdrawal {schema:WITHDRAWAL_SCHEMA.into(),withdrawal_id:"withdraw-root".into(),record_id:"root".into(),reason:"withdraw".into()}).unwrap();
-    let damaged = row(RecordKind::Proposal,"damaged",Some("root"),&kid);
-    restored_row(&conn,&damaged,None,"proposal");
-    let child = row(RecordKind::Delivery,"descendant",Some("damaged"),&kid);
-    restored_row(&conn,&child,Some("damaged"),"delivery");
-    for id in ["damaged","descendant"] {
-        assert!(matches!(get(&conn,id),Err(TeachingError::Invalid(_))));
-        assert!(export_bundle(&conn,id).is_err());
+    let kid = knowledge_fixture(&mut conn, "restore-parent");
+    let root = row(RecordKind::Requirement, "root", None, &kid);
+    put(&mut conn, &root).unwrap();
+    withdraw(
+        &mut conn,
+        &Withdrawal {
+            schema: WITHDRAWAL_SCHEMA.into(),
+            withdrawal_id: "withdraw-root".into(),
+            record_id: "root".into(),
+            reason: "withdraw".into(),
+        },
+    )
+    .unwrap();
+    let damaged = row(RecordKind::Proposal, "damaged", Some("root"), &kid);
+    restored_row(&conn, &damaged, None, "proposal");
+    let child = row(RecordKind::Delivery, "descendant", Some("damaged"), &kid);
+    restored_row(&conn, &child, Some("damaged"), "delivery");
+    for id in ["damaged", "descendant"] {
+        assert!(matches!(get(&conn, id), Err(TeachingError::Invalid(_))));
+        assert!(export_bundle(&conn, id).is_err());
     }
     let before = conn.total_changes();
-    assert!(withdraw(&mut conn,&Withdrawal {schema:WITHDRAWAL_SCHEMA.into(),withdrawal_id:"withdraw-damaged".into(),record_id:"damaged".into(),reason:"withdraw".into()}).is_err());
-    assert_eq!(conn.total_changes(),before);
+    assert!(
+        withdraw(
+            &mut conn,
+            &Withdrawal {
+                schema: WITHDRAWAL_SCHEMA.into(),
+                withdrawal_id: "withdraw-damaged".into(),
+                record_id: "damaged".into(),
+                reason: "withdraw".into()
+            }
+        )
+        .is_err()
+    );
+    assert_eq!(conn.total_changes(), before);
 }
 
 #[test]
 fn restored_sql_kind_must_agree_with_hashed_record() {
     let mut conn = open(":memory:");
-    let kid = knowledge_fixture(&mut conn,"restore-kind");
-    let record = row(RecordKind::Requirement,"wrong-kind",None,&kid);
-    restored_row(&conn,&record,None,"observation");
-    assert!(matches!(get(&conn,"wrong-kind"),Err(TeachingError::Invalid(_))));
-    assert!(list(&conn,None).is_err());
+    let kid = knowledge_fixture(&mut conn, "restore-kind");
+    let record = row(RecordKind::Requirement, "wrong-kind", None, &kid);
+    restored_row(&conn, &record, None, "observation");
+    assert!(matches!(
+        get(&conn, "wrong-kind"),
+        Err(TeachingError::Invalid(_))
+    ));
+    assert!(list(&conn, None).is_err());
 }
 
 #[test]
 fn corrupt_withdrawal_target_cannot_return_a_false_duplicate_receipt() {
-    use sha2::{Digest,Sha256};
-    let mut conn=open(":memory:");let kid=knowledge_fixture(&mut conn,"withdraw-target");
-    for id in ["intended","other"] {put(&mut conn,&row(RecordKind::Requirement,id,None,&kid)).unwrap();}
-    let request=Withdrawal {schema:WITHDRAWAL_SCHEMA.into(),withdrawal_id:"restored-withdraw".into(),record_id:"intended".into(),reason:"withdraw".into()};
-    let json=serde_json::to_string(&serde_json::to_value(&request).unwrap()).unwrap();
-    let checksum=hex::encode(Sha256::digest(json.as_bytes()));
+    use sha2::{Digest, Sha256};
+    let mut conn = open(":memory:");
+    let kid = knowledge_fixture(&mut conn, "withdraw-target");
+    for id in ["intended", "other"] {
+        put(&mut conn, &row(RecordKind::Requirement, id, None, &kid)).unwrap();
+    }
+    let request = Withdrawal {
+        schema: WITHDRAWAL_SCHEMA.into(),
+        withdrawal_id: "restored-withdraw".into(),
+        record_id: "intended".into(),
+        reason: "withdraw".into(),
+    };
+    let json = serde_json::to_string(&serde_json::to_value(&request).unwrap()).unwrap();
+    let checksum = hex::encode(Sha256::digest(json.as_bytes()));
     conn.execute("INSERT INTO teaching_withdrawals(withdrawal_id,record_id,request_json,content_sha256) VALUES(?1,'other',?2,?3)",rusqlite::params![request.withdrawal_id,json,checksum]).unwrap();
-    let before=conn.total_changes();
-    assert!(matches!(withdraw(&mut conn,&request),Err(TeachingError::Invalid(_))));
-    assert!(get(&conn,"other").is_err());assert_eq!(conn.total_changes(),before);
+    let before = conn.total_changes();
+    assert!(matches!(
+        withdraw(&mut conn, &request),
+        Err(TeachingError::Invalid(_))
+    ));
+    assert!(get(&conn, "other").is_err());
+    assert_eq!(conn.total_changes(), before);
 }

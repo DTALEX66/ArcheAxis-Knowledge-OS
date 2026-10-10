@@ -49,3 +49,27 @@ paths = [
   '''\.venv/''',
   '''target/''',
 ]
+
+# Verified Oct10 receipt source-file SHA256 digests, never file-wide exclusions.
+# 20 findings in two historical commits map exactly to committed public bytes.
+[[allowlists]]
+description = "exact verified receipt source digests"
+condition = "AND"
+targetRules = ["generic-api-key"]
+regexTarget = "secret"
+paths = [
+  '''^docs/current/receipts/AAOS\-AI\-STAGE\-20261010\.json$''',
+  '''^docs/current/receipts/AAOS\-CANVAS\-STAGE\-20261010\.json$''',
+  '''^docs/current/receipts/AAOS\-RESEARCH\-STAGE\-20261010\.json$''',
+  '''^docs/current/receipts/AAOS\-TEACHING\-STAGE\-20261010\.json$''',
+]
+regexes = [
+  '''^4c35d8878a18a4da737eff80a82c7cad38a3840eb8f2ce5487526694c32311a4$''',
+  '''^4cc8047b67a9d174558e3700e8b81df9c04230cdd209049b367ba3619d673191$''',
+  '''^5f8393df1b41965895501782d904efac05b7f6793d739f29351096b9c514859d$''',
+  '''^82d161388b707b36b49ac87b12bdbc272901fe616a8889791cebcc2fd2adc751$''',
+  '''^9e14d6c214222823c4ac4ddcd34d5dda943b89a14e78666252fbf276618c0826$''',
+  '''^b8adf28fe7567f830d5267ced9bffb756042d8df6e519bf84afb824a193a8e8b$''',
+  '''^cd3036cd93ebd26d0be1d882936630a4ea5df3f2a5248f42feeb06142c7ee564$''',
+  '''^d3fe0a2d071b8770e5f8a6d71d8dccc3e2a73819e7f676621795095bad2dfb67$''',
+]

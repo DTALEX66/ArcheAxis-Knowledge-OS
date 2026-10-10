@@ -287,7 +287,6 @@ pub fn create_candidate(
     Ok(readback)
 }
 
-
 /// Bounded read-only projection, including stale courses for historical reading.
 pub fn list_candidates(conn: &Connection, cursor: Option<&str>) -> rusqlite::Result<Value> {
     let ids: Vec<String> = conn.prepare(
@@ -296,7 +295,8 @@ pub fn list_candidates(conn: &Connection, cursor: Option<&str>) -> rusqlite::Res
     let more = ids.len() > 20;
     let mut items = Vec::new();
     for id in ids.iter().take(20) {
-        let course = read_candidate(conn, id)?.ok_or_else(|| invalid("listed course disappeared"))?;
+        let course =
+            read_candidate(conn, id)?.ok_or_else(|| invalid("listed course disappeared"))?;
         items.push(json!({"manifest_id":id,"title":course["manifest"]["title"],
             "stale":course["stale"],"status":course["status"],"human_review_required":true}));
     }

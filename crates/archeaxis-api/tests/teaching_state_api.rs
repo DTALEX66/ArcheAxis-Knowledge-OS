@@ -119,19 +119,31 @@ async fn human(app: &Router, method: &str, path: &str, body: Value) -> (u16, Val
 
 #[tokio::test]
 async fn incomplete_preparation_initial_creation_retries_the_same_document_after_reopen() {
-    let (_dir,db,_) = fixture();
-    let request=json!({"create_request_id":"preparation_stable_attempt","title":"不完整准备","editor_json":{"type":"doc","content":[{"type":"paragraph","content":[{"type":"text","text":"尚无正式知识或需求绑定"}]}]}});
-    let app=archeaxis_api::router(Store::open(&db).unwrap());
-    let (status,first)=human(&app,"POST","/api/v1/documents",request.clone()).await;
-    assert_eq!(status,201,"{first}");
+    let (_dir, db, _) = fixture();
+    let request = json!({"create_request_id":"preparation_stable_attempt","title":"不完整准备","editor_json":{"type":"doc","content":[{"type":"paragraph","content":[{"type":"text","text":"尚无正式知识或需求绑定"}]}]}});
+    let app = archeaxis_api::router(Store::open(&db).unwrap());
+    let (status, first) = human(&app, "POST", "/api/v1/documents", request.clone()).await;
+    assert_eq!(status, 201, "{first}");
     drop(app);
-    let app=archeaxis_api::router(Store::open(&db).unwrap());
-    let (status,retry)=human(&app,"POST","/api/v1/documents",request.clone()).await;
-    assert_eq!(status,201,"{retry}");assert_eq!(retry,first);
-    let mut conflicting=request;conflicting["title"]=json!("不同内容");
-    assert_eq!(human(&app,"POST","/api/v1/documents",conflicting).await.0,409);
-    drop(app);let conn=init_workspace(db.to_str().unwrap()).unwrap();
-    assert_eq!(conn.query_row("SELECT COUNT(*) FROM documents",[],|r|r.get::<_,i64>(0)).unwrap(),1);
+    let app = archeaxis_api::router(Store::open(&db).unwrap());
+    let (status, retry) = human(&app, "POST", "/api/v1/documents", request.clone()).await;
+    assert_eq!(status, 201, "{retry}");
+    assert_eq!(retry, first);
+    let mut conflicting = request;
+    conflicting["title"] = json!("不同内容");
+    assert_eq!(
+        human(&app, "POST", "/api/v1/documents", conflicting)
+            .await
+            .0,
+        409
+    );
+    drop(app);
+    let conn = init_workspace(db.to_str().unwrap()).unwrap();
+    assert_eq!(
+        conn.query_row("SELECT COUNT(*) FROM documents", [], |r| r.get::<_, i64>(0))
+            .unwrap(),
+        1
+    );
 }
 async fn count(app: &Router) -> usize {
     let (status, page) = human(app, "GET", "/api/v2/teaching/records", json!({})).await;

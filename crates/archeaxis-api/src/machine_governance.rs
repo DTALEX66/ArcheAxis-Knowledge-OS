@@ -1,16 +1,29 @@
 //! Finite product-context and human machine-evaluation commands.
 use crate::AppState;
 use archeaxis_domain::machine_evaluation::{self, EvaluationRequest, Rubric};
-use axum::{Json,extract::{Path,Query,State},http::{HeaderMap,StatusCode},response::{IntoResponse,Response}};
+use axum::{
+    Json,
+    extract::{Path, Query, State},
+    http::{HeaderMap, StatusCode},
+    response::{IntoResponse, Response},
+};
 use serde::Deserialize;
 use serde_json::json;
 
 #[derive(Deserialize)]
 #[serde(deny_unknown_fields)]
-pub(crate) struct PageQuery { cursor: Option<String> }
+pub(crate) struct PageQuery {
+    cursor: Option<String>,
+}
 async fn list(state: AppState, query: PageQuery, namespace: &'static str) -> Response {
-    if query.cursor.as_ref().is_some_and(|s|s.is_empty() || s.len()>256 || !s.bytes().all(|b|b.is_ascii_alphanumeric() || matches!(b,b'_'|b'-'|b'.'))) {
-        return (StatusCode::BAD_REQUEST,"invalid machine document cursor").into_response();
+    if query.cursor.as_ref().is_some_and(|s| {
+        s.is_empty()
+            || s.len() > 256
+            || !s
+                .bytes()
+                .all(|b| b.is_ascii_alphanumeric() || matches!(b, b'_' | b'-' | b'.'))
+    }) {
+        return (StatusCode::BAD_REQUEST, "invalid machine document cursor").into_response();
     }
     crate::with_store(state,move |conn| {
         let read = (|| -> rusqlite::Result<_> {
@@ -28,44 +41,105 @@ async fn list(state: AppState, query: PageQuery, namespace: &'static str) -> Res
         match read {Ok(page)=>Json(page).into_response(),Err(e)=>crate::documents::failure(e.into())}
     }).await
 }
-pub(crate) async fn contexts(State(state):State<AppState>,Query(query):Query<PageQuery>)->Response {
-    list(state,query,"archeaxis_context_grant").await
+pub(crate) async fn contexts(
+    State(state): State<AppState>,
+    Query(query): Query<PageQuery>,
+) -> Response {
+    list(state, query, "archeaxis_context_grant").await
 }
-pub(crate) async fn rubrics(State(state):State<AppState>,Query(query):Query<PageQuery>)->Response {
-    list(state,query,machine_evaluation::RUBRIC_NAMESPACE).await
+pub(crate) async fn rubrics(
+    State(state): State<AppState>,
+    Query(query): Query<PageQuery>,
+) -> Response {
+    list(state, query, machine_evaluation::RUBRIC_NAMESPACE).await
 }
-pub(crate) async fn evaluations(State(state):State<AppState>,Query(query):Query<PageQuery>)->Response {
-    list(state,query,machine_evaluation::EVALUATION_NAMESPACE).await
+pub(crate) async fn evaluations(
+    State(state): State<AppState>,
+    Query(query): Query<PageQuery>,
+) -> Response {
+    list(state, query, machine_evaluation::EVALUATION_NAMESPACE).await
 }
-pub(crate) async fn create_rubric(State(state):State<AppState>,headers:HeaderMap,Json(body):Json<Rubric>)->Response {
-    if crate::request_actor(&headers)!=Ok("human") {return StatusCode::FORBIDDEN.into_response();}
-    crate::with_store(state,move |conn| match machine_evaluation::create_rubric(conn,"human",&body) {
-        Ok(document)=>(StatusCode::CREATED,Json(document)).into_response(),Err(e)=>crate::documents::failure(e),
-    }).await
+pub(crate) async fn create_rubric(
+    State(state): State<AppState>,
+    headers: HeaderMap,
+    Json(body): Json<Rubric>,
+) -> Response {
+    if crate::request_actor(&headers) != Ok("human") {
+        return StatusCode::FORBIDDEN.into_response();
+    }
+    crate::with_store(state, move |conn| {
+        match machine_evaluation::create_rubric(conn, "human", &body) {
+            Ok(document) => (StatusCode::CREATED, Json(document)).into_response(),
+            Err(e) => crate::documents::failure(e),
+        }
+    })
+    .await
 }
-pub(crate) async fn create_evaluation(State(state):State<AppState>,headers:HeaderMap,Json(body):Json<EvaluationRequest>)->Response {
-    if crate::request_actor(&headers)!=Ok("human") {return StatusCode::FORBIDDEN.into_response();}
-    crate::with_store(state,move |conn| match machine_evaluation::create_evaluation(conn,"human",&body) {
-        Ok(document)=>(StatusCode::CREATED,Json(document)).into_response(),Err(e)=>crate::documents::failure(e),
-    }).await
+pub(crate) async fn create_evaluation(
+    State(state): State<AppState>,
+    headers: HeaderMap,
+    Json(body): Json<EvaluationRequest>,
+) -> Response {
+    if crate::request_actor(&headers) != Ok("human") {
+        return StatusCode::FORBIDDEN.into_response();
+    }
+    crate::with_store(
+        state,
+        move |conn| match machine_evaluation::create_evaluation(conn, "human", &body) {
+            Ok(document) => (StatusCode::CREATED, Json(document)).into_response(),
+            Err(e) => crate::documents::failure(e),
+        },
+    )
+    .await
 }
-pub(crate) async fn answer_snapshot(State(state):State<AppState>,Path(id):Path<String>)->Response {
-    crate::with_store(state,move |conn| match machine_evaluation::answer_snapshot(conn,&id) {
-        Ok(snapshot)=>Json(snapshot).into_response(),Err(e)=>crate::documents::failure(e),
-    }).await
+pub(crate) async fn answer_snapshot(
+    State(state): State<AppState>,
+    Path(id): Path<String>,
+) -> Response {
+    crate::with_store(
+        state,
+        move |conn| match machine_evaluation::answer_snapshot(conn, &id) {
+            Ok(snapshot) => Json(snapshot).into_response(),
+            Err(e) => crate::documents::failure(e),
+        },
+    )
+    .await
 }
 
-pub(crate) async fn assets(State(state):State<AppState>,Query(query):Query<PageQuery>)->Response {
-    list(state,query,archeaxis_domain::ai_asset::NAMESPACE).await
+pub(crate) async fn assets(
+    State(state): State<AppState>,
+    Query(query): Query<PageQuery>,
+) -> Response {
+    list(state, query, archeaxis_domain::ai_asset::NAMESPACE).await
 }
-pub(crate) async fn asset_packet(State(state):State<AppState>,headers:HeaderMap,Json(body):Json<archeaxis_domain::asset_context_grant::PacketRequest>)->Response {
-    use archeaxis_domain::{asset_context_grant::{self,Consumer},document::Error};
-    let consumer=match crate::request_actor(&headers) {Ok("human")=>Consumer::ManualContextPacket,Ok("machine")=>Consumer::LocalMachine,_=>return StatusCode::FORBIDDEN.into_response()};
-    let now=std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).map(|d|d.as_secs()).unwrap_or(u64::MAX);
-    crate::with_store(state,move |conn|match asset_context_grant::prepare_packet(conn,&body,consumer,now) {
-        Ok(packet)=>Json(packet).into_response(),
-        Err(Error::Invalid("client request identity already has a different frozen packet"))=>StatusCode::CONFLICT.into_response(),
-        Err(Error::Invalid(_))|Err(Error::NotFound)=>StatusCode::FORBIDDEN.into_response(),
-        Err(other)=>crate::documents::failure(other),
-    }).await
+pub(crate) async fn asset_packet(
+    State(state): State<AppState>,
+    headers: HeaderMap,
+    Json(body): Json<archeaxis_domain::asset_context_grant::PacketRequest>,
+) -> Response {
+    use archeaxis_domain::{
+        asset_context_grant::{self, Consumer},
+        document::Error,
+    };
+    let consumer = match crate::request_actor(&headers) {
+        Ok("human") => Consumer::ManualContextPacket,
+        Ok("machine") => Consumer::LocalMachine,
+        _ => return StatusCode::FORBIDDEN.into_response(),
+    };
+    let now = std::time::SystemTime::now()
+        .duration_since(std::time::UNIX_EPOCH)
+        .map(|d| d.as_secs())
+        .unwrap_or(u64::MAX);
+    crate::with_store(
+        state,
+        move |conn| match asset_context_grant::prepare_packet(conn, &body, consumer, now) {
+            Ok(packet) => Json(packet).into_response(),
+            Err(Error::Invalid(
+                "client request identity already has a different frozen packet",
+            )) => StatusCode::CONFLICT.into_response(),
+            Err(Error::Invalid(_)) | Err(Error::NotFound) => StatusCode::FORBIDDEN.into_response(),
+            Err(other) => crate::documents::failure(other),
+        },
+    )
+    .await
 }

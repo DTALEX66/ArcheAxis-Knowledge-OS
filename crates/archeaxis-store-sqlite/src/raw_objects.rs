@@ -107,17 +107,28 @@ pub fn read(conn: &Connection, digest: &str) -> rusqlite::Result<Vec<u8>> {
 /// The bounded staging path policy is deliberately separate and unchanged.
 pub fn read_bounded(conn: &Connection, digest: &str, limit: usize) -> rusqlite::Result<Vec<u8>> {
     use std::io::Read;
-    let owner = Path::new(conn.path().filter(|p|!p.is_empty()).ok_or(rusqlite::Error::InvalidQuery)?);
-    if !owner.is_absolute() || owner.components().any(|c| matches!(c,std::path::Component::ParentDir)) {
+    let owner = Path::new(
+        conn.path()
+            .filter(|p| !p.is_empty())
+            .ok_or(rusqlite::Error::InvalidQuery)?,
+    );
+    if !owner.is_absolute()
+        || owner
+            .components()
+            .any(|c| matches!(c, std::path::Component::ParentDir))
+    {
         return Err(rusqlite::Error::InvalidPath(owner.to_owned()));
     }
     #[cfg(windows)]
     {
-        use std::path::{Component,Prefix};
+        use std::path::{Component, Prefix};
         match owner.components().next() {
             Some(Component::Prefix(prefix)) => match prefix.kind() {
                 Prefix::Disk(drive) | Prefix::VerbatimDisk(drive)
-                    if !matches!(drive.to_ascii_uppercase(),b'E'|b'F') => (),
+                    if !matches!(drive.to_ascii_uppercase(), b'E' | b'F') =>
+                {
+                    ()
+                }
                 _ => return Err(rusqlite::Error::InvalidPath(owner.to_owned())),
             },
             _ => return Err(rusqlite::Error::InvalidPath(owner.to_owned())),
@@ -130,12 +141,18 @@ pub fn read_bounded(conn: &Connection, digest: &str, limit: usize) -> rusqlite::
         .map_err(|e| rusqlite::Error::ToSqlConversionFailure(Box::new(e)))?
         .ok_or(rusqlite::Error::InvalidQuery)?;
     let size = file.metadata().map_err(io_error)?.len();
-    let cap = u64::try_from(limit).map_err(|_|rusqlite::Error::InvalidQuery)?;
-    if size > cap { return Err(rusqlite::Error::InvalidQuery); }
+    let cap = u64::try_from(limit).map_err(|_| rusqlite::Error::InvalidQuery)?;
+    if size > cap {
+        return Err(rusqlite::Error::InvalidQuery);
+    }
     let mut bytes = Vec::new();
-    file.take(cap.saturating_add(1)).read_to_end(&mut bytes).map_err(io_error)?;
-    if bytes.len() as u64 != size || bytes.len() > limit
-        || hex::encode(Sha256::digest(&bytes)) != digest {
+    file.take(cap.saturating_add(1))
+        .read_to_end(&mut bytes)
+        .map_err(io_error)?;
+    if bytes.len() as u64 != size
+        || bytes.len() > limit
+        || hex::encode(Sha256::digest(&bytes)) != digest
+    {
         return Err(rusqlite::Error::InvalidQuery);
     }
     Ok(bytes)

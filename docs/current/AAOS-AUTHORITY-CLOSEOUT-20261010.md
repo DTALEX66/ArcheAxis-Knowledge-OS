@@ -36,3 +36,15 @@
 架构相关回归首轮 79 PASS、6 FAIL、2 skipped：包含 Windows 环境变量大小写回归、沙箱硬链接拒绝和本机真实工具探测失败。大小写问题已修复；后续定向 82 PASS、2 skipped、3 deselected，run `be268a2d33/43979fc22b32`。三项未纳入本机定向通过结论，需要完整 CI 或有对应能力的运行环境验证。脚本原有直接 CLI 帮助入口已另行验证；测试退出的 pyreadline 清理警告保留。
 
 本地明细：`.project-local/runs/authority-ci-cache-closeout-20261010/FORMAT-WRITESET.json`、`OFFLINE-CHECKOUT-READBACK.json`、`OFFLINE-ENTRY-FENCES.json`。本记录需要随后补齐新提交的云端结果，不能提前标 PASS。
+
+## 后续完整运行与证据修复
+
+完整运行 `38062260418` 对应 `febdcfdd743de3e2e44836b87c87b9d76a4bd7a4`：desktop-build 已通过，包括完整前端测试；原 fixture 字节和异步测试修复得到云端验证。仍有 Rust/正式宿主格式、资源来源引用、浏览器导航和秘密扫描失败，不计完整通过。
+
+秘密扫描 20 项均逐一与告警所属历史提交的公开源码字节核验，确认是 SHA-256 来源摘要。证据在 `receipts/GITLEAKS-SOURCE-DIGEST-AUDIT-20261010.json`；精确例外只匹配 generic-api-key 规则下的 4 个回执路径且值为 8 个已验证摘要。路径和值必须同时满足，其他值和其他路径不放行，新增回归验证该边界。配置语义依据 Gitleaks v8.30.1 官方说明，未下载或保存 Secret/Match 字段。
+
+对该 SHA 云端生成的 rustfmt 补丁核对路径、原索引和应用检查后，正常应用到 66 个 crates Rust 文件。此处只做 formatter 产生的格式修复，正式 src-tauri 宿主的补丁另由 CI 采集；本机访问拒绝未通过提权绕过。
+
+资源资格登记的 core-contract.ts 来源引用原已漂移，另有 document.rs 的格式变化。更新这两项实际字节摘要并重生成投影；68 项运行状态仍为 NOT_RUN，资格仍为 INHERITED_ONLY，摘要刷新不授予产品资格。
+
+导航验收以新布局源码为依据：主入口为五个日常分组和两个固定入口，知识分组另展示三个子页面，22 个页面登记不等于 22 个同时可见按钮。已修复沿用旧扁平布局的断言，保留内容、几何和焦点验收。尚需新 SHA 的完整 CI 验证；不改变布局、配色或 Owner 冻结状态。

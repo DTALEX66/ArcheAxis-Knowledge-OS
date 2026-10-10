@@ -353,7 +353,6 @@ pub(super) async fn render(
     Json(json!({"course":latest,"render":derived,"derived_only":true,"canonical_bindings_verified":true,"human_review_required":true})).into_response()
 }
 
-
 #[derive(Deserialize)]
 #[serde(deny_unknown_fields)]
 pub(super) struct ListQuery {
@@ -364,12 +363,21 @@ pub(super) async fn list(
     State(runtime): State<Runtime>,
     axum::extract::Query(query): axum::extract::Query<ListQuery>,
 ) -> Response {
-    if query.cursor.as_ref().is_some_and(|id| id.is_empty() || id.len() > 256
-        || !id.bytes().all(|c| c.is_ascii_alphanumeric() || c == b'-' || c == b'_')) {
+    if query.cursor.as_ref().is_some_and(|id| {
+        id.is_empty()
+            || id.len() > 256
+            || !id
+                .bytes()
+                .all(|c| c.is_ascii_alphanumeric() || c == b'-' || c == b'_')
+    }) {
         return error(StatusCode::UNPROCESSABLE_ENTITY, "invalid course cursor");
     }
-    match runtime.executor.store().submit_wait(move |conn|
-        course::list_candidates(conn, query.cursor.as_deref())).await {
+    match runtime
+        .executor
+        .store()
+        .submit_wait(move |conn| course::list_candidates(conn, query.cursor.as_deref()))
+        .await
+    {
         Ok(Ok(value)) => (StatusCode::OK, Json(value)).into_response(),
         _ => error(StatusCode::INTERNAL_SERVER_ERROR, "course list read failed"),
     }

@@ -182,8 +182,8 @@ fn append(
     crate::research::validate_editor(tx, &editor)?;
     crate::collection::validate_document(tx, &editor)?;
     crate::context_grant::validate_editor(tx, id, &editor)?;
-    crate::ai_asset::validate_editor(tx,id,&editor)?;
-    crate::asset_context_grant::validate_editor(tx,id,&editor)?;
+    crate::ai_asset::validate_editor(tx, id, &editor)?;
+    crate::asset_context_grant::validate_editor(tx, id, &editor)?;
     crate::machine_evaluation::validate_transition(tx, id, expected, &editor)?;
     let (editor, blocks, projection) = codec(id, version, editor)?;
     let encoded = editor.to_string();
@@ -257,22 +257,40 @@ pub fn create_optional_with_request(
         }
     }
     let id = if let Some(request_id) = request_id {
-        if request_id.is_empty() || request_id.len() > 128
-            || !request_id.bytes().all(|b|b.is_ascii_alphanumeric() || b == b'_' || b == b'-') {
-            return Err(Error::Invalid("create request ID must be a bounded ASCII token"));
+        if request_id.is_empty()
+            || request_id.len() > 128
+            || !request_id
+                .bytes()
+                .all(|b| b.is_ascii_alphanumeric() || b == b'_' || b == b'-')
+        {
+            return Err(Error::Invalid(
+                "create request ID must be a bounded ASCII token",
+            ));
         }
-        format!("doc_req_{}",hex::encode(Sha256::digest(request_id.as_bytes())))
+        format!(
+            "doc_req_{}",
+            hex::encode(Sha256::digest(request_id.as_bytes()))
+        )
     } else {
-        conn.query_row("SELECT 'doc_' || lower(hex(randomblob(16)))", [], |r| r.get::<_,String>(0))?
+        conn.query_row("SELECT 'doc_' || lower(hex(randomblob(16)))", [], |r| {
+            r.get::<_, String>(0)
+        })?
     };
     let tx = conn.transaction_with_behavior(rusqlite::TransactionBehavior::Immediate)?;
     if request_id.is_some() {
-        let exists: bool = tx.query_row("SELECT EXISTS(SELECT 1 FROM documents WHERE document_id=?1)",[&id],|r|r.get(0))?;
+        let exists: bool = tx.query_row(
+            "SELECT EXISTS(SELECT 1 FROM documents WHERE document_id=?1)",
+            [&id],
+            |r| r.get(0),
+        )?;
         if exists {
-            let initial = read(&tx,&id,Some(1))?;
-            let (normalized,_,_) = codec(&id,1,editor)?;
-            if initial["title"] != title || initial["source_id"] != json!(source_id)
-                || initial["source_revision"] != json!(revision) || initial["editor_json"] != normalized {
+            let initial = read(&tx, &id, Some(1))?;
+            let (normalized, _, _) = codec(&id, 1, editor)?;
+            if initial["title"] != title
+                || initial["source_id"] != json!(source_id)
+                || initial["source_revision"] != json!(revision)
+                || initial["editor_json"] != normalized
+            {
                 return Err(Error::Conflict(initial["version"].as_i64().unwrap_or(1)));
             }
             return Ok(initial);
@@ -335,32 +353,55 @@ pub struct ListCursor {
 
 /// Fixed membership, keyset pagination. Versions are bound by each returned summary,
 /// not a database-wide snapshot spanning HTTP requests.
-pub fn list_page(conn: &mut Connection, cursor: Option<ListCursor>) -> Result<(Vec<Value>, Option<ListCursor>, i64), Error> {
+pub fn list_page(
+    conn: &mut Connection,
+    cursor: Option<ListCursor>,
+) -> Result<(Vec<Value>, Option<ListCursor>, i64), Error> {
     let tx = conn.transaction()?;
     let mut boundary = match cursor {
         Some(value) => {
             let valid:bool=tx.query_row("SELECT EXISTS(SELECT 1 FROM documents WHERE document_id=?1 AND created_at=?2 AND rowid<=?3) AND (SELECT count(*) FROM documents WHERE rowid<=?3)=?4",params![value.after_document_id,value.after_created_at,value.watermark_rowid,value.snapshot_count],|r|r.get(0))?;
-            if value.v!=1 || !valid { return Err(Error::Invalid("document cursor membership changed or is invalid")); }
+            if value.v != 1 || !valid {
+                return Err(Error::Invalid(
+                    "document cursor membership changed or is invalid",
+                ));
+            }
             value
-        },
+        }
         None => {
-            let (watermark, count) = tx.query_row("SELECT coalesce(max(rowid),0),count(*) FROM documents", [], |r| Ok((r.get::<_,i64>(0)?,r.get::<_,i64>(1)?)))?;
-            ListCursor { v: 1, watermark_rowid: watermark, snapshot_count: count, after_created_at: String::new(), after_document_id: String::new() }
+            let (watermark, count) = tx.query_row(
+                "SELECT coalesce(max(rowid),0),count(*) FROM documents",
+                [],
+                |r| Ok((r.get::<_, i64>(0)?, r.get::<_, i64>(1)?)),
+            )?;
+            ListCursor {
+                v: 1,
+                watermark_rowid: watermark,
+                snapshot_count: count,
+                after_created_at: String::new(),
+                after_document_id: String::new(),
+            }
         }
     };
     let mut stmt = tx.prepare("SELECT d.document_id,d.source_id,d.source_revision,d.title,d.current_version,v.content_sha256,d.created_at FROM documents d JOIN document_versions v ON v.document_id=d.document_id AND v.version=d.current_version WHERE d.rowid<=?1 AND (?2='' OR d.created_at<?2 OR (d.created_at=?2 AND d.document_id>?3)) ORDER BY d.created_at DESC,d.document_id ASC LIMIT 501")?;
     let mut rows = stmt.query_map(params![boundary.watermark_rowid,boundary.after_created_at,boundary.after_document_id], |r| Ok((json!({"document_id":r.get::<_,String>(0)?,"source_id":r.get::<_,Option<String>>(1)?,"source_revision":r.get::<_,Option<String>>(2)?,"title":r.get::<_,String>(3)?,"version":r.get::<_,i64>(4)?,"content_sha256":r.get::<_,String>(5)?}),r.get::<_,String>(6)?)))?.collect::<Result<Vec<_>,_>>()?;
-    let more = rows.len()>500;
+    let more = rows.len() > 500;
     rows.truncate(500);
     let next = if more {
         let (summary, time) = rows.last().unwrap();
         boundary.after_created_at = time.clone();
         boundary.after_document_id = summary["document_id"].as_str().unwrap().to_owned();
         Some(boundary.clone())
-    } else { None };
+    } else {
+        None
+    };
     drop(stmt);
     tx.commit()?;
-    Ok((rows.into_iter().map(|(value,_)|value).collect(),next,boundary.snapshot_count))
+    Ok((
+        rows.into_iter().map(|(value, _)| value).collect(),
+        next,
+        boundary.snapshot_count,
+    ))
 }
 
 fn validate_basis(conn: &Connection, id: &str, expected: i64, basis: &Value) -> Result<(), Error> {

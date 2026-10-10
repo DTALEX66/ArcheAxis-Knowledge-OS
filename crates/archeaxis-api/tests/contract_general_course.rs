@@ -466,7 +466,6 @@ print(json.dumps({{'schema':'archeaxis.general-course-worker/v1','status':'VALID
     }
 }
 
-
 #[tokio::test]
 async fn course_catalog_paginates_persists_and_retains_stale_history() {
     let dir = tempfile::tempdir().unwrap();
@@ -480,46 +479,117 @@ async fn course_catalog_paginates_persists_and_retains_stale_history() {
     assert_eq!(status, 201, "{first}");
     let manifest = first["manifest"].clone();
     let binding = payload["bindings"][0].clone();
-    executor.store().submit_wait(move |conn| {
-        for index in 0..23 {
-            let mut current = manifest.clone();
-            current["manifest_id"] = json!(format!("course-page-{index:02}"));
-            current["artifacts"][0]["artifact_id"] = json!(format!("lesson-page-{index:02}"));
-            archeaxis_domain::course::create_candidate(conn, &current, &[archeaxis_domain::course::CourseBinding {
-                component_id:binding["component_id"].as_str().unwrap().into(),
-                knowledge_id:binding["knowledge_id"].as_str().unwrap().into(),
-                knowledge_version:binding["knowledge_version"].as_str().unwrap().into(),
-                source_id:binding["source_id"].as_str().unwrap().into(),
-                source_revision:binding["source_revision"].as_str().unwrap().into(),
-            }]).unwrap();
-        }
-    }).await.unwrap();
+    executor
+        .store()
+        .submit_wait(move |conn| {
+            for index in 0..23 {
+                let mut current = manifest.clone();
+                current["manifest_id"] = json!(format!("course-page-{index:02}"));
+                current["artifacts"][0]["artifact_id"] = json!(format!("lesson-page-{index:02}"));
+                archeaxis_domain::course::create_candidate(
+                    conn,
+                    &current,
+                    &[archeaxis_domain::course::CourseBinding {
+                        component_id: binding["component_id"].as_str().unwrap().into(),
+                        knowledge_id: binding["knowledge_id"].as_str().unwrap().into(),
+                        knowledge_version: binding["knowledge_version"].as_str().unwrap().into(),
+                        source_id: binding["source_id"].as_str().unwrap().into(),
+                        source_revision: binding["source_revision"].as_str().unwrap().into(),
+                    }],
+                )
+                .unwrap();
+            }
+        })
+        .await
+        .unwrap();
     let (_, page) = call(&app, "GET", "/api/v1/courses", json!({}), "human").await;
     assert_eq!(page["items"].as_array().unwrap().len(), 20);
-    assert!(page["items"].as_array().unwrap().iter().all(|item| item["stale"]==false && item["human_review_required"]==true && item.get("manifest").is_none()));
+    assert!(
+        page["items"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .all(|item| item["stale"] == false
+                && item["human_review_required"] == true
+                && item.get("manifest").is_none())
+    );
     let cursor = page["next_cursor"].as_str().unwrap();
-    let (_, next) = call(&app, "GET", &format!("/api/v1/courses?cursor={cursor}"), json!({}), "human").await;
+    let (_, next) = call(
+        &app,
+        "GET",
+        &format!("/api/v1/courses?cursor={cursor}"),
+        json!({}),
+        "human",
+    )
+    .await;
     assert_eq!(next["items"].as_array().unwrap().len(), 4);
     assert!(next["next_cursor"].is_null());
-    let first_ids: std::collections::BTreeSet<_> = page["items"].as_array().unwrap().iter().map(|item|item["manifest_id"].as_str().unwrap()).collect();
-    assert!(next["items"].as_array().unwrap().iter().all(|item| !first_ids.contains(item["manifest_id"].as_str().unwrap())));
-    assert_eq!(call(&app,"GET","/api/v1/courses?cursor=..%2Fprivate",json!({}),"human").await.0,422);
-    assert_eq!(call(&app,"GET","/api/v1/courses?sql=delete",json!({}),"human").await.0,400);
-    executor.store().submit_wait(|conn| {conn.execute("UPDATE knowledge SET status='deprecated'", []).unwrap();}).await.unwrap();
-    let (_, stale) = call(&app,"GET","/api/v1/courses",json!({}),"human").await;
-    assert_eq!(stale["items"].as_array().unwrap().len(),20);
-    assert!(stale["items"].as_array().unwrap().iter().all(|item|item["stale"]==true));
-    drop(app); drop(executor);
+    let first_ids: std::collections::BTreeSet<_> = page["items"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .map(|item| item["manifest_id"].as_str().unwrap())
+        .collect();
+    assert!(
+        next["items"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .all(|item| !first_ids.contains(item["manifest_id"].as_str().unwrap()))
+    );
+    assert_eq!(
+        call(
+            &app,
+            "GET",
+            "/api/v1/courses?cursor=..%2Fprivate",
+            json!({}),
+            "human"
+        )
+        .await
+        .0,
+        422
+    );
+    assert_eq!(
+        call(
+            &app,
+            "GET",
+            "/api/v1/courses?sql=delete",
+            json!({}),
+            "human"
+        )
+        .await
+        .0,
+        400
+    );
+    executor
+        .store()
+        .submit_wait(|conn| {
+            conn.execute("UPDATE knowledge SET status='deprecated'", [])
+                .unwrap();
+        })
+        .await
+        .unwrap();
+    let (_, stale) = call(&app, "GET", "/api/v1/courses", json!({}), "human").await;
+    assert_eq!(stale["items"].as_array().unwrap().len(), 20);
+    assert!(
+        stale["items"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .all(|item| item["stale"] == true)
+    );
+    drop(app);
+    drop(executor);
     let restarted = open(dir.path()).await;
     let app = archeaxis_api::runtime::router(restarted.clone());
-    let (_, after) = call(&app,"GET","/api/v1/courses",json!({}),"human").await;
-    assert_eq!(stale,after);
-    let (_, old) = call(&app,"GET","/api/v1/courses/course-1",json!({}),"human").await;
-    assert_eq!(old["manifest"],first["manifest"]);
-    assert_eq!(old["stale"],true);
-    drop(app); drop(restarted);
+    let (_, after) = call(&app, "GET", "/api/v1/courses", json!({}), "human").await;
+    assert_eq!(stale, after);
+    let (_, old) = call(&app, "GET", "/api/v1/courses/course-1", json!({}), "human").await;
+    assert_eq!(old["manifest"], first["manifest"]);
+    assert_eq!(old["stale"], true);
+    drop(app);
+    drop(restarted);
 }
-
 
 /// One integrated fixture journey, not a claim of real learner mastery or knowledge qualification.
 #[tokio::test]
@@ -527,27 +597,48 @@ async fn generated_course_assessment_and_review_keep_original_versions_after_reo
     let dir = tempfile::tempdir().unwrap();
     let executor = open(dir.path()).await;
     let fixture = fixture(&executor).await;
-    let knowledge_id = fixture["bindings"][0]["knowledge_id"].as_str().unwrap().to_owned();
+    let knowledge_id = fixture["bindings"][0]["knowledge_id"]
+        .as_str()
+        .unwrap()
+        .to_owned();
     let app = archeaxis_api::runtime::router(executor.clone());
-    let (status, generated) = call(&app, "POST", "/api/v1/courses/from-knowledge",
-        json!({"knowledge_id":knowledge_id}), "human").await;
+    let (status, generated) = call(
+        &app,
+        "POST",
+        "/api/v1/courses/from-knowledge",
+        json!({"knowledge_id":knowledge_id}),
+        "human",
+    )
+    .await;
     assert_eq!(status, 201, "{generated}");
     assert_eq!(generated["human_review_required"], true);
     let original_course = generated["course"].clone();
     let manifest = original_course["manifest"].clone();
     let course_id = manifest["manifest_id"].as_str().unwrap().to_owned();
-    let artifact_id = manifest["artifacts"][0]["artifact_id"].as_str().unwrap().to_owned();
+    let artifact_id = manifest["artifacts"][0]["artifact_id"]
+        .as_str()
+        .unwrap()
+        .to_owned();
     let suggested = &generated["suggested_learning_item"];
     let item_key = suggested["item_key"].as_str().unwrap().to_owned();
-    assert_eq!(item_key, format!("course:{course_id}:artifact:{artifact_id}"));
+    assert_eq!(
+        item_key,
+        format!("course:{course_id}:artifact:{artifact_id}")
+    );
     assert_eq!(suggested["knowledge_id"], knowledge_id);
     assert_eq!(suggested["knowledge_version"], knowledge_id);
     let course_path = format!("/api/v1/courses/{course_id}");
     let (status, read) = call(&app, "GET", &course_path, json!({}), "human").await;
     assert_eq!(status, 200);
     assert_eq!(read, original_course);
-    let (status, rendered) = call(&app, "POST", &format!("{course_path}/render"),
-        json!({"artifact_id":artifact_id}), "human").await;
+    let (status, rendered) = call(
+        &app,
+        "POST",
+        &format!("{course_path}/render"),
+        json!({"artifact_id":artifact_id}),
+        "human",
+    )
+    .await;
     assert_eq!(status, 200, "{rendered}");
     assert_eq!(rendered["course"], original_course);
     assert_eq!(rendered["canonical_bindings_verified"], true);
@@ -556,11 +647,23 @@ async fn generated_course_assessment_and_review_keep_original_versions_after_reo
     let assessment_path = format!("{item_path}/assessment");
     let state_path = format!("{item_path}/state");
     let history_path = format!("/api/v1/learning/events/{item_key}");
-    let (status, reference) = call(&app, "POST", &format!("{item_path}/references"),
-        json!({"knowledge_id":knowledge_id}), "human").await;
+    let (status, reference) = call(
+        &app,
+        "POST",
+        &format!("{item_path}/references"),
+        json!({"knowledge_id":knowledge_id}),
+        "human",
+    )
+    .await;
     assert_eq!(status, 201, "{reference}");
-    let (status, assessment) = call(&app, "POST", &assessment_path,
-        json!({"knowledge_id":knowledge_id}), "human").await;
+    let (status, assessment) = call(
+        &app,
+        "POST",
+        &assessment_path,
+        json!({"knowledge_id":knowledge_id}),
+        "human",
+    )
+    .await;
     assert_eq!(status, 201, "{assessment}");
     assert_eq!(assessment["item_key"], item_key);
     assert_eq!(assessment["knowledge_id"], knowledge_id);
@@ -576,8 +679,26 @@ async fn generated_course_assessment_and_review_keep_original_versions_after_reo
         "correct":false,"rating":1,"now":"2026-10-09T10:00:00+00:00",
         "answer":"Synthetic fixture answer, not a human qualification.",
         "assessment_id":assessment["assessment_id"],"knowledge_version":assessment["knowledge_version"]});
-    assert_eq!(call(&app, "POST", "/api/v1/learning/reviews", review.clone(), "machine").await.0, 403);
-    let (status, receipt) = call(&app, "POST", "/api/v1/learning/reviews", review.clone(), "human").await;
+    assert_eq!(
+        call(
+            &app,
+            "POST",
+            "/api/v1/learning/reviews",
+            review.clone(),
+            "machine"
+        )
+        .await
+        .0,
+        403
+    );
+    let (status, receipt) = call(
+        &app,
+        "POST",
+        "/api/v1/learning/reviews",
+        review.clone(),
+        "human",
+    )
+    .await;
     assert_eq!(status, 201, "{receipt}");
     // A missing real scheduler is a failure, never a skipped or fabricated scheduling PASS.
     assert_eq!(receipt["schedule_authority"], "fsrs", "{receipt}");
@@ -602,25 +723,64 @@ async fn generated_course_assessment_and_review_keep_original_versions_after_reo
 
     let executor = open(dir.path()).await;
     let app = archeaxis_api::runtime::router(executor.clone());
-    assert_eq!(call(&app, "GET", &course_path, json!({}), "human").await, (200, original_course.clone()));
-    assert_eq!(call(&app, "GET", &assessment_path, json!({}), "human").await, (200, assessment.clone()));
-    assert_eq!(call(&app, "GET", &history_path, json!({}), "human").await, (200, history.clone()));
-    assert_eq!(call(&app, "GET", &state_path, json!({}), "human").await, (200, state));
-    let (status, replay) = call(&app, "POST", "/api/v1/learning/reviews", review.clone(), "human").await;
+    assert_eq!(
+        call(&app, "GET", &course_path, json!({}), "human").await,
+        (200, original_course.clone())
+    );
+    assert_eq!(
+        call(&app, "GET", &assessment_path, json!({}), "human").await,
+        (200, assessment.clone())
+    );
+    assert_eq!(
+        call(&app, "GET", &history_path, json!({}), "human").await,
+        (200, history.clone())
+    );
+    assert_eq!(
+        call(&app, "GET", &state_path, json!({}), "human").await,
+        (200, state)
+    );
+    let (status, replay) = call(
+        &app,
+        "POST",
+        "/api/v1/learning/reviews",
+        review.clone(),
+        "human",
+    )
+    .await;
     assert_eq!(status, 200, "{replay}");
     assert_eq!(replay["duplicate"], true);
     assert_eq!(replay["event_id"], receipt["event_id"]);
     assert_eq!(replay["schedule_state"], receipt["schedule_state"]);
-    assert_eq!(call(&app, "GET", &history_path, json!({}), "human").await, (200, history.clone()));
+    assert_eq!(
+        call(&app, "GET", &history_path, json!({}), "human").await,
+        (200, history.clone())
+    );
     let mut conflict = review.clone();
     conflict["answer"] = json!("Changed answer with the same event key");
-    assert_eq!(call(&app, "POST", "/api/v1/learning/reviews", conflict, "human").await.0, 409);
+    assert_eq!(
+        call(&app, "POST", "/api/v1/learning/reviews", conflict, "human")
+            .await
+            .0,
+        409
+    );
 
     let old_id = knowledge_id.clone();
-    let new_id = executor.store().submit_wait(move |conn| {
-        knowledge::review_checked(conn, &old_id, "modified", "fixture-owner", Some("synthetic revision"),
-            Some("A revised anchor explanation belongs to a new knowledge version."), None).unwrap()
-    }).await.unwrap();
+    let new_id = executor
+        .store()
+        .submit_wait(move |conn| {
+            knowledge::review_checked(
+                conn,
+                &old_id,
+                "modified",
+                "fixture-owner",
+                Some("synthetic revision"),
+                Some("A revised anchor explanation belongs to a new knowledge version."),
+                None,
+            )
+            .unwrap()
+        })
+        .await
+        .unwrap();
     assert_ne!(new_id, knowledge_id);
     let (status, stale) = call(&app, "GET", &course_path, json!({}), "human").await;
     assert_eq!(status, 200);
@@ -628,27 +788,68 @@ async fn generated_course_assessment_and_review_keep_original_versions_after_reo
     assert_eq!(stale["manifest"], manifest);
     assert_eq!(stale["bindings"][0]["knowledge_id"], knowledge_id);
     assert_eq!(stale["bindings"][0]["knowledge_version"], knowledge_id);
-    assert_eq!(stale["bindings"][0]["source_revision"], original_course["bindings"][0]["source_revision"]);
-    assert_eq!(call(&app, "POST", &format!("{course_path}/render"), json!({"artifact_id":artifact_id}), "human").await.0, 409);
-    assert_eq!(call(&app, "GET", &assessment_path, json!({}), "human").await, (200, assessment.clone()));
+    assert_eq!(
+        stale["bindings"][0]["source_revision"],
+        original_course["bindings"][0]["source_revision"]
+    );
+    assert_eq!(
+        call(
+            &app,
+            "POST",
+            &format!("{course_path}/render"),
+            json!({"artifact_id":artifact_id}),
+            "human"
+        )
+        .await
+        .0,
+        409
+    );
+    assert_eq!(
+        call(&app, "GET", &assessment_path, json!({}), "human").await,
+        (200, assessment.clone())
+    );
     let (status, revised_history) = call(&app, "GET", &history_path, json!({}), "human").await;
     assert_eq!(status, 200);
     assert_eq!(revised_history["events"], history["events"]);
     assert_eq!(revised_history["count"], history["count"]);
-    assert_eq!(revised_history["references"][0]["knowledge_id"], knowledge_id);
+    assert_eq!(
+        revised_history["references"][0]["knowledge_id"],
+        knowledge_id
+    );
     assert_eq!(revised_history["references"][0]["active"], false);
     drop(app);
     drop(executor);
 
     let executor = open(dir.path()).await;
     let app = archeaxis_api::runtime::router(executor.clone());
-    assert_eq!(call(&app, "GET", &course_path, json!({}), "human").await, (200, stale));
-    assert_eq!(call(&app, "GET", &assessment_path, json!({}), "human").await, (200, assessment));
-    assert_eq!(call(&app, "GET", &history_path, json!({}), "human").await, (200, revised_history));
-    let actual_counts = executor.store().submit_wait(|conn| {
-        (conn.query_row("SELECT COUNT(*) FROM learning_events", [], |r|r.get::<_,i64>(0)).unwrap(),
-         conn.query_row("SELECT COUNT(*) FROM learning_event_keys", [], |r|r.get::<_,i64>(0)).unwrap())
-    }).await.unwrap();
+    assert_eq!(
+        call(&app, "GET", &course_path, json!({}), "human").await,
+        (200, stale)
+    );
+    assert_eq!(
+        call(&app, "GET", &assessment_path, json!({}), "human").await,
+        (200, assessment)
+    );
+    assert_eq!(
+        call(&app, "GET", &history_path, json!({}), "human").await,
+        (200, revised_history)
+    );
+    let actual_counts = executor
+        .store()
+        .submit_wait(|conn| {
+            (
+                conn.query_row("SELECT COUNT(*) FROM learning_events", [], |r| {
+                    r.get::<_, i64>(0)
+                })
+                .unwrap(),
+                conn.query_row("SELECT COUNT(*) FROM learning_event_keys", [], |r| {
+                    r.get::<_, i64>(0)
+                })
+                .unwrap(),
+            )
+        })
+        .await
+        .unwrap();
     assert_eq!(actual_counts, (1, 1));
     drop(app);
     drop(executor);

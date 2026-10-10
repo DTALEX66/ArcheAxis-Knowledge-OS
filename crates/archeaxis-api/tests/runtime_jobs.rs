@@ -8,105 +8,389 @@ use tower::ServiceExt;
 // Candidate adds no arbitrary runtime route. The test-only wrapper stalls one owned text job
 // after real handshake; the other job delegates to the canonical text transport unchanged.
 async fn setup_mixed_owned_worker(dir: &std::path::Path) -> Executor {
-    let transport = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../../services/python-workers/transport/text_ndjson.py");
+    let transport = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+        .join("../../services/python-workers/transport/text_ndjson.py");
     let script = dir.join("mixed_owned_worker.py");
     let path_literal = serde_json::to_string(&transport.to_string_lossy()).unwrap();
     std::fs::write(&script, format!("import importlib.util,time\np={path_literal}\ns=importlib.util.spec_from_file_location('canonical_text',p)\nm=importlib.util.module_from_spec(s)\ns.loader.exec_module(m)\noriginal=m.execute\ndef controlled(request,*args,**kwargs):\n if request.get('job_id')=='other': time.sleep(30)\n return original(request,*args,**kwargs)\nm.execute=controlled\nraise SystemExit(m.main())\n")).unwrap();
-    let executor = Executor::open(&dir.join("db.sqlite"),&dir.join("staging"),&PathBuf::from(std::env::var_os("ARCHEAXIS_PYTHON").unwrap()),&script).await.unwrap();
-    executor.store().submit(|conn| {
-        let source = match source::import_source(conn,b"owned checkpoint synthetic input","fixture.txt",None).unwrap() { ImportOutcome::Imported{source_id,..}=>source_id,_=>unreachable!() };
-        for id in ["job","other","third"] { jobs::enqueue(conn,id,"text",&source).unwrap(); }
-    }).await.unwrap();
+    let executor = Executor::open(
+        &dir.join("db.sqlite"),
+        &dir.join("staging"),
+        &PathBuf::from(std::env::var_os("ARCHEAXIS_PYTHON").unwrap()),
+        &script,
+    )
+    .await
+    .unwrap();
+    executor
+        .store()
+        .submit(|conn| {
+            let source = match source::import_source(
+                conn,
+                b"owned checkpoint synthetic input",
+                "fixture.txt",
+                None,
+            )
+            .unwrap()
+            {
+                ImportOutcome::Imported { source_id, .. } => source_id,
+                _ => unreachable!(),
+            };
+            for id in ["job", "other", "third"] {
+                jobs::enqueue(conn, id, "text", &source).unwrap();
+            }
+        })
+        .await
+        .unwrap();
     executor
 }
 
 async fn terminal_execution_status(router: &Router, job: &str, request: &str) -> serde_json::Value {
     tokio::time::timeout(Duration::from_secs(6), async {
         loop {
-            let (code,value)=call(router,"GET",&format!("/api/v1/jobs/{job}/execution-status"),"","").await;
-            assert_eq!(code,200);
-            assert_eq!(value["job_id"],job);
-            assert_eq!(value["request_id"],request);
-            if ["succeeded","failed","cancelled","rejected"].contains(&value["state"].as_str().unwrap()) { return value; }
+            let (code, value) = call(
+                router,
+                "GET",
+                &format!("/api/v1/jobs/{job}/execution-status"),
+                "",
+                "",
+            )
+            .await;
+            assert_eq!(code, 200);
+            assert_eq!(value["job_id"], job);
+            assert_eq!(value["request_id"], request);
+            if ["succeeded", "failed", "cancelled", "rejected"]
+                .contains(&value["state"].as_str().unwrap())
+            {
+                return value;
+            }
             tokio::time::sleep(Duration::from_millis(10)).await;
         }
-    }).await.unwrap()
+    })
+    .await
+    .unwrap()
 }
 
 #[tokio::test]
 async fn bounded_status_reads_durable_budget_steps_commits_and_exact_replay() {
-    let dir=tempfile::tempdir().unwrap();let executor=setup_mixed_owned_worker(dir.path()).await;
-    let router=archeaxis_api::runtime::router(executor.clone());
-    assert_eq!(call(&router,"POST","/api/v1/jobs/job/executions","explicit-1",r#"{"deadline_ms":5000,"split":false,"words":false}"#).await.0,202);
-    let status=terminal_execution_status(&router,"job","explicit-1").await;
-    assert_eq!(status["state"],"succeeded");
-    let a=&status["attempts"][0];
-    assert_eq!(a["budget"]["deadline_ms"],5000);
-    assert_eq!(a["steps"]["durable_claim"],"RECORDED");
-    assert_eq!(a["steps"]["worker_response_commit"],"RECORDED");
-    assert_eq!(a["checkpoint"]["status"],"CORE_COMMITTED");
-    assert!(a["checkpoint"]["outputs"].as_array().unwrap().iter().any(|o|o["kind"]=="text"));
-    assert_eq!(a["checkpoint"]["worker_cache_readback"],"NOT_OBSERVED");
-    assert_eq!(a["continuation"]["resume_status"],"NOT_SUPPORTED");
-    assert!(!status.to_string().contains(&dir.path().to_string_lossy().to_string()));
-    let replay=call(&router,"POST","/api/v1/jobs/job/executions","explicit-1",r#"{"deadline_ms":5000}"#).await;
-    assert_eq!(replay.0,202);assert_eq!(replay.1["replayed"],true);
-    assert_eq!(call(&router,"POST","/api/v1/jobs/job/executions","explicit-1",r#"{"deadline_ms":5001}"#).await.0,409);
-    assert_eq!(call(&router,"POST","/api/v1/jobs/other/executions","explicit-1",r#"{"deadline_ms":5000}"#).await.0,409);
-    let (old_code,legacy)=call(&router,"GET","/api/v1/jobs/job","","").await;
-    assert_eq!(old_code,200);for key in ["job_id","state","attempt","request_id","input_ref","error"] {assert_eq!(legacy[key],status[key]);}
-    executor.store().submit(|conn| {
-        assert_eq!(conn.query_row("SELECT count(*) FROM job_attempts WHERE job_id='job'",[],|r|r.get::<_,i64>(0)).unwrap(),1);
-        assert_eq!(conn.query_row("SELECT count(*) FROM transforms",[],|r|r.get::<_,i64>(0)).unwrap(),1);
-    }).await.unwrap();
+    let dir = tempfile::tempdir().unwrap();
+    let executor = setup_mixed_owned_worker(dir.path()).await;
+    let router = archeaxis_api::runtime::router(executor.clone());
+    assert_eq!(
+        call(
+            &router,
+            "POST",
+            "/api/v1/jobs/job/executions",
+            "explicit-1",
+            r#"{"deadline_ms":5000,"split":false,"words":false}"#
+        )
+        .await
+        .0,
+        202
+    );
+    let status = terminal_execution_status(&router, "job", "explicit-1").await;
+    assert_eq!(status["state"], "succeeded");
+    let a = &status["attempts"][0];
+    assert_eq!(a["budget"]["deadline_ms"], 5000);
+    assert_eq!(a["steps"]["durable_claim"], "RECORDED");
+    assert_eq!(a["steps"]["worker_response_commit"], "RECORDED");
+    assert_eq!(a["checkpoint"]["status"], "CORE_COMMITTED");
+    assert!(
+        a["checkpoint"]["outputs"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .any(|o| o["kind"] == "text")
+    );
+    assert_eq!(a["checkpoint"]["worker_cache_readback"], "NOT_OBSERVED");
+    assert_eq!(a["continuation"]["resume_status"], "NOT_SUPPORTED");
+    assert!(
+        !status
+            .to_string()
+            .contains(&dir.path().to_string_lossy().to_string())
+    );
+    let replay = call(
+        &router,
+        "POST",
+        "/api/v1/jobs/job/executions",
+        "explicit-1",
+        r#"{"deadline_ms":5000}"#,
+    )
+    .await;
+    assert_eq!(replay.0, 202);
+    assert_eq!(replay.1["replayed"], true);
+    assert_eq!(
+        call(
+            &router,
+            "POST",
+            "/api/v1/jobs/job/executions",
+            "explicit-1",
+            r#"{"deadline_ms":5001}"#
+        )
+        .await
+        .0,
+        409
+    );
+    assert_eq!(
+        call(
+            &router,
+            "POST",
+            "/api/v1/jobs/other/executions",
+            "explicit-1",
+            r#"{"deadline_ms":5000}"#
+        )
+        .await
+        .0,
+        409
+    );
+    let (old_code, legacy) = call(&router, "GET", "/api/v1/jobs/job", "", "").await;
+    assert_eq!(old_code, 200);
+    for key in [
+        "job_id",
+        "state",
+        "attempt",
+        "request_id",
+        "input_ref",
+        "error",
+    ] {
+        assert_eq!(legacy[key], status[key]);
+    }
+    executor
+        .store()
+        .submit(|conn| {
+            assert_eq!(
+                conn.query_row(
+                    "SELECT count(*) FROM job_attempts WHERE job_id='job'",
+                    [],
+                    |r| r.get::<_, i64>(0)
+                )
+                .unwrap(),
+                1
+            );
+            assert_eq!(
+                conn.query_row("SELECT count(*) FROM transforms", [], |r| r
+                    .get::<_, i64>(0))
+                    .unwrap(),
+                1
+            );
+        })
+        .await
+        .unwrap();
 }
 
 #[tokio::test]
 async fn bounded_cancel_confirms_terminal_and_preserves_other_committed_outputs_and_history() {
-    let dir=tempfile::tempdir().unwrap();let executor=setup_mixed_owned_worker(dir.path()).await;
-    let router=archeaxis_api::runtime::router(executor.clone());
-    assert_eq!(call(&router,"POST","/api/v1/jobs/job/executions","committed",r#"{"deadline_ms":5000}"#).await.0,202);
-    let before=terminal_execution_status(&router,"job","committed").await;
-    let (_,before_text)=call(&router,"GET","/api/v1/jobs/job/outputs/text","","").await;
-    assert_eq!(call(&router,"POST","/api/v1/jobs/other/executions","cancel-me",r#"{"deadline_ms":300000}"#).await.0,202);
-    assert_eq!(call(&router,"POST","/api/v1/jobs/other/executions/wrong/cancel","","").await.0,409);
-    let cancel=call(&router,"POST","/api/v1/jobs/other/executions/cancel-me/cancel","","").await;
-    assert_eq!(cancel.0,202);assert_eq!(cancel.1["cancel_requested"],true);
-    assert!(cancel.1.get("state").is_none(),"202 must not masquerade as a terminal result");
-    let cancelled=terminal_execution_status(&router,"other","cancel-me").await;
-    assert_eq!(cancelled["state"],"cancelled");assert_eq!(cancelled["attempts"][0]["checkpoint"]["status"],"NOT_OBSERVED");
-    assert_eq!(cancelled["attempts"][0]["continuation"]["resume_status"],"NOT_SUPPORTED");
-    assert_eq!(cancelled["attempts"][0]["continuation"]["new_attempt_eligible_state"],true);
-    assert_eq!(terminal_execution_status(&router,"job","committed").await,before);
-    assert_eq!(call(&router,"GET","/api/v1/jobs/job/outputs/text","","").await.1,before_text);
-    let terminal_cancel=call(&router,"POST","/api/v1/jobs/other/executions/cancel-me/cancel","","").await;
-    assert_eq!(terminal_cancel.0,200);assert_eq!(terminal_cancel.1["state"],"cancelled");
-    assert_eq!(call(&router,"POST","/api/v1/jobs/other/executions","cancel-me",r#"{"deadline_ms":300000}"#).await.1["state"],"cancelled");
-    assert_eq!(call(&router,"POST","/api/v1/jobs/other/executions","fresh-retry",r#"{"deadline_ms":100}"#).await.0,202);
-    let failed=terminal_execution_status(&router,"other","fresh-retry").await;
-    assert_eq!(failed["state"],"failed");assert_eq!(failed["attempts"][0]["attempt"],2);
-    assert_eq!(failed["attempts"][1]["request_id"],"cancel-me");assert_eq!(failed["attempts"][1]["state"],"cancelled");
-    assert_eq!(failed["attempts"][0]["budget"]["deadline_ms"],100);
+    let dir = tempfile::tempdir().unwrap();
+    let executor = setup_mixed_owned_worker(dir.path()).await;
+    let router = archeaxis_api::runtime::router(executor.clone());
+    assert_eq!(
+        call(
+            &router,
+            "POST",
+            "/api/v1/jobs/job/executions",
+            "committed",
+            r#"{"deadline_ms":5000}"#
+        )
+        .await
+        .0,
+        202
+    );
+    let before = terminal_execution_status(&router, "job", "committed").await;
+    let (_, before_text) = call(&router, "GET", "/api/v1/jobs/job/outputs/text", "", "").await;
+    assert_eq!(
+        call(
+            &router,
+            "POST",
+            "/api/v1/jobs/other/executions",
+            "cancel-me",
+            r#"{"deadline_ms":300000}"#
+        )
+        .await
+        .0,
+        202
+    );
+    assert_eq!(
+        call(
+            &router,
+            "POST",
+            "/api/v1/jobs/other/executions/wrong/cancel",
+            "",
+            ""
+        )
+        .await
+        .0,
+        409
+    );
+    let cancel = call(
+        &router,
+        "POST",
+        "/api/v1/jobs/other/executions/cancel-me/cancel",
+        "",
+        "",
+    )
+    .await;
+    assert_eq!(cancel.0, 202);
+    assert_eq!(cancel.1["cancel_requested"], true);
+    assert!(
+        cancel.1.get("state").is_none(),
+        "202 must not masquerade as a terminal result"
+    );
+    let cancelled = terminal_execution_status(&router, "other", "cancel-me").await;
+    assert_eq!(cancelled["state"], "cancelled");
+    assert_eq!(
+        cancelled["attempts"][0]["checkpoint"]["status"],
+        "NOT_OBSERVED"
+    );
+    assert_eq!(
+        cancelled["attempts"][0]["continuation"]["resume_status"],
+        "NOT_SUPPORTED"
+    );
+    assert_eq!(
+        cancelled["attempts"][0]["continuation"]["new_attempt_eligible_state"],
+        true
+    );
+    assert_eq!(
+        terminal_execution_status(&router, "job", "committed").await,
+        before
+    );
+    assert_eq!(
+        call(&router, "GET", "/api/v1/jobs/job/outputs/text", "", "")
+            .await
+            .1,
+        before_text
+    );
+    let terminal_cancel = call(
+        &router,
+        "POST",
+        "/api/v1/jobs/other/executions/cancel-me/cancel",
+        "",
+        "",
+    )
+    .await;
+    assert_eq!(terminal_cancel.0, 200);
+    assert_eq!(terminal_cancel.1["state"], "cancelled");
+    assert_eq!(
+        call(
+            &router,
+            "POST",
+            "/api/v1/jobs/other/executions",
+            "cancel-me",
+            r#"{"deadline_ms":300000}"#
+        )
+        .await
+        .1["state"],
+        "cancelled"
+    );
+    assert_eq!(
+        call(
+            &router,
+            "POST",
+            "/api/v1/jobs/other/executions",
+            "fresh-retry",
+            r#"{"deadline_ms":100}"#
+        )
+        .await
+        .0,
+        202
+    );
+    let failed = terminal_execution_status(&router, "other", "fresh-retry").await;
+    assert_eq!(failed["state"], "failed");
+    assert_eq!(failed["attempts"][0]["attempt"], 2);
+    assert_eq!(failed["attempts"][1]["request_id"], "cancel-me");
+    assert_eq!(failed["attempts"][1]["state"], "cancelled");
+    assert_eq!(failed["attempts"][0]["budget"]["deadline_ms"], 100);
 }
 
 #[tokio::test]
 async fn bounded_job_scope_and_parameters_fail_before_any_claim() {
-    let dir=tempfile::tempdir().unwrap();let executor=setup(dir.path(),true).await;
-    let router=archeaxis_api::runtime::router(executor.clone());
-    for body in [r#"{"deadline_ms":0}"#,r#"{"deadline_ms":300001}"#,r#"{"deadline_ms":1.5}"#,r#"{"deadline_ms":1,"url":"http://invalid"}"#,r#"{"deadline_ms":1,"script":"unowned"}"#] {
-        assert_eq!(call(&router,"POST","/api/v1/jobs/job/executions","bounded-negative",body).await.0,422);
+    let dir = tempfile::tempdir().unwrap();
+    let executor = setup(dir.path(), true).await;
+    let router = archeaxis_api::runtime::router(executor.clone());
+    for body in [
+        r#"{"deadline_ms":0}"#,
+        r#"{"deadline_ms":300001}"#,
+        r#"{"deadline_ms":1.5}"#,
+        r#"{"deadline_ms":1,"url":"http://invalid"}"#,
+        r#"{"deadline_ms":1,"script":"unowned"}"#,
+    ] {
+        assert_eq!(
+            call(
+                &router,
+                "POST",
+                "/api/v1/jobs/job/executions",
+                "bounded-negative",
+                body
+            )
+            .await
+            .0,
+            422
+        );
     }
-    assert_eq!(call(&router,"GET","/api/v1/jobs/missing/execution-status","","").await.0,404);
-    let (_,status)=call(&router,"GET","/api/v1/jobs/job/execution-status","","").await;
-    let (_,listing)=call(&router,"GET",&format!("/api/v1/sources/{}/jobs",status["input_ref"].as_str().unwrap()),"","").await;
-    assert_eq!(listing["source_id"],status["input_ref"]);
-    assert!(listing["jobs"].as_array().unwrap().iter().any(|row|row["job_id"]=="job"&&row["input_ref"]==status["input_ref"]));
-    executor.store().submit(|conn| {
-        assert_eq!(conn.query_row("SELECT count(*) FROM job_attempts",[],|r|r.get::<_,i64>(0)).unwrap(),0);
-        assert_eq!(conn.query_row("SELECT count(*) FROM transforms",[],|r|r.get::<_,i64>(0)).unwrap(),0);
-    }).await.unwrap();
-    assert_eq!(call(&router,"POST","/api/v1/jobs/job/executions","minimum-budget",r#"{"deadline_ms":1}"#).await.0,202);
-    assert_eq!(terminal_execution_status(&router,"job","minimum-budget").await["state"],"failed");
+    assert_eq!(
+        call(
+            &router,
+            "GET",
+            "/api/v1/jobs/missing/execution-status",
+            "",
+            ""
+        )
+        .await
+        .0,
+        404
+    );
+    let (_, status) = call(&router, "GET", "/api/v1/jobs/job/execution-status", "", "").await;
+    let (_, listing) = call(
+        &router,
+        "GET",
+        &format!(
+            "/api/v1/sources/{}/jobs",
+            status["input_ref"].as_str().unwrap()
+        ),
+        "",
+        "",
+    )
+    .await;
+    assert_eq!(listing["source_id"], status["input_ref"]);
+    assert!(
+        listing["jobs"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .any(|row| row["job_id"] == "job" && row["input_ref"] == status["input_ref"])
+    );
+    executor
+        .store()
+        .submit(|conn| {
+            assert_eq!(
+                conn.query_row("SELECT count(*) FROM job_attempts", [], |r| r
+                    .get::<_, i64>(0))
+                    .unwrap(),
+                0
+            );
+            assert_eq!(
+                conn.query_row("SELECT count(*) FROM transforms", [], |r| r
+                    .get::<_, i64>(0))
+                    .unwrap(),
+                0
+            );
+        })
+        .await
+        .unwrap();
+    assert_eq!(
+        call(
+            &router,
+            "POST",
+            "/api/v1/jobs/job/executions",
+            "minimum-budget",
+            r#"{"deadline_ms":1}"#
+        )
+        .await
+        .0,
+        202
+    );
+    assert_eq!(
+        terminal_execution_status(&router, "job", "minimum-budget").await["state"],
+        "failed"
+    );
 }
 
 async fn setup(dir: &std::path::Path, stalled: bool) -> Executor {
@@ -631,66 +915,306 @@ async fn the_split_choice_does_not_widen_other_routes() {
     assert!(value["attempt"].is_null(), "{value}");
 }
 
-
 #[tokio::test]
-async fn folder_mixed_success_failure_cancel_keeps_originals_only_failed_fresh_request_and_restarts() {
+async fn folder_mixed_success_failure_cancel_keeps_originals_only_failed_fresh_request_and_restarts()
+ {
     // Candidate test only. All data/processes owned by this tempfile; canonical
     // runtime route and text transport perform real execution when root runs it.
-    let dir=tempfile::tempdir().unwrap();
-    let transport=PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../../services/python-workers/transport/text_ndjson.py");
-    let script=dir.path().join("folder_mixed_owned.py");
-    let literal=serde_json::to_string(&transport.to_string_lossy()).unwrap();
+    let dir = tempfile::tempdir().unwrap();
+    let transport = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+        .join("../../services/python-workers/transport/text_ndjson.py");
+    let script = dir.path().join("folder_mixed_owned.py");
+    let literal = serde_json::to_string(&transport.to_string_lossy()).unwrap();
     std::fs::write(&script,format!("import importlib.util,time\np={literal}\ns=importlib.util.spec_from_file_location('owned_canonical_text',p)\nm=importlib.util.module_from_spec(s)\ns.loader.exec_module(m)\noriginal=m.execute\ndef controlled(request,*args,**kwargs):\n if request.get('job_id')=='other' or (request.get('job_id')=='third' and request.get('request_id')=='folder-failure'): time.sleep(30)\n return original(request,*args,**kwargs)\nm.execute=controlled\nraise SystemExit(m.main())\n")).unwrap();
-    let db=dir.path().join("db.sqlite");
-    let executor=Executor::open(&db,&dir.path().join("staging"),&PathBuf::from(std::env::var_os("ARCHEAXIS_PYTHON").unwrap()),&script).await.unwrap();
-    let source_id=executor.store().submit(|conn| {
-        let source=match source::import_source(conn,"owned 中😀\r\n".as_bytes(),"owned-folder.txt",None).unwrap() {
-            ImportOutcome::Imported{source_id,..}=>source_id,_=>unreachable!()
-        };
-        for id in ["job","other","third"] {jobs::enqueue(conn,id,"text",&source).unwrap();}
-        source
-    }).await.unwrap();
-    let router=archeaxis_api::runtime::router(executor.clone());
-    let (code,original)=call(&router,"GET",&format!("/api/v1/sources/{source_id}/original"),"","").await;assert_eq!(code,200);
-    let body=r#"{"deadline_ms":5000,"split":false,"words":false}"#;
-    let (code,ack)=call(&router,"POST","/api/v1/jobs/job/executions","folder-success",body).await;
-    assert_eq!(code,202);assert_eq!(ack,serde_json::json!({"job_id":"job","request_id":"folder-success","state":"running","replayed":false}));
-    let succeeded=terminal_execution_status(&router,"job","folder-success").await;assert_eq!(succeeded["input_ref"],source_id);assert_eq!(succeeded["state"],"succeeded");
-    let (code,transform)=call(&router,"GET",&format!("/api/v1/sources/{source_id}/jobs/job/transform"),"","").await;assert_eq!(code,200);
-    assert_eq!(transform["source_id"],source_id);assert_eq!(transform["job_id"],"job");assert_eq!(transform["raw_sha256"],original["sha256"]);assert_eq!(transform["content"],"owned 中😀\r\n");
-    assert_eq!(call(&router,"POST","/api/v1/jobs/third/executions","folder-failure",r#"{"deadline_ms":100}"#).await.0,202);
-    let failed=terminal_execution_status(&router,"third","folder-failure").await;assert_eq!(failed["state"],"failed");assert_eq!(failed["input_ref"],source_id);
-    assert_eq!(call(&router,"POST","/api/v1/jobs/other/executions","folder-cancel",r#"{"deadline_ms":300000}"#).await.0,202);
-    let pending=call(&router,"POST","/api/v1/jobs/other/executions/folder-cancel/cancel","","").await;assert_eq!(pending.0,202);
-    assert_eq!(pending.1,serde_json::json!({"job_id":"other","request_id":"folder-cancel","cancel_requested":true}));
-    let cancelled=terminal_execution_status(&router,"other","folder-cancel").await;assert_eq!(cancelled["state"],"cancelled");assert_eq!(cancelled["input_ref"],source_id);
+    let db = dir.path().join("db.sqlite");
+    let executor = Executor::open(
+        &db,
+        &dir.path().join("staging"),
+        &PathBuf::from(std::env::var_os("ARCHEAXIS_PYTHON").unwrap()),
+        &script,
+    )
+    .await
+    .unwrap();
+    let source_id = executor
+        .store()
+        .submit(|conn| {
+            let source = match source::import_source(
+                conn,
+                "owned 中😀\r\n".as_bytes(),
+                "owned-folder.txt",
+                None,
+            )
+            .unwrap()
+            {
+                ImportOutcome::Imported { source_id, .. } => source_id,
+                _ => unreachable!(),
+            };
+            for id in ["job", "other", "third"] {
+                jobs::enqueue(conn, id, "text", &source).unwrap();
+            }
+            source
+        })
+        .await
+        .unwrap();
+    let router = archeaxis_api::runtime::router(executor.clone());
+    let (code, original) = call(
+        &router,
+        "GET",
+        &format!("/api/v1/sources/{source_id}/original"),
+        "",
+        "",
+    )
+    .await;
+    assert_eq!(code, 200);
+    let body = r#"{"deadline_ms":5000,"split":false,"words":false}"#;
+    let (code, ack) = call(
+        &router,
+        "POST",
+        "/api/v1/jobs/job/executions",
+        "folder-success",
+        body,
+    )
+    .await;
+    assert_eq!(code, 202);
+    assert_eq!(
+        ack,
+        serde_json::json!({"job_id":"job","request_id":"folder-success","state":"running","replayed":false})
+    );
+    let succeeded = terminal_execution_status(&router, "job", "folder-success").await;
+    assert_eq!(succeeded["input_ref"], source_id);
+    assert_eq!(succeeded["state"], "succeeded");
+    let (code, transform) = call(
+        &router,
+        "GET",
+        &format!("/api/v1/sources/{source_id}/jobs/job/transform"),
+        "",
+        "",
+    )
+    .await;
+    assert_eq!(code, 200);
+    assert_eq!(transform["source_id"], source_id);
+    assert_eq!(transform["job_id"], "job");
+    assert_eq!(transform["raw_sha256"], original["sha256"]);
+    assert_eq!(transform["content"], "owned 中😀\r\n");
+    assert_eq!(
+        call(
+            &router,
+            "POST",
+            "/api/v1/jobs/third/executions",
+            "folder-failure",
+            r#"{"deadline_ms":100}"#
+        )
+        .await
+        .0,
+        202
+    );
+    let failed = terminal_execution_status(&router, "third", "folder-failure").await;
+    assert_eq!(failed["state"], "failed");
+    assert_eq!(failed["input_ref"], source_id);
+    assert_eq!(
+        call(
+            &router,
+            "POST",
+            "/api/v1/jobs/other/executions",
+            "folder-cancel",
+            r#"{"deadline_ms":300000}"#
+        )
+        .await
+        .0,
+        202
+    );
+    let pending = call(
+        &router,
+        "POST",
+        "/api/v1/jobs/other/executions/folder-cancel/cancel",
+        "",
+        "",
+    )
+    .await;
+    assert_eq!(pending.0, 202);
+    assert_eq!(
+        pending.1,
+        serde_json::json!({"job_id":"other","request_id":"folder-cancel","cancel_requested":true})
+    );
+    let cancelled = terminal_execution_status(&router, "other", "folder-cancel").await;
+    assert_eq!(cancelled["state"], "cancelled");
+    assert_eq!(cancelled["input_ref"], source_id);
     // Lost ACK -> same request read/replay, not a fresh worker invocation.
-    let replay=call(&router,"POST","/api/v1/jobs/third/executions","folder-failure",r#"{"deadline_ms":100}"#).await;
-    assert_eq!(replay.0,202);assert_eq!(replay.1,serde_json::json!({"job_id":"third","request_id":"folder-failure","state":"failed","replayed":true}));
-    assert_eq!(call(&router,"POST","/api/v1/jobs/job/executions","folder-failure",r#"{"deadline_ms":100}"#).await.0,409);
-    assert_eq!(call(&router,"POST","/api/v1/jobs/third/executions","folder-failure",r#"{"deadline_ms":101}"#).await.0,409);
+    let replay = call(
+        &router,
+        "POST",
+        "/api/v1/jobs/third/executions",
+        "folder-failure",
+        r#"{"deadline_ms":100}"#,
+    )
+    .await;
+    assert_eq!(replay.0, 202);
+    assert_eq!(
+        replay.1,
+        serde_json::json!({"job_id":"third","request_id":"folder-failure","state":"failed","replayed":true})
+    );
+    assert_eq!(
+        call(
+            &router,
+            "POST",
+            "/api/v1/jobs/job/executions",
+            "folder-failure",
+            r#"{"deadline_ms":100}"#
+        )
+        .await
+        .0,
+        409
+    );
+    assert_eq!(
+        call(
+            &router,
+            "POST",
+            "/api/v1/jobs/third/executions",
+            "folder-failure",
+            r#"{"deadline_ms":101}"#
+        )
+        .await
+        .0,
+        409
+    );
     // Only the failed row is re-executed using a genuinely new frozen request.
-    assert_eq!(call(&router,"POST","/api/v1/jobs/third/executions","folder-failed-fresh",body).await.0,202);
-    let retried=terminal_execution_status(&router,"third","folder-failed-fresh").await;assert_eq!(retried["state"],"succeeded");assert_eq!(retried["attempt"],2);
-    assert_eq!(retried["attempts"][1]["request_id"],"folder-failure");assert_eq!(retried["attempts"][1]["state"],"failed");
-    assert_eq!(terminal_execution_status(&router,"job","folder-success").await,succeeded);
-    assert_eq!(terminal_execution_status(&router,"other","folder-cancel").await,cancelled);
-    assert_eq!(call(&router,"GET",&format!("/api/v1/sources/{source_id}/original"),"","").await.1,original);
-    assert_eq!(call(&router,"GET",&format!("/api/v1/sources/{source_id}/jobs/job/transform"),"","").await.1,transform);
-    executor.store().submit(|conn| {
-        assert_eq!(conn.query_row("SELECT count(*) FROM job_attempts WHERE job_id='job'",[],|r|r.get::<_,i64>(0)).unwrap(),1);
-        assert_eq!(conn.query_row("SELECT count(*) FROM job_attempts WHERE job_id='other'",[],|r|r.get::<_,i64>(0)).unwrap(),1);
-        assert_eq!(conn.query_row("SELECT count(*) FROM job_attempts WHERE job_id='third'",[],|r|r.get::<_,i64>(0)).unwrap(),2);
-        assert_eq!(conn.query_row("SELECT count(*) FROM transforms",[],|r|r.get::<_,i64>(0)).unwrap(),2);
-    }).await.unwrap();
-    drop(router);drop(executor);
+    assert_eq!(
+        call(
+            &router,
+            "POST",
+            "/api/v1/jobs/third/executions",
+            "folder-failed-fresh",
+            body
+        )
+        .await
+        .0,
+        202
+    );
+    let retried = terminal_execution_status(&router, "third", "folder-failed-fresh").await;
+    assert_eq!(retried["state"], "succeeded");
+    assert_eq!(retried["attempt"], 2);
+    assert_eq!(retried["attempts"][1]["request_id"], "folder-failure");
+    assert_eq!(retried["attempts"][1]["state"], "failed");
+    assert_eq!(
+        terminal_execution_status(&router, "job", "folder-success").await,
+        succeeded
+    );
+    assert_eq!(
+        terminal_execution_status(&router, "other", "folder-cancel").await,
+        cancelled
+    );
+    assert_eq!(
+        call(
+            &router,
+            "GET",
+            &format!("/api/v1/sources/{source_id}/original"),
+            "",
+            ""
+        )
+        .await
+        .1,
+        original
+    );
+    assert_eq!(
+        call(
+            &router,
+            "GET",
+            &format!("/api/v1/sources/{source_id}/jobs/job/transform"),
+            "",
+            ""
+        )
+        .await
+        .1,
+        transform
+    );
+    executor
+        .store()
+        .submit(|conn| {
+            assert_eq!(
+                conn.query_row(
+                    "SELECT count(*) FROM job_attempts WHERE job_id='job'",
+                    [],
+                    |r| r.get::<_, i64>(0)
+                )
+                .unwrap(),
+                1
+            );
+            assert_eq!(
+                conn.query_row(
+                    "SELECT count(*) FROM job_attempts WHERE job_id='other'",
+                    [],
+                    |r| r.get::<_, i64>(0)
+                )
+                .unwrap(),
+                1
+            );
+            assert_eq!(
+                conn.query_row(
+                    "SELECT count(*) FROM job_attempts WHERE job_id='third'",
+                    [],
+                    |r| r.get::<_, i64>(0)
+                )
+                .unwrap(),
+                2
+            );
+            assert_eq!(
+                conn.query_row("SELECT count(*) FROM transforms", [], |r| r
+                    .get::<_, i64>(0))
+                    .unwrap(),
+                2
+            );
+        })
+        .await
+        .unwrap();
+    drop(router);
+    drop(executor);
     // Real durable reopen using projections only: no fresh worker or forged rows.
-    let reopened=archeaxis_api::app(db.to_str().unwrap()).unwrap();
-    assert_eq!(call(&reopened,"GET",&format!("/api/v1/sources/{source_id}/original"),"","").await.1,original);
-    assert_eq!(call(&reopened,"GET",&format!("/api/v1/sources/{source_id}/jobs/job/transform"),"","").await.1,transform);
-    let (code,listing)=call(&reopened,"GET",&format!("/api/v1/sources/{source_id}/jobs"),"","").await;assert_eq!(code,200);assert_eq!(listing["source_id"],source_id);
-    let rows=listing["jobs"].as_array().unwrap();assert_eq!(rows.len(),3);assert_eq!(listing["jobs_capped"],false);
-    for (job,state,attempt) in [("job","succeeded",1),("other","cancelled",1),("third","succeeded",2)] {
-        let row=rows.iter().find(|row|row["job_id"]==job).unwrap();assert_eq!(row["input_ref"],source_id);assert_eq!(row["state"],state);assert_eq!(row["attempt"],attempt);
+    let reopened = archeaxis_api::app(db.to_str().unwrap()).unwrap();
+    assert_eq!(
+        call(
+            &reopened,
+            "GET",
+            &format!("/api/v1/sources/{source_id}/original"),
+            "",
+            ""
+        )
+        .await
+        .1,
+        original
+    );
+    assert_eq!(
+        call(
+            &reopened,
+            "GET",
+            &format!("/api/v1/sources/{source_id}/jobs/job/transform"),
+            "",
+            ""
+        )
+        .await
+        .1,
+        transform
+    );
+    let (code, listing) = call(
+        &reopened,
+        "GET",
+        &format!("/api/v1/sources/{source_id}/jobs"),
+        "",
+        "",
+    )
+    .await;
+    assert_eq!(code, 200);
+    assert_eq!(listing["source_id"], source_id);
+    let rows = listing["jobs"].as_array().unwrap();
+    assert_eq!(rows.len(), 3);
+    assert_eq!(listing["jobs_capped"], false);
+    for (job, state, attempt) in [
+        ("job", "succeeded", 1),
+        ("other", "cancelled", 1),
+        ("third", "succeeded", 2),
+    ] {
+        let row = rows.iter().find(|row| row["job_id"] == job).unwrap();
+        assert_eq!(row["input_ref"], source_id);
+        assert_eq!(row["state"], state);
+        assert_eq!(row["attempt"], attempt);
     }
 }

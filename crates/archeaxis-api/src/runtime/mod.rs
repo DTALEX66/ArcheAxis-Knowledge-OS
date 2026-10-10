@@ -14,10 +14,10 @@ use std::{collections::HashMap, sync::Arc};
 use tokio::sync::Mutex;
 
 mod colearning;
-mod withheld;
-mod execution_status_projection;
 mod courses;
+mod execution_status_projection;
 mod semantic;
+mod withheld;
 use colearning::{machine_answer, record_correction, run_retest};
 
 struct Active {
@@ -40,7 +40,10 @@ pub fn router(executor: Executor) -> Router {
             post(execute_document_check),
         )
         .route("/api/v1/jobs/:job_id", get(status))
-        .route("/api/v1/jobs/:job_id/execution-status", get(execution_status))
+        .route(
+            "/api/v1/jobs/:job_id/execution-status",
+            get(execution_status),
+        )
         .route("/api/v1/jobs/:job_id/executions", post(execute))
         .route(
             "/api/v1/jobs/:job_id/executions/:request_id/cancel",
@@ -673,9 +676,25 @@ async fn start(
         .into_response()
 }
 async fn execution_status(State(runtime): State<Runtime>, Path(job): Path<String>) -> Response {
-    if runtime.active.lock().await.get(&job).is_some_and(|entry|entry.faulted) { return unavailable(); }
-    let value=runtime.executor.store().submit(move |conn|execution_status_projection::project(conn,&job)).await;
-    match value {Ok(Ok(Some(value)))=>Json(value).into_response(),Ok(Ok(None))=>error(404,"AAK-VAL-004","job not found"),_=>unavailable()}
+    if runtime
+        .active
+        .lock()
+        .await
+        .get(&job)
+        .is_some_and(|entry| entry.faulted)
+    {
+        return unavailable();
+    }
+    let value = runtime
+        .executor
+        .store()
+        .submit(move |conn| execution_status_projection::project(conn, &job))
+        .await;
+    match value {
+        Ok(Ok(Some(value))) => Json(value).into_response(),
+        Ok(Ok(None)) => error(404, "AAK-VAL-004", "job not found"),
+        _ => unavailable(),
+    }
 }
 async fn status(State(runtime): State<Runtime>, Path(job): Path<String>) -> Response {
     if runtime

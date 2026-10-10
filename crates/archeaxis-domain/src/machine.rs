@@ -268,11 +268,14 @@ pub fn machine_task_page(
     limit: usize,
 ) -> rusqlite::Result<serde_json::Value> {
     if !(1..=100).contains(&limit) || cursor.is_some_and(|s| s.is_empty() || s.len() > 256) {
-        return Err(rusqlite::Error::InvalidParameterName("invalid receipt page bounds".into()));
+        return Err(rusqlite::Error::InvalidParameterName(
+            "invalid receipt page bounds".into(),
+        ));
     }
     let exists: bool = conn.query_row(
         "SELECT EXISTS(SELECT 1 FROM sqlite_master WHERE type='table' AND name='machine_tasks')",
-        [], |r| r.get(0),
+        [],
+        |r| r.get(0),
     )?;
     if !exists {
         return Ok(serde_json::json!({"items":[],"next_cursor":null}));
@@ -294,7 +297,11 @@ pub fn machine_task_page(
     })?.collect::<rusqlite::Result<Vec<_>>>()?;
     let more = items.len() > limit;
     items.truncate(limit);
-    let next = if more { items.last().map(|i| i["task_id"].clone()) } else { None };
+    let next = if more {
+        items.last().map(|i| i["task_id"].clone())
+    } else {
+        None
+    };
     Ok(serde_json::json!({"items":items,"next_cursor":next}))
 }
 

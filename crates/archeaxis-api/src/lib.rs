@@ -8,10 +8,10 @@
 pub mod ask;
 pub mod capabilities;
 mod documents;
-mod teaching;
 pub mod launch;
 mod machine_governance;
 pub mod runtime;
+mod teaching;
 mod workspace_backup;
 
 use archeaxis_application::container;
@@ -66,20 +66,39 @@ pub fn projections(state: Store, manual_receipts: bool) -> Router {
 }
 pub(crate) fn projections_base(state: Store, manual_receipts: bool) -> Router {
     let teaching_routes = Router::new()
-        .route("/api/v2/teaching/records", get(teaching::list).post(teaching::create))
+        .route(
+            "/api/v2/teaching/records",
+            get(teaching::list).post(teaching::create),
+        )
         .route("/api/v2/teaching/records/:id", get(teaching::read))
         .route("/api/v2/teaching/records/:id/export", get(teaching::export))
         .route("/api/v2/teaching/withdrawals", post(teaching::withdraw))
         .route("/api/v2/teaching/imports/preview", post(teaching::preview))
         .route("/api/v2/teaching/imports", post(teaching::import))
         .layer(axum::extract::DefaultBodyLimit::max(8 * 1024 * 1024));
-    let routes = Router::new().merge(teaching_routes)
-        .route("/api/v1/machine/contexts",get(machine_governance::contexts))
-        .route("/api/v1/ai/assets",get(machine_governance::assets))
-        .route("/api/v1/ai/context-packets",post(machine_governance::asset_packet))
-        .route("/api/v1/machine/rubrics",get(machine_governance::rubrics).post(machine_governance::create_rubric))
-        .route("/api/v1/machine/evaluations",get(machine_governance::evaluations).post(machine_governance::create_evaluation))
-        .route("/api/v1/machine/answers/:task_id/snapshot",get(machine_governance::answer_snapshot))
+    let routes = Router::new()
+        .merge(teaching_routes)
+        .route(
+            "/api/v1/machine/contexts",
+            get(machine_governance::contexts),
+        )
+        .route("/api/v1/ai/assets", get(machine_governance::assets))
+        .route(
+            "/api/v1/ai/context-packets",
+            post(machine_governance::asset_packet),
+        )
+        .route(
+            "/api/v1/machine/rubrics",
+            get(machine_governance::rubrics).post(machine_governance::create_rubric),
+        )
+        .route(
+            "/api/v1/machine/evaluations",
+            get(machine_governance::evaluations).post(machine_governance::create_evaluation),
+        )
+        .route(
+            "/api/v1/machine/answers/:task_id/snapshot",
+            get(machine_governance::answer_snapshot),
+        )
         .route("/api/v1/sources", get(documents::sources))
         .route(
             "/api/v1/sources/:source_id/original",
@@ -90,8 +109,14 @@ pub(crate) fn projections_base(state: Store, manual_receipts: bool) -> Router {
             get(documents::list).post(documents::create),
         )
         .route("/api/v1/documents/:document_id", get(documents::read))
-        .route("/api/v1/documents/:document_id/relations", get(documents::relations))
-        .route("/api/v1/documents/:document_id/collection", get(documents::collection))
+        .route(
+            "/api/v1/documents/:document_id/relations",
+            get(documents::relations),
+        )
+        .route(
+            "/api/v1/documents/:document_id/collection",
+            get(documents::collection),
+        )
         .route(
             "/api/v1/documents/:document_id/checks",
             get(documents::checks).post(documents::record_check),
@@ -110,7 +135,10 @@ pub(crate) fn projections_base(state: Store, manual_receipts: bool) -> Router {
             post(documents::restore),
         )
         .route("/api/v1/system/version", get(system_version))
-        .route("/api/v2/workspace/restore/preview", post(workspace_backup::preview))
+        .route(
+            "/api/v2/workspace/restore/preview",
+            post(workspace_backup::preview),
+        )
         .route(
             "/api/v1/workspace/backups",
             get(workspace_backup::list).post(workspace_backup::create),
@@ -159,7 +187,10 @@ pub(crate) fn projections_base(state: Store, manual_receipts: bool) -> Router {
             get(read_assessment).post(create_assessment),
         )
         .route("/api/v1/learning/items/:item_key/state", get(item_state))
-        .route("/api/v1/machine/tasks", post(record_machine_task).get(machine_task_list))
+        .route(
+            "/api/v1/machine/tasks",
+            post(record_machine_task).get(machine_task_list),
+        )
         .route("/api/v1/machine/tasks/:task_id", get(machine_task_readback))
         .route("/api/v1/search", get(search_knowledge))
         .route("/api/v1/jobs/:job_id/quality", get(job_quality))
@@ -495,13 +526,21 @@ async fn machine_task_list(
     Query(query): Query<MachineTaskPageQuery>,
 ) -> impl IntoResponse {
     let limit = query.limit.unwrap_or(20);
-    if !(1..=100).contains(&limit) || query.cursor.as_ref().is_some_and(|s| s.is_empty() || s.len()>256) {
+    if !(1..=100).contains(&limit)
+        || query
+            .cursor
+            .as_ref()
+            .is_some_and(|s| s.is_empty() || s.len() > 256)
+    {
         return (StatusCode::BAD_REQUEST, "invalid receipt page bounds").into_response();
     }
-    with_store(state, move |conn| match machine::machine_task_page(conn, query.cursor.as_deref(), limit) {
-        Ok(page) => axum::Json(page).into_response(),
-        Err(e) => (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()).into_response(),
-    }).await
+    with_store(state, move |conn| {
+        match machine::machine_task_page(conn, query.cursor.as_deref(), limit) {
+            Ok(page) => axum::Json(page).into_response(),
+            Err(e) => (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()).into_response(),
+        }
+    })
+    .await
 }
 
 async fn record_machine_task(

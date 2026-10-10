@@ -269,15 +269,24 @@ fn stored_record(conn: &Connection, id: &str) -> Result<Option<(TeachingRecord, 
         "SELECT record_id,parent_id,kind,record_json,content_sha256 FROM teaching_records WHERE record_id=?1",
         [id], |r| Ok((r.get(0)?,r.get(1)?,r.get(2)?,r.get(3)?,r.get(4)?)),
     ).optional()?;
-    let Some((stored_id, parent_id, kind, json, checksum)) = row else { return Ok(None); };
-    let record: TeachingRecord = serde_json::from_str(&json).map_err(|_| invalid("stored record DTO"))?;
+    let Some((stored_id, parent_id, kind, json, checksum)) = row else {
+        return Ok(None);
+    };
+    let record: TeachingRecord =
+        serde_json::from_str(&json).map_err(|_| invalid("stored record DTO"))?;
     shape(&record)?;
-    let expected_kind = serde_json::to_value(&record.kind).map_err(|_| invalid("stored record kind"))?;
-    if record.record_id != stored_id || record.record_id != id
-        || record.parent_id != parent_id || expected_kind.as_str() != Some(kind.as_str()) {
+    let expected_kind =
+        serde_json::to_value(&record.kind).map_err(|_| invalid("stored record kind"))?;
+    if record.record_id != stored_id
+        || record.record_id != id
+        || record.parent_id != parent_id
+        || expected_kind.as_str() != Some(kind.as_str())
+    {
         return Err(invalid("stored record metadata disagrees with DTO"));
     }
-    if hash(&record)? != checksum { return Err(invalid("stored record checksum")); }
+    if hash(&record)? != checksum {
+        return Err(invalid("stored record checksum"));
+    }
     Ok(Some((record, checksum)))
 }
 fn is_withdrawn(conn: &Connection, id: &str) -> Result<bool> {
@@ -288,14 +297,26 @@ fn is_withdrawn(conn: &Connection, id: &str) -> Result<bool> {
         if !seen.insert(id.clone()) || seen.len() > 128 {
             return Err(invalid("stored lineage cycle or depth"));
         }
-        let (record, _) = stored_record(conn, &id)?.ok_or_else(|| invalid("stored ancestor missing"))?;
+        let (record, _) =
+            stored_record(conn, &id)?.ok_or_else(|| invalid("stored ancestor missing"))?;
         let mut stmt = conn.prepare("SELECT withdrawal_id,record_id,request_json,content_sha256 FROM teaching_withdrawals WHERE record_id=?1")?;
-        let rows = stmt.query_map([&id], |r| Ok((r.get::<_,String>(0)?,r.get::<_,String>(1)?,r.get::<_,String>(2)?,r.get::<_,String>(3)?)))?;
+        let rows = stmt.query_map([&id], |r| {
+            Ok((
+                r.get::<_, String>(0)?,
+                r.get::<_, String>(1)?,
+                r.get::<_, String>(2)?,
+                r.get::<_, String>(3)?,
+            ))
+        })?;
         for row in rows {
             let (withdrawal_id, target, json, checksum) = row?;
-            let request: Withdrawal = serde_json::from_str(&json).map_err(|_| invalid("stored withdrawal DTO"))?;
-            if request.schema != WITHDRAWAL_SCHEMA || request.withdrawal_id != withdrawal_id
-                || request.record_id != target || hash(&request)? != checksum {
+            let request: Withdrawal =
+                serde_json::from_str(&json).map_err(|_| invalid("stored withdrawal DTO"))?;
+            if request.schema != WITHDRAWAL_SCHEMA
+                || request.withdrawal_id != withdrawal_id
+                || request.record_id != target
+                || hash(&request)? != checksum
+            {
                 return Err(invalid("stored withdrawal metadata/checksum"));
             }
             token(&request.withdrawal_id, 128)?;
@@ -489,9 +510,13 @@ pub fn withdraw(conn: &mut Connection, request: &Withdrawal) -> Result<Withdrawa
             |r| Ok((r.get(0)?,r.get(1)?,r.get(2)?)),
         )
         .optional()?;
-    if let Some((checksum,target,json)) = &stored {
-        let original: Withdrawal = serde_json::from_str(json).map_err(|_|invalid("stored withdrawal DTO"))?;
-        if &original.record_id != target || original.withdrawal_id != request.withdrawal_id || hash(&original)? != *checksum {
+    if let Some((checksum, target, json)) = &stored {
+        let original: Withdrawal =
+            serde_json::from_str(json).map_err(|_| invalid("stored withdrawal DTO"))?;
+        if &original.record_id != target
+            || original.withdrawal_id != request.withdrawal_id
+            || hash(&original)? != *checksum
+        {
             return Err(invalid("stored withdrawal metadata/checksum"));
         }
         if checksum != &hash(request)? || original != *request {
@@ -530,7 +555,9 @@ pub fn export_bundle(conn: &Connection, id: &str) -> Result<ExchangeBundle> {
             return Err(TeachingError::Withdrawn("export record/ancestor".into()));
         }
         if item.record.scope != RecordScope::ManualExchange {
-            return Err(TeachingError::Conflict("record/ancestor is personal; manual exchange not authorized".into()));
+            return Err(TeachingError::Conflict(
+                "record/ancestor is personal; manual exchange not authorized".into(),
+            ));
         }
         if item.record.privacy != RecordPrivacy::AuthorizedExport {
             return Err(TeachingError::Conflict(

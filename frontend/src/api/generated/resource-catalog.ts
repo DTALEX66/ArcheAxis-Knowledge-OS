@@ -15,7 +15,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
     },
     {
       "path": "docs/current/AAOS-RESOURCE-QUALIFICATION-20261010.json",
-      "sha256": "4550795e5d19ea60b3fc322f1e57bad1e2971c5042774df8dee7c6b668a7f7a7"
+      "sha256": "e6b53b1699dabd6894f1e250a3aad0a5453816e003edc095102b7a3ec680af2b"
     },
     {
       "path": "docs/truth/SUPPLY_CHAIN_LEDGER.json",
@@ -255,7 +255,26 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
       "Public official HEAD readback is not exact locked-package license byte validation"
     ],
     "source_readback_updated_at": "2026-10-09T22:12:34.749092+00:00",
-    "readback_boundary": "Source SHA refreshed after current template validator integration; runtime/model/installed qualification is not promoted."
+    "readback_boundary": "Source SHA refreshed after current template validator integration; runtime/model/installed qualification is not promoted.",
+    "source_refresh": {
+      "observed_at": "2026-10-10T15:15:54.369562+00:00",
+      "previous_git_commit": "febdcfdd743de3e2e44836b87c87b9d76a4bd7a4",
+      "previous_path": "docs/current/AAOS-RESOURCE-QUALIFICATION-20261010.json",
+      "reason": "Update stale core-contract reference and formatting-only Rust source bytes; original surface/conflicts/activation and qualification states preserved.",
+      "qualification": "NOT_GRANTED_BY_HASH_REFRESH",
+      "changed_sources": [
+        {
+          "path": "crates/archeaxis-domain/src/document.rs",
+          "previous_sha256": "1da8a3a3b3035852daf210f45dae5699c0abcce5b721784743fe5f09b9f45ef9",
+          "current_sha256": "9197e9314d7395a7a0f31c8f20daec9c55940cf8387cfad12bbd49caa6eed15b"
+        },
+        {
+          "path": "frontend/src/api/generated/core-contract.ts",
+          "previous_sha256": "1f6e8e9b69a1258ff0804953f1999a2f46b4fc4d023a5526854e65ea0cf141a1",
+          "current_sha256": "52556b694bb19af4d18aa9f342bb82cef0329305c592f469e40cb58949a05359"
+        }
+      ]
+    }
   },
   "freeze_register": {
     "status": "LOGICAL_FREEZE_ONLY",
@@ -1242,11 +1261,11 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
             "source_refs": [
               {
                 "path": "crates/archeaxis-domain/src/document.rs",
-                "sha256": "1da8a3a3b3035852daf210f45dae5699c0abcce5b721784743fe5f09b9f45ef9"
+                "sha256": "9197e9314d7395a7a0f31c8f20daec9c55940cf8387cfad12bbd49caa6eed15b"
               },
               {
                 "path": "frontend/src/api/generated/core-contract.ts",
-                "sha256": "1f6e8e9b69a1258ff0804953f1999a2f46b4fc4d023a5526854e65ea0cf141a1"
+                "sha256": "52556b694bb19af4d18aa9f342bb82cef0329305c592f469e40cb58949a05359"
               }
             ]
           },
@@ -1668,11 +1687,11 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
             "source_refs": [
               {
                 "path": "crates/archeaxis-domain/src/document.rs",
-                "sha256": "1da8a3a3b3035852daf210f45dae5699c0abcce5b721784743fe5f09b9f45ef9"
+                "sha256": "9197e9314d7395a7a0f31c8f20daec9c55940cf8387cfad12bbd49caa6eed15b"
               },
               {
                 "path": "frontend/src/api/generated/core-contract.ts",
-                "sha256": "1f6e8e9b69a1258ff0804953f1999a2f46b4fc4d023a5526854e65ea0cf141a1"
+                "sha256": "52556b694bb19af4d18aa9f342bb82cef0329305c592f469e40cb58949a05359"
               }
             ]
           },
