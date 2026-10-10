@@ -972,6 +972,36 @@ def run_authored_intervention(ui, read, wait, stage, result):
     result["actual_task_id"] = retest["task_id"]
 
 
+def restored_admission_receipt(receipt, document, knowledge_id, question):
+    """Validate a Core-bound redacted receipt actually observed on the trusted UI."""
+    assert isinstance(receipt, dict), "Missing typed restore admission receipt"
+    expected = {
+        "schema": "archeaxis.context-admission-refusal/v1",
+        "reason_code": "RESTORED_GRANT_FENCED",
+        "execution_state": "NOT_EXECUTED",
+        "execution_scope": "CURRENT_INVOCATION",
+        "prior_request_execution": "UNVERIFIED",
+        "answer_published": False,
+        "operation": "answer",
+        "knowledge_id": knowledge_id,
+        "retest_of": None,
+        "grant": {key: document[key] for key in ("document_id", "version", "content_sha256")},
+    }
+    for key, value in expected.items():
+        assert receipt.get(key) == value, "Restore admission binding mismatch: " + key
+    client = receipt.get("client_request_id")
+    assert isinstance(client, str) and re.fullmatch(r"[A-Za-z0-9_.:-]{1,160}", client), "Invalid frozen client identity"
+    request = {"operation": "answer", "request": {
+        "knowledge_id": knowledge_id, "question": question, "max_tokens": 2048, "timeout_s": 120,
+        "context_grant": grant_snapshot(document), "asset_context_grant": None,
+        "client_request_id": client, "retest_of": None,
+    }}
+    digest = hashlib.sha256(json.dumps(request, sort_keys=True, separators=(",", ":"), ensure_ascii=False).encode()).hexdigest()
+    assert receipt.get("request_sha256") == digest, "Restore admission frozen request digest mismatch"
+    assert set(receipt) == set(expected) | {"client_request_id", "request_sha256"}, "Unbounded restore receipt"
+    return receipt
+
+
 def restored_grant_refusal(ui, read, wait, stage):
     if not stage.get("original_grant") or stage.get("status") != "EXECUTED_CANDIDATE_NOT_EVALUATED":
         return {
@@ -999,6 +1029,9 @@ def restored_grant_refusal(ui, read, wait, stage):
     # New UI client request; it cannot succeed through cached old-answer replay.
     ui.click("执行本地机器回答")
     wait("return document.body.innerText.includes('Core 明确拒绝此回答请求')", seconds=150)
+    receipt = restored_admission_receipt(ui.js("""const n=document.querySelector('[aria-label="恢复授权拒绝"]');
+      return n?JSON.parse(n.dataset.contextAdmissionRefusal):null;"""), document,
+      stage["original_answer"]["knowledge_id"], stage["original_answer"]["question"])
     after = machine_tasks(read)
     assert after == before, "Restored grant refusal created/changed a machine task"
     assert read("document_get", {"document_id": document["document_id"]}) == document
@@ -1007,8 +1040,11 @@ def restored_grant_refusal(ui, read, wait, stage):
         "old_grant": grant_snapshot(document),
         "tasks_unchanged": True,
         "authority": "CORE_UI_REFUSAL_OBSERVATION",
-        "exact_core_reason": "UNVERIFIED_UI_GENERIC_REFUSAL",
-        "reason": "Old preserved grant displayed then explicitly refused by Core after restore, with unchanged active knowledge/enabled route. UI does not expose the specific refusal reason; input remains dirty and is not discarded.",
+        "exact_core_reason": receipt["reason_code"],
+        "execution_scope": receipt["execution_scope"],
+        "prior_request_execution": receipt["prior_request_execution"],
+        "admission_receipt": receipt,
+        "reason": "Core request-bound RESTORED_GRANT_FENCED receipt observed on trusted UI. Only this invocation is NOT_EXECUTED; prior request execution remains UNVERIFIED. Frozen input is preserved.",
     }
 
 

@@ -450,7 +450,23 @@ class GroupedNativeProbeTests(unittest.TestCase):
         }
         actions, reads, waits = [], [], []
 
+        normalized = {"operation": "answer", "request": {
+            "knowledge_id": "original-knowledge", "question": "question", "max_tokens": 2048, "timeout_s": 120,
+            "context_grant": self.probe.grant_snapshot(document), "asset_context_grant": None,
+            "client_request_id": "machine_new_fixture", "retest_of": None,
+        }}
+        receipt = {"schema": "archeaxis.context-admission-refusal/v1", "reason_code": "RESTORED_GRANT_FENCED",
+            "execution_state": "NOT_EXECUTED", "execution_scope": "CURRENT_INVOCATION", "prior_request_execution": "UNVERIFIED",
+            "answer_published": False, "operation": "answer", "knowledge_id": "original-knowledge", "retest_of": None,
+            "client_request_id": "machine_new_fixture", "grant": {k: document[k] for k in ("document_id", "version", "content_sha256")},
+            "request_sha256": hashlib.sha256(json.dumps(normalized, sort_keys=True, separators=(",", ":"), ensure_ascii=False).encode()).hexdigest()}
+
         class UI:
+            def js(self, script):
+                self_script = script
+                assert "contextAdmissionRefusal" in self_script
+                return copy.deepcopy(receipt)
+
             def page(self, page):
                 actions.append(("page", page))
 
@@ -483,6 +499,15 @@ class GroupedNativeProbeTests(unittest.TestCase):
         )
         self.assertEqual(observed["status"], "PASS")
         self.assertTrue(observed["tasks_unchanged"])
+        self.assertEqual(observed["exact_core_reason"], "RESTORED_GRANT_FENCED")
+        self.assertEqual(observed["execution_scope"], "CURRENT_INVOCATION")
+        self.assertEqual(observed["prior_request_execution"], "UNVERIFIED")
+        for field in ("reason_code", "execution_scope", "prior_request_execution", "knowledge_id", "request_sha256", "grant"):
+            bad = {**receipt, field: "mismatch"}
+            with self.assertRaises(AssertionError):
+                self.probe.restored_admission_receipt(bad, document, "original-knowledge", "question")
+        with self.assertRaises(AssertionError):
+            self.probe.restored_admission_receipt(None, document, "original-knowledge", "question")
         self.assertIn(("type", "实际问题", "question", "textarea"), actions)
         self.assertIn(("click", "执行本地机器回答"), actions)
         self.assertTrue(any("Core 明确拒绝此回答请求" in script for script in waits))

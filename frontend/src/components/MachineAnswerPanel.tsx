@@ -3,7 +3,8 @@ import { coreCommand } from "../api/core";
 import type { ContextConsumptionDto, MachineTaskRowDto, MachineTasksPageDto } from "../api/generated/core-contract";
 import { assertAiAssetDto, type AssetPacketRequest, type MachineAssetContext } from "../api/generated/ai-asset-contract";
 import { sameAssetPin } from "../presentation/assetConsumption";
-import { ApiError } from "../api/client";
+import { ApiError, type MachineAdmissionRefusal } from "../api/client";
+import { readMachineAdmissionRefusal } from "../api/machineAdmission";
 import { documentRequestIdentity } from "../presentation/documentRequestIdentity";
 import { RawReceiptButton } from "./DiagnosticConsole";
 
@@ -44,6 +45,7 @@ export function MachineAnswerPanel({ knowledgeId, contextGrant, retestContextGra
   const [cursor, setCursor] = useState<string | null>(null);
   const [uncertain, setUncertain] = useState(false);
   const [withheld, setWithheld] = useState(false);
+  const [admissionRefusal,setAdmissionRefusal]=useState<MachineAdmissionRefusal|null>(null);
   const frozenAnswer = useRef<Record<string, unknown> | null>(null);
   const frozenRetest = useRef<Record<string, unknown> | null>(null);
   const dirtyOwner = useId(); const savedReview = useRef("");
@@ -54,7 +56,7 @@ export function MachineAnswerPanel({ knowledgeId, contextGrant, retestContextGra
     frozenAnswer.current = null; frozenRetest.current = null; savedReview.current = "";
     setAnswer(null); setTask(null); setCorrection(null); setCandidate(null); setRetest(null); setRetestTask(null);
     setQuestion(""); setCorrected(""); setNote(""); setReviewNote(""); setReviewer(""); setCorrectionAuthor("");
-    setHistory([]); setCursor(null); setBusy(false); setUncertain(false); setWithheld(false); setMessage("");
+    setHistory([]); setCursor(null); setBusy(false); setUncertain(false); setWithheld(false); setAdmissionRefusal(null); setMessage("");
     return () => { alive.current = false; epoch.current += 1; window.dispatchEvent(new CustomEvent("archeaxis-draft-dirty",{detail:{owner:dirtyOwner,dirty:false}})); };
   }, [knowledgeId]);
   function downstreamDirty() {
@@ -188,6 +190,7 @@ export function MachineAnswerPanel({ knowledgeId, contextGrant, retestContextGra
       ...(contextGrant ? {context_grant:structuredClone(contextGrant)} : {}), ...(assetContextGrant ? {asset_context_grant:{...structuredClone(assetContextGrant),request_id:`assetanswer_${crypto.randomUUID()}`,consumer:"local-machine",operation:"answer"}} : {}), ...(answerScoped ? {client_request_id:`machine_${crypto.randomUUID()}`} : {})});
     if (answerScoped) frozenAnswer.current = request;
     setBusy(true); setAnswer(null); setTask(null); setCorrection(null); setCandidate(null); setRetest(null); setRetestTask(null);
+    setAdmissionRefusal(null);
     setCorrected(""); setNote(""); setReviewNote(""); setMessage("正在执行本地机器回答，等待真实回执…");
     try {
       const response = record(await coreCommand("machine_answer", { body: request }));
@@ -197,7 +200,13 @@ export function MachineAnswerPanel({ knowledgeId, contextGrant, retestContextGra
       if (requestLive(generation)) { frozenAnswer.current = null; setUncertain(false); setAnswer(response); setTask(proof); onTask?.(String(response.answer_id)); setMessage("本地回答已持久化读回；可能为同请求的历史重放。它仍是候选，不是已接受知识或能力评分。"); }
     } catch (reason) {
       if (requestLive(generation)) {
-        if (reason instanceof ApiError && reason.execution) {frozenAnswer.current=null;setUncertain(true);setWithheld(true);setMessage(reason.execution.audit_status === "RECORDED" ? `推理已执行，答案未发布；脱敏审计 ${reason.execution.audit_task_id} 已保存。请核对授权与审计，不自动重跑。` : "推理已执行，答案未发布；持久化审计未确认。请保留草稿并检查 Core，不自动重跑。");}
+        if (reason instanceof ApiError && reason.machineAdmission) {
+          const refusal=await readMachineAdmissionRefusal(reason.machineAdmission,"answer",request);
+          if(!requestLive(generation))return;
+          setUncertain(true);setAdmissionRefusal(refusal??null);
+          setMessage(refusal?"Core 明确拒绝此回答请求：恢复后的旧授权已隔离。本次调用未执行；同一请求的历史执行仍未验证。冻结身份与原输入保留，请核对历史并新建明确授权，不自动替换或重跑。":"授权拒绝身份未确认，状态 UNKNOWN；保留冻结请求并核对历史。");
+        }
+        else if (reason instanceof ApiError && reason.execution) {frozenAnswer.current=null;setUncertain(true);setWithheld(true);setMessage(reason.execution.audit_status === "RECORDED" ? `推理已执行，答案未发布；脱敏审计 ${reason.execution.audit_task_id} 已保存。请核对授权与审计，不自动重跑。` : "推理已执行，答案未发布；持久化审计未确认。请保留草稿并检查 Core，不自动重跑。");}
         else if (reason instanceof ApiError && [400,403,404,422].includes(reason.status)) {frozenAnswer.current=null;setUncertain(false);setMessage("Core 明确拒绝此回答请求；请核对当前知识、用途或授权，原输入保留。");}
         else {setUncertain(true); setMessage("回答未完成或持久化读回未确认，状态 UNKNOWN。请读取历史核对；不会自动再次推理。");}
       }
@@ -276,7 +285,7 @@ export function MachineAnswerPanel({ knowledgeId, contextGrant, retestContextGra
     const originalQuestion = String(answer.question);
     const request = frozenRetest.current ?? { retest_of: failedTaskId, knowledge_id: candidateId, question: originalQuestion, max_tokens: 2048, timeout_s: 120, ...(retestContextGrant ? {context_grant:structuredClone(retestContextGrant)} : {}), ...(retestAssetContextGrant ? {asset_context_grant:{...structuredClone(retestAssetContextGrant),request_id:`assetretest_${crypto.randomUUID()}`,consumer:"local-machine",operation:"retest"}} : {}) };
     frozenRetest.current=request;
-    setBusy(true); setMessage("正在以已审核纠正知识重答原问题；Core 回执与任务读回确认前不显示为完成…");
+    setAdmissionRefusal(null); setBusy(true); setMessage("正在以已审核纠正知识重答原问题；Core 回执与任务读回确认前不显示为完成…");
     try {
       const response = record(await coreCommand("machine_retest", { body: request }));
       const machine = record(response.answer);
@@ -296,7 +305,13 @@ export function MachineAnswerPanel({ knowledgeId, contextGrant, retestContextGra
       }
     } catch (reason) {
       if (requestLive(generation)) {
-        if (reason instanceof ApiError && reason.execution) {frozenRetest.current=null;setUncertain(true);setWithheld(true);setMessage(reason.execution.audit_status === "RECORDED" ? `复测推理已执行，答案未发布；脱敏审计 ${reason.execution.audit_task_id} 已保存，不自动重跑。` : "复测推理已执行，答案未发布；审计持久化未确认，不自动重跑。");}
+        if (reason instanceof ApiError && reason.machineAdmission) {
+          const refusal=await readMachineAdmissionRefusal(reason.machineAdmission,"retest",request);
+          if(!requestLive(generation))return;
+          setUncertain(true);setAdmissionRefusal(refusal??null);
+          setMessage(refusal?"Core 明确拒绝复测请求：恢复后的旧授权已隔离。本次调用未执行；历史执行仍未验证。原冻结复测与纠正保留，不自动换授权或重跑。":"复测授权拒绝身份未确认，状态 UNKNOWN；保留冻结请求。");
+        }
+        else if (reason instanceof ApiError && reason.execution) {frozenRetest.current=null;setUncertain(true);setWithheld(true);setMessage(reason.execution.audit_status === "RECORDED" ? `复测推理已执行，答案未发布；脱敏审计 ${reason.execution.audit_task_id} 已保存，不自动重跑。` : "复测推理已执行，答案未发布；审计持久化未确认，不自动重跑。");}
         else if (reason instanceof ApiError && [400,403,404,422].includes(reason.status)) {frozenRetest.current=null;setMessage("Core 明确拒绝复测请求；原回答与纠正仍保留，请核对当前授权。");}
         else setMessage("复测未完成或持久化读回未确认。保留纠正与原失败回执；重试保持同一冻结请求，不能据此宣称完成。");
       }
@@ -304,6 +319,7 @@ export function MachineAnswerPanel({ knowledgeId, contextGrant, retestContextGra
   }
 
   return <section aria-label="知识到机器回答" className="ui-machine-answer">
+    {admissionRefusal?<section aria-label="恢复授权拒绝" data-context-admission-refusal={JSON.stringify(admissionRefusal)}><p>拒绝依据：恢复后的旧授权隔离。仅确认本次调用未执行；历史执行 UNVERIFIED。</p><RawReceiptButton label="恢复授权拒绝回执" payload={admissionRefusal}/></section>:null}
     {withheld ? <button disabled={busy} onClick={()=>{setWithheld(false);setUncertain(false);setMessage("已结束此未发布请求，问题与纠正草稿保留。再次执行将是新的明确操作，请先核对授权。");}}>结束已执行但未发布的请求，保留草稿</button> : null}
     <h4>既有机器学习回执</h4>
     <button disabled={busy} onClick={() => void readHistory()}>读取机器学习历史</button>

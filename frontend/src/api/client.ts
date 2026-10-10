@@ -26,6 +26,13 @@ const EXPECTED_API_CONTRACT = "1.x";
 const WRITE_SCOPE = "workspace:write";
 
 export type MachineExecutionRefusal = { execution_state: "EXECUTED_BUT_WITHHELD"; audit_status: "RECORDED" | "FAILED"; audit_task_id: string | null; answer_published: false };
+export type MachineAdmissionRefusal = {
+  schema:"archeaxis.context-admission-refusal/v1"; reason_code:"RESTORED_GRANT_FENCED";
+  execution_state:"NOT_EXECUTED"; execution_scope:"CURRENT_INVOCATION";
+  prior_request_execution:"UNVERIFIED"; answer_published:false;
+  operation:"answer"|"retest"; knowledge_id:string; client_request_id:string|null; retest_of:string|null;
+  request_sha256:string; grant:{document_id:string;version:number;content_sha256:string};
+};
 export type JobAdmissionRefusal = {
   schema: "archeaxis.job-admission-refusal/v1"; code: "AAK-CAP-001";
   job_id: string; request_id: string; input_ref: string; kind: string; capability: string;
@@ -40,6 +47,7 @@ export class ApiError extends Error {
     public code: RuntimeProjection = "unavailable",
     public execution?: MachineExecutionRefusal,
     public jobAdmission?: JobAdmissionRefusal,
+    public machineAdmission?: MachineAdmissionRefusal,
   ) {
     super(message);
     this.name = "ApiError";

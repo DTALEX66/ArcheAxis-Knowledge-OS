@@ -1,6 +1,7 @@
 // Native finite business commands only. No URL, method or credential reaches UI.
 import { ApiError } from "./client";
 import { jobAdmissionRefusal } from "./jobAdmission";
+import { readMachineAdmissionRefusal } from "./machineAdmission";
 import { assertCoreDto, type CoreOperation } from "./generated/core-contract";
 import { assertAiAssetDto } from "./generated/ai-asset-contract";
 import { assertTeachingDto } from "./generated/teaching-contract";
@@ -44,6 +45,13 @@ export async function coreCommand<T>(operation: CoreOperation, payload: Record<s
       if (admission) throw new ApiError(409, "能力已禁用，原请求未受理；启用后可显式同请求重试。", "unavailable", undefined, admission);
     }
     const refusal = response.body as Record<string,unknown> | null;
+    if (["machine_answer","machine_retest"].includes(operation) && refusal?.schema === "archeaxis.context-admission-refusal/v1") {
+      const body=payload.body;
+      const admission=response.status===403&&body&&typeof body==="object"&&!Array.isArray(body)
+        ?await readMachineAdmissionRefusal(refusal,operation==="machine_answer"?"answer":"retest",body as Record<string,unknown>):undefined;
+      if(!admission)throw new ApiError(502,"授权拒绝回执未绑定当前请求；保留冻结身份并核对历史。","incompatible");
+      throw new ApiError(403,"恢复后的旧授权已隔离；本次调用未执行，历史请求执行仍未验证。","unauthorized",undefined,undefined,admission);
+    }
     if (["machine_answer","machine_retest"].includes(operation) && refusal?.schema === "archeaxis.machine-execution-refusal/v1"
       && refusal.execution_state === "EXECUTED_BUT_WITHHELD" && refusal.answer_published === false
       && ((response.status === 403 && refusal.audit_status === "RECORDED" && typeof refusal.audit_task_id === "string" && /^withheld_[a-f0-9]{64}$/.test(refusal.audit_task_id))

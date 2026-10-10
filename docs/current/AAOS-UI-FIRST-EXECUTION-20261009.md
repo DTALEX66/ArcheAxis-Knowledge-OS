@@ -398,3 +398,10 @@ a8 完整 CI 38081667307 已 terminal FAIL。下载 exact artifact 11681586595�
 3ff实际Chinese probe失败后ASR按隐含success过滤required SKIP，不能把语音接线当实际结果。仅ASR准备/消费改显式 !cancelled + candidate runtime/host/engine成功前置，消费另须自己的ASR资产成功；独立Office/light/Chinese失败不再遮蔽ASR，但原失败仍导致desktop-fast/a0 FAIL。宿主格式失败可能产生source patch，故严格要求desktop_shell success，不签署变动源码。不改模型/引擎/资产pin、continue-on-error、JSON-only上传或缺receipt error。
 
 YAML/唯一ID/前置顺序及324取消/成功/失败/跳过条件组合通过，另核对三类独立失败；这是条件结构验证，新的实际ASR仍NOT_EXECUTED。详见[ASR独立CI依赖](receipts/AAOS-ASR-INDEPENDENT-CI-DEPENDENCIES-20261011.json)。当前3ff安装构建live，未取消或替代dispatch。文档409比较/明确重绑与恢复grant精确拒绝在独立checkout实现，未以隔离测试提前签署根集成或安装资格。
+
+
+## 2026-10-11 文档冲突与恢复授权拒绝主树集成（PARTIAL）
+
+两份隔离补丁按18个exact preimage/postimage合入主树：正文409停止自动重试，原基准/当前正文/独立草稿比较后明确按当前版本保存；工作草稿CAS错误不冒充正文冲突，迟到ACK与独立B草稿保持保护。恢复旧grant由同一Store fence政策返回绑定请求摘要的脱敏拒绝，NOT_EXECUTED只限CURRENT_INVOCATION，历史请求执行仍UNVERIFIED；冻结身份保留，不自动换授权或重跑。
+
+根56定向、120文件/1105全前端、20原生helper、TypeScript/production build、architecture/critical Ruff/diff检查PASS，源码指纹一致。前端为SIMULATED，新增Rust与实际安装恢复未执行；既有本地Rust权限拒绝未绕过。合并前未保存原稿永久归档仍未实现且UI明示，不能将工作草稿当不可变历史。详见[恢复集成回执](receipts/AAOS-DOCUMENT-GRANT-RECOVERY-INTEGRATION-20261011.json)。当前3ff安装验证live不取消；Python/desktop-fast旧pin失败修复待后继候选，实际文本模型服务及全九步仍有缺口。整体PARTIAL，主题与冻结范围不变。

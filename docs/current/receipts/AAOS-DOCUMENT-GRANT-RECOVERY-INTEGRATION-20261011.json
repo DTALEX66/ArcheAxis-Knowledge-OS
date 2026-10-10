@@ -1,0 +1,89 @@
+{
+  "schema": "archeaxis.closed-loop-recovery-integration/v1",
+  "date": "2026-10-11",
+  "status": "IMPLEMENTED_LOCAL_TESTED_LOCAL",
+  "whole_scope": "PARTIAL",
+  "source_commit": "96dabc0514f8bb5897b4299e7e29bc3b9d76074c",
+  "tested_source_patch_sha256": "cbe4d1da9ff7d875b306a2ae8a31eb98cc430e326d275b9c19849e4fe875269b",
+  "changes": [
+    "Document 409 stops automatic body retries and preserves independent drafts; explicit base/current/draft comparison and current-version CAS rebind",
+    "Journal preservation errors remain distinct from body conflicts; late input and independent B survive A saves",
+    "Precise restore-fenced context refusal binds a redacted normalized request digest; CURRENT_INVOCATION NOT_EXECUTED never implies prior request not executed",
+    "Frozen machine identity retained; no automatic inference or authorization replacement"
+  ],
+  "guarded_patch_sha256": {
+    "grant": "33badc31eb52eada585aed19a949370d06e8cd87783e797bc1c74446e0e3381e",
+    "document": "3a2cba3cb8b6467fe6cb823265946381e996b8d4620dc3c22f64a90dde75e4ab"
+  },
+  "files": {
+    "crates/archeaxis-api/src/runtime/colearning.rs": "21fa646c8dd3df732e9071f94ce08d958117995fb4f235ec31f9ddcf1943be56",
+    "crates/archeaxis-api/src/runtime/mod.rs": "43526d814bfcef8f774c7222ce426f62a2e157417cd8f2f5e216e759ea1d5195",
+    "crates/archeaxis-api/tests/context_grant_api.rs": "9eeaa0bba3b60043179b9873b72a20bc63c6a28029fdf1397e49b28f03588d22",
+    "crates/archeaxis-store-sqlite/src/authorization_fence.rs": "5bb7c3f5c4aab16ba33f902ca4193c991d6a95511561f48befe3bbff8cf5f21f",
+    "frontend/src/__tests__/MachineAnswerPanelScoped.test.tsx": "1644dfadfcab6d391d562cc08931bad5f1005e874041d11aa09146bab17dbbf3",
+    "frontend/src/api/client.ts": "610ffbe664be8f0a33743f2a918c6100397e1daa1923775a97f7dced97b7d0f5",
+    "frontend/src/api/core.ts": "31f99126205e97f0145755619af363b3d26ce83a8e62aee86573c848b5ca9d6f",
+    "frontend/src/components/DocumentEditor.tsx": "c8095c899eab7e24b034e8656df526fe7f6987c55043216299a360a068c1f150",
+    "frontend/src/components/MachineAnswerPanel.tsx": "de1808fca3e608477f22e0ee7085f8c5454fa03e7e3a5ceb1e84fe0ad9bd8bbb",
+    "frontend/src/spaces/CanonicalLibrarySpace.tsx": "dc9866462f3bad63442b0e425be097d975cc5dd4873a88a9c4460876facab4f4",
+    "scripts/probes/aaos01_grouped_owner_loop.py": "3c363b1cab7d6afa54c6cb0b5d8c2f0859b844218c76aae2b299719da631a786",
+    "tests/test_grouped_native_owner_probe.py": "dca6df32cc9ecfe6c39a6c2660334441c0e68f1e6db7b0d343a06ed245214c0e",
+    "crates/archeaxis-api/src/runtime/context_refusal.rs": "32cdf86b2e1ad3dcf6c1a5224cac9a60f4279eb8a8b2ae0ff392b22fa875c15e",
+    "frontend/src/__tests__/DocumentConflictRecovery.test.tsx": "d61b5297ff088fa380745b525a3287ec62d179ecdddfa8d55fd5692ac5a74c3c",
+    "frontend/src/__tests__/MachineAdmission.test.ts": "a4b5c15c561a5b84f1dd6a5b1cbe00005db0f1840b7bc7bc9d06c344cfebfea2",
+    "frontend/src/api/machineAdmission.ts": "ffe708a8b40952d16de8133c678cb87ca902382c688e3aa83308ed737c216ab7",
+    "frontend/src/components/DocumentConflictComparison.css": "2eb265cd0494265299dac2fe38972e023a264790ea26c0492b018d2784a66791",
+    "frontend/src/presentation/documentSaveStage.ts": "cd77ef334f686de033690dcf4716eaa43c938f6f4fa4827f535596d160fce5a9"
+  },
+  "verification": {
+    "targeted_frontend": {
+      "receipt": ".project-local/runs/be268a2d33/163dab4d843c/artifacts/execution.json",
+      "status": "PASS",
+      "count": 56,
+      "source_consistent": true,
+      "evidence_level": "SIMULATED"
+    },
+    "all_frontend": {
+      "receipt": ".project-local/runs/be268a2d33/5fb722db7504/artifacts/execution.json",
+      "status": "PASS",
+      "count": 1105,
+      "source_consistent": true,
+      "evidence_level": "SIMULATED"
+    },
+    "native_helper": {
+      "receipt": ".project-local/runs/be268a2d33/9b751c5ac85b/artifacts/execution.json",
+      "status": "PASS",
+      "count": 20,
+      "source_consistent": true,
+      "evidence_level": "SIMULATED"
+    },
+    "frontend_build": {
+      "receipt": ".project-local/runs/be268a2d33/f15bfab59504/artifacts/frontend-build.json",
+      "status": "PASS",
+      "count": null,
+      "source_consistent": true,
+      "evidence_level": "STRUCTURAL_BUILD"
+    }
+  },
+  "architecture": "PASS",
+  "critical_ruff": "PASS",
+  "diff_check": "PASS",
+  "new_rust_execution": "NOT_EXECUTED; existing local permission denial preserved; exact-SHA CI required",
+  "installed_new_recovery": "NOT_EXECUTED",
+  "immutable_pre_merge_unsaved_archive": "NOT_IMPLEMENTED; UI explicitly states limitation",
+  "actual_text_ai": "UNVERIFIED_UNAVAILABLE_ENDPOINT_PROBE; existing service identity/start contract still missing",
+  "current_prior_ci": {
+    "run_id": 38083440673,
+    "head_sha": "3ffbe73c791a53b150e3ce3a1c1224085abdc98c",
+    "installer_lifecycle": "IN_PROGRESS_AT_READBACK",
+    "python_tests": "FAIL",
+    "desktop_fast": "FAIL",
+    "new_changes_not_in_that_run": true
+  },
+  "permissions": {
+    "merge": "NOT_EXECUTED",
+    "release": "NOT_EXECUTED",
+    "green_replacement": "NOT_EXECUTED",
+    "real_user_data_overwrite": "NOT_EXECUTED"
+  }
+}

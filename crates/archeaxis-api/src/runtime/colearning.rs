@@ -357,6 +357,19 @@ pub(super) async fn machine_answer(
     let effective_tokens = body.max_tokens.unwrap_or(2048);
     let effective_timeout = body.timeout_s.unwrap_or(120);
     let wanted = body.knowledge_id.clone();
+    let refusal_request = super::context_refusal::answer_request(&body);
+    let refusal_grant = body.context_grant.clone();
+    if let Ok(Ok(Some(refusal))) = runtime
+        .executor
+        .store()
+        .submit_wait(move |conn| {
+            super::context_refusal::inspect(conn, refusal_grant.as_ref(), &refusal_request)
+        })
+        .await
+    {
+        return (StatusCode::FORBIDDEN, Json(refusal)).into_response();
+    }
+    // All other read errors and authorization conditions retain the existing admission path.
     let grant = body.context_grant.clone();
     let asset_grant = body.asset_context_grant.clone();
     let candidate_id = stable_id.clone();
@@ -673,6 +686,18 @@ pub(super) async fn run_retest(
         .unwrap_or("")
         .to_string();
     let effective_timeout = body.timeout_s.unwrap_or(120);
+    let refusal_request = super::context_refusal::retest_request(&body);
+    let refusal_grant = body.context_grant.clone();
+    if let Ok(Ok(Some(refusal))) = runtime
+        .executor
+        .store()
+        .submit_wait(move |conn| {
+            super::context_refusal::inspect(conn, refusal_grant.as_ref(), &refusal_request)
+        })
+        .await
+    {
+        return (StatusCode::FORBIDDEN, Json(refusal)).into_response();
+    }
     let prepared=runtime.executor.store().submit_wait(move |conn: &mut rusqlite::Connection|
         -> Result<(String,Value,String,Option<Value>),(StatusCode,String)> {
         consume_grant(conn,cache_grant.as_ref(),Operation::Retest,&cache_knowledge).map_err(permission_error)?;

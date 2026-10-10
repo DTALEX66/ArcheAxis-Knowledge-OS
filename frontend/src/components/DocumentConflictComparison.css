@@ -1,0 +1,3 @@
+.document-conflict-comparison { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 18rem), 1fr)); gap: 1rem; }
+.document-conflict-comparison > section { min-width: 0; }
+.document-conflict-comparison pre { white-space: pre-wrap; overflow-wrap: anywhere; max-height: 24rem; overflow: auto; }

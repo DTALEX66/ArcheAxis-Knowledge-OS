@@ -1,6 +1,7 @@
 import { useOptionalCoreWorkingState } from "../presentation/useCoreWorkingState";
 import type { WorkingDraft, WorkingEditor, PendingOriginal } from "../presentation/coreWorkingState";
 import { documentRequestIdentity } from "../presentation/documentRequestIdentity";
+import { DocumentJournalError } from "../presentation/documentSaveStage";
 import { lazy, Suspense, useEffect, useRef, useState, type CSSProperties } from "react";
 import type { JSONContent } from "@tiptap/core";
 import { coreCommand } from "../api/core";
@@ -355,7 +356,7 @@ export function CanonicalLibrarySpace({initialSourceTarget,purpose,onOpenDocumen
     const requestedDocumentId = document.document_id;
     const sentBasis = revisionBasis.current;
     const sent:WorkingDraft={base_version:expectedVersion,editor_json:structuredClone(content) as WorkingEditor};
-    if(working){working.session.rememberDraft(requestedDocumentId,sent.editor_json,expectedVersion);await working.session.flush();}
+    if(working){working.session.rememberDraft(requestedDocumentId,sent.editor_json,expectedVersion);try{await working.session.flush();}catch(error){throw new DocumentJournalError(error);}}
     const saved = await coreCommand<DocumentDto>("document_draft", { document_id: requestedDocumentId, body: { expected_version: expectedVersion, editor_json: content, ...(sentBasis ? {revision_basis:sentBasis} : {}) } });
     if (saved.document_id !== requestedDocumentId || saved.version!==expectedVersion+1) throw new Error("document identity or version mismatch");
     if (revisionBasis.current === sentBasis && currentDocument.current?.document_id === requestedDocumentId) revisionBasis.current = null;
@@ -379,6 +380,22 @@ export function CanonicalLibrarySpace({initialSourceTarget,purpose,onOpenDocumen
       setMessage("正文版本已保存；工作草稿清理未确认，输入保留。请仅核对或重试工作状态，不要重复保存同一正文。");setFailure(true);
     }
     return { content: saved.editor_json as JSONContent, version: saved.version, workingStateConfirmed };
+  }
+  async function readDocumentConflict(baseVersion:number) {
+    if(!document)throw new Error("document not loaded");
+    const id=document.document_id;
+    // Preserve the independent draft before fetching snapshots. A read never
+    // adopts the other version, overwrites input or grants write permission.
+    if(working)await working.session.flush();
+    const [base,current]=await Promise.all([
+      coreCommand<DocumentDto>("document_version",{document_id:id,version:baseVersion}),
+      coreCommand<DocumentDto>("document_get",{document_id:id}),
+    ]);
+    if(currentDocument.current?.document_id!==id||base.document_id!==id||current.document_id!==id
+      ||base.version!==baseVersion||!Number.isSafeInteger(current.version)||current.version<baseVersion
+      ||!/^([a-f0-9]{64})$/.test(current.content_sha256)
+      ||base.source_id!==current.source_id||base.source_revision!==current.source_revision)throw new Error("conflict snapshot identity mismatch");
+    return {base:{...base,editor_json:base.editor_json as JSONContent},current:{...current,editor_json:current.editor_json as JSONContent}};
   }
   async function retrySavedJournal(id:string):Promise<boolean> {
     if(!working)return true;
@@ -524,7 +541,7 @@ export function CanonicalLibrarySpace({initialSourceTarget,purpose,onOpenDocumen
   // Chunk-load placeholder, deliberately not a live region: the page's own outcome region below already
   // announces "正在读取资料…" / "正在读取原件与文档…", so a second placeholder region would make one
   // page read announce several times. The text stays where the editor appears.
-  const documentEditor = document ? <Suspense fallback={<p>正在载入文档编辑器…</p>}><DocumentEditor key={`${document.document_id}:${editorEpoch}`} content={documentDrafts[document.document_id]?.content ?? document.editor_json as JSONContent} version={documentDrafts[document.document_id]?.baseVersion ?? document.version} onSave={save} onRetryWorkingState={()=>retrySavedJournal(document.document_id)} onDirtyChange={value=>reportEditorDirty(document.document_id,value)} onDraftChange={(content,baseVersion)=>rememberDraft(document.document_id,content,baseVersion)} onCreateReference={source && original && bytes ? cite : undefined} onReferenceActivate={jump} /></Suspense> : null;
+  const documentEditor = document ? <Suspense fallback={<p>正在载入文档编辑器…</p>}><DocumentEditor key={`${document.document_id}:${editorEpoch}`} content={documentDrafts[document.document_id]?.content ?? document.editor_json as JSONContent} version={documentDrafts[document.document_id]?.baseVersion ?? document.version} onSave={save} onReadConflict={readDocumentConflict} onRetryWorkingState={()=>retrySavedJournal(document.document_id)} onDirtyChange={value=>reportEditorDirty(document.document_id,value)} onDraftChange={(content,baseVersion)=>rememberDraft(document.document_id,content,baseVersion)} onCreateReference={source && original && bytes ? cite : undefined} onReferenceActivate={jump} /></Suspense> : null;
 
   const originalPane = document ? <article className="original-derived-pane" aria-label="不可变原件">
               <header><h4>不可变原件</h4><p>{linkedOriginal ? "原件身份、版本与字节指纹已核对。" : "关联原件尚未核对或当前未提供，不以其他原件替代。"}</p></header>

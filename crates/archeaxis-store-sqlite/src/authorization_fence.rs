@@ -30,6 +30,17 @@ pub fn install_after_restore(conn: &Connection) -> rusqlite::Result<()> {
 /// created by an explicit trusted human action after restore may authorize anew.
 /// Removing a namespace, modifying state or restoring old versions cannot clear this fence.
 pub fn assert_grant_not_fenced(conn: &Connection, document_id: &str) -> rusqlite::Result<()> {
+    if grant_is_fenced(conn, document_id)? {
+        return Err(rusqlite::Error::InvalidParameterName(
+            "restored grant requires a new explicit human authorization object".into(),
+        ));
+    }
+    Ok(())
+}
+
+/// A precise reporting query using the same policy as enforcement. An unreadable or corrupt
+/// fence is an error, never evidence that a particular old grant is in the blocked set.
+pub fn grant_is_fenced(conn: &Connection, document_id: &str) -> rusqlite::Result<bool> {
     let raw: Option<String> = conn
         .query_row(
             "SELECT value FROM workspace_meta WHERE key=?1",
@@ -38,7 +49,7 @@ pub fn assert_grant_not_fenced(conn: &Connection, document_id: &str) -> rusqlite
         )
         .optional()?;
     let Some(raw) = raw else {
-        return Ok(());
+        return Ok(false);
     }; // Existing ordinary workspace compatibility.
     let valid:bool=conn.query_row(
         "SELECT CASE WHEN json_valid(?1) THEN
@@ -57,12 +68,7 @@ pub fn assert_grant_not_fenced(conn: &Connection, document_id: &str) -> rusqlite
         rusqlite::params![raw, document_id],
         |r| r.get(0),
     )?;
-    if blocked {
-        return Err(rusqlite::Error::InvalidParameterName(
-            "restored grant requires a new explicit human authorization object".into(),
-        ));
-    }
-    Ok(())
+    Ok(blocked)
 }
 
 #[cfg(test)]
@@ -101,10 +107,13 @@ mod tests {
             )
             .unwrap();
         assert_grant_not_fenced(&c, "old").unwrap();
+        assert!(!grant_is_fenced(&c, "old").unwrap());
         let tx = c.transaction().unwrap();
         install_after_restore(&tx).unwrap();
         tx.commit().unwrap();
         assert!(assert_grant_not_fenced(&c, "old").is_err());
+        assert!(grant_is_fenced(&c, "old").unwrap());
+        assert!(!grant_is_fenced(&c, "unlisted").unwrap());
         assert!(assert_grant_not_fenced(&c, "asset-old").is_err());
         grant(&c, "old", 3, "archeaxis_context_grant", "granted");
         assert!(assert_grant_not_fenced(&c, "old").is_err());
@@ -159,6 +168,7 @@ mod tests {
             )
             .unwrap();
             assert!(assert_grant_not_fenced(&c, "new").is_err());
+            assert!(grant_is_fenced(&c, "new").is_err());
         }
     }
 }
