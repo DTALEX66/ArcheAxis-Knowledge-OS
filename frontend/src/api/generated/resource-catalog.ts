@@ -15,7 +15,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
     },
     {
       "path": "docs/current/AAOS-RESOURCE-QUALIFICATION-20261010.json",
-      "sha256": "6b1e74b6812c25b2e5def086cc7eb8c66b44f016b2c534b1711a5eacbdae6ba6"
+      "sha256": "7c64f323248ead8662d76509586b5156d304530054d7d90c2ea9fd33ef5a7b4b"
     },
     {
       "path": "docs/truth/SUPPLY_CHAIN_LEDGER.json",
@@ -266,6 +266,19 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
           "path": "frontend/src/api/generated/core-contract.ts",
           "previous_sha256": "52556b694bb19af4d18aa9f342bb82cef0329305c592f469e40cb58949a05359",
           "current_sha256": "7ae3622193a59a9ab2864b85a1837e1b6ef646d34f11b14ff7aa47a8cf70683c"
+        }
+      ]
+    },
+    "pending_journal_source_refresh": {
+      "observed_on": "2026-10-11",
+      "source_change_commit": "9d6bcde82fc1821b3579c62c44dfd4473a1ba629",
+      "reason": "Reviewed generated contract change only adds finite ui_state_clear_job operation; CoreDocument DTO, donor entries, activation and qualification states are unchanged.",
+      "qualification": "NOT_GRANTED_BY_HASH_REFRESH",
+      "changed_sources": [
+        {
+          "path": "frontend/src/api/generated/core-contract.ts",
+          "previous_sha256": "7ae3622193a59a9ab2864b85a1837e1b6ef646d34f11b14ff7aa47a8cf70683c",
+          "current_sha256": "d55ef7b687669e427c35a14c49aa75454c3476614d1b872c67ef8958e158a938"
         }
       ]
     },
@@ -1278,7 +1291,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
               },
               {
                 "path": "frontend/src/api/generated/core-contract.ts",
-                "sha256": "7ae3622193a59a9ab2864b85a1837e1b6ef646d34f11b14ff7aa47a8cf70683c"
+                "sha256": "d55ef7b687669e427c35a14c49aa75454c3476614d1b872c67ef8958e158a938"
               }
             ]
           },
@@ -1704,7 +1717,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
               },
               {
                 "path": "frontend/src/api/generated/core-contract.ts",
-                "sha256": "7ae3622193a59a9ab2864b85a1837e1b6ef646d34f11b14ff7aa47a8cf70683c"
+                "sha256": "d55ef7b687669e427c35a14c49aa75454c3476614d1b872c67ef8958e158a938"
               }
             ]
           },

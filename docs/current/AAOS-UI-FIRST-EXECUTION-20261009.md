@@ -462,3 +462,9 @@ a2完整CI38085061981已completed/FAIL，安装job114312725772失败。下载art
 初轮79 receipt/native helper PASS后，合同审查发现helper与fixture均写通用runtime.evaluation，而Core失败任务为runtime.evaluation.failed；修正并加反例后80 PASS。随后两文件strict grouped接线按exact pre/postimage合入，原回答与独立retest分别核receipt_binding；未声明/stub/mock身份、错误请求、缺失或错正文绑定不得取得推理资格或继续纠正。隔离46 PASS及两项旧harness检查deselected不扩大签署；根最终82 PASS无skip/deselection、source_consistent=true，architecture/critical Ruff PASS，保留初轮记录及pyreadline析构warning。当前29ab CI的Rust/OS/desktop-build已terminal PASS，installer job114317398155 live；不包含本次journal/conflict/AI后继源码，且speech FAIL详情仍因下载权限授权待答而UNVERIFIED。详见[AI回执与正文绑定](receipts/AAOS-AI-RECEIPT-CONTEXT-INTEGRATION-20261011.json)。实际文本服务启动合同及同知识推理/纠正/独立复测/恢复仍缺资格，完整目标PARTIAL。
 
 本批八文件已正常上传Audit，local/native GitHub ref独立核对10852bc158b0f1a3d23616108e70559b2db412d0一致，payload交付后工作树clean。随后旧29ab完整CI38086620115与installer114317398155均terminal FAIL；具体安装与speech错误未取得回执，不补造原因、不重试受拒下载。仅在旧运行终止后dispatch最新完整候选[38088242528](https://github.com/DTALEX66/ArcheAxis-Knowledge-OS/actions/runs/38088242528)，force_full=true，headSha独立相等，观察queued；包含新journal、独立文档冲突和strict AI接线，尚无当前Rust/安装/全九步PASS。详见[统一候选进展](receipts/AAOS-JOURNAL-CONFLICT-AI-CANDIDATE-20261011.json)。
+
+## 2026-10-11 作业日志引起的资源目录源码引用漂移修复（PARTIAL）
+
+10852bc1候选contracts-vnext回归步骤FAIL；本地同入口84 PASS/2 FAIL，明确资源overlay的core-contract旧SHA漂移，另Windows链接fixture因symlink/junction权限拒绝失败，不重试/提权或当PASS。审阅9d6源码差异仅CoreOperation新增有限ui_state_clear_job，Document DTO不变；更新两个引用并按canonical generator重建资源目录，68条资源及资格/冻结状态不变，旧refresh历史保留。语义比较还原两个摘要并移除新说明后与旧Git JSON完全相同。根16资源合同与18界面测试PASS无skip、source_consistent=true，projection --check PASS；未签署全合同或runtime。详见[资源源码引用修复](receipts/AAOS-RESOURCE-JOURNAL-SOURCE-REFRESH-20261011.json)。
+
+该候选rust-vnext另在cargo fmt失败，精确格式差异UNVERIFIED；desktop/runtime任务仍live，保留有用结果，不重复dispatch。只读合同复核未找到“未保存冲突草稿必须永久不可变归档”的直接验收条款；当前原件/版本历史保全与独立草稿冲突恢复要求不变，不把增强归档扩成新强制目标，当前UI仍诚实提示尚未永久归档。

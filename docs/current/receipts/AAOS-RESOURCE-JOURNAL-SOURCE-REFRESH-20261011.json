@@ -1,0 +1,48 @@
+{
+  "schema": "archeaxis.execution-progress/v1",
+  "date": "2026-10-11",
+  "whole_goal": "PARTIAL",
+  "status": "SOURCE_REFERENCE_REPAIR_TESTED_LOCAL_CLOUD_PENDING",
+  "trigger": {
+    "candidate_sha": "10852bc158b0f1a3d23616108e70559b2db412d0",
+    "ci_run": 38088242528,
+    "failed_job": 114319270119,
+    "failed_step": "Run real Python contract and vocabulary regressions",
+    "cloud_exact_error": "UNVERIFIED; step metadata only, logs not downloaded",
+    "local_reproduction": ".project-local/runs/be268a2d33/bd9ffff64c51/artifacts/execution.json",
+    "local_result": "84 PASS / 2 FAIL; source drift plus Windows symlink/junction permission refusal",
+    "source_drift": "frontend/src/api/generated/core-contract.ts"
+  },
+  "repair": {
+    "source_change_commit": "9d6bcde82fc1821b3579c62c44dfd4473a1ba629",
+    "reviewed_change": "Generated CoreOperation union adds only ui_state_clear_job; document DTO unchanged",
+    "previous_source_sha256": "7ae3622193a59a9ab2864b85a1837e1b6ef646d34f11b14ff7aa47a8cf70683c",
+    "current_source_sha256": "d55ef7b687669e427c35a14c49aa75454c3476614d1b872c67ef8958e158a938",
+    "files": ["docs/current/AAOS-RESOURCE-QUALIFICATION-20261010.json", "frontend/src/api/generated/resource-catalog.ts"],
+    "qualification_states": "UNCHANGED",
+    "donor_entries": "ALL_68_UNCHANGED_EXCEPT_TWO_REVIEWED_SOURCE_REFS",
+    "historical_refresh_metadata": "PRESERVED",
+    "gate_policy": "Strict source-hash validation retained, not disabled or weakened"
+  },
+  "verification": {
+    "resource_projection_tests": {"passed": 16, "skipped": 0, "execution": ".project-local/runs/be268a2d33/97ac17f49e6c/artifacts/execution.json"},
+    "resource_ui_tests": {"passed": 18, "skipped": 0, "execution": ".project-local/runs/be268a2d33/314bcb89ae36/artifacts/execution.json"},
+    "source_commit": "0f9f754198f1b07088d2ec0e168626506e80994c",
+    "source_patch_sha256": "48bdfc353a0da6574e90964843c1c606b2d93de24f9d03f83e96051902e04eb1",
+    "source_consistent": true,
+    "projection_check": "PASS",
+    "semantic_comparison": "After removing new refresh note and reverting exactly two source hashes, overlay equals prior Git JSON including every activation/qualification value",
+    "full_contract_suite": "PARTIAL; Windows reparse fixture failed actual permission refusal, not retried or elevated",
+    "runtime": "NOT_EXECUTED",
+    "warning": "Pyreadline3 destructor 0xc0000008 retained after pytest exit0"
+  },
+  "current_ci": {
+    "run": 38088242528,
+    "status": "IN_PROGRESS",
+    "rust_job": 114319270136,
+    "rust_failed_step": "cargo fmt (root vNext workspace)",
+    "rust_exact_format_diff": "UNVERIFIED",
+    "new_dispatch": "NOT_EXECUTED; retain live desktop/runtime qualification"
+  },
+  "scope_clarification": "Immutable permanent archive of unsaved conflict drafts is not an explicit current acceptance clause; required original/version-history preservation and reliable independent draft/conflict recovery remain binding. No new archival subsystem implemented by this repair."
+}
