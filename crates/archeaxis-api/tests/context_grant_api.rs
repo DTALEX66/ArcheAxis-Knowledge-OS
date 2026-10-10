@@ -676,3 +676,53 @@ async fn restored_workspace_without_historical_grants_cannot_bypass_permission_b
         403
     );
 }
+
+#[tokio::test]
+async fn ordinary_retest_exposes_actual_context_without_changing_cache_or_historical_receipts() {
+    use sha2::{Digest, Sha256};
+    let dir = tempfile::tempdir().unwrap();
+    let (router, id) = fixture(dir.path()).await;
+    let mut grant_editor = editor(&id, "granted");
+    grant_editor["attrs"]["archeaxis_context_grant"]["operations"] = json!(["answer", "retest"]);
+    let (status, grant) = call(&router, "POST", "/api/v1/documents", "human",
+        json!({"title":"SYNTHETIC answer/retest authorization","editor_json":grant_editor})).await;
+    assert_eq!(status, 201, "{grant}");
+    let question = "SYNTHETIC unchanged question";
+    let (status, answer) = call(&router, "POST", "/api/v1/machine/answers", "human",
+        json!({"knowledge_id":id,"question":question,"context_grant":consumption(&grant)})).await;
+    assert_eq!(status, 200, "{answer}");
+    let (status, correction) = call(&router, "POST", "/api/v1/machine/corrections", "human",
+        json!({"answer_id":answer["answer_id"],"knowledge_id":id,"question":question,
+        "machine_answer":answer["answer"]["answer"],"corrected_answer":"SYNTHETIC correction",
+        "error_note":"SYNTHETIC fixture intervention only","reviewer":"fixture-human"})).await;
+    assert_eq!(status, 200, "{correction}");
+    let request = json!({"retest_of":correction["failed_task_id"],"knowledge_id":id,
+        "question":question,"context_grant":consumption(&grant)});
+    let (status, first) = call(&router, "POST", "/api/v1/machine/retests", "human", request.clone()).await;
+    assert_eq!(status, 200, "{first}");
+    assert_eq!(first["execution_request"]["schema"], "archeaxis.machine-retest-execution/v1");
+    assert_eq!(first["execution_request"]["context_sha256"],
+        format!("{:x}", Sha256::digest(b"SYNTHETIC authorized context")));
+    assert_eq!(first["execution_request"]["request"], first["request"]);
+    assert!(first["request"].get("context_sha256").is_none(), "positive cache request unchanged");
+    assert!(first["execution_request"].get("asset_context").is_none());
+    assert_eq!(std::fs::read_to_string(dir.path().join("answer.count")).unwrap(), "2");
+    let (status, second) = call(&router, "POST", "/api/v1/machine/retests", "human", request.clone()).await;
+    assert_eq!(status, 200);
+    assert_eq!(second, first);
+    assert_eq!(std::fs::read_to_string(dir.path().join("answer.count")).unwrap(), "2");
+    drop(router);
+    // Explicit SYNTHETIC historical database fixture: older receipt lacks the new field.
+    let mut historical = first.clone();
+    historical.as_object_mut().unwrap().remove("execution_request");
+    let conn = archeaxis_store_sqlite::init_workspace(dir.path().join("db.sqlite").to_str().unwrap()).unwrap();
+    assert_eq!(conn.execute("UPDATE machine_tasks SET conditions=?1 WHERE task_id=?2",
+        rusqlite::params![historical.to_string(), first["retest_task_id"].as_str().unwrap()]).unwrap(), 1);
+    drop(conn);
+    let (restarted, _) = fixture(dir.path()).await;
+    let (status, replay) = call(&restarted, "POST", "/api/v1/machine/retests", "human", request).await;
+    assert_eq!(status, 200, "{replay}");
+    assert_eq!(replay, historical, "historical response must never be enriched on replay");
+    assert!(replay.get("execution_request").is_none());
+    assert_eq!(std::fs::read_to_string(dir.path().join("answer.count")).unwrap(), "2");
+}

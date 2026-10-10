@@ -211,7 +211,7 @@ class GroupedNativeProbeTests(unittest.TestCase):
             "scope": "runtime.answer",
             "outcome": "unmeasured",
             "conditions": json.dumps(
-                {"answer": {"model": "actual-configured-model", "answer": "correct answer"}}
+                {"answer": {**self.probe.ai_receipt_contract()[1][0], "answer": "correct answer"}}
             ),
         }
         self.assertEqual(self.probe.inference_status(task), "EXECUTED_CANDIDATE_NOT_EVALUATED")
@@ -324,17 +324,17 @@ class GroupedNativeProbeTests(unittest.TestCase):
             "question": "question",
             "answer": {
                 "answer": "A correct actual-answer-shaped test value",
-                "model": "configured-model",
+                **self.probe.ai_receipt_contract()[1][0],
             },
             "authority": "candidate",
-            "request": {"context_grant": grant},
+            "request": {"context_grant": grant, "knowledge_id": "original-knowledge", "question": "question", "context_sha256": hashlib.sha256(b"Original accepted body").hexdigest()},
         }
         task = {
             "task_id": "answer",
             "scope": "runtime.answer",
             "outcome": "unmeasured",
             "knowledge_version": "original-knowledge@v1",
-            "model_version": "configured-model",
+            "model_version": self.probe.ai_receipt_contract()[1][0]["model"],
             "retest_of": None,
             "conditions": json.dumps(original),
         }
@@ -401,7 +401,7 @@ class GroupedNativeProbeTests(unittest.TestCase):
                 )
 
     def test_retest_requires_new_exact_grant_and_failed_ancestor(self):
-        grant, original, task, _, _, _ = self.ai_fixture()
+        grant, original, task, _, failed, candidate = self.ai_fixture()
         new_grant = {**grant, "document_id": "independent-retest-grant", "purpose": "retest"}
         retest = {
             **original,
@@ -410,8 +410,12 @@ class GroupedNativeProbeTests(unittest.TestCase):
             "retest_task_id": "retest",
             "knowledge_id": "corrected-knowledge",
             "retest_of": "evaluation_answer",
-            "request": {"context_grant": new_grant},
+            "request": {"knowledge_id": "corrected-knowledge", "question": "question", "retest_of": "evaluation_answer", "max_tokens": 2048, "context_grant": new_grant},
+            "prior": {"conditions": json.loads(failed["conditions"])},
         }
+        retest["execution_request"] = {"schema": "archeaxis.machine-retest-execution/v1",
+            "request": copy.deepcopy(retest["request"]),
+            "context_sha256": hashlib.sha256(candidate["body"].encode("utf-8")).hexdigest()}
         proof = {
             **task,
             "task_id": "retest",
@@ -424,6 +428,8 @@ class GroupedNativeProbeTests(unittest.TestCase):
             proof, "corrected-knowledge", "question", new_grant, "runtime.retest"
         )
         self.assertEqual(self.probe.inference_status(proof), "EXECUTED_CANDIDATE_NOT_EVALUATED")
+        binding = self.probe.receipt_binding(proof, {**candidate, "status": "accepted"}, "question", new_grant, prior_failed_task=failed)
+        self.assertEqual(binding["status"], "RECEIPT_BINDINGS_VALIDATED")
         with self.assertRaises(AssertionError):
             self.probe.assert_inference_task(
                 proof, "corrected-knowledge", "question", grant, "runtime.retest"
@@ -546,13 +552,22 @@ class GroupedNativeProbeTests(unittest.TestCase):
         self.exercise_simulated_ai(False)
         self.exercise_simulated_ai(True)
 
-    def exercise_simulated_ai(self, intervention):
+    def test_grouped_rejects_undeclared_stub_mock_and_wrong_frozen_request(self):
+        for mutation in ("undeclared_model", "stub_model", "mock_model", "wrong_original_request"):
+            with self.subTest(mutation=mutation):
+                self.exercise_simulated_ai(True, mutation)
+
+    def test_grouped_retest_without_exact_execution_body_is_unverified(self):
+        for mutation in ("missing_retest_context", "wrong_retest_body"):
+            with self.subTest(mutation=mutation):
+                self.exercise_simulated_ai(True, mutation)
+
+    def exercise_simulated_ai(self, intervention, mutation=None):
         docs, tasks, actions, reads, fields = {}, {}, [], [], {}
         knowledge = {
             "knowledge_id": "original-knowledge",
             "body": "Preserved original bytes differ from document revisions",
             "status": "accepted",
-            "version": "original-knowledge",
         }
         candidate = {}
         bound = [knowledge["knowledge_id"]]
@@ -596,22 +611,28 @@ class GroupedNativeProbeTests(unittest.TestCase):
                         "knowledge_id": knowledge["knowledge_id"],
                         "authority": "candidate",
                         "answer": {
-                            "model": "configured-model",
+                            **probe.ai_receipt_contract()[1][0],
                             "answer": "A correct explanation; no actual error claimed",
                         },
                         "request": {
+                            "knowledge_id": knowledge["knowledge_id"],
+                            "question": fields["实际问题"],
                             "context_grant": probe.grant_snapshot(docs["grant-1"]),
                             "context_sha256": hashlib.sha256(
                                 knowledge["body"].encode()
                             ).hexdigest(),
                         },
                     }
+                    if mutation in ("undeclared_model", "stub_model", "mock_model"):
+                        body["answer"]["model"] = {"undeclared_model": "configured-model", "stub_model": "local-stub", "mock_model": "mock-qwen"}[mutation]
+                    if mutation == "wrong_original_request":
+                        body["request"]["knowledge_id"] = "other-knowledge"
                     tasks[body["answer_id"]] = {
                         "task_id": body["answer_id"],
                         "scope": "runtime.answer",
                         "outcome": "unmeasured",
                         "knowledge_version": knowledge["knowledge_id"] + "@v1",
-                        "model_version": "configured-model",
+                        "model_version": body["answer"]["model"],
                         "retest_of": None,
                         "conditions": json.dumps(body),
                     }
@@ -621,7 +642,6 @@ class GroupedNativeProbeTests(unittest.TestCase):
                         knowledge_id="corrected-knowledge",
                         body=fields["正确答案"],
                         status="candidate",
-                        version="corrected-knowledge",
                         source_id=None,
                         anchor_id=None,
                     )
@@ -656,15 +676,24 @@ class GroupedNativeProbeTests(unittest.TestCase):
                         "retest_task_id": "actual-shaped-retest",
                         "knowledge_id": candidate["knowledge_id"],
                         "retest_of": failed_id,
-                        "request": {"context_grant": probe.grant_snapshot(docs["grant-2"])},
+                        "request": {"knowledge_id": candidate["knowledge_id"], "question": original["question"],
+                                    "retest_of": failed_id, "max_tokens": 2048,
+                                    "context_grant": probe.grant_snapshot(docs["grant-2"])},
                         "prior": {"conditions": json.loads(tasks[failed_id]["conditions"])},
                     }
+                    body["execution_request"] = {"schema": "archeaxis.machine-retest-execution/v1",
+                        "request": copy.deepcopy(body["request"]),
+                        "context_sha256": hashlib.sha256(candidate["body"].encode("utf-8")).hexdigest()}
+                    if mutation == "missing_retest_context":
+                        del body["execution_request"]
+                    if mutation == "wrong_retest_body":
+                        body["execution_request"]["context_sha256"] = hashlib.sha256(knowledge["body"].encode("utf-8")).hexdigest()
                     tasks[body["answer_id"]] = {
                         "task_id": body["answer_id"],
                         "scope": "runtime.retest",
                         "outcome": "unmeasured",
                         "knowledge_version": candidate["knowledge_id"] + "@v1",
-                        "model_version": "configured-model",
+                        "model_version": body["answer"]["model"],
                         "retest_of": failed_id,
                         "conditions": json.dumps(body),
                     }
@@ -719,7 +748,15 @@ class GroupedNativeProbeTests(unittest.TestCase):
             True,
             intervention,
         )
+        if mutation in ("undeclared_model", "stub_model", "mock_model", "wrong_original_request"):
+            self.assertEqual(stage["status"], "UNVERIFIED")
+            self.assertEqual(stage["receipt_binding"]["status"], "UNVERIFIED")
+            self.assertEqual(stage["correction"], "NOT_EXECUTED")
+            self.assertFalse(any(action[1] == "记录使用者纠正候选" for action in actions))
+            return
         self.assertEqual(stage["status"], "EXECUTED_CANDIDATE_NOT_EVALUATED")
+        self.assertEqual(stage["receipt_binding"]["status"], "RECEIPT_BINDINGS_VALIDATED")
+        self.assertEqual(stage["receipt_binding"]["actual_model_execution"], "NOT_PROVEN_BY_RECEIPT_HELPER")
         self.assertIn(("type", "实际问题", "textarea", ""), actions)
         self.assertEqual(
             json.loads(tasks["actual-shaped-answer"]["conditions"])["answer"]["answer"],
@@ -729,7 +766,8 @@ class GroupedNativeProbeTests(unittest.TestCase):
             self.assertEqual(
                 stage["correction"], "EXECUTED_AUTHORED_INTERVENTION_NOT_INDEPENDENT_ERROR"
             )
-            self.assertEqual(stage["retest"], "EXECUTED_CANDIDATE_NOT_EVALUATED")
+            self.assertEqual(stage["retest"], "UNVERIFIED" if mutation in ("missing_retest_context", "wrong_retest_body") else "EXECUTED_CANDIDATE_NOT_EVALUATED")
+            self.assertEqual(stage["retest_receipt_binding"]["status"], "UNVERIFIED" if mutation in ("missing_retest_context", "wrong_retest_body") else "RECEIPT_BINDINGS_VALIDATED")
             self.assertFalse(stage["authored_intervention"]["independent_error_adjudication"])
             self.assertIn("not independent model-failure evidence", stage["semantic_limitation"])
             self.assertNotEqual(

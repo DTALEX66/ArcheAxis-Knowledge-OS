@@ -844,7 +844,7 @@ pub(super) async fn run_retest(
                 "knowledge_version":format!("{}@v1",prior["knowledge_id"].as_str().unwrap())},
             "note":"the Core does not decide whether the correction helped; a human compares both answers"
         });
-        if body.asset_context_grant.is_some() {doc["execution_request"]=execution_request;}
+        doc["execution_request"]=execution_request;
         save(conn,&retest_id,"runtime.retest",&doc,"unmeasured",None,Some(&body.retest_of))?;
         Ok::<_,rusqlite::Error>(doc)
     }).await;

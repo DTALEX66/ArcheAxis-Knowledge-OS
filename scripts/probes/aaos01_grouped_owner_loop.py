@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import base64
 import hashlib
+import importlib.util
 import json
 import re
 import time
@@ -206,6 +207,32 @@ def task_conditions(task):
     return value
 
 
+def _read_module(name, path):
+    spec = importlib.util.spec_from_file_location(name, path)
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
+
+
+def ai_receipt_contract():
+    """Read formal literals and declared lanes only; no model/service execution."""
+    root = Path(__file__).resolve().parents[2]
+    helper = _read_module("grouped_ai_receipt_binding", root / "scripts/probes/aaos01_ai_receipt_qualification.py")
+    paths = _read_module("grouped_ai_tool_paths", root / "services/python-workers/tool_paths.py")
+    source = (root / "services/python-workers/machine/worker_machine_answer.py").read_text(encoding="utf-8")
+    return helper, helper.declared_identities(source, paths.local_runtime_lanes())
+
+
+def receipt_binding(task, knowledge, question, grant, *, prior_failed_task=None):
+    helper, identities = ai_receipt_contract()
+    try:
+        return helper.validate(task, knowledge, question, grant, identities,
+                               scope=task["scope"], prior_failed_task=prior_failed_task)
+    except (helper.BindingError, ValueError, TypeError, KeyError) as exc:
+        return {"status": "UNVERIFIED", "reason": type(exc).__name__ + ": " + str(exc),
+                "actual_model_execution": "NOT_PROVEN_BY_RECEIPT_HELPER"}
+
+
 def inference_status(task):
     """A candidate worker result is execution evidence, never measured accuracy."""
     conditions = task_conditions(task)
@@ -219,8 +246,13 @@ def inference_status(task):
     if (
         not isinstance(model, str)
         or not model.strip()
-        or any(word in model.lower() for word in ("simulated", "synthetic", "fixture", "manual"))
+        or any(word in model.lower() for word in ("simulated", "synthetic", "fixture", "manual", "stub", "mock", "unknown"))
     ):
+        return "UNVERIFIED"
+    _, identities = ai_receipt_contract()
+    if not any(all(answer.get(key) == identity[key] for key in
+                   ("model", "endpoint", "protocol", "engine", "engine_version", "prompt_version"))
+               for identity in identities):
         return "UNVERIFIED"
     return "EXECUTED_CANDIDATE_NOT_EVALUATED"
 
@@ -235,7 +267,7 @@ def assert_inference_task(task, knowledge_id, question, grant, scope="runtime.an
     )
     assert value["answer_id"] == task["task_id"]
     assert value["knowledge_id"] == knowledge_id and value["question"] == question
-    assert task["knowledge_version"].startswith(knowledge_id + "@")
+    assert task["knowledge_version"] == knowledge_id + "@v1"
     assert value["authority"] == "candidate"
     assert task["model_version"] == value["answer"]["model"]
     assert isinstance(value["answer"]["answer"], str) and value["answer"]["answer"].strip()
@@ -842,8 +874,10 @@ def run_ai_stage(ui, read, js, wait, pin, result, run_ai, authored_intervention=
     assert read("knowledge_get", {"id": pin["knowledge_id"]}) == knowledge, (
         "Answer knowledge changed during inference"
     )
+    binding = receipt_binding(task, knowledge, question, grant)
     stage.update(
-        status=inference_status(task),
+        receipt_binding=binding,
+        status=(inference_status(task) if binding["status"] == "RECEIPT_BINDINGS_VALIDATED" else "UNVERIFIED"),
         task=task,
         original_answer=original,
         original_answer_sha256=hashlib.sha256(original["answer"]["answer"].encode()).hexdigest(),
@@ -963,8 +997,10 @@ def run_authored_intervention(ui, read, wait, stage, result):
     assert read("machine_task_get", {"task_id": stage["task"]["task_id"]}) == stage["task"], (
         "Retest replaced original answer"
     )
+    binding = receipt_binding(retest, accepted, original["question"], grant, prior_failed_task=failed)
     stage.update(
-        retest=inference_status(retest),
+        retest_receipt_binding=binding,
+        retest=(inference_status(retest) if binding["status"] == "RECEIPT_BINDINGS_VALIDATED" else "UNVERIFIED"),
         retest_task=retest,
         reason="Actual answer and retest preserved; authored adoption is not independent error evidence or proof of improvement.",
     )

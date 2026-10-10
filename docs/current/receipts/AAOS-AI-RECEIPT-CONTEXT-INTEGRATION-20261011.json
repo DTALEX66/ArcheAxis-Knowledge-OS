@@ -1,0 +1,57 @@
+{
+  "schema": "archeaxis.execution-progress/v1",
+  "date": "2026-10-11",
+  "whole_goal": "PARTIAL",
+  "status": "IMPLEMENTED_LOCAL_GROUPED_WIRING_TESTED_RUNTIME_PENDING",
+  "files": ["scripts/probes/aaos01_ai_receipt_qualification.py", "tests/test_ai_receipt_qualification.py", "crates/archeaxis-api/src/runtime/colearning.rs", "crates/archeaxis-api/tests/context_grant_api.rs", "scripts/probes/aaos01_grouped_owner_loop.py", "tests/test_grouped_native_owner_probe.py"],
+  "integration": {
+    "helper_patch_sha256": "e47582a6b1bbeabb571ccb546ac4d6550a65379370f788b4b9387ab914c06d80",
+    "core_patch_sha256": "8ddf9fafd05d7017b22a6d6c3349be92f2722c035beefc2c0b86b67edf07e6df",
+    "preimages": "Two ABSENT and two exact existing raw source hashes independently verified; both patches passed apply check",
+    "postimages": "All four original transfer hashes verified, then explicit root scope correction and negative regression; grouped patch two exact preimages and postimages verified",
+    "grouped_patch_sha256": "485c1800eb115f92cdc997040a9d9ccaa4f4283b48051bc9d9e4b418d0ac0794",
+    "scope_correction": "Audit found both helper and fixture used runtime.evaluation; canonical Core failed task is runtime.evaluation.failed. Corrected both and added rejection of generic evaluation scope before final validation",
+    "core_change": "New successful retest always publishes the execution_request actually frozen and checked before/after inference; original compatibility request and cache lookup remain unchanged",
+    "historical_receipts": "No replay enrichment or mutation; historical missing execution_request stays missing and UNVERIFIED for context qualification",
+    "rust_regression": "Synthetic worker count, exact authorized body SHA, unchanged positive-cache request, repeated cache response without inference, and old missing-field receipt unchanged after restart; source added but Rust NOT_EXECUTED"
+  },
+  "helper_contract": {
+    "identity": "Formal worker AST literal constants plus declared local tool_paths runtime lanes; no model adapter stub defaults, worker invocation, HTTP or model startup",
+    "refusals": "Stub/mock/synthetic names, undeclared model/endpoint/protocol/engine/prompt, malformed types, missing fields, wrong knowledge ID/version/question/grant/body SHA",
+    "knowledge_version": "Current immutable Core ID@v1 contract, no invented DTO version",
+    "retest": "Independent failed-task snapshot and adopted lineage, unchanged original question, exact accepted body and actual frozen execution context",
+    "asset_context": "Knowledge SHA and combined context SHA are distinct; exact Core serde_json packet bytes required for combined proof, missing packet remains UNVERIFIED",
+    "meaning": "RECEIPT_BINDINGS_VALIDATED only; actual model execution NOT_PROVEN_BY_RECEIPT_HELPER, accuracy UNMEASURED and Owner acceptance false",
+    "grouped_entry_wiring": "Original answer and independent retest each require strict receipt_binding; missing or invalid bindings remain UNVERIFIED and cannot qualify actual inference or continue correction"
+  },
+  "verification": {
+    "tests": 82,
+    "result": "PASS_NO_SKIP",
+    "evidence_level": "SIMULATED_RECEIPT_AND_NATIVE_HELPER",
+    "execution": ".project-local/runs/be268a2d33/7ea220b97d2c/artifacts/execution.json",
+    "source_commit": "9d6bcde82fc1821b3579c62c44dfd4473a1ba629",
+    "source_patch_sha256": "37d00c0ce8510038d302d2dab0abe8403828abc357d963aeab3b18551b913e15",
+    "prior_runs": [
+      {"tests": 79, "execution": ".project-local/runs/be268a2d33/6615b0b9a29c/artifacts/execution.json", "limit": "Before canonical failed-scope audit correction"},
+      {"tests": 80, "execution": ".project-local/runs/be268a2d33/9a17ba9e2627/artifacts/execution.json", "limit": "After scope correction, before grouped wiring integration"}
+    ],
+    "isolated_delivery": "46 PASS, two stale isolated native-harness source checks explicitly deselected; root final 82 includes both checks, no deselection or skip",
+    "source_consistent": true,
+    "architecture": "PASS",
+    "critical_ruff": "PASS",
+    "rust_tests_and_format": "NOT_EXECUTED",
+    "actual_model": "NOT_EXECUTED",
+    "actual_installed_ai_journey": "NOT_EXECUTED",
+    "warning": "Pyreadline3 destructor WinError0xc0000008 retained after pytest exit0"
+  },
+  "ci": {
+    "run": 38086620115,
+    "sha": "29ab6d0c8d9057cd1c3edf3fcf59971e91603e8a",
+    "rust_os_and_desktop_build_jobs": "PASS_AT_THAT_SHA_ONLY",
+    "installer_job": 114317398155,
+    "installer_observed": "IN_PROGRESS_VERIFY_INSTALLED_NSIS_LIFECYCLE",
+    "contains_new_journal_conflict_or_ai_patch": false,
+    "speech": "FAIL_DETAIL_UNVERIFIED; download authorization pending after automatic approval rejected permission retry"
+  },
+  "limits": ["No actual text service executable/start contract confirmed", "No global model/provider/configuration change", "Authored correction is not independent model-error adjudication", "No learning effectiveness, physical IME, Owner/full-nine-step or release claim"]
+}

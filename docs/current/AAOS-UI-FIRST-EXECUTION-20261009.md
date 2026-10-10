@@ -454,3 +454,9 @@ a2完整CI38085061981已completed/FAIL，安装job114312725772失败。下载art
 根121文件1111全前端、TypeScript/build PASS且source_consistent=true；后继只修Python helper夹具，不改已测前端。初轮native helper53 PASS/2 FAIL因旧fake未提供新journal读取，补齐真实接口并保留原自动执行/身份负例、增加预算与重启/journal篡改拒绝，最终55 PASS无skip/源码一致；projection/architecture/critical Ruff PASS。第一次postimage检查16文件及helper后继有CRLF/LF差异，独立normalized byte比较后恢复exact reviewed bytes，不伪造首次成功。Rust编译/格式/新增Core与installed重启实际NOT_EXECUTED。详见[作业恢复集成](receipts/AAOS-PENDING-JOB-JOURNAL-INTEGRATION-20261011.json)。
 
 29ab候选CI38086620115的Rust/OS tests已terminal PASS，但不覆盖本次journal；desktop-build仍live，speech step FAIL。日志/JSON下载遭HTTP401/403，随后正常认证重试被automatic approval拒绝，已请求Owner明确授权并停止该读取；精确speech错误及Core是否启动UNVERIFIED。其余本地任务继续，不取消live安装候选，整体PARTIAL。
+
+## 2026-10-11 实际AI回执身份与复测冻结正文绑定（PARTIAL）
+
+四文件补丁按两ABSENT/两exact现有preimage合入并核对postimages。Core仅令新成功retest始终公开已实际冻结且postcheck通过的execution_request，不改兼容cache request/查询/权限/预算/推理或历史receipt；追加Rust回归源码核正文SHA、cache不重新推理及旧缺字段receipt重启后原样返回，实际Rust NOT_EXECUTED。独立helper从formal worker AST常量与当前声明local lanes派生model/endpoint/protocol/engine/prompt身份，拒stub/未声明/错类型/缺字段，核不可变knowledge ID@v1及明确grant、原问题、独立failed snapshot和已采用正文SHA；asset knowledge/combined摘要分开，缺exact Core packet仍UNVERIFIED。绑定检查不是模型实际执行、准确率或Owner验收。
+
+初轮79 receipt/native helper PASS后，合同审查发现helper与fixture均写通用runtime.evaluation，而Core失败任务为runtime.evaluation.failed；修正并加反例后80 PASS。随后两文件strict grouped接线按exact pre/postimage合入，原回答与独立retest分别核receipt_binding；未声明/stub/mock身份、错误请求、缺失或错正文绑定不得取得推理资格或继续纠正。隔离46 PASS及两项旧harness检查deselected不扩大签署；根最终82 PASS无skip/deselection、source_consistent=true，architecture/critical Ruff PASS，保留初轮记录及pyreadline析构warning。当前29ab CI的Rust/OS/desktop-build已terminal PASS，installer job114317398155 live；不包含本次journal/conflict/AI后继源码，且speech FAIL详情仍因下载权限授权待答而UNVERIFIED。详见[AI回执与正文绑定](receipts/AAOS-AI-RECEIPT-CONTEXT-INTEGRATION-20261011.json)。实际文本服务启动合同及同知识推理/纠正/独立复测/恢复仍缺资格，完整目标PARTIAL。
