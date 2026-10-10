@@ -103,5 +103,20 @@
     "local_branch_convergence": "GRANTED_WITHOUT_HISTORY_REWRITE",
     "release_install": "NOT_GRANTED",
     "product_execution": "REMAINS_PAUSED"
+  },
+  "delivery_readback": {
+    "state": "BRANCH_PUBLISHED",
+    "source_snapshot_commit": "3c1265be1017f565a64701b513bac3e51d724584",
+    "source_snapshot_tree": "982dafceddc85b8e023f3d028b86805b9592f041",
+    "remote_branches": [
+      "main",
+      "codex/Audit",
+      "codex/aaos-gov-ui-20261008"
+    ],
+    "native_github_sha_tree_match": true,
+    "local_worktrees_equal": true,
+    "ci": "UNVERIFIED; push response reported required a0-gates expected",
+    "installed": "NOT_EXECUTED",
+    "latest_delivery_metadata_sha": "resolve actual Git HEAD; do not treat snapshot commit as latest metadata commit"
   }
 }

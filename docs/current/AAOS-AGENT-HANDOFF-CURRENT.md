@@ -1,5 +1,8 @@
 # 当前 Agent 接手入口 · 2026-10-09
 
+> **2026-10-10 最新仓库同步：BRANCH_PUBLISHED**。公开源码、任务包和文档已推送；源码快照 `3c1265be1017f565a64701b513bac3e51d724584`、Git树 `982dafceddc85b8e023f3d028b86805b9592f041` 经GitHub原生API及远程refs读回匹配，main与两个任务分支一致，本地主检出和代码检出已收敛。当前交付元数据的最新SHA以实际Git HEAD/远程ref为准。旧段落“源码不同/未commit/push/云端缺文件”仅为旧时点；不再表示当前仓库状态。安装/产品任务仍暂停，整体PARTIAL与FAIL保留。**CI_VERIFIED_EXACT_SHA未获得**：推送响应显示required a0-gates仍expected，服务器接收提交不等于CI通过。
+
+
 当前最新收尾：**UF13 已启动切片完成验证后，按用户要求停止**；整体 TaskPack / UF13 均 **PARTIAL**。读[当前切片回执](receipts/AAOS-UI-FINAL-SLICE-20261010.json)和[原107条及18主题审计](AAOS-UF13-ACCEPTANCE-AUDIT-20261010.json)。审计为实施前快照，后续变化由切片回执分账，不将历史源码证据重标为当前 PASS。**不自动开启后续任务**；V01暂停、FT01–04冻结。
 
 先读根 AUTHORITY.md、AGENTS.md、PROJECT_CONTRACT.yaml、docs/current/AAOS-ACTIVE-EXECUTION.json 和文档/配置权威索引，再读 docs/taskpacks/aaos-ui-first-20261009/TASKPACK.md、TASKS.json、PAGE-PLAN.csv、FREEZE-REGISTER.md。当前路由是用户选中的 UI 优先增量；不是从 ZIP 自动提升权威。
