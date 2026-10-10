@@ -474,3 +474,9 @@ a2完整CI38085061981已completed/FAIL，安装job114312725772失败。下载art
 只读审查发现clear-job已提交但ACK丢失时，session UNKNOWN读回仅清草稿，旧job仍本地保留；后续flush会重新登记terminal旧请求，或在abandon tombstone拒绝后卡住。新增两清理路径先RED（16 PASS/2 FAIL），再记录exact clearedJob，仅workspace/epoch/next revision/expected state一致时条件清相同本地entry，保留后来草稿、其他job及变动同key身份。stageJob另在本地change前拒同job不同request，避免先污染状态再遭Core拒绝。
 
 根24 session及5文件46相关回归PASS无skip，TypeScript/production build和architecture PASS，源码指纹一致；中间新epoch夹具不合法导致22 PASS/1 FAIL已保留，改合法32hex后复验，不弱化门禁。证据SIMULATED，实际网络丢ACK/安装恢复尚NOT_EXECUTED；Bounded界面fresh ownership保护在隔离实现，不当本批已合入。详见[清理丢ACK修复](receipts/AAOS-JOB-CLEAR-LOST-ACK-REPAIR-20261011.json)。当前CI38088242528保留有用desktop/runtime任务，不取消或替代，全目标继续PARTIAL。
+
+## 2026-10-11 受限作业入口跨surface冻结身份保护收口（PARTIAL）
+
+三文件隔离补丁按exact preimages合入：同job已有manual/folder/bounded日志时，fresh handler在生成UUID/本地attempt前实时拒绝，两个新请求按钮共同禁用；恢复入口可明确选择全部surface，原key/预算/source revision/surface/relative保持，不自动执行或启用。隔离旧源码3 PASS/3新增FAIL保留，修复4文件60 PASS；首轮root postimage因CRLF/LF失败，独立全内容normalized bytes与已核SHA的隔离源码完全一致后恢复exact bytes，再作root按钮一致性补充，不伪造首次成功。
+
+根最终121文件1122全前端PASS无skip，包含前批丢ACK修复及本批三个surface挂载回归，TypeScript/production build、architecture/diff PASS且source_consistent=true。实际Core/worker/安装尚NOT_EXECUTED，不把SIMULATED提升为REAL。详见[入口冻结身份集成](receipts/AAOS-BOUNDED-JOURNAL-OWNERSHIP-INTEGRATION-20261011.json)。当前10852bc候选CI38088242528仍在desktop-build114319270161实际NSIS构建，不包含本批源码，未取消或dispatch替代。整体PARTIAL，五主题及冻结边界不变。

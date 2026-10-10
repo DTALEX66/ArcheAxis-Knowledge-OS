@@ -12,7 +12,7 @@ function fixture(surface:PendingJob["surface"]){
  const entry:PendingJob={source_id:"source",source_revision:hash,job_id:"original_job",request_id:"original_request",kind:"text",body:{deadline_ms:surface==="folder"?90000:60000,split:false,words:false},surface,mode:"single",origin_restore_epoch:"initial",relative:surface==="folder"?"owned.txt":null};
  let server:WorkingRead={schema:"archeaxis.ui-working-state/v1",workspace_id:"b".repeat(32),restore_epoch:"initial",state_revision:1,state:{drafts:{},opened_documents:[],active_document:null,page_id:"03",pending_original:null,pending_jobs:{original_request:entry}},draft_digests:{},pending_document_id:null,recovery_candidates:null,recovery_requires_confirmation:false};
  const transport:WorkingTransport={read:async()=>structuredClone(server),write:async req=>{server={...server,state:structuredClone(req.state),state_revision:server.state_revision+1};return structuredClone(server);},clearSaved:async()=>{throw new Error("unused");},clearJob:async()=>{throw new Error("no terminal proof");},recover:async()=>{throw new Error("unused");}};
- return {entry,transport};
+ return {entry,transport,get:()=>structuredClone(server)};
 }
 describe("SIMULATED real components rehydrate exact Core journal without automatic work",()=>{
  beforeEach(()=>{bridge.call.mockReset();bridge.call.mockImplementation(async(op:string)=>{
@@ -38,6 +38,29 @@ describe("SIMULATED real components rehydrate exact Core journal without automat
   const sent=bridge.call.mock.calls.find(([op])=>op==="job_execute")![1];
   expect(sent).toEqual({job_id:f.entry.job_id,request_id:f.entry.request_id,body:f.entry.body});
   expect(bridge.call.mock.calls.some(([op])=>op==="capability_set_enabled")).toBe(false);
+  view.unmount();
+ });
+
+ it.each(["manual","folder","bounded"] as const)("bounded fresh selection protects the %s-owned job and explicitly restores its original request",async(surface)=>{
+  const f=fixture(surface),session=new CoreWorkingStateSession(f.transport),user=userEvent.setup();
+  const write=vi.spyOn(f.transport,"write");await session.load();
+  const view=render(<CoreWorkingStateProvider session={session}><BoundedJobPanel command={bridge.call} pollMs={60000}/></CoreWorkingStateProvider>);
+  await user.selectOptions(await screen.findByLabelText("已保存来源"),"source");
+  await waitFor(()=>expect(screen.getByLabelText("来源任务")).toHaveTextContent("original_job"));
+  await user.selectOptions(screen.getByLabelText("来源任务"),"original_job");
+  const fresh=await screen.findByRole("button",{name:"执行已保存任务"});
+  await waitFor(()=>expect(screen.getByText("queued",{selector:"dd"})).toBeInTheDocument());
+  await user.clear(screen.getByLabelText("单次预算（毫秒）"));await user.type(screen.getByLabelText("单次预算（毫秒）"),"1000");
+  expect(fresh).toBeDisabled();await user.click(fresh);
+  expect(write).not.toHaveBeenCalled();expect(session.getSnapshot().state.pending_jobs).toEqual({original_request:f.entry});
+  expect(bridge.call.mock.calls.some(([op])=>op==="job_execute")).toBe(false);
+  await user.click(screen.getByRole("button",{name:"恢复冻结现场 original_request"}));
+  expect(bridge.call.mock.calls.some(([op])=>op==="job_execute")).toBe(false);
+  await user.click(await screen.findByRole("button",{name:"同请求重试"}));
+  await waitFor(()=>expect(bridge.call.mock.calls.filter(([op])=>op==="job_execute")).toHaveLength(1));
+  expect(bridge.call.mock.calls.find(([op])=>op==="job_execute")![1]).toEqual({job_id:f.entry.job_id,request_id:f.entry.request_id,body:f.entry.body});
+  expect(session.getSnapshot().state.pending_jobs).toEqual({original_request:f.entry});
+  expect(f.get().state.pending_jobs).toEqual({original_request:f.entry});
   view.unmount();
  });
 });

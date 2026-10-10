@@ -1,0 +1,45 @@
+{
+  "schema": "archeaxis.execution-progress/v1",
+  "date": "2026-10-11",
+  "whole_goal": "PARTIAL",
+  "status": "IMPLEMENTED_TESTED_LOCAL_INSTALLED_PENDING",
+  "files": ["frontend/src/components/BoundedJobPanel.tsx", "frontend/src/presentation/useJobJournal.tsx", "frontend/src/__tests__/JobJournalRecovery.test.tsx"],
+  "defect": "Before explicit journal recovery, normal job selection could create a new request for a job already owned by any persisted surface. Core rejects duplicate job identity, but the new local attempt could block restoring the original request.",
+  "repair": [
+    "Fresh execution buttons and live handler consult all-surface job ownership before generating UUID or local attempt",
+    "Bounded panel exposes explicit recovery for all journal surfaces",
+    "Same-request retry retains original request key, frozen budget, source revision, surface and relative provenance",
+    "No automatic execution or capability enable; Core admission and permission rules unchanged"
+  ],
+  "integration": {
+    "patch": ".project-local/runs/bounded-journal-guard-20261011/bounded-journal-guard.patch",
+    "patch_sha256": "3c15e284cc42723d5400a79fef7e4bcf14ad7b381a540b8b1faca1a4abfe3cdb",
+    "preimages": "Three exact raw source hashes verified",
+    "postimages": "Initial raw check failed on CRLF/LF; all three full normalized byte contents independently matched exact reviewed isolated source hashes, then exact bytes restored",
+    "root_followup": "Applied same blocked/ownership disabled state to new-request retry button before final tests"
+  },
+  "verification": {
+    "isolated_red": "3 PASS / 3 FAIL; new manual/folder/bounded ownership cases reproduce enabled fresh action",
+    "isolated_green": "4 files / 60 PASS and complete TypeScript semantic overlay PASS",
+    "isolated_evidence": ".project-local/runs/bounded-journal-guard-20261011/RECEIPT.md",
+    "root_frontend": {"files": 121, "passed": 1122, "skipped": 0, "execution": ".project-local/runs/be268a2d33/0048cfd8a47b/artifacts/execution.json"},
+    "root_build": ".project-local/runs/be268a2d33/5c8cc759aac4/artifacts/frontend-build.json",
+    "typescript_and_production_build": "PASS",
+    "architecture": "PASS",
+    "source_commit": "6075676c2583d9b75ee3c8f4c70425becb39bb60",
+    "source_patch_sha256": "3dadb01a92d9ee81d4cb2eac13490f3137edd80d4f92d8043ab809626744c1ea",
+    "source_consistent": true,
+    "evidence_level": "SIMULATED_MOUNTED_UI_AND_CORE_PORT",
+    "actual_core_worker_and_installed": "NOT_EXECUTED"
+  },
+  "ci": {
+    "run": 38088242528,
+    "candidate_sha": "10852bc158b0f1a3d23616108e70559b2db412d0",
+    "observed_status": "IN_PROGRESS",
+    "live_job": 114319270161,
+    "live_step": "Build the Windows release and NSIS installer",
+    "contains_this_patch": false,
+    "replacement_dispatch": "NOT_EXECUTED"
+  },
+  "limits": ["No installed UI, actual model or full nine-step acceptance", "Themes and frozen tasks unchanged", "No release, Green replacement or real-user overwrite"]
+}

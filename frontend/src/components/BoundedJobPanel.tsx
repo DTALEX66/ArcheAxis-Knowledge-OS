@@ -46,6 +46,7 @@ export function BoundedJobPanel({ command, pollMs = 1000 }: { command: BoundedJo
   const cancelRequest = useRef<string | null>(null);
   const polling = useRef(false);
   const selectedJob = jobs.find(row => row.job_id === jobId);
+  const persistedOwner=journal.allEntries.find(entry=>entry.job_id===jobId);
   const currentReceipt = status && Array.isArray(status.attempts) ? status.attempts.find(value => value && typeof value === "object" && (value as Record<string, unknown>).attempt === status.attempt) as Record<string, unknown> | undefined : undefined;
   const continuation = currentReceipt?.continuation && typeof currentReceipt.continuation === "object" ? currentReceipt.continuation as Record<string, unknown> : undefined;
   const pending = uncertain || cancelPending || !!attempt && !(status && terminal(status.state) && status.request_id === attempt.request_id);
@@ -78,7 +79,7 @@ export function BoundedJobPanel({ command, pollMs = 1000 }: { command: BoundedJo
       const frozen = currentAttempt.current;
       if(frozen&&journal.available){
         folderJobStatus(value,job,source,frozen);
-        const binding=journal.entries.find(entry=>entry.request_id===frozen.request_id);
+        const binding=journal.allEntries.find(entry=>entry.request_id===frozen.request_id);
         if(!binding||value.kind!==binding.kind)throw new Error("冻结作业种类不匹配");
       }
       const expectedRequest = frozen?.request_id ?? cancelRequest.current;
@@ -120,7 +121,8 @@ export function BoundedJobPanel({ command, pollMs = 1000 }: { command: BoundedJo
     return () => window.clearInterval(timer);
   }, [jobId, sourceId, pending, status?.state, command, pollMs]);
   async function execute(retry: boolean) {
-    if (action.current || !jobId) return;
+    if (action.current || !jobId || journal.blocked) return;
+    if(!retry&&journal.getJobOwner(jobId)){setMessage("该任务已有 Core 保全的冻结请求；请明确恢复原身份，不创建新请求。");return;}
     const budget = Number(deadline);
     if (!retry && (!/^\d+$/.test(deadline) || !Number.isSafeInteger(budget) || budget < 1 || budget > 300000)) { setMessage("预算必须为 1..300000 的整数毫秒。"); return; }
     const frozen = retry ? currentAttempt.current : { job_id: jobId, request_id: `job_${crypto.randomUUID()}`, body: { deadline_ms: budget, split: selectedJob?.kind === "transcribe" && split, words: selectedJob?.kind === "transcribe" && words } };
@@ -130,7 +132,8 @@ export function BoundedJobPanel({ command, pollMs = 1000 }: { command: BoundedJo
     try {
       const selected=sources.find(row=>row.source_id===sourceId);
       if(journal.available&&(!selected?.source_revision||!selectedJob?.kind))throw new Error("来源指纹或作业种类未读回。");
-      if(selected&&selectedJob)await journal.stage({source_id:sourceId,source_revision:selected.source_revision,kind:selectedJob.kind,job_id:frozen.job_id,request_id:frozen.request_id,body:frozen.body,mode:frozen.body.split?"split":"single",relative:null});
+      const binding=journal.getJobOwner(frozen.job_id);
+      if(selected&&selectedJob)await journal.stage({source_id:sourceId,source_revision:selected.source_revision,kind:selectedJob.kind,job_id:frozen.job_id,request_id:frozen.request_id,body:frozen.body,mode:frozen.body.split?"split":"single",relative:binding?.relative??null});
       if(!alive.current||generation!==epoch.current)return;
       const receipt = object(await command("job_execute", { ...frozen }));
       if (receipt.job_id !== frozen.job_id || receipt.request_id !== frozen.request_id || typeof receipt.state !== "string") throw new Error("执行回执身份不匹配");
@@ -151,7 +154,7 @@ export function BoundedJobPanel({ command, pollMs = 1000 }: { command: BoundedJo
     finally { action.current = false; if (alive.current && generation === epoch.current) setBusy(false); }
   }
   const locked = busy || pending || status?.state === "running";
-  return <section aria-label="受限任务执行"><JobJournalRecovery entries={journal.entries} disabled={busy||journal.blocked} onRestore={entry=>{if(currentAttempt.current&&currentAttempt.current.request_id!==entry.request_id)return;restoreEntry.current=entry;if(sourceId!==entry.source_id)setSourceId(entry.source_id);else if(jobId!==entry.job_id)setJobId(entry.job_id);else{const frozen={job_id:entry.job_id,request_id:entry.request_id,body:entry.body};currentAttempt.current=frozen;setAttempt(frozen);setUncertain(true);setDeadline(String(entry.body.deadline_ms));setSplit(entry.body.split);setWords(entry.body.words);restoreEntry.current=null;}setMessage("冻结身份已从 Core 恢复；只读取状态，不自动执行或启用能力。");}} onAbandon={async entry=>{await journal.clear(entry.request_id,"abandon_unadmitted");if(alive.current&&currentAttempt.current?.request_id===entry.request_id){currentAttempt.current=null;setAttempt(null);setUncertain(false);}}}/>
+  return <section aria-label="受限任务执行"><JobJournalRecovery entries={journal.allEntries} disabled={busy||journal.blocked} onRestore={entry=>{if(currentAttempt.current&&currentAttempt.current.request_id!==entry.request_id)return;restoreEntry.current=entry;if(sourceId!==entry.source_id)setSourceId(entry.source_id);else if(jobId!==entry.job_id)setJobId(entry.job_id);else{const frozen={job_id:entry.job_id,request_id:entry.request_id,body:entry.body};currentAttempt.current=frozen;setAttempt(frozen);setUncertain(true);setDeadline(String(entry.body.deadline_ms));setSplit(entry.body.split);setWords(entry.body.words);restoreEntry.current=null;}setMessage("冻结身份已从 Core 恢复；只读取状态，不自动执行或启用能力。");}} onAbandon={async entry=>{await journal.clear(entry.request_id,"abandon_unadmitted");if(alive.current&&currentAttempt.current?.request_id===entry.request_id){currentAttempt.current=null;setAttempt(null);setUncertain(false);}}}/>
     <h2>受限任务与检查点</h2>
     {message ? <p role="status">{message}</p> : null}
     <p>仅执行已保存的 Core job。机器回执历史单独保留；不授予通用 Agent 权限。</p>
@@ -161,9 +164,9 @@ export function BoundedJobPanel({ command, pollMs = 1000 }: { command: BoundedJo
     <label>单次预算（毫秒）<input type="number" min={1} max={300000} step={1} value={deadline} disabled={locked} onChange={event => setDeadline(event.target.value)} /></label>
     <label><input type="checkbox" checked={split} disabled={locked || selectedJob?.kind !== "transcribe"} onChange={event => setSplit(event.target.checked)} />媒体分段（窗口计划由 Core 决定）</label>
     <label><input type="checkbox" checked={words} disabled={locked || selectedJob?.kind !== "transcribe"} onChange={event => setWords(event.target.checked)} />词级时间</label>
-    <button disabled={!status || locked || !["queued", "pending"].includes(status.state)} onClick={() => void execute(false)}>执行已保存任务</button>
+    <button disabled={!status || locked || journal.blocked || !!persistedOwner || !["queued", "pending"].includes(status.state)} onClick={() => void execute(false)}>执行已保存任务</button>
     <button disabled={!attempt || !uncertain || busy} onClick={() => void execute(true)}>同请求重试</button>
-    <button disabled={locked || !status || !["failed", "cancelled"].includes(status.state) || continuation?.new_attempt_eligible_state !== true} onClick={() => void execute(false)}>新请求重试（不等于检查点恢复）</button>
+    <button disabled={locked || journal.blocked || !!persistedOwner || !status || !["failed", "cancelled"].includes(status.state) || continuation?.new_attempt_eligible_state !== true} onClick={() => void execute(false)}>新请求重试（不等于检查点恢复）</button>
     <button disabled={!jobId || busy} onClick={() => void refresh()}>刷新实际状态</button>
     <button disabled={busy || !(status?.state === "running" || pending) || !(attempt?.request_id || status?.request_id)} onClick={() => void cancel()}>请求取消</button>
     {cancelPending ? <p>取消待确认：继续轮询实际状态。</p> : null}

@@ -4,7 +4,11 @@ import { useState } from "react";
 
 export function useJobJournal(surface:PendingJob["surface"]) {
   const working=useOptionalCoreWorkingState();
-  const entries=Object.values(working?.state.pending_jobs??{}).filter(entry=>entry.surface===surface);
+  const allEntries=Object.values(working?.state.pending_jobs??{});
+  const entries=allEntries.filter(entry=>entry.surface===surface);
+  function getJobOwner(jobId:string) {
+    return Object.values(working?.session.getSnapshot().state.pending_jobs??{}).find(entry=>entry.job_id===jobId);
+  }
   function assertReady() {
     if(!working){if(window.__TAURI__)throw new Error("执行需要 Core 工作状态保全。");return;}
     if(!working.server||working.server.recovery_requires_confirmation||["blocked","recovery","loading"].includes(working.status))throw new Error("请先核对 Core 工作状态；未发送执行请求。");
@@ -13,7 +17,7 @@ export function useJobJournal(surface:PendingJob["surface"]) {
     assertReady();if(!working)return;
     const existing=working.session.getSnapshot().state.pending_jobs?.[entry.request_id];
     if(existing?.origin_restore_epoch!==undefined&&existing.origin_restore_epoch!==working.server!.restore_epoch)throw new Error("冻结请求来自恢复前现场，历史执行 UNVERIFIED；仅允许核对状态或已记录终态，不自动重放。");
-    await working.session.stageJob({...entry,surface,origin_restore_epoch:working.server!.restore_epoch});
+    await working.session.stageJob({...entry,surface:existing?.surface??surface,origin_restore_epoch:working.server!.restore_epoch});
   }
   async function clear(request:string,action:"terminal"|"abandon_unadmitted"="terminal") {
     assertReady();if(!working)return;
@@ -21,7 +25,7 @@ export function useJobJournal(surface:PendingJob["surface"]) {
     if(!entry)throw new Error("执行日志身份未读回；冻结现场保留。");
     await working.session.clearJob(entry,action);
   }
-  return {entries,stage,clear,available:!!working,blocked:!!working&&(!working.server||working.server.recovery_requires_confirmation||["blocked","recovery","loading"].includes(working.status))};
+  return {entries,allEntries,getJobOwner,stage,clear,available:!!working,blocked:!!working&&(!working.server||working.server.recovery_requires_confirmation||["blocked","recovery","loading"].includes(working.status))};
 }
 
 /** Restores a rendered scene only. Never dispatches an execution or relies on an old enable proof. */
