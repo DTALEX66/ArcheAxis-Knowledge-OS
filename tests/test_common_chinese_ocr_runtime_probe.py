@@ -15,15 +15,20 @@ def probe(monkeypatch):
         spec=importlib.util.spec_from_file_location(name,path);module=importlib.util.module_from_spec(spec);monkeypatch.setitem(sys.modules,name,module);spec.loader.exec_module(module);return module
     load('aaos01_office_runtime_loop',ROOT/'scripts/probes/aaos01_office_runtime_loop.py')
     base_path=ROOT/'scripts/probes/aaos01_common_light_ocr_runtime_loop.py'
-    # Isolated checkout retains an older base; only the declared main repository
-    # is a permitted fallback. Merged tests import their own checkout normally.
-    expected='bfdc7be40bdbc0991d1de2cbb3bb39714c3bd3c8b45c958dff64829a11058a80'
-    if hashlib.sha256(base_path.read_bytes().replace(b'\r\n',b'\n')).hexdigest()!=expected:
-        assert ROOT.parent.name=='worktrees' and ROOT.parent.parent.name=='.project-local'
-        base_path=ROOT.parents[2]/'scripts/probes/aaos01_common_light_ocr_runtime_loop.py'
-    assert hashlib.sha256(base_path.read_bytes().replace(b'\r\n',b'\n')).hexdigest()==expected,'Reviewed base preimage changed'
     load('aaos01_common_light_ocr_runtime_loop',base_path)
-    m=load('chinese_ocr_probe',ROOT/'scripts/probes/aaos01_common_chinese_ocr_runtime_loop.py');m.load_worker=load;return m
+    m=load('chinese_ocr_probe',ROOT/'scripts/probes/aaos01_common_chinese_ocr_runtime_loop.py');m.load_worker=load;m.reviewed_base_bytes();return m
+
+
+@pytest.mark.parametrize('ending', [b'\n', b'\r\n'])
+def test_reviewed_base_accepts_only_line_ending_normalization(probe, tmp_path, monkeypatch, ending):
+    raw = probe.reviewed_base_bytes().replace(b'\r\n', b'\n').replace(b'\n', ending)
+    local = tmp_path / 'reviewed-base.py'
+    local.write_bytes(raw)
+    monkeypatch.setattr(probe.base, '__file__', str(local))
+    assert probe.reviewed_base_bytes() == raw
+    local.write_bytes(raw + b'\n# changed source\n')
+    with pytest.raises(AssertionError, match='Base probe changed'):
+        probe.reviewed_base_bytes()
 
 def snapshot(result):
     outputs={'text':result['text'],'document_structure':json.dumps(result['structure'],ensure_ascii=False),'loss_report':json.dumps(result['loss_receipt'],ensure_ascii=False)}

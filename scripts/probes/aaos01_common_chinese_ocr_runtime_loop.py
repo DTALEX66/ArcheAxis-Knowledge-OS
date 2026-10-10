@@ -15,7 +15,7 @@ from pathlib import Path, PureWindowsPath
 import aaos01_common_light_ocr_runtime_loop as base
 REPO=Path(__file__).resolve().parents[2]
 # Git stores LF; Windows checkouts may use CRLF. Normalize only line endings.
-BASE_PREIMAGE='bfdc7be40bdbc0991d1de2cbb3bb39714c3bd3c8b45c958dff64829a11058a80'
+BASE_PREIMAGE='93bbfebef845ebabd89c09d77245c84c05fcf375509765305188b14c843feb0d'
 KINDS={'png':'image','jpeg':'image','pdf':'pdf'}
 MARKERS={'png':('扫描中文页一',),'jpeg':('扫描中文页一',)}
 GENERATOR=base.GENERATOR.replace("'ocr_languages_qualified':['eng'],'chinese_scan_recognition':'UNMEASURED'", "'ocr_languages_qualified':['chi_sim'],'recognition_accuracy':'UNMEASURED'")
@@ -89,14 +89,21 @@ def ocr_page_body(source,job,snapshot):
     return location_body('png',source,job,snapshot,b'')
 
 
+def reviewed_base_bytes():
+    raw = Path(base.__file__).read_bytes()
+    assert hashlib.sha256(raw.replace(b'\r\n', b'\n')).hexdigest() == BASE_PREIMAGE, (
+        'Base probe changed; review and update the exact preimage before qualification'
+    )
+    return raw
+
+
 def main():
     parser=argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--candidate',type=Path,required=True)
     parser.add_argument('--tessdata',type=Path,required=True)
     parser.add_argument('--tesseract',type=Path,required=True)
     args=parser.parse_args()
-    base_raw=Path(base.__file__).read_bytes()
-    assert hashlib.sha256(base_raw.replace(b'\r\n',b'\n')).hexdigest()==BASE_PREIMAGE,'Base probe changed; review and update the exact preimage before qualification'
+    base_raw=reviewed_base_bytes()
     resources=validate_chinese_resources(args.tesseract,args.tessdata)
     env={'ARCHEAXIS_OCR_LANG':'chi_sim','ARCHEAXIS_OCR_TESSDATA':str(args.tessdata.resolve()),'TESSDATA_PREFIX':str(args.tessdata.resolve()),'TESSERACT_CMD':str(args.tesseract.resolve())}
     prior_env={key:os.environ.get(key) for key in env}

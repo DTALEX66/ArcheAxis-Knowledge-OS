@@ -386,3 +386,9 @@ a8 完整 CI 38081667307 已 terminal FAIL。下载 exact artifact 11681586595�
 下载 a8 exact-SHA working-state artifact 11680662711：实际 Core HTTP、SYNTHETIC 自有笔记、clean/source_consistent=true。独立复核47调用、6自有Core进程全停止、journal/正文/第二文档跨重启相等、固定原创request全程唯一身份、两个独立恢复分别显式preserve/discard及重启相等，权限/冲突/未创建对象/重复恢复拒绝保持预期；不上传正文或凭据。该证据不包括installed UI/物理IME，丢ACK仅客户端注入，详见[工作状态Core复核](receipts/AAOS-WORKING-STATE-CORE-READBACK-20261011.json)。
 
 当前完整候选3ffbe73c791a53b150e3ce3a1c1224085abdc98c已上传且独立remote读回一致，CI 38083440673 in_progress，Rust格式步骤已进入后续cargo test，不提前记required tests PASS。另启动隔离审查/实现旧grant恢复拒绝的精确类型化证据；仅当前调用是否进入推理可判断，历史同request执行状态不能凭403推导。整体继续PARTIAL。
+
+## 2026-10-11 中文探针绑定修复、TXT与Rust实际进展（PARTIAL）
+
+3ff完整CI的OS tests 4694 PASS/87 SKIP/5 ERROR，五错误均中文测试旧base摘要触发隔离worktree fallback断言；desktop-fast实际中文包装器同一旧摘要拒绝，后续ASR准备/Core/upload均required SKIPPED。审阅99→当前base只有TXT kind/markers/fixture/原UTF8定位扩展，现更新精确LF摘要，保留硬拒绝并统一测试只读自己的checkout；新增LF/CRLF接受及实际源码漂移拒绝回归，不删除pin或绕过校验。根显式既有中文工具23 PASS无skip（含3实际PNG/JPEG/scanned PDF中文OCR），critical Ruff/architecture PASS、source_consistent=true；pyreadline析构错误保留。修复后candidate Core中文仍待后继CI。
+
+当前3ff rust-vnext terminal PASS，下载job114305012318日志确认新disabled_non_admission与durable_running负例均实际通过。下载light artifact11681755128，独立核验TXT完整原字节/正文与产物digest、emoji后原UTF8 span、不同job重解析、locator CURRENT、重启相等；选定真实Core TXT资格通过，非全格式/全局CI签署。详见[中文绑定与TXT/Rust续批](receipts/AAOS-CHINESE-PIN-TXT-RUST-PROGRESS-20261011.json)。新分组安装仍保留当前live验证；主题、冻结任务及发布边界不变。
