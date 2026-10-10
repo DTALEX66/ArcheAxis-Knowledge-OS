@@ -30,6 +30,20 @@ from shared.naming import (
 ROOT = Path(__file__).resolve().parents[1]
 
 
+@pytest.mark.parametrize("path", [
+    "docs/taskpacks/aaos-ui-first-20261009/PAGE-PLAN.csv",
+    "docs/history/ui-design-increment-20261009/sources/zip-members/03_核心操作流程.csv",
+    "docs/history/conversation-summary-20261010/sources/AAOS_Conversation_Summary_20261010.md",
+])
+def test_october_originals_reject_mutation_and_unregistered_copies(path):
+    original = (ROOT / path).read_bytes()
+    assert scan_text_bytes(path, original) == []
+    assert [issue.code for issue in scan_text_bytes(path, original + b"x")] == [
+        "preserved-fixture-mismatch"
+    ]
+    assert scan_text_bytes("docs/unregistered/" + Path(path).name, original)
+
+
 @pytest.mark.parametrize("name", ["acl-manifests.json", "capabilities.json", "desktop-schema.json", "windows-schema.json"])
 def test_tauri_generator_only_exact_output_may_omit_final_lf(name):
     path = "src-tauri/gen/schemas/" + name

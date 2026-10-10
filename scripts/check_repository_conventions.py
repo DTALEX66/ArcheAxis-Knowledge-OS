@@ -159,6 +159,37 @@ _PRESERVED_PACKAGE_MEMBER_HASHES = {
         "514a23a3bc2132fe7d04fa6751ab745f116f2001f52029cd3680fa2457879fd1",
 }
 
+# Owner-supplied Oct09/10 inputs and pre-repair snapshots: exact manifest
+# hashes, including original BOM/CRLF and Markdown hard breaks. No wildcard.
+_PRESERVED_PACKAGE_MEMBER_HASHES.update({
+    'docs/history/authority-repair-20261010/AAOS-AGENT-HANDOFF-before-repair.md':
+        '8291e3d85152e8d60f39d1f7c6bd7120c54a94e88f15531e7a36a51e60bc5d3d',
+    'docs/history/authority-repair-20261010/SYSTEM_BOUNDARY-before-repair.md':
+        '8567446c4a9e99e887f511b26f18a489e49314b965825eea3b8725fcda1ba1c7',
+    'docs/history/conversation-summary-20261010/sources/AAOS_Conversation_Summary_20261010.md':
+        '053e16b2b895c4d8549a90610c81cc95e8024e5648419bffbcb2a21949fac6d4',
+    'docs/history/ui-design-increment-20261009/sources/zip-members/02_旧22页新入口与职责映射.csv':
+        'fa372415464e8978b973a64d7f7268cc9bbe694cc90feac3d6d80a599cafc71c',
+    'docs/history/ui-design-increment-20261009/sources/zip-members/03_核心操作流程.csv':
+        '8e2fbaae24b3fdd9240cb6dda466e53fe8a1e3bd036b99e902af6a1936e10c68',
+    'docs/history/ui-design-increment-20261009/sources/zip-members/04_公共组件状态规格.csv':
+        '09311565c47c2f08fd9f5048b931e778bc65159682d240b13def28a7c2d93c69',
+    'docs/history/ui-design-increment-20261009/sources/zip-members/05_按钮动作与真实接线清单.csv':
+        '8aff9b2bc924b0e38ee70b5fcacde5a87de37d132ddd3d2b9ceb68d933ffd15b',
+    'docs/history/ui-design-increment-20261009/sources/zip-members/06_成熟度验收场景.csv':
+        '3a5458d8f5af3ef037f9e60aa2a08af204b54d8a45cd716a4c71e12430ae416d',
+    'docs/taskpacks/aaos-ui-first-20261009/DESIGN-DETAIL-CROSSWALK.csv':
+        '30be5090b0184b1de2e1da3cd53f0c18df7e8283cd9aec3b834b71ab70bce243',
+    'docs/taskpacks/aaos-ui-first-20261009/OLD-TASK-DISPOSITION.csv':
+        '88a31e57e6b24b8ee909ef31d3a626806a213be2ab0a096bdfe15858312de2b1',
+    'docs/taskpacks/aaos-ui-first-20261009/ORIGINAL-CONTRACT-DEPENDENCIES.csv':
+        '393fba675d732bf2ff04150a52bbe75258d069a6e8d9c19404edb7760272fe94',
+    'docs/taskpacks/aaos-ui-first-20261009/PAGE-PLAN.csv':
+        '4a56d60e33db3e0fe6843b88fad15cb88c3ad97e495703c4815bdf42578c7304',
+    'docs/taskpacks/aaos-ui-first-20261009/REQUIREMENT-CROSSWALK.csv':
+        'f1b0d6ff2659d4f1dead214049978c20f310426f782ac910840d65055125d835',
+})
+
 # This DP audit intentionally quotes a superseded product name as branch
 # evidence. Pin the exact report bytes so it remains evidence, not a wildcard
 # naming exemption.

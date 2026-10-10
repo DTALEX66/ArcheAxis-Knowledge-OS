@@ -36,3 +36,18 @@ docs/history/planning-blueprint-absorption/2026-09-29/package-unpacked/** -text
 docs/history/planning-blueprint-absorption/2026-09-29/package-unpacked/*.csv whitespace=cr-at-eol
 docs/history/planning-blueprint-absorption/2026-09-29/package-unpacked/AAOS_完整历史规划蓝图吸收池与当前状态总报告_2026-09-29.md whitespace=-blank-at-eol
 tests/fixtures/aaos-ui-mother/index.html -text
+
+# Manifest-bound Oct09/10 originals retain their bytes in every checkout.
+"docs/history/authority-repair-20261010/AAOS-AGENT-HANDOFF-before-repair.md" -text whitespace=cr-at-eol,-blank-at-eol
+"docs/history/authority-repair-20261010/SYSTEM_BOUNDARY-before-repair.md" -text whitespace=cr-at-eol,-blank-at-eol
+"docs/history/conversation-summary-20261010/sources/AAOS_Conversation_Summary_20261010.md" -text whitespace=cr-at-eol,-blank-at-eol
+"docs/history/ui-design-increment-20261009/sources/zip-members/02_旧22页新入口与职责映射.csv" -text whitespace=cr-at-eol,-blank-at-eol
+"docs/history/ui-design-increment-20261009/sources/zip-members/03_核心操作流程.csv" -text whitespace=cr-at-eol,-blank-at-eol
+"docs/history/ui-design-increment-20261009/sources/zip-members/04_公共组件状态规格.csv" -text whitespace=cr-at-eol,-blank-at-eol
+"docs/history/ui-design-increment-20261009/sources/zip-members/05_按钮动作与真实接线清单.csv" -text whitespace=cr-at-eol,-blank-at-eol
+"docs/history/ui-design-increment-20261009/sources/zip-members/06_成熟度验收场景.csv" -text whitespace=cr-at-eol,-blank-at-eol
+"docs/taskpacks/aaos-ui-first-20261009/DESIGN-DETAIL-CROSSWALK.csv" -text whitespace=cr-at-eol,-blank-at-eol
+"docs/taskpacks/aaos-ui-first-20261009/OLD-TASK-DISPOSITION.csv" -text whitespace=cr-at-eol,-blank-at-eol
+"docs/taskpacks/aaos-ui-first-20261009/ORIGINAL-CONTRACT-DEPENDENCIES.csv" -text whitespace=cr-at-eol,-blank-at-eol
+"docs/taskpacks/aaos-ui-first-20261009/PAGE-PLAN.csv" -text whitespace=cr-at-eol,-blank-at-eol
+"docs/taskpacks/aaos-ui-first-20261009/REQUIREMENT-CROSSWALK.csv" -text whitespace=cr-at-eol,-blank-at-eol
