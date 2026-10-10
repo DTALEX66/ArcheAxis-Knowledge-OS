@@ -64,5 +64,5 @@ def test_nightly_windows_runtime_uses_powershell_safe_env_and_http_smoke() -> No
 
     assert "shell: pwsh" in windows
     assert "Remove-Item -LiteralPath Env:PYTHONPATH -ErrorAction SilentlyContinue" in windows
-    assert "uv run --frozen --group ci --group ci-adapters python -m app.runtime_entrypoint migrate" in windows
-    assert "uv run --frozen --group ci --group ci-adapters python scripts/runtime_http_smoke.py" in windows
+    assert "python -B -m app.runtime_entrypoint migrate" in windows
+    assert "python -B scripts/runtime_http_smoke.py" in windows

@@ -132,14 +132,26 @@ fn id(payload: &Value, key: &str) -> Result<String, String> {
     Ok(value.to_owned())
 }
 
-fn execution_request_id(payload: &Value) -> Result<String,String> {
-    if payload.get("request_id").is_some() { id(payload,"request_id") } else { id(payload,"job_id") }
+fn execution_request_id(payload: &Value) -> Result<String, String> {
+    if payload.get("request_id").is_some() {
+        id(payload, "request_id")
+    } else {
+        id(payload, "job_id")
+    }
 }
 
 fn teaching_id(payload: &Value, key: &str) -> Result<String, String> {
-    let value=payload.get(key).and_then(Value::as_str).ok_or("CORE_COMMAND_ID_REQUIRED")?;
-    if value.is_empty() || value.len()>128 || matches!(value,"."|"..")
-        || !value.bytes().all(|c|c.is_ascii_alphanumeric() || matches!(c,b'-'|b'_'|b'.')) {
+    let value = payload
+        .get(key)
+        .and_then(Value::as_str)
+        .ok_or("CORE_COMMAND_ID_REQUIRED")?;
+    if value.is_empty()
+        || value.len() > 128
+        || matches!(value, "." | "..")
+        || !value
+            .bytes()
+            .all(|c| c.is_ascii_alphanumeric() || matches!(c, b'-' | b'_' | b'.'))
+    {
         return Err("CORE_COMMAND_ID_INVALID".into());
     }
     Ok(value.to_owned())
@@ -148,22 +160,37 @@ fn teaching_id(payload: &Value, key: &str) -> Result<String, String> {
 // Document references and graph cursors use the Core reference vocabulary.
 // This does not relax unrelated legacy route identifiers.
 fn reference_id(payload: &Value, key: &str) -> Result<String, String> {
-    let value=payload.get(key).and_then(Value::as_str).ok_or("CORE_COMMAND_ID_REQUIRED")?;
-    if value.is_empty() || value.len()>256 || matches!(value,"."|"..")
-        || !value.bytes().all(|c|c.is_ascii_alphanumeric() || matches!(c,b'-'|b'_'|b'.')) {
+    let value = payload
+        .get(key)
+        .and_then(Value::as_str)
+        .ok_or("CORE_COMMAND_ID_REQUIRED")?;
+    if value.is_empty()
+        || value.len() > 256
+        || matches!(value, "." | "..")
+        || !value
+            .bytes()
+            .all(|c| c.is_ascii_alphanumeric() || matches!(c, b'-' | b'_' | b'.'))
+    {
         return Err("CORE_COMMAND_ID_INVALID".into());
     }
     Ok(value.to_owned())
 }
 
 fn learning_item_key(payload: &Value) -> Result<String, String> {
-    let value = payload.get("item_key").and_then(Value::as_str).ok_or("CORE_COMMAND_ID_REQUIRED")?;
+    let value = payload
+        .get("item_key")
+        .and_then(Value::as_str)
+        .ok_or("CORE_COMMAND_ID_REQUIRED")?;
     // Only Core's exact course/artifact vocabulary needs colons and 159 bytes.
     // Other identifiers keep the original bounded path-segment contract.
     if let Some(rest) = value.strip_prefix("course:course-") {
         if let Some((course, lesson)) = rest.split_once(":artifact:lesson-") {
-            let digest = |part: &str| part.len() == 64
-                && part.bytes().all(|c| c.is_ascii_digit() || (b'a'..=b'f').contains(&c));
+            let digest = |part: &str| {
+                part.len() == 64
+                    && part
+                        .bytes()
+                        .all(|c| c.is_ascii_digit() || (b'a'..=b'f').contains(&c))
+            };
             if digest(course) && digest(lesson) {
                 return Ok(value.to_owned());
             }
@@ -183,7 +210,11 @@ fn route(request: &Request) -> Result<(&'static str, String, Option<Value>), Str
     };
     Ok(match request.operation {
         SystemVersion => ("GET", "/api/v1/system/version".into(), None),
-        WorkspaceRestorePreview => ("POST", "/api/v2/workspace/restore/preview".into(), Some(body()?)),
+        WorkspaceRestorePreview => (
+            "POST",
+            "/api/v2/workspace/restore/preview".into(),
+            Some(body()?),
+        ),
         SourceImport => ("POST", "/api/v1/imports".into(), Some(body()?)),
         SourcesList => ("GET", "/api/v1/sources".into(), None),
         SourceJobs => (
@@ -209,11 +240,20 @@ fn route(request: &Request) -> Result<(&'static str, String, Option<Value>), Str
         DocumentsList => {
             let path = if let Some(cursor) = p.get("cursor") {
                 let cursor = cursor.as_str().ok_or("cursor must be a string")?;
-                if cursor.is_empty() || cursor.len()>1024 || !cursor.bytes().all(|b|b.is_ascii_alphanumeric() || b==b'-' || b==b'_') { return Err("invalid document cursor".into()); }
+                if cursor.is_empty()
+                    || cursor.len() > 1024
+                    || !cursor
+                        .bytes()
+                        .all(|b| b.is_ascii_alphanumeric() || b == b'-' || b == b'_')
+                {
+                    return Err("invalid document cursor".into());
+                }
                 format!("/api/v1/documents?cursor={cursor}")
-            } else { "/api/v1/documents".into() };
+            } else {
+                "/api/v1/documents".into()
+            };
             ("GET", path, None)
-        },
+        }
         DocumentCreate => ("POST", "/api/v1/documents".into(), Some(body()?)),
         DocumentChecks => {
             let base = format!("/api/v1/documents/{}/checks", id(p, "document_id")?);
@@ -255,28 +295,59 @@ fn route(request: &Request) -> Result<(&'static str, String, Option<Value>), Str
             None,
         ),
         DocumentGraph => {
-            let mut query=Vec::new();
-            if let Some(value)=p.get("version") {
-                let version=value.as_u64().filter(|v|*v>0 && *v<=i64::MAX as u64).ok_or("CORE_COMMAND_VERSION_INVALID")?;
+            let mut query = Vec::new();
+            if let Some(value) = p.get("version") {
+                let version = value
+                    .as_u64()
+                    .filter(|v| *v > 0 && *v <= i64::MAX as u64)
+                    .ok_or("CORE_COMMAND_VERSION_INVALID")?;
                 query.push(format!("version={version}"));
             }
-            if p.get("cursor").is_some() {query.push(format!("cursor={}",reference_id(p,"cursor")?));}
-            ("GET",format!("/api/v1/documents/{}/relations{}",reference_id(p,"document_id")?,if query.is_empty(){String::new()}else{format!("?{}",query.join("&"))}),None)
-        },
+            if p.get("cursor").is_some() {
+                query.push(format!("cursor={}", reference_id(p, "cursor")?));
+            }
+            (
+                "GET",
+                format!(
+                    "/api/v1/documents/{}/relations{}",
+                    reference_id(p, "document_id")?,
+                    if query.is_empty() {
+                        String::new()
+                    } else {
+                        format!("?{}", query.join("&"))
+                    }
+                ),
+                None,
+            )
+        }
         CollectionQuery => {
-            let mut query=vec![format!("view_id={}",teaching_id(p,"view_id")?)];
-            if let Some(value)=p.get("version") {
-                let version=value.as_u64().filter(|v|*v>0 && *v<=i64::MAX as u64).ok_or("CORE_COMMAND_VERSION_INVALID")?;
+            let mut query = vec![format!("view_id={}", teaching_id(p, "view_id")?)];
+            if let Some(value) = p.get("version") {
+                let version = value
+                    .as_u64()
+                    .filter(|v| *v > 0 && *v <= i64::MAX as u64)
+                    .ok_or("CORE_COMMAND_VERSION_INVALID")?;
                 query.push(format!("version={version}"));
             }
-            for (key,min,max) in [("offset",0,500),("limit",1,100)] {
-                if let Some(value)=p.get(key) {
-                    let value=value.as_u64().filter(|v|*v>=min && *v<=max).ok_or("CORE_COLLECTION_PAGE_INVALID")?;
+            for (key, min, max) in [("offset", 0, 500), ("limit", 1, 100)] {
+                if let Some(value) = p.get(key) {
+                    let value = value
+                        .as_u64()
+                        .filter(|v| *v >= min && *v <= max)
+                        .ok_or("CORE_COLLECTION_PAGE_INVALID")?;
                     query.push(format!("{key}={value}"));
                 }
             }
-            ("GET",format!("/api/v1/documents/{}/collection?{}",reference_id(p,"document_id")?,query.join("&")),None)
-        },
+            (
+                "GET",
+                format!(
+                    "/api/v1/documents/{}/collection?{}",
+                    reference_id(p, "document_id")?,
+                    query.join("&")
+                ),
+                None,
+            )
+        }
         DocumentDraft => (
             "PUT",
             format!("/api/v1/documents/{}/draft", id(p, "document_id")?),
@@ -370,25 +441,58 @@ fn route(request: &Request) -> Result<(&'static str, String, Option<Value>), Str
             format!("/api/v1/knowledge/{}/review/versioned", id(p, "id")?),
             Some(body()?),
         ),
-        CourseFromKnowledge => ("POST", "/api/v1/courses/from-knowledge".into(), Some(body()?)),
+        CourseFromKnowledge => (
+            "POST",
+            "/api/v1/courses/from-knowledge".into(),
+            Some(body()?),
+        ),
         CourseList => {
             let suffix = if p.get("cursor").is_some() {
                 format!("?cursor={}", id(p, "cursor")?)
-            } else { String::new() };
+            } else {
+                String::new()
+            };
             ("GET", format!("/api/v1/courses{suffix}"), None)
-        },
+        }
         TeachingList => {
-            let suffix=if p.get("cursor").is_some() {format!("?cursor={}",teaching_id(p,"cursor")?)} else {String::new()};
-            ("GET",format!("/api/v2/teaching/records{suffix}"),None)
-        },
-        TeachingGet => ("GET",format!("/api/v2/teaching/records/{}",teaching_id(p,"record_id")?),None),
-        TeachingExport => ("GET",format!("/api/v2/teaching/records/{}/export",teaching_id(p,"record_id")?),None),
-        TeachingCreate => ("POST","/api/v2/teaching/records".into(),Some(body()?)),
-        TeachingWithdraw => ("POST","/api/v2/teaching/withdrawals".into(),Some(body()?)),
-        TeachingImportPreview => ("POST","/api/v2/teaching/imports/preview".into(),Some(body()?)),
-        TeachingImport => ("POST","/api/v2/teaching/imports".into(),Some(body()?)),
-        CourseGet => ("GET", format!("/api/v1/courses/{}", id(p, "course_id")?), None),
-        CourseRender => ("POST", format!("/api/v1/courses/{}/render", id(p, "course_id")?), Some(body()?)),
+            let suffix = if p.get("cursor").is_some() {
+                format!("?cursor={}", teaching_id(p, "cursor")?)
+            } else {
+                String::new()
+            };
+            ("GET", format!("/api/v2/teaching/records{suffix}"), None)
+        }
+        TeachingGet => (
+            "GET",
+            format!("/api/v2/teaching/records/{}", teaching_id(p, "record_id")?),
+            None,
+        ),
+        TeachingExport => (
+            "GET",
+            format!(
+                "/api/v2/teaching/records/{}/export",
+                teaching_id(p, "record_id")?
+            ),
+            None,
+        ),
+        TeachingCreate => ("POST", "/api/v2/teaching/records".into(), Some(body()?)),
+        TeachingWithdraw => ("POST", "/api/v2/teaching/withdrawals".into(), Some(body()?)),
+        TeachingImportPreview => (
+            "POST",
+            "/api/v2/teaching/imports/preview".into(),
+            Some(body()?),
+        ),
+        TeachingImport => ("POST", "/api/v2/teaching/imports".into(), Some(body()?)),
+        CourseGet => (
+            "GET",
+            format!("/api/v1/courses/{}", id(p, "course_id")?),
+            None,
+        ),
+        CourseRender => (
+            "POST",
+            format!("/api/v1/courses/{}/render", id(p, "course_id")?),
+            Some(body()?),
+        ),
         LearningItems => ("GET", "/api/v1/learning/items".into(), None),
         LearningState => (
             "GET",
@@ -404,29 +508,59 @@ fn route(request: &Request) -> Result<(&'static str, String, Option<Value>), Str
         MachineAnswer => ("POST", "/api/v1/machine/answers".into(), Some(body()?)),
         MachineRubricCreate => ("POST", "/api/v1/machine/rubrics".into(), Some(body()?)),
         MachineEvaluationCreate => ("POST", "/api/v1/machine/evaluations".into(), Some(body()?)),
-        MachineAnswerSnapshot => ("GET",format!("/api/v1/machine/answers/{}/snapshot",id(p,"task_id")?),None),
+        MachineAnswerSnapshot => (
+            "GET",
+            format!("/api/v1/machine/answers/{}/snapshot", id(p, "task_id")?),
+            None,
+        ),
         AiAssetsList => {
-            let mut path="/api/v1/ai/assets".to_owned();
-            if p.get("cursor").is_some_and(|v|!v.is_null()) {path.push_str(&format!("?cursor={}",reference_id(p,"cursor")?));}
-            ("GET",path,None)
-        },
-        AiAssetPacket => ("POST","/api/v1/ai/context-packets".into(),Some(body()?)),
+            let mut path = "/api/v1/ai/assets".to_owned();
+            if p.get("cursor").is_some_and(|v| !v.is_null()) {
+                path.push_str(&format!("?cursor={}", reference_id(p, "cursor")?));
+            }
+            ("GET", path, None)
+        }
+        AiAssetPacket => ("POST", "/api/v1/ai/context-packets".into(), Some(body()?)),
         MachineContextsList | MachineRubricsList | MachineEvaluationsList => {
-            let path = match request.operation {MachineContextsList=>"contexts",MachineRubricsList=>"rubrics",_=>"evaluations"};
-            let suffix=if p.get("cursor").is_some() {format!("?cursor={}",reference_id(p,"cursor")?)} else {String::new()};
-            ("GET",format!("/api/v1/machine/{path}{suffix}"),None)
-        },
+            let path = match request.operation {
+                MachineContextsList => "contexts",
+                MachineRubricsList => "rubrics",
+                _ => "evaluations",
+            };
+            let suffix = if p.get("cursor").is_some() {
+                format!("?cursor={}", reference_id(p, "cursor")?)
+            } else {
+                String::new()
+            };
+            ("GET", format!("/api/v1/machine/{path}{suffix}"), None)
+        }
         MachineCorrection => ("POST", "/api/v1/machine/corrections".into(), Some(body()?)),
         MachineRetest => ("POST", "/api/v1/machine/retests".into(), Some(body()?)),
         MachineTasksList => {
             let mut query = Vec::new();
-            if p.get("cursor").is_some() { query.push(format!("cursor={}", reference_id(p,"cursor")?)); }
+            if p.get("cursor").is_some() {
+                query.push(format!("cursor={}", reference_id(p, "cursor")?));
+            }
             if let Some(value) = p.get("limit") {
-                let limit = value.as_u64().filter(|n| (1..=100).contains(n)).ok_or("invalid receipt page limit")?;
+                let limit = value
+                    .as_u64()
+                    .filter(|n| (1..=100).contains(n))
+                    .ok_or("invalid receipt page limit")?;
                 query.push(format!("limit={limit}"));
             }
-            ("GET",format!("/api/v1/machine/tasks{}",if query.is_empty() {String::new()} else {format!("?{}",query.join("&"))}),None)
-        },
+            (
+                "GET",
+                format!(
+                    "/api/v1/machine/tasks{}",
+                    if query.is_empty() {
+                        String::new()
+                    } else {
+                        format!("?{}", query.join("&"))
+                    }
+                ),
+                None,
+            )
+        }
         MachineTaskGet => (
             "GET",
             format!("/api/v1/machine/tasks/{}", id(p, "task_id")?),
@@ -454,23 +588,44 @@ fn route(request: &Request) -> Result<(&'static str, String, Option<Value>), Str
         WorkspaceBackups => ("GET", "/api/v1/workspace/backups".into(), None),
         AssessmentCreate => (
             "POST",
-            format!("/api/v1/learning/items/{}/assessment", learning_item_key(p)?),
+            format!(
+                "/api/v1/learning/items/{}/assessment",
+                learning_item_key(p)?
+            ),
             Some(body()?),
         ),
         AssessmentGet => (
             "GET",
-            format!("/api/v1/learning/items/{}/assessment", learning_item_key(p)?),
+            format!(
+                "/api/v1/learning/items/{}/assessment",
+                learning_item_key(p)?
+            ),
             None,
         ),
         LearningReference => (
             "POST",
-            format!("/api/v1/learning/items/{}/references", learning_item_key(p)?),
+            format!(
+                "/api/v1/learning/items/{}/references",
+                learning_item_key(p)?
+            ),
             Some(body()?),
         ),
         CapabilitiesList => ("GET", "/api/v1/capabilities".into(), None),
         JobEnqueue => ("POST", "/api/v1/jobs".into(), Some(body()?)),
-        JobExecutionStatus => ("GET",format!("/api/v1/jobs/{}/execution-status",id(p,"job_id")?),None),
-        JobExecutionCancel => ("POST",format!("/api/v1/jobs/{}/executions/{}/cancel",id(p,"job_id")?,id(p,"request_id")?),None),
+        JobExecutionStatus => (
+            "GET",
+            format!("/api/v1/jobs/{}/execution-status", id(p, "job_id")?),
+            None,
+        ),
+        JobExecutionCancel => (
+            "POST",
+            format!(
+                "/api/v1/jobs/{}/executions/{}/cancel",
+                id(p, "job_id")?,
+                id(p, "request_id")?
+            ),
+            None,
+        ),
         JobExecute => (
             "POST",
             format!("/api/v1/jobs/{}/executions", id(p, "job_id")?),
@@ -658,25 +813,52 @@ mod tests {
     fn course_commands_and_long_learning_keys_remain_finite() {
         let course = format!("course-{}", "a".repeat(64));
         let key = format!("course:{course}:artifact:lesson-{}", "b".repeat(64));
-        for operation in ["learning_state", "learning_history", "assessment_create", "assessment_get", "learning_reference"] {
-            let request = serde_json::from_value::<Request>(serde_json::json!({"operation":operation,"payload":{"item_key":key,"body":{}}})).unwrap();
+        for operation in [
+            "learning_state",
+            "learning_history",
+            "assessment_create",
+            "assessment_get",
+            "learning_reference",
+        ] {
+            let request = serde_json::from_value::<Request>(
+                serde_json::json!({"operation":operation,"payload":{"item_key":key,"body":{}}}),
+            )
+            .unwrap();
             assert!(route(&request).unwrap().1.contains(&key));
-            for invalid in [format!("{key}/private"), key.replace("artifact:", "artifact%3A"), key.replace(&"a".repeat(64), &"g".repeat(64)), "a".repeat(159), "arbitrary:colon".into()] {
+            for invalid in [
+                format!("{key}/private"),
+                key.replace("artifact:", "artifact%3A"),
+                key.replace(&"a".repeat(64), &"g".repeat(64)),
+                "a".repeat(159),
+                "arbitrary:colon".into(),
+            ] {
                 let request = serde_json::from_value::<Request>(serde_json::json!({"operation":operation,"payload":{"item_key":invalid,"body":{}}})).unwrap();
                 assert!(route(&request).is_err());
             }
         }
         for (operation, method, path) in [
-            ("course_from_knowledge", "POST", "/api/v1/courses/from-knowledge".to_owned()),
+            (
+                "course_from_knowledge",
+                "POST",
+                "/api/v1/courses/from-knowledge".to_owned(),
+            ),
             ("course_get", "GET", format!("/api/v1/courses/{course}")),
-            ("course_render", "POST", format!("/api/v1/courses/{course}/render")),
+            (
+                "course_render",
+                "POST",
+                format!("/api/v1/courses/{course}/render"),
+            ),
         ] {
             let request = serde_json::from_value::<Request>(serde_json::json!({"operation":operation,"payload":{"course_id":course,"body":{"knowledge_id":"knowledge-safe"}}})).unwrap();
             let actual = route(&request).unwrap();
-            assert_eq!(actual.0, method); assert_eq!(actual.1, path);
+            assert_eq!(actual.0, method);
+            assert_eq!(actual.1, path);
         }
         assert!(id(&serde_json::json!({"source_id":key}), "source_id").is_err());
-        let request = serde_json::from_value::<Request>(serde_json::json!({"operation":"course_get","payload":{"course_id":"../private"}})).unwrap();
+        let request = serde_json::from_value::<Request>(
+            serde_json::json!({"operation":"course_get","payload":{"course_id":"../private"}}),
+        )
+        .unwrap();
         assert!(route(&request).is_err());
     }
     #[test]
@@ -684,7 +866,9 @@ mod tests {
         // The Core caps a job deadline at 300 seconds and the reader polls to 310; a shorter client
         // timeout aborts the request while the job is still going to succeed durably.
         assert!(transport_timeout(&Operation::JobExecute) >= std::time::Duration::from_secs(310));
-        assert!(transport_timeout(&Operation::CourseFromKnowledge) > std::time::Duration::from_secs(30));
+        assert!(
+            transport_timeout(&Operation::CourseFromKnowledge) > std::time::Duration::from_secs(30)
+        );
         assert!(transport_timeout(&Operation::CourseRender) > std::time::Duration::from_secs(30));
         assert_eq!(
             transport_timeout(&Operation::SourceImport),
@@ -693,28 +877,64 @@ mod tests {
     }
     #[test]
     fn finite_execution_status_cancel_and_explicit_retry_identity() {
-        let status: Request = serde_json::from_value(serde_json::json!({"operation":"job_execution_status","payload":{"job_id":"job-safe"}})).unwrap();
-        assert_eq!(route(&status).unwrap().1,"/api/v1/jobs/job-safe/execution-status");
+        let status: Request = serde_json::from_value(
+            serde_json::json!({"operation":"job_execution_status","payload":{"job_id":"job-safe"}}),
+        )
+        .unwrap();
+        assert_eq!(
+            route(&status).unwrap().1,
+            "/api/v1/jobs/job-safe/execution-status"
+        );
         let cancel: Request = serde_json::from_value(serde_json::json!({"operation":"job_execution_cancel","payload":{"job_id":"job-safe","request_id":"retry-safe"}})).unwrap();
-        let actual=route(&cancel).unwrap();
-        assert_eq!(actual.0,"POST"); assert_eq!(actual.1,"/api/v1/jobs/job-safe/executions/retry-safe/cancel"); assert!(actual.2.is_none());
-        assert_eq!(execution_request_id(&serde_json::json!({"job_id":"job-safe"})).unwrap(),"job-safe");
-        assert_eq!(execution_request_id(&serde_json::json!({"job_id":"job-safe","request_id":"retry-safe"})).unwrap(),"retry-safe");
+        let actual = route(&cancel).unwrap();
+        assert_eq!(actual.0, "POST");
+        assert_eq!(
+            actual.1,
+            "/api/v1/jobs/job-safe/executions/retry-safe/cancel"
+        );
+        assert!(actual.2.is_none());
+        assert_eq!(
+            execution_request_id(&serde_json::json!({"job_id":"job-safe"})).unwrap(),
+            "job-safe"
+        );
+        assert_eq!(
+            execution_request_id(
+                &serde_json::json!({"job_id":"job-safe","request_id":"retry-safe"})
+            )
+            .unwrap(),
+            "retry-safe"
+        );
         for invalid in ["", "../private", "a/b", "a%2fb"] {
-            assert!(execution_request_id(&serde_json::json!({"job_id":"job-safe","request_id":invalid})).is_err());
+            assert!(execution_request_id(
+                &serde_json::json!({"job_id":"job-safe","request_id":invalid})
+            )
+            .is_err());
             let request: Request=serde_json::from_value(serde_json::json!({"operation":"job_execution_cancel","payload":{"job_id":"job-safe","request_id":invalid}})).unwrap();
             assert!(route(&request).is_err());
         }
     }
     #[test]
     fn asset_context_commands_are_finite_and_cursor_cannot_change_route() {
-        let list:Request=serde_json::from_value(serde_json::json!({"operation":"ai_assets_list","payload":{"cursor":"doc-safe"}})).unwrap();
-        let actual=route(&list).unwrap();assert_eq!(actual.0,"GET");assert_eq!(actual.1,"/api/v1/ai/assets?cursor=doc-safe");assert!(actual.2.is_none());
-        for cursor in ["../private","a&scope=all","a%26scope","a/b"] {
-            let bad:Request=serde_json::from_value(serde_json::json!({"operation":"ai_assets_list","payload":{"cursor":cursor}})).unwrap();assert!(route(&bad).is_err());
+        let list: Request = serde_json::from_value(
+            serde_json::json!({"operation":"ai_assets_list","payload":{"cursor":"doc-safe"}}),
+        )
+        .unwrap();
+        let actual = route(&list).unwrap();
+        assert_eq!(actual.0, "GET");
+        assert_eq!(actual.1, "/api/v1/ai/assets?cursor=doc-safe");
+        assert!(actual.2.is_none());
+        for cursor in ["../private", "a&scope=all", "a%26scope", "a/b"] {
+            let bad: Request = serde_json::from_value(
+                serde_json::json!({"operation":"ai_assets_list","payload":{"cursor":cursor}}),
+            )
+            .unwrap();
+            assert!(route(&bad).is_err());
         }
         let packet:Request=serde_json::from_value(serde_json::json!({"operation":"ai_asset_packet","payload":{"body":{"request_id":"packet-safe"}}})).unwrap();
-        let actual=route(&packet).unwrap();assert_eq!(actual.0,"POST");assert_eq!(actual.1,"/api/v1/ai/context-packets");assert_eq!(actual.2.unwrap()["request_id"],"packet-safe");
+        let actual = route(&packet).unwrap();
+        assert_eq!(actual.0, "POST");
+        assert_eq!(actual.1, "/api/v1/ai/context-packets");
+        assert_eq!(actual.2.unwrap()["request_id"], "packet-safe");
     }
     #[test]
     fn exports_reject_traversal_before_creating_any_output() {
@@ -935,10 +1155,25 @@ mod media_bridge_budget_tests {
     #[test]
     fn document_cursor_cannot_change_the_route_or_query() {
         use super::*;
-        let request:Request=serde_json::from_value(serde_json::json!({"operation":"documents_list","payload":{"cursor":"abc_DEF-123"}})).unwrap();
-        assert_eq!(route(&request).unwrap().1,"/api/v1/documents?cursor=abc_DEF-123");
-        for cursor in [serde_json::json!("../private"),serde_json::json!("x&actor=human"),serde_json::json!(""),serde_json::json!(12),serde_json::json!("x".repeat(1025))] {
-            let request:Request=serde_json::from_value(serde_json::json!({"operation":"documents_list","payload":{"cursor":cursor}})).unwrap();
+        let request: Request = serde_json::from_value(
+            serde_json::json!({"operation":"documents_list","payload":{"cursor":"abc_DEF-123"}}),
+        )
+        .unwrap();
+        assert_eq!(
+            route(&request).unwrap().1,
+            "/api/v1/documents?cursor=abc_DEF-123"
+        );
+        for cursor in [
+            serde_json::json!("../private"),
+            serde_json::json!("x&actor=human"),
+            serde_json::json!(""),
+            serde_json::json!(12),
+            serde_json::json!("x".repeat(1025)),
+        ] {
+            let request: Request = serde_json::from_value(
+                serde_json::json!({"operation":"documents_list","payload":{"cursor":cursor}}),
+            )
+            .unwrap();
             assert!(route(&request).is_err());
         }
     }
@@ -970,15 +1205,18 @@ mod media_bridge_budget_tests {
     #[test]
     fn course_catalog_is_read_only_and_rejects_cursor_escape() {
         use super::*;
-        let request: Request = serde_json::from_value(serde_json::json!({"operation":"course_list"})).unwrap();
+        let request: Request =
+            serde_json::from_value(serde_json::json!({"operation":"course_list"})).unwrap();
         let (method, path, body) = route(&request).unwrap();
-        assert_eq!(method,"GET");
-        assert_eq!(path,"/api/v1/courses");
+        assert_eq!(method, "GET");
+        assert_eq!(path, "/api/v1/courses");
         assert!(body.is_none());
-        let request: Request = serde_json::from_value(serde_json::json!({"operation":"course_list","payload":{"cursor":"../private"}})).unwrap();
+        let request: Request = serde_json::from_value(
+            serde_json::json!({"operation":"course_list","payload":{"cursor":"../private"}}),
+        )
+        .unwrap();
         assert!(route(&request).is_err());
     }
-
 }
 
 #[cfg(test)]
@@ -987,33 +1225,83 @@ mod teaching_bridge_tests {
     use serde_json::json;
     #[test]
     fn teaching_routes_remain_finite_and_reject_path_escape() {
-        for (operation, path) in [(Operation::TeachingGet,"/api/v2/teaching/records/record.v2"),
-            (Operation::TeachingExport,"/api/v2/teaching/records/record.v2/export")] {
-            let routed=route(&Request{operation,payload:json!({"record_id":"record.v2"})}).unwrap();
-            assert_eq!(routed.0,"GET");assert_eq!(routed.1,path);assert!(routed.2.is_none());
+        for (operation, path) in [
+            (Operation::TeachingGet, "/api/v2/teaching/records/record.v2"),
+            (
+                Operation::TeachingExport,
+                "/api/v2/teaching/records/record.v2/export",
+            ),
+        ] {
+            let routed = route(&Request {
+                operation,
+                payload: json!({"record_id":"record.v2"}),
+            })
+            .unwrap();
+            assert_eq!(routed.0, "GET");
+            assert_eq!(routed.1, path);
+            assert!(routed.2.is_none());
         }
-        for id in ["../other","E:\\private","x?actor=human","x/y",".."] {
-            assert!(route(&Request{operation:Operation::TeachingGet,payload:json!({"record_id":id})}).is_err());
+        for id in ["../other", "E:\\private", "x?actor=human", "x/y", ".."] {
+            assert!(route(&Request {
+                operation: Operation::TeachingGet,
+                payload: json!({"record_id":id})
+            })
+            .is_err());
         }
-        let preview=route(&Request{operation:Operation::TeachingImportPreview,payload:json!({"body":{"schema":"archeaxis.teaching-exchange/v2"}})}).unwrap();
-        assert_eq!(preview.0,"POST");assert_eq!(preview.1,"/api/v2/teaching/imports/preview");
-        assert_eq!(request_byte_limit(&Operation::TeachingImport),8*1024*1024);
+        let preview = route(&Request {
+            operation: Operation::TeachingImportPreview,
+            payload: json!({"body":{"schema":"archeaxis.teaching-exchange/v2"}}),
+        })
+        .unwrap();
+        assert_eq!(preview.0, "POST");
+        assert_eq!(preview.1, "/api/v2/teaching/imports/preview");
+        assert_eq!(
+            request_byte_limit(&Operation::TeachingImport),
+            8 * 1024 * 1024
+        );
     }
     #[test]
     fn research_queries_pin_versions_and_bound_scan_arguments() {
         let graph=route(&Request{operation:Operation::DocumentGraph,payload:serde_json::json!({"document_id":"doc.real","version":3,"cursor":"doc.cursor"})}).unwrap();
-        assert_eq!(graph.0,"GET");assert_eq!(graph.1,"/api/v1/documents/doc.real/relations?version=3&cursor=doc.cursor");assert!(graph.2.is_none());
+        assert_eq!(graph.0, "GET");
+        assert_eq!(
+            graph.1,
+            "/api/v1/documents/doc.real/relations?version=3&cursor=doc.cursor"
+        );
+        assert!(graph.2.is_none());
         let collection=route(&Request{operation:Operation::CollectionQuery,payload:serde_json::json!({"document_id":"doc.real","version":2,"view_id":"view.real","offset":20,"limit":10})}).unwrap();
-        assert_eq!(collection.0,"GET");assert_eq!(collection.1,"/api/v1/documents/doc.real/collection?view_id=view.real&version=2&offset=20&limit=10");assert!(collection.2.is_none());
-        for payload in [serde_json::json!({"document_id":"../escape"}),serde_json::json!({"document_id":"doc","version":0}),serde_json::json!({"document_id":"doc","version":18446744073709551615_u64}),serde_json::json!({"document_id":"doc","cursor":"x?actor=human"})] {
-            assert!(route(&Request{operation:Operation::DocumentGraph,payload}).is_err());
+        assert_eq!(collection.0, "GET");
+        assert_eq!(
+            collection.1,
+            "/api/v1/documents/doc.real/collection?view_id=view.real&version=2&offset=20&limit=10"
+        );
+        assert!(collection.2.is_none());
+        for payload in [
+            serde_json::json!({"document_id":"../escape"}),
+            serde_json::json!({"document_id":"doc","version":0}),
+            serde_json::json!({"document_id":"doc","version":18446744073709551615_u64}),
+            serde_json::json!({"document_id":"doc","cursor":"x?actor=human"}),
+        ] {
+            assert!(route(&Request {
+                operation: Operation::DocumentGraph,
+                payload
+            })
+            .is_err());
         }
-        for payload in [serde_json::json!({"document_id":"doc","view_id":"view","limit":0}),serde_json::json!({"document_id":"doc","view_id":"view","limit":101}),serde_json::json!({"document_id":"doc","view_id":"view","offset":501}),serde_json::json!({"document_id":"doc","view_id":"view/escape"})] {
-            assert!(route(&Request{operation:Operation::CollectionQuery,payload}).is_err());
+        for payload in [
+            serde_json::json!({"document_id":"doc","view_id":"view","limit":0}),
+            serde_json::json!({"document_id":"doc","view_id":"view","limit":101}),
+            serde_json::json!({"document_id":"doc","view_id":"view","offset":501}),
+            serde_json::json!({"document_id":"doc","view_id":"view/escape"}),
+        ] {
+            assert!(route(&Request {
+                operation: Operation::CollectionQuery,
+                payload
+            })
+            .is_err());
         }
     }
 }
-
 
 #[cfg(test)]
 mod folder_native_contract_regression {
@@ -1025,34 +1313,64 @@ mod folder_native_contract_regression {
     #[test]
     fn folder_explicit_execute_body_and_request_identity_survive_native_http_transport() {
         // SYNTHETIC owned loopback fixture; no Core/worker or credentials.
-        let listener=TcpListener::bind(("127.0.0.1",0)).unwrap();
+        let listener = TcpListener::bind(("127.0.0.1", 0)).unwrap();
         listener.set_nonblocking(true).unwrap();
-        let port=listener.local_addr().unwrap().port();
-        let server=std::thread::spawn(move || {
-            for replayed in [false,true] {
-                let until=Instant::now()+Duration::from_secs(5);
-                let mut socket=loop {
+        let port = listener.local_addr().unwrap().port();
+        let server = std::thread::spawn(move || {
+            for replayed in [false, true] {
+                let until = Instant::now() + Duration::from_secs(5);
+                let mut socket = loop {
                     match listener.accept() {
-                        Ok((socket,_))=>break socket,
-                        Err(error) if error.kind()==std::io::ErrorKind::WouldBlock && Instant::now()<until=>std::thread::sleep(Duration::from_millis(5)),
-                        Err(error)=>panic!("owned native fixture accept: {error}"),
+                        Ok((socket, _)) => break socket,
+                        Err(error)
+                            if error.kind() == std::io::ErrorKind::WouldBlock
+                                && Instant::now() < until =>
+                        {
+                            std::thread::sleep(Duration::from_millis(5))
+                        }
+                        Err(error) => panic!("owned native fixture accept: {error}"),
                     }
                 };
-                socket.set_read_timeout(Some(Duration::from_secs(5))).unwrap();
-                let mut bytes=Vec::new();let mut buffer=[0;1024];
+                socket
+                    .set_read_timeout(Some(Duration::from_secs(5)))
+                    .unwrap();
+                let mut bytes = Vec::new();
+                let mut buffer = [0; 1024];
                 loop {
-                    let count=socket.read(&mut buffer).unwrap();assert!(count>0);bytes.extend_from_slice(&buffer[..count]);assert!(bytes.len()<16384);
-                    if let Some(header_end)=bytes.windows(4).position(|part|part==b"\r\n\r\n") {
-                        let headers=String::from_utf8(bytes[..header_end].to_vec()).unwrap();
-                        let lower=headers.to_ascii_lowercase();
-                        let length=lower.lines().find_map(|line|line.strip_prefix("content-length:").map(|value|value.trim().parse::<usize>().unwrap())).unwrap();
-                        if bytes.len()<header_end+4+length {continue;}
-                        assert!(headers.starts_with("POST /api/v1/jobs/folder-text-safe/executions HTTP/1.1"));
-                        assert!(lower.lines().any(|line|line=="idempotency-key: folder-explicit-request"));
-                        assert!(lower.lines().any(|line|line=="x-archeaxis-launch-token: synthetic-owned-native-contract"));
-                        let body:Value=serde_json::from_slice(&bytes[header_end+4..header_end+4+length]).unwrap();
-                        assert_eq!(body,serde_json::json!({"deadline_ms":5000,"split":false,"words":false}));
-                        assert!(body.get("job_id").is_none());assert!(body.get("request_id").is_none());
+                    let count = socket.read(&mut buffer).unwrap();
+                    assert!(count > 0);
+                    bytes.extend_from_slice(&buffer[..count]);
+                    assert!(bytes.len() < 16384);
+                    if let Some(header_end) = bytes.windows(4).position(|part| part == b"\r\n\r\n")
+                    {
+                        let headers = String::from_utf8(bytes[..header_end].to_vec()).unwrap();
+                        let lower = headers.to_ascii_lowercase();
+                        let length = lower
+                            .lines()
+                            .find_map(|line| {
+                                line.strip_prefix("content-length:")
+                                    .map(|value| value.trim().parse::<usize>().unwrap())
+                            })
+                            .unwrap();
+                        if bytes.len() < header_end + 4 + length {
+                            continue;
+                        }
+                        assert!(headers
+                            .starts_with("POST /api/v1/jobs/folder-text-safe/executions HTTP/1.1"));
+                        assert!(lower
+                            .lines()
+                            .any(|line| line == "idempotency-key: folder-explicit-request"));
+                        assert!(lower.lines().any(|line| line
+                            == "x-archeaxis-launch-token: synthetic-owned-native-contract"));
+                        let body: Value =
+                            serde_json::from_slice(&bytes[header_end + 4..header_end + 4 + length])
+                                .unwrap();
+                        assert_eq!(
+                            body,
+                            serde_json::json!({"deadline_ms":5000,"split":false,"words":false})
+                        );
+                        assert!(body.get("job_id").is_none());
+                        assert!(body.get("request_id").is_none());
                         break;
                     }
                 }
@@ -1061,10 +1379,14 @@ mod folder_native_contract_regression {
                 socket.write_all(response.as_bytes()).unwrap();
             }
         });
-        for expected in [false,true] {
+        for expected in [false, true] {
             let request:Request=serde_json::from_value(serde_json::json!({"operation":"job_execute","payload":{"job_id":"folder-text-safe","request_id":"folder-explicit-request","body":{"deadline_ms":5000,"split":false,"words":false}}})).unwrap();
-            let reply=execute(port,"synthetic-owned-native-contract",request).unwrap();
-            assert_eq!(reply.status,202);assert_eq!(reply.body,serde_json::json!({"job_id":"folder-text-safe","request_id":"folder-explicit-request","state":"running","replayed":expected}));
+            let reply = execute(port, "synthetic-owned-native-contract", request).unwrap();
+            assert_eq!(reply.status, 202);
+            assert_eq!(
+                reply.body,
+                serde_json::json!({"job_id":"folder-text-safe","request_id":"folder-explicit-request","state":"running","replayed":expected})
+            );
         }
         server.join().unwrap();
     }
@@ -1072,8 +1394,14 @@ mod folder_native_contract_regression {
     #[test]
     fn folder_bodyless_execute_is_refused_and_cancel_binds_exact_attempt() {
         let missing:Request=serde_json::from_value(serde_json::json!({"operation":"job_execute","payload":{"job_id":"folder-text-safe","request_id":"folder-explicit-request"}})).unwrap();
-        assert_eq!(route(&missing).unwrap_err(),"CORE_COMMAND_BODY_REQUIRED");
+        assert_eq!(route(&missing).unwrap_err(), "CORE_COMMAND_BODY_REQUIRED");
         let cancel:Request=serde_json::from_value(serde_json::json!({"operation":"job_execution_cancel","payload":{"job_id":"folder-text-safe","request_id":"folder-explicit-request"}})).unwrap();
-        let (method,path,body)=route(&cancel).unwrap();assert_eq!(method,"POST");assert_eq!(path,"/api/v1/jobs/folder-text-safe/executions/folder-explicit-request/cancel");assert!(body.is_none());
+        let (method, path, body) = route(&cancel).unwrap();
+        assert_eq!(method, "POST");
+        assert_eq!(
+            path,
+            "/api/v1/jobs/folder-text-safe/executions/folder-explicit-request/cancel"
+        );
+        assert!(body.is_none());
     }
 }

@@ -90,7 +90,8 @@
         "E": 1,
         "C": 2
       },
-      "schema": "archeaxis.oss-reuse-crosswalk/v1"
+      "schema": "archeaxis.oss-reuse-crosswalk/v1",
+      "bytes_portable": 971916
     },
     "csv": {
       "file": "OSS-REUSE-CROSSWALK-20261008.csv",
@@ -112,7 +113,8 @@
         "reason",
         "value",
         "reevaluate_when"
-      ]
+      ],
+      "bytes_portable": 302805
     }
   },
   "portability": {

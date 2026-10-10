@@ -128,9 +128,9 @@ def pairing_failures(manifest_path: Path, produced: dict[str, bytes]) -> list[st
         if digest != entry["sha256_portable"]:
             reasons.append(f"digest-mismatch[{key}]: produced bytes hash to {digest[:16]}... but the "
                            f"manifest records {entry['sha256_portable'][:16]}...")
-        if len(raw) != entry["bytes"]:
-            reasons.append(f"size-mismatch[{key}]: produced {len(raw)} bytes, manifest records "
-                           f"{entry['bytes']}")
+        if len(raw.replace(CRLF, LF)) != entry["bytes_portable"]:
+            reasons.append(f"size-mismatch[{key}]: produced {len(raw.replace(CRLF, LF))} portable bytes, manifest records "
+                           f"{entry['bytes_portable']}")
 
     # The structural floor for "lossless", taken from the crosswalk's own definition: one record per
     # source row, and one CSV data row per record. An emptied or silently collapsed table fails here

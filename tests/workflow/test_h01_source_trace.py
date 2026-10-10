@@ -22,6 +22,8 @@ spec.loader.exec_module(gate)
 
 @pytest.fixture(scope="module")
 def current_sources():
+    if os.environ.get("CI") and not os.environ.get("AAOS_H01_REPO"):
+        pytest.skip("H01 original containers are owner-local; cloud tests do not qualify local preservation. Supply AAOS_H01_REPO explicitly to require this gate.")
     repo = Path(os.environ.get("AAOS_H01_REPO", str(ROOT)))
     scope = gate.owning_root(repo)
     trace = Path(os.environ.get("AAOS_H01_TRACE", str(repo / gate.TRACE)))

@@ -8,6 +8,7 @@ import sys
 from pathlib import Path
 
 import pytest
+from scripts.runtime import dev
 
 REPO = Path(__file__).resolve().parents[1]
 PROBE = REPO / "scripts" / "probes" / "handshake_contract_probe.py"
@@ -21,8 +22,10 @@ REQUIRED_NON_EMPTY = ("product_name", "backend_version", "source_commit", "runti
 
 @pytest.fixture(scope="module")
 def receipt():
+    paths = dev.layout(REPO, "handshake-test")
+    dev.prepare(paths)
     result = subprocess.run(
-        [sys.executable, str(PROBE), "--json-out", str(REPO / ".project-local" / "runs" / "handshake-test-receipt.json")],
+        [sys.executable, str(PROBE), "--json-out", str(paths["artifacts"] / "handshake-test-receipt.json")],
         cwd=str(REPO), capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=900,
     )
     payload = (result.stdout or "").strip()

@@ -209,7 +209,7 @@ against what it launched; a mismatch means it is talking to a different Core.
 `runtime` and `contract` are hard-coded string literals, not derived from the crate
 version. Do not use them to infer a build.
 
-## 3. Route inventory (62 pairs in a `text_worker` launch)
+## 3. Route inventory (83 pairs in a `text_worker` launch)
 
 `PROD` = reachable in a production launch. `PROD` marks the routes the UI may rely on.
 All paths are relative to the loopback base URL.
@@ -543,10 +543,10 @@ Before the fix this endpoint answered `500` with a raw FTS5 parser message for
 
 | Launch | Routes served | Consequence for the UI |
 | --- | --- | --- |
-| **no** `text_worker` | 43 projection method/path pairs (38 unconditional mounts, five dual-method mounts); manual legacy `/jobs/{id}/receipts` remains absent from production | `/jobs/{id}`, `/executions`, `/outputs`, `/cancel`, `/capabilities` and its enable/disable write are **absent** (`404`). |
-| **with** `text_worker` | 62 addresses (42 base projection method/path pairs + 20 runtime method/path pairs) | All routes above are served. |
+| **no** `text_worker` | 62 projection method/path pairs (53 unconditional mounts, nine dual-method mounts); manual legacy `/jobs/{id}/receipts` remains absent from production | `/jobs/{id}`, `/executions`, `/outputs`, `/cancel`, `/capabilities` and its enable/disable write are **absent** (`404`). |
+| **with** `text_worker` | 83 addresses (61 base projection method/path pairs + 22 runtime method/path pairs) | All routes above are served. |
 
-The runtime builder carries **20** routes, mounted there rather than with the projections because
+The runtime builder carries **21** routes, mounted there rather than with the projections because
 the capability surface reads the executor's registered routes, and the executor is the runtime
 router's state while the projection builder holds only the store. In groups: the four
 job-execution routes; the three capability-registry paths; `POST /api/v1/ask` and the semantic
@@ -749,4 +749,32 @@ UI must show machine answering as not connected rather than calling anything.
    revision and the correction appears to vanish. The request-body table in §4 names every field
    for this reason.
 
-The projection-only launch retains its explicit unconfigured document-check execution handler. A text-worker launch instead mounts that same method/path once in the runtime builder; its 42 base projection pairs plus 20 runtime pairs total 62. This does not add a second endpoint or imply cloud configuration.
+The projection-only launch retains its explicit unconfigured document-check execution handler. A text-worker launch instead mounts that same method/path once in the runtime builder; its 61 base projection pairs plus 22 runtime pairs total 83. This does not add a second endpoint or imply cloud configuration.
+
+## 2026-10-10 current-source inventory refresh
+
+The 21 additional method/path pairs below are registered in the current router source. This is source inspection, not runtime or installed qualification. Historical 2026-10-01/05/07 receipts above retain their measured counts. Authentication guards, request bodies and responses remain defined by the handler and generated Core contract; no new permission is granted by this index. Current projection/runtime counts are 53/21 mounts and 62/83 method/path pairs for projection-only/text-worker launches.
+
+| # | Method + path | Auth | Notes |
+| --- | --- | --- | --- |
+| 100 | `GET /api/v1/ai/assets` | Existing handler guard; no inferred role permission | Current-source route registration; inspect `crates/archeaxis-api/src/` and generated Core contract for payload and errors. Runtime acceptance UNVERIFIED. |
+| 101 | `GET /api/v1/courses` | Existing handler guard; no inferred role permission | Current-source route registration; inspect `crates/archeaxis-api/src/` and generated Core contract for payload and errors. Runtime acceptance UNVERIFIED. |
+| 102 | `GET /api/v1/documents/{id}/collection` | Existing handler guard; no inferred role permission | Current-source route registration; inspect `crates/archeaxis-api/src/` and generated Core contract for payload and errors. Runtime acceptance UNVERIFIED. |
+| 103 | `GET /api/v1/documents/{id}/relations` | Existing handler guard; no inferred role permission | Current-source route registration; inspect `crates/archeaxis-api/src/` and generated Core contract for payload and errors. Runtime acceptance UNVERIFIED. |
+| 104 | `GET /api/v1/jobs/{id}/execution-status` | Existing handler guard; no inferred role permission | Current-source route registration; inspect `crates/archeaxis-api/src/` and generated Core contract for payload and errors. Runtime acceptance UNVERIFIED. |
+| 105 | `GET /api/v1/machine/answers/{id}/snapshot` | Existing handler guard; no inferred role permission | Current-source route registration; inspect `crates/archeaxis-api/src/` and generated Core contract for payload and errors. Runtime acceptance UNVERIFIED. |
+| 106 | `GET /api/v1/machine/contexts` | Existing handler guard; no inferred role permission | Current-source route registration; inspect `crates/archeaxis-api/src/` and generated Core contract for payload and errors. Runtime acceptance UNVERIFIED. |
+| 107 | `GET /api/v1/machine/evaluations` | Existing handler guard; no inferred role permission | Current-source route registration; inspect `crates/archeaxis-api/src/` and generated Core contract for payload and errors. Runtime acceptance UNVERIFIED. |
+| 108 | `GET /api/v1/machine/rubrics` | Existing handler guard; no inferred role permission | Current-source route registration; inspect `crates/archeaxis-api/src/` and generated Core contract for payload and errors. Runtime acceptance UNVERIFIED. |
+| 109 | `GET /api/v1/machine/tasks` | Existing handler guard; no inferred role permission | Current-source route registration; inspect `crates/archeaxis-api/src/` and generated Core contract for payload and errors. Runtime acceptance UNVERIFIED. |
+| 110 | `GET /api/v2/teaching/records` | Existing handler guard; no inferred role permission | Current-source route registration; inspect `crates/archeaxis-api/src/` and generated Core contract for payload and errors. Runtime acceptance UNVERIFIED. |
+| 111 | `GET /api/v2/teaching/records/{id}` | Existing handler guard; no inferred role permission | Current-source route registration; inspect `crates/archeaxis-api/src/` and generated Core contract for payload and errors. Runtime acceptance UNVERIFIED. |
+| 112 | `GET /api/v2/teaching/records/{id}/export` | Existing handler guard; no inferred role permission | Current-source route registration; inspect `crates/archeaxis-api/src/` and generated Core contract for payload and errors. Runtime acceptance UNVERIFIED. |
+| 113 | `POST /api/v1/ai/context-packets` | Existing handler guard; no inferred role permission | Current-source route registration; inspect `crates/archeaxis-api/src/` and generated Core contract for payload and errors. Runtime acceptance UNVERIFIED. |
+| 114 | `POST /api/v1/machine/evaluations` | Existing handler guard; no inferred role permission | Current-source route registration; inspect `crates/archeaxis-api/src/` and generated Core contract for payload and errors. Runtime acceptance UNVERIFIED. |
+| 115 | `POST /api/v1/machine/rubrics` | Existing handler guard; no inferred role permission | Current-source route registration; inspect `crates/archeaxis-api/src/` and generated Core contract for payload and errors. Runtime acceptance UNVERIFIED. |
+| 116 | `POST /api/v2/teaching/imports` | Existing handler guard; no inferred role permission | Current-source route registration; inspect `crates/archeaxis-api/src/` and generated Core contract for payload and errors. Runtime acceptance UNVERIFIED. |
+| 117 | `POST /api/v2/teaching/imports/preview` | Existing handler guard; no inferred role permission | Current-source route registration; inspect `crates/archeaxis-api/src/` and generated Core contract for payload and errors. Runtime acceptance UNVERIFIED. |
+| 118 | `POST /api/v2/teaching/records` | Existing handler guard; no inferred role permission | Current-source route registration; inspect `crates/archeaxis-api/src/` and generated Core contract for payload and errors. Runtime acceptance UNVERIFIED. |
+| 119 | `POST /api/v2/teaching/withdrawals` | Existing handler guard; no inferred role permission | Current-source route registration; inspect `crates/archeaxis-api/src/` and generated Core contract for payload and errors. Runtime acceptance UNVERIFIED. |
+| 120 | `POST /api/v2/workspace/restore/preview` | Existing handler guard; no inferred role permission | Current-source route registration; inspect `crates/archeaxis-api/src/` and generated Core contract for payload and errors. Runtime acceptance UNVERIFIED. |

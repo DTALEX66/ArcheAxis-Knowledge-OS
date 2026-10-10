@@ -438,10 +438,12 @@ A0_STATEFUL_DOCUMENTS = r"""
   const copy = value => structuredClone(value);
   const text = node => node.text ?? (node.content ?? []).map(text).join("\n");
   async function makeDocument(id, title, editor, version) {
+    editor = copy(editor);
+    editor.content.forEach((node, ordinal) => {node.attrs = {...node.attrs, block_id:node.attrs?.block_id ?? `a0_p${ordinal + 1}`};});
     const projection = text(editor);
     const digest = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(JSON.stringify(editor)));
     return {document_id:id,source_id:null,source_revision:null,title,version,editor_json:copy(editor),
-      text_projection:projection,content_sha256:[...new Uint8Array(digest)].map(n=>n.toString(16).padStart(2,"0")).join(""),blocks:[{block_id:"a0_p1",kind:"paragraph",ordinal:0,node_json:copy(editor.content[0]),text_projection:projection,codec_status:"known"}]};
+      text_projection:projection,content_sha256:[...new Uint8Array(digest)].map(n=>n.toString(16).padStart(2,"0")).join(""),blocks:editor.content.map((node,ordinal)=>({block_id:node.attrs.block_id,kind:node.type,ordinal,node_json:copy(node),text_projection:text(node),codec_status:"known"}))};
   }
   function retain(doc) { current.set(doc.document_id,copy(doc)); history.set(`${doc.document_id}:${doc.version}`,copy(doc)); }
   const ready = Promise.all([1,2,3].map(async n => retain(await makeDocument(`a0_target_${n}`,
@@ -456,7 +458,10 @@ A0_STATEFUL_DOCUMENTS = r"""
     if (operation === "documents_list") return {status:200,body:{documents:[...current.values()].map(d=>({
       document_id:d.document_id,source_id:d.source_id,source_revision:d.source_revision,title:d.title,version:d.version,content_sha256:d.content_sha256})),next_cursor:null,snapshot_count:current.size}};
     if (operation === "document_create") {
-      const doc=await makeDocument("a0_created",payload.body.title,payload.body.editor_json,1); retain(doc);
+      const digest=await crypto.subtle.digest("SHA-256",new TextEncoder().encode(payload.body.create_request_id));
+      const id="doc_req_"+[...new Uint8Array(digest)].map(n=>n.toString(16).padStart(2,"0")).join("");
+      if(current.has(id)) return {status:201,body:copy(current.get(id))};
+      const doc=await makeDocument(id,payload.body.title,payload.body.editor_json,1); retain(doc);
       return {status:201,body:copy(doc)};
     }
     if (operation === "document_draft") {
@@ -1082,7 +1087,7 @@ def read_template_roundtrip(browser, viewport, problems, theme="black") -> dict:
         page.locator("details.template-launcher > summary").click()
         section = page.locator(TEMPLATE_SECTION_SELECTOR)
         section.get_by_role("button", name="创建学科对象", exact=True).click()
-        section.get_by_text("已由 Core 保存模板对象", exact=False).wait_for()
+        section.get_by_text("模板对象与属性已保存并完整读回；内容仍未评估。", exact=True).wait_for()
         for n in [1, 2, 3]:
             section.get_by_label("关系目标", exact=False).select_option(f"a0_target_{n}")
             section.get_by_label("目标块 ID（可空）", exact=True).fill("a0_p1" if n == 1 else "")
@@ -1137,7 +1142,7 @@ def read_template_roundtrip(browser, viewport, problems, theme="black") -> dict:
         writes=[call for call in audit['calls'] if call['operation'] in ('document_create','document_draft')]
         assert len(writes)==2, writes
         assert writes[1]['payload']['body']['expected_version']==1, writes
-        saved=next(doc for doc in audit['documents'] if doc['document_id']=='a0_created')
+        saved=next(doc for doc in audit['documents'] if doc['document_id']==writes[1]['payload']['document_id'])
         refs=saved['editor_json']['attrs']['archeaxis_template']['references']
         assert len(refs)==3 and all(ref['version']==1 for ref in refs), refs
         assert refs[0]['block_id']=='a0_p1', refs

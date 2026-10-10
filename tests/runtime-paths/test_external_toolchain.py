@@ -146,8 +146,8 @@ class ExternalToolchainTest(unittest.TestCase):
         # setUp scrubs the host environment for isolation, so reading os.environ here would
         # always come back empty and this proof would self-skip forever. The pre-scrub snapshot
         # is the only place the host's declared root is still visible.
-        root_text = (self._saved.get("ARCHEAXIS_EXTERNAL_ROOT", "").strip()
-                     or self._saved.get("OS_EXTERNAL_CONFIG", "").strip())
+        root_text = ((self._saved.get("ARCHEAXIS_EXTERNAL_ROOT") or "").strip()
+                     or (self._saved.get("OS_EXTERNAL_CONFIG") or "").strip())
         if not root_text:
             self.skipTest("no external root in this environment")
         self.os.environ["OS_EXTERNAL_CONFIG"] = root_text

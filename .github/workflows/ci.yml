@@ -703,6 +703,14 @@ jobs:
         env:
           ARCHEAXIS_DATA_DIR: ${{ runner.temp }}/cognitive-browser-runtime
         run: python scripts/a0_browser_smoke.py
+      - name: Upload project browser regression evidence
+        if: ${{ always() }}
+        uses: actions/upload-artifact@834a144ee995460fba8ed112a2fc961b36a5ec5a
+        with:
+          name: browser-regression-${{ github.sha }}
+          path: ${{ env.ARCHEAXIS_RUN_ROOT }}/artifacts/browser-smoke/**
+          if-no-files-found: warn
+          retention-days: 7
 
   windows-runtime-smoke:
     timeout-minutes: 15
@@ -797,6 +805,12 @@ jobs:
           path: ${{ env.ARCHEAXIS_RUN_ROOT }}/artifacts/rustfmt.patch
           if-no-files-found: error
           retention-days: 7
+      - name: Prepare pinned project-local OCR for Rust worker tests
+        shell: pwsh
+        run: |
+          $sevenzip = (Get-Command 7z.exe -ErrorAction Stop).Source
+          python -B scripts/ci/prepare_windows_ocr.py --project-root . --root .project-local/task-runtime/rust-worker-ocr --sevenzip $sevenzip
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
       - name: cargo test (vNext workspace)
         shell: bash
         run: cargo test --workspace

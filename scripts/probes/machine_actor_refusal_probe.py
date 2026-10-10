@@ -24,12 +24,15 @@ def free_port():
 
 
 def run() -> dict:
-    runs = REPO / ".project-local" / "runs"
-    runs.mkdir(parents=True, exist_ok=True)
-    work = runs / "machine-actor-probe-run"
-    if work.exists():
-        shutil.rmtree(work, ignore_errors=True)
-    work.mkdir(parents=True)
+    import importlib.util
+    import uuid
+    spec = importlib.util.spec_from_file_location("owned_probe_launcher", REPO / "scripts/runtime/dev.py")
+    launcher = importlib.util.module_from_spec(spec)
+    sys.modules[spec.name] = launcher
+    spec.loader.exec_module(launcher)
+    paths = launcher.layout(REPO, "machine-actor-probe-" + uuid.uuid4().hex[:12])
+    launcher.prepare(paths)
+    work = paths["tmp"]
     database = work / "archeaxis.sqlite"
     token = "c" * 64
 

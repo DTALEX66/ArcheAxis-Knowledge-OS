@@ -721,17 +721,27 @@ fn restore_backup_blocking(
     name: String,
 ) -> Result<RestoreReceiptDto, String> {
     let _operation = try_operation_guard(&state)?;
-    restore_backup_checked(state.clone(),name,None)
+    restore_backup_checked(state.clone(), name, None)
 }
 
 #[cfg(windows)]
 // Caller must hold state.operations throughout restore and optional restart/readback.
-fn restore_backup_checked(state: DesktopBackend, name: String, expected: Option<String>) -> Result<RestoreReceiptDto,String> {
-    let runtime = current_runtime(&state)?.ok_or_else(|| RECOVERY_RUNTIME_UNAVAILABLE.to_owned())?;
-    if expected.is_some() && (runtime.external_dev || CoreSpec::beside_runtime(&runtime).is_none()) {return Err("WORKSPACE_RESTORE_REQUIRES_OWNED_CANONICAL_CORE".into());}
+fn restore_backup_checked(
+    state: DesktopBackend,
+    name: String,
+    expected: Option<String>,
+) -> Result<RestoreReceiptDto, String> {
+    let runtime =
+        current_runtime(&state)?.ok_or_else(|| RECOVERY_RUNTIME_UNAVAILABLE.to_owned())?;
+    if expected.is_some() && (runtime.external_dev || CoreSpec::beside_runtime(&runtime).is_none())
+    {
+        return Err("WORKSPACE_RESTORE_REQUIRES_OWNED_CANONICAL_CORE".into());
+    }
     if let Some(ref sha) = expected {
-        let id=name.strip_suffix(".sqlite").ok_or(RECOVERY_BACKUP_INVALID)?;
-        workspace_preview_blocking(&state,id,sha)?;
+        let id = name
+            .strip_suffix(".sqlite")
+            .ok_or(RECOVERY_BACKUP_INVALID)?;
+        workspace_preview_blocking(&state, id, sha)?;
     }
     let backups = enumerate_backups(&runtime.data_dir).map_err(|error| {
         if let Ok(mut recovery) = state.recovery.lock() {
@@ -787,8 +797,12 @@ fn restore_backup_checked(state: DesktopBackend, name: String, expected: Option<
         RECOVERY_BACKUP_INVALID.to_owned()
     })?;
     if let Some(ref expected) = expected {
-        let id=name.strip_suffix(".sqlite").ok_or(RECOVERY_BACKUP_INVALID)?;
-        staged.seal_for_canonical_restore(id,expected).map_err(|_|RECOVERY_BACKUP_INVALID.to_owned())?;
+        let id = name
+            .strip_suffix(".sqlite")
+            .ok_or(RECOVERY_BACKUP_INVALID)?;
+        staged
+            .seal_for_canonical_restore(id, expected)
+            .map_err(|_| RECOVERY_BACKUP_INVALID.to_owned())?;
     }
     staged.revalidate_for_restore().map_err(|_| {
         record_invalid_backup_selection(&state);
@@ -812,29 +826,81 @@ fn restore_backup_checked(state: DesktopBackend, name: String, expected: Option<
     }
 }
 
-
 #[cfg(windows)]
-fn workspace_preview_blocking(state:&DesktopBackend, backup_id:&str, expected_sha256:&str) -> Result<serde_json::Value,String> {
-    if backup_id.len()!=32 || expected_sha256.len()!=64 || !backup_id.bytes().chain(expected_sha256.bytes()).all(|b|b.is_ascii_digit()||(b'a'..=b'f').contains(&b)) { return Err(RECOVERY_BACKUP_INVALID.into()); }
-    let (port,token)={ let process=state.process.lock().map_err(|_|RECOVERY_STATE_UNAVAILABLE)?; let process=process.as_ref().ok_or(RECOVERY_RUNTIME_UNAVAILABLE)?; (process.port,process.token.clone()) };
-    let reply=core_bridge::execute(port,&token,core_bridge::Request{operation:core_bridge::Operation::WorkspaceRestorePreview,payload:serde_json::json!({"body":{"backup_id":backup_id,"expected_sha256":expected_sha256}})})?;
-    if reply.status!=200 || reply.body["schema"]!="archeaxis.workspace-restore-preview/v2" || reply.body["backup_id"]!=backup_id || reply.body["sha256"]!=expected_sha256 || reply.body["verified"]!=true || reply.body["compatible"]!=true {return Err("WORKSPACE_RESTORE_PREFLIGHT_REJECTED".into());}
+fn workspace_preview_blocking(
+    state: &DesktopBackend,
+    backup_id: &str,
+    expected_sha256: &str,
+) -> Result<serde_json::Value, String> {
+    if backup_id.len() != 32
+        || expected_sha256.len() != 64
+        || !backup_id
+            .bytes()
+            .chain(expected_sha256.bytes())
+            .all(|b| b.is_ascii_digit() || (b'a'..=b'f').contains(&b))
+    {
+        return Err(RECOVERY_BACKUP_INVALID.into());
+    }
+    let (port, token) = {
+        let process = state
+            .process
+            .lock()
+            .map_err(|_| RECOVERY_STATE_UNAVAILABLE)?;
+        let process = process.as_ref().ok_or(RECOVERY_RUNTIME_UNAVAILABLE)?;
+        (process.port, process.token.clone())
+    };
+    let reply = core_bridge::execute(
+        port,
+        &token,
+        core_bridge::Request {
+            operation: core_bridge::Operation::WorkspaceRestorePreview,
+            payload: serde_json::json!({"body":{"backup_id":backup_id,"expected_sha256":expected_sha256}}),
+        },
+    )?;
+    if reply.status != 200
+        || reply.body["schema"] != "archeaxis.workspace-restore-preview/v2"
+        || reply.body["backup_id"] != backup_id
+        || reply.body["sha256"] != expected_sha256
+        || reply.body["verified"] != true
+        || reply.body["compatible"] != true
+    {
+        return Err("WORKSPACE_RESTORE_PREFLIGHT_REJECTED".into());
+    }
     Ok(reply.body)
 }
 
 #[cfg(windows)]
 #[tauri::command]
-async fn workspace_restore_preview(window:tauri::Window, state:State<'_,DesktopBackend>, backup_id:String, expected_sha256:String) -> Result<serde_json::Value,String> {
-    if window.label()!="main" {return Err("WORKSPACE_RESTORE_WINDOW_FORBIDDEN".into());}
-    let state=state.inner().clone();
-    tauri::async_runtime::spawn_blocking(move||{let _guard=try_operation_guard(&state)?; workspace_preview_blocking(&state,&backup_id,&expected_sha256)}).await.map_err(|_|RECOVERY_STATE_UNAVAILABLE.to_owned())?
+async fn workspace_restore_preview(
+    window: tauri::Window,
+    state: State<'_, DesktopBackend>,
+    backup_id: String,
+    expected_sha256: String,
+) -> Result<serde_json::Value, String> {
+    if window.label() != "main" {
+        return Err("WORKSPACE_RESTORE_WINDOW_FORBIDDEN".into());
+    }
+    let state = state.inner().clone();
+    tauri::async_runtime::spawn_blocking(move || {
+        let _guard = try_operation_guard(&state)?;
+        workspace_preview_blocking(&state, &backup_id, &expected_sha256)
+    })
+    .await
+    .map_err(|_| RECOVERY_STATE_UNAVAILABLE.to_owned())?
 }
 
 #[cfg(windows)]
 #[tauri::command]
-async fn workspace_restore_confirm(window:tauri::Window, state:State<'_,DesktopBackend>, backup_id:String, expected_sha256:String) -> Result<serde_json::Value,String> {
-    if window.label()!="main" {return Err("WORKSPACE_RESTORE_WINDOW_FORBIDDEN".into());}
-    let state=state.inner().clone();
+async fn workspace_restore_confirm(
+    window: tauri::Window,
+    state: State<'_, DesktopBackend>,
+    backup_id: String,
+    expected_sha256: String,
+) -> Result<serde_json::Value, String> {
+    if window.label() != "main" {
+        return Err("WORKSPACE_RESTORE_WINDOW_FORBIDDEN".into());
+    }
+    let state = state.inner().clone();
     tauri::async_runtime::spawn_blocking(move||{
         // One guard spans preflight, shutdown, restore, restart and content readback.
         let _operation=try_operation_guard(&state)?;

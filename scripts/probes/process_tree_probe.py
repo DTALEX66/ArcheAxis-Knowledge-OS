@@ -39,12 +39,15 @@ def powershell():
 
 
 def run() -> dict:
-    runs = REPO / ".project-local" / "runs"
-    runs.mkdir(parents=True, exist_ok=True)
-    work = runs / "process-tree-probe-run"
-    if work.exists():
-        shutil.rmtree(work, ignore_errors=True)
-    work.mkdir(parents=True)
+    import importlib.util
+    import uuid
+    spec = importlib.util.spec_from_file_location("owned_probe_launcher", REPO / "scripts/runtime/dev.py")
+    launcher = importlib.util.module_from_spec(spec)
+    sys.modules[spec.name] = launcher
+    spec.loader.exec_module(launcher)
+    paths = launcher.layout(REPO, "process-tree-probe-" + uuid.uuid4().hex[:12])
+    launcher.prepare(paths)
+    work = paths["tmp"]
 
     shell = powershell()
     receipt = {"scope": "process_tree_and_worker_probe", "core_present": CORE.is_file(),

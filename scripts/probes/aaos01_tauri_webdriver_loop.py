@@ -33,6 +33,14 @@ def compatible_edge_versions(driver_version: str, runtime_version: str) -> bool:
     return bool(driver and runtime and driver[1].split(".")[:3] == runtime[1].split(".")[:3])
 
 
+def navigate_compatibility_space(js, wait, space: str) -> None:
+    """Exercise the declared public legacy route; never infer new-page coverage."""
+    headings = {"library": "资料库", "vault": "知识库", "workspace": "工作台"}
+    heading = headings[space]
+    js("window.location.hash=arguments[0]", ["space=" + space])
+    wait("return location.hash===" + json.dumps("#space=" + space) + " && [...document.querySelectorAll('h1,h2,h3')].some(h=>h.textContent.trim()===" + json.dumps(heading) + ")")
+
+
 def navigation_button_selector(text: str, scope: str = "") -> str:
     # Object-navigation buttons contain a label and description. Match the exact
     # label child and click its actual parent button, rather than widening all labels.
@@ -407,8 +415,8 @@ def installed_format_readback(bridge, proofs):
 
 def installed_epub_reader(bridge, js, wait, ui_click, proof, *, cite):
     """Actual product Reader and persisted locator; no DOM injection or mocked bridge."""
-    js("[...document.querySelectorAll('button')].find(b=>b.textContent.trim().endsWith('工作台')).click()")
-    js("[...document.querySelectorAll('button')].find(b=>b.textContent.trim().endsWith('资料库')).click()")
+    navigate_compatibility_space(js, wait, "workspace")
+    navigate_compatibility_space(js, wait, "library")
     wait("return [...document.querySelectorAll('[aria-label=\"保留原件\"] button')].some(b=>b.textContent==='g3-known.epub')")
     ui_click("g3-known.epub", "//nav[@aria-label='保留原件']")
     wait("return [...document.querySelectorAll('h2,h3,h4')].some(h=>h.textContent==='EPUB 章节段落') && document.body.textContent.includes('Chapter body 42')")
@@ -822,6 +830,11 @@ def main():
         return value["element-6066-11e4-a52e-4f735466cecf"]
 
     def ui_click(text, scope=""):
+        if not scope and text in {"资料库", "知识库"}:
+            space = {"资料库": "library", "知识库": "vault"}[text]
+            navigate_compatibility_space(js, wait, space)
+            receipt.setdefault("ui_selectors", []).append({"action": "public_compatibility_route", "hash": "#space=" + space, "new_page_qualification": False})
+            return
         selector = navigation_button_selector(text, scope)
         element = ui_element("xpath", selector)
         request("POST", f"/session/{session}/element/{element}/click", {})
@@ -945,7 +958,9 @@ def main():
         session = result["sessionId"]
         assert request("GET", f"/session/{session}/window/handles"), "Actual WebDriver window missing"
         request("POST", f"/session/{session}/timeouts", {"script":30000})
-        wait("return [...document.querySelectorAll('button')].some(b=>b.textContent.trim().endsWith('资料库'))")
+        wait("return !!document.querySelector('.space-rail [data-page-id=\"02\"]')")
+        receipt["navigation_scope"] = {"launch": "CURRENT_GROUPED_PAGE_ENTRY", "persisted_behavior": "DECLARED_LEGACY_COMPATIBILITY_ROUTES", "new_layout_coverage": "SEPARATE_BROWSER_SMOKE"}
+        navigate_compatibility_space(js, wait, "library")
         receipt.setdefault("launches", []).append({"seconds":time.monotonic()-began,"capabilities":result["capabilities"],"user_data_folder":str(folder)})
         version = bridge("system_version")
         assert isinstance(version, dict)
@@ -1056,13 +1071,9 @@ def main():
             ),
         }
         assert base64.b64decode(original["content_base64"]) == content
-        js(
-            "[...document.querySelectorAll('button')].find(b=>b.textContent.trim().endsWith('工作台')).click()"
-        )
+        navigate_compatibility_space(js, wait, "workspace")
         time.sleep(0.2)
-        js(
-            "[...document.querySelectorAll('button')].find(b=>b.textContent.trim().endsWith('资料库')).click()"
-        )
+        navigate_compatibility_space(js, wait, "library")
         wait(
             "return [...document.querySelectorAll('button')].some(b=>b.textContent==='WebDriver证据.txt')"
         )
@@ -1178,7 +1189,7 @@ def main():
         # reopen its window to obtain a fresh UI readiness handshake as well.
         close_session()
         launch()
-        js("[...document.querySelectorAll('button')].find(b=>b.textContent.trim().endsWith('资料库')).click()")
+        navigate_compatibility_space(js, wait, "library")
         wait("return [...document.querySelectorAll('button')].some(b=>b.textContent==='新建原创笔记')")
         before_ids = {item["document_id"] for item in bridge("documents_list")["documents"]}
         ui_click("新建原创笔记")
@@ -1207,7 +1218,7 @@ def main():
         receipt["steps"].append("UI original note without source/review/model prerequisites saved by canonical writer")
         close_session()
         launch()
-        js("[...document.querySelectorAll('button')].find(b=>b.textContent.trim().endsWith('资料库')).click()")
+        navigate_compatibility_space(js, wait, "library")
         wait("return [...document.querySelectorAll('button')].some(b=>b.textContent==='原创笔记 · 文档')")
         ui_click("原创笔记 · 文档")
         wait("return document.querySelector('[aria-label=\"版本化草稿编辑器\"]')?.textContent.includes('保存草稿')")
@@ -1248,7 +1259,7 @@ def main():
         receipt["native_activity_shortcut"] = {"trusted_key_events": 2, "expanded_then_collapsed": True, "editor_focus_preserved": True, "text_unchanged": True, "no_api_write": True, "persisted_version_unchanged": True}
         receipt["steps"].append("Trusted native Ctrl+Alt+J expands/collapses activity dock without losing editor focus or issuing API writes")
         receipt["steps"].append("UI original note close/relaunch readback equals persisted version")
-        js("[...document.querySelectorAll('button')].find(b=>b.textContent.trim().endsWith('知识库')).click()")
+        navigate_compatibility_space(js, wait, "vault")
         wait("return [...document.querySelectorAll('label')].some(l=>l.textContent.includes('搜索内容'))")
         search_input = ui_element("css selector", "form label input")
         request("POST", f"/session/{session}/element/{search_input}/value", {"text": "ordinary note 731"})
