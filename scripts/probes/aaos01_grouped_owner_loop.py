@@ -121,6 +121,54 @@ def assert_full_text_selection(proof, text):
     ), "Full original range text differs"
 
 
+QUOTE_SELECTION_OBSERVATION = """const labels=Array.from(document.querySelectorAll('label'))
+.filter(label=>!label.closest('[hidden]')&&Array.from(label.childNodes)
+.filter(node=>node.nodeType===3).map(node=>node.textContent).join('').trim()==='选择实际引文');
+const input=labels.length===1?labels[0].querySelector('textarea[readonly]'):null;
+const selected=input?.parentElement?.nextElementSibling;
+const proof={focused:!!input&&document.activeElement===input,value:input?.value??null,
+start:input?.selectionStart??null,end:input?.selectionEnd??null,
+displayed:selected?.textContent??null};
+"""
+
+
+def assert_quote_selection(proof, text):
+    assert proof["focused"] is True and proof["value"] == text
+    assert proof["start"] == 0 and proof["end"] == len(text.encode("utf-16-le")) // 2
+    assert proof["displayed"] == "已选引文：" + text
+
+
+def select_full_quote(ui, js, wait, text, result):
+    # Use a native Select All shortcut, then independently read both the browser
+    # range and the React selection display. Never write DOM selection or events.
+    ui.keys(label_selector("选择实际引文", "textarea"), "\ue009a\ue000")
+    expected = json.dumps(text)
+    result["quote_selection"] = {"status": "IN_PROGRESS"}
+    try:
+        wait(
+            QUOTE_SELECTION_OBSERVATION
+            + "return proof.focused && proof.value==="
+            + expected
+            + " && proof.start===0 && proof.end===proof.value.length"
+            + " && proof.displayed==="
+            + json.dumps("已选引文：" + text)
+            + ";"
+        )
+        proof = js(QUOTE_SELECTION_OBSERVATION + "return proof;")
+        assert_quote_selection(proof, text)
+        result["quote_selection"].update(status="PASS", selection=proof)
+    except BaseException:
+        try:
+            result["quote_selection"].update(
+                status="FAIL", selection=js(QUOTE_SELECTION_OBSERVATION + "return proof;")
+            )
+        except BaseException:
+            result["quote_selection"].update(
+                status="FAIL", selection="UNVERIFIED_OBSERVATION_FAILED"
+            )
+        raise
+
+
 def button_selector(label: str, scope: str = "") -> str:
     return f"{scope}//button[normalize-space(.)={xpath_literal(label)} and not(ancestor-or-self::*[@hidden])]"
 
@@ -525,8 +573,7 @@ def run_grouped_loop(
         lambda value: not value["state"]["drafts"] and not value["state"].get("pending_original"),
     )
     ui.click("整理此来源为知识候选")
-    quote = label_selector("选择实际引文", "textarea")
-    ui.keys(quote, "\ue009\ue011\ue000\ue009\ue008\ue010\ue000")
+    select_full_quote(ui, js, wait, text, result)
     candidate_body = text.strip()
     ui.type("知识候选正文", candidate_body, "textarea")
     ui.click("创建知识候选")

@@ -146,6 +146,55 @@ class GroupedNativeProbeTests(unittest.TestCase):
                 )
                 self.assertEqual(calls, ["capabilities_list"])
 
+    def test_quote_selection_requires_native_range_and_react_display(self):
+        text = "中文🌌\n尾行\n"
+        proof = {
+            "focused": True,
+            "value": text,
+            "start": 0,
+            "end": len(text.encode("utf-16-le")) // 2,
+            "displayed": "已选引文：" + text,
+        }
+        self.probe.assert_quote_selection(proof, text)
+        for field, wrong in [
+            ("focused", False),
+            ("start", 1),
+            ("end", proof["end"] - 1),
+            ("value", text.rstrip()),
+            ("displayed", "已选引文："),
+        ]:
+            with self.subTest(field=field), self.assertRaises(AssertionError):
+                self.probe.assert_quote_selection({**proof, field: wrong}, text)
+        commands, scripts, result = [], [], {}
+        ui = self.probe.GroupedUI(
+            lambda _: proof,
+            lambda script: scripts.append(script),
+            lambda *_: "quote",
+            lambda element, action, body: commands.append((action, body)),
+            [],
+        )
+        self.probe.select_full_quote(
+            ui, lambda _: proof, lambda script: scripts.append(script), text, result
+        )
+        self.assertEqual(commands, [("click", {}), ("value", {"text": "\ue009a\ue000"})])
+        self.assertEqual(result["quote_selection"]["status"], "PASS")
+        self.assertFalse(
+            any(
+                token in script
+                for script in scripts
+                for token in ["setSelectionRange(", "dispatchEvent(", ".focus("]
+            )
+        )
+        failed = {}
+
+        def timeout(_):
+            raise TimeoutError("native selection missing")
+
+        with self.assertRaises(TimeoutError):
+            self.probe.select_full_quote(ui, lambda _: {**proof, "end": 0}, timeout, text, failed)
+        self.assertEqual(failed["quote_selection"]["status"], "FAIL")
+        self.assertEqual(failed["quote_selection"]["selection"]["end"], 0)
+
     def test_answer_does_not_become_correctness_claim(self):
         task = {
             "scope": "runtime.answer",

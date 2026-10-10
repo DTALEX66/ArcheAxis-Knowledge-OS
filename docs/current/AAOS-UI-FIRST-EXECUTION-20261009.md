@@ -374,3 +374,9 @@ Office/text-PDF probe 补结束时 worktree identity 核对，执行中源码变
 a8 desktop-fast 失败已核对实际 job 日志：Windows runner 无 ffmpeg.exe，第一行 Get-Command 失败，模型下载尚未开始、实际 Core ASR required skip；此前没有JSON故障回执导致上传也失败。现补显式固定版本8.1.2的项目local CI-only工具准备，GitHub发布者bytes/digest独立读回一致；fresh路径、ZIP预算/成员/摘要/链接、版本及encoder严格核对，保留GPLv3 LICENSE，不能伪标LGPL产品发行资格。无需全局安装/PATH修改，产品缺失时具名失败fallback不改；ZIP/二进制不进入release-candidate/Green/上传，只有JSON。前置独立失败回执提前建立，actual speech仍必跑，if-no-files-found:error不弱化。
 
 TXT加入common light独立Core探针，中文/换行/emoji后UTF8原件定位由实际本地parser验证；Core重解析/重启待后继候选。根联合52 PASS无skip、critical Ruff、architecture、YAML与精确PowerShell AST通过，源码一致；其中tool/asset guards为SYNTHETIC，未实际下载/执行新FFmpeg，未签署Core ASR。详见[ASR CI前置修复](receipts/AAOS-ASR-CI-PREREQUISITE-REPAIR-20261011.json)。当前a8安装构建仍有用且live，不取消/替代dispatch。整体目标仍PARTIAL；真实文本模型服务询问待答，其他任务继续。
+
+## 2026-10-11 新分组安装选区推进（PARTIAL）
+
+a8 完整 CI 38081667307 已 terminal FAIL。下载 exact artifact 11681586595，兼容 child PASS；grouped 实际安装 import/read/anchor 通过，原件 PRE 实际焦点、同节点完整 Range（含尾 LF）及独立 locator 通过。随后创建候选按钮禁用，截图“已选引文”为空；旧复合快捷键具体失败原因 UNVERIFIED，不能推导产品证据校验失效。
+
+探针改为 trusted Ctrl+A，并独立读回实际 textarea 焦点/value/UTF16 起止及 React 已选引文全文；不改 DOM、合成事件、直接写桥接或弱化候选门禁。20 helper PASS、critical Ruff、architecture PASS；架构首次误判嵌入 XPath 为外部绝对路径，改 DOM 只读查找后通过，原失败保留。pyreadline3 析构 0xc0000008 保留，测试 exit0不代表产品运行通过。新安装/最终Core ASR/TXT/Rust/真实AI尚待候选复验，详见[引文选区进展](receipts/AAOS-GROUPED-QUOTE-SELECTION-PROGRESS-20261011.json)。全目标仍 PARTIAL，未发布/替换Green或覆盖用户数据。
