@@ -41,13 +41,13 @@ def load(name: str, path: Path):
 def tree_facts() -> dict[str, int]:
     matrix = load("matrix_for_consistency", REPO / "scripts/probes/staged_format_matrix_smoke.py")
     stager = load("stager_for_consistency", REPO / "scripts/release/stage_backend_runtime.py")
-    contract = CONTRACT.read_text(encoding="utf-8")
+    inventory = load("route_inventory_for_consistency", REPO / "tests/maintenance/test_contract_route_inventory.py")
     return {
         "golden_cases": len(matrix.GOLDEN_MATRIX),
         "real_cases": len(matrix.MATERIAL_ROUTES),
         # §6 says "30 routes (projection + the 4 runtime routes)"; route tables are the source.
         "declared_routes": len(stager.ROUTE_SCRIPTS),
-        "inventory_pairs": len(re.findall(r"^\|\s*(?:\d+|R\d+)\s*\|", contract, re.M)),
+        "inventory_pairs": len(inventory.documented_routes()),
     }
 
 
@@ -86,7 +86,7 @@ def test_the_launch_shape_split_adds_up():
     """Production method/path pairs differ from route mounts and omit manual receipts."""
     projections, conditional, runtime = router_mounts()
     inventory = tree_facts()["inventory_pairs"]
-    assert projections == 53, f"unconditional projection mounts changed: {projections}"
+    assert projections == 57, f"unconditional projection mounts changed: {projections}"
     assert conditional == 1, f"conditional manual receipt mounts changed: {conditional}"
     assert runtime == 21, f"runtime mounts changed: {runtime}"
     lib = (REPO / "crates/archeaxis-api/src/lib.rs").read_text(encoding="utf-8")
@@ -116,13 +116,13 @@ def test_the_launch_shape_split_adds_up():
     assert base & runtime_set == set(), "runtime duplicate mount"
     assert runtime_set & wrapper == execute, "only the execution handler is replaced"
     assert "crate::projections_base(executor.store().clone(), false)" in runtime_source
-    assert len(wrapper | base) == 62
-    assert len(base) == 61
+    assert len(wrapper | base) == 67
+    assert len(base) == 66
     assert len(runtime_set) == 22
     assert len(base | runtime_set) == inventory
     contract = CONTRACT.read_text(encoding="utf-8")
-    assert "62 projection method/path pairs" in contract
-    assert "53 unconditional mounts" in contract
+    assert "67 projection method/path pairs" in contract
+    assert "57 unconditional mounts" in contract
     assert "manual legacy `/jobs/{id}/receipts` remains absent" in contract
 
 

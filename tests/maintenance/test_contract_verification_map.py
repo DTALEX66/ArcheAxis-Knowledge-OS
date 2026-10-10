@@ -33,7 +33,7 @@ COVERAGE: dict[str, tuple[str, str]] = {
           "one credential header, both principals in it, the actor derived from which token "
           "matched, 401 and 403 shapes"),
     "3": ("tests/maintenance/test_contract_route_inventory.py",
-          "all 83 current documented method+path pairs are served and none is undocumented, plus the one "
+          "all 88 current documented method+path pairs are served and none is undocumented, plus the one "
           "conditional mount; the outputs route's own boundaries are in contract_job_outputs.rs"),
     "4": ("crates/archeaxis-api/tests/contract_constant_fields.rs",
           "machine.status stays not_recorded with receipts present, the mastery projection is open, "

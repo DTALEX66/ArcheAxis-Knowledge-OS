@@ -130,7 +130,7 @@ delivery:
   release_candidate_week: 6
   supported_product_platform_initially:
     - windows-11-x64
-  mandatory_journey: tests/journey/v01-owner-loop.yaml
+  mandatory_journey: tests/journey/tauri-common-format-owner-loop.yaml
 agent_protocol:
   project_contract_schema: .project/schemas/project-contract.schema.json
   directory_authority_schema: .project/schemas/directory-authority.schema.json

@@ -5,13 +5,16 @@
 //! no full job orchestration). The standalone process wraps these internal
 //! projections with launch authentication; `app` alone is for in-process use.
 
+mod anchor_resolution;
 pub mod ask;
 pub mod capabilities;
 mod documents;
 pub mod launch;
 mod machine_governance;
+mod pdf_locator;
 pub mod runtime;
 mod teaching;
+mod ui_state;
 mod workspace_backup;
 
 use archeaxis_application::container;
@@ -65,6 +68,11 @@ pub fn projections(state: Store, manual_receipts: bool) -> Router {
     )
 }
 pub(crate) fn projections_base(state: Store, manual_receipts: bool) -> Router {
+    let ui_routes = Router::new()
+        .route("/api/v1/workspace/ui-state", get(ui_state::read).put(ui_state::write))
+        .route("/api/v1/workspace/ui-state/clear-saved", post(ui_state::clear_saved))
+        .route("/api/v1/workspace/ui-state/recover", post(ui_state::recover))
+        .layer(axum::extract::DefaultBodyLimit::max(1_100_000));
     let teaching_routes = Router::new()
         .route(
             "/api/v2/teaching/records",
@@ -77,6 +85,7 @@ pub(crate) fn projections_base(state: Store, manual_receipts: bool) -> Router {
         .route("/api/v2/teaching/imports", post(teaching::import))
         .layer(axum::extract::DefaultBodyLimit::max(8 * 1024 * 1024));
     let routes = Router::new()
+        .merge(ui_routes)
         .merge(teaching_routes)
         .route(
             "/api/v1/machine/contexts",
@@ -151,6 +160,10 @@ pub(crate) fn projections_base(state: Store, manual_receipts: bool) -> Router {
         .route(
             "/api/v1/sources/:source_id/anchors",
             get(documents::anchors).post(create_anchor),
+        )
+        .route(
+            "/api/v1/sources/:source_id/anchors/:anchor_id/resolve",
+            get(anchor_resolution::resolve),
         )
         .route(
             "/api/v1/sources/:source_id/jobs/:job_id/transform",
@@ -1535,6 +1548,42 @@ fn verify_format_location_anchor(
     Some(format!("{:x}", Sha256::digest(value.as_bytes())) == checksum)
 }
 
+/// Shared by anchor creation and independent read-time resolution. Verification establishes
+/// locator provenance only; it never grants recognition accuracy or business approval.
+fn verify_anchor_location(
+    conn: &Connection,
+    source_id: &str,
+    revision: &str,
+    position: &serde_json::Value,
+    checksum: &str,
+) -> Option<bool> {
+    use sha2::{Digest, Sha256};
+    if position["type"] == "pdf_line" {
+        return pdf_locator::verify(conn, source_id, revision, position, checksum);
+    }
+    if position["type"] == "time" {
+        return verify_time_anchor(conn, source_id, revision, position, checksum);
+    }
+    if position["type"] == "epub" {
+        return verify_epub_anchor(conn, source_id, revision, position, checksum);
+    }
+    if position["type"] == "worker_structure" {
+        return verify_structure_anchor(conn, source_id, revision, position, checksum);
+    }
+    if position["type"] == "format_location" {
+        return verify_format_location_anchor(conn, source_id, revision, position, checksum);
+    }
+    if position["type"] != "text" {
+        return None;
+    }
+    let start = usize::try_from(position["start"].as_u64()?).ok()?;
+    let end = usize::try_from(position["end"].as_u64()?).ok()?;
+    let bytes = archeaxis_store_sqlite::raw_objects::read(conn, revision).ok()?;
+    let text = std::str::from_utf8(&bytes).ok()?;
+    let excerpt = text.get(start..end)?;
+    Some(format!("{:x}", Sha256::digest(excerpt.as_bytes())) == checksum)
+}
+
 #[derive(Deserialize)]
 struct AnchorBody {
     revision: String,
@@ -1587,34 +1636,9 @@ async fn create_anchor(
         let mut position: serde_json::Value = serde_json::from_str(&body.position).unwrap();
         let mut location_status = "unverified";
         if let Some(checksum) = body.checksum {
-            use sha2::{Digest, Sha256};
-            let validation = (|| -> Option<bool> {
-                if position["type"] == "time" {
-                    return verify_time_anchor(conn, &source_id, &body.revision, &position, &checksum);
-                }
-                if position["type"] == "epub" {
-                    return verify_epub_anchor(conn, &source_id, &body.revision, &position, &checksum);
-                }
-                if position["type"] == "worker_structure" {
-                    return verify_structure_anchor(
-                        conn, &source_id, &body.revision, &position, &checksum,
-                    );
-                }
-                if position["type"] == "format_location" {
-                    return verify_format_location_anchor(
-                        conn, &source_id, &body.revision, &position, &checksum,
-                    );
-                }
-                if position["type"] != "text" {
-                    return None;
-                }
-                let start = usize::try_from(position["start"].as_u64()?).ok()?;
-                let end = usize::try_from(position["end"].as_u64()?).ok()?;
-                let bytes = archeaxis_store_sqlite::raw_objects::read(conn, &body.revision).ok()?;
-                let text = std::str::from_utf8(&bytes).ok()?;
-                let excerpt = text.get(start..end)?;
-                Some(format!("{:x}", Sha256::digest(excerpt.as_bytes())) == checksum)
-            })();
+            let validation = verify_anchor_location(
+                conn, &source_id, &body.revision, &position, &checksum,
+            );
             if validation != Some(true) {
                 return (
                     StatusCode::BAD_REQUEST,

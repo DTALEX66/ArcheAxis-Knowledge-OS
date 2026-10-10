@@ -54,6 +54,7 @@ pub enum Operation {
     JobQuality,
     AnchorsList,
     AnchorCreate,
+    AnchorResolve,
     DocumentExport,
     DocumentExportSave,
     Search,
@@ -76,6 +77,7 @@ pub enum Operation {
     LearningHistory,
     LearningReview,
     CapabilitiesList,
+    CapabilitySetEnabled,
     JobEnqueue,
     JobExecute,
     JobExecutionStatus,
@@ -101,6 +103,10 @@ pub enum Operation {
     KnowledgeFromTransform,
     WorkspaceBackup,
     WorkspaceBackups,
+    UiStateRead,
+    UiStateWrite,
+    UiStateClearSaved,
+    UiStateRecover,
     // Constructed only by version 2 host commands; strict v1 JSON cannot select it.
     #[serde(skip)]
     WorkspaceRestorePreview,
@@ -404,6 +410,15 @@ fn route(request: &Request) -> Result<(&'static str, String, Option<Value>), Str
             format!("/api/v1/sources/{}/anchors", id(p, "source_id")?),
             Some(body()?),
         ),
+        AnchorResolve => (
+            "GET",
+            format!(
+                "/api/v1/sources/{}/anchors/{}/resolve",
+                id(p, "source_id")?,
+                id(p, "anchor_id")?
+            ),
+            None,
+        ),
         Search => {
             let q = p
                 .get("q")
@@ -586,6 +601,28 @@ fn route(request: &Request) -> Result<(&'static str, String, Option<Value>), Str
             Some(serde_json::json!({})),
         ),
         WorkspaceBackups => ("GET", "/api/v1/workspace/backups".into(), None),
+        UiStateRead => {
+            if !p.as_object().is_some_and(|object| object.is_empty()) {
+                return Err("CORE_UI_STATE_PAYLOAD_INVALID".into());
+            }
+            ("GET", "/api/v1/workspace/ui-state".into(), None)
+        }
+        UiStateWrite | UiStateClearSaved | UiStateRecover => {
+            if !p.as_object().is_some_and(|object| object.len() == 1 && object.contains_key("body")) {
+                return Err("CORE_UI_STATE_PAYLOAD_INVALID".into());
+            }
+            let value = body()?;
+            if !value.is_object() {
+                return Err("CORE_UI_STATE_PAYLOAD_INVALID".into());
+            }
+            let (method, path) = match request.operation {
+                UiStateWrite => ("PUT", "/api/v1/workspace/ui-state"),
+                UiStateClearSaved => ("POST", "/api/v1/workspace/ui-state/clear-saved"),
+                UiStateRecover => ("POST", "/api/v1/workspace/ui-state/recover"),
+                _ => unreachable!(),
+            };
+            (method, path.into(), Some(value))
+        }
         AssessmentCreate => (
             "POST",
             format!(
@@ -611,6 +648,37 @@ fn route(request: &Request) -> Result<(&'static str, String, Option<Value>), Str
             Some(body()?),
         ),
         CapabilitiesList => ("GET", "/api/v1/capabilities".into(), None),
+        CapabilitySetEnabled => {
+            let object = request
+                .payload
+                .as_object()
+                .ok_or("CORE_COMMAND_PAYLOAD_OBJECT_REQUIRED")?;
+            if object.len() != 2 {
+                return Err("CORE_COMMAND_CAPABILITY_PAYLOAD_INVALID".into());
+            }
+            let capability = object
+                .get("capability")
+                .and_then(Value::as_str)
+                .ok_or("CORE_COMMAND_CAPABILITY_REQUIRED")?;
+            if capability.is_empty()
+                || capability.len() > 128
+                || capability.split('.').any(|part| part.is_empty())
+                || !capability.bytes().all(|c| {
+                    c.is_ascii_alphanumeric() || c == b'-' || c == b'_' || c == b'.'
+                })
+            {
+                return Err("CORE_COMMAND_CAPABILITY_INVALID".into());
+            }
+            let enabled = object
+                .get("enabled")
+                .and_then(Value::as_bool)
+                .ok_or("CORE_COMMAND_ENABLED_BOOLEAN_REQUIRED")?;
+            (
+                "PUT",
+                format!("/api/v1/capabilities/{capability}/enabled"),
+                Some(serde_json::json!({"enabled": enabled})),
+            )
+        }
         JobEnqueue => ("POST", "/api/v1/jobs".into(), Some(body()?)),
         JobExecutionStatus => (
             "GET",
@@ -745,6 +813,8 @@ fn transport_timeout(operation: &Operation) -> std::time::Duration {
 fn request_byte_limit(operation: &Operation) -> usize {
     if matches!(operation, Operation::SourceImport) {
         90 * 1024 * 1024
+    } else if matches!(operation, Operation::UiStateWrite | Operation::UiStateClearSaved | Operation::UiStateRecover) {
+        1_100_000
     } else {
         8 * 1024 * 1024
     }
@@ -874,6 +944,34 @@ mod tests {
             transport_timeout(&Operation::SourceImport),
             std::time::Duration::from_secs(30)
         );
+    }
+    #[test]
+    fn capability_enable_is_a_finite_boolean_write() {
+        for enabled in [false, true] {
+            let request: Request = serde_json::from_value(serde_json::json!({
+                "operation": "capability_set_enabled",
+                "payload": {"capability": "text.extract", "enabled": enabled}
+            }))
+            .unwrap();
+            let actual = route(&request).unwrap();
+            assert_eq!(actual.0, "PUT");
+            assert_eq!(actual.1, "/api/v1/capabilities/text.extract/enabled");
+            assert_eq!(actual.2, Some(serde_json::json!({"enabled": enabled})));
+        }
+        for payload in [
+            serde_json::json!({"capability":"../text.extract","enabled":false}),
+            serde_json::json!({"capability":"text.extract?x=1","enabled":false}),
+            serde_json::json!({"capability":"text..extract","enabled":false}),
+            serde_json::json!({"capability":"text.extract","enabled":"false"}),
+            serde_json::json!({"capability":"text.extract"}),
+            serde_json::json!({"capability":"text.extract","enabled":true,"url":"https://example.com"}),
+        ] {
+            let request: Request = serde_json::from_value(serde_json::json!({
+                "operation":"capability_set_enabled", "payload":payload
+            }))
+            .unwrap();
+            assert!(route(&request).is_err());
+        }
     }
     #[test]
     fn finite_execution_status_cancel_and_explicit_retry_identity() {
@@ -1331,6 +1429,9 @@ mod folder_native_contract_regression {
                         Err(error) => panic!("owned native fixture accept: {error}"),
                     }
                 };
+                // Windows accepted sockets can inherit the nonblocking listener mode.
+                // The owned fixture uses bounded blocking reads below, like the client.
+                socket.set_nonblocking(false).unwrap();
                 socket
                     .set_read_timeout(Some(Duration::from_secs(5)))
                     .unwrap();
@@ -1403,5 +1504,43 @@ mod folder_native_contract_regression {
             "/api/v1/jobs/folder-text-safe/executions/folder-explicit-request/cancel"
         );
         assert!(body.is_none());
+    }
+
+    #[test]
+    fn anchor_resolution_is_a_finite_read_with_two_bound_ids() {
+        let request:Request=serde_json::from_value(serde_json::json!({"operation":"anchor_resolve","payload":{"source_id":"src-1","anchor_id":"anchor-1"}})).unwrap();
+        let (method,path,body)=route(&request).unwrap();
+        assert_eq!(method,"GET");
+        assert_eq!(path,"/api/v1/sources/src-1/anchors/anchor-1/resolve");
+        assert!(body.is_none());
+        for key in ["source_id","anchor_id"] {
+            for invalid in ["../other","x/y","x?role=human",""] {
+                let mut payload=serde_json::json!({"source_id":"src-1","anchor_id":"anchor-1"});
+                payload[key]=serde_json::json!(invalid);
+                assert!(route(&Request{operation:Operation::AnchorResolve,payload}).is_err());
+            }
+        }
+    }
+
+    #[test]
+    fn ui_working_state_uses_only_fixed_routes_and_bounded_bodies() {
+        let read:Request=serde_json::from_value(serde_json::json!({"operation":"ui_state_read","payload":{}})).unwrap();
+        let (method,path,body)=route(&read).unwrap();
+        assert_eq!(method,"GET");assert_eq!(path,"/api/v1/workspace/ui-state");assert!(body.is_none());
+        for (operation,method,path) in [
+            ("ui_state_write","PUT","/api/v1/workspace/ui-state"),
+            ("ui_state_clear_saved","POST","/api/v1/workspace/ui-state/clear-saved"),
+            ("ui_state_recover","POST","/api/v1/workspace/ui-state/recover"),
+        ] {
+            let request:Request=serde_json::from_value(serde_json::json!({"operation":operation,"payload":{"body":{"state_revision":7}}})).unwrap();
+            let routed=route(&request).unwrap();
+            assert_eq!((routed.0,routed.1.as_str()),(method,path));assert_eq!(routed.2,Some(serde_json::json!({"state_revision":7})));
+            assert_eq!(request_byte_limit(&request.operation),1_100_000);
+            for payload in [serde_json::json!({}),serde_json::json!({"body":[]}),serde_json::json!({"body":{},"url":"https://example.com"})] {
+                let invalid:Request=serde_json::from_value(serde_json::json!({"operation":operation,"payload":payload})).unwrap();
+                assert!(route(&invalid).is_err());
+            }
+        }
+        assert!(route(&Request{operation:Operation::UiStateRead,payload:serde_json::json!({"body":{}})}).is_err());
     }
 }

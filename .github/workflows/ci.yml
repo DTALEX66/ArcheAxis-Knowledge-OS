@@ -1089,6 +1089,16 @@ jobs:
         id: content_policy_loop
         working-directory: ${{ github.workspace }}
         run: python -B scripts/probes/aaos01_content_policy_runtime_loop.py --candidate .project-local/rt
+      - name: Verify common-format content, locations and independent reparse
+        working-directory: ${{ github.workspace }}
+        run: python -B scripts/probes/aaos01_common_formats_runtime_loop.py --candidate .project-local/rt
+      - name: Upload common-format qualification receipt
+        if: ${{ always() }}
+        uses: actions/upload-artifact@834a144ee995460fba8ed112a2fc961b36a5ec5a
+        with:
+          name: desktop-fast-common-formats-${{ github.sha }}-${{ github.run_attempt }}
+          path: .project-local/runs/**/artifacts/common-formats.json
+          if-no-files-found: warn
       - name: Upload content policy runtime receipt
         if: ${{ always() && steps.content_policy_loop.outcome != 'skipped' }}
         uses: actions/upload-artifact@834a144ee995460fba8ed112a2fc961b36a5ec5a
@@ -1189,6 +1199,8 @@ jobs:
           uv run --frozen python -B scripts/contracts/generate_core_document.py
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           uv run --frozen python -B scripts/contracts/generate_capability_catalog.py --check
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          uv run --frozen python -B scripts/contracts/generate_ui_working_state.py --check
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           git diff --exit-code -- frontend/src/api/generated/core-contract.ts
       - name: Prepare the installed Python runtime

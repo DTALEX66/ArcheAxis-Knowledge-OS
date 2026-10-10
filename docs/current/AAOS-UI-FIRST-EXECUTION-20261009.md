@@ -1,5 +1,7 @@
 # UI 优先首批执行与存储交接 · 2026-10-09
 
+> **2026-10-11 最新 Owner 决定**：恢复完整框架、常见常用格式及最短闭环产品实施，RUNNING_BY_OWNER / PARTIAL；范围见[恢复决定](AAOS-CLOSED-LOOP-OWNER-RESUME-20261011.json)。下文暂停/停止/旧 CI 缺资格均保留原时点，最新 CI 读[收口记录](AAOS-AUTHORITY-CLOSEOUT-20261010.md)。当前优先：创建幂等、独立草稿与现场、冲突恢复、常用格式定位重验、资源启停及新 UI 同对象旅程。
+
 > **2026-10-10 最新仓库同步：BRANCH_PUBLISHED**。公开源码、任务包和文档已推送；源码快照 `3c1265be1017f565a64701b513bac3e51d724584`、Git树 `982dafceddc85b8e023f3d028b86805b9592f041` 经GitHub原生API及远程refs读回匹配，main与两个任务分支一致，本地主检出和代码检出已收敛。当前交付元数据的最新SHA以实际Git HEAD/远程ref为准。旧段落“源码不同/未commit/push/云端缺文件”仅为旧时点；不再表示当前仓库状态。安装/产品任务仍暂停，整体PARTIAL与FAIL保留。**CI_VERIFIED_EXACT_SHA未获得**：推送响应显示required a0-gates仍expected，服务器接收提交不等于CI通过。
 
 
@@ -274,3 +276,17 @@ IN_PROGRESS / PARTIAL；不是阶段完成。13页上下文候选/用途/操作/
 ## 2026-10-10 新授权：仓库双端同步
 
 用户已授权当前项目公开内容commit/push及不改写历史的本地收敛，见 [同步交付范围](AAOS-REPOSITORY-SYNC-20261010.md)。此前“未授予/未执行commit/push”的段落是旧时点记录；本次交付不恢复产品实施，不升级PARTIAL/FAIL或安装资格。云端和本地源码是否一致须读最终交付SHA，不从历史GitHub About回读推断。
+
+## 2026-10-11 Owner 闭环恢复：首批可靠性增量（PARTIAL）
+
+Owner 当前目标为完整核心框架、常见常用格式与最短闭环，恢复决定由活动指针指向 `AAOS-CLOSED-LOOP-OWNER-RESUME-20261011.json`。当前强制旅程改为 `tests/journey/tauri-common-format-owner-loop.yaml`；该文件是验收要求登记，不是完成证据。历史旅程及其结果保留各自身份。
+
+本地已补原创创建固定请求/丢失响应回读、引用独立核验及正式桥接导航限制、能力启停确认与独立回读，并扩展已有 Core 内容政策探针检查创建重放、重启和独立备份恢复不产生重复文档。根工作树定向 UI 55 项通过；HTTP/探针 helper 19 项、合同/路由结构 30 项通过（后两组为 canonical runner `--noconftest` 的明确隔离范围，不是全仓门禁）。根前端 build 在 Vite 写 assets 时 EPERM，未以提权或 ACL 修改绕过。
+
+分项状态及本地收据见 [闭环工程进度](receipts/AAOS-CLOSED-LOOP-ENGINEERING-20261011.json)。当前草稿跨重启、全局对象搜索、常见格式真实内容资格和同对象新 UI 全流程仍未验收；当前新增代码未获得 exact-SHA CI 或安装运行资格。主题不变；六项对话增量、V01、FT01–04 保持既有冻结/暂停状态。
+
+同日继续：真实对象检索已接入命令面板，按搜索时的版本和正文 SHA 打开只读文档，避免卸载当前编辑草稿。根工作树五个 UI 测试文件 73 PASS；HTTP/资源结构 38 PASS。Core-owned typed 工作状态及有限宿主操作已接入源码：使用既有 workspace_meta，通过唯一 writer 保全独立草稿与冻结原创请求，workspace/restore epoch/revision CAS、人工权限、恢复候选显式处理和已保存草稿条件清除；生产 UI 持久化接线仍进行中，Native 测试未执行。
+
+中文复合 DOCX/XLSX/PPTX/PDF 内容、结构、定位、独立新 job 重解析和重启探针已加入 desktop-fast。PDF locator 直接核验实际 pdf.extract 的 canonical page/global-line 和文本/结构输出指纹，不伪造 worker_structure/bbox/OCR。本地 15 项 parser/helper/build-contract 检查 PASS；当前完整框架及实际 Core 资格仍 PARTIAL。生成工作状态 DTO、语言边界、文档权威和当前 TypeScript 检查 PASS。
+
+基线完整 CI `38069114525`（6c5fcc3）最终 FAIL：installer-lifecycle PASS，desktop-fast 84 PASS / 1 FAIL，测试 fixture 的 Windows accepted socket 继承非阻塞模式，read 返回 WouldBlock。已显式切为阻塞读取并保留原有超时；新源码复测待候选。当前本地 rustfmt 对指定项目文件返回 access denied，不提权或调整 ACL，不能宣称格式/Native PASS。

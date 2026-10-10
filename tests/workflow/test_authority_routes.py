@@ -101,6 +101,38 @@ def test_registry_missing_is_a_failure(tmp_path):
     assert check_routes(tmp_path)
 
 
+def test_running_scope_requires_explicit_owner_resume_revision(tmp_path):
+    fixture(tmp_path)
+    path = tmp_path / "docs/current/AAOS-ACTIVE-EXECUTION.json"
+    data = json.loads(path.read_text(encoding="utf-8"))
+    data["execution_control"] = {"state": "RUNNING_BY_OWNER", "automatic_continuation": True}
+    path.write_text(json.dumps(data), encoding="utf-8")
+    assert any("resume" in error for error in check_routes(tmp_path))
+
+
+def test_owner_resume_keeps_frozen_inputs_and_selected_taskpack(tmp_path):
+    fixture(tmp_path)
+    path = tmp_path / "docs/current/AAOS-ACTIVE-EXECUTION.json"
+    data = json.loads(path.read_text(encoding="utf-8"))
+    data.update(active_taskpack="docs/taskpacks/current", active_progress="docs/current/progress.md")
+    revision = "docs/current/owner-resume.json"
+    data["execution_control"] = {
+        "state": "RUNNING_BY_OWNER", "automatic_continuation": True,
+        "owner_resume_record": revision,
+    }
+    decision = {
+        "schema": "archeaxis.owner-execution-resume/v1",
+        "resumes_product_execution": True, "owner_instruction": "Execute the current closed loop",
+        "active_taskpack": data["active_taskpack"], "active_progress": data["active_progress"],
+    }
+    public_path(tmp_path, revision).write_text(json.dumps(decision), encoding="utf-8")
+    path.write_text(json.dumps(data), encoding="utf-8")
+    assert check_routes(tmp_path) == []
+    decision["active_taskpack"] = "docs/taskpacks/historical"
+    public_path(tmp_path, revision).write_text(json.dumps(decision), encoding="utf-8")
+    assert any("selected scope" in error for error in check_routes(tmp_path))
+
+
 def test_empty_registry_cannot_silently_disable_entry_checks(tmp_path):
     data = fixture(tmp_path)
     data["entries"] = []

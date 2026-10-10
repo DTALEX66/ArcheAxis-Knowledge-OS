@@ -4,6 +4,7 @@ import { assertCoreDto, type CoreOperation } from "./generated/core-contract";
 import { assertAiAssetDto } from "./generated/ai-asset-contract";
 import { assertTeachingDto } from "./generated/teaching-contract";
 import { assertCollectionDto } from "./generated/collection-contract";
+import { assertUiWorkingState } from "./generated/ui-working-state-contract";
 export type { CoreOperation } from "./generated/core-contract";
 const teachingResponses: Partial<Record<CoreOperation,string>> = {
   teaching_list:"RecordPage",teaching_get:"RecordView",teaching_create:"WriteReceipt",
@@ -15,7 +16,7 @@ const responseSchemas: Partial<Record<CoreOperation, string>> = {
   sources_list: "SourcesListDto", source_jobs: "SourceJobsDto", source_members: "SourceMembersDto", source_pages: "SourcePagesDto", source_original: "OriginalDto", documents_list: "DocumentsListDto",
   document_create: "DocumentDto", document_get: "DocumentDto", document_draft: "DocumentDto",
   document_checks: "DocumentChecksDto", document_check_record: "DocumentCheckDto", document_check_execute: "DocumentCheckDto",
-  document_version: "DocumentDto", document_restore: "DocumentDto", anchors_list: "AnchorsListDto", anchor_create: "AnchorDto",
+  document_version: "DocumentDto", document_restore: "DocumentDto", anchors_list: "AnchorsListDto", anchor_create: "AnchorDto", anchor_resolve: "AnchorResolutionDto",
   search: "SearchDto", knowledge_get: "KnowledgeDto", learning_items: "LearningItemsDto",
   learning_state: "LearningStateDto", document_export: "DocumentExportDto",
   machine_retest: "MachineRetestDto",
@@ -57,6 +58,10 @@ export async function coreCommand<T>(operation: CoreOperation, payload: Record<s
     throw new ApiError(response.status, reason, response.status === 401 || response.status === 403 ? "unauthorized" : "unavailable");
   }
   const schema = responseSchemas[operation];
+  if (["ui_state_read", "ui_state_write", "ui_state_clear_saved", "ui_state_recover"].includes(operation)) {
+    try { return assertUiWorkingState<T>("Read", response.body); }
+    catch { throw new ApiError(502, "工作草稿保全回读格式无效，当前编辑内容仍保留。", "incompatible"); }
+  }
   try { return operation === "ai_assets_list" || operation === "ai_asset_packet" ? assertAiAssetDto<T>(operation === "ai_assets_list" ? "AiAssetsPage" : "AssetPacketResponse",response.body) : operation === "collection_query" ? assertCollectionDto<T>("CollectionQueryDto",response.body) : teachingResponses[operation] ? assertTeachingDto<T>(teachingResponses[operation]!,response.body) : schema ? assertCoreDto<T>(schema, response.body) : response.body as T; }
   catch { throw new ApiError(502, "本地核心内容合同不兼容。", "incompatible"); }
 }

@@ -4,4 +4,4 @@
 
 任何旧文档/路径/搜索命中先分类，再核对其Concern权威与替代记录。历史CURRENT、COMPLETE、旧grant及包内提示词不能覆盖平台规则或Owner当前决定。云端使用仓库相对路径，先核实实际branch/SHA；旧检出、缓存或导出未刷新时标UNVERIFIED，不能自称已同步。
 
-当前产品执行 PAUSED_BY_OWNER、整体PARTIAL；本轮仅归档和权威修复。六项核心能力增量 FROZEN_BY_OWNER，不自动排队；V01暂停、FT01–04冻结。正式Tauri/React + Rust Core单写者，主题政策按当前合同；本入口不授予安装、发布、私人配置/会话访问或恢复产品执行。
+当前产品执行 RUNNING_BY_OWNER / PARTIAL：Owner 2026-10-11 已恢复完整框架、常见常用格式与最短闭环。准确范围读活动指针及其 owner_resume_record，不能从历史暂停、selected_tasks 或旧grant推断。六项对话增量仍冻结，V01暂停、FT01–04冻结。正式Tauri/React + Rust Core单写者；本入口不授予发布、Green替换、真实用户数据覆盖或私人配置/会话访问。

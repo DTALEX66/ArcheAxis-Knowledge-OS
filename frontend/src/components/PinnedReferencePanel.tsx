@@ -20,13 +20,13 @@ function OriginalView({ value }: { value: Original }) {
 }
 
 /** Read-only object jump in the current surface. Never switches a pinned version to current. */
-export function PinnedReferencePanel({ reference, onClose, onOpenReference }: { reference:ObjectReference;onClose:()=>void;onOpenReference?:(reference:ObjectReference)=>void }) {
+export function PinnedReferencePanel({ reference, onClose, onOpenReference, expectedDocumentSha }: { reference:ObjectReference;onClose:()=>void;onOpenReference?:(reference:ObjectReference)=>void;expectedDocumentSha?:string }) {
   const region=useRef<HTMLElement>(null);
   const selection=useRef(0),sourceLock=useRef(false);
   const [document,setDocument]=useState<DocumentDto|null>(null),[knowledge,setKnowledge]=useState<KnowledgeDto|null>(null),[original,setOriginal]=useState<Original|null>(null);
   const [error,setError]=useState<string|null>(null),[retry,setRetry]=useState(0),[loading,setLoading]=useState(true);
   const [sourceBusy,setSourceBusy]=useState(false),[sourceError,setSourceError]=useState<string|null>(null);
-  const identity=JSON.stringify(reference);
+  const identity=JSON.stringify([reference,expectedDocumentSha]);
   useEffect(()=>{region.current?.focus();region.current?.scrollIntoView?.({block:"nearest"});},[identity]);
   useEffect(()=>{
     selection.current++;sourceLock.current=false;setSourceBusy(false);setSourceError(null);
@@ -35,6 +35,7 @@ export function PinnedReferencePanel({ reference, onClose, onOpenReference }: { 
       if (reference.kind==="document") {
         const d=await coreCommand<DocumentDto>("document_version",{document_id:reference.document_id,version:reference.version});
         if(d.document_id!==reference.document_id || d.version!==reference.version) throw new Error("返回对象与固定版本引用不符。");
+        if(expectedDocumentSha&&d.content_sha256!==expectedDocumentSha)throw new Error("固定版本指纹与搜索观察不一致；未替换为其他版本。");
         if(reference.block_id && !d.blocks.some(b=>b.block_id===reference.block_id)) throw new Error("此固定版本没有引用的块；未替换为当前版本。");
         if(alive)setDocument(d);
       } else if(reference.kind==="knowledge") {

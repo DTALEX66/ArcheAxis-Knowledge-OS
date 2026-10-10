@@ -172,6 +172,7 @@ def main():
             ("research-drift", ["scripts/contracts/generate_research_contract.py", "--check"]),
             ("ai-asset-drift", ["scripts/contracts/generate_ai_asset_contract.py", "--check"]),
             ("resource-catalog-drift", ["scripts/contracts/generate_resource_catalog.py", "--check"]),
+            ("ui-working-state-drift", ["scripts/contracts/generate_ui_working_state.py", "--check"]),
             ("media-policy", ["scripts/contracts/check_media_window_policy.py", "--check"]),
             ("workers", ["scripts/ci/check_vnext_workers.py"]),
         ):

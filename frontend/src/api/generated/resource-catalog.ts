@@ -15,7 +15,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
     },
     {
       "path": "docs/current/AAOS-RESOURCE-QUALIFICATION-20261010.json",
-      "sha256": "e6b53b1699dabd6894f1e250a3aad0a5453816e003edc095102b7a3ec680af2b"
+      "sha256": "6b1e74b6812c25b2e5def086cc7eb8c66b44f016b2c534b1711a5eacbdae6ba6"
     },
     {
       "path": "docs/truth/SUPPLY_CHAIN_LEDGER.json",
@@ -193,7 +193,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
   },
   "qualification_metadata": {
     "schema": "archeaxis.resource-qualification-overlay/v1",
-    "observed_at": "2026-10-09T22:02:38.098939+00:00",
+    "observed_at": "2026-10-10T06:02:38.098939+08:00",
     "selected_scope": [
       "archeaxiscoreknowledge",
       "capcoreknowledge",
@@ -254,10 +254,23 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
       "CoreDocument does not introduce an invented 69th donor",
       "Public official HEAD readback is not exact locked-package license byte validation"
     ],
-    "source_readback_updated_at": "2026-10-09T22:12:34.749092+00:00",
+    "source_readback_updated_at": "2026-10-10T06:12:34.749092+08:00",
     "readback_boundary": "Source SHA refreshed after current template validator integration; runtime/model/installed qualification is not promoted.",
     "source_refresh": {
-      "observed_at": "2026-10-10T15:15:54.369562+00:00",
+      "observed_at": "2026-10-10T17:03:43.5402953+00:00",
+      "previous_git_commit": "6c5fcc3affc012109ced6d2e96fca2ddada4153b",
+      "reason": "Refresh generated finite capability-enable and anchor-resolution contract identity; qualification states remain unchanged.",
+      "qualification": "NOT_GRANTED_BY_HASH_REFRESH",
+      "changed_sources": [
+        {
+          "path": "frontend/src/api/generated/core-contract.ts",
+          "previous_sha256": "52556b694bb19af4d18aa9f342bb82cef0329305c592f469e40cb58949a05359",
+          "current_sha256": "7ae3622193a59a9ab2864b85a1837e1b6ef646d34f11b14ff7aa47a8cf70683c"
+        }
+      ]
+    },
+    "previous_source_refresh": {
+      "observed_at": "2026-10-10T23:15:54.369562+08:00",
       "previous_git_commit": "febdcfdd743de3e2e44836b87c87b9d76a4bd7a4",
       "previous_path": "docs/current/AAOS-RESOURCE-QUALIFICATION-20261010.json",
       "reason": "Update stale core-contract reference and formatting-only Rust source bytes; original surface/conflicts/activation and qualification states preserved.",
@@ -1265,7 +1278,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
               },
               {
                 "path": "frontend/src/api/generated/core-contract.ts",
-                "sha256": "52556b694bb19af4d18aa9f342bb82cef0329305c592f469e40cb58949a05359"
+                "sha256": "7ae3622193a59a9ab2864b85a1837e1b6ef646d34f11b14ff7aa47a8cf70683c"
               }
             ]
           },
@@ -1691,7 +1704,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
               },
               {
                 "path": "frontend/src/api/generated/core-contract.ts",
-                "sha256": "52556b694bb19af4d18aa9f342bb82cef0329305c592f469e40cb58949a05359"
+                "sha256": "7ae3622193a59a9ab2864b85a1837e1b6ef646d34f11b14ff7aa47a8cf70683c"
               }
             ]
           },

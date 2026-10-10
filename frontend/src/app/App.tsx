@@ -1,4 +1,6 @@
 import { AaosDialog } from "../design-system/AaosPrimitives";
+import { PinnedReferencePanel } from "../components/PinnedReferencePanel";
+import type { ObjectReference } from "../api/generated/research-contract";
 import { findUiPage } from "../presentation/uiPages";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { SpaceId, SPACES } from "../spaces/spaces";
@@ -58,6 +60,8 @@ export function App() {
   );
   const operation = useRef({ epoch: 0, mounted: true });
   const [commandPaletteOpen, setCommandPaletteOpen] = useState(false);
+  const [searchedObject,setSearchedObject]=useState<ObjectReference|null>(null);
+  const [searchedContentSha,setSearchedContentSha]=useState<string>();
   const draftDirty = useRef(false);
   const draftOwners = useRef(new Set<string>());
   const [unsavedDrafts, setUnsavedDrafts] = useState(false);
@@ -127,6 +131,7 @@ export function App() {
       setWorkspaceEpoch(value => value + 1);
       setUiPageId("01"); setActiveSpace("workspace"); setOpenedDocumentId(undefined); setInitialLearningItemKey(undefined);
       setSelectedCapabilityId(null); setInspectionTarget(null); setObjectTrail([]);
+      setSearchedObject(null);
       setLearningFocus(false); setNavigationOpen(false);
       const hash = "#page=01";
       window.history.replaceState(null, "", `${window.location.pathname}${window.location.search}${hash}`);
@@ -601,6 +606,7 @@ export function App() {
         onOpenCapability={openCapability}
         selectedCapabilityId={selectedCapabilityId}
         onCommandPaletteOpenChange={setCommandPaletteOpen}
+        onOpenObject={(reference,sha)=>{if(!restoringRef.current){setSearchedObject(reference);setSearchedContentSha(sha);}}}
         inspectorOpen={inspectorOpen}
         onToggleInspector={toggleInspector}
       />
@@ -611,6 +617,7 @@ export function App() {
           {!selectedCapabilityId && ["02","03","16","17","19","20"].includes(uiPageId ?? "03") && <ContextNav active={activeSpace} onNavigate={navigate} sections={sections} activeSection={activeSection} onSection={activateSection} />}
         </aside>}
         <main className="app-center" role="main" aria-label="当前空间内容">
+          {searchedObject?<PinnedReferencePanel reference={searchedObject} expectedDocumentSha={searchedContentSha} onClose={()=>setSearchedObject(null)} onOpenReference={reference=>{setSearchedObject(reference);setSearchedContentSha(undefined);}}/>:null}
           <NavTrail levels={trailLevels} onJump={focusRegion} />
           {sectionNotice ? <p className="nav-trail-notice" role="status">{sectionNotice}</p> : null}
           <div className="ui-page-heading" role="group" aria-label="当前页面"><div><h1>{findUiPage(uiPageId ?? "")?.label ?? currentSpaceLabel}</h1><p>个人空间 · 本地知识与 Human–AI 双向学习</p></div><small>UI / {uiPageId ?? "兼容入口"}</small></div>

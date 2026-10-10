@@ -74,10 +74,26 @@ def check_routes(root: Path = ROOT) -> list[str]:
         pointer = json.loads(public_path(root, data["active_pointer"]).read_text(encoding="utf-8"))
         if pointer.get("authority_routes") != REGISTRY:
             problems.append("active pointer does not route through this registry")
-        if pointer.get("execution_control", {}).get("state") != "PAUSED_BY_OWNER":
+        control = pointer.get("execution_control", {})
+        if control.get("state") == "PAUSED_BY_OWNER":
+            if control.get("automatic_continuation") is not False:
+                problems.append("product automatic continuation is not disabled while paused")
+        elif control.get("state") == "RUNNING_BY_OWNER":
+            revision = control.get("owner_resume_record")
+            if not isinstance(revision, str) or not revision.startswith("docs/current/"):
+                problems.append("product resume lacks a new Owner-selected routing revision")
+            else:
+                decision = json.loads(public_path(root, revision).read_text(encoding="utf-8"))
+                if (
+                    decision.get("schema") != "archeaxis.owner-execution-resume/v1"
+                    or decision.get("resumes_product_execution") is not True
+                    or not decision.get("owner_instruction")
+                    or decision.get("active_taskpack") != pointer.get("active_taskpack")
+                    or decision.get("active_progress") != pointer.get("active_progress")
+                ):
+                    problems.append("product resume revision does not match the selected scope")
+        else:
             problems.append("product pause changed without a new Owner-selected routing revision")
-        if pointer.get("execution_control", {}).get("automatic_continuation") is not False:
-            problems.append("product automatic continuation is not disabled")
         for frozen in pointer.get("frozen_source_inputs", []):
             if frozen.get("state") != "FROZEN_BY_OWNER" or frozen.get("execution") != "NOT_EXECUTED":
                 problems.append("frozen input promoted to execution")

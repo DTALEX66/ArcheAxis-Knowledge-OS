@@ -1,0 +1,68 @@
+{
+  "schema": "archeaxis.closed-loop-engineering-progress/v1",
+  "date": "2026-10-11",
+  "status": "PARTIAL",
+  "active_progress": "docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md",
+  "owner_scope": "docs/current/AAOS-CLOSED-LOOP-OWNER-RESUME-20261011.json",
+  "committed_baseline": "6c5fcc3affc012109ced6d2e96fca2ddada4153b",
+  "implementation": [
+    {
+      "capability": "complex common-format content, independent reparse and PDF native line locator",
+      "state": "IMPLEMENTED_LOCAL_ACTUAL_CORE_NOT_EXECUTED",
+      "paths": ["crates/archeaxis-api/src/pdf_locator.rs", "scripts/probes/aaos01_common_formats_runtime_loop.py", "tests/test_common_formats_runtime_probe.py"],
+      "limits": "Chinese composite DOCX/XLSX/PPTX/text-PDF fixtures exercise real local parsers. Candidate Core probe checks original bytes, output hashes, structure/loss, source-bound locations, new-job reparse and restart. Native PDF page/line is bound to actual pdf.extract text/structure metadata, latest attempt and Unicode checksum; no OCR or bounding-box claim."
+    },
+    {
+      "capability": "global Core object search and pinned read-only opening",
+      "state": "IMPLEMENTED_LOCAL",
+      "paths": ["frontend/src/components/GlobalObjectSearch.tsx", "frontend/src/components/CommandPalette.tsx", "frontend/src/components/PinnedReferencePanel.tsx"],
+      "limits": "Current-page read-only opening retains document version/SHA and knowledge/source identity. Native continuous-journey execution remains unverified."
+    },
+    {
+      "capability": "Core-owned independent drafts and pending-original working-state journal",
+      "state": "IMPLEMENTED_LOCAL_API_NOT_RUNTIME_QUALIFIED",
+      "paths": ["crates/archeaxis-domain/src/ui_state.rs", "crates/archeaxis-api/src/ui_state.rs", "packages/contracts/v2/ui-working-state.schema.json"],
+      "limits": "Existing workspace_meta through Core writer, human-only, bounded workspace/restore-epoch/revision CAS. Explicit restore candidate recovery and exact saved-draft conditional clear. Formal UI persistence connection is not yet implemented; native compile and runtime tests remain unverified."
+    },
+    {
+      "capability": "original document creation uncertain-ACK recovery",
+      "state": "IMPLEMENTED_LOCAL",
+      "paths": ["frontend/src/presentation/originalNoteWrite.ts", "frontend/src/spaces/CanonicalLibrarySpace.tsx"],
+      "limits": "Frozen request and independent version-1 readback; pending request still resides in component memory. Cross-restart journal integration remains incomplete."
+    },
+    {
+      "capability": "anchor locator independent resolution and formal-host navigation fence",
+      "state": "IMPLEMENTED_LOCAL",
+      "paths": ["crates/archeaxis-api/src/anchor_resolution.rs", "src-tauri/src/core_bridge.rs", "frontend/src/spaces/CanonicalLibrarySpace.tsx"],
+      "limits": "Navigate only after CURRENT, exact source revision and stored-position readback. No professional validity or installed-runtime claim. Native new API execution remains unverified."
+    },
+    {
+      "capability": "finite capability enable/disable",
+      "state": "IMPLEMENTED_LOCAL",
+      "paths": ["src-tauri/src/core_bridge.rs", "frontend/src/spaces/CanonicalResourcesSpace.tsx"],
+      "limits": "Confirmed acknowledgement plus independent capability readback, single flight and uncertain-write recovery; current native lifecycle execution remains unverified."
+    },
+    {
+      "capability": "actual Core create-ACK replay probe",
+      "state": "IMPLEMENTED_LOCAL_RUNTIME_NOT_EXECUTED",
+      "paths": ["scripts/probes/aaos01_content_policy_runtime_loop.py", "tests/test_content_policy_ack_replay.py"],
+      "limits": "Client intentionally discards an unread ACK and replays frozen bytes; synthetic authored text. Probe must run against the current candidate Core to qualify restart and independent restore."
+    }
+  ],
+  "local_checks": [
+    {"scope": "Common-format real local parsers, ACK helpers and Tauri build contract", "status": "PASS", "tests": 15, "runner_mode": "canonical runner --noconftest, explicitly scoped parser/helper/static checks", "receipt": ".project-local/runs/be268a2d33/a0f396b6fa3e/artifacts/execution.json"},
+    {"scope": "Current integrated frontend TypeScript", "status": "PASS", "receipt": ".project-local/runs/be268a2d33/673a377aa1e2/artifacts/execution.json"},
+    {"scope": "Integrated Library, Resources, global search, command palette and pinned reference UI", "status": "PASS", "tests": 73, "evidence_level": "SIMULATED", "receipt": ".project-local/runs/be268a2d33/303cc6d1cf5a/artifacts/execution.json"},
+    {"scope": "Expanded HTTP route/count consistency, verification map and resource projection", "status": "PASS", "tests": 38, "runner_mode": "canonical runner --noconftest, isolated structure scope", "receipt": ".project-local/runs/be268a2d33/6f2167c322b1/artifacts/execution.json"},
+    {"scope": "Library and Resources UI behavior", "status": "PASS", "tests": 55, "evidence_level": "SIMULATED", "receipt": ".project-local/runs/be268a2d33/17959deb52a4/artifacts/execution.json"},
+    {"scope": "HTTP route/count consistency and ACK probe helpers", "status": "PASS", "tests": 19, "runner_mode": "canonical runner --noconftest, isolated pure-helper scope", "receipt": ".project-local/runs/be268a2d33/f08c19d78174/artifacts/execution.json"},
+    {"scope": "Contract verification map, project references and authority routing", "status": "PASS", "tests": 30, "runner_mode": "canonical runner --noconftest, isolated structure scope", "receipt": ".project-local/runs/be268a2d33/08a6543ad875/artifacts/execution.json"},
+    {"scope": "Authority and resource projection source alignment", "status": "PASS", "evidence_level": "SOURCE_STRUCTURE_ONLY"},
+    {"scope": "Root frontend production build", "status": "BLOCKED", "receipt": ".project-local/runs/be268a2d33/dbab5952fc57/artifacts/frontend-build.json", "reason": "Typecheck completed, then Vite asset output mkdir failed with EPERM. No escalation or ACL change attempted."}
+  ],
+  "whole_goal": "NOT_QUALIFIED",
+  "remaining": ["Core-owned cross-restart drafts and session formal-UI connection and qualification", "Conflict and permission recovery", "Global object search actual native qualification", "Current common-format actual content and navigation qualification", "Same-object complete journey in current grouped UI", "Current-source exact-SHA CI and isolated installed runtime", "Owner interaction acceptance"],
+  "baseline_ci": {"sha": "6c5fcc3affc012109ced6d2e96fca2ddada4153b", "run_id": "38069114525", "status": "FAIL", "installer_lifecycle": "PASS", "desktop_fast": "FAIL", "reason": "Owned native TCP fixture accepted a Windows socket with inherited nonblocking mode; socket.read returned WouldBlock, leading to CORE_TRANSPORT_FAILED. Local fix explicitly sets the fixture accepted socket to blocking before its read timeout; rerun pending."},
+  "local_native_limit": "Declared rustfmt execution on affected paths returned access denied (run be268a2d33/631c867f7d7f). No elevation, ACL change or alternative denied-path access attempted. Cloud formatting/compilation remains required.",
+  "qualification_boundary": "Scoped tests, source records, previous-SHA CI and compatibility journeys do not qualify the complete current goal. No release, Green replacement, user data overwrite or frozen task activation."
+}

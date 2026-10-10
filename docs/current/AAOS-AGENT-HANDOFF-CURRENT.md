@@ -4,7 +4,7 @@
 
 ## 当前任务与停止边界
 
-[活动指针](AAOS-ACTIVE-EXECUTION.json) 是任务路由；来源为 `docs/taskpacks/aaos-ui-first-20261009/`，实际进度读 [UI执行记录](AAOS-UI-FIRST-EXECUTION-20261009.md) 和其分域回执。产品执行 **PAUSED_BY_OWNER**，整体 **PARTIAL**；不把 selected_tasks 或历史“下一队列”视为恢复指令。当前仅执行 Owner 明确要求的资料归档及权威/引用治理维护。V01暂停；FT01–04冻结；安装、发布和Green替换未授权。
+[活动指针](AAOS-ACTIVE-EXECUTION.json) 是任务路由；来源仍为 `docs/taskpacks/aaos-ui-first-20261009/`，实际进度读 [UI执行记录](AAOS-UI-FIRST-EXECUTION-20261009.md)。Owner 2026-10-11 已明确恢复“完整框架 / 多格式（常见常用格式）/ 最短闭环”，当前 **RUNNING_BY_OWNER / PARTIAL**；[恢复范围](AAOS-CLOSED-LOOP-OWNER-RESUME-20261011.json) 只承接这次用户决定，不替换原任务包或赋予 PASS。V01暂停、FT01–04冻结；发布、Green替换与真实用户数据覆盖未授权。
 
 六项核心能力对话增量已 [归档冻结](../history/conversation-summary-20261010/INDEX.md)：**FROZEN_BY_OWNER / NOT_EXECUTED**，不加入当前队列。其旧AAOS-01活动队列措辞、旧源码基线、48项测试提案和包内执行提示词均不是当前授权。
 

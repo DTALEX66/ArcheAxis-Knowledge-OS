@@ -4,7 +4,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { readFileSync } from "node:fs";
 import { createHash } from "node:crypto";
 import { basename, resolve } from "node:path";
-import { CanonicalResourcesSpace, readResourceHandshake } from "../spaces/CanonicalResourcesSpace";
+import { CanonicalResourcesSpace, readCapabilityDecision, readResourceHandshake } from "../spaces/CanonicalResourcesSpace";
 import { RESOURCE_CATALOG } from "../api/generated/resource-catalog";
 
 const bridge = vi.hoisted(() => ({ call: vi.fn() }));
@@ -95,6 +95,70 @@ describe("resource source catalog", () => {
     await act(async () => resolveOld({ capabilities: [{ capability: "old", enabled: true }] }));
     expect(screen.getByRole("alert")).toHaveTextContent("UNKNOWN");
     expect(screen.queryByText(/old · 权限/)).not.toBeInTheDocument();
+  });
+
+  it("changes one explicit setting and confirms a fresh readback rather than optimistic success", async () => {
+    const basis = "the workspace's capability record; an absent record means enabled";
+    let enabled = true;
+    bridge.call.mockImplementation(async (operation, payload) => {
+      if (operation === "capability_set_enabled") {
+        enabled = payload.enabled;
+        return { capability: { capability: "text.extract", enabled, enabled_basis: basis } };
+      }
+      return { capabilities: [{ capability: "text.extract", enabled, enabled_basis: basis }] };
+    });
+    render(<CanonicalResourcesSpace/>);
+    await userEvent.setup().click(await screen.findByRole("button", { name: "禁用 text.extract" }));
+    await screen.findByText(/text.extract 已禁用，工作区设置已读回/);
+    expect(bridge.call).toHaveBeenCalledWith("capability_set_enabled", { capability: "text.extract", enabled: false });
+    await userEvent.setup().click(screen.getByRole("button", { name: "启用 text.extract" }));
+    await screen.findByText(/text.extract 已启用，工作区设置已读回/);
+    expect(bridge.call.mock.calls.filter(([op]) => op === "capabilities_list")).toHaveLength(3);
+  });
+
+  it("does not repeat an uncertain write; reads the persisted decision even when the ACK is lost", async () => {
+    const basis = "the workspace's capability record; an absent record means enabled";
+    let enabled = true;
+    bridge.call.mockImplementation(async operation => {
+      if (operation === "capability_set_enabled") { enabled = false; throw new Error("reply lost"); }
+      return { capabilities: [{ capability: "text.extract", enabled, enabled_basis: basis }] };
+    });
+    render(<CanonicalResourcesSpace/>);
+    await userEvent.setup().click(await screen.findByRole("button", { name: "禁用 text.extract" }));
+    expect(await screen.findByRole("alert")).toHaveTextContent("变更未获确认");
+    expect(await screen.findByRole("button", { name: "启用 text.extract" })).toBeEnabled();
+    expect(bridge.call.mock.calls.filter(([op]) => op === "capability_set_enabled")).toHaveLength(1);
+    expect(screen.queryByText(/已禁用，工作区设置已读回/)).not.toBeInTheDocument();
+  });
+
+  it("rejects a mismatched ACK and a readback that contradicts the requested setting", async () => {
+    const basis = "the workspace's capability record; an absent record means enabled";
+    bridge.call.mockImplementation(async operation => operation === "capability_set_enabled"
+      ? { capability: { capability: "text.extract", enabled: false, enabled_basis: basis } }
+      : { capabilities: [{ capability: "text.extract", enabled: true, enabled_basis: basis }] });
+    render(<CanonicalResourcesSpace/>);
+    await userEvent.setup().click(await screen.findByRole("button", { name: "禁用 text.extract" }));
+    expect(await screen.findByRole("alert")).toHaveTextContent("变更未获确认");
+    expect(screen.queryByText(/已禁用，工作区设置已读回/)).not.toBeInTheDocument();
+    expect(() => readCapabilityDecision({ capability: { capability: "another", enabled: false, enabled_basis: basis } }, "text.extract", false)).toThrow();
+    expect(() => readCapabilityDecision({ capability: { capability: "text.extract", enabled: "false", enabled_basis: basis } }, "text.extract", false)).toThrow();
+  });
+
+  it("locks refresh and duplicate decisions while one setting write is pending", async () => {
+    const basis = "the workspace's capability record; an absent record means enabled";
+    let finish!: (value: unknown) => void;
+    let enabled = true;
+    bridge.call.mockImplementation(operation => operation === "capability_set_enabled"
+      ? new Promise(resolve => { finish = resolve; })
+      : Promise.resolve({ capabilities: [{ capability: "text.extract", enabled, enabled_basis: basis }] }));
+    render(<CanonicalResourcesSpace/>);
+    await userEvent.setup().click(await screen.findByRole("button", { name: "禁用 text.extract" }));
+    expect(screen.getByRole("button", { name: "重新读取当前宿主能力" })).toBeDisabled();
+    expect(screen.queryByRole("button", { name: "禁用 text.extract" })).not.toBeInTheDocument();
+    enabled = false;
+    await act(async () => finish({ capability: { capability: "text.extract", enabled, enabled_basis: basis } }));
+    await screen.findByText(/已禁用，工作区设置已读回/);
+    expect(bridge.call.mock.calls.filter(([op]) => op === "capability_set_enabled")).toHaveLength(1);
   });
 
   it("blocks tab unmount while templates are dirty and publishes only its own owner", async () => {

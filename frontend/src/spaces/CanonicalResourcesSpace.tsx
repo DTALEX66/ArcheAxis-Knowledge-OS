@@ -27,6 +27,14 @@ export function readResourceHandshake(value: unknown): Handshake[] {
   });
 }
 
+export function readCapabilityDecision(value: unknown, capability: string, enabled: boolean): Handshake {
+  if (!value || typeof value !== "object" || Array.isArray(value)) throw new Error("invalid capability decision");
+  const row = (value as { capability?: unknown }).capability;
+  const [decision] = readResourceHandshake({ capabilities: [row] });
+  if (decision.capability !== capability || decision.enabled !== enabled || decision.enabled_basis !== "the workspace's capability record; an absent record means enabled") throw new Error("unconfirmed capability decision");
+  return decision;
+}
+
 function Values({ value }: { value: ResourceJson }) {
   if (value === null) return <span>未登记</span>;
   if (Array.isArray(value)) return value.length ? <ul>{value.map((item, index) => <li key={index}><Values value={item}/></li>)}</ul> : <span>未列出</span>;
@@ -53,6 +61,9 @@ export function CanonicalResourcesSpace({ onOpenDocument, onOpenCapability, onDi
   const [selected, setSelected] = useState<ResourceEntry | null>(null);
   const [read, setRead] = useState<Read>({ state: "not_read" });
   const [message, setMessage] = useState("");
+  const [changing, setChanging] = useState<string | null>(null);
+  const [decisionNotice, setDecisionNotice] = useState<{ failed: boolean; text: string } | null>(null);
+  const writePending = useRef(false);
   const generation = useRef(0), mounted = useRef(true), templateDirty = useRef(false);
   const owner = useId();
   const callbacks = useRef({ onDirtyChange, onOpenDocument });
@@ -68,9 +79,37 @@ export function CanonicalResourcesSpace({ onOpenDocument, onOpenCapability, onDi
     setRead({ state: "reading" });
     try {
       const rows = readResourceHandshake(await coreCommand("capabilities_list"));
-      if (mounted.current && epoch === generation.current) setRead({ state: "read", rows });
+      if (mounted.current && epoch === generation.current) {
+        setRead({ state: "read", rows });
+        return rows;
+      }
     } catch (reason) {
       if (mounted.current && epoch === generation.current) setRead({ state: "failed", reason: coreFailureReason(reason) ?? "UNKNOWN" });
+    }
+  }
+  async function changeEnabled(row: Handshake) {
+    if (writePending.current || typeof row.enabled !== "boolean" || templateDirty.current) return;
+    writePending.current = true;
+    const enabled = !row.enabled;
+    const epoch = ++generation.current;
+    setChanging(row.capability);
+    setDecisionNotice(null);
+    setRead({ state: "reading" });
+    try {
+      readCapabilityDecision(await coreCommand("capability_set_enabled", { capability: row.capability, enabled }), row.capability, enabled);
+      if (!mounted.current || epoch !== generation.current) return;
+      const rows = await refresh();
+      if (!mounted.current) return;
+      const actual = rows?.find(item => item.capability === row.capability);
+      if (actual?.enabled !== enabled || actual.enabled_basis !== "the workspace's capability record; an absent record means enabled") throw new Error("decision readback unavailable");
+      setDecisionNotice({ failed: false, text: `${row.capability} 已${enabled ? "启用" : "禁用"}，工作区设置已读回。引擎运行与产物质量仍须独立验证。` });
+    } catch {
+      if (!mounted.current) return;
+      setDecisionNotice({ failed: true, text: `${row.capability} 的变更未获确认；可能已写入。请核对当前读回状态后再操作，不自动重发。` });
+      await refresh();
+    } finally {
+      writePending.current = false;
+      if (mounted.current) setChanging(null);
     }
   }
   useEffect(() => {
@@ -127,10 +166,13 @@ export function CanonicalResourcesSpace({ onOpenDocument, onOpenCapability, onDi
       </> : <p>选择一个真实登记来源，查看原始分类、冲突和激活条件。</p>}</aside>
     </div>
     <section aria-label="当前宿主能力读回"><h3>当前宿主能力读回</h3>
-      <button onClick={() => void refresh()}>重新读取当前宿主能力</button>
+      <button disabled={changing !== null} onClick={() => void refresh()}>重新读取当前宿主能力</button>
+      <p>逐项改变当前工作区的执行开关，不安装供体，也不修改模型或默认 provider。禁用阻止后续执行申请，不取消已经运行的任务。</p>
+      {changing ? <p role="status">正在更新 {changing}，等待核心确认与读回…</p> : null}
+      {decisionNotice ? <p role={decisionNotice.failed ? "alert" : "status"}>{decisionNotice.text}</p> : null}
       {read.state === "reading" ? <p role="status">正在读取宿主能力…</p> : read.state === "failed" ? <p role="alert">宿主读取失败：{read.reason}。资格 UNKNOWN，资源目录仍完整保留。</p> : read.state === "not_read" ? <p>本轮未读取（NOT_RUN）。</p> : <>
         <p>已读回 {read.rows.length} 条宿主能力；不代表 {RESOURCE_CATALOG.entries.length} 项供体均集成。</p>
-        {read.rows.length ? <ul>{read.rows.map(row => <li key={row.capability}>{row.capability} · 权限 {row.enabled === true ? "允许" : row.enabled === false ? "已禁用" : "UNKNOWN"} · 健康 {row.health ?? "UNKNOWN"}</li>)}</ul> : <p>宿主返回空能力列表；不填造运行项。</p>}
+        {read.rows.length ? <ul>{read.rows.map(row => <li key={row.capability}>{row.capability} · 权限 {row.enabled === true ? "允许" : row.enabled === false ? "已禁用" : "UNKNOWN"} · 健康 {row.health ?? "UNKNOWN"} {typeof row.enabled === "boolean" && row.enabled_basis === "the workspace's capability record; an absent record means enabled" ? <button disabled={changing !== null} aria-label={`${row.enabled === false ? "启用" : "禁用"} ${row.capability}`} onClick={() => void changeEnabled(row)}>{row.enabled === false ? "启用" : "禁用"}</button> : <span> · 执行设置未确认，无法变更</span>}</li>)}</ul> : <p>宿主返回空能力列表；不填造运行项。</p>}
       </>}
       <RawReceiptButton label="当前宿主能力原始读回" payload={read}/>
     </section>

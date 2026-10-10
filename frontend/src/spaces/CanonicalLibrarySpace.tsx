@@ -18,6 +18,7 @@ import "../components/content.css";
 import type { InspectionTarget } from "../components/Inspector";
 import type { ObjectTrailLevel } from "../components/NavTrail";
 import { coreFailureReason } from "../presentation/labels";
+import { confirmOriginalNote, prepareOriginalNote, OriginalNoteRefused, type OriginalNoteAttempt } from "../presentation/originalNoteWrite";
 
 // PDF.js is a large renderer and is needed only when the selected original is a PDF.
 const PdfReader = lazy(() => import("../components/PdfReader").then(module => ({ default: module.PdfReader })));
@@ -51,6 +52,8 @@ export function CanonicalLibrarySpace({purpose,onOpenDocument,onOpenImport,onKno
   const documentDraftsRef = useRef(documentDrafts);
   documentDraftsRef.current = documentDrafts;
   const dirtyDocumentIds = useRef(new Set<string>());
+  const noteAttempt=useRef<OriginalNoteAttempt|null>(null);
+  const [noteUncertain,setNoteUncertain]=useState(false);
   const [anchors, setAnchors] = useState<AnchorDto[]>([]);
   const [page, setPage] = useState(1);
   const [focusRequest, setFocusRequest] = useState(0);
@@ -81,7 +84,7 @@ export function CanonicalLibrarySpace({purpose,onOpenDocument,onOpenImport,onKno
   const anchorNavigation = useRef<HTMLElement>(null);
   const versionNavigation = useRef<HTMLDivElement>(null);
   function publishDirtyState() {
-    dirty.current = dirtyDocumentIds.current.size > 0;
+    dirty.current = dirtyDocumentIds.current.size > 0 || noteAttempt.current !== null;
     onDirtyChange?.(dirty.current);
     window.dispatchEvent(new CustomEvent("archeaxis-draft-dirty", { detail: dirty.current }));
   }
@@ -251,15 +254,17 @@ export function CanonicalLibrarySpace({purpose,onOpenDocument,onOpenImport,onKno
       }
     } catch { if (epoch === generation.current && editingEpoch === editGeneration.current) { setMessage("文档读取未完成；当前内容仍保留。"); setFailure(true); } }
   }
-  async function createOriginal() {
+  async function createOriginal(readOnly=false) {
     const epoch=++generation.current;
     const editingEpoch=editGeneration.current;
     try {
-      const created = await coreCommand<DocumentDto>("document_create", { body: {
-        title: "原创笔记", editor_json: { type: "doc", content: [{ type: "paragraph" }] },
-      } });
-      setDocuments(previous=>[...previous,created]);
-      setOpenedDocuments(previous => [...previous, created]);
+      if(!noteAttempt.current)noteAttempt.current=await prepareOriginalNote();
+      setNoteUncertain(true);publishDirtyState();
+      const created = await confirmOriginalNote(noteAttempt.current,readOnly);
+      noteAttempt.current=null;setNoteUncertain(false);publishDirtyState();
+      if(!libraryMounted.current)return;
+      setDocuments(previous=>[created,...previous.filter(row=>row.document_id!==created.document_id)]);
+      setOpenedDocuments(previous => [created,...previous.filter(row=>row.document_id!==created.document_id)]);
       if(epoch!==generation.current||editingEpoch!==editGeneration.current){setMessage("原创笔记已建立，当前编辑内容仍保留；可从已保存文档打开新笔记。");return;}
       revisionBasis.current = null;
       setDocument(created);
@@ -267,7 +272,17 @@ export function CanonicalLibrarySpace({purpose,onOpenDocument,onOpenImport,onKno
       setEditorEpoch(value => value + 1); setMessage("原创笔记已建立。"); setFailure(false);
       publishDirtyState();
       if(purpose === "library") onOpenDocument?.(created.document_id);
-    } catch { setMessage("原创笔记建立未确认；请重试。"); setFailure(true); }
+    } catch(error) {
+      if(!libraryMounted.current)return;
+      if(error instanceof OriginalNoteRefused) {
+        noteAttempt.current=null;setNoteUncertain(false);publishDirtyState();
+        setMessage("原创笔记创建被明确拒绝；现有草稿保留，修正条件后可重新创建。");
+      } else {
+        setNoteUncertain(noteAttempt.current!==null);
+        setMessage("原创笔记建立未确认；冻结请求保留，请重试同一请求或核对结果，不会另建笔记。");
+      }
+      setFailure(true);
+    }
   }
   // A second click during an in-flight create/restore/export would persist a duplicate
   // document, version, or export, so only one such write may be outstanding.
@@ -371,13 +386,26 @@ export function CanonicalLibrarySpace({purpose,onOpenDocument,onOpenImport,onKno
     setAnchors((previous) => [...previous, anchor]);
     return { type: "evidenceReference", attrs: { anchor_id: anchor.anchor_id, source_id: source.source_id, source_revision: source.source_revision, position: anchor.position, page: isPdf ? page : null, excerpt: isPdf ? `第 ${page} 页` : source.original_name } };
   }
-  function jump(attributes: Record<string, unknown>) {
+  async function jump(attributes: Record<string, unknown>) {
     if (!source || attributes.source_id !== source.source_id || attributes.source_revision !== source.source_revision) { setMessage("此引用绑定另一来源版本，请打开对应原件。不会自动迁移定位。"); return; }
-    if (Number.isInteger(attributes.page) && (attributes.page as number) > 0) { setPage(attributes.page as number); setFocusRequest((value) => value + 1); }
+    if (typeof attributes.anchor_id !== "string" || typeof attributes.position !== "string") { setMessage("引用缺少可核验身份，保留记录并待重新定位。"); return; }
+    const epoch = generation.current;
+    let location: Record<string, unknown>;
+    try {
+      const proof = await coreCommand<import("../api/generated/core-contract").AnchorResolutionDto>("anchor_resolve", {source_id:source.source_id,anchor_id:attributes.anchor_id});
+      if (epoch !== generation.current) return;
+      if (proof.source_id !== source.source_id || proof.anchor_id !== attributes.anchor_id || proof.scope !== "locator_provenance_only"
+        || proof.status !== "CURRENT" || proof.source_revision !== source.source_revision || proof.current_source_revision !== source.source_revision || proof.position !== attributes.position) {
+        setMessage("引用定位未通过当前核验，保留来源记录并待重新定位。不会自动迁移定位。"); return;
+      }
+      const stored:unknown = JSON.parse(proof.position);
+      if (!stored || typeof stored !== "object" || Array.isArray(stored)) throw new Error("invalid locator");
+      location = stored as Record<string,unknown>;
+    } catch { if (epoch === generation.current) setMessage("引用核验未完成，请保留来源记录后重试。"); return; }
+    const pdfPage = location.type === "pdf_line" && Array.isArray(location.path) && typeof location.path[0] === "string" && /^page-[1-9][0-9]*$/.test(location.path[0]) ? Number(location.path[0].slice(5)) : location.page;
+    if (Number.isSafeInteger(pdfPage) && (pdfPage as number) > 0) { setPage(pdfPage as number); setFocusRequest((value) => value + 1); }
     else {
       textRegion.current?.focus();
-      let location = attributes;
-      if (typeof attributes.position === "string") {try {location=JSON.parse(attributes.position);} catch {return;}}
       if(location.type==="epub"){setEpubSeek({sourceId:source.source_id,position:location as EpubPosition});return;}
       if(location.type==="time"&&typeof location.start_ms==="number"&&Number.isFinite(location.start_ms)&&location.start_ms>=0){setMediaSeek(previous=>({sourceId:source.source_id,milliseconds:Number(location.start_ms),sequence:(previous?.sequence??0)+1}));return;}
       if (bytes && location.type === "text" && Number.isInteger(location.start) && Number.isInteger(location.end)) {
@@ -461,7 +489,7 @@ export function CanonicalLibrarySpace({purpose,onOpenDocument,onOpenImport,onKno
       <button type="button" aria-pressed={contentFilter==="original"} onClick={()=>setContentFilter("original")}>原创笔记</button>
       <button type="button" aria-pressed={contentFilter==="linked"} onClick={()=>setContentFilter("linked")}>关联原件</button>
     </div>
-    <div className="ui-library-toolbar"><input type="search" aria-label="筛选已加载文档标题与来源" placeholder="搜索标题、来源…" value={documentSearch} onChange={event=>setDocumentSearch(event.target.value)}/><button type="button" onClick={onOpenImport} disabled={!onOpenImport}>导入原件</button><button className="ui-primary-action" type="button" disabled={busy} onClick={()=>void singleWrite(createOriginal)}>新建笔记</button></div>
+    <div className="ui-library-toolbar"><input type="search" aria-label="筛选已加载文档标题与来源" placeholder="搜索标题、来源…" value={documentSearch} onChange={event=>setDocumentSearch(event.target.value)}/><button type="button" onClick={onOpenImport} disabled={!onOpenImport}>导入原件</button><button className="ui-primary-action" type="button" disabled={busy||noteUncertain} onClick={()=>void singleWrite(createOriginal)}>新建笔记</button></div>
     <div className="ui-content-main-side"><section className="ui-content-panel"><header><h3>已保存内容</h3><p>标题与来源筛选覆盖已加载文档；可继续加载同一快照。</p></header>{documentList}</section>
       <aside className="ui-content-panel" aria-label="内容与视图"><h3>内容与视图</h3><p>笔记与关联原件共用文档版本。打开实际文档后阅读与编辑。</p><p>普通笔记无需依据即可保存；依据分析与用户采用分别记录。</p><h4>集合与视图</h4><p>集合、标签和其他视图尚未接通。</p><button type="button" onClick={()=>onOpenCapability?.("CAP-0020")} disabled={!onOpenCapability}>查看集合能力详情</button></aside>
     </div>{feedback}
@@ -509,7 +537,7 @@ export function CanonicalLibrarySpace({purpose,onOpenDocument,onOpenImport,onKno
             <details><summary>更多信息：来源链与内容指纹</summary><dl className="receipt-grid"><div><dt>来源</dt><dd>{source.original_name}</dd></div><div><dt>来源 ID</dt><dd>{source.source_id}</dd></div><div><dt>来源版本（原件指纹）</dt><dd>{source.source_revision}</dd></div><div><dt>原件 SHA-256</dt><dd>{original.sha256}</dd></div><div><dt>读取核验</dt><dd>原件字节与 Core 内容指纹已匹配</dd></div></dl></details>
             {anchors.length===0?<p className="muted">此来源尚无引用记录。</p>:null}
             {anchors.map((anchor) => { let location: Record<string, unknown> = {}; try { location = JSON.parse(anchor.position); } catch { /* Preserve unresolved position, never invent a locator. */ }
-              return <div key={anchor.anchor_id}><button type="button" disabled={anchor.location_status === "revision_mismatch"} onClick={() => jump({ ...location, source_id: anchor.source_id, source_revision: anchor.source_revision })}>{typeof location.page === "number" ? `第 ${location.page} 页` : "来源引用"}{anchor.location_status === "revision_mismatch" ? " · 需重新定位" : anchor.location_status !== "located" ? " · 定位未核实" : ""}</button><details><summary>引用来源记录</summary><dl className="receipt-grid"><div><dt>引用 ID</dt><dd>{anchor.anchor_id}</dd></div><div><dt>来源版本（原件指纹）</dt><dd>{anchor.source_revision}</dd></div><div><dt>记录位置</dt><dd>{anchor.position}</dd></div><div><dt>定位状态</dt><dd>{anchor.location_status === "located" ? "已核实" : anchor.location_status === "revision_mismatch" ? "版本不匹配，需重新定位" : "定位未核实"}</dd></div></dl></details></div>;
+              return <div key={anchor.anchor_id}><button type="button" disabled={anchor.location_status === "revision_mismatch"} onClick={() => void jump({ anchor_id:anchor.anchor_id, position:anchor.position, source_id: anchor.source_id, source_revision: anchor.source_revision })}>{typeof location.page === "number" ? `第 ${location.page} 页` : "来源引用"}{anchor.location_status === "revision_mismatch" ? " · 需重新定位" : anchor.location_status !== "located" ? " · 定位未核实" : ""}</button><details><summary>引用来源记录</summary><dl className="receipt-grid"><div><dt>引用 ID</dt><dd>{anchor.anchor_id}</dd></div><div><dt>来源版本（原件指纹）</dt><dd>{anchor.source_revision}</dd></div><div><dt>记录位置</dt><dd>{anchor.position}</dd></div><div><dt>定位状态</dt><dd>{anchor.location_status === "located" ? "已核实" : anchor.location_status === "revision_mismatch" ? "版本不匹配，需重新定位" : "定位未核实"}</dd></div></dl></details></div>;
             })}
           </aside>
         </div>
@@ -524,7 +552,8 @@ export function CanonicalLibrarySpace({purpose,onOpenDocument,onOpenImport,onKno
         <button type="button" aria-label={`关闭文档标签 ${item.title}`} disabled={busy} onClick={() => closeDocumentTab(item.document_id)}>×</button>
       </div>)}
     </nav> : null}
-    <button type="button" disabled={busy} onClick={() => void singleWrite(createOriginal)}>新建原创笔记</button>
+    <button type="button" disabled={busy||noteUncertain} onClick={() => void singleWrite(createOriginal)}>新建原创笔记</button>
+    {noteUncertain?<div aria-label="待确认的笔记创建"><p>笔记创建结果尚未确认，原请求保留。</p><button disabled={busy} onClick={()=>void singleWrite(createOriginal)}>重试同一笔记请求</button><button disabled={busy} onClick={()=>void singleWrite(()=>createOriginal(true))}>核对笔记创建结果</button></div>:null}
     <nav ref={documentNavigation} tabIndex={-1} data-section="documents" aria-label="已保存文档">{documents.map(item => <button type="button" key={item.document_id} onClick={() => void openDocument(item.document_id)}>{item.title} · 文档</button>)}</nav>
     {nextDocumentCursor ? <button type="button" disabled={loadingDocuments} onClick={() => void loadMoreDocuments()}>{loadingDocuments ? "正在加载文档…" : "加载更多文档"}</button> : null}
     {!source && navigation?.section === "anchors" ? <section ref={anchorNavigation} tabIndex={-1} data-section="anchors" aria-label="来源版本证据"><p>请先选择实际来源原件；原创笔记可以没有来源锚点。</p></section> : null}

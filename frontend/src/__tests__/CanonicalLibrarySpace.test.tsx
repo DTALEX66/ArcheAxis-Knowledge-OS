@@ -5,18 +5,45 @@ import userEvent from "@testing-library/user-event";
 import { createHash, webcrypto } from "node:crypto";
 import { assertCoreDto } from "../api/generated/core-contract";
 import { CanonicalLibrarySpace } from "../spaces/CanonicalLibrarySpace";
+import { ApiError } from "../api/client";
 
 const bridge = vi.hoisted(() => ({ call: vi.fn() }));
 vi.mock("../api/core", () => ({ coreCommand: bridge.call }));
 const hash = createHash("sha256").update("原文样板").digest("hex");
 const source = { source_id: "src_test", source_revision: hash, sha256: hash, original_name: "样板.txt", imported_at: "2026-10-05" };
+const createdNotes=new Map<string,unknown>();
+function noteAck(payload:Record<string,unknown>) {
+  const body=payload.body as {create_request_id:string;title:string;editor_json:typeof doc.editor_json};
+  const id="doc_req_"+createHash("sha256").update(body.create_request_id).digest("hex");
+  const node=body.editor_json.content[0];
+  const saved={...doc,document_id:id,source_id:null,source_revision:null,title:body.title,version:1,
+    editor_json:structuredClone(body.editor_json),text_projection:"",blocks:[{block_id:node.attrs.block_id,kind:"paragraph",ordinal:0,node_json:node,text_projection:"",codec_status:"known"}]};
+  createdNotes.set(id,saved);return saved;
+}
 let doc = { document_id: "doc_test", source_id: source.source_id, source_revision: hash, title: source.original_name, version: 1,
   editor_json: { type: "doc", content: [{ type: "paragraph", attrs: { block_id: "p1" }, content: [{ type: "text", text: "已保存笔记" }] }] }, text_projection: "已保存笔记", content_sha256: hash, blocks: [] };
 
 describe("canonical content sample", () => {
+  it.each(["CURRENT","STALE","UNSUPPORTED","MISSING"])("SIMULATED: %s locator must be independently revalidated before navigation", async(status)=>{
+    const position=JSON.stringify({type:"text",start:0,end:12,checksum:hash});
+    const previous=bridge.call.getMockImplementation()!;
+    bridge.call.mockImplementation(async(op:string,payload:Record<string,unknown>)=>op==="anchors_list"
+      ? {anchors:[{anchor_id:"anchor_recheck",source_id:source.source_id,source_revision:hash,position,location_status:"located"}]}
+      : op==="anchor_resolve" ? assertCoreDto("AnchorResolutionDto",{source_id:source.source_id,anchor_id:"anchor_recheck",status,reason:"fixture",source_revision:hash,current_source_revision:hash,position,scope:"locator_provenance_only"})
+      : previous(op,payload));
+    render(<CanonicalLibrarySpace/>);
+    const user=userEvent.setup();
+    await user.click(await screen.findByRole("button",{name:"样板.txt"}));
+    await user.click(await screen.findByRole("button",{name:"来源引用"}));
+    await waitFor(()=>expect(bridge.call).toHaveBeenCalledWith("anchor_resolve",{source_id:source.source_id,anchor_id:"anchor_recheck"}));
+    if(status==="CURRENT") await waitFor(()=>expect(screen.getByLabelText("原件正文")).toHaveFocus());
+    else {await screen.findByText(/引用定位未通过当前核验/);expect(screen.getByLabelText("原件正文")).not.toHaveFocus();}
+    expect(bridge.call.mock.calls.some(([op])=>op==="anchor_create"||op==="document_draft")).toBe(false);
+  });
   beforeEach(() => {
     vi.stubGlobal("crypto", webcrypto);
     bridge.call.mockReset();
+    createdNotes.clear();
     doc = { ...doc, version: 1 };
     bridge.call.mockImplementation(async (operation: string, payload: Record<string, unknown>) => {
       switch (operation) {
@@ -25,7 +52,7 @@ describe("canonical content sample", () => {
         case "source_original": return { source_id: source.source_id, name: source.original_name, media_type: "text/plain", sha256: hash, content_base64: Buffer.from("原文样板").toString("base64") };
         case "anchors_list": return { anchors: [] };
         case "document_get": return doc;
-        case "document_version": return { ...doc, version: payload.version };
+        case "document_version": return createdNotes.get(payload.document_id as string)??{ ...doc, version: payload.version };
         case "document_restore": return { ...doc, version: doc.version + 1 };
         case "anchor_create": return { anchor_id: "anchor_test", source_id: source.source_id, source_revision: hash, position: (payload.body as Record<string, unknown>).position, location_status: "bound_revision" };
         case "document_draft": return { ...doc, editor_json: (payload.body as Record<string, unknown>).editor_json, version: doc.version + 1 };
@@ -225,31 +252,91 @@ describe("canonical content sample", () => {
   });
   it("SIMULATED: a second click during an in-flight note creation issues exactly one write", async () => {
     const previous = bridge.call.getMockImplementation()!;
-    let resolveCreate!: (value: unknown) => void;
+    let resolveCreate!: (value: unknown) => void;let request!:Record<string,unknown>;
     bridge.call.mockImplementation((op: string, payload: Record<string, unknown>) =>
-      op === "document_create" ? new Promise((done) => { resolveCreate = done; }) : previous(op, payload));
+      op === "document_create" ? new Promise((done) => { request=payload;resolveCreate = done; }) : previous(op, payload));
     render(<CanonicalLibrarySpace />);
     const user = userEvent.setup();
     const button = await screen.findByRole("button", { name: "新建原创笔记" });
     await user.click(button);
     expect(button).toBeDisabled();
     fireEvent.click(button);
-    await act(async () => { resolveCreate({ ...doc, document_id: "created_once", title: "原创笔记" }); });
+    await act(async () => { resolveCreate(noteAck(request)); });
     expect(bridge.call.mock.calls.filter(([op]) => op === "document_create")).toHaveLength(1);
   });
   it("does not let a late original creation discard newly edited text",async()=>{
-    let complete!:(value:unknown)=>void;
+    let complete!:(value:unknown)=>void;let request!:Record<string,unknown>;
     const previous=bridge.call.getMockImplementation()!;
-    bridge.call.mockImplementation((op:string,payload:Record<string,unknown>)=>op==="document_create"?new Promise(resolve=>{complete=resolve;}):previous(op,payload));
+    bridge.call.mockImplementation((op:string,payload:Record<string,unknown>)=>op==="document_create"?new Promise(resolve=>{request=payload;complete=resolve;}):previous(op,payload));
     render(<CanonicalLibrarySpace/>);const user=userEvent.setup();
     await user.click(await screen.findByRole("button",{name:"样板.txt · 文档"}));
     const textbox=await screen.findByRole("textbox",{name:"文档草稿"});
     await user.click(screen.getByRole("button",{name:"新建原创笔记"}));
     fireEvent.compositionStart(textbox);act(()=>{(textbox as HTMLElement & {editor:Editor}).editor.commands.setContent({type:"doc",content:[{type:"paragraph",content:[{type:"text",text:"New unsaved text during request"}]}]},{emitUpdate:true});});
     await screen.findByText(/尚未保存 · 当前持久化版本/);
-    await act(async()=>{complete({...doc,document_id:"late_original",source_id:null,source_revision:null,title:"late original",editor_json:{type:"doc",content:[{type:"paragraph"}]}});});
+    await act(async()=>{complete(noteAck(request));});
     expect(screen.getByRole("textbox",{name:"文档草稿"})).toHaveTextContent("New unsaved text during request");
-    expect(screen.getByRole("button",{name:"late original · 文档"})).toBeInTheDocument();
+    expect(screen.getByRole("button",{name:"原创笔记 · 文档"})).toBeInTheDocument();
+  });
+  it("SIMULATED: retries the frozen request after a persisted create loses its ACK without duplicating the note",async()=>{
+    const previous=bridge.call.getMockImplementation()!;let calls=0;
+    bridge.call.mockImplementation(async(op:string,payload:Record<string,unknown>)=>{
+      if(op!=="document_create")return previous(op,payload);
+      const saved=noteAck(payload);if(++calls===1)throw new Error("ACK lost after persistence");return saved;
+    });
+    render(<CanonicalLibrarySpace/>);const user=userEvent.setup();
+    await user.click(screen.getByRole("button",{name:"新建原创笔记"}));
+    await screen.findByText(/原创笔记建立未确认/);
+    expect(screen.getByRole("button",{name:"新建原创笔记"})).toBeDisabled();
+    const sent=structuredClone(bridge.call.mock.calls.find(([op])=>op==="document_create")![1]);
+    await user.click(screen.getByRole("button",{name:"重试同一笔记请求"}));
+    await screen.findByText("原创笔记已建立。");
+    expect(createdNotes.size).toBe(1);
+    expect(bridge.call.mock.calls.filter(([op])=>op==="document_create").map(([,payload])=>payload)).toEqual([sent,sent]);
+    expect(screen.queryByRole("button",{name:"重试同一笔记请求"})).not.toBeInTheDocument();
+  });
+  it("SIMULATED: confirms a lost ACK by complete read-only version lookup without another create",async()=>{
+    const previous=bridge.call.getMockImplementation()!;
+    bridge.call.mockImplementation(async(op:string,payload:Record<string,unknown>)=>{
+      if(op!=="document_create")return previous(op,payload);
+      noteAck(payload);throw new Error("lost ACK");
+    });
+    render(<CanonicalLibrarySpace/>);const user=userEvent.setup();
+    await user.click(screen.getByRole("button",{name:"新建原创笔记"}));await screen.findByText(/原创笔记建立未确认/);
+    await user.click(screen.getByRole("button",{name:"核对笔记创建结果"}));await screen.findByText("原创笔记已建立。");
+    expect(bridge.call.mock.calls.filter(([op])=>op==="document_create")).toHaveLength(1);
+  });
+  it("keeps the frozen request when ACK identity, content or readback fails",async()=>{
+    const previous=bridge.call.getMockImplementation()!;
+    bridge.call.mockImplementation(async(op:string,payload:Record<string,unknown>)=>{
+      if(op==="document_create")return noteAck(payload);
+      if(op==="document_version")throw new ApiError(403,"read forbidden","unauthorized");
+      return previous(op,payload);
+    });
+    render(<CanonicalLibrarySpace/>);const user=userEvent.setup();
+    await user.click(screen.getByRole("button",{name:"新建原创笔记"}));await screen.findByText(/原创笔记建立未确认/);
+    expect(screen.getByRole("button",{name:"新建原创笔记"})).toBeDisabled();
+    bridge.call.mockImplementation(async(op:string,payload:Record<string,unknown>)=>{
+      if(op==="document_version")return {...(createdNotes.get(payload.document_id as string) as object),title:"unexpected"};
+      return previous(op,payload);
+    });
+    await user.click(screen.getByRole("button",{name:"核对笔记创建结果"}));
+    await waitFor(()=>expect(screen.getByRole("button",{name:"核对笔记创建结果"})).toBeEnabled());
+    expect(screen.getByRole("button",{name:"新建原创笔记"})).toBeDisabled();
+    expect(screen.queryByText("原创笔记已建立。")).not.toBeInTheDocument();
+  });
+  it("releases only a definitively refused create, allowing a distinct new request",async()=>{
+    const previous=bridge.call.getMockImplementation()!;let calls=0;
+    bridge.call.mockImplementation(async(op:string,payload:Record<string,unknown>)=>{
+      if(op!=="document_create")return previous(op,payload);
+      if(++calls===1)throw new ApiError(403,"forbidden","unauthorized");return noteAck(payload);
+    });
+    render(<CanonicalLibrarySpace/>);const user=userEvent.setup();
+    await user.click(screen.getByRole("button",{name:"新建原创笔记"}));await screen.findByText(/原创笔记创建被明确拒绝/);
+    expect(screen.queryByRole("button",{name:"重试同一笔记请求"})).not.toBeInTheDocument();
+    await user.click(screen.getByRole("button",{name:"新建原创笔记"}));await screen.findByText("原创笔记已建立。");
+    const ids=bridge.call.mock.calls.filter(([op])=>op==="document_create").map(([,payload])=>payload.body.create_request_id);
+    expect(new Set(ids).size).toBe(2);expect(createdNotes.size).toBe(1);
   });
   it("reuses the inspector with the actual saved version and source fingerprint without inventing review", async () => {
     doc = {...doc, source_revision:hash};
@@ -299,7 +386,7 @@ describe("canonical content sample", () => {
     bridge.call.mockImplementation(async(op:string,payload:Record<string,unknown>)=>{
       if(op==="sources_list")return {sources:[]};
       if(op==="documents_list")return {documents:[]};
-      if(op==="document_create")return originalDoc;
+      if(op==="document_create")return noteAck(payload);
       if(op==="document_draft")return {...originalDoc,version:2,editor_json:(payload.body as Record<string,unknown>).editor_json};
       return base?.(op,payload);
     });
@@ -309,7 +396,7 @@ describe("canonical content sample", () => {
     expect(screen.queryByRole("button",{name:"引用当前页"})).not.toBeInTheDocument();
     await userEvent.setup().click(screen.getByRole("button",{name:"保存草稿"}));
     await waitFor(()=>expect(bridge.call).toHaveBeenCalledWith("document_draft",expect.anything()));
-    expect(bridge.call).toHaveBeenCalledWith("document_create",{body:{title:"原创笔记",editor_json:{type:"doc",content:[{type:"paragraph"}]}}});
+    expect(bridge.call).toHaveBeenCalledWith("document_create",{body:{create_request_id:expect.stringMatching(/^note_/),title:"原创笔记",editor_json:{type:"doc",content:[{type:"paragraph",attrs:{block_id:expect.any(String)}}]}}});
     expect(bridge.call.mock.calls.some(([op])=>op==="anchor_create"||op==="machine_answer")).toBe(false);
   });
   it("keeps the readback provenance folded and never upgrades an unverified locator",async()=>{

@@ -15,6 +15,8 @@ import secrets
 import subprocess
 import time
 import uuid
+import urllib.parse
+import urllib.request
 from pathlib import Path
 
 import aaos01_office_runtime_loop as office
@@ -73,6 +75,77 @@ def editor(text):
             }
         ],
     }
+
+
+
+def discard_create_ack(base, human, request_wire, client):
+    """Inject lost ACK consumption: commit via HTTP, discard the unread response body.
+
+    Receiving the HTTP status is intentional. This does not claim a real network
+    failure; no document identity is learned from or retained from this response.
+    """
+    request = urllib.request.Request(
+        base.rstrip("/") + "/api/v1/documents",
+        data=request_wire.encode("utf-8"),
+        headers=client.headers(human),
+        method="POST",
+    )
+    with urllib.request.urlopen(request, timeout=30) as response:
+        status = response.status
+        assert status == 201, {"expected": 201, "status": status}
+        # Do not call response.read() or decode an ACK. Closing drops its body.
+    return {
+        "status": status,
+        "ack_body": "DISCARDED_UNREAD",
+        "fault_injection": "CLIENT_ACK_BODY_CONSUMPTION_ONLY",
+        "request_sha256": hashlib.sha256(request_wire.encode("utf-8")).hexdigest(),
+    }
+
+
+def document_listing(call):
+    """Read the entire finite API listing, including pagination, without SQL."""
+    rows, seen = [], set()
+    path = "/api/v1/documents"
+    for _ in range(100):
+        page = call("GET", path)
+        rows.extend(page["documents"])
+        cursor = page.get("next_cursor")
+        if cursor is None:
+            return rows
+        assert cursor not in seen, "document cursor repeated"
+        seen.add(cursor)
+        path = "/api/v1/documents?cursor=" + urllib.parse.quote(cursor, safe="")
+    raise AssertionError("document listing exceeded bounded page budget")
+
+
+def verify_create_replay(call, request_wire, expected=None):
+    """Replay identical request bytes and verify one object and one historical version."""
+    frozen = json.loads(request_wire)
+    before = document_listing(call)
+    replay = call("POST", "/api/v1/documents", request_wire, 201)
+    expected_id = "doc_req_" + hashlib.sha256(frozen["create_request_id"].encode()).hexdigest()
+    assert replay["document_id"] == expected_id, replay
+    assert replay["version"] == 1 and replay["title"] == frozen["title"], replay
+    assert replay["editor_json"] == frozen["editor_json"], replay
+    assert replay["source_id"] is None and replay["source_revision"] is None, replay
+    if expected is not None:
+        assert replay == expected["document"], "create replay changed the original ACK"
+    after = document_listing(call)
+    assert before == after, "replay changed the document listing"
+    matches = [row for row in after if row["document_id"] == expected_id or row["title"] == frozen["title"]]
+    assert len(matches) == 1 and matches[0]["document_id"] == expected_id, matches
+    assert matches[0]["version"] == 1, matches
+    route = f"/api/v1/documents/{expected_id}"
+    document = call("GET", route)
+    version = call("GET", route + "/versions/1")
+    assert document == replay and version == replay, "saved or historical version differs"
+    call("GET", route + "/versions/2", expected=404)
+    checks = call("GET", route + "/checks")
+    assert checks["checks"] == [], "authored fixture gained an assessment"
+    snapshot = {"document": document, "version_1": version, "checks": checks, "list_match": matches[0]}
+    if expected is not None:
+        assert snapshot == expected, "replay or restart changed the fixture snapshot"
+    return snapshot
 
 
 def main():
@@ -136,6 +209,20 @@ def main():
         workspace_info = call("GET", "/api/v1/workspaces/info")
         assert workspace_info["schema_version"] == 12, workspace_info
         receipt["workspace_info"] = workspace_info
+        ack_request = {
+            "create_request_id": "policy_ack_" + uuid.uuid4().hex,
+            "title": "AuthoredLostAckFixture",
+            "editor_json": editor("LostAckOriginalNeedle 中文原创保存，不授予知识认可"),
+        }
+        ack_wire = json.dumps(ack_request)
+        receipt["authored_create_ack_replay"] = {
+            "materials": "SYNTHETIC_AUTHORED_TEXT",
+            "execution": "ACTUAL_CORE_HTTP",
+            "limits": ["Client discards ACK body, not a genuine network outage", "No human knowledge approval"],
+            "discarded_ack": discard_create_ack(base, human, ack_wire, client),
+        }
+        ack_snapshot = verify_create_replay(call, ack_wire)
+        receipt["authored_create_ack_replay"]["initial"] = ack_snapshot
         original = call(
             "POST",
             "/api/v1/documents",
@@ -329,6 +416,7 @@ def main():
         child = None
         child, base, human, machine = start(candidate, work, launcher)
         receipt["processes"].append({"phase": "restart", "pid": child.pid})
+        receipt["authored_create_ack_replay"]["restart"] = verify_create_replay(call, ack_wire, ack_snapshot)
         assert call("GET", f"/api/v1/documents/{oid}") == updated
         assert call("GET", ochecks + "?version=1") == historical
         assert call("GET", schecks) == source_checks
@@ -365,6 +453,8 @@ def main():
         )
         child, base, human, machine = start(candidate, independent, launcher)
         receipt["processes"].append({"phase": "independent-restored", "pid": child.pid})
+        receipt["authored_create_ack_replay"]["independent_restore"] = verify_create_replay(call, ack_wire, ack_snapshot)
+        receipt["assertions"]["authored_create_lost_ack_replay_unique_restart_restore"] = True
         assert call("GET", f"/api/v1/documents/{oid}") == updated
         assert call("GET", ochecks + "?version=1") == historical
         assert call("GET", f"/api/v1/documents/{sid}") == sourced

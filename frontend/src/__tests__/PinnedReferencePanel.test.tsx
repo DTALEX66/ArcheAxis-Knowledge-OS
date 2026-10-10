@@ -7,6 +7,12 @@ vi.mock("../api/core",()=>({coreCommand:bridge.call}));
 beforeEach(()=>{bridge.call.mockReset();vi.stubGlobal("crypto",webcrypto);});
 afterEach(()=>{vi.unstubAllGlobals();});
 const doc={document_id:"doc_original",version:1,title:"原文 v1",source_id:"source_original",source_revision:"a".repeat(64),content_sha256:"b".repeat(64),text_projection:"原版本全文",editor_json:{type:"doc",content:[]},blocks:[{block_id:"evidence",text_projection:"固定依据块"}]};
+it("refuses a fixed-version read whose SHA differs from the global search observation",async()=>{
+ bridge.call.mockResolvedValue(doc);render(<PinnedReferencePanel reference={{kind:"document",document_id:"doc_original",version:1}} expectedDocumentSha={"c".repeat(64)} onClose={()=>{}}/>);
+ expect(await screen.findByRole("alert")).toHaveTextContent("指纹与搜索观察不一致");
+ expect(screen.queryByText("原版本全文")).not.toBeInTheDocument();
+ expect(bridge.call.mock.calls.every(call=>call[0]==="document_version")).toBe(true);
+});
 it("reads exact historical block and forwards source identity without changing version",async()=>{
  bridge.call.mockResolvedValue(doc);const jump=vi.fn();render(<PinnedReferencePanel reference={{kind:"document",document_id:"doc_original",version:1,block_id:"evidence"}} onClose={()=>{}} onOpenReference={jump}/>);
  await screen.findByText("固定依据块");expect(bridge.call).toHaveBeenCalledWith("document_version",{document_id:"doc_original",version:1});expect(screen.queryByText("原版本全文")).not.toBeInTheDocument();

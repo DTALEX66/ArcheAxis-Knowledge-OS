@@ -1,0 +1,344 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "archeaxis/ui-working-state/v1",
+  "description": "Core-owned human working drafts and UI continuity; not committed Document content. State <=1048576 UTF8 bytes; each draft <=262144 bytes. Exact Core workspace/restore epoch/revision CAS required. clear_saved verifies stored draft digest and actual base+1 committed Document version. Restore candidates require explicit preserve/discard; never automatic application.",
+  "oneOf": [
+    {
+      "$ref": "#/$defs/Write"
+    },
+    {
+      "$ref": "#/$defs/ClearSaved"
+    },
+    {
+      "$ref": "#/$defs/Recover"
+    },
+    {
+      "$ref": "#/$defs/Read"
+    }
+  ],
+  "$defs": {
+    "Draft": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "base_version": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "editor_json": {
+          "type": "object",
+          "properties": {
+            "type": {
+              "const": "doc"
+            },
+            "content": {
+              "type": "array"
+            }
+          },
+          "required": [
+            "type",
+            "content"
+          ]
+        }
+      },
+      "required": [
+        "base_version",
+        "editor_json"
+      ]
+    },
+    "State": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "drafts": {
+          "type": "object",
+          "maxProperties": 32,
+          "propertyNames": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9_-]{1,128}$"
+          },
+          "additionalProperties": {
+            "$ref": "#/$defs/Draft"
+          }
+        },
+        "opened_documents": {
+          "type": "array",
+          "maxItems": 64,
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9_-]{1,128}$"
+          }
+        },
+        "active_document": {
+          "anyOf": [
+            {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9_-]{1,128}$"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "page_id": {
+          "anyOf": [
+            {
+              "enum": [
+                "01",
+                "02",
+                "03",
+                "04",
+                "05",
+                "06",
+                "07",
+                "08",
+                "09",
+                "10",
+                "11",
+                "12",
+                "13",
+                "14",
+                "15",
+                "16",
+                "17",
+                "18",
+                "19",
+                "20",
+                "21",
+                "22"
+              ]
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "pending_original": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/OriginalAttempt"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "required": [
+        "drafts",
+        "opened_documents",
+        "active_document",
+        "page_id"
+      ]
+    },
+    "Write": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "workspace_id": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{32}$"
+        },
+        "restore_epoch": {
+          "type": "string",
+          "pattern": "^(initial|[a-f0-9]{32})$"
+        },
+        "state_revision": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        },
+        "state": {
+          "$ref": "#/$defs/State"
+        }
+      },
+      "required": [
+        "workspace_id",
+        "restore_epoch",
+        "state_revision",
+        "state"
+      ]
+    },
+    "ClearSaved": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "workspace_id": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{32}$"
+        },
+        "restore_epoch": {
+          "type": "string",
+          "pattern": "^(initial|[a-f0-9]{32})$"
+        },
+        "state_revision": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        },
+        "document_id": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9_-]{1,128}$"
+        },
+        "base_version": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "content_sha256": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        },
+        "saved_version": {
+          "type": "integer",
+          "minimum": 2
+        }
+      },
+      "required": [
+        "workspace_id",
+        "restore_epoch",
+        "state_revision",
+        "document_id",
+        "base_version",
+        "content_sha256",
+        "saved_version"
+      ]
+    },
+    "Recover": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "workspace_id": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{32}$"
+        },
+        "restore_epoch": {
+          "type": "string",
+          "pattern": "^(initial|[a-f0-9]{32})$"
+        },
+        "state_revision": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        },
+        "action": {
+          "enum": [
+            "preserve",
+            "discard"
+          ]
+        }
+      },
+      "required": [
+        "workspace_id",
+        "restore_epoch",
+        "state_revision",
+        "action"
+      ]
+    },
+    "Read": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "schema": {
+          "const": "archeaxis.ui-working-state/v1"
+        },
+        "workspace_id": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{32}$"
+        },
+        "restore_epoch": {
+          "type": "string",
+          "pattern": "^(initial|[a-f0-9]{32})$"
+        },
+        "state_revision": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        },
+        "state": {
+          "$ref": "#/$defs/State"
+        },
+        "draft_digests": {
+          "type": "object",
+          "propertyNames": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9_-]{1,128}$"
+          },
+          "additionalProperties": {
+            "type": "string",
+            "pattern": "^[a-f0-9]{64}$"
+          }
+        },
+        "recovery_candidates": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/State"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "recovery_requires_confirmation": {
+          "type": "boolean"
+        },
+        "pending_document_id": {
+          "anyOf": [
+            {
+              "type": "string",
+              "pattern": "^doc_req_[a-f0-9]{64}$"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "required": [
+        "schema",
+        "workspace_id",
+        "restore_epoch",
+        "state_revision",
+        "state",
+        "draft_digests",
+        "recovery_candidates",
+        "recovery_requires_confirmation",
+        "pending_document_id"
+      ]
+    },
+    "OriginalAttempt": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "create_request_id",
+        "title",
+        "editor_json"
+      ],
+      "properties": {
+        "create_request_id": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9_-]{1,128}$"
+        },
+        "title": {
+          "type": "string",
+          "maxLength": 1024
+        },
+        "editor_json": {
+          "type": "object",
+          "properties": {
+            "type": {
+              "const": "doc"
+            },
+            "content": {
+              "type": "array"
+            }
+          },
+          "required": [
+            "type",
+            "content"
+          ]
+        }
+      }
+    }
+  }
+}

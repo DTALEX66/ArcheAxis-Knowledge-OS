@@ -143,6 +143,21 @@
       ],
       "additionalProperties": true
     },
+    "AnchorResolutionDto": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["source_id", "anchor_id", "status", "reason", "source_revision", "current_source_revision", "position", "scope"],
+      "properties": {
+        "source_id": {"type": "string"},
+        "anchor_id": {"type": "string"},
+        "status": {"enum": ["CURRENT", "STALE", "UNSUPPORTED", "MISSING"]},
+        "reason": {"type": "string"},
+        "source_revision": {"type": ["string", "null"]},
+        "current_source_revision": {"type": ["string", "null"]},
+        "position": {"type": ["string", "null"]},
+        "scope": {"const": "locator_provenance_only"}
+      }
+    },
     "AnchorDto": {
       "type": "object",
       "properties": {

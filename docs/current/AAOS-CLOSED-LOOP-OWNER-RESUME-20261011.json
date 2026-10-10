@@ -1,0 +1,37 @@
+{
+  "schema": "archeaxis.owner-execution-resume/v1",
+  "decided_on": "2026-10-11",
+  "owner_instruction": "执行完整框架/多格式（常见常用格式）/最短闭环的目标",
+  "resumes_product_execution": true,
+  "active_taskpack": "docs/taskpacks/aaos-ui-first-20261009",
+  "active_progress": "docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md",
+  "role": "OWNER_EXECUTION_OVERLAY_NOT_REPLACEMENT_TASKPACK",
+  "scope": [
+    "Formal Tauri/React + Rust canonical writer + isolated workers complete core framework",
+    "Reliable ordinary content creation, independent drafts, conflict/permission recovery and search",
+    "Common-format original preservation, actual content processing, locator revalidation and honest loss",
+    "Single-object knowledge/learning/controlled AI/restart/backup-restore journey",
+    "Existing capability enable/disable lifecycle through the formal host",
+    "Current source, exact-SHA CI and isolated installed-runtime qualification separately"
+  ],
+  "common_format_batches": {
+    "A": ["txt", "md", "csv", "json", "html"],
+    "B": ["pdf-text", "pdf-scanned", "png", "jpeg"],
+    "C": ["docx", "xlsx", "pptx"],
+    "D": ["srt", "vtt", "wav", "mp3", "mp4"],
+    "E": ["canvas"]
+  },
+  "constraints": {
+    "common_formats_do_not_require_all_72_registry_rows": true,
+    "single_writer_per_checkout": true,
+    "themes_preserved_in_product": true,
+    "conversation_summary_increment": "FROZEN_BY_OWNER",
+    "V01": "PAUSED",
+    "FT01_04": "FROZEN",
+    "release_green_replacement_and_real_user_data_overwrite": "NOT_GRANTED",
+    "model_provider_global_configuration_changes": "NOT_GRANTED",
+    "human_mastery_and_professional_truth": "CANNOT_BE_SIGNED_BY_ENGINEERING_TESTS"
+  },
+  "status": "IN_PROGRESS",
+  "acceptance": "Existing UI-first contracts; actual progress stays in active_progress. This decision is authorization, not implementation or PASS evidence."
+}

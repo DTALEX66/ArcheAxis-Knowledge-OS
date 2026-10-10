@@ -507,7 +507,7 @@ async fn a_disabled_capability_is_refused_by_the_execute_path() {
         .await
         .unwrap();
 
-    let router = archeaxis_api::runtime::router(executor);
+    let router = archeaxis_api::runtime::router(executor.clone());
     put(
         &router,
         "/api/v1/capabilities/text.extract/enabled",
@@ -535,6 +535,31 @@ async fn a_disabled_capability_is_refused_by_the_execute_path() {
     assert_eq!(status, 409, "{text}");
     assert!(text.contains("text.extract"), "{text}");
     assert!(text.contains("disabled"), "{text}");
+
+    let attempts = executor.store().submit_wait(|conn| conn.query_row(
+        "SELECT count(*) FROM job_attempts WHERE job_id='job'", [], |r| r.get::<_,i64>(0),
+    )).await.unwrap().unwrap();
+    assert_eq!(attempts,0,"disabled admission must not create an attempt or run the job worker");
+    assert_eq!(std::fs::read_dir(dir.path().join("staging")).unwrap().count(),0);
+    drop(router);
+    drop(executor);
+    let executor = Executor::open(&dir.path().join("db.sqlite"), &dir.path().join("staging"), &python, &script).await.unwrap();
+    let router = archeaxis_api::runtime::router(executor.clone());
+    let (_,record) = get(&router,"/api/v1/capabilities/text.extract").await;
+    assert_eq!(record["capability"]["enabled"],false,"disabled decision must survive a real Store reopen");
+    let (status,record) = put(&router,"/api/v1/capabilities/text.extract/enabled",r#"{"enabled":true}"#).await;
+    assert_eq!(status,200,"{record}");
+    executor.execute("job","enabled-after-reopen",60_000,&archeaxis_application::executor::Cancellation::new()).await.unwrap();
+    let state = executor.store().submit_wait(|conn| conn.query_row(
+        "SELECT state FROM jobs WHERE job_id='job'", [], |r|r.get::<_,String>(0),
+    )).await.unwrap().unwrap();
+    assert_eq!(state,archeaxis_application::jobs::STATE_COMPLETED,"enable must admit an actual text worker job");
+    drop(router);
+    drop(executor);
+    let executor = Executor::open(&dir.path().join("db.sqlite"), &dir.path().join("staging"), &python, &script).await.unwrap();
+    let router = archeaxis_api::runtime::router(executor);
+    let (_,record) = get(&router,"/api/v1/capabilities/text.extract").await;
+    assert_eq!(record["capability"]["enabled"],true,"enabled decision must also survive reopen");
 }
 
 #[tokio::test]
