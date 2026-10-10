@@ -1,0 +1,242 @@
+{
+  "schema": "archeaxis.same-candidate-common-formats-readback/v1",
+  "date": "2026-10-11",
+  "whole_scope": "PARTIAL",
+  "candidate_sha": "a2aca3b7314ffe644ab62f5ab00576e8d6866e70",
+  "ci_run_id": 38085061981,
+  "artifact_ids": [
+    11682366210,
+    11682276493
+  ],
+  "status": "INTEGRATED_SELECTED_FORMATS_ARTIFACT_READBACK",
+  "materials": "SYNTHETIC_AUTHORED",
+  "source_consistent_clean": true,
+  "qualified_scope_count": 15,
+  "scopes": [
+    "txt",
+    "md",
+    "csv",
+    "json",
+    "html",
+    "srt",
+    "vtt",
+    "canvas",
+    "png",
+    "jpeg",
+    "pdf-scanned",
+    "docx",
+    "xlsx",
+    "pptx",
+    "pdf-text"
+  ],
+  "independent_readback": [
+    {
+      "receipt": "common-light-ocr.json",
+      "extension": "txt",
+      "original_sha256": "489ddfc8eca9fcde65d43ee1237cb425044f04704c149d5d8c72ef16892cff58",
+      "distinct_jobs": true,
+      "output_hash_size_verified": true,
+      "content_structure_reparse_equal": true,
+      "locator_current": true,
+      "restart_equal_reported": true
+    },
+    {
+      "receipt": "common-light-ocr.json",
+      "extension": "md",
+      "original_sha256": "5c166f1f54841e39a09d47f41dd2bf8d22caa0c9dca5c7e713cd5150e26cfdf1",
+      "distinct_jobs": true,
+      "output_hash_size_verified": true,
+      "content_structure_reparse_equal": true,
+      "locator_current": true,
+      "restart_equal_reported": true
+    },
+    {
+      "receipt": "common-light-ocr.json",
+      "extension": "csv",
+      "original_sha256": "fbf1ac4ca9068015de2ae905df030499536aa75ce52e46f5d3e409a0e702a20e",
+      "distinct_jobs": true,
+      "output_hash_size_verified": true,
+      "content_structure_reparse_equal": true,
+      "locator_current": true,
+      "restart_equal_reported": true
+    },
+    {
+      "receipt": "common-light-ocr.json",
+      "extension": "json",
+      "original_sha256": "08a8f3c4e21f4041a2dff960bcae50a344c1ec3376dcbc11a7cfbf122e48ff9f",
+      "distinct_jobs": true,
+      "output_hash_size_verified": true,
+      "content_structure_reparse_equal": true,
+      "locator_current": true,
+      "restart_equal_reported": true
+    },
+    {
+      "receipt": "common-light-ocr.json",
+      "extension": "html",
+      "original_sha256": "538c3dbcb8fa3521f3cc286194f50ea91621d19dd5b187657f41f55dd600910c",
+      "distinct_jobs": true,
+      "output_hash_size_verified": true,
+      "content_structure_reparse_equal": true,
+      "locator_current": true,
+      "restart_equal_reported": true
+    },
+    {
+      "receipt": "common-light-ocr.json",
+      "extension": "srt",
+      "original_sha256": "84ec756e3482a7969b9d5668e2986820609d83c10c15d9b5154f6278167553b6",
+      "distinct_jobs": true,
+      "output_hash_size_verified": true,
+      "content_structure_reparse_equal": true,
+      "locator_current": true,
+      "restart_equal_reported": true
+    },
+    {
+      "receipt": "common-light-ocr.json",
+      "extension": "vtt",
+      "original_sha256": "6737427535e18e5e749eb7e6ce5d6a4b41930f440455d4c50e7fef508da49303",
+      "distinct_jobs": true,
+      "output_hash_size_verified": true,
+      "content_structure_reparse_equal": true,
+      "locator_current": true,
+      "restart_equal_reported": true
+    },
+    {
+      "receipt": "common-light-ocr.json",
+      "extension": "canvas",
+      "original_sha256": "1502f0e4d715de343855168cbe1a47372e0325cab005d7b362050f37fe47423c",
+      "distinct_jobs": true,
+      "output_hash_size_verified": true,
+      "content_structure_reparse_equal": true,
+      "locator_current": true,
+      "restart_equal_reported": true
+    },
+    {
+      "receipt": "common-light-ocr.json",
+      "extension": "png",
+      "original_sha256": "583d6e737cd0a4953d49d79d23e5eb5d62914cac373c635d5b900140e3349751",
+      "distinct_jobs": true,
+      "output_hash_size_verified": true,
+      "content_structure_reparse_equal": true,
+      "locator_current": true,
+      "restart_equal_reported": true
+    },
+    {
+      "receipt": "common-light-ocr.json",
+      "extension": "jpeg",
+      "original_sha256": "b5155900e5e214ec7975b0fc2cfeb5008c2b01b0f4b656b53c32d37a9dcb567d",
+      "distinct_jobs": true,
+      "output_hash_size_verified": true,
+      "content_structure_reparse_equal": true,
+      "locator_current": true,
+      "restart_equal_reported": true
+    },
+    {
+      "receipt": "common-light-ocr.json",
+      "extension": "pdf",
+      "original_sha256": "4eb4ef674d3e5cd4ea47a566a9acd65b458153830cff29e8231517e9475b138e",
+      "distinct_jobs": true,
+      "output_hash_size_verified": true,
+      "content_structure_reparse_equal": true,
+      "locator_current": true,
+      "restart_equal_reported": true
+    },
+    {
+      "receipt": "common-chinese-ocr.json",
+      "extension": "png",
+      "original_sha256": "583d6e737cd0a4953d49d79d23e5eb5d62914cac373c635d5b900140e3349751",
+      "distinct_jobs": true,
+      "output_hash_size_verified": true,
+      "content_structure_reparse_equal": true,
+      "locator_current": true,
+      "restart_equal_reported": true
+    },
+    {
+      "receipt": "common-chinese-ocr.json",
+      "extension": "jpeg",
+      "original_sha256": "b5155900e5e214ec7975b0fc2cfeb5008c2b01b0f4b656b53c32d37a9dcb567d",
+      "distinct_jobs": true,
+      "output_hash_size_verified": true,
+      "content_structure_reparse_equal": true,
+      "locator_current": true,
+      "restart_equal_reported": true
+    },
+    {
+      "receipt": "common-chinese-ocr.json",
+      "extension": "pdf",
+      "original_sha256": "1a9a4fc2f26c91df779fc01cd0cca7af3f4e08b2f73b2aa51b42a1020203db3c",
+      "distinct_jobs": true,
+      "output_hash_size_verified": true,
+      "content_structure_reparse_equal": true,
+      "locator_current": true,
+      "restart_equal_reported": true
+    },
+    {
+      "receipt": "common-formats.json",
+      "extension": "docx",
+      "original_sha256": "4c45f9a790514e59a02b84b8fc827aa4fd08e68a0b8a3993aef1a272b673ec00",
+      "distinct_jobs": true,
+      "output_hash_size_verified": true,
+      "content_structure_reparse_equal": true,
+      "locator_current": true,
+      "restart_equal_reported": true
+    },
+    {
+      "receipt": "common-formats.json",
+      "extension": "xlsx",
+      "original_sha256": "65f2b3d5df0a6e8f4a95e8b83fedd5681e73b07d26a2ec9cb73924b1de785aa3",
+      "distinct_jobs": true,
+      "output_hash_size_verified": true,
+      "content_structure_reparse_equal": true,
+      "locator_current": true,
+      "restart_equal_reported": true
+    },
+    {
+      "receipt": "common-formats.json",
+      "extension": "pptx",
+      "original_sha256": "2a963243a743325fbb4b19b52ab3162f50a91dce1b4c1bc68a41ea5648dad726",
+      "distinct_jobs": true,
+      "output_hash_size_verified": true,
+      "content_structure_reparse_equal": true,
+      "locator_current": true,
+      "restart_equal_reported": true
+    },
+    {
+      "receipt": "common-formats.json",
+      "extension": "pdf",
+      "original_sha256": "29bc4fd26d85dff51710f1d769f2d70182bf3686db73a41a7aa6e5b4b77afbd5",
+      "distinct_jobs": true,
+      "output_hash_size_verified": true,
+      "content_structure_reparse_equal": true,
+      "locator_current": true,
+      "restart_equal_reported": true
+    }
+  ],
+  "receipts": [
+    {
+      "path": ".project-local/runs/be268a2d33/closedloop-integration-20261011/light-a2/runs/fd2a08c715/e986fd3c13f2/artifacts/common-light-ocr.json",
+      "sha256": "200f35a55ed7055be630730d450f617f4e3ec1a4090abef4ac9d7e5149dbc8ad"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/closedloop-integration-20261011/light-a2/runs/fd2a08c715/59224da6695a/artifacts/common-chinese-ocr.json",
+      "sha256": "86a1b4c7401876892c480247cd3325a8dec83523a45c390cceda08d76fdc292b"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/closedloop-integration-20261011/formats-a2/fd2a08c715/6946d0eeb61a/artifacts/common-formats.json",
+      "sha256": "17db2f50a4a5b721502bff12d4414ff8f1bbed126754962e157bd71895906966"
+    }
+  ],
+  "pending": [
+    "WAV/MP3/MP4 actual Core content/time/reparse/restart",
+    "latest repair source exact-SHA CI",
+    "complete new grouped installed UI journey",
+    "actual text AI service",
+    "Owner acceptance"
+  ],
+  "limits": [
+    "Selected fixture contents and locator contracts only; no universal fidelity or professional truth",
+    "Restart equality comes from actual candidate probe readback, not a new local execution",
+    "Same a2 source evidence does not qualify later 56d repairs or pending-journal code",
+    "ASR formats=[] remains NOT_EXECUTED; assets do not replace execution"
+  ],
+  "desktop_build": "PASS at latest readback; installer-lifecycle IN_PROGRESS; whole CI already has failures"
+}

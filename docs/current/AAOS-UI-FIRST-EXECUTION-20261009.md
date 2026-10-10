@@ -431,3 +431,6 @@ a2实际desktop-fast已终止FAIL：中文Core step PASS；固定FFmpeg和公开
 host标准库driver核对profile与正式宿主解释器选择，用候选Python -I/-B导入yaml/faster_whisper并独立核对实际模块属于runtime，再仅加入审计过scripts/probes执行原probe。无host pip安装、ABI混用、_pth修改、模型/provider变更；原模型/manifest/语言/真实Core验收全部保留。preflight失败独立JSON保全，导入成功不当Core资格，非零退出严格传播，zero退出但无导入证明仍失败。CI仅换入口与新增JSON回执上传，原mandatory条件/JSON-only/缺文件error不弱化。
 
 根最终52项Python PASS无skip、architecture/critical Ruff/YAML/源码指纹一致；包括真实隔离child的缺模块/外部模块/错解释器拒绝和SYNTHETIC进口记录，不证明候选实际ASR包或Core运行。首轮nested project-local guard错误9 PASS/1 FAIL保留，修正后重跑；pyreadline退出句柄warning保留。详见[解释器修复回执](receipts/AAOS-ASR-CANDIDATE-INTERPRETER-REPAIR-20261011.json)。a2桌面构建live，当前修复待后继exact-SHA CI；完整框架pending-journal隔离实现继续，整体PARTIAL。
+
+
+a2同候选多格式回执artifact11682366210/11682276493独立复核：light11、中文扫描3、Office/text-PDF4选定记录，source clean/source_consistent=true；原件digest、两个不同成功job、text/structure/loss输出digest/bytes、正文结构重解析相等及定位CURRENT核验，probe报告重启相等。共覆盖当前18范围中的15类，材料SYNTHETIC/执行INTEGRATED；不宣称通用保真/原软件重构或后继56d源码通过。a2 desktop-build terminal PASS，installer-lifecycle已进入live；Python/Rust/ASR前置失败仍保留。详见[同候选格式复核](receipts/AAOS-SAME-CANDIDATE-FORMATS-READBACK-20261011.json)，三类媒体Core与新UI九步/实际AI/Owner仍未收口。
