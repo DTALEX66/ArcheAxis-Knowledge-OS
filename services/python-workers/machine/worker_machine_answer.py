@@ -142,25 +142,30 @@ def _endpoint() -> dict:
 
 def _installed_models(endpoint: dict) -> list[str]:
     path = "/models" if endpoint["protocol"] == "openai" else "/api/tags"
-    try:
-        with urllib.request.urlopen(f"{endpoint['base']}{path}", timeout=5) as response:
-            payload = json.loads(response.read().decode("utf-8"))
-    except Exception:  # noqa: BLE001
-        return []
-    if endpoint["protocol"] == "openai":
-        return sorted(item.get("id", "") for item in payload.get("data", []))
-    return sorted(item.get("name", "") for item in payload.get("models", []))
+    with urllib.request.urlopen(f"{endpoint['base']}{path}", timeout=5) as response:
+        payload = json.loads(response.read().decode("utf-8"))
+    key, identity = ("data", "id") if endpoint["protocol"] == "openai" else ("models", "name")
+    if not isinstance(payload, dict) or not isinstance(payload.get(key), list):
+        raise ValueError("Model inventory response shape invalid")
+    rows = payload[key]
+    if any(not isinstance(item, dict) or not isinstance(item.get(identity), str)
+           or not item[identity].strip() for item in rows):
+        raise ValueError("Model inventory identity invalid")
+    return sorted(item[identity] for item in rows)
 
 
 def probe(model: str | None = None) -> dict:
     """Whether a text model can answer here, named concretely when it cannot."""
     endpoint = _endpoint()
     model = model or endpoint["model"]
-    installed = _installed_models(endpoint)
-    if not installed:
+    try:
+        installed = _installed_models(endpoint)
+    except Exception as error:  # noqa: BLE001 - failed inventory is not an empty successful read
         return {
             "capability": False,
-            "reason": f"no text endpoint answered at {endpoint['base']}",
+            "reason": f"text model inventory request failed at {endpoint['base']}",
+            "inventory_status": "READ_FAILED",
+            "error_type": type(error).__name__,
             "engine": ENGINE,
             "engine_version": ENGINE_VERSION,
             "endpoint": endpoint["base"],
@@ -172,6 +177,7 @@ def probe(model: str | None = None) -> dict:
         return {
             "capability": False,
             "reason": f"model {model} is not available",
+            "inventory_status": "READ_VERIFIED",
             "engine": ENGINE,
             "engine_version": ENGINE_VERSION,
             "available": installed,
@@ -182,6 +188,7 @@ def probe(model: str | None = None) -> dict:
         }
     return {
         "capability": True,
+        "inventory_status": "READ_VERIFIED",
         "engine": ENGINE,
         "engine_version": ENGINE_VERSION,
         "model": model,

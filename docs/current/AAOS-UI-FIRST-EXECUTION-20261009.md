@@ -480,3 +480,9 @@ a2完整CI38085061981已completed/FAIL，安装job114312725772失败。下载art
 三文件隔离补丁按exact preimages合入：同job已有manual/folder/bounded日志时，fresh handler在生成UUID/本地attempt前实时拒绝，两个新请求按钮共同禁用；恢复入口可明确选择全部surface，原key/预算/source revision/surface/relative保持，不自动执行或启用。隔离旧源码3 PASS/3新增FAIL保留，修复4文件60 PASS；首轮root postimage因CRLF/LF失败，独立全内容normalized bytes与已核SHA的隔离源码完全一致后恢复exact bytes，再作root按钮一致性补充，不伪造首次成功。
 
 根最终121文件1122全前端PASS无skip，包含前批丢ACK修复及本批三个surface挂载回归，TypeScript/production build、architecture/diff PASS且source_consistent=true。实际Core/worker/安装尚NOT_EXECUTED，不把SIMULATED提升为REAL。详见[入口冻结身份集成](receipts/AAOS-BOUNDED-JOURNAL-OWNERSHIP-INTEGRATION-20261011.json)。当前10852bc候选CI38088242528仍在desktop-build114319270161实际NSIS构建，不包含本批源码，未取消或dispatch替代。整体PARTIAL，五主题及冻结边界不变。
+
+## 2026-10-11 实际文本模型库存诊断修复（PARTIAL）
+
+重新只读探测已声明loopback端点，availability仍false，未启动软件/模型。源码确认旧probe把成功空模型列表与HTTP/JSON失败均描述为无端点，畸形rows还可漏报类型或抛出未捕获异常；新增回归先11 PASS/7 FAIL，修复后区分READ_VERIFIED的模型缺失与READ_FAILED异常类型，校验协议列表/非空字符串身份，不回显服务器错误正文。worker模型/provider/prompt/engine及回答链不变。
+
+根worker/helper/native联合68 PASS无skip，critical Ruff/architecture与源码一致PASS；真实loopback后读回为READ_FAILED/URLError，进程状态、模型是否加载仍UNVERIFIED，不用请求失败推导未安装。成功库存只算可用性，不算推理。详见[文本库存诊断修复](receipts/AAOS-TEXT-MODEL-INVENTORY-REPAIR-20261011.json)。实际同知识回答/纠正/独立复测与全九步仍未验收，当前live候选继续保留，整体PARTIAL。

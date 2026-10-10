@@ -1,0 +1,38 @@
+{
+  "schema": "archeaxis.execution-progress/v1",
+  "date": "2026-10-11",
+  "whole_goal": "PARTIAL",
+  "status": "IMPLEMENTED_TESTED_LOCAL_ACTUAL_INFERENCE_PENDING",
+  "files": ["services/python-workers/machine/worker_machine_answer.py", "tests/test_worker_machine_answer.py"],
+  "defect": "Availability probe collapsed HTTP/JSON failure and a successfully read empty model inventory into the same no-endpoint message; malformed inventory rows could raise uncaught errors or pass non-string identifiers.",
+  "repair": {
+    "successful_inventory": "READ_VERIFIED; selected model absent, including empty list, reports model unavailable",
+    "failed_inventory": "READ_FAILED plus sanitized exception type; does not claim an empty successful inventory",
+    "shape": "Require protocol-specific list and nonempty string identities",
+    "availability_only": "Presence in verified inventory is not actual inference or answer quality",
+    "unchanged": "Endpoint declaration/order, provider/model/prompt/engine identity, answer execution and authority remain unchanged"
+  },
+  "verification": {
+    "red": {"execution": ".project-local/runs/be268a2d33/c76ca4733c05/artifacts/execution.json", "passed": 11, "failed": 7},
+    "final": {"execution": ".project-local/runs/be268a2d33/9bedd5a760bd/artifacts/execution.json", "passed": 68, "skipped": 0},
+    "source_commit": "d9dd85c779ed9379d16b1598600631896915d135",
+    "source_patch_sha256": "34456af5fd5231ea6c764bdb4dbcb545affc36b3af06e416ce63646b43ad6c38",
+    "source_consistent": true,
+    "critical_ruff": "PASS",
+    "architecture": "PASS",
+    "test_evidence": "SIMULATED_HTTP_AND_RECEIPT_BINDINGS",
+    "warning": "Pyreadline3 destructor 0xc0000008 retained after pytest exit0"
+  },
+  "actual_availability": {
+    "before": ".project-local/runs/be268a2d33/c874b4597b15/artifacts/text-service-availability.json",
+    "after": ".project-local/runs/be268a2d33/a45c643ddb82/artifacts/text-service-availability.json",
+    "capability": false,
+    "inventory_status": "READ_FAILED",
+    "error_type": "URLError",
+    "selected_endpoint": "http://127.0.0.1:11434",
+    "boundary": "No explicit routing overrides; only reviewed declared loopback endpoints were probed, no startup or model changes",
+    "service_process_state": "UNVERIFIED; request failure alone does not prove missing process or inventory",
+    "actual_inference": "NOT_EXECUTED"
+  },
+  "limits": ["No text-model service executable/start contract confirmed", "No actual answer/correction/retest qualification", "No global configuration or credential access", "Current live CI does not contain this patch", "No release or installed-user claim"]
+}

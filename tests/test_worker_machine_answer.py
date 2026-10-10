@@ -28,6 +28,58 @@ def _load(name: str, path: Path):
 machine = _load("worker_machine_under_test", WORKER)
 
 
+@pytest.mark.parametrize("payload", [{"data": []}, {"data": [{"id": "different-model"}]}])
+def test_probe_distinguishes_reachable_inventory_from_unavailable_model(monkeypatch, payload):
+    import io
+    monkeypatch.setattr(machine, "_endpoint", lambda: {
+        "protocol": "openai", "base": "http://127.0.0.1:1/v1", "model": "m", "discovered": True})
+    monkeypatch.setattr(machine.urllib.request, "urlopen", lambda *args, **kwargs: io.BytesIO(json.dumps(payload).encode()))
+    result = machine.probe()
+    assert result["capability"] is False
+    assert result["reason"] == "model m is not available"
+    assert result["inventory_status"] == "READ_VERIFIED"
+    assert result["available"] == [row["id"] for row in payload["data"]]
+
+
+@pytest.mark.parametrize("payload", [{}, {"data": {}}, {"data": [None]}, {"data": [{"id": 7}]}])
+def test_probe_rejects_malformed_inventory_without_claiming_empty_models(monkeypatch, payload):
+    import io
+    monkeypatch.setattr(machine, "_endpoint", lambda: {
+        "protocol": "openai", "base": "http://127.0.0.1:1/v1", "model": "m", "discovered": True})
+    monkeypatch.setattr(machine.urllib.request, "urlopen", lambda *args, **kwargs: io.BytesIO(json.dumps(payload).encode()))
+    result = machine.probe()
+    assert result["capability"] is False
+    assert result["inventory_status"] == "READ_FAILED"
+    assert result["error_type"] in {"ValueError", "JSONDecodeError"}
+    assert "available" not in result
+
+
+def test_probe_retains_request_failure_type_without_echoing_server_error(monkeypatch):
+    monkeypatch.setattr(machine, "_endpoint", lambda: {
+        "protocol": "ollama", "base": "http://127.0.0.1:1", "model": "m", "discovered": False})
+    def refuse(*args, **kwargs):
+        raise machine.urllib.error.URLError("SYNTHETIC private response must not be echoed")
+    monkeypatch.setattr(machine.urllib.request, "urlopen", refuse)
+    result = machine.probe()
+    assert result["capability"] is False
+    assert result["inventory_status"] == "READ_FAILED"
+    assert result["error_type"] == "URLError"
+    assert "SYNTHETIC private" not in json.dumps(result)
+
+
+@pytest.mark.parametrize("protocol,key,identity", [("openai", "data", "id"), ("ollama", "models", "name")])
+def test_verified_selected_inventory_is_availability_only_without_inference(monkeypatch, protocol, key, identity):
+    import io
+    monkeypatch.setattr(machine, "_endpoint", lambda: {
+        "protocol": protocol, "base": "http://127.0.0.1:1", "model": "m", "discovered": True})
+    monkeypatch.setattr(machine.urllib.request, "urlopen", lambda *args, **kwargs: io.BytesIO(json.dumps({key: [{identity: "m"}]}).encode()))
+    monkeypatch.setattr(machine, "_call", lambda *args, **kwargs: pytest.fail("Availability probe invoked inference"))
+    result = machine.probe()
+    assert result["capability"] is True and result["inventory_status"] == "READ_VERIFIED"
+    assert result["model"] == "m" and result["available"] == ["m"]
+    assert "answer" not in result
+
+
 def test_a_question_is_required_rather_than_answering_nothing():
     # An answer to no question is not a task, so the route refuses instead of returning model noise.
     with pytest.raises(ValueError) as raised:
