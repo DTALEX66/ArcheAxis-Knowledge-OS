@@ -194,4 +194,3 @@ it("SIMULATED a permission change during explicit resolution preserves the chose
   expect(box).toHaveTextContent("我的独立原稿");expect(f.get().state.drafts["doc-a"]).toEqual({base_version:2,editor_json:editor("我的独立原稿")});
   expect(f.records.get("doc-a")?.version).toBe(2);
 });
-

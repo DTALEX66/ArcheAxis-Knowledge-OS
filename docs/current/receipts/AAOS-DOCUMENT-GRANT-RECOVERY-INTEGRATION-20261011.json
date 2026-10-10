@@ -67,7 +67,7 @@
   },
   "architecture": "PASS",
   "critical_ruff": "PASS",
-  "diff_check": "PASS",
+  "diff_check": "Initial tracked diff PASS; staged check found new-test EOF blank line; removed in follow-up without changing test semantics",
   "new_rust_execution": "NOT_EXECUTED; existing local permission denial preserved; exact-SHA CI required",
   "installed_new_recovery": "NOT_EXECUTED",
   "immutable_pre_merge_unsaved_archive": "NOT_IMPLEMENTED; UI explicitly states limitation",
@@ -85,5 +85,10 @@
     "release": "NOT_EXECUTED",
     "green_replacement": "NOT_EXECUTED",
     "real_user_data_overwrite": "NOT_EXECUTED"
+  },
+  "post_test_whitespace_only": {
+    "path": "frontend/src/__tests__/DocumentConflictRecovery.test.tsx",
+    "sha256": "f48f4318f814d94bd56bcd7e2c73ff029ccfa079812da025fba382802319c5a6",
+    "change": "Remove extra blank line at EOF; no assertions or implementation changed"
   }
 }
