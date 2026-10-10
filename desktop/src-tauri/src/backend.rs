@@ -1456,10 +1456,23 @@ mod tests {
             "preserved_previous":preserved,"preserved_objects_directory":format!("{}.objects",preserved.display())});
         let bytes = serde_json::to_vec(&good).unwrap();
         let mut legacy = good.clone();
-        legacy.as_object_mut().unwrap().remove("authorization_requires_new_grants");
-        assert!(!super::core_restore_receipt_valid(&serde_json::to_vec(&legacy).unwrap(),false,&core.workspace_db,&backup));
-        legacy["authorization_requires_new_grants"]=serde_json::json!(false);
-        assert!(!super::core_restore_receipt_valid(&serde_json::to_vec(&legacy).unwrap(),false,&core.workspace_db,&backup));
+        legacy
+            .as_object_mut()
+            .unwrap()
+            .remove("authorization_requires_new_grants");
+        assert!(!super::core_restore_receipt_valid(
+            &serde_json::to_vec(&legacy).unwrap(),
+            false,
+            &core.workspace_db,
+            &backup
+        ));
+        legacy["authorization_requires_new_grants"] = serde_json::json!(false);
+        assert!(!super::core_restore_receipt_valid(
+            &serde_json::to_vec(&legacy).unwrap(),
+            false,
+            &core.workspace_db,
+            &backup
+        ));
         assert!(super::core_restore_receipt_valid(
             &bytes,
             false,

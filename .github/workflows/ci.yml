@@ -1044,7 +1044,7 @@ jobs:
         run: |
           cargo fmt --all
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-          python -c "import os,subprocess; from pathlib import Path; p=Path(os.environ['ARCHEAXIS_RUN_ROOT'])/'artifacts'/'tauri-rustfmt.patch'; p.parent.mkdir(parents=True,exist_ok=True); p.write_bytes(subprocess.check_output(['git','-C',os.environ['GITHUB_WORKSPACE'],'diff','--binary','--','src-tauri']))"
+          python -c "import os,subprocess; from pathlib import Path; p=Path(os.environ['ARCHEAXIS_RUN_ROOT'])/'artifacts'/'tauri-rustfmt.patch'; p.parent.mkdir(parents=True,exist_ok=True); p.write_bytes(subprocess.check_output(['git','-C',os.environ['GITHUB_WORKSPACE'],'diff','--binary','--','src-tauri','desktop/src-tauri/src/backend.rs']))"
       - name: Upload formal host formatting repair
         if: ${{ failure() && steps.desktop_shell.outcome == 'failure' }}
         uses: actions/upload-artifact@834a144ee995460fba8ed112a2fc961b36a5ec5a

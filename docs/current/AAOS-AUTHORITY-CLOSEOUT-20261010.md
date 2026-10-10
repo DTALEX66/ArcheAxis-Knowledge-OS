@@ -7,7 +7,7 @@
 - 原全仓工作区格式检查的 41 项问题已经处理：普通文本统一 LF、末尾换行；13 个原始任务包成员、ZIP 文本和修复前快照保持 manifest 登记的原字节。
 - `.gitattributes` 对这些精确文件使用 `-text`；格式门禁按精确 SHA-256 核验，修改任何原字节仍失败，没有目录通配豁免。Git 索引中旧的换行转换已经修复。原件的 BOM、CRLF、Markdown hard break 是保全内容，不是新源码格式规范。
 - 修复提交 `0036c51212755c2e2abfc0b38694e353b1e0bb6d` 已普通推送 main、codex/Audit、codex/aaos-gov-ui-20261008。主检出、gov-ui 检出和干净的 f15-folder-ingest 检出已快进。
-- 对 7 个历史检出的 AGENTS.md、README.md 共 14 个公开入口加入历史隔离提示，指向主仓库当前权威。原正文与未知未提交修改保留，修改前字节备份在主项目 `.project-local/runs/authority-ci-cache-closeout-20261010/offline-entry-before/`。这些本地提示不上传历史分支，不把历史源码升级为当前实现。
+- 对 7 个历史检出的 AGENTS.md、README.md 共 14 个公开入口加入历史隔离提示，指向主仓库当前权威。原正文与未知未提交修改保留，修改前字节备份在主项目 `.project-local/runs/be268a2d33/authority-ci-cache-closeout-20261010/offline-entry-before/`。这些本地提示不上传历史分支，不把历史源码升级为当前实现。
 
 ## 云端 CI 发现与修复
 
@@ -35,7 +35,7 @@
 
 架构相关回归首轮 79 PASS、6 FAIL、2 skipped：包含 Windows 环境变量大小写回归、沙箱硬链接拒绝和本机真实工具探测失败。大小写问题已修复；后续定向 82 PASS、2 skipped、3 deselected，run `be268a2d33/43979fc22b32`。三项未纳入本机定向通过结论，需要完整 CI 或有对应能力的运行环境验证。脚本原有直接 CLI 帮助入口已另行验证；测试退出的 pyreadline 清理警告保留。
 
-本地明细：`.project-local/runs/authority-ci-cache-closeout-20261010/FORMAT-WRITESET.json`、`OFFLINE-CHECKOUT-READBACK.json`、`OFFLINE-ENTRY-FENCES.json`。本记录需要随后补齐新提交的云端结果，不能提前标 PASS。
+本地明细：`.project-local/runs/be268a2d33/authority-ci-cache-closeout-20261010/FORMAT-WRITESET.json`、`OFFLINE-CHECKOUT-READBACK.json`、`OFFLINE-ENTRY-FENCES.json`。本记录需要随后补齐新提交的云端结果，不能提前标 PASS。
 
 ## 后续完整运行与证据修复
 
@@ -58,3 +58,7 @@
 H01 原始容器属于 Owner 本地保全来源，现有测试声明其不是默认云端 Gate；云端未提供 AAOS_H01_REPO 时明确 skipped，不报告 H01 PASS。显式提供原件时仍强制原字节与行覆盖验证，没有上传本地原件或伪造云端副本。
 
 浏览器模板夹具跟随 Core 的 create_request_id → SHA-256 文档身份、稳定块 ID、完整 ACK/版本读回和当前成功提示；仍为 SYNTHETIC 文档桥接，真实渲染单独记录。安装旅程先验证当前分组入口，既有导入、模板与核验行为使用产品声明的公开 #space 兼容路由，回执明确不将兼容路线视为新页面布局资格。Rust 实际 worker 测试发现云端缺少 OCR 引擎，使用项目已有的固定版本、摘要校验和项目内解压流程准备 OCR，不跳过真实 OCR 测试。新 SHA 的完整 CI 仍待验证。
+
+完整运行 `38064586894` 对应 `f938e171d9b83c056e5d48f819c3f9ae3de91261`：Rust 全工作区含真实 OCR 测试通过；Python 主套件 4567 PASS、2 FAIL、81 skipped、166 subtests PASS。剩余失败是新增 HTTP 章节未登记检查入口，以及云端错误要求本机 NTFS 历史目录存在。章节已登记路由/数量回归；NTFS 例外只用于 baseline.repository 对应的真实 Git owning root，其他检出使用空例外，不继承本机路径豁免。新增负控验证此边界，相关定向回归 27 PASS，run `be268a2d33/35e0c84a837e`。
+
+浏览器模板保存的另一条旧提示已修复，并等待实际 v2 列表行以排除旧成功提示串扰；正式宿主复用的 desktop backend 模块唯一格式差异按云端原始 diff 修复。格式失败补丁采集覆盖该精确复用模块。此前本轮证据目录已同盘移动到 launcher 身份/run 层级，RUN-LOCATION.json 登记原址与现址；14 份原正文的备份哈希和后缀 readback 再次全部通过。当前三检出在 f938e171 同步；后续提交须再次回读，完整资格仍待最终 SHA。

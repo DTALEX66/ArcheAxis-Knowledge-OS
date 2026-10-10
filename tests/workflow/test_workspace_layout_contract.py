@@ -23,6 +23,19 @@ def load_report():
     return module
 
 
+def baseline_entries_for_owner(baseline, owner):
+    # NTFS refusal/junction names describe only the recorded owning checkout.
+    # A fresh cloud clone or a different host must satisfy an empty baseline.
+    same_owner = str(owner).replace("\\", "/").casefold() == baseline["repository"].replace("\\", "/").casefold()
+    return set(baseline["blocked_entries"]) if same_owner else set()
+
+
+def test_another_checkout_cannot_inherit_host_specific_layout_exceptions(tmp_path):
+    baseline = {"repository": str(tmp_path / "owner"), "blocked_entries": ["old-local-run"]}
+    assert baseline_entries_for_owner(baseline, tmp_path / "cloud") == set()
+    assert baseline_entries_for_owner(baseline, tmp_path / "owner") == {"old-local-run"}
+
+
 def test_no_entry_sits_outside_the_documented_layout():
     report = load_report().measure()
     assert report["out_of_layout"] == [], (
@@ -68,7 +81,9 @@ def test_no_run_directory_sits_at_the_wrong_depth():
             # Each finding is `runs: <name> (reason)`; the baseline records bare names so a reader
             # can diff it against `ls`, which means the prefix has to come off here.
             measured.add(finding.split("runs: ", 1)[1].split(" (")[0].rstrip("/"))
-    recorded = set(baseline["blocked_entries"])
+    import subprocess
+    common = subprocess.check_output(["git", "-C", str(REPO), "rev-parse", "--path-format=absolute", "--git-common-dir"], text=True).strip()
+    recorded = baseline_entries_for_owner(baseline, Path(common).parent)
     assert not measured - recorded, (
         f"new entries at the wrong depth under runs/: {sorted(measured - recorded)}"
         " — move them with scripts/runtime/realign_dev_layout.py")

@@ -751,7 +751,7 @@ UI must show machine answering as not connected rather than calling anything.
 
 The projection-only launch retains its explicit unconfigured document-check execution handler. A text-worker launch instead mounts that same method/path once in the runtime builder; its 61 base projection pairs plus 22 runtime pairs total 83. This does not add a second endpoint or imply cloud configuration.
 
-## 2026-10-10 current-source inventory refresh
+## 10. 2026-10-10 current-source inventory refresh
 
 The 21 additional method/path pairs below are registered in the current router source. This is source inspection, not runtime or installed qualification. Historical 2026-10-01/05/07 receipts above retain their measured counts. Authentication guards, request bodies and responses remain defined by the handler and generated Core contract; no new permission is granted by this index. Current projection/runtime counts are 53/21 mounts and 62/83 method/path pairs for projection-only/text-worker launches.
 
