@@ -22,9 +22,9 @@ function coursePage(value: unknown): { items: CourseRow[]; next: string | null }
 }
 
 /** One canonical course/learning journey shared by semantic pages 06 and 07. */
-export function CanonicalLearningJourneySpace({ pageId = "06", onOpenPage, onTrail, initialItemKey }: {
+export function CanonicalLearningJourneySpace({ pageId = "06", onOpenPage, onTrail, initialItemKey, onLearningItem }: {
   pageId?: string; onOpenPage?: (id: string) => void; onTrail?: (levels: readonly ObjectTrailLevel[]) => void;
-  initialItemKey?: string;
+  initialItemKey?: string; onLearningItem?:(key:string)=>void;
 }) {
   const [courses, setCourses] = useState<CourseRow[]>([]);
   const [cursor, setCursor] = useState<string | null>(null);
@@ -99,7 +99,7 @@ export function CanonicalLearningJourneySpace({ pageId = "06", onOpenPage, onTra
         {searched && !results.length ? <p>没有匹配的知识。可先去知识库保存内容，再独立整理课程来源。</p> : null}
         <ul aria-label="课程来源搜索结果">{results.map(row => <li key={row.knowledge_id}><button disabled={searching} onClick={() => void chooseKnowledge(row)}>{row.head}</button></li>)}</ul>
         {courseId || knowledgeId ? <KnowledgeCoursePanel key={courseId ?? knowledgeId} courseId={courseId} knowledgeId={knowledgeId}
-          onCourseCreated={() => { void load(); }} onLearning={key => { setItemKey(key); onOpenPage?.("06"); }} /> : null}
+          onCourseCreated={() => { void load(); }} onLearning={key => { setItemKey(key); onLearningItem?.(key); onOpenPage?.("06"); }} /> : null}
         {knowledgeId ? <p>课程来源：{knowledgeTitle}。生成不会改写原知识，也不会直接记录掌握。</p> : null}
         {message ? <p role="status">{message}</p> : null}{failure ? <p className="state-reason">{failure}</p> : null}
       </div>
@@ -110,6 +110,7 @@ export function CanonicalLearningJourneySpace({ pageId = "06", onOpenPage, onTra
         <button onClick={() => onOpenPage?.("17")}>查看完整能力与依赖</button>
       </aside>
     </div>
-    {pageId === "06" || itemKey ? <div className="ui-content-panel ui-learning-review"><CanonicalLearningSpace onTrail={onTrail} initialItemKey={itemKey} /></div> : null}
+    <div className="ui-content-tabs"><button disabled={!itemKey} onClick={()=>{if(itemKey){onLearningItem?.(itemKey);onOpenPage?.("11");}}}>练习此学习项目</button><button disabled={!itemKey} onClick={()=>{if(itemKey){onLearningItem?.(itemKey);onOpenPage?.("12");}}}>复习此学习项目</button></div>
+    {pageId === "06" || itemKey ? <div className="ui-content-panel ui-learning-review"><CanonicalLearningSpace onTrail={onTrail} initialItemKey={itemKey} onItemSelected={key=>{setItemKey(key);onLearningItem?.(key);}} /></div> : null}
   </section>;
 }

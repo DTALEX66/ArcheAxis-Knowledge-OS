@@ -16,7 +16,9 @@ function records(value: unknown): Record<string, unknown>[] {
   if (!Array.isArray(value)) throw new Error("invalid list");
   return value.map(record);
 }
-export function CanonicalKnowledgeSpace({onLearning,onTrail}:{onLearning?:()=>void;onTrail?:(levels:readonly ObjectTrailLevel[])=>void}) {
+import type { CandidateJourneyTarget } from "../presentation/sourceJourney";
+
+export function CanonicalKnowledgeSpace({initialCandidate,showMachine=true,onLearning,onTrail}:{initialCandidate?:CandidateJourneyTarget;showMachine?:boolean;onLearning?:(itemKey?:string)=>void;onTrail?:(levels:readonly ObjectTrailLevel[])=>void}) {
   const [query, setQuery] = useState("");
   const [items, setItems] = useState<Record<string, unknown>[]>([]);
   const [documents,setDocuments]=useState<Record<string,unknown>[]>([]);
@@ -52,15 +54,17 @@ export function CanonicalKnowledgeSpace({onLearning,onTrail}:{onLearning?:()=>vo
       const [detail, proof] = await Promise.all([coreCommand("knowledge_get",{id}),coreCommand("knowledge_qualification",{id})]);
       const data = record(detail);
       if (data.knowledge_id !== id || typeof data.body !== "string" || typeof data.version !== "string" || !data.version) throw new Error("invalid knowledge fields");
+      if(initialCandidate){if(data.knowledge_id!==initialCandidate.knowledge_id||data.source_id!==initialCandidate.source_id||data.anchor_id!==initialCandidate.anchor_id)throw new Error("candidate identity mismatch");const anchor=record(await coreCommand("anchor_resolve",{source_id:initialCandidate.source_id,anchor_id:initialCandidate.anchor_id}));if(anchor.source_id!==initialCandidate.source_id||anchor.anchor_id!==initialCandidate.anchor_id||anchor.source_revision!==initialCandidate.source_revision||anchor.current_source_revision!==initialCandidate.source_revision||anchor.status!=="CURRENT"||anchor.scope!=="locator_provenance_only")throw new Error("candidate source version mismatch");}
       if (current === epoch.current) {setSelected(data);setQualification(proof);setMessage("");}
     } catch (error) {setMessage("候选与证据读取失败，审核按钮不可用。");setFailureReason(coreFailureReason(error));}
   }
+  useEffect(()=>{if(initialCandidate)void open(initialCandidate.knowledge_id);return()=>{epoch.current++;};},[initialCandidate]);
   async function review(action: "accepted"|"rejected"|"deprecated") {
     if (!selected || !reviewer.trim() || busy) return;
     const current = epoch.current; setBusy(true);
     try {
       const receipt = record(await coreCommand("knowledge_review",{id:selected.knowledge_id,body:{action,reviewer:reviewer.trim(),note,expected_version:selected.version}}));
-      if (typeof receipt.knowledge_id !== "string" || typeof receipt.version !== "string") throw new Error("invalid review receipt");
+      if (typeof receipt.knowledge_id !== "string" || receipt.knowledge_id !== selected.knowledge_id || typeof receipt.version !== "string") throw new Error("invalid review receipt");
       if (current === epoch.current) {await open(receipt.knowledge_id);setMessage("审核决定已由本地核心记录。");}
     } catch (error) {setMessage("审核未完成，可能版本已变化。保留备注并重新读取候选后再决定。");setFailureReason(coreFailureReason(error));}
     finally {setBusy(false);}
@@ -74,7 +78,7 @@ export function CanonicalKnowledgeSpace({onLearning,onTrail}:{onLearning?:()=>vo
       const assessment = record(await coreCommand("assessment_create", {item_key,body:{knowledge_id:selected.knowledge_id}}));
       if (assessment.item_key !== item_key || typeof assessment.assessment_id !== "string" || typeof assessment.question !== "string") throw new Error("invalid assessment");
       setMessage("已创建绑定此知识版本的问题，请在学习队列打开。");
-      onLearning?.();
+      onLearning?.(item_key);
     } catch {setMessage("学习问题创建失败；Core 仅允许当前有效、已接受的知识。");}
     finally {setBusy(false);}
   }
@@ -100,7 +104,7 @@ export function CanonicalKnowledgeSpace({onLearning,onTrail}:{onLearning?:()=>vo
       <button disabled={busy} onClick={()=>void open(String(selected.knowledge_id))}>重新读取候选</button><button disabled={busy||selected.status!=="accepted"} onClick={()=>void study()}>由当前知识建立学习问题</button></article>:null}
     {selected?.status === "accepted" ? <>
       <KnowledgeCoursePanel key={`course:${String(selected.knowledge_id)}:${String(selected.version)}`} knowledgeId={String(selected.knowledge_id)} onLearning={onLearning} />
-      <MachineAnswerPanel key={`${String(selected.knowledge_id)}:${String(selected.version)}`} knowledgeId={String(selected.knowledge_id)} />
+      {showMachine?<MachineAnswerPanel key={`${String(selected.knowledge_id)}:${String(selected.version)}`} knowledgeId={String(selected.knowledge_id)} />:null}
     </> : null}
     {message?<p role="status">{message}</p>:null}
     {failureReason?<p className="state-reason">{failureReason}</p>:null}</Section>;

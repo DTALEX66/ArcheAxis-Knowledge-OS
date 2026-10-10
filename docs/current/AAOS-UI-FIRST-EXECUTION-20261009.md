@@ -298,3 +298,14 @@ Owner 当前目标为完整核心框架、常见常用格式与最短闭环，�
 后续完整前端回归 `be268a2d33/9f6c48743688`：111 文件 / 1034 测试 PASS，采用最多 4 个 worker 保留原断言与超时；此前默认并发的文件批次与懒加载等待超时 FAIL 保留。挂载回归实测复现正文 ACK 后残留 debounce 二次正文写入，现取消计时器并用已确认内容防止重复写；独立草稿、新 Session 同请求创建恢复、仅 journal 重试及晚输入四项挂载回归 PASS（SIMULATED）。全回归之后只给该测试的 undefined narrowing 加明确 guard，定向 4 项再次 PASS；产品源码未因此改变。新测试纳入 TypeScript 检查。
 
 扫描 PDF 的实际 OCR 前置资格原先只看旧 gitignored tools 路径，已对齐 CI/worker 声明的 TESSDATA_PREFIX，并核对 companion 和显式引擎文件。CI 或明确 OCR 声明下缺语言数据、失效引擎或 PDF 输入构造失败硬失败；普通未声明本地环境明确 NOT_EXECUTED。纯选择回归含 9 项断言；该 Rust 测试本地因依赖 build script 的 kernel32.lib 缺失 NOT_EXECUTED，当前实际 OCR 正文与定位资格仍不能升级。未改变主题或激活冻结范围。
+
+
+## 2026-10-11 多格式及同对象 UI 接线续批（PARTIAL）
+
+当前候选 `282fcf579e8696e5b3e74f19a3e821865e350db5` 的 desktop-fast 实际 Core/worker 回执已下载并核对 clean source：DOCX/XLSX/PPTX/文字 PDF 的选定中文复合样本、原件保全、定位独立复验、新作业重解析及重启通过；内容策略包含原创丢失 ACK 的客户端注入、固定请求重放唯一性、重启和独立备份恢复通过。材料是合成自有样本；未证明安装界面、原格式重建、中文扫描识别或全部媒体内容。完整 CI 仍有 Rust 格式和 browser-smoke 失败，不记全局 PASS。
+
+续批合入 CSV 原生 facts 覆盖稳定单元格路径修复、真实 OCR line 来源/尝试/输出指纹核验、page16→page03→同源候选→手工审核、Tiptap 引用 position 序列化与点击/键盘实际节点定位。整合测试发现两个原件面板共享焦点 ref；按页面用途修复后相关41项 PASS。26项实际本地 parser/helper 回归、TypeScript 与 canonical frontend build PASS。新真实 journal/recovery、common-light/OCR 探针已接 CI，但新增 Core locator 尚未获当前编译和实际执行资格。分项收据见 [续批证据](receipts/AAOS-CLOSED-LOOP-CONTINUATION-20261011.json)。学习/练习切页同对象身份仍在独立工作树修复；完整九步、实际 ASR、安装态及 Owner 验收未完成。所有旧失败及历史源码证据保留；主题、冻结范围和 no-release 边界不变。
+
+同对象学习接线已统一合入：accepted知识→course/lesson→assessment→page11练习→page12复习保留原身份与独立答案，错对象拒绝。最终整合前端113文件/1043项、TypeScript及production build PASS（SIMULATED）。当前282候选完整CI为FAIL，desktop-build及desktop-fast PASS；安装WebDriver失败截图显示恢复确认门禁正确生效，旧probe缺明确选择。现已改为实际UI保留候选，再核对相同workspace/restore_epoch、revision+1、候选精确保全；17项Native helper含5项正反回归通过，实际安装复验仍待新候选。
+
+本地canonical浏览器probe启动Vite后readiness超时；独立owned-loopback实验证实WinError10013套接字权限拒绝，未提权/改ACL/网络配置。曾尝试的局部proxy调整与实验代码已撤回，失败证据保留。已声明本地Whisper模型存在，但offline SAPI生成入口被AuthorizationManager拒绝；缺明确项目内spoken WAV+文字稿，实际ASR NOT_EXECUTED。当前询问Owner素材路径，其他闭环继续推进。

@@ -28,7 +28,9 @@ const PdfReader = lazy(() => import("../components/PdfReader").then(module => ({
 // Tiptap/ProseMirror are needed only after a versioned document is selected.
 const DocumentEditor = lazy(() => import("../components/DocumentEditor").then(module => ({ default: module.DocumentEditor })));
 
-export function CanonicalLibrarySpace({purpose,onOpenDocument,onOpenImport,onKnowledge,initialDocumentId,onDirtyChange,onInspect,onOpenCapability,navigation,onTrail}:{purpose?:"library"|"reader"|"history";onOpenDocument?:(id:string)=>void;onOpenImport?:()=>void;onKnowledge?:()=>void;initialDocumentId?:string;onDirtyChange?:(dirty:boolean)=>void;onInspect?:(target:InspectionTarget)=>void;onOpenCapability?:(id:string)=>void;navigation?:{section:string;sequence:number};onTrail?:(levels:readonly ObjectTrailLevel[])=>void}) {
+import type { SourceJourneyTarget, CandidateJourneyTarget } from "../presentation/sourceJourney";
+
+export function CanonicalLibrarySpace({initialSourceTarget,purpose,onOpenDocument,onOpenImport,onKnowledge,initialDocumentId,onDirtyChange,onInspect,onOpenCapability,navigation,onTrail}:{initialSourceTarget?:SourceJourneyTarget;purpose?:"library"|"reader"|"history";onOpenDocument?:(id:string)=>void;onOpenImport?:()=>void;onKnowledge?:(target?:CandidateJourneyTarget)=>void;initialDocumentId?:string;onDirtyChange?:(dirty:boolean)=>void;onInspect?:(target:InspectionTarget)=>void;onOpenCapability?:(id:string)=>void;navigation?:{section:string;sequence:number};onTrail?:(levels:readonly ObjectTrailLevel[])=>void}) {
   const workingContext=useOptionalCoreWorkingState();
   // Core working-state persistence belongs to the verified formal desktop host.
   // Browser presentation fixtures do not obtain a native persistence receipt.
@@ -37,6 +39,7 @@ export function CanonicalLibrarySpace({purpose,onOpenDocument,onOpenImport,onKno
   const [documentSearch,setDocumentSearch] = useState("");
   const [contentFilter,setContentFilter] = useState<"all"|"original"|"linked">("all");
   const [showSource,setShowSource] = useState(false);
+  const [candidateEditing,setCandidateEditing]=useState(false);
   const [showVersions,setShowVersions] = useState(purpose === "history");
   const [sources, setSources] = useState<SourceDto[]>([]);
   const [libraryBootSettled,setLibraryBootSettled] = useState(false);
@@ -212,7 +215,8 @@ export function CanonicalLibrarySpace({purpose,onOpenDocument,onOpenImport,onKno
       if (libraryMounted.current) setLoadingDocuments(false);
     }
   }
-  useEffect(()=>{if(initialDocumentId && libraryBootSettled)void openDocument(initialDocumentId);},[initialDocumentId,libraryBootSettled]);
+  useEffect(()=>{if(initialDocumentId && !initialSourceTarget && libraryBootSettled)void openDocument(initialDocumentId);},[initialDocumentId,initialSourceTarget,libraryBootSettled]);
+  useEffect(()=>{if(!initialSourceTarget||!libraryBootSettled)return;setCandidateEditing(false);const matches=sources.filter(s=>s.source_id===initialSourceTarget.source_id&&s.source_revision===initialSourceTarget.source_revision&&s.sha256===initialSourceTarget.sha256);if(matches.length!==1){setFailure(true);setMessage("所选原件版本未唯一核对；不会切换为同名或新版原件。");return;}setShowSource(true);void open(matches[0]);},[initialSourceTarget,libraryBootSettled]);
   async function importFile(file: File) {
     setImportReceipt({name:file.name,bytes:file.size,state:"正在检查原件"});
     if (file.size > 64 * 1024 * 1024) { setMessage("当前导入上限为 64 MiB，请选择不超过上限的原件。"); setFailure(true); setImportReceipt({name:file.name,bytes:file.size,state:"未导入：超过大小上限"}); return; }
@@ -245,10 +249,11 @@ export function CanonicalLibrarySpace({purpose,onOpenDocument,onOpenImport,onKno
       readStage="原件字节核验";
       const actualHash = Array.from(new Uint8Array(await crypto.subtle.digest("SHA-256", decoded))).map((value) => value.toString(16).padStart(2, "0")).join("");
       if (actualHash !== selected.sha256) throw new Error("source bytes mismatch");
-      const linked = documents.find((item) => item.source_id === selected.source_id);
+      const linked = documents.find((item) => item.source_id === selected.source_id && item.source_revision === selected.source_revision);
       readStage="草稿版本读取";
       const active = linked ? await coreCommand<DocumentDto>("document_get", { document_id: linked.document_id }) : null;
       if (epoch !== generation.current || editingEpoch !== editGeneration.current) return;
+      if(active&&(active.document_id!==linked!.document_id||active.source_id!==selected.source_id||active.source_revision!==selected.source_revision))throw new Error("linked document identity mismatch");
       setSource(selected); setOriginal(asset); setBytes(decoded); setDocument(active); setAnchors(evidence.anchors);
       setDocumentSource(active ? selected : null); setDocumentOriginal(active ? asset : null); setDocumentBytes(active ? decoded : null);
       if (active) setOpenedDocuments(previous => previous.some(item => item.document_id === active.document_id) ? previous : [...previous, active]);
@@ -525,7 +530,7 @@ export function CanonicalLibrarySpace({purpose,onOpenDocument,onOpenImport,onKno
               <header><h4>不可变原件</h4><p>{linkedOriginal ? "原件身份、版本与字节指纹已核对。" : "关联原件尚未核对或当前未提供，不以其他原件替代。"}</p></header>
               {linkedOriginal && documentBytes && documentOriginal && documentSource ? <>
                 <dl className="original-derived-identity"><div><dt>来源 ID</dt><dd>{documentSource.source_id}</dd></div><div><dt>来源版本</dt><dd>{documentSource.source_revision}</dd></div><div><dt>原件 SHA-256</dt><dd>{documentOriginal.sha256}</dd></div></dl>
-                 {linkedPdf ? <Suspense fallback={<p>正在载入 PDF 阅读器…</p>}><PdfReader bytes={documentBytes} page={page} onPageChange={setPage} focusRequest={focusRequest} /></Suspense> : documentOriginal.media_type.startsWith("text/") ? <pre tabIndex={0} aria-label="并排原件正文">{new TextDecoder().decode(documentBytes)}</pre> : documentOriginal.media_type.startsWith("image/") ? <img className="original-derived-image" src={`data:${documentOriginal.media_type};base64,${documentOriginal.content_base64}`} alt={`原件 ${documentSource.original_name}`} /> : documentOriginal.media_type.startsWith("audio/") || documentOriginal.media_type.startsWith("video/") ? <MediaReader key={`derived-media:${documentSource.source_id}`} bytes={documentBytes} mediaType={documentOriginal.media_type} seek={mediaSeek?.sourceId===documentSource.source_id?mediaSeek:undefined}/> : <p>此格式没有原生并排查看器；原件仍保存在 CAS，可从原件列表使用现有 Reader。</p>}
+                 {linkedPdf ? <Suspense fallback={<p>正在载入 PDF 阅读器…</p>}><PdfReader bytes={documentBytes} page={page} onPageChange={setPage} focusRequest={focusRequest} /></Suspense> : documentOriginal.media_type.startsWith("text/") ? <pre ref={purpose === "reader" ? textRegion : undefined} tabIndex={0} aria-label="并排原件正文">{new TextDecoder().decode(documentBytes)}</pre> : documentOriginal.media_type.startsWith("image/") ? <img className="original-derived-image" src={`data:${documentOriginal.media_type};base64,${documentOriginal.content_base64}`} alt={`原件 ${documentSource.original_name}`} /> : documentOriginal.media_type.startsWith("audio/") || documentOriginal.media_type.startsWith("video/") ? <MediaReader key={`derived-media:${documentSource.source_id}`} bytes={documentBytes} mediaType={documentOriginal.media_type} seek={mediaSeek?.sourceId===documentSource.source_id?mediaSeek:undefined}/> : <p>此格式没有原生并排查看器；原件仍保存在 CAS，可从原件列表使用现有 Reader。</p>}
               </> : <p>原件读取失败、身份不匹配或未绑定到此文档版本。正文指纹与原件指纹保持分开显示。</p>}
             </article> : null;
   const versionControls = document ? <><div ref={versionNavigation} tabIndex={-1} data-section="versions" aria-label="文档版本导航" className="draft-restore"><label>恢复历史版本 <input type="number" min="1" max={document.version} value={restoreVersion} onChange={(event) => setRestoreVersion(event.target.value)} /></label><button type="button" onClick={() => void readHistory()}>只读查看历史版本</button><button type="button" disabled={busy} onClick={() => void singleWrite(restore)}>读取并恢复版本</button></div>
@@ -561,6 +566,7 @@ export function CanonicalLibrarySpace({purpose,onOpenDocument,onOpenImport,onKno
     </div>{feedback}
   </section>;
   if(purpose === "reader" || purpose === "history") return <section className="ui-reader-page" aria-label={purpose==="history" ? "文档版本视图" : "阅读与编辑文档视图"}>
+    {purpose==="reader"&&source&&original&&bytes?<section aria-label="同源知识整理"><h3>来源 {source.original_name}</h3><p>{source.source_id} · {source.source_revision}</p>{!document?<><pre ref={textRegion} tabIndex={0} aria-label="并排原件正文">{original.media_type.startsWith("text/")?new TextDecoder().decode(bytes):"原字节已核对；派生正文从真实转换作业读取。"}</pre><button disabled={busy} onClick={()=>void singleWrite(create)}>建立版本化草稿</button></>:null}<button aria-pressed={candidateEditing} onClick={()=>setCandidateEditing(true)}>整理此来源为知识候选</button>{candidateEditing?<JobContent key={`journey:${source.source_id}:${source.source_revision}`} sourceId={source.source_id} sourceRevision={source.source_revision} name={source.original_name} pinnedJobId={initialSourceTarget?.job_id} onKnowledge={onKnowledge} onDirtyChange={value=>{if(value)dirtyDocumentIds.current.add("source-candidate");else dirtyDocumentIds.current.delete("source-candidate");publishDirtyState();}} onAnchor={anchor=>setAnchors(previous=>[...previous.filter(a=>a.anchor_id!==anchor.anchor_id),anchor])}/>:null}</section>:null}
     {document ? <>
       <div className="ui-reader-toolbar"><div className="ui-content-tabs" role="group" aria-label="阅读辅助视图"><button type="button" aria-pressed={!showSource&&!showVersions} onClick={()=>{setShowSource(false);setShowVersions(false);}}>正文</button><button type="button" aria-pressed={showSource} onClick={()=>setShowSource(value=>!value)}>原件</button><button type="button" aria-pressed={showVersions||purpose==="history"} onClick={()=>setShowVersions(value=>!value)}>版本</button></div></div>
       <div className="ui-reader-layout"><article className="ui-reader-document" aria-label="文档正文与编辑"><header><p className="ui-document-meta">{document.source_id ? "关联原件文档" : "原创笔记"} · v{document.version} · 无需依据即可保存</p><h2>{document.title}</h2></header>{purpose!=="history" ? documentEditor : <p>{document.text_projection}</p>}

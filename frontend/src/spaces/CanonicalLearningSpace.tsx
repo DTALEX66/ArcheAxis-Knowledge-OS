@@ -31,7 +31,9 @@ function historySummary(history: unknown): string {
   if (value.receipt !== undefined && value.receipt !== null) parts.push("已记录本次提交的 Core 回执。");
   return parts.join("");
 }
-export function CanonicalLearningSpace({onTrail, initialItemKey}:{onTrail?:(levels:readonly ObjectTrailLevel[])=>void; initialItemKey?:string} = {}) {
+import {assertJourneyAssessment,type LearningJourneyTarget} from "../presentation/learningJourney";
+
+export function CanonicalLearningSpace({onTrail, initialItemKey, expectedJourney, onItemSelected}:{onItemSelected?:(key:string)=>void;expectedJourney?:LearningJourneyTarget;onTrail?:(levels:readonly ObjectTrailLevel[])=>void; initialItemKey?:string} = {}) {
   const [focusMode, setFocusMode] = useState(false);
   const [items, setItems] = useState<Record<string, unknown>[]>([]);
   const [itemKey, setItemKey] = useState("");
@@ -75,8 +77,9 @@ export function CanonicalLearningSpace({onTrail, initialItemKey}:{onTrail?:(leve
       const [raw, events] = await Promise.all([coreCommand("learning_state",{item_key:key}),coreCommand("learning_history",{item_key:key})]);
       const data = record(raw);
       if (data.item_key !== key || !data.learner || !data.machine) throw new Error("invalid learning state");
-      if (current === epoch.current) {setState(data);setHistory(events);setMessage("");}
-    } catch (error) {setMessage("学习记录读取失败，暂时不能提交结果。");setFailureReason(coreFailureReason(error));}
+      if(expectedJourney){if(key!==expectedJourney.item_key)throw new Error("different pinned learning item");assertJourneyAssessment(record(data.learner).assessment,expectedJourney);}
+      if (current === epoch.current) {setState(data);setHistory(events);setMessage("");if(key!==initialItemKey)onItemSelected?.(key);}
+    } catch (error) {if(current===epoch.current){setMessage("学习记录读取失败，暂时不能提交结果。");setFailureReason(coreFailureReason(error));}}
   }
   async function review() {
     if (!state || busy) return;
@@ -87,6 +90,7 @@ export function CanonicalLearningSpace({onTrail, initialItemKey}:{onTrail?:(leve
       const learner = record(state.learner);
       const assessment = learner.assessment ? record(learner.assessment) : null;
       if (!assessment || typeof assessment.assessment_id !== "string" || typeof assessment.question !== "string" || typeof assessment.knowledge_version !== "string") throw new Error("a real assessment is required");
+      if(expectedJourney){assertJourneyAssessment(assessment,expectedJourney);if(itemKey!==expectedJourney.item_key)throw new Error("different pinned learning item");}
       if (!answer.trim() || checkedCorrect === null || !rating) throw new Error("answer, answer check and self-rating are required");
       if (!ratingConsistent) throw new Error("The Core review contract requires rating 1 for an incorrect answer, and rating 2-4 for a correct answer.");
       const body:Record<string,unknown> = {item_key:itemKey,client_event_id:eventId.current,correct:checkedCorrect,rating:Number(rating),answer:answer.trim()};

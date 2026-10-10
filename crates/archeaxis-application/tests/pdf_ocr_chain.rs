@@ -107,7 +107,9 @@ fn qualification_tessdata(
             return Err("declared TESSERACT_CMD must be an existing absolute file".into());
         }
     }
-    let language = prefix.or(declared).map(|directory| directory.join("eng.traineddata"));
+    let language = prefix
+        .or(declared)
+        .map(|directory| directory.join("eng.traineddata"));
     match language {
         Some(file) if file.is_absolute() && file.is_file() => Ok(Some(file)),
         Some(_) => Err("declared OCR eng.traineddata exact file is missing or not absolute".into()),
@@ -125,7 +127,11 @@ fn ocr_qualification_required() -> bool {
 }
 
 fn tessdata_available() -> bool {
-    let path = |name| std::env::var_os(name).filter(|value| !value.is_empty()).map(PathBuf::from);
+    let path = |name| {
+        std::env::var_os(name)
+            .filter(|value| !value.is_empty())
+            .map(PathBuf::from)
+    };
     qualification_tessdata(
         path("TESSDATA_PREFIX"),
         path("ARCHEAXIS_OCR_TESSDATA"),
@@ -145,24 +151,74 @@ fn qualification_selects_exact_declared_language_and_refuses_stale_fallback() {
     let binary = temp.path().join("tesseract.exe");
     std::fs::write(&binary, b"synthetic existence fixture, never executed").unwrap();
     assert_eq!(
-        qualification_tessdata(Some(temp.path().into()), Some(temp.path().into()),
-            Some(binary.clone()), true, temp.path().join("absent")),
+        qualification_tessdata(
+            Some(temp.path().into()),
+            Some(temp.path().into()),
+            Some(binary.clone()),
+            true,
+            temp.path().join("absent")
+        ),
         Ok(Some(language.clone()))
     );
-    assert!(qualification_tessdata(None, Some(temp.path().into()), None, false,
-        temp.path().join("absent")).is_err());
-    assert!(qualification_tessdata(Some(temp.path().join("missing")), None, None,
-        false, language.clone()).is_err());
-    assert!(qualification_tessdata(Some(temp.path().into()), Some(temp.path().join("other")),
-        None, true, language.clone()).is_err());
-    assert!(qualification_tessdata(Some(temp.path().into()), None,
-        Some(temp.path().join("missing.exe")), false, language.clone()).is_err());
+    assert!(
+        qualification_tessdata(
+            None,
+            Some(temp.path().into()),
+            None,
+            false,
+            temp.path().join("absent")
+        )
+        .is_err()
+    );
+    assert!(
+        qualification_tessdata(
+            Some(temp.path().join("missing")),
+            None,
+            None,
+            false,
+            language.clone()
+        )
+        .is_err()
+    );
+    assert!(
+        qualification_tessdata(
+            Some(temp.path().into()),
+            Some(temp.path().join("other")),
+            None,
+            true,
+            language.clone()
+        )
+        .is_err()
+    );
+    assert!(
+        qualification_tessdata(
+            Some(temp.path().into()),
+            None,
+            Some(temp.path().join("missing.exe")),
+            false,
+            language.clone()
+        )
+        .is_err()
+    );
     assert!(qualification_tessdata(None, None, None, true, language.clone()).is_err());
-    assert!(qualification_tessdata(Some(PathBuf::from("relative")), None, None,
-        false, language.clone()).is_err());
-    assert_eq!(qualification_tessdata(None, None, None, false, language),
-        Ok(Some(temp.path().join("eng.traineddata"))));
-    assert_eq!(qualification_tessdata(None, None, None, false, temp.path().join("absent")), Ok(None));
+    assert!(
+        qualification_tessdata(
+            Some(PathBuf::from("relative")),
+            None,
+            None,
+            false,
+            language.clone()
+        )
+        .is_err()
+    );
+    assert_eq!(
+        qualification_tessdata(None, None, None, false, language),
+        Ok(Some(temp.path().join("eng.traineddata")))
+    );
+    assert_eq!(
+        qualification_tessdata(None, None, None, false, temp.path().join("absent")),
+        Ok(None)
+    );
 }
 
 #[tokio::test]
@@ -175,7 +231,10 @@ async fn a_scanned_pdf_chains_into_a_real_ocr_job_and_its_text_is_stored() {
     }
     let pdf = scanned_pdf_bytes("scanned page 6371");
     if pdf.is_empty() {
-        assert!(!ocr_qualification_required(), "declared OCR qualification cannot construct its actual PDF input");
+        assert!(
+            !ocr_qualification_required(),
+            "declared OCR qualification cannot construct its actual PDF input"
+        );
         eprintln!("skipping: PyMuPDF or PIL unavailable for building a sample");
         return;
     }
@@ -396,7 +455,10 @@ async fn a_scanned_pdf_chains_into_a_real_ocr_job_and_its_text_is_stored() {
 async fn a_pdf_with_text_chains_nothing_and_a_tampered_render_is_refused() {
     let pdf = text_pdf_bytes("this page already has text");
     if pdf.is_empty() {
-        assert!(!ocr_qualification_required(), "declared OCR qualification cannot construct its actual PDF input");
+        assert!(
+            !ocr_qualification_required(),
+            "declared OCR qualification cannot construct its actual PDF input"
+        );
         eprintln!("skipping: PyMuPDF unavailable for building a sample");
         return;
     }
@@ -544,7 +606,10 @@ async fn a_chaining_failure_is_recorded_as_a_machine_receipt_and_the_pdf_job_sti
     // a reader can find rather than a silence.
     let pdf = scanned_pdf_bytes("chain failure 6371");
     if pdf.is_empty() {
-        assert!(!ocr_qualification_required(), "declared OCR qualification cannot construct its actual PDF input");
+        assert!(
+            !ocr_qualification_required(),
+            "declared OCR qualification cannot construct its actual PDF input"
+        );
         eprintln!("skipping: PyMuPDF or PIL unavailable for building a sample");
         return;
     }

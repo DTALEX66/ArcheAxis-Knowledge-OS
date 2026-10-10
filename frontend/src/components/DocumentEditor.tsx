@@ -73,6 +73,16 @@ export function DocumentEditor({ content, version, onSave, onRetryWorkingState, 
     content: decodeEditorContent(content),
     editorProps: {
       attributes: { role: "textbox", "aria-label": "文档草稿", "aria-multiline": "true", spellcheck: "false" },
+      handleDOMEvents: {
+        click(view,event) {
+          const target=(event.target as HTMLElement).closest("[data-evidence-reference]");
+          if(!target||!view.dom.contains(target))return false;
+          const node=view.state.doc.nodeAt(view.posAtDOM(target,0));
+          if(node?.type.name!=="evidenceReference")return false;
+          callbacks.current.onReferenceActivate?.(node.attrs);
+          event.preventDefault();return true;
+        },
+      },
       handleClickOn(_view, _position, node) {
         if (node.type.name !== "evidenceReference") return false;
         callbacks.current.onReferenceActivate?.(node.attrs);
@@ -81,8 +91,9 @@ export function DocumentEditor({ content, version, onSave, onRetryWorkingState, 
       handleKeyDown(view, event) {
         if (event.key !== "Enter" && event.key !== " ") return false;
         const target = event.target as HTMLElement;
-        if (!target.closest("[data-evidence-reference]")) return false;
-        const node = view.state.doc.nodeAt(view.state.selection.from);
+        const reference=target.closest("[data-evidence-reference]");
+        if (!reference||!view.dom.contains(reference)) return false;
+        const node = view.state.doc.nodeAt(view.posAtDOM(reference,0));
         if (node?.type.name !== "evidenceReference") return false;
         callbacks.current.onReferenceActivate?.(node.attrs);
         return true;

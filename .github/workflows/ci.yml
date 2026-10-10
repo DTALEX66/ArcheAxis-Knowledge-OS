@@ -1092,6 +1092,37 @@ jobs:
       - name: Verify common-format content, locations and independent reparse
         working-directory: ${{ github.workspace }}
         run: python -B scripts/probes/aaos01_common_formats_runtime_loop.py --candidate .project-local/rt
+      - name: Verify actual Core working-state journal, restart and explicit recovery
+        id: working_state_loop
+        working-directory: ${{ github.workspace }}
+        run: python -B scripts/probes/aaos01_working_state_runtime_loop.py --candidate .project-local/rt
+      - name: Upload Core working-state qualification receipt
+        if: ${{ always() && steps.working_state_loop.outcome != 'skipped' }}
+        uses: actions/upload-artifact@834a144ee995460fba8ed112a2fc961b36a5ec5a
+        with:
+          name: desktop-fast-working-state-${{ github.sha }}-${{ github.run_attempt }}
+          path: .project-local/runs/**/artifacts/working-state.json
+          if-no-files-found: error
+      - name: Prepare pinned project-local OCR for common content qualification
+        id: common_ocr_tools
+        run: |
+          $sevenzip = (Get-Command 7z.exe -ErrorAction SilentlyContinue).Source
+          if (-not $sevenzip) { $sevenzip = 'C:/Program Files/7-Zip/7z.exe' }
+          python -B scripts/ci/prepare_windows_ocr.py --project-root . --root .project-local/task-runtime/common-light-ocr-tools --sevenzip $sevenzip
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+      - name: Verify actual common light content, OCR, locations and reparse
+        id: common_light_ocr_loop
+        working-directory: ${{ github.workspace }}
+        run: python -B scripts/probes/aaos01_common_light_ocr_runtime_loop.py --candidate .project-local/rt
+      - name: Upload common light and OCR qualification evidence
+        if: ${{ always() && steps.common_ocr_tools.outcome != 'skipped' }}
+        uses: actions/upload-artifact@834a144ee995460fba8ed112a2fc961b36a5ec5a
+        with:
+          name: desktop-fast-common-light-ocr-${{ github.sha }}-${{ github.run_attempt }}
+          path: |
+            .project-local/runs/**/artifacts/common-light-ocr.json
+            .project-local/task-runtime/common-light-ocr-tools/ocr-receipt.json
+          if-no-files-found: error
       - name: Upload common-format qualification receipt
         if: ${{ always() }}
         uses: actions/upload-artifact@834a144ee995460fba8ed112a2fc961b36a5ec5a

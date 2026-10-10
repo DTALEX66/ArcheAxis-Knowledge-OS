@@ -11,6 +11,7 @@ pub mod capabilities;
 mod documents;
 pub mod launch;
 mod machine_governance;
+mod ocr_locator;
 mod pdf_locator;
 pub mod runtime;
 mod teaching;
@@ -1569,6 +1570,9 @@ fn verify_anchor_location(
     use sha2::{Digest, Sha256};
     if position["type"] == "pdf_line" {
         return pdf_locator::verify(conn, source_id, revision, position, checksum);
+    }
+    if position["type"] == "ocr_line" {
+        return ocr_locator::verify(conn, source_id, revision, position, checksum);
     }
     if position["type"] == "time" {
         return verify_time_anchor(conn, source_id, revision, position, checksum);

@@ -33,6 +33,25 @@ def compatible_edge_versions(driver_version: str, runtime_version: str) -> bool:
     return bool(driver and runtime and driver[1].split(".")[:3] == runtime[1].split(".")[:3])
 
 
+def confirm_restored_working_state(bridge, ui_click, wait):
+    """Explicit rendered-UI decision; never bypass the post-restore journal fence."""
+    wait("return [...document.querySelectorAll('button')].some(b=>b.textContent==='保留恢复候选')")
+    before = bridge("ui_state_read")
+    assert before["schema"] == "archeaxis.ui-working-state/v1"
+    assert before["recovery_requires_confirmation"] is True
+    assert isinstance(before["recovery_candidates"], dict)
+    ui_click("保留恢复候选")
+    wait("return document.body.innerText.includes('工作状态已由 Core 保全')")
+    after = bridge("ui_state_read")
+    assert after["workspace_id"] == before["workspace_id"]
+    assert after["restore_epoch"] == before["restore_epoch"]
+    assert after["state_revision"] == before["state_revision"] + 1
+    assert after["recovery_requires_confirmation"] is False
+    assert after["recovery_candidates"] is None
+    assert after["state"] == before["recovery_candidates"]
+    return {"decision": "EXPLICIT_UI_PRESERVE", "before": before, "after": after}
+
+
 def navigate_compatibility_space(js, wait, space: str) -> None:
     """Exercise the declared public legacy route; never infer new-page coverage."""
     headings = {"library": "资料库", "vault": "知识库", "workspace": "工作台"}
@@ -1189,6 +1208,7 @@ def main():
         # reopen its window to obtain a fresh UI readiness handshake as well.
         close_session()
         launch()
+        receipt["explicit_working_state_recovery"] = confirm_restored_working_state(bridge, ui_click, wait)
         navigate_compatibility_space(js, wait, "library")
         wait("return [...document.querySelectorAll('button')].some(b=>b.textContent==='新建原创笔记')")
         before_ids = {item["document_id"] for item in bridge("documents_list")["documents"]}

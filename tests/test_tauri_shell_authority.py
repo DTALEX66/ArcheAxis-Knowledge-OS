@@ -34,6 +34,38 @@ def load_probe(monkeypatch):
     return module
 
 
+@pytest.mark.parametrize("tamper", [None, "epoch", "revision", "state", "confirmation"])
+def test_restored_journal_requires_explicit_ui_decision_and_exact_readback(monkeypatch, tamper):
+    """SYNTHETIC helper regression; does not qualify an installed runtime."""
+    import copy
+    probe = load_probe(monkeypatch)
+    candidates = {"drafts": {}, "opened_documents": ["owned-note"], "active_document": "owned-note",
+                  "page_id": "03", "pending_original": None}
+    before = {"schema": "archeaxis.ui-working-state/v1", "workspace_id": "owned-workspace",
+              "restore_epoch": "new-restore", "state_revision": 7,
+              "recovery_requires_confirmation": True, "recovery_candidates": candidates}
+    after = {**copy.deepcopy(before), "state_revision": 8, "state": copy.deepcopy(candidates),
+             "recovery_requires_confirmation": False, "recovery_candidates": None}
+    if tamper == "epoch": after["restore_epoch"] = "other"
+    if tamper == "revision": after["state_revision"] = 7
+    if tamper == "state": after["state"]["opened_documents"] = []
+    if tamper == "confirmation": after["recovery_requires_confirmation"] = True
+    calls = []
+    replies = iter([before, after])
+    def bridge(operation):
+        calls.append(("read", operation))
+        return next(replies)
+    def click(label): calls.append(("click", label))
+    def wait(script): calls.append(("wait", script))
+    if tamper:
+        with pytest.raises(AssertionError): probe.confirm_restored_working_state(bridge, click, wait)
+    else:
+        result = probe.confirm_restored_working_state(bridge, click, wait)
+        assert result["decision"] == "EXPLICIT_UI_PRESERVE" and result["after"]["state"] == candidates
+    assert [item for item in calls if item[0] != "wait"] == [
+        ("read", "ui_state_read"), ("click", "保留恢复候选"), ("read", "ui_state_read")]
+
+
 def test_installation_limitation_matches_the_run_it_describes(monkeypatch):
     """A receipt must not call the executable a candidate when a parent supplied the installed host.
 

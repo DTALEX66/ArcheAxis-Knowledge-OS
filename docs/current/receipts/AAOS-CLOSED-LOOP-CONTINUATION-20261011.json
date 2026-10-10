@@ -1,0 +1,202 @@
+{
+  "schema": "archeaxis.closed-loop-continuation/v1",
+  "date": "2026-10-11",
+  "status": "PARTIAL",
+  "basis_commit": "282fcf579e8696e5b3e74f19a3e821865e350db5",
+  "changes": [
+    "CSV native facts merge retains stable cell path and coordinates",
+    "Native OCR line locator validates request/source/output provenance and canonical text spans",
+    "Grouped page16 -> page03 -> exact candidate -> explicit human review",
+    "Actual Tiptap click and keyboard reference identity",
+    "Actual Core journal and common-light/OCR qualification probes added to desktop-fast",
+    "Browser working-state fixture and current OCR Rust formatting repair",
+    "Same-object accepted knowledge/course/assessment -> grouped practice/review preserves answer and refuses substituted identities",
+    "Installed WebDriver restore journey now requires explicit rendered UI journal recovery decision and exact readback",
+    "Local speech qualification probe supports explicit project-owned WAV/transcript, selected Unicode phrases, actual cue location and offline declared model; no ASR success claim"
+  ],
+  "exact_sha_core_receipts": {
+    "common-formats.json": {
+      "path": ".project-local/runs/be268a2d33/closedloop-integration-20261011/qualification-282/common-formats/fd2a08c715/80eec07425d7/artifacts/common-formats.json",
+      "ok": true,
+      "source": {
+        "commit": "282fcf579e8696e5b3e74f19a3e821865e350db5",
+        "dirty": false,
+        "patch_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "changes": []
+      },
+      "limits": [
+        "No installed UI/source-application navigation",
+        "Text PDF only; OCR separate",
+        "Formula text/cached chart data are not live calculation",
+        "No source package reconstruction",
+        "Independent reparse uses a new job; old pinned job remains valid, not superseded"
+      ],
+      "qualification": "INTEGRATED_SELECTED_CONTENT_LOCATION_REPARSE_RESTART",
+      "assertions": null,
+      "formats": [
+        "docx",
+        "xlsx",
+        "pptx",
+        "pdf"
+      ]
+    },
+    "receipt.json": {
+      "path": ".project-local/runs/be268a2d33/closedloop-integration-20261011/qualification-282/content-policy/f97df0b398914e1f8cfa9dbe3d027313/receipt.json",
+      "ok": true,
+      "source": {
+        "commit": "282fcf579e8696e5b3e74f19a3e821865e350db5",
+        "dirty": false,
+        "patch_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "changes": []
+      },
+      "limits": [
+        "Authored text fixture",
+        "Manual assessment fixture is not actual human review",
+        "Cloud worker not configured; no network/paid execution",
+        "No installed desktop/UI qualification"
+      ],
+      "qualification": null,
+      "assertions": {
+        "original_without_source": true,
+        "unreviewed_searchable": true,
+        "processing_not_verification": true,
+        "cloud_not_executed": true,
+        "machine_manual_refused": true,
+        "version_bound_revision_basis": true,
+        "actual_job_sha_and_original_position": true,
+        "authored_create_lost_ack_replay_unique_restart_restore": true,
+        "restart_equal": true,
+        "independent_restore_docs_blocks_checks_cas_equal": true
+      },
+      "formats": []
+    }
+  },
+  "checks": [
+    {
+      "scope": "26 probe/browser parser helpers",
+      "status": "PASS",
+      "receipt": ".project-local/runs/be268a2d33/5a6dd5287dab/artifacts/execution.json"
+    },
+    {
+      "scope": "41 mounted source journey and library regression after reference focus correction",
+      "status": "PASS",
+      "evidence_level": "SIMULATED",
+      "receipt": ".project-local/runs/be268a2d33/a7331360616d/artifacts/execution.json"
+    },
+    {
+      "scope": "TypeScript integration",
+      "status": "PASS",
+      "receipt": ".project-local/runs/be268a2d33/9a302314bc7c/artifacts/execution.json"
+    },
+    {
+      "scope": "Canonical frontend production build",
+      "status": "PASS",
+      "receipt": ".project-local/runs/be268a2d33/b5e39095db3c/artifacts/frontend-build.json"
+    },
+    {
+      "scope": "Full integrated frontend after learning wiring",
+      "status": "PASS",
+      "files": 113,
+      "tests": 1043,
+      "evidence_level": "SIMULATED",
+      "receipt": ".project-local/runs/be268a2d33/13b6ef547a89/artifacts/execution.json"
+    },
+    {
+      "scope": "Integrated learning TypeScript",
+      "status": "PASS",
+      "receipt": ".project-local/runs/be268a2d33/c90dd7e514ff/artifacts/execution.json"
+    },
+    {
+      "scope": "Integrated learning production frontend build",
+      "status": "PASS",
+      "receipt": ".project-local/runs/be268a2d33/4faff0b4ec14/artifacts/frontend-build.json"
+    },
+    {
+      "scope": "Actual parser/CSV/resource and CI gate helpers",
+      "status": "PASS",
+      "tests": 72,
+      "receipt": ".project-local/runs/be268a2d33/c0218cb2b236/artifacts/execution.json"
+    },
+    {
+      "scope": "Native explicit restore decision plus parser/journal/browser helpers",
+      "status": "PASS",
+      "tests": 43,
+      "receipt": ".project-local/runs/be268a2d33/37b3e2b6cc23/artifacts/execution.json"
+    },
+    {
+      "scope": "Final parser/journal/explicit-recovery/browser/speech helpers",
+      "status": "PASS_SCOPED",
+      "tests_passed": 52,
+      "actual_asr_tests": "NOT_EXECUTED",
+      "required_asr_skips": 3,
+      "receipt": ".project-local/runs/be268a2d33/585379088b82/artifacts/execution.json"
+    }
+  ],
+  "retained_failures": [
+    {
+      "receipt": ".project-local/runs/be268a2d33/8cced6400773/artifacts/execution.json",
+      "reason": "1037 passed /1 failed shared original-text focus regression; corrected and scoped rechecked"
+    },
+    {
+      "receipt": ".project-local/runs/be268a2d33/5d6026e088ed/artifacts/execution.json",
+      "reason": "Incorrect test path; no collection, not a product failure"
+    },
+    {
+      "receipt": ".project-local/runs/be268a2d33/c3ad2c2099be/artifacts/execution.json",
+      "reason": "Bare cargo unavailable through canonical environment; tracked Rust runner used next"
+    },
+    {
+      "receipt": ".project-local/runs/be268a2d33/05fd916e7463/artifacts/execution.json",
+      "reason": "Tracked cargo fmt check cannot canonicalize current project path: access denied; no escalation/bypass"
+    },
+    {
+      "receipt": ".project-local/runs/be268a2d33/8c27c8fabecc/artifacts/execution.json",
+      "reason": "Vite was ready but local readiness connection failed; actual owned loopback experiment found WinError10013 socket permission denial"
+    },
+    {
+      "receipt": ".project-local/runs/be268a2d33/35c4506c75f4/artifacts/execution.json",
+      "reason": "Owned loopback diagnostic refused WinError10013; speculative proxy adjustment withdrawn, no permission bypass"
+    },
+    {
+      "receipt": ".project-local/runs/be268a2d33/cbe3fc55f0cb/artifacts/execution.json",
+      "reason": "Boundary regression tmp_path was inside root canonical run; corrected to lexical sibling refused before any source read"
+    }
+  ],
+  "remaining": [
+    "Actual journal and explicit recovery probe execution",
+    "Current light/OCR candidate execution and Chinese OCR measurement",
+    "Audio/video actual ASR content and time locations",
+    "Same-object grouped learning/practice/review/AI journey",
+    "Current exact-SHA complete CI and isolated installed-runtime/Owner acceptance"
+  ],
+  "whole_goal": "NOT_QUALIFIED",
+  "freeze_unchanged": [
+    "V01",
+    "FT01-04",
+    "conversation increment"
+  ],
+  "release_green_replacement_real_user_data_overwrite": "NOT_GRANTED",
+  "ci_latest": {
+    "sha": "282fcf579e8696e5b3e74f19a3e821865e350db5",
+    "run_id": "38073214486",
+    "status": "FAIL",
+    "failed": [
+      "rust-vnext",
+      "browser-smoke",
+      "installer-lifecycle",
+      "a0-gates"
+    ],
+    "desktop_build": "PASS",
+    "desktop_fast": "PASS",
+    "installed_failure": "Product correctly withheld editor until an explicit journal recovery decision; old probe did not perform this decision",
+    "installed_qualification": "NOT_QUALIFIED"
+  },
+  "audio_video_preconditions": {
+    "registered_model": "faster-whisper-large-v3-turbo",
+    "model_components": "PRESENT_SCOPED_AGENT_INSPECTION",
+    "actual_asr": "NOT_EXECUTED",
+    "reason": "No project-owned spoken WAV with known transcript; offline SAPI generator refused by AuthorizationManager, no bypass",
+    "owner_fixture_path_question": "PENDING"
+  },
+  "delivery": "CANDIDATE_PENDING_EXACT_SHA_CI_NOT_MAIN_CONVERGENCE"
+}

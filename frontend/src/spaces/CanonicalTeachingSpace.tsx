@@ -7,6 +7,8 @@ import { coreFailureReason } from "../presentation/labels";
 import { CanonicalLearningSpace } from "./CanonicalLearningSpace";
 import type { ObjectTrailLevel } from "../components/NavTrail";
 
+import {resolveLearningJourney,type LearningJourneyTarget} from "../presentation/learningJourney";
+
 type Kind = TeachingRecord["kind"];
 type Knowledge = { knowledge_id: string; head: string };
 type Course = { manifest_id: string; title: string; stale: boolean };
@@ -23,7 +25,10 @@ function boundedId(prefix: string) { return `${prefix}_${crypto.randomUUID()}`; 
 function blank(kind: Kind) { return { kind, purpose:"", content:"", scope:"personal" as TeachingRecord["scope"], privacy:"local_only" as TeachingRecord["privacy"], assisted:false, feedback_class: null as TeachingRecord["feedback_class"], rubric_version:"", producer_kind:"human_authored" as TeachingRecord["producer_kind"] }; }
 
 /** Manual records share one canonical Core state; a record never constitutes a score. */
-export function CanonicalTeachingSpace({pageId="08", onOpenPage, onTrail}: {pageId?:string; onOpenPage?:(id:string)=>void; onTrail?:(levels:readonly ObjectTrailLevel[])=>void}) {
+export function CanonicalTeachingSpace({pageId="08", onOpenPage, onTrail, initialItemKey}: {initialItemKey?:string;pageId?:string; onOpenPage?:(id:string)=>void; onTrail?:(levels:readonly ObjectTrailLevel[])=>void}) {
+  const [journey,setJourney]=useState<LearningJourneyTarget>();
+  const [journeyFailure,setJourneyFailure]=useState<string|null>(null);
+  const journeyEpoch=useRef(0);
   const [items,setItems]=useState<RecordView[]>([]), [cursor,setCursor]=useState<string|null>(null), [loaded,setLoaded]=useState(false);
   const [selected,setSelected]=useState<RecordView|null>(null), [draft,setDraft]=useState(()=>blank(kinds[pageId]?.[0] ?? "observation"));
   const [knowledge,setKnowledge]=useState<Knowledge|null>(null), [query,setQuery]=useState(""), [results,setResults]=useState<Knowledge[]>([]);
@@ -48,7 +53,8 @@ export function CanonicalTeachingSpace({pageId="08", onOpenPage, onTrail}: {page
     } catch(error) {if(request===listEpoch.current){setLoaded(false);setMessage("教学记录读取失败；不会把失败显示为空列表。");setFailure(coreFailureReason(error));}}
   }
   useEffect(()=>{void load();return()=>{epoch.current++;listEpoch.current++;fileEpoch.current++;};},[]);
-  useEffect(()=>{epoch.current++;if(!createAttempt.current){setDraft(previous=>({...previous,kind:kinds[pageId]?.[0] ?? previous.kind}));}setPractice(false);},[pageId]);
+  useEffect(()=>{epoch.current++;if(!createAttempt.current){setDraft(previous=>({...previous,kind:kinds[pageId]?.[0] ?? previous.kind}));}setPractice(Boolean(initialItemKey&&["11","12"].includes(pageId)));},[pageId,initialItemKey]);
+  useEffect(()=>{const request=++journeyEpoch.current;if(!initialItemKey||!["11","12"].includes(pageId)){setJourney(undefined);setJourneyFailure(null);return;}setJourney(previous=>previous?.item_key===initialItemKey?previous:undefined);setJourneyFailure(null);void resolveLearningJourney(initialItemKey).then(target=>{if(request!==journeyEpoch.current)return;setJourney(target);}).catch(error=>{if(request!==journeyEpoch.current)return;setJourney(undefined);setJourneyFailure(coreFailureReason(error)??"原学习项目的绑定回执不一致或不可用。");});return()=>{journeyEpoch.current++;};},[initialItemKey,pageId]);
   useEffect(()=>{const dirty=JSON.stringify({purpose:draft.purpose,content:draft.content})!==savedPreparation&&(!!draft.content||!!draft.purpose)||pending;window.dispatchEvent(new CustomEvent("archeaxis-draft-dirty",{detail:dirty}));},[draft.content,draft.purpose,pending,savedPreparation]);
   useEffect(()=>()=>{window.dispatchEvent(new CustomEvent("archeaxis-draft-dirty",{detail:false}));},[]);
   useEffect(()=>{onTrail?.(selected?[{id:`teaching:${selected.record.record_id}`,label:names[selected.record.kind],region:"teaching"}]:[]);},[selected,onTrail]);
@@ -127,7 +133,8 @@ export function CanonicalTeachingSpace({pageId="08", onOpenPage, onTrail}: {page
       {parent&&courseId?<button disabled={busy} onClick={()=>void chooseCourse(courseId)}>核对父课程并读取练习入口</button>:null}
       {pageId==="11"?<><button disabled={busy||!itemKey||pending} onClick={()=>void readAssessment()}>读取绑定的真实学习问题</button><button disabled={busy||!itemKey} onClick={()=>setPractice(value=>!value)}>打开真实练习队列</button><p>独立作答/成绩记录由真实学习合同承接；Teach-back只是手工记录，不调用旧Python评分。</p></>:null}
     </aside></div>
-    {practice&&itemKey?<CanonicalLearningSpace initialItemKey={itemKey} onTrail={onTrail}/>:null}
+    {initialItemKey&&["11","12"].includes(pageId)?<section aria-label="同对象练习与复习"><h3>此学习项目的练习与复习</h3><p>{initialItemKey}</p>{journey?<><p>知识 {journey.knowledge_id} · 问题 {journey.assessment_id}{journey.course?` · 课程 ${journey.course.id} · 课时 ${journey.course.artifactId}`:""}</p><CanonicalLearningSpace key={journey.item_key} initialItemKey={journey.item_key} expectedJourney={journey} onTrail={onTrail}/></>:journeyFailure?<p role="alert">同对象学习身份未核对，不能提交结果。{journeyFailure}</p>:<p role="status">正在核对原学习项目、知识与问题身份…</p>}</section>:null}
+    {!initialItemKey&&practice&&itemKey?<CanonicalLearningSpace initialItemKey={itemKey} onTrail={onTrail}/>:null}
 
 
 
