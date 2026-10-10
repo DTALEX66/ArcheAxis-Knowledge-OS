@@ -380,3 +380,9 @@ TXT加入common light独立Core探针，中文/换行/emoji后UTF8原件定位�
 a8 完整 CI 38081667307 已 terminal FAIL。下载 exact artifact 11681586595，兼容 child PASS；grouped 实际安装 import/read/anchor 通过，原件 PRE 实际焦点、同节点完整 Range（含尾 LF）及独立 locator 通过。随后创建候选按钮禁用，截图“已选引文”为空；旧复合快捷键具体失败原因 UNVERIFIED，不能推导产品证据校验失效。
 
 探针改为 trusted Ctrl+A，并独立读回实际 textarea 焦点/value/UTF16 起止及 React 已选引文全文；不改 DOM、合成事件、直接写桥接或弱化候选门禁。20 helper PASS、critical Ruff、architecture PASS；架构首次误判嵌入 XPath 为外部绝对路径，改 DOM 只读查找后通过，原失败保留。pyreadline3 析构 0xc0000008 保留，测试 exit0不代表产品运行通过。新安装/最终Core ASR/TXT/Rust/真实AI尚待候选复验，详见[引文选区进展](receipts/AAOS-GROUPED-QUOTE-SELECTION-PROGRESS-20261011.json)。全目标仍 PARTIAL，未发布/替换Green或覆盖用户数据。
+
+## 2026-10-11 Core 工作状态实际回执独立复核（PARTIAL）
+
+下载 a8 exact-SHA working-state artifact 11680662711：实际 Core HTTP、SYNTHETIC 自有笔记、clean/source_consistent=true。独立复核47调用、6自有Core进程全停止、journal/正文/第二文档跨重启相等、固定原创request全程唯一身份、两个独立恢复分别显式preserve/discard及重启相等，权限/冲突/未创建对象/重复恢复拒绝保持预期；不上传正文或凭据。该证据不包括installed UI/物理IME，丢ACK仅客户端注入，详见[工作状态Core复核](receipts/AAOS-WORKING-STATE-CORE-READBACK-20261011.json)。
+
+当前完整候选3ffbe73c791a53b150e3ce3a1c1224085abdc98c已上传且独立remote读回一致，CI 38083440673 in_progress，Rust格式步骤已进入后续cargo test，不提前记required tests PASS。另启动隔离审查/实现旧grant恢复拒绝的精确类型化证据；仅当前调用是否进入推理可判断，历史同request执行状态不能凭403推导。整体继续PARTIAL。
