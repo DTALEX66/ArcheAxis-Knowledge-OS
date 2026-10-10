@@ -137,7 +137,11 @@ def check_navigation_drawer(page) -> dict[str, object]:
     trigger.click()
     drawer = page.get_by_role("dialog", name="产品导航")
     drawer.wait_for()
-    assert drawer.locator('[data-page-id]').count() == 21
+    # Owner-selected Oct09 UI plan includes all 22 page identities.
+    expected = {f'{number:02d}' for number in range(1, 23)}
+    actual = drawer.locator('[data-page-id]').evaluate_all(
+        '(nodes) => nodes.map(node => node.dataset.pageId)')
+    assert len(actual) == len(expected) and set(actual) == expected, actual
     assert page.evaluate("() => !!document.activeElement?.closest('[role=dialog]')"), "drawer autofocus escaped"
     page.keyboard.press("Shift+Tab")
     assert page.evaluate("() => !!document.activeElement?.closest('[role=dialog]')"), "drawer keyboard focus escaped"
@@ -145,7 +149,7 @@ def check_navigation_drawer(page) -> dict[str, object]:
     drawer.wait_for(state="detached")
     page.wait_for_timeout(150)
     assert trigger.evaluate("node => document.activeElement === node"), "drawer did not restore trigger focus"
-    return {"state":"PASS", "drawer_required":True, "page_count":21, "focus_trapped":True}
+    return {"state":"PASS", "drawer_required":True, "page_count":len(expected), "focus_trapped":True}
 
 BRAND_ASSET_DIR = ROOT / "frontend" / "src" / "assets"
 

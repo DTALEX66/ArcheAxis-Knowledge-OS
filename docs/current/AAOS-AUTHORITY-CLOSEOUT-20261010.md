@@ -17,6 +17,10 @@
 
 第二次完整运行 `38061145272` 的格式、架构、语言、路径、Ruff 均通过，document-authority 在 Linux 因把 `crates/README.md` 当 crate 目录而抛出 NotADirectoryError。已修复为先验证安全 crate 路径且确为目录，再检查测试目标；缺失测试仍按缺失报告，不放宽门禁。新增回归覆盖 README 干扰和真实目标存在两种情况，权威测试 37 PASS，run `be268a2d33/087fccb88c88`。最终导入调整另有 41 PASS，run `be268a2d33/e3db7ccaaf82`。
 
+第三次完整运行 `38061364888` 基础 lint、wheel、格式、迁移、安全专项、Python 3.11/3.13、workers、desktop-vnext、Windows runtime 均通过；整轮仍失败。发现学习契约元数据缺失、浏览器导航旧 21 页断言、Rust 格式失败、前端原始字节校验和异步测试串扰、历史 secret scan 20 项告警。契约补齐 schema 标识，导航严格核对 22 个 ID；测试串扰通过等待第二次回答完成修复，不改变产品授权逻辑。原始能力 fixture 恢复原 SHA `fc55ef3c996287f13bf6eb3711159ded1a228e2d27e928eb879d71dd24e4cf4f`，纳入精确字节保全；此前给该 fixture 添加末尾换行的修复不适用，已撤回。
+
+本地 MachineAnswerPanelAssets 16 PASS；UiCapabilityIntent 本地 suite 因已有 node_modules 缺少锁定的 Radix 包而未运行，不计 PASS。本机 Rust formatter 的路径访问被拒绝，不提权或改 ACL；CI 保留失败结果并产生 exact-SHA 格式修复补丁，供正常项目文件编辑应用。secret scan 只保留路径、行号、RuleID、Fingerprint、Commit 元数据用于审计，不下载或回显 Secret/Match，不未经证据放行告警。
+
 ## 离线与软件加载证据边界
 
 已登记并实测 10 个 Git 检出，3 个在修复 SHA；其余 7 个明确为历史，其中 6 个原本有未提交修改。历史检出须先读取顶部隔离提示，不能从旧路径、旧完成记录或旧包自动执行当前任务。没有扫描其他磁盘或用户目录。

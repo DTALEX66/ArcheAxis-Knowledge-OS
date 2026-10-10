@@ -51,3 +51,6 @@ tests/fixtures/aaos-ui-mother/index.html -text
 "docs/taskpacks/aaos-ui-first-20261009/ORIGINAL-CONTRACT-DEPENDENCIES.csv" -text whitespace=cr-at-eol,-blank-at-eol
 "docs/taskpacks/aaos-ui-first-20261009/PAGE-PLAN.csv" -text whitespace=cr-at-eol,-blank-at-eol
 "docs/taskpacks/aaos-ui-first-20261009/REQUIREMENT-CROSSWALK.csv" -text whitespace=cr-at-eol,-blank-at-eol
+
+# Original authored capability strings: byte identity is a tested source contract.
+frontend/src/__tests__/fixtures/ui-capability-details-original.json -text

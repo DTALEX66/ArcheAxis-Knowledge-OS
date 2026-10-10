@@ -1,4 +1,5 @@
 {
+  "$id": "archeaxis.learning-review/v1",
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "title": "Core-owned FSRS review request",
   "description": "POST /api/v1/learning/reviews. Human identity required. Core loads and appends the card state; callers cannot supply authoritative schedule state. The legacy /learning/events endpoint retains its original receipt contract.",

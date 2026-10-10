@@ -114,6 +114,8 @@ _FROZEN_ORIGINALS = {
 # and non-UTF-8 worker behavior. A changed fixture must be reviewed and repinned;
 # these are not general path exemptions.
 _PRESERVED_FIXTURE_HASHES = {
+    "frontend/src/__tests__/fixtures/ui-capability-details-original.json":
+        "fc55ef3c996287f13bf6eb3711159ded1a228e2d27e928eb879d71dd24e4cf4f",
     "tests/fixtures/aaos-ui-mother/index.html":
         "1da1fe0d1feb55db98fba5e28cdbaf2e261e7ec4f562d3410cc9b7e74b3149f1",
     "tests/fixtures/f01-quality/controlled.md": "70aff728005d7580260391e6754f30209ec5fbecd9803f30a31e48d72eb7b176",
