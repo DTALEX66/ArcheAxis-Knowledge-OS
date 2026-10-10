@@ -1,3 +1,6 @@
+import { useOptionalCoreWorkingState } from "../presentation/useCoreWorkingState";
+import type { WorkingDraft, WorkingEditor, PendingOriginal } from "../presentation/coreWorkingState";
+import { documentRequestIdentity } from "../presentation/documentRequestIdentity";
 import { lazy, Suspense, useEffect, useRef, useState, type CSSProperties } from "react";
 import type { JSONContent } from "@tiptap/core";
 import { coreCommand } from "../api/core";
@@ -26,6 +29,11 @@ const PdfReader = lazy(() => import("../components/PdfReader").then(module => ({
 const DocumentEditor = lazy(() => import("../components/DocumentEditor").then(module => ({ default: module.DocumentEditor })));
 
 export function CanonicalLibrarySpace({purpose,onOpenDocument,onOpenImport,onKnowledge,initialDocumentId,onDirtyChange,onInspect,onOpenCapability,navigation,onTrail}:{purpose?:"library"|"reader"|"history";onOpenDocument?:(id:string)=>void;onOpenImport?:()=>void;onKnowledge?:()=>void;initialDocumentId?:string;onDirtyChange?:(dirty:boolean)=>void;onInspect?:(target:InspectionTarget)=>void;onOpenCapability?:(id:string)=>void;navigation?:{section:string;sequence:number};onTrail?:(levels:readonly ObjectTrailLevel[])=>void}) {
+  const workingContext=useOptionalCoreWorkingState();
+  // Core working-state persistence belongs to the verified formal desktop host.
+  // Browser presentation fixtures do not obtain a native persistence receipt.
+  const working=window.__TAURI__?.core?.invoke?workingContext:null;
+  const savedJournalPending=useRef(new Map<string,{sent:WorkingDraft;version:number}>());
   const [documentSearch,setDocumentSearch] = useState("");
   const [contentFilter,setContentFilter] = useState<"all"|"original"|"linked">("all");
   const [showSource,setShowSource] = useState(false);
@@ -48,10 +56,10 @@ export function CanonicalLibrarySpace({purpose,onOpenDocument,onOpenImport,onKno
   const [documentOriginal, setDocumentOriginal] = useState<OriginalDto | null>(null);
   const [documentBytes, setDocumentBytes] = useState<Uint8Array | null>(null);
   const [document, setDocument] = useState<DocumentDto | null>(null);
-  const [documentDrafts, setDocumentDrafts] = useState<Record<string, {content:JSONContent;baseVersion:number}>>({});
+  const [documentDrafts, setDocumentDrafts] = useState<Record<string, {content:JSONContent;baseVersion:number}>>(()=>Object.fromEntries(Object.entries(working?.state.drafts??{}).map(([id,draft])=>[id,{content:structuredClone(draft.editor_json),baseVersion:draft.base_version}])));
   const documentDraftsRef = useRef(documentDrafts);
   documentDraftsRef.current = documentDrafts;
-  const dirtyDocumentIds = useRef(new Set<string>());
+  const dirtyDocumentIds = useRef(new Set<string>(Object.keys(working?.state.drafts??{})));
   const noteAttempt=useRef<OriginalNoteAttempt|null>(null);
   const [noteUncertain,setNoteUncertain]=useState(false);
   const [anchors, setAnchors] = useState<AnchorDto[]>([]);
@@ -95,8 +103,32 @@ export function CanonicalLibrarySpace({purpose,onOpenDocument,onOpenImport,onKno
     publishDirtyState();
   }
   function rememberDraft(id:string, content:JSONContent, baseVersion:number) {
-    setDocumentDrafts(previous=>({...previous,[id]:{content,baseVersion}}));
+    const next={...documentDraftsRef.current,[id]:{content:structuredClone(content),baseVersion}};
+    documentDraftsRef.current=next;setDocumentDrafts(next);
+    working?.session.rememberDraft(id,content as WorkingEditor,baseVersion);
   }
+  useEffect(()=>{
+    if(!working)return;
+    let alive=true;
+    const pending=working.state.pending_original;
+    if(pending&&!noteAttempt.current){setNoteUncertain(true);void documentRequestIdentity(pending.create_request_id).then(id=>{if(alive&&!noteAttempt.current){noteAttempt.current={id,body:structuredClone(pending)};publishDirtyState();}});}
+    for(const [id,draft] of Object.entries(working.state.drafts)) {
+      dirtyDocumentIds.current.add(id);
+      if(!documentDraftsRef.current[id]) {
+        const next={...documentDraftsRef.current,[id]:{content:structuredClone(draft.editor_json),baseVersion:draft.base_version}};
+        documentDraftsRef.current=next;setDocumentDrafts(next);
+      }
+    }
+    if(working.status==="ready"&&!working.state.pending_original&&noteAttempt.current){noteAttempt.current=null;setNoteUncertain(false);}
+    publishDirtyState();
+    return()=>{alive=false;};
+  },[working?.state,working?.status,working?.session]);
+  useEffect(()=>{
+    if(!working||!libraryBootSettled)return;
+    let alive=true;
+    void Promise.all(working.state.opened_documents.map(id=>coreCommand<DocumentDto>("document_get",{document_id:id}))).then(items=>{if(alive)setOpenedDocuments(previous=>[...previous,...items.filter(item=>!previous.some(row=>row.document_id===item.document_id))]);}).catch(()=>{if(alive){setMessage("已打开文档现场读取未完成；草稿仍保留。");setFailure(true);}});
+    return()=>{alive=false;};
+  },[libraryBootSettled,working?.session]);
   useEffect(() => {
     if (!navigation?.sequence) return;
     const regions: Record<string, { current: HTMLElement | null } | undefined> = {
@@ -233,6 +265,7 @@ export function CanonicalLibrarySpace({purpose,onOpenDocument,onOpenImport,onKno
     try {
       const active = await coreCommand<DocumentDto>("document_get", { document_id: id });
       if (epoch !== generation.current || editingEpoch !== editGeneration.current) return;
+      working?.session.rememberScene("03",active.document_id);
       setDocument(active); setSource(null); setOriginal(null); setBytes(null); setAnchors([]);
       setDocumentSource(null); setDocumentOriginal(null); setDocumentBytes(null);
       setOpenedDocuments(previous => previous.some(item => item.document_id === active.document_id) ? previous.map(item => item.document_id === active.document_id ? active : item) : [...previous, active]);
@@ -260,7 +293,10 @@ export function CanonicalLibrarySpace({purpose,onOpenDocument,onOpenImport,onKno
     try {
       if(!noteAttempt.current)noteAttempt.current=await prepareOriginalNote();
       setNoteUncertain(true);publishDirtyState();
-      const created = await confirmOriginalNote(noteAttempt.current,readOnly);
+      const attempt=noteAttempt.current;
+      await working?.session.stageOriginal(attempt.body as PendingOriginal);
+      const created = await confirmOriginalNote(attempt,readOnly);
+      await working?.session.finishOriginal(attempt.body as PendingOriginal);
       noteAttempt.current=null;setNoteUncertain(false);publishDirtyState();
       if(!libraryMounted.current)return;
       setDocuments(previous=>[created,...previous.filter(row=>row.document_id!==created.document_id)]);
@@ -275,6 +311,8 @@ export function CanonicalLibrarySpace({purpose,onOpenDocument,onOpenImport,onKno
     } catch(error) {
       if(!libraryMounted.current)return;
       if(error instanceof OriginalNoteRefused) {
+        try{if(noteAttempt.current)await working?.session.finishOriginal(noteAttempt.current.body as PendingOriginal);}
+        catch{setMessage("创建已明确拒绝；冻结请求清理尚未确认，请先核对工作状态。");setFailure(true);return;}
         noteAttempt.current=null;setNoteUncertain(false);publishDirtyState();
         setMessage("原创笔记创建被明确拒绝；现有草稿保留，修正条件后可重新创建。");
       } else {
@@ -311,20 +349,47 @@ export function CanonicalLibrarySpace({purpose,onOpenDocument,onOpenImport,onKno
     if (!document) throw new Error("document not loaded");
     const requestedDocumentId = document.document_id;
     const sentBasis = revisionBasis.current;
+    const sent:WorkingDraft={base_version:expectedVersion,editor_json:structuredClone(content) as WorkingEditor};
+    if(working){working.session.rememberDraft(requestedDocumentId,sent.editor_json,expectedVersion);await working.session.flush();}
     const saved = await coreCommand<DocumentDto>("document_draft", { document_id: requestedDocumentId, body: { expected_version: expectedVersion, editor_json: content, ...(sentBasis ? {revision_basis:sentBasis} : {}) } });
-    if (saved.document_id !== requestedDocumentId) throw new Error("document identity mismatch");
+    if (saved.document_id !== requestedDocumentId || saved.version!==expectedVersion+1) throw new Error("document identity or version mismatch");
     if (revisionBasis.current === sentBasis && currentDocument.current?.document_id === requestedDocumentId) revisionBasis.current = null;
     if(currentDocument.current?.document_id===saved.document_id) setDocument(saved);
     setDocuments((previous) => previous.map((item) => item.document_id === saved.document_id ? saved : item));
     setOpenedDocuments((previous) => previous.map((item) => item.document_id === saved.document_id ? saved : item));
-    const draft = documentDraftsRef.current[requestedDocumentId];
-    if(draft && JSON.stringify(draft.content)===JSON.stringify(content)) reportEditorDirty(requestedDocumentId,false);
-    else if(draft) setDocumentDrafts(previous => {
-      const current=previous[requestedDocumentId];
-      return current ? {...previous,[requestedDocumentId]:{content:current.content,baseVersion:saved.version}} : previous;
-    });
-    return { content: saved.editor_json as JSONContent, version: saved.version };
+    // Document ACK is already known. Journal failures must not rewind it or
+    // send the same body again just to obtain a working-state cleanup receipt.
+    let workingStateConfirmed=true;
+    try {
+      const cleared=working?await working.session.clearSaved(requestedDocumentId,sent,saved.version):true;
+      const draft=documentDraftsRef.current[requestedDocumentId];
+      if(draft&&JSON.stringify(draft.content)===JSON.stringify(content)&&cleared)reportEditorDirty(requestedDocumentId,false);
+      else if(draft&&JSON.stringify(draft.content)!==JSON.stringify(content)) {
+        rememberDraft(requestedDocumentId,draft.content,saved.version);
+        if(working)await working.session.flush();
+      } else if(!cleared)workingStateConfirmed=false;
+    }catch {
+      workingStateConfirmed=false;
+      savedJournalPending.current.set(requestedDocumentId,{sent,version:saved.version});
+      setMessage("正文版本已保存；工作草稿清理未确认，输入保留。请仅核对或重试工作状态，不要重复保存同一正文。");setFailure(true);
+    }
+    return { content: saved.editor_json as JSONContent, version: saved.version, workingStateConfirmed };
   }
+  async function retrySavedJournal(id:string):Promise<boolean> {
+    if(!working)return true;
+    await working.session.load();
+    const pending=savedJournalPending.current.get(id);
+    const draft=working.session.getSnapshot().state.drafts[id];
+    if(!draft){savedJournalPending.current.delete(id);reportEditorDirty(id,false);return true;}
+    if(pending&&JSON.stringify(draft)===JSON.stringify(pending.sent)) {
+      const cleared=await working.session.clearSaved(id,pending.sent,pending.version);
+      if(cleared){savedJournalPending.current.delete(id);reportEditorDirty(id,false);return true;}
+    }
+    // Later editing is an independent draft based on the already confirmed
+    // document version. Flush only the journal; never write document_draft here.
+    await working.session.flush();return false;
+  }
+
   async function readHistory() {
     if (!document) return;
     const epoch = generation.current;
@@ -432,10 +497,11 @@ export function CanonicalLibrarySpace({purpose,onOpenDocument,onOpenImport,onKno
     } catch {setMessage("导出未确认；原件与草稿仍保留。");setFailure(true);}
   }
   function closeDocumentTab(id: string) {
-    if (dirtyDocumentIds.current.has(id) && !window.confirm("此文档有未保存更改。关闭标签将丢弃仅保存在内存中的草稿，确定关闭吗？")) return;
-    if(dirtyDocumentIds.current.has(id)) reportEditorDirty(id,false);
+    if (dirtyDocumentIds.current.has(id) && !window.confirm(working?"此文档有未保存更改。关闭标签后独立工作草稿仍保留，确定关闭吗？":"此文档有未保存更改。关闭标签将丢弃仅保存在内存中的草稿，确定关闭吗？")) return;
+    if(dirtyDocumentIds.current.has(id)&&!working) reportEditorDirty(id,false);
     const remaining = openedDocuments.filter(item => item.document_id !== id);
     setOpenedDocuments(remaining);
+    working?.session.change(state=>{state.opened_documents=state.opened_documents.filter(value=>value!==id);if(state.active_document===id)state.active_document=remaining[0]?.document_id??null;});
     if (currentDocument.current?.document_id === id) {
       setDocument(null); setHistoricalDocument(null); setSource(null); setOriginal(null); setBytes(null); setAnchors([]); setDocumentSource(null); setDocumentOriginal(null); setDocumentBytes(null);
       publishDirtyState();
@@ -453,7 +519,7 @@ export function CanonicalLibrarySpace({purpose,onOpenDocument,onOpenImport,onKno
   // Chunk-load placeholder, deliberately not a live region: the page's own outcome region below already
   // announces "正在读取资料…" / "正在读取原件与文档…", so a second placeholder region would make one
   // page read announce several times. The text stays where the editor appears.
-  const documentEditor = document ? <Suspense fallback={<p>正在载入文档编辑器…</p>}><DocumentEditor key={`${document.document_id}:${editorEpoch}`} content={documentDrafts[document.document_id]?.content ?? document.editor_json as JSONContent} version={documentDrafts[document.document_id]?.baseVersion ?? document.version} onSave={save} onDirtyChange={value=>reportEditorDirty(document.document_id,value)} onDraftChange={(content,baseVersion)=>rememberDraft(document.document_id,content,baseVersion)} onCreateReference={source && original && bytes ? cite : undefined} onReferenceActivate={jump} /></Suspense> : null;
+  const documentEditor = document ? <Suspense fallback={<p>正在载入文档编辑器…</p>}><DocumentEditor key={`${document.document_id}:${editorEpoch}`} content={documentDrafts[document.document_id]?.content ?? document.editor_json as JSONContent} version={documentDrafts[document.document_id]?.baseVersion ?? document.version} onSave={save} onRetryWorkingState={()=>retrySavedJournal(document.document_id)} onDirtyChange={value=>reportEditorDirty(document.document_id,value)} onDraftChange={(content,baseVersion)=>rememberDraft(document.document_id,content,baseVersion)} onCreateReference={source && original && bytes ? cite : undefined} onReferenceActivate={jump} /></Suspense> : null;
 
   const originalPane = document ? <article className="original-derived-pane" aria-label="不可变原件">
               <header><h4>不可变原件</h4><p>{linkedOriginal ? "原件身份、版本与字节指纹已核对。" : "关联原件尚未核对或当前未提供，不以其他原件替代。"}</p></header>
@@ -464,7 +530,7 @@ export function CanonicalLibrarySpace({purpose,onOpenDocument,onOpenImport,onKno
             </article> : null;
   const versionControls = document ? <><div ref={versionNavigation} tabIndex={-1} data-section="versions" aria-label="文档版本导航" className="draft-restore"><label>恢复历史版本 <input type="number" min="1" max={document.version} value={restoreVersion} onChange={(event) => setRestoreVersion(event.target.value)} /></label><button type="button" onClick={() => void readHistory()}>只读查看历史版本</button><button type="button" disabled={busy} onClick={() => void singleWrite(restore)}>读取并恢复版本</button></div>
           {historicalDocument?.document_id===document.document_id?<section aria-label="历史版本详情"><h4>历史版本 {historicalDocument.version}</h4><pre>{historicalDocument.text_projection}</pre>{historicalDocument.revision_basis?<RawReceiptButton label="历史修订依据" payload={historicalDocument.revision_basis} />:<p>此版本没有记录修订依据。</p>}<button type="button" onClick={()=>{historyGeneration.current+=1;setHistoricalDocument(null);}}>关闭历史详情</button></section>:null}</> : null;
-  const feedback = <>{message ? <p role={failure ? "alert" : "status"}>{message}</p> : null}{failureReason ? <p className="state-reason">{failureReason}</p> : null}</>;
+  const feedback = <>{noteUncertain?<div aria-label="待确认的笔记创建"><p>冻结笔记请求已保留；先核对工作状态，再重试同一请求。</p><button disabled={busy} onClick={()=>void singleWrite(createOriginal)}>重试同一笔记请求</button><button disabled={busy} onClick={()=>void singleWrite(()=>createOriginal(true))}>核对笔记创建结果</button></div>:null}{message ? <p role={failure ? "alert" : "status"}>{message}</p> : null}{failureReason ? <p className="state-reason">{failureReason}</p> : null}</>;
   const filteredDocuments = documents.filter(item => {
     if(contentFilter === "original" && item.source_id) return false;
     if(contentFilter === "linked" && !item.source_id) return false;

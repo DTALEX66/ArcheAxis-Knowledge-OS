@@ -45,10 +45,11 @@ export function encodeEditorContent(content: JSONContent): JSONContent {
   return { ...content, ...(Object.keys(merged).length ? { attrs: merged } : { attrs: undefined }), ...(content.content ? { content: content.content.map(encodeEditorContent) } : {}) };
 }
 
-export function DocumentEditor({ content, version, onSave, onDirtyChange, onDraftChange, onCreateReference, onReferenceActivate }: {
+export function DocumentEditor({ content, version, onSave, onRetryWorkingState, onDirtyChange, onDraftChange, onCreateReference, onReferenceActivate }: {
   content: JSONContent;
   version: number;
-  onSave: (content: JSONContent, expectedVersion: number) => Promise<{ content: JSONContent; version: number }>;
+  onSave: (content: JSONContent, expectedVersion: number) => Promise<{ content: JSONContent; version: number; workingStateConfirmed?:boolean }>;
+  onRetryWorkingState?:()=>Promise<boolean>;
   onDirtyChange?: (dirty: boolean) => void;
   onDraftChange?: (content: JSONContent, baseVersion: number) => void;
   onCreateReference?: () => Promise<JSONContent>;
@@ -59,11 +60,14 @@ export function DocumentEditor({ content, version, onSave, onDirtyChange, onDraf
   const [changes, setChanges] = useState(0);
   const composing = useRef(false);
   const saving = useRef(false);
+  const journalPending=useRef(false);
+  const saveTimer=useRef<number|null>(null);
+  const acknowledgedContent=useRef<string|null>(null);
   const citing = useRef(false);
   const currentVersion = useRef(version);
   const mounted = useRef(true);
-  const callbacks = useRef({ onSave, onDirtyChange, onDraftChange, onCreateReference, onReferenceActivate });
-  callbacks.current = { onSave, onDirtyChange, onDraftChange, onCreateReference, onReferenceActivate };
+  const callbacks = useRef({ onSave, onRetryWorkingState, onDirtyChange, onDraftChange, onCreateReference, onReferenceActivate });
+  callbacks.current = { onSave, onRetryWorkingState, onDirtyChange, onDraftChange, onCreateReference, onReferenceActivate };
   const editor = useEditor({
     extensions: [StarterKit.configure({ link: { openOnClick: false } }), BlockIdentity, PreservedUnknown, EvidenceReference],
     content: decodeEditorContent(content),
@@ -91,6 +95,7 @@ export function DocumentEditor({ content, version, onSave, onDirtyChange, onDraf
       });
       if (transaction.docChanged) editor.view.dispatch(transaction);
       callbacks.current.onDraftChange?.(encodeEditorContent(editor.getJSON()), currentVersion.current);
+      journalPending.current=false;
       setStatus("尚未保存");
       setFailure(false);
       setChanges((value) => value + 1);
@@ -99,14 +104,23 @@ export function DocumentEditor({ content, version, onSave, onDirtyChange, onDraf
   });
   useEffect(() => { mounted.current = true; return () => { mounted.current = false; }; }, []);
   async function save() {
-    if (!editor || composing.current || saving.current) return;
+    if (!editor || composing.current || saving.current || journalPending.current) return;
+    if(saveTimer.current!==null){window.clearTimeout(saveTimer.current);saveTimer.current=null;}
+    const sent = encodeEditorContent(editor.getJSON());
+    if(acknowledgedContent.current===JSON.stringify(sent))return;
     saving.current = true;
     setStatus("正在保存…");
-    const sent = encodeEditorContent(editor.getJSON());
     try {
       const saved = await callbacks.current.onSave(sent, currentVersion.current);
       if (!mounted.current) return;
       currentVersion.current = saved.version;
+      acknowledgedContent.current=JSON.stringify(sent);
+      if(saved.workingStateConfirmed===false) {
+        journalPending.current=true;
+        if(JSON.stringify(encodeEditorContent(editor.getJSON()))!==JSON.stringify(sent))callbacks.current.onDraftChange?.(encodeEditorContent(editor.getJSON()),saved.version);
+        setStatus("正文已保存；工作草稿保全尚未确认，请核对工作状态。");setFailure(true);
+        callbacks.current.onDirtyChange?.(true);return;
+      }
       if (JSON.stringify(encodeEditorContent(editor.getJSON())) === JSON.stringify(sent)) {
         editor.commands.setContent(decodeEditorContent(saved.content), { emitUpdate: false });
         setStatus("已保存");
@@ -121,6 +135,18 @@ export function DocumentEditor({ content, version, onSave, onDirtyChange, onDraf
       if (mounted.current) { setStatus("草稿尚未保存；内容仍保留，请重试。版本冲突时请先保留当前文字。"); setFailure(true); }
     } finally { saving.current = false; }
   }
+  async function retryJournal() {
+    if(saving.current)return;
+    saving.current=true;
+    try {
+      const cleared=await callbacks.current.onRetryWorkingState?.();
+      if(!mounted.current)return;
+      journalPending.current=false;
+      setFailure(false);setStatus(cleared?"已保存":"工作草稿已保全；仍有后续编辑尚未保存。");
+      if(cleared)callbacks.current.onDirtyChange?.(false);
+    }catch{if(mounted.current){setStatus("工作草稿保全仍未确认；正文版本不会重复写入。");setFailure(true);}}
+    finally{saving.current=false;}
+  }
   async function cite() {
     if (citing.current) return;
     citing.current = true;
@@ -132,8 +158,8 @@ export function DocumentEditor({ content, version, onSave, onDirtyChange, onDraf
   }
   useEffect(() => {
     if (!changes) return;
-    const timer = window.setTimeout(() => { if (!composing.current) void save(); }, 900);
-    return () => window.clearTimeout(timer);
+    saveTimer.current = window.setTimeout(() => { saveTimer.current=null;if (!composing.current) void save(); }, 900);
+    return () => {if(saveTimer.current!==null){window.clearTimeout(saveTimer.current);saveTimer.current=null;}};
     // Editor identity and callbacks are stable refs; updates debounce committed input.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [changes]);
@@ -142,7 +168,8 @@ export function DocumentEditor({ content, version, onSave, onDirtyChange, onDraf
       <button type="button" onClick={() => editor?.chain().focus().toggleBold().run()}>加粗</button>
       <button type="button" onClick={() => editor?.chain().focus().undo().run()}>撤销</button>
       <button type="button" onClick={() => editor?.chain().focus().redo().run()}>重做</button>
-      <button type="button" onClick={() => void save()}>保存草稿</button>
+      <button type="button" disabled={journalPending.current} onClick={() => void save()}>保存草稿</button>
+      {journalPending.current&&onRetryWorkingState?<button type="button" onClick={()=>void retryJournal()}>仅核对工作草稿保全</button>:null}
       {onCreateReference ? <button type="button" onClick={() => void cite()}>引用当前页</button> : null}
     </nav>
     <div onCompositionStart={() => { composing.current = true; }} onCompositionEnd={() => { composing.current = false; setChanges((value) => value + 1); }}>

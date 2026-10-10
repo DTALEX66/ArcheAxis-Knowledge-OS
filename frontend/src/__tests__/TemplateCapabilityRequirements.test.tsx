@@ -331,6 +331,8 @@ describe("template surface reaches the capability route through the shell", () =
 
 describe("app shell wiring of the template→capability route", () => {
   it("moves from a template requirement row to the capability detail and writes the hash route", async () => {
+    const previous=api.call.getMockImplementation()!;
+    api.call.mockImplementation(async(operation:string,payload:Record<string,unknown>={})=>operation==="ui_state_read"?{schema:"archeaxis.ui-working-state/v1",workspace_id:"a".repeat(32),restore_epoch:"initial",state_revision:0,state:{drafts:{},opened_documents:[],active_document:null,page_id:null,pending_original:null},draft_digests:{},pending_document_id:null,recovery_candidates:null,recovery_requires_confirmation:false}:previous(operation,payload));
     window.__TAURI__ = { core: { invoke: vi.fn(async (command: string, args?: Record<string, unknown>) => {
       if (command === "recovery_status") return { state: "ready", safe_mode: false, backend_available: true, message: "已就绪", backups: [], external_dev: false };
       if (command !== "core_command") throw new Error(`unexpected command ${command}`);

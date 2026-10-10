@@ -82,27 +82,100 @@ async fn open_executor(dir: &std::path::Path) -> Executor {
     .unwrap()
 }
 
-/// Whether the OCR engine can actually run here.
-///
-/// `tools/tesseract/tessdata/` is **gitignored by design** (`.gitignore:48`), so a fresh checkout
-/// has no traineddata and a chained OCR job cannot succeed there. The Python OCR tests skip in
-/// exactly that situation; these do the same instead of failing the suite for a missing local asset.
+/// Qualification reads only exact declared assets. CI preparation publishes both
+/// language variables; a stale declaration must fail, never select legacy data.
+fn qualification_tessdata(
+    prefix: Option<PathBuf>,
+    declared: Option<PathBuf>,
+    command: Option<PathBuf>,
+    ci: bool,
+    legacy: PathBuf,
+) -> Result<Option<PathBuf>, String> {
+    let required = ci || prefix.is_some() || declared.is_some() || command.is_some();
+    // The production OCR worker consumes TESSDATA_PREFIX. The companion CI
+    // declaration alone must not validate assets the worker would not select.
+    if prefix.is_none() && declared.is_some() {
+        return Err("ARCHEAXIS_OCR_TESSDATA requires matching TESSDATA_PREFIX".into());
+    }
+    if let (Some(first), Some(second)) = (&prefix, &declared) {
+        if first != second {
+            return Err("TESSDATA_PREFIX and ARCHEAXIS_OCR_TESSDATA disagree".into());
+        }
+    }
+    if let Some(binary) = command {
+        if !binary.is_absolute() || !binary.is_file() {
+            return Err("declared TESSERACT_CMD must be an existing absolute file".into());
+        }
+    }
+    let language = prefix.or(declared).map(|directory| directory.join("eng.traineddata"));
+    match language {
+        Some(file) if file.is_absolute() && file.is_file() => Ok(Some(file)),
+        Some(_) => Err("declared OCR eng.traineddata exact file is missing or not absolute".into()),
+        None if required => Err("OCR qualification requires declared language data".into()),
+        None if legacy.is_file() => Ok(Some(legacy)),
+        None => Ok(None),
+    }
+}
+
+fn ocr_qualification_required() -> bool {
+    ["TESSDATA_PREFIX", "ARCHEAXIS_OCR_TESSDATA", "TESSERACT_CMD"]
+        .iter()
+        .any(|key| std::env::var_os(key).is_some_and(|value| !value.is_empty()))
+        || std::env::var("CI").is_ok_and(|value| value.eq_ignore_ascii_case("true"))
+}
+
 fn tessdata_available() -> bool {
-    repo()
-        .join("tools/tesseract/tessdata/eng.traineddata")
-        .is_file()
+    let path = |name| std::env::var_os(name).filter(|value| !value.is_empty()).map(PathBuf::from);
+    qualification_tessdata(
+        path("TESSDATA_PREFIX"),
+        path("ARCHEAXIS_OCR_TESSDATA"),
+        path("TESSERACT_CMD"),
+        std::env::var("CI").is_ok_and(|value| value.eq_ignore_ascii_case("true")),
+        repo().join("tools/tesseract/tessdata/eng.traineddata"),
+    )
+    .expect("declared OCR qualification assets must be usable")
+    .is_some()
+}
+
+#[test]
+fn qualification_selects_exact_declared_language_and_refuses_stale_fallback() {
+    let temp = tempfile::tempdir().unwrap();
+    let language = temp.path().join("eng.traineddata");
+    std::fs::write(&language, b"synthetic existence fixture, never OCR data").unwrap();
+    let binary = temp.path().join("tesseract.exe");
+    std::fs::write(&binary, b"synthetic existence fixture, never executed").unwrap();
+    assert_eq!(
+        qualification_tessdata(Some(temp.path().into()), Some(temp.path().into()),
+            Some(binary.clone()), true, temp.path().join("absent")),
+        Ok(Some(language.clone()))
+    );
+    assert!(qualification_tessdata(None, Some(temp.path().into()), None, false,
+        temp.path().join("absent")).is_err());
+    assert!(qualification_tessdata(Some(temp.path().join("missing")), None, None,
+        false, language.clone()).is_err());
+    assert!(qualification_tessdata(Some(temp.path().into()), Some(temp.path().join("other")),
+        None, true, language.clone()).is_err());
+    assert!(qualification_tessdata(Some(temp.path().into()), None,
+        Some(temp.path().join("missing.exe")), false, language.clone()).is_err());
+    assert!(qualification_tessdata(None, None, None, true, language.clone()).is_err());
+    assert!(qualification_tessdata(Some(PathBuf::from("relative")), None, None,
+        false, language.clone()).is_err());
+    assert_eq!(qualification_tessdata(None, None, None, false, language),
+        Ok(Some(temp.path().join("eng.traineddata"))));
+    assert_eq!(qualification_tessdata(None, None, None, false, temp.path().join("absent")), Ok(None));
 }
 
 #[tokio::test]
 async fn a_scanned_pdf_chains_into_a_real_ocr_job_and_its_text_is_stored() {
     if !tessdata_available() {
         eprintln!(
-            "skipping: tools/tesseract/tessdata/eng.traineddata is absent (the directory is gitignored by design)"
+            "NOT_EXECUTED: local OCR language data is absent and no qualification was declared"
         );
         return;
     }
     let pdf = scanned_pdf_bytes("scanned page 6371");
     if pdf.is_empty() {
+        assert!(!ocr_qualification_required(), "declared OCR qualification cannot construct its actual PDF input");
         eprintln!("skipping: PyMuPDF or PIL unavailable for building a sample");
         return;
     }
@@ -323,6 +396,7 @@ async fn a_scanned_pdf_chains_into_a_real_ocr_job_and_its_text_is_stored() {
 async fn a_pdf_with_text_chains_nothing_and_a_tampered_render_is_refused() {
     let pdf = text_pdf_bytes("this page already has text");
     if pdf.is_empty() {
+        assert!(!ocr_qualification_required(), "declared OCR qualification cannot construct its actual PDF input");
         eprintln!("skipping: PyMuPDF unavailable for building a sample");
         return;
     }
@@ -461,7 +535,7 @@ async fn a_pdf_with_text_chains_nothing_and_a_tampered_render_is_refused() {
 async fn a_chaining_failure_is_recorded_as_a_machine_receipt_and_the_pdf_job_still_succeeds() {
     if !tessdata_available() {
         eprintln!(
-            "skipping: tools/tesseract/tessdata/eng.traineddata is absent (the directory is gitignored by design)"
+            "NOT_EXECUTED: local OCR language data is absent and no qualification was declared"
         );
         return;
     }
@@ -470,6 +544,7 @@ async fn a_chaining_failure_is_recorded_as_a_machine_receipt_and_the_pdf_job_sti
     // a reader can find rather than a silence.
     let pdf = scanned_pdf_bytes("chain failure 6371");
     if pdf.is_empty() {
+        assert!(!ocr_qualification_required(), "declared OCR qualification cannot construct its actual PDF input");
         eprintln!("skipping: PyMuPDF or PIL unavailable for building a sample");
         return;
     }

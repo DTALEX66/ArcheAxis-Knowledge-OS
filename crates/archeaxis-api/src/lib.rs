@@ -69,9 +69,18 @@ pub fn projections(state: Store, manual_receipts: bool) -> Router {
 }
 pub(crate) fn projections_base(state: Store, manual_receipts: bool) -> Router {
     let ui_routes = Router::new()
-        .route("/api/v1/workspace/ui-state", get(ui_state::read).put(ui_state::write))
-        .route("/api/v1/workspace/ui-state/clear-saved", post(ui_state::clear_saved))
-        .route("/api/v1/workspace/ui-state/recover", post(ui_state::recover))
+        .route(
+            "/api/v1/workspace/ui-state",
+            get(ui_state::read).put(ui_state::write),
+        )
+        .route(
+            "/api/v1/workspace/ui-state/clear-saved",
+            post(ui_state::clear_saved),
+        )
+        .route(
+            "/api/v1/workspace/ui-state/recover",
+            post(ui_state::recover),
+        )
         .layer(axum::extract::DefaultBodyLimit::max(1_100_000));
     let teaching_routes = Router::new()
         .route(

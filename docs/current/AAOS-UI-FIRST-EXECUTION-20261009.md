@@ -290,3 +290,11 @@ Owner 当前目标为完整核心框架、常见常用格式与最短闭环，�
 中文复合 DOCX/XLSX/PPTX/PDF 内容、结构、定位、独立新 job 重解析和重启探针已加入 desktop-fast。PDF locator 直接核验实际 pdf.extract 的 canonical page/global-line 和文本/结构输出指纹，不伪造 worker_structure/bbox/OCR。本地 15 项 parser/helper/build-contract 检查 PASS；当前完整框架及实际 Core 资格仍 PARTIAL。生成工作状态 DTO、语言边界、文档权威和当前 TypeScript 检查 PASS。
 
 基线完整 CI `38069114525`（6c5fcc3）最终 FAIL：installer-lifecycle PASS，desktop-fast 84 PASS / 1 FAIL，测试 fixture 的 Windows accepted socket 继承非阻塞模式，read 返回 WouldBlock。已显式切为阻塞读取并保留原有超时；新源码复测待候选。当前本地 rustfmt 对指定项目文件返回 access denied，不提权或调整 ACL，不能宣称格式/Native PASS。
+
+同日草稿正式 UI 接线继续：App-owned Core 工作状态 provider、初始读回身份闸、独立文档草稿、冻结原创请求、显式恢复候选、正文 ACK 后条件清理及独立 journal 重试已合入当前工作树。正式桌面宿主使用 Core journal；浏览器呈现夹具不获得 Native 持久化资格。服务读取/写入/清理/恢复先校验生成合同，无效回执不替换现场输入。定向 62 项通过后，全前端首次 1021 PASS / 8 FAIL、4 errors，发现旧恢复 fixture 回传无关 DTO，以及模板未登记工作状态接口。补全明确 fixture 并增加无效读回保护后，工作状态/恢复/模板/阅读 53 项 PASS、TypeScript PASS；首次失败原日志保留，最终全回归待收口。已知正文 ACK、journal 清理失败不回退正文版本，不重复写同正文。
+
+候选 `7458281da0d24d07eb96e348bd16a145331aa78e` 完整 CI `38071837781` 最终 FAIL：rust-vnext 的 root cargo fmt、desktop-fast 的 Native cargo fmt，以及 desktop-build 全前端中的旧原创创建 fixture（1015 PASS / 1 FAIL）。Windows 桌面失败步骤尚未到 Native 测试；installer-lifecycle SKIPPED，不记 PASS。两份 CI 格式补丁按基线 blob/preimage、全部 11 个任务文件范围及 token 等价审查后已应用；UI 创建 fixture 使用实际请求派生 ID、完整 block DTO 及独立版本读回，保留身份校验。尚未提交新的修复候选；真实 Core 草稿重启、当前常用格式探针与同对象全旅程仍 NOT_QUALIFIED。
+
+后续完整前端回归 `be268a2d33/9f6c48743688`：111 文件 / 1034 测试 PASS，采用最多 4 个 worker 保留原断言与超时；此前默认并发的文件批次与懒加载等待超时 FAIL 保留。挂载回归实测复现正文 ACK 后残留 debounce 二次正文写入，现取消计时器并用已确认内容防止重复写；独立草稿、新 Session 同请求创建恢复、仅 journal 重试及晚输入四项挂载回归 PASS（SIMULATED）。全回归之后只给该测试的 undefined narrowing 加明确 guard，定向 4 项再次 PASS；产品源码未因此改变。新测试纳入 TypeScript 检查。
+
+扫描 PDF 的实际 OCR 前置资格原先只看旧 gitignored tools 路径，已对齐 CI/worker 声明的 TESSDATA_PREFIX，并核对 companion 和显式引擎文件。CI 或明确 OCR 声明下缺语言数据、失效引擎或 PDF 输入构造失败硬失败；普通未声明本地环境明确 NOT_EXECUTED。纯选择回归含 9 项断言；该 Rust 测试本地因依赖 build script 的 kernel32.lib 缺失 NOT_EXECUTED，当前实际 OCR 正文与定位资格仍不能升级。未改变主题或激活冻结范围。

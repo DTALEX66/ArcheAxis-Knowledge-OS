@@ -6,9 +6,11 @@ use sha2::{Digest, Sha256};
 
 fn verified_output(metadata: &str, content: &str, kind: &str) -> Option<bool> {
     let metadata: Value = serde_json::from_str(metadata).ok()?;
-    Some(metadata["kind"] == kind
-        && metadata["sha256"] == format!("{:x}", Sha256::digest(content.as_bytes()))
-        && metadata["byte_length"].as_u64()? == content.len() as u64)
+    Some(
+        metadata["kind"] == kind
+            && metadata["sha256"] == format!("{:x}", Sha256::digest(content.as_bytes()))
+            && metadata["byte_length"].as_u64()? == content.len() as u64,
+    )
 }
 
 pub(super) fn verify(
@@ -26,7 +28,11 @@ pub(super) fn verify(
         return Some(false);
     }
     for (segment, prefix) in path.iter().zip(["page-", "line-"]) {
-        let number = segment.as_str()?.strip_prefix(prefix)?.parse::<u64>().ok()?;
+        let number = segment
+            .as_str()?
+            .strip_prefix(prefix)?
+            .parse::<u64>()
+            .ok()?;
         if number == 0 {
             return Some(false);
         }
@@ -50,29 +56,45 @@ pub(super) fn verify(
         |r| Ok((r.get(0)?,r.get(1)?,r.get(2)?,r.get(3)?,r.get(4)?,r.get(5)?,
                 r.get(6)?,r.get(7)?,r.get(8)?,r.get(9)?,r.get(10)?)),
     ).ok()?;
-    if input != source || source_sha != revision || kind != "pdf"
-        || state != "succeeded" || attempt_state != "succeeded" || latest != attempt {
+    if input != source
+        || source_sha != revision
+        || kind != "pdf"
+        || state != "succeeded"
+        || attempt_state != "succeeded"
+        || latest != attempt
+    {
         return Some(false);
     }
     let request: Value = serde_json::from_str(&wire).ok()?;
     let inputs = request["inputs"].as_array()?;
-    if request["job_id"] != job || request["attempt"] != attempt
-        || request["capability"] != "pdf.extract" || inputs.len() != 1
-        || inputs[0]["sha256"] != revision || inputs[0]["media_type"] != "application/pdf"
+    if request["job_id"] != job
+        || request["attempt"] != attempt
+        || request["capability"] != "pdf.extract"
+        || inputs.len() != 1
+        || inputs[0]["sha256"] != revision
+        || inputs[0]["media_type"] != "application/pdf"
         || verified_output(&text_meta, &text, "text") != Some(true)
         || verified_output(&structure_meta, &structure, "document_structure") != Some(true)
-        || expected != format!("{:x}", Sha256::digest(structure.as_bytes())) {
+        || expected != format!("{:x}", Sha256::digest(structure.as_bytes()))
+    {
         return Some(false);
     }
     let entries: Value = serde_json::from_str(&structure).ok()?;
-    let matches: Vec<&Value> = entries.as_array()?.iter().filter(|entry| {
-        entry["kind"] == "line" && entry["path"] == position["path"]
-    }).collect();
-    if matches.len() != 1 || matches[0]["char_start"] != position["char_start"]
-        || matches[0]["char_end"] != position["char_end"] {
+    let matches: Vec<&Value> = entries
+        .as_array()?
+        .iter()
+        .filter(|entry| entry["kind"] == "line" && entry["path"] == position["path"])
+        .collect();
+    if matches.len() != 1
+        || matches[0]["char_start"] != position["char_start"]
+        || matches[0]["char_end"] != position["char_end"]
+    {
         return Some(false);
     }
     let excerpt: String = text.chars().skip(start).take(end - start).collect();
-    Some(excerpt.chars().count() == end - start && !excerpt.trim().is_empty()
-        && format!("{:x}", Sha256::digest(excerpt.as_bytes())) == checksum)
+    Some(
+        excerpt.chars().count() == end - start
+            && !excerpt.trim().is_empty()
+            && format!("{:x}", Sha256::digest(excerpt.as_bytes())) == checksum,
+    )
 }

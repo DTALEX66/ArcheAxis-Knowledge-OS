@@ -1,3 +1,6 @@
+import { CoreWorkingStateSession, type WorkingRead } from "../presentation/coreWorkingState";
+import { CoreWorkingStateProvider, useCoreWorkingState } from "../presentation/useCoreWorkingState";
+import { coreCommand } from "../api/core";
 import { AaosDialog } from "../design-system/AaosPrimitives";
 import { PinnedReferencePanel } from "../components/PinnedReferencePanel";
 import type { ObjectReference } from "../api/generated/research-contract";
@@ -37,7 +40,29 @@ const RECOVERY_BOOT_TIMEOUT_MS = 30_000;
 
 // AXW-UI-802: composite left navigation, central task area, on-demand inspector,
 // and activity dock. Capability entries share one generated navigation projection.
+function createWorkingSession() {
+  return new CoreWorkingStateSession({
+    read:()=>coreCommand<WorkingRead>("ui_state_read"),
+    write:body=>coreCommand<WorkingRead>("ui_state_write",{body}),
+    clearSaved:body=>coreCommand<WorkingRead>("ui_state_clear_saved",{body}),
+    recover:body=>coreCommand<WorkingRead>("ui_state_recover",{body}),
+  });
+}
 export function App() {
+  const [session,setSession]=useState(createWorkingSession);
+  useEffect(()=>{
+    // Only a confirmed workspace replacement owns a new session. CAS/permission
+    // refusals and ambiguous restore receipts retain the App-owned local drafts.
+    const reset=(event:Event)=>{if((event as CustomEvent<{confirmed?:boolean}>).detail?.confirmed===true)setSession(createWorkingSession());};
+    window.addEventListener("workspace-invalidated",reset);
+    return()=>window.removeEventListener("workspace-invalidated",reset);
+  },[]);
+  return <CoreWorkingStateProvider session={session}><AppBody /></CoreWorkingStateProvider>;
+}
+function AppBody() {
+  const working=useCoreWorkingState();
+  const hydratedSession=useRef<CoreWorkingStateSession|null>(null);
+  const [workingEntered,setWorkingEntered]=useState(false);
   const desktop = Boolean(window.__TAURI__?.core?.invoke);
   const [initialNavigation] = useState(() => resolveNavigationHash(window.location.hash));
   const [activeSpace, setActiveSpace] = useState<SpaceId>(initialNavigation?.spaceId ?? "workspace");
@@ -569,6 +594,67 @@ export function App() {
     }
   }, [beginOperation, finishOperation, isCurrent, recoveryStatus?.external_dev, verifyReadyStatus]);
 
+  useEffect(()=>{
+    if(!desktop||!desktopReady||verificationPending||workspaceRestoring)return;
+    let alive=true;
+    setWorkingEntered(false);
+    void working.session.load().then(read=>{
+      if(!alive||read.recovery_requires_confirmation)return;
+      const snapshot=working.session.getSnapshot();
+      if(snapshot.status==="blocked")return;
+      if(hydratedSession.current!==working.session) {
+        hydratedSession.current=working.session;
+        const page=findUiPage(snapshot.state.page_id??"");
+        if(page){setUiPageId(page.id);setActiveSpace(page.space);setSelectedCapabilityId(null);}
+        setOpenedDocumentId(snapshot.state.active_document??undefined);
+      }
+      setWorkingEntered(true);
+    }).catch(()=>{});
+    return()=>{alive=false;};
+  },[desktop,desktopReady,verificationPending,workspaceRestoring,working.session]);
+  useEffect(()=>{
+    if(!desktop)return;
+    const dirty=Object.keys(working.state.drafts).length>0||Boolean(working.state.pending_original)||["unsaved","saving","blocked"].includes(working.status);
+    if(dirty)draftOwners.current.add("core-working-state");else draftOwners.current.delete("core-working-state");
+    draftDirty.current=draftOwners.current.size>0;setUnsavedDrafts(draftDirty.current);
+  },[desktop,working.state,working.status,workspaceEpoch]);
+  useEffect(()=>{
+    if(!desktop||!workingEntered||working.status==="blocked"||working.status==="recovery")return;
+    if(working.state.page_id!==(uiPageId??null))working.session.rememberScene(uiPageId??null);
+  },[desktop,workingEntered,uiPageId,working.session,working.state.page_id,working.status]);
+  useEffect(()=>{
+    if(!desktop||working.status!=="unsaved"||workspaceRestoring)return;
+    const timer=window.setTimeout(()=>{void working.session.flush().catch(()=>{});},250);
+    return()=>window.clearTimeout(timer);
+  },[desktop,working.state,working.status,workspaceRestoring,working.session]);
+  async function rereadWorkingState() {
+    try {
+      const read=await working.session.load();
+      const view=working.session.getSnapshot();
+      if(!read.recovery_requires_confirmation&&view.status!=="blocked") {
+        if(hydratedSession.current!==working.session){const page=findUiPage(view.state.page_id??"");if(page){setUiPageId(page.id);setActiveSpace(page.space);}setOpenedDocumentId(view.state.active_document??undefined);hydratedSession.current=working.session;}
+        setWorkingEntered(true);
+      }
+    }catch{/* Session retains the exact local draft and displays the refusal. */}
+  }
+  async function decideWorkingRecovery(action:"preserve"|"discard") {
+    try {
+      await working.session.recover(action);
+      const view=working.session.getSnapshot();
+      if(view.status!=="ready")return;
+      const page=findUiPage(view.state.page_id??"");
+      if(page){setUiPageId(page.id);setActiveSpace(page.space);}
+      setOpenedDocumentId(view.state.active_document??undefined);
+      hydratedSession.current=working.session;setWorkingEntered(true);
+    }catch{/* Explicit choice may still be refused; no candidate replaces local input. */}
+  }
+  const workingNotice=desktop?<section aria-label="工作草稿保全" role={working.error?"alert":"status"}>
+    <p>{working.status==="ready"?"工作状态已由 Core 保全；正文保存以各文档版本回执为准。":working.status==="saving"?"正在保全工作草稿…":working.status==="loading"?"正在读取工作草稿；编辑入口等待身份核对。":"工作草稿仍保留，持久化尚未全部确认。"}</p>
+    {working.error?<p>{working.error}</p>:null}
+    {["blocked","loading","unsaved"].includes(working.status)?<><button onClick={()=>void rereadWorkingState()}>核对工作状态</button><button disabled={working.status!=="unsaved"} onClick={()=>void working.session.flush().catch(()=>{})}>仅重试草稿保全</button></>:null}
+    {working.server?.recovery_requires_confirmation?<><p>恢复候选含 {Object.keys(working.server.recovery_candidates?.drafts??{}).length} 份独立草稿。正文尚未套用；请明确选择。</p><pre>{Object.keys(working.server.recovery_candidates?.drafts??{}).join("\n")}</pre><button onClick={()=>void decideWorkingRecovery("preserve")}>保留恢复候选</button><button onClick={()=>void decideWorkingRecovery("discard")}>丢弃恢复候选</button></>:null}
+  </section>:null;
+
   if (!desktopReady && recoveryStatus) {
     return (
       <>
@@ -596,6 +682,7 @@ export function App() {
     <div className="app-shell">
       {restoreNotice?<p role={restoreNotice.confirmed?"status":"alert"} className="workspace-restore-notice">{restoreNotice.message}</p>:null}
       {workspaceRestoring ? <div role="status" className="workspace-restore-overlay">正在恢复工作区并重启本地 Core，请等待读回完成…</div> : null}
+      {workingNotice}
       <StatusBar
         activeSpace={activeSpace}
         backendState={!desktop
@@ -621,7 +708,7 @@ export function App() {
           <NavTrail levels={trailLevels} onJump={focusRegion} />
           {sectionNotice ? <p className="nav-trail-notice" role="status">{sectionNotice}</p> : null}
           <div className="ui-page-heading" role="group" aria-label="当前页面"><div><h1>{findUiPage(uiPageId ?? "")?.label ?? currentSpaceLabel}</h1><p>个人空间 · 本地知识与 Human–AI 双向学习</p></div><small>UI / {uiPageId ?? "兼容入口"}</small></div>
-          <SpaceView initialLearningItemKey={initialLearningItemKey} onReviewItem={openReviewItem} onOpenPage={openPage} hasUnsavedDrafts={unsavedDrafts} uiPageId={uiPageId} initialDocumentId={openedDocumentId} onOpenDocument={openDocument} spaceId={activeSpace} onInspect={inspect} onNavigate={navigate} onOpenCapability={openCapability} navigation={sectionNavigation} selectedCapabilityId={selectedCapabilityId} onTrail={setObjectTrail} />
+          {(!desktop||workingEntered)?<SpaceView initialLearningItemKey={initialLearningItemKey} onReviewItem={openReviewItem} onOpenPage={openPage} hasUnsavedDrafts={unsavedDrafts} uiPageId={uiPageId} initialDocumentId={openedDocumentId} onOpenDocument={openDocument} spaceId={activeSpace} onInspect={inspect} onNavigate={navigate} onOpenCapability={openCapability} navigation={sectionNavigation} selectedCapabilityId={selectedCapabilityId} onTrail={setObjectTrail} />:<p role="status">工作状态尚未核对；请使用上方读回或明确恢复入口。</p>}
         </main>
         {inspectorOpen && !selectedCapabilityId && !learningFocus ? <Inspector target={inspectionTarget} onClose={() => setInspectorOpen(false)} /> : null}
       </div>

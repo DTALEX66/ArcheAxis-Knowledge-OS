@@ -2,6 +2,7 @@
   "schema": "archeaxis.closed-loop-engineering-progress/v1",
   "date": "2026-10-11",
   "status": "PARTIAL",
+  "later_frontend_integration": "docs/current/receipts/AAOS-WORKING-STATE-INTEGRATION-20261011.json",
   "active_progress": "docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md",
   "owner_scope": "docs/current/AAOS-CLOSED-LOOP-OWNER-RESUME-20261011.json",
   "committed_baseline": "6c5fcc3affc012109ced6d2e96fca2ddada4153b",

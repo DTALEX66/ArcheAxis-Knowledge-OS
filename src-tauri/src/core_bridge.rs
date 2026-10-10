@@ -608,7 +608,10 @@ fn route(request: &Request) -> Result<(&'static str, String, Option<Value>), Str
             ("GET", "/api/v1/workspace/ui-state".into(), None)
         }
         UiStateWrite | UiStateClearSaved | UiStateRecover => {
-            if !p.as_object().is_some_and(|object| object.len() == 1 && object.contains_key("body")) {
+            if !p
+                .as_object()
+                .is_some_and(|object| object.len() == 1 && object.contains_key("body"))
+            {
                 return Err("CORE_UI_STATE_PAYLOAD_INVALID".into());
             }
             let value = body()?;
@@ -663,9 +666,9 @@ fn route(request: &Request) -> Result<(&'static str, String, Option<Value>), Str
             if capability.is_empty()
                 || capability.len() > 128
                 || capability.split('.').any(|part| part.is_empty())
-                || !capability.bytes().all(|c| {
-                    c.is_ascii_alphanumeric() || c == b'-' || c == b'_' || c == b'.'
-                })
+                || !capability
+                    .bytes()
+                    .all(|c| c.is_ascii_alphanumeric() || c == b'-' || c == b'_' || c == b'.')
             {
                 return Err("CORE_COMMAND_CAPABILITY_INVALID".into());
             }
@@ -813,7 +816,10 @@ fn transport_timeout(operation: &Operation) -> std::time::Duration {
 fn request_byte_limit(operation: &Operation) -> usize {
     if matches!(operation, Operation::SourceImport) {
         90 * 1024 * 1024
-    } else if matches!(operation, Operation::UiStateWrite | Operation::UiStateClearSaved | Operation::UiStateRecover) {
+    } else if matches!(
+        operation,
+        Operation::UiStateWrite | Operation::UiStateClearSaved | Operation::UiStateRecover
+    ) {
         1_100_000
     } else {
         8 * 1024 * 1024
@@ -1509,38 +1515,69 @@ mod folder_native_contract_regression {
     #[test]
     fn anchor_resolution_is_a_finite_read_with_two_bound_ids() {
         let request:Request=serde_json::from_value(serde_json::json!({"operation":"anchor_resolve","payload":{"source_id":"src-1","anchor_id":"anchor-1"}})).unwrap();
-        let (method,path,body)=route(&request).unwrap();
-        assert_eq!(method,"GET");
-        assert_eq!(path,"/api/v1/sources/src-1/anchors/anchor-1/resolve");
+        let (method, path, body) = route(&request).unwrap();
+        assert_eq!(method, "GET");
+        assert_eq!(path, "/api/v1/sources/src-1/anchors/anchor-1/resolve");
         assert!(body.is_none());
-        for key in ["source_id","anchor_id"] {
-            for invalid in ["../other","x/y","x?role=human",""] {
-                let mut payload=serde_json::json!({"source_id":"src-1","anchor_id":"anchor-1"});
-                payload[key]=serde_json::json!(invalid);
-                assert!(route(&Request{operation:Operation::AnchorResolve,payload}).is_err());
+        for key in ["source_id", "anchor_id"] {
+            for invalid in ["../other", "x/y", "x?role=human", ""] {
+                let mut payload = serde_json::json!({"source_id":"src-1","anchor_id":"anchor-1"});
+                payload[key] = serde_json::json!(invalid);
+                assert!(route(&Request {
+                    operation: Operation::AnchorResolve,
+                    payload
+                })
+                .is_err());
             }
         }
     }
 
     #[test]
     fn ui_working_state_uses_only_fixed_routes_and_bounded_bodies() {
-        let read:Request=serde_json::from_value(serde_json::json!({"operation":"ui_state_read","payload":{}})).unwrap();
-        let (method,path,body)=route(&read).unwrap();
-        assert_eq!(method,"GET");assert_eq!(path,"/api/v1/workspace/ui-state");assert!(body.is_none());
-        for (operation,method,path) in [
-            ("ui_state_write","PUT","/api/v1/workspace/ui-state"),
-            ("ui_state_clear_saved","POST","/api/v1/workspace/ui-state/clear-saved"),
-            ("ui_state_recover","POST","/api/v1/workspace/ui-state/recover"),
+        let read: Request =
+            serde_json::from_value(serde_json::json!({"operation":"ui_state_read","payload":{}}))
+                .unwrap();
+        let (method, path, body) = route(&read).unwrap();
+        assert_eq!(method, "GET");
+        assert_eq!(path, "/api/v1/workspace/ui-state");
+        assert!(body.is_none());
+        for (operation, method, path) in [
+            ("ui_state_write", "PUT", "/api/v1/workspace/ui-state"),
+            (
+                "ui_state_clear_saved",
+                "POST",
+                "/api/v1/workspace/ui-state/clear-saved",
+            ),
+            (
+                "ui_state_recover",
+                "POST",
+                "/api/v1/workspace/ui-state/recover",
+            ),
         ] {
-            let request:Request=serde_json::from_value(serde_json::json!({"operation":operation,"payload":{"body":{"state_revision":7}}})).unwrap();
-            let routed=route(&request).unwrap();
-            assert_eq!((routed.0,routed.1.as_str()),(method,path));assert_eq!(routed.2,Some(serde_json::json!({"state_revision":7})));
-            assert_eq!(request_byte_limit(&request.operation),1_100_000);
-            for payload in [serde_json::json!({}),serde_json::json!({"body":[]}),serde_json::json!({"body":{},"url":"https://example.com"})] {
-                let invalid:Request=serde_json::from_value(serde_json::json!({"operation":operation,"payload":payload})).unwrap();
+            let request: Request = serde_json::from_value(
+                serde_json::json!({"operation":operation,"payload":{"body":{"state_revision":7}}}),
+            )
+            .unwrap();
+            let routed = route(&request).unwrap();
+            assert_eq!((routed.0, routed.1.as_str()), (method, path));
+            assert_eq!(routed.2, Some(serde_json::json!({"state_revision":7})));
+            assert_eq!(request_byte_limit(&request.operation), 1_100_000);
+            for payload in [
+                serde_json::json!({}),
+                serde_json::json!({"body":[]}),
+                serde_json::json!({"body":{},"url":"https://example.com"}),
+            ] {
+                let invalid: Request = serde_json::from_value(
+                    serde_json::json!({"operation":operation,"payload":payload}),
+                )
+                .unwrap();
                 assert!(route(&invalid).is_err());
             }
         }
-        assert!(route(&Request{operation:Operation::UiStateRead,payload:serde_json::json!({"body":{}})}).is_err());
+        assert!(route(&Request {
+            operation: Operation::UiStateRead,
+            payload: serde_json::json!({"body":{}})
+        })
+        .is_err());
     }
 }
