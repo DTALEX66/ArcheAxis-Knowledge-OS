@@ -2,6 +2,7 @@ import { webcrypto } from "node:crypto";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { act, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { JobContent } from "../components/JobContent";
+import { ApiError, type JobAdmissionRefusal } from "../api/client";
 import { outputReceipt } from "./fixtures/jobContentCoreFixture";
 const bridge=vi.hoisted(()=>({call:vi.fn()}));vi.mock("../api/core",()=>({coreCommand:bridge.call}));
 const revision="a".repeat(64);const content="真实夹具正文 😀";
@@ -26,6 +27,23 @@ function fixture(options:{lost?:boolean;wrongAck?:boolean;state?:string;kind?:st
 const view=(extra:Record<string,unknown>={})=><JobContent sourceId="source" sourceRevision={revision} name="report.xlsx" {...extra}/>;
 describe("SIMULATED manual finite execution boundaries",()=>{
  beforeEach(()=>{bridge.call.mockReset();vi.stubGlobal("crypto",webcrypto);});
+ it("explicitly resumes the exact unconsumed request after a typed disabled refusal",async()=>{
+  fixture();const previous=bridge.call.getMockImplementation()!;let disabled=true;
+  bridge.call.mockImplementation(async(op:string,p:Record<string,unknown>)=>{
+   if(op==="job_execute"&&disabled){const receipt={schema:"archeaxis.job-admission-refusal/v1",code:"AAK-CAP-001",job_id:p.job_id,request_id:p.request_id,input_ref:"source",kind:"office",capability:"office.structure",budget:p.body,admission_state:"NOT_ADMITTED",request_consumed:false,active_execution:false,enabled:false,same_request_retry_allowed:true} as JobAdmissionRefusal;throw new ApiError(409,"disabled","unavailable",undefined,receipt);}
+   return previous(op,p);
+  });
+  render(view());fireEvent.click(screen.getByRole("button",{name:"执行真实内容转换"}));await screen.findByText(/结果 UNKNOWN/);
+  const first=bridge.call.mock.calls.find(([op])=>op==="job_execute")![1];expect(screen.getByRole("button",{name:"同请求重试转换"})).toBeEnabled();
+  disabled=false;fireEvent.click(screen.getByRole("button",{name:"同请求重试转换"}));await screen.findByLabelText("Core 提取正文");
+  const sends=bridge.call.mock.calls.filter(([op])=>op==="job_execute");expect(sends).toHaveLength(2);expect(sends[1][1]).toEqual(first);expect(bridge.call.mock.calls.filter(([op])=>op==="job_enqueue")).toHaveLength(1);
+ });
+ it("queued readback cannot unlock a generic permission refusal",async()=>{
+  fixture();const previous=bridge.call.getMockImplementation()!;
+  bridge.call.mockImplementation(async(op:string,p:Record<string,unknown>)=>{if(op==="job_execute")throw new ApiError(403,"denied");if(op==="job_execution_status")return {job_id:p.job_id,input_ref:"source",kind:"office",state:"queued",attempt:null,request_id:null,error:null,attempts:[]};return previous(op,p);});
+  render(view());fireEvent.click(screen.getByRole("button",{name:"执行真实内容转换"}));await screen.findByText(/结果 UNKNOWN/);expect(screen.getByRole("button",{name:"同请求重试转换"})).toBeDisabled();
+  fireEvent.click(screen.getByRole("button",{name:"读取冻结转换状态"}));await screen.findByText(/尚未读回冻结执行身份/);expect(screen.getByRole("button",{name:"同请求重试转换"})).toBeDisabled();
+ });
  it("claims singleflight before React flush and sends the actual finite request identity",async()=>{
   fixture();render(view());const button=screen.getByRole("button",{name:"执行真实内容转换"});act(()=>{fireEvent.click(button);fireEvent.click(button);});
   await screen.findByLabelText("Core 提取正文");expect(bridge.call.mock.calls.filter(([op])=>op==="job_enqueue")).toHaveLength(1);

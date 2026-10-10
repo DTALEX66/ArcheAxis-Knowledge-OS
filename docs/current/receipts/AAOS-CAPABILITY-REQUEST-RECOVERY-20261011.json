@@ -1,0 +1,31 @@
+{
+  "schema": "archeaxis.capability-request-recovery-progress/v1",
+  "date": "2026-10-11",
+  "base_commit": "c6640d93bef19c4530cd94101fa352754f65e2d2",
+  "whole_goal": "PARTIAL_NOT_QUALIFIED",
+  "implementation": {
+    "core": "Existing request replay and strict job/budget binding precede disabled-capability refusal; under admission/active locks the Store snapshot checks exact global request absence, no durable running attempt, permissible job state and disabled route",
+    "proof": "Typed NOT_ADMITTED binds job/request/source/kind/budget; request_consumed=false and active_execution=false; unavailable/unknown state never provides this proof",
+    "ui": "Only job_execute 409 with complete matching proof permits explicit original-request retry; original frozen identity and body remain unchanged",
+    "protected": ["generic permission/conflict refusals", "lost ACK", "queued/null readback", "wrong job/request/source/kind/budget", "output-stage errors", "accepted-request replay after capability disabled"]
+  },
+  "local_validation": {
+    "targeted": "51 PASS across JobAdmission, JobContentManualExecution and FolderIngest",
+    "targeted_receipt": ".project-local/runs/be268a2d33/231db01746cf/artifacts/execution.json",
+    "full_frontend": "117 files / 1073 PASS",
+    "full_frontend_receipt": ".project-local/runs/be268a2d33/c62f8f6ab0fb/artifacts/execution.json",
+    "typescript_and_production_build": "PASS",
+    "build_receipt": ".project-local/runs/be268a2d33/0a1ef2e3c787/artifacts/frontend-build.json",
+    "source_patch_sha256": "a66c0e83a7e12652b412cd5b37e1aef9320b76fdb988903c04caf0c2a3d5dbed",
+    "source_consistent": true,
+    "architecture": "PASS",
+    "evidence_level": "SIMULATED_UI_WITH_ACTUAL_BUILD"
+  },
+  "core_regression": {
+    "added": ["Disable refusal with zero attempts/staging, re-enable and same request exactly one successful attempt", "Disable after success still replays existing request", "Wrong budget/job and new request on successful job never get non-admission proof", "Durable running claim never gets safe non-admission proof"],
+    "execution": "NOT_EXECUTED_LOCAL; exact-SHA CI pending",
+    "formatting": "UNVERIFIED_LOCAL; prior declared rustfmt permission denial retained, not retried through elevation or another shell"
+  },
+  "remaining": ["Actual Core tests and final combined exact-SHA CI", "Installed new UI disabled-to-enabled same-request journey", "Navigation away from a frozen request to capability settings and return without losing identity needs actual control qualification", "Owner acceptance"],
+  "agent_import": "Ten file exact preimages and patch hash d5bca58fefbdfac0dcff62dd26316a74da8885e0113ec20177424b55453bd535 verified before application"
+}

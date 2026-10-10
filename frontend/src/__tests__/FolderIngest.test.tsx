@@ -2,7 +2,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { act, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { FolderIngest } from "../components/FolderIngest";
-import { ApiError } from "../api/client";
+import { ApiError, type JobAdmissionRefusal } from "../api/client";
 
 const bridge = vi.hoisted(() => ({ call: vi.fn(), open: vi.fn() }));
 vi.mock("../api/core", () => ({ coreCommand: bridge.call }));
@@ -266,6 +266,17 @@ describe("folder ingest", () => {
   it("definite Core permission refusal freezes identity and offers readback rather than blind execution",async()=>{
     bridge.call.mockImplementation(async(op:string,p:Record<string,unknown>)=>{if(op==="job_execute")throw new ApiError(403,"route denied","unavailable");return fixture(op,p);});
     upload([picked("册/a.md")]);fireEvent.click(await screen.findByRole("button",{name:"执行本批次转换"}));await screen.findByRole("button",{name:"核对冻结请求状态"});expect(screen.queryByRole("button",{name:"同请求重试"})).not.toBeInTheDocument();expect(screen.getByLabelText("选择文件夹")).toBeDisabled();
+  });
+  it("a typed disabled non-admission resumes the exact frozen request when enabled",async()=>{
+    let disabled=true;
+    bridge.call.mockImplementation(async(op:string,p:Record<string,unknown>)=>{
+      if(op==="job_execute"&&disabled){const row=statuses.get(String(p.job_id))!;const receipt={schema:"archeaxis.job-admission-refusal/v1",code:"AAK-CAP-001",job_id:p.job_id,request_id:p.request_id,input_ref:row.input_ref,kind:"text",capability:"text.extract",budget:p.body,admission_state:"NOT_ADMITTED",request_consumed:false,active_execution:false,enabled:false,same_request_retry_allowed:true} as JobAdmissionRefusal;throw new ApiError(409,"disabled","unavailable",undefined,receipt);}
+      return fixture(op,p);
+    });
+    upload([picked("册/a.md")]);fireEvent.click(await screen.findByRole("button",{name:"执行本批次转换"}));
+    const retry=await screen.findByRole("button",{name:"同请求重试"});const first=bridge.call.mock.calls.find(([op])=>op==="job_execute")![1];expect(requests.size).toBe(0);
+    disabled=false;fireEvent.click(retry);await screen.findByText("已成功",{exact:true});
+    const calls=bridge.call.mock.calls.filter(([op])=>op==="job_execute");expect(calls).toHaveLength(2);expect(calls[1][1]).toEqual(first);expect(statuses.get(String(first.job_id))?.attempt).toBe(1);
   });
   it("requests current Core cancellation with the exact execution identity; 202 is not terminal",async()=>{
     executionState="running";const ack=deferred<unknown>();bridge.call.mockImplementation(async(op:string,p:Record<string,unknown>)=>op==="job_execution_cancel"?ack.promise:fixture(op,p));

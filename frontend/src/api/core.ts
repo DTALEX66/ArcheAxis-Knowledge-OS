@@ -1,5 +1,6 @@
 // Native finite business commands only. No URL, method or credential reaches UI.
 import { ApiError } from "./client";
+import { jobAdmissionRefusal } from "./jobAdmission";
 import { assertCoreDto, type CoreOperation } from "./generated/core-contract";
 import { assertAiAssetDto } from "./generated/ai-asset-contract";
 import { assertTeachingDto } from "./generated/teaching-contract";
@@ -37,6 +38,11 @@ export async function coreCommand<T>(operation: CoreOperation, payload: Record<s
   const response = result as { status?: unknown; body?: unknown };
   if (typeof response.status !== "number" || !Number.isInteger(response.status)) throw new ApiError(502, "本地核心状态无效。", "incompatible");
   if (response.status < 200 || response.status >= 300) {
+    if (operation === "job_execute" && response.status === 409) {
+      const p = payload as { job_id: string; request_id: string; body: { deadline_ms: number; split: boolean; words: boolean } };
+      const admission = p.body && jobAdmissionRefusal(response.body, p);
+      if (admission) throw new ApiError(409, "能力已禁用，原请求未受理；启用后可显式同请求重试。", "unavailable", undefined, admission);
+    }
     const refusal = response.body as Record<string,unknown> | null;
     if (["machine_answer","machine_retest"].includes(operation) && refusal?.schema === "archeaxis.machine-execution-refusal/v1"
       && refusal.execution_state === "EXECUTED_BUT_WITHHELD" && refusal.answer_published === false

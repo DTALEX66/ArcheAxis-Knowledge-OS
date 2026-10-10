@@ -526,17 +526,6 @@ async fn start(
     words: bool,
 ) -> Response {
     let _admission = runtime.admission.lock().await;
-    // R7/G1: name a disabled capability instead of letting it fall into the generic "cannot start in
-    // its current state". The authoritative refusal is inside the claim transaction, which is what
-    // guarantees no attempt row is created; this is here because `Executor::start` reports failures
-    // as strings, so without it the caller is told the job cannot start and not why.
-    if let Some(capability) = runtime.executor.disabled_capability_for(&job).await {
-        return error(
-            409,
-            "AAK-CAP-001",
-            &format!("capability {capability} is disabled in this workspace"),
-        );
-    }
     if runtime
         .active
         .lock()
@@ -609,6 +598,39 @@ async fn start(
         }
         if active.len() >= 2 {
             return unavailable();
+        }
+        // A disabled route cannot hide an already consumed idempotency key. Only an exact,
+        // consistent negative lookup plus no active/durable execution proves non-admission.
+        // Keep the admission and active guards until the Store-owned snapshot is complete.
+        let query_job = job.clone();
+        let query_id = id.clone();
+        let refusal = runtime.executor.store().submit_wait(move |conn| -> rusqlite::Result<Option<Value>> {
+            let tx = conn.transaction_with_behavior(rusqlite::TransactionBehavior::Immediate)?;
+            let row: Option<(String, String, String)> = tx.query_row(
+                "SELECT state,kind,input_ref FROM jobs WHERE job_id=?1", [&query_job],
+                |r| Ok((r.get(0)?, r.get(1)?, r.get(2)?)),
+            ).optional()?;
+            let Some((state, kind, source)) = row else { return Ok(None); };
+            let Some((capability, _)) = archeaxis_application::attempts::route_for_kind(&kind) else { return Ok(None); };
+            if archeaxis_store_sqlite::capability_settings::is_enabled(&tx, capability)? { return Ok(None); }
+            let occupied: bool = tx.query_row(
+                "SELECT EXISTS(SELECT 1 FROM job_attempts WHERE request_id=?1 OR (job_id=?2 AND state='running'))",
+                rusqlite::params![query_id, query_job], |r| r.get(0),
+            )?;
+            if occupied || !matches!(state.as_str(), "queued" | "failed" | "cancelled") {
+                return Ok(Some(json!({"code":"AAK-CAP-001","message":"capability disabled; admission not proven","retryable":false})));
+            }
+            Ok(Some(json!({"schema":"archeaxis.job-admission-refusal/v1","code":"AAK-CAP-001",
+                "job_id":query_job,"request_id":query_id,"input_ref":source,"kind":kind,
+                "budget":{"deadline_ms":deadline,"split":split,"words":words},
+                "admission_state":"NOT_ADMITTED","request_consumed":false,"active_execution":false,
+                "capability":capability,"enabled":false,"same_request_retry_allowed":true,
+                "message":"capability disabled; exact request not admitted"})))
+        }).await;
+        match refusal {
+            Ok(Ok(Some(body))) => return (StatusCode::CONFLICT, Json(body)).into_response(),
+            Ok(Ok(None)) => (),
+            _ => return unavailable(),
         }
     }
     let cancel = Cancellation::new();

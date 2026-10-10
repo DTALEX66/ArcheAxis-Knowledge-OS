@@ -1,6 +1,7 @@
 import { downloadBytes } from "../presentation/exchangeProof";
 import { useEffect, useId, useRef, useState } from "react";
 import { ApiError } from "../api/client";
+import { recoverableJobRefusal } from "../api/jobAdmission";
 import { freezeManualAttempt, manualStatus, pinnedSuccess, verifiedJobOutput, verifiedSplitProgress, type ManualAttempt } from "../presentation/jobContentExecution";
 import { folderExecutionAck, folderCancelAck, terminalJobState } from "../presentation/folderIngestExecution";
 import { coreCommand } from "../api/core";
@@ -163,9 +164,9 @@ export function JobContent({sourceId,name,pinnedJobId,readOnly=false,onKnowledge
   }
  }
  async function perform(a:ManualAttempt,send:boolean){
-  if(flight.current)return;flight.current=true;setBusy(true);setRefused(false);setAttempt(a);
+   if(flight.current)return;flight.current=true;setBusy(true);if(send)setRefused(false);setAttempt(a);
   const generation=++loadGeneration.current;const current=()=>alive.current&&currentIdentity.current===a.identity&&loadGeneration.current===generation;publishDirty();
-  try{await drive(a,send,current);}catch(error){if(current()){if(error instanceof ApiError&&error.status>=400&&error.status<500)setRefused(true);setMessage(`转换未完成或产物读取失败。${pending.current?"结果 UNKNOWN；保留冻结请求，只能同请求重试或读回。":"真实终态已保留，未展示未核验产物。"}${error instanceof Error?` ${error.message}`:""}`);}}
+  try{await drive(a,send,current);}catch(error){if(current()){if(error instanceof ApiError&&error.status>=400&&error.status<500&&!recoverableJobRefusal(error,a,a.source_id,a.kind))setRefused(true);setMessage(`转换未完成或产物读取失败。${pending.current?"结果 UNKNOWN；保留冻结请求，只能同请求重试或读回。":"真实终态已保留，未展示未核验产物。"}${error instanceof Error?` ${error.message}`:""}`);}}
   finally{window.dispatchEvent(new Event("archeaxis-job-changed"));if(current()){flight.current=false;setBusy(false);publishDirty();}}
  }
  async function execute(executionKind=kind){

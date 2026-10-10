@@ -26,12 +26,20 @@ const EXPECTED_API_CONTRACT = "1.x";
 const WRITE_SCOPE = "workspace:write";
 
 export type MachineExecutionRefusal = { execution_state: "EXECUTED_BUT_WITHHELD"; audit_status: "RECORDED" | "FAILED"; audit_task_id: string | null; answer_published: false };
+export type JobAdmissionRefusal = {
+  schema: "archeaxis.job-admission-refusal/v1"; code: "AAK-CAP-001";
+  job_id: string; request_id: string; input_ref: string; kind: string; capability: string;
+  budget: { deadline_ms: number; split: boolean; words: boolean };
+  admission_state: "NOT_ADMITTED"; request_consumed: false; active_execution: false;
+  enabled: false; same_request_retry_allowed: true;
+};
 export class ApiError extends Error {
   constructor(
     public status: number,
     message: string,
     public code: RuntimeProjection = "unavailable",
     public execution?: MachineExecutionRefusal,
+    public jobAdmission?: JobAdmissionRefusal,
   ) {
     super(message);
     this.name = "ApiError";

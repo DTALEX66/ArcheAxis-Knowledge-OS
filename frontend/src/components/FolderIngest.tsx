@@ -1,6 +1,7 @@
 import { useEffect, useId, useRef, useState } from "react";
 import { coreCommand } from "../api/core";
 import { ApiError } from "../api/client";
+import { recoverableJobRefusal } from "../api/jobAdmission";
 import { conversionKindFor } from "../api/conversionKinds";
 import type { BoundedJobCommand, JobStatus } from "./BoundedJobPanel";
 import { freezeFolderAttempt, folderCancelAck, folderExecutionAck, freshAttemptEligible, jobState, pollFolderAttempt, readFolderStatus, terminalJobState, type FolderAttempt, type JobState } from "../presentation/folderIngestExecution";
@@ -195,7 +196,7 @@ export function FolderIngest({ onOpenSource }: { onOpenSource?: (sourceId: strin
       if (current(generation)) window.dispatchEvent(new Event("archeaxis-job-changed"));
     } catch (error) {
       if (belongs()) {
-        patch(key, { state: "UNKNOWN", executionRefused: error instanceof ApiError && error.status >= 400 && error.status < 500,
+        patch(key, { state: "UNKNOWN", executionRefused: error instanceof ApiError && error.status >= 400 && error.status < 500 && !recoverableJobRefusal(error, attempt, source, row.kind),
           detail: `执行未确认：${error instanceof Error ? error.message : "未知原因"}；保留冻结身份，仅同请求重试或读取状态，不产生新尝试。` });
         stopAfter.current = true;
       }
