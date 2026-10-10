@@ -72,7 +72,13 @@ pub(crate) async fn resolve(
             let kind = locator["type"].as_str().unwrap_or("");
             if !matches!(
                 kind,
-                "text" | "time" | "epub" | "worker_structure" | "format_location" | "pdf_line" | "ocr_line"
+                "text"
+                    | "time"
+                    | "epub"
+                    | "worker_structure"
+                    | "format_location"
+                    | "pdf_line"
+                    | "ocr_line"
             ) {
                 return Ok(outcome("UNSUPPORTED", "locator_type_not_supported"));
             }
