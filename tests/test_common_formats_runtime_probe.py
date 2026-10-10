@@ -6,6 +6,7 @@ import json
 import subprocess
 import sys
 from pathlib import Path
+from types import SimpleNamespace
 
 import pytest
 
@@ -114,3 +115,34 @@ def test_pdf_location_uses_canonical_page_line_span_and_structure_result_digest(
                                    {"kind": "line", "path": ["page-2", "line-2"],
                                     "char_start": 4, "char_end": 7}, native_pdf=True)
     assert result["resolution"]["status"] == "CURRENT" and len(created) == 1
+
+
+@pytest.mark.parametrize("changed", [False, True])
+def test_simulated_receipt_finalization_rejects_source_change_after_success(probe, monkeypatch, tmp_path, changed):
+    """Exercise main's final gate; simulated process setup is not Core qualification."""
+    artifacts = tmp_path / "artifacts"
+    artifacts.mkdir()
+    identities = iter([(False, "initial"), (False, "changed" if changed else "initial")])
+    dev = SimpleNamespace(
+        layout=lambda root: {"run": tmp_path, "artifacts": artifacts},
+        prepare=lambda paths: None,
+        worktree_identity=lambda root: next(identities),
+        git=lambda *args: "simulated-source-commit",
+    )
+    launcher = SimpleNamespace(load_profile=lambda path: {"python": sys.executable}, stop=lambda child: None)
+    modules = {"common_dev": dev, "common_launcher": launcher, "common_client": SimpleNamespace()}
+    monkeypatch.setattr(probe.office, "load", lambda name, path: modules[name])
+    monkeypatch.setattr(probe.office, "source_changes", lambda runtime: [])
+    monkeypatch.setattr(probe.office, "identity", lambda path: {"sha256": "simulated-identity"})
+    monkeypatch.setattr(probe.office, "start", lambda *args: (object(), "simulated-base", "unused", None))
+    monkeypatch.setattr(probe, "FORMATS", ())
+    monkeypatch.setattr(probe.subprocess, "run", lambda *args, **kwargs: SimpleNamespace(returncode=0, stdout="", stderr=""))
+    monkeypatch.setattr(sys, "argv", ["probe", "--candidate", str(tmp_path / "candidate")])
+
+    status = probe.main()
+    receipt = json.loads((artifacts / "common-formats.json").read_text(encoding="utf-8"))
+    assert status == (1 if changed else 0)
+    assert receipt["ok"] is (not changed)
+    assert receipt["source_consistent"] is (not changed)
+    if changed:
+        assert receipt["qualification"] == "NOT_QUALIFIED_SOURCE_CHANGED_OR_UNVERIFIED"

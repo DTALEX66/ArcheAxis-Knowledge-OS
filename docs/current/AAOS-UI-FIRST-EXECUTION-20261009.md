@@ -365,3 +365,5 @@ fc940dc 的完整 CI 38077876660 已终止 SUCCESS，20 个 job 包括 installer
 ## 2026-10-11 请求恢复 Rust CI 格式修复（PARTIAL）
 
 候选 a8f93be5 的 rust-vnext 在 cargo fmt 失败，新请求恢复回归因此 required skip，不记 PASS。下载该 exact-SHA 的 rustfmt-repair artifact，唯一文件 runtime_jobs.rs 对候选 Git blob/preimage 核对后应用；仅两个新增回归的换行、缩进和可选尾逗号，不删除/变更断言。本地既有 rustfmt 权限拒绝不重试/绕过。详见[请求恢复格式修复](receipts/AAOS-REQUEST-RECOVERY-FORMAT-REPAIR-20261011.json)。当前其他 CI jobs 仍运行，保留语音/安装有用结果，未发替代 dispatch；本修复仍待后继候选的 Rust 执行资格。
+
+Office/text-PDF probe 补结束时 worktree identity 核对，执行中源码变动或身份缺失必须 ok=false/NOT_QUALIFIED；8 定向检查（含实际本地四格式parser与SIMULATED结束时漂移正反控制）、critical Ruff、architecture PASS，源指纹一致。联合32 PASS/6 OCR-ASR opt-in skip保持 PARTIAL，未当实际运行通过。下载99精确SHA Office/PDF/light/中文回执重新核对成功作业、正文/结构/损失输出digest与字节数、独立新job、重启；旧Office回执没有结束指纹字段，明确UNVERIFIED不补造历史。详见[多格式源码保护与分项证据](receipts/AAOS-COMMON-FORMAT-SOURCE-GUARD-20261011.json)。当前a8 CI继续保留未结束的实际Core/安装结果，新保护待后继候选。

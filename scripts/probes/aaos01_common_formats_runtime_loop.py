@@ -228,6 +228,12 @@ def main():
             except Exception as error:
                 receipt["ok"] = False
                 receipt["cleanup_error"] = f"{type(error).__name__}: {error}"
+        receipt["source_consistent"] = (
+            dev.worktree_identity(REPO) == (dirty, patch_sha) if "source" in receipt else False
+        )
+        if not receipt["source_consistent"]:
+            receipt["ok"] = False
+            receipt["qualification"] = "NOT_QUALIFIED_SOURCE_CHANGED_OR_UNVERIFIED"
         output = paths["artifacts"] / "common-formats.json"
         output.write_text(json.dumps(receipt, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
         print(json.dumps({"ok": receipt["ok"], "receipt": str(output), "error": receipt.get("error")}))
