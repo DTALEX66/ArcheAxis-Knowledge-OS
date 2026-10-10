@@ -311,3 +311,5 @@ Owner 当前目标为完整核心框架、常见常用格式与最短闭环，�
 本地canonical浏览器probe启动Vite后readiness超时；独立owned-loopback实验证实WinError10013套接字权限拒绝，未提权/改ACL/网络配置。曾尝试的局部proxy调整与实验代码已撤回，失败证据保留。已声明本地Whisper模型存在，但offline SAPI生成入口被AuthorizationManager拒绝；缺明确项目内spoken WAV+文字稿，实际ASR NOT_EXECUTED。当前询问Owner素材路径，其他闭环继续推进。
 
 同日受控 AI 同对象接线已合入主树：page13→14 人工纠错/审核→13 独立复测授权→14 复测→22 精确任务回执，原问题、知识和纠正候选身份保留。候选准备仅读取当前已接受知识，不自动授权；每次消费仍由 Core 核对明确的 grant snapshot。AI 页组内保持同一挂载旅程，离开页组或重启仍需按现有 Core 历史显式恢复，不新增业务持久库。最终前端114文件/1050项、TypeScript与production build PASS，源码指纹一致；证据为 SIMULATED，真实推理、当前安装态九步及 Owner 验收保持 NOT_QUALIFIED。详见[受控AI整合回执](receipts/AAOS-CONTROLLED-AI-JOURNEY-INTEGRATION-20261011.json)。首次 bundled Python 缺 PyYAML、随后 GBK 控制台编码失败的尝试保留，最终使用项目已登记环境与 -X utf8 验证，无安装或权限绕过。主题及冻结范围不变，新候选待上传和 exact-SHA CI。
+
+候选 `93baf3934e73949ef6e2627bb01721f928990704` 已正常上传 Audit 并由 GitHub API 独立核对 SHA。完整 CI `38075889002` 已终止 FAIL：lint 发现新语音探针写死 SystemRoot fallback 和 ffmpeg 本机路径，其他必需检查因依赖跳过，不记 PASS。已改为 SystemRoot 环境声明及项目 tool_paths.declared_location('ffmpeg')，保留缺失时拒绝，未放宽架构门禁。当前本地 architecture guard PASS；语音探针 helper 9 PASS、实际 ASR 3 NOT_EXECUTED（回执 be268a2d33/1bd323953127），无 SAPI 重试或新素材读取。修复候选仍需重新完整 CI，整体继续 PARTIAL。

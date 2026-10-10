@@ -179,15 +179,22 @@ def projection(snapshot):
 
 
 def main():
-    parser=argparse.ArgumentParser(description=__doc__);parser.add_argument('--candidate',type=Path,required=True);parser.add_argument('--expected-phrase',action='append');parser.add_argument('--language',default='auto');parser.add_argument('--speech-wav',type=Path);parser.add_argument('--speech-transcript',type=Path);parser.add_argument('--model-dir',type=Path,required=True);parser.add_argument('--ffmpeg',type=Path,required=True);parser.add_argument('--powershell',type=Path,default=Path(os.environ.get('SystemRoot','C:/Windows'))/'System32/WindowsPowerShell/v1.0/powershell.exe');args=parser.parse_args()
+    parser=argparse.ArgumentParser(description=__doc__);parser.add_argument('--candidate',type=Path,required=True);parser.add_argument('--expected-phrase',action='append');parser.add_argument('--language',default='auto');parser.add_argument('--speech-wav',type=Path);parser.add_argument('--speech-transcript',type=Path);parser.add_argument('--model-dir',type=Path,required=True);parser.add_argument('--ffmpeg',type=Path,required=True);parser.add_argument('--powershell',type=Path);args=parser.parse_args()
     candidate=args.candidate.resolve();dev=office.load('speech_dev',REPO/'scripts/runtime/dev.py');paths=dev.layout(REPO);dev.prepare(paths);work=paths['run'];launcher=office.load('speech_launcher',REPO/'scripts/release/backend_launcher.py');client=office.load('speech_client',REPO/'shared/core_client.py')
     receipt={'ok':False,'qualification':'NOT_EXECUTED','materials':'SYNTHETIC_AUTHORED_OFFLINE_SPOKEN_SPEECH','execution':'ACTUAL_CANDIDATE_CORE_ASR','formats':[],'limits':['Only explicitly selected normalized phrases qualified; full transcript and recognition accuracy UNMEASURED','No visual model inference; MP4 audio content qualified independently, multimedia pipeline PARTIAL','Approximate sampled seek frames do not establish continuous visual coverage','No installed UI/source format reconstruction']};child=None
     original_environment={key:os.environ.get(key) for key in ('ARCHEAXIS_ASR_MODEL_DIR','ARCHEAXIS_ASR_LANG','ARCHEAXIS_ASR_DEVICE','ARCHEAXIS_CAPTION_PROTOCOL','HF_HUB_OFFLINE','TRANSFORMERS_OFFLINE','FFMPEG_CMD')}
     try:
         receipt['model']=declared_model(args.model_dir);profile=launcher.load_profile(candidate)
-        assert args.ffmpeg.resolve()==Path('D:/All projects/OS External Configuration/10-toolchains/scoop/apps/ffmpeg/current/bin/ffmpeg.exe').resolve(),'ffmpeg must match project declaration'
+        tool_paths=office.load('speech_tool_paths',REPO/'services/python-workers/tool_paths.py')
+        declared_ffmpeg=tool_paths.declared_location('ffmpeg')
+        assert declared_ffmpeg,'Project-declared ffmpeg is unavailable'
+        assert args.ffmpeg.resolve()==Path(declared_ffmpeg).resolve(),'ffmpeg must match project declaration'
         receipt['ffmpeg']=identity(args.ffmpeg)
         assert (args.speech_wav is None)==(args.speech_transcript is None),'Spoken WAV and transcript must be selected together'
+        if args.speech_wav is None and args.powershell is None:
+            system_root=os.environ.get('SystemRoot')
+            assert system_root,'SystemRoot is required for offline Windows speech generation'
+            args.powershell=Path(system_root)/'System32/WindowsPowerShell/v1.0/powershell.exe'
         receipt['material']=generate_speech(work/'materials',args.powershell,args.ffmpeg,args.speech_wav,args.speech_transcript,args.expected_phrase)
         phrases=tuple(receipt['material']['expected_phrases']);language=validate_language(args.language)
         receipt['selected_content']={'expected_phrases':phrases,'language':language,'normalization':NORMALIZATION,'recognition_accuracy':'UNMEASURED'}
