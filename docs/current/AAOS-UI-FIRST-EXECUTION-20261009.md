@@ -414,3 +414,10 @@ YAML/唯一ID/前置顺序及324取消/成功/失败/跳过条件组合通过，
 a2aca3b7完整CI38085061981：rust-vnext因新增两个文件格式失败，测试required skip；下载exact artifact11682675317，候选Git preimage核对后应用，审阅及非逗号token/字符串完全相等，仅换行与可选尾逗号。未绕过既有本地Rust权限拒绝，修复源码仍待实际Rust执行。OS test job在secret-scan失败；脱敏location artifact11681609791唯一命中恢复集成回执第21行的public test源码SHA，独立核对候选Git blob及修改前工作文件完全相等，确认误报。仅exact path AND exact digest AND generic-api-key的allowlist，TOML及正反检查PASS，实际scanner复验未执行；不关闭全规则或排除整个文件/commit。详见[前置修复回执](receipts/AAOS-RECOVERY-CI-PREREQUISITE-REPAIR-20261011.json)。
 
 安装3ff候选创建另确认源码合同缺陷：JobContent发送source_note，Core正式KNOWLEDGE_TYPES不含此值；原次400响应未观察，仍不补造HTTP证据。隔离修复改NOTE并让挂载夹具按canonical enum拒绝非法类型，当前尚未合入。a2实际桌面/格式/安装任务仍live，保留有用结果不取消，整体PARTIAL。
+
+
+## 2026-10-11 来源知识候选类型合同修复（PARTIAL）
+
+JobContent非法source_note已改canonical NOTE，不放宽Core枚举、人审或来源/正文读回；挂载transport读取实际权威词汇schema，旧代码先RED复现不能进入审核，隔离43项通过。根最终120文件/1106全前端、TypeScript/production build、architecture/diff检查PASS，源码一致。原3ff HTTP错误正文未观测，不伪称该次400或安装故障完全关闭；实际Core/native后继验收仍待执行，当前a2 CI保留不取消。详见[候选类型修复](receipts/AAOS-SOURCE-CANDIDATE-TYPE-REPAIR-20261011.json)。
+
+当前Owner恢复范围另确认三个作业入口冻结identity仅组件内存，跨卸载/重启未实现；隔离正在增加Core-owned typed pending journal、先CAS确认再执行、原请求预算不可变、精确终态清理及恢复候选隔离，不自动执行/启用。尚无实现或运行资格，不能把现场恢复通过扩大为跨重启恢复。整体继续PARTIAL。

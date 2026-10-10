@@ -1,4 +1,6 @@
 import {createHash,webcrypto} from "node:crypto";
+import {existsSync,readFileSync} from "node:fs";
+import {resolve} from "node:path";
 import {useState} from "react";
 import {beforeEach,expect,it,vi} from "vitest";
 import {act,fireEvent,render,screen,waitFor} from "@testing-library/react";
@@ -7,6 +9,11 @@ import {SpaceView} from "../spaces/SpaceView";
 import {DocumentEditor} from "../components/DocumentEditor";
 import {outputReceipt} from "./fixtures/jobContentCoreFixture";
 const bridge=vi.hoisted(()=>({call:vi.fn()}));
+// Read the same canonical vocabulary that generates Rust KNOWLEDGE_TYPES.
+// This remains a SIMULATED transport, but may not accept a type Core rejects.
+const repoRoot=process.env.ARCHEAXIS_WORKTREE_ROOT??(existsSync(resolve(process.cwd(),"packages/contracts"))?process.cwd():resolve(process.cwd(),".."));
+const vocabulary=JSON.parse(readFileSync(resolve(repoRoot,"packages/contracts/v1/assessment-vocabulary.schema.json"),"utf8")) as {$defs:{knowledge_type:{enum:string[]}}};
+const allowedKnowledgeTypes=vocabulary.$defs.knowledge_type.enum;
 vi.mock("../api/core",()=>({coreCommand:bridge.call}));
 vi.mock("../components/FolderIngest",()=>({FolderIngest:({onOpenSource}:{onOpenSource:(id:string,job:string)=>void})=><button onClick={()=>onOpenSource("source-exact","job-exact")}>选择已完成批量原件</button>}));
 vi.mock("../components/KnowledgeCoursePanel",()=>({KnowledgeCoursePanel:()=>null}));
@@ -25,7 +32,7 @@ function mockCore(mismatch=false){let accepted=false,knowledgeReads=0;bridge.cal
  case "jobs_get":case "job_execution_status":return state;
  case "job_output":return outputReceipt(p.kind,p.kind==="text"?text:"[]");case "job_quality":return {job_id:"job-exact",engine:"fixture"};
  case "source_job_transform":return {source_id:source.source_id,job_id:"job-exact",raw_sha256:hash,transform_id:17,content:text};
- case "knowledge_from_transform":return {knowledge_id:"knowledge-exact",anchor_id:anchor.anchor_id,status:"candidate",source_id:source.source_id,raw_sha256:hash,job_id:"job-exact",transform_id:17};
+ case "knowledge_from_transform":if(!allowedKnowledgeTypes.includes(String((p.body as Record<string,unknown>).knowledge_type)))throw new Error("400 unknown knowledge_type (canonical vocabulary)");return {knowledge_id:"knowledge-exact",anchor_id:anchor.anchor_id,status:"candidate",source_id:source.source_id,raw_sha256:hash,job_id:"job-exact",transform_id:17};
  case "knowledge_get":knowledgeReads++;return {knowledge_id:"knowledge-exact",anchor_id:anchor.anchor_id,source_id:mismatch&&knowledgeReads>1?"other-source":source.source_id,version:"knowledge-v1",title:"知识候选",body:"人工整理",status:accepted?"accepted":"candidate"};
  case "knowledge_qualification":return {knowledge_id:"knowledge-exact",requires_human_review:true};
  case "knowledge_review":accepted=true;return {knowledge_id:"knowledge-exact",version:"knowledge-v1"};
@@ -35,6 +42,10 @@ function mockCore(mismatch=false){let accepted=false,knowledgeReads=0;bridge.cal
 });}
 function Journey(){const[page,setPage]=useState("16");return <SpaceView spaceId={page==="16"?"exchange":"library"} uiPageId={page} onInspect={()=>{}} onNavigate={()=>{throw new Error("legacy navigation forbidden");}} onOpenPage={setPage}/>;}
 beforeEach(()=>{bridge.call.mockReset();vi.stubGlobal("crypto",webcrypto);});
+it("SIMULATED transport follows canonical knowledge enum and rejects the old source_note type",async()=>{
+  expect(allowedKnowledgeTypes).toContain("NOTE");expect(allowedKnowledgeTypes).not.toContain("source_note");
+  mockCore();await expect(bridge.call("knowledge_from_transform",{body:{knowledge_type:"source_note"}})).rejects.toThrow("400 unknown knowledge_type");
+});
 async function createCandidate(){
  fireEvent.click(await screen.findByRole("button",{name:"选择已完成批量原件"}));
  fireEvent.click(await screen.findByRole("button",{name:"阅读此原件与整理知识候选"}));
@@ -58,7 +69,7 @@ it("SIMULATED mounted grouped UI preserves exact source/job/transform/anchor/can
  mockCore();render(<Journey/>);await createCandidate();
  const accept=await screen.findByRole("button",{name:"接受当前候选"});expect(accept).toBeDisabled();
  expect(bridge.call.mock.calls.filter(([op])=>["job_enqueue","job_execute","knowledge_review"].includes(op))).toEqual([]);
- const request=bridge.call.mock.calls.find(([op])=>op==="knowledge_from_transform")![1];expect(request.body).toMatchObject({source_id:source.source_id,job_id:"job-exact",transform_id:17,quote:text.slice(0,4)});
+ const request=bridge.call.mock.calls.find(([op])=>op==="knowledge_from_transform")![1];expect(request.body).toMatchObject({knowledge_type:"NOTE",source_id:source.source_id,job_id:"job-exact",transform_id:17,quote:text.slice(0,4)});
  fireEvent.change(screen.getByRole("textbox",{name:"审核者"}),{target:{value:"SYNTHETIC reviewer"}});fireEvent.click(accept);
  await waitFor(()=>expect(bridge.call).toHaveBeenCalledWith("knowledge_review",{id:"knowledge-exact",body:{action:"accepted",reviewer:"SYNTHETIC reviewer",note:"",expected_version:"knowledge-v1"}}));
 });
