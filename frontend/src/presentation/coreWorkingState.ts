@@ -37,7 +37,7 @@ export class CoreWorkingStateSession {
   private inFlight:Promise<WorkingRead>|null=null;
   private readFlight:Promise<WorkingRead>|null=null;
   private clearFlight:Promise<boolean>|null=null;
-  private unknown:{base:WorkingRead;state:WorkingState;cleared?:{id:string;sent:WorkingDraft}}|null=null;
+  private unknown:{base:WorkingRead;state:WorkingState;cleared?:{id:string;sent:WorkingDraft};clearedJob?:PendingJob}|null=null;
   getSnapshot=():WorkingView=>this.view;
   subscribe=(listener:()=>void):(()=>void)=>{this.listeners.add(listener);return()=>this.listeners.delete(listener);};
   constructor(private transport:WorkingTransport) {}
@@ -65,6 +65,11 @@ export class CoreWorkingStateSession {
         if(read.state_revision===pending.base.state_revision+1&&equal(read.state,pending.state)) {
           if(pending.cleared&&equal(this.view.state.drafts[pending.cleared.id],pending.cleared.sent)) {
             const state=structuredClone(this.view.state);delete state.drafts[pending.cleared.id];this.publish({state});
+          }
+          if(pending.clearedJob&&equal(this.view.state.pending_jobs?.[pending.clearedJob.request_id],pending.clearedJob)) {
+            const state=structuredClone(this.view.state);delete state.pending_jobs![pending.clearedJob.request_id];
+            if(!Object.keys(state.pending_jobs!).length)delete state.pending_jobs;
+            this.publish({state});
           }
           this.unknown=null;this.publish({server:read,status:equal(read.state,this.view.state)?"ready":"unsaved",error:null});return read;
         }
@@ -114,6 +119,7 @@ export class CoreWorkingStateSession {
   async stageJob(entry:PendingJob):Promise<void> {
     const old=this.view.state.pending_jobs?.[entry.request_id];
     if(old&&!equal(old,entry))throw new Error("已有不同的冻结执行请求；未覆盖。");
+    if(Object.values(this.view.state.pending_jobs??{}).some(item=>item.job_id===entry.job_id&&item.request_id!==entry.request_id))throw new Error("此作业已有冻结执行身份；请先恢复原请求。");
     this.change(state=>{state.pending_jobs??={};state.pending_jobs[entry.request_id]=structuredClone(entry);});
     const read=await this.flush();
     if(!equal(read.state.pending_jobs?.[entry.request_id],entry))throw new Error("执行身份保全未确认；尚未发送任务。");
@@ -136,7 +142,7 @@ export class CoreWorkingStateSession {
       const state=structuredClone(this.view.state);
       if(equal(state.pending_jobs?.[entry.request_id],entry)){delete state.pending_jobs![entry.request_id];if(!Object.keys(state.pending_jobs!).length)delete state.pending_jobs;}
       this.publish({state,server:read,status:equal(state,read.state)?"ready":"unsaved",error:null});
-    }catch(error){this.unknown={base:server,state:expected};this.fail(error);}finally{this.inFlight=null;}
+    }catch(error){this.unknown={base:server,state:expected,clearedJob:structuredClone(entry)};this.fail(error);}finally{this.inFlight=null;}
   }
   async finishOriginal(body:PendingOriginal):Promise<void> {
     if(!equal(this.view.state.pending_original,body))throw new Error("冻结笔记请求身份已变化。");

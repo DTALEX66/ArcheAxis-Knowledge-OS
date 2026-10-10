@@ -142,3 +142,72 @@ it("SIMULATED job clear refusal preserves the exact entry and late clear ACK pre
   const next=structuredClone(f.get().state);delete next.pending_jobs;finish(f.publish(next));await clearing;
   expect(f.session.getSnapshot().state.drafts["doc-a"].editor_json).toEqual(editor("清理期间新输入"));
 });
+
+it.each(["terminal","abandon_unadmitted"] as const)("SIMULATED committed job clear with lost ACK reconciles without reintroducing intent: %s",async action=>{
+  const f=fixture();await f.session.load();
+  const entry={source_id:"source",source_revision:"a".repeat(64),job_id:"job",request_id:"frozen",kind:"text",body:{deadline_ms:60000,split:false,words:false},surface:"manual" as const,mode:"single" as const,origin_restore_epoch:"initial",relative:null};
+  await f.session.stageJob(entry);
+  vi.mocked(f.transport.clearJob!).mockImplementationOnce(async()=>{const next=structuredClone(f.get().state);delete next.pending_jobs;f.publish(next);throw new Error("committed clear ACK lost");});
+  await expect(f.session.clearJob(entry,action)).rejects.toThrow("committed clear ACK lost");
+  expect(f.session.getSnapshot().state.pending_jobs?.frozen).toEqual(entry);
+  await expect(f.session.flush()).rejects.toThrow("先读取");
+  await f.session.load();
+  expect(f.session.getSnapshot().state.pending_jobs).toBeUndefined();
+  expect(f.session.getSnapshot().status).toBe("ready");
+  const writes=vi.mocked(f.transport.write).mock.calls.length;
+  await f.session.flush();
+  expect(f.transport.write).toHaveBeenCalledTimes(writes);
+  expect(f.transport.clearJob).toHaveBeenCalledTimes(1);
+});
+
+it("SIMULATED lost clear ACK readback preserves later drafts and independent job intents",async()=>{
+  const f=fixture();await f.session.load();
+  const entry={source_id:"source",source_revision:"a".repeat(64),job_id:"job",request_id:"frozen",kind:"text",body:{deadline_ms:60000,split:false,words:false},surface:"manual" as const,mode:"single" as const,origin_restore_epoch:"initial",relative:null};await f.session.stageJob(entry);
+  let reject!:(reason:Error)=>void;vi.mocked(f.transport.clearJob!).mockImplementationOnce(()=>new Promise((_,fail)=>{reject=fail;}));
+  const clearing=f.session.clearJob(entry,"terminal");const failed=expect(clearing).rejects.toThrow("lost ACK");
+  await vi.waitFor(()=>expect(reject).toBeTypeOf("function"));
+  const other={...entry,job_id:"other-job",request_id:"other-request"};
+  f.session.rememberDraft("doc-b",editor("清理以后继续输入"),2);
+  f.session.change(local=>{local.pending_jobs![other.request_id]=other;});
+  const next=structuredClone(f.get().state);delete next.pending_jobs;f.publish(next);reject(new Error("lost ACK"));await failed;
+  await f.session.load();
+  expect(f.session.getSnapshot().state.pending_jobs).toEqual({[other.request_id]:other});
+  expect(f.session.getSnapshot().state.drafts["doc-b"].editor_json).toEqual(editor("清理以后继续输入"));
+  expect(f.session.getSnapshot().status).toBe("unsaved");
+  await f.session.flush();expect(f.get().state.pending_jobs).toEqual({[other.request_id]:other});
+});
+
+it("SIMULATED lost clear ACK does not erase changed local identity across restore epoch mismatch",async()=>{
+  const f=fixture();await f.session.load();
+  const entry={source_id:"source",source_revision:"a".repeat(64),job_id:"job",request_id:"frozen",kind:"text",body:{deadline_ms:60000,split:false,words:false},surface:"manual" as const,mode:"single" as const,origin_restore_epoch:"initial",relative:null};await f.session.stageJob(entry);
+  vi.mocked(f.transport.clearJob!).mockImplementationOnce(async()=>{const next=structuredClone(f.get().state);delete next.pending_jobs;f.publish(next);throw new Error("lost ACK");});
+  await expect(f.session.clearJob(entry,"terminal")).rejects.toThrow("lost ACK");
+  const changed={...entry,body:{...entry.body,deadline_ms:1}};
+  f.session.change(local=>{local.pending_jobs!.frozen=changed;});
+  f.set({...f.get(),restore_epoch:"b".repeat(32)});await f.session.load();
+  expect(f.session.getSnapshot().status).toBe("blocked");
+  expect(f.session.getSnapshot().state.pending_jobs?.frozen).toEqual(changed);
+  f.set({...f.get(),restore_epoch:"initial"});await f.session.load();
+  expect(f.session.getSnapshot().state.pending_jobs?.frozen).toEqual(changed);
+});
+
+it("SIMULATED matching committed-clear readback preserves a newer local identity under the same request key",async()=>{
+  const entry={source_id:"source",source_revision:"a".repeat(64),job_id:"job",request_id:"frozen",kind:"text",body:{deadline_ms:60000,split:false,words:false},surface:"manual" as const,mode:"single" as const,origin_restore_epoch:"initial",relative:null};
+  const f=fixture({...state(),pending_jobs:{frozen:entry}});await f.session.load();
+  vi.mocked(f.transport.clearJob!).mockImplementationOnce(async()=>{const next=structuredClone(f.get().state);delete next.pending_jobs;f.publish(next);throw new Error("lost ACK");});
+  await expect(f.session.clearJob(entry,"terminal")).rejects.toThrow("lost ACK");
+  const changed={...entry,body:{...entry.body,deadline_ms:1000}};
+  f.session.change(local=>{local.pending_jobs!.frozen=changed;});await f.session.load();
+  expect(f.session.getSnapshot().state.pending_jobs?.frozen).toEqual(changed);
+  expect(f.session.getSnapshot().status).toBe("unsaved");
+  expect(f.transport.clearJob).toHaveBeenCalledTimes(1);
+});
+
+it.each(["manual","folder","bounded"] as const)("SIMULATED duplicate job request is refused before local mutation: %s",async surface=>{
+  const entry={source_id:"source",source_revision:"a".repeat(64),job_id:"job",request_id:"frozen",kind:"text",body:{deadline_ms:60000,split:false,words:false},surface,mode:"single" as const,origin_restore_epoch:"initial",relative:null};
+  const f=fixture({...state(),pending_jobs:{frozen:entry}});await f.session.load();
+  const before=structuredClone(f.session.getSnapshot());
+  await expect(f.session.stageJob({...entry,request_id:"new-request"})).rejects.toThrow("先恢复原请求");
+  expect(f.session.getSnapshot()).toEqual(before);expect(f.transport.write).not.toHaveBeenCalled();
+  await f.session.stageJob(entry);expect(f.session.getSnapshot().state.pending_jobs).toEqual({frozen:entry});
+});

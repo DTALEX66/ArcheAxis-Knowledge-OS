@@ -468,3 +468,9 @@ a2完整CI38085061981已completed/FAIL，安装job114312725772失败。下载art
 10852bc1候选contracts-vnext回归步骤FAIL；本地同入口84 PASS/2 FAIL，明确资源overlay的core-contract旧SHA漂移，另Windows链接fixture因symlink/junction权限拒绝失败，不重试/提权或当PASS。审阅9d6源码差异仅CoreOperation新增有限ui_state_clear_job，Document DTO不变；更新两个引用并按canonical generator重建资源目录，68条资源及资格/冻结状态不变，旧refresh历史保留。语义比较还原两个摘要并移除新说明后与旧Git JSON完全相同。根16资源合同与18界面测试PASS无skip、source_consistent=true，projection --check PASS；未签署全合同或runtime。详见[资源源码引用修复](receipts/AAOS-RESOURCE-JOURNAL-SOURCE-REFRESH-20261011.json)。
 
 该候选rust-vnext另在cargo fmt失败，精确格式差异UNVERIFIED；desktop/runtime任务仍live，保留有用结果，不重复dispatch。只读合同复核未找到“未保存冲突草稿必须永久不可变归档”的直接验收条款；当前原件/版本历史保全与独立草稿冲突恢复要求不变，不把增强归档扩成新强制目标，当前UI仍诚实提示尚未永久归档。
+
+## 2026-10-11 作业日志清理丢ACK的精确读回修复（PARTIAL）
+
+只读审查发现clear-job已提交但ACK丢失时，session UNKNOWN读回仅清草稿，旧job仍本地保留；后续flush会重新登记terminal旧请求，或在abandon tombstone拒绝后卡住。新增两清理路径先RED（16 PASS/2 FAIL），再记录exact clearedJob，仅workspace/epoch/next revision/expected state一致时条件清相同本地entry，保留后来草稿、其他job及变动同key身份。stageJob另在本地change前拒同job不同request，避免先污染状态再遭Core拒绝。
+
+根24 session及5文件46相关回归PASS无skip，TypeScript/production build和architecture PASS，源码指纹一致；中间新epoch夹具不合法导致22 PASS/1 FAIL已保留，改合法32hex后复验，不弱化门禁。证据SIMULATED，实际网络丢ACK/安装恢复尚NOT_EXECUTED；Bounded界面fresh ownership保护在隔离实现，不当本批已合入。详见[清理丢ACK修复](receipts/AAOS-JOB-CLEAR-LOST-ACK-REPAIR-20261011.json)。当前CI38088242528保留有用desktop/runtime任务，不取消或替代，全目标继续PARTIAL。

@@ -1,0 +1,32 @@
+{
+  "schema": "archeaxis.execution-progress/v1",
+  "date": "2026-10-11",
+  "whole_goal": "PARTIAL",
+  "status": "IMPLEMENTED_TESTED_LOCAL_INSTALLED_PENDING",
+  "files": ["frontend/src/presentation/coreWorkingState.ts", "frontend/src/__tests__/CoreWorkingState.test.ts"],
+  "defect": "Core clear-job may commit while its ACK is lost. Confirmed readback previously reconciled only saved drafts, retaining the deleted local pending job and allowing later flush to reintroduce it.",
+  "repair": [
+    "UNKNOWN retains a cloned exact clearedJob identity",
+    "Only matching workspace/restore epoch, next revision and exact expected state readback clears the identical local entry",
+    "Later drafts, independent job intents and changed same-key identity are preserved",
+    "stageJob rejects same job with a different request key before any local mutation or transport write"
+  ],
+  "verification": {
+    "red": {"execution": ".project-local/runs/be268a2d33/1a94a6798d72/artifacts/execution.json", "passed": 16, "failed": 2, "meaning": "Both terminal and abandon_unadmitted reproduce stale local intent after committed clear with lost ACK"},
+    "intermediate": {"execution": ".project-local/runs/be268a2d33/689cf53173e9/artifacts/execution.json", "passed": 22, "failed": 1, "meaning": "New restore-epoch fixture used invalid noncanonical identity; corrected to valid 32-hex epoch without weakening assertions"},
+    "session_tests": {"execution": ".project-local/runs/be268a2d33/30ebe4c38429/artifacts/execution.json", "passed": 24, "skipped": 0},
+    "related_tests": {"execution": ".project-local/runs/be268a2d33/32419a6f6093/artifacts/execution.json", "files": 5, "passed": 46, "skipped": 0},
+    "build": ".project-local/runs/be268a2d33/75dab95027c7/artifacts/frontend-build.json",
+    "typescript_and_production_build": "PASS",
+    "architecture": "PASS",
+    "source_commit": "259d2a5eaac3628d1a86150d50d25374517b7a1e",
+    "source_patch_sha256": "92da3dde55d482b4c0a66a55121412701cde7271c08dfe8a23f44dec946a6c58",
+    "source_consistent": true,
+    "evidence_level": "SIMULATED_TRANSPORT_AND_MOUNTED_UI",
+    "actual_network_ack_loss": "NOT_EXECUTED",
+    "actual_installed_recovery": "NOT_EXECUTED",
+    "full_frontend_suite": "NOT_RERUN_AT_THIS_RECEIPT"
+  },
+  "limits": ["Bounded fresh execution UI ownership guard still isolated, not included in this receipt", "No backend permission/admission/tombstone changes", "No automatic replay, new request, model startup or theme changes", "Current CI 38088242528 does not contain this fix and remains separately qualified"],
+  "whole_journey": "NOT_QUALIFIED"
+}
