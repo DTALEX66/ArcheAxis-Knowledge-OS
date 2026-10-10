@@ -52,3 +52,7 @@ AGENTS.md覆盖AGENTS兼容读取；新增CLAUDE.md、GEMINI.md和.github/copilo
 严格 `git diff --cached --check` 对原文Markdown的14处尾部空白为FAIL；这些是原文Markdown换行字节，保持hash不修剪。排除原文的治理diff检查PASS，不将严格原命令重标PASS。全仓格式41项历史问题仍FAIL。
 
 **CI_VERIFIED_EXACT_SHA 未获得**：推送服务器报告required a0-gates expected，自动check仅按其当前结果记录，不以推送成功替代全门禁。未手动恢复V01、安装、发布或产品开发。
+
+## 后续收口（Owner 新授权）
+
+上述 41 项格式问题及严格空白检查失败是本轮修复前的历史结果。后续已修复普通文本并按精确 manifest 哈希保全原件，worktree/index 全仓格式及严格暂存空白检查通过；详见 [权威与 CI 收口](AAOS-AUTHORITY-CLOSEOUT-20261010.md)。完整云端 CI 已实际启动并暴露架构失败，正按该记录修复，不继续使用“未确认”代替已查明的失败结果。私人缓存并未查出故障，软件实际加载证据与仓库入口证据仍分别登记。

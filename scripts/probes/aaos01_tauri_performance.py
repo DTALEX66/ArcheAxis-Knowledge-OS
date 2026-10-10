@@ -17,8 +17,17 @@ from aaos01_office_runtime_loop import REPO, identity
 from aaos01_tauri_window_loop import close_window, exit_observed_window
 from playwright.sync_api import sync_playwright
 
-sys.path.insert(0, str(REPO / "scripts/runtime"))
-import dev
+if __package__:
+    from scripts.runtime import dev
+else:
+    import importlib.util
+    # Direct CLI: load only these repository-owned modules without sys.path edits.
+    for module_name in ('dev',):
+        spec = importlib.util.spec_from_file_location(module_name, REPO / "scripts/runtime" / (module_name + ".py"))
+        module = importlib.util.module_from_spec(spec)
+        sys.modules[module_name] = module
+        spec.loader.exec_module(module)
+        globals()[module_name] = module
 from aaos01_tauri_webdriver_loop import loopback_urlopen
 
 

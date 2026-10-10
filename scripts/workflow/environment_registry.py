@@ -548,7 +548,10 @@ def _probe_ocr_roundtrip(entry: dict, context: dict) -> tuple[str, str | None, d
         return NOT_RUN, None, {"kind": "ocr_roundtrip",
                                "reason": f"no image library in the probing interpreter ({error})"}
     sentinel = "ARCHEAXIS OCR PROBE 42"
-    fonts = Path(os.environ.get("WINDIR", "C:/Windows")) / "Fonts"
+    windows = os.environ.get("WINDIR")
+    if not windows:
+        return NOT_RUN, None, {"kind": "ocr_roundtrip", "reason": "WINDIR is not declared"}
+    fonts = Path(windows) / "Fonts"
     script = next((str(candidate) for candidate in (
         fonts / "arial.ttf", fonts / "segoeui.ttf", fonts / "calibri.ttf") if candidate.is_file()), None)
     if script is None:

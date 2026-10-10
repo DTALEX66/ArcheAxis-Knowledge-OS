@@ -20,7 +20,10 @@ from datetime import datetime, timezone
 from pathlib import Path, PurePosixPath
 
 ROOT = Path(__file__).resolve().parents[2]
-CANONICAL_ROOT = Path(r'D:\All projects\ArcheAxis-Knowledge-OS')
+CANONICAL_ROOT = Path(subprocess.check_output(
+    ["git", "-C", str(ROOT), "rev-parse", "--path-format=absolute", "--git-common-dir"],
+    text=True).strip()).parent
+REVIEWED_SOURCE = CANONICAL_ROOT.parent / "Record"
 MANIFEST_REL = Path('docs/history/record-archive-20261009/MANIFEST.json')
 ARCHIVE_REL = Path('.project-local/archives/record-20261009')
 SHARED = {
@@ -245,7 +248,7 @@ def write_json(path, data):
 
 def archive(root, source):
     root, source = safe(root), safe(source)
-    if root != safe(CANONICAL_ROOT) or source != Path(r'D:\All projects\Record'):
+    if root != safe(CANONICAL_ROOT) or source != REVIEWED_SOURCE:
         raise ValueError('archive command is limited to this checkout and reviewed Record source')
     previous_manifest = root / MANIFEST_REL
     if previous_manifest.exists() and json.loads(previous_manifest.read_text('utf-8')).get('consolidation'):
@@ -468,9 +471,11 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('action', choices=['archive', 'find', 'verify', 'reindex'])
     parser.add_argument('query', nargs='?', default='')
-    parser.add_argument('--source', type=Path, default=Path(r'D:\All projects\Record'))
+    parser.add_argument('--source', type=Path, default=None)
     args = parser.parse_args()
     if args.action == 'archive':
+        if args.source is None:
+            parser.error('archive requires the explicitly reviewed --source path')
         return archive(ROOT, args.source)
     if args.action == 'reindex':
         return reindex(ROOT)

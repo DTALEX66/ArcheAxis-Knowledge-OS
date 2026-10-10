@@ -15,8 +15,10 @@ import sys
 import zipfile
 from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).resolve().parent))
-import archive_record_materials as archive
+if __package__:
+    from . import archive_record_materials as archive
+else:
+    import archive_record_materials as archive
 
 
 def load(path):

@@ -9,7 +9,10 @@ import subprocess
 import sys
 from pathlib import Path
 
-import dev
+if __package__:
+    from . import dev
+else:
+    import dev
 
 ROOT = Path(__file__).absolute().parents[2]
 
@@ -27,7 +30,11 @@ def msvc_environment(env: dict[str, str], paths: dict[str, Path], node: str | No
     batch.write_text('@echo off\ncall "%ARCHEAXIS_MSVC_INIT_SCRIPT%" >nul 2>&1\nif errorlevel 1 exit /b 1\nset PATH\nset INCLUDE\nset LIB\nset LIBPATH\nexit /b 0\n', encoding="ascii")
     # cmd.exe loses executable lookup with an oversized inherited PATH. In particular,
     # vcvars can return 0 while its suppressed `reg query` fails to discover the SDK.
-    windows = dev.safe_path(Path(env.get("SystemRoot", "C:/Windows")))
+    windows_root = next((value for key, value in env.items()
+                         if key.casefold() in {"systemroot", "windir"}), None)
+    if not windows_root:
+        raise ValueError("Windows root is missing from the declared environment")
+    windows = dev.safe_path(Path(windows_root))
     search = [windows / "System32", windows]
     if env.get("ARCHEAXIS_RUST_TOOLCHAINS"):
         search.append(dev.safe_path(Path(env["ARCHEAXIS_RUST_TOOLCHAINS"])) / "cargo/bin")

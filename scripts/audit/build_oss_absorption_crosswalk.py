@@ -986,9 +986,12 @@ def collect_conflicts(entry: dict) -> list[dict]:
 
 def build(root: Path) -> dict:
     root = root.resolve()
-    sys.path.insert(0, str(root / "scripts" / "audit"))
-    import build_oss_reuse_inventory as inventory_module
-    import oss_disposition_evidence as evidence_module
+    if __package__:
+        from scripts.audit import build_oss_reuse_inventory as inventory_module
+        from scripts.audit import oss_disposition_evidence as evidence_module
+    else:
+        import build_oss_reuse_inventory as inventory_module
+        import oss_disposition_evidence as evidence_module
 
     decisions = _read_json(root, DECISIONS)
     verification = _read_json(root, VERIFICATION)

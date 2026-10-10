@@ -17,9 +17,17 @@ from pathlib import Path
 from urllib.parse import urlsplit, unquote
 
 ROOT = Path(__file__).resolve().parents[2]
-sys.path.insert(0, str(ROOT / 'scripts/runtime'))
-import dev
-sys.path.insert(0, str(ROOT / 'scripts/probes'))
+if __package__:
+    from scripts.runtime import dev
+else:
+    import importlib.util
+    # Direct CLI: load only these repository-owned modules without sys.path edits.
+    for module_name in ('dev',):
+        spec = importlib.util.spec_from_file_location(module_name, ROOT / "scripts/runtime" / (module_name + ".py"))
+        module = importlib.util.module_from_spec(spec)
+        sys.modules[module_name] = module
+        spec.loader.exec_module(module)
+        globals()[module_name] = module
 import aaos01_tauri_webdriver_loop as owned
 from playwright.sync_api import sync_playwright
 

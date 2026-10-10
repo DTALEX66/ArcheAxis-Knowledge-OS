@@ -12,8 +12,17 @@ import sys
 from pathlib import Path, PurePosixPath
 
 REPO = Path(__file__).resolve().parents[2]
-sys.path.insert(0, str(REPO / "scripts/runtime"))
-import dev
+if __package__:
+    from scripts.runtime import dev
+else:
+    import importlib.util
+    # Direct CLI: load only these repository-owned modules without sys.path edits.
+    for module_name in ('dev',):
+        spec = importlib.util.spec_from_file_location(module_name, REPO / "scripts/runtime" / (module_name + ".py"))
+        module = importlib.util.module_from_spec(spec)
+        sys.modules[module_name] = module
+        spec.loader.exec_module(module)
+        globals()[module_name] = module
 
 RESOURCES = {"runtime", "core", "workers", "shared", "worker-profile.json",
              "start-backend.py", "start-backend.cmd", "backend-runtime-manifest.json"}

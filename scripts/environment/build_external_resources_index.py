@@ -34,10 +34,14 @@ MANIFEST = ROOT / "config" / "environment" / "capability-requirements.yaml"
 INDEX = ROOT / "config" / "environment" / "external-resources-index.json"
 ROOT_ENV = ("ARCHEAXIS_EXTERNAL_ROOT", "OS_EXTERNAL_CONFIG")
 
-if str(ROOT) not in sys.path:
-    sys.path.insert(0, str(ROOT))
-
-from scripts.workflow import environment_registry  # noqa: E402  (single probe implementation)
+if __package__:
+    from scripts.workflow import environment_registry
+else:
+    import importlib.util
+    spec = importlib.util.spec_from_file_location("environment_registry", ROOT / "scripts/workflow/environment_registry.py")
+    environment_registry = importlib.util.module_from_spec(spec)
+    sys.modules[spec.name] = environment_registry
+    spec.loader.exec_module(environment_registry)
 
 
 def external_root() -> Path | None:
