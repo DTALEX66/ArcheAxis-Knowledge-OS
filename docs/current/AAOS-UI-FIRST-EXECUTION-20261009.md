@@ -360,3 +360,8 @@ fc940dc 的完整 CI 38077876660 已终止 SUCCESS，20 个 job 包括 installer
 选区探针随后完成严格修复：trusted UI 引用点击不变，独立核对唯一原件 PRE、实际焦点、同一 Text 节点唯一完整 Range、UTF16 全长度及 region/node/Range/clone 完整原文含末尾 LF；rendered Selection 只作诊断，不 trim。W3C Selection API stringifier 定义为 rendered text，不能直接充当原字节选区真值。最终 19 helper 含完整/截断 LF、错焦点、错原件、错端点及 astral 正反检查与 critical Ruff PASS，实际安装复验待新候选；旧99失败具体 conjunct 仍 UNVERIFIED。
 
 修复候选 `a8f93be52cf08ed4f0cac1c9689561ef5b9d961e` 已正常上传 Audit，GitHub API 独立读回 SHA 一致；旧99运行 terminal FAIL 后才启动完整 CI [38081667307](https://github.com/DTALEX66/ArcheAxis-Knowledge-OS/actions/runs/38081667307)，当前尚未获得通过结论。后续交付记录提交只作导航，不替代该候选 exact-SHA 资格。文本推理仍缺已声明11434/1234服务与可复现文本模型身份；实际 Core/新UI AI推理没有由mock或ASR资格代替，已向Owner询问现有服务/确切路径，其他验证继续。
+
+
+## 2026-10-11 请求恢复 Rust CI 格式修复（PARTIAL）
+
+候选 a8f93be5 的 rust-vnext 在 cargo fmt 失败，新请求恢复回归因此 required skip，不记 PASS。下载该 exact-SHA 的 rustfmt-repair artifact，唯一文件 runtime_jobs.rs 对候选 Git blob/preimage 核对后应用；仅两个新增回归的换行、缩进和可选尾逗号，不删除/变更断言。本地既有 rustfmt 权限拒绝不重试/绕过。详见[请求恢复格式修复](receipts/AAOS-REQUEST-RECOVERY-FORMAT-REPAIR-20261011.json)。当前其他 CI jobs 仍运行，保留语音/安装有用结果，未发替代 dispatch；本修复仍待后继候选的 Rust 执行资格。

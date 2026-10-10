@@ -77,31 +77,77 @@ async fn disabled_non_admission_resumes_exact_request_and_never_hides_replay() {
     let router = archeaxis_api::runtime::router(executor.clone());
     let path = "/api/v1/jobs/job/executions";
     let body = r#"{"deadline_ms":5000,"split":false,"words":false}"#;
-    assert_eq!(call(&router, "PUT", "/api/v1/capabilities/text.extract/enabled", "", r#"{"enabled":false}"#).await.0, 200);
+    assert_eq!(
+        call(
+            &router,
+            "PUT",
+            "/api/v1/capabilities/text.extract/enabled",
+            "",
+            r#"{"enabled":false}"#
+        )
+        .await
+        .0,
+        200
+    );
     let (code, refusal) = call(&router, "POST", path, "resume-original", body).await;
     assert_eq!(code, 409);
     assert_eq!(refusal["schema"], "archeaxis.job-admission-refusal/v1");
     assert_eq!(refusal["job_id"], "job");
     assert_eq!(refusal["request_id"], "resume-original");
-    assert_eq!(refusal["budget"], serde_json::json!({"deadline_ms":5000,"split":false,"words":false}));
+    assert_eq!(
+        refusal["budget"],
+        serde_json::json!({"deadline_ms":5000,"split":false,"words":false})
+    );
     assert_eq!(refusal["request_consumed"], false);
     assert_eq!(refusal["active_execution"], false);
     let (_, before) = call(&router, "GET", "/api/v1/jobs/job/execution-status", "", "").await;
     assert_eq!(before["state"], "queued");
     assert_eq!(before["attempts"], serde_json::json!([]));
-    assert_eq!(std::fs::read_dir(dir.path().join("staging")).unwrap().count(), 0);
-    assert_eq!(call(&router, "PUT", "/api/v1/capabilities/text.extract/enabled", "", r#"{"enabled":true}"#).await.0, 200);
-    assert_eq!(call(&router, "POST", path, "resume-original", body).await.0, 202);
+    assert_eq!(
+        std::fs::read_dir(dir.path().join("staging"))
+            .unwrap()
+            .count(),
+        0
+    );
+    assert_eq!(
+        call(
+            &router,
+            "PUT",
+            "/api/v1/capabilities/text.extract/enabled",
+            "",
+            r#"{"enabled":true}"#
+        )
+        .await
+        .0,
+        200
+    );
+    assert_eq!(
+        call(&router, "POST", path, "resume-original", body).await.0,
+        202
+    );
     let done = terminal_execution_status(&router, "job", "resume-original").await;
     assert_eq!(done["state"], "succeeded");
     assert_eq!(done["attempts"].as_array().unwrap().len(), 1);
-    assert_eq!(call(&router, "PUT", "/api/v1/capabilities/text.extract/enabled", "", r#"{"enabled":false}"#).await.0, 200);
+    assert_eq!(
+        call(
+            &router,
+            "PUT",
+            "/api/v1/capabilities/text.extract/enabled",
+            "",
+            r#"{"enabled":false}"#
+        )
+        .await
+        .0,
+        200
+    );
     let replay = call(&router, "POST", path, "resume-original", body).await;
     assert_eq!(replay.0, 202);
     assert_eq!(replay.1["replayed"], true);
-    for (target, key, wire) in [(path, "resume-original", r#"{"deadline_ms":5001}"#),
+    for (target, key, wire) in [
+        (path, "resume-original", r#"{"deadline_ms":5001}"#),
         ("/api/v1/jobs/third/executions", "resume-original", body),
-        (path, "new-on-success", body)] {
+        (path, "new-on-success", body),
+    ] {
         let (code, value) = call(&router, "POST", target, key, wire).await;
         assert_eq!(code, 409);
         assert!(value.get("admission_state").is_none(), "{value}");
@@ -112,15 +158,34 @@ async fn disabled_non_admission_resumes_exact_request_and_never_hides_replay() {
 async fn disabled_with_durable_running_claim_never_proves_non_admission() {
     let dir = tempfile::tempdir().unwrap();
     let executor = setup_mixed_owned_worker(dir.path()).await;
-    executor.store().submit_wait(|conn| {
-        archeaxis_application::attempts::claim(conn, "job", "already-claimed", 5000).unwrap();
-        archeaxis_store_sqlite::capability_settings::set_enabled(conn, "text.extract", false).unwrap();
-    }).await.unwrap();
+    executor
+        .store()
+        .submit_wait(|conn| {
+            archeaxis_application::attempts::claim(conn, "job", "already-claimed", 5000).unwrap();
+            archeaxis_store_sqlite::capability_settings::set_enabled(conn, "text.extract", false)
+                .unwrap();
+        })
+        .await
+        .unwrap();
     let router = archeaxis_api::runtime::router(executor);
-    let replay = call(&router, "POST", "/api/v1/jobs/job/executions", "already-claimed", r#"{"deadline_ms":5000}"#).await;
+    let replay = call(
+        &router,
+        "POST",
+        "/api/v1/jobs/job/executions",
+        "already-claimed",
+        r#"{"deadline_ms":5000}"#,
+    )
+    .await;
     assert_eq!(replay.0, 202);
     assert_eq!(replay.1["replayed"], true);
-    let refused = call(&router, "POST", "/api/v1/jobs/job/executions", "not-claimed", r#"{"deadline_ms":5000}"#).await;
+    let refused = call(
+        &router,
+        "POST",
+        "/api/v1/jobs/job/executions",
+        "not-claimed",
+        r#"{"deadline_ms":5000}"#,
+    )
+    .await;
     assert_eq!(refused.0, 409);
     assert!(refused.1.get("admission_state").is_none());
     assert!(refused.1.get("request_consumed").is_none());

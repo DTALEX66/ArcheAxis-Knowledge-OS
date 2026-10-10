@@ -1,0 +1,24 @@
+{
+  "schema": "archeaxis.exact-candidate-format-repair/v1",
+  "date": "2026-10-11",
+  "status": "APPLIED_REVIEWED_CI_FORMAT_ONLY",
+  "source_candidate": "a8f93be52cf08ed4f0cac1c9689561ef5b9d961e",
+  "ci_run_id": 38081667307,
+  "job_id": 114299801974,
+  "failure": "cargo fmt root workspace; following Rust tests required skip, not PASS",
+  "artifact": "rustfmt-repair-a8f93be52cf08ed4f0cac1c9689561ef5b9d961e",
+  "patch_sha256": "73a857779a0bd6b487a2240003c241243d2e6e6b691667a191e3a99f2dc72ccb",
+  "files": [
+    {
+      "path": "crates/archeaxis-api/tests/runtime_jobs.rs",
+      "preimage_sha256": "e6785a4616da4984c2f16b868b18a013384ec921b65f9495be40d74a974a9e59",
+      "candidate_git_blob_sha256": "e6785a4616da4984c2f16b868b18a013384ec921b65f9495be40d74a974a9e59",
+      "target_sha256": "ebc2ada32801ed670fe4cd3fa27a455e4914496d88d345597cb843195ce32c37"
+    }
+  ],
+  "review": "Only line wrapping/indentation and optional trailing commas in the two newly added request-recovery regression tests. No assertion removed/changed.",
+  "local_rustfmt": "NOT_EXECUTED; prior permission refusal not bypassed",
+  "runtime_regressions": "NOT_EXECUTED_BY_FORMAT_STEP; await successor candidate after current useful jobs terminal",
+  "current_run": "Other jobs remain active; no superseding dispatch/cancellation",
+  "whole_goal": "PARTIAL"
+}
