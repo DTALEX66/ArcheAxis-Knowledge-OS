@@ -11,6 +11,7 @@ function document(id:string,knowledge="k1",changes:Partial<ContextGrantDto>={}):
 const snap=(id:string):ContextConsumptionDto=>({document_id:id,version:2,content_sha256:hash,purpose:"项目问题"});
 function fixture(docs:DocumentDto[]){bridge.call.mockImplementation(async(op:string,payload:Record<string,unknown>={})=>{
  if(op==="machine_contexts_list")return {items:docs.map(d=>({document_id:d.document_id,version:d.version,title:d.title,content_sha256:d.content_sha256})),next_cursor:null};
+ if(op==="knowledge_get")return {knowledge_id:payload.id,body:"SIMULATED stored body",version:"SIMULATED immutable revision",status:"accepted"};
  if(op==="document_get")return docs.find(d=>d.document_id===payload.document_id);
  throw new Error("Unexpected inference/write "+op);
 });}
@@ -19,7 +20,7 @@ beforeEach(()=>{bridge.call.mockReset();});
  it("uses an exact onUse snapshot and forwards real callback identities",async()=>{
   fixture([document("grant1")]);const onTask=vi.fn(),onCandidate=vi.fn();render(<CanonicalAiJourneySpace initialConsumption={snap("grant1")} onTask={onTask} onCandidate={onCandidate}/>);
   expect(await screen.findByText("回答授权 grant1")).toBeInTheDocument();const user=userEvent.setup();await user.click(screen.getByRole("button",{name:"模拟实际任务读回"}));await user.click(screen.getByRole("button",{name:"模拟实际候选读回"}));
-  expect(onTask).toHaveBeenCalledWith("task1");expect(onCandidate).toHaveBeenCalledWith("correction1");expect(bridge.call.mock.calls.every(([op])=>["machine_contexts_list","document_get"].includes(op))).toBe(true);
+  expect(onTask).toHaveBeenCalledWith("task1");expect(onCandidate).toHaveBeenCalledWith("correction1");expect(bridge.call.mock.calls.every(([op])=>["machine_contexts_list","document_get","knowledge_get"].includes(op))).toBe(true);
  });
  it("keeps original and actual correction authorizations separate",async()=>{
   fixture([document("original"),document("corrected","correction1")]);render(<CanonicalAiJourneySpace/>);const user=userEvent.setup();
@@ -57,5 +58,16 @@ beforeEach(()=>{bridge.call.mockReset();});
  it("unknown metadata fails closed and does not strip the saved envelope",async()=>{
   const doc=document("future");(doc.editor_json as {attrs:{archeaxis_context_grant:Record<string,unknown>}}).attrs.archeaxis_context_grant.future=true;
   fixture([doc]);render(<CanonicalAiJourneySpace initialConsumption={snap("future")}/>);expect(await screen.findByRole("alert")).toBeInTheDocument();expect(screen.queryByRole("region",{name:"scoped panel"})).not.toBeInTheDocument();
+ });
+ it("withholds new inference when current knowledge is no longer accepted while leaving history available",async()=>{
+  fixture([document("grant1")]);const previous=bridge.call.getMockImplementation()!;
+  bridge.call.mockImplementation(async(op:string,payload:Record<string,unknown>={})=>op==="knowledge_get"?{knowledge_id:payload.id,body:"stored body",version:"current review version",status:"deprecated"}:previous(op,payload));
+  render(<CanonicalAiJourneySpace initialConsumption={snap("grant1")}/>);
+  expect(await screen.findByText("回答授权 无")).toBeInTheDocument();expect(screen.getByRole("button",{name:"读取既有历史"})).toBeEnabled();expect(bridge.call.mock.calls.some(([op])=>op==="machine_answer")).toBe(false);
+ });
+ it("a changed expected grant on revisit invalidates the old UI permission without rerunning a model",async()=>{
+  fixture([document("grant1")]);const ui=render(<CanonicalAiJourneySpace initialConsumption={snap("grant1")}/>);await screen.findByText("回答授权 grant1");
+  ui.rerender(<CanonicalAiJourneySpace initialConsumption={{...snap("grant1"),version:1}}/>);
+  await screen.findByRole("alert");expect(await screen.findByText("回答授权 无")).toBeInTheDocument();
  });
 });

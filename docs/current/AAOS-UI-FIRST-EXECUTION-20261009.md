@@ -309,3 +309,5 @@ Owner 当前目标为完整核心框架、常见常用格式与最短闭环，�
 同对象学习接线已统一合入：accepted知识→course/lesson→assessment→page11练习→page12复习保留原身份与独立答案，错对象拒绝。最终整合前端113文件/1043项、TypeScript及production build PASS（SIMULATED）。当前282候选完整CI为FAIL，desktop-build及desktop-fast PASS；安装WebDriver失败截图显示恢复确认门禁正确生效，旧probe缺明确选择。现已改为实际UI保留候选，再核对相同workspace/restore_epoch、revision+1、候选精确保全；17项Native helper含5项正反回归通过，实际安装复验仍待新候选。
 
 本地canonical浏览器probe启动Vite后readiness超时；独立owned-loopback实验证实WinError10013套接字权限拒绝，未提权/改ACL/网络配置。曾尝试的局部proxy调整与实验代码已撤回，失败证据保留。已声明本地Whisper模型存在，但offline SAPI生成入口被AuthorizationManager拒绝；缺明确项目内spoken WAV+文字稿，实际ASR NOT_EXECUTED。当前询问Owner素材路径，其他闭环继续推进。
+
+同日受控 AI 同对象接线已合入主树：page13→14 人工纠错/审核→13 独立复测授权→14 复测→22 精确任务回执，原问题、知识和纠正候选身份保留。候选准备仅读取当前已接受知识，不自动授权；每次消费仍由 Core 核对明确的 grant snapshot。AI 页组内保持同一挂载旅程，离开页组或重启仍需按现有 Core 历史显式恢复，不新增业务持久库。最终前端114文件/1050项、TypeScript与production build PASS，源码指纹一致；证据为 SIMULATED，真实推理、当前安装态九步及 Owner 验收保持 NOT_QUALIFIED。详见[受控AI整合回执](receipts/AAOS-CONTROLLED-AI-JOURNEY-INTEGRATION-20261011.json)。首次 bundled Python 缺 PyYAML、随后 GBK 控制台编码失败的尝试保留，最终使用项目已登记环境与 -X utf8 验证，无安装或权限绕过。主题及冻结范围不变，新候选待上传和 exact-SHA CI。

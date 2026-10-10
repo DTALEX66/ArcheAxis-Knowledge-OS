@@ -10,13 +10,14 @@ const outcomeLabel = { succeeded: "任务回执成功", failed: "任务回执失
 const boundedJobCommand: BoundedJobCommand = (operation,payload) => coreCommand(operation,payload);
 
 /** Durable Core history, separate from human mastery and general agent execution. */
-export function CanonicalMachineReceiptsSpace() {
+type TaskIdentity=Omit<MachineTaskRowDto,"principal"|"recorded_at">&Partial<Pick<MachineTaskRowDto,"principal"|"recorded_at">>;
+export function CanonicalMachineReceiptsSpace({initialTaskId}:{initialTaskId?:string}={}) {
   const [rows, setRows] = useState<MachineTaskRowDto[]>([]);
   const [cursor, setCursor] = useState<string | null>(null);
   const [loaded, setLoaded] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [selected, setSelected] = useState<MachineTaskRowDto | null>(null);
+  const [selected, setSelected] = useState<TaskIdentity | null>(null);
   const [receipt, setReceipt] = useState<Record<string, unknown> | null>(null);
   const [reading, setReading] = useState(false);
   const [detailError, setDetailError] = useState<string | null>(null);
@@ -36,7 +37,7 @@ export function CanonicalMachineReceiptsSpace() {
   }
   useEffect(() => { void load(); return () => { listEpoch.current++; detailEpoch.current++; }; }, []);
 
-  async function open(row: MachineTaskRowDto) {
+  async function open(row: TaskIdentity) {
     const epoch = ++detailEpoch.current;
     setSelected(row); setReceipt(null); setDetailError(null); setReading(true);
     try {
@@ -49,6 +50,7 @@ export function CanonicalMachineReceiptsSpace() {
     finally { if (epoch === detailEpoch.current) setReading(false); }
   }
 
+  useEffect(()=>{if(!initialTaskId)return;const epoch=++detailEpoch.current;setReceipt(null);setSelected(null);setReading(true);setDetailError(null);void coreCommand<Record<string,unknown>>("machine_task_get",{task_id:initialTaskId}).then(proof=>{if(epoch!==detailEpoch.current)return;if(proof.task_id!==initialTaskId||typeof proof.conditions!=="string"||typeof proof.scope!=="string"||typeof proof.model_version!=="string"||!["succeeded","failed","unmeasured"].includes(String(proof.outcome))||["knowledge_version","method_version","tool_version","failure","retest_of"].some(key=>proof[key]!==null&&typeof proof[key]!=="string"))throw new Error("pinned task identity mismatch");setSelected(proof as TaskIdentity);setReceipt(proof);}).catch(reason=>{if(epoch===detailEpoch.current)setDetailError(failureMessage(reason));}).finally(()=>{if(epoch===detailEpoch.current)setReading(false);});return()=>{detailEpoch.current++;};},[initialTaskId]);
   let conditions: Record<string, unknown> | null = null;
   if (receipt && typeof receipt.conditions === "string") {
     try { const parsed: unknown = JSON.parse(receipt.conditions); if (parsed && typeof parsed === "object" && !Array.isArray(parsed)) conditions = parsed as Record<string, unknown>; }
@@ -72,6 +74,7 @@ export function CanonicalMachineReceiptsSpace() {
       <p>这里提供有限业务任务的历史和读回。通用 Agent Runtime 与任意工具执行尚未接通。</p>
     </div>
     <aside aria-label="任务回执详情">
+      {!selected&&reading?<p role="status">正在核对指定机器任务…</p>:null}{!selected&&detailError?<p role="alert">指定回执未确认：{detailError}</p>:null}
       {selected ? <>
         <h3>{selected.task_id}</h3>
         <p>机器身份 · {outcomeLabel[selected.outcome]} · {selected.scope}</p>

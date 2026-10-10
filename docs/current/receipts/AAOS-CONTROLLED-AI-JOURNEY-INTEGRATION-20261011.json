@@ -1,0 +1,47 @@
+{
+  "schema": "archeaxis.controlled-ai-journey-integration/v1",
+  "date": "2026-10-11",
+  "status": "TESTED_LOCAL",
+  "base_commit": "ce9e2e7d012aef6b391c2b450a59c13b9038756f",
+  "evidence_level": "SIMULATED",
+  "implementation": [
+    "Selected learning item resolves accepted knowledge before explicitly preparing a context candidate; preparation grants no permissions",
+    "Pages 13/14/22 retain the same mounted journey, original answer, correction candidate and independent retest consumption snapshot",
+    "Each selected grant independently reads current knowledge identity, body, revision and accepted status; Core remains the authorization authority",
+    "Retest uses an explicitly selected independent grant for the corrected knowledge and the original question",
+    "Page 22 reads the exact task ID even outside the bounded directory; mismatched receipts are refused"
+  ],
+  "local_checks": [
+    {
+      "scope": "Final integrated frontend regression",
+      "files": 114,
+      "tests": 1050,
+      "status": "PASS",
+      "receipt": ".project-local/runs/be268a2d33/cad72e9d8ad7/artifacts/execution.json",
+      "source_patch_sha256": "b75ce086d9acf0eb3b76c77b19ddb601abd2f506113326f8d18326534b9ef749",
+      "source_consistent": true
+    },
+    {
+      "scope": "TypeScript and production frontend build",
+      "status": "PASS",
+      "receipt": ".project-local/runs/be268a2d33/0a7541be30cb/artifacts/frontend-build.json",
+      "source_patch_sha256": "b75ce086d9acf0eb3b76c77b19ddb601abd2f506113326f8d18326534b9ef749",
+      "source_consistent": true
+    }
+  ],
+  "retained_attempts": [
+    "Bundled Python lacked PyYAML; no product check executed and no dependency installed",
+    ".project-local/runs/be268a2d33/af751921a1be/artifacts/execution.json: GBK console could not encode a test checkmark; owned cleanup reported failure. Subsequent process inspection found no node process; corrected interpreter invocation uses -X utf8. This failed attempt is not a PASS"
+  ],
+  "limitations": [
+    "Persistence across leaving the AI page group or restarting is not newly implemented by this container; existing Core history requires explicit restoration",
+    "Transport and model replies in these UI tests are SIMULATED, not actual inference",
+    "No new backend, business persistence, model installation or automatic authority was introduced",
+    "Current exact-SHA complete CI, native installed nine-step journey and Owner acceptance remain pending",
+    "Common-format OCR and speech runtime qualifications remain separate requirements"
+  ],
+  "themes": "UNCHANGED",
+  "whole_goal": "NOT_QUALIFIED",
+  "delivery": "PENDING_BRANCH_UPLOAD_AND_EXACT_SHA_CI",
+  "release_green_replacement_real_user_data_overwrite": "NOT_GRANTED"
+}

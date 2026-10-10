@@ -1,3 +1,4 @@
+import {CanonicalControlledAiSpace} from "./CanonicalControlledAiSpace";
 import { findUiPage } from "../presentation/uiPages";
 import { CanonicalWorkspaceSpace } from "./CanonicalWorkspaceSpace";
 import { SpaceId } from "./spaces";
@@ -10,13 +11,6 @@ import { CanonicalExchangeSpace } from "./CanonicalExchangeSpace";
 import { CanonicalExpressionSpace } from "./CanonicalExpressionSpace";
 import { CanonicalResearchSpace } from "./CanonicalResearchSpace";
 import { CanonicalRelationSpace } from "./CanonicalRelationSpace";
-import { CanonicalMachineReceiptsSpace } from "./CanonicalMachineReceiptsSpace";
-import { CanonicalContextSpace } from "./CanonicalContextSpace";
-import { CanonicalAiAssetsSpace } from "./CanonicalAiAssetsSpace";
-import { parseAiAsset, parseAssetGrant, prepareAssetPacket } from "../api/aiAssets";
-import type { AssetPacketRequest } from "../api/generated/ai-asset-contract";
-import { CanonicalAiJourneySpace } from "./CanonicalAiJourneySpace";
-import type { ContextConsumptionDto } from "../api/generated/core-contract";
 import { PinnedReferencePanel } from "../components/PinnedReferencePanel";
 import { CollectionPanel } from "../components/CollectionPanel";
 import type { ObjectReference } from "../api/generated/research-contract";
@@ -90,8 +84,6 @@ export function SpaceView({
   useEffect(()=>{const clear=(event:Event)=>{if((event as CustomEvent<{confirmed?:boolean}>).detail?.confirmed){setSourceTarget(undefined);setCandidateTarget(undefined);}};window.addEventListener("workspace-invalidated",clear);return()=>window.removeEventListener("workspace-invalidated",clear);},[]);
   const view = useRef<HTMLDivElement>(null);
   const [pinnedReference,setPinnedReference]=useState<ObjectReference|null>(null);
-  const [selectedContext,setSelectedContext]=useState<ContextConsumptionDto>();
-  const [selectedAsset,setSelectedAsset]=useState<AssetPacketRequest>();
   useEffect(()=>{setPinnedReference(null);},[uiPageId,spaceId]);
   useEffect(() => {
     // Reuse the Avalonia AaosTheme route opacity transition (180ms), keeping
@@ -127,9 +119,7 @@ export function SpaceView({
     return <CollectionPanel document={document} value={attrs.archeaxis_collection} readOnly={readOnly} onPendingEditChange={pending} onOpenReference={setPinnedReference} onChange={value=>change({...envelope,attrs:{...attrs,archeaxis_collection:value}})}/>;
   }}/>;
   if (uiPageId === "05") return <CanonicalResearchSpace onOpenReference={setPinnedReference} onTrail={onTrail}/>;
-  if (uiPageId === "22") return <CanonicalMachineReceiptsSpace/>;
-  if (uiPageId === "13") return <><CanonicalAiAssetsSpace onUseAsset={value=>{setSelectedAsset(structuredClone(value));onOpenPage?.("14");}} parseAsset={parseAiAsset} parseGrant={parseAssetGrant} packetCommand={prepareAssetPacket} onOpenReference={setPinnedReference}/><CanonicalContextSpace onOpenReference={setPinnedReference} onUse={value=>{setSelectedContext(value);onOpenPage?.("14");}}/></>;
-  if (uiPageId === "14") return <CanonicalAiJourneySpace initialAssetConsumption={selectedAsset} initialConsumption={selectedContext} onOpenContext={()=>onOpenPage?.("13")}/>;
+  if(uiPageId&&["13","14","22"].includes(uiPageId))return <CanonicalControlledAiSpace pageId={uiPageId} initialLearningItemKey={initialLearningItemKey} onOpenPage={onOpenPage} onOpenReference={setPinnedReference}/>;
   if (uiPageId === "15") return <CanonicalResourcesSpace onOpenDocument={onOpenDocument} onOpenCapability={onOpenCapability}/>;
   if (uiPageId === "06" || uiPageId === "07") return <CanonicalLearningJourneySpace pageId={uiPageId} initialItemKey={initialLearningItemKey} onLearningItem={onReviewItem} onOpenPage={onOpenPage} onTrail={onTrail}/>;
   if (uiPageId && ["08","09","10","11","12"].includes(uiPageId)) return <CanonicalTeachingSpace pageId={uiPageId} initialItemKey={initialLearningItemKey} onOpenPage={onOpenPage} onTrail={onTrail}/>;
