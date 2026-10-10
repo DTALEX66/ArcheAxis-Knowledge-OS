@@ -1,4 +1,5 @@
 import { expect, it, vi } from "vitest";
+import { encodeEditorContent } from "../components/DocumentEditor";
 import { CoreWorkingStateSession, type WorkingState, type WorkingRead, type WorkingEditor, type WorkingTransport } from "../presentation/coreWorkingState";
 const editor=(text:string):WorkingEditor=>({type:"doc",content:[{type:"paragraph",attrs:{block_id:"stable",opaque:{future:[1,null,"保留"]}},content:[{type:"text",text}]}]});
 const state=():WorkingState=>({drafts:{},opened_documents:[],active_document:null,page_id:null,pending_original:null});
@@ -12,6 +13,18 @@ function fixture(initial=state()) {
     recover:vi.fn(async request=>{const result=publish(request.action==="preserve"?server.recovery_candidates!:state());server={...result,recovery_candidates:null,recovery_requires_confirmation:false};return structuredClone(server);})};
   return {transport,session:new CoreWorkingStateSession(transport),publish,get:()=>server,set:(next:WorkingRead)=>{server=next;}};
 }
+it("editor drafts survive the JSON transport boundary without false identity rejection",async()=>{
+  const f=fixture();await f.session.load();
+  vi.mocked(f.transport.write).mockImplementation(async request=>f.publish(JSON.parse(JSON.stringify(request.state)) as WorkingState));
+  const encoded=encodeEditorContent({type:"doc",attrs:{originalAttrs:null},content:[{type:"paragraph",attrs:{block_id:"stable",originalAttrs:null},content:[{type:"text",text:"原创中文正文"}]}]});
+  if(encoded.type!=="doc"||!encoded.content)throw new Error("Invalid editor fixture");
+  f.session.rememberDraft("doc-a",encoded as WorkingEditor,1);
+  await f.session.flush();
+  expect(f.session.getSnapshot().status).toBe("ready");
+  const read=new CoreWorkingStateSession(f.transport);await read.load();
+  expect(read.getSnapshot().state.drafts["doc-a"].editor_json).toStrictEqual(encoded);
+  expect(await f.session.clearSaved("doc-a",{base_version:1,editor_json:encoded as WorkingEditor},2)).toBe(true);
+});
 it("SIMULATED: reloads independent Core-journal drafts and scene while preserving unknown fields",async()=>{
   const f=fixture();await f.session.load();f.session.rememberDraft("doc-a",editor("甲"),1);f.session.rememberDraft("doc-b",editor("乙"),2);f.session.rememberScene("03","doc-b");await f.session.flush();
   const reopened=new CoreWorkingStateSession(f.transport);await reopened.load();

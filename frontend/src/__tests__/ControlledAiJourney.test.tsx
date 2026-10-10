@@ -14,7 +14,7 @@ type J=Record<string,any>;
 const docs=new Map<string,J>(),tasks=new Map<string,J>(),writes:J[]=[];
 let correctionStatus="candidate";
 const hash="a".repeat(64),originalId="knowledge-exact",candidateId="correction-exact";
-function knowledge(id:string){return {knowledge_id:id,body:id===originalId?"同一原件的已接受正文":"使用者纠正正文",version:id+"-review-v1",status:id===originalId?"accepted":correctionStatus,source_id:"source-exact",anchor_id:"anchor-exact"};}
+function knowledge(id:string){return {knowledge_id:id,body:id===originalId?"同一原件的已接受正文":"使用者纠正正文",version:id+"-review-v1",status:id===originalId?"accepted":correctionStatus,source_id:id===originalId?"source-exact":null,anchor_id:id===originalId?"anchor-exact":null};}
 function task(answer:J,scope="runtime.answer"){return {task_id:answer.answer_id,conditions:JSON.stringify(answer),scope,knowledge_version:answer.knowledge_id+"@v1",model_version:"SIMULATED-model",outcome:"unmeasured",method_version:null,tool_version:null,failure:null,retest_of:scope==="runtime.retest"?answer.retest_of:null};}
 function setup(){bridge.call.mockImplementation(async(op:string,p:J={})=>{
  if(op==="machine_contexts_list")return {items:[...docs.values()].map(d=>({document_id:d.document_id,title:d.title,version:d.version,content_sha256:d.content_sha256})),next_cursor:null};
@@ -49,6 +49,9 @@ it("SIMULATED actual mounted 13→14 correction/review→13 independent grant→
  fireEvent.click(screen.getByRole("button",{name:"为此纠正知识建立独立复测授权"}));await grant("retest","纠正知识独立复测用途");
  await waitFor(()=>expect(screen.getByRole("button",{name:"以已接受纠正知识运行独立复测"})).toBeEnabled());fireEvent.click(screen.getByRole("button",{name:"以已接受纠正知识运行独立复测"}));await screen.findByLabelText("独立复测机器回答");
  const answer=writes.find(w=>w.op==="machine_answer")!.body,retest=writes.find(w=>w.op==="machine_retest")!.body;
+ // A real correction is an UNSOURCED observation; lineage is carried by the
+ // original persisted answer and failed evaluation, never invented source fields.
+ expect(knowledge(candidateId)).toMatchObject({source_id:null,anchor_id:null});const correction=writes.find(w=>w.op==="machine_correction")!.body;expect(correction.knowledge_id).toBe(originalId);expect(correction.answer_id).toBe("answer_req_"+createHash("sha256").update(answer.client_request_id).digest("hex"));expect(correction.question).toBe(answer.question);expect(correction.machine_answer).toBe("SIMULATED 错误回答");
  expect(answer.knowledge_id).toBe(originalId);expect(retest.knowledge_id).toBe(candidateId);expect(retest.question).toBe(answer.question);expect(retest.retest_of).toBe("evaluation_"+"answer_req_"+createHash("sha256").update(answer.client_request_id).digest("hex"));expect(retest.context_grant.document_id).not.toBe(answer.context_grant.document_id);
  fireEvent.click(screen.getByRole("button",{name:"读取此机器旅程的持久化回执"}));expect(await screen.findByLabelText("历史机器回答")).toHaveTextContent("SIMULATED 复测回答");expect(bridge.call).toHaveBeenCalledWith("machine_task_get",{task_id:"retest-exact"});
  fireEvent.click(screen.getByRole("button",{name:"返回同一纠正与复测旅程"}));expect(screen.getByLabelText("独立复测机器回答")).toHaveTextContent("SIMULATED 复测回答");expect(writes.filter(w=>w.op==="machine_answer")).toHaveLength(1);expect(writes.filter(w=>w.op==="machine_retest")).toHaveLength(1);

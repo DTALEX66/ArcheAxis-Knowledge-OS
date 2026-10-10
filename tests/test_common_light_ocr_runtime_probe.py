@@ -78,3 +78,18 @@ def test_native_facts_merge_retains_cell_path_and_multi_letter_coordinate(probe,
     last=next(item for item in locations if item["row"]==2 and item["column"]==28)
     assert last["coordinate"]=="AB2" and last["path"]==f"{suffix}!AB2" and last["value"]=="中文27"
     assert result["text"]==path.read_bytes().decode("utf-8")
+
+
+def test_deduplicated_image_and_pdf_page_freeze_final_anchors_without_losing_history(probe):
+    image_anchor={'anchor_id':'image-original','position':'original'}
+    page_anchor={'anchor_id':'pdf-page','position':'page'}
+    calls=[]
+    def call(method,path):
+        calls.append((method,path))
+        return {'anchors':[image_anchor,page_anchor]}
+    records=[{'anchors':{'same-source':{'anchors':[image_anchor]}}},
+             {'anchors':{'same-source':{'anchors':[image_anchor,page_anchor]}}}]
+    assert probe.final_anchor_snapshots(call,records)=={'same-source':{'anchors':[image_anchor,page_anchor]}}
+    assert calls==[('GET','/api/v1/sources/same-source/anchors')]
+    with pytest.raises(AssertionError,match='historical anchor disappeared'):
+        probe.final_anchor_snapshots(lambda *_:{'anchors':[page_anchor]},records)

@@ -614,7 +614,9 @@ function AppBody() {
   },[desktop,desktopReady,verificationPending,workspaceRestoring,working.session]);
   useEffect(()=>{
     if(!desktop)return;
-    const dirty=Object.keys(working.state.drafts).length>0||Boolean(working.state.pending_original)||["unsaved","saving","blocked"].includes(working.status);
+    // Scene CAS status also includes page/opened-object bookkeeping. Only actual
+    // content drafts or a frozen create request own the content navigation guard.
+    const dirty=Object.keys(working.state.drafts).length>0||Boolean(working.state.pending_original);
     if(dirty)draftOwners.current.add("core-working-state");else draftOwners.current.delete("core-working-state");
     draftDirty.current=draftOwners.current.size>0;setUnsavedDrafts(draftDirty.current);
   },[desktop,working.state,working.status,workspaceEpoch]);

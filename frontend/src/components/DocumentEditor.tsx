@@ -39,10 +39,13 @@ export function decodeEditorContent(content: JSONContent): JSONContent {
 }
 export function encodeEditorContent(content: JSONContent): JSONContent {
   if (content.type === "preservedUnknown") return content.attrs?.raw as JSONContent;
-  const { originalAttrs, ...attrs } = content.attrs ?? {};
+  const { attrs: nodeAttrs, ...node } = content;
+  const { originalAttrs, ...attrs } = nodeAttrs ?? {};
   const merged = { ...(originalAttrs ?? {}), ...attrs };
   for (const key of Object.keys(merged)) if (merged[key] === null) delete merged[key];
-  return { ...content, ...(Object.keys(merged).length ? { attrs: merged } : { attrs: undefined }), ...(content.content ? { content: content.content.map(encodeEditorContent) } : {}) };
+  // Absent attributes must stay absent across JSON/native transport. An own
+  // undefined key disappears on the wire and would falsely fail journal ACKs.
+  return { ...node, ...(Object.keys(merged).length ? { attrs: merged } : {}), ...(content.content ? { content: content.content.map(encodeEditorContent) } : {}) };
 }
 
 export function DocumentEditor({ content, version, onSave, onRetryWorkingState, onDirtyChange, onDraftChange, onCreateReference, onReferenceActivate }: {

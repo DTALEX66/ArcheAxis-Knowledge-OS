@@ -162,6 +162,17 @@ def ocr_page_body(source,job,snapshot):
     return {'revision':source['sha256'],'position':json.dumps(locator),'checksum':hashlib.sha256(text[p['char_start']:p['char_end']].encode()).hexdigest()}
 
 
+def final_anchor_snapshots(call, records):
+    """Freeze after all imports: deduplicated image/PDF pages share one source."""
+    final = {}
+    for record in records:
+        for sid, earlier in record['anchors'].items():
+            if sid not in final:
+                final[sid] = call('GET', f'/api/v1/sources/{sid}/anchors')
+            assert all(row in final[sid]['anchors'] for row in earlier['anchors']), 'historical anchor disappeared before restart'
+    return final
+
+
 def main():
     parser=argparse.ArgumentParser(description=__doc__);parser.add_argument('--candidate',type=Path,required=True);args=parser.parse_args();candidate=args.candidate.resolve()
     dev=office.load('light_ocr_dev',REPO/'scripts/runtime/dev.py');paths=dev.layout(REPO);dev.prepare(paths);work=paths['run']
@@ -201,10 +212,12 @@ def main():
                 for item in record[phase]['locations']:
                     s=item['source'];ap=f"/api/v1/sources/{s['source_id']}/anchors/{item['anchor']['anchor_id']}/resolve"
                     assert call('GET',ap)==item['resolution'],'reparse changed historical locator'
+        receipt['final_source_anchors']=final_anchor_snapshots(call,receipt['formats'])
         launcher.stop(child);child=None;child,base,token,_=office.start(candidate,work,launcher)
+        for sid, expected_anchors in receipt['final_source_anchors'].items():
+            assert call('GET',f'/api/v1/sources/{sid}/anchors')==expected_anchors, f'final source anchors changed after restart: {sid}'
         for record in receipt['formats']:
             source=record['source'];assert call('GET',f"/api/v1/sources/{source['source_id']}/original")==record['original']
-            for sid,anchors in record['anchors'].items(): assert call('GET',f'/api/v1/sources/{sid}/anchors')==anchors
             if record['extension']=='pdf': assert call('GET',f"/api/v1/sources/{source['source_id']}/pages")==record['reparse']['page_relation']
             for phase in ('first','reparse'):
                 run=record[phase];assert office.capture(client,base,token,run['job_id'])==run['snapshot']

@@ -16,7 +16,7 @@ const position=JSON.stringify({type:"text",start:0,end:6});
 const anchor={anchor_id:"anchor-exact",source_id:source.source_id,source_revision:hash,position,location_status:"located"};
 const content={type:"doc",content:[{type:"paragraph",attrs:{block_id:"p"},content:[{type:"text",text:"已保存 "},{type:"evidenceReference",attrs:{...anchor,excerpt:"实际引文"}}]}]};
 const doc={document_id:"doc-exact",source_id:source.source_id,source_revision:hash,title:"同源文档",version:1,editor_json:content,text_projection:"已保存",content_sha256:hash,blocks:[]};
-function mockCore(mismatch=false){let accepted=false;bridge.call.mockImplementation(async(op:string,p:Record<string,unknown>={})=>{
+function mockCore(mismatch=false){let accepted=false,knowledgeReads=0;bridge.call.mockImplementation(async(op:string,p:Record<string,unknown>={})=>{
  const state={job_id:"job-exact",input_ref:source.source_id,kind:"text",state:"succeeded",attempt:1,request_id:"request-exact"};
  switch(op){
  case "sources_list":return {sources:[source]};case "documents_list":return {documents:[doc]};
@@ -26,7 +26,7 @@ function mockCore(mismatch=false){let accepted=false;bridge.call.mockImplementat
  case "job_output":return outputReceipt(p.kind,p.kind==="text"?text:"[]");case "job_quality":return {job_id:"job-exact",engine:"fixture"};
  case "source_job_transform":return {source_id:source.source_id,job_id:"job-exact",raw_sha256:hash,transform_id:17,content:text};
  case "knowledge_from_transform":return {knowledge_id:"knowledge-exact",anchor_id:anchor.anchor_id,status:"candidate",source_id:source.source_id,raw_sha256:hash,job_id:"job-exact",transform_id:17};
- case "knowledge_get":return {knowledge_id:"knowledge-exact",anchor_id:anchor.anchor_id,source_id:mismatch?"other-source":source.source_id,version:"knowledge-v1",title:"知识候选",body:"人工整理",status:accepted?"accepted":"candidate"};
+ case "knowledge_get":knowledgeReads++;return {knowledge_id:"knowledge-exact",anchor_id:anchor.anchor_id,source_id:mismatch&&knowledgeReads>1?"other-source":source.source_id,version:"knowledge-v1",title:"知识候选",body:"人工整理",status:accepted?"accepted":"candidate"};
  case "knowledge_qualification":return {knowledge_id:"knowledge-exact",requires_human_review:true};
  case "knowledge_review":accepted=true;return {knowledge_id:"knowledge-exact",version:"knowledge-v1"};
  case "anchor_resolve":return {source_id:source.source_id,anchor_id:anchor.anchor_id,source_revision:hash,current_source_revision:hash,status:"CURRENT",scope:"locator_provenance_only",position};

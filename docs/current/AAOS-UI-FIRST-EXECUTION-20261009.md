@@ -315,3 +315,11 @@ Owner 当前目标为完整核心框架、常见常用格式与最短闭环，�
 候选 `93baf3934e73949ef6e2627bb01721f928990704` 已正常上传 Audit 并由 GitHub API 独立核对 SHA。完整 CI `38075889002` 已终止 FAIL：lint 发现新语音探针写死 SystemRoot fallback 和 ffmpeg 本机路径，其他必需检查因依赖跳过，不记 PASS。已改为 SystemRoot 环境声明及项目 tool_paths.declared_location('ffmpeg')，保留缺失时拒绝，未放宽架构门禁。当前本地 architecture guard PASS；语音探针 helper 9 PASS、实际 ASR 3 NOT_EXECUTED（回执 be268a2d33/1bd323953127），无 SAPI 重试或新素材读取。修复候选仍需重新完整 CI，整体继续 PARTIAL。
 
 路径修复候选 `4193028b35449132a02f7117d70a392c3b8f06b3` 已上传 Audit，双端 SHA 独立核对一致。CI `38076103471` 的 lint、contracts、定向格式/安全/迁移、Python兼容、workers和Windows runtime已通过，其他任务在检查时仍运行；rust-vnext已因格式失败，不记完整通过。下载该精确SHA的rustfmt修复，3个OCR相关任务文件按preimage与等价调整审阅后应用，见[格式修复回执](receipts/AAOS-OCR-FORMAT-REPAIR-20261011.json)。本地编译/格式权限未绕过；等待本轮有用探针结束再发修复候选。旧282下载包22317个manifest文件及22318个ZIP成员的逐字节SHA/大小全部一致，仅属旧SHA产物完整性，不提升当前闭环或安装资格。
+
+## 2026-10-11 当前闭环运行失败修复（PARTIAL）
+
+419 完整 CI 已终止 FAIL，失败为 Rust 格式、browser-smoke 切页、desktop-fast 轻量格式/OCR 最终重启集合核对和 installer-lifecycle 普通笔记保存；a0 聚合失败。实际 Core journal 探针已通过独立草稿、冻结原创请求、丢 ACK 客户端注入、权限/身份拒绝、条件清理、重启及显式恢复，材料 SYNTHETIC、执行 INTEGRATED；不证明安装界面或物理 IME。
+
+新修复保留严格身份和正文保护：候选独立已保存正文读回后才解除旧编辑 guard；场景 CAS 不冒充内容草稿；编辑器不再产生 JSON 传输丢失的 own `attrs: undefined`。后者回归先复现与安装截图相同的工作状态回执不一致，修复后相关 22 项通过。轻量格式探针在全部导入完成后冻结同源最终 anchors，先拒绝任何历史行消失，再检查重启后集合严格相等；PNG/PDF 去重导致合法增加的 anchors 不再与过早快照比较，原失败不改写为 PASS。
+
+最终前端 116 文件/1061 项、TypeScript 与 production build PASS，源码指纹一致；20 项中文 OCR/轻量 parser/helper 无 skip，通过现有引擎对自编 PNG/JPEG/扫描 PDF 实际中文识别。新增中文 Core wrapper 尚未实际执行，ASR 仍 NOT_EXECUTED。architecture 与 CI 选定 Ruff critical selector PASS；额外默认全规则 Ruff 93 项 style FAIL 保留，不宣称全仓风格通过。详见[本次运行修复回执](receipts/AAOS-CLOSED-LOOP-RUNTIME-REPAIR-20261011.json)。当前修复待上传与精确 SHA 完整 CI，正式新 UI 九步、能力拒绝恢复、安装态及 Owner 验收仍未收口。主题及冻结范围不变，整体目标继续 NOT_QUALIFIED。
