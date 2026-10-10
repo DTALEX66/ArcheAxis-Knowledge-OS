@@ -434,3 +434,9 @@ host标准库driver核对profile与正式宿主解释器选择，用候选Python
 
 
 a2同候选多格式回执artifact11682366210/11682276493独立复核：light11、中文扫描3、Office/text-PDF4选定记录，source clean/source_consistent=true；原件digest、两个不同成功job、text/structure/loss输出digest/bytes、正文结构重解析相等及定位CURRENT核验，probe报告重启相等。共覆盖当前18范围中的15类，材料SYNTHETIC/执行INTEGRATED；不宣称通用保真/原软件重构或后继56d源码通过。a2 desktop-build terminal PASS，installer-lifecycle已进入live；Python/Rust/ASR前置失败仍保留。详见[同候选格式复核](receipts/AAOS-SAME-CANDIDATE-FORMATS-READBACK-20261011.json)，三类媒体Core与新UI九步/实际AI/Owner仍未收口。
+
+## 2026-10-11 安装候选终态与文档冲突独立探针（PARTIAL）
+
+a2完整CI38085061981已completed/FAIL，安装job114312725772失败。下载artifact11681987772：兼容child ok=true/source_consistent=true，五次产品正常退出code0；不当完整installer lifecycle通过。新grouped child仍在候选创建后等待审核导航超时，import/read/anchor与完整quote PASS，原HTTP错误UNVERIFIED。后继已发布修复不能改写旧失败。前一运行明确终止后才启动force_full候选29ab6d0c的CI38086620115，独立核对headSha；观察queued，实际结果UNVERIFIED，不含新conflict adapter或pending-job实现。
+
+独立文档409安装adapter按两ABSENT preimage及exact patch/postimage合入根，19 helper tests PASS无skip、source_consistent=true，architecture/critical Ruff PASS。计划真实Core HTTP初始化双草稿/备份后，以安装UI明确恢复、A手动409及完整JSON比较/重绑保存、B独立保全及全宿主重启读回；尚未接入harness，实际Core/installed NOT_EXECUTED。隔离继续接同portable/archeaxis.sqlite、原生alert、正常退出和必需NSIS分支；不重试本地权限拒绝或绕过Core。详见[安装与冲突探针进展](receipts/AAOS-INSTALLED-CONFLICT-ADAPTER-PROGRESS-20261011.json)。全目标继续PARTIAL。

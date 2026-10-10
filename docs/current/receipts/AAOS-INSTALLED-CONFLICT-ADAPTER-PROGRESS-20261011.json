@@ -1,0 +1,71 @@
+{
+  "schema": "archeaxis.execution-progress/v1",
+  "date": "2026-10-11",
+  "whole_goal": "PARTIAL",
+  "previous_candidate": {
+    "sha": "a2aca3b7314ffe644ab62f5ab00576e8d6866e70",
+    "run_id": 38085061981,
+    "url": "https://github.com/DTALEX66/ArcheAxis-Knowledge-OS/actions/runs/38085061981",
+    "status": "completed",
+    "conclusion": "failure",
+    "installer_job": 114312725772,
+    "installed_artifact": 11681987772,
+    "artifact_name": "installed-native-journey-a2aca3b7314ffe644ab62f5ab00576e8d6866e70-1",
+    "local_root": ".project-local/runs/be268a2d33/closedloop-integration-20261011/installed-a2",
+    "compatibility": {
+      "receipt": "runs/fd2a08c715/webdriver-78af626834c0/tmp/journey/receipt.json",
+      "receipt_sha256": "a2380ed21a54941ffa09bc344033a43b49580484c4743e54f8563ab3cec4318e",
+      "ok": true,
+      "source_consistent": true,
+      "normal_host_shutdown_count": 5,
+      "qualification": "COMPATIBILITY_CHILD_ONLY_NOT_COMPLETE_INSTALLER_LIFECYCLE"
+    },
+    "grouped": {
+      "receipt": "runs/fd2a08c715/webdriver-abfdaef536ac/tmp/journey/receipt.json",
+      "receipt_sha256": "90f8fe16beb80f0135f479bb761794610a49720e3eec9990146904a668cc65dd",
+      "ok": false,
+      "source_consistent": true,
+      "passed_stages": ["import", "read", "anchor"],
+      "quote_selection": "PASS",
+      "failure": "Candidate creation did not reach the review-navigation button before deadline",
+      "original_http_error": "UNVERIFIED",
+      "failure_screenshot_sha256": "c1e98ad9ac442b4676eddf364658382b4d57cbc21e2399265f4f5fba59c996a6",
+      "normal_host_exit_code": 0
+    },
+    "other_failures": ["Rust formatting blocked required tests", "Public source digest secret-scan false positive blocked OS tests", "Host YAML import failed before speech Core startup"],
+    "repair_qualification": "Published repairs require successor actual execution; previous failures remain immutable"
+  },
+  "successor": {
+    "sha": "29ab6d0c8d9057cd1c3edf3fcf59971e91603e8a",
+    "run_id": 38086620115,
+    "url": "https://github.com/DTALEX66/ArcheAxis-Knowledge-OS/actions/runs/38086620115",
+    "observed_status": "queued",
+    "force_full": true,
+    "dispatch_order": "Only after previous run was independently confirmed completed/failure",
+    "ci_qualification": "UNVERIFIED",
+    "contains_new_conflict_adapter": false,
+    "contains_pending_job_journal": false
+  },
+  "conflict_adapter": {
+    "status": "IMPLEMENTED_LOCAL_NOT_WIRED_TO_INSTALLED_HARNESS",
+    "files": ["scripts/probes/aaos01_installed_draft_conflict_loop.py", "tests/test_installed_draft_conflict_probe.py"],
+    "transfer_patch_sha256": "48de3cb43504101cd802de10201d9c10f145e0c97677d3134647f5e4b18dd3ec",
+    "preimages": "Both ABSENT; exact patch and postimage hashes independently checked",
+    "probe_sha256": "5491ed8e934fd2429aea3867f60b3d760c87c954082463325ab1831beebe5a17",
+    "test_sha256": "55f87904e57f036ad686f13b98fde87b7ecf8da42184384132ac3959aeea847f",
+    "test_count": 19,
+    "test_result": "PASS_NO_SKIP",
+    "test_evidence": "SIMULATED_HELPER",
+    "root_execution": ".project-local/runs/be268a2d33/87fb9e00bb71/artifacts/execution.json",
+    "source_commit": "29ab6d0c8d9057cd1c3edf3fcf59971e91603e8a",
+    "source_patch_sha256": "d7a0e2835a7b65ffdfeab8daacab838be3bfa3f55aab80a6aed545c9dae00609",
+    "source_consistent": true,
+    "architecture": "PASS",
+    "critical_ruff": "PASS",
+    "actual_core": "NOT_EXECUTED",
+    "actual_installed_ui": "NOT_EXECUTED",
+    "required_journey": "Owned Core HTTP initializes A/B drafts and backup; real installed UI restore/preserve; A manual 409; full JSON three-way comparison and explicit v3 save; only A draft cleared; B survives full normal host restart",
+    "remaining_integration": "Same portable_root/archeaxis.sqlite initializer, trusted alert callbacks, full normal host restart receipts, installed identity/source validation and mandatory independent NSIS branch",
+    "limitations": ["Synthetic initialization is not UI draft creation", "No physical IME or Owner acceptance", "No immutable pre-merge draft archive", "Not whole nine-step qualification", "Pyreadline3 destructor WinError retained after pytest exit 0"]
+  }
+}
