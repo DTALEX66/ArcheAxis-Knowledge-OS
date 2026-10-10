@@ -486,3 +486,9 @@ a2完整CI38085061981已completed/FAIL，安装job114312725772失败。下载art
 重新只读探测已声明loopback端点，availability仍false，未启动软件/模型。源码确认旧probe把成功空模型列表与HTTP/JSON失败均描述为无端点，畸形rows还可漏报类型或抛出未捕获异常；新增回归先11 PASS/7 FAIL，修复后区分READ_VERIFIED的模型缺失与READ_FAILED异常类型，校验协议列表/非空字符串身份，不回显服务器错误正文。worker模型/provider/prompt/engine及回答链不变。
 
 根worker/helper/native联合68 PASS无skip，critical Ruff/architecture与源码一致PASS；真实loopback后读回为READ_FAILED/URLError，进程状态、模型是否加载仍UNVERIFIED，不用请求失败推导未安装。成功库存只算可用性，不算推理。详见[文本库存诊断修复](receipts/AAOS-TEXT-MODEL-INVENTORY-REPAIR-20261011.json)。实际同知识回答/纠正/独立复测与全九步仍未验收，当前live候选继续保留，整体PARTIAL。
+
+## 2026-10-11 108候选终态与宿主排版续批（PARTIAL）
+
+TLS观察超时后退避重读同run metadata成功，10852bc候选CI38088242528实际completed/FAIL，installer114322058158也FAIL；不因超时替换运行。失败步骤为root cargo fmt、Windows shell、Python合同/OS tests、installed NSIS及最终gate；exact错误正文尚UNVERIFIED。格式artifact11683670949（Tauri/595bytes）、11683151171（root/9917bytes）metadata存在且未过期，尚未下载。已请求当前run工程回执的明确正常认证只读授权，之前automatic approval拒绝后的读取限制未绕过。
+
+手工按相邻样式仅换行展开core_bridge的新增clear-job测试tuple和request-byte-limit match；quoted strings及非空白/非逗号词法序列与旧Git完全相同，diff PASS。不是已下载rustfmt补丁；本地已拒formatter未重试，fmt/Rust/runtime仍NOT_EXECUTED，不能签署门禁修复通过。详见[候选终态进展](receipts/AAOS-108-CANDIDATE-TERMINAL-PROGRESS-20261011.json)。当前root后继合同/恢复/库存修复仍待统一候选，媒体Core/实际AI/九步/Owner资格未收口，没有重复dispatch或发布。

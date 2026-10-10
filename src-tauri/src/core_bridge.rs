@@ -820,7 +820,10 @@ fn request_byte_limit(operation: &Operation) -> usize {
         90 * 1024 * 1024
     } else if matches!(
         operation,
-        Operation::UiStateWrite | Operation::UiStateClearSaved | Operation::UiStateClearJob | Operation::UiStateRecover
+        Operation::UiStateWrite
+            | Operation::UiStateClearSaved
+            | Operation::UiStateClearJob
+            | Operation::UiStateRecover
     ) {
         1_100_000
     } else {
@@ -1545,7 +1548,11 @@ mod folder_native_contract_regression {
         assert!(body.is_none());
         for (operation, method, path) in [
             ("ui_state_write", "PUT", "/api/v1/workspace/ui-state"),
-            ("ui_state_clear_job", "POST", "/api/v1/workspace/ui-state/clear-job"),
+            (
+                "ui_state_clear_job",
+                "POST",
+                "/api/v1/workspace/ui-state/clear-job",
+            ),
             (
                 "ui_state_clear_saved",
                 "POST",

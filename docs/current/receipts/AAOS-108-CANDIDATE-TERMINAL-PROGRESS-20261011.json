@@ -1,0 +1,39 @@
+{
+  "schema": "archeaxis.candidate-terminal-progress/v1",
+  "date": "2026-10-11",
+  "whole_goal": "PARTIAL",
+  "candidate": {
+    "sha": "10852bc158b0f1a3d23616108e70559b2db412d0",
+    "run": 38088242528,
+    "status": "COMPLETED",
+    "conclusion": "FAILURE",
+    "readback": "Run and jobs metadata independently read after transient TLS observation timeouts; no restart due to timeout"
+  },
+  "failed_jobs": [
+    {"name": "contracts-vnext", "id": 114319270119, "step": "Run real Python contract and vocabulary regressions"},
+    {"name": "test (3.12)", "id": 114319270128, "step": "Run OS-level tests"},
+    {"name": "rust-vnext", "id": 114319270136, "step": "cargo fmt (root vNext workspace)"},
+    {"name": "desktop-fast", "id": 114319270143, "step": "Test the canonical Windows desktop shell"},
+    {"name": "installer-lifecycle", "id": 114322058158, "step": "Verify the installed NSIS lifecycle"},
+    {"name": "a0-gates", "id": 114322912857, "step": "Validate required gates against GatePlan (ci-verdict)"}
+  ],
+  "format_artifacts_metadata_only": [
+    {"id": 11683670949, "name": "tauri-rustfmt-repair-10852bc158b0f1a3d23616108e70559b2db412d0", "bytes": 595, "expired": false},
+    {"id": 11683151171, "name": "rustfmt-repair-10852bc158b0f1a3d23616108e70559b2db412d0", "bytes": 9917, "expired": false}
+  ],
+  "download": "NOT_EXECUTED; explicit current-run read authorization requested after earlier automatic approval rejected authenticated artifact retry",
+  "local_host_layout_change": {
+    "file": "src-tauri/src/core_bridge.rs",
+    "change": "Wrap new clear-job test tuple and extended request-byte-limit match alternatives consistently with adjacent source",
+    "verification": "Quoted strings and non-whitespace/non-comma lexical sequence identical to prior Git source; diff check PASS",
+    "rustfmt": "NOT_EXECUTED_NOT_VERIFIED",
+    "rust_tests": "NOT_EXECUTED",
+    "basis": "Manual source review, not downloaded formatting patch; local formatter permission refusal not retried or bypassed"
+  },
+  "qualification": {
+    "latest_source_ci": "NOT_QUALIFIED; subsequent source repairs absent from this candidate",
+    "speech": "NOT_QUALIFIED; host prerequisite failed, no new media Core proof",
+    "installed": "FAILURE_AT_CANDIDATE; exact error UNVERIFIED",
+    "new_dispatch": "NOT_EXECUTED; remaining exact format/failure evidence needed"
+  }
+}
