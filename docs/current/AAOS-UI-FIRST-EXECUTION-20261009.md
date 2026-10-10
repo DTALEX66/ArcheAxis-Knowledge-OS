@@ -424,3 +424,10 @@ JobContent非法source_note已改canonical NOTE，不放宽Core枚举、人审�
 
 
 a2实际desktop-fast已终止FAIL：中文Core step PASS；固定FFmpeg和公开ASR资产准备PASS，下载artifact11682491118独立核对五模型组件/fixture/工具ZIP和pin均等于exact候选lock。实际speech probe formats=[]/NOT_EXECUTED，在host Python解析capability YAML时缺yaml，尚未启动Core，source_consistent=false因失败早于source采集；不把模型/工具成功当三格式通过。候选runtime engine assert当前仅检查四Office/OCR模块，未证明yaml/ASR模块导入；隔离只读正在确定候选解释器预检与路径读回，避免host/candidate ABI混用或无依据安装。详见[实际ASR资产与失败进展](receipts/AAOS-ASR-ASSET-ACTUAL-PROGRESS-20261011.json)。a2桌面构建live，不取消有用安装结果，整体PARTIAL。
+
+
+## 2026-10-11 ASR候选解释器入口修复（PARTIAL）
+
+host标准库driver核对profile与正式宿主解释器选择，用候选Python -I/-B导入yaml/faster_whisper并独立核对实际模块属于runtime，再仅加入审计过scripts/probes执行原probe。无host pip安装、ABI混用、_pth修改、模型/provider变更；原模型/manifest/语言/真实Core验收全部保留。preflight失败独立JSON保全，导入成功不当Core资格，非零退出严格传播，zero退出但无导入证明仍失败。CI仅换入口与新增JSON回执上传，原mandatory条件/JSON-only/缺文件error不弱化。
+
+根最终52项Python PASS无skip、architecture/critical Ruff/YAML/源码指纹一致；包括真实隔离child的缺模块/外部模块/错解释器拒绝和SYNTHETIC进口记录，不证明候选实际ASR包或Core运行。首轮nested project-local guard错误9 PASS/1 FAIL保留，修正后重跑；pyreadline退出句柄warning保留。详见[解释器修复回执](receipts/AAOS-ASR-CANDIDATE-INTERPRETER-REPAIR-20261011.json)。a2桌面构建live，当前修复待后继exact-SHA CI；完整框架pending-journal隔离实现继续，整体PARTIAL。

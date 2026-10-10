@@ -1163,7 +1163,7 @@ jobs:
         if: ${{ !cancelled() && steps.desktop_runtime.outcome == 'success' && steps.desktop_shell.outcome == 'success' && steps.desktop_engines.outcome == 'success' && steps.common_asr_assets.outcome == 'success' }}
         working-directory: ${{ github.workspace }}
         run: |
-          python -B scripts/probes/aaos01_common_speech_runtime_loop.py --candidate .project-local/rt --model-dir .project-local/task-runtime/common-asr-assets/model --ffmpeg $env:FFMPEG_CMD --speech-wav .project-local/task-runtime/common-asr-derived/selected.wav --speech-transcript .project-local/task-runtime/common-asr-assets/fixture/transcript.txt --language en --expected-phrase "fellow Americans" --expected-phrase "ask not" --expected-phrase "do for your country"
+          python -B scripts/ci/run_common_speech_candidate.py --candidate .project-local/rt --model-dir .project-local/task-runtime/common-asr-assets/model --ffmpeg $env:FFMPEG_CMD --speech-wav .project-local/task-runtime/common-asr-derived/selected.wav --speech-transcript .project-local/task-runtime/common-asr-assets/fixture/transcript.txt --language en --expected-phrase "fellow Americans" --expected-phrase "ask not" --expected-phrase "do for your country"
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
       - name: Upload speech qualification receipts without model or audio assets
         if: ${{ always() && steps.common_asr_assets.outcome != 'skipped' }}
@@ -1172,6 +1172,7 @@ jobs:
           name: desktop-fast-common-speech-${{ github.sha }}-${{ github.run_attempt }}
           path: |
             .project-local/runs/**/artifacts/common-speech.json
+            .project-local/runs/**/artifacts/common-speech-preflight.json
             .project-local/task-runtime/common-asr-assets/receipt.json
             .project-local/task-runtime/common-asr-ffmpeg.json
             .project-local/task-runtime/common-asr-prerequisites.json

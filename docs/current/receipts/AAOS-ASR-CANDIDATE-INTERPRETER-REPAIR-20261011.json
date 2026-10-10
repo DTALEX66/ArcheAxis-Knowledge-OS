@@ -1,0 +1,53 @@
+{
+  "schema": "archeaxis.asr-candidate-interpreter-repair/v1",
+  "date": "2026-10-11",
+  "status": "IMPLEMENTED_LOCAL_TESTED_LOCAL",
+  "whole_scope": "PARTIAL",
+  "source_commit": "f3d2ec1bdb6e4b8bb2dc99c6b7db386f6f6d4bf6",
+  "source_patch_sha256": "b6d06bbde41deb2bc4cfa957f503e41ec6b34434beb2559b9dd2940f02dcb163",
+  "files": [
+    {
+      "path": "scripts/ci/run_common_speech_candidate.py",
+      "sha256": "64102a0e09aff67fba988f45ac8c98ecd390b86bd7460b9cc17c62317ec8ee97"
+    },
+    {
+      "path": "tests/test_common_speech_candidate_runner.py",
+      "sha256": "9c59c4343d7ca533abdc8fdc938c0a6a51f23dbec357ca9e8618c26735780f8a"
+    },
+    {
+      "path": ".github/workflows/ci.yml",
+      "sha256": "8bf17b2be974b95c8631167b99f5e2bda2138b1261f64e680d534fa05c5e85df"
+    }
+  ],
+  "change": "Host standard-library driver verifies profile and formal host interpreter selection; isolated candidate Python imports yaml/faster_whisper from its own runtime before executing existing audited speech probe",
+  "isolation": [
+    "-I -B; remove PYTHONHOME/PYTHONPATH via existing launcher",
+    "Third-party import ownership checked before adding only scripts/probes for sibling modules",
+    "No candidate site-packages in host; no host pip install, _pth edits, model/provider/config changes"
+  ],
+  "receipts": "Separate common-speech-preflight.json preserves failures and module/interpreter readback; import success is CORE_NOT_EXECUTED, actual common-speech.json remains independent qualification",
+  "validation": {
+    "python_tests": 52,
+    "status": "PASS",
+    "receipt": ".project-local/runs/be268a2d33/70385b79a349/artifacts/execution.json",
+    "source_consistent": true,
+    "evidence_level": "SYNTHETIC_ROUTING_AND_REAL_ISOLATED_CHILD_NEGATIVES",
+    "architecture": "PASS",
+    "critical_ruff": "PASS",
+    "yaml_dependencies_exit_json_only_upload": "PASS",
+    "core_speech_probe_unchanged": true
+  },
+  "preserved_failures": [
+    "fd512dd3782f: nested project-local path guard incorrectly required a second .project-local; repaired and final rerun passed",
+    "Known pyreadline3 interpreter shutdown handle warning; runner exit0, not product qualification"
+  ],
+  "actual_candidate_preflight": "NOT_EXECUTED; final candidate CI required",
+  "actual_core_asr": "NOT_EXECUTED; three formats remain unqualified",
+  "active_ci": {
+    "run_id": 38085061981,
+    "head_sha": "a2aca3b7314ffe644ab62f5ab00576e8d6866e70",
+    "desktop_build": "IN_PROGRESS_AT_READBACK",
+    "successor_dispatch": "NOT_EXECUTED; useful old runtime preserved"
+  },
+  "next": "Exact-SHA actual candidate import and WAV/MP3/MP4 original/content/time/reparse/restart qualification; pending-job journal isolated implementation continues"
+}
