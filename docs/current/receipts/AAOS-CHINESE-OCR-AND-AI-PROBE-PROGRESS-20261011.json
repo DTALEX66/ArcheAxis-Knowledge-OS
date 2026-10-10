@@ -1,0 +1,41 @@
+{
+  "schema": "archeaxis.chinese-ocr-ai-probe-progress/v1",
+  "date": "2026-10-11",
+  "whole_goal": "PARTIAL_NOT_QUALIFIED",
+  "actual_chinese_core": {
+    "status": "PASS_SELECTED_AUTHORED_SAMPLES",
+    "candidate_sha": "99ba6d8b6afc79dee618bb2e8b87473ad27087fc",
+    "ci_url": "https://github.com/DTALEX66/ArcheAxis-Knowledge-OS/actions/runs/38079439232",
+    "desktop_fast": "COMPLETED_SUCCESS",
+    "whole_ci_at_inspection": "IN_PROGRESS_DESKTOP_BUILD",
+    "receipt": ".project-local/runs/be268a2d33/closedloop-integration-20261011/light-99/runs/fd2a08c715/0b24fe8b89b2/artifacts/common-chinese-ocr.json",
+    "receipt_sha256": "78e5da564fcfc38e30df912841fa2456e630e73f0a0a0016476bf92e538d52cb",
+    "ok": true,
+    "qualification": "INTEGRATED_SELECTED_CHINESE_OCR_LOCATION_REPARSE_RESTART",
+    "clean_source": true,
+    "source_consistent": true,
+    "formats": ["png", "jpeg", "pdf-scanned"],
+    "all_restart_equal": true,
+    "scope": "Actual candidate Core/workers with pinned eng+chi_sim; original bytes, selected text, source locations, independent new-job reparse and restart",
+    "limits": "Authored selected Chinese samples, not arbitrary scans/full recognition accuracy or installed new UI qualification"
+  },
+  "controlled_ai_native_probe": {
+    "status": "IMPLEMENTED_LOCAL_TESTED_HELPERS_NATIVE_NOT_EXECUTED",
+    "base_sha": "3e617b7e566d7670cff34daeb897265f393eea75",
+    "import_patch_sha256": "875d55f021d86452a8abaf42fb2a5f748e90ae9c8b31fe033c622112eb2672e8",
+    "root_validation": "32 tests / 43 subtests PASS; architecture and CI critical Ruff PASS",
+    "canonical_receipt": ".project-local/runs/be268a2d33/62e0dbdc3cca/artifacts/execution.json",
+    "source_patch_sha256": "b8319dc0495aa84933556609f4ba59f45176ec54d5f6962042856b78a955dab9",
+    "source_consistent": true,
+    "scope": "Actual registered route and explicit grant, answer/task readbacks, separately opted-in engineering intervention/adoption and actual retest, restore readbacks and old-grant UI refusal; finite bridge read-only whitelist unchanged",
+    "options": ["--grouped-common-owner-loop --actual-model", "--grouped-common-owner-loop --actual-model --grouped-authored-intervention"],
+    "limits": ["No model installation/provider changes", "Absent explicit intervention leaves correct answer intact and correction/retest NOT_EXECUTED", "Core automatically writes runtime.evaluation.failed for engineering intervention; this is not independent model-error evidence or Owner approval", "Generic UI refusal is insufficient to prove exact restore-fence rejection reason", "Cloud actual model availability UNKNOWN; native/model execution NOT_EXECUTED"]
+  },
+  "subsequent_capability_gap": {
+    "status": "CONFIRMED_NOT_YET_FIXED",
+    "finding": "JobContent/FolderIngest frozen identities remain component-local; navigation to page15 unmounts them. Cancelled navigation cannot reach enable controls, confirmed navigation loses original frozen request.",
+    "next_implementation": "Bound explicit capability enable at the original NOT_ADMITTED surface with existing finite operations/confirmation/independent readback, followed by a separate original-request retry; never auto execute",
+    "limits": "Earlier same-component mocked re-enable regression is not an actual navigation lifecycle qualification; cross-page/restart frozen job preservation remains separate"
+  },
+  "delivery": "Pending task-owned normal Audit publication; current 99 candidate CI preserved"
+}

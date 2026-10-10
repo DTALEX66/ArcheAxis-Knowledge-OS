@@ -93,12 +93,25 @@ def assert_assessment(value, pin):
         assert value.get(field) == pin[field], f"Assessment identity changed: {field}"
 
 
+def task_conditions(task):
+    """Core serializes MachineTaskDto.conditions as JSON text, not an object."""
+    raw = task.get("conditions")
+    if not isinstance(raw, str):
+        raise AssertionError("Machine task conditions must be persisted JSON text")
+    value = json.loads(raw)
+    assert isinstance(value, dict), "Machine task conditions must decode to an object"
+    return value
+
+
 def inference_status(task):
     """A candidate worker result is execution evidence, never measured accuracy."""
-    conditions = task.get("conditions", {})
+    conditions = task_conditions(task)
     answer = conditions.get("answer", {})
     model = answer.get("model")
-    if task.get("scope") != "runtime.answer" or task.get("outcome") != "unmeasured":
+    if (
+        task.get("scope") not in {"runtime.answer", "runtime.retest"}
+        or task.get("outcome") != "unmeasured"
+    ):
         return "NOT_EXECUTED"
     if (
         not isinstance(model, str)
@@ -107,6 +120,76 @@ def inference_status(task):
     ):
         return "UNVERIFIED"
     return "EXECUTED_CANDIDATE_NOT_EVALUATED"
+
+
+def assert_inference_task(task, knowledge_id, question, grant, scope="runtime.answer"):
+    value = task_conditions(task)
+    assert task["scope"] == scope and task["outcome"] == "unmeasured"
+    assert value["schema"] == (
+        "archeaxis.machine-answer/v1"
+        if scope == "runtime.answer"
+        else "archeaxis.machine-retest/v1"
+    )
+    assert value["answer_id"] == task["task_id"]
+    assert value["knowledge_id"] == knowledge_id and value["question"] == question
+    assert task["knowledge_version"].startswith(knowledge_id + "@")
+    assert value["authority"] == "candidate"
+    assert task["model_version"] == value["answer"]["model"]
+    assert isinstance(value["answer"]["answer"], str) and value["answer"]["answer"].strip()
+    assert value["request"]["context_grant"] == grant
+    if scope == "runtime.retest":
+        assert value["retest_task_id"] == task["task_id"]
+        assert task["retest_of"] == value["retest_of"]
+    return value
+
+
+def assert_correction_lineage(original, failed_task, candidate, authored):
+    failed = task_conditions(failed_task)
+    correction = failed["correction"]
+    assert (
+        failed_task["scope"] == "runtime.evaluation.failed" and failed_task["outcome"] == "failed"
+    )
+    assert failed_task["task_id"] == "evaluation_" + original["answer_id"]
+    assert correction["answer_id"] == original["answer_id"]
+    assert correction["failed_task_id"] == failed_task["task_id"]
+    assert correction["corrects_knowledge_id"] == original["knowledge_id"]
+    assert correction["question"] == original["question"]
+    assert correction["machine_answer"] == original["answer"]["answer"]
+    assert correction["corrected_answer"] == authored["body"]
+    assert (
+        correction["error_note"] == authored["note"] and correction["reviewer"] == authored["actor"]
+    )
+    assert correction["correction_candidate_id"] == candidate["knowledge_id"]
+    assert candidate["body"] == authored["body"]
+    assert candidate["source_id"] is None and candidate["anchor_id"] is None
+    for field in ("answer_id", "knowledge_id", "question", "answer", "request"):
+        assert failed[field] == original[field], "Correction replaced original " + field
+    return correction
+
+
+def grant_snapshot(document):
+    grant = document["editor_json"]["attrs"]["archeaxis_context_grant"]
+    return {
+        "document_id": document["document_id"],
+        "version": document["version"],
+        "content_sha256": document["content_sha256"],
+        "purpose": grant["purpose"],
+    }
+
+
+def read_grant(read, purpose, knowledge_id, operation):
+    page = read("machine_contexts_list")
+    assert page["next_cursor"] is None, "Owned fixture context list unexpectedly paginated"
+    summary = one(page["items"], lambda item: item["title"] == purpose, "explicit grant document")
+    document = read("document_get", {"document_id": summary["document_id"]})
+    assert (
+        document["version"] == summary["version"]
+        and document["content_sha256"] == summary["content_sha256"]
+    )
+    grant = document["editor_json"]["attrs"]["archeaxis_context_grant"]
+    assert grant["state"] == "granted" and grant["knowledge_id"] == knowledge_id
+    assert grant["consumer"] == "local-machine" and grant["operations"] == [operation]
+    return document
 
 
 class GroupedUI:
@@ -217,6 +300,7 @@ def run_grouped_loop(
     screenshot,
     restart,
     run_ai=False,
+    authored_intervention=False,
     report=None,
 ):
     read = readonly_bridge(bridge)
@@ -417,7 +501,8 @@ def run_grouped_loop(
     ui.click("由课程课时建立学习问题", review_scope)
     wait("return location.hash==='#page=06'")
     item_input = (
-        "document.evaluate(" + json.dumps(label_selector("学习项目键"))
+        "document.evaluate("
+        + json.dumps(label_selector("学习项目键"))
         + ",document,null,XPathResult.FIRST_ORDERED_NODE_TYPE,null).singleNodeValue"
     )
     wait("return !!" + item_input + "?.value?.startsWith('course:')")
@@ -460,7 +545,8 @@ def run_grouped_loop(
         {"id": "review", "status": "PASS", "state": learning, "history": history}
     )
     screenshot("grouped-learning-review.png")
-    result["stages"].append(run_ai_stage(ui, read, js, wait, pin, result, run_ai))
+    ai_stage = run_ai_stage(ui, read, js, wait, pin, result, run_ai, authored_intervention)
+    result["stages"].append(ai_stage)
     ui.page("19")
     ui.click("创建一致备份")
     backups = poll(read, "workspace_backups", {}, lambda value: len(value["backups"]) == 1)[
@@ -489,9 +575,12 @@ def run_grouped_loop(
         base64.b64decode(read("source_original", {"source_id": pin["source_id"]})["content_base64"])
         == fixtures["grouped-owner.txt"]
     )
-    if result.get("actual_task_id"):
-        assert read("machine_task_get", {"task_id": result["actual_task_id"]}) == next(
-            stage["task"] for stage in result["stages"] if stage["id"] == "distill"
+    for task_id, saved_task in result.get("actual_tasks", {}).items():
+        assert read("machine_task_get", {"task_id": task_id}) == saved_task
+    if ai_stage.get("accepted_correction"):
+        assert (
+            read("knowledge_get", {"id": ai_stage["accepted_correction"]["knowledge_id"]})
+            == ai_stage["accepted_correction"]
         )
     ui.page("20")
     ui.click_selector(
@@ -520,22 +609,56 @@ def run_grouped_loop(
         }
     )
     result["capability_toggle"] = capability_toggle(ui, read, restart)
+    result["restored_grant_refusal"] = restored_grant_refusal(ui, read, wait, ai_stage)
+    next(stage for stage in result["stages"] if stage["id"] == "recover")["old_grant_refusal"] = (
+        result["restored_grant_refusal"]["status"]
+    )
     result["pin"] = pin
     result["engineering_status"] = "PASS"
     result["status"] = "PARTIAL"  # Missing Owner/model correction evidence remains explicit.
     return result
 
 
-def run_ai_stage(ui, read, js, wait, pin, result, run_ai):
+def create_ui_grant(ui, read, wait, knowledge_id, operation, purpose):
+    ui.click("读取指定知识并建立上下文候选")
+    wait("return document.body.innerText.includes('固定知识：' + " + json.dumps(knowledge_id) + ")")
+    ui.type("用途", purpose, "textarea")
+    ui.type(
+        "授权依据",
+        "Explicit isolated-fixture engineering authorization, not Owner acceptance",
+        "textarea",
+    )
+    ui.click_selector(label_selector("允许本地回答" if operation == "answer" else "允许本地复测"))
+    ui.click("明确授权并保存")
+    wait("return document.body.innerText.includes('授权版本已保存并读回')")
+    document = read_grant(read, purpose, knowledge_id, operation)
+    ui.click("使用已保存上下文进入纠正与评测")
+    wait("return location.hash==='#page=14'")
+    return document
+
+
+def machine_tasks(read):
+    page = read("machine_tasks_list", {"limit": 100})
+    assert page["next_cursor"] is None, (
+        "Owned task readback cannot claim complete absence from a partial page"
+    )
+    return [read("machine_task_get", {"task_id": row["task_id"]}) for row in page["items"]]
+
+
+def run_ai_stage(ui, read, js, wait, pin, result, run_ai, authored_intervention=False):
     stage = {
         "id": "distill",
         "status": "NOT_EXECUTED",
         "correction": "NOT_EXECUTED",
         "retest": "NOT_EXECUTED",
     }
+    result["ai_progress"] = stage
+    assert not authored_intervention or run_ai, (
+        "Authored intervention requires explicit actual-model opt-in"
+    )
     if not run_ai:
         stage["reason"] = (
-            "Actual inference requires explicit --grouped-run-ai; no model/provider changes"
+            "Actual inference requires explicit --actual-model; no model/provider changes"
         )
         return stage
     rows = read("capabilities_list").get("capabilities", [])
@@ -558,61 +681,214 @@ def run_ai_stage(ui, read, js, wait, pin, result, run_ai):
         "model_availability": "UNKNOWN",
         "explicit_actual_model_attempt": True,
     }
+    knowledge = read("knowledge_get", {"id": pin["knowledge_id"]})
+    assert knowledge["knowledge_id"] == pin["knowledge_id"] and knowledge["status"] == "accepted"
     ui.page("13")
-    ui.click("读取指定知识并建立上下文候选")
-    wait(
-        "return document.body.innerText.includes('固定知识：' + "
-        + json.dumps(pin["knowledge_id"])
-        + ")"
-    )
-    ui.type("用途", "Authored native grouped engineering answer", "textarea")
-    ui.type(
-        "授权依据",
-        "Explicit isolated-fixture engineering authorization, not Owner acceptance",
-        "textarea",
-    )
-    ui.click_selector(label_selector("允许本地回答"))
-    ui.click("明确授权并保存")
-    ui.click("使用已保存上下文进入纠正与评测")
-    wait("return location.hash==='#page=14'")
-    ui.type("实际问题", "Explain why original bytes and a versioned document are distinct.")
+    purpose = "Grouped native original " + pin["knowledge_id"]
+    document = create_ui_grant(ui, read, wait, pin["knowledge_id"], "answer", purpose)
+    grant = grant_snapshot(document)
+    stage["original_grant"] = document
+    question = "Explain why original bytes and a versioned document are distinct."
+    ui.type("实际问题", question, "textarea")
     ui.click("执行本地机器回答")
     wait(
         "return !!document.querySelector('[aria-label=\"真实机器回答\"]') || document.body.innerText.includes('回答未完成') || document.body.innerText.includes('Core 明确拒绝此回答请求') || document.body.innerText.includes('推理已执行，答案未发布')",
         seconds=150,
     )
-    tasks = read("machine_tasks_list", {}).get("items", [])
-    actual = [
-        read("machine_task_get", {"task_id": row["task_id"]})
-        for row in tasks
-        if row.get("scope") == "runtime.answer"
-    ]
+    tasks = machine_tasks(read)
     matches = [
         row
-        for row in actual
-        if row.get("conditions", {}).get("knowledge_id") == pin["knowledge_id"]
+        for row in tasks
+        if row["scope"] == "runtime.answer"
+        and task_conditions(row).get("knowledge_id") == pin["knowledge_id"]
     ]
     if not matches:
+        stage["status"] = "UNVERIFIED"
         stage["reason"] = (
-            "UI inference not confirmed; refusal/unknown outcome retained, no fabricated answer"
+            "UI request dispatched but no confirmed answer task; refusal/unknown/withheld preserved, not a successful inference"
         )
+        stage["task_inventory"] = tasks
         stage["ui_text"] = js(
-            "return document.querySelector('[aria-label=\"机器回答与纠正\"]')?.innerText ?? 'No confirmed machine answer'"
+            "return document.querySelector('[aria-label=\"知识到机器回答\"]')?.innerText ?? 'No confirmed machine answer'"
         )
         return stage
-    selected = one(matches, lambda _: True, "actual machine answer task")
-    task = read("machine_task_get", {"task_id": selected["task_id"]})
-    assert task["conditions"]["knowledge_id"] == pin["knowledge_id"]
-    stage.update(status=inference_status(task), task=task)
-    stage["reason"] = (
-        "Actual answer retained for human error adjudication. Correct answers are never fabricated failures; independent correction grant/retest require a genuine reviewed error."
+    task = one(matches, lambda _: True, "actual machine answer task")
+    original = assert_inference_task(task, pin["knowledge_id"], question, grant)
+    assert (
+        original["request"]["context_sha256"]
+        == hashlib.sha256(knowledge["body"].encode()).hexdigest()
     )
+    assert read("knowledge_get", {"id": pin["knowledge_id"]}) == knowledge, (
+        "Answer knowledge changed during inference"
+    )
+    stage.update(
+        status=inference_status(task),
+        task=task,
+        original_answer=original,
+        original_answer_sha256=hashlib.sha256(original["answer"]["answer"].encode()).hexdigest(),
+        knowledge_before=knowledge,
+    )
+    result["actual_tasks"] = {task["task_id"]: task}
+    result["actual_task_id"] = task["task_id"]
+    if stage["status"] != "EXECUTED_CANDIDATE_NOT_EVALUATED":
+        stage["reason"] = (
+            "Actual configured-model identity not confirmed; no authored intervention or qualification claim"
+        )
+        return stage
+    if authored_intervention:
+        run_authored_intervention(ui, read, wait, stage, result)
+    else:
+        stage["reason"] = (
+            "Actual answer retained. No explicitly authorized authored intervention; no invented model error."
+        )
     ui.click("读取此机器旅程的持久化回执")
     wait(
         "return location.hash==='#page=22' && !!document.querySelector('[aria-label=\"历史机器回答\"]')"
     )
-    result["actual_task_id"] = task["task_id"]
     return stage
+
+
+def run_authored_intervention(ui, read, wait, stage, result):
+    original = stage["original_answer"]
+    actor = "ENGINEERING_AUTHORED_INTERVENTION_NOT_OWNER"
+    authored = {
+        "actor": actor,
+        "body": stage["knowledge_before"]["body"]
+        + "\nEngineering clarification: original source bytes are preserved independently; document revisions are editable derived content.",
+        "note": "ENGINEERING_AUTHORED_INTERVENTION_NOT_INDEPENDENT_MODEL_ERROR; original_answer_id="
+        + original["answer_id"]
+        + "; original_answer_sha256="
+        + stage["original_answer_sha256"]
+        + "; selected clarification exercises lineage/adoption, not factual proof that the actual model answer is wrong.",
+    }
+    stage["authored_intervention"] = {
+        **authored,
+        "owner_acceptance": False,
+        "independent_error_adjudication": False,
+    }
+    stage["semantic_limitation"] = (
+        "Core machine_correction records runtime.evaluation.failed for every intervention. That stored label is not independent model-failure evidence in this engineering probe."
+    )
+    ui.type("正确答案", authored["body"], "textarea")
+    ui.type("具体错误依据", authored["note"], "textarea")
+    ui.type("纠正提交者", actor)
+    ui.click("记录使用者纠正候选")
+    wait("return !!document.querySelector('[aria-label=\"纠正候选审核\"]')")
+    failed = read("machine_task_get", {"task_id": "evaluation_" + original["answer_id"]})
+    correction = task_conditions(failed)["correction"]
+    candidate = read("knowledge_get", {"id": correction["correction_candidate_id"]})
+    assert candidate["status"] == "candidate"
+    assert_correction_lineage(original, failed, candidate, authored)
+    stage.update(
+        correction="EXECUTED_AUTHORED_INTERVENTION_NOT_INDEPENDENT_ERROR",
+        failed_task=failed,
+        correction_candidate=candidate,
+    )
+    scope = "//section[@aria-label='纠正候选审核']"
+    ui.type("审核者", actor, scope=scope)
+    ui.type(
+        "审核依据",
+        "Explicit authored engineering adoption, not Owner acceptance or model qualification; "
+        + authored["note"],
+        "textarea",
+        scope,
+    )
+    ui.click("接受纠正知识", scope)
+    wait("return document.body.innerText.includes('Core 已接受此纠正知识')")
+    accepted = read("knowledge_get", {"id": candidate["knowledge_id"]})
+    assert (
+        accepted["knowledge_id"] == candidate["knowledge_id"] and accepted["status"] == "accepted"
+    )
+    assert_correction_lineage(original, failed, accepted, authored)
+    assert read("knowledge_get", {"id": original["knowledge_id"]}) == stage["knowledge_before"], (
+        "Adoption changed original knowledge"
+    )
+    stage["accepted_correction"] = accepted
+    ui.click("为此纠正知识建立独立复测授权")
+    wait("return location.hash==='#page=13'")
+    purpose = "Grouped native corrected " + candidate["knowledge_id"]
+    document = create_ui_grant(ui, read, wait, candidate["knowledge_id"], "retest", purpose)
+    grant = grant_snapshot(document)
+    assert grant["document_id"] != stage["original_grant"]["document_id"], (
+        "Retest reused original grant"
+    )
+    stage["retest_grant"] = document
+    ui.click("以已接受纠正知识运行独立复测", scope)
+    wait(
+        "return !!document.querySelector('[aria-label=\"独立复测机器回答\"]') || document.body.innerText.includes('复测未完成') || document.body.innerText.includes('Core 明确拒绝复测请求') || document.body.innerText.includes('复测推理已执行，答案未发布')",
+        seconds=150,
+    )
+    matches = [
+        task
+        for task in machine_tasks(read)
+        if task["scope"] == "runtime.retest" and task["retest_of"] == failed["task_id"]
+    ]
+    if not matches:
+        stage["retest"] = "UNVERIFIED"
+        stage["reason"] = (
+            "Actual retest request dispatched, response/receipt not confirmed; preserve unknown/refusal, no qualification claim"
+        )
+        return
+    retest = one(matches, lambda _: True, "independent actual retest task")
+    value = assert_inference_task(
+        retest, accepted["knowledge_id"], original["question"], grant, "runtime.retest"
+    )
+    assert read("knowledge_get", {"id": accepted["knowledge_id"]}) == accepted, (
+        "Retest knowledge changed during inference"
+    )
+    assert value["retest_of"] == failed["task_id"] and value["prior"][
+        "conditions"
+    ] == task_conditions(failed)
+    assert read("machine_task_get", {"task_id": stage["task"]["task_id"]}) == stage["task"], (
+        "Retest replaced original answer"
+    )
+    stage.update(
+        retest=inference_status(retest),
+        retest_task=retest,
+        reason="Actual answer and retest preserved; authored adoption is not independent error evidence or proof of improvement.",
+    )
+    result["actual_tasks"].update({failed["task_id"]: failed, retest["task_id"]: retest})
+    result["actual_task_id"] = retest["task_id"]
+
+
+def restored_grant_refusal(ui, read, wait, stage):
+    if not stage.get("original_grant") or stage.get("status") != "EXECUTED_CANDIDATE_NOT_EVALUATED":
+        return {
+            "status": "NOT_EXECUTED",
+            "reason": "No confirmed actual answer and old explicit grant to challenge",
+        }
+    document = stage["original_grant"]
+    before = machine_tasks(read)
+    assert read("document_get", {"document_id": document["document_id"]}) == document
+    assert (
+        read("knowledge_get", {"id": stage["original_answer"]["knowledge_id"]})
+        == stage["knowledge_before"]
+    )
+    capability = one(
+        read("capabilities_list")["capabilities"],
+        lambda row: row["capability"] == "machine.answer",
+        "restored machine route",
+    )
+    assert capability["enabled"] is True and capability["registered"] is True
+    ui.page("14")
+    ui.click("刷新上下文列表")
+    ui.click("选择原知识授权 " + document["title"])
+    wait("return !!document.querySelector('[aria-label=\"原知识当前正文\"]')")
+    ui.type("实际问题", stage["original_answer"]["question"], "textarea")
+    # New UI client request; it cannot succeed through cached old-answer replay.
+    ui.click("执行本地机器回答")
+    wait("return document.body.innerText.includes('Core 明确拒绝此回答请求')", seconds=150)
+    after = machine_tasks(read)
+    assert after == before, "Restored grant refusal created/changed a machine task"
+    assert read("document_get", {"document_id": document["document_id"]}) == document
+    return {
+        "status": "PASS",
+        "old_grant": grant_snapshot(document),
+        "tasks_unchanged": True,
+        "authority": "CORE_UI_REFUSAL_OBSERVATION",
+        "exact_core_reason": "UNVERIFIED_UI_GENERIC_REFUSAL",
+        "reason": "Old preserved grant displayed then explicitly refused by Core after restore, with unchanged active knowledge/enabled route. UI does not expose the specific refusal reason; input remains dirty and is not discarded.",
+    }
 
 
 def capability_toggle(ui, read, restart):

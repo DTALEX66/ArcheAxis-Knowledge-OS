@@ -1,7 +1,10 @@
 """SIMULATED probe guard checks. No host, browser, model or business database."""
 
 import ast
+import copy
+import hashlib
 import importlib.util
+import json
 import unittest
 from pathlib import Path
 
@@ -146,14 +149,14 @@ class GroupedNativeProbeTests(unittest.TestCase):
         task = {
             "scope": "runtime.answer",
             "outcome": "unmeasured",
-            "conditions": {
-                "answer": {"model": "actual-configured-model", "answer": "correct answer"}
-            },
+            "conditions": json.dumps(
+                {"answer": {"model": "actual-configured-model", "answer": "correct answer"}}
+            ),
         }
         self.assertEqual(self.probe.inference_status(task), "EXECUTED_CANDIDATE_NOT_EVALUATED")
         self.assertEqual(
             self.probe.inference_status(
-                {**task, "conditions": {"answer": {"model": "SIMULATED-model"}}}
+                {**task, "conditions": json.dumps({"answer": {"model": "SIMULATED-model"}})}
             ),
             "UNVERIFIED",
         )
@@ -217,9 +220,438 @@ class GroupedNativeProbeTests(unittest.TestCase):
         }
         with self.assertRaises(FirstUIActionError):
             self.probe.run_ai_stage(
-                ActualUI(), lambda _: {"capabilities": [capability]}, None, None, {}, {}, True
+                ActualUI(),
+                lambda op, *_: (
+                    {"capabilities": [capability]}
+                    if op == "capabilities_list"
+                    else {"knowledge_id": "exact", "status": "accepted"}
+                ),
+                None,
+                None,
+                {"knowledge_id": "exact"},
+                {},
+                True,
             )
         # No explicit opt-in means no route or grant is consulted.
         self.assertEqual(
             self.probe.run_ai_stage(None, None, None, None, {}, {}, False)["status"], "NOT_EXECUTED"
         )
+
+    def test_persisted_task_conditions_requires_exact_json_text(self):
+        self.assertEqual(
+            self.probe.task_conditions({"conditions": '{"answer_id":"exact"}'}),
+            {"answer_id": "exact"},
+        )
+        for invalid in [{"answer_id": "exact"}, None, "[]", "null", "bad-json"]:
+            with (
+                self.subTest(invalid=invalid),
+                self.assertRaises((AssertionError, json.JSONDecodeError)),
+            ):
+                self.probe.task_conditions({"conditions": invalid})
+
+    def ai_fixture(self):
+        grant = {
+            "document_id": "original-grant",
+            "version": 1,
+            "content_sha256": "a" * 64,
+            "purpose": "original",
+        }
+        original = {
+            "schema": "archeaxis.machine-answer/v1",
+            "answer_id": "answer",
+            "knowledge_id": "original-knowledge",
+            "question": "question",
+            "answer": {
+                "answer": "A correct actual-answer-shaped test value",
+                "model": "configured-model",
+            },
+            "authority": "candidate",
+            "request": {"context_grant": grant},
+        }
+        task = {
+            "task_id": "answer",
+            "scope": "runtime.answer",
+            "outcome": "unmeasured",
+            "knowledge_version": "original-knowledge@v1",
+            "model_version": "configured-model",
+            "retest_of": None,
+            "conditions": json.dumps(original),
+        }
+        authored = {
+            "actor": "ENGINEERING_AUTHORED_INTERVENTION_NOT_OWNER",
+            "body": "Authored clarification",
+            "note": "Not independent model-error evidence",
+        }
+        correction = {
+            "answer_id": "answer",
+            "failed_task_id": "evaluation_answer",
+            "corrects_knowledge_id": "original-knowledge",
+            "question": "question",
+            "machine_answer": original["answer"]["answer"],
+            "corrected_answer": authored["body"],
+            "error_note": authored["note"],
+            "reviewer": authored["actor"],
+            "correction_candidate_id": "corrected-knowledge",
+        }
+        failed = {
+            "task_id": "evaluation_answer",
+            "scope": "runtime.evaluation.failed",
+            "outcome": "failed",
+            "conditions": json.dumps({**original, "correction": correction}),
+        }
+        candidate = {
+            "knowledge_id": "corrected-knowledge",
+            "body": authored["body"],
+            "source_id": None,
+            "anchor_id": None,
+            "status": "candidate",
+        }
+        return grant, original, task, authored, failed, candidate
+
+    def test_original_task_and_corrected_lineage_preserve_correct_answer(self):
+        grant, original, task, authored, failed, candidate = self.ai_fixture()
+        self.assertEqual(
+            self.probe.assert_inference_task(task, "original-knowledge", "question", grant),
+            original,
+        )
+        self.probe.assert_correction_lineage(original, failed, candidate, authored)
+        self.assertIn("correct actual", original["answer"]["answer"])
+        self.assertEqual(self.probe.inference_status(task), "EXECUTED_CANDIDATE_NOT_EVALUATED")
+        for field in [
+            "answer_id",
+            "corrects_knowledge_id",
+            "question",
+            "machine_answer",
+            "corrected_answer",
+            "error_note",
+            "reviewer",
+            "correction_candidate_id",
+        ]:
+            changed = copy.deepcopy(failed)
+            body = json.loads(changed["conditions"])
+            body["correction"][field] = "another"
+            changed["conditions"] = json.dumps(body)
+            with self.subTest(field=field), self.assertRaises(AssertionError):
+                self.probe.assert_correction_lineage(original, changed, candidate, authored)
+        for field in ["source_id", "anchor_id"]:
+            with self.subTest(field=field), self.assertRaises(AssertionError):
+                self.probe.assert_correction_lineage(
+                    original, failed, {**candidate, field: "invented-source"}, authored
+                )
+
+    def test_retest_requires_new_exact_grant_and_failed_ancestor(self):
+        grant, original, task, _, _, _ = self.ai_fixture()
+        new_grant = {**grant, "document_id": "independent-retest-grant", "purpose": "retest"}
+        retest = {
+            **original,
+            "schema": "archeaxis.machine-retest/v1",
+            "answer_id": "retest",
+            "retest_task_id": "retest",
+            "knowledge_id": "corrected-knowledge",
+            "retest_of": "evaluation_answer",
+            "request": {"context_grant": new_grant},
+        }
+        proof = {
+            **task,
+            "task_id": "retest",
+            "scope": "runtime.retest",
+            "knowledge_version": "corrected-knowledge@v1",
+            "retest_of": "evaluation_answer",
+            "conditions": json.dumps(retest),
+        }
+        self.probe.assert_inference_task(
+            proof, "corrected-knowledge", "question", new_grant, "runtime.retest"
+        )
+        self.assertEqual(self.probe.inference_status(proof), "EXECUTED_CANDIDATE_NOT_EVALUATED")
+        with self.assertRaises(AssertionError):
+            self.probe.assert_inference_task(
+                proof, "corrected-knowledge", "question", grant, "runtime.retest"
+            )
+        with self.assertRaises(AssertionError):
+            self.probe.assert_inference_task(
+                {**proof, "retest_of": "other-failure"},
+                "corrected-knowledge",
+                "question",
+                new_grant,
+                "runtime.retest",
+            )
+
+    def test_authored_intervention_requires_explicit_actual_model(self):
+        with self.assertRaisesRegex(AssertionError, "actual-model"):
+            self.probe.run_ai_stage(None, None, None, None, {}, {}, False, True)
+        source = (ROOT / "scripts/probes/aaos01_tauri_webdriver_loop.py").read_text(
+            encoding="utf-8"
+        )
+        self.assertIn("args.grouped_authored_intervention and not args.grouped_run_ai", source)
+        self.assertIn("authored_intervention=args.grouped_authored_intervention", source)
+
+    def test_restored_old_grant_refusal_observed_only_through_ui_without_new_task(self):
+        grant, original, task, _, _, _ = self.ai_fixture()
+        document = {
+            **grant,
+            "title": "original",
+            "editor_json": {"attrs": {"archeaxis_context_grant": {"purpose": "original"}}},
+        }
+        stage = {
+            "original_grant": document,
+            "original_answer": original,
+            "status": "EXECUTED_CANDIDATE_NOT_EVALUATED",
+            "knowledge_before": {"knowledge_id": "original-knowledge", "status": "accepted"},
+        }
+        actions, reads, waits = [], [], []
+
+        class UI:
+            def page(self, page):
+                actions.append(("page", page))
+
+            def click(self, label):
+                actions.append(("click", label))
+
+            def type(self, label, text, tag):
+                actions.append(("type", label, text, tag))
+
+        def read(op, payload=None):
+            reads.append((op, payload))
+            if op == "machine_tasks_list":
+                return {"items": [{"task_id": "answer"}], "next_cursor": None}
+            if op == "machine_task_get":
+                return copy.deepcopy(task)
+            if op == "document_get":
+                return copy.deepcopy(document)
+            if op == "knowledge_get":
+                return copy.deepcopy(stage["knowledge_before"])
+            if op == "capabilities_list":
+                return {
+                    "capabilities": [
+                        {"capability": "machine.answer", "enabled": True, "registered": True}
+                    ]
+                }
+            raise AssertionError("Unexpected write or read " + op)
+
+        observed = self.probe.restored_grant_refusal(
+            UI(), read, lambda script, **_: waits.append(script), stage
+        )
+        self.assertEqual(observed["status"], "PASS")
+        self.assertTrue(observed["tasks_unchanged"])
+        self.assertIn(("type", "实际问题", "question", "textarea"), actions)
+        self.assertIn(("click", "执行本地机器回答"), actions)
+        self.assertTrue(any("Core 明确拒绝此回答请求" in script for script in waits))
+        self.assertTrue(all(op in self.probe.READ_OPERATIONS for op, _ in reads))
+        self.assertEqual(
+            self.probe.restored_grant_refusal(None, None, None, {})["status"], "NOT_EXECUTED"
+        )
+        task_reads = [0]
+
+        def changed_task_read(op, payload=None):
+            value = read(op, payload)
+            if op == "machine_task_get":
+                task_reads[0] += 1
+                if task_reads[0] > 1:
+                    return {**value, "model_version": "changed-after-request"}
+            return value
+
+        with self.assertRaisesRegex(AssertionError, "created/changed"):
+            self.probe.restored_grant_refusal(UI(), changed_task_read, lambda *_, **__: None, stage)
+
+        with self.assertRaisesRegex(AssertionError, "partial page"):
+            self.probe.machine_tasks(lambda *_: {"items": [], "next_cursor": "next-page"})
+
+    def test_simulated_full_helper_actual_shaped_answer_adoption_new_grant_retest(self):
+        self.exercise_simulated_ai(False)
+        self.exercise_simulated_ai(True)
+
+    def exercise_simulated_ai(self, intervention):
+        docs, tasks, actions, reads, fields = {}, {}, [], [], {}
+        knowledge = {
+            "knowledge_id": "original-knowledge",
+            "body": "Preserved original bytes differ from document revisions",
+            "status": "accepted",
+            "version": "original-knowledge",
+        }
+        candidate = {}
+        bound = [knowledge["knowledge_id"]]
+        probe = self.probe
+
+        class UI:
+            def page(self, page):
+                actions.append(("page", page))
+
+            def click_selector(self, selector):
+                actions.append(("checkbox", selector))
+                fields["operation"] = "retest" if "允许本地复测" in selector else "answer"
+
+            def type(self, label, text, tag="input", scope=""):
+                actions.append(("type", label, tag, scope))
+                fields[label] = text
+
+            def click(self, label, scope=""):
+                actions.append(("click", label, scope))
+                if label == "明确授权并保存":
+                    ident = "grant-" + str(len(docs) + 1)
+                    grant = {
+                        "purpose": fields["用途"],
+                        "consumer": "local-machine",
+                        "operations": [fields["operation"]],
+                        "state": "granted",
+                        "knowledge_id": bound[0],
+                    }
+                    docs[ident] = {
+                        "document_id": ident,
+                        "title": fields["用途"],
+                        "version": 1,
+                        "content_sha256": "a" * 64,
+                        "editor_json": {"attrs": {"archeaxis_context_grant": grant}},
+                    }
+                elif label == "执行本地机器回答":
+                    body = {
+                        "schema": "archeaxis.machine-answer/v1",
+                        "answer_id": "actual-shaped-answer",
+                        "question": fields["实际问题"],
+                        "knowledge_id": knowledge["knowledge_id"],
+                        "authority": "candidate",
+                        "answer": {
+                            "model": "configured-model",
+                            "answer": "A correct explanation; no actual error claimed",
+                        },
+                        "request": {
+                            "context_grant": probe.grant_snapshot(docs["grant-1"]),
+                            "context_sha256": hashlib.sha256(
+                                knowledge["body"].encode()
+                            ).hexdigest(),
+                        },
+                    }
+                    tasks[body["answer_id"]] = {
+                        "task_id": body["answer_id"],
+                        "scope": "runtime.answer",
+                        "outcome": "unmeasured",
+                        "knowledge_version": knowledge["knowledge_id"] + "@v1",
+                        "model_version": "configured-model",
+                        "retest_of": None,
+                        "conditions": json.dumps(body),
+                    }
+                elif label == "记录使用者纠正候选":
+                    original = json.loads(tasks["actual-shaped-answer"]["conditions"])
+                    candidate.update(
+                        knowledge_id="corrected-knowledge",
+                        body=fields["正确答案"],
+                        status="candidate",
+                        version="corrected-knowledge",
+                        source_id=None,
+                        anchor_id=None,
+                    )
+                    correction = {
+                        "answer_id": original["answer_id"],
+                        "failed_task_id": "evaluation_" + original["answer_id"],
+                        "corrects_knowledge_id": original["knowledge_id"],
+                        "question": original["question"],
+                        "machine_answer": original["answer"]["answer"],
+                        "corrected_answer": fields["正确答案"],
+                        "error_note": fields["具体错误依据"],
+                        "reviewer": fields["纠正提交者"],
+                        "correction_candidate_id": candidate["knowledge_id"],
+                    }
+                    tasks[correction["failed_task_id"]] = {
+                        "task_id": correction["failed_task_id"],
+                        "scope": "runtime.evaluation.failed",
+                        "outcome": "failed",
+                        "conditions": json.dumps({**original, "correction": correction}),
+                    }
+                elif label == "接受纠正知识":
+                    candidate["status"] = "accepted"
+                elif label == "为此纠正知识建立独立复测授权":
+                    bound[0] = candidate["knowledge_id"]
+                elif label == "以已接受纠正知识运行独立复测":
+                    original = json.loads(tasks["actual-shaped-answer"]["conditions"])
+                    failed_id = "evaluation_" + original["answer_id"]
+                    body = {
+                        **original,
+                        "schema": "archeaxis.machine-retest/v1",
+                        "answer_id": "actual-shaped-retest",
+                        "retest_task_id": "actual-shaped-retest",
+                        "knowledge_id": candidate["knowledge_id"],
+                        "retest_of": failed_id,
+                        "request": {"context_grant": probe.grant_snapshot(docs["grant-2"])},
+                        "prior": {"conditions": json.loads(tasks[failed_id]["conditions"])},
+                    }
+                    tasks[body["answer_id"]] = {
+                        "task_id": body["answer_id"],
+                        "scope": "runtime.retest",
+                        "outcome": "unmeasured",
+                        "knowledge_version": candidate["knowledge_id"] + "@v1",
+                        "model_version": "configured-model",
+                        "retest_of": failed_id,
+                        "conditions": json.dumps(body),
+                    }
+
+        def read(op, payload=None):
+            self.assertIn(op, probe.READ_OPERATIONS)
+            reads.append(op)
+            payload = payload or {}
+            if op == "capabilities_list":
+                return {
+                    "capabilities": [
+                        {
+                            "capability": "machine.answer",
+                            "enabled": True,
+                            "registered": True,
+                            "health": "declared",
+                            "provider": {
+                                "worker_present": True,
+                                "interpreter_present": True,
+                            },
+                        }
+                    ]
+                }
+            if op == "knowledge_get":
+                return copy.deepcopy(
+                    knowledge if payload["id"] == knowledge["knowledge_id"] else candidate
+                )
+            if op == "machine_contexts_list":
+                return {
+                    "items": [
+                        {k: d[k] for k in ["document_id", "title", "version", "content_sha256"]}
+                        for d in docs.values()
+                    ],
+                    "next_cursor": None,
+                }
+            if op == "document_get":
+                return copy.deepcopy(docs[payload["document_id"]])
+            if op == "machine_tasks_list":
+                return {"items": [{"task_id": key} for key in tasks], "next_cursor": None}
+            if op == "machine_task_get":
+                return copy.deepcopy(tasks[payload["task_id"]])
+            raise AssertionError("Unexpected op " + op)
+
+        result = {}
+        stage = probe.run_ai_stage(
+            UI(),
+            read,
+            lambda _: "",
+            lambda *_, **__: None,
+            {"knowledge_id": knowledge["knowledge_id"]},
+            result,
+            True,
+            intervention,
+        )
+        self.assertEqual(stage["status"], "EXECUTED_CANDIDATE_NOT_EVALUATED")
+        self.assertIn(("type", "实际问题", "textarea", ""), actions)
+        self.assertEqual(
+            json.loads(tasks["actual-shaped-answer"]["conditions"])["answer"]["answer"],
+            "A correct explanation; no actual error claimed",
+        )
+        if intervention:
+            self.assertEqual(
+                stage["correction"], "EXECUTED_AUTHORED_INTERVENTION_NOT_INDEPENDENT_ERROR"
+            )
+            self.assertEqual(stage["retest"], "EXECUTED_CANDIDATE_NOT_EVALUATED")
+            self.assertFalse(stage["authored_intervention"]["independent_error_adjudication"])
+            self.assertIn("not independent model-failure evidence", stage["semantic_limitation"])
+            self.assertNotEqual(
+                stage["original_grant"]["document_id"], stage["retest_grant"]["document_id"]
+            )
+            self.assertEqual(len(result["actual_tasks"]), 3)
+        else:
+            self.assertEqual(stage["correction"], "NOT_EXECUTED")
+            self.assertEqual(stage["retest"], "NOT_EXECUTED")
+            self.assertEqual(len(tasks), 1)
+            self.assertFalse(any(action[1] == "记录使用者纠正候选" for action in actions))

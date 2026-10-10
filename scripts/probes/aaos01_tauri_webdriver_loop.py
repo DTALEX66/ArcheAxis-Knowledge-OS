@@ -729,6 +729,7 @@ def main():
     parser.add_argument("--native-driver", type=Path)
     parser.add_argument("--build-receipt", type=Path, help="Bind a candidate to its current source and host/Core hashes")
     parser.add_argument("--grouped-common-owner-loop", action="store_true", help="Current grouped UI authored TXT/MD journey; bridge reads only, no Owner signoff")
+    parser.add_argument("--grouped-authored-intervention", action="store_true", help="Explicit identity-bound engineering intervention/adoption and independent actual-model retest; not Owner or independent model-error adjudication")
     parser.add_argument("--grouped-run-ai", "--actual-model", action="store_true", help="Opt-in existing actual model route only; no model/provider changes or fabricated errors")
     parser.add_argument("--synthetic-course-loop", action="store_true", help="Explicit authored fixture with synthetic review actor; never human signoff")
     parser.add_argument("--synthetic-template-pagination", action="store_true", help="501 authored template objects; real Core pagination and UI, no human signoff")
@@ -746,6 +747,8 @@ def main():
     args = parser.parse_args()
     if not 45 <= args.session_timeout <= 180:
         parser.error("session timeout must be between 45 and 180 seconds")
+    if args.grouped_authored_intervention and not args.grouped_run_ai:
+        parser.error("authored intervention requires explicit --actual-model")
     if args.grouped_run_ai and not args.grouped_common_owner_loop:
         parser.error("grouped AI requires the grouped journey branch")
     if args.grouped_common_owner_loop and (args.synthetic_course_loop or args.synthetic_template_pagination):
@@ -1065,6 +1068,7 @@ def main():
                 bridge=bridge, js=js, wait=wait, element=ui_element,
                 command=grouped_element_command, work=work, screenshot=screenshot,
                 restart=grouped_restart, run_ai=args.grouped_run_ai,
+                authored_intervention=args.grouped_authored_intervention,
                 report=receipt["grouped_common_owner_loop"],
             )
             receipt["steps"].append("Current grouped UI authored same-object engineering journey; see explicit partial/NOT_EXECUTED stages")
