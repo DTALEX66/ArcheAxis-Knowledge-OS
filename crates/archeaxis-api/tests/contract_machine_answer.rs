@@ -223,7 +223,7 @@ async fn an_answer_is_either_a_labelled_candidate_or_a_named_failure() {
     // and a defect in the test rather than in the route.
     let question = "What writes the canonical store, and is the release frozen?";
     let body =
-        format!(r#"{{"knowledge_id":"{knowledge_id}","question":"{question}","timeout_s":600}}"#);
+        format!(r#"{{"knowledge_id":"{knowledge_id}","question":"{question}","timeout_s":120}}"#);
     let (status, body) = post(&router, "/api/v1/machine/answers", &body).await;
 
     match status {

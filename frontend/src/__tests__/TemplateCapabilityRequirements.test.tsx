@@ -20,6 +20,7 @@ import {
   type CapabilityRead,
 } from "../templates/capabilityRequirements";
 import { TemplateWorkspace } from "../templates/TemplateWorkspace";
+import { documentRequestIdentity } from "../presentation/documentRequestIdentity";
 
 const api = vi.hoisted(() => ({ call: vi.fn() }));
 // Partial, not total: a factory that returns only `coreCommand` also erases `verifyCanonicalCore`
@@ -145,7 +146,7 @@ describe("template capability resolver", () => {
     // classes it actually has - and must not present every one of them as enable-able.
     const joined = absorptionClassification("CAP-0020");
     expect(joined.confirmed).toBe(true);
-    expect(joined.label).toContain("前端插件（可启停）");
+    expect(joined.label).toContain("可启停能力供体");
     expect(joined.label).toContain("吸收算法");
     expect(joined.sources.length).toBeGreaterThan(1);
     expect(joined.sources.some((row) => row.surface_class !== "enableable_plugin")).toBe(true);
@@ -154,7 +155,7 @@ describe("template capability resolver", () => {
     // Seven, matching the generator's closed set; the old list had six with its own ids and no
     // `not_adopted`, so the surface could name a bucket the crosswalk never emits.
     expect(unjoined.classes.map((item) => item.label)).toEqual([
-      "前端插件（可启停）", "吸收算法", "体验供体", "格式规范", "基础依赖", "未来候选", "未采用",
+      "可启停能力供体", "吸收算法", "体验供体", "格式规范", "基础依赖", "未来候选", "未采用",
     ]);
   });
 });
@@ -171,7 +172,7 @@ describe("template detail renders the requirement table", () => {
   beforeEach(() => {
     api.call.mockReset();
     api.call.mockImplementation(async (operation: string) => {
-      if (operation === "documents_list") return { documents: [doc("tpl")] };
+      if (operation === "documents_list") return { documents: [doc("tpl")], next_cursor: null, snapshot_count: 1 };
       if (operation === "document_get" || operation === "document_version") return structuredClone(doc("tpl"));
       if (operation === "capabilities_list") return { capabilities: [{ capability: "html.structure", enabled: false, health: "handshake_ready" }] };
       throw new Error(`unexpected ${operation}`);
@@ -217,16 +218,22 @@ describe("template detail renders the requirement table", () => {
   it("keeps create, field edit and save working while every enhancement capability is unconfirmed", async () => {
     // The degradation the owner demands: a missing or disabled enhancement must not break the basic
     // document path. Red if a guard is ever put in front of create/save on capability availability.
+    let saved:DocumentDto|null=null;
+    function normalized(id:string,title:string,editor:unknown,version:number):DocumentDto {
+      const value=structuredClone(editor) as {content:Array<{type:string;attrs?:Record<string,unknown>}>};
+      value.content.forEach((node,index)=>{node.attrs={...node.attrs,block_id:node.attrs?.block_id??`generated_${index}`};});
+      return {...doc(id),title,version,editor_json:value,content_sha256:"a".repeat(64),blocks:value.content.map((node,index)=>({block_id:String(node.attrs!.block_id),kind:node.type,ordinal:index,node_json:node,text_projection:"fixture",codec_status:"known"}))};
+    }
     api.call.mockImplementation(async (operation: string, payload: Record<string, unknown> = {}) => {
-      if (operation === "documents_list") return { documents: [] };
-      if (operation === "document_get" || operation === "document_version") throw new Error("not found");
+      if (operation === "documents_list") return { documents: saved?[saved]:[], next_cursor: null, snapshot_count: saved?1:0 };
+      if (operation === "document_get" || operation === "document_version") {if(!saved||saved.document_id!==payload.document_id||saved.version!==payload.version)throw new Error("not found");return structuredClone(saved);}
       if (operation === "capabilities_list") throw new Error("unavailable");
       if (operation === "document_create") {
         const body = payload.body as Record<string, unknown>;
-        return structuredClone({ ...doc("created"), title: body.title as string, editor_json: body.editor_json });
+        saved=normalized(await documentRequestIdentity(String(body.create_request_id)),body.title as string,body.editor_json,1);return structuredClone(saved);
       }
       if (operation === "document_draft") {
-        return structuredClone({ ...doc("created"), title: "统计 · 研究与项目", editor_json: (payload.body as Record<string, unknown>).editor_json, version: 2 });
+        saved=normalized(saved!.document_id,saved!.title,(payload.body as Record<string,unknown>).editor_json,2);return structuredClone(saved);
       }
       throw new Error(`unexpected ${operation}`);
     });
@@ -240,14 +247,14 @@ describe("template detail renders the requirement table", () => {
     // "not read" - the two are different sentences and the resolver keeps them apart.
     expect(within(table).getByRole("row", { name: /pdf\.extract/ }).textContent).toContain("读取失败，显示未知");
     expect(within(table).getByRole("row", { name: /search\.local/ }).textContent).toContain("无合格实现");
-    fireEvent.change(screen.getByLabelText("样本"), { target: { value: "n=12" } });
+    fireEvent.change(await screen.findByLabelText("样本"), { target: { value: "n=12" } });
     fireEvent.click(screen.getByRole("button", { name: "保存模板属性与关系" }));
-    expect(await screen.findByRole("status")).toHaveTextContent("属性、关系与画布引用已保存");
+    await screen.findByText(/模板对象与属性已保存并完整读回/);
     expect(api.call.mock.calls.map(([operation]) => operation)).toEqual(expect.arrayContaining(["document_create", "document_draft"]));
     const draft = api.call.mock.calls.find(([operation]) => operation === "document_draft")?.[1] as { body: { editor_json: { attrs: { archeaxis_template: { fields: Record<string, string> } } } } };
     expect(draft.body.editor_json.attrs.archeaxis_template.fields.样本).toBe("n=12");
     // The failed handshake read never becomes a claim about the save, and no worker/job was tried.
-    expect(new Set(api.call.mock.calls.map(([operation]) => operation))).toEqual(new Set(["documents_list", "capabilities_list", "document_create", "document_draft"]));
+    expect(new Set(api.call.mock.calls.map(([operation]) => operation))).toEqual(new Set(["documents_list", "capabilities_list", "document_create", "document_draft", "document_version"]));
   });
 });
 
@@ -308,7 +315,7 @@ describe("template surface reaches the capability route through the shell", () =
     const onOpenCapability = vi.fn();
     api.call.mockImplementation(async (operation: string) => {
       if (operation === "sources_list") return { sources: [] };
-      if (operation === "documents_list") return { documents: [] };
+      if (operation === "documents_list") return { documents: [], next_cursor: null, snapshot_count: 0 };
       if (operation === "capabilities_list") return { capabilities: [{ capability: "course.general", enabled: true, health: "handshake_ready" }] };
       throw new Error(`unexpected ${operation}`);
     });
@@ -329,8 +336,9 @@ describe("app shell wiring of the template→capability route", () => {
       if (command !== "core_command") throw new Error(`unexpected command ${command}`);
       const operation = (args?.request as Record<string, unknown>).operation;
       if (operation === "system_version") return { status: 200, body: { runtime: "archeaxis-api", contract: "0.1.0-outline", schema_version: 7, sqlite_version: "3.51.3" } };
+      if (operation === "learning_items") return {status:200,body:{items:[],count:0}};
       if (operation === "sources_list") return { status: 200, body: { sources: [] } };
-      if (operation === "documents_list") return { status: 200, body: { documents: [] } };
+      if (operation === "documents_list") return { status: 200, body: { documents: [],next_cursor:null,snapshot_count:0 } };
       if (operation === "capabilities_list") return { status: 200, body: { capabilities: [] } };
       throw new Error(`unexpected operation ${operation}`);
     }) } };
@@ -344,6 +352,7 @@ describe("app shell wiring of the template→capability route", () => {
       throw new Error(`unexpected URL ${url}`);
     }));
     try {
+      window.location.hash = "#space=library";
       render(<App />);
       await openLauncher();
       const table = await screen.findByRole("table", { name: /模板 T1 的能力需求/ });

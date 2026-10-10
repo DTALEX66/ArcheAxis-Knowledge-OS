@@ -366,7 +366,7 @@ describe("canonical content sample", () => {
     const realOriginal={source_id:realSource.source_id,name:realSource.original_name,sha256:realSource.sha256,media_type:"text/plain",content_base64:"5Lit5paHIFdlYkRyaXZlciDljp/mlofor4Hmja4gR29sZGVuIG5hdGl2ZSB3aW5kb3cgNDIuCg=="};
     bridge.call.mockImplementation(async(op:string)=>{
       if(op==="sources_list")return assertCoreDto("SourcesListDto",{sources:[realSource]});
-      if(op==="documents_list")return assertCoreDto("DocumentsListDto",{documents:[]});
+      if(op==="documents_list")return assertCoreDto("DocumentsListDto",{documents:[],next_cursor:null,snapshot_count:0});
       if(op==="source_original")return assertCoreDto("OriginalDto",realOriginal);
       if(op==="anchors_list")return assertCoreDto("AnchorsListDto",{anchors:[]});
       if(op==="capabilities_list")return {};

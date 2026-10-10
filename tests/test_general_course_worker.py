@@ -5,6 +5,7 @@ import os
 from pathlib import Path
 import subprocess
 import sys
+import shutil
 
 import pytest
 
@@ -82,6 +83,29 @@ def test_validate_does_not_render():
     result = worker.process(payload)
     assert result["status"] == "VALIDATED"
     assert "lesson" not in result
+
+
+def test_packaged_worker_uses_its_interpreters_locked_wheel(tmp_path):
+    """Actual subprocess: sibling worker + site-packages, without repo/app."""
+    root = WORKER.parents[3]
+    packaged = tmp_path / "portable/workers/course/worker_general_course.py"
+    packaged.parent.mkdir(parents=True)
+    shutil.copyfile(WORKER, packaged)
+    purelib = tmp_path / "portable/runtime/Lib/site-packages"
+    for relative in ("app/contracts/courseware_v1.py", "app/contracts/general_learning_v1.py",
+                     "app/adapters/courseware_lesson.py", "shared/approved_paths.py", "shared/obsidian_projection.py"):
+        target = purelib / relative
+        target.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copyfile(root / relative, target)
+    launcher = "import runpy,sys,sysconfig; sysconfig.get_path=lambda key:sys.argv[2]; runpy.run_path(sys.argv[1],run_name='__main__')"
+    child = subprocess.run([sys.executable, "-I", "-X", "utf8", "-B", "-c", launcher, str(packaged), str(purelib)],
+                           input=json.dumps(request()) + "\n", text=True, encoding="utf-8",
+                           capture_output=True, cwd=tmp_path, timeout=15)
+    assert child.returncode == 0, child.stderr + child.stdout
+    result = json.loads(child.stdout)
+    assert result["status"] == "DERIVED" and result["canonical_bindings_verified"] is False
+    assert "An anchor identifies" in result["lesson"]["content"]
+    assert not (tmp_path / "portable/app").exists()
 
 
 def test_hello_stdlib_only_without_donors_or_network(tmp_path):

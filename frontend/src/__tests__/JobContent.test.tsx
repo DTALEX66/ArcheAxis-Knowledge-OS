@@ -1,3 +1,5 @@
+import { webcrypto } from "node:crypto";
+import { jobContentCoreFixture } from "./fixtures/jobContentCoreFixture";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { act, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
@@ -5,15 +7,16 @@ import { JobContent } from "../components/JobContent";
 import { conversionKindFor } from "../api/conversionKinds";
 import { describeSplit, splitProgressOf } from "../presentation/mediaEstimate";
 const bridge=vi.hoisted(()=>({call:vi.fn()}));vi.mock("../api/core",()=>({coreCommand:bridge.call}));
+function installFixture(fn:(op:string,payload:Record<string,unknown>)=>unknown){bridge.call.mockImplementation(jobContentCoreFixture(fn));}
 describe("Core job content",()=>{
- beforeEach(()=>{bridge.call.mockReset();});
+ beforeEach(()=>{bridge.call.mockReset();vi.stubGlobal("crypto",webcrypto);});
  it.each([["sample.png","image","执行真实内容转换"],["sample.zip","archive","清点容器与登记成员"],["sample.tar","archive","清点容器与登记成员"],["sample.canvas","canvas","执行真实内容转换"],["sample.srt","subtitles","执行真实内容转换"],["sample.xml","text","执行真实内容转换"],["sample.py","text","执行真实内容转换"],["sample.wav","media","执行媒体头信息探测"],["sample.mp4","media","执行媒体头信息探测"]])("routes existing %s worker without claiming unexecuted success",async(name,kind,label)=>{
-  bridge.call.mockImplementation(async(op:string,payload:Record<string,unknown>)=>{
+  installFixture(async(op:string,payload:Record<string,unknown>)=>{
    if(op==="job_enqueue")return {job_id:(payload.body as Record<string,unknown>).job_id};
    if(op==="jobs_get")return {state:"failed",error_code:"AAK-WORKER-003"};
    return {};
   });
-  render(<JobContent sourceId="src_format" name={name}/>);
+  render(<JobContent sourceId="src_format" name={name} sourceRevision={"a".repeat(64)}/>);
   await userEvent.setup().click(screen.getByRole("button",{name:label}));
   await screen.findByText(/转换未完成或产物读取失败/);
   expect(bridge.call).toHaveBeenCalledWith("job_enqueue",{body:{job_id:expect.any(String),kind,input_ref:"src_format"}});
@@ -24,7 +27,7 @@ describe("Core job content",()=>{
   // The wait loop has a deadline, not an error channel: a job that never reaches a terminal state
   // must not be reported as a failure of the product, and must not be reported as success either.
   const now=vi.spyOn(Date,"now");let step=0;now.mockImplementation(()=>((step+=100_000)-100_000));
-  bridge.call.mockImplementation(async(op:string,payload:Record<string,unknown>)=>{
+  installFixture(async(op:string,payload:Record<string,unknown>)=>{
    if(op==="capabilities_list")return {};
    if(op==="job_enqueue")return {job_id:(payload.body as Record<string,unknown>).job_id};
    if(op==="job_execute")return {};
@@ -32,7 +35,7 @@ describe("Core job content",()=>{
    if(op==="job_output")throw new Error("a timed-out job has no product to read");
    return {};
   });
-  render(<JobContent sourceId="src_asr" name="sample.wav"/>);
+  render(<JobContent sourceId="src_asr" name="sample.wav" sourceRevision={"a".repeat(64)}/>);
   const user=userEvent.setup();
   try{
    await user.click(screen.getByRole("button",{name:"执行真实语音转写"}));
@@ -50,11 +53,11 @@ describe("Core job content",()=>{
    now.mockRestore();
   }
   // releasing the busy flag is what keeps a timeout recoverable instead of a dead end
-  await waitFor(()=>expect(screen.getByRole("button",{name:"执行真实语音转写"})).toBeEnabled());
+  await waitFor(()=>expect(screen.getByRole("button",{name:"同请求重试转换"})).toBeEnabled());
  });
  it("retains successful output when a later job fails and binds candidates to its successful transform",async()=>{
   let latest="";let executions=0;
-  bridge.call.mockImplementation(async(op:string,payload:Record<string,unknown>)=>{
+  installFixture(async(op:string,payload:Record<string,unknown>)=>{
    if(op==="capabilities_list")return {};
    if(op==="job_enqueue"){latest=String((payload.body as Record<string,unknown>).job_id);return {job_id:latest};}
    if(op==="job_execute"){executions++;return {};}
@@ -63,7 +66,7 @@ describe("Core job content",()=>{
    if(op==="job_quality")return {engine:"real"};
    if(op==="source_job_transform")return {source_id:"s",job_id:latest,transform_id:42,content:"保留正文"};
   });
-  render(<JobContent sourceId="s" name="sample.xlsx"/>);
+  render(<JobContent sourceId="s" name="sample.xlsx" sourceRevision={"a".repeat(64)}/>);
   const user=userEvent.setup();await user.click(screen.getByRole("button",{name:"执行真实内容转换"}));
   expect(await screen.findByLabelText("Core 提取正文")).toHaveTextContent("保留正文");
   await user.click(screen.getByRole("button",{name:"执行真实内容转换"}));
@@ -77,7 +80,7 @@ describe("Core job content",()=>{
   debug.mockRestore();
  });
  it("requires real completion and reads all persisted outputs with actual engine proof",async()=>{
- bridge.call.mockImplementation(async(op:string,payload:Record<string,unknown>)=>{
+ installFixture(async(op:string,payload:Record<string,unknown>)=>{
   if(op==="capabilities_list")return {execution_verified:false};
   if(op==="job_enqueue")return {job_id:(payload.body as Record<string,unknown>).job_id,state:"queued"};
   if(op==="job_execute")return {state:"running"};
@@ -86,11 +89,12 @@ describe("Core job content",()=>{
   if(op==="source_job_transform")return {source_id:payload.source_id,job_id:payload.job_id,transform_id:42,content:"Sheet1 A1 真实单元格"};
   if(op==="knowledge_from_transform")return {status:"candidate",knowledge_id:"k1",anchor_id:"a1"};
   if(op==="job_output")return {metadata:{},content:payload.kind==="text"?"Sheet1 A1 真实单元格":JSON.stringify({kind:payload.kind})};
- });render(<JobContent sourceId="src_office" name="sample.xlsx"/>);await userEvent.setup().click(screen.getByRole("button",{name:"执行真实内容转换"}));
+ });render(<JobContent sourceId="src_office" name="sample.xlsx" sourceRevision={"a".repeat(64)}/>);await userEvent.setup().click(screen.getByRole("button",{name:"执行真实内容转换"}));
  expect(await screen.findByLabelText("Core 提取正文")).toHaveTextContent("真实单元格");
  const engineDebug=vi.spyOn(console,"debug").mockImplementation(()=>{});
  await userEvent.setup().click(screen.getByRole("button",{name:/损失、引擎与处理记录/}));
  expect(engineDebug.mock.calls.some(([,label,payload])=>label==="损失、引擎与处理记录"&&JSON.stringify(payload).includes("openpyxl"))).toBe(true);
+ expect(screen.getByText("引擎版本（回执原值，未独立核验）")).toBeInTheDocument();
  expect(screen.queryByText(/engine_version/)).not.toBeInTheDocument();
  engineDebug.mockRestore();
  expect(bridge.call).toHaveBeenCalledWith("job_enqueue",{body:{job_id:expect.any(String),kind:"office",input_ref:"src_office"}});
@@ -100,14 +104,14 @@ describe("Core job content",()=>{
  });
  it("shows readable native structure with Unicode scalar ranges and keeps loss diagnostics folded",async()=>{
  const content="😀 A1=已知值";
- bridge.call.mockImplementation(async(op:string,payload:Record<string,unknown>)=>{
+ installFixture(async(op:string,payload:Record<string,unknown>)=>{
   if(op==="job_enqueue")return {job_id:(payload.body as Record<string,unknown>).job_id};
   if(op==="jobs_get")return {state:"succeeded"};
   if(op==="source_job_transform")return {source_id:payload.source_id,job_id:payload.job_id,transform_id:1,content};
   if(op==="job_output")return {content:payload.kind==="text"?content:JSON.stringify(payload.kind==="document_structure"?[{kind:"sheet_row",path:["sheet-预算","row-1"],char_start:2,char_end:8},{kind:"unknown",path:["unresolved"],char_start:999,char_end:1000}]:{loss_note:"formula text only"})};
   return {};
  });
- render(<JobContent sourceId="src_structure" name="预算.xlsx"/>);
+ render(<JobContent sourceId="src_structure" name="预算.xlsx" sourceRevision={"a".repeat(64)}/>);
  await userEvent.setup().click(screen.getByRole("button",{name:"执行真实内容转换"}));
  expect(await screen.findByRole("cell",{name:"sheet-预算 / row-1"})).toBeInTheDocument();
  expect(screen.getByRole("cell",{name:"A1=已知值"})).toBeInTheDocument();
@@ -116,8 +120,8 @@ describe("Core job content",()=>{
  expect(screen.queryByText(/loss_note/)).not.toBeInTheDocument();
  });
  it("does not publish content when the actual job fails",async()=>{
- bridge.call.mockImplementation(async(op:string,payload:Record<string,unknown>)=>op==="job_enqueue"?{job_id:(payload.body as Record<string,unknown>).job_id}:op==="jobs_get"?{state:"failed",error:"AAK-WORKER-003"}:{});
- render(<JobContent sourceId="src_bad" name="bad.pptx"/>);await userEvent.setup().click(screen.getByRole("button",{name:"执行真实内容转换"}));
+ installFixture(async(op:string,payload:Record<string,unknown>)=>op==="job_enqueue"?{job_id:(payload.body as Record<string,unknown>).job_id}:op==="jobs_get"?{state:"failed",error:"AAK-WORKER-003"}:{});
+ render(<JobContent sourceId="src_bad" name="bad.pptx" sourceRevision={"a".repeat(64)}/>);await userEvent.setup().click(screen.getByRole("button",{name:"执行真实内容转换"}));
  expect(await screen.findByText(/转换未完成/)).toBeInTheDocument();expect(screen.queryByLabelText("Core 提取正文")).not.toBeInTheDocument();expect(bridge.call.mock.calls.some(([op])=>op==="job_output")).toBe(false);
  });
 
@@ -125,7 +129,7 @@ describe("Core job content",()=>{
  it.each(["success","failure"])("ignores old knowledge candidate %s receipt after revision switches",async(outcome)=>{
   let resolveCandidate!:(value:unknown)=>void;
   let rejectCandidate!:(reason:Error)=>void;
-  bridge.call.mockImplementation(async(op:string,payload:Record<string,unknown>)=>{
+  installFixture(async(op:string,payload:Record<string,unknown>)=>{
    if(op==="source_jobs")return {source_id:payload.source_id,jobs:[],jobs_capped:false};
    if(op==="job_enqueue")return {job_id:(payload.body as Record<string,unknown>).job_id};
    if(op==="jobs_get")return {state:"succeeded"};
@@ -152,13 +156,13 @@ describe("Core job content",()=>{
   expect(screen.queryByText(/候选 old-knowledge/)).toBeNull();
  });
  it("SIMULATED: tells the user the expected cost before executing media, and refuses to promise a whole job past the ceiling",async()=>{
-  bridge.call.mockImplementation(async()=>({}));
-  const {rerender}=render(<JobContent sourceId="s" name="speech.wav" mediaDurationSeconds={83}/>);
+  installFixture(async()=>({}));
+  const {rerender}=render(<JobContent sourceId="s" name="speech.wav" mediaDurationSeconds={83} sourceRevision={"a".repeat(64)}/>);
   expect(screen.getByText(/原件时长 约 1 分 23 秒/)).toBeInTheDocument();
   expect(screen.getByText(/整体执行在上限内，可直接执行/)).toBeInTheDocument();
   expect(screen.getByRole("button",{name:"整体执行"})).toBeEnabled();
   expect(screen.getByRole("button",{name:/切分执行（1 段/})).toBeInTheDocument();
-  rerender(<JobContent sourceId="s" name="speech.wav" mediaDurationSeconds={720}/>);
+  rerender(<JobContent sourceId="s" name="speech.wav" mediaDurationSeconds={720} sourceRevision={"a".repeat(64)}/>);
   expect(screen.getByText(/原件时长 约 12 分 0 秒/)).toBeInTheDocument();
   const warning=screen.getByText(/请选择“切分执行”/);
   expect(warning).toHaveTextContent(/需分 6 段/);
@@ -181,15 +185,15 @@ describe("Core job content",()=>{
   expect(splitProgressOf(receipt({status:"complete",windows_expected:"6",windows_present:6}))).toBeNull();
  });
  it("SIMULATED: no estimate is shown for a format that has no local reading route",async()=>{
-  bridge.call.mockImplementation(async()=>({}));
-  render(<JobContent sourceId="s" name="budget.xlsx" mediaDurationSeconds={720}/>);
+  installFixture(async()=>({}));
+  render(<JobContent sourceId="s" name="budget.xlsx" mediaDurationSeconds={720} sourceRevision={"a".repeat(64)}/>);
   expect(screen.queryByText(/原件时长/)).toBeNull();
  });
  // A05: reopening an ordinary conversion result must read it back from storage under its own route
  // kind, without starting a job or forcing it through the transcription-specific proof.
  it("reopens a persisted office result with no new job and no transcription proof",async()=>{
   const content="Sheet1 真实单元格已保存";
-  bridge.call.mockImplementation(async(op:string,payload:Record<string,unknown>)=>{
+  installFixture(async(op:string,payload:Record<string,unknown>)=>{
    if(op==="capabilities_list")return {};
    if(op==="source_jobs")return {source_id:payload.source_id,jobs:[{job_id:"job-office-1",kind:"office",input_ref:payload.source_id,state:"succeeded",attempt:1}],jobs_capped:false};
    if(op==="jobs_get")return {job_id:payload.job_id,state:"succeeded",attempt:1};
@@ -220,9 +224,10 @@ describe("Core job content",()=>{
  it("keeps unregistered extensions without a conversion route",()=>{
   expect(conversionKindFor("archive.7z")).toBeNull();
   expect(conversionKindFor("vector.eps")).toBeNull();
-  // Legacy binary MS Office has no named Core reader, so it must not gain a false action.
-  expect(conversionKindFor("old.doc")).toBeNull();
-  expect(conversionKindFor("old.xls")).toBeNull();
-  expect(conversionKindFor("old.ppt")).toBeNull();
+  // These binary Office formats have named Core media types and a declared route.
+  // ConversionKindsLegacy separately requires engine qualification, not a false success.
+  expect(conversionKindFor("old.doc")).toBe("office");
+  expect(conversionKindFor("old.xls")).toBe("office");
+  expect(conversionKindFor("old.ppt")).toBe("office");
  });
 });

@@ -25,6 +25,28 @@ describe("UI-03 distinct failure states", () => {
     bridge.call.mockReset();
   });
 
+  it("clears an old capability failure only after a validated successful refresh", async () => {
+    bridge.call.mockRejectedValueOnce(new ApiError(0, "offline", "offline"));
+    const user = userEvent.setup();
+    render(<CanonicalCapabilitiesSpace onNavigate={() => {}} />);
+    await screen.findByText(/^离线：/);
+    const refresh = screen.getByRole("button", { name: "刷新当前健康与权限" });
+    bridge.call.mockResolvedValueOnce({ capabilities: [] });
+    await user.click(refresh);
+    await screen.findByText("已读取当前 Core worker 握手；不代表引擎产物通过。");
+    expect(screen.queryByText(/^离线：/)).not.toBeInTheDocument();
+    expect(screen.getAllByRole("status")).toHaveLength(1);
+    bridge.call.mockRejectedValueOnce(new ApiError(403, "denied", "unauthorized"));
+    await user.click(refresh);
+    await screen.findByText(/^权限：/);
+    bridge.call.mockResolvedValueOnce({ capabilities: [{ health: "ready" }] });
+    await user.click(refresh);
+    await screen.findByText("当前健康与权限读取失败，显示未知；目录详情仍可浏览。");
+    expect(screen.queryByText(/^权限：/)).not.toBeInTheDocument();
+    expect(screen.queryByText("已读取当前 Core worker 握手；不代表引擎产物通过。")).not.toBeInTheDocument();
+    expect(screen.getAllByRole("status")).toHaveLength(1);
+  });
+
   it.each([
     [new ApiError(0, "请在本地桌面应用打开此内容。", "offline"), "离线"],
     [new ApiError(409, "版本已变化，请保留当前草稿并重新读取。", "unavailable"), "冲突"],

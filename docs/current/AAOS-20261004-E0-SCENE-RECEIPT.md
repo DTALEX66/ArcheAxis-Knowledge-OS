@@ -1423,3 +1423,17 @@ PDF worker **跑了**，并且**响亮地、带错误码地、明确不可重试
 ### 47.3 未完成
 
 **没有**用 `--dep-source` 重做一个带依赖的候选并重跑 `pdf`/`image`。所以 `pdf.extract` / `image.ocr` 在候选内的**真实可调用性仍然未验证** —— 只验证了它们**会被正确地拒绝**。
+
+
+### 2026-10-09 当前候选恢复入口（展开副本去重）
+
+以上候选记录保留历史日期与结论。当前批次只移除与保留ZIP逐名/大小/CRC/SHA一致的展开副本，不销毁候选内容、不切换安装版。最终执行状态以cleanup-result.json为准；6254文件/2,040,219,218 B是展开文件逻辑大小，物理回收量不据此推定。
+
+保留原ZIP与精确成员回执：
+- q04b ZIP：`未跟踪 D:/All projects/ArcheAxis-Knowledge-OS/.project-local/legacy-scratch-20261008/runs-dirs/candidate-q04b/ArcheAxis.Knowledge.Green-v0.0.0-q04candidate-x64.zip`；成员：`未跟踪 D:/All projects/ArcheAxis-Knowledge-OS/.project-local/runs/f714401b40/codex-ui-governance-20261009/artifacts/candidate-duplicate-audit/candidate-q04b.json`。
+- q04c ZIP：`未跟踪 D:/All projects/ArcheAxis-Knowledge-OS/.project-local/legacy-scratch-20261008/runs-dirs/candidate-q04c/ArcheAxis.Knowledge.Green-v0.0.0-q04c-x64.zip`；成员：`未跟踪 D:/All projects/ArcheAxis-Knowledge-OS/.project-local/runs/f714401b40/codex-ui-governance-20261009/artifacts/candidate-duplicate-audit/candidate-q04c.json`。
+
+执行前同时持有保留ZIP、500个目录和全部成员的句柄并重新核对内容/名称；目录与文件命名流均检查，拒绝链接、占用、只读属性和未知新增内容。逐项write-ahead日志不重写全成员计划。恢复工具：`未跟踪 D:/All projects/ArcheAxis-Knowledge-OS/.project-local/runs/f714401b40/codex-ui-governance-20261009/tmp/candidate-cleanup/candidate_cleanup.py`，使用现有项目Python加`--restore`；仅恢复这两个原展开地址，校验保留ZIP与所有成员，拒绝覆盖不同内容。恢复保持名称/内容及新文件mtime，不承诺复原ACL、creation/access/目录时间。全成员计划与实际结果存放于该批次candidate-duplicate-audit目录；失败或中断可据此恢复，无须新安装或改权限。
+
+
+2026-10-09 本批实际执行结果：PASS_EXACT_EXPANDED_REMOVAL，6254个展开文件/2,040,219,218 B逻辑大小已移除，500个原展开目录均按空目录逐项移除，两个展开根现不存在。原ZIP共647,537,126 B仍在，执行后SHA-256分别40ce3440f8a3ad0e4ab7a4073f90ed40f1cd6759ff5bb994f25b182ff7396d25、e6e119e62a8e8b9c0463a180ec771d58e6f909d7a44d7234139f4b270bcf9bbd，与执行前一致。6254次mark与closed均有日志，failure=null。当前结果：`未跟踪 D:/All projects/ArcheAxis-Knowledge-OS/.project-local/runs/f714401b40/codex-ui-governance-20261009/artifacts/candidate-duplicate-audit/cleanup-result.json`；完整恢复计划：`未跟踪 D:/All projects/ArcheAxis-Knowledge-OS/.project-local/runs/f714401b40/codex-ui-governance-20261009/artifacts/candidate-duplicate-audit/cleanup-checkpoint.json`。物理回收字节UNVERIFIED；没有按逻辑大小宣称全盘可用空间净增，没有改ACL/杀共享进程/触碰数据库或删除ZIP。本批不改变其他唯一候选/证据/退役worktree保留判断。

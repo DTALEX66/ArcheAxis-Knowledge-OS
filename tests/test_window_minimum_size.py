@@ -67,7 +67,7 @@ def test_the_gate_measures_painted_overlap_not_bounding_boxes() -> None:
     nothing there."""
     source = (ROOT / "scripts" / "a0_browser_smoke.py").read_text(encoding="utf-8")
     for key in ("landmarkOverlaps", "clippedBands", "landmarkCount", "missingBands",
-                "expectedBands", "unreachableBands", "unscrollableBands"):
+                "expectedBands", "unreachableBands", "unscrollableBands", "escapedChildren"):
         assert key in source, f"the geometry probe no longer reports {key}"
     assert 'assert not geometry["landmarkOverlaps"]' in source
     assert 'assert not geometry["missingBands"]' in source
@@ -75,6 +75,7 @@ def test_the_gate_measures_painted_overlap_not_bounding_boxes() -> None:
     # A band can be the clipper rather than the clipped, and then its own content is cut with no
     # way back while every rect still fits.
     assert 'assert not geometry["unscrollableBands"]' in source
+    assert 'assert not geometry["escapedChildren"]' in source
     # The two things that make the verdict mean something: the box is reduced by every clipping
     # ancestor before comparison, and the crossing point is hit-tested so a red names a real
     # painted element.
@@ -90,7 +91,7 @@ def test_the_widest_component_is_measured_where_it_is_mounted() -> None:
     on the fallback sweep asks for a component that page never renders - and omitting it leaves
     the one component likely to stack outside the non-stacking check entirely."""
     gate = load_gate()
-    assert set(gate.CHROME_BANDS) == {"rail", "context", "center", "dock"}
+    assert set(gate.CHROME_BANDS) == {"status", "rail", "context", "center", "dock"}
     assert set(gate.LIBRARY_BANDS) == set(gate.CHROME_BANDS) | {"templates"}
     assert gate.LIBRARY_BANDS["templates"] == "details.template-launcher"
     assert "read_library_geometry" in (ROOT / "scripts" / "a0_browser_smoke.py").read_text(encoding="utf-8")

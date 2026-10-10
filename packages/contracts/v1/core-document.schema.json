@@ -219,6 +219,16 @@
     "DocumentsListDto": {
       "type": "object",
       "properties": {
+        "next_cursor": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "snapshot_count": {
+          "type": "integer",
+          "minimum": 0
+        },
         "documents": {
           "type": "array",
           "items": {
@@ -227,7 +237,9 @@
         }
       },
       "required": [
-        "documents"
+        "documents",
+        "next_cursor",
+        "snapshot_count"
       ],
       "additionalProperties": true
     },
@@ -446,19 +458,57 @@
     "MachineRetestDto": {
       "type": "object",
       "properties": {
-        "schema": {"enum": ["archeaxis.machine-retest/v1"]},
-        "retest_task_id": {"type": "string"},
-        "answer_id": {"type": "string"},
-        "retest_of": {"type": "string"},
-        "knowledge_id": {"type": "string"},
-        "question": {"type": "string"},
-        "answer": {"type": "object"},
-        "authority": {"enum": ["candidate"]},
-        "prior": {"type": "object"},
-        "request": {"type": "object"},
-        "note": {"type": "string"}
+        "schema": {
+          "enum": [
+            "archeaxis.machine-retest/v1"
+          ]
+        },
+        "retest_task_id": {
+          "type": "string"
+        },
+        "answer_id": {
+          "type": "string"
+        },
+        "retest_of": {
+          "type": "string"
+        },
+        "knowledge_id": {
+          "type": "string"
+        },
+        "question": {
+          "type": "string"
+        },
+        "answer": {
+          "type": "object"
+        },
+        "authority": {
+          "enum": [
+            "candidate"
+          ]
+        },
+        "prior": {
+          "type": "object"
+        },
+        "request": {
+          "type": "object"
+        },
+        "note": {
+          "type": "string"
+        }
       },
-      "required": ["schema", "retest_task_id", "answer_id", "retest_of", "knowledge_id", "question", "answer", "authority", "prior", "request", "note"],
+      "required": [
+        "schema",
+        "retest_task_id",
+        "answer_id",
+        "retest_of",
+        "knowledge_id",
+        "question",
+        "answer",
+        "authority",
+        "prior",
+        "request",
+        "note"
+      ],
       "additionalProperties": true
     },
     "DocumentExportDto": {
@@ -477,7 +527,10 @@
           ]
         },
         "source_revision": {
-          "type": "string"
+          "type": [
+            "string",
+            "null"
+          ]
         },
         "projection_sha256": {
           "type": "string"
@@ -1097,6 +1150,873 @@
           "type": "string"
         }
       }
+    },
+    "ObjectReferenceDto": {
+      "anyOf": [
+        {
+          "type": "object",
+          "properties": {
+            "kind": {
+              "const": "document"
+            },
+            "document_id": {
+              "type": "string"
+            },
+            "version": {
+              "type": "integer"
+            },
+            "block_id": {
+              "type": [
+                "string",
+                "null"
+              ]
+            }
+          },
+          "required": [
+            "kind",
+            "document_id",
+            "version"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "kind": {
+              "const": "source"
+            },
+            "source_id": {
+              "type": "string"
+            },
+            "sha256": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "kind",
+            "source_id",
+            "sha256"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "kind": {
+              "const": "knowledge"
+            },
+            "knowledge_id": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "kind",
+            "knowledge_id"
+          ],
+          "additionalProperties": false
+        }
+      ]
+    },
+    "DocumentSnapshotDto": {
+      "type": "object",
+      "properties": {
+        "document_id": {
+          "type": "string"
+        },
+        "version": {
+          "type": "integer"
+        },
+        "content_sha256": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "document_id",
+        "version",
+        "content_sha256"
+      ],
+      "additionalProperties": false
+    },
+    "RelationDto": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "kind": {
+          "enum": [
+            "related",
+            "supports",
+            "contradicts",
+            "depends_on"
+          ]
+        },
+        "label": {
+          "type": "string"
+        },
+        "target": {
+          "$ref": "#/$defs/ObjectReferenceDto"
+        }
+      },
+      "required": [
+        "id",
+        "kind",
+        "label",
+        "target"
+      ],
+      "additionalProperties": false
+    },
+    "RelationNodeDto": {
+      "type": "object",
+      "properties": {
+        "key": {
+          "type": "string"
+        },
+        "reference": {
+          "$ref": "#/$defs/ObjectReferenceDto"
+        },
+        "status": {
+          "enum": [
+            "resolved",
+            "unavailable"
+          ]
+        },
+        "object": {
+          "type": [
+            "object",
+            "null"
+          ]
+        }
+      },
+      "required": [
+        "key",
+        "reference",
+        "status",
+        "object"
+      ],
+      "additionalProperties": false
+    },
+    "RelationEdgeDto": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "from": {
+          "type": "string"
+        },
+        "to": {
+          "type": "string"
+        },
+        "relation": {
+          "$ref": "#/$defs/RelationDto"
+        },
+        "source_snapshot": {
+          "$ref": "#/$defs/DocumentSnapshotDto"
+        },
+        "direction": {
+          "enum": [
+            "outgoing",
+            "backlink"
+          ]
+        },
+        "origin": {
+          "enum": [
+            "document_relation",
+            "collection_property"
+          ]
+        },
+        "record_id": {
+          "type": "string"
+        },
+        "property_id": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "id",
+        "from",
+        "to",
+        "relation",
+        "source_snapshot",
+        "direction"
+      ],
+      "additionalProperties": false
+    },
+    "UnsupportedRelationDto": {
+      "type": "object",
+      "properties": {
+        "document_id": {
+          "type": "string"
+        },
+        "version": {
+          "type": "integer"
+        },
+        "status": {
+          "enum": [
+            "unsupported_relation_metadata",
+            "unsupported_collection_metadata"
+          ]
+        }
+      },
+      "required": [
+        "document_id",
+        "version",
+        "status"
+      ],
+      "additionalProperties": false
+    },
+    "RelationProjectionDto": {
+      "type": "object",
+      "properties": {
+        "schema": {
+          "const": "archeaxis.relation-projection/v1"
+        },
+        "snapshot_sha256": {
+          "type": "string"
+        },
+        "center": {
+          "$ref": "#/$defs/DocumentSnapshotDto"
+        },
+        "scope": {
+          "const": "current_source_versions_to_pinned_center"
+        },
+        "nodes": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/RelationNodeDto"
+          }
+        },
+        "edges": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/RelationEdgeDto"
+          }
+        },
+        "unsupported_sources": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/UnsupportedRelationDto"
+          }
+        },
+        "scan": {
+          "type": "object",
+          "properties": {
+            "scanned": {
+              "type": "integer"
+            },
+            "next_cursor": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "complete": {
+              "type": "boolean"
+            }
+          },
+          "required": [
+            "scanned",
+            "next_cursor",
+            "complete"
+          ],
+          "additionalProperties": false
+        },
+        "derived_only": {
+          "const": true
+        },
+        "omitted_edges": {
+          "type": "integer"
+        },
+        "projection_truncated": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "schema",
+        "snapshot_sha256",
+        "center",
+        "scope",
+        "nodes",
+        "edges",
+        "unsupported_sources",
+        "scan",
+        "derived_only"
+      ],
+      "additionalProperties": false
+    },
+    "DocumentRelationsDto": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schema",
+        "relations"
+      ],
+      "properties": {
+        "schema": {
+          "const": "archeaxis.relations/v1"
+        },
+        "relations": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/RelationDto"
+          }
+        }
+      }
+    },
+    "MachineTaskRowDto": {
+      "type": "object",
+      "properties": {
+        "task_id": {
+          "type": "string"
+        },
+        "principal": {
+          "const": "machine"
+        },
+        "conditions": {
+          "type": "string"
+        },
+        "model_version": {
+          "type": "string"
+        },
+        "scope": {
+          "type": "string"
+        },
+        "recorded_at": {
+          "type": "string"
+        },
+        "outcome": {
+          "enum": [
+            "succeeded",
+            "failed",
+            "unmeasured"
+          ]
+        },
+        "knowledge_version": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "method_version": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "tool_version": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "failure": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "retest_of": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      },
+      "required": [
+        "task_id",
+        "principal",
+        "conditions",
+        "model_version",
+        "scope",
+        "recorded_at",
+        "outcome",
+        "knowledge_version",
+        "method_version",
+        "tool_version",
+        "failure",
+        "retest_of"
+      ],
+      "additionalProperties": false
+    },
+    "MachineTasksPageDto": {
+      "type": "object",
+      "properties": {
+        "items": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/MachineTaskRowDto"
+          }
+        },
+        "next_cursor": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      },
+      "required": [
+        "items",
+        "next_cursor"
+      ],
+      "additionalProperties": false
+    },
+    "MachineDocumentSummaryDto": {
+      "type": "object",
+      "properties": {
+        "document_id": {
+          "type": "string"
+        },
+        "version": {
+          "type": "integer"
+        },
+        "title": {
+          "type": "string"
+        },
+        "content_sha256": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "document_id",
+        "version",
+        "title",
+        "content_sha256"
+      ],
+      "additionalProperties": false
+    },
+    "MachineDocumentsPageDto": {
+      "type": "object",
+      "properties": {
+        "items": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/MachineDocumentSummaryDto"
+          }
+        },
+        "next_cursor": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      },
+      "required": [
+        "items",
+        "next_cursor"
+      ],
+      "additionalProperties": false
+    },
+    "ContextConsumptionDto": {
+      "type": "object",
+      "properties": {
+        "document_id": {
+          "type": "string"
+        },
+        "version": {
+          "type": "integer"
+        },
+        "content_sha256": {
+          "type": "string"
+        },
+        "purpose": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "document_id",
+        "version",
+        "content_sha256",
+        "purpose"
+      ],
+      "additionalProperties": false
+    },
+    "ContextGrantDto": {
+      "type": "object",
+      "properties": {
+        "schema": {
+          "const": "archeaxis.context-grant/v1"
+        },
+        "purpose": {
+          "type": "string"
+        },
+        "consumer": {
+          "const": "local-machine"
+        },
+        "operations": {
+          "type": "array",
+          "items": {
+            "enum": [
+              "answer",
+              "retest"
+            ]
+          }
+        },
+        "knowledge_id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "provenance": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/ObjectReferenceDto"
+          }
+        },
+        "authorization_basis": {
+          "type": "string"
+        },
+        "expires_at": {
+          "type": [
+            "integer",
+            "null"
+          ]
+        },
+        "state": {
+          "enum": [
+            "candidate",
+            "granted",
+            "revoked"
+          ]
+        }
+      },
+      "required": [
+        "schema",
+        "purpose",
+        "consumer",
+        "operations",
+        "knowledge_id",
+        "provenance",
+        "authorization_basis",
+        "expires_at",
+        "state"
+      ],
+      "additionalProperties": false
+    },
+    "MachineCriterionDto": {
+      "type": "object",
+      "properties": {
+        "criterion_id": {
+          "type": "string"
+        },
+        "label": {
+          "type": "string"
+        },
+        "expectation": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "criterion_id",
+        "label",
+        "expectation"
+      ],
+      "additionalProperties": false
+    },
+    "MachineRubricDto": {
+      "type": "object",
+      "properties": {
+        "schema": {
+          "const": "archeaxis.machine-rubric/v1"
+        },
+        "request_id": {
+          "type": "string"
+        },
+        "title": {
+          "type": "string"
+        },
+        "purpose": {
+          "type": "string"
+        },
+        "criteria": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/MachineCriterionDto"
+          }
+        },
+        "sources": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/ObjectReferenceDto"
+          }
+        }
+      },
+      "required": [
+        "schema",
+        "request_id",
+        "title",
+        "purpose",
+        "criteria",
+        "sources"
+      ],
+      "additionalProperties": false
+    },
+    "MachineRubricSnapshotDto": {
+      "type": "object",
+      "properties": {
+        "document_id": {
+          "type": "string"
+        },
+        "version": {
+          "type": "integer"
+        },
+        "content_sha256": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "document_id",
+        "version",
+        "content_sha256"
+      ],
+      "additionalProperties": false
+    },
+    "MachineJudgmentDto": {
+      "type": "object",
+      "properties": {
+        "criterion_id": {
+          "type": "string"
+        },
+        "outcome": {
+          "enum": [
+            "passed",
+            "failed",
+            "unmeasured"
+          ]
+        },
+        "basis": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "criterion_id",
+        "outcome",
+        "basis"
+      ],
+      "additionalProperties": false
+    },
+    "MachineEvaluationRequestDto": {
+      "type": "object",
+      "properties": {
+        "request_id": {
+          "type": "string"
+        },
+        "task_id": {
+          "type": "string"
+        },
+        "rubric": {
+          "$ref": "#/$defs/MachineRubricSnapshotDto"
+        },
+        "reviewer": {
+          "type": "string"
+        },
+        "basis": {
+          "type": "string"
+        },
+        "judgments": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/MachineJudgmentDto"
+          }
+        },
+        "outcome": {
+          "enum": [
+            "passed",
+            "failed",
+            "unmeasured"
+          ]
+        }
+      },
+      "required": [
+        "request_id",
+        "task_id",
+        "rubric",
+        "reviewer",
+        "basis",
+        "judgments",
+        "outcome"
+      ],
+      "additionalProperties": false
+    },
+    "MachineEvaluationDto": {
+      "type": "object",
+      "properties": {
+        "request_id": {
+          "type": "string"
+        },
+        "task_id": {
+          "type": "string"
+        },
+        "rubric": {
+          "$ref": "#/$defs/MachineRubricSnapshotDto"
+        },
+        "reviewer": {
+          "type": "string"
+        },
+        "basis": {
+          "type": "string"
+        },
+        "judgments": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/MachineJudgmentDto"
+          }
+        },
+        "outcome": {
+          "enum": [
+            "passed",
+            "failed",
+            "unmeasured"
+          ]
+        },
+        "schema": {
+          "const": "archeaxis.machine-evaluation/v1"
+        },
+        "knowledge_id": {
+          "type": "string"
+        },
+        "original_answer_sha256": {
+          "type": "string"
+        },
+        "task_receipt_sha256": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "request_id",
+        "task_id",
+        "rubric",
+        "reviewer",
+        "basis",
+        "judgments",
+        "outcome",
+        "schema",
+        "knowledge_id",
+        "original_answer_sha256",
+        "task_receipt_sha256"
+      ],
+      "additionalProperties": false
+    },
+    "MachineAnswerSnapshotDto": {
+      "type": "object",
+      "properties": {
+        "task_id": {
+          "type": "string"
+        },
+        "knowledge_id": {
+          "type": "string"
+        },
+        "question": {
+          "type": "string"
+        },
+        "original_answer": {
+          "type": "string"
+        },
+        "model_version": {
+          "type": "string"
+        },
+        "original_answer_sha256": {
+          "type": "string"
+        },
+        "task_receipt_sha256": {
+          "type": "string"
+        },
+        "receipt": {
+          "$ref": "#/$defs/MachineTaskRowDto"
+        },
+        "evaluation_authority": {
+          "const": "human_observation_only"
+        },
+        "grants_machine_qualification": {
+          "const": false
+        },
+        "grants_human_mastery": {
+          "const": false
+        },
+        "grants_professional_truth": {
+          "const": false
+        }
+      },
+      "required": [
+        "task_id",
+        "knowledge_id",
+        "question",
+        "original_answer",
+        "model_version",
+        "original_answer_sha256",
+        "task_receipt_sha256",
+        "receipt",
+        "evaluation_authority",
+        "grants_machine_qualification",
+        "grants_human_mastery",
+        "grants_professional_truth"
+      ],
+      "additionalProperties": false
+    },
+    "JobExecutionStatusDto": {
+      "type": "object",
+      "properties": {
+        "job_id": {
+          "type": "string"
+        },
+        "state": {
+          "type": "string"
+        },
+        "attempt": {
+          "type": [
+            "integer",
+            "null"
+          ]
+        },
+        "request_id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "error": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "input_ref": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "job_id",
+        "state",
+        "attempt",
+        "request_id",
+        "error",
+        "input_ref"
+      ],
+      "additionalProperties": true
+    },
+    "JobExecutionCancelDto": {
+      "type": "object",
+      "properties": {
+        "job_id": {
+          "type": "string"
+        },
+        "request_id": {
+          "type": "string"
+        },
+        "cancel_requested": {
+          "type": "boolean"
+        },
+        "state": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "job_id",
+        "request_id",
+        "cancel_requested"
+      ],
+      "additionalProperties": true
     }
   }
 }

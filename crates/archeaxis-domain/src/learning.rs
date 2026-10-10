@@ -457,9 +457,22 @@ pub fn record_review_with_state_and_answer(
     // The projection describes the learner *after* this review, so it is derived once the event
     // is on record. Deriving it first would report the state before the review being recorded -
     // which is exactly the off-by-one the contract test caught.
+    // Retain the request's version/exposure/assistance evidence, not just its dedup hash.
+    // These are observations; they neither approve a rubric nor establish human mastery.
+    // Old non-JSON domain callers and old stored events remain readable as unrecorded evidence.
+    let request = serde_json::from_str::<serde_json::Value>(canonical_request).ok();
+    let evidence = request.filter(|value| value.is_object()).map(|value| {
+        let mut fields = serde_json::Map::new();
+        fields.insert("schema".into(), serde_json::json!("archeaxis.learning-review-evidence/v2"));
+        for key in ["question_version", "knowledge_version", "exposure_id", "assist_strategy",
+                    "rating_version", "correction_id", "rating", "correct", "now"] {
+            fields.insert(key.into(), value.get(key).cloned().unwrap_or(serde_json::Value::Null));
+        }
+        serde_json::Value::Object(fields)
+    }).unwrap_or(serde_json::Value::Null).to_string();
     let outcome_json: String = tx.query_row(
-        "SELECT json_object('outcome', ?1, 'schedule', json(?2), 'answer', ?3, 'assessment_id', ?4)",
-        rusqlite::params![if correct { "correct" } else { "incorrect" }, schedule.schedule_json, answer, assessment_id],
+        "SELECT json_object('outcome', ?1, 'schedule', json(?2), 'answer', ?3, 'assessment_id', ?4, 'review_evidence', json(?5))",
+        rusqlite::params![if correct { "correct" } else { "incorrect" }, schedule.schedule_json, answer, assessment_id, evidence],
         |r| r.get(0),
     )?;
     tx.execute(

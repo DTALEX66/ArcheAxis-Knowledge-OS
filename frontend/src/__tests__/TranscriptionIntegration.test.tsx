@@ -1,3 +1,5 @@
+import { webcrypto } from "node:crypto";
+import { jobContentCoreFixture } from "./fixtures/jobContentCoreFixture";
 // Mock bridge receipts verify UI binding, not ASR execution or human accuracy.
 import { beforeEach,describe,expect,it,vi } from "vitest";
 import { render,screen,waitFor,within } from "@testing-library/react";
@@ -7,9 +9,9 @@ import { TranscriptionCues,utf8Sha256 } from "../components/TranscriptionCues";
 const bridge=vi.hoisted(()=>({call:vi.fn()}));vi.mock("../api/core",()=>({coreCommand:bridge.call}));
 const revision="a".repeat(64);
 describe("mock transcription UI integration",()=>{
- beforeEach(()=>bridge.call.mockReset());
+ beforeEach(()=>{bridge.call.mockReset();vi.stubGlobal("crypto",webcrypto);});
  it("keeps header probing separate from transcription",async()=>{
-  bridge.call.mockImplementation(async(op:string,p:any)=>op==="job_enqueue"?{job_id:p.body.job_id}:op==="jobs_get"?{state:"failed"}:{});
+  installJobContentFixture(async(op:string,p:any)=>op==="job_enqueue"?{job_id:p.body.job_id}:op==="jobs_get"?{state:"failed"}:{});
   render(<JobContent sourceId="source" sourceRevision={revision} name="speech.wav" mediaDurationSeconds={83}/>);const user=userEvent.setup();
   await user.click(screen.getByRole("button",{name:"执行媒体头信息探测"}));await screen.findByText(/转换未完成或产物读取失败/);
   await user.click(screen.getByRole("button",{name:"整体执行"}));
@@ -19,7 +21,7 @@ describe("mock transcription UI integration",()=>{
 
  it("transcribes a long recording in bounded rounds and stops when the receipt says every window is done",async()=>{
   const revision="a".repeat(64);let round=0;const executions:Array<Record<string,unknown>>=[];const jobs:string[]=[];
-  bridge.call.mockImplementation(async(op:string,p:any)=>{
+  installJobContentFixture(async(op:string,p:any)=>{
    if(op==="source_jobs")return {source_id:"source",jobs:jobs.map(job_id=>({job_id,input_ref:"source",kind:"transcribe",state:"succeeded",attempt:1})),jobs_capped:false};
    if(op==="job_enqueue"){jobs.push(p.body.job_id);return {job_id:p.body.job_id};}
    if(op==="job_execute"){executions.push(p.body);round+=1;return {state:"running"};}
@@ -41,7 +43,7 @@ describe("mock transcription UI integration",()=>{
   await user.click(screen.getByRole("button",{name:/切分执行（6 段/}));
   await screen.findByText(/分段转写已完成/);
   // Two bounded rounds, each a distinct job so a stop costs one round rather than the recording.
-  expect(executions).toEqual([{deadline_ms:300000,split:true},{deadline_ms:300000,split:true}]);
+  expect(executions).toEqual([{deadline_ms:300000,split:true,words:false},{deadline_ms:300000,split:true,words:false}]);
   expect(new Set(jobs).size).toBe(2);
   // The partial round says what it did not reach instead of presenting its text as the recording.
   expect(screen.getByText(/分段转写已完成/)).toHaveTextContent("复用了 1 段");
@@ -50,7 +52,7 @@ describe("mock transcription UI integration",()=>{
  it("retains successful cues after failure and cites their original receipt",async()=>{
   const content=JSON.stringify({params:{worker_output:{duration_ms:2000,cues:[{start_ms:100,end_ms:900,text:"数值37"}]}}});const sha=await utf8Sha256(content);
   let job="";let successful="";let executions=0;
-  bridge.call.mockImplementation(async(op:string,p:any)=>{
+  installJobContentFixture(async(op:string,p:any)=>{
    if(op==="job_enqueue"){job=p.body.job_id;return {job_id:job};}
    if(op==="job_execute"){executions++;if(executions===1)successful=job;return {};}
    if(op==="source_jobs")return {source_id:"source",jobs:job?[{job_id:job,input_ref:"source",kind:"transcribe",state:"succeeded",attempt:3}]:[]};
@@ -91,3 +93,5 @@ describe("mock transcription UI integration",()=>{
   expect(screen.queryByText(/分段尚未全部完成/)).toBeNull();
  });
 });
+
+function installJobContentFixture(fn:(operation:string,payload:any)=>unknown){bridge.call.mockImplementation(jobContentCoreFixture(fn));}

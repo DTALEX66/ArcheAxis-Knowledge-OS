@@ -1,11 +1,17 @@
 schema: archeaxis.project-contract/v1
 schema_version: 1
 contract_version: 1.0.0-draft
-effective_at: "2026-10-04T00:00:00Z"
+effective_at: "2026-10-09T00:00:00Z"
 project: ArcheAxis Knowledge
-stage: aaos01-quick-multiformat-loop-2026-10-04
+stage: aaos-ui-first-2026-10-09
+# Owner-selected queue and acceptance routing: docs/current/AAOS-ACTIVE-EXECUTION.json.
+# The immutable 10/09 planning package and inherited AAOS-01 evidence remain dated sources.
+# V01 paused; this contract declares product requirements, never a remote/installation grant.
 scope:
   included:
+    - new UI-first five-domain semantic layout and 22 page projections, qualified slice by slice
+    - default blueprint palette, blueprint-light and preserved legacy themes with consistent semantic colors
+    - bounded recovery contract and capability discoverability without promoting intent to qualification
     - local Windows desktop knowledge workflow
     - trustworthy import, anchor, review, retrieval, learning, restart, export and restore
     - bounded full-web research with cloud cross-check (advanced into this round per SUP-008)

@@ -9,6 +9,8 @@ import { Section } from "../components/RealData";
 import { coreFailureReason } from "../presentation/labels";
 import type { SpaceId } from "./spaces";
 import type { ObjectTrailLevel } from "../components/NavTrail";
+import { UI_CAPABILITY_INTENT, UI_CAPABILITY_SOURCE } from "../presentation/uiCapabilityIntent";
+import { RESEARCH_BOUNDARIES } from "../presentation/researchBoundaries";
 
 function record(value: unknown): Record<string, unknown> {
   if (!value || typeof value !== "object" || Array.isArray(value)) throw new Error("invalid response");
@@ -30,6 +32,7 @@ export function CanonicalCapabilitiesSpace({ onNavigate, selectedCapabilityId, n
       const rows = response.capabilities.map(record);
       if (rows.some((row) => typeof row.capability !== "string")) throw new Error("invalid capability identity");
       setLive(new Map(rows.map((row) => [String(row.capability), row])));
+      setFailureReason(null);
       setMessage("已读取当前 Core worker 握手；不代表引擎产物通过。");
     } catch (error) {
       setLive(null);
@@ -84,12 +87,25 @@ export function CanonicalCapabilitiesSpace({ onNavigate, selectedCapabilityId, n
     <p>所需验收证据：{selected.atlas.exit_evidence.join("；") || "目录未列证据要求"}</p>
     <p>降级与回退：{selected.atlas.fallbacks.join("；") || "目录未列回退"}</p>
     <p>旧入口别名：{selected.atlas.origin_requirement_ids.join("、") || "目录未列旧别名"}</p>
+    <section aria-label="设计细项与独立证据">
+      <h4>新设计保留的细项</h4>
+      <p>以下来自设计输入，逐项实施与独立资格证据为 UNKNOWN。父能力声明和运行握手不证明这些细项全部完成。</p>
+      <ul>{(UI_CAPABILITY_INTENT[selected.atlas.capability_id] ?? []).map(intent => <li key={intent}>{intent} · 独立证据 UNKNOWN</li>)}</ul>
+      <RawReceiptButton label="设计来源与校验指纹" payload={UI_CAPABILITY_SOURCE} />
+    </section>
     <p>下一步：{getCapabilityNextStep(selected)}</p>
-    <p>供体映射未建立；不按相似名称推断已吸收关系。</p>
-    <p>吸收来源分类：{absorption?.label}。{absorption?.sources.length
+    {RESEARCH_BOUNDARIES[selected.atlas.capability_id] && <section aria-label="集合与研究实施边界">
+      <h4>当前入口提供的范围</h4>
+      <p>以下是本地入口范围，安装态、真人验收与来源平台语义资格仍分别核验。</p>
+      <ul>{RESEARCH_BOUNDARIES[selected.atlas.capability_id].available.map(item => <li key={item}>{item}</li>)}</ul>
+      <h4>待实现或待独立资格验收</h4>
+      <ul>{RESEARCH_BOUNDARIES[selected.atlas.capability_id].pending.map(item => <li key={item}>{item} · 未执行</li>)}</ul>
+    </section>}
+    <p>{absorption?.sources.length ? "以下供体来源由现有稳定能力 ID 投影联接；分类与历史资格分别保留，不代表本轮运行通过。" : "供体映射未建立；不按相似名称推断已吸收关系。"}</p>
+    <div>吸收来源分类：{absorption?.label}。{absorption?.sources.length
       ? <ul>{absorption!.sources.map((row) => <li key={`${row.source}/${row.surface_class}`}>{row.source}<p>类别：{SURFACE_CLASS_LABEL[row.surface_class]} · 验证层级 {row.verification_tier ?? "未分层"} · 当前可用：{row.currently_usable ? "是" : "否"} · 跨词汇表分歧 {row.conflicts} 条</p></li>)}</ul>
       : <>候选类别为 {absorption!.classes.map((item) => item.label).join("、")}；{absorption?.reason}</>}
-    </p>
+    </div>
     <h4>使用此能力的模板</h4>
     {requiring.length ? <ul className="capability-directory">{requiring.map((reference) => <li key={`${reference.template_id}:${reference.declared}`}>
       <b>{reference.template_id} {reference.template_name}</b>

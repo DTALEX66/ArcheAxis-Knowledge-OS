@@ -5,6 +5,8 @@ import whiteBrandMark from "../assets/aaos-brand-mark-white.png";
 import cosmicBrandMark from "../assets/aaos-brand-mark-cosmic.png";
 
 export const AAOS_THEMES = [
+  { id: "blueprint", label: "新设计／深蓝" },
+  { id: "blueprint-light", label: "新设计／浅色" },
   { id: "black", label: "黑色" },
   { id: "white", label: "珍珠白" },
   { id: "cosmic", label: "科技／深空／星环" },
@@ -14,6 +16,8 @@ export type AaosThemeId = (typeof AAOS_THEMES)[number]["id"];
 
 /** Theme-specific decorative resources share one source with the theme IDs. */
 export const AAOS_THEME_REGISTRY = {
+  blueprint: { id: "blueprint", brandMark: cosmicBrandMark },
+  "blueprint-light": { id: "blueprint-light", brandMark: whiteBrandMark },
   black: { id: "black", brandMark: blackBrandMark },
   white: { id: "white", brandMark: whiteBrandMark },
   cosmic: { id: "cosmic", brandMark: cosmicBrandMark },
@@ -32,7 +36,7 @@ export function readThemePreference(storage?: Pick<Storage, "getItem">): AaosThe
   } catch {
     // Private browsing and embedded WebViews may reject localStorage access.
   }
-  return "black";
+  return "blueprint";
 }
 
 export function writeThemePreference(theme: AaosThemeId, storage?: Pick<Storage, "setItem">): void {

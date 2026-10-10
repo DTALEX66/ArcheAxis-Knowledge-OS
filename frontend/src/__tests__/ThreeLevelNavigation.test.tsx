@@ -68,7 +68,9 @@ describe("UI-02 secondary level covers every space", () => {
 
   it("resolves the surface from the same predicate the shell routes on", () => {
     expect(canonicalSurface("vault", true)).toBe("canonical_knowledge");
-    expect(canonicalSurface("vault", false)).toBe("legacy");
+    expect(canonicalSurface("vault", false)).toBe("canonical_knowledge");
+    expect(canonicalSurface("workspace", false)).toBe("canonical_workspace");
+    expect(canonicalSurface("workspace", true)).toBe("canonical_workspace");
     expect(canonicalSurface("settings", true)).toBe("canonical_capabilities");
   });
 });

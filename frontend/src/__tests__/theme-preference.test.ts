@@ -6,8 +6,8 @@ import { AAOS_THEMES, AAOS_THEME_REGISTRY, BRAND_MARK_SLOT, applyTheme, readThem
 const frontend = basename(process.cwd()) === "frontend" ? process.cwd() : resolve(process.cwd(), "frontend");
 
 describe("AAOS theme preferences", () => {
-  it("exposes exactly the three owner-approved cool themes", () => {
-    expect(AAOS_THEMES.map((theme) => theme.id)).toEqual(["black", "white", "cosmic"]);
+  it("exposes the new reference themes and preserves the owner themes", () => {
+    expect(AAOS_THEMES.map((theme) => theme.id)).toEqual(["blueprint", "blueprint-light", "black", "white", "cosmic"]);
   });
 
   it("maps one real AAOS brand mark to each theme through the shared registry", () => {
@@ -30,10 +30,10 @@ describe("AAOS theme preferences", () => {
   it("persists UI preference only and tolerates unavailable storage", () => {
     const values = new Map<string, string>();
     const storage = { getItem: (key: string) => values.get(key) ?? null, setItem: (key: string, value: string) => values.set(key, value) };
-    expect(readThemePreference(storage)).toBe("black");
+    expect(readThemePreference(storage)).toBe("blueprint");
     writeThemePreference("white", storage);
     expect(readThemePreference(storage)).toBe("white");
-    expect(readThemePreference({ getItem: () => "warm-white" })).toBe("black");
+    expect(readThemePreference({ getItem: () => "warm-white" })).toBe("blueprint");
     expect(() => readThemePreference({ getItem: () => { throw new Error("disabled"); } })).not.toThrow();
     expect(() => writeThemePreference("cosmic", { setItem: () => { throw new Error("disabled"); } })).not.toThrow();
   });

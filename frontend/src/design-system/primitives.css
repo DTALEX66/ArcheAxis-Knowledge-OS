@@ -16,7 +16,7 @@
 .aaos-help { color:var(--aaos-muted); line-height:1.6; margin:5px 0 16px; }
 .aaos-error { color:var(--aaos-danger); margin:3px 0; }
 .aaos-dialog-overlay { position:fixed; z-index:1000; inset:0; background:var(--aaos-overlay); }
-.aaos-dialog-content { position:fixed; z-index:1001; top:50%; left:50%; transform:translate(-50%,-50%); width:min(580px,calc(100vw - 32px)); max-height:calc(100vh - 32px); overflow:auto; padding:24px; border:1px solid var(--aaos-control-border); border-radius:var(--ax-radius-lg); background:var(--aaos-surface); color:var(--aaos-text); box-shadow:0 20px 80px #0004; }
+.aaos-dialog-content { position:fixed; z-index:1001; top:50%; left:50%; transform:translate(-50%,-50%); width:min(580px,calc(100vw - 32px)); max-height:calc(100vh - 32px); overflow:auto; padding:24px; border:1px solid var(--aaos-control-border); border-radius:var(--ax-radius-lg); background:var(--aaos-surface); color:var(--aaos-text); box-shadow:var(--ax-shadow-lg); }
 .aaos-dialog-title { margin-top:0; font-size:20px; }
 .aaos-tabs-list { display:flex; flex-wrap:wrap; gap:8px; border-bottom:1px solid var(--aaos-border); padding-bottom:10px; }
 .aaos-tab { cursor:pointer; background:transparent; }

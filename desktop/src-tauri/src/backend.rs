@@ -712,9 +712,10 @@ fn core_restore_receipt_valid(
     let Some(object) = value.as_object() else {
         return false;
     };
-    if object.len() != 7
+    if object.len() != 8
         || value.get("ok") != Some(&serde_json::json!(true))
         || value.get("verified") != Some(&serde_json::json!(true))
+        || value.get("authorization_requires_new_grants") != Some(&serde_json::json!(true))
         || value.get("action").and_then(|v| v.as_str()) != Some("restore")
     {
         return false;
@@ -1450,10 +1451,15 @@ mod tests {
             fs::write(path, b"fixture").unwrap();
         }
         let preserved = preserved.canonicalize().unwrap();
-        let good = serde_json::json!({"ok":true,"verified":true,"action":"restore",
+        let good = serde_json::json!({"ok":true,"verified":true,"authorization_requires_new_grants":true,"action":"restore",
             "database":core.workspace_db.canonicalize().unwrap(),"backup":backup.canonicalize().unwrap(),
             "preserved_previous":preserved,"preserved_objects_directory":format!("{}.objects",preserved.display())});
         let bytes = serde_json::to_vec(&good).unwrap();
+        let mut legacy = good.clone();
+        legacy.as_object_mut().unwrap().remove("authorization_requires_new_grants");
+        assert!(!super::core_restore_receipt_valid(&serde_json::to_vec(&legacy).unwrap(),false,&core.workspace_db,&backup));
+        legacy["authorization_requires_new_grants"]=serde_json::json!(false);
+        assert!(!super::core_restore_receipt_valid(&serde_json::to_vec(&legacy).unwrap(),false,&core.workspace_db,&backup));
         assert!(super::core_restore_receipt_valid(
             &bytes,
             false,

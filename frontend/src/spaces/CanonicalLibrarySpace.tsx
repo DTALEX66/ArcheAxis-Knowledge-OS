@@ -2,7 +2,7 @@ import { lazy, Suspense, useEffect, useRef, useState, type CSSProperties } from 
 import type { JSONContent } from "@tiptap/core";
 import { coreCommand } from "../api/core";
 import { RawReceiptButton } from "../components/DiagnosticConsole";
-import type { SourceDto, DocumentDto, DocumentSummaryDto, OriginalDto, AnchorDto, DocumentExportDto, RevisionBasisDto } from "../api/generated/core-contract";
+import type { SourceDto, DocumentDto, DocumentSummaryDto, DocumentsListDto, OriginalDto, AnchorDto, DocumentExportDto, RevisionBasisDto } from "../api/generated/core-contract";
 import { Section } from "../components/RealData";
 import { MediaReader } from "../components/MediaReader";
 import type { EpubPosition } from "../components/EpubParagraphs";
@@ -24,10 +24,21 @@ const PdfReader = lazy(() => import("../components/PdfReader").then(module => ({
 // Tiptap/ProseMirror are needed only after a versioned document is selected.
 const DocumentEditor = lazy(() => import("../components/DocumentEditor").then(module => ({ default: module.DocumentEditor })));
 
-export function CanonicalLibrarySpace({onKnowledge,initialDocumentId,onDirtyChange,onInspect,onOpenCapability,navigation,onTrail}:{onKnowledge?:()=>void;initialDocumentId?:string;onDirtyChange?:(dirty:boolean)=>void;onInspect?:(target:InspectionTarget)=>void;onOpenCapability?:(id:string)=>void;navigation?:{section:string;sequence:number};onTrail?:(levels:readonly ObjectTrailLevel[])=>void}) {
+export function CanonicalLibrarySpace({purpose,onOpenDocument,onOpenImport,onKnowledge,initialDocumentId,onDirtyChange,onInspect,onOpenCapability,navigation,onTrail}:{purpose?:"library"|"reader"|"history";onOpenDocument?:(id:string)=>void;onOpenImport?:()=>void;onKnowledge?:()=>void;initialDocumentId?:string;onDirtyChange?:(dirty:boolean)=>void;onInspect?:(target:InspectionTarget)=>void;onOpenCapability?:(id:string)=>void;navigation?:{section:string;sequence:number};onTrail?:(levels:readonly ObjectTrailLevel[])=>void}) {
+  const [documentSearch,setDocumentSearch] = useState("");
+  const [contentFilter,setContentFilter] = useState<"all"|"original"|"linked">("all");
+  const [showSource,setShowSource] = useState(false);
+  const [showVersions,setShowVersions] = useState(purpose === "history");
   const [sources, setSources] = useState<SourceDto[]>([]);
+  const [libraryBootSettled,setLibraryBootSettled] = useState(false);
   const [sourcePage, setSourcePage] = useState(0);
   const [documents, setDocuments] = useState<DocumentSummaryDto[]>([]);
+  const [nextDocumentCursor, setNextDocumentCursor] = useState<string | null>(null);
+  const [loadingDocuments, setLoadingDocuments] = useState(false);
+  const documentPageInFlight = useRef(false);
+  const documentSnapshotCount = useRef<number | null>(null);
+  const consumedDocumentCursors = useRef(new Set<string>());
+  const libraryMounted = useRef(true);
   const [openedDocuments, setOpenedDocuments] = useState<DocumentSummaryDto[]>([]);
   const [source, setSource] = useState<SourceDto | null>(null);
   const [original, setOriginal] = useState<OriginalDto | null>(null);
@@ -124,16 +135,49 @@ export function CanonicalLibrarySpace({onKnowledge,initialDocumentId,onDirtyChan
   }, [document, source, anchors, onInspect]);
   useEffect(() => {
     let alive = true;
+    libraryMounted.current = true;
     Promise.all([
       coreCommand<{ sources: SourceDto[] }>("sources_list"),
-      coreCommand<{ documents: DocumentSummaryDto[] }>("documents_list"),
+      coreCommand<DocumentsListDto>("documents_list"),
     ]).then(([sourcesResult, docsResult]) => {
       if (!alive) return;
-      setSources(sourcesResult.sources); setDocuments(docsResult.documents); setMessage("");
-    }).catch((error: unknown) => { if (alive) { setMessage("资料暂时无法读取，请检查本地核心。"); setFailureReason(coreFailureReason(error)); setFailure(true); } });
-    return () => { alive = false; generation.current += 1; onDirtyChange?.(false); window.dispatchEvent(new CustomEvent("archeaxis-draft-dirty", { detail: false })); };
+      setSources(sourcesResult.sources); setDocuments(docsResult.documents); if(generation.current === 0) setMessage("");
+      setNextDocumentCursor(docsResult.next_cursor ?? null);
+      documentSnapshotCount.current = docsResult.snapshot_count ?? null;
+      consumedDocumentCursors.current.clear();
+    }).catch((error: unknown) => { if (alive) { setMessage("资料暂时无法读取，请检查本地核心。"); setFailureReason(coreFailureReason(error)); setFailure(true); } }).finally(()=>{if(alive)setLibraryBootSettled(true);});
+    return () => { alive = false; libraryMounted.current = false; generation.current += 1; onDirtyChange?.(false); window.dispatchEvent(new CustomEvent("archeaxis-draft-dirty", { detail: false })); };
   }, []);
-  useEffect(()=>{if(initialDocumentId)void openDocument(initialDocumentId);},[initialDocumentId]);
+  async function loadMoreDocuments() {
+    if (!nextDocumentCursor || documentPageInFlight.current) return;
+    const cursor = nextDocumentCursor;
+    documentPageInFlight.current = true;
+    setLoadingDocuments(true);
+    try {
+      const result = await coreCommand<DocumentsListDto>("documents_list", { cursor });
+      if (!libraryMounted.current) return;
+      if (result.snapshot_count !== documentSnapshotCount.current || result.next_cursor === cursor
+        || (result.next_cursor && consumedDocumentCursors.current.has(result.next_cursor))) {
+        throw new Error("document pagination snapshot is incompatible");
+      }
+      consumedDocumentCursors.current.add(cursor);
+      setDocuments(previous => {
+        const existing = new Set(previous.map(item => item.document_id));
+        return [...previous, ...result.documents.filter(item => !existing.has(item.document_id))];
+      });
+      setNextDocumentCursor(result.next_cursor);
+      setMessage(""); setFailure(false); setFailureReason(null);
+    } catch (error) {
+      if (libraryMounted.current) {
+        setMessage("更多文档读取失败；已加载文档与草稿仍保留，可重试。");
+        setFailure(true); setFailureReason(coreFailureReason(error));
+      }
+    } finally {
+      documentPageInFlight.current = false;
+      if (libraryMounted.current) setLoadingDocuments(false);
+    }
+  }
+  useEffect(()=>{if(initialDocumentId && libraryBootSettled)void openDocument(initialDocumentId);},[initialDocumentId,libraryBootSettled]);
   async function importFile(file: File) {
     setImportReceipt({name:file.name,bytes:file.size,state:"正在检查原件"});
     if (file.size > 64 * 1024 * 1024) { setMessage("当前导入上限为 64 MiB，请选择不超过上限的原件。"); setFailure(true); setImportReceipt({name:file.name,bytes:file.size,state:"未导入：超过大小上限"}); return; }
@@ -222,6 +266,7 @@ export function CanonicalLibrarySpace({onKnowledge,initialDocumentId,onDirtyChan
       setSource(null); setOriginal(null); setBytes(null); setAnchors([]); setExportProof(null); setDocumentSource(null); setDocumentOriginal(null); setDocumentBytes(null);
       setEditorEpoch(value => value + 1); setMessage("原创笔记已建立。"); setFailure(false);
       publishDirtyState();
+      if(purpose === "library") onOpenDocument?.(created.document_id);
     } catch { setMessage("原创笔记建立未确认；请重试。"); setFailure(true); }
   }
   // A second click during an in-flight create/restore/export would persist a duplicate
@@ -381,6 +426,61 @@ export function CanonicalLibrarySpace({onKnowledge,initialDocumentId,onDirtyChan
   // announces "正在读取资料…" / "正在读取原件与文档…", so a second placeholder region would make one
   // page read announce several times. The text stays where the editor appears.
   const documentEditor = document ? <Suspense fallback={<p>正在载入文档编辑器…</p>}><DocumentEditor key={`${document.document_id}:${editorEpoch}`} content={documentDrafts[document.document_id]?.content ?? document.editor_json as JSONContent} version={documentDrafts[document.document_id]?.baseVersion ?? document.version} onSave={save} onDirtyChange={value=>reportEditorDirty(document.document_id,value)} onDraftChange={(content,baseVersion)=>rememberDraft(document.document_id,content,baseVersion)} onCreateReference={source && original && bytes ? cite : undefined} onReferenceActivate={jump} /></Suspense> : null;
+
+  const originalPane = document ? <article className="original-derived-pane" aria-label="不可变原件">
+              <header><h4>不可变原件</h4><p>{linkedOriginal ? "原件身份、版本与字节指纹已核对。" : "关联原件尚未核对或当前未提供，不以其他原件替代。"}</p></header>
+              {linkedOriginal && documentBytes && documentOriginal && documentSource ? <>
+                <dl className="original-derived-identity"><div><dt>来源 ID</dt><dd>{documentSource.source_id}</dd></div><div><dt>来源版本</dt><dd>{documentSource.source_revision}</dd></div><div><dt>原件 SHA-256</dt><dd>{documentOriginal.sha256}</dd></div></dl>
+                 {linkedPdf ? <Suspense fallback={<p>正在载入 PDF 阅读器…</p>}><PdfReader bytes={documentBytes} page={page} onPageChange={setPage} focusRequest={focusRequest} /></Suspense> : documentOriginal.media_type.startsWith("text/") ? <pre tabIndex={0} aria-label="并排原件正文">{new TextDecoder().decode(documentBytes)}</pre> : documentOriginal.media_type.startsWith("image/") ? <img className="original-derived-image" src={`data:${documentOriginal.media_type};base64,${documentOriginal.content_base64}`} alt={`原件 ${documentSource.original_name}`} /> : documentOriginal.media_type.startsWith("audio/") || documentOriginal.media_type.startsWith("video/") ? <MediaReader key={`derived-media:${documentSource.source_id}`} bytes={documentBytes} mediaType={documentOriginal.media_type} seek={mediaSeek?.sourceId===documentSource.source_id?mediaSeek:undefined}/> : <p>此格式没有原生并排查看器；原件仍保存在 CAS，可从原件列表使用现有 Reader。</p>}
+              </> : <p>原件读取失败、身份不匹配或未绑定到此文档版本。正文指纹与原件指纹保持分开显示。</p>}
+            </article> : null;
+  const versionControls = document ? <><div ref={versionNavigation} tabIndex={-1} data-section="versions" aria-label="文档版本导航" className="draft-restore"><label>恢复历史版本 <input type="number" min="1" max={document.version} value={restoreVersion} onChange={(event) => setRestoreVersion(event.target.value)} /></label><button type="button" onClick={() => void readHistory()}>只读查看历史版本</button><button type="button" disabled={busy} onClick={() => void singleWrite(restore)}>读取并恢复版本</button></div>
+          {historicalDocument?.document_id===document.document_id?<section aria-label="历史版本详情"><h4>历史版本 {historicalDocument.version}</h4><pre>{historicalDocument.text_projection}</pre>{historicalDocument.revision_basis?<RawReceiptButton label="历史修订依据" payload={historicalDocument.revision_basis} />:<p>此版本没有记录修订依据。</p>}<button type="button" onClick={()=>{historyGeneration.current+=1;setHistoricalDocument(null);}}>关闭历史详情</button></section>:null}</> : null;
+  const feedback = <>{message ? <p role={failure ? "alert" : "status"}>{message}</p> : null}{failureReason ? <p className="state-reason">{failureReason}</p> : null}</>;
+  const filteredDocuments = documents.filter(item => {
+    if(contentFilter === "original" && item.source_id) return false;
+    if(contentFilter === "linked" && !item.source_id) return false;
+    const sourceName=sources.find(value=>value.source_id === item.source_id)?.original_name ?? "";
+    return `${item.title} ${sourceName}`.toLocaleLowerCase().includes(documentSearch.trim().toLocaleLowerCase());
+  });
+  function selectForReading(id:string) {
+    if(onOpenDocument) onOpenDocument(id); else void openDocument(id);
+  }
+  const documentList = <>
+    <nav ref={documentNavigation} tabIndex={-1} data-section="documents" aria-label="已保存文档" className="ui-document-list">
+      <table><thead><tr><th>名称</th><th>内容身份</th><th>版本</th><th>操作</th></tr></thead><tbody>
+        {filteredDocuments.map(item=><tr key={item.document_id}><td><strong>{item.title}</strong>{item.source_id ? <small>{sources.find(value=>value.source_id===item.source_id)?.original_name ?? "已绑定来源"}</small> : null}</td><td>{item.source_id ? "关联原件文档" : "原创笔记"}</td><td>v{item.version}</td><td><button type="button" onClick={()=>selectForReading(item.document_id)} aria-label={`打开文档 ${item.title}`}>打开</button></td></tr>)}
+      </tbody></table>
+      {!failure && !message && filteredDocuments.length===0 ? <p>{documents.length ? "已加载内容中没有匹配文档。" : "暂无已保存文档，可以新建原创笔记。"}</p> : null}
+    </nav>
+    {nextDocumentCursor ? <button type="button" disabled={loadingDocuments} onClick={()=>void loadMoreDocuments()}>{loadingDocuments ? "正在加载文档…" : "加载更多文档"}</button> : null}
+  </>;
+  if(purpose === "library") return <section className="ui-library-page" aria-label="知识库文档视图">
+    <div className="ui-content-tabs" role="group" aria-label="内容筛选">
+      <button type="button" aria-pressed={contentFilter==="all"} onClick={()=>setContentFilter("all")}>全部内容</button>
+      <button type="button" aria-pressed={contentFilter==="original"} onClick={()=>setContentFilter("original")}>原创笔记</button>
+      <button type="button" aria-pressed={contentFilter==="linked"} onClick={()=>setContentFilter("linked")}>关联原件</button>
+    </div>
+    <div className="ui-library-toolbar"><input type="search" aria-label="筛选已加载文档标题与来源" placeholder="搜索标题、来源…" value={documentSearch} onChange={event=>setDocumentSearch(event.target.value)}/><button type="button" onClick={onOpenImport} disabled={!onOpenImport}>导入原件</button><button className="ui-primary-action" type="button" disabled={busy} onClick={()=>void singleWrite(createOriginal)}>新建笔记</button></div>
+    <div className="ui-content-main-side"><section className="ui-content-panel"><header><h3>已保存内容</h3><p>标题与来源筛选覆盖已加载文档；可继续加载同一快照。</p></header>{documentList}</section>
+      <aside className="ui-content-panel" aria-label="内容与视图"><h3>内容与视图</h3><p>笔记与关联原件共用文档版本。打开实际文档后阅读与编辑。</p><p>普通笔记无需依据即可保存；依据分析与用户采用分别记录。</p><h4>集合与视图</h4><p>集合、标签和其他视图尚未接通。</p><button type="button" onClick={()=>onOpenCapability?.("CAP-0020")} disabled={!onOpenCapability}>查看集合能力详情</button></aside>
+    </div>{feedback}
+  </section>;
+  if(purpose === "reader" || purpose === "history") return <section className="ui-reader-page" aria-label={purpose==="history" ? "文档版本视图" : "阅读与编辑文档视图"}>
+    {document ? <>
+      <div className="ui-reader-toolbar"><div className="ui-content-tabs" role="group" aria-label="阅读辅助视图"><button type="button" aria-pressed={!showSource&&!showVersions} onClick={()=>{setShowSource(false);setShowVersions(false);}}>正文</button><button type="button" aria-pressed={showSource} onClick={()=>setShowSource(value=>!value)}>原件</button><button type="button" aria-pressed={showVersions||purpose==="history"} onClick={()=>setShowVersions(value=>!value)}>版本</button></div></div>
+      <div className="ui-reader-layout"><article className="ui-reader-document" aria-label="文档正文与编辑"><header><p className="ui-document-meta">{document.source_id ? "关联原件文档" : "原创笔记"} · v{document.version} · 无需依据即可保存</p><h2>{document.title}</h2></header>{purpose!=="history" ? documentEditor : <p>{document.text_projection}</p>}
+        {showSource ? <section className="ui-reader-original" aria-label="关联原件阅读">{document.source_id ? originalPane : <p>此原创笔记没有绑定来源原件。</p>}</section> : null}
+      </article><aside className="ui-content-panel ui-reader-details" aria-label="内容详情"><h3>内容详情</h3><dl><div><dt>内容身份</dt><dd>{document.source_id ? "关联原件文档" : "原创笔记"}</dd></div><div><dt>文档版本</dt><dd>v{document.version}{dirtyDocumentIds.current.has(document.document_id) ? " · 未保存更改" : ""}</dd></div><div><dt>来源版本</dt><dd>{document.source_id ? linkedOriginal ? "原件身份、版本与字节已核对" : "已绑定；原件读取尚未核对" : "未绑定；保存不要求来源"}</dd></div></dl>
+        <RawReceiptButton label="文档身份与来源指纹" payload={{document_id:document.document_id,source_id:document.source_id,source_revision:document.source_revision,content_sha256:document.content_sha256}}/>
+        <details><summary>依据与修订记录</summary><CheckPanel key={`checks:${document.document_id}:${document.version}`} document={document} onRevisionBasis={value=>{revisionBasis.current=value;}}/></details>
+        {showVersions||purpose==="history" ? <section aria-label="版本与影响">{versionControls}</section> : <button type="button" onClick={()=>setShowVersions(true)}>查看历史版本</button>}
+        <details><summary>导出已保存文档</summary><button type="button" disabled={busy} onClick={()=>void singleWrite(()=>exportDocument("markdown"))}>Markdown 导出到产品资料目录</button><button type="button" disabled={busy} onClick={()=>void singleWrite(()=>exportDocument("obsidian"))}>Obsidian 包导出到产品资料目录</button>{exportProof?<RawReceiptButton label="导出格式与损失回执" payload={exportProof}/>:null}</details>
+      </aside></div>
+    </> : <section className="ui-content-panel"><h3>选择已保存文档</h3><p>从实际文档进入阅读，保留其来源与版本。</p>{documentList}</section>}
+    {feedback}
+  </section>;
+
   return <Section title="资料库">
     <TemplateLauncher onOpen={id=>void openDocument(id)} onOpenCapability={onOpenCapability} onDirtyChange={value=>{if(value)dirtyDocumentIds.current.add("template-properties");else dirtyDocumentIds.current.delete("template-properties");publishDirtyState();}} />
     <p className="muted">原件保留其不可变版本；草稿自动保存到本地核心，引用绑定原件版本。</p>
@@ -426,17 +526,12 @@ export function CanonicalLibrarySpace({onKnowledge,initialDocumentId,onDirtyChan
     </nav> : null}
     <button type="button" disabled={busy} onClick={() => void singleWrite(createOriginal)}>新建原创笔记</button>
     <nav ref={documentNavigation} tabIndex={-1} data-section="documents" aria-label="已保存文档">{documents.map(item => <button type="button" key={item.document_id} onClick={() => void openDocument(item.document_id)}>{item.title} · 文档</button>)}</nav>
+    {nextDocumentCursor ? <button type="button" disabled={loadingDocuments} onClick={() => void loadMoreDocuments()}>{loadingDocuments ? "正在加载文档…" : "加载更多文档"}</button> : null}
     {!source && navigation?.section === "anchors" ? <section ref={anchorNavigation} tabIndex={-1} data-section="anchors" aria-label="来源版本证据"><p>请先选择实际来源原件；原创笔记可以没有来源锚点。</p></section> : null}
     {!document && navigation?.section === "versions" ? <div ref={versionNavigation} tabIndex={-1} data-section="versions" aria-label="文档版本导航"><p>请先选择已保存文档，再查看它的历史版本。</p></div> : null}
         {document ? <>
           {document.source_id ? <section className="original-derived-split" aria-label="原件与派生文档并排阅读" style={{"--derived-focus":1} as CSSProperties}>
-            <article className="original-derived-pane" aria-label="不可变原件">
-              <header><h4>不可变原件</h4><p>{linkedOriginal ? "原件身份、版本与字节指纹已核对。" : "关联原件尚未核对或当前未提供，不以其他原件替代。"}</p></header>
-              {linkedOriginal && documentBytes && documentOriginal && documentSource ? <>
-                <dl className="original-derived-identity"><div><dt>来源 ID</dt><dd>{documentSource.source_id}</dd></div><div><dt>来源版本</dt><dd>{documentSource.source_revision}</dd></div><div><dt>原件 SHA-256</dt><dd>{documentOriginal.sha256}</dd></div></dl>
-                 {linkedPdf ? <Suspense fallback={<p>正在载入 PDF 阅读器…</p>}><PdfReader bytes={documentBytes} page={page} onPageChange={setPage} focusRequest={focusRequest} /></Suspense> : documentOriginal.media_type.startsWith("text/") ? <pre tabIndex={0} aria-label="并排原件正文">{new TextDecoder().decode(documentBytes)}</pre> : documentOriginal.media_type.startsWith("image/") ? <img className="original-derived-image" src={`data:${documentOriginal.media_type};base64,${documentOriginal.content_base64}`} alt={`原件 ${documentSource.original_name}`} /> : documentOriginal.media_type.startsWith("audio/") || documentOriginal.media_type.startsWith("video/") ? <MediaReader key={`derived-media:${documentSource.source_id}`} bytes={documentBytes} mediaType={documentOriginal.media_type} seek={mediaSeek?.sourceId===documentSource.source_id?mediaSeek:undefined}/> : <p>此格式没有原生并排查看器；原件仍保存在 CAS，可从原件列表使用现有 Reader。</p>}
-              </> : <p>原件读取失败、身份不匹配或未绑定到此文档版本。正文指纹与原件指纹保持分开显示。</p>}
-            </article>
+            {originalPane}
             <article className="original-derived-pane" aria-label="派生文档与版本核验">
               <header><h4>派生文档</h4><p>文档版本 {document.version} · 正文 SHA-256 {document.content_sha256}</p></header>
                {documentEditor}
@@ -446,13 +541,12 @@ export function CanonicalLibrarySpace({onKnowledge,initialDocumentId,onDirtyChan
            {documentEditor}
           <CheckPanel key={`checks:${document.document_id}:${document.version}`} document={document} onRevisionBasis={value=>{revisionBasis.current=value;}} />
           </>}
-          <div ref={versionNavigation} tabIndex={-1} data-section="versions" aria-label="文档版本导航" className="draft-restore"><label>恢复历史版本 <input type="number" min="1" max={document.version} value={restoreVersion} onChange={(event) => setRestoreVersion(event.target.value)} /></label><button type="button" onClick={() => void readHistory()}>只读查看历史版本</button><button type="button" disabled={busy} onClick={() => void singleWrite(restore)}>读取并恢复版本</button></div>
-          {historicalDocument?.document_id===document.document_id?<section aria-label="历史版本详情"><h4>历史版本 {historicalDocument.version}</h4><pre>{historicalDocument.text_projection}</pre>{historicalDocument.revision_basis?<RawReceiptButton label="历史修订依据" payload={historicalDocument.revision_basis} />:<p>此版本没有记录修订依据。</p>}<button type="button" onClick={()=>{historyGeneration.current+=1;setHistoricalDocument(null);}}>关闭历史详情</button></section>:null}
+          {versionControls}
           <div className="space-section-region" data-section="export" tabIndex={-1} aria-label="文档导出"><button type="button" disabled={busy} onClick={()=>void singleWrite(()=>exportDocument("markdown"))}>Markdown 导出到产品资料目录</button><button type="button" disabled={busy} onClick={()=>void singleWrite(()=>exportDocument("obsidian"))}>Obsidian 包导出到产品资料目录</button></div>
           {exportProof?<RawReceiptButton label="导出格式与损失回执" payload={exportProof} />:null}
         </> : null}
     {message ? <p role={failure ? "alert" : "status"}>{message}</p> : null}
     {failureReason ? <p className="state-reason">{failureReason}</p> : null}
-    <BackupPanel />
+    <BackupPanel hasUnsavedDrafts={dirty.current} />
   </Section>;
 }

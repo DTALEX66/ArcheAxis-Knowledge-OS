@@ -1,23 +1,19 @@
 # 星环知识平台（ArcheAxis Knowledge）
 
-**当前版本**：`0.6.14`（开发源码版本；安装态资格与 Owner 接受另行验证）。
+> **当前执行入口（2026-10-09）**：[`AUTHORITY.md`](AUTHORITY.md) →
+> [`活动执行路由`](docs/current/AAOS-ACTIVE-EXECUTION.json) →
+> [`UI 优先任务包`](docs/taskpacks/aaos-ui-first-20261009/TASKPACK.md) →
+> [`实际执行与验收记录`](docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md)。
+> 当前包由用户明确选中；其规划时 NOT_EXECUTED 不等同当前实施状态。
+> AAOS-01/R6/M0 是历史任务的继承合同与日期证据，旧整包顺序冻结；V01 暂停，FT01–04 延期保留。
+>
+> **正式实现方向**：Tauri 2 + React/TypeScript/Vite，Rust Core 是 SQLite/CAS 唯一 writer，Python workers 隔离。
+> 新五域/22语义页面按任务分批接入。默认 blueprint，支持 blueprint-light 与原 black/white/cosmic；所有主题共用新布局，同一主题的颜色由统一语义变量控制。
+> 本地实现、自动测试、exact-SHA 云端 CI、已安装运行与 Owner 验收分别记账；页面入口和能力意图不等同功能全部完成。
+> [`内容保存规则`](PROJECT_CONTRACT.yaml) 继续有效；普通笔记不以云核验、依据或人审为保存前置。
+> [当前 Agent 交接](docs/current/AAOS-AGENT-HANDOFF-CURRENT.md) / [治理与云端同步范围](docs/current/AAOS-GOVERNANCE-ALIGNMENT-20261009.md)。
 
 <!-- Legacy/Migration names below are compatibility context only. -->
-
-> **当前权威入口（2026-10-06）**：先是根入口 [`AUTHORITY.md`](AUTHORITY.md)——它给出完整母定义、本仓拥有/不拥有、
-> 当前能力的证据分级、未来能力入口、唯一 current（任务包与进度记录）与审计索引；
-> 再按 [`docs/DOCUMENTATION_AUTHORITY_INDEX.md`](docs/DOCUMENTATION_AUTHORITY_INDEX.md) 的读取顺序读项目合同、SUP-022 与 AAOS-01 任务书。
-> [`PROJECT_CONTRACT.yaml`](PROJECT_CONTRACT.yaml) 的 `content_policy` 是内容保存和证据用途的规范；
-> 本轮实际进度与剩余缺口只登记在
-> [`AAOS-01 当前台账`](docs/current/AAOS01-Q00-Q15-LEDGER-FINAL-20261005.md)，
-> 覆盖矩阵与审计快照见 [`AAOS-COVERAGE-MATRIX-20261006`](docs/current/AAOS-COVERAGE-MATRIX-20261006.md) 与
-> [`AAOS-AUDIT-SNAPSHOT-20261006`](docs/current/AAOS-AUDIT-SNAPSHOT-20261006.json)。
-> R6/M0 与旧任务包保留各自历史和证据，完成声明须核对实际运行及固定 SHA。
-
-> **当前实现方向**：React/TypeScript/Vite 内容界面 + Tauri 2/Rust 宿主，
-> 通过有限命令访问 Rust Core；Core 统一管理 SQLite/CAS 正典写入，Python workers 承担解析与模型计算。
-> 旧 Tauri 的导航、表格、恢复组件与 Avalonia 的来源/证据阅读布局作为可复用供体吸收。
-> 本地测试、固定 SHA 的 CI、真实安装态旅程和 Owner 接受分别验收。
 
 > **ArcheAxis Knowledge — a local-first, evidence-driven, bidirectional Human–AI Learning & Trusted-Knowledge Workspace for individuals and AI.**
 >
@@ -40,7 +36,7 @@
 - 能力图谱：[`docs/truth/CAPABILITY_ATLAS_V2.yaml`](docs/truth/CAPABILITY_ATLAS_V2.yaml)
 - 总蓝图：[`docs/blueprint/SYSTEM_MASTER_BLUEPRINT_V2.md`](docs/blueprint/SYSTEM_MASTER_BLUEPRINT_V2.md)
 
-**当前阶段**：按 AAOS-01 的真实导入、阅读编辑、版本、引用、审核、学习、AI 使用、导出、重启和副本恢复旅程推进。实际能力、本地媒体解码/ASR/抽帧识别与旧安装态仅探测的区别、固定CI及真人验收缺口见唯一当前台账；不凭构建或历史发布推定新产品已收口。
+**当前阶段**：按 UI 优先任务包实施首批与 G01，详情见当前执行记录；旧 Q00–Q15 证据只在其继承台账内解释，不代表新 UI 完整资格。
 
 **内容保存原则**：原创笔记、灵感、假设、未复核识别结果及待补依据的专业内容可以先保存、搜索、阅读和编辑。身份、写入权限、结构与完整性校验继续执行；普通保存不等待云端调用，也不要求先填证据表单。
 
@@ -108,14 +104,14 @@ bake-off 框架：[`shared/bakeoff.py`](shared/bakeoff.py) + [`shared/bakeoff_en
 - **成熟能力复用**：继续使用已有 Tauri/Avalonia 资产、Tiptap/PDF.js、解析器、模型和搜索适配器；开源池登记项的许可证、版本与实际接入证据分别核验。
 - **可验证交付**：统一权威运行时暂存器、锁文件、有限宿主桥与单一 Core writer。发布和 Green 替换保留现有 Owner Gate；历史 Release 与本轮重构资格分开。
 
-执行规格见 [`AAOS-01 任务书`](docs/authority/taskpack-1004-aaos01/01_完整执行任务书.md)，产品规范见 [`项目合同`](PROJECT_CONTRACT.yaml)，实际结果见 [`当前台账`](docs/current/AAOS01-Q00-Q15-LEDGER-FINAL-20261005.md)。历史标签、许可证边界、用户资料及恢复基线保留原始身份。
+当前执行规格见 [`UI 优先任务包`](docs/taskpacks/aaos-ui-first-20261009/TASKPACK.md)，产品规范见 [`项目合同`](PROJECT_CONTRACT.yaml)，当前实施结果见 [`UI 执行记录`](docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md)。[`继承 AAOS-01 任务书`](docs/authority/taskpack-1004-aaos01/01_完整执行任务书.md)及其 Q 台账保留原范围。历史标签、许可证边界、用户资料及恢复基线保留原始身份。
 
 > **Historical snapshot: pre-R6 Research implementation.** The following
 > FastAPI/SQLite facade, routes and completion claims describe an earlier
 > architecture. They remain migration/compatibility evidence and do not define
 > the formal vNext shell, Core, current capability status or active queue.
-> R6/M0 receipts retain their historical scope. Current execution is defined by AAOS-01 and
-> read back only in `docs/current/AAOS01-Q00-Q15-LEDGER-FINAL-20261005.md`.
+> R6/M0 and AAOS-01 receipts retain their historical scope. Current execution is
+> routed by `docs/current/AAOS-ACTIVE-EXECUTION.json` and recorded in the UI execution record.
 
 ## Phase 4 Research Status
 
@@ -149,7 +145,7 @@ Research → Evidence → Knowledge → Learning
 > **Historical snapshot: pre-R6 program roadmap.** The Phase 0–9 / Product
 > Stage A0 table and following milestone narrative preserve their original
 > dated status; they are not the current execution plan. Current execution is
-> defined by R6/M0 in the documentation authority chain.
+> routed by the owner-selected UI-first package in the documentation authority chain.
 
 ## 规划与进度
 
@@ -182,7 +178,7 @@ CODEX 冻结的后续执行蓝图与增补包已进入仓库 `docs/`，作为后
 
 > 说明：这些文档与历史 `docs/FUTURE_EXECUTION_BLUEPRINT.md` 并存；冻结基线与增补包是当前任务的权威定义，历史蓝图仅作迁移输入（权威顺序见 `AUTHORITY_CONTRACT.md`）。H1 后端已完成但仍在 PR 中未 merge，`PROJECT_STATUS` 与 README 的产品能力描述以 main 实际状态为准。
 
-### 当前里程碑：Product Stage A0 真相基线
+### 历史里程碑：Product Stage A0 真相基线（旧阶段）
 
 ```text
 Phase 0 真实基线 ✅
@@ -214,7 +210,7 @@ Phase 0 真实基线 ✅
 
 本阶段明确不宣称：单个 GitHub 仓库已构成独立交叉验证、candidate 已成为 verified truth，或完整认知执行闭环、Tauri WebView 点击级 UI、通用 Planner、完整用户级 Job Center、公开 Alpha/Beta 能力已完成；公开稳定 `v0.5.0` 发布资产本身已完成并有独立回读证据。
 
-未来设计与候选执行轨道见 [`docs/FUTURE_EXECUTION_BLUEPRINT.md`](docs/FUTURE_EXECUTION_BLUEPRINT.md)；当前事实与限制见 [`docs/current/R6-EXECUTION.md`](docs/current/R6-EXECUTION.md)、[`docs/current/R6-STATE.json`](docs/current/R6-STATE.json) 与 [`docs/current/M0-DIRECTION-OVERRIDE-20260920.md`](docs/current/M0-DIRECTION-OVERRIDE-20260920.md)。`docs/PROJECT_STATUS.md` 仅作历史快照。
+未来设计与候选执行轨道见 [`docs/FUTURE_EXECUTION_BLUEPRINT.md`](docs/FUTURE_EXECUTION_BLUEPRINT.md)；当前事实与限制见 [`UI 执行记录`](docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md)与 [`活动路由`](docs/current/AAOS-ACTIVE-EXECUTION.json)。R6/M0 与 `docs/PROJECT_STATUS.md` 仅保留继承约束和历史快照。
 
 开源项目、知识库软件与 Obsidian/PKM 的吸收状态、前后端阶段、Adapter 边界和验收门禁见 [`docs/ABSORPTION_EXECUTION_MATRIX.md`](docs/ABSORPTION_EXECUTION_MATRIX.md)；候选登记不等于运行时集成。
 
@@ -231,7 +227,9 @@ python -m app.runtime_entrypoint core
 - Knowledge API：`http://127.0.0.1:8000/kb/docs`
 - 实时健康与路由数：`http://127.0.0.1:8000/health`
 
-## 当前可运行基线
+## 历史可运行基线（Python-era 行为供体）
+
+下表保留旧阶段功能说明，不代表当前正式 Tauri/Rust Core 或安装版已验证能力。
 
 | 入口 | 作用 |
 |---|---|
@@ -244,7 +242,9 @@ python -m app.runtime_entrypoint core
 
 旧的细粒度接口仍为兼容层；新增能力优先进入复合端点，不再继续平铺路由。
 
-## 当前模块边界
+## 历史模块边界（Python-era 供体）
+
+下表为兼容/迁移输入；当前职责由 SUP-022、项目合同和当前架构索引定义。
 
 ```text
 app/                    核心服务、摄入、工具、工作流（技术实现边界）

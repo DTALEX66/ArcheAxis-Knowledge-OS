@@ -326,6 +326,10 @@ def extract(path: str, question: str | None = None,
         "endpoint": result["endpoint"],
         "protocol": result["protocol"],
         "prompt_version": result["prompt_version"],
+        "finish_reason": result["finish_reason"],
+        "max_tokens": result["max_tokens"],
+        "truncated": result["truncated"],
+        "elapsed_s": result["elapsed_s"],
         "loss_receipt": result["loss_receipt"],
     }
 

@@ -14,7 +14,8 @@ from __future__ import annotations
 import hashlib
 import importlib.util
 import json
-import shutil
+import os
+import re
 import subprocess
 from pathlib import Path
 
@@ -50,18 +51,39 @@ def file_digest(path: Path) -> str | None:
     return digest.hexdigest()
 
 
-def worktree_roots(repo: Path) -> list[Path]:
-    """Every checkout of this repository, because a citation may live on another branch."""
+def worktree_roots(repo: Path, *, require_complete: bool = False) -> list[Path]:
+    """Project-owned checkouts only; registered private clones are not project evidence."""
     import subprocess
 
     roots = [repo]
+    common = subprocess.run(["git", "-C", str(repo), "rev-parse", "--path-format=absolute", "--git-common-dir"],
+                            capture_output=True, text=True, encoding="utf-8", check=True)
+    owner = Path(common.stdout.strip()).parent
     listing = subprocess.run(["git", "-C", str(repo), "worktree", "list", "--porcelain"],
                              capture_output=True, text=True, encoding="utf-8", errors="replace")
+    if listing.returncode:
+        raise RuntimeError('cannot enumerate checkout references')
+    excluded = False
     for line in (listing.stdout or "").splitlines():
         if line.startswith("worktree "):
             path = Path(line[len("worktree "):].strip())
-            if path.is_dir() and path != repo:
+            # Filter lexically before is_dir() or any filesystem probe of a foreign/private tree.
+            if any(part.casefold() in {'.ui-task-tree', '.codex', '.hermes', '.zcode'} for part in path.parts):
+                excluded = True
+                continue
+            if path != owner and not path.is_relative_to(owner / '.project-local' / 'worktrees'):
+                excluded = True
+                continue
+            try:
+                present = path.is_dir()
+            except OSError:
+                present = False
+            if not present:
+                excluded = True
+            elif path != repo:
                 roots.append(path)
+    if require_complete and excluded:
+        raise RuntimeError('reference coverage includes protected or foreign checkouts; preserve assets')
     return roots
 
 
@@ -77,12 +99,18 @@ def referenced_exactly(relative: str, repo: Path) -> bool:
     evidence trail.
     """
     needle = relative.replace("\\", "/")
-    for root in worktree_roots(repo):
+    try:
+        roots = worktree_roots(repo, require_complete=True)
+    except (OSError, RuntimeError, subprocess.SubprocessError):
+        return True
+    for root in roots:
         try:
             found = subprocess.run(["git", "grep", "-l", "-F", needle],
                                    cwd=root, capture_output=True, text=True)
         except OSError:
             return True
+        if found.returncode not in (0, 1):
+            return True  # inability to read is not evidence that a path is unreferenced
         if found.returncode == 0 and found.stdout.strip():
             return True
     return False
@@ -90,27 +118,39 @@ def referenced_exactly(relative: str, repo: Path) -> bool:
 
 def plan_moves(repo: Path, scratch: Path) -> tuple[list[tuple[Path, Path]], list[str]]:
     report = storage_report.measure(repo)
+    if report.get("measurement_status") != "PASS":
+        raise RuntimeError("incomplete ownership measurement; preserve assets, no realignment plan")
     moves: list[tuple[Path, Path]] = []
     skipped: list[str] = []
+    def candidate(source: Path) -> None:
+        storage_report.safe_path(source)
+        if source.is_dir():
+            measured = storage_report.directory_measurement(source)
+            if measured['errors'] or measured['excluded_private'] or measured['links']:
+                raise RuntimeError(f"incomplete or redirected candidate; preserve {source}")
+        elif source.name.casefold().startswith('.env') or source.name.casefold() in {'.npmrc', '.pypirc', 'id_rsa', 'id_ed25519'}:
+            raise RuntimeError(f"protected file is not a migration candidate: {source.name}")
     for name in report["dev_strays"]:
         source = repo / name
+        candidate(source)
         if not source.exists():
             continue
         relative = name
         if referenced_exactly(relative, repo):
-            skipped.append(f"{relative}: referenced by a tracked file")
+            skipped.append(f"{relative}: referenced or reference coverage unavailable")
             continue
         moves.append((source, scratch / "project-local" / name.split("/", 1)[1]))
     for name in [item for item in report["out_of_layout"] if item.startswith("root:")]:
         relative = name[len("root: "):].rstrip("/")
         source = repo / relative
+        candidate(source)
         if not source.exists():
             continue
         if relative == "data":
             skipped.append("data/ is sanctioned local runtime state")
             continue
         if referenced_exactly(relative, repo):
-            skipped.append(f"{relative}: referenced by a tracked file")
+            skipped.append(f"{relative}: referenced or reference coverage unavailable")
             continue
         moves.append((source, scratch / "repo-root" / relative))
     return moves, skipped
@@ -126,10 +166,18 @@ def main() -> int:
                         help="date suffix for the scratch area and its manifest")
     parser.add_argument("--dry-run", action="store_true")
     args = parser.parse_args()
-    repo = Path(args.repo).resolve() if args.repo else REPO
+    if not re.fullmatch(r'\d{8}', args.stamp):
+        parser.error('--stamp must be an eight-digit date')
+    repo = Path(args.repo).absolute() if args.repo else REPO
     scratch = repo / ".project-local" / f"legacy-scratch-{args.stamp}"
 
-    moves, skipped = plan_moves(repo, scratch)
+    try:
+        storage_report.safe_path(repo)
+        storage_report.safe_path(scratch)
+        moves, skipped = plan_moves(repo, scratch)
+    except (OSError, ValueError, RuntimeError, subprocess.SubprocessError) as error:
+        print(f"refused: {error}")
+        return 1
     if args.dry_run:
         print(json.dumps({"repo": str(repo), "scratch": str(scratch),
                           "would_move": [str(s.relative_to(repo)).replace("\\", "/") for s, _ in moves],
@@ -143,14 +191,34 @@ def main() -> int:
         "note": "restore by moving each source back to the repository root; nothing was deleted",
     }
     scratch.mkdir(parents=True, exist_ok=True)
+    scratch_manifest = scratch / f"manifest-{args.stamp}.json"
+    if scratch_manifest.exists():
+        print(f"refused: manifest exists {scratch_manifest}")
+        return 1
+
+    def checkpoint() -> None:
+        storage_report.safe_path(scratch_manifest)
+        temporary = storage_report.safe_path(scratch_manifest.with_suffix('.json.tmp'))
+        temporary.write_text(json.dumps(manifest, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+        os.replace(temporary, scratch_manifest)
+
+    checkpoint()
     for source, target in moves:
+        storage_report.safe_path(source)
+        storage_report.safe_path(target)
+        target.absolute().relative_to(repo.absolute())
         digest = file_digest(source)
         size = source.stat().st_size if source.is_file() else storage_report.directory_size(source)
         target.parent.mkdir(parents=True, exist_ok=True)
         if target.exists():
             print(f"refused: target exists {target}")
             return 1
-        shutil.move(str(source), str(target))
+        try:
+            os.rename(source, target)  # same-volume atomic move; never fall back to recursive copying
+        except OSError as error:
+            manifest['skipped'].append(f"{source.relative_to(repo)}: move refused ({type(error).__name__})")
+            checkpoint()
+            return 1
         manifest["moved"].append({
             "source": str(source.relative_to(repo)).replace("\\", "/"),
             "scratch_path": str(target.relative_to(repo)).replace("\\", "/"),
@@ -159,8 +227,7 @@ def main() -> int:
             "sha256": digest,
             "recover": f"move {target} back to {source}",
         })
-    scratch_manifest = scratch / f"manifest-{args.stamp}.json"
-    scratch_manifest.write_text(json.dumps(manifest, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+        checkpoint()
 
     after = storage_report.measure(repo)
     print(f"moved {len(manifest['moved'])} entries to {scratch}")

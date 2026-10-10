@@ -308,12 +308,12 @@ def _chart_text(root: ET.Element, part: str) -> tuple[str, bool]:
     return "\n".join(lines), carried
 
 
-def _pptx_charts(path: Path) -> dict[int, list[tuple[str, bool]]]:
-    """Map slide number -> [(chart text, carried values)] through the slide's relationships.
+def _pptx_charts(path: Path) -> dict[int, list[tuple[str, bool, str, str]]]:
+    """Map slide number -> [(text, carried values, relationship ID, chart part)] from the package.
 
     python-pptx reports that a shape is a chart but not what the chart holds, and the cached
     categories/values are the only chart data present without a spreadsheet application."""
-    by_slide: dict[int, list[tuple[str, bool]]] = {}
+    by_slide: dict[int, list[tuple[str, bool, str, str]]] = {}
     with zipfile.ZipFile(path) as archive:
         names = set(archive.namelist())
         parts = sorted(
@@ -347,7 +347,8 @@ def _pptx_charts(path: Path) -> dict[int, list[tuple[str, bool]]]:
                     posixpath.join(posixpath.dirname(name), target_name.lstrip("/"))
                 ).replace("\\", "/")
                 if target in rendered:
-                    by_slide.setdefault(int(digits), []).append(rendered[target])
+                    text, carried = rendered[target]
+                    by_slide.setdefault(int(digits), []).append((text, carried, rel.get("Id", ""), target))
     return by_slide
 
 
@@ -366,21 +367,21 @@ def _pptx_text(path: Path) -> dict:
     for index, slide in enumerate(presentation.slides, start=1):
         for shape in slide.shapes:
             if getattr(shape, "has_text_frame", False) and shape.text_frame.text.strip():
-                text_parts.append({"kind": "slide", "index": index, "text": shape.text_frame.text.strip()})
+                text_parts.append({"kind": "slide", "index": index, "shape_id": int(shape.shape_id), "text": shape.text_frame.text.strip(), "path": [f"slide-{index}", f"shape-{shape.shape_id}", "slide"]})
             if shape.shape_type is not None and "PICTURE" in str(shape.shape_type):
                 image_count += 1
             if getattr(shape, "has_chart", False):
                 chart_count += 1
-        for chart_text, carried in charts_by_slide.get(index, []):
+        for chart_text, carried, relationship_id, chart_part in charts_by_slide.get(index, []):
             if carried:
                 charts_with_values += 1
             else:
                 charts_without_values += 1
-            text_parts.append({"kind": "slide_chart", "index": index, "text": chart_text})
+            text_parts.append({"kind": "slide_chart", "index": index, "relationship_id": relationship_id, "chart_part": chart_part, "text": chart_text, "path": [f"slide-{index}", f"relationship-{relationship_id}", chart_part, "slide_chart"]})
         if slide.has_notes_slide:
             notes = slide.notes_slide.notes_text_frame.text.strip()
             if notes:
-                text_parts.append({"kind": "slide_notes", "index": index, "text": notes})
+                text_parts.append({"kind": "slide_notes", "index": index, "text": notes, "path": [f"slide-{index}", "notes", "slide_notes"]})
     if not text_parts:
         raise ValueError("pptx contains no extractable text")
     projection = "\n".join(part["text"] for part in text_parts)
@@ -391,7 +392,7 @@ def _pptx_text(path: Path) -> dict:
         if start < 0:
             start = offset
         structure.append(
-            {"kind": part["kind"], "path": [f"slide-{part['index']}", part['kind']], "char_start": start, "char_end": start + len(part["text"])}
+            {"kind": part["kind"], "path": part["path"], "char_start": start, "char_end": start + len(part["text"]), **{key: part[key] for key in ("shape_id", "relationship_id", "chart_part") if key in part}}
         )
         offset = start + len(part["text"])
     return {

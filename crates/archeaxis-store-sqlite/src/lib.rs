@@ -2,6 +2,7 @@
 use rusqlite::Connection;
 
 pub mod capability_settings;
+pub mod authorization_fence;
 pub mod raw_objects;
 pub mod writer;
 
@@ -9,7 +10,7 @@ pub mod writer;
 // 7 adds the capability enable/disable record that R7/G1 needs; 8 adds the vault link graph that
 // G2 needs. Like the earlier additive steps both are applied on open rather than by rewriting
 // anything.
-pub const SCHEMA_VERSION: i64 = 11;
+pub const SCHEMA_VERSION: i64 = 12;
 
 const DOCUMENT_SCHEMA_SQL: &str = r#"
 CREATE TABLE IF NOT EXISTS documents (
@@ -277,6 +278,25 @@ CREATE TABLE IF NOT EXISTS machine_tasks (
 
 /// Open (or create) the vNext database and apply the schema.
 /// Per contract this is the only place a writable handle is created.
+const TEACHING_SCHEMA_SQL: &str = r#"
+CREATE TABLE teaching_records (
+ record_id TEXT PRIMARY KEY, parent_id TEXT REFERENCES teaching_records(record_id),
+ kind TEXT NOT NULL, record_json TEXT NOT NULL, content_sha256 TEXT NOT NULL,
+ created_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ','now'))
+);
+CREATE INDEX teaching_records_parent_idx ON teaching_records(parent_id);
+CREATE TABLE teaching_withdrawals (
+ withdrawal_id TEXT PRIMARY KEY, record_id TEXT NOT NULL REFERENCES teaching_records(record_id),
+ request_json TEXT NOT NULL, content_sha256 TEXT NOT NULL,
+ created_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ','now'))
+);
+CREATE INDEX teaching_withdrawals_record_idx ON teaching_withdrawals(record_id);
+CREATE TRIGGER teaching_records_no_update BEFORE UPDATE ON teaching_records BEGIN SELECT RAISE(ABORT,'teaching records are append-only'); END;
+CREATE TRIGGER teaching_records_no_delete BEFORE DELETE ON teaching_records BEGIN SELECT RAISE(ABORT,'teaching records are append-only'); END;
+CREATE TRIGGER teaching_withdrawals_no_update BEFORE UPDATE ON teaching_withdrawals BEGIN SELECT RAISE(ABORT,'teaching withdrawals are append-only'); END;
+CREATE TRIGGER teaching_withdrawals_no_delete BEFORE DELETE ON teaching_withdrawals BEGIN SELECT RAISE(ABORT,'teaching withdrawals are append-only'); END;
+"#;
+
 pub fn init_workspace(db_path: &str) -> rusqlite::Result<Connection> {
     raw_objects::reject_links(std::path::Path::new(db_path))?;
     let mut conn = Connection::open(db_path)?;
@@ -443,6 +463,10 @@ pub fn init_workspace(db_path: &str) -> rusqlite::Result<Connection> {
     let has_basis: bool = tx.query_row("SELECT EXISTS(SELECT 1 FROM pragma_table_info('document_versions') WHERE name='revision_basis')", [], |r| r.get(0))?;
     if !has_basis {
         tx.execute_batch("ALTER TABLE document_versions ADD COLUMN revision_basis TEXT;")?;
+    }
+    if version < 12 {
+        // Versioned teaching metadata extends this same Core workspace. Read paths never create tables.
+        tx.execute_batch(TEACHING_SCHEMA_SQL)?;
     }
     let broken_fk: bool = tx.query_row(
         "SELECT EXISTS(SELECT 1 FROM pragma_foreign_key_check)",

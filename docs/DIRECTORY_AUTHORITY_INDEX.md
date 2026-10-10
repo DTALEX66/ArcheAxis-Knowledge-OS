@@ -1,5 +1,10 @@
 # Directory Authority Index
 
+> **2026-10-09 当前执行覆盖**：用户已选择新 UI 优先任务及 G01；规范活动指针为 [AAOS-ACTIVE-EXECUTION](current/AAOS-ACTIVE-EXECUTION.json)，当前任务来源为 [UI 优先 TaskPack](taskpacks/aaos-ui-first-20261009/TASKPACK.md)，实际进度只读 [UI 执行记录](current/AAOS-UI-FIRST-EXECUTION-20261009.md)。规划原文的 PLANNING_READY / NOT_EXECUTED 是规划时状态，激活与实际结果由当前覆盖记录，不改写不可变原包。AAOS-01 Q00–Q15 台账仅记录该继承工作流，不代表新 UI 全队列；旧 R6/M0 整包顺序冻结，有效合同、单一 Rust Core writer、内容先保存及历史证据保留。V01 继续暂停。
+> 当前新布局、架构和其余产品界面按新任务执行；默认 `blueprint`，配套 `blueprint-light`，旧 `black` / `white` / `cosmic` 仅为额外配色主题。五主题共用新布局、组件状态及统一语义颜色；一个主题内部的按钮、菜单、侧栏与正文保持一致。主题不更改 Core 配置或知识数据。
+> 平台指令优先；平台范围内用户当前明确决定优先于项目旧描述。此文档同步不授予 commit、push、merge、发布、私人账户/会话访问或恢复暂停的云端任务权限；本机资源索引不是云端权限。
+
+
 > Canonical directory classification for maintenance and future normalization.
 > It names what a path is; it does not authorize a move, cleanup or deletion.
 
@@ -7,7 +12,7 @@
 
 ## Authoritative topology
 
-The current ownership reconciliation is governed by R6/M0, SUP-022 and this index;
+Current task selection is resolved by the active-execution pointer; ownership reconciliation retains the R6/M0 preservation constraints, SUP-022 and this index;
 [R5-PATH-DISPOSITION.json](current/R5-PATH-DISPOSITION.json) is historical evidence.
 The 0910 measurement keeps its original SHA and 69 historical gaps. R5 assigned
 metadata owners and maintenance-only legacy lanes; that historical assignment is

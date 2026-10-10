@@ -1,0 +1,21 @@
+.ui-exchange-page { min-width: 0; color: var(--ax-fg); }
+.ui-exchange-page [hidden] { display: none !important; }
+.exchange-header, .exchange-tabs { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--ax-space-3); margin-block-end: var(--ax-space-4); }
+.exchange-tabs { justify-content: flex-start; }
+.exchange-tabs button[aria-pressed="true"] { background: var(--ax-active); border-color: var(--ax-border-strong); }
+.exchange-columns { display: grid; grid-template-columns: minmax(12rem, .7fr) minmax(0, 1.3fr); gap: var(--ax-space-4); }
+.exchange-card { min-width: 0; padding: var(--ax-space-4); border: 1px solid var(--ax-border); border-radius: var(--ax-radius-md); background: var(--ax-panel); margin-block-end: var(--ax-space-4); }
+.exchange-card > * + *, .exchange-object-list li + li { margin-block-start: var(--ax-space-2); }
+.exchange-object-list { list-style: none; padding: 0; }
+.exchange-object-list button { display: flex; flex-direction: column; align-items: flex-start; width: 100%; white-space: normal; text-align: start; }
+.exchange-object-list small { color: var(--ax-fg-tertiary); }
+.ui-exchange-page :is(p,dd,li,small,strong,h2,h3,h4) { overflow-wrap: anywhere; min-width: 0; }
+.ui-exchange-page :is(input,select,textarea) { max-width: 100%; }
+.exchange-card label { display: block; }
+.exchange-card label :is(input,select) { display: block; width: 100%; }
+.exchange-card dd { margin-inline-start: 0; }
+.exchange-projection { white-space: pre-wrap; max-height: 20rem; overflow-y: auto; }
+.exchange-qualification { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: var(--ax-space-4); }
+@media (max-width: 760px) { .exchange-columns,.exchange-qualification { grid-template-columns: minmax(0,1fr); } .exchange-card { padding: var(--ax-space-3); } }
+
+.ui-exchange-page [aria-label="Core 提取正文"] { min-width: 0; max-width: 100%; white-space: pre-wrap; overflow-wrap: anywhere; }

@@ -25,7 +25,7 @@
 ## 3. 当前能力的证据范围（状态分级，不混写）
 
 区分：仅目标 / 候选 / 结构实现 / 受控测试 / 真实运行 / 独立验收 / 发布。**测试数量、页面数量、单条纵向切片都不能定义项目本体。**
-当前实现声明受 2026-10-05 审计更正约束，至少包括：Q04"完成"声明已撤销；音视频已实测仅媒体头信息探测，未证明解码/转写/时间段内容闭环；
+以下是继承的 2026-10-05 审计时点声明（不是当前源码资格），至少包括：Q04"完成"声明已撤销；音视频已实测仅媒体头信息探测，未证明解码/转写/时间段内容闭环；
 引擎断言无有效结论（存在 cancelled/skipped 与桌面 failure）；更正记录中 Q14 为 NOT_RUN，且未做人工视觉确认。
 逐条原文与来源：[`docs/current/AAOS01-AUDIT-CORRECTIONS-20261005.md`](docs/current/AAOS01-AUDIT-CORRECTIONS-20261005.md)
 （字节 SHA-256 `da9998ee673086ed12dab824d951e76c2611efb92e72edccf276b91ed8d92d4d`，已核）。
@@ -37,21 +37,24 @@
 
 ## 5. 规范 Authority 顺序
 
-系统与开发者规则 ＞ 根 [`AGENTS.md`](AGENTS.md) ＞ 用户当前明确指令 ＞ [`docs/truth/`](docs/truth/README.md) 已批准稳定真相 ＞ 冻结任务基线 ＞
+系统与开发者规则 ＞ 用户当前明确指令 ＞ 根 [`AGENTS.md`](AGENTS.md) ＞ [`docs/truth/`](docs/truth/README.md) 已批准稳定真相 ＞ 冻结任务基线 ＞
 历史 TaskPack / 蓝图 / handoff / 导入设计资料。实现证据说明"做到哪里"，不能反过来取消用户已明确的未来目标。
 机器可读索引：[`docs/DOCUMENTATION_AUTHORITY_INDEX.md`](docs/DOCUMENTATION_AUTHORITY_INDEX.md)、[`docs/CONFIGURATION_AUTHORITY_INDEX.md`](docs/CONFIGURATION_AUTHORITY_INDEX.md)、
 [`PROJECT_CONTRACT.yaml`](PROJECT_CONTRACT.yaml)。
 
 ## 6. 唯一 current（一个仓库不能有两个都自称 current 的源）
 
-- **活动任务包**：`docs/authority/taskpack-1004-aaos01/`（`01_完整执行任务书.md`）——以根 `AGENTS.md` §6 为准。
+- **当前活动任务包**：`docs/taskpacks/aaos-ui-first-20261009/`（AAOS-UI-FIRST-PLAN-20261009），由用户当前执行/G01请求选中；规范路由为 [`docs/current/AAOS-ACTIVE-EXECUTION.json`](docs/current/AAOS-ACTIVE-EXECUTION.json)。
+- **当前 UI 实施进度**：[`docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md`](docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md)。任务包中的 NOT_EXECUTED 是规划时快照，不回填该原包。
+- **继承合同来源**：`docs/authority/taskpack-1004-aaos01/`（`01_完整执行任务书.md`），保留内容保存、身份与原 Q/F 验收条款，不作为并行当前队列。
 - **前一个任务包（保留继承约束与回执，不再作为当前）**：R6 absorb-first（`docs/authority/taskpack-0919-r6/`），其优先级覆盖 [`M0`](docs/current/M0-DIRECTION-OVERRIDE-20260920.md) 仍作为继承约束保留。
-- **AAOS-01（Q00—Q15）唯一实时进度记录**：[`docs/current/AAOS01-Q00-Q15-LEDGER-FINAL-20261005.md`](docs/current/AAOS01-Q00-Q15-LEDGER-FINAL-20261005.md)。
+- **继承 AAOS-01（仅 Q00—Q15）的进度记录**：[`docs/current/AAOS01-Q00-Q15-LEDGER-FINAL-20261005.md`](docs/current/AAOS01-Q00-Q15-LEDGER-FINAL-20261005.md)。
 - **正式宿主**：Tauri 2 + React/TypeScript/Vite + Rust Core 单写者（[`DECISION_SUPERSESSION_LEDGER.yaml`](DECISION_SUPERSESSION_LEDGER.yaml) SUP-021 → SUP-022）；Avalonia 为供体并冻结。
 - `docs/taskpacks/README.md` 曾自称"唯一当前任务包"，已作废该表述并指向上述入口。
 
-> 记录本文件的一次自身纠错：初稿曾把 R6 写成当前任务包。`scripts/ci/check_document_authority.py` 比对现行 `AGENTS.md` 后指出该读法已过期——
-> AGENTS.md §6 明写当前任务包是 `taskpack-1004-aaos01`、R6 是"preceding pack"。以 AGENTS.md 为准已改。
+> 2026-10-06 的 AAOS-01 接手纠错属于该阶段历史。本次用户已明确选中 10/09 UI 优先队列和 G01；旧 R6/M0/AAOS-01 整包顺序冻结，有效约束继承。V01 仍暂停，FT01–04 保留未来意图。新布局适用于所有主题；blueprint 默认，旧配色可切换且同一主题全局一致。
+
+当前交接见 [`docs/current/AAOS-AGENT-HANDOFF-CURRENT.md`](docs/current/AAOS-AGENT-HANDOFF-CURRENT.md)，本地/云端漂移与未发布范围见 [`docs/current/AAOS-GOVERNANCE-ALIGNMENT-20261009.md`](docs/current/AAOS-GOVERNANCE-ALIGNMENT-20261009.md)。
 
 ## 7. 审计索引（可导航链：根入口 → 有效规则 → 来源 → 能力/任务 → 代码或证据 → 两端读回）
 

@@ -12,6 +12,7 @@ import sys
 from pathlib import Path
 
 from desktop.scripts.stage_runtime import stage_runtime
+from scripts.runtime import dev as runtime_paths
 
 
 def prepare_backend_candidate(*, repository: Path, destination: Path, core: Path) -> Path:
@@ -69,6 +70,30 @@ def _run(command: list[str], *, cwd: Path, env: dict[str, str]) -> None:
     subprocess.run(command, cwd=cwd, env=env, check=True)
 
 
+def runtime_build_environment(repository: Path) -> dict[str, str]:
+    """Share the owner's uv cache and isolate wheel-build discovery in this run."""
+    repository = runtime_paths.safe_path(repository)
+    inherited_root = os.environ.get("ARCHEAXIS_WORKTREE_ROOT")
+    if inherited_root and runtime_paths.safe_path(Path(inherited_root)) != repository:
+        raise RuntimeError("runtime preparation inherited a foreign worktree")
+    inherited_run = os.environ.get("ARCHEAXIS_RUN_ROOT")
+    paths = runtime_paths.layout(repository, Path(inherited_run).name if inherited_run else None)
+    if inherited_run and runtime_paths.safe_path(Path(inherited_run)) != paths["run"]:
+        raise RuntimeError("runtime preparation inherited a foreign run")
+    env = os.environ.copy()
+    if inherited_run:
+        if not paths["run"].is_dir() or not paths["tmp"].is_dir():
+            raise RuntimeError("runtime preparation inherited an unallocated run")
+        env.update(runtime_paths.environment(paths))
+    else:
+        env.update(runtime_paths.prepare(paths))
+    # This is a build environment, not the developer-owned root .venv, and not
+    # another per-checkout dependency cache. Concurrent runs share uv's locked
+    # cache while keeping their wheel build discovery separate.
+    env["UV_PROJECT_ENVIRONMENT"] = str(paths["tmp"] / "runtime-build-venv")
+    return env
+
+
 def prepare_bundle_runtime(*, repository: Path, destination: Path) -> Path:
     repository = repository.resolve()
     destination = destination.resolve()
@@ -76,15 +101,22 @@ def prepare_bundle_runtime(*, repository: Path, destination: Path) -> Path:
     if uv is None:
         raise RuntimeError("uv is required to prepare the desktop runtime")
 
+    env = runtime_build_environment(repository)
     staged_python = stage_runtime(repository=repository, destination=destination)
     requirements = destination / "requirements.locked.txt"
     wheels = destination / "wheels"
-    cache = repository / ".project-local/cache/uv-desktop"
-    env = os.environ.copy()
-    env["UV_CACHE_DIR"] = str(cache)
-    # Keep wheel build discovery out of a developer-owned root .venv. The
-    # bundle staging environment is ephemeral project runtime state.
-    env["UV_PROJECT_ENVIRONMENT"] = str(cache / "build-project-venv")
+    # The pinned setuptools backend builds in place even when uv's wheel output
+    # and isolated environment are routed elsewhere. Its command options must
+    # also route egg_info and build intermediates; otherwise root drift returns.
+    wheel_build = runtime_paths.safe_path(Path(env["UV_PROJECT_ENVIRONMENT"]).parent / "setuptools")
+    egg_base = wheel_build / "egg-info"
+    build_base = wheel_build / "build"
+    egg_base.mkdir(parents=True, exist_ok=True)
+    build_base.mkdir(parents=True, exist_ok=True)
+    settings = ["--config-setting=--global-option=" + option for option in (
+        "egg_info", "--egg-base=" + str(egg_base),
+        "build", "--build-base=" + str(build_base),
+    )]
 
     _run(
         [
@@ -119,7 +151,7 @@ def prepare_bundle_runtime(*, repository: Path, destination: Path) -> Path:
         env=env,
     )
     _run(
-        [uv, "build", "--quiet", "--python", str(staged_python), "--wheel", "--out-dir", str(wheels)],
+        [uv, "build", "--quiet", "--python", str(staged_python), "--wheel", "--out-dir", str(wheels), *settings],
         cwd=repository,
         env=env,
     )

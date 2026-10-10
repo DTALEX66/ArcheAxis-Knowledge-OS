@@ -982,6 +982,8 @@ shared/adapter_fixtures.py:153（`readabilipy` 确在 `pyproject.toml:82` 声明
   主检出根 `.venv`（960,392,331 B）虽 git-ignored 且可再生，但**绑定解释器且可能有并行会话在用**，
   本轮不动。审计与删除清单：`.project-local/task-runtime/spillover-audit-20261007/`。
 
+2026-10-08 位置更正：上述dsh-acl-reports回滚载荷已完整迁到主检出mig/d-root-spillover-20261008/acl-reports-20261003（4文件/83,329 B，逐SHA-256核验）；原目录不存在。历史ACL操作说明保留，本轮未执行脚本；当前恢复位置见累计交接记录§12与迁移清单。
+
 ## 我自己引入的一处 Rust 真值测试回归（2026-10-07，本地全量抓到并当场修正）
 
 给 `odt/ods/odp/rtf` 命名媒体类型后，只跑 `route_capabilities` 是全绿的，但 **`cargo test -p archeaxis-application --tests --offline` 全量跑到 `office_job_end_to_end.rs:87` 失败**：
@@ -2109,3 +2111,19 @@ decide：`D:\All projects\ArcheAxis-Knowledge-OS\.project-local\runs\be268a2d33\
 **引用面**：被跟踪的台账此前**并未**引用该目录（`git grep machine-answer-real-release-core` 在 `docs/`、`tests/`、`scripts/` 内为空），实际引用它的是主检出 `.project-local/artifacts/plans/20261007-AAOS01-fast-complete/` 下四份未跟踪本地报告（`EVIDENCE-LOCAL-SLICES-20261007.md`、`P-COMPLETION-AUDIT-20261008.md`、`HANDOFF-AUDIT-FOR-EXTERNAL-MODEL-20261008.md`、`OWNER-ACTION-AND-STATE-20261008.md`）。共享的 `.project-local/` 不属本轮 writer 所有，故未替它们改写；本节即该事实在仓库内的唯一持久记录，后续任何表面引用 `receipt_sha256` 时须带本节的限定。
 
 **状态影响**：`machine.answer` 的 REAL 判定不因本条降格——它建立在回执正文内容与 release Core 身份之上；但**其 `receipt_sha256` 字段单独记为 `UNVERIFIED`（哈希不可解析）**，且"回执完整未截断"这一条改为 `REFUTED`。新增可复算工具：`scripts/audit/reference_validation.py`（严格引用完整性，区分 PASS / UNRESOLVED / AMBIGUOUS / HASH_MISMATCH / HISTORICAL，同名歧义与越出声明根一律拒绝）与 `scripts/audit/emission_discipline.py`（生成器不得把打字进去的结论伪装成重算值），配套 `tests/test_reference_validation.py` `18 passed`、`tests/test_emission_discipline.py` `13 passed`。未删除、未移动、未推送、未重新执行任何模型调用。
+
+
+### 2026-10-09 当前候选恢复入口（展开副本去重）
+
+以上候选记录保留历史日期与结论。当前批次只移除与保留ZIP逐名/大小/CRC/SHA一致的展开副本，不销毁候选内容、不切换安装版。最终执行状态以cleanup-result.json为准；6254文件/2,040,219,218 B是展开文件逻辑大小，物理回收量不据此推定。
+
+保留原ZIP与精确成员回执：
+- q04b ZIP：`未跟踪 D:/All projects/ArcheAxis-Knowledge-OS/.project-local/legacy-scratch-20261008/runs-dirs/candidate-q04b/ArcheAxis.Knowledge.Green-v0.0.0-q04candidate-x64.zip`；成员：`未跟踪 D:/All projects/ArcheAxis-Knowledge-OS/.project-local/runs/f714401b40/codex-ui-governance-20261009/artifacts/candidate-duplicate-audit/candidate-q04b.json`。
+- q04c ZIP：`未跟踪 D:/All projects/ArcheAxis-Knowledge-OS/.project-local/legacy-scratch-20261008/runs-dirs/candidate-q04c/ArcheAxis.Knowledge.Green-v0.0.0-q04c-x64.zip`；成员：`未跟踪 D:/All projects/ArcheAxis-Knowledge-OS/.project-local/runs/f714401b40/codex-ui-governance-20261009/artifacts/candidate-duplicate-audit/candidate-q04c.json`。
+
+执行前同时持有保留ZIP、500个目录和全部成员的句柄并重新核对内容/名称；目录与文件命名流均检查，拒绝链接、占用、只读属性和未知新增内容。逐项write-ahead日志不重写全成员计划。恢复工具：`未跟踪 D:/All projects/ArcheAxis-Knowledge-OS/.project-local/runs/f714401b40/codex-ui-governance-20261009/tmp/candidate-cleanup/candidate_cleanup.py`，使用现有项目Python加`--restore`；仅恢复这两个原展开地址，校验保留ZIP与所有成员，拒绝覆盖不同内容。恢复保持名称/内容及新文件mtime，不承诺复原ACL、creation/access/目录时间。全成员计划与实际结果存放于该批次candidate-duplicate-audit目录；失败或中断可据此恢复，无须新安装或改权限。
+
+
+2026-10-09 本批实际执行结果：PASS_EXACT_EXPANDED_REMOVAL，6254个展开文件/2,040,219,218 B逻辑大小已移除，500个原展开目录均按空目录逐项移除，两个展开根现不存在。原ZIP共647,537,126 B仍在，执行后SHA-256分别40ce3440f8a3ad0e4ab7a4073f90ed40f1cd6759ff5bb994f25b182ff7396d25、e6e119e62a8e8b9c0463a180ec771d58e6f909d7a44d7234139f4b270bcf9bbd，与执行前一致。6254次mark与closed均有日志，failure=null。当前结果：`未跟踪 D:/All projects/ArcheAxis-Knowledge-OS/.project-local/runs/f714401b40/codex-ui-governance-20261009/artifacts/candidate-duplicate-audit/cleanup-result.json`；完整恢复计划：`未跟踪 D:/All projects/ArcheAxis-Knowledge-OS/.project-local/runs/f714401b40/codex-ui-governance-20261009/artifacts/candidate-duplicate-audit/cleanup-checkpoint.json`。物理回收字节UNVERIFIED；没有按逻辑大小宣称全盘可用空间净增，没有改ACL/杀共享进程/触碰数据库或删除ZIP。本批不改变其他唯一候选/证据/退役worktree保留判断。
+
+CORE-R16-EXPANSION-DEDUP-20261009：历史记录保留；当前恢复对象为 `.project-local/legacy-scratch-20261008/runs-dirs/candidate-20261003/core-candidate-r16.zip`（SHA-256 `590b29d11a60da2fb645dbc678008e7a8c0dbc36af849e073301ecd35c75e2d0`），三成员共97,726,878 B的真实还原证明位于 `未跟踪 D:/All projects/ArcheAxis-Knowledge-OS/.project-local/runs/f714401b40/codex-ui-governance-20261009/artifacts/core-r16-duplicate-audit/restore-fixture-proof.json`。展开目录只作为已可恢复的重复件按精确成员清理，源快照收据及旁边ZIP保留；实际删除结果以cleanup收据为准。恢复入口为 `未跟踪 D:/All projects/ArcheAxis-Knowledge-OS/.project-local/runs/f714401b40/codex-ui-governance-20261009/tmp/core-r16-cleanup/cleanup.py` 加 `--restore`，默认还原隔离新目录，拒绝覆盖安装态或已有目录。此次处置不恢复该旧debug候选的使用资格。

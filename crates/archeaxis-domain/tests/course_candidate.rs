@@ -146,10 +146,24 @@ fn v8_migration_and_online_backup_restore_preserve_candidate() {
     let db = dir.path().join("live.sqlite");
     let mut conn = init_workspace(db.to_str().unwrap()).unwrap();
     let (m, b) = fixture(&mut conn);
-    conn.execute_batch("DROP TABLE general_course_bindings;DROP TABLE general_course_artifacts;DROP TABLE general_courses;
+    // Synthetic v8 course-shape fixture: later document/teaching tables cannot
+    // remain in a database labelled v8. Preserve the actual source/knowledge.
+    conn.execute_batch("DROP TABLE teaching_withdrawals;DROP TABLE teaching_records;
+        DROP TABLE document_blocks;DROP TABLE document_checks;DROP TABLE document_versions;DROP TABLE documents;
+        DROP TABLE general_course_bindings;DROP TABLE general_course_artifacts;DROP TABLE general_courses;
         UPDATE workspace_meta SET value='8' WHERE key='schema_version';").unwrap();
+    let later_tables: i64 = conn.query_row(
+        "SELECT count(*) FROM sqlite_master WHERE type='table' AND name IN ('teaching_records','teaching_withdrawals','documents','document_versions','document_checks','document_blocks')",
+        [], |row| row.get(0),
+    ).unwrap();
+    assert_eq!(later_tables, 0);
     drop(conn);
     let mut conn = init_workspace(db.to_str().unwrap()).unwrap();
+    let later_objects: i64 = conn.query_row(
+        "SELECT count(*) FROM sqlite_master WHERE name IN ('teaching_records','teaching_withdrawals','documents','document_versions','document_checks','document_blocks','teaching_records_no_update','teaching_records_no_delete','teaching_withdrawals_no_update','teaching_withdrawals_no_delete')",
+        [], |row| row.get(0),
+    ).unwrap();
+    assert_eq!(later_objects, 10);
     let first = course::create_candidate(&mut conn, &m, &b).unwrap();
     let snapshot = dir.path().join("backup.sqlite");
     backup::backup(&conn, snapshot.to_str().unwrap()).unwrap();

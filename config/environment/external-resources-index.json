@@ -2,7 +2,7 @@
   "schema": "archeaxis/external-resources-index/v2",
   "generated_by": "scripts/environment/build_external_resources_index.py",
   "probed": true,
-  "probe_workdir": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\runs\\89a47db2b7\\686010138748\\tmp\\resource-probe",
+  "probe_workdir": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\worktrees\\gov-ui-20261008\\.project-local\\runs\\f714401b40\\codex-ui-governance-20261008\\tmp\\resource-probe",
   "manifest": "config/environment/capability-requirements.yaml",
   "manifest_updated": "2026-10-08",
   "roots_declared_by": [
@@ -17,10 +17,10 @@
   "verification_summary": {
     "REGISTERED": 0,
     "FILE_EXISTS": 9,
-    "VERSION_PROBED": 16,
-    "RESULT_VERIFIED": 4,
+    "VERSION_PROBED": 14,
+    "RESULT_VERIFIED": 3,
     "NOT_RUN": 1,
-    "unavailable": 2,
+    "unavailable": 5,
     "probe_failed": 0
   },
   "unbound_path_fallback": [
@@ -270,7 +270,7 @@
       "resolvable_location": "10-toolchains/scoop/apps/nodejs-lts/current/node.exe",
       "resolved_absolute": "D:\\All projects\\OS External Configuration\\10-toolchains\\scoop\\apps\\nodejs-lts\\24.18.0\\node.exe",
       "binding": "declared",
-      "path_also_offers": null,
+      "path_also_offers": "node.EXE",
       "project_entry": "tool_paths.tool_path(\"nodejs-lts\")",
       "required_env": {},
       "writability": "shared_read_only",
@@ -327,7 +327,7 @@
       "resolvable_location": "toolchains/rust/cargo/bin/rustc.exe",
       "resolved_absolute": "D:\\All projects\\OS External Configuration\\toolchains\\rust\\cargo\\bin\\rustc.exe",
       "binding": "declared",
-      "path_also_offers": "rustc.EXE",
+      "path_also_offers": null,
       "project_entry": "tool_paths.tool_path(\"rust\") + tool_paths.required_environment(\"rust\") -> dev.external_toolchain()",
       "required_env": {
         "RUSTUP_HOME": "rustup",
@@ -408,7 +408,7 @@
       "required_by": [
         "desktop-build"
       ],
-      "healthcheck_command": "cd /d <VC/Auxiliary/Build> && call vcvars64.bat && where cl.exe",
+      "healthcheck_command": "cd /d <VC/Auxiliary/Build> && call vcvars64.bat && \"%SystemRoot%\\System32\\where.exe\" cl.exe",
       "detection": {
         "kind": "cmd_chain",
         "ceiling": "RESULT_VERIFIED",
@@ -416,7 +416,7 @@
           "kind": "cmd_chain",
           "lines": [
             "call vcvars64.bat",
-            "where cl.exe"
+            "\"%SystemRoot%\\System32\\where.exe\" cl.exe"
           ],
           "returncode": 0,
           "matched": "D:\\All projects\\OS External Configuration\\10-toolchains\\msvc\\VC\\Tools\\MSVC\\14.44.35207\\bin\\Hostx64\\x64\\cl.exe",
@@ -764,7 +764,7 @@
       "resolvable_location": "10-toolchains/antiword/antiword.exe",
       "resolved_absolute": "D:\\All projects\\OS External Configuration\\10-toolchains\\antiword\\antiword.exe",
       "binding": "declared",
-      "path_also_offers": "antiword.EXE",
+      "path_also_offers": null,
       "project_entry": "tool_paths.tool_path(\"antiword\") / ARCHEAXIS_ANTIWORD_CMD override",
       "required_env": {
         "HOME": "antiword"
@@ -1589,7 +1589,7 @@
       "host_platform": "windows-x64",
       "version_range": "any OpenAI-compatible server",
       "version_identification": "GET /v1/models 的 data[].id 列表（本机实测 6 项）",
-      "pinned_version_observed": "\"id\": \"qwen2.5-vl-7b-instruct\",",
+      "pinned_version_observed": null,
       "resolvable_location": null,
       "resolved_absolute": null,
       "binding": null,
@@ -1608,14 +1608,14 @@
         "evidence": {
           "kind": "http_get",
           "url": "http://127.0.0.1:1234/v1/models",
-          "status": 200,
-          "observed": "\"id\": \"qwen2.5-vl-7b-instruct\","
+          "status": "URLError",
+          "reason": "no HTTP 200 answer (observed URLError: <urlopen error [WinError 10061] 由于目标计算机积极拒绝，无法连接。>)"
         }
       },
-      "available": true,
-      "verification_level": "VERSION_PROBED",
+      "available": false,
+      "verification_level": "unavailable",
       "ceiling_respected": true,
-      "failure_message": null,
+      "failure_message": "no HTTP 200 answer (observed URLError: <urlopen error [WinError 10061] >)",
       "code_license": "n/a (the lane is a protocol, not a shipped component; the serving app is the host's own install)",
       "asset_license": "Served weights are licensed per upstream model card; per-model rows below name the identity the host answers with",
       "source_url": "https://platform.openai.com/docs/api-reference/chat",
@@ -1637,7 +1637,7 @@
       "host_platform": "windows-x64",
       "version_range": "qwen2.5-vl-7b-instruct",
       "version_identification": "所属 lane 的模型列表里出现该 id（身份由 lane 答出的 id 确定，不是由源码常量确定）",
-      "pinned_version_observed": "\"id\": \"qwen2.5-vl-7b-instruct\",",
+      "pinned_version_observed": null,
       "resolvable_location": null,
       "resolved_absolute": null,
       "binding": null,
@@ -1656,14 +1656,14 @@
         "evidence": {
           "kind": "http_get",
           "url": "http://127.0.0.1:1234/v1/models",
-          "status": 200,
-          "observed": "\"id\": \"qwen2.5-vl-7b-instruct\","
+          "status": "URLError",
+          "reason": "no HTTP 200 answer (observed URLError: <urlopen error [WinError 10061] 由于目标计算机积极拒绝，无法连接。>)"
         }
       },
-      "available": true,
-      "verification_level": "VERSION_PROBED",
+      "available": false,
+      "verification_level": "unavailable",
       "ceiling_respected": true,
-      "failure_message": null,
+      "failure_message": "no HTTP 200 answer (observed URLError: <urlopen error [WinError 10061] >)",
       "code_license": "n/a (model asset only)",
       "asset_license": "Qwen2.5-VL-7B-Instruct weights under the upstream Qwen model-card terms; served by the host's own install, no weights vendored in Git",
       "source_url": "https://huggingface.co/Qwen/Qwen2.5-VL-7B-Instruct",
@@ -1686,7 +1686,7 @@
       "host_platform": "windows-x64",
       "version_range": "text-embedding-qwen3-embedding-0.6b",
       "version_identification": "POST /v1/embeddings 返回向量维度（真跑一次小输入，不是看模型列表）",
-      "pinned_version_observed": "1024-dim vector returned",
+      "pinned_version_observed": null,
       "resolvable_location": null,
       "resolved_absolute": null,
       "binding": null,
@@ -1705,14 +1705,14 @@
         "evidence": {
           "kind": "http_roundtrip",
           "url": "http://127.0.0.1:1234/v1/embeddings",
-          "status": 200,
-          "dimensions": 1024
+          "status": "URLError",
+          "reason": "no HTTP 200 answer (observed URLError)"
         }
       },
-      "available": true,
-      "verification_level": "RESULT_VERIFIED",
+      "available": false,
+      "verification_level": "unavailable",
       "ceiling_respected": true,
-      "failure_message": null,
+      "failure_message": "no HTTP 200 answer (observed URLError)",
       "code_license": "n/a (model asset only; the hash-embedding fallback in config/models.yaml is first-party code)",
       "asset_license": "Qwen3-Embedding-0.6B weights under the upstream Qwen model-card terms; served by the host's own install",
       "source_url": "https://huggingface.co/Qwen/Qwen3-Embedding-0.6B",
@@ -1723,9 +1723,7 @@
         "embed_path": "/embeddings",
         "model_id": "text-embedding-qwen3-embedding-0.6b"
       },
-      "external_paths": [],
-      "verification_scope": "provider-session",
-      "verification_note": "RESULT_VERIFIED was observed against the loopback provider on 2026-10-08; the row is not re-provable while that provider is not running, and no installed artifact stands behind it (resolvable_location is null). A re-check that cannot reach the provider reports NOT_REPROVED_HERE; it does not restate the historical result and does not downgrade it."
+      "external_paths": []
     },
     {
       "resource_id": "ext.models.local-rerank-model",
@@ -1779,6 +1777,9 @@
   "not_certified_on_this_host": [
     "runtimes/desktop-runtime-v1: unavailable - declared path not present: 20-runtimes/desktop-runtime-v1",
     "models/ollama-local-runtime: unavailable - no HTTP 200 answer (observed URLError: <urlopen error [WinError 10061] >)",
+    "models/openai-compatible-local-runtime: unavailable - no HTTP 200 answer (observed URLError: <urlopen error [WinError 10061] >)",
+    "models/local-vision-caption-model: unavailable - no HTTP 200 answer (observed URLError: <urlopen error [WinError 10061] >)",
+    "models/local-embedding-model: unavailable - no HTTP 200 answer (observed URLError)",
     "models/local-rerank-model: NOT_RUN - the model id is served, but the host's runtime answers POST /v1/rerank with {\"error\":\"Unexpected endpoint or method. (POST /v1/rerank)\"} (measured 2026-10-08). No rerank round-trip can be certified through the project entry on this host; the row is recorded NOT_RUN rather than as a version or a resu"
   ],
   "missing_on_this_host": [],

@@ -17,19 +17,20 @@ describe("App shell", () => {
     vi.unstubAllGlobals();
   });
   it.each([
-    ["workspace","全能力目录"], ["library","资料库"], ["intake","资料库"],
+    ["workspace","今日工作台"], ["library","资料库"], ["intake","资料库"],
     ["vault","知识库"], ["evidence","知识库"], ["ai-assets","知识库"],
     ["learning","学习"], ["exchange","资料库"], ["settings","全能力目录"],
   ] as [SpaceId,string][])("routes native %s to the existing canonical view",async(spaceId,heading)=>{
-    const invoke=vi.fn(async(command:string,args?:Record<string,unknown>)=>{
+    const invoke=vi.fn(async(command:string,_args?:Record<string,unknown>)=>{
       if(command!=="core_command")throw new Error("legacy native command forbidden");
-      const operation=(args?.request as Record<string,unknown>).operation;
-      const body=operation==="sources_list"?{sources:[]}:operation==="documents_list"?{documents:[]}:operation==="learning_items"?{items:[],count:0}:operation==="search"?{items:[],transforms:[],count:0,transform_count:0}:{capabilities:[]};
+      const operation=(_args?.request as Record<string,unknown>).operation;
+      const body=operation==="sources_list"?{sources:[]}:operation==="documents_list"?{documents:[],next_cursor:null,snapshot_count:0}:operation==="learning_items"?{items:[],count:0}:operation==="search"?{items:[],transforms:[],count:0,transform_count:0}:{capabilities:[]};
       return {status:200,body};
     });
     const fetch=vi.fn();vi.stubGlobal("fetch",fetch);window.__TAURI__={core:{invoke}};
     await act(async()=>{render(<SpaceView spaceId={spaceId} onInspect={vi.fn()} onNavigate={vi.fn()}/>);});
-    expect(screen.getByRole("heading",{name:heading})).toBeInTheDocument();
+    if(spaceId === "workspace") expect(screen.getByRole("region",{name:"今日工作台"})).toBeInTheDocument();
+    else expect(screen.getByRole("heading",{name:heading})).toBeInTheDocument();
     if(heading==="知识库"){const user=userEvent.setup();await user.type(screen.getByLabelText("搜索内容"),"样板");await user.click(screen.getByRole("button",{name:"搜索"}));}
     expect(invoke).toHaveBeenCalled();expect(invoke.mock.calls.every(([command])=>command==="core_command")).toBe(true);expect(fetch).not.toHaveBeenCalled();
   });
@@ -99,9 +100,9 @@ describe("App shell", () => {
     const main = screen.getByRole("main");
     const rail = screen.getByRole("navigation", { name: "主空间导航" });
     expect(
-      within(main).getByRole("heading", { name: /工作台/ }),
+      within(main).getByRole("heading", { name: /工作台/, level: 1 }),
     ).toBeInTheDocument();
-    expect(within(rail).getByRole("button", { name: /工作台/ })).toHaveAttribute(
+    expect(within(rail).getByRole("button", { name: "工作台" })).toHaveAttribute(
       "aria-current",
       "page",
     );
@@ -144,38 +145,52 @@ describe("App shell", () => {
     expect(cleanEvent.defaultPrevented).toBe(false);
   });
 
+  it("one machine form cleanup cannot clear another owner's unsaved draft", () => {
+    render(<App />);
+    const emit=(owner:string,dirty:boolean)=>act(()=>{window.dispatchEvent(new CustomEvent("archeaxis-draft-dirty",{detail:{owner,dirty}}));});
+    const blocked=()=>{const event=new Event("beforeunload",{cancelable:true});window.dispatchEvent(event);return event.defaultPrevented;};
+    emit("context-form",true);emit("evaluation-form",true);emit("context-form",false);
+    expect(blocked()).toBe(true);
+    act(()=>{window.dispatchEvent(new CustomEvent("archeaxis-draft-dirty",{detail:false}));});
+    expect(blocked()).toBe(true);
+    emit("evaluation-form",false);expect(blocked()).toBe(false);
+  });
+
   it("switches to Library on rail click and moves aria-current", async () => {
     const user = userEvent.setup();
     render(<App />);
     const main = screen.getByRole("main");
     const rail = screen.getByRole("navigation", { name: "主空间导航" });
     expect(
-      within(main).getByRole("heading", { name: /工作台/ }),
+      within(main).getByRole("heading", { name: /工作台/, level: 1 }),
     ).toBeInTheDocument();
 
-    await user.click(within(rail).getByRole("button", { name: /资料库/ }));
+    await user.click(within(rail).getByRole("button", { name: "知识" }));
+    await user.click(within(rail).getByRole("button", { name: /阅读与编辑/ }));
 
     expect(
-      within(main).getByRole("heading", { name: /资料库/ }),
+      within(main).getByRole("heading", { name: /阅读与编辑/ }),
     ).toBeInTheDocument();
-    expect(within(rail).getByRole("button", { name: /资料库/ })).toHaveAttribute(
+    expect(within(rail).getByRole("button", { name: /阅读与编辑/ })).toHaveAttribute(
       "aria-current",
       "page",
     );
-    expect(within(rail).getByRole("button", { name: /工作台/ })).not.toHaveAttribute(
+    expect(within(rail).getByRole("button", { name: "工作台" })).not.toHaveAttribute(
       "aria-current",
     );
   });
 
   it("moves from the Recovery Shell into the workspace when background startup becomes ready", async () => {
     let recoveryCalls = 0;
-    window.__TAURI__ = { core: { invoke: vi.fn(async (command: string) => {
+    window.__TAURI__ = { core: { invoke: vi.fn(async (command: string, _args?:Record<string,unknown>) => {
       if (command === "recovery_status") {
         recoveryCalls += 1;
         return recoveryCalls === 1
           ? { state: "booting", safe_mode: false, backend_available: false, message: "正在启动", backups: [], external_dev: false }
           : { state: "ready", safe_mode: false, backend_available: true, message: "已就绪", backups: [], external_dev: false };
       }
+      if (command === "core_command" && (_args?.request as Record<string,unknown>)?.operation === "documents_list") return {status:200,body:{documents:[],next_cursor:null,snapshot_count:0}};
+      if (command === "core_command" && (_args?.request as Record<string,unknown>)?.operation === "learning_items") return {status:200,body:{items:[],count:0}};
       if (command === "core_command") return { status: 200, body: { runtime: "archeaxis-api", contract: "0.1.0-outline", schema_version: 7, sqlite_version: "3.51.3" } };
       throw new Error(`unexpected command ${command}`);
     }) } };
@@ -196,7 +211,7 @@ describe("App shell", () => {
 
   it("leaves boot polling after the bounded desktop-core startup deadline", async () => {
     vi.useFakeTimers();
-    window.__TAURI__ = { core: { invoke: vi.fn(async (command: string) => {
+    window.__TAURI__ = { core: { invoke: vi.fn(async (command: string, _args?:Record<string,unknown>) => {
       if (command === "recovery_status") {
         return {
           state: "booting",
@@ -223,7 +238,7 @@ describe("App shell", () => {
   it("replaces the six-space workspace with the Recovery Shell after desktop bootstrap fails", async () => {
     window.__TAURI__ = {
       core: {
-        invoke: vi.fn(async (command: string) => {
+        invoke: vi.fn(async (command: string, _args?:Record<string,unknown>) => {
           if (command === "recovery_status") {
             return {
               state: "failed",
@@ -249,7 +264,7 @@ describe("App shell", () => {
   });
 
   it("keeps the Recovery Shell when a ready desktop fails the authenticated handshake", async () => {
-    const invoke = vi.fn(async (command: string) => {
+    const invoke = vi.fn(async (command: string, _args?:Record<string,unknown>) => {
       if (command === "recovery_status") {
         return {
           state: "ready",
@@ -278,7 +293,7 @@ describe("App shell", () => {
   it("projects a migrating workspace as a recoverable startup state", async () => {
     window.__TAURI__ = {
       core: {
-        invoke: vi.fn(async (command: string) => {
+        invoke: vi.fn(async (command: string, _args?:Record<string,unknown>) => {
           if (command === "recovery_status") {
             return {
               state: "ready", safe_mode: false, backend_available: true,
@@ -352,4 +367,16 @@ describe("App shell", () => {
     expect(document.body).not.toHaveTextContent(safePrefix.slice(0, 50));
     expect(document.body).not.toHaveTextContent("A".repeat(10));
   });
+});
+
+describe("recovery barrier regression",()=>{
+ it("blocks portal shortcuts and external hashes synchronously; uncertain restore invalidates old views",async()=>{
+  delete window.__TAURI__;window.history.replaceState(null,"","#page=01");render(<App/>);const user=userEvent.setup();
+  await user.click(screen.getByRole("button",{name:"打开产品导航"}));expect(screen.getByRole("dialog",{name:"产品导航"})).toBeInTheDocument();
+  const before=document.querySelector(".app-body");
+  act(()=>{window.dispatchEvent(new CustomEvent("workspace-restore-start"));window.dispatchEvent(new KeyboardEvent("keydown",{key:"k",ctrlKey:true,bubbles:true}));window.dispatchEvent(new KeyboardEvent("keydown",{key:"i",ctrlKey:true,altKey:true,bubbles:true}));window.history.replaceState(null,"","#capability/CAP-0050");window.dispatchEvent(new HashChangeEvent("hashchange"));});
+  expect(screen.queryByRole("dialog",{name:"全局命令"})).not.toBeInTheDocument();expect(screen.queryByRole("dialog",{name:"产品导航"})).not.toBeInTheDocument();expect(document.querySelector('[aria-label="检查器"]')).toBeNull();expect(window.location.hash).toBe("#page=01");expect(before).toHaveAttribute("inert");
+  act(()=>{window.dispatchEvent(new CustomEvent("workspace-invalidated",{detail:{confirmed:false,message:"恢复读回未确认，旧视图已失效"}}));window.dispatchEvent(new CustomEvent("workspace-restore-finish"));});
+  expect(document.querySelector(".app-body")).not.toBe(before);expect(screen.getByRole("alert")).toHaveTextContent("恢复读回未确认");expect(document.querySelector(".app-body")).not.toHaveAttribute("inert");
+ });
 });

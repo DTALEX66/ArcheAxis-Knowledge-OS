@@ -1,3 +1,4 @@
+import { jobContentCoreFixture } from "./fixtures/jobContentCoreFixture";
 // @vitest-environment jsdom
 // UI-11y-02 (finding 2): one effective announce path per broadcast event.
 //
@@ -160,7 +161,7 @@ describe("Exchange page announce budget", () => {
 
 describe("Library page announce budget", () => {
   const libraryFixture = () => {
-    bridge.call.mockImplementation(async (operation: string, payload: Record<string, unknown>) => {
+    installJobContentFixture(async (operation: string, payload: Record<string, unknown>) => {
       switch (operation) {
         case "sources_list": return { sources: [source] };
         case "documents_list": return { documents: [document_] };
@@ -181,7 +182,7 @@ describe("Library page announce budget", () => {
 
   it("announces the library read as it starts and leaves no live region once it is ready", async () => {
     const gate = deferred<{ sources: typeof source[] }>();
-    bridge.call.mockImplementation((operation: string) => {
+    installJobContentFixture((operation: string) => {
       if (operation === "sources_list") return gate.promise;
       if (operation === "documents_list") return Promise.resolve({ documents: [] });
       if (operation === "capabilities_list" || operation === "source_jobs" || operation === "anchors_list") return Promise.resolve({ capabilities: [], jobs: [], anchors: [] });
@@ -275,7 +276,7 @@ describe("Conversion surface announce budget", () => {
   });
 
   it("announces one failed conversion through a single region, with the advisories as plain text", async () => {
-    bridge.call.mockImplementation(async (operation: string, payload: Record<string, unknown>) => {
+    installJobContentFixture(async (operation: string, payload: Record<string, unknown>) => {
       switch (operation) {
         case "capabilities_list": return { capabilities: [] };
         case "source_jobs": return { source_id: String(payload.source_id), jobs: [] };
@@ -288,7 +289,7 @@ describe("Conversion surface announce budget", () => {
     // 600s of audio at the declared realtime factor is far above the single-job ceiling, so the ceiling
     // advisory renders — it used to be a second live region on the same surface, next to the split
     // readout that repeats what the round message already said.
-    render(<JobContent sourceId="src_asr" name="sample.wav" mediaDurationSeconds={600} />);
+    render(<JobContent sourceId="src_asr" name="sample.wav" mediaDurationSeconds={600}  sourceRevision={"a".repeat(64)}/>);
     const advisory = await screen.findByText(/已超过单作业上限/);
     expect(advisory.hasAttribute("role")).toBe(false);
     expect(liveRegions()).toHaveLength(0);
@@ -296,7 +297,7 @@ describe("Conversion surface announce budget", () => {
     await userEvent.setup().click(screen.getByRole("button", { name: /^切分执行/ }));
     // The round's own sentence is the single announcement; nothing else on the surface goes live.
     expect(liveRegions()).toHaveLength(1);
-    await screen.findByText(/分段转写未完成|第 1 次未覆盖整段录音/);
+    await screen.findByText(/转换未完成或产物读取失败/);
     expect(liveRegions()).toHaveLength(1);
   });
 
@@ -340,7 +341,7 @@ describe("Conversion surface announce budget", () => {
   });
 
   it("keeps the content-detection message and the verdict readout mutually exclusive", async () => {
-    bridge.call.mockImplementation(async (operation: string) => {
+    installJobContentFixture(async (operation: string) => {
       if (operation === "job_enqueue") return { job_id: "detect_1" };
       if (operation === "job_execute") return {};
       if (operation === "jobs_get") return { state: "succeeded" };
@@ -368,7 +369,7 @@ describe("raw payloads stay off the reading surface", () => {
 
   it("summarises the review history and publishes the untouched readback to the diagnostic console", async () => {
     const history = { events: [{ event_id: "e1", rating: 3 }] };
-    bridge.call.mockImplementation(async (operation: string) => {
+    installJobContentFixture(async (operation: string) => {
       if (operation === "learning_items") return { items: [{ item_key: "a1", next_review: null }] };
       if (operation === "learning_state") return {
         item_key: "a1",
@@ -416,3 +417,5 @@ describe("raw payloads stay off the reading surface", () => {
     expect(container.textContent).not.toMatch(/"health"\s*:/);
   });
 });
+
+function installJobContentFixture(fn:(operation:string,payload:any)=>unknown){bridge.call.mockImplementation(jobContentCoreFixture(fn));}

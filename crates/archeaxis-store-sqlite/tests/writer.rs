@@ -142,8 +142,11 @@ fn schema_ten_nonempty_documents_migrate_without_losing_versions_blocks_or_forei
     let dir = tempfile::tempdir().unwrap();
     let path = dir.path().join("v10.sqlite");
     let conn = archeaxis_store_sqlite::init_workspace(path.to_str().unwrap()).unwrap();
-    // A real v10-shaped fixture with pre-existing Source, editor version and block.
+    // A synthetic v10-shaped fixture with pre-existing Source, editor version and block.
+    // Remove every post-v10 object from the current initializer before changing its version.
     conn.execute_batch("PRAGMA foreign_keys=OFF;
+        DROP TABLE teaching_withdrawals;
+        DROP TABLE teaching_records;
         DROP TABLE document_checks;
         ALTER TABLE document_versions DROP COLUMN revision_basis;
         CREATE TABLE old_documents(document_id TEXT PRIMARY KEY,source_id TEXT NOT NULL REFERENCES sources(source_id),source_revision TEXT NOT NULL,title TEXT NOT NULL,current_version INTEGER NOT NULL CHECK(current_version>=0),created_at TEXT NOT NULL DEFAULT(datetime('now')));
@@ -153,6 +156,13 @@ fn schema_ten_nonempty_documents_migrate_without_losing_versions_blocks_or_forei
         INSERT INTO document_versions(document_id,version,editor_json,text_projection,content_sha256) VALUES('doc_migration',1,'{\"type\":\"doc\",\"content\":[]}','retained projection','bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb');
         INSERT INTO document_blocks VALUES('doc_migration',1,'blk_retained',0,'paragraph','{}','retained projection','known');
         UPDATE workspace_meta SET value='10' WHERE key='schema_version'; PRAGMA foreign_keys=ON;").unwrap();
+    assert_eq!(
+        conn.query_row(
+            "SELECT count(*) FROM sqlite_master WHERE name IN ('teaching_records','teaching_withdrawals','teaching_records_parent_idx','teaching_withdrawals_record_idx','teaching_records_no_update','teaching_records_no_delete','teaching_withdrawals_no_update','teaching_withdrawals_no_delete')",
+            [], |r| r.get::<_, i64>(0)
+        ).unwrap(),
+        0
+    );
     let before: String = conn
         .query_row("SELECT editor_json FROM document_versions", [], |r| {
             r.get(0)
@@ -160,7 +170,7 @@ fn schema_ten_nonempty_documents_migrate_without_losing_versions_blocks_or_forei
         .unwrap();
     drop(conn);
     let conn = archeaxis_store_sqlite::init_workspace(path.to_str().unwrap()).unwrap();
-    assert_eq!(archeaxis_store_sqlite::SCHEMA_VERSION, 11);
+    assert_eq!(archeaxis_store_sqlite::SCHEMA_VERSION, 12);
     assert_eq!(
         conn.query_row(
             "SELECT value FROM workspace_meta WHERE key='schema_version'",
@@ -168,7 +178,7 @@ fn schema_ten_nonempty_documents_migrate_without_losing_versions_blocks_or_forei
             |r| r.get::<_, String>(0)
         )
         .unwrap(),
-        "11"
+        "12"
     );
     assert_eq!(
         conn.query_row("SELECT editor_json FROM document_versions", [], |r| r
@@ -207,4 +217,11 @@ fn schema_ten_nonempty_documents_migrate_without_losing_versions_blocks_or_forei
     );
     conn.execute("INSERT INTO documents(document_id,title,current_version) VALUES('doc_original','no fabricated source',0)",[]).unwrap();
     assert!(conn.execute("INSERT INTO documents(document_id,source_id,title,current_version) VALUES('half','src_migration','invalid',0)",[]).is_err());
+    for table in ["teaching_records", "teaching_withdrawals"] {
+        assert_eq!(conn.query_row(&format!("SELECT count(*) FROM {table}"), [], |r| r.get::<_, i64>(0)).unwrap(), 0);
+    }
+    assert_eq!(conn.query_row(
+        "SELECT count(*) FROM sqlite_master WHERE type='trigger' AND name IN ('teaching_records_no_update','teaching_records_no_delete','teaching_withdrawals_no_update','teaching_withdrawals_no_delete')",
+        [], |r| r.get::<_, i64>(0)
+    ).unwrap(), 4);
 }

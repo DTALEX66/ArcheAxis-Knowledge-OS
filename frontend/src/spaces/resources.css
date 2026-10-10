@@ -1,0 +1,13 @@
+.ui-resources { min-width: 0; }
+.resources-controls { display: flex; flex-wrap: wrap; gap: var(--ax-space-4, 1rem); align-items: end; }
+.resources-controls > * { min-width: 0; flex: 1 1 15rem; }
+.resources-controls select { display: block; width: 100%; }
+.resources-list { list-style: none; padding: 0; margin: 0; min-width: 0; }
+.resources-list li { margin-block: .5rem; }
+.resources-list button { display: flex; flex-direction: column; width: 100%; text-align: start; white-space: normal; overflow-wrap: anywhere; }
+.resources-directory > * { min-width: 0; }
+.resources-directory dd { margin-inline-start: 0; min-width: 0; }
+.resources-directory p, .resources-directory li, .resources-directory span, .resources-directory dd { overflow-wrap: anywhere; }
+.resources-evidence { border-top: 1px solid var(--ax-border); padding-block: .75rem; }
+.resources-directory ol, .resources-directory ul { padding-inline-start: 1.25rem; }
+@media (max-width: 760px) { .resources-directory { display: grid; grid-template-columns: minmax(0, 1fr); } }

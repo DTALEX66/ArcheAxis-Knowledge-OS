@@ -170,7 +170,7 @@ async fn run_maintenance(
                         &snapshot,
                         rusqlite::OpenFlags::SQLITE_OPEN_READ_ONLY,
                     )?;
-                    archeaxis_domain::backup::verify_counts(&snapshot, connection)
+                    archeaxis_domain::backup::finalize_restore_authorization(&snapshot, connection)
                 })
                 .await
                 .map_err(|error| error.to_string())?;
@@ -220,6 +220,7 @@ async fn run_maintenance(
                 "preserved_previous": preserved,
                 "preserved_objects_directory": format!("{}.objects", preserved.display()),
                 "verified": true,
+                "authorization_requires_new_grants": true,
             }))
         }
         _ => Err("unsupported maintenance action".into()),

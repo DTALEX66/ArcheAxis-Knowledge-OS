@@ -1,0 +1,794 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "archeaxis.ai-asset-contract/v1",
+  "title": "Versioned AI asset / finite context packet contract",
+  "description": "Option fields may be omitted in write requests; Core typed responses serialize Option as explicit null. Semantic limits, references, review, expiry and authorization are enforced by Core, not this structural schema.",
+  "anyOf": [
+    {
+      "$ref": "#/$defs/AiAsset"
+    },
+    {
+      "$ref": "#/$defs/AssetContextGrant"
+    },
+    {
+      "$ref": "#/$defs/AssetPacketRequest"
+    },
+    {
+      "$ref": "#/$defs/AssetPacketResponse"
+    },
+    {
+      "$ref": "#/$defs/AiAssetsPage"
+    }
+  ],
+  "$defs": {
+    "JSONValue": {
+      "anyOf": [
+        {
+          "type": "null"
+        },
+        {
+          "type": "boolean"
+        },
+        {
+          "type": "number"
+        },
+        {
+          "type": "string"
+        },
+        {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/JSONValue"
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "#/$defs/JSONValue"
+          }
+        }
+      ]
+    },
+    "ObjectReference": {
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "kind": {
+              "const": "document"
+            },
+            "document_id": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 256,
+              "pattern": "^(?!\\.{1,2}$)[A-Za-z0-9_.-]+$"
+            },
+            "version": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 9223372036854775807
+            },
+            "block_id": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 256,
+                  "pattern": "^(?!\\.{1,2}$)[A-Za-z0-9_.-]+$"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            }
+          },
+          "required": [
+            "kind",
+            "document_id",
+            "version"
+          ]
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "kind": {
+              "const": "source"
+            },
+            "source_id": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 256,
+              "pattern": "^(?!\\.{1,2}$)[A-Za-z0-9_.-]+$"
+            },
+            "sha256": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{64}$",
+              "minLength": 64,
+              "maxLength": 64
+            }
+          },
+          "required": [
+            "kind",
+            "source_id",
+            "sha256"
+          ]
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "kind": {
+              "const": "knowledge"
+            },
+            "knowledge_id": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 256,
+              "pattern": "^(?!\\.{1,2}$)[A-Za-z0-9_.-]+$"
+            }
+          },
+          "required": [
+            "kind",
+            "knowledge_id"
+          ]
+        }
+      ]
+    },
+    "AssetSnapshot": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "document_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "version": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 9223372036854775807
+        },
+        "content_sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$",
+          "minLength": 64,
+          "maxLength": 64
+        }
+      },
+      "required": [
+        "document_id",
+        "version",
+        "content_sha256"
+      ]
+    },
+    "AssetKind": {
+      "type": "string",
+      "enum": [
+        "memory",
+        "knowledge_package",
+        "rule",
+        "skill",
+        "experience"
+      ]
+    },
+    "AssetOutcome": {
+      "type": "string",
+      "enum": [
+        "passed",
+        "failed",
+        "unmeasured"
+      ]
+    },
+    "AssetJudgment": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "criterion_id": {
+          "type": "string"
+        },
+        "outcome": {
+          "$ref": "#/$defs/AssetOutcome"
+        },
+        "basis": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 16384
+        }
+      },
+      "required": [
+        "criterion_id",
+        "outcome",
+        "basis"
+      ]
+    },
+    "AssetReview": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "asset": {
+          "$ref": "#/$defs/AssetSnapshot"
+        },
+        "rubric": {
+          "$ref": "#/$defs/AssetSnapshot"
+        },
+        "reviewer": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "basis": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 16384
+        },
+        "judgments": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/AssetJudgment"
+          },
+          "maxItems": 64
+        },
+        "outcome": {
+          "$ref": "#/$defs/AssetOutcome"
+        }
+      },
+      "required": [
+        "asset",
+        "rubric",
+        "reviewer",
+        "basis",
+        "judgments",
+        "outcome"
+      ]
+    },
+    "AiAsset": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "schema": {
+          "const": "archeaxis.ai-asset/v1"
+        },
+        "kind": {
+          "$ref": "#/$defs/AssetKind"
+        },
+        "content": {
+          "$ref": "#/$defs/JSONValue",
+          "description": "Inert JSON; combined content/source_payload at most65536 UTF8 serialized bytes; depth16/nodes4096 bounded by Core."
+        },
+        "purpose": {
+          "type": "string",
+          "maxLength": 1024,
+          "description": "Core enforces at most 1024 UTF8 bytes; adopted/granted requires nonblank."
+        },
+        "scope": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/ObjectReference"
+          },
+          "maxItems": 32
+        },
+        "provenance": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/ObjectReference"
+          },
+          "maxItems": 32
+        },
+        "expires_at": {
+          "anyOf": [
+            {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 253402300799
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "state": {
+          "type": "string",
+          "enum": [
+            "candidate",
+            "adopted",
+            "withdrawn"
+          ]
+        },
+        "members": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/AssetSnapshot"
+          },
+          "maxItems": 64
+        },
+        "conflicts": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/AssetSnapshot"
+          },
+          "maxItems": 32
+        },
+        "revises": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/AssetSnapshot"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "review": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/AssetReview"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "source_payload": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/JSONValue"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "required": [
+        "schema",
+        "kind",
+        "content",
+        "purpose",
+        "scope",
+        "provenance",
+        "state",
+        "members",
+        "conflicts"
+      ]
+    },
+    "AssetConsumer": {
+      "type": "string",
+      "enum": [
+        "local-machine",
+        "manual-context-packet"
+      ]
+    },
+    "AssetOperation": {
+      "type": "string",
+      "enum": [
+        "read_packet",
+        "answer",
+        "retest"
+      ]
+    },
+    "AssetContextGrant": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "schema": {
+          "const": "archeaxis.asset-context-grant/v1"
+        },
+        "asset": {
+          "$ref": "#/$defs/AssetSnapshot"
+        },
+        "purpose": {
+          "type": "string",
+          "maxLength": 1024,
+          "description": "Core enforces at most 1024 UTF8 bytes; adopted/granted requires nonblank."
+        },
+        "consumer": {
+          "$ref": "#/$defs/AssetConsumer"
+        },
+        "operations": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/AssetOperation"
+          },
+          "maxItems": 3
+        },
+        "authorization_basis": {
+          "type": "string",
+          "maxLength": 16384
+        },
+        "expires_at": {
+          "anyOf": [
+            {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 253402300799
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "state": {
+          "type": "string",
+          "enum": [
+            "candidate",
+            "granted",
+            "revoked"
+          ]
+        }
+      },
+      "required": [
+        "schema",
+        "asset",
+        "purpose",
+        "consumer",
+        "operations",
+        "authorization_basis",
+        "state"
+      ]
+    },
+    "AssetPacketRequest": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "request_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[!-~]+$"
+        },
+        "grant": {
+          "$ref": "#/$defs/AssetSnapshot"
+        },
+        "asset": {
+          "$ref": "#/$defs/AssetSnapshot"
+        },
+        "purpose": {
+          "type": "string",
+          "maxLength": 1024
+        },
+        "consumer": {
+          "$ref": "#/$defs/AssetConsumer"
+        },
+        "operation": {
+          "$ref": "#/$defs/AssetOperation"
+        }
+      },
+      "required": [
+        "request_id",
+        "grant",
+        "asset",
+        "purpose",
+        "consumer",
+        "operation"
+      ]
+    },
+    "AssetPacketItem": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "snapshot": {
+          "$ref": "#/$defs/AssetSnapshot"
+        },
+        "kind": {
+          "$ref": "#/$defs/AssetKind"
+        },
+        "content": {
+          "$ref": "#/$defs/JSONValue"
+        },
+        "purpose": {
+          "type": "string"
+        },
+        "scope": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/ObjectReference"
+          },
+          "maxItems": 32
+        },
+        "provenance": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/ObjectReference"
+          },
+          "maxItems": 32
+        },
+        "engine_execution": {
+          "const": "NOT_EXECUTED"
+        },
+        "grants_professional_truth": {
+          "const": false
+        },
+        "grants_human_mastery": {
+          "const": false
+        },
+        "grants_machine_qualification": {
+          "const": false
+        }
+      },
+      "required": [
+        "snapshot",
+        "kind",
+        "content",
+        "purpose",
+        "scope",
+        "provenance",
+        "engine_execution",
+        "grants_professional_truth",
+        "grants_human_mastery",
+        "grants_machine_qualification"
+      ]
+    },
+    "AssetPacket": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "schema": {
+          "const": "archeaxis.ai-context-packet/v1"
+        },
+        "asset": {
+          "$ref": "#/$defs/AssetSnapshot"
+        },
+        "consumer": {
+          "$ref": "#/$defs/AssetConsumer"
+        },
+        "purpose": {
+          "type": "string"
+        },
+        "operation": {
+          "const": "read_packet"
+        },
+        "items": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/AssetPacketItem"
+          },
+          "maxItems": 128
+        },
+        "grant": {
+          "$ref": "#/$defs/AssetSnapshot"
+        },
+        "reference_only_sources": {
+          "const": true
+        },
+        "private_session_access": {
+          "const": false
+        },
+        "tool_execution": {
+          "const": "NOT_EXECUTED"
+        },
+        "machine_qualification": {
+          "const": false
+        },
+        "human_mastery": {
+          "const": false
+        },
+        "professional_truth": {
+          "const": false
+        }
+      },
+      "required": [
+        "schema",
+        "asset",
+        "consumer",
+        "purpose",
+        "operation",
+        "items",
+        "grant",
+        "reference_only_sources",
+        "private_session_access",
+        "tool_execution",
+        "machine_qualification",
+        "human_mastery",
+        "professional_truth"
+      ]
+    },
+    "AssetPacketReceipt": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "schema": {
+          "const": "archeaxis.ai-context-packet-receipt/v1"
+        },
+        "request_id": {
+          "type": "string"
+        },
+        "request_sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$",
+          "minLength": 64,
+          "maxLength": 64
+        },
+        "packet_sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$",
+          "minLength": 64,
+          "maxLength": 64
+        },
+        "asset": {
+          "$ref": "#/$defs/AssetSnapshot"
+        },
+        "grant": {
+          "$ref": "#/$defs/AssetSnapshot"
+        },
+        "consumer": {
+          "$ref": "#/$defs/AssetConsumer"
+        },
+        "purpose": {
+          "type": "string"
+        },
+        "operation": {
+          "const": "read_packet"
+        },
+        "delivery_status": {
+          "const": "PREPARED_NOT_SENT_TO_PEER"
+        },
+        "model_execution": {
+          "const": "NOT_EXECUTED"
+        },
+        "tool_execution": {
+          "const": "NOT_EXECUTED"
+        },
+        "grants_machine_qualification": {
+          "const": false
+        },
+        "grants_human_mastery": {
+          "const": false
+        }
+      },
+      "required": [
+        "schema",
+        "request_id",
+        "request_sha256",
+        "packet_sha256",
+        "asset",
+        "grant",
+        "consumer",
+        "purpose",
+        "operation",
+        "delivery_status",
+        "model_execution",
+        "tool_execution",
+        "grants_machine_qualification",
+        "grants_human_mastery"
+      ]
+    },
+    "AssetPacketResponse": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "packet": {
+          "$ref": "#/$defs/AssetPacket"
+        },
+        "packet_sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$",
+          "minLength": 64,
+          "maxLength": 64
+        },
+        "receipt": {
+          "$ref": "#/$defs/AssetPacketReceipt"
+        },
+        "audit_task_id": {
+          "type": "string"
+        },
+        "duplicate": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "packet",
+        "packet_sha256",
+        "receipt",
+        "audit_task_id",
+        "duplicate"
+      ]
+    },
+    "AiAssetListItem": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "document_id": {
+          "type": "string"
+        },
+        "title": {
+          "type": "string"
+        },
+        "version": {
+          "type": "integer"
+        },
+        "content_sha256": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "document_id",
+        "title",
+        "version",
+        "content_sha256"
+      ]
+    },
+    "AiAssetsPage": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "items": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/AiAssetListItem"
+          }
+        },
+        "next_cursor": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "required": [
+        "items",
+        "next_cursor"
+      ]
+    },
+    "MachineAssetContext": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "schema": {
+          "const": "archeaxis.machine-asset-context/v1"
+        },
+        "asset": {
+          "$ref": "#/$defs/AssetSnapshot"
+        },
+        "grant": {
+          "$ref": "#/$defs/AssetSnapshot"
+        },
+        "consumer": {
+          "const": "local-machine"
+        },
+        "operation": {
+          "enum": [
+            "answer",
+            "retest"
+          ],
+          "type": "string"
+        },
+        "packet_sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$",
+          "minLength": 64,
+          "maxLength": 64
+        },
+        "member_snapshots": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/AssetSnapshot"
+          },
+          "maxItems": 128
+        },
+        "tool_execution": {
+          "const": "NOT_EXECUTED"
+        },
+        "private_session_access": {
+          "const": false
+        }
+      },
+      "required": [
+        "schema",
+        "asset",
+        "grant",
+        "consumer",
+        "operation",
+        "packet_sha256",
+        "member_snapshots",
+        "tool_execution",
+        "private_session_access"
+      ]
+    }
+  }
+}

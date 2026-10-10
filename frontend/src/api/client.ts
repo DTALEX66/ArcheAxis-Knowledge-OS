@@ -25,11 +25,13 @@ const EXPECTED_PRODUCT_ID = "archeaxis-workspace";
 const EXPECTED_API_CONTRACT = "1.x";
 const WRITE_SCOPE = "workspace:write";
 
+export type MachineExecutionRefusal = { execution_state: "EXECUTED_BUT_WITHHELD"; audit_status: "RECORDED" | "FAILED"; audit_task_id: string | null; answer_published: false };
 export class ApiError extends Error {
   constructor(
     public status: number,
     message: string,
     public code: RuntimeProjection = "unavailable",
+    public execution?: MachineExecutionRefusal,
   ) {
     super(message);
     this.name = "ApiError";

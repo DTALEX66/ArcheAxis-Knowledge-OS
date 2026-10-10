@@ -257,11 +257,12 @@ capabilities:
       external_paths: ["10-toolchains/msvc/VC/Auxiliary/Build/vcvars64.bat"]
       project_entry: "tool_paths.tool_path(\"msvc\") + dev.external_toolchain() -> ARCHEAXIS_MSVC_VCVARS"
       writability: shared_read_only
-      healthcheck_command: "cd /d <VC/Auxiliary/Build> && call vcvars64.bat && where cl.exe"
+      # Codex's child PATH need not include System32; use the Windows-owned locator explicitly.
+      healthcheck_command: 'cd /d <VC/Auxiliary/Build> && call vcvars64.bat && "%SystemRoot%\System32\where.exe" cl.exe'
       probe:
         kind: cmd_chain
         cwd: "10-toolchains/msvc/VC/Auxiliary/Build"
-        lines: ["call vcvars64.bat", "where cl.exe"]
+        lines: ["call vcvars64.bat", '"%SystemRoot%\System32\where.exe" cl.exe']
         expect_pattern: "cl\\.exe$"
         timeout_seconds: 120
         reaches: RESULT_VERIFIED

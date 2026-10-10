@@ -13,13 +13,11 @@ describe("space descriptions", () => {
     expect(spaceDescription(byId("vault"))).toBe("本地笔记、搜索与画布");
   });
 
-  it("describes what the desktop shell actually renders", () => {
-    window.__TAURI__ = { core: { invoke: async () => ({}) } } as never;
-    expect(spaceDescription(byId("workspace"))).toBe("任务、备份与能力状态");
-    expect(spaceDescription(byId("intake"))).toBe("导入原件与多格式转换");
-    expect(spaceDescription(byId("vault"))).toBe("文档、搜索与知识候选");
-    expect(spaceDescription(byId("exchange"))).toBe("导出与投递回执");
-    expect(spaceDescription(byId("settings"))).toBe("本机能力与状态");
-    expect(spaceDescription(byId("library"))).toBe(byId("library").description);
+  it("describes the same page in both hosts without promising browser-only capabilities", () => {
+    const descriptions = SPACES.map(space => spaceDescription(space));
+    window.__TAURI__ = {core:{invoke:async()=>({})}} as never;
+    expect(SPACES.map(space => spaceDescription(space))).toEqual(descriptions);
+    expect(spaceDescription(byId("workspace"))).toBe("本地文档与学习继续");
+    expect(spaceDescription(byId("intake"))).toBe("本地原件与多格式导入");
   });
 });

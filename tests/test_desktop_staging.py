@@ -1,6 +1,8 @@
 from __future__ import annotations
 
 import json
+import os
+import subprocess
 import zipfile
 from pathlib import Path
 
@@ -12,6 +14,54 @@ from desktop.scripts.assemble_distributions import (
     assemble_portable,
 )
 from desktop.scripts.stage_runtime import stage_runtime
+from desktop.scripts.prepare_bundle import runtime_build_environment
+
+
+@pytest.fixture
+def runtime_repository(tmp_path, monkeypatch):
+    for name in list(os.environ):
+        if name.startswith("ARCHEAXIS_") or name in {"CARGO_TARGET_DIR", "UV_CACHE_DIR", "UV_PROJECT_ENVIRONMENT"}:
+            monkeypatch.delenv(name)
+    root = tmp_path / "repo"
+    root.mkdir()
+    subprocess.run(["git", "init", "-q", str(root)], check=True)
+    (root / ".gitignore").write_text(".project-local/\n", encoding="utf-8")
+    subprocess.run(["git", "-C", str(root), "add", ".gitignore"], check=True)
+    subprocess.run(["git", "-C", str(root), "-c", "user.name=Fixture", "-c", "user.email=fixture@example.invalid", "commit", "-qm", "fixture"], check=True)
+    return root
+
+
+def test_runtime_builds_share_owner_cache_but_isolate_wheel_environments(runtime_repository):
+    root = runtime_repository
+    linked = root / ".project-local/worktrees/linked"
+    subprocess.run(["git", "-C", str(root), "worktree", "add", "--detach", str(linked)], check=True, capture_output=True)
+    first = runtime_build_environment(root)
+    second = runtime_build_environment(linked)
+    third = runtime_build_environment(linked)
+    assert first["UV_CACHE_DIR"] == second["UV_CACHE_DIR"] == third["UV_CACHE_DIR"] == str(root / ".project-local/cache/uv")
+    assert len({value["UV_PROJECT_ENVIRONMENT"] for value in (first, second, third)}) == 3
+    for value in (first, second, third):
+        assert Path(value["UV_PROJECT_ENVIRONMENT"]).is_relative_to(Path(value["ARCHEAXIS_RUN_ROOT"]) / "tmp")
+    assert not (linked / ".project-local/cache/uv-desktop").exists()
+
+
+def test_runtime_preparation_reuses_only_its_allocated_run(runtime_repository, monkeypatch):
+    first = runtime_build_environment(runtime_repository)
+    for name, value in first.items():
+        monkeypatch.setenv(name, value)
+    second = runtime_build_environment(runtime_repository)
+    assert first["ARCHEAXIS_RUN_ROOT"] == second["ARCHEAXIS_RUN_ROOT"]
+    assert first["UV_PROJECT_ENVIRONMENT"] == second["UV_PROJECT_ENVIRONMENT"]
+    monkeypatch.setenv("ARCHEAXIS_RUN_ROOT", str(runtime_repository / ".project-local/runs/foreign/run"))
+    with pytest.raises(RuntimeError, match="foreign run"):
+        runtime_build_environment(runtime_repository)
+
+
+def test_runtime_preparation_refuses_foreign_checkout_before_allocating(runtime_repository, monkeypatch):
+    monkeypatch.setenv("ARCHEAXIS_WORKTREE_ROOT", str(runtime_repository.parent / "foreign"))
+    with pytest.raises(RuntimeError, match="foreign worktree"):
+        runtime_build_environment(runtime_repository)
+    assert not (runtime_repository / ".project-local/runs").exists()
 
 
 def _fake_python(monkeypatch, root: Path) -> None:

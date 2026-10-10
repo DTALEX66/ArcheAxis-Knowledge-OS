@@ -583,6 +583,11 @@ async fn retry_backend(state: State<'_, DesktopBackend>) -> Result<BackendInfo, 
 #[cfg(windows)]
 fn retry_backend_blocking(state: DesktopBackend) -> Result<BackendInfo, String> {
     let _operation = try_operation_guard(&state)?;
+    retry_backend_unlocked(state.clone())
+}
+
+#[cfg(windows)]
+fn retry_backend_unlocked(state: DesktopBackend) -> Result<BackendInfo, String> {
     refresh_backend_state(&state)?;
     if let Some(existing) = state
         .process
@@ -716,8 +721,18 @@ fn restore_backup_blocking(
     name: String,
 ) -> Result<RestoreReceiptDto, String> {
     let _operation = try_operation_guard(&state)?;
-    let runtime =
-        current_runtime(&state)?.ok_or_else(|| RECOVERY_RUNTIME_UNAVAILABLE.to_owned())?;
+    restore_backup_checked(state.clone(),name,None)
+}
+
+#[cfg(windows)]
+// Caller must hold state.operations throughout restore and optional restart/readback.
+fn restore_backup_checked(state: DesktopBackend, name: String, expected: Option<String>) -> Result<RestoreReceiptDto,String> {
+    let runtime = current_runtime(&state)?.ok_or_else(|| RECOVERY_RUNTIME_UNAVAILABLE.to_owned())?;
+    if expected.is_some() && (runtime.external_dev || CoreSpec::beside_runtime(&runtime).is_none()) {return Err("WORKSPACE_RESTORE_REQUIRES_OWNED_CANONICAL_CORE".into());}
+    if let Some(ref sha) = expected {
+        let id=name.strip_suffix(".sqlite").ok_or(RECOVERY_BACKUP_INVALID)?;
+        workspace_preview_blocking(&state,id,sha)?;
+    }
     let backups = enumerate_backups(&runtime.data_dir).map_err(|error| {
         if let Ok(mut recovery) = state.recovery.lock() {
             recovery.record_diagnostic(&error);
@@ -767,10 +782,14 @@ fn restore_backup_blocking(
         record_invalid_backup_selection(&state);
         return Err(RECOVERY_BACKUP_INVALID.to_owned());
     }
-    let staged = stage_backup_for_restore(&runtime.data_dir, &selected).map_err(|_| {
+    let mut staged = stage_backup_for_restore(&runtime.data_dir, &selected).map_err(|_| {
         record_invalid_backup_selection(&state);
         RECOVERY_BACKUP_INVALID.to_owned()
     })?;
+    if let Some(ref expected) = expected {
+        let id=name.strip_suffix(".sqlite").ok_or(RECOVERY_BACKUP_INVALID)?;
+        staged.seal_for_canonical_restore(id,expected).map_err(|_|RECOVERY_BACKUP_INVALID.to_owned())?;
+    }
     staged.revalidate_for_restore().map_err(|_| {
         record_invalid_backup_selection(&state);
         RECOVERY_BACKUP_INVALID.to_owned()
@@ -791,6 +810,49 @@ fn restore_backup_blocking(
             Err(RECOVERY_RESTORE_FAILED.to_owned())
         }
     }
+}
+
+
+#[cfg(windows)]
+fn workspace_preview_blocking(state:&DesktopBackend, backup_id:&str, expected_sha256:&str) -> Result<serde_json::Value,String> {
+    if backup_id.len()!=32 || expected_sha256.len()!=64 || !backup_id.bytes().chain(expected_sha256.bytes()).all(|b|b.is_ascii_digit()||(b'a'..=b'f').contains(&b)) { return Err(RECOVERY_BACKUP_INVALID.into()); }
+    let (port,token)={ let process=state.process.lock().map_err(|_|RECOVERY_STATE_UNAVAILABLE)?; let process=process.as_ref().ok_or(RECOVERY_RUNTIME_UNAVAILABLE)?; (process.port,process.token.clone()) };
+    let reply=core_bridge::execute(port,&token,core_bridge::Request{operation:core_bridge::Operation::WorkspaceRestorePreview,payload:serde_json::json!({"body":{"backup_id":backup_id,"expected_sha256":expected_sha256}})})?;
+    if reply.status!=200 || reply.body["schema"]!="archeaxis.workspace-restore-preview/v2" || reply.body["backup_id"]!=backup_id || reply.body["sha256"]!=expected_sha256 || reply.body["verified"]!=true || reply.body["compatible"]!=true {return Err("WORKSPACE_RESTORE_PREFLIGHT_REJECTED".into());}
+    Ok(reply.body)
+}
+
+#[cfg(windows)]
+#[tauri::command]
+async fn workspace_restore_preview(window:tauri::Window, state:State<'_,DesktopBackend>, backup_id:String, expected_sha256:String) -> Result<serde_json::Value,String> {
+    if window.label()!="main" {return Err("WORKSPACE_RESTORE_WINDOW_FORBIDDEN".into());}
+    let state=state.inner().clone();
+    tauri::async_runtime::spawn_blocking(move||{let _guard=try_operation_guard(&state)?; workspace_preview_blocking(&state,&backup_id,&expected_sha256)}).await.map_err(|_|RECOVERY_STATE_UNAVAILABLE.to_owned())?
+}
+
+#[cfg(windows)]
+#[tauri::command]
+async fn workspace_restore_confirm(window:tauri::Window, state:State<'_,DesktopBackend>, backup_id:String, expected_sha256:String) -> Result<serde_json::Value,String> {
+    if window.label()!="main" {return Err("WORKSPACE_RESTORE_WINDOW_FORBIDDEN".into());}
+    let state=state.inner().clone();
+    tauri::async_runtime::spawn_blocking(move||{
+        // One guard spans preflight, shutdown, restore, restart and content readback.
+        let _operation=try_operation_guard(&state)?;
+        restore_backup_checked(state.clone(),format!("{backup_id}.sqlite"),Some(expected_sha256))?;
+        retry_backend_unlocked(state.clone()).map_err(|_|"WORKSPACE_RESTORED_RESTART_REQUIRED".to_owned())?;
+        let (port,token)={let process=state.process.lock().map_err(|_|RECOVERY_STATE_UNAVAILABLE)?;let process=process.as_ref().ok_or(RECOVERY_RUNTIME_UNAVAILABLE)?;(process.port,process.token.clone())};
+        let reply=core_bridge::execute(port,&token,core_bridge::Request{operation:core_bridge::Operation::SystemVersion,payload:serde_json::json!({})})?;
+        if reply.status!=200 || reply.body["runtime"]!="archeaxis-api" {return Err("WORKSPACE_RESTORED_READBACK_REQUIRED".into());}
+        let sources=core_bridge::execute(port,&token,core_bridge::Request{operation:core_bridge::Operation::SourcesList,payload:serde_json::json!({})})?;
+        let documents=core_bridge::execute(port,&token,core_bridge::Request{operation:core_bridge::Operation::DocumentsList,payload:serde_json::json!({})})?;
+        if sources.status!=200 || !sources.body["sources"].is_array() || documents.status!=200 || !documents.body["documents"].is_array() {return Err("WORKSPACE_RESTORED_OBJECT_READBACK_REQUIRED".into());}
+        // Read an actual restored document version, rather than counting a schema handshake as content readback.
+        if let Some(document)=documents.body["documents"].as_array().and_then(|rows|rows.first()) {
+            let restored=core_bridge::execute(port,&token,core_bridge::Request{operation:core_bridge::Operation::DocumentGet,payload:serde_json::json!({"document_id":document["document_id"]})})?;
+            if restored.status!=200 || restored.body["document_id"]!=document["document_id"] || !restored.body["blocks"].is_array() {return Err("WORKSPACE_RESTORED_DOCUMENT_READBACK_REQUIRED".into());}
+        }
+        Ok(serde_json::json!({"schema":"archeaxis.workspace-restore-result/v2","backup_id":backup_id,"restored":true,"restarted":true,"readback":reply.body}))
+    }).await.map_err(|_|RECOVERY_STATE_UNAVAILABLE.to_owned())?
 }
 
 #[cfg(windows)]
@@ -845,6 +907,8 @@ fn main() {
             enter_safe_mode,
             retry_backend,
             restore_backup,
+            workspace_restore_preview,
+            workspace_restore_confirm,
             exit_application,
         ])
         .setup(move |app| {

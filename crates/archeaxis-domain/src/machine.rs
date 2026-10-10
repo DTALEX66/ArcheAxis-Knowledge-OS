@@ -8,8 +8,8 @@
 //!
 //! The table is created on demand (the same approach the FTS indexes and
 //! card_references use), so no schema-version bump and no archive-layout change is
-//! involved. Recorded limitation: because it is created on demand it is not part
-//! of EXPORT_TABLES, so archives do not carry machine receipts yet.
+//! involved. The canonical store initializes this table and EXPORT_TABLES includes
+//! it, so workspace archives preserve these receipts.
 
 use rusqlite::{Connection, OptionalExtension};
 
@@ -258,6 +258,44 @@ pub fn machine_task(
         },
     )
     .optional()
+}
+
+/// Bounded, stable receipt navigation. Reading history never creates a table or
+/// changes a receipt; each row keeps its original principal and all conditions.
+pub fn machine_task_page(
+    conn: &Connection,
+    cursor: Option<&str>,
+    limit: usize,
+) -> rusqlite::Result<serde_json::Value> {
+    if !(1..=100).contains(&limit) || cursor.is_some_and(|s| s.is_empty() || s.len() > 256) {
+        return Err(rusqlite::Error::InvalidParameterName("invalid receipt page bounds".into()));
+    }
+    let exists: bool = conn.query_row(
+        "SELECT EXISTS(SELECT 1 FROM sqlite_master WHERE type='table' AND name='machine_tasks')",
+        [], |r| r.get(0),
+    )?;
+    if !exists {
+        return Ok(serde_json::json!({"items":[],"next_cursor":null}));
+    }
+    let mut stmt = conn.prepare(
+        "SELECT task_id,principal,conditions,knowledge_version,method_version,tool_version,
+                model_version,scope,outcome,failure,retest_of,recorded_at
+         FROM machine_tasks WHERE (?1 IS NULL OR task_id>?1) ORDER BY task_id LIMIT ?2",
+    )?;
+    let mut items = stmt.query_map(rusqlite::params![cursor, (limit + 1) as i64], |r| {
+        Ok(serde_json::json!({
+            "task_id":r.get::<_,String>(0)?,"principal":r.get::<_,String>(1)?,
+            "conditions":r.get::<_,String>(2)?,"knowledge_version":r.get::<_,Option<String>>(3)?,
+            "method_version":r.get::<_,Option<String>>(4)?,"tool_version":r.get::<_,Option<String>>(5)?,
+            "model_version":r.get::<_,String>(6)?,"scope":r.get::<_,String>(7)?,
+            "outcome":r.get::<_,String>(8)?,"failure":r.get::<_,Option<String>>(9)?,
+            "retest_of":r.get::<_,Option<String>>(10)?,"recorded_at":r.get::<_,String>(11)?
+        }))
+    })?.collect::<rusqlite::Result<Vec<_>>>()?;
+    let more = items.len() > limit;
+    items.truncate(limit);
+    let next = if more { items.last().map(|i| i["task_id"].clone()) } else { None };
+    Ok(serde_json::json!({"items":items,"next_cursor":next}))
 }
 
 /// Count receipts along with how many were explicitly unmeasured, so a caller can

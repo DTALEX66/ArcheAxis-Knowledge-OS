@@ -9,6 +9,10 @@ TARGET = ROOT / "frontend/src/api/generated/core-contract.ts"
 def ts(node):
     if "$ref" in node:
         return node["$ref"].split("/")[-1]
+    if "const" in node:
+        return json.dumps(node["const"])
+    if "anyOf" in node:
+        return " | ".join(ts(value) for value in node["anyOf"])
     if "enum" in node:
         return " | ".join(json.dumps(x) for x in node["enum"])
     kind = node.get("type")
@@ -31,6 +35,8 @@ def generate():
     result += '''
 function validate(node: any, value: unknown): boolean {
   if (node.$ref) return validate(definitions[node.$ref.split("/").pop()], value);
+  if ("const" in node) return value === node.const;
+  if (node.anyOf) return node.anyOf.some((child: any) => validate(child, value));
   if (node.enum) return node.enum.includes(value);
   if (Array.isArray(node.type)) return node.type.some((type: string) => validate({type}, value));
   switch (node.type) {

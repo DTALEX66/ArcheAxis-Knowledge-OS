@@ -93,7 +93,8 @@ class PptxChartDataTests(unittest.TestCase):
             self.assertTrue(slice_text.startswith("Chart:"), slice_text)
             self.assertIn("Revenue", slice_text)
             self.assertIn("Q1=41", slice_text)
-            self.assertEqual(anchor["path"], ["slide-1", "slide_chart"])
+            self.assertEqual(anchor["path"], ["slide-1", "relationship-" + anchor["relationship_id"], anchor["chart_part"], "slide_chart"])
+            self.assertEqual(anchor["chart_part"], CHART_PART)
             self.assertGreaterEqual(anchor["char_start"], 0)
             self.assertLessEqual(anchor["char_end"], len(out["text"]))
 

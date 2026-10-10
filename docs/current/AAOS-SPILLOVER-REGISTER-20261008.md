@@ -14,6 +14,8 @@ Every byte count below was read on 2026-10-08 by
 `AAOS-SPILLOVER-REGISTER-20261008.json` and the tables of this document from one measurement pass
 (`generated_at 2026-10-08T20:12:07+0800`, 96 rows). E:\ and F:\ were not touched.
 
+> 2026-10-08 后续执行更正：下述“仅登记、未迁移”和原表处置是本次测量时点的历史状态。用户指定截图后，stray archive（10文件）、root backup（2文件）与ACL载荷（4文件）已完整迁入主检出mig/d-root-spillover-20261008批次；ACL载荷属于AAOS，DSH是actor，原表“belongs to DSH”不得用于当前路由。现位置与核验见机器登记的current_*字段及累计交接记录§12；不重写原始测量数值，不执行ACL脚本。
+
 ## 1. The question this answers
 
 The owner asked whether **外溢数据** — data that belongs to this project but lives outside the two repositories — is
@@ -517,3 +519,11 @@ not yet proven to be a duplicate.
   that run is what recorded the 174).
 - Roll back this register: delete `docs/current/AAOS-SPILLOVER-REGISTER-20261008.md` and its JSON twin. No byte
   outside those two files was created, changed, moved or deleted by this pass.
+
+## 2026-10-09 exact governance-file migration
+
+Historical execution paths and verdicts above are retained. This current mapping is effective only when the exact migration receipt records PASS; it does not authorize re-execution of the archived tools or remote changes.
+
+- `D:\All projects\ArcheAxis-Knowledge-OS\.project-local\spillover-addendum-20261007.md` → `D:\All projects\ArcheAxis-Knowledge-OS\.project-local\mig\root-layout-normalization-20261009\spillover-addendum-20261007.md`; 3644 B; SHA-256 `0529bfa0c37d216629ec83aedda4dd79f1336cb0437765c608d1cc778301f943`.
+
+Current receipt: `D:\All projects\ArcheAxis-Knowledge-OS\.project-local\runs\f714401b40\codex-ui-governance-20261009\artifacts\remaining-layout-plan\migration-result.json`. Exact reverse mapping: run `D:\All projects\ArcheAxis-Knowledge-OS\.project-local\runs\f714401b40\codex-ui-governance-20261009\tmp\root_layout_migrate.py` with `--restore`; it refuses changed files and an existing original path. Only the five reviewed files are moved; no deletion or reclaimed-space claim.

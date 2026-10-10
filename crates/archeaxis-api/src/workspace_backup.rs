@@ -158,3 +158,33 @@ pub(crate) async fn create(
         match result {Ok(receipt)=>(StatusCode::CREATED,Json(receipt)).into_response(),Err(error)=>(StatusCode::INTERNAL_SERVER_ERROR,Json(json!({"code":"AAK-BACKUP-001","message":error.to_string()}))).into_response()}
     }).await
 }
+
+#[derive(Deserialize)]
+#[serde(deny_unknown_fields)]
+pub(crate) struct PreviewRequest { pub backup_id: String, pub expected_sha256: String }
+
+/// Version 2 recovery contract; v1 create/list remains byte-compatible.
+pub(crate) async fn preview(State(state): State<AppState>, headers: HeaderMap, Json(body): Json<PreviewRequest>) -> Response {
+    if crate::request_actor(&headers) != Ok("human") { return StatusCode::FORBIDDEN.into_response(); }
+    if !hex(&body.backup_id,32) || !hex(&body.expected_sha256,64) { return StatusCode::BAD_REQUEST.into_response(); }
+    crate::with_store(state, move |conn| {
+        let result=(|| -> rusqlite::Result<serde_json::Value> {
+            let root=directory(conn)?;
+            archeaxis_store_sqlite::raw_objects::reject_links(&root)?;
+            let filename=format!("{}.sqlite",body.backup_id);
+            let artifact=root.join(&filename);
+            let mut file=regular_file(&root.join(format!("{filename}.manifest.json")))?;
+            if file.metadata().map_err(io)?.len()>1024*1024 {return Err(rusqlite::Error::InvalidQuery);}
+            let manifest:serde_json::Value=serde_json::from_reader(&mut file).map_err(|_|rusqlite::Error::InvalidQuery)?;
+            let (sha,bytes)=digest(&artifact)?;
+            if manifest["schema"]!="archeaxis-core-backup-1" || manifest["backup_id"]!=body.backup_id || manifest["filename"]!=filename || manifest["sha256"]!=sha || manifest["bytes"]!=bytes || sha!=body.expected_sha256 { return Err(rusqlite::Error::InvalidQuery); }
+            archeaxis_domain::backup::preview(&artifact)?;
+            let snapshot=rusqlite::Connection::open_with_flags(artifact.canonicalize().map_err(io)?,rusqlite::OpenFlags::SQLITE_OPEN_READ_ONLY)?;
+            let schema:String=snapshot.query_row("SELECT value FROM workspace_meta WHERE key='schema_version'",[],|r|r.get(0))?;
+            let source_sha_list=snapshot.prepare("SELECT sha256 FROM sources ORDER BY sha256")?.query_map([],|r|r.get::<_,String>(0))?.collect::<rusqlite::Result<Vec<_>>>()?;
+            if manifest["schema_version"]!=schema || manifest["source_sha_list"]!=json!(source_sha_list) {return Err(rusqlite::Error::InvalidQuery);}
+            Ok(json!({"schema":"archeaxis.workspace-restore-preview/v2","backup_id":body.backup_id,"sha256":sha,"schema_version":schema,"source_count":source_sha_list.len(),"compatible":true,"verified":true}))
+        })();
+        match result {Ok(value)=>Json(value).into_response(),Err(_)=>(StatusCode::CONFLICT,Json(json!({"code":"AAK-RESTORE-PREFLIGHT-409","message":"Backup identity, schema, integrity or CAS verification failed; current workspace was not changed."}))).into_response()}
+    }).await
+}

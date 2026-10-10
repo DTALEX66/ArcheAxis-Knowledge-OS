@@ -1,0 +1,18 @@
+.collection-panel { min-width: 0; color: var(--aaos-text); }
+.collection-panel fieldset, .collection-card { min-width: 0; border: 1px solid var(--aaos-border); border-radius: var(--radius-md, 8px); padding: 12px; margin-block: 12px; background: var(--aaos-surface); }
+.collection-panel legend, .collection-panel p, .collection-panel button, .collection-panel dd, .collection-panel pre { overflow-wrap: anywhere; }
+.collection-panel label { display: block; margin-block: 8px; }
+.collection-panel input, .collection-panel select, .collection-panel textarea { max-width: 100%; box-sizing: border-box; color: inherit; background: var(--aaos-surface); border: 1px solid var(--aaos-border); }
+.collection-panel button { max-width: 100%; white-space: normal; color: var(--aaos-text); background: var(--aaos-raised); border: 1px solid var(--aaos-control-border); border-radius: var(--ax-radius-sm); padding: 7px 12px; }
+.collection-panel button:focus-visible, .collection-panel input:focus-visible, .collection-panel textarea:focus-visible, .collection-panel select:focus-visible { outline: 2px solid var(--aaos-focus); outline-offset: 2px; }
+.collection-panel textarea { width: 100%; min-height: 96px; font-family: monospace; }
+.collection-json-editor { min-width: 0; padding-block: var(--ax-space-2); border-block-start: 1px solid var(--aaos-border); }
+.collection-panel pre { white-space: pre-wrap; }
+.collection-query-controls { display: flex; gap: 12px; flex-wrap: wrap; align-items: center; }
+.collection-table-scroll { overflow-x: auto; max-width: 100%; }
+.collection-panel table { border-collapse: collapse; width: 100%; }
+.collection-panel th, .collection-panel td { text-align: start; padding: 8px; border: 1px solid var(--aaos-border); }
+.collection-board, .collection-calendar, .collection-gallery { display: grid; gap: 12px; grid-template-columns: repeat(auto-fit, minmax(min(240px, 100%), 1fr)); }
+.collection-list { display: flex; flex-direction: column; }
+.collection-panel dd { margin-inline-start: 0; }
+.collection-panel [role="alert"] { color: var(--aaos-danger, var(--aaos-text)); }

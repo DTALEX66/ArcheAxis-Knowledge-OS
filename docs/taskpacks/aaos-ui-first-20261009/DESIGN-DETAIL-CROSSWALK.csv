@@ -1,0 +1,187 @@
+﻿父CAP,源内顺序,设计细项原文,承接切片,来源,批准细项独立对照,当前实现资格,执行意图
+CAP-0010,1,原件 / CAS,UF03,AAOS_UI_Frontend_20261009/reference/capability-details.json,UNVERIFIED；由H01/UF06核对，设计不自证明,UNVERIFIED,保留；按任务phase执行或冻结，不删除细项
+CAP-0010,2,捕获与导入,UF03,AAOS_UI_Frontend_20261009/reference/capability-details.json,UNVERIFIED；由H01/UF06核对，设计不自证明,UNVERIFIED,保留；按任务phase执行或冻结，不删除细项
+CAP-0010,3,来源身份,UF03,AAOS_UI_Frontend_20261009/reference/capability-details.json,UNVERIFIED；由H01/UF06核对，设计不自证明,UNVERIFIED,保留；按任务phase执行或冻结，不删除细项
+CAP-0010,4,稳定对象ID,UF03,AAOS_UI_Frontend_20261009/reference/capability-details.json,UNVERIFIED；由H01/UF06核对，设计不自证明,UNVERIFIED,保留；按任务phase执行或冻结，不删除细项
+CAP-0010,5,不可变版本,UF03,AAOS_UI_Frontend_20261009/reference/capability-details.json,UNVERIFIED；由H01/UF06核对，设计不自证明,UNVERIFIED,保留；按任务phase执行或冻结，不删除细项
+CAP-0010,6,原件与解释分开,UF03,AAOS_UI_Frontend_20261009/reference/capability-details.json,UNVERIFIED；由H01/UF06核对，设计不自证明,UNVERIFIED,保留；按任务phase执行或冻结，不删除细项
+CAP-0010,7,普通草稿先保存,UF03,AAOS_UI_Frontend_20261009/reference/capability-details.json,UNVERIFIED；由H01/UF06核对，设计不自证明,UNVERIFIED,保留；按任务phase执行或冻结，不删除细项
+CAP-0010,8,来源谱系,UF03,AAOS_UI_Frontend_20261009/reference/capability-details.json,UNVERIFIED；由H01/UF06核对，设计不自证明,UNVERIFIED,保留；按任务phase执行或冻结，不删除细项
+CAP-0020,1,TXT / Markdown,CB04;UF11,AAOS_UI_Frontend_20261009/reference/capability-details.json,UNVERIFIED；由H01/UF06核对，设计不自证明,UNVERIFIED,保留；按任务phase执行或冻结，不删除细项
+CAP-0020,2,文本PDF / 扫描PDF,CB04;UF11,AAOS_UI_Frontend_20261009/reference/capability-details.json,UNVERIFIED；由H01/UF06核对，设计不自证明,UNVERIFIED,保留；按任务phase执行或冻结，不删除细项
+CAP-0020,3,图片 / OCR,CB04;UF11,AAOS_UI_Frontend_20261009/reference/capability-details.json,UNVERIFIED；由H01/UF06核对，设计不自证明,UNVERIFIED,保留；按任务phase执行或冻结，不删除细项
+CAP-0020,4,DOCX / PPTX / XLSX,CB04;UF11,AAOS_UI_Frontend_20261009/reference/capability-details.json,UNVERIFIED；由H01/UF06核对，设计不自证明,UNVERIFIED,保留；按任务phase执行或冻结，不删除细项
+CAP-0020,5,HTML / 网页,CB04;UF11,AAOS_UI_Frontend_20261009/reference/capability-details.json,UNVERIFIED；由H01/UF06核对，设计不自证明,UNVERIFIED,保留；按任务phase执行或冻结，不删除细项
+CAP-0020,6,CSV / TSV,CB04;UF11,AAOS_UI_Frontend_20261009/reference/capability-details.json,UNVERIFIED；由H01/UF06核对，设计不自证明,UNVERIFIED,保留；按任务phase执行或冻结，不删除细项
+CAP-0020,7,JSON / JSONL / YAML / TOML / XML,CB04;UF11,AAOS_UI_Frontend_20261009/reference/capability-details.json,UNVERIFIED；由H01/UF06核对，设计不自证明,UNVERIFIED,保留；按任务phase执行或冻结，不删除细项
+CAP-0020,8,JSON Canvas,CB04;UF11,AAOS_UI_Frontend_20261009/reference/capability-details.json,UNVERIFIED；由H01/UF06核对，设计不自证明,UNVERIFIED,保留；按任务phase执行或冻结，不删除细项
+CAP-0020,9,音频 / ASR,CB04;UF11,AAOS_UI_Frontend_20261009/reference/capability-details.json,UNVERIFIED；由H01/UF06核对，设计不自证明,UNVERIFIED,保留；按任务phase执行或冻结，不删除细项
+CAP-0020,10,视频 / 字幕 / 抽帧,CB04;UF11,AAOS_UI_Frontend_20261009/reference/capability-details.json,UNVERIFIED；由H01/UF06核对，设计不自证明,UNVERIFIED,保留；按任务phase执行或冻结，不删除细项
+CAP-0020,11,SRT / VTT,CB04;UF11,AAOS_UI_Frontend_20261009/reference/capability-details.json,UNVERIFIED；由H01/UF06核对，设计不自证明,UNVERIFIED,保留；按任务phase执行或冻结，不删除细项
+CAP-0020,12,EPUB / EML,CB04;UF11,AAOS_UI_Frontend_20261009/reference/capability-details.json,UNVERIFIED；由H01/UF06核对，设计不自证明,UNVERIFIED,保留；按任务phase执行或冻结，不删除细项
+CAP-0020,13,ZIP / TAR清点,CB04;UF11,AAOS_UI_Frontend_20261009/reference/capability-details.json,UNVERIFIED；由H01/UF06核对，设计不自证明,UNVERIFIED,保留；按任务phase执行或冻结，不删除细项
+CAP-0020,14,旧Office / ODF / MHTML可选引擎,CB04;UF11,AAOS_UI_Frontend_20261009/reference/capability-details.json,UNVERIFIED；由H01/UF06核对，设计不自证明,UNVERIFIED,保留；按任务phase执行或冻结，不删除细项
+CAP-0020,15,结构转换与锚点,CB04;UF11,AAOS_UI_Frontend_20261009/reference/capability-details.json,UNVERIFIED；由H01/UF06核对，设计不自证明,UNVERIFIED,保留；按任务phase执行或冻结，不删除细项
+CAP-0020,16,损失与失败回执,CB04;UF11,AAOS_UI_Frontend_20261009/reference/capability-details.json,UNVERIFIED；由H01/UF06核对，设计不自证明,UNVERIFIED,保留；按任务phase执行或冻结，不删除细项
+CAP-0020,17,冷启动与安装态,CB04;UF11,AAOS_UI_Frontend_20261009/reference/capability-details.json,UNVERIFIED；由H01/UF06核对，设计不自证明,UNVERIFIED,保留；按任务phase执行或冻结，不删除细项
+CAP-0030,1,来源锚点,UF03;UF08,AAOS_UI_Frontend_20261009/reference/capability-details.json,UNVERIFIED；由H01/UF06核对，设计不自证明,UNVERIFIED,保留；按任务phase执行或冻结，不删除细项
+CAP-0030,2,识别忠实度,UF03;UF08,AAOS_UI_Frontend_20261009/reference/capability-details.json,UNVERIFIED；由H01/UF06核对，设计不自证明,UNVERIFIED,保留；按任务phase执行或冻结，不删除细项
+CAP-0030,3,专业依据,UF03;UF08,AAOS_UI_Frontend_20261009/reference/capability-details.json,UNVERIFIED；由H01/UF06核对，设计不自证明,UNVERIFIED,保留；按任务phase执行或冻结，不删除细项
+CAP-0030,4,支持与反证,UF03;UF08,AAOS_UI_Frontend_20261009/reference/capability-details.json,UNVERIFIED；由H01/UF06核对，设计不自证明,UNVERIFIED,保留；按任务phase执行或冻结，不删除细项
+CAP-0030,5,争议与不确定,UF03;UF08,AAOS_UI_Frontend_20261009/reference/capability-details.json,UNVERIFIED；由H01/UF06核对，设计不自证明,UNVERIFIED,保留；按任务phase执行或冻结，不删除细项
+CAP-0030,6,适用时间与范围,UF03;UF08,AAOS_UI_Frontend_20261009/reference/capability-details.json,UNVERIFIED；由H01/UF06核对，设计不自证明,UNVERIFIED,保留；按任务phase执行或冻结，不删除细项
+CAP-0030,7,来源独立性,UF03;UF08,AAOS_UI_Frontend_20261009/reference/capability-details.json,UNVERIFIED；由H01/UF06核对，设计不自证明,UNVERIFIED,保留；按任务phase执行或冻结，不删除细项
+CAP-0030,8,用户采用独立判断,UF03;UF08,AAOS_UI_Frontend_20261009/reference/capability-details.json,UNVERIFIED；由H01/UF06核对，设计不自证明,UNVERIFIED,保留；按任务phase执行或冻结，不删除细项
+CAP-0040,1,诊断,UF05;UF07;M01,AAOS_UI_Frontend_20261009/reference/capability-details.json,UNVERIFIED；由H01/UF06核对，设计不自证明,UNVERIFIED,保留；按任务phase执行或冻结，不删除细项
+CAP-0040,2,先修与误区,UF05;UF07;M01,AAOS_UI_Frontend_20261009/reference/capability-details.json,UNVERIFIED；由H01/UF06核对，设计不自证明,UNVERIFIED,保留；按任务phase执行或冻结，不删除细项
+CAP-0040,3,可解释路线,UF05;UF07;M01,AAOS_UI_Frontend_20261009/reference/capability-details.json,UNVERIFIED；由H01/UF06核对，设计不自证明,UNVERIFIED,保留；按任务phase执行或冻结，不删除细项
+CAP-0040,4,认知负荷,UF05;UF07;M01,AAOS_UI_Frontend_20261009/reference/capability-details.json,UNVERIFIED；由H01/UF06核对，设计不自证明,UNVERIFIED,保留；按任务phase执行或冻结，不删除细项
+CAP-0040,5,记忆编码,UF05;UF07;M01,AAOS_UI_Frontend_20261009/reference/capability-details.json,UNVERIFIED；由H01/UF06核对，设计不自证明,UNVERIFIED,保留；按任务phase执行或冻结，不删除细项
+CAP-0040,6,间隔复习,UF05;UF07;M01,AAOS_UI_Frontend_20261009/reference/capability-details.json,UNVERIFIED；由H01/UF06核对，设计不自证明,UNVERIFIED,保留；按任务phase执行或冻结，不删除细项
+CAP-0040,7,主动提取,UF05;UF07;M01,AAOS_UI_Frontend_20261009/reference/capability-details.json,UNVERIFIED；由H01/UF06核对，设计不自证明,UNVERIFIED,保留；按任务phase执行或冻结，不删除细项
+CAP-0040,8,主动训练,UF05;UF07;M01,AAOS_UI_Frontend_20261009/reference/capability-details.json,UNVERIFIED；由H01/UF06核对，设计不自证明,UNVERIFIED,保留；按任务phase执行或冻结，不删除细项
+CAP-0040,9,技能实战,UF05;UF07;M01,AAOS_UI_Frontend_20261009/reference/capability-details.json,UNVERIFIED；由H01/UF06核对，设计不自证明,UNVERIFIED,保留；按任务phase执行或冻结，不删除细项
+CAP-0040,10,Teach-back,UF05;UF07;M01,AAOS_UI_Frontend_20261009/reference/capability-details.json,UNVERIFIED；由H01/UF06核对，设计不自证明,UNVERIFIED,保留；按任务phase执行或冻结，不删除细项
+CAP-0040,11,元认知,UF05;UF07;M01,AAOS_UI_Frontend_20261009/reference/capability-details.json,UNVERIFIED；由H01/UF06核对，设计不自证明,UNVERIFIED,保留；按任务phase执行或冻结，不删除细项
+CAP-0040,12,错误反馈,UF05;UF07;M01,AAOS_UI_Frontend_20261009/reference/capability-details.json,UNVERIFIED；由H01/UF06核对，设计不自证明,UNVERIFIED,保留；按任务phase执行或冻结，不删除细项
+CAP-0040,13,学习画像,UF05;UF07;M01,AAOS_UI_Frontend_20261009/reference/capability-details.json,UNVERIFIED；由H01/UF06核对，设计不自证明,UNVERIFIED,保留；按任务phase执行或冻结，不删除细项
+CAP-0040,14,长期巩固,UF05;UF07;M01,AAOS_UI_Frontend_20261009/reference/capability-details.json,UNVERIFIED；由H01/UF06核对，设计不自证明,UNVERIFIED,保留；按任务phase执行或冻结，不删除细项
+CAP-0040,15,Profile / Recipe / Event,UF05;UF07;M01,AAOS_UI_Frontend_20261009/reference/capability-details.json,UNVERIFIED；由H01/UF06核对，设计不自证明,UNVERIFIED,保留；按任务phase执行或冻结，不删除细项
+CAP-0040,16,真实学习与模拟分开,UF05;UF07;M01,AAOS_UI_Frontend_20261009/reference/capability-details.json,UNVERIFIED；由H01/UF06核对，设计不自证明,UNVERIFIED,保留；按任务phase执行或冻结，不删除细项
+CAP-0050,1,项目记忆,UF09,AAOS_UI_Frontend_20261009/reference/capability-details.json,UNVERIFIED；由H01/UF06核对，设计不自证明,UNVERIFIED,保留；按任务phase执行或冻结，不删除细项
+CAP-0050,2,知识包,UF09,AAOS_UI_Frontend_20261009/reference/capability-details.json,UNVERIFIED；由H01/UF06核对，设计不自证明,UNVERIFIED,保留；按任务phase执行或冻结，不删除细项
+CAP-0050,3,跨会话 / 客户端上下文,UF09,AAOS_UI_Frontend_20261009/reference/capability-details.json,UNVERIFIED；由H01/UF06核对，设计不自证明,UNVERIFIED,保留；按任务phase执行或冻结，不删除细项
+CAP-0050,4,规则与技能,UF09,AAOS_UI_Frontend_20261009/reference/capability-details.json,UNVERIFIED；由H01/UF06核对，设计不自证明,UNVERIFIED,保留；按任务phase执行或冻结，不删除细项
+CAP-0050,5,观察与经验候选,UF09,AAOS_UI_Frontend_20261009/reference/capability-details.json,UNVERIFIED；由H01/UF06核对，设计不自证明,UNVERIFIED,保留；按任务phase执行或冻结，不删除细项
+CAP-0050,6,来源与用途权限,UF09,AAOS_UI_Frontend_20261009/reference/capability-details.json,UNVERIFIED；由H01/UF06核对，设计不自证明,UNVERIFIED,保留；按任务phase执行或冻结，不删除细项
+CAP-0050,7,独立评测,UF09,AAOS_UI_Frontend_20261009/reference/capability-details.json,UNVERIFIED；由H01/UF06核对，设计不自证明,UNVERIFIED,保留；按任务phase执行或冻结，不删除细项
+CAP-0050,8,纠正与复测,UF09,AAOS_UI_Frontend_20261009/reference/capability-details.json,UNVERIFIED；由H01/UF06核对，设计不自证明,UNVERIFIED,保留；按任务phase执行或冻结，不删除细项
+CAP-0050,9,有范围复用,UF09,AAOS_UI_Frontend_20261009/reference/capability-details.json,UNVERIFIED；由H01/UF06核对，设计不自证明,UNVERIFIED,保留；按任务phase执行或冻结，不删除细项
+CAP-0050,10,使用回执,UF09,AAOS_UI_Frontend_20261009/reference/capability-details.json,UNVERIFIED；由H01/UF06核对，设计不自证明,UNVERIFIED,保留；按任务phase执行或冻结，不删除细项
+CAP-0050,11,冲突与退化,UF09,AAOS_UI_Frontend_20261009/reference/capability-details.json,UNVERIFIED；由H01/UF06核对，设计不自证明,UNVERIFIED,保留；按任务phase执行或冻结，不删除细项
+CAP-0050,12,修订与撤回,UF09,AAOS_UI_Frontend_20261009/reference/capability-details.json,UNVERIFIED；由H01/UF06核对，设计不自证明,UNVERIFIED,保留；按任务phase执行或冻结，不删除细项
+CAP-0050,13,可选参数训练实验,FT03,AAOS_UI_Frontend_20261009/reference/capability-details.json,UNVERIFIED；由H01/UF06核对，设计不自证明,UNVERIFIED,保留；按任务phase执行或冻结，不删除细项
+CAP-0060,1,LER与Learning Compiler,UF05;UF07;UF12,AAOS_UI_Frontend_20261009/reference/capability-details.json,UNVERIFIED；由H01/UF06核对，设计不自证明,UNVERIFIED,保留；按任务phase执行或冻结，不删除细项
+CAP-0060,2,课程目标与先修,UF05;UF07;UF12,AAOS_UI_Frontend_20261009/reference/capability-details.json,UNVERIFIED；由H01/UF06核对，设计不自证明,UNVERIFIED,保留；按任务phase执行或冻结，不删除细项
+CAP-0060,3,固定知识与来源引用,UF05;UF07;UF12,AAOS_UI_Frontend_20261009/reference/capability-details.json,UNVERIFIED；由H01/UF06核对，设计不自证明,UNVERIFIED,保留；按任务phase执行或冻结，不删除细项
+CAP-0060,4,图文与结构化场景,UF05;UF07;UF12,AAOS_UI_Frontend_20261009/reference/capability-details.json,UNVERIFIED；由H01/UF06核对，设计不自证明,UNVERIFIED,保留；按任务phase执行或冻结，不删除细项
+CAP-0060,5,教学需求,UF05;UF07;UF12,AAOS_UI_Frontend_20261009/reference/capability-details.json,UNVERIFIED；由H01/UF06核对，设计不自证明,UNVERIFIED,保留；按任务phase执行或冻结，不删除细项
+CAP-0060,6,表达方案,UF05;UF07;UF12,AAOS_UI_Frontend_20261009/reference/capability-details.json,UNVERIFIED；由H01/UF06核对，设计不自证明,UNVERIFIED,保留；按任务phase执行或冻结，不删除细项
+CAP-0060,7,交付登记与用途采用,UF05;UF07;UF12,AAOS_UI_Frontend_20261009/reference/capability-details.json,UNVERIFIED；由H01/UF06核对，设计不自证明,UNVERIFIED,保留；按任务phase执行或冻结，不删除细项
+CAP-0060,8,讲解与对照,UF05;UF07;UF12,AAOS_UI_Frontend_20261009/reference/capability-details.json,UNVERIFIED；由H01/UF06核对，设计不自证明,UNVERIFIED,保留；按任务phase执行或冻结，不删除细项
+CAP-0060,9,练习 / 评分 / rubric,UF05;UF07;UF12,AAOS_UI_Frontend_20261009/reference/capability-details.json,UNVERIFIED；由H01/UF06核对，设计不自证明,UNVERIFIED,保留；按任务phase执行或冻结，不删除细项
+CAP-0060,10,进度与依赖,UF05;UF07;UF12,AAOS_UI_Frontend_20261009/reference/capability-details.json,UNVERIFIED；由H01/UF06核对，设计不自证明,UNVERIFIED,保留；按任务phase执行或冻结，不删除细项
+CAP-0060,11,离线降级,UF05;UF07;UF12,AAOS_UI_Frontend_20261009/reference/capability-details.json,UNVERIFIED；由H01/UF06核对，设计不自证明,UNVERIFIED,保留；按任务phase执行或冻结，不删除细项
+CAP-0060,12,保存与迁出,UF05;UF07;UF12,AAOS_UI_Frontend_20261009/reference/capability-details.json,UNVERIFIED；由H01/UF06核对，设计不自证明,UNVERIFIED,保留；按任务phase执行或冻结，不删除细项
+CAP-0060,13,反馈分责与版本修订,UF05;UF07;UF12,AAOS_UI_Frontend_20261009/reference/capability-details.json,UNVERIFIED；由H01/UF06核对，设计不自证明,UNVERIFIED,保留；按任务phase执行或冻结，不删除细项
+CAP-0060,14,音视频 / PBL / coding 等形态分别验收,UF05;UF07;UF12,AAOS_UI_Frontend_20261009/reference/capability-details.json,UNVERIFIED；由H01/UF06核对，设计不自证明,UNVERIFIED,保留；按任务phase执行或冻结，不删除细项
+CAP-0070,1,动态解释,FT01,AAOS_UI_Frontend_20261009/reference/capability-details.json,UNVERIFIED；由H01/UF06核对，设计不自证明,UNVERIFIED,保留；按任务phase执行或冻结，不删除细项
+CAP-0070,2,动画产物,FT01,AAOS_UI_Frontend_20261009/reference/capability-details.json,UNVERIFIED；由H01/UF06核对，设计不自证明,UNVERIFIED,保留；按任务phase执行或冻结，不删除细项
+CAP-0070,3,参数仿真,FT01,AAOS_UI_Frontend_20261009/reference/capability-details.json,UNVERIFIED；由H01/UF06核对，设计不自证明,UNVERIFIED,保留；按任务phase执行或冻结，不删除细项
+CAP-0070,4,单位与算法版本,FT01,AAOS_UI_Frontend_20261009/reference/capability-details.json,UNVERIFIED；由H01/UF06核对，设计不自证明,UNVERIFIED,保留；按任务phase执行或冻结，不删除细项
+CAP-0070,5,初始条件,FT01,AAOS_UI_Frontend_20261009/reference/capability-details.json,UNVERIFIED；由H01/UF06核对，设计不自证明,UNVERIFIED,保留；按任务phase执行或冻结，不删除细项
+CAP-0070,6,结果与实验记录,FT01,AAOS_UI_Frontend_20261009/reference/capability-details.json,UNVERIFIED；由H01/UF06核对，设计不自证明,UNVERIFIED,保留；按任务phase执行或冻结，不删除细项
+CAP-0070,7,学习事件,FT01,AAOS_UI_Frontend_20261009/reference/capability-details.json,UNVERIFIED；由H01/UF06核对，设计不自证明,UNVERIFIED,保留；按任务phase执行或冻结，不删除细项
+CAP-0070,8,Manim / 浏览器计算 / Python / WASM候选,FT01,AAOS_UI_Frontend_20261009/reference/capability-details.json,UNVERIFIED；由H01/UF06核对，设计不自证明,UNVERIFIED,保留；按任务phase执行或冻结，不删除细项
+CAP-0070,9,各形态独立安全验收,FT01,AAOS_UI_Frontend_20261009/reference/capability-details.json,UNVERIFIED；由H01/UF06核对，设计不自证明,UNVERIFIED,保留；按任务phase执行或冻结，不删除细项
+CAP-0080,1,World / Room / Locus / Route,FT02,AAOS_UI_Frontend_20261009/reference/capability-details.json,UNVERIFIED；由H01/UF06核对，设计不自证明,UNVERIFIED,保留；按任务phase执行或冻结，不删除细项
+CAP-0080,2,知识宫殿,FT02,AAOS_UI_Frontend_20261009/reference/capability-details.json,UNVERIFIED；由H01/UF06核对，设计不自证明,UNVERIFIED,保留；按任务phase执行或冻结，不删除细项
+CAP-0080,3,2D / 文本降级,FT02,AAOS_UI_Frontend_20261009/reference/capability-details.json,UNVERIFIED；由H01/UF06核对，设计不自证明,UNVERIFIED,保留；按任务phase执行或冻结，不删除细项
+CAP-0080,4,2.5D / 3D布局,FT02,AAOS_UI_Frontend_20261009/reference/capability-details.json,UNVERIFIED；由H01/UF06核对，设计不自证明,UNVERIFIED,保留；按任务phase执行或冻结，不删除细项
+CAP-0080,5,知识ID与坐标,FT02,AAOS_UI_Frontend_20261009/reference/capability-details.json,UNVERIFIED；由H01/UF06核对，设计不自证明,UNVERIFIED,保留；按任务phase执行或冻结，不删除细项
+CAP-0080,6,布局版本,FT02,AAOS_UI_Frontend_20261009/reference/capability-details.json,UNVERIFIED；由H01/UF06核对，设计不自证明,UNVERIFIED,保留；按任务phase执行或冻结，不删除细项
+CAP-0080,7,资源许可,FT02,AAOS_UI_Frontend_20261009/reference/capability-details.json,UNVERIFIED；由H01/UF06核对，设计不自证明,UNVERIFIED,保留；按任务phase执行或冻结，不删除细项
+CAP-0080,8,设备输入,FT02,AAOS_UI_Frontend_20261009/reference/capability-details.json,UNVERIFIED；由H01/UF06核对，设计不自证明,UNVERIFIED,保留；按任务phase执行或冻结，不删除细项
+CAP-0080,9,学习事件与重启保存,FT02,AAOS_UI_Frontend_20261009/reference/capability-details.json,UNVERIFIED；由H01/UF06核对，设计不自证明,UNVERIFIED,保留；按任务phase执行或冻结，不删除细项
+CAP-0080,10,VR / AR / XR,FT02,AAOS_UI_Frontend_20261009/reference/capability-details.json,UNVERIFIED；由H01/UF06核对，设计不自证明,UNVERIFIED,保留；按任务phase执行或冻结，不删除细项
+CAP-0080,11,Three.js / R3F候选,FT02,AAOS_UI_Frontend_20261009/reference/capability-details.json,UNVERIFIED；由H01/UF06核对，设计不自证明,UNVERIFIED,保留；按任务phase执行或冻结，不删除细项
+CAP-0080,12,Godot / OpenXR候选,FT02,AAOS_UI_Frontend_20261009/reference/capability-details.json,UNVERIFIED；由H01/UF06核对，设计不自证明,UNVERIFIED,保留；按任务phase执行或冻结，不删除细项
+CAP-0090,1,研究问题与范围,UF08;FT04,AAOS_UI_Frontend_20261009/reference/capability-details.json,UNVERIFIED；由H01/UF06核对，设计不自证明,UNVERIFIED,保留；按任务phase执行或冻结，不删除细项
+CAP-0090,2,文献原文与摘要,UF08;FT04,AAOS_UI_Frontend_20261009/reference/capability-details.json,UNVERIFIED；由H01/UF06核对，设计不自证明,UNVERIFIED,保留；按任务phase执行或冻结，不删除细项
+CAP-0090,3,假设与反证,UF08;FT04,AAOS_UI_Frontend_20261009/reference/capability-details.json,UNVERIFIED；由H01/UF06核对，设计不自证明,UNVERIFIED,保留；按任务phase执行或冻结，不删除细项
+CAP-0090,4,方法与实验,UF08;FT04,AAOS_UI_Frontend_20261009/reference/capability-details.json,UNVERIFIED；由H01/UF06核对，设计不自证明,UNVERIFIED,保留；按任务phase执行或冻结，不删除细项
+CAP-0090,5,结果 / Rubric / 未决,UF08;FT04,AAOS_UI_Frontend_20261009/reference/capability-details.json,UNVERIFIED；由H01/UF06核对，设计不自证明,UNVERIFIED,保留；按任务phase执行或冻结，不删除细项
+CAP-0090,6,版本与研发项目,UF08;FT04,AAOS_UI_Frontend_20261009/reference/capability-details.json,UNVERIFIED；由H01/UF06核对，设计不自证明,UNVERIFIED,保留；按任务phase执行或冻结，不删除细项
+CAP-0090,7,Crossref / OpenAlex,UF08;FT04,AAOS_UI_Frontend_20261009/reference/capability-details.json,UNVERIFIED；由H01/UF06核对，设计不自证明,UNVERIFIED,保留；按任务phase执行或冻结，不删除细项
+CAP-0090,8,Zotero / PaperQA2,UF08;FT04,AAOS_UI_Frontend_20261009/reference/capability-details.json,UNVERIFIED；由H01/UF06核对，设计不自证明,UNVERIFIED,保留；按任务phase执行或冻结，不删除细项
+CAP-0090,9,Asta / 科研Agent / Intern-S2 / 端砚,UF08;FT04,AAOS_UI_Frontend_20261009/reference/capability-details.json,UNVERIFIED；由H01/UF06核对，设计不自证明,UNVERIFIED,保留；按任务phase执行或冻结，不删除细项
+CAP-0090,10,AstaBench / OpenScholar研究线索,UF08;FT04,AAOS_UI_Frontend_20261009/reference/capability-details.json,UNVERIFIED；由H01/UF06核对，设计不自证明,UNVERIFIED,保留；按任务phase执行或冻结，不删除细项
+CAP-0100,1,功能等价,UF07;UF10;UF11,AAOS_UI_Frontend_20261009/reference/capability-details.json,UNVERIFIED；由H01/UF06核对，设计不自证明,UNVERIFIED,保留；按任务phase执行或冻结，不删除细项
+CAP-0100,2,数据兼容,UF07;UF10;UF11,AAOS_UI_Frontend_20261009/reference/capability-details.json,UNVERIFIED；由H01/UF06核对，设计不自证明,UNVERIFIED,保留；按任务phase执行或冻结，不删除细项
+CAP-0100,3,双向往返,UF07;UF10;UF11,AAOS_UI_Frontend_20261009/reference/capability-details.json,UNVERIFIED；由H01/UF06核对，设计不自证明,UNVERIFIED,保留；按任务phase执行或冻结，不删除细项
+CAP-0100,4,持续增量互通,UF07;UF10;UF11,AAOS_UI_Frontend_20261009/reference/capability-details.json,UNVERIFIED；由H01/UF06核对，设计不自证明,UNVERIFIED,保留；按任务phase执行或冻结，不删除细项
+CAP-0100,5,平台×版本×功能×方向×样本,UF07;UF10;UF11,AAOS_UI_Frontend_20261009/reference/capability-details.json,UNVERIFIED；由H01/UF06核对，设计不自证明,UNVERIFIED,保留；按任务phase执行或冻结，不删除细项
+CAP-0100,6,基准 / 三方差异 / tombstone,UF07;UF10;UF11,AAOS_UI_Frontend_20261009/reference/capability-details.json,UNVERIFIED；由H01/UF06核对，设计不自证明,UNVERIFIED,保留；按任务phase执行或冻结，不删除细项
+CAP-0100,7,冲突与恢复,UF07;UF10;UF11,AAOS_UI_Frontend_20261009/reference/capability-details.json,UNVERIFIED；由H01/UF06核对，设计不自证明,UNVERIFIED,保留；按任务phase执行或冻结，不删除细项
+CAP-0100,8,人工课程包交换,UF07;UF10;UF11,AAOS_UI_Frontend_20261009/reference/capability-details.json,UNVERIFIED；由H01/UF06核对，设计不自证明,UNVERIFIED,保留；按任务phase执行或冻结，不删除细项
+CAP-0100,9,五类交换合同,UF07;UF10;UF11,AAOS_UI_Frontend_20261009/reference/capability-details.json,UNVERIFIED；由H01/UF06核对，设计不自证明,UNVERIFIED,保留；按任务phase执行或冻结，不删除细项
+CAP-0100,10,无损 / 等价 / 保全 / 有损 / 阻塞 / 未验证,UF07;UF10;UF11,AAOS_UI_Frontend_20261009/reference/capability-details.json,UNVERIFIED；由H01/UF06核对，设计不自证明,UNVERIFIED,保留；按任务phase执行或冻结，不删除细项
+CAP-0100,11,Markdown / Obsidian / JSON Canvas,UF07;UF10;UF11,AAOS_UI_Frontend_20261009/reference/capability-details.json,UNVERIFIED；由H01/UF06核对，设计不自证明,UNVERIFIED,保留；按任务phase执行或冻结，不删除细项
+CAP-0100,12,Notion / 思源 / Joplin / Logseq,UF07;UF10;UF11,AAOS_UI_Frontend_20261009/reference/capability-details.json,UNVERIFIED；由H01/UF06核对，设计不自证明,UNVERIFIED,保留；按任务phase执行或冻结，不删除细项
+CAP-0100,13,Zotero / Anki,UF07;UF10;UF11,AAOS_UI_Frontend_20261009/reference/capability-details.json,UNVERIFIED；由H01/UF06核对，设计不自证明,UNVERIFIED,保留；按任务phase执行或冻结，不删除细项
+CAP-0100,14,AFFiNE / AppFlowy / Outline / Docmost / Wiki.js / BookStack,UF07;UF10;UF11,AAOS_UI_Frontend_20261009/reference/capability-details.json,UNVERIFIED；由H01/UF06核对，设计不自证明,UNVERIFIED,保留；按任务phase执行或冻结，不删除细项
+CAP-0100,15,Anytype / Trilium,UF07;UF10;UF11,AAOS_UI_Frontend_20261009/reference/capability-details.json,UNVERIFIED；由H01/UF06核对，设计不自证明,UNVERIFIED,保留；按任务phase执行或冻结，不删除细项
+CAP-0100,16,Evernote / OneNote / 语雀 / 飞书 / Confluence,UF07;UF10;UF11,AAOS_UI_Frontend_20261009/reference/capability-details.json,UNVERIFIED；由H01/UF06核对，设计不自证明,UNVERIFIED,保留；按任务phase执行或冻结，不删除细项
+CAP-0100,17,RAGFlow / FastGPT / MaxKB / Dify / WeKnora / Git研发资料,UF07;UF10;UF11,AAOS_UI_Frontend_20261009/reference/capability-details.json,UNVERIFIED；由H01/UF06核对，设计不自证明,UNVERIFIED,保留；按任务phase执行或冻结，不删除细项
+CAP-0100,18,Apple Notes / Bear / Craft / Heptabase,UF07;UF10;UF11,AAOS_UI_Frontend_20261009/reference/capability-details.json,UNVERIFIED；由H01/UF06核对，设计不自证明,UNVERIFIED,保留；按任务phase执行或冻结，不删除细项
+CAP-0100,19,Tana / Capacities / RemNote / Roam持续发现,UF07;UF10;UF11,AAOS_UI_Frontend_20261009/reference/capability-details.json,UNVERIFIED；由H01/UF06核对，设计不自证明,UNVERIFIED,保留；按任务phase执行或冻结，不删除细项
+CAP-0110,1,独立全文检索,UF03;UF08,AAOS_UI_Frontend_20261009/reference/capability-details.json,UNVERIFIED；由H01/UF06核对，设计不自证明,UNVERIFIED,保留；按任务phase执行或冻结，不删除细项
+CAP-0110,2,中文检索策略,UF03;UF08,AAOS_UI_Frontend_20261009/reference/capability-details.json,UNVERIFIED；由H01/UF06核对，设计不自证明,UNVERIFIED,保留；按任务phase执行或冻结，不删除细项
+CAP-0110,3,语义模型 / 维度 / 分块 / 哈希,UF03;UF08,AAOS_UI_Frontend_20261009/reference/capability-details.json,UNVERIFIED；由H01/UF06核对，设计不自证明,UNVERIFIED,保留；按任务phase执行或冻结，不删除细项
+CAP-0110,4,混合检索与rerank,UF03;UF08,AAOS_UI_Frontend_20261009/reference/capability-details.json,UNVERIFIED；由H01/UF06核对，设计不自证明,UNVERIFIED,保留；按任务phase执行或冻结，不删除细项
+CAP-0110,5,页面 / 块引用,UF03;UF08,AAOS_UI_Frontend_20261009/reference/capability-details.json,UNVERIFIED；由H01/UF06核对，设计不自证明,UNVERIFIED,保留；按任务phase执行或冻结，不删除细项
+CAP-0110,6,双链 / 反链,UF03;UF08,AAOS_UI_Frontend_20261009/reference/capability-details.json,UNVERIFIED；由H01/UF06核对，设计不自证明,UNVERIFIED,保留；按任务phase执行或冻结，不删除细项
+CAP-0110,7,别名 / 消歧 / 类型关系,UF03;UF08,AAOS_UI_Frontend_20261009/reference/capability-details.json,UNVERIFIED；由H01/UF06核对，设计不自证明,UNVERIFIED,保留；按任务phase执行或冻结，不删除细项
+CAP-0110,8,未解决引用,UF03;UF08,AAOS_UI_Frontend_20261009/reference/capability-details.json,UNVERIFIED；由H01/UF06核对，设计不自证明,UNVERIFIED,保留；按任务phase执行或冻结，不删除细项
+CAP-0110,9,人工 / 导入 / AI推断关系身份,UF03;UF08,AAOS_UI_Frontend_20261009/reference/capability-details.json,UNVERIFIED；由H01/UF06核对，设计不自证明,UNVERIFIED,保留；按任务phase执行或冻结，不删除细项
+CAP-0110,10,局部图谱,UF03;UF08,AAOS_UI_Frontend_20261009/reference/capability-details.json,UNVERIFIED；由H01/UF06核对，设计不自证明,UNVERIFIED,保留；按任务phase执行或冻结，不删除细项
+CAP-0110,11,版本依赖影响,UF03;UF08,AAOS_UI_Frontend_20261009/reference/capability-details.json,UNVERIFIED；由H01/UF06核对，设计不自证明,UNVERIFIED,保留；按任务phase执行或冻结，不删除细项
+CAP-0110,12,多跳GraphRAG研究,UF03;UF08,AAOS_UI_Frontend_20261009/reference/capability-details.json,UNVERIFIED；由H01/UF06核对，设计不自证明,UNVERIFIED,保留；按任务phase执行或冻结，不删除细项
+CAP-0120,1,Tauri正式桌面,UF01;UF02;M01,AAOS_UI_Frontend_20261009/reference/capability-details.json,UNVERIFIED；由H01/UF06核对，设计不自证明,UNVERIFIED,保留；按任务phase执行或冻结，不删除细项
+CAP-0120,2,统一React产品界面,UF01;UF02;M01,AAOS_UI_Frontend_20261009/reference/capability-details.json,UNVERIFIED；由H01/UF06核对，设计不自证明,UNVERIFIED,保留；按任务phase执行或冻结，不删除细项
+CAP-0120,3,宿主adapter,UF01;UF02;M01,AAOS_UI_Frontend_20261009/reference/capability-details.json,UNVERIFIED；由H01/UF06核对，设计不自证明,UNVERIFIED,保留；按任务phase执行或冻结，不删除细项
+CAP-0120,4,Windows显示缩放,UF01;UF02;M01,AAOS_UI_Frontend_20261009/reference/capability-details.json,UNVERIFIED；由H01/UF06核对，设计不自证明,UNVERIFIED,保留；按任务phase执行或冻结，不删除细项
+CAP-0120,5,快捷键与深链接,UF01;UF02;M01,AAOS_UI_Frontend_20261009/reference/capability-details.json,UNVERIFIED；由H01/UF06核对，设计不自证明,UNVERIFIED,保留；按任务phase执行或冻结，不删除细项
+CAP-0120,6,普通用户能力发现,UF01;UF02;M01,AAOS_UI_Frontend_20261009/reference/capability-details.json,UNVERIFIED；由H01/UF06核对，设计不自证明,UNVERIFIED,保留；按任务phase执行或冻结，不删除细项
+CAP-0120,7,浅色 / 深色 / 专注阅读,UF01;UF02;M01,AAOS_UI_Frontend_20261009/reference/capability-details.json,UNVERIFIED；由H01/UF06核对，设计不自证明,UNVERIFIED,保留；按任务phase执行或冻结，不删除细项
+CAP-0120,8,移动捕获 / 阅读 / 搜索 / 复习,FT03,AAOS_UI_Frontend_20261009/reference/capability-details.json,UNVERIFIED；由H01/UF06核对，设计不自证明,UNVERIFIED,保留；按任务phase执行或冻结，不删除细项
+CAP-0120,9,可选协作与平台适配,UF01;UF02;M01,AAOS_UI_Frontend_20261009/reference/capability-details.json,UNVERIFIED；由H01/UF06核对，设计不自证明,UNVERIFIED,保留；按任务phase执行或冻结，不删除细项
+CAP-0130,1,有限知识Job,UF09;FT04,AAOS_UI_Frontend_20261009/reference/capability-details.json,UNVERIFIED；由H01/UF06核对，设计不自证明,UNVERIFIED,保留；按任务phase执行或冻结，不删除细项
+CAP-0130,2,主体与对象范围,UF09;FT04,AAOS_UI_Frontend_20261009/reference/capability-details.json,UNVERIFIED；由H01/UF06核对，设计不自证明,UNVERIFIED,保留；按任务phase执行或冻结，不删除细项
+CAP-0130,3,步骤 / 预算,UF09;FT04,AAOS_UI_Frontend_20261009/reference/capability-details.json,UNVERIFIED；由H01/UF06核对，设计不自证明,UNVERIFIED,保留；按任务phase执行或冻结，不删除细项
+CAP-0130,4,取消 / 检查点 / 回执,UF09;FT04,AAOS_UI_Frontend_20261009/reference/capability-details.json,UNVERIFIED；由H01/UF06核对，设计不自证明,UNVERIFIED,保留；按任务phase执行或冻结，不删除细项
+CAP-0130,5,受限runner,UF09;FT04,AAOS_UI_Frontend_20261009/reference/capability-details.json,UNVERIFIED；由H01/UF06核对，设计不自证明,UNVERIFIED,保留；按任务phase执行或冻结，不删除细项
+CAP-0130,6,Worker / Plugin / Skill / Provider / Tool身份,UF09;FT04,AAOS_UI_Frontend_20261009/reference/capability-details.json,UNVERIFIED；由H01/UF06核对，设计不自证明,UNVERIFIED,保留；按任务phase执行或冻结，不删除细项
+CAP-0130,7,外部内容静态可信呈现,UF09;FT04,AAOS_UI_Frontend_20261009/reference/capability-details.json,UNVERIFIED；由H01/UF06核对，设计不自证明,UNVERIFIED,保留；按任务phase执行或冻结，不删除细项
+CAP-0130,8,API / CLI / SDK / MCP,UF09;FT04,AAOS_UI_Frontend_20261009/reference/capability-details.json,UNVERIFIED；由H01/UF06核对，设计不自证明,UNVERIFIED,保留；按任务phase执行或冻结，不删除细项
+CAP-0130,9,外部生产者与human guard,UF09;FT04,AAOS_UI_Frontend_20261009/reference/capability-details.json,UNVERIFIED；由H01/UF06核对，设计不自证明,UNVERIFIED,保留；按任务phase执行或冻结，不删除细项
+CAP-0130,10,复杂编排WORK-LAB主责,UF09;FT04,AAOS_UI_Frontend_20261009/reference/capability-details.json,UNVERIFIED；由H01/UF06核对，设计不自证明,UNVERIFIED,保留；按任务phase执行或冻结，不删除细项
+CAP-0140,1,导出与可迁出,UF04;UF11;FT03,AAOS_UI_Frontend_20261009/reference/capability-details.json,UNVERIFIED；由H01/UF06核对，设计不自证明,UNVERIFIED,保留；按任务phase执行或冻结，不删除细项
+CAP-0140,2,一致备份,CB01;UF04,AAOS_UI_Frontend_20261009/reference/capability-details.json,UNVERIFIED；由H01/UF06核对，设计不自证明,UNVERIFIED,保留；按任务phase执行或冻结，不删除细项
+CAP-0140,3,独立副本恢复,CB01;UF04,AAOS_UI_Frontend_20261009/reference/capability-details.json,UNVERIFIED；由H01/UF06核对，设计不自证明,UNVERIFIED,保留；按任务phase执行或冻结，不删除细项
+CAP-0140,4,文件同步 / 对象同步,FT03,AAOS_UI_Frontend_20261009/reference/capability-details.json,UNVERIFIED；由H01/UF06核对，设计不自证明,UNVERIFIED,保留；按任务phase执行或冻结，不删除细项
+CAP-0140,5,三方冲突与撤回,UF04;UF11;FT03,AAOS_UI_Frontend_20261009/reference/capability-details.json,UNVERIFIED；由H01/UF06核对，设计不自证明,UNVERIFIED,保留；按任务phase执行或冻结，不删除细项
+CAP-0140,6,迁移,CB04;UF11,AAOS_UI_Frontend_20261009/reference/capability-details.json,UNVERIFIED；由H01/UF06核对，设计不自证明,UNVERIFIED,保留；按任务phase执行或冻结，不删除细项
+CAP-0140,7,发布与安装态,UF04;UF11;FT03,AAOS_UI_Frontend_20261009/reference/capability-details.json,UNVERIFIED；由H01/UF06核对，设计不自证明,UNVERIFIED,保留；按任务phase执行或冻结，不删除细项
+CAP-0140,8,单人离线优先,UF04;UF11;FT03,AAOS_UI_Frontend_20261009/reference/capability-details.json,UNVERIFIED；由H01/UF06核对，设计不自证明,UNVERIFIED,保留；按任务phase执行或冻结，不删除细项
+CAP-0140,9,Yjs不替代权限与认可,UF04;UF11;FT03,AAOS_UI_Frontend_20261009/reference/capability-details.json,UNVERIFIED；由H01/UF06核对，设计不自证明,UNVERIFIED,保留；按任务phase执行或冻结，不删除细项
+CAP-0140,10,加密密钥恢复,CB01;UF04,AAOS_UI_Frontend_20261009/reference/capability-details.json,UNVERIFIED；由H01/UF06核对，设计不自证明,UNVERIFIED,保留；按任务phase执行或冻结，不删除细项
+CAP-0150,1,模型 / Provider,UF09;UF10;V01,AAOS_UI_Frontend_20261009/reference/capability-details.json,UNVERIFIED；由H01/UF06核对，设计不自证明,UNVERIFIED,保留；按任务phase执行或冻结，不删除细项
+CAP-0150,2,FAST / DEEP逻辑档位,UF09;UF10;V01,AAOS_UI_Frontend_20261009/reference/capability-details.json,UNVERIFIED；由H01/UF06核对，设计不自证明,UNVERIFIED,保留；按任务phase执行或冻结，不删除细项
+CAP-0150,3,本地8GB按需排队,UF09;UF10;V01,AAOS_UI_Frontend_20261009/reference/capability-details.json,UNVERIFIED；由H01/UF06核对，设计不自证明,UNVERIFIED,保留；按任务phase执行或冻结，不删除细项
+CAP-0150,4,预算 / 额度未知态,UF09;UF10;V01,AAOS_UI_Frontend_20261009/reference/capability-details.json,UNVERIFIED；由H01/UF06核对，设计不自证明,UNVERIFIED,保留；按任务phase执行或冻结，不删除细项
+CAP-0150,5,用途范围权限,UF09;UF10;V01,AAOS_UI_Frontend_20261009/reference/capability-details.json,UNVERIFIED；由H01/UF06核对，设计不自证明,UNVERIFIED,保留；按任务phase执行或冻结，不删除细项
+CAP-0150,6,数据出境 / 目的地,UF09;UF10;V01,AAOS_UI_Frontend_20261009/reference/capability-details.json,UNVERIFIED；由H01/UF06核对，设计不自证明,UNVERIFIED,保留；按任务phase执行或冻结，不删除细项
+CAP-0150,7,安全凭据引用,UF09;UF10;V01,AAOS_UI_Frontend_20261009/reference/capability-details.json,UNVERIFIED；由H01/UF06核对，设计不自证明,UNVERIFIED,保留；按任务phase执行或冻结，不删除细项
+CAP-0150,8,调用资格,UF09;UF10;V01,AAOS_UI_Frontend_20261009/reference/capability-details.json,UNVERIFIED；由H01/UF06核对，设计不自证明,UNVERIFIED,保留；按任务phase执行或冻结，不删除细项
+CAP-0150,9,无额度照常保存,UF09;UF10;V01,AAOS_UI_Frontend_20261009/reference/capability-details.json,UNVERIFIED；由H01/UF06核对，设计不自证明,UNVERIFIED,保留；按任务phase执行或冻结，不删除细项
+CAP-0150,10,参数训练实验资源与回滚,UF09;UF10;V01,AAOS_UI_Frontend_20261009/reference/capability-details.json,UNVERIFIED；由H01/UF06核对，设计不自证明,UNVERIFIED,保留；按任务phase执行或冻结，不删除细项
+CAP-0160,1,可视化,UF08;UF12;FT01;FT02,AAOS_UI_Frontend_20261009/reference/capability-details.json,UNVERIFIED；由H01/UF06核对，设计不自证明,UNVERIFIED,保留；按任务phase执行或冻结，不删除细项
+CAP-0160,2,画布,UF08;UF12;FT01;FT02,AAOS_UI_Frontend_20261009/reference/capability-details.json,UNVERIFIED；由H01/UF06核对，设计不自证明,UNVERIFIED,保留；按任务phase执行或冻结，不删除细项
+CAP-0160,3,关系图 / 分步 / 对照,UF08;UF12;FT01;FT02,AAOS_UI_Frontend_20261009/reference/capability-details.json,UNVERIFIED；由H01/UF06核对，设计不自证明,UNVERIFIED,保留；按任务phase执行或冻结，不删除细项
+CAP-0160,4,教学表达,UF08;UF12;FT01;FT02,AAOS_UI_Frontend_20261009/reference/capability-details.json,UNVERIFIED；由H01/UF06核对，设计不自证明,UNVERIFIED,保留；按任务phase执行或冻结，不删除细项
+CAP-0160,5,记忆地图,UF08;UF12;FT01;FT02,AAOS_UI_Frontend_20261009/reference/capability-details.json,UNVERIFIED；由H01/UF06核对，设计不自证明,UNVERIFIED,保留；按任务phase执行或冻结，不删除细项
+CAP-0160,6,空间投影,UF08;UF12;FT01;FT02,AAOS_UI_Frontend_20261009/reference/capability-details.json,UNVERIFIED；由H01/UF06核对，设计不自证明,UNVERIFIED,保留；按任务phase执行或冻结，不删除细项
+CAP-0160,7,布局与知识真值分开,UF08;UF12;FT01;FT02,AAOS_UI_Frontend_20261009/reference/capability-details.json,UNVERIFIED；由H01/UF06核对，设计不自证明,UNVERIFIED,保留；按任务phase执行或冻结，不删除细项
+CAP-0160,8,可信本地呈现,UF08;UF12;FT01;FT02,AAOS_UI_Frontend_20261009/reference/capability-details.json,UNVERIFIED；由H01/UF06核对，设计不自证明,UNVERIFIED,保留；按任务phase执行或冻结，不删除细项
+CAP-0160,9,离线文本降级,UF08;UF12;FT01;FT02,AAOS_UI_Frontend_20261009/reference/capability-details.json,UNVERIFIED；由H01/UF06核对，设计不自证明,UNVERIFIED,保留；按任务phase执行或冻结，不删除细项

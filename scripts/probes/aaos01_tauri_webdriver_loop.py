@@ -8,6 +8,7 @@ import ctypes
 import hashlib
 import json
 import os
+import re
 import socket
 import subprocess
 import time
@@ -20,6 +21,32 @@ from urllib.parse import urlsplit
 from urllib.request import HTTPRedirectHandler, ProxyHandler, Request, build_opener
 
 from aaos01_office_runtime_loop import REPO, identity, load
+
+
+def compatible_edge_versions(driver_version: str, runtime_version: str) -> bool:
+    """Microsoft requires matching major/minor/build; patch updates are compatible.
+
+    https://learn.microsoft.com/en-us/microsoft-edge/webdriver-chromium/
+    """
+    driver = re.fullmatch(r"Microsoft Edge WebDriver (\d+\.\d+\.\d+\.\d+)(?: \([^\r\n]+\))?", driver_version)
+    runtime = re.fullmatch(r"Edg/(\d+\.\d+\.\d+\.\d+)", runtime_version)
+    return bool(driver and runtime and driver[1].split(".")[:3] == runtime[1].split(".")[:3])
+
+
+def navigation_button_selector(text: str, scope: str = "") -> str:
+    # Object-navigation buttons contain a label and description. Match the exact
+    # label child and click its actual parent button, rather than widening all labels.
+    if scope == "//ul[@aria-label='资料库对象导航']":
+        return f"{scope}//button[b[normalize-space(.)='{text}']]"
+    return f"{scope}//button[normalize-space(.)='{text}']"
+
+
+def probe_environment():
+    launcher = load("native_probe_paths", REPO / "scripts/runtime/dev.py")
+    paths = launcher.layout(REPO, "webdriver-" + uuid.uuid4().hex[:12])
+    env = dict(os.environ)
+    env.update(launcher.prepare(paths))
+    return paths, env
 
 
 def installation_limitation(installer) -> str:
@@ -565,11 +592,113 @@ def installed_remaining_readback(bridge, bridge_status, records):
         record["stage"] = "verified_after_full_host_restart"
 
 
+def synthetic_course_loop(bridge, bridge_status, js, wait, ui_click, ui_type, screenshot):
+    """Real native transport/rendering using authored data; never human signoff."""
+    text = "SYNTHETIC course lesson evidence 20261009."
+    source = bridge("source_import", {"body": {"name": "synthetic-course.txt", "content_base64": base64.b64encode(text.encode()).decode()}})
+    job_id = "synthetic_course_" + uuid.uuid4().hex
+    bridge("job_enqueue", {"body": {"job_id": job_id, "kind": "text", "input_ref": source["source_id"]}})
+    bridge("job_execute", {"job_id": job_id, "body": {"deadline_ms": 30000}})
+    execution = bridge("jobs_get", {"job_id": job_id})
+    deadline = time.monotonic() + 40
+    while execution["state"] in {"queued", "running"} and time.monotonic() < deadline:
+        time.sleep(0.15)
+        execution = bridge("jobs_get", {"job_id": job_id})
+    assert execution["state"] == "succeeded", execution
+    transform = bridge("source_job_transform", {"source_id": source["source_id"], "job_id": job_id})
+    content = transform["content"]
+    knowledge = bridge("knowledge_from_transform", {"body": {"knowledge_type": "FACTUAL_CLAIM", "body": content,
+        "source_id": source["source_id"], "job_id": job_id, "transform_id": transform["transform_id"],
+        "selection_start_utf16": 0, "selection_end_utf16": len(content.encode("utf-16-le")) // 2, "quote": content}})
+    kid = knowledge["knowledge_id"]
+    unaccepted = bridge_status("course_from_knowledge", {"body": {"knowledge_id": kid}})
+    missing = bridge_status("course_get", {"course_id": "course-not-present"})
+    assert unaccepted["status"] == 409 and missing["status"] == 404
+    detail = bridge("knowledge_get", {"id": kid})
+    bridge("knowledge_review", {"id": kid, "body": {"action": "accepted", "reviewer": "SYNTHETIC_TEST_ACTOR_NOT_HUMAN_SIGNOFF",
+        "note": "Isolated authored fixture; no human acceptance evidence", "expected_version": detail["version"]}})
+    ui_click("知识库")
+    wait("return !!document.querySelector('form label input')")
+    ui_type("form label input", "SYNTHETIC course lesson evidence")
+    ui_click("搜索")
+    result = bridge("search", {"q": "SYNTHETIC course lesson evidence"})
+    head = next(item["head"] for item in result["items"] if item["knowledge_id"] == kid)
+    wait("return [...document.querySelectorAll('button')].some(b=>b.textContent===" + json.dumps(head) + ")")
+    ui_click(head)
+    wait("return !!document.querySelector('[aria-label=\"课程与课时\"]')")
+    ui_click("从当前知识生成课程与课时")
+    wait("return document.querySelector('[aria-label=\"课程候选课时\"]')?.textContent.includes('SYNTHETIC course lesson evidence')")
+    geometry = js("const article=document.querySelector('[aria-label=\"课程候选课时\"]'),pre=article.querySelector('pre');return {article_client:article.clientWidth,article_scroll:article.scrollWidth,pre_client:pre.clientWidth,pre_scroll:pre.scrollWidth,white_space:getComputedStyle(pre).whiteSpace};")
+    assert geometry["article_scroll"] <= geometry["article_client"] + 2 and geometry["pre_scroll"] <= geometry["pre_client"] + 2, geometry
+    js("document.querySelector('[aria-label=\"课程候选课时\"]').scrollIntoView({block:'center'});")
+    screenshot("synthetic-course-lesson.png")
+    # Idempotent Core re-read supplies canonical identities without reading private UI state.
+    created = bridge("course_from_knowledge", {"body": {"knowledge_id": kid}})
+    course_id = created["course"]["manifest"]["manifest_id"]
+    suggested = created["suggested_learning_item"]
+    key = suggested["item_key"]
+    assert len(key) == 159 and created["course"]["status"] == "candidate" and created["human_review_required"] is True
+    ui_click("由课程课时建立学习问题")
+    wait("return [...document.querySelectorAll('button')].some(b=>b.textContent===" + json.dumps(key) + ")")
+    ui_click(key)
+    wait("return [...document.querySelectorAll('label')].some(l=>l.textContent.includes('本次答案'))")
+    assessment = bridge("assessment_get", {"item_key": key})
+    state = bridge("learning_state", {"item_key": key})
+    assert assessment["item_key"] == key and assessment["knowledge_id"] == kid and assessment["knowledge_version"] == kid
+    assert state["item_key"] == key and state["learner"]["assessment"]["assessment_id"] == assessment["assessment_id"]
+    history = bridge("learning_history", {"item_key": key})
+    return {"status": "PASS", "fixture_data": "SYNTHETIC_AUTHORED", "review_actor": "SYNTHETIC_TEST_ACTOR_NOT_HUMAN_SIGNOFF",
+        "human_signoff": False, "runtime_evidence": "REAL_NATIVE_HOST_CORE_WORKER", "knowledge_id": kid, "course_id": course_id,
+        "item_key": key, "assessment": assessment, "learning_history": history, "lesson_geometry": geometry,
+        "negative_unaccepted_status": unaccepted["status"], "negative_missing_status": missing["status"]}
+
+
+def synthetic_template_pagination(bridge, js, wait, ui_click, screenshot):
+    """501 authored objects through the real finite bridge and canonical writer."""
+    baseline = bridge("documents_list")["snapshot_count"]
+    metadata = {"schema":"archeaxis.template/v1","template_id":"T1","discipline_id":"math",
+        "fields":{"status":"unevaluated"},"references":[],"learning_item_key":None}
+    created = {}
+    for index in range(501):
+        value = bridge("document_create", {"body":{"title":f"SYNTHETIC 分页对象 {index:03}",
+            "editor_json":{"type":"doc","attrs":{"archeaxis_template":metadata},"content":[{"type":"paragraph","content":[{"type":"text","text":f"Authored pagination fixture {index}"}]}]}}})
+        created[value["document_id"]] = value
+    first = bridge("documents_list")
+    assert first["snapshot_count"] == baseline + 501 and len(first["documents"]) == 500
+    extra = bridge("document_create", {"body":{"title":"SYNTHETIC 并发新增普通文档","editor_json":{"type":"doc","content":[]}}})
+    second = bridge("documents_list", {"cursor":first["next_cursor"]})
+    assert second["snapshot_count"] == first["snapshot_count"] and second["next_cursor"] is None
+    rows = first["documents"] + second["documents"]
+    ids = {row["document_id"] for row in rows}
+    assert len(rows) == len(ids) == baseline + 501 and extra["document_id"] not in ids and set(created).issubset(ids)
+    target = next(created[row["document_id"]] for row in first["documents"] if row["document_id"] in created)
+    linker = next(created[row["document_id"]] for row in second["documents"] if row["document_id"] in created)
+    editor = json.loads(json.dumps(linker["editor_json"]))
+    editor["attrs"]["archeaxis_template"]["references"] = [{"document_id":target["document_id"],"version":1,"block_id":None,"relation":"supports","x":20,"y":20}]
+    saved = bridge("document_draft", {"document_id":linker["document_id"],"body":{"expected_version":1,"editor_json":editor}})
+    assert saved["version"] == 2
+    ui_click("资料库")
+    js("document.querySelector('.template-launcher summary').click();")
+    wait("return document.querySelector('[aria-label=\"已保存模板\"]')?.querySelectorAll('button').length===501", seconds=60)
+    ui_click(target["title"] + " · v1", "//nav[@aria-label='已保存模板']")
+    wait("return document.querySelector('[aria-label=\"反向引用\"]')?.textContent.includes(" + json.dumps(linker["title"]) + ")")
+    wait("return document.querySelector('[aria-label=\"学科模板工作区\"]')?.textContent.includes('当前学科集合 501 个对象，1 条关系')")
+    js("document.querySelector('[aria-label=\"反向引用\"]').scrollIntoView({block:'center'});")
+    screenshot("synthetic-template-cross-page.png")
+    return {"status":"PASS","fixture_data":"SYNTHETIC_AUTHORED","runtime_evidence":"REAL_NATIVE_HOST_CORE",
+        "human_signoff":False,"authored_count":501,"snapshot_count":len(ids),"refresh_count":baseline+502,
+        "excluded_concurrent_document":extra["document_id"],"target":target,"linker":saved,
+        "page_sizes":[len(first["documents"]),len(second["documents"])],"cross_page_backlink":"PASS","relation_total":1}
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--host", type=Path, required=True)
     parser.add_argument("--driver", type=Path)
     parser.add_argument("--native-driver", type=Path)
+    parser.add_argument("--build-receipt", type=Path, help="Bind a candidate to its current source and host/Core hashes")
+    parser.add_argument("--synthetic-course-loop", action="store_true", help="Explicit authored fixture with synthetic review actor; never human signoff")
+    parser.add_argument("--synthetic-template-pagination", action="store_true", help="501 authored template objects; real Core pagination and UI, no human signoff")
     parser.add_argument(
         "--session-timeout",
         type=int,
@@ -588,7 +717,19 @@ def main():
     tools = REPO / ".project-local/task-runtime/aaos01-tools"
     driver = (args.driver or tools / "tauri-driver-2.1.0/bin/tauri-driver.exe").resolve()
     edge = (args.native_driver or tools / "edge-154.0.4258.48/msedgedriver.exe").resolve()
-    work = REPO / ".project-local/task-runtime/aaos01-webdriver" / uuid.uuid4().hex
+    paths, env = probe_environment()
+    compiled_binding = {"status": "UNVERIFIED", "reason": "Candidate build binding not supplied; installation is qualified only by its parent verifier"}
+    if args.build_receipt:
+        launcher = load("native_probe_binding", REPO / "scripts/runtime/dev.py")
+        receipt_path = launcher.safe_path(args.build_receipt)
+        receipt_path.relative_to(paths["dev"])
+        candidate = json.loads(receipt_path.read_text(encoding="utf-8"))
+        assert candidate["status"] == "PASS" and candidate["source_consistent"], "Unqualified candidate build"
+        assert candidate["source_patch_sha256"] == env["ARCHEAXIS_SOURCE_PATCH_SHA256"], "Candidate source mismatch"
+        assert identity(host)["sha256"] == candidate["host_sha256"], "Candidate host mismatch"
+        assert identity(host.parent / "core/archeaxis-api.exe")["sha256"] == candidate["core_sha256"], "Candidate Core mismatch"
+        compiled_binding = {"status": "PASS", "build_receipt": identity(receipt_path), "core_sha256": candidate["core_sha256"]}
+    work = paths["tmp"] / "journey"
     work.mkdir(parents=True)
     native_log = work / "native-driver.log"
     wrapper = work / "native-driver.cmd"
@@ -603,7 +744,6 @@ def main():
         encoding="utf-8",
     )
     port, native = free_port(), free_port()
-    env = dict(os.environ)
     for key in (
         "ARCHEAXIS_DEV_EXTERNAL_BACKEND",
         "ARCHEAXIS_WEBDRIVER_CDP_PORT",
@@ -620,6 +760,9 @@ def main():
         "edge": identity(edge),
         "data_root": str(work / "data"),
         "steps": [],
+        "run_root": str(paths["run"]),
+        "source_patch_sha256": env["ARCHEAXIS_SOURCE_PATCH_SHA256"],
+        "compiled_source_binding": compiled_binding,
         "conditions": {
             "new_session_timeout_seconds": args.session_timeout,
             "ordinary_request_timeout_seconds": 45,
@@ -633,7 +776,7 @@ def main():
         "limitations": [
             installation_limitation(args.installer),
             "Programmatic Chinese text, not physical native IME",
-            "No human review decision or approval performed",
+            "No human signoff; optional authored course fixture uses an explicitly synthetic review actor only",
             "One engineering run, not whole UI P95 acceptance",
         ],
     }
@@ -679,7 +822,7 @@ def main():
         return value["element-6066-11e4-a52e-4f735466cecf"]
 
     def ui_click(text, scope=""):
-        selector = f"{scope}//button[normalize-space(.)='{text}']"
+        selector = navigation_button_selector(text, scope)
         element = ui_element("xpath", selector)
         request("POST", f"/session/{session}/element/{element}/click", {})
         receipt.setdefault("ui_selectors", []).append({"action": "click", "selector": selector})
@@ -724,8 +867,8 @@ def main():
         assert value["ok"], value
         return value["value"]
 
-    def wait(script):
-        deadline = time.monotonic() + 30
+    def wait(script, seconds=30):
+        deadline = time.monotonic() + seconds
         while time.monotonic() < deadline:
             if js(script):
                 return
@@ -783,7 +926,12 @@ def main():
                     raise TimeoutError("Owned attach CDP unavailable after 40 seconds") from None
                 time.sleep(.2)
         edge_version = subprocess.check_output([str(edge), "--version"], text=True, timeout=10).strip()
-        assert edge_version.startswith("Microsoft Edge WebDriver " + version["Browser"].split("/")[1] + " "), "Runtime/driver version mismatch"
+        assert compatible_edge_versions(edge_version, version["Browser"]), "Runtime/driver version mismatch"
+        receipt.setdefault("driver_compatibility", []).append({
+            "driver": edge_version, "runtime": version["Browser"],
+            "rule": "matching first three components; patch may differ",
+            "source": "https://learn.microsoft.com/en-us/microsoft-edge/webdriver-chromium/",
+        })
         owned = owned_process_rows(native_process_rows(), owned_host.pid)
         owned_host_records.extend(owned)
         owned_tree_collection_verified = True
@@ -1176,8 +1324,31 @@ def main():
         matrix_proofs = receipt["matrix_proofs"] = []
         installed_remaining_matrix(bridge, bridge_status, REPO, matrix_proofs)
         receipt["steps"].append("Remaining canonical A/B format rows and four malformed inputs use real host jobs; media probe only, missing engines fail")
+        if args.synthetic_course_loop:
+            receipt["synthetic_course_loop"] = synthetic_course_loop(bridge, bridge_status, js, wait, ui_click, ui_type, screenshot)
+            receipt["steps"].append("SYNTHETIC authored knowledge review fixture; REAL native course/lesson/long-key learning; no human signoff")
+        if args.synthetic_template_pagination:
+            receipt["synthetic_template_pagination"] = synthetic_template_pagination(bridge, js, wait, ui_click, screenshot)
+            receipt["steps"].append("501 SYNTHETIC authored templates use real Core pagination, concurrent insertion boundary and native cross-page backlinks")
         close_session()
         launch()
+        if args.synthetic_course_loop:
+            proof = receipt["synthetic_course_loop"]
+            course = bridge("course_get", {"course_id": proof["course_id"]})
+            state = bridge("learning_state", {"item_key": proof["item_key"]})
+            assert course["stale"] is False and course["status"] == "candidate" and course["human_review_required"] is True
+            assert state["learner"]["assessment"]["assessment_id"] == proof["assessment"]["assessment_id"]
+            proof["native_restart_readback"] = "PASS"
+        if args.synthetic_template_pagination:
+            proof = receipt["synthetic_template_pagination"]
+            assert bridge("document_version", {"document_id":proof["linker"]["document_id"],"version":2}) == proof["linker"]
+            assert bridge("documents_list")["snapshot_count"] == proof["refresh_count"]
+            ui_click("资料库")
+            js("document.querySelector('.template-launcher summary').click();")
+            wait("return document.querySelector('[aria-label=\"已保存模板\"]')?.querySelectorAll('button').length===501", seconds=60)
+            ui_click(proof["target"]["title"] + " · v1", "//nav[@aria-label='已保存模板']")
+            wait("return document.querySelector('[aria-label=\"反向引用\"]')?.textContent.includes(" + json.dumps(proof["linker"]["title"]) + ")")
+            proof["native_restart_readback"] = "PASS"
         installed_format_readback(bridge,format_proofs)
         installed_remaining_readback(bridge, bridge_status, matrix_proofs)
         receipt["steps"].append("Full host restart reads every host matrix source/output/quality/origin and negative error state from Core")
@@ -1258,6 +1429,11 @@ def main():
         receipt["driver_log"] = identity(work / "driver.log")
         if native_log.is_file():
             receipt["native_driver_log"] = identity(native_log)
+        launcher = load("native_probe_final_identity", REPO / "scripts/runtime/dev.py")
+        _, after = launcher.worktree_identity(REPO)
+        receipt["source_consistent"] = after == receipt["source_patch_sha256"]
+        if not receipt["source_consistent"]:
+            receipt["ok"] = False
         path = work / "receipt.json"
         path.write_text(json.dumps(receipt, ensure_ascii=False, indent=2), encoding="utf-8")
         print(

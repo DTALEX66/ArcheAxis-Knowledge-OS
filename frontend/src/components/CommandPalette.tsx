@@ -4,7 +4,7 @@ import { AaosButton, AaosDialog, AaosField } from "../design-system/AaosPrimitiv
 import { canNavigateToCapability, EFFECTIVE_NAVIGATION_ENTRIES, navigationEntryMatches, type EffectiveNavigationEntry } from "../presentation/navigation";
 import type { SpaceId } from "../spaces/spaces";
 
-export function CommandPalette({ onNavigate, onOpenCapability, onOpenChange }: { onNavigate: (id: SpaceId) => void; onOpenCapability?: (id: string) => void; onOpenChange?: (open: boolean) => void }) {
+export function CommandPalette({ onNavigate, onOpenCapability, onOpenChange, onPage }: { onNavigate: (id: SpaceId) => void; onOpenCapability?: (id: string) => void; onOpenChange?: (open: boolean) => void; onPage?: (id:string)=>void }) {
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
   const [activeIndex, setActiveIndex] = useState(-1);
@@ -33,8 +33,11 @@ export function CommandPalette({ onNavigate, onOpenCapability, onOpenChange }: {
     setActiveIndex(-1);
   }, []);
 
+  useEffect(()=>{window.addEventListener("workspace-restore-start",closePalette);return()=>window.removeEventListener("workspace-restore-start",closePalette);},[closePalette]);
+
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
+      if (event.defaultPrevented || event.isComposing || event.keyCode === 229 || event.repeat || event.getModifierState("AltGraph") || event.altKey || event.shiftKey) return;
       if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === "k") {
         event.preventDefault();
         openPalette();
@@ -56,8 +59,8 @@ export function CommandPalette({ onNavigate, onOpenCapability, onOpenChange }: {
   }, [open]);
 
   const matches = useMemo(() => {
-    return EFFECTIVE_NAVIGATION_ENTRIES.filter((entry) => navigationEntryMatches(entry, query));
-  }, [query]);
+    return EFFECTIVE_NAVIGATION_ENTRIES.filter((entry) => (!onPage || !entry.space) && navigationEntryMatches(entry, query));
+  }, [query, onPage]);
 
   useEffect(() => {
     setActiveIndex(-1);
@@ -72,7 +75,8 @@ export function CommandPalette({ onNavigate, onOpenCapability, onOpenChange }: {
   };
 
   const select = (entry: EffectiveNavigationEntry) => {
-    if (entry.capability) onOpenCapability?.(entry.capability.atlas.capability_id);
+    if (entry.page) { if(onPage) onPage(entry.page.id); else window.location.hash=`page=${entry.page.id}`; }
+    else if (entry.capability) onOpenCapability?.(entry.capability.atlas.capability_id);
     else if (entry.space) onNavigate(entry.space.id);
     closePalette();
   };
@@ -89,9 +93,9 @@ export function CommandPalette({ onNavigate, onOpenCapability, onOpenChange }: {
 
   return <AaosDialog
     title="全局命令"
-    description="搜索当前入口和 Atlas 能力；未来能力可查看前提、依赖和降级方式。"
+    description="搜索页面与能力；未来能力可查看前提、依赖和降级方式。"
     trigger={<button ref={triggerRef} type="button" className="command-trigger" aria-label="打开全局命令" aria-keyshortcuts="Control+K">
-      <span aria-hidden="true">⌕</span><span>搜索或前往</span><kbd>Ctrl K</kbd>
+      <span aria-hidden="true">⌕</span><span>搜索页面与能力</span><kbd>Ctrl K</kbd>
     </button>}
     open={open}
     onOpenChange={onDialogOpenChange}
@@ -105,15 +109,16 @@ export function CommandPalette({ onNavigate, onOpenCapability, onOpenChange }: {
           ref={inputRef}
           type="search"
           role="searchbox"
-          label="搜索空间、能力、对象或依赖"
+          label="搜索页面与能力"
           labelClassName="sr-only"
           className="command-search-input"
           aria-label="搜索空间或命令"
           aria-controls="command-options"
-          placeholder="搜索空间、能力、对象或依赖…"
+          placeholder="搜索页面与能力…"
           value={query}
           onChange={(event) => setQuery(event.target.value)}
           onKeyDown={(event) => {
+            if (event.nativeEvent.isComposing || event.nativeEvent.keyCode === 229 || event.repeat || event.getModifierState("AltGraph")) return;
             if (event.key === "ArrowDown") {
               event.preventDefault();
               focusOption(0);
@@ -135,6 +140,7 @@ export function CommandPalette({ onNavigate, onOpenCapability, onOpenChange }: {
           aria-selected={activeIndex === index}
           onFocus={() => setActiveIndex(index)}
           onKeyDown={(event) => {
+            if (event.nativeEvent.isComposing || event.nativeEvent.keyCode === 229 || event.repeat || event.getModifierState("AltGraph")) return;
             if (event.key === "ArrowDown") {
               event.preventDefault();
               focusOption(index + 1);

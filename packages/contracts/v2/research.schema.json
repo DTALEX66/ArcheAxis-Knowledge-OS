@@ -1,0 +1,317 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "archeaxis/research/v1",
+  "$defs": {
+    "ObjectReference": {
+      "anyOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "kind": {
+              "const": "document"
+            },
+            "document_id": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 256,
+              "pattern": "^[A-Za-z0-9_.-]+$"
+            },
+            "version": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "block_id": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 256,
+                  "pattern": "^[A-Za-z0-9_.-]+$"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            }
+          },
+          "required": [
+            "kind",
+            "document_id",
+            "version"
+          ]
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "kind": {
+              "const": "source"
+            },
+            "source_id": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 256,
+              "pattern": "^[A-Za-z0-9_.-]+$"
+            },
+            "sha256": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{64}$"
+            }
+          },
+          "required": [
+            "kind",
+            "source_id",
+            "sha256"
+          ]
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "kind": {
+              "const": "knowledge"
+            },
+            "knowledge_id": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 256,
+              "pattern": "^[A-Za-z0-9_.-]+$"
+            }
+          },
+          "required": [
+            "kind",
+            "knowledge_id"
+          ]
+        }
+      ]
+    },
+    "ResearchMaterial": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[A-Za-z0-9_-]+$"
+        },
+        "note": {
+          "type": "string",
+          "x-maxUtf8Bytes": 16384
+        },
+        "reference": {
+          "$ref": "#/$defs/ObjectReference"
+        }
+      },
+      "required": [
+        "id",
+        "note",
+        "reference"
+      ]
+    },
+    "ResearchEntry": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[A-Za-z0-9_-]+$"
+        },
+        "text": {
+          "type": "string",
+          "x-maxUtf8Bytes": 16384
+        },
+        "references": {
+          "type": "array",
+          "maxItems": 256,
+          "items": {
+            "$ref": "#/$defs/ObjectReference"
+          }
+        }
+      },
+      "required": [
+        "id",
+        "text",
+        "references"
+      ]
+    },
+    "ResearchConclusion": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[A-Za-z0-9_-]+$"
+        },
+        "text": {
+          "type": "string",
+          "x-maxUtf8Bytes": 16384
+        },
+        "sources": {
+          "type": "array",
+          "maxItems": 256,
+          "items": {
+            "$ref": "#/$defs/ObjectReference"
+          }
+        },
+        "basis": {
+          "type": "array",
+          "maxItems": 256,
+          "items": {
+            "$ref": "#/$defs/ObjectReference"
+          }
+        }
+      },
+      "required": [
+        "id",
+        "text",
+        "sources",
+        "basis"
+      ]
+    },
+    "ResearchDocument": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "schema": {
+          "const": "archeaxis.research/v1"
+        },
+        "question": {
+          "type": "string",
+          "x-maxUtf8Bytes": 16384
+        },
+        "materials": {
+          "type": "array",
+          "maxItems": 256,
+          "items": {
+            "$ref": "#/$defs/ResearchMaterial"
+          }
+        },
+        "hypotheses": {
+          "type": "array",
+          "maxItems": 256,
+          "items": {
+            "$ref": "#/$defs/ResearchEntry"
+          }
+        },
+        "methods": {
+          "type": "array",
+          "maxItems": 256,
+          "items": {
+            "$ref": "#/$defs/ResearchEntry"
+          }
+        },
+        "experiments": {
+          "type": "array",
+          "maxItems": 256,
+          "items": {
+            "$ref": "#/$defs/ResearchEntry"
+          }
+        },
+        "counterevidence": {
+          "type": "array",
+          "maxItems": 256,
+          "items": {
+            "$ref": "#/$defs/ResearchEntry"
+          }
+        },
+        "conclusions": {
+          "type": "array",
+          "maxItems": 256,
+          "items": {
+            "$ref": "#/$defs/ResearchConclusion"
+          }
+        },
+        "unresolved": {
+          "type": "array",
+          "maxItems": 256,
+          "items": {
+            "$ref": "#/$defs/ResearchEntry"
+          }
+        }
+      },
+      "required": [
+        "schema",
+        "question",
+        "materials",
+        "hypotheses",
+        "methods",
+        "experiments",
+        "counterevidence",
+        "conclusions",
+        "unresolved"
+      ],
+      "x-maxTotalItems": 256,
+      "x-maxTotalReferences": 256,
+      "x-uniqueItemIds": "all sections"
+    },
+    "DocumentRelation": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[A-Za-z0-9_-]+$"
+        },
+        "kind": {
+          "enum": [
+            "related",
+            "supports",
+            "contradicts",
+            "depends_on"
+          ]
+        },
+        "label": {
+          "type": "string",
+          "x-maxUtf8Bytes": 1024
+        },
+        "target": {
+          "$ref": "#/$defs/ObjectReference"
+        }
+      },
+      "required": [
+        "id",
+        "kind",
+        "label",
+        "target"
+      ]
+    },
+    "DocumentRelations": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "schema": {
+          "const": "archeaxis.relations/v1"
+        },
+        "relations": {
+          "type": "array",
+          "maxItems": 256,
+          "items": {
+            "$ref": "#/$defs/DocumentRelation"
+          }
+        }
+      },
+      "required": [
+        "schema",
+        "relations"
+      ],
+      "x-uniqueItemIds": "relations"
+    }
+  },
+  "anyOf": [
+    {
+      "$ref": "#/$defs/ResearchDocument"
+    },
+    {
+      "$ref": "#/$defs/DocumentRelations"
+    }
+  ],
+  "x-storage": "existing immutable Document.attrs; metadata references do not read CAS; no search/engine execution"
+}

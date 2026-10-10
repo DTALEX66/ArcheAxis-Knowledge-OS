@@ -43,6 +43,7 @@ export const AaosField = React.forwardRef<HTMLInputElement, FieldProps>(
 );
 
 type DialogProps = {
+  role?: "dialog" | "alertdialog";
   title: string;
   description: string;
   trigger: React.ReactElement;
@@ -55,12 +56,12 @@ type DialogProps = {
   onCloseAutoFocus?: (event: Event) => void;
 };
 
-export function AaosDialog({ title, description, trigger, children, open, onOpenChange, overlayClassName, contentClassName, onOpenAutoFocus, onCloseAutoFocus }: DialogProps) {
+export function AaosDialog({ role = "dialog", title, description, trigger, children, open, onOpenChange, overlayClassName, contentClassName, onOpenAutoFocus, onCloseAutoFocus }: DialogProps) {
   return <DialogPrimitive.Root open={open} onOpenChange={onOpenChange}>
     <DialogPrimitive.Trigger asChild>{trigger}</DialogPrimitive.Trigger>
     <DialogPrimitive.Portal>
       <DialogPrimitive.Overlay className={classes("aaos-dialog-overlay", overlayClassName)} />
-      <DialogPrimitive.Content className={classes("aaos-dialog-content", contentClassName)} onOpenAutoFocus={onOpenAutoFocus} onCloseAutoFocus={onCloseAutoFocus}>
+      <DialogPrimitive.Content role={role} className={classes("aaos-dialog-content", contentClassName)} onOpenAutoFocus={onOpenAutoFocus} onCloseAutoFocus={onCloseAutoFocus}>
         <DialogPrimitive.Title className="aaos-dialog-title">{title}</DialogPrimitive.Title>
         <DialogPrimitive.Description className="aaos-help">{description}</DialogPrimitive.Description>
         {children}

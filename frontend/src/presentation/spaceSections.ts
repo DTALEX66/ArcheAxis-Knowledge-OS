@@ -4,6 +4,7 @@ import type { SpaceId } from "../spaces/spaces";
 // A section is `ready` only while the surface that owns its region is the surface
 // the shell routes that space to, so no entry can lead to a silent no-op.
 export type CanonicalSurface =
+  | "canonical_workspace"
   | "canonical_library"
   | "canonical_knowledge"
   | "canonical_learning"
@@ -27,12 +28,10 @@ const WEB_HOST_REASON = "此分组由桌面宿主的本地核心读回提供；�
 
 export const SPACE_SECTIONS: Readonly<Record<SpaceId, readonly SpaceSectionDef[]>> = {
   workspace: [
-    { id: "overview", label: "任务与能力状态", description: "Core 读回的系统状态", state: "ready", surface: "canonical_capabilities", region: "catalog" },
-    { id: "backup", label: "备份与恢复", description: "本地备份列表与恢复入口", state: "ready", surface: "canonical_capabilities", region: "backup" },
-    { id: "quick_capture", label: "快速捕获", description: "导入本地原件", state: "ready", goto: { space: "intake", section: "import" } },
-    { id: "today_review", label: "今日复习", description: "打开到期学习项", state: "ready", goto: { space: "learning", section: "review" } },
-  ],
-  library: [
+    { id: "documents", label: "继续阅读", description: "本地已保存文档", state: "ready", surface: "canonical_workspace", region: "documents" },
+    { id: "review", label: "学习继续", description: "当前本地学习条目", state: "ready", surface: "canonical_workspace", region: "review" },
+    { id: "quick_capture", label: "快速捕获", description: "导入本地原件", state: "ready", goto: {space:"intake",section:"import"} },
+  ],  library: [
     { id: "sources", label: "来源原件", description: "不可变原件列表", state: "ready", surface: "canonical_library", region: "sources" },
     { id: "documents", label: "已保存文档", description: "版本化草稿与原创笔记", state: "ready", surface: "canonical_library", region: "documents" },
     { id: "anchors", label: "来源锚点", description: "绑定原件版本的引用记录", state: "ready", surface: "canonical_library", region: "anchors" },

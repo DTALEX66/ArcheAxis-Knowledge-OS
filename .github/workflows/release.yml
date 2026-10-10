@@ -83,9 +83,10 @@ jobs:
           New-Item -ItemType Directory -Force '.project-local/build/tauri/release/bundle/nsis' | Out-Null
           Copy-Item $installer '.project-local/build/tauri/release/bundle/nsis/'
           Copy-Item $executable '.project-local/build/tauri/release/ArcheAxis.exe'
-          New-Item -ItemType Directory -Force '.project-local/build' | Out-Null
-          Expand-Archive -LiteralPath $frontend -DestinationPath '.project-local/build' -Force
-          if (-not (Test-Path -LiteralPath '.project-local/build/frontend-dist/index.html' -PathType Leaf)) { throw 'candidate frontend archive is missing .project-local/build/frontend-dist/index.html' }
+          $frontendParent = Split-Path -Parent $env:ARCHEAXIS_FRONTEND_DIST
+          New-Item -ItemType Directory -Force $frontendParent | Out-Null
+          Expand-Archive -LiteralPath $frontend -DestinationPath $frontendParent -Force
+          if (-not (Test-Path -LiteralPath (Join-Path $env:ARCHEAXIS_FRONTEND_DIST 'index.html') -PathType Leaf)) { throw 'candidate frontend archive is missing routed frontend-dist/index.html' }
       - uses: astral-sh/setup-uv@d0cc045d04ccac9d8b7881df0226f9e82c39688e
         with:
           enable-cache: true
@@ -180,7 +181,7 @@ jobs:
           python desktop/scripts/assemble_distributions.py `
             --exe .project-local/build/tauri/release/ArcheAxis.exe `
             --runtime .project-local/rt/runtime `
-            --frontend .project-local/build/frontend-dist `
+            --frontend "$env:ARCHEAXIS_FRONTEND_DIST" `
             --identity .project-local/rt/runtime/release-identity.json `
             --out .project-local/build/release-assets `
             --version ${{ steps.resolve_version.outputs.release_version }}

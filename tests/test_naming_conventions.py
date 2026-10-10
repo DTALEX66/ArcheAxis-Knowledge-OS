@@ -29,6 +29,16 @@ from shared.naming import (
 
 ROOT = Path(__file__).resolve().parents[1]
 
+
+@pytest.mark.parametrize("name", ["acl-manifests.json", "capabilities.json", "desktop-schema.json", "windows-schema.json"])
+def test_tauri_generator_only_exact_output_may_omit_final_lf(name):
+    path = "src-tauri/gen/schemas/" + name
+    generated = (ROOT / path).read_bytes()
+    assert not generated.endswith(b"\n")
+    assert scan_text_bytes(path, generated) == []
+    assert "missing-final-newline" in {issue.code for issue in scan_text_bytes(path, generated + b" ")}
+    assert "missing-final-newline" in {issue.code for issue in scan_text_bytes("src-tauri/gen/schemas/unreviewed.json", generated)}
+
 _PRESERVED_FIXTURE_HASHES = {
     "tests/fixtures/f01-quality/controlled.md": "70aff728005d7580260391e6754f30209ec5fbecd9803f30a31e48d72eb7b176",
     "tests/fixtures/f01-quality/capped-lines.md": "71c0029230e042d72e9ec8db74f9a28196b37fdfb29f7df7d68e3b425af38928",

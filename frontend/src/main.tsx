@@ -6,6 +6,7 @@ import { ThemeProvider } from "./design-system/ThemeProvider";
 import "./design-system/tokens.css";
 import "./design-system/themes.css";
 import "./design-system/primitives.css";
+import "./spaces/ui-first.css";
 
 applyTheme(readThemePreference());
 

@@ -1,0 +1,2495 @@
+{
+  "schema": "archeaxis.format-qualification/v1",
+  "as_of": "2026-10-09T23:38:54.662343+00:00",
+  "status": "PARTIAL",
+  "authority": "docs/taskpacks/aaos-ui-first-20261009",
+  "registry_records": [
+    {
+      "source_record": {
+        "extension": "xlsx",
+        "ui_kind": "office",
+        "core_capability": "office.structure",
+        "worker": "services/python-workers/document/worker_office.py",
+        "engine": "docx stdlib ZIP/XML; xlsx openpyxl3.1.5; pptx python-pptx1.0.2",
+        "scope": "selected owned synthetic representative input; real production worker execution planned",
+        "status": "NOT_RUN",
+        "raw_cas": {
+          "required": "SHA256 and byte length source original before conversion/after failure/restart identical",
+          "original_endpoint": "GET /api/v1/sources/{id}/original"
+        },
+        "body_structure_location": "DOCX paragraph/table; XLSX sheet/cell/formula/cache; PPTX slide/shape/notes",
+        "loss_policy": "No macro execution; cached formula not recomputation; styles/animations/layout not equivalent",
+        "dependency_discovery": "current-environment.json package metadata only; external-tools exact object evidence only",
+        "interop": {
+          "functional_equivalence": "NOT_RUN",
+          "data_compatibility": "RAW_CAS_AND_ACTUAL_PROJECTION_PLANNED",
+          "bidirectional_roundtrip": "NOT_RUN (conversion/extraction is not reconstruction)",
+          "incremental_sync": "NOT_RUN (same-byte import idempotency/failed-job retry is not platform sync)"
+        },
+        "restart": "source original + exact job outputs/quality/attempts after owned Core reopen planned"
+      },
+      "qualification": "NOT_QUALIFIED_BY_REGISTRY",
+      "role": "Historical assessment at its observed_at; declaration is not actual execution"
+    },
+    {
+      "source_record": {
+        "extension": "pptx",
+        "ui_kind": "office",
+        "core_capability": "office.structure",
+        "worker": "services/python-workers/document/worker_office.py",
+        "engine": "docx stdlib ZIP/XML; xlsx openpyxl3.1.5; pptx python-pptx1.0.2",
+        "scope": "selected owned synthetic representative input; real production worker execution planned",
+        "status": "NOT_RUN",
+        "raw_cas": {
+          "required": "SHA256 and byte length source original before conversion/after failure/restart identical",
+          "original_endpoint": "GET /api/v1/sources/{id}/original"
+        },
+        "body_structure_location": "DOCX paragraph/table; XLSX sheet/cell/formula/cache; PPTX slide/shape/notes",
+        "loss_policy": "No macro execution; cached formula not recomputation; styles/animations/layout not equivalent",
+        "dependency_discovery": "current-environment.json package metadata only; external-tools exact object evidence only",
+        "interop": {
+          "functional_equivalence": "NOT_RUN",
+          "data_compatibility": "RAW_CAS_AND_ACTUAL_PROJECTION_PLANNED",
+          "bidirectional_roundtrip": "NOT_RUN (conversion/extraction is not reconstruction)",
+          "incremental_sync": "NOT_RUN (same-byte import idempotency/failed-job retry is not platform sync)"
+        },
+        "restart": "source original + exact job outputs/quality/attempts after owned Core reopen planned"
+      },
+      "qualification": "NOT_QUALIFIED_BY_REGISTRY",
+      "role": "Historical assessment at its observed_at; declaration is not actual execution"
+    },
+    {
+      "source_record": {
+        "extension": "docx",
+        "ui_kind": "office",
+        "core_capability": "office.structure",
+        "worker": "services/python-workers/document/worker_office.py",
+        "engine": "docx stdlib ZIP/XML; xlsx openpyxl3.1.5; pptx python-pptx1.0.2",
+        "scope": "selected owned synthetic representative input; real production worker execution planned",
+        "status": "NOT_RUN",
+        "raw_cas": {
+          "required": "SHA256 and byte length source original before conversion/after failure/restart identical",
+          "original_endpoint": "GET /api/v1/sources/{id}/original"
+        },
+        "body_structure_location": "DOCX paragraph/table; XLSX sheet/cell/formula/cache; PPTX slide/shape/notes",
+        "loss_policy": "No macro execution; cached formula not recomputation; styles/animations/layout not equivalent",
+        "dependency_discovery": "current-environment.json package metadata only; external-tools exact object evidence only",
+        "interop": {
+          "functional_equivalence": "NOT_RUN",
+          "data_compatibility": "RAW_CAS_AND_ACTUAL_PROJECTION_PLANNED",
+          "bidirectional_roundtrip": "NOT_RUN (conversion/extraction is not reconstruction)",
+          "incremental_sync": "NOT_RUN (same-byte import idempotency/failed-job retry is not platform sync)"
+        },
+        "restart": "source original + exact job outputs/quality/attempts after owned Core reopen planned"
+      },
+      "qualification": "NOT_QUALIFIED_BY_REGISTRY",
+      "role": "Historical assessment at its observed_at; declaration is not actual execution"
+    },
+    {
+      "source_record": {
+        "extension": "html",
+        "ui_kind": "html",
+        "core_capability": "html.structure",
+        "worker": "services/python-workers/web/worker_html.py",
+        "engine": "Trafilatura 2.1.0 with explicit stdlib fallback",
+        "scope": "selected owned synthetic representative input; real production worker execution planned",
+        "status": "NOT_RUN",
+        "raw_cas": {
+          "required": "SHA256 and byte length source original before conversion/after failure/restart identical",
+          "original_endpoint": "GET /api/v1/sources/{id}/original"
+        },
+        "body_structure_location": "actual article/body blocks + element/source paths, no live webpage fetch",
+        "loss_policy": "nav/footer/script/style removed, formatting/interactivity not reproduced",
+        "dependency_discovery": "current-environment.json package metadata only; external-tools exact object evidence only",
+        "interop": {
+          "functional_equivalence": "NOT_RUN",
+          "data_compatibility": "RAW_CAS_AND_ACTUAL_PROJECTION_PLANNED",
+          "bidirectional_roundtrip": "NOT_RUN (conversion/extraction is not reconstruction)",
+          "incremental_sync": "NOT_RUN (same-byte import idempotency/failed-job retry is not platform sync)"
+        },
+        "restart": "source original + exact job outputs/quality/attempts after owned Core reopen planned"
+      },
+      "qualification": "NOT_QUALIFIED_BY_REGISTRY",
+      "role": "Historical assessment at its observed_at; declaration is not actual execution"
+    },
+    {
+      "source_record": {
+        "extension": "htm",
+        "ui_kind": "html",
+        "core_capability": "html.structure",
+        "worker": "services/python-workers/web/worker_html.py",
+        "engine": "Trafilatura 2.1.0 with explicit stdlib fallback",
+        "scope": "selected owned synthetic representative input; real production worker execution planned",
+        "status": "NOT_RUN",
+        "raw_cas": {
+          "required": "SHA256 and byte length source original before conversion/after failure/restart identical",
+          "original_endpoint": "GET /api/v1/sources/{id}/original"
+        },
+        "body_structure_location": "actual article/body blocks + element/source paths, no live webpage fetch",
+        "loss_policy": "nav/footer/script/style removed, formatting/interactivity not reproduced",
+        "dependency_discovery": "current-environment.json package metadata only; external-tools exact object evidence only",
+        "interop": {
+          "functional_equivalence": "NOT_RUN",
+          "data_compatibility": "RAW_CAS_AND_ACTUAL_PROJECTION_PLANNED",
+          "bidirectional_roundtrip": "NOT_RUN (conversion/extraction is not reconstruction)",
+          "incremental_sync": "NOT_RUN (same-byte import idempotency/failed-job retry is not platform sync)"
+        },
+        "restart": "source original + exact job outputs/quality/attempts after owned Core reopen planned"
+      },
+      "qualification": "NOT_QUALIFIED_BY_REGISTRY",
+      "role": "Historical assessment at its observed_at; declaration is not actual execution"
+    },
+    {
+      "source_record": {
+        "extension": "xhtml",
+        "ui_kind": "html",
+        "core_capability": "html.structure",
+        "worker": "services/python-workers/web/worker_html.py",
+        "engine": "Trafilatura 2.1.0 with explicit stdlib fallback",
+        "scope": "selected owned synthetic representative input; real production worker execution planned",
+        "status": "NOT_RUN",
+        "raw_cas": {
+          "required": "SHA256 and byte length source original before conversion/after failure/restart identical",
+          "original_endpoint": "GET /api/v1/sources/{id}/original"
+        },
+        "body_structure_location": "actual article/body blocks + element/source paths, no live webpage fetch",
+        "loss_policy": "nav/footer/script/style removed, formatting/interactivity not reproduced",
+        "dependency_discovery": "current-environment.json package metadata only; external-tools exact object evidence only",
+        "interop": {
+          "functional_equivalence": "NOT_RUN",
+          "data_compatibility": "RAW_CAS_AND_ACTUAL_PROJECTION_PLANNED",
+          "bidirectional_roundtrip": "NOT_RUN (conversion/extraction is not reconstruction)",
+          "incremental_sync": "NOT_RUN (same-byte import idempotency/failed-job retry is not platform sync)"
+        },
+        "restart": "source original + exact job outputs/quality/attempts after owned Core reopen planned"
+      },
+      "qualification": "NOT_QUALIFIED_BY_REGISTRY",
+      "role": "Historical assessment at its observed_at; declaration is not actual execution"
+    },
+    {
+      "source_record": {
+        "extension": "pdf",
+        "ui_kind": "pdf",
+        "core_capability": "pdf.extract",
+        "worker": "services/python-workers/document/worker_pdf.py",
+        "engine": "PyMuPDF 1.28.2",
+        "scope": "selected owned synthetic representative input; real production worker execution planned",
+        "status": "NOT_RUN",
+        "raw_cas": {
+          "required": "SHA256 and byte length source original before conversion/after failure/restart identical",
+          "original_endpoint": "GET /api/v1/sources/{id}/original"
+        },
+        "body_structure_location": "page/line/region offsets and actual OCR candidates",
+        "loss_policy": "text-native extraction; empty scan requires separately qualified OCR, no empty semantic success",
+        "dependency_discovery": "current-environment.json package metadata only; external-tools exact object evidence only",
+        "interop": {
+          "functional_equivalence": "NOT_RUN",
+          "data_compatibility": "RAW_CAS_AND_ACTUAL_PROJECTION_PLANNED",
+          "bidirectional_roundtrip": "NOT_RUN (conversion/extraction is not reconstruction)",
+          "incremental_sync": "NOT_RUN (same-byte import idempotency/failed-job retry is not platform sync)"
+        },
+        "restart": "source original + exact job outputs/quality/attempts after owned Core reopen planned"
+      },
+      "qualification": "NOT_QUALIFIED_BY_REGISTRY",
+      "role": "Historical assessment at its observed_at; declaration is not actual execution"
+    },
+    {
+      "source_record": {
+        "extension": "png",
+        "ui_kind": "image",
+        "core_capability": "image.ocr",
+        "worker": "services/python-workers/vision/worker_ocr.py",
+        "engine": "pytesseract0.3.13 + declared Tesseract and language data",
+        "scope": "selected owned synthetic representative input; real production worker execution planned",
+        "status": "NOT_RUN",
+        "raw_cas": {
+          "required": "SHA256 and byte length source original before conversion/after failure/restart identical",
+          "original_endpoint": "GET /api/v1/sources/{id}/original"
+        },
+        "body_structure_location": "actual OCR boxes/text offsets",
+        "loss_policy": "unqualified recognition quality; no caption/semantic model qualification",
+        "dependency_discovery": "current-environment.json package metadata only; external-tools exact object evidence only",
+        "interop": {
+          "functional_equivalence": "NOT_RUN",
+          "data_compatibility": "RAW_CAS_AND_ACTUAL_PROJECTION_PLANNED",
+          "bidirectional_roundtrip": "NOT_RUN (conversion/extraction is not reconstruction)",
+          "incremental_sync": "NOT_RUN (same-byte import idempotency/failed-job retry is not platform sync)"
+        },
+        "restart": "source original + exact job outputs/quality/attempts after owned Core reopen planned"
+      },
+      "qualification": "NOT_QUALIFIED_BY_REGISTRY",
+      "role": "Historical assessment at its observed_at; declaration is not actual execution"
+    },
+    {
+      "source_record": {
+        "extension": "jpg",
+        "ui_kind": "image",
+        "core_capability": "image.ocr",
+        "worker": "services/python-workers/vision/worker_ocr.py",
+        "engine": "pytesseract0.3.13 + declared Tesseract and language data",
+        "scope": "selected owned synthetic representative input; real production worker execution planned",
+        "status": "NOT_RUN",
+        "raw_cas": {
+          "required": "SHA256 and byte length source original before conversion/after failure/restart identical",
+          "original_endpoint": "GET /api/v1/sources/{id}/original"
+        },
+        "body_structure_location": "actual OCR boxes/text offsets",
+        "loss_policy": "unqualified recognition quality; no caption/semantic model qualification",
+        "dependency_discovery": "current-environment.json package metadata only; external-tools exact object evidence only",
+        "interop": {
+          "functional_equivalence": "NOT_RUN",
+          "data_compatibility": "RAW_CAS_AND_ACTUAL_PROJECTION_PLANNED",
+          "bidirectional_roundtrip": "NOT_RUN (conversion/extraction is not reconstruction)",
+          "incremental_sync": "NOT_RUN (same-byte import idempotency/failed-job retry is not platform sync)"
+        },
+        "restart": "source original + exact job outputs/quality/attempts after owned Core reopen planned"
+      },
+      "qualification": "NOT_QUALIFIED_BY_REGISTRY",
+      "role": "Historical assessment at its observed_at; declaration is not actual execution"
+    },
+    {
+      "source_record": {
+        "extension": "jpeg",
+        "ui_kind": "image",
+        "core_capability": "image.ocr",
+        "worker": "services/python-workers/vision/worker_ocr.py",
+        "engine": "pytesseract0.3.13 + declared Tesseract and language data",
+        "scope": "selected owned synthetic representative input; real production worker execution planned",
+        "status": "NOT_RUN",
+        "raw_cas": {
+          "required": "SHA256 and byte length source original before conversion/after failure/restart identical",
+          "original_endpoint": "GET /api/v1/sources/{id}/original"
+        },
+        "body_structure_location": "actual OCR boxes/text offsets",
+        "loss_policy": "unqualified recognition quality; no caption/semantic model qualification",
+        "dependency_discovery": "current-environment.json package metadata only; external-tools exact object evidence only",
+        "interop": {
+          "functional_equivalence": "NOT_RUN",
+          "data_compatibility": "RAW_CAS_AND_ACTUAL_PROJECTION_PLANNED",
+          "bidirectional_roundtrip": "NOT_RUN (conversion/extraction is not reconstruction)",
+          "incremental_sync": "NOT_RUN (same-byte import idempotency/failed-job retry is not platform sync)"
+        },
+        "restart": "source original + exact job outputs/quality/attempts after owned Core reopen planned"
+      },
+      "qualification": "NOT_QUALIFIED_BY_REGISTRY",
+      "role": "Historical assessment at its observed_at; declaration is not actual execution"
+    },
+    {
+      "source_record": {
+        "extension": "tif",
+        "ui_kind": "image",
+        "core_capability": "image.ocr",
+        "worker": "services/python-workers/vision/worker_ocr.py",
+        "engine": "pytesseract0.3.13 + declared Tesseract and language data",
+        "scope": "selected owned synthetic representative input; real production worker execution planned",
+        "status": "NOT_RUN",
+        "raw_cas": {
+          "required": "SHA256 and byte length source original before conversion/after failure/restart identical",
+          "original_endpoint": "GET /api/v1/sources/{id}/original"
+        },
+        "body_structure_location": "actual OCR boxes/text offsets",
+        "loss_policy": "unqualified recognition quality; no caption/semantic model qualification",
+        "dependency_discovery": "current-environment.json package metadata only; external-tools exact object evidence only",
+        "interop": {
+          "functional_equivalence": "NOT_RUN",
+          "data_compatibility": "RAW_CAS_AND_ACTUAL_PROJECTION_PLANNED",
+          "bidirectional_roundtrip": "NOT_RUN (conversion/extraction is not reconstruction)",
+          "incremental_sync": "NOT_RUN (same-byte import idempotency/failed-job retry is not platform sync)"
+        },
+        "restart": "source original + exact job outputs/quality/attempts after owned Core reopen planned"
+      },
+      "qualification": "NOT_QUALIFIED_BY_REGISTRY",
+      "role": "Historical assessment at its observed_at; declaration is not actual execution"
+    },
+    {
+      "source_record": {
+        "extension": "tiff",
+        "ui_kind": "image",
+        "core_capability": "image.ocr",
+        "worker": "services/python-workers/vision/worker_ocr.py",
+        "engine": "pytesseract0.3.13 + declared Tesseract and language data",
+        "scope": "selected owned synthetic representative input; real production worker execution planned",
+        "status": "NOT_RUN",
+        "raw_cas": {
+          "required": "SHA256 and byte length source original before conversion/after failure/restart identical",
+          "original_endpoint": "GET /api/v1/sources/{id}/original"
+        },
+        "body_structure_location": "actual OCR boxes/text offsets",
+        "loss_policy": "unqualified recognition quality; no caption/semantic model qualification",
+        "dependency_discovery": "current-environment.json package metadata only; external-tools exact object evidence only",
+        "interop": {
+          "functional_equivalence": "NOT_RUN",
+          "data_compatibility": "RAW_CAS_AND_ACTUAL_PROJECTION_PLANNED",
+          "bidirectional_roundtrip": "NOT_RUN (conversion/extraction is not reconstruction)",
+          "incremental_sync": "NOT_RUN (same-byte import idempotency/failed-job retry is not platform sync)"
+        },
+        "restart": "source original + exact job outputs/quality/attempts after owned Core reopen planned"
+      },
+      "qualification": "NOT_QUALIFIED_BY_REGISTRY",
+      "role": "Historical assessment at its observed_at; declaration is not actual execution"
+    },
+    {
+      "source_record": {
+        "extension": "webp",
+        "ui_kind": "image",
+        "core_capability": "image.ocr",
+        "worker": "services/python-workers/vision/worker_ocr.py",
+        "engine": "pytesseract0.3.13 + declared Tesseract and language data",
+        "scope": "selected owned synthetic representative input; real production worker execution planned",
+        "status": "NOT_RUN",
+        "raw_cas": {
+          "required": "SHA256 and byte length source original before conversion/after failure/restart identical",
+          "original_endpoint": "GET /api/v1/sources/{id}/original"
+        },
+        "body_structure_location": "actual OCR boxes/text offsets",
+        "loss_policy": "unqualified recognition quality; no caption/semantic model qualification",
+        "dependency_discovery": "current-environment.json package metadata only; external-tools exact object evidence only",
+        "interop": {
+          "functional_equivalence": "NOT_RUN",
+          "data_compatibility": "RAW_CAS_AND_ACTUAL_PROJECTION_PLANNED",
+          "bidirectional_roundtrip": "NOT_RUN (conversion/extraction is not reconstruction)",
+          "incremental_sync": "NOT_RUN (same-byte import idempotency/failed-job retry is not platform sync)"
+        },
+        "restart": "source original + exact job outputs/quality/attempts after owned Core reopen planned"
+      },
+      "qualification": "NOT_QUALIFIED_BY_REGISTRY",
+      "role": "Historical assessment at its observed_at; declaration is not actual execution"
+    },
+    {
+      "source_record": {
+        "extension": "bmp",
+        "ui_kind": "image",
+        "core_capability": "image.ocr",
+        "worker": "services/python-workers/vision/worker_ocr.py",
+        "engine": "pytesseract0.3.13 + declared Tesseract and language data",
+        "scope": "selected owned synthetic representative input; real production worker execution planned",
+        "status": "NOT_RUN",
+        "raw_cas": {
+          "required": "SHA256 and byte length source original before conversion/after failure/restart identical",
+          "original_endpoint": "GET /api/v1/sources/{id}/original"
+        },
+        "body_structure_location": "actual OCR boxes/text offsets",
+        "loss_policy": "unqualified recognition quality; no caption/semantic model qualification",
+        "dependency_discovery": "current-environment.json package metadata only; external-tools exact object evidence only",
+        "interop": {
+          "functional_equivalence": "NOT_RUN",
+          "data_compatibility": "RAW_CAS_AND_ACTUAL_PROJECTION_PLANNED",
+          "bidirectional_roundtrip": "NOT_RUN (conversion/extraction is not reconstruction)",
+          "incremental_sync": "NOT_RUN (same-byte import idempotency/failed-job retry is not platform sync)"
+        },
+        "restart": "source original + exact job outputs/quality/attempts after owned Core reopen planned"
+      },
+      "qualification": "NOT_QUALIFIED_BY_REGISTRY",
+      "role": "Historical assessment at its observed_at; declaration is not actual execution"
+    },
+    {
+      "source_record": {
+        "extension": "zip",
+        "ui_kind": "archive",
+        "core_capability": "archive.inventory",
+        "worker": "services/python-workers/document/worker_archive.py",
+        "engine": "stdlib ZIP/TAR inventory",
+        "scope": "selected owned synthetic representative input; real production worker execution planned",
+        "status": "NOT_RUN",
+        "raw_cas": {
+          "required": "SHA256 and byte length source original before conversion/after failure/restart identical",
+          "original_endpoint": "GET /api/v1/sources/{id}/original"
+        },
+        "body_structure_location": "member inventory/name/type/declared sizes; unsafe paths refusal",
+        "loss_policy": "Inventory is not automatic recursion/member body conversion or execution",
+        "dependency_discovery": "current-environment.json package metadata only; external-tools exact object evidence only",
+        "interop": {
+          "functional_equivalence": "NOT_RUN",
+          "data_compatibility": "RAW_CAS_AND_ACTUAL_PROJECTION_PLANNED",
+          "bidirectional_roundtrip": "NOT_RUN (conversion/extraction is not reconstruction)",
+          "incremental_sync": "NOT_RUN (same-byte import idempotency/failed-job retry is not platform sync)"
+        },
+        "restart": "source original + exact job outputs/quality/attempts after owned Core reopen planned"
+      },
+      "qualification": "NOT_QUALIFIED_BY_REGISTRY",
+      "role": "Historical assessment at its observed_at; declaration is not actual execution"
+    },
+    {
+      "source_record": {
+        "extension": "tar",
+        "ui_kind": "archive",
+        "core_capability": "archive.inventory",
+        "worker": "services/python-workers/document/worker_archive.py",
+        "engine": "stdlib ZIP/TAR inventory",
+        "scope": "selected owned synthetic representative input; real production worker execution planned",
+        "status": "NOT_RUN",
+        "raw_cas": {
+          "required": "SHA256 and byte length source original before conversion/after failure/restart identical",
+          "original_endpoint": "GET /api/v1/sources/{id}/original"
+        },
+        "body_structure_location": "member inventory/name/type/declared sizes; unsafe paths refusal",
+        "loss_policy": "Inventory is not automatic recursion/member body conversion or execution",
+        "dependency_discovery": "current-environment.json package metadata only; external-tools exact object evidence only",
+        "interop": {
+          "functional_equivalence": "NOT_RUN",
+          "data_compatibility": "RAW_CAS_AND_ACTUAL_PROJECTION_PLANNED",
+          "bidirectional_roundtrip": "NOT_RUN (conversion/extraction is not reconstruction)",
+          "incremental_sync": "NOT_RUN (same-byte import idempotency/failed-job retry is not platform sync)"
+        },
+        "restart": "source original + exact job outputs/quality/attempts after owned Core reopen planned"
+      },
+      "qualification": "NOT_QUALIFIED_BY_REGISTRY",
+      "role": "Historical assessment at its observed_at; declaration is not actual execution"
+    },
+    {
+      "source_record": {
+        "extension": "canvas",
+        "ui_kind": "canvas",
+        "core_capability": "canvas.structure",
+        "worker": "services/python-workers/document/worker_canvas.py",
+        "engine": "stdlib JSON Canvas parser",
+        "scope": "selected owned synthetic representative input; real production worker execution planned",
+        "status": "NOT_RUN",
+        "raw_cas": {
+          "required": "SHA256 and byte length source original before conversion/after failure/restart identical",
+          "original_endpoint": "GET /api/v1/sources/{id}/original"
+        },
+        "body_structure_location": "actual node IDs/text/file refs/edges/coordinates",
+        "loss_policy": "external referenced files are not implicitly accessed; no byte-identical regenerated original claim",
+        "dependency_discovery": "current-environment.json package metadata only; external-tools exact object evidence only",
+        "interop": {
+          "functional_equivalence": "NOT_RUN",
+          "data_compatibility": "RAW_CAS_AND_ACTUAL_PROJECTION_PLANNED",
+          "bidirectional_roundtrip": "NOT_RUN (conversion/extraction is not reconstruction)",
+          "incremental_sync": "NOT_RUN (same-byte import idempotency/failed-job retry is not platform sync)"
+        },
+        "restart": "source original + exact job outputs/quality/attempts after owned Core reopen planned"
+      },
+      "qualification": "NOT_QUALIFIED_BY_REGISTRY",
+      "role": "Historical assessment at its observed_at; declaration is not actual execution"
+    },
+    {
+      "source_record": {
+        "extension": "srt",
+        "ui_kind": "subtitles",
+        "core_capability": "subtitles.structure",
+        "worker": "services/python-workers/document/worker_subtitles.py",
+        "engine": "stdlib SRT/VTT parser",
+        "scope": "selected owned synthetic representative input; real production worker execution planned",
+        "status": "NOT_RUN",
+        "raw_cas": {
+          "required": "SHA256 and byte length source original before conversion/after failure/restart identical",
+          "original_endpoint": "GET /api/v1/sources/{id}/original"
+        },
+        "body_structure_location": "cue index/start/end/time offsets",
+        "loss_policy": "inline tags stripped and NOTE dropped with actual loss receipt",
+        "dependency_discovery": "current-environment.json package metadata only; external-tools exact object evidence only",
+        "interop": {
+          "functional_equivalence": "NOT_RUN",
+          "data_compatibility": "RAW_CAS_AND_ACTUAL_PROJECTION_PLANNED",
+          "bidirectional_roundtrip": "NOT_RUN (conversion/extraction is not reconstruction)",
+          "incremental_sync": "NOT_RUN (same-byte import idempotency/failed-job retry is not platform sync)"
+        },
+        "restart": "source original + exact job outputs/quality/attempts after owned Core reopen planned"
+      },
+      "qualification": "NOT_QUALIFIED_BY_REGISTRY",
+      "role": "Historical assessment at its observed_at; declaration is not actual execution"
+    },
+    {
+      "source_record": {
+        "extension": "vtt",
+        "ui_kind": "subtitles",
+        "core_capability": "subtitles.structure",
+        "worker": "services/python-workers/document/worker_subtitles.py",
+        "engine": "stdlib SRT/VTT parser",
+        "scope": "selected owned synthetic representative input; real production worker execution planned",
+        "status": "NOT_RUN",
+        "raw_cas": {
+          "required": "SHA256 and byte length source original before conversion/after failure/restart identical",
+          "original_endpoint": "GET /api/v1/sources/{id}/original"
+        },
+        "body_structure_location": "cue index/start/end/time offsets",
+        "loss_policy": "inline tags stripped and NOTE dropped with actual loss receipt",
+        "dependency_discovery": "current-environment.json package metadata only; external-tools exact object evidence only",
+        "interop": {
+          "functional_equivalence": "NOT_RUN",
+          "data_compatibility": "RAW_CAS_AND_ACTUAL_PROJECTION_PLANNED",
+          "bidirectional_roundtrip": "NOT_RUN (conversion/extraction is not reconstruction)",
+          "incremental_sync": "NOT_RUN (same-byte import idempotency/failed-job retry is not platform sync)"
+        },
+        "restart": "source original + exact job outputs/quality/attempts after owned Core reopen planned"
+      },
+      "qualification": "NOT_QUALIFIED_BY_REGISTRY",
+      "role": "Historical assessment at its observed_at; declaration is not actual execution"
+    },
+    {
+      "source_record": {
+        "extension": "wav",
+        "ui_kind": "transcribe",
+        "core_capability": "media.transcribe",
+        "worker": "services/python-workers/media/worker_transcribe.py",
+        "engine": "faster-whisper1.2.1 + separately qualified weights/runtime",
+        "scope": "selected owned synthetic representative input; real production worker execution planned",
+        "status": "NOT_RUN",
+        "raw_cas": {
+          "required": "SHA256 and byte length source original before conversion/after failure/restart identical",
+          "original_endpoint": "GET /api/v1/sources/{id}/original"
+        },
+        "body_structure_location": "actual transcript segment times; not media header",
+        "loss_policy": "Model package exists but actual weight/profile/license/loading/inference NOT_RUN",
+        "dependency_discovery": "current-environment.json package metadata only; external-tools exact object evidence only",
+        "interop": {
+          "functional_equivalence": "NOT_RUN",
+          "data_compatibility": "RAW_CAS_AND_ACTUAL_PROJECTION_PLANNED",
+          "bidirectional_roundtrip": "NOT_RUN (conversion/extraction is not reconstruction)",
+          "incremental_sync": "NOT_RUN (same-byte import idempotency/failed-job retry is not platform sync)"
+        },
+        "restart": "source original + exact job outputs/quality/attempts after owned Core reopen planned"
+      },
+      "qualification": "NOT_QUALIFIED_BY_REGISTRY",
+      "role": "Historical assessment at its observed_at; declaration is not actual execution"
+    },
+    {
+      "source_record": {
+        "extension": "mp3",
+        "ui_kind": "transcribe",
+        "core_capability": "media.transcribe",
+        "worker": "services/python-workers/media/worker_transcribe.py",
+        "engine": "faster-whisper1.2.1 + separately qualified weights/runtime",
+        "scope": "selected owned synthetic representative input; real production worker execution planned",
+        "status": "NOT_RUN",
+        "raw_cas": {
+          "required": "SHA256 and byte length source original before conversion/after failure/restart identical",
+          "original_endpoint": "GET /api/v1/sources/{id}/original"
+        },
+        "body_structure_location": "actual transcript segment times; not media header",
+        "loss_policy": "Model package exists but actual weight/profile/license/loading/inference NOT_RUN",
+        "dependency_discovery": "current-environment.json package metadata only; external-tools exact object evidence only",
+        "interop": {
+          "functional_equivalence": "NOT_RUN",
+          "data_compatibility": "RAW_CAS_AND_ACTUAL_PROJECTION_PLANNED",
+          "bidirectional_roundtrip": "NOT_RUN (conversion/extraction is not reconstruction)",
+          "incremental_sync": "NOT_RUN (same-byte import idempotency/failed-job retry is not platform sync)"
+        },
+        "restart": "source original + exact job outputs/quality/attempts after owned Core reopen planned"
+      },
+      "qualification": "NOT_QUALIFIED_BY_REGISTRY",
+      "role": "Historical assessment at its observed_at; declaration is not actual execution"
+    },
+    {
+      "source_record": {
+        "extension": "m4a",
+        "ui_kind": "transcribe",
+        "core_capability": "media.transcribe",
+        "worker": "services/python-workers/media/worker_transcribe.py",
+        "engine": "faster-whisper1.2.1 + separately qualified weights/runtime",
+        "scope": "selected owned synthetic representative input; real production worker execution planned",
+        "status": "NOT_RUN",
+        "raw_cas": {
+          "required": "SHA256 and byte length source original before conversion/after failure/restart identical",
+          "original_endpoint": "GET /api/v1/sources/{id}/original"
+        },
+        "body_structure_location": "actual transcript segment times; not media header",
+        "loss_policy": "Model package exists but actual weight/profile/license/loading/inference NOT_RUN",
+        "dependency_discovery": "current-environment.json package metadata only; external-tools exact object evidence only",
+        "interop": {
+          "functional_equivalence": "NOT_RUN",
+          "data_compatibility": "RAW_CAS_AND_ACTUAL_PROJECTION_PLANNED",
+          "bidirectional_roundtrip": "NOT_RUN (conversion/extraction is not reconstruction)",
+          "incremental_sync": "NOT_RUN (same-byte import idempotency/failed-job retry is not platform sync)"
+        },
+        "restart": "source original + exact job outputs/quality/attempts after owned Core reopen planned"
+      },
+      "qualification": "NOT_QUALIFIED_BY_REGISTRY",
+      "role": "Historical assessment at its observed_at; declaration is not actual execution"
+    },
+    {
+      "source_record": {
+        "extension": "flac",
+        "ui_kind": "transcribe",
+        "core_capability": "media.transcribe",
+        "worker": "services/python-workers/media/worker_transcribe.py",
+        "engine": "faster-whisper1.2.1 + separately qualified weights/runtime",
+        "scope": "selected owned synthetic representative input; real production worker execution planned",
+        "status": "NOT_RUN",
+        "raw_cas": {
+          "required": "SHA256 and byte length source original before conversion/after failure/restart identical",
+          "original_endpoint": "GET /api/v1/sources/{id}/original"
+        },
+        "body_structure_location": "actual transcript segment times; not media header",
+        "loss_policy": "Model package exists but actual weight/profile/license/loading/inference NOT_RUN",
+        "dependency_discovery": "current-environment.json package metadata only; external-tools exact object evidence only",
+        "interop": {
+          "functional_equivalence": "NOT_RUN",
+          "data_compatibility": "RAW_CAS_AND_ACTUAL_PROJECTION_PLANNED",
+          "bidirectional_roundtrip": "NOT_RUN (conversion/extraction is not reconstruction)",
+          "incremental_sync": "NOT_RUN (same-byte import idempotency/failed-job retry is not platform sync)"
+        },
+        "restart": "source original + exact job outputs/quality/attempts after owned Core reopen planned"
+      },
+      "qualification": "NOT_QUALIFIED_BY_REGISTRY",
+      "role": "Historical assessment at its observed_at; declaration is not actual execution"
+    },
+    {
+      "source_record": {
+        "extension": "ogg",
+        "ui_kind": "transcribe",
+        "core_capability": "media.transcribe",
+        "worker": "services/python-workers/media/worker_transcribe.py",
+        "engine": "faster-whisper1.2.1 + separately qualified weights/runtime",
+        "scope": "selected owned synthetic representative input; real production worker execution planned",
+        "status": "NOT_RUN",
+        "raw_cas": {
+          "required": "SHA256 and byte length source original before conversion/after failure/restart identical",
+          "original_endpoint": "GET /api/v1/sources/{id}/original"
+        },
+        "body_structure_location": "actual transcript segment times; not media header",
+        "loss_policy": "Model package exists but actual weight/profile/license/loading/inference NOT_RUN",
+        "dependency_discovery": "current-environment.json package metadata only; external-tools exact object evidence only",
+        "interop": {
+          "functional_equivalence": "NOT_RUN",
+          "data_compatibility": "RAW_CAS_AND_ACTUAL_PROJECTION_PLANNED",
+          "bidirectional_roundtrip": "NOT_RUN (conversion/extraction is not reconstruction)",
+          "incremental_sync": "NOT_RUN (same-byte import idempotency/failed-job retry is not platform sync)"
+        },
+        "restart": "source original + exact job outputs/quality/attempts after owned Core reopen planned"
+      },
+      "qualification": "NOT_QUALIFIED_BY_REGISTRY",
+      "role": "Historical assessment at its observed_at; declaration is not actual execution"
+    },
+    {
+      "source_record": {
+        "extension": "opus",
+        "ui_kind": "transcribe",
+        "core_capability": "media.transcribe",
+        "worker": "services/python-workers/media/worker_transcribe.py",
+        "engine": "faster-whisper1.2.1 + separately qualified weights/runtime",
+        "scope": "selected owned synthetic representative input; real production worker execution planned",
+        "status": "NOT_RUN",
+        "raw_cas": {
+          "required": "SHA256 and byte length source original before conversion/after failure/restart identical",
+          "original_endpoint": "GET /api/v1/sources/{id}/original"
+        },
+        "body_structure_location": "actual transcript segment times; not media header",
+        "loss_policy": "Model package exists but actual weight/profile/license/loading/inference NOT_RUN",
+        "dependency_discovery": "current-environment.json package metadata only; external-tools exact object evidence only",
+        "interop": {
+          "functional_equivalence": "NOT_RUN",
+          "data_compatibility": "RAW_CAS_AND_ACTUAL_PROJECTION_PLANNED",
+          "bidirectional_roundtrip": "NOT_RUN (conversion/extraction is not reconstruction)",
+          "incremental_sync": "NOT_RUN (same-byte import idempotency/failed-job retry is not platform sync)"
+        },
+        "restart": "source original + exact job outputs/quality/attempts after owned Core reopen planned"
+      },
+      "qualification": "NOT_QUALIFIED_BY_REGISTRY",
+      "role": "Historical assessment at its observed_at; declaration is not actual execution"
+    },
+    {
+      "source_record": {
+        "extension": "mp4",
+        "ui_kind": "video",
+        "core_capability": "media.video",
+        "worker": "services/python-workers/media/worker_video.py",
+        "engine": "FFmpeg + qualified transcription/frame/OCR dependencies",
+        "scope": "selected owned synthetic representative input; real production worker execution planned",
+        "status": "NOT_RUN",
+        "raw_cas": {
+          "required": "SHA256 and byte length source original before conversion/after failure/restart identical",
+          "original_endpoint": "GET /api/v1/sources/{id}/original"
+        },
+        "body_structure_location": "actual frames/timestamps/transcript lanes separately",
+        "loss_policy": "No video-semantic understanding/ASR equivalence from header inventory",
+        "dependency_discovery": "current-environment.json package metadata only; external-tools exact object evidence only",
+        "interop": {
+          "functional_equivalence": "NOT_RUN",
+          "data_compatibility": "RAW_CAS_AND_ACTUAL_PROJECTION_PLANNED",
+          "bidirectional_roundtrip": "NOT_RUN (conversion/extraction is not reconstruction)",
+          "incremental_sync": "NOT_RUN (same-byte import idempotency/failed-job retry is not platform sync)"
+        },
+        "restart": "source original + exact job outputs/quality/attempts after owned Core reopen planned"
+      },
+      "qualification": "NOT_QUALIFIED_BY_REGISTRY",
+      "role": "Historical assessment at its observed_at; declaration is not actual execution"
+    },
+    {
+      "source_record": {
+        "extension": "mov",
+        "ui_kind": "video",
+        "core_capability": "media.video",
+        "worker": "services/python-workers/media/worker_video.py",
+        "engine": "FFmpeg + qualified transcription/frame/OCR dependencies",
+        "scope": "selected owned synthetic representative input; real production worker execution planned",
+        "status": "NOT_RUN",
+        "raw_cas": {
+          "required": "SHA256 and byte length source original before conversion/after failure/restart identical",
+          "original_endpoint": "GET /api/v1/sources/{id}/original"
+        },
+        "body_structure_location": "actual frames/timestamps/transcript lanes separately",
+        "loss_policy": "No video-semantic understanding/ASR equivalence from header inventory",
+        "dependency_discovery": "current-environment.json package metadata only; external-tools exact object evidence only",
+        "interop": {
+          "functional_equivalence": "NOT_RUN",
+          "data_compatibility": "RAW_CAS_AND_ACTUAL_PROJECTION_PLANNED",
+          "bidirectional_roundtrip": "NOT_RUN (conversion/extraction is not reconstruction)",
+          "incremental_sync": "NOT_RUN (same-byte import idempotency/failed-job retry is not platform sync)"
+        },
+        "restart": "source original + exact job outputs/quality/attempts after owned Core reopen planned"
+      },
+      "qualification": "NOT_QUALIFIED_BY_REGISTRY",
+      "role": "Historical assessment at its observed_at; declaration is not actual execution"
+    },
+    {
+      "source_record": {
+        "extension": "mkv",
+        "ui_kind": "video",
+        "core_capability": "media.video",
+        "worker": "services/python-workers/media/worker_video.py",
+        "engine": "FFmpeg + qualified transcription/frame/OCR dependencies",
+        "scope": "selected owned synthetic representative input; real production worker execution planned",
+        "status": "NOT_RUN",
+        "raw_cas": {
+          "required": "SHA256 and byte length source original before conversion/after failure/restart identical",
+          "original_endpoint": "GET /api/v1/sources/{id}/original"
+        },
+        "body_structure_location": "actual frames/timestamps/transcript lanes separately",
+        "loss_policy": "No video-semantic understanding/ASR equivalence from header inventory",
+        "dependency_discovery": "current-environment.json package metadata only; external-tools exact object evidence only",
+        "interop": {
+          "functional_equivalence": "NOT_RUN",
+          "data_compatibility": "RAW_CAS_AND_ACTUAL_PROJECTION_PLANNED",
+          "bidirectional_roundtrip": "NOT_RUN (conversion/extraction is not reconstruction)",
+          "incremental_sync": "NOT_RUN (same-byte import idempotency/failed-job retry is not platform sync)"
+        },
+        "restart": "source original + exact job outputs/quality/attempts after owned Core reopen planned"
+      },
+      "qualification": "NOT_QUALIFIED_BY_REGISTRY",
+      "role": "Historical assessment at its observed_at; declaration is not actual execution"
+    },
+    {
+      "source_record": {
+        "extension": "webm",
+        "ui_kind": "video",
+        "core_capability": "media.video",
+        "worker": "services/python-workers/media/worker_video.py",
+        "engine": "FFmpeg + qualified transcription/frame/OCR dependencies",
+        "scope": "selected owned synthetic representative input; real production worker execution planned",
+        "status": "NOT_RUN",
+        "raw_cas": {
+          "required": "SHA256 and byte length source original before conversion/after failure/restart identical",
+          "original_endpoint": "GET /api/v1/sources/{id}/original"
+        },
+        "body_structure_location": "actual frames/timestamps/transcript lanes separately",
+        "loss_policy": "No video-semantic understanding/ASR equivalence from header inventory",
+        "dependency_discovery": "current-environment.json package metadata only; external-tools exact object evidence only",
+        "interop": {
+          "functional_equivalence": "NOT_RUN",
+          "data_compatibility": "RAW_CAS_AND_ACTUAL_PROJECTION_PLANNED",
+          "bidirectional_roundtrip": "NOT_RUN (conversion/extraction is not reconstruction)",
+          "incremental_sync": "NOT_RUN (same-byte import idempotency/failed-job retry is not platform sync)"
+        },
+        "restart": "source original + exact job outputs/quality/attempts after owned Core reopen planned"
+      },
+      "qualification": "NOT_QUALIFIED_BY_REGISTRY",
+      "role": "Historical assessment at its observed_at; declaration is not actual execution"
+    },
+    {
+      "source_record": {
+        "extension": "txt",
+        "ui_kind": "text",
+        "core_capability": "text.extract",
+        "worker": "services/python-workers/document/worker_text.py",
+        "engine": "stdlib/light parser; PyYAML for YAML",
+        "scope": "selected owned synthetic representative input; real production worker execution planned",
+        "status": "NOT_RUN",
+        "raw_cas": {
+          "required": "SHA256 and byte length source original before conversion/after failure/restart identical",
+          "original_endpoint": "GET /api/v1/sources/{id}/original"
+        },
+        "body_structure_location": "line spans; format.locations JSON pointer/CSV cell/XML path/EPUB chapter/EML part/ODF element/RTF paragraph where actually returned",
+        "loss_policy": "Original raw bytes unchanged; text normalization/style/macros/rendering loss explicitly separate",
+        "dependency_discovery": "current-environment.json package metadata only; external-tools exact object evidence only",
+        "interop": {
+          "functional_equivalence": "NOT_RUN",
+          "data_compatibility": "RAW_CAS_AND_ACTUAL_PROJECTION_PLANNED",
+          "bidirectional_roundtrip": "NOT_RUN (conversion/extraction is not reconstruction)",
+          "incremental_sync": "NOT_RUN (same-byte import idempotency/failed-job retry is not platform sync)"
+        },
+        "restart": "source original + exact job outputs/quality/attempts after owned Core reopen planned"
+      },
+      "qualification": "NOT_QUALIFIED_BY_REGISTRY",
+      "role": "Historical assessment at its observed_at; declaration is not actual execution"
+    },
+    {
+      "source_record": {
+        "extension": "md",
+        "ui_kind": "text",
+        "core_capability": "text.extract",
+        "worker": "services/python-workers/document/worker_text.py",
+        "engine": "stdlib/light parser; PyYAML for YAML",
+        "scope": "selected owned synthetic representative input; real production worker execution planned",
+        "status": "NOT_RUN",
+        "raw_cas": {
+          "required": "SHA256 and byte length source original before conversion/after failure/restart identical",
+          "original_endpoint": "GET /api/v1/sources/{id}/original"
+        },
+        "body_structure_location": "line spans; format.locations JSON pointer/CSV cell/XML path/EPUB chapter/EML part/ODF element/RTF paragraph where actually returned",
+        "loss_policy": "Original raw bytes unchanged; text normalization/style/macros/rendering loss explicitly separate",
+        "dependency_discovery": "current-environment.json package metadata only; external-tools exact object evidence only",
+        "interop": {
+          "functional_equivalence": "NOT_RUN",
+          "data_compatibility": "RAW_CAS_AND_ACTUAL_PROJECTION_PLANNED",
+          "bidirectional_roundtrip": "NOT_RUN (conversion/extraction is not reconstruction)",
+          "incremental_sync": "NOT_RUN (same-byte import idempotency/failed-job retry is not platform sync)"
+        },
+        "restart": "source original + exact job outputs/quality/attempts after owned Core reopen planned"
+      },
+      "qualification": "NOT_QUALIFIED_BY_REGISTRY",
+      "role": "Historical assessment at its observed_at; declaration is not actual execution"
+    },
+    {
+      "source_record": {
+        "extension": "markdown",
+        "ui_kind": "text",
+        "core_capability": "text.extract",
+        "worker": "services/python-workers/document/worker_text.py",
+        "engine": "stdlib/light parser; PyYAML for YAML",
+        "scope": "selected owned synthetic representative input; real production worker execution planned",
+        "status": "NOT_RUN",
+        "raw_cas": {
+          "required": "SHA256 and byte length source original before conversion/after failure/restart identical",
+          "original_endpoint": "GET /api/v1/sources/{id}/original"
+        },
+        "body_structure_location": "line spans; format.locations JSON pointer/CSV cell/XML path/EPUB chapter/EML part/ODF element/RTF paragraph where actually returned",
+        "loss_policy": "Original raw bytes unchanged; text normalization/style/macros/rendering loss explicitly separate",
+        "dependency_discovery": "current-environment.json package metadata only; external-tools exact object evidence only",
+        "interop": {
+          "functional_equivalence": "NOT_RUN",
+          "data_compatibility": "RAW_CAS_AND_ACTUAL_PROJECTION_PLANNED",
+          "bidirectional_roundtrip": "NOT_RUN (conversion/extraction is not reconstruction)",
+          "incremental_sync": "NOT_RUN (same-byte import idempotency/failed-job retry is not platform sync)"
+        },
+        "restart": "source original + exact job outputs/quality/attempts after owned Core reopen planned"
+      },
+      "qualification": "NOT_QUALIFIED_BY_REGISTRY",
+      "role": "Historical assessment at its observed_at; declaration is not actual execution"
+    },
+    {
+      "source_record": {
+        "extension": "csv",
+        "ui_kind": "text",
+        "core_capability": "text.extract",
+        "worker": "services/python-workers/document/worker_text.py",
+        "engine": "stdlib/light parser; PyYAML for YAML",
+        "scope": "selected owned synthetic representative input; real production worker execution planned",
+        "status": "NOT_RUN",
+        "raw_cas": {
+          "required": "SHA256 and byte length source original before conversion/after failure/restart identical",
+          "original_endpoint": "GET /api/v1/sources/{id}/original"
+        },
+        "body_structure_location": "line spans; format.locations JSON pointer/CSV cell/XML path/EPUB chapter/EML part/ODF element/RTF paragraph where actually returned",
+        "loss_policy": "Original raw bytes unchanged; text normalization/style/macros/rendering loss explicitly separate",
+        "dependency_discovery": "current-environment.json package metadata only; external-tools exact object evidence only",
+        "interop": {
+          "functional_equivalence": "NOT_RUN",
+          "data_compatibility": "RAW_CAS_AND_ACTUAL_PROJECTION_PLANNED",
+          "bidirectional_roundtrip": "NOT_RUN (conversion/extraction is not reconstruction)",
+          "incremental_sync": "NOT_RUN (same-byte import idempotency/failed-job retry is not platform sync)"
+        },
+        "restart": "source original + exact job outputs/quality/attempts after owned Core reopen planned"
+      },
+      "qualification": "NOT_QUALIFIED_BY_REGISTRY",
+      "role": "Historical assessment at its observed_at; declaration is not actual execution"
+    },
+    {
+      "source_record": {
+        "extension": "tsv",
+        "ui_kind": "text",
+        "core_capability": "text.extract",
+        "worker": "services/python-workers/document/worker_text.py",
+        "engine": "stdlib/light parser; PyYAML for YAML",
+        "scope": "selected owned synthetic representative input; real production worker execution planned",
+        "status": "NOT_RUN",
+        "raw_cas": {
+          "required": "SHA256 and byte length source original before conversion/after failure/restart identical",
+          "original_endpoint": "GET /api/v1/sources/{id}/original"
+        },
+        "body_structure_location": "line spans; format.locations JSON pointer/CSV cell/XML path/EPUB chapter/EML part/ODF element/RTF paragraph where actually returned",
+        "loss_policy": "Original raw bytes unchanged; text normalization/style/macros/rendering loss explicitly separate",
+        "dependency_discovery": "current-environment.json package metadata only; external-tools exact object evidence only",
+        "interop": {
+          "functional_equivalence": "NOT_RUN",
+          "data_compatibility": "RAW_CAS_AND_ACTUAL_PROJECTION_PLANNED",
+          "bidirectional_roundtrip": "NOT_RUN (conversion/extraction is not reconstruction)",
+          "incremental_sync": "NOT_RUN (same-byte import idempotency/failed-job retry is not platform sync)"
+        },
+        "restart": "source original + exact job outputs/quality/attempts after owned Core reopen planned"
+      },
+      "qualification": "NOT_QUALIFIED_BY_REGISTRY",
+      "role": "Historical assessment at its observed_at; declaration is not actual execution"
+    },
+    {
+      "source_record": {
+        "extension": "json",
+        "ui_kind": "text",
+        "core_capability": "text.extract",
+        "worker": "services/python-workers/document/worker_text.py",
+        "engine": "stdlib/light parser; PyYAML for YAML",
+        "scope": "selected owned synthetic representative input; real production worker execution planned",
+        "status": "NOT_RUN",
+        "raw_cas": {
+          "required": "SHA256 and byte length source original before conversion/after failure/restart identical",
+          "original_endpoint": "GET /api/v1/sources/{id}/original"
+        },
+        "body_structure_location": "line spans; format.locations JSON pointer/CSV cell/XML path/EPUB chapter/EML part/ODF element/RTF paragraph where actually returned",
+        "loss_policy": "Original raw bytes unchanged; text normalization/style/macros/rendering loss explicitly separate",
+        "dependency_discovery": "current-environment.json package metadata only; external-tools exact object evidence only",
+        "interop": {
+          "functional_equivalence": "NOT_RUN",
+          "data_compatibility": "RAW_CAS_AND_ACTUAL_PROJECTION_PLANNED",
+          "bidirectional_roundtrip": "NOT_RUN (conversion/extraction is not reconstruction)",
+          "incremental_sync": "NOT_RUN (same-byte import idempotency/failed-job retry is not platform sync)"
+        },
+        "restart": "source original + exact job outputs/quality/attempts after owned Core reopen planned"
+      },
+      "qualification": "NOT_QUALIFIED_BY_REGISTRY",
+      "role": "Historical assessment at its observed_at; declaration is not actual execution"
+    },
+    {
+      "source_record": {
+        "extension": "jsonl",
+        "ui_kind": "text",
+        "core_capability": "text.extract",
+        "worker": "services/python-workers/document/worker_text.py",
+        "engine": "stdlib/light parser; PyYAML for YAML",
+        "scope": "selected owned synthetic representative input; real production worker execution planned",
+        "status": "NOT_RUN",
+        "raw_cas": {
+          "required": "SHA256 and byte length source original before conversion/after failure/restart identical",
+          "original_endpoint": "GET /api/v1/sources/{id}/original"
+        },
+        "body_structure_location": "line spans; format.locations JSON pointer/CSV cell/XML path/EPUB chapter/EML part/ODF element/RTF paragraph where actually returned",
+        "loss_policy": "Original raw bytes unchanged; text normalization/style/macros/rendering loss explicitly separate",
+        "dependency_discovery": "current-environment.json package metadata only; external-tools exact object evidence only",
+        "interop": {
+          "functional_equivalence": "NOT_RUN",
+          "data_compatibility": "RAW_CAS_AND_ACTUAL_PROJECTION_PLANNED",
+          "bidirectional_roundtrip": "NOT_RUN (conversion/extraction is not reconstruction)",
+          "incremental_sync": "NOT_RUN (same-byte import idempotency/failed-job retry is not platform sync)"
+        },
+        "restart": "source original + exact job outputs/quality/attempts after owned Core reopen planned"
+      },
+      "qualification": "NOT_QUALIFIED_BY_REGISTRY",
+      "role": "Historical assessment at its observed_at; declaration is not actual execution"
+    },
+    {
+      "source_record": {
+        "extension": "yaml",
+        "ui_kind": "text",
+        "core_capability": "text.extract",
+        "worker": "services/python-workers/document/worker_text.py",
+        "engine": "stdlib/light parser; PyYAML for YAML",
+        "scope": "selected owned synthetic representative input; real production worker execution planned",
+        "status": "NOT_RUN",
+        "raw_cas": {
+          "required": "SHA256 and byte length source original before conversion/after failure/restart identical",
+          "original_endpoint": "GET /api/v1/sources/{id}/original"
+        },
+        "body_structure_location": "line spans; format.locations JSON pointer/CSV cell/XML path/EPUB chapter/EML part/ODF element/RTF paragraph where actually returned",
+        "loss_policy": "Original raw bytes unchanged; text normalization/style/macros/rendering loss explicitly separate",
+        "dependency_discovery": "current-environment.json package metadata only; external-tools exact object evidence only",
+        "interop": {
+          "functional_equivalence": "NOT_RUN",
+          "data_compatibility": "RAW_CAS_AND_ACTUAL_PROJECTION_PLANNED",
+          "bidirectional_roundtrip": "NOT_RUN (conversion/extraction is not reconstruction)",
+          "incremental_sync": "NOT_RUN (same-byte import idempotency/failed-job retry is not platform sync)"
+        },
+        "restart": "source original + exact job outputs/quality/attempts after owned Core reopen planned"
+      },
+      "qualification": "NOT_QUALIFIED_BY_REGISTRY",
+      "role": "Historical assessment at its observed_at; declaration is not actual execution"
+    },
+    {
+      "source_record": {
+        "extension": "yml",
+        "ui_kind": "text",
+        "core_capability": "text.extract",
+        "worker": "services/python-workers/document/worker_text.py",
+        "engine": "stdlib/light parser; PyYAML for YAML",
+        "scope": "selected owned synthetic representative input; real production worker execution planned",
+        "status": "NOT_RUN",
+        "raw_cas": {
+          "required": "SHA256 and byte length source original before conversion/after failure/restart identical",
+          "original_endpoint": "GET /api/v1/sources/{id}/original"
+        },
+        "body_structure_location": "line spans; format.locations JSON pointer/CSV cell/XML path/EPUB chapter/EML part/ODF element/RTF paragraph where actually returned",
+        "loss_policy": "Original raw bytes unchanged; text normalization/style/macros/rendering loss explicitly separate",
+        "dependency_discovery": "current-environment.json package metadata only; external-tools exact object evidence only",
+        "interop": {
+          "functional_equivalence": "NOT_RUN",
+          "data_compatibility": "RAW_CAS_AND_ACTUAL_PROJECTION_PLANNED",
+          "bidirectional_roundtrip": "NOT_RUN (conversion/extraction is not reconstruction)",
+          "incremental_sync": "NOT_RUN (same-byte import idempotency/failed-job retry is not platform sync)"
+        },
+        "restart": "source original + exact job outputs/quality/attempts after owned Core reopen planned"
+      },
+      "qualification": "NOT_QUALIFIED_BY_REGISTRY",
+      "role": "Historical assessment at its observed_at; declaration is not actual execution"
+    },
+    {
+      "source_record": {
+        "extension": "toml",
+        "ui_kind": "text",
+        "core_capability": "text.extract",
+        "worker": "services/python-workers/document/worker_text.py",
+        "engine": "stdlib/light parser; PyYAML for YAML",
+        "scope": "selected owned synthetic representative input; real production worker execution planned",
+        "status": "NOT_RUN",
+        "raw_cas": {
+          "required": "SHA256 and byte length source original before conversion/after failure/restart identical",
+          "original_endpoint": "GET /api/v1/sources/{id}/original"
+        },
+        "body_structure_location": "line spans; format.locations JSON pointer/CSV cell/XML path/EPUB chapter/EML part/ODF element/RTF paragraph where actually returned",
+        "loss_policy": "Original raw bytes unchanged; text normalization/style/macros/rendering loss explicitly separate",
+        "dependency_discovery": "current-environment.json package metadata only; external-tools exact object evidence only",
+        "interop": {
+          "functional_equivalence": "NOT_RUN",
+          "data_compatibility": "RAW_CAS_AND_ACTUAL_PROJECTION_PLANNED",
+          "bidirectional_roundtrip": "NOT_RUN (conversion/extraction is not reconstruction)",
+          "incremental_sync": "NOT_RUN (same-byte import idempotency/failed-job retry is not platform sync)"
+        },
+        "restart": "source original + exact job outputs/quality/attempts after owned Core reopen planned"
+      },
+      "qualification": "NOT_QUALIFIED_BY_REGISTRY",
+      "role": "Historical assessment at its observed_at; declaration is not actual execution"
+    },
+    {
+      "source_record": {
+        "extension": "xml",
+        "ui_kind": "text",
+        "core_capability": "text.extract",
+        "worker": "services/python-workers/document/worker_text.py",
+        "engine": "stdlib/light parser; PyYAML for YAML",
+        "scope": "selected owned synthetic representative input; real production worker execution planned",
+        "status": "NOT_RUN",
+        "raw_cas": {
+          "required": "SHA256 and byte length source original before conversion/after failure/restart identical",
+          "original_endpoint": "GET /api/v1/sources/{id}/original"
+        },
+        "body_structure_location": "line spans; format.locations JSON pointer/CSV cell/XML path/EPUB chapter/EML part/ODF element/RTF paragraph where actually returned",
+        "loss_policy": "Original raw bytes unchanged; text normalization/style/macros/rendering loss explicitly separate",
+        "dependency_discovery": "current-environment.json package metadata only; external-tools exact object evidence only",
+        "interop": {
+          "functional_equivalence": "NOT_RUN",
+          "data_compatibility": "RAW_CAS_AND_ACTUAL_PROJECTION_PLANNED",
+          "bidirectional_roundtrip": "NOT_RUN (conversion/extraction is not reconstruction)",
+          "incremental_sync": "NOT_RUN (same-byte import idempotency/failed-job retry is not platform sync)"
+        },
+        "restart": "source original + exact job outputs/quality/attempts after owned Core reopen planned"
+      },
+      "qualification": "NOT_QUALIFIED_BY_REGISTRY",
+      "role": "Historical assessment at its observed_at; declaration is not actual execution"
+    },
+    {
+      "source_record": {
+        "extension": "log",
+        "ui_kind": "text",
+        "core_capability": "text.extract",
+        "worker": "services/python-workers/document/worker_text.py",
+        "engine": "stdlib/light parser; PyYAML for YAML",
+        "scope": "selected owned synthetic representative input; real production worker execution planned",
+        "status": "NOT_RUN",
+        "raw_cas": {
+          "required": "SHA256 and byte length source original before conversion/after failure/restart identical",
+          "original_endpoint": "GET /api/v1/sources/{id}/original"
+        },
+        "body_structure_location": "line spans; format.locations JSON pointer/CSV cell/XML path/EPUB chapter/EML part/ODF element/RTF paragraph where actually returned",
+        "loss_policy": "Original raw bytes unchanged; text normalization/style/macros/rendering loss explicitly separate",
+        "dependency_discovery": "current-environment.json package metadata only; external-tools exact object evidence only",
+        "interop": {
+          "functional_equivalence": "NOT_RUN",
+          "data_compatibility": "RAW_CAS_AND_ACTUAL_PROJECTION_PLANNED",
+          "bidirectional_roundtrip": "NOT_RUN (conversion/extraction is not reconstruction)",
+          "incremental_sync": "NOT_RUN (same-byte import idempotency/failed-job retry is not platform sync)"
+        },
+        "restart": "source original + exact job outputs/quality/attempts after owned Core reopen planned"
+      },
+      "qualification": "NOT_QUALIFIED_BY_REGISTRY",
+      "role": "Historical assessment at its observed_at; declaration is not actual execution"
+    },
+    {
+      "source_record": {
+        "extension": "text",
+        "ui_kind": "text",
+        "core_capability": "text.extract",
+        "worker": "services/python-workers/document/worker_text.py",
+        "engine": "stdlib/light parser; PyYAML for YAML",
+        "scope": "selected owned synthetic representative input; real production worker execution planned",
+        "status": "NOT_RUN",
+        "raw_cas": {
+          "required": "SHA256 and byte length source original before conversion/after failure/restart identical",
+          "original_endpoint": "GET /api/v1/sources/{id}/original"
+        },
+        "body_structure_location": "line spans; format.locations JSON pointer/CSV cell/XML path/EPUB chapter/EML part/ODF element/RTF paragraph where actually returned",
+        "loss_policy": "Original raw bytes unchanged; text normalization/style/macros/rendering loss explicitly separate",
+        "dependency_discovery": "current-environment.json package metadata only; external-tools exact object evidence only",
+        "interop": {
+          "functional_equivalence": "NOT_RUN",
+          "data_compatibility": "RAW_CAS_AND_ACTUAL_PROJECTION_PLANNED",
+          "bidirectional_roundtrip": "NOT_RUN (conversion/extraction is not reconstruction)",
+          "incremental_sync": "NOT_RUN (same-byte import idempotency/failed-job retry is not platform sync)"
+        },
+        "restart": "source original + exact job outputs/quality/attempts after owned Core reopen planned"
+      },
+      "qualification": "NOT_QUALIFIED_BY_REGISTRY",
+      "role": "Historical assessment at its observed_at; declaration is not actual execution"
+    },
+    {
+      "source_record": {
+        "extension": "ini",
+        "ui_kind": "text",
+        "core_capability": "text.extract",
+        "worker": "services/python-workers/document/worker_text.py",
+        "engine": "stdlib/light parser; PyYAML for YAML",
+        "scope": "selected owned synthetic representative input; real production worker execution planned",
+        "status": "NOT_RUN",
+        "raw_cas": {
+          "required": "SHA256 and byte length source original before conversion/after failure/restart identical",
+          "original_endpoint": "GET /api/v1/sources/{id}/original"
+        },
+        "body_structure_location": "line spans; format.locations JSON pointer/CSV cell/XML path/EPUB chapter/EML part/ODF element/RTF paragraph where actually returned",
+        "loss_policy": "Original raw bytes unchanged; text normalization/style/macros/rendering loss explicitly separate",
+        "dependency_discovery": "current-environment.json package metadata only; external-tools exact object evidence only",
+        "interop": {
+          "functional_equivalence": "NOT_RUN",
+          "data_compatibility": "RAW_CAS_AND_ACTUAL_PROJECTION_PLANNED",
+          "bidirectional_roundtrip": "NOT_RUN (conversion/extraction is not reconstruction)",
+          "incremental_sync": "NOT_RUN (same-byte import idempotency/failed-job retry is not platform sync)"
+        },
+        "restart": "source original + exact job outputs/quality/attempts after owned Core reopen planned"
+      },
+      "qualification": "NOT_QUALIFIED_BY_REGISTRY",
+      "role": "Historical assessment at its observed_at; declaration is not actual execution"
+    },
+    {
+      "source_record": {
+        "extension": "cfg",
+        "ui_kind": "text",
+        "core_capability": "text.extract",
+        "worker": "services/python-workers/document/worker_text.py",
+        "engine": "stdlib/light parser; PyYAML for YAML",
+        "scope": "selected owned synthetic representative input; real production worker execution planned",
+        "status": "NOT_RUN",
+        "raw_cas": {
+          "required": "SHA256 and byte length source original before conversion/after failure/restart identical",
+          "original_endpoint": "GET /api/v1/sources/{id}/original"
+        },
+        "body_structure_location": "line spans; format.locations JSON pointer/CSV cell/XML path/EPUB chapter/EML part/ODF element/RTF paragraph where actually returned",
+        "loss_policy": "Original raw bytes unchanged; text normalization/style/macros/rendering loss explicitly separate",
+        "dependency_discovery": "current-environment.json package metadata only; external-tools exact object evidence only",
+        "interop": {
+          "functional_equivalence": "NOT_RUN",
+          "data_compatibility": "RAW_CAS_AND_ACTUAL_PROJECTION_PLANNED",
+          "bidirectional_roundtrip": "NOT_RUN (conversion/extraction is not reconstruction)",
+          "incremental_sync": "NOT_RUN (same-byte import idempotency/failed-job retry is not platform sync)"
+        },
+        "restart": "source original + exact job outputs/quality/attempts after owned Core reopen planned"
+      },
+      "qualification": "NOT_QUALIFIED_BY_REGISTRY",
+      "role": "Historical assessment at its observed_at; declaration is not actual execution"
+    },
+    {
+      "source_record": {
+        "extension": "sql",
+        "ui_kind": "text",
+        "core_capability": "text.extract",
+        "worker": "services/python-workers/document/worker_text.py",
+        "engine": "stdlib/light parser; PyYAML for YAML",
+        "scope": "selected owned synthetic representative input; real production worker execution planned",
+        "status": "NOT_RUN",
+        "raw_cas": {
+          "required": "SHA256 and byte length source original before conversion/after failure/restart identical",
+          "original_endpoint": "GET /api/v1/sources/{id}/original"
+        },
+        "body_structure_location": "line spans; format.locations JSON pointer/CSV cell/XML path/EPUB chapter/EML part/ODF element/RTF paragraph where actually returned",
+        "loss_policy": "Original raw bytes unchanged; text normalization/style/macros/rendering loss explicitly separate",
+        "dependency_discovery": "current-environment.json package metadata only; external-tools exact object evidence only",
+        "interop": {
+          "functional_equivalence": "NOT_RUN",
+          "data_compatibility": "RAW_CAS_AND_ACTUAL_PROJECTION_PLANNED",
+          "bidirectional_roundtrip": "NOT_RUN (conversion/extraction is not reconstruction)",
+          "incremental_sync": "NOT_RUN (same-byte import idempotency/failed-job retry is not platform sync)"
+        },
+        "restart": "source original + exact job outputs/quality/attempts after owned Core reopen planned"
+      },
+      "qualification": "NOT_QUALIFIED_BY_REGISTRY",
+      "role": "Historical assessment at its observed_at; declaration is not actual execution"
+    },
+    {
+      "source_record": {
+        "extension": "rs",
+        "ui_kind": "text",
+        "core_capability": "text.extract",
+        "worker": "services/python-workers/document/worker_text.py",
+        "engine": "stdlib/light parser; PyYAML for YAML",
+        "scope": "selected owned synthetic representative input; real production worker execution planned",
+        "status": "NOT_RUN",
+        "raw_cas": {
+          "required": "SHA256 and byte length source original before conversion/after failure/restart identical",
+          "original_endpoint": "GET /api/v1/sources/{id}/original"
+        },
+        "body_structure_location": "line spans; format.locations JSON pointer/CSV cell/XML path/EPUB chapter/EML part/ODF element/RTF paragraph where actually returned",
+        "loss_policy": "Original raw bytes unchanged; text normalization/style/macros/rendering loss explicitly separate",
+        "dependency_discovery": "current-environment.json package metadata only; external-tools exact object evidence only",
+        "interop": {
+          "functional_equivalence": "NOT_RUN",
+          "data_compatibility": "RAW_CAS_AND_ACTUAL_PROJECTION_PLANNED",
+          "bidirectional_roundtrip": "NOT_RUN (conversion/extraction is not reconstruction)",
+          "incremental_sync": "NOT_RUN (same-byte import idempotency/failed-job retry is not platform sync)"
+        },
+        "restart": "source original + exact job outputs/quality/attempts after owned Core reopen planned"
+      },
+      "qualification": "NOT_QUALIFIED_BY_REGISTRY",
+      "role": "Historical assessment at its observed_at; declaration is not actual execution"
+    },
+    {
+      "source_record": {
+        "extension": "py",
+        "ui_kind": "text",
+        "core_capability": "text.extract",
+        "worker": "services/python-workers/document/worker_text.py",
+        "engine": "stdlib/light parser; PyYAML for YAML",
+        "scope": "selected owned synthetic representative input; real production worker execution planned",
+        "status": "NOT_RUN",
+        "raw_cas": {
+          "required": "SHA256 and byte length source original before conversion/after failure/restart identical",
+          "original_endpoint": "GET /api/v1/sources/{id}/original"
+        },
+        "body_structure_location": "line spans; format.locations JSON pointer/CSV cell/XML path/EPUB chapter/EML part/ODF element/RTF paragraph where actually returned",
+        "loss_policy": "Original raw bytes unchanged; text normalization/style/macros/rendering loss explicitly separate",
+        "dependency_discovery": "current-environment.json package metadata only; external-tools exact object evidence only",
+        "interop": {
+          "functional_equivalence": "NOT_RUN",
+          "data_compatibility": "RAW_CAS_AND_ACTUAL_PROJECTION_PLANNED",
+          "bidirectional_roundtrip": "NOT_RUN (conversion/extraction is not reconstruction)",
+          "incremental_sync": "NOT_RUN (same-byte import idempotency/failed-job retry is not platform sync)"
+        },
+        "restart": "source original + exact job outputs/quality/attempts after owned Core reopen planned"
+      },
+      "qualification": "NOT_QUALIFIED_BY_REGISTRY",
+      "role": "Historical assessment at its observed_at; declaration is not actual execution"
+    },
+    {
+      "source_record": {
+        "extension": "ts",
+        "ui_kind": "text",
+        "core_capability": "text.extract",
+        "worker": "services/python-workers/document/worker_text.py",
+        "engine": "stdlib/light parser; PyYAML for YAML",
+        "scope": "selected owned synthetic representative input; real production worker execution planned",
+        "status": "NOT_RUN",
+        "raw_cas": {
+          "required": "SHA256 and byte length source original before conversion/after failure/restart identical",
+          "original_endpoint": "GET /api/v1/sources/{id}/original"
+        },
+        "body_structure_location": "line spans; format.locations JSON pointer/CSV cell/XML path/EPUB chapter/EML part/ODF element/RTF paragraph where actually returned",
+        "loss_policy": "Original raw bytes unchanged; text normalization/style/macros/rendering loss explicitly separate",
+        "dependency_discovery": "current-environment.json package metadata only; external-tools exact object evidence only",
+        "interop": {
+          "functional_equivalence": "NOT_RUN",
+          "data_compatibility": "RAW_CAS_AND_ACTUAL_PROJECTION_PLANNED",
+          "bidirectional_roundtrip": "NOT_RUN (conversion/extraction is not reconstruction)",
+          "incremental_sync": "NOT_RUN (same-byte import idempotency/failed-job retry is not platform sync)"
+        },
+        "restart": "source original + exact job outputs/quality/attempts after owned Core reopen planned"
+      },
+      "qualification": "NOT_QUALIFIED_BY_REGISTRY",
+      "role": "Historical assessment at its observed_at; declaration is not actual execution"
+    },
+    {
+      "source_record": {
+        "extension": "tsx",
+        "ui_kind": "text",
+        "core_capability": "text.extract",
+        "worker": "services/python-workers/document/worker_text.py",
+        "engine": "stdlib/light parser; PyYAML for YAML",
+        "scope": "selected owned synthetic representative input; real production worker execution planned",
+        "status": "NOT_RUN",
+        "raw_cas": {
+          "required": "SHA256 and byte length source original before conversion/after failure/restart identical",
+          "original_endpoint": "GET /api/v1/sources/{id}/original"
+        },
+        "body_structure_location": "line spans; format.locations JSON pointer/CSV cell/XML path/EPUB chapter/EML part/ODF element/RTF paragraph where actually returned",
+        "loss_policy": "Original raw bytes unchanged; text normalization/style/macros/rendering loss explicitly separate",
+        "dependency_discovery": "current-environment.json package metadata only; external-tools exact object evidence only",
+        "interop": {
+          "functional_equivalence": "NOT_RUN",
+          "data_compatibility": "RAW_CAS_AND_ACTUAL_PROJECTION_PLANNED",
+          "bidirectional_roundtrip": "NOT_RUN (conversion/extraction is not reconstruction)",
+          "incremental_sync": "NOT_RUN (same-byte import idempotency/failed-job retry is not platform sync)"
+        },
+        "restart": "source original + exact job outputs/quality/attempts after owned Core reopen planned"
+      },
+      "qualification": "NOT_QUALIFIED_BY_REGISTRY",
+      "role": "Historical assessment at its observed_at; declaration is not actual execution"
+    },
+    {
+      "source_record": {
+        "extension": "js",
+        "ui_kind": "text",
+        "core_capability": "text.extract",
+        "worker": "services/python-workers/document/worker_text.py",
+        "engine": "stdlib/light parser; PyYAML for YAML",
+        "scope": "selected owned synthetic representative input; real production worker execution planned",
+        "status": "NOT_RUN",
+        "raw_cas": {
+          "required": "SHA256 and byte length source original before conversion/after failure/restart identical",
+          "original_endpoint": "GET /api/v1/sources/{id}/original"
+        },
+        "body_structure_location": "line spans; format.locations JSON pointer/CSV cell/XML path/EPUB chapter/EML part/ODF element/RTF paragraph where actually returned",
+        "loss_policy": "Original raw bytes unchanged; text normalization/style/macros/rendering loss explicitly separate",
+        "dependency_discovery": "current-environment.json package metadata only; external-tools exact object evidence only",
+        "interop": {
+          "functional_equivalence": "NOT_RUN",
+          "data_compatibility": "RAW_CAS_AND_ACTUAL_PROJECTION_PLANNED",
+          "bidirectional_roundtrip": "NOT_RUN (conversion/extraction is not reconstruction)",
+          "incremental_sync": "NOT_RUN (same-byte import idempotency/failed-job retry is not platform sync)"
+        },
+        "restart": "source original + exact job outputs/quality/attempts after owned Core reopen planned"
+      },
+      "qualification": "NOT_QUALIFIED_BY_REGISTRY",
+      "role": "Historical assessment at its observed_at; declaration is not actual execution"
+    },
+    {
+      "source_record": {
+        "extension": "jsx",
+        "ui_kind": "text",
+        "core_capability": "text.extract",
+        "worker": "services/python-workers/document/worker_text.py",
+        "engine": "stdlib/light parser; PyYAML for YAML",
+        "scope": "selected owned synthetic representative input; real production worker execution planned",
+        "status": "NOT_RUN",
+        "raw_cas": {
+          "required": "SHA256 and byte length source original before conversion/after failure/restart identical",
+          "original_endpoint": "GET /api/v1/sources/{id}/original"
+        },
+        "body_structure_location": "line spans; format.locations JSON pointer/CSV cell/XML path/EPUB chapter/EML part/ODF element/RTF paragraph where actually returned",
+        "loss_policy": "Original raw bytes unchanged; text normalization/style/macros/rendering loss explicitly separate",
+        "dependency_discovery": "current-environment.json package metadata only; external-tools exact object evidence only",
+        "interop": {
+          "functional_equivalence": "NOT_RUN",
+          "data_compatibility": "RAW_CAS_AND_ACTUAL_PROJECTION_PLANNED",
+          "bidirectional_roundtrip": "NOT_RUN (conversion/extraction is not reconstruction)",
+          "incremental_sync": "NOT_RUN (same-byte import idempotency/failed-job retry is not platform sync)"
+        },
+        "restart": "source original + exact job outputs/quality/attempts after owned Core reopen planned"
+      },
+      "qualification": "NOT_QUALIFIED_BY_REGISTRY",
+      "role": "Historical assessment at its observed_at; declaration is not actual execution"
+    },
+    {
+      "source_record": {
+        "extension": "c",
+        "ui_kind": "text",
+        "core_capability": "text.extract",
+        "worker": "services/python-workers/document/worker_text.py",
+        "engine": "stdlib/light parser; PyYAML for YAML",
+        "scope": "selected owned synthetic representative input; real production worker execution planned",
+        "status": "NOT_RUN",
+        "raw_cas": {
+          "required": "SHA256 and byte length source original before conversion/after failure/restart identical",
+          "original_endpoint": "GET /api/v1/sources/{id}/original"
+        },
+        "body_structure_location": "line spans; format.locations JSON pointer/CSV cell/XML path/EPUB chapter/EML part/ODF element/RTF paragraph where actually returned",
+        "loss_policy": "Original raw bytes unchanged; text normalization/style/macros/rendering loss explicitly separate",
+        "dependency_discovery": "current-environment.json package metadata only; external-tools exact object evidence only",
+        "interop": {
+          "functional_equivalence": "NOT_RUN",
+          "data_compatibility": "RAW_CAS_AND_ACTUAL_PROJECTION_PLANNED",
+          "bidirectional_roundtrip": "NOT_RUN (conversion/extraction is not reconstruction)",
+          "incremental_sync": "NOT_RUN (same-byte import idempotency/failed-job retry is not platform sync)"
+        },
+        "restart": "source original + exact job outputs/quality/attempts after owned Core reopen planned"
+      },
+      "qualification": "NOT_QUALIFIED_BY_REGISTRY",
+      "role": "Historical assessment at its observed_at; declaration is not actual execution"
+    },
+    {
+      "source_record": {
+        "extension": "h",
+        "ui_kind": "text",
+        "core_capability": "text.extract",
+        "worker": "services/python-workers/document/worker_text.py",
+        "engine": "stdlib/light parser; PyYAML for YAML",
+        "scope": "selected owned synthetic representative input; real production worker execution planned",
+        "status": "NOT_RUN",
+        "raw_cas": {
+          "required": "SHA256 and byte length source original before conversion/after failure/restart identical",
+          "original_endpoint": "GET /api/v1/sources/{id}/original"
+        },
+        "body_structure_location": "line spans; format.locations JSON pointer/CSV cell/XML path/EPUB chapter/EML part/ODF element/RTF paragraph where actually returned",
+        "loss_policy": "Original raw bytes unchanged; text normalization/style/macros/rendering loss explicitly separate",
+        "dependency_discovery": "current-environment.json package metadata only; external-tools exact object evidence only",
+        "interop": {
+          "functional_equivalence": "NOT_RUN",
+          "data_compatibility": "RAW_CAS_AND_ACTUAL_PROJECTION_PLANNED",
+          "bidirectional_roundtrip": "NOT_RUN (conversion/extraction is not reconstruction)",
+          "incremental_sync": "NOT_RUN (same-byte import idempotency/failed-job retry is not platform sync)"
+        },
+        "restart": "source original + exact job outputs/quality/attempts after owned Core reopen planned"
+      },
+      "qualification": "NOT_QUALIFIED_BY_REGISTRY",
+      "role": "Historical assessment at its observed_at; declaration is not actual execution"
+    },
+    {
+      "source_record": {
+        "extension": "cpp",
+        "ui_kind": "text",
+        "core_capability": "text.extract",
+        "worker": "services/python-workers/document/worker_text.py",
+        "engine": "stdlib/light parser; PyYAML for YAML",
+        "scope": "selected owned synthetic representative input; real production worker execution planned",
+        "status": "NOT_RUN",
+        "raw_cas": {
+          "required": "SHA256 and byte length source original before conversion/after failure/restart identical",
+          "original_endpoint": "GET /api/v1/sources/{id}/original"
+        },
+        "body_structure_location": "line spans; format.locations JSON pointer/CSV cell/XML path/EPUB chapter/EML part/ODF element/RTF paragraph where actually returned",
+        "loss_policy": "Original raw bytes unchanged; text normalization/style/macros/rendering loss explicitly separate",
+        "dependency_discovery": "current-environment.json package metadata only; external-tools exact object evidence only",
+        "interop": {
+          "functional_equivalence": "NOT_RUN",
+          "data_compatibility": "RAW_CAS_AND_ACTUAL_PROJECTION_PLANNED",
+          "bidirectional_roundtrip": "NOT_RUN (conversion/extraction is not reconstruction)",
+          "incremental_sync": "NOT_RUN (same-byte import idempotency/failed-job retry is not platform sync)"
+        },
+        "restart": "source original + exact job outputs/quality/attempts after owned Core reopen planned"
+      },
+      "qualification": "NOT_QUALIFIED_BY_REGISTRY",
+      "role": "Historical assessment at its observed_at; declaration is not actual execution"
+    },
+    {
+      "source_record": {
+        "extension": "hpp",
+        "ui_kind": "text",
+        "core_capability": "text.extract",
+        "worker": "services/python-workers/document/worker_text.py",
+        "engine": "stdlib/light parser; PyYAML for YAML",
+        "scope": "selected owned synthetic representative input; real production worker execution planned",
+        "status": "NOT_RUN",
+        "raw_cas": {
+          "required": "SHA256 and byte length source original before conversion/after failure/restart identical",
+          "original_endpoint": "GET /api/v1/sources/{id}/original"
+        },
+        "body_structure_location": "line spans; format.locations JSON pointer/CSV cell/XML path/EPUB chapter/EML part/ODF element/RTF paragraph where actually returned",
+        "loss_policy": "Original raw bytes unchanged; text normalization/style/macros/rendering loss explicitly separate",
+        "dependency_discovery": "current-environment.json package metadata only; external-tools exact object evidence only",
+        "interop": {
+          "functional_equivalence": "NOT_RUN",
+          "data_compatibility": "RAW_CAS_AND_ACTUAL_PROJECTION_PLANNED",
+          "bidirectional_roundtrip": "NOT_RUN (conversion/extraction is not reconstruction)",
+          "incremental_sync": "NOT_RUN (same-byte import idempotency/failed-job retry is not platform sync)"
+        },
+        "restart": "source original + exact job outputs/quality/attempts after owned Core reopen planned"
+      },
+      "qualification": "NOT_QUALIFIED_BY_REGISTRY",
+      "role": "Historical assessment at its observed_at; declaration is not actual execution"
+    },
+    {
+      "source_record": {
+        "extension": "go",
+        "ui_kind": "text",
+        "core_capability": "text.extract",
+        "worker": "services/python-workers/document/worker_text.py",
+        "engine": "stdlib/light parser; PyYAML for YAML",
+        "scope": "selected owned synthetic representative input; real production worker execution planned",
+        "status": "NOT_RUN",
+        "raw_cas": {
+          "required": "SHA256 and byte length source original before conversion/after failure/restart identical",
+          "original_endpoint": "GET /api/v1/sources/{id}/original"
+        },
+        "body_structure_location": "line spans; format.locations JSON pointer/CSV cell/XML path/EPUB chapter/EML part/ODF element/RTF paragraph where actually returned",
+        "loss_policy": "Original raw bytes unchanged; text normalization/style/macros/rendering loss explicitly separate",
+        "dependency_discovery": "current-environment.json package metadata only; external-tools exact object evidence only",
+        "interop": {
+          "functional_equivalence": "NOT_RUN",
+          "data_compatibility": "RAW_CAS_AND_ACTUAL_PROJECTION_PLANNED",
+          "bidirectional_roundtrip": "NOT_RUN (conversion/extraction is not reconstruction)",
+          "incremental_sync": "NOT_RUN (same-byte import idempotency/failed-job retry is not platform sync)"
+        },
+        "restart": "source original + exact job outputs/quality/attempts after owned Core reopen planned"
+      },
+      "qualification": "NOT_QUALIFIED_BY_REGISTRY",
+      "role": "Historical assessment at its observed_at; declaration is not actual execution"
+    },
+    {
+      "source_record": {
+        "extension": "java",
+        "ui_kind": "text",
+        "core_capability": "text.extract",
+        "worker": "services/python-workers/document/worker_text.py",
+        "engine": "stdlib/light parser; PyYAML for YAML",
+        "scope": "selected owned synthetic representative input; real production worker execution planned",
+        "status": "NOT_RUN",
+        "raw_cas": {
+          "required": "SHA256 and byte length source original before conversion/after failure/restart identical",
+          "original_endpoint": "GET /api/v1/sources/{id}/original"
+        },
+        "body_structure_location": "line spans; format.locations JSON pointer/CSV cell/XML path/EPUB chapter/EML part/ODF element/RTF paragraph where actually returned",
+        "loss_policy": "Original raw bytes unchanged; text normalization/style/macros/rendering loss explicitly separate",
+        "dependency_discovery": "current-environment.json package metadata only; external-tools exact object evidence only",
+        "interop": {
+          "functional_equivalence": "NOT_RUN",
+          "data_compatibility": "RAW_CAS_AND_ACTUAL_PROJECTION_PLANNED",
+          "bidirectional_roundtrip": "NOT_RUN (conversion/extraction is not reconstruction)",
+          "incremental_sync": "NOT_RUN (same-byte import idempotency/failed-job retry is not platform sync)"
+        },
+        "restart": "source original + exact job outputs/quality/attempts after owned Core reopen planned"
+      },
+      "qualification": "NOT_QUALIFIED_BY_REGISTRY",
+      "role": "Historical assessment at its observed_at; declaration is not actual execution"
+    },
+    {
+      "source_record": {
+        "extension": "cs",
+        "ui_kind": "text",
+        "core_capability": "text.extract",
+        "worker": "services/python-workers/document/worker_text.py",
+        "engine": "stdlib/light parser; PyYAML for YAML",
+        "scope": "selected owned synthetic representative input; real production worker execution planned",
+        "status": "NOT_RUN",
+        "raw_cas": {
+          "required": "SHA256 and byte length source original before conversion/after failure/restart identical",
+          "original_endpoint": "GET /api/v1/sources/{id}/original"
+        },
+        "body_structure_location": "line spans; format.locations JSON pointer/CSV cell/XML path/EPUB chapter/EML part/ODF element/RTF paragraph where actually returned",
+        "loss_policy": "Original raw bytes unchanged; text normalization/style/macros/rendering loss explicitly separate",
+        "dependency_discovery": "current-environment.json package metadata only; external-tools exact object evidence only",
+        "interop": {
+          "functional_equivalence": "NOT_RUN",
+          "data_compatibility": "RAW_CAS_AND_ACTUAL_PROJECTION_PLANNED",
+          "bidirectional_roundtrip": "NOT_RUN (conversion/extraction is not reconstruction)",
+          "incremental_sync": "NOT_RUN (same-byte import idempotency/failed-job retry is not platform sync)"
+        },
+        "restart": "source original + exact job outputs/quality/attempts after owned Core reopen planned"
+      },
+      "qualification": "NOT_QUALIFIED_BY_REGISTRY",
+      "role": "Historical assessment at its observed_at; declaration is not actual execution"
+    },
+    {
+      "source_record": {
+        "extension": "rb",
+        "ui_kind": "text",
+        "core_capability": "text.extract",
+        "worker": "services/python-workers/document/worker_text.py",
+        "engine": "stdlib/light parser; PyYAML for YAML",
+        "scope": "selected owned synthetic representative input; real production worker execution planned",
+        "status": "NOT_RUN",
+        "raw_cas": {
+          "required": "SHA256 and byte length source original before conversion/after failure/restart identical",
+          "original_endpoint": "GET /api/v1/sources/{id}/original"
+        },
+        "body_structure_location": "line spans; format.locations JSON pointer/CSV cell/XML path/EPUB chapter/EML part/ODF element/RTF paragraph where actually returned",
+        "loss_policy": "Original raw bytes unchanged; text normalization/style/macros/rendering loss explicitly separate",
+        "dependency_discovery": "current-environment.json package metadata only; external-tools exact object evidence only",
+        "interop": {
+          "functional_equivalence": "NOT_RUN",
+          "data_compatibility": "RAW_CAS_AND_ACTUAL_PROJECTION_PLANNED",
+          "bidirectional_roundtrip": "NOT_RUN (conversion/extraction is not reconstruction)",
+          "incremental_sync": "NOT_RUN (same-byte import idempotency/failed-job retry is not platform sync)"
+        },
+        "restart": "source original + exact job outputs/quality/attempts after owned Core reopen planned"
+      },
+      "qualification": "NOT_QUALIFIED_BY_REGISTRY",
+      "role": "Historical assessment at its observed_at; declaration is not actual execution"
+    },
+    {
+      "source_record": {
+        "extension": "sh",
+        "ui_kind": "text",
+        "core_capability": "text.extract",
+        "worker": "services/python-workers/document/worker_text.py",
+        "engine": "stdlib/light parser; PyYAML for YAML",
+        "scope": "selected owned synthetic representative input; real production worker execution planned",
+        "status": "NOT_RUN",
+        "raw_cas": {
+          "required": "SHA256 and byte length source original before conversion/after failure/restart identical",
+          "original_endpoint": "GET /api/v1/sources/{id}/original"
+        },
+        "body_structure_location": "line spans; format.locations JSON pointer/CSV cell/XML path/EPUB chapter/EML part/ODF element/RTF paragraph where actually returned",
+        "loss_policy": "Original raw bytes unchanged; text normalization/style/macros/rendering loss explicitly separate",
+        "dependency_discovery": "current-environment.json package metadata only; external-tools exact object evidence only",
+        "interop": {
+          "functional_equivalence": "NOT_RUN",
+          "data_compatibility": "RAW_CAS_AND_ACTUAL_PROJECTION_PLANNED",
+          "bidirectional_roundtrip": "NOT_RUN (conversion/extraction is not reconstruction)",
+          "incremental_sync": "NOT_RUN (same-byte import idempotency/failed-job retry is not platform sync)"
+        },
+        "restart": "source original + exact job outputs/quality/attempts after owned Core reopen planned"
+      },
+      "qualification": "NOT_QUALIFIED_BY_REGISTRY",
+      "role": "Historical assessment at its observed_at; declaration is not actual execution"
+    },
+    {
+      "source_record": {
+        "extension": "ps1",
+        "ui_kind": "text",
+        "core_capability": "text.extract",
+        "worker": "services/python-workers/document/worker_text.py",
+        "engine": "stdlib/light parser; PyYAML for YAML",
+        "scope": "selected owned synthetic representative input; real production worker execution planned",
+        "status": "NOT_RUN",
+        "raw_cas": {
+          "required": "SHA256 and byte length source original before conversion/after failure/restart identical",
+          "original_endpoint": "GET /api/v1/sources/{id}/original"
+        },
+        "body_structure_location": "line spans; format.locations JSON pointer/CSV cell/XML path/EPUB chapter/EML part/ODF element/RTF paragraph where actually returned",
+        "loss_policy": "Original raw bytes unchanged; text normalization/style/macros/rendering loss explicitly separate",
+        "dependency_discovery": "current-environment.json package metadata only; external-tools exact object evidence only",
+        "interop": {
+          "functional_equivalence": "NOT_RUN",
+          "data_compatibility": "RAW_CAS_AND_ACTUAL_PROJECTION_PLANNED",
+          "bidirectional_roundtrip": "NOT_RUN (conversion/extraction is not reconstruction)",
+          "incremental_sync": "NOT_RUN (same-byte import idempotency/failed-job retry is not platform sync)"
+        },
+        "restart": "source original + exact job outputs/quality/attempts after owned Core reopen planned"
+      },
+      "qualification": "NOT_QUALIFIED_BY_REGISTRY",
+      "role": "Historical assessment at its observed_at; declaration is not actual execution"
+    },
+    {
+      "source_record": {
+        "extension": "bat",
+        "ui_kind": "text",
+        "core_capability": "text.extract",
+        "worker": "services/python-workers/document/worker_text.py",
+        "engine": "stdlib/light parser; PyYAML for YAML",
+        "scope": "selected owned synthetic representative input; real production worker execution planned",
+        "status": "NOT_RUN",
+        "raw_cas": {
+          "required": "SHA256 and byte length source original before conversion/after failure/restart identical",
+          "original_endpoint": "GET /api/v1/sources/{id}/original"
+        },
+        "body_structure_location": "line spans; format.locations JSON pointer/CSV cell/XML path/EPUB chapter/EML part/ODF element/RTF paragraph where actually returned",
+        "loss_policy": "Original raw bytes unchanged; text normalization/style/macros/rendering loss explicitly separate",
+        "dependency_discovery": "current-environment.json package metadata only; external-tools exact object evidence only",
+        "interop": {
+          "functional_equivalence": "NOT_RUN",
+          "data_compatibility": "RAW_CAS_AND_ACTUAL_PROJECTION_PLANNED",
+          "bidirectional_roundtrip": "NOT_RUN (conversion/extraction is not reconstruction)",
+          "incremental_sync": "NOT_RUN (same-byte import idempotency/failed-job retry is not platform sync)"
+        },
+        "restart": "source original + exact job outputs/quality/attempts after owned Core reopen planned"
+      },
+      "qualification": "NOT_QUALIFIED_BY_REGISTRY",
+      "role": "Historical assessment at its observed_at; declaration is not actual execution"
+    },
+    {
+      "source_record": {
+        "extension": "epub",
+        "ui_kind": "text",
+        "core_capability": "text.extract",
+        "worker": "services/python-workers/document/worker_text.py",
+        "engine": "stdlib/light parser; PyYAML for YAML",
+        "scope": "selected owned synthetic representative input; real production worker execution planned",
+        "status": "NOT_RUN",
+        "raw_cas": {
+          "required": "SHA256 and byte length source original before conversion/after failure/restart identical",
+          "original_endpoint": "GET /api/v1/sources/{id}/original"
+        },
+        "body_structure_location": "line spans; format.locations JSON pointer/CSV cell/XML path/EPUB chapter/EML part/ODF element/RTF paragraph where actually returned",
+        "loss_policy": "Original raw bytes unchanged; text normalization/style/macros/rendering loss explicitly separate",
+        "dependency_discovery": "current-environment.json package metadata only; external-tools exact object evidence only",
+        "interop": {
+          "functional_equivalence": "NOT_RUN",
+          "data_compatibility": "RAW_CAS_AND_ACTUAL_PROJECTION_PLANNED",
+          "bidirectional_roundtrip": "NOT_RUN (conversion/extraction is not reconstruction)",
+          "incremental_sync": "NOT_RUN (same-byte import idempotency/failed-job retry is not platform sync)"
+        },
+        "restart": "source original + exact job outputs/quality/attempts after owned Core reopen planned"
+      },
+      "qualification": "NOT_QUALIFIED_BY_REGISTRY",
+      "role": "Historical assessment at its observed_at; declaration is not actual execution"
+    },
+    {
+      "source_record": {
+        "extension": "eml",
+        "ui_kind": "text",
+        "core_capability": "text.extract",
+        "worker": "services/python-workers/document/worker_text.py",
+        "engine": "stdlib/light parser; PyYAML for YAML",
+        "scope": "selected owned synthetic representative input; real production worker execution planned",
+        "status": "NOT_RUN",
+        "raw_cas": {
+          "required": "SHA256 and byte length source original before conversion/after failure/restart identical",
+          "original_endpoint": "GET /api/v1/sources/{id}/original"
+        },
+        "body_structure_location": "line spans; format.locations JSON pointer/CSV cell/XML path/EPUB chapter/EML part/ODF element/RTF paragraph where actually returned",
+        "loss_policy": "Original raw bytes unchanged; text normalization/style/macros/rendering loss explicitly separate",
+        "dependency_discovery": "current-environment.json package metadata only; external-tools exact object evidence only",
+        "interop": {
+          "functional_equivalence": "NOT_RUN",
+          "data_compatibility": "RAW_CAS_AND_ACTUAL_PROJECTION_PLANNED",
+          "bidirectional_roundtrip": "NOT_RUN (conversion/extraction is not reconstruction)",
+          "incremental_sync": "NOT_RUN (same-byte import idempotency/failed-job retry is not platform sync)"
+        },
+        "restart": "source original + exact job outputs/quality/attempts after owned Core reopen planned"
+      },
+      "qualification": "NOT_QUALIFIED_BY_REGISTRY",
+      "role": "Historical assessment at its observed_at; declaration is not actual execution"
+    },
+    {
+      "source_record": {
+        "extension": "odt",
+        "ui_kind": "text",
+        "core_capability": "text.extract",
+        "worker": "services/python-workers/document/worker_text.py",
+        "engine": "stdlib/light parser; PyYAML for YAML",
+        "scope": "selected owned synthetic representative input; real production worker execution planned",
+        "status": "NOT_RUN",
+        "raw_cas": {
+          "required": "SHA256 and byte length source original before conversion/after failure/restart identical",
+          "original_endpoint": "GET /api/v1/sources/{id}/original"
+        },
+        "body_structure_location": "line spans; format.locations JSON pointer/CSV cell/XML path/EPUB chapter/EML part/ODF element/RTF paragraph where actually returned",
+        "loss_policy": "Original raw bytes unchanged; text normalization/style/macros/rendering loss explicitly separate",
+        "dependency_discovery": "current-environment.json package metadata only; external-tools exact object evidence only",
+        "interop": {
+          "functional_equivalence": "NOT_RUN",
+          "data_compatibility": "RAW_CAS_AND_ACTUAL_PROJECTION_PLANNED",
+          "bidirectional_roundtrip": "NOT_RUN (conversion/extraction is not reconstruction)",
+          "incremental_sync": "NOT_RUN (same-byte import idempotency/failed-job retry is not platform sync)"
+        },
+        "restart": "source original + exact job outputs/quality/attempts after owned Core reopen planned"
+      },
+      "qualification": "NOT_QUALIFIED_BY_REGISTRY",
+      "role": "Historical assessment at its observed_at; declaration is not actual execution"
+    },
+    {
+      "source_record": {
+        "extension": "ods",
+        "ui_kind": "text",
+        "core_capability": "text.extract",
+        "worker": "services/python-workers/document/worker_text.py",
+        "engine": "stdlib/light parser; PyYAML for YAML",
+        "scope": "selected owned synthetic representative input; real production worker execution planned",
+        "status": "NOT_RUN",
+        "raw_cas": {
+          "required": "SHA256 and byte length source original before conversion/after failure/restart identical",
+          "original_endpoint": "GET /api/v1/sources/{id}/original"
+        },
+        "body_structure_location": "line spans; format.locations JSON pointer/CSV cell/XML path/EPUB chapter/EML part/ODF element/RTF paragraph where actually returned",
+        "loss_policy": "Original raw bytes unchanged; text normalization/style/macros/rendering loss explicitly separate",
+        "dependency_discovery": "current-environment.json package metadata only; external-tools exact object evidence only",
+        "interop": {
+          "functional_equivalence": "NOT_RUN",
+          "data_compatibility": "RAW_CAS_AND_ACTUAL_PROJECTION_PLANNED",
+          "bidirectional_roundtrip": "NOT_RUN (conversion/extraction is not reconstruction)",
+          "incremental_sync": "NOT_RUN (same-byte import idempotency/failed-job retry is not platform sync)"
+        },
+        "restart": "source original + exact job outputs/quality/attempts after owned Core reopen planned"
+      },
+      "qualification": "NOT_QUALIFIED_BY_REGISTRY",
+      "role": "Historical assessment at its observed_at; declaration is not actual execution"
+    },
+    {
+      "source_record": {
+        "extension": "odp",
+        "ui_kind": "text",
+        "core_capability": "text.extract",
+        "worker": "services/python-workers/document/worker_text.py",
+        "engine": "stdlib/light parser; PyYAML for YAML",
+        "scope": "selected owned synthetic representative input; real production worker execution planned",
+        "status": "NOT_RUN",
+        "raw_cas": {
+          "required": "SHA256 and byte length source original before conversion/after failure/restart identical",
+          "original_endpoint": "GET /api/v1/sources/{id}/original"
+        },
+        "body_structure_location": "line spans; format.locations JSON pointer/CSV cell/XML path/EPUB chapter/EML part/ODF element/RTF paragraph where actually returned",
+        "loss_policy": "Original raw bytes unchanged; text normalization/style/macros/rendering loss explicitly separate",
+        "dependency_discovery": "current-environment.json package metadata only; external-tools exact object evidence only",
+        "interop": {
+          "functional_equivalence": "NOT_RUN",
+          "data_compatibility": "RAW_CAS_AND_ACTUAL_PROJECTION_PLANNED",
+          "bidirectional_roundtrip": "NOT_RUN (conversion/extraction is not reconstruction)",
+          "incremental_sync": "NOT_RUN (same-byte import idempotency/failed-job retry is not platform sync)"
+        },
+        "restart": "source original + exact job outputs/quality/attempts after owned Core reopen planned"
+      },
+      "qualification": "NOT_QUALIFIED_BY_REGISTRY",
+      "role": "Historical assessment at its observed_at; declaration is not actual execution"
+    },
+    {
+      "source_record": {
+        "extension": "rtf",
+        "ui_kind": "text",
+        "core_capability": "text.extract",
+        "worker": "services/python-workers/document/worker_text.py",
+        "engine": "stdlib/light parser; PyYAML for YAML",
+        "scope": "selected owned synthetic representative input; real production worker execution planned",
+        "status": "NOT_RUN",
+        "raw_cas": {
+          "required": "SHA256 and byte length source original before conversion/after failure/restart identical",
+          "original_endpoint": "GET /api/v1/sources/{id}/original"
+        },
+        "body_structure_location": "line spans; format.locations JSON pointer/CSV cell/XML path/EPUB chapter/EML part/ODF element/RTF paragraph where actually returned",
+        "loss_policy": "Original raw bytes unchanged; text normalization/style/macros/rendering loss explicitly separate",
+        "dependency_discovery": "current-environment.json package metadata only; external-tools exact object evidence only",
+        "interop": {
+          "functional_equivalence": "NOT_RUN",
+          "data_compatibility": "RAW_CAS_AND_ACTUAL_PROJECTION_PLANNED",
+          "bidirectional_roundtrip": "NOT_RUN (conversion/extraction is not reconstruction)",
+          "incremental_sync": "NOT_RUN (same-byte import idempotency/failed-job retry is not platform sync)"
+        },
+        "restart": "source original + exact job outputs/quality/attempts after owned Core reopen planned"
+      },
+      "qualification": "NOT_QUALIFIED_BY_REGISTRY",
+      "role": "Historical assessment at its observed_at; declaration is not actual execution"
+    },
+    {
+      "source_record": {
+        "extension": "doc",
+        "ui_kind": null,
+        "core_capability": "office.structure",
+        "worker": "services/python-workers/document/worker_office.py",
+        "engine": "antiword declared exact binary",
+        "status": "UI_UNMAPPED_ENGINE_NOT_QUALIFIED",
+        "reason": "Core actual media_type_for_name and Office worker recognize this family; frontend no mapping. Do not claim Core has no reader; qualification/permission/profile remains separate.",
+        "interop": {
+          "functional_equivalence": "NOT_RUN",
+          "data_compatibility": "NOT_RUN",
+          "bidirectional_roundtrip": "NOT_RUN",
+          "incremental_sync": "NOT_RUN"
+        }
+      },
+      "qualification": "NOT_QUALIFIED_BY_REGISTRY",
+      "role": "Historical assessment at its observed_at; declaration is not actual execution"
+    },
+    {
+      "source_record": {
+        "extension": "xls",
+        "ui_kind": null,
+        "core_capability": "office.structure",
+        "worker": "services/python-workers/document/worker_office.py",
+        "engine": "xlrd2.0.2",
+        "status": "UI_UNMAPPED_ENGINE_NOT_QUALIFIED",
+        "reason": "Core actual media_type_for_name and Office worker recognize this family; frontend no mapping. Do not claim Core has no reader; qualification/permission/profile remains separate.",
+        "interop": {
+          "functional_equivalence": "NOT_RUN",
+          "data_compatibility": "NOT_RUN",
+          "bidirectional_roundtrip": "NOT_RUN",
+          "incremental_sync": "NOT_RUN"
+        }
+      },
+      "qualification": "NOT_QUALIFIED_BY_REGISTRY",
+      "role": "Historical assessment at its observed_at; declaration is not actual execution"
+    },
+    {
+      "source_record": {
+        "extension": "ppt",
+        "ui_kind": null,
+        "core_capability": "office.structure",
+        "worker": "services/python-workers/document/worker_office.py",
+        "engine": "Tika + JVM declared components",
+        "status": "UI_UNMAPPED_ENGINE_NOT_QUALIFIED",
+        "reason": "Core actual media_type_for_name and Office worker recognize this family; frontend no mapping. Do not claim Core has no reader; qualification/permission/profile remains separate.",
+        "interop": {
+          "functional_equivalence": "NOT_RUN",
+          "data_compatibility": "NOT_RUN",
+          "bidirectional_roundtrip": "NOT_RUN",
+          "incremental_sync": "NOT_RUN"
+        }
+      },
+      "qualification": "NOT_QUALIFIED_BY_REGISTRY",
+      "role": "Historical assessment at its observed_at; declaration is not actual execution"
+    },
+    {
+      "source_record": {
+        "extension": "wav/mp4 via container-only media",
+        "ui_kind": null,
+        "core_capability": "media.probe",
+        "worker": "services/python-workers/document/worker_media.py",
+        "engine": "stdlib/container facts",
+        "status": "NOT_RUN",
+        "reason": "Separate real header inventory baseline, does not satisfy ASR/video semantic conversion"
+      },
+      "qualification": "NOT_QUALIFIED_BY_REGISTRY",
+      "role": "Historical assessment at its observed_at; declaration is not actual execution"
+    }
+  ],
+  "registry_count": 72,
+  "registry_source_sha256": "12ea3fb43565219b3a8f5162f476628afec688385954ebb23e38baf6acee7058",
+  "selected_process_probe": {
+    "receipt": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\runs\\f714401b40\\ui-exchange-stage-20261010\\candidate-formats\\final-summary.json",
+    "sha256": "1885d50913c5d584af80db9ed6a63d00e43c8889b7375f21769c4251d66993e3",
+    "profile": "launch.text_worker explicit python/script/staging/routes/root; absent profile does not prove routes available",
+    "protocol": "PASS",
+    "materials": "SYNTHETIC",
+    "evidence": "INTEGRATED",
+    "formats": [
+      {
+        "format": "text",
+        "name": "sample.txt",
+        "state": "succeeded",
+        "source_id": "src_888bb251b36d596bb0aaaea8",
+        "raw_sha256": "f47e56f379302c4780b33a1dadc02dae0ac0d276115d510e8944055ec6234411",
+        "raw_bytes": 29,
+        "raw_cas_original_restart": "PASS",
+        "same_byte_duplicate_import": "PASS",
+        "extracted_chars": 29,
+        "extracted_utf8_bytes": 29,
+        "worker_engine": "python-worker-text",
+        "worker_reported_version": "0.1.0",
+        "donor_engine": null,
+        "donor_version": null,
+        "html_donor_attempts": null,
+        "fallback_used": null,
+        "loss_count": 0,
+        "loss_note": "no transform applied",
+        "structure_spans": 2,
+        "native_structure_present": true,
+        "source_anchor_count": 0,
+        "location_qualification": "NOT_LOCATED_NAVIGATION_NOT_RUN",
+        "structure_facts_restart": "PASS",
+        "fresh_failed_only_retry": null,
+        "fresh_failed_only_attempt": null,
+        "error": null,
+        "engine_semantic_quality": "UNMEASURED",
+        "data_scope": "SYNTHETIC"
+      },
+      {
+        "format": "html",
+        "name": "sample.html",
+        "state": "succeeded",
+        "source_id": "src_a16bf50c7f4281ade12cb63b",
+        "raw_sha256": "a19ea794d6fa13f9d80fecc5c444d5c703e18be95bf559feb4a83856b69966c7",
+        "raw_bytes": 56,
+        "raw_cas_original_restart": "PASS",
+        "same_byte_duplicate_import": "PASS",
+        "extracted_chars": 23,
+        "extracted_utf8_bytes": 23,
+        "worker_engine": "python-worker-html",
+        "worker_reported_version": "0.1.0",
+        "donor_engine": "stdlib-html-parser",
+        "donor_version": "0.1.0",
+        "html_donor_attempts": [
+          {
+            "engine": "trafilatura",
+            "status": "empty",
+            "version": "2.1.0"
+          },
+          {
+            "engine": "stdlib-html-parser",
+            "status": "succeeded"
+          }
+        ],
+        "fallback_used": true,
+        "loss_count": 1,
+        "loss_note": "saved snapshot only; no fetching or script execution; article extraction is a heuristic, not semantic-fidelity evidence; anchors address the derived text; original link inventory retained separately",
+        "structure_spans": 1,
+        "native_structure_present": true,
+        "source_anchor_count": 0,
+        "location_qualification": "NOT_LOCATED_NAVIGATION_NOT_RUN",
+        "structure_facts_restart": "PASS",
+        "fresh_failed_only_retry": null,
+        "fresh_failed_only_attempt": null,
+        "error": null,
+        "engine_semantic_quality": "UNMEASURED",
+        "data_scope": "SYNTHETIC"
+      },
+      {
+        "format": "canvas",
+        "name": "sample.canvas",
+        "state": "succeeded",
+        "source_id": "src_85e2723e283ca77976c86335",
+        "raw_sha256": "ca11501250e8a83bfba2d10c7926cc1cda05586f5f7993a80d7543f7fdd31bbf",
+        "raw_bytes": 166,
+        "raw_cas_original_restart": "PASS",
+        "same_byte_duplicate_import": "PASS",
+        "extracted_chars": 16,
+        "extracted_utf8_bytes": 16,
+        "worker_engine": "python-worker-canvas",
+        "worker_reported_version": "0.1.0",
+        "donor_engine": null,
+        "donor_version": null,
+        "html_donor_attempts": null,
+        "fallback_used": null,
+        "loss_count": 1,
+        "loss_note": "node geometry, colour and style are preserved as the numeric and string facts the file declares; a declared colour is not resolved to a rendered swatch, and z-order, tabs and group containment are not read; edges are preserved verbatim, so their sides and endpoint ports travel with the edge",
+        "structure_spans": 1,
+        "native_structure_present": true,
+        "source_anchor_count": 0,
+        "location_qualification": "NOT_LOCATED_NAVIGATION_NOT_RUN",
+        "structure_facts_restart": "PASS",
+        "fresh_failed_only_retry": null,
+        "fresh_failed_only_attempt": null,
+        "error": null,
+        "engine_semantic_quality": "UNMEASURED",
+        "data_scope": "SYNTHETIC"
+      },
+      {
+        "format": "archive",
+        "name": "sample.zip",
+        "state": "succeeded",
+        "source_id": "src_fec6d7b11b8a8b53b99a7221",
+        "raw_sha256": "e174c9d9b997c1912205fe376b2f226aa2d5a46df1af804ca4e98afc9b9271e7",
+        "raw_bytes": 138,
+        "raw_cas_original_restart": "PASS",
+        "same_byte_duplicate_import": "PASS",
+        "extracted_chars": 12,
+        "extracted_utf8_bytes": 12,
+        "worker_engine": "python-worker-archive",
+        "worker_reported_version": "0.1.0",
+        "donor_engine": null,
+        "donor_version": null,
+        "html_donor_attempts": null,
+        "fallback_used": null,
+        "loss_count": 0,
+        "loss_note": "no transform applied",
+        "structure_spans": 1,
+        "native_structure_present": true,
+        "source_anchor_count": 0,
+        "location_qualification": "NOT_LOCATED_NAVIGATION_NOT_RUN",
+        "structure_facts_restart": "PASS",
+        "fresh_failed_only_retry": null,
+        "fresh_failed_only_attempt": null,
+        "error": null,
+        "engine_semantic_quality": "UNMEASURED",
+        "data_scope": "SYNTHETIC"
+      },
+      {
+        "format": "subtitle",
+        "name": "sample.srt",
+        "state": "succeeded",
+        "source_id": "src_231b983455fac34701f8e81d",
+        "raw_sha256": "6c741425d14e15793def9492833e159f38ccfe1a6c346b1c0fc0b5848147c74a",
+        "raw_bytes": 46,
+        "raw_cas_original_restart": "PASS",
+        "same_byte_duplicate_import": "PASS",
+        "extracted_chars": 14,
+        "extracted_utf8_bytes": 14,
+        "worker_engine": "python-worker-subtitles",
+        "worker_reported_version": "0.1.0",
+        "donor_engine": null,
+        "donor_version": null,
+        "html_donor_attempts": null,
+        "fallback_used": null,
+        "loss_count": 1,
+        "loss_note": "cue timings preserved as anchors; VTT inline tags stripped; NOTE blocks dropped",
+        "structure_spans": 1,
+        "native_structure_present": true,
+        "source_anchor_count": 0,
+        "location_qualification": "NOT_LOCATED_NAVIGATION_NOT_RUN",
+        "structure_facts_restart": "PASS",
+        "fresh_failed_only_retry": null,
+        "fresh_failed_only_attempt": null,
+        "error": null,
+        "engine_semantic_quality": "UNMEASURED",
+        "data_scope": "SYNTHETIC"
+      },
+      {
+        "format": "pdf",
+        "name": "golden-journey-evidence.pdf",
+        "state": "succeeded",
+        "source_id": "src_f4eee107088575eabd4e19a7",
+        "raw_sha256": "0f0ffc50c79d9d977efb925351ca1d64a063184e4bdd71507b9ac44992f7adcf",
+        "raw_bytes": 1120,
+        "raw_cas_original_restart": "PASS",
+        "same_byte_duplicate_import": "PASS",
+        "extracted_chars": 97,
+        "extracted_utf8_bytes": 97,
+        "worker_engine": "pymupdf-native-pdf",
+        "worker_reported_version": "pymupdf",
+        "donor_engine": null,
+        "donor_version": null,
+        "html_donor_attempts": null,
+        "fallback_used": null,
+        "loss_count": 1,
+        "loss_note": "1 engine message(s) diverted from stdout: Consider using the pymupdf_layout package for a greatly improved page layout analysis.",
+        "structure_spans": 6,
+        "native_structure_present": true,
+        "source_anchor_count": 0,
+        "location_qualification": "NOT_LOCATED_NAVIGATION_NOT_RUN",
+        "structure_facts_restart": "PASS",
+        "fresh_failed_only_retry": null,
+        "fresh_failed_only_attempt": null,
+        "error": null,
+        "engine_semantic_quality": "UNMEASURED",
+        "data_scope": "SYNTHETIC"
+      },
+      {
+        "format": "docx",
+        "name": "golden-docx-anchor.docx",
+        "state": "succeeded",
+        "source_id": "src_fe06e5310c41a3dc7a72a157",
+        "raw_sha256": "6356fbba83f683723a3d202a443af2d10ad5957dc2b7be2d275be0247349855b",
+        "raw_bytes": 968,
+        "raw_cas_original_restart": "PASS",
+        "same_byte_duplicate_import": "PASS",
+        "extracted_chars": 81,
+        "extracted_utf8_bytes": 81,
+        "worker_engine": "python-worker-office",
+        "worker_reported_version": "0.1.0",
+        "donor_engine": "stdlib-zip+xml",
+        "donor_version": null,
+        "html_donor_attempts": null,
+        "fallback_used": null,
+        "loss_count": 1,
+        "loss_note": "paragraphs/tables extracted in document order; header/footer text and embedded-image OCR are separate lanes; media files (0) inventoried, not decoded",
+        "structure_spans": 2,
+        "native_structure_present": true,
+        "source_anchor_count": 0,
+        "location_qualification": "NOT_LOCATED_NAVIGATION_NOT_RUN",
+        "structure_facts_restart": "PASS",
+        "fresh_failed_only_retry": null,
+        "fresh_failed_only_attempt": null,
+        "error": null,
+        "engine_semantic_quality": "UNMEASURED",
+        "data_scope": "SYNTHETIC"
+      },
+      {
+        "format": "xlsx",
+        "name": "golden-xlsx-anchor.xlsx",
+        "state": "succeeded",
+        "source_id": "src_6a2a542624eb21e991d5f544",
+        "raw_sha256": "c70fd35b6cb3d18a6a8779c1fab21c312ba03fc07893ccaff422a5ea9be0466a",
+        "raw_bytes": 4889,
+        "raw_cas_original_restart": "PASS",
+        "same_byte_duplicate_import": "PASS",
+        "extracted_chars": 84,
+        "extracted_utf8_bytes": 84,
+        "worker_engine": "python-worker-office",
+        "worker_reported_version": "0.1.0",
+        "donor_engine": "openpyxl",
+        "donor_version": null,
+        "html_donor_attempts": null,
+        "fallback_used": null,
+        "loss_count": 1,
+        "loss_note": "cell values include formula text (data_only=False); cached computed values are NOT presented as live calculations; macros never executed; merged ranges reported per sheet only",
+        "structure_spans": 2,
+        "native_structure_present": true,
+        "source_anchor_count": 0,
+        "location_qualification": "NOT_LOCATED_NAVIGATION_NOT_RUN",
+        "structure_facts_restart": "PASS",
+        "fresh_failed_only_retry": null,
+        "fresh_failed_only_attempt": null,
+        "error": null,
+        "engine_semantic_quality": "UNMEASURED",
+        "data_scope": "SYNTHETIC"
+      },
+      {
+        "format": "pptx",
+        "name": "golden-pptx-anchor.pptx",
+        "state": "succeeded",
+        "source_id": "src_ddaa599c5281d567b78806cf",
+        "raw_sha256": "461e7fac8132e74ae142e35b77acf434ca90e8892a71f97b27230e6f69325eeb",
+        "raw_bytes": 28284,
+        "raw_cas_original_restart": "PASS",
+        "same_byte_duplicate_import": "PASS",
+        "extracted_chars": 78,
+        "extracted_utf8_bytes": 78,
+        "worker_engine": "python-worker-office",
+        "worker_reported_version": "0.1.0",
+        "donor_engine": "python-pptx",
+        "donor_version": null,
+        "html_donor_attempts": null,
+        "fallback_used": null,
+        "loss_count": 1,
+        "loss_note": "slide order preserved; chart data is the file's own cached categories and values, never recomputed, and a series that only references a live spreadsheet is named as carrying no cached values; slide-image OCR and chart rendering are separate lanes",
+        "structure_spans": 2,
+        "native_structure_present": true,
+        "source_anchor_count": 0,
+        "location_qualification": "NOT_LOCATED_NAVIGATION_NOT_RUN",
+        "structure_facts_restart": "PASS",
+        "fresh_failed_only_retry": null,
+        "fresh_failed_only_attempt": null,
+        "error": null,
+        "engine_semantic_quality": "UNMEASURED",
+        "data_scope": "SYNTHETIC"
+      },
+      {
+        "format": "wav-header",
+        "name": "golden-audio-anchor.wav",
+        "state": "succeeded",
+        "source_id": "src_d239d76e2631e8b3ac0bf6f1",
+        "raw_sha256": "9f0297fb94b378d742772caede9bf5302813775c80ebb1bcead0fee4ec30e9bd",
+        "raw_bytes": 117612,
+        "raw_cas_original_restart": "PASS",
+        "same_byte_duplicate_import": "PASS",
+        "extracted_chars": 173,
+        "extracted_utf8_bytes": 173,
+        "worker_engine": "python-worker-media",
+        "worker_reported_version": "0.1.0",
+        "donor_engine": null,
+        "donor_version": null,
+        "html_donor_attempts": null,
+        "fallback_used": null,
+        "loss_count": 1,
+        "loss_note": "this is a header probe: no sample, frame or track was decoded, so there is no waveform, transcript, timestamp, keyframe or sampling-coverage fact here",
+        "structure_spans": 9,
+        "native_structure_present": true,
+        "source_anchor_count": 0,
+        "location_qualification": "NOT_LOCATED_NAVIGATION_NOT_RUN",
+        "structure_facts_restart": "PASS",
+        "fresh_failed_only_retry": null,
+        "fresh_failed_only_attempt": null,
+        "error": null,
+        "engine_semantic_quality": "UNMEASURED",
+        "data_scope": "SYNTHETIC"
+      },
+      {
+        "format": "mp4-header",
+        "name": "golden-video-anchor.mp4",
+        "state": "succeeded",
+        "source_id": "src_24724be23aed0050f72369a0",
+        "raw_sha256": "7ec5d082608cb4fc190b67ca245b8d1d9d1c8d036b9291bd16b89b55abcf2ddb",
+        "raw_bytes": 73877,
+        "raw_cas_original_restart": "PASS",
+        "same_byte_duplicate_import": "PASS",
+        "extracted_chars": 314,
+        "extracted_utf8_bytes": 314,
+        "worker_engine": "python-worker-media",
+        "worker_reported_version": "0.1.0",
+        "donor_engine": null,
+        "donor_version": null,
+        "html_donor_attempts": null,
+        "fallback_used": null,
+        "loss_count": 1,
+        "loss_note": "this is a header probe: no sample, frame or track was decoded, so there is no waveform, transcript, timestamp, keyframe or sampling-coverage fact here",
+        "structure_spans": 13,
+        "native_structure_present": true,
+        "source_anchor_count": 0,
+        "location_qualification": "NOT_LOCATED_NAVIGATION_NOT_RUN",
+        "structure_facts_restart": "PASS",
+        "fresh_failed_only_retry": null,
+        "fresh_failed_only_attempt": null,
+        "error": null,
+        "engine_semantic_quality": "UNMEASURED",
+        "data_scope": "SYNTHETIC"
+      },
+      {
+        "format": "broken-pdf",
+        "name": "broken.pdf",
+        "state": "failed",
+        "source_id": "src_d7deacd1dddfb0c6dd8a6ec2",
+        "raw_sha256": "f30409d276c237c79c68051753dec0093f9d10d6df013ec3f2804946e12c8efe",
+        "raw_bytes": 36,
+        "raw_cas_original_restart": "PASS",
+        "same_byte_duplicate_import": "PASS",
+        "extracted_chars": null,
+        "extracted_utf8_bytes": null,
+        "worker_engine": null,
+        "worker_reported_version": null,
+        "donor_engine": null,
+        "donor_version": null,
+        "html_donor_attempts": null,
+        "fallback_used": null,
+        "loss_count": null,
+        "loss_note": null,
+        "structure_spans": 0,
+        "native_structure_present": false,
+        "source_anchor_count": null,
+        "location_qualification": "NOT_LOCATED_NAVIGATION_NOT_RUN",
+        "structure_facts_restart": "NO_OUTPUT_FAILED",
+        "fresh_failed_only_retry": "failed",
+        "fresh_failed_only_attempt": 2,
+        "error": "{\"schema\":\"archeaxis.worker-response/v1\",\"type\":\"job_result\",\"request_id\":\"initial_broken-pdf\",\"job_id\":\"mixed_broken-pdf\",\"attempt\":1,\"protocol_minor\":0,\"status\":\"failed\",\"outputs\":[],\"measurements\":{},\"warnings\":[],\"error\":{\"code\":\"AAK-WORKER-003\",\"message\":\"unreadable PDF: FileDataError\",\"retryable\":false}}",
+        "engine_semantic_quality": "UNMEASURED",
+        "data_scope": "SYNTHETIC"
+      }
+    ],
+    "counts": {
+      "successful_actual_worker_format_cases": 11,
+      "expected_corrupt_pdf_failure": 1,
+      "production_worker_instances": 13,
+      "controlled_cancel_worker_instances": 1,
+      "owned_core_instances": 4,
+      "distinct_observed_owned_pids": 18
+    },
+    "original_cas_and_duplicate_import_and_restart": "PASS_SELECTED_FIXTURES_ONLY"
+  },
+  "selected_locator_probe": {
+    "receipt": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\runs\\f714401b40\\ui-exchange-stage-20261010\\candidate-formats\\anchor-final-summary.json",
+    "sha256": "072266f8a561aeb15968f41815ef3da82282221eba434f316f6ac7b41267b150",
+    "protocol": "PASS",
+    "formats": [
+      {
+        "label": "text",
+        "format_specific_state": "LOCATED",
+        "located_anchors": 1,
+        "derived_selection": "PASS",
+        "limits": []
+      },
+      {
+        "label": "html",
+        "format_specific_state": "LOCATED",
+        "located_anchors": 1,
+        "derived_selection": "PASS",
+        "limits": []
+      },
+      {
+        "label": "canvas",
+        "format_specific_state": "LOCATED",
+        "located_anchors": 1,
+        "derived_selection": "PASS",
+        "limits": []
+      },
+      {
+        "label": "archive",
+        "format_specific_state": "NOT_LOCATED",
+        "located_anchors": 0,
+        "derived_selection": "PASS",
+        "limits": [
+          {
+            "state": "NOT_SUPPORTED",
+            "reason": "only canonical line/page/header/inventory facts exist; no matching verified locator type in this API"
+          }
+        ]
+      },
+      {
+        "label": "subtitle",
+        "format_specific_state": "LOCATED",
+        "located_anchors": 1,
+        "derived_selection": "PASS",
+        "limits": []
+      },
+      {
+        "label": "pdf",
+        "format_specific_state": "NOT_LOCATED",
+        "located_anchors": 0,
+        "derived_selection": "PASS",
+        "limits": [
+          {
+            "state": "NOT_SUPPORTED",
+            "reason": "only canonical line/page/header/inventory facts exist; no matching verified locator type in this API"
+          }
+        ]
+      },
+      {
+        "label": "docx",
+        "format_specific_state": "LOCATED",
+        "located_anchors": 2,
+        "derived_selection": "PASS",
+        "limits": []
+      },
+      {
+        "label": "xlsx",
+        "format_specific_state": "LOCATED",
+        "located_anchors": 4,
+        "derived_selection": "PASS",
+        "limits": []
+      },
+      {
+        "label": "pptx",
+        "format_specific_state": "NOT_LOCATED",
+        "located_anchors": 0,
+        "derived_selection": "PASS",
+        "limits": [
+          {
+            "locator": {
+              "type": "worker_structure",
+              "job_id": "mixed_pptx",
+              "attempt": 1,
+              "kind": "slide",
+              "path": [
+                "slide-1",
+                "slide"
+              ]
+            },
+            "state": "NOT_LOCATED",
+            "reason": "actual worker kind/path is ambiguous; Core rejects 400"
+          },
+          {
+            "locator": {
+              "type": "worker_structure",
+              "job_id": "mixed_pptx",
+              "attempt": 1,
+              "kind": "slide",
+              "path": [
+                "slide-1",
+                "slide"
+              ]
+            },
+            "state": "NOT_LOCATED",
+            "reason": "actual worker kind/path is ambiguous; Core rejects 400"
+          }
+        ]
+      },
+      {
+        "label": "wav-header",
+        "format_specific_state": "NOT_LOCATED",
+        "located_anchors": 0,
+        "derived_selection": "PASS",
+        "limits": [
+          {
+            "state": "NOT_SUPPORTED",
+            "reason": "only canonical line/page/header/inventory facts exist; no matching verified locator type in this API"
+          }
+        ]
+      },
+      {
+        "label": "mp4-header",
+        "format_specific_state": "NOT_LOCATED",
+        "located_anchors": 0,
+        "derived_selection": "PASS",
+        "limits": [
+          {
+            "state": "NOT_SUPPORTED",
+            "reason": "only canonical line/page/header/inventory facts exist; no matching verified locator type in this API"
+          }
+        ]
+      },
+      {
+        "label": "broken-pdf",
+        "format_specific_state": "NOT_LOCATED",
+        "located_anchors": 0,
+        "derived_selection": "NOT_RUN",
+        "limits": []
+      },
+      {
+        "label": "pptx-new-producer",
+        "format_specific_state": "LOCATED",
+        "located_anchors": 2,
+        "derived_selection": "PASS",
+        "limits": []
+      }
+    ],
+    "negative_checks": 49,
+    "restart": "PASS",
+    "limits": [
+      "No independent resolver endpoint exists in this snapshot; located is create-time validation plus persisted API readback, not revalidation on every GET.",
+      "No browser clicks/native installed/source-application navigation/semantic correctness proof.",
+      "Header facts are not ASR or video frame/time locators.",
+      "Missing or ambiguous worker locations are not invented."
+    ]
+  },
+  "producer_epochs": {
+    "original_format_probe": "sealed Core build01; worker_office original SHA8d979ef0; original PPTX ambiguity retained",
+    "new_pptx_locator": "sealed Core build02; worker_office SHA29a033ffbe382b4928dffe7d8b4a57dd488ed1a9f0dff8239cc39a290b71aa90; new actual job, two shape anchors located",
+    "frontend_final": "Separate final source epoch; probe Core/contracts and worker pins checked independently, not claim every earlier frontend source same"
+  },
+  "interop": {
+    "functional_equivalence": "PARTIAL; selected extraction and finite job actions only, not source application full behavior",
+    "data_compatibility": "PARTIAL; selected raw CAS and actual projection/loss/locator restart verified; all formats and old user database not qualified",
+    "bidirectional_roundtrip": "PARTIAL; prior UF07 human teaching exchange separate receipt; extraction/document projection does not reconstruct source packages",
+    "incremental_sync": "NOT_EXECUTED; duplicate import and request replay are not external synchronization"
+  },
+  "formal_nonempty_legacy_database": "NOT_RUN; exact source authorization unavailable",
+  "platform_installation": "Only existing Windows isolated profile used; Linux, external tool/model installation and installed runtime remain NOT_EXECUTED/UNVERIFIED",
+  "professional_content_quality": "UNMEASURED",
+  "limits": [
+    "Not installed/native/release/professional qualification",
+    "Controlled cancellation worker only proves SYNTHETIC lifecycle, not mature engine quality",
+    "No formally authorized nonempty legacy database migration",
+    "ASR/semantic video/model inference not selected",
+    "Conversion projection/raw CAS is not a platform roundtrip or incremental sync",
+    "Source anchors are empty; navigation resolvers not exercised; structured positions retained but semantic locator qualification NOT_RUN",
+    "Short HTML fixture used stdlib fallback; Trafilatura empty is explicitly recorded, not promoted to donor success",
+    "PyMuPDF concrete package1.28.2 is metadata evidence; runtime quality returns pymupdf placeholder rather than numeric version",
+    "13 production engine worker wrappers only record PID/start/route and delegate original scripts unchanged; all were actual finite subprocesses",
+    "Coverage1.0 is structural line coverage, not semantic accuracy"
+  ],
+  "next_scope": [
+    "UF13 integrated journeys",
+    "Future approved format/profile subset and exact legacy snapshot exercise"
+  ],
+  "permissions": {
+    "installs": "NONE",
+    "formal_user_database_reads": "NONE",
+    "commit_push_publish": "NONE"
+  }
+}

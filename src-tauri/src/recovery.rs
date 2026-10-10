@@ -697,7 +697,47 @@ pub struct StagedBackup {
     object_files: Vec<(PathBuf, ObjectIdentity, File)>,
 }
 
+// Replace the private writable staging handle with a held read-only handle.
+// During the transition, retain a handle that denies deletion. A competing writer
+// makes the final deny-write open fail; no offline restore runs in that case.
+fn seal_staging_file(path:&Path, expected:ObjectIdentity, handle:&mut File) -> Result<(),String> {
+    let transitional=OpenOptions::new().read(true).access_mode(GENERIC_READ)
+        .share_mode(FILE_SHARE_READ|FILE_SHARE_WRITE).custom_flags(FILE_FLAG_OPEN_REPARSE_POINT)
+        .open(path).map_err(|_|"restore sealing read handle unavailable")?;
+    if regular_file_object_identity(&transitional)?!=expected {return Err("restore sealing identity changed".into());}
+    *handle=transitional; // closes the private writable handle before deny-write open
+    let sealed=OpenOptions::new().read(true).access_mode(GENERIC_READ)
+        .share_mode(FILE_SHARE_READ).custom_flags(FILE_FLAG_OPEN_REPARSE_POINT)
+        .open(path).map_err(|_|"restore sealing refused a concurrent writer")?;
+    if regular_file_object_identity(&sealed)?!=expected {return Err("restore sealing identity changed".into());}
+    *handle=sealed;
+    Ok(())
+}
+
 impl StagedBackup {
+    pub fn seal_for_canonical_restore(&mut self, backup_id:&str, expected_sha:&str) -> Result<(),String> {
+        seal_staging_file(&self.backup_path,self.backup_identity,self.backup_file.as_mut().ok_or("restore staging handle unavailable")?)?;
+        seal_staging_file(&self.manifest_path,self.manifest_identity,self.manifest_file.as_mut().ok_or("restore staging manifest unavailable")?)?;
+        for (path,identity,file) in &mut self.object_files {
+            seal_staging_file(path,*identity,file)?;
+            if sha256(file)?!=path.file_name().and_then(|name|name.to_str()).ok_or("restore object filename invalid")? {return Err("sealed restore object hash mismatch".into());}
+        }
+        // Hash and manifest checks happen after deny-write handles are held, and
+        // all these handles live through the offline subprocess and its readback.
+        if self.snapshot_sha256()?!=expected_sha {return Err("sealed restore snapshot hash mismatch".into());}
+        let manifest=self.manifest_file.as_mut().ok_or("restore staging manifest unavailable")?;
+        manifest.seek(SeekFrom::Start(0)).map_err(|_|"sealed manifest seek failed")?;
+        let value:serde_json::Value=serde_json::from_reader(&mut *manifest).map_err(|_|"sealed manifest invalid")?;
+        manifest.seek(SeekFrom::Start(0)).map_err(|_|"sealed manifest seek failed")?;
+        if value["schema"]!="archeaxis-core-backup-1" || value["backup_id"]!=backup_id || value["filename"]!=format!("{backup_id}.sqlite") || value["sha256"]!=expected_sha {return Err("sealed manifest identity mismatch".into());}
+        self.revalidate_for_restore()
+    }
+
+    pub fn snapshot_sha256(&self) -> Result<String, String> {
+        let mut file=self.backup_file.as_ref().ok_or("restore staging handle unavailable")?.try_clone().map_err(|_|"restore staging handle unavailable")?;
+        sha256(&mut file)
+    }
+
     pub fn backup_path(&self) -> &Path {
         &self.backup_path
     }
@@ -1577,6 +1617,33 @@ mod tests {
 
         assert_eq!(replacement.name, original.name);
         assert!(!original.same_source_identity(&replacement));
+    }
+
+
+    #[test]
+    fn canonical_sealing_denies_snapshot_manifest_and_cas_writes_until_restore_finishes() {
+        let temp=tempdir().unwrap();let data=temp.path().join("data");let backups=data.join("backups");fs::create_dir_all(&backups).unwrap();
+        let id="0123456789abcdef0123456789abcdef";let name=format!("{id}.sqlite");let snapshot=backups.join(&name);fs::write(&snapshot,b"sealed snapshot").unwrap();
+        let object_data=b"sealed original";let mut original=fs::OpenOptions::new().read(true).write(true).create_new(true).open(backups.join("hash-input")).unwrap();
+        use std::io::Write;original.write_all(object_data).unwrap();let object_sha=super::sha256(&mut original).unwrap();drop(original);
+        let objects=backups.join(format!("{name}.objects"));fs::create_dir(&objects).unwrap();fs::rename(backups.join("hash-input"),objects.join(&object_sha)).unwrap();
+        let (mut file,_)=super::open_backup_source(&snapshot).unwrap();let expected_sha=super::sha256(&mut file).unwrap();drop(file);
+        fs::write(backups.join(format!("{name}.manifest.json")),serde_json::to_vec(&serde_json::json!({"schema":"archeaxis-core-backup-1","backup_id":id,"filename":name,"sha256":expected_sha,"bytes":15,"schema_version":"10","sqlite_version":"3.51.3","source_sha_list":[object_sha]})).unwrap()).unwrap();
+        let selected=enumerate_backups(&data).unwrap().pop().unwrap();let mut staged=stage_backup_for_restore(&data,&selected).unwrap();staged.seal_for_canonical_restore(id,&expected_sha).unwrap();
+        let paths=vec![staged.backup_path.clone(),staged.manifest_path.clone(),staged.object_files[0].0.clone()];
+        for path in &paths {
+            assert!(fs::OpenOptions::new().write(true).share_mode(super::FILE_SHARE_READ|super::FILE_SHARE_WRITE).open(path).is_err(),"sealed path accepted in-place writer");
+            assert!(fs::read(path).is_ok(),"offline read-only open must still work");
+            assert!(fs::remove_file(path).is_err(),"sealed path accepted replacement/deletion");
+        }
+        assert_eq!(staged.snapshot_sha256().unwrap(),expected_sha);drop(staged);for path in paths {assert!(!path.exists(),"sealed staging cleanup residue");}
+    }
+
+    #[test]
+    fn sealing_refuses_an_existing_same_identity_writer() {
+        let temp=tempdir().unwrap();let path=temp.path().join("staged.sqlite");let created=super::create_staging_file(&path).ok().unwrap();let (_,identity,mut handle)=created.into_parts();
+        let writer=fs::OpenOptions::new().write(true).share_mode(super::FILE_SHARE_READ|super::FILE_SHARE_WRITE).open(&path).unwrap();
+        assert!(super::seal_staging_file(&path,identity,&mut handle).is_err());drop(writer);assert!(super::seal_staging_file(&path,identity,&mut handle).is_ok());
     }
 
     #[test]

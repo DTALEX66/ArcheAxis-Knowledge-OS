@@ -1,0 +1,155 @@
+{
+  "status": "PARTIAL",
+  "rows": [
+    {
+      "id": "UF11-254",
+      "source": "docs/taskpacks/aaos-ui-first-20261009/TASKPACK.md:254",
+      "requirement": "- 人工教学交换已在 UF07 完成；这里扩展真实 worker/adapter 与现有 profiles",
+      "status": "PARTIAL",
+      "current_evidence_scope": "Existing Windows profile actual workers:11 success + corrupt PDF failure; other profiles/tools/models not qualified"
+    },
+    {
+      "id": "UF11-255",
+      "source": "docs/taskpacks/aaos-ui-first-20261009/TASKPACK.md:255",
+      "requirement": "- 每种格式独立记录正文/结构/定位/损失/启动/安装态，不以文件扩展名支持冒充保真",
+      "status": "PARTIAL",
+      "current_evidence_scope": "72 registry records retained; selected body/structure/loss/raw CAS and locator evidence recorded independently; installed state not proven"
+    },
+    {
+      "id": "UF11-256",
+      "source": "docs/taskpacks/aaos-ui-first-20261009/TASKPACK.md:256",
+      "requirement": "- 功能等价、数据兼容、双向往返、增量同步四类独立验收；完整平台范围保留，按实际 profile 分批",
+      "status": "PARTIAL",
+      "current_evidence_scope": "Four goals separated; selected functionality/data partial; no external incremental sync or source-package reconstruction"
+    },
+    {
+      "id": "UF11-257",
+      "source": "docs/taskpacks/aaos-ui-first-20261009/TASKPACK.md:257",
+      "requirement": "- 未知原始字段、媒体与 CAS 保留；原始字节不格式化，失败仍保留原件",
+      "status": "PARTIAL",
+      "current_evidence_scope": "Selected exact raw CAS before/after failure/cancel/restart passed; unknown/media preservation not blanket whole legacy qualification"
+    },
+    {
+      "id": "UF11-261",
+      "source": "docs/taskpacks/aaos-ui-first-20261009/TASKPACK.md:261",
+      "requirement": "- 选定格式/平台对象往返、损失报告及引用定位可回读",
+      "status": "PARTIAL",
+      "current_evidence_scope": "Actual source/format locators plus persisted readback; independent resolver/browser source application navigation and platform roundtrip not run"
+    },
+    {
+      "id": "UF11-262",
+      "source": "docs/taskpacks/aaos-ui-first-20261009/TASKPACK.md:262",
+      "requirement": "- 没有默默吞未知 payload；不把 fixture 通过等同正式旧库全迁移",
+      "status": "PARTIAL",
+      "current_evidence_scope": "Exact raw bytes and canonical unknown Document snapshot preserved; no formal old user database migration claim"
+    },
+    {
+      "id": "UF11-264",
+      "source": "docs/taskpacks/aaos-ui-first-20261009/TASKPACK.md:264",
+      "requirement": "验证入口：现有格式矩阵、worker/Core 合同和 profile 验证；isolated 导入/导出/第二次导入幂等/损坏材料回读。",
+      "status": "PARTIAL",
+      "current_evidence_scope": "Selected isolated import/raw readback/duplicate CAS/projection/loss/corruption/restart proved; external platform reconstruction not run"
+    },
+    {
+      "id": "CB04-360",
+      "source": "docs/taskpacks/aaos-ui-first-20261009/TASKPACK.md:360",
+      "requirement": "- 复用已存在 workers 和格式矩阵，逐项辨别 Linux/Windows/外部工具/模型依赖",
+      "status": "PARTIAL",
+      "current_evidence_scope": "Existing workers reused with explicit Windows evidence; Linux and all external dependencies not run"
+    },
+    {
+      "id": "CB04-361",
+      "source": "docs/taskpacks/aaos-ui-first-20261009/TASKPACK.md:361",
+      "requirement": "- 普通导入保留原件；OCR/ASR/图像/Office/PDF/HTML/media/canvas 不共用虚假 PASS",
+      "status": "PARTIAL",
+      "current_evidence_scope": "Real selected workers and original CAS proved independently; OCR/ASR/image and header decode not substituted by PASS"
+    },
+    {
+      "id": "CB04-362",
+      "source": "docs/taskpacks/aaos-ui-first-20261009/TASKPACK.md:362",
+      "requirement": "- 旧非空库迁移按明确批准来源做只读快照→隔离目标→差分/哈希/引用/重启/回滚；未获来源许可先 NOT_RUN",
+      "status": "NOT_RUN",
+      "current_evidence_scope": "NOT_RUN: no exact authorized nonempty user database source; no access undertaken"
+    },
+    {
+      "id": "CB04-363",
+      "source": "docs/taskpacks/aaos-ui-first-20261009/TASKPACK.md:363",
+      "requirement": "- 无需为 UI 首批等待全格式或全旧库迁移收口",
+      "status": "PASS",
+      "current_evidence_scope": "UI implementation progressed without waiting for all formats/old database closure"
+    },
+    {
+      "id": "CB04-367",
+      "source": "docs/taskpacks/aaos-ui-first-20261009/TASKPACK.md:367",
+      "requirement": "- 格式证据足以说明内容/结构/定位/损失边界，缺引擎报告真实原因",
+      "status": "PARTIAL",
+      "current_evidence_scope": "Selected format bodies/structure/loss/location gaps and exact receipt engine/version placeholders retained"
+    },
+    {
+      "id": "CB04-368",
+      "source": "docs/taskpacks/aaos-ui-first-20261009/TASKPACK.md:368",
+      "requirement": "- fixture、isolated REAL Core 与正式用户旧库资格分开；源哈希/未知载荷未丢失",
+      "status": "PARTIAL",
+      "current_evidence_scope": "SYNTHETIC inputs / INTEGRATED actual Core probes / formal user database NOT_RUN distinguished; not complete unknown old payload qualification"
+    },
+    {
+      "id": "CB04-370",
+      "source": "docs/taskpacks/aaos-ui-first-20261009/TASKPACK.md:370",
+      "requirement": "验证入口：现有 worker/Core/迁移/备份入口；按合同发现，禁用正式恢复材料。",
+      "status": "PARTIAL",
+      "current_evidence_scope": "Existing worker/Core/document backup entry used; no formal recovery input"
+    },
+    {
+      "id": "ZIP06-23",
+      "source": "docs/history/ui-design-increment-20261009/sources/zip-members/06_成熟度验收场景.csv#csv_record23",
+      "requirement": {
+        "批次": "资源",
+        "场景": "部分导入与取消",
+        "输入或操作": "批量中成功/失败/取消混合",
+        "通过条件": "原件与转换分开；成功项可定位，仅重试失败项",
+        "当前结论": "NOT_EXECUTED；未来按实际环境验证"
+      },
+      "tasks": [
+        "UF10",
+        "UF11",
+        "CB04"
+      ],
+      "status": "PARTIAL",
+      "current_evidence_scope": "Mixed success/fail/cancel actual Core protocol + only failed fresh request, pinned UI result and raw preservation proved; browser host simulated, installed/Owner not qualified"
+    }
+  ],
+  "four_independent_interop": [
+    "功能等价",
+    "数据兼容",
+    "双向往返",
+    "增量同步"
+  ],
+  "scope": "每种格式正文/结构/定位/损失/启动/安装态与Linux/Windows/外部工具/模型依赖独立；OCR/ASR/image/Office/PDF/HTML/media/canvas不得共用虚假PASS；正式旧非空库迁移 exact授权前NOT_RUN；不缩成Folder修复或3textfixture通过",
+  "stage_implementation": "LOCAL_ENGINEERING_CLOSED_WITH_EXPLICIT_QUALIFICATION_GAPS",
+  "qualification_report": "docs/current/AAOS-FORMAT-QUALIFICATION-20261010.json",
+  "historical_candidate_page16_evidence": {
+    "status": "PARTIAL",
+    "implemented_candidate": [
+      "exact original bytes check/download",
+      "pinned successful/failed job readback",
+      "current saved document two-file projection",
+      "manual teaching section reuse",
+      "four separate qualification statuses"
+    ],
+    "not_qualified": [
+      "all formats fidelity",
+      "full profiles/platforms",
+      "4 interop roundtrip/sync",
+      "installed/license",
+      "official old nonempty database migration",
+      "mixed original/CAS restart REAL acceptance"
+    ],
+    "test_scope": "SIMULATED_31_LOCAL_PASS",
+    "role": "Historical scratch candidate assessment; no replacement of original acceptance"
+  },
+  "current_page16_evidence": {
+    "browser": "SIMULATED40/40,10 groups,80 byte-readback downloads",
+    "actual_core": "Selected process/locator/restart protocols PASS on SYNTHETIC materials",
+    "whole_requirements": "PARTIAL; original15 rows retained"
+  }
+}

@@ -382,6 +382,12 @@ async fn core_creates_and_reads_back_assessment_bound_to_accepted_knowledge() {
     review["assessment_id"] = assessment["assessment_id"].clone();
     review["knowledge_version"] = assessment["knowledge_version"].clone();
     review["answer"] = json!("FSRS uses the prior review history.");
+    // Evidence versions are retained as submitted observations, not approved rubric authority.
+    review["question_version"] = json!("fixture-question-v1");
+    review["exposure_id"] = json!("fixture-exposure-01");
+    review["assist_strategy"] = json!("reference-visible");
+    review["rating_version"] = json!("fixture-human-self-rating-v1");
+    review["correction_id"] = json!("fixture-declared-correction");
     let replay_body = review.clone();
     let (review_status, review_response) = post(&router, review, "human").await;
     assert_eq!(review_status, StatusCode::CREATED, "{review_response}");
@@ -394,9 +400,14 @@ async fn core_creates_and_reads_back_assessment_bound_to_accepted_knowledge() {
         "projection"
     );
     assert_eq!(review_response["mastery_projection"]["closed"], false);
+    for key in ["question_version", "knowledge_version", "exposure_id", "assist_strategy", "rating_version", "correction_id"] {
+        assert_eq!(review_response["review_evidence"][key], replay_body[key]);
+    }
+    assert_eq!(review_response["review_evidence"]["schema"], "archeaxis.learning-review-evidence/v2");
     let (replay_status, replay_response) = post(&router, replay_body, "human").await;
     assert_eq!(replay_status, StatusCode::OK, "{replay_response}");
     assert_eq!(replay_response["answer"], review_response["answer"]);
+    assert_eq!(replay_response["review_evidence"], review_response["review_evidence"]);
     assert_eq!(
         replay_response["mastery_projection"],
         review_response["mastery_projection"]
@@ -417,4 +428,12 @@ async fn core_creates_and_reads_back_assessment_bound_to_accepted_knowledge() {
     let bytes = response.into_body().collect().await.unwrap().to_bytes();
     let readback: Value = serde_json::from_slice(&bytes).unwrap();
     assert_eq!(readback, assessment);
+    let response = reopened.clone().oneshot(Request::get("/api/v1/learning/events/card-assessment")
+        .body(Body::empty()).unwrap()).await.unwrap();
+    assert_eq!(response.status(), StatusCode::OK);
+    let bytes = response.into_body().collect().await.unwrap().to_bytes();
+    let history: Value = serde_json::from_slice(&bytes).unwrap();
+    let saved: Value = serde_json::from_str(history["events"][0]["outcome"].as_str().unwrap()).unwrap();
+    assert_eq!(saved["review_evidence"], review_response["review_evidence"]);
+    assert_eq!(history["count"], 1);
 }

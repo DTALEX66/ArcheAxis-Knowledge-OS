@@ -18,6 +18,12 @@ if ($testArgs.Count -gt 0 -and $testArgs[0] -eq '--') {
     $testArgs = @($testArgs | Select-Object -Skip 1)
 }
 $modeArgs = @('--pytest')
+if ($testArgs.Count -gt 0 -and $testArgs[0] -in @('--quick-ci', '--full-ci')) {
+    $profile = if ($testArgs[0] -eq '--quick-ci') { 'quick' } else { 'full' }
+    $testArgs = @($testArgs | Select-Object -Skip 1)
+    & $interpreter -B (Join-Path $projectRoot 'scripts/ci/local_verify.py') --profile $profile @testArgs
+    exit $LASTEXITCODE
+}
 if ($testArgs.Count -gt 0 -and $testArgs[0] -eq '--full') {
     $modeArgs += '--full'
     $testArgs = @($testArgs | Select-Object -Skip 1)

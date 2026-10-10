@@ -1,0 +1,93 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "archeaxis.workspace-restore/v2",
+  "description": "Finite host recovery contract; never accepts filesystem paths. Strict v1 remains unchanged.",
+  "$defs": {
+    "Selection": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "backup_id",
+        "expected_sha256"
+      ],
+      "properties": {
+        "backup_id": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{32}$"
+        },
+        "expected_sha256": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        }
+      }
+    },
+    "Preview": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schema",
+        "backup_id",
+        "sha256",
+        "schema_version",
+        "source_count",
+        "compatible",
+        "verified"
+      ],
+      "properties": {
+        "schema": {
+          "const": "archeaxis.workspace-restore-preview/v2"
+        },
+        "backup_id": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{32}$"
+        },
+        "sha256": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        },
+        "schema_version": {
+          "type": "string"
+        },
+        "source_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "compatible": {
+          "const": true
+        },
+        "verified": {
+          "const": true
+        }
+      }
+    },
+    "Result": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schema",
+        "backup_id",
+        "restored",
+        "restarted",
+        "readback"
+      ],
+      "properties": {
+        "schema": {
+          "const": "archeaxis.workspace-restore-result/v2"
+        },
+        "backup_id": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{32}$"
+        },
+        "restored": {
+          "const": true
+        },
+        "restarted": {
+          "const": true
+        },
+        "readback": {
+          "type": "object"
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,315 @@
+{
+  "schema": "aaos.ui-design-increment/v1",
+  "role": "DESIGN_REQUIREMENTS_OVERLAY_NOT_REPLACEMENT_TASKPACK",
+  "owner_request": "Analyze useful supplied material into UI tasks and archive in project repository",
+  "received_local": "2026-10-10",
+  "active_taskpack": "docs/taskpacks/aaos-ui-first-20261009",
+  "source_archive_manifest": "docs/history/ui-design-increment-20261009/MANIFEST.json",
+  "analysis": "docs/current/AAOS-UI-DESIGN-INCREMENT-20261010.md",
+  "navigation_mapping": "docs/history/ui-design-increment-20261009/PAGE-ENTRY-MAPPING.csv",
+  "sources": [
+    {
+      "original_path": "D:\\All projects\\Record\\AAOS_UI_成熟落地深化方案_20261009.txt",
+      "archive_path": "docs/history/ui-design-increment-20261009/sources/AAOS_UI_成熟落地深化方案_20261009.txt",
+      "bytes": 15662,
+      "sha256": "6d56e338dd87ce64369ecbcc8c4a28b6e6c655e10ab0bf74450576a903f6e189",
+      "byte_preservation": "PASS"
+    },
+    {
+      "original_path": "D:\\All projects\\Record\\AAOS_UI_深化设计增量_SHA256_20261009.txt",
+      "archive_path": "docs/history/ui-design-increment-20261009/sources/AAOS_UI_深化设计增量_SHA256_20261009.txt",
+      "bytes": 255,
+      "sha256": "70eb0be1dbd395516aff50dacdb78617b923a8e83b84ead7284ccc36ec1e4267",
+      "byte_preservation": "PASS"
+    },
+    {
+      "original_path": "D:\\All projects\\Record\\AAOS_UI_深化设计增量_20261009.zip",
+      "archive_path": "docs/history/ui-design-increment-20261009/sources/AAOS_UI_深化设计增量_20261009.zip",
+      "bytes": 23726,
+      "sha256": "45ac43b7704ba2a5c5979d27339120ffd58417761a13672add24d87f43e55e25",
+      "byte_preservation": "PASS"
+    }
+  ],
+  "requirements": [
+    {
+      "topic": "导航与对象入口",
+      "source_line": 22,
+      "source_phrase": "日常一级导航：",
+      "tasks": [
+        "UF02",
+        "UF06",
+        "G01"
+      ],
+      "decision": "采纳为后续UI要求",
+      "requirement": "五个日常入口工作台/知识/学习/AI/资源，全部能力与设置固定；22页仍可深链接，研究归知识且可收藏；先核旧路由/对象再收敛菜单",
+      "acceptance": "22页与原ID均能进入、返回上级；快捷键/筛选/草稿不失；未来能力详情可点击",
+      "current_readback": "当前22页导航已有；五日常分组未实现",
+      "implementation": "NOT_EXECUTED_BY_THIS_ANALYSIS"
+    },
+    {
+      "topic": "真实新建与搜索",
+      "source_line": 32,
+      "source_phrase": "新建明确区分",
+      "tasks": [
+        "UF03",
+        "UF02",
+        "UF06"
+      ],
+      "decision": "采纳并强化验收",
+      "requirement": "新建区分实际可用笔记/导入/目标；本地搜索不依赖远程AI，结果带实际对象链接/范围；语义搜索来源另列",
+      "acceptance": "断网仍保存笔记与使用本地检索；索引故障有原因与降级；新建不跳演示页",
+      "current_readback": "笔记/来源和命令入口已有部分实现，目标模型不可虚构",
+      "implementation": "NOT_EXECUTED_BY_THIS_ANALYSIS"
+    },
+    {
+      "topic": "工作台连续性",
+      "source_line": 44,
+      "source_phrase": "工作台先显示",
+      "tasks": [
+        "UF03",
+        "UF02"
+      ],
+      "decision": "采纳为补验收",
+      "requirement": "继续上次真实对象优先；真实待复习/最近知识/导入进度；恢复滚动与筛选；空数据可新建",
+      "acceptance": "重新启动回到实际ID、筛选与位置；无数据/AI活动不造仪表盘或进度",
+      "current_readback": "现有工作台未证明全部现场恢复",
+      "implementation": "NOT_EXECUTED_BY_THIS_ANALYSIS"
+    },
+    {
+      "topic": "视觉与品牌",
+      "source_line": 34,
+      "source_phrase": "品牌名称与正式图形",
+      "tasks": [
+        "UF01",
+        "UF02",
+        "UF03"
+      ],
+      "decision": "采纳为可评审目标",
+      "requirement": "保留品牌有效素材与现有配色；安静正文/列表；大封面限首次欢迎，日常80–120px可收起；建议字号/阅读宽度不能截断",
+      "acceptance": "五主题使用语义token、同视口对照；大字号/缩放可读；theme不改变对象/会话/路由",
+      "current_readback": "主题内统一已验；封面高度/字体目标待UI改进",
+      "implementation": "NOT_EXECUTED_BY_THIS_ANALYSIS"
+    },
+    {
+      "topic": "任务动作与可访问性",
+      "source_line": 40,
+      "source_phrase": "每个任务区域只有一个显著主动作",
+      "tasks": [
+        "UF01",
+        "UF02",
+        "UF03",
+        "UF13"
+      ],
+      "decision": "采纳并强化验收",
+      "requirement": "单显著主动作，状态文字/图标而非颜色独担；卡片/编辑/比较/导入/恢复各用合适布局",
+      "acceptance": "对比度/键盘/屏幕阅读/focus实际验收；不能以截图证明通过",
+      "current_readback": "已有自动focus/对比度局部验证，完整屏幕阅读与物理IME未验证",
+      "implementation": "NOT_EXECUTED_BY_THIS_ANALYSIS"
+    },
+    {
+      "topic": "知识/研究范围",
+      "source_line": 46,
+      "source_phrase": "知识工作区由集合导航",
+      "tasks": [
+        "UF03",
+        "UF08"
+      ],
+      "decision": "采纳并防范围缩水",
+      "requirement": "集合仅改变视图不复制对象；依据/采用/AI资格在详情分组；解析失败保留原件与损失；研究保留问题/假设/反证/方法/实验/未决",
+      "acceptance": "真实集合/对象ID与原件读回，研究不退化为纯笔记列表",
+      "current_readback": "集合/完整研究模型尚未接通",
+      "implementation": "NOT_EXECUTED_BY_THIS_ANALYSIS"
+    },
+    {
+      "topic": "阅读边界与历史",
+      "source_line": 54,
+      "source_phrase": "阅读、编辑、原件、版本比较具有清晰边界",
+      "tasks": [
+        "UF03",
+        "UF04",
+        "CB03"
+      ],
+      "decision": "采纳并强化验收",
+      "requirement": "当前编辑/原件/历史只读边界分开，Inspector按任务显示；新修订不替换课程绑定和历史锚点",
+      "acceptance": "版本/原件回跳、旧课程/引用历史可读，未知/未评估/不适用分别显示",
+      "current_readback": "已有真实文档/版本/来源与stale课程部分路径",
+      "implementation": "NOT_EXECUTED_BY_THIS_ANALYSIS"
+    },
+    {
+      "topic": "草稿归属及composition",
+      "source_line": 56,
+      "source_phrase": "草稿的归属至少",
+      "tasks": [
+        "UF03",
+        "CB01",
+        "CB03"
+      ],
+      "decision": "采纳为可靠性补验收",
+      "requirement": "真实对象或临时对象+会话+基准版本；不共用全局localStorage；theme/page/render key不重建未保存正文；迟到回执不能误标已保存",
+      "acceptance": "快速切文档/主题/IMEcomposition/重启/迟到提交；失败保留输入；回执匹配对象版",
+      "current_readback": "当前文档切换与未保存保护已有，物理IME/关闭/会话恢复未验证",
+      "implementation": "NOT_EXECUTED_BY_THIS_ANALYSIS"
+    },
+    {
+      "topic": "保存/同步/权限分层",
+      "source_line": 58,
+      "source_phrase": "保存提示至少分清",
+      "tasks": [
+        "UF03",
+        "CB01",
+        "UF13"
+      ],
+      "decision": "采纳并强化验收",
+      "requirement": "本地编辑/提交/Core确认/失败待重试/冲突分开；同步另列；权限变化保留草稿可复制/授权另存",
+      "acceptance": "持久化确认后才已保存；冲突与权限故障不清空；正常导航不强加确认",
+      "current_readback": "真实Core保存已有，权限动态变更/全宿主回读待验",
+      "implementation": "NOT_EXECUTED_BY_THIS_ANALYSIS"
+    },
+    {
+      "topic": "完整学习非课程门槛",
+      "source_line": 64,
+      "source_phrase": "正式课程不是所有学习活动的前置门槛",
+      "tasks": [
+        "UF05",
+        "UF07"
+      ],
+      "decision": "采纳并防范围缩水",
+      "requirement": "目标→路线→活动→元认知/巩固/调整保留；普通用户可由知识直接练习/复习；观看/FSRS/AI点评不等于掌握",
+      "acceptance": "无课程的真实知识可练习；未建模子项明示后续缺口，不造画像/掌握",
+      "current_readback": "当前课程与独立学习队列已有部分入口；2026-10-10阶段更新：CB02/UF07本地人工教学闭环与普通准备草稿已验收，实际进度/分层限制以AAOS-UI-FIRST-EXECUTION-20261009.md及阶段回执为准，不推导完整学习生命周期、全格式互通或真人效果。",
+      "implementation": "NOT_EXECUTED_BY_THIS_ANALYSIS"
+    },
+    {
+      "topic": "准备草稿与非线性阶段",
+      "source_line": 68,
+      "source_phrase": "允许草稿不完整保存",
+      "tasks": [
+        "UF07",
+        "CB02",
+        "CB03"
+      ],
+      "decision": "采纳并修正实施约束",
+      "requirement": "准备作为课程/教学项目上下文：需求/方案/交付/练习/反馈/修订；不完整草稿可保存，不强迫全部阶段顺序；正式绑定/采用动作独立",
+      "acceptance": "缺knowledge/course/parent的草稿能持久化并恢复；正式登记验证绑定；直接阶段视图有上下文与返回目标",
+      "current_readback": "本阶段严格teaching record候选不是普通草稿，需要复用Document保存；2026-10-10阶段更新：CB02/UF07本地人工教学闭环与普通准备草稿已验收，实际进度/分层限制以AAOS-UI-FIRST-EXECUTION-20261009.md及阶段回执为准，不推导完整学习生命周期、全格式互通或真人效果。",
+      "implementation": "NOT_EXECUTED_BY_THIS_ANALYSIS"
+    },
+    {
+      "topic": "课程反馈版本",
+      "source_line": 70,
+      "source_phrase": "反馈记录原课程版本、题目和rubric",
+      "tasks": [
+        "UF05",
+        "UF07",
+        "CB02"
+      ],
+      "decision": "采纳并强化验收",
+      "requirement": "课程/题目/rubric与修订lineage可读；外部生产回执不冒充真人学习；六类反馈分别负责",
+      "acceptance": "重复/冲突/新知识后旧事件回读；缺rubric UNKNOWN；无正式分数不冒充效果",
+      "current_readback": "review evidence元数据已补保存/重开回归；完整交换尚未实现；2026-10-10阶段更新：CB02/UF07本地人工教学闭环与普通准备草稿已验收，实际进度/分层限制以AAOS-UI-FIRST-EXECUTION-20261009.md及阶段回执为准，不推导完整学习生命周期、全格式互通或真人效果。",
+      "implementation": "NOT_EXECUTED_BY_THIS_ANALYSIS"
+    },
+    {
+      "topic": "AI资产与有限任务",
+      "source_line": 74,
+      "source_phrase": "AI工作区展示项目记忆",
+      "tasks": [
+        "UF09",
+        "CB03"
+      ],
+      "decision": "采纳并保持平台边界",
+      "requirement": "记忆/知识包/规则技能/经验候选保留来源用途冲突修订；纠正复测原回答错误候选实际结果；有限任务不扩张为总控",
+      "acceptance": "AI故障不阻断普通阅读/保存，失败差异和撤回历史可读；参数训练独立",
+      "current_readback": "已有canonical纠正/复测合同；新AI视图待实现",
+      "implementation": "NOT_EXECUTED_BY_THIS_ANALYSIS"
+    },
+    {
+      "topic": "三项目人工交换",
+      "source_line": 78,
+      "source_phrase": "首期人工交换清楚标注",
+      "tasks": [
+        "UF07",
+        "CB02",
+        "UF11"
+      ],
+      "decision": "采纳并限制权限",
+      "requirement": "明确生产者/目的范围/版本/hash/幂等；未知不兼容保留原载荷与失败；读取准备不授执行；不写DESIGN-LAB/WORK-LAB",
+      "acceptance": "两次手工交换、重复损坏伪冒权限撤回/重启；无真实peer发送不称已交换成功",
+      "current_readback": "旧Python v1四库compat不得写canonical；新teaching v2候选待验证；2026-10-10阶段更新：CB02/UF07本地人工教学闭环与普通准备草稿已验收，实际进度/分层限制以AAOS-UI-FIRST-EXECUTION-20261009.md及阶段回执为准，不推导完整学习生命周期、全格式互通或真人效果。",
+      "implementation": "NOT_EXECUTED_BY_THIS_ANALYSIS"
+    },
+    {
+      "topic": "导入导出损失与取消",
+      "source_line": 82,
+      "source_phrase": "保存原件与转换结果分别确认",
+      "tasks": [
+        "UF11",
+        "CB04"
+      ],
+      "decision": "采纳并强化验收",
+      "requirement": "原件保存/转换分别确认，逐项损失/部分重试；取消保留已持久化对象；导出范围格式绑定版本损失可读",
+      "acceptance": "代表性真实样本+损坏/取消/重试，单向成功不称双向无损",
+      "current_readback": "已保留CAS原件，完整格式/批量交互仍待验",
+      "implementation": "NOT_EXECUTED_BY_THIS_ANALYSIS"
+    },
+    {
+      "topic": "备份恢复与独立状态",
+      "source_line": 86,
+      "source_phrase": "普通保存、草稿恢复",
+      "tasks": [
+        "UF04",
+        "UF13",
+        "CB01"
+      ],
+      "decision": "采纳并强化验收",
+      "requirement": "Core实际备份ID/名称/schema/兼容→影响预览→确切确认→执行→重启回读；副本优先，普通版本/AI撤回/DB恢复状态独立",
+      "acceptance": "保护原实例，知识/CAS/引用/版本/草稿一致；不发明Core恢复模式或覆盖授权",
+      "current_readback": "现有隔离Core恢复证据保留；原生安装/真实覆盖/IME未验证",
+      "implementation": "NOT_EXECUTED_BY_THIS_ANALYSIS"
+    },
+    {
+      "topic": "响应式与上下文保持",
+      "source_line": 94,
+      "source_phrase": "窗宽变化、主题、Inspector开合只改变布局",
+      "tasks": [
+        "UF02",
+        "UF03",
+        "UF05",
+        "UF07",
+        "UF13"
+      ],
+      "decision": "采纳并强化验收",
+      "requirement": "正文优先、Inspector可折叠/窄屏抽屉，表格局部横滚；窗宽/主题不丢选中/滚动/筛选/编辑/练习输入",
+      "acceptance": "1280/1024/窄屏与100/125/150%分别核对，Tab/Escape/focus/IME快捷键；正常返回上级",
+      "current_readback": "06/07窄宽五主题已验但模拟host，不能代物理缩放/native；2026-10-10阶段更新：CB02/UF07本地人工教学闭环与普通准备草稿已验收，实际进度/分层限制以AAOS-UI-FIRST-EXECUTION-20261009.md及阶段回执为准，不推导完整学习生命周期、全格式互通或真人效果。",
+      "implementation": "NOT_EXECUTED_BY_THIS_ANALYSIS"
+    },
+    {
+      "topic": "成熟度分账与被冻结范围",
+      "source_line": 100,
+      "source_phrase": "安装态、交换、真人试学和长期效果分别保留证据",
+      "tasks": [
+        "G01",
+        "H01",
+        "UF13",
+        "M01"
+      ],
+      "decision": "采纳并保持冻结",
+      "requirement": "设计/实现/运行/安装/交换/真人/长期效果分开；50GB治理/V01/FT独立，不由新材料自动恢复",
+      "acceptance": "每项注明当前证据、缺失/跳过不PASS；不能用旧图或新planning包装产品合格",
+      "current_readback": "本地已验与人工/安装/云端未执行继续区分",
+      "implementation": "NOT_EXECUTED_BY_THIS_ANALYSIS"
+    }
+  ],
+  "policy": {
+    "palette": "Preserve current blueprint/blueprint-light values and legacy black/white/cosmic themes; semantic colors uniform within theme",
+    "navigation": "five daily entries plus fixed capability/settings; preserve all 22 semantic views, old object IDs, deep links, shortcuts and recoverable state",
+    "execution": "Only analysis, task integration and archival performed by this increment; existing owner task grant persists, no new remote/install/delete/provider grants",
+    "v01": "PAUSED",
+    "ft01_ft04": "FROZEN",
+    "raw_source_instructions": "historical analysis-time statements; current user request governs this work",
+    "zip_companions": "PASS: supplied ZIP, CRC and nine internal hashes verified; ten original members preserved; source statements remain historical."
+  },
+  "progress_record": "docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md",
+  "zip_spec_crosswalk": "docs/history/ui-design-increment-20261009/ZIP-SPEC-CROSSWALK.json"
+}

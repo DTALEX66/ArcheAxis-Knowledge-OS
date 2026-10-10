@@ -99,6 +99,8 @@ P2–P4 的机器侧全链在**真实资料的副本**上跑通；出厂 Green �
 3. **撤销候选**：候选目录位于 `.project-local\build\gc-r18|gc-r19\`，整目录删除即可；源码快照收据在 `.project-local\runs\candidate-20261003\`。
 4. **沙箱权限回归**（本会话早期修复）：`D:\All projects\dsh-acl-reports-20261003\acl-backup-326c7930….ps1` 可还原工作区根目录权限。
 
+2026-10-08 位置更正：上述dsh-acl-reports回滚载荷已完整迁到主检出mig/d-root-spillover-20261008/acl-reports-20261003（4文件/83,329 B，逐SHA-256核验）；原目录不存在。历史ACL操作说明保留，本轮未执行脚本；当前恢复位置见累计交接记录§12与迁移清单。
+
 ## 9. 产物与收据索引
 
 | 产物 | 位置 / 标识 |
@@ -146,3 +148,5 @@ P2–P4 的机器侧全链在**真实资料的副本**上跑通；出厂 Green �
 
 **一句话**：本会话的全部实现停在 **`TESTED_LOCAL`**。要再上一层（`CI_VERIFIED_EXACT_SHA`），**必须先提交**——按此标准，本地测试**不能**顶替 CI 层。
 
+
+CORE-R16-EXPANSION-DEDUP-20261009：历史记录保留；当前恢复对象为 `.project-local/legacy-scratch-20261008/runs-dirs/candidate-20261003/core-candidate-r16.zip`（SHA-256 `590b29d11a60da2fb645dbc678008e7a8c0dbc36af849e073301ecd35c75e2d0`），三成员共97,726,878 B的真实还原证明位于 `未跟踪 D:/All projects/ArcheAxis-Knowledge-OS/.project-local/runs/f714401b40/codex-ui-governance-20261009/artifacts/core-r16-duplicate-audit/restore-fixture-proof.json`。展开目录只作为已可恢复的重复件按精确成员清理，源快照收据及旁边ZIP保留；实际删除结果以cleanup收据为准。恢复入口为 `未跟踪 D:/All projects/ArcheAxis-Knowledge-OS/.project-local/runs/f714401b40/codex-ui-governance-20261009/tmp/core-r16-cleanup/cleanup.py` 加 `--restore`，默认还原隔离新目录，拒绝覆盖安装态或已有目录。此次处置不恢复该旧debug候选的使用资格。

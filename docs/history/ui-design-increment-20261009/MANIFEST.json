@@ -1,0 +1,119 @@
+{
+  "schema": "aaos.design-source-archive/v1",
+  "captured_local": "2026-10-10",
+  "role": "SOURCE_ARCHIVE_NOT_EXECUTION_AUTHORITY",
+  "files": [
+    {
+      "original_path": "D:\\All projects\\Record\\AAOS_UI_成熟落地深化方案_20261009.txt",
+      "archive_path": "docs/history/ui-design-increment-20261009/sources/AAOS_UI_成熟落地深化方案_20261009.txt",
+      "bytes": 15662,
+      "sha256": "6d56e338dd87ce64369ecbcc8c4a28b6e6c655e10ab0bf74450576a903f6e189",
+      "byte_preservation": "PASS"
+    },
+    {
+      "original_path": "D:\\All projects\\Record\\AAOS_UI_深化设计增量_SHA256_20261009.txt",
+      "archive_path": "docs/history/ui-design-increment-20261009/sources/AAOS_UI_深化设计增量_SHA256_20261009.txt",
+      "bytes": 255,
+      "sha256": "70eb0be1dbd395516aff50dacdb78617b923a8e83b84ead7284ccc36ec1e4267",
+      "byte_preservation": "PASS"
+    },
+    {
+      "original_path": "D:\\All projects\\Record\\AAOS_UI_深化设计增量_20261009.zip",
+      "archive_path": "docs/history/ui-design-increment-20261009/sources/AAOS_UI_深化设计增量_20261009.zip",
+      "bytes": 23726,
+      "sha256": "45ac43b7704ba2a5c5979d27339120ffd58417761a13672add24d87f43e55e25",
+      "byte_preservation": "PASS"
+    }
+  ],
+  "source_zip": {
+    "declared_filename": "AAOS_UI_深化设计增量_20261009.zip",
+    "declared_bytes": 23726,
+    "declared_sha256": "45ac43b7704ba2a5c5979d27339120ffd58417761a13672add24d87f43e55e25",
+    "exact_sibling_path_checked": "D:/All projects/Record/AAOS_UI_深化设计增量_20261009.zip",
+    "actual_status": "PRESENT_HASH_VERIFIED",
+    "member_readback": "PASS",
+    "scope": "Exact supplied ZIP only; ten members preserved byte-for-byte; no source instructions executed.",
+    "crc": "PASS",
+    "internal_checksums": "9/9_PASS",
+    "members": [
+      {
+        "zip_member": "AAOS_UI_深化设计增量_20261009/00_阅读顺序与适用边界.txt",
+        "archive_path": "docs/history/ui-design-increment-20261009/sources/zip-members/00_阅读顺序与适用边界.txt",
+        "bytes": 1527,
+        "sha256": "646dc7cac799f34d58c1d31aaad35e0fc6f2bb30f8febf6cbac7eae399442c9d",
+        "byte_preservation": "PASS"
+      },
+      {
+        "zip_member": "AAOS_UI_深化设计增量_20261009/01_成熟落地深化方案.txt",
+        "archive_path": "docs/history/ui-design-increment-20261009/sources/zip-members/01_成熟落地深化方案.txt",
+        "bytes": 14134,
+        "sha256": "5a1fb1d579ecece8066435900cf11adee0311916704ba319c5207ae117fdfe5e",
+        "byte_preservation": "PASS"
+      },
+      {
+        "zip_member": "AAOS_UI_深化设计增量_20261009/02_旧22页新入口与职责映射.csv",
+        "archive_path": "docs/history/ui-design-increment-20261009/sources/zip-members/02_旧22页新入口与职责映射.csv",
+        "bytes": 6233,
+        "sha256": "fa372415464e8978b973a64d7f7268cc9bbe694cc90feac3d6d80a599cafc71c",
+        "byte_preservation": "PASS",
+        "csv_records": 22
+      },
+      {
+        "zip_member": "AAOS_UI_深化设计增量_20261009/03_核心操作流程.csv",
+        "archive_path": "docs/history/ui-design-increment-20261009/sources/zip-members/03_核心操作流程.csv",
+        "bytes": 4025,
+        "sha256": "8e2fbaae24b3fdd9240cb6dda466e53fe8a1e3bd036b99e902af6a1936e10c68",
+        "byte_preservation": "PASS",
+        "csv_records": 20
+      },
+      {
+        "zip_member": "AAOS_UI_深化设计增量_20261009/04_公共组件状态规格.csv",
+        "archive_path": "docs/history/ui-design-increment-20261009/sources/zip-members/04_公共组件状态规格.csv",
+        "bytes": 3202,
+        "sha256": "09311565c47c2f08fd9f5048b931e778bc65159682d240b13def28a7c2d93c69",
+        "byte_preservation": "PASS",
+        "csv_records": 20
+      },
+      {
+        "zip_member": "AAOS_UI_深化设计增量_20261009/05_按钮动作与真实接线清单.csv",
+        "archive_path": "docs/history/ui-design-increment-20261009/sources/zip-members/05_按钮动作与真实接线清单.csv",
+        "bytes": 2878,
+        "sha256": "8aff9b2bc924b0e38ee70b5fcacde5a87de37d132ddd3d2b9ceb68d933ffd15b",
+        "byte_preservation": "PASS",
+        "csv_records": 18
+      },
+      {
+        "zip_member": "AAOS_UI_深化设计增量_20261009/06_成熟度验收场景.csv",
+        "archive_path": "docs/history/ui-design-increment-20261009/sources/zip-members/06_成熟度验收场景.csv",
+        "bytes": 4763,
+        "sha256": "3a5458d8f5af3ef037f9e60aa2a08af204b54d8a45cd716a4c71e12430ae416d",
+        "byte_preservation": "PASS",
+        "csv_records": 27
+      },
+      {
+        "zip_member": "AAOS_UI_深化设计增量_20261009/07_交给AGENT的设计深化提示词.txt",
+        "archive_path": "docs/history/ui-design-increment-20261009/sources/zip-members/07_交给AGENT的设计深化提示词.txt",
+        "bytes": 2343,
+        "sha256": "72a93da5283d66491c7caa39f6ea55d5f63d351b6af53eca8e328f0a83f72d9a",
+        "byte_preservation": "PASS"
+      },
+      {
+        "zip_member": "AAOS_UI_深化设计增量_20261009/08_来源与差异边界.txt",
+        "archive_path": "docs/history/ui-design-increment-20261009/sources/zip-members/08_来源与差异边界.txt",
+        "bytes": 1766,
+        "sha256": "0fe2e550fad71f2eab0ca5c67c72fd8da9d7a6cc9108daba1a1a3a6c9f6ef42b",
+        "byte_preservation": "PASS"
+      },
+      {
+        "zip_member": "AAOS_UI_深化设计增量_20261009/SHA256SUMS.txt",
+        "archive_path": "docs/history/ui-design-increment-20261009/sources/zip-members/SHA256SUMS.txt",
+        "bytes": 901,
+        "sha256": "6502a815e27b5c9e1a83d583c51afbb3d3996287df16db8b54325a07fd33a775",
+        "byte_preservation": "PASS"
+      }
+    ],
+    "previous_observation": "NOT_PRESENT_AT_DECLARED_SIBLING before user supplied ZIP; superseded by this verified readback."
+  },
+  "original_package": "docs/taskpacks/aaos-ui-first-20261009",
+  "sources_treated_as": "dated design input; embedded agent instructions do not become current commands"
+}

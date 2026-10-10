@@ -9,7 +9,8 @@ points at must not move, so this restores first and then moves only what nothing
 from __future__ import annotations
 
 import json
-import shutil
+import os
+import re
 import subprocess
 import sys
 from pathlib import Path
@@ -25,6 +26,35 @@ SCRATCH_CANDIDATES = (
 )
 
 
+def manifest_path(scratch: Path) -> Path:
+    dated = bounded_path(scratch, f"manifest-{scratch.name.removeprefix('legacy-scratch-')}.json")
+    return dated if dated.is_file() else bounded_path(scratch, 'manifest.json')
+
+
+def bounded_path(root: Path, location: str) -> Path:
+    candidate = Path(location)
+    if '..' in candidate.parts or any(part.casefold() in {
+        '.git', '.codex', '.hermes', '.zcode', '.ui-task-tree', '.env', '.ssh', '.aws', '.npmrc', '.pypirc'
+    } for part in candidate.parts):
+        raise ValueError('protected or traversing restore path')
+    path = candidate if candidate.is_absolute() else root / candidate
+    if path.drive.upper() in {'E:', 'F:'} or str(path).startswith('\\\\'):
+        raise ValueError('protected restore root')
+    if any(part.casefold() in {'.git', '.codex', '.hermes', '.zcode', '.ui-task-tree', '.ssh', '.aws'}
+           for part in path.parts):
+        raise ValueError('private restore root')
+    if not path.is_relative_to(root):
+        raise ValueError('restore path is outside its owner')
+    for ancestor in (path, *path.parents):
+        try:
+            info = ancestor.lstat()
+        except FileNotFoundError:
+            continue
+        if ancestor.is_symlink() or getattr(info, 'st_file_attributes', 0) & 0x400:
+            raise ValueError('restore path contains a reparse point')
+    return path
+
+
 def archive_root() -> Path:
     """The archive that actually exists, or a named failure.
 
@@ -32,7 +62,8 @@ def archive_root() -> Path:
     report success; a preservation point that cannot be found must say so.
     """
     for candidate in SCRATCH_CANDIDATES:
-        if (candidate / "manifest.json").is_file():
+        bounded_path(REPO, str(candidate))
+        if manifest_path(candidate).is_file():
             return candidate
     raise SystemExit(
         "no layout archive found; looked in " + ", ".join(str(c) for c in SCRATCH_CANDIDATES))
@@ -46,9 +77,12 @@ def archived_copy(scratch: Path, entry: dict) -> Path:
     the source alone, which is what makes the archive relocatable at all.
     """
     source = entry["source"]
+    if Path(source).is_absolute():
+        raise ValueError('archive source must be repository-relative')
+    bounded_path(REPO, source)
     if source.startswith(".project-local/"):
-        return scratch / "project-local" / source.split("/", 1)[1]
-    return scratch / "repo-root" / source
+        return bounded_path(scratch, 'project-local/' + source.split("/", 1)[1])
+    return bounded_path(scratch, 'repo-root/' + source)
 
 REFERENCE_DIRS = ("docs", ".project-local/task-runtime/aaos01-tools", "tests", "scripts", ".github")
 
@@ -73,16 +107,16 @@ def referenced(name: str) -> bool:
 
 def restore() -> int:
     scratch = archive_root()
-    manifest = json.loads((scratch / "manifest.json").read_text(encoding="utf-8"))
+    manifest = json.loads(manifest_path(scratch).read_text(encoding="utf-8"))
     entries = manifest["moved"]
     restored, missing, refused = 0, [], []
     for entry in entries:
-        source = REPO / entry["source"]
+        source = bounded_path(REPO, entry["source"])
         scratch_path = archived_copy(scratch, entry)
         if not scratch_path.exists():
             # A previously recorded absolute path may still name the pre-relocation place; fall back
             # to it, but a genuinely absent copy is reported rather than skipped.
-            recorded = REPO / entry.get("scratch_path", "")
+            recorded = bounded_path(REPO, entry.get("scratch_path", ""))
             if recorded.exists():
                 scratch_path = recorded
             else:
@@ -92,7 +126,11 @@ def restore() -> int:
         if source.exists():
             refused.append(entry["source"])
             continue
-        shutil.move(str(scratch_path), str(source))
+        try:
+            os.rename(scratch_path, source)
+        except OSError as error:
+            refused.append(f"{entry['source']} ({type(error).__name__})")
+            continue
         restored += 1
     print(f"archive: {scratch}")
     print(f"restored {restored} of {len(entries)} moved entries")
@@ -112,7 +150,7 @@ def main() -> int:
     if "--restore" in sys.argv:
         return restore()
     scratch = archive_root()
-    manifest = json.loads((scratch / "manifest.json").read_text(encoding="utf-8"))
+    manifest = json.loads(manifest_path(scratch).read_text(encoding="utf-8"))
     kept = [entry["source"] for entry in manifest["moved"]
             if referenced(entry["source"].split("/", 1)[-1])]
     present = [entry["source"] for entry in manifest["moved"]
@@ -128,5 +166,28 @@ def main() -> int:
     return 1 if present else 0
 
 
+def cli() -> int:
+    import argparse
+    global REPO, SCRATCH_CANDIDATES
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument('--repo', type=Path, default=REPO)
+    parser.add_argument('--stamp', default='20261006')
+    parser.add_argument('--restore', action='store_true')
+    args = parser.parse_args()
+    if not re.fullmatch(r'\d{8}', args.stamp):
+        parser.error('--stamp must be an eight-digit date')
+    REPO = args.repo.absolute()
+    if REPO.drive.upper() in {'E:', 'F:'} or str(REPO).startswith('\\\\'):
+        parser.error('protected restore root')
+    SCRATCH_CANDIDATES = (REPO / '.project-local' / f'legacy-scratch-{args.stamp}',
+                          REPO / '.project-local/task-runtime' / f'legacy-scratch-{args.stamp}')
+    try:
+        bounded_path(REPO, '.')  # validate the owner before inspecting any manifest, even an empty one
+        return restore() if args.restore else main()
+    except (OSError, ValueError) as error:
+        print(f'restore refused: {type(error).__name__}: {error}')
+        return 1
+
+
 if __name__ == "__main__":
-    raise SystemExit(main())
+    raise SystemExit(cli())

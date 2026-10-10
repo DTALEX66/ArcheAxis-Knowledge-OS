@@ -5,7 +5,8 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "tsc --noEmit && vite build --base ./",
+    "build": "node ../scripts/runtime/frontend.mjs build",
+    "tauri": "node ../scripts/runtime/frontend.mjs tauri",
     "preview": "vite preview",
     "test": "vitest run",
     "test:watch": "vitest"

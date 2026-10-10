@@ -43,8 +43,20 @@ pub(crate) async fn export(
         let source_record=json!({"source_id":snapshot["source_id"],"source_revision":snapshot["source_revision"]});
         markdown.push_str(&format!("\n\n## Source identity\n\n    {}\n\n## Evidence records\n",serde_json::to_string(&source_record).unwrap()));
         for anchor in &anchors { markdown.push_str(&format!("\n    {}\n",serde_json::to_string(anchor).unwrap())); }
-        let loss=json!([{"code":"markdown_projection","message":"Markdown contains a text projection; structured and unknown nodes are preserved in manifest.json"},{"code":"external_navigation_unavailable","message":"Source identity, revision and anchor positions are preserved as metadata; no external navigation handler is registered, so these records do not provide clickable navigation to original sources"}]);
-        let manifest=json!({"schema":"archeaxis-document-export-1","document":snapshot,"anchors":anchors,"projection_sha256":projection_sha256,"loss":loss});
+        let mut loss=json!([{"code":"markdown_projection","message":"Markdown contains a text projection; structured and unknown nodes are preserved in manifest.json"},{"code":"external_navigation_unavailable","message":"Source identity, revision and anchor positions are preserved as metadata; no external navigation handler is registered, so these records do not provide clickable navigation to original sources"}]);
+        let expression = snapshot["editor_json"]["attrs"].get("archeaxis_expression");
+        if expression.is_some() {
+            loss.as_array_mut().unwrap().push(json!({"code":"expression_media_reference_only","message":"The expression layout and immutable media references are preserved in the snapshot; referenced CAS media bytes are not packaged. Use a verified workspace archive for full recovery."}));
+            loss.as_array_mut().unwrap().push(json!({"code":"expression_engine_not_executed","message":"Animation, simulation and spatial metadata are inert declarations; no engine execution is included."}));
+        }
+        let mut manifest=json!({"schema":"archeaxis-document-export-1","document":snapshot,"anchors":anchors,"projection_sha256":projection_sha256,"loss":loss});
+        if let Some(collection)=archeaxis_domain::collection::export_metadata(&snapshot["editor_json"]) {
+            manifest["collection_export"]=collection;
+        }
+        if let Some(expression) = expression {
+            let references: Vec<Value> = expression["nodes"].as_array().map(|nodes| nodes.iter().filter_map(|node| node.get("media").filter(|media| !media.is_null()).cloned()).collect()).unwrap_or_default();
+            manifest["expression_export"] = json!({"document_id":id,"version":manifest["document"]["version"],"content_sha256":manifest["document"]["content_sha256"],"media_packaging":"reference_only","media_references":references,"engine_execution":"NOT_EXECUTED"});
+        }
         Json(json!({"document_id":id,"version":manifest["document"]["version"],"format":query.format,"source_revision":manifest["document"]["source_revision"],"projection_sha256":projection_sha256,"files":[{"path":"document.md","media_type":"text/markdown","content":markdown},{"path":"manifest.json","media_type":"application/json","content":serde_json::to_string_pretty(&manifest).unwrap()}]})).into_response()
     }).await
 }
@@ -65,6 +77,7 @@ fn human(headers: &HeaderMap) -> bool {
 #[derive(Deserialize)]
 #[serde(deny_unknown_fields)]
 pub(crate) struct Create {
+    create_request_id: Option<String>,
     source_id: Option<String>,
     source_revision: Option<String>,
     title: String,
@@ -93,12 +106,13 @@ pub(crate) async fn create(
         return StatusCode::FORBIDDEN.into_response();
     }
     crate::with_store(state, move |conn| {
-        match document::create_optional(
+        match document::create_optional_with_request(
             conn,
             body.source_id.as_deref(),
             body.source_revision.as_deref(),
             &body.title,
             body.editor_json,
+            body.create_request_id.as_deref(),
         ) {
             Ok(value) => (StatusCode::CREATED, Json(value)).into_response(),
             Err(error) => failure(error),
@@ -153,6 +167,24 @@ pub(crate) async fn read(State(state): State<AppState>, Path(id): Path<String>) 
     })
     .await
 }
+#[derive(Deserialize)]
+#[serde(deny_unknown_fields)]
+pub(crate) struct RelationsQuery { version: Option<i64>, cursor: Option<String> }
+#[derive(Deserialize)]
+#[serde(deny_unknown_fields)]
+pub(crate) struct CollectionQuery { view_id: String, version: Option<i64>, offset: Option<usize>, limit: Option<usize> }
+pub(crate) async fn collection(State(state): State<AppState>, Path(id): Path<String>, Query(query):Query<CollectionQuery>) -> Response {
+    if query.version.is_some_and(|v|v<1) {return failure(document::Error::Invalid("collection version must be positive"));}
+    crate::with_store(state,move|conn|match archeaxis_domain::collection::query(conn,&id,query.version,&query.view_id,query.offset.unwrap_or(0),query.limit.unwrap_or(20)) {
+        Ok(value)=>Json(value).into_response(),Err(error)=>failure(error),
+    }).await
+}
+pub(crate) async fn relations(State(state): State<AppState>, Path(id): Path<String>, Query(query):Query<RelationsQuery>) -> Response {
+    if query.version.is_some_and(|v|v<1) {return failure(document::Error::Invalid("relation center version must be positive"));}
+    crate::with_store(state,move|conn|match archeaxis_domain::relation_projection::query(conn,&id,query.version,query.cursor.as_deref()) {
+        Ok(value)=>Json(value).into_response(),Err(error)=>failure(error),
+    }).await
+}
 pub(crate) async fn version(
     State(state): State<AppState>,
     Path((id, version)): Path<(String, i64)>,
@@ -165,9 +197,34 @@ pub(crate) async fn version(
     })
     .await
 }
-pub(crate) async fn list(State(state): State<AppState>) -> Response {
-    crate::with_store(state, move |conn| match document::list(conn) {
-        Ok(value) => Json(json!({"documents":value})).into_response(),
+#[derive(Deserialize)]
+#[serde(deny_unknown_fields)]
+pub(crate) struct ListQuery { cursor: Option<String> }
+
+#[derive(Deserialize)]
+#[serde(deny_unknown_fields)]
+struct CursorWire { v: u8, watermark_rowid: i64, snapshot_count: i64, after_created_at: String, after_document_id: String }
+
+fn decode_cursor(encoded: &str) -> Result<document::ListCursor, document::Error> {
+    let invalid = || document::Error::Invalid("invalid document cursor");
+    if encoded.is_empty() || encoded.len()>1024 || !encoded.bytes().all(|b| b.is_ascii_alphanumeric() || b==b'-' || b==b'_') { return Err(invalid()); }
+    let bytes = base64::engine::general_purpose::URL_SAFE_NO_PAD.decode(encoded).map_err(|_|invalid())?;
+    if bytes.len()>768 { return Err(invalid()); }
+    let value: CursorWire = serde_json::from_slice(&bytes).map_err(|_|invalid())?;
+    if value.v!=1 || value.watermark_rowid<1 || value.snapshot_count<1
+        || value.after_created_at.is_empty() || value.after_created_at.len()>64 || value.after_created_at.chars().any(char::is_control)
+        || value.after_document_id.is_empty() || value.after_document_id.len()>128
+        || !value.after_document_id.bytes().all(|b|b.is_ascii_alphanumeric() || b==b'-' || b==b'_') { return Err(invalid()); }
+    Ok(document::ListCursor {v:value.v,watermark_rowid:value.watermark_rowid,snapshot_count:value.snapshot_count,after_created_at:value.after_created_at,after_document_id:value.after_document_id})
+}
+
+pub(crate) async fn list(State(state): State<AppState>, Query(query): Query<ListQuery>) -> Response {
+    let cursor = match query.cursor.as_deref().map(decode_cursor).transpose() { Ok(value)=>value, Err(error)=>return failure(error) };
+    crate::with_store(state, move |conn| match document::list_page(conn,cursor) {
+        Ok((documents,next,count)) => {
+            let next_cursor = next.map(|value|base64::engine::general_purpose::URL_SAFE_NO_PAD.encode(serde_json::to_vec(&json!({"v":value.v,"watermark_rowid":value.watermark_rowid,"snapshot_count":value.snapshot_count,"after_created_at":value.after_created_at,"after_document_id":value.after_document_id})).unwrap()));
+            Json(json!({"documents":documents,"next_cursor":next_cursor,"snapshot_count":count})).into_response()
+        },
         Err(error) => failure(error),
     })
     .await

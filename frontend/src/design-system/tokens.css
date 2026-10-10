@@ -160,7 +160,7 @@ button:active:not(:disabled), .btn:active:not(:disabled) {
 }
 
 button:focus-visible, .btn:focus-visible {
-  box-shadow: 0 0 0 2px var(--ax-accent-soft), 0 0 0 4px var(--ax-focus-ring, rgba(255, 255, 255, 0.25));
+  box-shadow: 0 0 0 2px var(--ax-focus-ring), 0 0 0 4px var(--ax-focus-ring);
   border-color: var(--ax-accent-bright);
 }
 
@@ -255,7 +255,7 @@ input:hover, textarea:hover, select:hover {
 
 input:focus, textarea:focus, select:focus {
   border-color: var(--ax-accent-bright);
-  box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.18), inset 0 1px 2px rgba(0, 0, 0, 0.25);
+  box-shadow: 0 0 0 3px var(--ax-focus-ring), inset 0 1px 2px rgba(0, 0, 0, 0.25);
   background: rgba(255, 255, 255, 0.045);
 }
 
@@ -270,7 +270,7 @@ input:disabled, textarea:disabled, select:disabled {
 
 /* Cards */
 .card, .space-card {
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.03), rgba(255, 255, 255, 0.015));
+  background: var(--ax-panel);
   border: 1px solid var(--ax-border);
   border-radius: 12px;
   padding: var(--ax-space-4);
@@ -285,8 +285,8 @@ input:disabled, textarea:disabled, select:disabled {
 }
 
 .space-card-error {
-  border-color: rgba(239, 68, 68, 0.3);
-  background: rgba(239, 68, 68, 0.06);
+  border-color: var(--ax-danger);
+  background: var(--ax-danger-soft);
 }
 
 .space-card-error strong {
@@ -796,8 +796,8 @@ tr:hover {
 }
 
 .badge-info {
-  background: rgba(255, 255, 255, 0.06);
-  color: var(--ax-fg-tertiary);
+  background: var(--ax-accent-soft);
+  color: var(--ax-accent-bright);
 }
 
 .aaos-status-badge { display: inline-flex; align-items: center; gap: 5px; }
@@ -855,10 +855,9 @@ tr:hover {
   min-width: 180px;
 }
 
-/* The brand mark is the owner's logo cut to transparency, so what a theme changes here is how it
-   lights, not what it draws: a static halo is what keeps a 28px line-art emblem readable on a
-   dark surface. Nothing animates, so there is no filter to interpolate per frame and reduced
-   motion has no motion left to stop. */
+/* The owner's transparent logo is readable through its ink contrast. The static theme halo
+   is decorative: rendered gutter samples measured only 1.01-1.05:1 against the bar.
+   No animation or filter interpolation is applied in either motion preference. */
 .status-bar-brand .brand-mark {
   filter: drop-shadow(0 0 4px var(--ax-brand-glow));
 }
@@ -870,13 +869,18 @@ tr:hover {
 }
 
 .status-bar-center {
-  flex: 1;
+  flex: 1 1 auto;
+  min-width: 0;
   display: flex;
   justify-content: center;
 }
 
 .status-pill {
-  display: inline-flex;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 0;
+  display: inline-block;
   align-items: center;
   gap: 6px;
   padding: 3px 10px;
@@ -890,6 +894,9 @@ tr:hover {
 
 .status-pill::before {
   content: "";
+  display: inline-block;
+  vertical-align: middle;
+  margin-right: 6px;
   width: 6px;
   height: 6px;
   border-radius: 50%;
@@ -911,6 +918,7 @@ tr:hover {
 }
 
 .inspector-trigger {
+  flex-shrink: 0;
   width: 28px;
   height: 28px;
   padding: 0;
@@ -1008,6 +1016,8 @@ tr:hover {
 
 /* Context subnav */
 .context-subnav {
+  min-height: 0;
+  overflow: auto;
   display: flex;
   flex-direction: column;
   width: 220px;
@@ -1016,6 +1026,8 @@ tr:hover {
   background: var(--ax-canvas);
   gap: var(--ax-space-4);
 }
+
+.context-subnav > * { flex-shrink: 0; }
 
 .context-subnav header {
   padding-bottom: var(--ax-space-3);
@@ -1953,7 +1965,7 @@ tr:hover {
   display: grid;
   place-items: start center;
   padding: min(12vh, 96px) var(--ax-space-4) var(--ax-space-4);
-  background: rgba(0, 0, 0, 0.72);
+  background: var(--aaos-overlay);
   backdrop-filter: blur(3px);
 }
 

@@ -121,6 +121,24 @@ def test_extract_forwards_the_token_budget(monkeypatch, tmp_path):
 
     assert seen["max_tokens"] == 777
     assert result["loss_receipt"]["params"]["max_tokens"] == 777
+    assert result["max_tokens"] == 777
+    assert result["finish_reason"] == "stop"
+    assert result["truncated"] is False
+    assert isinstance(result["elapsed_s"], (int, float))
+
+
+def test_route_extraction_preserves_actual_truncation_metadata(monkeypatch, tmp_path):
+    monkeypatch.setattr(machine, "_endpoint", lambda: {
+        "protocol": "openai", "base": "http://127.0.0.1:1/v1", "model": "m", "discovered": True})
+    monkeypatch.setattr(machine, "_call", lambda *args, **kwargs: ("partial answer", "length"))
+    context = tmp_path / "ctx.txt"
+    context.write_text("synthetic accepted material", encoding="utf-8")
+    result = machine.extract(str(context), "question", max_tokens=128)
+    assert result["finish_reason"] == result["loss_receipt"]["params"]["finish_reason"] == "length"
+    assert result["truncated"] is True
+    assert result["max_tokens"] == 128
+    assert result["elapsed_s"] >= 0
+    assert result["loss_receipt"]["losses"][0]["kind"] == "truncated_answer"
 
 
 def test_a_missing_context_file_is_a_named_failure(tmp_path):

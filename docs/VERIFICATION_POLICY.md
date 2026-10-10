@@ -1,12 +1,15 @@
 # Verification Policy
 
+> **2026-10-09 当前执行覆盖**：用户已选择新 UI 优先任务及 G01；规范活动指针为 [AAOS-ACTIVE-EXECUTION](current/AAOS-ACTIVE-EXECUTION.json)，当前任务来源为 [UI 优先 TaskPack](taskpacks/aaos-ui-first-20261009/TASKPACK.md)，实际进度只读 [UI 执行记录](current/AAOS-UI-FIRST-EXECUTION-20261009.md)。规划原文的 PLANNING_READY / NOT_EXECUTED 是规划时状态，激活与实际结果由当前覆盖记录，不改写不可变原包。AAOS-01 Q00–Q15 台账仅记录该继承工作流，不代表新 UI 全队列；旧 R6/M0 整包顺序冻结，有效合同、单一 Rust Core writer、内容先保存及历史证据保留。V01 继续暂停。
+> 当前新布局、架构和其余产品界面按新任务执行；默认 `blueprint`，配套 `blueprint-light`，旧 `black` / `white` / `cosmic` 仅为额外配色主题。五主题共用新布局、组件状态及统一语义颜色；一个主题内部的按钮、菜单、侧栏与正文保持一致。主题不更改 Core 配置或知识数据。
+> 平台指令优先；平台范围内用户当前明确决定优先于项目旧描述。此文档同步不授予 commit、push、merge、发布、私人账户/会话访问或恢复暂停的云端任务权限；本机资源索引不是云端权限。
+
+
 > 适用范围：仅限 `archeaxis-workspace`。本文件是本仓库验证频率、审计触发和证据保留的唯一流程记录。
 
-当前执行入口：[R6 台账](current/R6-EXECUTION.md)、
-[M0 方向覆盖](current/M0-DIRECTION-OVERRIDE-20260920.md)、
-[R6 状态](current/R6-STATE.json)，
-[冻结任务正文](authority/taskpack-0919-r6/TASKPACK.md)（SUP-020）。
-R5 及更早台账保留为历史证据，不作为当前完成状态。下述旧 RC/Release 流程仅在相应交付获授权时适用，不自动构建或发布新的 Green 版本。
+当前执行入口：[活动指针](current/AAOS-ACTIVE-EXECUTION.json) → UI 优先任务来源与当前 UI 执行进度。AAOS-01/R6/M0的有效合同和原日期收据继承；旧整包顺序冻结。V01继续暂停，G01只执行受影响文档、引用、权威和路径检查，不恢复历史 CI 改造或云端运行。
+
+下述既有阶段/RC/Release验证方法是对应阶段获授权时的参考，不是本次任务自动执行清单。commit、push、merge、安装与发布分别需要当前授权；文档里的阶段节奏不授予远程操作权限。云额度阻塞不当代码FAIL，本地PASS不当exact-SHA cloud PASS。
 
 ## 目标
 
@@ -14,7 +17,7 @@ R5 及更早台账保留为历史证据，不作为当前完成状态。下述�
 
 ## 三大阶段与验证节奏（AXC-050）
 
-固定三大阶段，每阶段结束执行一次完整项目 CI：
+以下是继承的三大验证阶段；仅在当前任务明确选择相应阶段并允许其门禁时执行：
 
 1. **Intake/RawAsset/Conversion 底座**（导入、转换、OCR/ASR 引擎链）；
 2. **常规多格式/OCR/ASR/Evidence**（格式矩阵、证据、质量门）；
@@ -25,8 +28,8 @@ R5 及更早台账保留为历史证据，不作为当前完成状态。下述�
 | 时机 | 验证 |
 | --- | --- |
 | 开发中 | 定向测试（30～90 秒）+ changed-file Ruff |
-| TaskPack checkpoint | 本地 commit，不 push、不跑全量 |
-| 每大阶段 | 一次 full project CI（聚合 diff 冻结后） |
+| TaskPack checkpoint | 保存定向证据；commit 仅在获授权时执行，不自动 push 或跑全量 |
+| 获授权大阶段 | 必要 full project CI（聚合 diff 冻结后）；V01 暂停不由此解除 |
 | nightly | 兼容矩阵（py 3.11/3.13）与长期 corpus |
 | RC | Windows 安装态全格式（wheel/Tauri/NSIS/E2E） |
 | Release | exact-SHA、SBOM、checksum、签名、下载回读 |
@@ -34,8 +37,8 @@ R5 及更早台账保留为历史证据，不作为当前完成状态。下述�
 ## 必要门禁
 
 1. **开发中**：每个新行为仍必须执行一次定向 RED → GREEN；集中测试不等于测试后补，也不允许多个未验证行为堆积。
-2. **TaskPack checkpoint**：低风险垂直切片只运行受影响测试、changed-file Ruff、diff/convention，形成可回滚的本地 commit；不重复全量套件，也不逐个 push/CI。
-3. **阶段 Release Train**：同一大阶段的一组低风险 checkpoint 完成后，冻结聚合 diff，运行一次完整门禁（pytest 主集 + ruff + architecture/convention/secrets），再统一 push 并验收最新 SHA 的一次 GitHub Actions run。
+2. **TaskPack checkpoint**：低风险垂直切片只运行受影响测试、changed-file Ruff、diff/convention，形成可审阅的 diff 与定向证据，获授权时才形成可回滚的本地 commit；不重复全量套件，也不逐个 push/CI。
+3. **阶段 Release Train**：相应阶段和完整门禁另获当前 Owner 授权后，冻结同一大阶段的聚合 diff，运行一次完整门禁（pytest 主集 + ruff + architecture/convention/secrets），只有远程写入和云端运行另获授权时，才 push 并验收最新 SHA 的一次 GitHub Actions run；V01继续暂停。
 4. **高风险旁路**：安全、权限、数据库、迁移、架构、打包/依赖变更**立即定向验证对应风险**，但只有触及 stage/RC/Release 才执行 full CI 与制品 exact-SHA；普通小修（迁移修复、依赖补丁）走定向 + stage 聚合，不扩大到发布级流程。
 5. **失败后**：定向失败只重跑受影响门禁；阶段完整门禁失败先定位到具体 checkpoint，修根因后只重跑失败门禁，最终聚合 tree 变化后再执行一次完整门禁。
 6. **Wheel**：从 clean checkout 构建，或先精确清理 ignored `build/` 与 `*.egg-info/`；对删除/重命名的 package-data 必须检查 wheel 成员表，防止陈旧构建目录把已退役文件重新打包。
@@ -55,7 +58,7 @@ R5 及更早台账保留为历史证据，不作为当前完成状态。下述�
 1. 一个 TaskPack 使用一个持续 writer 会话，直到形成提交、明确阻塞或用户中止；不得按固定时间片反复启动全新 agent 并重读相同上下文。
 2. 一次性 `hermes chat -q` 不得启动异步 reviewer 后立即退出；需要独立审查时，使用能等待结果的持续父会话或同步只读 reviewer。
 3. reviewer 只在本策略列出的高风险触发点执行一次。普通版本化合同与 Adapter 不因“更放心”逐轮重审。
-4. 开发循环只运行受影响测试；普通低风险 TaskPack 形成本地 checkpoint，完整门禁、聚合 frozen tree 和远端 CI 每个阶段 Release Train 各执行一次。没有生产 diff 的循环不得重复这些步骤。
+4. 开发循环只运行受影响测试；普通低风险 TaskPack 形成本地 checkpoint，完整门禁、聚合 frozen tree 和远端 CI 仅在对应阶段及各操作另获当前 Owner 授权后执行；V01 暂停期间不启动云端 CI。没有生产 diff 的循环不得重复这些步骤。
 5. 每个后续周期先读取 Git 状态和上一周期最终结果；若 HEAD、tree 与失败证据未变化，必须继续原任务或停止，不能重新发现、重新冻结、重新派审。
 
 ### 外部协调工具（可选，AXC-030）
@@ -92,7 +95,7 @@ WORK-LAB 是一个独立仓库，仅作为可选外部工作流协调工具通�
 
 ## 证据与记录
 
-每个低风险 TaskPack checkpoint 只保留本地 commit 与定向 RED/GREEN 结果；每个阶段 Release Train 只保留：
+每个低风险 TaskPack checkpoint 保留定向结果及获授权后产生的提交身份；获授权执行的每个阶段 Release Train 只保留：
 
 - 最终提交 SHA；
 - 最后一次必要本地门禁结果；

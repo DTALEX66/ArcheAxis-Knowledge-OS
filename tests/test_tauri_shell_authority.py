@@ -69,6 +69,31 @@ def test_native_observer_excludes_recycled_parent_pid_and_unrelated_processes(mo
         probe.owned_process_rows(rows, 99)
 
 
+@pytest.mark.parametrize("runtime,expected", [
+    ("Edg/154.0.4258.62", True),
+    ("Edg/154.0.4258.48", True),
+    ("Edg/154.0.4259.48", False),
+    ("Edg/153.0.4258.48", False),
+    ("Edg/154.0.4258", False),
+    ("Edg/154.0.4258.48 unexpected", False),
+])
+def test_edge_patch_update_uses_official_build_compatibility(monkeypatch, runtime, expected):
+    probe = load_probe(monkeypatch)
+    assert probe.compatible_edge_versions("Microsoft Edge WebDriver 154.0.4258.48 (official build)", runtime) is expected
+    assert not probe.compatible_edge_versions("unverified 154.0.4258.48", runtime)
+
+
+def test_description_does_not_change_exact_object_button_label(monkeypatch):
+    from lxml import etree
+    probe = load_probe(monkeypatch)
+    tree = etree.HTML("<ul aria-label='资料库对象导航'><li><button><b>来源锚点</b><small>绑定原件版本的引用记录</small></button></li><li><button><b>来源锚点副本</b><small>来源锚点</small></button></li></ul>")
+    scope = "//ul[@aria-label='资料库对象导航']"
+    assert not tree.xpath(f"{scope}//button[normalize-space(.)='来源锚点']")
+    found = tree.xpath(probe.navigation_button_selector("来源锚点", scope))
+    assert len(found) == 1 and found[0].find("b").text == "来源锚点"
+    assert probe.navigation_button_selector("保存") == "//button[normalize-space(.)='保存']"
+
+
 def test_native_profile_observer_does_not_read_profile_contents(monkeypatch, tmp_path):
     probe = load_probe(monkeypatch)
     profile = tmp_path / "profile"

@@ -196,3 +196,12 @@ git rev-parse "${b}:requirements-ci.txt"; git rev-parse 'main:requirements-ci.tx
 # 主线是否刻意删除过某路径
 git log --format=%h -1 --diff-filter=D main -- requirements-ci.txt
 ```
+
+## 2026-10-09 exact governance-file migration
+
+Historical execution paths and verdicts above are retained. This current mapping is effective only when the exact migration receipt records PASS; it does not authorize re-execution of the archived tools or remote changes.
+
+- `D:\All projects\ArcheAxis-Knowledge-OS\.project-local\analyse-local-branches-v2.py` → `D:\All projects\ArcheAxis-Knowledge-OS\.project-local\mig\root-layout-normalization-20261009\analyse-local-branches-v2.py`; 5701 B; SHA-256 `49b414ee464b3822b9ce64393550280967962028750d695a86656e6951e6cbba`.
+- `D:\All projects\ArcheAxis-Knowledge-OS\.project-local\audit-worktree-wip.py` → `D:\All projects\ArcheAxis-Knowledge-OS\.project-local\mig\root-layout-normalization-20261009\audit-worktree-wip.py`; 2707 B; SHA-256 `babd3bae043afcb04ba24a4e170f674a64edaa0d7bdbb3ec4a82389bb8e53ea8`.
+
+Current receipt: `D:\All projects\ArcheAxis-Knowledge-OS\.project-local\runs\f714401b40\codex-ui-governance-20261009\artifacts\remaining-layout-plan\migration-result.json`. Exact reverse mapping: run `D:\All projects\ArcheAxis-Knowledge-OS\.project-local\runs\f714401b40\codex-ui-governance-20261009\tmp\root_layout_migrate.py` with `--restore`; it refuses changed files and an existing original path. Only the five reviewed files are moved; no deletion or reclaimed-space claim.

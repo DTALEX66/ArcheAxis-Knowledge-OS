@@ -21,10 +21,18 @@ from __future__ import annotations
 import argparse
 import json
 import os
+import stat
 import sys
 from pathlib import Path
 
 REPO = Path(__file__).resolve().parents[2]
+PRIVATE_NAMES = frozenset({".codex", ".hermes", ".zcode", ".dsh", ".ui-task-tree"})
+PRIVATE_FILES = frozenset({".npmrc", ".pypirc", "id_rsa", "id_ed25519"})
+
+
+def protected_name(name: str) -> bool:
+    name = name.casefold()
+    return name in PRIVATE_NAMES or name in PRIVATE_FILES or name.startswith('.env')
 
 # Which ignored top-level entries are sanctioned. Everything else at the root is drift.
 ALLOWED_IGNORED = {".git", ".github", ".worklab", ".project-local", ".project", ".codex.example",
@@ -45,6 +53,9 @@ ALLOWED_IGNORED = {".git", ".github", ".worklab", ".project-local", ".project", 
                    ".zcode"}
 DEV_ALLOWED = {"build", "runs", "task-runtime", "candidates", "recovery", "mig", "cache",
                "a3-python-input", "worktrees", "legacy-scratch",
+               # Current DIRECTORY_AUTHORITY.yaml ignored_local_roots. Historical
+               # task-runtime/a*/rt* exceptions above remain preservation classes.
+               "agents", "leases", "logs", "artifacts",
                # named by a tracked document, so it stays; sanctioned rather than re-flagged forever
                "tmp"}
 # Budgets are ceilings for review, not delete triggers: exceeding one means the class needs a
@@ -65,92 +76,128 @@ def is_link(entry: os.DirEntry) -> bool:
     `Path.is_symlink()` reports False for a junction and `is_dir(follow_symlinks=False)` reports
     True for one, so a walk that only consults those two descends straight through it.
     """
-    try:
-        if entry.is_junction():
-            return True
-    except (AttributeError, OSError):
-        pass
-    return entry.is_symlink()
+    info = entry.stat(follow_symlinks=False)
+    return stat.S_ISLNK(info.st_mode) or bool(
+        getattr(info, "st_file_attributes", 0) & 0x400)
 
 
 def is_reparse_point(path: Path) -> bool:
-    try:
-        return bool(getattr(path.stat(follow_symlinks=False), "st_reparse_tag", 0)) or path.is_symlink()
-    except OSError:
-        return False
+    info = path.lstat()
+    return stat.S_ISLNK(info.st_mode) or bool(getattr(info, "st_file_attributes", 0) & 0x400)
+
+
+def safe_path(path: Path) -> Path:
+    """Use the canonical launcher boundary for this report and its mutation consumer."""
+    if any(protected_name(part) for part in path.parts):
+        raise ValueError("protected private root is outside project measurement")
+    import importlib.util
+    spec = importlib.util.spec_from_file_location("storage_dev_boundary", Path(__file__).with_name("dev.py"))
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module.safe_path(path)
 
 
 def links_under(path: Path) -> list[dict[str, str]]:
     """Links inside *path* with their targets, so shared bytes are attributed to their one owner
     instead of being counted into every directory that points at them."""
-    found: list[dict[str, str]] = []
-    stack = [path]
-    while stack:
-        current = stack.pop()
-        try:
-            with os.scandir(current) as entries:
-                for entry in entries:
-                    candidate = Path(entry.path)
-                    if is_link(entry):
-                        try:
-                            target = os.readlink(entry.path)
-                        except OSError:
-                            target = ""
-                        found.append({"link": str(candidate), "target": str(target)})
-                    elif entry.is_dir(follow_symlinks=False):
-                        stack.append(candidate)
-        except OSError:
-            continue
-    return sorted(found, key=lambda item: item["link"])
+    return sorted(directory_measurement(path)["links"], key=lambda item: item["link"])
 
 
-def directory_size(path: Path) -> int:
+def directory_measurement(path: Path) -> dict:
     """Bytes owned by *path*, not bytes reachable from it.
 
     A worktree's frontend/node_modules is a link to the single shared install; following it made
     every worktree report the same ~190 MB as its own, which is the double-count this report exists
     to prevent. `links_under` names those bytes once, at their target.
     """
-    if is_reparse_point(path):
-        return 0
-    total = 0
+    result = {"bytes": 0, "files": 0, "errors": [], "excluded_private": [], "links": []}
+    parts = tuple(part.casefold() for part in path.parts)
+    if (any(protected_name(part) for part in parts)
+            or any(a == ".project-local" and b == "agents" for a, b in zip(parts, parts[1:]))):
+        result["excluded_private"].append(str(path))
+        return result
+    try:
+        linked = is_reparse_point(path)
+    except OSError as error:
+        result["errors"].append({"path": str(path), "error": type(error).__name__, "errno": error.errno})
+        return result
+    if linked:
+        try:
+            result["links"].append({"link": str(path), "target": os.readlink(path)})
+        except OSError as error:
+            result["errors"].append({"path": str(path), "error": type(error).__name__, "errno": error.errno})
+        return result
     stack = [path]
     while stack:
         current = stack.pop()
         try:
             with os.scandir(current) as entries:
                 for entry in entries:
-                    if is_link(entry):
+                    # Names are checked before stat or descent: private agent state is not
+                    # project evidence, even when it sits below a project-owned worktree.
+                    if protected_name(entry.name):
+                        result["excluded_private"].append(entry.path)
                         continue
-                    if entry.is_file(follow_symlinks=False):
-                        total += entry.stat(follow_symlinks=False).st_size
-                    elif entry.is_dir(follow_symlinks=False):
-                        stack.append(Path(entry.path))
-        except OSError:
-            continue
-    return total
+                    if current.name.casefold() == ".project-local" and entry.name.casefold() == "agents":
+                        result["excluded_private"].append(entry.path)
+                        continue
+                    try:
+                        if is_link(entry):
+                            result["links"].append({"link": entry.path, "target": os.readlink(entry.path)})
+                        elif entry.is_file(follow_symlinks=False):
+                            result["bytes"] += entry.stat(follow_symlinks=False).st_size
+                            result["files"] += 1
+                        elif entry.is_dir(follow_symlinks=False):
+                            stack.append(Path(entry.path))
+                    except OSError as error:
+                        result["errors"].append({"path": entry.path, "error": type(error).__name__,
+                                                 "errno": error.errno})
+        except OSError as error:
+            result["errors"].append({"path": str(current), "error": type(error).__name__,
+                                     "errno": error.errno})
+    return result
 
 
-def protected_bytes(directory: Path) -> int:
-    """Bytes inside *directory* that a documented rule puts out of reach of this report.
+def directory_size(path: Path) -> int:
+    """Readable owned bytes only; use directory_measurement for completeness evidence."""
+    return directory_measurement(path)["bytes"]
 
-    The compile caches are that case: `dev.py` is explicit that no historical cache is moved or
-    removed, so counting them against a budget would only ever produce a permanent false alarm.
-    They are still measured and shown - the point is to see them, not to schedule their deletion.
-    """
-    total = 0
+
+def protected_bytes(directory: Path, diagnostics: list | None = None) -> int:
+    """Retained compile-cache bytes, without following links or private agent roots."""
+    # Only the declared build class holds reusable compile output. A recovery
+    # folder called cargo-* contains evidence ZIPs, not budget-exempt cache.
+    if directory.name.casefold() != "build":
+        return 0
+    if directory.name.casefold() == "agents" or any(part.casefold() in PRIVATE_NAMES for part in directory.parts):
+        return 0
+    def record(path, error):
+        if diagnostics is not None:
+            diagnostics.append({"path":str(path),"error":type(error).__name__,"errno":error.errno})
+    total=0
     try:
-        children = sorted(directory.iterdir())
-    except OSError:
+        children=sorted(directory.iterdir())
+    except OSError as error:
+        record(directory,error)
         return 0
     for child in children:
-        if not child.is_dir():
+        if child.name.casefold() in PRIVATE_NAMES or child.name.casefold()=="agents":
             continue
-        name = child.name
-        if name.startswith("cargo"):  # <root>/cargo, <root>/cargo-gnu
-            total += directory_size(child)
-        elif name not in {".git"} and (child / "cargo").is_dir():  # <identity>/cargo
-            total += directory_size(child / "cargo")
+        try:
+            if is_reparse_point(child) or not child.is_dir():
+                continue
+            cargo=child if child.name.startswith("cargo") else child/"cargo"
+            try:
+                linked=is_reparse_point(cargo)
+            except FileNotFoundError:
+                continue
+            if not linked and cargo.is_dir():
+                measured=directory_measurement(cargo)
+                total+=measured["bytes"]
+                if diagnostics is not None:
+                    diagnostics.extend(measured["errors"])
+        except OSError as error:
+            record(child,error)
     return total
 
 
@@ -189,7 +236,7 @@ def _git_root_names(repo: Path | None = None) -> set[str]:
     return names
 
 
-def checkout_roots(repo: Path) -> list[Path]:
+def checkout_roots(repo: Path, excluded: list[str] | None = None) -> list[Path]:
     """This repository's primary checkout plus every linked worktree that still exists.
 
     A layout contract is only worth as much as its coverage: the dev roots of the other checkouts
@@ -199,12 +246,27 @@ def checkout_roots(repo: Path) -> list[Path]:
     import subprocess
 
     roots = [repo]
+    common = subprocess.run(["git", "-C", str(repo), "rev-parse", "--path-format=absolute", "--git-common-dir"],
+                            capture_output=True, text=True, encoding="utf-8", check=True)
+    owner = Path(common.stdout.strip()).parent
     listing = subprocess.run(["git", "-C", str(repo), "worktree", "list", "--porcelain"],
-                             capture_output=True, text=True, encoding="utf-8", errors="replace")
+                             capture_output=True, text=True, encoding="utf-8", errors="replace", check=True)
     for line in (listing.stdout or "").splitlines():
         if line.startswith("worktree "):
             path = Path(line[len("worktree "):].strip())
-            if path.is_dir() and path != repo:
+            if (any(part.casefold() in PRIVATE_NAMES for part in path.parts)
+                    or (path != owner and not path.is_relative_to(owner / ".project-local" / "worktrees"))):
+                if excluded is not None:
+                    excluded.append(str(path))
+                continue
+            try:
+                present = path.is_dir()
+            except OSError:
+                present = False
+            if not present:
+                if excluded is not None:
+                    excluded.append(str(path) + " (missing or unreadable)")
+            elif path != repo:
                 roots.append(path)
     return roots
 
@@ -235,6 +297,7 @@ def runs_layout(dev: Path, repo: Path) -> tuple[list[str], list[str]]:
     import re
 
     runs = dev / "runs"
+    safe_path(runs)  # reject a junction before even testing or listing its target
     if not runs.is_dir():
         return [], []
     identities = known_run_identities(repo)
@@ -249,54 +312,133 @@ def runs_layout(dev: Path, repo: Path) -> tuple[list[str], list[str]]:
     return violations, stale
 
 
+def rank_runs(repo: Path) -> dict:
+    """Measure individual launcher runs without turning age or size into deletion authority."""
+    import re
+
+    repo = safe_path(repo)
+    runs = safe_path(repo / ".project-local" / "runs")
+    known = known_run_identities(repo)
+    rows, errors, excluded = [], [], []
+
+    def entries(path):
+        try:
+            return sorted(path.iterdir())
+        except FileNotFoundError as error:
+            if path != runs:
+                errors.append({"path": str(path), "error": type(error).__name__, "errno": error.errno})
+            return []
+        except OSError as error:
+            errors.append({"path": str(path), "error": type(error).__name__, "errno": error.errno})
+            return []
+
+    for identity in entries(runs):
+        if protected_name(identity.name) or not re.fullmatch(r"[0-9a-f]{10}", identity.name):
+            excluded.append(str(identity))
+            continue
+        try:
+            safe_path(identity)
+            if not identity.is_dir():
+                excluded.append(str(identity))
+                continue
+        except (OSError, ValueError) as error:
+            errors.append({"path": str(identity), "error": type(error).__name__,
+                           "errno": getattr(error, "errno", None)})
+            continue
+        for run in entries(identity):
+            if protected_name(run.name) or not re.fullmatch(r"[A-Za-z0-9_-]{1,64}", run.name):
+                excluded.append(str(run))
+                continue
+            try:
+                safe_path(run)
+                if not run.is_dir():
+                    excluded.append(str(run))
+                    continue
+            except (OSError, ValueError) as error:
+                errors.append({"path": str(run), "error": type(error).__name__,
+                               "errno": getattr(error, "errno", None)})
+                continue
+            measured = directory_measurement(run)
+            errors.extend(measured["errors"])
+            excluded.extend(measured["excluded_private"])
+            rows.append({"path": str(run), "identity": identity.name, "run_id": run.name,
+                         "checkout_present": identity.name in known,
+                         "retention": "UNCLASSIFIED_PRESERVE", **measured,
+                         "measurement_status": "PARTIAL" if measured["errors"] or
+                         measured["excluded_private"] or measured["links"] else "PASS"})
+    return {"repository": str(repo), "runs_root": str(runs),
+            "rows": sorted(rows, key=lambda row: (-row["bytes"], row["path"])),
+            "readable_bytes": sum(row["bytes"] for row in rows),
+            "measurement_status": "PARTIAL" if errors or excluded or
+            any(row["measurement_status"] != "PASS" for row in rows) else "PASS",
+            "byte_semantics": "readable owned bytes; excluded paths and unreadable bytes are unknown",
+            "errors": errors, "excluded": excluded, "deletion_qualified": False}
+
+
 def measure(repo: Path | None = None) -> dict:
     repo = REPO if repo is None else Path(repo)
+    # Reuse the launcher's boundary before any measurement. This report must not
+    # follow a root junction or accept a protected drive through --repo.
+    repo = safe_path(repo)
     out_of_layout: list[str] = []
     tracked = _git_root_names(repo)
     root_entries = []
     for entry in sorted(repo.iterdir()):
         name = entry.name
+        if name in PRIVATE_NAMES:
+            continue
+        directory = stat.S_ISDIR(entry.lstat().st_mode)
         if name in tracked:
-            if entry.is_dir():
-                record = {"name": name + "/", "bytes": directory_size(entry), "tracked": True}
+            if directory:
+                measured = directory_measurement(entry)
+                record = {"name": name + "/", **measured, "tracked": True}
                 # Name what was excluded. A directory that reports 1.1 MB while a 190 MB install
                 # sits behind a link inside it is only honest if the link and its target are shown;
                 # otherwise the shared bytes look like they vanished from the measurement.
-                links = links_under(entry)
+                links = measured["links"]
                 if links:
                     record["links"] = links
                 root_entries.append(record)
             continue
         if name in ALLOWED_IGNORED:
             continue
-        out_of_layout.append(f"root: {name}/" if entry.is_dir() else f"root: {name}")
+        out_of_layout.append(f"root: {name}/" if directory else f"root: {name}")
 
     dev = repo / ".project-local"
+    safe_path(dev)
     dev_classes, dev_strays = [], []
     if dev.is_dir():
         for entry in sorted(dev.iterdir()):
             name = entry.name
+            directory = stat.S_ISDIR(entry.lstat().st_mode)
             if not dev_allowed(name):
                 dev_strays.append(entry)
-                out_of_layout.append(f".project-local: {name}/" if entry.is_dir() else f".project-local: {name}")
+                out_of_layout.append(f".project-local: {name}/" if directory else f".project-local: {name}")
                 continue
-            size = directory_size(entry)
+            measured = directory_measurement(entry) if directory or is_reparse_point(entry) else {
+                "bytes": entry.stat().st_size, "files": 1, "errors": [], "excluded_private": [], "links": []}
+            size = measured["bytes"]
             # Compile caches are exempt from the budget rather than silently over it. `dev.py`
             # states the rule - "Do not move or remove any historical cache" - so a class that is
             # mostly that cache cannot be brought under a ceiling by deleting it, and a ceiling that
             # is knowingly exceeded is noise. Only the rest of the class is budgeted.
-            protected = protected_bytes(entry) if entry.is_dir() else 0
+            protected = protected_bytes(entry, measured["errors"]) if directory and not measured["links"] else 0
             budget = DEV_BUDGET_GB.get(name) or DEV_BUDGET_GB.get(name.split("-")[0])
             dev_classes.append({
-                "name": name + "/" if entry.is_dir() else name,
-                "bytes": size,
+                "name": name + "/" if directory else name,
+                **measured,
                 "gb": round(size / 1024 ** 3, 2),
                 "protected_bytes": protected,
                 "budgeted_bytes": size - protected,
                 "budget_gb": budget,
+                "total_over_budget": bool(budget and size > budget * 1024 ** 3),
                 "over_budget": bool(budget and size - protected > budget * 1024 ** 3),
             })
     runs_violations, runs_stale = runs_layout(dev, repo)
+    errors = [error for row in root_entries + dev_classes for error in row["errors"]]
+    excluded_private = sorted({path for row in root_entries + dev_classes for path in row["excluded_private"]})
+    excluded_checkouts: list[str] = []
+    checkout_roots(repo, excluded_checkouts)
     return {
         "repository": str(repo),
         "root": root_entries,
@@ -306,21 +448,33 @@ def measure(repo: Path | None = None) -> dict:
         "runs_layout": runs_violations,
         "runs_stale_identity": runs_stale,
         "out_of_layout": out_of_layout + runs_violations,
+        "measurement_status": "PARTIAL" if errors or excluded_private or excluded_checkouts else "PASS",
+        "byte_semantics": "readable owned bytes; lower bound when measurement_status is PARTIAL",
+        "measurement_errors": errors,
+        "excluded_private": excluded_private,
+        "excluded_checkouts": excluded_checkouts,
     }
 
 
 def print_report(report: dict) -> None:
     print(f"repository {report['repository']}")
+    print(f"measurement {report['measurement_status']}: {report['byte_semantics']}")
+    for error in report["measurement_errors"][:10]:
+        print(f"  unreadable {error['path']}: {error['error']} errno={error['errno']}")
+    print(f"  private subtrees excluded: {len(report['excluded_private'])}; "
+          f"foreign/private checkouts excluded: {len(report['excluded_checkouts'])}")
     print("root classes:")
     for entry in sorted(report["root"], key=lambda item: -item["bytes"]):
         # Say so out loud: the number is owned bytes, and what it left out is named here.
         links = entry.get("links") or []
         shared = f"   links out -> {', '.join(link['target'] for link in links)}" if links else ""
         print(f"  {entry['bytes'] / 1024 ** 3:8.2f} GB  {entry['name']}{shared}")
-    print(".project-local classes (budget in GB; compile caches shown but not budgeted):")
+    print(".project-local classes (budget in GB; retained compile caches shown separately):")
     for entry in sorted(report["dev_root"], key=lambda item: -item["bytes"]):
         flag = f"  OVER budget {entry['budget_gb']}" if entry["over_budget"] else ""
         budget = f"{entry['budget_gb']}" if entry["budget_gb"] else "-"
+        if entry.get("total_over_budget") and not entry["over_budget"]:
+            flag += "  TOTAL OVER (retained cache; no automatic deletion)"
         protected = entry.get("protected_bytes") or 0
         held = f"  ({protected / 1024 ** 3:.2f} GB of it is a cache dev.py forbids removing)" if protected else ""
         print(f"  {entry['gb']:8.2f} GB  {entry['name']:<24} budget {budget}{flag}{held}")
@@ -349,17 +503,25 @@ def print_report(report: dict) -> None:
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--json", default=None)
+    parser.add_argument("--rank-runs", action="store_true",
+                        help="rank scoped launcher runs by readable owned bytes; never qualify deletion")
     # The linked worktrees hold the current scripts while the checked-out repositories hold the
     # dev roots, so measuring a *different* checkout has to be a parameter rather than a reason to
     # copy this file over or to edit the other checkout.
     parser.add_argument("--repo", default=None,
                         help="checkout to measure (default: the repository this script lives in)")
     args = parser.parse_args()
-    report = measure(Path(args.repo) if args.repo else None)
-    print_report(report)
+    if args.rank_runs:
+        report = rank_runs(Path(args.repo) if args.repo else REPO)
+        print(f"runs measurement {report['measurement_status']}: {report['readable_bytes']} readable bytes")
+        for row in report["rows"][:20]:
+            print(f"  {row['bytes']:12} B  {row['identity']}/{row['run_id']}  {row['measurement_status']} PRESERVE")
+    else:
+        report = measure(Path(args.repo) if args.repo else None)
+        print_report(report)
     if args.json:
         Path(args.json).write_text(json.dumps(report, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
-    return 1 if report["out_of_layout"] else 0
+    return 1 if report.get("out_of_layout") or report["measurement_status"] != "PASS" else 0
 
 
 if __name__ == "__main__":

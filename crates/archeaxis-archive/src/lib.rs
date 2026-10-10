@@ -49,6 +49,52 @@ pub const EXPORT_TABLES: &[&str] = &[
     "documents",
     "document_versions",
     "document_blocks",
+    "document_checks",
+    "teaching_records",
+    "teaching_withdrawals",
+];
+
+/// Frozen shipped schemas 10/11: these omitted document_checks and remain readable.
+pub const V10_V11_LAYOUT: &[&str] = &[
+    "workspace_meta",
+    "sources",
+    "transforms",
+    "anchors",
+    "knowledge",
+    "review_events",
+    "learning_events",
+    "jobs",
+    "job_attempts",
+    "job_outputs",
+    "canvas_projections",
+    "canvas_projection_nodes",
+    "canvas_projection_edges",
+    "source_origins",
+    "learning_event_keys",
+    "knowledge_supersedes",
+    // These four are live tables that the export used to omit, so an archive/restore round
+    // trip silently lost human-learning assessments, machine receipts, card references and
+    // the V3 governance metadata. They are appended rather than inserted: `restore` inserts
+    // in this order, and each one's foreign keys name `knowledge`, `sources` or `anchors`,
+    // which are all written earlier, so appending is sufficient and keeps the historical
+    // layout above byte-identical for readers that expect it.
+    "knowledge_v3_metadata",
+    "learning_assessments",
+    "card_references",
+    "machine_tasks",
+    // R7/G1: the capability enable/disable record. It has no foreign keys, so appending is safe
+    // for `restore`, and omitting it would silently lose which capabilities an operator turned off.
+    "capability_settings",
+    // R7/G2: the vault link graph. It references `knowledge`, which is written earlier, so
+    // appending is safe for `restore`; omitting it would silently lose every link a vault
+    // declared, which is the gap this table exists to close.
+    "vault_links",
+    "general_courses",
+    "general_course_artifacts",
+    "general_course_bindings",
+    "documents",
+    "document_versions",
+    "document_blocks",
 ];
 
 /// ARCHIVE-01: every export layout the **current** schema version actually shipped,
@@ -277,6 +323,7 @@ fn archive_tables(manifest: &ArchiveManifest) -> Result<&'static [&'static str],
             .copied()
             .ok_or_else(|| ArchiveError::Table("unknown v8 archive layout".into())),
         9 if same_set(V9_LAYOUT) => Ok(V9_LAYOUT),
+        10 | 11 if same_set(V10_V11_LAYOUT) => Ok(V10_V11_LAYOUT),
         version if version == archeaxis_store_sqlite::SCHEMA_VERSION => CURRENT_LAYOUTS
             .iter()
             .find(|layout| same_set(layout))
@@ -581,6 +628,9 @@ pub fn restore_workspace(
     if violation {
         return Err(ArchiveError::Table("restored foreign key mismatch".into()));
     }
+    // Restoration preserves historical documents, but does not restore live permission.
+    // Every old grant identity is fenced; the human must create a new grant object.
+    archeaxis_store_sqlite::authorization_fence::install_after_restore(&tx)?;
     tx.commit()?;
     conn.execute_batch("PRAGMA wal_checkpoint(TRUNCATE); PRAGMA journal_mode=DELETE;")?;
     drop(conn);

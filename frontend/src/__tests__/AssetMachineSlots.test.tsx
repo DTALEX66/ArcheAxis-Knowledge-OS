@@ -1,0 +1,11 @@
+import { beforeEach,it,expect,vi } from "vitest";
+import { render,screen,fireEvent,waitFor } from "@testing-library/react";
+import { AssetMachineSlots } from "../components/AssetMachineSlots";
+import type { AssetPacketRequest } from "../api/generated/ai-asset-contract";
+const helpers=vi.hoisted(()=>({read:vi.fn()}));vi.mock("../presentation/assetConsumption",()=>({readAssetConsumption:helpers.read}));
+const initial:AssetPacketRequest={request_id:"selection",asset:{document_id:"a",version:2,content_sha256:"a".repeat(64)},grant:{document_id:"g",version:3,content_sha256:"b".repeat(64)},purpose:"固定用途",consumer:"local-machine",operation:"answer"};
+const selection={request:initial,grant:{state:"granted"},asset:{state:"adopted"},current:true};
+beforeEach(()=>helpers.read.mockReset());
+it("initial actual snapshot sets only selected operation without inference or manufacturing retest",async()=>{helpers.read.mockResolvedValue(selection);const answer=vi.fn(),retest=vi.fn();render(<AssetMachineSlots initial={initial} onAnswer={answer} onRetest={retest} blocked={()=>false}/>);await waitFor(()=>expect(answer).toHaveBeenCalledWith(selection));expect(retest).not.toHaveBeenCalled();expect(helpers.read).toHaveBeenCalledWith(initial.grant,"answer",initial);});
+it("refresh after revoke keeps original snapshot and marks unavailable rather than upgrading",async()=>{helpers.read.mockResolvedValueOnce(selection).mockRejectedValueOnce(new Error("revoked"));const answer=vi.fn();render(<AssetMachineSlots initial={initial} onAnswer={answer} onRetest={vi.fn()} blocked={()=>false}/>);await screen.findByText(/a · v2/);fireEvent.click(screen.getByRole("button",{name:"核对回答资产当前授权"}));await waitFor(()=>expect(answer).toHaveBeenLastCalledWith({...selection,current:false}));expect(screen.getByText("当前授权不可执行；原消费快照和历史保留")).toBeInTheDocument();});
+it("dirty parent prevents new choice and clear, preserving both question and selection",async()=>{let dirty=false;helpers.read.mockResolvedValue(selection);const answer=vi.fn();render(<AssetMachineSlots initial={initial} onAnswer={answer} onRetest={vi.fn()} blocked={()=>dirty}/>);await screen.findByText(/a · v2/);dirty=true;fireEvent.click(screen.getByRole("button",{name:"取消回答资产选择"}));expect(answer).toHaveBeenCalledTimes(1);expect(screen.getByText(/a · v2/)).toBeInTheDocument();});

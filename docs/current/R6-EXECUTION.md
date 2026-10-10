@@ -4344,3 +4344,5 @@ tip `5ce27acb`，基线 `origin/main@4b9828c4`）：经跟踪入口 `scripts/ci/
 **仍未做**：安装后的 WebView2 宿主内回读、物理 IME/DPI/P95/冷启动、九步人工旅程、本分支的 CI 资格化
 （需一次性 push+PR+`force_full` 授权）、`p08`/`p09-11` 两份 log-derived 回执的层级改写（本轮只在
 `counting_notes.slice_coverage_by_name` 记录 45/45 与 62/62 的名字在本轮同样通过，没有动它们的层级）。
+
+CORE-R16-EXPANSION-DEDUP-20261009：历史记录保留；当前恢复对象为 `.project-local/legacy-scratch-20261008/runs-dirs/candidate-20261003/core-candidate-r16.zip`（SHA-256 `590b29d11a60da2fb645dbc678008e7a8c0dbc36af849e073301ecd35c75e2d0`），三成员共97,726,878 B的真实还原证明位于 `未跟踪 D:/All projects/ArcheAxis-Knowledge-OS/.project-local/runs/f714401b40/codex-ui-governance-20261009/artifacts/core-r16-duplicate-audit/restore-fixture-proof.json`。展开目录只作为已可恢复的重复件按精确成员清理，源快照收据及旁边ZIP保留；实际删除结果以cleanup收据为准。恢复入口为 `未跟踪 D:/All projects/ArcheAxis-Knowledge-OS/.project-local/runs/f714401b40/codex-ui-governance-20261009/tmp/core-r16-cleanup/cleanup.py` 加 `--restore`，默认还原隔离新目录，拒绝覆盖安装态或已有目录。此次处置不恢复该旧debug候选的使用资格。

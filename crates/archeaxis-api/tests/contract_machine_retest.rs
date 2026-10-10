@@ -91,7 +91,7 @@ print(json.dumps({'answer': 'Synthetic answer', 'model': 'some-model', 'loss_rec
 
 fn body(knowledge_id: &str, retest_of: &str, question: &str) -> String {
     format!(
-        r#"{{"knowledge_id":"{knowledge_id}","retest_of":"{retest_of}","question":"{question}","timeout_s":600}}"#
+        r#"{{"knowledge_id":"{knowledge_id}","retest_of":"{retest_of}","question":"{question}","timeout_s":120}}"#
     )
 }
 

@@ -77,7 +77,8 @@ DESKTOP_MATRIX: tuple[tuple[str, int, int, float], ...] = (
     ("1920x1080@150", 1280, 720, 1.5),
     ("1920x1080@200", 960, 540, 2.0),
 )
-AAOS_THEME_IDS = ("black", "white", "cosmic")
+AAOS_THEME_IDS = ("blueprint", "blueprint-light", "black", "white", "cosmic")
+BRAND_THEME_ASSETS = {"blueprint":"cosmic", "blueprint-light":"white", "black":"black", "white":"white", "cosmic":"cosmic"}
 
 # The landmark bands the non-stacking check must find, declared per surface instead of discovered
 # from whatever the page happened to mount: an overlap check over a silently-shrinking landmark set
@@ -86,6 +87,7 @@ AAOS_THEME_IDS = ("black", "white", "cosmic")
 # `window.__TAURI__` exists - so the browser-fallback sweep must not be required to find it, and the
 # host sweep must not be allowed to stop looking for it either.
 CHROME_BANDS: dict[str, str] = {
+    "status": ".status-bar",
     "rail": ".space-rail",
     "context": ".context-subnav",
     "center": ".app-center",
@@ -95,6 +97,55 @@ LIBRARY_BANDS: dict[str, str] = {**CHROME_BANDS, "templates": "details.template-
 # The 学科模板 workspace is the widest component on this product entry, so it is measured at every
 # narrow size the window will actually render down to its declared 640x480 floor.
 LIBRARY_GEOMETRY_VIEWPORTS = ("900x800@100", "840x800@100", "760x800@100", "640x800@100", "640x480@100")
+
+
+def navigate_ui_page(page, page_id: str) -> None:
+    trigger = page.get_by_role("button", name="打开产品导航")
+    if trigger.is_visible():
+        trigger.click()
+        drawer = page.get_by_role("dialog", name="产品导航")
+        drawer.wait_for()
+        drawer.locator(f'[data-page-id="{page_id}"]').click()
+        drawer.wait_for(state="detached")
+    else:
+        page.locator(f'.navigation-sidebar [data-page-id="{page_id}"]').click()
+
+
+def chrome_bands(page, *, library: bool = False) -> dict[str, str]:
+    # Expected structure is declared by viewport and surface, never inferred from missing nodes.
+    bands = {"status":".status-bar", "center":".app-center", "dock":".activity-dock"}
+    narrow = page.viewport_size["width"] <= 900
+    if narrow:
+        assert not page.locator(".navigation-sidebar").is_visible(), "narrow sidebar consumes reading space"
+        assert page.get_by_role("button", name="打开产品导航").is_visible(), "narrow navigation cannot be opened"
+        bands["navigation_trigger"] = ".ui-navigation-trigger"
+    else:
+        bands["rail"] = ".space-rail"
+        if library:
+            bands["context"] = ".context-subnav"
+    return bands
+
+
+def library_bands(page) -> dict[str, str]:
+    return {**chrome_bands(page, library=True), "templates":"details.template-launcher"}
+
+
+def check_navigation_drawer(page) -> dict[str, object]:
+    trigger = page.get_by_role("button", name="打开产品导航")
+    if not trigger.is_visible():
+        return {"state":"desktop-sidebar", "drawer_required":False}
+    trigger.click()
+    drawer = page.get_by_role("dialog", name="产品导航")
+    drawer.wait_for()
+    assert drawer.locator('[data-page-id]').count() == 21
+    assert page.evaluate("() => !!document.activeElement?.closest('[role=dialog]')"), "drawer autofocus escaped"
+    page.keyboard.press("Shift+Tab")
+    assert page.evaluate("() => !!document.activeElement?.closest('[role=dialog]')"), "drawer keyboard focus escaped"
+    page.keyboard.press("Escape")
+    drawer.wait_for(state="detached")
+    page.wait_for_timeout(150)
+    assert trigger.evaluate("node => document.activeElement === node"), "drawer did not restore trigger focus"
+    return {"state":"PASS", "drawer_required":True, "page_count":21, "focus_trapped":True}
 
 BRAND_ASSET_DIR = ROOT / "frontend" / "src" / "assets"
 
@@ -176,7 +227,7 @@ def api_payload(url: str) -> dict[str, object]:
     return {}
 
 
-def _declared_node() -> str | None:
+def _declared_tool(resource_id="ext.toolchains.nodejs-lts", name="nodejs-lts") -> str | None:
     """Resolve Node through the project's declared resource index, not an ambient PATH.
 
     This gate used to need `node` already on PATH, so it died with "Vite requires Node" on a
@@ -193,7 +244,7 @@ def _declared_node() -> str | None:
 
     def walk(node: object):
         if isinstance(node, dict):
-            if node.get("resource_id") == "ext.toolchains.nodejs-lts" or node.get("name") == "nodejs-lts":
+            if node.get("resource_id") == resource_id or node.get("name") == name:
                 yield node
             for value in node.values():
                 yield from walk(value)
@@ -209,9 +260,14 @@ def _declared_node() -> str | None:
             if isinstance(entry, dict)
         ]
         for candidate in candidates:
+            if candidate and Path(candidate).drive.upper() in {"E:","F:"}:
+                raise RuntimeError("declared tool is on a protected drive")
             if candidate and Path(candidate).is_file():
                 return str(candidate)
     return None
+
+def _declared_node() -> str | None:
+    return _declared_tool()
 
 
 def start_vite(log_path: Path) -> tuple[subprocess.Popen[bytes], object]:
@@ -312,8 +368,8 @@ HOST_BRIDGE_STUB_TEMPLATE = """
   // whether it shows the shell or the recovery screen; nothing here claims to be the native host.
   const bodies = {
     sources_list: { sources: __A0_SOURCES__ },
-    documents_list: { documents: __A0_DOCUMENTS__ },
-    learning_items: { items: [] },
+    documents_list: { documents: __A0_DOCUMENTS__, next_cursor: null, snapshot_count: __A0_DOCUMENTS__.length },
+    learning_items: { items: [], count: 0 },
     capabilities_list: { capabilities: [] },
     anchors_list: { anchors: [] },
     source_original: __A0_ORIGINAL__,
@@ -324,6 +380,7 @@ HOST_BRIDGE_STUB_TEMPLATE = """
   // A declared outage, not a silent one: the named operations answer with this status so the gate
   // can read what the surface claims when a Core read cannot be finished.
   const faults = __A0_FAULTS__;
+  __A0_STATEFUL_DOCUMENTS__
   window.__TAURI__ = {
     core: {
       invoke: async (command, request) => {
@@ -335,6 +392,10 @@ HOST_BRIDGE_STUB_TEMPLATE = """
           const operation = request?.request?.operation;
           if (Object.prototype.hasOwnProperty.call(faults, operation)) {
             return { status: faults[operation], body: {} };
+          }
+          if (documentFixture) {
+            const answer = await documentFixture(operation, request?.request?.payload ?? {});
+            if (answer) return answer;
           }
           return { status: 200, body: bodies[operation] ?? {} };
         }
@@ -367,10 +428,53 @@ A0_DOCUMENT_SUMMARY = {
 }
 
 
+A0_STATEFUL_DOCUMENTS = r"""
+  const current = new Map(), history = new Map(), calls = [];
+  const copy = value => structuredClone(value);
+  const text = node => node.text ?? (node.content ?? []).map(text).join("\n");
+  async function makeDocument(id, title, editor, version) {
+    const projection = text(editor);
+    const digest = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(JSON.stringify(editor)));
+    return {document_id:id,source_id:null,source_revision:null,title,version,editor_json:copy(editor),
+      text_projection:projection,content_sha256:[...new Uint8Array(digest)].map(n=>n.toString(16).padStart(2,"0")).join(""),blocks:[{block_id:"a0_p1",kind:"paragraph",ordinal:0,node_json:copy(editor.content[0]),text_projection:projection,codec_status:"known"}]};
+  }
+  function retain(doc) { current.set(doc.document_id,copy(doc)); history.set(`${doc.document_id}:${doc.version}`,copy(doc)); }
+  const ready = Promise.all([1,2,3].map(async n => retain(await makeDocument(`a0_target_${n}`,
+    `引用目标 ${n} · 独立历史正文`,{type:"doc",content:[{type:"paragraph",content:[{type:"text",text:`绑定历史正文 ${n} v1`}]}]},1))));
+  window.__A0_DOCUMENT_FIXTURE__ = {calls, snapshot:()=>copy([...current.values()]), advance:async()=>{
+    await ready;
+    for (const n of [1,2,3]) retain(await makeDocument(`a0_target_${n}`,`引用目标 ${n} · 独立历史正文`,
+      {type:"doc",content:[{type:"paragraph",content:[{type:"text",text:`当前新正文 ${n} v2`}]}]},2));
+  }};
+  const documentFixture = async (operation,payload) => {
+    await ready; calls.push({operation,payload:copy(payload)});
+    if (operation === "documents_list") return {status:200,body:{documents:[...current.values()].map(d=>({
+      document_id:d.document_id,source_id:d.source_id,source_revision:d.source_revision,title:d.title,version:d.version,content_sha256:d.content_sha256})),next_cursor:null,snapshot_count:current.size}};
+    if (operation === "document_create") {
+      const doc=await makeDocument("a0_created",payload.body.title,payload.body.editor_json,1); retain(doc);
+      return {status:201,body:copy(doc)};
+    }
+    if (operation === "document_draft") {
+      const prior=current.get(payload.document_id);
+      if (!prior) return {status:404,body:{}};
+      if (prior.version !== payload.body.expected_version) return {status:409,body:{}};
+      const doc=await makeDocument(prior.document_id,prior.title,payload.body.editor_json,prior.version+1); retain(doc);
+      return {status:200,body:copy(doc)};
+    }
+    if (operation === "document_get" || operation === "document_version") {
+      const doc=operation === "document_get" ? current.get(payload.document_id) : history.get(`${payload.document_id}:${payload.version}`);
+      return doc ? {status:200,body:copy(doc)} : {status:404,body:{}};
+    }
+    return null;
+  };
+"""
+
+
 def host_bridge_stub(
     *,
     documents: list[dict[str, object]] | None = None,
     failing_operations: dict[str, int] | None = None,
+    stateful_documents: bool = False,
 ) -> str:
     import json
 
@@ -378,6 +482,7 @@ def host_bridge_stub(
         HOST_BRIDGE_STUB_TEMPLATE.replace("__A0_SOURCES__", json.dumps([A0_SOURCE]))
         .replace("__A0_DOCUMENTS__", json.dumps(documents if documents is not None else []))
         .replace("__A0_FAULTS__", json.dumps(failing_operations or {}))
+        .replace("__A0_STATEFUL_DOCUMENTS__", A0_STATEFUL_DOCUMENTS if stateful_documents else "const documentFixture = null;")
         .replace("__A0_ORIGINAL__", json.dumps({
             "source_id": A0_SOURCE["source_id"],
             "name": A0_SOURCE["original_name"],
@@ -435,12 +540,12 @@ def read_navigation_levels(page) -> dict[str, object]:
     # The icon span sits in the same button; only the label span carries text. Selecting the
     # label explicitly is what the requirement is about: a primary entry the user can read.
     labels = page.evaluate(
-        """() => [...document.querySelectorAll("ul[aria-label='产品空间'] .space-rail-item > span:not(.space-rail-icon)")]
+        """() => [...document.querySelectorAll("[data-page-id]")]
           .map((node) => ({ text: node.textContent.trim(), width: node.getBoundingClientRect().width }))"""
     )
     assert labels and all(entry["width"] > 8 for entry in labels), labels
-    assert len(labels) == 9, labels
-    assert [entry["text"] for entry in labels][:3] == ["工作台", "资料库", "导入"], labels
+    assert len(labels) == 21, labels
+    assert [entry["text"] for entry in labels][:3] == ["今日工作台", "知识库", "阅读与编辑"], labels
 
     sections = page.locator("ul[aria-label='资料库对象导航'] button")
     section_count = sections.count()
@@ -458,7 +563,7 @@ def read_navigation_levels(page) -> dict[str, object]:
     assert A0_SOURCE["source_id"] in trail, trail
     assert A0_SOURCE["source_revision"] in trail, trail
 
-    page.locator('[data-space-id="learning"]').click()
+    page.evaluate("location.hash = 'space=learning'")
     page.get_by_role("heading", name="学习").first.wait_for()
     review = page.locator("ul[aria-label='学习对象导航'] button").filter(has_text="复习队列")
     assert review.count() == 1, review.count()
@@ -602,6 +707,25 @@ def measure_geometry(page, bands: dict[str, str]) -> dict[str, object]:
               unscrollableBands.push([name, band.node.scrollHeight, band.node.clientHeight, style.overflowY]);
             }
           }
+          const escapedChildren = [];
+          for (const name of names) {
+            const band = bands[name];
+            const style = getComputedStyle(band.node);
+            for (const child of band.node.children) {
+              const rect = child.getBoundingClientRect();
+              if (rect.width <= 0 || rect.height <= 0) continue;
+              // Compare painted child boxes. A band's own scrolling can recover clipped
+              // children, but visible overflow still paints over neighbouring landmarks.
+              const painted = clipBox(child);
+              const spillX = painted.left < band.visible.left - 1 || painted.right > band.visible.right + 1;
+              const spillY = painted.top < band.visible.top - 1 || painted.bottom > band.visible.bottom + 1;
+              if ((spillX && !['auto', 'scroll'].includes(style.overflowX))
+                  || (spillY && !['auto', 'scroll'].includes(style.overflowY))) {
+                escapedChildren.push([name, child.className || child.tagName,
+                  +rect.width.toFixed(1), +rect.height.toFixed(1)]);
+              }
+            }
+          }
           return {
             scrollWidth: document.documentElement.scrollWidth,
             clientWidth: document.documentElement.clientWidth,
@@ -618,6 +742,7 @@ def measure_geometry(page, bands: dict[str, str]) -> dict[str, object]:
             missingBands: missingBands,
             unreachableBands: unreachableBands,
             unscrollableBands: unscrollableBands,
+            escapedChildren: escapedChildren,
             landmarkCount: names.length,
             motionFast: getComputedStyle(document.documentElement).getPropertyValue('--ax-motion-fast').trim(),
           };
@@ -637,11 +762,18 @@ def check_geometry(
     """Fail unless every declared band is present, none overlaps, and none escapes the viewport."""
     assert geometry["scrollWidth"] <= geometry["clientWidth"], geometry
     assert geometry["dock"]["bottom"] <= height + 0.5, geometry
-    assert 140 <= geometry["rail"]["width"] <= 300, geometry
-    assert geometry["main"]["x"] >= geometry["rail"]["width"] - 1, geometry
+    if "rail" in bands:
+        assert 140 <= geometry["rail"]["width"] <= 300, geometry
+        assert geometry["main"]["x"] >= geometry["rail"]["width"] - 1, geometry
+    else:
+        assert "navigation_trigger" in bands, "missing declared narrow navigation affordance"
+        assert geometry["rail"]["width"] == 0, geometry
+        assert abs(geometry["main"]["x"]) <= 1, geometry
+        assert geometry["main"]["width"] >= width - 1, geometry
     assert geometry["main"]["bottom"] <= geometry["dock"]["y"] + 0.5, geometry
     assert not geometry["inspector"], geometry
-    assert geometry["context"], geometry
+    if "context" in bands:
+        assert geometry["context"], geometry
     assert geometry["devicePixelRatio"] == scale, geometry
     assert not geometry["statusBarOverlaps"], geometry
     assert not geometry["missingBands"], geometry
@@ -653,12 +785,133 @@ def check_geometry(
     # clipped-and-unreachable would pass an overlap check while showing the user nothing.
     assert not geometry["unreachableBands"], geometry
     assert not geometry["unscrollableBands"], geometry
+    assert not geometry["escapedChildren"], geometry
     assert geometry["motionFast"] == "0ms", geometry
     if width <= 1200:
         # 601..1200 is where the chrome narrows so the reading column can survive; the
         # floor is what the stylesheet promises, and it once silently collapsed to 304px.
         assert geometry["main"]["width"] >= 280, geometry
     return geometry
+
+
+def check_status_accessibility(page) -> dict[str, object]:
+    """Rendered status text, targets and actual focus shadows, including alpha composition."""
+    layout = page.evaluate("""() => {
+      const bar = document.querySelector('.status-bar').getBoundingClientRect();
+      const pill = document.querySelector('.status-pill');
+      const rect = pill.getBoundingClientRect();
+      const range = document.createRange(); range.selectNodeContents(pill);
+      return {lines: new Set([...range.getClientRects()].map(r => r.top)).size,
+        spillsAboveBar: Math.max(0, bar.top - rect.top),
+        spillsBelowBar: Math.max(0, rect.bottom - bar.bottom),
+        controls: [...document.querySelectorAll('.status-bar button, .theme-picker select')]
+          .map(el => { const r = el.getBoundingClientRect();
+            const hit = document.elementFromPoint(r.x + r.width/2, r.y + r.height/2);
+            return {label: el.getAttribute('aria-label'), width: r.width, height: r.height,
+              reachable: el.contains(hit), inBar: r.left >= bar.left && r.right <= bar.right
+                && r.top >= bar.top && r.bottom <= bar.bottom}; })};
+    }""")
+    assert layout["lines"] == 1, layout
+    assert layout["spillsAboveBar"] == layout["spillsBelowBar"] == 0, layout
+    assert all(c["width"] >= 24 and c["height"] >= 24 and c["reachable"] and c["inBar"]
+               for c in layout["controls"]), layout
+
+    def composite(color: str, background: tuple[float, ...]) -> tuple[float, ...]:
+        numbers = [float(n) for n in re.findall(r"[\d.]+", color)]
+        assert len(numbers) in (3, 4), color
+        alpha = numbers[3] if len(numbers) == 4 else 1
+        return tuple(alpha * f + (1 - alpha) * b for f, b in zip(numbers[:3], background))
+
+    def contrast(a, b) -> float:
+        def luminance(rgb):
+            channels = [v / 255 for v in rgb]
+            linear = [v / 12.92 if v <= 0.04045 else ((v + 0.055) / 1.055) ** 2.4 for v in channels]
+            return sum(v * weight for v, weight in zip(linear, (0.2126, 0.7152, 0.0722)))
+        levels = sorted((luminance(a), luminance(b)))
+        return (levels[1] + 0.05) / (levels[0] + 0.05)
+
+    focus = []
+    page.keyboard.press("Tab")  # establish keyboard modality for :focus-visible
+    controls = page.locator('.status-bar button, .theme-picker select')
+    for index in range(controls.count()):
+        control = controls.nth(index)
+        control.focus()
+        page.wait_for_timeout(200)
+        style = control.evaluate("""el => {
+          const s = getComputedStyle(el);
+          return {shadow: s.boxShadow, background: s.backgroundColor,
+            bar: getComputedStyle(el.closest('.status-bar')).backgroundColor,
+            label: el.getAttribute('aria-label'), visible: el.matches(':focus-visible')};
+        }""")
+        bar = composite(style["bar"], (0, 0, 0))
+        background = composite(style["background"], bar)
+        # Inset shadows are decorative and cannot stand in for an outer focus indicator.
+        outer = re.split(r",\s*(?![^()]*\))", style["shadow"])
+        colors = [re.search(r"rgba?\([^)]*\)", shadow).group(0)
+                  for shadow in outer if 'inset' not in shadow and re.search(r"rgba?\([^)]*\)", shadow)]
+        ratios = [contrast(composite(color, bg), bg) for color in colors for bg in (bar, background)]
+        assert style["visible"] and ratios and min(ratios) >= 3, (style, ratios)
+        focus.append({"label": style["label"], "worst": min(ratios), "shadow": style["shadow"]})
+    page.evaluate("document.activeElement.blur()")
+    return {**layout, "focus": focus}
+
+
+def status_fault_selftest(page, width: int, height: int, scale: float) -> list[dict[str, object]]:
+    """Prove the rendered gates reject injected defects and recover after removal."""
+    results = []
+    def geometry():
+        return check_geometry(measure_geometry(page, chrome_bands(page)), width=width, height=height,
+                              scale=scale, bands=chrome_bands(page))
+    faults = (
+        ("status-child-overflow", '.status-bar', geometry),
+        ("navigation-child-overflow", '.context-subnav' if "context" in chrome_bands(page) else '.navigation-sidebar' if "rail" in chrome_bands(page) else '.activity-dock', geometry),
+        ("pill-wrap", '.status-pill {white-space:normal!important;width:30px!important;overflow:visible!important}',
+         lambda: check_status_accessibility(page)),
+        ("compressed-target", '.inspector-trigger {width:13px!important}', lambda: check_status_accessibility(page)),
+        ("invisible-focus", ':root {--ax-focus-ring:transparent!important}', lambda: check_status_accessibility(page)),
+    )
+    for name, fault, checker in faults:
+        if name.endswith('child-overflow'):
+            page.evaluate("""selector => {
+              const parent = document.querySelector(selector);
+              parent.dataset.savedStyle = parent.getAttribute('style') || '';
+              parent.style.overflow = 'visible';
+              const el = document.createElement('div'); el.id = 'a0-injected-fault';
+              el.style.cssText = 'position:fixed;left:10px;top:0;width:80px;height:100vh;background:red';
+              parent.appendChild(el);
+            }""", fault)
+        else:
+            page.evaluate("""css => { const el=document.createElement('style');
+              el.id='a0-injected-fault'; el.textContent=css; document.head.appendChild(el); }""", fault)
+        rejected = False
+        try:
+            checker()
+        except AssertionError:
+            rejected = True
+        finally:
+            page.evaluate("""() => {
+              document.querySelector('#a0-injected-fault')?.remove();
+              for (const el of document.querySelectorAll('[data-saved-style]')) {
+                el.setAttribute('style', el.dataset.savedStyle); delete el.dataset.savedStyle;
+              }
+            }""")
+        assert rejected, f'gate accepted injected {name}'
+        checker()
+        results.append({"fault": name, "injected": "FAIL", "removed": "PASS"})
+    # Use the actual product labels, including the longer native-host states.
+    source = (ROOT / 'frontend/src/components/StatusBar.tsx').read_text(encoding='utf-8')
+    block = source.split('const BACKEND_LABELS:', 1)[1].split('};', 1)[0]
+    labels = re.findall(r'^\s*\w+: "([^"]+)"', block, flags=re.MULTILINE)
+    assert labels, 'backend labels missing from product source'
+    original = page.locator('.status-pill').inner_text()
+    try:
+        for label in labels:
+            page.locator('.status-pill').evaluate('(el, text) => el.textContent=text', label)
+            check_status_accessibility(page)
+            results.append({"backend_label": label, "status": "PASS"})
+    finally:
+        page.locator('.status-pill').evaluate('(el, text) => el.textContent=text', original)
+    return results
 
 
 def open_library_page(
@@ -701,7 +954,8 @@ def open_library_page(
     context.add_init_script(stub)
     page.route("**/*", route_api)
     page.goto(URL, wait_until="networkidle")
-    page.locator('[data-space-id="library"]').click()
+    # Import/template regression belongs to the explicit canonical compatibility route.
+    page.evaluate("location.hash = 'space=library'")
     page.get_by_role("heading", name="资料库").first.wait_for()
     page.locator("details.template-launcher > summary").first.wait_for()
     return context, page
@@ -788,7 +1042,7 @@ def read_template_surface(page, label: str) -> dict[str, object]:
     assert list_state.first.get_attribute("role") is None, "the empty list speaks twice"
     text = section.first.inner_text()
     # The count line has to report the read it performed, not a plausible collection.
-    assert "本次读回 0 个文档对象，其中 0 个带可解析模板属性" in text, text
+    assert "本次完整读回 0 个文档对象，其中 0 个带可解析模板属性" in text, text
     assert "无效模板属性不参与集合汇总" not in text, text
     assert live_region_texts(page, "details.template-launcher") == [""], live_region_texts(page, "details.template-launcher")
 
@@ -810,6 +1064,88 @@ def read_template_surface(page, label: str) -> dict[str, object]:
         "empty_state": empty_state,
         "screenshot": _recorded(shot),
     }
+
+
+def read_template_roundtrip(browser, viewport, problems, theme="black") -> dict:
+    """Real rendering and interaction over synthetic versioned document commands."""
+    context, page = open_library_page(browser, problems, stub=host_bridge_stub(stateful_documents=True), viewport=viewport)
+    page.set_default_timeout(8000)
+    try:
+        page.get_by_label("界面主题").select_option(theme)
+        page.locator("details.template-launcher > summary").click()
+        section = page.locator(TEMPLATE_SECTION_SELECTOR)
+        section.get_by_role("button", name="创建学科对象", exact=True).click()
+        section.get_by_text("已由 Core 保存模板对象", exact=False).wait_for()
+        for n in [1, 2, 3]:
+            section.get_by_label("关系目标", exact=False).select_option(f"a0_target_{n}")
+            section.get_by_label("目标块 ID（可空）", exact=True).fill("a0_p1" if n == 1 else "")
+            section.get_by_role("button", name="加入版本绑定引用", exact=True).click()
+            page.wait_for_function("n => document.querySelector('[aria-label=局部图谱]').children.length === n", arg=n)
+        canvas = section.locator('[aria-label="引用式画布"]')
+        def check_cards(stage):
+            cards = canvas.evaluate("""node => [...node.children].map(card=>{const r=card.getBoundingClientRect();
+              return {x:r.x,y:r.y,width:r.width,height:r.height,savedX:parseFloat(card.style.left),savedY:parseFloat(card.style.top)};})""")
+            for i, a in enumerate(cards):
+                for b in cards[i+1:]:
+                    assert not (min(a['x']+a['width'],b['x']+b['width']) > max(a['x'],b['x'])
+                                and min(a['y']+a['height'],b['y']+b['height']) > max(a['y'],b['y'])), (stage,"overlapping reference cards",cards)
+            for button in canvas.locator("button").all():
+                button.scroll_into_view_if_needed()
+                assert button.evaluate("""node=>{const r=node.getBoundingClientRect();
+                  const hit=document.elementFromPoint(r.x+r.width/2,r.y+r.height/2);
+                  return r.width>=24 && r.height>=24 && (hit===node || node.contains(hit));}"""), (stage,button.inner_text())
+            return cards
+        check_cards("created")
+        for _ in range(2):
+            old=canvas.locator(":scope > div").nth(0).evaluate("node=>node.style.top")
+            section.get_by_role("button", name="移动引用卡片 1", exact=True).click()
+            page.wait_for_function("old=>document.querySelector('[aria-label=引用式画布]').children[0].style.top!==old",arg=old)
+        check_cards("first card moved twice")
+        for _ in range(12):
+            old=canvas.locator(":scope > div").nth(2).evaluate("node=>node.style.top")
+            section.get_by_role("button", name="移动引用卡片 3", exact=True).click()
+            page.wait_for_function("old=>document.querySelector('[aria-label=引用式画布]').children[2].style.top!==old",arg=old)
+        check_cards("last card moved twelve times")
+        section.get_by_role("button", name="删除引用 3", exact=True).click()
+        page.wait_for_function("() => document.querySelector('[aria-label=局部图谱]').children.length === 2")
+        section.get_by_label("关系目标", exact=False).select_option("a0_target_3")
+        section.get_by_role("button", name="加入版本绑定引用", exact=True).click()
+        page.wait_for_function("() => document.querySelector('[aria-label=局部图谱]').children.length === 3")
+        cards=check_cards("removed and added")
+        page.evaluate("() => window.__A0_DOCUMENT_FIXTURE__.advance()")
+        section.get_by_role("button", name="保存模板属性与关系", exact=True).click()
+        section.get_by_text("属性、关系与画布引用已保存", exact=False).wait_for()
+        section.locator('[aria-label="局部图谱"] button').first.click()
+        aside = section.locator('[aria-label="引用原文"]')
+        aside.get_by_text("绑定历史正文 1 v1", exact=True).wait_for()
+        assert "当前新正文" not in aside.inner_text(), aside.inner_text()
+        page.locator("details.template-launcher > summary").click()
+        section.wait_for(state="detached")
+        page.locator("details.template-launcher > summary").click()
+        page.locator("nav[aria-label='已保存模板'] button").filter(has_text="· v2").click()
+        page.wait_for_function("() => document.querySelector('[aria-label=局部图谱]').children.length === 3")
+        reloaded=check_cards("reloaded")
+        assert [(r["savedX"],r["savedY"]) for r in cards] == [(r["savedX"],r["savedY"]) for r in reloaded], (cards,reloaded)
+        audit = page.evaluate("() => ({calls:window.__A0_DOCUMENT_FIXTURE__.calls,documents:window.__A0_DOCUMENT_FIXTURE__.snapshot()})")
+        writes=[call for call in audit['calls'] if call['operation'] in ('document_create','document_draft')]
+        assert len(writes)==2, writes
+        assert writes[1]['payload']['body']['expected_version']==1, writes
+        saved=next(doc for doc in audit['documents'] if doc['document_id']=='a0_created')
+        refs=saved['editor_json']['attrs']['archeaxis_template']['references']
+        assert len(refs)==3 and all(ref['version']==1 for ref in refs), refs
+        assert refs[0]['block_id']=='a0_p1', refs
+        assert [(r['x'],r['y']) for r in refs]==[(r['savedX'],r['savedY']) for r in reloaded], (refs,reloaded)
+        return {"viewport":viewport[0],"theme":theme,"status":"PASS","cards":cards,
+                "writes":len(writes),"saved_version":saved['version'],"references":refs,
+                "rendering_evidence":"REAL","document_bridge_evidence":"SYNTHETIC"}
+    except Exception:
+        (ARTIFACTS / "template-roundtrip-failure.json").write_text(json.dumps({
+            "text":page.locator("body").inner_text(),"problems":problems,
+            "fixture":page.evaluate("() => window.__A0_DOCUMENT_FIXTURE__ ? {calls:window.__A0_DOCUMENT_FIXTURE__.calls,documents:window.__A0_DOCUMENT_FIXTURE__.snapshot()} : null")},ensure_ascii=False,indent=2),encoding="utf-8")
+        page.screenshot(path=str(ARTIFACTS / "template-roundtrip-failure.png"),full_page=True)
+        raise
+    finally:
+        context.close()
 
 
 def read_template_failure(browser, problems: list[str]) -> dict[str, object]:
@@ -837,8 +1173,8 @@ def read_template_failure(browser, problems: list[str]) -> dict[str, object]:
         assert section.first.get_by_text("模板对象读取失败，请重试。").count() == 1, section.first.inner_text()
         assert page.locator("nav[aria-label='已保存模板'] button").count() == 0, "an unretrieved object was listed"
         empty_state = page.locator("nav[aria-label='已保存模板'] p").first.inner_text()
-        assert "读取失败" in empty_state and "不表示没有模板对象" in empty_state, empty_state
-        assert "本次读回" not in section.first.inner_text(), section.first.inner_text()
+        assert "未能完整读回" in empty_state and "当前集合是否为空未知" in empty_state, empty_state
+        assert "本次完整读回" not in section.first.inner_text(), section.first.inner_text()
         # One event, one region: the failure is announced from the launcher's own status element
         # and from nowhere else on the page.
         spoken = live_region_texts(page, "details.template-launcher")
@@ -923,7 +1259,7 @@ def read_library_geometry(
 ) -> dict[str, object]:
     """The 资料库 landmark set at a real window size, collapsed and expanded.
 
-    The browser-fallback sweep cannot reach this surface, and the template disclosure is the
+    The unconnected browser sweep has no objects for this surface, and the template disclosure is the
     widest component on the product entry, so without this the non-stacking check would stop at
     the sizes where nothing is likely to stack. Both states are measured: the collapsed row is
     what the user sees first, the expanded workspace is where a non-wrapping grid escapes.
@@ -934,14 +1270,14 @@ def read_library_geometry(
         summary = page.locator("details.template-launcher > summary")
         summary.first.wait_for()
         collapsed = check_geometry(
-            measure_geometry(page, CHROME_BANDS),
-            width=width, height=height, scale=scale, bands=CHROME_BANDS,
+            measure_geometry(page, chrome_bands(page, library=True)),
+            width=width, height=height, scale=scale, bands=chrome_bands(page, library=True),
         )
         summary.first.click()
         page.locator(TEMPLATE_SECTION_SELECTOR).first.wait_for(state="attached")
         expanded = check_geometry(
-            measure_geometry(page, LIBRARY_BANDS),
-            width=width, height=height, scale=scale, bands=LIBRARY_BANDS,
+            measure_geometry(page, library_bands(page)),
+            width=width, height=height, scale=scale, bands=library_bands(page),
         )
         shot = ARTIFACTS / f"canonical-host-library-geometry-{label}.png"
         page.screenshot(path=str(shot), full_page=True)
@@ -953,6 +1289,56 @@ def read_library_geometry(
             "expanded": expanded,
             "screenshot": _recorded(shot),
         }
+    finally:
+        context.close()
+
+
+
+def read_semantic_reading(browser, viewport, problems, theme):
+    """New 02/03 layout evidence, separate from the legacy import/template regression."""
+    context, page = open_library_page(browser, problems,
+        stub=host_bridge_stub(stateful_documents=True), viewport=viewport)
+    try:
+        label = viewport[0]
+        page.get_by_label("界面主题").select_option(theme)
+        navigate_ui_page(page, "02")
+        library = page.get_by_role("region", name="知识库文档视图", exact=True)
+        library.wait_for()
+        row = library.get_by_role("button", name="打开文档 引用目标 1 · 独立历史正文", exact=True)
+        row.wait_for()
+        library_shot = ARTIFACTS / f"semantic-library-{theme}-{label}.png"
+        page.screenshot(path=str(library_shot), full_page=True)
+        row.click()
+        reader = page.get_by_role("region", name="阅读与编辑文档视图", exact=True)
+        reader.wait_for()
+        editor = reader.get_by_role("textbox", name="文档草稿")
+        editor.wait_for()
+        assert "绑定历史正文 1 v1" in editor.inner_text()
+        assert reader.locator("details.template-launcher").count() == 0
+        assert reader.locator("input[aria-label='导入原件']").count() == 0
+        assert reader.locator("input[aria-label='选择文件夹']").count() == 0
+        calls = page.evaluate("() => window.__A0_DOCUMENT_FIXTURE__.calls")
+        assert any(call["operation"] == "document_get" and
+            call["payload"].get("document_id") == "a0_target_1" for call in calls), calls
+        assert not any(call["operation"] == "document_draft" for call in calls), calls
+        geometry = page.evaluate("""() => {
+          const rect = selector => { const r=document.querySelector(selector).getBoundingClientRect();
+            return {x:r.x,y:r.y,right:r.right,bottom:r.bottom,width:r.width}; };
+          return {width:innerWidth,document:rect('.ui-reader-document'),details:rect('.ui-reader-details')};
+        }""")
+        doc, details = geometry["document"], geometry["details"]
+        assert doc["width"] > 100 and doc["right"] <= geometry["width"] + 1, geometry
+        assert details["width"] > 100 and details["right"] <= geometry["width"] + 1, geometry
+        if geometry["width"] > 1100:
+            assert doc["right"] <= details["x"], geometry
+        else:
+            assert doc["bottom"] <= details["y"], geometry
+        reader_shot = ARTIFACTS / f"semantic-reader-{theme}-{label}.png"
+        page.screenshot(path=str(reader_shot), full_page=True)
+        return {"evidence":"SIMULATED_HOST_CORE_FIXTURE", "theme":theme,"viewport":label,
+            "document_id":"a0_target_1","new_library":True,"new_reader":True,
+            "geometry":geometry,"library_screenshot":_recorded(library_shot),
+            "reader_screenshot":_recorded(reader_shot)}
     finally:
         context.close()
 
@@ -997,11 +1383,12 @@ def canonical_host_surface(browser, problems: list[str]) -> dict[str, object]:
     assert page.evaluate("() => Boolean(window.__TAURI__?.core?.invoke)"), "the host stub did not reach the page"
     # The desktop surface names its own liveness, which the browser fallback never shows; that is
     # the discriminator between "mounted the host UI" and "silently rendered the fallback shell".
-    page.locator("ul[aria-label='产品空间']").first.wait_for()
+    page.locator(".ui-page-navigation").first.wait_for()
     assert page.get_by_text("后端状态：本地可用").first.is_visible(), "no desktop liveness on the surface"
     assert page.get_by_text("本地桌面恢复").count() == 0, "the canonical surface fell back to the recovery shell"
 
-    page.locator('[data-space-id="library"]').click()
+    # Import/template regression belongs to the explicit canonical compatibility route.
+    page.evaluate("location.hash = 'space=library'")
     page.get_by_role("heading", name="资料库").first.wait_for()
     folder = page.locator("input[aria-label='选择文件夹']")
     folder.wait_for()
@@ -1043,6 +1430,9 @@ def canonical_host_surface(browser, problems: list[str]) -> dict[str, object]:
     context.close()
     # Separate contexts: the outage fixture and the narrow windows must not contaminate the
     # affordance run above, and each declares its own viewport rather than inheriting one.
+    result["template_roundtrip"] = [read_template_roundtrip(browser, viewport, problems, theme)
+        for viewport in DESKTOP_MATRIX if viewport[0] in ("900x800@100", "640x480@100")
+        for theme in AAOS_THEME_IDS]
     result["template_unreadable"] = read_template_failure(browser, problems)
     result["template_reachability"] = [
         read_template_reachability(browser, viewport, problems)
@@ -1054,6 +1444,9 @@ def canonical_host_surface(browser, problems: list[str]) -> dict[str, object]:
         for viewport in DESKTOP_MATRIX
         if viewport[0] in LIBRARY_GEOMETRY_VIEWPORTS
     ]
+    result["semantic_reading"] = [read_semantic_reading(browser, viewport, problems, theme)
+        for viewport in DESKTOP_MATRIX if viewport[0] in ("1440x1000@100", "640x480@100")
+        for theme in ("blueprint", "blueprint-light")]
     return result
 
 
@@ -1068,7 +1461,17 @@ def main() -> None:
     canonical: dict[str, object] = {}
     try:
         with sync_playwright() as playwright:
-            browser = playwright.chromium.launch(headless=True)
+            browser_options = {"headless":True}
+            if os.name == "nt":
+                chromium = _declared_tool("ext.toolchains.playwright-chromium","playwright-chromium")
+                if not chromium:
+                    raise RuntimeError("Declared playwright-chromium executable is missing; no automatic install")
+                declared_build = next((p for p in Path(chromium).parts if p.startswith("chromium-")),None)
+                expected_build = next((p for p in Path(playwright.chromium.executable_path).parts if p.startswith("chromium-")),None)
+                if not declared_build or declared_build!=expected_build:
+                    raise RuntimeError("Declared Chromium build does not match this Playwright runtime")
+                browser_options["executable_path"] = chromium
+            browser = playwright.chromium.launch(**browser_options)
             for label, width, height, scale in DESKTOP_MATRIX:
                 context = browser.new_context(
                     viewport={"width": width, "height": height},
@@ -1098,11 +1501,23 @@ def main() -> None:
 
                 page.route("**/*", route_api)
                 page.goto(URL, wait_until="networkidle")
-                page.get_by_role("heading", name="工作台").first.wait_for()
+                page.get_by_role("heading", name="今日工作台", exact=True).first.wait_for()
+                drawer_result = check_navigation_drawer(page)
                 geometry = check_geometry(
-                    measure_geometry(page, CHROME_BANDS),
-                    width=width, height=height, scale=scale, bands=CHROME_BANDS,
+                    measure_geometry(page, chrome_bands(page)),
+                    width=width, height=height, scale=scale, bands=chrome_bands(page),
                 )
+
+                accessibility = {}
+                for theme in AAOS_THEME_IDS:
+                    page.get_by_label("界面主题").select_option(theme)
+                    page.wait_for_timeout(200)
+                    check_geometry(measure_geometry(page, chrome_bands(page)),
+                                   width=width, height=height, scale=scale, bands=chrome_bands(page))
+                    accessibility[theme] = check_status_accessibility(page)
+                page.get_by_label("界面主题").select_option("black")
+
+                faults = status_fault_selftest(page, width, height, scale) if (width, height) == (640, 480) else []
 
                 page.get_by_role("button", name="打开全局命令").click()
                 page.get_by_role("dialog", name="全局命令").wait_for()
@@ -1131,8 +1546,8 @@ def main() -> None:
                 assert opened == {"tag": "INPUT", "label": "搜索空间或命令"}, opened
                 page.keyboard.press("Escape")
                 page.get_by_role("dialog", name="全局命令").wait_for(state="detached")
-                page.locator('[data-space-id="learning"]').click()
-                page.locator("#space-learning").wait_for()
+                page.evaluate("location.hash = 'space=learning'")
+                page.get_by_role("heading", name="学习", exact=True).first.wait_for()
                 assert page.get_by_role("button", name="视觉课件").count() == 0
                 assert page.get_by_role("button", name="空间记忆").count() == 0
                 page.get_by_role("button", name="展开活动坞").click()
@@ -1164,11 +1579,12 @@ def main() -> None:
                         surface = page.evaluate("getComputedStyle(document.body).backgroundColor")
                         assert applied == theme, (applied, theme)
                         assert brand and brand["complete"], (theme, brand)
-                        assert theme in (brand["src"] or ""), brand
+                        asset_theme = BRAND_THEME_ASSETS[theme]
+                        assert asset_theme in (brand["src"] or ""), brand
                         # The asset on disk is the expectation: an <img> whose file went missing
                         # keeps its 31x28 box and paints nothing, which a DOM-only check would
                         # read as a correct brand mark.
-                        expected = png_size(BRAND_ASSET_DIR / f"aaos-brand-mark-{theme}.png")
+                        expected = png_size(BRAND_ASSET_DIR / f"aaos-brand-mark-{asset_theme}.png")
                         assert tuple(brand["decoded"]) == expected, (theme, brand["decoded"], expected)
                         # The layout box is the declared slot, and the slot keeps the artwork's own
                         # ratio: an <img> stretched to a box of a different aspect is the classic
@@ -1190,13 +1606,17 @@ def main() -> None:
                             "body_surface": surface,
                             "screenshot": _recorded(shot),
                         }
-                    assert len(set(glows.values())) == len(AAOS_THEME_IDS), glows
+                    assert len({glows[id] for id in ("black", "white", "cosmic")}) == 3, glows
+                    assert all(glows[id] for id in AAOS_THEME_IDS), glows
                     page.get_by_label("界面主题").select_option("black")
 
                 screenshot = ARTIFACTS / f"canonical-shell-{label}.png"
                 page.screenshot(path=str(screenshot), full_page=True)
                 viewports[label] = {
                     "geometry": geometry,
+                    "navigation_drawer": drawer_result,
+                    "status_accessibility": accessibility,
+                    "status_fault_selftest": faults,
                     "screenshot": _recorded(screenshot),
                 }
                 context.close()

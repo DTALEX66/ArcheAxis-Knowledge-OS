@@ -1,0 +1,133 @@
+{
+  "status": "REMOVED_TASK_DUPLICATES_RETAINED_PROJECT_CONTENT",
+  "retention": "全部内容保留在项目内，无外库依赖；Record原件未删",
+  "delete_only_task_created_duplicates": [
+    {
+      "path": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\archives\\record-20261009\\originals\\Record\\AAOS-project-archives\\2026-09-29\\AAOS-Frontend-Acceptance-archive.zip",
+      "bytes": 229477326,
+      "sha256": "de82caf9a6a06e5f025ab813359377eca16e43fc48d39dc8732038e0ab09f32e",
+      "retained_project_recipe": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\archives\\record-20261009\\compact-recovery-v1\\recipes\\de82caf9a6a06e5f025ab813359377eca16e43fc48d39dc8732038e0ab09f32e.json",
+      "reason": "本轮新复制 ZIP；项目内共享压缩包已完整重建并匹配原 SHA256"
+    },
+    {
+      "path": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\archives\\record-20261009\\originals\\Record\\AAOS-project-archives\\2026-09-29\\AAOS-UI-HISTORY-76DIRS-20260929.zip",
+      "bytes": 5434623954,
+      "sha256": "183929bf629bcbd5473c0f41210ec37125f86fb7cae0bfada38843ae100151a4",
+      "retained_project_recipe": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\archives\\record-20261009\\compact-recovery-v1\\recipes\\183929bf629bcbd5473c0f41210ec37125f86fb7cae0bfada38843ae100151a4.json",
+      "reason": "本轮新复制 ZIP；项目内共享压缩包已完整重建并匹配原 SHA256"
+    },
+    {
+      "path": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\archives\\record-20261009\\originals\\Record\\AAOS-project-archives\\2026-09-29\\desktop-app-local-build-20260929.zip",
+      "bytes": 639514260,
+      "sha256": "b7923f5d2e5cc36fa0e7a4a8bbeaee2e77f839e81912852dd0dac1fc6eacc302",
+      "retained_project_recipe": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\archives\\record-20261009\\compact-recovery-v1\\recipes\\b7923f5d2e5cc36fa0e7a4a8bbeaee2e77f839e81912852dd0dac1fc6eacc302.json",
+      "reason": "本轮新复制 ZIP；项目内共享压缩包已完整重建并匹配原 SHA256"
+    },
+    {
+      "path": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\archives\\record-20261009\\originals\\Record\\AAOS-project-archives\\2026-09-29\\green-old-checkout-acceptance.zip",
+      "bytes": 1248479583,
+      "sha256": "18546d400bd280b64611c155eb95aec7895e24ebd412188bf3af63e3e82042be",
+      "retained_project_recipe": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\archives\\record-20261009\\compact-recovery-v1\\recipes\\18546d400bd280b64611c155eb95aec7895e24ebd412188bf3af63e3e82042be.json",
+      "reason": "本轮新复制 ZIP；项目内共享压缩包已完整重建并匹配原 SHA256"
+    },
+    {
+      "path": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\archives\\record-20261009\\originals\\Record\\AAOS-project-archives\\2026-09-29\\green-old-checkout-build-output-20260929.zip",
+      "bytes": 522265850,
+      "sha256": "2c41e8fa809e709eced8092e940e9ee73b6fe55ca2a55fd1452eeb53f39c61e3",
+      "retained_project_recipe": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\archives\\record-20261009\\compact-recovery-v1\\recipes\\2c41e8fa809e709eced8092e940e9ee73b6fe55ca2a55fd1452eeb53f39c61e3.json",
+      "reason": "本轮新复制 ZIP；项目内共享压缩包已完整重建并匹配原 SHA256"
+    },
+    {
+      "path": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\archives\\record-20261009\\originals\\Record\\AAOS-project-archives\\2026-09-29\\green-ui-unreferenced-output-20260929.zip",
+      "bytes": 4324551549,
+      "sha256": "f13af1b6267a85f87a0037e9e2752f4d9d3c72bb0477a7285a47d2863a3ad15e",
+      "retained_project_recipe": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\archives\\record-20261009\\compact-recovery-v1\\recipes\\f13af1b6267a85f87a0037e9e2752f4d9d3c72bb0477a7285a47d2863a3ad15e.json",
+      "reason": "本轮新复制 ZIP；项目内共享压缩包已完整重建并匹配原 SHA256"
+    },
+    {
+      "path": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\archives\\record-20261009\\originals\\Record\\AAOS-project-archives\\2026-09-30\\formal-run-builds\\frontend-responsive-desktop-build-absolute.zip",
+      "bytes": 76522014,
+      "sha256": "596de0dd9869725d4c7391bca466a32709614a39fc81a247dc0ea76b874df557",
+      "retained_project_recipe": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\archives\\record-20261009\\compact-recovery-v1\\recipes\\596de0dd9869725d4c7391bca466a32709614a39fc81a247dc0ea76b874df557.json",
+      "reason": "本轮新复制 ZIP；项目内共享压缩包已完整重建并匹配原 SHA256"
+    },
+    {
+      "path": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\archives\\record-20261009\\originals\\Record\\AAOS-project-archives\\2026-09-30\\formal-run-builds\\frontend-responsive-desktop-build-railfix.zip",
+      "bytes": 76522155,
+      "sha256": "5a5d1c5c3fc7009aee0bfb4b34064635cb5980024790cb1c3cb985ec8d42d7f4",
+      "retained_project_recipe": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\archives\\record-20261009\\compact-recovery-v1\\recipes\\5a5d1c5c3fc7009aee0bfb4b34064635cb5980024790cb1c3cb985ec8d42d7f4.json",
+      "reason": "本轮新复制 ZIP；项目内共享压缩包已完整重建并匹配原 SHA256"
+    },
+    {
+      "path": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\archives\\record-20261009\\originals\\Record\\AAOS-project-archives\\2026-09-30\\formal-run-builds\\r6-a12-build.zip",
+      "bytes": 190562228,
+      "sha256": "7b799dc6b5e88dba14433e53e50d601c4e77b0f7faa66147d65b8ec65bbbfc36",
+      "retained_project_recipe": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\archives\\record-20261009\\compact-recovery-v1\\recipes\\7b799dc6b5e88dba14433e53e50d601c4e77b0f7faa66147d65b8ec65bbbfc36.json",
+      "reason": "本轮新复制 ZIP；项目内共享压缩包已完整重建并匹配原 SHA256"
+    },
+    {
+      "path": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\archives\\record-20261009\\originals\\Record\\AAOS-project-archives\\2026-09-30\\formal-run-builds\\ui-finalbuild3.zip",
+      "bytes": 79944989,
+      "sha256": "2a258308a68694a1198ea35c2df1f43407834aa199f4c1daa17c13e2b0fb0799",
+      "retained_project_recipe": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\archives\\record-20261009\\compact-recovery-v1\\recipes\\2a258308a68694a1198ea35c2df1f43407834aa199f4c1daa17c13e2b0fb0799.json",
+      "reason": "本轮新复制 ZIP；项目内共享压缩包已完整重建并匹配原 SHA256"
+    },
+    {
+      "path": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\archives\\record-20261009\\originals\\Record\\AAOS-project-archives\\2026-09-30\\green-mainline-historical-publish-20260930.zip",
+      "bytes": 170123195,
+      "sha256": "01db0a64ab6d2bc96982e5b15f53f086d6676d4ce64c91860fb9b48598489beb",
+      "retained_project_recipe": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\archives\\record-20261009\\compact-recovery-v1\\recipes\\01db0a64ab6d2bc96982e5b15f53f086d6676d4ce64c91860fb9b48598489beb.json",
+      "reason": "本轮新复制 ZIP；项目内共享压缩包已完整重建并匹配原 SHA256"
+    },
+    {
+      "path": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\archives\\record-20261009\\originals\\Record\\AAOS-project-archives\\2026-09-30\\historical-desktop-publish-22dirs-20260930.zip",
+      "bytes": 1659496511,
+      "sha256": "98bb8ffbdabe2cbdb3d4fcf4c0ae7324a2e0b7a3dd985fd912e6a6c718b9c22c",
+      "retained_project_recipe": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\archives\\record-20261009\\compact-recovery-v1\\recipes\\98bb8ffbdabe2cbdb3d4fcf4c0ae7324a2e0b7a3dd985fd912e6a6c718b9c22c.json",
+      "reason": "本轮新复制 ZIP；项目内共享压缩包已完整重建并匹配原 SHA256"
+    },
+    {
+      "path": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\archives\\record-20261009\\originals\\Record\\AAOS-project-archives\\2026-09-30\\nuget-http-cache-20260930.zip",
+      "bytes": 390210198,
+      "sha256": "7b4706d4298cf64ee3800ba091ab863bee5b1770e93fa62a1fe204b2cc1a7673",
+      "retained_project_recipe": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\archives\\record-20261009\\compact-recovery-v1\\recipes\\7b4706d4298cf64ee3800ba091ab863bee5b1770e93fa62a1fe204b2cc1a7673.json",
+      "reason": "本轮新复制 ZIP；项目内共享压缩包已完整重建并匹配原 SHA256"
+    },
+    {
+      "path": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\archives\\record-20261009\\originals\\Record\\ARCHEAXIS-Q00-Q01-AUDIT-74720bf-2026-09-07.md",
+      "bytes": 36215,
+      "sha256": "92d5cab0b24653751a48ac1676fc5170e5d5e793e0efcc35110b95d6f2f80650",
+      "retained_project_original": "D:\\All projects\\ArcheAxis-Knowledge-OS\\docs\\authority\\taskpack-0907\\Q00-Q01-AUDIT-2026-09-07.md",
+      "reason": "本轮新增重复副本；项目已有相同 SHA256 的冻结文件"
+    },
+    {
+      "path": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\archives\\record-20261009\\originals\\Record\\ARCHEAXIS-REUSE-FIRST-FULL-TASKPACK-2026-09-07.md",
+      "bytes": 27933,
+      "sha256": "a9093a724c96a4493cbc0a4f8894b89fd2eee2d359e63e97e956e7a159a4a75e",
+      "retained_project_original": "D:\\All projects\\ArcheAxis-Knowledge-OS\\docs\\authority\\taskpack-0907\\TASKPACK.md",
+      "reason": "本轮新增重复副本；项目已有相同 SHA256 的冻结文件"
+    },
+    {
+      "path": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\archives\\record-20261009\\originals\\Record\\ARCHEAXIS-NEXT-TASKPACK-2026-09-10.md",
+      "bytes": 12830,
+      "sha256": "50ab667a85dddf61c25f7ee41222ccabd4ff005f6e2e92f5a1c6cf5d6a3e47cd",
+      "retained_project_original": "D:\\All projects\\ArcheAxis-Knowledge-OS\\docs\\authority\\taskpack-0910-r3\\TASKPACK.md",
+      "reason": "本轮新增重复副本；项目已有相同 SHA256 的冻结文件"
+    },
+    {
+      "path": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\archives\\record-20261009\\originals\\Record\\AAOS_ArcheAxis_今日完整整合最终任务包_2026-09-28.zip",
+      "bytes": 10988693,
+      "sha256": "e989877203fd47b9a027b2abd0d9521deb9a97e5d5e6905697e0fca451e5a753",
+      "retained_project_original": "D:\\All projects\\ArcheAxis-Knowledge-OS\\docs\\history\\external-taskpacks\\2026-10-01\\AAOS_ArcheAxis_今日完整整合最终任务包_2026-09-28.zip",
+      "reason": "本轮新增重复副本；项目已有相同 SHA256 的冻结文件"
+    },
+    {
+      "path": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\archives\\record-20261009\\originals\\Record\\AAOS_UI_FRONTEND_TASKPACK_20260930.zip",
+      "bytes": 7609,
+      "sha256": "a51ae04407a807c647739f787abdb91accd1021ab515bc989069cb2d25197170",
+      "retained_project_original": "D:\\All projects\\ArcheAxis-Knowledge-OS\\docs\\history\\external-taskpacks\\2026-10-01\\AAOS_UI_FRONTEND_TASKPACK_20260930.zip",
+      "reason": "本轮新增重复副本；项目已有相同 SHA256 的冻结文件"
+    }
+  ],
+  "bytes_to_remove": 15053367092
+}

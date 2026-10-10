@@ -21,7 +21,7 @@ vi.mock("../api/workspace", async () => ({
   ...recovery,
 }));
 
-vi.mock('../api/core', () => ({ verifyCanonicalCore: recovery.verifyCanonicalCore, coreCommand: vi.fn(async (operation: string) => operation === "sources_list" ? {sources:[]} : {documents:[]}) }));
+vi.mock('../api/core', () => ({ verifyCanonicalCore: recovery.verifyCanonicalCore, coreCommand: vi.fn(async (operation: string) => operation === "sources_list" ? {sources:[]} : operation === "learning_items" ? {items:[],count:0} : {documents:[],next_cursor:null,snapshot_count:0}) }));
 
 const failedRecovery = {
   state: "failed",
@@ -45,7 +45,7 @@ function deferred<T>() {
 describe("Recovery Shell", () => {
   beforeEach(() => {
     vi.resetAllMocks();
-    vi.mocked(coreCommand).mockImplementation(async (operation) => (operation === "sources_list" ? { sources: [] } : { documents: [] }) as never);
+    vi.mocked(coreCommand).mockImplementation(async (operation) => (operation === "sources_list" ? { sources: [] } : operation === "learning_items" ? {items:[],count:0} : { documents: [],next_cursor:null,snapshot_count:0 }) as never);
     recovery.getRecoveryStatus.mockResolvedValue(failedRecovery);
     recovery.getRecoveryLogTail.mockResolvedValue({ lines: ["Core startup is unavailable"] });
     recovery.enterRecoverySafeMode.mockResolvedValue({ ...failedRecovery, safe_mode: true });

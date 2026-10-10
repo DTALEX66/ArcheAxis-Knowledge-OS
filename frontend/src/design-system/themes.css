@@ -26,7 +26,7 @@
   --aaos-info: #a5c5ff;
   --aaos-selected: #232a33;
   --aaos-focus: #d7e5ff;
-  --ax-focus-ring: #d7e5ff80;
+  --ax-focus-ring: #d7e5ff;
   --ax-canvas: var(--aaos-background);
   --ax-panel: var(--aaos-surface);
   --ax-raised: var(--aaos-raised);
@@ -82,7 +82,7 @@
   --aaos-info: #285ca5;
   --aaos-selected: #dcecf2;
   --aaos-focus: #087f8c;
-  --ax-focus-ring: #087f8c70;
+  --ax-focus-ring: #087f8c;
   --ax-canvas: var(--aaos-background);
   --ax-panel: var(--aaos-surface);
   --ax-raised: var(--aaos-raised);
@@ -138,7 +138,7 @@
   --aaos-info: #8bb9ff;
   --aaos-selected: #173b47;
   --aaos-focus: #2ec4b6;
-  --ax-focus-ring: #2ec4b680;
+  --ax-focus-ring: #2ec4b6;
   --ax-canvas: var(--aaos-background);
   --ax-panel: var(--aaos-surface);
   --ax-raised: var(--aaos-raised);
@@ -222,7 +222,7 @@
 }
 :root[data-aaos-theme="white"] button:focus-visible,
 :root[data-aaos-theme="white"] .btn:focus-visible {
-  box-shadow: 0 0 0 2px #087f8c30, 0 0 0 4px #087f8c70;
+  box-shadow: 0 0 0 2px var(--ax-focus-ring), 0 0 0 4px var(--ax-focus-ring);
   border-color: var(--aaos-focus);
 }
 :root[data-aaos-theme="white"] input,
@@ -321,7 +321,10 @@
 .capability-directory > li > span { color: var(--aaos-muted); font-size: 12px; }
 .aaos-action-reason { display: block; max-width: 100%; color: var(--aaos-muted); font-size: 12px; font-weight: 400; white-space: normal; }
 .aaos-sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; border: 0; }
+.theme-picker { flex-shrink: 0; }
 .theme-picker select {
+  min-width: 96px;
+  flex-shrink: 0;
   max-width: 158px;
   min-height: 30px;
   padding: 4px 26px 4px 8px;
@@ -335,6 +338,9 @@
 .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0; }
 
 @media (max-width: 900px) {
+  .status-bar-brand { min-width: 0; flex-shrink: 0; }
+  .command-trigger kbd { display: none; }
+  .theme-picker select { width: 96px; }
   .navigation-sidebar { flex-basis: 220px; }
   .navigation-sidebar .context-subnav { max-height: 24%; }
 }
@@ -368,3 +374,69 @@
 .nav-trail-notice { margin: 6px 0; color: var(--ax-fg-secondary); font-size: 12px; }
 /* UI-03: the classified failure reason sits beside the generic sentence, never replacing it. */
 .state-reason { margin: 6px 0; padding-left: 8px; border-left: 2px solid var(--ax-border); color: var(--ax-fg-secondary); font-size: 12px; overflow-wrap: anywhere; }
+/* 2026-10-09 UI reference tokens, preserved verbatim in each theme scope.
+   Source: AAOS_UI_Frontend_20261009/reference/tokens.css. */
+:root[data-aaos-theme="blueprint"] {
+  color-scheme: dark;
+  --bg:#080e19;--sidebar:#0b1321;--surface:#111c2c;--surface-alt:#152238;--text:#e4edfa;--muted:#9cabbe;--line:#2b3c52;--accent:#8bbfff;--accent-strong:#2b74d2;--line-blue:#446a97;--graph-node:#12243a;--success:#9dd8bd;--warning:#e4bd7c;--danger:#f29c9c;--radius:8px;--font:'Segoe UI','AAOSNoto','Noto Sans CJK SC','Microsoft YaHei',sans-serif;--sidebar-width:218px;--space:24px;
+  --ax-on-accent: #ffffff;
+  --aaos-on-primary: #ffffff;
+  --aaos-overlay: #020710b8;
+  --ax-accent-hover: #8bbfff;
+  --ax-brand-glow: #8bbfff38;
+  --aaos-selected: #163050;
+}
+:root[data-aaos-theme="blueprint-light"] {
+  color-scheme: light;
+  --bg:#f0f4f9;--sidebar:#e7edf5;--surface:#ffffff;--surface-alt:#f2f6fc;--text:#172840;--muted:#526680;--line:#c7d3e2;--accent:#205a9b;--accent-strong:#216ac5;--line-blue:#7698bf;--graph-node:#e7f0fc;--success:#236c4d;--warning:#825a13;--danger:#a83540;
+  --radius:8px;--font:'Segoe UI','AAOSNoto','Noto Sans CJK SC','Microsoft YaHei',sans-serif;--sidebar-width:218px;--space:24px;
+  --ax-on-accent: #ffffff;
+  --aaos-on-primary: #ffffff;
+  --aaos-overlay: #18253888;
+  --ax-accent-hover: #205a9b;
+  --ax-brand-glow: #205a9b28;
+  --aaos-selected: #d6e5fa;
+}
+:root:is([data-aaos-theme="blueprint"], [data-aaos-theme="blueprint-light"]) {
+  --ax-font: var(--font);
+  --ax-canvas: var(--bg); --aaos-background: var(--bg);
+  --aaos-sidebar: var(--sidebar);
+  --ax-panel: var(--surface); --aaos-surface: var(--surface);
+  --ax-raised: var(--surface-alt); --aaos-raised: var(--surface-alt);
+  --ax-bg-inset: var(--bg); --ax-elevated: var(--surface-alt);
+  --ax-fg: var(--text); --aaos-text: var(--text);
+  --ax-fg-secondary: var(--text); --ax-fg-tertiary: var(--muted); --ax-fg-quaternary: var(--muted); --aaos-muted: var(--muted);
+  --ax-border: var(--line); --ax-border-strong: var(--line); --ax-border-subtle: var(--line); --aaos-border: var(--line);
+  --ax-control-border: var(--line-blue); --aaos-control-border: var(--line-blue);
+  --ax-accent: var(--accent-strong); --aaos-primary: var(--accent-strong); --ax-accent-bright: var(--accent);
+  --ax-focus-ring: var(--accent); --aaos-focus: var(--accent); --aaos-ornament: var(--accent);
+  --ax-accent-soft: color-mix(in srgb, var(--accent) 18%, transparent);
+  --ax-success: var(--success); --aaos-success: var(--success); --ax-success-soft: color-mix(in srgb, var(--success) 15%, transparent);
+  --ax-warning: var(--warning); --aaos-warning: var(--warning); --ax-warning-soft: color-mix(in srgb, var(--warning) 15%, transparent);
+  --ax-danger: var(--danger); --aaos-danger: var(--danger); --ax-danger-soft: color-mix(in srgb, var(--danger) 15%, transparent);
+  --aaos-info: var(--accent);
+  --ax-hover: var(--surface-alt); --ax-active: var(--aaos-selected);
+  --ax-control-hover: var(--surface-alt); --ax-control-hover-border: var(--line-blue); --ax-control-gloss: transparent;
+  --ax-radius: var(--radius); --ax-radius-sm: 6px; --ax-radius-md: 8px; --ax-radius-lg: 10px;
+}
+:root:is([data-aaos-theme="blueprint"], [data-aaos-theme="blueprint-light"]) button,
+:root:is([data-aaos-theme="blueprint"], [data-aaos-theme="blueprint-light"]) .btn {
+  background: var(--surface-alt); color: var(--text); border-color: var(--line);
+  min-height: 36px; box-shadow: none; text-shadow: none;
+}
+:root:is([data-aaos-theme="blueprint"], [data-aaos-theme="blueprint-light"]) button.primary,
+:root:is([data-aaos-theme="blueprint"], [data-aaos-theme="blueprint-light"]) button[type="submit"],
+:root:is([data-aaos-theme="blueprint"], [data-aaos-theme="blueprint-light"]) .btn-primary {
+  background: var(--accent-strong); color: #fff; border-color: var(--accent-strong);
+}
+:root:is([data-aaos-theme="blueprint"], [data-aaos-theme="blueprint-light"]) button::before { background: none; }
+:root:is([data-aaos-theme="blueprint"], [data-aaos-theme="blueprint-light"]) button:focus-visible,
+:root:is([data-aaos-theme="blueprint"], [data-aaos-theme="blueprint-light"]) .btn:focus-visible {
+  box-shadow: 0 0 0 2px var(--ax-focus-ring), 0 0 0 4px var(--ax-focus-ring);
+  border-color: var(--ax-focus-ring);
+}
+:root:is([data-aaos-theme="blueprint"], [data-aaos-theme="blueprint-light"]) input,
+:root:is([data-aaos-theme="blueprint"], [data-aaos-theme="blueprint-light"]) textarea,
+:root:is([data-aaos-theme="blueprint"], [data-aaos-theme="blueprint-light"]) select {
+  background: var(--bg); color: var(--text); border-color: var(--line-blue);
+}

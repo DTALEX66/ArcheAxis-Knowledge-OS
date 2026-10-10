@@ -1,3 +1,4 @@
+import { UI_DAILY_ENTRY_POINTS, UI_FIXED_ENTRY_POINTS, UI_PAGES, defaultUiPage, uiEntryForPage } from "../presentation/uiPages";
 import { AaosIcon } from "./AaosIcon";
 import { useRef, useState } from "react";
 import { spaceDescription, type SpaceDef, type SpaceId } from "../spaces/spaces";
@@ -9,13 +10,14 @@ export function SpaceRail({
   onNavigate,
   onOpenCapability,
   activeCapabilityId,
-  spaces,
+  spaces, pageId, onPage,
 }: {
   active: SpaceId;
   onNavigate: (id: SpaceId) => void;
   onOpenCapability?: (id: string) => void;
   activeCapabilityId?: string | null;
   spaces: readonly SpaceDef[];
+  pageId?: string; onPage?: (id:string)=>void;
 }) {
   const navRef = useRef<HTMLElement>(null);
   const [capabilitiesOpen, setCapabilitiesOpen] = useState(false);
@@ -27,19 +29,21 @@ export function SpaceRail({
 
   function focusIndex(index: number) {
     const buttons = navRef.current?.querySelectorAll<HTMLButtonElement>(
-      "ul[aria-label='产品空间'] button[data-space-id], .capability-rail[open] .capability-nav-group[open] button[data-entry-id]",
+      "button[data-page-id], ul[aria-label='产品空间'] button[data-space-id], .capability-rail[open] .capability-nav-group[open] button[data-entry-id]",
     );
     if (!buttons || buttons.length === 0) return;
     const next = (index + buttons.length) % buttons.length;
     const target = buttons[next];
     target?.focus();
-    if(target?.dataset.spaceId) onNavigate(target.dataset.spaceId as SpaceId);
+    if(target?.dataset.pageId) onPage?.(target.dataset.pageId);
+    else if(target?.dataset.spaceId) onNavigate(target.dataset.spaceId as SpaceId);
     else if(target?.dataset.capabilityId) activateCapability(target.dataset.capabilityId);
   }
 
   function onNavigationItemKeyDown(event: React.KeyboardEvent) {
+    if (event.nativeEvent.isComposing || event.nativeEvent.keyCode === 229 || event.repeat || event.getModifierState("AltGraph")) return;
     const buttons = navRef.current?.querySelectorAll<HTMLButtonElement>(
-      "ul[aria-label='产品空间'] button[data-space-id], .capability-rail[open] .capability-nav-group[open] button[data-entry-id]",
+      "button[data-page-id], ul[aria-label='产品空间'] button[data-space-id], .capability-rail[open] .capability-nav-group[open] button[data-entry-id]",
     );
     const index = buttons ? Array.from(buttons).indexOf(event.currentTarget as HTMLButtonElement) : -1;
     if(index<0)return;
@@ -58,7 +62,7 @@ export function SpaceRail({
         break;
       case "End":
         event.preventDefault();
-        focusIndex((navRef.current?.querySelectorAll("ul[aria-label='产品空间'] button[data-space-id], .capability-rail[open] .capability-nav-group[open] button[data-entry-id]").length ?? spaces.length) - 1);
+        focusIndex((navRef.current?.querySelectorAll("button[data-page-id], ul[aria-label='产品空间'] button[data-space-id], .capability-rail[open] .capability-nav-group[open] button[data-entry-id]").length ?? spaces.length) - 1);
         break;
       default:
         break;
@@ -68,7 +72,26 @@ export function SpaceRail({
   const orderedCapabilities = CAPABILITY_NAVIGATION_ENTRIES;
   return (
     <nav ref={navRef} className="space-rail" aria-label="主空间导航">
-      <ul className="space-rail-list" role="list" aria-label="产品空间">
+      {onPage ? <div className="ui-page-navigation">
+        <ul className="space-rail-list" aria-label="日常工作流">
+          {UI_DAILY_ENTRY_POINTS.map(entry => <li key={entry.pageId}><button type="button" data-page-id={entry.pageId} className="space-rail-item"
+            aria-current={entry.pageIds.includes(pageId ?? defaultUiPage(active)) && !activeCapabilityId ? (pageId === entry.pageId ? "page" : "true") : undefined}
+            onKeyDown={onNavigationItemKeyDown} onClick={() => onPage(entry.pageId)}>{entry.label}</button></li>)}
+        </ul>
+        {(() => {
+          const entry = uiEntryForPage(pageId ?? defaultUiPage(active));
+          const children = UI_PAGES.filter(page => entry?.pageIds.includes(page.id) && page.id !== entry.pageId && page.id !== "18");
+          return children.length > 0 && <div><h2 className="ui-page-group">{entry?.label}页面</h2><ul className="space-rail-list" aria-label={`${entry?.label}页面`}>
+            {children.map(page => <li key={page.id}><button type="button" data-page-id={page.id} className="space-rail-item" aria-current={page.id === pageId && !activeCapabilityId ? "page" : undefined}
+              onKeyDown={onNavigationItemKeyDown} onClick={() => onPage(page.id)}>{page.label}</button></li>)}
+          </ul></div>;
+        })()}
+        <ul className="space-rail-list" aria-label="固定入口">
+          {UI_FIXED_ENTRY_POINTS.map(entry => <li key={entry.pageId}><button type="button" data-page-id={entry.pageId} className="space-rail-item"
+            aria-current={entry.pageIds.includes(pageId ?? defaultUiPage(active)) ? (pageId === entry.pageId && !activeCapabilityId ? "page" : "true") : undefined}
+            onKeyDown={onNavigationItemKeyDown} onClick={() => onPage(entry.pageId)}>{entry.label}</button></li>)}
+        </ul>
+      </div> : <ul className="space-rail-list" role="list" aria-label="产品空间">
         {spaces.map((space) => (
           <li key={space.id}>
             <button
@@ -86,7 +109,7 @@ export function SpaceRail({
             </button>
           </li>
         ))}
-      </ul>
+      </ul>}
       <details className="capability-rail" open={capabilitiesOpen} onToggle={(event) => setCapabilitiesOpen(event.currentTarget.open)}>
         <summary aria-label="展开全能力目录">全能力目录</summary>
         {Array.from(new Set(orderedCapabilities.map((entry) => entry.group_id))).map((group) => <details key={group} className="capability-nav-group" open>

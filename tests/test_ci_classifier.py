@@ -251,12 +251,14 @@ def test_missing_base_diff_forces_full() -> None:
     assert result.returncode == 0
     plan = json.loads(result.stdout)
     assert plan["fallback_reason"] == "no_diff_available"
-    assert plan["required_gates"] == ["ci-verdict"]
+    from scripts.ci.classify import FULL_GATES
+    assert set(plan["required_gates"]) == FULL_GATES | {"ci-verdict"}
 
 
 def test_force_full_overrides_light_classification() -> None:
     plan = _classify(["docs/PROJECT_STATUS.md"], force_full=True)
-    assert plan["required_gates"] == ["ci-verdict"]
+    from scripts.ci.classify import FULL_GATES
+    assert set(plan["required_gates"]) == FULL_GATES | {"ci-verdict"}
     assert plan["force_full"] is True
 
 

@@ -1,3 +1,4 @@
+import { jobContentCoreFixture } from "./fixtures/jobContentCoreFixture";
 // SIMULATED API/UI fixtures; no real EPUB parsing claim.
 import { webcrypto } from "node:crypto";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
@@ -15,10 +16,10 @@ describe("EPUB receipt-native reading (SIMULATED)",()=>{
   const content=JSON.stringify({params:{format:{format:"epub",parsed:true,locations:proof.locations}}});
   const output={content,metadata:{kind:"loss_report",sha256:await utf8Sha256(content),byte_length:new TextEncoder().encode(content).length}};
   const state={job_id:proof.jobId,input_ref:proof.sourceId,state:"succeeded",attempt:1};
-  command.mockImplementation(async(op,args)=>{
+  installJobContentFixture(async(op,args)=>{
    if(op==="capabilities_list")return {};
    if(op==="source_jobs")return {source_id:proof.sourceId,jobs:[{...state,kind:"text"}],jobs_capped:false};
-   if(op==="jobs_get")return args.job_id===proof.jobId?state:{job_id:args.job_id,input_ref:proof.sourceId,state:"failed",attempt:1,error:{code:"FIXTURE"}};
+   if(op==="jobs_get")return args.job_id===proof.jobId?state:{job_id:args.job_id,input_ref:proof.sourceId,state:"failed",attempt:1,error:"FIXTURE"};
    if(op==="job_output")return args.kind==="loss_report"?output:{content:args.kind==="text"?"Known paragraph 37":"[]"};
    if(op==="job_quality")return {};
    if(op==="source_job_transform")return {source_id:proof.sourceId,job_id:proof.jobId,transform_id:1,content:"Known paragraph 37"};
@@ -31,7 +32,7 @@ describe("EPUB receipt-native reading (SIMULATED)",()=>{
   expect(command.mock.calls.some(call=>call[0]==="job_enqueue")).toBe(false);
   expect(command.mock.calls.filter(call=>call[0]==="source_jobs").every(call=>!('offset' in call[1]))).toBe(true);
   fireEvent.click(screen.getByText("执行真实内容转换"));
-  await screen.findByText("转换未完成或产物读取失败。不会把失败或未知状态当作成功。");
+  await screen.findByText(/转换未完成或产物读取失败/);
   expect(screen.getByText("EPUB 章节段落")).toBeInTheDocument();
   expect(screen.getByText(/成功任务 old-success/)).toBeInTheDocument();
  });
@@ -72,7 +73,7 @@ it("rejects empty EPUB locations instead of presenting successful readable parag
  await expect(epubProof(proof.sourceId,proof.revision,proof.jobId,state,loss,{...state,kind:"text"})).rejects.toThrow();
 });
 it("reselects persisted route when the same source name changes extension",async()=>{
- command.mockImplementation(async(op,args)=>op==="source_jobs"?{source_id:args.source_id,jobs:[],jobs_capped:false}:{});
+ installJobContentFixture(async(op,args)=>op==="source_jobs"?{source_id:args.source_id,jobs:[],jobs_capped:false}:{});
  const view=render(<JobContent sourceId={proof.sourceId} sourceRevision={proof.revision} name="book.txt"/>);
  await waitFor(()=>expect(command.mock.calls.filter(call=>call[0]==="source_jobs")).toHaveLength(1));
  view.rerender(<JobContent sourceId={proof.sourceId} sourceRevision={proof.revision} name="book.epub"/>);
@@ -80,7 +81,7 @@ it("reselects persisted route when the same source name changes extension",async
 });
 it("does not execute an old queued response after context changes",async()=>{
  let resolveQueue!:(value:unknown)=>void;
- command.mockImplementation(async(op,args)=>{
+ installJobContentFixture(async(op,args)=>{
   if(op==="source_jobs")return {source_id:args.source_id,jobs:[],jobs_capped:false};
   if(op==="job_enqueue")return new Promise(resolve=>{resolveQueue=()=>resolve({job_id:args.body.job_id});});
   if(op==="jobs_get")return {state:"failed"};
@@ -93,5 +94,7 @@ it("does not execute an old queued response after context changes",async()=>{
  view.rerender(<JobContent sourceId="new-source" sourceRevision={"c".repeat(64)} name="new.epub"/>);
  await act(async()=>{resolveQueue({});await Promise.resolve();});
  expect(command.mock.calls.some(call=>call[0]==="job_execute")).toBe(false);
- expect(screen.queryByText("转换未完成或产物读取失败。不会把失败或未知状态当作成功。")).toBeNull();
+ expect(screen.queryByText(/转换未完成或产物读取失败/)).toBeNull();
 });
+
+function installJobContentFixture(fn:(operation:string,payload:any)=>unknown){command.mockImplementation(jobContentCoreFixture(fn));}

@@ -1,0 +1,1646 @@
+{
+  "schema": "aaos.planning-source-register/1",
+  "captured_at": "2026-10-09T12:27:16.995716+00:00",
+  "archives": [
+    {
+      "file": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\archives\\record-20261009\\originals\\Record\\AAOS_最后任务包_20261009.zip",
+      "bytes": 54636,
+      "sha256": "38c3680b8d96668be9b601796dc0e8362bcde01aa1b036494c0142255cf2ca55",
+      "role": "SOURCE_NOT_EXECUTION_GRANT"
+    },
+    {
+      "file": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\archives\\record-20261009\\originals\\Record\\AAOS_UI_补交_01_核心文档原型与素材_20261009.zip",
+      "bytes": 23394671,
+      "sha256": "ede6626a0fa572351e534bc202c8d5d69817fec99e570b301bdfd17a02b78dc1",
+      "role": "SOURCE_NOT_EXECUTION_GRANT"
+    },
+    {
+      "file": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\archives\\record-20261009\\originals\\Record\\AAOS_UI_补交_02_4K界面效果图_20261009.zip",
+      "bytes": 19236135,
+      "sha256": "3086305a7609643c5b865c34ff16b8977695a37879b8dbdfa915f58a8d535699",
+      "role": "SOURCE_NOT_EXECUTION_GRANT"
+    },
+    {
+      "file": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\archives\\record-20261009\\originals\\Record\\AAOS_UI_补交_03_1440p界面效果图_20261009.zip",
+      "bytes": 20493606,
+      "sha256": "2eaff462c8ef9aa69a0e837e23f854735cb373e6d50f933db16ed181785de816",
+      "role": "SOURCE_NOT_EXECUTION_GRANT"
+    },
+    {
+      "file": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\archives\\record-20261009\\originals\\Record\\AAOS_UI_补交_04_全页响应式与总览_20261009.zip",
+      "bytes": 8424636,
+      "sha256": "af8d5fc67b2a10c96ab8239f9bf2a57b6c71440129c157657ca5a385cc3336b1",
+      "role": "SOURCE_NOT_EXECUTION_GRANT"
+    },
+    {
+      "file": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\archives\\record-20261009\\originals\\Record\\AAOS_补齐材料与分析增量_20261009.zip",
+      "bytes": 201472,
+      "sha256": "1f7f957835b721fc09a88864fa55d548a865887b591f03e87a0996d0762d0ebb",
+      "role": "SOURCE_NOT_EXECUTION_GRANT"
+    },
+    {
+      "file": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\archives\\record-20261009\\originals\\Record\\AAOS_补交文件_大小与SHA256_20261009.txt",
+      "bytes": 1373,
+      "sha256": "f4746e7eaeff9ac8dfd3f3a312909a476338f31113f4f5083c3d91f585a9e6dd",
+      "role": "SOURCE_NOT_EXECUTION_GRANT"
+    }
+  ],
+  "extracted_members": [
+    {
+      "archive": "AAOS_最后任务包_20261009.zip",
+      "archive_sha256": "38c3680b8d96668be9b601796dc0e8362bcde01aa1b036494c0142255cf2ca55",
+      "member": "AAOS_Final_Task_Package_20261009/00_最后任务书.md",
+      "file": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\task-runtime\\aaos-task-planning-20261009\\sources\\AAOS_Final_Task_Package_20261009\\00_最后任务书.md",
+      "sha256": "be800ec68debe5c655615ef3b646281f7be8b5fa958ad58b35f86ad044ef46cd",
+      "bytes": 30268
+    },
+    {
+      "archive": "AAOS_最后任务包_20261009.zip",
+      "archive_sha256": "38c3680b8d96668be9b601796dc0e8362bcde01aa1b036494c0142255cf2ca55",
+      "member": "AAOS_Final_Task_Package_20261009/01_CODEX_本地执行提示词.txt",
+      "file": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\task-runtime\\aaos-task-planning-20261009\\sources\\AAOS_Final_Task_Package_20261009\\01_CODEX_本地执行提示词.txt",
+      "sha256": "bbabc11a75964ca889c4d898f20264811cc31fd7878f07a56adaef20cc7b1d2d",
+      "bytes": 5368
+    },
+    {
+      "archive": "AAOS_最后任务包_20261009.zip",
+      "archive_sha256": "38c3680b8d96668be9b601796dc0e8362bcde01aa1b036494c0142255cf2ca55",
+      "member": "AAOS_Final_Task_Package_20261009/02_DESIGN-LAB_协作同步提示词.txt",
+      "file": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\task-runtime\\aaos-task-planning-20261009\\sources\\AAOS_Final_Task_Package_20261009\\02_DESIGN-LAB_协作同步提示词.txt",
+      "sha256": "6a4c6bcaec23c047a42827e47b9d6e56348c664291146e3e08be3a6ddc0de68e",
+      "bytes": 2231
+    },
+    {
+      "archive": "AAOS_最后任务包_20261009.zip",
+      "archive_sha256": "38c3680b8d96668be9b601796dc0e8362bcde01aa1b036494c0142255cf2ca55",
+      "member": "AAOS_Final_Task_Package_20261009/03_WORK-LAB_协作同步提示词.txt",
+      "file": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\task-runtime\\aaos-task-planning-20261009\\sources\\AAOS_Final_Task_Package_20261009\\03_WORK-LAB_协作同步提示词.txt",
+      "sha256": "549b6505579c77ec4298fee95376d1b7c030b60ae03b76a223be1ee981e154cb",
+      "bytes": 2317
+    },
+    {
+      "archive": "AAOS_最后任务包_20261009.zip",
+      "archive_sha256": "38c3680b8d96668be9b601796dc0e8362bcde01aa1b036494c0142255cf2ca55",
+      "member": "AAOS_Final_Task_Package_20261009/04_需求与能力保留矩阵.csv",
+      "file": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\task-runtime\\aaos-task-planning-20261009\\sources\\AAOS_Final_Task_Package_20261009\\04_需求与能力保留矩阵.csv",
+      "sha256": "fafec581e1de309ba22b448894c8bf696abe7e5a5ca090d2c979e69c46fb420a",
+      "bytes": 13588
+    },
+    {
+      "archive": "AAOS_最后任务包_20261009.zip",
+      "archive_sha256": "38c3680b8d96668be9b601796dc0e8362bcde01aa1b036494c0142255cf2ca55",
+      "member": "AAOS_Final_Task_Package_20261009/05_逐路径盘点与归档清单模板.csv",
+      "file": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\task-runtime\\aaos-task-planning-20261009\\sources\\AAOS_Final_Task_Package_20261009\\05_逐路径盘点与归档清单模板.csv",
+      "sha256": "2e99a2e623d323659d9314ebe4967e8a2f9501a98e8cf6c760a29d7519348289",
+      "bytes": 1431
+    },
+    {
+      "archive": "AAOS_最后任务包_20261009.zip",
+      "archive_sha256": "38c3680b8d96668be9b601796dc0e8362bcde01aa1b036494c0142255cf2ca55",
+      "member": "AAOS_Final_Task_Package_20261009/06_验收与回执清单.md",
+      "file": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\task-runtime\\aaos-task-planning-20261009\\sources\\AAOS_Final_Task_Package_20261009\\06_验收与回执清单.md",
+      "sha256": "238b08669e21ec34a460443330fd2d0eb3e8eb152404606a98da3a1f1ca88e05",
+      "bytes": 3824
+    },
+    {
+      "archive": "AAOS_最后任务包_20261009.zip",
+      "archive_sha256": "38c3680b8d96668be9b601796dc0e8362bcde01aa1b036494c0142255cf2ca55",
+      "member": "AAOS_Final_Task_Package_20261009/07_来源覆盖与决策边界.md",
+      "file": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\task-runtime\\aaos-task-planning-20261009\\sources\\AAOS_Final_Task_Package_20261009\\07_来源覆盖与决策边界.md",
+      "sha256": "6ec313754f798c39901cf434352e48443b16341af3ebc0f92c978ed54446cd3c",
+      "bytes": 3218
+    },
+    {
+      "archive": "AAOS_最后任务包_20261009.zip",
+      "archive_sha256": "38c3680b8d96668be9b601796dc0e8362bcde01aa1b036494c0142255cf2ca55",
+      "member": "AAOS_Final_Task_Package_20261009/08_源文档章节覆盖.csv",
+      "file": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\task-runtime\\aaos-task-planning-20261009\\sources\\AAOS_Final_Task_Package_20261009\\08_源文档章节覆盖.csv",
+      "sha256": "bd36b54c7af8e5017df6e26534745fd112e69394481f8682eba86b4130c96cd8",
+      "bytes": 3926
+    },
+    {
+      "archive": "AAOS_最后任务包_20261009.zip",
+      "archive_sha256": "38c3680b8d96668be9b601796dc0e8362bcde01aa1b036494c0142255cf2ca55",
+      "member": "AAOS_Final_Task_Package_20261009/SHA256SUMS.txt",
+      "file": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\task-runtime\\aaos-task-planning-20261009\\sources\\AAOS_Final_Task_Package_20261009\\SHA256SUMS.txt",
+      "sha256": "84fb3b36ba7fc02a6b12875ebc5dd060ee657b75914ebd5ef089cb0bb2c11ce5",
+      "bytes": 1169
+    },
+    {
+      "archive": "AAOS_最后任务包_20261009.zip",
+      "archive_sha256": "38c3680b8d96668be9b601796dc0e8362bcde01aa1b036494c0142255cf2ca55",
+      "member": "AAOS_Final_Task_Package_20261009/sources/AAOS_Frontend_Authority_Reconciliation_Spec_20261009.md",
+      "file": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\task-runtime\\aaos-task-planning-20261009\\sources\\AAOS_Final_Task_Package_20261009\\sources\\AAOS_Frontend_Authority_Reconciliation_Spec_20261009.md",
+      "sha256": "38795122c4f6e3c0aaae72eecbe37e21cbdbbb65ed704bb03ee40ebafaa3a4df",
+      "bytes": 22675
+    },
+    {
+      "archive": "AAOS_最后任务包_20261009.zip",
+      "archive_sha256": "38c3680b8d96668be9b601796dc0e8362bcde01aa1b036494c0142255cf2ca55",
+      "member": "AAOS_Final_Task_Package_20261009/sources/AAOS_TriProject_Teaching_Collaboration_Reconciliation_20261009.md",
+      "file": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\task-runtime\\aaos-task-planning-20261009\\sources\\AAOS_Final_Task_Package_20261009\\sources\\AAOS_TriProject_Teaching_Collaboration_Reconciliation_20261009.md",
+      "sha256": "40912428d56d15c00a1f4315d1c6d823269ead78578114fecbb18aa2717affa7",
+      "bytes": 19871
+    },
+    {
+      "archive": "AAOS_UI_补交_01_核心文档原型与素材_20261009.zip",
+      "archive_sha256": "ede6626a0fa572351e534bc202c8d5d69817fec99e570b301bdfd17a02b78dc1",
+      "member": "AAOS_UI_Frontend_20261009/00_开始阅读.md",
+      "file": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\task-runtime\\aaos-task-planning-20261009\\sources\\AAOS_UI_Frontend_20261009\\00_开始阅读.md",
+      "sha256": "8cc3f6f371b3ea51706ae33545a8cf673e996fac07ff2229999de40a6e81cb24",
+      "bytes": 4722
+    },
+    {
+      "archive": "AAOS_UI_补交_01_核心文档原型与素材_20261009.zip",
+      "archive_sha256": "ede6626a0fa572351e534bc202c8d5d69817fec99e570b301bdfd17a02b78dc1",
+      "member": "AAOS_UI_Frontend_20261009/01_AGENT_执行提示词.txt",
+      "file": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\task-runtime\\aaos-task-planning-20261009\\sources\\AAOS_UI_Frontend_20261009\\01_AGENT_执行提示词.txt",
+      "sha256": "616d92902e934bf4f091e15275aaddb0fa2f6f997e0dbc0a04229c435394cb26",
+      "bytes": 4778
+    },
+    {
+      "archive": "AAOS_UI_补交_01_核心文档原型与素材_20261009.zip",
+      "archive_sha256": "ede6626a0fa572351e534bc202c8d5d69817fec99e570b301bdfd17a02b78dc1",
+      "member": "AAOS_UI_Frontend_20261009/01_界面效果图索引.html",
+      "file": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\task-runtime\\aaos-task-planning-20261009\\sources\\AAOS_UI_Frontend_20261009\\01_界面效果图索引.html",
+      "sha256": "f2cb04235bb7ac632194dd484ce288601b55c042f0f165a5edbe7ac7fd24a848",
+      "bytes": 9741
+    },
+    {
+      "archive": "AAOS_UI_补交_01_核心文档原型与素材_20261009.zip",
+      "archive_sha256": "ede6626a0fa572351e534bc202c8d5d69817fec99e570b301bdfd17a02b78dc1",
+      "member": "AAOS_UI_Frontend_20261009/SHA256SUMS.txt",
+      "file": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\task-runtime\\aaos-task-planning-20261009\\sources\\AAOS_UI_Frontend_20261009\\SHA256SUMS.txt",
+      "sha256": "3b8a4cceffb7732f064c8c154f600f3fee9e562f8de94f026083e7c5ad03c790",
+      "bytes": 14025
+    },
+    {
+      "archive": "AAOS_UI_补交_01_核心文档原型与素材_20261009.zip",
+      "archive_sha256": "ede6626a0fa572351e534bc202c8d5d69817fec99e570b301bdfd17a02b78dc1",
+      "member": "AAOS_UI_Frontend_20261009/assets/fonts/OFL.txt",
+      "file": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\task-runtime\\aaos-task-planning-20261009\\sources\\AAOS_UI_Frontend_20261009\\assets\\fonts\\OFL.txt",
+      "sha256": "6a73f9541c2de74158c0e7cf6b0a58ef774f5a780bf191f2d7ec9cc53efe2bf2",
+      "bytes": 4301
+    },
+    {
+      "archive": "AAOS_UI_补交_01_核心文档原型与素材_20261009.zip",
+      "archive_sha256": "ede6626a0fa572351e534bc202c8d5d69817fec99e570b301bdfd17a02b78dc1",
+      "member": "AAOS_UI_Frontend_20261009/docs/01_产品结构与页面职责.md",
+      "file": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\task-runtime\\aaos-task-planning-20261009\\sources\\AAOS_UI_Frontend_20261009\\docs\\01_产品结构与页面职责.md",
+      "sha256": "b85d76c7df2367a2c030bba5e0c4090319cf33b54424b7554aad58a5b058330c",
+      "bytes": 4475
+    },
+    {
+      "archive": "AAOS_UI_补交_01_核心文档原型与素材_20261009.zip",
+      "archive_sha256": "ede6626a0fa572351e534bc202c8d5d69817fec99e570b301bdfd17a02b78dc1",
+      "member": "AAOS_UI_Frontend_20261009/docs/02_视觉系统与素材部署.md",
+      "file": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\task-runtime\\aaos-task-planning-20261009\\sources\\AAOS_UI_Frontend_20261009\\docs\\02_视觉系统与素材部署.md",
+      "sha256": "eb62261675f1337b40314782dc9771a1abbc23dffc77ead1d7e7ed928156c7f7",
+      "bytes": 3903
+    },
+    {
+      "archive": "AAOS_UI_补交_01_核心文档原型与素材_20261009.zip",
+      "archive_sha256": "ede6626a0fa572351e534bc202c8d5d69817fec99e570b301bdfd17a02b78dc1",
+      "member": "AAOS_UI_Frontend_20261009/docs/03_业务接线与迁移任务.md",
+      "file": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\task-runtime\\aaos-task-planning-20261009\\sources\\AAOS_UI_Frontend_20261009\\docs\\03_业务接线与迁移任务.md",
+      "sha256": "971f4c1f13ed260308f07e7554af13b6027985e5ebf3963358424feb215ceab7",
+      "bytes": 4742
+    },
+    {
+      "archive": "AAOS_UI_补交_01_核心文档原型与素材_20261009.zip",
+      "archive_sha256": "ede6626a0fa572351e534bc202c8d5d69817fec99e570b301bdfd17a02b78dc1",
+      "member": "AAOS_UI_Frontend_20261009/docs/04_验收清单.md",
+      "file": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\task-runtime\\aaos-task-planning-20261009\\sources\\AAOS_UI_Frontend_20261009\\docs\\04_验收清单.md",
+      "sha256": "5d7717e6f5521201a6b0e39a6de8a5e510c584e8eaf46853e901edb6f288ffbd",
+      "bytes": 3034
+    },
+    {
+      "archive": "AAOS_UI_补交_01_核心文档原型与素材_20261009.zip",
+      "archive_sha256": "ede6626a0fa572351e534bc202c8d5d69817fec99e570b301bdfd17a02b78dc1",
+      "member": "AAOS_UI_Frontend_20261009/docs/05_素材再生成提示词.md",
+      "file": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\task-runtime\\aaos-task-planning-20261009\\sources\\AAOS_UI_Frontend_20261009\\docs\\05_素材再生成提示词.md",
+      "sha256": "0f64247ca551fb64bf35d7acbfe03544888038fcb36cdd01c0a720215b161bca",
+      "bytes": 2263
+    },
+    {
+      "archive": "AAOS_UI_补交_01_核心文档原型与素材_20261009.zip",
+      "archive_sha256": "ede6626a0fa572351e534bc202c8d5d69817fec99e570b301bdfd17a02b78dc1",
+      "member": "AAOS_UI_Frontend_20261009/docs/06_重新渲染与交付文件说明.md",
+      "file": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\task-runtime\\aaos-task-planning-20261009\\sources\\AAOS_UI_Frontend_20261009\\docs\\06_重新渲染与交付文件说明.md",
+      "sha256": "5650252b33e71532dec5d5e59bfcfc62439214d7375ec68b7324ad54faf3beb8",
+      "bytes": 2117
+    },
+    {
+      "archive": "AAOS_UI_补交_01_核心文档原型与素材_20261009.zip",
+      "archive_sha256": "ede6626a0fa572351e534bc202c8d5d69817fec99e570b301bdfd17a02b78dc1",
+      "member": "AAOS_UI_Frontend_20261009/docs/07_本轮交付核验回执.md",
+      "file": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\task-runtime\\aaos-task-planning-20261009\\sources\\AAOS_UI_Frontend_20261009\\docs\\07_本轮交付核验回执.md",
+      "sha256": "496bc2a740aa0c70187998eea163fa4016e67a6884b352eb5ba8cc0853b36190",
+      "bytes": 835
+    },
+    {
+      "archive": "AAOS_UI_补交_01_核心文档原型与素材_20261009.zip",
+      "archive_sha256": "ede6626a0fa572351e534bc202c8d5d69817fec99e570b301bdfd17a02b78dc1",
+      "member": "AAOS_UI_Frontend_20261009/manifests/asset-manifest.csv",
+      "file": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\task-runtime\\aaos-task-planning-20261009\\sources\\AAOS_UI_Frontend_20261009\\manifests\\asset-manifest.csv",
+      "sha256": "0105fc93146de3deb71a55c76e4f60870d38488563fbaaef307ba632d033db9a",
+      "bytes": 8085
+    },
+    {
+      "archive": "AAOS_UI_补交_01_核心文档原型与素材_20261009.zip",
+      "archive_sha256": "ede6626a0fa572351e534bc202c8d5d69817fec99e570b301bdfd17a02b78dc1",
+      "member": "AAOS_UI_Frontend_20261009/manifests/delivery-validation.json",
+      "file": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\task-runtime\\aaos-task-planning-20261009\\sources\\AAOS_UI_Frontend_20261009\\manifests\\delivery-validation.json",
+      "sha256": "d3b16ed23edeba704a26bcef1e9f91fc34481fcfbb45f31e273d2fbcaefeb90f",
+      "bytes": 853
+    },
+    {
+      "archive": "AAOS_UI_补交_01_核心文档原型与素材_20261009.zip",
+      "archive_sha256": "ede6626a0fa572351e534bc202c8d5d69817fec99e570b301bdfd17a02b78dc1",
+      "member": "AAOS_UI_Frontend_20261009/manifests/page-map.csv",
+      "file": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\task-runtime\\aaos-task-planning-20261009\\sources\\AAOS_UI_Frontend_20261009\\manifests\\page-map.csv",
+      "sha256": "cd25617c20f240c328609931dfec2d112f9ede29fd056fda19190ee4b61f7ea5",
+      "bytes": 3527
+    },
+    {
+      "archive": "AAOS_UI_补交_01_核心文档原型与素材_20261009.zip",
+      "archive_sha256": "ede6626a0fa572351e534bc202c8d5d69817fec99e570b301bdfd17a02b78dc1",
+      "member": "AAOS_UI_Frontend_20261009/manifests/render-audit.json",
+      "file": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\task-runtime\\aaos-task-planning-20261009\\sources\\AAOS_UI_Frontend_20261009\\manifests\\render-audit.json",
+      "sha256": "11a414a318a091e77c8c0ff5c1fa41fc608804111b1a9b309e53e0e96e26942c",
+      "bytes": 24129
+    },
+    {
+      "archive": "AAOS_UI_补交_01_核心文档原型与素材_20261009.zip",
+      "archive_sha256": "ede6626a0fa572351e534bc202c8d5d69817fec99e570b301bdfd17a02b78dc1",
+      "member": "AAOS_UI_Frontend_20261009/manifests/requirements-ui-trace.csv",
+      "file": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\task-runtime\\aaos-task-planning-20261009\\sources\\AAOS_UI_Frontend_20261009\\manifests\\requirements-ui-trace.csv",
+      "sha256": "89cb6a5d7b81704556a71134000fed7974031932eb85b3f6150a442779ef2b76",
+      "bytes": 21293
+    },
+    {
+      "archive": "AAOS_UI_补交_01_核心文档原型与素材_20261009.zip",
+      "archive_sha256": "ede6626a0fa572351e534bc202c8d5d69817fec99e570b301bdfd17a02b78dc1",
+      "member": "AAOS_UI_Frontend_20261009/manifests/responsive-audit.json",
+      "file": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\task-runtime\\aaos-task-planning-20261009\\sources\\AAOS_UI_Frontend_20261009\\manifests\\responsive-audit.json",
+      "sha256": "9508bcc746ce000c12565f961650c98d1c9419a959fd1aec8715aabf8a92dddd",
+      "bytes": 1294
+    },
+    {
+      "archive": "AAOS_UI_补交_01_核心文档原型与素材_20261009.zip",
+      "archive_sha256": "ede6626a0fa572351e534bc202c8d5d69817fec99e570b301bdfd17a02b78dc1",
+      "member": "AAOS_UI_Frontend_20261009/manifests/shot-map.json",
+      "file": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\task-runtime\\aaos-task-planning-20261009\\sources\\AAOS_UI_Frontend_20261009\\manifests\\shot-map.json",
+      "sha256": "00bcbc05dd8fab4ed6d64bbab12207934e1fc978c8460aebab81870ea5c93ba3",
+      "bytes": 3361
+    },
+    {
+      "archive": "AAOS_UI_补交_01_核心文档原型与素材_20261009.zip",
+      "archive_sha256": "ede6626a0fa572351e534bc202c8d5d69817fec99e570b301bdfd17a02b78dc1",
+      "member": "AAOS_UI_Frontend_20261009/manifests/slice-map.json",
+      "file": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\task-runtime\\aaos-task-planning-20261009\\sources\\AAOS_UI_Frontend_20261009\\manifests\\slice-map.json",
+      "sha256": "563cedfa01c74aa4ea13114d6572ec950a8b9aef42bf7a231cf21852cb33b059",
+      "bytes": 3469
+    },
+    {
+      "archive": "AAOS_UI_补交_01_核心文档原型与素材_20261009.zip",
+      "archive_sha256": "ede6626a0fa572351e534bc202c8d5d69817fec99e570b301bdfd17a02b78dc1",
+      "member": "AAOS_UI_Frontend_20261009/reference/app.js",
+      "file": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\task-runtime\\aaos-task-planning-20261009\\sources\\AAOS_UI_Frontend_20261009\\reference\\app.js",
+      "sha256": "9a5b5a60b3ff68d8dcbd3d38f9af1e039485eb7311082d8f5a4c8783bf06a17f",
+      "bytes": 12208
+    },
+    {
+      "archive": "AAOS_UI_补交_01_核心文档原型与素材_20261009.zip",
+      "archive_sha256": "ede6626a0fa572351e534bc202c8d5d69817fec99e570b301bdfd17a02b78dc1",
+      "member": "AAOS_UI_Frontend_20261009/reference/capability-details.json",
+      "file": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\task-runtime\\aaos-task-planning-20261009\\sources\\AAOS_UI_Frontend_20261009\\reference\\capability-details.json",
+      "sha256": "fc55ef3c996287f13bf6eb3711159ded1a228e2d27e928eb879d71dd24e4cf4f",
+      "bytes": 5467
+    },
+    {
+      "archive": "AAOS_UI_补交_01_核心文档原型与素材_20261009.zip",
+      "archive_sha256": "ede6626a0fa572351e534bc202c8d5d69817fec99e570b301bdfd17a02b78dc1",
+      "member": "AAOS_UI_Frontend_20261009/reference/data.js",
+      "file": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\task-runtime\\aaos-task-planning-20261009\\sources\\AAOS_UI_Frontend_20261009\\reference\\data.js",
+      "sha256": "df790ffa2bc91242c5a09f271efecae0ff0464d36aaea1bce968bf9562baf742",
+      "bytes": 69662
+    },
+    {
+      "archive": "AAOS_UI_补交_01_核心文档原型与素材_20261009.zip",
+      "archive_sha256": "ede6626a0fa572351e534bc202c8d5d69817fec99e570b301bdfd17a02b78dc1",
+      "member": "AAOS_UI_Frontend_20261009/reference/index.html",
+      "file": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\task-runtime\\aaos-task-planning-20261009\\sources\\AAOS_UI_Frontend_20261009\\reference\\index.html",
+      "sha256": "140c91293a4f897fab0c9e6b8e746d9b56c2d5b36d3190d841ed683ce18ec8d1",
+      "bytes": 321
+    },
+    {
+      "archive": "AAOS_UI_补交_01_核心文档原型与素材_20261009.zip",
+      "archive_sha256": "ede6626a0fa572351e534bc202c8d5d69817fec99e570b301bdfd17a02b78dc1",
+      "member": "AAOS_UI_Frontend_20261009/reference/pages.json",
+      "file": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\task-runtime\\aaos-task-planning-20261009\\sources\\AAOS_UI_Frontend_20261009\\reference\\pages.json",
+      "sha256": "9919676e4e757b5e34676b00adb58e173f82c9bbbc0d5ff739166790b23330d5",
+      "bytes": 66729
+    },
+    {
+      "archive": "AAOS_UI_补交_01_核心文档原型与素材_20261009.zip",
+      "archive_sha256": "ede6626a0fa572351e534bc202c8d5d69817fec99e570b301bdfd17a02b78dc1",
+      "member": "AAOS_UI_Frontend_20261009/reference/style.css",
+      "file": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\task-runtime\\aaos-task-planning-20261009\\sources\\AAOS_UI_Frontend_20261009\\reference\\style.css",
+      "sha256": "516757fef368c24d5510c5f819b03e4f5c1fee9e1ee7f15c09e75c890e33ad57",
+      "bytes": 12959
+    },
+    {
+      "archive": "AAOS_UI_补交_01_核心文档原型与素材_20261009.zip",
+      "archive_sha256": "ede6626a0fa572351e534bc202c8d5d69817fec99e570b301bdfd17a02b78dc1",
+      "member": "AAOS_UI_Frontend_20261009/reference/tokens.css",
+      "file": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\task-runtime\\aaos-task-planning-20261009\\sources\\AAOS_UI_Frontend_20261009\\reference\\tokens.css",
+      "sha256": "8333c3037c7ec5e26150a4a1bf1816eeca5d21f4a41896ac69434b45c5198264",
+      "bytes": 826
+    },
+    {
+      "archive": "AAOS_UI_补交_01_核心文档原型与素材_20261009.zip",
+      "archive_sha256": "ede6626a0fa572351e534bc202c8d5d69817fec99e570b301bdfd17a02b78dc1",
+      "member": "AAOS_UI_Frontend_20261009/sources/00_最后任务书.md",
+      "file": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\task-runtime\\aaos-task-planning-20261009\\sources\\AAOS_UI_Frontend_20261009\\sources\\00_最后任务书.md",
+      "sha256": "be800ec68debe5c655615ef3b646281f7be8b5fa958ad58b35f86ad044ef46cd",
+      "bytes": 30268
+    },
+    {
+      "archive": "AAOS_UI_补交_01_核心文档原型与素材_20261009.zip",
+      "archive_sha256": "ede6626a0fa572351e534bc202c8d5d69817fec99e570b301bdfd17a02b78dc1",
+      "member": "AAOS_UI_Frontend_20261009/sources/04_需求与能力保留矩阵.csv",
+      "file": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\task-runtime\\aaos-task-planning-20261009\\sources\\AAOS_UI_Frontend_20261009\\sources\\04_需求与能力保留矩阵.csv",
+      "sha256": "fafec581e1de309ba22b448894c8bf696abe7e5a5ca090d2c979e69c46fb420a",
+      "bytes": 13588
+    },
+    {
+      "archive": "AAOS_UI_补交_01_核心文档原型与素材_20261009.zip",
+      "archive_sha256": "ede6626a0fa572351e534bc202c8d5d69817fec99e570b301bdfd17a02b78dc1",
+      "member": "AAOS_UI_Frontend_20261009/sources/06_验收与回执清单.md",
+      "file": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\task-runtime\\aaos-task-planning-20261009\\sources\\AAOS_UI_Frontend_20261009\\sources\\06_验收与回执清单.md",
+      "sha256": "238b08669e21ec34a460443330fd2d0eb3e8eb152404606a98da3a1f1ca88e05",
+      "bytes": 3824
+    },
+    {
+      "archive": "AAOS_UI_补交_01_核心文档原型与素材_20261009.zip",
+      "archive_sha256": "ede6626a0fa572351e534bc202c8d5d69817fec99e570b301bdfd17a02b78dc1",
+      "member": "AAOS_UI_Frontend_20261009/sources/AAOS_Frontend_Authority_Reconciliation_Spec_20261009.md",
+      "file": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\task-runtime\\aaos-task-planning-20261009\\sources\\AAOS_UI_Frontend_20261009\\sources\\AAOS_Frontend_Authority_Reconciliation_Spec_20261009.md",
+      "sha256": "38795122c4f6e3c0aaae72eecbe37e21cbdbbb65ed704bb03ee40ebafaa3a4df",
+      "bytes": 22675
+    },
+    {
+      "archive": "AAOS_UI_补交_01_核心文档原型与素材_20261009.zip",
+      "archive_sha256": "ede6626a0fa572351e534bc202c8d5d69817fec99e570b301bdfd17a02b78dc1",
+      "member": "AAOS_UI_Frontend_20261009/sources/AAOS_TriProject_Teaching_Collaboration_Reconciliation_20261009.md",
+      "file": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\task-runtime\\aaos-task-planning-20261009\\sources\\AAOS_UI_Frontend_20261009\\sources\\AAOS_TriProject_Teaching_Collaboration_Reconciliation_20261009.md",
+      "sha256": "40912428d56d15c00a1f4315d1c6d823269ead78578114fecbb18aa2717affa7",
+      "bytes": 19871
+    },
+    {
+      "archive": "AAOS_补齐材料与分析增量_20261009.zip",
+      "archive_sha256": "1f7f957835b721fc09a88864fa55d548a865887b591f03e87a0996d0762d0ebb",
+      "member": "AAOS_补齐材料与分析增量_20261009/00_先读_交付修复与边界.md",
+      "file": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\task-runtime\\aaos-task-planning-20261009\\sources\\AAOS_补齐材料与分析增量_20261009\\00_先读_交付修复与边界.md",
+      "sha256": "1d6be91b2d132534b4dac51e6aefc9e3f97ba249b6fcff66d3373bb3d1c52fce",
+      "bytes": 2838
+    },
+    {
+      "archive": "AAOS_补齐材料与分析增量_20261009.zip",
+      "archive_sha256": "1f7f957835b721fc09a88864fa55d548a865887b591f03e87a0996d0762d0ebb",
+      "member": "AAOS_补齐材料与分析增量_20261009/01_来源身份与校验.csv",
+      "file": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\task-runtime\\aaos-task-planning-20261009\\sources\\AAOS_补齐材料与分析增量_20261009\\01_来源身份与校验.csv",
+      "sha256": "8a1446b2b6088d3b89d31c4735093dda36d91958f413b36b11f7f1156faeb7eb",
+      "bytes": 1405
+    },
+    {
+      "archive": "AAOS_补齐材料与分析增量_20261009.zip",
+      "archive_sha256": "1f7f957835b721fc09a88864fa55d548a865887b591f03e87a0996d0762d0ebb",
+      "member": "AAOS_补齐材料与分析增量_20261009/02_合并任务线与现场增量.md",
+      "file": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\task-runtime\\aaos-task-planning-20261009\\sources\\AAOS_补齐材料与分析增量_20261009\\02_合并任务线与现场增量.md",
+      "sha256": "584cc607e1b2129f359354d238dea48667213797ffe4863200348f3c174ffe50",
+      "bytes": 3728
+    },
+    {
+      "archive": "AAOS_补齐材料与分析增量_20261009.zip",
+      "archive_sha256": "1f7f957835b721fc09a88864fa55d548a865887b591f03e87a0996d0762d0ebb",
+      "member": "AAOS_补齐材料与分析增量_20261009/03_页面依赖与分批顺序.csv",
+      "file": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\task-runtime\\aaos-task-planning-20261009\\sources\\AAOS_补齐材料与分析增量_20261009\\03_页面依赖与分批顺序.csv",
+      "sha256": "8ce5ae5d0d1a1f17d3b75e31ac6aaecf124aca1de447814644b19e0acd53a96b",
+      "bytes": 5661
+    },
+    {
+      "archive": "AAOS_补齐材料与分析增量_20261009.zip",
+      "archive_sha256": "1f7f957835b721fc09a88864fa55d548a865887b591f03e87a0996d0762d0ebb",
+      "member": "AAOS_补齐材料与分析增量_20261009/04_恢复接线与可靠性分析.md",
+      "file": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\task-runtime\\aaos-task-planning-20261009\\sources\\AAOS_补齐材料与分析增量_20261009\\04_恢复接线与可靠性分析.md",
+      "sha256": "ed6145a784003325d4c8a12399372eec9229f71298f9dd2e7d661537cc66172c",
+      "bytes": 1997
+    },
+    {
+      "archive": "AAOS_补齐材料与分析增量_20261009.zip",
+      "archive_sha256": "1f7f957835b721fc09a88864fa55d548a865887b591f03e87a0996d0762d0ebb",
+      "member": "AAOS_补齐材料与分析增量_20261009/05_独立未完成任务登记.csv",
+      "file": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\task-runtime\\aaos-task-planning-20261009\\sources\\AAOS_补齐材料与分析增量_20261009\\05_独立未完成任务登记.csv",
+      "sha256": "eca376491ac31a1a16d5140e0b2ea43f528c8852a84e80537aefbc511516e0e7",
+      "bytes": 1400
+    },
+    {
+      "archive": "AAOS_补齐材料与分析增量_20261009.zip",
+      "archive_sha256": "1f7f957835b721fc09a88864fa55d548a865887b591f03e87a0996d0762d0ebb",
+      "member": "AAOS_补齐材料与分析增量_20261009/06_交给本地CODEX_只读分析提示词.txt",
+      "file": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\task-runtime\\aaos-task-planning-20261009\\sources\\AAOS_补齐材料与分析增量_20261009\\06_交给本地CODEX_只读分析提示词.txt",
+      "sha256": "6066e16b557e2de138b2ae0b34b6c363ef17f1e9fb95abc36c5905d7b1a75956",
+      "bytes": 2472
+    },
+    {
+      "archive": "AAOS_补齐材料与分析增量_20261009.zip",
+      "archive_sha256": "1f7f957835b721fc09a88864fa55d548a865887b591f03e87a0996d0762d0ebb",
+      "member": "AAOS_补齐材料与分析增量_20261009/07_细项基线与覆盖边界.md",
+      "file": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\task-runtime\\aaos-task-planning-20261009\\sources\\AAOS_补齐材料与分析增量_20261009\\07_细项基线与覆盖边界.md",
+      "sha256": "43da5cc84d67c83259b1aa8b7487bf94751c272309e501c40d101ff45bb3aafb",
+      "bytes": 2557
+    },
+    {
+      "archive": "AAOS_补齐材料与分析增量_20261009.zip",
+      "archive_sha256": "1f7f957835b721fc09a88864fa55d548a865887b591f03e87a0996d0762d0ebb",
+      "member": "AAOS_补齐材料与分析增量_20261009/08_交付本地校验回执.md",
+      "file": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\task-runtime\\aaos-task-planning-20261009\\sources\\AAOS_补齐材料与分析增量_20261009\\08_交付本地校验回执.md",
+      "sha256": "03da61d42032258cd3ef685bd0477ecf631f2baab87440af0d9759dca2ea835f",
+      "bytes": 784
+    },
+    {
+      "archive": "AAOS_补齐材料与分析增量_20261009.zip",
+      "archive_sha256": "1f7f957835b721fc09a88864fa55d548a865887b591f03e87a0996d0762d0ebb",
+      "member": "AAOS_补齐材料与分析增量_20261009/SHA256SUMS.txt",
+      "file": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\task-runtime\\aaos-task-planning-20261009\\sources\\AAOS_补齐材料与分析增量_20261009\\SHA256SUMS.txt",
+      "sha256": "377d52a4f31daee975a3d38dd4c0ff84dc12c0b43bce67a2f2e48048479b6302",
+      "bytes": 1897
+    },
+    {
+      "archive": "AAOS_补齐材料与分析增量_20261009.zip",
+      "archive_sha256": "1f7f957835b721fc09a88864fa55d548a865887b591f03e87a0996d0762d0ebb",
+      "member": "AAOS_补齐材料与分析增量_20261009/sources/01_AAOS_完整项目描述与未来蓝图_20261006.docx",
+      "file": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\task-runtime\\aaos-task-planning-20261009\\sources\\AAOS_补齐材料与分析增量_20261009\\sources\\01_AAOS_完整项目描述与未来蓝图_20261006.docx",
+      "sha256": "2c99e7ae7dd52298ee425c8360c90b63a40d02f41af4c1b151cad6efd55d1ed9",
+      "bytes": 63230
+    },
+    {
+      "archive": "AAOS_补齐材料与分析增量_20261009.zip",
+      "archive_sha256": "1f7f957835b721fc09a88864fa55d548a865887b591f03e87a0996d0762d0ebb",
+      "member": "AAOS_补齐材料与分析增量_20261009/sources/AAOS_SOURCE_BASELINE_97_2026-09-04.csv",
+      "file": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\task-runtime\\aaos-task-planning-20261009\\sources\\AAOS_补齐材料与分析增量_20261009\\sources\\AAOS_SOURCE_BASELINE_97_2026-09-04.csv",
+      "sha256": "b278a5950e59bfc47bf924061f350c1bc061c56aeec8e94465cf3c423ba92e7f",
+      "bytes": 12927
+    },
+    {
+      "archive": "AAOS_补齐材料与分析增量_20261009.zip",
+      "archive_sha256": "1f7f957835b721fc09a88864fa55d548a865887b591f03e87a0996d0762d0ebb",
+      "member": "AAOS_补齐材料与分析增量_20261009/sources/AAOS_完整历史规划蓝图吸收池与当前状态总报告_2026-09-29.md",
+      "file": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\task-runtime\\aaos-task-planning-20261009\\sources\\AAOS_补齐材料与分析增量_20261009\\sources\\AAOS_完整历史规划蓝图吸收池与当前状态总报告_2026-09-29.md",
+      "sha256": "3839646bb60b811c5cc1ab3417625a69e71b70f5983b6b24ec796a664fa28ffb",
+      "bytes": 28565
+    },
+    {
+      "archive": "AAOS_补齐材料与分析增量_20261009.zip",
+      "archive_sha256": "1f7f957835b721fc09a88864fa55d548a865887b591f03e87a0996d0762d0ebb",
+      "member": "AAOS_补齐材料与分析增量_20261009/sources/AAOS_完整执行任务包_20261004.md",
+      "file": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\task-runtime\\aaos-task-planning-20261009\\sources\\AAOS_补齐材料与分析增量_20261009\\sources\\AAOS_完整执行任务包_20261004.md",
+      "sha256": "d6bb6432a6850dcf39c451b0a88e97ace668be040bbddf915e09f2b33b7ba1d9",
+      "bytes": 124758
+    },
+    {
+      "archive": "AAOS_补齐材料与分析增量_20261009.zip",
+      "archive_sha256": "1f7f957835b721fc09a88864fa55d548a865887b591f03e87a0996d0762d0ebb",
+      "member": "AAOS_补齐材料与分析增量_20261009/sources/AAOS_快速重构与多格式闭环_完整方案_20261004.md",
+      "file": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\task-runtime\\aaos-task-planning-20261009\\sources\\AAOS_补齐材料与分析增量_20261009\\sources\\AAOS_快速重构与多格式闭环_完整方案_20261004.md",
+      "sha256": "7ecda3e3f9d22834d65df663ba4f42a3ac62e31d215ab5e7c59c08bfaf08441e",
+      "bytes": 27389
+    },
+    {
+      "archive": "AAOS_补齐材料与分析增量_20261009.zip",
+      "archive_sha256": "1f7f957835b721fc09a88864fa55d548a865887b591f03e87a0996d0762d0ebb",
+      "member": "AAOS_补齐材料与分析增量_20261009/sources/AAOS_未来延展与可持续架构_完整方案_20261004.md",
+      "file": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\task-runtime\\aaos-task-planning-20261009\\sources\\AAOS_补齐材料与分析增量_20261009\\sources\\AAOS_未来延展与可持续架构_完整方案_20261004.md",
+      "sha256": "771b189740e94dfeaf65e363b919745c2a69bb795d461e2b2fbcc9c95b15e1e1",
+      "bytes": 30990
+    },
+    {
+      "archive": "AAOS_补齐材料与分析增量_20261009.zip",
+      "archive_sha256": "1f7f957835b721fc09a88864fa55d548a865887b591f03e87a0996d0762d0ebb",
+      "member": "AAOS_补齐材料与分析增量_20261009/导航/原始蓝图_段落导航.txt",
+      "file": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\task-runtime\\aaos-task-planning-20261009\\sources\\AAOS_补齐材料与分析增量_20261009\\导航\\原始蓝图_段落导航.txt",
+      "sha256": "f283ace7f2c8f4b4300c8ae988a4659962885f8886d23f9df742d3b673768e9e",
+      "bytes": 46024
+    },
+    {
+      "archive": "AAOS_补齐材料与分析增量_20261009.zip",
+      "archive_sha256": "1f7f957835b721fc09a88864fa55d548a865887b591f03e87a0996d0762d0ebb",
+      "member": "AAOS_补齐材料与分析增量_20261009/导航/原始蓝图_章节导航.csv",
+      "file": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\task-runtime\\aaos-task-planning-20261009\\sources\\AAOS_补齐材料与分析增量_20261009\\导航\\原始蓝图_章节导航.csv",
+      "sha256": "76db6b1a2ec7981d2f46d733c99afd3851c4b4d59c8e51839ff333e86af5bc44",
+      "bytes": 2075
+    }
+  ],
+  "baseline": {
+    "D:\\All projects\\ArcheAxis-Knowledge-OS": {
+      "branch": "codex/Audit",
+      "head": "1a981a4482b01f31989074e79c82a63400aa07a7",
+      "status_entries": [
+        {
+          "status": " M",
+          "path": "AGENTS.md",
+          "sha256": "e51307e6b7f7f65312c70324c0e99ea88ced317e7f4a62edca7e730e6b1384d3",
+          "kind": "FILE"
+        },
+        {
+          "status": "??",
+          "path": "AAOS-后续执行交接提示词-20261009.md",
+          "sha256": "589d53910e96365221f67fc9c5e2ec4adaf65b845652be3a3c78fc48201cf610",
+          "kind": "FILE"
+        },
+        {
+          "status": "??",
+          "path": "AAOS-资料索引.md",
+          "sha256": "4b72dc2f8667dc7545546608f1f30a1e4b14df9720e7096c1e4da4e212dd7d65",
+          "kind": "FILE"
+        },
+        {
+          "status": "??",
+          "path": "crates/archeaxis-api/tests/contract_capability_registry.rs",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "kind": "FILE"
+        },
+        {
+          "status": "??",
+          "path": "docs/history/record-archive-20261009/",
+          "sha256": null,
+          "kind": "DIR_OR_DELETED"
+        },
+        {
+          "status": "??",
+          "path": "docs/taskpacks/aaos-ui-first-20261009/",
+          "sha256": null,
+          "kind": "DIR_OR_DELETED"
+        },
+        {
+          "status": "??",
+          "path": "scripts/maintenance/archive_record_materials.py",
+          "sha256": "567f99fe842866574496fb0eea328ec2201ab7ab3a27eac4898e40971085229f",
+          "kind": "FILE"
+        },
+        {
+          "status": "??",
+          "path": "scripts/maintenance/compact_record_archives.py",
+          "sha256": "c0936e62670e37ba1fd7cd43cc768067c4c5865707f7d09b060f89b3b5faa909",
+          "kind": "FILE"
+        }
+      ],
+      "status_count": 8,
+      "process_writer": "UNKNOWN_NOT_INSPECTED"
+    },
+    "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\worktrees\\gov-ui-20261008": {
+      "branch": "codex/aaos-gov-ui-20261008",
+      "head": "fc5d4adc7acc28e38c2e6046ef06c0be2eed721d",
+      "status_entries": [
+        {
+          "status": " M",
+          "path": ".github/workflows/ci.yml",
+          "sha256": "2dd8fed40e289be7f65ff22e8c6ad86c4b11123254415a0f4f86c0a8d6d4fd08",
+          "kind": "FILE"
+        },
+        {
+          "status": " M",
+          "path": ".github/workflows/nightly.yml",
+          "sha256": "6dee7575251c5730e647ba09ca10cc520a1a4bfa36bc6399a47291a9f05c4d90",
+          "kind": "FILE"
+        },
+        {
+          "status": " M",
+          "path": ".github/workflows/release.yml",
+          "sha256": "03b78a196599f39a1e839b937146b7452b5597f13570ef1863d68155e30afcf8",
+          "kind": "FILE"
+        },
+        {
+          "status": " M",
+          "path": ".github/workflows/vnext-ci.yml",
+          "sha256": "d0dc37f63ddcdecf85bc4e15965426146bd6cd9bba3502b0226a201bae95e07e",
+          "kind": "FILE"
+        },
+        {
+          "status": " M",
+          "path": "AGENTS.md",
+          "sha256": "0fd70bdb5fc707fdda7bb20dc595df8320677299474bc3900e6198635f2dc97f",
+          "kind": "FILE"
+        },
+        {
+          "status": " M",
+          "path": "config/environment/capability-requirements.yaml",
+          "sha256": "331531008407c3fc0f2389ff0ff9f616cc846332d6bb0ec64cbbbf5dc72e4acf",
+          "kind": "FILE"
+        },
+        {
+          "status": " M",
+          "path": "config/environment/external-resources-index.json",
+          "sha256": "8d5f9d30c7f7585d9dc7db1f6476d5ee2c418a2b6ea656c88bfe1c1b922d7cd2",
+          "kind": "FILE"
+        },
+        {
+          "status": " M",
+          "path": "crates/archeaxis-api/src/documents.rs",
+          "sha256": "ee99cf4ad27b0b18b3577493664a90f4fc791e6339f7553c86f2f0c84ef36d57",
+          "kind": "FILE"
+        },
+        {
+          "status": " M",
+          "path": "crates/archeaxis-domain/src/document.rs",
+          "sha256": "7861181bb2a883b8fed4207d937cb2946bf35e4af71212b05a0b949594525380",
+          "kind": "FILE"
+        },
+        {
+          "status": " M",
+          "path": "desktop/scripts/prepare_bundle.py",
+          "sha256": "6ba4c38f0a162febe6eb0a2cb38037fc2d1496d327b518a7da6929a7c37a65b2",
+          "kind": "FILE"
+        },
+        {
+          "status": " M",
+          "path": "docs/RUNTIME_DELIVERY_AUTHORITY_INDEX.md",
+          "sha256": "b28608a4659988be5c9e122690708b9d7f35cbf1276c020c519020d1e78ecf1e",
+          "kind": "FILE"
+        },
+        {
+          "status": " M",
+          "path": "docs/current/AAOS-20261004-E0-SCENE-RECEIPT.md",
+          "sha256": "4729b90cb7de7a59beb28e774b92cc005a264759155fc9f2601a0c47d3daafe7",
+          "kind": "FILE"
+        },
+        {
+          "status": " M",
+          "path": "docs/current/AAOS-CLOUD-AUDIT-RECONCILIATION-20260923.md",
+          "sha256": "0160de08287fd2447f867a70e2e2f853379383ab83e81d9c20a1c448cc204872",
+          "kind": "FILE"
+        },
+        {
+          "status": " M",
+          "path": "docs/current/AAOS-GOVERNANCE-UI-HANDOFF-20261008.md",
+          "sha256": "9d7fde87fcb3b503973001ca581c2700bc8816af14211b6fa4bef2b156a8ed74",
+          "kind": "FILE"
+        },
+        {
+          "status": " M",
+          "path": "docs/current/AAOS-SPILLOVER-REGISTER-20261008.json",
+          "sha256": "9a03cc7284f1ea66686cf21dcaedc5a8e142dd0f5a25e10087edb35539ff37d3",
+          "kind": "FILE"
+        },
+        {
+          "status": " M",
+          "path": "docs/current/AAOS-SPILLOVER-REGISTER-20261008.md",
+          "sha256": "c91a6e234c523d4e59c85d8632ac032082c6242048d363a4b477e4af8e403669",
+          "kind": "FILE"
+        },
+        {
+          "status": " M",
+          "path": "docs/current/AAOS01-Q00-Q15-LEDGER-FINAL-20261005.md",
+          "sha256": "91370851db60862aea07474598290a7d5ae9d6fa79f5b6e8672e6866d69c9fd7",
+          "kind": "FILE"
+        },
+        {
+          "status": " M",
+          "path": "docs/current/DSH-CLOSURE-EXECUTOR-PROMPT-20261003.md",
+          "sha256": "70f719a6417eb78793f271e0876fa3b7d2096b0171e2e53d29c485c6036abb47",
+          "kind": "FILE"
+        },
+        {
+          "status": " M",
+          "path": "docs/current/DSH-CLOSURE-HANDOFF-20261003.md",
+          "sha256": "c0223f2154a23af4a662a00a849e275bada97b820be5093754023012611984fd",
+          "kind": "FILE"
+        },
+        {
+          "status": " M",
+          "path": "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
+          "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1",
+          "kind": "FILE"
+        },
+        {
+          "status": " M",
+          "path": "docs/current/R5-LOCAL-BRANCH-DISPOSITION-20260918.md",
+          "sha256": "c80eaeb80691e966cdd80ec12b8e5cfb68e94fb369057cf5e3778f2407c840b3",
+          "kind": "FILE"
+        },
+        {
+          "status": " M",
+          "path": "docs/current/R6-EXECUTION.md",
+          "sha256": "f3669a0a884fb43688407314242c9b83d5ab1d17d9c1c1c8d46f28ebe7256ae8",
+          "kind": "FILE"
+        },
+        {
+          "status": " M",
+          "path": "docs/current/REPOSITORY-CLEANUP-HANDOFF-20260921.md",
+          "sha256": "83a8b15720eaca1093921b370c3239232a41ae50d70e644d0ec53ad9396ab859",
+          "kind": "FILE"
+        },
+        {
+          "status": " M",
+          "path": "frontend/package.json",
+          "sha256": "09a223f18536c5ffc6623d4fab21ad453ffc122239056af35d70522d6cc6cf9d",
+          "kind": "FILE"
+        },
+        {
+          "status": " M",
+          "path": "frontend/src/__tests__/CanonicalLibrarySpace.test.tsx",
+          "sha256": "54a18c5703461f3be93a23ccd1c596827a4d9c58e709b9664547d18d20466dbe",
+          "kind": "FILE"
+        },
+        {
+          "status": " M",
+          "path": "frontend/src/__tests__/CoreFailureStates.test.tsx",
+          "sha256": "6394171790086e5271e6425f45001936a7968e7c9db4f2bb97b6a6d9c10adcb3",
+          "kind": "FILE"
+        },
+        {
+          "status": " M",
+          "path": "frontend/src/__tests__/SpaceView.test.tsx",
+          "sha256": "b4a80cfa07ca771fa6ab2f6232570d0ed63edad25401b8e93f49f660ea51e821",
+          "kind": "FILE"
+        },
+        {
+          "status": " M",
+          "path": "frontend/src/__tests__/TemplateBindings.test.tsx",
+          "sha256": "e90fd908b90203bc7286ad80b339d15ae8c4a665267d4e3ebac17ea9f13e5bcc",
+          "kind": "FILE"
+        },
+        {
+          "status": " M",
+          "path": "frontend/src/__tests__/TemplateCapabilityRequirements.test.tsx",
+          "sha256": "0ddd10ffc58888744ba16665ad2b8889698ede01bc525533865012bda6d51f95",
+          "kind": "FILE"
+        },
+        {
+          "status": " M",
+          "path": "frontend/src/__tests__/ViteDevProxy.test.mjs",
+          "sha256": "57d4c34c7ab05cca9caa2b2f176aef4401502c20bad0f23ad89233ef25f7aa5b",
+          "kind": "FILE"
+        },
+        {
+          "status": " M",
+          "path": "frontend/src/api/generated/core-contract.ts",
+          "sha256": "a86b0ea5a50bd62d7580fd44ab4e26c85122c3ca48d225f32aba419b36431fa7",
+          "kind": "FILE"
+        },
+        {
+          "status": " M",
+          "path": "frontend/src/components/StatusBar.tsx",
+          "sha256": "1e237d79deaabd2fef4c1d8037f278e4b02f4a5cf47d68531ecc22b77c445fa4",
+          "kind": "FILE"
+        },
+        {
+          "status": " M",
+          "path": "frontend/src/components/content.css",
+          "sha256": "487d878b85f62ce84978102b227036a14893d1009181f3882c492c4dc08ec94d",
+          "kind": "FILE"
+        },
+        {
+          "status": " M",
+          "path": "frontend/src/design-system/themes.css",
+          "sha256": "9fffae7c18e43c3e35cc989c4a15bfd7af5b90f237d2c393828ec0b808f66085",
+          "kind": "FILE"
+        },
+        {
+          "status": " M",
+          "path": "frontend/src/design-system/tokens.css",
+          "sha256": "48606a4ada76eda788ad3eb0e6c865367da7a79a2cd157a5ecffc8f283c8b079",
+          "kind": "FILE"
+        },
+        {
+          "status": " M",
+          "path": "frontend/src/spaces/CanonicalCapabilitiesSpace.tsx",
+          "sha256": "708ff4c0e51225fe0eed18bf6b1b11b4478c6a31f8f99da6443f5358d62443ac",
+          "kind": "FILE"
+        },
+        {
+          "status": " M",
+          "path": "frontend/src/spaces/CanonicalKnowledgeSpace.tsx",
+          "sha256": "6848b590d5063b8343d9b0496f2b17fbf8bb3f16b03e705d86cc1cea4d3ff828",
+          "kind": "FILE"
+        },
+        {
+          "status": " M",
+          "path": "frontend/src/spaces/SpaceView.tsx",
+          "sha256": "80533f2be41c379d8bbd692d403ee3e0c35f7b488036a9ed0889e48d26312f73",
+          "kind": "FILE"
+        },
+        {
+          "status": " M",
+          "path": "frontend/src/templates/TemplateWorkspace.tsx",
+          "sha256": "0fbfa9e6344141b37f3ee66f79d32728eb4fb13c1a4326afb6ff59fab3045f0e",
+          "kind": "FILE"
+        },
+        {
+          "status": " M",
+          "path": "frontend/src/templates/bindings.ts",
+          "sha256": "37d2fae23c62b0592a0d90db471fca9cf4fffa1206553a82bf3fb172ac6b0766",
+          "kind": "FILE"
+        },
+        {
+          "status": " M",
+          "path": "frontend/vite.config.ts",
+          "sha256": "8b16ddda1d1dbd52ba793d22429e1fdcb73ad2eb8a8938bbc4a85478f339028b",
+          "kind": "FILE"
+        },
+        {
+          "status": " M",
+          "path": "packages/contracts/v1/core-command.schema.json",
+          "sha256": "49da599afcdd80767675e574c82a220833302ba55340223df5d4403a16f4c923",
+          "kind": "FILE"
+        },
+        {
+          "status": " M",
+          "path": "packages/contracts/v1/core-document.schema.json",
+          "sha256": "402a0a36e1360b441bb9b22ca9c73c87c3fbf8f7773182ea43c86afdf9f23a89",
+          "kind": "FILE"
+        },
+        {
+          "status": " M",
+          "path": "scripts/a0_browser_smoke.py",
+          "sha256": "ef4bccf813c440317298e2117273ca850ca6a50a6c9467dc2e7e0d7a2d10c134",
+          "kind": "FILE"
+        },
+        {
+          "status": " M",
+          "path": "scripts/check_repository_conventions.py",
+          "sha256": "c311c38c6f79e408640c08a7236a799943899878a06be91b499e361f34a0eea8",
+          "kind": "FILE"
+        },
+        {
+          "status": " M",
+          "path": "scripts/ci/classify.py",
+          "sha256": "43699a66bb1d39029bed7a153f08b4f1436f58361433ca0260b027024bb2cbe7",
+          "kind": "FILE"
+        },
+        {
+          "status": " M",
+          "path": "scripts/ci/run_tests.ps1",
+          "sha256": "cf66d9418b83b4293e6828d2b0615881b9ebdb81a1fb9ab30197c398cba911bb",
+          "kind": "FILE"
+        },
+        {
+          "status": " M",
+          "path": "scripts/ci/run_tests.sh",
+          "sha256": "9b3eed01df452c7f446b279c012ca6fd4983151b99af3b20e75f2b4593ca50ee",
+          "kind": "FILE"
+        },
+        {
+          "status": " M",
+          "path": "scripts/probes/aaos01_tauri_performance.py",
+          "sha256": "ab7fb63c89e5f231041d47978eea8fcc583bf93594983526b9c9432ec96510b7",
+          "kind": "FILE"
+        },
+        {
+          "status": " M",
+          "path": "scripts/probes/aaos01_tauri_webdriver_loop.py",
+          "sha256": "e1d4c002ef79574494d0509b833dcbe22fc3ac80d4c2f80d4871c1681a9c58e2",
+          "kind": "FILE"
+        },
+        {
+          "status": " M",
+          "path": "scripts/runtime/dev.py",
+          "sha256": "83e15d70511715ef61d0cb716e51fdc5bead568f6b88b17c524f43b55368f367",
+          "kind": "FILE"
+        },
+        {
+          "status": " M",
+          "path": "scripts/runtime/realign_dev_layout.py",
+          "sha256": "18572a3f8c78ec363413ea57ddd381f4a27155149affb76e4db22d22f7d305a2",
+          "kind": "FILE"
+        },
+        {
+          "status": " M",
+          "path": "scripts/runtime/storage_report.py",
+          "sha256": "ceb837ad5c23466b42f6141f8fadbbb63f296153a54eac8950c3a275e6c85e11",
+          "kind": "FILE"
+        },
+        {
+          "status": " M",
+          "path": "scripts/runtime/undo_layout_realign.py",
+          "sha256": "7c8623a2906c206c0b873c3279c2f896ab0e54df2340a2200eb2a10cf0a29aaf",
+          "kind": "FILE"
+        },
+        {
+          "status": " M",
+          "path": "services/python-workers/course/worker_general_course.py",
+          "sha256": "f1afc5c4f383b7880fac7a9002babdeea51f25177d19367999c71e1f4292c804",
+          "kind": "FILE"
+        },
+        {
+          "status": " M",
+          "path": "src-tauri/Cargo.toml",
+          "sha256": "2a76a192294d4d067a475f9d8d5064af13cd175a372b81b26d50de128445943c",
+          "kind": "FILE"
+        },
+        {
+          "status": " M",
+          "path": "src-tauri/README.md",
+          "sha256": "e99608119a724978bcbab44e6aa444f9a4dd862d3abc3ce9d3f6136f5e816d2a",
+          "kind": "FILE"
+        },
+        {
+          "status": " M",
+          "path": "src-tauri/build.rs",
+          "sha256": "cffd99829dcfa15a7933d23938fb6224e045e31e52f128bf11692e1254c75a21",
+          "kind": "FILE"
+        },
+        {
+          "status": " M",
+          "path": "src-tauri/gen/schemas/acl-manifests.json",
+          "sha256": "b8665c2471bd4c59d570c77e226f37410ce396da52525383a15b5cbbff9d786e",
+          "kind": "FILE"
+        },
+        {
+          "status": " M",
+          "path": "src-tauri/gen/schemas/capabilities.json",
+          "sha256": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+          "kind": "FILE"
+        },
+        {
+          "status": " M",
+          "path": "src-tauri/gen/schemas/desktop-schema.json",
+          "sha256": "f68a9c570ecff07ac6826145d33b966d6fc02f7d680967f44437268b08a6ba78",
+          "kind": "FILE"
+        },
+        {
+          "status": " M",
+          "path": "src-tauri/gen/schemas/windows-schema.json",
+          "sha256": "f68a9c570ecff07ac6826145d33b966d6fc02f7d680967f44437268b08a6ba78",
+          "kind": "FILE"
+        },
+        {
+          "status": " M",
+          "path": "src-tauri/src/core_bridge.rs",
+          "sha256": "a85f15e07b592acf031c86961a8d79a7c998e5da12ee7a4d035bb4d9d0e046dd",
+          "kind": "FILE"
+        },
+        {
+          "status": " M",
+          "path": "src-tauri/tauri.conf.json",
+          "sha256": "3d381a79f84cf9e96bf6a48abb08de3fa8e7e8b2b6eaea16231a226137692977",
+          "kind": "FILE"
+        },
+        {
+          "status": " M",
+          "path": "tests/contract/test_bulk_schema_matrix.py",
+          "sha256": "4dddd1c8ddd656e2820e0aeb196dbd87d0093dfb6b32d0f5218a4891d948b15a",
+          "kind": "FILE"
+        },
+        {
+          "status": " M",
+          "path": "tests/runtime-paths/test_dev_paths.py",
+          "sha256": "3a51263f8e76855e35f67032725d9ced8fa01f5ccc25c6d1302087eb51ef8ce0",
+          "kind": "FILE"
+        },
+        {
+          "status": " M",
+          "path": "tests/test_ci_a0_gates.py",
+          "sha256": "d442abd6e99bc4c07c6a8cb6a59dc90b96cef82c7cf6140520af2d6a0f407261",
+          "kind": "FILE"
+        },
+        {
+          "status": " M",
+          "path": "tests/test_ci_classifier.py",
+          "sha256": "fbdafab00ea024af2638dcf98eb1f203949c2383d5f329f2748183204abcf7d1",
+          "kind": "FILE"
+        },
+        {
+          "status": " M",
+          "path": "tests/test_desktop_staging.py",
+          "sha256": "41d8c3e2c564bbe4543f7118249d9eda04048ab407b044dcdd413bd99a553978",
+          "kind": "FILE"
+        },
+        {
+          "status": " M",
+          "path": "tests/test_general_course_worker.py",
+          "sha256": "aa663e64a39b27fca40cc11976a3068d7cc6c1aebbbb10031ae78ec76a4c8b42",
+          "kind": "FILE"
+        },
+        {
+          "status": " M",
+          "path": "tests/test_naming_conventions.py",
+          "sha256": "a9e711fe3c1f916b9a012f34eaef4aca0ed8f7e5fa14105f5cf33fe327532840",
+          "kind": "FILE"
+        },
+        {
+          "status": " M",
+          "path": "tests/test_project_output_routing_contract.py",
+          "sha256": "c27e47225388aa7d15827f8019f248954b82b7053a3f8379afb17e1e7ae9f904",
+          "kind": "FILE"
+        },
+        {
+          "status": " M",
+          "path": "tests/test_storage_report_link_measurement.py",
+          "sha256": "c53c298fd3d4a609ce5d0fb9887bc9088c1c62455021c1599f81eb6f7472ac74",
+          "kind": "FILE"
+        },
+        {
+          "status": " M",
+          "path": "tests/test_tauri_frontend_build_contract.py",
+          "sha256": "7f1df54977d0f3512bb776402db4a9c6cda9155c9398ece7291b167ff1de4062",
+          "kind": "FILE"
+        },
+        {
+          "status": " M",
+          "path": "tests/test_tauri_shell_authority.py",
+          "sha256": "651863bac92df9e069455e09633f8fc108481589d9b3ef6bec2165343a69cf80",
+          "kind": "FILE"
+        },
+        {
+          "status": " M",
+          "path": "tests/test_window_minimum_size.py",
+          "sha256": "f6492c4b73c636caa2c1e6cf9ca528f125c054c92a6177a0f6df1d9d35cb31f6",
+          "kind": "FILE"
+        },
+        {
+          "status": " M",
+          "path": "tests/workflow/test_layout_archive_restore.py",
+          "sha256": "d2e51f62d6323b3890f87c24b2d9f3631cace01180df9b62d9a1f63258c7ecd2",
+          "kind": "FILE"
+        },
+        {
+          "status": "??",
+          "path": "AAOS-后续执行交接提示词-20261009.md",
+          "sha256": "589d53910e96365221f67fc9c5e2ec4adaf65b845652be3a3c78fc48201cf610",
+          "kind": "FILE"
+        },
+        {
+          "status": "??",
+          "path": "AAOS-资料索引.md",
+          "sha256": "4b72dc2f8667dc7545546608f1f30a1e4b14df9720e7096c1e4da4e212dd7d65",
+          "kind": "FILE"
+        },
+        {
+          "status": "??",
+          "path": "crates/archeaxis-api/tests/document_pagination.rs",
+          "sha256": "819ae8db94f7906d7bbd11794cda59b0fead085be0c3aa3f11baf42ee5595a7c",
+          "kind": "FILE"
+        },
+        {
+          "status": "??",
+          "path": "docs/history/record-archive-20261009/",
+          "sha256": null,
+          "kind": "DIR_OR_DELETED"
+        },
+        {
+          "status": "??",
+          "path": "docs/taskpacks/aaos-ui-first-20261009/",
+          "sha256": null,
+          "kind": "DIR_OR_DELETED"
+        },
+        {
+          "status": "??",
+          "path": "frontend/src/__tests__/KnowledgeCoursePanel.test.tsx",
+          "sha256": "e883f6df4adca9e4eff23f5df138ca9c58a3c45f5f960f6b06e3816c0ea8e57c",
+          "kind": "FILE"
+        },
+        {
+          "status": "??",
+          "path": "frontend/src/components/KnowledgeCoursePanel.tsx",
+          "sha256": "86e101c1bfe6190a9acb8ca750b1f6a4cd3a52c1c03a191fb13afcde41536960",
+          "kind": "FILE"
+        },
+        {
+          "status": "??",
+          "path": "scripts/ci/local_verify.py",
+          "sha256": "e1d2927a6111578e9a645a5fccfebd15963535c86ec165f3188feee046bd0afe",
+          "kind": "FILE"
+        },
+        {
+          "status": "??",
+          "path": "scripts/maintenance/archive_record_materials.py",
+          "sha256": "567f99fe842866574496fb0eea328ec2201ab7ab3a27eac4898e40971085229f",
+          "kind": "FILE"
+        },
+        {
+          "status": "??",
+          "path": "scripts/maintenance/compact_record_archives.py",
+          "sha256": "c0936e62670e37ba1fd7cd43cc768067c4c5865707f7d09b060f89b3b5faa909",
+          "kind": "FILE"
+        },
+        {
+          "status": "??",
+          "path": "scripts/probes/aaos01_native_ui_matrix.py",
+          "sha256": "5c7f45f0341027652eb95d5393f2af02d2624b0a1e75b675c9aa6e21532beb41",
+          "kind": "FILE"
+        },
+        {
+          "status": "??",
+          "path": "scripts/release/tauri_portable_candidate.py",
+          "sha256": "93fe3131af747a00f6d0e4a58616a021902df76776ced0a5b29bf0a9a394de9f",
+          "kind": "FILE"
+        },
+        {
+          "status": "??",
+          "path": "scripts/runtime/frontend.mjs",
+          "sha256": "e8124703d297f619ab0bbb629b9eb5d12e730e3d355f6ba08e5b4b659b5581b9",
+          "kind": "FILE"
+        },
+        {
+          "status": "??",
+          "path": "scripts/runtime/frontend.py",
+          "sha256": "11cbfe9fd9f85a4ef4bee63d81fdd5c0f88b307eaccdece15004398b2d9fc790",
+          "kind": "FILE"
+        },
+        {
+          "status": "??",
+          "path": "scripts/runtime/frontend_paths.d.mts",
+          "sha256": "8e7c41c0473b53538424af9c1f645dfe4b4fbaaf94dd3de39ecd5bfd6e255152",
+          "kind": "FILE"
+        },
+        {
+          "status": "??",
+          "path": "scripts/runtime/frontend_paths.mjs",
+          "sha256": "d97e03539922f9456d85cfbd370f539a1a0bbc705bd6a414a931fc475e8fa0c1",
+          "kind": "FILE"
+        },
+        {
+          "status": "??",
+          "path": "tests/runtime-paths/test_frontend_router.py",
+          "sha256": "ee42a60c355166c2e2281906cf13e19d032f5471035e62c3b9bfa299558e25ef",
+          "kind": "FILE"
+        },
+        {
+          "status": "??",
+          "path": "tests/test_local_ci_profiles.py",
+          "sha256": "5f35d59aa87a54808f499f17112304fef671ec14eccb0b190a3cde6c8ab9b258",
+          "kind": "FILE"
+        },
+        {
+          "status": "??",
+          "path": "tests/test_tauri_portable_candidate.py",
+          "sha256": "6b6f06db71b97c9b86b013549f582d80dfb58c399544b5f69d9ca8992ec94373",
+          "kind": "FILE"
+        }
+      ],
+      "status_count": 96,
+      "process_writer": "UNKNOWN_NOT_INSPECTED"
+    }
+  },
+  "snapshot": [
+    {
+      "root": "D:\\All projects\\ArcheAxis-Knowledge-OS",
+      "relative_path": "AGENTS.md",
+      "exists": true,
+      "bytes": 10910,
+      "sha256": "e51307e6b7f7f65312c70324c0e99ea88ced317e7f4a62edca7e730e6b1384d3"
+    },
+    {
+      "root": "D:\\All projects\\ArcheAxis-Knowledge-OS",
+      "relative_path": "AUTHORITY.md",
+      "exists": false,
+      "bytes": null,
+      "sha256": null
+    },
+    {
+      "root": "D:\\All projects\\ArcheAxis-Knowledge-OS",
+      "relative_path": "DECISION_SUPERSESSION_LEDGER.yaml",
+      "exists": true,
+      "bytes": 13139,
+      "sha256": "b0e815f631d3490b55373194131f319168805b5f42f24133dae42af5d5c4b08a"
+    },
+    {
+      "root": "D:\\All projects\\ArcheAxis-Knowledge-OS",
+      "relative_path": "PROJECT_CONTRACT.yaml",
+      "exists": true,
+      "bytes": 4756,
+      "sha256": "ae45068c76fd47de99afb87b4c8f9520b830a408e986ba119e72c3447aa0c92e"
+    },
+    {
+      "root": "D:\\All projects\\ArcheAxis-Knowledge-OS",
+      "relative_path": "LESSONS_LEARNED.md",
+      "exists": true,
+      "bytes": 5947,
+      "sha256": "4d345510c14c2bbea44c1888f499428086731c5ab8225f8eece4149eb2fbb77b"
+    },
+    {
+      "root": "D:\\All projects\\ArcheAxis-Knowledge-OS",
+      "relative_path": "docs/CONFIGURATION_AUTHORITY_INDEX.md",
+      "exists": true,
+      "bytes": 5559,
+      "sha256": "7ed80f1581a247b7f4d55f914515692bb9c9e3e44ba871263df5bdd809b68a84"
+    },
+    {
+      "root": "D:\\All projects\\ArcheAxis-Knowledge-OS",
+      "relative_path": "docs/DOCUMENTATION_AUTHORITY_INDEX.md",
+      "exists": true,
+      "bytes": 14593,
+      "sha256": "c0b7f6bffb231df6308e08d8d55a9088f501e2bb9082051dbe2473a7b5ecfe3d"
+    },
+    {
+      "root": "D:\\All projects\\ArcheAxis-Knowledge-OS",
+      "relative_path": "docs/authority/taskpack-1004-aaos01/01_完整执行任务书.md",
+      "exists": false,
+      "bytes": null,
+      "sha256": null
+    },
+    {
+      "root": "D:\\All projects\\ArcheAxis-Knowledge-OS",
+      "relative_path": "docs/current/AAOS-GOVERNANCE-UI-HANDOFF-20261008.md",
+      "exists": false,
+      "bytes": null,
+      "sha256": null
+    },
+    {
+      "root": "D:\\All projects\\ArcheAxis-Knowledge-OS",
+      "relative_path": "docs/current/AAOS01-Q00-Q15-LEDGER-FINAL-20261005.md",
+      "exists": false,
+      "bytes": null,
+      "sha256": null
+    },
+    {
+      "root": "D:\\All projects\\ArcheAxis-Knowledge-OS",
+      "relative_path": "docs/current/R6-STATE.json",
+      "exists": true,
+      "bytes": 9892,
+      "sha256": "0b67090fad8bdd9325aba0e5a50eed2fd53ef7e0e8f14fb00fa04d0f1f431426"
+    },
+    {
+      "root": "D:\\All projects\\ArcheAxis-Knowledge-OS",
+      "relative_path": "docs/current/AAOS-OPEN-WORK-REGISTER-20261001.md",
+      "exists": true,
+      "bytes": 10208,
+      "sha256": "b76e59dc896538939644919f0e357cdc6ae7209e5190f7c9ad340cb09edb296b"
+    },
+    {
+      "root": "D:\\All projects\\ArcheAxis-Knowledge-OS",
+      "relative_path": "docs/current/AAOS-ALL-TASKS-LEDGER-20261001.json",
+      "exists": true,
+      "bytes": 163077,
+      "sha256": "db262767239ca07571ae669dbaec023c616a4e58679b977c0cc091d6f525298c"
+    },
+    {
+      "root": "D:\\All projects\\ArcheAxis-Knowledge-OS",
+      "relative_path": "docs/current/OSS-QODER-HANDOFF-20261008.md",
+      "exists": false,
+      "bytes": null,
+      "sha256": null
+    },
+    {
+      "root": "D:\\All projects\\ArcheAxis-Knowledge-OS",
+      "relative_path": "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
+      "exists": false,
+      "bytes": null,
+      "sha256": null
+    },
+    {
+      "root": "D:\\All projects\\ArcheAxis-Knowledge-OS",
+      "relative_path": "docs/truth/CAPABILITY_ATLAS_V2.yaml",
+      "exists": true,
+      "bytes": 10318,
+      "sha256": "c290b342f47d38e79f3e1539175d21f822808495a902b465ea1b0d42b99cc39a"
+    },
+    {
+      "root": "D:\\All projects\\ArcheAxis-Knowledge-OS",
+      "relative_path": "docs/truth/REQUIREMENT_TRACE_V2.yaml",
+      "exists": true,
+      "bytes": 3779,
+      "sha256": "ffa1d2fc330ce48c43daeaaebaa069b3ad76e0edf34445e84dd8729fb81541e1"
+    },
+    {
+      "root": "D:\\All projects\\ArcheAxis-Knowledge-OS",
+      "relative_path": "frontend/src/spaces/SpaceView.tsx",
+      "exists": true,
+      "bytes": 1470,
+      "sha256": "e2b8a7e61c31a47eec011889b1f1ee921f29b20374dc71411e8d287092e8eb6f"
+    },
+    {
+      "root": "D:\\All projects\\ArcheAxis-Knowledge-OS",
+      "relative_path": "frontend/src/components/BackupPanel.tsx",
+      "exists": false,
+      "bytes": null,
+      "sha256": null
+    },
+    {
+      "root": "D:\\All projects\\ArcheAxis-Knowledge-OS",
+      "relative_path": "frontend/src/spaces/SettingsSpace.tsx",
+      "exists": true,
+      "bytes": 17134,
+      "sha256": "7e17a2425758b12eb083940b25b034686ac8a3bbb0ea2a4bf0834b4fb17821c8"
+    },
+    {
+      "root": "D:\\All projects\\ArcheAxis-Knowledge-OS",
+      "relative_path": "frontend/src/templates/bindings.ts",
+      "exists": false,
+      "bytes": null,
+      "sha256": null
+    },
+    {
+      "root": "D:\\All projects\\ArcheAxis-Knowledge-OS",
+      "relative_path": "frontend/src/components/KnowledgeCoursePanel.tsx",
+      "exists": false,
+      "bytes": null,
+      "sha256": null
+    },
+    {
+      "root": "D:\\All projects\\ArcheAxis-Knowledge-OS",
+      "relative_path": "frontend/package.json",
+      "exists": true,
+      "bytes": 797,
+      "sha256": "beca1073298e0b64833dd21136aed6638a31a40d4c07727d4920eddb60479224"
+    },
+    {
+      "root": "D:\\All projects\\ArcheAxis-Knowledge-OS",
+      "relative_path": "src-tauri/src/core_bridge.rs",
+      "exists": false,
+      "bytes": null,
+      "sha256": null
+    },
+    {
+      "root": "D:\\All projects\\ArcheAxis-Knowledge-OS",
+      "relative_path": "packages/contracts/v1/core-command.schema.json",
+      "exists": false,
+      "bytes": null,
+      "sha256": null
+    },
+    {
+      "root": "D:\\All projects\\ArcheAxis-Knowledge-OS",
+      "relative_path": "scripts/runtime/dev.py",
+      "exists": true,
+      "bytes": 25050,
+      "sha256": "6aef23b23cc7134f69a48744c9f7e7c9916c3f9151bcb1aa861e7af0133e0804"
+    },
+    {
+      "root": "D:\\All projects\\ArcheAxis-Knowledge-OS",
+      "relative_path": "scripts/runtime/frontend.py",
+      "exists": false,
+      "bytes": null,
+      "sha256": null
+    },
+    {
+      "root": "D:\\All projects\\ArcheAxis-Knowledge-OS",
+      "relative_path": "scripts/runtime/frontend.mjs",
+      "exists": false,
+      "bytes": null,
+      "sha256": null
+    },
+    {
+      "root": "D:\\All projects\\ArcheAxis-Knowledge-OS",
+      "relative_path": "scripts/ci/run_tests.ps1",
+      "exists": true,
+      "bytes": 1179,
+      "sha256": "bf0ddccf29ea7adc2e1a27a86758cc988859f84fdacc6215d772c1bed5c725ad"
+    },
+    {
+      "root": "D:\\All projects\\ArcheAxis-Knowledge-OS",
+      "relative_path": "scripts/ci/local_verify.py",
+      "exists": false,
+      "bytes": null,
+      "sha256": null
+    },
+    {
+      "root": "D:\\All projects\\ArcheAxis-Knowledge-OS",
+      "relative_path": ".github/workflows/ci.yml",
+      "exists": true,
+      "bytes": 59454,
+      "sha256": "ec65bc25916e659b6118075f317856419593e1dc9f33272b3353cc80a65c1ded"
+    },
+    {
+      "root": "D:\\All projects\\ArcheAxis-Knowledge-OS",
+      "relative_path": ".github/workflows/nightly.yml",
+      "exists": true,
+      "bytes": 7656,
+      "sha256": "aa44c7928f67ec8b05c236f52ee3926cb0d579cf5b15a86c17bc227da9728ca9"
+    },
+    {
+      "root": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\worktrees\\gov-ui-20261008",
+      "relative_path": "AGENTS.md",
+      "exists": true,
+      "bytes": 11840,
+      "sha256": "0fd70bdb5fc707fdda7bb20dc595df8320677299474bc3900e6198635f2dc97f"
+    },
+    {
+      "root": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\worktrees\\gov-ui-20261008",
+      "relative_path": "AUTHORITY.md",
+      "exists": true,
+      "bytes": 6065,
+      "sha256": "556663d7093d27f0e5980b8c3425f10ef304202450bcac6a89cc00feb2bf5316"
+    },
+    {
+      "root": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\worktrees\\gov-ui-20261008",
+      "relative_path": "DECISION_SUPERSESSION_LEDGER.yaml",
+      "exists": true,
+      "bytes": 17922,
+      "sha256": "574411cc0fbfd0d4e2f9a5c160a7c4c6fdf24d3493b82d9f76044e2a1e3ae151"
+    },
+    {
+      "root": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\worktrees\\gov-ui-20261008",
+      "relative_path": "PROJECT_CONTRACT.yaml",
+      "exists": true,
+      "bytes": 6648,
+      "sha256": "3eb024eee7748da4fbc5bb2bd04b6faaf1ed50e1754725f61c47b57661157a88"
+    },
+    {
+      "root": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\worktrees\\gov-ui-20261008",
+      "relative_path": "LESSONS_LEARNED.md",
+      "exists": true,
+      "bytes": 5947,
+      "sha256": "4d345510c14c2bbea44c1888f499428086731c5ab8225f8eece4149eb2fbb77b"
+    },
+    {
+      "root": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\worktrees\\gov-ui-20261008",
+      "relative_path": "docs/CONFIGURATION_AUTHORITY_INDEX.md",
+      "exists": true,
+      "bytes": 6531,
+      "sha256": "dcf53abb958deffaa9608750e503e4118a8f7e217549cd0adcaa39b843184754"
+    },
+    {
+      "root": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\worktrees\\gov-ui-20261008",
+      "relative_path": "docs/DOCUMENTATION_AUTHORITY_INDEX.md",
+      "exists": true,
+      "bytes": 23451,
+      "sha256": "7bc7b9713a4e6ec2eabcc26aa653ff84572b592c726026d833c7cda9520ab488"
+    },
+    {
+      "root": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\worktrees\\gov-ui-20261008",
+      "relative_path": "docs/authority/taskpack-1004-aaos01/01_完整执行任务书.md",
+      "exists": true,
+      "bytes": 22479,
+      "sha256": "211f5e1219d6c9fe5d4aef5b1e5674585954ac1723480bb191956afe752df2ea"
+    },
+    {
+      "root": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\worktrees\\gov-ui-20261008",
+      "relative_path": "docs/current/AAOS-GOVERNANCE-UI-HANDOFF-20261008.md",
+      "exists": true,
+      "bytes": 109487,
+      "sha256": "9d7fde87fcb3b503973001ca581c2700bc8816af14211b6fa4bef2b156a8ed74"
+    },
+    {
+      "root": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\worktrees\\gov-ui-20261008",
+      "relative_path": "docs/current/AAOS01-Q00-Q15-LEDGER-FINAL-20261005.md",
+      "exists": true,
+      "bytes": 436194,
+      "sha256": "91370851db60862aea07474598290a7d5ae9d6fa79f5b6e8672e6866d69c9fd7"
+    },
+    {
+      "root": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\worktrees\\gov-ui-20261008",
+      "relative_path": "docs/current/R6-STATE.json",
+      "exists": true,
+      "bytes": 51941,
+      "sha256": "eff264e6790a117a8dd969ee82196fcfafb9c3643445dd281729820da2465a0a"
+    },
+    {
+      "root": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\worktrees\\gov-ui-20261008",
+      "relative_path": "docs/current/AAOS-OPEN-WORK-REGISTER-20261001.md",
+      "exists": true,
+      "bytes": 17469,
+      "sha256": "6af198a09f4c6658b8337d50c4a59418ec33aea47551e26b736e679d9eb84786"
+    },
+    {
+      "root": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\worktrees\\gov-ui-20261008",
+      "relative_path": "docs/current/AAOS-ALL-TASKS-LEDGER-20261001.json",
+      "exists": true,
+      "bytes": 163106,
+      "sha256": "a2d2cf6d647e03cc42b62797f544fb031e97f8d33330c01c01a15cff817ea1c4"
+    },
+    {
+      "root": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\worktrees\\gov-ui-20261008",
+      "relative_path": "docs/current/OSS-QODER-HANDOFF-20261008.md",
+      "exists": true,
+      "bytes": 9737,
+      "sha256": "33ade6a905bbaed13f81c7979e08b426372d6a15ce061ded06c8abcaca7100f4"
+    },
+    {
+      "root": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\worktrees\\gov-ui-20261008",
+      "relative_path": "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
+      "exists": true,
+      "bytes": 234589,
+      "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
+    },
+    {
+      "root": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\worktrees\\gov-ui-20261008",
+      "relative_path": "docs/truth/CAPABILITY_ATLAS_V2.yaml",
+      "exists": true,
+      "bytes": 10318,
+      "sha256": "c290b342f47d38e79f3e1539175d21f822808495a902b465ea1b0d42b99cc39a"
+    },
+    {
+      "root": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\worktrees\\gov-ui-20261008",
+      "relative_path": "docs/truth/REQUIREMENT_TRACE_V2.yaml",
+      "exists": true,
+      "bytes": 3779,
+      "sha256": "ffa1d2fc330ce48c43daeaaebaa069b3ad76e0edf34445e84dd8729fb81541e1"
+    },
+    {
+      "root": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\worktrees\\gov-ui-20261008",
+      "relative_path": "frontend/src/spaces/SpaceView.tsx",
+      "exists": true,
+      "bytes": 5957,
+      "sha256": "80533f2be41c379d8bbd692d403ee3e0c35f7b488036a9ed0889e48d26312f73"
+    },
+    {
+      "root": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\worktrees\\gov-ui-20261008",
+      "relative_path": "frontend/src/components/BackupPanel.tsx",
+      "exists": true,
+      "bytes": 2652,
+      "sha256": "a649bcfba82e15aa2d3ac1861184694db8413b1cbfd4f7e5444cf2f7323be771"
+    },
+    {
+      "root": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\worktrees\\gov-ui-20261008",
+      "relative_path": "frontend/src/spaces/SettingsSpace.tsx",
+      "exists": true,
+      "bytes": 17190,
+      "sha256": "7f4dbff7f01e0aac0d873a6cf39f3ce9e730636705b8a77c37079baec0bb76dd"
+    },
+    {
+      "root": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\worktrees\\gov-ui-20261008",
+      "relative_path": "frontend/src/templates/bindings.ts",
+      "exists": true,
+      "bytes": 6550,
+      "sha256": "37d2fae23c62b0592a0d90db471fca9cf4fffa1206553a82bf3fb172ac6b0766"
+    },
+    {
+      "root": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\worktrees\\gov-ui-20261008",
+      "relative_path": "frontend/src/components/KnowledgeCoursePanel.tsx",
+      "exists": true,
+      "bytes": 8922,
+      "sha256": "86e101c1bfe6190a9acb8ca750b1f6a4cd3a52c1c03a191fb13afcde41536960"
+    },
+    {
+      "root": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\worktrees\\gov-ui-20261008",
+      "relative_path": "frontend/package.json",
+      "exists": true,
+      "bytes": 1123,
+      "sha256": "09a223f18536c5ffc6623d4fab21ad453ffc122239056af35d70522d6cc6cf9d"
+    },
+    {
+      "root": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\worktrees\\gov-ui-20261008",
+      "relative_path": "src-tauri/src/core_bridge.rs",
+      "exists": true,
+      "bytes": 31430,
+      "sha256": "a85f15e07b592acf031c86961a8d79a7c998e5da12ee7a4d035bb4d9d0e046dd"
+    },
+    {
+      "root": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\worktrees\\gov-ui-20261008",
+      "relative_path": "packages/contracts/v1/core-command.schema.json",
+      "exists": true,
+      "bytes": 1623,
+      "sha256": "49da599afcdd80767675e574c82a220833302ba55340223df5d4403a16f4c923"
+    },
+    {
+      "root": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\worktrees\\gov-ui-20261008",
+      "relative_path": "scripts/runtime/dev.py",
+      "exists": true,
+      "bytes": 32439,
+      "sha256": "83e15d70511715ef61d0cb716e51fdc5bead568f6b88b17c524f43b55368f367"
+    },
+    {
+      "root": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\worktrees\\gov-ui-20261008",
+      "relative_path": "scripts/runtime/frontend.py",
+      "exists": true,
+      "bytes": 10627,
+      "sha256": "11cbfe9fd9f85a4ef4bee63d81fdd5c0f88b307eaccdece15004398b2d9fc790"
+    },
+    {
+      "root": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\worktrees\\gov-ui-20261008",
+      "relative_path": "scripts/runtime/frontend.mjs",
+      "exists": true,
+      "bytes": 739,
+      "sha256": "e8124703d297f619ab0bbb629b9eb5d12e730e3d355f6ba08e5b4b659b5581b9"
+    },
+    {
+      "root": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\worktrees\\gov-ui-20261008",
+      "relative_path": "scripts/ci/run_tests.ps1",
+      "exists": true,
+      "bytes": 1526,
+      "sha256": "cf66d9418b83b4293e6828d2b0615881b9ebdb81a1fb9ab30197c398cba911bb"
+    },
+    {
+      "root": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\worktrees\\gov-ui-20261008",
+      "relative_path": "scripts/ci/local_verify.py",
+      "exists": true,
+      "bytes": 11971,
+      "sha256": "e1d2927a6111578e9a645a5fccfebd15963535c86ec165f3188feee046bd0afe"
+    },
+    {
+      "root": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\worktrees\\gov-ui-20261008",
+      "relative_path": ".github/workflows/ci.yml",
+      "exists": true,
+      "bytes": 70851,
+      "sha256": "2dd8fed40e289be7f65ff22e8c6ad86c4b11123254415a0f4f86c0a8d6d4fd08"
+    },
+    {
+      "root": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\worktrees\\gov-ui-20261008",
+      "relative_path": ".github/workflows/nightly.yml",
+      "exists": true,
+      "bytes": 8923,
+      "sha256": "6dee7575251c5730e647ba09ca10cc520a1a4bfa36bc6399a47291a9f05c4d90"
+    }
+  ],
+  "native_evidence_role": "HISTORICAL_RECORDED_NOT_REQUALIFIED_CURRENT_TREE",
+  "unknown": [
+    "Qoder/Codex actual current writer process",
+    "current whole-repo bytes",
+    "live cloud quota/CI results",
+    "full private historical conversation",
+    "independent approved subcapability baseline completeness"
+  ]
+}

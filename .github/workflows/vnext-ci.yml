@@ -6,50 +6,12 @@ name: vnext-ci
 # VNEXT_RECEIPT_OUT is set.
 
 on:
-  push:
-    paths:
-      - "Cargo.toml"
-      - "Cargo.lock"
-      - "pyproject.toml"
-      - "uv.lock"
-      - "crates/**"
-      - "rust-toolchain.toml"
-      - "apps/ArcheAxis.Desktop/**"
-      - "services/python-workers/**"
-      - "shared/learning_scheduler.py"
-      - "tests/test_worker_schedule.py"
-      - "config/model-profiles/**"
-      - "packages/contracts/**"
-      - "scripts/runtime/**"
-      - "tests/runtime-paths/**"
-      - "tests/workers/**"
-      - "tests/contract/**"
-      - "scripts/contracts/**"
-      - "scripts/ci/check_vnext_*.py"
-      - "Directory.Build.props"
-      - ".github/workflows/vnext-ci.yml"
-  pull_request:
-    paths:
-      - "crates/**"
-      - "Cargo.toml"
-      - "Cargo.lock"
-      - "pyproject.toml"
-      - "uv.lock"
-      - "rust-toolchain.toml"
-      - "apps/ArcheAxis.Desktop/**"
-      - "services/python-workers/**"
-      - "shared/learning_scheduler.py"
-      - "tests/test_worker_schedule.py"
-      - "config/model-profiles/**"
-      - "packages/contracts/**"
-      - "scripts/runtime/**"
-      - "tests/runtime-paths/**"
-      - "tests/workers/**"
-      - "tests/contract/**"
-      - "scripts/contracts/**"
-      - "scripts/ci/check_vnext_*.py"
-      - "Directory.Build.props"
-      - ".github/workflows/vnext-ci.yml"
+  # The canonical CI owns automatic vNext checks; this is a diagnostic lane.
+  workflow_dispatch:
+
+concurrency:
+  group: vnext-diagnostic-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   cargo-test:

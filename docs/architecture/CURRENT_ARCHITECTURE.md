@@ -1,7 +1,12 @@
-# 当前架构职责 — R6 / M0 / SUP-022
+# 当前架构职责 — UI 优先 / SUP-022（继承合同）
+
+> **2026-10-09 当前执行覆盖**：用户已选择新 UI 优先任务及 G01；规范活动指针为 [AAOS-ACTIVE-EXECUTION](../current/AAOS-ACTIVE-EXECUTION.json)，当前任务来源为 [UI 优先 TaskPack](../taskpacks/aaos-ui-first-20261009/TASKPACK.md)，实际进度只读 [UI 执行记录](../current/AAOS-UI-FIRST-EXECUTION-20261009.md)。规划原文的 PLANNING_READY / NOT_EXECUTED 是规划时状态，激活与实际结果由当前覆盖记录，不改写不可变原包。AAOS-01 Q00–Q15 台账仅记录该继承工作流，不代表新 UI 全队列；旧 R6/M0 整包顺序冻结，有效合同、单一 Rust Core writer、内容先保存及历史证据保留。V01 继续暂停。
+> 当前新布局、架构和其余产品界面按新任务执行；默认 `blueprint`，配套 `blueprint-light`，旧 `black` / `white` / `cosmic` 仅为额外配色主题。五主题共用新布局、组件状态及统一语义颜色；一个主题内部的按钮、菜单、侧栏与正文保持一致。主题不更改 Core 配置或知识数据。
+> 平台指令优先；平台范围内用户当前明确决定优先于项目旧描述。此文档同步不授予 commit、push、merge、发布、私人账户/会话访问或恢复暂停的云端任务权限；本机资源索引不是云端权限。
+
 
 > 2026-10-04 SUP-022 正式宿主重构增量；2026-09-27 的源码核对基线保留于历史回执。
-> 当前执行由 [AAOS-01](../authority/taskpack-1004-aaos01/01_完整执行任务书.md)、SUP-022、PROJECT_CONTRACT.yaml 的 content_policy 和 [语言权威](../LANGUAGE_BOUNDARY_AUTHORITY_INDEX.md) 定义；R6/M0 的继承约束与历史回执保留。本页不签发真实 M0、安装态或 Local Green 完成证明。
+> 当前任务选择由 [活动指针](../current/AAOS-ACTIVE-EXECUTION.json) 解析；架构与数据约束继承 [AAOS-01](../authority/taskpack-1004-aaos01/01_完整执行任务书.md)、SUP-022、PROJECT_CONTRACT.yaml 的 content_policy 和 [语言权威](../LANGUAGE_BOUNDARY_AUTHORITY_INDEX.md) 定义；R6/M0 的继承约束与历史回执保留。本页不签发真实 M0、安装态或 Local Green 完成证明。
 
 ## 正式拓扑
 
@@ -46,4 +51,4 @@ AI 使用应展示输入内容的状态和依据。允许探索假设与未经�
 
 旧 FastAPI/Facade 拓扑的[完整原文](../history/architecture/CURRENT_ARCHITECTURE-before-R6-reconciliation-20260927.md)按原字节保留，历史标题和“当前”措辞只对原快照有效。迁移验收以 R6 A13 / M0 P5 的非空 legacy-copy、staging、差异损失核对和重启读回为准；发布及 Green 替换另受 Owner Gate 约束。
 
-开发输出通过 `scripts/runtime/dev.py` 写入 canonical `.project-local/`。产品工作区和用户数据独立；AAOS-01 当前运行状态见 [唯一现行台账](../current/AAOS01-Q00-Q15-LEDGER-FINAL-20261005.md)及其证据；R6 状态保留其历史范围，而非本页架构图。
+开发输出通过 `scripts/runtime/dev.py` 写入 canonical `.project-local/`。产品工作区和用户数据独立；新 UI 当前进度见 [活动指针](../current/AAOS-ACTIVE-EXECUTION.json)；AAOS-01 Q00–Q15运行证据见 [继承Q台账](../current/AAOS01-Q00-Q15-LEDGER-FINAL-20261005.md)，不代表新UI全队列；R6 状态保留其历史范围，而非本页架构图。

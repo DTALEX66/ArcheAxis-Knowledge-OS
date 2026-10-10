@@ -1,0 +1,18 @@
+import { useEffect,useRef,useState } from "react";
+import type { AssetPacketRequest,AssetSnapshot } from "../api/generated/ai-asset-contract";
+import { readAssetConsumption,type AssetConsumption } from "../presentation/assetConsumption";
+import { ObjectReferencePicker } from "./ObjectReferencePicker";
+import { RawReceiptButton } from "./DiagnosticConsole";
+import { failureMessage } from "../presentation/labels";
+/** Two optional asset slots supplement, never replace, mandatory knowledge grants. */
+export function AssetMachineSlots({initial,onAnswer,onRetest,blocked}: {
+ initial?:AssetPacketRequest;onAnswer:(value:AssetConsumption|null)=>void;onRetest:(value:AssetConsumption|null)=>void;blocked:()=>boolean;
+}) {
+ const [answer,setAnswer]=useState<AssetConsumption|null>(null),[retest,setRetest]=useState<AssetConsumption|null>(null),[picker,setPicker]=useState<"answer"|"retest"|null>(null),[busy,setBusy]=useState(false),[message,setMessage]=useState("");
+ const generation=useRef(0),mounted=useRef(true);
+ useEffect(()=>{mounted.current=true;return()=>{mounted.current=false;generation.current++;};},[]);
+ async function select(operation:"answer"|"retest",pin:AssetSnapshot,expected?:AssetPacketRequest,refresh=false){if(!refresh&&blocked())return;const g=++generation.current;setBusy(true);try{const value=await readAssetConsumption(pin,operation,expected);if(!mounted.current||g!==generation.current)return;if(!refresh&&blocked()){setMessage("读取期间的草稿保留，选择未替换。");return;}if(operation==="answer"){setAnswer(value);onAnswer(value);}else{setRetest(value);onRetest(value);}setPicker(null);setMessage("实际资产及授权快照已固定；等待明确执行，不自动推理。");}catch(e){if(mounted.current&&g===generation.current){setMessage(failureMessage(e));if(refresh){const old=operation==="answer"?answer:retest;if(old){const value={...old,current:false};if(operation==="answer"){setAnswer(value);onAnswer(value);}else{setRetest(value);onRetest(value);}}}}}finally{if(mounted.current&&g===generation.current)setBusy(false);}}
+ const initialKey=initial?JSON.stringify(initial):"";
+ useEffect(()=>{if(initial&&(initial.operation==="answer"||initial.operation==="retest"))void select(initial.operation,initial.grant,initial);},[initialKey]);
+ return <section aria-label="独立 AI 资产消费槽" className="semantic-panel"><h3>独立 AI 资产授权</h3><p>资产是可选补充；原知识与纠正知识授权仍各自必需。撤回、过期或版本变化暂停新执行，历史仍保留。</p>{(["answer","retest"] as const).map(op=>{const value=op==="answer"?answer:retest;return <section key={op} aria-label={op==="answer"?"资产回答授权":"资产复测授权"}><h4>{op==="answer"?"回答资产":"复测资产"}</h4><button disabled={busy} onClick={()=>{if(!blocked()){generation.current++;setPicker(op);}}}>选择实际{op==="answer"?"回答":"复测"}资产授权</button>{value?<><p>{value.request.asset.document_id} · v{value.request.asset.version}；授权 v{value.request.grant.version}；用途 {value.request.purpose}</p><p>{value.current?"可提交 Core 再核验":"当前授权不可执行；原消费快照和历史保留"}</p><button disabled={busy} onClick={()=>void select(op,value.request.grant,value.request,true)}>核对{op==="answer"?"回答":"复测"}资产当前授权</button><button disabled={busy} onClick={()=>{if(!blocked()){generation.current++;if(op==="answer"){setAnswer(null);onAnswer(null);}else{setRetest(null);onRetest(null);}setMessage("已明确取消该资产选择；原任务历史未删除。");}}}>取消{op==="answer"?"回答":"复测"}资产选择</button><RawReceiptButton label={`${op} 固定资产与授权`} payload={value}/></>:<p>未选择资产。不会猜测 ID 或自动授权。</p>}</section>;})}{picker?<><ObjectReferencePicker disabled={busy} onSnapshot={pin=>void select(picker,pin)}/><button disabled={busy} onClick={()=>{generation.current++;setPicker(null);}}>取消资产授权选择</button></>:null}{message?<p role="status">{message}</p>:null}</section>;
+}

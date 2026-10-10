@@ -10,6 +10,7 @@ interface StatusBarProps {
   activeSpace: SpaceId;
   backendState: BackendDisplayState;
   externalDev?: boolean;
+  onPage?: (id:string)=>void;
   onNavigate?: (id: SpaceId) => void;
   onOpenCapability?: (id: string) => void;
   selectedCapabilityId?: string | null;
@@ -30,7 +31,7 @@ export function StatusBar({
   activeSpace,
   backendState,
   externalDev = false,
-  onNavigate = () => {},
+  onNavigate = () => {}, onPage,
   onOpenCapability,
   selectedCapabilityId,
   onCommandPaletteOpenChange,
@@ -52,12 +53,13 @@ export function StatusBar({
         <span>星环知识平台</span>
         {externalDev ? <span className="dev-marker">开发</span> : null}
       </div>
-      <CommandPalette onNavigate={onNavigate} onOpenCapability={onOpenCapability} onOpenChange={onCommandPaletteOpenChange} />
+      <CommandPalette onPage={onPage} onNavigate={onNavigate} onOpenCapability={onOpenCapability} onOpenChange={onCommandPaletteOpenChange} />
       <ThemePicker />
       <div className="status-bar-center">
         <span
           className={`status-pill status-pill--${displayStatus}`}
           data-status={displayStatus}
+          title={BACKEND_LABELS[backendState]}
           role="status"
         >
           {BACKEND_LABELS[backendState]}

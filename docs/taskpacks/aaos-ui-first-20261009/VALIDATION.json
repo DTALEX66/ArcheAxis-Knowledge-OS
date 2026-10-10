@@ -1,0 +1,204 @@
+{
+  "schema": "aaos.planning-validation/1",
+  "status": "PASS",
+  "evidence_level": "STRUCTURAL_SOURCE_VERIFICATION_ONLY",
+  "implementation": "NOT_EXECUTED",
+  "start_utc": "2026-10-09T12:42:01.212248+00:00",
+  "end_utc": "2026-10-09T12:42:01.959189+00:00",
+  "command_argv": [
+    "D:\\All projects\\ArcheAxis-Knowledge-OS\\.venv\\Scripts\\python.exe",
+    "-B",
+    "D:\\All projects\\ArcheAxis-Knowledge-OS\\docs\\taskpacks\\aaos-ui-first-20261009\\tools\\verify_plan.py",
+    "--write-receipt"
+  ],
+  "python_executable": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.venv\\Scripts\\python.exe",
+  "python_version": "3.13.14 (main, Jul 23 2026, 14:44:10) [MSC v.1944 64 bit (AMD64)]",
+  "baseline_register": "SOURCE-REGISTER.json",
+  "checks": [
+    {
+      "name": "task_ids_unique",
+      "status": "PASS",
+      "detail": 28
+    },
+    {
+      "name": "dependencies_exist",
+      "status": "PASS",
+      "detail": "all declared dependencies"
+    },
+    {
+      "name": "conditional_dependencies_exist",
+      "status": "PASS",
+      "detail": "advanced profiles retain original foundation dependencies"
+    },
+    {
+      "name": "dependency_dag",
+      "status": "PASS",
+      "detail": "no missing/cyclic dependency"
+    },
+    {
+      "name": "first_slice_dependencies_closed",
+      "status": "PASS",
+      "detail": [
+        "CB01",
+        "UF00",
+        "UF01",
+        "UF02",
+        "UF03",
+        "UF04",
+        "UF06"
+      ]
+    },
+    {
+      "name": "all_tasks_have_scope_acceptance_verification",
+      "status": "PASS",
+      "detail": "28 independently described slices"
+    },
+    {
+      "name": "implementation_not_executed",
+      "status": "PASS",
+      "detail": "planning is not implementation PASS"
+    },
+    {
+      "name": "three_storage_subtasks_declared",
+      "status": "PASS",
+      "detail": "whole repo / spillover / history decision, not executed"
+    },
+    {
+      "name": "storage_in_both_handoff_prompts",
+      "status": "PASS",
+      "detail": "full and standalone prompts contain scope and preservation rules"
+    },
+    {
+      "name": "root_handoff_exact_mirror",
+      "status": "PASS",
+      "detail": "copy/paste root prompt matches canonical delivery"
+    },
+    {
+      "name": "22_pages_exact",
+      "status": "PASS",
+      "detail": 22
+    },
+    {
+      "name": "page_targets_exist",
+      "status": "PASS",
+      "detail": "all page roles mapped"
+    },
+    {
+      "name": "96_source_ids_exact",
+      "status": "PASS",
+      "detail": 96
+    },
+    {
+      "name": "requirement_targets_exist",
+      "status": "PASS",
+      "detail": "no orphan requirement"
+    },
+    {
+      "name": "186_design_details",
+      "status": "PASS",
+      "detail": 186
+    },
+    {
+      "name": "design_targets_exist",
+      "status": "PASS",
+      "detail": "design text is not approved baseline"
+    },
+    {
+      "name": "96_original_columns_preserved",
+      "status": "PASS",
+      "detail": "no source requirement text rewritten"
+    },
+    {
+      "name": "186_original_texts_preserved",
+      "status": "PASS",
+      "detail": "ordered design detail strings"
+    },
+    {
+      "name": "330_disposition_keys_unique",
+      "status": "PASS",
+      "detail": 330
+    },
+    {
+      "name": "old_targets_exist",
+      "status": "PASS",
+      "detail": "all historical/new-source tasks have destinations"
+    },
+    {
+      "name": "270_original_rows_preserved",
+      "status": "PASS",
+      "detail": "original requirements/acceptance/evidence/status retained"
+    },
+    {
+      "name": "31_QF_contracts_preserved",
+      "status": "PASS",
+      "detail": "original Q/F dependencies, delivery, acceptance"
+    },
+    {
+      "name": "logical_freeze_only",
+      "status": "PASS",
+      "detail": "no source deletion/move as task disposition"
+    },
+    {
+      "name": "7_source_archive_hashes",
+      "status": "PASS",
+      "detail": "all registered files match size/SHA256"
+    },
+    {
+      "name": "6_source_zip_crc",
+      "status": "PASS",
+      "detail": "all 6 source ZIPs readable; no corrupt member"
+    },
+    {
+      "name": "internal_sha:AAOS_最后任务包_20261009.zip",
+      "status": "PASS",
+      "detail": {
+        "entries": 11,
+        "failures": []
+      }
+    },
+    {
+      "name": "internal_sha:AAOS_补齐材料与分析增量_20261009.zip",
+      "status": "PASS",
+      "detail": {
+        "entries": 17,
+        "failures": []
+      }
+    },
+    {
+      "name": "62_extracted_source_members",
+      "status": "PASS",
+      "detail": 62
+    },
+    {
+      "name": "UI_union_internal_sha",
+      "status": "PASS",
+      "detail": {
+        "union_files": 155,
+        "sha_entries": 154
+      }
+    },
+    {
+      "name": "protected_source_snapshot_unchanged",
+      "status": "PASS",
+      "detail": "all selected Main/writer files unchanged"
+    },
+    {
+      "name": "delivery_manifest_hashes",
+      "status": "PASS",
+      "detail": 21
+    }
+  ],
+  "errors": [],
+  "not_run": [
+    "product quick/full gates",
+    "UI implementation/runtime",
+    "model calls",
+    "desktop launch",
+    "installation lifecycle",
+    "manual/physical DPI/IME",
+    "real user learning",
+    "cloud CI/quota query",
+    "whole-repo volume audit",
+    "cleanup/destructive operations"
+  ]
+}

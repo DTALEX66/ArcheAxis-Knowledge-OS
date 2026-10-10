@@ -48,4 +48,3 @@
 **环境阻塞（非决策）**：`image.caption` 需本机 Ollama vision 端点；视频解码与网页抓取需"产物+测量"合同设计；登记表两处需修（`faster-whisper-large-v3-turbo` 未登记、`sherpa-onnx` 越根路径）。
 
 **CI 观察**：本轮内 `test (3.12)` 在 `Install and verify local OCR engine` 步骤约 20 分钟后**被取消**两次（非失败）。两次重跑后均 `success`。按上文要求，取消不算 PASS，且我报告的是**重跑后的同一精确 SHA**。
-

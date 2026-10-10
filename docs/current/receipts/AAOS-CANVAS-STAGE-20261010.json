@@ -1,0 +1,100 @@
+{
+  "schema": "archeaxis.local-stage-receipt/v1",
+  "stage": "UF12",
+  "captured_local": "2026-10-10",
+  "status": "LOCAL_PASS",
+  "role": "SOURCE_AND_EVIDENCE_RECEIPT_NOT_EXECUTION_AUTHORITY",
+  "writer_root": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\worktrees\\gov-ui-20261008",
+  "writer_branch": "codex/aaos-gov-ui-20261008",
+  "writer_head": "fc5d4adc7acc28e38c2e6046ef06c0be2eed721d",
+  "source_files": {
+    "crates/archeaxis-domain/src/expression.rs": "7e16adab678fe1e20792bc581e91d857bfbf7f042b02d827955e3c27a6f40e34",
+    "crates/archeaxis-domain/src/document.rs": "1d27eb9f2599d7343355b0171bca067544c26ca50318c785ba08ae8439633666",
+    "crates/archeaxis-domain/src/lib.rs": "c0708567da261d9ea4ed460268137e54708d3bd4a4f5c65ba6380e07e9bda1e1",
+    "crates/archeaxis-domain/tests/expression_metadata.rs": "e30c6855b0acd3915c35c0bf9d4782beb6ef9269b01867bd8c20cf5ca8b7199e",
+    "crates/archeaxis-domain/tests/expression_writer_windows.rs": "76e6f6004768658195b590690f3149d7ce307bdca472a6707aff46c8ea8895b6",
+    "crates/archeaxis-store-sqlite/src/raw_objects.rs": "c435d575e5efe2b228f5efd188ef06aa7a26a4b637012e8a0ba615914403e442",
+    "crates/archeaxis-store-sqlite/tests/cas_bounded_read.rs": "af74067f144c9bae23ddfc97705e9aa85cb5a939eec3879404b419725f071845",
+    "crates/archeaxis-api/src/documents.rs": "812f2393365b4db340604b487dd5967976e7e4054e449537b3f5071ac5b27c77",
+    "crates/archeaxis-api/tests/expression_state_api.rs": "d3fe0a2d071b8770e5f8a6d71d8dccc3e2a73819e7f676621795095bad2dfb67",
+    "packages/contracts/v2/expression.schema.json": "a694b9f269dd61d143c3950172e6d3957914a5caef1d01ffc16f8ce99b09563e",
+    "scripts/contracts/generate_expression_contract.py": "57fd279c4c68878f8854186bd3c951eacc31b84faa70f3b1e1a56bc0ac90f5eb",
+    "frontend/src/api/generated/expression-contract.ts": "90cc9a69263469f915a2b914149a507d088093c990a66d021e0eed7a5ec63488",
+    "frontend/src/presentation/expression.ts": "0653532de1e0196e3cfa9896afeb3e9ac03cc5d9da8631b26f3b45a3e7c14c89",
+    "frontend/src/components/CanonicalExpressionBoard.tsx": "b2d4767b7ae3fd44c84c0eca6b745589437b48a6d41ea4e59a41a31012ce0b36",
+    "frontend/src/components/expression-board.css": "9fe539105ff7841b790d3520c88360c9cef46278ca82ae0ba17064f4baf6793b",
+    "frontend/src/spaces/CanonicalExpressionSpace.tsx": "354a027ee144d79fbe354635d5ea5c745fa575cfa6dfd8b8e33fca65499e7297",
+    "frontend/src/__tests__/CanonicalExpressionSpace.test.tsx": "7b932ebcaac9558327eca01c3effa08392e2b565fafb236da936beea4d6681db",
+    "frontend/src/__tests__/CanonicalExpressionBoard.test.tsx": "eb1133e41fd93683e93a7d4d34ad07dd6cddb2260ea14f9f8b9fdf5e5fb4de60",
+    "frontend/src/spaces/SpaceView.tsx": "cabb076862441656abfa89ca9e541b37c96e86e0ca8e3e8edbd7c0094d4cf2a2",
+    "frontend/src/presentation/uiPages.ts": "e542dcd4aec9da21ef39fa80454c024c014356dbd3049f0a6004a1237b287d0d",
+    "frontend/src/spaces/ui-first.css": "b93ac28f29fc268d7db8854045871e1a8dcf6ea68d4a3caeda5ce363da5ff4e9"
+  },
+  "requirements": {
+    "editable_text_media_nodes_edges_layout": "PASS / INTEGRATED + SIMULATED",
+    "immutable_document_save_exit_restart": "PASS / INTEGRATED",
+    "real_course_and_proposal_reference_consistency": "PASS / INTEGRATED domain SQLite; process probe uses proposal + knowledge",
+    "missing_references_and_conflicts_atomic": "PASS / INTEGRATED",
+    "expression_export_does_not_mutate_knowledge": "PASS / INTEGRATED; reference-only media manifest",
+    "animation_simulation_spatial_metadata": "PASS / retained inert metadata; engines NOT_EXECUTED",
+    "palette_preserved_uniform_themes": "PASS / unchanged palette bytes + SIMULATED 5-theme browser matrix",
+    "physical_ime_native_install_and_human_qualification": "NOT_EXECUTED"
+  },
+  "verification": {
+    "rust": {
+      "passed": 61,
+      "failed": 0,
+      "skipped": 0,
+      "receipt": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\runs\\f714401b40\\ui-canvas-rust-final2\\artifacts\\result.json"
+    },
+    "frontend": {
+      "passed": 630,
+      "files": 71,
+      "receipt": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\runs\\f714401b40\\ui-canvas-frontend-final3\\artifacts\\execution.json"
+    },
+    "native_bridge": {
+      "passed": 17,
+      "receipt": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\runs\\f714401b40\\ui-canvas-native-final\\artifacts\\execution.json",
+      "limit": "Compiled against final production frontend; not installed Tauri/WebView2 interaction"
+    },
+    "frontend_build": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\runs\\f714401b40\\ui-canvas-stage-20261010\\frontend-build3.json",
+    "core_build": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\runs\\f714401b40\\ui-canvas-core-build3\\artifacts\\result.json",
+    "core_process": {
+      "steps": 4,
+      "receipt": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\runs\\f714401b40\\ui-canvas-stage-20261010\\core-process-probe\\attempt-20261009T180026Z-d67000\\receipt.json",
+      "sha256": "616153e4511186d2cc7a1e19c833062646a858b8af0ddcba24ae93fb00657dfc",
+      "binary_sha256": "55f9f24a4a20d338af3d3c794f48742835e7a0a8cea2c8377a64406708a25b03",
+      "level": "INTEGRATED / SYNTHETIC authored content; actual owned SQLite/CAS Core processes"
+    },
+    "visual": {
+      "initial_viewport_captures": 30,
+      "board_detail_captures": 10,
+      "initial_receipt": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\runs\\f714401b40\\ui-canvas-stage-20261010\\visual-assessment\\attempt-label-final-20261009T175807Z\\RESULT.json",
+      "detail_receipt": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\runs\\f714401b40\\ui-canvas-stage-20261010\\visual-assessment\\board-detail-label-final-20261009T175807Z\\RESULT.json",
+      "level": "SIMULATED",
+      "limit": "Controlled inner canvas scroll is intentional; no whole-page horizontal overflow"
+    },
+    "source_conventions": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\runs\\f714401b40\\ui-canvas-stage-20261010\\SOURCE-CONVENTIONS-FINAL.json",
+    "governance": {
+      "passed": 72,
+      "receipt": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\runs\\f714401b40\\ui-canvas-governance-final\\artifacts\\execution.json",
+      "direct_writer_gates": "3/3 PASS",
+      "limits": "Four external/private references and H01 semantic audit remain UNVERIFIED; unrelated to supplied ZIP verification"
+    }
+  },
+  "limits": [
+    "Media export preserves references and complete expression snapshot; does not package referenced CAS bytes",
+    "Advanced animation/simulation/spatial/XR engines remain FT01/FT02 frozen; descriptors do not grant qualification",
+    "No native installation, physical IME, owner learning session, cloud CI, publication or cross-repository write",
+    "Main checkout holds governance/source archives; product implementation remains in the named dirty writer worktree",
+    "Whole taskpack remains PARTIAL; next priority CB03/UF08"
+  ],
+  "preserved_failures": [
+    "ui-canvas-rust1: probe used wrong historical endpoint/non-JSON error assumption",
+    "core-process initial attempt: discovered canonical Windows CAS path fault, fixed via dedicated bounded owner CAS read",
+    "ui-canvas-frontend-final1: one missing node-picker style rule",
+    "SOURCE-CONVENTIONS.json: CRLF in six owned new files",
+    "Earlier visual attempts preserved; final label overlay fixes observed masking"
+  ],
+  "rollback": "Use stage before bytes and explicit owned hunks/new-file list. Preserve unrelated existing dirty changes; never whole-checkout restore, reset or clean."
+}

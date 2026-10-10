@@ -69,7 +69,9 @@ describe("CommandPalette", () => {
     render(<CommandPalette onNavigate={onNavigate} />);
     fireEvent.click(screen.getByRole("button", { name: "打开全局命令" }));
     const listbox = screen.getByRole("listbox", { name: "可用命令" });
-    fireEvent.click(within(listbox).getAllByRole("option")[0]);
+    const workspaceCommand = within(listbox).getAllByRole("option").find(option => option.getAttribute("data-entry-id") === "space:workspace");
+    expect(workspaceCommand).toBeDefined();
+    fireEvent.click(workspaceCommand!);
     expect(onNavigate).toHaveBeenCalledTimes(1);
     expect(onNavigate).toHaveBeenCalledWith(SPACES[0].id);
     expect(screen.queryByRole("dialog")).not.toBeInTheDocument();

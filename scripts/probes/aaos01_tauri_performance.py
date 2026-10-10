@@ -8,14 +8,18 @@ import math
 import os
 import socket
 import subprocess
+import sys
 import time
 import uuid
 from pathlib import Path
-from urllib.request import urlopen
 
 from aaos01_office_runtime_loop import REPO, identity
 from aaos01_tauri_window_loop import close_window, exit_observed_window
 from playwright.sync_api import sync_playwright
+
+sys.path.insert(0, str(REPO / "scripts/runtime"))
+import dev
+from aaos01_tauri_webdriver_loop import loopback_urlopen
 
 
 def memory_tree(pid: int):
@@ -45,12 +49,27 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--host", type=Path, required=True)
     parser.add_argument("--samples", type=int, default=20)
+    parser.add_argument("--build-receipt", type=Path, required=True)
+    parser.add_argument("--run-id")
     args = parser.parse_args()
     if not 20 <= args.samples <= 40:
         parser.error("P95 requires 20 to 40 process cold starts")
-    host = args.host.resolve()
-    work = REPO / ".project-local/task-runtime/aaos01-ui-performance" / uuid.uuid4().hex
-    work.mkdir(parents=True)
+    paths = dev.layout(REPO, args.run_id or "ui-performance-" + uuid.uuid4().hex[:12])
+    base_env = dict(os.environ)
+    base_env.update(dev.prepare(paths))
+    host = dev.safe_path(args.host)
+    host.relative_to(paths["cargo_build"] / "release")
+    build_path = dev.safe_path(args.build_receipt)
+    build_path.relative_to(paths["dev"] / "runs")
+    build = json.loads(build_path.read_text(encoding="utf-8"))
+    core = dev.safe_path(host.parent / "core/archeaxis-api.exe")
+    if (build.get("status") != "PASS" or not build.get("source_consistent")
+            or dev.safe_path(Path(build["host"])) != host
+            or identity(host)["sha256"] != build["host_sha256"]
+            or identity(core)["sha256"] != build["core_sha256"]):
+        raise RuntimeError("Qualified build/host/Core identity mismatch")
+    work = paths["tmp"] / "samples"
+    work.mkdir()
     conditions = {
         "sample_count": args.samples,
         "startup_p95_budget_seconds": 3,
@@ -63,8 +82,14 @@ def main():
         "cleanup": "Product exit command while CDP attached; not a WM_CLOSE qualification",
         "evidence_level": "REAL_TAURI_CANDIDATE_NOT_INSTALLED_QUALIFICATION",
     }
-    (work / "conditions.json").write_text(json.dumps(conditions, indent=2), encoding="utf-8")
-    receipt = {"ok": False, "host": identity(host), "conditions": conditions, "samples": []}
+    conditions["gpu"] = "NOT_EXECUTED"
+    conditions["installed"] = False
+    (paths["artifacts"] / "conditions.json").write_text(json.dumps(conditions, indent=2), encoding="utf-8")
+    receipt = {"ok": False, "host": identity(host), "core": identity(core),
+               "build_receipt": identity(build_path),
+               "built_source_patch_sha256": build["source_patch_sha256"],
+               "probe_source_patch_sha256": base_env["ARCHEAXIS_SOURCE_PATCH_SHA256"],
+               "conditions": conditions, "samples": []}
     child = None
     try:
         with sync_playwright() as playwright:
@@ -74,7 +99,7 @@ def main():
                 with socket.socket() as listener:
                     listener.bind(("127.0.0.1", 0))
                     port = listener.getsockname()[1]
-                env = dict(os.environ)
+                env = dict(base_env)
                 env.pop("ARCHEAXIS_DEV_EXTERNAL_BACKEND", None)
                 env["ARCHEAXIS_PORTABLE_ROOT"] = str(root / "data")
                 env["WEBVIEW2_USER_DATA_FOLDER"] = str(root / "webview")
@@ -88,7 +113,7 @@ def main():
                     if child.poll() is not None:
                         raise RuntimeError("Owned host exited before readiness")
                     try:
-                        with urlopen(
+                        with loopback_urlopen(
                             f"http://127.0.0.1:{port}/json/version", timeout=1
                         ) as response:
                             json.load(response)
@@ -115,9 +140,11 @@ def main():
                 time.sleep(0.5)
                 observed = memory_tree(child.pid)
                 receipt["samples"].append(
-                    {"ready_seconds": ready, "memory": observed, "url": page.url}
+                    {"ready_seconds": ready, "memory": observed, "url": page.url,
+                     "host_pid": child.pid, "cdp_port": port}
                 )
                 exit_observed_window(page, child)
+                receipt["samples"][-1]["exit_code"] = child.returncode
                 browser.close()
                 child = None
                 print(
@@ -153,12 +180,16 @@ def main():
                 receipt["ok"] = False
                 child.terminate()
                 child.wait(timeout=10)
-        (work / "receipt.json").write_text(
+        receipt["host_consistent"] = identity(host) == receipt["host"]
+        receipt["core_consistent"] = identity(core) == receipt["core"]
+        if not receipt["host_consistent"] or not receipt["core_consistent"]:
+            receipt["ok"] = False
+        (paths["artifacts"] / "receipt.json").write_text(
             json.dumps(receipt, ensure_ascii=False, indent=2), encoding="utf-8"
         )
         print(
             json.dumps(
-                {"ok": receipt["ok"], "receipt": str(work / "receipt.json")}, ensure_ascii=False
+                {"ok": receipt["ok"], "receipt": str(paths["artifacts"] / "receipt.json")}, ensure_ascii=False
             )
         )
 

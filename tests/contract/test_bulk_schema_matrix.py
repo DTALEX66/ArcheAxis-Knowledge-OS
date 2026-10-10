@@ -301,7 +301,7 @@ def test_native_canonical_dto_definitions_validate_without_copying_the_schema():
         "SourcesListDto": {"sources":[source]},
         "OriginalDto": {"source_id":source["source_id"],"name":"fixture.txt","media_type":"text/plain","sha256":"a"*64,"content_base64":"Rml4dHVyZQ=="},
         "DocumentDto": document,
-        "DocumentsListDto": {"documents":[{key:document[key] for key in ("document_id","source_id","source_revision","title","version","content_sha256")}]},
+        "DocumentsListDto": {"documents":[{key:document[key] for key in ("document_id","source_id","source_revision","title","version","content_sha256")}], "next_cursor":None, "snapshot_count":1},
         "AnchorsListDto": {"anchors":[{"anchor_id":"anchor_fixture","source_id":source["source_id"],"source_revision":"a"*64,"position":"{}","location_status":"unverified"}]},
     }
     for name, valid in cases.items():

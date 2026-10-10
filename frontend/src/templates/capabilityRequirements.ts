@@ -246,7 +246,7 @@ export function templatesRequiring(capability_id: string): TemplateRequirementRe
 /** The same seven classes, in the words the surface shows. Keyed by the generated union, so a new
  *  class in the crosswalk fails to compile here instead of rendering as a blank label. */
 export const SURFACE_CLASS_LABEL: Record<AbsorptionSurfaceClass, string> = {
-  enableable_plugin: "前端插件（可启停）",
+  enableable_plugin: "可启停能力供体",
   absorbed_algorithm: "吸收算法",
   ux_donor: "体验供体",
   format_spec: "格式规范",

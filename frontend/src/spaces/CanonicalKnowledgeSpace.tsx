@@ -4,6 +4,7 @@ import { RawReceiptButton } from "../components/DiagnosticConsole";
 import { Section } from "../components/RealData";
 import { CanonicalLibrarySpace } from "./CanonicalLibrarySpace";
 import { MachineAnswerPanel } from "../components/MachineAnswerPanel";
+import { KnowledgeCoursePanel } from "../components/KnowledgeCoursePanel";
 import { coreFailureReason } from "../presentation/labels";
 import type { ObjectTrailLevel } from "../components/NavTrail";
 
@@ -69,9 +70,9 @@ export function CanonicalKnowledgeSpace({onLearning,onTrail}:{onLearning?:()=>vo
     setBusy(true);
     const item_key = `assessment_${crypto.randomUUID()}`;
     try {
+      await coreCommand("learning_reference", {item_key,body:{knowledge_id:selected.knowledge_id}});
       const assessment = record(await coreCommand("assessment_create", {item_key,body:{knowledge_id:selected.knowledge_id}}));
       if (assessment.item_key !== item_key || typeof assessment.assessment_id !== "string" || typeof assessment.question !== "string") throw new Error("invalid assessment");
-      await coreCommand("learning_reference", {item_key,body:{knowledge_id:selected.knowledge_id}});
       setMessage("已创建绑定此知识版本的问题，请在学习队列打开。");
       onLearning?.();
     } catch {setMessage("学习问题创建失败；Core 仅允许当前有效、已接受的知识。");}
@@ -97,7 +98,10 @@ export function CanonicalKnowledgeSpace({onLearning,onTrail}:{onLearning?:()=>vo
       <label>审核者 <input value={reviewer} onChange={event=>setReviewer(event.target.value)} /></label><label>审核备注 <textarea value={note} onChange={event=>setNote(event.target.value)} /></label>
       <button disabled={!reviewer.trim()||busy} onClick={()=>void review("accepted")}>接受当前候选</button><button disabled={!reviewer.trim()||busy} onClick={()=>void review("rejected")}>拒绝当前候选</button><button disabled={!reviewer.trim()||busy} onClick={()=>void review("deprecated")}>降级为弃用</button>
       <button disabled={busy} onClick={()=>void open(String(selected.knowledge_id))}>重新读取候选</button><button disabled={busy||selected.status!=="accepted"} onClick={()=>void study()}>由当前知识建立学习问题</button></article>:null}
-    {selected?.status === "accepted" ? <MachineAnswerPanel key={`${String(selected.knowledge_id)}:${String(selected.version)}`} knowledgeId={String(selected.knowledge_id)} /> : null}
+    {selected?.status === "accepted" ? <>
+      <KnowledgeCoursePanel key={`course:${String(selected.knowledge_id)}:${String(selected.version)}`} knowledgeId={String(selected.knowledge_id)} onLearning={onLearning} />
+      <MachineAnswerPanel key={`${String(selected.knowledge_id)}:${String(selected.version)}`} knowledgeId={String(selected.knowledge_id)} />
+    </> : null}
     {message?<p role="status">{message}</p>:null}
     {failureReason?<p className="state-reason">{failureReason}</p>:null}</Section>;
 }

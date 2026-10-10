@@ -41,6 +41,12 @@
    inherited no rule at all (the capability rail styles its own `details` by class), so it read as a
    stray line of body text. Scoped to `.template-launcher` so `.capability-rail` is untouched. */
 .template-launcher { margin:0 0 14px; border:1px solid var(--ax-border-strong); border-radius:var(--ax-radius-sm); background:var(--ax-panel); }
+.ai-journey-grants { display:grid; grid-template-columns:repeat(auto-fit,minmax(min(280px,100%),1fr)); gap:16px; margin-block:16px; }
+.ai-journey-grants > section, .semantic-panel { min-width:0; padding:16px; border:1px solid var(--ax-border); border-radius:var(--ax-radius-sm); background:var(--ax-panel); color:var(--ax-fg); overflow-wrap:anywhere; }
+.semantic-panel label { display:grid; gap:6px; margin-block:10px; min-width:0; }
+.semantic-panel input, .semantic-panel textarea, .semantic-panel select { min-width:0; max-width:100%; }
+.semantic-panel pre { white-space:pre-wrap; overflow-wrap:anywhere; }
+.semantic-panel fieldset { min-width:0; border:1px solid var(--ax-border); margin-block:12px; }
 .template-launcher > summary { padding:8px 12px; font-weight:600; cursor:pointer; overflow-wrap:anywhere; }
 .template-launcher > summary:focus-visible { outline:2px solid var(--ax-accent); outline-offset:-2px; }
 .template-launcher[open] > summary { border-bottom:1px solid var(--ax-border); }
@@ -63,6 +69,8 @@
 .template-launcher > section > nav > .template-list-state { width:100%; color:var(--ax-fg-secondary); font-size:.8rem; overflow-wrap:anywhere; }
 .template-launcher > section label { display:grid; gap:4px; font-size:.8rem; min-width:0; overflow-wrap:anywhere; }
 .template-launcher > section select, .template-launcher > section input { min-width:0; max-width:100%; }
+.template-launcher [aria-label="已保存模板"] { max-block-size:min(32vh,16rem); overflow:auto; align-content:start; padding:3px; }
+.template-launcher [aria-label="已保存模板"] button { min-width:0; max-inline-size:100%; white-space:normal; overflow-wrap:anywhere; }
 .template-launcher > section > button { min-width:64px; }
 .template-launcher > section [aria-label="引用式画布"] { border:1px dashed var(--ax-border-strong); border-radius:var(--ax-radius-sm); }
 .template-launcher > section pre { max-width:100%; overflow:auto; white-space:pre-wrap; overflow-wrap:anywhere; }
@@ -77,3 +85,7 @@
   .document-tab-strip { overflow-x:auto; flex-wrap:nowrap; }
   .document-tab { flex:0 0 auto; }
 }
+
+/* Keep batch actions reachable inside narrow panes, including keyboard focus. */
+.folder-ingest-table-scroll { max-width: 100%; overflow-x: auto; }
+.folder-ingest-table-scroll:focus-visible { outline: 2px solid var(--ax-active); outline-offset: 2px; }

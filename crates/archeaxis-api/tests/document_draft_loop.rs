@@ -1063,3 +1063,29 @@ async fn unconfigured_document_check_is_human_only_version_bound_retryable_after
         saved["text_projection"]
     );
 }
+
+#[tokio::test]
+async fn recovery_preview_is_read_only_bound_to_identity_and_rejects_bad_cas_schema_and_machine() {
+    use sha2::{Digest,Sha256};
+    let dir=tempfile::tempdir().unwrap();let database=dir.path().join("workspace.sqlite");
+    let router=archeaxis_api::app(database.to_str().unwrap()).unwrap();
+    let (_,source)=call(&router,"POST","/api/v1/imports",json!({"name":"original.txt","content_base64":"b3JpZ2luYWw="}),"human").await;
+    let (_,receipt)=call(&router,"POST","/api/v1/workspace/backups",json!({}),"human").await;
+    let selection=json!({"backup_id":receipt["backup_id"],"expected_sha256":receipt["sha256"]});let route="/api/v2/workspace/restore/preview";
+    assert_eq!(call(&router,"POST",route,selection.clone(),"machine").await.0,403);
+    let before=call(&router,"GET","/api/v1/sources",json!(null),"human").await.1;
+    let (status,preview)=call(&router,"POST",route,selection.clone(),"human").await;
+    assert_eq!(status,200,"{preview}");assert_eq!(preview["source_count"],1);assert_eq!(preview["verified"],true);
+    assert_eq!(call(&router,"POST",route,json!({"backup_id":"../outside","expected_sha256":receipt["sha256"]}),"human").await.0,400);
+    assert_eq!(call(&router,"POST",route,json!({"backup_id":receipt["backup_id"],"expected_sha256":"a".repeat(64)}),"human").await.0,409);
+    assert_eq!(call(&router,"POST",route,json!({"backup_id":receipt["backup_id"],"expected_sha256":receipt["sha256"],"path":"outside"}),"human").await.0,422);
+    let backup=dir.path().join("backups").join(receipt["filename"].as_str().unwrap());
+    let objects=std::path::PathBuf::from(format!("{}.objects",backup.display()));let object=objects.join(source["sha256"].as_str().unwrap());
+    std::fs::write(&object,b"tampered").unwrap();assert_eq!(call(&router,"POST",route,selection.clone(),"human").await.0,409);std::fs::write(&object,b"original").unwrap();
+    let conn=rusqlite::Connection::open(&backup).unwrap();conn.execute("UPDATE workspace_meta SET value='99999' WHERE key='schema_version'",[]).unwrap();drop(conn);
+    let sha=format!("{:x}",Sha256::digest(std::fs::read(&backup).unwrap()));let manifest=std::path::PathBuf::from(format!("{}.manifest.json",backup.display()));
+    let mut value:Value=serde_json::from_slice(&std::fs::read(&manifest).unwrap()).unwrap();value["sha256"]=json!(sha);value["schema_version"]=json!("99999");std::fs::write(&manifest,serde_json::to_vec(&value).unwrap()).unwrap();
+    assert_eq!(call(&router,"POST",route,json!({"backup_id":receipt["backup_id"],"expected_sha256":sha}),"human").await.0,409);
+    assert_eq!(call(&router,"GET","/api/v1/sources",json!(null),"human").await.1,before,"rejected preview must preserve the live workspace");
+    assert_eq!(call(&router,"GET",&format!("/api/v1/sources/{}/original",source["source_id"].as_str().unwrap()),json!(null),"human").await.1["content_base64"],"b3JpZ2luYWw=");
+}

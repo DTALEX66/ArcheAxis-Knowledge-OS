@@ -10,6 +10,7 @@ import importlib.util
 import json
 from pathlib import Path
 import sys
+import sysconfig
 import types
 
 SCHEMA = "archeaxis.general-course-worker/v1"
@@ -23,6 +24,11 @@ MAX_OUTPUT = 1_000_000
 def _donors():
     here = Path(__file__).resolve()
     root = here.parents[3] if here.parents[1].name == "python-workers" else here.parents[2]
+    # Source checkouts carry donors at repo/app. A packaged worker is beside
+    # the runtime, whose locked project wheel lives in this interpreter's
+    # site-packages. Never search another interpreter or a global tool path.
+    if here.parents[1].name != "python-workers" and not (root / "app/contracts/courseware_v1.py").is_file():
+        root = Path(sysconfig.get_path("purelib"))
     for package in ("app", "app.contracts", "app.adapters", "shared"):
         if package not in sys.modules:
             module = types.ModuleType(package)

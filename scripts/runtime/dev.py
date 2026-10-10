@@ -77,6 +77,8 @@ def layout(root: Path, run_id: str | None = None) -> dict[str, Path]:
              "tmp": run / "tmp", "logs": run / "logs",
              "artifacts": run / "artifacts", "cache": dev / "cache",
              "build": dev / "build" / identity}
+    paths["frontend_dist"] = paths["artifacts"] / "frontend-dist"
+    paths["tauri_config"] = paths["tmp"] / "tauri-build.json"
     # Main checkout shares the checked-in bare Cargo target; linked worktrees
     # retain independent outputs. Do not move or remove any historical cache.
     paths["cargo_build"] = (dev / "build" / "cargo" if root == owner
@@ -318,6 +320,8 @@ def environment(paths: dict[str, Path]) -> dict[str, str]:
         "ARCHEAXIS_PYTHON": sys.executable,
         "VNEXT_RECEIPT_OUT": str(paths["artifacts"] / "vnext-journey.json"),
         "ARCHEAXIS_BUILD_ROOT": str(build),
+        "ARCHEAXIS_FRONTEND_DIST": str(paths["frontend_dist"]),
+        "ARCHEAXIS_TAURI_CONFIG": str(paths["tauri_config"]),
         "TMP": str(paths["tmp"]), "TEMP": str(paths["tmp"]),
         "TMPDIR": str(paths["tmp"]),
         # An absolute Python script gets its own directory as ``sys.path[0]``;
@@ -363,12 +367,23 @@ def environment(paths: dict[str, Path]) -> dict[str, str]:
     return result
 
 
+def tauri_overlay(paths: dict[str, Path]) -> dict[str, dict[str, str]]:
+    """Tauri parses a Windows drive path as a URL; use a directory-relative spelling."""
+    directory = os.path.relpath(paths["frontend_dist"], paths["root"] / "src-tauri")
+    if Path(directory).is_absolute() or ":" in directory:
+        raise ValueError("Tauri frontend directory must be relative to its manifest")
+    return {"build": {"frontendDist": directory.replace(os.sep, "/")}}
+
+
 def prepare(paths: dict[str, Path]) -> dict[str, str]:
     values = environment(paths)
     # Exclusive run allocation prevents two callers from sharing writable results.
     paths["run"].mkdir(parents=True, exist_ok=False)
     for key in ("tmp", "logs", "artifacts", "cache", "build"):
         paths[key].mkdir(parents=True, exist_ok=True)
+    with paths["tauri_config"].open("x", encoding="utf-8", newline="\n") as output:
+        json.dump(tauri_overlay(paths), output)
+        output.write("\n")
     return values
 
 
@@ -530,7 +545,7 @@ def main() -> int:
         if command[:1] == ["--"]:
             command = command[1:]
         if args.pytest:
-            targets = ["tests", "knowledge_base/tests"] if args.full else ["tests"]
+            targets = ["tests", "knowledge_base/tests", "integration-tests"] if args.full else ["tests"]
             if any((paths["root"] / arg.split("::")[0]).exists()
                    for arg in command if not arg.startswith("-")):
                 targets = []
@@ -553,6 +568,7 @@ def main() -> int:
                   "worktree_root": str(paths["root"]),
                   "started_at": started, "run_root": str(paths["run"]),
                   "executable": command[0], "argument_count": len(command) - 1,
+                  "command": command,
                   "python": sys.version, "boundary": "environment-routing-not-sandbox"}
         print(f"[dev] run={paths['run']}", flush=True)
         code = 1
@@ -567,8 +583,11 @@ def main() -> int:
                 start_new_session=os.name != "nt",
             )
             assert child.stdout is not None
-            for line in child.stdout:
-                print(line, end="", flush=True)
+            with (paths["logs"] / "execution.log").open("x", encoding="utf-8") as log:
+                for line in child.stdout:
+                    log.write(line)
+                    log.flush()
+                    print(line, end="", flush=True)
             code = child.wait()
         except BaseException as exc:
             if isinstance(exc, KeyboardInterrupt):
@@ -587,6 +606,17 @@ def main() -> int:
         finally:
             if child is not None and child.stdout is not None:
                 child.stdout.close()
+            record["child_exit_code"] = code
+            after_head = git(paths["root"], "rev-parse", "HEAD")
+            _, after_patch = worktree_identity(paths["root"])
+            consistent = (after_head == record["source_commit"]
+                          and after_patch == record["source_patch_sha256"])
+            record.update(source_commit_after=after_head, source_patch_sha256_after=after_patch,
+                          source_consistent=consistent,
+                          status="INVALIDATED" if not consistent else "LOCAL_PASS" if code == 0 else "FAIL",
+                          log=str(paths["logs"] / "execution.log"))
+            if not consistent:
+                code = 3
             record.update(exit_code=code, ended_at=datetime.now(timezone.utc).isoformat())
             (paths["artifacts"] / "execution.json").write_text(
                 json.dumps(record, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")

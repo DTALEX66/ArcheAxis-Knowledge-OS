@@ -1,0 +1,256 @@
+{
+  "schema": "aaos.local-stage-receipt/v1",
+  "stage": "CB02-UF07",
+  "status": "LOCAL_CODE_AND_INTEGRATED_LOOP_PASS",
+  "plan": "AAOS-UI-FIRST-PLAN-20261009",
+  "immutable_taskpack_status": "UNCHANGED_DATED_PLAN",
+  "code_checkout": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\worktrees\\gov-ui-20261008",
+  "code_branch": "codex/aaos-gov-ui-20261008",
+  "source_head": "fc5d4adc7acc28e38c2e6046ef06c0be2eed721d",
+  "dirty": true,
+  "publication": "NOT_COMMITTED_NOT_PUSHED",
+  "pages": [
+    "08",
+    "09",
+    "10",
+    "11",
+    "12",
+    "16"
+  ],
+  "runtime_database_schema": 12,
+  "teaching_contract": "archeaxis.teaching-record/v2",
+  "sources": [
+    {
+      "path": "Cargo.lock",
+      "sha256": "8cb82278834c9c1ec20fc27529810270d1d8157cfbe398c991d223f95e3e849b",
+      "bytes": 24993
+    },
+    {
+      "path": "crates/archeaxis-domain/Cargo.toml",
+      "sha256": "8463a60b508d1da3b0c6886200840e93484cdecdd3420e9643bf5e25395e1554",
+      "bytes": 558
+    },
+    {
+      "path": "crates/archeaxis-domain/src/lib.rs",
+      "sha256": "d98f3ecb52445cf7f17a20e0a518eda7e169280401fe19d33fd6c6b23f37c9fb",
+      "bytes": 629
+    },
+    {
+      "path": "crates/archeaxis-domain/src/teaching.rs",
+      "sha256": "692bc0e14a038d6ae898f4af97033992859f842b729f6d860e380c777dcb39ae",
+      "bytes": 26720
+    },
+    {
+      "path": "crates/archeaxis-domain/src/learning.rs",
+      "sha256": "4ab64fabffd30eaf4ab2f709f05fc6bfea12eb12eae16a6004189a96a0d70b19",
+      "bytes": 35935
+    },
+    {
+      "path": "crates/archeaxis-domain/src/document.rs",
+      "sha256": "0a8a125107f335d880e5f9b3bbdc18eb42e9467b76f3b715dd7619cc41807373",
+      "bytes": 64769
+    },
+    {
+      "path": "crates/archeaxis-domain/tests/teaching_records.rs",
+      "sha256": "b365de7cd96ff437e7313164ca47aa594ca2df6d156fb42d82ff68a5fd135337",
+      "bytes": 27886
+    },
+    {
+      "path": "crates/archeaxis-domain/tests/document_create_retry.rs",
+      "sha256": "d8cd5011461d79b1f571b95264f609c6eb5fb8ec425d332226ce78e65fe63acf",
+      "bytes": 2196
+    },
+    {
+      "path": "crates/archeaxis-api/src/lib.rs",
+      "sha256": "e72c74de0e742883e8a614521f45aa6e80d89ba9ab1ba3910a855c6c9a24e4ad",
+      "bytes": 105998
+    },
+    {
+      "path": "crates/archeaxis-api/src/teaching.rs",
+      "sha256": "25f75330d08839284c024818d4b9747da5469c72587162221334d4da8a0a0bdb",
+      "bytes": 4093
+    },
+    {
+      "path": "crates/archeaxis-api/src/documents.rs",
+      "sha256": "2a946ac7fbfe6d48ce62a9faeed0fc497a6f84a51cf41e4c53a417cc36b4a93e",
+      "bytes": 20051
+    },
+    {
+      "path": "crates/archeaxis-api/tests/teaching_state_api.rs",
+      "sha256": "44d1b744477895d912ac43da18ceba4c0af8a4fc72cc9829ed4ee78b435b4bc7",
+      "bytes": 21416
+    },
+    {
+      "path": "crates/archeaxis-api/tests/learning_state_api.rs",
+      "sha256": "619bbfaeeb57867411e3bb6810ea9e065e0055f12b9b13c28f7f16a3c4437849",
+      "bytes": 16476
+    },
+    {
+      "path": "crates/archeaxis-store-sqlite/src/lib.rs",
+      "sha256": "3a48cc018308faebd4fafc69411864a1b7df5ffcc113aab5181a64dce3e7570f",
+      "bytes": 22332
+    },
+    {
+      "path": "crates/archeaxis-store-sqlite/tests/teaching_schema12.rs",
+      "sha256": "fce4f0f383e49e249631dcec318e70073026e2c42e54e37f53c725727b8ac4eb",
+      "bytes": 3369
+    },
+    {
+      "path": "crates/archeaxis-archive/src/lib.rs",
+      "sha256": "a721029fccac5bc1e8561cadbb82536e85fa5d764632ea404797d7c7b691559c",
+      "bytes": 44659
+    },
+    {
+      "path": "crates/archeaxis-archive/tests/teaching_archive_roundtrip.rs",
+      "sha256": "dec2338d82ab5f2d440d582be3bae6d8d7d4ec7daf850d5578498d1577d9fcef",
+      "bytes": 10150
+    },
+    {
+      "path": "src-tauri/src/core_bridge.rs",
+      "sha256": "fd6b68aceaadd56ace6fba2134050f13a44d3b4ce356ab5f6f50e1110305459b",
+      "bytes": 35247
+    },
+    {
+      "path": "packages/contracts/learning/v2/review.schema.json",
+      "sha256": "12ba83422eda6493c955c0e48528d9e150faa56909739af4fd14f869dcff52d0",
+      "bytes": 2107
+    },
+    {
+      "path": "packages/contracts/v1/core-command.schema.json",
+      "sha256": "700134425682f732a847295a3c031eb25e156056a73246de65e751718e427006",
+      "bytes": 1840
+    },
+    {
+      "path": "packages/contracts/v2/teaching.schema.json",
+      "sha256": "bcc14481a0c7c67c4cbac36e5c004eeca6e5044eec16a5828f604747e7b5e8f9",
+      "bytes": 16320
+    },
+    {
+      "path": "scripts/contracts/generate_core_teaching.py",
+      "sha256": "fc7e61453d96e8488d2164b08bbeae0cad05854f5c15554d43e120c5f9d427e0",
+      "bytes": 5225
+    },
+    {
+      "path": "frontend/src/api/core.ts",
+      "sha256": "1bb86b91aacb9cf6af566c1da7b354eb11fa0dd1fbdf045c734cf89dffa5881d",
+      "bytes": 4486
+    },
+    {
+      "path": "frontend/src/api/generated/core-contract.ts",
+      "sha256": "b7aad3a6d3df1e402a5a4f8680b39535dbe2d99fd65f320355445dcda025e997",
+      "bytes": 20849
+    },
+    {
+      "path": "frontend/src/api/generated/teaching-contract.ts",
+      "sha256": "558b1338a2b736cb9ec996c78ef6108a4878254f9faa965d972d45747725aabc",
+      "bytes": 15547
+    },
+    {
+      "path": "frontend/src/design-system/AaosPrimitives.tsx",
+      "sha256": "2c1bdf46e4d3209c9db6b527064d4a7266138206f1a979046ff9623135674b1c",
+      "bytes": 4511
+    },
+    {
+      "path": "frontend/src/spaces/SpaceView.tsx",
+      "sha256": "0f2d420c3457d3fe47bfd4108544066006c68bb32d04b2620a59e99d2e3a1f7e",
+      "bytes": 7453
+    },
+    {
+      "path": "frontend/src/spaces/CanonicalTeachingSpace.tsx",
+      "sha256": "e7d89cdfc654acdd2063e30a1769ca4d0da3db50b1243dc74622d003b1035eab",
+      "bytes": 29103
+    },
+    {
+      "path": "frontend/src/spaces/ui-first.css",
+      "sha256": "db2b9773dc71908aac2039670a7634b5f90d5348099e55f20eb0c926d92a2d9d",
+      "bytes": 9830
+    },
+    {
+      "path": "frontend/src/presentation/uiPages.ts",
+      "sha256": "a6b881b776d5630e5436fcfd13d0e1961fd78ff3b066dbdb655a4d3a6090ebde",
+      "bytes": 2726
+    },
+    {
+      "path": "frontend/src/__tests__/CanonicalTeachingSpace.test.tsx",
+      "sha256": "455dab1f3b4375c2aa53ada84b025a7187729fa731f08695fcec39c81f1641ca",
+      "bytes": 26291
+    },
+    {
+      "path": "frontend/src/__tests__/TeachingContract.test.ts",
+      "sha256": "5c5d11b8802fa4ade305e5aff94f2a77e933507199d167087ed32d28b99bffaa",
+      "bytes": 1797
+    }
+  ],
+  "evidence": {
+    "rust_selected": {
+      "passed": 49,
+      "run": "ui-teaching-rust-final3",
+      "level": "INTEGRATED"
+    },
+    "frontend": {
+      "passed": 579,
+      "files": 69,
+      "run": "ui-teaching-frontend-final",
+      "level": "SIMULATED"
+    },
+    "native_finite_bridge": {
+      "passed": 17,
+      "run": "ui-teaching-native3",
+      "level": "INTEGRATED_COMPILED_TESTS_NOT_INSTALLED_RUNTIME"
+    },
+    "legacy_v1_course": {
+      "passed": 33,
+      "run": "ui-teaching-legacy2",
+      "level": "INTEGRATED_TEST_FIXTURES"
+    },
+    "core_process": {
+      "passed": 7,
+      "receipt_relative_to_stage": "core-process-probe/attempt-20261009T171135Z-af4ac3/receipt.json",
+      "receipt_sha256": "e154eb973321c372d6ef0135e3a6eb029e753d42b12d2d6bceb17f67b0012f0b",
+      "binary_sha256": "5d8b50f960ac4b5d2de67c0e8d6f458f1b5b7ee6b95ea8fdf7a26caa746c31bf",
+      "level": "INTEGRATED_WITH_SYNTHETIC_PREREQUISITES"
+    },
+    "visual": {
+      "passed": 180,
+      "failure_visible": 60,
+      "source_sha256": {
+        "frontend/src/app/App.tsx": "dcce1eff5eaa48590eef1f68ae2120e55390844d3dfbf8982df52626cabc78a1",
+        "frontend/src/spaces/SpaceView.tsx": "0f2d420c3457d3fe47bfd4108544066006c68bb32d04b2620a59e99d2e3a1f7e",
+        "frontend/src/spaces/CanonicalTeachingSpace.tsx": "e7d89cdfc654acdd2063e30a1769ca4d0da3db50b1243dc74622d003b1035eab",
+        "frontend/src/api/core.ts": "1bb86b91aacb9cf6af566c1da7b354eb11fa0dd1fbdf045c734cf89dffa5881d",
+        "frontend/src/api/generated/core-contract.ts": "b7aad3a6d3df1e402a5a4f8680b39535dbe2d99fd65f320355445dcda025e997",
+        "frontend/src/api/generated/teaching-contract.ts": "558b1338a2b736cb9ec996c78ef6108a4878254f9faa965d972d45747725aabc",
+        "frontend/src/presentation/uiPages.ts": "a6b881b776d5630e5436fcfd13d0e1961fd78ff3b066dbdb655a4d3a6090ebde",
+        "frontend/src/design-system/theme.ts": "0d0cf41659d1567d11e98e1971f187dcc932932c903bf4d5e92d308c616be365",
+        "frontend/src/design-system/themes.css": "07bb9b3707fa198b495b3f3a3d6391c225a9c3910e07f87378c774beb45cc505",
+        "frontend/src/design-system/primitives.css": "67f1e6d089ec988b641447d08e349659312906a79344195a2601173801b76b23",
+        "frontend/src/design-system/tokens.css": "4cc8047b67a9d174558e3700e8b81df9c04230cdd209049b367ba3619d673191",
+        "frontend/src/spaces/ui-first.css": "db2b9773dc71908aac2039670a7634b5f90d5348099e55f20eb0c926d92a2d9d"
+      },
+      "level": "SIMULATED_HOST_HEADLESS_REACT",
+      "result_relative_to_stage": "visual-assessment/final3/SUMMARY.json"
+    },
+    "frontend_build": {
+      "receipt": "frontend-final-build3.json",
+      "exit_code": 0,
+      "source_consistent": true,
+      "dist_run": "b2a7f0092edd"
+    }
+  },
+  "separate_history_evidence": [
+    "teaching_records::explicit_new_knowledge_revision_keeps_old_records_and_courses_bound",
+    "teaching_records::real_course_and_assessment_bindings_are_verified_without_fsrs_mutation",
+    "learning_state_api::core_creates_and_reads_back_assessment_bound_to_accepted_knowledge",
+    "learning_state_api::core_persists_real_worker_state_and_continues_after_reopen"
+  ],
+  "limits": [
+    "Core process probe has course/assessment/rubric null and zero learning events; old course/rating history is separate regression evidence, not one unified end-to-end scenario.",
+    "Content producer_kind is a declaration; trusted actor authorization is from actual launch session. No teaching record grants mastery or AI qualification.",
+    "Manual exchange preserves original selected File and canonical record hashes; full external-platform/media roundtrip belongs to UF11.",
+    "Native/WebView2 installed UI, physical IME, human trial and longitudinal effects NOT_EXECUTED.",
+    "V01 PAUSED; FT01-04 FROZEN; no external project writes or publication."
+  ],
+  "next_priority": "UF12 then remaining governance/UI slices per active pointer",
+  "rollback": "Use task-specific before/integration-before and candidate baseline SHA hunks; protect prior dirty state. Do not reset/restore whole files or downgrade a populated schema12 DB.",
+  "final_source_readback": "PASS"
+}

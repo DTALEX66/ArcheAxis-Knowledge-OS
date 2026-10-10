@@ -1,3 +1,5 @@
+import { UI_CAPABILITY_INTENT } from "./uiCapabilityIntent";
+import { findUiPage, uiEntryForPage, UI_PAGES, type UiPage } from "./uiPages";
 import { CAPABILITY_CATALOG, type CapabilityCatalogEntry } from "../api/generated/capability-catalog";
 import { SPACES, spaceDescription, type SpaceDef, type SpaceId } from "../spaces/spaces";
 
@@ -10,6 +12,7 @@ export type EffectiveNavigationEntry = {
   keywords: readonly string[];
   destination?: SpaceId;
   space?: SpaceDef;
+  page?: UiPage;
   capability?: CapabilityCatalogEntry;
 };
 
@@ -23,6 +26,7 @@ export const CAPABILITY_DESTINATIONS: Readonly<Partial<Record<string, SpaceId>>>
 // Space IDs remain route identities; capability IDs come only from the generated
 // Atlas/map projection. This is presentation glue, not a second capability registry.
 export const EFFECTIVE_NAVIGATION_ENTRIES: readonly EffectiveNavigationEntry[] = [
+  ...UI_PAGES.map((page)=>({entry_id:`page:${page.id}`,label:page.label,description:`UI / ${page.id} · ${page.implemented ? "已有关联底座，完整资格独立核实" : "页面尚未接通"} · ${page.task}`,group_id:page.group,aliases:[`page=${page.id}`],keywords:[page.task, uiEntryForPage(page.id)?.label ?? ""],page})),
   ...SPACES.map((space) => ({
     entry_id: `space:${space.id}`,
     label: space.label,
@@ -39,6 +43,7 @@ export const EFFECTIVE_NAVIGATION_ENTRIES: readonly EffectiveNavigationEntry[] =
     group_id: capability.atlas.product_layer,
     aliases: capability.atlas.origin_requirement_ids as readonly string[],
     keywords: [
+      ...(UI_CAPABILITY_INTENT[capability.atlas.capability_id] ?? []),
       ...capability.atlas.objects,
       ...capability.atlas.views,
       ...capability.atlas.dependencies,
@@ -130,11 +135,12 @@ export function validateNavigationProjection(): string[] {
 }
 
 
-export type ResolvedNavigationHash = { spaceId: SpaceId; capabilityId: string | null };
+export type ResolvedNavigationHash = { spaceId: SpaceId; capabilityId: string | null; pageId?: string };
 
 export function resolveNavigationHash(hash: string): ResolvedNavigationHash | null {
   const value = hash.replace(/^#\/?/, "").trim();
   if (!value) return null;
+  if (value.startsWith("page=")) { const page = findUiPage(value.slice(5)); return page ? {spaceId:page.space, capabilityId:null, pageId:page.id} : null; }
   const capabilityValue = value.startsWith("capability=") ? value.slice("capability=".length)
     : value.startsWith("capability/") ? value.slice("capability/".length) : null;
   if (capabilityValue !== null) {

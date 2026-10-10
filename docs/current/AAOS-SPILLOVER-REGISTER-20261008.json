@@ -1341,7 +1341,13 @@
    "referenced_by": "0 tracked citations - the only proof of that clean-up sits outside the repository",
    "disposition": "migrate-to-declared-dir",
    "migration_command": "M6 (copy + hash-verify into recovery/, then remove original)",
-   "note": "the originals at the drive root are gone, so this is the record of that clean-up"
+   "note": "the originals at the drive root are gone, so this is the record of that clean-up",
+   "reconciled_at": "2026-10-08",
+   "current_location": "D:/All projects/ArcheAxis-Knowledge-OS/.project-local/mig/d-root-spillover-20261008/stray-archive-20261001/",
+   "current_owner": "ArcheAxis Knowledge",
+   "current_disposition": "MOVED_VERIFIED",
+   "reconciliation_evidence": "65-file scoped migration manifest; exact member name/bytes/SHA-256 readback, original source absent; no ACL execution or DB connection",
+   "historical_fields_note": "path/disposition/ownership_evidence above retain the original measurement; use current_* fields for present routing. DSH is the ACL actor, not the owner of this AAOS rollback payload."
   },
   {
    "id": 69,
@@ -1358,7 +1364,13 @@
    "referenced_by": "0 tracked citations",
    "disposition": "migrate-to-declared-dir",
    "migration_command": "M6 (copy + hash-verify into recovery/, then remove original)",
-   "note": ""
+   "note": "",
+   "reconciled_at": "2026-10-08",
+   "current_location": "D:/All projects/ArcheAxis-Knowledge-OS/.project-local/mig/d-root-spillover-20261008/root-backup-20261001/",
+   "current_owner": "ArcheAxis Knowledge",
+   "current_disposition": "MOVED_VERIFIED",
+   "reconciliation_evidence": "65-file scoped migration manifest; exact member name/bytes/SHA-256 readback, original source absent; no ACL execution or DB connection",
+   "historical_fields_note": "path/disposition/ownership_evidence above retain the original measurement; use current_* fields for present routing. DSH is the ACL actor, not the owner of this AAOS rollback payload."
   },
   {
    "id": 70,
@@ -1475,7 +1487,13 @@
    "referenced_by": "none here",
    "disposition": "foreign-do-not-touch",
    "migration_command": "none - not this project's bytes",
-   "note": ""
+   "note": "",
+   "reconciled_at": "2026-10-08",
+   "current_location": "D:/All projects/ArcheAxis-Knowledge-OS/.project-local/mig/d-root-spillover-20261008/acl-reports-20261003/",
+   "current_owner": "ArcheAxis Knowledge",
+   "current_disposition": "MOVED_VERIFIED",
+   "reconciliation_evidence": "65-file scoped migration manifest; exact member name/bytes/SHA-256 readback, original source absent; no ACL execution or DB connection",
+   "historical_fields_note": "path/disposition/ownership_evidence above retain the original measurement; use current_* fields for present routing. DSH is the ACL actor, not the owner of this AAOS rollback payload."
   },
   {
    "id": 77,
@@ -1813,5 +1831,44 @@
    "migration_command": "none - credential-class: do not move, do not read",
    "note": "must not be read further; must never be committed or copied"
   }
- ]
+ ],
+ "layout_normalization_20261009": {
+  "status": "PASS_MOVED_VERIFIED",
+  "receipt": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\runs\\f714401b40\\codex-ui-governance-20261009\\artifacts\\remaining-layout-plan\\migration-result.json",
+  "files": 5,
+  "bytes": 15740,
+  "physical_reclaimed_bytes": 0,
+  "mappings": [
+   {
+    "source": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\analyse-local-branches-v2.py",
+    "target": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\mig\\root-layout-normalization-20261009\\analyse-local-branches-v2.py",
+    "bytes": 5701,
+    "sha256": "49b414ee464b3822b9ce64393550280967962028750d695a86656e6951e6cbba"
+   },
+   {
+    "source": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\audit-worktree-wip.py",
+    "target": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\mig\\root-layout-normalization-20261009\\audit-worktree-wip.py",
+    "bytes": 2707,
+    "sha256": "babd3bae043afcb04ba24a4e170f674a64edaa0d7bdbb3ec4a82389bb8e53ea8"
+   },
+   {
+    "source": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\cleanup-merged-remote-branches.ps1",
+    "target": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\mig\\root-layout-normalization-20261009\\cleanup-merged-remote-branches.ps1",
+    "bytes": 2410,
+    "sha256": "eec8ca50b8e0a76ebf2e1aa59a1376496e985a416d9ef9ef40cc06057e97c0a3"
+   },
+   {
+    "source": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\audit-cleanup-20261003.json",
+    "target": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\mig\\root-layout-normalization-20261009\\audit-cleanup-20261003.json",
+    "bytes": 1278,
+    "sha256": "b5c5e4b594162efeb30c00a67f77caf14ab89640980239fe8296d5cc882bcd40"
+   },
+   {
+    "source": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\spillover-addendum-20261007.md",
+    "target": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\mig\\root-layout-normalization-20261009\\spillover-addendum-20261007.md",
+    "bytes": 3644,
+    "sha256": "0529bfa0c37d216629ec83aedda4dd79f1336cb0437765c608d1cc778301f943"
+   }
+  ]
+ }
 }

@@ -73,3 +73,11 @@ P0需记录新候选的启用成功、真实失败、禁用、人工profile替�
 安装Green备份/原位替换/重启/回滚必须得到Owner具体路径和操作授权后才执行；不给用户安装步骤前先准备好可审阅候选和回退。独立审计方复核后只能判LOCAL_GREEN_READY_FOR_OWNER_REVIEW或NOT_READY，不自动RELEASE_READY。
 
 第二Provider、更多Domain/renderer、Graphiti/LightRAG、Marketplace、扩展Research、3D/VR/AR等按M0/长期Authority排期，不突然塞进当前闭环，也不说它们已经完成。不得写新的大蓝图代替执行，不重复审计已修问题，不制造真人答案/错误/授权，不把编译、fixture、push、CI、merge、安装混为一谈。
+
+## 2026-10-09 exact governance-file migration
+
+Historical execution paths and verdicts above are retained. This current mapping is effective only when the exact migration receipt records PASS; it does not authorize re-execution of the archived tools or remote changes.
+
+- `D:\All projects\ArcheAxis-Knowledge-OS\.project-local\audit-cleanup-20261003.json` → `D:\All projects\ArcheAxis-Knowledge-OS\.project-local\mig\root-layout-normalization-20261009\audit-cleanup-20261003.json`; 1278 B; SHA-256 `b5c5e4b594162efeb30c00a67f77caf14ab89640980239fe8296d5cc882bcd40`.
+
+Current receipt: `D:\All projects\ArcheAxis-Knowledge-OS\.project-local\runs\f714401b40\codex-ui-governance-20261009\artifacts\remaining-layout-plan\migration-result.json`. Exact reverse mapping: run `D:\All projects\ArcheAxis-Knowledge-OS\.project-local\runs\f714401b40\codex-ui-governance-20261009\tmp\root_layout_migrate.py` with `--restore`; it refuses changed files and an existing original path. Only the five reviewed files are moved; no deletion or reclaimed-space claim.

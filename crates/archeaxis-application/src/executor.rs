@@ -136,15 +136,8 @@ impl Executor {
         Some((chosen.1.clone(), chosen.2))
     }
 
-    /// Ask a local model one question about one context, through the worker boundary.
-    ///
-    /// G4 needs a Core route that accepts a **question**, and the job protocol cannot carry one: a
-    /// route in the worker transport is validated with `parameters` empty. Rather than inventing a
-    /// second model client inside the Core, this runs the machine answer worker as a process, which
-    /// keeps the one boundary the project already has for every capability that calls an engine.
-    ///
-    /// The worker is asked for JSON on stdout, and its own words are returned rather than rephrased,
-    /// so a receipt field cannot drift from what the worker actually decided.
+    /// One bounded local-model call. Runtime owns the shared admission lock.
+    /// Returns the worker's candidate JSON without interpreting its answer as truth.
     pub async fn machine_answer(
         &self,
         context: String,
@@ -152,65 +145,139 @@ impl Executor {
         max_tokens: u64,
         timeout: Duration,
     ) -> Result<serde_json::Value, String> {
-        let worker = self
-            .worker_for("machine.answer")
+        const MAX_CONTEXT: usize = 128_000;
+        // Keep the existing --question argv protocol inside Windows command-line bounds.
+        const MAX_QUESTION: usize = 8_192;
+        const MAX_OUTPUT: usize = 128_000;
+        const MAX_STDERR: usize = 8_192;
+        if context.trim().is_empty() || question.trim().is_empty()
+            || context.len() > MAX_CONTEXT || question.len() > MAX_QUESTION
+            || question.contains('\0') || !(128..=4096).contains(&max_tokens)
+            || timeout < Duration::from_secs(1) || timeout > Duration::from_secs(120)
+        {
+            return Err("invalid machine answer budget or input".into());
+        }
+        let worker = self.worker_for("machine.answer")
             .map(|(path, _)| path)
-            .ok_or_else(|| "no worker is registered for machine.answer".to_string())?;
+            .ok_or("no worker is registered for machine.answer")?;
         let python = self.python.clone();
-
-        // Blocking process work belongs off the async runtime; the call can take a model's own latency.
+        let staging = self.staging.clone();
         tokio::task::spawn_blocking(move || -> Result<serde_json::Value, String> {
-            let dir = tempfile::tempdir().map_err(|e| format!("temp dir: {e}"))?;
+            let deadline = Instant::now() + timeout;
+            let dir = tempfile::tempdir_in(&staging)
+                .map_err(|_| "machine staging unavailable")?;
             let context_path = dir.path().join("context.txt");
             std::fs::write(&context_path, context.as_bytes())
-                .map_err(|e| format!("writing the context: {e}"))?;
-
+                .map_err(|_| "machine context staging failed")?;
             let mut command = Command::new(&python);
-            command.arg("-B");
-            command.arg(&worker);
-            command.arg(&context_path);
-            command.arg("--question").arg(&question);
-            command.arg("--max-tokens").arg(max_tokens.to_string());
-            command.stdout(Stdio::piped()).stderr(Stdio::piped());
-
-            let mut child = command
-                .spawn()
-                .map_err(|e| format!("starting the machine answer worker: {e}"))?;
-            // A model call has its own latency, so the wait is bounded by the caller's timeout rather
-            // than left open; a hung worker must not hold the request forever.
-            let started = std::time::Instant::now();
-            loop {
-                match child.try_wait() {
-                    Ok(Some(_)) => break,
-                    Ok(None) if started.elapsed() < timeout => {
-                        std::thread::sleep(Duration::from_millis(50))
+            // Local lane overrides are product launch policy, never HTTP input.
+            // No credentials, user Python startup, proxy or home configuration inherited.
+            command.env_clear();
+            for key in ["SystemRoot", "WINDIR", "SYSTEMDRIVE",
+                "ARCHEAXIS_MACHINE_ENDPOINT", "ARCHEAXIS_MACHINE_MODEL",
+                "ARCHEAXIS_MACHINE_PROTOCOL"] {
+                if let Some(value) = std::env::var_os(key) { command.env(key, value); }
+            }
+            for key in ["TEMP", "TMP", "TMPDIR", "HOME", "USERPROFILE",
+                "APPDATA", "LOCALAPPDATA"] { command.env(key, dir.path()); }
+            command.env("NO_PROXY", "127.0.0.1,localhost,::1");
+            command.arg("-I").arg("-B").arg("-X").arg("utf8")
+                .arg(&worker).arg(&context_path).arg("--question").arg(&question)
+                .arg("--max-tokens").arg(max_tokens.to_string())
+                .current_dir(dir.path()).stdin(Stdio::null())
+                .stdout(Stdio::piped()).stderr(Stdio::piped());
+            #[cfg(windows)] {
+                use std::os::windows::process::CommandExt;
+                command.creation_flags(0x08000000);
+            }
+            let mut child = OwnedChild(command.spawn().map_err(|_| "machine worker spawn failed")?);
+            let stdout = child.0.stdout.take().ok_or("machine stdout unavailable")?;
+            let stderr = child.0.stderr.take().ok_or("machine stderr unavailable")?;
+            // Concurrent readers avoid pipe-buffer deadlock. Each stops at limit+1;
+            // overflow is reported before waiting for process exit.
+            fn bounded_reader(
+                stream: impl Read + Send + 'static,
+                limit: usize,
+                tx: mpsc::Sender<(bool, Result<Vec<u8>, &'static str>)>,
+                is_stdout: bool,
+            ) -> thread::JoinHandle<()> {
+                thread::spawn(move || {
+                    let mut bytes = Vec::new();
+                    let result = stream.take((limit + 1) as u64).read_to_end(&mut bytes)
+                        .map_err(|_| "machine pipe read failed")
+                        .and_then(|_| if bytes.len() > limit {
+                            Err("machine worker output exceeds bound")
+                        } else { Ok(bytes) });
+                    let _ = tx.send((is_stdout, result));
+                })
+            }
+            let (send, receive) = mpsc::channel();
+            let reader = bounded_reader(stdout, MAX_OUTPUT, send.clone(), true);
+            let err_reader = bounded_reader(stderr, MAX_STDERR, send, false);
+            let result = (|| -> Result<serde_json::Value, String> {
+                let mut out = None;
+                let mut errors_finished = false;
+                let mut exit_status = None;
+                loop {
+                    while let Ok((is_stdout, result)) = receive.try_recv() {
+                        let bytes = result?;
+                        if is_stdout { out = Some(bytes); } else {
+                            // Never echo model SDK stderr or context into API errors.
+                            drop(bytes);
+                            errors_finished = true;
+                        }
                     }
-                    Ok(None) => {
-                        let _ = child.kill();
-                        return Err(format!(
-                            "the machine answer worker exceeded {} s",
-                            timeout.as_secs()
-                        ));
+                    if exit_status.is_none() {
+                        exit_status = child.0.try_wait().map_err(|_| "machine status unavailable")?;
                     }
-                    Err(e) => return Err(format!("waiting for the machine answer worker: {e}")),
+                    if let Some(status) = exit_status {
+                        if !status.success() { return Err("machine worker failed".into()); }
+                        if errors_finished && out.is_some() { break; }
+                    }
+                    if Instant::now() >= deadline { return Err("machine worker timed out".into()); }
+                    thread::sleep(Duration::from_millis(10));
+                }
+                let value: serde_json::Value = serde_json::from_slice(&out.unwrap())
+                    .map_err(|_| "machine worker returned invalid JSON")?;
+                if !value.is_object() || !value["answer"].as_str().is_some_and(|s| !s.trim().is_empty()) {
+                    return Err("machine worker returned no candidate answer".into());
+                }
+                Ok(value)
+            })();
+            // No orphaned direct child on timeout/overflow/pipe error.
+            let cleanup_failed = match child.0.try_wait() {
+                Ok(Some(_)) => false,
+                Ok(None) | Err(_) => {
+                    let killed = child.0.kill().is_ok();
+                    let waited = child.0.wait().is_ok();
+                    !killed || !waited
+                }
+            };
+            // A descendant may retain an inherited pipe after our child exits.
+            // Cancel only our own reader threads' blocking I/O on Windows.
+            #[cfg(windows)] {
+                use std::os::windows::io::AsRawHandle;
+                #[link(name = "kernel32")]
+                unsafe extern "system" {
+                    fn CancelSynchronousIo(thread: *mut std::ffi::c_void) -> i32;
+                }
+                for task in [&reader, &err_reader] {
+                    if !task.is_finished() {
+                        unsafe { CancelSynchronousIo(task.as_raw_handle()); }
+                    }
                 }
             }
-            let output = child
-                .wait_with_output()
-                .map_err(|e| format!("reading the machine answer worker: {e}"))?;
-            let stdout = String::from_utf8_lossy(&output.stdout);
-            if !output.status.success() {
-                let stderr = String::from_utf8_lossy(&output.stderr);
-                return Err(format!(
-                    "the machine answer worker failed: {}",
-                    stderr.trim().lines().last().unwrap_or("no reason reported")
-                ));
+            let cleanup_deadline = Instant::now() + Duration::from_secs(1);
+            while (!reader.is_finished() || !err_reader.is_finished()) && Instant::now() < cleanup_deadline {
+                thread::sleep(Duration::from_millis(10));
             }
-            serde_json::from_str(stdout.trim())
-                .map_err(|e| format!("the machine answer worker did not answer with JSON: {e}"))
-        })
-        .await
-        .map_err(|e| format!("machine answer task failed: {e}"))?
+            let incomplete = !reader.is_finished() || !err_reader.is_finished();
+            for task in [reader, err_reader] {
+                if task.is_finished() { let _ = task.join(); }
+            }
+            if cleanup_failed || incomplete { return Err("machine worker cleanup incomplete".into()); }
+            result
+        }).await.map_err(|_| "machine answer task failed")?
     }
 
     /// The routes registered for one capability, in registration order, each marked with whether it

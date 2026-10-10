@@ -316,4 +316,3 @@ retire-ready 共 31 个分支，其中 24 个还挂着注册工作树。tip 均�
 ### D8 复现
 
 收据（gitignored，不入库）在本工作树 `.project-local/branch-disposition/`：`survey3.py`/`survey3.json` 与 `survey4.py`/`survey4.json`（较早快照，只用于漂移对照）、`gen_section2.py`（本节的生成器：重跑即按当时 live refs 全量再测）、`gates.py` + `gates-before.txt`/`gates-after.txt`（三道文档门）。
-

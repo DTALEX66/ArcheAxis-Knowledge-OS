@@ -1,4 +1,19 @@
-# UI v3 产品路线图
+# 当前 UI 设计与历史路线图
+
+> **2026-10-09 当前执行覆盖**：用户已选择新 UI 优先任务及 G01；规范活动指针为 [AAOS-ACTIVE-EXECUTION](AAOS-ACTIVE-EXECUTION.json)，当前任务来源为 [UI 优先 TaskPack](../taskpacks/aaos-ui-first-20261009/TASKPACK.md)，实际进度只读 [UI 执行记录](AAOS-UI-FIRST-EXECUTION-20261009.md)。规划原文的 PLANNING_READY / NOT_EXECUTED 是规划时状态，激活与实际结果由当前覆盖记录，不改写不可变原包。AAOS-01 Q00–Q15 台账仅记录该继承工作流，不代表新 UI 全队列；旧 R6/M0 整包顺序冻结，有效合同、单一 Rust Core writer、内容先保存及历史证据保留。V01 继续暂停。
+> 当前新布局、架构和其余产品界面按新任务执行；默认 `blueprint`，配套 `blueprint-light`，旧 `black` / `white` / `cosmic` 仅为额外配色主题。五主题共用新布局、组件状态及统一语义颜色；一个主题内部的按钮、菜单、侧栏与正文保持一致。主题不更改 Core 配置或知识数据。
+> 平台指令优先；平台范围内用户当前明确决定优先于项目旧描述。此文档同步不授予 commit、push、merge、发布、私人账户/会话访问或恢复暂停的云端任务权限；本机资源索引不是云端权限。
+
+## 当前设计来源
+
+- 新22页参考、tokens与资产来源通过 [UI任务包](../taskpacks/aaos-ui-first-20261009/README.md) 和来源登记核对，页面职责以 [PAGE-PLAN](../taskpacks/aaos-ui-first-20261009/PAGE-PLAN.csv) 承接。
+- 五域布局和语义页面按新任务实施；普通文档、Tiptap与Core逻辑复用，历史hash兼容不作为新默认布局。
+- `blueprint` 是新设计默认，`blueprint-light` 是配套浅色，旧 `black` / `white` / `cosmic` 只作额外主题；五主题共用新布局、组件状态、页面密度和缩放规则，按钮、菜单、侧栏及正文用统一语义颜色。主题切换只更新前端宿主资源，不更改 Core 配置或知识数据。
+- B10/Aurora/Archive Desk/Liquid Glass 是历史参考，不是默认主题或当前新布局权威。当前任务尚未接通的页面明示不可用；不把22页意图、原型演示内容或截图当产品完成度。
+
+## 历史视觉与路线说明（原日期与证据范围保留）
+
+以下整段保留此前路线描述；其中“当前”“最高视觉依据”“两套主题”与正式Avalonia回读等措辞仅对原历史阶段有效，不覆盖上面的当前设计。旧阶段计划不自动执行。
 
 - 当前正式轨道（2026-10-08 更正）：Tauri 2 + React/TypeScript/Vite 宿主（`frontend/`、`src-tauri/`）＋ Rust Core 唯一 SQLite/CAS 写者；依据 `DECISION_SUPERSESSION_LEDGER.yaml` SUP-021 → SUP-022（2026-10-04 业主裁决）与根 `AGENTS.md` §6。本文件此前写"当前正式轨道：C#/Avalonia 桌面壳；React/Tauri 只作 legacy"，那是 SUP-021 时代的读法，保留于此作为更正记录，不再作为当前结论。
 - 正式桌面入口：`src-tauri/tauri.conf.json`；`apps/ArcheAxis.Desktop/`（C#/Avalonia）为冻结行为/组件供体；`desktop/` 是独立恢复入口（标识 `com.archeaxis.workspace.recovery`）；legacy `/workspace` 产品页返回 410，仅保留兼容 API

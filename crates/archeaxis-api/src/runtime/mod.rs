@@ -14,6 +14,8 @@ use std::{collections::HashMap, sync::Arc};
 use tokio::sync::Mutex;
 
 mod colearning;
+mod withheld;
+mod execution_status_projection;
 mod courses;
 mod semantic;
 use colearning::{machine_answer, record_correction, run_retest};
@@ -38,6 +40,7 @@ pub fn router(executor: Executor) -> Router {
             post(execute_document_check),
         )
         .route("/api/v1/jobs/:job_id", get(status))
+        .route("/api/v1/jobs/:job_id/execution-status", get(execution_status))
         .route("/api/v1/jobs/:job_id/executions", post(execute))
         .route(
             "/api/v1/jobs/:job_id/executions/:request_id/cancel",
@@ -67,7 +70,7 @@ pub fn router(executor: Executor) -> Router {
         // G4: run the task again and record it against the one it retests, which is what closes the
         // loop rather than leaving the correction as an unreferenced note.
         .route("/api/v1/machine/retests", post(run_retest))
-        .route("/api/v1/courses", post(courses::create))
+        .route("/api/v1/courses", get(courses::list).post(courses::create))
         .route(
             "/api/v1/courses/from-knowledge",
             post(courses::from_knowledge),
@@ -353,8 +356,14 @@ struct CapabilityEnabledBody {
 #[derive(Deserialize)]
 #[serde(deny_unknown_fields)]
 struct MachineAnswerBody {
+    #[serde(default)]
+    client_request_id: Option<String>,
     knowledge_id: String,
     question: String,
+    #[serde(default)]
+    context_grant: Option<archeaxis_domain::context_grant::Consumption>,
+    #[serde(default)]
+    asset_context_grant: Option<archeaxis_domain::asset_context_grant::PacketRequest>,
     #[serde(default)]
     max_tokens: Option<u64>,
     #[serde(default)]
@@ -453,6 +462,10 @@ struct RetestBody {
     knowledge_id: String,
     /// The question to put again.
     question: String,
+    #[serde(default)]
+    context_grant: Option<archeaxis_domain::context_grant::Consumption>,
+    #[serde(default)]
+    asset_context_grant: Option<archeaxis_domain::asset_context_grant::PacketRequest>,
     #[serde(default)]
     max_tokens: Option<u64>,
     #[serde(default)]
@@ -658,6 +671,11 @@ async fn start(
         Json(json!({"job_id":job,"request_id":id,"state":"running","replayed":false})),
     )
         .into_response()
+}
+async fn execution_status(State(runtime): State<Runtime>, Path(job): Path<String>) -> Response {
+    if runtime.active.lock().await.get(&job).is_some_and(|entry|entry.faulted) { return unavailable(); }
+    let value=runtime.executor.store().submit(move |conn|execution_status_projection::project(conn,&job)).await;
+    match value {Ok(Ok(Some(value)))=>Json(value).into_response(),Ok(Ok(None))=>error(404,"AAK-VAL-004","job not found"),_=>unavailable()}
 }
 async fn status(State(runtime): State<Runtime>, Path(job): Path<String>) -> Response {
     if runtime

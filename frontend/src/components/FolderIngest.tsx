@@ -1,33 +1,33 @@
-import { useRef, useState } from "react";
+import { useEffect, useId, useRef, useState } from "react";
 import { coreCommand } from "../api/core";
 import { ApiError } from "../api/client";
 import { conversionKindFor } from "../api/conversionKinds";
-import { DataTable } from "./RealData";
+import type { BoundedJobCommand, JobStatus } from "./BoundedJobPanel";
+import { freezeFolderAttempt, folderCancelAck, folderExecutionAck, freshAttemptEligible, jobState, pollFolderAttempt, readFolderStatus, terminalJobState, type FolderAttempt, type JobState } from "../presentation/folderIngestExecution";
 
-// The folder entry drives the same Core calls `scripts/ingest/directory_batch.py` drives and keeps
-// that script's refusals, so the folder closed loop does not change shape when it moves from the
-// CLI to the screen. The browser holds no file system, so progress across a >200 folder comes from
-// a session queue the picker refills, not from a stored JSONL manifest.
 const MAX_FILES = 200; // per-batch budget; already-handled and explicitly-excluded items never re-consume it
 const MAX_BYTES = 64 * 1024 * 1024;
-const EXECUTE_DEADLINE_MS = 90_000;
-const POLL_MS = 300;
 const EXCLUDED_DIRS = new Set([".git", ".hg", ".svn", "node_modules", "__pycache__", ".venv", "venv",
   ".project-local", ".hermes", ".cache", "dist", "build", "target"]);
 // Compared case-insensitively, matching `directory_batch.py`'s `part.casefold()` rule; on Windows
 // the file system is case-insensitive, so `.CODEX` is the same private state as `.codex`.
 const PRIVATE_STATE = new Set([".zcode", ".codex", ".hermes", ".openhuman", ".git"]);
 
-type Row = {
-  relative: string;
-  bytes: number;
-  state: string;
-  detail: string;
-  job_id?: string;
-  source_id?: string;
-  kind?: string;
-  executable?: boolean;
+type RefusalState = "跳过：隐藏路径" | "跳过：排除目录" | "未导入：超过大小上限";
+type Refusal = { relative: string; bytes: number; state: RefusalState; detail: string };
+type RowState = JobState | RefusalState | "UNKNOWN" | "ORIGINAL_ONLY" | "IMPORT_FAILED" | "ENQUEUE_FAILED" | "IDENTITY_CONFLICT";
+type Row = { key: string; batch_id: string; relative: string; bytes: number; state: RowState; detail: string;
+  source_id?: string; sha256?: string; job_id?: string; kind?: string; status?: JobStatus;
+  attempt?: FolderAttempt; cancelPending?: boolean; executionRefused?: boolean };
+const LABEL: Record<RowState, string> = {
+  queued:"已入队", pending:"已入队", running:"作业运行中", leased:"作业运行中", starting:"作业运行中",
+  succeeded:"已成功", failed:"失败待重试", cancelled:"已取消", rejected:"已拒绝",
+  UNKNOWN:"结果 UNKNOWN，待核对", ORIGINAL_ONLY:"原件已保管，无转换通路", IMPORT_FAILED:"原件导入未确认",
+  ENQUEUE_FAILED:"转换未入队", IDENTITY_CONFLICT:"作业身份冲突",
+  "跳过：隐藏路径":"跳过：隐藏路径", "跳过：排除目录":"跳过：排除目录", "未导入：超过大小上限":"未导入：超过大小上限",
 };
+// Stable module-level finite port: no component render changes the command identity.
+const folderCommand: BoundedJobCommand = (operation, payload) => coreCommand(operation, payload);
 
 function base64Of(buffer: ArrayBuffer): string {
   const content = new Uint8Array(buffer);
@@ -61,7 +61,7 @@ function privateVisibleSegment(file: File): string | null {
   return (visiblePathOf(file).split("/").find((part) => PRIVATE_STATE.has(part.toLowerCase())) ?? null);
 }
 
-function refuseBeforeUpload(relative: string, bytes: number): Row | null {
+function refuseBeforeUpload(relative: string, bytes: number): Refusal | null {
   const segments = relative.split("/");
   if (segments.some((part) => part.startsWith("."))) {
     return { relative, bytes, state: "跳过：隐藏路径", detail: "以点开头的路径不进入原件库。" };
@@ -75,221 +75,200 @@ function refuseBeforeUpload(relative: string, bytes: number): Row | null {
   return null;
 }
 
-// A durable enqueue receipt already carries the job's real state; the folder entry must show that
-// state, not overwrite every receipt with "已入队". Only a genuinely queued job is worth executing.
-function classifyReceipt(state: unknown, kind: string, repeated: string): { state: string; detail: string; executable: boolean } {
-  switch (state) {
-    case "queued": return { state: "已入队", detail: `已入队转换${repeated}：${kind} 作业等待执行。`, executable: true };
-    case "running": case "leased": case "starting": return { state: "作业运行中", detail: `作业运行中${repeated}：${kind}。`, executable: false };
-    case "succeeded": return { state: "已成功", detail: `此内容已有成功结果${repeated}：${kind}。`, executable: false };
-    case "failed": return { state: "失败待重试", detail: `此内容已有失败记录${repeated}：${kind}，可重试。`, executable: true };
-    case "cancelled": case "rejected": return { state: `已${String(state)}`, detail: `此内容作业已${String(state)}${repeated}：${kind}，可重试。`, executable: true };
-    default: return { state: "已受理未回执", detail: `作业已受理${repeated}：${kind}，状态未回执。`, executable: false };
+export function FolderIngest({ onOpenSource }: { onOpenSource?: (sourceId: string, jobId?: string) => void }) {
+  const [rows, setRows] = useState<Row[]>([]), [folder, setFolder] = useState<string | null>(null);
+  const [batchId, setBatchId] = useState<string | null>(null), [message, setMessage] = useState("");
+  const [busy, setBusy] = useState(false), [remaining, setRemaining] = useState(0), [cancelBusy, setCancelBusy] = useState(false);
+  const rowsRef = useRef<Row[]>([]), queue = useRef(new Map<string, File>()), handled = useRef(new Set<string>());
+  const folderRef = useRef<string | null>(null), batchRef = useRef<string | null>(null);
+  const running = useRef(false), stopAfter = useRef(false), cancelFlight = useRef(false);
+  const mounted = useRef(true), epoch = useRef(0), active = useRef<{ key: string; attempt: FolderAttempt } | null>(null);
+  const timers = useRef(new Map<number, () => void>()), callback = useRef(onOpenSource); callback.current = onOpenSource;
+  const owner = `folder-ingest-${useId()}`;
+  function current(generation: number) { return mounted.current && epoch.current === generation; }
+  function publish() { if (mounted.current) window.dispatchEvent(new CustomEvent("archeaxis-draft-dirty", { detail: { owner, dirty: running.current || rowsRef.current.some(row => !!row.attempt || row.cancelPending) } })); }
+  function update(transform: (old: Row[]) => Row[]) {
+    if (!mounted.current) return;
+    rowsRef.current = transform(rowsRef.current); setRows(rowsRef.current); publish();
   }
-}
-
-export function FolderIngest() {
-  const [rows, setRows] = useState<Row[]>([]);
-  const [folder, setFolder] = useState<string | null>(null);
-  const [batchId, setBatchId] = useState<string | null>(null);
-  const [message, setMessage] = useState("");
-  const [busy, setBusy] = useState(false);
-  const [remaining, setRemaining] = useState(0);
-  const [executed, setExecuted] = useState(false);
-  const stopped = useRef(false);
-  // The session queue survives a re-selection of the same folder, so batch 2 advances past batch 1
-  // instead of re-slicing the same first 200. Keyed by the relative path the picker repeats verbatim.
-  const queue = useRef<Map<string, File>>(new Map());
-  const handled = useRef<Set<string>>(new Set());
-  const folderRef = useRef<string | null>(null);
-  const batchRef = useRef<string | null>(null);
-  const running = useRef(false);
-
-  function tally(list: Row[]): string {
-    const count = (prefix: string) => list.filter((row) => row.state.startsWith(prefix)).length;
-    return `已入队 ${count("已入队")} · 运行中 ${count("作业运行中")} · 已成功 ${count("已成功")}`
-      + ` · 失败待重试 ${count("失败待重试")} · 仅保管 ${count("原件已保管")}`
-      + ` · 冲突 ${count("作业身份冲突")} · 未入队 ${count("转换未入队")} · 跳过 ${count("跳过：") + count("未导入")}`;
+  function patch(key: string, value: Partial<Row>) { update(old => old.map(row => row.key === key ? { ...row, ...value } : row)); }
+  function replace(row: Row) { update(old => old.some(item => item.key === row.key) ? old.map(item => item.key === row.key ? row : item) : [...old, row]); }
+  function wait(ms: number): Promise<void> { return new Promise(resolve => { const timer = window.setTimeout(() => { timers.current.delete(timer); resolve(); }, ms); timers.current.set(timer, resolve); }); }
+  useEffect(() => { mounted.current = true; return () => {
+    mounted.current = false; epoch.current++; for (const [timer, resolve] of timers.current) { window.clearTimeout(timer); resolve(); } timers.current.clear();
+    window.dispatchEvent(new CustomEvent("archeaxis-draft-dirty", { detail: { owner, dirty: false } }));
+  }; }, [owner]);
+  function tally(list: Row[]) {
+    const count = (...states: RowState[]) => list.filter(row => states.includes(row.state)).length;
+    return `原件已保管 ${list.filter(row => !!row.source_id).length} · 已入队 ${count("queued", "pending")} · 运行中 ${count("running", "leased", "starting")}`
+      + ` · 已成功 ${count("succeeded")} · 失败待重试 ${count("failed")} · 已取消 ${count("cancelled")} · 已拒绝 ${count("rejected")}`
+      + ` · 仅保管 ${count("ORIGINAL_ONLY")} · UNKNOWN ${count("UNKNOWN")} · 冲突 ${count("IDENTITY_CONFLICT")}`
+      + ` · 未入队 ${count("ENQUEUE_FAILED")} · 原件导入未确认 ${count("IMPORT_FAILED")} · 跳过 ${count("跳过：隐藏路径", "跳过：排除目录", "未导入：超过大小上限")}`;
   }
-
-  async function processFile(file: File, relative: string, root: string): Promise<Row> {
+  async function processFile(file: File, relative: string, batch: string, generation: number): Promise<Row | null> {
+    const base = { key: `${batch}:${relative}`, batch_id: batch, relative, bytes: file.size };
     const refusal = refuseBeforeUpload(relative, file.size);
-    if (refusal) { handled.current.add(relative); return { ...refusal, relative, bytes: file.size }; }
+    if (refusal) { handled.current.add(relative); return { ...base, ...refusal }; }
+    let imported: { source_id?: unknown; sha256?: unknown; duplicate?: unknown };
     try {
-      const imported = await coreCommand<{ source_id?: unknown; sha256?: unknown; duplicate?: unknown }>(
-        "source_import",
-        {
-          body: {
-            name: relative,
-            content_base64: base64Of(await file.arrayBuffer()),
-            origin_kind: "path",
-            // A stable opaque batch id, not the folder basename: two folders on different disks that
-            // share a name stay distinguishable, and no absolute path is claimed from the browser.
-            origin_ref: batchRef.current ?? root,
-            origin_name: file.name,
-          },
-        });
-      const sourceId = typeof imported.source_id === "string" ? imported.source_id : null;
-      const digest = typeof imported.sha256 === "string" ? imported.sha256 : null;
+      const content_base64 = base64Of(await file.arrayBuffer()); if (!current(generation)) return null;
+      imported = await coreCommand("source_import", { body: { name: relative, content_base64, origin_kind: "path", origin_ref: batch, origin_name: file.name } });
+      if (!current(generation)) return null;
       handled.current.add(relative);
-      if (!sourceId || !digest) return { relative, bytes: file.size, state: "未导入", detail: "导入回执缺少 source_id 或 sha256" };
-      const repeated = imported.duplicate === true ? "（同哈希原件已存在）" : "";
-      const kind = conversionKindFor(relative);
-      if (!kind) {
-        return { relative, bytes: file.size, source_id: sourceId, state: "原件已保管，无转换通路",
-          detail: `此扩展名没有映射到任何 Core 作业种类，所以未入队${repeated}。` };
-      }
-      try {
-        const receipt = await coreCommand<{ job_id?: unknown; state?: unknown }>("job_enqueue",
-          { body: { job_id: `folder-${kind}-${digest}`, kind, input_ref: sourceId } });
-        const classified = classifyReceipt(receipt.state, kind, repeated);
-        return { relative, bytes: file.size, source_id: sourceId, kind,
-          job_id: typeof receipt.job_id === "string" ? receipt.job_id : `folder-${kind}-${digest}`,
-          executable: classified.executable, state: classified.state, detail: classified.detail };
-      } catch (error) {
-        if (error instanceof ApiError && error.status === 409) {
-          // 409 means the same job id was offered with a different kind or input — a real conflict,
-          // not a duplicate. It must not be smoothed into "already queued".
-          return { relative, bytes: file.size, source_id: sourceId, kind,
-            state: "作业身份冲突", detail: `同一作业标识已持有不同的 ${kind} 参数，需要人工核对后处理。` };
-        }
-        return { relative, bytes: file.size, source_id: sourceId, kind, state: "转换未入队", detail: `本地核心拒绝了 ${kind} 作业。` };
-      }
+      if (typeof imported.source_id !== "string" || !imported.source_id || typeof imported.sha256 !== "string" || !/^[a-f0-9]{64}$/.test(imported.sha256)
+        || typeof imported.duplicate !== "boolean") return { ...base, state: "IMPORT_FAILED", detail: "导入回执未确认 source_id/sha256/duplicate；请保留原件，未启动转换。" };
     } catch (error) {
-      handled.current.add(relative);
-      const detail = error instanceof ApiError || error instanceof Error ? error.message : "未知原因";
-      return { relative, bytes: file.size, state: "未导入", detail };
+      if (!current(generation)) return null;
+      handled.current.add(relative); return { ...base, state: "IMPORT_FAILED", detail: error instanceof Error ? error.message : "原件导入未确认" };
     }
-  }
-
-  async function runBatch(start: Row[]) {
-    if (running.current) return;
-    running.current = true; setBusy(true); stopped.current = false;
-    setExecuted(false);
-    const outcome = start;
-    const pending = [...queue.current.keys()].filter((relative) => !handled.current.has(relative))
-      .sort((a, b) => a.localeCompare(b));
-    const next = pending.slice(0, MAX_FILES);
-    for (const relative of next) {
-      if (stopped.current) break;
-      const file = queue.current.get(relative)!;
-      outcome.push(await processFile(file, relative, folderRef.current ?? ""));
-      setRows([...outcome]);
-    }
-    window.dispatchEvent(new Event("archeaxis-job-changed"));
-    const left = [...queue.current.keys()].filter((relative) => !handled.current.has(relative)).length;
-    setRemaining(left);
-    setMessage(`文件夹「${folder}」批次处理：本次 ${next.length} 项 · ${tally(outcome)}`
-      + ` · ${left > 0 ? `剩余 ${left} 项待下一批（已成功或排除的项不重复占预算）` : "全部处理完毕"}`
-      + (stopped.current ? " · 已按你的要求停止" : ""));
-    setBusy(false); running.current = false;
-  }
-
-  // A06: the folder entry is not complete at "enqueued". Execute this batch's queued jobs through
-  // the same bounded, cancellable path a single source uses, and reflect the real terminal state.
-  async function executeBatch() {
-    if (running.current) return;
-    const targets = rows.filter((row) => row.executable && row.job_id);
-    if (!targets.length) { setMessage("本批次没有等待执行的作业。"); return; }
-    running.current = true; setBusy(true); stopped.current = false;
-    const updated = [...rows];
-    for (let index = 0; index < updated.length; index += 1) {
-      const row = updated[index];
-      if (!row.executable || !row.job_id) continue;
-      if (stopped.current) break;
-      updated[index] = { ...row, state: "执行中", detail: `正在执行 ${row.kind} 作业。` };
-      setRows([...updated]);
-      try {
-        await coreCommand("job_execute", { job_id: row.job_id });
-        window.dispatchEvent(new Event("archeaxis-job-changed"));
-        let state: unknown = null; const deadline = Date.now() + EXECUTE_DEADLINE_MS;
-        while (Date.now() < deadline) {
-          const read = await coreCommand<{ state?: unknown }>("jobs_get", { job_id: row.job_id });
-          state = read.state;
-          if (["succeeded", "failed", "cancelled", "rejected"].includes(String(state))) break;
-          await new Promise((resolve) => setTimeout(resolve, POLL_MS));
-        }
-        updated[index] = { ...row, executable: false, state: String(state ?? "未回执"),
-          detail: state === "succeeded" ? "转换产物已持久化，可从资料页打开。"
-            : ["failed", "cancelled", "rejected"].includes(String(state)) ? `执行结束于 ${String(state)}，可单独重试。`
-              : `执行未在 ${EXECUTE_DEADLINE_MS / 1000}s 内进入终态，保持可重试。` };
-      } catch (error) {
-        updated[index] = { ...row, executable: false, state: "执行失败",
-          detail: error instanceof Error ? error.message : "执行未完成" };
-      }
-      setRows([...updated]);
-    }
-    window.dispatchEvent(new Event("archeaxis-job-changed"));
-    setExecuted(true);
-    const done = updated.filter((row) => row.state === "succeeded").length;
-    setMessage(`本批次执行：${done} 项成功，其余保留真实状态可单独重试${stopped.current ? " · 已停止" : ""}。`);
-    setBusy(false); running.current = false;
-  }
-
-  async function asyncRetry(row: Row) {
-    if (running.current || !row.job_id) return;
-    setRows((list) => list.map((item) => item === row ? { ...item, state: "执行中", detail: `重试 ${item.kind} 作业。`, executable: true } : item));
+    const source_id = imported.source_id as string, sha256 = imported.sha256 as string, kind = conversionKindFor(relative);
+    if (!kind) return { ...base, source_id, sha256, state: "ORIGINAL_ONLY", detail: "此扩展名没有映射到任何 Core 作业种类；原件独立保管，未入队。" };
+    const job_id = `folder-${kind}-${sha256}`, original = { ...base, source_id, sha256, kind, job_id };
     try {
-      await coreCommand("job_execute", { job_id: row.job_id });
-      const read = await coreCommand<{ state?: unknown }>("jobs_get", { job_id: row.job_id });
-      window.dispatchEvent(new Event("archeaxis-job-changed"));
-      setRows((list) => list.map((item) => item === row ? { ...item, executable: false, state: String(read.state ?? "未回执"), detail: "重试后读回真实状态。" } : item));
-    } catch {
-      setRows((list) => list.map((item) => item === row ? { ...item, executable: true, state: "执行失败", detail: "重试未完成，可再次尝试。" } : item));
+      const receipt = await coreCommand<{ job_id?: unknown; state?: unknown }>("job_enqueue", { body: { job_id, kind, input_ref: source_id } });
+      if (!current(generation)) return null;
+      if (receipt.job_id !== job_id) return { ...original, state: "UNKNOWN", detail: "转换入队回执身份不匹配；未执行任何作业。" };
+      const state = jobState(receipt.state);
+      const row: Row = { ...original, state, detail: `原件已保留${imported.duplicate ? "（同哈希原件已存在）" : ""}；转换 Core 状态 ${state}。` };
+      if (!["queued", "pending"].includes(state)) {
+        try { row.status = await readFolderStatus(folderCommand, job_id, source_id); if (!current(generation)) return null; row.state = jobState(row.status.state); }
+        catch { row.detail += " 当前新尝试条件未读回；不会自动重执行。"; }
+      }
+      return row;
+    } catch (error) {
+      if (!current(generation)) return null;
+      const explicitlyRefused=error instanceof ApiError && error.status>=400 && error.status<500;
+      return { ...original, state: error instanceof ApiError && error.status === 409 ? "IDENTITY_CONFLICT" : explicitlyRefused ? "ENQUEUE_FAILED" : "UNKNOWN",
+        detail: error instanceof ApiError && error.status === 409 ? `同一作业标识持有不同的 ${kind} 参数，需人工核对。` : `原件已保留，${kind} 入队未确认；请读取转换状态，不会自动执行。` };
     }
   }
-
-  return (
-    <section aria-label="文件夹导入">
-      <h4>文件夹导入</h4>
-      <label className="content-import">
-        选择一个文件夹
-        <input
-          type="file"
-          aria-label="选择文件夹"
-          disabled={busy}
-          {...({ webkitdirectory: "", directory: "" } as Record<string, string>)}
-          multiple
-          onChange={(event) => {
-            const files = Array.from(event.target.files ?? []);
-            event.target.value = "";
-            if (!files.length) { setMessage("没有收到任何文件；浏览器可能拒绝了此选择。"); return; }
-            const root = folderOf(files);
-            if (!root) { setMessage("所选内容不像是同一个文件夹，未开始导入。"); return; }
-            // Refuse this whole submission before importing anything if any visible path — root name
-            // included, case-insensitive — sits in a private-state directory.
-            const privates = files.map(privateVisibleSegment).filter((p): p is string => p !== null);
-            if (privates.length) {
-              setMessage(`整个文件夹被拒绝：${privates.length} 条路径落在私有状态目录里（如 ${privates[0]}），未导入任何文件。请重新选择或明确缩小范围。`);
-              return;
-            }
-            if (folderRef.current !== root) {
-              handled.current.clear(); queue.current.clear(); folderRef.current = root;
-              batchRef.current = crypto.randomUUID(); setRows([]); setFolder(root); setBatchId(batchRef.current);
-            }
-            for (const file of files) queue.current.set(relativeOf(file), file);
-            void runBatch([]);
-          }}
-        />
-      </label>
-      {folder ? <p>当前批次「{folder}」· 批次标识 {batchId?.slice(0, 8)}…；来源关系记为该批次标识下的相对路径。浏览器不把磁盘绝对路径交给产品，所以此处不声称绝对路径，父目录链也无法核验。</p> : null}
-      <div>
-        {remaining > 0 ? <button type="button" disabled={busy} onClick={() => void runBatch([...rows])}>下一批（剩余 {remaining}）</button> : null}
-        {rows.some((row) => row.executable) ? <button type="button" disabled={busy} onClick={() => void executeBatch()}>执行本批次转换</button> : null}
-        <button type="button" disabled={!busy} onClick={() => { stopped.current = true; }}>停止</button>
-      </div>
-      {message ? <p role="status">{message}</p> : null}
-      {rows.length ? (
-        <DataTable columns={[{ key: "relative", label: "文件夹内路径" }, { key: "bytes", label: "字节" },
-          { key: "state", label: "结果" }, { key: "detail", label: "说明" },
-          { key: "action", label: "操作" }]}
-          rows={rows.map((row) => ({ relative: row.relative, bytes: String(row.bytes), state: row.state,
-            detail: row.detail,
-            action: row.job_id && (["失败待重试", "failed", "执行失败"].includes(row.state) || row.state.startsWith("已cancelled") || row.state.startsWith("已rejected"))
-              ? <button type="button" onClick={() => void asyncRetry(row)}>重试</button> : null }))}
-          empty="此文件夹没有可列出的文件。" />
-      ) : null}
-      {executed ? <p>执行完成不等同识别核验或专业依据已确认；结果可从资料页按真实转换读回。</p> : null}
-    </section>
-  );
+  function lock(): number | null {
+    if (running.current) return null; running.current = true; stopAfter.current = false; setBusy(true); publish(); return epoch.current;
+  }
+  function unlock(generation: number) { if (!current(generation)) return; running.current = false; setBusy(false); active.current = null; publish(); }
+  async function runBatch() {
+    const generation = lock(); if (generation === null) return;
+    const batch = batchRef.current!;
+    const next = [...queue.current.keys()].filter(relative => !handled.current.has(relative)).sort((a, b) => a.localeCompare(b)).slice(0, MAX_FILES);
+    let processed = 0;
+    try {
+      for (const relative of next) {
+        if (!current(generation) || stopAfter.current) break;
+        const row = await processFile(queue.current.get(relative)!, relative, batch, generation);
+        if (!current(generation)) return; if (row) { replace(row); processed++; }
+      }
+      const left = [...queue.current.keys()].filter(relative => !handled.current.has(relative)).length;
+      if (current(generation)) { setRemaining(left); setMessage(`文件夹「${folderRef.current}」批次处理：本次 ${processed} 项 · ${tally(rowsRef.current)} · ${left ? `剩余 ${left} 项待下一批（已成功或排除的项不重复占预算）` : "全部处理完毕"}${stopAfter.current ? " · 已停止后续导入；当前受理项的真实回执已保留" : ""}`); window.dispatchEvent(new Event("archeaxis-job-changed")); }
+    } finally { unlock(generation); }
+  }
+  function statusPatch(key: string, status: JobStatus) {
+    const terminal = terminalJobState(status.state);
+    patch(key, { status, state: jobState(status.state), detail: terminal ? `转换终态 ${status.state}；原件保留，成功产物可按真实来源定位。${status.error ? ` ${status.error}` : ""}` : `转换仍为 ${status.state}；终态未确认。`,
+      ...(terminal ? { attempt: undefined, cancelPending: false, executionRefused: false } : {}) });
+  }
+  async function executeOne(key: string, mode: "queued" | "fresh" | "same", generation: number) {
+    let row = rowsRef.current.find(item => item.key === key);
+    if (!row?.job_id || !row.source_id) return;
+    if (mode !== "same") {
+      try {
+        const checked = await readFolderStatus(folderCommand, row.job_id, row.source_id);
+        if (!current(generation)) return; statusPatch(key, checked);
+        if (mode === "fresh" ? !freshAttemptEligible(checked) : !["queued", "pending"].includes(checked.state)) {
+          setMessage("Core 未确认当前可新建尝试；原件、历史与错误保留，不会自动重执行。"); return;
+        }
+      } catch (error) {
+        if (current(generation)) { patch(key, { state:"UNKNOWN", detail:`执行前状态未确认：${error instanceof Error ? error.message : "未知原因"}；未创建执行请求。` }); stopAfter.current = true; }
+        return;
+      }
+    }
+    row = rowsRef.current.find(item => item.key === key)!;
+    const attempt = mode === "same" ? row.attempt : freezeFolderAttempt(row.job_id!);
+    if (!attempt || mode === "same" && row.executionRefused) return;
+    const source = row.source_id!;
+    const belongs = () => current(generation) && rowsRef.current.some(item => item.key === key && item.attempt?.request_id === attempt.request_id);
+    patch(key, { attempt, state: "UNKNOWN", detail: "执行请求已冻结；等待真实回执，90s 单次预算。", executionRefused: false }); active.current = { key, attempt };
+    try {
+      const receipt = await folderCommand("job_execute", { job_id: attempt.job_id, request_id: attempt.request_id, body: attempt.body });
+      if (!belongs()) return;
+      folderExecutionAck(receipt, attempt); // An ACK is not a terminal readback.
+      await pollFolderAttempt(folderCommand, attempt, source, belongs, status => { if (belongs()) statusPatch(key, status); }, wait);
+      if (current(generation)) window.dispatchEvent(new Event("archeaxis-job-changed"));
+    } catch (error) {
+      if (belongs()) {
+        patch(key, { state: "UNKNOWN", executionRefused: error instanceof ApiError && error.status >= 400 && error.status < 500,
+          detail: `执行未确认：${error instanceof Error ? error.message : "未知原因"}；保留冻结身份，仅同请求重试或读取状态，不产生新尝试。` });
+        stopAfter.current = true;
+      }
+    } finally { if (active.current?.attempt.request_id === attempt.request_id) active.current = null; }
+  }
+  async function executeBatch() {
+    const generation = lock(); if (generation === null) return;
+    try {
+      const keys = rowsRef.current.filter(row => ["queued", "pending"].includes(row.state) && row.job_id && !row.attempt).map(row => row.key);
+      for (const key of keys) { if (!current(generation) || stopAfter.current) break; await executeOne(key, "queued", generation); }
+      if (current(generation)) setMessage(`本批次转换：${tally(rowsRef.current)}${stopAfter.current ? " · 后续转换未开始，当前回执保留" : ""}。`);
+    } finally { unlock(generation); }
+  }
+  async function rowAction(key: string, mode: "fresh" | "same" | "read") {
+    const generation = lock(); if (generation === null) return;
+    try {
+      const row = rowsRef.current.find(item => item.key === key);
+      if (!row?.job_id || !row.source_id) return;
+      if (mode === "read") {
+        const attempt = row.attempt, source = row.source_id;
+        const belongs = () => current(generation) && (!attempt || rowsRef.current.some(item => item.key === key && item.attempt?.request_id === attempt.request_id));
+        const status = await readFolderStatus(folderCommand, row.job_id, source, attempt);
+        if (belongs()) statusPatch(key, status);
+        if (attempt && belongs() && !terminalJobState(status.state)) await pollFolderAttempt(folderCommand, attempt, source, belongs, status => { if (belongs()) statusPatch(key,status); }, wait);
+      }
+      else await executeOne(key, mode, generation);
+    } catch (error) { if (current(generation)) setMessage(`状态或新尝试条件未确认：${error instanceof Error ? error.message : "未知原因"}；原冻结请求及历史保留。`); }
+    finally { unlock(generation); }
+  }
+  async function cancel(key: string) {
+    const row = rowsRef.current.find(item => item.key === key), attempt = row?.attempt;
+    if (!row?.source_id || !attempt || cancelFlight.current) return;
+    const generation = epoch.current; cancelFlight.current = true; setCancelBusy(true); stopAfter.current = true;
+    const belongs = () => current(generation) && rowsRef.current.some(item => item.key === key && item.attempt?.request_id === attempt.request_id);
+    patch(key, { cancelPending: true, detail: "取消待确认；继续读回当前转换，202 不等于已取消。" });
+    try {
+      const receipt = await folderCommand("job_execution_cancel", { job_id: attempt.job_id, request_id: attempt.request_id });
+      if (!belongs()) return; folderCancelAck(receipt, attempt);
+      const status = await readFolderStatus(folderCommand, attempt.job_id, row.source_id, attempt);
+      if (belongs()) statusPatch(key, status);
+      if (belongs() && !terminalJobState(status.state)) await pollFolderAttempt(folderCommand, attempt, row.source_id, belongs, status => { if (belongs()) statusPatch(key,status); }, wait);
+    } catch (error) { if (belongs()) patch(key, { detail: `取消未确认：${error instanceof Error ? error.message : "未知原因"}；同身份取消可重试，原件和当前尝试保留。` }); }
+    finally { cancelFlight.current = false; if (current(generation)) setCancelBusy(false); }
+  }
+  function open(row: Row) {
+    if (running.current || rowsRef.current.some(item => item.attempt || item.cancelPending)) { setMessage("仍有运行或冻结请求，请先核对状态再打开来源；批次与原件保留。"); return; }
+    if (row.source_id) callback.current?.(row.source_id, row.state === "succeeded" ? row.job_id : undefined);
+  }
+  return <section aria-label="文件夹导入"><h4>文件夹导入</h4>
+    <label className="content-import">选择一个文件夹<input type="file" aria-label="选择文件夹" disabled={busy || rows.some(row => !!row.attempt)} {...({ webkitdirectory: "", directory: "" } as Record<string, string>)} multiple onChange={event => {
+      if (running.current || rowsRef.current.some(row => !!row.attempt)) return;
+      const files = Array.from(event.target.files ?? []); event.target.value = "";
+      if (!files.length) { setMessage("没有收到任何文件；浏览器可能拒绝了此选择。"); return; }
+      const root = folderOf(files); if (!root) { setMessage("所选内容不像是同一个文件夹，未开始导入。"); return; }
+      const privates = files.map(privateVisibleSegment).filter((p): p is string => p !== null);
+      if (privates.length) { setMessage(`整个文件夹被拒绝：${privates.length} 条路径落在私有状态目录里（如 ${privates[0]}），未导入任何文件。请重新选择或明确缩小范围。`); return; }
+      if (folderRef.current !== root) { epoch.current++; handled.current.clear(); queue.current.clear(); folderRef.current = root; batchRef.current = crypto.randomUUID(); update(() => []); setFolder(root); setBatchId(batchRef.current); setRemaining(0); }
+      for (const file of files) queue.current.set(relativeOf(file), file); void runBatch();
+    }}/></label>
+    {folder ? <p>当前批次「{folder}」· 批次标识 {batchId?.slice(0, 8)}…；来源关系为该批次下的相对路径。浏览器不把磁盘绝对路径交给产品，所以此处不声称绝对路径，父目录链无法核验；当前队列是本页面会话状态，不声称重启恢复。</p> : null}
+    <p>原件导入与转换分别记录。停止仅停止后续导入或转换；已受理原件仍读回真实结果。当前转换须单独请求 Core 取消，预算 90s；拒绝或资格未知不会自动重执行。</p>
+    <div>{remaining > 0 ? <button disabled={busy || rows.some(row => !!row.attempt)} onClick={() => void runBatch()}>下一批（剩余 {remaining}）</button> : null}
+      {rows.some(row => ["queued", "pending"].includes(row.state)) ? <button disabled={busy || rows.some(row => !!row.attempt)} onClick={() => void executeBatch()}>执行本批次转换</button> : null}
+      <button disabled={!busy} onClick={() => { stopAfter.current = true; setMessage("已请求停止后续处理；当前受理项仍须读回真实状态。"); }}>停止</button>
+    </div>{message ? <p role="status">{message}</p> : null}
+    {rows.length ? <><p aria-label="批次真实统计">{tally(rows)}</p><p>表格可横向滚动查看操作列。</p><div className="folder-ingest-table-scroll" role="region" aria-label="批次明细与操作，可横向滚动" tabIndex={0}><table className="data-table"><thead><tr>{["文件夹内路径","字节","原件","转换结果","说明","操作"].map(label=><th key={label}>{label}</th>)}</tr></thead><tbody>{rows.map(row => <tr key={row.key}>
+      <td>{row.relative}</td><td>{row.bytes}</td><td>{row.source_id ? <span>原件已保管 · {row.source_id}<br/>SHA-256 {row.sha256}</span> : "原件未确认保管"}</td><td>{LABEL[row.state]}{row.cancelPending ? " · 取消待确认" : ""}</td>
+      <td>{row.detail}{row.job_id ? <><br/>job {row.job_id}</> : null}{row.attempt ? <><br/>冻结请求 {row.attempt.request_id} · {row.attempt.body.deadline_ms}ms</> : row.status?.request_id ? <><br/>实际请求 {row.status.request_id}</> : null}</td>
+      <td><div>{row.job_id ? <button disabled={busy} onClick={() => void rowAction(row.key,"read")}>{row.attempt ? "核对冻结请求状态" : "读取转换状态"}</button> : null}
+        {row.attempt && row.state === "UNKNOWN" && !row.executionRefused ? <button disabled={busy} onClick={() => void rowAction(row.key,"same")}>同请求重试</button> : null}
+        {!row.attempt && row.status && freshAttemptEligible(row.status) ? <button disabled={busy} onClick={() => void rowAction(row.key,"fresh")}>重试失败项（新请求）</button> : null}
+        {row.attempt ? <button disabled={cancelBusy} onClick={() => void cancel(row.key)}>请求取消当前转换</button> : null}
+        {row.source_id && onOpenSource ? <button disabled={busy || rows.some(item => !!item.attempt)} onClick={() => open(row)}>{row.state === "succeeded" ? "打开成功产物与来源" : "打开保留原件"}</button> : null}</div></td>
+    </tr>)}</tbody></table></div><p>执行终态不等同识别核验或专业依据已确认；成功产物须按真实 source_id/job_id 从持久化记录读取。</p></> : null}
+  </section>;
 }
