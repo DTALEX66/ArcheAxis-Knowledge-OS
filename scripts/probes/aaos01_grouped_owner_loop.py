@@ -66,6 +66,61 @@ def xpath_literal(value: str) -> str:
     return "concat(" + ',"\'",'.join("'" + part + "'" for part in value.split("'")) + ")"
 
 
+TEXT_SELECTION_OBSERVATION = """const regions=document.querySelectorAll('[aria-label="并排原件正文"]');
+const region=regions.length===1?regions[0]:null;
+const node=region?.firstChild;
+const selection=window.getSelection();
+const range=selection?.rangeCount===1?selection.getRangeAt(0):null;
+const proof={region_count:regions.length,focused:!!region&&document.activeElement===region,
+focus_label:document.activeElement?.getAttribute('aria-label')??null,
+source_text:region?.textContent??null,node_text:node?.textContent??null,
+node_type:node?.nodeType??null,child_nodes:region?.childNodes.length??null,
+node_length:node?.length??null,range_count:selection?.rangeCount??0,
+start_same:!!node&&range?.startContainer===node,end_same:!!node&&range?.endContainer===node,
+start_offset:range?.startOffset??null,end_offset:range?.endOffset??null,
+range_text:range?.toString()??null,cloned_text:range?.cloneContents().textContent??null,
+rendered_selection:selection?.toString()??null};
+"""
+
+
+def full_text_selection_wait_script(text):
+    expected = json.dumps(text)
+    return TEXT_SELECTION_OBSERVATION + (
+        "return proof.region_count===1 && proof.focused && proof.node_type===3 && proof.child_nodes===1"
+        " && proof.range_count===1 && proof.start_same && proof.end_same && proof.start_offset===0"
+        " && proof.end_offset===proof.node_length && proof.source_text==="
+        + expected
+        + " && proof.node_text==="
+        + expected
+        + " && proof.range_text==="
+        + expected
+        + " && proof.cloned_text==="
+        + expected
+        + ";"
+    )
+
+
+def assert_full_text_selection(proof, text):
+    # DOM Range covers source text exactly, including trailing LF. Selection.toString()
+    # serializes rendered text and is retained for diagnosis, never used as byte truth.
+    assert proof["region_count"] == 1 and proof["focused"] is True, (
+        "Original region focus not confirmed"
+    )
+    assert proof["node_type"] == 3 and proof["child_nodes"] == 1
+    assert proof["range_count"] == 1 and proof["start_same"] is True and proof["end_same"] is True
+    assert (
+        proof["start_offset"] == 0
+        and proof["end_offset"] == proof["node_length"] == len(text.encode("utf-16-le")) // 2
+    )
+    assert (
+        proof["source_text"]
+        == proof["node_text"]
+        == proof["range_text"]
+        == proof["cloned_text"]
+        == text
+    ), "Full original range text differs"
+
+
 def button_selector(label: str, scope: str = "") -> str:
     return f"{scope}//button[normalize-space(.)={xpath_literal(label)} and not(ancestor-or-self::*[@hidden])]"
 
@@ -440,10 +495,26 @@ def run_grouped_loop(
     )
     assert resolution["status"] == "CURRENT" and resolution["position"] == anchor["position"]
     ui.click_selector('[data-evidence-reference="true"]', "css selector")
-    wait(
-        "return document.activeElement?.getAttribute('aria-label')==='并排原件正文' && window.getSelection()?.toString()==="
-        + json.dumps(text)
-    )
+    result["anchor_navigation"] = {
+        "status": "IN_PROGRESS",
+        "anchor_id": anchor["anchor_id"],
+        "expected_original_sha256": hashlib.sha256(text.encode()).hexdigest(),
+    }
+    try:
+        wait(full_text_selection_wait_script(text))
+        observation = js(TEXT_SELECTION_OBSERVATION + "return proof;")
+        assert_full_text_selection(observation, text)
+        result["anchor_navigation"].update(status="PASS", selection=observation)
+    except BaseException:
+        try:
+            result["anchor_navigation"].update(
+                status="FAIL", selection=js(TEXT_SELECTION_OBSERVATION + "return proof;")
+            )
+        except BaseException:
+            result["anchor_navigation"].update(
+                status="FAIL", selection="UNVERIFIED_OBSERVATION_FAILED"
+            )
+        raise
     result["stages"].append(
         {"id": "anchor", "status": "PASS", "anchor": anchor, "resolution": resolution}
     )
@@ -608,7 +679,10 @@ def run_grouped_loop(
             "grant_qualification": "PARTIAL",
         }
     )
-    result["capability_toggle"] = capability_toggle(ui, read, restart)
+    result["capability_toggle"] = {}
+    capability_refusal_recovery(
+        ui, read, js, wait, restart, pin, document, text, result["capability_toggle"]
+    )
     result["restored_grant_refusal"] = restored_grant_refusal(ui, read, wait, ai_stage)
     next(stage for stage in result["stages"] if stage["id"] == "recover")["old_grant_refusal"] = (
         result["restored_grant_refusal"]["status"]
@@ -891,17 +965,78 @@ def restored_grant_refusal(ui, read, wait, stage):
     }
 
 
-def capability_toggle(ui, read, restart):
+def capability_permission(read, enabled):
+    value = read("capabilities_list")
+    row = one(
+        value["capabilities"], lambda item: item["capability"] == "text.extract", "text capability"
+    )
+    assert row["enabled"] is enabled, "Text capability enable/readback mismatch"
+    return value
+
+
+def frozen_conversion_view(js):
+    return js("""const root=document.querySelector('[aria-label="真实转换产物"]');
+      if(!root)return null;
+      return {page:location.hash,
+        frozen:[...root.querySelectorAll('p')].find(p=>p.textContent.startsWith('执行请求已冻结：'))?.textContent??null,
+        latest:[...root.querySelectorAll('p')].find(p=>p.textContent.startsWith('最新任务 '))?.textContent??null,
+        recovery:root.querySelector('[aria-label="冻结请求的能力恢复"]')?.textContent??null};""")
+
+
+def assert_unadmitted(status, job_id, source_id):
+    assert (
+        status["job_id"] == job_id and status["input_ref"] == source_id and status["kind"] == "text"
+    )
+    assert status["state"] in {"queued", "pending"}
+    assert status["attempt"] is None and status["request_id"] is None
+    assert status["attempts"] == [] and status["attempts_capped"] is False
+
+
+def assert_single_attempt(status, frozen, source_id):
+    assert (
+        status["job_id"] == frozen["job_id"]
+        and status["input_ref"] == source_id
+        and status["kind"] == "text"
+    )
+    assert status["state"] == "succeeded" and status["attempt"] == 1
+    assert status["request_id"] == frozen["request_id"] and status["attempts_capped"] is False
+    assert len(status["attempts"]) == 1, "Retry created more than one durable attempt"
+    attempt = status["attempts"][0]
+    assert (
+        attempt["attempt"] == 1
+        and attempt["request_id"] == frozen["request_id"]
+        and attempt["state"] == "succeeded"
+    )
+    assert attempt["budget"] == {**frozen["body"], "capability": "text.extract"}
+    assert attempt["steps"] == {
+        "durable_claim": "RECORDED",
+        "worker_response_commit": "RECORDED",
+        "terminal_write": "RECORDED",
+    }
+    assert attempt["checkpoint"]["status"] == "CORE_COMMITTED"
+
+
+def assert_text_output(output, text):
+    assert output["content"] == text, "Actual conversion body differs from original authored text"
+    metadata = output["metadata"]
+    assert metadata["kind"] == "text" and metadata["byte_length"] == len(text.encode())
+    assert metadata["sha256"] == hashlib.sha256(text.encode()).hexdigest()
+
+
+def capability_refusal_recovery(
+    ui, read, js, wait, restart, pin, document, expected_text, report=None
+):
+    result = report if report is not None else {}
+    result.update(
+        status="IN_PROGRESS",
+        execution_refusal="IN_PROGRESS",
+        execution_surface="CURRENT_GROUPED_NATIVE_UI",
+    )
     ui.page("15")
     ui.click("重新读取当前宿主能力")
-    initial = one(
-        read("capabilities_list")["capabilities"],
-        lambda row: row["capability"] == "text.extract",
-        "text capability",
-    )
-    assert initial["enabled"] is True, "Owned fresh workspace text capability unexpectedly disabled"
+    capability_permission(read, True)
     ui.click_selector("//button[@aria-label='禁用 text.extract']")
-    disabled = poll(
+    result["disabled"] = poll(
         read,
         "capabilities_list",
         {},
@@ -911,39 +1046,125 @@ def capability_toggle(ui, read, restart):
         ),
     )
     restart()
-    assert (
-        one(
-            read("capabilities_list")["capabilities"],
-            lambda row: row["capability"] == "text.extract",
-            "restart text capability",
-        )["enabled"]
-        is False
+    capability_permission(read, False)
+    result["disable_restart_readback"] = "PASS"
+    before = read("source_jobs", {"source_id": pin["source_id"]})
+    assert before["source_id"] == pin["source_id"] and before["jobs_capped"] is False
+    previous_jobs = {row["job_id"] for row in before["jobs"]}
+    ui.page("20")
+    ui.click_selector(
+        "//nav[@aria-label='已保存文档']//button[@aria-label="
+        + xpath_literal("打开文档 " + document["title"])
+        + "]"
     )
-    ui.page("15")
-    ui.click_selector("//button[@aria-label='启用 text.extract']")
-    enabled = poll(
+    wait("return location.hash==='#page=03'")
+    ui.click("整理此来源为知识候选")
+    wait(
+        'return !!document.querySelector(\'[aria-label="真实转换产物"] [aria-label="Core 提取正文"]\')'
+    )
+    ui.click("执行真实内容转换", "//section[@aria-label='真实转换产物']")
+    wait("return !!document.querySelector('[aria-label=\"冻结请求的能力恢复\"]')")
+    view = frozen_conversion_view(js)
+    assert view["page"] == "#page=03" and "Core 已证明原请求未受理" in view["recovery"]
+    match = re.fullmatch(
+        r"执行请求已冻结：(read_run_[A-Za-z0-9-]+)；单次预算 60s。未知结果不会产生新作业。",
+        view["frozen"],
+    )
+    assert match, "Native frozen request/budget not observed"
+    assert view["latest"].startswith("最新任务 read_")
+    job_id = view["latest"].removeprefix("最新任务 ")
+    frozen = {
+        "job_id": job_id,
+        "request_id": match.group(1),
+        "body": {"deadline_ms": 60000, "split": False, "words": False},
+    }
+    listing = read("source_jobs", {"source_id": pin["source_id"]})
+    assert listing["source_id"] == pin["source_id"] and listing["jobs_capped"] is False
+    new_jobs = {row["job_id"] for row in listing["jobs"]} - previous_jobs
+    assert new_jobs == {job_id}, "Refused action created a different/multiple job identity"
+    refused = read("job_execution_status", {"job_id": job_id})
+    assert_unadmitted(refused, job_id, pin["source_id"])
+    capability_permission(read, False)
+    result.update(
+        execution_refusal="PASS",
+        frozen=frozen,
+        refused_status=refused,
+        refused_ui=view,
+        body_evidence="Rendered bound NOT_ADMITTED proof + canonical single-text 60s/split:false/words:false contract; retry durable budget checked independently",
+    )
+    scope = "//section[@aria-label='冻结请求的能力恢复']"
+    ui.click("启用 text.extract", scope)
+    wait(
+        "return document.body.innerText.includes('该能力已启用，工作区设置已读回。原冻结请求保留；请另点同请求重试。')"
+    )
+    result["enabled"] = capability_permission(read, True)
+    after_enable = frozen_conversion_view(js)
+    assert (
+        after_enable["page"] == view["page"]
+        and after_enable["frozen"] == view["frozen"]
+        and after_enable["latest"] == view["latest"]
+    )
+    assert read("job_execution_status", {"job_id": job_id}) == refused, (
+        "Capability enable automatically admitted/executed the frozen request"
+    )
+    time.sleep(1.1)
+    assert read("job_execution_status", {"job_id": job_id}) == refused, (
+        "Delayed automatic execution after enable"
+    )
+    assert read("source_jobs", {"source_id": pin["source_id"]}) == listing, (
+        "Capability enable enqueued another job"
+    )
+    result["enable_without_execution"] = "PASS"
+    ui.click("同请求重试转换", "//section[@aria-label='真实转换产物']")
+    succeeded = poll(
         read,
-        "capabilities_list",
-        {},
-        lambda value: any(
-            row["capability"] == "text.extract" and row["enabled"] is True
-            for row in value["capabilities"]
-        ),
+        "job_execution_status",
+        {"job_id": job_id},
+        lambda value: value["state"] in {"succeeded", "failed", "cancelled", "rejected"},
+        seconds=75,
+    )
+    assert_single_attempt(succeeded, frozen, pin["source_id"])
+    output = read("job_output", {"job_id": job_id, "kind": "text"})
+    assert_text_output(output, expected_text)
+    quality = read("job_quality", {"job_id": job_id})
+    assert (
+        quality["job_id"] == job_id
+        and quality["state"] == "succeeded"
+        and isinstance(quality["engine"], str)
+        and quality["engine"]
+    )
+    transform = read("source_job_transform", {"source_id": pin["source_id"], "job_id": job_id})
+    assert transform["source_id"] == pin["source_id"] and transform["job_id"] == job_id
+    assert (
+        transform["raw_sha256"] == document["source_revision"]
+        and transform["content"] == expected_text
+    )
+    wait(
+        "return ![...document.querySelectorAll('[aria-label=\"真实转换产物\"] p')].some(p=>p.textContent.startsWith('执行请求已冻结：')) && !!document.querySelector('[aria-label=\"Core 提取正文\"]')"
+    )
+    assert (
+        js("return document.querySelector('[aria-label=\"Core 提取正文\"]')?.textContent")
+        == expected_text
+    )
+    result.update(
+        same_request_retry="PASS",
+        succeeded_status=succeeded,
+        output=output,
+        quality=quality,
+        source_transform=transform,
     )
     restart()
+    capability_permission(read, True)
+    assert read("job_execution_status", {"job_id": job_id}) == succeeded
+    assert read("job_output", {"job_id": job_id, "kind": "text"}) == output
+    assert read("job_quality", {"job_id": job_id}) == quality
     assert (
-        one(
-            read("capabilities_list")["capabilities"],
-            lambda row: row["capability"] == "text.extract",
-            "enabled restart text capability",
-        )["enabled"]
-        is True
+        read("source_job_transform", {"source_id": pin["source_id"], "job_id": job_id}) == transform
     )
-    return {
-        "toggle": "PASS",
-        "disable_restart_readback": disabled,
-        "enable_readback": enabled,
-        "execution_refusal": "NOT_EXECUTED",
-        "status": "PARTIAL",
-        "reason": "Refusal leaves a frozen queued request without a rendered release action; probe does not discard it or bypass dirty guards",
-    }
+    assert read("document_get", {"document_id": document["document_id"]}) == document
+    result.update(
+        status="PASS",
+        host_restart_result="PASS",
+        qualification="Actual bound Core refusal/recovery and authored text conversion; not professional quality or Owner signoff",
+    )
+    return result

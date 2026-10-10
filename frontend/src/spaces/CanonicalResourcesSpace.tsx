@@ -6,34 +6,11 @@ import { AaosField, AaosTabs } from "../design-system/AaosPrimitives";
 import { SURFACE_CLASS_LABEL } from "../templates/capabilityRequirements";
 import { TemplateWorkspace } from "../templates/TemplateWorkspace";
 import { coreFailureReason } from "../presentation/labels";
+import { readResourceHandshake, readCapabilityDecision, type CapabilityHandshake as Handshake } from "../api/capabilitySettings";
 import "./resources.css";
 
-type Handshake = { capability: string; enabled?: boolean; health?: string; [key: string]: unknown };
+export { readResourceHandshake, readCapabilityDecision } from "../api/capabilitySettings";
 type Read = { state: "not_read" } | { state: "reading" } | { state: "failed"; reason: string } | { state: "read"; rows: Handshake[] };
-
-/** Never reduce a malformed/duplicate native receipt to a partial successful capability list. */
-export function readResourceHandshake(value: unknown): Handshake[] {
-  if (!value || typeof value !== "object" || !Array.isArray((value as { capabilities?: unknown }).capabilities)) throw new Error("invalid capability list");
-  const rows = (value as { capabilities: unknown[] }).capabilities;
-  const ids = new Set<string>();
-  return rows.map(row => {
-    if (!row || typeof row !== "object" || Array.isArray(row)) throw new Error("invalid capability row");
-    const item = row as Record<string, unknown>;
-    if (typeof item.capability !== "string" || !item.capability || ids.has(item.capability)) throw new Error("invalid/duplicate capability identity");
-    if (item.enabled !== undefined && typeof item.enabled !== "boolean") throw new Error("invalid capability permission");
-    if (item.health !== undefined && typeof item.health !== "string") throw new Error("invalid capability health");
-    ids.add(item.capability);
-    return item as Handshake;
-  });
-}
-
-export function readCapabilityDecision(value: unknown, capability: string, enabled: boolean): Handshake {
-  if (!value || typeof value !== "object" || Array.isArray(value)) throw new Error("invalid capability decision");
-  const row = (value as { capability?: unknown }).capability;
-  const [decision] = readResourceHandshake({ capabilities: [row] });
-  if (decision.capability !== capability || decision.enabled !== enabled || decision.enabled_basis !== "the workspace's capability record; an absent record means enabled") throw new Error("unconfirmed capability decision");
-  return decision;
-}
 
 function Values({ value }: { value: ResourceJson }) {
   if (value === null) return <span>未登记</span>;

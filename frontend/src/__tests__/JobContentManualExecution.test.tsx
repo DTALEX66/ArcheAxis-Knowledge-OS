@@ -27,21 +27,26 @@ function fixture(options:{lost?:boolean;wrongAck?:boolean;state?:string;kind?:st
 const view=(extra:Record<string,unknown>={})=><JobContent sourceId="source" sourceRevision={revision} name="report.xlsx" {...extra}/>;
 describe("SIMULATED manual finite execution boundaries",()=>{
  beforeEach(()=>{bridge.call.mockReset();vi.stubGlobal("crypto",webcrypto);});
- it("explicitly resumes the exact unconsumed request after a typed disabled refusal",async()=>{
+ it("enables beside the frozen request, then explicitly resumes its exact identity",async()=>{
   fixture();const previous=bridge.call.getMockImplementation()!;let disabled=true;
+  const row=()=>({capability:"office.structure",enabled:!disabled,enabled_basis:"the workspace's capability record; an absent record means enabled"});
   bridge.call.mockImplementation(async(op:string,p:Record<string,unknown>)=>{
+   if(op==="capabilities_list")return {capabilities:[row()]};
+   if(op==="capability_set_enabled"){expect(p).toEqual({capability:"office.structure",enabled:true});disabled=false;return {capability:row()};}
    if(op==="job_execute"&&disabled){const receipt={schema:"archeaxis.job-admission-refusal/v1",code:"AAK-CAP-001",job_id:p.job_id,request_id:p.request_id,input_ref:"source",kind:"office",capability:"office.structure",budget:p.body,admission_state:"NOT_ADMITTED",request_consumed:false,active_execution:false,enabled:false,same_request_retry_allowed:true} as JobAdmissionRefusal;throw new ApiError(409,"disabled","unavailable",undefined,receipt);}
    return previous(op,p);
   });
-  render(view());fireEvent.click(screen.getByRole("button",{name:"执行真实内容转换"}));await screen.findByText(/结果 UNKNOWN/);
-  const first=bridge.call.mock.calls.find(([op])=>op==="job_execute")![1];expect(screen.getByRole("button",{name:"同请求重试转换"})).toBeEnabled();
-  disabled=false;fireEvent.click(screen.getByRole("button",{name:"同请求重试转换"}));await screen.findByLabelText("Core 提取正文");
+  render(view());fireEvent.click(screen.getByRole("button",{name:"执行真实内容转换"}));await screen.findByText(/^Core 已确认原请求未受理/);
+  const first=bridge.call.mock.calls.find(([op])=>op==="job_execute")![1];fireEvent.click(screen.getByRole("button",{name:"启用 office.structure"}));
+  await screen.findByText(/该能力已启用，工作区设置已读回/);expect(bridge.call.mock.calls.filter(([op])=>op==="job_execute")).toHaveLength(1);
+  expect(bridge.call.mock.calls.filter(([op])=>op==="capabilities_list").length).toBeGreaterThanOrEqual(3);
+  fireEvent.click(screen.getByRole("button",{name:"同请求重试转换"}));await screen.findByLabelText("Core 提取正文");
   const sends=bridge.call.mock.calls.filter(([op])=>op==="job_execute");expect(sends).toHaveLength(2);expect(sends[1][1]).toEqual(first);expect(bridge.call.mock.calls.filter(([op])=>op==="job_enqueue")).toHaveLength(1);
  });
  it("queued readback cannot unlock a generic permission refusal",async()=>{
   fixture();const previous=bridge.call.getMockImplementation()!;
   bridge.call.mockImplementation(async(op:string,p:Record<string,unknown>)=>{if(op==="job_execute")throw new ApiError(403,"denied");if(op==="job_execution_status")return {job_id:p.job_id,input_ref:"source",kind:"office",state:"queued",attempt:null,request_id:null,error:null,attempts:[]};return previous(op,p);});
-  render(view());fireEvent.click(screen.getByRole("button",{name:"执行真实内容转换"}));await screen.findByText(/结果 UNKNOWN/);expect(screen.getByRole("button",{name:"同请求重试转换"})).toBeDisabled();
+  render(view());fireEvent.click(screen.getByRole("button",{name:"执行真实内容转换"}));await screen.findByText(/结果 UNKNOWN/);expect(screen.getByRole("button",{name:"同请求重试转换"})).toBeDisabled();expect(screen.queryByRole("button",{name:"启用 office.structure"})).toBeNull();
   fireEvent.click(screen.getByRole("button",{name:"读取冻结转换状态"}));await screen.findByText(/尚未读回冻结执行身份/);expect(screen.getByRole("button",{name:"同请求重试转换"})).toBeDisabled();
  });
  it("claims singleflight before React flush and sends the actual finite request identity",async()=>{

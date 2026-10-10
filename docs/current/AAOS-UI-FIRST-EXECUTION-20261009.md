@@ -349,3 +349,12 @@ fc940dc 的完整 CI 38077876660 已终止 SUCCESS，20 个 job 包括 installer
 99ba6d8 的 desktop-fast 和 Rust 已终止 PASS；下载中文实际 Core 回执 ok=true、clean source、source_consistent=true，PNG/JPEG/扫描 PDF 的所选中文正文、来源定位、独立新 job 重解析和重启相等全部通过。完整 CI 此时仍在桌面构建，不提前记全局 PASS。根进一步合入 grouped 受控 AI 探针：按实际 JSON-string task conditions 与 textarea 控件契约，真实注册 route/明确 grant/实际回答，单独显式工程干预选项才执行纠正采用与独立复测，恢复读回任务/知识并用实际 UI 重选旧 grant 尝试拒绝。32 helper/native 合同与43 subtest PASS，源码一致；未实际启动宿主/模型，自动 failed 标签不算独立模型错误证明。
 
 只读审查又确认能力恢复的操作缺口：冻结身份仍只在原组件，前往 page15 会卸载丢失；取消导航又无法启用能力。正在原完整 NOT_ADMITTED 现场补显式启用/确认/独立回读，仍要求用户另点原请求重试；跨页面/跨重启冻结作业不由当前 mock 回归签署。详见[中文 Core 与 AI 探针续批](receipts/AAOS-CHINESE-OCR-AND-AI-PROBE-PROGRESS-20261011.json)。整体继续 PARTIAL。
+
+
+## 2026-10-11 原现场能力恢复与新分组安装失败定位（PARTIAL）
+
+原完整 NOT_ADMITTED 请求现场已接显式启用/独立核对：原 job/request/source/kind/budget 保留，启用不自动执行，丢 ACK 先 UNKNOWN 读回，另点同请求重试；手动与批量竞争动作由同步单飞保护。根 69 定向、118 文件/1082 全前端、TypeScript/production build、18 native helper及 architecture PASS，源码指纹一致；mock 为 SIMULATED，不签署真实能力恢复。新原生探针要求禁用重启、真实拒绝、现场启用无执行、同请求恰一个 durable attempt、正文/身份/重启全读回，actual native 尚未运行。
+
+99ba6d8 完整 CI 38079439232 已终止 FAIL，installer-lifecycle 与 a0-gates 失败；兼容 child PASS，新 grouped child 在并排原件 PRE 焦点/全文选区断言超时。实际失败截图有同原件选中文字，但不据图推导焦点或完整尾换行；正在核对浏览器 rendered Selection 与完整 DOM Range 的差异。原测试 beforeEach 返回 mock 被当清理回调造成无参数异常/停滞，已改非返回 block 后复验；两个中断运行和缺路径零收集失败保留。详见[现场能力恢复续批](receipts/AAOS-ONSITE-CAPABILITY-RECOVERY-PROGRESS-20261011.json)。本机文本模型声明端点探针 capability=false，不把 exit0 当推理成功。当前 whole goal 仍 NOT_QUALIFIED；没有 merge/release/Green 替换或用户数据覆盖。
+
+选区探针随后完成严格修复：trusted UI 引用点击不变，独立核对唯一原件 PRE、实际焦点、同一 Text 节点唯一完整 Range、UTF16 全长度及 region/node/Range/clone 完整原文含末尾 LF；rendered Selection 只作诊断，不 trim。W3C Selection API stringifier 定义为 rendered text，不能直接充当原字节选区真值。最终 19 helper 含完整/截断 LF、错焦点、错原件、错端点及 astral 正反检查与 critical Ruff PASS，实际安装复验待新候选；旧99失败具体 conjunct 仍 UNVERIFIED。

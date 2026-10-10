@@ -7,6 +7,7 @@ import importlib.util
 import json
 import unittest
 from pathlib import Path
+from unittest.mock import patch
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -655,3 +656,309 @@ class GroupedNativeProbeTests(unittest.TestCase):
             self.assertEqual(stage["retest"], "NOT_EXECUTED")
             self.assertEqual(len(tasks), 1)
             self.assertFalse(any(action[1] == "记录使用者纠正候选" for action in actions))
+
+    def capability_fixture(self):
+        frozen = {
+            "job_id": "read_exact",
+            "request_id": "read_run_exact",
+            "body": {"deadline_ms": 60000, "split": False, "words": False},
+        }
+        refused = {
+            "job_id": "read_exact",
+            "input_ref": "source-exact",
+            "kind": "text",
+            "state": "queued",
+            "attempt": None,
+            "request_id": None,
+            "attempts": [],
+            "attempts_capped": False,
+        }
+        succeeded = {
+            **refused,
+            "state": "succeeded",
+            "attempt": 1,
+            "request_id": "read_run_exact",
+            "attempts": [
+                {
+                    "attempt": 1,
+                    "request_id": "read_run_exact",
+                    "state": "succeeded",
+                    "budget": {**frozen["body"], "capability": "text.extract"},
+                    "steps": {
+                        "durable_claim": "RECORDED",
+                        "worker_response_commit": "RECORDED",
+                        "terminal_write": "RECORDED",
+                    },
+                    "checkpoint": {"status": "CORE_COMMITTED"},
+                }
+            ],
+        }
+        return frozen, refused, succeeded
+
+    def test_refusal_empty_attempts_and_retry_full_identity_negative_guards(self):
+        frozen, refused, succeeded = self.capability_fixture()
+        self.probe.assert_unadmitted(refused, frozen["job_id"], "source-exact")
+        self.probe.assert_single_attempt(succeeded, frozen, "source-exact")
+        for field, changed in [
+            ("attempt", 1),
+            ("request_id", "consumed"),
+            ("state", "running"),
+            ("attempts", [succeeded["attempts"][0]]),
+            ("input_ref", "another-source"),
+            ("attempts_capped", True),
+        ]:
+            with self.subTest(refusal=field), self.assertRaises(AssertionError):
+                self.probe.assert_unadmitted(
+                    {**refused, field: changed}, frozen["job_id"], "source-exact"
+                )
+        for field, changed in [
+            ("request_id", "another-request"),
+            ("attempt", 2),
+            ("state", "failed"),
+            ("input_ref", "another-source"),
+            ("attempts_capped", True),
+            ("attempts", succeeded["attempts"] * 2),
+        ]:
+            with self.subTest(retry=field), self.assertRaises(AssertionError):
+                self.probe.assert_single_attempt(
+                    {**succeeded, field: changed}, frozen, "source-exact"
+                )
+        changed = copy.deepcopy(succeeded)
+        changed["attempts"][0]["budget"]["split"] = True
+        with self.assertRaises(AssertionError):
+            self.probe.assert_single_attempt(changed, frozen, "source-exact")
+        text = "Authored source text\n"
+        output = {
+            "content": text,
+            "metadata": {
+                "kind": "text",
+                "sha256": hashlib.sha256(text.encode()).hexdigest(),
+                "byte_length": len(text.encode()),
+            },
+        }
+        self.probe.assert_text_output(output, text)
+        with self.assertRaises(AssertionError):
+            self.probe.assert_text_output({**output, "content": "other"}, text)
+        with self.assertRaises(AssertionError):
+            self.probe.assert_text_output(
+                {**output, "metadata": {**output["metadata"], "sha256": "bad"}}, text
+            )
+
+    def test_simulated_native_capability_controls_recover_exact_frozen_request(self):
+        result, actions, restarts = self.exercise_capability_probe()
+        self.assertEqual(
+            [
+                result[key]
+                for key in [
+                    "status",
+                    "execution_refusal",
+                    "enable_without_execution",
+                    "same_request_retry",
+                    "host_restart_result",
+                ]
+            ],
+            ["PASS"] * 5,
+        )
+        self.assertEqual(restarts, [False, True])
+        enable_index = actions.index(
+            ("click", "启用 text.extract", "//section[@aria-label='冻结请求的能力恢复']")
+        )
+        retry_index = actions.index(
+            ("click", "同请求重试转换", "//section[@aria-label='真实转换产物']")
+        )
+        self.assertGreater(retry_index, enable_index)
+        self.assertFalse(any(action[0] == "page" for action in actions[enable_index:retry_index]))
+
+    def test_simulated_enable_must_not_autoexecute_and_retry_cannot_change_identity(self):
+        with self.assertRaisesRegex(AssertionError, "automatically"):
+            self.exercise_capability_probe(autoexecute=True)
+        with self.assertRaises(AssertionError):
+            self.exercise_capability_probe(wrong_retry=True)
+
+    def exercise_capability_probe(self, autoexecute=False, wrong_retry=False):
+        frozen, refused, succeeded = self.capability_fixture()
+        # Match the native UUID-shaped request text; pure tests never execute a host or model.
+        frozen["request_id"] = "read_run_1234-abcd"
+        succeeded["request_id"] = frozen["request_id"]
+        succeeded["attempts"][0]["request_id"] = frozen["request_id"]
+        state = {
+            "enabled": True,
+            "new_job": False,
+            "status": copy.deepcopy(refused),
+            "page": "#page=06",
+            "finished": False,
+        }
+        actions, restarts = [], []
+        text = "Authored source text\n"
+        output = {
+            "content": text,
+            "metadata": {
+                "kind": "text",
+                "sha256": hashlib.sha256(text.encode()).hexdigest(),
+                "byte_length": len(text.encode()),
+            },
+        }
+        document = {
+            "title": "source.txt",
+            "document_id": "document-exact",
+            "source_revision": "a" * 64,
+        }
+        transform = {
+            "source_id": "source-exact",
+            "job_id": frozen["job_id"],
+            "raw_sha256": document["source_revision"],
+            "content": text,
+        }
+        quality = {
+            "job_id": frozen["job_id"],
+            "state": "succeeded",
+            "engine": "actual-shaped-test-engine",
+        }
+
+        class UI:
+            def page(self, page):
+                state["page"] = "#page=" + page
+                actions.append(("page", page))
+
+            def click_selector(self, selector):
+                actions.append(("selector", selector))
+                if "禁用 text.extract" in selector:
+                    state["enabled"] = False
+                elif "打开文档" in selector:
+                    state["page"] = "#page=03"
+                else:
+                    raise AssertionError("unexpected selector")
+
+            def click(self, label, scope=""):
+                actions.append(("click", label, scope))
+                if label == "执行真实内容转换":
+                    state["new_job"] = True
+                elif label == "启用 text.extract":
+                    state["enabled"] = True
+                    if autoexecute:
+                        state["status"] = copy.deepcopy(succeeded)
+                elif label == "同请求重试转换":
+                    state["status"] = copy.deepcopy(succeeded)
+                    if wrong_retry:
+                        state["status"]["request_id"] = "another-request"
+                    state["finished"] = True
+
+        def read(op, payload=None):
+            self.assertIn(op, self.probe.READ_OPERATIONS)
+            if op == "capabilities_list":
+                return {
+                    "capabilities": [{"capability": "text.extract", "enabled": state["enabled"]}]
+                }
+            if op == "source_jobs":
+                return {
+                    "source_id": "source-exact",
+                    "jobs_capped": False,
+                    "jobs": [{"job_id": "folder-original"}]
+                    + (
+                        [{"job_id": frozen["job_id"], "state": state["status"]["state"]}]
+                        if state["new_job"]
+                        else []
+                    ),
+                }
+            if op == "job_execution_status":
+                return copy.deepcopy(state["status"])
+            if op == "job_output":
+                return copy.deepcopy(output)
+            if op == "job_quality":
+                return copy.deepcopy(quality)
+            if op == "source_job_transform":
+                return copy.deepcopy(transform)
+            if op == "document_get":
+                return copy.deepcopy(document)
+            raise AssertionError("unexpected operation")
+
+        def js(script):
+            if "const root=" in script:
+                return {
+                    "page": state["page"],
+                    "frozen": "执行请求已冻结："
+                    + frozen["request_id"]
+                    + "；单次预算 60s。未知结果不会产生新作业。",
+                    "latest": "最新任务 " + frozen["job_id"],
+                    "recovery": "Core 已证明原请求未受理",
+                }
+            return text
+
+        def restart():
+            restarts.append(state["enabled"])
+
+        with patch.object(self.probe.time, "sleep", lambda _: None):
+            result = self.probe.capability_refusal_recovery(
+                UI(),
+                read,
+                js,
+                lambda *_, **__: None,
+                restart,
+                {"source_id": "source-exact"},
+                document,
+                text,
+            )
+        return result, actions, restarts
+
+    def test_full_dom_range_including_lf_not_rendered_selection_serialization(self):
+        text = "Line one.\nLine two.\n"
+        proof = {
+            "region_count": 1,
+            "focused": True,
+            "node_type": 3,
+            "child_nodes": 1,
+            "range_count": 1,
+            "start_same": True,
+            "end_same": True,
+            "start_offset": 0,
+            "end_offset": len(text),
+            "node_length": len(text),
+            "source_text": text,
+            "node_text": text,
+            "range_text": text,
+            "cloned_text": text,
+            "rendered_selection": text[:-1],
+        }
+        self.probe.assert_full_text_selection(proof, text)
+        # A missing final LF in the DOM range is still a real failure, not trimmed away.
+        for field, value in [
+            ("focused", False),
+            ("region_count", 2),
+            ("range_count", 2),
+            ("start_same", False),
+            ("end_same", False),
+            ("start_offset", 1),
+            ("end_offset", len(text) - 1),
+            ("node_length", len(text) - 1),
+            ("source_text", text[:-1]),
+            ("node_text", text[:-1]),
+            ("range_text", text[:-1]),
+            ("cloned_text", text[:-1]),
+        ]:
+            with self.subTest(field=field), self.assertRaises(AssertionError):
+                self.probe.assert_full_text_selection({**proof, field: value}, text)
+        script = self.probe.full_text_selection_wait_script(text)
+        self.assertIn("document.activeElement===region", script)
+        self.assertIn("range?.startContainer===node", script)
+        self.assertIn("range?.endContainer===node", script)
+        self.assertIn("proof.end_offset===proof.node_length", script)
+        self.assertIn("proof.range_text===", script)
+        self.assertIn("proof.cloned_text===", script)
+        self.assertNotIn(".trim(", script)
+        self.assertNotIn("proof.rendered_selection===", script)
+        self.assertNotIn(".focus(", script)
+        self.assertNotIn("addRange(", script)
+        self.assertNotIn("removeAllRanges(", script)
+        astral = "Astral \U0001f30c\n"
+        self.probe.assert_full_text_selection(
+            {
+                **proof,
+                "source_text": astral,
+                "node_text": astral,
+                "range_text": astral,
+                "cloned_text": astral,
+                "node_length": len(astral.encode("utf-16-le")) // 2,
+                "end_offset": len(astral.encode("utf-16-le")) // 2,
+            },
+            astral,
+        )

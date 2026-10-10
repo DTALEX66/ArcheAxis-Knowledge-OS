@@ -1,0 +1,117 @@
+{
+  "schema": "archeaxis.onsite-capability-recovery-progress/v1",
+  "date": "2026-10-11",
+  "basis_commit": "8f41690a84e9b02b2c8eb07a8d3a4e459dcac1c6",
+  "status": "PARTIAL",
+  "changes": [
+    "Strict source/job/request/kind/budget-bound NOT_ADMITTED proof renders an explicit onsite capability enable/read action.",
+    "Lost enable ACK remains UNKNOWN until independent read; no automatic job execution.",
+    "JobContent and FolderIngest retain frozen request and block competing actions during capability single flight.",
+    "Native probe now requires actual disable/restart/refusal, onsite enable with unchanged execution state, separate same-request retry with exactly one durable attempt and full output/restart readback."
+  ],
+  "checks": [
+    {
+      "scope": "69 onsite recovery component/parent regressions",
+      "status": "PASS",
+      "evidence_level": "SIMULATED",
+      "receipt": ".project-local/runs/be268a2d33/590e24b17b60/artifacts/execution.json",
+      "sha256": "db2e8f74582e94d756d5890553f0632d2b94340277e829a36bf83c162cddc620",
+      "source_patch_sha256": "664d72e6e11de94c61e1db06e7e59be357195737462ba2e22380c5130a19faa7"
+    },
+    {
+      "scope": "full frontend:118 files,1082 tests",
+      "status": "PASS",
+      "evidence_level": "SIMULATED",
+      "receipt": ".project-local/runs/be268a2d33/bdf217dc5d82/artifacts/execution.json",
+      "sha256": "9e290ebd29c8dd43579a1dd4ee948efa2ab2602259f50828bf7c2f93d3d7f3f8",
+      "source_patch_sha256": "4bf74fde89d132b6a630c583a06dc5e7493ac679751c0258b8b27533b46da282"
+    },
+    {
+      "scope": "18 native recovery probe helper tests",
+      "status": "PASS",
+      "evidence_level": "SIMULATED",
+      "receipt": ".project-local/runs/be268a2d33/ba4edef7e184/artifacts/execution.json",
+      "sha256": "0b8d0d3355eb2387499c01d09e7df18bbdaeb718e05e77f70265d3257c65b308",
+      "source_patch_sha256": "4bf74fde89d132b6a630c583a06dc5e7493ac679751c0258b8b27533b46da282"
+    },
+    {
+      "scope": "architecture guard",
+      "status": "PASS",
+      "evidence_level": "STRUCTURAL",
+      "receipt": ".project-local/runs/be268a2d33/e84941e0c60d/artifacts/execution.json",
+      "sha256": "aaa8a90e94a96ee220c228ca45f0a453158621e7270397fb15af81e010df6ee6",
+      "source_patch_sha256": "4bf74fde89d132b6a630c583a06dc5e7493ac679751c0258b8b27533b46da282"
+    },
+    {
+      "scope": "TypeScript + production frontend build",
+      "status": "PASS",
+      "receipt": ".project-local/runs/be268a2d33/2bf1f29847ff/artifacts/frontend-build.json",
+      "sha256": "47d7b8b133ef794ee6c002b3604b3bdd912b51c6ba3f0e974ed1e3d25602093f"
+    },
+    {
+      "scope": "Final 19 native helper tests including complete DOM range guards",
+      "status": "PASS",
+      "evidence_level": "SIMULATED",
+      "receipt": ".project-local/runs/be268a2d33/2d64102e4ebb/artifacts/execution.json",
+      "sha256": "a2480ff7fc539e09b2d309748f3954682ea893b5a2530289518272b9930b2bb5",
+      "source_patch_sha256": "f463e7efc47b2105d7ea77a51f001ce9ee3902238b84f84764dc7c406813fd5e"
+    },
+    {
+      "scope": "CI critical Ruff selectors for final helper/test",
+      "status": "PASS",
+      "evidence_level": "STRUCTURAL",
+      "receipt": ".project-local/runs/be268a2d33/5bb3e317b2b7/artifacts/execution.json",
+      "sha256": "c3bf1909a688ce11ab55175b3937ddb45466baec112ea552af0d7497b7c4dd1e",
+      "source_patch_sha256": "f463e7efc47b2105d7ea77a51f001ce9ee3902238b84f84764dc7c406813fd5e"
+    }
+  ],
+  "retained_failures": [
+    {
+      "run": "be268a2d33/4536698c7e59",
+      "status": "TERMINATED_NOT_PASS",
+      "reason": "Three files passed; new test file did not finish. Owned run interrupted after inspection."
+    },
+    {
+      "run": "be268a2d33/7ab6d53ac0c4",
+      "status": "TERMINATED_NOT_PASS",
+      "reason": "Verbose isolation exposed beforeEach returning mock as Vitest cleanup, unexpected undefined and unresolved cleanup promise; corrected by non-returning block."
+    },
+    {
+      "run": "be268a2d33/f27037e9661a",
+      "status": "FAIL_NO_COLLECTION",
+      "reason": "One guessed helper path missing; reran actual existing file, no tests counted from this run."
+    }
+  ],
+  "ci_readback": {
+    "head_sha": "99ba6d8b6afc79dee618bb2e8b87473ad27087fc",
+    "run_id": 38079439232,
+    "status": "COMPLETED_FAILURE",
+    "failed": [
+      "installer-lifecycle",
+      "a0-gates"
+    ],
+    "compatibility_native_child": "PASS_SCOPED",
+    "grouped_native_child": "FAIL",
+    "failure": "Original PRE focus/selection assertion timed out; actual screenshot contains selected original text. Full DOM range and focus diagnosis pending; no product PASS inferred."
+  },
+  "remaining": [
+    "Current Rust non-admission/replay regression execution",
+    "Actual onsite recovery native run",
+    "Actual Core ASR content/time locator/reparse/restart qualification",
+    "Actual registered text-model inference/correction/retest; local declared endpoint probe reports unavailable",
+    "Single-current-source complete CI/installed journey and Owner acceptance",
+    "Repaired grouped original selection and complete native journey actual execution"
+  ],
+  "whole_goal": "NOT_QUALIFIED",
+  "cross_page_or_restart_frozen_request_recovery": "NOT_QUALIFIED",
+  "release_green_replacement_real_user_data_overwrite": "NOT_GRANTED",
+  "selection_probe_repair": {
+    "status": "IMPLEMENTED_LOCAL",
+    "actual_native": "NOT_EXECUTED",
+    "source": "https://www.w3.org/TR/selection-api/#dom-selection-stringifier",
+    "checks": "Exact original PRE/focus/unique Text-node range endpoints/full UTF16 length and complete region/node/Range/clone original including LF; rendered Selection only diagnostic.",
+    "cause_of_ci99_exact_failed_conjunct": "UNVERIFIED; old receipt did not collect range/focus observations",
+    "grouped_receipt_sha256": "699fef4dc9157fabf1e18a176a104d9d1e1965dccc1496d0b306fc0b906b5690",
+    "failure_png_sha256": "9514502664284ab2f73c5c2dd8574aeff2b3834d5ffbc77a0e54934e15bd7c26"
+  }
+}
