@@ -1123,7 +1123,9 @@ jobs:
           ARCHEAXIS_RATE_LIMIT_WRITE: "1000"
           ARCHEAXIS_RATE_LIMIT_TOKEN: "100"
           ARCHEAXIS_RATE_LIMIT_ENABLED: "false"
-        run: cargo test
+        run: |
+          $env:TAURI_CONFIG = Get-Content -LiteralPath $env:ARCHEAXIS_TAURI_CONFIG -Raw
+          cargo test
 
   desktop-build:
     runs-on: windows-latest

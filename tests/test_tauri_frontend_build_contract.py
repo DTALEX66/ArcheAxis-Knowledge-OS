@@ -21,9 +21,11 @@ def test_shell_ci_supplies_built_routed_frontend_and_effective_configuration() -
     workflow = yaml.safe_load((ROOT / ".github/workflows/ci.yml").read_text(encoding="utf-8"))
     steps = workflow["jobs"]["desktop-fast"]["steps"]
     build_index = next(index for index, step in enumerate(steps) if "scripts/runtime/frontend.py" in step.get("run", ""))
-    test_index = next(index for index, step in enumerate(steps) if "cargo test" in step.get("run", ""))
-    assert build_index < test_index
+    test_indices = [index for index, step in enumerate(steps) if "cargo test" in step.get("run", "")]
+    assert test_indices
+    assert all(build_index < index for index in test_indices)
     assert "npm ci --prefix frontend --ignore-scripts" in steps[build_index]["run"]
     assert "--node $node build" in steps[build_index]["run"]
     assert "$env:ARCHEAXIS_FRONTEND_BUILD_CONTEXT = $env:ARCHEAXIS_RUN_ROOT" in steps[build_index]["run"]
-    assert "$env:TAURI_CONFIG = Get-Content -LiteralPath $env:ARCHEAXIS_TAURI_CONFIG -Raw" in steps[test_index]["run"]
+    for index in test_indices:
+        assert "$env:TAURI_CONFIG = Get-Content -LiteralPath $env:ARCHEAXIS_TAURI_CONFIG -Raw" in steps[index]["run"]
