@@ -1,0 +1,50 @@
+{
+  "schema": "archeaxis/record-archive-compacted-validation/v1",
+  "status": "LOCAL_PASS",
+  "observed_at": "2026-10-09T11:50:23.267517+00:00",
+  "logical_original_files": 121,
+  "logical_original_bytes": 15346659010,
+  "archive_directory_bytes_approximately": 2205519984,
+  "historical_zip_count": 13,
+  "historical_original_bytes": 15042293812,
+  "historical_shared_storage_bytes": 1911212397,
+  "reconstruction_all_13": "PASS",
+  "all_121_archive_entries_after_duplicate_deletion": "PASS",
+  "all_121_verify_log": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\archives\\record-20261009\\logs\\verify-compacted.log",
+  "real_restore": {
+    "source": "AAOS-project-archives/2026-09-30/formal-run-builds/frontend-responsive-desktop-build-absolute.zip",
+    "bytes": 76522014,
+    "sha256": "596de0dd9869725d4c7391bca466a32709614a39fc81a247dc0ea76b874df557",
+    "exit_code": 0,
+    "command": [
+      "D:\\All projects\\ArcheAxis-Knowledge-OS\\.venv\\Scripts\\python.exe",
+      "-B",
+      "D:\\All projects\\ArcheAxis-Knowledge-OS\\scripts\\maintenance\\compact_record_archives.py",
+      "restore",
+      "--sha256",
+      "596de0dd9869725d4c7391bca466a32709614a39fc81a247dc0ea76b874df557",
+      "--output",
+      "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\runs\\record-archive-20261009\\real-restore-check.zip"
+    ],
+    "output": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\runs\\record-archive-20261009\\real-restore-check.zip",
+    "status": "PASS",
+    "test_output_removed_after_hash_verification": true
+  },
+  "source_record_inventory_unchanged": true,
+  "task_created_duplicate_files_removed": 18,
+  "project_existing_files_reused": 5,
+  "external_migration": false,
+  "project_only_recovery": true,
+  "ui_supplement_union_files": 155,
+  "ui_supplement_sha256": "PASS",
+  "not_executed": [
+    "TaskPack implementation",
+    "installer lifecycle",
+    "cloud CI",
+    "commit/push/merge"
+  ],
+  "scripts": {
+    "archive_record_materials.py": "567f99fe842866574496fb0eea328ec2201ab7ab3a27eac4898e40971085229f",
+    "compact_record_archives.py": "c0936e62670e37ba1fd7cd43cc768067c4c5865707f7d09b060f89b3b5faa909"
+  }
+}

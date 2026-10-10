@@ -1,0 +1,107 @@
+{
+  "schema": "archeaxis.active-execution/v1",
+  "selected_at": "2026-10-09",
+  "authorization": "Owner explicitly requested parallel handoff execution, new layout/architecture, palette preservation/uniformity, then G01 authority/index/description alignment; Owner explicitly prioritized G01; Owner requested comprehensive execution prioritizing governance and UI",
+  "active_taskpack": "docs/taskpacks/aaos-ui-first-20261009",
+  "plan_id": "AAOS-UI-FIRST-PLAN-20261009",
+  "active_progress": "docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md",
+  "inherited_progress": [
+    "docs/current/AAOS01-Q00-Q15-LEDGER-FINAL-20261005.md"
+  ],
+  "inherited_contract_package": "docs/authority/taskpack-1004-aaos01",
+  "selection_role": "OWNER_SELECTED_EXECUTION_OVERLAY; immutable planning package is a dated source, not a live implementation receipt",
+  "selected_tasks": [
+    "UF00",
+    "UF01",
+    "UF02",
+    "UF03",
+    "CB01",
+    "UF04",
+    "UF06",
+    "S01.A",
+    "S01.B",
+    "S01.C",
+    "G01",
+    "H01",
+    "UF05",
+    "CB02",
+    "UF07",
+    "UF12",
+    "CB03",
+    "UF08",
+    "UF09",
+    "O01",
+    "UF10",
+    "CB04",
+    "UF11",
+    "UF13"
+  ],
+  "paused": [
+    "V01"
+  ],
+  "future_frozen": [
+    "FT01",
+    "FT02",
+    "FT03",
+    "FT04"
+  ],
+  "formal_stack": "Tauri 2 + React/TypeScript/Vite + Rust Core sole SQLite/CAS writer + isolated Python workers",
+  "theme_policy": {
+    "default": "blueprint",
+    "available": [
+      "blueprint",
+      "blueprint-light",
+      "black",
+      "white",
+      "cosmic"
+    ],
+    "layout": "new UI layout shared across themes",
+    "colors": "semantic colors from selected theme; new reference palette values preserved"
+  },
+  "handoff": "docs/current/AAOS-AGENT-HANDOFF-CURRENT.md",
+  "drift_readback": "docs/current/AAOS-GOVERNANCE-ALIGNMENT-20261009.md",
+  "permissions": {
+    "remote_description_update": "OWNER_REQUESTED",
+    "commit": "NOT_GRANTED_BY_THIS_POINTER",
+    "push": "NOT_GRANTED_BY_THIS_POINTER",
+    "merge": "NOT_GRANTED",
+    "cloud_ci": "V01_PAUSED",
+    "release": "NOT_GRANTED",
+    "bulk_delete": "EXACT_PATH_GRANT_REQUIRED"
+  },
+  "priority_tasks": [
+    "G01",
+    "H01",
+    "UF05",
+    "UF07",
+    "UF12",
+    "UF08",
+    "UF09",
+    "UF10",
+    "UF11",
+    "UF13"
+  ],
+  "freeze_register": "docs/taskpacks/aaos-ui-first-20261009/FREEZE-REGISTER.md",
+  "design_overlays": [
+    "docs/current/AAOS-UI-DESIGN-INCREMENT-20261010.json"
+  ],
+  "execution_control": {
+    "state": "PAUSED_BY_OWNER",
+    "stopped_after": "UF13 started local slice",
+    "instruction": "完成当天跑的任务就停止任务",
+    "whole_scope": "PARTIAL",
+    "receipt": "docs/current/receipts/AAOS-UI-FINAL-SLICE-20261010.json",
+    "resume_requires": "new Owner instruction",
+    "automatic_continuation": false
+  },
+  "delivery_authorization": {
+    "date": "2026-10-10",
+    "owner_request": "全部上传 双端仓库一致",
+    "scope": "Project public source/documents/taskpack snapshot and normal fast-forward synchronization; ignored runtime/private data remain local",
+    "commit": "GRANTED",
+    "push": "GRANTED",
+    "local_branch_convergence": "GRANTED_WITHOUT_HISTORY_REWRITE",
+    "release_install": "NOT_GRANTED",
+    "product_execution": "REMAINS_PAUSED"
+  }
+}

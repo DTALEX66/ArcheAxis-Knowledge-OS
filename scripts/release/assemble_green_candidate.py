@@ -20,6 +20,13 @@ assert _candidate_spec and _candidate_spec.loader
 _candidate_module = importlib.util.module_from_spec(_candidate_spec)
 _candidate_spec.loader.exec_module(_candidate_module)
 
+_worker_routes_spec = importlib.util.spec_from_file_location(
+    "candidate_worker_routes", Path(__file__).with_name("worker_routes.py")
+)
+assert _worker_routes_spec and _worker_routes_spec.loader
+worker_routes = importlib.util.module_from_spec(_worker_routes_spec)
+_worker_routes_spec.loader.exec_module(worker_routes)
+
 
 @dataclass(frozen=True)
 class AssemblyResult:
@@ -27,16 +34,16 @@ class AssemblyResult:
     zip_path: Path
 
 
-def _native_path(path: Path, *, force: bool = False) -> str | Path:
-    """Use the Windows extended-length prefix for deep managed run paths."""
+def _native_path(path: Path) -> str | Path:
+    """Prefix a managed run path, keeping the E:/F: boundary this script must never cross.
+
+    No length test: the directory these calls receive is ordinary and the file, key or child
+    name created under it is what passes the Windows limit.
+    """
     text = str(path)
     if text.startswith("\\\\?\\"):
         return text
-    if (
-        path.drive
-        and path.drive.upper() not in {"E:", "F:"}
-        and (force or len(text) >= 240)
-    ):
+    if path.drive and path.drive.upper() not in {"E:", "F:"}:
         return "\\\\?\\" + text
     return path
 
@@ -57,7 +64,7 @@ def _is_file(path: Path) -> bool:
 def _iter_files(root: Path):
     """Walk a bundle tree using extended paths and yield normal paths + relatives."""
     _reject_reparse(root)
-    native_root = os.fspath(_native_path(root, force=True))
+    native_root = os.fspath(_native_path(root))
     root_prefix = native_root.rstrip("\\/")
 
     def raise_walk_error(error: OSError) -> None:
@@ -148,7 +155,7 @@ def assemble(
     if source_snapshot is not None and source_snapshot != current_source_snapshot:
         raise ValueError("captured source snapshot does not match the current worktree before assembly")
     source_snapshot = source_snapshot if source_snapshot is not None else current_source_snapshot
-    project_local = (project_root / ".project-local").resolve()
+    project_local = _candidate_module.project_local_root(project_root)
     try:
         output.relative_to(project_local)
     except ValueError as exc:
@@ -170,16 +177,18 @@ def assemble(
     if workers is not None:
         _reject_reparse(workers)
 
-    output.mkdir(parents=True, exist_ok=True)
+    os.makedirs(_native_path(output), exist_ok=True)
     root = output / f"ArcheAxis.Knowledge.Green-v{version}-x64"
-    if root.exists():
+    if Path(_native_path(root)).exists():
         _remove_tree(root)
-    (root / "desktop").mkdir(parents=True)
-    (root / "core").mkdir()
+    # The layout below is four short names, but each is the parent of a copied tree whose
+    # own members are long, so the same naming rule the copy loop already uses applies here.
+    os.makedirs(_native_path(root / "desktop"))
+    os.makedirs(_native_path(root / "core"))
     if runtime is not None:
-        (root / "runtime").mkdir()
+        os.makedirs(_native_path(root / "runtime"))
     if workers is not None:
-        (root / "workers").mkdir()
+        os.makedirs(_native_path(root / "workers"))
     copied_files: list[Path] = []
     for source, relative in _iter_files(desktop):
         target = root / "desktop" / relative
@@ -204,17 +213,35 @@ def assemble(
             shutil.copy2(_native_path(source), _native_path(target))
             copied_files.append(target)
         profile = root / "worker-profile.json"
-        profile.write_text(json.dumps({
+        # The capability routes the candidate actually carries, each named relative to the candidate
+        # root. This used to be a fixed four-field profile with no `routes`, which meant a launched
+        # Core registered only its built-in `text.extract`: PDF, OCR, Office, media, canvas and the
+        # co-learning machine answer were all unreachable from the shipped product, and nothing
+        # failed. The list is derived from the workers that were really copied, so the profile
+        # declares what is present rather than what someone remembered to write down.
+        # Loaded from services/python-workers/routes.json - the single mapping, so the shipped
+        # candidate cannot declare a different set from the staged runtime.
+        route_workers = {
+            capability: scripts[0]
+            for capability, scripts in worker_routes.load(prefix="workers/").items()
+        }
+        routes = [
+            {"capability": capability, "script": relative}
+            for capability, relative in sorted(route_workers.items())
+            if Path(_native_path(root / relative)).is_file()
+        ]
+        Path(_native_path(profile)).write_text(json.dumps({
             "schema": "archeaxis.worker-profile/v1",
             "python": "runtime/python.exe",
             "script": "workers/transport/text_ndjson.py",
             "staging": "data/worker-staging",
+            "routes": routes,
         }, ensure_ascii=False, indent=2) + "\n", encoding="utf-8", newline="\n")
         copied_files.append(profile)
     donor = project_root / "shared" / "learning_scheduler.py"
-    if workers is not None and donor.is_file():
+    if workers is not None and Path(_native_path(donor)).is_file():
         target = root / "shared" / "learning_scheduler.py"
-        target.parent.mkdir(parents=True, exist_ok=True)
+        Path(_native_path(target.parent)).mkdir(parents=True, exist_ok=True)
         shutil.copy2(_native_path(donor), _native_path(target))
         copied_files.append(target)
 
@@ -251,7 +278,7 @@ shell.Environment("PROCESS")("ARCHAXIS_WORKER_PROFILE") = root & "\\worker-profi
 shell.Environment("PROCESS")("ARCHAXIS_SCHEDULER_WORKER") = root & "\\workers\\learning\\worker_schedule.py"
 shell.Run Chr(34) & executable & Chr(34), 1, False
 '''
-    launcher.write_text(launcher_text, encoding="utf-8", newline="\r\n")
+    Path(_native_path(launcher)).write_text(launcher_text, encoding="utf-8", newline="\r\n")
     copied_files.append(launcher)
 
     files: dict[str, dict[str, int | str]] = {}

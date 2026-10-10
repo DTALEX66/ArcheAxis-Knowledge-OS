@@ -90,6 +90,39 @@
       "rights_basis": "project-authored synthetic test fixture",
       "privacy": "no personal data",
       "expected": {"text": "Sheet evidence anchor", "anchor": "sheet=Evidence"}
+    },
+    "golden-xls-anchor.xls": {
+      "format": "xls",
+      "sha256": "3225b8bb590f799dc0a16a92118a1f80aec8cde53e0b4c71bc200f451aa72353",
+      "rights_basis": "project-authored synthetic test fixture",
+      "privacy": "no personal data",
+      "generator": "xlwt 1.3.0, used as an authoring tool at fixture-creation time; not a runtime or test dependency",
+      "engine": "xlrd 2.0.2 (ci-adapters)",
+      "expected": {"text": "星环 知识平台", "anchor": "sheet=Evidence", "sheets": 2, "cells": {"date": 1, "boolean": 1}}
+    },
+    "golden-word-anchor.doc": {
+      "format": "application/msword",
+      "sha256": "5ca19b67876f284a0e04ed06df44a004f850629a871fe522d014e1fdff912799",
+      "rights_basis": "third-party test fixture redistributed under the Apache-2.0 licence of the project that publishes it; attribution recorded in THIRD_PARTY_NOTICES.md",
+      "privacy": "no personal data",
+      "origin": "Microsoft Word 97 binary document (OLE2 container, WordDocument nFib 0x00C1, CompObj 'Word.Document.8'); not authored for this test",
+      "source": "Apache Tika tika-parser-microsoft-module src/test/resources/test-documents/testWORD.doc",
+      "pinned": "commit b8a6916eab70ccdb5d4551c69be1a46af29c2cff (annotated tag 3.3.2), git blob sha1 c1f4f3d0b0c1e475bf03e9eba3ed7c7ac166d557",
+      "engine": "antiword 0.37 sidecar (external binary, probed and never assumed)",
+      "bytes": 32768,
+      "expected": {"text": "Sample Word Document Title", "anchor": "line_number=2", "markers": ["This is a sample Microsoft Word Document", "|This is a table"]}
+    },
+    "golden-ppt-anchor.ppt": {
+      "format": "application/vnd.ms-powerpoint",
+      "sha256": "499ccd0de7c0778afa4f6ed08793afd2406b62547373a619a5a78658ae65c4b7",
+      "rights_basis": "third-party test fixture redistributed under the Apache-2.0 licence of the project that publishes it; attribution recorded in THIRD_PARTY_NOTICES.md",
+      "privacy": "no personal data",
+      "origin": "Microsoft PowerPoint 97 binary presentation (OLE2 container with a 'PowerPoint Document' stream); not authored for this test",
+      "source": "Apache Tika tika-parser-microsoft-module src/test/resources/test-documents/testPPT.ppt",
+      "pinned": "commit b8a6916eab70ccdb5d4551c69be1a46af29c2cff (annotated tag 3.3.2), git blob sha1 b48cfaf2bd7045c21c5f65e1478725e8cee84ed7",
+      "engine": "Apache Tika 4.1.0 sidecar over a declared JVM (external, probed and never assumed)",
+      "bytes": 16384,
+      "expected": {"text": "Sample Powerpoint Slide", "anchor": "line_number=2", "markers": ["Sample Powerpoint Slide", "Created with Microsoft"]}
     }
   }
 }

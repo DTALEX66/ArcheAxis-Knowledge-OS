@@ -1,0 +1,39 @@
+{
+  "document": "AAOS_NEXT_EXECUTION_QUEUE",
+  "recorded_at": "2026-10-02T07:01:15.837733+00:00",
+  "one_route": "G0 -> G1 -> G2 -> G3 -> G4 -> G5, in that order; no parallel route",
+  "now": [
+    {
+      "order": 1,
+      "action": "merge PR #156 into main",
+      "why": "it moves main to the branch the other two PRs sit on",
+      "blocked_by": "Owner merge"
+    },
+    {
+      "order": 2,
+      "action": "merge PR #157, then PR #158, re-checking conflicts",
+      "why": "both touch apps/ and the six UI contract tests",
+      "blocked_by": "Owner merge"
+    },
+    {
+      "order": 3,
+      "action": "produce the remaining R7 documents (this batch)",
+      "why": "G0's exit is documentation of state, not code",
+      "blocked_by": "nothing"
+    },
+    {
+      "order": 4,
+      "action": "G1 plugin registry, capability resolver, health, fallback",
+      "why": "it is the first gate that is neither a decision nor already present",
+      "blocked_by": "nothing except the resource-root decision for a stable plugin root"
+    },
+    {
+      "order": 5,
+      "action": "G4 machine task route driving the measured local model",
+      "why": "it unlocks the co-learning loop and is wiring rather than decision",
+      "blocked_by": "nothing measurable; the runtime is installed and serving"
+    }
+  ],
+  "deferred_with_intent": "everything in the Atlas's deferred list stays deferred until G5 closes",
+  "anti_drift": "if a task does not advance G0-G5, it belongs in the Atlas or the donor pool, not in this queue"
+}

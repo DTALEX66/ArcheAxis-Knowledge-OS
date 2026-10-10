@@ -1,0 +1,177 @@
+{
+  "schema": "aaos.taskpack.planning/v1",
+  "production_configuration": false,
+  "pack": "future-expansion",
+  "status": "NOT_RUN",
+  "tasks": [
+    {
+      "id": "F00",
+      "title": "第一包基线接管",
+      "depends_on": [
+        "Q15"
+      ],
+      "dependency_note": null,
+      "status": "NOT_RUN",
+      "evidence": [],
+      "owner": null
+    },
+    {
+      "id": "F01",
+      "title": "文档与编辑节点深化",
+      "depends_on": [
+        "F00"
+      ],
+      "dependency_note": null,
+      "status": "NOT_RUN",
+      "evidence": [],
+      "owner": null
+    },
+    {
+      "id": "F02",
+      "title": "集合关系公式与多视图",
+      "depends_on": [
+        "F01"
+      ],
+      "dependency_note": null,
+      "status": "NOT_RUN",
+      "evidence": [],
+      "owner": null
+    },
+    {
+      "id": "F03",
+      "title": "完整知识库互通",
+      "depends_on": [
+        "F01"
+      ],
+      "dependency_note": "高级数据库互通还依赖 F02",
+      "status": "NOT_RUN",
+      "evidence": [],
+      "owner": null
+    },
+    {
+      "id": "F04",
+      "title": "学习诊断与辅导",
+      "depends_on": [
+        "F00",
+        "F01"
+      ],
+      "dependency_note": null,
+      "status": "NOT_RUN",
+      "evidence": [],
+      "owner": null
+    },
+    {
+      "id": "F05",
+      "title": "课程与视觉教学",
+      "depends_on": [
+        "F01",
+        "F04"
+      ],
+      "dependency_note": null,
+      "status": "NOT_RUN",
+      "evidence": [],
+      "owner": null
+    },
+    {
+      "id": "F06",
+      "title": "科研与研发空间",
+      "depends_on": [
+        "F01"
+      ],
+      "dependency_note": null,
+      "status": "NOT_RUN",
+      "evidence": [],
+      "owner": null
+    },
+    {
+      "id": "F07",
+      "title": "AI资产与评测",
+      "depends_on": [
+        "F00",
+        "F01"
+      ],
+      "dependency_note": null,
+      "status": "NOT_RUN",
+      "evidence": [],
+      "owner": null
+    },
+    {
+      "id": "F08",
+      "title": "动态解释与交互仿真",
+      "depends_on": [
+        "F05"
+      ],
+      "dependency_note": null,
+      "status": "NOT_RUN",
+      "evidence": [],
+      "owner": null
+    },
+    {
+      "id": "F09",
+      "title": "空间记忆与3D",
+      "depends_on": [
+        "F05"
+      ],
+      "dependency_note": null,
+      "status": "NOT_RUN",
+      "evidence": [],
+      "owner": null
+    },
+    {
+      "id": "F10",
+      "title": "同步与协同",
+      "depends_on": [
+        "F01",
+        "F03"
+      ],
+      "dependency_note": null,
+      "status": "NOT_RUN",
+      "evidence": [],
+      "owner": null
+    },
+    {
+      "id": "F11",
+      "title": "插件技能与受控Agent",
+      "depends_on": [
+        "F00"
+      ],
+      "dependency_note": "权限/Job稳定且已有实际可调用能力",
+      "status": "NOT_RUN",
+      "evidence": [],
+      "owner": null
+    },
+    {
+      "id": "F12",
+      "title": "移动Web与加密",
+      "depends_on": [
+        "F10"
+      ],
+      "dependency_note": "只读Web可先于完整协同",
+      "status": "NOT_RUN",
+      "evidence": [],
+      "owner": null
+    },
+    {
+      "id": "F13",
+      "title": "XR与AR",
+      "depends_on": [
+        "F09"
+      ],
+      "dependency_note": null,
+      "status": "NOT_RUN",
+      "evidence": [],
+      "owner": null
+    },
+    {
+      "id": "F14",
+      "title": "依赖持续维护与可迁出",
+      "depends_on": [
+        "F00"
+      ],
+      "dependency_note": null,
+      "status": "NOT_RUN",
+      "evidence": [],
+      "owner": null
+    }
+  ]
+}

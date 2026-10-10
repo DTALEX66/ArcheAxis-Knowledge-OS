@@ -7,10 +7,26 @@
 
 pub mod anchor;
 pub mod backup;
+pub mod bounded_formula;
+pub mod collection;
+pub mod context_grant;
+pub mod ai_asset;
+pub mod asset_context_grant;
+pub mod course;
+pub mod document;
+pub mod expression;
 pub mod knowledge;
 pub mod learning;
 pub mod machine;
+pub mod machine_evaluation;
+pub mod object_reference;
+pub mod research;
+pub mod relation_projection;
 pub mod search;
 pub mod source;
+pub mod teaching;
+pub mod template_binding;
+pub mod vault;
+pub mod vault_members;
 
 pub use source::ImportOutcome;

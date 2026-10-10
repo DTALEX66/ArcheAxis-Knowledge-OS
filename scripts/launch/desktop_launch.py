@@ -25,6 +25,11 @@ _resource_spec = importlib.util.spec_from_file_location(
 assert _resource_spec and _resource_spec.loader
 resource_boundaries = importlib.util.module_from_spec(_resource_spec)
 _resource_spec.loader.exec_module(resource_boundaries)
+_worker_routes_spec = importlib.util.spec_from_file_location(
+    'desktop_worker_routes', REPO / 'scripts/release/worker_routes.py')
+assert _worker_routes_spec and _worker_routes_spec.loader
+worker_routes = importlib.util.module_from_spec(_worker_routes_spec)
+_worker_routes_spec.loader.exec_module(worker_routes)
 
 
 def _sha256(path: Path) -> str:
@@ -86,9 +91,25 @@ def prepare_launch(*, desktop: Path | None = None, core: Path | None = None,
     database = (directory / 'workspace.sqlite' if fresh_workspace else
                 dev.state_path(REPO, 'desktop-test', 'workspace.sqlite'))
     profile = directory / 'worker-profile.json'
+    # The capability routes this desktop ships, resolved against the repository's workers. They are
+    # written here for the same reason the staged runtime writes them: a launch that declares no routes
+    # registers none, and the Core then serves only its built-in text route, so every other capability
+    # - PDF, OCR, Office, media, canvas and the co-learning machine answer - is unreachable from the
+    # product. Each entry names a worker that exists; a missing one raises rather than being dropped,
+    # because a dropped route surfaces later as a capability that is simply absent.
+    # Loaded from services/python-workers/routes.json - the single mapping, so a route cannot be
+    # declared here and forgotten in the package or the reverse.
+    _route_workers = {capability: scripts[0] for capability, scripts in worker_routes.load().items()}
+    routes = []
+    for capability, relative in sorted(_route_workers.items()):
+        worker = dev.safe_path(REPO / 'services/python-workers' / relative)
+        if not worker.is_file():
+            raise ValueError(f'worker for {capability} is missing: {relative}')
+        routes.append({'capability': capability, 'script': str(worker)})
     profile.write_text(json.dumps({
         'schema': 'archeaxis.worker-profile/v1', 'python': str(python),
         'script': str(script), 'staging': str(directory / 'worker-staging'),
+        'routes': routes,
     }, indent=2) + '\n', encoding='utf-8')
     source_head = dev.git(REPO, 'rev-parse', 'HEAD')
     receipt = {

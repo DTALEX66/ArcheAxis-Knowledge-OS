@@ -10,6 +10,7 @@ from pathlib import Path
 
 from app.contracts.derived_projection_v1 import DerivedProjectionReceiptV1, ProjectionItemV1
 from shared.compat.import_session import ImportSession
+from shared.paths import native_path
 
 
 class VaultWorkbenchError(ValueError):
@@ -24,7 +25,7 @@ def _path_free_source_id(relative_path: str) -> str:
 
 def _session(root: str | Path, store: str | Path) -> ImportSession:
     path = Path(root).expanduser().resolve()
-    if not path.is_dir():
+    if not Path(native_path(path)).is_dir():
         raise VaultWorkbenchError("approved Vault root must be an existing directory")
     return ImportSession(Path(store), path)
 
@@ -169,12 +170,12 @@ def write_file(
     from datetime import datetime, timezone
 
     path = Path(root).expanduser().resolve()
-    if not path.is_dir():
+    if not Path(native_path(path)).is_dir():
         raise VaultWorkbenchError("approved Vault root must be an existing directory")
     target = (path / relative_path).resolve()
     if path not in target.parents:
         raise VaultWorkbenchError("relative_path must stay inside the Vault root")
-    if not target.is_file():
+    if not Path(native_path(target)).is_file():
         raise VaultWorkbenchError("target file does not exist")
     current_bytes = target.read_bytes()
     if current_bytes.startswith(b"PK\x03\x04"):
@@ -195,16 +196,16 @@ def write_file(
     store_path = Path(store).expanduser().resolve()
     # ``store`` is the SQLite database file path; backups live beside it.
     backup_dir = store_path.parent / "vault-backups"
-    backup_dir.mkdir(parents=True, exist_ok=True)
+    Path(native_path(backup_dir)).mkdir(parents=True, exist_ok=True)
     stamp = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%S%f")
     backup = backup_dir / f"{target.name}-{stamp}.bak"
-    backup.write_bytes(current_bytes)
+    Path(native_path(backup)).write_bytes(current_bytes)
 
-    fd, tmp_name = tempfile.mkstemp(dir=str(target.parent), prefix=".awx-", suffix=".tmp")
+    fd, tmp_name = tempfile.mkstemp(dir=native_path(target.parent), prefix=".awx-", suffix=".tmp")
     try:
         with os.fdopen(fd, "wb") as handle:
             handle.write(new_bytes)
-        os.replace(tmp_name, target)
+        os.replace(tmp_name, native_path(target))
     except BaseException:
         with contextlib.suppress(OSError):
             os.unlink(tmp_name)
@@ -306,8 +307,8 @@ def list_backups(*, store: str | Path, relative_path: str) -> dict[str, object]:
     directory = _backup_dir(store)
     prefix = f"{Path(relative_path).name}-"
     backups: list[dict[str, object]] = []
-    if directory.is_dir():
-        for candidate in sorted(directory.glob(f"{prefix}*.bak"), reverse=True):
+    if Path(native_path(directory)).is_dir():
+        for candidate in sorted(Path(native_path(directory)).glob(f"{prefix}*.bak"), reverse=True):
             backups.append(
                 {
                     "backup_name": candidate.name,
@@ -337,16 +338,16 @@ def restore_backup(
     from datetime import datetime, timezone
 
     path = Path(root).expanduser().resolve()
-    if not path.is_dir():
+    if not Path(native_path(path)).is_dir():
         raise VaultWorkbenchError("approved Vault root must be an existing directory")
     target = (path / relative_path).resolve()
     if path not in target.parents:
         raise VaultWorkbenchError("relative_path must stay inside the Vault root")
-    if not target.is_file():
+    if not Path(native_path(target)).is_file():
         raise VaultWorkbenchError("target file does not exist")
 
     backup = _backup_dir(store) / backup_name
-    if backup.parent != _backup_dir(store) or not backup.is_file():
+    if backup.parent != _backup_dir(store) or not Path(native_path(backup)).is_file():
         raise VaultWorkbenchError("backup_name must be an exact existing backup filename")
     if not backup.name.startswith(f"{target.name}-") or not backup.name.endswith(".bak"):
         raise VaultWorkbenchError("backup_name does not belong to this Vault file")
@@ -356,16 +357,16 @@ def restore_backup(
 
     # Keep a revertible snapshot of the current state before restoring.
     directory = _backup_dir(store)
-    directory.mkdir(parents=True, exist_ok=True)
+    Path(native_path(directory)).mkdir(parents=True, exist_ok=True)
     stamp = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%S%f")
     safety = directory / f"{target.name}-{stamp}.pre-restore.bak"
-    safety.write_bytes(current)
+    Path(native_path(safety)).write_bytes(current)
 
-    fd, tmp_name = tempfile.mkstemp(dir=str(target.parent), prefix=".awx-", suffix=".tmp")
+    fd, tmp_name = tempfile.mkstemp(dir=native_path(target.parent), prefix=".awx-", suffix=".tmp")
     try:
         with os.fdopen(fd, "wb") as handle:
             handle.write(restored)
-        os.replace(tmp_name, target)
+        os.replace(tmp_name, native_path(target))
     except BaseException:
         with contextlib.suppress(OSError):
             os.unlink(tmp_name)

@@ -9,7 +9,7 @@ archeaxis-domain = { path = "../archeaxis-domain" }
 archeaxis-store-sqlite = { path = "../archeaxis-store-sqlite" }
 archeaxis-contracts = { path = "../archeaxis-contracts" }
 archeaxis-sidecar-protocol = { path = "../archeaxis-sidecar-protocol" }
-rusqlite = { version = "0.32", features = ["bundled", "backup"] }
+rusqlite = { version = "=0.39.0", features = ["bundled", "backup"] }
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 hex = "0.4"

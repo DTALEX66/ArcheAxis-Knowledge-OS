@@ -18,6 +18,12 @@ else
   PYTHON=python
 fi
 if [ "${1:-}" = "--" ]; then shift; fi
+if [ "${1:-}" = "--quick-ci" ] || [ "${1:-}" = "--full-ci" ]; then
+  PROFILE=quick
+  if [ "$1" = "--full-ci" ]; then PROFILE=full; fi
+  shift
+  exec "$PYTHON" -B "$ROOT/scripts/ci/local_verify.py" --profile "$PROFILE" "$@"
+fi
 FULL=()
 if [ "${1:-}" = "--full" ]; then FULL=(--full); shift; fi
 exec "$PYTHON" -B "$ROOT/scripts/runtime/dev.py" --pytest "${FULL[@]}" -- "$@"

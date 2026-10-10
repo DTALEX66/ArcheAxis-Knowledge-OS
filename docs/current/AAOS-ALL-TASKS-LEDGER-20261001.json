@@ -733,7 +733,7 @@
         "docs/current/R6-STATE.json"
       ],
       "requirements_or_acceptance": [
-        "只读盘点 tracked working tree、.git objects/pack/reflog/worktree metadata、.project-local/build/runs/cache/worktrees/task-runtime/dist/ui-audit/candidates、Cargo target、.NET bin/obj/publish、Node node_modules/dist、Python venv/cache、ZIP+expanded candidate、linked worktree 重复 build、logs/db/runtime data、legacy local artifacts。",
+        "只读盘点 tracked working tree、.git objects/pack/reflog/worktree metadata、.project-local/build/legacy-scratch-20261008/runs-dirs/cache/worktrees/task-runtime/dist/ui-audit/candidates、Cargo target、.NET bin/obj/publish、Node node_modules/dist、Python venv/cache、ZIP+expanded candidate、linked worktree 重复 build、logs/db/runtime data、legacy local artifacts。",
         "输出一级/二级目录 bytes、file count、largest、duplicate by size/hash、producer、consumer、referenced-by、active lock、rebuild method。现场盘点前可回收空间为 UNKNOWN。",
         "验收：精确清理证据；不损害 GJ 与用户数据"
       ],

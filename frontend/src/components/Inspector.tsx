@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { stateLabel } from "../presentation/labels";
 
 export interface InspectionTarget {
@@ -27,6 +28,16 @@ export interface InspectionTarget {
 
 // Right inspector: source/evidence/conflict/version (task pack §15.3).
 export function Inspector({ target, onClose }: { target: InspectionTarget | null; onClose?: () => void }) {
+  useEffect(() => {
+    const dismiss = (event: KeyboardEvent) => { if (event.key === "Escape") onClose?.(); };
+    window.addEventListener("keydown", dismiss);
+    return () => {
+      window.removeEventListener("keydown", dismiss);
+      // Closing from the in-panel button unmounts the focused control, which strands focus on <body>.
+      if (document.activeElement === document.body) document.querySelector<HTMLElement>("button.inspector-trigger")?.focus();
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
   if (target) {
     return (
       <aside className="inspector" aria-label="检查器">

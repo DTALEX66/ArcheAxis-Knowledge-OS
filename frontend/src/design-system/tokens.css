@@ -2,11 +2,13 @@
 
 :root {
   color-scheme: dark;
+  --ax-on-accent: #101214;
 
   /* Product baseline: offline, high-contrast black and white. */
   --ax-canvas: #050505;
   --ax-panel: #0b0b0b;
   --ax-raised: #121212;
+  --ax-bg-inset: #0d0d0d;
   --ax-elevated: #1a1a1a;
   --ax-hover: rgba(255, 255, 255, 0.07);
   --ax-active: rgba(255, 255, 255, 0.11);
@@ -14,7 +16,7 @@
   --ax-fg: #f5f5f5;
   --ax-fg-secondary: #d4d4d4;
   --ax-fg-tertiary: #a3a3a3;
-  --ax-fg-quaternary: #737373;
+  --ax-fg-quaternary: #808080;
 
   --ax-accent: #f5f5f5;
   --ax-accent-bright: #ffffff;
@@ -23,8 +25,8 @@
 
   --ax-success: #22c55e;
   --ax-success-soft: rgba(34, 197, 94, 0.15);
-  --ax-warning: #f59e0b;
-  --ax-warning-soft: rgba(245, 158, 11, 0.15);
+  --ax-warning: #70c6ff;
+  --ax-warning-soft: rgba(112, 198, 255, 0.15);
   --ax-danger: #ef4444;
   --ax-danger-soft: rgba(239, 68, 68, 0.15);
 
@@ -135,7 +137,7 @@ button::before, .btn::before {
   position: absolute;
   inset: 0;
   border-radius: inherit;
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.06), rgba(255, 255, 255, 0));
+  background: linear-gradient(180deg, var(--ax-control-gloss, rgba(255, 255, 255, 0.06)), transparent);
   opacity: 0;
   transition: opacity 0.16s ease;
   pointer-events: none;
@@ -146,10 +148,10 @@ button:hover:not(:disabled)::before, .btn:hover:not(:disabled)::before {
 }
 
 button:hover:not(:disabled), .btn:hover:not(:disabled) {
-  background: rgba(255, 255, 255, 0.075);
-  border-color: rgba(255, 255, 255, 0.18);
+  background: var(--ax-control-hover, rgba(255, 255, 255, 0.075));
+  border-color: var(--ax-control-hover-border, rgba(255, 255, 255, 0.18));
   color: var(--ax-fg);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08), 0 0 0 1px rgba(255, 255, 255, 0.04);
+  box-shadow: inset 0 1px 0 var(--ax-control-gloss, rgba(255, 255, 255, 0.08)), 0 0 0 1px var(--ax-control-hover-border, rgba(255, 255, 255, 0.04));
 }
 
 button:active:not(:disabled), .btn:active:not(:disabled) {
@@ -158,7 +160,7 @@ button:active:not(:disabled), .btn:active:not(:disabled) {
 }
 
 button:focus-visible, .btn:focus-visible {
-  box-shadow: 0 0 0 2px var(--ax-accent-soft), 0 0 0 4px rgba(255, 255, 255, 0.25);
+  box-shadow: 0 0 0 2px var(--ax-focus-ring), 0 0 0 4px var(--ax-focus-ring);
   border-color: var(--ax-accent-bright);
 }
 
@@ -169,19 +171,19 @@ button:disabled, .btn:disabled {
 }
 
 button[type="submit"], button.primary, .btn-primary {
-  background: #f5f5f5;
-  border-color: rgba(255, 255, 255, 0.8);
-  color: #050505;
+  background: var(--ax-accent);
+  border-color: var(--ax-control-border);
+  color: var(--ax-on-accent, #050505);
   font-weight: 560;
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.18), 0 1px 2px rgba(0, 0, 0, 0.3);
   text-shadow: 0 1px 0 rgba(0, 0, 0, 0.2);
 }
 
 button[type="submit"]:hover:not(:disabled), button.primary:hover:not(:disabled), .btn-primary:hover:not(:disabled) {
-  background: #ffffff;
-  border-color: #ffffff;
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.22), 0 0 12px rgba(255, 255, 255, 0.22);
-  color: #050505;
+  background: var(--ax-accent-hover);
+  border-color: var(--ax-accent-hover);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.12), 0 0 12px var(--ax-accent-soft);
+  color: var(--ax-on-accent, #050505);
 }
 
 button[type="submit"]:active:not(:disabled), button.primary:active:not(:disabled), .btn-primary:active:not(:disabled) {
@@ -189,16 +191,16 @@ button[type="submit"]:active:not(:disabled), button.primary:active:not(:disabled
 }
 
 button.danger, .btn-danger {
-  background: rgba(239, 68, 68, 0.1);
-  border-color: rgba(239, 68, 68, 0.35);
+  background: var(--ax-danger-soft);
+  border-color: var(--ax-danger);
   color: var(--ax-danger);
 }
 
 button.danger:hover:not(:disabled), .btn-danger:hover:not(:disabled) {
-  background: rgba(239, 68, 68, 0.22);
-  border-color: rgba(248, 113, 113, 0.55);
-  box-shadow: 0 0 10px rgba(239, 68, 68, 0.18);
-  color: #fca5a5;
+  background: var(--ax-danger-soft);
+  border-color: var(--ax-danger);
+  box-shadow: 0 0 10px var(--ax-danger-soft);
+  color: var(--ax-danger);
 }
 
 button.ghost, .btn-ghost {
@@ -253,7 +255,7 @@ input:hover, textarea:hover, select:hover {
 
 input:focus, textarea:focus, select:focus {
   border-color: var(--ax-accent-bright);
-  box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.18), inset 0 1px 2px rgba(0, 0, 0, 0.25);
+  box-shadow: 0 0 0 3px var(--ax-focus-ring), inset 0 1px 2px rgba(0, 0, 0, 0.25);
   background: rgba(255, 255, 255, 0.045);
 }
 
@@ -268,7 +270,7 @@ input:disabled, textarea:disabled, select:disabled {
 
 /* Cards */
 .card, .space-card {
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.03), rgba(255, 255, 255, 0.015));
+  background: var(--ax-panel);
   border: 1px solid var(--ax-border);
   border-radius: 12px;
   padding: var(--ax-space-4);
@@ -283,8 +285,8 @@ input:disabled, textarea:disabled, select:disabled {
 }
 
 .space-card-error {
-  border-color: rgba(239, 68, 68, 0.3);
-  background: rgba(239, 68, 68, 0.06);
+  border-color: var(--ax-danger);
+  background: var(--ax-danger-soft);
 }
 
 .space-card-error strong {
@@ -365,7 +367,7 @@ input:disabled, textarea:disabled, select:disabled {
 
 .receipt-grid {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
   gap: var(--ax-space-3);
   padding: var(--ax-space-4);
   background: var(--ax-raised);
@@ -386,6 +388,7 @@ input:disabled, textarea:disabled, select:disabled {
 .receipt-grid dd {
   font-size: 13px;
   color: var(--ax-fg);
+  overflow-wrap: anywhere;
 }
 
 .receipt-preview {
@@ -546,6 +549,197 @@ input:disabled, textarea:disabled, select:disabled {
   width: 100%;
 }
 
+/* Media estimate: what the current recording is expected to cost before execution. */
+.media-estimate {
+  display: grid;
+  gap: 4px;
+  margin-bottom: var(--ax-space-2);
+  padding: var(--ax-space-3);
+  background: var(--ax-raised);
+  border: 1px solid var(--ax-border);
+  border-radius: var(--ax-radius-md);
+  font-size: 12px;
+  color: var(--ax-fg-secondary);
+}
+
+/* Diagnostics: raw backend payloads live here, never inside the reading column. */
+.diagnostic-console {
+  grid-column: 1 / -1;
+  display: grid;
+  gap: var(--ax-space-2);
+  padding-top: var(--ax-space-3);
+  border-top: 1px solid var(--ax-border);
+}
+
+.diagnostic-console-header {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--ax-space-3);
+}
+
+.diagnostic-console-count {
+  font-size: 12px;
+  color: var(--ax-fg-tertiary);
+}
+
+.diagnostic-console-empty {
+  font-size: 12px;
+  color: var(--ax-fg-tertiary);
+}
+
+.diagnostic-console-list {
+  display: grid;
+  gap: 4px;
+  max-height: 240px;
+  overflow: auto;
+}
+
+.diagnostic-console-list pre {
+  max-height: 200px;
+  overflow: auto;
+  font-size: 12px;
+  overflow-wrap: anywhere;
+}
+
+.raw-receipt {
+  font-size: 12px;
+  align-self: start;
+}
+
+/* Recovery workbench: without these the whole screen is one undivided text run, since the
+   global reset removes every default margin and nothing else supplies structure. */
+.recovery-card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ax-space-4);
+  padding: var(--ax-space-6);
+  background: var(--ax-panel);
+  border: 1px solid var(--ax-border);
+  border-radius: var(--ax-radius-lg);
+}
+
+.recovery-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--ax-space-3);
+}
+
+.recovery-kicker {
+  font-size: 11px;
+  font-weight: 510;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ax-fg-tertiary);
+  margin-bottom: 4px;
+}
+
+.recovery-message {
+  font-size: 14px;
+  color: var(--ax-fg);
+}
+
+.recovery-diagnostic {
+  font-size: 12px;
+  color: var(--ax-fg-tertiary);
+  overflow-wrap: anywhere;
+}
+
+.recovery-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--ax-space-2);
+}
+
+.recovery-field {
+  display: grid;
+  gap: 6px;
+}
+
+.recovery-confirm {
+  display: grid;
+  gap: var(--ax-space-2);
+  justify-items: start;
+  padding: var(--ax-space-3);
+  background: var(--ax-raised);
+  border: 1px solid var(--ax-border);
+  border-radius: var(--ax-radius-md);
+}
+
+.recovery-progress {
+  font-size: 13px;
+  color: var(--ax-fg-secondary);
+}
+
+.recovery-feedback {
+  display: grid;
+  gap: var(--ax-space-2);
+}
+
+.recovery-feedback:empty {
+  display: none;
+}
+
+.recovery-logs {
+  display: grid;
+  gap: var(--ax-space-2);
+  padding-top: var(--ax-space-4);
+  border-top: 1px solid var(--ax-border);
+}
+
+.recovery-logs ul {
+  display: grid;
+  gap: 4px;
+  max-height: 220px;
+  overflow: auto;
+  font-size: 12px;
+  color: var(--ax-fg-secondary);
+  overflow-wrap: anywhere;
+}
+
+/* Command palette: the trigger looked deliberate only by accident, inheriting the bare
+   button rule, and the option rows carried no layout of their own. */
+.command-trigger {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--ax-space-2);
+}
+
+.command-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+}
+
+.command-empty {
+  padding: var(--ax-space-4);
+  font-size: 13px;
+  color: var(--ax-fg-secondary);
+}
+
+/* Space surfaces */
+.space-view {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ax-space-4);
+}
+
+.space-title {
+  font-size: 15px;
+  font-weight: 590;
+}
+
+.content-import {
+  display: grid;
+  gap: var(--ax-space-3);
+  padding: var(--ax-space-4);
+  background: var(--ax-raised);
+  border: 1px solid var(--ax-border);
+  border-radius: var(--ax-radius-md);
+}
+
 /* Tables */
 table {
   width: 100%;
@@ -602,9 +796,12 @@ tr:hover {
 }
 
 .badge-info {
-  background: rgba(255, 255, 255, 0.06);
-  color: var(--ax-fg-tertiary);
+  background: var(--ax-accent-soft);
+  color: var(--ax-accent-bright);
 }
+
+.aaos-status-badge { display: inline-flex; align-items: center; gap: 5px; }
+.aaos-status-badge-icon { flex: 0 0 auto; }
 
 /* Progress */
 .progress-track {
@@ -658,6 +855,13 @@ tr:hover {
   min-width: 180px;
 }
 
+/* The owner's transparent logo is readable through its ink contrast. The static theme halo
+   is decorative: rendered gutter samples measured only 1.01-1.05:1 against the bar.
+   No animation or filter interpolation is applied in either motion preference. */
+.status-bar-brand .brand-mark {
+  filter: drop-shadow(0 0 4px var(--ax-brand-glow));
+}
+
 .status-bar-brand small {
   font-weight: 400;
   font-size: 12px;
@@ -665,13 +869,18 @@ tr:hover {
 }
 
 .status-bar-center {
-  flex: 1;
+  flex: 1 1 auto;
+  min-width: 0;
   display: flex;
   justify-content: center;
 }
 
 .status-pill {
-  display: inline-flex;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 0;
+  display: inline-block;
   align-items: center;
   gap: 6px;
   padding: 3px 10px;
@@ -685,6 +894,9 @@ tr:hover {
 
 .status-pill::before {
   content: "";
+  display: inline-block;
+  vertical-align: middle;
+  margin-right: 6px;
   width: 6px;
   height: 6px;
   border-radius: 50%;
@@ -706,6 +918,7 @@ tr:hover {
 }
 
 .inspector-trigger {
+  flex-shrink: 0;
   width: 28px;
   height: 28px;
   padding: 0;
@@ -781,6 +994,13 @@ tr:hover {
   opacity: 1;
 }
 
+/* The current-item rule above carries a box-shadow of its own, which would otherwise win the
+   cascade and leave the selected item with no visible keyboard focus ring. */
+.space-rail-item[aria-current="page"]:focus-visible,
+.context-subnav button[aria-current="page"]:focus-visible {
+  box-shadow: 0 0 0 2px var(--ax-accent-soft), 0 0 0 4px rgba(255, 255, 255, 0.25);
+}
+
 .space-rail-icon {
   font-size: 14px;
   width: 18px;
@@ -796,6 +1016,8 @@ tr:hover {
 
 /* Context subnav */
 .context-subnav {
+  min-height: 0;
+  overflow: auto;
   display: flex;
   flex-direction: column;
   width: 220px;
@@ -804,6 +1026,8 @@ tr:hover {
   background: var(--ax-canvas);
   gap: var(--ax-space-4);
 }
+
+.context-subnav > * { flex-shrink: 0; }
 
 .context-subnav header {
   padding-bottom: var(--ax-space-3);
@@ -907,10 +1131,58 @@ tr:hover {
 /* Inspector */
 .inspector {
   width: 300px;
+  min-width: 0;
+  flex-shrink: 1;
   border-left: 1px solid var(--ax-border);
   background: var(--ax-panel);
   padding: var(--ax-space-4);
   overflow-y: auto;
+}
+
+.inspector-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--ax-space-2);
+  margin-bottom: var(--ax-space-3);
+}
+
+.inspector-title {
+  font-size: 13px;
+  font-weight: 590;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--ax-fg-secondary);
+}
+
+.inspector-details {
+  display: grid;
+  grid-template-columns: minmax(72px, auto) 1fr;
+  gap: var(--ax-space-1) var(--ax-space-3);
+  align-items: start;
+}
+
+.inspector-details dt {
+  font-size: 11px;
+  font-weight: 510;
+  color: var(--ax-fg-tertiary);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.inspector-details dd {
+  font-size: 13px;
+  color: var(--ax-fg);
+  overflow-wrap: anywhere;
+}
+
+.inspector-empty {
+  font-size: 13px;
+  color: var(--ax-fg-secondary);
+}
+
+.inspector-empty-close {
+  margin-bottom: var(--ax-space-3);
 }
 
 /* Activity dock */
@@ -920,6 +1192,73 @@ tr:hover {
   padding: 8px var(--ax-space-4);
   min-height: 40px;
   flex-shrink: 0;
+}
+
+/* Expanded job/receipt rows; without this the dock renders one undivided text run. */
+.activity-dock-body {
+  display: grid;
+  gap: var(--ax-space-1);
+  margin-top: var(--ax-space-2);
+}
+
+/* Canvas board (web development surface; the desktop shell does not render it) */
+.canvas-board {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ax-space-3);
+}
+
+.canvas-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--ax-space-2);
+}
+
+.canvas-viewport {
+  position: relative;
+  min-height: 320px;
+  overflow: auto;
+  background: var(--ax-bg-inset);
+  border: 1px solid var(--ax-border);
+  border-radius: var(--ax-radius-md);
+}
+
+.canvas-node-card {
+  position: absolute;
+  width: 200px;
+  padding: var(--ax-space-3);
+  background: var(--ax-raised);
+  border: 1px solid var(--ax-border);
+  border-radius: var(--ax-radius-sm);
+  overflow-wrap: anywhere;
+}
+
+.canvas-node-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--ax-space-2);
+}
+
+.canvas-node-type {
+  font-size: 11px;
+  color: var(--ax-fg-tertiary);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.canvas-node-text {
+  font-size: 13px;
+  color: var(--ax-fg);
+}
+
+.canvas-node-actions {
+  display: flex;
+  gap: var(--ax-space-1);
+}
+
+.canvas-node-edit {
+  width: 100%;
 }
 
 .activity-dock-summary {
@@ -1144,6 +1483,7 @@ tr:hover {
 
 .state-ok { color: var(--ax-success); }
 .state-warn { color: var(--ax-warning); }
+.state-danger { color: var(--ax-danger); }
 .state-pending { color: var(--ax-fg-tertiary); }
 
 .ws-empty {
@@ -1625,7 +1965,7 @@ tr:hover {
   display: grid;
   place-items: start center;
   padding: min(12vh, 96px) var(--ax-space-4) var(--ax-space-4);
-  background: rgba(0, 0, 0, 0.72);
+  background: var(--aaos-overlay);
   backdrop-filter: blur(3px);
 }
 
@@ -1843,89 +2183,80 @@ tr:hover {
   }
 }
 
-@media (max-width: 900px) {
-  .context-subnav {
-    display: none;
-  }
-}
-
-/* Mobile: keep the workspace usable without horizontal scrolling. */
-@media (max-width: 600px) {
-  .status-bar {
-    padding: 0 10px;
-    gap: 8px;
-  }
-
-  .status-bar-brand {
-    min-width: 0;
-    flex: 1;
-  }
-
-  .status-bar-brand small,
-  .status-bar-center {
-    display: none;
-  }
-
-  .status-bar-space {
-    min-width: 0;
-    font-size: 12px;
-  }
-
-  .app-body {
-    flex-direction: column;
-  }
-
+/* Three fixed panes plus the reading column do not fit a 1024-wide window: measured at
+   1024x900 with the Inspector open the centre collapsed to 304px and its contents overflowed
+   by 21-58px. Narrow the chrome before the content, and let the content shrink at all. */
+@media (max-width: 1200px) {
   .space-rail {
-    width: 100%;
-    height: 56px;
-    padding: 6px;
-    border-right: 0;
-    border-bottom: 1px solid var(--ax-border);
-    overflow: hidden;
+    width: 172px;
   }
 
-  .space-rail-list {
-    flex-direction: row;
-    overflow-x: auto;
-    scrollbar-width: thin;
+  .context-subnav {
+    width: 172px;
+    padding: var(--ax-space-3);
   }
 
-  .space-rail-list > li {
-    flex: 0 0 auto;
+  .inspector {
+    width: 264px;
   }
 
-  .space-rail-item {
-    width: auto;
-    justify-content: center;
-    gap: 0;
-    padding: 10px 8px;
+  .app-center {
+    min-width: min(420px, 100%);
   }
 
-  .space-rail-item > span:last-child {
+  .space-view,
+  .space-card {
+    min-width: 0;
+  }
+
+  .space-view ul,
+  .space-view ol {
+    min-width: 0;
+    overflow-wrap: anywhere;
+  }
+
+  /* The global button rule forbids wrapping, so a long Chinese label becomes a min-content
+     floor that pushes its container past the pane. */
+  .app-center button,
+  .context-subnav button {
+    white-space: normal;
+    overflow-wrap: anywhere;
+  }
+}
+
+@media (max-width: 1080px) {
+  .space-rail {
+    width: 148px;
+  }
+
+  .context-subnav {
+    width: 148px;
+  }
+
+  .inspector {
+    width: 232px;
+  }
+}
+
+@media (min-width: 601px) and (max-width: 900px) {
+  /* Hiding this entirely removes the only section switcher in the library space. */
+  .context-subnav {
+    width: 168px;
+    min-width: 0;
+    gap: var(--ax-space-3);
+  }
+
+  .context-subnav header,
+  .context-subnav p,
+  .context-subnav footer {
     display: none;
   }
 
-  .space-rail-icon {
-    width: auto;
-  }
-
-  .app-center,
-  .app-main,
-  .space-page,
-  .space-page-content {
-    min-height: 0;
-    min-width: 0;
-    max-width: 100%;
-  }
-
-  .ws-quick-actions {
-    grid-template-columns: 1fr;
-  }
-
-  .space-page {
-    padding: 18px 14px;
+  .app-center {
+    min-width: 280px;
   }
 }
+
 
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {

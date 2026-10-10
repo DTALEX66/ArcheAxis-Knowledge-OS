@@ -9,6 +9,7 @@ from datetime import UTC, datetime
 from pathlib import Path
 
 from shared import migration
+from shared.paths import native_path, sqlite_readonly_target
 
 KNOWLEDGE_GOVERNANCE_MIGRATION_VERSION = 5
 KNOWLEDGE_GOVERNANCE_MIGRATION_NAME = "phase5_knowledge_candidate_governance_v1"
@@ -421,18 +422,21 @@ def _connect(
 ) -> sqlite3.Connection:
     if readonly:
         if live_wal:
-            connection = sqlite3.connect(str(path), timeout=30.0)
+            connection = sqlite3.connect(native_path(path), timeout=30.0)
         else:
             sidecars = [Path(f"{path}{suffix}") for suffix in ("-wal", "-shm")]
-            if any(item.exists() for item in sidecars):
+            # An unwrapped probe reads a present sidecar as absent at a long name, which would let
+            # an un-checkpointed database be opened immutable=1 and read stale pages.
+            if any(Path(native_path(item)).exists() for item in sidecars):
                 raise RuntimeError("knowledge governance read requires checkpointed database")
+            target, use_uri = sqlite_readonly_target(path)
             connection = sqlite3.connect(
-                f"{path.resolve().as_uri()}?mode=ro&immutable=1", uri=True, timeout=30.0
+                f"{target}&immutable=1" if use_uri else target, uri=use_uri, timeout=30.0
             )
         connection.execute("PRAGMA query_only=ON")
     else:
-        path.parent.mkdir(parents=True, exist_ok=True)
-        connection = sqlite3.connect(str(path), timeout=30.0)
+        Path(native_path(path.parent)).mkdir(parents=True, exist_ok=True)
+        connection = sqlite3.connect(native_path(path), timeout=30.0)
     connection.execute("PRAGMA busy_timeout=30000")
     connection.row_factory = sqlite3.Row
     return connection
@@ -621,7 +625,7 @@ def migrate(
     if _operator_capability is not _OPERATOR_CAPABILITY:
         raise RuntimeError("knowledge governance migration must be driven by MigrationOperator")
     database, backups = Path(db_path), Path(backup_dir)
-    existed = database.is_file()
+    existed = Path(native_path(database)).is_file()
     if existed:
         migration._validate_database(database)
     backup_path: Path | None = None
@@ -674,7 +678,7 @@ def migrate(
 
 def status(*, db_path: str | Path, live_wal: bool = False) -> dict[str, object]:
     database = Path(db_path)
-    if not database.is_file():
+    if not Path(native_path(database)).is_file():
         pending = tuple(KNOWLEDGE_GOVERNANCE_MIGRATIONS.values())
     else:
         with closing(_connect(database, readonly=True, live_wal=live_wal)) as connection:

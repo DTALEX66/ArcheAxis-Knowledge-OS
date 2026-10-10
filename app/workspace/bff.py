@@ -12,6 +12,8 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
+from shared.paths import native_path
+
 
 class BFFUnavailableError(RuntimeError):
     """The projection cannot be read safely from the current local database."""
@@ -54,7 +56,7 @@ def _cursor_decode(cursor: str) -> tuple[str, str]:
 
 
 def _connection(db_path: str | Path) -> sqlite3.Connection:
-    connection = sqlite3.connect(Path(db_path), timeout=30.0)
+    connection = sqlite3.connect(native_path(db_path), timeout=30.0)
     connection.row_factory = sqlite3.Row
     connection.execute("PRAGMA busy_timeout=30000")
     connection.execute("PRAGMA query_only=ON")

@@ -51,6 +51,43 @@ export function sourceLabel(value: unknown, index = 0): string {
 
 const SAFE_ERROR = "本地数据暂时不可用，请稍后重试或打开系统诊断。";
 
+// UI-03: 离线、冲突、权限、缺失对象是四种不同的用户处境，合并成一句话会让人去查错误的地方。
+// 只分类本地核心的已知失败形状，其它错误不编造原因。通用的“核心不可用”故意不在此列：
+// 它由 userErrorMessage 的原句承担，好让 Web 端 5xx 的既有措辞与测试保持一致。
+export function coreFailureReason(error: unknown): string | null {
+  const value = error as { status?: unknown; code?: unknown } | null;
+  if (!value || typeof value !== "object") return null;
+  if (value.code === "offline") return "离线：此功能需要本地桌面宿主；数据仍留在本机，未被替换。";
+  if (value.code === "migrating") return "迁移中：本地核心正在升级数据结构，暂时不能读写；数据未被改动。";
+  if (value.code === "backend_starting") return "正在启动：本地核心尚未就绪，稍后重试；本次结果未知。";
+  if (value.status === 409) return "冲突：对象版本已变化。已保留你当前的输入，请重新读取后再决定。";
+  if (value.code === "unauthorized") return "权限：本地核心拒绝了这次操作的身份，内容未改动。";
+  if (value.status === 404) return "缺失：本地核心找不到这个对象；列表可能已变化，页面内容未被替换。";
+  if (value.status === 429) return "繁忙：本地核心正在处理其它任务，稍后重试；本次结果未知。";
+  if (value.code === "incompatible") return "不兼容：本地核心的返回不符合当前合同，已停止而未按成功显示。";
+  return null;
+}
+
+export function failureMessage(error: unknown): string {
+  return coreFailureReason(error) ?? userErrorMessage(error instanceof Error ? error.message : error);
+}
+
+const PRODUCT_LAYER_LABELS: Record<string, string> = {
+  Workspace: "工作台",
+  Library: "资料库",
+  Evidence: "证据",
+  Learning: "学习",
+  "AI Assets": "机器知识",
+  Desktop: "桌面宿主",
+  Exploration: "探索",
+  Settings: "设置",
+};
+
+/** The navigation projection groups by the Core's English layer enum; the rail must not show it raw. */
+export function productLayerLabel(layer: string): string {
+  return PRODUCT_LAYER_LABELS[layer] ?? layer;
+}
+
 export function userErrorMessage(value: unknown): string {
   if (typeof value !== "string") return SAFE_ERROR;
   const message = value.trim().slice(0, 180);

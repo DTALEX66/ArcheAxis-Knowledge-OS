@@ -42,7 +42,7 @@ def test_ci_supports_explicit_full_qualification_for_a_selected_sha() -> None:
     assert "workflow_dispatch:" in workflow
     assert "force_full:" in workflow
     assert "Run every qualification gate for the selected SHA" in workflow
-    assert "CI_FORCE_FULL: ${{ inputs.force_full || vars.CI_FORCE_FULL || contains(github.event.head_commit.message, '[full-qualification]') }}" in workflow
+    assert "CI_FORCE_FULL: ${{ github.event_name == 'workflow_dispatch' && inputs.force_full }}" in workflow
 
 
 def test_ci_cancels_superseded_main_runs() -> None:
@@ -167,10 +167,14 @@ def test_ci_builds_and_tests_the_windows_desktop_shell() -> None:
     )
     assert "cargo install cargo-audit --version 0.22.2 --locked" in desktop_job
     assert "cargo audit --file Cargo.lock" in desktop_job
-    assert "frontend\\node_modules\\.bin\\tauri.cmd build --config src-tauri\\tauri.conf.json --bundles nsis" in desktop_job
+    assert 'scripts\\runtime\\frontend.mjs' in desktop_job
+    assert 'tauri --receipt' in desktop_job
+    assert '-- build --config src-tauri\\tauri.conf.json --bundles nsis' in desktop_job
+    assert 'Compress-Archive -LiteralPath $frontendReceipt.frontend_dist' in desktop_job
     assert "timeout-minutes: 30" in desktop_job
     lifecycle_job = _job_section(workflow, "installer-lifecycle", "a0-gates")
     assert "./desktop/scripts/verify_nsis_install.ps1" in lifecycle_job
+    assert "lifecycle-receipt.json" in lifecycle_job
     assert "actions/upload-artifact@" in desktop_job
     assert "actions/download-artifact@" in lifecycle_job
     assert (
@@ -181,6 +185,22 @@ def test_ci_builds_and_tests_the_windows_desktop_shell() -> None:
     assert 'Get-ChildItem ".project-local/build/tauri/release/bundle/nsis" -Filter "*.exe" -File' in desktop_job
     assert 'ArcheAxis Knowledge_$($package.version)_x64-setup.exe' in desktop_job
     assert 'Write-Host "NSIS installers found:' in desktop_job
+
+
+def test_desktop_jobs_prepare_the_same_authoritative_candidate() -> None:
+    import yaml
+
+    jobs = yaml.safe_load(WORKFLOW.read_text(encoding="utf-8"))["jobs"]
+    preparations = []
+    for job in ("desktop-fast", "desktop-build"):
+        step = next(item for item in jobs[job]["steps"]
+                    if item.get("name") == "Prepare the installed Python runtime")
+        preparations.append(step["run"])
+        assert step["working-directory"] == "${{ github.workspace }}"
+    assert preparations[0] == preparations[1]
+    assert "cargo build -p archeaxis-api --bin archeaxis-api --release --locked" in preparations[0]
+    assert "--backend-candidate" in preparations[0]
+    assert "--core-only" not in preparations[0]
 
 
 def test_desktop_build_has_a_process_level_deadline() -> None:
@@ -290,7 +310,7 @@ def test_v0_6_6_development_version_uses_one_version_everywhere() -> None:
     assert "frontend/package-lock.json" in release_workflow
     assert "src-tauri/Cargo.lock" in release_workflow
     assert "--exe .project-local/build/tauri/release/ArcheAxis.exe" in release_workflow
-    assert "--frontend .project-local/build/frontend-dist" in release_workflow
+    assert '--frontend "$env:ARCHEAXIS_FRONTEND_DIST"' in release_workflow
     assert f"--version {expected_version}" not in release_workflow
     assert (
         'name = "archeaxis-workspace"\nversion = "0.6.14"\nsource = { editable = "." }'
@@ -403,31 +423,22 @@ def test_ci_verdict_does_not_require_orphan_job_name_test() -> None:
 
 
 def test_selective_heavy_jobs_gate_on_gateplan() -> None:
-    workflow = WORKFLOW.read_text(encoding="utf-8")
-
-    # Heavy jobs depend on gateplan and skip when their gate is not required,
-    # BUT run under full-qualification or when gateplan fails (fail-closed).
+    import yaml
+    jobs = yaml.safe_load(WORKFLOW.read_text(encoding="utf-8"))["jobs"]
     for job, gate in (
-        ("wheel-smoke", "wheel-smoke"),
-        ("browser-smoke", "browser-smoke"),
-        ("windows-runtime-smoke", "windows-runtime"),
-    ):
-        block = workflow.split(f"\n  {job}:", 1)[1]
-        assert "needs: gateplan" in block, f"{job} missing gateplan dependency"
-        assert f"contains(needs.gateplan.outputs.required_gates, '{gate}')" in block
-        # fail-closed: gateplan failure OR full-qualification forces the job to run
-        assert "needs.gateplan.result != 'success'" in block
-        assert "full_qualification == 'true'" in block
-
-    for job, gate in (
-        ("desktop-fast", "desktop-fast"),
+        ("wheel-smoke", "wheel-smoke"), ("browser-smoke", "browser-smoke"),
+        ("windows-runtime-smoke", "windows-runtime"), ("desktop-fast", "desktop-fast"),
         ("desktop-build", "desktop-build"),
-        ("installer-lifecycle", "installer-lifecycle"),
     ):
-        block = workflow.split(f"\n  {job}:", 1)[1]
-        assert gate in block
-        assert "needs.gateplan.result != 'success'" in block
-        assert "full_qualification == 'true'" in block
+        assert {"gateplan", "lint"} <= set(jobs[job]["needs"])
+        assert f"contains(needs.gateplan.outputs.required_gates, '{gate}')" in jobs[job]["if"]
+        assert "full_qualification == 'true'" in jobs[job]["if"]
+        assert "needs.gateplan.result != 'success'" not in jobs[job]["if"]
+    assert "workflow_dispatch" in jobs["installer-lifecycle"]["if"]
+    assert "inputs.force_full" in jobs["installer-lifecycle"]["if"]
+    # Missing/failed GatePlan stays red in the stable summary, without launching
+    # the heavy matrix just to obtain a red result.
+    assert 'if [ "${{ needs.gateplan.result }}" != "success" ]' in WORKFLOW.read_text(encoding="utf-8")
 
 
 def test_runtime_policy_uses_python_311_floor_and_python_312_desktop() -> None:

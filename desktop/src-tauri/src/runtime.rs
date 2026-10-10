@@ -39,7 +39,9 @@ fn project_root_for_resource(resource_dir: &Path) -> Option<PathBuf> {
     resource_dir
         .ancestors()
         .find(|candidate| {
-            if !candidate.join("pyproject.toml").is_file() || !candidate.join(".project-local").is_dir() {
+            if !candidate.join("pyproject.toml").is_file()
+                || !candidate.join(".project-local").is_dir()
+            {
                 return false;
             }
             let Ok(relative) = resource_dir.strip_prefix(candidate.join(".project-local")) else {
@@ -116,13 +118,23 @@ fn resolve_runtime_for_profile(
         });
     }
 
-    let python = resource_dir.join("runtime/python/python.exe");
-    if !python.is_file() {
+    // Two layouts are in use and neither is wrong. The dependency stager writes a flat
+    // `runtime/python.exe` and its worker profile names that same path, while an earlier
+    // packaging pass nested the interpreter under `runtime/python/`. Accept either,
+    // preferring the nested form so nothing that already worked changes, because a
+    // candidate must not be unusable over a packaging detail.
+    let nested = resource_dir.join("runtime/python/python.exe");
+    let flat = resource_dir.join("runtime/python.exe");
+    let python = if nested.is_file() {
+        nested
+    } else if flat.is_file() {
+        flat
+    } else {
         return Err(format!(
             "bundled Python runtime is missing: {}",
-            python.display()
+            nested.display()
         ));
-    }
+    };
     if let Some(portable_root) = portable_root {
         if !portable_root.is_absolute() {
             return Err(format!(
@@ -155,8 +167,8 @@ fn resolve_runtime_for_profile(
 #[cfg(test)]
 mod tests {
     use super::{
-        RuntimeSpec, external_dev_enabled, portable_root_from_marker, resolve_runtime,
-        resolve_runtime_for_profile, resolve_runtime_with_portable_root,
+        external_dev_enabled, portable_root_from_marker, resolve_runtime,
+        resolve_runtime_for_profile, resolve_runtime_with_portable_root, RuntimeSpec,
     };
     use std::ffi::OsStr;
     use std::fs;

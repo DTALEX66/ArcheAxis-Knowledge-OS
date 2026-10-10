@@ -1,0 +1,2179 @@
+{
+  "schema": "aaos.ui-design-zip-crosswalk/v1",
+  "role": "SOURCE_REQUIREMENTS_MAPPING_NOT_PROGRESS_LEDGER",
+  "source_records": 107,
+  "rows": [
+    {
+      "source": "docs/history/ui-design-increment-20261009/sources/zip-members/02_旧22页新入口与职责映射.csv",
+      "csv_record": 1,
+      "source_fields": {
+        "原UI页ID": "01",
+        "原页面": "今日工作台",
+        "工作区": "工作台",
+        "入口层级": "一级入口",
+        "入口路径语义": "今日工作/最近现场/到期复习",
+        "主要动作": "继续最近工作",
+        "独有行为与能力保留": "最近列表与待办按真实对象恢复",
+        "继承CAP": "CAP-0010;CAP-0040;CAP-0050;CAP-0120",
+        "源需求": "R001;R003;R006;R008;R033",
+        "状态": "设计提议；旧路由/行为需当前工作树映射"
+      },
+      "tasks": [
+        "UF03"
+      ],
+      "implementation": "NOT_QUALIFIED_BY_SOURCE",
+      "evidence_required": "Current source/runtime evidence scoped to the original acceptance; source NOT_EXECUTED is historical."
+    },
+    {
+      "source": "docs/history/ui-design-increment-20261009/sources/zip-members/02_旧22页新入口与职责映射.csv",
+      "csv_record": 2,
+      "source_fields": {
+        "原UI页ID": "02",
+        "原页面": "知识库",
+        "工作区": "知识",
+        "入口层级": "一级入口内默认视图",
+        "入口路径语义": "集合与内容列表",
+        "主要动作": "新建笔记/导入原件",
+        "独有行为与能力保留": "列表筛选和集合上下文保留",
+        "继承CAP": "CAP-0010;CAP-0020;CAP-0110",
+        "源需求": "R003;R010;R011;R012",
+        "状态": "设计提议；旧路由/行为需当前工作树映射"
+      },
+      "tasks": [
+        "UF03"
+      ],
+      "implementation": "NOT_QUALIFIED_BY_SOURCE",
+      "evidence_required": "Current source/runtime evidence scoped to the original acceptance; source NOT_EXECUTED is historical."
+    },
+    {
+      "source": "docs/history/ui-design-increment-20261009/sources/zip-members/02_旧22页新入口与职责映射.csv",
+      "csv_record": 3,
+      "source_fields": {
+        "原UI页ID": "03",
+        "原页面": "阅读与编辑",
+        "工作区": "知识",
+        "入口层级": "对象详情/深链接",
+        "入口路径语义": "内容→阅读/编辑",
+        "主要动作": "编辑与真实保存",
+        "独有行为与能力保留": "从知识/搜索/课程回跳同一对象",
+        "继承CAP": "CAP-0010;CAP-0030;CAP-0110",
+        "源需求": "R003;R004;R005;R010;R030",
+        "状态": "设计提议；旧路由/行为需当前工作树映射"
+      },
+      "tasks": [
+        "UF03"
+      ],
+      "implementation": "NOT_QUALIFIED_BY_SOURCE",
+      "evidence_required": "Current source/runtime evidence scoped to the original acceptance; source NOT_EXECUTED is historical."
+    },
+    {
+      "source": "docs/history/ui-design-increment-20261009/sources/zip-members/02_旧22页新入口与职责映射.csv",
+      "csv_record": 4,
+      "source_fields": {
+        "原UI页ID": "04",
+        "原页面": "双链与知识图谱",
+        "工作区": "知识",
+        "入口层级": "二级视图/对象关系",
+        "入口路径语义": "内容→反链/局部图谱",
+        "主要动作": "打开关联内容",
+        "独有行为与能力保留": "人工/导入/AI推断关系来源独立",
+        "继承CAP": "CAP-0110;CAP-0160",
+        "源需求": "R010;R012;R032",
+        "状态": "设计提议；旧路由/行为需当前工作树映射"
+      },
+      "tasks": [
+        "UF08"
+      ],
+      "implementation": "NOT_QUALIFIED_BY_SOURCE",
+      "evidence_required": "Current source/runtime evidence scoped to the original acceptance; source NOT_EXECUTED is historical."
+    },
+    {
+      "source": "docs/history/ui-design-increment-20261009/sources/zip-members/02_旧22页新入口与职责映射.csv",
+      "csv_record": 5,
+      "source_fields": {
+        "原UI页ID": "05",
+        "原页面": "研究空间",
+        "工作区": "知识",
+        "入口层级": "二级研究空间/可收藏",
+        "入口路径语义": "研究空间→问题项目",
+        "主要动作": "继续研究或新建研究问题",
+        "独有行为与能力保留": "问题/方法/反证/实验/未决完整保留",
+        "继承CAP": "CAP-0030;CAP-0090",
+        "源需求": "R004;R013;R019",
+        "状态": "设计提议；旧路由/行为需当前工作树映射"
+      },
+      "tasks": [
+        "UF08"
+      ],
+      "implementation": "NOT_QUALIFIED_BY_SOURCE",
+      "evidence_required": "Current source/runtime evidence scoped to the original acceptance; source NOT_EXECUTED is historical."
+    },
+    {
+      "source": "docs/history/ui-design-increment-20261009/sources/zip-members/02_旧22页新入口与职责映射.csv",
+      "csv_record": 6,
+      "source_fields": {
+        "原UI页ID": "06",
+        "原页面": "学习路径",
+        "工作区": "学习",
+        "入口层级": "一级入口内目标与路径",
+        "入口路径语义": "目标→诊断/路径/活动/巩固",
+        "主要动作": "继续下一活动",
+        "独有行为与能力保留": "完整学习生命周期不能缩成课程流程",
+        "继承CAP": "CAP-0040;CAP-0060",
+        "源需求": "R006;R007;R014;R033;R046",
+        "状态": "设计提议；旧路由/行为需当前工作树映射"
+      },
+      "tasks": [
+        "UF05"
+      ],
+      "implementation": "NOT_QUALIFIED_BY_SOURCE",
+      "evidence_required": "Current source/runtime evidence scoped to the original acceptance; source NOT_EXECUTED is historical."
+    },
+    {
+      "source": "docs/history/ui-design-increment-20261009/sources/zip-members/02_旧22页新入口与职责映射.csv",
+      "csv_record": 7,
+      "source_fields": {
+        "原UI页ID": "07",
+        "原页面": "课程与视觉教学",
+        "工作区": "学习",
+        "入口层级": "课程详情/学习视图",
+        "入口路径语义": "课程→当前场景/练习/引用",
+        "主要动作": "继续场景或进入练习",
+        "独有行为与能力保留": "固定引用、离线内容、真实进度",
+        "继承CAP": "CAP-0040;CAP-0060;CAP-0160",
+        "源需求": "R014;R030;R033;R034",
+        "状态": "设计提议；旧路由/行为需当前工作树映射"
+      },
+      "tasks": [
+        "UF05"
+      ],
+      "implementation": "NOT_QUALIFIED_BY_SOURCE",
+      "evidence_required": "Current source/runtime evidence scoped to the original acceptance; source NOT_EXECUTED is historical."
+    },
+    {
+      "source": "docs/history/ui-design-increment-20261009/sources/zip-members/02_旧22页新入口与职责映射.csv",
+      "csv_record": 8,
+      "source_fields": {
+        "原UI页ID": "08",
+        "原页面": "教学需求",
+        "工作区": "学习",
+        "入口层级": "课程准备内需求步骤",
+        "入口路径语义": "课程/教学项目→准备→需求",
+        "主要动作": "保存需求/提交审阅",
+        "独有行为与能力保留": "草稿先保存；身份/先修/目标/用途保留",
+        "继承CAP": "CAP-0040;CAP-0060;CAP-0100",
+        "源需求": "R002;R027;R028;R033",
+        "状态": "设计提议；旧路由/行为需当前工作树映射"
+      },
+      "tasks": [
+        "UF07"
+      ],
+      "implementation": "NOT_QUALIFIED_BY_SOURCE",
+      "evidence_required": "Current source/runtime evidence scoped to the original acceptance; source NOT_EXECUTED is historical."
+    },
+    {
+      "source": "docs/history/ui-design-increment-20261009/sources/zip-members/02_旧22页新入口与职责映射.csv",
+      "csv_record": 9,
+      "source_fields": {
+        "原UI页ID": "09",
+        "原页面": "表达方案审阅",
+        "工作区": "学习",
+        "入口层级": "课程准备内方案步骤",
+        "入口路径语义": "课程/教学项目→准备→表达方案",
+        "主要动作": "记录审阅与修订",
+        "独有行为与能力保留": "不冒充设计生产功能已集成",
+        "继承CAP": "CAP-0060;CAP-0160",
+        "源需求": "R002;R027;R029;R033",
+        "状态": "设计提议；旧路由/行为需当前工作树映射"
+      },
+      "tasks": [
+        "UF07"
+      ],
+      "implementation": "NOT_QUALIFIED_BY_SOURCE",
+      "evidence_required": "Current source/runtime evidence scoped to the original acceptance; source NOT_EXECUTED is historical."
+    },
+    {
+      "source": "docs/history/ui-design-increment-20261009/sources/zip-members/02_旧22页新入口与职责映射.csv",
+      "csv_record": 10,
+      "source_fields": {
+        "原UI页ID": "10",
+        "原页面": "交付登记与版本",
+        "工作区": "学习",
+        "入口层级": "课程准备内交付步骤",
+        "入口路径语义": "课程/教学项目→产物与版本",
+        "主要动作": "检查交付/登记采用",
+        "独有行为与能力保留": "登记、采用、执行、试学分别表达",
+        "继承CAP": "CAP-0060;CAP-0100;CAP-0140",
+        "源需求": "R027;R028;R030;R034",
+        "状态": "设计提议；旧路由/行为需当前工作树映射"
+      },
+      "tasks": [
+        "UF07"
+      ],
+      "implementation": "NOT_QUALIFIED_BY_SOURCE",
+      "evidence_required": "Current source/runtime evidence scoped to the original acceptance; source NOT_EXECUTED is historical."
+    },
+    {
+      "source": "docs/history/ui-design-increment-20261009/sources/zip-members/02_旧22页新入口与职责映射.csv",
+      "csv_record": 11,
+      "source_fields": {
+        "原UI页ID": "11",
+        "原页面": "练习与 Teach-back",
+        "工作区": "学习",
+        "入口层级": "课程/知识/目标内活动",
+        "入口路径语义": "当前活动→作答/Teach-back",
+        "主要动作": "提交真实作答",
+        "独有行为与能力保留": "提示/AI帮助/版本/rubric关联真实事件",
+        "继承CAP": "CAP-0040;CAP-0060",
+        "源需求": "R005;R006;R007;R046",
+        "状态": "设计提议；旧路由/行为需当前工作树映射"
+      },
+      "tasks": [
+        "UF07"
+      ],
+      "implementation": "NOT_QUALIFIED_BY_SOURCE",
+      "evidence_required": "Current source/runtime evidence scoped to the original acceptance; source NOT_EXECUTED is historical."
+    },
+    {
+      "source": "docs/history/ui-design-increment-20261009/sources/zip-members/02_旧22页新入口与职责映射.csv",
+      "csv_record": 12,
+      "source_fields": {
+        "原UI页ID": "12",
+        "原页面": "反馈与修订",
+        "工作区": "学习",
+        "入口层级": "结果与修订上下文",
+        "入口路径语义": "活动反馈/课程准备→修订",
+        "主要动作": "保存反馈/形成修订",
+        "独有行为与能力保留": "反馈分责；历史事件绑定旧版本",
+        "继承CAP": "CAP-0040;CAP-0050;CAP-0060",
+        "源需求": "R029;R030;R033;R046",
+        "状态": "设计提议；旧路由/行为需当前工作树映射"
+      },
+      "tasks": [
+        "UF07"
+      ],
+      "implementation": "NOT_QUALIFIED_BY_SOURCE",
+      "evidence_required": "Current source/runtime evidence scoped to the original acceptance; source NOT_EXECUTED is historical."
+    },
+    {
+      "source": "docs/history/ui-design-increment-20261009/sources/zip-members/02_旧22页新入口与职责映射.csv",
+      "csv_record": 13,
+      "source_fields": {
+        "原UI页ID": "13",
+        "原页面": "AI 知识与项目记忆",
+        "工作区": "AI",
+        "入口层级": "一级入口内记忆与资产",
+        "入口路径语义": "项目范围→记忆/知识包/候选",
+        "主要动作": "查看或保存候选",
+        "独有行为与能力保留": "跨客户端接续/规则技能/用途范围保留",
+        "继承CAP": "CAP-0050;CAP-0130",
+        "源需求": "R008;R009;R026;R028;R041",
+        "状态": "设计提议；旧路由/行为需当前工作树映射"
+      },
+      "tasks": [
+        "UF09"
+      ],
+      "implementation": "NOT_QUALIFIED_BY_SOURCE",
+      "evidence_required": "Current source/runtime evidence scoped to the original acceptance; source NOT_EXECUTED is historical."
+    },
+    {
+      "source": "docs/history/ui-design-increment-20261009/sources/zip-members/02_旧22页新入口与职责映射.csv",
+      "csv_record": 14,
+      "source_fields": {
+        "原UI页ID": "14",
+        "原页面": "纠正、评测与复测",
+        "工作区": "AI",
+        "入口层级": "候选/回答内纠正复测",
+        "入口路径语义": "原回答→纠正→评测与复测",
+        "主要动作": "评测复测/按资格采用",
+        "独有行为与能力保留": "原回答、测试输入、撤回和回执不覆盖",
+        "继承CAP": "CAP-0050;CAP-0130",
+        "源需求": "R008;R025;R026;R028;R030;R047",
+        "状态": "设计提议；旧路由/行为需当前工作树映射"
+      },
+      "tasks": [
+        "UF09"
+      ],
+      "implementation": "NOT_QUALIFIED_BY_SOURCE",
+      "evidence_required": "Current source/runtime evidence scoped to the original acceptance; source NOT_EXECUTED is historical."
+    },
+    {
+      "source": "docs/history/ui-design-increment-20261009/sources/zip-members/02_旧22页新入口与职责映射.csv",
+      "csv_record": 15,
+      "source_fields": {
+        "原UI页ID": "15",
+        "原页面": "资源与扩展",
+        "工作区": "资源",
+        "入口层级": "一级入口内目录",
+        "入口路径语义": "模板/插件/技能/供体/MCP",
+        "主要动作": "查看详情与可用接入",
+        "独有行为与能力保留": "索引、可用、已接入分别显示",
+        "继承CAP": "CAP-0100;CAP-0130;CAP-0150",
+        "源需求": "R018;R019;R020;R023;R032",
+        "状态": "设计提议；旧路由/行为需当前工作树映射"
+      },
+      "tasks": [
+        "UF10"
+      ],
+      "implementation": "NOT_QUALIFIED_BY_SOURCE",
+      "evidence_required": "Current source/runtime evidence scoped to the original acceptance; source NOT_EXECUTED is historical."
+    },
+    {
+      "source": "docs/history/ui-design-increment-20261009/sources/zip-members/02_旧22页新入口与职责映射.csv",
+      "csv_record": 16,
+      "source_fields": {
+        "原UI页ID": "16",
+        "原页面": "导入、导出与互通",
+        "工作区": "资源",
+        "入口层级": "二级导入导出/上下文快捷入口",
+        "入口路径语义": "原件导入/范围导出/交换结果",
+        "主要动作": "选择原件或导出范围",
+        "独有行为与能力保留": "四类互通目标独立验；首期人工交换",
+        "继承CAP": "CAP-0020;CAP-0100;CAP-0140",
+        "源需求": "R011;R017;R027;R028;R022",
+        "状态": "设计提议；旧路由/行为需当前工作树映射"
+      },
+      "tasks": [
+        "UF07",
+        "UF11"
+      ],
+      "implementation": "NOT_QUALIFIED_BY_SOURCE",
+      "evidence_required": "Current source/runtime evidence scoped to the original acceptance; source NOT_EXECUTED is historical."
+    },
+    {
+      "source": "docs/history/ui-design-increment-20261009/sources/zip-members/02_旧22页新入口与职责映射.csv",
+      "csv_record": 17,
+      "source_fields": {
+        "原UI页ID": "17",
+        "原页面": "全部能力与未来蓝图",
+        "工作区": "全部能力",
+        "入口层级": "固定工具入口",
+        "入口路径语义": "目录→搜索/分类/细项",
+        "主要动作": "打开完整能力详情",
+        "独有行为与能力保留": "普通用户可达；不以常用入口替代完整目录",
+        "继承CAP": "CAP-0010;CAP-0020;CAP-0030;CAP-0040;CAP-0050;CAP-0060;CAP-0070;CAP-0080;CAP-0090;CAP-0100;CAP-0110;CAP-0120;CAP-0130;CAP-0140;CAP-0150;CAP-0160",
+        "源需求": "R032;R043",
+        "状态": "设计提议；旧路由/行为需当前工作树映射"
+      },
+      "tasks": [
+        "UF06"
+      ],
+      "implementation": "NOT_QUALIFIED_BY_SOURCE",
+      "evidence_required": "Current source/runtime evidence scoped to the original acceptance; source NOT_EXECUTED is historical."
+    },
+    {
+      "source": "docs/history/ui-design-increment-20261009/sources/zip-members/02_旧22页新入口与职责映射.csv",
+      "csv_record": 18,
+      "source_fields": {
+        "原UI页ID": "18",
+        "原页面": "能力详情",
+        "工作区": "全部能力",
+        "入口层级": "能力详情/搜索深链接",
+        "入口路径语义": "能力→用途/细项/依赖/状态",
+        "主要动作": "查看可用动作与待实现说明",
+        "独有行为与能力保留": "完整细项需独立批准基线对账",
+        "继承CAP": "CAP-0070;CAP-0080;CAP-0160",
+        "源需求": "R015;R016;R032;R043",
+        "状态": "设计提议；旧路由/行为需当前工作树映射"
+      },
+      "tasks": [
+        "UF06",
+        "FT01",
+        "FT02"
+      ],
+      "implementation": "NOT_QUALIFIED_BY_SOURCE",
+      "evidence_required": "Current source/runtime evidence scoped to the original acceptance; source NOT_EXECUTED is historical."
+    },
+    {
+      "source": "docs/history/ui-design-increment-20261009/sources/zip-members/02_旧22页新入口与职责映射.csv",
+      "csv_record": 19,
+      "source_fields": {
+        "原UI页ID": "19",
+        "原页面": "系统与可靠性",
+        "工作区": "设置",
+        "入口层级": "固定工具入口",
+        "入口路径语义": "模型预算/权限数据/备份恢复/同步",
+        "主要动作": "当前分区的真实配置动作",
+        "独有行为与能力保留": "恢复不是未来装饰项；读取Core标识",
+        "继承CAP": "CAP-0120;CAP-0140;CAP-0150",
+        "源需求": "R020;R021;R022;R024;R031;R034",
+        "状态": "设计提议；旧路由/行为需当前工作树映射"
+      },
+      "tasks": [
+        "UF04"
+      ],
+      "implementation": "NOT_QUALIFIED_BY_SOURCE",
+      "evidence_required": "Current source/runtime evidence scoped to the original acceptance; source NOT_EXECUTED is historical."
+    },
+    {
+      "source": "docs/history/ui-design-increment-20261009/sources/zip-members/02_旧22页新入口与职责映射.csv",
+      "csv_record": 20,
+      "source_fields": {
+        "原UI页ID": "20",
+        "原页面": "版本、来源与历史",
+        "工作区": "对象详情与设置",
+        "入口层级": "上下文来源版本/全局历史",
+        "入口路径语义": "对象→来源/版本；设置→历史查询",
+        "主要动作": "查看引用影响或比较版本",
+        "独有行为与能力保留": "旧来源可查，活动权威与历史资格分开",
+        "继承CAP": "CAP-0010;CAP-0110;CAP-0140",
+        "源需求": "R030;R035;R038;R039;R041;R042",
+        "状态": "设计提议；旧路由/行为需当前工作树映射"
+      },
+      "tasks": [
+        "UF00",
+        "UF04",
+        "G01"
+      ],
+      "implementation": "NOT_QUALIFIED_BY_SOURCE",
+      "evidence_required": "Current source/runtime evidence scoped to the original acceptance; source NOT_EXECUTED is historical."
+    },
+    {
+      "source": "docs/history/ui-design-increment-20261009/sources/zip-members/02_旧22页新入口与职责映射.csv",
+      "csv_record": 21,
+      "source_fields": {
+        "原UI页ID": "21",
+        "原页面": "画布与视觉表达",
+        "工作区": "学习与知识",
+        "入口层级": "课程表达/知识画布详情",
+        "入口路径语义": "课程/对象→图解/画布/未来空间",
+        "主要动作": "编辑布局或查看表达",
+        "独有行为与能力保留": "布局不改知识真值；动画仿真XR分别保留",
+        "继承CAP": "CAP-0060;CAP-0070;CAP-0080;CAP-0160",
+        "源需求": "R014;R015;R016;R032",
+        "状态": "设计提议；旧路由/行为需当前工作树映射"
+      },
+      "tasks": [
+        "UF12",
+        "FT01",
+        "FT02"
+      ],
+      "implementation": "NOT_QUALIFIED_BY_SOURCE",
+      "evidence_required": "Current source/runtime evidence scoped to the original acceptance; source NOT_EXECUTED is historical."
+    },
+    {
+      "source": "docs/history/ui-design-increment-20261009/sources/zip-members/02_旧22页新入口与职责映射.csv",
+      "csv_record": 22,
+      "source_fields": {
+        "原UI页ID": "22",
+        "原页面": "受限任务与回执",
+        "工作区": "AI与关联对象",
+        "入口层级": "有限任务及回执详情",
+        "入口路径语义": "任务→范围/步骤/检查点/回执",
+        "主要动作": "查看真实运行、取消或继续条件",
+        "独有行为与能力保留": "复杂编排归WORK-LAB；不创建总控制平台",
+        "继承CAP": "CAP-0050;CAP-0130;CAP-0150",
+        "源需求": "R002;R008;R023;R024;R028",
+        "状态": "设计提议；旧路由/行为需当前工作树映射"
+      },
+      "tasks": [
+        "UF09"
+      ],
+      "implementation": "NOT_QUALIFIED_BY_SOURCE",
+      "evidence_required": "Current source/runtime evidence scoped to the original acceptance; source NOT_EXECUTED is historical."
+    },
+    {
+      "source": "docs/history/ui-design-increment-20261009/sources/zip-members/03_核心操作流程.csv",
+      "csv_record": 1,
+      "source_fields": {
+        "旅程": "笔记",
+        "步骤": "新建",
+        "真实输入与依赖": "已有Core新建/临时对象契约",
+        "后续状态": "进入编辑会话",
+        "主要动作": "写正文",
+        "失败与取消": "失败保留输入或给出真实重试",
+        "返回现场": "新建入口",
+        "边界": "不强加来源/评测前置"
+      },
+      "tasks": [
+        "UF03",
+        "CB01",
+        "CB03"
+      ],
+      "implementation": "NOT_QUALIFIED_BY_SOURCE",
+      "evidence_required": "Current source/runtime evidence scoped to the original acceptance; source NOT_EXECUTED is historical."
+    },
+    {
+      "source": "docs/history/ui-design-increment-20261009/sources/zip-members/03_核心操作流程.csv",
+      "csv_record": 2,
+      "source_fields": {
+        "旅程": "笔记",
+        "步骤": "编辑",
+        "真实输入与依赖": "成熟编辑器与有效权限",
+        "后续状态": "保存请求匹配对象及版本",
+        "主要动作": "继续编辑",
+        "失败与取消": "IME/撤销/迟到回执保持顺序",
+        "返回现场": "当前对象",
+        "边界": "不渲染重建未保存正文"
+      },
+      "tasks": [
+        "UF03",
+        "CB01",
+        "CB03"
+      ],
+      "implementation": "NOT_QUALIFIED_BY_SOURCE",
+      "evidence_required": "Current source/runtime evidence scoped to the original acceptance; source NOT_EXECUTED is historical."
+    },
+    {
+      "source": "docs/history/ui-design-increment-20261009/sources/zip-members/03_核心操作流程.csv",
+      "csv_record": 3,
+      "source_fields": {
+        "旅程": "笔记",
+        "步骤": "提交中",
+        "真实输入与依赖": "真实持久化提交",
+        "后续状态": "Core回执→已保存或冲突",
+        "主要动作": "保留编辑现场",
+        "失败与取消": "错误→待重试；冲突→比较版本",
+        "返回现场": "当前对象",
+        "边界": "remote同步另列"
+      },
+      "tasks": [
+        "UF03",
+        "CB01",
+        "CB03"
+      ],
+      "implementation": "NOT_QUALIFIED_BY_SOURCE",
+      "evidence_required": "Current source/runtime evidence scoped to the original acceptance; source NOT_EXECUTED is historical."
+    },
+    {
+      "source": "docs/history/ui-design-increment-20261009/sources/zip-members/03_核心操作流程.csv",
+      "csv_record": 4,
+      "source_fields": {
+        "旅程": "笔记",
+        "步骤": "版本冲突",
+        "真实输入与依赖": "草稿保留、实际新版本可读",
+        "后续状态": "比较/按现有契约修订",
+        "主要动作": "选择合法处理",
+        "失败与取消": "取消仍保留草稿，不自动覆盖新版本",
+        "返回现场": "编辑或只读比较",
+        "边界": "不静默合并或改旧历史"
+      },
+      "tasks": [
+        "UF03",
+        "CB01",
+        "CB03"
+      ],
+      "implementation": "NOT_QUALIFIED_BY_SOURCE",
+      "evidence_required": "Current source/runtime evidence scoped to the original acceptance; source NOT_EXECUTED is historical."
+    },
+    {
+      "source": "docs/history/ui-design-increment-20261009/sources/zip-members/03_核心操作流程.csv",
+      "csv_record": 5,
+      "source_fields": {
+        "旅程": "课程学习",
+        "步骤": "目标入口",
+        "真实输入与依赖": "已有目标/路径与活动模型",
+        "后续状态": "诊断/先修→可解释下一活动",
+        "主要动作": "开始或继续活动",
+        "失败与取消": "未有课程可从知识侧开始现有活动",
+        "返回现场": "学习首页",
+        "边界": "完整学习链独立于课程准备"
+      },
+      "tasks": [
+        "UF05",
+        "UF07"
+      ],
+      "implementation": "NOT_QUALIFIED_BY_SOURCE",
+      "evidence_required": "Current source/runtime evidence scoped to the original acceptance; source NOT_EXECUTED is historical."
+    },
+    {
+      "source": "docs/history/ui-design-increment-20261009/sources/zip-members/03_核心操作流程.csv",
+      "csv_record": 6,
+      "source_fields": {
+        "旅程": "课程学习",
+        "步骤": "学习场景",
+        "真实输入与依赖": "固定知识版本与可读资产",
+        "后续状态": "练习/提取/实战/Teach-back",
+        "主要动作": "继续场景/记录真实作答",
+        "失败与取消": "不可用媒体给出真实降级",
+        "返回现场": "当前场景",
+        "边界": "播放进度不代表掌握"
+      },
+      "tasks": [
+        "UF05",
+        "UF07"
+      ],
+      "implementation": "NOT_QUALIFIED_BY_SOURCE",
+      "evidence_required": "Current source/runtime evidence scoped to the original acceptance; source NOT_EXECUTED is historical."
+    },
+    {
+      "source": "docs/history/ui-design-increment-20261009/sources/zip-members/03_核心操作流程.csv",
+      "csv_record": 7,
+      "source_fields": {
+        "旅程": "课程学习",
+        "步骤": "反馈与巩固",
+        "真实输入与依赖": "实际题目、事件、rubric",
+        "后续状态": "反馈→错题/路线调整/复习",
+        "主要动作": "查看下一复习或修订",
+        "失败与取消": "无效果证据保持未评估",
+        "返回现场": "目标/活动",
+        "边界": "真人试学及长期收益另验"
+      },
+      "tasks": [
+        "UF05",
+        "UF07"
+      ],
+      "implementation": "NOT_QUALIFIED_BY_SOURCE",
+      "evidence_required": "Current source/runtime evidence scoped to the original acceptance; source NOT_EXECUTED is historical."
+    },
+    {
+      "source": "docs/history/ui-design-increment-20261009/sources/zip-members/03_核心操作流程.csv",
+      "csv_record": 8,
+      "source_fields": {
+        "旅程": "课程准备",
+        "步骤": "需求草稿",
+        "真实输入与依赖": "课程/教学项目身份、版本与用途",
+        "后续状态": "需求→方案审阅",
+        "主要动作": "保存或提交审阅",
+        "失败与取消": "缺项允许保存；提交前按契约核对",
+        "返回现场": "准备视图",
+        "边界": "不新建另一套课程主对象"
+      },
+      "tasks": [
+        "UF07",
+        "CB02"
+      ],
+      "implementation": "NOT_QUALIFIED_BY_SOURCE",
+      "evidence_required": "Current source/runtime evidence scoped to the original acceptance; source NOT_EXECUTED is historical."
+    },
+    {
+      "source": "docs/history/ui-design-increment-20261009/sources/zip-members/03_核心操作流程.csv",
+      "csv_record": 9,
+      "source_fields": {
+        "旅程": "课程准备",
+        "步骤": "方案审阅",
+        "真实输入与依赖": "生产者与引用范围可读",
+        "后续状态": "方案→版本化交付",
+        "主要动作": "记录审阅/返回修订",
+        "失败与取消": "拒绝或待修改保留历史",
+        "返回现场": "需求或方案",
+        "边界": "设计主责归DESIGN-LAB"
+      },
+      "tasks": [
+        "UF07",
+        "CB02"
+      ],
+      "implementation": "NOT_QUALIFIED_BY_SOURCE",
+      "evidence_required": "Current source/runtime evidence scoped to the original acceptance; source NOT_EXECUTED is historical."
+    },
+    {
+      "source": "docs/history/ui-design-increment-20261009/sources/zip-members/03_核心操作流程.csv",
+      "csv_record": 10,
+      "source_fields": {
+        "旅程": "课程准备",
+        "步骤": "交付登记",
+        "真实输入与依赖": "hash、来源、身份、版本与幂等",
+        "后续状态": "登记→按用途采用→真实练习",
+        "主要动作": "检查/登记/实际采用",
+        "失败与取消": "过期/重复/同ID异内容分别反馈",
+        "返回现场": "交付列表",
+        "边界": "人工交换清楚标注"
+      },
+      "tasks": [
+        "UF07",
+        "CB02"
+      ],
+      "implementation": "NOT_QUALIFIED_BY_SOURCE",
+      "evidence_required": "Current source/runtime evidence scoped to the original acceptance; source NOT_EXECUTED is historical."
+    },
+    {
+      "source": "docs/history/ui-design-increment-20261009/sources/zip-members/03_核心操作流程.csv",
+      "csv_record": 11,
+      "source_fields": {
+        "旅程": "课程准备",
+        "步骤": "修订",
+        "真实输入与依赖": "原反馈与版本可定位",
+        "后续状态": "生成新修订→再交付",
+        "主要动作": "保存修订",
+        "失败与取消": "旧学习事件继续引用旧版本",
+        "返回现场": "准备视图",
+        "边界": "不改历史rubric"
+      },
+      "tasks": [
+        "UF07",
+        "CB02"
+      ],
+      "implementation": "NOT_QUALIFIED_BY_SOURCE",
+      "evidence_required": "Current source/runtime evidence scoped to the original acceptance; source NOT_EXECUTED is historical."
+    },
+    {
+      "source": "docs/history/ui-design-increment-20261009/sources/zip-members/03_核心操作流程.csv",
+      "csv_record": 12,
+      "source_fields": {
+        "旅程": "AI候选",
+        "步骤": "观察保存",
+        "真实输入与依赖": "可定位项目范围与来源",
+        "后续状态": "候选→固定评测",
+        "主要动作": "保存/查看候选",
+        "失败与取消": "无评测资格仍可保存和阅读",
+        "返回现场": "候选详情",
+        "边界": "保存不等于复用"
+      },
+      "tasks": [
+        "UF09",
+        "CB03"
+      ],
+      "implementation": "NOT_QUALIFIED_BY_SOURCE",
+      "evidence_required": "Current source/runtime evidence scoped to the original acceptance; source NOT_EXECUTED is historical."
+    },
+    {
+      "source": "docs/history/ui-design-increment-20261009/sources/zip-members/03_核心操作流程.csv",
+      "csv_record": 13,
+      "source_fields": {
+        "旅程": "AI候选",
+        "步骤": "纠正与复测",
+        "真实输入与依赖": "原回答、修订、固定输入与权限",
+        "后续状态": "复测结果→按范围采用/继续修订",
+        "主要动作": "执行实际可用复测",
+        "失败与取消": "失败显示实际差异，取消按任务契约",
+        "返回现场": "原回答/候选",
+        "边界": "模型自评和独立评测分开"
+      },
+      "tasks": [
+        "UF09",
+        "CB03"
+      ],
+      "implementation": "NOT_QUALIFIED_BY_SOURCE",
+      "evidence_required": "Current source/runtime evidence scoped to the original acceptance; source NOT_EXECUTED is historical."
+    },
+    {
+      "source": "docs/history/ui-design-increment-20261009/sources/zip-members/03_核心操作流程.csv",
+      "csv_record": 14,
+      "source_fields": {
+        "旅程": "AI候选",
+        "步骤": "撤回",
+        "真实输入与依赖": "当前采用范围与历史回执",
+        "后续状态": "撤回后未来调用按策略处理",
+        "主要动作": "明确撤回范围",
+        "失败与取消": "保留历史使用记录及对象身份",
+        "返回现场": "候选详情",
+        "边界": "不逆改旧回答"
+      },
+      "tasks": [
+        "UF09",
+        "CB03"
+      ],
+      "implementation": "NOT_QUALIFIED_BY_SOURCE",
+      "evidence_required": "Current source/runtime evidence scoped to the original acceptance; source NOT_EXECUTED is historical."
+    },
+    {
+      "source": "docs/history/ui-design-increment-20261009/sources/zip-members/03_核心操作流程.csv",
+      "csv_record": 15,
+      "source_fields": {
+        "旅程": "导入",
+        "步骤": "选择原件",
+        "真实输入与依赖": "原件与当前环境读取能力",
+        "后续状态": "识别/校验→原件保存与转换",
+        "主要动作": "选择和提交",
+        "失败与取消": "不支持/损坏给出原因；保留原载荷按契约",
+        "返回现场": "原件列表",
+        "边界": "转换可在保存之后进行"
+      },
+      "tasks": [
+        "UF11",
+        "CB04"
+      ],
+      "implementation": "NOT_QUALIFIED_BY_SOURCE",
+      "evidence_required": "Current source/runtime evidence scoped to the original acceptance; source NOT_EXECUTED is historical."
+    },
+    {
+      "source": "docs/history/ui-design-increment-20261009/sources/zip-members/03_核心操作流程.csv",
+      "csv_record": 16,
+      "source_fields": {
+        "旅程": "导入",
+        "步骤": "批量结果",
+        "真实输入与依赖": "逐项持久化/转换回执",
+        "后续状态": "打开保存对象或重试失败项",
+        "主要动作": "查看结果/只重试失败项",
+        "失败与取消": "部分成功和取消后已保存项可定位",
+        "返回现场": "任务结果",
+        "边界": "禁止单个绿灯掩盖损失"
+      },
+      "tasks": [
+        "UF11",
+        "CB04"
+      ],
+      "implementation": "NOT_QUALIFIED_BY_SOURCE",
+      "evidence_required": "Current source/runtime evidence scoped to the original acceptance; source NOT_EXECUTED is historical."
+    },
+    {
+      "source": "docs/history/ui-design-increment-20261009/sources/zip-members/03_核心操作流程.csv",
+      "csv_record": 17,
+      "source_fields": {
+        "旅程": "恢复",
+        "步骤": "选择备份",
+        "真实输入与依赖": "Core实际返回ID/名称/schema",
+        "后续状态": "完整性与兼容检查",
+        "主要动作": "检查选中备份",
+        "失败与取消": "损坏/缺失/未知兼容保持不可执行或待检查",
+        "返回现场": "备份列表",
+        "边界": "不复制一套UI名称正则"
+      },
+      "tasks": [
+        "UF04",
+        "UF13",
+        "CB01"
+      ],
+      "implementation": "NOT_QUALIFIED_BY_SOURCE",
+      "evidence_required": "Current source/runtime evidence scoped to the original acceptance; source NOT_EXECUTED is historical."
+    },
+    {
+      "source": "docs/history/ui-design-increment-20261009/sources/zip-members/03_核心操作流程.csv",
+      "csv_record": 18,
+      "source_fields": {
+        "旅程": "恢复",
+        "步骤": "目标预览",
+        "真实输入与依赖": "当前Core支持的恢复目标与影响",
+        "后续状态": "明确确认→恢复请求",
+        "主要动作": "确认实际恢复目标",
+        "失败与取消": "取消保留原现场；未知影响不假称可安全覆盖",
+        "返回现场": "检查结果",
+        "边界": "此包不授权实际恢复"
+      },
+      "tasks": [
+        "UF04",
+        "UF13",
+        "CB01"
+      ],
+      "implementation": "NOT_QUALIFIED_BY_SOURCE",
+      "evidence_required": "Current source/runtime evidence scoped to the original acceptance; source NOT_EXECUTED is historical."
+    },
+    {
+      "source": "docs/history/ui-design-increment-20261009/sources/zip-members/03_核心操作流程.csv",
+      "csv_record": 19,
+      "source_fields": {
+        "旅程": "恢复",
+        "步骤": "恢复执行",
+        "真实输入与依赖": "服务端真实权限、操作ID与回执",
+        "后续状态": "成功→重启/回读",
+        "主要动作": "查看进度和真实结果",
+        "失败与取消": "失败按Core回执给出后续，非任意重复调用",
+        "返回现场": "操作详情",
+        "边界": "原实例与副本验证分开"
+      },
+      "tasks": [
+        "UF04",
+        "UF13",
+        "CB01"
+      ],
+      "implementation": "NOT_QUALIFIED_BY_SOURCE",
+      "evidence_required": "Current source/runtime evidence scoped to the original acceptance; source NOT_EXECUTED is historical."
+    },
+    {
+      "source": "docs/history/ui-design-increment-20261009/sources/zip-members/03_核心操作流程.csv",
+      "csv_record": 20,
+      "source_fields": {
+        "旅程": "恢复",
+        "步骤": "回读验证",
+        "真实输入与依赖": "真实数据库/CAS/版本/引用",
+        "后续状态": "一致回读→完成报告",
+        "主要动作": "查看恢复结果",
+        "失败与取消": "不一致或未重启维持待验证",
+        "返回现场": "恢复实例",
+        "边界": "草稿/版本回退/同步不是同一操作"
+      },
+      "tasks": [
+        "UF04",
+        "UF13",
+        "CB01"
+      ],
+      "implementation": "NOT_QUALIFIED_BY_SOURCE",
+      "evidence_required": "Current source/runtime evidence scoped to the original acceptance; source NOT_EXECUTED is historical."
+    },
+    {
+      "source": "docs/history/ui-design-increment-20261009/sources/zip-members/04_公共组件状态规格.csv",
+      "csv_record": 1,
+      "source_fields": {
+        "组件": "Shell",
+        "状态语义示例": "稳定对象/范围",
+        "输入与显示": "导航、主题、窗口变化",
+        "约束": "布局变化不重建编辑会话",
+        "验收重点": "同页跨宿主，选择/滚动/筛选保持"
+      },
+      "tasks": [
+        "UF01",
+        "UF02",
+        "UF03",
+        "UF05",
+        "UF07",
+        "UF09",
+        "UF11",
+        "UF13"
+      ],
+      "implementation": "NOT_QUALIFIED_BY_SOURCE",
+      "evidence_required": "Current source/runtime evidence scoped to the original acceptance; source NOT_EXECUTED is historical."
+    },
+    {
+      "source": "docs/history/ui-design-increment-20261009/sources/zip-members/04_公共组件状态规格.csv",
+      "csv_record": 2,
+      "source_fields": {
+        "组件": "主题",
+        "状态语义示例": "深/浅/系统偏好",
+        "输入与显示": "CSS变量与偏好更新",
+        "约束": "不换对象key或替换未保存DOM",
+        "验收重点": "中文组合中切主题后正文仍完整"
+      },
+      "tasks": [
+        "UF01",
+        "UF02",
+        "UF03",
+        "UF05",
+        "UF07",
+        "UF09",
+        "UF11",
+        "UF13"
+      ],
+      "implementation": "NOT_QUALIFIED_BY_SOURCE",
+      "evidence_required": "Current source/runtime evidence scoped to the original acceptance; source NOT_EXECUTED is historical."
+    },
+    {
+      "source": "docs/history/ui-design-increment-20261009/sources/zip-members/04_公共组件状态规格.csv",
+      "csv_record": 3,
+      "source_fields": {
+        "组件": "新建菜单",
+        "状态语义示例": "真实可用对象类型",
+        "输入与显示": "笔记/原件/目标按实际能力",
+        "约束": "标签与动作一致",
+        "验收重点": "创建失败保留用户输入"
+      },
+      "tasks": [
+        "UF01",
+        "UF02",
+        "UF03",
+        "UF05",
+        "UF07",
+        "UF09",
+        "UF11",
+        "UF13"
+      ],
+      "implementation": "NOT_QUALIFIED_BY_SOURCE",
+      "evidence_required": "Current source/runtime evidence scoped to the original acceptance; source NOT_EXECUTED is historical."
+    },
+    {
+      "source": "docs/history/ui-design-increment-20261009/sources/zip-members/04_公共组件状态规格.csv",
+      "csv_record": 4,
+      "source_fields": {
+        "组件": "搜索",
+        "状态语义示例": "可用/索引更新/不可用",
+        "输入与显示": "查询、范围、结果类型与深链接",
+        "约束": "无远程AI时可用本地检索仍工作",
+        "验收重点": "键盘选择返回，未来能力打开详情"
+      },
+      "tasks": [
+        "UF01",
+        "UF02",
+        "UF03",
+        "UF05",
+        "UF07",
+        "UF09",
+        "UF11",
+        "UF13"
+      ],
+      "implementation": "NOT_QUALIFIED_BY_SOURCE",
+      "evidence_required": "Current source/runtime evidence scoped to the original acceptance; source NOT_EXECUTED is historical."
+    },
+    {
+      "source": "docs/history/ui-design-increment-20261009/sources/zip-members/04_公共组件状态规格.csv",
+      "csv_record": 5,
+      "source_fields": {
+        "组件": "编辑器",
+        "状态语义示例": "读/写/原件/历史",
+        "输入与显示": "输入、选区、撤销、粘贴、块引用",
+        "约束": "成熟编辑模型；禁止保存演示HTML",
+        "验收重点": "中文IME和多文档不互相污染"
+      },
+      "tasks": [
+        "UF01",
+        "UF02",
+        "UF03",
+        "UF05",
+        "UF07",
+        "UF09",
+        "UF11",
+        "UF13"
+      ],
+      "implementation": "NOT_QUALIFIED_BY_SOURCE",
+      "evidence_required": "Current source/runtime evidence scoped to the original acceptance; source NOT_EXECUTED is historical."
+    },
+    {
+      "source": "docs/history/ui-design-increment-20261009/sources/zip-members/04_公共组件状态规格.csv",
+      "csv_record": 6,
+      "source_fields": {
+        "组件": "保存提示",
+        "状态语义示例": "未保存/提交中/已持久化/失败",
+        "输入与显示": "匹配对象版本的实际回执",
+        "约束": "迟到回执不能覆盖新编辑状态",
+        "验收重点": "离线/错误/重启分别验证"
+      },
+      "tasks": [
+        "UF01",
+        "UF02",
+        "UF03",
+        "UF05",
+        "UF07",
+        "UF09",
+        "UF11",
+        "UF13"
+      ],
+      "implementation": "NOT_QUALIFIED_BY_SOURCE",
+      "evidence_required": "Current source/runtime evidence scoped to the original acceptance; source NOT_EXECUTED is historical."
+    },
+    {
+      "source": "docs/history/ui-design-increment-20261009/sources/zip-members/04_公共组件状态规格.csv",
+      "csv_record": 7,
+      "source_fields": {
+        "组件": "来源详情",
+        "状态语义示例": "绑定/未绑定/不适用/未知",
+        "输入与显示": "原件身份、定位、版本与损失",
+        "约束": "按需展开；原件与解释分开",
+        "验收重点": "跳转真实来源与旧锚点"
+      },
+      "tasks": [
+        "UF01",
+        "UF02",
+        "UF03",
+        "UF05",
+        "UF07",
+        "UF09",
+        "UF11",
+        "UF13"
+      ],
+      "implementation": "NOT_QUALIFIED_BY_SOURCE",
+      "evidence_required": "Current source/runtime evidence scoped to the original acceptance; source NOT_EXECUTED is historical."
+    },
+    {
+      "source": "docs/history/ui-design-increment-20261009/sources/zip-members/04_公共组件状态规格.csv",
+      "csv_record": 8,
+      "source_fields": {
+        "组件": "内容资格",
+        "状态语义示例": "依据/采用/掌握/AI资格分别读取",
+        "输入与显示": "投影当前已存在状态",
+        "约束": "不建立总分或合并成总绿灯",
+        "验收重点": "折叠展示仍保持独立业务语义"
+      },
+      "tasks": [
+        "UF01",
+        "UF02",
+        "UF03",
+        "UF05",
+        "UF07",
+        "UF09",
+        "UF11",
+        "UF13"
+      ],
+      "implementation": "NOT_QUALIFIED_BY_SOURCE",
+      "evidence_required": "Current source/runtime evidence scoped to the original acceptance; source NOT_EXECUTED is historical."
+    },
+    {
+      "source": "docs/history/ui-design-increment-20261009/sources/zip-members/04_公共组件状态规格.csv",
+      "csv_record": 9,
+      "source_fields": {
+        "组件": "Inspector",
+        "状态语义示例": "打开/关闭/抽屉",
+        "输入与显示": "对象属性、引用、关系与历史",
+        "约束": "收起不清空正文/选中项",
+        "验收重点": "窄屏能打开、关闭并返回"
+      },
+      "tasks": [
+        "UF01",
+        "UF02",
+        "UF03",
+        "UF05",
+        "UF07",
+        "UF09",
+        "UF11",
+        "UF13"
+      ],
+      "implementation": "NOT_QUALIFIED_BY_SOURCE",
+      "evidence_required": "Current source/runtime evidence scoped to the original acceptance; source NOT_EXECUTED is historical."
+    },
+    {
+      "source": "docs/history/ui-design-increment-20261009/sources/zip-members/04_公共组件状态规格.csv",
+      "csv_record": 10,
+      "source_fields": {
+        "组件": "版本比较",
+        "状态语义示例": "加载/可比/不可用/冲突",
+        "输入与显示": "真实旧新版本与草稿",
+        "约束": "只读比较和修订动作分开",
+        "验收重点": "取消仍可找回草稿"
+      },
+      "tasks": [
+        "UF01",
+        "UF02",
+        "UF03",
+        "UF05",
+        "UF07",
+        "UF09",
+        "UF11",
+        "UF13"
+      ],
+      "implementation": "NOT_QUALIFIED_BY_SOURCE",
+      "evidence_required": "Current source/runtime evidence scoped to the original acceptance; source NOT_EXECUTED is historical."
+    },
+    {
+      "source": "docs/history/ui-design-increment-20261009/sources/zip-members/04_公共组件状态规格.csv",
+      "csv_record": 11,
+      "source_fields": {
+        "组件": "课程播放器",
+        "状态语义示例": "可读/加载/失败/降级",
+        "输入与显示": "固定版本图文/媒体/场景",
+        "约束": "不同形态独立；代码执行另授权",
+        "验收重点": "长内容和下一活动保持位置"
+      },
+      "tasks": [
+        "UF01",
+        "UF02",
+        "UF03",
+        "UF05",
+        "UF07",
+        "UF09",
+        "UF11",
+        "UF13"
+      ],
+      "implementation": "NOT_QUALIFIED_BY_SOURCE",
+      "evidence_required": "Current source/runtime evidence scoped to the original acceptance; source NOT_EXECUTED is historical."
+    },
+    {
+      "source": "docs/history/ui-design-increment-20261009/sources/zip-members/04_公共组件状态规格.csv",
+      "csv_record": 12,
+      "source_fields": {
+        "组件": "练习",
+        "状态语义示例": "未作答/作答/提交/反馈",
+        "输入与显示": "题目、rubric、actor、版本",
+        "约束": "提示/AI帮助有记录；事实事件来自Core",
+        "验收重点": "重复提交按现有幂等，不能假掌握"
+      },
+      "tasks": [
+        "UF01",
+        "UF02",
+        "UF03",
+        "UF05",
+        "UF07",
+        "UF09",
+        "UF11",
+        "UF13"
+      ],
+      "implementation": "NOT_QUALIFIED_BY_SOURCE",
+      "evidence_required": "Current source/runtime evidence scoped to the original acceptance; source NOT_EXECUTED is historical."
+    },
+    {
+      "source": "docs/history/ui-design-increment-20261009/sources/zip-members/04_公共组件状态规格.csv",
+      "csv_record": 13,
+      "source_fields": {
+        "组件": "阶段视图",
+        "状态语义示例": "草稿/待审/待修改/交付结果",
+        "输入与显示": "已有课程/候选/产物关联",
+        "约束": "状态名复用现有合同；不是新增enum",
+        "验收重点": "深链接可回需求/方案及历史"
+      },
+      "tasks": [
+        "UF01",
+        "UF02",
+        "UF03",
+        "UF05",
+        "UF07",
+        "UF09",
+        "UF11",
+        "UF13"
+      ],
+      "implementation": "NOT_QUALIFIED_BY_SOURCE",
+      "evidence_required": "Current source/runtime evidence scoped to the original acceptance; source NOT_EXECUTED is historical."
+    },
+    {
+      "source": "docs/history/ui-design-increment-20261009/sources/zip-members/04_公共组件状态规格.csv",
+      "csv_record": 14,
+      "source_fields": {
+        "组件": "导入结果",
+        "状态语义示例": "待处理/成功/部分失败/取消",
+        "输入与显示": "逐文件原件及转换回执",
+        "约束": "取消不假称删除已持久化项",
+        "验收重点": "仅重试失败项且不重复原件"
+      },
+      "tasks": [
+        "UF01",
+        "UF02",
+        "UF03",
+        "UF05",
+        "UF07",
+        "UF09",
+        "UF11",
+        "UF13"
+      ],
+      "implementation": "NOT_QUALIFIED_BY_SOURCE",
+      "evidence_required": "Current source/runtime evidence scoped to the original acceptance; source NOT_EXECUTED is historical."
+    },
+    {
+      "source": "docs/history/ui-design-increment-20261009/sources/zip-members/04_公共组件状态规格.csv",
+      "csv_record": 15,
+      "source_fields": {
+        "组件": "备份恢复",
+        "状态语义示例": "待检查/可用/阻塞/执行/待回读",
+        "输入与显示": "Core备份ID、schema及操作回执",
+        "约束": "真实执行资格由Core判断",
+        "验收重点": "错误、确认、副本回读有证据"
+      },
+      "tasks": [
+        "UF01",
+        "UF02",
+        "UF03",
+        "UF05",
+        "UF07",
+        "UF09",
+        "UF11",
+        "UF13"
+      ],
+      "implementation": "NOT_QUALIFIED_BY_SOURCE",
+      "evidence_required": "Current source/runtime evidence scoped to the original acceptance; source NOT_EXECUTED is historical."
+    },
+    {
+      "source": "docs/history/ui-design-increment-20261009/sources/zip-members/04_公共组件状态规格.csv",
+      "csv_record": 16,
+      "source_fields": {
+        "组件": "任务回执",
+        "状态语义示例": "队列/运行/取消/完成/失败",
+        "输入与显示": "实际任务、预算、检查点与权限",
+        "约束": "不把设计提示当Worker输出",
+        "验收重点": "取消保留已提交记录"
+      },
+      "tasks": [
+        "UF01",
+        "UF02",
+        "UF03",
+        "UF05",
+        "UF07",
+        "UF09",
+        "UF11",
+        "UF13"
+      ],
+      "implementation": "NOT_QUALIFIED_BY_SOURCE",
+      "evidence_required": "Current source/runtime evidence scoped to the original acceptance; source NOT_EXECUTED is historical."
+    },
+    {
+      "source": "docs/history/ui-design-increment-20261009/sources/zip-members/04_公共组件状态规格.csv",
+      "csv_record": 17,
+      "source_fields": {
+        "组件": "Toast",
+        "状态语义示例": "轻量状态反馈",
+        "输入与显示": "成功或可短述提示",
+        "约束": "不替代持久错误/损失/恢复结果",
+        "验收重点": "可访问播报不抢编辑焦点"
+      },
+      "tasks": [
+        "UF01",
+        "UF02",
+        "UF03",
+        "UF05",
+        "UF07",
+        "UF09",
+        "UF11",
+        "UF13"
+      ],
+      "implementation": "NOT_QUALIFIED_BY_SOURCE",
+      "evidence_required": "Current source/runtime evidence scoped to the original acceptance; source NOT_EXECUTED is historical."
+    },
+    {
+      "source": "docs/history/ui-design-increment-20261009/sources/zip-members/04_公共组件状态规格.csv",
+      "csv_record": 18,
+      "source_fields": {
+        "组件": "Dialog",
+        "状态语义示例": "打开/确认/等待/失败/关闭",
+        "输入与显示": "真实触发对象与高影响动作",
+        "约束": "锁焦点/键盘/关闭返回；不重复提交",
+        "验收重点": "Escape/Tab/背景/恢复焦点分别核对"
+      },
+      "tasks": [
+        "UF01",
+        "UF02",
+        "UF03",
+        "UF05",
+        "UF07",
+        "UF09",
+        "UF11",
+        "UF13"
+      ],
+      "implementation": "NOT_QUALIFIED_BY_SOURCE",
+      "evidence_required": "Current source/runtime evidence scoped to the original acceptance; source NOT_EXECUTED is historical."
+    },
+    {
+      "source": "docs/history/ui-design-increment-20261009/sources/zip-members/04_公共组件状态规格.csv",
+      "csv_record": 19,
+      "source_fields": {
+        "组件": "列表",
+        "状态语义示例": "空/加载/结果/错误/大数据",
+        "输入与显示": "真实分页/过滤/排序/選中项",
+        "约束": "已有模板分页复用；不按演示数据限制行数",
+        "验收重点": "长标题/千级条目按实际列表能力验证"
+      },
+      "tasks": [
+        "UF01",
+        "UF02",
+        "UF03",
+        "UF05",
+        "UF07",
+        "UF09",
+        "UF11",
+        "UF13"
+      ],
+      "implementation": "NOT_QUALIFIED_BY_SOURCE",
+      "evidence_required": "Current source/runtime evidence scoped to the original acceptance; source NOT_EXECUTED is historical."
+    },
+    {
+      "source": "docs/history/ui-design-increment-20261009/sources/zip-members/04_公共组件状态规格.csv",
+      "csv_record": 20,
+      "source_fields": {
+        "组件": "能力详情",
+        "状态语义示例": "已实现/未验证/保留/未知等现有投影",
+        "输入与显示": "独立细项基线、依赖、动作与证据",
+        "约束": "身份/状态来自当前权威；非第二进度库",
+        "验收重点": "普通用户检索可达全部保留细项"
+      },
+      "tasks": [
+        "UF01",
+        "UF02",
+        "UF03",
+        "UF05",
+        "UF07",
+        "UF09",
+        "UF11",
+        "UF13"
+      ],
+      "implementation": "NOT_QUALIFIED_BY_SOURCE",
+      "evidence_required": "Current source/runtime evidence scoped to the original acceptance; source NOT_EXECUTED is historical."
+    },
+    {
+      "source": "docs/history/ui-design-increment-20261009/sources/zip-members/05_按钮动作与真实接线清单.csv",
+      "csv_record": 1,
+      "source_fields": {
+        "上下文": "全局",
+        "动作": "搜索",
+        "业务依赖": "可用Core/索引与能力目录",
+        "必须输出": "真实结果/范围/跳转",
+        "失败与边界": "空态/不可用/权限筛选",
+        "原型替换要求": "原型只匹配演示标题，需替换"
+      },
+      "tasks": [
+        "UF02",
+        "UF03",
+        "UF06"
+      ],
+      "implementation": "NOT_QUALIFIED_BY_SOURCE",
+      "evidence_required": "Current source/runtime evidence scoped to the original acceptance; source NOT_EXECUTED is historical."
+    },
+    {
+      "source": "docs/history/ui-design-increment-20261009/sources/zip-members/05_按钮动作与真实接线清单.csv",
+      "csv_record": 2,
+      "source_fields": {
+        "上下文": "全局",
+        "动作": "新建笔记",
+        "业务依赖": "现有新建与编辑对象",
+        "必须输出": "新对象身份与持久草稿",
+        "失败与边界": "权限/错误/输入保留",
+        "原型替换要求": "固定演示03路由不能证明新建成功"
+      },
+      "tasks": [
+        "UF02",
+        "UF03",
+        "UF06"
+      ],
+      "implementation": "NOT_QUALIFIED_BY_SOURCE",
+      "evidence_required": "Current source/runtime evidence scoped to the original acceptance; source NOT_EXECUTED is historical."
+    },
+    {
+      "source": "docs/history/ui-design-increment-20261009/sources/zip-members/05_按钮动作与真实接线清单.csv",
+      "csv_record": 3,
+      "source_fields": {
+        "上下文": "03",
+        "动作": "保存",
+        "业务依赖": "成熟编辑器→真实Core保存",
+        "必须输出": "对象+版本+回执",
+        "失败与边界": "失败重试/冲突/IME",
+        "原型替换要求": "不得localStorage保存innerHTML冒充业务写入"
+      },
+      "tasks": [
+        "UF03"
+      ],
+      "implementation": "NOT_QUALIFIED_BY_SOURCE",
+      "evidence_required": "Current source/runtime evidence scoped to the original acceptance; source NOT_EXECUTED is historical."
+    },
+    {
+      "source": "docs/history/ui-design-increment-20261009/sources/zip-members/05_按钮动作与真实接线清单.csv",
+      "csv_record": 4,
+      "source_fields": {
+        "上下文": "03",
+        "动作": "原件/版本选项卡",
+        "业务依赖": "真实来源对象/版本列表",
+        "必须输出": "对应真实内容视图",
+        "失败与边界": "未绑定/缺失/不可用",
+        "原型替换要求": "必须切数据视图，不只换选中样式"
+      },
+      "tasks": [
+        "UF03"
+      ],
+      "implementation": "NOT_QUALIFIED_BY_SOURCE",
+      "evidence_required": "Current source/runtime evidence scoped to the original acceptance; source NOT_EXECUTED is historical."
+    },
+    {
+      "source": "docs/history/ui-design-increment-20261009/sources/zip-members/05_按钮动作与真实接线清单.csv",
+      "csv_record": 5,
+      "source_fields": {
+        "上下文": "03",
+        "动作": "显示来源",
+        "业务依赖": "对象来源与当前窗口",
+        "必须输出": "Inspector或抽屉",
+        "失败与边界": "来源未绑定可解释",
+        "原型替换要求": "必须展开信息，不能仅Toast"
+      },
+      "tasks": [
+        "UF03"
+      ],
+      "implementation": "NOT_QUALIFIED_BY_SOURCE",
+      "evidence_required": "Current source/runtime evidence scoped to the original acceptance; source NOT_EXECUTED is historical."
+    },
+    {
+      "source": "docs/history/ui-design-increment-20261009/sources/zip-members/05_按钮动作与真实接线清单.csv",
+      "csv_record": 6,
+      "source_fields": {
+        "上下文": "07",
+        "动作": "上一场景/继续学习",
+        "业务依赖": "课程manifest及真实进度",
+        "必须输出": "实际场景变化、位置保持",
+        "失败与边界": "首尾场景/缺失资产",
+        "原型替换要求": "不能泛化为演示提示按钮"
+      },
+      "tasks": [
+        "UF05"
+      ],
+      "implementation": "NOT_QUALIFIED_BY_SOURCE",
+      "evidence_required": "Current source/runtime evidence scoped to the original acceptance; source NOT_EXECUTED is historical."
+    },
+    {
+      "source": "docs/history/ui-design-increment-20261009/sources/zip-members/05_按钮动作与真实接线清单.csv",
+      "csv_record": 7,
+      "source_fields": {
+        "上下文": "08–10",
+        "动作": "保存/审阅/交付",
+        "业务依赖": "已有课程候选/产物/权限合同",
+        "必须输出": "各自对象与版本回执",
+        "失败与边界": "缺项保存/过期/幂等/冲突",
+        "原型替换要求": "登记、采用、执行分别接线"
+      },
+      "tasks": [
+        "UF07"
+      ],
+      "implementation": "NOT_QUALIFIED_BY_SOURCE",
+      "evidence_required": "Current source/runtime evidence scoped to the original acceptance; source NOT_EXECUTED is historical."
+    },
+    {
+      "source": "docs/history/ui-design-increment-20261009/sources/zip-members/05_按钮动作与真实接线清单.csv",
+      "csv_record": 8,
+      "source_fields": {
+        "上下文": "11",
+        "动作": "提交作答",
+        "业务依赖": "真实actor、题目、rubric与事件",
+        "必须输出": "作答记录及真实反馈",
+        "失败与边界": "重复提交/无结果/取消",
+        "原型替换要求": "演示规则反馈不能写成学习效果"
+      },
+      "tasks": [
+        "UF07"
+      ],
+      "implementation": "NOT_QUALIFIED_BY_SOURCE",
+      "evidence_required": "Current source/runtime evidence scoped to the original acceptance; source NOT_EXECUTED is historical."
+    },
+    {
+      "source": "docs/history/ui-design-increment-20261009/sources/zip-members/05_按钮动作与真实接线清单.csv",
+      "csv_record": 9,
+      "source_fields": {
+        "上下文": "11",
+        "动作": "请求提示",
+        "业务依赖": "现有教学或AI提示能力",
+        "必须输出": "提示记录及使用范围",
+        "失败与边界": "无模型/无余额仍可保存作答",
+        "原型替换要求": "无实际能力时说明原因，避免假成功"
+      },
+      "tasks": [
+        "UF07"
+      ],
+      "implementation": "NOT_QUALIFIED_BY_SOURCE",
+      "evidence_required": "Current source/runtime evidence scoped to the original acceptance; source NOT_EXECUTED is historical."
+    },
+    {
+      "source": "docs/history/ui-design-increment-20261009/sources/zip-members/05_按钮动作与真实接线清单.csv",
+      "csv_record": 10,
+      "source_fields": {
+        "上下文": "12",
+        "动作": "反馈与修订",
+        "业务依赖": "真实反馈、知识/表达/技术责任关联",
+        "必须输出": "可追溯反馈和新修订",
+        "失败与边界": "权限/版本/部分失败",
+        "原型替换要求": "原历史学习事件不覆盖"
+      },
+      "tasks": [
+        "UF07"
+      ],
+      "implementation": "NOT_QUALIFIED_BY_SOURCE",
+      "evidence_required": "Current source/runtime evidence scoped to the original acceptance; source NOT_EXECUTED is historical."
+    },
+    {
+      "source": "docs/history/ui-design-increment-20261009/sources/zip-members/05_按钮动作与真实接线清单.csv",
+      "csv_record": 11,
+      "source_fields": {
+        "上下文": "13–14",
+        "动作": "采用/纠正/复测/撤回",
+        "业务依赖": "既有候选与复测能力",
+        "必须输出": "来源/范围/结果/使用回执",
+        "失败与边界": "失败/资格/撤回后使用",
+        "原型替换要求": "复用已存在基础，先核对接口"
+      },
+      "tasks": [
+        "UF09"
+      ],
+      "implementation": "NOT_QUALIFIED_BY_SOURCE",
+      "evidence_required": "Current source/runtime evidence scoped to the original acceptance; source NOT_EXECUTED is historical."
+    },
+    {
+      "source": "docs/history/ui-design-increment-20261009/sources/zip-members/05_按钮动作与真实接线清单.csv",
+      "csv_record": 12,
+      "source_fields": {
+        "上下文": "15",
+        "动作": "模板分页/插件详情",
+        "业务依赖": "现有分页/资源注册与真实状态",
+        "必须输出": "下一页/详情/实际接入条件",
+        "失败与边界": "不可用/未安装/许可",
+        "原型替换要求": "目录数不等于接入数"
+      },
+      "tasks": [
+        "UF10"
+      ],
+      "implementation": "NOT_QUALIFIED_BY_SOURCE",
+      "evidence_required": "Current source/runtime evidence scoped to the original acceptance; source NOT_EXECUTED is historical."
+    },
+    {
+      "source": "docs/history/ui-design-increment-20261009/sources/zip-members/05_按钮动作与真实接线清单.csv",
+      "csv_record": 13,
+      "source_fields": {
+        "上下文": "16",
+        "动作": "导入/导出",
+        "业务依赖": "支持的格式与Core/CAS合同",
+        "必须输出": "原件、逐项结果、范围与损失",
+        "失败与边界": "部分成功/取消/重试/不兼容",
+        "原型替换要求": "人工交换标注，四目标分别验证"
+      },
+      "tasks": [
+        "UF07",
+        "UF11"
+      ],
+      "implementation": "NOT_QUALIFIED_BY_SOURCE",
+      "evidence_required": "Current source/runtime evidence scoped to the original acceptance; source NOT_EXECUTED is historical."
+    },
+    {
+      "source": "docs/history/ui-design-increment-20261009/sources/zip-members/05_按钮动作与真实接线清单.csv",
+      "csv_record": 14,
+      "source_fields": {
+        "上下文": "17–18",
+        "动作": "能力卡与细项",
+        "业务依赖": "当前CAP及独立细项权威投影",
+        "必须输出": "可读详情/已验证动作",
+        "失败与边界": "未来/未知/缺失说明",
+        "原型替换要求": "目录可发现不等于引擎实现"
+      },
+      "tasks": [
+        "UF06",
+        "FT01",
+        "FT02"
+      ],
+      "implementation": "NOT_QUALIFIED_BY_SOURCE",
+      "evidence_required": "Current source/runtime evidence scoped to the original acceptance; source NOT_EXECUTED is historical."
+    },
+    {
+      "source": "docs/history/ui-design-increment-20261009/sources/zip-members/05_按钮动作与真实接线清单.csv",
+      "csv_record": 15,
+      "source_fields": {
+        "上下文": "19",
+        "动作": "备份/恢复",
+        "业务依赖": "Core实际标识、兼容和恢复合同",
+        "必须输出": "检查/目标预览/操作回执/回读",
+        "失败与边界": "损坏/未知/权限/失败",
+        "原型替换要求": "不能只展示设置卡片"
+      },
+      "tasks": [
+        "UF04"
+      ],
+      "implementation": "NOT_QUALIFIED_BY_SOURCE",
+      "evidence_required": "Current source/runtime evidence scoped to the original acceptance; source NOT_EXECUTED is historical."
+    },
+    {
+      "source": "docs/history/ui-design-increment-20261009/sources/zip-members/05_按钮动作与真实接线清单.csv",
+      "csv_record": 16,
+      "source_fields": {
+        "上下文": "20",
+        "动作": "比较版本/影响",
+        "业务依赖": "真实引用谱系与消费者",
+        "必须输出": "旧新版本与受影响对象",
+        "失败与边界": "来源不可用/范围权限",
+        "原型替换要求": "历史与活动权威分开"
+      },
+      "tasks": [
+        "UF00",
+        "UF04",
+        "G01"
+      ],
+      "implementation": "NOT_QUALIFIED_BY_SOURCE",
+      "evidence_required": "Current source/runtime evidence scoped to the original acceptance; source NOT_EXECUTED is historical."
+    },
+    {
+      "source": "docs/history/ui-design-increment-20261009/sources/zip-members/05_按钮动作与真实接线清单.csv",
+      "csv_record": 17,
+      "source_fields": {
+        "上下文": "21",
+        "动作": "画布/图解编辑",
+        "业务依赖": "已有布局对象与固定知识引用",
+        "必须输出": "布局变化及保存",
+        "失败与边界": "离线/权限/资产缺失",
+        "原型替换要求": "知识真值不跟坐标变化"
+      },
+      "tasks": [
+        "UF12",
+        "FT01",
+        "FT02"
+      ],
+      "implementation": "NOT_QUALIFIED_BY_SOURCE",
+      "evidence_required": "Current source/runtime evidence scoped to the original acceptance; source NOT_EXECUTED is historical."
+    },
+    {
+      "source": "docs/history/ui-design-increment-20261009/sources/zip-members/05_按钮动作与真实接线清单.csv",
+      "csv_record": 18,
+      "source_fields": {
+        "上下文": "22",
+        "动作": "取消/检查点/回执",
+        "业务依赖": "真实有限任务与权限",
+        "必须输出": "取消语义、提交记录、后续可继续条件",
+        "失败与边界": "取消失败/运行中/结果未知",
+        "原型替换要求": "不凭UI动画声称真实执行"
+      },
+      "tasks": [
+        "UF09"
+      ],
+      "implementation": "NOT_QUALIFIED_BY_SOURCE",
+      "evidence_required": "Current source/runtime evidence scoped to the original acceptance; source NOT_EXECUTED is historical."
+    },
+    {
+      "source": "docs/history/ui-design-increment-20261009/sources/zip-members/06_成熟度验收场景.csv",
+      "csv_record": 1,
+      "source_fields": {
+        "批次": "核心",
+        "场景": "中文编辑与主题",
+        "输入或操作": "连续中文组合、选区、撤销中切换主题",
+        "通过条件": "输入及选区不被重建丢失；保存回执匹配当前对象",
+        "当前结论": "NOT_EXECUTED；未来按实际环境验证"
+      },
+      "tasks": [
+        "UF01",
+        "UF02",
+        "UF03",
+        "UF04",
+        "UF13",
+        "CB01"
+      ],
+      "implementation": "NOT_QUALIFIED_BY_SOURCE",
+      "evidence_required": "Current source/runtime evidence scoped to the original acceptance; source NOT_EXECUTED is historical."
+    },
+    {
+      "source": "docs/history/ui-design-increment-20261009/sources/zip-members/06_成熟度验收场景.csv",
+      "csv_record": 2,
+      "source_fields": {
+        "批次": "核心",
+        "场景": "两个文档草稿",
+        "输入或操作": "A未保存编辑→打开B→回A→重启",
+        "通过条件": "A/B内容不串；恢复内容来自实际持久草稿",
+        "当前结论": "NOT_EXECUTED；未来按实际环境验证"
+      },
+      "tasks": [
+        "UF01",
+        "UF02",
+        "UF03",
+        "UF04",
+        "UF13",
+        "CB01"
+      ],
+      "implementation": "NOT_QUALIFIED_BY_SOURCE",
+      "evidence_required": "Current source/runtime evidence scoped to the original acceptance; source NOT_EXECUTED is historical."
+    },
+    {
+      "source": "docs/history/ui-design-increment-20261009/sources/zip-members/06_成熟度验收场景.csv",
+      "csv_record": 3,
+      "source_fields": {
+        "批次": "核心",
+        "场景": "迟到回执",
+        "输入或操作": "连续编辑产生先后保存请求，回执乱序",
+        "通过条件": "旧回执不能误标最新编辑已保存",
+        "当前结论": "NOT_EXECUTED；未来按实际环境验证"
+      },
+      "tasks": [
+        "UF01",
+        "UF02",
+        "UF03",
+        "UF04",
+        "UF13",
+        "CB01"
+      ],
+      "implementation": "NOT_QUALIFIED_BY_SOURCE",
+      "evidence_required": "Current source/runtime evidence scoped to the original acceptance; source NOT_EXECUTED is historical."
+    },
+    {
+      "source": "docs/history/ui-design-increment-20261009/sources/zip-members/06_成熟度验收场景.csv",
+      "csv_record": 4,
+      "source_fields": {
+        "批次": "核心",
+        "场景": "真实离线保存",
+        "输入或操作": "断远程网络/无余额，写普通笔记",
+        "通过条件": "具备本地持久化时真实保存；同步待处理独立显示",
+        "当前结论": "NOT_EXECUTED；未来按实际环境验证"
+      },
+      "tasks": [
+        "UF01",
+        "UF02",
+        "UF03",
+        "UF04",
+        "UF13",
+        "CB01"
+      ],
+      "implementation": "NOT_QUALIFIED_BY_SOURCE",
+      "evidence_required": "Current source/runtime evidence scoped to the original acceptance; source NOT_EXECUTED is historical."
+    },
+    {
+      "source": "docs/history/ui-design-increment-20261009/sources/zip-members/06_成熟度验收场景.csv",
+      "csv_record": 5,
+      "source_fields": {
+        "批次": "核心",
+        "场景": "无持久化能力",
+        "输入或操作": "浏览器能力不足或保存接口失败",
+        "通过条件": "明确未保存/原因，保留输入和可用导出/复制入口",
+        "当前结论": "NOT_EXECUTED；未来按实际环境验证"
+      },
+      "tasks": [
+        "UF01",
+        "UF02",
+        "UF03",
+        "UF04",
+        "UF13",
+        "CB01"
+      ],
+      "implementation": "NOT_QUALIFIED_BY_SOURCE",
+      "evidence_required": "Current source/runtime evidence scoped to the original acceptance; source NOT_EXECUTED is historical."
+    },
+    {
+      "source": "docs/history/ui-design-increment-20261009/sources/zip-members/06_成熟度验收场景.csv",
+      "csv_record": 6,
+      "source_fields": {
+        "批次": "核心",
+        "场景": "保存失败",
+        "输入或操作": "触发现有可控持久化失败后重试",
+        "通过条件": "保留正文、正确重试，不虚假成功",
+        "当前结论": "NOT_EXECUTED；未来按实际环境验证"
+      },
+      "tasks": [
+        "UF01",
+        "UF02",
+        "UF03",
+        "UF04",
+        "UF13",
+        "CB01"
+      ],
+      "implementation": "NOT_QUALIFIED_BY_SOURCE",
+      "evidence_required": "Current source/runtime evidence scoped to the original acceptance; source NOT_EXECUTED is historical."
+    },
+    {
+      "source": "docs/history/ui-design-increment-20261009/sources/zip-members/06_成熟度验收场景.csv",
+      "csv_record": 7,
+      "source_fields": {
+        "批次": "核心",
+        "场景": "版本冲突",
+        "输入或操作": "在草稿基础上引入真实更新版本",
+        "通过条件": "显示比较与合法处理；不静默覆盖，取消保留草稿",
+        "当前结论": "NOT_EXECUTED；未来按实际环境验证"
+      },
+      "tasks": [
+        "UF01",
+        "UF02",
+        "UF03",
+        "UF04",
+        "UF13",
+        "CB01"
+      ],
+      "implementation": "NOT_QUALIFIED_BY_SOURCE",
+      "evidence_required": "Current source/runtime evidence scoped to the original acceptance; source NOT_EXECUTED is historical."
+    },
+    {
+      "source": "docs/history/ui-design-increment-20261009/sources/zip-members/06_成熟度验收场景.csv",
+      "csv_record": 8,
+      "source_fields": {
+        "批次": "核心",
+        "场景": "窗口与缩放",
+        "输入或操作": "1600/1280/1024及100/125/150%缩放",
+        "通过条件": "正文可读；详情可收起；控件和文本可访问",
+        "当前结论": "NOT_EXECUTED；未来按实际环境验证"
+      },
+      "tasks": [
+        "UF01",
+        "UF02",
+        "UF03",
+        "UF04",
+        "UF13",
+        "CB01"
+      ],
+      "implementation": "NOT_QUALIFIED_BY_SOURCE",
+      "evidence_required": "Current source/runtime evidence scoped to the original acceptance; source NOT_EXECUTED is historical."
+    },
+    {
+      "source": "docs/history/ui-design-increment-20261009/sources/zip-members/06_成熟度验收场景.csv",
+      "csv_record": 9,
+      "source_fields": {
+        "批次": "核心",
+        "场景": "键盘与输入法",
+        "输入或操作": "搜索、菜单、弹窗、Escape、Tab和IME",
+        "通过条件": "焦点完整；输入法期间快捷键不误触；关闭返回触发处",
+        "当前结论": "NOT_EXECUTED；未来按实际环境验证"
+      },
+      "tasks": [
+        "UF01",
+        "UF02",
+        "UF03",
+        "UF04",
+        "UF13",
+        "CB01"
+      ],
+      "implementation": "NOT_QUALIFIED_BY_SOURCE",
+      "evidence_required": "Current source/runtime evidence scoped to the original acceptance; source NOT_EXECUTED is historical."
+    },
+    {
+      "source": "docs/history/ui-design-increment-20261009/sources/zip-members/06_成熟度验收场景.csv",
+      "csv_record": 10,
+      "source_fields": {
+        "批次": "核心",
+        "场景": "Tauri与浏览器",
+        "输入或操作": "同对象同旅程在两个宿主",
+        "通过条件": "相同产品页面；实际能力不足有真实原因与替代",
+        "当前结论": "NOT_EXECUTED；未来按实际环境验证"
+      },
+      "tasks": [
+        "UF01",
+        "UF02",
+        "UF03",
+        "UF04",
+        "UF13",
+        "CB01"
+      ],
+      "implementation": "NOT_QUALIFIED_BY_SOURCE",
+      "evidence_required": "Current source/runtime evidence scoped to the original acceptance; source NOT_EXECUTED is historical."
+    },
+    {
+      "source": "docs/history/ui-design-increment-20261009/sources/zip-members/06_成熟度验收场景.csv",
+      "csv_record": 11,
+      "source_fields": {
+        "批次": "核心",
+        "场景": "旧行为承接",
+        "输入或操作": "逐个旧深链接、快捷键、筛选、草稿恢复入口",
+        "通过条件": "独有行为明确承接后才能退出旧入口",
+        "当前结论": "NOT_EXECUTED；未来按实际环境验证"
+      },
+      "tasks": [
+        "UF01",
+        "UF02",
+        "UF03",
+        "UF04",
+        "UF13",
+        "CB01"
+      ],
+      "implementation": "NOT_QUALIFIED_BY_SOURCE",
+      "evidence_required": "Current source/runtime evidence scoped to the original acceptance; source NOT_EXECUTED is historical."
+    },
+    {
+      "source": "docs/history/ui-design-increment-20261009/sources/zip-members/06_成熟度验收场景.csv",
+      "csv_record": 12,
+      "source_fields": {
+        "批次": "核心",
+        "场景": "备份标识",
+        "输入或操作": "用Core实际生成名称从正常设置入口选择",
+        "通过条件": "合法Core标识不被UI错误拒绝，机器ID不靠文本拼接",
+        "当前结论": "NOT_EXECUTED；未来按实际环境验证"
+      },
+      "tasks": [
+        "UF01",
+        "UF02",
+        "UF03",
+        "UF04",
+        "UF13",
+        "CB01"
+      ],
+      "implementation": "NOT_QUALIFIED_BY_SOURCE",
+      "evidence_required": "Current source/runtime evidence scoped to the original acceptance; source NOT_EXECUTED is historical."
+    },
+    {
+      "source": "docs/history/ui-design-increment-20261009/sources/zip-members/06_成熟度验收场景.csv",
+      "csv_record": 13,
+      "source_fields": {
+        "批次": "核心",
+        "场景": "恢复失败",
+        "输入或操作": "在隔离副本检查损坏/不兼容备份",
+        "通过条件": "不能开始不支持的恢复；错误可定位，不改原实例",
+        "当前结论": "NOT_EXECUTED；未来按实际环境验证"
+      },
+      "tasks": [
+        "UF01",
+        "UF02",
+        "UF03",
+        "UF04",
+        "UF13",
+        "CB01"
+      ],
+      "implementation": "NOT_QUALIFIED_BY_SOURCE",
+      "evidence_required": "Current source/runtime evidence scoped to the original acceptance; source NOT_EXECUTED is historical."
+    },
+    {
+      "source": "docs/history/ui-design-increment-20261009/sources/zip-members/06_成熟度验收场景.csv",
+      "csv_record": 14,
+      "source_fields": {
+        "批次": "核心",
+        "场景": "恢复回读",
+        "输入或操作": "在获准的隔离副本完成真实恢复与重启",
+        "通过条件": "知识/原件/CAS/引用/版本/草稿一致；待回读不误标完成",
+        "当前结论": "NOT_EXECUTED；未来按实际环境验证"
+      },
+      "tasks": [
+        "UF01",
+        "UF02",
+        "UF03",
+        "UF04",
+        "UF13",
+        "CB01"
+      ],
+      "implementation": "NOT_QUALIFIED_BY_SOURCE",
+      "evidence_required": "Current source/runtime evidence scoped to the original acceptance; source NOT_EXECUTED is historical."
+    },
+    {
+      "source": "docs/history/ui-design-increment-20261009/sources/zip-members/06_成熟度验收场景.csv",
+      "csv_record": 15,
+      "source_fields": {
+        "批次": "学习",
+        "场景": "全生命周期",
+        "输入或操作": "目标→诊断/先修→活动→反馈→复习巩固",
+        "通过条件": "路线可解释；主动提取/实战/Teach-back等保留",
+        "当前结论": "NOT_EXECUTED；未来按实际环境验证"
+      },
+      "tasks": [
+        "UF05",
+        "UF07"
+      ],
+      "implementation": "NOT_QUALIFIED_BY_SOURCE",
+      "evidence_required": "Current source/runtime evidence scoped to the original acceptance; source NOT_EXECUTED is historical."
+    },
+    {
+      "source": "docs/history/ui-design-increment-20261009/sources/zip-members/06_成熟度验收场景.csv",
+      "csv_record": 16,
+      "source_fields": {
+        "批次": "学习",
+        "场景": "播放与掌握",
+        "输入或操作": "完成课件播放但无作答和学习证据",
+        "通过条件": "只增加真实播放/进度记录，掌握维持未评估",
+        "当前结论": "NOT_EXECUTED；未来按实际环境验证"
+      },
+      "tasks": [
+        "UF05",
+        "UF07"
+      ],
+      "implementation": "NOT_QUALIFIED_BY_SOURCE",
+      "evidence_required": "Current source/runtime evidence scoped to the original acceptance; source NOT_EXECUTED is historical."
+    },
+    {
+      "source": "docs/history/ui-design-increment-20261009/sources/zip-members/06_成熟度验收场景.csv",
+      "csv_record": 17,
+      "source_fields": {
+        "批次": "学习",
+        "场景": "题目与版本",
+        "输入或操作": "交付新课程修订后查看旧学习事件",
+        "通过条件": "旧题目/rubric/引用可追溯，不被新版本覆盖",
+        "当前结论": "NOT_EXECUTED；未来按实际环境验证"
+      },
+      "tasks": [
+        "UF05",
+        "UF07"
+      ],
+      "implementation": "NOT_QUALIFIED_BY_SOURCE",
+      "evidence_required": "Current source/runtime evidence scoped to the original acceptance; source NOT_EXECUTED is historical."
+    },
+    {
+      "source": "docs/history/ui-design-increment-20261009/sources/zip-members/06_成熟度验收场景.csv",
+      "csv_record": 18,
+      "source_fields": {
+        "批次": "交换",
+        "场景": "人工课程交换",
+        "输入或操作": "手工接收产物，重复提交与同ID异内容",
+        "通过条件": "身份/版本/hash/用途/幂等分别检查；显示人工交换",
+        "当前结论": "NOT_EXECUTED；未来按实际环境验证"
+      },
+      "tasks": [
+        "UF07",
+        "CB02"
+      ],
+      "implementation": "NOT_QUALIFIED_BY_SOURCE",
+      "evidence_required": "Current source/runtime evidence scoped to the original acceptance; source NOT_EXECUTED is historical."
+    },
+    {
+      "source": "docs/history/ui-design-increment-20261009/sources/zip-members/06_成熟度验收场景.csv",
+      "csv_record": 19,
+      "source_fields": {
+        "批次": "交换",
+        "场景": "外部反馈身份",
+        "输入或操作": "外部生产者提交教学/技术反馈",
+        "通过条件": "不冒充human学习事件；接收与采用分别记录",
+        "当前结论": "NOT_EXECUTED；未来按实际环境验证"
+      },
+      "tasks": [
+        "UF07",
+        "CB02"
+      ],
+      "implementation": "NOT_QUALIFIED_BY_SOURCE",
+      "evidence_required": "Current source/runtime evidence scoped to the original acceptance; source NOT_EXECUTED is historical."
+    },
+    {
+      "source": "docs/history/ui-design-increment-20261009/sources/zip-members/06_成熟度验收场景.csv",
+      "csv_record": 20,
+      "source_fields": {
+        "批次": "AI",
+        "场景": "纠正复测",
+        "输入或操作": "已有回答→修订候选→真实复测→按范围采用",
+        "通过条件": "失败差异和使用回执可查，不以自评代独立评测",
+        "当前结论": "NOT_EXECUTED；未来按实际环境验证"
+      },
+      "tasks": [
+        "UF09",
+        "CB03"
+      ],
+      "implementation": "NOT_QUALIFIED_BY_SOURCE",
+      "evidence_required": "Current source/runtime evidence scoped to the original acceptance; source NOT_EXECUTED is historical."
+    },
+    {
+      "source": "docs/history/ui-design-increment-20261009/sources/zip-members/06_成熟度验收场景.csv",
+      "csv_record": 21,
+      "source_fields": {
+        "批次": "AI",
+        "场景": "候选撤回",
+        "输入或操作": "已采用候选撤回后读取旧回执",
+        "通过条件": "撤回范围生效，旧历史不改写",
+        "当前结论": "NOT_EXECUTED；未来按实际环境验证"
+      },
+      "tasks": [
+        "UF09",
+        "CB03"
+      ],
+      "implementation": "NOT_QUALIFIED_BY_SOURCE",
+      "evidence_required": "Current source/runtime evidence scoped to the original acceptance; source NOT_EXECUTED is historical."
+    },
+    {
+      "source": "docs/history/ui-design-increment-20261009/sources/zip-members/06_成熟度验收场景.csv",
+      "csv_record": 22,
+      "source_fields": {
+        "批次": "资源",
+        "场景": "大数据与长文",
+        "输入或操作": "长标题、长课程、千级列表/模板分页",
+        "通过条件": "组件持续可读；分页、滚动、选择不受截图行数限制",
+        "当前结论": "NOT_EXECUTED；未来按实际环境验证"
+      },
+      "tasks": [
+        "UF10",
+        "UF11",
+        "CB04"
+      ],
+      "implementation": "NOT_QUALIFIED_BY_SOURCE",
+      "evidence_required": "Current source/runtime evidence scoped to the original acceptance; source NOT_EXECUTED is historical."
+    },
+    {
+      "source": "docs/history/ui-design-increment-20261009/sources/zip-members/06_成熟度验收场景.csv",
+      "csv_record": 23,
+      "source_fields": {
+        "批次": "资源",
+        "场景": "部分导入与取消",
+        "输入或操作": "批量中成功/失败/取消混合",
+        "通过条件": "原件与转换分开；成功项可定位，仅重试失败项",
+        "当前结论": "NOT_EXECUTED；未来按实际环境验证"
+      },
+      "tasks": [
+        "UF10",
+        "UF11",
+        "CB04"
+      ],
+      "implementation": "NOT_QUALIFIED_BY_SOURCE",
+      "evidence_required": "Current source/runtime evidence scoped to the original acceptance; source NOT_EXECUTED is historical."
+    },
+    {
+      "source": "docs/history/ui-design-increment-20261009/sources/zip-members/06_成熟度验收场景.csv",
+      "csv_record": 24,
+      "source_fields": {
+        "批次": "能力",
+        "场景": "目录与细项",
+        "输入或操作": "普通用户用目录与搜索找独立基线细项",
+        "通过条件": "未来详情可打开，16父项不能代替全部细项",
+        "当前结论": "NOT_EXECUTED；未来按实际环境验证"
+      },
+      "tasks": [
+        "UF06",
+        "G01",
+        "H01"
+      ],
+      "implementation": "NOT_QUALIFIED_BY_SOURCE",
+      "evidence_required": "Current source/runtime evidence scoped to the original acceptance; source NOT_EXECUTED is historical."
+    },
+    {
+      "source": "docs/history/ui-design-increment-20261009/sources/zip-members/06_成熟度验收场景.csv",
+      "csv_record": 25,
+      "source_fields": {
+        "批次": "安全",
+        "场景": "外部课件",
+        "输入或操作": "展示外部HTML/代码并尝试宿主调用",
+        "通过条件": "按现有隔离/权限实际拒绝；iframe字样不算证据",
+        "当前结论": "NOT_EXECUTED；未来按实际环境验证"
+      },
+      "tasks": [
+        "UF05",
+        "UF13"
+      ],
+      "implementation": "NOT_QUALIFIED_BY_SOURCE",
+      "evidence_required": "Current source/runtime evidence scoped to the original acceptance; source NOT_EXECUTED is historical."
+    },
+    {
+      "source": "docs/history/ui-design-increment-20261009/sources/zip-members/06_成熟度验收场景.csv",
+      "csv_record": 26,
+      "source_fields": {
+        "批次": "文档",
+        "场景": "消费者与权威",
+        "输入或操作": "读取活动任务、历史来源与生成消费者",
+        "通过条件": "新旧状态与来源清楚；既有修正不重复施工",
+        "当前结论": "NOT_EXECUTED；未来按实际环境验证"
+      },
+      "tasks": [
+        "G01",
+        "H01"
+      ],
+      "implementation": "NOT_QUALIFIED_BY_SOURCE",
+      "evidence_required": "Current source/runtime evidence scoped to the original acceptance; source NOT_EXECUTED is historical."
+    },
+    {
+      "source": "docs/history/ui-design-increment-20261009/sources/zip-members/06_成熟度验收场景.csv",
+      "csv_record": 27,
+      "source_fields": {
+        "批次": "独立待办",
+        "场景": "CI与体积",
+        "输入或操作": "核对暂停任务与原体积治理登记",
+        "通过条件": "仍独立待办，不因设计包完成宣告通过",
+        "当前结论": "NOT_EXECUTED；未来按实际环境验证"
+      },
+      "tasks": [
+        "S01",
+        "V01"
+      ],
+      "implementation": "NOT_QUALIFIED_BY_SOURCE",
+      "evidence_required": "Current source/runtime evidence scoped to the original acceptance; source NOT_EXECUTED is historical."
+    }
+  ]
+}

@@ -1,0 +1,357 @@
+{
+  "schema": "aaos.archive-manifest/v1",
+  "archive_date": "2026-10-02",
+  "classification": "HISTORICAL_RECORD_REFERENCE_NOT_CURRENT_AUTHORITY",
+  "provenance": {
+    "supplied_by": "the Owner",
+    "source": "D:\\All projects\\Record\\AAOS_UI_深度调整包_20261002.zip",
+    "how_obtained": "the Owner named this exact path on 2026-10-02; the zip was copied byte-for-byte and its members hashed from inside the archive",
+    "why_not_unpacked_into_the_tree": "an unpacked copy was tried first and ten of its files failed check_repository_conventions.py - six JSON files with no final newline, one text file with trailing whitespace, three CSVs with a UTF-8 BOM. Rewriting them would break the byte fidelity an archive exists for, so the zip is stored whole and the content is proven by hashing its members in place.",
+    "note": "the package says of itself that it follows the current R6/M0 implementation and does not establish a separate R7 authority, which matches section 16 of the master taskpack"
+  },
+  "source_copies": [
+    {
+      "source": "D:\\All projects\\Record\\AAOS_UI_深度调整包_20261002.zip",
+      "archive": "./docs/history/ui-adjustment-2026-10-02/AAOS_UI_深度调整包_20261002.zip",
+      "bytes": 4981248,
+      "sha256": "5A20BBDF0BB1A87AE80FF5B4C2672612AAEEEC32225BBD93722124F8DC660AB0",
+      "byte_identical": true
+    }
+  ],
+  "zip_entry_count": 52,
+  "members_hashed_in_place": 52,
+  "entries": [
+    {
+      "path": "AAOS_UI_Adjustment_20261002/00_先读我.md",
+      "bytes": 2595,
+      "sha256": "8E6FF0CE162C266DB5B8B4F671E1474D0335D796AF4EA3FB4781E892AE63895F"
+    },
+    {
+      "path": "AAOS_UI_Adjustment_20261002/evidence/package-manifest.json",
+      "bytes": 8222,
+      "sha256": "85C0FF3948D666D50E546AC2A0C5B620CD40A26A1B6E99F6F024FBC8BF146D48",
+      "deviations_from_repo_conventions": [
+        "missing final newline"
+      ]
+    },
+    {
+      "path": "AAOS_UI_Adjustment_20261002/evidence/preview-validation.json",
+      "bytes": 3771,
+      "sha256": "7AB7153DEC2EC77ECDF8580A3A772C73EF2A16F92F3D26C54B8A93ECAE38683F",
+      "deviations_from_repo_conventions": [
+        "missing final newline"
+      ]
+    },
+    {
+      "path": "AAOS_UI_Adjustment_20261002/evidence/source-hashes.json",
+      "bytes": 1338,
+      "sha256": "8059716A5D9AD78F42156A957B62C0E29618CA760FFDD413C3161AFCD8CA271C",
+      "deviations_from_repo_conventions": [
+        "missing final newline"
+      ]
+    },
+    {
+      "path": "AAOS_UI_Adjustment_20261002/evidence/本次交付检查.md",
+      "bytes": 705,
+      "sha256": "A7727C38C255B94047A9652FA516F946629CD71DFF5167CF75D463B2F6DF1F35"
+    },
+    {
+      "path": "AAOS_UI_Adjustment_20261002/evidence/输入与证据范围.md",
+      "bytes": 2022,
+      "sha256": "293D77118C618ECE027E684A9D61057E0ABAEA17E0FBE8D6958440C7B83CF6B2"
+    },
+    {
+      "path": "AAOS_UI_Adjustment_20261002/integration/AaosUiAdjustment.Geometry.axaml",
+      "bytes": 835,
+      "sha256": "78355CBC51AF5E54A4D825088EC78E65F75C4DE2AFCC31FC8C92FAF2BA4ADB51"
+    },
+    {
+      "path": "AAOS_UI_Adjustment_20261002/integration/LegacyRoutePlacements.cs",
+      "bytes": 1171,
+      "sha256": "921CDD129AF440B388FA139BD939D229E4B9A21684539661F8449F5709D4022F"
+    },
+    {
+      "path": "AAOS_UI_Adjustment_20261002/integration/design-tokens.json",
+      "bytes": 3145,
+      "sha256": "141C8121CC607AE246749696F5926E0E8611EA1C25A059F798F639973E5A7594",
+      "deviations_from_repo_conventions": [
+        "missing final newline"
+      ]
+    },
+    {
+      "path": "AAOS_UI_Adjustment_20261002/integration/navigation-capability-registry.json",
+      "bytes": 43835,
+      "sha256": "24CA624CA93DE43844748150FD5E9269CF5736804ACE7B30E098F980C5E4126C",
+      "deviations_from_repo_conventions": [
+        "missing final newline"
+      ]
+    },
+    {
+      "path": "AAOS_UI_Adjustment_20261002/integration/route-migration-map.json",
+      "bytes": 4630,
+      "sha256": "69964BE00FBB97D8366924ED6E16D4A761EB0AFBC226ED94E4E8B49ED7330421",
+      "deviations_from_repo_conventions": [
+        "missing final newline"
+      ]
+    },
+    {
+      "path": "AAOS_UI_Adjustment_20261002/integration/接入说明.md",
+      "bytes": 1142,
+      "sha256": "BFBA93C1C374809CD038A4117F9983C743909851D1663B9F9D3A55B02D0447A0"
+    },
+    {
+      "path": "AAOS_UI_Adjustment_20261002/preview/assets/AAOS-LICENSE.txt",
+      "bytes": 1065,
+      "sha256": "B247E647F770F10E281CD662A1B1626461469D056C8B5C65E0C94C87A724F334"
+    },
+    {
+      "path": "AAOS_UI_Adjustment_20261002/preview/assets/NOTICE.txt",
+      "bytes": 673,
+      "sha256": "B54FF4F8A034A0F4B79C43C681040CCC5264E322DB46749C1FC40665C9F09AC4"
+    },
+    {
+      "path": "AAOS_UI_Adjustment_20261002/preview/assets/NotoSansSC-OFL.txt",
+      "bytes": 4388,
+      "sha256": "1C05C68C34F9708415AADA51F17E1B0092D2CEA709BF4A94CD38114F9E73D7D9"
+    },
+    {
+      "path": "AAOS_UI_Adjustment_20261002/preview/assets/aaos-brand-mark.svg",
+      "bytes": 2119,
+      "sha256": "D5B680EBFE7F3B617F70482DAC94C3B7CE050D23D0EBCBF80C9AFF9B76A2E437"
+    },
+    {
+      "path": "AAOS_UI_Adjustment_20261002/preview/assets/aaos-preview-cjk.ttf",
+      "bytes": 300052,
+      "sha256": "7271B73037A1CF6FD55380B3FAD6481ECCFE68610C8FEA8CD1E14473D25DB48E"
+    },
+    {
+      "path": "AAOS_UI_Adjustment_20261002/preview/catalog.js",
+      "bytes": 31179,
+      "sha256": "CD076F497CA34A69C4498DE55902C9D0F7A932254B235BC02D24C9FBD23F5D6E"
+    },
+    {
+      "path": "AAOS_UI_Adjustment_20261002/preview/icons.js",
+      "bytes": 5194,
+      "sha256": "4428D72BBDFF4A06A6A980D1058703B9EDE1DA02733D5236653697DD1BA0D519"
+    },
+    {
+      "path": "AAOS_UI_Adjustment_20261002/preview/index.html",
+      "bytes": 3010,
+      "sha256": "90735A10ED3E8710DCD3280922E330A519A4BEB6EB9B52B1802B0836C725561E"
+    },
+    {
+      "path": "AAOS_UI_Adjustment_20261002/preview/ui.css",
+      "bytes": 29572,
+      "sha256": "2437CC4A950530E8E9B8C2E6917C7089560852185978A0FFE92522E0C4086F13"
+    },
+    {
+      "path": "AAOS_UI_Adjustment_20261002/preview/ui.js",
+      "bytes": 59547,
+      "sha256": "B8F711566680C48B606FBD45E60E457692B35EFE185FE50ABB939EF88211D216"
+    },
+    {
+      "path": "AAOS_UI_Adjustment_20261002/prompts/01_主执行提示词.txt",
+      "bytes": 4035,
+      "sha256": "A772FFDC44879B0ED50C2412B54B87A620F98E97BC21A15FD16A400242EFC24F"
+    },
+    {
+      "path": "AAOS_UI_Adjustment_20261002/prompts/02_Hermes执行补充.txt",
+      "bytes": 520,
+      "sha256": "5716B7228A9E1070A4A9A6FA0C49DABBF373CBCA85EF7B349F2C14DEA094EF2E"
+    },
+    {
+      "path": "AAOS_UI_Adjustment_20261002/prompts/03_DSH契约核对补充.txt",
+      "bytes": 573,
+      "sha256": "CF608DBDA0C7D37A24FC7B6CD92225DD01AE0A8FE8E179F1823ADD0AC469A2EF"
+    },
+    {
+      "path": "AAOS_UI_Adjustment_20261002/screenshots/01_工作台_1920x1080.png",
+      "bytes": 258539,
+      "sha256": "2140F4F3AA385CEC8B8CAA0D7DF7ACE47D12246526919F931E161B4D688CF95C"
+    },
+    {
+      "path": "AAOS_UI_Adjustment_20261002/screenshots/02_捕获导入_1920x1080.png",
+      "bytes": 246889,
+      "sha256": "266DBAD30E1B23C5651DCBF4E3C9A185027A788086506C08D64C30E10C3369C2"
+    },
+    {
+      "path": "AAOS_UI_Adjustment_20261002/screenshots/03_资料库_1920x1080.png",
+      "bytes": 258693,
+      "sha256": "F9426DF12AE59735159E108DB319F401743A684D365707A520D076C346B7B035"
+    },
+    {
+      "path": "AAOS_UI_Adjustment_20261002/screenshots/04_阅读与证据定位_1920x1080.png",
+      "bytes": 305876,
+      "sha256": "9DC36F2D89290F8546ADCDE2BF94920B0E4B1AAC44DD29086CD5AA2B3FF33DF1"
+    },
+    {
+      "path": "AAOS_UI_Adjustment_20261002/screenshots/05_证据复核_1920x1080.png",
+      "bytes": 235723,
+      "sha256": "26D067A09A25C75EF02416C60EDF6FAB883EA357B3A5A71F5DED36B2CA8122CB"
+    },
+    {
+      "path": "AAOS_UI_Adjustment_20261002/screenshots/06_搜索与问答_1920x1080.png",
+      "bytes": 257667,
+      "sha256": "341D1A997ED96ECC3EAAFD3EF8105B6E9639292AC9C7DED41ADA488D397A1085"
+    },
+    {
+      "path": "AAOS_UI_Adjustment_20261002/screenshots/07_今日学习_1920x1080.png",
+      "bytes": 261058,
+      "sha256": "D7CB72A2A635D3B36B0382A2C810E3B4E3E725358AA2B25CAD498F11C007C973"
+    },
+    {
+      "path": "AAOS_UI_Adjustment_20261002/screenshots/08_复习作答与反馈_1920x1080.png",
+      "bytes": 173361,
+      "sha256": "98E00E1A91802AE9273B5D72DB6FC00210409116076BA2761D2C23C2CF581C8B"
+    },
+    {
+      "path": "AAOS_UI_Adjustment_20261002/screenshots/09_机器任务_1920x1080.png",
+      "bytes": 182417,
+      "sha256": "301C11E4D3643D6FA568ADD6E8A178837602B754A1E4ABF5C6A884BDC075D037"
+    },
+    {
+      "path": "AAOS_UI_Adjustment_20261002/screenshots/10_纠错复测_1920x1080.png",
+      "bytes": 221642,
+      "sha256": "AB8F0223198C3434300ACAE2E69709B3036146E1B2DBDB23CF946EE0A7135405"
+    },
+    {
+      "path": "AAOS_UI_Adjustment_20261002/screenshots/11_插件与能力提供方_1920x1080.png",
+      "bytes": 239851,
+      "sha256": "0239D8E8CEC88C32EF405FBED2951765933503EEACFADC9195FC7821D5F3A4E6"
+    },
+    {
+      "path": "AAOS_UI_Adjustment_20261002/screenshots/12_全能力目录_1920x1080.png",
+      "bytes": 286185,
+      "sha256": "2E0E62EE68A0C6ECF1D75C159828EEB4B862C28BDCB888208ACC6B2C8C2ABC2F"
+    },
+    {
+      "path": "AAOS_UI_Adjustment_20261002/screenshots/13_空间记忆_待开发_1920x1080.png",
+      "bytes": 312100,
+      "sha256": "02AE3678FBF5EEBCA42A9CEA84A4A5EC7F20CAF52860E8BFB18EC5B8F0C4ADA6"
+    },
+    {
+      "path": "AAOS_UI_Adjustment_20261002/screenshots/14_知识对象与版本_1920x1080.png",
+      "bytes": 227023,
+      "sha256": "9F3029F8F34283291248F8FF47357B5AE77B4A290B6E6E45E670850B8583F435"
+    },
+    {
+      "path": "AAOS_UI_Adjustment_20261002/screenshots/15_黑白主题_资料库_1920x1080.png",
+      "bytes": 258664,
+      "sha256": "93D1188605C7590402572F7F016F9E5BA826F885FA4571757D522183F4003767"
+    },
+    {
+      "path": "AAOS_UI_Adjustment_20261002/screenshots/16_黑白主题_学习_1920x1080.png",
+      "bytes": 299838,
+      "sha256": "F3B22C372329CE3B61458305566B884344D5E96D5BEBD62697303F779B6880C8"
+    },
+    {
+      "path": "AAOS_UI_Adjustment_20261002/screenshots/响应式_阅读_1024.png",
+      "bytes": 222282,
+      "sha256": "433FB09426D064C3AB53E3A3B9600020119D9C973E321013F79D806E86AE7A5E"
+    },
+    {
+      "path": "AAOS_UI_Adjustment_20261002/screenshots/响应式_阅读_1280.png",
+      "bytes": 244565,
+      "sha256": "DA8C7BBC7A913E8C87BBC7CFE4F4717E8E725C4D1A49AFC19539DF1FEF26E856"
+    },
+    {
+      "path": "AAOS_UI_Adjustment_20261002/screenshots/响应式_阅读_2560.png",
+      "bytes": 337785,
+      "sha256": "8B0BC163F26AD3E370034EEE19F84B69C9E829DE3A759BEAF121D71995BB2A64"
+    },
+    {
+      "path": "AAOS_UI_Adjustment_20261002/specs/01_信息架构与布局冻结.md",
+      "bytes": 5083,
+      "sha256": "87C491BBA7280EE26A98215F0B72352D9BABFF9DDD4D1E2B4D112C73B71CA129"
+    },
+    {
+      "path": "AAOS_UI_Adjustment_20261002/specs/02_19路由迁移.csv",
+      "bytes": 1908,
+      "sha256": "2371EB5A6D2CD10488550448810156C9A1F0153B37A6BF4F493830097440DA84",
+      "deviations_from_repo_conventions": [
+        "UTF-8 BOM"
+      ]
+    },
+    {
+      "path": "AAOS_UI_Adjustment_20261002/specs/02_现有页面迁移映射.md",
+      "bytes": 4239,
+      "sha256": "8730B9140D4C7F710006898B038F11D144F60E8CAF1FB8B6298ECA4F2B96C423"
+    },
+    {
+      "path": "AAOS_UI_Adjustment_20261002/specs/03_组件与状态交互.md",
+      "bytes": 3511,
+      "sha256": "38DCE530A35B51B104ECD2313A995DEB1A69A1F9A6B01444A678B96147371AF6"
+    },
+    {
+      "path": "AAOS_UI_Adjustment_20261002/specs/04_全能力菜单清单_50项.csv",
+      "bytes": 4644,
+      "sha256": "1AF9673A5341F6496ACB6C6765BBBC5518665683526FD9963662C73F30574D92",
+      "deviations_from_repo_conventions": [
+        "UTF-8 BOM"
+      ]
+    },
+    {
+      "path": "AAOS_UI_Adjustment_20261002/specs/04_未来能力与开发提醒.md",
+      "bytes": 3472,
+      "sha256": "160CCDA3172E3EBF6BA96C651A4804ED69294C2FCC6215DDFB0FDE53686EA398"
+    },
+    {
+      "path": "AAOS_UI_Adjustment_20261002/specs/05_执行顺序与验收.md",
+      "bytes": 1679,
+      "sha256": "0C5E2868A32D3F764FE364ACA53F91E5587BE6B3C8EAA849EDF08C8C6B58B72B"
+    },
+    {
+      "path": "AAOS_UI_Adjustment_20261002/specs/05_正式验收矩阵.csv",
+      "bytes": 2238,
+      "sha256": "67F5B6A29AA3BA846E32129A852128E061C1FF62F810F3CDB5C9900C0D8E6D00",
+      "deviations_from_repo_conventions": [
+        "UTF-8 BOM"
+      ]
+    }
+  ],
+  "category_counts": {
+    "00_先读我.md": 1,
+    "evidence": 5,
+    "integration": 6,
+    "preview": 10,
+    "prompts": 3,
+    "screenshots": 19,
+    "specs": 8
+  },
+  "members_not_matching_repo_conventions": {
+    "count": 9,
+    "paths": [
+      "AAOS_UI_Adjustment_20261002/evidence/package-manifest.json",
+      "AAOS_UI_Adjustment_20261002/evidence/preview-validation.json",
+      "AAOS_UI_Adjustment_20261002/evidence/source-hashes.json",
+      "AAOS_UI_Adjustment_20261002/integration/design-tokens.json",
+      "AAOS_UI_Adjustment_20261002/integration/navigation-capability-registry.json",
+      "AAOS_UI_Adjustment_20261002/integration/route-migration-map.json",
+      "AAOS_UI_Adjustment_20261002/specs/02_19路由迁移.csv",
+      "AAOS_UI_Adjustment_20261002/specs/04_全能力菜单清单_50项.csv",
+      "AAOS_UI_Adjustment_20261002/specs/05_正式验收矩阵.csv"
+    ],
+    "why_recorded": "so a later reader knows the package as delivered does not satisfy this repository's formatting, instead of finding out from a red build"
+  },
+  "own_manifest_present": true,
+  "own_manifest_shape": "list",
+  "own_manifest_package_id": null,
+  "own_manifest_revision": null,
+  "own_manifest_entry_count": 51,
+  "integrity": "PASS",
+  "related_records": [
+    "docs/current/AAOS-UI-CONTRACT-VERIFICATION-20261002.json",
+    "docs/history/plan-recovery-2026-10-02/AAOS-R7-PLAN-2026-10-02.md",
+    "docs/current/AAOS-UI-IA-FREEZE-V1-20261002.json"
+  ],
+  "recorded_at": "2026-10-02T08:14:08.323441+00:00",
+  "supplied_prompts_beside_the_zip": [
+    {
+      "file": "AAOS-FRONTEND-UI-HANDOFF-AUDIT-PROMPT-OLDER.md",
+      "sha256": "5F48D66B94162679CCC9868598CDB7C15EB1D71F4EBB2A22877BA46E224BBCAA",
+      "bytes": 13308,
+      "supplied_by": "the Owner, as the older frontend UI/UX handoff audit prompt",
+      "note": "archived verbatim; what it adds and what is superseded is recorded in docs/current/AAOS-UI-HANDOFF-AUDIT-PROMPT-ASSESSMENT-20261002.json"
+    }
+  ]
+}

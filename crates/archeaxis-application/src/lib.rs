@@ -14,6 +14,7 @@ pub mod attempts;
 pub mod container;
 pub mod executor;
 pub mod jobs;
+pub mod media_artifacts;
 pub mod ocr;
 pub mod scheduler;
 

@@ -2,7 +2,7 @@ use serde::Serialize;
 use std::collections::VecDeque;
 use std::ffi::c_void;
 use std::fs::{File, OpenOptions};
-use std::io::{self, Write};
+use std::io::{self, Read, Seek, SeekFrom, Write};
 use std::os::windows::fs::{MetadataExt, OpenOptionsExt};
 use std::os::windows::io::AsRawHandle;
 use std::path::{Component, Path, PathBuf};
@@ -429,6 +429,12 @@ pub fn is_valid_backup_display_name(name: &str) -> bool {
     {
         return false;
     }
+    if name
+        .strip_suffix(".sqlite")
+        .is_some_and(|id| valid_hex(id, 32))
+    {
+        return true;
+    }
     let Some(timestamp) = name
         .strip_prefix("cognitive_os_")
         .and_then(|value| value.strip_suffix(".sqlite"))
@@ -436,6 +442,137 @@ pub fn is_valid_backup_display_name(name: &str) -> bool {
         return false;
     };
     valid_backup_timestamp(timestamp)
+}
+
+fn valid_hex(value: &str, size: usize) -> bool {
+    value.len() == size
+        && value
+            .bytes()
+            .all(|b| b.is_ascii_digit() || (b'a'..=b'f').contains(&b))
+}
+#[link(name = "Advapi32")]
+extern "system" {
+    fn CryptAcquireContextW(
+        provider: *mut usize,
+        container: *const u16,
+        name: *const u16,
+        kind: u32,
+        flags: u32,
+    ) -> i32;
+    fn CryptCreateHash(
+        provider: usize,
+        algorithm: u32,
+        key: usize,
+        flags: u32,
+        hash: *mut usize,
+    ) -> i32;
+    fn CryptHashData(hash: usize, bytes: *const u8, size: u32, flags: u32) -> i32;
+    fn CryptGetHashParam(
+        hash: usize,
+        param: u32,
+        bytes: *mut u8,
+        size: *mut u32,
+        flags: u32,
+    ) -> i32;
+    fn CryptDestroyHash(hash: usize) -> i32;
+    fn CryptReleaseContext(provider: usize, flags: u32) -> i32;
+}
+fn sha256(file: &mut File) -> Result<String, String> {
+    let mut provider = 0;
+    if unsafe {
+        CryptAcquireContextW(
+            &mut provider,
+            std::ptr::null(),
+            std::ptr::null(),
+            24,
+            0xf0000000,
+        )
+    } == 0
+    {
+        return Err("backup digest provider unavailable".into());
+    }
+    let mut hash = 0;
+    if unsafe { CryptCreateHash(provider, 0x800c, 0, 0, &mut hash) } == 0 {
+        unsafe {
+            CryptReleaseContext(provider, 0);
+        };
+        return Err("backup digest unavailable".into());
+    }
+    let result = (|| {
+        file.seek(SeekFrom::Start(0))
+            .map_err(|_| "backup digest read failed")?;
+        let mut buffer = [0u8; 65536];
+        loop {
+            let size = file
+                .read(&mut buffer)
+                .map_err(|_| "backup digest read failed")?;
+            if size == 0 {
+                break;
+            }
+            if unsafe { CryptHashData(hash, buffer.as_ptr(), size as u32, 0) } == 0 {
+                return Err("backup digest failed".to_owned());
+            }
+        }
+        let mut output = [0u8; 32];
+        let mut size = 32;
+        if unsafe { CryptGetHashParam(hash, 2, output.as_mut_ptr(), &mut size, 0) } == 0
+            || size != 32
+        {
+            return Err("backup digest failed".into());
+        }
+        file.seek(SeekFrom::Start(0))
+            .map_err(|_| "backup digest rewind failed")?;
+        Ok(output.iter().map(|byte| format!("{byte:02x}")).collect())
+    })();
+    unsafe {
+        CryptDestroyHash(hash);
+        CryptReleaseContext(provider, 0);
+    }
+    result
+}
+fn core_source_hashes(name: &str, file: &mut File) -> Result<Vec<String>, String> {
+    let Some(id) = name.strip_suffix(".sqlite").filter(|id| valid_hex(id, 32)) else {
+        return Ok(Vec::new());
+    };
+    if file
+        .metadata()
+        .map_err(|_| "backup manifest metadata unavailable")?
+        .len()
+        > 1024 * 1024
+    {
+        return Err("backup manifest exceeds limit".into());
+    }
+    file.seek(SeekFrom::Start(0))
+        .map_err(|_| "backup manifest cannot be read")?;
+    let value: serde_json::Value =
+        serde_json::from_reader(&mut *file).map_err(|_| "Core backup manifest is invalid")?;
+    file.seek(SeekFrom::Start(0))
+        .map_err(|_| "backup manifest cannot be rewound")?;
+    if value["schema"] != "archeaxis-core-backup-1"
+        || value["backup_id"] != id
+        || value["filename"] != name
+        || value["sha256"].as_str().is_none_or(|v| !valid_hex(v, 64))
+        || value["bytes"].as_u64().is_none()
+        || value["schema_version"].as_str().is_none()
+        || value["sqlite_version"].as_str().is_none()
+    {
+        return Err("Core backup manifest identity is invalid".into());
+    }
+    let values = value["source_sha_list"]
+        .as_array()
+        .ok_or("Core backup object list is missing")?;
+    let mut hashes = Vec::new();
+    for value in values {
+        let digest = value
+            .as_str()
+            .filter(|v| valid_hex(v, 64))
+            .ok_or("Core backup object digest is invalid")?;
+        if hashes.iter().any(|v| v == digest) {
+            return Err("Core backup object list contains duplicates".into());
+        }
+        hashes.push(digest.to_owned());
+    }
+    Ok(hashes)
 }
 
 pub fn validate_enumerated_backup_name<I, S>(backups: I, name: &str) -> Result<(), &'static str>
@@ -509,9 +646,12 @@ pub fn enumerate_backups(data_dir: &Path) -> Result<Vec<EnumeratedBackup>, Strin
         let Ok((backup_file, backup_identity)) = open_backup_source(&backup_path) else {
             continue;
         };
-        let Ok((manifest_file, manifest_identity)) = open_backup_source(&manifest_path) else {
+        let Ok((mut manifest_file, manifest_identity)) = open_backup_source(&manifest_path) else {
             continue;
         };
+        if core_source_hashes(&name, &mut manifest_file).is_err() {
+            continue;
+        }
         let Ok(canonical_path) = std::fs::canonicalize(&backup_path) else {
             continue;
         };
@@ -553,9 +693,51 @@ pub struct StagedBackup {
     manifest_identity: ObjectIdentity,
     backup_file: Option<File>,
     manifest_file: Option<File>,
+    objects_directory: Option<(PathBuf, ObjectIdentity, File)>,
+    object_files: Vec<(PathBuf, ObjectIdentity, File)>,
+}
+
+// Replace the private writable staging handle with a held read-only handle.
+// During the transition, retain a handle that denies deletion. A competing writer
+// makes the final deny-write open fail; no offline restore runs in that case.
+fn seal_staging_file(path:&Path, expected:ObjectIdentity, handle:&mut File) -> Result<(),String> {
+    let transitional=OpenOptions::new().read(true).access_mode(GENERIC_READ)
+        .share_mode(FILE_SHARE_READ|FILE_SHARE_WRITE).custom_flags(FILE_FLAG_OPEN_REPARSE_POINT)
+        .open(path).map_err(|_|"restore sealing read handle unavailable")?;
+    if regular_file_object_identity(&transitional)?!=expected {return Err("restore sealing identity changed".into());}
+    *handle=transitional; // closes the private writable handle before deny-write open
+    let sealed=OpenOptions::new().read(true).access_mode(GENERIC_READ)
+        .share_mode(FILE_SHARE_READ).custom_flags(FILE_FLAG_OPEN_REPARSE_POINT)
+        .open(path).map_err(|_|"restore sealing refused a concurrent writer")?;
+    if regular_file_object_identity(&sealed)?!=expected {return Err("restore sealing identity changed".into());}
+    *handle=sealed;
+    Ok(())
 }
 
 impl StagedBackup {
+    pub fn seal_for_canonical_restore(&mut self, backup_id:&str, expected_sha:&str) -> Result<(),String> {
+        seal_staging_file(&self.backup_path,self.backup_identity,self.backup_file.as_mut().ok_or("restore staging handle unavailable")?)?;
+        seal_staging_file(&self.manifest_path,self.manifest_identity,self.manifest_file.as_mut().ok_or("restore staging manifest unavailable")?)?;
+        for (path,identity,file) in &mut self.object_files {
+            seal_staging_file(path,*identity,file)?;
+            if sha256(file)?!=path.file_name().and_then(|name|name.to_str()).ok_or("restore object filename invalid")? {return Err("sealed restore object hash mismatch".into());}
+        }
+        // Hash and manifest checks happen after deny-write handles are held, and
+        // all these handles live through the offline subprocess and its readback.
+        if self.snapshot_sha256()?!=expected_sha {return Err("sealed restore snapshot hash mismatch".into());}
+        let manifest=self.manifest_file.as_mut().ok_or("restore staging manifest unavailable")?;
+        manifest.seek(SeekFrom::Start(0)).map_err(|_|"sealed manifest seek failed")?;
+        let value:serde_json::Value=serde_json::from_reader(&mut *manifest).map_err(|_|"sealed manifest invalid")?;
+        manifest.seek(SeekFrom::Start(0)).map_err(|_|"sealed manifest seek failed")?;
+        if value["schema"]!="archeaxis-core-backup-1" || value["backup_id"]!=backup_id || value["filename"]!=format!("{backup_id}.sqlite") || value["sha256"]!=expected_sha {return Err("sealed manifest identity mismatch".into());}
+        self.revalidate_for_restore()
+    }
+
+    pub fn snapshot_sha256(&self) -> Result<String, String> {
+        let mut file=self.backup_file.as_ref().ok_or("restore staging handle unavailable")?.try_clone().map_err(|_|"restore staging handle unavailable")?;
+        sha256(&mut file)
+    }
+
     pub fn backup_path(&self) -> &Path {
         &self.backup_path
     }
@@ -592,6 +774,21 @@ impl StagedBackup {
                 return Err("restore staging file escaped the runtime data directory".to_owned());
             }
         }
+        if let Some((path, identity, handle)) = &self.objects_directory {
+            if !held_data_directory_matches(handle, path, *identity)
+                || path.parent() != Some(self.data_dir.as_path())
+            {
+                return Err("restore object directory identity changed".into());
+            }
+            for (object, identity, file) in &self.object_files {
+                if regular_file_object_identity(file)? != *identity
+                    || revalidate_file_path(object, *identity).is_err()
+                    || object.parent() != Some(path.as_path())
+                {
+                    return Err("restore object file identity changed".into());
+                }
+            }
+        }
         Ok(())
     }
 }
@@ -612,6 +809,16 @@ impl Drop for StagedBackup {
         if data_dir_valid {
             cleanup_staging_file_by_path(&self.backup_path, self.backup_identity);
             cleanup_staging_file_by_path(&self.manifest_path, self.manifest_identity);
+            for (path, identity, file) in self.object_files.drain(..) {
+                drop(file);
+                cleanup_staging_file_by_path(&path, identity);
+            }
+            if let Some((path, identity, handle)) = self.objects_directory.take() {
+                drop(handle);
+                if revalidate_directory_path(&path, identity).is_ok() {
+                    let _ = std::fs::remove_dir(path);
+                }
+            }
         }
         self.data_dir_handle.take();
     }
@@ -778,6 +985,23 @@ where
     let mut backup_source = verified_source(&selected.canonical_path, selected.backup_identity)?;
     let mut manifest_source =
         verified_source(&selected.canonical_manifest, selected.manifest_identity)?;
+    let hashes = core_source_hashes(&selected.name, &mut manifest_source)?;
+    if selected
+        .name
+        .strip_suffix(".sqlite")
+        .is_some_and(|id| valid_hex(id, 32))
+    {
+        let value: serde_json::Value = serde_json::from_reader(&mut manifest_source)
+            .map_err(|_| "backup manifest cannot be read")?;
+        manifest_source
+            .seek(SeekFrom::Start(0))
+            .map_err(|_| "backup manifest cannot be rewound")?;
+        if value["sha256"] != sha256(&mut backup_source)?
+            || value["bytes"] != selected.backup_identity.size
+        {
+            return Err("backup snapshot does not match manifest".into());
+        }
+    }
 
     let data_dir_metadata = std::fs::symlink_metadata(data_dir)
         .map_err(|_| "runtime data directory metadata is unavailable".to_owned())?;
@@ -840,6 +1064,8 @@ where
         manifest_identity,
         backup_file: Some(backup_file),
         manifest_file: Some(manifest_file),
+        objects_directory: None,
+        object_files: Vec::new(),
     };
     copy_to_staging(
         &mut backup_source,
@@ -848,6 +1074,51 @@ where
             .as_mut()
             .ok_or_else(|| "restore staging backup handle is unavailable".to_owned())?,
     )?;
+    if selected
+        .name
+        .strip_suffix(".sqlite")
+        .is_some_and(|id| valid_hex(id, 32))
+    {
+        let source_directory =
+            PathBuf::from(format!("{}.objects", selected.canonical_path.display()));
+        let (source_handle, source_identity) = open_data_directory(&source_directory, true)?;
+        let source_directory = source_directory
+            .canonicalize()
+            .map_err(|_| "backup object directory cannot be canonicalized")?;
+        if source_directory.parent() != selected.canonical_path.parent()
+            || !held_data_directory_matches(&source_handle, &source_directory, source_identity)
+        {
+            return Err("backup object directory escaped its root".into());
+        }
+        let objects = PathBuf::from(format!("{}.objects", staged.backup_path.display()));
+        std::fs::create_dir(&objects).map_err(|_| "restore object directory cannot be created")?;
+        let (handle, identity) = open_data_directory(&objects, true)?;
+        staged.objects_directory = Some((objects.clone(), identity, handle));
+        for digest in hashes {
+            let source_path = source_directory.join(&digest);
+            let (mut source, expected) = open_backup_source(&source_path)?;
+            if file_identity(&source)? != expected
+                || source_path
+                    .canonicalize()
+                    .map_err(|_| "backup object cannot be canonicalized")?
+                    != source_path
+            {
+                return Err("backup object identity changed".into());
+            }
+            let target = objects.join(digest);
+            if sha256(&mut source)? != target.file_name().unwrap().to_string_lossy() {
+                return Err("backup original does not match its digest".into());
+            }
+            let created = create_staging_file(&target)
+                .map_err(|_| "restore object staging collision or failure")?;
+            let (path, identity, file) = created.into_parts();
+            staged.object_files.push((path, identity, file));
+            copy_to_staging(&mut source, &mut staged.object_files.last_mut().unwrap().2)?;
+            if file_identity(&source)? != expected {
+                return Err("backup object changed while copying".into());
+            }
+        }
+    }
     copy_to_staging(
         &mut manifest_source,
         staged
@@ -1056,6 +1327,54 @@ mod tests {
     use tempfile::tempdir;
 
     const BACKUP_NAME: &str = "cognitive_os_20260823T010203_000000Z.sqlite";
+
+    #[test]
+    fn core_backup_manifest_and_cas_are_staged_verified_and_cleaned_without_touching_source() {
+        let directory = tempdir().unwrap();
+        let data = directory.path().join("data");
+        let backups = data.join("backups");
+        fs::create_dir_all(&backups).unwrap();
+        let name = "0123456789abcdef0123456789abcdef.sqlite";
+        let snapshot = backups.join(name);
+        fs::write(&snapshot, b"authored snapshot fixture").unwrap();
+        let snapshot_sha = super::sha256(&mut fs::File::open(&snapshot).unwrap()).unwrap();
+        let object = backups.join("hash-fixture");
+        fs::write(&object, b"original").unwrap();
+        let digest = super::sha256(&mut fs::File::open(&object).unwrap()).unwrap();
+        assert_eq!(
+            digest,
+            "0682c5f2076f099c34cfdd15a9e063849ed437a49677e6fcc5b4198c76575be5"
+        );
+        let objects = backups.join(format!("{name}.objects"));
+        fs::create_dir(&objects).unwrap();
+        fs::rename(&object, objects.join(&digest)).unwrap();
+        fs::write(backups.join(format!("{name}.manifest.json")),serde_json::to_vec(&serde_json::json!({"schema":"archeaxis-core-backup-1","backup_id":"0123456789abcdef0123456789abcdef","filename":name,"sha256":snapshot_sha,"bytes":25,"schema_version":"10","sqlite_version":"3.51.3","source_sha_list":[digest]})).unwrap()).unwrap();
+        let selected = enumerate_backups(&data).unwrap().pop().unwrap();
+        let staged = stage_backup_for_restore(&data, &selected).unwrap();
+        staged.revalidate_for_restore().unwrap();
+        let staged_objects =
+            std::path::PathBuf::from(format!("{}.objects", staged.backup_path().display()));
+        let staged_backup = staged.backup_path().to_owned();
+        assert_eq!(fs::read(staged_objects.join(&digest)).unwrap(), b"original");
+        assert_eq!(
+            fs::read(&staged_backup).unwrap(),
+            b"authored snapshot fixture"
+        );
+        drop(staged);
+        assert!(!staged_objects.exists());
+        assert!(!staged_backup.exists());
+        assert_eq!(fs::read(objects.join(&digest)).unwrap(), b"original");
+        fs::write(objects.join(&digest), b"tampered").unwrap();
+        assert!(stage_backup_for_restore(&data, &selected).is_err());
+        assert!(
+            fs::read_dir(&data).unwrap().all(|entry| !entry
+                .unwrap()
+                .file_name()
+                .to_string_lossy()
+                .starts_with(".recovery-")),
+            "failed staging must clean only its owned artifacts"
+        );
+    }
 
     fn write_backup_pair(backup_dir: &std::path::Path, backup: &[u8], manifest: &[u8]) {
         fs::create_dir_all(backup_dir).expect("create backup directory");
@@ -1298,6 +1617,33 @@ mod tests {
 
         assert_eq!(replacement.name, original.name);
         assert!(!original.same_source_identity(&replacement));
+    }
+
+
+    #[test]
+    fn canonical_sealing_denies_snapshot_manifest_and_cas_writes_until_restore_finishes() {
+        let temp=tempdir().unwrap();let data=temp.path().join("data");let backups=data.join("backups");fs::create_dir_all(&backups).unwrap();
+        let id="0123456789abcdef0123456789abcdef";let name=format!("{id}.sqlite");let snapshot=backups.join(&name);fs::write(&snapshot,b"sealed snapshot").unwrap();
+        let object_data=b"sealed original";let mut original=fs::OpenOptions::new().read(true).write(true).create_new(true).open(backups.join("hash-input")).unwrap();
+        use std::io::Write;original.write_all(object_data).unwrap();let object_sha=super::sha256(&mut original).unwrap();drop(original);
+        let objects=backups.join(format!("{name}.objects"));fs::create_dir(&objects).unwrap();fs::rename(backups.join("hash-input"),objects.join(&object_sha)).unwrap();
+        let (mut file,_)=super::open_backup_source(&snapshot).unwrap();let expected_sha=super::sha256(&mut file).unwrap();drop(file);
+        fs::write(backups.join(format!("{name}.manifest.json")),serde_json::to_vec(&serde_json::json!({"schema":"archeaxis-core-backup-1","backup_id":id,"filename":name,"sha256":expected_sha,"bytes":15,"schema_version":"10","sqlite_version":"3.51.3","source_sha_list":[object_sha]})).unwrap()).unwrap();
+        let selected=enumerate_backups(&data).unwrap().pop().unwrap();let mut staged=stage_backup_for_restore(&data,&selected).unwrap();staged.seal_for_canonical_restore(id,&expected_sha).unwrap();
+        let paths=vec![staged.backup_path.clone(),staged.manifest_path.clone(),staged.object_files[0].0.clone()];
+        for path in &paths {
+            assert!(fs::OpenOptions::new().write(true).share_mode(super::FILE_SHARE_READ|super::FILE_SHARE_WRITE).open(path).is_err(),"sealed path accepted in-place writer");
+            assert!(fs::read(path).is_ok(),"offline read-only open must still work");
+            assert!(fs::remove_file(path).is_err(),"sealed path accepted replacement/deletion");
+        }
+        assert_eq!(staged.snapshot_sha256().unwrap(),expected_sha);drop(staged);for path in paths {assert!(!path.exists(),"sealed staging cleanup residue");}
+    }
+
+    #[test]
+    fn sealing_refuses_an_existing_same_identity_writer() {
+        let temp=tempdir().unwrap();let path=temp.path().join("staged.sqlite");let created=super::create_staging_file(&path).ok().unwrap();let (_,identity,mut handle)=created.into_parts();
+        let writer=fs::OpenOptions::new().write(true).share_mode(super::FILE_SHARE_READ|super::FILE_SHARE_WRITE).open(&path).unwrap();
+        assert!(super::seal_staging_file(&path,identity,&mut handle).is_err());drop(writer);assert!(super::seal_staging_file(&path,identity,&mut handle).is_ok());
     }
 
     #[test]

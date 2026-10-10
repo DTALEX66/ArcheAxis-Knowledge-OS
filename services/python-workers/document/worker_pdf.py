@@ -369,7 +369,6 @@ def extract(path: str, ocr_dir: Path | None = None) -> dict:
     anchors: list[dict] = []
     lines = text.splitlines(keepends=True)
     offset = 0
-    per_page_line: dict[int, int] = {}
     for line in lines:
         if len(anchors) >= MAX_ANCHORS:
             break
@@ -377,11 +376,18 @@ def extract(path: str, ocr_dir: Path | None = None) -> dict:
             (page for page, start, end in page_ranges if start <= offset <= end),
             page_ranges[0][0] if page_ranges else 1,
         )
-        per_page_line[page_index] = per_page_line.get(page_index, 0) + 1
+        global_line = len(anchors) + 1
         anchors.append(
             {
+                # The Core addresses a receipt anchor by its span and by the *final* path
+                # segment, treating any leading segment as a qualifier - so the final
+                # segment must be the line's global position, while the page stays a
+                # qualifier. A per-page counter put a page-local number in the final
+                # segment and made a real multi-page PDF fail with "structure or coverage
+                # does not match projected text", even though every span was correct; a
+                # single-page PDF has page-local == global, so it never showed.
                 "kind": "line",
-                "path": [f"page-{page_index}", f"line-{per_page_line[page_index]}"],
+                "path": [f"page-{page_index}", f"line-{global_line}"],
                 "char_start": offset,
                 "char_end": offset + len(line),
             }
@@ -515,10 +521,17 @@ def main() -> int:
     if "--staging-root" in sys.argv:
         import argparse
 
-        repo_root = Path(__file__).resolve().parents[3]
-        spec = importlib.util.spec_from_file_location(
-            "pdf_transport", repo_root / "services" / "python-workers" / "transport" / "text_ndjson.py"
+        # The shared transport sits beside this worker's own category directory, in a
+        # source checkout (`services/python-workers/transport/`) and in a staged runtime
+        # (`workers/transport/`) alike, so both are tried from this file's location. A
+        # fixed parents[3] plus a `services/python-workers/` suffix was correct only for
+        # the source layout and left a staged worker unable to start.
+        _transport_candidates = (
+            Path(__file__).resolve().parent.parent / "transport" / "text_ndjson.py",
+            Path(__file__).resolve().parents[2] / "services" / "python-workers" / "transport" / "text_ndjson.py",
         )
+        _transport = next((p for p in _transport_candidates if p.is_file()), _transport_candidates[0])
+        spec = importlib.util.spec_from_file_location("pdf_transport", _transport)
         if spec is None or spec.loader is None:
             print(json.dumps({"error": "transport module is missing", "engine": ENGINE}))
             return 1

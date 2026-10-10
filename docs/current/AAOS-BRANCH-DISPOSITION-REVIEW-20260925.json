@@ -1193,8 +1193,8 @@
     "remote_cleanup_readback": {
       "checked_at_utc": "2026-09-26T02:16:27.155412+00:00",
       "deleted_exact_tip_refs": 12,
-      "receipt": ".project-local/runs/aaos-ui-current-candidate-20260926/remote-cleanup-verified.json",
-      "current_live_readback": ".project-local/runs/aaos-ui-current-candidate-20260926/remote-heads-live-20260926.json",
+      "receipt": ".project-local/legacy-scratch-20261008/runs-dirs/aaos-ui-current-candidate-20260926/remote-cleanup-verified.json",
+      "current_live_readback": ".project-local/legacy-scratch-20261008/runs-dirs/aaos-ui-current-candidate-20260926/remote-heads-live-20260926.json",
       "current_live_head_count": 7,
       "current_absence_reverified": true,
       "other_live_refs_preserved": true

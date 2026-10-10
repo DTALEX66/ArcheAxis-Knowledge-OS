@@ -11,7 +11,7 @@ import {
   type BatchStatusDto,
   type IntakeResultDto,
 } from "../api/workspace";
-import { userErrorMessage } from "../presentation/labels";
+import { failureMessage } from "../presentation/labels";
 
 const FORMAT_LABELS: Record<string, string> = {
   pdf: "PDF",
@@ -93,7 +93,7 @@ export function IntakeSpace() {
     } catch (e) {
       stopPolling();
       setBusy(null);
-      setError(userErrorMessage(e instanceof Error ? e.message : e));
+      setError(failureMessage(e));
     }
   }, [stopPolling]);
 
@@ -112,7 +112,7 @@ export function IntakeSpace() {
       setMessage(`网页导入完成：${result.char_count != null ? `${result.char_count} 字符` : "已记录"}`);
     } catch (e) {
       setMessage(null);
-      setError(userErrorMessage(e instanceof Error ? e.message : e));
+      setError(failureMessage(e));
     } finally {
       setBusy(null);
     }
@@ -128,7 +128,7 @@ export function IntakeSpace() {
       setMessage(`文件已保留并转换，可在资料库查看。${result.requires_human_review ? "（需人工复核）" : ""}`);
     } catch (e) {
       setMessage(null);
-      setError(userErrorMessage(e instanceof Error ? e.message : e));
+      setError(failureMessage(e));
     } finally {
       setBusy(null);
       if (fileInput.current) fileInput.current.value = "";
@@ -159,7 +159,7 @@ export function IntakeSpace() {
     } catch (e) {
       setBusy(null);
       setMessage(null);
-      setError(userErrorMessage(e instanceof Error ? e.message : e));
+      setError(failureMessage(e));
     }
   }
 
@@ -172,7 +172,7 @@ export function IntakeSpace() {
       else await shutdownBatch(batchId);
       await refreshBatch(batchId);
     } catch (e) {
-      setError(userErrorMessage(e instanceof Error ? e.message : e));
+      setError(failureMessage(e));
     }
   }
 

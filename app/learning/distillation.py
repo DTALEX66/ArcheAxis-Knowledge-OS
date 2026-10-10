@@ -5,13 +5,15 @@ import sqlite3
 from pathlib import Path
 from typing import Any
 
+from shared.paths import native_path
+
 
 class DistillationApprovalError(ValueError):
     """Raised when a distillation gate cannot prove a safe transition."""
 
 
 def _connect(db_path: str | Path) -> sqlite3.Connection:
-    connection = sqlite3.connect(str(db_path), timeout=30)
+    connection = sqlite3.connect(native_path(db_path), timeout=30)
     connection.row_factory = sqlite3.Row
     connection.execute("PRAGMA foreign_keys=ON")
     tables = {

@@ -65,6 +65,10 @@ internal sealed class AaosBackdrop : Control
         if (width <= 0 || height <= 0)
             return;
 
+        // The backdrop owns the opaque theme base so glass surfaces can reveal
+        // orbital grid, ambient light and depth beneath the transparent shell.
+        context.FillRectangle(ThemePalette.ResolveBrush("AaosBackgroundBrush"), new Rect(0, 0, width, height));
+
         using (context.PushOpacity(0.45))
         {
             var phase = _reducedMotion ? 0 : _animationPhase;
@@ -86,6 +90,30 @@ internal sealed class AaosBackdrop : Control
         var starPoint = new Point(orbitCenter.X + orbitRadius, orbitCenter.Y);
         using (context.PushOpacity(0.55))
             context.DrawEllipse(ThemePalette.ResolveBrush("AaosAmbientPrimaryBrush"), null, starPoint, 3, 3);
+
+        // A deterministic star field gives glass surfaces a real spatial layer
+        // without random redraw noise or expensive particle simulation.
+        var starBrush = ThemePalette.ResolveBrush("AaosAmbientPrimaryBrush");
+        var starField = new[]
+        {
+            (0.12, 0.18, 1.1), (0.21, 0.34, 0.7), (0.34, 0.12, 0.9),
+            (0.49, 0.24, 0.6), (0.63, 0.10, 1.2), (0.76, 0.31, 0.75),
+            (0.88, 0.22, 1.0), (0.17, 0.58, 0.65), (0.37, 0.67, 0.8),
+            (0.56, 0.54, 0.55), (0.71, 0.73, 0.85), (0.91, 0.62, 0.65),
+            (0.09, 0.84, 0.8), (0.29, 0.91, 0.55), (0.48, 0.82, 0.7),
+            (0.67, 0.92, 0.95), (0.83, 0.86, 0.6),
+        };
+        using (context.PushOpacity(0.34))
+        {
+            foreach (var (x, y, radius) in starField)
+                context.DrawEllipse(starBrush, null, new Point(width * x, height * y), radius, radius);
+        }
+
+        using (context.PushOpacity(0.18))
+        {
+            context.DrawEllipse(null, new Pen(ThemePalette.ResolveBrush("AaosGridBrush"), 0.7), orbitCenter, orbitRadius * 1.22, orbitRadius * 0.52);
+            context.DrawEllipse(null, new Pen(ThemePalette.ResolveBrush("AaosGridBrush"), 0.55), orbitCenter, orbitRadius * 1.38, orbitRadius * 0.62);
+        }
 
         var maskRadius = Math.Max(width, height) * 0.95 / 2;
         var gridMask = new RadialGradientBrush

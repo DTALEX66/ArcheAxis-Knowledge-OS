@@ -29,6 +29,16 @@ from shared.naming import (
 
 ROOT = Path(__file__).resolve().parents[1]
 
+
+@pytest.mark.parametrize("name", ["acl-manifests.json", "capabilities.json", "desktop-schema.json", "windows-schema.json"])
+def test_tauri_generator_only_exact_output_may_omit_final_lf(name):
+    path = "src-tauri/gen/schemas/" + name
+    generated = (ROOT / path).read_bytes()
+    assert not generated.endswith(b"\n")
+    assert scan_text_bytes(path, generated) == []
+    assert "missing-final-newline" in {issue.code for issue in scan_text_bytes(path, generated + b" ")}
+    assert "missing-final-newline" in {issue.code for issue in scan_text_bytes("src-tauri/gen/schemas/unreviewed.json", generated)}
+
 _PRESERVED_FIXTURE_HASHES = {
     "tests/fixtures/f01-quality/controlled.md": "70aff728005d7580260391e6754f30209ec5fbecd9803f30a31e48d72eb7b176",
     "tests/fixtures/f01-quality/capped-lines.md": "71c0029230e042d72e9ec8db74f9a28196b37fdfb29f7df7d68e3b425af38928",
@@ -81,6 +91,31 @@ def test_frozen_original_bytes_are_preserved_and_mutations_rejected(path):
         assert 'frozen-original-mismatch' in {
             issue.code for issue in scan_text_bytes(path, changed)
         }
+
+
+_RECOVERY = "docs/history/aaos-appendix-sources-20261007/QODER_AAOS_RECOVERY_20261007"
+# A06 is registered by hash outside this repository, so none of these five may be rewritten to
+# satisfy a formatting rule; the pin is what makes the exception safe, not the path.
+_RECOVERY_EXPORTS = [
+    f"{_RECOVERY}/sources/AAOS_快速重构与多格式闭环_完整方案_20261004.md",
+    f"{_RECOVERY}/sources/AAOS_未来延展与可持续架构_完整方案_20261004.md",
+    f"{_RECOVERY}/sources/CONTENT-COPY-V2.md",
+    f"{_RECOVERY}/records/U01_2026-10-06_最新保存_证据_双学习规则_RECOVERED.md",
+    f"{_RECOVERY}/records/U02_2026-10-06_AAOS图谱_双链研究增量_RECOVERED.md",
+]
+
+
+@pytest.mark.parametrize('path', _RECOVERY_EXPORTS)
+def test_pinned_recovery_exports_keep_their_bytes_and_their_format_is_not_general(path):
+    original = (ROOT / path).read_bytes()
+    assert scan_text_bytes(path, original) == []
+    # the same bytes under an unpinned name are still held to the rule, so the pin is per file
+    loose = {issue.code for issue in scan_text_bytes(f"docs/copied/{Path(path).name}", original)}
+    if Path(path).name.startswith(("CONTENT-COPY", "U01_", "U02_")):
+        assert 'trailing-whitespace' in loose, path
+    assert 'frozen-original-mismatch' in {
+        issue.code for issue in scan_text_bytes(path, original + b'x')
+    }
 
 
 def test_registry_resolves_canonical_ids_and_deprecated_aliases() -> None:

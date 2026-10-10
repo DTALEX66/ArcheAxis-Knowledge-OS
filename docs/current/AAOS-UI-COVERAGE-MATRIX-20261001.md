@@ -6,7 +6,7 @@
 - 当前视觉对照基线：用户 2026-10-01 指定 `D:/All projects/UI套件/01_01_产品信息架构_Information_Architecture.png` 至 `12_12_搜索与复习_Search_Review_FSRS.png` 的产品 UI 图；同目录品牌视觉 `01_01_品牌主视觉_Brand_Hero.png` 至 `11_11_品牌应用_Applications_Left.png` 用于色彩、标志、字形、图形语言。用户随后明确允许 MiniMax Design 借其自身能力提出更好的 UI/元素/动画/交互/功能性；需保留母版逐页对照、改动理由、真实能力与原生验收。B10 仅作旧交互参考，不锁死新设计。2026-09-28/29 UI 文档和 Master Atlas 是历史或阶段记录。
 - 2026-09-28 完整任务包 `D:/All projects/Record/AAOS_ArcheAxis_今日完整整合最终任务包_2026-09-28.zip` SHA-256 `E989877203FD47B9A027B2ABD0D9521DEB9A97E5D5E6905697E0FCA451E5A753`；9 月 29 日规划和截图是日期绑定的历史记录。2026-09-30 ZIP SHA-256 `A51AE04407A807C647739F787ABDB91ACCD1021AB515BC989069CB2D25197170`，仅含两份 Markdown，无源码/图片。其 Current/Future、路由兼容、素材来源与许可证要求纳入对照；包内跨 WORK-LAB/DESIGN-LAB 实施不扩入本任务。
 - 2026-10-01 四份外部材料的 AAOS 切片与四份源 SHA-256 见 `../history/external-inputs/2026-10-01/AAOS-ECOSYSTEM-AUDIT.md` 和 `AAOS-ECOSYSTEM-EXTRACT.json`。其中知识 owner、人审/version/provenance、精确 SHA 交付是待核对输入；缓存/目录/数据库清理迁移已被用户当前指令暂停。
-- 根目录 `AUTHORITY.md` 缺失（`AUTHORITY_REFERENCE_MISSING`）；使用项目声明的 `PROJECT_CONTRACT.yaml`、决策账本和 Authority 索引。
+- 2026-10-01 实测：根目录 `AUTHORITY.md` 缺失（`AUTHORITY_REFERENCE_MISSING`），当时使用项目声明的 `PROJECT_CONTRACT.yaml`、决策账本和 Authority 索引。2026-10-08 复核：根 [`AUTHORITY.md`](../../AUTHORITY.md) 已存在并且是仓库的导航入口，本行保留为当时实测，不再作为当前断言。
 - 本表为当前源码映射和待验收事项；“页面存在”不等于母版逐像素、实际交互、真实后端或绿色版安装验收通过。
 - 逐页母版与资产详情见 `AAOS-UI-MASTER-ASSET-AUDIT-20261001.md`，逐资产路径/SHA/部署状态见 `AAOS-UI-ASSET-MANIFEST-20261001.json`，生产路由与真实身份映射见 `AAOS-UI-BACKEND-MAP-20261001.md`。
 
@@ -19,7 +19,7 @@
 | 静态数据图替换动态数据视图 | 与“母版复刻”和真实后端状态同时适用；装饰图仍可保留 | 逐资产标识装饰/数据，数据图必须接真实来源并提供列表降级 |
 | 开源 UI01–UI14 候选 | 当前正式栈为 Avalonia；多数示例是 React/CSS | 仅在具体组件缺口且许可、版本、源码适配已核实时选用，不整体引入第二设计系统 |
 | WORK-LAB 与 DESIGN-LAB 同 Shell 实施 | 超出当前 AAOS 三个明确工作目录与本仓边界；R6 明确 WORK-LAB 非运行前提 | 记录为跨项目提案，不写入这两个项目或假装已接通 |
-| `AUTHORITY.md` | 本仓根目录当前不存在 | `AUTHORITY_REFERENCE_MISSING`；按现有 Authority 索引执行 |
+| `AUTHORITY.md` | 根目录存在（2026-10-08 复核）；本行原记「本仓根目录当前不存在」，那是 2026-10-01 的实测，保留来源 | 入口解析到根 `AUTHORITY.md`，再按现有 Authority 索引展开；历史 `AUTHORITY_REFERENCE_MISSING` 标记不撤销 |
 | 不自行 merge/release | R6 release 仍 `FROZEN`；用户 2026-10-01 明确要求“该合并的合并” | 已验证公共分支经 PR #155 合并；该历史 ZIP 的合并限制不覆盖当前用户授权，release 仍未授权 |
 | 商业级 `RC_READY` | 当前 R6 `IN_PROGRESS`，桌面完整验收未完成 | 只在所有 DoD 真实通过时标记；否则保持 `PARTIAL` |
 

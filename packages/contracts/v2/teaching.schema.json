@@ -1,0 +1,655 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "archeaxis/teaching/v2",
+  "title": "Manual teaching v2 DTOs",
+  "description": "Rust teaching.rs is runtime authority. Definitions distinguish request omission from serialized response null. x-maxUtf8Bytes is enforced by generated runtime assertion; standard JSON Schema maxLength alone measures characters. Actor authorization and SQLite reference checks are exclusively Core.",
+  "$defs": {
+    "RecordKind": {
+      "type": "string",
+      "enum": [
+        "observation",
+        "requirement",
+        "proposal",
+        "delivery",
+        "teach_back",
+        "feedback",
+        "revision"
+      ]
+    },
+    "RecordScope": {
+      "type": "string",
+      "enum": [
+        "personal",
+        "manual_exchange"
+      ]
+    },
+    "RecordPrivacy": {
+      "type": "string",
+      "enum": [
+        "local_only",
+        "authorized_export"
+      ]
+    },
+    "FeedbackClass": {
+      "type": "string",
+      "enum": [
+        "professional_basis",
+        "evidence_fidelity",
+        "recognition_quality",
+        "expression_fit",
+        "operation_fault",
+        "mastery",
+        "ai_qualification"
+      ]
+    },
+    "ProducerKind": {
+      "type": "string",
+      "enum": [
+        "human_authored",
+        "external_material",
+        "machine_generated"
+      ]
+    },
+    "TeachingRecord": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schema",
+        "record_id",
+        "kind",
+        "knowledge_id",
+        "knowledge_version",
+        "course_id",
+        "parent_id",
+        "purpose",
+        "scope",
+        "privacy",
+        "content",
+        "feedback_class",
+        "assessment_id",
+        "rubric_version",
+        "assisted",
+        "producer_kind"
+      ],
+      "properties": {
+        "schema": {
+          "const": "archeaxis.teaching-record/v2"
+        },
+        "record_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^(?!\\.{1,2}$)[A-Za-z0-9_.-]+$"
+        },
+        "kind": {
+          "$ref": "#/$defs/RecordKind"
+        },
+        "knowledge_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256,
+          "pattern": "^(?!\\.{1,2}$)[A-Za-z0-9_.-]+$"
+        },
+        "knowledge_version": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256,
+          "pattern": "^(?!\\.{1,2}$)[A-Za-z0-9_.-]+$",
+          "x-equalsField": "knowledge_id"
+        },
+        "course_id": {
+          "anyOf": [
+            {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 256,
+              "pattern": "^(?!\\.{1,2}$)[A-Za-z0-9_.-]+$"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "parent_id": {
+          "anyOf": [
+            {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 128,
+              "pattern": "^(?!\\.{1,2}$)[A-Za-z0-9_.-]+$"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "x-notEqualsField": "record_id"
+        },
+        "purpose": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 512,
+          "pattern": "[^\\u0009-\\u000D\\u0020\\u0085\\u00A0\\u1680\\u2000-\\u200A\\u2028\\u2029\\u202F\\u205F\\u3000]",
+          "x-maxUtf8Bytes": 512
+        },
+        "scope": {
+          "$ref": "#/$defs/RecordScope"
+        },
+        "privacy": {
+          "$ref": "#/$defs/RecordPrivacy"
+        },
+        "content": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 65536,
+          "pattern": "[^\\u0009-\\u000D\\u0020\\u0085\\u00A0\\u1680\\u2000-\\u200A\\u2028\\u2029\\u202F\\u205F\\u3000]",
+          "x-maxUtf8Bytes": 65536
+        },
+        "feedback_class": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/FeedbackClass"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "x-onlyForKind": "feedback"
+        },
+        "assessment_id": {
+          "anyOf": [
+            {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 256,
+              "pattern": "^(?!\\.{1,2}$)[A-Za-z0-9_.-]+$"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "rubric_version": {
+          "anyOf": [
+            {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 128,
+              "pattern": "^(?!\\.{1,2}$)[A-Za-z0-9_.-]+$"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "assisted": {
+          "type": "boolean"
+        },
+        "producer_kind": {
+          "$ref": "#/$defs/ProducerKind"
+        }
+      }
+    },
+    "TeachingRecordInput": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schema",
+        "record_id",
+        "kind",
+        "knowledge_id",
+        "knowledge_version",
+        "purpose",
+        "scope",
+        "privacy",
+        "content",
+        "assisted",
+        "producer_kind"
+      ],
+      "properties": {
+        "schema": {
+          "const": "archeaxis.teaching-record/v2"
+        },
+        "record_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^(?!\\.{1,2}$)[A-Za-z0-9_.-]+$"
+        },
+        "kind": {
+          "$ref": "#/$defs/RecordKind"
+        },
+        "knowledge_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256,
+          "pattern": "^(?!\\.{1,2}$)[A-Za-z0-9_.-]+$"
+        },
+        "knowledge_version": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256,
+          "pattern": "^(?!\\.{1,2}$)[A-Za-z0-9_.-]+$",
+          "x-equalsField": "knowledge_id"
+        },
+        "course_id": {
+          "anyOf": [
+            {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 256,
+              "pattern": "^(?!\\.{1,2}$)[A-Za-z0-9_.-]+$"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "parent_id": {
+          "anyOf": [
+            {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 128,
+              "pattern": "^(?!\\.{1,2}$)[A-Za-z0-9_.-]+$"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "x-notEqualsField": "record_id"
+        },
+        "purpose": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 512,
+          "pattern": "[^\\u0009-\\u000D\\u0020\\u0085\\u00A0\\u1680\\u2000-\\u200A\\u2028\\u2029\\u202F\\u205F\\u3000]",
+          "x-maxUtf8Bytes": 512
+        },
+        "scope": {
+          "$ref": "#/$defs/RecordScope"
+        },
+        "privacy": {
+          "$ref": "#/$defs/RecordPrivacy"
+        },
+        "content": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 65536,
+          "pattern": "[^\\u0009-\\u000D\\u0020\\u0085\\u00A0\\u1680\\u2000-\\u200A\\u2028\\u2029\\u202F\\u205F\\u3000]",
+          "x-maxUtf8Bytes": 65536
+        },
+        "feedback_class": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/FeedbackClass"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "x-onlyForKind": "feedback"
+        },
+        "assessment_id": {
+          "anyOf": [
+            {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 256,
+              "pattern": "^(?!\\.{1,2}$)[A-Za-z0-9_.-]+$"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "rubric_version": {
+          "anyOf": [
+            {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 128,
+              "pattern": "^(?!\\.{1,2}$)[A-Za-z0-9_.-]+$"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "assisted": {
+          "type": "boolean"
+        },
+        "producer_kind": {
+          "$ref": "#/$defs/ProducerKind"
+        }
+      },
+      "description": "Serde Option fields may be absent in write requests; Core normalizes to null before hashing. State-dependent parent/reference/actor checks remain Core authority."
+    },
+    "RecordView": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "record",
+        "content_sha256",
+        "withdrawn",
+        "scoring_status"
+      ],
+      "properties": {
+        "record": {
+          "$ref": "#/$defs/TeachingRecord"
+        },
+        "content_sha256": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$",
+          "minLength": 64,
+          "maxLength": 64
+        },
+        "withdrawn": {
+          "type": "boolean"
+        },
+        "scoring_status": {
+          "const": "not_scored"
+        }
+      }
+    },
+    "RecordPage": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "items",
+        "next_cursor"
+      ],
+      "properties": {
+        "items": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/RecordView"
+          },
+          "maxItems": 20
+        },
+        "next_cursor": {
+          "anyOf": [
+            {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 128,
+              "pattern": "^(?!\\.{1,2}$)[A-Za-z0-9_.-]+$"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      }
+    },
+    "WriteReceipt": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "item",
+        "duplicate"
+      ],
+      "properties": {
+        "item": {
+          "$ref": "#/$defs/RecordView"
+        },
+        "duplicate": {
+          "type": "boolean"
+        }
+      }
+    },
+    "Withdrawal": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schema",
+        "withdrawal_id",
+        "record_id",
+        "reason"
+      ],
+      "properties": {
+        "schema": {
+          "const": "archeaxis.teaching-withdrawal/v2"
+        },
+        "withdrawal_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^(?!\\.{1,2}$)[A-Za-z0-9_.-]+$"
+        },
+        "record_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^(?!\\.{1,2}$)[A-Za-z0-9_.-]+$"
+        },
+        "reason": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 512,
+          "pattern": "[^\\u0009-\\u000D\\u0020\\u0085\\u00A0\\u1680\\u2000-\\u200A\\u2028\\u2029\\u202F\\u205F\\u3000]",
+          "x-maxUtf8Bytes": 512
+        }
+      }
+    },
+    "WithdrawalReceipt": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "withdrawal_id",
+        "record_id",
+        "duplicate",
+        "affected_record_ids"
+      ],
+      "properties": {
+        "withdrawal_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^(?!\\.{1,2}$)[A-Za-z0-9_.-]+$"
+        },
+        "record_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^(?!\\.{1,2}$)[A-Za-z0-9_.-]+$"
+        },
+        "duplicate": {
+          "type": "boolean"
+        },
+        "affected_record_ids": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 128,
+            "pattern": "^(?!\\.{1,2}$)[A-Za-z0-9_.-]+$"
+          },
+          "minItems": 1
+        }
+      }
+    },
+    "ExchangeBundle": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schema",
+        "records",
+        "package_sha256"
+      ],
+      "properties": {
+        "schema": {
+          "const": "archeaxis.teaching-exchange/v2"
+        },
+        "records": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/TeachingRecord"
+          },
+          "minItems": 1,
+          "maxItems": 128
+        },
+        "package_sha256": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$",
+          "minLength": 64,
+          "maxLength": 64
+        }
+      }
+    },
+    "ExchangeBundleInput": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schema",
+        "records",
+        "package_sha256"
+      ],
+      "properties": {
+        "schema": {
+          "const": "archeaxis.teaching-exchange/v2"
+        },
+        "records": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/TeachingRecordInput"
+          },
+          "minItems": 1,
+          "maxItems": 128
+        },
+        "package_sha256": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$",
+          "minLength": 64,
+          "maxLength": 64
+        }
+      },
+      "description": "Core validates SHA-256 of its sorted-key canonical serialization of deserialized records, including explicit null Options; UI never recalculates. Core enforces 4 MiB canonical-record bytes, topology, live references, duplicates and conflicts."
+    },
+    "ImportPreview": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "valid",
+        "record_count",
+        "duplicate_count",
+        "package_sha256"
+      ],
+      "properties": {
+        "valid": {
+          "const": true
+        },
+        "record_count": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 128
+        },
+        "duplicate_count": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 128
+        },
+        "package_sha256": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$",
+          "minLength": 64,
+          "maxLength": 64
+        }
+      }
+    },
+    "ImportReceipt": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "items",
+        "duplicate_count",
+        "package_sha256"
+      ],
+      "properties": {
+        "items": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/RecordView"
+          },
+          "minItems": 1,
+          "maxItems": 128
+        },
+        "duplicate_count": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 128
+        },
+        "package_sha256": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$",
+          "minLength": 64,
+          "maxLength": 64
+        }
+      }
+    },
+    "ListPayload": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [],
+      "properties": {
+        "cursor": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^(?!\\.{1,2}$)[A-Za-z0-9_.-]+$"
+        }
+      }
+    },
+    "RecordPayload": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "record_id"
+      ],
+      "properties": {
+        "record_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^(?!\\.{1,2}$)[A-Za-z0-9_.-]+$"
+        }
+      }
+    },
+    "CreatePayload": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "body"
+      ],
+      "properties": {
+        "body": {
+          "$ref": "#/$defs/TeachingRecordInput"
+        }
+      }
+    },
+    "WithdrawalPayload": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "body"
+      ],
+      "properties": {
+        "body": {
+          "$ref": "#/$defs/Withdrawal"
+        }
+      }
+    },
+    "ImportPayload": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "body"
+      ],
+      "properties": {
+        "body": {
+          "$ref": "#/$defs/ExchangeBundleInput"
+        }
+      }
+    }
+  },
+  "$comment": "Local candidate; source hashes are recorded in MANIFEST.json."
+}

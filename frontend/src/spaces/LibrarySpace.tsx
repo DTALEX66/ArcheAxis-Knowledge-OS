@@ -12,7 +12,7 @@ import {
   type LibraryAssetDto,
 } from "../api/workspace";
 import type { InspectionTarget } from "../components/Inspector";
-import { stateLabel, userErrorMessage } from "../presentation/labels";
+import { failureMessage, stateLabel } from "../presentation/labels";
 import { formatLabel } from "./IntakeSpace";
 
 export function LibrarySpace({ onInspect }: { onInspect: (target: InspectionTarget) => void }) {
@@ -33,7 +33,7 @@ export function LibrarySpace({ onInspect }: { onInspect: (target: InspectionTarg
     let alive = true;
     listLibraryAssets()
       .then((d) => { if (alive) setAssets(d.items); })
-      .catch((e: Error) => { if (alive) setError(userErrorMessage(e.message)); })
+      .catch((e: Error) => { if (alive) setError(failureMessage(e)); })
       .finally(() => { if (alive) setLoading(false); });
     return () => { alive = false; };
   }, []);
@@ -84,7 +84,7 @@ export function LibrarySpace({ onInspect }: { onInspect: (target: InspectionTarg
       } while (cursor);
       setAnchors(matching);
     } catch (e) {
-      setMessage(userErrorMessage(e instanceof Error ? e.message : e));
+      setMessage(failureMessage(e));
     } finally {
       setCreatingAnchor(false);
     }
@@ -134,7 +134,7 @@ export function LibrarySpace({ onInspect }: { onInspect: (target: InspectionTarg
     } catch (e) {
       if (!isCurrent()) return;
       closeReader();
-      setMessage(userErrorMessage(e instanceof Error ? e.message : e));
+      setMessage(failureMessage(e));
     }
   }
 
@@ -153,7 +153,7 @@ export function LibrarySpace({ onInspect }: { onInspect: (target: InspectionTarg
       setMessage(`已加载转换文本：${body.engine} · ${body.block_count} 块`);
     } catch (e) {
       if (!isCurrent()) return;
-      setMessage(userErrorMessage(e instanceof Error ? e.message : e));
+      setMessage(failureMessage(e));
     }
   }
 

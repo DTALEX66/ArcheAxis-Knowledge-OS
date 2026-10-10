@@ -1,0 +1,864 @@
+{
+  "schema": "archeaxis.local-stage-receipt/v1",
+  "stage": "O01 / UF10",
+  "captured_local": "2026-10-10",
+  "captured_at": "2026-10-09T22:49:21.507669+00:00",
+  "status": "LOCAL_ENGINEERING_CLOSED_WITH_EXPLICIT_QUALIFICATION_GAPS",
+  "whole_taskpack": "PARTIAL",
+  "task_requirements_status": "PARTIAL",
+  "role": "SOURCE_AND_EVIDENCE_RECEIPT_NOT_EXECUTION_AUTHORITY",
+  "writer_root": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\worktrees\\gov-ui-20261008",
+  "writer_branch": "codex/aaos-gov-ui-20261008",
+  "writer_head": "fc5d4adc7acc28e38c2e6046ef06c0be2eed721d",
+  "working_tree_dirty": true,
+  "source_files": {
+    "crates/archeaxis-domain/src/document.rs": "1da8a3a3b3035852daf210f45dae5699c0abcce5b721784743fe5f09b9f45ef9",
+    "crates/archeaxis-domain/src/lib.rs": "0c195cd1192eaba99fb4a91e82745f8b79a9ee1379adf7af906e5f842ae9b984",
+    "crates/archeaxis-domain/src/template_binding.rs": "628b1324b2816bfff4a32bef6617d61d1f439cc7ee691b2fd781990e17789a05",
+    "crates/archeaxis-domain/tests/fixtures/template-unknown-node-request.json": "0e5a28da8997ab0b9a836cb56976526776bc7b07e839287cdb55aced4213182e",
+    "crates/archeaxis-domain/tests/fixtures/template-unknown-unsafe-node-request.json": "aa92d9c46c1e77c92062de4f4ff95161de0e9cfc536076da211c78fcdc13d582",
+    "crates/archeaxis-domain/tests/template_binding.rs": "9084c5e41663c0314c6e83559c3f60178d2c331858417f03ec3baf05dd80db9b",
+    "docs/current/AAOS-RESOURCE-QUALIFICATION-20261010.json": "4550795e5d19ea60b3fc322f1e57bad1e2971c5042774df8dee7c6b668a7f7a7",
+    "frontend/src/__tests__/CanonicalCapabilityDonorMapping.test.tsx": "b7ff22e86cd3a2a6bc6106275052d64415eb49768e0063f43557978f81b526bb",
+    "frontend/src/__tests__/CanonicalResourcesSpace.test.tsx": "5871f205f3913ac44f591ea9808a28c83233942d844ffd112eca6ac533a679ad",
+    "frontend/src/__tests__/TemplateBindings.test.tsx": "64ff22611869efb2521126e3fb65665d882c23bced2b4fae696d4a47791dab7e",
+    "frontend/src/__tests__/TemplateCapabilityRequirements.test.tsx": "771724c553c929967191788a6829d6681bf26be89f14f6723c34a3cb199c644b",
+    "frontend/src/__tests__/TemplateWriteLifecycle.test.tsx": "1bce10cf3b4d03087ab34f8a41552b5ffb31b7c70549361722d61204b35d6da3",
+    "frontend/src/api/generated/resource-catalog.ts": "73fec0671b8e91574e8ff5b3627c807c7b25f6380736a8c1cbb3bf818288414a",
+    "frontend/src/app/App.tsx": "8eef0470c50653412e3171d0c8ab7faa3014e7e833d9a60f98c606cfc7f4778d",
+    "frontend/src/presentation/uiPages.ts": "5b5f2a0117a0beebd04aa0f800e636ef6f5f650eb24cd394bebedf89b36dc14e",
+    "frontend/src/spaces/CanonicalCapabilitiesSpace.tsx": "ce1b1d7100c3e6c1e54372107f3debf0669444f48fd31c25bff3dc33099a0e2d",
+    "frontend/src/spaces/CanonicalResourcesSpace.tsx": "88727858869707b04c74c12d9bf9fd0c0463b06f08e4a17e15ff279dd7f9473d",
+    "frontend/src/spaces/SpaceView.tsx": "0f684e796a5b3bca9ffe9b9b7f564de6e36fc321d6d29bd283e095f06ea0230d",
+    "frontend/src/spaces/resources.css": "9afd49d57157ae80fdf88d5830b7bfdd569e3ae78828d7238048f1cab975d0b2",
+    "frontend/src/templates/TemplateWorkspace.tsx": "398ade1a73870f68ea19cef9956804f908f39c38ae71c9df129e9009924fa761",
+    "frontend/src/templates/bindings.ts": "0b9deebb4dc5f900f5759bcf8fb5b60ce13a8c6a2a4173df88978f112e769924",
+    "frontend/src/templates/capabilityRequirements.ts": "10f3997a6cfa263041ccc3e8edada5a3216d368214aff44ef1f7dd3e76d82388",
+    "packages/contracts/v2/template-binding.schema.json": "ab3b7bc7dfb4c92747416abb9ecd438ccf6a885ebfbcf91e7e4d990e99d510b8",
+    "scripts/contracts/generate_resource_catalog.py": "a1defdee57b1df02645c4fcb45dae71c0b7ee0756d70c955d64dc53b711a5d33",
+    "scripts/release_sbom.py": "528ba4d3bdd95496101060211cc374fecfcd2f2ba3debd947b948b1aeda6f041",
+    "tests/contract/test_resource_catalog_projection.py": "899d4ec189dc709ad8ee5bb9b5a26a106a78d92616710a19624657c26c43b8a8",
+    "tests/test_release_sbom_coverage.py": "5e1130dbd81895bc34dfa89ad8e5158a81def313d756606fdb96b32f453cf66b",
+    "tests/workflow/test_template_binding_contract.py": "d2cec5d4d83b9e01a3f531fe0e6f87e12dda29b71730385d0cee972a6487849d"
+  },
+  "authority": "docs/taskpacks/aaos-ui-first-20261009",
+  "scope": {
+    "surface_records": 68,
+    "original_conflicts": 115,
+    "selected_scope": [
+      "archeaxiscoreknowledge",
+      "capcoreknowledge",
+      "fsrs",
+      "jsoncanvas",
+      "jsonschemaspec",
+      "prosemirror",
+      "pymupdf",
+      "tiptap",
+      "trafilatura"
+    ],
+    "disciplines": 28,
+    "templates": [
+      "T1",
+      "T2",
+      "T3"
+    ],
+    "canonical_writer": "Rust Core Document/SQLite/CAS; no second database or new migration"
+  },
+  "requirements": [
+    {
+      "id": "UF10-235",
+      "source": "docs/taskpacks/aaos-ui-first-20261009/TASKPACK.md:235",
+      "requirement": "已有模板/28学科、版本/坐标/引用、成熟编辑器属性；复用cursor",
+      "current_behavior": "28学科T1/T2/T3共用真实Document/capability/versioned绑定与原cursor。unknown历史无损数字表示恢复原Value，knownrefs/learning/admission不放宽；target02 15PASS与fullRust03 656PASS。Core02 binary4a6ad828…六owned进程case真实PASS，0/101/500/501/1001与501midrun、historypins/重启分页已证。",
+      "status": "PASS_SELECTED_IMPLEMENTATION",
+      "evidence": [
+        "frontend/src/templates/disciplines.ts",
+        "frontend/src/templates/bindings.ts",
+        "crates/archeaxis-domain/src/template_binding.rs",
+        "owned-freeze-04.json",
+        "ui-resources-front-final-03",
+        "ui-resources-native-final-03",
+        "candidate-supply/core-probe-final-summary.json",
+        "ui-resources-template-numeric-02",
+        "ui-resources-rust-final-03",
+        "candidate-supply/core-probe-final-summary-02.json",
+        "candidate-supply/attempt-20261009T224512Z-e7a6a1/receipt.json"
+      ],
+      "remaining": "此状态限当页已选模板/namespace/paging/ownedHTTPfixture。正式旧库/installed native/专业学习资格未宣称；外部API缺环境独立NOT_EXECUTED。source含unsafe旧整数而JS丢精度继续拒绝，原metadata保全。"
+    },
+    {
+      "id": "UF10-236",
+      "source": "docs/taskpacks/aaos-ui-first-20261009/TASKPACK.md:236",
+      "requirement": "区分插件/算法/SDK/API/CLI/内容参考/候选/冻结供体",
+      "current_behavior": "目录保留原surface_class和absorption_mode，分别列版本/许可/权限/runtime/qualification；宿主握手仅declared route观察。",
+      "status": "INTEGRATED",
+      "evidence": [
+        "frontend/src/spaces/CanonicalResourcesSpace.tsx:94",
+        "frontend/src/spaces/CanonicalResourcesSpace.tsx:106"
+      ],
+      "remaining": "最终latest30视觉PASS，其余90保前epoch；不宣称当前full120。实际donorinstalled/调用资格未知，UI如实显示。"
+    },
+    {
+      "id": "UF10-237",
+      "source": "docs/taskpacks/aaos-ui-first-20261009/TASKPACK.md:237",
+      "requirement": "当页所需供体；68 surface/115冲突；不安装整个369/691池",
+      "current_behavior": "68unique/115conflicts/59conflictrows/selected9事实保全；685source refs当前SHA匹配，recursivepointer gate已入产品，Python22当前回执PASS。",
+      "status": "INTEGRATED",
+      "evidence": [
+        "docs/current/AAOS-RESOURCE-QUALIFICATION-20261010.json",
+        "scripts/contracts/generate_resource_catalog.py",
+        "ui-resources-python-final-03",
+        "owned-freeze-04.json"
+      ],
+      "remaining": "selected static classification≠真实donor runtime采用；具体许可/installed资格保持UNVERIFIED。"
+    },
+    {
+      "id": "UF10-238",
+      "source": "docs/taskpacks/aaos-ui-first-20261009/TASKPACK.md:238",
+      "requirement": "同capability/versioned binding，超页/空页/cycle/restart",
+      "current_behavior": "28学科T1/T2/T3共用真实Document/capability/versioned绑定与原cursor。unknown历史无损数字表示恢复原Value，knownrefs/learning/admission不放宽；target02 15PASS与fullRust03 656PASS。Core02 binary4a6ad828…六owned进程case真实PASS，0/101/500/501/1001与501midrun、historypins/重启分页已证。",
+      "status": "PASS_SELECTED_IMPLEMENTATION",
+      "evidence": [
+        "frontend/src/templates/bindings.ts",
+        "frontend/src/templates/capabilityRequirements.ts",
+        "owned-freeze-04.json",
+        "ui-resources-front-final-03",
+        "ui-resources-native-final-03",
+        "candidate-supply/core-probe-final-summary.json",
+        "ui-resources-template-numeric-02",
+        "ui-resources-rust-final-03",
+        "candidate-supply/core-probe-final-summary-02.json",
+        "candidate-supply/attempt-20261009T224512Z-e7a6a1/receipt.json"
+      ],
+      "remaining": "此状态限当页已选模板/namespace/paging/ownedHTTPfixture。正式旧库/installed native/专业学习资格未宣称；外部API缺环境独立NOT_EXECUTED。source含unsafe旧整数而JS丢精度继续拒绝，原metadata保全。"
+    },
+    {
+      "id": "UF10-242",
+      "source": "docs/taskpacks/aaos-ui-first-20261009/TASKPACK.md:242",
+      "requirement": "创建→编辑→保存→再载入→重启内容/位置/引用不丢",
+      "current_behavior": "28学科T1/T2/T3共用真实Document/capability/versioned绑定与原cursor。unknown历史无损数字表示恢复原Value，knownrefs/learning/admission不放宽；target02 15PASS与fullRust03 656PASS。Core02 binary4a6ad828…六owned进程case真实PASS，0/101/500/501/1001与501midrun、historypins/重启分页已证。",
+      "status": "PASS_SELECTED_IMPLEMENTATION",
+      "evidence": [
+        "frontend/src/templates/TemplateWorkspace.tsx:119",
+        "frontend/src/templates/bindings.ts",
+        "owned-freeze-04.json",
+        "ui-resources-front-final-03",
+        "ui-resources-native-final-03",
+        "candidate-supply/core-probe-final-summary.json",
+        "ui-resources-template-numeric-02",
+        "ui-resources-rust-final-03",
+        "candidate-supply/core-probe-final-summary-02.json",
+        "candidate-supply/attempt-20261009T224512Z-e7a6a1/receipt.json"
+      ],
+      "remaining": "此状态限当页已选模板/namespace/paging/ownedHTTPfixture。正式旧库/installed native/专业学习资格未宣称；外部API缺环境独立NOT_EXECUTED。source含unsafe旧整数而JS丢精度继续拒绝，原metadata保全。"
+    },
+    {
+      "id": "UF10-243",
+      "source": "docs/taskpacks/aaos-ui-first-20261009/TASKPACK.md:243",
+      "requirement": "模式/版本/许可/可用资格不混；索引不是集成",
+      "current_behavior": "静态继承资格明确INHERITED_ONLY/NOT_RUN；许可证官方HEAD读回与锁版本分开，PyMuPDF双许可不宣称发布许可。",
+      "status": "INTEGRATED",
+      "evidence": [
+        "docs/current/AAOS-RESOURCE-QUALIFICATION-20261010.json",
+        "frontend/src/spaces/CanonicalResourcesSpace.tsx"
+      ],
+      "remaining": "目录/currentroute/inherited qualification已区分；exactlocked license bytes/installed/具体API当前资格仍UNVERIFIED。此行INTEGRATED仅诚实呈现，不是捐赠软件实测通过。"
+    },
+    {
+      "id": "UF10-244",
+      "source": "docs/taskpacks/aaos-ui-first-20261009/TASKPACK.md:244",
+      "requirement": "当前分页复用并新slice测试，不猜100上限",
+      "current_behavior": "28学科T1/T2/T3共用真实Document/capability/versioned绑定与原cursor。unknown历史无损数字表示恢复原Value，knownrefs/learning/admission不放宽；target02 15PASS与fullRust03 656PASS。Core02 binary4a6ad828…六owned进程case真实PASS，0/101/500/501/1001与501midrun、historypins/重启分页已证。",
+      "status": "PASS_SELECTED_IMPLEMENTATION",
+      "evidence": [
+        "ui-resources-template-front-03",
+        "ui-resources-catalog-front-01",
+        "owned-freeze-04.json",
+        "ui-resources-front-final-03",
+        "ui-resources-native-final-03",
+        "candidate-supply/core-probe-final-summary.json",
+        "ui-resources-template-numeric-02",
+        "ui-resources-rust-final-03",
+        "candidate-supply/core-probe-final-summary-02.json",
+        "candidate-supply/attempt-20261009T224512Z-e7a6a1/receipt.json"
+      ],
+      "remaining": "此状态限当页已选模板/namespace/paging/ownedHTTPfixture。正式旧库/installed native/专业学习资格未宣称；外部API缺环境独立NOT_EXECUTED。source含unsafe旧整数而JS丢精度继续拒绝，原metadata保全。"
+    },
+    {
+      "id": "UF10-246",
+      "source": "docs/taskpacks/aaos-ui-first-20261009/TASKPACK.md:246",
+      "requirement": "binding/editor attrs/cursor回归、真实Core规模重启，外部API缺环境单列",
+      "current_behavior": "28学科T1/T2/T3共用真实Document/capability/versioned绑定与原cursor。unknown历史无损数字表示恢复原Value，knownrefs/learning/admission不放宽；target02 15PASS与fullRust03 656PASS。Core02 binary4a6ad828…六owned进程case真实PASS，0/101/500/501/1001与501midrun、historypins/重启分页已证。",
+      "status": "PASS_SELECTED_IMPLEMENTATION",
+      "evidence": [
+        "ui-resources-template-core-01",
+        "ui-resources-rust-final-01",
+        "owned-freeze-04.json",
+        "ui-resources-front-final-03",
+        "ui-resources-native-final-03",
+        "candidate-supply/core-probe-final-summary.json",
+        "ui-resources-template-numeric-02",
+        "ui-resources-rust-final-03",
+        "candidate-supply/core-probe-final-summary-02.json",
+        "candidate-supply/attempt-20261009T224512Z-e7a6a1/receipt.json"
+      ],
+      "remaining": "此状态限当页已选模板/namespace/paging/ownedHTTPfixture。正式旧库/installed native/专业学习资格未宣称；外部API缺环境独立NOT_EXECUTED。source含unsafe旧整数而JS丢精度继续拒绝，原metadata保全。"
+    },
+    {
+      "id": "O01-378",
+      "source": "docs/taskpacks/aaos-ui-first-20261009/TASKPACK.md:378",
+      "requirement": "OSS/Qoder/68surface按身份/方式/许可/版本/权限/实测解释冲突",
+      "current_behavior": "原crosswalk各namespace/身份/raw conflict保全；九项当前所选有独立evidence；根root人工读审既有实现。",
+      "status": "PARTIAL",
+      "evidence": [
+        "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
+        "docs/current/AAOS-RESOURCE-QUALIFICATION-20261010.json"
+      ],
+      "remaining": "source pointer gate与最终复验；不能从未加入Atlas的57项造运行路由。"
+    },
+    {
+      "id": "O01-379",
+      "source": "docs/taskpacks/aaos-ui-first-20261009/TASKPACK.md:379",
+      "requirement": "115冲突/59记录只处理本页，其他冻结且有激活条件",
+      "current_behavior": "115 raw冲突不删除，CURRENT_PAGE_SELECTED与FROZEN_NOT_SELECTED分明。",
+      "status": "INTEGRATED",
+      "evidence": [
+        "frontend/src/api/generated/resource-catalog.ts",
+        "docs/taskpacks/aaos-ui-first-20261009/FREEZE-REGISTER.json"
+      ],
+      "remaining": "冻结供体仍只登记；不将残余冲突统一清空。"
+    },
+    {
+      "id": "O01-380",
+      "source": "docs/taskpacks/aaos-ui-first-20261009/TASKPACK.md:380",
+      "requirement": "28模板/供体复用capability、不第二状态库、非来源行数集成率",
+      "current_behavior": "同TemplateWorkspace、真实capability握手、单Document writer，目录68不作百分比。",
+      "status": "INTEGRATED",
+      "evidence": [
+        "frontend/src/spaces/CanonicalResourcesSpace.tsx:140",
+        "frontend/src/templates/TemplateWorkspace.tsx"
+      ],
+      "remaining": "native/build/最终视觉仍未共同证明当前运行。"
+    },
+    {
+      "id": "O01-381",
+      "source": "docs/taskpacks/aaos-ui-first-20261009/TASKPACK.md:381",
+      "requirement": "F14版本矩阵/SBOMNOTICE/可迁出；升级独立副本锁回退；退出UF11/M01",
+      "current_behavior": "当前selected9有source/lock version矩阵，SBOM入口纳入native Cargo.lock，缺覆盖fail；NOTICE与原F14保留。",
+      "status": "PARTIAL",
+      "evidence": [
+        "scripts/release_sbom.py",
+        "THIRD_PARTY_NOTICES.md",
+        "docs/taskpacks/aaos-ui-first-20261009/OLD-TASK-DISPOSITION.json"
+      ],
+      "remaining": "本slice无安装/升级；不能claim SBOM release或升级退出演练PASS。UF11/M01明确承接退出，非擅自延期本页要求。"
+    },
+    {
+      "id": "O01-385",
+      "source": "docs/taskpacks/aaos-ui-first-20261009/TASKPACK.md:385",
+      "requirement": "每选供体采用/候选/延期/拒绝证据原因，完整池意图不删",
+      "current_behavior": "selected9按disposition/reason/activation显示，369/691历史池source登记保留不执行。",
+      "status": "PARTIAL",
+      "evidence": [
+        "docs/current/AAOS-RESOURCE-QUALIFICATION-20261010.json"
+      ],
+      "remaining": "完整池JSON/CSVignored产物当前不可从manifest存在推为已重生成；本stage只qualified本页subset。"
+    },
+    {
+      "id": "O01-386",
+      "source": "docs/taskpacks/aaos-ui-first-20261009/TASKPACK.md:386",
+      "requirement": "人工审阅shared dirty实现；不盲cherry-pick不同祖先",
+      "current_behavior": "root solewriter，候选有baseline SHA后串行集成；本审计只read+scratch，git dirty大范围保全。",
+      "status": "INTEGRATED",
+      "evidence": [
+        "candidate-template-core/MANIFEST.json",
+        "owned-freeze.json"
+      ],
+      "remaining": "未授权commit/push/release，本报告不授予。"
+    },
+    {
+      "id": "O01-388",
+      "source": "docs/taskpacks/aaos-ui-first-20261009/TASKPACK.md:388",
+      "requirement": "JSON唯一ID/引用/selected scope；specific officiallicense/version",
+      "current_behavior": "68unique/115conflicts/59conflictrows/selected9事实保全；685source refs当前SHA匹配，recursivepointer gate已入产品，Python22当前回执PASS。",
+      "status": "INTEGRATED",
+      "evidence": [
+        "tests/contract/test_resource_catalog_projection.py",
+        "candidate-final-pointer-gate/MANIFEST.json",
+        "ui-resources-python-final-03",
+        "owned-freeze-04.json"
+      ],
+      "remaining": "selected static classification≠真实donor runtime采用；具体许可/installed资格保持UNVERIFIED。"
+    },
+    {
+      "id": "ZIP-02_旧22页新入口与职责映射.csv-15",
+      "source": "docs/history/ui-design-increment-20261009/sources/zip-members/02_旧22页新入口与职责映射.csv#csv_record=15",
+      "requirement": {
+        "原UI页ID": "15",
+        "原页面": "资源与扩展",
+        "工作区": "资源",
+        "入口层级": "一级入口内目录",
+        "入口路径语义": "模板/插件/技能/供体/MCP",
+        "主要动作": "查看详情与可用接入",
+        "独有行为与能力保留": "索引、可用、已接入分别显示",
+        "继承CAP": "CAP-0100;CAP-0130;CAP-0150",
+        "源需求": "R018;R019;R020;R023;R032",
+        "状态": "设计提议；旧路由/行为需当前工作树映射"
+      },
+      "status": "PARTIAL",
+      "current_behavior": "目录/模板入口已接真实React与有限Core命令；原行全量保留",
+      "evidence": [
+        "docs/history/ui-design-increment-20261009/ZIP-SPEC-CROSSWALK.json"
+      ],
+      "remaining": "新latest30视觉/资源状态已PASS，目录是否installed与许可资格如实unknown；全受支持插件/skills/MCP执行未承诺，本行不可据索引数变全接入PASS。"
+    },
+    {
+      "id": "ZIP-05_按钮动作与真实接线清单.csv-12",
+      "source": "docs/history/ui-design-increment-20261009/sources/zip-members/05_按钮动作与真实接线清单.csv#csv_record=12",
+      "requirement": {
+        "上下文": "15",
+        "动作": "模板分页/插件详情",
+        "业务依赖": "现有分页/资源注册与真实状态",
+        "必须输出": "下一页/详情/实际接入条件",
+        "失败与边界": "不可用/未安装/许可",
+        "原型替换要求": "目录数不等于接入数"
+      },
+      "status": "PARTIAL",
+      "current_behavior": "目录/模板入口已接真实React与有限Core命令；原行全量保留",
+      "evidence": [
+        "docs/history/ui-design-increment-20261009/ZIP-SPEC-CROSSWALK.json"
+      ],
+      "remaining": "新latest30视觉/资源状态已PASS，目录是否installed与许可资格如实unknown；全受支持插件/skills/MCP执行未承诺，本行不可据索引数变全接入PASS。"
+    },
+    {
+      "id": "ZIP-06_成熟度验收场景.csv-22",
+      "source": "docs/history/ui-design-increment-20261009/sources/zip-members/06_成熟度验收场景.csv#csv_record=22",
+      "requirement": {
+        "批次": "资源",
+        "场景": "大数据与长文",
+        "输入或操作": "长标题、长课程、千级列表/模板分页",
+        "通过条件": "组件持续可读；分页、滚动、选择不受截图行数限制",
+        "当前结论": "NOT_EXECUTED；未来按实际环境验证"
+      },
+      "status": "PARTIAL",
+      "current_behavior": "Core02当前1001模板cursor/选择version/restart真实source-bound PASS；SIMULATED真实React长标题/模板与五主题宽窄视觉合计120（90旧+30新）已有证据。",
+      "evidence": [
+        "docs/history/ui-design-increment-20261009/ZIP-SPEC-CROSSWALK.json"
+      ],
+      "remaining": "原行还含长课程/千级组件持续可读，当前单epoch full120未执行；不得把Core1001计数或图库Screenshot代替所有object长课程/千级实际滚动/选择路径资格。保留共有UF11/CB04责任与PARTIAL。"
+    },
+    {
+      "id": "ZIP-06_成熟度验收场景.csv-23",
+      "source": "docs/history/ui-design-increment-20261009/sources/zip-members/06_成熟度验收场景.csv#csv_record=23",
+      "requirement": {
+        "批次": "资源",
+        "场景": "部分导入与取消",
+        "输入或操作": "批量中成功/失败/取消混合",
+        "通过条件": "原件与转换分开；成功项可定位，仅重试失败项",
+        "当前结论": "NOT_EXECUTED；未来按实际环境验证"
+      },
+      "status": "PARTIAL",
+      "current_behavior": "目录/模板入口已接真实React与有限Core命令；原行全量保留",
+      "evidence": [
+        "docs/history/ui-design-increment-20261009/ZIP-SPEC-CROSSWALK.json"
+      ],
+      "remaining": "Actual mixed success/failure/cancel and onlyfailedretry journey not qualified; source risks retry object identity, plaincancelled action mismatch, in-flight stop onlyflag, success direct locator remain as followup report. No source fix in this slice.；按UF11/CB04原合同继续selectedprofile，不抹去共有UF10行。"
+    }
+  ],
+  "gates": {
+    "frontend": {
+      "path": ".project-local/runs/f714401b40/ui-resources-front-final-03/artifacts/result.json",
+      "sha256": "f64b57466a0b8826ff60fb01ce1618ff086f43729c94f1838d940ac1146c4be7",
+      "result": "LOCAL_PASS",
+      "tests": 866,
+      "command": [
+        "D:/All projects/OS External Configuration/10-toolchains/scoop/apps/nodejs-lts/24.18.0/node.exe",
+        "frontend/node_modules/vitest/vitest.mjs",
+        "run",
+        "--config",
+        "frontend/vite.config.ts",
+        "--maxWorkers",
+        "2",
+        "--minWorkers",
+        "1"
+      ],
+      "log": {
+        "path": ".project-local/runs/f714401b40/ui-resources-front-final-03/logs/check.log",
+        "sha256": "0c9dfba4e5f719fcbd7143882d1af2c0f1a3888efc630a614a31529d11a18a44"
+      },
+      "source_consistent_during_run": true
+    },
+    "rust_five_packages_serial": {
+      "path": ".project-local/runs/f714401b40/ui-resources-rust-final-03/artifacts/result.json",
+      "sha256": "4fbf2309f67404d8da7044ee2e656e46fbc0f3969d327ba3760d06bd61f047ec",
+      "result": "LOCAL_PASS",
+      "tests": 656,
+      "command": [
+        "D:\\All projects\\OS External Configuration\\toolchains\\rust\\cargo\\bin\\cargo.exe",
+        "test",
+        "-p",
+        "archeaxis-api",
+        "-p",
+        "archeaxis-application",
+        "-p",
+        "archeaxis-domain",
+        "-p",
+        "archeaxis-store-sqlite",
+        "-p",
+        "archeaxis-archive",
+        "--",
+        "--test-threads=1"
+      ],
+      "log": {
+        "path": ".project-local/runs/f714401b40/ui-resources-rust-final-03/logs/check.log",
+        "sha256": "6e842a33deaedbd6f5817d756d1aebf99f5755fb7b8d1066b14198469197ba49"
+      },
+      "source_consistent_during_run": true
+    },
+    "native_tests": {
+      "path": ".project-local/runs/f714401b40/ui-resources-native-final-03/artifacts/result.json",
+      "sha256": "ac98f873b0d145bb9162338c8eb76d54ea5ce3ece782d7b6bd93d365e9674eea",
+      "result": "LOCAL_PASS",
+      "tests": 83,
+      "command": [
+        "D:\\All projects\\OS External Configuration\\toolchains\\rust\\cargo\\bin\\cargo.exe",
+        "test",
+        "--manifest-path",
+        "src-tauri/Cargo.toml"
+      ],
+      "log": {
+        "path": ".project-local/runs/f714401b40/ui-resources-native-final-03/logs/check.log",
+        "sha256": "fd1ec2dce588905128a525323cdeea20aa4657dcba0e50d510909e73c22a31f2"
+      },
+      "source_consistent_during_run": true
+    },
+    "python_contracts": {
+      "path": ".project-local/runs/f714401b40/ui-resources-python-final-03/artifacts/result.json",
+      "sha256": "70056e3db290c6243b9a062011aa465a822fee4298c83149d3f186ea539667fe",
+      "result": "LOCAL_PASS",
+      "tests": 22,
+      "command": [
+        "D:\\All projects\\OS External Configuration\\ArcheAxis-Knowledge-OS-ci-venv\\Scripts\\python.exe",
+        "-B",
+        "-m",
+        "pytest",
+        "-p",
+        "no:cacheprovider",
+        "--basetemp",
+        "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\runs\\f714401b40\\ui-resources-stage-20261010\\pytest-final-03",
+        "tests/contract/test_resource_catalog_projection.py",
+        "tests/workflow/test_template_binding_contract.py",
+        "tests/test_release_sbom_coverage.py",
+        "-q"
+      ],
+      "log": {
+        "path": ".project-local/runs/f714401b40/ui-resources-python-final-03/logs/check.log",
+        "sha256": "714e6ffb5dd78827d422bf8be971e9c253c2b6e99a90dcb38ccab09960addeab"
+      },
+      "source_consistent_during_run": true
+    },
+    "numeric_document_save": {
+      "path": ".project-local/runs/f714401b40/ui-resources-template-numeric-02/artifacts/result.json",
+      "sha256": "dba36c1550d1565ec63c8748ddc59d8ee124af231ca46e3fc58d2468bfa050f0",
+      "result": "LOCAL_PASS",
+      "tests": 15,
+      "command": [
+        "D:\\All projects\\OS External Configuration\\toolchains\\rust\\cargo\\bin\\cargo.exe",
+        "test",
+        "-p",
+        "archeaxis-domain",
+        "--test",
+        "template_binding",
+        "--",
+        "--test-threads=1"
+      ],
+      "log": {
+        "path": ".project-local/runs/f714401b40/ui-resources-template-numeric-02/logs/check.log",
+        "sha256": "6a27c481cdce1a7492bf9f50ebf911f227d9a1f747747f719d2a676668d8070b"
+      },
+      "source_consistent_during_run": true
+    },
+    "frontend_build": {
+      "path": ".project-local/runs/f714401b40/ui-resources-build-final-03/artifacts/result.json",
+      "sha256": "8e86848e81895025944b8c62bd150c9e2877b2a846e3534c68b4648fcb510abf",
+      "result": "LOCAL_PASS",
+      "tests": null,
+      "command": [
+        "D:/All projects/OS External Configuration/10-toolchains/scoop/apps/nodejs-lts/24.18.0/node.exe",
+        "scripts/runtime/frontend.mjs",
+        "build"
+      ],
+      "log": {
+        "path": ".project-local/runs/f714401b40/ui-resources-build-final-03/logs/check.log",
+        "sha256": "7b5781962a1d2934f083d75a984ffe23e7bc7bafefa4889f7cc70ce6c1dd3fe5"
+      },
+      "source_consistent_during_run": true
+    },
+    "core_build": {
+      "path": ".project-local/runs/f714401b40/ui-resources-core-build-02/artifacts/result.json",
+      "sha256": "6b571e2759069892d4470adb8a1825bf49e9860431c09398a433b1c95e77d8b0",
+      "result": "LOCAL_PASS",
+      "tests": null,
+      "command": [
+        "D:\\All projects\\OS External Configuration\\toolchains\\rust\\cargo\\bin\\cargo.exe",
+        "build",
+        "-p",
+        "archeaxis-api",
+        "--bin",
+        "archeaxis-api"
+      ],
+      "log": {
+        "path": ".project-local/runs/f714401b40/ui-resources-core-build-02/logs/check.log",
+        "sha256": "d2e85ccd3b07bce798c7be8b18d2ccc1ba6adb76b99574f8245494cacf8c62da"
+      },
+      "source_consistent_during_run": true
+    },
+    "native_build": {
+      "path": ".project-local/runs/f714401b40/ui-resources-native-build-final-01/artifacts/result.json",
+      "sha256": "c330cd652e03c93a4e20596a1a77a248ab425157f9347763fd201bb93cd358d6",
+      "result": "LOCAL_PASS",
+      "tests": null,
+      "command": [
+        "D:\\All projects\\OS External Configuration\\toolchains\\rust\\cargo\\bin\\cargo.exe",
+        "build",
+        "--manifest-path",
+        "src-tauri/Cargo.toml"
+      ],
+      "log": {
+        "path": ".project-local/runs/f714401b40/ui-resources-native-build-final-01/logs/check.log",
+        "sha256": "d2e0a3bb63755266d6187f4e0a861e361688fda808657d1c5f179dd2dc332674"
+      },
+      "source_consistent_during_run": true
+    },
+    "governance_final": {
+      "path": ".project-local/runs/f714401b40/ui-resources-governance-final-01/artifacts/result.json",
+      "sha256": "7d0fa6a282ab78127dda316baa93c8f0b18b812872b93efe458c3c6dde024415",
+      "result": "LOCAL_PASS",
+      "tests": 72,
+      "command": [
+        "D:\\All projects\\OS External Configuration\\ArcheAxis-Knowledge-OS-ci-venv\\Scripts\\python.exe",
+        "-B",
+        "-m",
+        "pytest",
+        "-p",
+        "no:cacheprovider",
+        "--basetemp",
+        "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\runs\\f714401b40\\ui-resources-stage-20261010\\pytest-governance-final",
+        "tests/test_documentation_authority_index.py",
+        "tests/workflow/test_document_authority_gate.py",
+        "tests/workflow/test_ui_design_increment.py",
+        "tests/workflow/test_h01_source_trace.py",
+        "-q"
+      ],
+      "source_consistent_during_run": true
+    }
+  },
+  "structural_checks": [
+    {
+      "command": [
+        "scripts/check_language_boundaries.py"
+      ],
+      "exit_code": 0,
+      "result": "PASS",
+      "stdout": "language boundary check passed: protocol major 1 agreed by rust/python/schemas; database owner = crates/ only; workers and desktop shell hold no database handle\n",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "scripts/ci/check_vnext_contracts.py"
+      ],
+      "exit_code": 0,
+      "result": "PASS",
+      "stdout": "contracts-vnext check passed: structure ok and the language boundary agrees on protocol major 1\n",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "scripts/ci/check_document_authority.py"
+      ],
+      "exit_code": 0,
+      "result": "PASS",
+      "stdout": "input hashes: verified 7, outside/private UNVERIFIED 4\ndocument authority: single current record, root references resolve, in-repository hashes checked (external sources remain UNVERIFIED), coverage complete\n",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "scripts/ci/check_ui_design_increment.py"
+      ],
+      "exit_code": 0,
+      "result": "PASS",
+      "stdout": "{\"archive_and_overlay\": \"PASS\", \"product_implementation\": \"NOT_QUALIFIED_BY_THIS_GATE\", \"errors\": []}\n",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "scripts/ci/check_h01_source_trace.py"
+      ],
+      "exit_code": 0,
+      "result": "PASS",
+      "stdout": "{\"local_structure\": \"PASS\", \"semantic_audit\": \"UNVERIFIED\", \"product_implementation\": \"UNKNOWN\", \"errors\": []}\n",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "scripts/contracts/generate_resource_catalog.py",
+        "--check"
+      ],
+      "exit_code": 0,
+      "result": "PASS",
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "-m",
+        "ruff",
+        "check",
+        "scripts/contracts/generate_resource_catalog.py",
+        "scripts/release_sbom.py",
+        "--select",
+        "E9,F63,F7,F82"
+      ],
+      "exit_code": 0,
+      "result": "PASS",
+      "stdout": "All checks passed!\n",
+      "stderr": ""
+    }
+  ],
+  "current_scope_binding_limits": [
+    "Frontend final03 and Native test03 precede only the last Rust numeric fixture correction; relevant frontend/native/contract production bytes remain unchanged. Rust03/Core02/Native build bind the corrected fixtures.",
+    "Visual coverage has explicit source epochs: 90 previous-source scenes +30 final relevant scenes. Current single-run full120 NOT_EXECUTED.",
+    "Supplemental Cargo manifest hashes are current before/after probe pins, not pre-build receipt coverage."
+  ],
+  "core_runtime": {
+    "path": ".project-local/runs/f714401b40/ui-resources-stage-20261010/candidate-supply/attempt-20261009T224512Z-e7a6a1/receipt.json",
+    "sha256": "51f6fe6199b24596a1352e52e08b8f2090c776fad5ade0e2f5db34431a7594f5",
+    "level": "INTEGRATED",
+    "inputs": "SYNTHETIC",
+    "binary_sha256": "4a6ad82803c113d2ed562c3d03bb3f64af8c4ac1b5bc27136d61ab60ac91d89f",
+    "build_binding": {
+      "path": ".project-local/runs/f714401b40/ui-resources-stage-20261010/core-binary-binding-02.json",
+      "sha256": "46118a0a2b268725ba99284ed9b68200cd9dd0cb9e9081b8ac1eecb1b03fd735"
+    },
+    "cases": [
+      {
+        "count": 0,
+        "templates": [],
+        "pages": [
+          0
+        ],
+        "restart_pages": [
+          0
+        ],
+        "status": "PASS",
+        "history_pins": 0
+      },
+      {
+        "count": 101,
+        "templates": [
+          "T1",
+          "T2",
+          "T3"
+        ],
+        "pages": [
+          101
+        ],
+        "restart_pages": [
+          101
+        ],
+        "status": "PASS",
+        "history_pins": 3
+      },
+      {
+        "count": 500,
+        "templates": [
+          "T1",
+          "T2",
+          "T3"
+        ],
+        "pages": [
+          500
+        ],
+        "restart_pages": [
+          500
+        ],
+        "status": "PASS",
+        "history_pins": 3
+      },
+      {
+        "count": 501,
+        "templates": [
+          "T1",
+          "T2",
+          "T3"
+        ],
+        "pages": [
+          500,
+          1
+        ],
+        "restart_pages": [
+          500,
+          1
+        ],
+        "status": "PASS",
+        "history_pins": 3
+      },
+      {
+        "count": 1001,
+        "templates": [
+          "T1",
+          "T2",
+          "T3"
+        ],
+        "pages": [
+          500,
+          500,
+          1
+        ],
+        "restart_pages": [
+          500,
+          500,
+          1
+        ],
+        "status": "PASS",
+        "history_pins": 3
+      },
+      {
+        "case": "501-midrun",
+        "initial_count": 501,
+        "fixed_membership_count": 501,
+        "final_count": 502,
+        "pages": [
+          500,
+          1
+        ],
+        "restart_pages": [
+          500,
+          2
+        ],
+        "updated_later_page_version": 2,
+        "actual_created_at_ties": [
+          [
+            "2026-10-09 22:45:56",
+            67
+          ],
+          [
+            "2026-10-09 22:45:57",
+            112
+          ],
+          [
+            "2026-10-09 22:45:58",
+            139
+          ],
+          [
+            "2026-10-09 22:45:59",
+            135
+          ],
+          [
+            "2026-10-09 22:46:00",
+            49
+          ]
+        ],
+        "actual_created_at_same_second_groups": [
+          [
+            "2026-10-09 22:45:56",
+            67
+          ],
+          [
+            "2026-10-09 22:45:57",
+            112
+          ],
+          [
+            "2026-10-09 22:45:58",
+            139
+          ],
+          [
+            "2026-10-09 22:45:59",
+            135
+          ],
+          [
+            "2026-10-09 22:46:00",
+            49
+          ]
+        ],
+        "tie_evidence": "OBSERVED",
+        "timestamps_modified": false,
+        "status": "PASS"
+      }
+    ],
+    "process_starts": 12,
+    "distinct_pids": 11,
+    "all_owned_pids_absent": true,
+    "numeric_opaque_carry_scope": "Actual Document::save regression15; no historical-namespace HTTP injection claimed."
+  },
+  "visual": {
+    "path": ".project-local/runs/f714401b40/ui-resources-stage-20261010/candidate-final-visual/visual-final/RESULT.json",
+    "sha256": "568c96d4ab5870092d7729eb43bf693ad746135b8918a7956b6be6fd52cf0646",
+    "level": "SIMULATED",
+    "unique_scene_count": 120,
+    "latest_source_scene_count": 30,
+    "previous_source_scene_count": 90,
+    "current_single_run_full120": "NOT_EXECUTED",
+    "theme_tokens_changed": false,
+    "manual_review": "Agent latest10 five-theme wide/narrow; root reviewed earlier10 and final cosmic2; reading/clipping and current semantic reference card checks separate."
+  },
+  "supply_chain": {
+    "sbom": {
+      "path": ".project-local/runs/f714401b40/ui-resources-stage-20261010/artifacts/sbom-current.json",
+      "sha256": "a466b9805384c9db2a4543bae01a534c9e15713704af517de6c27aafb568cf49"
+    },
+    "notices": {
+      "path": ".project-local/runs/f714401b40/ui-resources-stage-20261010/artifacts/THIRD_PARTY_NOTICES-current.txt",
+      "sha256": "d11c6ffb0a576e8966612cfd62f17661cc3fbed96e2de9bc7883effa35ddcab7"
+    },
+    "components": 1106,
+    "scope": "Current existing lock files including root Cargo.lock; CycloneDX-style generator output, not release/schema/installed qualification.",
+    "official_license_reads": "Public official HEAD texts and locked version metadata recorded separately; exact locked package license byte snapshots NOT_VERIFIED.",
+    "upgrade": "NOT_EXECUTED; no version/lock/dependency install changed."
+  },
+  "remaining": [
+    "ZIP06 record23 mixed success/failure/cancel with original/converted separation, failed-only retry and success location remains PARTIAL across UF10/CB04/UF11; concrete real FolderIngest body/request_id/cancel/retry/location repairs next.",
+    "Full691/369 intent remains recorded in historical manifest/handoff; ignored fullpool payload at specific inspected paths UNVERIFIED, no wholesale adoption claimed.",
+    "Installed desktop, physical IME, Owner/M01/professional/worker/model/API qualifications, exit rehearsal, formal nonempty legacy migration, cloud CI/release NOT_EXECUTED or UNVERIFIED as appropriate.",
+    "Whole-tree prior conventions8/architecture13 FAIL retained; owned28 source conventions checked separately."
+  ],
+  "retained_failures": [
+    "ui-resources-template-front-01",
+    "ui-resources-front-final-01",
+    "ui-resources-build-final-01",
+    "ui-resources-native-final-01 (wrong compatibility manifest invocation)",
+    "ui-resources-rust-final-02 (existing capability health assertion; cause UNVERIFIED; isolated16 and full serial656 pass)",
+    "ui-resources-template-numeric-01 (handwritten positive fixture differs from actual serde/Node readback; corrected fixture separately verified)",
+    "visual smoke01/full01 PARTIAL preserved"
+  ],
+  "next": [
+    "CB04",
+    "UF11",
+    "UF13"
+  ],
+  "not_executed": [
+    "commit",
+    "push",
+    "merge",
+    "installation",
+    "release"
+  ],
+  "rollback": "Per-file before checkpoints in owned stage; review exact paths and later changes before restore, never bulk restore protected dirty files.",
+  "owned_conventions": {
+    "source_count": 28,
+    "result": "PASS",
+    "path": ".project-local/runs/f714401b40/ui-resources-stage-20261010/structural-result-04.json",
+    "sha256": "91f53456d68126eb1925ac0af57088541f2b09fdced28c951b608c6a5bba6e83"
+  },
+  "requirements_audit": {
+    "path": ".project-local/runs/f714401b40/ui-resources-stage-20261010/final-19-audit.json",
+    "sha256": "541adc17d2e4128c86e0896592a81e4c6fd6c0ab666cc19f54e195ebea44781d",
+    "status": "PARTIAL"
+  },
+  "current_relevant_gate_binding": {
+    "path": ".project-local/runs/f714401b40/ui-resources-stage-20261010/final-relevant-gate-source-readback.json",
+    "sha256": "8368e8b75b1ac09febfcd6eb0df42ac89398293478a9222ff055b888893d2905",
+    "current_relevant_files": 253,
+    "mismatches": []
+  }
+}

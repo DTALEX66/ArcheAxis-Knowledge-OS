@@ -136,6 +136,56 @@ pub fn create_knowledge_v3(
     created_by: &str,
     metadata: Option<&KnowledgeV3Metadata>,
 ) -> rusqlite::Result<String> {
+    create_knowledge_v3_scoped(
+        conn,
+        knowledge_type,
+        body,
+        status,
+        evidence_status,
+        anchor_id,
+        created_by,
+        metadata,
+        None,
+    )
+}
+
+/// Independent human correction candidates may have identical text. Bind their
+/// identity to the original Core answer without changing the human author.
+pub fn create_machine_correction_candidate(
+    conn: &mut Connection,
+    body: &str,
+    answer_id: &str,
+) -> rusqlite::Result<String> {
+    if answer_id.trim().is_empty() {
+        return Err(v3_error(
+            "a correction candidate requires an answer identity",
+        ));
+    }
+    create_knowledge_v3_scoped(
+        conn,
+        "OBSERVATION",
+        body,
+        "candidate",
+        Some("UNSOURCED"),
+        None,
+        "human",
+        None,
+        Some(answer_id),
+    )
+}
+
+#[allow(clippy::too_many_arguments)]
+fn create_knowledge_v3_scoped(
+    conn: &mut Connection,
+    knowledge_type: &str,
+    body: &str,
+    status: &str,
+    evidence_status: Option<&str>,
+    anchor_id: Option<&str>,
+    created_by: &str,
+    metadata: Option<&KnowledgeV3Metadata>,
+    correction_answer_id: Option<&str>,
+) -> rusqlite::Result<String> {
     if !KNOWLEDGE_TYPES.contains(&knowledge_type) {
         return Err(v3_error(format!(
             "unknown knowledge_type: {knowledge_type}"
@@ -146,9 +196,14 @@ pub fn create_knowledge_v3(
     }
     let mut h = Sha256::new();
     h.update(format!("{knowledge_type}|{body}|{created_by}").as_bytes());
+    if let Some(answer_id) = correction_answer_id {
+        h.update(b"\0machine-correction\0");
+        h.update(answer_id.as_bytes());
+    }
     let knowledge_id = format!("k_{}", &hex::encode(h.finalize())[..24]);
     let r = receipt_hash(knowledge_type, body, status, anchor_id);
-    let tx = conn.transaction_with_behavior(rusqlite::TransactionBehavior::Immediate)?;
+    // A savepoint also composes with a caller's atomic correction/receipt write.
+    let tx = conn.savepoint()?;
     tx.execute(
         "INSERT INTO knowledge(knowledge_id, knowledge_type, body, status, evidence_status, anchor_id, created_by, receipt_hash)
          VALUES(?1,?2,?3,?4,?5,?6,?7,?8)",
@@ -300,6 +355,13 @@ fn utf16_offset_to_byte(text: &str, offset: usize) -> Option<usize> {
 /// updates the knowledge status. `action` must be one of accepted|rejected|modified|deprecated.
 /// C03: the status change and the review event are committed in ONE write
 /// transaction - a failure rolls back both (no accepted-without-event).
+pub fn review_version(conn: &Connection, knowledge_id: &str) -> rusqlite::Result<String> {
+    let row: (String,String,String,i64,i64) = conn.query_row("SELECT body,status,receipt_hash,(SELECT COUNT(*) FROM review_events WHERE knowledge_id=k.knowledge_id),(SELECT COUNT(*) FROM knowledge_supersedes WHERE old_knowledge_id=k.knowledge_id OR new_knowledge_id=k.knowledge_id) FROM knowledge k WHERE knowledge_id=?1",[knowledge_id],|r|Ok((r.get(0)?,r.get(1)?,r.get(2)?,r.get(3)?,r.get(4)?)))?;
+    Ok(hex::encode(Sha256::digest(
+        serde_json::to_vec(&row).unwrap(),
+    )))
+}
+
 pub fn review(
     conn: &mut Connection,
     knowledge_id: &str,
@@ -308,7 +370,27 @@ pub fn review(
     note: Option<&str>,
     new_body: Option<&str>,
 ) -> rusqlite::Result<String> {
+    review_checked(conn, knowledge_id, action, reviewer, note, new_body, None)
+}
+
+pub fn review_checked(
+    conn: &mut Connection,
+    knowledge_id: &str,
+    action: &str,
+    reviewer: &str,
+    note: Option<&str>,
+    new_body: Option<&str>,
+    expected_version: Option<&str>,
+) -> rusqlite::Result<String> {
     let tx = conn.transaction_with_behavior(rusqlite::TransactionBehavior::Immediate)?;
+    if let Some(expected) = expected_version {
+        let actual = review_version(&tx, knowledge_id)?;
+        if expected != actual {
+            return Err(rusqlite::Error::InvalidParameterName(format!(
+                "review_version_conflict:{actual}"
+            )));
+        }
+    }
     let row: Option<(String, String, String, Option<String>, String)> = tx
         .query_row(
             "SELECT knowledge_type, body, status, anchor_id, created_by FROM knowledge WHERE knowledge_id=?1",

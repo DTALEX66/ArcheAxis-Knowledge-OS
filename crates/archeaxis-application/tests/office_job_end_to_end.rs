@@ -78,9 +78,12 @@ fn office_names_select_the_office_route_and_the_legacy_formats_are_refused() {
         .unwrap_err()
         .to_string();
     assert!(error.contains("cannot accept media type"), "{error}");
-    // the legacy binary formats have no reader here, so the name is refused rather than
-    // handed to a route that cannot open it
-    for name in ["old.doc", "old.ppt", "old.xls", "old.rtf"] {
+    // R15/F14: `.doc` left the refused list when a probed external sidecar became the reader
+    // named for it; `.ppt` left it when the declared Tika-over-JVM pair became the reader named
+    // for it (2026-10-07), so the refusal list now carries the family that still has no reader -
+    // a `.pps` show file. `.xls` left earlier, when xlrd became the declared engine - and no
+    // legacy family may travel as text.
+    for name in ["show.pps"] {
         let error = attempts::resolve_media_type("office", name)
             .unwrap_err()
             .to_string();
@@ -89,6 +92,55 @@ fn office_names_select_the_office_route_and_the_legacy_formats_are_refused() {
             "{name}: {error}"
         );
     }
+    assert_eq!(
+        attempts::resolve_media_type("office", "old.ppt").unwrap(),
+        "application/vnd.ms-powerpoint",
+        "a PowerPoint 97 binary is named because a sidecar pair is probed for it here"
+    );
+    let ppt_text_error = attempts::resolve_media_type("text", "old.ppt")
+        .unwrap_err()
+        .to_string();
+    assert!(
+        ppt_text_error.contains("cannot accept media type"),
+        "{ppt_text_error}"
+    );
+    assert_eq!(
+        attempts::resolve_media_type("office", "old.doc").unwrap(),
+        "application/msword",
+        "a Word 97 binary is named because a sidecar is probed for it here"
+    );
+    let doc_text_error = attempts::resolve_media_type("text", "old.doc")
+        .unwrap_err()
+        .to_string();
+    assert!(
+        doc_text_error.contains("cannot accept media type"),
+        "a binary document must not be readable as text: {doc_text_error}"
+    );
+    assert_eq!(
+        attempts::resolve_media_type("office", "old.xls").unwrap(),
+        "application/vnd.ms-excel"
+    );
+    let xls_text_error = attempts::resolve_media_type("text", "old.xls")
+        .unwrap_err()
+        .to_string();
+    assert!(
+        xls_text_error.contains("cannot name a media type")
+            || xls_text_error.contains("cannot accept"),
+        "a binary workbook must not reach the text route: {xls_text_error}"
+    );
+    // RTF now has a reader, but only behind the text route: naming it must not let it travel
+    // as an Office package, which is the invariant the loop above protects.
+    assert_eq!(
+        attempts::resolve_media_type("text", "old.rtf").unwrap(),
+        "application/rtf"
+    );
+    let rtf_error = attempts::resolve_media_type("office", "old.rtf")
+        .unwrap_err()
+        .to_string();
+    assert!(
+        rtf_error.contains("cannot accept media type"),
+        "rtf must be refused for a reason, not unnamed: {rtf_error}"
+    );
 }
 
 #[tokio::test]

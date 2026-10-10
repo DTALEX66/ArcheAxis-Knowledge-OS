@@ -54,7 +54,16 @@ def test_approved_default_engines_present() -> None:
         assert data[key] in {"CURRENT", "ADOPT"}, (
             f"{name} expected CURRENT/ADOPT, got {data[key]}"
         )
-    assert data["pdf.js"] == "REFERENCE"
+    # PDF.js left the REFERENCE bucket on 2026-10-08, and the bucket was the stale part of the
+    # record, not the honest part: `frontend/package.json` declares `pdfjs-dist` 6.4.299 and
+    # `frontend/src/components/PdfReader.tsx` imports it, while `frontend/` + `src-tauri/` are the
+    # formal host under SUP-022. "Not a dependency" was no longer a true sentence about it, so the
+    # ledger now says CURRENT. What actually has to stay guarded is narrower than the old bucket, so
+    # it is pinned directly rather than smuggled through a disposition string.
+    pdfjs = next(c for c in _ledger()["components"] if "pdf.js" in c["name"].lower())
+    assert set(pdfjs["qualification"]) <= {"source"}, (
+        f"PDF.js may only claim source presence, got {pdfjs['qualification']}"
+    )
 
 
 def test_blocked_components_not_in_default_engine_chain() -> None:
@@ -76,3 +85,31 @@ def test_blocked_components_not_in_default_engine_chain() -> None:
     # (zotero was never REVIEW-BLOCK — it is not in this disposition)
     for name in {"mineru", "funasr / sensevoice", "searxng", "marker"}:
         assert name in blocked, f"{name} expected REVIEW-BLOCK in ledger"
+
+
+def test_disposition_labels_stay_definitions_and_summary_covers_them() -> None:
+    """The label map defines each disposition; the summary counts every one of them.
+
+    A script that overwrote `disposition_labels` with counts passed this file unchanged, so the
+    ledger's own test was blind to the damage it had to repair. Both shapes are pinned here: a
+    definition is a non-empty string, and a summary key set is exactly the label vocabulary.
+    """
+    ledger = _ledger()
+    labels = ledger["disposition_labels"]
+    assert isinstance(labels, dict) and labels, "disposition_labels must be a non-empty mapping"
+    for label, definition in labels.items():
+        assert isinstance(definition, str) and definition.strip(), (
+            f"{label}: a disposition label must carry a definition, not a count"
+        )
+
+    summary = ledger["disposition_summary"]
+    assert set(summary) == set(labels), (
+        f"disposition_summary and the label vocabulary disagree: "
+        f"{sorted(set(summary) ^ set(labels))}"
+    )
+    counts: dict[str, int] = {}
+    for component in ledger["components"]:
+        counts[component["disposition"]] = counts.get(component["disposition"], 0) + 1
+    assert summary == {label: counts.get(label, 0) for label in labels}, (
+        "disposition_summary must be the count of the rows that exist, zero included"
+    )

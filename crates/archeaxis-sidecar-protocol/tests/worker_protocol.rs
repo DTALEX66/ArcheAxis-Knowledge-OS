@@ -125,3 +125,38 @@ fn schema_integer_spellings_and_failed_terminal_shape_are_checked() {
     frame["outputs"] = json!([]);
     assert!(decode_response(&frame.to_string(), &req).is_ok());
 }
+
+#[test]
+fn splitting_is_the_only_parameter_a_request_may_carry() {
+    use archeaxis_sidecar_protocol::worker::Request;
+    // Only the transcribing capability has a bounded unit of work, so only it may carry this.
+    // Every other route keeps the empty-parameters invariant the protocol was built on.
+    let text = Request::text("r", "j", 1, &"a".repeat(64), "text/plain", 5000).unwrap();
+    assert!(text.splitting("staging").is_err());
+
+    let media = || {
+        Request::job(
+            "r",
+            "j",
+            1,
+            "media.transcribe",
+            &"a".repeat(64),
+            "audio/mpeg",
+            5000,
+        )
+        .unwrap()
+    };
+    assert!(media().parameters.is_empty());
+    let split = media().splitting(r"C:\staging\windows\job-1").unwrap();
+    assert_eq!(split.parameters["split"], json!(true));
+    assert_eq!(
+        split.parameters["staging"],
+        json!(r"C:\staging\windows\job-1")
+    );
+    // Neither an ffmpeg path nor a window list rides the request: the transport resolves the
+    // declared engine, and the worker derives the plan from the file's own duration, so a request
+    // can neither name an arbitrary executable nor describe a plan that drops audio.
+    assert!(!split.parameters.contains_key("ffmpeg"));
+    assert!(!split.parameters.contains_key("window"));
+    assert!(media().splitting("  ").is_err());
+}

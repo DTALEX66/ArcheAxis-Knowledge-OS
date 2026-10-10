@@ -1,0 +1,38 @@
+{
+  "document": "AAOS-UI-HANDOFF-AUDIT-PROMPT-ASSESSMENT-20261002",
+  "recorded_at": "2026-10-02T08:22:06.785643+00:00",
+  "source": {
+    "file": "docs/history/ui-adjustment-2026-10-02/AAOS-FRONTEND-UI-HANDOFF-AUDIT-PROMPT-OLDER.md",
+    "sha256": "5F48D66B94162679CCC9868598CDB7C15EB1D71F4EBB2A22877BA46E224BBCAA",
+    "supplied_by": "the Owner, describing it as the older handoff prompt",
+    "addressed_to": "a UI/visual auditor on the minimax cosmic-UI worktree, not to this executor"
+  },
+  "kept_because_still_useful": {
+    "the_four_layer_layout": "Global Rail / Context Sidebar / Main Workspace / Inspector, plus the Top Command Bar and Bottom Task Drawer. The 2026-10-02 UI package's IA freeze names the six spaces and the Inspector's duties but does not describe this four-layer shell, so this prompt is the fuller statement of it and is kept.",
+    "the_rail_entries": "首页 / 捕获 / 证据库 / 原创 / 人类学习 / 机器学习 / 工作区 / 记忆 / 搜索 / 复习 / 设置·恢复. These are the stable first-level entries the audit expects, and they line up with the package's 19 retained routes: every one of these maps to a route in specs/02_19路由迁移.csv.",
+    "the_glass_questions": "nine concrete questions about whether glass is visible rather than merely declared, including whether Acrylic falls back gracefully. This is the only place in the record that specifies the fallback must also look good.",
+    "the_three_themes_with_keywords": "deep space (Aurora Teal, low-saturation cyan-green, interstellar gold as a small accent), white (ivory, paper and archive, low-saturation ink-green), black (pure or graphite, professional editor, no neon).",
+    "animation_timings": "120 / 180 / 280 / 420 / 6000 ms, with an explicit reduced-motion contract via AAOS_REDUCED_MOTION=1.",
+    "the_prohibitions": "no Core wiring, no API change, no database change, no fabricated knowledge, course, plugin or model data, no random samples standing in for missing data, no disguising a missing backend as complete.",
+    "the_audit_output_format": "the eight-part report, the four severity levels P0-P3, the four maturity scores and the ten-task next-round table. Only the newer package's acceptance matrix exists besides this, so the format is kept."
+  },
+  "superseded_by_the_newer_packages": {
+    "brand_and_material": "the newer package says it keeps Aurora Teal and the monochrome dark themes and converges high-frequency visual noise; where the two disagree the newer package is the current direction",
+    "the_route_set": "the newer package's 19-route migration map and 50-item capability menu are the current navigation data"
+  },
+  "no_longer_true_when_received": {
+    "the_repository_shas": "the prompt gives no SHA, but it assumes the cosmic-UI worktree as the working front. Measured now, codex/minimax-aaos-cosmic-ui-20261001 sits at 627e74ff, 20 commits ahead of main and unmerged, so this prompt describes an unmerged line rather than the product line.",
+    "the_screenshot_names": "the five screenshots it names are not among the 19 in the newer package, so they cannot be located from this branch; the newer package's screenshots are the ones actually archived.",
+    "the_theme_count": "the prompt requires three user-facing themes. The minimax branch's own contract test counted three palettes after the deep-space theme was added, which agrees, but the earlier record on this branch described two, so three is the number to keep."
+  },
+  "fixes_applied": {
+    "what_was_fixed": "nothing inside the prompt. A historical prompt is archived as received; editing it would destroy the evidence that it said what it said.",
+    "what_was_fixed_in_this_repository": "the IA freeze record was corrected to the six domains the newer package froze, while this older prompt's four-layer shell and eleven rail entries are kept alongside it, since the two describe different levels rather than competing.",
+    "known_defects_in_the_prompt_left_recorded": [
+      "it sets up a visual audit as if this executor should run it, which is a UI writer's task on another branch",
+      "it names screenshots that do not exist on this branch",
+      "it asks for a Core wiring prohibition that this executor's own contract-verification task explicitly requires, so the two prompts are for different roles"
+    ]
+  },
+  "conclusion": "Kept: the four-layer layout, the eleven rail entries, the nine glass questions, the three themes with their keywords, the animation timings and reduced-motion contract, the prohibitions and the audit output format. Superseded: the navigation data, which the newer package's 19 routes and 50-item menu now carry. Archived unchanged, because a historical prompt must keep saying what it said."
+}

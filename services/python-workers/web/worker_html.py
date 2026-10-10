@@ -1,13 +1,12 @@
 #!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 """ArcheAxis vNext web worker: static HTML snapshot extraction (F02 partial).
 
 Reads a saved HTML snapshot file and deterministically extracts title,
-main text, links and paragraph anchors using only the standard library
-(html.parser). Network fetching and dynamic rendering are Core-side
+main text, links and paragraph anchors. Explicit article/main pages use the
+locked Trafilatura donor; fragments and unavailable/empty/failed extraction
+use html.parser with a recorded fallback. Network fetching and dynamic rendering are Core-side
 concerns (F02/F03 full slices); this worker consumes a local snapshot and
-never executes scripts. Page-noise separation (ads/boilerplate) and
-trafilatura-grade extraction are later slices.
+never executes scripts. Derived text offsets are not original DOM locations.
 
 Usage:
     python worker_html.py <snapshot.html>
@@ -21,6 +20,7 @@ import json
 import re
 import sys
 from html.parser import HTMLParser
+from importlib.metadata import version
 from pathlib import Path
 
 ENGINE = "python-worker-html"
@@ -191,6 +191,21 @@ def _failed_execution_receipt(raw: bytes, path: str, error: BaseException) -> di
     }
 
 
+def _article_text(html: str) -> tuple[str | None, str]:
+    """Reuse the locked donor on saved bytes only; never call its URL fetcher."""
+    from trafilatura import extract as extract_article
+
+    # Preserve arbitrary fragments verbatim. Article cleanup is appropriate only
+    # when the saved page itself marks a main/article region; short fragments and
+    # generic notes must not acquire whitespace normalization or boilerplate loss.
+    if not re.search(r"<(?:article|main)\b", html, re.I):
+        return None, version("trafilatura")
+    return extract_article(
+        html, output_format="txt", include_comments=False,
+        include_tables=True, include_links=False, deduplicate=False,
+    ), version("trafilatura")
+
+
 def extract(path: str) -> dict:
     raw = Path(path).read_bytes()
     try:
@@ -211,6 +226,28 @@ def extract(path: str) -> dict:
     # otherwise be accepted as a page.
     if not _TAG_MARKER.search(html_text):
         raise ValueError("not an HTML document: no tags found in the snapshot")
+    attempts = []
+    selected = "stdlib-html-parser"
+    donor_version = None
+    try:
+        article, donor_version = _article_text(html_text)
+        if article and article.strip():
+            blocks = [line.strip() for line in article.splitlines() if line.strip()]
+            selected = "trafilatura"
+            attempts.append({"engine": selected, "status": "succeeded", "version": donor_version})
+        else:
+            attempts.append({"engine": "trafilatura", "status": "empty", "version": donor_version})
+    except ImportError:
+        attempts.append({"engine": "trafilatura", "status": "missing_dependency"})
+    except Exception as error:
+        # Do not put parser messages or local paths in receipts.
+        attempts.append({"engine": "trafilatura", "status": "failed", "error_type": type(error).__name__})
+    fallback_used = selected != "trafilatura"
+    if fallback_used:
+        attempts.append({"engine": selected, "status": "succeeded" if blocks else "empty"})
+    extraction = {"selected_engine": selected, "version": donor_version if not fallback_used else ENGINE_VERSION,
+                  "fallback_used": fallback_used, "attempts": attempts,
+                  "anchor_scope": "offsets in derived text, not original DOM coordinates"}
     projection = "\n\n".join(blocks)
     anchors: list[dict] = []
     offset = 0
@@ -225,6 +262,11 @@ def extract(path: str) -> dict:
 
     execution_receipt = _format_execution_receipt(raw, path, blocks, anchors)
     execution_receipt["quality_facts"][2]["value"] = len(parser.links)
+    execution_receipt["fallback"] = {
+        "used": fallback_used, "attempted_engines": [item["engine"] for item in attempts],
+        "selected_engine": selected,
+        "reason": attempts[0]["status"] if fallback_used else None,
+    }
 
     return {
         "engine": ENGINE,
@@ -237,11 +279,12 @@ def extract(path: str) -> dict:
         "loss_receipt": {
             "engine": ENGINE,
             "engine_version": ENGINE_VERSION,
-            "params": {"encoding": encoding, "skip_tags": sorted(_SKIP_TAGS)},
+            "params": {"encoding": encoding, "skip_tags": sorted(_SKIP_TAGS),
+                       "extraction": extraction, "source_sha256": hashlib.sha256(raw).hexdigest()},
             "loss_note": (
-                "scripts/styles never executed; layout/ads separation and "
-                "trafilatura-grade extraction are later slices; link list "
-                "kept with href and visible text"
+                "saved snapshot only; no fetching or script execution; article extraction is "
+                "a heuristic, not semantic-fidelity evidence; anchors address the derived text; "
+                "original link inventory retained separately"
                 + ("; the marked-up page carries no text blocks at all" if not blocks else "")
             ),
         },
@@ -256,10 +299,17 @@ def main() -> int:
         import argparse
         import importlib.util
 
-        repo_root = Path(__file__).resolve().parents[3]
-        spec = importlib.util.spec_from_file_location(
-            "html_transport", repo_root / "services" / "python-workers" / "transport" / "text_ndjson.py"
+        # The shared transport sits beside this worker's own category directory, in a
+        # source checkout (`services/python-workers/transport/`) and in a staged runtime
+        # (`workers/transport/`) alike, so both are tried from this file's location. A
+        # fixed parents[3] plus a `services/python-workers/` suffix was correct only for
+        # the source layout and left a staged worker unable to start.
+        _transport_candidates = (
+            Path(__file__).resolve().parent.parent / "transport" / "text_ndjson.py",
+            Path(__file__).resolve().parents[2] / "services" / "python-workers" / "transport" / "text_ndjson.py",
         )
+        _transport = next((p for p in _transport_candidates if p.is_file()), _transport_candidates[0])
+        spec = importlib.util.spec_from_file_location("html_transport", _transport)
         if spec is None or spec.loader is None:
             print(json.dumps({"error": "transport module is missing", "engine": ENGINE}))
             return 1

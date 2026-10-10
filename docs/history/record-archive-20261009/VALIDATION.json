@@ -1,0 +1,112 @@
+{
+  "schema": "archeaxis/record-archive-validation/v1",
+  "started_at": "2026-10-09T11:34:27.457135+00:00",
+  "python": "3.13.14 (main, Jul 23 2026, 14:44:10) [MSC v.1944 64 bit (AMD64)]",
+  "powershell": "7.6.5",
+  "script_sha256_before": "0f64019caa32af375fc3c4ce8a3f448de3b9ad4cb5f42030aea3a98546986847",
+  "head": "1a981a4482b01f31989074e79c82a63400aa07a7",
+  "checks": [
+    {
+      "name": "ruff",
+      "started_at": "2026-10-09T11:34:27.483079+00:00",
+      "completed_at": "2026-10-09T11:34:27.635286+00:00",
+      "command": [
+        "D:\\All projects\\ArcheAxis-Knowledge-OS\\.venv\\Scripts\\python.exe",
+        "-B",
+        "-m",
+        "ruff",
+        "check",
+        "D:\\All projects\\ArcheAxis-Knowledge-OS\\scripts\\maintenance\\archive_record_materials.py"
+      ],
+      "cwd": "D:\\All projects\\ArcheAxis-Knowledge-OS",
+      "exit_code": 0,
+      "log": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\archives\\record-20261009\\logs\\ruff-final.log"
+    },
+    {
+      "name": "diff-check-main",
+      "started_at": "2026-10-09T11:34:27.635312+00:00",
+      "completed_at": "2026-10-09T11:34:27.671587+00:00",
+      "command": [
+        "git",
+        "diff",
+        "--check"
+      ],
+      "cwd": "D:\\All projects\\ArcheAxis-Knowledge-OS",
+      "exit_code": 0,
+      "log": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\archives\\record-20261009\\logs\\diff-check-main-final.log"
+    },
+    {
+      "name": "lookup-blueprint",
+      "started_at": "2026-10-09T11:34:27.671612+00:00",
+      "completed_at": "2026-10-09T11:34:27.830936+00:00",
+      "command": [
+        "D:\\All projects\\ArcheAxis-Knowledge-OS\\.venv\\Scripts\\python.exe",
+        "-B",
+        "D:\\All projects\\ArcheAxis-Knowledge-OS\\scripts\\maintenance\\archive_record_materials.py",
+        "find",
+        "蓝图"
+      ],
+      "cwd": "D:\\All projects\\ArcheAxis-Knowledge-OS",
+      "exit_code": 0,
+      "log": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\archives\\record-20261009\\logs\\lookup-blueprint-final.log"
+    },
+    {
+      "name": "lookup-tail-image",
+      "started_at": "2026-10-09T11:34:27.830957+00:00",
+      "completed_at": "2026-10-09T11:34:27.991223+00:00",
+      "command": [
+        "D:\\All projects\\ArcheAxis-Knowledge-OS\\.venv\\Scripts\\python.exe",
+        "-B",
+        "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\worktrees\\gov-ui-20261008\\scripts\\maintenance\\archive_record_materials.py",
+        "find",
+        "screens/4K/21.png"
+      ],
+      "cwd": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\worktrees\\gov-ui-20261008",
+      "exit_code": 0,
+      "log": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\archives\\record-20261009\\logs\\lookup-tail-image-final.log"
+    },
+    {
+      "name": "verify-all",
+      "started_at": "2026-10-09T11:34:27.991247+00:00",
+      "completed_at": "2026-10-09T11:34:39.380945+00:00",
+      "command": [
+        "D:\\All projects\\ArcheAxis-Knowledge-OS\\.venv\\Scripts\\python.exe",
+        "-B",
+        "D:\\All projects\\ArcheAxis-Knowledge-OS\\scripts\\maintenance\\archive_record_materials.py",
+        "verify"
+      ],
+      "cwd": "D:\\All projects\\ArcheAxis-Knowledge-OS",
+      "exit_code": 0,
+      "log": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\archives\\record-20261009\\logs\\verify-all-final.log"
+    }
+  ],
+  "script_sha256_after": "0f64019caa32af375fc3c4ce8a3f448de3b9ad4cb5f42030aea3a98546986847",
+  "completed_at": "2026-10-09T11:34:39.381073+00:00",
+  "status": "LOCAL_PASS",
+  "archive_manifest_sha256": "82ee036e1dbbd773b59a9f15d4d0df79bce29b101fd3c564d6a9db23d5070df4",
+  "source_bytes_preserved": "121 original files; all destination readback sizes and SHA256 matched source copy hashes; source inventory unchanged",
+  "source_container_exception": "Old 63935854-byte UI ZIP remains invalid and preserved; four corrected UI packages replace it, 155-file union verified",
+  "prior_attempts": [
+    {
+      "log": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\archives\\record-20261009\\logs\\archive.log",
+      "exit_code": 1,
+      "reason": "WinError 206; corrected with short destination mapping, no source changes"
+    },
+    {
+      "log": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\archives\\record-20261009\\logs\\archive-retry.log",
+      "exit_code": 1,
+      "reason": "Qoder UTF8 unflagged member names initially unresolved; original member SHA values match after metadata decoding"
+    },
+    {
+      "log": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\archives\\record-20261009\\logs\\reindex.log",
+      "exit_code": 0,
+      "reason": "Corrected member path matching; all internal declarations passed"
+    }
+  ],
+  "not_executed": [
+    "TaskPack implementation",
+    "CI/network/push/merge",
+    "installer or recovery runtime",
+    "deletion of Record originals"
+  ]
+}

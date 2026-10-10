@@ -257,12 +257,22 @@ fn future_and_unrelated_databases_are_unchanged_on_rejection() {
 fn concurrent_open_migrates_v1_once_and_preserves_existing_jobs() {
     let (dir, conn, _) = fixture();
     conn.execute_batch(
-        "ALTER TABLE jobs DROP COLUMN completion_digest;
+        // This is a synthetic v1 job-shape fixture, constructed from today's
+        // workspace. Remove v12-only teaching tables before reopening as v1;
+        // production migration must still create them exactly once.
+        "DROP TABLE teaching_withdrawals;
+        DROP TABLE teaching_records;
+        ALTER TABLE jobs DROP COLUMN completion_digest;
         ALTER TABLE jobs DROP COLUMN transform_id;
         UPDATE workspace_meta SET value='1' WHERE key='schema_version';
         UPDATE jobs SET state='completed';",
     )
     .unwrap();
+    let teaching_tables: i64 = conn.query_row(
+        "SELECT count(*) FROM sqlite_master WHERE type='table' AND name IN ('teaching_records','teaching_withdrawals')",
+        [], |row| row.get(0),
+    ).unwrap();
+    assert_eq!(teaching_tables, 0);
     drop(conn);
     let barrier = std::sync::Arc::new(std::sync::Barrier::new(4));
     let handles: Vec<_> = (0..4)
@@ -291,4 +301,9 @@ fn concurrent_open_migrates_v1_once_and_preserves_existing_jobs() {
         )
         .unwrap();
     assert_eq!(version, archeaxis_store_sqlite::SCHEMA_VERSION.to_string());
+    let teaching_objects: i64 = conn.query_row(
+        "SELECT count(*) FROM sqlite_master WHERE name IN ('teaching_records','teaching_withdrawals','teaching_records_no_update','teaching_records_no_delete','teaching_withdrawals_no_update','teaching_withdrawals_no_delete')",
+        [], |row| row.get(0),
+    ).unwrap();
+    assert_eq!(teaching_objects, 6);
 }

@@ -12,6 +12,7 @@ from app.evaluation.evaluator import evaluate
 from app.evaluation.feedback import compile_lesson
 from app.schemas import EvalResult, ExecutionTrace, MachineLesson
 from shared import core_schema
+from shared.paths import native_path
 
 
 class EvaluationCandidate(BaseModel):
@@ -87,7 +88,7 @@ def _same_candidate_evidence(
 def create_evaluation_candidate(
     trace: ExecutionTrace, *, db_path: str | Path
 ) -> EvaluationCandidate:
-    with sqlite3.connect(Path(db_path)) as connection:
+    with sqlite3.connect(native_path(db_path)) as connection:
         connection.row_factory = sqlite3.Row
         core_schema.validate(connection)
         connection.execute("BEGIN IMMEDIATE")
@@ -126,7 +127,7 @@ def create_evaluation_candidate(
 def approve_evaluation_candidate(
     approval: EvaluationApproval, *, db_path: str | Path
 ) -> MachineLesson:
-    with sqlite3.connect(Path(db_path)) as connection:
+    with sqlite3.connect(native_path(db_path)) as connection:
         connection.row_factory = sqlite3.Row
         core_schema.validate(connection)
         connection.execute("BEGIN IMMEDIATE")
@@ -185,9 +186,9 @@ def list_reviewed_feedback(
     if limit < 1:
         return []
     database = Path(db_path)
-    if not database.is_file():
+    if not Path(native_path(database)).is_file():
         return []
-    with sqlite3.connect(database) as connection:
+    with sqlite3.connect(native_path(database)) as connection:
         connection.row_factory = sqlite3.Row
         core_schema.validate(connection)
         rows = connection.execute(

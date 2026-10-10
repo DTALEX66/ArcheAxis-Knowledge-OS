@@ -9,6 +9,7 @@ from contextlib import closing
 from pathlib import Path
 
 from shared import migration
+from shared.paths import native_path, sqlite_readonly_target
 
 SLEEP_LOOP_MIGRATION_VERSION = migration.SLEEP_LOOP_MIGRATION_VERSION
 SLEEP_LOOP_MIGRATION_NAME = migration.SLEEP_LOOP_MIGRATION_NAME
@@ -186,15 +187,16 @@ _LEGACY_TASK_COLUMNS = (
 def _connect(path: Path, *, readonly: bool = False) -> sqlite3.Connection:
     if readonly:
         sidecars = [Path(f"{path}{suffix}") for suffix in ("-wal", "-shm")]
-        if any(item.exists() for item in sidecars):
+        if any(Path(native_path(item)).exists() for item in sidecars):
             raise RuntimeError("sleep loop status requires a checkpointed database")
+        target, use_uri = sqlite_readonly_target(path)
         connection = sqlite3.connect(
-            f"{path.resolve().as_uri()}?mode=ro&immutable=1", uri=True, timeout=30.0
+            f"{target}&immutable=1" if use_uri else target, uri=use_uri, timeout=30.0
         )
         connection.execute("PRAGMA query_only=ON")
     else:
-        path.parent.mkdir(parents=True, exist_ok=True)
-        connection = sqlite3.connect(str(path), timeout=30.0)
+        Path(native_path(path.parent)).mkdir(parents=True, exist_ok=True)
+        connection = sqlite3.connect(native_path(path), timeout=30.0)
     connection.execute("PRAGMA busy_timeout=30000")
     connection.row_factory = sqlite3.Row
     return connection
@@ -404,7 +406,7 @@ def migrate(
         raise RuntimeError("sleep loop migration must be driven by MigrationOperator")
     database = Path(db_path)
     backups = Path(backup_dir)
-    database_existed = database.is_file()
+    database_existed = Path(native_path(database)).is_file()
     if database_existed:
         migration._validate_database(database)
     backup_path: Path | None = None
@@ -446,7 +448,7 @@ def migrate(
 
 def status(*, db_path: str | Path) -> dict[str, object]:
     database = Path(db_path)
-    if not database.is_file():
+    if not Path(native_path(database)).is_file():
         pending = tuple(migration.SLEEP_LOOP_MIGRATIONS.values())
     else:
         with closing(_connect(database, readonly=True)) as connection:
@@ -479,7 +481,7 @@ def _require_schema_applied_connection(
 
 def require_applied(*, db_path: str | Path) -> None:
     database = Path(db_path)
-    if not database.is_file():
+    if not Path(native_path(database)).is_file():
         raise RuntimeError("sleep loop schema migration is pending")
     with closing(_connect(database)) as connection:
         connection.execute("PRAGMA query_only=ON")

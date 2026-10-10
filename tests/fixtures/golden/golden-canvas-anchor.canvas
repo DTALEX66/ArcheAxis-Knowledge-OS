@@ -1,0 +1,29 @@
+{
+  "nodes": [
+    {
+      "id": "n1",
+      "type": "text",
+      "text": "Golden Journey Evidence",
+      "x": 0,
+      "y": 0,
+      "width": 240,
+      "height": 120
+    },
+    {
+      "id": "n2",
+      "type": "text",
+      "text": "Page Anchor PASS",
+      "x": 320,
+      "y": 0,
+      "width": 240,
+      "height": 120
+    }
+  ],
+  "edges": [
+    {
+      "id": "e1",
+      "fromNode": "n1",
+      "toNode": "n2"
+    }
+  ]
+}

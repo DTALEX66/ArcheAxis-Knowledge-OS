@@ -33,6 +33,7 @@ from shared.adapter_contract import (
     AdapterResult,
 )
 from shared.approved_paths import ApprovedRoots, ApprovedRootsError
+from shared.paths import native_path, ordinary_path
 from shared.safe_http import SafeHTTPPolicy, fetch
 
 _PROJECT_ROOT = Path(__file__).resolve().parents[1]
@@ -127,7 +128,7 @@ def detect_format_from_content(file_path: str | Path) -> str:
     content is genuinely binary.
     """
     path = Path(file_path)
-    if not path.is_file():
+    if not Path(native_path(path)).is_file():
         return detect_format(file_path)
 
     ext = path.suffix.lower()
@@ -746,10 +747,10 @@ def convert_directory(
 
     results = []
     dir_path = Path(directory).resolve()
-    files = sorted(dir_path.glob(pattern))[:limit]
+    files = sorted(Path(native_path(dir_path)).glob(pattern))[:limit]
 
     for fp in files:
-        if fp.is_dir():
+        if Path(native_path(fp)).is_dir():
             continue
         fmt = detect_format(fp)
         if fmt == "unknown":
@@ -759,8 +760,8 @@ def convert_directory(
             content, engine = convert_file(fp, fmt)
             results.append(
                 {
-                    "path": str(fp),
-                    "relative_path": str(fp.relative_to(dir_path)),
+                    "path": str(ordinary_path(fp)),
+                    "relative_path": str(ordinary_path(fp).relative_to(dir_path)),
                     "format": fmt,
                     "content": content,
                     "engine": engine,
@@ -790,28 +791,28 @@ def convert_directory_resumable(
     )
 
     root = Path(directory).resolve()
-    if not root.is_dir():
+    if not Path(native_path(root)).is_dir():
         raise ValueError(f"directory not found: {root}")
     manifest_file = Path(manifest_path).resolve()
     artifacts = Path(output_dir).resolve() if output_dir else manifest_file.parent / "artifacts"
     output_root = Path(output_dir).resolve() if output_dir else manifest_file.parent
-    if not output_root.is_dir():
+    if not Path(native_path(output_root)).is_dir():
         output_root = output_root.parent
-    manifest_root = manifest_file.parent if manifest_file.parent.is_dir() else manifest_file.parent.parent
-    if not output_root.is_dir() or not manifest_root.is_dir():
+    manifest_root = manifest_file.parent if Path(native_path(manifest_file.parent)).is_dir() else manifest_file.parent.parent
+    if not Path(native_path(output_root)).is_dir() or not Path(native_path(manifest_root)).is_dir():
         raise ValueError(f"output root parent not found: {output_root}")
     approved = ApprovedRoots(source_roots=[root], output_roots=[output_root, manifest_root])
     manifest_file = approved.resolve_output(manifest_file)
     artifacts = approved.resolve_output(artifacts)
-    artifacts.mkdir(parents=True, exist_ok=True)
+    Path(native_path(artifacts)).mkdir(parents=True, exist_ok=True)
     manifest = ProcessingManifest(manifest_file)
     results: list[dict] = []
     resumed = processed = 0
 
-    for file_path in sorted(root.glob(pattern)):
+    for file_path in sorted(ordinary_path(p) for p in Path(native_path(root)).glob(pattern)):
         if processed >= max_files:
             break
-        if not file_path.is_file():
+        if not Path(native_path(file_path)).is_file():
             continue
         try:
             resolved_file = approved.resolve_source(file_path)
@@ -852,17 +853,17 @@ def convert_directory_resumable(
                 "w",
                 encoding="utf-8",
                 newline="\n",
-                dir=artifacts,
+                dir=native_path(artifacts),
                 delete=False,
                 suffix=".tmp",
             ) as stream:
                 stream.write(content)
                 temporary = Path(stream.name)
-            os.replace(temporary, output)
+            os.replace(native_path(temporary), native_path(output))
             output_hash = file_sha256(output)
         except Exception as exc:
             if temporary is not None:
-                temporary.unlink(missing_ok=True)
+                Path(native_path(temporary)).unlink(missing_ok=True)
             manifest.record(
                 relative,
                 status="failed",

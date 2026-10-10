@@ -1,0 +1,1787 @@
+{
+  "schema": "archeaxis/external-resources-index/v2",
+  "generated_by": "scripts/environment/build_external_resources_index.py",
+  "probed": true,
+  "probe_workdir": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\worktrees\\gov-ui-20261008\\.project-local\\runs\\f714401b40\\codex-ui-governance-20261008\\tmp\\resource-probe",
+  "manifest": "config/environment/capability-requirements.yaml",
+  "manifest_updated": "2026-10-08",
+  "roots_declared_by": [
+    "ARCHEAXIS_EXTERNAL_ROOT",
+    "OS_EXTERNAL_CONFIG"
+  ],
+  "external_root": "D:\\All projects\\OS External Configuration",
+  "root_present": true,
+  "sibling_roots": {
+    "model-library": "D:\\All projects\\Model library"
+  },
+  "verification_summary": {
+    "REGISTERED": 0,
+    "FILE_EXISTS": 9,
+    "VERSION_PROBED": 14,
+    "RESULT_VERIFIED": 3,
+    "NOT_RUN": 1,
+    "unavailable": 5,
+    "probe_failed": 0
+  },
+  "unbound_path_fallback": [
+    "toolchains/uv"
+  ],
+  "entries": [
+    {
+      "resource_id": "ext.toolchains.python",
+      "type": "toolchain",
+      "name": "python",
+      "category": "toolchains",
+      "purpose": "主运行时解释器（3.11 主 / 3.14 辅，scoop 管理）",
+      "platform": "windows-x64",
+      "host_platform": "windows-x64",
+      "version_range": ">=3.11,<3.15",
+      "version_identification": "python --version 第一行",
+      "pinned_version_observed": "Python 3.14.6",
+      "resolvable_location": "10-toolchains/scoop/apps/python/current/python.exe",
+      "resolved_absolute": "D:\\All projects\\OS External Configuration\\10-toolchains\\scoop\\apps\\python\\3.14.6\\python.exe",
+      "binding": "declared",
+      "path_also_offers": null,
+      "project_entry": "tool_paths.tool_path(\"python\")",
+      "required_env": {},
+      "writability": "shared_read_only",
+      "local_only": false,
+      "required_by": [
+        "core-runtime",
+        "ci",
+        "tests"
+      ],
+      "healthcheck_command": "python --version",
+      "detection": {
+        "kind": "command",
+        "ceiling": "VERSION_PROBED",
+        "evidence": {
+          "steps": [
+            {
+              "command": [
+                "python.exe",
+                "--version"
+              ],
+              "returncode": 0,
+              "matched": "Python 3.14.6"
+            }
+          ],
+          "kind": "command"
+        }
+      },
+      "available": true,
+      "verification_level": "VERSION_PROBED",
+      "ceiling_respected": true,
+      "failure_message": null,
+      "code_license": "PSF-2.0",
+      "asset_license": null,
+      "source_url": "https://www.python.org/downloads/windows/",
+      "fallback": "声明缺失即具名失败；不猜 PATH，不自动安装",
+      "endpoint": null,
+      "external_paths": [
+        {
+          "declared": "10-toolchains/scoop/apps/python/current/python.exe",
+          "resolved": "D:\\All projects\\OS External Configuration\\10-toolchains\\scoop\\apps\\python\\3.14.6\\python.exe",
+          "exists": true
+        }
+      ]
+    },
+    {
+      "resource_id": "ext.toolchains.uv",
+      "type": "toolchain",
+      "name": "uv",
+      "category": "toolchains",
+      "purpose": "依赖锁定、虚拟环境、包安装",
+      "platform": "windows-x64",
+      "host_platform": "windows-x64",
+      "version_range": ">=0.7",
+      "version_identification": "uv --version 第一行",
+      "pinned_version_observed": "uv 0.12.23 (46b84fd0b 2026-10-03 x86_64-pc-windows-msvc)",
+      "resolvable_location": null,
+      "resolved_absolute": null,
+      "binding": "unbound_path_fallback",
+      "path_also_offers": null,
+      "project_entry": "无声明路径可绑：本机 uv 由宿主自管（`%USERPROFILE%\\.local\\bin`），项目只读取其答案",
+      "required_env": {},
+      "writability": "shared_read_only",
+      "local_only": false,
+      "required_by": [
+        "core-runtime",
+        "ci",
+        "tests"
+      ],
+      "healthcheck_command": "uv --version",
+      "detection": {
+        "kind": "command",
+        "ceiling": "VERSION_PROBED",
+        "evidence": {
+          "steps": [
+            {
+              "command": [
+                "uv.EXE",
+                "--version"
+              ],
+              "returncode": 0,
+              "matched": "uv 0.12.23 (46b84fd0b 2026-10-03 x86_64-pc-windows-msvc)"
+            }
+          ],
+          "kind": "command"
+        }
+      },
+      "available": true,
+      "verification_level": "VERSION_PROBED",
+      "ceiling_respected": true,
+      "failure_message": null,
+      "code_license": "MIT OR Apache-2.0",
+      "asset_license": null,
+      "source_url": "https://github.com/astral-sh/uv/releases",
+      "fallback": "uv 不在则 uv-sync 类条目（ci-venv）记 unavailable，改用已声明解释器直接跑探针",
+      "endpoint": null,
+      "external_paths": []
+    },
+    {
+      "resource_id": "ext.toolchains.dotnet",
+      "type": "toolchain",
+      "name": "dotnet",
+      "category": "toolchains",
+      "purpose": "Avalonia 供体（apps/ArcheAxis.Desktop）的构建与测试；SUP-022 后它是冻结的行为/组件供体，不是正式桌面壳",
+      "platform": "windows-x64",
+      "host_platform": "windows-x64",
+      "version_range": ">=10,<11",
+      "version_identification": "dotnet --version 第一行",
+      "pinned_version_observed": "10.0.400",
+      "resolvable_location": "10-toolchains/dotnet/dotnet.exe",
+      "resolved_absolute": "D:\\All projects\\OS External Configuration\\10-toolchains\\dotnet\\dotnet.exe",
+      "binding": "declared",
+      "path_also_offers": null,
+      "project_entry": "tool_paths.tool_path(\"dotnet\")",
+      "required_env": {},
+      "writability": "shared_read_only",
+      "local_only": true,
+      "required_by": [
+        "desktop-build",
+        "desktop-runtime"
+      ],
+      "healthcheck_command": "dotnet --version",
+      "detection": {
+        "kind": "command",
+        "ceiling": "VERSION_PROBED",
+        "evidence": {
+          "steps": [
+            {
+              "command": [
+                "dotnet.exe",
+                "--version"
+              ],
+              "returncode": 0,
+              "matched": "10.0.400"
+            }
+          ],
+          "kind": "command"
+        }
+      },
+      "available": true,
+      "verification_level": "VERSION_PROBED",
+      "ceiling_respected": true,
+      "failure_message": null,
+      "code_license": "MIT OR proprietary runtime components",
+      "asset_license": null,
+      "source_url": "https://dotnet.microsoft.com/download/dotnet/10.0",
+      "fallback": "供体构建不可用时只读源码，不产出双写数据库",
+      "endpoint": null,
+      "external_paths": [
+        {
+          "declared": "10-toolchains/dotnet/dotnet.exe",
+          "resolved": "D:\\All projects\\OS External Configuration\\10-toolchains\\dotnet\\dotnet.exe",
+          "exists": true
+        }
+      ]
+    },
+    {
+      "resource_id": "ext.toolchains.git",
+      "type": "toolchain",
+      "name": "git",
+      "category": "toolchains",
+      "purpose": "版本控制",
+      "platform": "windows-x64",
+      "host_platform": "windows-x64",
+      "version_range": ">=2.40",
+      "version_identification": "git --version 第一行",
+      "pinned_version_observed": "git version 2.54.0.windows.1",
+      "resolvable_location": "10-toolchains/scoop/apps/git/current/bin/git.exe",
+      "resolved_absolute": "D:\\All projects\\OS External Configuration\\10-toolchains\\scoop\\apps\\git\\2.54.0\\bin\\git.exe",
+      "binding": "declared",
+      "path_also_offers": "git.EXE",
+      "project_entry": "tool_paths.tool_path(\"git\")",
+      "required_env": {},
+      "writability": "shared_read_only",
+      "local_only": false,
+      "required_by": [
+        "ci",
+        "tests",
+        "core-runtime"
+      ],
+      "healthcheck_command": "git --version",
+      "detection": {
+        "kind": "command",
+        "ceiling": "VERSION_PROBED",
+        "evidence": {
+          "steps": [
+            {
+              "command": [
+                "git.exe",
+                "--version"
+              ],
+              "returncode": 0,
+              "matched": "git version 2.54.0.windows.1"
+            }
+          ],
+          "kind": "command"
+        }
+      },
+      "available": true,
+      "verification_level": "VERSION_PROBED",
+      "ceiling_respected": true,
+      "failure_message": null,
+      "code_license": "GPL-2.0-only",
+      "asset_license": null,
+      "source_url": "https://git-scm.com/download/win",
+      "fallback": "声明缺失即具名失败；工作树身份仍由 scripts/runtime/dev.py 的 git 边界给出",
+      "endpoint": null,
+      "external_paths": [
+        {
+          "declared": "10-toolchains/scoop/apps/git/current/bin/git.exe",
+          "resolved": "D:\\All projects\\OS External Configuration\\10-toolchains\\scoop\\apps\\git\\2.54.0\\bin\\git.exe",
+          "exists": true
+        }
+      ]
+    },
+    {
+      "resource_id": "ext.toolchains.nodejs-lts",
+      "type": "toolchain",
+      "name": "nodejs-lts",
+      "category": "toolchains",
+      "purpose": "正式桌面宿主的构建运行时：SUP-022 下 frontend/ + src-tauri/（Tauri 2 + React/TypeScript/Vite）是正式产品宿主，node 驱动其安装、构建、Vitest 与 tauri 打包",
+      "platform": "windows-x64",
+      "host_platform": "windows-x64",
+      "version_range": ">=22,<25",
+      "version_identification": "node --version 第一行",
+      "pinned_version_observed": "v24.18.0",
+      "resolvable_location": "10-toolchains/scoop/apps/nodejs-lts/current/node.exe",
+      "resolved_absolute": "D:\\All projects\\OS External Configuration\\10-toolchains\\scoop\\apps\\nodejs-lts\\24.18.0\\node.exe",
+      "binding": "declared",
+      "path_also_offers": "node.EXE",
+      "project_entry": "tool_paths.tool_path(\"nodejs-lts\")",
+      "required_env": {},
+      "writability": "shared_read_only",
+      "local_only": false,
+      "required_by": [
+        "desktop-build"
+      ],
+      "healthcheck_command": "node --version",
+      "detection": {
+        "kind": "command",
+        "ceiling": "VERSION_PROBED",
+        "evidence": {
+          "steps": [
+            {
+              "command": [
+                "node.exe",
+                "--version"
+              ],
+              "returncode": 0,
+              "matched": "v24.18.0"
+            }
+          ],
+          "kind": "command"
+        }
+      },
+      "available": true,
+      "verification_level": "VERSION_PROBED",
+      "ceiling_respected": true,
+      "failure_message": null,
+      "code_license": "MIT",
+      "asset_license": null,
+      "source_url": "https://nodejs.org/",
+      "fallback": "node 不可得时前端门不跑，具名报告 host 缺工具，不用其它解释器顶替",
+      "endpoint": null,
+      "external_paths": [
+        {
+          "declared": "10-toolchains/scoop/apps/nodejs-lts/current/node.exe",
+          "resolved": "D:\\All projects\\OS External Configuration\\10-toolchains\\scoop\\apps\\nodejs-lts\\24.18.0\\node.exe",
+          "exists": true
+        }
+      ]
+    },
+    {
+      "resource_id": "ext.toolchains.rust",
+      "type": "toolchain",
+      "name": "rust",
+      "category": "toolchains",
+      "purpose": "正式宿主的 Rust Core 工具链：SUP-022 下 crates/ 的 Rust Core 是唯一的 SQLite/CAS 规范写入方，src-tauri/ 的正式桌面壳由它编译",
+      "platform": "windows-x64",
+      "host_platform": "windows-x64",
+      "version_range": ">=1.80",
+      "version_identification": "rustc --version 与 cargo --version 的第一行（同一个 toolchain 绑定下的两条读数必须一致）",
+      "pinned_version_observed": "rustc 1.97.1 (8bab26f4f 2026-07-14)",
+      "resolvable_location": "toolchains/rust/cargo/bin/rustc.exe",
+      "resolved_absolute": "D:\\All projects\\OS External Configuration\\toolchains\\rust\\cargo\\bin\\rustc.exe",
+      "binding": "declared",
+      "path_also_offers": null,
+      "project_entry": "tool_paths.tool_path(\"rust\") + tool_paths.required_environment(\"rust\") -> dev.external_toolchain()",
+      "required_env": {
+        "RUSTUP_HOME": "rustup",
+        "CARGO_HOME": "cargo"
+      },
+      "writability": "shared_read_only",
+      "local_only": true,
+      "required_by": [
+        "desktop-build"
+      ],
+      "healthcheck_command": "rustc --version && cargo --version（需 RUSTUP_HOME/CARGO_HOME，见 required_env）",
+      "detection": {
+        "kind": "command",
+        "ceiling": "VERSION_PROBED",
+        "evidence": {
+          "steps": [
+            {
+              "command": [
+                "rustc.exe",
+                "--version"
+              ],
+              "returncode": 0,
+              "matched": "rustc 1.97.1 (8bab26f4f 2026-07-14)"
+            },
+            {
+              "command": [
+                "cargo.exe",
+                "--version"
+              ],
+              "returncode": 0,
+              "matched": "cargo 1.97.1 (c980f4866 2026-06-30)"
+            }
+          ],
+          "kind": "command"
+        }
+      },
+      "available": true,
+      "verification_level": "VERSION_PROBED",
+      "ceiling_respected": true,
+      "failure_message": null,
+      "code_license": "MIT OR Apache-2.0",
+      "asset_license": null,
+      "source_url": "https://rustup.rs",
+      "fallback": "缺 RUSTUP_HOME 时按具名失败处理；不把 cargo/bin 下的代理当独立编译器，不回落到宿主 ~/.rustup（该树缺 manifest，正是失败来源），也不为凑版本换根",
+      "endpoint": null,
+      "external_paths": [
+        {
+          "declared": "toolchains/rust/cargo/bin/rustc.exe",
+          "resolved": "D:\\All projects\\OS External Configuration\\toolchains\\rust\\cargo\\bin\\rustc.exe",
+          "exists": true
+        },
+        {
+          "declared": "toolchains/rust/cargo/bin/cargo.exe",
+          "resolved": "D:\\All projects\\OS External Configuration\\toolchains\\rust\\cargo\\bin\\cargo.exe",
+          "exists": true
+        }
+      ]
+    },
+    {
+      "resource_id": "ext.toolchains.msvc",
+      "type": "toolchain",
+      "name": "msvc",
+      "category": "toolchains",
+      "purpose": "MSVC 编译链（VS Build Tools：C++ 桌面工作负载 + Windows SDK），为 Rust Core 提供 link.exe/cl.exe",
+      "platform": "windows-x64",
+      "host_platform": "windows-x64",
+      "version_range": ">=17.0",
+      "version_identification": "vcvars64.bat 初始化后 where cl.exe 得到的绝对路径中的 14.xx 版本目录",
+      "pinned_version_observed": "D:\\All projects\\OS External Configuration\\10-toolchains\\msvc\\VC\\Tools\\MSVC\\14.44.35207\\bin\\Hostx64\\x64\\cl.exe",
+      "resolvable_location": "10-toolchains/msvc/VC/Auxiliary/Build/vcvars64.bat",
+      "resolved_absolute": "D:\\All projects\\OS External Configuration\\10-toolchains\\msvc\\VC\\Auxiliary\\Build\\vcvars64.bat",
+      "binding": "declared",
+      "path_also_offers": null,
+      "project_entry": "tool_paths.tool_path(\"msvc\") + dev.external_toolchain() -> ARCHEAXIS_MSVC_VCVARS",
+      "required_env": {},
+      "writability": "shared_read_only",
+      "local_only": true,
+      "required_by": [
+        "desktop-build"
+      ],
+      "healthcheck_command": "cd /d <VC/Auxiliary/Build> && call vcvars64.bat && \"%SystemRoot%\\System32\\where.exe\" cl.exe",
+      "detection": {
+        "kind": "cmd_chain",
+        "ceiling": "RESULT_VERIFIED",
+        "evidence": {
+          "kind": "cmd_chain",
+          "lines": [
+            "call vcvars64.bat",
+            "\"%SystemRoot%\\System32\\where.exe\" cl.exe"
+          ],
+          "returncode": 0,
+          "matched": "D:\\All projects\\OS External Configuration\\10-toolchains\\msvc\\VC\\Tools\\MSVC\\14.44.35207\\bin\\Hostx64\\x64\\cl.exe",
+          "script_lines": 4
+        }
+      },
+      "available": true,
+      "verification_level": "RESULT_VERIFIED",
+      "ceiling_respected": true,
+      "failure_message": null,
+      "code_license": "Proprietary (Microsoft EULA)",
+      "asset_license": null,
+      "source_url": "https://visualstudio.microsoft.com/visual-cpp-build-tools/",
+      "fallback": "初始化失败即具名失败；不猜宿主 VSINSTALLDIR，也不改全局注册表",
+      "endpoint": null,
+      "external_paths": [
+        {
+          "declared": "10-toolchains/msvc/VC/Auxiliary/Build/vcvars64.bat",
+          "resolved": "D:\\All projects\\OS External Configuration\\10-toolchains\\msvc\\VC\\Auxiliary\\Build\\vcvars64.bat",
+          "exists": true
+        }
+      ]
+    },
+    {
+      "resource_id": "ext.toolchains.playwright-chromium",
+      "type": "toolchain",
+      "name": "playwright-chromium",
+      "category": "toolchains",
+      "purpose": "browser-smoke / e2e 测试浏览器，亦是 F03 渲染通道使用的无头浏览器（缓存于 toolchains/playwright）",
+      "platform": "windows-x64",
+      "host_platform": "windows-x64",
+      "version_range": ">=1228",
+      "version_identification": "声明的构建目录名 chromium-1228 与该目录内 chrome.exe 的存在性。本机实测：Windows 版 chrome.exe --version **不报版本**（它输出的是一条会话占用提示，带 --user-data-dir 时直接拉起浏览器进程并因沙箱权限失败），所以这一条**不**以运行 chrome.exe 为探针，只证明被声明的那一个文件在位",
+      "pinned_version_observed": null,
+      "resolvable_location": "10-toolchains/playwright/chromium-1228/chrome-win64/chrome.exe",
+      "resolved_absolute": "D:\\All projects\\OS External Configuration\\10-toolchains\\playwright\\chromium-1228\\chrome-win64\\chrome.exe",
+      "binding": "declared",
+      "path_also_offers": null,
+      "project_entry": "tool_paths.tool_path(\"playwright-chromium\") / ARCHEAXIS_CHROMIUM_CMD override",
+      "required_env": {},
+      "writability": "shared_read_only",
+      "local_only": true,
+      "required_by": [
+        "browser-smoke",
+        "e2e",
+        "conversion"
+      ],
+      "healthcheck_command": "chrome.exe present at the declared build directory",
+      "detection": {
+        "kind": "path_exists",
+        "ceiling": "FILE_EXISTS",
+        "evidence": {
+          "kind": "path_exists",
+          "checked": [
+            {
+              "declared": "10-toolchains/playwright/chromium-1228/chrome-win64/chrome.exe",
+              "exists": true
+            }
+          ]
+        }
+      },
+      "available": true,
+      "verification_level": "FILE_EXISTS",
+      "ceiling_respected": true,
+      "failure_message": null,
+      "code_license": "BSD-3-Clause (Chromium)",
+      "asset_license": null,
+      "source_url": "https://playwright.dev/python/docs/browsers",
+      "fallback": "构建号不符则报具名缺失；不自动 playwright install，不使用系统 Edge 顶替，不为探版本而拉起浏览器",
+      "endpoint": null,
+      "external_paths": [
+        {
+          "declared": "10-toolchains/playwright/chromium-1228/chrome-win64/chrome.exe",
+          "resolved": "D:\\All projects\\OS External Configuration\\10-toolchains\\playwright\\chromium-1228\\chrome-win64\\chrome.exe",
+          "exists": true
+        }
+      ]
+    },
+    {
+      "resource_id": "ext.runtimes.webview2-evergreen",
+      "type": "runtime",
+      "name": "webview2-evergreen",
+      "category": "runtimes",
+      "purpose": "桌面宿主 WebView2 运行时（Evergreen 自动更新，OS 级）；SUP-022 下正式宿主是 Tauri 2，WebView2 仍是 Edge/WebView 通道的系统运行时",
+      "platform": "windows-x64",
+      "host_platform": "windows-x64",
+      "version_range": "evergreen",
+      "version_identification": "EdgeUpdate Clients 键的 pv 值（winreg 读 HKLM，回退 HKCU）",
+      "pinned_version_observed": "pv=154.0.4258.62",
+      "resolvable_location": null,
+      "resolved_absolute": null,
+      "binding": null,
+      "path_also_offers": null,
+      "project_entry": "scripts/workflow/environment_registry.py probe kind registry_key（winreg，不经 PowerShell）",
+      "required_env": {},
+      "writability": "project_writable",
+      "local_only": true,
+      "required_by": [
+        "desktop-runtime"
+      ],
+      "healthcheck_command": "HKLM:\\SOFTWARE\\WOW6432Node\\Microsoft\\EdgeUpdate\\Clients\\{F3017226-FE2A-4295-8BDF-00C3A9A7E4C5} pv",
+      "detection": {
+        "kind": "registry_key",
+        "ceiling": "VERSION_PROBED",
+        "evidence": {
+          "kind": "registry_key",
+          "hive": "HKLM",
+          "key": "SOFTWARE\\WOW6432Node\\Microsoft\\EdgeUpdate\\Clients\\{F3017226-FE2A-4295-8BDF-00C3A9A7E4C5}",
+          "tried": [
+            "HKLM"
+          ]
+        }
+      },
+      "available": true,
+      "verification_level": "VERSION_PROBED",
+      "ceiling_respected": true,
+      "failure_message": null,
+      "code_license": "Proprietary (Microsoft)",
+      "asset_license": null,
+      "source_url": "https://developer.microsoft.com/microsoft-edge/webview2/",
+      "fallback": "注册表读不到即具名 unavailable（该主机没有 Evergreen 运行时），不再谎报 missing",
+      "endpoint": null,
+      "external_paths": []
+    },
+    {
+      "resource_id": "ext.runtimes.archeaxis-ci-venv",
+      "type": "runtime",
+      "name": "archeaxis-ci-venv",
+      "category": "runtimes",
+      "purpose": "CI/开发虚拟环境（UV_PROJECT_ENVIRONMENT 指向外部仓）；引擎探针用它**自己的** python 跑，不再借 uv 顶替",
+      "platform": "windows-x64",
+      "host_platform": "windows-x64",
+      "version_range": "python>=3.11",
+      "version_identification": "<ci-venv>/Scripts/python.exe --version 第一行",
+      "pinned_version_observed": "Python 3.12.13",
+      "resolvable_location": "ArcheAxis-Knowledge-OS-ci-venv/Scripts/python.exe",
+      "resolved_absolute": "D:\\All projects\\OS External Configuration\\ArcheAxis-Knowledge-OS-ci-venv\\Scripts\\python.exe",
+      "binding": "declared",
+      "path_also_offers": null,
+      "project_entry": "tool_paths.tool_path(\"archeaxis-ci-venv\")",
+      "required_env": {},
+      "writability": "shared_writable_by_project",
+      "local_only": true,
+      "required_by": [
+        "ci",
+        "tests"
+      ],
+      "healthcheck_command": "<ci-venv>/Scripts/python.exe --version",
+      "detection": {
+        "kind": "command",
+        "ceiling": "VERSION_PROBED",
+        "evidence": {
+          "steps": [
+            {
+              "command": [
+                "python.exe",
+                "--version"
+              ],
+              "returncode": 0,
+              "matched": "Python 3.12.13"
+            }
+          ],
+          "kind": "command"
+        }
+      },
+      "available": true,
+      "verification_level": "VERSION_PROBED",
+      "ceiling_respected": true,
+      "failure_message": null,
+      "code_license": "n/a",
+      "asset_license": null,
+      "source_url": "n/a",
+      "fallback": "环境不在则引擎条目一并记 unavailable 并具名解释器；不新建第二份库副本",
+      "endpoint": null,
+      "external_paths": [
+        {
+          "declared": "ArcheAxis-Knowledge-OS-ci-venv/Scripts/python.exe",
+          "resolved": "D:\\All projects\\OS External Configuration\\ArcheAxis-Knowledge-OS-ci-venv\\Scripts\\python.exe",
+          "exists": true
+        }
+      ]
+    },
+    {
+      "resource_id": "ext.runtimes.desktop-runtime-v1",
+      "type": "runtime",
+      "name": "desktop-runtime-v1",
+      "category": "runtimes",
+      "purpose": "桌面运行时 v1（外置根 20-runtimes/desktop-runtime-v1，历史打包运行时，供体）",
+      "platform": "windows-x64",
+      "host_platform": "windows-x64",
+      "version_range": "v1",
+      "version_identification": "声明目录存在性（路径即身份；其内部构建号不作为版本上报）",
+      "pinned_version_observed": null,
+      "resolvable_location": null,
+      "resolved_absolute": null,
+      "binding": null,
+      "path_also_offers": null,
+      "project_entry": "scripts/workflow/environment_registry.py probe kind path_exists",
+      "required_env": {},
+      "writability": "shared_read_only",
+      "local_only": true,
+      "required_by": [
+        "desktop-runtime"
+      ],
+      "healthcheck_command": "path exists: 20-runtimes/desktop-runtime-v1",
+      "detection": {
+        "kind": "path_exists",
+        "ceiling": "FILE_EXISTS",
+        "evidence": {
+          "kind": "path_exists",
+          "checked": [
+            {
+              "declared": "20-runtimes/desktop-runtime-v1",
+              "exists": false
+            }
+          ],
+          "reason": "declared path not present: 20-runtimes/desktop-runtime-v1"
+        }
+      },
+      "available": false,
+      "verification_level": "unavailable",
+      "ceiling_respected": true,
+      "failure_message": "declared path not present: 20-runtimes/desktop-runtime-v1",
+      "code_license": "n/a",
+      "asset_license": null,
+      "source_url": "n/a",
+      "fallback": "缺失时 WebView2/系统通道继续用；不重新下载该 349MB 运行时，也不伪造其存在",
+      "endpoint": null,
+      "external_paths": []
+    },
+    {
+      "resource_id": "ext.engines.tesseract",
+      "type": "engine",
+      "name": "tesseract",
+      "category": "engines",
+      "purpose": "图像 OCR 引擎（scoop 5.5.0 + leptonica 1.85.0）",
+      "platform": "windows-x64",
+      "host_platform": "windows-x64",
+      "version_range": ">=5.0,<6",
+      "version_identification": "tesseract --version 第一行（含 leptonica 行）",
+      "pinned_version_observed": "ARCHEAXIS OCR PROBE 42",
+      "resolvable_location": "10-toolchains/scoop/apps/tesseract/current/tesseract.exe",
+      "resolved_absolute": "D:\\All projects\\OS External Configuration\\10-toolchains\\scoop\\apps\\tesseract\\5.5.0.20241111\\tesseract.exe",
+      "binding": "declared",
+      "path_also_offers": "tesseract.EXE",
+      "project_entry": "tool_paths.tool_path(\"tesseract\") + tool_paths.required_environment(\"tesseract\")",
+      "required_env": {
+        "TESSDATA_PREFIX": "4.1.0"
+      },
+      "writability": "shared_read_only",
+      "local_only": false,
+      "required_by": [
+        "ocr-pipeline",
+        "conversion"
+      ],
+      "healthcheck_command": "tesseract --version && tesseract --list-langs（需 TESSDATA_PREFIX）",
+      "detection": {
+        "kind": "ocr_roundtrip",
+        "ceiling": "RESULT_VERIFIED",
+        "evidence": {
+          "kind": "ocr_roundtrip",
+          "returncode": 0,
+          "tessdata": "4.1.0",
+          "read_back": "ARCHEAXIS OCR PROBE 42"
+        }
+      },
+      "available": true,
+      "verification_level": "RESULT_VERIFIED",
+      "ceiling_respected": true,
+      "failure_message": null,
+      "code_license": "Apache-2.0",
+      "asset_license": null,
+      "source_url": "https://github.com/UB-Mannheim/tesseract/wiki",
+      "fallback": "TESSDATA_PREFIX 声明路径不存在 → 具名 unavailable（AGENTS.md §7 的 OCR 前置不成立），不退回语言包缺失的裸引擎",
+      "endpoint": null,
+      "external_paths": [
+        {
+          "declared": "10-toolchains/scoop/apps/tesseract/current/tesseract.exe",
+          "resolved": "D:\\All projects\\OS External Configuration\\10-toolchains\\scoop\\apps\\tesseract\\5.5.0.20241111\\tesseract.exe",
+          "exists": true
+        }
+      ]
+    },
+    {
+      "resource_id": "ext.engines.tesseract-languages",
+      "type": "engine",
+      "name": "tesseract-languages",
+      "category": "engines",
+      "purpose": "Tesseract 语言包（chi_sim 中文简体 + eng 英文；TESSDATA_PREFIX 指向 4.1.0 目录）",
+      "platform": "windows-x64",
+      "host_platform": "windows-x64",
+      "version_range": "4.1.0",
+      "version_identification": "tesseract --list-langs 首行的语言计数（本机实测 163）",
+      "pinned_version_observed": "List of available languages in \"D:\\All projects\\OS External Configuration\\10-toolchains\\scoop\\apps\\tesseract-languages\\4.1.0/\" (163):",
+      "resolvable_location": "10-toolchains/scoop/apps/tesseract-languages/current",
+      "resolved_absolute": "D:\\All projects\\OS External Configuration\\10-toolchains\\scoop\\apps\\tesseract-languages\\4.1.0",
+      "binding": "declared",
+      "path_also_offers": "tesseract.EXE",
+      "project_entry": "tool_paths.tool_path(\"tesseract-languages\") = TESSDATA_PREFIX 的值",
+      "required_env": {},
+      "writability": "shared_read_only",
+      "local_only": false,
+      "required_by": [
+        "ocr-pipeline"
+      ],
+      "healthcheck_command": "tesseract --list-langs（以 tesseract 为解释器、以本目录为 TESSDATA_PREFIX）",
+      "detection": {
+        "kind": "list_langs",
+        "ceiling": "RESULT_VERIFIED",
+        "evidence": {
+          "kind": "list_langs",
+          "returncode": 0,
+          "tessdata": "4.1.0",
+          "observed": "List of available languages in \"D:\\All projects\\OS External Configuration\\10-toolchains\\scoop\\apps\\tesseract-languages\\4.1.0/\" (163):"
+        }
+      },
+      "available": true,
+      "verification_level": "RESULT_VERIFIED",
+      "ceiling_respected": true,
+      "failure_message": null,
+      "code_license": "Apache-2.0",
+      "asset_license": null,
+      "source_url": "https://github.com/tesseract-ocr/tessdata",
+      "fallback": "语言包缺失则 OCR 只能跑内建语言；不下载语言包，不把 eng 当三语种能力",
+      "endpoint": null,
+      "external_paths": [
+        {
+          "declared": "10-toolchains/scoop/apps/tesseract-languages/current",
+          "resolved": "D:\\All projects\\OS External Configuration\\10-toolchains\\scoop\\apps\\tesseract-languages\\4.1.0",
+          "exists": true
+        }
+      ]
+    },
+    {
+      "resource_id": "ext.engines.antiword",
+      "type": "engine",
+      "name": "antiword",
+      "category": "engines",
+      "purpose": "Word 97 .doc 纯文本旁路读取（MSYS2 打包 antiword 0.37；健康检查以 -h 自报身份，退出码非 0 是该引擎的正常行为）",
+      "platform": "windows-x64",
+      "host_platform": "windows-x64",
+      "version_range": "0.37",
+      "version_identification": "antiword -h 的用法输出首行（该引擎不以退出码 0 表达成功）",
+      "pinned_version_observed": "Name: D:\\All projects\\OS External Configuration\\10-toolchains\\antiword\\antiword.exe",
+      "resolvable_location": "10-toolchains/antiword/antiword.exe",
+      "resolved_absolute": "D:\\All projects\\OS External Configuration\\10-toolchains\\antiword\\antiword.exe",
+      "binding": "declared",
+      "path_also_offers": null,
+      "project_entry": "tool_paths.tool_path(\"antiword\") / ARCHEAXIS_ANTIWORD_CMD override",
+      "required_env": {
+        "HOME": "antiword"
+      },
+      "writability": "shared_read_only",
+      "local_only": true,
+      "required_by": [
+        "conversion"
+      ],
+      "healthcheck_command": "antiword -h",
+      "detection": {
+        "kind": "command",
+        "ceiling": "VERSION_PROBED",
+        "evidence": {
+          "steps": [
+            {
+              "command": [
+                "antiword.exe",
+                "-h"
+              ],
+              "returncode": 0,
+              "matched": "Name: D:\\All projects\\OS External Configuration\\10-toolchains\\antiword\\antiword.exe"
+            }
+          ],
+          "kind": "command"
+        }
+      },
+      "available": true,
+      "verification_level": "VERSION_PROBED",
+      "ceiling_respected": true,
+      "failure_message": null,
+      "code_license": "GPL-3.0-or-later",
+      "asset_license": null,
+      "source_url": "https://github.com/msys2/MINGW-packages/tree/master/mingw-w64-antiword",
+      "fallback": "映射表缺失时 .doc 走 Tika/其它旁路；不放宽 HOME 到用户主目录",
+      "endpoint": null,
+      "external_paths": [
+        {
+          "declared": "10-toolchains/antiword/antiword.exe",
+          "resolved": "D:\\All projects\\OS External Configuration\\10-toolchains\\antiword\\antiword.exe",
+          "exists": true
+        }
+      ]
+    },
+    {
+      "resource_id": "ext.engines.antiword-mappings",
+      "type": "engine",
+      "name": "antiword-mappings",
+      "category": "engines",
+      "purpose": "antiword 字符映射表目录（目录名必须为 .antiword；worker 把它的父目录作为 HOME 交给引擎，否则搬出安装目录的副本读不到 UTF-8.txt 就拒绝出文）",
+      "platform": "windows-x64",
+      "host_platform": "windows-x64",
+      "version_range": "0.37",
+      "version_identification": "UTF-8.txt 映射文件存在性（目录名 + 文件名共同构成身份）",
+      "pinned_version_observed": null,
+      "resolvable_location": "10-toolchains/antiword/.antiword",
+      "resolved_absolute": "D:\\All projects\\OS External Configuration\\10-toolchains\\antiword\\.antiword",
+      "binding": "declared",
+      "path_also_offers": null,
+      "project_entry": "tool_paths.tool_path(\"antiword-mappings\") 的父目录 = antiword 的 HOME",
+      "required_env": {},
+      "writability": "shared_read_only",
+      "local_only": true,
+      "required_by": [
+        "conversion"
+      ],
+      "healthcheck_command": "mapping file present: 10-toolchains/antiword/.antiword/UTF-8.txt",
+      "detection": {
+        "kind": "path_exists",
+        "ceiling": "FILE_EXISTS",
+        "evidence": {
+          "kind": "path_exists",
+          "checked": [
+            {
+              "declared": "10-toolchains/antiword/.antiword/UTF-8.txt",
+              "exists": true
+            }
+          ]
+        }
+      },
+      "available": true,
+      "verification_level": "FILE_EXISTS",
+      "ceiling_respected": true,
+      "failure_message": null,
+      "code_license": "GPL-3.0-or-later",
+      "asset_license": null,
+      "source_url": "https://github.com/msys2/MINGW-packages/tree/master/mingw-w64-antiword",
+      "fallback": "缺 UTF-8.txt 即具名拒绝出文，不回落到默认映射给出乱码",
+      "endpoint": null,
+      "external_paths": [
+        {
+          "declared": "10-toolchains/antiword/.antiword",
+          "resolved": "D:\\All projects\\OS External Configuration\\10-toolchains\\antiword\\.antiword",
+          "exists": true
+        }
+      ]
+    },
+    {
+      "resource_id": "ext.engines.zulu-jre",
+      "type": "engine",
+      "name": "zulu-jre",
+      "category": "engines",
+      "purpose": "Apache Tika 运行所需的 JVM（Azul Zulu Community 21.0.12.1，x64 Windows，无 JavaFX）",
+      "platform": "windows-x64",
+      "host_platform": "windows-x64",
+      "version_range": ">=21,<22",
+      "version_identification": "java -version 第一行",
+      "pinned_version_observed": "openjdk version \"21.0.12.1\" 2026-08-18 LTS",
+      "resolvable_location": "10-toolchains/java/zulu-jre-21.0.12.1/bin/java.exe",
+      "resolved_absolute": "D:\\All projects\\OS External Configuration\\10-toolchains\\java\\zulu-jre-21.0.12.1\\bin\\java.exe",
+      "binding": "declared",
+      "path_also_offers": null,
+      "project_entry": "tool_paths.tool_path(\"zulu-jre\") / ARCHEAXIS_JAVA_CMD override",
+      "required_env": {},
+      "writability": "shared_read_only",
+      "local_only": true,
+      "required_by": [
+        "conversion"
+      ],
+      "healthcheck_command": "java -version",
+      "detection": {
+        "kind": "command",
+        "ceiling": "VERSION_PROBED",
+        "evidence": {
+          "steps": [
+            {
+              "command": [
+                "java.exe",
+                "-version"
+              ],
+              "returncode": 0,
+              "matched": "openjdk version \"21.0.12.1\" 2026-08-18 LTS"
+            }
+          ],
+          "kind": "command"
+        }
+      },
+      "available": true,
+      "verification_level": "VERSION_PROBED",
+      "ceiling_respected": true,
+      "failure_message": null,
+      "code_license": "GPL-2.0-or-later with Classpath Exception (read from legal/java.base in the distribution)",
+      "asset_license": null,
+      "source_url": "https://cdn.azul.com/zulu/bin/zulu21.52.203-ca-jre21.0.12.1-win_x64.zip",
+      "fallback": "JVM 缺失则 .ppt 走具名失败；不下载 JRE，不使用宿主其它 JVM 顶替",
+      "endpoint": null,
+      "external_paths": [
+        {
+          "declared": "10-toolchains/java/zulu-jre-21.0.12.1/bin/java.exe",
+          "resolved": "D:\\All projects\\OS External Configuration\\10-toolchains\\java\\zulu-jre-21.0.12.1\\bin\\java.exe",
+          "exists": true
+        }
+      ]
+    },
+    {
+      "resource_id": "ext.engines.apache-tika",
+      "type": "engine",
+      "name": "apache-tika",
+      "category": "engines",
+      "purpose": "旧二进制演示文稿 `.ppt` 的读取旁路（Apache Tika 4.1.0 tika-app 发行包，含 lib/ 与 plugins/）",
+      "platform": "windows-x64",
+      "host_platform": "windows-x64",
+      "version_range": ">=4.1,<5",
+      "version_identification": "tika-app jar 文件名声明的发行版本 + jar 存在性（JVM 侧另有 zulu-jre 条目）",
+      "pinned_version_observed": null,
+      "resolvable_location": "10-toolchains/tika/4.1.0/tika-app-4.1.0.jar",
+      "resolved_absolute": "D:\\All projects\\OS External Configuration\\10-toolchains\\tika\\4.1.0\\tika-app-4.1.0.jar",
+      "binding": "declared",
+      "path_also_offers": null,
+      "project_entry": "tool_paths.tool_path(\"apache-tika\") + tool_paths.tool_path(\"zulu-jre\")",
+      "required_env": {},
+      "writability": "shared_read_only",
+      "local_only": true,
+      "required_by": [
+        "conversion"
+      ],
+      "healthcheck_command": "jar present: 10-toolchains/tika/4.1.0/tika-app-4.1.0.jar",
+      "detection": {
+        "kind": "path_exists",
+        "ceiling": "FILE_EXISTS",
+        "evidence": {
+          "kind": "path_exists",
+          "checked": [
+            {
+              "declared": "10-toolchains/tika/4.1.0/tika-app-4.1.0.jar",
+              "exists": true
+            }
+          ]
+        }
+      },
+      "available": true,
+      "verification_level": "FILE_EXISTS",
+      "ceiling_respected": true,
+      "failure_message": null,
+      "code_license": "Apache-2.0 (read from the LICENSE shipped in the distribution)",
+      "asset_license": null,
+      "source_url": "https://dlcdn.apache.org/tika/4.1.0/tika-app-4.1.0.zip",
+      "fallback": "jar 不在即具名缺失；不自动下载发行包，不改 zulu-jre 的选择",
+      "endpoint": null,
+      "external_paths": [
+        {
+          "declared": "10-toolchains/tika/4.1.0/tika-app-4.1.0.jar",
+          "resolved": "D:\\All projects\\OS External Configuration\\10-toolchains\\tika\\4.1.0\\tika-app-4.1.0.jar",
+          "exists": true
+        }
+      ]
+    },
+    {
+      "resource_id": "ext.engines.ffmpeg",
+      "type": "engine",
+      "name": "ffmpeg",
+      "category": "engines",
+      "purpose": "音视频解码、格式转换、关键帧提取（只用 LGPL 子集）",
+      "platform": "windows-x64",
+      "host_platform": "windows-x64",
+      "version_range": ">=6.0",
+      "version_identification": "ffmpeg -version 第一行",
+      "pinned_version_observed": "ffmpeg version 8.1.2-full_build-www.gyan.dev Copyright (c) 2000-2026 the FFmpeg developers",
+      "resolvable_location": "10-toolchains/scoop/apps/ffmpeg/current/bin/ffmpeg.exe",
+      "resolved_absolute": "D:\\All projects\\OS External Configuration\\10-toolchains\\scoop\\apps\\ffmpeg\\8.1.2\\bin\\ffmpeg.exe",
+      "binding": "declared",
+      "path_also_offers": "ffmpeg.EXE",
+      "project_entry": "tool_paths.tool_path(\"ffmpeg\") / ARCHEAXIS_FFMPEG_CMD override",
+      "required_env": {},
+      "writability": "shared_read_only",
+      "local_only": false,
+      "required_by": [
+        "conversion",
+        "media-pipeline"
+      ],
+      "healthcheck_command": "ffmpeg -version",
+      "detection": {
+        "kind": "command",
+        "ceiling": "VERSION_PROBED",
+        "evidence": {
+          "steps": [
+            {
+              "command": [
+                "ffmpeg.exe",
+                "-version"
+              ],
+              "returncode": 0,
+              "matched": "ffmpeg version 8.1.2-full_build-www.gyan.dev Copyright (c) 2000-2026 the FFmpeg developers"
+            }
+          ],
+          "kind": "command"
+        }
+      },
+      "available": true,
+      "verification_level": "VERSION_PROBED",
+      "ceiling_respected": true,
+      "failure_message": null,
+      "code_license": "LGPL-2.1-or-later",
+      "asset_license": null,
+      "source_url": "https://ffmpeg.org/download.html",
+      "fallback": "缺失即具名失败；媒体通道降级为不转码，不下载静态构建",
+      "endpoint": null,
+      "external_paths": [
+        {
+          "declared": "10-toolchains/scoop/apps/ffmpeg/current/bin/ffmpeg.exe",
+          "resolved": "D:\\All projects\\OS External Configuration\\10-toolchains\\scoop\\apps\\ffmpeg\\8.1.2\\bin\\ffmpeg.exe",
+          "exists": true
+        }
+      ]
+    },
+    {
+      "resource_id": "ext.engines.rapidocr",
+      "type": "engine",
+      "name": "rapidocr",
+      "category": "engines",
+      "purpose": "三语种 OCR 引擎（ONNX 无重框架，bake-off 实测 CER 最优）",
+      "platform": "windows-x64",
+      "host_platform": "windows-x64",
+      "version_range": ">=1.4",
+      "version_identification": "ci-venv 的 python 导入 rapidocr_onnxruntime 后读 __version__",
+      "pinned_version_observed": "rapidocr_onnxruntime",
+      "resolvable_location": "ArcheAxis-Knowledge-OS-ci-venv/Lib/site-packages/rapidocr_onnxruntime",
+      "resolved_absolute": "D:\\All projects\\OS External Configuration\\ArcheAxis-Knowledge-OS-ci-venv\\Lib\\site-packages\\rapidocr_onnxruntime",
+      "binding": "declared",
+      "path_also_offers": null,
+      "project_entry": "tool_paths.tool_path(\"rapidocr\") + interpreter archeaxis-ci-venv",
+      "required_env": {},
+      "writability": "shared_writable_by_project",
+      "local_only": false,
+      "required_by": [
+        "ocr-pipeline",
+        "bakeoff"
+      ],
+      "healthcheck_command": "<ci-venv>/Scripts/python.exe -c \"import rapidocr_onnxruntime\"",
+      "detection": {
+        "kind": "interpreter_import",
+        "ceiling": "VERSION_PROBED",
+        "evidence": {
+          "kind": "interpreter_import",
+          "interpreter": "python.exe",
+          "module": "rapidocr_onnxruntime",
+          "returncode": 0,
+          "observed": "rapidocr_onnxruntime"
+        }
+      },
+      "available": true,
+      "verification_level": "VERSION_PROBED",
+      "ceiling_respected": true,
+      "failure_message": null,
+      "code_license": "Apache-2.0",
+      "asset_license": null,
+      "source_url": "https://github.com/RapidAI/RapidOCR",
+      "fallback": "导入失败即具名 NOT_VERIFIED；不拿 uv/pip 的存在当作引擎可用，也不装第二份",
+      "endpoint": null,
+      "external_paths": [
+        {
+          "declared": "ArcheAxis-Knowledge-OS-ci-venv/Lib/site-packages/rapidocr_onnxruntime",
+          "resolved": "D:\\All projects\\OS External Configuration\\ArcheAxis-Knowledge-OS-ci-venv\\Lib\\site-packages\\rapidocr_onnxruntime",
+          "exists": true
+        }
+      ]
+    },
+    {
+      "resource_id": "ext.engines.faster-whisper",
+      "type": "engine",
+      "name": "faster-whisper",
+      "category": "engines",
+      "purpose": "ASR 转写引擎（base 模型首次运行自动下载至 HF 缓存 ~150MB）",
+      "platform": "windows-x64",
+      "host_platform": "windows-x64",
+      "version_range": ">=1.1",
+      "version_identification": "ci-venv 的 python 导入 faster_whisper 后读 __version__（本机实测 1.2.1）",
+      "pinned_version_observed": "1.2.1",
+      "resolvable_location": "ArcheAxis-Knowledge-OS-ci-venv/Lib/site-packages/faster_whisper",
+      "resolved_absolute": "D:\\All projects\\OS External Configuration\\ArcheAxis-Knowledge-OS-ci-venv\\Lib\\site-packages\\faster_whisper",
+      "binding": "declared",
+      "path_also_offers": null,
+      "project_entry": "tool_paths.tool_path(\"faster-whisper\") + interpreter archeaxis-ci-venv",
+      "required_env": {},
+      "writability": "shared_writable_by_project",
+      "local_only": false,
+      "required_by": [
+        "asr-pipeline",
+        "bakeoff"
+      ],
+      "healthcheck_command": "<ci-venv>/Scripts/python.exe -c \"import faster_whisper\"",
+      "detection": {
+        "kind": "interpreter_import",
+        "ceiling": "VERSION_PROBED",
+        "evidence": {
+          "kind": "interpreter_import",
+          "interpreter": "python.exe",
+          "module": "faster_whisper",
+          "returncode": 0,
+          "observed": "1.2.1"
+        }
+      },
+      "available": true,
+      "verification_level": "VERSION_PROBED",
+      "ceiling_respected": true,
+      "failure_message": null,
+      "code_license": "MIT",
+      "asset_license": null,
+      "source_url": "https://github.com/SYSTRAN/faster-whisper",
+      "fallback": "导入失败即具名 NOT_VERIFIED；权重另见 models/faster-whisper-base 与 faster-whisper-large-v3-turbo",
+      "endpoint": null,
+      "external_paths": [
+        {
+          "declared": "ArcheAxis-Knowledge-OS-ci-venv/Lib/site-packages/faster_whisper",
+          "resolved": "D:\\All projects\\OS External Configuration\\ArcheAxis-Knowledge-OS-ci-venv\\Lib\\site-packages\\faster_whisper",
+          "exists": true
+        }
+      ]
+    },
+    {
+      "resource_id": "ext.engines.sherpa-onnx",
+      "type": "engine",
+      "name": "sherpa-onnx",
+      "category": "engines",
+      "purpose": "SenseVoice 本地 ASR 运行时（优先使用项目隔离环境，模型从共享 Model library 读取）",
+      "platform": "windows-x64",
+      "host_platform": "windows-x64",
+      "version_range": ">=1.13,<1.14",
+      "version_identification": "ci-venv 的 python 导入 sherpa_onnx 后读 __version__（本机实测 1.13.8）",
+      "pinned_version_observed": "1.13.8",
+      "resolvable_location": "ArcheAxis-Knowledge-OS-ci-venv/Lib/site-packages/sherpa_onnx",
+      "resolved_absolute": "D:\\All projects\\OS External Configuration\\ArcheAxis-Knowledge-OS-ci-venv\\Lib\\site-packages\\sherpa_onnx",
+      "binding": "declared",
+      "path_also_offers": null,
+      "project_entry": "tool_paths.tool_path(\"sherpa-onnx\") + interpreter archeaxis-ci-venv",
+      "required_env": {},
+      "writability": "shared_writable_by_project",
+      "local_only": false,
+      "required_by": [
+        "asr-pipeline"
+      ],
+      "healthcheck_command": "<ci-venv>/Scripts/python.exe -c \"import sherpa_onnx\"",
+      "detection": {
+        "kind": "interpreter_import",
+        "ceiling": "VERSION_PROBED",
+        "evidence": {
+          "kind": "interpreter_import",
+          "interpreter": "python.exe",
+          "module": "sherpa_onnx",
+          "returncode": 0,
+          "observed": "1.13.8"
+        }
+      },
+      "available": true,
+      "verification_level": "VERSION_PROBED",
+      "ceiling_respected": true,
+      "failure_message": null,
+      "code_license": "Apache-2.0",
+      "asset_license": null,
+      "source_url": "https://github.com/k2-fsa/sherpa-onnx",
+      "fallback": "导入失败即具名 NOT_VERIFIED；额外 extra 缺失不静默换成其它 ASR 运行时",
+      "endpoint": null,
+      "external_paths": [
+        {
+          "declared": "ArcheAxis-Knowledge-OS-ci-venv/Lib/site-packages/sherpa_onnx",
+          "resolved": "D:\\All projects\\OS External Configuration\\ArcheAxis-Knowledge-OS-ci-venv\\Lib\\site-packages\\sherpa_onnx",
+          "exists": true
+        }
+      ]
+    },
+    {
+      "resource_id": "ext.models.rapidocr-ppocr-onnx",
+      "type": "model",
+      "name": "rapidocr-ppocr-onnx",
+      "category": "models",
+      "purpose": "PP-OCR ONNX 模型（RapidOCR 首次运行自动下载 ~15MB）",
+      "platform": "windows-x64",
+      "host_platform": "windows-x64",
+      "version_range": "latest",
+      "version_identification": "三枚 .onnx 文件存在性（det/rec/cls 齐全才算这一条可用）",
+      "pinned_version_observed": null,
+      "resolvable_location": "ArcheAxis-Knowledge-OS-ci-venv/Lib/site-packages/rapidocr_onnxruntime/models/ch_PP-OCRv4_det_infer.onnx",
+      "resolved_absolute": "D:\\All projects\\OS External Configuration\\ArcheAxis-Knowledge-OS-ci-venv\\Lib\\site-packages\\rapidocr_onnxruntime\\models\\ch_PP-OCRv4_det_infer.onnx",
+      "binding": "declared",
+      "path_also_offers": null,
+      "project_entry": "tool_paths.tool_path(\"rapidocr-ppocr-onnx\")",
+      "required_env": {},
+      "writability": "shared_writable_by_project",
+      "local_only": true,
+      "required_by": [
+        "ocr-pipeline",
+        "bakeoff"
+      ],
+      "healthcheck_command": "weight files present (det + rec + cls)",
+      "detection": {
+        "kind": "path_exists",
+        "ceiling": "FILE_EXISTS",
+        "evidence": {
+          "kind": "path_exists",
+          "checked": [
+            {
+              "declared": "ArcheAxis-Knowledge-OS-ci-venv/Lib/site-packages/rapidocr_onnxruntime/models/ch_PP-OCRv4_det_infer.onnx",
+              "exists": true
+            },
+            {
+              "declared": "ArcheAxis-Knowledge-OS-ci-venv/Lib/site-packages/rapidocr_onnxruntime/models/ch_PP-OCRv4_rec_infer.onnx",
+              "exists": true
+            },
+            {
+              "declared": "ArcheAxis-Knowledge-OS-ci-venv/Lib/site-packages/rapidocr_onnxruntime/models/ch_ppocr_mobile_v2.0_cls_infer.onnx",
+              "exists": true
+            }
+          ]
+        }
+      },
+      "available": true,
+      "verification_level": "FILE_EXISTS",
+      "ceiling_respected": true,
+      "failure_message": null,
+      "code_license": "Apache-2.0 (RapidOCR code licence; the weights are the same upstream project's published ONNX models)",
+      "asset_license": "PP-OCR ONNX weights redistributed by RapidOCR under Apache-2.0; no separate model-card terms recorded on this host",
+      "source_url": "https://github.com/RapidAI/RapidOCR",
+      "fallback": "缺任一枚即具名不可用；不在运行时静默下载进项目目录",
+      "endpoint": null,
+      "external_paths": [
+        {
+          "declared": "ArcheAxis-Knowledge-OS-ci-venv/Lib/site-packages/rapidocr_onnxruntime/models/ch_PP-OCRv4_det_infer.onnx",
+          "resolved": "D:\\All projects\\OS External Configuration\\ArcheAxis-Knowledge-OS-ci-venv\\Lib\\site-packages\\rapidocr_onnxruntime\\models\\ch_PP-OCRv4_det_infer.onnx",
+          "exists": true
+        },
+        {
+          "declared": "ArcheAxis-Knowledge-OS-ci-venv/Lib/site-packages/rapidocr_onnxruntime/models/ch_PP-OCRv4_rec_infer.onnx",
+          "resolved": "D:\\All projects\\OS External Configuration\\ArcheAxis-Knowledge-OS-ci-venv\\Lib\\site-packages\\rapidocr_onnxruntime\\models\\ch_PP-OCRv4_rec_infer.onnx",
+          "exists": true
+        },
+        {
+          "declared": "ArcheAxis-Knowledge-OS-ci-venv/Lib/site-packages/rapidocr_onnxruntime/models/ch_ppocr_mobile_v2.0_cls_infer.onnx",
+          "resolved": "D:\\All projects\\OS External Configuration\\ArcheAxis-Knowledge-OS-ci-venv\\Lib\\site-packages\\rapidocr_onnxruntime\\models\\ch_ppocr_mobile_v2.0_cls_infer.onnx",
+          "exists": true
+        }
+      ]
+    },
+    {
+      "resource_id": "ext.models.faster-whisper-base",
+      "type": "model",
+      "name": "faster-whisper-base",
+      "category": "models",
+      "purpose": "Whisper base 模型（~150MB；运行时由 dev.py 将 HF 缓存路由到项目 `.project-local/runs/<run-id>/cache`）",
+      "platform": "windows-x64",
+      "host_platform": "windows-x64",
+      "version_range": "base",
+      "version_identification": "HF 缓存 snapshot 目录名（commit sha ebe41f70…）下的 model.bin 存在性",
+      "pinned_version_observed": null,
+      "resolvable_location": "40-models/huggingface/hub/models--Systran--faster-whisper-base/snapshots/ebe41f70d5b6dfa9166e2c581c45c9c0cfc57b66/model.bin",
+      "resolved_absolute": "D:\\All projects\\OS External Configuration\\40-models\\huggingface\\hub\\models--Systran--faster-whisper-base\\snapshots\\ebe41f70d5b6dfa9166e2c581c45c9c0cfc57b66\\model.bin",
+      "binding": "declared",
+      "path_also_offers": null,
+      "project_entry": "tool_paths.tool_path(\"faster-whisper-base\") / ARCHEAXIS_ASR_MODEL_DIR override",
+      "required_env": {},
+      "writability": "shared_writable_by_project",
+      "local_only": true,
+      "required_by": [
+        "asr-pipeline",
+        "bakeoff"
+      ],
+      "healthcheck_command": "weight file present",
+      "detection": {
+        "kind": "path_exists",
+        "ceiling": "FILE_EXISTS",
+        "evidence": {
+          "kind": "path_exists",
+          "checked": [
+            {
+              "declared": "40-models/huggingface/hub/models--Systran--faster-whisper-base/snapshots/ebe41f70d5b6dfa9166e2c581c45c9c0cfc57b66/model.bin",
+              "exists": true
+            }
+          ]
+        }
+      },
+      "available": true,
+      "verification_level": "FILE_EXISTS",
+      "ceiling_respected": true,
+      "failure_message": null,
+      "code_license": "MIT (the faster-whisper code licence; it does not license the weights)",
+      "asset_license": "Whisper base weights, Systran/faster-whisper-base model card, MIT per the upstream card; downloaded to the HF cache, not vendored in Git",
+      "source_url": "https://huggingface.co/Systran/faster-whisper-base",
+      "fallback": "权重不在则 ASR 走 large-v3-turbo 或具名失败；缓存目录由 dev.py 限定在项目 run 路径内",
+      "endpoint": null,
+      "external_paths": [
+        {
+          "declared": "40-models/huggingface/hub/models--Systran--faster-whisper-base/snapshots/ebe41f70d5b6dfa9166e2c581c45c9c0cfc57b66/model.bin",
+          "resolved": "D:\\All projects\\OS External Configuration\\40-models\\huggingface\\hub\\models--Systran--faster-whisper-base\\snapshots\\ebe41f70d5b6dfa9166e2c581c45c9c0cfc57b66\\model.bin",
+          "exists": true
+        }
+      ]
+    },
+    {
+      "resource_id": "ext.models.faster-whisper-large-v3-turbo",
+      "type": "model",
+      "name": "faster-whisper-large-v3-turbo",
+      "category": "models",
+      "purpose": "真实转写实际使用的 large-v3-turbo 权重（从共享 Model library 读取；此前只能靠 ARCHEAXIS_ASR_MODEL_DIR 环境变量发现）",
+      "platform": "windows-x64",
+      "host_platform": "windows-x64",
+      "version_range": "large-v3-turbo",
+      "version_identification": "共享 Model library 内该目录存在 + 目录名即版本身份（model.bin/tokenizer 由引擎自校验）",
+      "pinned_version_observed": null,
+      "resolvable_location": "whisper/faster-whisper-large-v3-turbo",
+      "resolved_absolute": "D:\\All projects\\Model library\\whisper\\faster-whisper-large-v3-turbo",
+      "binding": "declared",
+      "path_also_offers": null,
+      "project_entry": "tool_paths.tool_path(\"faster-whisper-large-v3-turbo\") via sibling root model-library",
+      "required_env": {},
+      "writability": "shared_read_only",
+      "local_only": true,
+      "required_by": [
+        "asr-pipeline",
+        "bakeoff"
+      ],
+      "healthcheck_command": "directory present in the shared model library",
+      "detection": {
+        "kind": "path_exists",
+        "ceiling": "FILE_EXISTS",
+        "evidence": {
+          "kind": "path_exists",
+          "checked": [
+            {
+              "declared": "whisper/faster-whisper-large-v3-turbo",
+              "exists": true
+            }
+          ]
+        }
+      },
+      "available": true,
+      "verification_level": "FILE_EXISTS",
+      "ceiling_respected": true,
+      "failure_message": null,
+      "code_license": "MIT (the faster-whisper code licence; it does not license the weights)",
+      "asset_license": "Whisper large-v3-turbo weights under the upstream Systran model-card terms (MIT); shared library copy, never copied into Git",
+      "source_url": "https://huggingface.co/Systran/faster-whisper-large-v3-turbo",
+      "fallback": "邻近根不解析则具名 unavailable（绝不写 `..` 遍历，也不复制权重进仓库）",
+      "endpoint": null,
+      "external_paths": [
+        {
+          "declared": "whisper/faster-whisper-large-v3-turbo",
+          "resolved": "D:\\All projects\\Model library\\whisper\\faster-whisper-large-v3-turbo",
+          "exists": true,
+          "sibling_root": "model-library"
+        }
+      ]
+    },
+    {
+      "resource_id": "ext.models.sense-voice-zh-en-ja-ko-yue",
+      "type": "model",
+      "name": "sense-voice-zh-en-ja-ko-yue",
+      "category": "models",
+      "purpose": "SenseVoice int8 模型（从共享 Model library 读取，不复制进 Git）",
+      "platform": "windows-x64",
+      "host_platform": "windows-x64",
+      "version_range": "2024-07-17",
+      "version_identification": "共享 Model library 的 sherpa-onnx 目录下 model.int8.onnx 存在性",
+      "pinned_version_observed": "2 asset(s) present",
+      "resolvable_location": "sherpa-onnx",
+      "resolved_absolute": "D:\\All projects\\Model library\\sherpa-onnx",
+      "binding": "declared",
+      "path_also_offers": null,
+      "project_entry": "tool_paths.tool_path(\"sense-voice-zh-en-ja-ko-yue\") / ARCHEAXIS_MODEL_LIBRARY_DIR",
+      "required_env": {},
+      "writability": "shared_read_only",
+      "local_only": true,
+      "required_by": [
+        "asr-pipeline"
+      ],
+      "healthcheck_command": "path exists: sherpa-onnx model.int8.onnx in the shared model library",
+      "detection": {
+        "kind": "glob_exists",
+        "ceiling": "FILE_EXISTS",
+        "evidence": {
+          "kind": "glob_exists",
+          "matched": [
+            "D:\\All projects\\Model library\\sherpa-onnx\\sherpa-onnx-sense-voice-zh-en-ja-ko-yue-2024-07-17\\model.int8.onnx",
+            "D:\\All projects\\Model library\\sherpa-onnx\\sherpa-onnx-sense-voice-zh-en-ja-ko-yue-2024-07-17\\model.int8.onnx"
+          ],
+          "count": 2
+        }
+      },
+      "available": true,
+      "verification_level": "FILE_EXISTS",
+      "ceiling_respected": true,
+      "failure_message": null,
+      "code_license": "Apache-2.0 (sherpa-onnx runtime licence; it does not license the weights)",
+      "asset_license": "SenseVoice weights (FunAudioLLM) redistributed by k2-fsa; terms read from the model directory on the shared library, not re-stated here",
+      "source_url": "https://github.com/k2-fsa/sherpa-onnx",
+      "fallback": "缺 int8 权重则 SenseVoice 具名不可用，回退 faster-whisper 通道",
+      "endpoint": null,
+      "external_paths": [
+        {
+          "declared": "sherpa-onnx",
+          "resolved": "D:\\All projects\\Model library\\sherpa-onnx",
+          "exists": true,
+          "sibling_root": "model-library"
+        }
+      ]
+    },
+    {
+      "resource_id": "ext.models.sherpa-onnx-speaker-diarization",
+      "type": "model",
+      "name": "sherpa-onnx-speaker-diarization",
+      "category": "models",
+      "purpose": "F10 说话人分离的两枚 ONNX（pyannote 分割 + 说话人嵌入），从共享 Model library 读取，不复制进 Git",
+      "platform": "windows-x64",
+      "host_platform": "windows-x64",
+      "version_range": "segmentation-3.0 / wespeaker-voxceleb-resnet34-LM",
+      "version_identification": "两枚 .onnx 同时存在（本机实测文件名：segmentation-3.0.onnx 与 speaker-embedding.onnx；缺任一枚则该能力不可用）",
+      "pinned_version_observed": null,
+      "resolvable_location": "sherpa-onnx/speaker-diarization",
+      "resolved_absolute": "D:\\All projects\\Model library\\sherpa-onnx\\speaker-diarization",
+      "binding": "declared",
+      "path_also_offers": null,
+      "project_entry": "tool_paths.tool_path(\"sherpa-onnx-speaker-diarization\")",
+      "required_env": {},
+      "writability": "shared_read_only",
+      "local_only": true,
+      "required_by": [
+        "asr-pipeline"
+      ],
+      "healthcheck_command": "both files present under sherpa-onnx/speaker-diarization",
+      "detection": {
+        "kind": "path_exists",
+        "ceiling": "FILE_EXISTS",
+        "evidence": {
+          "kind": "path_exists",
+          "checked": [
+            {
+              "declared": "sherpa-onnx/speaker-diarization/segmentation-3.0.onnx",
+              "exists": true
+            },
+            {
+              "declared": "sherpa-onnx/speaker-diarization/speaker-embedding.onnx",
+              "exists": true
+            }
+          ]
+        }
+      },
+      "available": true,
+      "verification_level": "FILE_EXISTS",
+      "ceiling_respected": true,
+      "failure_message": null,
+      "code_license": "Apache-2.0 for the sherpa-onnx runtime that loads them; the ONNX assets are licensed separately (see asset_license)",
+      "asset_license": "MIT (pyannote/segmentation-3.0, Copyright (c) 2022 CNRS) + CC-BY-4.0 (upstream WeSpeaker card; the k2-fsa mirror repo ships no licence file)",
+      "source_url": "https://hf-mirror.com/csukuangfj/sherpa-onnx-pyannote-segmentation-3-0",
+      "fallback": "任一枚缺失则 F10 具名不可用；不自动接受 pyannote gated 下载",
+      "endpoint": null,
+      "external_paths": [
+        {
+          "declared": "sherpa-onnx/speaker-diarization",
+          "resolved": "D:\\All projects\\Model library\\sherpa-onnx\\speaker-diarization",
+          "exists": true,
+          "sibling_root": "model-library"
+        }
+      ]
+    },
+    {
+      "resource_id": "ext.models.magika-standard-v3",
+      "type": "model",
+      "name": "magika-standard-v3",
+      "category": "models",
+      "purpose": "文件类型检测 ONNX 模型（优先共享 Model library；仓库副本仅作离线回退）",
+      "platform": "windows-x64",
+      "host_platform": "windows-x64",
+      "version_range": "standard_v3_3",
+      "version_identification": "绑定目录内的 model.onnx + config 存在性（版本由目录名 standard_v3_3 声明）",
+      "pinned_version_observed": null,
+      "resolvable_location": "ArcheAxis-Knowledge-OS-ci-venv/Lib/site-packages/magika/models/standard_v3_3",
+      "resolved_absolute": "D:\\All projects\\OS External Configuration\\ArcheAxis-Knowledge-OS-ci-venv\\Lib\\site-packages\\magika\\models\\standard_v3_3",
+      "binding": "declared",
+      "path_also_offers": null,
+      "project_entry": "tool_paths.tool_path(\"magika-standard-v3\") / ARCHEAXIS_MAGIKA_MODEL_DIR override",
+      "required_env": {},
+      "writability": "shared_writable_by_project",
+      "local_only": true,
+      "required_by": [
+        "file-detection"
+      ],
+      "healthcheck_command": "path exists: standard_v3_3/model.onnx",
+      "detection": {
+        "kind": "path_exists",
+        "ceiling": "FILE_EXISTS",
+        "evidence": {
+          "kind": "path_exists",
+          "checked": [
+            {
+              "declared": "ArcheAxis-Knowledge-OS-ci-venv/Lib/site-packages/magika/models/standard_v3_3/model.onnx",
+              "exists": true
+            }
+          ]
+        }
+      },
+      "available": true,
+      "verification_level": "FILE_EXISTS",
+      "ceiling_respected": true,
+      "failure_message": null,
+      "code_license": "Apache-2.0 (magika code licence)",
+      "asset_license": "magika standard_v3_3 ONNX weights, Apache-2.0 upstream; shipped with the installed magika 0.6.3 package",
+      "source_url": "https://github.com/google/magika",
+      "fallback": "缺 model.onnx 则文件检测退回规则判定并具名记录，不静默下载权重",
+      "endpoint": null,
+      "external_paths": [
+        {
+          "declared": "ArcheAxis-Knowledge-OS-ci-venv/Lib/site-packages/magika/models/standard_v3_3",
+          "resolved": "D:\\All projects\\OS External Configuration\\ArcheAxis-Knowledge-OS-ci-venv\\Lib\\site-packages\\magika\\models\\standard_v3_3",
+          "exists": true
+        }
+      ]
+    },
+    {
+      "resource_id": "ext.models.ollama-local-runtime",
+      "type": "model_endpoint",
+      "name": "ollama-local-runtime",
+      "category": "models",
+      "purpose": "Ollama 本机推理通道（worker_caption 早期唯一写死的通道，/api/tags 列模型、/api/generate 出文）",
+      "platform": "windows-x64",
+      "host_platform": "windows-x64",
+      "version_range": "any local build",
+      "version_identification": "GET /api/tags 应答的 models[].name 列表",
+      "pinned_version_observed": null,
+      "resolvable_location": null,
+      "resolved_absolute": null,
+      "binding": null,
+      "path_also_offers": null,
+      "project_entry": "tool_paths.endpoint_resources(role=\"caption\") -> services/python-workers/vision/worker_caption.py",
+      "required_env": {},
+      "writability": "project_writable",
+      "local_only": true,
+      "required_by": [
+        "workspace-ui",
+        "asr-pipeline"
+      ],
+      "healthcheck_command": "GET http://127.0.0.1:11434/api/tags",
+      "detection": {
+        "kind": "http_get",
+        "ceiling": "VERSION_PROBED",
+        "evidence": {
+          "kind": "http_get",
+          "url": "http://127.0.0.1:11434/api/tags",
+          "status": "URLError",
+          "reason": "no HTTP 200 answer (observed URLError: <urlopen error [WinError 10061] 由于目标计算机积极拒绝，无法连接。>)"
+        }
+      },
+      "available": false,
+      "verification_level": "unavailable",
+      "ceiling_respected": true,
+      "failure_message": "no HTTP 200 answer (observed URLError: <urlopen error [WinError 10061] >)",
+      "code_license": "MIT (the Ollama runtime licence; per-model weights carry their own cards)",
+      "asset_license": "Served weights are licensed per upstream model card; nothing here restates them",
+      "source_url": "https://ollama.com/",
+      "fallback": "通道不答即记 unavailable 并写出实测错误；不自动拉起 ollama serve，不改宿主服务配置",
+      "endpoint": {
+        "protocol": "ollama",
+        "base_url": "http://127.0.0.1:11434",
+        "list_path": "/api/tags"
+      },
+      "external_paths": []
+    },
+    {
+      "resource_id": "ext.models.openai-compatible-local-runtime",
+      "type": "model_endpoint",
+      "name": "openai-compatible-local-runtime",
+      "category": "models",
+      "purpose": "OpenAI 兼容的本机模型通道（LM Studio 形态：/v1/models 列模型、/v1/chat/completions 出文），本机的视觉描述 lane 实际由它答",
+      "platform": "windows-x64",
+      "host_platform": "windows-x64",
+      "version_range": "any OpenAI-compatible server",
+      "version_identification": "GET /v1/models 的 data[].id 列表（本机实测 6 项）",
+      "pinned_version_observed": null,
+      "resolvable_location": null,
+      "resolved_absolute": null,
+      "binding": null,
+      "path_also_offers": null,
+      "project_entry": "tool_paths.endpoint_resources(role=\"caption\") -> services/python-workers/vision/worker_caption.py",
+      "required_env": {},
+      "writability": "project_writable",
+      "local_only": true,
+      "required_by": [
+        "workspace-ui"
+      ],
+      "healthcheck_command": "GET http://127.0.0.1:1234/v1/models",
+      "detection": {
+        "kind": "http_get",
+        "ceiling": "VERSION_PROBED",
+        "evidence": {
+          "kind": "http_get",
+          "url": "http://127.0.0.1:1234/v1/models",
+          "status": "URLError",
+          "reason": "no HTTP 200 answer (observed URLError: <urlopen error [WinError 10061] 由于目标计算机积极拒绝，无法连接。>)"
+        }
+      },
+      "available": false,
+      "verification_level": "unavailable",
+      "ceiling_respected": true,
+      "failure_message": "no HTTP 200 answer (observed URLError: <urlopen error [WinError 10061] >)",
+      "code_license": "n/a (the lane is a protocol, not a shipped component; the serving app is the host's own install)",
+      "asset_license": "Served weights are licensed per upstream model card; per-model rows below name the identity the host answers with",
+      "source_url": "https://platform.openai.com/docs/api-reference/chat",
+      "fallback": "不答则 caption 具名不可用并回 pillow-metadata；绝不静默下载权重或改指公网服务",
+      "endpoint": {
+        "protocol": "openai",
+        "base_url": "http://127.0.0.1:1234/v1",
+        "list_path": "/models"
+      },
+      "external_paths": []
+    },
+    {
+      "resource_id": "ext.models.local-vision-caption-model",
+      "type": "model",
+      "name": "local-vision-caption-model",
+      "category": "models",
+      "purpose": "图示/场景描述使用的视觉模型身份（两个本机 runtime 对同一权重命名不同：ollama 的 qwen2.5vl:7b 与 OpenAI 通道的 qwen2.5-vl-7b-instruct）",
+      "platform": "windows-x64",
+      "host_platform": "windows-x64",
+      "version_range": "qwen2.5-vl-7b-instruct",
+      "version_identification": "所属 lane 的模型列表里出现该 id（身份由 lane 答出的 id 确定，不是由源码常量确定）",
+      "pinned_version_observed": null,
+      "resolvable_location": null,
+      "resolved_absolute": null,
+      "binding": null,
+      "path_also_offers": null,
+      "project_entry": "worker_caption._endpoint() resolved through tool_paths.endpoint_resources(role=\"caption\")",
+      "required_env": {},
+      "writability": "project_writable",
+      "local_only": true,
+      "required_by": [
+        "workspace-ui"
+      ],
+      "healthcheck_command": "GET http://127.0.0.1:1234/v1/models contains qwen2.5-vl-7b-instruct",
+      "detection": {
+        "kind": "http_get",
+        "ceiling": "VERSION_PROBED",
+        "evidence": {
+          "kind": "http_get",
+          "url": "http://127.0.0.1:1234/v1/models",
+          "status": "URLError",
+          "reason": "no HTTP 200 answer (observed URLError: <urlopen error [WinError 10061] 由于目标计算机积极拒绝，无法连接。>)"
+        }
+      },
+      "available": false,
+      "verification_level": "unavailable",
+      "ceiling_respected": true,
+      "failure_message": "no HTTP 200 answer (observed URLError: <urlopen error [WinError 10061] >)",
+      "code_license": "n/a (model asset only)",
+      "asset_license": "Qwen2.5-VL-7B-Instruct weights under the upstream Qwen model-card terms; served by the host's own install, no weights vendored in Git",
+      "source_url": "https://huggingface.co/Qwen/Qwen2.5-VL-7B-Instruct",
+      "fallback": "id 不在列表则具名 unavailable（错误信息列出该 lane 实际装了哪些模型），描述 lane 退回元数据而不是空文本",
+      "endpoint": {
+        "protocol": "openai",
+        "base_url": "http://127.0.0.1:1234/v1",
+        "list_path": "/models",
+        "model_id": "qwen2.5-vl-7b-instruct"
+      },
+      "external_paths": []
+    },
+    {
+      "resource_id": "ext.models.local-embedding-model",
+      "type": "model",
+      "name": "local-embedding-model",
+      "category": "models",
+      "purpose": "检索 embedding 通道（config/model-profiles/r6-capability-pool.json 的 ollama/qwen3:8b 与 app/rag/embedder.py 写死的 127.0.0.1:11434；本机实际由 OpenAI 兼容 lane 的 qwen3-embedding-0.6b 作答）",
+      "platform": "windows-x64",
+      "host_platform": "windows-x64",
+      "version_range": "text-embedding-qwen3-embedding-0.6b",
+      "version_identification": "POST /v1/embeddings 返回向量维度（真跑一次小输入，不是看模型列表）",
+      "pinned_version_observed": null,
+      "resolvable_location": null,
+      "resolved_absolute": null,
+      "binding": null,
+      "path_also_offers": null,
+      "project_entry": "tool_paths.endpoint_resources(role=\"embedding\")；app/rag/embedder.py 的写死 lane 尚未改为读声明（见执行报告未证实项）",
+      "required_env": {},
+      "writability": "project_writable",
+      "local_only": true,
+      "required_by": [
+        "core-runtime"
+      ],
+      "healthcheck_command": "POST http://127.0.0.1:1234/v1/embeddings {model, input}",
+      "detection": {
+        "kind": "http_roundtrip",
+        "ceiling": "RESULT_VERIFIED",
+        "evidence": {
+          "kind": "http_roundtrip",
+          "url": "http://127.0.0.1:1234/v1/embeddings",
+          "status": "URLError",
+          "reason": "no HTTP 200 answer (observed URLError)"
+        }
+      },
+      "available": false,
+      "verification_level": "unavailable",
+      "ceiling_respected": true,
+      "failure_message": "no HTTP 200 answer (observed URLError)",
+      "code_license": "n/a (model asset only; the hash-embedding fallback in config/models.yaml is first-party code)",
+      "asset_license": "Qwen3-Embedding-0.6B weights under the upstream Qwen model-card terms; served by the host's own install",
+      "source_url": "https://huggingface.co/Qwen/Qwen3-Embedding-0.6B",
+      "fallback": "不答则退回 config/models.yaml 的 hash-embedding 并在证据里具名标记为降级通道；不静默下载权重",
+      "endpoint": {
+        "protocol": "openai",
+        "base_url": "http://127.0.0.1:1234/v1",
+        "embed_path": "/embeddings",
+        "model_id": "text-embedding-qwen3-embedding-0.6b"
+      },
+      "external_paths": []
+    },
+    {
+      "resource_id": "ext.models.local-rerank-model",
+      "type": "model",
+      "name": "local-rerank-model",
+      "category": "models",
+      "purpose": "重排通道（qwen3-reranker-0.6b 由本机 lane 列出，但该 runtime 不提供 /v1/rerank：实测 POST /v1/rerank 返回 {\"error\":\"Unexpected endpoint or method\"}）",
+      "platform": "windows-x64",
+      "host_platform": "windows-x64",
+      "version_range": "qwen3-reranker-0.6b",
+      "version_identification": "模型 id 出现在所属 lane 的 /v1/models 列表里（重排调用本身在本机没有可跑的接口）",
+      "pinned_version_observed": null,
+      "resolvable_location": null,
+      "resolved_absolute": null,
+      "binding": null,
+      "path_also_offers": null,
+      "project_entry": "tool_paths.endpoint_resources(role=\"rerank\")",
+      "required_env": {},
+      "writability": "project_writable",
+      "local_only": true,
+      "required_by": [
+        "core-runtime"
+      ],
+      "healthcheck_command": "GET http://127.0.0.1:1234/v1/models contains qwen3-reranker-0.6b (the rerank call itself is NOT_RUN on this host)",
+      "detection": {
+        "kind": "not_run",
+        "ceiling": "REGISTERED",
+        "evidence": {
+          "kind": "not_run",
+          "reason": "the model id is served, but the host's runtime answers POST /v1/rerank with {\"error\":\"Unexpected endpoint or method. (POST /v1/rerank)\"} (measured 2026-10-08). No rerank round-trip can be certified through the project entry on this host; the row is recorded NOT_RUN rather than as a version or a result."
+        }
+      },
+      "available": false,
+      "verification_level": "NOT_RUN",
+      "ceiling_respected": true,
+      "failure_message": "the model id is served, but the host's runtime answers POST /v1/rerank with {\"error\":\"Unexpected endpoint or method. (POST /v1/rerank)\"} (measured 2026-10-08). No rerank round-trip can be certified through the project entry on this host; the row is recorded NOT_RUN rather than as a version or a resu",
+      "code_license": "n/a (model asset only)",
+      "asset_license": "Qwen3-Reranker-0.6B weights under the upstream Qwen model-card terms; served by the host's own install",
+      "source_url": "https://huggingface.co/Qwen/Qwen3-Reranker-0.6B",
+      "fallback": "重排不可用则检索只按向量分数排序，并在证据里写明未重排；不引入第二个 reranker",
+      "endpoint": {
+        "protocol": "openai",
+        "base_url": "http://127.0.0.1:1234/v1",
+        "list_path": "/models",
+        "rerank_path": "/rerank",
+        "model_id": "qwen3-reranker-0.6b"
+      },
+      "external_paths": []
+    }
+  ],
+  "not_certified_on_this_host": [
+    "runtimes/desktop-runtime-v1: unavailable - declared path not present: 20-runtimes/desktop-runtime-v1",
+    "models/ollama-local-runtime: unavailable - no HTTP 200 answer (observed URLError: <urlopen error [WinError 10061] >)",
+    "models/openai-compatible-local-runtime: unavailable - no HTTP 200 answer (observed URLError: <urlopen error [WinError 10061] >)",
+    "models/local-vision-caption-model: unavailable - no HTTP 200 answer (observed URLError: <urlopen error [WinError 10061] >)",
+    "models/local-embedding-model: unavailable - no HTTP 200 answer (observed URLError)",
+    "models/local-rerank-model: NOT_RUN - the model id is served, but the host's runtime answers POST /v1/rerank with {\"error\":\"Unexpected endpoint or method. (POST /v1/rerank)\"} (measured 2026-10-08). No rerank round-trip can be certified through the project entry on this host; the row is recorded NOT_RUN rather than as a version or a resu"
+  ],
+  "missing_on_this_host": [],
+  "reporting_rule": "index existence is not resource availability; REGISTERED/FILE_EXISTS say only that a declared location exists, VERSION_PROBED says an identity was answered by the entry's own executable or interpreter, RESULT_VERIFIED says the declared functional round-trip succeeded, and unavailable/NOT_RUN say what could not be run and why"
+}

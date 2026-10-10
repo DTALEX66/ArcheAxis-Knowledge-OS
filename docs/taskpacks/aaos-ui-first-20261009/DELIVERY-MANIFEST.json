@@ -1,0 +1,114 @@
+{
+  "schema": "aaos.planning-delivery-manifest/1",
+  "revision": 2,
+  "status": "PLANNING_READY",
+  "self_hash_policy": "manifest excludes itself",
+  "scope_update": "S01.A/B/C explicitly included; CI remains paused; no cleanup executed",
+  "files": [
+    {
+      "path": "COMPARISON.md",
+      "bytes": 3605,
+      "sha256": "24d68ff5b1afe6f0cc79e90c85f3847d4d461dd28e9f56b9861a3f2b0d1f89c4"
+    },
+    {
+      "path": "CONVERSATION-DECISIONS.md",
+      "bytes": 3125,
+      "sha256": "84a043ddbc2949070d17539951981bddca8f79a332a4bcf60c4016c1838174a6"
+    },
+    {
+      "path": "DESIGN-DETAIL-CROSSWALK.csv",
+      "bytes": 41839,
+      "sha256": "30be5090b0184b1de2e1da3cd53f0c18df7e8283cd9aec3b834b71ab70bce243"
+    },
+    {
+      "path": "FREEZE-REGISTER.json",
+      "bytes": 4644,
+      "sha256": "177e6d0ba6b56beb7606b3a7127bb9f5013ba805c79d3d2db628d2fe4ba38edb"
+    },
+    {
+      "path": "FREEZE-REGISTER.md",
+      "bytes": 3126,
+      "sha256": "8665a03d561b6d6ed8115fc151843a29e67b461d3b7d95c305e5f57f7fd631e2"
+    },
+    {
+      "path": "HANDOFF-EXECUTE.md",
+      "bytes": 18266,
+      "sha256": "7e4ee9694891117e8f1f463e5ef3979d0349771def38365fc642e2ec76add365"
+    },
+    {
+      "path": "HANDOFF-INDEPENDENT.md",
+      "bytes": 739,
+      "sha256": "83129c99b2c752a254ec0c025995da7aee4d82cf9dc2fd720a7246e7ea74174b"
+    },
+    {
+      "path": "HANDOFF-NEXT-LEARNING.md",
+      "bytes": 948,
+      "sha256": "c8efe75c58e05d59eac8ab46990fbc0dbd0836d5f8fc2e7533b19bee841b6d00"
+    },
+    {
+      "path": "HANDOFF-NEXT-RESOURCES.md",
+      "bytes": 967,
+      "sha256": "0b514a93aa885054389613e0d5e394ed9e1d79840c4dda1354affd8460e5b4a8"
+    },
+    {
+      "path": "HANDOFF-STORAGE-CLEANUP.md",
+      "bytes": 10002,
+      "sha256": "f1116fc3ab914f4f3244e4c2de3bd528366cef650922929478e2127f6c011497"
+    },
+    {
+      "path": "OLD-TASK-DISPOSITION.csv",
+      "bytes": 83760,
+      "sha256": "88a31e57e6b24b8ee909ef31d3a626806a213be2ab0a096bdfe15858312de2b1"
+    },
+    {
+      "path": "OLD-TASK-DISPOSITION.json",
+      "bytes": 309727,
+      "sha256": "296c031396f48a0876706736bc03071b8e78dec61ba1825241f7bb9031d6fad1"
+    },
+    {
+      "path": "ORIGINAL-CONTRACT-DEPENDENCIES.csv",
+      "bytes": 14094,
+      "sha256": "393fba675d732bf2ff04150a52bbe75258d069a6e8d9c19404edb7760272fe94"
+    },
+    {
+      "path": "PAGE-PLAN.csv",
+      "bytes": 9409,
+      "sha256": "4a56d60e33db3e0fe6843b88fad15cb88c3ad97e495703c4815bdf42578c7304"
+    },
+    {
+      "path": "README.md",
+      "bytes": 1983,
+      "sha256": "897cedf73a734ed5cb7289d4d4cc1450cf72ed155dc993417eeb1eb52fe631c0"
+    },
+    {
+      "path": "REQUIREMENT-CROSSWALK.csv",
+      "bytes": 23112,
+      "sha256": "f1b0d6ff2659d4f1dead214049978c20f310426f782ac910840d65055125d835"
+    },
+    {
+      "path": "SOURCE-REGISTER.json",
+      "bytes": 78164,
+      "sha256": "2c318e40b9c69c544c8d69e81f06ed0370d1967bb6209e509c341a0508281975"
+    },
+    {
+      "path": "TASKPACK.md",
+      "bytes": 36732,
+      "sha256": "86275491a50ff32bacb55903c04638f01be19c6a6a9715d99cbdd134e57b7d4a"
+    },
+    {
+      "path": "TASKS.json",
+      "bytes": 44347,
+      "sha256": "1dbc0b24375df5f2b4897bf88fa6cf3fd4a4b3e0dfc114bc5d96b5a362eea169"
+    },
+    {
+      "path": "tools/verify_plan.py",
+      "bytes": 11641,
+      "sha256": "91fc149f98858de664b62eb756f4800676668202b07442fc4fb14141365920b2"
+    },
+    {
+      "path": "VALIDATION.json",
+      "bytes": 5271,
+      "sha256": "3f52f6856ac224ef165b975e0302a601bcef8760d77f0517e54ce0973e3dd9f7"
+    }
+  ]
+}

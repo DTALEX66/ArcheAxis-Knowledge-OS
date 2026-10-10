@@ -1,0 +1,39 @@
+接手 AAOS-01；继续当前工作，不重启全仓审计、不重新选架构。
+
+工作区：D:\All projects\ArcheAxis-Knowledge-OS\.project-local\worktrees\dsh-backend-loop-20261001
+分支：codex/dsh-aaos-real-multiformat-loop-20261001
+交接时 HEAD：b69c42a2afb53870847c08805c92171cc787533a（文档收尾，已正常推送，tracked clean；接手必须重新读Git状态）。
+已取得完整产品CI资格的源码SHA：578d06b784139e86c685191ecc7d0ccdd021fb27。不能把b69文档HEAD称为已跑完整桌面门禁。
+
+先读取：AGENTS.md、PROJECT_CONTRACT.yaml、docs/DOCUMENTATION_AUTHORITY_INDEX.md、docs/SHARED_RESOURCE_PATH_INDEX.md、docs/RUNTIME_DELIVERY_AUTHORITY_INDEX.md、docs/authority/taskpack-1004-aaos01/01_完整执行任务书.md、docs/current/AAOS01-Q00-Q15-LEDGER-FINAL-20261005.md。
+唯一现行状态是上述Q00-Q15台账；本交接是2026-10-06快照，不新增第二状态真值或审计编号。
+2026-10-07 校正：本文件第一段的两个 SHA 已过期（交接时 HEAD b69c42a2 之后已推进到 8fa60aa3 一线，含 F01/F06/F07/F13 四个格式切片与两项供给链门禁）；"已取得完整产品CI资格的源码SHA 578d06b7" 也不是当前资格——本分支的 CI 仍在跑，PR #161 合并态为 BLOCKED（检查未跑完），不得据此声称任何资格。接手者必须重新读 Git 状态与账本，而不是读本文件的清单。旧交接AAOS01-HANDOFF-TO-CODEX-20261005.md只提供历史背景，不能覆盖当前台账。
+
+已完成，不要重复：
+1. desktop-fast/build统一权威stage_backend_runtime.py准备，运行时真实import/解释器/锁文件证据；openpyxl和python-pptx已在锁中，不再重复加声明。
+2. 固定workflow308098767 / run37399470467 / attempt1 / headSHA578d 全20job实际SUCCESS；native实际21步；Office四例、普通保存九断言、Q12自身9正4负、独立备份/交换/四故障均逐项核验。CI元数据及artifacts在 .project-local/task-runtime/aaos01-ci/37399470467-1/。
+3. 三项权威入口/共享路径/RuntimeDelivery对齐AAOS-01/SUP-022；顶层普通保存原则、识别忠实度与专业依据分离已落实。相关五套测试26PASS；47份Q02历史替代头全部已完成，旧归并评审标历史，当前16行任务表移到台账顶部。immutable taskpack原文未改。
+4. Formal分支README和Green根README已更新实际描述；Green不是Git仓库，旧根默认0.6.14、旧Avalonia和f151候选仍各自保留。主checkout/main描述未合并，禁止冒称main已更新。
+5. 已审精确公开缓存/旧候选清理与稳定恢复迁移已执行。最新934中间项525695796B及26PDB342310912B实际删除；26PDB有完整CRC/逐文件实际恢复证据。Green phase2共80324公开文件已清；1296旧样本3960路径只是核对历史已删除，不再重复计数。receipt与稳定recovery位置见唯一台账，物理净回收UNMEASURED。
+
+优先继续的工程任务（可以并行，但一个checkout/write set仅一个writer）：
+A. 新候选部署与安装态媒体验证。固定release artifact11384832309 ZIP193116309B/SHA17c1a886cf7c4364373330ef3a4a73114bd1de4aa8ca5834e20a53611c2c952f已完整取得。严格解包21727成员已PASS_EXTRACTED_NOT_RUNTIME_QUALIFIED，收据 .project-local/task-runtime/aaos01-tools/unpack-578d-ad69fe4b56b649ebbc39a9fdf1edf948.json，stage .project-local/task-runtime/aaos01-candidates/ci-578d06b78413/stage。
+NSIS host SHA00b7ba9b187b305d650458a424604dac1a38631e5ec5e7c57d8837a1c9b1f077；manifest SHA5d9eb139c5556b383351d0d114f386b762b7085ed697e16d52f315c356acfee1。
+此候选尚未本地launch/部署Green。先按tools/578d-native-tool-parameters.txt执行canonical原生21步；receipt身份/退出/端口通过后用green_tauri_preflight.py和green_tauri_apply.py部署到独立 D:\All projects\ArcheAxis.Knowledge.Green-x64\AAOS-Tauri-578d06b78413（必须先核实目标仍不存在）。再执行prepared-local-media-ui.py新媒体/Inspector扩展；其23步不能伪作canonical21资格。
+B. 历史版本Inspector最小复用修复。tools/history-inspector.patch已准备但未应用/未执行tests，仅Library及其test。先审diff和源码SHA，tests-only RED再实现GREEN；保护generation/request/current id/version/hash、dirty draft及latest version。正文hash不冒原件hash，原件只按source/revision实际匹配。旧导航/九SVG图标/来源链/活动坞/CtrlAltJ已经复用，CtrlAltI源码通过但新候选真实窗口仍待验。
+C. 同一实际资料的审核→学习→AI→纠正→导出/恢复闭环。目前分别有工程/真实模型夹具证据，真人审核/真人答案/纠正和G4 Owner未完成；不得用human principal或自动fixture审批伪造真人接受。外部Obsidian引用导航明确external_navigation_unavailable，实际回读仅a14，不能称导航完成。
+D. 云端核验与专业依据：PNG/JPEG和有界1–3页PDF原件核验实现/模拟tests已通过，实际云调用NOT_EXECUTED，音视频原件云fidelity不支持；本地ASR和三抽样帧LM Studio是真实链但非连续视觉/真人质量。专业DDG公开查询实际12s失败，DNS成功、目标连接/路由根因UNKNOWN；不要伪造搜索成功或改全局proxy/provider。服务/额度不可用不能阻断普通保存；独立状态与版本绑定保持。
+E. 旧库完整语义迁移与未知资产归属：已知89业务/90SQLite表旧库原件保留，intake仅实际1行typed→Core v1/v2及重启PASS，其他表未完成全语义迁移；交接曾称98表的精确路径UNKNOWN。19项dirty Green obj、仍被绑定的venv、未知外溢DB/CAS/private资产继续KEEP。这些是真实高难缺口，不可作为低难批量删除。
+
+路径与执行：
+Rust在 D:\All projects\OS External Configuration\toolchains\rust（不是10-toolchains\rust）；Cargo helper tools/cargo-local.cmd。CI测试解释器 D:\All projects\OS External Configuration\ArcheAxis-Knowledge-OS-ci-venv\Scripts\python.exe；产品解释器必须验证实际候选runtime/python.exe和实际子链。
+共享模型 D:\All projects\Model library；真实样本 D:\All projects\ceshi；模型/FFmpeg用现有profile及仅子进程env，不改全局设置，不扫描Home/E/F，不上传资料正文。启动文档不得带\\?\前缀，text_worker不加schema，新Core用全新数据根。
+命令通过scripts/runtime/dev.py --run-id <唯一id> -- <精确Python或工具>，不要误用不存在的test子命令。沙箱WinError5先分类，沿批准的正常执行路径，不改ACL/换账号/绕边界。
+
+授权及CI纪律：用户持续授权任务内正常commit/push到上述codex分支、workflow_dispatch(force_full)、gh run rerun及读取结果；等待固定目标CI时绝不push。禁止force push、历史改写、main推送/合并、release。接手先动态查询有没有活跃目标，不能根据这份快照推断没有。Watcher必须绑定完整SHA/workflow/run ID/attempt，禁止limit3推断；failed/cancelled/skipped不算PASS，零字节不算证据。只改docs的运行可能跳过桌面门禁，不从中推断新桌面合格。
+
+交付：只更新现行台账并给实际修改、验证、具体剩余缺口。不要新建纠正报告。尚未实现的功能不得登记为完成；审计済未删除与实际删除必须区分。只有高难工程与Owner/云端边界明确后，才能整理低难重复样本/人工验收提示词；不得宣布全部高难任务完成。
+
+2026-10-06 上传前补充：b69文档运行workflow308098767/run37402651266/a1 SUCCESS但桌面门禁skipped，不是新产品资格；workflow350886451/run37402656396/a1 FAILURE，失败待诊断。
+引擎身份在GET /api/v1/jobs/:id/quality，GET /api/v1/capabilities是worker握手，不当引擎验证；text_worker声明后才挂36路由，不声明只有18路由且capabilities可404。
+只有进行新重建时，先按精确清单检查并清理CARGO_TARGET_DIR/release陈旧资源目录，避免嵌套旧解释器静默胜出；保护正在运行/已资格候选与恢复材料，不在等待CI期间改动运行产物，不能整删release或使用未经审阅计算路径。

@@ -1,0 +1,329 @@
+{
+  "schema": "archeaxis.ui-final-slice/v1",
+  "created_at": "2026-10-10T00:08:22.817642+00:00",
+  "task": "UF13",
+  "scope": "Five daily navigation, local document search, due-review entry, compact welcome and gate coverage corrections; not entire UF13",
+  "status": "LOCAL_SLICE_VERIFIED_STOPPED_BY_OWNER",
+  "whole_taskpack_status": "PARTIAL",
+  "uf13_status": "PARTIAL",
+  "execution_state": "PAUSED_BY_OWNER",
+  "stop_instruction": "完成当天跑的任务就停止任务",
+  "authority": "docs/taskpacks/aaos-ui-first-20261009",
+  "writer": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\worktrees\\gov-ui-20261008",
+  "source_head": "fc5d4adc7acc28e38c2e6046ef06c0be2eed721d",
+  "source_files": [
+    {
+      "path": "frontend/src/__tests__/App.test.tsx",
+      "sha256": "daccc6282d27685232b7043ec4d559f5346cb3a6f86afd1d1cc2d0a8861c12f3"
+    },
+    {
+      "path": "frontend/src/__tests__/DailyAppNavigation.test.tsx",
+      "sha256": "58a181b44f1b3f4775db38d4d588c91b6fb0bcfa1b6ee76e07095fb672b6c42d"
+    },
+    {
+      "path": "frontend/src/__tests__/DailyNavigation.test.tsx",
+      "sha256": "76e5f853557a6294a03b8d56314ba0bd23381b0993d78afc55dc6ea41228f602"
+    },
+    {
+      "path": "frontend/src/__tests__/LocalDocumentSearch.test.tsx",
+      "sha256": "6a05c3808f373fec1704950fb301c49bca950e7a570248f850f6221e1af61777"
+    },
+    {
+      "path": "frontend/src/__tests__/OsuiProductionContract.test.tsx",
+      "sha256": "aafeb6b6e18417f3a6070e5be771fedb44a7961eef40c5144c7054845ebd2a32"
+    },
+    {
+      "path": "frontend/src/__tests__/SemanticReadingLayout.test.tsx",
+      "sha256": "7b2bf25c28129381b6526258350307e7d00958328a88b11ac2652b87fe398c8d"
+    },
+    {
+      "path": "frontend/src/__tests__/UiCapabilityIntent.test.tsx",
+      "sha256": "7aeb5ec4fce11057e57a6bfc94496ffda17dd8c065f0bde7d118815892849a10"
+    },
+    {
+      "path": "frontend/src/app/App.tsx",
+      "sha256": "31bdb4e1d55e5f1f7a159330dc6d9fb262d0987a81d0379f93c30b4666dd780a"
+    },
+    {
+      "path": "frontend/src/components/CommandPalette.tsx",
+      "sha256": "705cf155aab700455f4cdb85a0484a07fe0dcfe6dbdb748620fa32309fd1ad16"
+    },
+    {
+      "path": "frontend/src/components/LocalDocumentSearch.tsx",
+      "sha256": "dab3317896703d65687e5a8ee76a01d35b075214e7bf3b4f74edfe5f434bce19"
+    },
+    {
+      "path": "frontend/src/components/SpaceRail.tsx",
+      "sha256": "ece9d0db059715590c9ed40f07899c71697edd938e6810416aa85d1000a6b612"
+    },
+    {
+      "path": "frontend/src/presentation/navigation.ts",
+      "sha256": "70fabfa205e72f09996b0519614bf74ec90d61c216d232dafd5ef8ca529b430e"
+    },
+    {
+      "path": "frontend/src/presentation/uiPages.ts",
+      "sha256": "1d1a1529978b2c816d6360f78d8fe19d83be84f31eb60b7a5267b64e348c627d"
+    },
+    {
+      "path": "frontend/src/presentation/workspaceReview.ts",
+      "sha256": "eb4aee42d44bab83077c108d45adf68ee27351f6888f0b2763f5bd903fbb0e0b"
+    },
+    {
+      "path": "frontend/src/spaces/CanonicalLearningJourneySpace.tsx",
+      "sha256": "6d7b826d7e8ee711a70713fbd042c15f3c035f4cdb3e01b3c54e7fc414324992"
+    },
+    {
+      "path": "frontend/src/spaces/CanonicalWorkspaceSpace.tsx",
+      "sha256": "055dad693e4da5016585dc1b270a8e94bb37c51aa14dd4b093c0e2d1885823cb"
+    },
+    {
+      "path": "frontend/src/spaces/SpaceView.tsx",
+      "sha256": "5e7abf450355ad0b1f1154502c74379284514b9e53a90fe68bfefa2e83fb4043"
+    },
+    {
+      "path": "frontend/src/spaces/ui-first.css",
+      "sha256": "e96edcdb4de2b127e8610d4f585fee196def18cccdd13547b9ea06c8ab307ca7"
+    },
+    {
+      "path": "scripts/ci/check_vnext_contracts.py",
+      "sha256": "eec229ddab3ae3e1e5b1abb4bc18c64284acab9c7a1b8d88efe7345f634985c5"
+    },
+    {
+      "path": "scripts/ci/local_verify.py",
+      "sha256": "bebd62b2098a95d38e5e6028d7514ed44886fd77ec97e7b7fdbc633f6208daaa"
+    }
+  ],
+  "source_snapshot": {
+    "current_match": true,
+    "gate": "ui-final-front-full-03",
+    "evidence": {
+      "path": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\runs\\f714401b40\\ui-final-front-full-03\\artifacts\\result.json",
+      "sha256": "f231431e0cfdabc7cf9739185f338121dca3f6e5d49aec6b18a286c4af1399a5"
+    }
+  },
+  "implemented": [
+    "Five daily entries Workspace/Knowledge/Learning/AI/Resources plus fixed capabilities/settings; 22 original IDs, hashes and CAP intentions retained",
+    "Actual saved document IDs retained within App lifetime; same-page reselection does not leave current editor; restore invalidation clears IDs",
+    "Workspace local Core title/body document search with explicit 20-result bound, no AI call, UTF-8 query bound and stale response/composition guards",
+    "Due review sorted by verified Core dates; SQLite UTC and actual FSRS RFC3339 offset/microsecond formats; exact item_key passes through original dirty/restore guard",
+    "Compact collapsible welcome uses original themed art and semantic color variables",
+    "Canonical local runner checks dirty worktree, isolates explicit compileall cache, includes current v2 schema traversal and existing read-only archive/generator checks"
+  ],
+  "tests": {
+    "frontend": {
+      "status": "PASS",
+      "evidence": "SIMULATED",
+      "tests": 997,
+      "files": 108,
+      "artifact": {
+        "path": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\runs\\f714401b40\\ui-final-front-full-03\\artifacts\\result.json",
+        "sha256": "f231431e0cfdabc7cf9739185f338121dca3f6e5d49aec6b18a286c4af1399a5"
+      }
+    },
+    "typecheck": {
+      "status": "PASS",
+      "artifact": {
+        "path": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\runs\\f714401b40\\ui-final-typecheck-03\\artifacts\\result.json",
+        "sha256": "8193574238a88762c49225508b89ad7cf98b9c104d0a0bfa4a0d5bcbb9491063"
+      }
+    },
+    "python_gate_regressions": {
+      "status": "PASS",
+      "tests": 47,
+      "artifact": {
+        "path": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\runs\\f714401b40\\ui-final-gate-tests-01\\artifacts\\result.json",
+        "sha256": "00bcd5e5c61ce50a2fdb644dc9654ccd3f2a66cf70d394c8888cb013a420c805"
+      }
+    },
+    "frontend_build": {
+      "status": "PASS",
+      "artifact": {
+        "path": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\runs\\f714401b40\\a188f9aecc96\\artifacts\\frontend-build.json",
+        "sha256": "bc0e7df5694ab93a34f47f83835b8deec50c995e5c6d08956f4ace57fb4542b8"
+      }
+    },
+    "governance_checks": [
+      {
+        "command": [
+          "D:\\All projects\\OS External Configuration\\ArcheAxis-Knowledge-OS-ci-venv\\Scripts\\python.exe",
+          "-B",
+          "scripts/ci/check_vnext_contracts.py"
+        ],
+        "exit_code": 1,
+        "status": "FAIL",
+        "log": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\runs\\f714401b40\\ui-final-stage-20261010\\governance-checks\\01-check_vnext_contracts.log",
+        "script_sha256": "eec229ddab3ae3e1e5b1abb4bc18c64284acab9c7a1b8d88efe7345f634985c5",
+        "script_current": true
+      },
+      {
+        "command": [
+          "D:\\All projects\\OS External Configuration\\ArcheAxis-Knowledge-OS-ci-venv\\Scripts\\python.exe",
+          "-B",
+          "scripts/ci/check_h01_source_trace.py"
+        ],
+        "exit_code": 0,
+        "status": "PASS",
+        "log": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\runs\\f714401b40\\ui-final-stage-20261010\\governance-checks\\02-check_h01_source_trace.log",
+        "script_sha256": "ea750bd4beb1d07cabd313e4881a74de581585677df81a71c18a71f5c9e82e07",
+        "script_current": true
+      },
+      {
+        "command": [
+          "D:\\All projects\\OS External Configuration\\ArcheAxis-Knowledge-OS-ci-venv\\Scripts\\python.exe",
+          "-B",
+          "scripts/ci/check_ui_design_increment.py"
+        ],
+        "exit_code": 0,
+        "status": "PASS",
+        "log": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\runs\\f714401b40\\ui-final-stage-20261010\\governance-checks\\03-check_ui_design_increment.log",
+        "script_sha256": "7a1e12a27739ee3fda01ac1b5a8b30cbb142cb53f48c1a3136044eccca3d58d6",
+        "script_current": true
+      },
+      {
+        "command": [
+          "D:\\All projects\\OS External Configuration\\ArcheAxis-Knowledge-OS-ci-venv\\Scripts\\python.exe",
+          "-B",
+          "scripts/contracts/generate_core_teaching.py",
+          "--check"
+        ],
+        "exit_code": 0,
+        "status": "PASS",
+        "log": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\runs\\f714401b40\\ui-final-stage-20261010\\governance-checks\\04-generate_core_teaching.log",
+        "script_sha256": "fc7e61453d96e8488d2164b08bbeae0cad05854f5c15554d43e120c5f9d427e0",
+        "script_current": true
+      },
+      {
+        "command": [
+          "D:\\All projects\\OS External Configuration\\ArcheAxis-Knowledge-OS-ci-venv\\Scripts\\python.exe",
+          "-B",
+          "scripts/contracts/generate_expression_contract.py",
+          "--check"
+        ],
+        "exit_code": 0,
+        "status": "PASS",
+        "log": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\runs\\f714401b40\\ui-final-stage-20261010\\governance-checks\\05-generate_expression_contract.log",
+        "script_sha256": "57fd279c4c68878f8854186bd3c951eacc31b84faa70f3b1e1a56bc0ac90f5eb",
+        "script_current": true
+      },
+      {
+        "command": [
+          "D:\\All projects\\OS External Configuration\\ArcheAxis-Knowledge-OS-ci-venv\\Scripts\\python.exe",
+          "-B",
+          "scripts/contracts/generate_research_contract.py",
+          "--check"
+        ],
+        "exit_code": 0,
+        "status": "PASS",
+        "log": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\runs\\f714401b40\\ui-final-stage-20261010\\governance-checks\\06-generate_research_contract.log",
+        "script_sha256": "fcb14e7456e3cd1ee88627ac261074929437cf41c71ce48a7cba8946c12f3ac9",
+        "script_current": true
+      },
+      {
+        "command": [
+          "D:\\All projects\\OS External Configuration\\ArcheAxis-Knowledge-OS-ci-venv\\Scripts\\python.exe",
+          "-B",
+          "scripts/contracts/generate_ai_asset_contract.py",
+          "--check"
+        ],
+        "exit_code": 0,
+        "status": "PASS",
+        "log": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\runs\\f714401b40\\ui-final-stage-20261010\\governance-checks\\07-generate_ai_asset_contract.log",
+        "script_sha256": "fa606d97f1db5c9818db6d3451828e1793b7bcb7ca3d351ef5bf4f6d3e1e81d6",
+        "script_current": true
+      },
+      {
+        "command": [
+          "D:\\All projects\\OS External Configuration\\ArcheAxis-Knowledge-OS-ci-venv\\Scripts\\python.exe",
+          "-B",
+          "scripts/contracts/generate_resource_catalog.py",
+          "--check"
+        ],
+        "exit_code": 1,
+        "status": "FAIL",
+        "log": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\runs\\f714401b40\\ui-final-stage-20261010\\governance-checks\\08-generate_resource_catalog.log",
+        "script_sha256": "a1defdee57b1df02645c4fcb45dae71c0b7ee0756d70c955d64dc53b711a5d33",
+        "script_current": true
+      }
+    ]
+  },
+  "theme_readback": {
+    "status": "UNCHANGED_FROM_PREVIOUS_PHASE",
+    "reference": "ui-exchange-native-build-03",
+    "files": [
+      {
+        "path": "frontend/src/design-system/themes.css",
+        "sha256": "07bb9b3707fa198b495b3f3a3d6391c225a9c3910e07f87378c774beb45cc505"
+      },
+      {
+        "path": "frontend/src/design-system/theme.ts",
+        "sha256": "0d0cf41659d1567d11e98e1971f187dcc932932c903bf4d5e92d308c616be365"
+      }
+    ]
+  },
+  "six_acceptance_domains": {
+    "local_behavior": "LOCAL_PASS_SIMULATED_UI; new local Core/native journeys NOT_EXECUTED",
+    "installation_lifecycle": "NOT_EXECUTED",
+    "human_exchange": "NOT_EXECUTED_THIS_SLICE; prior CB04/UF11 scope retained",
+    "real_person_study": "NOT_EXECUTED",
+    "long_term_effect": "UNMEASURED",
+    "governance": "PARTIAL; six checks PASS, two FAIL"
+  },
+  "remaining": [
+    "Cross-restart independent document drafts and scroll/filter/session restoration",
+    "Conflict comparison and permission-change draft recovery/save-as",
+    "Idempotent ordinary note creation candidate NOT_APPLIED",
+    "Global palette is page/capability search; local object search is currently available on Workspace only",
+    "Real latest-object/recent-knowledge/import-progress workspace continuity, research favorites",
+    "Canonical quick/full aggregate profiles NOT_EXECUTED this slice; old conventions/architecture failures retained",
+    "New UI browser/native/install/physical IME/Owner/M01 and actual new Core journey acceptance NOT_EXECUTED",
+    "Contract structure FAIL: existing learning-kernel schema lacks $schema/$id and review schema lacks $id; do not silently weaken checker",
+    "Resource catalog generator FAIL: historical qualification source SHA for core-contract.ts no longer matches; do not rebaseline historical evidence",
+    "107 original requirements and 18 themes remain PARTIAL overall; old source receipts retain their epochs"
+  ],
+  "historical_failures": [
+    {
+      "path": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\runs\\f714401b40\\ui-final-front-full-01\\artifacts\\result.json",
+      "sha256": "b5ccac0326978f2042cc5e8f489195853b2d1c9a3d4ceaa85414503c7b186cb2"
+    },
+    {
+      "path": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\runs\\f714401b40\\ui-final-front-full-02\\artifacts\\result.json",
+      "sha256": "23f672157bcfde5154c5d01e908fa509a40ce4ee42b86cf815528ba7518c932c"
+    },
+    {
+      "path": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\runs\\f714401b40\\ui-final-typecheck-02\\artifacts\\result.json",
+      "sha256": "52161dde6022c4599e22fa896e087a12f16ed8a5fd322b77ea39e104a60a820a"
+    }
+  ],
+  "audit": {
+    "public_path": "docs/current/AAOS-UF13-ACCEPTANCE-AUDIT-20261010.json",
+    "status": "PRE_IMPLEMENTATION_READ_ONLY_SNAPSHOT_NOT_LIVE_PASS",
+    "original_records": 107,
+    "design_topics": 18,
+    "later_readback": {
+      "path": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\runs\\f714401b40\\ui-final-stage-20261010\\candidate-acceptance\\workspace-search-review.json",
+      "sha256": "aa6aa3c7156249531a0716be01b4507c46b05597860864f6dbb7d191bc4e52d7"
+    }
+  },
+  "unapplied_library_candidate": {
+    "path": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\runs\\f714401b40\\ui-final-stage-20261010\\candidate-library\\manifest.json",
+    "sha256": "98f42916329af483a15c4e9941388e5e799a649472683d64b3c6ff2f132b31fa"
+  },
+  "operations_not_executed": [
+    "commit",
+    "push",
+    "PR",
+    "merge",
+    "cloud CI",
+    "install",
+    "release",
+    "deletion",
+    "new follow-on tasks"
+  ],
+  "retention": {
+    "root": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\runs\\f714401b40\\ui-final-stage-20261010",
+    "ownership": "task-owned local evidence/candidates/backups",
+    "referenced_by": "this receipt and current handoff",
+    "rebuild": "Use recorded commands against matching source snapshots; do not replace historical receipts",
+    "cleanup": "No automatic deletion; preserve unknown existing modifications and all source archives"
+  }
+}

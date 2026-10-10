@@ -10,15 +10,16 @@ def _read(relative: str) -> str:
     return (ROOT / relative).read_text(encoding="utf-8")
 
 
-def test_legacy_frontend_and_tauri_share_the_recovery_build_output() -> None:
+def test_formal_frontend_and_tauri_use_the_run_router() -> None:
     vite = _read("frontend/vite.config.ts")
     tauri = _read("src-tauri/tauri.conf.json")
     build = _read("src-tauri/build.rs")
 
-    legacy_output = ".project-local/build/frontend-dist"
-    assert legacy_output in vite
-    assert legacy_output in tauri
-    assert legacy_output in build
+    assert "ARCHEAXIS_FRONTEND_DIST" in vite
+    assert "unrouted-frontend-dist" in tauri
+    assert 'pointer("/build/frontendDist")' in build
+    router = _read("scripts/runtime/frontend.py")
+    assert '"--config", str(paths["tauri_config"])' in router
     assert '"frontendDist": "../frontend/dist"' not in tauri
 
 

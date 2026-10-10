@@ -15,6 +15,8 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
 
+from shared.paths import native_path
+
 
 def _stable_id(prefix: str, *parts: object) -> str:
     payload = json.dumps(parts, ensure_ascii=True, sort_keys=True, separators=(",", ":"))
@@ -160,7 +162,7 @@ CREATE INDEX IF NOT EXISTS idx_blocks_run ON derived_blocks(run_id);
 
 def ensure_conversion_run_schema(db: str | Path) -> None:
     """Create the local derived-conversion schema before a caller transaction."""
-    with sqlite3.connect(Path(db)) as connection:
+    with sqlite3.connect(native_path(db)) as connection:
         connection.executescript(_SCHEMA)
 
 
@@ -273,14 +275,14 @@ def store_conversion_run_on_connection(
 def store_conversion_run(db: str | Path, run: ConversionRun) -> None:
     """Persist a ConversionRun and its blocks into the local SQLite store."""
     ensure_conversion_run_schema(db)
-    with sqlite3.connect(Path(db)) as connection:
+    with sqlite3.connect(native_path(db)) as connection:
         store_conversion_run_on_connection(connection, run)
         connection.commit()
 
 
 def resolve_conversion_run(db: str | Path, run_id: str) -> ConversionRun | None:
     """Load a ConversionRun by id, restoring its document and blocks."""
-    with sqlite3.connect(Path(db)) as conn:
+    with sqlite3.connect(native_path(db)) as conn:
         conn.row_factory = sqlite3.Row
         conn.executescript(_SCHEMA)
         row = conn.execute(

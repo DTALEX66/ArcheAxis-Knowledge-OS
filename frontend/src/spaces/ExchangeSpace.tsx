@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { DataError, Section } from "../components/RealData";
 import { exportExchange, importExchange, verifyExchange, type ExchangeExportDto, type ExchangeImportDto } from "../api/workspace";
-import { userErrorMessage } from "../presentation/labels";
+import { failureMessage } from "../presentation/labels";
 
 export function ExchangeSpace() {
   const [exportName, setExportName] = useState("exchange");
@@ -19,14 +19,14 @@ export function ExchangeSpace() {
     const name = exportName.trim() || "exchange";
     setBusy("export");
     setError(null);
-    setMessage(null);
+    setMessage("正在导出交换包…");
     try {
       const result = await exportExchange(name, false);
       setExported(result);
       setMessage(`已导出 ${result.item_count} 项知识交换包`);
     } catch (e) {
       setMessage(null);
-      setError(userErrorMessage(e instanceof Error ? e.message : e));
+      setError(failureMessage(e));
     } finally {
       setBusy(null);
     }
@@ -36,14 +36,14 @@ export function ExchangeSpace() {
     const name = verifyName.trim() || "exchange";
     setBusy("verify");
     setError(null);
-    setMessage(null);
+    setMessage("正在验证交换包…");
     try {
       const result = await verifyExchange(name);
       setVerified(result);
       setMessage("交换包验证通过：清单与全部文件哈希一致。");
     } catch (e) {
       setMessage(null);
-      setError(userErrorMessage(e instanceof Error ? e.message : e));
+      setError(failureMessage(e));
     } finally {
       setBusy(null);
     }
@@ -53,19 +53,20 @@ export function ExchangeSpace() {
     const name = importName.trim() || "exchange";
     const wsName = workspaceName.trim();
     if (!wsName) {
+      setError(null);
       setMessage("请输入新工作区名称。");
       return;
     }
     setBusy("import");
     setError(null);
-    setMessage(null);
+    setMessage("正在从交换包创建工作区…");
     try {
       const result = await importExchange(name, wsName);
       setImported(result);
       setMessage(`已从交换包创建工作区「${wsName}」：${result.item_count} 项。原始工作区未受影响。`);
     } catch (e) {
       setMessage(null);
-      setError(userErrorMessage(e instanceof Error ? e.message : e));
+      setError(failureMessage(e));
     } finally {
       setBusy(null);
     }
@@ -94,7 +95,9 @@ export function ExchangeSpace() {
         <input id="exchange-verify-name" value={verifyName} onChange={(event) => setVerifyName(event.target.value)} placeholder="exchange" aria-label="验证交换包名称" />
         <button type="button" onClick={() => void runVerify()} disabled={busy !== null}>{busy === "verify" ? "正在验证…" : "验证"}</button>
       </div>
-      {verified ? <p role="status" className="muted">验证结果：{verified.valid === true ? "通过" : "未通过"}{typeof verified.verified_items === "number" ? ` · ${verified.verified_items} 项` : ""}</p> : null}
+      {/* Persisted verify receipt, deliberately NOT a live region: the same verify action is already
+          announced once by the single outcome region below, so a second one would read the result twice. */}
+      {verified ? <p className="muted">验证结果：{verified.valid === true ? "通过" : "未通过"}{typeof verified.verified_items === "number" ? ` · ${verified.verified_items} 项` : ""}</p> : null}
 
       <h4>从交换包创建新工作区</h4>
       <p className="muted">将已验证的交换包导入为一个全新的独立四库工作区（原始工作区不会被修改）。</p>
@@ -111,8 +114,15 @@ export function ExchangeSpace() {
         <div><dt>来源</dt><dd>{imported.source}</dd></div>
       </dl> : null}
 
-      {error ? <DataError label="交换" message={error} /> : null}
-      {message ? <p role="status" className="muted">{message}</p> : null}
+      {/* One announce path per broadcast event. Loading, success and failure of export / verify /
+          import all resolve into this single live region: on failure the outcome is the error card and
+          on success or in-progress it is the message, and the two are never live at the same time.
+          Before this, an Exchange failure produced no announcement at all while the persisted verify
+          receipt announced the same success a second time. */}
+      {error || message ? <div role="status">
+        {error ? <DataError label="交换" message={error} /> : null}
+        {message ? <p className="muted">{message}</p> : null}
+      </div> : null}
     </Section>
   );
 }

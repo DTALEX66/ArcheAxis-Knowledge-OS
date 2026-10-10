@@ -1,0 +1,256 @@
+{
+  "document": "AAOS_FULL_HISTORY_RECOVERY_20261002",
+  "recorded_at": "2026-10-02T06:59:09.351033+00:00",
+  "method": "read the archive's own manifest, re-hashed every archived file, opened the zip, and counted the registry rows; nothing was extracted, moved or rewritten",
+  "archive_root": "docs/history/planning-blueprint-absorption/2026-09-29",
+  "manifest_integrity_claim": "PASS",
+  "verification_result": "PASS",
+  "all_recorded_hashes_match": true,
+  "source_copies": [
+    {
+      "source": "D:\\All projects\\Record\\AAOS_历史规划蓝图吸收池完整总结文档包_2026-09-29.zip",
+      "archive": "docs/history/planning-blueprint-absorption/2026-09-29/AAOS_历史规划蓝图吸收池完整总结文档包_2026-09-29.zip",
+      "manifest_bytes": 109325,
+      "actual_bytes": 109325,
+      "manifest_sha256": "A453646B2E59DBA1BBC1500CD610FBD7484E19995384B7D0474FE0DB5D9C2CB5",
+      "actual_sha256": "a453646b2e59dba1bbc1500cd610fbd7484e19995384b7d0474fe0db5d9c2cb5",
+      "matches": true
+    },
+    {
+      "source": "D:\\All projects\\Record\\AAOS_接手与云端对标报告_2026-09-29.md",
+      "archive": "docs/history/planning-blueprint-absorption/2026-09-29/AAOS_接手与云端对标报告_2026-09-29.md",
+      "manifest_bytes": 14442,
+      "actual_bytes": 14442,
+      "manifest_sha256": "14E9E20468AD9FFFD6969CBE217002FB41E104289F075E3C263147970BC4BDE9",
+      "actual_sha256": "14e9e20468ad9fffd6969cbe217002fb41e104289f075e3c263147970bc4bde9",
+      "matches": true
+    },
+    {
+      "source": "D:\\All projects\\Record\\AAOS_最终判断报告_2026-09-29.md",
+      "archive": "docs/history/planning-blueprint-absorption/2026-09-29/AAOS_最终判断报告_2026-09-29.md",
+      "manifest_bytes": 31034,
+      "actual_bytes": 31034,
+      "manifest_sha256": "CD0BE7FBAF7CE13D9ACD3FB6A795948A60165C5E51168ABC12CCDA7B2C7B2EF0",
+      "actual_sha256": "cd0be7fbaf7ce13d9acd3fb6a795948a60165c5e51168abc12ccda7b2c7b2ef0",
+      "matches": true
+    }
+  ],
+  "unpacked_zip_entries": [
+    {
+      "path": "AAOS_CAPABILITY_ATLAS_CURRENT_MAPPING_2026-09-29.csv",
+      "manifest_bytes": 1614,
+      "actual_bytes": 1614,
+      "matches": true
+    },
+    {
+      "path": "AAOS_CODEX_DSH_HERMES_HANDOFF_2026-09-29.txt",
+      "manifest_bytes": 3517,
+      "actual_bytes": 3517,
+      "matches": true
+    },
+    {
+      "path": "AAOS_CURRENT_CAPABILITY_ABSORPTION_11_2026-09-29.csv",
+      "manifest_bytes": 1192,
+      "actual_bytes": 1192,
+      "matches": true
+    },
+    {
+      "path": "AAOS_CURRENT_SUPPLY_CHAIN_47_2026-09-29.csv",
+      "manifest_bytes": 2022,
+      "actual_bytes": 2022,
+      "matches": true
+    },
+    {
+      "path": "AAOS_HISTORY_TO_CURRENT_MAPPING_2026-09-29.csv",
+      "manifest_bytes": 1856,
+      "actual_bytes": 1856,
+      "matches": true
+    },
+    {
+      "path": "AAOS_MASTER_ATLAS_2026-09-29.json",
+      "manifest_bytes": 40895,
+      "actual_bytes": 40895,
+      "matches": true
+    },
+    {
+      "path": "AAOS_OSS_RESEARCH_POOL_369_2026-08-11.csv",
+      "manifest_bytes": 37518,
+      "actual_bytes": 37518,
+      "matches": true
+    },
+    {
+      "path": "AAOS_R6_M0_STATUS_2026-09-29.csv",
+      "manifest_bytes": 2504,
+      "actual_bytes": 2504,
+      "matches": true
+    },
+    {
+      "path": "AAOS_REQUIREMENT_TRACE_2026-09-29.csv",
+      "manifest_bytes": 1132,
+      "actual_bytes": 1132,
+      "matches": true
+    },
+    {
+      "path": "AAOS_SOURCE_BASELINE_97_2026-09-04.csv",
+      "manifest_bytes": 12927,
+      "actual_bytes": 12927,
+      "matches": true
+    },
+    {
+      "path": "AAOS_完整历史规划蓝图吸收池与当前状态总报告_2026-09-29.docx",
+      "manifest_bytes": 65234,
+      "actual_bytes": 65234,
+      "matches": true
+    },
+    {
+      "path": "AAOS_完整历史规划蓝图吸收池与当前状态总报告_2026-09-29.md",
+      "manifest_bytes": 28565,
+      "actual_bytes": 28565,
+      "matches": true
+    },
+    {
+      "path": "README_文档包.md",
+      "manifest_bytes": 1182,
+      "actual_bytes": 1182,
+      "matches": true
+    },
+    {
+      "path": "SHA256SUMS.txt",
+      "manifest_bytes": 1462,
+      "actual_bytes": 1462,
+      "matches": true
+    }
+  ],
+  "zip_member_count": 14,
+  "zip_member_count_matches_manifest": true,
+  "registries": {
+    "source_baseline_97": {
+      "present": true,
+      "file": "AAOS_SOURCE_BASELINE_97_2026-09-04.csv",
+      "bytes": 12927,
+      "data_rows": 97,
+      "columns": [
+        "scope",
+        "index",
+        "title",
+        "stable_id",
+        "role_or_note",
+        "baseline_date"
+      ]
+    },
+    "oss_research_pool_369": {
+      "present": true,
+      "file": "AAOS_OSS_RESEARCH_POOL_369_2026-08-11.csv",
+      "bytes": 37518,
+      "data_rows": 369,
+      "columns": [
+        "candidate",
+        "categories"
+      ]
+    },
+    "supply_chain_47": {
+      "present": true,
+      "file": "AAOS_CURRENT_SUPPLY_CHAIN_47_2026-09-29.csv",
+      "bytes": 2022,
+      "data_rows": 47,
+      "columns": [
+        "id",
+        "name",
+        "capability",
+        "disposition"
+      ]
+    },
+    "capability_absorption_11": {
+      "present": true,
+      "file": "AAOS_CURRENT_CAPABILITY_ABSORPTION_11_2026-09-29.csv",
+      "bytes": 1192,
+      "data_rows": 11,
+      "columns": [
+        "capability_id",
+        "capability_name",
+        "status",
+        "absorption_mode",
+        "upstream_or_owner"
+      ]
+    },
+    "capability_atlas_mapping": {
+      "present": true,
+      "file": "AAOS_CAPABILITY_ATLAS_CURRENT_MAPPING_2026-09-29.csv",
+      "bytes": 1614,
+      "data_rows": 16,
+      "columns": [
+        "capability_id",
+        "canonical_name",
+        "pillar",
+        "authority_status",
+        "horizon",
+        "technical_state",
+        "current_note"
+      ]
+    },
+    "requirement_trace": {
+      "present": true,
+      "file": "AAOS_REQUIREMENT_TRACE_2026-09-29.csv",
+      "bytes": 1132,
+      "data_rows": 17,
+      "columns": [
+        "requirement_id",
+        "title",
+        "capability",
+        "horizon",
+        "status"
+      ]
+    },
+    "history_to_current": {
+      "present": true,
+      "file": "AAOS_HISTORY_TO_CURRENT_MAPPING_2026-09-29.csv",
+      "bytes": 1856,
+      "data_rows": 15,
+      "columns": [
+        "historical_family",
+        "historical_content",
+        "current_owner_or_capability",
+        "disposition"
+      ]
+    },
+    "r6_m0_status": {
+      "present": true,
+      "file": "AAOS_R6_M0_STATUS_2026-09-29.csv",
+      "bytes": 2504,
+      "data_rows": 24,
+      "columns": [
+        "id",
+        "area",
+        "status",
+        "remaining_gap"
+      ]
+    }
+  },
+  "external_taskpacks_and_inputs": {
+    "taskpack_2026_09_28": {
+      "present": true,
+      "bytes": 10988693,
+      "sha256": "e989877203fd47b9a027b2abd0d9521deb9a97e5d5e6905697e0fca451e5a753"
+    },
+    "ui_taskpack_2026_09_30": {
+      "present": true,
+      "bytes": 7609,
+      "sha256": "a51ae04407a807c647739f787abdb91accd1021ab515bc989069cb2d25197170"
+    },
+    "ecosystem_audit_2026_10_01": {
+      "present": true,
+      "bytes": 4280,
+      "sha256": "01e723689a8736b5c7065215598daeea8990b311c9b5887b75aee398820360c2"
+    },
+    "ecosystem_extract_2026_10_01": {
+      "present": true,
+      "bytes": 42637,
+      "sha256": "0015de248c67b187a850b6b9af79900b92f8d3a8ec87cba222434a110167a4fb"
+    }
+  },
+  "history_corpus_present_in_repo": {
+    "docs_history_files": 88,
+    "docs_history_mb": 13.39
+  },
+  "conclusion": "The historical planning record is archived in the repository and its own hashes verify. The 97-source baseline, 369-item OSS research pool, 47-item supply chain, 11 capability absorptions, the capability atlas mapping, the requirement trace and the Codex/DSH/Hermes handoff are all present as files, so the recovery step is a verification rather than a retrieval."
+}

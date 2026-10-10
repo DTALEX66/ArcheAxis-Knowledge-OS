@@ -2,6 +2,7 @@
 //! Process IO and file reading belong outside this transaction boundary.
 use crate::jobs::{self, JobError, LossReceipt};
 use archeaxis_sidecar_protocol::worker::{Request, Response, decode_response};
+use archeaxis_store_sqlite::capability_settings;
 use rusqlite::{Connection, OptionalExtension, TransactionBehavior};
 use serde::Deserialize;
 use serde_json::Value;
@@ -21,6 +22,16 @@ pub const ENGINE_PROFILES: &[(&str, &str)] = &[
     ("python-worker-subtitles", "0.1.0"),
     ("python-worker-html", "0.1.0"),
     ("python-worker-caption", "0.1.0"),
+    // The ASR engine. It was real and verified - 3,362 characters from a real Chinese
+    // recording - but no route named it, so no job could reach it. A receipt may not report
+    // this engine until the route below exists.
+    ("python-worker-transcribe", "0.1.0"),
+    ("python-worker-video", "0.1.0"),
+    // F10: who spoke when. The route is dispatchable now; the two ONNX assets are not in the
+    // shared model library yet, so a job that reaches it settles with the refusal naming them.
+    ("python-worker-diarize", "0.1.0"),
+    // F04: the vendored Magika ONNX names bytes a file's own extension could not name.
+    ("python-worker-detect", "0.1.0"),
 ];
 
 /// R08: the extraction routes the Core can dispatch, declared once. A job's kind
@@ -58,6 +69,17 @@ pub const ROUTES: &[(&str, &str, &str)] = &[
     // engine profile. What it produces is a candidate description, never extracted text,
     // and a missing model is a named failure rather than an empty success.
     ("caption", "image.caption", "image/png"),
+    // The pack requires real audio before final closure. A recording is binary and its
+    // projection is a transcript with time-coded cues, so it gets its own kind, capability
+    // and worker rather than being probed as a container.
+    ("transcribe", "media.transcribe", "audio/wav"),
+    ("video", "media.video", "video/mp4"),
+    // F10: boundaries only - who spoke when, with no words and no speaker identity. Its own kind
+    // because its output structure is not a transcript and must not be read as one.
+    ("diarize", "media.diarize", "audio/wav"),
+    // F04: naming bytes the extension cannot name is a route of its own, because its output is a
+    // model judgement about the bytes and must never be mistaken for an extracted projection.
+    ("detect", "document.detect", "application/octet-stream"),
 ];
 
 /// Resolve a job kind to its route: (capability, input media type).
@@ -79,9 +101,22 @@ pub const ROUTE_MEDIA_TYPES: &[(&str, &[&str])] = &[
         &[
             "text/plain",
             "text/markdown",
+            "text/x-python",
             "text/csv",
             "text/tab-separated-values",
             "application/json",
+            "application/x-ndjson",
+            "application/yaml",
+            "text/x-yaml",
+            "application/toml",
+            "application/epub+zip",
+            "message/rfc822",
+            // R15/F13: the light-format reader handles these containers itself, so the route
+            // that owns it accepts them rather than leaving them unnamed and refused.
+            "application/vnd.oasis.opendocument.text",
+            "application/vnd.oasis.opendocument.spreadsheet",
+            "application/vnd.oasis.opendocument.presentation",
+            "application/rtf",
             "application/xml",
             "text/xml",
         ],
@@ -97,14 +132,59 @@ pub const ROUTE_MEDIA_TYPES: &[(&str, &[&str])] = &[
             "image/bmp",
         ],
     ),
-    ("archive.inventory", &["application/zip"]),
-    ("media.probe", &["video/mp4", "audio/wav"]),
+    (
+        "archive.inventory",
+        &["application/zip", "application/x-tar"],
+    ),
+    (
+        "media.probe",
+        &["video/mp4", "video/quicktime", "audio/wav"],
+    ),
+    (
+        "media.video",
+        &[
+            "video/mp4",
+            "video/quicktime",
+            "video/x-matroska",
+            "video/webm",
+        ],
+    ),
+    (
+        "media.transcribe",
+        &[
+            "audio/mpeg",
+            "audio/mp4",
+            "audio/x-m4a",
+            "audio/flac",
+            "audio/ogg",
+            "audio/opus",
+            "audio/wav",
+            "audio/x-wav",
+        ],
+    ),
+    (
+        // The diarizer reads 16-bit mono PCM frames out of a WAV container itself, so only the
+        // containers whose samples it refuses by name stay out; a compressed recording is
+        // transcribable but not yet diarizable here, and that is the worker's fact, not a guess.
+        "media.diarize",
+        &["audio/wav", "audio/x-wav"],
+    ),
+    (
+        // The detector reads bytes, so the only type it is handed is the one the Core uses when a
+        // name says nothing. A file whose extension DOES name a type is not this route's work:
+        // its own route already exists and answers with the real projection.
+        "document.detect",
+        &["application/octet-stream"],
+    ),
     (
         "office.structure",
         &[
             "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
             "application/vnd.openxmlformats-officedocument.presentationml.presentation",
             "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            "application/vnd.ms-excel",
+            "application/msword",
+            "application/vnd.ms-powerpoint",
         ],
     ),
     ("canvas.structure", &["application/json"]),
@@ -136,7 +216,17 @@ pub fn accepted_media_types(capability: &str) -> &'static [&'static str] {
 /// members the Core may import). The executor tells only these workers where the
 /// artifact root is, so every other route keeps its launch shape and an unexpected flag
 /// stays an error rather than being silently accepted.
-pub const ARTIFACT_ROOT_CAPABILITIES: &[&str] = &["pdf.extract", "archive.inventory"];
+///
+/// R15/F13 adds `text.extract` for one reason: a mail carries attachments, and the route
+/// table inside the transport decides that only `message/rfc822` may write into the area.
+/// Every other text media type is handed no directory and declares no member.
+pub const ARTIFACT_ROOT_CAPABILITIES: &[&str] = &[
+    "pdf.extract",
+    "archive.inventory",
+    "media.video",
+    "text.extract",
+    "office.structure",
+];
 
 /// R15/F06: routes whose successful job is followed by Core-side work, done inside the
 /// same commit as the completion so there is no window in which the job says it
@@ -153,27 +243,66 @@ pub fn media_type_for_name(name: &str) -> Option<&'static str> {
         .to_ascii_lowercase();
     let extension = file.rsplit_once('.')?.1;
     Some(match extension {
-        "txt" | "log" | "text" | "rs" | "py" | "ts" | "tsx" | "js" | "jsx" | "c" | "h" | "cpp"
-        | "hpp" | "go" | "java" | "cs" | "rb" | "sh" | "ps1" | "bat" | "toml" | "yaml" | "yml"
-        | "ini" | "cfg" | "sql" => "text/plain",
+        "txt" | "log" | "text" | "rs" | "ts" | "tsx" | "js" | "jsx" | "c" | "h" | "cpp" | "hpp"
+        | "go" | "java" | "cs" | "rb" | "sh" | "ps1" | "bat" | "ini" | "cfg" | "sql" => {
+            "text/plain"
+        }
         "md" | "markdown" => "text/markdown",
+        // R15/F01: only a source language with a reader here gets its own type. `.py` is read
+        // with the interpreter's own `ast`, so a symbol report is possible; the rest stay
+        // text/plain rather than being named for a parser that does not exist.
+        "py" => "text/x-python",
         "csv" => "text/csv",
         "tsv" => "text/tab-separated-values",
         "json" | "canvas" => "application/json",
+        "jsonl" | "ndjson" => "application/x-ndjson",
+        "yaml" | "yml" => "application/yaml",
+        "toml" => "application/toml",
+        "epub" => "application/epub+zip",
+        // R15/F13: ODF carries its body in content.xml and RTF in its own control words, and a
+        // reader for each exists here, so naming them lets the file reach that reader instead of
+        // being refused as an unknown suffix. The legacy binary Microsoft containers stay
+        // unnamed for the same reason they were left out of the Office group.
+        "odt" => "application/vnd.oasis.opendocument.text",
+        "ods" => "application/vnd.oasis.opendocument.spreadsheet",
+        "odp" => "application/vnd.oasis.opendocument.presentation",
+        "rtf" => "application/rtf",
         "xml" => "application/xml",
         // R15/F15: a container gets the archive route, not a text decode
         "zip" => "application/zip",
-        // R15/F10-F11: the formats this repository can probe without decoding samples.
-        // mp3, m4a, flac, mkv and webm are deliberately NOT named: no reader here can
-        // read them, so a name that claims otherwise would be dispatched as noise.
+        "tar" => "application/x-tar",
+        // Name the actual container type; each capability separately limits what it reads.
+        // The video decoder accepts MKV/WebM; the limited header probe does not.
+        //
+        // The audio containers below WERE deliberately unnamed, on the grounds that no
+        // reader here could read them. That stopped being true when the ASR route was
+        // declared: `media.transcribe` has a reader for exactly these, so naming them lets
+        // a real recording reach it instead of being custody-only. They stay out of
+        // `media.probe`'s accepted types, so the probe still refuses a format it cannot
+        // read rather than reporting a header it does not understand.
         "wav" => "audio/wav",
-        "mp4" | "m4v" | "mov" => "video/mp4",
-        // R15/F07-F09: the OOXML families this repository can read; the legacy binary
-        // formats (doc, ppt, xls) are deliberately NOT named, so they stay custody-only
-        // instead of being handed to a reader that cannot open them.
+        "mp3" => "audio/mpeg",
+        "m4a" => "audio/mp4",
+        "flac" => "audio/flac",
+        "ogg" | "oga" => "audio/ogg",
+        "opus" => "audio/opus",
+        "mp4" | "m4v" => "video/mp4",
+        "mov" => "video/quicktime",
+        "mkv" => "video/x-matroska",
+        "webm" => "video/webm",
+        // R15/F07-F09: the OOXML families this repository can read. `.xls` joins them because
+        // a reader for it now exists (the declared xlrd engine); `.doc` and `.ppt` join it because
+        // external sidecars are now probed for them - and a document whose sidecar is absent fails
+        // with the engine's own named reason, which is a reported state, not a silent one.
+        // `.ppt` is named now: a JVM and Apache Tika are declared external sidecars, so the
+        // legacy binary presentation has a reader instead of staying custody-only by default.
+        // The route is the declaration; the engine is still probed and never assumed.
         "docx" => "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
         "pptx" => "application/vnd.openxmlformats-officedocument.presentationml.presentation",
         "xlsx" => "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        "xls" => "application/vnd.ms-excel",
+        "doc" => "application/msword",
+        "ppt" => "application/vnd.ms-powerpoint",
         // subtitles have their own media types, so a .srt is no longer declared as
         // plain text and cannot reach the text route by accident
         "srt" => "application/x-subrip",
@@ -184,7 +313,7 @@ pub fn media_type_for_name(name: &str) -> Option<&'static str> {
         // a saved mail message is text (RFC 822) with its own structure, which the
         // worker reports as facts. A binary .msg container is deliberately NOT named:
         // no route can read it, so it is refused instead of decoded into noise.
-        "eml" => "text/plain",
+        "eml" => "message/rfc822",
         "pdf" => "application/pdf",
         "png" => "image/png",
         "jpg" | "jpeg" | "jpe" => "image/jpeg",
@@ -204,6 +333,10 @@ pub fn resolve_media_type(kind: &str, original_name: &str) -> Result<&'static st
     let derived = media_type_for_name(original_name);
     match derived {
         Some(media) if accepted.contains(&media) => Ok(media),
+        // F04: a source whose extension names nothing is the input this route exists for, and the
+        // vendored model reads bytes rather than names. Every other route still refuses, because
+        // for them an unnameable name is a guess, not evidence.
+        None if capability == "document.detect" => Ok("application/octet-stream"),
         _ => Err(JobError::MediaTypeNotAccepted {
             kind: kind.to_string(),
             name: original_name.to_string(),
@@ -213,11 +346,45 @@ pub fn resolve_media_type(kind: &str, original_name: &str) -> Result<&'static st
     }
 }
 
+/// A split transcription request: the Core-owned root under which windows are kept.
+///
+/// Splitting is the only extra input a job may carry, and only `media.transcribe` may carry it.
+#[derive(Debug, Clone)]
+pub struct Split {
+    pub root: std::path::PathBuf,
+}
+
+impl Split {
+    /// Where one recording's finished windows are kept.
+    ///
+    /// Keyed by the input's own digest rather than by the job, because a recording too long for one
+    /// job is expected to take several: each of them is a separate job, and they must all see the
+    /// windows the earlier ones finished. Keying by job would restart the work every round.
+    pub fn windows_of(root: &std::path::Path, digest: &str) -> std::path::PathBuf {
+        root.join("windows").join(digest)
+    }
+}
+
 pub fn claim(
     conn: &mut Connection,
     job_id: &str,
     request_id: &str,
     deadline_ms: u64,
+) -> Result<Request, JobError> {
+    claim_split(conn, job_id, request_id, deadline_ms, None, false)
+}
+
+/// `claim`, with the split choice the job carries persisted in the same transaction.
+///
+/// The choice travels inside the stored `request_json`, so replay and idempotency compare against
+/// what the worker actually received rather than a shape the caller remembers.
+pub fn claim_split(
+    conn: &mut Connection,
+    job_id: &str,
+    request_id: &str,
+    deadline_ms: u64,
+    split: Option<Split>,
+    words: bool,
 ) -> Result<Request, JobError> {
     let tx = conn.transaction_with_behavior(TransactionBehavior::Immediate)?;
     let row:Option<(String,String,String,String)>=tx.query_row(
@@ -231,6 +398,15 @@ pub fn claim(
         Some((capability, _)) => capability,
         None => return Err(JobError::InvalidReceipt("undeclared job kind")),
     };
+    // R7/G1: a capability this workspace turned off is refused here, inside the claim transaction,
+    // so a disabled capability leaves no attempt row, no staging copy and no partial output behind.
+    // Checking after the worker started would make "disabled" mean "ran and was then discarded".
+    if !capability_settings::is_enabled(&tx, capability)? {
+        return Err(JobError::CapabilityDisabled {
+            capability: capability.to_string(),
+            job: job_id.to_string(),
+        });
+    }
     // the media type comes from what the file is, not from a value pinned to the kind
     let media_type = resolve_media_type(&kind, &name)?;
     let next: i64 = tx.query_row(
@@ -248,6 +424,17 @@ pub fn claim(
         deadline_ms,
     )
     .map_err(JobError::InvalidReceipt)?;
+    let request = match split {
+        Some(split) => request
+            .splitting(&Split::windows_of(&split.root, &sha).to_string_lossy())
+            .map_err(JobError::InvalidReceipt)?,
+        None => request,
+    };
+    let request = if words {
+        request.word_timings().map_err(JobError::InvalidReceipt)?
+    } else {
+        request
+    };
     tx.execute("INSERT INTO job_attempts(job_id,attempt,request_id,request_json,state) VALUES(?1,?2,?3,?4,'running')",
         rusqlite::params![job_id,next,request_id,serde_json::to_string(&request).map_err(|_|JobError::Conflict)?])?;
     tx.execute(
@@ -274,9 +461,10 @@ fn same_spans(found: &[Line], expected: &[Line]) -> bool {
 }
 
 fn identity(conn: &Connection, req: &Request) -> Result<(String, Option<String>), JobError> {
+    let attempt = i64::try_from(req.attempt).map_err(|_| JobError::Conflict)?;
     let row:Option<(String,Option<String>,String,i64)>=conn.query_row(
         "SELECT state,result_digest,request_json,(SELECT MAX(attempt) FROM job_attempts WHERE job_id=?1) FROM job_attempts WHERE job_id=?1 AND attempt=?2",
-        rusqlite::params![req.job_id,req.attempt],|r|Ok((r.get(0)?,r.get(1)?,r.get(2)?,r.get(3)?))).optional()?;
+        rusqlite::params![req.job_id,attempt],|r|Ok((r.get(0)?,r.get(1)?,r.get(2)?,r.get(3)?))).optional()?;
     let (state, digest, stored, latest) = row.ok_or(JobError::NotFound)?;
     if latest as u64 != req.attempt
         || stored != serde_json::to_string(req).map_err(|_| JobError::Conflict)?
@@ -344,6 +532,26 @@ pub fn finish(
     response: &Response,
     payloads: &[Vec<u8>],
 ) -> Result<(), JobError> {
+    finish_inner(conn, req, response, payloads, None)
+}
+
+pub fn finish_with_artifacts(
+    conn: &mut Connection,
+    req: &Request,
+    response: &Response,
+    payloads: &[Vec<u8>],
+    artifact_root: &std::path::Path,
+) -> Result<(), JobError> {
+    finish_inner(conn, req, response, payloads, Some(artifact_root))
+}
+
+fn finish_inner(
+    conn: &mut Connection,
+    req: &Request,
+    response: &Response,
+    payloads: &[Vec<u8>],
+    artifact_root: Option<&std::path::Path>,
+) -> Result<(), JobError> {
     let wire = serde_json::to_string(response).map_err(|_| JobError::Conflict)?;
     let response = decode_response(&wire, req).map_err(JobError::InvalidReceipt)?;
     if response.status != "succeeded" || payloads.len() != 3 {
@@ -397,6 +605,28 @@ pub fn finish(
         ));
     }
     let digest = hex::encode(Sha256::digest(wire.as_bytes()));
+    if req.capability == "media.video" {
+        let (state, old) = identity(conn, req)?;
+        if state == "succeeded" {
+            return if old.as_deref() == Some(&digest) {
+                Ok(())
+            } else {
+                Err(JobError::Conflict)
+            };
+        }
+        if state != "running" {
+            return Err(JobError::InvalidState);
+        }
+    }
+    let artifacts = if req.capability == "media.video" {
+        Some(crate::media_artifacts::prepare(
+            artifact_root.ok_or(JobError::InvalidReceipt("video artifact root missing"))?,
+            req,
+            &loss,
+        )?)
+    } else {
+        None
+    };
     let tx = conn.transaction_with_behavior(TransactionBehavior::Immediate)?;
     let (state, old) = identity(&tx, req)?;
     if state == "succeeded" {
@@ -409,16 +639,25 @@ pub fn finish(
     if state != "running" {
         return Err(JobError::InvalidState);
     }
-    jobs::complete_tx(&tx, &req.job_id, &loss.engine, text, Some(&loss))?;
+    let mut core_loss = loss.clone();
+    if let Some(artifacts) = artifacts {
+        let adoption = crate::media_artifacts::adopt_tx(&tx, req, &artifacts)?;
+        core_loss
+            .params
+            .as_object_mut()
+            .ok_or(JobError::InvalidReceipt("loss params must be object"))?
+            .insert("core_artifact_adoption".into(), adoption);
+    }
+    jobs::complete_tx(&tx, &req.job_id, &loss.engine, text, Some(&core_loss))?;
     if req.capability == "canvas.structure" {
         persist_canvas_projection(&tx, &req.job_id, &loss.params)?;
     }
     for (output, content) in response.outputs.iter().zip(strings) {
         tx.execute("INSERT INTO job_outputs(job_id,attempt,kind,metadata_json,content) VALUES(?1,?2,?3,?4,?5)",
-            rusqlite::params![req.job_id,req.attempt,output.kind,serde_json::to_string(output).map_err(|_|JobError::Conflict)?,content])?;
+            rusqlite::params![req.job_id,i64::try_from(req.attempt).map_err(|_|JobError::Conflict)?,output.kind,serde_json::to_string(output).map_err(|_|JobError::Conflict)?,content])?;
     }
     tx.execute("UPDATE job_attempts SET state='succeeded',response_json=?1,result_digest=?2,completed_at=datetime('now') WHERE job_id=?3 AND attempt=?4",
-        rusqlite::params![wire,digest,req.job_id,req.attempt])?;
+        rusqlite::params![wire,digest,req.job_id,i64::try_from(req.attempt).map_err(|_|JobError::Conflict)?])?;
     tx.commit()?;
     Ok(())
 }
@@ -506,7 +745,10 @@ pub fn terminate(
     if state == status {
         let old: Option<String> = tx.query_row(
             "SELECT error FROM job_attempts WHERE job_id=?1 AND attempt=?2",
-            rusqlite::params![req.job_id, req.attempt],
+            rusqlite::params![
+                req.job_id,
+                i64::try_from(req.attempt).map_err(|_| JobError::Conflict)?
+            ],
             |r| r.get(0),
         )?;
         return if old.as_deref() == Some(error) {
@@ -519,7 +761,7 @@ pub fn terminate(
         return Err(JobError::InvalidState);
     }
     tx.execute("UPDATE job_attempts SET state=?1,error=?2,completed_at=datetime('now') WHERE job_id=?3 AND attempt=?4",
-        rusqlite::params![status,error,req.job_id,req.attempt])?;
+        rusqlite::params![status,error,req.job_id,i64::try_from(req.attempt).map_err(|_|JobError::Conflict)?])?;
     tx.execute(
         "UPDATE jobs SET state=?1,loss_receipt=?2,completed_at=datetime('now') WHERE job_id=?3",
         rusqlite::params![

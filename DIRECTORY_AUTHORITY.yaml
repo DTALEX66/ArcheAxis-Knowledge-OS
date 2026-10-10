@@ -73,6 +73,14 @@ authorities:
     write_mode: serial-grant
     note: R5 exact-path ownership; changes still require the applicable owner scope.
     protected_resource: repository-metadata
+  - path: AUTHORITY.md
+    owner: repository-governance
+    execution_lane: owner
+    write_mode: serial-grant
+    note: Root navigational entry (2026-10-06). It routes a reader to the current task pack, the live
+      progress record and the audit index; it is not a second source of truth, and its references are
+      checked by scripts/ci/check_document_authority.py.
+    protected_resource: repository-metadata
   - path: CHANGELOG.md
     owner: repository-governance
     execution_lane: owner
@@ -566,6 +574,80 @@ ignored_local_roots:
   - .project-local/tmp/
   - .project-local/logs/
   - .project-local/artifacts/
+  # evidence roots: large run/recovery archives kept in the ignored development root, of
+  # which only a manifest + hash + verification entry is tracked (ownership class run-evidence)
+  - .project-local/recovery/
+  - .project-local/mig/
+ownership_classes:
+  note: >
+    Four classes decide where a path may live and what may be committed about it. They are
+    declared here because this file is where the repository already classifies paths; each
+    class names the machinery that carries it and the condition that fails it, so the next
+    round of sprawl is refused by a checker rather than remembered by a person. No class is
+    enforced by prose.
+  classes:
+    - id: source-contract-index
+      name: source, contracts and lightweight indexes held in Git
+      carried_by:
+        - authorities (every non-deny rule in this file)
+        - scripts/check_path_conventions.py
+      machine_predicate: >
+        every tracked path resolves to exactly one owned authority rule under the declared
+        precedence
+      fails_when: a tracked path is unowned, matches ambiguously, or matches a deny-commit rule
+    - id: run-evidence
+      name: >
+        large run evidence and archives in the ignored project artifact root; only
+        manifest + hash + verification entry is tracked
+      carried_by:
+        - .project-local/** (write_mode deny-commit)
+        - ignored_local_roots (.project-local/runs/, artifacts/, recovery/, mig/)
+        - .gitignore (.project-local/)
+      machine_predicate: no file under an ignored evidence root is tracked by Git
+      fails_when: any path under .project-local/ appears in git ls-files
+    - id: rebuildable-cache
+      name: rebuildable cache, environment and build output, never committed
+      carried_by:
+        - .gitignore (node_modules/, .venv/, build/, dist/, __pycache__/, *.egg-info/)
+        - ignored_local_roots (.project-local/cache/, build/, tmp/, logs/)
+        - shared_resource_install_rules (below)
+      machine_predicate: >
+        a shared install exists once per dependency lock and is reached from every other
+        worktree through a link, never copied
+      fails_when: >
+        copied_shared_resources() finds more than one real copy of the same lock file across
+        worktrees that are clean and fully merged into the checked-out baseline
+    - id: shared-by-declaration
+      name: shared tools and models resolved by declaration only, never copied
+      carried_by:
+        - docs/SHARED_RESOURCE_PATH_INDEX.md
+        - scripts/maintenance/check_resource_boundaries.py
+        - config/environment/external-resources-index.json
+      machine_predicate: >
+        each indexed resource resolves to exactly one canonical absolute path, outside E:/F:,
+        that is a real directory and not a reparse point
+      fails_when: >
+        check_resource_boundaries.py reports drift, a missing root, or a reparse point, or a
+        declared shared resource is copied inside the project
+shared_resource_install_rules:
+  semantics: >
+    one real copy per dependency lock across the clean-and-merged worktree set; every other
+    worktree reaches the same bytes through a link. Removing a link must use
+    `cmd /c rmdir <path>`: a recursive delete follows the link into the shared target.
+  development_root: .project-local/worktrees
+  shared_install_paths:
+    - relative_path: frontend/node_modules
+      lock_file: frontend/package-lock.json
+      # npm writes the installed tree's own identity inside the install. Two copies are the
+      # same shared install only when the lock AND this identity agree: package-lock alone
+      # conflated a hand-assembled install with a `npm ci` one, and swapping that junction
+      # would have silently changed the worktree's dependency content.
+      installed_tree_identity: frontend/node_modules/.package-lock.json
+  exempt_when:
+    - the worktree is not clean
+    - the worktree HEAD is not an ancestor of the checked-out baseline
+  checker: scripts/check_path_conventions.py::copied_shared_resources
+
 coordination_state:
   same_machine_backend: git-common-dir/archeaxis-agent/state.sqlite
   tracked: false

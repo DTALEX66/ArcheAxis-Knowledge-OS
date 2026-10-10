@@ -92,6 +92,7 @@ fn answered_assessment_persists_fsrs_and_explicitly_open_mastery_projection() {
             "canonical-1",
             Some("learner observation"),
             Some(&assessment.assessment_id),
+            None,
             |_| Ok(fsrs_schedule()),
         )
         .unwrap();

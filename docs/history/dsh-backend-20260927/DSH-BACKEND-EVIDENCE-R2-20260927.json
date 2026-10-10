@@ -1,0 +1,187 @@
+{
+  "schema": "archeaxis.dsh.backend-evidence/v1",
+  "round": 2,
+  "recorded_at": "2026-09-27T15:25:00+08:00",
+  "supersedes": "docs/current/DSH-BACKEND-EVIDENCE-20260927.json (round 1) for source-identity claims only",
+  "note": "Round 1 is kept unrewritten as its own record. Its claim that the M0 positive, the receipt positive and the affected regressions were bound to 69a3baed is corrected here with the measured per-run dirty flags.",
+  "baseline": {
+    "repository": "D:\\All projects\\ArcheAxis-Knowledge-OS",
+    "backend_branch": "dsh/backend-20260927",
+    "backend_worktree": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\worktrees\\dsh-backend-20260927",
+    "authorization_baseline": "69a3baed13be061f2f8283c6efd4b0e5e80c4d23",
+    "round2_head": "ee015075fe403b37e2f16f3ba9c285fcfa5c53ef",
+    "round2_tree": "857a2513a30ca25e9ea69b053d1a579cbd6ea3f0",
+    "pushed": false,
+    "root_checkout_touched": false,
+    "root_checkout_state": "1 tracked modification (apps/ArcheAxis.Desktop/MainWindow.axaml.cs, mtime 2026-09-26 22:02, predates this session) + 24 untracked docs/history entries; both stashes intact"
+  },
+  "write_set": {
+    "files": [
+      "crates/archeaxis-api/tests/v01_journey.rs",
+      "scripts/ci/check_vnext_receipt.py",
+      "scripts/probes/m0_full_loop_smoke.py",
+      "scripts/runtime/dev.py",
+      "tests/runtime-paths/test_vnext_receipt.py",
+      "docs/current/DSH-BACKEND-GAP-MAP-20260927.md",
+      "docs/history/dsh-backend-20260927/DSH-BACKEND-EVIDENCE-R2-20260927.json"
+    ],
+    "apps_touched": false,
+    "main_window_axaml_cs_touched": false
+  },
+  "identity_correction": {
+    "finding": "The journey receipt recorded only source_commit, so a run against HEAD plus an uncommitted patch asserted a committed identity. The gate accepted it.",
+    "measured": [
+      {"run": "5f6db1c05e1c", "commit": "69a3baed13be061f2f8283c6efd4b0e5e80c4d23", "dirty": false, "tested": "69a3baed"},
+      {"run": "b06fe548b448", "commit": "69a3baed13be061f2f8283c6efd4b0e5e80c4d23", "dirty": false, "tested": "69a3baed"},
+      {"run": "7c87cb2bd173", "commit": "69a3baed13be061f2f8283c6efd4b0e5e80c4d23", "dirty": false, "tested": "69a3baed"},
+      {"run": "dsh-local-receipt-1", "commit": "69a3baed13be061f2f8283c6efd4b0e5e80c4d23", "dirty": true, "tested": "69a3baed + uncommitted patch"},
+      {"run": "dsh-m0-loop-1", "commit": "69a3baed13be061f2f8283c6efd4b0e5e80c4d23", "dirty": true, "tested": "69a3baed + uncommitted patch"},
+      {"run": "dsh-m0-loop-2", "commit": "69a3baed13be061f2f8283c6efd4b0e5e80c4d23", "dirty": true, "tested": "69a3baed + uncommitted patch"},
+      {"run": "dsh-m0-loop-3", "commit": "69a3baed13be061f2f8283c6efd4b0e5e80c4d23", "dirty": true, "tested": "69a3baed + uncommitted patch"},
+      {"run": "dsh-post-format2", "commit": "69a3baed13be061f2f8283c6efd4b0e5e80c4d23", "dirty": true, "tested": "69a3baed + uncommitted patch"},
+      {"run": "c85d391a3f03", "commit": "69a3baed13be061f2f8283c6efd4b0e5e80c4d23", "dirty": true, "tested": "69a3baed + uncommitted patch"},
+      {"run": "d51f234899d4", "commit": "69a3baed13be061f2f8283c6efd4b0e5e80c4d23", "dirty": true, "tested": "69a3baed + uncommitted patch"},
+      {"run": "dsh-post-format", "commit": "69a3baed13be061f2f8283c6efd4b0e5e80c4d23", "dirty": true, "tested": "69a3baed + uncommitted patch", "exit_code": 101},
+      {"run": "2df5e12b4334", "commit": "9d7a19d0be", "dirty": false, "tested": "9d7a19d0"}
+    ],
+    "checked_for": {
+      "dev_resolves_git_identity_from_wrong_worktree": "no - dev.py validates git rev-parse --show-toplevel == root and passes -C root; confirmed by run_root carrying this worktree's identity hash and cargo_test printing repo=<worktree>",
+      "child_cwd": "paths['root'] (the worktree)",
+      "old_build_directory_binary": "no - the M0 probe's binary path resolves under this worktree and the built exe was rebuilt from it; its sha256 is now recorded in the receipt",
+      "inherited_old_run_identity": "not observed; each run allocates an exclusive run directory and ARCHEAXIS_RUN_ROOT is set per run",
+      "env_file_vs_environment_conflict": "this was the real hole - an already-set operator value silently won; now refused",
+      "receipt_commit_merely_caller_supplied": "confirmed and fixed"
+    },
+    "fix": {
+      "dev_py": ["worktree_identity() over git diff HEAD --binary plus untracked non-ignored files", "exports ARCHEAXIS_SOURCE_DIRTY, ARCHEAXIS_SOURCE_PATCH_SHA256, ARCHEAXIS_SOURCE_TREE, ARCHEAXIS_WORKTREE_ROOT", "execution.json records dirty, source_patch_sha256, worktree_root", "--require-worktree PATH refuses to run against any other checkout"],
+      "receipt": "schema_version 3 carries source_tree, source_dirty, source_patch_sha256, worktree_root",
+      "gate": ["each guard raises its own reason", "working state and patch digest are bound", "identity disagreement between environment and run file is refused, not resolved", "clean runs print committed <sha>; dirty runs print UNCOMMITTED and state it is not a committed-source qualification"]
+    }
+  },
+  "results": [
+    {
+      "id": "round2-rust-workspace",
+      "claim": "Full vNext Rust workspace passes on the clean committed source",
+      "commit": "ee015075fe403b37e2f16f3ba9c285fcfa5c53ef",
+      "command": "dev.py --require-worktree <wt> -- scripts/ci/cargo_test.bat test --workspace --offline --no-fail-fast",
+      "passed": 240, "failed": 0, "exit_code": 0, "status": "TESTED_LOCAL"
+    },
+    {
+      "id": "round2-receipt-positive-clean",
+      "claim": "The gate accepts a same-run receipt that binds a committed source",
+      "commit": "ee015075fe403b37e2f16f3ba9c285fcfa5c53ef",
+      "stdout": "vNext current-run in-process journey receipt PASS (committed ee015075fe40) (not installed qualification)",
+      "receipt": {"schema_version": 3, "source_dirty": false, "source_patch_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855", "total_steps": 12, "all_steps_PASS": true},
+      "exit_code": 0, "status": "TESTED_LOCAL"
+    },
+    {
+      "id": "round2-receipt-negatives-live",
+      "claim": "Identity misuse is refused in live runs, each with its own reason",
+      "cases": [
+        {"case": "clean run mislabelled dirty", "stdout": "run identity conflict (refused, not resolved): ARCHEAXIS_SOURCE_DIRTY: environment='1' run-file='0'", "exit_code": 1},
+        {"case": "environment vs run-file commit conflict", "stdout": "run identity conflict (refused, not resolved): ARCHEAXIS_SOURCE_COMMIT: environment='0000...' run-file='ee015075...'", "exit_code": 1},
+        {"case": "legacy v2 receipt", "stdout": "receipt schema_version 2 is not 3; it cannot bind the tested working state", "exit_code": 1}
+      ],
+      "status": "TESTED_LOCAL"
+    },
+    {
+      "id": "round2-m0-clean",
+      "claim": "The 26-stage M0 loop closes on the clean committed source with full artefact identity",
+      "commit": "ee015075fe403b37e2f16f3ba9c285fcfa5c53ef",
+      "run_id": "r2-m0-clean",
+      "receipt": ".project-local/worktrees/dsh-backend-20260927/.project-local/m0loop/b427ee72/m0-loop-receipt.json",
+      "ok": true, "chain_stages_verified": true, "fsrs_schedule_observed": true, "stages": 26,
+      "core_binary_sha256": "ce3d8a3e6dc013bd3db59724dd5570e7de07bf093bb64a6bf674d8de2a3d7717",
+      "source": {"dirty": false, "worktree_root": ".project-local/worktrees/dsh-backend-20260927", "identity_recorded": true},
+      "schedule_authority": {"learning_event": "placeholder_ladder", "answer_recorded": "fsrs"},
+      "exit_code": 0, "status": "TESTED_LOCAL"
+    },
+    {
+      "id": "round2-runtime-paths",
+      "claim": "The receipt gate contract, the worktree guard and the launcher paths hold",
+      "command": "dev.py --require-worktree <wt> --pytest -- tests/runtime-paths/ -q",
+      "passed": 47, "subtests_passed": 9, "exit_code": 0, "status": "TESTED_LOCAL",
+      "note": "Two existing dev_paths tests failed when worktree_identity() bypassed the module's single git() boundary and reached the real repository through subprocess.run; reusing git() fixed them without editing those tests."
+    },
+    {
+      "id": "round2-worktree-guard",
+      "claim": "Running against the wrong checkout is refused, not merely discouraged",
+      "command": "dev.py --root <worktree> --require-worktree <repo root> -- echo",
+      "stdout": "development environment failed: worktree guard: resolved root <worktree> is not the required <repo root>",
+      "exit_code": 2, "status": "TESTED_LOCAL"
+    },
+    {
+      "id": "round2-wheel-build",
+      "claim": "A backend wheel is built from the committed source",
+      "commit": "ee015075fe403b37e2f16f3ba9c285fcfa5c53ef",
+      "backend": "setuptools==83.0.0 via its PEP 517 build_meta (the pinned [build-system].requires)",
+      "uv_available": false,
+      "wheel": "archeaxis_workspace-0.6.14-py3-none-any.whl",
+      "wheel_sha256": "a97d326127e3d5b7e49710d671626853376649e24a7de84d09d33b918aebbfc4",
+      "wheel_bytes": 728030,
+      "members": 367,
+      "missing_required_members": [],
+      "forbidden_members": [],
+      "metadata": {"Name": "archeaxis-workspace", "Version": "0.6.14", "Requires-Python": ">=3.11", "entry_points": "archeaxis = app.cli:main", "Requires_Dist_count": 36},
+      "status": "TESTED_LOCAL"
+    },
+    {
+      "id": "round2-installed-run",
+      "claim": "The wheel installs and runs outside the source checkout with no source shadowing",
+      "isolated_root": "D:\\All projects\\AAOS-DSH-WHEEL-QUAL\\ee015075",
+      "venv": "created from the uv-managed base interpreter, outside the checkout",
+      "shadowing_check": {"app": "<isolated venv>/Lib/site-packages/app/__init__.py", "shared": "<isolated venv>/Lib/site-packages/shared/__init__.py", "config": "<isolated venv>/Lib/site-packages/config/__init__.py", "checkout_shadowing": "NONE"},
+      "pre_existing_hazard_found": "the project .venv carries an editable install pointing at the ROOT checkout (__editable__.archeaxis_workspace-0.6.14.pth); it was kept out of the isolated environment",
+      "migrate": {"exit_code": 0, "created_bytes": 999424, "owners_applied": 6},
+      "migrate_idempotent": {"exit_code": 0, "reapplied": false, "note": "second run reports the same recorded_at timestamps and identical database fingerprints; no new backups"},
+      "cli_health": {"exit_code": 0},
+      "installed_readback": {"tables": 97, "has_kb_attachment_facts": true, "integrity_check": "ok", "foreign_key_violations": 0, "recorded_migration_runs": 6, "schema_baseline": "python_compatibility"},
+      "dependency_provision": "supplied from the already-approved local project environment through a plain-path .pth (no downloads); a fully dependency-resolved install needs uv export, and uv is not installed on this host",
+      "release_manifest_source_commit": "unavailable",
+      "release_manifest_note": "by design: release_inject_identity.py states the tracked manifest stays unavailable and only a release artefact receives real identity, which needs a tag, Release URL and CI run. Release is FROZEN, so no release identity was fabricated. The candidate's source identity is carried by this qualification record.",
+      "remaining_gap": "services/python-workers/** is not a wheel member, so the full M0 loop cannot yet be driven from the wheel alone",
+      "status": "TESTED_LOCAL"
+    },
+    {
+      "id": "round2-owner-db",
+      "claim": "The Owner's live database is inside the supported upgrade range",
+      "method": "consistent SQLite online-backup copy (source opened mode=ro); MigrationOperator.apply('core.sqlite') on the copy only",
+      "source_sha256": "6dc8d49c386d6c7c9d7d70613d03f50764e2d9a13fcc72f816bf1da04769811a",
+      "before": "validate -> RuntimeError, missing table:kb_attachment_facts and index:idx_kb_attachment_facts_source_path",
+      "after": "state=applied, validate accepted, missing objects 2 -> 0",
+      "source_unchanged": true,
+      "withdrawn_claim": "round 1 stated the 36-row measurement refutes a historical zero-row claim. Without the same snapshot and counting convention that comparison is not established, so it is withdrawn to '36 rows in this snapshot'.",
+      "failed_apply_record": {"recorded_at": "2026-09-27T05:40:12Z", "owner": "core.sqlite", "state": "failed", "attribution": "UNKNOWN - no command receipt identifies the caller; not attributed to any agent"},
+      "status": "TESTED_LOCAL on the copy; the Owner's original was not written"
+    },
+    {
+      "id": "round2-mastery-semantics",
+      "claim": "mastery_projection.closed=false is a contract-declared reserved state, not an unimplemented completion flag",
+      "anchor": "crates/archeaxis-domain/src/learning.rs:144-157",
+      "quote": "A rebuildable learner-state projection. It is deliberately marked open: review observations and FSRS scheduling do not establish Knowledge truth or a closed mastery claim.",
+      "consequence": "Setting it to true would violate the canonical writer's stated contract; the missing capability is an approved mastery-claim contract (A08 scope: what evidence closes mastery), not a boolean",
+      "status": "STRUCTURAL"
+    }
+  ],
+  "not_executed": [
+    "Real corpus per-format acceptance",
+    "Real model or provider inference",
+    "GUI / UIA / keyboard / DPI replay (Codex-owned)",
+    "Owner live-database upgrade",
+    "Remote push or CI trigger for this branch",
+    "Green runtime replacement",
+    "Vector / hybrid / graph retrieval",
+    "Research implementation"
+  ],
+  "owner_decisions_pending": [
+    "A02 resource-root / schema semantics",
+    "P0-H01 Provider/Host identity and lifecycle D1-D6",
+    "DP-F01 typed loss receipt D1-D5",
+    "DP-A11 / Research D1-D5 and DTO freeze",
+    "Authorisation to apply the verified baseline repair to the Owner's live database",
+    "Authorisation for remote push / CI trigger",
+    "Authorisation for Green replacement and release unfreeze",
+    "Authorisation and resources for real corpus and real model/provider calls",
+    "Whether services/python-workers/** belongs in the packaged wheel"
+  ]
+}

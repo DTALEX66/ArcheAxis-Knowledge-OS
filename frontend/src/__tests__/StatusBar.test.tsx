@@ -1,13 +1,16 @@
 import { describe, expect, it } from "vitest";
 import { render, screen, within } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import { StatusBar } from "../components/StatusBar";
+import { ThemeProvider } from "../design-system/ThemeProvider";
+import { AAOS_THEME_REGISTRY } from "../design-system/theme";
 
 // AXW-UI-804: StatusBar — product name, active space, text-bearing status badge.
 describe("StatusBar", () => {
   it("renders the product name and the current space in a banner landmark", () => {
     render(<StatusBar activeSpace="library" backendState="available" />);
     const banner = screen.getByRole("banner");
-    expect(within(banner).getByText("星环知识")).toBeInTheDocument();
+    expect(within(banner).getByText("星环知识平台")).toBeInTheDocument();
     expect(screen.getByLabelText("当前空间")).toHaveTextContent("资料库");
   });
 
@@ -17,6 +20,8 @@ describe("StatusBar", () => {
     expect(badge).toBeInTheDocument();
     expect(badge.textContent?.trim()).not.toBe("");
     expect(badge).toHaveAttribute("data-status", "pending");
+    // The transient backend label is the one thing a non-visual user must hear change.
+    expect(badge).toHaveAttribute("role", "status");
   });
 
   it("renders a persistent text DEV marker only for explicit external development", () => {
@@ -35,7 +40,7 @@ describe("StatusBar", () => {
     render(<StatusBar activeSpace="workspace" backendState="unavailable" />);
 
     expect(screen.getByText("后端状态：不可用")).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "打开全局命令" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "打开全局命令" })).toHaveAttribute("aria-keyshortcuts", "Control+K");
     expect(screen.queryByRole("button", { name: /重试后端|进入安全模式|恢复备份/ })).not.toBeInTheDocument();
   });
 
@@ -45,5 +50,28 @@ describe("StatusBar", () => {
     const badge = screen.getByText(/浏览器开发模式/);
     expect(badge).toHaveAttribute("data-status", "development");
     expect(screen.queryByText("后端状态：本地可用")).not.toBeInTheDocument();
+  });
+
+  it("switches the root theme and the rendered AAOS brand asset together", async () => {
+    const preferenceKey = "aaos.ui.theme.v1";
+    const previousPreference = window.localStorage.getItem(preferenceKey);
+    window.localStorage.removeItem(preferenceKey);
+    const user = userEvent.setup();
+    try {
+      render(<ThemeProvider><StatusBar activeSpace="workspace" backendState="web" /></ThemeProvider>);
+      const picker = screen.getByRole("combobox", { name: "界面主题" });
+      const mark = document.querySelector<HTMLImageElement>(".status-bar-brand img");
+      expect(mark).not.toBeNull();
+
+      for (const id of ["black", "white", "cosmic"] as const) {
+        await user.selectOptions(picker, id);
+        expect(document.documentElement.dataset.aaosTheme).toBe(id);
+        expect(mark!.getAttribute("src")).toBe(AAOS_THEME_REGISTRY[id].brandMark);
+      }
+    } finally {
+      if (previousPreference === null) window.localStorage.removeItem(preferenceKey);
+      else window.localStorage.setItem(preferenceKey, previousPreference);
+      delete document.documentElement.dataset.aaosTheme;
+    }
   });
 });

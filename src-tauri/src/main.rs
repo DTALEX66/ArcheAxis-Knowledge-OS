@@ -1,6 +1,53 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
 #[cfg(windows)]
+mod core_bridge;
+
+// An explicit, process-local automation opt-in. WebView2 150+ ignores its
+// environment switch overrides for elevated hosts; pass only a validated
+// loopback debugging port through the native API. Ordinary launches omit it.
+#[cfg(windows)]
+fn webdriver_browser_args(port: Option<&str>) -> Result<Option<String>, &'static str> {
+    let Some(port) = port else { return Ok(None) };
+    if port.is_empty() || !port.bytes().all(|byte| byte.is_ascii_digit()) {
+        return Err("WEBDRIVER_CDP_PORT_INVALID");
+    }
+    let port = port
+        .parse::<u16>()
+        .map_err(|_| "WEBDRIVER_CDP_PORT_INVALID")?;
+    if port < 1024 {
+        return Err("WEBDRIVER_CDP_PORT_INVALID");
+    }
+    Ok(Some(format!(
+        "--remote-debugging-port={port} --remote-debugging-address=127.0.0.1"
+    )))
+}
+
+#[cfg(all(test, windows))]
+mod webdriver_browser_args_tests {
+    #[test]
+    fn ordinary_launch_has_no_debugging_and_opt_in_is_loopback_only() {
+        assert_eq!(super::webdriver_browser_args(None), Ok(None));
+        assert_eq!(
+            super::webdriver_browser_args(Some("43123")),
+            Ok(Some(
+                "--remote-debugging-port=43123 --remote-debugging-address=127.0.0.1".into()
+            ))
+        );
+        for invalid in [
+            "",
+            "0",
+            "1023",
+            "65536",
+            "-1",
+            "43123 --remote-debugging-address=0.0.0.0",
+            " 43123",
+        ] {
+            assert!(super::webdriver_browser_args(Some(invalid)).is_err());
+        }
+    }
+}
+#[cfg(windows)]
 #[path = "recovery.rs"]
 mod recovery;
 
@@ -258,7 +305,7 @@ mod protocol;
 mod runtime;
 
 #[cfg(windows)]
-use backend::{run_restore_backup, BackendProcess};
+use backend::{run_restore_backup, BackendProcess, CoreSpec};
 #[cfg(windows)]
 use recovery::{
     enumerate_backups, stage_backup_for_restore, validate_enumerated_backup_name, EnumeratedBackup,
@@ -287,6 +334,14 @@ const RECOVERY_BACKUP_INVALID: &str = "RECOVERY_BACKUP_INVALID";
 const RECOVERY_RESTORE_FAILED: &str = "RECOVERY_RESTORE_FAILED";
 #[cfg(windows)]
 const RECOVERY_BACKUP_SELECTION_REJECTED: &str = "Backup selection was rejected";
+
+#[cfg(windows)]
+fn launch_product_backend(runtime: &runtime::RuntimeSpec) -> Result<BackendProcess, String> {
+    match CoreSpec::beside_runtime(runtime) {
+        Some(spec) => BackendProcess::launch_core(&spec),
+        None => BackendProcess::launch(runtime),
+    }
+}
 
 #[cfg(windows)]
 #[derive(Clone)]
@@ -323,9 +378,7 @@ struct DesktopBackend {
 #[cfg(windows)]
 #[derive(Serialize)]
 struct BackendInfo {
-    port: u16,
-    token: String,
-    scopes: Vec<String>,
+    ready: bool,
 }
 
 #[cfg(windows)]
@@ -456,11 +509,66 @@ fn backend_info(state: State<'_, DesktopBackend>) -> Result<Option<BackendInfo>,
         .process
         .lock()
         .map_err(|_| RECOVERY_STATE_UNAVAILABLE.to_owned())?;
-    Ok(backend.as_ref().map(|process| BackendInfo {
-        port: process.port,
-        token: process.token.clone(),
-        scopes: vec!["workspace:write".to_owned()],
-    }))
+    Ok(backend.as_ref().map(|_| BackendInfo { ready: true }))
+}
+
+#[cfg(windows)]
+#[tauri::command]
+async fn core_command(
+    state: State<'_, DesktopBackend>,
+    request: core_bridge::Request,
+) -> Result<core_bridge::Reply, String> {
+    let state = state.inner().clone();
+    tauri::async_runtime::spawn_blocking(move || {
+        // Concurrent reader commands share a brief state refresh. Wait for that
+        // refresh instead of treating ordinary parallel reads as recovery work.
+        let operation = state
+            .operations
+            .lock()
+            .map_err(|_| RECOVERY_STATE_UNAVAILABLE.to_owned())?;
+        refresh_backend_state(&state)?;
+        let save_export = matches!(
+            request.operation,
+            core_bridge::Operation::DocumentExportSave
+        );
+        // Keep an export bound to the same workspace through both fetch and publication.
+        let (port, token) = {
+            let backend = state
+                .process
+                .lock()
+                .map_err(|_| RECOVERY_STATE_UNAVAILABLE)?;
+            let process = backend.as_ref().ok_or(RECOVERY_RUNTIME_UNAVAILABLE)?;
+            (process.port, process.token.clone())
+        };
+        let _export_operation = if save_export {
+            Some(operation)
+        } else {
+            drop(operation);
+            None
+        };
+        let reply = core_bridge::execute(port, &token, request)?;
+        {
+            let backend = state
+                .process
+                .lock()
+                .map_err(|_| RECOVERY_STATE_UNAVAILABLE)?;
+            if backend
+                .as_ref()
+                .is_none_or(|process| process.port != port || process.token != token)
+            {
+                return Err("CORE_WORKSPACE_CHANGED".into());
+            }
+        }
+        if save_export {
+            let runtime = current_runtime(&state)?.ok_or(RECOVERY_RUNTIME_UNAVAILABLE)?;
+            let body = core_bridge::save_export(&runtime.data_dir, &reply)?;
+            Ok(core_bridge::Reply { status: 200, body })
+        } else {
+            Ok(reply)
+        }
+    })
+    .await
+    .map_err(|_| RECOVERY_STATE_UNAVAILABLE.to_owned())?
 }
 
 #[cfg(windows)]
@@ -475,6 +583,11 @@ async fn retry_backend(state: State<'_, DesktopBackend>) -> Result<BackendInfo, 
 #[cfg(windows)]
 fn retry_backend_blocking(state: DesktopBackend) -> Result<BackendInfo, String> {
     let _operation = try_operation_guard(&state)?;
+    retry_backend_unlocked(state.clone())
+}
+
+#[cfg(windows)]
+fn retry_backend_unlocked(state: DesktopBackend) -> Result<BackendInfo, String> {
     refresh_backend_state(&state)?;
     if let Some(existing) = state
         .process
@@ -482,11 +595,8 @@ fn retry_backend_blocking(state: DesktopBackend) -> Result<BackendInfo, String> 
         .map_err(|_| RECOVERY_STATE_UNAVAILABLE.to_owned())?
         .as_ref()
     {
-        return Ok(BackendInfo {
-            port: existing.port,
-            token: existing.token.clone(),
-            scopes: vec!["workspace:write".to_owned()],
-        });
+        let _ = existing;
+        return Ok(BackendInfo { ready: true });
     }
     state
         .recovery
@@ -523,18 +633,14 @@ fn retry_backend_blocking(state: DesktopBackend) -> Result<BackendInfo, String> 
             }
         }
     };
-    let launched = match BackendProcess::launch(&runtime) {
+    let launched = match launch_product_backend(&runtime) {
         Ok(process) => process,
         Err(error) => {
             record_failure(&state, &error);
             return Err(RECOVERY_RETRY_FAILED.to_owned());
         }
     };
-    let info = BackendInfo {
-        port: launched.port,
-        token: launched.token.clone(),
-        scopes: vec!["workspace:write".to_owned()],
-    };
+    let info = BackendInfo { ready: true };
     *state
         .process
         .lock()
@@ -615,8 +721,18 @@ fn restore_backup_blocking(
     name: String,
 ) -> Result<RestoreReceiptDto, String> {
     let _operation = try_operation_guard(&state)?;
-    let runtime =
-        current_runtime(&state)?.ok_or_else(|| RECOVERY_RUNTIME_UNAVAILABLE.to_owned())?;
+    restore_backup_checked(state.clone(),name,None)
+}
+
+#[cfg(windows)]
+// Caller must hold state.operations throughout restore and optional restart/readback.
+fn restore_backup_checked(state: DesktopBackend, name: String, expected: Option<String>) -> Result<RestoreReceiptDto,String> {
+    let runtime = current_runtime(&state)?.ok_or_else(|| RECOVERY_RUNTIME_UNAVAILABLE.to_owned())?;
+    if expected.is_some() && (runtime.external_dev || CoreSpec::beside_runtime(&runtime).is_none()) {return Err("WORKSPACE_RESTORE_REQUIRES_OWNED_CANONICAL_CORE".into());}
+    if let Some(ref sha) = expected {
+        let id=name.strip_suffix(".sqlite").ok_or(RECOVERY_BACKUP_INVALID)?;
+        workspace_preview_blocking(&state,id,sha)?;
+    }
     let backups = enumerate_backups(&runtime.data_dir).map_err(|error| {
         if let Ok(mut recovery) = state.recovery.lock() {
             recovery.record_diagnostic(&error);
@@ -666,10 +782,14 @@ fn restore_backup_blocking(
         record_invalid_backup_selection(&state);
         return Err(RECOVERY_BACKUP_INVALID.to_owned());
     }
-    let staged = stage_backup_for_restore(&runtime.data_dir, &selected).map_err(|_| {
+    let mut staged = stage_backup_for_restore(&runtime.data_dir, &selected).map_err(|_| {
         record_invalid_backup_selection(&state);
         RECOVERY_BACKUP_INVALID.to_owned()
     })?;
+    if let Some(ref expected) = expected {
+        let id=name.strip_suffix(".sqlite").ok_or(RECOVERY_BACKUP_INVALID)?;
+        staged.seal_for_canonical_restore(id,expected).map_err(|_|RECOVERY_BACKUP_INVALID.to_owned())?;
+    }
     staged.revalidate_for_restore().map_err(|_| {
         record_invalid_backup_selection(&state);
         RECOVERY_BACKUP_INVALID.to_owned()
@@ -690,6 +810,49 @@ fn restore_backup_blocking(
             Err(RECOVERY_RESTORE_FAILED.to_owned())
         }
     }
+}
+
+
+#[cfg(windows)]
+fn workspace_preview_blocking(state:&DesktopBackend, backup_id:&str, expected_sha256:&str) -> Result<serde_json::Value,String> {
+    if backup_id.len()!=32 || expected_sha256.len()!=64 || !backup_id.bytes().chain(expected_sha256.bytes()).all(|b|b.is_ascii_digit()||(b'a'..=b'f').contains(&b)) { return Err(RECOVERY_BACKUP_INVALID.into()); }
+    let (port,token)={ let process=state.process.lock().map_err(|_|RECOVERY_STATE_UNAVAILABLE)?; let process=process.as_ref().ok_or(RECOVERY_RUNTIME_UNAVAILABLE)?; (process.port,process.token.clone()) };
+    let reply=core_bridge::execute(port,&token,core_bridge::Request{operation:core_bridge::Operation::WorkspaceRestorePreview,payload:serde_json::json!({"body":{"backup_id":backup_id,"expected_sha256":expected_sha256}})})?;
+    if reply.status!=200 || reply.body["schema"]!="archeaxis.workspace-restore-preview/v2" || reply.body["backup_id"]!=backup_id || reply.body["sha256"]!=expected_sha256 || reply.body["verified"]!=true || reply.body["compatible"]!=true {return Err("WORKSPACE_RESTORE_PREFLIGHT_REJECTED".into());}
+    Ok(reply.body)
+}
+
+#[cfg(windows)]
+#[tauri::command]
+async fn workspace_restore_preview(window:tauri::Window, state:State<'_,DesktopBackend>, backup_id:String, expected_sha256:String) -> Result<serde_json::Value,String> {
+    if window.label()!="main" {return Err("WORKSPACE_RESTORE_WINDOW_FORBIDDEN".into());}
+    let state=state.inner().clone();
+    tauri::async_runtime::spawn_blocking(move||{let _guard=try_operation_guard(&state)?; workspace_preview_blocking(&state,&backup_id,&expected_sha256)}).await.map_err(|_|RECOVERY_STATE_UNAVAILABLE.to_owned())?
+}
+
+#[cfg(windows)]
+#[tauri::command]
+async fn workspace_restore_confirm(window:tauri::Window, state:State<'_,DesktopBackend>, backup_id:String, expected_sha256:String) -> Result<serde_json::Value,String> {
+    if window.label()!="main" {return Err("WORKSPACE_RESTORE_WINDOW_FORBIDDEN".into());}
+    let state=state.inner().clone();
+    tauri::async_runtime::spawn_blocking(move||{
+        // One guard spans preflight, shutdown, restore, restart and content readback.
+        let _operation=try_operation_guard(&state)?;
+        restore_backup_checked(state.clone(),format!("{backup_id}.sqlite"),Some(expected_sha256))?;
+        retry_backend_unlocked(state.clone()).map_err(|_|"WORKSPACE_RESTORED_RESTART_REQUIRED".to_owned())?;
+        let (port,token)={let process=state.process.lock().map_err(|_|RECOVERY_STATE_UNAVAILABLE)?;let process=process.as_ref().ok_or(RECOVERY_RUNTIME_UNAVAILABLE)?;(process.port,process.token.clone())};
+        let reply=core_bridge::execute(port,&token,core_bridge::Request{operation:core_bridge::Operation::SystemVersion,payload:serde_json::json!({})})?;
+        if reply.status!=200 || reply.body["runtime"]!="archeaxis-api" {return Err("WORKSPACE_RESTORED_READBACK_REQUIRED".into());}
+        let sources=core_bridge::execute(port,&token,core_bridge::Request{operation:core_bridge::Operation::SourcesList,payload:serde_json::json!({})})?;
+        let documents=core_bridge::execute(port,&token,core_bridge::Request{operation:core_bridge::Operation::DocumentsList,payload:serde_json::json!({})})?;
+        if sources.status!=200 || !sources.body["sources"].is_array() || documents.status!=200 || !documents.body["documents"].is_array() {return Err("WORKSPACE_RESTORED_OBJECT_READBACK_REQUIRED".into());}
+        // Read an actual restored document version, rather than counting a schema handshake as content readback.
+        if let Some(document)=documents.body["documents"].as_array().and_then(|rows|rows.first()) {
+            let restored=core_bridge::execute(port,&token,core_bridge::Request{operation:core_bridge::Operation::DocumentGet,payload:serde_json::json!({"document_id":document["document_id"]})})?;
+            if restored.status!=200 || restored.body["document_id"]!=document["document_id"] || !restored.body["blocks"].is_array() {return Err("WORKSPACE_RESTORED_DOCUMENT_READBACK_REQUIRED".into());}
+        }
+        Ok(serde_json::json!({"schema":"archeaxis.workspace-restore-result/v2","backup_id":backup_id,"restored":true,"restarted":true,"readback":reply.body}))
+    }).await.map_err(|_|RECOVERY_STATE_UNAVAILABLE.to_owned())?
 }
 
 #[cfg(windows)]
@@ -737,12 +900,15 @@ fn main() {
     let app = tauri::Builder::default()
         .manage(backend)
         .invoke_handler(tauri::generate_handler![
+            core_command,
             backend_info,
             recovery_status,
             recovery_log_tail,
             enter_safe_mode,
             retry_backend,
             restore_backup,
+            workspace_restore_preview,
+            workspace_restore_confirm,
             exit_application,
         ])
         .setup(move |app| {
@@ -803,10 +969,24 @@ fn main() {
                     None
                 }
             };
-            WebviewWindowBuilder::new(app, "main", WebviewUrl::App("index.html".into()))
-                .title("星环知识平台（ArcheAxis Knowledge）")
-                .inner_size(1280.0, 800.0)
-                .data_directory(webview_data_dir)
+            let mut window =
+                WebviewWindowBuilder::new(app, "main", WebviewUrl::App("index.html".into()))
+                    .title("星环知识平台（ArcheAxis Knowledge）")
+                    .inner_size(1280.0, 800.0)
+                    // The formal host had no minimum while the recovery entry declared one, so
+                    // the product window could be dragged below the shell's layout floor: at a
+                    // 520px viewport the measured scrollWidth is 640, i.e. 120px of the reading
+                    // column sits outside the window. 640x480 is the smallest size the browser
+                    // gate verifies as overlap-free and overflow-free.
+                    .min_inner_size(640.0, 480.0)
+                    .data_directory(webview_data_dir);
+            let port = std::env::var("ARCHEAXIS_WEBDRIVER_CDP_PORT").ok();
+            if let Some(args) =
+                webdriver_browser_args(port.as_deref()).map_err(std::io::Error::other)?
+            {
+                window = window.additional_browser_args(&args);
+            }
+            window
                 .build()
                 .map_err(|_| std::io::Error::other("RECOVERY_WINDOW_CREATE_FAILED"))?;
             if let Some(runtime) = pending_runtime {
@@ -816,7 +996,12 @@ fn main() {
                         record_failure(&launch_state, RECOVERY_STATE_UNAVAILABLE);
                         return;
                     };
-                    match BackendProcess::launch(&runtime) {
+                    // Prefer the canonical Core when the candidate ships one. The host still
+                    // owns the port and the launch token; only the process behind them changes.
+                    // The legacy entrypoint remains the fallback so a candidate without a Core
+                    // keeps working exactly as before.
+                    let launched = launch_product_backend(&runtime);
+                    match launched {
                         Ok(process) => {
                             if let Ok(mut slot) = launch_state.process.lock() {
                                 *slot = Some(process);
@@ -849,6 +1034,10 @@ fn main() {
                     .inner()
                     .clone();
                 cleanup_backend_on_exit(state);
+                // This product owns one shell window. Explicitly request process exit
+                // as well as window close; an attached WebView observer must not leave
+                // a windowless shell holding the workspace or runtime resources.
+                dispatch_exit_immediately(|code| window.app_handle().exit(code));
             }
         })
         .build(tauri::generate_context!())
@@ -868,4 +1057,50 @@ fn main() {
 #[cfg(not(windows))]
 fn main() {
     panic!("ArcheAxis desktop shell is supported only on Windows");
+}
+
+#[cfg(all(test, windows))]
+mod candidate_runtime_tests {
+    #[test]
+    fn host_launches_the_core_with_the_candidate_profile_interpreter() {
+        let repository = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
+            .parent()
+            .expect("repository root");
+        let candidate = repository.join(".project-local/rt");
+        let data = tempfile::tempdir().expect("fresh candidate workspace");
+        let runtime = crate::runtime::resolve_runtime_with_portable_root(
+            std::path::Path::new(env!("CARGO_MANIFEST_DIR")),
+            &candidate,
+            data.path(),
+            false,
+            Some(data.path()),
+        )
+        .expect("resolve the actual product runtime");
+        let profile: serde_json::Value = serde_json::from_slice(
+            &std::fs::read(candidate.join("worker-profile.json")).expect("candidate profile"),
+        )
+        .expect("valid profile JSON");
+        let expected = candidate.join(profile["python"].as_str().expect("profile interpreter"));
+        assert_eq!(runtime.python, expected);
+        let core = crate::backend::CoreSpec::beside_runtime(&runtime).expect("candidate Core");
+        let worker = core.text_worker.as_ref().expect("runtime routes enabled");
+        assert_eq!(worker["python"], expected.to_string_lossy().as_ref());
+        assert!(!worker["python"].as_str().unwrap().starts_with(r"\\?\"));
+        println!("host selected interpreter: {}", expected.display());
+        let mut process = super::launch_product_backend(&runtime)
+            .expect("real candidate Core readiness through product supervisor");
+        assert!(process.exit_diagnostic().expect("Core state").is_none());
+        process.shutdown();
+        assert!(process
+            .exit_diagnostic()
+            .expect("Core exit state")
+            .is_some());
+        let mut restarted = super::launch_product_backend(&runtime)
+            .expect("retry uses the same canonical Core selection");
+        assert!(restarted
+            .exit_diagnostic()
+            .expect("restarted Core state")
+            .is_none());
+        restarted.shutdown();
+    }
 }

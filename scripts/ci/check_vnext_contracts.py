@@ -65,7 +65,8 @@ def main() -> int:
     if missing:
         failures.append(f"missing expected contract files: {', '.join(missing)}")
 
-    for schema_path in sorted(CONTRACTS.glob("*.schema.json")):
+    # Keep required v1 files, but validate every current versioned schema.
+    for schema_path in sorted((ROOT / "packages" / "contracts").rglob("*.schema.json")):
         try:
             payload = json.loads(schema_path.read_text(encoding="utf-8"))
         except json.JSONDecodeError as exc:

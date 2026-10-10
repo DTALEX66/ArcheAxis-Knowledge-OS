@@ -5,6 +5,7 @@ and capability, and refuses capabilities it never advertised.
 
 from __future__ import annotations
 
+import os
 import hashlib
 import json
 import shutil
@@ -16,7 +17,7 @@ import pytest
 
 REPO = Path(__file__).resolve().parents[1]
 WORKER = REPO / "services" / "python-workers" / "vision" / "worker_ocr.py"
-TESSDATA = REPO / "tools" / "tesseract" / "tessdata"
+TESSDATA = Path(os.environ.get("TESSDATA_PREFIX") or (REPO / "tools" / "tesseract" / "tessdata"))
 
 Image = pytest.importorskip("PIL.Image", reason="PIL required to build a sample")
 Draw = pytest.importorskip("PIL.ImageDraw", reason="PIL required to build a sample")

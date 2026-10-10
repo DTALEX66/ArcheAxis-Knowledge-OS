@@ -22,6 +22,7 @@ use archeaxis_domain::source::{self, ImportOutcome, OriginInfo};
 use rusqlite::{Connection, OptionalExtension};
 use serde::Deserialize;
 use sha2::{Digest, Sha256};
+use std::io::Read;
 use std::path::{Path, PathBuf};
 
 /// The origin kind recorded for a member. The store's vocabulary is fixed
@@ -32,6 +33,34 @@ use std::path::{Path, PathBuf};
 /// module must not allow - `expand_members` therefore verifies the relation landed.
 pub const ORIGIN_KIND: &str = "import";
 const MEMBER_LIMIT: usize = 50;
+const MEMBER_BYTES_LIMIT: u64 = 64 * 1024 * 1024;
+
+/// Transfer artifacts belong to one claimed attempt, never the shared members root.
+pub fn attempt_root(staging: &Path, job_id: &str, attempt: u64) -> PathBuf {
+    staging
+        .join("archive-attempts")
+        .join(sha256_hex(job_id.as_bytes()))
+        .join(attempt.to_string())
+}
+
+/// The same absolute path in a form the Windows API opens at any depth.
+///
+/// `attempt_root` carries a 64-character job digest as one component, so a member path passes
+/// MAX_PATH inside an ordinary worktree rather than only in an exotic one. Windows answers such
+/// an open with ERROR_FILE_NOT_FOUND, which `expand_members` would otherwise report as a member
+/// the worker failed to write. The worker writes those bytes through the same prefix
+/// (`worker_archive._long_path`), so this is the read half of one contract, not a second path
+/// space. Non-Windows and already-verbatim paths are returned unchanged.
+fn verbatim(path: &Path) -> PathBuf {
+    #[cfg(windows)]
+    {
+        let text = path.as_os_str().to_string_lossy();
+        if path.is_absolute() && !text.starts_with(r"\\?\") {
+            return PathBuf::from(format!(r"\\?\{text}"));
+        }
+    }
+    path.to_path_buf()
+}
 
 /// One member the archive worker offered as a source.
 #[derive(Debug, Clone, Deserialize)]
@@ -51,12 +80,31 @@ pub struct Expansion {
     pub jobs: Vec<String>,
     /// Members kept as sources but with no route that can read their bytes.
     pub custody_only: Vec<String>,
+    /// Member containers kept as sources whose own expansion stopped at the nesting budget.
+    /// They are not custody-only - the route exists - so a reader must not see them as unread.
+    pub depth_limited: Vec<String>,
 }
 
 fn sha256_hex(bytes: &[u8]) -> String {
     let mut hasher = Sha256::new();
     hasher.update(bytes);
     hex::encode(hasher.finalize())
+}
+
+/// Preserve existing interoperable IDs; hash only filenames/parents that exceed
+/// the runtime job-ID grammar. The member's real name stays in its source origin.
+pub fn member_job_id(archive_job_id: &str, member_file: &str) -> String {
+    let legacy = format!("{archive_job_id}-member-{member_file}");
+    if legacy.len() <= 200
+        && legacy
+            .bytes()
+            .all(|byte| byte.is_ascii_alphanumeric() || b"-_.".contains(&byte))
+    {
+        legacy
+    } else {
+        let identity = format!("archeaxis.archive-member/v1\0{archive_job_id}\0{member_file}");
+        format!("member-{}", sha256_hex(identity.as_bytes()))
+    }
 }
 
 /// The members the newest finished attempt of `archive_job_id` declared.
@@ -96,7 +144,29 @@ pub fn declared_members(
 
 /// The route a member's own name selects, if any: (job kind, expected media type).
 fn route_for_member(name: &str) -> Option<(&'static str, &'static str)> {
-    for kind in ["text", "pdf", "image", "archive"] {
+    // MIME alone cannot distinguish .canvas from ordinary .json.
+    // Reuse only currently supported member routes. A nested container is selected here like
+    // any other member: the bound on nesting is a property of the recorded chain, not of the
+    // name, and is applied in `expand_members` (`CONTAINER_DEPTH_LIMIT`).
+    let extension = Path::new(name)
+        .extension()
+        .and_then(|value| value.to_str())
+        .unwrap_or("")
+        .to_ascii_lowercase();
+    let preferred = match extension.as_str() {
+        "docx" | "pptx" | "xlsx" => Some("office"),
+        "html" | "htm" | "xhtml" => Some("html"),
+        "canvas" => Some("canvas"),
+        "srt" | "vtt" => Some("subtitles"),
+        "zip" | "tar" => Some("archive"),
+        _ => None,
+    };
+    if let Some(kind) = preferred {
+        return attempts::resolve_media_type(kind, name)
+            .ok()
+            .map(|media| (kind, media));
+    }
+    for kind in ["text", "pdf", "image"] {
         if let Ok(media) = attempts::resolve_media_type(kind, name) {
             return Some((kind, media));
         }
@@ -104,11 +174,85 @@ fn route_for_member(name: &str) -> Option<(&'static str, &'static str)> {
     None
 }
 
+/// How far a member container may itself be expanded. Each level costs one worker run and its
+/// own count and byte budgets, so an archive nested inside archives is bounded rather than
+/// trusted: past this depth a member container is still imported and kept, and only its own
+/// expansion stops.
+pub const CONTAINER_DEPTH_LIMIT: usize = 2;
+/// The origin chain is walked, never trusted; a chain this long is already past the limit.
+const ORIGIN_WALK_CAP: usize = 16;
+
+/// What the Core will do with a member it has imported.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum MemberLane {
+    /// A job of this kind reads the member's own bytes.
+    Routed(&'static str),
+    /// The member is a container and the nesting budget is already spent, so its own
+    /// expansion stops. It is not unread - the route exists - and saying so is the point.
+    NestingLimited,
+    /// No route names this member's bytes; it is kept as custody only.
+    Unrouted,
+}
+
+/// The single decision every caller reports on: does this member of this container get a job?
+pub fn member_lane(
+    conn: &Connection,
+    container_source_id: &str,
+    name: &str,
+) -> Result<MemberLane, JobError> {
+    let Some((kind, _media)) = route_for_member(name) else {
+        return Ok(MemberLane::Unrouted);
+    };
+    if kind == "archive" && nesting_depth(conn, container_source_id)? >= CONTAINER_DEPTH_LIMIT {
+        return Ok(MemberLane::NestingLimited);
+    }
+    Ok(MemberLane::Routed(kind))
+}
+
+/// How many containers `source_id` was taken out of, following the recorded member relation.
+///
+/// The relation is `"<container source_id>#<member>"` under `ORIGIN_KIND`, so a source that is
+/// itself a member names its container. A reference that is not shaped like that, or names a
+/// source that does not exist, ends the walk: the depth is what the chain really records, not
+/// what a string looks like.
+fn nesting_depth(conn: &Connection, source_id: &str) -> Result<usize, JobError> {
+    let mut depth = 0usize;
+    let mut current = source_id.to_string();
+    while depth < ORIGIN_WALK_CAP {
+        let origins = source::list_origins(conn, &current)?;
+        let mut parent: Option<String> = None;
+        for (kind, reference, _, _) in origins {
+            if kind != ORIGIN_KIND {
+                continue;
+            }
+            let Some((candidate, _)) = reference.rsplit_once('#') else {
+                continue;
+            };
+            let exists: i64 = conn.query_row(
+                "SELECT EXISTS(SELECT 1 FROM sources WHERE source_id=?1)",
+                [candidate],
+                |row| row.get(0),
+            )?;
+            if exists == 1 {
+                parent = Some(candidate.to_string());
+                break;
+            }
+        }
+        let Some(next) = parent else {
+            return Ok(depth);
+        };
+        depth += 1;
+        current = next;
+    }
+    Ok(depth)
+}
+
 /// One member as the store knows it after expansion.
 #[derive(Debug, Clone)]
 pub struct MemberRow {
     pub source_id: String,
     pub member: String,
+    pub origin_ref: String,
     pub original_name: Option<String>,
     pub sha256: String,
     /// True when a transform exists, i.e. a route read the member's bytes.
@@ -146,6 +290,7 @@ pub fn members_of(
                     .strip_prefix(&prefix)
                     .unwrap_or(&reference)
                     .to_string(),
+                origin_ref: reference,
                 original_name: row.get(2)?,
                 sha256: row.get(3)?,
                 readable: row.get::<_, i64>(4)? == 1,
@@ -168,6 +313,13 @@ pub fn expand_members(
     if members.is_empty() {
         return Ok(expansion);
     }
+    if members.len() > MEMBER_LIMIT {
+        return Err(JobError::UnverifiableInput {
+            job: archive_job_id.to_string(),
+            reason: "declared archive members exceed the count budget".into(),
+        });
+    }
+    let mut remaining = MEMBER_BYTES_LIMIT;
     let container_source: String = conn
         .query_row(
             "SELECT j.input_ref FROM jobs j WHERE j.job_id=?1",
@@ -177,7 +329,13 @@ pub fn expand_members(
         .optional()?
         .unwrap_or_default();
 
-    for member in members.into_iter().take(MEMBER_LIMIT) {
+    for member in members {
+        if member.bytes > remaining {
+            return Err(JobError::UnverifiableInput {
+                job: archive_job_id.to_string(),
+                reason: "declared archive members exceed the byte budget".into(),
+            });
+        }
         // a declared file may not leave the transfer area, whatever it contains
         if Path::new(&member.file).components().count() != 1
             || member.file.contains("..")
@@ -189,10 +347,13 @@ pub fn expand_members(
             });
         }
         let path: PathBuf = staging_root.join("members").join(&member.file);
-        let bytes = std::fs::read(&path).map_err(|error| JobError::UnverifiableInput {
-            job: archive_job_id.to_string(),
-            reason: format!("declared member {:?} is unreadable: {error}", member.name),
-        })?;
+        let mut bytes = Vec::new();
+        std::fs::File::open(verbatim(&path))
+            .and_then(|file| file.take(member.bytes + 1).read_to_end(&mut bytes))
+            .map_err(|error| JobError::UnverifiableInput {
+                job: archive_job_id.to_string(),
+                reason: format!("declared member {:?} is unreadable: {error}", member.name),
+            })?;
         if bytes.len() as u64 != member.bytes || sha256_hex(&bytes) != member.sha256 {
             return Err(JobError::UnverifiableInput {
                 job: archive_job_id.to_string(),
@@ -202,6 +363,7 @@ pub fn expand_members(
                 ),
             });
         }
+        remaining -= member.bytes;
         let origin_ref = format!("{container_source}#{}", member.name);
         let origin = OriginInfo {
             kind: ORIGIN_KIND,
@@ -235,9 +397,9 @@ pub fn expand_members(
             });
         }
         expansion.sources.push(source_id.clone());
-        match route_for_member(&member.name) {
-            Some((kind, _media)) => {
-                let job_id = format!("{archive_job_id}-member-{}", member.file);
+        match member_lane(conn, &container_source, &member.name)? {
+            MemberLane::Routed(kind) => {
+                let job_id = member_job_id(archive_job_id, &member.file);
                 let existed: bool = conn.query_row(
                     "SELECT EXISTS(SELECT 1 FROM jobs WHERE job_id=?1)",
                     [&job_id],
@@ -248,8 +410,74 @@ pub fn expand_members(
                     expansion.jobs.push(job_id);
                 }
             }
-            None => expansion.custody_only.push(member.name.clone()),
+            MemberLane::NestingLimited => expansion.depth_limited.push(member.name.clone()),
+            MemberLane::Unrouted => expansion.custody_only.push(member.name.clone()),
         }
     }
     Ok(expansion)
+}
+
+#[cfg(test)]
+mod supported_member_route_tests {
+    use super::route_for_member;
+    #[test]
+    fn existing_routes_are_selected_without_json_collision_or_recursive_media() {
+        for (name, expected) in [
+            ("a.docx", "office"),
+            ("a.pptx", "office"),
+            ("a.xlsx", "office"),
+            ("a.html", "html"),
+            ("a.htm", "html"),
+            ("a.xhtml", "html"),
+            ("a.CANVAS", "canvas"),
+            ("a.json", "text"),
+            ("a.srt", "subtitles"),
+            ("a.vtt", "subtitles"),
+            // a nested container is a member like any other: the bound on nesting is decided
+            // from the recorded chain in `member_lane`, not from the name
+            ("nested.zip", "archive"),
+            ("nested.tar", "archive"),
+        ] {
+            assert_eq!(route_for_member(name).unwrap().0, expected, "{name}");
+        }
+        for name in ["video.mp4", "audio.wav", "audio.mp3", "unknown.bin"] {
+            assert!(route_for_member(name).is_none(), "{name}");
+        }
+    }
+}
+
+#[cfg(test)]
+mod verbatim_path_tests {
+    use super::verbatim;
+    use std::path::Path;
+
+    #[cfg(windows)]
+    #[test]
+    fn an_absolute_member_path_is_named_verbatim_and_only_once() {
+        let deep = Path::new(r"D:\work\archive-attempts\0123456789abcdef\1\members\0001-a.csv");
+        let text = verbatim(deep).to_string_lossy().to_string();
+        assert_eq!(text, format!(r"\\?\{}", deep.display()));
+        // a second pass must not add a second prefix: an already-verbatim path is returned as is
+        assert_eq!(verbatim(Path::new(&text)).to_string_lossy(), text);
+    }
+
+    #[cfg(windows)]
+    #[test]
+    fn a_relative_path_is_left_alone() {
+        // The verbatim form of a relative path is meaningless, and would then name a file under
+        // whatever the process working directory happens to be rather than the caller's.
+        let relative = Path::new(r"members\0001-a.csv");
+        assert_eq!(verbatim(relative), relative.to_path_buf());
+    }
+
+    #[cfg(not(windows))]
+    #[test]
+    fn the_prefix_is_never_added_off_windows() {
+        for path in [
+            Path::new("/work/members/0001-a.csv"),
+            Path::new("members/0001-a.csv"),
+        ] {
+            assert_eq!(verbatim(path), path.to_path_buf(), "{path:?}");
+        }
+    }
 }

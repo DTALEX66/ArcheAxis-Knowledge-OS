@@ -20,9 +20,27 @@
           "additionalProperties": false,
           "required": ["python", "script", "staging"],
           "properties": {
+            "root": {
+              "$comment": "One directory the other paths may be written relative to. Absolute paths keep working; a relative path with no root is refused by the Core rather than guessed.",
+              "type": "string",
+              "minLength": 1
+            },
             "python": {"type": "string", "minLength": 1},
             "script": {"type": "string", "minLength": 1},
-            "staging": {"type": "string", "minLength": 1}
+            "staging": {"type": "string", "minLength": 1},
+            "routes": {
+              "$comment": "Additional capability routes. The default `script` serves text.extract; each entry registers one more capability against the worker that implements it, so a PDF or OCR job reaches its own engine instead of failing with no registered worker. Declared, never guessed from a checkout layout. An absent list keeps the single-route behaviour.",
+              "type": "array",
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": ["capability", "script"],
+                "properties": {
+                  "capability": {"type": "string", "minLength": 1},
+                  "script": {"type": "string", "minLength": 1}
+                }
+              }
+            }
           }
         }
       ]

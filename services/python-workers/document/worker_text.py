@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 """ArcheAxis vNext document worker: plain text family (F01).
 
-Formats: TXT / MD / CSV / TSV / JSON / XML (textual sources).
+Formats: TXT / MD / CSV / TSV / JSON / JSONL / YAML / TOML / XML,
+and bounded EPUB spine / EML MIME-body projections.
 
 Isolation boundary: this worker NEVER opens the vNext database and never
 executes file content. It decodes bytes faithfully (encoding/line endings
@@ -14,7 +15,9 @@ facts the route can actually derive - markdown headings and links, CSV row and
 column shape, JSON depth and keys, XML root and element count - are reported in
 `loss_receipt.params["format"]`. A file that does not parse is still projected as
 text, and the fact says so: `parsed: false` with the reason, never silence and
-never a fabricated structure.
+never a fabricated structure (the existing JSON/XML projection contract).
+New structured-format parse or budget failures return nonzero instead. Native
+value locations travel as facts; canonical anchors locate projected text lines.
 
 Usage:
     python worker_text.py <input-file> [media-type]
@@ -27,6 +30,7 @@ import contextlib
 import csv
 import email
 import io
+import importlib.util
 import json
 import re
 import sys
@@ -42,6 +46,10 @@ ROW_CAP = 50_000
 # must say so: a partial header presented as the whole one silently misaligns a reader
 # field by field, so the cut is named by `header_capped` (and by the note) instead.
 HEADER_CAP = 32
+# F01: a delimited file's rows were the smallest thing an anchor could name, so a quote from one
+# cell claimed every other cell on its line. Cells are reported through the generic
+# `params.format.locations` contract, and like every other derived list here the cut is stated.
+TABLE_CELL_CAP = 5000
 FRONTMATTER = re.compile(r"\A---\r?\n(.*?)\r?\n---\r?\n", re.DOTALL)
 # a wiki-link is not an embed: `![[x]]` is counted separately, so the link pattern
 # must not match inside it (counting both would double-report one occurrence)
@@ -303,6 +311,16 @@ def _markdown_facts(text: str) -> dict:
     return facts
 
 
+def _column_letters(index: int) -> str:
+    """Zero-based column index as spreadsheet letters, so a cell path reads like `csv!B3`."""
+    letters = ""
+    position = index + 1
+    while position:
+        position, remainder = divmod(position - 1, 26)
+        letters = chr(ord("A") + remainder) + letters
+    return letters
+
+
 def _delimited_facts(text: str, delimiter: str) -> dict:
     rows = list(csv.reader(io.StringIO(text), delimiter=delimiter))
     rows = rows[:ROW_CAP]
@@ -320,8 +338,27 @@ def _delimited_facts(text: str, delimiter: str) -> dict:
             f"; the header is reported as its first {HEADER_CAP} of {len(header)} fields, "
             "and header_capped says so instead of presenting a partial header as the whole one"
         )
+    kind = "tsv" if delimiter == "\t" else "csv"
+    locations = []
+    for row_number, row in enumerate(rows, start=1):
+        for column_index, value in enumerate(row):
+            if not value:
+                continue
+            locations.append({
+                "kind": "table_cell", "path": f"{kind}!{_column_letters(column_index)}{row_number}",
+                "value": value, "coordinate": f"{_column_letters(column_index)}{row_number}",
+                "row": row_number, "column": column_index + 1,
+                "column_name": header[column_index] if column_index < len(header) else None,
+                "in_projection": value in text,
+            })
+    if any(not entry["in_projection"] for entry in locations):
+        note += ("; a cell whose value the projection does not contain verbatim is flagged "
+                 "in_projection=false and cannot be anchored by value")
+    if len(locations) > TABLE_CELL_CAP:
+        note += (f"; cell locations are capped at {TABLE_CELL_CAP} of {len(locations)}, the rest "
+                 "are not addressable")
     return {
-        "format": "tsv" if delimiter == "\t" else "csv",
+        "format": kind,
         "parsed": True,
         "delimiter": delimiter,
         "row_count": len(rows),
@@ -330,6 +367,12 @@ def _delimited_facts(text: str, delimiter: str) -> dict:
         "header": header[:HEADER_CAP],
         "header_capped": header_capped,
         "ragged_rows": ragged,
+        "location_model": "spreadsheet-style coordinate over the file's own rows and columns; "
+                          "the value is the parsed field, not the raw bytes around it",
+        "locations": locations[:TABLE_CELL_CAP],
+        "locations_reported": min(len(locations), TABLE_CELL_CAP),
+        "locations_total": len(locations),
+        "locations_capped": len(locations) > TABLE_CELL_CAP,
         "note": note,
     }
 
@@ -406,18 +449,67 @@ def format_facts(text: str, media_type: str) -> dict:
     return {"format": "plain", "parsed": True, "note": "no format-specific structure is claimed for plain text"}
 
 
-def extract(path: str, media_type: str = "text/plain") -> dict:
+def extract(path: str, media_type: str = "text/plain", member_dir: str | None = None) -> dict:
     raw = Path(path).read_bytes()
-    text, decode_note = decode_bytes(raw, source=path)
+    media = (media_type or "text/plain").split(";", 1)[0].strip().lower()
+    helper = Path(__file__).with_name("worker_light_formats.py")
+    light = None
+    if helper.is_file():
+        spec = importlib.util.spec_from_file_location("worker_light_formats", helper)
+        light = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(light)
+    if media in {"application/epub+zip", "message/rfc822", "application/rtf", "text/x-python",
+                 "application/vnd.oasis.opendocument.text",
+                 "application/vnd.oasis.opendocument.spreadsheet",
+                 "application/vnd.oasis.opendocument.presentation"}:
+        structured_raw = raw
+        text, decode_note = "", {"encoding": "MIME/container charset", "loss_note": ""}
+    else:
+        text, decode_note = decode_bytes(raw, source=path)
+        structured_raw = text.encode("utf-8")
+    try:
+        parsed = light.parse(structured_raw, media) if light is not None else None
+    except (json.JSONDecodeError, ElementTree.ParseError):
+        # Preserve the existing explicit malformed JSON/XML projection contract.
+        if media not in {"application/json", "application/xml", "text/xml"}:
+            raise
+        parsed = None
+    if parsed is not None:
+        text, native_facts, native_losses = parsed
+    else:
+        if media in {"application/epub+zip", "message/rfc822", "application/rtf", "text/x-python",
+                 "application/vnd.oasis.opendocument.text",
+                 "application/vnd.oasis.opendocument.spreadsheet",
+                 "application/vnd.oasis.opendocument.presentation"}:
+            raise ValueError("light format parser missing from runtime")
+        native_facts, native_losses = None, []
     structure = line_anchors(text)
     # Use the same line semantics as anchors (CR/LF/CRLF and Unicode separators).
     # A final separator terminates its line; it does not create an extra anchor.
     total = len(text.splitlines(keepends=True))
     covered = len(structure)
     losses = [decode_note["loss_note"]] if decode_note["loss_note"] else []
+    losses.extend(native_losses)
+    members: list[dict] = []
+    if member_dir and media == "message/rfc822":
+        # A mail is a container of its own: the same declaration the archive worker makes is
+        # what lets the Core verify, import and queue each attachment by its own name.
+        if light is None:
+            raise ValueError("light format parser missing from runtime")
+        members, member_problems = light.mail_attachments(structured_raw, member_dir)
+        losses.extend(member_problems)
+        if members:
+            # The mail parser states that extraction is not performed; once it has been,
+            # that line would be a false claim sitting in the receipt.
+            losses[:] = [line for line in losses if "independent extraction is not performed" not in line]
+            losses.append(
+                f"{len(members)} attachments extracted for the Core to import as members"
+            )
     if covered < total:
         losses.append("line anchors capped at 5000")
     facts = format_facts(text, media_type)
+    if native_facts is not None:
+        facts.update(native_facts)
     if facts.get("parsed") is False:
         losses.append(f"{facts['format']} structure could not be derived: {facts.get('error', 'parse failed')}")
     loss_receipt = {
@@ -426,7 +518,12 @@ def extract(path: str, media_type: str = "text/plain") -> dict:
         "params": {"decode": decode_note["encoding"], "cap_lines": 5000,
                    "coverage_unit": "line anchors", "line_splitting": "str.splitlines(keepends=True)",
                    "media_type": (media_type or "text/plain").split(";", 1)[0].strip().lower(),
-                   "format": facts},
+                   "format": facts,
+                   "structure": {"extractable_members": members},
+                   "attachment_extraction": {"count": len(members),
+                                             "requested": bool(member_dir),
+                                             "only_for": "message/rfc822"},
+        },
         "losses": losses,
         "covered": covered,
         "total": total,

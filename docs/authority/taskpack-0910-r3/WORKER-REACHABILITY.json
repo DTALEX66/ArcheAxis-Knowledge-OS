@@ -5,22 +5,18 @@
   "routing_source": "services/python-workers/transport/text_ndjson.py",
   "unrouted": [
     {
-      "worker": "services/python-workers/media/worker_transcribe.py",
-      "engine": "python-worker-transcribe",
-      "reason": "speech recognition needs a model path, a language and a device, and no model is configured in this repository or on this machine's defaults. Routing it now would create a capability that always fails for want of a model, so it stays unrouted and this reason is the record of why. Wiring it is a later slice that must also decide where the model path comes from.",
-      "what_it_would_serve": "F10 (WAV/MP3/M4A/FLAC): transcript and segment or word timing"
-    },
-    {
-      "worker": "services/python-workers/media/worker_video.py",
-      "engine": "python-worker-video",
-      "reason": "it takes an output directory plus frame interval and frame cap options, and the route contract has no place for either yet: the artifact-root mechanism exists, but parameters are currently required to be empty, so routing it would need a deliberate contract change rather than a flag. Unrouted on purpose and recorded here.",
-      "what_it_would_serve": "F11 (MP4/MOV/MKV/WebM): frame events and sampling coverage"
+      "worker": "services/python-workers/machine/worker_machine_answer.py",
+      "engine": "python-worker-machine-answer",
+      "reason": "two reasons, and the first is what makes this entry unusual: the worker is **reachable**, just not through job dispatch. (1) It is served by the Core route `POST /api/v1/machine/answers`, which accepts a knowledge id and a question and runs this worker as a process through the same boundary every engine-calling capability uses. The job protocol cannot carry that route: a route in the transport table is validated with `parameters` required to be empty, so there is nowhere for the question to travel, and declaring one would be a route that fails its own validation. (2) Its result is an answer and a loss receipt rather than a projected text with canonical anchors, so the text-projection contract does not describe it either. Not a job route on purpose, reachable through an owned Core route, and recorded here so a reader can tell that from a missing capability.",
+      "what_it_would_serve": "G4 (machine co-learning lite): a grounded model answer over an accepted knowledge item, as a candidate for a human to find a real error in",
+      "reached_by": "POST /api/v1/machine/answers",
+      "routed_by_core_route": true
     }
   ],
   "also_present_but_not_capability_workers": [
     {
       "worker": "services/python-workers/web/worker_webpage.py",
-      "note": "takes a URL and an output directory and fetches the page; it is a fetch client, not an extraction capability, and no route may reach the network. F03 (dynamic and long pages) therefore has no fetch path at all: only a saved snapshot can be read, and pagination or scroll coverage cannot be recorded without a browser."
+      "note": "takes a URL and an output directory and fetches the page; it is a fetch client, not an extraction capability, and no route may reach the network. F03 (dynamic and long pages) therefore has no fetch path at all: only a saved snapshot can be read, and pagination or scroll coverage cannot be recorded without a browser. It also returns no projected text, so it could not satisfy the route contract even if a network fetch were in scope - the same structural limit that keeps media/worker_video.py unrouted."
     },
     {
       "worker": "services/python-workers/worker_extract.py",
@@ -28,6 +24,12 @@
     }
   ],
   "routed_since_this_record": [
+    {
+      "worker": "services/python-workers/media/worker_transcribe.py",
+      "engine": "python-worker-transcribe",
+      "routed_as": "media.transcribe",
+      "note": "routed on 2026-10-01. The recorded reason for leaving it unrouted was that no model was configured anywhere the repository could see; that is resolved by resolving the model through the declared capability registry, with ARCHEAXIS_ASR_MODEL_DIR and a declared-path fallback, and it was verified end to end on a real Chinese recording through the real sidecar protocol: language zh at 0.9983, 2 segments over 8,940 ms, engine python-worker-transcribe 0.1.0, covered 2 of 2. Kept here as history because the exemption was real until the model resolution and the audio media types existed."
+    },
     {
       "worker": "services/python-workers/vision/worker_caption.py",
       "engine": "python-worker-caption",
@@ -60,6 +62,6 @@
     }
   ],
   "known_duplication": [
-    "services/python-workers/document/worker_media.py (routed) probes media headers only, while services/python-workers/media/worker_video.py extracts frames and media/worker_transcribe.py transcribes. They are complementary rather than duplicates, but a reader comparing the two pairs should know that the routed one is the probe and the unrouted two are the heavier engines awaiting a contract that can carry their parameters."
+    "services/python-workers/document/worker_media.py (routed as media.probe) probes media headers only, while services/python-workers/media/worker_video.py extracts frames and media/worker_transcribe.py transcribes. They are complementary rather than duplicates: the probe reports container facts without decoding a sample, and the two heavier engines produce a transcript and frame events respectively. As of 2026-10-01 the transcribe engine is routed and the video engine is still awaiting a contract that can carry its parameters."
   ]
 }

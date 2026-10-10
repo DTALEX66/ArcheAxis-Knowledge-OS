@@ -8,8 +8,8 @@
 //!
 //! The table is created on demand (the same approach the FTS indexes and
 //! card_references use), so no schema-version bump and no archive-layout change is
-//! involved. Recorded limitation: because it is created on demand it is not part
-//! of EXPORT_TABLES, so archives do not carry machine receipts yet.
+//! involved. The canonical store initializes this table and EXPORT_TABLES includes
+//! it, so workspace archives preserve these receipts.
 
 use rusqlite::{Connection, OptionalExtension};
 
@@ -58,7 +58,11 @@ fn knowledge_id_from_version(value: &str) -> &str {
     value.split_once('@').map(|(id, _)| id).unwrap_or(value)
 }
 
-fn validate_knowledge_binding(conn: &Connection, value: Option<&str>) -> rusqlite::Result<()> {
+fn validate_knowledge_binding(
+    conn: &Connection,
+    value: Option<&str>,
+    historical_evaluation: bool,
+) -> rusqlite::Result<()> {
     let Some(value) = value.map(str::trim) else {
         return Ok(());
     };
@@ -80,12 +84,13 @@ fn validate_knowledge_binding(conn: &Connection, value: Option<&str>) -> rusqlit
             "knowledge_version must reference existing canonical knowledge".into(),
         ));
     };
-    if !knowledge::is_knowledge_active(conn, knowledge_id)?
-        || (status != "accepted"
-            && !matches!(
-                knowledge_type.as_str(),
-                "PERSONAL_DEFINITION" | "PERSONAL_EXPERIENCE"
-            ))
+    if !historical_evaluation
+        && (!knowledge::is_knowledge_active(conn, knowledge_id)?
+            || (status != "accepted"
+                && !matches!(
+                    knowledge_type.as_str(),
+                    "PERSONAL_DEFINITION" | "PERSONAL_EXPERIENCE"
+                )))
     {
         return Err(rusqlite::Error::InvalidParameterName(
             "knowledge_version must reference active accepted or personal knowledge".into(),
@@ -103,6 +108,21 @@ fn validate_knowledge_binding(conn: &Connection, value: Option<&str>) -> rusqlit
 /// rather than silently overwritten, so a receipt cannot be rewritten after the
 /// fact.
 pub fn record_machine_task(conn: &mut Connection, task: &MachineTask<'_>) -> rusqlite::Result<()> {
+    let tx = conn.savepoint()?;
+    record_machine_task_in_transaction(&tx, task)?;
+    tx.commit()
+}
+
+/// Core-internal writer under an existing transaction; never independently commits.
+pub(crate) fn record_machine_task_in_transaction(
+    conn: &Connection,
+    task: &MachineTask<'_>,
+) -> rusqlite::Result<()> {
+    if conn.is_autocommit() {
+        return Err(rusqlite::Error::InvalidParameterName(
+            "machine task requires an active transaction".into(),
+        ));
+    }
     if task.principal != "machine" {
         return Err(rusqlite::Error::InvalidParameterName(
             "machine task receipts are written by a machine principal only".into(),
@@ -132,16 +152,22 @@ pub fn record_machine_task(conn: &mut Connection, task: &MachineTask<'_>) -> rus
             "a succeeded machine task cannot carry a failure note".into(),
         ));
     }
-    let tx = conn.transaction_with_behavior(rusqlite::TransactionBehavior::Immediate)?;
-    ensure_machine_tasks(&tx)?;
-    validate_knowledge_binding(&tx, task.knowledge_version)?;
+    ensure_machine_tasks(conn)?;
+    // An evaluation describes a persisted past answer, not a new inference.
+    // The HTTP generic writer refuses all runtime.* scopes; the Core correction
+    // route verifies the original answer before reaching this historical binding.
+    validate_knowledge_binding(
+        conn,
+        task.knowledge_version,
+        task.scope == "runtime.evaluation.failed" && task.outcome == "failed",
+    )?;
     if let Some(retest_of) = task.retest_of.map(str::trim) {
         if retest_of.is_empty() {
             return Err(rusqlite::Error::InvalidParameterName(
                 "retest_of must identify a failed machine task".into(),
             ));
         }
-        let outcome: Option<String> = tx
+        let outcome: Option<String> = conn
             .query_row(
                 "SELECT outcome FROM machine_tasks WHERE task_id=?1",
                 [retest_of],
@@ -154,7 +180,7 @@ pub fn record_machine_task(conn: &mut Connection, task: &MachineTask<'_>) -> rus
             ));
         }
     }
-    let existing: Option<i64> = tx
+    let existing: Option<i64> = conn
         .query_row(
             "SELECT 1 FROM machine_tasks WHERE task_id=?1",
             [task.task_id],
@@ -166,7 +192,7 @@ pub fn record_machine_task(conn: &mut Connection, task: &MachineTask<'_>) -> rus
             "a machine task receipt is immutable; this task id is already recorded".into(),
         ));
     }
-    tx.execute(
+    conn.execute(
         "INSERT INTO machine_tasks(task_id, principal, conditions, knowledge_version, method_version,
                                     tool_version, model_version, scope, outcome, failure, retest_of)
          VALUES(?1,?2,?3,?4,?5,?6,?7,?8,?9,?10,?11)",
@@ -184,7 +210,6 @@ pub fn record_machine_task(conn: &mut Connection, task: &MachineTask<'_>) -> rus
             task.retest_of
         ],
     )?;
-    tx.commit()?;
     Ok(())
 }
 
@@ -235,6 +260,44 @@ pub fn machine_task(
     .optional()
 }
 
+/// Bounded, stable receipt navigation. Reading history never creates a table or
+/// changes a receipt; each row keeps its original principal and all conditions.
+pub fn machine_task_page(
+    conn: &Connection,
+    cursor: Option<&str>,
+    limit: usize,
+) -> rusqlite::Result<serde_json::Value> {
+    if !(1..=100).contains(&limit) || cursor.is_some_and(|s| s.is_empty() || s.len() > 256) {
+        return Err(rusqlite::Error::InvalidParameterName("invalid receipt page bounds".into()));
+    }
+    let exists: bool = conn.query_row(
+        "SELECT EXISTS(SELECT 1 FROM sqlite_master WHERE type='table' AND name='machine_tasks')",
+        [], |r| r.get(0),
+    )?;
+    if !exists {
+        return Ok(serde_json::json!({"items":[],"next_cursor":null}));
+    }
+    let mut stmt = conn.prepare(
+        "SELECT task_id,principal,conditions,knowledge_version,method_version,tool_version,
+                model_version,scope,outcome,failure,retest_of,recorded_at
+         FROM machine_tasks WHERE (?1 IS NULL OR task_id>?1) ORDER BY task_id LIMIT ?2",
+    )?;
+    let mut items = stmt.query_map(rusqlite::params![cursor, (limit + 1) as i64], |r| {
+        Ok(serde_json::json!({
+            "task_id":r.get::<_,String>(0)?,"principal":r.get::<_,String>(1)?,
+            "conditions":r.get::<_,String>(2)?,"knowledge_version":r.get::<_,Option<String>>(3)?,
+            "method_version":r.get::<_,Option<String>>(4)?,"tool_version":r.get::<_,Option<String>>(5)?,
+            "model_version":r.get::<_,String>(6)?,"scope":r.get::<_,String>(7)?,
+            "outcome":r.get::<_,String>(8)?,"failure":r.get::<_,Option<String>>(9)?,
+            "retest_of":r.get::<_,Option<String>>(10)?,"recorded_at":r.get::<_,String>(11)?
+        }))
+    })?.collect::<rusqlite::Result<Vec<_>>>()?;
+    let more = items.len() > limit;
+    items.truncate(limit);
+    let next = if more { items.last().map(|i| i["task_id"].clone()) } else { None };
+    Ok(serde_json::json!({"items":items,"next_cursor":next}))
+}
+
 /// Count receipts along with how many were explicitly unmeasured, so a caller can
 /// report coverage instead of implying that every task was verified.
 pub fn machine_task_counts(conn: &Connection) -> rusqlite::Result<(i64, i64)> {
@@ -246,4 +309,49 @@ pub fn machine_task_counts(conn: &Connection) -> rusqlite::Result<(i64, i64)> {
         |r| r.get(0),
     )?;
     Ok((total, unmeasured))
+}
+
+#[cfg(test)]
+mod transaction_writer_tests {
+    use super::*;
+    fn task<'a>(id: &'a str) -> MachineTask<'a> {
+        MachineTask {
+            task_id: id,
+            principal: "machine",
+            conditions: "document snapshot",
+            knowledge_version: None,
+            method_version: None,
+            tool_version: None,
+            model_version: "not_configured",
+            scope: "runtime.document_check",
+            outcome: "failed",
+            failure: Some("not_configured"),
+            retest_of: None,
+        }
+    }
+    #[test]
+    fn internal_writer_requires_transaction_and_rolls_back_with_owner() {
+        let mut c = Connection::open_in_memory().unwrap();
+        assert!(record_machine_task_in_transaction(&c, &task("a")).is_err());
+        // Initialize through the existing atomic API, not a hand-written schema.
+        record_machine_task(&mut c, &task("baseline")).unwrap();
+        {
+            let tx = c.transaction().unwrap();
+            record_machine_task_in_transaction(&tx, &task("rolled_back")).unwrap();
+        }
+        let count: i64 = c
+            .query_row("SELECT count(*) FROM machine_tasks", [], |r| r.get(0))
+            .unwrap();
+        assert_eq!(count, 1);
+        let tx = c.transaction().unwrap();
+        let mut denied = task("denied");
+        denied.principal = "human";
+        assert!(record_machine_task_in_transaction(&tx, &denied).is_err());
+        record_machine_task_in_transaction(&tx, &task("committed")).unwrap();
+        tx.commit().unwrap();
+        let count: i64 = c
+            .query_row("SELECT count(*) FROM machine_tasks", [], |r| r.get(0))
+            .unwrap();
+        assert_eq!(count, 2);
+    }
 }

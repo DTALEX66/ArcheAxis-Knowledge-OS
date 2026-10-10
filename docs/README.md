@@ -1,13 +1,18 @@
 # 文档导航
 
+> **2026-10-09 当前执行覆盖**：用户已选择新 UI 优先任务及 G01；规范活动指针为 [AAOS-ACTIVE-EXECUTION](current/AAOS-ACTIVE-EXECUTION.json)，当前任务来源为 [UI 优先 TaskPack](taskpacks/aaos-ui-first-20261009/TASKPACK.md)，实际进度只读 [UI 执行记录](current/AAOS-UI-FIRST-EXECUTION-20261009.md)。规划原文的 PLANNING_READY / NOT_EXECUTED 是规划时状态，激活与实际结果由当前覆盖记录，不改写不可变原包。AAOS-01 Q00–Q15 台账仅记录该继承工作流，不代表新 UI 全队列；旧 R6/M0 整包顺序冻结，有效合同、单一 Rust Core writer、内容先保存及历史证据保留。V01 继续暂停。
+> 当前新布局、架构和其余产品界面按新任务执行；默认 `blueprint`，配套 `blueprint-light`，旧 `black` / `white` / `cosmic` 仅为额外配色主题。五主题共用新布局、组件状态及统一语义颜色；一个主题内部的按钮、菜单、侧栏与正文保持一致。主题不更改 Core 配置或知识数据。
+> 平台指令优先；平台范围内用户当前明确决定优先于项目旧描述。此文档同步不授予 commit、push、merge、发布、私人账户/会话访问或恢复暂停的云端任务权限；本机资源索引不是云端权限。
+
+
 先从 [文档权威索引](DOCUMENTATION_AUTHORITY_INDEX.md) 判断文件的当前、冻结、参考或历史身份。文件名中的 CURRENT、状态快照或旧审计数字不等于实时产品证据。
 
 ## 当前执行与职责
 
 - [项目规则](../AGENTS.md)、[项目契约](../PROJECT_CONTRACT.yaml)、[取代台账](../DECISION_SUPERSESSION_LEDGER.yaml)。
-- [R6 执行入口](authority/taskpack-0919-r6/EXECUTOR-START.md)：不可变任务正文；[R6 执行记录](current/R6-EXECUTION.md)、[R6 状态](current/R6-STATE.json) 与 [M0 优先覆盖](current/M0-DIRECTION-OVERRIDE-20260920.md) 决定当前执行顺序。计划、测试和真实 Local Green 验收分层记录。
+- [当前活动指针](current/AAOS-ACTIVE-EXECUTION.json) → [UI 优先任务来源](taskpacks/aaos-ui-first-20261009/TASKPACK.md) → [当前执行进度](current/AAOS-UI-FIRST-EXECUTION-20261009.md)。[AAOS-01 Q台账](current/AAOS01-Q00-Q15-LEDGER-FINAL-20261005.md)只记录继承Q工作流；R6/M0合同与回执保留，其整包顺序不自动执行。
 - [产品定位](PRODUCT_POSITIONING.md)：产品边界和术语；[未来蓝图](FUTURE_EXECUTION_BLUEPRINT.md) 是长期候选方向，不代表当前完成度。
-- [当前架构职责](architecture/CURRENT_ARCHITECTURE.md)：正式 C#/Avalonia、Rust Core、隔离 Python workers 与 legacy 边界；源码职责不等于安装态验证。
+- [当前架构职责](architecture/CURRENT_ARCHITECTURE.md)：正式 Tauri 2 + React/TypeScript/Vite、Rust Core、隔离 Python workers 与 legacy 边界；源码职责不等于安装态验证。
 - [语言权威](LANGUAGE_BOUNDARY_AUTHORITY_INDEX.md)、[目录权威](DIRECTORY_AUTHORITY_INDEX.md)、[运行交付权威](RUNTIME_DELIVERY_AUTHORITY_INDEX.md)：职责、路径和迁移约束。
 - [9 月 27 日后端整合](current/SEPTEMBER-BACKEND-INTEGRATION-20260927.md)、[文档与分支清理读回](current/SEPTEMBER-CONSOLIDATION-READBACK-20260927.md)：带日期的交付证据；后续操作仍须读取实时 Git/CI。
 
@@ -22,4 +27,4 @@
 - [PROJECT_STATUS](PROJECT_STATUS.md)、[9 月 3 日 normalization](current/REPOSITORY_NORMALIZATION_STATE_2026-09-03.md)：历史快照，不能作为当前队列或 GitHub Research 完成度。
 - [HERMES_SLEEP_LOOP_ENGINE](HERMES_SLEEP_LOOP_ENGINE.md)：历史工作流参考，不是当前项目执行入口或原生 agent 状态操作授权。
 - [历史归档与去重记录](history/DOCUMENT-CONSOLIDATION-20260927.md)：原文、路径、哈希、消费者和回退。
-- 根目录旧 handoff/summary、旧 TaskPack 与收据保留其原日期和 SHA；不能从历史恢复已被 R6/M0 取代的执行路线。
+- 根目录旧 handoff/summary、旧 TaskPack 与收据保留其原日期和 SHA；不能从历史恢复被当前 UI 优先任务冻结的旧整包执行路线；R6/M0 仅保留继承约束。

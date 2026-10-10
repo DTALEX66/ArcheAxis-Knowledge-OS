@@ -238,6 +238,36 @@ async fn a_scanned_pdf_chains_into_a_real_ocr_job_and_its_text_is_stored() {
         "the rendered page keeps a name the media derivation can read"
     );
 
+    // R15/F06 second half: the page keeps the relation it was rendered from, so the PDF can
+    // be asked what its pages say. Before the OCR job has run the honest answer is "nothing".
+    let (pdf_source, pending) = executor
+        .store()
+        .submit(|conn| {
+            let reference: String = conn
+                .query_row(
+                    "SELECT input_ref FROM jobs WHERE job_id='job-pdf'",
+                    [],
+                    |row| row.get(0),
+                )
+                .unwrap();
+            let rows = ocr::pages_of(conn, &reference).unwrap();
+            (reference, rows)
+        })
+        .await
+        .unwrap();
+    assert_eq!(pending.len(), 1, "one chained page is one row: {pending:?}");
+    assert_eq!(pending[0].page, Some(1));
+    assert_eq!(
+        pending[0].origin_ref,
+        format!("{pdf_source}#page-1"),
+        "the page must point back at the PDF it was rendered from"
+    );
+    assert!(!pending[0].recognised, "no OCR has run yet");
+    assert_eq!(
+        pending[0].text, None,
+        "a page nobody has read is reported without text, not with an empty claim"
+    );
+
     // and executing it produces the recognised text through the real engine
     executor
         .execute("job-pdf-page-1", "run-ocr", 180_000, &Cancellation::new())
@@ -263,6 +293,29 @@ async fn a_scanned_pdf_chains_into_a_real_ocr_job_and_its_text_is_stored() {
     assert!(
         text.contains("6371"),
         "the OCR text must come from the rendered page: {text:?}"
+    );
+
+    // the chain is closed: asked for the PDF's pages, the answer now carries the page's own
+    // recognised text rather than only a pointer to an unrelated image source
+    let finished = executor
+        .store()
+        .submit({
+            let reference = pdf_source.clone();
+            move |conn| ocr::pages_of(conn, &reference).unwrap()
+        })
+        .await
+        .unwrap();
+    assert_eq!(finished.len(), 1);
+    assert!(finished[0].recognised);
+    assert_eq!(finished[0].job_id.as_deref(), Some("job-pdf-page-1"));
+    assert!(
+        finished[0]
+            .text
+            .as_deref()
+            .unwrap_or_default()
+            .contains("6371"),
+        "the page must answer with the text read from it: {:?}",
+        finished[0].text
     );
 }
 

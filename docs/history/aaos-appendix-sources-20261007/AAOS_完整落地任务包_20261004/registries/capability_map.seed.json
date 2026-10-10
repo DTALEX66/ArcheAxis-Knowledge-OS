@@ -1,0 +1,2517 @@
+{
+  "purpose": "本次对话能力线索；不是全历史集合或运行配置",
+  "canonical_id_policy": "先映射现有 ID，不直接使用 seed_key 覆盖仓库",
+  "historical_completeness": "NOT_VERIFIED",
+  "capabilities": [
+    {
+      "seed_key": "home.continue_reading",
+      "canonical_capability_id": null,
+      "domain": "home",
+      "domain_label": "工作台",
+      "name": "继续阅读",
+      "menu_path": [
+        "工作台",
+        "继续阅读"
+      ],
+      "detail_required": true,
+      "scope_status": "RECONCILE_WITH_AUTHORITY",
+      "implementation_status": "UNVERIFIED",
+      "runnable": false,
+      "evidence_refs": [],
+      "required_user_requirements": [
+        "U09",
+        "U10"
+      ]
+    },
+    {
+      "seed_key": "home.continue_learning",
+      "canonical_capability_id": null,
+      "domain": "home",
+      "domain_label": "工作台",
+      "name": "继续学习",
+      "menu_path": [
+        "工作台",
+        "继续学习"
+      ],
+      "detail_required": true,
+      "scope_status": "RECONCILE_WITH_AUTHORITY",
+      "implementation_status": "UNVERIFIED",
+      "runnable": false,
+      "evidence_refs": [],
+      "required_user_requirements": [
+        "U09",
+        "U10"
+      ]
+    },
+    {
+      "seed_key": "home.recent_sources",
+      "canonical_capability_id": null,
+      "domain": "home",
+      "domain_label": "工作台",
+      "name": "最近资料",
+      "menu_path": [
+        "工作台",
+        "最近资料"
+      ],
+      "detail_required": true,
+      "scope_status": "RECONCILE_WITH_AUTHORITY",
+      "implementation_status": "UNVERIFIED",
+      "runnable": false,
+      "evidence_refs": [],
+      "required_user_requirements": [
+        "U09",
+        "U10"
+      ]
+    },
+    {
+      "seed_key": "home.review_inbox",
+      "canonical_capability_id": null,
+      "domain": "home",
+      "domain_label": "工作台",
+      "name": "待复核事项",
+      "menu_path": [
+        "工作台",
+        "待复核事项"
+      ],
+      "detail_required": true,
+      "scope_status": "RECONCILE_WITH_AUTHORITY",
+      "implementation_status": "UNVERIFIED",
+      "runnable": false,
+      "evidence_refs": [],
+      "required_user_requirements": [
+        "U09",
+        "U10"
+      ]
+    },
+    {
+      "seed_key": "home.active_tasks",
+      "canonical_capability_id": null,
+      "domain": "home",
+      "domain_label": "工作台",
+      "name": "进行中任务",
+      "menu_path": [
+        "工作台",
+        "进行中任务"
+      ],
+      "detail_required": true,
+      "scope_status": "RECONCILE_WITH_AUTHORITY",
+      "implementation_status": "UNVERIFIED",
+      "runnable": false,
+      "evidence_refs": [],
+      "required_user_requirements": [
+        "U09",
+        "U10"
+      ]
+    },
+    {
+      "seed_key": "home.quick_capture",
+      "canonical_capability_id": null,
+      "domain": "home",
+      "domain_label": "工作台",
+      "name": "快捷捕获",
+      "menu_path": [
+        "工作台",
+        "快捷捕获"
+      ],
+      "detail_required": true,
+      "scope_status": "RECONCILE_WITH_AUTHORITY",
+      "implementation_status": "UNVERIFIED",
+      "runnable": false,
+      "evidence_refs": [],
+      "required_user_requirements": [
+        "U09",
+        "U10"
+      ]
+    },
+    {
+      "seed_key": "knowledge.capture",
+      "canonical_capability_id": null,
+      "domain": "knowledge",
+      "domain_label": "知识",
+      "name": "统一捕获",
+      "menu_path": [
+        "知识",
+        "统一捕获"
+      ],
+      "detail_required": true,
+      "scope_status": "RECONCILE_WITH_AUTHORITY",
+      "implementation_status": "UNVERIFIED",
+      "runnable": false,
+      "evidence_refs": [],
+      "required_user_requirements": [
+        "U09",
+        "U10"
+      ]
+    },
+    {
+      "seed_key": "knowledge.import",
+      "canonical_capability_id": null,
+      "domain": "knowledge",
+      "domain_label": "知识",
+      "name": "多格式导入",
+      "menu_path": [
+        "知识",
+        "多格式导入"
+      ],
+      "detail_required": true,
+      "scope_status": "RECONCILE_WITH_AUTHORITY",
+      "implementation_status": "UNVERIFIED",
+      "runnable": false,
+      "evidence_refs": [],
+      "required_user_requirements": [
+        "U09",
+        "U10"
+      ]
+    },
+    {
+      "seed_key": "knowledge.sources",
+      "canonical_capability_id": null,
+      "domain": "knowledge",
+      "domain_label": "知识",
+      "name": "原件与来源库",
+      "menu_path": [
+        "知识",
+        "原件与来源库"
+      ],
+      "detail_required": true,
+      "scope_status": "RECONCILE_WITH_AUTHORITY",
+      "implementation_status": "UNVERIFIED",
+      "runnable": false,
+      "evidence_refs": [],
+      "required_user_requirements": [
+        "U09",
+        "U10"
+      ]
+    },
+    {
+      "seed_key": "knowledge.library",
+      "canonical_capability_id": null,
+      "domain": "knowledge",
+      "domain_label": "知识",
+      "name": "资料库",
+      "menu_path": [
+        "知识",
+        "资料库"
+      ],
+      "detail_required": true,
+      "scope_status": "RECONCILE_WITH_AUTHORITY",
+      "implementation_status": "UNVERIFIED",
+      "runnable": false,
+      "evidence_refs": [],
+      "required_user_requirements": [
+        "U09",
+        "U10"
+      ]
+    },
+    {
+      "seed_key": "knowledge.reader",
+      "canonical_capability_id": null,
+      "domain": "knowledge",
+      "domain_label": "知识",
+      "name": "原件阅读",
+      "menu_path": [
+        "知识",
+        "原件阅读"
+      ],
+      "detail_required": true,
+      "scope_status": "RECONCILE_WITH_AUTHORITY",
+      "implementation_status": "UNVERIFIED",
+      "runnable": false,
+      "evidence_refs": [],
+      "required_user_requirements": [
+        "U09",
+        "U10"
+      ]
+    },
+    {
+      "seed_key": "knowledge.draft_editor",
+      "canonical_capability_id": null,
+      "domain": "knowledge",
+      "domain_label": "知识",
+      "name": "原创草稿与恢复",
+      "menu_path": [
+        "知识",
+        "原创草稿与恢复"
+      ],
+      "detail_required": true,
+      "scope_status": "RECONCILE_WITH_AUTHORITY",
+      "implementation_status": "UNVERIFIED",
+      "runnable": false,
+      "evidence_refs": [],
+      "required_user_requirements": [
+        "U09",
+        "U10"
+      ]
+    },
+    {
+      "seed_key": "knowledge.block_editor",
+      "canonical_capability_id": null,
+      "domain": "knowledge",
+      "domain_label": "知识",
+      "name": "块编辑",
+      "menu_path": [
+        "知识",
+        "块编辑"
+      ],
+      "detail_required": true,
+      "scope_status": "RECONCILE_WITH_AUTHORITY",
+      "implementation_status": "UNVERIFIED",
+      "runnable": false,
+      "evidence_refs": [],
+      "required_user_requirements": [
+        "U09",
+        "U10"
+      ]
+    },
+    {
+      "seed_key": "knowledge.markdown",
+      "canonical_capability_id": null,
+      "domain": "knowledge",
+      "domain_label": "知识",
+      "name": "Markdown 编辑",
+      "menu_path": [
+        "知识",
+        "Markdown 编辑"
+      ],
+      "detail_required": true,
+      "scope_status": "RECONCILE_WITH_AUTHORITY",
+      "implementation_status": "UNVERIFIED",
+      "runnable": false,
+      "evidence_refs": [],
+      "required_user_requirements": [
+        "U09",
+        "U10"
+      ]
+    },
+    {
+      "seed_key": "knowledge.richtext",
+      "canonical_capability_id": null,
+      "domain": "knowledge",
+      "domain_label": "知识",
+      "name": "富文本编辑",
+      "menu_path": [
+        "知识",
+        "富文本编辑"
+      ],
+      "detail_required": true,
+      "scope_status": "RECONCILE_WITH_AUTHORITY",
+      "implementation_status": "UNVERIFIED",
+      "runnable": false,
+      "evidence_refs": [],
+      "required_user_requirements": [
+        "U09",
+        "U10"
+      ]
+    },
+    {
+      "seed_key": "knowledge.knowledge_objects",
+      "canonical_capability_id": null,
+      "domain": "knowledge",
+      "domain_label": "知识",
+      "name": "知识对象与版本",
+      "menu_path": [
+        "知识",
+        "知识对象与版本"
+      ],
+      "detail_required": true,
+      "scope_status": "RECONCILE_WITH_AUTHORITY",
+      "implementation_status": "UNVERIFIED",
+      "runnable": false,
+      "evidence_refs": [],
+      "required_user_requirements": [
+        "U09",
+        "U10"
+      ]
+    },
+    {
+      "seed_key": "knowledge.anchors",
+      "canonical_capability_id": null,
+      "domain": "knowledge",
+      "domain_label": "知识",
+      "name": "原文锚点",
+      "menu_path": [
+        "知识",
+        "原文锚点"
+      ],
+      "detail_required": true,
+      "scope_status": "RECONCILE_WITH_AUTHORITY",
+      "implementation_status": "UNVERIFIED",
+      "runnable": false,
+      "evidence_refs": [],
+      "required_user_requirements": [
+        "U09",
+        "U10"
+      ]
+    },
+    {
+      "seed_key": "knowledge.claims",
+      "canonical_capability_id": null,
+      "domain": "knowledge",
+      "domain_label": "知识",
+      "name": "主张与证据",
+      "menu_path": [
+        "知识",
+        "主张与证据"
+      ],
+      "detail_required": true,
+      "scope_status": "RECONCILE_WITH_AUTHORITY",
+      "implementation_status": "UNVERIFIED",
+      "runnable": false,
+      "evidence_refs": [],
+      "required_user_requirements": [
+        "U09",
+        "U10"
+      ]
+    },
+    {
+      "seed_key": "knowledge.conflicts",
+      "canonical_capability_id": null,
+      "domain": "knowledge",
+      "domain_label": "知识",
+      "name": "证据冲突",
+      "menu_path": [
+        "知识",
+        "证据冲突"
+      ],
+      "detail_required": true,
+      "scope_status": "RECONCILE_WITH_AUTHORITY",
+      "implementation_status": "UNVERIFIED",
+      "runnable": false,
+      "evidence_refs": [],
+      "required_user_requirements": [
+        "U09",
+        "U10"
+      ]
+    },
+    {
+      "seed_key": "knowledge.review",
+      "canonical_capability_id": null,
+      "domain": "knowledge",
+      "domain_label": "知识",
+      "name": "真人复核",
+      "menu_path": [
+        "知识",
+        "真人复核"
+      ],
+      "detail_required": true,
+      "scope_status": "RECONCILE_WITH_AUTHORITY",
+      "implementation_status": "UNVERIFIED",
+      "runnable": false,
+      "evidence_refs": [],
+      "required_user_requirements": [
+        "U09",
+        "U10"
+      ]
+    },
+    {
+      "seed_key": "knowledge.version_diff",
+      "canonical_capability_id": null,
+      "domain": "knowledge",
+      "domain_label": "知识",
+      "name": "版本差异与恢复",
+      "menu_path": [
+        "知识",
+        "版本差异与恢复"
+      ],
+      "detail_required": true,
+      "scope_status": "RECONCILE_WITH_AUTHORITY",
+      "implementation_status": "UNVERIFIED",
+      "runnable": false,
+      "evidence_refs": [],
+      "required_user_requirements": [
+        "U09",
+        "U10"
+      ]
+    },
+    {
+      "seed_key": "knowledge.search",
+      "canonical_capability_id": null,
+      "domain": "knowledge",
+      "domain_label": "知识",
+      "name": "全文搜索",
+      "menu_path": [
+        "知识",
+        "全文搜索"
+      ],
+      "detail_required": true,
+      "scope_status": "RECONCILE_WITH_AUTHORITY",
+      "implementation_status": "UNVERIFIED",
+      "runnable": false,
+      "evidence_refs": [],
+      "required_user_requirements": [
+        "U09",
+        "U10"
+      ]
+    },
+    {
+      "seed_key": "knowledge.semantic_search",
+      "canonical_capability_id": null,
+      "domain": "knowledge",
+      "domain_label": "知识",
+      "name": "语义与混合检索",
+      "menu_path": [
+        "知识",
+        "语义与混合检索"
+      ],
+      "detail_required": true,
+      "scope_status": "RECONCILE_WITH_AUTHORITY",
+      "implementation_status": "UNVERIFIED",
+      "runnable": false,
+      "evidence_refs": [],
+      "required_user_requirements": [
+        "U09",
+        "U10"
+      ]
+    },
+    {
+      "seed_key": "knowledge.ask",
+      "canonical_capability_id": null,
+      "domain": "knowledge",
+      "domain_label": "知识",
+      "name": "带引用问答",
+      "menu_path": [
+        "知识",
+        "带引用问答"
+      ],
+      "detail_required": true,
+      "scope_status": "RECONCILE_WITH_AUTHORITY",
+      "implementation_status": "UNVERIFIED",
+      "runnable": false,
+      "evidence_refs": [],
+      "required_user_requirements": [
+        "U09",
+        "U10"
+      ]
+    },
+    {
+      "seed_key": "knowledge.research_search",
+      "canonical_capability_id": null,
+      "domain": "knowledge",
+      "domain_label": "知识",
+      "name": "科研检索",
+      "menu_path": [
+        "知识",
+        "科研检索"
+      ],
+      "detail_required": true,
+      "scope_status": "RECONCILE_WITH_AUTHORITY",
+      "implementation_status": "UNVERIFIED",
+      "runnable": false,
+      "evidence_refs": [],
+      "required_user_requirements": [
+        "U09",
+        "U10"
+      ]
+    },
+    {
+      "seed_key": "knowledge.topics",
+      "canonical_capability_id": null,
+      "domain": "knowledge",
+      "domain_label": "知识",
+      "name": "研究专题",
+      "menu_path": [
+        "知识",
+        "研究专题"
+      ],
+      "detail_required": true,
+      "scope_status": "RECONCILE_WITH_AUTHORITY",
+      "implementation_status": "UNVERIFIED",
+      "runnable": false,
+      "evidence_refs": [],
+      "required_user_requirements": [
+        "U09",
+        "U10"
+      ]
+    },
+    {
+      "seed_key": "knowledge.tags",
+      "canonical_capability_id": null,
+      "domain": "knowledge",
+      "domain_label": "知识",
+      "name": "标签与分类",
+      "menu_path": [
+        "知识",
+        "标签与分类"
+      ],
+      "detail_required": true,
+      "scope_status": "RECONCILE_WITH_AUTHORITY",
+      "implementation_status": "UNVERIFIED",
+      "runnable": false,
+      "evidence_refs": [],
+      "required_user_requirements": [
+        "U09",
+        "U10"
+      ]
+    },
+    {
+      "seed_key": "knowledge.aliases",
+      "canonical_capability_id": null,
+      "domain": "knowledge",
+      "domain_label": "知识",
+      "name": "别名",
+      "menu_path": [
+        "知识",
+        "别名"
+      ],
+      "detail_required": true,
+      "scope_status": "RECONCILE_WITH_AUTHORITY",
+      "implementation_status": "UNVERIFIED",
+      "runnable": false,
+      "evidence_refs": [],
+      "required_user_requirements": [
+        "U09",
+        "U10"
+      ]
+    },
+    {
+      "seed_key": "knowledge.backlinks",
+      "canonical_capability_id": null,
+      "domain": "knowledge",
+      "domain_label": "知识",
+      "name": "双向链接与反链",
+      "menu_path": [
+        "知识",
+        "双向链接与反链"
+      ],
+      "detail_required": true,
+      "scope_status": "RECONCILE_WITH_AUTHORITY",
+      "implementation_status": "UNVERIFIED",
+      "runnable": false,
+      "evidence_refs": [],
+      "required_user_requirements": [
+        "U09",
+        "U10"
+      ]
+    },
+    {
+      "seed_key": "knowledge.embeds",
+      "canonical_capability_id": null,
+      "domain": "knowledge",
+      "domain_label": "知识",
+      "name": "内容嵌入",
+      "menu_path": [
+        "知识",
+        "内容嵌入"
+      ],
+      "detail_required": true,
+      "scope_status": "RECONCILE_WITH_AUTHORITY",
+      "implementation_status": "UNVERIFIED",
+      "runnable": false,
+      "evidence_refs": [],
+      "required_user_requirements": [
+        "U09",
+        "U10"
+      ]
+    },
+    {
+      "seed_key": "knowledge.collections",
+      "canonical_capability_id": null,
+      "domain": "knowledge",
+      "domain_label": "知识",
+      "name": "空间与集合",
+      "menu_path": [
+        "知识",
+        "空间与集合"
+      ],
+      "detail_required": true,
+      "scope_status": "RECONCILE_WITH_AUTHORITY",
+      "implementation_status": "UNVERIFIED",
+      "runnable": false,
+      "evidence_refs": [],
+      "required_user_requirements": [
+        "U09",
+        "U10"
+      ]
+    },
+    {
+      "seed_key": "knowledge.properties",
+      "canonical_capability_id": null,
+      "domain": "knowledge",
+      "domain_label": "知识",
+      "name": "类型化属性",
+      "menu_path": [
+        "知识",
+        "类型化属性"
+      ],
+      "detail_required": true,
+      "scope_status": "RECONCILE_WITH_AUTHORITY",
+      "implementation_status": "UNVERIFIED",
+      "runnable": false,
+      "evidence_refs": [],
+      "required_user_requirements": [
+        "U09",
+        "U10"
+      ]
+    },
+    {
+      "seed_key": "knowledge.database_views",
+      "canonical_capability_id": null,
+      "domain": "knowledge",
+      "domain_label": "知识",
+      "name": "数据库多视图",
+      "menu_path": [
+        "知识",
+        "数据库多视图"
+      ],
+      "detail_required": true,
+      "scope_status": "RECONCILE_WITH_AUTHORITY",
+      "implementation_status": "UNVERIFIED",
+      "runnable": false,
+      "evidence_refs": [],
+      "required_user_requirements": [
+        "U09",
+        "U10",
+        "U12"
+      ]
+    },
+    {
+      "seed_key": "knowledge.relations",
+      "canonical_capability_id": null,
+      "domain": "knowledge",
+      "domain_label": "知识",
+      "name": "数据库关系与汇总",
+      "menu_path": [
+        "知识",
+        "数据库关系与汇总"
+      ],
+      "detail_required": true,
+      "scope_status": "RECONCILE_WITH_AUTHORITY",
+      "implementation_status": "UNVERIFIED",
+      "runnable": false,
+      "evidence_refs": [],
+      "required_user_requirements": [
+        "U09",
+        "U10",
+        "U12"
+      ]
+    },
+    {
+      "seed_key": "knowledge.formulas",
+      "canonical_capability_id": null,
+      "domain": "knowledge",
+      "domain_label": "知识",
+      "name": "公式与计算",
+      "menu_path": [
+        "知识",
+        "公式与计算"
+      ],
+      "detail_required": true,
+      "scope_status": "RECONCILE_WITH_AUTHORITY",
+      "implementation_status": "UNVERIFIED",
+      "runnable": false,
+      "evidence_refs": [],
+      "required_user_requirements": [
+        "U09",
+        "U10",
+        "U12"
+      ]
+    },
+    {
+      "seed_key": "knowledge.templates",
+      "canonical_capability_id": null,
+      "domain": "knowledge",
+      "domain_label": "知识",
+      "name": "文档模板",
+      "menu_path": [
+        "知识",
+        "文档模板"
+      ],
+      "detail_required": true,
+      "scope_status": "RECONCILE_WITH_AUTHORITY",
+      "implementation_status": "UNVERIFIED",
+      "runnable": false,
+      "evidence_refs": [],
+      "required_user_requirements": [
+        "U09",
+        "U10"
+      ]
+    },
+    {
+      "seed_key": "knowledge.comments",
+      "canonical_capability_id": null,
+      "domain": "knowledge",
+      "domain_label": "知识",
+      "name": "评论与讨论",
+      "menu_path": [
+        "知识",
+        "评论与讨论"
+      ],
+      "detail_required": true,
+      "scope_status": "RECONCILE_WITH_AUTHORITY",
+      "implementation_status": "UNVERIFIED",
+      "runnable": false,
+      "evidence_refs": [],
+      "required_user_requirements": [
+        "U09",
+        "U10"
+      ]
+    },
+    {
+      "seed_key": "knowledge.references",
+      "canonical_capability_id": null,
+      "domain": "knowledge",
+      "domain_label": "知识",
+      "name": "文献引用",
+      "menu_path": [
+        "知识",
+        "文献引用"
+      ],
+      "detail_required": true,
+      "scope_status": "RECONCILE_WITH_AUTHORITY",
+      "implementation_status": "UNVERIFIED",
+      "runnable": false,
+      "evidence_refs": [],
+      "required_user_requirements": [
+        "U09",
+        "U10"
+      ]
+    },
+    {
+      "seed_key": "knowledge.attachments",
+      "canonical_capability_id": null,
+      "domain": "knowledge",
+      "domain_label": "知识",
+      "name": "附件与媒体",
+      "menu_path": [
+        "知识",
+        "附件与媒体"
+      ],
+      "detail_required": true,
+      "scope_status": "RECONCILE_WITH_AUTHORITY",
+      "implementation_status": "UNVERIFIED",
+      "runnable": false,
+      "evidence_refs": [],
+      "required_user_requirements": [
+        "U09",
+        "U10"
+      ]
+    },
+    {
+      "seed_key": "knowledge.pdf_annotation",
+      "canonical_capability_id": null,
+      "domain": "knowledge",
+      "domain_label": "知识",
+      "name": "PDF 批注",
+      "menu_path": [
+        "知识",
+        "PDF 批注"
+      ],
+      "detail_required": true,
+      "scope_status": "RECONCILE_WITH_AUTHORITY",
+      "implementation_status": "UNVERIFIED",
+      "runnable": false,
+      "evidence_refs": [],
+      "required_user_requirements": [
+        "U09",
+        "U10"
+      ]
+    },
+    {
+      "seed_key": "knowledge.export",
+      "canonical_capability_id": null,
+      "domain": "knowledge",
+      "domain_label": "知识",
+      "name": "多格式导出",
+      "menu_path": [
+        "知识",
+        "多格式导出"
+      ],
+      "detail_required": true,
+      "scope_status": "RECONCILE_WITH_AUTHORITY",
+      "implementation_status": "UNVERIFIED",
+      "runnable": false,
+      "evidence_refs": [],
+      "required_user_requirements": [
+        "U09",
+        "U10"
+      ]
+    },
+    {
+      "seed_key": "knowledge.interop",
+      "canonical_capability_id": null,
+      "domain": "knowledge",
+      "domain_label": "知识",
+      "name": "知识库迁移与兼容",
+      "menu_path": [
+        "知识",
+        "知识库迁移与兼容"
+      ],
+      "detail_required": true,
+      "scope_status": "RECONCILE_WITH_AUTHORITY",
+      "implementation_status": "UNVERIFIED",
+      "runnable": false,
+      "evidence_refs": [],
+      "required_user_requirements": [
+        "U09",
+        "U10",
+        "U12"
+      ]
+    },
+    {
+      "seed_key": "knowledge.parity_matrix",
+      "canonical_capability_id": null,
+      "domain": "knowledge",
+      "domain_label": "知识",
+      "name": "全平台能力对标",
+      "menu_path": [
+        "知识",
+        "全平台能力对标"
+      ],
+      "detail_required": true,
+      "scope_status": "RECONCILE_WITH_AUTHORITY",
+      "implementation_status": "UNVERIFIED",
+      "runnable": false,
+      "evidence_refs": [],
+      "required_user_requirements": [
+        "U09",
+        "U10",
+        "U12"
+      ]
+    },
+    {
+      "seed_key": "knowledge.field_mapping",
+      "canonical_capability_id": null,
+      "domain": "knowledge",
+      "domain_label": "知识",
+      "name": "迁移字段映射",
+      "menu_path": [
+        "知识",
+        "迁移字段映射"
+      ],
+      "detail_required": true,
+      "scope_status": "RECONCILE_WITH_AUTHORITY",
+      "implementation_status": "UNVERIFIED",
+      "runnable": false,
+      "evidence_refs": [],
+      "required_user_requirements": [
+        "U09",
+        "U10",
+        "U12"
+      ]
+    },
+    {
+      "seed_key": "knowledge.loss_review",
+      "canonical_capability_id": null,
+      "domain": "knowledge",
+      "domain_label": "知识",
+      "name": "损失预览与审查",
+      "menu_path": [
+        "知识",
+        "损失预览与审查"
+      ],
+      "detail_required": true,
+      "scope_status": "RECONCILE_WITH_AUTHORITY",
+      "implementation_status": "UNVERIFIED",
+      "runnable": false,
+      "evidence_refs": [],
+      "required_user_requirements": [
+        "U09",
+        "U10",
+        "U12"
+      ]
+    },
+    {
+      "seed_key": "knowledge.roundtrip",
+      "canonical_capability_id": null,
+      "domain": "knowledge",
+      "domain_label": "知识",
+      "name": "双向往返回读",
+      "menu_path": [
+        "知识",
+        "双向往返回读"
+      ],
+      "detail_required": true,
+      "scope_status": "RECONCILE_WITH_AUTHORITY",
+      "implementation_status": "UNVERIFIED",
+      "runnable": false,
+      "evidence_refs": [],
+      "required_user_requirements": [
+        "U09",
+        "U10",
+        "U12"
+      ]
+    },
+    {
+      "seed_key": "knowledge.incremental_sync",
+      "canonical_capability_id": null,
+      "domain": "knowledge",
+      "domain_label": "知识",
+      "name": "增量同步与冲突",
+      "menu_path": [
+        "知识",
+        "增量同步与冲突"
+      ],
+      "detail_required": true,
+      "scope_status": "RECONCILE_WITH_AUTHORITY",
+      "implementation_status": "UNVERIFIED",
+      "runnable": false,
+      "evidence_refs": [],
+      "required_user_requirements": [
+        "U09",
+        "U10",
+        "U12"
+      ]
+    },
+    {
+      "seed_key": "knowledge.sharing",
+      "canonical_capability_id": null,
+      "domain": "knowledge",
+      "domain_label": "知识",
+      "name": "分享与发布",
+      "menu_path": [
+        "知识",
+        "分享与发布"
+      ],
+      "detail_required": true,
+      "scope_status": "RECONCILE_WITH_AUTHORITY",
+      "implementation_status": "UNVERIFIED",
+      "runnable": false,
+      "evidence_refs": [],
+      "required_user_requirements": [
+        "U09",
+        "U10"
+      ]
+    },
+    {
+      "seed_key": "knowledge.collaboration",
+      "canonical_capability_id": null,
+      "domain": "knowledge",
+      "domain_label": "知识",
+      "name": "协同编辑与权限",
+      "menu_path": [
+        "知识",
+        "协同编辑与权限"
+      ],
+      "detail_required": true,
+      "scope_status": "RECONCILE_WITH_AUTHORITY",
+      "implementation_status": "UNVERIFIED",
+      "runnable": false,
+      "evidence_refs": [],
+      "required_user_requirements": [
+        "U09",
+        "U10",
+        "U12"
+      ]
+    },
+    {
+      "seed_key": "learning.diagnosis",
+      "canonical_capability_id": null,
+      "domain": "learning",
+      "domain_label": "学习",
+      "name": "学习诊断",
+      "menu_path": [
+        "学习",
+        "学习诊断"
+      ],
+      "detail_required": true,
+      "scope_status": "RECONCILE_WITH_AUTHORITY",
+      "implementation_status": "UNVERIFIED",
+      "runnable": false,
+      "evidence_refs": [],
+      "required_user_requirements": [
+        "U09",
+        "U10"
+      ]
+    },
+    {
+      "seed_key": "learning.plans",
+      "canonical_capability_id": null,
+      "domain": "learning",
+      "domain_label": "学习",
+      "name": "学习计划",
+      "menu_path": [
+        "学习",
+        "学习计划"
+      ],
+      "detail_required": true,
+      "scope_status": "RECONCILE_WITH_AUTHORITY",
+      "implementation_status": "UNVERIFIED",
+      "runnable": false,
+      "evidence_refs": [],
+      "required_user_requirements": [
+        "U09",
+        "U10"
+      ]
+    },
+    {
+      "seed_key": "learning.prerequisites",
+      "canonical_capability_id": null,
+      "domain": "learning",
+      "domain_label": "学习",
+      "name": "先修关系",
+      "menu_path": [
+        "学习",
+        "先修关系"
+      ],
+      "detail_required": true,
+      "scope_status": "RECONCILE_WITH_AUTHORITY",
+      "implementation_status": "UNVERIFIED",
+      "runnable": false,
+      "evidence_refs": [],
+      "required_user_requirements": [
+        "U09",
+        "U10"
+      ]
+    },
+    {
+      "seed_key": "learning.routes",
+      "canonical_capability_id": null,
+      "domain": "learning",
+      "domain_label": "学习",
+      "name": "学习路线",
+      "menu_path": [
+        "学习",
+        "学习路线"
+      ],
+      "detail_required": true,
+      "scope_status": "RECONCILE_WITH_AUTHORITY",
+      "implementation_status": "UNVERIFIED",
+      "runnable": false,
+      "evidence_refs": [],
+      "required_user_requirements": [
+        "U09",
+        "U10"
+      ]
+    },
+    {
+      "seed_key": "learning.courses",
+      "canonical_capability_id": null,
+      "domain": "learning",
+      "domain_label": "学习",
+      "name": "课程与学习产物",
+      "menu_path": [
+        "学习",
+        "课程与学习产物"
+      ],
+      "detail_required": true,
+      "scope_status": "RECONCILE_WITH_AUTHORITY",
+      "implementation_status": "UNVERIFIED",
+      "runnable": false,
+      "evidence_refs": [],
+      "required_user_requirements": [
+        "U09",
+        "U10"
+      ]
+    },
+    {
+      "seed_key": "learning.explain",
+      "canonical_capability_id": null,
+      "domain": "learning",
+      "domain_label": "学习",
+      "name": "基于资料的讲解",
+      "menu_path": [
+        "学习",
+        "基于资料的讲解"
+      ],
+      "detail_required": true,
+      "scope_status": "RECONCILE_WITH_AUTHORITY",
+      "implementation_status": "UNVERIFIED",
+      "runnable": false,
+      "evidence_refs": [],
+      "required_user_requirements": [
+        "U09",
+        "U10"
+      ]
+    },
+    {
+      "seed_key": "learning.practice",
+      "canonical_capability_id": null,
+      "domain": "learning",
+      "domain_label": "学习",
+      "name": "练习与题库",
+      "menu_path": [
+        "学习",
+        "练习与题库"
+      ],
+      "detail_required": true,
+      "scope_status": "RECONCILE_WITH_AUTHORITY",
+      "implementation_status": "UNVERIFIED",
+      "runnable": false,
+      "evidence_refs": [],
+      "required_user_requirements": [
+        "U09",
+        "U10"
+      ]
+    },
+    {
+      "seed_key": "learning.assessment",
+      "canonical_capability_id": null,
+      "domain": "learning",
+      "domain_label": "学习",
+      "name": "测验与评估",
+      "menu_path": [
+        "学习",
+        "测验与评估"
+      ],
+      "detail_required": true,
+      "scope_status": "RECONCILE_WITH_AUTHORITY",
+      "implementation_status": "UNVERIFIED",
+      "runnable": false,
+      "evidence_refs": [],
+      "required_user_requirements": [
+        "U09",
+        "U10"
+      ]
+    },
+    {
+      "seed_key": "learning.review",
+      "canonical_capability_id": null,
+      "domain": "learning",
+      "domain_label": "学习",
+      "name": "间隔复习",
+      "menu_path": [
+        "学习",
+        "间隔复习"
+      ],
+      "detail_required": true,
+      "scope_status": "RECONCILE_WITH_AUTHORITY",
+      "implementation_status": "UNVERIFIED",
+      "runnable": false,
+      "evidence_refs": [],
+      "required_user_requirements": [
+        "U09",
+        "U10"
+      ]
+    },
+    {
+      "seed_key": "learning.flashcards",
+      "canonical_capability_id": null,
+      "domain": "learning",
+      "domain_label": "学习",
+      "name": "卡片与填空",
+      "menu_path": [
+        "学习",
+        "卡片与填空"
+      ],
+      "detail_required": true,
+      "scope_status": "RECONCILE_WITH_AUTHORITY",
+      "implementation_status": "UNVERIFIED",
+      "runnable": false,
+      "evidence_refs": [],
+      "required_user_requirements": [
+        "U09",
+        "U10"
+      ]
+    },
+    {
+      "seed_key": "learning.mistakes",
+      "canonical_capability_id": null,
+      "domain": "learning",
+      "domain_label": "学习",
+      "name": "错题与反馈",
+      "menu_path": [
+        "学习",
+        "错题与反馈"
+      ],
+      "detail_required": true,
+      "scope_status": "RECONCILE_WITH_AUTHORITY",
+      "implementation_status": "UNVERIFIED",
+      "runnable": false,
+      "evidence_refs": [],
+      "required_user_requirements": [
+        "U09",
+        "U10"
+      ]
+    },
+    {
+      "seed_key": "learning.mastery",
+      "canonical_capability_id": null,
+      "domain": "learning",
+      "domain_label": "学习",
+      "name": "掌握证据",
+      "menu_path": [
+        "学习",
+        "掌握证据"
+      ],
+      "detail_required": true,
+      "scope_status": "RECONCILE_WITH_AUTHORITY",
+      "implementation_status": "UNVERIFIED",
+      "runnable": false,
+      "evidence_refs": [],
+      "required_user_requirements": [
+        "U09",
+        "U10"
+      ]
+    },
+    {
+      "seed_key": "learning.teach_back",
+      "canonical_capability_id": null,
+      "domain": "learning",
+      "domain_label": "学习",
+      "name": "复述教学",
+      "menu_path": [
+        "学习",
+        "复述教学"
+      ],
+      "detail_required": true,
+      "scope_status": "RECONCILE_WITH_AUTHORITY",
+      "implementation_status": "UNVERIFIED",
+      "runnable": false,
+      "evidence_refs": [],
+      "required_user_requirements": [
+        "U09",
+        "U10"
+      ]
+    },
+    {
+      "seed_key": "learning.profile",
+      "canonical_capability_id": null,
+      "domain": "learning",
+      "domain_label": "学习",
+      "name": "学习画像",
+      "menu_path": [
+        "学习",
+        "学习画像"
+      ],
+      "detail_required": true,
+      "scope_status": "RECONCILE_WITH_AUTHORITY",
+      "implementation_status": "UNVERIFIED",
+      "runnable": false,
+      "evidence_refs": [],
+      "required_user_requirements": [
+        "U09",
+        "U10"
+      ]
+    },
+    {
+      "seed_key": "learning.cognitive_load",
+      "canonical_capability_id": null,
+      "domain": "learning",
+      "domain_label": "学习",
+      "name": "认知负荷",
+      "menu_path": [
+        "学习",
+        "认知负荷"
+      ],
+      "detail_required": true,
+      "scope_status": "RECONCILE_WITH_AUTHORITY",
+      "implementation_status": "UNVERIFIED",
+      "runnable": false,
+      "evidence_refs": [],
+      "required_user_requirements": [
+        "U09",
+        "U10"
+      ]
+    },
+    {
+      "seed_key": "learning.memory_encoding",
+      "canonical_capability_id": null,
+      "domain": "learning",
+      "domain_label": "学习",
+      "name": "记忆编码",
+      "menu_path": [
+        "学习",
+        "记忆编码"
+      ],
+      "detail_required": true,
+      "scope_status": "RECONCILE_WITH_AUTHORITY",
+      "implementation_status": "UNVERIFIED",
+      "runnable": false,
+      "evidence_refs": [],
+      "required_user_requirements": [
+        "U09",
+        "U10"
+      ]
+    },
+    {
+      "seed_key": "learning.active_training",
+      "canonical_capability_id": null,
+      "domain": "learning",
+      "domain_label": "学习",
+      "name": "主动训练",
+      "menu_path": [
+        "学习",
+        "主动训练"
+      ],
+      "detail_required": true,
+      "scope_status": "RECONCILE_WITH_AUTHORITY",
+      "implementation_status": "UNVERIFIED",
+      "runnable": false,
+      "evidence_refs": [],
+      "required_user_requirements": [
+        "U09",
+        "U10"
+      ]
+    },
+    {
+      "seed_key": "learning.skills_practice",
+      "canonical_capability_id": null,
+      "domain": "learning",
+      "domain_label": "学习",
+      "name": "技能实战",
+      "menu_path": [
+        "学习",
+        "技能实战"
+      ],
+      "detail_required": true,
+      "scope_status": "RECONCILE_WITH_AUTHORITY",
+      "implementation_status": "UNVERIFIED",
+      "runnable": false,
+      "evidence_refs": [],
+      "required_user_requirements": [
+        "U09",
+        "U10"
+      ]
+    },
+    {
+      "seed_key": "learning.metacognition",
+      "canonical_capability_id": null,
+      "domain": "learning",
+      "domain_label": "学习",
+      "name": "元认知",
+      "menu_path": [
+        "学习",
+        "元认知"
+      ],
+      "detail_required": true,
+      "scope_status": "RECONCILE_WITH_AUTHORITY",
+      "implementation_status": "UNVERIFIED",
+      "runnable": false,
+      "evidence_refs": [],
+      "required_user_requirements": [
+        "U09",
+        "U10"
+      ]
+    },
+    {
+      "seed_key": "learning.long_term",
+      "canonical_capability_id": null,
+      "domain": "learning",
+      "domain_label": "学习",
+      "name": "长期巩固",
+      "menu_path": [
+        "学习",
+        "长期巩固"
+      ],
+      "detail_required": true,
+      "scope_status": "RECONCILE_WITH_AUTHORITY",
+      "implementation_status": "UNVERIFIED",
+      "runnable": false,
+      "evidence_refs": [],
+      "required_user_requirements": [
+        "U09",
+        "U10"
+      ]
+    },
+    {
+      "seed_key": "learning.notes",
+      "canonical_capability_id": null,
+      "domain": "learning",
+      "domain_label": "学习",
+      "name": "学习笔记",
+      "menu_path": [
+        "学习",
+        "学习笔记"
+      ],
+      "detail_required": true,
+      "scope_status": "RECONCILE_WITH_AUTHORITY",
+      "implementation_status": "UNVERIFIED",
+      "runnable": false,
+      "evidence_refs": [],
+      "required_user_requirements": [
+        "U09",
+        "U10"
+      ]
+    },
+    {
+      "seed_key": "learning.schedule",
+      "canonical_capability_id": null,
+      "domain": "learning",
+      "domain_label": "学习",
+      "name": "复习调度",
+      "menu_path": [
+        "学习",
+        "复习调度"
+      ],
+      "detail_required": true,
+      "scope_status": "RECONCILE_WITH_AUTHORITY",
+      "implementation_status": "UNVERIFIED",
+      "runnable": false,
+      "evidence_refs": [],
+      "required_user_requirements": [
+        "U09",
+        "U10"
+      ]
+    },
+    {
+      "seed_key": "learning.history",
+      "canonical_capability_id": null,
+      "domain": "learning",
+      "domain_label": "学习",
+      "name": "学习历史与统计",
+      "menu_path": [
+        "学习",
+        "学习历史与统计"
+      ],
+      "detail_required": true,
+      "scope_status": "RECONCILE_WITH_AUTHORITY",
+      "implementation_status": "UNVERIFIED",
+      "runnable": false,
+      "evidence_refs": [],
+      "required_user_requirements": [
+        "U09",
+        "U10"
+      ]
+    },
+    {
+      "seed_key": "ai_learning.tasks",
+      "canonical_capability_id": null,
+      "domain": "ai_learning",
+      "domain_label": "AI 学习",
+      "name": "机器知识任务",
+      "menu_path": [
+        "AI 学习",
+        "机器知识任务"
+      ],
+      "detail_required": true,
+      "scope_status": "RECONCILE_WITH_AUTHORITY",
+      "implementation_status": "UNVERIFIED",
+      "runnable": false,
+      "evidence_refs": [],
+      "required_user_requirements": [
+        "U09",
+        "U10"
+      ]
+    },
+    {
+      "seed_key": "ai_learning.controlled_use",
+      "canonical_capability_id": null,
+      "domain": "ai_learning",
+      "domain_label": "AI 学习",
+      "name": "受控知识使用",
+      "menu_path": [
+        "AI 学习",
+        "受控知识使用"
+      ],
+      "detail_required": true,
+      "scope_status": "RECONCILE_WITH_AUTHORITY",
+      "implementation_status": "UNVERIFIED",
+      "runnable": false,
+      "evidence_refs": [],
+      "required_user_requirements": [
+        "U09",
+        "U10"
+      ]
+    },
+    {
+      "seed_key": "ai_learning.evaluation",
+      "canonical_capability_id": null,
+      "domain": "ai_learning",
+      "domain_label": "AI 学习",
+      "name": "评估与对照",
+      "menu_path": [
+        "AI 学习",
+        "评估与对照"
+      ],
+      "detail_required": true,
+      "scope_status": "RECONCILE_WITH_AUTHORITY",
+      "implementation_status": "UNVERIFIED",
+      "runnable": false,
+      "evidence_refs": [],
+      "required_user_requirements": [
+        "U09",
+        "U10"
+      ]
+    },
+    {
+      "seed_key": "ai_learning.corrections",
+      "canonical_capability_id": null,
+      "domain": "ai_learning",
+      "domain_label": "AI 学习",
+      "name": "人工纠正",
+      "menu_path": [
+        "AI 学习",
+        "人工纠正"
+      ],
+      "detail_required": true,
+      "scope_status": "RECONCILE_WITH_AUTHORITY",
+      "implementation_status": "UNVERIFIED",
+      "runnable": false,
+      "evidence_refs": [],
+      "required_user_requirements": [
+        "U09",
+        "U10"
+      ]
+    },
+    {
+      "seed_key": "ai_learning.retest",
+      "canonical_capability_id": null,
+      "domain": "ai_learning",
+      "domain_label": "AI 学习",
+      "name": "纠正后重测",
+      "menu_path": [
+        "AI 学习",
+        "纠正后重测"
+      ],
+      "detail_required": true,
+      "scope_status": "RECONCILE_WITH_AUTHORITY",
+      "implementation_status": "UNVERIFIED",
+      "runnable": false,
+      "evidence_refs": [],
+      "required_user_requirements": [
+        "U09",
+        "U10"
+      ]
+    },
+    {
+      "seed_key": "ai_learning.memory_candidates",
+      "canonical_capability_id": null,
+      "domain": "ai_learning",
+      "domain_label": "AI 学习",
+      "name": "记忆候选",
+      "menu_path": [
+        "AI 学习",
+        "记忆候选"
+      ],
+      "detail_required": true,
+      "scope_status": "RECONCILE_WITH_AUTHORITY",
+      "implementation_status": "UNVERIFIED",
+      "runnable": false,
+      "evidence_refs": [],
+      "required_user_requirements": [
+        "U09",
+        "U10"
+      ]
+    },
+    {
+      "seed_key": "ai_learning.rule_candidates",
+      "canonical_capability_id": null,
+      "domain": "ai_learning",
+      "domain_label": "AI 学习",
+      "name": "规则候选",
+      "menu_path": [
+        "AI 学习",
+        "规则候选"
+      ],
+      "detail_required": true,
+      "scope_status": "RECONCILE_WITH_AUTHORITY",
+      "implementation_status": "UNVERIFIED",
+      "runnable": false,
+      "evidence_refs": [],
+      "required_user_requirements": [
+        "U09",
+        "U10"
+      ]
+    },
+    {
+      "seed_key": "ai_learning.skill_candidates",
+      "canonical_capability_id": null,
+      "domain": "ai_learning",
+      "domain_label": "AI 学习",
+      "name": "技能候选",
+      "menu_path": [
+        "AI 学习",
+        "技能候选"
+      ],
+      "detail_required": true,
+      "scope_status": "RECONCILE_WITH_AUTHORITY",
+      "implementation_status": "UNVERIFIED",
+      "runnable": false,
+      "evidence_refs": [],
+      "required_user_requirements": [
+        "U09",
+        "U10"
+      ]
+    },
+    {
+      "seed_key": "ai_learning.review",
+      "canonical_capability_id": null,
+      "domain": "ai_learning",
+      "domain_label": "AI 学习",
+      "name": "候选审核",
+      "menu_path": [
+        "AI 学习",
+        "候选审核"
+      ],
+      "detail_required": true,
+      "scope_status": "RECONCILE_WITH_AUTHORITY",
+      "implementation_status": "UNVERIFIED",
+      "runnable": false,
+      "evidence_refs": [],
+      "required_user_requirements": [
+        "U09",
+        "U10"
+      ]
+    },
+    {
+      "seed_key": "ai_learning.accepted_assets",
+      "canonical_capability_id": null,
+      "domain": "ai_learning",
+      "domain_label": "AI 学习",
+      "name": "已认可机器知识",
+      "menu_path": [
+        "AI 学习",
+        "已认可机器知识"
+      ],
+      "detail_required": true,
+      "scope_status": "RECONCILE_WITH_AUTHORITY",
+      "implementation_status": "UNVERIFIED",
+      "runnable": false,
+      "evidence_refs": [],
+      "required_user_requirements": [
+        "U09",
+        "U10"
+      ]
+    },
+    {
+      "seed_key": "ai_learning.reuse_trace",
+      "canonical_capability_id": null,
+      "domain": "ai_learning",
+      "domain_label": "AI 学习",
+      "name": "复用证据",
+      "menu_path": [
+        "AI 学习",
+        "复用证据"
+      ],
+      "detail_required": true,
+      "scope_status": "RECONCILE_WITH_AUTHORITY",
+      "implementation_status": "UNVERIFIED",
+      "runnable": false,
+      "evidence_refs": [],
+      "required_user_requirements": [
+        "U09",
+        "U10"
+      ]
+    },
+    {
+      "seed_key": "ai_learning.context_packs",
+      "canonical_capability_id": null,
+      "domain": "ai_learning",
+      "domain_label": "AI 学习",
+      "name": "知识上下文包",
+      "menu_path": [
+        "AI 学习",
+        "知识上下文包"
+      ],
+      "detail_required": true,
+      "scope_status": "RECONCILE_WITH_AUTHORITY",
+      "implementation_status": "UNVERIFIED",
+      "runnable": false,
+      "evidence_refs": [],
+      "required_user_requirements": [
+        "U09",
+        "U10"
+      ]
+    },
+    {
+      "seed_key": "explore.atlas",
+      "canonical_capability_id": null,
+      "domain": "explore",
+      "domain_label": "探索与蓝图",
+      "name": "完整能力地图",
+      "menu_path": [
+        "探索与蓝图",
+        "完整能力地图"
+      ],
+      "detail_required": true,
+      "scope_status": "RECONCILE_WITH_AUTHORITY",
+      "implementation_status": "UNVERIFIED",
+      "runnable": false,
+      "evidence_refs": [],
+      "required_user_requirements": [
+        "U09",
+        "U10"
+      ]
+    },
+    {
+      "seed_key": "explore.visual_learning",
+      "canonical_capability_id": null,
+      "domain": "explore",
+      "domain_label": "探索与蓝图",
+      "name": "视觉学习",
+      "menu_path": [
+        "探索与蓝图",
+        "视觉学习"
+      ],
+      "detail_required": true,
+      "scope_status": "RECONCILE_WITH_AUTHORITY",
+      "implementation_status": "UNVERIFIED",
+      "runnable": false,
+      "evidence_refs": [],
+      "required_user_requirements": [
+        "U09",
+        "U10"
+      ]
+    },
+    {
+      "seed_key": "explore.ler",
+      "canonical_capability_id": null,
+      "domain": "explore",
+      "domain_label": "探索与蓝图",
+      "name": "学习体验呈现 LER",
+      "menu_path": [
+        "探索与蓝图",
+        "学习体验呈现 LER"
+      ],
+      "detail_required": true,
+      "scope_status": "RECONCILE_WITH_AUTHORITY",
+      "implementation_status": "UNVERIFIED",
+      "runnable": false,
+      "evidence_refs": [],
+      "required_user_requirements": [
+        "U09",
+        "U10"
+      ]
+    },
+    {
+      "seed_key": "explore.graph",
+      "canonical_capability_id": null,
+      "domain": "explore",
+      "domain_label": "探索与蓝图",
+      "name": "知识图谱",
+      "menu_path": [
+        "探索与蓝图",
+        "知识图谱"
+      ],
+      "detail_required": true,
+      "scope_status": "RECONCILE_WITH_AUTHORITY",
+      "implementation_status": "UNVERIFIED",
+      "runnable": false,
+      "evidence_refs": [],
+      "required_user_requirements": [
+        "U09",
+        "U10"
+      ]
+    },
+    {
+      "seed_key": "explore.mindmap",
+      "canonical_capability_id": null,
+      "domain": "explore",
+      "domain_label": "探索与蓝图",
+      "name": "思维导图",
+      "menu_path": [
+        "探索与蓝图",
+        "思维导图"
+      ],
+      "detail_required": true,
+      "scope_status": "RECONCILE_WITH_AUTHORITY",
+      "implementation_status": "UNVERIFIED",
+      "runnable": false,
+      "evidence_refs": [],
+      "required_user_requirements": [
+        "U09",
+        "U10"
+      ]
+    },
+    {
+      "seed_key": "explore.canvas",
+      "canonical_capability_id": null,
+      "domain": "explore",
+      "domain_label": "探索与蓝图",
+      "name": "画布与白板",
+      "menu_path": [
+        "探索与蓝图",
+        "画布与白板"
+      ],
+      "detail_required": true,
+      "scope_status": "RECONCILE_WITH_AUTHORITY",
+      "implementation_status": "UNVERIFIED",
+      "runnable": false,
+      "evidence_refs": [],
+      "required_user_requirements": [
+        "U09",
+        "U10"
+      ]
+    },
+    {
+      "seed_key": "explore.simulation",
+      "canonical_capability_id": null,
+      "domain": "explore",
+      "domain_label": "探索与蓝图",
+      "name": "仿真学习",
+      "menu_path": [
+        "探索与蓝图",
+        "仿真学习"
+      ],
+      "detail_required": true,
+      "scope_status": "RECONCILE_WITH_AUTHORITY",
+      "implementation_status": "UNVERIFIED",
+      "runnable": false,
+      "evidence_refs": [],
+      "required_user_requirements": [
+        "U09",
+        "U10"
+      ]
+    },
+    {
+      "seed_key": "explore.spatial_memory",
+      "canonical_capability_id": null,
+      "domain": "explore",
+      "domain_label": "探索与蓝图",
+      "name": "空间记忆",
+      "menu_path": [
+        "探索与蓝图",
+        "空间记忆"
+      ],
+      "detail_required": true,
+      "scope_status": "RECONCILE_WITH_AUTHORITY",
+      "implementation_status": "UNVERIFIED",
+      "runnable": false,
+      "evidence_refs": [],
+      "required_user_requirements": [
+        "U09",
+        "U10"
+      ]
+    },
+    {
+      "seed_key": "explore.memory_palace",
+      "canonical_capability_id": null,
+      "domain": "explore",
+      "domain_label": "探索与蓝图",
+      "name": "记忆宫殿",
+      "menu_path": [
+        "探索与蓝图",
+        "记忆宫殿"
+      ],
+      "detail_required": true,
+      "scope_status": "RECONCILE_WITH_AUTHORITY",
+      "implementation_status": "UNVERIFIED",
+      "runnable": false,
+      "evidence_refs": [],
+      "required_user_requirements": [
+        "U09",
+        "U10"
+      ]
+    },
+    {
+      "seed_key": "explore.two_d",
+      "canonical_capability_id": null,
+      "domain": "explore",
+      "domain_label": "探索与蓝图",
+      "name": "2D 学习空间",
+      "menu_path": [
+        "探索与蓝图",
+        "2D 学习空间"
+      ],
+      "detail_required": true,
+      "scope_status": "RECONCILE_WITH_AUTHORITY",
+      "implementation_status": "UNVERIFIED",
+      "runnable": false,
+      "evidence_refs": [],
+      "required_user_requirements": [
+        "U09",
+        "U10"
+      ]
+    },
+    {
+      "seed_key": "explore.two_half_d",
+      "canonical_capability_id": null,
+      "domain": "explore",
+      "domain_label": "探索与蓝图",
+      "name": "2.5D 学习空间",
+      "menu_path": [
+        "探索与蓝图",
+        "2.5D 学习空间"
+      ],
+      "detail_required": true,
+      "scope_status": "RECONCILE_WITH_AUTHORITY",
+      "implementation_status": "UNVERIFIED",
+      "runnable": false,
+      "evidence_refs": [],
+      "required_user_requirements": [
+        "U09",
+        "U10"
+      ]
+    },
+    {
+      "seed_key": "explore.three_d",
+      "canonical_capability_id": null,
+      "domain": "explore",
+      "domain_label": "探索与蓝图",
+      "name": "3D 学习空间",
+      "menu_path": [
+        "探索与蓝图",
+        "3D 学习空间"
+      ],
+      "detail_required": true,
+      "scope_status": "RECONCILE_WITH_AUTHORITY",
+      "implementation_status": "UNVERIFIED",
+      "runnable": false,
+      "evidence_refs": [],
+      "required_user_requirements": [
+        "U09",
+        "U10"
+      ]
+    },
+    {
+      "seed_key": "explore.vr",
+      "canonical_capability_id": null,
+      "domain": "explore",
+      "domain_label": "探索与蓝图",
+      "name": "VR 学习",
+      "menu_path": [
+        "探索与蓝图",
+        "VR 学习"
+      ],
+      "detail_required": true,
+      "scope_status": "RECONCILE_WITH_AUTHORITY",
+      "implementation_status": "UNVERIFIED",
+      "runnable": false,
+      "evidence_refs": [],
+      "required_user_requirements": [
+        "U09",
+        "U10"
+      ]
+    },
+    {
+      "seed_key": "explore.ar",
+      "canonical_capability_id": null,
+      "domain": "explore",
+      "domain_label": "探索与蓝图",
+      "name": "AR 学习",
+      "menu_path": [
+        "探索与蓝图",
+        "AR 学习"
+      ],
+      "detail_required": true,
+      "scope_status": "RECONCILE_WITH_AUTHORITY",
+      "implementation_status": "UNVERIFIED",
+      "runnable": false,
+      "evidence_refs": [],
+      "required_user_requirements": [
+        "U09",
+        "U10"
+      ]
+    },
+    {
+      "seed_key": "explore.research_tools",
+      "canonical_capability_id": null,
+      "domain": "explore",
+      "domain_label": "探索与蓝图",
+      "name": "科研工具与验证",
+      "menu_path": [
+        "探索与蓝图",
+        "科研工具与验证"
+      ],
+      "detail_required": true,
+      "scope_status": "RECONCILE_WITH_AUTHORITY",
+      "implementation_status": "UNVERIFIED",
+      "runnable": false,
+      "evidence_refs": [],
+      "required_user_requirements": [
+        "U09",
+        "U10"
+      ]
+    },
+    {
+      "seed_key": "explore.capability_roadmap",
+      "canonical_capability_id": null,
+      "domain": "explore",
+      "domain_label": "探索与蓝图",
+      "name": "未来能力路线",
+      "menu_path": [
+        "探索与蓝图",
+        "未来能力路线"
+      ],
+      "detail_required": true,
+      "scope_status": "RECONCILE_WITH_AUTHORITY",
+      "implementation_status": "UNVERIFIED",
+      "runnable": false,
+      "evidence_refs": [],
+      "required_user_requirements": [
+        "U09",
+        "U10"
+      ]
+    },
+    {
+      "seed_key": "system.capability_center",
+      "canonical_capability_id": null,
+      "domain": "system",
+      "domain_label": "系统与能力",
+      "name": "能力中心",
+      "menu_path": [
+        "系统与能力",
+        "能力中心"
+      ],
+      "detail_required": true,
+      "scope_status": "RECONCILE_WITH_AUTHORITY",
+      "implementation_status": "UNVERIFIED",
+      "runnable": false,
+      "evidence_refs": [],
+      "required_user_requirements": [
+        "U09",
+        "U10"
+      ]
+    },
+    {
+      "seed_key": "system.connections",
+      "canonical_capability_id": null,
+      "domain": "system",
+      "domain_label": "系统与能力",
+      "name": "平台与本地连接",
+      "menu_path": [
+        "系统与能力",
+        "平台与本地连接"
+      ],
+      "detail_required": true,
+      "scope_status": "RECONCILE_WITH_AUTHORITY",
+      "implementation_status": "UNVERIFIED",
+      "runnable": false,
+      "evidence_refs": [],
+      "required_user_requirements": [
+        "U09",
+        "U10"
+      ]
+    },
+    {
+      "seed_key": "system.plugins",
+      "canonical_capability_id": null,
+      "domain": "system",
+      "domain_label": "系统与能力",
+      "name": "产品插件",
+      "menu_path": [
+        "系统与能力",
+        "产品插件"
+      ],
+      "detail_required": true,
+      "scope_status": "RECONCILE_WITH_AUTHORITY",
+      "implementation_status": "UNVERIFIED",
+      "runnable": false,
+      "evidence_refs": [],
+      "required_user_requirements": [
+        "U09",
+        "U10"
+      ]
+    },
+    {
+      "seed_key": "system.skills",
+      "canonical_capability_id": null,
+      "domain": "system",
+      "domain_label": "系统与能力",
+      "name": "产品技能",
+      "menu_path": [
+        "系统与能力",
+        "产品技能"
+      ],
+      "detail_required": true,
+      "scope_status": "RECONCILE_WITH_AUTHORITY",
+      "implementation_status": "UNVERIFIED",
+      "runnable": false,
+      "evidence_refs": [],
+      "required_user_requirements": [
+        "U09",
+        "U10"
+      ]
+    },
+    {
+      "seed_key": "system.adapters",
+      "canonical_capability_id": null,
+      "domain": "system",
+      "domain_label": "系统与能力",
+      "name": "知识库适配器",
+      "menu_path": [
+        "系统与能力",
+        "知识库适配器"
+      ],
+      "detail_required": true,
+      "scope_status": "RECONCILE_WITH_AUTHORITY",
+      "implementation_status": "UNVERIFIED",
+      "runnable": false,
+      "evidence_refs": [],
+      "required_user_requirements": [
+        "U09",
+        "U10"
+      ]
+    },
+    {
+      "seed_key": "system.models",
+      "canonical_capability_id": null,
+      "domain": "system",
+      "domain_label": "系统与能力",
+      "name": "共享模型引用",
+      "menu_path": [
+        "系统与能力",
+        "共享模型引用"
+      ],
+      "detail_required": true,
+      "scope_status": "RECONCILE_WITH_AUTHORITY",
+      "implementation_status": "UNVERIFIED",
+      "runnable": false,
+      "evidence_refs": [],
+      "required_user_requirements": [
+        "U09",
+        "U10"
+      ]
+    },
+    {
+      "seed_key": "system.providers",
+      "canonical_capability_id": null,
+      "domain": "system",
+      "domain_label": "系统与能力",
+      "name": "模型与科研提供方",
+      "menu_path": [
+        "系统与能力",
+        "模型与科研提供方"
+      ],
+      "detail_required": true,
+      "scope_status": "RECONCILE_WITH_AUTHORITY",
+      "implementation_status": "UNVERIFIED",
+      "runnable": false,
+      "evidence_refs": [],
+      "required_user_requirements": [
+        "U09",
+        "U10"
+      ]
+    },
+    {
+      "seed_key": "system.capability_health",
+      "canonical_capability_id": null,
+      "domain": "system",
+      "domain_label": "系统与能力",
+      "name": "能力健康",
+      "menu_path": [
+        "系统与能力",
+        "能力健康"
+      ],
+      "detail_required": true,
+      "scope_status": "RECONCILE_WITH_AUTHORITY",
+      "implementation_status": "UNVERIFIED",
+      "runnable": false,
+      "evidence_refs": [],
+      "required_user_requirements": [
+        "U09",
+        "U10"
+      ]
+    },
+    {
+      "seed_key": "system.jobs",
+      "canonical_capability_id": null,
+      "domain": "system",
+      "domain_label": "系统与能力",
+      "name": "任务与作业",
+      "menu_path": [
+        "系统与能力",
+        "任务与作业"
+      ],
+      "detail_required": true,
+      "scope_status": "RECONCILE_WITH_AUTHORITY",
+      "implementation_status": "UNVERIFIED",
+      "runnable": false,
+      "evidence_refs": [],
+      "required_user_requirements": [
+        "U09",
+        "U10"
+      ]
+    },
+    {
+      "seed_key": "system.receipts",
+      "canonical_capability_id": null,
+      "domain": "system",
+      "domain_label": "系统与能力",
+      "name": "调用回执",
+      "menu_path": [
+        "系统与能力",
+        "调用回执"
+      ],
+      "detail_required": true,
+      "scope_status": "RECONCILE_WITH_AUTHORITY",
+      "implementation_status": "UNVERIFIED",
+      "runnable": false,
+      "evidence_refs": [],
+      "required_user_requirements": [
+        "U09",
+        "U10"
+      ]
+    },
+    {
+      "seed_key": "system.budget",
+      "canonical_capability_id": null,
+      "domain": "system",
+      "domain_label": "系统与能力",
+      "name": "配额与成本",
+      "menu_path": [
+        "系统与能力",
+        "配额与成本"
+      ],
+      "detail_required": true,
+      "scope_status": "RECONCILE_WITH_AUTHORITY",
+      "implementation_status": "UNVERIFIED",
+      "runnable": false,
+      "evidence_refs": [],
+      "required_user_requirements": [
+        "U09",
+        "U10"
+      ]
+    },
+    {
+      "seed_key": "system.permissions",
+      "canonical_capability_id": null,
+      "domain": "system",
+      "domain_label": "系统与能力",
+      "name": "权限与数据范围",
+      "menu_path": [
+        "系统与能力",
+        "权限与数据范围"
+      ],
+      "detail_required": true,
+      "scope_status": "RECONCILE_WITH_AUTHORITY",
+      "implementation_status": "UNVERIFIED",
+      "runnable": false,
+      "evidence_refs": [],
+      "required_user_requirements": [
+        "U09",
+        "U10"
+      ]
+    },
+    {
+      "seed_key": "system.backup",
+      "canonical_capability_id": null,
+      "domain": "system",
+      "domain_label": "系统与能力",
+      "name": "备份",
+      "menu_path": [
+        "系统与能力",
+        "备份"
+      ],
+      "detail_required": true,
+      "scope_status": "RECONCILE_WITH_AUTHORITY",
+      "implementation_status": "UNVERIFIED",
+      "runnable": false,
+      "evidence_refs": [],
+      "required_user_requirements": [
+        "U09",
+        "U10"
+      ]
+    },
+    {
+      "seed_key": "system.restore",
+      "canonical_capability_id": null,
+      "domain": "system",
+      "domain_label": "系统与能力",
+      "name": "恢复与回滚",
+      "menu_path": [
+        "系统与能力",
+        "恢复与回滚"
+      ],
+      "detail_required": true,
+      "scope_status": "RECONCILE_WITH_AUTHORITY",
+      "implementation_status": "UNVERIFIED",
+      "runnable": false,
+      "evidence_refs": [],
+      "required_user_requirements": [
+        "U09",
+        "U10"
+      ]
+    },
+    {
+      "seed_key": "system.settings",
+      "canonical_capability_id": null,
+      "domain": "system",
+      "domain_label": "系统与能力",
+      "name": "设置",
+      "menu_path": [
+        "系统与能力",
+        "设置"
+      ],
+      "detail_required": true,
+      "scope_status": "RECONCILE_WITH_AUTHORITY",
+      "implementation_status": "UNVERIFIED",
+      "runnable": false,
+      "evidence_refs": [],
+      "required_user_requirements": [
+        "U09",
+        "U10"
+      ]
+    },
+    {
+      "seed_key": "system.keyboard",
+      "canonical_capability_id": null,
+      "domain": "system",
+      "domain_label": "系统与能力",
+      "name": "快捷键",
+      "menu_path": [
+        "系统与能力",
+        "快捷键"
+      ],
+      "detail_required": true,
+      "scope_status": "RECONCILE_WITH_AUTHORITY",
+      "implementation_status": "UNVERIFIED",
+      "runnable": false,
+      "evidence_refs": [],
+      "required_user_requirements": [
+        "U09",
+        "U10"
+      ]
+    },
+    {
+      "seed_key": "system.accessibility",
+      "canonical_capability_id": null,
+      "domain": "system",
+      "domain_label": "系统与能力",
+      "name": "无障碍",
+      "menu_path": [
+        "系统与能力",
+        "无障碍"
+      ],
+      "detail_required": true,
+      "scope_status": "RECONCILE_WITH_AUTHORITY",
+      "implementation_status": "UNVERIFIED",
+      "runnable": false,
+      "evidence_refs": [],
+      "required_user_requirements": [
+        "U09",
+        "U10"
+      ]
+    },
+    {
+      "seed_key": "system.offline",
+      "canonical_capability_id": null,
+      "domain": "system",
+      "domain_label": "系统与能力",
+      "name": "离线模式",
+      "menu_path": [
+        "系统与能力",
+        "离线模式"
+      ],
+      "detail_required": true,
+      "scope_status": "RECONCILE_WITH_AUTHORITY",
+      "implementation_status": "UNVERIFIED",
+      "runnable": false,
+      "evidence_refs": [],
+      "required_user_requirements": [
+        "U09",
+        "U10"
+      ]
+    },
+    {
+      "seed_key": "system.sync",
+      "canonical_capability_id": null,
+      "domain": "system",
+      "domain_label": "系统与能力",
+      "name": "跨端同步",
+      "menu_path": [
+        "系统与能力",
+        "跨端同步"
+      ],
+      "detail_required": true,
+      "scope_status": "RECONCILE_WITH_AUTHORITY",
+      "implementation_status": "UNVERIFIED",
+      "runnable": false,
+      "evidence_refs": [],
+      "required_user_requirements": [
+        "U09",
+        "U10"
+      ]
+    },
+    {
+      "seed_key": "system.mobile",
+      "canonical_capability_id": null,
+      "domain": "system",
+      "domain_label": "系统与能力",
+      "name": "移动访问",
+      "menu_path": [
+        "系统与能力",
+        "移动访问"
+      ],
+      "detail_required": true,
+      "scope_status": "RECONCILE_WITH_AUTHORITY",
+      "implementation_status": "UNVERIFIED",
+      "runnable": false,
+      "evidence_refs": [],
+      "required_user_requirements": [
+        "U09",
+        "U10"
+      ]
+    },
+    {
+      "seed_key": "system.encryption",
+      "canonical_capability_id": null,
+      "domain": "system",
+      "domain_label": "系统与能力",
+      "name": "加密与凭据",
+      "menu_path": [
+        "系统与能力",
+        "加密与凭据"
+      ],
+      "detail_required": true,
+      "scope_status": "RECONCILE_WITH_AUTHORITY",
+      "implementation_status": "UNVERIFIED",
+      "runnable": false,
+      "evidence_refs": [],
+      "required_user_requirements": [
+        "U09",
+        "U10"
+      ]
+    },
+    {
+      "seed_key": "system.audit",
+      "canonical_capability_id": null,
+      "domain": "system",
+      "domain_label": "系统与能力",
+      "name": "审计记录",
+      "menu_path": [
+        "系统与能力",
+        "审计记录"
+      ],
+      "detail_required": true,
+      "scope_status": "RECONCILE_WITH_AUTHORITY",
+      "implementation_status": "UNVERIFIED",
+      "runnable": false,
+      "evidence_refs": [],
+      "required_user_requirements": [
+        "U09",
+        "U10"
+      ]
+    },
+    {
+      "seed_key": "system.api",
+      "canonical_capability_id": null,
+      "domain": "system",
+      "domain_label": "系统与能力",
+      "name": "对外知识 API",
+      "menu_path": [
+        "系统与能力",
+        "对外知识 API"
+      ],
+      "detail_required": true,
+      "scope_status": "RECONCILE_WITH_AUTHORITY",
+      "implementation_status": "UNVERIFIED",
+      "runnable": false,
+      "evidence_refs": [],
+      "required_user_requirements": [
+        "U09",
+        "U10"
+      ]
+    },
+    {
+      "seed_key": "system.automation",
+      "canonical_capability_id": null,
+      "domain": "system",
+      "domain_label": "系统与能力",
+      "name": "领域自动化",
+      "menu_path": [
+        "系统与能力",
+        "领域自动化"
+      ],
+      "detail_required": true,
+      "scope_status": "RECONCILE_WITH_AUTHORITY",
+      "implementation_status": "UNVERIFIED",
+      "runnable": false,
+      "evidence_refs": [],
+      "required_user_requirements": [
+        "U09",
+        "U10"
+      ]
+    },
+    {
+      "seed_key": "system.licenses",
+      "canonical_capability_id": null,
+      "domain": "system",
+      "domain_label": "系统与能力",
+      "name": "许可与供体来源",
+      "menu_path": [
+        "系统与能力",
+        "许可与供体来源"
+      ],
+      "detail_required": true,
+      "scope_status": "RECONCILE_WITH_AUTHORITY",
+      "implementation_status": "UNVERIFIED",
+      "runnable": false,
+      "evidence_refs": [],
+      "required_user_requirements": [
+        "U09",
+        "U10"
+      ]
+    }
+  ]
+}

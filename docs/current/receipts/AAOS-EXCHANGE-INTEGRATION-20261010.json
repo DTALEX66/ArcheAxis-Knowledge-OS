@@ -1,0 +1,150 @@
+{
+  "schema": "archeaxis.execution-receipt/v1",
+  "as_of": "2026-10-09T23:31:15.584148+00:00",
+  "stage": "CB04/UF11",
+  "status": "IN_PROGRESS",
+  "whole_taskpack": "PARTIAL",
+  "authority": "docs/taskpacks/aaos-ui-first-20261009",
+  "writer": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\worktrees\\gov-ui-20261008",
+  "head": "fc5d4adc7acc28e38c2e6046ef06c0be2eed721d",
+  "implementation": [
+    "Page16 four semantic tabs preserving themes and session state",
+    "Exact raw source SHA256 download and saved document two-file export",
+    "Frozen manual/batch job/request/body identities, UNKNOWN reconciliation, terminal cancellation",
+    "Pinned success output kind/SHA256/UTF8 byte verification",
+    "Real PPTX package shape and chart relationship locator identity"
+  ],
+  "owned_current_sha256": {
+    "crates/archeaxis-api/tests/runtime_jobs.rs": "57fe78074dd90503107b940039f5130a0d89e05900db79121ad36e3650f524a0",
+    "frontend/src/__tests__/CanonicalExchangeSpace.test.tsx": "b7789555d7c52498d5e4b9d7d34829b0c02a4284dabcff0f6ec0399f94250701",
+    "frontend/src/__tests__/ConversionKindsLegacy.test.ts": "874b777bf8a87f82fcba805a589f9168d5f97c2991a47b1954b8bc9053608461",
+    "frontend/src/__tests__/ExchangePinnedIntegration.test.tsx": "1cfbd0654ad307f246669f4bf7f529cb6a670d2427c05c19816589cb4a214c2f",
+    "frontend/src/__tests__/ExchangeProof.test.ts": "457831e07539ec573bf7d05192f27bff455644cd2920a510fb86e503cde72406",
+    "frontend/src/__tests__/FolderIngest.test.tsx": "f3016149796879ee9cc38bc9e0652e94843b82f7108dd0b1a27946b3cf6ae3b0",
+    "frontend/src/__tests__/JobContent.test.tsx": "d530ed46bd72462f57e2f76f0eb032cdc1327054cfb060bef41593e265027b60",
+    "frontend/src/__tests__/JobContentManualExecution.test.tsx": "1a424e421342c105399affa893533bc5fe4aca1b5b078160c014a0f77931424a",
+    "frontend/src/__tests__/JobContentPinnedResult.test.tsx": "89b1646ff7fb281fd50ba6b17b53e4e0ff90332de487dba78681bd0806319165",
+    "frontend/src/__tests__/fixtures/jobContentCoreFixture.ts": "9fdf8be6a9aad795db9cd730d41b640770f2e739be025eeebbb0b44b36a0588a",
+    "frontend/src/__tests__/folderIngestExecution.test.ts": "5d93a5b2e1a4a8ab9844ad4a09171b39646bc2478661c80f1706c0be1e091399",
+    "frontend/src/__tests__/jobContentExecution.test.ts": "22c3dcf2a71b6a0dc41961e583d2abb4c909827839cb26f665957a34bc902c97",
+    "frontend/src/api/conversionKinds.ts": "b25d18687ed58aec10b96968a423d5597c2e62987b24a9750571c2f993df8d8e",
+    "frontend/src/api/generated/core-contract.ts": "52556b694bb19af4d18aa9f342bb82cef0329305c592f469e40cb58949a05359",
+    "frontend/src/components/FolderIngest.tsx": "d83c6a6c3ea46159665a732307e62909e44686da5446f361e654db9262f43356",
+    "frontend/src/components/JobContent.tsx": "dc4d8223832ad7a0204ecbd06adec86214351a5f439a31e170724f07aff85c85",
+    "frontend/src/presentation/exchangeProof.ts": "f1996eaa188407b4038d650d8bcdc6f1d24acac71b2f9a73ea12387d4928c38f",
+    "frontend/src/presentation/folderIngestExecution.ts": "63e9b07e612f9e61177704549cde0a873f6c4dbf13d30e3aa8e8d428ecb4b360",
+    "frontend/src/presentation/jobContentExecution.ts": "85bb5227a473b8724b64c935fb1c06f568b4171c9d24d4502064e6caea1f8fbb",
+    "frontend/src/spaces/CanonicalExchangeSpace.tsx": "7772d46505e5fffd2e2de236dcb5556f9f51765db0b62bd682416ec2f2c9c9ee",
+    "frontend/src/spaces/SpaceView.tsx": "7093217c972ebd9c1ab7f7ba831f4a94531bcfd8e622f7fb7fdfa5c21104d59b",
+    "frontend/src/spaces/exchange.css": "f992b8468d7bc479ae522239fafdbcbaabc674206fc79d3721597ed4e1003206",
+    "packages/contracts/v1/core-document.schema.json": "fd43a29488af369f7ce25e393bdafc32a2d9acd152a028e6e94c0e83a8c5a72a",
+    "scripts/ingest/directory_batch.py": "e379785e1de9130b3836452485b618a8321b5a89d19793a53f0bad3dfcf836a3",
+    "services/python-workers/document/worker_office.py": "29a033ffbe382b4928dffe7d8b4a57dd488ed1a9f0dff8239cc39a290b71aa90",
+    "src-tauri/src/core_bridge.rs": "e7e02940809d0e55d7cc48f984eb0e16e3ce93afc7df1ca2d9e7503da38a0f5f",
+    "tests/test_directory_batch.py": "121c42308389c9636db4e8c640f53ca13f60855690ce1887c5431ea046fea56e",
+    "tests/test_pptx_location_identity.py": "9ef9643f0d8f21873caab481658e0a95e588c4a6f1a20640ea0fa9b881be1046",
+    "tests/workers/test_pptx_chart_data.py": "4ec5eedadb00f8fa65f9e4f53dbed1fc16bdab53ffa320a37e7d168bdcbc7baa"
+  },
+  "gates": [
+    {
+      "run_id": "ui-exchange-page-manual-03",
+      "result": "LOCAL_PASS",
+      "source_consistent": true,
+      "receipt": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\runs\\f714401b40\\ui-exchange-page-manual-03\\artifacts\\result.json",
+      "sha256": "951ca6aa4cdf9487f5abd1e165d2dbb930eb6bddfccd305bcfbb0184e3f47e64"
+    },
+    {
+      "run_id": "ui-exchange-typecheck-04",
+      "result": "LOCAL_PASS",
+      "source_consistent": true,
+      "receipt": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\runs\\f714401b40\\ui-exchange-typecheck-04\\artifacts\\result.json",
+      "sha256": "dd2187548311d97acc81b9719ece81ef6904a79f56f0874bf362f961928277c0"
+    },
+    {
+      "run_id": "ui-exchange-front-full-01",
+      "result": "FAIL",
+      "source_consistent": true,
+      "receipt": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\runs\\f714401b40\\ui-exchange-front-full-01\\artifacts\\result.json",
+      "sha256": "c7aeebf604744601ebfcecb5bfc58c02b10a45e4218825114de8b1b126e95817"
+    },
+    {
+      "run_id": "ui-exchange-document-core-01",
+      "result": "LOCAL_PASS",
+      "source_consistent": true,
+      "receipt": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\runs\\f714401b40\\ui-exchange-document-core-01\\artifacts\\result.json",
+      "sha256": "5334c041c6db7bce2b25c4a8c72acd8d11bb2c474269fd44332d504eaff6c06c"
+    },
+    {
+      "run_id": "ui-exchange-pptx-01",
+      "result": "LOCAL_PASS",
+      "source_consistent": true,
+      "receipt": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\runs\\f714401b40\\ui-exchange-pptx-01\\artifacts\\result.json",
+      "sha256": "527ae2f1b76caeb0f827f5912ec3558995e991e889aa948bca4abcbe05a60b0e"
+    },
+    {
+      "run_id": "ui-exchange-core-build-02",
+      "result": "LOCAL_PASS",
+      "source_consistent": true,
+      "receipt": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\runs\\f714401b40\\ui-exchange-core-build-02\\artifacts\\result.json",
+      "sha256": "3dea7709f1e4520fe9301847c256be440f8f6ceb3e330f37ca55ecc37ea889d6"
+    }
+  ],
+  "format_protocol": {
+    "receipt": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\runs\\f714401b40\\ui-exchange-stage-20261010\\candidate-formats\\final-summary.json",
+    "sha256": "1885d50913c5d584af80db9ed6a63d00e43c8889b7375f21769c4251d66993e3",
+    "status": "PASS",
+    "qualification": "PARTIAL",
+    "materials": "SYNTHETIC",
+    "evidence": "INTEGRATED",
+    "limits": [
+      "HTML fixture used fallback",
+      "PDF engine version receipt placeholder preserved",
+      "WAV/MP4 header only; not ASR/video decode",
+      "No installed or source application proof"
+    ]
+  },
+  "locator_protocol": {
+    "receipt": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\runs\\f714401b40\\ui-exchange-stage-20261010\\candidate-formats\\anchor-final-summary.json",
+    "sha256": "072266f8a561aeb15968f41815ef3da82282221eba434f316f6ac7b41267b150",
+    "status": "PASS",
+    "qualification": "PARTIAL",
+    "located_anchors": 13,
+    "derived_selections": 12,
+    "negative_checks": 49,
+    "restart": "PASS",
+    "own_pids_absent": true,
+    "limits": [
+      "No independent re-resolution endpoint",
+      "PDF/archive/media headers NOT_LOCATED at format level",
+      "Old PPTX ambiguous epoch preserved",
+      "Derived selection marker remains unverified; Candidate not approved knowledge"
+    ]
+  },
+  "pending": [
+    "Full frontend had 953 PASS/8 FAIL in older media/EPUB fixture contracts; repair under review",
+    "Generic persisted JobContent integrity review pending",
+    "Five-theme page16 browser evidence pending",
+    "Final frontend/native build/source-bound gates and acceptance audit pending",
+    "UF13 five daily journeys pending"
+  ],
+  "not_executed": [
+    "Formal old nonempty user DB migration; exact source authorization unavailable",
+    "Full external platform roundtrip and incremental sync",
+    "Installed runtime, owner acceptance, cloud CI, release"
+  ],
+  "permissions": {
+    "commit": "NOT_EXECUTED",
+    "push": "NOT_EXECUTED",
+    "merge": "NOT_EXECUTED",
+    "install": "NOT_EXECUTED",
+    "release": "NOT_EXECUTED"
+  },
+  "archive_input": {
+    "zip": "docs/history/ui-design-increment-20261009/sources/AAOS_UI_深化设计增量_20261009.zip",
+    "sha256": "45ac43b7704ba2a5c5979d27339120ffd58417761a13672add24d87f43e55e25",
+    "members": 10,
+    "internal_hashes": "9/9 PASS",
+    "archive_gate": "PASS",
+    "role": "SOURCE; not new authority or implementation receipt"
+  }
+}

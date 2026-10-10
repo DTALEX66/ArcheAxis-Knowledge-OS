@@ -304,3 +304,12 @@ def test_every_mapped_kind_is_a_route_kind():
     kinds = set(re.findall(r'\(\s*"([a-z]+)"\s*,', routes))
     assert kinds, "could not parse the route kinds out of the Core"
     assert set(batch.KIND_BY_EXTENSION.values()) <= kinds, set(batch.KIND_BY_EXTENSION.values()) - kinds
+
+
+def test_legacy_office_mapping_uses_existing_core_media_and_office_route():
+    """A request is mapped to the existing engine lane; this asserts no installed qualification."""
+    source = ATTEMPTS_RS.read_text(encoding="utf-8")
+    for extension, mime in [("doc", "application/msword"), ("xls", "application/vnd.ms-excel"), ("ppt", "application/vnd.ms-powerpoint")]:
+        assert batch.KIND_BY_EXTENSION[extension] == "office"
+        assert f'"{extension}" => "{mime}"' in source
+        assert mime in source[source.index("pub const ROUTE_MEDIA_TYPES"):source.index("pub fn media_type_for_name")]

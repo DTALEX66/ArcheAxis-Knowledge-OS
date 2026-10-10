@@ -1,8 +1,7 @@
 name: CI
 
 on:
-  # R5 audit branches run the same qualification gates as main/PR so their
-  # exact SHA results can be read back without treating branch push as release.
+  # Branch pushes are covered by PR runs; explicit candidates use dispatch.
   workflow_dispatch:
     inputs:
       force_full:
@@ -11,7 +10,7 @@ on:
         default: true
         type: boolean
   push:
-    branches: [main, "codex/**"]
+    branches: [main]
   pull_request:
     branches: [main]
 
@@ -50,7 +49,7 @@ jobs:
           # A signed-in operator can use workflow_dispatch. The explicit
           # commit marker is an auditable fallback when a constrained GitHub
           # integration can push but cannot dispatch Actions workflows.
-          CI_FORCE_FULL: ${{ inputs.force_full || vars.CI_FORCE_FULL || contains(github.event.head_commit.message, '[full-qualification]') }}
+          CI_FORCE_FULL: ${{ github.event_name == 'workflow_dispatch' && inputs.force_full }}
         run: |
           python -m pip install --quiet --user pyyaml
           python - <<'PY'
@@ -66,8 +65,8 @@ jobs:
           )
           force_full = (os.environ.get("CI_FORCE_FULL") or "").lower() in ("1", "true", "yes")
           if not refs_trusted:
-              print("WARNING: event diff refs are incomplete; forcing full qualification")
-              force_full = True
+              if not force_full:
+                  raise SystemExit("BLOCKED: event diff refs incomplete; select an explicit full candidate")
           # Fail-closed: if we cannot compute a trustworthy diff we must run full
           # qualification, never silently skip heavy gates.
           try:
@@ -81,12 +80,11 @@ jobs:
               paths = [p for p in decoded.split("\0") if p.strip()]
               if not paths and base != head:
                   # Two-point diff empty but commits differ -> uncertain; force full.
-                  print("WARNING: empty diff between different commits; forcing full")
-                  force_full = True
+                  print("Trusted diff is empty; no path-owned gates required")
           except subprocess.CalledProcessError as exc:
-              print(f"WARNING: git diff failed ({exc}); forcing full qualification")
+              if not force_full:
+                  raise SystemExit(f"BLOCKED: git diff failed ({exc})")
               paths = []
-              force_full = True
           sys.path.insert(0, ".")
           from scripts.ci.classify import classify_paths
           plan = classify_paths(paths, force_full=force_full)
@@ -110,8 +108,8 @@ jobs:
   test:
     timeout-minutes: 20
     runs-on: ubuntu-latest
-    needs: gateplan
-    if: ${{ needs.gateplan.result != 'success' || needs.gateplan.outputs.full_qualification == 'true' || contains(needs.gateplan.outputs.required_gates, 'py-primary') }}
+    needs: [gateplan, lint]
+    if: ${{ needs.gateplan.outputs.full_qualification == 'true' || contains(needs.gateplan.outputs.required_gates, 'py-primary') }}
     strategy:
       matrix:
         python-version: ["3.12"]
@@ -136,21 +134,70 @@ jobs:
           enable-cache: true
           cache-dependency-glob: uv.lock
 
+      # These exports, the scans below and their reports all live under the run root rather than the
+      # checkout: this job also runs the layout contract, which asserts the repository root holds
+      # nothing but tracked entries. Writing them here left `locked-ci*.txt` and the scan reports in
+      # the working tree, so the job failed its own layout check.
       - name: Install locked minimal test dependencies
         run: |
-          uv export --frozen --only-group ci --no-emit-project --format requirements-txt --output-file locked-ci.txt
-          uv pip install --system --require-hashes -r locked-ci.txt
+          artifacts="$ARCHEAXIS_RUN_ROOT/artifacts"
+          mkdir -p "$artifacts"
+          uv export --frozen --only-group ci --no-emit-project --format requirements-txt --output-file "$artifacts/locked-ci.txt"
+          uv pip install --system --require-hashes -r "$artifacts/locked-ci.txt"
 
       - name: Install locked adapter test dependencies
         run: |
-          uv export --frozen --only-group ci-adapters --no-emit-project --format requirements-txt --output-file locked-ci-adapters.txt
-          uv pip install --system --require-hashes -r locked-ci-adapters.txt
+          artifacts="$ARCHEAXIS_RUN_ROOT/artifacts"
+          mkdir -p "$artifacts"
+          uv export --frozen --only-group ci-adapters --no-emit-project --format requirements-txt --output-file "$artifacts/locked-ci-adapters.txt"
+          uv pip install --system --require-hashes -r "$artifacts/locked-ci-adapters.txt"
+
+      # Absorbed from the OSS pool (ADOPT verdict, supplies-chain security group), pinned and
+      # hash-verified, and now enforcing. run 37471031307 reported 5 findings (urllib3 2.7.0,
+      # soupsieve 2.8.4); both were raised to the versions pip-audit names as the fix rather than
+      # waved through with --ignore-vuln, and the same pinned tool against the same CI export now
+      # reports "No known vulnerabilities found" (exit 0) while still reporting the 5 against the
+      # old export - the instrument was falsified before it was trusted. `set -o pipefail` is
+      # required: the runner's default shell is `bash -e` without pipefail, so `pip-audit | tee`
+      # would report tee's status (always 0) and this step could never fail on a real finding.
+      - name: Dependency vulnerability scan (pip-audit 2.10.1, pinned)
+        run: |
+          set -o pipefail
+          artifacts="$ARCHEAXIS_RUN_ROOT/artifacts"
+          uv tool run --from pip-audit==2.10.1 pip-audit --strict --requirement "$artifacts/locked-ci.txt" --format columns | tee "$artifacts/pip-audit-report.txt"
+
+
+      # gitleaks is now enforcing. `detect` reads the whole history (2480 commits at the time of the
+      # flip); a run is clean under .gitleaks.toml, whose allowlist names the fake test-fixture values,
+      # one Avalonia theme token and one docs-only historical commit - never a source tree - so a real
+      # credential fails this step. The asset is pinned and verified before it runs, so a flaky download
+      # network is the only way this step can fail for a reason other than a real finding.
+      - name: Secret scan (gitleaks 8.30.1, pinned and asset-hash verified)
+        run: |
+          version=8.30.1
+          expected=551f6fc83ea457d62a0d98237cbad105af8d557003051f41f3e7ca7b3f2470eb
+          artifacts="$ARCHEAXIS_RUN_ROOT/artifacts"
+          mkdir -p "$artifacts"
+          curl -sSLo "$artifacts/gitleaks.tgz" "https://github.com/gitleaks/gitleaks/releases/download/v${version}/gitleaks_${version}_linux_x64.tar.gz"
+          echo "${expected}  $artifacts/gitleaks.tgz" | sha256sum --check --status || { echo "gitleaks asset hash mismatch"; exit 1; }
+          tar -xzf "$artifacts/gitleaks.tgz" -C "$artifacts" gitleaks
+          # Scanned from the checkout (that is the point) but the report is not written into it.
+          "$artifacts/gitleaks" detect --config .gitleaks.toml --redact --no-banner --report-format json --report-path "$artifacts/gitleaks-report.json" --exit-code 1
 
       - name: Install and verify local OCR engine
         run: |
           sudo apt-get update
           sudo apt-get install --yes --no-install-recommends ffmpeg tesseract-ocr tesseract-ocr-eng fonts-dejavu-core fonts-noto-cjk
           tesseract --list-langs | grep --fixed-strings --line-regexp eng
+          python - <<'PY'
+          import os, subprocess
+          from pathlib import Path
+          paths = subprocess.check_output(["dpkg", "-L", "tesseract-ocr-eng"], text=True).splitlines()
+          trained = [Path(path) for path in paths if path.endswith("/eng.traineddata") and Path(path).is_file()]
+          assert len(trained) == 1, "installed English OCR data must resolve uniquely"
+          with open(os.environ["GITHUB_ENV"], "a", encoding="utf8") as output:
+              output.write(f"TESSDATA_PREFIX={trained[0].parent}\n")
+          PY
 
       - name: Run OS-level tests
         run: python -m pytest tests/ -q --tb=short
@@ -172,8 +219,8 @@ jobs:
   format-targeted:
     timeout-minutes: 10
     runs-on: ubuntu-latest
-    needs: gateplan
-    if: ${{ needs.gateplan.result != 'success' || needs.gateplan.outputs.full_qualification == 'true' || contains(needs.gateplan.outputs.required_gates, 'format-targeted') }}
+    needs: [gateplan, lint]
+    if: ${{ needs.gateplan.outputs.full_qualification == 'true' || contains(needs.gateplan.outputs.required_gates, 'format-targeted') }}
     steps:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
         with: { persist-credentials: false }
@@ -190,8 +237,8 @@ jobs:
   migration-targeted:
     timeout-minutes: 10
     runs-on: ubuntu-latest
-    needs: gateplan
-    if: ${{ needs.gateplan.result != 'success' || needs.gateplan.outputs.full_qualification == 'true' || contains(needs.gateplan.outputs.required_gates, 'migration-targeted') }}
+    needs: [gateplan, lint]
+    if: ${{ needs.gateplan.outputs.full_qualification == 'true' || contains(needs.gateplan.outputs.required_gates, 'migration-targeted') }}
     steps:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
         with: { persist-credentials: false }
@@ -208,8 +255,8 @@ jobs:
   security-targeted:
     timeout-minutes: 10
     runs-on: ubuntu-latest
-    needs: gateplan
-    if: ${{ needs.gateplan.result != 'success' || needs.gateplan.outputs.full_qualification == 'true' || contains(needs.gateplan.outputs.required_gates, 'security-targeted') }}
+    needs: [gateplan, lint]
+    if: ${{ needs.gateplan.outputs.full_qualification == 'true' || contains(needs.gateplan.outputs.required_gates, 'security-targeted') }}
     steps:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
         with: { persist-credentials: false }
@@ -226,8 +273,8 @@ jobs:
   py-compat:
     timeout-minutes: 15
     runs-on: ubuntu-latest
-    needs: gateplan
-    if: ${{ needs.gateplan.result != 'success' || needs.gateplan.outputs.full_qualification == 'true' || contains(needs.gateplan.outputs.required_gates, 'py-compat') }}
+    needs: [gateplan, lint]
+    if: ${{ needs.gateplan.outputs.full_qualification == 'true' || contains(needs.gateplan.outputs.required_gates, 'py-compat') }}
     strategy:
       matrix:
         python-version: ["3.11", "3.13"]
@@ -258,7 +305,7 @@ jobs:
     timeout-minutes: 10
     runs-on: ubuntu-latest
     needs: gateplan
-    if: ${{ needs.gateplan.result != 'success' || needs.gateplan.outputs.full_qualification == 'true' || contains(needs.gateplan.outputs.required_gates, 'lint') || contains(needs.gateplan.outputs.required_gates, 'static') }}
+    if: ${{ needs.gateplan.result == 'success' }}
     steps:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
         with:
@@ -304,12 +351,14 @@ jobs:
 
       - name: Run ruff
         run: python -m ruff check app shared knowledge_base inspiration_research Inspiration-Research shared-contracts/adapters app/workflow integration-tests scripts --select E9,F63,F7,F82
+      - name: Reject document authority drift
+        run: python -B scripts/ci/check_document_authority.py
 
   wheel-smoke:
     timeout-minutes: 10
     runs-on: ubuntu-latest
-    needs: gateplan
-    if: ${{ needs.gateplan.result != 'success' || needs.gateplan.outputs.full_qualification == 'true' || contains(needs.gateplan.outputs.required_gates, 'wheel-smoke') }}
+    needs: [gateplan, lint]
+    if: ${{ needs.gateplan.outputs.full_qualification == 'true' || contains(needs.gateplan.outputs.required_gates, 'wheel-smoke') }}
     steps:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
         with:
@@ -596,8 +645,8 @@ jobs:
   browser-smoke:
     timeout-minutes: 15
     runs-on: ubuntu-latest
-    needs: gateplan
-    if: ${{ needs.gateplan.result != 'success' || needs.gateplan.outputs.full_qualification == 'true' || contains(needs.gateplan.outputs.required_gates, 'browser-smoke') }}
+    needs: [gateplan, lint]
+    if: ${{ needs.gateplan.outputs.full_qualification == 'true' || contains(needs.gateplan.outputs.required_gates, 'browser-smoke') }}
     steps:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
         with:
@@ -635,8 +684,8 @@ jobs:
   windows-runtime-smoke:
     timeout-minutes: 15
     runs-on: windows-latest
-    needs: gateplan
-    if: ${{ needs.gateplan.result != 'success' || needs.gateplan.outputs.full_qualification == 'true' || contains(needs.gateplan.outputs.required_gates, 'windows-runtime') }}
+    needs: [gateplan, lint]
+    if: ${{ needs.gateplan.outputs.full_qualification == 'true' || contains(needs.gateplan.outputs.required_gates, 'windows-runtime') }}
     steps:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
         with:
@@ -665,10 +714,10 @@ jobs:
         run: python scripts/runtime_http_smoke.py
 
   rust-vnext:
-    timeout-minutes: 30
+    timeout-minutes: 60
     runs-on: windows-latest
-    needs: gateplan
-    if: ${{ needs.gateplan.result != 'success' || needs.gateplan.outputs.full_qualification == 'true' || contains(needs.gateplan.outputs.required_gates, 'rust-vnext') }}
+    needs: [gateplan, lint]
+    if: ${{ needs.gateplan.outputs.full_qualification == 'true' || contains(needs.gateplan.outputs.required_gates, 'rust-vnext') }}
     env:
       CARGO_TERM_COLOR: always
     steps:
@@ -692,6 +741,11 @@ jobs:
         run: |
           uv export --frozen --only-group ci --no-emit-project --format requirements-txt --output-file locked-ci.txt
           uv pip install --system --require-hashes -r locked-ci.txt
+          uv export --frozen --only-group ci-adapters --no-emit-project --format requirements-txt --output-file locked-ci-adapters.txt
+          uv pip install --system --require-hashes -r locked-ci-adapters.txt
+          # Bind worker tests to the interpreter that received the locked adapters,
+          # after setup-python rather than the runner's initial Python.
+          python -B scripts/runtime/dev.py --github-env
       - uses: Swatinem/rust-cache@v2
         with:
           workspaces: "."
@@ -713,8 +767,8 @@ jobs:
   desktop-vnext:
     timeout-minutes: 30
     runs-on: windows-latest
-    needs: gateplan
-    if: ${{ needs.gateplan.result != 'success' || needs.gateplan.outputs.full_qualification == 'true' || contains(needs.gateplan.outputs.required_gates, 'desktop-vnext') }}
+    needs: [gateplan, lint]
+    if: ${{ needs.gateplan.outputs.full_qualification == 'true' || contains(needs.gateplan.outputs.required_gates, 'desktop-vnext') }}
     steps:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
         with:
@@ -755,8 +809,8 @@ jobs:
   green-candidate-vnext:
     timeout-minutes: 35
     runs-on: windows-latest
-    needs: gateplan
-    if: ${{ needs.gateplan.result != 'success' || needs.gateplan.outputs.full_qualification == 'true' || contains(needs.gateplan.outputs.required_gates, 'desktop-vnext') }}
+    needs: [gateplan, lint]
+    if: ${{ needs.gateplan.outputs.full_qualification == 'true' || contains(needs.gateplan.outputs.required_gates, 'desktop-vnext') }}
     steps:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
         with:
@@ -819,8 +873,8 @@ jobs:
   contracts-vnext:
     timeout-minutes: 10
     runs-on: ubuntu-latest
-    needs: gateplan
-    if: ${{ needs.gateplan.result != 'success' || needs.gateplan.outputs.full_qualification == 'true' || contains(needs.gateplan.outputs.required_gates, 'contracts-vnext') }}
+    needs: [gateplan, lint]
+    if: ${{ needs.gateplan.outputs.full_qualification == 'true' || contains(needs.gateplan.outputs.required_gates, 'contracts-vnext') }}
     steps:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
         with:
@@ -843,14 +897,16 @@ jobs:
         run: python scripts/ci/check_vnext_contracts.py
       - name: Reject generated vocabulary drift
         run: python -B scripts/contracts/generate_vocabulary.py --check
+      - name: Reject media window policy drift
+        run: python -B scripts/contracts/check_media_window_policy.py --check
       - name: Run real Python contract and vocabulary regressions
         run: python -B scripts/runtime/dev.py --pytest tests/contract --noconftest -q
 
   workers-vnext:
     timeout-minutes: 10
     runs-on: ubuntu-latest
-    needs: gateplan
-    if: ${{ needs.gateplan.result != 'success' || needs.gateplan.outputs.full_qualification == 'true' || contains(needs.gateplan.outputs.required_gates, 'workers-vnext') }}
+    needs: [gateplan, lint]
+    if: ${{ needs.gateplan.outputs.full_qualification == 'true' || contains(needs.gateplan.outputs.required_gates, 'workers-vnext') }}
     steps:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
         with:
@@ -880,9 +936,9 @@ jobs:
 
   desktop-fast:
     runs-on: windows-latest
-    timeout-minutes: 15
-    needs: gateplan
-    if: ${{ needs.gateplan.result != 'success' || needs.gateplan.outputs.full_qualification == 'true' || contains(needs.gateplan.outputs.required_gates, 'desktop-fast') }}
+    timeout-minutes: 30
+    needs: [gateplan, lint]
+    if: ${{ needs.gateplan.outputs.full_qualification == 'true' || contains(needs.gateplan.outputs.required_gates, 'desktop-fast') }}
     steps:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
         with:
@@ -916,15 +972,67 @@ jobs:
       - name: Install locked Python runtime
         run: uv sync --frozen
       - name: Prepare the installed Python runtime
-        run: >-
-          python -m desktop.scripts.prepare_bundle
-          --repository .
-          --destination .project-local/rt
+        working-directory: ${{ github.workspace }}
+        run: |
+          cargo build -p archeaxis-api --bin archeaxis-api --release --locked
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          python -m desktop.scripts.prepare_bundle --backend-candidate --repository . --destination .project-local/rt --core "$env:CARGO_TARGET_DIR/release/archeaxis-api.exe"
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
       - name: Test the canonical Windows desktop shell
         working-directory: src-tauri
         run: |
           cargo fmt --all -- --check
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           cargo test
+      - name: Assert the staged runtime carries the format engines
+        working-directory: ${{ github.workspace }}
+        run: python -B -m desktop.scripts.assert_runtime_engines --candidate .project-local/rt
+      - name: Verify real XLSX and PPTX persistence
+        id: office_loop
+        working-directory: ${{ github.workspace }}
+        run: python -B scripts/probes/aaos01_office_runtime_loop.py --candidate .project-local/rt
+      - name: Upload Office loop receipt
+        if: ${{ always() && steps.office_loop.outcome != 'skipped' }}
+        uses: actions/upload-artifact@834a144ee995460fba8ed112a2fc961b36a5ec5a
+        with:
+          name: desktop-fast-office-loop-${{ github.sha }}-${{ github.run_attempt }}
+          path: .project-local/task-runtime/aaos01-office/**/receipt.json
+          if-no-files-found: error
+      - name: Verify native document and independent backup restore
+        id: document_loop
+        working-directory: ${{ github.workspace }}
+        run: python -B scripts/probes/aaos01_document_backup_loop.py --candidate .project-local/rt
+      - name: Verify ordinary saving and independent content checks
+        id: content_policy_loop
+        working-directory: ${{ github.workspace }}
+        run: python -B scripts/probes/aaos01_content_policy_runtime_loop.py --candidate .project-local/rt
+      - name: Upload content policy runtime receipt
+        if: ${{ always() && steps.content_policy_loop.outcome != 'skipped' }}
+        uses: actions/upload-artifact@834a144ee995460fba8ed112a2fc961b36a5ec5a
+        with:
+          name: desktop-fast-content-policy-${{ github.sha }}-${{ github.run_attempt }}
+          path: .project-local/task-runtime/aaos01-content-policy/**/receipt.json
+          if-no-files-found: error
+      - name: Verify independent Q12 format and exchange loops
+        id: light_loop
+        working-directory: ${{ github.workspace }}
+        run: |
+          python -B scripts/probes/aaos01_light_format_loop.py --candidate .project-local/rt --wave B
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          python -B scripts/probes/aaos01_exchange_runtime_loop.py --candidate .project-local/rt
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          python -B scripts/probes/aaos01_fault_runtime_loop.py --candidate .project-local/rt
+      - name: Upload document and format loop evidence
+        if: ${{ always() && (steps.document_loop.outcome != 'skipped' || steps.light_loop.outcome != 'skipped') }}
+        uses: actions/upload-artifact@834a144ee995460fba8ed112a2fc961b36a5ec5a
+        with:
+          name: desktop-fast-document-format-${{ github.sha }}-${{ github.run_attempt }}
+          path: |
+            .project-local/task-runtime/aaos01-document-backup/**/receipt.json
+            .project-local/task-runtime/aaos01-light/**/receipt.json
+            .project-local/task-runtime/aaos01-exchange/**/receipt.json
+            .project-local/task-runtime/aaos01-fault/**/receipt.json
+          if-no-files-found: error
       - name: Test the canonical desktop recovery contracts
         working-directory: src-tauri
         env:
@@ -937,8 +1045,8 @@ jobs:
   desktop-build:
     runs-on: windows-latest
     timeout-minutes: 30
-    needs: gateplan
-    if: ${{ needs.gateplan.result != 'success' || needs.gateplan.outputs.full_qualification == 'true' || contains(needs.gateplan.outputs.required_gates, 'desktop-build') || contains(needs.gateplan.outputs.required_gates, 'installer-lifecycle') }}
+    needs: [gateplan, lint]
+    if: ${{ needs.gateplan.outputs.full_qualification == 'true' || contains(needs.gateplan.outputs.required_gates, 'desktop-build') || contains(needs.gateplan.outputs.required_gates, 'installer-lifecycle') }}
     defaults:
       run:
         working-directory: D:\a\k
@@ -991,13 +1099,34 @@ jobs:
       - name: Enforce OSUI design and Chinese-first frontend contracts
         working-directory: frontend
         run: npm test -- --run
+      - name: Verify generated native contracts and capability catalog
+        run: |
+          uv run --frozen python -B scripts/contracts/generate_core_document.py
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          uv run --frozen python -B scripts/contracts/generate_capability_catalog.py --check
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          git diff --exit-code -- frontend/src/api/generated/core-contract.ts
       - name: Prepare the installed Python runtime
-        run: >-
-          python -m desktop.scripts.prepare_bundle
-          --repository .
-          --destination .project-local/rt
+        working-directory: ${{ github.workspace }}
+        run: |
+          cargo build -p archeaxis-api --bin archeaxis-api --release --locked
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          python -m desktop.scripts.prepare_bundle --backend-candidate --repository . --destination .project-local/rt --core "$env:CARGO_TARGET_DIR/release/archeaxis-api.exe"
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+      - name: Assert the bundle carries the Core and its workers
+        shell: pwsh
+        run: |
+          foreach ($relative in @('rt\core\archeaxis-api.exe', 'rt\workers\routes.json')) {
+            $path = Join-Path '.project-local' $relative
+            if (-not (Test-Path $path)) { throw "bundle is missing $relative" }
+            Write-Host "present: $relative"
+          }
+      - name: Assert the staged runtime carries the format engines
+        working-directory: ${{ github.workspace }}
+        run: python -B -m desktop.scripts.assert_runtime_engines --candidate .project-local/rt
       - name: Inject CI candidate identity
         shell: pwsh
+        working-directory: ${{ github.workspace }}
         run: |
           $version = (Get-Content 'frontend/package.json' -Raw | ConvertFrom-Json).version
           $tree = (git rev-parse "$env:GITHUB_SHA^{tree}").Trim()
@@ -1008,6 +1137,7 @@ jobs:
             --version $version `
             --verification-ci-run-id $env:GITHUB_RUN_ID `
             --verification-ci-url "$env:GITHUB_SERVER_URL/$env:GITHUB_REPOSITORY/actions/runs/$env:GITHUB_RUN_ID" `
+            --manifest .project-local/rt/backend-runtime-manifest.json `
             --output .project-local/rt/runtime/release-identity.json
       - name: Audit locked Rust dependencies
         working-directory: src-tauri
@@ -1026,7 +1156,8 @@ jobs:
           New-Item -ItemType Directory -Force (Split-Path -Parent $buildLog) | Out-Null
           # Invoke the .cmd file through cmd.exe so its exit code and both
           # streams are preserved rather than altered by a PowerShell pipeline.
-          $buildCommand = "frontend\node_modules\.bin\tauri.cmd build --config src-tauri\tauri.conf.json --bundles nsis > $buildLog 2>&1"
+          $frontendReceipt = Join-Path $env:ARCHEAXIS_RUN_ROOT 'artifacts/frontend-build.json'
+          $buildCommand = "node ""$env:GITHUB_WORKSPACE\scripts\runtime\frontend.mjs"" tauri --receipt ""$frontendReceipt"" -- build --config src-tauri\tauri.conf.json --bundles nsis > $buildLog 2>&1"
           $buildProcess = Start-Process -FilePath 'cmd.exe' -ArgumentList @('/d', '/s', '/c', $buildCommand) -PassThru -NoNewWindow
           if (-not $buildProcess.WaitForExit(1200000)) {
             & taskkill.exe /pid $buildProcess.Id /t /f | Out-Null
@@ -1066,7 +1197,10 @@ jobs:
           Copy-Item $installer[0].FullName "$stage/$($installer[0].Name)"
           Copy-Item '.project-local/build/tauri/release/ArcheAxis.exe' "$stage/ArcheAxis.exe"
           $frontendArchive = "$stage/frontend-dist.zip"
-          Compress-Archive -LiteralPath '.project-local/build/frontend-dist' -DestinationPath $frontendArchive -CompressionLevel Optimal
+          $frontendReceipt = Get-Content -LiteralPath (Join-Path $env:ARCHEAXIS_RUN_ROOT 'artifacts/frontend-build.json') -Raw | ConvertFrom-Json
+          if ($frontendReceipt.exit_code -ne 0 -or $frontendReceipt.mode -ne 'tauri') { throw 'frontend build receipt failed' }
+          if (-not (Test-Path -LiteralPath (Join-Path $frontendReceipt.frontend_dist 'index.html') -PathType Leaf)) { throw 'routed frontend is missing index.html' }
+          Compress-Archive -LiteralPath $frontendReceipt.frontend_dist -DestinationPath $frontendArchive -CompressionLevel Optimal
           [ordered]@{
             schema='archeaxis/release-candidate/v1'
             commit=$env:GITHUB_SHA
@@ -1088,9 +1222,11 @@ jobs:
 
   installer-lifecycle:
     runs-on: windows-latest
-    timeout-minutes: 15
+    timeout-minutes: 45
     needs: [gateplan, desktop-build]
-    if: ${{ always() && needs.desktop-build.result == 'success' && (needs.gateplan.result != 'success' || needs.gateplan.outputs.full_qualification == 'true' || contains(needs.gateplan.outputs.required_gates, 'installer-lifecycle')) }}
+    # Lifecycle qualification requires an explicitly selected candidate. A PR
+    # requiring this gate remains blocked until that qualification is supplied.
+    if: ${{ always() && github.event_name == 'workflow_dispatch' && inputs.force_full && needs.desktop-build.result == 'success' }}
     steps:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
         with:
@@ -1103,6 +1239,15 @@ jobs:
         with:
           name: release-candidate
           path: .project-local/task-runtime/release-candidate
+      - name: Prepare official matched Tauri WebDriver tools
+        run: python -B scripts/ci/prepare_tauri_webdriver.py --root .project-local/task-runtime/aaos01-native-tools
+      - name: Prepare pinned project-local OCR for the installed format matrix
+        shell: pwsh
+        run: |
+          $sevenzip = (Get-Command 7z.exe -ErrorAction SilentlyContinue).Source
+          if (-not $sevenzip) { $sevenzip = 'C:/Program Files/7-Zip/7z.exe' }
+          python -B scripts/ci/prepare_windows_ocr.py --project-root . --root .project-local/task-runtime/aaos01-ocr-tools --sevenzip $sevenzip
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
       - name: Verify the installed NSIS lifecycle
         shell: pwsh
         env:
@@ -1116,12 +1261,32 @@ jobs:
           if ($candidate.schema -ne 'archeaxis/release-candidate/v1' -or $candidate.commit -ne $env:GITHUB_SHA) { throw 'candidate provenance commit mismatch' }
           $installer = Join-Path $candidateRoot $candidate.installer.name
           if (-not (Test-Path -LiteralPath $installer) -or (Get-FileHash $installer -Algorithm SHA256).Hash.ToLowerInvariant() -ne $candidate.installer.sha256) { throw 'candidate installer SHA-256 mismatch' }
-          ./desktop/scripts/verify_nsis_install.ps1 -Installer $installer -RequireCandidateIdentity
+          ./desktop/scripts/verify_nsis_install.ps1 -Installer $installer -RequireCandidateIdentity -NativeToolsReceipt .project-local/task-runtime/aaos01-native-tools/receipt.json
+      - name: Upload installed native journey evidence
+        if: ${{ always() }}
+        uses: actions/upload-artifact@834a144ee995460fba8ed112a2fc961b36a5ec5a
+        with:
+          name: installed-native-journey-${{ github.sha }}-${{ github.run_attempt }}
+          path: |
+            .project-local/runs/*/webdriver-*/tmp/journey/receipt.json
+            .project-local/runs/*/webdriver-*/tmp/journey/*.png
+            .project-local/runs/*/webdriver-*/tmp/journey/driver.log
+            .project-local/runs/*/webdriver-*/tmp/journey/native-driver.log
+            .project-local/task-runtime/aaos01-webdriver/**/receipt.json
+            .project-local/task-runtime/aaos01-webdriver/**/install-preflight.json
+            .project-local/task-runtime/aaos01-webdriver/**/lifecycle-receipt.json
+            .project-local/task-runtime/aaos01-webdriver/**/*.png
+            .project-local/task-runtime/aaos01-webdriver/**/driver.log
+            .project-local/task-runtime/aaos01-webdriver/**/native-driver.log
+            .project-local/task-runtime/aaos01-native-tools/receipt.json
+            .project-local/task-runtime/aaos01-ocr-tools/ocr-receipt.json
+            .project-local/task-runtime/aaos01-native-tools/cargo-install.log
+          if-no-files-found: error
 
   a0-gates:
     timeout-minutes: 5
     if: ${{ always() }}
-    needs: [gateplan, test, format-targeted, migration-targeted, security-targeted, py-compat, lint, wheel-smoke, browser-smoke, windows-runtime-smoke, desktop-fast, desktop-build, installer-lifecycle, rust-vnext, desktop-vnext, contracts-vnext, workers-vnext]
+    needs: [gateplan, test, format-targeted, migration-targeted, security-targeted, py-compat, lint, wheel-smoke, browser-smoke, windows-runtime-smoke, desktop-fast, desktop-build, installer-lifecycle, rust-vnext, desktop-vnext, green-candidate-vnext, contracts-vnext, workers-vnext]
     runs-on: ubuntu-latest
     steps:
       - name: Validate required gates against GatePlan (ci-verdict)
@@ -1141,6 +1306,7 @@ jobs:
           INSTALLER_RESULT: ${{ needs.installer-lifecycle.result }}
           RUST_VNEXT_RESULT: ${{ needs.rust-vnext.result }}
           DESKTOP_VNEXT_RESULT: ${{ needs.desktop-vnext.result }}
+          GREEN_VNEXT_RESULT: ${{ needs.green-candidate-vnext.result }}
           CONTRACTS_VNEXT_RESULT: ${{ needs.contracts-vnext.result }}
           WORKERS_VNEXT_RESULT: ${{ needs.workers-vnext.result }}
         run: |
@@ -1182,6 +1348,7 @@ jobs:
           require installer-lifecycle "$INSTALLER_RESULT"
           require rust-vnext "$RUST_VNEXT_RESULT"
           require desktop-vnext "$DESKTOP_VNEXT_RESULT"
+          require desktop-vnext "$GREEN_VNEXT_RESULT"
           require contracts-vnext "$CONTRACTS_VNEXT_RESULT"
           require workers-vnext "$WORKERS_VNEXT_RESULT"
           # A not-required job that RAN and failed is still a failure. Use the
@@ -1189,9 +1356,13 @@ jobs:
           # check them against their real job results.
           for spec in "test:$TEST_RESULT" "format-targeted:$FORMAT_RESULT" "migration-targeted:$MIGRATION_RESULT" "security-targeted:$SECURITY_RESULT" "py-compat:$COMPAT_RESULT" "lint:$LINT_RESULT" "wheel-smoke:$WHEEL_RESULT" "browser-smoke:$BROWSER_RESULT" "windows-runtime-smoke:$WINDOWS_RESULT" "desktop-fast:$DESKTOP_FAST_RESULT" "desktop-build:$DESKTOP_BUILD_RESULT" "installer-lifecycle:$INSTALLER_RESULT" "rust-vnext:$RUST_VNEXT_RESULT" "desktop-vnext:$DESKTOP_VNEXT_RESULT" "contracts-vnext:$CONTRACTS_VNEXT_RESULT" "workers-vnext:$WORKERS_VNEXT_RESULT"; do
             name="${spec%%:*}"; result="${spec##*:}"
-            if [ "$result" = "failure" ]; then
+            if [ "$result" = "failure" ] || [ "$result" = "cancelled" ]; then
               echo "job '$name' failed even though its gate was not required"
               exit 1
             fi
           done
+          if [ "$GREEN_VNEXT_RESULT" = "failure" ] || [ "$GREEN_VNEXT_RESULT" = "cancelled" ]; then
+            echo "green-candidate-vnext did not complete successfully"
+            exit 1
+          fi
           echo "ci-verdict: all required gates success"

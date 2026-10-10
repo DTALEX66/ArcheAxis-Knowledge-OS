@@ -9,6 +9,7 @@ drop a word.
 
 from __future__ import annotations
 
+import os
 import importlib.util
 import shutil
 from pathlib import Path
@@ -17,7 +18,7 @@ import pytest
 
 REPO = Path(__file__).resolve().parents[1]
 WORKER = REPO / "services" / "python-workers" / "vision" / "worker_ocr.py"
-TESSDATA = REPO / "tools" / "tesseract" / "tessdata"
+TESSDATA = Path(os.environ.get("TESSDATA_PREFIX") or (REPO / "tools" / "tesseract" / "tessdata"))
 
 pytestmark = pytest.mark.skipif(
     shutil.which("tesseract") is None or not (TESSDATA / "eng.traineddata").is_file(),

@@ -99,6 +99,19 @@ class DevelopmentPaths(unittest.TestCase):
         self.assertTrue(all(p.parts[0] == '.project-local' for p in after - before))
         self.assertFalse((self.repo / '.hermes').exists())
 
+    def test_source_mutation_invalidates_successful_child(self):
+        command = self.command()
+        command[-1] = 'from pathlib import Path; Path("changed.py").write_text("fixture = 1\\n"); print("child passed")'
+        result = subprocess.run(command, env=self.env, capture_output=True)
+        self.assertEqual(result.returncode, 3, result.stderr)
+        receipt_path = next(self.repo.glob('.project-local/runs/*/*/artifacts/execution.json'))
+        receipt = json.loads(receipt_path.read_text(encoding='utf-8'))
+        self.assertEqual(receipt['child_exit_code'], 0)
+        self.assertEqual(receipt['status'], 'INVALIDATED')
+        self.assertFalse(receipt['source_consistent'])
+        self.assertEqual(receipt['command'], command[6:])
+        self.assertIn('child passed', Path(receipt['log']).read_text(encoding='utf-8'))
+
     def test_batch_entrypoint_is_wrapped_for_windows(self):
         command = ['scripts/ci/cargo_test.bat', '-p', 'archeaxis-api', '--offline']
         prepared = dev._prepare_child_command(command)
@@ -311,9 +324,10 @@ class DevelopmentPaths(unittest.TestCase):
              patch.object(dev, 'git', return_value='a' * 40), \
              patch.object(dev, 'layout', return_value={
                  'root': self.repo, 'run': self.repo / 'run',
-                 'artifacts': self.repo / 'artifacts'}), \
+                 'artifacts': self.repo / 'artifacts', 'logs': self.repo / 'logs'}), \
              patch.object(dev, 'prepare', return_value={}):
             (self.repo / 'artifacts').mkdir()
+            (self.repo / 'logs').mkdir()
             self.assertEqual(dev.main(), 130)
         stop.assert_called_once_with(child)
         receipt = json.loads((self.repo / 'artifacts/execution.json').read_text())
@@ -365,9 +379,10 @@ class DevelopmentPaths(unittest.TestCase):
              patch.object(dev, 'git', return_value='a' * 40), \
              patch.object(dev, 'layout', return_value={
                  'root': self.repo, 'run': self.repo / 'run',
-                 'artifacts': self.repo / 'artifacts'}), \
+                 'artifacts': self.repo / 'artifacts', 'logs': self.repo / 'logs'}), \
              patch.object(dev, 'prepare', return_value={}):
             (self.repo / 'artifacts').mkdir()
+            (self.repo / 'logs').mkdir()
             with self.assertRaisesRegex(RuntimeError, 'cleanup failed'):
                 dev.main()
         receipt = json.loads((self.repo / 'artifacts/execution.json').read_text())

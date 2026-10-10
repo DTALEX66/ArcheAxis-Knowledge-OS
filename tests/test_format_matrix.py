@@ -146,13 +146,22 @@ def test_a_status_without_evidence_is_refused(tmp_path):
 
 def test_a_hidden_gap_and_a_stale_summary_are_refused(tmp_path):
     target, payload = _matrix_copy(tmp_path)
-    row = _row(payload, "F14")
+    # pick a group that claims no Core route rather than naming one, so this test does not go
+    # stale every time a format family gains a reader
+    row = next(candidate for candidate in payload["formats"]
+               if not candidate["evidence"]["core_routes"])
     row["status"] = "complete"
     row["gap"] = ""
     payload["coverage_summary"]["complete"] = 1
     failures = _failures(_write(target, payload))
     # custody_only evidence is not enough for a complete claim
-    assert any("F14: status is complete but no Core route is claimed" in line for line in failures)
+    assert any(
+        f"{row['format_id']}: status is complete but no Core route is claimed" in line
+        for line in failures
+    )
+    # moving a row's status without moving the summary is a second, separate lie
+    assert any(line.startswith("coverage_summary.") and "but the rows count" in line
+               for line in failures), failures
 
 
 def test_a_missing_evidence_path_is_refused(tmp_path):

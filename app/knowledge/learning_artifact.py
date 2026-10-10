@@ -10,6 +10,7 @@ from pydantic import BaseModel, ConfigDict, Field
 
 from app.contracts.v1 import LearningArtifactV1
 from shared import knowledge_governance_migration
+from shared.paths import native_path
 
 
 class KnowledgeLearningArtifactApproval(BaseModel):
@@ -75,7 +76,7 @@ def create_candidate_learning_artifact(
 ) -> LearningArtifactV1:
     database = Path(db_path)
     knowledge_governance_migration.require_applied(db_path=database, live_wal=True)
-    with sqlite3.connect(database) as connection:
+    with sqlite3.connect(native_path(database)) as connection:
         connection.row_factory = sqlite3.Row
         connection.execute("BEGIN IMMEDIATE")
         try:
@@ -167,7 +168,7 @@ def approve_artifact_cards(
         raise ValueError("learning approval requires command_id")
     database = Path(db_path)
     knowledge_governance_migration.require_applied(db_path=database, live_wal=True)
-    with sqlite3.connect(database) as connection:
+    with sqlite3.connect(native_path(database)) as connection:
         connection.row_factory = sqlite3.Row
         connection.execute("BEGIN IMMEDIATE")
         try:

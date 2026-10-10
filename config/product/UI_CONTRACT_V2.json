@@ -6,11 +6,21 @@
   },
   "authority": "ArcheAxis",
   "productShell": {
-    "base": "ArcheAxis C#/Avalonia",
+    "base": "ArcheAxis Tauri 2 + React/TypeScript/Vite",
     "mode": "formal-desktop-shell",
-    "productionEntrypoint": "apps/ArcheAxis.Desktop/ArcheAxis.Desktop.csproj",
-    "webCompatibilityEntrypoint": "frontend/src/app/App.tsx",
-    "webCompatibilityRole": "legacy-recovery-and-behavior-reference"
+    "productionEntrypoint": "src-tauri/tauri.conf.json",
+    "reactUiEntry": "frontend/src/app/App.tsx",
+    "authorityDecision": "SUP-022",
+    "donorShell": {
+      "base": "ArcheAxis C#/Avalonia",
+      "path": "apps/ArcheAxis.Desktop/ArcheAxis.Desktop.csproj",
+      "role": "frozen-behavior-and-component-donor"
+    },
+    "recoveryEntry": {
+      "path": "desktop/src-tauri",
+      "identifier": "com.archeaxis.workspace.recovery",
+      "role": "separate-recovery-entry"
+    }
   },
   "sidecars": {
     "deeptutor": {
@@ -37,19 +47,25 @@
       "id": "knowledge-center",
       "label": "知识中心",
       "route": "/knowledge",
-      "userRequiredFields": ["source"]
+      "userRequiredFields": [
+        "source"
+      ]
     },
     {
       "id": "source-viewer",
       "label": "原文与锚点",
       "route": "/source",
-      "userRequiredFields": ["source"]
+      "userRequiredFields": [
+        "source"
+      ]
     },
     {
       "id": "learning-space",
       "label": "学习空间",
       "route": "/learning",
-      "userRequiredFields": ["learning_goal"]
+      "userRequiredFields": [
+        "learning_goal"
+      ]
     },
     {
       "id": "job-center",
@@ -71,27 +87,150 @@
     }
   ],
   "goldenFlow": [
-    {"id": "import", "surface": "knowledge-center", "failureVisible": true},
-    {"id": "read", "surface": "source-viewer", "failureVisible": true},
-    {"id": "anchor", "surface": "source-viewer", "failureVisible": true},
-    {"id": "claim", "surface": "source-viewer", "failureVisible": true},
-    {"id": "learn", "surface": "learning-space", "failureVisible": true},
-    {"id": "practice", "surface": "learning-space", "failureVisible": true},
-    {"id": "review", "surface": "learning-space", "failureVisible": true},
-    {"id": "distill", "surface": "learning-space", "failureVisible": true},
-    {"id": "recover", "surface": "recovery", "failureVisible": true}
+    {
+      "id": "import",
+      "surface": "knowledge-center",
+      "failureVisible": true
+    },
+    {
+      "id": "read",
+      "surface": "source-viewer",
+      "failureVisible": true
+    },
+    {
+      "id": "anchor",
+      "surface": "source-viewer",
+      "failureVisible": true
+    },
+    {
+      "id": "claim",
+      "surface": "source-viewer",
+      "failureVisible": true
+    },
+    {
+      "id": "learn",
+      "surface": "learning-space",
+      "failureVisible": true
+    },
+    {
+      "id": "practice",
+      "surface": "learning-space",
+      "failureVisible": true
+    },
+    {
+      "id": "review",
+      "surface": "learning-space",
+      "failureVisible": true
+    },
+    {
+      "id": "distill",
+      "surface": "learning-space",
+      "failureVisible": true
+    },
+    {
+      "id": "recover",
+      "surface": "recovery",
+      "failureVisible": true
+    }
   ],
   "truthStates": {
-    "source": ["CURRENT", "STALE", "ORPHANED"],
-    "knowledge": ["CANDIDATE", "VERIFIED", "REJECTED", "SUPERSEDED"],
-    "human": ["M0", "M1", "M2", "M3", "M4", "M5", "M6", "M7"],
-    "machine": ["NONE", "UNMIGRATED", "K0", "K1", "K2", "K3", "K4", "K5", "K6", "K7", "K8"],
-    "job": ["QUEUED", "RUNNING", "PAUSED", "FAILED", "CANCELLED", "SUCCEEDED", "RECOVERABLE"]
+    "source": [
+      "CURRENT",
+      "STALE",
+      "ORPHANED"
+    ],
+    "knowledge": [
+      "CANDIDATE",
+      "VERIFIED",
+      "REJECTED",
+      "SUPERSEDED"
+    ],
+    "human": [
+      "M0",
+      "M1",
+      "M2",
+      "M3",
+      "M4",
+      "M5",
+      "M6",
+      "M7"
+    ],
+    "machine": [
+      "NONE",
+      "UNMIGRATED",
+      "K0",
+      "K1",
+      "K2",
+      "K3",
+      "K4",
+      "K5",
+      "K6",
+      "K7",
+      "K8"
+    ],
+    "job": [
+      "QUEUED",
+      "RUNNING",
+      "PAUSED",
+      "FAILED",
+      "CANCELLED",
+      "SUCCEEDED",
+      "RECOVERABLE"
+    ]
   },
   "authorityFirewall": {
-    "allowedInboundFields": ["event_id", "learner_id", "node_id", "event_type", "idempotency_key", "outcome", "recorded_at"],
-    "forbiddenInboundFields": ["verified", "verification_status", "knowledge_status", "claim_status", "human_mastery", "human_learning_state", "machine_level", "machine_competence", "source", "anchor", "provenance"],
+    "allowedInboundFields": [
+      "event_id",
+      "learner_id",
+      "node_id",
+      "event_type",
+      "idempotency_key",
+      "outcome",
+      "recorded_at"
+    ],
+    "forbiddenInboundFields": [
+      "verified",
+      "verification_status",
+      "knowledge_status",
+      "claim_status",
+      "human_mastery",
+      "human_learning_state",
+      "machine_level",
+      "machine_competence",
+      "source",
+      "anchor",
+      "provenance"
+    ],
     "sidecarDeletionSafe": true,
     "projectionRebuildSource": "ArcheAxis canonical SQLite truth"
-  }
+  },
+  "executionProjection": {
+    "canonicalPointer": "docs/current/AAOS-ACTIVE-EXECUTION.json",
+    "statusSource": "pointer.active_progress",
+    "inheritedQProgressScope": "AAOS01-Q00-Q15",
+    "planningSourceIsImplementationEvidence": false,
+    "v01": "PAUSED",
+    "remoteOperationsAuthorizedByThisFile": false
+  },
+  "visualProjection": {
+    "taskSource": "docs/taskpacks/aaos-ui-first-20261009",
+    "pagePlanSource": "docs/taskpacks/aaos-ui-first-20261009/PAGE-PLAN.csv",
+    "pageNavigationSource": "frontend/src/presentation/uiPages.ts",
+    "tokensSource": "frontend/src/design-system/tokens.css",
+    "themeRegistrySource": "frontend/src/design-system/theme.ts",
+    "defaultTheme": "blueprint",
+    "themes": [
+      "blueprint",
+      "blueprint-light",
+      "black",
+      "white",
+      "cosmic"
+    ],
+    "legacyThemesArePaletteOnly": true,
+    "sharedNewLayout": true,
+    "consistentSemanticColorsWithinTheme": true,
+    "changesCoreOrKnowledgeData": false,
+    "prototypeDataIsBusinessEvidence": false
+  },
+  "compatibilitySurfaceScope": "Existing surfaces and goldenFlow below are inherited compatibility/contract maps; new semantic page intent is resolved from visualProjection.pagePlanSource, not an implementation receipt."
 }

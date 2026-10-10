@@ -1,0 +1,628 @@
+{
+  "schema": "archeaxis/audit-snapshot/v1",
+  "round": "AAOS-01-MULTI-FORMAT-ABSORB-20261007",
+  "observed_at": "2026-10-07T06:49:44+08:00",
+  "timezone": "Asia/Shanghai",
+  "scope": "文档与治理修复（权威入口、冲突 current、描述与覆盖矩阵、可重复审计）。不改产品架构、不批量化安装依赖、不发布。",
+  "repository": {
+    "canonical_identity": "DTALEX66/ArcheAxis-Knowledge-OS",
+    "remote_transport": "ssh (git@github.com)",
+    "default_branch": "main",
+    "worktree": "D:/All projects/ArcheAxis-Knowledge-OS/.project-local/worktrees/dsh-backend-loop-20261001",
+    "branch": "codex/dsh-aaos-real-multiformat-loop-20261001",
+    "base_sha": "e2c64db3ed47d77d228b4f1d96a5f56f5d7f8528",
+    "base_sha_meaning": "本轮改动开始时的 HEAD；最终提交 SHA 由 PR/CI 定位，本快照不含自身 digest（禁止自引用哈希）",
+    "dirty_at_base": 0,
+    "open_pr_at_base": 161,
+    "rulesets": [
+      "main-protection (branch, active)",
+      "tag-protection (tag, active)"
+    ],
+    "release_state": "未发布：无 tag、无 release"
+  },
+  "authority_inputs": [
+    {
+      "what": "执行提示词",
+      "path": "D:/All projects/Record/01_AAOS_权威修复_双端描述同步_可审计执行提示词_20261006.txt",
+      "byte_sha256": "59115842299c51e01d7a74f5ea640c5cdcc08e969cf03bec4eecdc52025103f6"
+    },
+    {
+      "what": "输入蓝图（权威）",
+      "path": "D:/All projects/Record/01_AAOS_完整项目描述与未来蓝图_20261006.docx",
+      "byte_sha256": "2c99e7ae7dd52298ee425c8360c90b63a40d02f41af4c1b151cad6efd55d1ed9",
+      "hash_gate": "与提示词要求的输入哈希一致，采用本版本"
+    },
+    {
+      "what": "审计更正（蓝图附录 A03，本机取哈希核对）",
+      "path": "docs/current/AAOS01-AUDIT-CORRECTIONS-20261005.md",
+      "byte_sha256": "da9998ee673086ed12dab824d951e76c2611efb92e72edccf276b91ed8d92d4d"
+    }
+  ],
+  "commands": [
+    {
+      "command": "python -B -m pytest tests/test_truth_authority_supersession.py tests/test_documentation_authority_index.py tests/test_project_contract_references.py tests/test_authority_sha_consistency.py tests/maintenance -q",
+      "exit_code": 0,
+      "result": "209 passed, 2 skipped, 2 subtests passed",
+      "covers": "权威顺序、唯一 current、引用解析、来源哈希一致性、任务包权威"
+    },
+    {
+      "command": "python -B scripts/check_architecture.py",
+      "exit_code": 0,
+      "result": "architecture guard passed",
+      "covers": "架构边界与新增 sys.path 变更"
+    },
+    {
+      "command": "python -m ruff check app shared knowledge_base inspiration_research Inspiration-Research shared-contracts/adapters app/workflow integration-tests scripts --select E9,F63,F7,F82",
+      "exit_code": 0,
+      "result": "All checks passed",
+      "covers": "CI 实际运行的 lint 选择集"
+    },
+    {
+      "command": "python -B scripts/ci/check_document_authority.py",
+      "exit_code": 0,
+      "result": "input hashes: verified 5, outside-repository 4; document authority: single current record, root references resolve, input hashes match, coverage complete",
+      "covers": "本轮新增：唯一 current、根入口引用可解析、输入哈希、覆盖矩阵完整性",
+      "verified_by": "tests/workflow/test_document_authority_gate.py — 7 injected faults, each named"
+    },
+    {
+      "command": "python -B scripts/check_repository_conventions.py --source head",
+      "exit_code": 0,
+      "result": "repository convention check passed (head)",
+      "covers": "CI lint 作业第 1 步；在 8f163aae 上复现通过（5a6639f0 上为 exit 1，见 regressions）"
+    },
+    {
+      "command": "python -B scripts/check_path_conventions.py",
+      "exit_code": 0,
+      "result": "2954/2954 tracked paths owned (100.0%), 0 unowned and all recorded, 0 deny-commit paths tracked, 0 ambiguous, 66 top-level entries classified",
+      "covers": "CI lint 作业的目录权威步骤（AUTHORITY.md 已归位）"
+    },
+    {
+      "command": "python -B scripts/check_format_matrix.py --matrix docs/authority/taskpack-0910-r3/R15-FORMAT-STATUS.json",
+      "exit_code": 0,
+      "result": "16 groups carried, 0 complete, 14 partial, 2 custody only; every claimed route exists (13 core routes, 12 worker routes parsed)",
+      "covers": "CI lint 作业的格式矩阵步骤"
+    },
+    {
+      "command": "python -B scripts/check_language_boundaries.py",
+      "exit_code": 0,
+      "result": "protocol major 1 agreed by rust/python/schemas; database owner = crates/ only; workers and desktop shell hold no database handle",
+      "covers": "CI lint 作业的语言边界步骤"
+    },
+    {
+      "command": "python -B -m pytest tests/",
+      "wrapper_exit_code": 0,
+      "receipt": "4179 passed, 19 skipped, 144 subtests passed, 1 failed in 441.62s",
+      "failure": "tests/test_general_course_worker.py::test_real_subprocess_reads_one_json_and_creates_no_output_files",
+      "covers": "本机全量套件（Windows 默认代码页，未开 UTF-8 模式）",
+      "note": "包装命令退出码为 0，收据本身含 1 failed；此处按收据记失败，不按包装退出码记通过。该失败在 UTF-8 模式下不复现，且权威 runner 不受影响，见 gaps"
+    },
+    {
+      "command": "bash scripts/ci/run_tests.sh --full -q（权威 runner；dev.py 以子解释器启动 pytest，绑定 ARCHEAXIS_SOURCE_COMMIT=d218abdc，dirty=0）",
+      "exit_code": 0,
+      "receipt": "4214 passed, 30 skipped, 144 subtests passed, 0 failed in 429.86s",
+      "previous_same_shape": "4168 passed, 70 skipped, 0 failed —— 差额来自外部根绑定：修复后权威 runner 自动绑定 config/environment/external-resources-index.json 记录的根，40 项此前被跳过的工具相关用例（媒体/OCR/窗口抽取等）改为真跑；日志 .project-local/task-runtime/full-suite-postrootfix-20261006.log",
+      "root_binding": "本轮 dev.py 修复：无环境注册时回退到索引记录的根（仅当该路径真实存在），并把 ARCHEAXIS_EXTERNAL_ROOT 交给子进程；CI 不受影响（路径不存在即忽略）",
+      "covers": "本轮修订后的全量套件（tests + knowledge_base/tests），在干净提交上绑定成功，无失败项"
+    },
+    {
+      "command": "复算本快照 artifacts 列表内 9 个文件的 SHA-256 并与记录值比对",
+      "exit_code": 0,
+      "result": "9/9 一致，0 drift；随后因本轮更正 input-sources 与 OSS 证据两文件的表述，其两条记录值已同步刷新",
+      "covers": "审计快照自身证据清单未漂移（记录值 = 当时磁盘值）"
+    },
+    {
+      "command": "内容哈希检索：D:/All projects/Record 递归 + 该目录下全部 zip 的成员 + D:/All projects/资料库 递归，与蓝图附录记录的 SHA-256 逐个比对",
+      "exit_code": 0,
+      "result": "121 个文件 + 29,896 个 zip 成员均已哈希；A01 7ecda3e3…、A02 771b1897…、A06 7d475862… 无字节相同副本；A04 3839646b… 命中本仓 docs/history/… 副本",
+      "covers": "把 A01/A02/A06 的 SOURCE_MISSING 从按文件名未找到升级为按内容哈希未找到；更正 A04 为 VERIFIED_MATCH（上一轮 maxdepth 5 检索漏掉了深度 6 的本仓副本）"
+    },
+    {
+      "command": "独立只读复核开源吸收证据：逐条要求已吸收项必须有被产品真正调用的证据（读 disposition 证据文档、SUPERSESSION_LEDGER、scripts/audit/oss_disposition_evidence.py 与相关源码/workflow）",
+      "exit_code": 0,
+      "result": "A018-A021、A022、A023/A024、C001 有真实调用方（PROVEN）；A002/A003/A006/A009/A011 的 IMPLEMENTED_IN_SOURCE 与 A008 一类 VENDORED 标签为启发式假阳性",
+      "covers": "对上一轮自身结论的独立核对与自我更正，已写入 OSS 证据文档第五节并把工具启发式边界登记为缺口"
+    },
+    {
+      "command": "python -B scripts/audit/oss_disposition_evidence.py --json .project-local/task-runtime/aaos01-oss-evidence-20261006/disposition-evidence.json > .project-local/task-runtime/aaos01-oss-evidence-20261006/report.txt",
+      "exit_code": 0,
+      "result": "donor rows: 47；DECLARED 25 / IMPLEMENTED_IN_SOURCE 6 / STUB_IN_SOURCE 2 / MENTIONED_IN_SOURCE 2 / NONE 12；同一输入两次运行的 JSON 字节相同（确定性已验证）",
+      "covers": "吸收证据工具修订后的重算；report.txt 与 disposition-evidence.json 即本轮引用哈希的两个文件"
+    },
+    {
+      "command": "python -B -m pytest tests/workflow/test_oss_disposition_evidence.py -q",
+      "exit_code": 0,
+      "result": "3 passed in 40.04s",
+      "covers": "固定命名/桩/提及/实现四态、定位不出现 __pycache__、不存在“文件名即实拷”"
+    }
+  ],
+  "checks_not_run_this_round": [
+    "产品级安装态与资格化验收未跑：本轮范围为文档/治理，不为装饰重复全产品验收。本机全量套件本轮实际跑过（见 commands：1 failed），但该 SHA 的 CI 为 push 分类，test 车道被跳过，故 test 作业本轮未在 CI 运行",
+    "未改 GitHub About：先记录 before，随后由 API 更新并读回（见 about 字段）",
+    "未在另一本地副本上比对：本机未发现第二工作副本被指为主副本"
+  ],
+  "regressions": [
+    {
+      "commit": "5a6639f0",
+      "detected_by": "CI push run 37447026168 / lint / Validate repository naming and encoding conventions（exit 1）",
+      "observed": "README.md: legacy-product-name：活动表面的 README 被判为未声明历史语境而含旧产品名（该旧名见 docs/truth/NAMING_CONTRACT_V1.md，此处不复写以免再触发同一规则）",
+      "cause": "该提交加长了 README 头部的权威块，令唯一的历史语境标记（命名说明中的 旧名 与 历史 措辞）落到该检查 600 字符头部窗口之外，于是处于活动表面的 README 被判定为未声明历史语境。父提交 daf6f1f5 的头部较短，标记仍在窗口内，故此前为绿",
+      "fix_commit": "8f163aae",
+      "fix": "在 README 头部显式声明 Legacy/Migration 兼容语境（HTML 注释），不再依赖某个措辞恰好落在字符窗口内",
+      "local_reproduction": "python -B scripts/check_repository_conventions.py --source head → 修复前 exit 1（仅 1 项），修复后 exit 0",
+      "false_pass_note": "首轮本地误判为通过：同一命令当时在另一分支（codex/Audit）工作树较短的 README 上执行；另注意在 Windows 工作树上用 --source worktree 会因 CRLF 报 72 项，复现必须用 --source index 或 --source head"
+    },
+    {
+      "commit": "5e5d102b",
+      "detected_by": "CI push run 37490490651 / test (3.12) job 112361733929 (FAILURE)",
+      "observed": "tests/maintenance/test_active_output_boundaries.py::test_active_sources_do_not_embed_machine_absolute_roots_or_legacy_runtime_output 失败，违规项是我新增的 crates/archeaxis-migration/tests/selective_legacy_stage.rs 夹具里的来源字符串 .hermes/task-runtime/ingest-samples/oxford-meaning.pdf",
+      "cause": "该门禁把活动源码中出现遗留运行输出根路径判为边界违规；我写夹具时未先跑它。pip-audit 步骤本身在同一 job 里 已输出 No known vulnerabilities found，与本失败无关",
+      "fix": "不动门禁，只把夹具来源改成中性的 ingest-samples/oxford-meaning.pdf（该项断言不依赖此字符串）；复验 1 passed，cargo test -p archeaxis-migration --tests --offline 六套件合计 27 passed",
+      "status": "fixed"
+    },
+    {
+      "commit": "12d4a47c",
+      "detected_by": "本地全量 pytest tests/workers（在 worktree 内，dev.py 车道）；CI 当时未判（PR #161 pending）",
+      "observed": "tests/workers/test_transport_window_request.py::WindowParameterTests::test_a_split_reaches_the_worker_with_the_jobs_remaining_time → TypeError: extract_split() got an unexpected keyword argument 'word_timestamps'",
+      "cause": "该提交给 transport 两条转写路径都无条件加了 word_timestamps。真实 worker 接受该形参，用例里的替身不接受——替身是 worker 契约的 stand-in，签名未随契约同步，于是只有替身红",
+      "fix_commit": "6237c5f1",
+      "fix": "替身按真实 worker 补齐 extract/extract_split 形参并记录其值；新增 split×words 用例，使窗口化与词时间组合首次有覆盖（此前零覆盖）",
+      "local_reproduction": "PYTHONUTF8=1 python -B scripts/runtime/dev.py --pytest tests/workers -q → 修复前 1 failed / 332 passed；修复后 5 passed + 9 subtests（该文件），全量 tests 4211 passed / 30 skipped / 0 failed",
+      "false_pass_note": "同类误判还包括 F01 的 .py 命名：四张表都命名了它、Python 用例全绿，但 first-match 表里更早的 text/plain 分支已含 py，新分支不可达；只有 Rust 内容断言抓得到。两条都记于此，因为\"局部证据不足以支撑整链结论\"是本项目既有失败模式"
+    },
+    {
+      "commit": "3809dfc9",
+      "detected_by": "我自己写 structure_anchor_live_worker.rs 时的单位不一致（不是评审，不是 CI）",
+      "observed": "worker_structure 验证器用 Rust 的字节切片读 Python 语义的字符偏移，任何非拉丁文档的位置都会被以错误理由拒绝",
+      "cause": "把两个语言的切片单位当成同一个东西；测试夹具当时全是 ASCII，所以差异不显现",
+      "fix": "按字符切片并要求字符数与跨度相符；新增中文段落用例双向钉住（字符 digest 通过 / 字节 digest 拒绝）",
+      "status": "fixed"
+    }
+  ],
+  "gaps": [
+    "蓝图附录 9 条来源已全部 VERIFIED_MATCH（2026-10-07：A01/A02/A06 原件由 Record 恢复包归档并核验哈希，U01/U02 为规范化恢复导出——其哈希可核验，但它们仍不是原始聊天全文，证明力按此限定；A04 于 2026-10-06 改判，本仓内有副本）——见 docs/current/AAOS-INPUT-SOURCES-20261006.json；未据未读文件作任何判断",
+    "Q14 经核实不是冲突而是日期序列：更正文件（2026-10-05）记 NOT_RUN，账本第 5/87 行记其后证据（run 37399470467 全 20 job SUCCESS、artifact 11385093136 的 21 步原生收据、NSIS host SHA 00b7ba9b…）；不可变 checks/acceptance.json 仍为 NOT_RUN，资格化未达成、不发行（初稿误标为冲突，已更正）",
+    "A 组 14 项 CAP 已按套件实测取证（合计 370 passed，各 exit 0）；CAP-0070 动态解释与仿真本轮未找到独立套件，行内已写明课程/UI 动效用例提到动画不等于仿真已实现",
+    "F00—F14 与 I1—I6 均无实现证据，属目标",
+    "编码误判已更正（同轮内自纠）：早先把该现象登记为‘项目 runner 未设 UTF-8 模式’是错的。现场核实 scripts/runtime/dev.py 为 pytest 子进程设置 PYTHONUTF8=1 与 PYTHONIOENCODING=utf-8（dev.py:233-234），且 --pytest 以子解释器启动（dev.py:443），因此权威路径 scripts/ci/run_tests.sh / run_tests.ps1 不受影响——在本机 shell 未设 UTF-8 时经该 runner 运行 tests/test_general_course_worker.py 为 13/13 通过。该失败只出现在绕开权威路径直接裸跑 pytest 时（本轮后台全量运行即裸跑）：课程 worker 的 stdout 含 U+2014 破折号（合法 UTF-8，第 2118 字节 0x94 不可按 GBK 解码），裸跑时 pytest 捕获按 locale 解码而抛错。可选的加固（非必需，未做）：该 subprocess.run 显式 encoding=utf-8，使断言不依赖父进程编码模式",
+    "开源吸收核对脚本的启发式边界：已修复，不再是缺口。原脚本以‘整词命中任一来源’记 IMPLEMENTED_IN_SOURCE、以‘文件名含该项词’记 VENDORED，并把 __pycache__/*.pyc、README 词与生成目录字样计为证据；又因整词匹配 crossref 匹配不到 CrossrefClient，四条真客户端的判定实际由 .pyc 与文档字符串支撑。现按标识符判定、注释与文档字符串只算提及、编译产物与生成目录排除、桩按命中处附近的不可用标记判定、shared/ 移出 vendor 根；分布由 DECLARED 24 / IMPLEMENTED 9 / VENDORED 两类各 1 / NONE 12 更正为 DECLARED 25 / IMPLEMENTED_IN_SOURCE 6 / STUB_IN_SOURCE 2 / MENTIONED_IN_SOURCE 2 / NONE 12，并由 tests/workflow/test_oss_disposition_evidence.py 的断言固定四态",
+    "CI test 车道的两处先存失败（均非本提交引入；同一 job 在 7eda1dcf 与 d218abdc 上同样 failure）：(1) 【已修】tests/workflow/test_workspace_layout_contract.py 在 runner 上把 .project-local/c 与 staging 判为越界——根因是两个**测试隔离缺陷**：tests/test_web_screenshot.py::test_screenshot_reports_browser_exit_code_when_no_png_is_written 未像同文件其他用例那样 patch _short_temp_root，于是 app/ingestion/web_screenshot.py:73 的 `(project_root/'c').mkdir` 沿祖先找到真实 .project-local 并创建 `c/`；tests/test_desktop_launch.py::test_prepare_accepts_project_local_staging_candidate 在真实 dev 根下建 `staging/launch-*` 且 finally 只删子目录、留下空 `staging/`。两处已按“修隔离、不放宽契约”修好（前者补同款 patch，后者在清理后 rmdir 空的父目录），并在权威 runner 设定的“TMP 落在 dev 根内”这一 CI 条件下复现验证：22 passed 且 dev 根未出现 c/ 或 staging/。(2) 【待决】tests/test_axr060_completion_audit.py 要求当前表面引用的 40 位哈希在检出中可达，记录引用的保留点 tag 值 aa804699… 因该分支 squash 合并后被删、tag 只在本地且不得推送而缺失；已在 docs/current/BRANCH-CONVERGENCE.json 登记该已删分支的 tip 与 merge_base（该文件正是该测试读取“已删分支 tip 可作证据”的白名单位置），并确认该分支在远端确已不存在",
+    "命名空间提醒：`docs/current/AAOS-COVERAGE-MATRIX-20261006.md` 的 F00–F14 是**蓝图功能族**（F08=动态解释与仿真、F13=XR/AR），与 `docs/authority/taskpack-0910-r3/R15-FORMAT-STATUS.json` 的 F01–F16 **格式族**是两套编号，不可互推。本轮按代码实测更正的只有 R15 的 **F13**（原文把 ODF 写成 custody-only，实际 `grep -r opendocument` 零命中，现已实现；EPUB 早已有 spine 章节读取）；子智能体报告的 R15 **F05 页寻址**与 **F12 画布几何**“已实现却写成缺口”**我未亲验**，留作待核，不作为事实登记",
+    "F13 已闭合到附件可抽取并按预算展开嵌套容器（2026-10-07）：邮件附件经容器成员通道成为各自 source 并获得按名选定的作业，附件若本身是容器会取得自己的 archive 作业，深度超过 CONTAINER_DEPTH_LIMIT 的成员容器被保留并记为 nesting_limited 而非 custody-only；无正文邮件不再失败作业，其邮件头块成为投影。仍未闭合的是 .msg 二进制容器无读取器、ODF 样式/字段/内嵌对象/链接目标未跟随、RTF 表格/脚注/样式未重建，以及 A004 RapidOCR 的\"桩还是真实使用\"歧义未裁定",
+    "F10 说话人分离仍无引擎且无处置行；词时间的界面开关按“前端任务暂停”未做，目前只在 HTTP 边界可用；真实引擎已实测（large-v3-turbo 对 golden-audio-anchor.wav 得 requested=produced=true，8 passed 0 skipped）；仍未实测的是窗口化与词时间的组合",
+    "F15 的容器成员→已读→知识 Candidate 链已跑通并钉住（machine 行为者 403、quote 不符 400、晋升后 origin 关系不破）；仍开的是：没有界面入口（前端暂停）、关系仍是 origin 引用、被接受知识的评审晋升属人的动作本轮未验"
+  ],
+  "about": {
+    "before": "星环知识平台 ArcheAxis Knowledge：本地优先的多格式内容与人机双向学习工作台（开发中）。Tauri/React + Rust Core，SQLite/CAS 单写者。内容先保存；识别忠实度核验与专业依据分析独立、可追溯。",
+    "after": "星环知识平台 ArcheAxis Knowledge：本地优先的个人知识与 Human-AI 双向学习系统（开发中）。当前可用：多格式资料保存/阅读/转换、Rust Core 单写者 + SQLite/CAS、Tauri/React 桌面宿主；方向：知识图谱、人的深度学习、AI 学习资产与未来 XR。内容先保存；识别忠实度与专业依据分开核验。",
+    "after_recorded_by": "GitHub API 读回后回填；About 是 Git 外元数据，不能只提交 README 就称已改",
+    "topics_before": [
+      "knowledge-management",
+      "learning-system",
+      "local-first",
+      "sqlite",
+      "personal-knowledge-management",
+      "tauri",
+      "multi-format",
+      "provenance",
+      "react",
+      "rust",
+      "typescript"
+    ],
+    "updated_at": "2026-10-06T17:48:20+08:00",
+    "readback": "gh api -X PATCH repos/... -f description=… then `gh repo view --json description` returned the same string; About is Git-external metadata and is recorded here rather than inferred from the README",
+    "topics_changed": false
+  },
+  "environment": {
+    "platform": "Windows 10.0.26100 x64",
+    "interpreter_used": ".project-local/build/be268a2d33/venv/Scripts/python.exe（本机 CI 同构虚拟环境，含 PyYAML）",
+    "note": "bare `python` 不在 Git Bash PATH；本地复现门禁必须用 --source index/head（Windows 工作树为 CRLF，--source worktree 会误报）；本机 locale 为 cp936，裸跑 pytest 会按 cp936 解码而以 UTF-8 断言失败，权威 runner 由 dev.py 自带 PYTHONUTF8=1，故套件应经 scripts/ci/run_tests.sh 运行"
+  },
+  "both_ends": {
+    "local_head": "564e760fceaeb45bdfa6464744a60b41a5f3c993",
+    "remote_branch_sha": "564e760fceaeb45bdfa6464744a60b41a5f3c993",
+    "remote_file_readback": "docs/current/AAOS01-Q00-Q15-LEDGER-FINAL-20261005.md 经 contents API 读回与本机逐字节一致（sha256 前 16 位 a3951bb97c278614）；AUTHORITY.md 此前核对为 6065 字节、sha256 前 16 位 556663d7093d27f0",
+    "pr": 161,
+    "default_branch_updated": false,
+    "default_branch_note": "远端分支已同步至 564e760f；main 未更新（本轮不含合并）；无 tag、无 release。本轮完成：安装态完整生命周期证据落盘并在 run 37471031307 收口、runs/ 二次清理释放 8.37 GB、build/ 四条无引用根清理 3.05 GB、四个前端组件/路由测试（24 项）；PR #161 仍 OPEN，head 即该 SHA",
+    "ci": {
+      "full_qualification_run": 37471031307,
+      "full_qualification_scope": "workflow_dispatch force_full，head_sha=ccf0a4bc48aff0054d1d6717877faf10d7312941，19/19 job success（含 desktop-build、desktop-fast、installer-lifecycle、rust-vnext、test(3.12)、workers-vnext、contracts-vnext、desktop-vnext、green-candidate-vnext、browser-smoke、py-compat 3.11/3.13、format/migration/security-targeted、wheel-smoke、windows-runtime-smoke、gateplan、lint）；该 run 的 installer-lifecycle 产出 lifecycle-receipt.json（complete_lifecycle_verified=true）",
+      "push_run": 37474779194,
+      "push_scope": "564e760f 的 push 车道，按分类运行（文档与测试改动）",
+      "pr_run": 37474787543,
+      "pr_scope": "564e760f 的 pull_request 车道，按分类运行",
+      "vnext_ci_run": 37474787559,
+      "binding": "以上 run 均以 headSha 精确读回绑定（gh run list --json headSha 过滤），不用运行列表顺序推断归属；更早的 b466f530/ccf0a4bc 记录保留在台账历史中"
+    }
+  },
+  "checkpoint": {
+    "branch": "codex/dsh-aaos-real-multiformat-loop-20261001",
+    "last_ci_verified_sha": "f9caf4d16979fa55ba5b632fb355c5f926b0862e",
+    "self_reference_note": "本快照在其后一次提交中落仓，故自身 SHA 由 PR/CI 定位；last_ci_verified_sha 指已由 CI 验证门禁的祖先提交，不写成包含自身的提交",
+    "done": [
+      "root AUTHORITY.md created and declared in the directory authority and its disposition record",
+      "one current record across the live routing documents, corrected against AGENTS.md",
+      "PDF.js contradiction resolved by measurement and recorded as SUP-023",
+      "coverage matrix (CAP/Q/F/I), input-source record, audit snapshot",
+      "document-authority gate in the lint job, falsified by 7 injected faults",
+      "About updated and read back; branch pushed and remote file hash matched",
+      "README 头部恢复显式历史语境声明，修复 5a6639f0 引入的 lint 回归；8f163aae 的 CI push run 37447589524 lint 与 a0-gates 均成功",
+      "本机全量套件跑通并如实记录（4179 passed / 19 skipped / 1 failed，失败为测试工装编码缺陷，已登记）",
+      "更正 A04 输入来源为 VERIFIED_MATCH：该文件就在本仓（docs/history/…/package-unpacked/），哈希与蓝图附录一致；上一轮按 maxdepth 5 检索而该路径深度为 6，故误判 SOURCE_MISSING",
+      "对 A01/A02/A06 完成内容哈希检索（Record 121 个文件 + 29,896 个 zip 成员 + 资料库），把 SOURCE_MISSING 建立在哈希而非文件名之上",
+      "独立复核开源吸收证据并更正 OSS 证据文档的夸大表述：9 条 IMPLEMENTED_IN_SOURCE 中仅 A018-A021 是真客户端，A011 系域名假阳性；VENDORED 标签来自文件名而非上游实拷",
+      "修复并重算吸收证据工具：改为按标识符判定（含 DataCiteClient/OpenAlexClient 跨词拼接）、注释与文档字符串只算提及、排除编译产物与生成目录、桩按命中处附近的不可用标记判定、shared/ 移出 vendor 根；分布更正为 DECLARED 25 / IMPLEMENTED_IN_SOURCE 6 / STUB_IN_SOURCE 2 / MENTIONED_IN_SOURCE 2 / NONE 12，并为四态与“无 __pycache__ 定位”加断言（3 passed）",
+      "核对脚本两次运行产出字节相同，确认结果确定性；证据文件 report.txt 与 disposition-evidence.json 已按修订后工具重算并登记哈希",
+      "Q00–Q15 逐条以**提交测试**读回：命令、计数与断言名写入各自台账行；其中 Q04 从撤销回到 TESTED_LOCAL，Q02/Q14 的安装态经 artifact 字段核对后纠正（含我先据 limitations 下调、再据 host/installation_context 纠正回来的过程）",
+      "探测脚本修正并加门禁：`installation_limitation()` 使收据不再自相矛盾（先证伪再采信），`test_tauri_shell_authority.py` 固定两个分支",
+      "账本引文门禁入 lint：核验每处测试引文与 `--test` 目标存在；实现前先证伪两个过宽版本（4 与 73 误报），最终 11 引文 + 6 目标全部解析、0 缺失",
+      "AAOS01-LAYERED-MIGRATION-CHAIN 的悬空下一步补记：MigrationOperator 已定位并接线于四处入口，24 Rust + 51 Python 断言通过；端到端 phase4 跑通**明确标注未做**",
+      "Q11 旧库迁移的验收与回滚口径七条写入台账，作为待 Owner 裁决的草案",
+      "安装态完整生命周期证据落盘：verify_nsis_install.ps1 在尾部断言后写 lifecycle-receipt.json，CI 上传之；workflow_dispatch run 37471031307（head_sha ccf0a4bc）19/19 job success 产出该收据（complete_lifecycle_verified=true、各步布尔全 true、pyc_growth=0），阶段快照 install-preflight.json 仍如实为 false",
+      "存储清理并更正一处误判：runs/ 的 WinError 5 实为 pytest 临时目录里 git 的只读松散对象（非提权问题），清只读位后二次清理释放 8.37 GB（runs/ 13.45→4.86 GB，全程未提权）；另按精确路径删除四条无引用 build/ 根释放 3.05 GB，其被引用的收据（runs/22cad761f8/ui-icon-preview-20261001/icons.png）实测仍在",
+      "前端补齐审计点名的组件级测试：RealData/CommandPalette/CanvasBoard/SpaceView/SettingsSpace 共 28 项（CI test(3.12) 于 head_sha 99e6bbe6 实际执行通过）；并加固 StyleRuleCoverage 的类名匹配（转义前导点）——以独立脚本证伪旧写法把 .supercard 误判为已满足 .card",
+      "归属实测：Green 的 AAOS-Tauri-...-mainline 克隆属 CodexSandboxOnline 身份（git 以 dubious ownership 拒绝），按非本身份资产保留；runs/ 残余 434 个零字节目录为受限 ACL，提权可回收亦约为 0",
+      "Green 暗工作树按 Owner 裁决删除：保留点独立复核全项 PASS 后，经属主检出 `git worktree remove --force` 移除并同步删除 worktree 管理项；逐文件遍历口径 2,692,920,775 B，首批移除 2,548,177,620 B，补删 3,703 个条目，残留 13 个条目 / 16,716 B（uv editable .whl 与 pytest 空目录，清只读位后仍 WinError 5，未提权未改 ACL）；同目录的 6.24 GB mainline 与 Owner 保留的 minimax 供体未触碰",
+      "Q11 按 Owner 裁决（有用并入、无用去掉）实做：源库 data/cognitive_os.sqlite 只读审计前后 SHA 相同，89 张表中 67 张 0 行、22 张有行；新增 stage_legacy_library_selectively（写入走 domain::create_knowledge_v3，每表恰得一条具名处置），真实 89 表导出跑通得 merged 2 / discarded 77 / not_merged 10，intake_cards_staged=1、lessons_staged=1、row_errors=0，旁路暂存库 270,336 B（未写产品主库，验收仍属 Owner）",
+      "Owner 三项裁决入档：Green 暗工作树删除（已执行）、失败模型原始输出继续留在界面（反粉饰规则不变）、Q11 以“审计—有用并入—无用去掉”为准则；300 秒作业上限与 build/cargo 清理属既有裁决，本轮未重开",
+      "pip-audit 由仅报告转强制：升 urllib3 2.8.0 / soupsieve 2.10（uv.lock 7 行），以同一钉版本先复现 CI 报的 5 项再证新锁干净（exit 0），去掉 continue-on-error 并修掉 `| tee` 在无 pipefail 下吞退出码的仪器缺陷，新增 4 项门禁并三项注入证伪有效；同步 app/release-manifest.json 的锁摘要",
+      "F08 PPTX 图表数据读通：worker 以标准库解析包内 chart part，投影 Series/类别=值 并给出 slide_chart 锚点；数值声明为文件自带缓存，仅有链接数据的系列具名为 no cached values；新增 3 项测试，与 office 套件合计 9 passed",
+      "F13 ODF 与 RTF 在产品路径落地：attempts.rs 为 odt/ods/odp/rtf 命名媒体类型并加入 text.extract 接受集，读取器校验 mimetype 与声称类型一致、按 outline-level/表格单元格/draw:page 出锚点、行列重复声明超 512 时按上限报出；RTF 用已声明的 striprtf 剥控制字。route_capabilities 8 passed（两条真值断言因世界改变而更新并写明理由），fmt 与矩阵检查 exit 0，Python 35 passed",
+      "吸收核对仪器纠正：A011 词由 mozilla 改 readabilipy（原为低估，且被测试钉住）、A010 词由 apache 改 tika（原为许可证词导致的虚报）、shared/models 补入 vendor 根使 A001 记为 DECLARED_AND_VENDORED；分布 25/2/12 → 24/1/13（DECLARED/VENDORED/NONE 口径见台账）",
+      "外溢数据追踪清理（只删已证实两项，合计 4,256,895 B（4,251,648 + 5,247；两次运行分删，第二次审计件的 freed 字段只含前者，不能当总量））：%TEMP% 中与主检出根逐字节相同的 4,251,648 B 副本 （脚本因审计件路径不存在先拒绝，核实真实归档路径后才删）与主检出根 __pycache__ 5,247 B（布局合同假失败源）；并更正一条旧记录：%LOCALAPPDATA%\\ArcheAxis Knowledge 在本机不存在",
+      "修掉一处**假支持**：F13 只在 Core 命名了 ODF/RTF 而未同步 transport 白名单，CI 两个车道把作业拒在 worker 边界（AAK-VAL-002）；已补白名单并给 check_format_matrix 加两侧一致性门禁（两个方向各注入一次证伪后还原 exit 0），F13 的四条路由也写进证据主张使门禁可见该声明",
+      "CI 车道缺 RTF 引擎：按 xlsx 先例把 striprtf 加入 ci-adapters（uv.lock +2 行，release manifest 摘要按约定只改 digest）；被引擎门控的用例具名 skip，另加不依赖引擎的“缺引擎必须失败作业”用例；审计口径不变（--only-group ci 导出逐行相同），故 pip-audit 结论沿用",
+      "F10 词级时间全链落地：HTTP words → 请求身份（片段回执不得应答词请求）→ word_timings()（非转写拒绝）→ transport → _segment_cues 记录毫秒词时间 → offset_cues 同步平移并拒绝负跨度；回执并列 word_timings_requested / produced。新增 6 项 Python + 1 项 Rust 用例；三 crate 75 结果全 ok、fmt 与矩阵检查 exit 0、Python 相关三套 16 passed",
+      "F01: a `.py` source reports the symbols its own AST declares, line-anchored (09f68a9c)",
+      "F06: a chained page answers with the text read from it, via origin + pages_of + GET /sources/:id/pages (41a34d3d)",
+      "F13: a mail's attachments are extracted and imported as members with their own jobs (e52fc4c3)",
+      "Production HTTP contract route counts moved together: 62 pairs, 43 projection pairs, 38 unconditional mounts; both maintenance gates re-run green",
+      "F07: a DOCX heading is separated from a body paragraph by the file's own style definition (807f6d8a)",
+      "F14: `.xls` reads through the admitted xlrd engine and converts each sheet to an imported CSV member (a75d3487)",
+      "F12: canvas colour and style are reported; the matrix's stale 'geometry not projected' claim was corrected against the code",
+      "Supply-chain ledger: xlrd admitted as CURRENT [source, installed]; the pre-existing REFERENCE/CURRENT miscount was recomputed from the components",
+      "F02: a fetched snapshot now carries an honest capture time (received_at) via f53dc28e's driver",
+      "worker_webpage gained an SSRF floor: public-address-only, redirect re-check, no write on over-cap body",
+      "F13/F15: a container inside a container (or inside a mail) is now opened by its own archive job up to a named budget - CONTAINER_DEPTH_LIMIT = 2, measured by walking the recorded origin chain - and past it the member container is kept and reported as nesting_limited, not as custody-only",
+      "F13: a mail with no readable body no longer fails the job - its own header block becomes the projection, the receipt names which shape it was, and its attachments are still extracted and queued",
+      "F14: `.doc` is no longer a name refusal - it routes to the office lane and is read by a probed antiword sidecar (resolved from ARCHEAXIS_ANTIWORD_CMD, then the declared manifest, then PATH; the binary is asked to identify itself before a document is handed to it, an unresolvable engine is a named failure that projects nothing, and one file is read per process because batch exit codes were measured to lie)",
+      "Evidence quality: the `.doc` fixture is a genuine Word-authored document redistributed under Apache-2.0 from a pinned Apache Tika commit (32,768 bytes, sha256 5ca19b67..., git blob c1f4f3d0...), attributed in THIRD_PARTY_NOTICES.md and hashed in the golden manifest - replacing the project-authored-fixture weakness I recorded for `.xls`",
+      "F05/F07/F08/F09/F12 shared gap closed one notch: a route's own semantic structure - paragraph, heading, sheet row, slide, canvas node, cue, page - is now an addressable, verifiable anchor through a fourth position type (worker_structure), additive so no existing anchor id or knowledge receipt hash changes",
+      "F01/F13 shared gap closed the second way round: a position a route reported in params.format.locations - JSON/XML path, mail part or header, ODF heading, paragraph, table cell or page, RTF paragraph, Python symbol - is addressable through a fifth position type (format_location), verified on the value rather than a span, with ambiguity refused unless narrowed by fields the receipt already carries",
+      "F15: the last clause of the container chain is proven end to end - a real ZIP member read by its own job is promoted by a human actor into a candidate that requires human review, with its container origin intact and a quote that does not match the persisted transform refused",
+      "P5/M0 whole-state restart read-back: one store holding a container member relation two levels deep, a transform, three locator kinds, a human-created candidate and a machine receipt keeps every published identity across two deliberate reopens (516 passed / 0 failed over 128 result lines) - so an anchor id or a receipt hash cannot silently re-point the workspace's citations after a restart",
+      "F14 `.doc`: the antiword sidecar is bound by declaration rather than found on PATH - the binary and its `.antiword` mapping tables are both declared in the capability manifest, the worker hands the mapping directory's parent to the engine as HOME and records which HOME it used, and a copy with only the binary declared was measured to fail outright (exit 1, no output) because the engine truncates a mapping requested by absolute path; with nothing declared the environment is left untouched, so an in-place install still works",
+      "F03: the recorded \"there is still no browser\" was measured false - the web worker now opens the same URL in a local headless chromium after the bounded fetch, scrolls to the bottom within a stated budget and writes the rendered DOM and visible text beside the served bytes, re-runs the address policy on the redirect target and on the URL the browser actually landed on, and refuses by name when no browser launches; --render imports the rendered document while still recording the served digest",
+      "F14 `.ppt`: the legacy binary presentation now has a legal read path on this host - a declared Apache Tika 4.1.0 distribution verified against the ASF sha512 runs on a declared Azul Zulu JRE 21 verified against Azul's own metadata sha256, the pair is asked to identify itself before a document is handed over, and a genuine PowerPoint 97 file from the already-pinned Tika commit is projected line by line with Tika's own startup notice excluded from the text",
+      "appendix sources: the five SOURCE_MISSING entries are closed - A01, A02 and A06 arrived as the original markdown whose sha256 equals what the blueprint appendix registered, and U01/U02 as a normalised recovery export whose hash is verifiable without claiming the raw conversation was found; all four attached packages are archived member by member under docs/history/aaos-appendix-sources-20261007/ with CRC32 and per-member sha256, deduplicated by content and verified against each package's own SHA256SUMS"
+    ],
+    "open": [
+      "Q14 与更正文件的日期序列已核实记录；是否宣布资格化仍由 Owner 决定（不可变 checks/acceptance.json 仍为 NOT_RUN）",
+      "蓝图附录 9 条来源已全部 VERIFIED_MATCH（2026-10-07：A01/A02/A06 原件与 U01/U02 恢复导出已归档并核验哈希；U01/U02 仍非原始聊天全文，证明力按此限定）",
+      "编码误判已更正（见 gaps）：权威 runner 不受影响，仅裸跑 pytest 时命中；显式 encoding=utf-8 只是可选加固，未做",
+      "开源吸收核对脚本的启发式已修复并重算（见 gaps）。剩下的精度边界由工具语义本身决定：IMPLEMENTED_IN_SOURCE 只断言“第一方代码命名了它”，A008/A009 的命中是使用点/导入探测而非捐赠项本体；文档词表与行取值的错配（5 个未定义判定词）仍待文档作者决定",
+      "merge / release / install 未授权、未执行；无 tag、无 release",
+      "裸跑 pytest 的卫生边界（本轮实测）：`python -m pytest` 直接调用会在仓库根写出 `__pycache__/conftest.*.pyc`，从而触发 tests/workflow/test_workspace_layout_contract.py 的 out_of_layout 断言；权威路径 scripts/ci/run_tests.sh 走 dev.py（PYTHONPYCACHEPREFIX）不产生该假失败。已删除该目录并以 PYTHONDONTWRITEBYTECODE=1 复验 4/4 通过；后续本地跑套件须经 run_tests.sh 或加 -B",
+      "build/ 清理边界：剩余的最大本地项是 build/cargo（约 16.6 GB 的可再生 target 缓存），它**在其 22 GB 策略预算之内**且不在 Owner 已圈定的“非 cargo、超预算”范围内，故未删；候选目录（ci-*、f151f4c7998a、local-242cc4c3）或被具名引用、或是台账所记“不在仓库内”收据的唯一本机副本，保留",
+      "更正（2026-10-06 实测）：本机**有** uv 0.12.23（/c/Users/ALEX/.local/bin/uv），原条目“本机无 uv、无法验证干净、需 Owner 授权引入”前提不成立；Gitleaks 与 pip-audit 均已登记（A024 / A023）并以 CI 门禁形式吸收。pip-audit 在 run 37471031307 job 112294372735 实报 5 项（urllib3 2.7.0、soupsieve 2.8.4），已按修复版升为 urllib3 2.8.0 / soupsieve 2.10；同一钉版本对旧锁导出复现同样 5 项、对新锁导出报 No known vulnerabilities found（exit 0），故该步骤已去掉 continue-on-error 并补 set -o pipefail（此前 `pip-audit | tee` 在无 pipefail 的 `bash -e` 下退出码恒为 tee 的 0，即使命中漏洞也不会弄红）。CI 侧已读回：head_sha 5e5d102b 的 push run 37490490651 / job 112361733929 日志第 3079 行输出 No known vulnerabilities found，步骤在强制状态下实际执行并通过",
+      "本切片改了三处已提交断言（container.rs 模块单元测试的 nested.zip/tar、archive_member_formats.rs 的夹具与作业计数、test_mail_attachment_members.py 的旧失败用例）；理由逐条写在账本里，评审人应核对是否接受被替换的前提",
+      "CONTAINER_DEPTH_LIMIT=2 这个数值是本轮选择，未经真人验收；每层各有 50 项/64 MiB 预算，所以总量随深度指数增长，只被深度上限挡住",
+      "提交范围自检（2026-10-07 立）：正文需逐一点名被改动的权威文件（矩阵 / HTTP 契约 / 供给链台账 / 发布清单 / CI 工作流），依赖或许可变更写进标题，同一提交不混做“依赖升级 + Core 功能”；已推送的 5e5d102b 不回改历史，只在账本里记实测差异",
+      "`.ppt` 在本机无合法读取路径（JVM 实测缺席，不做无样本的自造实现）；`.doc` 的 antiword 绑定已于 2026-10-07 落定（见 verification.antiword_binding_20261007），探针实测仍留在 verification.host_engine_probe_20261007",
+      "CI 环境没有 sidecar，真引擎用例在 CI 会 skip；skip 是关于主机的陈述不是通过。本机该用例真跑",
+      "两种锚点类型（worker_structure / format_location）都只证明\"这条收据这么命名、值或跨度确在这份投影里\"：不是独立推出的页号；locations 列表受 worker 上限截断，被截掉的位置不可寻址；界面层没有消费（前端按 Owner 指示暂停）",
+      "F13/F01 的位置在 params.format.locations 而非 worker_structure，本轮刻意未并入",
+      "antiword 已登记为 A025（SIDECAR / qualification [installed]）并已按声明绑定：外置工具根内 `10-toolchains/antiword/` 的二进制与 `.antiword` 映射表两条一起进入 capability-requirements，三个读取方在同一清单上一致（索引两条均 exists: true，见 verification.antiword_binding_20261007）。仍开的是：这台副本是 Git for Windows 构建的本地放置，该包更新时不会自动跟随，比对 A025 里的 sha256 才可信任；以及逐扩展真人验收 FMT-21 仍 NOT_RUN",
+      "F03 的动态页渲染已接通（真机证明：脚本生成的正文可读、同页关闭 JS 后节点不存在）；仍开的是截图、交互/登录后内容、超出滚动预算的懒加载；浏览器已于 2026-10-07 进入声明清单（`playwright-chromium` 现在带 external_paths，渲染解析顺序为 环境变量→声明→Playwright 注册表，声明条目带构建号 chromium-1228）"
+    ],
+    "next_action": "1) 最多格式剩余：F02 的抓取已是驱动级事实（`scripts/ingest/url_snapshot.py`，产品路由不持网络是选择不是缺口），网络侧剩下的边界是网络层 egress 政策；F03 已接通本机无头 chromium 渲染（`worker_webpage.render` ＋ `url_snapshot.py --render`，2026-10-07 实测 Chrome 149.0.7827.55；脚本页正文经二次请求交付，服务端字节不含该文本）；仍缺截图、交互/登录后内容、超滚动预算的懒加载；浏览器已进声明清单（playwright-chromium 带 external_paths，解析顺序 环境变量→声明→注册表）；F10 说话人分离无引擎亦无处置行；`.doc` 已绑定 antiword 声明引擎（A025；二进制与 `.antiword` 映射表必须成对声明，只声明二进制实测解析成功而读取失败）；`.ppt` 仍无读取器（Tika 需 JVM 侧车，本机无 JVM，本轮不装系统级软件）；跨 F05/F07/F08/F09/F12 的“把 worker 结构升级为寻址层”需 anchor 契约变更，应独立一刀；FMT-21 逐扩展名真实样本验收仍 NOT_RUN（本轮 .xls 夹具为自造件）；嵌套容器已闭合到有预算的展开，`.doc` 的 sidecar 已登记并绑定（A025，2026-10-07：处置行 + capability-requirements 成对声明）"
+  },
+  "verification": {
+    "capability_family_runs": {
+      "CAP-0010-vault-source": "16 passed, exit 0",
+      "CAP-0020-multiformat": "34 passed, exit 0",
+      "CAP-0030-evidence": "47 passed, exit 0",
+      "CAP-0040-learning": "21 passed, exit 0",
+      "CAP-0050-ai-assets": "21 passed, exit 0",
+      "CAP-0110-search-graph": "22 passed, exit 0",
+      "CAP-0140-backup": "18 passed, exit 0",
+      "CAP-0160-canvas": "1 passed, exit 0",
+      "total": "370 passed across 14 families, every family exit 0",
+      "CAP-0060-ler-course": "24 passed, exit 0",
+      "CAP-0080-spatial-memory": "26 passed, exit 0",
+      "CAP-0090-research": "86 passed, exit 0",
+      "CAP-0130-agent-plugin": "21 passed, exit 0",
+      "CAP-0150-model-provider": "33 passed, exit 0",
+      "CAP-0070-simulation": "no independent suite found this round"
+    },
+    "migration_crate": "cargo test -p archeaxis-migration --tests --offline -> 27 passed / 0 failed (含新增 selective_legacy_stage 3 项)；cargo fmt --all --check PASS",
+    "dependency_scan_guards": "tests/workflow/test_dependency_scan_config.py 4 passed；三项注入（回退 report-only / 删 pipefail / 命令内加 --ignore-vuln）各自只弄红对应那项；tests/test_release_manifest.py 35 passed 0 failed（升锁后按提交 79332377 的约定只改 dependency_lock.digest，revision 保持 8）",
+    "format_slices_20261007": "tests/workers/test_pptx_chart_data.py + tests/workers/test_bulk_office.py 9 passed; tests/workers/test_light_formats_odf_rtf.py + tests/test_multiformat_extraction.py + tests/workers/test_bulk_html.py + tests/workers/test_bulk_legacy_adapters.py 35 passed; cargo test -p archeaxis-application --test route_capabilities --offline 8 passed; cargo fmt --all --check PASS; check_format_matrix.py exit 0; tests/workflow/test_oss_disposition_evidence.py 3 passed; F01 symbols: tests/workers/test_python_source_symbols.py 4 passed, F06 page write-back: crates/archeaxis-api/tests/source_pages_api.rs + crates/archeaxis-application/tests/pdf_ocr_chain.rs 5 passed with no skip, cargo test --workspace --offline 120 suites ok / 496 passed / 0 failed, full python tests: 4211 passed, 30 skipped, 14 warnings, 146 subtests passed in 467.60s (0:07:47); F13 mail attachments: tests/workers/test_mail_attachment_members.py 7 passed, crates/archeaxis-application/tests/mail_member_chain.rs 2 passed, cargo test --workspace --offline 121 suites ok / 498 passed, tests/maintenance 184 passed, 2 skipped, 2 subtests passed in 10.55s, full python tests 4218 passed, 30 skipped, 14 warnings, 146 subtests passed in 482.76s (0:08:02), matrix gate falsified by an injected core_routes claim of application/x-not-a-route (rc 1, names the triple), then restored to rc 0; F07 DOCX headings: tests/workers/test_docx_heading_styles.py 5 passed (tests/workers 316 passed, 106 subtests passed in 57.91s), office+mail Rust e2e 5 passed, check_format_matrix.py exit 0, full python tests 4223 passed, 30 skipped, 14 warnings, 146 subtests passed in 485.17s (0:08:05); F12 canvas colour/style facts + F14 xls reader/conversion: tests/workers/test_xls_engine.py + tests/canvas_node_facts 374 passed, 106 subtests passed in 61.20s (0:01:01), crates/archeaxis-application/tests/xls_member_chain.rs 2 passed, gates 334 passed, 2 skipped, 2 warnings, 2 subtests passed in 68.50s (0:01:08) — 同一条门禁在前一步曾判红：它拒了我给 ledger 写的 `ABSORB`（那是 donor 文档的词表），所以这里引的是改正后重跑的那次, full python tests 4239 passed, 30 skipped, 14 warnings, 146 subtests passed in 431.64s (0:07:11), xlrd 2.0.2 admitted (BSD, licence sha256 b5a5dbce60265e305a815a6cb83ed07f24519d8ba644f2a307994488bced8815); F02/F03 URL fetch: scripts/ingest/url_snapshot.py + address policy in services/python-workers/web/worker_webpage.py, tests/test_url_snapshot_driver.py 13 passed (20 subtests), gates 204 passed, 2 skipped, 22 subtests passed in 10.56s, full python tests 4252 passed, 30 skipped, 14 warnings, 166 subtests passed in 443.34s (0:07:23); no new Core capability, received_at comes from the fetch clock; combined unit re-run at the committed state: 20 passed, 20 subtests passed in 0.22s, rc 0; nesting + bodyless-mail slice: cargo test --workspace --offline 123 suites ok / 503 passed / 0 failed, cargo fmt --all --check PASS, nested_container_budget.rs 1 passed, mail_member_chain.rs 3 passed, archive_member_formats.rs 1 passed, source_members_api.rs 3 passed, tests/workers + archive route + multiformat selection 354 passed / 106 subtests, full python tests 4256 passed, 30 skipped, 14 warnings, 166 subtests passed in 438.62s (0:07:18); F14 `.doc` sidecar: tests/workers/test_doc_engine.py 14 passed (including the real-engine run against the genuine Word fixture and one end-to-end trip through the real transport, which retains 24 worker_structure entries beside the 60 canonical line anchors it derives itself), route_capabilities 3 passed, office_job_end_to_end 8 passed, xls_member_chain 2 passed, media/route/transport selection 248 passed 1 skipped, golden/fixture/notices selection 77 passed 3 skipped, matrix gate exit 0, cargo test --workspace --offline cargo test --workspace --offline: 123 suites ok / 503 passed / 0 failed, full python tests 4270 passed, 30 skipped, 14 warnings, 166 subtests passed in 423.30s (0:07:03); addressing level: crates/archeaxis-api/tests/structure_anchor_api.rs 5 passed (accept for paragraph/heading plus sheet_row/slide/text_node/cue/pdf_page; refuse for an ambiguous path, a whitespace-only span, an unknown path, a mismatched digest and a superseded attempt; no checksum still stores the anchor as unverified), evidence_anchors_api 4 passed, contract_constant_fields 5 passed; follow-up correction: worker spans are CHARACTER offsets and the first verifier sliced bytes (fail-closed but refused any non-Latin location with the wrong reason) - now sliced by characters, pinned by a Chinese-paragraph case that accepts the character digest and refuses the byte digest (structure_anchor_api 6 passed), plus a live-worker end-to-end case (structure_anchor_live_worker 1 passed) that reads the first location a real DOCX run actually reported rather than hand-written rows; cargo test --workspace --offline 125 suites ok / 510 passed / 0 failed, cargo fmt --all --check PASS, tests/maintenance + tests/workflow 282 passed 2 skipped 2 subtests in 63.44s, matrix gate exit 0 with five gap/evidence edits and 0/15/1 unchanged; format_location: crates/archeaxis-api/tests/format_location_anchor_api.rs 4 passed (accept for odf_heading/odf_paragraph/python_symbol-by-path, accept narrowed by a reported field, refuse for an un-narrowed shared path, a name the receipt does not carry, a value absent from the projection, a wrong digest and a superseded attempt); cargo test --workspace --offline 126 suites ok / 514 passed / 0 failed; matrix gate exit 0 with F01/F13 gap and evidence edits only; F15 wording only: the promotion route POST /api/v1/knowledge-items/from-transform is human-only and refuses a quote that does not match the persisted transform at the given offsets, so the row now names the missing chain rather than a missing route; F15 member chain: crates/archeaxis-api/tests/member_to_knowledge_chain.rs 1 passed (real archive inventory -> member source -> its own text job -> human POST /knowledge-items/from-transform -> candidate with requires_human_review, origin preserved; machine actor 403; mismatched quote 400), cargo test --workspace --offline 127 suites ok / 515 passed / 0 failed",
+    "record_readback_20261007": "两处记录缺陷的更正（2026-10-07）：(1) ledger 的 F02/F03 段曾引 `2 failed, 12 passed` —— 那是我写作中途的中间态（两条我写错的断言），已在已提交状态重跑为 `20 passed, 20 subtests passed in 0.22s`，rc 0，并把中间态与原因一并写明；(2) checkpoint.next_action 曾写 'F02/F03 需要一个真正的 URL 抓取器'，而同一快照的 done 已登记 f53dc28e 的驱动——自相矛盾。改为 F02 已是驱动级事实、F03 仍缺浏览器，缺口按实测陈述；另记一处自我更正：矩阵 F13 原文\"attachment extraction is one level deep\"与 F15 原文\"a container's parts cannot be addressed\"都不是实测结论，而是旧具名拒绝的复述，本轮按代码与实跑结果改写；提交范围核对：5e5d102b 的消息只声明了依赖升级与发布清单摘要，实测 git show --numstat 显示它同时携带 556 行 archeaxis-migration Rust 代码、其 241 行测试、25 行 example、CI 工作流 +9/-4 行与依赖扫描测试 +62 行；差异按实测入账，历史不改写；自我缺陷补记：更新 golden manifest 时再次用 json.dumps 整档重写，产生 63 行无关重排，已改为按行插入并复验 git diff --numstat = +12/-0。这是本账本此前记录过的同类复发的，记此以免第三次",
+    "host_engine_probe_20261007": {
+      "antiword": {
+        "path": "C:\\Program Files\\Git\\mingw64\\bin\\antiword.exe",
+        "bytes": 284448,
+        "sha256": "d30a37489c64ada474d8d5aa5abb0778a6955d3ce6cdbb7c8c659e37b89d3da9",
+        "self_reported": {
+          "Name": "C:\\Program Files\\Git\\mingw64\\bin\\antiword.exe",
+          "Purpose": "Display MS-Word files",
+          "Author": "(C) 1998-2005 Adri van Os",
+          "Version": "0.37  (21 Oct 2005)",
+          "Status": "GNU General Public License",
+          "Usage": "C:\\Program Files\\Git\\mingw64\\bin\\antiword.exe [switches] wordfile1 [wordfile2 ...]",
+          "Switches": "[-f|-t|-a papersize|-p papersize|-x dtd][-m mapping][-w #][-i #][-Ls]",
+          "paper size like": "a4, letter or legal",
+          "like": "db (DocBook)"
+        },
+        "mapping_files": 30,
+        "reads": [
+          ".doc"
+        ],
+        "does_not_read": [
+          ".ppt"
+        ],
+        "provenance": "bundled with Git for Windows (mingw64), not a project-registered toolchain",
+        "registered_in_capability_requirements": false,
+        "registered_in_supply_chain_ledger": true,
+        "ledger_row": "A025",
+        "package_index": {
+          "name": "mingw-w64-antiword",
+          "version": "0.37-3",
+          "licenses": [
+            [
+              "GPL3+"
+            ]
+          ],
+          "upstream_url": "http://www.winfield.demon.nl/",
+          "packaging_source": "https://github.com/msys2/MINGW-packages/tree/master/mingw-w64-antiword",
+          "repos": [
+            "clang64",
+            "clangarm64",
+            "ucrt64"
+          ],
+          "queried": "https://packages.msys2.org/api/search?query=antiword&qtype=pkg"
+        }
+      },
+      "jvm": {
+        "candidate_dirs_with_content": [],
+        "where_java_exit_code": 1,
+        "tika_jar_found_in_scanned_scope": false,
+        "consequence": "A010 Apache Tika cannot advance past qualification [source] without a system-level Java install, which this round's boundary forbids"
+      }
+    },
+    "state_identity_restart_20261007": {
+      "command": "scripts/runtime/dev.py -- scripts/ci/cargo_test.bat test --workspace --offline",
+      "log": ".project-local/task-runtime/workspace-test-20261007-final.log",
+      "suites_with_results": 128,
+      "passed": 516,
+      "failed": 0,
+      "ignored": 0,
+      "test": "crates/archeaxis-api/tests/state_identity_restart.rs",
+      "assertions": [
+        "a_whole_state_keeps_every_identity_through_two_reopens",
+        "member source_id and readable flag survive two reopens",
+        "three anchor ids stay listed and the position JSON stays verbatim",
+        "the knowledge item still publishes its own anchor id",
+        "raw sha256, second-level origin_ref, machine receipt and transform text unchanged",
+        "a re-posted identical position dedupes to the same anchor id"
+      ],
+      "scope_note": "Identity stability across store reopens only. It does not claim route-written and domain-written positions derive the same id: the route adds location_status/checksum to the position, so those are different position strings."
+    },
+    "antiword_binding_20261007": {
+      "command": "scripts/runtime/dev.py --pytest tests/workers/test_doc_engine.py -q",
+      "logs": {
+        "doc_engine": ".project-local/task-runtime/doc-engine-final-20261007.txt",
+        "full_python": ".project-local/task-runtime/py-full-20261007-final.log"
+      },
+      "doc_engine_passed": 18,
+      "full_python": {
+        "passed": 4274,
+        "skipped": 30,
+        "subtests": 166,
+        "summary": "4274 passed, 30 skipped, 14 warnings, 166 subtests passed in 423.04s (0:07:03)"
+      },
+      "placement": {
+        "binary": "D:/All projects/OS External Configuration/10-toolchains/antiword/antiword.exe",
+        "mappings": "D:/All projects/OS External Configuration/10-toolchains/antiword/.antiword",
+        "note": "byte-identical copy of the Git-for-Windows build; measured sizes and sha256 are stated in SUPPLY_CHAIN_LEDGER.json row A025, which this slice rewrote from disk"
+      },
+      "measured_traps": [
+        "a relocated antiword without a HOME override fails: exit 1, zero output, \"I can't open your mapping file (UTF-8.txt)\"",
+        "-m with an absolute mapping path is truncated to the engine's buffer and the default table is used instead",
+        "the generic registry prober appends --version, which antiword answers with usage text and exit 1, so the inventory reads available: true, probe: probe_failed",
+        "dev.py -- <script.py> cannot exec a .py directly on this host (WinError 193); the tracked test invokes the builder with an interpreter"
+      ],
+      "qualification_unchanged": "A025 stays ['installed']; a binding changes how the engine is resolved, not the evidence tier behind it"
+    },
+    "webpage_render_20261007": {
+      "command": "venv python -m pytest tests/workers/test_webpage_render.py tests/test_url_snapshot_driver.py -q -rs (outside dev.py: dev.py redirects PLAYWRIGHT_BROWSERS_PATH to a project cache with no chromium build)",
+      "env": "ARCHEAXIS_CHROMIUM_CMD=C:/Users/ALEX/AppData/Local/ms-playwright/chromium-1228/chrome-win64/chrome.exe",
+      "logs": {
+        "render_suite": ".project-local/task-runtime/render-suite-only-20261007.txt",
+        "full_python": ".project-local/task-runtime/py-full-20261007-render.log"
+      },
+      "render_suite": {
+        "passed": 11,
+        "skipped": 0,
+        "subtests": 0,
+        "summary": "11 passed in 1.32s"
+      },
+      "full_python": {
+        "passed": 4284,
+        "skipped": 31,
+        "subtests": 166,
+        "summary": "4284 passed, 31 skipped, 14 warnings, 166 subtests passed in 420.49s (0:07:00)"
+      },
+      "host_engine_measured": {
+        "playwright_distribution": "1.61.0",
+        "declared_in_pyproject": "playwright>=1.61,<1.62 (two dependency groups, already locked)",
+        "chromium_build": "C:/Users/ALEX/AppData/Local/ms-playwright/chromium-1228/chrome-win64/chrome.exe",
+        "browser_version_reported": "149.0.7827.55",
+        "js_enabled_node_visible": true,
+        "js_disabled_node": "None"
+      },
+      "self_corrections": [
+        "the first real-browser run skipped because PLAYWRIGHT_BROWSERS_PATH pointed at the empty project-local cache; fixed by a named engine variable, not by editing global environment or downloading another browser",
+        "the first fixture asserted the marker was absent from the served HTML and failed, because the marker sat in the inline script text; the sample now delivers the text through a second request that only a scripting page makes"
+      ],
+      "matrix": "F03 status stays partial; required_output untouched; evidence code/tests extended"
+    },
+    "browser_declared_20261007": {
+      "command": "scripts/runtime/dev.py --pytest tests/workers/test_webpage_render.py tests/workflow/test_external_resources_index.py tests/workflow/test_capability_requirements_manifest.py -q -rs",
+      "env": "no ARCHEAXIS_CHROMIUM_CMD, no PLAYWRIGHT_BROWSERS_PATH override (dev.py points it at the empty project-local cache)",
+      "log": ".project-local/task-runtime/render-declared-final-20261007.txt",
+      "result": "20 passed in 7.77s",
+      "first_run_behaviour": "the index-vs-manifest guard failed on the stale committed index (assert [] == ['10-toolchains/...chrome.exe']); after regeneration the same command passed",
+      "declared_browser_identity": {
+        "path": "D:\\All projects\\OS External Configuration\\10-toolchains\\playwright\\chromium-1228\\chrome-win64\\chrome.exe",
+        "bytes": 4059648,
+        "sha256": "b798f9e53a98d29eb7f36f8c409f905d3184780a04d2bcb56989067194784bd1"
+      }
+    },
+    "ppt_tika_sidecar_20261007": {
+      "command": "scripts/runtime/dev.py --pytest tests/workers/test_ppt_engine.py -q -rs",
+      "log": ".project-local/task-runtime/ppt-tests-20261007.txt",
+      "result": "12 passed / 0 skipped",
+      "full_python": "4299 passed, 30 skipped, 14 warnings, 166 subtests passed in 496.44s (0:08:16)",
+      "placed_artifacts": {
+        "tika_distribution": "tika-app-4.1.0.zip, 55,617,982 bytes, sha512 verified against the published .sha512 beside it; the runnable jar needs the lib/ and plugins/ directories shipped with it",
+        "jvm_distribution": "zulu21.52.203-ca-jre21.0.12.1-win_x64.zip, 49,264,410 bytes, sha256 verified against Azul's per-package metadata API",
+        "fixture": "golden-ppt-anchor.ppt from the Tika test document pinned at release tag 3.3.2, commit recorded in tests/fixtures/golden/manifest.json"
+      },
+      "publisher_unreachability": "Adoptium/Temurin's API publishes the same checksum shape but its download host is unreachable from this machine (curl http=000, urllib RemoteDisconnected); the runtime came from a second publisher whose CDN answers, and the row names which",
+      "test_expectation_changed": "tests/workflow/test_oss_disposition_evidence.py pinned A010 as NONE while nothing in the repository mentioned Tika; the worker now calls it, so the row is credited as IMPLEMENTED_IN_SOURCE with the call site asserted - the premise went stale, not the standard",
+      "ledger": {
+        "A010": "qualification [source] -> [source, installed]",
+        "A050": "Azul Zulu JRE added as the runtime half of the pair",
+        "component_count": "50 -> 51, computed from the rows",
+        "disposition_labels": "untouched"
+      }
+    },
+    "appendix_source_recovery_20261007": {
+      "attached_by": "owner, via D:/All projects/Record",
+      "command": ".project-local/task-runtime/format-slices-20261007/archive_appendix_sources.py + record_source_recovery.py + regenerate_source_summaries.py",
+      "archived_under": "docs/history/aaos-appendix-sources-20261007/",
+      "manifest": {
+        "rows": 68,
+        "stored_files": 61,
+        "declared_and_verified": 59,
+        "missing": 0
+      },
+      "source_table": {
+        "appendix_entries": 9,
+        "verified_match": 9,
+        "source_missing": 0,
+        "read_but_unhashed": 0,
+        "note": "9 = 9 VERIFIED_MATCH（U01、U02、A01、A02、A03、A04、A05、A06、A07），本轮无 SOURCE_MISSING。A04 于 2026-10-06 复核改判 VERIFIED_MATCH（本仓内副本）。A01/A02/A06 与 U01/U02 于 2026-10-07 由 Record 恢复包归档并核验哈希；U01/U02 是规范化恢复导出，仍非原始聊天全文，其证明力按此限定。"
+      },
+      "verified_hashes": {
+        "U01": "71219c25a1dd133f6aa3070f85b46f7918f420be6d64c1e84bef3375ec1669fe",
+        "U02": "a3d94956c5b2cc0a011943ba4b2dc6638bdbfc925211cfad60a843939005bc8f",
+        "A01": "7ecda3e3f9d22834d65df663ba4f42a3ac62e31d215ab5e7c59c08bfaf08441e",
+        "A02": "771b189740e94dfeaf65e363b919745c2a69bb795d461e2b2fbcc9c95b15e1e1",
+        "A03": "da9998ee673086ed12dab824d951e76c2611efb92e72edccf276b91ed8d92d4d",
+        "A04": "3839646bb60b811c5cc1ab3417625a69e71b70f5983b6b24ec796a664fa28ffb",
+        "A05": "54ac415cbbdd6af05110ab8c05ce19cddfd99e646965c68f1bebb10a1337e85e",
+        "A06": "7d475862fd307be46371ceeaead3407d6bbe939b429c37df1c28c4c6760fbeb2",
+        "A07": "d6bb6432a6850dcf39c451b0a88e97ace668be040bbddf915e09f2b33b7ba1d9"
+      },
+      "correction": "the 2026-10-06 claim that A01/A02/A06 were absent had been upgraded to 'absent by content hash'; the hash sweep had not covered the packages the owner supplied on 2026-10-07, so the negative was a statement about the search scope, not about the files - stated here with that limit",
+      "zip_name_encoding": "member names are UTF-8 bytes without the zip UTF-8 flag; repaired via cp437->utf-8, with already-correct names left alone"
+    }
+  },
+  "artifacts": [
+    {
+      "artifact": "root entry",
+      "path": "AUTHORITY.md",
+      "byte_size": 6065,
+      "byte_sha256": "556663d7093d27f0e5980b8c3425f10ef304202450bcac6a89cc00feb2bf5316",
+      "status": "present"
+    },
+    {
+      "artifact": "document authority gate",
+      "path": "scripts/ci/check_document_authority.py",
+      "byte_size": 13693,
+      "byte_sha256": "0dd783b7b28bb44fab44098b1fea27be9ff7e5d3abe0f4b1dba6ff18259e4de7",
+      "status": "present"
+    },
+    {
+      "artifact": "gate falsification tests",
+      "path": "tests/workflow/test_document_authority_gate.py",
+      "byte_size": 7939,
+      "byte_sha256": "52806e3072d8ace1fa565ef797d3e8b8c5e964bc034fc53a4fa9d1d1c760d1b8",
+      "status": "present"
+    },
+    {
+      "artifact": "coverage matrix",
+      "path": "docs/current/AAOS-COVERAGE-MATRIX-20261006.md",
+      "byte_size": 14363,
+      "byte_sha256": "ee254f2a4f55f15e4557c3e828909cca0a0b9273f09bab50b54de7ee9f8aa868",
+      "status": "present"
+    },
+    {
+      "artifact": "input source record",
+      "path": "docs/current/AAOS-INPUT-SOURCES-20261006.json",
+      "byte_size": 8375,
+      "byte_sha256": "cc63bffa1c5f526cf7e50223a4a79b4efc81872f69dd8dbc5ce57b1cdd196bd0",
+      "status": "present"
+    },
+    {
+      "artifact": "open-source disposition evidence",
+      "path": "docs/current/AAOS-OSS-DISPOSITION-EVIDENCE-20261006.md",
+      "byte_size": 9168,
+      "byte_sha256": "f6b5321d5dd73bb6d6d6b442c5b3522dd33f5429ad275d8c67cf12027f863382",
+      "status": "present"
+    },
+    {
+      "artifact": "donor-evidence checker (revised)",
+      "path": "scripts/audit/oss_disposition_evidence.py",
+      "byte_size": 17676,
+      "byte_sha256": "3a158ab77e550b48d74871f89b43b463c53d5b53d78f2cc889a6fc41ca74ebfe",
+      "status": "present"
+    },
+    {
+      "artifact": "donor-evidence checker tests",
+      "path": "tests/workflow/test_oss_disposition_evidence.py",
+      "byte_size": 6351,
+      "byte_sha256": "656f549d0e82f151a207d507d36bf1272c2adcb8ad899aa0fb085299056bfa1f",
+      "status": "present"
+    },
+    {
+      "artifact": "donor evidence report",
+      "path": ".project-local/task-runtime/aaos01-oss-evidence-20261006/report.txt",
+      "byte_size": 6830,
+      "byte_sha256": "0e78c1d21582cf8767037f6ff6b1e3d257b7b2095bdccdb5339e71a3c36195ba",
+      "status": "present"
+    },
+    {
+      "artifact": "donor evidence json",
+      "path": ".project-local/task-runtime/aaos01-oss-evidence-20261006/disposition-evidence.json",
+      "byte_size": 27380,
+      "byte_sha256": "123faa26762d33169a78d4a79fcb8c524cb99e050afd045b1154f42952d62052",
+      "status": "present"
+    },
+    {
+      "artifact": "decision supersession ledger",
+      "path": "DECISION_SUPERSESSION_LEDGER.yaml",
+      "byte_size": 17922,
+      "byte_sha256": "574411cc0fbfd0d4e2f9a5c160a7c4c6fdf24d3493b82d9f76044e2a1e3ae151",
+      "status": "present"
+    },
+    {
+      "artifact": "docx extraction tool",
+      "path": "scripts/maintenance/extract_docx_text.py",
+      "byte_size": 3062,
+      "byte_sha256": "90b2f417c5faaad448d9d64b38c5592747ec38ea1a42457cf593fe715c4e481d",
+      "status": "present"
+    },
+    {
+      "artifact": "extracted blueprint text",
+      "path": ".project-local/task-runtime/aaos01-blueprint-20261006/blueprint.txt",
+      "byte_size": 43734,
+      "byte_sha256": "10d7aae791b2a98f2d3491938376b51125afdc14767a9665357e0eff77db1cec",
+      "status": "present"
+    }
+  ],
+  "artifacts_note": "hashes were computed on this host in this round; the snapshot does not contain its own digest, so there is no self-reference. 先做了一次 9/9 的复算（0 drift），随后因本轮更正 input-sources 与 OSS 证据两文件的表述，其两条记录值已同步刷新为本文件的当前字节"
+}

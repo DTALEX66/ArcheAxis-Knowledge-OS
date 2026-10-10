@@ -53,7 +53,11 @@ REPO = Path(__file__).resolve().parents[2]
 BINARY = Path(os.environ.get(
     "ARCHEAXIS_CORE_BIN",
     str(REPO / ".project-local" / "build" / "cargo" / "debug" / "archeaxis-api.exe")))
-LEGACY = REPO / "data" / "cognitive_os.sqlite"
+# The source must be an explicitly selected, authorised copy. Never silently read
+# a repository runtime database just because one happens to exist at a legacy path.
+LEGACY = Path(os.environ["ARCHEAXIS_LEGACY_COPY"]).resolve() if os.environ.get(
+    "ARCHEAXIS_LEGACY_COPY", ""
+).strip() else None
 
 # The Core validates the launch identity as hex; a non-hex token is rejected with
 # "invalid launch identity" and no readiness line.
@@ -145,6 +149,17 @@ def start_core(db: Path, staging: Path) -> tuple[subprocess.Popen, str]:
             "script": str(profile["script"].resolve()),
             "staging": str(staging.resolve()),
         }
+    # This probe measures the complete HTTP contract using a declared synthetic model.
+    # Its worker never contacts an endpoint and its output is never REAL_MODEL evidence.
+    mock = db.parent / "synthetic_machine_answer.py"
+    if not mock.exists():
+        mock.write_text(
+            "import json, sys\nfrom pathlib import Path\n"
+            "context = Path(sys.argv[1]).read_text(encoding='utf-8')\n"
+            "answer = '6371 km' if '(geodesy)' in context else '7000 km (deliberate fixture error)'\n"
+            "print(json.dumps({'answer': answer, 'model': 'synthetic/g4-contract-fixture'}))\n",
+            encoding="utf-8")
+    worker["routes"] = [{"capability": "machine.answer", "script": str(mock.resolve())}]
     child = subprocess.Popen(
         [str(BINARY), str(db), "0"],
         stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
@@ -203,6 +218,10 @@ def unmet_prerequisites() -> dict[str, str]:
                 "schedule_authority unavailable")
         elif profile is not None and not profile["python"].is_file():
             unmet["worker_profile.python"] = f"not a file: {profile['python']}"
+    if LEGACY is None:
+        unmet["ARCHEAXIS_LEGACY_COPY"] = "set to an explicitly authorised legacy database copy"
+    elif not LEGACY.is_file():
+        unmet["ARCHEAXIS_LEGACY_COPY"] = "selected legacy database copy is not a file"
     try:
         import sqlite_vec  # noqa: F401
     except Exception as error:  # pragma: no cover - depends on the interpreter
@@ -247,7 +266,7 @@ def verdict_errors(receipt: dict) -> list[str]:
         "promote_anchored_knowledge", "knowledge_v3_readback", "search", "human_accept",
         "knowledge_v3_after_accept", "learning_reference", "learning_event",
         "learning_event_replay", "assessment", "answer_recorded", "learning_state",
-        "machine_task_failed", "human_correction", "accept_successor", "machine_retest",
+        "machine_answer", "machine_task_failed", "human_correction", "accept_successor", "machine_retest",
         "machine_readback", "pre_restart_learning_state", "restart_learning_state", "restart_knowledge_v3",
     )
     for name in required_http:
@@ -286,6 +305,10 @@ def verdict_errors(receipt: dict) -> list[str]:
     for name in ("knowledge_v3_readback", "restart_knowledge_v3"):
         require(bool(knowledge and anchor) and field(name, "knowledge_id") == knowledge
                 and field(name, "anchor_id") == anchor, f"{name}: knowledge identity changed")
+    require(bool(field("machine_answer", "answer_id"))
+            and field("machine_answer", "answer_id") == field("machine_task_failed", "answer_id")
+            and field("machine_answer", "answer_id") == field("human_correction", "answer_id"),
+            "machine answer/correction provenance mismatch")
     require(bool(successor) and successor != knowledge, "correction has no successor")
     for name in ("machine_retest", "machine_readback"):
         require(bool(failed_task and successor) and field(name, "retest_of") == failed_task
@@ -324,8 +347,7 @@ def main() -> int:
         }, ensure_ascii=False, indent=2))
         return 2
 
-    work = runtime.layout(REPO)["run"] / "artifacts" / "m0loop"
-    work.mkdir(parents=True, exist_ok=True)
+    work = runtime.artifact_directory(REPO, "m0loop")
     db = work / "workspace.sqlite"
     staging = work / "worker-staging"
     receipt: dict = {"ok": False, "workdir": str(work), "stages": [],
@@ -490,58 +512,53 @@ def main() -> int:
               answer=(learner.get("latest_review") or {}).get("answer"),
               next_review=learner.get("next_review"), state=learning_state)
 
-        # 6. Machine failure on the same accepted knowledge version.
-        failed_task = f"m0-machine-{uuid.uuid4().hex[:8]}"
-        status, failed = core.call(
-            base, "POST", "/api/v1/machine/tasks", MACHINE_TOKEN,
-            {
-                "task_id": failed_task, "conditions": "fixed sample",
-                "knowledge_version": knowledge_id, "method_version": "method-1",
-                "tool_version": "tool-1", "model_version": "stub/local-stub",
-                "scope": "one extraction task", "outcome": "failed",
-                "failure": "declared stub model, no real inference performed",
-            },
-
-        )
+        # 6. The controlled worker's actual output is persisted by the answer route.
+        question = "What is the Earth's radius?"
+        status, answered = core.call(base, "POST", "/api/v1/machine/answers", TOKEN,
+                                    {"knowledge_id": knowledge_id, "question": question})
+        stage("machine_answer", status=status, answer_id=answered.get("answer_id")
+              if isinstance(answered, dict) else None, evidence_level="SYNTHETIC")
+        if status != 200:
+            receipt["failed_stage"] = "machine_answer"
+            raise SystemExit
+        # 7. The scripted human corrects exactly that stored answer.
+        status, corrected = core.call(base, "POST", "/api/v1/machine/corrections", TOKEN, {
+            "answer_id": answered["answer_id"], "knowledge_id": knowledge_id,
+            "question": question, "machine_answer": answered["answer"]["answer"],
+            "corrected_answer": "The Earth radius is 6371 km (geodesy).",
+            "error_note": "synthetic worker deliberately answered 7000 instead of 6371",
+            "reviewer": "synthetic-human-fixture",
+        })
+        failed_task = corrected.get("failed_task_id") if isinstance(corrected, dict) else None
+        successor_id = corrected.get("correction_candidate_id") if isinstance(corrected, dict) else None
         stage("machine_task_failed", status=status, task_id=failed_task,
-              response=str(failed)[:300])
-
-        # 7. Human correction creates a successor revision; retest points at the original failure.
-        status, corrected = core.call(
-            base, "POST", f"/api/v1/knowledge-items/{knowledge_id}/review-decisions", TOKEN,
-            core.review_request("modified", "owner", new_body="The Earth radius is 6371 km (geodesy).",
-                                note="human correction after the machine failure"),
-        )
-        successor_id = corrected.get("knowledge_id") if isinstance(corrected, dict) else None
-        stage("human_correction", status=status, successor_id=successor_id)
-        if status not in (200, 201) or not successor_id or successor_id == knowledge_id:
+              answer_id=answered["answer_id"])
+        stage("human_correction", status=status, successor_id=successor_id,
+              answer_id=corrected.get("answer_id") if isinstance(corrected, dict) else None)
+        if status != 200 or not successor_id or not failed_task:
             receipt["failed_stage"] = "human_correction"
             raise SystemExit
-        if successor_id:
-            status, _ = core.call(
-                base, "POST", f"/api/v1/knowledge-items/{successor_id}/review-decisions", TOKEN,
-                core.review_request("accepted", "owner", note="accepting the corrected revision"),
-            )
-            stage("accept_successor", status=status)
-
-        retest_task = f"m0-retest-{uuid.uuid4().hex[:8]}"
-        status, retest = core.call(
-            base, "POST", "/api/v1/machine/tasks", MACHINE_TOKEN,
-            {
-                "task_id": retest_task, "conditions": "fixed sample after human correction",
-                "knowledge_version": successor_id, "method_version": "method-1",
-                "tool_version": "tool-1", "model_version": "stub/local-stub",
-                "scope": "one extraction task", "outcome": "succeeded",
-                "retest_of": failed_task,
-            },
-
+        status, _ = core.call(
+            base, "POST", f"/api/v1/knowledge-items/{successor_id}/review-decisions", TOKEN,
+            core.review_request("accepted", "synthetic-human-fixture", note="accepting fixture correction"),
         )
-        stage("machine_retest", status=status, task_id=retest_task, retest_of=failed_task,
-              knowledge_version=successor_id, response=str(retest)[:300])
+        stage("accept_successor", status=status)
+        status, retest = core.call(base, "POST", "/api/v1/machine/retests", TOKEN, {
+            "retest_of": failed_task, "knowledge_id": successor_id, "question": question,
+        })
+        retest_task = retest.get("retest_task_id") if isinstance(retest, dict) else None
+        stage("machine_retest", status=status, task_id=retest_task,
+              retest_of=retest.get("retest_of") if isinstance(retest, dict) else None,
+              knowledge_version=retest.get("knowledge_id") if isinstance(retest, dict) else None,
+              response=str(retest)[:300])
+        if status != 200 or not retest_task:
+            receipt["failed_stage"] = "machine_retest"
+            raise SystemExit
         status, readback = core.call(base, "GET", f"/api/v1/machine/tasks/{retest_task}", MACHINE_TOKEN)
         stage("machine_readback", status=status,
               task_id=readback.get("task_id") if isinstance(readback, dict) else None,
-              knowledge_version=readback.get("knowledge_version") if isinstance(readback, dict) else None,
+              knowledge_version=str(readback.get("knowledge_version", "")).split("@", 1)[0]
+              if isinstance(readback, dict) else None,
               retest_of=readback.get("retest_of") if isinstance(readback, dict) else None)
         status, final_learning_state = core.call(
             base, "GET", f"/api/v1/learning/items/{ITEM_KEY}/state", TOKEN)
@@ -604,7 +621,7 @@ def main() -> int:
     migrator = _migrator()
     create_workspace = sys.modules["shared.workspace_manifest"].create_workspace
     migration: dict = {}
-    if LEGACY.is_file():
+    if LEGACY is not None and LEGACY.is_file():
         original_before = hashlib.sha256(LEGACY.read_bytes()).hexdigest()
         legacy_copy = work / "legacy-copy.sqlite"
         shutil.copyfile(LEGACY, legacy_copy)

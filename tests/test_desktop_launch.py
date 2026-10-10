@@ -67,6 +67,25 @@ def test_prepare_binds_current_interpreter_worker_and_persistent_test_database(t
         assert database.is_relative_to(launcher.dev.layout(ROOT)['dev'] / 'state')
         assert not database.exists()
         assert not Path(profile['staging']).exists()
+
+        # The profile must declare the capability routes this desktop ships. A launch that declares
+        # none registers none, so the Core would serve only its built-in text route and every other
+        # capability - including the co-learning machine answer - would be unreachable from the
+        # product. Each declared script has to be a real file, because a route naming an absent worker
+        # registers a capability that fails at job time.
+        routes = profile['routes']
+        assert routes, 'a desktop profile with no routes registers no capabilities'
+        declared = {entry['capability'] for entry in routes}
+        assert 'pdf.extract' in declared
+        assert 'machine.answer' in declared, (
+            'the co-learning machine answer must be declared, or its Core routes answer 503')
+        for entry in routes:
+            assert set(entry) == {'capability', 'script'}, entry
+            assert Path(entry['script']).is_file(), entry
+        # Every declared script is inside the repository's workers tree, so a route cannot point at an
+        # arbitrary executable.
+        for entry in routes:
+            assert Path(entry['script']).is_relative_to(ROOT / 'services/python-workers'), entry
     finally:
         for receipt in receipts:
             remove_receipt_artifact(receipt)
@@ -296,3 +315,10 @@ def test_prepare_accepts_project_local_staging_candidate(tmp_path, monkeypatch):
     finally:
         remove_receipt_artifact(receipt)
         shutil.rmtree(fixture_root, ignore_errors=True)
+        # Drop the parent too when this test was the only user: the development root's
+        # layout contract does not sanction a `staging/` class, and leaving an empty one
+        # behind fails it on a clean CI run while passing on a machine that already has it.
+        try:
+            fixture_root.parent.rmdir()
+        except OSError:
+            pass

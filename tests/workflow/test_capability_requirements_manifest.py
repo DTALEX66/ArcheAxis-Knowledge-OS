@@ -7,20 +7,22 @@ external capabilities. Until this module existed, nothing validated the real
 manifest against that schema: the schema was referenced only by itself and by
 historical ledgers, so a drift could sit unnoticed.
 
-Running the validator for the first time found three pre-existing deviations.
-They are pinned here rather than silently accepted, and they are **not** repaired
-in this repository because every available repair is a governance decision:
+Running the validator for the first time found three pre-existing deviations. One
+remains, and it is still **not** repaired here because every available repair is a
+governance decision:
 
 * `plugins` is required with `minItems: 1`, and the manifest declares no vendored
   plugin asset at all. Removing the requirement or inventing an entry are both
   decisions about what the project really vendors.
-* `models/sense-voice-zh-en-ja-ko-yue.external_paths` is
-  `../Model library/sherpa-onnx`. The schema forbids `..`, and
-  `environment_registry._external_path` deliberately skips it, so this entry can
-  never resolve through the declared external root: the shared Model library is
-  not under that root. Reconciling the two needs a schema/semantics decision.
-* The same entry uses `install_method: shared-model-library`, which is not in the
-  schema's enumeration.
+
+Two were repaired on 2026-10-06 by giving the shared Model library a declared home
+instead of a schema-violating path: the schema now has a `sibling_roots` mapping
+plus a per-entry `sibling_root`, both model entries name `model-library`, and their
+`external_paths` are ordinary relative paths inside it. The `install_method` of
+both is now `system`, which is what is true — the host provides these weights from
+a shared library rather than this project installing them. That is why
+`external_paths` still refuses `..`: the reachable set is what the manifest names,
+not wherever a traversal points.
 
 The assertion compares the *exact* deviation set, so it fails both when new drift
 appears and when a recorded deviation is repaired without updating this record.
@@ -44,14 +46,6 @@ KNOWN_DEVIATIONS = {
         "the schema requires a plugins category with minItems 1; the manifest "
         "declares no vendored plugin asset, and neither relaxing the schema nor "
         "inventing an entry is this executor's decision"
-    ),
-    "models/sense-voice-zh-en-ja-ko-yue:external_paths/0|pattern": (
-        "'../Model library/sherpa-onnx' escapes the declared external root and is "
-        "skipped by environment_registry._external_path, so it can never resolve; "
-        "the Model library is outside OS External Configuration"
-    ),
-    "models/sense-voice-zh-en-ja-ko-yue:install_method|enum": (
-        "'shared-model-library' is not one of the schema's install_method values"
     ),
 }
 
@@ -99,7 +93,7 @@ def test_the_manifest_is_the_one_the_registry_consumes() -> None:
     manifest = yaml.safe_load(MANIFEST.read_text(encoding="utf-8"))
     report = environment_registry.resolve(MANIFEST)
 
-    assert report["schema"] == "archeaxis.environment-registry/v1"
+    assert report["schema"] == "archeaxis.environment-registry/v2"
     assert report["install_performed"] is False
     assert report["private_state_opened"] is False
     declared = sum(len(entries or []) for entries in manifest["capabilities"].values())

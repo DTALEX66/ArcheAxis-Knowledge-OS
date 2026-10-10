@@ -26,25 +26,72 @@ recorded by version and content hash in the manifest.
 from __future__ import annotations
 
 import argparse
+import csv
 import hashlib
+import importlib.util
 import json
 import os
+import re
 import shutil
 import stat
 import subprocess
 import zipfile
 from pathlib import Path
 
+_worker_routes_spec = importlib.util.spec_from_file_location(
+    "stage_worker_routes", Path(__file__).with_name("worker_routes.py")
+)
+assert _worker_routes_spec and _worker_routes_spec.loader
+worker_routes = importlib.util.module_from_spec(_worker_routes_spec)
+_worker_routes_spec.loader.exec_module(worker_routes)
+
 PROFILE_SCHEMA = "archeaxis.worker-profile/v1"
 MANIFEST_SCHEMA = "archeaxis.backend-runtime/v1"
 TEXT_WORKER_RELATIVE = "workers/transport/text_ndjson.py"
 SCHEDULER_WORKER_RELATIVE = "workers/learning/worker_schedule.py"
+
+# Capability -> worker scripts that implement it, in preference order, relative to
+# the staged root. Each of these workers advertises the capability itself and
+# refuses anything it did not advertise, so the Core can only dispatch a route that
+# a real worker serves. Only the first *existing* path is declared: the profile
+# states what this runtime actually ships, and a capability with no worker present is
+# left out rather than declared and then failing at job time.
+# Loaded from services/python-workers/routes.json - the single mapping. See worker_routes.py for
+# why the three hand-written copies were removed.
+ROUTE_SCRIPTS: dict[str, tuple[str, ...]] = worker_routes.load(prefix="workers/")
 PRIVATE_NAMES = set([".git", ".codex", ".dsh", ".zcode", ".hermes", ".openhuman", ".claude", ".agents", ".agent", ".cursor", ".continue", ".aider", ".gemini", ".opencode", ".openhands", ".cline", ".roo", ".kilocode", ".windsurf", ".copilot", ".ssh", ".aws", ".azure", ".gnupg", "agent-private", "private-agent-state", "sessions", "memories", "keychain", "credentials", "auth", "browser-data", ".npmrc", ".pypirc", ".netrc"])
+
+
+def filesystem_path(path: Path) -> Path:
+    """Use extended paths for Windows file I/O only, never in launch contracts."""
+    absolute = os.path.abspath(path)
+    return Path("\\\\?\\" + absolute) if os.name == "nt" and not absolute.startswith("\\\\") else Path(absolute)
+
+
+def ordinary_path(path: Path) -> Path:
+    raw = str(path)
+    return Path(raw[4:] if raw.startswith("\\\\?\\") else raw)
+
+
+def present_routes(root: Path) -> list[dict[str, str]]:
+    """Declare the capability routes this staged tree can actually serve.
+
+    Only a capability whose worker script is present is declared. A route that named
+    an absent script would make the Core refuse the whole profile, and a route
+    declared without a worker would fail at job time instead of at packaging time.
+    """
+    declared: list[dict[str, str]] = []
+    for capability in sorted(ROUTE_SCRIPTS):
+        for relative in ROUTE_SCRIPTS[capability]:
+            if (root / relative).is_file():
+                declared.append({"capability": capability, "script": relative})
+                break
+    return declared
 
 
 def sha256(path: Path) -> str:
     digest = hashlib.sha256()
-    with path.open("rb") as handle:
+    with filesystem_path(path).open("rb") as handle:
         for block in iter(lambda: handle.read(1 << 20), b""):
             digest.update(block)
     return digest.hexdigest()
@@ -82,7 +129,7 @@ def reject_reparse(path: Path) -> None:
         raise ValueError("protected staging path")
     for part in (*reversed(path.parents), path):
         try:
-            info = part.lstat()
+            info = filesystem_path(part).lstat()
         except (FileNotFoundError, NotADirectoryError):
             continue
         if stat.S_ISLNK(info.st_mode) or getattr(info, "st_file_attributes", 0) & 0x400:
@@ -91,16 +138,156 @@ def reject_reparse(path: Path) -> None:
 
 def validate_tree(source: Path) -> None:
     reject_reparse(source)
-    if source.is_dir():
-        for entry in source.iterdir():
-            validate_tree(entry)
+    if filesystem_path(source).is_dir():
+        for entry in filesystem_path(source).iterdir():
+            validate_tree(ordinary_path(entry))
+
+
+def validate_runtime_tree(source: Path) -> None:
+    """Allow recorded upstream package files, while rejecting private extras/links.
+
+    Runtime roots and stdlib still face the full path rule. Only paths listed in
+    an installed distribution's RECORD (and their parent directories) bypass
+    package-internal name checks, as copy_distribution already does.
+    """
+    reject_reparse(source)
+    source = Path(os.path.abspath(source))
+    packages = source / "Lib" / "site-packages"
+    allowed: set[Path] = set()
+    if packages.is_dir():
+        reject_reparse(packages)
+        reject_nested_links(packages)
+        for info in packages.glob("*.dist-info"):
+            reject_reparse(info)
+            record = info / "RECORD"
+            if not record.is_file():
+                continue
+            for row in csv.reader(record.read_text(encoding="utf-8").splitlines()):
+                if not row or not row[0]:
+                    continue
+                relative = Path(row[0])
+                if not relative.parts:
+                    continue
+                if relative.is_absolute() or relative.drive or ".." in relative.parts:
+                    continue  # Scripts outside site-packages keep the full rule.
+                member = packages / relative
+                # A top-level private name never becomes an approved donor.
+                reject_reparse(packages / relative.parts[0])
+                allowed.add(member)
+                allowed.update(parent for parent in member.parents if parent.is_relative_to(packages))
+
+    def visit(path: Path) -> None:
+        if path in allowed:
+            reject_links_along(path)
+        else:
+            reject_reparse(path)
+        if filesystem_path(path).is_dir():
+            for entry in filesystem_path(path).iterdir():
+                visit(ordinary_path(entry))
+
+    visit(source)
+
+
+def reject_nested_links(member: Path) -> None:
+    """Reject links anywhere inside a distribution, without re-judging its module names.
+
+    A distribution's own tree is upstream code. Names inside it that collide with the
+    protected set - fastapi ships a directory called `.agents`, litellm ships `auth`
+    directories - are modules of that package, not agent state or credentials. The
+    protected-name rule still applies to the entry itself and to every path above it,
+    which is where private state would actually sit; inside a distribution only the
+    link rule is meaningful, because a link is what could leave the staged tree.
+    """
+    for dirpath, dirnames, filenames in os.walk(filesystem_path(member)):
+        for entry in (*dirnames, *filenames):
+            full = Path(dirpath) / entry
+            try:
+                info = full.lstat()
+            except OSError:
+                continue
+            if stat.S_ISLNK(info.st_mode) or getattr(info, "st_file_attributes", 0) & 0x400:
+                raise ValueError("linked staging path rejected")
+
+
+def reject_links_along(path: Path) -> None:
+    """Reject a link on any component of an absolute path, without judging its names.
+
+    This is the link half of the path rule, which stays meaningful for upstream files;
+    the name half is only meaningful at a root location. Judging a package's internals by
+    name re-rejects modules that legitimately share a protected name.
+    """
+    resolved = Path(os.path.abspath(path))
+    for part in (*reversed(resolved.parents), resolved):
+        try:
+            info = filesystem_path(part).lstat()
+        except (FileNotFoundError, NotADirectoryError):
+            continue
+        if stat.S_ISLNK(info.st_mode) or getattr(info, "st_file_attributes", 0) & 0x400:
+            raise ValueError("linked staging path rejected")
+
+
+def copy_distribution_tree(source: Path, target: Path) -> None:
+    """Copy one distribution directory, checking links but not its module names.
+
+    Its entry has already faced the full rule, so re-judging every nested name here
+    would only re-reject upstream modules that happen to share a protected name.
+    """
+    reject_nested_links(source)
+    shutil.copytree(filesystem_path(source), filesystem_path(target), dirs_exist_ok=True,
+                    ignore=shutil.ignore_patterns("__pycache__", "*.pyc", "*.pyo"))
 
 
 def copy_tree(source: Path, target: Path) -> None:
     validate_tree(source)
     validate_tree(target)
-    shutil.copytree(source, target, dirs_exist_ok=True,
+    shutil.copytree(filesystem_path(source), filesystem_path(target), dirs_exist_ok=True,
                     ignore=shutil.ignore_patterns("__pycache__", "*.pyc", "*.pyo"))
+
+
+def canonical_distribution_name(name: str) -> str:
+    """The normalisation the packaging tooling itself uses for comparison.
+
+    Runs of dashes, underscores and dots are equivalent, and case is ignored. Without
+    this, a distribution declared as `typing-extensions` and installed as
+    `typing_extensions` would not be recognised as the same thing.
+    """
+    return re.sub(r"[-_.]+", "-", name).lower()
+
+
+def distribution_files(name: str, site_packages: Path) -> list[Path] | None:
+    """The files a distribution actually installed, from its own RECORD.
+
+    A distribution's name is not the name of the module or directory it installs, and
+    guessing from the name - as matching a directory called after it does - both misses
+    single-module distributions and drags in entries that only look similar. The RECORD
+    the installer wrote is the authoritative statement of what belongs to it, so the
+    declared name is resolved through the distribution metadata instead.
+
+    Returns None when no matching distribution is installed, and None when it is
+    installed but recorded no RECORD, so the caller can fall back deliberately.
+    """
+    wanted = canonical_distribution_name(name)
+    for dist_info in sorted(site_packages.glob("*.dist-info")):
+        metadata = dist_info / "METADATA"
+        if not metadata.is_file():
+            continue
+        declared = None
+        for line in metadata.read_text(encoding="utf-8", errors="replace").splitlines():
+            if line.startswith("Name:"):
+                declared = line.split(":", 1)[1].strip()
+                break
+        if declared is None or canonical_distribution_name(declared) != wanted:
+            continue
+        record = dist_info / "RECORD"
+        if not record.is_file():
+            return None
+        installed = []
+        for line in record.read_text(encoding="utf-8", errors="replace").splitlines():
+            relative = line.split(",", 1)[0].strip()
+            if relative:
+                installed.append(site_packages / relative.replace("/", os.sep))
+        return installed
+    return None
 
 
 def copy_distribution(name: str, site_packages: Path, target_site_packages: Path) -> dict:
@@ -120,11 +307,47 @@ def copy_distribution(name: str, site_packages: Path, target_site_packages: Path
         return stem.replace("_", "").lower()
 
     reject_reparse(site_packages)
+    # The RECORD is authoritative, so prefer it over matching names. A distribution's name
+    # is not the name it imports as - pymupdf installs `fitz`, and copying only entries
+    # named after the distribution leaves that behind, which surfaces later as a
+    # ModuleNotFoundError from the worker rather than here.
+    recorded = distribution_files(name, site_packages)
+    if recorded is not None:
+        resolved_root = site_packages.resolve()
+        chosen: list[tuple[Path, Path]] = []
+        for path in recorded:
+            try:
+                resolved = path.resolve()
+            except OSError:
+                continue
+            # A recorded path may sit outside the package root, and a `..` in one must
+            # not be followed out of the tree. Only files inside it are staged; console
+            # scripts are not importable modules and do not belong in a package directory.
+            if not resolved.is_relative_to(resolved_root) or not resolved.is_file():
+                continue
+            chosen.append((resolved, resolved.relative_to(resolved_root)))
+        if not chosen:
+            raise ValueError(f"dependency {name} records no files inside {site_packages}")
+        target_site_packages.mkdir(parents=True, exist_ok=True)
+        reject_reparse(target_site_packages)
+        staged_files: list[str] = []
+        for source, relative in chosen:
+            reject_links_along(source)
+            destination = target_site_packages / relative
+            reject_links_along(destination)
+            destination.parent.mkdir(parents=True, exist_ok=True)
+            shutil.copy2(source, destination)
+            staged_files.append(relative.as_posix())
+        return {"name": name, "members": sorted(staged_files)}
     members = [entry for entry in sorted(site_packages.iterdir()) if key(entry.name) == wanted]
     if not members:
         raise ValueError(f"dependency not present in {site_packages}: {name}")
     for member in members:
-        validate_tree(member)
+        # The entry itself still faces the full rule, so a distribution named after a
+        # protected path is refused. Inside it, only links are rejected: its own module
+        # names are upstream code and are not re-judged.
+        reject_reparse(member)
+        reject_nested_links(member)
     reject_reparse(target_site_packages)
     has_module = any(entry.is_file() or (entry.is_dir() and not entry.name.endswith(".dist-info"))
                      for entry in members)
@@ -137,10 +360,50 @@ def copy_distribution(name: str, site_packages: Path, target_site_packages: Path
         destination = target_site_packages / member.name
         reject_reparse(destination)
         if member.is_dir():
-            copy_tree(member, destination)
+            copy_distribution_tree(member, destination)
         else:
             shutil.copy2(member, destination)
         copied.append(member.name)
+    # The RECORD the installer wrote is the authoritative statement of what belongs to a
+    # distribution, and matching by name is only a guess at it. Cross-check the two, so a
+    # distribution that installs a module outside the directory named after it is reported
+    # here rather than surfacing later as a ModuleNotFoundError from the worker.
+    recorded = distribution_files(name, site_packages)
+    if recorded is not None:
+        # A RECORD may name files outside the package root - fastapi records a console
+        # script under the environment's Scripts directory. Those are not importable
+        # modules, must not be staged into a package directory, and resolving them is how
+        # a `..` in a recorded path would otherwise be followed out of the tree.
+        resolved_root = site_packages.resolve()
+        expected: set[str] = set()
+        for path in recorded:
+            try:
+                resolved = path.resolve()
+            except OSError:
+                continue
+            if not resolved.is_relative_to(resolved_root):
+                continue
+            expected.add(resolved.relative_to(resolved_root).as_posix())
+        staged: set[str] = set()
+        for member in members:
+            if member.is_dir():
+                for entry in member.rglob("*"):
+                    if entry.is_file() and "__pycache__" not in entry.parts:
+                        staged.add(entry.relative_to(site_packages).as_posix())
+            else:
+                staged.add(member.relative_to(site_packages).as_posix())
+        missing = sorted(
+            [
+                recorded_name
+                for recorded_name in expected
+                if recorded_name not in staged
+                and not recorded_name.endswith((".pyc", ".pyo"))
+            ]
+        )
+        if missing:
+            raise ValueError(
+                f"dependency {name} records files that were not staged: {missing[:5]}"
+            )
     return {"name": name, "members": sorted(copied)}
 
 
@@ -177,12 +440,57 @@ def write_launcher(root: Path) -> Path:
     return launcher
 
 
+def stage_capability_manifest(root: Path, external_root: Path | None) -> dict:
+    """Carry declared tools with the workers resource; pin only declared OCR paths.
+
+    No directory search or external bytes are copied. A local candidate may record
+    its explicitly selected shared root; portable CI candidates keep declarations.
+    """
+    source = Path(__file__).resolve().parents[2] / "config/environment/capability-requirements.yaml"
+    reject_reparse(source)
+    text = source.read_text(encoding="utf-8")
+    measured = {}
+    if external_root is not None:
+        external_root = Path(os.path.abspath(external_root))
+        reject_reparse(external_root)
+        if not external_root.is_dir():
+            raise ValueError("declared external tool root does not exist")
+        for name, relative in {
+            "tesseract": "10-toolchains/scoop/apps/tesseract/current/tesseract.exe",
+            "tesseract-languages": "10-toolchains/scoop/apps/tesseract-languages/current",
+        }.items():
+            declared = external_root / relative
+            if not declared.exists():
+                measured[name] = {"status": "MISSING", "declared_path": relative}
+                continue
+            resolved = declared.resolve()
+            try:
+                pinned = resolved.relative_to(external_root).as_posix()
+            except ValueError as error:
+                raise ValueError("declared OCR path resolves outside selected external root") from error
+            text = text.replace('"' + relative + '"', '"' + pinned + '"')
+            entry = {"status": "PATH_RESOLVED_NOT_RUNTIME_VERIFIED", "path": str(resolved),
+                     "relative_path": pinned}
+            witness = resolved if resolved.is_file() else resolved / "eng.traineddata"
+            if witness.is_file():
+                entry["witness_sha256"] = sha256(witness)
+            measured[name] = entry
+        text += "\nartifact_external_root: " + json.dumps(str(external_root)) + "\n"
+    target = root / "workers/capability-requirements.yaml"
+    target.write_text(text, encoding="utf-8", newline="\n")
+    return {"source_sha256": sha256(source), "artifact_path": "workers/capability-requirements.yaml",
+            "artifact_sha256": sha256(target), "external_root": str(external_root) if external_root else None,
+            "ocr_paths": measured}
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--core", required=True, type=Path)
     parser.add_argument("--runtime", required=True, type=Path,
                         help="portable interpreter directory containing python.exe")
     parser.add_argument("--workers", required=True, type=Path)
+    parser.add_argument("--external-root", type=Path,
+                        help="explicit existing local shared tool root; referenced, never bundled")
     parser.add_argument("--shared", type=Path,
                         help="scheduler donor; defaults to <workers>/../shared/learning_scheduler.py")
     parser.add_argument("--dep-source", type=Path,
@@ -213,9 +521,16 @@ def main() -> int:
         if candidate is not None:
             reject_reparse(candidate)
     # Preflight all recursive donors before producing even a partial output root.
-    for candidate in (args.runtime, args.workers, args.dep_source):
-        if candidate is not None:
-            validate_tree(candidate)
+    #
+    # The dependency source is deliberately NOT scanned recursively. It is a shared
+    # site-packages holding every installed distribution, most of them irrelevant to
+    # this slice, and judging each of their internal module names reads upstream code
+    # as if it were private state - litellm ships `auth` directories, fastapi ships
+    # `.agents`, and neither holds a credential. Only the distributions actually being
+    # copied are inspected, each at copy time, where its own tree is known to be the
+    # thing being staged. The source root itself still faces the full rule above.
+    validate_runtime_tree(args.runtime)
+    validate_tree(args.workers)
     if not shared_donor.is_file():
         raise ValueError(f"scheduler donor is missing: {shared_donor}")
     if not args.core.is_file():
@@ -234,8 +549,10 @@ def main() -> int:
 
     (root / "core").mkdir(parents=True)
     shutil.copy2(args.core, root / "core" / "archeaxis-api.exe")
-    copy_tree(args.runtime, root / "runtime")
+    shutil.copytree(filesystem_path(args.runtime), filesystem_path(root / "runtime"),
+                    ignore=shutil.ignore_patterns("__pycache__", "*.pyc", "*.pyo"))
     copy_tree(args.workers, root / "workers")
+    capability_manifest = stage_capability_manifest(root, args.external_root)
     (root / "data").mkdir()
 
     # The scheduler worker imports the repository's shared donor rather than carrying a
@@ -245,6 +562,15 @@ def main() -> int:
     # a broken worker instead of a missing component.
     (root / "shared").mkdir()
     shutil.copy2(shared_donor, root / "shared" / "learning_scheduler.py")
+    # Stateless document-check donors, staged from the same authority source tree.
+    source_root = Path(__file__).resolve().parents[2]
+    for relative, name in (("shared/safe_http.py", "safe_http.py"),
+                           ("shared-contracts/adapters/llm/litellm_adapter.py", "llm_adapter.py")):
+        donor = source_root / relative
+        if not donor.is_file():
+            raise ValueError(f"document-check donor is missing: {relative}")
+        shutil.copy2(donor, root / "shared" / name)
+
 
     site_packages = root / "runtime" / "Lib" / "site-packages"
     dependencies = []
@@ -260,6 +586,9 @@ def main() -> int:
         "script": TEXT_WORKER_RELATIVE,
         "staging": "data/worker-staging",
     }
+    declared_routes = present_routes(root)
+    if declared_routes:
+        profile["routes"] = declared_routes
     profile_path = root / "worker-profile.json"
     profile_path.write_text(json.dumps(profile, indent=2) + "\n", encoding="utf-8", newline="\n")
     launcher = write_launcher(root)
@@ -274,9 +603,9 @@ def main() -> int:
         return result or "unknown"
 
     files: dict[str, dict[str, object]] = {}
-    for path in sorted(p for p in root.rglob("*") if p.is_file()):
+    for path in sorted(ordinary_path(p) for p in filesystem_path(root).rglob("*") if p.is_file()):
         relative = path.relative_to(root).as_posix()
-        files[relative] = {"bytes": path.stat().st_size, "sha256": sha256(path)}
+        files[relative] = {"bytes": filesystem_path(path).stat().st_size, "sha256": sha256(path)}
 
     manifest = {
         "schema": MANIFEST_SCHEMA,
@@ -320,6 +649,7 @@ def main() -> int:
              "protocol": PROFILE_SCHEMA, "version": "1"},
         ],
         "dependencies": dependencies,
+        "capability_manifest": capability_manifest,
         "startup_order": [
             "1. set ARCHEAXIS_WORKER_PROFILE to <root>/worker-profile.json",
             "2. launch core/archeaxis-api.exe with the workspace db and port",
@@ -345,8 +675,8 @@ def main() -> int:
     if args.archive:
         archive_path = args.archive.absolute()
         with zipfile.ZipFile(archive_path, "w", compression=zipfile.ZIP_DEFLATED) as archive:
-            for path in sorted(p for p in root.rglob("*") if p.is_file()):
-                archive.write(path, (root.name / path.relative_to(root)).as_posix())
+            for path in sorted(p for p in filesystem_path(root).rglob("*") if p.is_file()):
+                archive.write(path, (root.name / ordinary_path(path).relative_to(root)).as_posix())
 
     print(json.dumps({
         "root": str(root), "manifest": str(manifest_path), "launcher": str(launcher),

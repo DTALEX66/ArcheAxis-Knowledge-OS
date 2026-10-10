@@ -14,6 +14,7 @@ from urllib.parse import urlsplit
 
 from app.ingestion.raw_asset import RawAssetRecord, RawAssetStore
 from app.workspace.job_outbox import command_request_fingerprint, record_completed_command
+from shared.paths import native_path
 
 # Heavy dependencies loaded lazily inside functions to avoid numpy/vector chain at import time.
 # Each intake function calls _import_heavy() before use.
@@ -399,7 +400,7 @@ def ingest_local_file(*, source_path: str | Path, db_path: str | Path) -> dict[s
         with _BATCH_INGEST_LOCK:
             ensure_conversion_run_schema(database)
             ensure_evidence_anchor_schema(database)
-            with sqlite3.connect(database, timeout=30.0) as connection:
+            with sqlite3.connect(native_path(database), timeout=30.0) as connection:
                 store_conversion_run_on_connection(connection, conversion_run)
                 store_evidence_anchor_on_connection(connection, anchor)
                 connection.commit()
@@ -423,7 +424,9 @@ def intake_upload(*, file_name: str, content: bytes, db_path: str | Path) -> dic
         raise ValueError("uploaded file name must not include a path")
     database = Path(db_path)
     upload_dir = database.parent / "intake_uploads"
-    upload_dir.mkdir(parents=True, exist_ok=True)
+    # A plain mkdir past the Windows limit raises FileNotFoundError from the parent walk, so an
+    # intake into a deep workspace died before a single byte was read.
+    Path(native_path(upload_dir)).mkdir(parents=True, exist_ok=True)
     # Preserve the original before creating a conversion temp file. The source
     # archive is content-addressed, so retries cannot overwrite the bytes that
     # an anchor or future EvidenceBundle refers to.
@@ -432,15 +435,20 @@ def intake_upload(*, file_name: str, content: bytes, db_path: str | Path) -> dic
     suffix = Path(safe_name).suffix.casefold()
     stored_path = upload_dir / f"{sha256(content).hexdigest()}{suffix}"
     with tempfile.NamedTemporaryFile(
-        dir=upload_dir, prefix=".upload-", suffix=suffix, delete=False
+        dir=native_path(upload_dir), prefix=".upload-", suffix=suffix, delete=False
     ) as temporary:
         temporary.write(content)
         temporary_path = Path(temporary.name)
+    # The converter receives the verbatim name on purpose. A plain deep name does not fail as a path
+    # problem: the engine chain reports "No engine could convert xlsx file", so an operator would
+    # rebuild engines that were never at fault. Nothing here stores either name.
+    io_path = Path(native_path(temporary_path))
+    stored_io_path = Path(native_path(stored_path))
     try:
         markdown, engine, trace, plugin_provenance = _convert_file_for_intake(
-            temporary_path, include_plugin_provenance=True
+            io_path, include_plugin_provenance=True
         )
-        source_format = detect_format(temporary_path)
+        source_format = detect_format(io_path)
         from app.evidence.anchor import (
             build_evidence_anchor,
             ensure_evidence_anchor_schema,
@@ -453,7 +461,7 @@ def intake_upload(*, file_name: str, content: bytes, db_path: str | Path) -> dic
         from app.ingestion.structured_conversion import build_workspace_conversion_run
 
         conversion_run = build_workspace_conversion_run(
-            source_path=temporary_path,
+            source_path=io_path,
             raw_sha256=original.sha256,
             source_name=safe_name,
             source_format=source_format,
@@ -493,14 +501,14 @@ def intake_upload(*, file_name: str, content: bytes, db_path: str | Path) -> dic
             raw_asset_sha256=original.sha256,
             before_commit=before_commit,
         )
-        if stored_path.exists():
-            if stored_path.read_bytes() != content:
+        if stored_io_path.exists():
+            if stored_io_path.read_bytes() != content:
                 raise RuntimeError("uploaded content hash conflicts with an existing local source")
-            temporary_path.unlink(missing_ok=True)
+            io_path.unlink(missing_ok=True)
         else:
-            temporary_path.replace(stored_path)
+            io_path.replace(stored_io_path)
     except Exception:
-        temporary_path.unlink(missing_ok=True)
+        io_path.unlink(missing_ok=True)
         raw_store._record_failure(original.sha256, safe_name, "upload conversion failed")
         raise
     return {
@@ -527,7 +535,7 @@ def intake_job(*, job_id: str, db_path: str | Path) -> dict[str, object]:
     _import_heavy()
     if not job_id.startswith("job_") or len(job_id) != 28:
         raise ValueError("workspace job id is invalid")
-    with sqlite3.connect(Path(db_path)) as connection:
+    with sqlite3.connect(native_path(Path(db_path))) as connection:
         connection.row_factory = sqlite3.Row
         rows = connection.execute(
             "SELECT j.job_id, j.command_id, j.job_type, j.aggregate_id, j.state, "
@@ -617,7 +625,7 @@ def intake_job(*, job_id: str, db_path: str | Path) -> dict[str, object]:
 def workspace_jobs(*, db_path: str | Path) -> dict[str, object]:
     """Return strict, non-identifying projections for the local Job Center."""
 
-    with sqlite3.connect(Path(db_path)) as connection:
+    with sqlite3.connect(native_path(Path(db_path))) as connection:
         connection.row_factory = sqlite3.Row
         rows = connection.execute(
             "SELECT j.job_id, j.command_id, j.job_type, j.state, j.payload_json, "
@@ -692,7 +700,7 @@ def workspace_library(*, db_path: str | Path) -> dict[str, object]:
     """
     archive = RawAssetStore(root=_source_archive_root(Path(db_path)))
     try:
-        with sqlite3.connect(Path(db_path), timeout=30.0) as connection:
+        with sqlite3.connect(native_path(Path(db_path)), timeout=30.0) as connection:
             items = [_library_item(record, connection) for record in archive.list_records()]
     except sqlite3.Error:
         items = [_library_item(record, None) for record in archive.list_records()]
@@ -804,7 +812,7 @@ def workspace_converted_content(
     archive = RawAssetStore(root=_source_archive_root(Path(db_path)))
     if not archive.has(raw_sha256):
         raise LookupError("source archive content was not found")
-    with sqlite3.connect(Path(db_path), timeout=30.0) as connection:
+    with sqlite3.connect(native_path(Path(db_path)), timeout=30.0) as connection:
         connection.row_factory = sqlite3.Row
         latest = _latest_conversion(connection, raw_sha256)
         if latest is None:
@@ -841,7 +849,7 @@ def workspace_conversion_run_detail(
         (item for item in archive.list_records() if item.sha256 == raw_sha256),
         None,
     )
-    with sqlite3.connect(Path(db_path), timeout=30.0) as connection:
+    with sqlite3.connect(native_path(Path(db_path)), timeout=30.0) as connection:
         connection.row_factory = sqlite3.Row
         latest = _latest_conversion(connection, raw_sha256)
         if latest is None:
@@ -969,7 +977,7 @@ def workspace_delivery(*, db_path: str | Path) -> dict[str, object]:
     """Project Job, Outbox, and Delivery Receipt state without internal identities."""
     from collections import Counter
 
-    with sqlite3.connect(Path(db_path), timeout=30.0) as connection:
+    with sqlite3.connect(native_path(Path(db_path)), timeout=30.0) as connection:
         connection.row_factory = sqlite3.Row
         rows = connection.execute(
             "SELECT j.state AS job_state, j.attempt_count AS job_attempts, "
@@ -1027,7 +1035,7 @@ def retry_failed_delivery(*, db_path: str | Path) -> dict[str, object]:
     from datetime import datetime, timezone
 
     now = datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
-    with sqlite3.connect(Path(db_path), timeout=30.0) as connection:
+    with sqlite3.connect(native_path(Path(db_path)), timeout=30.0) as connection:
         connection.execute("PRAGMA busy_timeout=30000")
         connection.execute("BEGIN IMMEDIATE")
         row = connection.execute(
@@ -1059,7 +1067,7 @@ def workspace_status(*, db_path: str | Path) -> dict[str, object]:
         ).fetchall()
         return {str(state): int(count) for state, count in rows}
 
-    with sqlite3.connect(Path(db_path), timeout=30.0) as connection:
+    with sqlite3.connect(native_path(Path(db_path)), timeout=30.0) as connection:
         connection.execute("PRAGMA busy_timeout=30000")
         connection.execute("PRAGMA query_only=ON")
         counts = {
@@ -1109,7 +1117,7 @@ def workspace_status(*, db_path: str | Path) -> dict[str, object]:
 
 def research_review_queue(*, db_path: str | Path) -> dict[str, object]:
     """Return user-readable pending Research without exposing persistence IDs."""
-    with sqlite3.connect(Path(db_path), timeout=30.0) as connection:
+    with sqlite3.connect(native_path(Path(db_path)), timeout=30.0) as connection:
         connection.execute("PRAGMA busy_timeout=30000")
         connection.execute("PRAGMA query_only=ON")
         rows = connection.execute(
@@ -1135,7 +1143,7 @@ def research_review_queue(*, db_path: str | Path) -> dict[str, object]:
 
 def promote_research_source(*, command_id: str, source: str, reviewer_id: str, rationale: str,
                             db_path: str | Path) -> dict:
-    with sqlite3.connect(Path(db_path), timeout=30.0) as connection:
+    with sqlite3.connect(native_path(Path(db_path)), timeout=30.0) as connection:
         row = connection.execute(
             "SELECT id FROM research_packages_v1 WHERE canonical_url=? "
             "AND status IN ('candidate', 'ready_for_review') AND requires_human_review=1", (source,)
@@ -1153,7 +1161,7 @@ def now_utc() -> str:
 def _require_matching_promotion_command(
     *, command_id: str, package_id: str, reviewer_id: str, rationale: str, db_path: str | Path
 ) -> None:
-    with sqlite3.connect(Path(db_path)) as connection:
+    with sqlite3.connect(native_path(Path(db_path))) as connection:
         row = connection.execute(
             "SELECT package_id, reviewer_id, decision, rationale "
             "FROM knowledge_candidate_governance_events_v1 WHERE approval_id=?",
@@ -1170,7 +1178,7 @@ def _require_matching_promotion_command(
 def _require_matching_learning_command(
     *, command_id: str, unit_id: str, reviewer_id: str, rationale: str, db_path: str | Path
 ) -> None:
-    with sqlite3.connect(Path(db_path)) as connection:
+    with sqlite3.connect(native_path(Path(db_path))) as connection:
         row = connection.execute(
             "SELECT source_unit_id, reviewer_id, rationale "
             "FROM knowledge_candidate_learning_artifacts_v1 WHERE approval_id=?",
@@ -1186,7 +1194,7 @@ def _require_matching_practice_command(
     *, command_id: str, artifact_id: str, quality: int, db_path: str | Path
 ) -> None:
     review_id = "practice_" + sha256(command_id.encode()).hexdigest()[:24]
-    with sqlite3.connect(Path(db_path)) as connection:
+    with sqlite3.connect(native_path(Path(db_path))) as connection:
         row = connection.execute(
             "SELECT card_id, quality FROM kb_reviews WHERE id=?", (review_id,)
         ).fetchone()
@@ -1314,7 +1322,7 @@ def _workspace_source_artifact(
 
 def workspace_knowledge(*, db_path: str | Path) -> dict[str, object]:
     """Return source-oriented Knowledge candidates without persistence IDs."""
-    with sqlite3.connect(Path(db_path), timeout=30.0) as connection:
+    with sqlite3.connect(native_path(Path(db_path)), timeout=30.0) as connection:
         connection.row_factory = sqlite3.Row
         rows = connection.execute(
             "SELECT rp.canonical_url AS source, "
@@ -1341,7 +1349,7 @@ def workspace_knowledge(*, db_path: str | Path) -> dict[str, object]:
 
 def workspace_learning(*, db_path: str | Path) -> dict[str, object]:
     """Return source-oriented Learning artifacts and practice state."""
-    with sqlite3.connect(Path(db_path), timeout=30.0) as connection:
+    with sqlite3.connect(native_path(Path(db_path)), timeout=30.0) as connection:
         connection.row_factory = sqlite3.Row
         rows = connection.execute(
             "SELECT la.id, la.artifact_json, la.status, rp.canonical_url AS source "
@@ -1375,7 +1383,7 @@ def workspace_learning(*, db_path: str | Path) -> dict[str, object]:
 def start_learning_source(*, command_id: str, source: str, db_path: str | Path) -> dict[str, object]:
     """Start the first reviewed claim for a source using server-owned provenance."""
     database = Path(db_path)
-    with sqlite3.connect(database, timeout=30.0) as connection:
+    with sqlite3.connect(native_path(database), timeout=30.0) as connection:
         connection.row_factory = sqlite3.Row
         existing = _workspace_source_artifact(connection, source)
         if existing is not None:
@@ -1413,7 +1421,7 @@ def record_practice_source(*, command_id: str, source: str, quality: int, db_pat
     from app.contracts.v1 import MachineKnowledgeUnitV1
 
     database = Path(db_path)
-    with sqlite3.connect(database, timeout=30.0) as connection:
+    with sqlite3.connect(native_path(database), timeout=30.0) as connection:
         connection.row_factory = sqlite3.Row
         row = _workspace_source_artifact(connection, source)
     if row is None:
@@ -1426,7 +1434,7 @@ def record_practice_source(*, command_id: str, source: str, quality: int, db_pat
     )
     machine_candidate_id = result.get("machine_candidate_id")
     if machine_candidate_id:
-        with sqlite3.connect(database, timeout=30.0) as connection:
+        with sqlite3.connect(native_path(database), timeout=30.0) as connection:
             connection.row_factory = sqlite3.Row
             candidate = connection.execute(
                 "SELECT unit_json FROM machine_knowledge_candidates_v1 WHERE id=?",
@@ -1454,7 +1462,7 @@ def workspace_evolution(*, db_path: str | Path) -> dict[str, object]:
     """Return aggregate Mastery and machine-candidate state."""
     from app.contracts.v1 import MasterySignalV1
 
-    with sqlite3.connect(Path(db_path), timeout=30.0) as connection:
+    with sqlite3.connect(native_path(Path(db_path)), timeout=30.0) as connection:
         connection.row_factory = sqlite3.Row
         signals = connection.execute(
             "SELECT signal_json FROM mastery_signals_v1 ORDER BY calculated_at, id"
@@ -1492,7 +1500,7 @@ def workspace_runtime_candidates(*, db_path: str | Path) -> dict[str, object]:
     """Return candidate and approved machine knowledge for the governance page."""
     from app.contracts.v1 import MachineKnowledgeUnitV1
 
-    with sqlite3.connect(Path(db_path), timeout=30.0) as connection:
+    with sqlite3.connect(native_path(Path(db_path)), timeout=30.0) as connection:
         connection.row_factory = sqlite3.Row
         rows = connection.execute(
             "SELECT unit_json, lifecycle_status FROM machine_knowledge_candidates_v1 "
@@ -1529,7 +1537,7 @@ def _decide_runtime_title(
     )
 
     database = Path(db_path)
-    with sqlite3.connect(database, timeout=30.0) as connection:
+    with sqlite3.connect(native_path(database), timeout=30.0) as connection:
         connection.row_factory = sqlite3.Row
         existing = connection.execute(
             "SELECT candidate_id, decision FROM machine_knowledge_approval_events_v1 "
@@ -1600,7 +1608,7 @@ def workspace_lifecycle(*, db_path: str | Path) -> dict[str, object]:
     """Expose aggregate Core lifecycle evidence without persistence identifiers."""
 
     database = Path(db_path)
-    with sqlite3.connect(database, timeout=30.0) as connection:
+    with sqlite3.connect(native_path(database), timeout=30.0) as connection:
         connection.row_factory = sqlite3.Row
 
         def table_exists(name: str) -> bool:

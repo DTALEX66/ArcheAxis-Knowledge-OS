@@ -113,11 +113,18 @@ def extract(path: str) -> dict:
             value = node.get(field)
             if isinstance(value, (int, float)) and not isinstance(value, bool) and math.isfinite(value):
                 geometry[field] = value
-        node_geometry.append({
+        entry = {
             "node_id": str(node.get("id", "")),
             "type": node.get("type", "text"),
             "geometry": geometry,
-        })
+        }
+        # A colour or style is reported exactly as the file declares it: resolving it to a
+        # swatch would be a rendering claim this worker cannot make.
+        for field in ("color", "style"):
+            declared = node.get(field)
+            if isinstance(declared, str) and declared.strip():
+                entry[field] = declared.strip()
+        node_geometry.append(entry)
 
     return {
         "engine": ENGINE,
@@ -132,8 +139,10 @@ def extract(path: str) -> dict:
             "engine_version": ENGINE_VERSION,
             "params": {"projection": "text-node order, per-node anchors"},
             "loss_note": (
-                "geometry is preserved as numeric node facts; colors/ports are not projected; "
-                "all edges preserved verbatim"
+                "node geometry, colour and style are preserved as the numeric and string facts the "
+                "file declares; a declared colour is not resolved to a rendered swatch, and "
+                "z-order, tabs and group containment are not read; edges are preserved "
+                "verbatim, so their sides and endpoint ports travel with the edge"
             ),
         },
     }
@@ -147,10 +156,17 @@ def main() -> int:
         import argparse
         import importlib.util
 
-        repo_root = Path(__file__).resolve().parents[3]
-        spec = importlib.util.spec_from_file_location(
-            "canvas_transport", repo_root / "services" / "python-workers" / "transport" / "text_ndjson.py"
+        # The shared transport sits beside this worker's own category directory, in a
+        # source checkout (`services/python-workers/transport/`) and in a staged runtime
+        # (`workers/transport/`) alike, so both are tried from this file's location. A
+        # fixed parents[3] plus a `services/python-workers/` suffix was correct only for
+        # the source layout and left a staged worker unable to start.
+        _transport_candidates = (
+            Path(__file__).resolve().parent.parent / "transport" / "text_ndjson.py",
+            Path(__file__).resolve().parents[2] / "services" / "python-workers" / "transport" / "text_ndjson.py",
         )
+        _transport = next((p for p in _transport_candidates if p.is_file()), _transport_candidates[0])
+        spec = importlib.util.spec_from_file_location("canvas_transport", _transport)
         if spec is None or spec.loader is None:
             print(json.dumps({"error": "transport module is missing", "engine": ENGINE}))
             return 1

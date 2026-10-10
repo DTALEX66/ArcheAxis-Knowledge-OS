@@ -102,8 +102,24 @@ async fn container_members_become_sources_recording_where_they_came_from() {
     }
     let dir = tempfile::tempdir().unwrap();
     let executor = open_executor(dir.path()).await;
-    let staging = dir.path().join("staging");
+    let staging = container::attempt_root(&dir.path().join("staging"), "job-zip", 1);
     run_archive_job(&executor).await;
+    let production_jobs: i64 = executor
+        .store()
+        .submit(|conn| {
+            conn.query_row(
+                "SELECT count(*) FROM jobs WHERE job_id LIKE 'job-zip-member-%'",
+                [],
+                |row| row.get(0),
+            )
+            .unwrap()
+        })
+        .await
+        .unwrap();
+    assert_eq!(
+        production_jobs, 2,
+        "production archive completion must queue readable member jobs without a manual expansion call"
+    );
 
     let expansion = executor
         .store()
@@ -121,8 +137,8 @@ async fn container_members_become_sources_recording_where_they_came_from() {
     );
     assert_eq!(
         expansion.jobs.len(),
-        2,
-        "the markdown and the image resolve to routes: {expansion:?}"
+        0,
+        "production already queued the markdown and image; expansion is idempotent: {expansion:?}"
     );
     assert_eq!(expansion.custody_only, vec!["opaque/blob.bin".to_string()]);
 
@@ -296,7 +312,7 @@ async fn a_member_that_does_not_match_its_declaration_is_refused() {
     }
     let dir = tempfile::tempdir().unwrap();
     let executor = open_executor(dir.path()).await;
-    let staging = dir.path().join("staging");
+    let staging = container::attempt_root(&dir.path().join("staging"), "job-zip", 1);
     run_archive_job(&executor).await;
 
     let declared = executor
@@ -335,7 +351,43 @@ async fn a_member_that_does_not_match_its_declaration_is_refused() {
         .await
         .unwrap();
     assert_eq!(
-        jobs_after, 0,
-        "an unverifiable member must leave no queued job behind"
+        jobs_after, 2,
+        "refused re-expansion must not add to the two already verified production jobs"
     );
+}
+
+#[tokio::test]
+async fn core_refuses_an_archive_member_declaration_above_its_own_byte_budget() {
+    assert!(
+        !zip_bytes().is_empty(),
+        "real ZIP fixture dependencies are required"
+    );
+    let dir = tempfile::tempdir().unwrap();
+    let executor = open_executor(dir.path()).await;
+    run_archive_job(&executor).await;
+    let staging = container::attempt_root(&dir.path().join("staging"), "job-zip", 1);
+    let refused = executor
+        .store()
+        .submit(move |conn| {
+            let content: String = conn
+                .query_row(
+                    "SELECT content FROM job_outputs WHERE job_id='job-zip' AND kind='loss_report'",
+                    [],
+                    |row| row.get(0),
+                )
+                .unwrap();
+            let mut report: serde_json::Value = serde_json::from_str(&content).unwrap();
+            report["params"]["structure"]["extractable_members"][0]["bytes"] =
+                serde_json::json!(64 * 1024 * 1024 + 1);
+            conn.execute(
+                "UPDATE job_outputs SET content=?1 WHERE job_id='job-zip' AND kind='loss_report'",
+                [report.to_string()],
+            )
+            .unwrap();
+            container::expand_members(conn, &staging, "job-zip")
+        })
+        .await
+        .unwrap()
+        .unwrap_err();
+    assert!(refused.to_string().contains("byte budget"), "{refused}");
 }

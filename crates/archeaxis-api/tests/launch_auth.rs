@@ -10,6 +10,60 @@ use std::{
 const TOKEN: &str = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa";
 const SESSION: &str = "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb";
 const MACHINE_TOKEN: &str = "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc";
+
+#[test]
+fn production_v2_asset_packet_consumer_cannot_be_forged_by_machine_token_human_header() {
+    use serde_json::{Value,json};
+    let dir=tempfile::tempdir().unwrap();let db=dir.path().join("asset-launch.sqlite");
+    let mut child=spawn(&db);let owned_pid=child.0.id();
+    let launch=json!({"protocol":"archeaxis.desktop-launch/v2","actor":"human","launch_token":TOKEN,"machine_token":MACHINE_TOKEN,"session_id":SESSION});
+    writeln!(child.0.stdin.take().unwrap(),"{launch}").unwrap();let port=ready(&mut child);
+    let request=|method:&str,path:&str,token:&str,body:Value|->(u16,Value) {
+        // Deliberately self-report human under BOTH tokens; production middleware must overwrite it.
+        let headers=format!("x-archeaxis-launch-token: {token}\r\nx-archeaxis-actor: human\r\nContent-Type: application/json\r\n");
+        let (code,raw)=http_body(port,method,path,&headers,&if body.is_null(){String::new()}else{body.to_string()});
+        (code,serde_json::from_str(&raw).unwrap_or(Value::Null))
+    };
+    let snapshot=|d:&Value|json!({"document_id":d["document_id"],"version":d["version"],"content_sha256":d["content_sha256"]});
+    let create=|key:&str,editor:Value| {
+        let (code,d)=request("POST","/api/v1/documents",TOKEN,json!({"create_request_id":key,"title":"owned process asset fixture","editor_json":editor}));assert_eq!(code,201,"{d}");d
+    };
+    let asset=json!({"schema":"archeaxis.ai-asset/v1","kind":"memory","content":"SYNTHETIC process payload",
+        "purpose":"owned process scope","scope":[],"provenance":[],"expires_at":null,"state":"candidate","members":[],"conflicts":[],"revises":null,"review":null,"source_payload":null});
+    let body=json!({"create_request_id":"machine-forged-human-create","title":"forged","editor_json":{"type":"doc","content":[],"attrs":{"archeaxis_ai_asset":asset}}});
+    assert_eq!(request("POST","/api/v1/documents",MACHINE_TOKEN,body).0,403);
+    let (_,machine_version)=request("GET","/api/v1/system/version",MACHINE_TOKEN,Value::Null);assert_eq!(machine_version["actor"],"machine");
+    let candidate=create("process-asset-candidate",json!({"type":"doc","content":[],"attrs":{"archeaxis_ai_asset":asset}}));
+    let (code,rubric)=request("POST","/api/v1/machine/rubrics",TOKEN,json!({"schema":"archeaxis.machine-rubric/v1","request_id":"process-asset-rubric","title":"owned fixed process rubric","purpose":"asset applicability","criteria":[{"criterion_id":"fit","label":"fit","expectation":"SYNTHETIC human observation"}],"sources":[]}));assert_eq!(code,201);
+    let mut editor=candidate["editor_json"].clone();editor["attrs"]["archeaxis_ai_asset"]["state"]=json!("adopted");
+    editor["attrs"]["archeaxis_ai_asset"]["review"]=json!({"asset":snapshot(&candidate),"rubric":snapshot(&rubric),"reviewer":"synthetic human annotation","basis":"fixture-only observation","judgments":[{"criterion_id":"fit","outcome":"passed","basis":"fixture-only fit"}],"outcome":"passed"});
+    let (code,a)=request("PUT",&format!("/api/v1/documents/{}/draft",candidate["document_id"].as_str().unwrap()),TOKEN,json!({"expected_version":1,"editor_json":editor}));assert_eq!(code,200,"{a}");
+    let grant=|key:&str,consumer:&str|create(key,json!({"type":"doc","content":[],"attrs":{"archeaxis_asset_context_grant":{
+        "schema":"archeaxis.asset-context-grant/v1","asset":snapshot(&a),"purpose":"owned process scope","consumer":consumer,"operations":["read_packet"],"authorization_basis":"explicit SYNTHETIC owner grant","expires_at":null,"state":"granted"}}}));
+    let manual=grant("process-manual-grant","manual-context-packet");let local=grant("process-local-grant","local-machine");
+    let packet=|id:&str,g:&Value,consumer:&str|json!({"request_id":id,"grant":snapshot(g),"asset":snapshot(&a),"purpose":"owned process scope","consumer":consumer,"operation":"read_packet"});
+    let manual_request=packet("process-human-packet",&manual,"manual-context-packet");
+    assert_eq!(request("POST","/api/v1/ai/context-packets",MACHINE_TOKEN,manual_request.clone()).0,403);
+    let (code,human_packet)=request("POST","/api/v1/ai/context-packets",TOKEN,manual_request);assert_eq!(code,200,"{human_packet}");
+    let local_request=packet("process-machine-packet",&local,"local-machine");
+    assert_eq!(request("POST","/api/v1/ai/context-packets",TOKEN,local_request.clone()).0,403);
+    let (code,machine_packet)=request("POST","/api/v1/ai/context-packets",MACHINE_TOKEN,local_request);assert_eq!(code,200,"{machine_packet}");
+    assert_eq!(machine_packet["receipt"]["consumer"],"local-machine");assert_eq!(machine_packet["receipt"]["model_execution"],"NOT_EXECUTED");assert_eq!(machine_packet["receipt"]["tool_execution"],"NOT_EXECUTED");
+    let audit=machine_packet["audit_task_id"].as_str().unwrap();let (code,receipt)=request("GET",&format!("/api/v1/machine/tasks/{audit}"),TOKEN,Value::Null);assert_eq!(code,200);
+    assert_eq!(serde_json::from_str::<Value>(receipt["conditions"].as_str().unwrap()).unwrap(),machine_packet["receipt"]);
+    child.0.kill().unwrap();child.0.wait().unwrap();assert!(child.0.try_wait().unwrap().is_some());drop(child);
+    // A second normal launch reads history from the same SQLite but uses only newly issued fixture tokens.
+    let mut restarted=spawn(&db);let restarted_pid=restarted.0.id();
+    let human_token="e".repeat(64);let machine_token="f".repeat(64);
+    writeln!(restarted.0.stdin.take().unwrap(),"{}",json!({"protocol":"archeaxis.desktop-launch/v2","actor":"human","launch_token":human_token,"machine_token":machine_token,"session_id":"d".repeat(32)})).unwrap();let port=ready(&mut restarted);
+    let headers=format!("x-archeaxis-launch-token: {human_token}\r\n");
+    let (code,body)=http(port,"GET",&format!("/api/v1/machine/tasks/{audit}"),&headers);assert_eq!(code,200);assert_eq!(serde_json::from_str::<Value>(&body).unwrap(),receipt);
+    restarted.0.kill().unwrap();restarted.0.wait().unwrap();assert!(restarted.0.try_wait().unwrap().is_some());drop(restarted);
+    assert!(owned_pid>0&&restarted_pid>0);
+    let c=rusqlite::Connection::open_with_flags(&db,rusqlite::OpenFlags::SQLITE_OPEN_READ_ONLY).unwrap();
+    assert_eq!(c.query_row("SELECT count(*) FROM machine_tasks WHERE scope='runtime.context.packet'",[],|r|r.get::<_,i64>(0)).unwrap(),2);
+    for table in ["knowledge","jobs","learning_events"] {assert_eq!(c.query_row(&format!("SELECT count(*) FROM {table}"),[],|r|r.get::<_,i64>(0)).unwrap(),0);}
+}
 struct Owned(Child);
 impl Drop for Owned {
     fn drop(&mut self) {
@@ -71,6 +125,82 @@ fn http_body(port: u16, method: &str, path: &str, headers: &str, body: &str) -> 
         response.split_whitespace().nth(1).unwrap().parse().unwrap(),
         response.split("\r\n\r\n").nth(1).unwrap_or("").into(),
     )
+}
+
+#[test]
+fn provider_profile_replacement_requires_restart_and_can_be_rolled_back() {
+    let dir = tempfile::tempdir().unwrap();
+    let db = dir.path().join("runtime.sqlite");
+    let profile = dir.path().join("launch-profile.json");
+    let python = std::env::var("ARCHEAXIS_PYTHON").unwrap();
+    let original = std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+        .parent()
+        .unwrap()
+        .parent()
+        .unwrap()
+        .join("services/python-workers/transport/text_ndjson.py");
+    // Distinct configured provider that delegates to the real existing transport.
+    let replacement = dir.path().join("replacement.py");
+    std::fs::write(
+        &replacement,
+        format!(
+            "import runpy\nrunpy.run_path({:?}, run_name='__main__')\n",
+            original.to_string_lossy()
+        ),
+    )
+    .unwrap();
+    let document = |worker: &std::path::Path| {
+        serde_json::json!({
+            "protocol":"archeaxis.desktop-launch/v2","actor":"human",
+            "launch_token":TOKEN,"machine_token":MACHINE_TOKEN,"session_id":SESSION,
+            "text_worker":{"python":python,"script":worker,"staging":dir.path().join("staging")}
+        })
+        .to_string()
+    };
+    let original_profile = document(&original);
+    std::fs::write(&profile, &original_profile).unwrap();
+    let read = |port| {
+        let (status, body) = http(
+            port,
+            "GET",
+            "/api/v1/capabilities/text.extract",
+            &format!("x-archeaxis-launch-token: {TOKEN}\r\n"),
+        );
+        assert_eq!(status, 200, "{body}");
+        let value: serde_json::Value = serde_json::from_str(&body).unwrap();
+        assert_eq!(value["capability"]["health"], "handshake_ready", "{value}");
+        value["capability"]["default_provider"]
+            .as_str()
+            .unwrap()
+            .to_string()
+    };
+    let start = || {
+        let mut child = spawn(&db);
+        writeln!(
+            child.0.stdin.take().unwrap(),
+            "{}",
+            std::fs::read_to_string(&profile).unwrap()
+        )
+        .unwrap();
+        let port = ready(&mut child);
+        (child, port)
+    };
+    let (child, port) = start();
+    assert_eq!(read(port), original.to_string_lossy());
+    std::fs::write(&profile, document(&replacement)).unwrap();
+    assert_eq!(
+        read(port),
+        original.to_string_lossy(),
+        "profile edits do not hot-switch a live Core"
+    );
+    drop(child);
+    let (child, port) = start();
+    assert_eq!(read(port), replacement.to_string_lossy());
+    drop(child);
+    std::fs::write(&profile, &original_profile).unwrap();
+    let (_child, port) = start();
+    assert_eq!(read(port), original.to_string_lossy());
+    assert_eq!(std::fs::read_to_string(profile).unwrap(), original_profile);
 }
 #[test]
 fn configured_process_exposes_actual_worker_execution_not_just_in_process_router() {

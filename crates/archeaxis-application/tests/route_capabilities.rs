@@ -29,12 +29,49 @@ fn every_declared_route_selects_its_capability_and_media_type() {
         ("text", "text.extract", "text/markdown", "notes.md"),
         ("text", "text.extract", "text/csv", "table.csv"),
         ("text", "text.extract", "application/json", "payload.json"),
+        (
+            "text",
+            "text.extract",
+            "application/x-ndjson",
+            "payload.jsonl",
+        ),
+        ("text", "text.extract", "application/yaml", "payload.yaml"),
+        ("text", "text.extract", "application/toml", "payload.toml"),
+        ("text", "text.extract", "application/epub+zip", "book.epub"),
+        ("text", "text.extract", "message/rfc822", "mail.eml"),
+        // R15/F13: an ODF package and an RTF file must reach the reader that exists for them.
+        (
+            "text",
+            "text.extract",
+            "application/vnd.oasis.opendocument.text",
+            "notes.odt",
+        ),
+        (
+            "text",
+            "text.extract",
+            "application/vnd.oasis.opendocument.spreadsheet",
+            "grid.ods",
+        ),
+        (
+            "text",
+            "text.extract",
+            "application/vnd.oasis.opendocument.presentation",
+            "deck.odp",
+        ),
+        ("text", "text.extract", "application/rtf", "letter.rtf"),
         ("pdf", "pdf.extract", "application/pdf", "sample.pdf"),
         ("image", "image.ocr", "image/png", "shot.png"),
         ("image", "image.ocr", "image/jpeg", "shot.jpg"),
         ("image", "image.ocr", "image/tiff", "shot.tif"),
         ("image", "image.ocr", "image/webp", "shot.webp"),
         ("image", "image.ocr", "image/bmp", "shot.bmp"),
+        ("video", "media.video", "video/mp4", "clip.mp4"),
+        ("video", "media.video", "video/quicktime", "clip.mov"),
+        ("video", "media.video", "video/x-matroska", "clip.mkv"),
+        ("video", "media.video", "video/webm", "clip.webm"),
+        // F10: a recording reaches the diarizer as its own kind, so its boundaries cannot be
+        // mistaken for a transcript by anything reading the job table.
+        ("diarize", "media.diarize", "audio/wav", "speech.wav"),
     ];
     for (kind, capability, media, name) in cases {
         let (_dir, mut conn) = seed(kind, b"%PDF-1.4 payload", name);
@@ -137,7 +174,7 @@ fn canvas_and_subtitle_names_resolve_to_the_routes_that_can_read_them() {
     // a saved mail message is text with its own structure
     assert_eq!(
         attempts::resolve_media_type("text", "message.eml").unwrap(),
-        "text/plain"
+        "message/rfc822"
     );
     // and they are refused by a route that cannot read them
     assert!(attempts::resolve_media_type("image", "vault.canvas").is_err());
@@ -147,10 +184,9 @@ fn canvas_and_subtitle_names_resolve_to_the_routes_that_can_read_them() {
 
 #[test]
 fn a_binary_container_name_is_refused_because_no_route_can_read_it() {
-    // .msg is a binary OLE container with no reader here, and .epub/.ods are binary
-    // archives no engine in this repository opens: decoding them as text would produce
-    // noise, so the Core refuses the name instead
-    for name in ["mail.msg", "book.epub", "sheet.ods"] {
+    // These containers have no declared reader; EPUB has its own text adapter and the ODF
+    // families are read from their own content.xml, so neither appears here any more.
+    for name in ["mail.msg"] {
         let error = attempts::resolve_media_type("text", name)
             .unwrap_err()
             .to_string();
@@ -197,13 +233,43 @@ fn an_unnamed_extension_is_refused_rather_than_guessed() {
         attempts::accepted_media_types("pdf.extract"),
         ["application/pdf"]
     );
-    assert_eq!(attempts::accepted_media_types("text.extract").len(), 7);
+    assert_eq!(attempts::accepted_media_types("text.extract").len(), 18);
+    // R15/F13: the ODF families and RTF are named only because a reader exists for them here
+    for (name, media) in [
+        ("notes.odt", "application/vnd.oasis.opendocument.text"),
+        ("grid.ods", "application/vnd.oasis.opendocument.spreadsheet"),
+        (
+            "deck.odp",
+            "application/vnd.oasis.opendocument.presentation",
+        ),
+        ("letter.rtf", "application/rtf"),
+    ] {
+        assert_eq!(attempts::resolve_media_type("text", name).unwrap(), media);
+        assert!(
+            attempts::resolve_media_type("image", name).is_err(),
+            "{name} must not reach a route that cannot read it"
+        );
+    }
+    // R15/F01: a Python source is named because a symbol reader exists for it here, and the
+    // count above is only a guard until this pair is checked by content as well.
+    assert_eq!(
+        attempts::resolve_media_type("text", "tool.py").unwrap(),
+        "text/x-python"
+    );
+    // R15/F14: a Word 97 binary is named for the office route because a sidecar is probed for
+    // it, and it must never resolve as text - a ZIP-of-XML or OLE2 body decoded as text is noise
+    // that would be stored as if it were reading.
+    assert_eq!(
+        attempts::resolve_media_type("office", "letter.doc").unwrap(),
+        "application/msword"
+    );
+    assert!(attempts::resolve_media_type("text", "letter.doc").is_err());
     assert!(attempts::accepted_media_types("nothing.extract").is_empty());
 }
 
 #[test]
 fn an_unknown_job_kind_is_refused_at_claim_time() {
-    let (_dir, mut conn) = seed("video", b"not a supported route", "clip.mp4");
+    let (_dir, mut conn) = seed("undeclared-video", b"not a supported route", "clip.mp4");
     assert!(
         attempts::claim(&mut conn, "job", "req-2", 5000).is_err(),
         "an undeclared route must not be claimed as if it were text"
@@ -222,6 +288,33 @@ fn route_lookup_is_explicit_about_unknown_kinds() {
     assert!(attempts::route_for_kind("text").is_some());
     assert!(attempts::route_for_kind("pdf").is_some());
     assert!(attempts::route_for_kind("image").is_some());
-    assert!(attempts::route_for_kind("video").is_none());
+    assert_eq!(
+        attempts::route_for_kind("video"),
+        Some(("media.video", "video/mp4"))
+    );
+    assert!(attempts::route_for_kind("undeclared-video").is_none());
     assert!(attempts::route_for_kind("").is_none());
+}
+
+#[test]
+fn only_the_detection_route_accepts_a_name_that_names_nothing() {
+    // F04: an unnameable extension stays a refusal for every route whose output is a projection -
+    // guessing a type there is the failure the requirement forbids. The detection route is the one
+    // whose job IS the unnameable case, and it is handed the bytes, not a guessed label.
+    assert!(matches!(
+        attempts::resolve_media_type("text", "field_notes"),
+        Err(jobs::JobError::MediaTypeNotAccepted { derived: None, .. })
+    ));
+    assert_eq!(
+        attempts::resolve_media_type("detect", "field_notes").unwrap(),
+        "application/octet-stream"
+    );
+    // and a name that DOES declare a type is not this route's work: its own route already answers.
+    assert!(matches!(
+        attempts::resolve_media_type("detect", "notes.txt"),
+        Err(jobs::JobError::MediaTypeNotAccepted {
+            derived: Some("text/plain"),
+            ..
+        })
+    ));
 }

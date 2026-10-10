@@ -51,11 +51,13 @@ def test_b05_metadata_and_four_kpis_remain_without_sample_values():
         assert f"{{Binding {field}}}" in row
     assert len(named["EvidenceMetricsGrid"]) == 4
     code = CODE.read_text(encoding="utf-8")
-    assert "TitleDisplay => AnchorId" in code
+    # The row heading is the cited quote when the Core supplied one and a neutral label
+    # otherwise; the raw anchor id lives on the row's detail line instead of being the title.
+    assert 'public string TitleDisplay => string.IsNullOrWhiteSpace(Quote)' in code
     for field in ("ConfidenceDisplay", "TopicDisplay", "CitationCountDisplay"):
-        assert f'{field} => "Core 未暴露"' in code
-    assert 'PublicationYearDisplay => "年份未由 Core 暴露"' in code
-    assert 'VerificationStatusDisplay => "验证状态未由 Core 暴露"' in code
+        assert f'{field} => "未提供"' in code
+    assert 'PublicationYearDisplay => "年份未提供"' in code
+    assert 'VerificationStatusDisplay => "验证状态未提供"' in code
 
 
 def test_narrow_layout_keeps_same_rows_and_category_tabs():

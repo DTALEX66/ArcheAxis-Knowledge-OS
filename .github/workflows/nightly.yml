@@ -25,6 +25,7 @@ permissions:
 jobs:
   py-compat:
     timeout-minutes: 15
+    if: ${{ github.event_name == 'workflow_dispatch' || vars.ENABLE_NIGHTLY_HEAVY == 'true' }}
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -33,6 +34,8 @@ jobs:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
         with:
           persist-credentials: false
+      - name: Initialize project development paths
+        run: python -B scripts/runtime/dev.py --github-env
       - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
         with:
           python-version: ${{ matrix.python-version }}
@@ -42,8 +45,8 @@ jobs:
           cache-dependency-glob: uv.lock
       - name: Install locked compatibility dependencies
         run: |
-          uv export --frozen --only-group ci --no-emit-project --format requirements-txt --output-file locked-ci.txt
-          uv pip install --system --require-hashes -r locked-ci.txt
+          uv export --frozen --only-group ci --no-emit-project --format requirements-txt --output-file "$ARCHEAXIS_RUN_ROOT/artifacts/locked-ci.txt"
+          uv pip install --system --require-hashes -r "$ARCHEAXIS_RUN_ROOT/artifacts/locked-ci.txt"
       - name: Compile and import compatibility surface
         run: |
           python -m compileall -q app shared knowledge_base scripts
@@ -51,6 +54,7 @@ jobs:
 
   full-suite:
     timeout-minutes: 30
+    if: ${{ github.event_name == 'workflow_dispatch' || vars.ENABLE_NIGHTLY_HEAVY == 'true' }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
@@ -64,6 +68,8 @@ jobs:
           # record into a false failure. Other nightly jobs keep the default
           # depth because their selections do not read history.
           fetch-depth: 0
+      - name: Initialize project development paths
+        run: python -B scripts/runtime/dev.py --github-env
       - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
         with:
           python-version: "3.12"
@@ -73,7 +79,8 @@ jobs:
           cache-dependency-glob: uv.lock
       - name: Install ci + ci-adapters groups
         run: |
-          uv sync --frozen --group ci --group ci-adapters
+          uv export --frozen --only-group ci --only-group ci-adapters --no-emit-project --format requirements-txt --output-file "$ARCHEAXIS_RUN_ROOT/artifacts/locked-nightly.txt"
+          uv pip install --system --require-hashes -r "$ARCHEAXIS_RUN_ROOT/artifacts/locked-nightly.txt"
       - name: Install and verify local OCR engine
         # Mirrors ci.yml OS-level tests: full-suite runs every test,
         # including real-tesseract media tests that fail without the engine.
@@ -91,10 +98,11 @@ jobs:
         # integration-tests/ (35 tests) — ci.yml runs them as a separate
         # step; nightly's full-matrix job must mirror all three.
         run: |
-          env -u PYTHONPATH uv run --frozen --group ci --group ci-adapters pytest -q --tb=short tests/ integration-tests/ knowledge_base/tests/
+          python -B -m pytest -q --tb=short tests/ integration-tests/ knowledge_base/tests/
 
   browser-smoke:
     timeout-minutes: 15
+    if: ${{ github.event_name == 'workflow_dispatch' || vars.ENABLE_NIGHTLY_HEAVY == 'true' }}
     runs-on: ubuntu-latest
     needs: full-suite
     steps:
@@ -106,6 +114,8 @@ jobs:
           node-version: "24"
           cache: npm
           cache-dependency-path: frontend/package-lock.json
+      - name: Initialize project development paths
+        run: python -B scripts/runtime/dev.py --github-env
       - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
         with:
           python-version: "3.12"
@@ -119,33 +129,37 @@ jobs:
         # same interpreter that has the project deps (ci.yml's gate uses
         # pip --system instead; venv is more consistent for the nightly tier).
         run: |
-          uv sync --frozen --group ci --group ci-adapters --group browser
+          uv export --frozen --only-group ci --only-group ci-adapters --only-group browser --no-emit-project --format requirements-txt --output-file "$ARCHEAXIS_RUN_ROOT/artifacts/locked-nightly.txt"
+          uv pip install --system --require-hashes -r "$ARCHEAXIS_RUN_ROOT/artifacts/locked-nightly.txt"
       - name: Install Chromium
         run: uv run --frozen --group browser python -m playwright install --with-deps chromium
-      - name: Install legacy frontend tooling (locked)
-        # `frontend/` is the legacy React behavior reference, not the formal
-        # desktop shell: the formal shell is `apps/ArcheAxis.Desktop/`
-        # (C#/Avalonia), per config/product/UI_CONTRACT_V2.json.
+      - name: Install frontend tooling (locked)
+        # `frontend/` + `src-tauri/` is the formal product host (SUP-022); the
+        # Avalonia app under apps/ArcheAxis.Desktop/ is the frozen donor. See
+        # config/product/UI_CONTRACT_V2.json productShell.
         run: npm ci --prefix frontend --ignore-scripts --no-audit --no-fund
       - name: Workspace API suite
         run: |
-          env -u PYTHONPATH uv run --frozen --group ci --group ci-adapters pytest tests/test_workspace_api.py -q --tb=short
+          python -B -m pytest tests/test_workspace_api.py -q --tb=short
       - name: Legacy React/Workspace browser behavior regressions
         # Behaviour regression on the legacy frontend, not a "canonical React"
         # gate: this is not evidence about the formal Avalonia desktop shell.
         env:
           ARCHEAXIS_DATA_DIR: ${{ runner.temp }}/cognitive-browser-runtime
         run: |
-          env -u PYTHONPATH uv run --frozen --group ci --group ci-adapters --group browser python scripts/a0_browser_smoke.py
+          python -B scripts/a0_browser_smoke.py
 
   windows-runtime:
     timeout-minutes: 15
+    if: ${{ github.event_name == 'workflow_dispatch' || vars.ENABLE_NIGHTLY_HEAVY == 'true' }}
     runs-on: windows-latest
     needs: full-suite
     steps:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
         with:
           persist-credentials: false
+      - name: Initialize project development paths
+        run: python -B scripts/runtime/dev.py --github-env
       - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
         with:
           python-version: "3.12"
@@ -155,17 +169,18 @@ jobs:
           cache-dependency-glob: uv.lock
       - name: Install ci + ci-adapters
         run: |
-          uv sync --frozen --group ci --group ci-adapters
+          uv export --frozen --only-group ci --only-group ci-adapters --no-emit-project --format requirements-txt --output-file "$env:ARCHEAXIS_RUN_ROOT/artifacts/locked-nightly.txt"
+          uv pip install --system --require-hashes -r "$env:ARCHEAXIS_RUN_ROOT/artifacts/locked-nightly.txt"
       - name: Windows runtime tests
         shell: pwsh
         run: |
           Remove-Item -LiteralPath Env:PYTHONPATH -ErrorAction SilentlyContinue
-          uv run --frozen --group ci --group ci-adapters pytest tests/test_desktop_runtime.py tests/test_migration_runner.py -q --tb=short
+          python -B -m pytest tests/test_desktop_runtime.py tests/test_migration_runner.py -q --tb=short
       - name: Migrate fresh Windows runtime
         env:
           ARCHEAXIS_DATA_DIR: ${{ runner.temp }}\cognitive-windows-runtime
-        run: uv run --frozen --group ci --group ci-adapters python -m app.runtime_entrypoint migrate
+        run: python -B -m app.runtime_entrypoint migrate
       - name: Run Windows Core and Workspace HTTP smoke
         env:
           ARCHEAXIS_DATA_DIR: ${{ runner.temp }}\cognitive-windows-runtime
-        run: uv run --frozen --group ci --group ci-adapters python scripts/runtime_http_smoke.py
+        run: python -B scripts/runtime_http_smoke.py

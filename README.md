@@ -1,20 +1,19 @@
 # 星环知识平台（ArcheAxis Knowledge）
 
-> **当前权威入口（2026-09-23）**：本 README 保留产品介绍与历史兼容说明，
-> 不承担任务规划权威。当前执行必须从
-> [`docs/DOCUMENTATION_AUTHORITY_INDEX.md`](docs/DOCUMENTATION_AUTHORITY_INDEX.md)
-> 进入，再读取 R6 TaskPack、M0 覆盖、`R6-EXECUTION.md` 与 `R6-STATE.json`。
-> 旧版本、React/Tauri、R5/R3/R2 规划和发布摘要均为历史/兼容材料，不得当作
-> 当前实现或 Green 已替换证据。
+> **当前执行入口（2026-10-09）**：[`AUTHORITY.md`](AUTHORITY.md) →
+> [`活动执行路由`](docs/current/AAOS-ACTIVE-EXECUTION.json) →
+> [`UI 优先任务包`](docs/taskpacks/aaos-ui-first-20261009/TASKPACK.md) →
+> [`实际执行与验收记录`](docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md)。
+> 当前包由用户明确选中；其规划时 NOT_EXECUTED 不等同当前实施状态。
+> AAOS-01/R6/M0 是历史任务的继承合同与日期证据，旧整包顺序冻结；V01 暂停，FT01–04 延期保留。
+>
+> **正式实现方向**：Tauri 2 + React/TypeScript/Vite，Rust Core 是 SQLite/CAS 唯一 writer，Python workers 隔离。
+> 新五域/22语义页面按任务分批接入。默认 blueprint，支持 blueprint-light 与原 black/white/cosmic；所有主题共用新布局，同一主题的颜色由统一语义变量控制。
+> 本地实现、自动测试、exact-SHA 云端 CI、已安装运行与 Owner 验收分别记账；页面入口和能力意图不等同功能全部完成。
+> [`内容保存规则`](PROJECT_CONTRACT.yaml) 继续有效；普通笔记不以云核验、依据或人审为保存前置。
+> [当前 Agent 交接](docs/current/AAOS-AGENT-HANDOFF-CURRENT.md) / [治理与云端同步范围](docs/current/AAOS-GOVERNANCE-ALIGNMENT-20261009.md)。
 
 <!-- Legacy/Migration names below are compatibility context only. -->
-
-> **v0.6.11 已发布（2026-08-27）**：exact-SHA CI、NSIS/Green/Portable 生命周期和 9 项公开资产读回已通过，正式 Release：[`v0.6.11`](https://github.com/DTALEX66/ArcheAxis-Knowledge-OS/releases/tag/v0.6.11)。该不可变版本随后被确认遗漏 OSUI v3 设计采用与中文一致性验收；发布工程通过不等于 UI 产品验收通过。修复只追加到后续版本，不改写 v0.6.11。
-
-> **前端现状**：正式 vNext 桌面壳是 `apps/ArcheAxis.Desktop/`（C#/Avalonia），
-> Rust Core 与隔离 Python worker 由 R6/M0 约束。React/Tauri 与旧 UI 仅作为
-> Green 兼容/行为参考，不是当前默认实现。P3 UI 仍需原生 GUI 首用验收；本地
-> build 或 headless smoke 不等于 Green 原位更新。
 
 > **ArcheAxis Knowledge — a local-first, evidence-driven, bidirectional Human–AI Learning & Trusted-Knowledge Workspace for individuals and AI.**
 >
@@ -37,10 +36,11 @@
 - 能力图谱：[`docs/truth/CAPABILITY_ATLAS_V2.yaml`](docs/truth/CAPABILITY_ATLAS_V2.yaml)
 - 总蓝图：[`docs/blueprint/SYSTEM_MASTER_BLUEPRINT_V2.md`](docs/blueprint/SYSTEM_MASTER_BLUEPRINT_V2.md)
 
-**当前阶段**：R6/M0 本地 Green absorb-first，先完成真实 P0–P6 最短闭环；
-P3 Avalonia UI 是当前前端优先切片。未完成 Owner Gate、独立审计、Green
-备份/替换/回滚和安装验收前，不宣称全面 UI 闭环、发布或 Green 就绪。
-详见 [`docs/current/DOCUMENTATION-DRIFT-AUDIT-20260923.md`](docs/current/DOCUMENTATION-DRIFT-AUDIT-20260923.md)。
+**当前阶段**：按 UI 优先任务包实施首批与 G01，详情见当前执行记录；旧 Q00–Q15 证据只在其继承台账内解释，不代表新 UI 完整资格。
+
+**内容保存原则**：原创笔记、灵感、假设、未复核识别结果及待补依据的专业内容可以先保存、搜索、阅读和编辑。身份、写入权限、结构与完整性校验继续执行；普通保存不等待云端调用，也不要求先填证据表单。
+
+**两种证据用途**：识别核验对照原件检查本地解析/OCR/ASR 是否忠实；专业依据分析研究主张的支持、反驳与冲突。二者独立记录并绑定实际版本或片段。云端不可用保留待执行或失败状态，修订保留原始结果、位置、依据和版本历史。人工认可属于专用流程，保存本身不表示内容已证实。
 
 ---
 
@@ -58,10 +58,10 @@ P3 Avalonia UI 是当前前端优先切片。未完成 Owner Gate、独立审计
 | Tesseract 语言包 | OCR 中文/英文识别（chi_sim + eng） | https://github.com/tesseract-ocr/tessdata |
 | FFmpeg | 音视频处理 | https://ffmpeg.org/download.html |
 | Git | 版本控制 | https://git-scm.com/download/win |
-| .NET 10 SDK | 正式 C#/Avalonia 桌面构建 | https://dotnet.microsoft.com/download/dotnet/10.0 |
-| Rust toolchain | 正式 Rust Core 构建；不再作为 Tauri 产品壳工具链 | https://rustup.rs |
+| .NET 10 SDK | 保留的 Avalonia 供体与兼容回归 | https://dotnet.microsoft.com/download/dotnet/10.0 |
+| Rust toolchain | 正式 Rust Core 与 Tauri 宿主构建 | https://rustup.rs |
 | VS Build Tools (MSVC) | Rust Core 与 Windows 桌面本机构建链 | https://visualstudio.microsoft.com/visual-cpp-build-tools/ |
-| Node.js LTS | Legacy React/Tauri 恢复与行为回归（非正式产品壳） | https://nodejs.org/ |
+| Node.js LTS | 正式 React/TypeScript/Vite 界面构建 | https://nodejs.org/ |
 | Playwright 浏览器 | 浏览器自动化 | https://playwright.dev/python/docs/browsers |
 | scoop | Windows 包管理（可选） | https://scoop.sh |
 
@@ -72,7 +72,7 @@ P3 Avalonia UI 是当前前端优先切片。未完成 Owner Gate、独立审计
 ### 已吸收（代码/依赖已并入）
 
 JiWER、RapidFuzz、JSON Canvas（格式）、Crossref/DataCite/OpenAlex/Wikidata（API 连接器）、py-fsrs、Magika（ONNX 模型 vendored）、MarkItDown、Trafilatura、pytesseract、sqlite-vec、NetworkX、LiteLLM、Langfuse、Loguru、structlog、APScheduler、PDF.js（vendored）。
-权威决策账本：[`docs/truth/SUPPLY_CHAIN_LEDGER.json`](docs/truth/SUPPLY_CHAIN_LEDGER.json)。
+权威决策账本：[`docs/truth/SUPPLY_CHAIN_LEDGER.json`](docs/truth/SUPPLY_CHAIN_LEDGER.json)。其中 PDF.js（C001）在账本里仍是 `REFERENCE`，与上表不符：那是 2026-08-29 的记录，前提是"React/Tauri 界面已退役"；正式宿主在 2026-10-04 改为 Tauri+React 后该前提不再成立（[`DECISION_SUPERSESSION_LEDGER.yaml`](DECISION_SUPERSESSION_LEDGER.yaml) SUP-022 → SUP-023），实测 `frontend/src/components/PdfReader.tsx` 正在导入它。历史行保留不改写。
 
 ### 吸收不了 / 许可或边界阻断（外置保留，仅链接）
 
@@ -98,20 +98,20 @@ bake-off 框架：[`shared/bakeoff.py`](shared/bakeoff.py) + [`shared/bakeoff_en
 
 ## 当前重点
 
-- **资料到知识的真实基础链**：网页、GitHub URL、本地文件导入 → candidate Research/Evidence → Knowledge/Learning/Mastery 治理；执行侧当前以 `read file:` 受限 Planner tracer 和局部闭环为主。
-- **个人学习与 AI 使用的双向反馈**：学习笔记、纠错、练习和人工审核不会自动提升为事实；AI 的来源、Claim、解释、任务结果和 Lesson 同样必须先经 Candidate 治理。
-- **可治理的本地运行时**：SQLite 持久化、Outbox/Receipt、失败不改状态、重试与回读，以及不暴露内部审计 ID 的公开投影。
-- **桌面 Workspace UI v3**：正式壳为 C#/Avalonia（`apps/ArcheAxis.Desktop/`）+ Rust Core；默认采用离线黑白深色基线。Archive Desk / Liquid Glass 仅作为历史设计参考。React/Tauri/Chromium 回归仅覆盖 legacy 兼容壳，不证明正式桌面 UI 已验收。当前 Avalonia 原生交互证据、Candidate 与 Green 安装证据分开记录；本地维护不创建新版本或改写公开资产。
-- **当前版本**：`0.6.14`；`v0.6.14` 是当前公开稳定 Release。当前 `main` 是不发新版本的维护主线；其路径选择 CI、全量资格化和 Green 安装态分别记录，不能互相替代；历史标签均不可改写。
-- **发布真相**：`v0.4.0` 是保留且不可原地改写的 historical release，但具有 **incomplete checksum payload coverage**；后续历史标签同样不重写。`v0.6.11` 的 tag/commit/tree、exact-SHA CI `33076417510`、Release run `33077810146`、三分发生命周期与 9 资产身份/摘要读回证据见 [`docs/RELEASE_LEDGER.md`](docs/RELEASE_LEDGER.md)。
+- **多格式内容闭环**：保全原件，记录解析结果、结构、定位、疑点、损失与错误，支持失败重试和重启读回。音视频现有回执仅为头信息探测，解码、ASR 与时间段闭环独立验收。
+- **独立保存与修订**：Document/Block 由 Core 版本化持久保存；无外部来源或未获得证据支持的原创内容不被审核入口阻塞。识别忠实度、专业依据与人工认可分别处理。
+- **人机双向学习**：保留实际知识候选、学习答案/计划、机器任务与纠正的来源和版本；探索性使用假设与要求严格依据的任务分别处理，未测量效果保持未评估。
+- **成熟能力复用**：继续使用已有 Tauri/Avalonia 资产、Tiptap/PDF.js、解析器、模型和搜索适配器；开源池登记项的许可证、版本与实际接入证据分别核验。
+- **可验证交付**：统一权威运行时暂存器、锁文件、有限宿主桥与单一 Core writer。发布和 Green 替换保留现有 Owner Gate；历史 Release 与本轮重构资格分开。
 
-Research candidate 仍必须经过人工审查和来源独立性验证，不能自动当作 verified truth。产品定位见 [`docs/PRODUCT_POSITIONING.md`](docs/PRODUCT_POSITIONING.md)；当前执行与任务状态见 [`docs/current/R6-EXECUTION.md`](docs/current/R6-EXECUTION.md) 与 [`docs/current/R6-STATE.json`](docs/current/R6-STATE.json)，验证规则见 [`docs/VERIFICATION_POLICY.md`](docs/VERIFICATION_POLICY.md)。[`docs/PROJECT_STATUS.md`](docs/PROJECT_STATUS.md) 是历史/冻结快照。
+当前执行规格见 [`UI 优先任务包`](docs/taskpacks/aaos-ui-first-20261009/TASKPACK.md)，产品规范见 [`项目合同`](PROJECT_CONTRACT.yaml)，当前实施结果见 [`UI 执行记录`](docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md)。[`继承 AAOS-01 任务书`](docs/authority/taskpack-1004-aaos01/01_完整执行任务书.md)及其 Q 台账保留原范围。历史标签、许可证边界、用户资料及恢复基线保留原始身份。
 
 > **Historical snapshot: pre-R6 Research implementation.** The following
 > FastAPI/SQLite facade, routes and completion claims describe an earlier
 > architecture. They remain migration/compatibility evidence and do not define
 > the formal vNext shell, Core, current capability status or active queue.
-> Current execution is defined by R6/M0 and read back in `docs/current/R6-EXECUTION.md`.
+> R6/M0 and AAOS-01 receipts retain their historical scope. Current execution is
+> routed by `docs/current/AAOS-ACTIVE-EXECUTION.json` and recorded in the UI execution record.
 
 ## Phase 4 Research Status
 
@@ -145,7 +145,7 @@ Research → Evidence → Knowledge → Learning
 > **Historical snapshot: pre-R6 program roadmap.** The Phase 0–9 / Product
 > Stage A0 table and following milestone narrative preserve their original
 > dated status; they are not the current execution plan. Current execution is
-> defined by R6/M0 in the documentation authority chain.
+> routed by the owner-selected UI-first package in the documentation authority chain.
 
 ## 规划与进度
 
@@ -178,7 +178,7 @@ CODEX 冻结的后续执行蓝图与增补包已进入仓库 `docs/`，作为后
 
 > 说明：这些文档与历史 `docs/FUTURE_EXECUTION_BLUEPRINT.md` 并存；冻结基线与增补包是当前任务的权威定义，历史蓝图仅作迁移输入（权威顺序见 `AUTHORITY_CONTRACT.md`）。H1 后端已完成但仍在 PR 中未 merge，`PROJECT_STATUS` 与 README 的产品能力描述以 main 实际状态为准。
 
-### 当前里程碑：Product Stage A0 真相基线
+### 历史里程碑：Product Stage A0 真相基线（旧阶段）
 
 ```text
 Phase 0 真实基线 ✅
@@ -210,7 +210,7 @@ Phase 0 真实基线 ✅
 
 本阶段明确不宣称：单个 GitHub 仓库已构成独立交叉验证、candidate 已成为 verified truth，或完整认知执行闭环、Tauri WebView 点击级 UI、通用 Planner、完整用户级 Job Center、公开 Alpha/Beta 能力已完成；公开稳定 `v0.5.0` 发布资产本身已完成并有独立回读证据。
 
-未来设计与候选执行轨道见 [`docs/FUTURE_EXECUTION_BLUEPRINT.md`](docs/FUTURE_EXECUTION_BLUEPRINT.md)；当前事实与限制见 [`docs/current/R6-EXECUTION.md`](docs/current/R6-EXECUTION.md)、[`docs/current/R6-STATE.json`](docs/current/R6-STATE.json) 与 [`docs/current/M0-DIRECTION-OVERRIDE-20260920.md`](docs/current/M0-DIRECTION-OVERRIDE-20260920.md)。`docs/PROJECT_STATUS.md` 仅作历史快照。
+未来设计与候选执行轨道见 [`docs/FUTURE_EXECUTION_BLUEPRINT.md`](docs/FUTURE_EXECUTION_BLUEPRINT.md)；当前事实与限制见 [`UI 执行记录`](docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md)与 [`活动路由`](docs/current/AAOS-ACTIVE-EXECUTION.json)。R6/M0 与 `docs/PROJECT_STATUS.md` 仅保留继承约束和历史快照。
 
 开源项目、知识库软件与 Obsidian/PKM 的吸收状态、前后端阶段、Adapter 边界和验收门禁见 [`docs/ABSORPTION_EXECUTION_MATRIX.md`](docs/ABSORPTION_EXECUTION_MATRIX.md)；候选登记不等于运行时集成。
 
@@ -227,7 +227,9 @@ python -m app.runtime_entrypoint core
 - Knowledge API：`http://127.0.0.1:8000/kb/docs`
 - 实时健康与路由数：`http://127.0.0.1:8000/health`
 
-## 当前可运行基线
+## 历史可运行基线（Python-era 行为供体）
+
+下表保留旧阶段功能说明，不代表当前正式 Tauri/Rust Core 或安装版已验证能力。
 
 | 入口 | 作用 |
 |---|---|
@@ -240,7 +242,9 @@ python -m app.runtime_entrypoint core
 
 旧的细粒度接口仍为兼容层；新增能力优先进入复合端点，不再继续平铺路由。
 
-## 当前模块边界
+## 历史模块边界（Python-era 供体）
+
+下表为兼容/迁移输入；当前职责由 SUP-022、项目合同和当前架构索引定义。
 
 ```text
 app/                    核心服务、摄入、工具、工作流（技术实现边界）

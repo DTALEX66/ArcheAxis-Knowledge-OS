@@ -49,6 +49,7 @@ KIND_BY_EXTENSION = {
     "tif": "image", "tiff": "image",
     "wav": "media", "mp4": "media", "m4v": "media", "mov": "media",
     "docx": "office", "pptx": "office", "xlsx": "office",
+    "doc": "office", "xls": "office", "ppt": "office",
     "canvas": "canvas",
     "srt": "subtitles", "vtt": "subtitles",
     "html": "html", "htm": "html", "xhtml": "html",

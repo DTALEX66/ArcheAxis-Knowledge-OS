@@ -115,6 +115,23 @@ def worker_route_map() -> dict[str, str]:
     return routes
 
 
+def transport_media_by_capability() -> dict[str, set[str]]:
+    """Parse the transport ROUTES table: capability -> media types the worker will accept.
+
+    This is the other half of the promise. The Core's table decides what a file name means;
+    this one decides whether the dispatched worker will take the job at all."""
+    source = _read(TRANSPORT_ROUTES)
+    start = source.find("ROUTES = {")
+    end = source.find("\n}", start)
+    block = source[start:end] if start >= 0 else ""
+    media: dict[str, set[str]] = {}
+    for match in re.finditer(r'"([a-z][a-z.]*\.[a-z]+)"\s*:\s*\{(.*?)\n    \}', block, re.DOTALL):
+        capability, body = match.group(1), match.group(2)
+        declared = re.search(r'"media_types"\s*:\s*\{(.*?)\}', body, re.DOTALL)
+        media[capability] = set(re.findall(r'"([^"]+)"', declared.group(1))) if declared else set()
+    return media
+
+
 def check(matrix_path: Path = MATRIX, root: Path = ROOT) -> tuple[list[str], dict]:
     failures: list[str] = []
     try:
@@ -200,6 +217,23 @@ def check(matrix_path: Path = MATRIX, root: Path = ROOT) -> tuple[list[str], dic
             failures.append(f"{row_id}: status is {status} so the gap must be stated, not left empty")
         if status == "complete" and (row.get("gap") or "").strip():
             failures.append(f"{row_id}: status is complete but a gap is still recorded")
+
+    # A media type the Core names but the worker does not accept is a promise the product cannot
+    # keep: the job is claimed, dispatched, and then rejected at the worker boundary. Compare the
+    # two tables for every capability both sides claim, in both directions.
+    transport_media = transport_media_by_capability()
+    for capability in sorted(accepted & transport_media.keys()):
+        core_set, worker_set = accepted[capability], transport_media[capability]
+        named_not_accepted = sorted(core_set - worker_set)
+        accepted_not_named = sorted(worker_set - core_set)
+        if named_not_accepted:
+            failures.append(
+                f"{capability}: the Core names media types the worker rejects: {named_not_accepted}"
+            )
+        if accepted_not_named:
+            failures.append(
+                f"{capability}: the worker accepts media types the Core never names: {accepted_not_named}"
+            )
 
     summary = matrix.get("coverage_summary") or {}
     expected_summary = {**counts, "total": len(rows)}

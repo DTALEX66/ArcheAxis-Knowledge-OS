@@ -185,7 +185,8 @@ def test_desktop_keeps_mastery_projection_open_when_review_response_arrives() ->
     assert 'TryGetProperty("answer"' in submit
     assert 'TryGetProperty("mastery_projection"' in submit
     assert 'TryGetProperty("closed"' in submit
-    assert "Mastery projection 未闭合" in submit
+    assert "masteryProjectionOpen = closed.ValueKind == JsonValueKind.False;" in submit
+    assert "掌握情况还需要后续练习确认" in submit
 
 
 def test_desktop_projects_review_schedule_receipt_without_promoting_mastery() -> None:

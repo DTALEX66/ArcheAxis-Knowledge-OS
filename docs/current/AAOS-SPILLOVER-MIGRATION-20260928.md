@@ -324,3 +324,41 @@ Green 正式启动根的独立安装/发布负载体积仍未核定；根目录�
 ## 2026-09-30 系统报告与归属续审
 
 两条明确指向 ArcheAxis Desktop 的 Windows WER 原件已复制至 D:\All projects\Record\AAOS-project-archives\2026-09-30\windows-wer\，每个 Report.wer 大小/SHA 回读一致，清单 SHA CB64D4B57C25BF73840BD8B0A5368982C49004398527F4E6D1C0C7DB78202985。C: 原件目录仍保留，因为删除命令被执行策略拒绝，未绕过；不计源盘回收。C:\EDTemp 同哈希 SQLite DLL owner 未确认；D:\All SQLite+WAL/SHM 仍 UNKNOWN；D: DSH Desktop 数据归 DSH owner，保留；VS Code 注册项路径失效、LibreOffice登记指向 Obsidian-Assistance 路径均未修改。完整状态与软件健康限制见 docs/history/storage-cleanup/2026-09-30/system-software-and-storage-continuation-20260930.md。
+
+
+## 2026-10-07 独立回读与更正（只追加，不改写上文任何一句）
+
+本轮用逐文件 `os.walk` + SHA-256 重测，未删除、未移动任何文件、未发布。完整逐条表在忽略根
+`.project-local/task-runtime/spillover-readback-20261007.md`；下列数字是同一次回读的复算值。
+
+- **计数更正**：第 47 行写"9 个 `hermes__task-runtime__*.patch`"，今日 `docs/history/worktree-preserved-diffs/`
+  下实测 **8 个**，全部未入 Git。第 9 个为 UNVERIFIED。
+- **"五个 legacy-copy 归档树 SHA 全部不同"（第 98 行）今日不成立**：`342f16e3 / 345df936 / 3c605b9b /
+  85832da5 / f985e566` 五棵树的 `legacy-copy.sqlite` **同为 `b318c99e5a58…`**，其 WAL/SHM 为 0 B，
+  差异只在 receipt/manifest。当时的"全部不同 → 全部保留"判断按当时证据成立；今天的重复度评估必须按
+  "同一个 SQLite 存了五份"来算，是否去重需另做带可恢复件的处置，本轮不动字节。
+- **体积读数已过期**：第 120/141/159 行的 `.project-local/mig/` = `3,275 files / 135,499,757 B`，
+  今日实测 **4,394 files / 4,606,843,838 B**。
+- **双仓一致性被现盘推翻**：第 223 行记录 Formal 与 Green mainline 三份指定迁移目录逐文件一致、两份回执
+  同 SHA `5EEF4FFA…`。今日 Green mainline `.project-local/mig/` 中这三项**全部不存在**，其
+  `.project-local/archives/` 为空，未找到任何移除回执。Formal 侧三份完整（candidate-run 36 files /
+  1,821,597 B；DSH runtime 3,117 / 76,831,790 B；wheel qual 4 / 8,188,484 B）。在补出移除证据之前，
+  Green 侧不得再被当作副本；也不得反向覆盖 Green 的旧文本。
+- **同一回执现存两版**：Formal `72d828bb…`（43,490 B）与 Green mainline `94e50f4a…`（31,022 B，缺
+  09-30 追加段）。以 **Formal 版为权威**，Green 版记为历史早期版本，二者不再互写。
+- **最大宗外溢仍在仓外且被引用，因此本轮不移动**：`D:\All projects\Record\AAOS-project-archives\` 今日
+  **15,042,572,388 B**；其中 `2026-09-29\AAOS-UI-HISTORY-76DIRS-20260929.zip` 5,434,623,954 B 是
+  **唯一副本**，其 SHA 与记录 `183929BF…` 相符。`git grep` 确认该路径被 **9 份已跟踪文档**按名引用。
+  移动会使这 9 处引用失效，且它没有第二份可回退，所以搬迁的正确顺序是：先落一份"归属 + 新路径 + 旧路径映射"
+  的处置记录，再按逐文件 SHA 搬迁并在同一批里改引用；本轮只把状态说清，不做前两步。
+- **两处断链引用**：本文件引用的 `…-removal-review.txt` 与 `README-AAOS-UI-HISTORY-20260929.txt` 实际位于
+  Formal `.project-local/mig/green-ui-history-20260929/`（不在 Green `archives/`）；
+  `task-runtime-scattered/worker-quality-0906-unique-20260918.md` 的已跟踪位置是
+  `docs/history/worktree-preserved-diffs/`。按现盘路径读，不按旧目录名读。
+- **保持"标记不删"**：`C:\EDTemp\20260626_*\sqlite3.dll`（2 × 2,166,784 B，同哈希）归属仍未证，按 AGENTS
+  的归属规则保留并标 UNRESOLVED-AMBIGUOUS。
+- **两张处置/血缘表今天仍然成立**：处置表 284 条中 1 条盘上缺失，是已记录的
+  `REMOVED_EXACT_DUPLICATE_CANONICAL_RETAINED`（规范件哈希一致），不是幻影；血缘表 292 条中 8 条哈希漂移，
+  是活跃开发文件相对 09-25 快照的正常变化。
+- **Green mainline 工作树归属**：该目录 git 报 dubious ownership（属 `CodexSandboxOnline`），任何搬迁之前
+  先解决归属；本轮只读，未改其 ACL 与提权。

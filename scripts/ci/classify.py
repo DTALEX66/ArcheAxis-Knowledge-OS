@@ -35,6 +35,12 @@ ROOT = Path(__file__).resolve().parents[2]
 PROFILE_PATH = ROOT / ".worklab" / "project-validation.v1.yaml"
 REGISTRY_PATH = ROOT / ".worklab" / "gate-registry.v1.yaml"
 ALWAYS_GATES = {"ci-verdict"}
+FULL_GATES = {
+    "static", "lint", "py-primary", "py-compat", "format-targeted",
+    "migration-targeted", "security-targeted", "wheel-smoke", "browser-smoke",
+    "windows-runtime", "rust-vnext", "desktop-vnext", "contracts-vnext",
+    "workers-vnext", "desktop-fast", "desktop-build", "installer-lifecycle",
+}
 # AXC-060: gates for paths no risk class matches. Unknown paths no longer
 # force full-qualification; they run a safe default set and are marked
 # `unclassified` so merge stays blocked until the profile is updated.
@@ -152,7 +158,7 @@ def classify_paths(
     # unknown-path fallback. It still dominates when explicitly forced.
     is_full = "full-qualification" in gates
     if is_full:
-        gates = {"full-qualification", "ci-verdict"}
+        gates = set(FULL_GATES)
 
     gates = set(ALWAYS_GATES) | gates
     gates.discard("full-qualification")  # logical profile, not a runnable job
@@ -208,10 +214,18 @@ def main() -> int:
             for line in Path(args.diff).read_text(encoding="utf-8").splitlines()
             if line.strip() and not line.startswith("::") and not line.startswith("#")
         ]
-    elif args.paths:
+    elif args.paths is not None:
         paths = list(args.paths)
+    elif args.base and args.head:
+        try:
+            paths = git_diff_names(args.base, args.head)
+        except RuntimeError:
+            # Preserve the fail-closed full fallback, including its reason.
+            pass
+        else:
+            args.paths = paths
 
-    if not paths:
+    if not paths and args.paths is None and not args.diff:
         # no diff available -> unknown/full
         plan = classify_paths([], profile=profile, force_full=True)
         plan["fallback_reason"] = "no_diff_available"

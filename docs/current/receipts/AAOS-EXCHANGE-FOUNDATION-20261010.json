@@ -1,0 +1,97 @@
+{
+  "schema": "archeaxis.exchange-foundation/v1",
+  "status": "IN_PROGRESS",
+  "whole_taskpack_status": "PARTIAL",
+  "stage": "CB04 / UF11",
+  "product_writer": "gov-ui-20261008",
+  "owned_current_sha256": {
+    "frontend/src/components/JobContent.tsx": "8246678f15522b3e02756236bb095e8e0409b1b024b5a7ef93b1b380eff3d68a",
+    "frontend/src/__tests__/JobContent.test.tsx": "00ad736395910d84117ab8c4aa4c7e58a2cc98449473aac5d60b4fca1fae4e55",
+    "frontend/src/__tests__/JobContentPinnedResult.test.tsx": "c610296ffbfa98c8c013b5439a3b4185c8086df860b35dfa0fae6f57e83f0f02",
+    "src-tauri/src/core_bridge.rs": "e7e02940809d0e55d7cc48f984eb0e16e3ce93afc7df1ca2d9e7503da38a0f5f",
+    "crates/archeaxis-api/tests/runtime_jobs.rs": "57fe78074dd90503107b940039f5130a0d89e05900db79121ad36e3650f524a0",
+    "frontend/src/api/conversionKinds.ts": "b25d18687ed58aec10b96968a423d5597c2e62987b24a9750571c2f993df8d8e",
+    "frontend/src/__tests__/ConversionKindsLegacy.test.ts": "874b777bf8a87f82fcba805a589f9168d5f97c2991a47b1954b8bc9053608461",
+    "scripts/ingest/directory_batch.py": "e379785e1de9130b3836452485b618a8321b5a89d19793a53f0bad3dfcf836a3",
+    "tests/test_directory_batch.py": "121c42308389c9636db4e8c640f53ca13f60855690ce1887c5431ea046fea56e",
+    "frontend/src/components/FolderIngest.tsx": "b3b6ed5ac8ae9fc99bfeecb6348a55a4fa5634eee1831680369c930658706b9d",
+    "frontend/src/__tests__/FolderIngest.test.tsx": "f0b5b3cd5bb9cd2f00c156cd5f4a35e0e94799d4b8f36c2b22cb5ccacf9681d5",
+    "frontend/src/presentation/folderIngestExecution.ts": "f1daa85b1deb0dcc393f9b8e2d2c1213330c1561bad0dd27c745e99350dd7448",
+    "frontend/src/__tests__/folderIngestExecution.test.ts": "28489393dd6da4c3eb28a083351b3342b348db31cb5363b05258c8982402ba76"
+  },
+  "gates": [
+    {
+      "run": "ui-exchange-folder-front-03",
+      "receipt": ".project-local/runs/f714401b40/ui-exchange-folder-front-03/artifacts/result.json",
+      "receipt_sha256": "075092a07a6b72e9d58362a783d8787a41add7c70a9d40ed48d6920f9390d2cb",
+      "status": "LOCAL_PASS",
+      "test_count": 78,
+      "scope": "finite folder UI, exact pinned result, current route declarations"
+    },
+    {
+      "run": "ui-exchange-typecheck-02",
+      "receipt": ".project-local/runs/f714401b40/ui-exchange-typecheck-02/artifacts/result.json",
+      "receipt_sha256": "53906816e04ceaf5867830f9981e2348aef2c75839869d2bf63c0ce90a5a56f8",
+      "status": "LOCAL_PASS",
+      "test_count": null,
+      "scope": "frontend TypeScript"
+    },
+    {
+      "run": "ui-exchange-format-python-01",
+      "receipt": ".project-local/runs/f714401b40/ui-exchange-format-python-01/artifacts/result.json",
+      "receipt_sha256": "367a32d22caabb3bd2ea6de31bbe62553481738adc4fc452b937a14de6142077",
+      "status": "LOCAL_PASS",
+      "test_count": 21,
+      "scope": "directory batch mapping/path protections"
+    },
+    {
+      "run": "ui-exchange-core-mixed-01",
+      "receipt": ".project-local/runs/f714401b40/ui-exchange-core-mixed-01/artifacts/result.json",
+      "receipt_sha256": "fd6ae6f6d8312db77551b0d589781d36a9d713888e2b21656cf58eba5e31b815",
+      "status": "LOCAL_PASS",
+      "test_count": 1,
+      "scope": "owned synthetic controlled text worker; real Core/CAS/SQLite reopen"
+    },
+    {
+      "run": "ui-exchange-native-folder-01",
+      "receipt": ".project-local/runs/f714401b40/ui-exchange-native-folder-01/artifacts/result.json",
+      "receipt_sha256": "b0e9df4b1285a7de0295623e39c138d00bb3c83d0cbed96623c5e52494ef1bba",
+      "status": "LOCAL_PASS",
+      "test_count": 2,
+      "scope": "owned synthetic loopback HTTP transport; no installed Core"
+    },
+    {
+      "run": "ui-exchange-core-build-01",
+      "receipt": ".project-local/runs/f714401b40/ui-exchange-core-build-01/artifacts/result.json",
+      "receipt_sha256": "01bfe478f631403671fa14b69f631de370235164fe21789cd5007bf4066a2554",
+      "status": "LOCAL_PASS",
+      "test_count": null,
+      "scope": "canonical current Core build"
+    }
+  ],
+  "evidence": "INTEGRATED / SYNTHETIC; not installed/native user acceptance",
+  "changes": [
+    "explicit frozen request_id and 90000ms execution budget",
+    "stable row identities and finite single-flight guards",
+    "UNKNOWN same-request reconciliation; failed/cancelled fresh retry only when Core permits",
+    "cancel 202 pending until actual terminal readback; successful siblings retained",
+    "real JSX batch table; source/result callback; explicit pinned job independent of recent50",
+    "doc/xls/ppt existing Office route declarations; runtime qualification separate"
+  ],
+  "retained_failures": [
+    "ui-exchange-pinned-result-01/02: test hook returned mock cleanup; fixed hook, original evidence retained",
+    "ui-exchange-format-front-01: stale legacy Office unregistered assertion; aligned to current Core MIME/routes",
+    "ui-exchange-folder-front-01: DataTable stringified JSX; local stable-key table fixed",
+    "ui-exchange-folder-front-02: stale bodyless execute assertion; actual frozen request/body assertion added"
+  ],
+  "remaining": [
+    "new page16 product integration and exact source opening",
+    "actual selected-format engines and restart process probe pending",
+    "body/structure/location/loss/engine profile qualifications per format",
+    "four independent interop classes and full original 15-row checklist",
+    "formal nonempty user legacy database NOT_RUN; authorization absent",
+    "full final source-bound gates and theme visual validation",
+    "UF13 daily navigation; whole TaskPack completion unproven"
+  ],
+  "publication": "NOT_EXECUTED"
+}

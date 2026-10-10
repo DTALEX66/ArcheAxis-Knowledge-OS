@@ -23,6 +23,7 @@ from fastapi import APIRouter, Depends, HTTPException
 
 from app.workspace.router import _require_desktop_write_request
 from shared.config import config, resolve_runtime_path
+from shared.paths import native_path
 
 router = APIRouter(prefix="/api/v1/learning", tags=["learning"])
 
@@ -43,7 +44,7 @@ def get_mastery(card_id: str) -> dict[str, object]:
     import sqlite3
 
     try:
-        conn = sqlite3.connect(db)
+        conn = sqlite3.connect(native_path(db))
         conn.row_factory = sqlite3.Row
         card = conn.execute("SELECT * FROM kb_cards WHERE id=?", (card_id,)).fetchone()
         if card is None:

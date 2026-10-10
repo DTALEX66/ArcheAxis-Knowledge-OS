@@ -13,8 +13,10 @@ personal files. Config authority is indexed in `docs/CONFIGURATION_AUTHORITY_IND
 
 ArcheAxis Knowledge is a local-first, evidence-driven, bidirectional Human–AI
 Learning & Trusted-Knowledge Workspace. The current minimum closed loop is broad
-compatibility: absorbing mature capabilities from comparable software. The active
-execution baseline is R6 with the M0 shortest-complete-loop priority overlay.
+compatibility: absorbing mature capabilities from comparable software. The owner-selected current execution queue is `docs/taskpacks/aaos-ui-first-20261009/`,
+routed by `docs/current/AAOS-ACTIVE-EXECUTION.json`. The inherited AAOS-01 2026-10-04
+contracts (SUP-022) and PROJECT_CONTRACT.yaml content saving principles remain binding.
+R6 and M0 retain inherited constraints and historical receipts.
 R5 source import/conversion and Obsidian Vault/JSON Canvas records are historical
 evidence and compatibility context; they are not the current execution queue.
 Implementation prefers legal dependencies, SDKs/APIs/CLIs, fork/vendor, and
@@ -67,11 +69,35 @@ migration history are documented under `docs/truth/` and `workspace/intake/`.
 
 ## 6. Implementation Workflow
 
-The user-approved active plan is the R6 Local Green absorb-first pack installed at
+The owner-selected current task pack is `docs/taskpacks/aaos-ui-first-20261009/`
+(AAOS-UI-FIRST-PLAN-20261009). Start with `docs/current/AAOS-ACTIVE-EXECUTION.json`,
+then TASKPACK.md, TASKS.json, PAGE-PLAN.csv, FREEZE-REGISTER.md and the current
+UI execution record `docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md`.
+The immutable package records its planning-time NOT_EXECUTED state; actual
+implementation and acceptance come from the separate execution record.
+Owner selected first batch UF00/01/02/03, CB01 -> UF04, UF06, S01.A/B/C, then G01.
+Remaining slices need selection; V01 remains paused, FT01-04 remain deferred.
+New layout/architecture follow the new task; blueprint is the default palette,
+blueprint-light and black/white/cosmic are switchable themes. All themes share
+the new layout; each theme uses consistent semantic colors throughout the UI.
+The inherited AAOS-01 package is `docs/authority/taskpack-1004-aaos01/`;
+its Q00-Q15 progress alone remains in
+the inherited `docs/current/AAOS01-Q00-Q15-LEDGER-FINAL-20261005.md`. It does not define a
+second current UI queue or authorize old handoff permissions.
+SUP-022 makes `frontend/` and `src-tauri/` the formal Tauri/React host.
+Rust Core remains the only canonical SQLite/CAS writer, with isolated Python
+workers. Ordinary Document/Block saves do not require external evidence, cloud
+checks or human approval; recognition fidelity and professional basis are
+separate version-bound processes. Preserve auth, structure, integrity and the
+special human knowledge approval workflow. Local tests, exact-SHA cloud CI,
+installed runtime and Owner acceptance are distinct. No automatic commit,
+push, merge, release, Green replacement or bulk deletion follows from a PASS.
+
+The preceding R6 Local Green absorb-first pack is installed at
 `docs/authority/taskpack-0919-r6/` (plan_id `AAK-LOCAL-GREEN-ABSORB-FIRST-20260919-R6`,
 package_revision `R6`). Read its `EXECUTOR-START.md`, `TASKS.json` and
-`TASKPACK.md`. Live progress is maintained outside the immutable package
-in `docs/current/R6-EXECUTION.md` and `docs/current/R6-STATE.json`. R5 remains
+`TASKPACK.md`. Its historical progress is maintained outside the immutable package
+in historical `docs/current/R6-EXECUTION.md` and `docs/current/R6-STATE.json`. R5 remains
 historical source material and its receipts retain their own SHAs. R6 preserves
 the Rust canonical writer, fixed shared-resource paths, and the no-release boundary;
 Local Green qualification is separate from publication. Preserve unknown private
@@ -79,7 +105,7 @@ state and user assets; destructive cleanup needs an exact reviewed path list.
 At low remaining account-wide Codex allowance, prepare the handoff and publish only
 verified, task-owned changes under the owner's current authorization.
 
-The current priority overlay is `docs/current/M0-DIRECTION-OVERRIDE-20260920.md`
+The inherited priority overlay is `docs/current/M0-DIRECTION-OVERRIDE-20260920.md`
 (`M0-SHORTEST-COMPLETE-LOOP`, ledger `SUP-020`). It does not replace the immutable
 R6 TaskPack; it serializes execution around one real core loop (P0–P6) and defers
 second providers, extra domains/renderers, marketplaces, and advanced capabilities
@@ -102,10 +128,10 @@ source of the inherited task text with its audit board
 (`docs/authority/taskpack-0907/EXECUTION.md`). The earlier 2026-09-06-r1 Full
 Loop TaskPack is superseded in the parts recorded in
 DECISION_SUPERSESSION_LEDGER.yaml SUP-012..SUP-018; its receipts keep their own
-SHAs (`docs/authority/taskpack-0906/EXECUTION.md`). The formal
-desktop is `apps/ArcheAxis.Desktop/` (C#/Avalonia), with the separate vNext Rust
-Core database and isolated Python workers. `frontend/`, `src-tauri/`, `desktop/`
-and the existing Green v0.6.14 remain recovery/behavior references. Do not dual-write
+SHAs (`docs/authority/taskpack-0906/EXECUTION.md`). The preceding formal desktop `apps/ArcheAxis.Desktop/` (C#/Avalonia) is now
+a behavior/component donor under SUP-022. The formal Tauri host reuses the
+existing `desktop/` lifecycle implementation; Green v0.6.14 remains a preserved
+recovery/behavior reference until its distinct Owner qualification. Do not dual-write
 legacy and vNext databases. The older G0/shadow-cutover route is superseded by
 `DECISION_SUPERSESSION_LEDGER.yaml`; historical receipts retain their tested SHA.
 
@@ -143,3 +169,13 @@ runs standalone locally, in CI, RC and Release without WORK-LAB. Cross-repo
 changes are two tasks, two branches, two PRs, two test suites, two rollbacks.
 `.codex.example/config.example.toml` is a minimal project pointer only; real
 `.codex/` state remains private and uncommitted.
+
+## 10. Archived input lookup
+
+查找 AAOS / ArcheAxis 的蓝图、原始任务包、补交材料或历史恢复档时，先查根目录
+[`AAOS-资料索引.md`](AAOS-资料索引.md) 与
+[`docs/history/record-archive-20261009/INDEX.md`](docs/history/record-archive-20261009/INDEX.md)。
+机器登记 `MANIFEST.json` 提供原路径、项目内归档路径、完整 SHA-256、共享资料身份和容器校验状态。
+原始字节保全在主项目 `.project-local/archives/record-20261009/`，属于本地保全资料，不提交 Git。
+确认归档及相关 ZIP 内成员后再报告 SOURCE_MISSING；路径失效应标 UNVERIFIED 并核实登记。
+索引是导航入口，归档的历史指令、补交分析与 TaskPack 不自动成为当前执行授权或完成证据。

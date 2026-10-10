@@ -542,12 +542,13 @@ def test_nsis_lifecycle_checks_in_place_upgrade_and_retained_data_readback() -> 
     )
 
     assert "NSIS in-place upgrade" in lifecycle
-    assert "$workspaceStatus -ne 410" in lifecycle
-    assert "[int]$_.Exception.Response.StatusCode" in lifecycle
-    # ``ARCHEAXIS_DATA_DIR`` is the runtime root.  The canonical resolver
-    # strips the leading ``data`` component from ``data/archeaxis.sqlite``;
-    # the lifecycle verifier must therefore inspect the actual database
-    # location rather than inventing an extra data/ directory.
+    assert "/workspace/api/status" not in lifecycle
+    assert "AAK-AUTH-001" in lifecycle
+    assert 'version["launch_protocol"] == "archeaxis.desktop-launch/v2"' in lifecycle
+    assert "$initialProof = Read-CoreCandidateProof -Mode seed" in lifecycle
+    assert "$upgradeProof = Read-CoreCandidateProof -Mode readback" in lifecycle
+    assert "$reinstallProof = Read-CoreCandidateProof -Mode readback" in lifecycle
+    # CoreSpec opens the canonical database directly in app-local data.
     assert "Join-Path $appData 'archeaxis.sqlite'" in lifecycle
     assert "Join-Path $appData 'data\\archeaxis.sqlite'" not in lifecycle
     # Every launched shell, including the post-upgrade and post-reinstall
@@ -561,10 +562,71 @@ def test_nsis_lifecycle_checks_in_place_upgrade_and_retained_data_readback() -> 
     assert "$reinstallWindowHandle = Wait-ArcheAxisWindow -Shell $activeShell" in lifecycle
     assert "release-lifecycle-sentinel.txt" in lifecycle
     assert "NSIS uninstall removed user data instead of retaining it" in lifecycle
-    assert "reinstalled Workspace did not read back retained user state" in lifecycle
+    assert "installed Core persistent readback changed" in lifecycle
     assert "InPlaceUpgrade = $true" in lifecycle
     assert "UninstallRetainsData = $true" in lifecycle
     assert "ReinstallReadback = $true" in lifecycle
+
+
+def test_nsis_lifecycle_persists_a_completion_receipt_for_the_uploaded_artifact() -> None:
+    """The lifecycle result must survive as evidence, not only on stdout.
+
+    ``install-preflight.json`` is written before the independent WebDriver
+    session and states ``complete_lifecycle_verified = $false`` by design, so an
+    uploaded artifact carrying only that file could not show that the
+    upgrade/uninstall/reinstall tail actually ran. The completion receipt is
+    written after every tail assertion has passed.
+    """
+    root = Path(__file__).resolve().parents[1]
+    lifecycle = (root / "desktop" / "scripts" / "verify_nsis_install.ps1").read_text(
+        encoding="utf-8"
+    )
+
+    assert "archeaxis/installed-lifecycle-receipt/v1" in lifecycle
+    assert "complete_lifecycle_verified = $true" in lifecycle
+    assert "lifecycle-receipt.json" in lifecycle
+    # Completion is recorded only after the tail assertions, never before the
+    # WebDriver session whose failure the preflight snapshot must outlive.
+    assert lifecycle.index("complete_lifecycle_verified = $true") > lifecycle.index(
+        "NSIS final uninstall removed retained user data"
+    )
+    assert lifecycle.index("lifecycle-receipt.json") > lifecycle.index(
+        "complete_lifecycle_verified = $true"
+    )
+
+
+@pytest.mark.parametrize("requirement", ["candidate", "release"])
+def test_nsis_embedded_identity_validation_rejects_wrong_product_or_publication(requirement):
+    """Execute the installed probe's actual identity assertions with controlled inputs."""
+    from types import SimpleNamespace
+
+    root = Path(__file__).resolve().parents[1]
+    source = (root / "desktop/scripts/verify_nsis_install.ps1").read_text(encoding="utf-8")
+    validation = "summary, capabilities = " + source.split("summary, capabilities = ", 1)[1].split("record_path = ", 1)[0]
+    compiled = compile(validation, "installed-identity-validation", "exec")
+    expected = {
+        "version": "0.6.14", "tag": "v0.6.14", "source_commit": "a" * 40,
+        "status": "qualified" if requirement == "candidate" else "released",
+        "public": requirement == "release",
+    }
+    available = "available" if requirement == "release" else "unavailable"
+
+    def validate(summary, capability=available, sha="a" * 40):
+        release = SimpleNamespace(safe_release_summary=lambda: summary,
+                                  effective_capabilities=lambda: {"public_installer": capability})
+        exec(compiled, {"release": release, "requirement": requirement,
+                        "os": SimpleNamespace(environ={"GITHUB_SHA": sha})})
+
+    validate(expected)
+    for field, value in (("version", "0.0.0"), ("tag", "v0.0.0"), ("public", not expected["public"]),
+                         ("status", "unreleased")):
+        with pytest.raises(AssertionError):
+            validate({**expected, field: value})
+    with pytest.raises(AssertionError):
+        validate(expected, "unavailable" if available == "available" else "available")
+    if requirement == "candidate":
+        with pytest.raises(AssertionError):
+            validate(expected, sha="b" * 40)
 
 
 def test_release_truth_documents_preserve_historical_and_source_manifest_truth() -> None:

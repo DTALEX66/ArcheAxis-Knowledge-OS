@@ -1,12 +1,17 @@
+import { AaosDialog } from "../design-system/AaosPrimitives";
+import { findUiPage } from "../presentation/uiPages";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { SpaceId, SPACES } from "../spaces/spaces";
 import { StatusBar } from "../components/StatusBar";
 import { SpaceRail } from "../components/SpaceRail";
 import { ActivityDock } from "../components/ActivityDock";
 import { Inspector, type InspectionTarget } from "../components/Inspector";
-import { SpaceView } from "../spaces/SpaceView";
+import { SpaceView, canonicalSurface } from "../spaces/SpaceView";
 import { RecoveryShell } from "../components/RecoveryShell";
 import { ContextNav } from "../components/ContextNav";
+import { NavTrail, type ObjectTrailLevel } from "../components/NavTrail";
+import { focusSpaceSection, spaceSectionsFor, type SpaceSectionDef } from "../presentation/spaceSections";
+import { EFFECTIVE_NAVIGATION_ENTRIES, resolveNavigationHash } from "../presentation/navigation";
 import {
   enterRecoverySafeMode,
   getRecoveryStatus,
@@ -16,6 +21,7 @@ import {
   retryDesktopBackend,
 } from "../api/workspace";
 import { runtimeProjectionMessage } from "../api/client";
+import { verifyCanonicalCore } from "../api/core";
 import {
   checkingRecoveryStatus,
   failedRecoveryStatus,
@@ -27,24 +33,55 @@ const DESKTOP_LIVENESS_INTERVAL_MS = 10_000;
 const RECOVERY_BOOT_POLL_MS = 250;
 const RECOVERY_BOOT_TIMEOUT_MS = 30_000;
 
-// AXW-UI-802: six-space shell following task pack §15.3 fixed structure:
-// top status bar | left rail (six spaces) | context subnav | center view |
-// right inspector | bottom activity dock.
+// AXW-UI-802: composite left navigation, central task area, on-demand inspector,
+// and activity dock. Capability entries share one generated navigation projection.
 export function App() {
   const desktop = Boolean(window.__TAURI__?.core?.invoke);
-  const [activeSpace, setActiveSpace] = useState<SpaceId>("workspace");
+  const [initialNavigation] = useState(() => resolveNavigationHash(window.location.hash));
+  const [activeSpace, setActiveSpace] = useState<SpaceId>(initialNavigation?.spaceId ?? "workspace");
+  const [navigationOpen,setNavigationOpen] = useState(false);
+  const [uiPageId,setUiPageId] = useState<string|undefined>(initialNavigation?.capabilityId ? "18" : initialNavigation?.pageId ?? (initialNavigation ? undefined : "01"));
+  const [openedDocumentId,setOpenedDocumentId] = useState<string|undefined>();
+  const [initialLearningItemKey, setInitialLearningItemKey] = useState<string|undefined>();
+  const composing = useRef(false);
+  const [selectedCapabilityId, setSelectedCapabilityId] = useState<string | null>(initialNavigation?.capabilityId ?? null);
+  const [sectionNavigation, setSectionNavigation] = useState<{ spaceId: SpaceId; section: string; sequence: number }>({ spaceId: "library", section: "sources", sequence: 0 });
+  const [objectTrail, setObjectTrail] = useState<readonly ObjectTrailLevel[]>([]);
+  const [sectionNotice, setSectionNotice] = useState<string | null>(null);
   const [inspectionTarget, setInspectionTarget] = useState<InspectionTarget | null>(null);
   const [inspectorOpen, setInspectorOpen] = useState(false);
+  const [learningFocus, setLearningFocus] = useState(false);
   const [desktopReady, setDesktopReady] = useState(!desktop);
   const [verificationPending, setVerificationPending] = useState(desktop);
   const [recoveryStatus, setRecoveryStatus] = useState<RecoveryStatusDto | null>(
     desktop ? checkingRecoveryStatus() : null,
   );
   const operation = useRef({ epoch: 0, mounted: true });
+  const [commandPaletteOpen, setCommandPaletteOpen] = useState(false);
+  const draftDirty = useRef(false);
+  const draftOwners = useRef(new Set<string>());
+  const [unsavedDrafts, setUnsavedDrafts] = useState(false);
+  const [workspaceRestoring, setWorkspaceRestoring] = useState(false);
+  const restoringRef = useRef(false);
+  const [restoreNotice, setRestoreNotice] = useState<{confirmed:boolean;message:string}|null>(null);
+  const [workspaceEpoch, setWorkspaceEpoch] = useState(0);
+  const navigationHash = useRef(window.location.hash);
   const liveness = useRef<{
     generation: number;
     timeout: ReturnType<typeof globalThis.setTimeout> | null;
   }>({ generation: 0, timeout: null });
+
+  useEffect(() => {
+    const start = () => { composing.current = true; };
+    const end = () => { composing.current = false; };
+    window.addEventListener("compositionstart", start, true);
+    window.addEventListener("compositionend", end, true);
+    return () => {
+      window.removeEventListener("compositionstart", start, true);
+      window.removeEventListener("compositionend", end, true);
+      composing.current = false;
+    };
+  }, []);
 
   useEffect(() => {
     operation.current.mounted = true;
@@ -54,15 +91,213 @@ export function App() {
     };
   }, []);
 
-  const navigate = useCallback((id: SpaceId) => {
-    setActiveSpace(id);
-    setInspectionTarget(null);
+  useEffect(() => {
+    const listener = (event: Event) => {
+      const value = (event as CustomEvent<unknown>).detail;
+      const item = value && typeof value === "object" ? value as { owner?: unknown; dirty?: unknown } : null;
+      const owner = item && typeof item.owner === "string" ? item.owner : "legacy";
+      if (item ? item.dirty === true : value === true) draftOwners.current.add(owner); else draftOwners.current.delete(owner);
+      draftDirty.current = draftOwners.current.size > 0; setUnsavedDrafts(draftDirty.current);
+    };
+    window.addEventListener("archeaxis-draft-dirty", listener);
+    return () => window.removeEventListener("archeaxis-draft-dirty", listener);
   }, []);
 
+  useEffect(() => {
+    const lock = () => {
+      restoringRef.current = true;
+      setRestoreNotice(null); setNavigationOpen(false); setInspectorOpen(false);
+      liveness.current.generation += 1;
+      if (liveness.current.timeout !== null) globalThis.clearTimeout(liveness.current.timeout);
+      for (const area of document.querySelectorAll(".app-body, .status-bar, .activity-dock, .ui-navigation-trigger, .aaos-dialog-overlay, .aaos-dialog-content")) area.setAttribute("inert", "");
+      setWorkspaceRestoring(true);
+    };
+    const unlock = () => {
+      restoringRef.current = false;
+      for (const area of document.querySelectorAll(".app-body, .status-bar, .activity-dock, .ui-navigation-trigger, .aaos-dialog-overlay, .aaos-dialog-content")) area.removeAttribute("inert");
+      setWorkspaceRestoring(false);
+    };
+    const invalidate = (event:Event) => {
+      const detail=(event as CustomEvent<{confirmed?:boolean;message?:string}>).detail;
+      setRestoreNotice({confirmed:detail?.confirmed===true,message:typeof detail?.message==="string"?detail.message:"恢复结果尚未确认，旧视图已失效，请核对当前工作区。"});
+      composing.current = false;
+      resetRuntimeClient();
+      // Every mounted data view and editor belongs to the replaced workspace.
+      draftOwners.current.clear(); draftDirty.current = false; setUnsavedDrafts(false);
+      setWorkspaceEpoch(value => value + 1);
+      setUiPageId("01"); setActiveSpace("workspace"); setOpenedDocumentId(undefined); setInitialLearningItemKey(undefined);
+      setSelectedCapabilityId(null); setInspectionTarget(null); setObjectTrail([]);
+      setLearningFocus(false); setNavigationOpen(false);
+      const hash = "#page=01";
+      window.history.replaceState(null, "", `${window.location.pathname}${window.location.search}${hash}`);
+      navigationHash.current = hash;
+    };
+    // Capture before portal/CommandPalette/window listeners, even in the same
+    // dispatch turn before React has applied the restoring state render.
+    const blockInteraction=(event:Event)=>{if(!restoringRef.current)return;event.preventDefault();event.stopImmediatePropagation();};
+    const blockedEvents=["keydown","pointerdown","click","beforeinput","input","submit"];
+    for(const name of blockedEvents)window.addEventListener(name,blockInteraction,true);
+    window.addEventListener("workspace-restore-start", lock);
+    window.addEventListener("workspace-restore-finish", unlock);
+    window.addEventListener("workspace-invalidated", invalidate);
+    return () => {
+      for(const name of blockedEvents)window.removeEventListener(name,blockInteraction,true);
+      unlock();
+      window.removeEventListener("workspace-restore-start", lock);
+      window.removeEventListener("workspace-restore-finish", unlock);
+      window.removeEventListener("workspace-invalidated", invalidate);
+    };
+  }, []);
+
+  useEffect(() => {
+    const protectDocumentClose = (event: BeforeUnloadEvent) => {
+      if (!draftDirty.current) return;
+      event.preventDefault();
+      event.returnValue = "";
+    };
+    window.addEventListener("beforeunload", protectDocumentClose);
+    return () => window.removeEventListener("beforeunload", protectDocumentClose);
+  }, []);
+
+  useEffect(() => {
+    const listener = (event: Event) => {
+      const focused = (event as CustomEvent<boolean>).detail === true;
+      setLearningFocus(focused);
+      if (focused) setInspectorOpen(false);
+    };
+    window.addEventListener("archeaxis-learning-focus", listener);
+    return () => window.removeEventListener("archeaxis-learning-focus", listener);
+  }, []);
+
+  const navigate = useCallback((id: SpaceId) => {
+    if (restoringRef.current || composing.current) return false;
+    if (draftDirty.current && !window.confirm("草稿尚未保存，请先保留文字。仍要离开吗？")) return false;
+    setNavigationOpen(false);
+    setUiPageId(id === "workspace" ? "01" : undefined);
+    setActiveSpace(id);
+    if(id!=="learning"&&learningFocus){setLearningFocus(false);window.dispatchEvent(new CustomEvent("archeaxis-learning-focus",{detail:false}));}
+    setSelectedCapabilityId(null);
+    setInspectionTarget(null);
+    setObjectTrail([]);
+    setSectionNotice(null);
+    const nextHash = `#space=${encodeURIComponent(id)}`;
+    if (window.location.hash !== nextHash) window.history.replaceState(null, "", `${window.location.pathname}${window.location.search}${nextHash}`);
+    navigationHash.current = nextHash;
+    return true;
+  }, [learningFocus, workspaceRestoring]);
+
+  const openPage = useCallback((id:string) => {
+    const page=findUiPage(id);
+    if (!page || restoringRef.current || composing.current) return;
+    if (uiPageId === id && activeSpace === page.space && !selectedCapabilityId) { setNavigationOpen(false); return; }
+    if (!navigate(page.space)) return;
+    setUiPageId(id);
+    const hash=`#page=${encodeURIComponent(id)}`;
+    window.history.replaceState(null,"",`${window.location.pathname}${window.location.search}${hash}`);
+    navigationHash.current=hash;
+  },[navigate, uiPageId, activeSpace, selectedCapabilityId]);
+  const openDocument = useCallback((id:string) => {
+    if(!navigate("library"))return;
+    setUiPageId("03");setOpenedDocumentId(id);
+    const hash = "#page=03";
+    window.history.replaceState(null,"",`${window.location.pathname}${window.location.search}${hash}`);
+    navigationHash.current = hash;
+  },[navigate]);
+  const openReviewItem = useCallback((itemKey: string) => {
+    if (!itemKey || !navigate("learning")) return;
+    setUiPageId("06"); setInitialLearningItemKey(itemKey);
+    const hash = "#page=06";
+    window.history.replaceState(null, "", `${window.location.pathname}${window.location.search}${hash}`);
+    navigationHash.current = hash;
+  }, [navigate]);
+  const openCapability = useCallback((id: string) => {
+    if(restoringRef.current || composing.current)return;
+    const entry = EFFECTIVE_NAVIGATION_ENTRIES.find((item) => item.entry_id === id && item.capability);
+    if (!entry?.capability) return;
+    if (draftDirty.current && !window.confirm("草稿尚未保存，请先保留文字。仍要离开吗？")) return;
+    setNavigationOpen(false);
+    setUiPageId("18");
+    setActiveSpace("settings");
+    if(learningFocus){setLearningFocus(false);window.dispatchEvent(new CustomEvent("archeaxis-learning-focus",{detail:false}));}
+    setSelectedCapabilityId(id);
+    setInspectionTarget(null);
+    setObjectTrail([]);
+    setSectionNotice(null);
+    const nextHash = `#capability/${encodeURIComponent(id)}`;
+    if (window.location.hash !== nextHash) window.history.replaceState(null, "", `${window.location.pathname}${window.location.search}${nextHash}`);
+    navigationHash.current = nextHash;
+  }, [learningFocus]);
+
+  useEffect(() => {
+    const onHashChange = () => {
+      if(restoringRef.current || composing.current){window.history.replaceState(null,"",`${window.location.pathname}${window.location.search}${navigationHash.current}`);return;}
+      if (draftDirty.current && !window.confirm("草稿尚未保存，请先保留文字。仍要离开吗？")) {
+        window.history.replaceState(null, "", `${window.location.pathname}${window.location.search}${navigationHash.current}`);
+        return;
+      }
+      const target = resolveNavigationHash(window.location.hash);
+      if (!target) return;
+      if(target.spaceId!=="learning"&&learningFocus){setLearningFocus(false);window.dispatchEvent(new CustomEvent("archeaxis-learning-focus",{detail:false}));}
+      navigationHash.current = window.location.hash;
+      setUiPageId(target.capabilityId ? "18" : target.pageId);
+      setActiveSpace(target.spaceId);
+      setSelectedCapabilityId(target.capabilityId);
+      setInspectionTarget(null);
+      setObjectTrail([]);
+      setSectionNotice(null);
+    };
+    window.addEventListener("hashchange", onHashChange);
+    return () => window.removeEventListener("hashchange", onHashChange);
+  }, [learningFocus]);
+
   const inspect = useCallback((target: InspectionTarget) => {
+    if(restoringRef.current)return;
     setInspectionTarget(target);
     setInspectorOpen(true);
   }, []);
+
+  const surface = canonicalSurface(activeSpace, desktop);
+  const sections = spaceSectionsFor(activeSpace, surface);
+  const activeSection = sectionNavigation.spaceId === activeSpace
+    ? sectionNavigation.section
+    : sections.find((section) => section.state === "ready")?.id;
+
+  const focusRegion = useCallback((region: string) => {
+    if (focusSpaceSection(region)) { setSectionNotice(null); return; }
+    // A tab-mounted region only exists after the surface re-renders, so retry once
+    // before telling the user the group has nothing open.
+    globalThis.setTimeout(() => {
+      if (!focusSpaceSection(region)) setSectionNotice("这个分组当前没有可打开的区域；请先在当前视图选择具体对象。");
+    }, 0);
+  }, []);
+
+  const activateSection = useCallback((section: SpaceSectionDef) => {
+    if(restoringRef.current)return;
+    if (section.state !== "ready") return;
+    if (section.goto) {
+      const target = section.goto;
+      if (!navigate(target.space)) return;
+      setSectionNavigation((previous) => ({ spaceId: target.space, section: target.section, sequence: previous.sequence + 1 }));
+      const region = spaceSectionsFor(target.space, canonicalSurface(target.space, desktop))
+        .find((item) => item.id === target.section)?.region;
+      if (region) focusRegion(region);
+      return;
+    }
+    setSectionNavigation((previous) => ({ spaceId: activeSpace, section: section.id, sequence: previous.sequence + 1 }));
+    if (section.region) focusRegion(section.region);
+  }, [activeSpace, desktop, focusRegion, navigate]);
+
+  const toggleInspector = useCallback(() => {if(!restoringRef.current)setInspectorOpen((value) => !value);}, []);
+  useEffect(() => {
+    const shortcut = (event: KeyboardEvent) => {
+      if (restoringRef.current || commandPaletteOpen || event.repeat || event.isComposing || event.getModifierState("AltGraph")) return;
+      if (event.ctrlKey && event.altKey && !event.metaKey && !event.shiftKey && event.key.toLowerCase() === "i") {
+        event.preventDefault(); toggleInspector();
+      }
+    };
+    window.addEventListener("keydown", shortcut);
+    return () => window.removeEventListener("keydown", shortcut);
+  }, [commandPaletteOpen, toggleInspector]);
 
   const beginOperation = useCallback(() => {
     liveness.current.generation += 1;
@@ -91,7 +326,8 @@ export function App() {
       return false;
     }
     try {
-      await getStatus();
+      if (desktop) await verifyCanonicalCore();
+      else await getStatus();
       if (!isCurrent(epoch)) return false;
       setDesktopReady(true);
       return true;
@@ -110,7 +346,7 @@ export function App() {
       }
       return false;
     }
-  }, [isCurrent]);
+  }, [desktop, isCurrent]);
 
   useEffect(() => {
     if (!desktop) return;
@@ -155,7 +391,7 @@ export function App() {
   }, [beginOperation, desktop, finishOperation, isCurrent, verifyReadyStatus]);
 
   useEffect(() => {
-    if (!desktop || !desktopReady || verificationPending) return;
+    if (!desktop || !desktopReady || verificationPending || workspaceRestoring) return;
 
     const generation = ++liveness.current.generation;
     const epoch = operation.current.epoch;
@@ -220,7 +456,7 @@ export function App() {
         return;
       }
       try {
-        await getStatus();
+        await verifyCanonicalCore();
       } catch (error) {
         if (!loopIsCurrent()) return;
         await recoverHandshakeFailure(status, error);
@@ -240,7 +476,7 @@ export function App() {
         liveness.current.generation += 1;
       }
     };
-  }, [desktop, desktopReady, verificationPending]);
+  }, [desktop, desktopReady, verificationPending, workspaceRestoring]);
 
   const runRetry = useCallback(async (epoch: number) => {
     let retryFailed = false;
@@ -330,6 +566,8 @@ export function App() {
 
   if (!desktopReady && recoveryStatus) {
     return (
+      <>
+      {restoreNotice ? <p role={restoreNotice.confirmed ? "status" : "alert"} className="workspace-restore-notice">{restoreNotice.message}</p> : null}
       <RecoveryShell
         status={recoveryStatus}
         verificationPending={verificationPending}
@@ -338,30 +576,49 @@ export function App() {
         onRestoreBackup={restoreBackup}
         onReloadCurrentCore={reloadCurrentCore}
       />
+      </>
     );
   }
 
+  const currentSpaceLabel = SPACES.find((space) => space.id === activeSpace)?.label ?? "";
+  const firstReadyRegion = sections.find((section) => section.state === "ready" && section.region)?.region;
+  const trailLevels: readonly ObjectTrailLevel[] = objectTrail.length === 0 ? [] : [
+    { id: `space:${activeSpace}`, label: currentSpaceLabel, ...(firstReadyRegion ? { region: firstReadyRegion } : {}) },
+    ...objectTrail,
+  ];
+
   return (
     <div className="app-shell">
+      {restoreNotice?<p role={restoreNotice.confirmed?"status":"alert"} className="workspace-restore-notice">{restoreNotice.message}</p>:null}
+      {workspaceRestoring ? <div role="status" className="workspace-restore-overlay">正在恢复工作区并重启本地 Core，请等待读回完成…</div> : null}
       <StatusBar
         activeSpace={activeSpace}
         backendState={!desktop
           ? "web"
           : verificationPending ? "checking" : desktopReady ? "available" : "unavailable"}
         externalDev={recoveryStatus?.external_dev === true}
-        onNavigate={navigate}
+        onPage={openPage} onNavigate={navigate}
+        onOpenCapability={openCapability}
+        selectedCapabilityId={selectedCapabilityId}
+        onCommandPaletteOpenChange={setCommandPaletteOpen}
         inspectorOpen={inspectorOpen}
-        onToggleInspector={() => setInspectorOpen((value) => !value)}
+        onToggleInspector={toggleInspector}
       />
-      <div className="app-body">
-        <SpaceRail active={activeSpace} onNavigate={navigate} spaces={SPACES} />
-        <ContextNav active={activeSpace} onNavigate={navigate} />
+      {!learningFocus && <AaosDialog title="产品导航" description="选择页面；Esc关闭并返回导航按钮。" open={navigationOpen} onOpenChange={setNavigationOpen} trigger={<button className="ui-navigation-trigger" aria-label="打开产品导航">☰ 导航</button>} contentClassName="ui-navigation-drawer"><button onClick={()=>setNavigationOpen(false)}>关闭导航</button><SpaceRail active={activeSpace} onNavigate={navigate} onOpenCapability={openCapability} activeCapabilityId={selectedCapabilityId} spaces={SPACES} pageId={uiPageId} onPage={openPage}/></AaosDialog>}
+      <div className="app-body" key={`workspace:${workspaceEpoch}`} aria-busy={workspaceRestoring}>
+        {!learningFocus && <aside className="navigation-sidebar" aria-label="产品导航">
+          <SpaceRail active={activeSpace} onNavigate={navigate} onOpenCapability={openCapability} activeCapabilityId={selectedCapabilityId} spaces={SPACES} pageId={uiPageId} onPage={openPage} />
+          {!selectedCapabilityId && ["02","03","16","17","19","20"].includes(uiPageId ?? "03") && <ContextNav active={activeSpace} onNavigate={navigate} sections={sections} activeSection={activeSection} onSection={activateSection} />}
+        </aside>}
         <main className="app-center" role="main" aria-label="当前空间内容">
-          <SpaceView spaceId={activeSpace} onInspect={inspect} onNavigate={navigate} />
+          <NavTrail levels={trailLevels} onJump={focusRegion} />
+          {sectionNotice ? <p className="nav-trail-notice" role="status">{sectionNotice}</p> : null}
+          <div className="ui-page-heading" role="group" aria-label="当前页面"><div><h1>{findUiPage(uiPageId ?? "")?.label ?? currentSpaceLabel}</h1><p>个人空间 · 本地知识与 Human–AI 双向学习</p></div><small>UI / {uiPageId ?? "兼容入口"}</small></div>
+          <SpaceView initialLearningItemKey={initialLearningItemKey} onReviewItem={openReviewItem} onOpenPage={openPage} hasUnsavedDrafts={unsavedDrafts} uiPageId={uiPageId} initialDocumentId={openedDocumentId} onOpenDocument={openDocument} spaceId={activeSpace} onInspect={inspect} onNavigate={navigate} onOpenCapability={openCapability} navigation={sectionNavigation} selectedCapabilityId={selectedCapabilityId} onTrail={setObjectTrail} />
         </main>
-        {inspectorOpen ? <Inspector target={inspectionTarget} onClose={() => setInspectorOpen(false)} /> : null}
+        {inspectorOpen && !selectedCapabilityId && !learningFocus ? <Inspector target={inspectionTarget} onClose={() => setInspectorOpen(false)} /> : null}
       </div>
-      <ActivityDock onInspect={inspect} />
+      {!learningFocus && <ActivityDock key={`activity:${workspaceEpoch}`} onInspect={inspect} commandPaletteOpen={commandPaletteOpen} />}
     </div>
   );
 }

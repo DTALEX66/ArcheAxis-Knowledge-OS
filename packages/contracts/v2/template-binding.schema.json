@@ -1,0 +1,126 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "archeaxis.template/v1",
+  "title": "Existing canonical archeaxis_template v1 namespace",
+  "description": "Canonical shape of existing template metadata; incomplete fields allowed; reference existence and learning identity checked by Core at new writes. Historical unsupported payload is preserved unchanged, not normalized.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "template_id",
+    "discipline_id",
+    "fields",
+    "references",
+    "learning_item_key"
+  ],
+  "properties": {
+    "schema": {
+      "const": "archeaxis.template/v1"
+    },
+    "template_id": {
+      "type": "string",
+      "enum": [
+        "T1",
+        "T2",
+        "T3"
+      ]
+    },
+    "discipline_id": {
+      "type": "string",
+      "enum": [
+        "math",
+        "statistics",
+        "physics",
+        "chemistry",
+        "biology",
+        "astronomy",
+        "earth",
+        "environment",
+        "computer",
+        "engineering",
+        "medicine",
+        "agriculture",
+        "economics",
+        "management",
+        "law",
+        "politics",
+        "sociology",
+        "psychology",
+        "education",
+        "history",
+        "philosophy",
+        "literature",
+        "language",
+        "design",
+        "music",
+        "media",
+        "architecture",
+        "sport"
+      ]
+    },
+    "fields": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "string"
+      }
+    },
+    "references": {
+      "type": "array",
+      "maxItems": 100,
+      "items": {
+        "$ref": "#/$defs/TemplateReference"
+      }
+    },
+    "learning_item_key": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "description": "Null allows incomplete draft; a string must name an actual existing learning queue item, not a planned/guessed key."
+    }
+  },
+  "$defs": {
+    "TemplateReference": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "document_id",
+        "version",
+        "block_id",
+        "relation",
+        "x",
+        "y"
+      ],
+      "properties": {
+        "document_id": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Exact existing immutable Document identity, never title or pathname. Entire envelope bounded by canonical Document codec."
+        },
+        "version": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 9223372036854775807
+        },
+        "block_id": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "minLength": 1,
+          "maxLength": 128,
+          "description": "Null pins the whole document; actual nonempty block identity must exist in the pinned version and meet codec UTF8 byte length <=128 (not an ASCII token)."
+        },
+        "relation": {
+          "type": "string"
+        },
+        "x": {
+          "type": "number"
+        },
+        "y": {
+          "type": "number"
+        }
+      }
+    }
+  }
+}

@@ -48,14 +48,24 @@ def test_primary_navigation_uses_latest_mother_vector_icons():
     assert 'IconName="Home"' in main
 
 
-def test_icon_stroke_and_foreground_follow_both_theme_palettes():
+def test_icon_stroke_and_foreground_follow_every_theme_palette():
     code = ICON_CODE.read_text(encoding="utf-8")
     xaml = ICON_XAML.read_text(encoding="utf-8")
     palettes = THEME_CODE.read_text(encoding="utf-8")
     assert "IconStrokeThickness => 1.7" in code
     assert 'Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=UserControl}}"' in xaml
     assert 'StrokeThickness="{Binding IconStrokeThickness' in xaml
-    assert palettes.count('["AaosIvoryBrush"]') == 2
+    # The intent is that every palette defines the ivory brush the icons bind to, not that there is
+    # a particular number of palettes. The cosmic theme layer added a third (深空主题/DeepSpace), and
+    # a hand-counted "== 2" described the palette count rather than the rule. Assert the rule: one
+    # definition per palette table, whatever number of tables exists.
+    palette_tables = re.findall(
+        r"static readonly IReadOnlyDictionary<string, string>\s+\w+Colors\s*=", palettes)
+    assert len(palette_tables) >= 2, (
+        f"expected at least a light and a dark palette, found {len(palette_tables)}")
+    assert palettes.count('["AaosIvoryBrush"]') == len(palette_tables), (
+        "every palette table must define the ivory brush the icons bind to: "
+        f"{palettes.count('[\"AaosIvoryBrush\"]')} definitions for {len(palette_tables)} tables")
     assert "#F8F6EB" in palettes and "#F1F2F3" in palettes
     assert ICON_BOARD.is_file()
 

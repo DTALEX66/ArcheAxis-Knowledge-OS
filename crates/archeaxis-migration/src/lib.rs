@@ -36,18 +36,54 @@ fn export_filename(name: &str) -> String {
     }
 }
 
-fn manifest_digest(tables: &BTreeMap<String, TableExport>) -> String {
+/// The digest that identifies this export.
+///
+/// The tables that could *not* be read are hashed too. Leaving them out would make a manifest with
+/// a gap interchangeable with one without it — the same digest would describe both, so a later
+/// reader comparing digests could not tell that a table had been dropped.
+fn manifest_digest(
+    tables: &BTreeMap<String, TableExport>,
+    unqueried: &BTreeMap<String, String>,
+) -> String {
     let mut h = Sha256::new();
     for (name, table) in tables {
         h.update(name.as_bytes());
         h.update(table.rows.to_le_bytes());
         h.update(table.sha256.as_bytes());
     }
+    for (name, reason) in unqueried {
+        h.update(b"unqueried:");
+        h.update(name.as_bytes());
+        h.update(reason.as_bytes());
+    }
     hex::encode(h.finalize())
 }
 
 /// Inventory user tables of a legacy DB (read-only; excludes sqlite internals).
+///
+/// All-or-nothing: the first table this build cannot read fails the whole call, naming that table
+/// in the error. Use [`inventory_reporting_unreadable`] when the caller wants to see the readable
+/// tables beside the one that needs an engine this build does not carry.
 pub fn inventory(db_path: &str) -> rusqlite::Result<Vec<TableSummary>> {
+    let (readable, unreadable) = inventory_reporting_unreadable(db_path)?;
+    if let Some((name, reason)) = unreadable.into_iter().next() {
+        return Err(rusqlite::Error::SqliteFailure(
+            rusqlite::ffi::Error::new(rusqlite::ffi::SQLITE_ERROR),
+            Some(format!("{name}: {reason}")),
+        ));
+    }
+    Ok(readable)
+}
+
+/// Inventory user tables, separating the ones that could be read from the ones that could not.
+///
+/// A legacy database can legitimately use a module this build does not carry — the real legacy
+/// store here has a `sqlite-vec` `vec0` index table. Reporting that as "the inventory failed"
+/// turns "one table needs an extension" into "the database is unreadable", which sends someone
+/// looking for a corrupt file. The unreadable side keeps the engine's own reason per table.
+pub fn inventory_reporting_unreadable(
+    db_path: &str,
+) -> rusqlite::Result<(Vec<TableSummary>, BTreeMap<String, String>)> {
     let conn = Connection::open_with_flags(db_path, rusqlite::OpenFlags::SQLITE_OPEN_READ_ONLY)?;
     let mut stmt = conn.prepare(
         "SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%' AND name NOT LIKE 'knowledge_fts%' ORDER BY name",
@@ -56,12 +92,19 @@ pub fn inventory(db_path: &str) -> rusqlite::Result<Vec<TableSummary>> {
         .query_map([], |r| r.get(0))?
         .collect::<Result<_, _>>()?;
     let mut out = Vec::new();
+    let mut unreadable = BTreeMap::new();
     for name in names {
-        let count: i64 = conn.query_row(
+        let count: i64 = match conn.query_row(
             &format!("SELECT count(*) FROM {}", quote_identifier(&name)),
             [],
             |r| r.get(0),
-        )?;
+        ) {
+            Ok(count) => count,
+            Err(error) => {
+                unreadable.insert(name, error.to_string());
+                continue;
+            }
+        };
         let cols: Vec<String> = conn
             .prepare("SELECT name FROM pragma_table_info(?1)")?
             .query_map([&name], |r| r.get(0))?
@@ -72,18 +115,26 @@ pub fn inventory(db_path: &str) -> rusqlite::Result<Vec<TableSummary>> {
             columns: cols,
         });
     }
-    Ok(out)
+    Ok((out, unreadable))
 }
 
-/// Export every user table to JSONL in `out_dir`; returns per-table files with
-/// a content manifest. One line per row (JSON object of column -> value).
+/// Export every *readable* user table to JSONL in `out_dir`; returns per-table files with a content
+/// manifest naming any table it could not read. One line per row (JSON object of column -> value).
+///
+/// A table this build cannot open is recorded in `unqueried_tables` with the engine's reason rather
+/// than failing the whole export: the real legacy store has a `sqlite-vec` virtual table and no such
+/// module here, and aborting on it preserved nothing at all — 88 readable tables went unexported
+/// because one needed an extension. The gap is named, so a partial preservation is never mistaken
+/// for a complete one.
 pub fn export_jsonl(db_path: &str, out_dir: &str) -> Result<ExportManifest, MigrationError> {
     let conn = Connection::open_with_flags(db_path, rusqlite::OpenFlags::SQLITE_OPEN_READ_ONLY)?;
     std::fs::create_dir_all(out_dir).map_err(MigrationError::Io)?;
-    let summary = inventory(db_path).map_err(MigrationError::Sql)?;
+    let (summary, unqueried) =
+        inventory_reporting_unreadable(db_path).map_err(MigrationError::Sql)?;
     let mut manifest = ExportManifest {
         exported_at_unix: 0,
         tables: BTreeMap::new(),
+        unqueried_tables: unqueried,
         manifest_sha256: String::new(),
     };
     for t in &summary {
@@ -128,7 +179,7 @@ pub fn export_jsonl(db_path: &str, out_dir: &str) -> Result<ExportManifest, Migr
             },
         );
     }
-    manifest.manifest_sha256 = manifest_digest(&manifest.tables);
+    manifest.manifest_sha256 = manifest_digest(&manifest.tables, &manifest.unqueried_tables);
     let mpath = Path::new(out_dir).join("export-manifest.json");
     let mut manifest_file = std::fs::OpenOptions::new()
         .write(true)
@@ -151,6 +202,10 @@ pub struct TableExport {
 pub struct ExportManifest {
     pub exported_at_unix: u64,
     pub tables: BTreeMap<String, TableExport>,
+    /// Tables this build could not read, with the engine's own reason. Named, never omitted: an
+    /// export that silently dropped a table would look complete.
+    #[serde(default)]
+    pub unqueried_tables: BTreeMap<String, String>,
     #[serde(default)]
     pub manifest_sha256: String,
 }
@@ -213,7 +268,7 @@ fn hex_sha256_bytes(data: &[u8]) -> String {
 
 /// Verify every exported table file against the manifest (hash + row count).
 fn verify_export(export_dir: &str, manifest: &ExportManifest) -> Result<(), MigrationError> {
-    if manifest.manifest_sha256 != manifest_digest(&manifest.tables) {
+    if manifest.manifest_sha256 != manifest_digest(&manifest.tables, &manifest.unqueried_tables) {
         return Err(MigrationError::Io(std::io::Error::new(
             std::io::ErrorKind::InvalidData,
             "export manifest digest mismatch",
@@ -513,4 +568,832 @@ pub fn stage_legacy_learning_history(
         }
     }
     Ok(result)
+}
+
+// ---------- Owner ruling 2026-10-06: merge what is useful, drop what is not ----------
+// Every table in the export gets exactly one named disposition, so "dropped" is always a
+// recorded decision and never a silent omission.
+
+/// One table's decision in the selective migration.
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
+pub struct LegacyTableDisposition {
+    pub table: String,
+    /// "merged", "discarded" (nothing to carry) or "not_merged" (kept in the export, no target).
+    pub action: String,
+    pub reason: String,
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone, Default, PartialEq)]
+pub struct SelectiveStageResult {
+    pub intake_cards_seen: u64,
+    pub intake_cards_staged: u64,
+    pub lessons_seen: u64,
+    pub lessons_staged: u64,
+    pub reused: u64,
+    pub row_errors: u64,
+    pub dispositions: Vec<LegacyTableDisposition>,
+    pub losses: Vec<String>,
+}
+
+/// Bookkeeping belongs to the database that made it; vNext records its own history.
+const LEGACY_BOOKKEEPING: &[&str] = &["schema_migrations", "migration_operator_runs"];
+/// Tables whose semantics the mainline can carry as Knowledge candidates.
+const MERGED_TABLES: &[&str] = &["ir_intake_cards", "machine_lessons"];
+
+fn json_text(row: &serde_json::Value, key: &str) -> String {
+    row.get(key)
+        .and_then(serde_json::Value::as_str)
+        .unwrap_or("")
+        .trim()
+        .to_string()
+}
+
+/// A JSON array column rendered as a bullet list; an empty or unparsable list yields "".
+fn json_list_as_lines(row: &serde_json::Value, key: &str) -> String {
+    let raw = json_text(row, key);
+    let parsed: Vec<String> = match serde_json::from_str::<Vec<serde_json::Value>>(&raw) {
+        Ok(items) => items
+            .iter()
+            .filter_map(|item| item.as_str().map(str::to_string))
+            .collect(),
+        Err(_) => vec![raw],
+    };
+    parsed
+        .iter()
+        .map(|item| format!("- {item}\n"))
+        .collect::<Vec<_>>()
+        .join("")
+}
+
+fn disposition(table: &str, action: &str, reason: &str) -> LegacyTableDisposition {
+    LegacyTableDisposition {
+        table: table.to_string(),
+        action: action.to_string(),
+        reason: reason.to_string(),
+    }
+}
+
+/// Stage the tables the mainline can express as Knowledge candidates and name the fate of
+/// every remaining exported table. Fidelity rules:
+/// - human intake cards become PERSONAL_DEFINITION candidates owned by `human`, source_type
+///   `imported_legacy`, with no claimed support and human review still required;
+/// - machine lessons become OBSERVATION candidates owned by `machine` (contract: a machine
+///   owner must use `machine_candidate`, which cannot be accepted automatically);
+/// - the writer is `archeaxis_domain::knowledge`, never a hand-rolled insert;
+/// - a re-run replays the same rows (reused) instead of duplicating them.
+pub fn stage_legacy_library_selectively(
+    export_dir: &str,
+    staging_db: &str,
+) -> Result<SelectiveStageResult, MigrationError> {
+    let manifest_raw = std::fs::read_to_string(Path::new(export_dir).join("export-manifest.json"))
+        .map_err(MigrationError::Io)?;
+    let manifest: ExportManifest =
+        serde_json::from_str(&manifest_raw).map_err(MigrationError::Json)?;
+    verify_export(export_dir, &manifest)?;
+
+    let mut conn =
+        archeaxis_store_sqlite::init_workspace(staging_db).map_err(MigrationError::Sql)?;
+    let mut result = SelectiveStageResult::default();
+
+    let mut stage_one = |table: &str,
+                         kind: &str,
+                         owner: &str,
+                         source_type: &str,
+                         build: &dyn Fn(&serde_json::Value) -> (Option<String>, Option<String>)|
+     -> Result<(), MigrationError> {
+        let Some(entry) = manifest.tables.get(table) else {
+            return Ok(());
+        };
+        if entry.rows == 0 {
+            return Ok(());
+        }
+        let raw = std::fs::read_to_string(Path::new(export_dir).join(export_filename(table)))
+            .map_err(MigrationError::Io)?;
+        for (index, line) in raw.lines().enumerate() {
+            if line.trim().is_empty() {
+                continue;
+            }
+            let row: serde_json::Value =
+                serde_json::from_str(line).map_err(MigrationError::Json)?;
+            let legacy_id = row
+                .get("id")
+                .and_then(|value| match value {
+                    serde_json::Value::String(text) => Some(text.clone()),
+                    other => other.as_i64().map(|number| number.to_string()),
+                })
+                .unwrap_or_else(|| format!("line{}", index + 1));
+            let (body, loss) = build(&row);
+            let Some(body) = body else {
+                if let Some(reason) = loss {
+                    result.row_errors += 1;
+                    result.losses.push(format!("{table} {legacy_id}: {reason}"));
+                }
+                continue;
+            };
+            let risk = match json_text(&row, "risk_level").as_str() {
+                "medium" | "high" | "critical" => json_text(&row, "risk_level"),
+                _ => "low".to_string(),
+            };
+            let metadata = archeaxis_domain::knowledge::KnowledgeV3Metadata {
+                source_type: source_type.to_string(),
+                owner: owner.to_string(),
+                support_level: "none".to_string(),
+                confidence: None,
+                risk_level: risk,
+                valid_from: None,
+                valid_to: None,
+                external_evidence: vec![],
+                requires_human_review: true,
+            };
+            let created_by = format!("legacy_cognitive_os:{table}:{legacy_id}");
+            match archeaxis_domain::knowledge::create_knowledge_v3(
+                &mut conn,
+                kind,
+                &body,
+                "candidate",
+                Some("UNSOURCED"),
+                None,
+                &created_by,
+                Some(&metadata),
+            ) {
+                Ok(_) => match table {
+                    "ir_intake_cards" => result.intake_cards_staged += 1,
+                    _ => result.lessons_staged += 1,
+                },
+                Err(error) => {
+                    let duplicate = matches!(
+                        &error,
+                        rusqlite::Error::SqliteFailure(failure, _)
+                            if failure.code == rusqlite::ErrorCode::ConstraintViolation
+                    );
+                    if duplicate {
+                        result.reused += 1;
+                    } else {
+                        result.row_errors += 1;
+                        result
+                            .losses
+                            .push(format!("{table} {legacy_id}: refused ({error})"));
+                    }
+                }
+            }
+        }
+        Ok(())
+    };
+
+    if let Some(entry) = manifest.tables.get("ir_intake_cards") {
+        result.intake_cards_seen = entry.rows;
+    }
+    if let Some(entry) = manifest.tables.get("machine_lessons") {
+        result.lessons_seen = entry.rows;
+    }
+    stage_one(
+        "ir_intake_cards",
+        "PERSONAL_DEFINITION",
+        "human",
+        "imported_legacy",
+        &|row| {
+            let title = json_text(row, "title");
+            let why = json_text(row, "why");
+            if title.is_empty() && why.is_empty() {
+                return (
+                    None,
+                    Some("empty title and why; nothing to carry".to_string()),
+                );
+            }
+            let mut body = format!("{title}\n\n");
+            if !why.is_empty() {
+                body.push_str(&format!("Why: {why}\n\n"));
+            }
+            let absorb = json_list_as_lines(row, "what_to_absorb_json");
+            if !absorb.is_empty() {
+                body.push_str(&format!("Absorb:\n{absorb}\n"));
+            }
+            let refuse = json_list_as_lines(row, "what_not_to_absorb_json");
+            if !refuse.is_empty() {
+                body.push_str(&format!("Refuse:\n{refuse}\n"));
+            }
+            for (label, key) in [("Target", "target_repo"), ("Risk", "risk_level")] {
+                let value = json_text(row, key);
+                if !value.is_empty() {
+                    body.push_str(&format!("{label}: {value}\n"));
+                }
+            }
+            (Some(body), None)
+        },
+    )?;
+    stage_one(
+        "machine_lessons",
+        "OBSERVATION",
+        "machine",
+        "machine_candidate",
+        &|row| {
+            let pattern = json_text(row, "pattern");
+            let constraint = json_text(row, "future_constraint");
+            if pattern.is_empty() && constraint.is_empty() {
+                return (None, Some("empty pattern and constraint".to_string()));
+            }
+            let mut body = String::new();
+            for (label, key) in [
+                ("Pattern", "pattern"),
+                ("Lesson type", "lesson_type"),
+                ("Future constraint", "future_constraint"),
+                ("Evidence trace", "evidence_trace_id"),
+            ] {
+                let value = json_text(row, key);
+                if !value.is_empty() {
+                    body.push_str(&format!("{label}: {value}\n"));
+                }
+            }
+            (Some(body), None)
+        },
+    )?;
+
+    for table in manifest.tables.keys() {
+        let rows = manifest.tables[table].rows;
+        let merged = MERGED_TABLES.contains(&table.as_str()) && rows > 0;
+        let outcome = if merged {
+            disposition(table, "merged", "staged as a Knowledge candidate")
+        } else if rows == 0 {
+            disposition(table, "discarded", "exported with 0 rows; nothing to carry")
+        } else if table.contains("_fts") || table.ends_with("_FTS") {
+            disposition(
+                table,
+                "discarded",
+                "full-text shadow storage, rebuilt from its content table",
+            )
+        } else if LEGACY_BOOKKEEPING.contains(&table.as_str()) {
+            disposition(
+                table,
+                "discarded",
+                "legacy bookkeeping; the vNext schema records its own history",
+            )
+        } else if table.starts_with("vec_") {
+            disposition(
+                table,
+                "not_merged",
+                "vector storage for content rows this library holds; the mainline has no vector table yet",
+            )
+        } else {
+            disposition(
+                table,
+                "not_merged",
+                "preserved in the fidelity export; no mainline target named for it",
+            )
+        };
+        result.dispositions.push(outcome);
+    }
+    for (table, reason) in &manifest.unqueried_tables {
+        result.dispositions.push(LegacyTableDisposition {
+            table: table.clone(),
+            action: "not_merged".to_string(),
+            reason: format!("this build could not read it: {reason}"),
+        });
+    }
+
+    for &table in MERGED_TABLES {
+        if manifest.tables.contains_key(table) && manifest.tables[table].rows > 0 {
+            result.losses.push(format!(
+                "{table}.created_at (legacy) is not carried: vNext records its own import time"
+            ));
+        }
+    }
+    Ok(result)
+}
+
+// Typed preservation export. This is not a semantic 98-table migration.
+use serde_json::json;
+
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
+pub struct TypedTableExport {
+    pub columns: Vec<String>,
+    pub rowid_alias: Option<String>,
+    pub rowid_disposition: String,
+    pub rows: u64,
+    pub file: String,
+    pub sha256: String,
+    pub bytes: u64,
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
+pub struct TypedExportManifest {
+    pub schema: String,
+    pub schema_file: String,
+    pub schema_sha256: String,
+    pub tables: BTreeMap<String, TypedTableExport>,
+    pub disposition: String,
+    #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
+    pub unqueried_tables: BTreeMap<String, String>,
+}
+
+fn invalid_export(message: &'static str) -> MigrationError {
+    MigrationError::Io(std::io::Error::new(
+        std::io::ErrorKind::InvalidInput,
+        message,
+    ))
+}
+
+fn reject_export_links(path: &Path) -> Result<(), MigrationError> {
+    for ancestor in path.ancestors() {
+        match std::fs::symlink_metadata(ancestor) {
+            Ok(metadata) => {
+                #[cfg(windows)]
+                let reparse = {
+                    use std::os::windows::fs::MetadataExt;
+                    metadata.file_attributes() & 0x400 != 0
+                };
+                #[cfg(not(windows))]
+                let reparse = false;
+                if metadata.file_type().is_symlink() || reparse {
+                    return Err(invalid_export("export path contains a link"));
+                }
+            }
+            Err(error) if error.kind() == std::io::ErrorKind::NotFound => {}
+            Err(error) => return Err(MigrationError::Io(error)),
+        }
+    }
+    Ok(())
+}
+
+fn typed_file_digest(path: &Path) -> Result<(String, u64), MigrationError> {
+    use std::io::Read;
+    let mut file = std::fs::File::open(path).map_err(MigrationError::Io)?;
+    let mut hash = Sha256::new();
+    let mut bytes = 0u64;
+    let mut buffer = [0u8; 64 * 1024];
+    loop {
+        let read = file.read(&mut buffer).map_err(MigrationError::Io)?;
+        if read == 0 {
+            break;
+        }
+        hash.update(&buffer[..read]);
+        bytes = bytes
+            .checked_add(read as u64)
+            .ok_or_else(|| invalid_export("export byte count overflow"))?;
+    }
+    Ok((hex::encode(hash.finalize()), bytes))
+}
+
+/// CLI boundary: outputs must be a fresh directory below the explicitly selected
+/// project's existing .project-local root. Never infer an external runtime DB.
+pub fn validate_typed_export_output(project: &Path, output: &Path) -> Result<(), MigrationError> {
+    reject_export_links(project)?;
+    reject_export_links(output)?;
+    let project = project.canonicalize().map_err(MigrationError::Io)?;
+    let allowed = project
+        .join(".project-local")
+        .canonicalize()
+        .map_err(MigrationError::Io)?;
+    let parent = output
+        .parent()
+        .ok_or_else(|| invalid_export("output lacks parent"))?
+        .canonicalize()
+        .map_err(MigrationError::Io)?;
+    if !parent.starts_with(&allowed) || output.exists() || output.file_name().is_none() {
+        return Err(invalid_export("output must be fresh and project-local"));
+    }
+    Ok(())
+}
+
+/// Preserve SQLite storage classes and exact cell bytes in a single read-only
+/// transaction. REAL is its IEEE-754 bit pattern, TEXT is bytes (not lossy UTF8).
+/// Schema SQL and all tables, including internal/unknown/shadow tables, are
+/// archived. No semantic import or reconstructed database is claimed.
+pub fn export_typed_jsonl(
+    db_path: &str,
+    out_dir: &str,
+) -> Result<TypedExportManifest, MigrationError> {
+    export_typed_snapshot(db_path, out_dir, || Ok(()))
+}
+
+/// Exact product document/card scope. Other tables remain in schema only and in
+/// the unchanged original database; no all-table or semantic qualification.
+/// Lease/credential/Agent-memory rows are never selected by this entrypoint.
+pub fn export_typed_document_content_jsonl(
+    db_path: &str,
+    out_dir: &str,
+) -> Result<TypedExportManifest, MigrationError> {
+    export_typed_snapshot_scoped(
+        db_path,
+        out_dir,
+        || Ok(()),
+        Some(&["kb_documents", "kb_cards"]),
+    )
+}
+
+/// Exact legacy intake-card scope; all other rows remain unqueried in the retained original.
+pub fn export_typed_intake_content_jsonl(
+    db_path: &str,
+    out_dir: &str,
+) -> Result<TypedExportManifest, MigrationError> {
+    export_typed_snapshot_scoped(db_path, out_dir, || Ok(()), Some(&["ir_intake_cards"]))
+}
+
+fn export_typed_snapshot<F>(
+    db_path: &str,
+    out_dir: &str,
+    after_snapshot: F,
+) -> Result<TypedExportManifest, MigrationError>
+where
+    F: FnOnce() -> Result<(), MigrationError>,
+{
+    export_typed_snapshot_scoped(db_path, out_dir, after_snapshot, None)
+}
+
+fn export_typed_snapshot_scoped<F>(
+    db_path: &str,
+    out_dir: &str,
+    after_snapshot: F,
+    selected_tables: Option<&[&str]>,
+) -> Result<TypedExportManifest, MigrationError>
+where
+    F: FnOnce() -> Result<(), MigrationError>,
+{
+    reject_export_links(Path::new(db_path))?;
+    let output = Path::new(out_dir);
+    reject_export_links(output)?;
+    if output.exists() {
+        return Err(invalid_export("export output already exists"));
+    }
+    let mut conn =
+        Connection::open_with_flags(db_path, rusqlite::OpenFlags::SQLITE_OPEN_READ_ONLY)?;
+    conn.execute_batch("PRAGMA query_only=ON")?;
+    let transaction = conn.transaction_with_behavior(rusqlite::TransactionBehavior::Deferred)?;
+    let schema_rows: Vec<serde_json::Value> = {
+        let mut stmt = transaction
+            .prepare("SELECT type,name,tbl_name,sql FROM sqlite_schema ORDER BY type,name")?;
+        let rows = stmt
+            .query_map([], |row| {
+                Ok(json!({
+                    "type": row.get::<_, String>(0)?, "name": row.get::<_, String>(1)?,
+                    "table": row.get::<_, String>(2)?, "sql": row.get::<_, Option<String>>(3)?
+                }))
+            })?
+            .collect::<Result<_, _>>()?;
+        rows
+    };
+    if let Some(selected) = selected_tables {
+        for required in selected {
+            if !schema_rows
+                .iter()
+                .any(|object| object["type"] == "table" && object["name"] == *required)
+            {
+                return Err(invalid_export("selected content scope is incomplete"));
+            }
+        }
+    }
+    // The schema read above establishes the same SQLite snapshot used for rows.
+    after_snapshot()?;
+    std::fs::create_dir(output).map_err(MigrationError::Io)?;
+    let schema_bytes = serde_json::to_vec_pretty(&schema_rows)?;
+    std::fs::write(output.join("schema.json"), &schema_bytes).map_err(MigrationError::Io)?;
+    let mut manifest = TypedExportManifest {
+        schema: "archeaxis.legacy-typed-export/v1".into(),
+        schema_file: "schema.json".into(),
+        schema_sha256: hex_sha256_bytes(&schema_bytes),
+        tables: BTreeMap::new(),
+        disposition: if selected_tables.is_some() {
+            "SELECTED_CONTENT_PRESERVED_ORIGINAL_RETAINED_NOT_SEMANTICALLY_MIGRATED"
+        } else {
+            "PRESERVED_NOT_SEMANTICALLY_MIGRATED"
+        }
+        .into(),
+        unqueried_tables: BTreeMap::new(),
+    };
+    for object in schema_rows
+        .iter()
+        .filter(|object| object["type"] == "table")
+    {
+        let name = object["name"]
+            .as_str()
+            .ok_or_else(|| invalid_export("invalid table name"))?;
+        if selected_tables.is_some_and(|selected| !selected.contains(&name)) {
+            manifest.unqueried_tables.insert(
+                name.to_owned(),
+                "schema_only_outside_authorized_content_scope_original_retained".into(),
+            );
+            continue;
+        }
+        // Fixed SHA names bound Windows basenames; the manifest retains the exact original table name.
+        let filename = format!("table-{}.jsonl", hex_sha256_bytes(name.as_bytes()));
+        let columns: Vec<String> = {
+            let mut stmt =
+                transaction.prepare("SELECT name FROM pragma_table_xinfo(?1) ORDER BY cid")?;
+            let rows = stmt
+                .query_map([name], |row| row.get(0))?
+                .collect::<Result<_, _>>()?;
+            rows
+        };
+        if selected_tables.is_some()
+            && columns.iter().any(|column| {
+                let name = column.to_ascii_lowercase();
+                [
+                    "token",
+                    "secret",
+                    "password",
+                    "credential",
+                    "api_key",
+                    "cookie",
+                    "oauth",
+                ]
+                .iter()
+                .any(|part| name.contains(part))
+            })
+        {
+            return Err(invalid_export(
+                "selected content table contains protected columns",
+            ));
+        }
+        let file = std::fs::OpenOptions::new()
+            .create_new(true)
+            .write(true)
+            .open(output.join(&filename))
+            .map_err(MigrationError::Io)?;
+        let mut writer = std::io::BufWriter::new(file);
+        let rowid_alias = ["rowid", "_rowid_", "oid"]
+            .iter()
+            .find(|alias| {
+                !columns
+                    .iter()
+                    .any(|column| column.eq_ignore_ascii_case(alias))
+            })
+            .filter(|alias| {
+                transaction
+                    .prepare(&format!(
+                        "SELECT {} FROM {} LIMIT 0",
+                        alias,
+                        quote_identifier(name)
+                    ))
+                    .is_ok()
+            })
+            .map(|alias| (*alias).to_owned());
+        let rowid_disposition = if rowid_alias.is_some() {
+            "available"
+        } else {
+            "without_rowid_or_shadowed_or_unavailable"
+        }
+        .to_owned();
+        let mut projection: Vec<String> = rowid_alias.iter().cloned().collect();
+        projection.extend(columns.iter().map(|column| quote_identifier(column)));
+        let mut statement = transaction.prepare(&format!(
+            "SELECT {} FROM {}",
+            projection.join(","),
+            quote_identifier(name)
+        ))?;
+        let cell_offset = usize::from(rowid_alias.is_some());
+        let mut rows = statement.query([])?;
+        let mut count = 0u64;
+        while let Some(row) = rows.next()? {
+            let mut cells = Vec::with_capacity(columns.len());
+            for index in 0..columns.len() {
+                use rusqlite::types::ValueRef;
+                cells.push(match row.get_ref(index + cell_offset)? {
+                    ValueRef::Null => json!({"type":"null"}),
+                    ValueRef::Integer(value) => json!({"type":"integer","value":value}),
+                    ValueRef::Real(value) => {
+                        json!({"type":"real","bits":format!("{:016x}",value.to_bits())})
+                    }
+                    ValueRef::Text(bytes) => json!({"type":"text","hex":hex::encode(bytes)}),
+                    ValueRef::Blob(bytes) => json!({"type":"blob","hex":hex::encode(bytes)}),
+                });
+            }
+            let rowid: Option<i64> = if rowid_alias.is_some() {
+                row.get(0)?
+            } else {
+                None
+            };
+            serde_json::to_writer(&mut writer, &json!({"rowid": rowid, "cells": cells}))?;
+            writer.write_all(b"\n").map_err(MigrationError::Io)?;
+            count += 1;
+        }
+        writer.flush().map_err(MigrationError::Io)?;
+        writer.get_ref().sync_all().map_err(MigrationError::Io)?;
+        drop(writer);
+        let (sha256, bytes) = typed_file_digest(&output.join(&filename))?;
+        manifest.tables.insert(
+            name.to_owned(),
+            TypedTableExport {
+                columns,
+                rowid_alias,
+                rowid_disposition,
+                rows: count,
+                file: filename,
+                sha256,
+                bytes,
+            },
+        );
+    }
+    transaction.commit()?;
+    let manifest_bytes = serde_json::to_vec_pretty(&manifest)?;
+    let mut file = std::fs::OpenOptions::new()
+        .create_new(true)
+        .write(true)
+        .open(output.join("typed-export-manifest.json"))
+        .map_err(MigrationError::Io)?;
+    file.write_all(&manifest_bytes)
+        .map_err(MigrationError::Io)?;
+    file.sync_all().map_err(MigrationError::Io)?;
+    Ok(manifest)
+}
+
+#[cfg(test)]
+mod typed_preservation_tests {
+    use super::*;
+
+    #[test]
+    fn typed_export_preserves_bytes_types_schema_and_source() {
+        let dir = tempfile::tempdir().unwrap();
+        let db = dir.path().join("legacy.sqlite");
+        let conn = Connection::open(&db).unwrap();
+        conn.execute_batch("CREATE TABLE \"未知表\"(t,b,r,n,i); CREATE INDEX legacy_index ON \"未知表\"(i);
+            INSERT INTO \"未知表\" VALUES(CAST(X'ff0061' AS TEXT),X'ff0061',1.2345678901234567,NULL,-9223372036854775808);
+            CREATE TABLE empty_unknown(x); CREATE TABLE sequenced(id INTEGER PRIMARY KEY AUTOINCREMENT); INSERT INTO sequenced DEFAULT VALUES;").unwrap();
+        drop(conn);
+        let before = std::fs::read(&db).unwrap();
+        let output = dir.path().join("typed");
+        let manifest = export_typed_jsonl(db.to_str().unwrap(), output.to_str().unwrap()).unwrap();
+        let table = &manifest.tables["未知表"];
+        let bytes = std::fs::read(output.join(&table.file)).unwrap();
+        let exported: serde_json::Value = serde_json::from_slice(&bytes).unwrap();
+        assert_eq!(exported["rowid"], 1);
+        let cells = exported["cells"].as_array().unwrap();
+        assert_eq!(cells[0], json!({"type":"text","hex":"ff0061"}));
+        assert_eq!(cells[1], json!({"type":"blob","hex":"ff0061"}));
+        assert_eq!(
+            cells[2]["bits"],
+            format!("{:016x}", 1.2345678901234567f64.to_bits())
+        );
+        assert_eq!(cells[3], json!({"type":"null"}));
+        assert_eq!(cells[4]["value"], i64::MIN);
+        assert_eq!(table.sha256, hex_sha256_bytes(&bytes));
+        assert_eq!(manifest.tables["empty_unknown"].rows, 0);
+        assert_eq!(manifest.tables["sqlite_sequence"].rows, 1);
+        let schema = std::fs::read(output.join("schema.json")).unwrap();
+        assert_eq!(manifest.schema_sha256, hex_sha256_bytes(&schema));
+        assert!(String::from_utf8(schema).unwrap().contains("legacy_index"));
+        assert_eq!(before, std::fs::read(&db).unwrap());
+        assert!(export_typed_jsonl(db.to_str().unwrap(), output.to_str().unwrap()).is_err());
+    }
+
+    #[test]
+    fn typed_export_uses_one_snapshot_even_after_other_connection_commits() {
+        let dir = tempfile::tempdir().unwrap();
+        let db = dir.path().join("legacy.sqlite");
+        let writer = Connection::open(&db).unwrap();
+        writer
+            .execute_batch(
+                "PRAGMA journal_mode=WAL; CREATE TABLE known(x); INSERT INTO known VALUES(37);",
+            )
+            .unwrap();
+        let output = dir.path().join("typed");
+        let manifest =
+            export_typed_snapshot(db.to_str().unwrap(), output.to_str().unwrap(), || {
+                writer.execute_batch("UPDATE known SET x=99; CREATE TABLE late_table(x);")?;
+                Ok(())
+            })
+            .unwrap();
+        assert!(!manifest.tables.contains_key("late_table"));
+        let exported: serde_json::Value = serde_json::from_slice(
+            &std::fs::read(output.join(&manifest.tables["known"].file)).unwrap(),
+        )
+        .unwrap();
+        assert_eq!(exported["cells"][0]["value"], 37);
+        assert_eq!(
+            writer
+                .query_row("SELECT x FROM known", [], |row| row.get::<_, i64>(0))
+                .unwrap(),
+            99
+        );
+    }
+
+    #[test]
+    fn typed_export_preserves_rowid_shadow_and_generated_columns() {
+        let dir = tempfile::tempdir().unwrap();
+        let db = dir.path().join("legacy.sqlite");
+        let conn = Connection::open(&db).unwrap();
+        conn.execute_batch("CREATE TABLE shadow(rowid TEXT,x INTEGER,y INTEGER GENERATED ALWAYS AS(x+1) VIRTUAL); INSERT INTO shadow(_rowid_,rowid,x) VALUES(37,'visible',8); CREATE TABLE no_rowid(k TEXT PRIMARY KEY) WITHOUT ROWID; INSERT INTO no_rowid VALUES('a');").unwrap();
+        drop(conn);
+        let out = dir.path().join("typed");
+        let manifest = export_typed_jsonl(db.to_str().unwrap(), out.to_str().unwrap()).unwrap();
+        let table = &manifest.tables["shadow"];
+        assert_eq!(table.rowid_alias.as_deref(), Some("_rowid_"));
+        let row: serde_json::Value =
+            serde_json::from_slice(&std::fs::read(out.join(&table.file)).unwrap()).unwrap();
+        assert_eq!(row["rowid"], 37);
+        assert_eq!(row["cells"][0]["hex"], hex::encode(b"visible"));
+        assert_eq!(row["cells"][2]["value"], 9);
+        let table = &manifest.tables["no_rowid"];
+        assert!(table.rowid_alias.is_none());
+        let row: serde_json::Value =
+            serde_json::from_slice(&std::fs::read(out.join(&table.file)).unwrap()).unwrap();
+        assert!(row["rowid"].is_null());
+    }
+
+    #[test]
+    fn typed_export_bounds_long_unicode_table_filenames_and_preserves_original_names() {
+        let dir = tempfile::tempdir().unwrap();
+        let db = dir.path().join("synthetic.sqlite");
+        let conn = Connection::open(&db).unwrap();
+        let names = [
+            format!("{}\"CON:/\\?", "知识资料".repeat(96)),
+            format!("{}续", "知识资料".repeat(96)),
+        ];
+        for name in &names {
+            conn.execute_batch(&format!(
+                "CREATE TABLE {}(x TEXT); INSERT INTO {} VALUES('kept');",
+                quote_identifier(name),
+                quote_identifier(name)
+            ))
+            .unwrap();
+        }
+        drop(conn);
+        let out = dir.path().join("export");
+        let manifest = export_typed_jsonl(db.to_str().unwrap(), out.to_str().unwrap()).unwrap();
+        assert_eq!(manifest.tables.len(), 2);
+        assert_ne!(
+            manifest.tables[&names[0]].file,
+            manifest.tables[&names[1]].file
+        );
+        for name in &names {
+            let table = &manifest.tables[name];
+            assert_eq!(
+                table.file,
+                format!("table-{}.jsonl", hex_sha256_bytes(name.as_bytes()))
+            );
+            assert_eq!(table.file.len(), 76);
+            assert!(table.file.is_ascii());
+            assert_eq!(table.rows, 1);
+            assert!(out.join(&table.file).is_file());
+        }
+        let stored: TypedExportManifest =
+            serde_json::from_slice(&std::fs::read(out.join("typed-export-manifest.json")).unwrap())
+                .unwrap();
+        assert_eq!(
+            stored.tables.keys().collect::<Vec<_>>(),
+            manifest.tables.keys().collect::<Vec<_>>()
+        );
+    }
+
+    #[test]
+    fn typed_export_streaming_hash_matches_large_multirow_expected_bytes() {
+        let dir = tempfile::tempdir().unwrap();
+        let db = dir.path().join("synthetic.sqlite");
+        let mut conn = Connection::open(&db).unwrap();
+        conn.execute_batch("CREATE TABLE many_rows(i INTEGER,t TEXT,b BLOB)")
+            .unwrap();
+        let count = 4097i64;
+        let text = "真实工程夹具".repeat(96);
+        let blob = [0u8, 0xff, 37, 83];
+        let mut expected_hash = Sha256::new();
+        let mut expected_bytes = 0u64;
+        {
+            let tx = conn.transaction().unwrap();
+            let mut insert = tx
+                .prepare("INSERT INTO many_rows VALUES(?1,?2,?3)")
+                .unwrap();
+            for i in 0..count {
+                insert
+                    .execute(rusqlite::params![i, &text, &blob[..]])
+                    .unwrap();
+                let expected = json!({"rowid":i+1,"cells":[{"type":"integer","value":i},{"type":"text","hex":hex::encode(text.as_bytes())},{"type":"blob","hex":hex::encode(blob)}]});
+                let bytes = serde_json::to_vec(&expected).unwrap();
+                expected_hash.update(&bytes);
+                expected_hash.update(b"\n");
+                expected_bytes += bytes.len() as u64 + 1;
+            }
+            drop(insert);
+            tx.commit().unwrap();
+        }
+        drop(conn);
+        let out = dir.path().join("export");
+        let manifest = export_typed_jsonl(db.to_str().unwrap(), out.to_str().unwrap()).unwrap();
+        let table = &manifest.tables["many_rows"];
+        assert_eq!(table.rows, count as u64);
+        assert!(expected_bytes > 100 * 64 * 1024);
+        assert_eq!(table.bytes, expected_bytes);
+        assert_eq!(table.sha256, hex::encode(expected_hash.finalize()));
+        assert_eq!(
+            std::fs::metadata(out.join(&table.file)).unwrap().len(),
+            expected_bytes
+        );
+    }
+
+    #[test]
+    fn typed_cli_boundary_rejects_external_existing_and_non_directory_outputs() {
+        let dir = tempfile::tempdir().unwrap();
+        let project = dir.path().join("project");
+        std::fs::create_dir_all(project.join(".project-local")).unwrap();
+        assert!(
+            validate_typed_export_output(&project, &project.join(".project-local/export")).is_ok()
+        );
+        assert!(validate_typed_export_output(&project, &dir.path().join("outside")).is_err());
+        std::fs::write(project.join(".project-local/existing"), b"keep").unwrap();
+        assert!(
+            validate_typed_export_output(&project, &project.join(".project-local/existing"))
+                .is_err()
+        );
+        assert!(
+            validate_typed_export_output(&project, &project.join(".project-local/../escape"))
+                .is_err()
+        );
+    }
 }

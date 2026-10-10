@@ -24,6 +24,260 @@ x-freeze:
   date: 2026-09-05
   status: reference-not-implementation
 paths:
+  # AAOS-01 current-source slice; the older reference-only paths retain their status.
+  /api/v1/sources:
+    get:
+      operationId: listCanonicalSources
+      description: "Immutable source revision metadata."
+      x-contract-status: implemented-source-slice-not-owner-acceptance
+      responses:
+        "200":
+          description: Canonical response
+          content:
+            application/json:
+              schema:
+                $ref: "core-document.schema.json#/$defs/SourcesListDto"
+  /api/v1/sources/{source_id}/original:
+    parameters:
+      - name: source_id
+        in: path
+        required: true
+        schema: {type: string}
+    get:
+      operationId: readCanonicalOriginal
+      description: "Original bytes in bounded content_base64 with SHA; never a caller filesystem path."
+      x-contract-status: implemented-source-slice-not-owner-acceptance
+      responses:
+        "200":
+          description: Canonical response
+          content:
+            application/json:
+              schema:
+                $ref: "core-document.schema.json#/$defs/OriginalDto"
+        "404": {description: Referenced source/document/version not found}
+  /api/v1/documents:
+    get:
+      operationId: listCanonicalDocuments
+      description: "Metadata summaries only; read one document for full editor JSON."
+      x-contract-status: implemented-source-slice-not-owner-acceptance
+      responses:
+        "200":
+          description: Canonical response
+          content:
+            application/json:
+              schema:
+                $ref: "core-document.schema.json#/$defs/DocumentsListDto"
+    post:
+      operationId: createCanonicalDocument
+      description: "Human only; body title, editor_json and optional source_id/source_revision pair. Original notes need no external source; supplied pair must reference an existing source revision."
+      x-contract-status: implemented-source-slice-not-owner-acceptance
+      responses:
+        "201":
+          description: Canonical response
+          content:
+            application/json:
+              schema:
+                $ref: "core-document.schema.json#/$defs/DocumentDto"
+        "403": {description: Machine actor cannot mutate this resource}
+        "404": {description: Referenced source/document/version not found}
+  /api/v1/documents/{document_id}:
+    parameters:
+      - name: document_id
+        in: path
+        required: true
+        schema: {type: string}
+    get:
+      operationId: readCanonicalDocument
+      description: "Current editor JSON, stable block IDs and text projection in one persisted version."
+      x-contract-status: implemented-source-slice-not-owner-acceptance
+      responses:
+        "200":
+          description: Canonical response
+          content:
+            application/json:
+              schema:
+                $ref: "core-document.schema.json#/$defs/DocumentDto"
+        "404": {description: Referenced source/document/version not found}
+  /api/v1/documents/{document_id}/checks/execute:
+    parameters:
+      - name: document_id
+        in: path
+        required: true
+        schema: {type: string}
+    post:
+      operationId: executeDocumentCheck
+      description: "Human-only explicit version/hash-bound attempt, distinct from pending application and note save. Current unconfigured worker yields failed/not_configured, execution_verified=false, execution_state=not_executed; no cloud call or human approval is implied. Retry references a real previous attempt_id. Arbitrary model/provider fields are forbidden."
+      x-contract-status: implemented-source-slice-not-owner-acceptance
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required: [check_id, expected_content_sha256]
+              properties:
+                check_id: {type: string}
+                expected_content_sha256: {type: string}
+                retry_of_task_id: {type: [string, "null"]}
+      responses:
+        "201":
+          description: Durable failed/not_configured attempt receipt; execution was not verified
+          content:
+            application/json:
+              schema:
+                $ref: "core-document.schema.json#/$defs/DocumentCheckDto"
+        "403": {description: Actor not permitted}
+        "409": {description: Content/version or previous attempt identity mismatch}
+  /api/v1/documents/{document_id}/checks:
+    parameters:
+      - name: document_id
+        in: path
+        required: true
+        schema: {type: string}
+    get:
+      operationId: readDocumentChecks
+      description: "Version/hash bound fidelity and professional basis records; optional version and offset, paginated next_offset."
+      x-contract-status: implemented-source-slice-not-owner-acceptance
+      responses:
+        "200":
+          description: Independent verification records
+          content:
+            application/json:
+              schema:
+                $ref: "core-document.schema.json#/$defs/DocumentChecksDto"
+    post:
+      operationId: recordDocumentCheck
+      description: "Human-only explicit manual report or pending cloud request. Never a save prerequisite or human approval substitute."
+      x-contract-status: implemented-source-slice-not-owner-acceptance
+      responses:
+        "201":
+          description: Version-bound record
+          content:
+            application/json:
+              schema:
+                $ref: "core-document.schema.json#/$defs/DocumentCheckDto"
+        "403": {description: Machine actor cannot mutate this resource}
+  /api/v1/documents/{document_id}/draft:
+    parameters:
+      - name: document_id
+        in: path
+        required: true
+        schema: {type: string}
+    put:
+      operationId: saveCanonicalDocument
+      description: "Human only; body expected_version, editor_json and optional revision_basis. Unknown fields rejected; stale version returns 409 without overwrite."
+      x-contract-status: implemented-source-slice-not-owner-acceptance
+      responses:
+        "200":
+          description: Canonical response
+          content:
+            application/json:
+              schema:
+                $ref: "core-document.schema.json#/$defs/DocumentDto"
+        "403": {description: Machine actor cannot mutate this resource}
+        "409": {description: Stale version or conflicting canonical identity}
+        "404": {description: Referenced source/document/version not found}
+  /api/v1/documents/{document_id}/versions/{version}:
+    parameters:
+      - name: document_id
+        in: path
+        required: true
+        schema: {type: string}
+      - name: version
+        in: path
+        required: true
+        schema: {type: integer, minimum: 1}
+    get:
+      operationId: readCanonicalDocumentVersion
+      description: "Immutable historical document version."
+      x-contract-status: implemented-source-slice-not-owner-acceptance
+      responses:
+        "200":
+          description: Canonical response
+          content:
+            application/json:
+              schema:
+                $ref: "core-document.schema.json#/$defs/DocumentDto"
+        "404": {description: Referenced source/document/version not found}
+  /api/v1/documents/{document_id}/restore:
+    parameters:
+      - name: document_id
+        in: path
+        required: true
+        schema: {type: string}
+    post:
+      operationId: restoreCanonicalDocumentVersion
+      description: "Human only; body expected_version, restore_version. Unknown fields rejected; stale version 409; restore creates a new version."
+      x-contract-status: implemented-source-slice-not-owner-acceptance
+      responses:
+        "200":
+          description: Canonical response
+          content:
+            application/json:
+              schema:
+                $ref: "core-document.schema.json#/$defs/DocumentDto"
+        "403": {description: Machine actor cannot mutate this resource}
+        "409": {description: Stale version or conflicting canonical identity}
+        "404": {description: Referenced source/document/version not found}
+  /api/v1/documents/{document_id}/export:
+    parameters:
+      - name: document_id
+        in: path
+        required: true
+        schema: {type: string}
+    get:
+      operationId: exportCanonicalDocument
+      description: "Query format=markdown or obsidian; unknown query fields rejected. Text projection and manifest preserve structured content with explicit loss; external app acceptance is separate."
+      x-contract-status: implemented-source-slice-not-owner-acceptance
+      responses:
+        "200":
+          description: Canonical response
+          content:
+            application/json:
+              schema:
+                $ref: "core-document.schema.json#/$defs/DocumentExportDto"
+        "404": {description: Referenced source/document/version not found}
+  /api/v1/knowledge/{id}/review/versioned:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema: {type: string}
+    post:
+      operationId: reviewCanonicalKnowledgeVersioned
+      description: "Human only; body action, reviewer, expected_version, optional note/new_body. Stale expected_version returns 409 with current_version. No automatic human approval."
+      x-contract-status: implemented-source-slice-not-owner-acceptance
+      responses:
+        "200":
+          description: Knowledge id and new version
+        "403": {description: Machine actor cannot mutate this resource}
+        "409": {description: Stale version or conflicting canonical identity}
+        "404": {description: Referenced source/document/version not found}
+  /api/v1/workspace/backups:
+    get:
+      operationId: listCanonicalBackups
+      description: "Product-owned artifacts with hashes, schema and SQLite versions; no caller path."
+      x-contract-status: implemented-source-slice-not-owner-acceptance
+      responses:
+        "200":
+          description: Canonical response
+          content:
+            application/json:
+              schema:
+                $ref: "core-document.schema.json#/$defs/BackupsListDto"
+    post:
+      operationId: createCanonicalBackup
+      description: "Human only; no caller path. Creates a consistent artifact; independent restore remains a separate verification."
+      x-contract-status: implemented-source-slice-not-owner-acceptance
+      responses:
+        "201":
+          description: Canonical response
+          content:
+            application/json:
+              schema:
+                $ref: "core-document.schema.json#/$defs/BackupDto"
+        "403": {description: Machine actor cannot mutate this resource}
   /api/v1/jobs/{job_id}:
     parameters:
       - $ref: "#/components/parameters/JobId"
@@ -118,8 +372,24 @@ paths:
         "202":
           description: Import job accepted
   /api/v1/sources/{source_id}/anchors:
+    get:
+      operationId: readCanonicalSourceAnchors
+      description: Current-source slice; located, unverified and revision_mismatch are distinct. No new Owner acceptance is claimed.
+      parameters:
+        - name: source_id
+          in: path
+          required: true
+          schema: {type: string}
+      responses:
+        "200":
+          description: Canonical anchors for this source revision
+          content:
+            application/json:
+              schema:
+                $ref: "core-document.schema.json#/$defs/AnchorsListDto"
     post:
       operationId: createAnchor
+      description: "Body revision, position, checksum?; UTF-8 text positions use byte offsets and the selected slice checksum. Revision binding alone is not verified location."
       parameters:
         - name: source_id
           in: path

@@ -1,0 +1,167 @@
+{
+  "schema": "archeaxis.local-stage-receipt/v1",
+  "stage": "CB03 / UF08",
+  "captured_local": "2026-10-10",
+  "status": "LOCAL_PASS_WITH_EXPLICIT_UNIMPLEMENTED_FINE_ITEMS",
+  "role": "SOURCE_AND_EVIDENCE_RECEIPT_NOT_EXECUTION_AUTHORITY",
+  "writer_root": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\worktrees\\gov-ui-20261008",
+  "writer_branch": "codex/aaos-gov-ui-20261008",
+  "writer_head": "fc5d4adc7acc28e38c2e6046ef06c0be2eed721d",
+  "source_files": {
+    "crates/archeaxis-api/src/documents.rs": "f3fdf785fe2118c3ae715c5396edac38c02e98ed5788b65ac5a7d0438e44e3f9",
+    "crates/archeaxis-api/src/lib.rs": "dcf2a53acf3caa73ff09f4efcf61cd3e8a3d7d81ebb758a9a6fc07c202be9eed",
+    "crates/archeaxis-api/tests/collection_state_api.rs": "cd3036cd93ebd26d0be1d882936630a4ea5df3f2a5248f42feeb06142c7ee564",
+    "crates/archeaxis-api/tests/research_state_api.rs": "5f8393df1b41965895501782d904efac05b7f6793d739f29351096b9c514859d",
+    "crates/archeaxis-domain/src/bounded_formula.rs": "b6cb596cc1de092620db0d6f675afcca4138bad9ed46d6db6772eb384764754c",
+    "crates/archeaxis-domain/src/collection.rs": "7a4b748727936938a4f6a719a19ac003d46f5716c4bb768235703c800c98d6c4",
+    "crates/archeaxis-domain/src/document.rs": "7137b1b2e9ef3fa4909018aa7a7f827766061e2dee1e65b1e9fc7c2314f68b63",
+    "crates/archeaxis-domain/src/lib.rs": "716c2a5efad409cc4a2fb6549d680a15153b1d2d2d4858df00b19092a088ba41",
+    "crates/archeaxis-domain/src/object_reference.rs": "b1495b89a0540dd5e935fd28c200f0ff7f3ebc6412d2b6fa17eb5754c8982383",
+    "crates/archeaxis-domain/src/relation_projection.rs": "ec531e05a5d3ab6418ed6f97022a913375cc09190f5a67bff8e44a69a7935f19",
+    "crates/archeaxis-domain/src/research.rs": "8476a5f6c26db783d92dfac90931cde8fa51ab62bc5f6a1254eea2a38782ed9b",
+    "crates/archeaxis-domain/tests/collection_document.rs": "7cf26db09bc457cdcc7b076eef9c7802a2fbee4a4218129702b49c485cab7f0b",
+    "crates/archeaxis-domain/tests/object_reference.rs": "24551d824b95bbb0b789b39c51c7ad1cde4842ab56ac31487179be2a98e49829",
+    "crates/archeaxis-domain/tests/relation_projection.rs": "7c86dc369facfc4324f9d4b477204179c4d358ee4f6649a01fd35d6054c7135a",
+    "crates/archeaxis-domain/tests/research_metadata.rs": "3d6240497877f09b8472031b30047638cc3e3083293d7b2e367e4d5eba55688c",
+    "frontend/src/__tests__/CanonicalRelationSpace.test.tsx": "6e6a3bc62ab08c8b8079195861caa8d890d8a7cd23e322d528e2b0d186bb00bd",
+    "frontend/src/__tests__/CanonicalResearchSpace.test.tsx": "65a2c1d17a8a8fed547cb2766a00fc90c1d84d94e1136e29a34e032d3da860ac",
+    "frontend/src/__tests__/CollectionIntegrationReview.test.tsx": "fa9420cc86c089ae9e7280c17ab4211580e657ecf065229627b4f827e9aef3e5",
+    "frontend/src/__tests__/CollectionPanel.test.tsx": "ccfe1e45c30d223ef5dab436a5b0d9234ba616f35abd44ccc8e4fdc06a1092c1",
+    "frontend/src/__tests__/KnowledgeReferenceJump.test.tsx": "8a42ae817e4ea8091e015dca80868e7a70f0a3706c588dfe8c80683b26512109",
+    "frontend/src/__tests__/PinnedReferencePanel.test.tsx": "7e26c0fc0d7085d89d2db2c5a4cae5eae9e28ff37eef4cf0c8f4106a338fa175",
+    "frontend/src/__tests__/UiCapabilityIntent.test.tsx": "5566b3e6373db3280f4981d19584ac8a8b107715824bddfab258d180efcc5c5e",
+    "frontend/src/api/core.ts": "d84436ff330ab83bc7995cb695de9d7a0d843df8a2c5535e34ad6a19766ebed8",
+    "frontend/src/api/generated/collection-contract.ts": "dccf2c52d24282cd1436fea66ee00b78c79c776be42bc789529cb31a2c74d7ab",
+    "frontend/src/api/generated/core-contract.ts": "8c7ce3b045ae2f439e08156601da35d3defbe01a87bd57852cf620c0f878b291",
+    "frontend/src/api/generated/research-contract.ts": "28abfe018fd202fa835b2d14d753ab4128733999a8b124a024fa2cd0bc9b4d66",
+    "frontend/src/components/CollectionPanel.tsx": "ac8cba66b518bef9cbed0a23cb52e9ff3d829e713126bef25d2fbee2815fc906",
+    "frontend/src/components/PinnedReferencePanel.tsx": "7ecb9e29c334cd6e780d6020734c9e2e2848f82e134de3c911cffec2c08f4ee8",
+    "frontend/src/components/collection-panel.css": "310a39bd930664bde067b89f9c7907e4749afe6a7179eec9ae2c638e7507ac7d",
+    "frontend/src/design-system/themes.css": "07bb9b3707fa198b495b3f3a3d6391c225a9c3910e07f87378c774beb45cc505",
+    "frontend/src/design-system/tokens.css": "4cc8047b67a9d174558e3700e8b81df9c04230cdd209049b367ba3619d673191",
+    "frontend/src/presentation/documentRequestIdentity.ts": "6b14c69cb05a96483f4911251b21cf43f2153c9cf404dc8e190ce0991fe39523",
+    "frontend/src/presentation/researchBoundaries.ts": "f3973544c431d2c4684268a93066cfd1d15c3bcdfc9619e10fa7bbd5ffb5cd61",
+    "frontend/src/presentation/uiPages.ts": "de1e2240aa9d962b4c996bb141175175d178f62d1a83c0efe9707cf9decfcbc9",
+    "frontend/src/spaces/CanonicalCapabilitiesSpace.tsx": "432b93bc437567d0c1cbd7e4ea3d32ba1d7e2025620ad4b0eaebc475aca87c26",
+    "frontend/src/spaces/CanonicalRelationSpace.tsx": "9f960142b3075c96f1e1c6916d1b39d3761caa5082f337882b036cbaf618f6b3",
+    "frontend/src/spaces/CanonicalResearchSpace.tsx": "ec2790bf5af4726f13aa77be1385ef48baa5225d36c1f456448d7ebc4026fee8",
+    "frontend/src/spaces/SpaceView.tsx": "f5562bbf44be8357df6458452347082d3167bff4a55dfb2ce1b421ca31ea986e",
+    "frontend/src/spaces/ui-first.css": "fab626728105cda471555c201c69c0d205ec8b3ae9b0c48aed9dc616548e9e65",
+    "packages/contracts/v1/core-command.schema.json": "64017b86dcdf5ab93948bf6ca4da2e9a2bd0455ff66efebfb89d4c329a2fef0b",
+    "packages/contracts/v1/core-document.schema.json": "06e4484c43adfa440367651e0e268c8ea22b339d53a6456945d5c09859f03a36",
+    "packages/contracts/v2/collection.schema.json": "d96d747f7e833306555a0ad524645ae6c528a4629a86fb9a3f1f56dd3cb6246e",
+    "packages/contracts/v2/research.schema.json": "74b16c116e2293b59a7b65011c9c7d809c8d87b7114740b4553cb4dfc15c133b",
+    "scripts/contracts/generate_collection.py": "dc6d26168e7b48df149b838f214c106182c37d9b998732a506253d76fde1598d",
+    "scripts/contracts/generate_core_document.py": "d47b4415acf49edcce1b3408501ea5928554f4c0b02005c34dbd93b4462ff647",
+    "scripts/contracts/generate_research_contract.py": "fcb14e7456e3cd1ee88627ac261074929437cf41c71ce48a7cba8946c12f3ac9",
+    "src-tauri/src/core_bridge.rs": "6438018b31286f03ce41c532732ca22a854ceb382803af3374cd4817c635ddc3"
+  },
+  "inherited_source": {
+    "identity": "FUTURE-1004:F02",
+    "path": "docs\\history\\aaos-appendix-sources-20261007\\AAOS_02_未来延展_可持续架构_20261004\\01_完整架构与未来扩展任务书.md",
+    "source_root": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\worktrees\\gov-ui-20261008",
+    "sha256": "59e7f3ff6a230e6f902c0abf2c4cd496b3255a9478dca750dc07402845bd6d57",
+    "main_archive_container": ".project-local\\archives\\record-20261009\\originals\\Record\\AAOS_02_未来延展_可持续架构_20261004.zip",
+    "container_sha256": "6e1afd25bae2d69c99f88237311c69e482617680b269c4cf5a4b56d8468a2588",
+    "member": "AAOS_02_未来延展_可持续架构_20261004/01_完整架构与未来扩展任务书.md",
+    "container_member_matches_writer": true,
+    "source_clauses": {
+      "collections_properties_records": [
+        58,
+        119
+      ],
+      "relations": [
+        57,
+        58,
+        119,
+        125
+      ],
+      "filter_sort_group_views": [
+        58,
+        119
+      ],
+      "formulas": [
+        59,
+        121
+      ]
+    },
+    "scope": "typed records/properties/relations/views/formulas; old Space F02 and Format F02 are different identities"
+  },
+  "requirements": {
+    "collections_properties_reference_records": "PASS / INTEGRATED SQLite + owned Core",
+    "bidirectional_document_and_collection_relations": "PASS / INTEGRATED; pinned reference from record; definition source_snapshot separate",
+    "graph_list_version_identity": "PASS / INTEGRATED + SIMULATED; explicit paged scan and 1000-edge truncation",
+    "filter_sort_group_pagination_and_five_layouts": "PASS / local table/list/board/date-grouped-calendar/record-card-gallery; not monthly calendar or media gallery equivalence",
+    "bounded_formula_dependencies_errors": "PASS / local bounded AST only; finite IEEE754 f64, no imported code execution",
+    "research_material_hypothesis_method_experiment_counterevidence_conclusion_unresolved": "PASS / INTEGRATED + SIMULATED; sources and basis separate; no professional truth adoption",
+    "canonical_save_retry_version_exit_restart": "PASS / actual owned Core; synthetic authored materials",
+    "ordinary_and_unknown_payload_preserved": "PASS / selected real write/read tests; unrecognized namespace read-only; no blanket source-platform fidelity qualification",
+    "pinned_document_source_knowledge_details": "PASS / component tests + SIMULATED browser; actual CAS bytes validated in process probe",
+    "unimplemented_fine_items_visible_in_UF06": "PASS / UI boundary + regression; immutable design intentions unchanged",
+    "palette_bytes_unchanged": "PASS / before-manifest exact SHA",
+    "physical_ime_install_human_external_platform_qualification": "NOT_EXECUTED"
+  },
+  "verification": {
+    "rust": {
+      "passed": 108,
+      "path": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\runs\\f714401b40\\ui-research-rust-final2\\artifacts\\result.json",
+      "sha256": "60d090e4f7576f97dabbe4c0d5a6543efd9d5873e9001baa8046bdc65abbea5b"
+    },
+    "frontend": {
+      "passed": 711,
+      "files": 77,
+      "path": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\runs\\f714401b40\\ui-research-front-final4\\artifacts\\result.json",
+      "sha256": "8a75eccb29cbf652f8f25cf1cccd913b4019607077205d00198de8a1caf65f28"
+    },
+    "typecheck": {
+      "path": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\runs\\f714401b40\\ui-research-types-final3\\artifacts\\result.json",
+      "sha256": "0f29c8b6f9ebf1a8f1e1b7dfb1fae3a5793b700ad7d1a9f54cffba61aae597ed"
+    },
+    "native_bridge": {
+      "passed": 18,
+      "limit": "Compiled finite bridge; not installed WebView or physical input",
+      "path": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\runs\\f714401b40\\ui-research-native-final3\\artifacts\\native-results.json",
+      "sha256": "ec5ffaf4185682525a59cfd005585faddcab6485104e86742c544c282bd29be7"
+    },
+    "frontend_build": {
+      "path": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\runs\\f714401b40\\ui-research-stage-20261010\\frontend-build3.json",
+      "sha256": "5dfb009587ed49d79b0992ba73d0d06c9a0a0cf59e6d83fd644f07f2a561208e"
+    },
+    "core_build": {
+      "path": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\runs\\f714401b40\\ui-research-core-build2\\artifacts\\result.json",
+      "sha256": "ae7029f615c92c197520955aea8f11b70c75d087cfe011011acb06905a6d4a1f"
+    },
+    "core_process": {
+      "steps": 10,
+      "binary_sha256": "e94daa71759a86400eea5a3385d12365233c9977e1bc06d44754d9b75f0f402b",
+      "level": "INTEGRATED / SYNTHETIC material; actual two owned process starts, SQLite/CAS and restart",
+      "path": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\runs\\f714401b40\\ui-research-stage-20261010\\core-process-probe\\attempt-20261009T191118Z-6aec43\\receipt.json",
+      "sha256": "9d6b30ac271f28fe15aa5dc06eee4914747e26299d641c45b0425da49c90fa95"
+    },
+    "visual": {
+      "captures": 210,
+      "scope": "AGGREGATED_UNIQUE_SCENARIO_COVERAGE",
+      "original_run_status": "PARTIAL",
+      "original_valid_scenarios": 209,
+      "exact_scenario_revalidations": 3,
+      "root_cause": "UNVERIFIED",
+      "level": "SIMULATED React/Chromium + finite fixture DTOs; actual screenshots manually reviewed separately",
+      "path": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\runs\\f714401b40\\ui-research-stage-20261010\\visual-final\\RESULT.json",
+      "sha256": "de69d8e26534450bdbf2ab6b29ca4ac2d66d1b0b47174378220e48b4080ae95c"
+    },
+    "conventions": {
+      "path": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\runs\\f714401b40\\ui-research-stage-20261010\\SOURCE-READBACK.json",
+      "sha256": "7b8cc777ac5c4ed2cda45d4622e90556b197147ba9bead66481931b7fd26d35f"
+    }
+  },
+  "limits": [
+    "Rollup, external formula dialect equivalence, units/timezones and platform roundtrip NOT_EXECUTED",
+    "Calendar is explicit date grouping; gallery is record cards; full media bundle not implemented",
+    "Academic search, GraphRAG, entity extraction/disambiguation and large incremental graph engine NOT_EXECUTED",
+    "Unknown source payload qualification is selected fixture coverage, not every external format or numeric encoding",
+    "No commit/push/merge/release/cloud CI/install/physical IME/human learning qualification",
+    "Main stores governance/source archives; product implementation is only in named dirty writer checkout",
+    "All-taskpack remains PARTIAL; continue UF09 and remaining UI/governance tasks"
+  ],
+  "rollback": "Use this stage before-manifest/backups and owned hunks; preserve pre-existing dirty state; no reset/clean/whole-file restore"
+}

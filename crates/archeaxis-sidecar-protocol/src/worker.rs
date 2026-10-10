@@ -198,6 +198,50 @@ impl Request {
         )
         .map_err(|_| "invalid text task identity or budget")
     }
+
+    /// Declare that this job transcribes a recording too long for one pass, by splitting it.
+    ///
+    /// The Core refuses a job deadline above 300 s, so a long recording cannot be transcribed in
+    /// one pass on CPU. That choice rides `parameters`, which every other route still requires to
+    /// be empty: it is not a general-purpose parameter channel, it is the single capability that
+    /// has a bounded unit of work to describe, and this refuses to widen any other.
+    ///
+    /// Only the *choice* travels. The window plan is derived from the recording's real duration
+    /// inside the worker, because a plan sent over the wire could leave a gap between two windows,
+    /// look well-formed, and silently drop the audio between them.
+    ///
+    /// `staging` is the Core-owned directory that holds finished windows. It is stable across
+    /// attempts on purpose: a window that already succeeded is reused instead of repeated, so a
+    /// long recording advances rather than restarting.
+    pub fn splitting(mut self, staging: &str) -> Result<Self> {
+        if self.capability != "media.transcribe" {
+            return Err("only media.transcribe can be split");
+        }
+        if staging.trim().is_empty() {
+            return Err("a split transcription needs a staging directory");
+        }
+        self.parameters.insert("split".into(), Value::Bool(true));
+        self.parameters
+            .insert("staging".into(), Value::String(staging.into()));
+        Ok(self)
+    }
+
+    /// Ask for word-level timings alongside the segment cues (R15/F10).
+    ///
+    /// Segment timing is what every transcription already returns; word timing costs an extra
+    /// alignment pass inside the model, so it is a choice rather than a default - asking for it
+    /// unconditionally would shorten the wall clock a bounded window can finish in.
+    ///
+    /// Like `splitting`, this widens nothing else: only `media.transcribe` may carry it, and the
+    /// worker decides *how* to honour it. A request that claims word timings and receives none
+    /// fails at the receipt, because the worker states which granularity it actually produced.
+    pub fn word_timings(mut self) -> Result<Self> {
+        if self.capability != "media.transcribe" {
+            return Err("only media.transcribe can ask for word timings");
+        }
+        self.parameters.insert("words".into(), Value::Bool(true));
+        Ok(self)
+    }
 }
 pub fn decode_hello(line: &str) -> Result<Hello> {
     let hello: Hello = parse(line)?;

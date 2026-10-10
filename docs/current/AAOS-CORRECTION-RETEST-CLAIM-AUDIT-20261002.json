@@ -1,0 +1,443 @@
+{
+  "method": {
+    "kind": "read-only documentation-to-code claim audit",
+    "scope": "the human correction and retest loop only: POST /api/v1/machine/answers, POST /api/v1/machine/corrections, POST /api/v1/machine/retests, the machine task receipts they read/write, and the review path that promotes a correction",
+    "documents_read": [
+      "docs/current/AAOS-PRODUCTION-HTTP-CONTRACT-20261001.md",
+      "docs/current/AAOS-EXECUTION-ORDER-AND-DOD-20261002.json",
+      "docs/current/AAOS-FAST-CLOSURE-GOLDEN-PATH-V1-20261002.json",
+      "docs/current/AAOS-CAPABILITY-REGISTRY-V1-20261002.json"
+    ],
+    "code_read": [
+      "crates/archeaxis-api/src/runtime/mod.rs",
+      "crates/archeaxis-domain/src/machine.rs",
+      "crates/archeaxis-domain/src/knowledge.rs",
+      "crates/archeaxis-api/src/lib.rs",
+      "crates/archeaxis-api/src/capabilities.rs",
+      "crates/archeaxis-api/src/ask.rs",
+      "crates/archeaxis-application/src/executor.rs",
+      "crates/archeaxis-application/src/attempts.rs",
+      "crates/archeaxis-store-sqlite/src/lib.rs",
+      "crates/archeaxis-contracts/src/generated/vocabulary.rs",
+      "crates/archeaxis-api/tests/contract_machine_answer.rs",
+      "crates/archeaxis-api/tests/contract_machine_correction.rs",
+      "crates/archeaxis-api/tests/contract_machine_retest.rs",
+      "scripts/probes/m0_full_loop_smoke.py",
+      "services/python-workers/machine/worker_machine_answer.py"
+    ],
+    "line_number_pin": "The G4 machine-loop code is committed at worktree HEAD ed47205c8c320072212c14c58d8258239b028fdb. Line numbers in code_location are HEAD line numbers. Reason: while this audit ran, the working tree was being edited concurrently and uncommitted (git status shows runtime/mod.rs, archeaxis-archive/src/lib.rs, archeaxis-domain/src/vault.rs, archeaxis-store-sqlite/src/lib.rs dirty). git diff shows those edits are NEW G2 vault-link routes/functions only; the record_correction / run_retest / machine_answer code is byte-identical at HEAD and in the working tree, but the inserted vault_links_record function shifts the working-tree line numbers of run_retest (HEAD 316, working tree 401) and machine_answer (HEAD 494, working tree 579). Every citation therefore also carries the quoted source text so it stays locatable if the file moves again.",
+    "notes": [
+      "attempts.rs was inspected as the task named it as 'the route table', but it is the job-kind to extraction-capability table (attempts.rs:31-79). It contains no machine route and no correction/retest entry; the HTTP registrations are runtime/mod.rs:29-67 and lib.rs:90-91. Any claim sited against attempts.rs for this loop would have no code location and is reported as such.",
+      "No existing file was modified. The only write of this audit is this JSON file.",
+      "Unverifiable-by-static-read items are named as such in the relevant note rather than silently accepted: worker/model behavior and live HTTP statuses were read from source and from the repository's own contract tests, not re-observed on a running Core."
+    ],
+    "questions_answered": {
+      "1_which_guard_requires_a_failed_task": "crates/archeaxis-domain/src/machine.rs:138-155, quote at 151: if outcome.as_deref() != Some(\"failed\") { ... 153: \"retest_of must reference an existing failed machine task\" }. The HTTP handler does NOT check failure itself; it only checks existence (runtime/mod.rs:341-359).",
+      "2_does_the_core_decide_whether_the_correction_helped": "No. runtime/mod.rs:313-315 states it does not, and the response note at 482-484 says so to the caller; no score/verdict field exists in the response (467-486) or in the receipt (machine.rs:24-37).",
+      "3_correction_status": "candidate, exactly: status=\"candidate\" and evidence_status=\"UNSOURCED\" passed to create_knowledge (runtime/mod.rs:187-197, status line 191), knowledge_type=\"OBSERVATION\", created_by=\"human\", no anchor. The response echoes status/authority \"candidate\" (228-229). No knowledge_v3_metadata row is written (create_knowledge passes None at knowledge.rs:122).",
+      "4_can_a_machine_record_or_accept_a_correction": "Neither. Record: runtime/mod.rs:143-152, quote 147: \"a correction is a human act; a machine principal cannot record one\" with StatusCode::FORBIDDEN at 146. Accept: crates/archeaxis-api/src/lib.rs:1573-1583, quote 1581: \"machine principal cannot perform human review actions\" (accepted/rejected/deprecated/modified, 1574-1577).",
+      "5_retest_receipt_when_the_model_call_fails": "Nothing is recorded. runtime/mod.rs:403-408 returns 503 from the model error and returns before the only write (437-460). Comment at 405-406: \"the retest is not recorded: a task that could not run is not a measurement\".",
+      "6_where_retest_of_appears": "Both. Database column machine_tasks.retest_of (machine.rs:35), written on INSERT (machine.rs:171 and 184 from runtime/mod.rs:456), read back by machine_task (machine.rs:217-218 and 231), and present in the HTTP response (runtime/mod.rs:470)."
+    }
+  },
+  "claims": [
+    {
+      "document": "docs/current/AAOS-PRODUCTION-HTTP-CONTRACT-20261001.md",
+      "document_location": "line 200 (route R11, POST /api/v1/machine/retests)",
+      "claim": "\"records the answer as a machine task carrying retest_of, so the pair is readable from the store rather than only from the response\"",
+      "code_location": "crates/archeaxis-api/src/runtime/mod.rs:437-459 (record_machine_task call, retest_of: Some(&retest_of_for_write) at 456); crates/archeaxis-domain/src/machine.rs:35 (retest_of TEXT), 169-186 (INSERT column list at 171, value at 184), 211-236 (readback selects and returns retest_of at 217-218, 231); response at runtime/mod.rs:470 (\"retest_of\": retest_of)",
+      "verdict": "VERIFIED",
+      "note": "retest_of is in the database, in the readback projection and in the response."
+    },
+    {
+      "document": "docs/current/AAOS-PRODUCTION-HTTP-CONTRACT-20261001.md",
+      "document_location": "line 200 (route R11)",
+      "claim": "\"The named task must exist and must have failed - the domain refuses a retest of anything else (retest_of must reference an existing failed machine task)\"",
+      "code_location": "crates/archeaxis-domain/src/machine.rs:138-155; the failure guard is 151 `if outcome.as_deref() != Some(\"failed\") {` and 152-154 return Err(\"retest_of must reference an existing failed machine task\"); the SELECT that feeds it is 144-150; existence (not failure) is checked in the handler at crates/archeaxis-api/src/runtime/mod.rs:341-359",
+      "verdict": "VERIFIED",
+      "note": "The guard exists and is quoted correctly. Two consequences the document does not state: (a) the guard runs inside the write, after the model call (model call 392-401, write 437-460), so retesting a task that exists but did not fail costs a model call and answers 500 (461-465), not 4xx; (b) an `unmeasured` task is refused as well as a `succeeded` one, because only the literal \"failed\" passes line 151."
+    },
+    {
+      "document": "docs/current/AAOS-PRODUCTION-HTTP-CONTRACT-20261001.md",
+      "document_location": "line 200 (route R11)",
+      "claim": "\"A blank question or a blank retest_of is 422\"",
+      "code_location": "crates/archeaxis-api/src/runtime/mod.rs:317-323 (question) and 324-330 (retest_of), both StatusCode::UNPROCESSABLE_ENTITY (318, 326)",
+      "verdict": "VERIFIED",
+      "note": "Confirmed by tests contract_machine_retest.rs:110-134 (asserts 422 for both)."
+    },
+    {
+      "document": "docs/current/AAOS-PRODUCTION-HTTP-CONTRACT-20261001.md",
+      "document_location": "line 200 (route R11)",
+      "claim": "\"an unknown task or knowledge item is 404 before the model runs\"",
+      "code_location": "crates/archeaxis-api/src/runtime/mod.rs:341-359 (prior receipt read; 350-356 returns NOT_FOUND \"no machine task {}\") and 362-390 (knowledge body read; 379-387 returns NOT_FOUND), both before the model call at 392-401",
+      "verdict": "VERIFIED",
+      "note": "Test contract_machine_retest.rs:137-170 asserts both 404s."
+    },
+    {
+      "document": "docs/current/AAOS-PRODUCTION-HTTP-CONTRACT-20261001.md",
+      "document_location": "line 200 (route R11)",
+      "claim": "\"a model that cannot answer is 503 with the worker's own reason and records nothing, because a task that could not run is not a measurement\"",
+      "code_location": "crates/archeaxis-api/src/runtime/mod.rs:403-408 `Err(reason) => return (StatusCode::SERVICE_UNAVAILABLE, reason).into_response()` with the comment at 405-406; the only write is later, at 437-460",
+      "verdict": "VERIFIED",
+      "note": "Answers audit question 5. Same shape for the preceding refusals (capability disabled at 331-333, missing prior task at 350-356, missing/empty context at 379-387): nothing is recorded on any of them."
+    },
+    {
+      "document": "docs/current/AAOS-PRODUCTION-HTTP-CONTRACT-20261001.md",
+      "document_location": "line 200 (route R11)",
+      "claim": "\"It does not decide whether the correction helped - scoring its own retest would be the Core marking its own work, so the two receipts are returned for a person to compare.\"",
+      "code_location": "crates/archeaxis-api/src/runtime/mod.rs:313-315 (route doc comment) and 482-484 (response note: \"this route does not decide whether the correction helped\"); the response object 467-486 carries no verdict/score/improved field, and the receipt schema has no such column (crates/archeaxis-domain/src/machine.rs:24-37)",
+      "verdict": "VERIFIED",
+      "note": "Answers audit question 2: no document claims the Core scores a retest; this document explicitly denies it, and the code matches. Test contract_machine_retest.rs:226-230 pins the note text."
+    },
+    {
+      "document": "docs/current/AAOS-PRODUCTION-HTTP-CONTRACT-20261001.md",
+      "document_location": "line 200 (route R11)",
+      "claim": "\"The response carries the prior receipt beside the new answer.\"",
+      "code_location": "crates/archeaxis-api/src/runtime/mod.rs:475-480 returns only conditions, outcome, model_version and knowledge_version; crates/archeaxis-domain/src/machine.rs:197-207 and 211-236 show the receipt the domain can read back is conditions, knowledge_version, method_version, tool_version, model_version, scope, outcome, failure, retest_of (nine fields)",
+      "verdict": "OVERSTATED",
+      "note": "Four of the nine receipt fields are returned; failure, scope, method_version, tool_version and the prior receipt's own retest_of are dropped. machine.rs:191-196 states the readback must be the same set of fields as the write so the measurement can be re-checked; the route's projection weakens that for the `prior` half."
+    },
+    {
+      "document": "docs/current/AAOS-PRODUCTION-HTTP-CONTRACT-20261001.md",
+      "document_location": "line 201 (route R10, POST /api/v1/machine/corrections)",
+      "claim": "\"Every field is required and a blank one is 422: a correction that omits the specific error is not a reviewable finding.\"",
+      "code_location": "crates/archeaxis-api/src/runtime/mod.rs:127-140 (blank question / machine_answer / corrected_answer / error_note -> 422); reviewer is optional at 649-650; a blank knowledge_id is not blank-checked and falls through to the existence lookup at 172-184, answering 404 at 239",
+      "verdict": "VERIFIED",
+      "note": "True for the four text fields that carry the finding; two precision gaps: `reviewer` is optional (the document's own body list at line 201 marks it \"reviewer\"?), and a blank knowledge_id is 404 rather than 422 (existence check at 172-181). Tests contract_machine_correction.rs:155-184 pin the error_note and machine_answer 422s."
+    },
+    {
+      "document": "docs/current/AAOS-PRODUCTION-HTTP-CONTRACT-20261001.md",
+      "document_location": "line 201 (route R10)",
+      "claim": "\"A machine principal (x-archeaxis-actor: machine) is 403, because a machine correcting itself would close the loop without a person.\"",
+      "code_location": "crates/archeaxis-api/src/runtime/mod.rs:143-152 (match on crate::request_actor, \"machine\" => StatusCode::FORBIDDEN at 146 with the message at 147)",
+      "verdict": "VERIFIED",
+      "note": "Answers audit question 4 (record half). In production the actor is derived from the launch token and the header is overwritten server-side (lib.rs:32-45); request_actor treats an absent header as human. Test contract_machine_correction.rs:139-153 asserts the 403."
+    },
+    {
+      "document": "docs/current/AAOS-PRODUCTION-HTTP-CONTRACT-20261001.md",
+      "document_location": "line 201 (route R10)",
+      "claim": "\"An unknown knowledge_id is 404.\"",
+      "code_location": "crates/archeaxis-api/src/runtime/mod.rs:172-181 (EXISTS read at 172-178, `if !exists` at 179, Err(\"no knowledge item {knowledge_id}\") at 180) and 239 (`Ok(Err(reason)) => (StatusCode::NOT_FOUND, reason)`)",
+      "verdict": "VERIFIED",
+      "note": "Test contract_machine_correction.rs:186-198 asserts 404."
+    },
+    {
+      "document": "docs/current/AAOS-PRODUCTION-HTTP-CONTRACT-20261001.md",
+      "document_location": "line 201 (route R10)",
+      "claim": "\"The correction is stored as an OBSERVATION with status candidate and an UNSOURCED evidence status, with a correction_recorded review event carrying the question, the answer and the error\"",
+      "code_location": "crates/archeaxis-api/src/runtime/mod.rs:187-197 (create_knowledge(conn, \"OBSERVATION\" at 189, &corrected at 190, \"candidate\" at 191, Some(\"UNSOURCED\") at 192, None anchor at 194, \"human\" at 195)) and 198-210 (INSERT INTO review_events at 198-199, action \"correction_recorded\" at 203, note carrying question, machine answered and error at 206-207); schema at crates/archeaxis-store-sqlite/src/lib.rs:84-91 (action TEXT NOT NULL, no CHECK constraint, so the non-vocabulary action is accepted)",
+      "verdict": "VERIFIED",
+      "note": "Answers audit question 3. The status is literally \"candidate\" in the knowledge table, never \"accepted\" or \"verified\". No knowledge_v3_metadata row accompanies it (create_knowledge passes None at crates/archeaxis-domain/src/knowledge.rs:122), so the row has no source_type/owner/support metadata at all."
+    },
+    {
+      "document": "docs/current/AAOS-PRODUCTION-HTTP-CONTRACT-20261001.md",
+      "document_location": "line 201 (route R10)",
+      "claim": "\"Records a real error a person found in a machine answer together with the answer itself, so a reviewer reads what was actually said rather than a description of it.\"",
+      "code_location": "crates/archeaxis-api/src/runtime/mod.rs:643 (`machine_answer: String` in CorrectionBody, required at 127-140) stored verbatim into the review event at 206-207 and echoed at 224; nothing in CorrectionBody (636-651) references a machine task or an answer receipt, and POST /api/v1/machine/answers returns no id to bind against (runtime/mod.rs:555-563)",
+      "verdict": "OVERSTATED",
+      "note": "The pair is stored, but `machine_answer` is a caller-supplied free string with no binding to what the model actually produced: the route never reads machine_tasks (machine.rs:24-37) and /machine/answers returns no receipt id (555-563, only schema/knowledge_id/question/authority/note/answer). The Core therefore cannot know that the stored text is what was actually said. The repository's own test demonstrates the gap by passing an arbitrary literal (contract_machine_correction.rs:53-56)."
+    },
+    {
+      "document": "docs/current/AAOS-PRODUCTION-HTTP-CONTRACT-20261001.md",
+      "document_location": "line 201 (route R10); also line 256 (route 10)",
+      "claim": "\"promotion runs only through human review at POST /api/v1/knowledge-items/{id}/review-decisions, which a machine principal is refused\"",
+      "code_location": "crates/archeaxis-api/src/lib.rs:1564-1584 (review_decision; 1573-1577 refuses actor \"machine\" for accepted/rejected/deprecated/modified; message at 1581)",
+      "verdict": "VERIFIED",
+      "note": "Answers audit question 4 (accept half). Test contract_machine_correction.rs:200-259 asserts 403 for a machine and 200 for a human on the correction candidate."
+    },
+    {
+      "document": "docs/current/AAOS-PRODUCTION-HTTP-CONTRACT-20261001.md",
+      "document_location": "line 203 (route R8, POST /api/v1/machine/answers)",
+      "claim": "\"Asks the local model one question about one accepted knowledge item, whose own body is the context, so an answer is grounded in material this workspace accepted.\"",
+      "code_location": "crates/archeaxis-api/src/runtime/mod.rs:511-523, the context query at 516-517 is `SELECT body FROM knowledge WHERE knowledge_id=?1` with no status predicate; the only checks are existence and a non-empty body (524-540). Same for the retest at 362-375.",
+      "verdict": "OVERSTATED",
+      "note": "The route will ground an answer in any knowledge row, including status candidate, rejected, deprecated or superseded (knowledge.rs:443-461 is the domain's own definition of what is active, and it is not consulted here). The claim is echoed by the function's own doc comment at runtime/mod.rs:489-492, so the code comment overstates as well. Everything else in this row about grounding in the item's own body is accurate."
+    },
+    {
+      "document": "docs/current/AAOS-PRODUCTION-HTTP-CONTRACT-20261001.md",
+      "document_location": "line 203 (route R8)",
+      "claim": "\"There is no free-text context field and an unknown field is 422\"",
+      "code_location": "crates/archeaxis-api/src/runtime/mod.rs:610-619 (MachineAnswerBody: knowledge_id, question, max_tokens?, timeout_s?, `#[serde(deny_unknown_fields)]` at 611, no context field)",
+      "verdict": "VERIFIED",
+      "note": "deny_unknown_fields makes an unknown key a deserialization rejection (422), which is the opposite of the silently-dropped-unknown-field behaviour the same document describes for other bodies at lines 331-333."
+    },
+    {
+      "document": "docs/current/AAOS-PRODUCTION-HTTP-CONTRACT-20261001.md",
+      "document_location": "line 203 (route R8)",
+      "claim": "\"Replies {schema archeaxis.machine-answer/v1, knowledge_id, question, authority candidate, note, answer}, where answer is the worker's own JSON with its loss_receipt.\"",
+      "code_location": "crates/archeaxis-api/src/runtime/mod.rs:555-563 (the six fields, \"authority\": \"candidate\" at 559); services/python-workers/machine/worker_machine_answer.py:246 and 254 build the {\"model\": ..., \"loss_receipt\": {...}} object and 294/298 re-emit it",
+      "verdict": "VERIFIED",
+      "note": "The whole worker document, including loss_receipt, is passed through as `answer`; the Core does not rephrase it (executor.rs:194-195 parses the worker's stdout as JSON and returns it)."
+    },
+    {
+      "document": "docs/current/AAOS-PRODUCTION-HTTP-CONTRACT-20261001.md",
+      "document_location": "line 203 (route R8)",
+      "claim": "\"A blank question is 422, an unknown or bodyless knowledge item is 404, a disabled machine.answer is 409, and a model that cannot answer is 503 with the worker's own reason.\"",
+      "code_location": "crates/archeaxis-api/src/runtime/mod.rs:498-504 (422), 524-540 (404 for unknown or empty body), 507-509 refusal before the model runs via crates/archeaxis-api/src/capabilities.rs:280-287 (StatusCode::CONFLICT = 409), 566 (503 from the model error)",
+      "verdict": "VERIFIED",
+      "note": "The 409 is asserted for the sibling route by contract_machine_retest.rs:172-201 and produced by the same capabilities::refusal function."
+    },
+    {
+      "document": "docs/current/AAOS-PRODUCTION-HTTP-CONTRACT-20261001.md",
+      "document_location": "line 203 (route R8)",
+      "claim": "\"Nothing here writes knowledge and nothing is promoted.\"",
+      "code_location": "crates/archeaxis-api/src/runtime/mod.rs:494-568 contains only a knowledge read (511-540) and the worker call (545-554); the handler has no INSERT/UPDATE",
+      "verdict": "VERIFIED",
+      "note": "Contrast with record_correction, which is the only route in this loop that writes a knowledge row (187-200)."
+    },
+    {
+      "document": "docs/current/AAOS-PRODUCTION-HTTP-CONTRACT-20261001.md",
+      "document_location": "line 394 (status table, row 400)",
+      "claim": "\"400 | Malformed identity or request field (e.g. a bad now, an unknown retest_of).\"",
+      "code_location": "crates/archeaxis-api/src/runtime/mod.rs:341-359, the missing-prior-task branch returns StatusCode::NOT_FOUND at 352 with \"no machine task {}\" at 353; the route's own test asserts 404 at crates/archeaxis-api/tests/contract_machine_retest.rs:151",
+      "verdict": "WRONG",
+      "note": "An unknown retest_of is 404, not 400, and line 200 of the same document says so correctly (\"an unknown task or knowledge item is 404\"). Line 394 contradicts both the code and line 200. A retest_of that names a task which exists but did not fail is 500 (runtime/mod.rs:461-465 after machine.rs:151)."
+    },
+    {
+      "document": "docs/current/AAOS-PRODUCTION-HTTP-CONTRACT-20261001.md",
+      "document_location": "lines 474 (with 471-472, section 6 launch shape)",
+      "claim": "\"The runtime builder carries six routes: the four job-execution ones plus the two capability registry reads added by R7/G1.\"",
+      "code_location": "crates/archeaxis-api/src/runtime/mod.rs:29-67 registers twelve route entries at HEAD: jobs/:job_id (30), jobs/:job_id/executions (31), cancel (32-35), outputs (36), capabilities (39), capabilities/:capability (40), capabilities/:capability/enabled (41-44), machine/answers (48), ask (51), machine/corrections (55), machine/retests (58), vault/links (61)",
+      "verdict": "WRONG",
+      "note": "The sentence omits the six non-job routes that matter to this loop (machine/answers 48, machine/corrections 55, machine/retests 58) plus ask 51 and vault/links 61, and it contradicts the same section's own \"12 runtime routes\" count at line 472. In the dirty working tree a thirteenth route (vault/links/record) has since been added at runtime/mod.rs:64."
+    },
+    {
+      "document": "docs/current/AAOS-PRODUCTION-HTTP-CONTRACT-20261001.md",
+      "document_location": "lines 526-528 (section 6)",
+      "claim": "\"So for image.caption, and for the machine loop, the blocker is wiring rather than a missing model. A UI should still render those surfaces as not connected, because no route reaches the model yet\"",
+      "code_location": "crates/archeaxis-api/src/runtime/mod.rs:48 / 55 / 58 (the three G4 routes) and 494-568, 122-245, 316-487; the model is reached through crates/archeaxis-application/src/executor.rs:133-199 (machine_answer spawns services/python-workers/machine/worker_machine_answer.py at 153-163, worker argument at 155)",
+      "verdict": "WRONG",
+      "note": "The wiring exists: a Core route accepts a question, spawns the worker and returns the model's JSON. The same document documents these routes in section 3 (lines 200-203) and calls the retest route's behaviour \"OBSERVED\", so it also contradicts itself. The UI instruction (render as not connected) is stale and would keep a client off routes that are mounted."
+    },
+    {
+      "document": "docs/current/AAOS-PRODUCTION-HTTP-CONTRACT-20261001.md",
+      "document_location": "lines 580-584 (section 8, \"G4 status, stated plainly\")",
+      "claim": "\"What does not exist is a Core route that drives it... The missing piece is a Core route that accepts a question, and until it exists a UI must show machine answering as not connected rather than calling anything.\"",
+      "code_location": "crates/archeaxis-api/src/runtime/mod.rs:48 (.route(\"/api/v1/machine/answers\", post(machine_answer))) and 610-619 (MachineAnswerBody.question at 614) and 494-568 (handler, model call at 545-554)",
+      "verdict": "WRONG",
+      "note": "This is the same contradiction as the section 6 row, stated more strongly and addressed to the UI: the route that accepts a question is registered and documented at line 203 of the same file. The paragraph's premise about the job protocol's empty `parameters` (580-583) is a true statement about the job transport, but the conclusion drawn from it is false for the runtime router."
+    },
+    {
+      "document": "docs/current/AAOS-PRODUCTION-HTTP-CONTRACT-20261001.md",
+      "document_location": "line 535 (evidence table, M0 loop row)",
+      "claim": "\"machine_retest.retest_of points at the failed task\"",
+      "code_location": "scripts/probes/m0_full_loop_smoke.py:527-539 posts the retest to `/api/v1/machine/tasks` with \"retest_of\": failed_task (528-535) and asserts it in 289-296; the receipt path is crates/archeaxis-domain/src/machine.rs:169-186 and the refusal at 138-155",
+      "verdict": "VERIFIED",
+      "note": "The receipt fact is verified, but the evidence does not come from the route the row is cited beside: the probe uses the generic machine-task route, not POST /api/v1/machine/retests (runtime/mod.rs:58). No probe or test in the repository was found that drives R11 end to end, so this row must not be read as evidence for R11."
+    },
+    {
+      "document": "docs/current/AAOS-EXECUTION-ORDER-AND-DOD-20261002.json",
+      "document_location": "line 119 (G4 definition of done)",
+      "claim": "\"one real model answers from accepted knowledge over HTTP, a human records a specific error with the correction, the correction is stored as a candidate, and promotion runs only through human review\"",
+      "code_location": "crates/archeaxis-api/src/runtime/mod.rs:516-517 (no status filter on the context query); candidate creation at 187-197; human-only promotion at crates/archeaxis-api/src/lib.rs:1564-1584",
+      "verdict": "OVERSTATED",
+      "note": "Three of the four clauses hold (answer over HTTP, correction recorded, candidate, human-only promotion). \"from accepted knowledge\" is not enforced by the Core: a rejected or superseded body can ground the answer. See the R8 and line 129 findings."
+    },
+    {
+      "document": "docs/current/AAOS-EXECUTION-ORDER-AND-DOD-20261002.json",
+      "document_location": "lines 122-126 (delivered_in for G4)",
+      "claim": "\"637a4bb7 (POST /api/v1/machine/answers ...)\", \"a4acd1a8 (POST /api/v1/machine/corrections ...)\", \"c3b86628 (POST /api/v1/machine/retests: linked to the failed task, and it does not score itself)\"",
+      "code_location": "crates/archeaxis-api/src/runtime/mod.rs:48, 55, 58 (registrations) and 122-245 / 316-487 / 494-568 (handlers); correctness of the named commits confirmed by git log (637a4bb7, a4acd1a8, c3b86628 all present in this worktree)",
+      "verdict": "VERIFIED",
+      "note": "\"linked to the failed task\" is the domain guard at machine.rs:138-155; \"does not score itself\" is runtime/mod.rs:313-315 and 482-484. These three lines are what make line 132 of the same file false."
+    },
+    {
+      "document": "docs/current/AAOS-EXECUTION-ORDER-AND-DOD-20261002.json",
+      "document_location": "line 129 (what_is_wired.machine_answer)",
+      "claim": "\"POST /api/v1/machine/answers asks the local model one question about one accepted knowledge item, whose own body is the context\"",
+      "code_location": "crates/archeaxis-api/src/runtime/mod.rs:516-517",
+      "verdict": "OVERSTATED",
+      "note": "Same root cause as the HTTP contract's R8 row: the query selects the body by id only, so \"accepted\" is a claim about the caller's intent, not a property the Core checks."
+    },
+    {
+      "document": "docs/current/AAOS-EXECUTION-ORDER-AND-DOD-20261002.json",
+      "document_location": "line 130 (what_is_wired.human_correction)",
+      "claim": "\"POST /api/v1/machine/corrections records the model's answer and the correction together with the specific error; a machine principal is 403\"",
+      "code_location": "crates/archeaxis-api/src/runtime/mod.rs:127-140 (all four fields required), 143-152 (machine -> 403), 198-210 (both texts written into the review event note at 206-207)",
+      "verdict": "VERIFIED",
+      "note": "Subject to the line-201 finding: the recorded \"model's answer\" is whatever the caller supplied."
+    },
+    {
+      "document": "docs/current/AAOS-EXECUTION-ORDER-AND-DOD-20261002.json",
+      "document_location": "line 131 (what_is_wired.no_auto_promotion)",
+      "claim": "\"the correction is an OBSERVATION with status candidate and an UNSOURCED evidence status, and the domain refuses to accept or verify machine-origin content automatically; a machine principal is also refused the review action\"",
+      "code_location": "crates/archeaxis-api/src/runtime/mod.rs:189-195 (OBSERVATION / candidate / UNSOURCED; created_by \"human\" at 195); crates/archeaxis-domain/src/knowledge.rs:80-86 (machine_candidate can only be candidate/rejected/deprecated) and 75-79 (machine owner must use machine_candidate); crates/archeaxis-api/src/lib.rs:1573-1583 (machine refused review)",
+      "verdict": "VERIFIED",
+      "note": "The stored values and the refusal are exactly as stated. One mechanism caveat: the correction row is written with metadata=None (knowledge.rs:122), so it has no knowledge_v3_metadata and the machine_candidate rule at knowledge.rs:80-86 can never see it; what actually keeps this row un-promotable is that it is created as a candidate (runtime/mod.rs:191) and that every promotion action is human-only (lib.rs:1573-1583). The item is also recorded as human-origin (created_by \"human\", runtime/mod.rs:195), so calling it \"machine-origin content\" is imprecise."
+    },
+    {
+      "document": "docs/current/AAOS-EXECUTION-ORDER-AND-DOD-20261002.json",
+      "document_location": "line 132 (what_is_wired.retest_representable)",
+      "claim": "\"a retest is a machine task carrying retest_of, so the link exists; no route runs one yet\"",
+      "code_location": "crates/archeaxis-api/src/runtime/mod.rs:58 (.route(\"/api/v1/machine/retests\", post(run_retest))) and 316-487 (run_retest: model call 392-401, receipt write 437-460, retest_of at 456); the same file's line 126 records c3b86628 as delivering \"POST /api/v1/machine/retests\" and line 145 says the retest runs",
+      "verdict": "WRONG",
+      "note": "The route exists, runs the model and records the receipt. The sentence is false and contradicts three other statements in the same document (lines 126, 145 and the loop_is_closed block). This is the clearest self-contradiction in the audited set."
+    },
+    {
+      "document": "docs/current/AAOS-EXECUTION-ORDER-AND-DOD-20261002.json",
+      "document_location": "line 145 (loop_is_closed)",
+      "claim": "\"the retest runs the same question and records itself with retest_of\"",
+      "code_location": "crates/archeaxis-api/src/runtime/mod.rs:395-400 (the caller's question is passed to the model at 397, `body.question.clone()`) and 456 (retest_of recorded); the question is caller-supplied at crates/archeaxis-api/src/runtime/mod.rs:680 (`question: String` in RetestBody); the stored receipt has no question column (crates/archeaxis-domain/src/machine.rs:24-37: conditions, not question)",
+      "verdict": "OVERSTATED",
+      "note": "\"records itself with retest_of\" is verified. \"runs the same question\" is not: the Core has no record of the original question (the baseline receipt stores `conditions`), so it runs whatever question the caller sends and merely reuses the prior task's conditions string (runtime/mod.rs:448). Sameness is asserted by the caller, not checked."
+    },
+    {
+      "document": "docs/current/AAOS-EXECUTION-ORDER-AND-DOD-20261002.json",
+      "document_location": "line 149 (constraints_the_domain_enforces.retest_of_a_failed_task_only)",
+      "claim": "\"the domain refuses a retest of anything that did not fail: retest_of must reference an existing failed machine task. 'Did the correction help' only has a meaning when something went wrong, and this was found by a test rather than assumed.\"",
+      "code_location": "crates/archeaxis-domain/src/machine.rs:138-155, quote at 151 `if outcome.as_deref() != Some(\"failed\")` and 152-154 the error; the test that found it is crates/archeaxis-api/tests/contract_machine_retest.rs:63-68 (fixture comment) and 155-201",
+      "verdict": "VERIFIED",
+      "note": "Answers audit question 1 with the exact guard. Add the unstated HTTP consequence: because the guard lives in the write (437-460), a retest naming a non-failed task runs the model first and then answers 500 (461-465)."
+    },
+    {
+      "document": "docs/current/AAOS-EXECUTION-ORDER-AND-DOD-20261002.json",
+      "document_location": "line 150 (constraints_the_domain_enforces.no_self_scoring)",
+      "claim": "\"the retest returns the prior receipt beside the new answer and states that it does not decide whether the correction helped\"",
+      "code_location": "crates/archeaxis-api/src/runtime/mod.rs:475-480 (four fields only) against crates/archeaxis-domain/src/machine.rs:197-207 (nine-field receipt)",
+      "verdict": "OVERSTATED",
+      "note": "Same as the HTTP contract's R11 finding: it returns a four-field summary of the prior receipt, not the prior receipt. The no-self-scoring half is verified (482-484)."
+    },
+    {
+      "document": "docs/current/AAOS-EXECUTION-ORDER-AND-DOD-20261002.json",
+      "document_location": "line 151 (constraints_the_domain_enforces.no_measurement_from_a_failed_run)",
+      "claim": "\"when the model cannot answer, the route fails by name and records nothing, because a task that could not run is not a measurement.\"",
+      "code_location": "crates/archeaxis-api/src/runtime/mod.rs:403-408 (503 with the worker's reason, before the only write at 437-460)",
+      "verdict": "VERIFIED",
+      "note": "Answers audit question 5. The sibling machine-answer route behaves the same way (566) and also writes nothing."
+    },
+    {
+      "document": "docs/current/AAOS-EXECUTION-ORDER-AND-DOD-20261002.json",
+      "document_location": "line 152 (constraints_the_domain_enforces.correction_needs_the_specific_error)",
+      "claim": "\"error_note is required, because 'it was wrong' is not a reviewable finding.\"",
+      "code_location": "crates/archeaxis-api/src/runtime/mod.rs:127-140 (the `(\"error_note\", &body.error_note)` entry at 131, `if value.trim().is_empty()` at 133, the 422 at 134-138); field declared at 647; test contract_machine_correction.rs:155-168",
+      "verdict": "VERIFIED",
+      "note": "The requirement is blank-rejection, not just field presence, so a whitespace-only error_note is refused too."
+    },
+    {
+      "document": "docs/current/AAOS-EXECUTION-ORDER-AND-DOD-20261002.json",
+      "document_location": "line 153 (constraints_the_domain_enforces.a_machine_cannot_correct_or_accept)",
+      "claim": "\"recording a correction and accepting one are both refused to a machine principal.\"",
+      "code_location": "crates/archeaxis-api/src/runtime/mod.rs:143-152 (record -> 403) and crates/archeaxis-api/src/lib.rs:1573-1583 (accept -> 403)",
+      "verdict": "VERIFIED",
+      "note": "Answers audit question 4 in full: neither half is available to a machine principal, and each is covered by a test (contract_machine_correction.rs:139-153 and 200-259)."
+    },
+    {
+      "document": "docs/current/AAOS-FAST-CLOSURE-GOLDEN-PATH-V1-20261002.json",
+      "document_location": "line 45 (measured_position_today.not_yet_real)",
+      "claim": "\"a real Machine Task driving a model\" is listed as not yet real",
+      "code_location": "crates/archeaxis-api/src/runtime/mod.rs:392-459 (run_retest drives the model and then records a machine task with principal \"machine\" at 447); contrast /api/v1/machine/answers, which drives the model and records no task (494-568), and /api/v1/machine/tasks, which records a task and drives no model, machine-principal only (crates/archeaxis-api/src/lib.rs:384-419, guard at 389)",
+      "verdict": "UNDERSTATED",
+      "note": "The retest route does exactly this, so the item is partly satisfied. What is genuinely missing is the baseline: no Core route can produce a machine task receipt whose outcome is `failed` from a model run (/machine/answers writes nothing and /machine/retests hard-codes outcome \"succeeded\" at 454), so the failed task a retest must point at has to be declared by a machine client through /machine/tasks. The item should say that, not that no task drives a model."
+    },
+    {
+      "document": "docs/current/AAOS-FAST-CLOSURE-GOLDEN-PATH-V1-20261002.json",
+      "document_location": "line 47 (measured_position_today.not_yet_real)",
+      "claim": "\"user error identification bound to a correction\" is listed as not yet real",
+      "code_location": "crates/archeaxis-api/src/runtime/mod.rs:122-245 (record_correction; error_note required at 131 within 127-140; question, machine answer and error written into the review event at 206-207, INSERT at 198-210)",
+      "verdict": "UNDERSTATED",
+      "note": "The route exists and the error is required, so error identification bound to a correction is wired. The defensible remaining gap is narrower and should be stated instead: the binding is to a caller-supplied answer string, not to a recorded machine answer (CorrectionBody 636-651 holds no task or answer id)."
+    },
+    {
+      "document": "docs/current/AAOS-FAST-CLOSURE-GOLDEN-PATH-V1-20261002.json",
+      "document_location": "line 48 (measured_position_today.not_yet_real)",
+      "claim": "\"correction-bound retest\" is listed as not yet real",
+      "code_location": "crates/archeaxis-api/src/runtime/mod.rs:316-487 (run_retest: retest_of must name a failed task, knowledge_id supplies the context at 435-447 and becomes the receipt's knowledge_version at 433); RetestBody at 671-685 has no correction id or candidate id field",
+      "verdict": "UNDERSTATED",
+      "note": "A correction-bound retest is runnable: the caller names the corrected item as knowledge_id and the failed task as retest_of, which is what the repository's own probe effectively does with a successor revision. What is not enforced is the binding: nothing checks that knowledge_id is the correction, the correction candidate, or even different from the item the failed task used, and there is no correction id in the body. State the weak binding rather than calling the capability absent."
+    },
+    {
+      "document": "docs/current/AAOS-FAST-CLOSURE-GOLDEN-PATH-V1-20261002.json",
+      "document_location": "line 52 (honest_note)",
+      "claim": "\"The chain is not complete. The first half is measured working on real files; the machine-learning half is wiring that does not exist yet, which is why G4 is the gate that blocks G5.\"",
+      "code_location": "crates/archeaxis-api/src/runtime/mod.rs:48, 55, 58 (the three G4 routes exist and are documented at line 200-203 of the HTTP contract); handlers 122-245, 316-487, 494-568; worker boundary at crates/archeaxis-application/src/executor.rs:133-199",
+      "verdict": "WRONG",
+      "note": "The wiring exists. The honest_note also conflicts with the same file's line 44-50 list only by degree, and with the sibling document that records commits 637a4bb7, a4acd1a8 and c3b86628 as delivering these routes (AAOS-EXECUTION-ORDER-AND-DOD-20261002.json:122-126). Independently, the not_yet_real list at line 45 also still lists \"Reader / Ask with citation over the knowledge store\", which the same sibling document records as delivered at its line 99 and which is registered at runtime/mod.rs:51 - corroborating that this file's machine half was written before the G4 routes landed."
+    },
+    {
+      "document": "docs/current/AAOS-FAST-CLOSURE-GOLDEN-PATH-V1-20261002.json",
+      "document_location": "lines 21-26 (chain stages 14-19: real Machine Task, model output, user identifies an error, Correction Candidate, Human Review, Retest)",
+      "claim": "the golden path requires those six stages in that order",
+      "code_location": "crates/archeaxis-api/src/runtime/mod.rs:48 (model output via /machine/answers), 55 (correction candidate), 58 (retest) and crates/archeaxis-api/src/lib.rs:1564-1584 (human review); the target wording is declared at AAOS-FAST-CLOSURE-GOLDEN-PATH-V1-20261002.json lines 5-6",
+      "verdict": "VERIFIED",
+      "note": "Each named stage has a code surface, but this chain is the Owner's target wording, not an implementation claim; the file's implementation claims are in measured_position_today (34-52) and are audited above. Recorded so the entry is not read as a code claim it does not make."
+    },
+    {
+      "document": "docs/current/AAOS-CAPABILITY-REGISTRY-V1-20261002.json",
+      "document_location": "line 26 (not_yet_implemented)",
+      "claim": "\"permission or scope per capability; the launch token model remains the only gate\"",
+      "code_location": "crates/archeaxis-api/src/runtime/mod.rs:143-152 (actor gate on /machine/corrections) and 331-333 plus 507-509 (per-capability enablement gate via crates/archeaxis-api/src/capabilities.rs:280-287); by contrast /machine/retests has no actor gate and any token causes a receipt with principal \"machine\" (runtime/mod.rs:437-448, with the domain's principal guard at crates/archeaxis-domain/src/machine.rs:106)",
+      "verdict": "UNDERSTATED",
+      "note": "The first half is true: there is no permission/scope model per capability. The second half is not: two further gates exist in this loop besides the launch token - an actor check on corrections and a capability enable/disable block on machine.answer. The asymmetry is worth recording: /machine/tasks is machine-only (lib.rs:389) but /machine/retests is not, so a human token can create a machine-principal receipt through the retest route."
+    },
+    {
+      "document": "docs/current/AAOS-CAPABILITY-REGISTRY-V1-20261002.json",
+      "document_location": "line 41 (invariant)",
+      "claim": "\"a capability provider never writes the canonical database; it answers a bounded request and the Core validates and commits the result\"",
+      "code_location": "crates/archeaxis-application/src/executor.rs:133-199 (the machine.answer provider is a subprocess: temp context file at 148-151, worker spawned at 153-163, stdout parsed as JSON at 194-195; it is handed no database handle), and the Core commits at crates/archeaxis-api/src/runtime/mod.rs:187-210 (correction) and 437-460 (retest receipt)",
+      "verdict": "VERIFIED",
+      "note": "The provider never touches the database and the Core performs every write. Precision note on \"validates\": the only validation applied to the answer is that the worker's stdout parses as JSON (executor.rs:194-195); the answer text itself is stored and returned unvalidated, and the retest's model_version is read from that unvalidated document (runtime/mod.rs:432, with a silent \"unknown\" fallback)."
+    }
+  ],
+  "summary": {
+    "total_claims": 42,
+    "VERIFIED": 25,
+    "OVERSTATED": 7,
+    "UNDERSTATED": 4,
+    "WRONG": 6,
+    "by_document": {
+      "docs/current/AAOS-PRODUCTION-HTTP-CONTRACT-20261001.md": {
+        "claims": 23,
+        "VERIFIED": 16,
+        "OVERSTATED": 3,
+        "UNDERSTATED": 0,
+        "WRONG": 4
+      },
+      "docs/current/AAOS-EXECUTION-ORDER-AND-DOD-20261002.json": {
+        "claims": 12,
+        "VERIFIED": 7,
+        "OVERSTATED": 4,
+        "UNDERSTATED": 0,
+        "WRONG": 1
+      },
+      "docs/current/AAOS-FAST-CLOSURE-GOLDEN-PATH-V1-20261002.json": {
+        "claims": 5,
+        "VERIFIED": 1,
+        "OVERSTATED": 0,
+        "UNDERSTATED": 3,
+        "WRONG": 1
+      },
+      "docs/current/AAOS-CAPABILITY-REGISTRY-V1-20261002.json": {
+        "claims": 2,
+        "VERIFIED": 1,
+        "OVERSTATED": 0,
+        "UNDERSTATED": 1,
+        "WRONG": 0
+      }
+    },
+    "counts_check": "HTTP contract 16+3+0+4=23; execution order 7+4+0+1=12; fast closure 1+0+3+1=5; capability registry 1+0+1+0=2; total 42 = 25 VERIFIED + 7 OVERSTATED + 4 UNDERSTATED + 6 WRONG"
+  },
+  "conclusion": {
+    "most_serious_discrepancy": {
+      "finding": "The HTTP contract tells a client that the G4 machine routes do not exist, while the same document documents them and the code registers them. AAOS-PRODUCTION-HTTP-CONTRACT-20261001.md:526-528 says the machine loop's blocker is wiring and that \"no route reaches the model yet\"; lines 580-584 say \"What does not exist is a Core route that drives it\" and that \"the missing piece is a Core route that accepts a question\", instructing the UI to show machine answering as not connected. The routes are registered at crates/archeaxis-api/src/runtime/mod.rs:48, 55 and 58, the answer handler accepts `question` (MachineAnswerBody, runtime/mod.rs:610-619) and drives the worker through crates/archeaxis-application/src/executor.rs:133-199, and the same document's own section 3 (lines 200-203) describes all three routes as part of the production inventory.",
+      "why_most_serious": "It is the only finding that is both contradicted by the code and self-contradictory inside the document that is the declared hand-off surface for the UI, and its practical effect is the opposite of a harmless overstatement: a client that follows section 6/8 will not call the routes G4 was built to deliver, so a documented capability stays invisible.",
+      "runner_up": "The second most serious is the accepted-knowledge guarantee in the machine answer path: the document says /machine/answers asks about \"one accepted knowledge item\" (line 203) and the G4 definition of done says \"a real model answers from accepted knowledge over HTTP\" (AAOS-EXECUTION-ORDER-AND-DOD-20261002.json:119), but the context query at crates/archeaxis-api/src/runtime/mod.rs:516-517 has no status predicate, so a rejected, deprecated or superseded body can ground a machine answer. This is a governance claim the Core does not enforce (crates/archeaxis-domain/src/knowledge.rs:443-461 defines active knowledge and is never consulted on this path)."
+    },
+    "answers_to_the_six_questions": {
+      "1_retest_requires_failed": "Yes, in the domain, not in the handler. Exact guard: crates/archeaxis-domain/src/machine.rs:151 `if outcome.as_deref() != Some(\"failed\") {` with the message at 152-154. The handler only checks existence (runtime/mod.rs:341-359), so the refusal surfaces as 500 after the model has already run (runtime/mod.rs:461-465).",
+      "2_core_decides_whether_the_correction_helped": "No document claims it, and the code does not do it. runtime/mod.rs:313-315 and 482-484 state the opposite; the response (467-486) has no verdict field.",
+      "3_correction_status": "Stored as a candidate, not accepted knowledge. Exactly: knowledge_type OBSERVATION, status \"candidate\", evidence_status \"UNSOURCED\", created_by \"human\", no anchor (runtime/mod.rs:187-199); no knowledge_v3_metadata row is created (knowledge.rs:122).",
+      "4_machine_can_record_or_accept_a_correction": "Neither. Record is refused at runtime/mod.rs:146-147 (403, \"a correction is a human act; a machine principal cannot record one\"); accept is refused at lib.rs:1573-1581 (403, \"machine principal cannot perform human review actions\").",
+      "5_retest_receipt_when_the_model_fails": "Nothing at all is recorded. runtime/mod.rs:403-408 returns 503 from the model error before the only write (437-460).",
+      "6_retest_of_locations": "Both. Column machine_tasks.retest_of (machine.rs:35), written at machine.rs:171/184 from runtime/mod.rs:456, read back at machine.rs:217-218/231, and present in the response at runtime/mod.rs:470."
+    },
+    "cross_cutting_observations": [
+      "The two 2026-10-01/2026-10-02 documents disagree about whether the G4 routes exist. AAOS-EXECUTION-ORDER-AND-DOD-20261002.json:122-126 and 141-147 record them as delivered; AAOS-PRODUCTION-HTTP-CONTRACT-20261001.md:526-528 and 580-584 record them as absent; AAOS-FAST-CLOSURE-GOLDEN-PATH-V1-20261002.json:45-52 records the machine half as unwired. The code (worktree HEAD ed47205c) is on the side of the execution-order document.",
+      "The loop's links are weaker than the prose implies in three places, all because identity is asserted by the caller rather than checked by the Core: the correction's `machine_answer` is free text with no answer id (runtime/mod.rs:643, 206-208); the retest's `question` need not match the original, which is not stored (runtime/mod.rs:395 vs machine.rs:24-37); and the retest's `knowledge_id` need not be the correction (runtime/mod.rs:433, 435-447). Each of the three documents describes the link as if it were verified.",
+      "The baseline failure a retest must point at cannot be produced by any Core route that calls the model: /machine/answers records nothing (runtime/mod.rs:494-568), /machine/retests hard-codes outcome \"succeeded\" (runtime/mod.rs:454), and /machine/tasks accepts the outcome from a machine client (lib.rs:406, machine-only at 389). The documents describe the loop as if the failure were observed; in code it is declared.",
+      "No document claim about this loop was found to be unverifiable from source. Two are verifiable only in the negative sense and are marked in their notes: the worker's own live behaviour (line 535 evidence row, contract tests, executor.rs) and whether a real human ever performs the correction step (AAOS-EXECUTION-ORDER-AND-DOD-20261002.json:134-137 correctly lists that as needing a person, which is an open item rather than a false claim).",
+      "attempts.rs, which the audit brief named as the route table, holds no machine, correction or retest entry (attempts.rs:31-79 is the job-kind to extraction-capability map). Claims about this loop must be sited against runtime/mod.rs:29-67 and lib.rs:90-91 instead; where a claim was checked against attempts.rs it would have had no code location.",
+      "The audited G4 code is committed at HEAD ed47205c; the working tree was dirty with unrelated G2 vault-link edits during this audit (runtime/mod.rs hash changed twice while reading), which is why every code_location carries quoted source text as well as a HEAD line number."
+    ],
+    "no_files_modified": "This audit changed no existing file. The single write is this JSON file."
+  }
+}

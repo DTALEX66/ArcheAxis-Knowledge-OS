@@ -12,6 +12,8 @@ from threading import Event
 
 import pytest
 
+from shared.paths import ordinary_path
+
 
 def _create_legacy_taskpack_database(path: Path) -> None:
     with closing(sqlite3.connect(path)) as connection:
@@ -1405,7 +1407,10 @@ def test_fts_rollback_blocks_ordinary_active_writer_during_snapshot(
 
     def hooked_connect(*args, **kwargs):
         connection = real_connect(*args, **kwargs)
-        if Path(str(args[0])).resolve() == database.resolve():
+        # The module under test now names the database verbatim, so the identity of the connection
+        # has to be decided on the ordinary form of the name - otherwise the hook would silently
+        # stop seeing the main database and the assertion would prove nothing at all.
+        if ordinary_path(Path(str(args[0]))).resolve() == database.resolve():
             return HookedConnection(connection)
         return connection
 

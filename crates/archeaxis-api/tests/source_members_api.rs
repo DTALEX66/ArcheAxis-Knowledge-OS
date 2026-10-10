@@ -137,5 +137,52 @@ async fn an_unknown_source_is_a_named_not_found_and_an_unexpanded_container_is_e
     assert_eq!(payload["member_count"], 0);
     assert_eq!(payload["readable_count"], 0);
     assert_eq!(payload["custody_only_count"], 0);
+    assert_eq!(payload["nesting_limited_count"], 0);
     assert!(payload["members"].as_array().unwrap().is_empty());
+}
+
+#[tokio::test]
+async fn a_member_container_past_the_nesting_budget_is_stopped_not_unread() {
+    // The bound on nesting is a different fact from "no route can read this", and a reader
+    // that sees both as custody-only would be told a route is missing when it exists.
+    let dir = tempfile::tempdir().unwrap();
+    let db = dir.path().join("api.sqlite");
+    let deep_container = {
+        let mut conn = init_workspace(db.to_str().unwrap()).unwrap();
+        let root = match source::import_source(&mut conn, b"PK\x03\x04 root", "level-1.zip", None)
+            .unwrap()
+        {
+            ImportOutcome::Imported { source_id, .. } => source_id,
+            ImportOutcome::Duplicate { source_id, .. } => source_id,
+        };
+        let second = member_of(&mut conn, &root, "level-2.zip", b"PK\x03\x04 two");
+        let third = member_of(&mut conn, &second, "level-3.zip", b"PK\x03\x04 three");
+        member_of(&mut conn, &third, "level-4.zip", b"PK\x03\x04 four");
+        member_of(&mut conn, &third, "deep/note.md", b"# Deep 6371 km\n");
+        third
+    };
+
+    let router = app(db.to_str().unwrap()).unwrap();
+    let (status, payload) = get(
+        &router,
+        &format!("/api/v1/sources/{deep_container}/members"),
+    )
+    .await;
+    assert_eq!(status, StatusCode::OK, "{payload}");
+    assert_eq!(payload["member_count"], 2);
+    assert_eq!(payload["nesting_limited_count"], 1, "{payload}");
+    assert_eq!(payload["custody_only_count"], 1, "{payload}");
+
+    let by_name: std::collections::BTreeMap<&str, &Value> = payload["members"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .map(|member| (member["member"].as_str().unwrap(), member))
+        .collect();
+    assert_eq!(by_name["level-4.zip"]["nesting_limited"], true);
+    assert_eq!(by_name["level-4.zip"]["job_id"], Value::Null);
+    assert_eq!(by_name["deep/note.md"]["nesting_limited"], false);
+
+    let note = payload["note"].as_str().unwrap();
+    assert!(note.contains("nesting budget"), "{note}");
 }

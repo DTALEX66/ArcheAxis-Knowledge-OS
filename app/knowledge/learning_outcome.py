@@ -22,6 +22,7 @@ from typing import Any
 
 from app.knowledge.mastery import persist_mastery_signal_on_connection
 from shared import core_schema
+from shared.paths import native_path
 
 
 class LearningOutcomeError(ValueError):
@@ -67,7 +68,7 @@ def record_learning_outcome(
         raise LearningOutcomeError("quality must be between 0 and 5")
     database = Path(db_path)
     review_id = _review_id(command_id)
-    with sqlite3.connect(database) as connection:
+    with sqlite3.connect(native_path(database)) as connection:
         connection.row_factory = sqlite3.Row
         connection.execute("BEGIN IMMEDIATE")
         try:

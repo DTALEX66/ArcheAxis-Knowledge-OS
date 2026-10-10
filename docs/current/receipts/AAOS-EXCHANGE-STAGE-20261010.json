@@ -1,0 +1,211 @@
+{
+  "schema": "archeaxis.execution-receipt/v1",
+  "stage": [
+    "CB04",
+    "UF11"
+  ],
+  "captured_at": "2026-10-09T23:46:33.055831+00:00",
+  "status": "LOCAL_ENGINEERING_CLOSED_WITH_EXPLICIT_QUALIFICATION_GAPS",
+  "whole_taskpack": "PARTIAL",
+  "task_requirements_status": "PARTIAL",
+  "writer_root": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\worktrees\\gov-ui-20261008",
+  "writer_branch": "codex/aaos-gov-ui-20261008",
+  "writer_head": "fc5d4adc7acc28e38c2e6046ef06c0be2eed721d",
+  "authority": "docs/taskpacks/aaos-ui-first-20261009",
+  "source_files": {
+    "crates/archeaxis-api/tests/runtime_jobs.rs": "57fe78074dd90503107b940039f5130a0d89e05900db79121ad36e3650f524a0",
+    "frontend/src/__tests__/CanonicalExchangeSpace.test.tsx": "0b44cc99e6c1040351398a75e6bb4feba2e20559b155497b51e0b844784ec831",
+    "frontend/src/__tests__/ConversionKindsLegacy.test.ts": "874b777bf8a87f82fcba805a589f9168d5f97c2991a47b1954b8bc9053608461",
+    "frontend/src/__tests__/EpubParagraphs.test.tsx": "8460c0db7f102373030967d580382c3f10ff3102ce9d1dea073438898127f521",
+    "frontend/src/__tests__/ExchangePinnedIntegration.test.tsx": "1cfbd0654ad307f246669f4bf7f529cb6a670d2427c05c19816589cb4a214c2f",
+    "frontend/src/__tests__/ExchangeProof.test.ts": "457831e07539ec573bf7d05192f27bff455644cd2920a510fb86e503cde72406",
+    "frontend/src/__tests__/FolderIngest.test.tsx": "f3016149796879ee9cc38bc9e0652e94843b82f7108dd0b1a27946b3cf6ae3b0",
+    "frontend/src/__tests__/JobContent.test.tsx": "d530ed46bd72462f57e2f76f0eb032cdc1327054cfb060bef41593e265027b60",
+    "frontend/src/__tests__/JobContentGenericPersisted.test.tsx": "5c0f6c0df655114d64ee2dc39c49eda0cca7d95896afe83fd687324be49b2a44",
+    "frontend/src/__tests__/JobContentManualExecution.test.tsx": "1a424e421342c105399affa893533bc5fe4aca1b5b078160c014a0f77931424a",
+    "frontend/src/__tests__/JobContentPinnedResult.test.tsx": "89b1646ff7fb281fd50ba6b17b53e4e0ff90332de487dba78681bd0806319165",
+    "frontend/src/__tests__/LiveRegionBudget.test.tsx": "68a873cb974014b81679282720d31e78cc6d1f01aa07bfe01fe9b3667ed3901d",
+    "frontend/src/__tests__/MediaRoutes.test.tsx": "3de93161c2c2db06a7eaeb0c4bec5ba86e05f50f00fc0e6df397c09d29f2b9d9",
+    "frontend/src/__tests__/TranscriptionIntegration.test.tsx": "23cab758405416630f81313866ade738befdb3faa9037e0b1191d32c58169173",
+    "frontend/src/__tests__/TranscriptionReopen.test.tsx": "34df83cc5b1e4a16e43b7ad9b6934b69c4354a1983714d5088077e59f8706f95",
+    "frontend/src/__tests__/fixtures/jobContentCoreFixture.ts": "89023f157fec11183068168d0f7ed47c257665466890bcf5d1548db72971e708",
+    "frontend/src/__tests__/folderIngestExecution.test.ts": "5d93a5b2e1a4a8ab9844ad4a09171b39646bc2478661c80f1706c0be1e091399",
+    "frontend/src/__tests__/jobContentExecution.test.ts": "22c3dcf2a71b6a0dc41961e583d2abb4c909827839cb26f665957a34bc902c97",
+    "frontend/src/api/conversionKinds.ts": "b25d18687ed58aec10b96968a423d5597c2e62987b24a9750571c2f993df8d8e",
+    "frontend/src/api/generated/core-contract.ts": "52556b694bb19af4d18aa9f342bb82cef0329305c592f469e40cb58949a05359",
+    "frontend/src/components/FolderIngest.tsx": "2229a7a434e64479f8f68470bc207be10cf69b060e69529a8b21fefdad6dc073",
+    "frontend/src/components/JobContent.tsx": "be57959e09e3297cba8dfdbb60fd3a79636fbd95911364069badce7938e49a9b",
+    "frontend/src/components/content.css": "ea585e130f773ae46c7a31d90cedb514085fa767ba3f2d28ebee67799ef2d742",
+    "frontend/src/presentation/exchangeProof.ts": "f1996eaa188407b4038d650d8bcdc6f1d24acac71b2f9a73ea12387d4928c38f",
+    "frontend/src/presentation/folderIngestExecution.ts": "63e9b07e612f9e61177704549cde0a873f6c4dbf13d30e3aa8e8d428ecb4b360",
+    "frontend/src/presentation/jobContentExecution.ts": "85bb5227a473b8724b64c935fb1c06f568b4171c9d24d4502064e6caea1f8fbb",
+    "frontend/src/spaces/CanonicalExchangeSpace.tsx": "755eb938c395d2a63777d2d6b275af21583eee35c1bffd3c56d1068869984ad4",
+    "frontend/src/spaces/SpaceView.tsx": "7093217c972ebd9c1ab7f7ba831f4a94531bcfd8e622f7fb7fdfa5c21104d59b",
+    "frontend/src/spaces/exchange.css": "430d2fe6f55841e2ade541fe25db8f3c69226603ed00cee8f347eb0d2a7cf56d",
+    "packages/contracts/v1/core-document.schema.json": "fd43a29488af369f7ce25e393bdafc32a2d9acd152a028e6e94c0e83a8c5a72a",
+    "scripts/ingest/directory_batch.py": "e379785e1de9130b3836452485b618a8321b5a89d19793a53f0bad3dfcf836a3",
+    "services/python-workers/document/worker_office.py": "29a033ffbe382b4928dffe7d8b4a57dd488ed1a9f0dff8239cc39a290b71aa90",
+    "src-tauri/src/core_bridge.rs": "e7e02940809d0e55d7cc48f984eb0e16e3ce93afc7df1ca2d9e7503da38a0f5f",
+    "tests/test_directory_batch.py": "121c42308389c9636db4e8c640f53ca13f60855690ce1887c5431ea046fea56e",
+    "tests/test_pptx_location_identity.py": "9ef9643f0d8f21873caab481658e0a95e588c4a6f1a20640ea0fa9b881be1046",
+    "tests/workers/test_pptx_chart_data.py": "4ec5eedadb00f8fa65f9e4f53dbed1fc16bdab53ffa320a37e7d168bdcbc7baa"
+  },
+  "scope": [
+    "Distinct page16 originals/derived/saved document export/manual teaching/4 interoperability statuses",
+    "Frozen manual/batch execution identity and budgets, synchronous singleflight, UNKNOWN reconciliation, actual cancellation terminal",
+    "Pinned and generic persisted job/source/revision/request/attempt integrity, output SHA256/kind/UTF8 length verification, safe transform IDs",
+    "Real PPTX shape/relationship identities; historical ambiguous producer retained",
+    "StrictMode document loading ownership; accessible narrow batch horizontal scroll and wrapped derived text"
+  ],
+  "gates": [
+    {
+      "run_id": "ui-exchange-front-full-02",
+      "scope": "980/105 full frontend before final scoped visual fixes",
+      "result": "LOCAL_PASS",
+      "receipt": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\runs\\f714401b40\\ui-exchange-front-full-02\\artifacts\\result.json",
+      "sha256": "b12b9ffc2b0d2085cbd70918605bf1c5e46100dec9bccec253c3f5442426e46f"
+    },
+    {
+      "run_id": "ui-exchange-visual-fix-front-01",
+      "scope": "46/3 final StrictMode/table UI fixes",
+      "result": "LOCAL_PASS",
+      "receipt": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\runs\\f714401b40\\ui-exchange-visual-fix-front-01\\artifacts\\result.json",
+      "sha256": "bf66459c4f59bb76e7185bdb60fdf1dd7399fe46b507164c70bc6d22e4d65b86"
+    },
+    {
+      "run_id": "ui-exchange-typecheck-06",
+      "scope": "final TypeScript; subsequent PRE CSS only",
+      "result": "LOCAL_PASS",
+      "receipt": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\runs\\f714401b40\\ui-exchange-typecheck-06\\artifacts\\result.json",
+      "sha256": "8b31c37fc3cf58a7a42c707612e3e2f4e31a0bb35771db8409c60a80a4e6cde5"
+    },
+    {
+      "run_id": "ui-exchange-native-full-01",
+      "scope": "85 native transport/runtime tests; subsequent frontend layout only",
+      "result": "LOCAL_PASS",
+      "receipt": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\runs\\f714401b40\\ui-exchange-native-full-01\\artifacts\\result.json",
+      "sha256": "e80a1026505338477297560f064f2a4c2cf6285f4e3f28e56c67eb61a624486c"
+    },
+    {
+      "run_id": "ui-exchange-native-build-03",
+      "scope": "final native embeds frontend45c60208f97a",
+      "result": "LOCAL_PASS",
+      "receipt": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\runs\\f714401b40\\ui-exchange-native-build-03\\artifacts\\result.json",
+      "sha256": "4e4bf8799731283ed67055bd0db88cc4a8da6b638e377b72986ba1cfa8a04833"
+    },
+    {
+      "run_id": "ui-exchange-document-core-01",
+      "scope": "9 actual canonical document/version/export/backup tests",
+      "result": "LOCAL_PASS",
+      "receipt": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\runs\\f714401b40\\ui-exchange-document-core-01\\artifacts\\result.json",
+      "sha256": "5334c041c6db7bce2b25c4a8c72acd8d11bb2c474269fd44332d504eaff6c06c"
+    },
+    {
+      "run_id": "ui-exchange-pptx-01",
+      "scope": "6 actual Python PPTX identity regressions",
+      "result": "LOCAL_PASS",
+      "receipt": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\runs\\f714401b40\\ui-exchange-pptx-01\\artifacts\\result.json",
+      "sha256": "527ae2f1b76caeb0f827f5912ec3558995e991e889aa948bca4abcbe05a60b0e"
+    },
+    {
+      "run_id": "ui-exchange-format-python-01",
+      "scope": "21 Python folder route tests; unchanged mapping source",
+      "result": "LOCAL_PASS",
+      "receipt": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\runs\\f714401b40\\ui-exchange-format-python-01\\artifacts\\result.json",
+      "sha256": "367a32d22caabb3bd2ea6de31bbe62553481738adc4fc452b937a14de6142077"
+    },
+    {
+      "run_id": "ui-exchange-core-mixed-01",
+      "scope": "1 actual Core/CAS mixed success/failure/cancel/retry/restart regression",
+      "result": "LOCAL_PASS",
+      "receipt": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\runs\\f714401b40\\ui-exchange-core-mixed-01\\artifacts\\result.json",
+      "sha256": "fd6ae6f6d8312db77551b0d589781d36a9d713888e2b21656cf58eba5e31b815"
+    }
+  ],
+  "frontend_build": {
+    "receipt": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\runs\\f714401b40\\45c60208f97a\\artifacts\\frontend-build.json",
+    "sha256": "9dd58059aca9f513163b731aaa651351d8d5d83afb11b57e95fd9b52d30e80d4",
+    "run_id": "45c60208f97a"
+  },
+  "source_epoch_limits": [
+    "Full980/native85 precede final scoped visual fixes; final46 + TypeScript + frontend/native build + full40 browser rerun bind later UI",
+    "Core process format probe before new PPTX worker; locator probe uses sealedbuild02/current worker",
+    "Core/contracts252 and Python32 locator pins rechecked current; frontend final epoch separately verified"
+  ],
+  "runtime": {
+    "format_summary": {
+      "path": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\runs\\f714401b40\\ui-exchange-stage-20261010\\candidate-formats\\final-summary.json",
+      "sha256": "1885d50913c5d584af80db9ed6a63d00e43c8889b7375f21769c4251d66993e3",
+      "protocol": "PASS",
+      "qualification": "PARTIAL",
+      "success_formats": 11,
+      "corrupt_pdf_failed": 1,
+      "input": "SYNTHETIC",
+      "evidence": "INTEGRATED"
+    },
+    "locator_summary": {
+      "path": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\runs\\f714401b40\\ui-exchange-stage-20261010\\candidate-formats\\anchor-final-summary.json",
+      "sha256": "072266f8a561aeb15968f41815ef3da82282221eba434f316f6ac7b41267b150",
+      "protocol": "PASS",
+      "located_anchors": 13,
+      "derived_selections": 12,
+      "negative_checks": 49,
+      "restart": "PASS",
+      "owned_pids_absent": true,
+      "qualification": "PARTIAL"
+    },
+    "limits": [
+      "PDF/archive/media headers lack selected format locator; derived text selection not same qualification",
+      "Located means create-time validation and persisted readback; no independent resolver endpoint",
+      "Derived OBSERVATION Candidate still requires human review and marker unverified",
+      "HTML short fixture fallback, PDF reported version placeholder, header only not ASR/video decode"
+    ]
+  },
+  "visual": {
+    "receipt": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\runs\\f714401b40\\ui-exchange-stage-20261010\\candidate-exchange-visual\\attempt-04\\RESULT.json",
+    "sha256": "e88fb601101b15ba0d16a58ec106748bc7c1f7bc93d35aa79e41ca71b15e3953",
+    "status": "PASS",
+    "source_pins": 33,
+    "scenes": 40,
+    "interaction_groups": 10,
+    "actual_download_byte_readbacks": 80,
+    "evidence": "Actual Chromium/App/File/Blob with SIMULATED Core",
+    "root_review": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\runs\\f714401b40\\ui-exchange-stage-20261010\\ROOT-VISUAL-REVIEW.json",
+    "root_review_sha256": "f4834f1d5e08da1cd33c899d08ceed0ac54ba8e44e2c3cf510944a3cdc039703",
+    "owned_processes_exited": true,
+    "not_proven": [
+      "installed/native UI",
+      "real Core UI combined roundtrip",
+      "physical IME/Owner acceptance"
+    ]
+  },
+  "requirements_audit": {
+    "path": "docs/current/AAOS-EXCHANGE-ACCEPTANCE-20261010.json",
+    "sha256": "18ac0a13da8f377c9c0e9c62f9623b5feea3d9c5ca55d18057dd8fc09b8e91d9",
+    "original_rows": 15,
+    "status": "PARTIAL"
+  },
+  "qualification_registry": {
+    "path": "docs/current/AAOS-FORMAT-QUALIFICATION-20261010.json",
+    "sha256": "693a19247898383fbff23876bbc79ce8b8caf1b6e9a58b4bfbee31e5f62de5b9",
+    "records": 72,
+    "role": "Original assessments retained; selected runtime evidence separate; not support=fidelity"
+  },
+  "retained_failures": [
+    "Pinned01/02 fixture cleanup; formatfront01 stale assertion; Folderfront01 table JSX stringification/02 old budget assertion",
+    "Page-manual01 bad root CLI;02 incomplete output fixture; fullfront01 953PASS/8FAIL",
+    "Locator explicit request missing/nonJSON negative parser failures retained",
+    "Browser01 fixture handshake;02 StrictMode/table failures;03 automatic40PASS but root PRE reviewPARTIAL;04 final rerunPASS"
+  ],
+  "not_executed": [
+    "Formal old nonempty user database migration without exact source grant",
+    "Full format/platform fidelity, external bidirectional source package reconstruction, incremental sync",
+    "Installed runtime, Owner/M01/professional semantic truth",
+    "CloudCI V01 paused; commit/push/merge/install/release not executed"
+  ],
+  "next": [
+    "UF13 five daily journeys and final selected-slice review; whole goal remains active",
+    "Keep FT01–04 frozen and V01 paused"
+  ],
+  "rollback": "Per-write SHA-guarded exact byte backups in stage root-*-baseline. Restore only reviewed owned paths after current SHA comparison; protect all pre-existing dirty files."
+}

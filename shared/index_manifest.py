@@ -30,6 +30,8 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
+from shared.paths import native_path
+
 
 @dataclass(frozen=True)
 class IndexManifestEntry:
@@ -71,7 +73,7 @@ class IndexManifest:
         self.db_path = str(db_path)
 
     def _conn(self) -> sqlite3.Connection:
-        conn = sqlite3.connect(self.db_path)
+        conn = sqlite3.connect(native_path(self.db_path))
         conn.row_factory = sqlite3.Row
         conn.execute("PRAGMA journal_mode=WAL")
         return conn

@@ -7,6 +7,7 @@
 - `authority_base`: R6 immutable TaskPack `AAK-LOCAL-GREEN-ABSORB-FIRST-20260919-R6`
 - `supersession_record`: `DECISION_SUPERSESSION_LEDGER.yaml` `SUP-020`
 - `scope`: 这是 R6 的优先级覆盖和执行收敛记录，不是并行 TaskPack，不删除、不重写 R5/R6/审计/收据。
+- `status_at_2026-10-08`: 按根 `AUTHORITY.md` §6 与 `DECISION_SUPERSESSION_LEDGER.yaml` SUP-022，本文件保留为**继承约束与历史记录**，当前活动任务包是 `docs/authority/taskpack-1004-aaos01/`，唯一实时进度记录是 `docs/current/AAOS01-Q00-Q15-LEDGER-FINAL-20261005.md`。下文各节带日期的"现场读回"（如 2026-09-23 的"本地 `HEAD`、`origin/main` 与 GitHub `main` 一致"、候选 `452b5d0…` 的 `ok=true`、快速 CI `35524185122` `success`）只描述其记录时点，不构成当前分支的验收；当前分支的验收必须来自本轮源码、远端与运行回读。
 
 ### 当前现场读回（2026-09-23）
 
@@ -117,7 +118,7 @@ P0-H01 provider-routing 契约切片（当前 subject：`5a53d9a6445935e755df5f3
 
 
 P0-H01 identity hardening（当前 subject：`5a53d9a6445935e755df5f3ac263bd7922839aa7`）：Astra 当前-SHA 复核发现 provider/capability/fallback 标识首尾空白归一化不一致；新增 RED→GREEN 回归并统一拒绝空白身份，避免快照解析成功但执行查找失败。契约与相关回归 `62 passed, 3 warnings`，Ruff、py_compile、git diff --check 通过；正式宿主仍未接入。
-P0-H01 host lifecycle 边界（当前 subject：`a5ef4f5f4d29203bda4137ecb9cc026658ecb309`）：正式宿主仍未接入统一 provider routing；已形成 `provider-routing.json` sidecar 提案，要求 CapabilityStore 原子写、Rust Core 只读、Core 为唯一 Canonical writer。该卡标记 `BLOCKED_BY_AUTHORITY_DECISION`，不得把 test-only worker 生命周期升格为 M0 完成。当前 Rust/API 运行还受外置 Windows SDK `kernel32.lib`（历史 `LNK1181`）阻塞。
+P0-H01 host lifecycle 边界（当前 subject：`a5ef4f5f4d29203bda4137ecb9cc026658ecb309`）：正式宿主仍未接入统一 provider routing；已形成 `provider-routing.json` sidecar 提案，要求 CapabilityStore 原子写、Rust Core 只读、Core 为唯一 Canonical writer。该卡标记 `BLOCKED_BY_AUTHORITY_DECISION`，不得把 test-only worker 生命周期升格为 M0 完成。**其中"当前 Rust/API 运行还受外置 Windows SDK `kernel32.lib`（历史 `LNK1181`）阻塞"这一句已被实测推翻（2026-10-07 更正）：以声明工具根 `10-toolchains\msvc\VC\Auxiliary\Build\vcvars64.bat` 导入 MSVC 环境后，`cargo build -p archeaxis-api --bin archeaxis-api --release --offline` 退出 0，`cd src-tauri; cargo test --offline` 73 passed / 0 failed；历史 `LNK1181` 未复现。仍然成立的是同一句前半段：正式宿主尚未接入统一 provider routing，该卡仍是 `BLOCKED_BY_AUTHORITY_DECISION`。**
 
 P0-H01 CapabilityStore sidecar feasibility（当前 subject：`90573dcef2573029da3fc70f706349fb9d272221`）：只读审计确认 manifest/record 没有 capability、route、generation、health 的权威输入，且 pack move、index replace、sidecar replace 不是单一事务；disable/enable 的 fallback 语义也未冻结。相关回归 `36 passed, 2 warnings`，实现保持 `BLOCKED_BY_AUTHORITY_DECISION`。
 
@@ -255,3 +256,15 @@ Plugin Marketplace、在线商店、自动下载、多套 RAG、多套 Memory、
 Read-only refresh at 2026-09-26 03:48 UTC confirmed the GitHub `main` ref remains `e3875db0ee6d073d37839eb7b95f7ef4ce881bbb`; local `main` and `origin/main` resolve to the same SHA. The active work branch is `codex/aaos-p3-ui-convergence-20260922` at `2994efa08d3e4f6ea561831fd4088d6d1b290cdd`, seven commits ahead of its remote branch tip `a5de4b13474c217e7a9dd34b8cbfa402e8297780`. The active branch is not `main`; its workspace contains uncommitted changes. This is a live branch/ref readback, not a merge, publish, CI, or Green-install claim.
 
 `R6-STATE.json` remains `overall_status=IN_PROGRESS`, `release_status=FROZEN`. P0–P5 retain partial evidence; P6 remains Owner-gated. The 2026-09-26 frontend Candidate verifies against its current-source snapshot, but keyboard-driven command-palette acceptance, visual/accessibility matrices, and the real M0/P3 journey remain open. Do not reinterpret local UI evidence as M0 completion or Local Green readiness.
+
+## Current live readback — 2026-10-07
+
+Refs, read back after fetching `origin/main` rather than trusting a stale local ref: the working branch `codex/aaos-ui-core-integration-20261007` is at `fa226ffb128a8dead3e1c82996bb7740167d64ca`, which **contains** `origin/main` = `8519ba4e5d22bb911068b2f0bbe0d94934123f94` (174 commits ahead, 0 behind, so PR #162 would be a fast-forward). The local `main` branch ref is stale relative to the remote and must not be used as a merge base. PR #162 reports `mergeStateStatus=BLOCKED` with `vnext-ci` and `CI` still running at the time of writing, so nothing is merged: merge requires CLEAN plus an audit of the required gates.
+
+Evidence that advanced since 2026-09-26, all from one real installed/candidate host run (run `wi-host-loop-3`, receipt `.project-local/wi/.project-local/task-runtime/aaos01-webdriver/b58a82686e0a4a7a83e43b23b1662e26/receipt.json`, `ok: true`, 21/21 steps, tier `REAL_TAURI_WEBDRIVER_CANDIDATE`, candidate rebuilt from a clean `fa1c643a` tree with NSIS `6aaa8811…` / host `1bbf8808…`):
+
+- **P1** gained the container-member half of its loop on the real host: a TAR's member is written, declared with its digest, verified, imported as a source recording its container origin, and its own queued job produces text and structure outputs (`docs/current/AAOS01-Q00-Q15-LEDGER-FINAL-20261005.md` carries the values). The cause was a Windows path-length defect in the transfer area, fixed on both the worker write and the Core read side; the same defect also silently dropped mail attachments and failed whole legacy-workbook jobs, and those routes now carry host-depth tests that measure the refusal before asserting the fix.
+- **P5**'s "full-state restart readback" is no longer only local-test evidence: steps 19 and 21 restart the host and read every format matrix source/output/quality/origin plus the negative error state back out of Core, with byte hashes preserved.
+- **P6**'s open item "Candidate 全旅程" is met at candidate tier. P6 remains **not complete**: the existing Green backup / in-place replacement / rollback half is still an Owner Gate, and this probe hashes the installer rather than establishing installation by itself.
+
+What is unchanged and still missing before M0 can be called complete: P0 provider routing/fallback/replacement lifecycle on the formal host (authority decision outstanding); P2 embedding and reranker, real course content and the first real renderer; P3 a real human first learning session plus authoritative Mastery/FSRS full restore; P4 a real model task with real errors, a human correction and a retest; P5 a real legacy copy semantic diff and the SQLite workspace-identity decision; and on the UI side physical native IME, real system DPI at 125%/200%, whole-UI P95 performance, and human acceptance, which cannot be self-signed. Per-extension human acceptance for FMT-21 likewise remains open. No tag or release was created, no E/F drive was touched, no shared library was modified, and nothing was published by this readback.

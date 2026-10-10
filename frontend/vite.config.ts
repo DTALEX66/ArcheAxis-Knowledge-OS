@@ -1,7 +1,9 @@
 /// <reference types="vitest" />
 import { fileURLToPath } from "node:url";
+import { join, resolve } from "node:path";
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
+import { verifyBuildEnvironment } from "../scripts/runtime/frontend_paths.mjs";
 
 // AXW-UI-801: App Shell built with Vite; dev server binds loopback only.
 // Tauri integration: build output goes to the project-owned build root.
@@ -11,10 +13,21 @@ import react from "@vitejs/plugin-react";
 // may invoke the frontend through a Windows Junction to shorten NSIS paths;
 // a cwd-derived root would then make index.html appear outside the bundle.
 const frontendRoot = fileURLToPath(new URL(".", import.meta.url));
+const projectRunRoot = process.env.ARCHEAXIS_RUN_ROOT;
+const viteCacheRoot = projectRunRoot
+  ? join(projectRunRoot, "cache", "vite")
+  : fileURLToPath(new URL("../.project-local/build/vite-cache", import.meta.url));
 
-export default defineConfig({
+export default defineConfig(({ command }) => {
+  const frontendDist = process.env.ARCHEAXIS_FRONTEND_DIST;
+  if (command === "build" && !frontendDist) throw new Error("Use npm run build: frontend output requires the project run router");
+  if (command === "build") verifyBuildEnvironment(resolve(frontendRoot, ".."));
+  return {
   root: frontendRoot,
-  plugins: [react()],
+  cacheDir: viteCacheRoot,
+  plugins: [react(), { name: "canonical-frontend-output", apply: "build", configResolved(config) {
+    if (resolve(config.build.outDir) !== resolve(frontendDist!)) throw new Error("Vite output override rejected by the project run router");
+  } }],
   server: {
     host: "127.0.0.1",
     port: 5173,
@@ -42,7 +55,7 @@ export default defineConfig({
     },
   },
   build: {
-    outDir: fileURLToPath(new URL("../.project-local/build/frontend-dist", import.meta.url)),
+    outDir: frontendDist ?? fileURLToPath(new URL("../.project-local/build/unrouted-frontend-dist", import.meta.url)),
     // The canonical output is outside the frontend source root; clear only
     // that project-owned generated directory before each production build.
     emptyOutDir: true,
@@ -55,4 +68,5 @@ export default defineConfig({
     environment: "jsdom",
     setupFiles: ["./src/test/setup.ts"],
   },
+  };
 });

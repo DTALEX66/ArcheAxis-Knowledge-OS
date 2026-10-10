@@ -1,0 +1,161 @@
+{
+  "document": "AAOS-20261002-MASTER-RECONCILIATION",
+  "recorded_at": "2026-10-02T06:57:49.308865+00:00",
+  "method": "git ls-remote and rev-parse for topology, gh pr view for the three pull requests, the repository's own ledgers for the source inventory. Read-only; no branch, worktree or stash was modified.",
+  "authority_lines": {
+    "main": "59498723a8d4e94c6314e490473ba6d60847c247",
+    "codex/Audit": "1a981a4482b01f31989074e79c82a63400aa07a7",
+    "note": "codex/Audit is 18 commits ahead of main and 0 behind, so it is the newer line; main has nothing Audit lacks"
+  },
+  "branches": [
+    {
+      "branch": "main",
+      "sha": "59498723a8d4e94c6314e490473ba6d60847c247",
+      "commits_ahead_of_main": 0,
+      "commits_behind_main": 0,
+      "merged_into_main": true,
+      "local_equals_remote": true,
+      "touches_apps": false
+    },
+    {
+      "branch": "codex/Audit",
+      "sha": "1a981a4482b01f31989074e79c82a63400aa07a7",
+      "commits_ahead_of_main": 18,
+      "commits_behind_main": 0,
+      "merged_into_main": false,
+      "local_equals_remote": true,
+      "touches_apps": true
+    },
+    {
+      "branch": "codex/aaos-ui-phase2-20261001",
+      "sha": "1a981a4482b01f31989074e79c82a63400aa07a7",
+      "commits_ahead_of_main": 18,
+      "commits_behind_main": 0,
+      "merged_into_main": false,
+      "local_equals_remote": true,
+      "touches_apps": true
+    },
+    {
+      "branch": "codex/dsh-aaos-real-multiformat-loop-20261001",
+      "sha": "dc848e13fc47f807c3b2b8cd4e2822388d0ca2ce",
+      "commits_ahead_of_main": 97,
+      "commits_behind_main": 0,
+      "merged_into_main": false,
+      "local_equals_remote": true,
+      "touches_apps": true
+    },
+    {
+      "branch": "codex/minimax-aaos-cosmic-ui-20261001",
+      "sha": "627e74ffcc2b16e2109ab85c0a8183f1e4a6b21a",
+      "commits_ahead_of_main": 20,
+      "commits_behind_main": 0,
+      "merged_into_main": false,
+      "local_equals_remote": true,
+      "touches_apps": true
+    }
+  ],
+  "pull_requests": [
+    {
+      "number": 156,
+      "title": "Advance AAOS desktop UI fidelity and Core capture readback",
+      "state": "OPEN",
+      "draft": true,
+      "base": "main",
+      "head": "codex/aaos-ui-phase2-20261001",
+      "head_sha": "1a981a4482b01f31989074e79c82a63400aa07a7",
+      "mergeable": "MERGEABLE"
+    },
+    {
+      "number": 157,
+      "title": "Measure production multiformat reachability, fix launcher credential identity, publish HTTP contract",
+      "state": "OPEN",
+      "draft": true,
+      "base": "codex/Audit",
+      "head": "codex/dsh-aaos-real-multiformat-loop-20261001",
+      "head_sha": "dc848e13fc47f807c3b2b8cd4e2822388d0ca2ce",
+      "mergeable": "MERGEABLE"
+    },
+    {
+      "number": 158,
+      "title": "Add the cosmic UI layer: backdrop, glass shell and honest placeholders",
+      "state": "OPEN",
+      "draft": true,
+      "base": "codex/Audit",
+      "head": "codex/minimax-aaos-cosmic-ui-20261001",
+      "head_sha": "627e74ffcc2b16e2109ab85c0a8183f1e4a6b21a",
+      "mergeable": "MERGEABLE"
+    }
+  ],
+  "merge_order_finding": {
+    "problem": "PR #156 targets main while #157 and #158 target codex/Audit, so the three are not on one line.",
+    "measured": {
+      "pr156_base": "main",
+      "pr157_base": "codex/Audit",
+      "pr158_base": "codex/Audit",
+      "audit_is_18_ahead_of_main": true,
+      "ui_branch_equals_audit": true
+    },
+    "consequence": "#156 carries the 18 commits from main up to codex/Audit's baseline. Until it lands, main is behind the line the other two PRs sit on. Merging #157 or #158 first would advance codex/Audit and leave #156 needing a rebase.",
+    "recommended_order": [
+      "1. merge #156 into main, which brings main to the shared baseline",
+      "2. merge #157 into codex/Audit (or retarget it to main once #156 lands)",
+      "3. merge #158 after #157, because both touch apps/ArcheAxis.Desktop and the six UI contract tests, so the second one must be re-checked for conflicts rather than assumed clean"
+    ]
+  },
+  "source_inventory": {
+    "all_tasks_ledger_keys": 9,
+    "disposition_rows": 270,
+    "lanes": {
+      "LIGHT_GOVERNANCE": 9,
+      "UI_FRONTEND": 52,
+      "BACKEND_FRONTEND_LOOP": 54,
+      "PAUSED_BY_USER": 5,
+      "OWNER_GATE": 4,
+      "CANDIDATE_REVIEW": 25,
+      "DEFERRED_BLUEPRINT": 13,
+      "HISTORY_TRACE_ONLY": 107,
+      "NOT_ADOPTED": 1
+    },
+    "ledger_file_bytes": 163077
+  },
+  "local_only_surfaces": {
+    "root_checkout": {
+      "path": "D:\\All projects\\ArcheAxis-Knowledge-OS",
+      "branch": "codex/Audit",
+      "sha": "1a981a4482b01f31989074e79c82a63400aa07a7",
+      "tracked_changes": 0,
+      "untracked_entries": 21,
+      "note": "fast-forwarded to origin/codex/Audit during the previous session; the untracked history files were preserved untouched"
+    },
+    "worktrees": [
+      "D:/All projects/ArcheAxis-Knowledge-OS (codex/Audit)",
+      "D:/All projects/ArcheAxis-Knowledge-OS/.project-local/worktrees/dsh-backend-loop-20261001 (backend branch)",
+      "D:/All projects/ArcheAxis-Knowledge-OS/.project-local/worktrees/v3-era (detached)",
+      "D:/All projects/ArcheAxis-Knowledge-OS/.project-local/worktrees/worker-quality-0906 (detached)",
+      "C:/Users/ALEX/.codex/worktrees/aaos-formal-frontend/ArcheAxis-Knowledge-OS (detached)",
+      "D:/All projects/ArcheAxis.Knowledge.Green-x64/.ui-task-tree/aaos-ui-phase2-integrate (UI branch)",
+      "D:/All projects/ArcheAxis.Knowledge.Green-x64/.ui-task-tree/minimax-aaos-cosmic-ui-20261001 (minimax branch)",
+      "D:/All projects/ArcheAxis.Knowledge.Green-x64/.ui-task-tree/AAOS-integration-verification-413ad3a0 (detached)",
+      "D:/All projects/ArcheAxis.Knowledge.Green-x64/.ui-task-tree/ArcheAxis-Knowledge-OS (detached)"
+    ],
+    "stashes_preserved": [
+      "codex/local-pre-api-updates-20260918: local copies already uploaded to origin/main",
+      "feat/portable-data-root: recovery-20260805-before-taskpack-completion"
+    ],
+    "external_roots": {
+      "Model library": "102.65 GB across 67 files; ComfyUI, ollama, plain-gguf, ggml-org, sherpa-onnx, whisper, Qwen, runtimes-tmp",
+      "UI suite": "D:/All projects/UI套件 - the user-designated product master images",
+      "Record": "D:/All projects/Record - the 9/28 and 9/30 taskpack zips",
+      "Green": "D:/All projects/ArcheAxis.Knowledge.Green-x64 - installed product plus the .ui-task-tree development area"
+    }
+  },
+  "prohibitions_observed": [
+    "no git reset --hard",
+    "no git clean",
+    "no batch overwrite",
+    "no worktree removed",
+    "no Green overwrite",
+    "no branch created or moved"
+  ],
+  "conclusion": "Three pull requests carry the October work and none is merged. They sit on two lines, so the merge order is a real decision rather than a formality: #156 to main first, then #157, then #158 with a conflict re-check. Nothing was lost: all five remote branches match their local refs and the untracked history is intact."
+}

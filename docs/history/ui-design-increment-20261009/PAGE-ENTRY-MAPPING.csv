@@ -1,0 +1,23 @@
+原页面ID,原页面名称,新主入口,职责保全及上下文,原参考路由,现有深链接,承接原切片,布局跟进,原CAP映射,迁移/旧行为核验,边界
+01,今日工作台,工作台,范围/对象上下文与普通上级返回,/reference/01,#page=01,UF03,UF02;G01,CAP-0010;CAP-0040;CAP-0050;CAP-0120,NOT_EXECUTED_BY_THIS_ANALYSIS,设计入口映射；未改当前运行路由，不删除能力/对象/旧地址
+02,知识库,知识,范围/对象上下文与普通上级返回,/reference/02,#page=02,UF03,UF02;G01,CAP-0010;CAP-0020;CAP-0110,NOT_EXECUTED_BY_THIS_ANALYSIS,设计入口映射；未改当前运行路由，不删除能力/对象/旧地址
+03,阅读与编辑,知识,范围/对象上下文与普通上级返回,/reference/03,#page=03,UF03,UF02;G01,CAP-0010;CAP-0030;CAP-0110,NOT_EXECUTED_BY_THIS_ANALYSIS,设计入口映射；未改当前运行路由，不删除能力/对象/旧地址
+04,双链与知识图谱,知识,范围/对象上下文与普通上级返回,/reference/04,#page=04,UF08,UF02;G01,CAP-0110;CAP-0160,NOT_EXECUTED_BY_THIS_ANALYSIS,设计入口映射；未改当前运行路由，不删除能力/对象/旧地址
+05,研究空间,知识,范围/对象上下文与普通上级返回,/reference/05,#page=05,UF08,UF02;G01,CAP-0030;CAP-0090,NOT_EXECUTED_BY_THIS_ANALYSIS,设计入口映射；未改当前运行路由，不删除能力/对象/旧地址
+06,学习路径,学习,范围/对象上下文与普通上级返回,/reference/06,#page=06,UF05,UF02;G01,CAP-0040;CAP-0060,NOT_EXECUTED_BY_THIS_ANALYSIS,设计入口映射；未改当前运行路由，不删除能力/对象/旧地址
+07,课程与视觉教学,学习,范围/对象上下文与普通上级返回,/reference/07,#page=07,UF05,UF02;G01,CAP-0040;CAP-0060;CAP-0160,NOT_EXECUTED_BY_THIS_ANALYSIS,设计入口映射；未改当前运行路由，不删除能力/对象/旧地址
+08,教学需求,学习,课程/教学项目的阶段视图；返回课程或学习上级,/reference/08,#page=08,UF07,UF02;G01,CAP-0040;CAP-0060;CAP-0100,NOT_EXECUTED_BY_THIS_ANALYSIS,设计入口映射；未改当前运行路由，不删除能力/对象/旧地址
+09,表达方案审阅,学习,课程/教学项目的阶段视图；返回课程或学习上级,/reference/09,#page=09,UF07,UF02;G01,CAP-0060;CAP-0160,NOT_EXECUTED_BY_THIS_ANALYSIS,设计入口映射；未改当前运行路由，不删除能力/对象/旧地址
+10,交付登记与版本,学习,课程/教学项目的阶段视图；返回课程或学习上级,/reference/10,#page=10,UF07,UF02;G01,CAP-0060;CAP-0100;CAP-0140,NOT_EXECUTED_BY_THIS_ANALYSIS,设计入口映射；未改当前运行路由，不删除能力/对象/旧地址
+11,练习与 Teach-back,学习,课程/教学项目的阶段视图；返回课程或学习上级,/reference/11,#page=11,UF07,UF02;G01,CAP-0040;CAP-0060,NOT_EXECUTED_BY_THIS_ANALYSIS,设计入口映射；未改当前运行路由，不删除能力/对象/旧地址
+12,反馈与修订,学习,课程/教学项目的阶段视图；返回课程或学习上级,/reference/12,#page=12,UF07,UF02;G01,CAP-0040;CAP-0050;CAP-0060,NOT_EXECUTED_BY_THIS_ANALYSIS,设计入口映射；未改当前运行路由，不删除能力/对象/旧地址
+13,AI 知识与项目记忆,AI,范围/对象上下文与普通上级返回,/reference/13,#page=13,UF09,UF02;G01,CAP-0050;CAP-0130,NOT_EXECUTED_BY_THIS_ANALYSIS,设计入口映射；未改当前运行路由，不删除能力/对象/旧地址
+14,纠正、评测与复测,AI,范围/对象上下文与普通上级返回,/reference/14,#page=14,UF09,UF02;G01,CAP-0050;CAP-0130,NOT_EXECUTED_BY_THIS_ANALYSIS,设计入口映射；未改当前运行路由，不删除能力/对象/旧地址
+15,资源与扩展,资源,范围/对象上下文与普通上级返回,/reference/15,#page=15,UF10,UF02;G01,CAP-0100;CAP-0130;CAP-0150,NOT_EXECUTED_BY_THIS_ANALYSIS,设计入口映射；未改当前运行路由，不删除能力/对象/旧地址
+16,导入、导出与互通,资源,范围/对象上下文与普通上级返回,/reference/16,#page=16,UF07;UF11,UF02;G01,CAP-0020;CAP-0100;CAP-0140,NOT_EXECUTED_BY_THIS_ANALYSIS,设计入口映射；未改当前运行路由，不删除能力/对象/旧地址
+17,全部能力与未来蓝图,全部能力,范围/对象上下文与普通上级返回,/reference/17,#page=17,UF06,UF02;G01,CAP-0010;CAP-0020;CAP-0030;CAP-0040;CAP-0050;CAP-0060;CAP-0070;CAP-0080;CAP-0090;CAP-0100;CAP-0110;CAP-0120;CAP-0130;CAP-0140;CAP-0150;CAP-0160,NOT_EXECUTED_BY_THIS_ANALYSIS,设计入口映射；未改当前运行路由，不删除能力/对象/旧地址
+18,能力详情,全部能力,范围/对象上下文与普通上级返回,/reference/18,#page=18,UF06;FT01;FT02,UF02;G01,CAP-0070;CAP-0080;CAP-0160,NOT_EXECUTED_BY_THIS_ANALYSIS,设计入口映射；未改当前运行路由，不删除能力/对象/旧地址
+19,系统与可靠性,设置,范围/对象上下文与普通上级返回,/reference/19,#page=19,UF04,UF02;G01,CAP-0120;CAP-0140;CAP-0150,NOT_EXECUTED_BY_THIS_ANALYSIS,设计入口映射；未改当前运行路由，不删除能力/对象/旧地址
+20,版本、来源与历史,设置,对象详情与设置全局查询并存,/reference/20,#page=20,UF00;UF04;G01,UF02;G01,CAP-0010;CAP-0110;CAP-0140,NOT_EXECUTED_BY_THIS_ANALYSIS,设计入口映射；未改当前运行路由，不删除能力/对象/旧地址
+21,画布与视觉表达,学习,对象/知识/课程表达详情,/reference/21,#page=21,UF12;FT01;FT02,UF02;G01,CAP-0060;CAP-0070;CAP-0080;CAP-0160,NOT_EXECUTED_BY_THIS_ANALYSIS,设计入口映射；未改当前运行路由，不删除能力/对象/旧地址
+22,受限任务与回执,AI,范围/对象上下文与普通上级返回,/reference/22,#page=22,UF09,UF02;G01,CAP-0050;CAP-0130;CAP-0150,NOT_EXECUTED_BY_THIS_ANALYSIS,设计入口映射；未改当前运行路由，不删除能力/对象/旧地址

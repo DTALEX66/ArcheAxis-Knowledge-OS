@@ -54,6 +54,40 @@ fn receipt(task_id: &str, outcome: &str) -> String {
 }
 
 #[tokio::test]
+async fn receipts_are_bounded_durable_and_read_only_in_list() {
+    let dir = tempfile::tempdir().unwrap();
+    let db = dir.path().join("api.sqlite");
+    let router = app(db.to_str().unwrap()).unwrap();
+    let (status, empty) = call(&router,"GET","/api/v1/machine/tasks",None,"").await;
+    assert_eq!(status,StatusCode::OK);
+    assert_eq!(empty["items"],serde_json::json!([]));
+    for id in ["task-c","task-a","task-b"] {
+        let (status,_) = call(&router,"POST","/api/v1/machine/tasks",Some("machine"),&receipt(id,"unmeasured")).await;
+        assert_eq!(status,StatusCode::CREATED);
+    }
+    let sql = rusqlite::Connection::open(&db).unwrap();
+    let before: String = sql.query_row("SELECT json_group_array(json_object('id',task_id,'conditions',conditions,'outcome',outcome)) FROM machine_tasks",[],|r|r.get(0)).unwrap();
+    let (status,page) = call(&router,"GET","/api/v1/machine/tasks?limit=2",None,"").await;
+    assert_eq!(status,StatusCode::OK);
+    assert_eq!(page["items"][0]["task_id"],"task-a");
+    assert_eq!(page["items"][0]["principal"],"machine");
+    assert_eq!(page["items"][0]["outcome"],"unmeasured");
+    assert_eq!(page["items"][0]["conditions"],"offline; fixed sample");
+    assert_eq!(page["next_cursor"],"task-b");
+    for path in ["/api/v1/machine/tasks?limit=0","/api/v1/machine/tasks?limit=101","/api/v1/machine/tasks?cursor="] {
+        assert_eq!(call(&router,"GET",path,None,"").await.0,StatusCode::BAD_REQUEST);
+    }
+    drop(router);
+    let restarted = app(db.to_str().unwrap()).unwrap();
+    let (_,last) = call(&restarted,"GET","/api/v1/machine/tasks?limit=2&cursor=task-b",None,"").await;
+    assert_eq!(last["items"].as_array().unwrap().len(),1);
+    assert_eq!(last["items"][0]["task_id"],"task-c");
+    assert!(last["next_cursor"].is_null());
+    let after: String = sql.query_row("SELECT json_group_array(json_object('id',task_id,'conditions',conditions,'outcome',outcome)) FROM machine_tasks",[],|r|r.get(0)).unwrap();
+    assert_eq!(before,after);
+}
+
+#[tokio::test]
 async fn a_machine_records_a_receipt_and_anyone_can_read_it_back() {
     let dir = tempfile::tempdir().unwrap();
     let router = app(dir.path().join("api.sqlite").to_str().unwrap()).unwrap();

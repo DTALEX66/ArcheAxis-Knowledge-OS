@@ -20,6 +20,8 @@ from __future__ import annotations
 
 import argparse
 import contextlib
+import hashlib
+import importlib.util
 import json
 import math
 import os
@@ -40,11 +42,74 @@ LOW_CONFIDENCE_CAP = 200
 WORKER_IDENTITY = "python-worker-ocr-ndjson"
 
 SUPPORTED = {".png", ".jpg", ".jpeg", ".webp", ".bmp", ".tiff", ".tif"}
+MAX_IMAGE_BYTES = 64 * 1024 * 1024
 
 
 def _run(command: list[str], **kwargs) -> subprocess.CompletedProcess:
     # No visible Tesseract console when invoked from the desktop worker lane.
     return subprocess.run(command, creationflags=subprocess.CREATE_NO_WINDOW if os.name == "nt" else 0, **kwargs)
+
+
+def _declared_path(name: str) -> str | None:
+    """The declared external path for *name*, or None when nothing is declared.
+
+    Delegates to `tool_paths.declared`, which loads the shared module from this worker's
+    own tree. Only a missing declaration becomes None; a manifest that exists but cannot
+    be read raises, because reporting that as "not declared" is how a missing parser turns
+    into "engine not installed".
+    """
+    module_path = Path(__file__).resolve().parent.parent / "tool_paths.py"
+    if not module_path.is_file():
+        return None
+    spec = importlib.util.spec_from_file_location("worker_tool_paths", module_path)
+    if spec is None or spec.loader is None:
+        return None
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module.declared(name, __file__)
+
+
+def _usable_tessdata(candidate: Path | None, language: str | None = None) -> Path | None:
+    """A language-data directory that holds the language actually being read.
+
+    Checking for *any* `*.traineddata` is not enough. An ambient `TESSDATA_PREFIX` that
+    carries a few unrelated languages passes that test, so the worker kept the ambient
+    directory and never passed `--tessdata-dir`; tesseract then failed with
+    `Failed loading language 'eng'` for a request the declared language data could have
+    served. Requiring the requested language is what makes "usable" mean usable.
+    """
+    if candidate is None:
+        return None
+    try:
+        if not candidate.is_dir():
+            return None
+        if language:
+            return candidate if (candidate / f"{language}.traineddata").is_file() else None
+        return candidate if any(candidate.glob("*.traineddata")) else None
+    except OSError:
+        return None
+
+
+def _declared_tessdata(language: str | None = None) -> Path | None:
+    """Language data from the declared registry, when the ambient one cannot serve.
+
+    Tesseract reads `TESSDATA_PREFIX` when no `--tessdata-dir` is given, so an ambient
+    value silently overrides a correctly resolved binary. The ambient directory is kept
+    only when it can serve the requested language; otherwise the declared
+    `tesseract-languages` entry is used, which is the configured engine rather than
+    whatever happens to be in the environment.
+    """
+    ambient_value = os.environ.get("TESSDATA_PREFIX", "").strip()
+    if ambient_value:
+        ambient = _usable_tessdata(Path(ambient_value), language)
+        if ambient is not None:
+            return ambient
+    declared_langdata = _declared_path("tesseract-languages")
+    if not declared_langdata:
+        return None
+    base = Path(declared_langdata)
+    return (_usable_tessdata(base, language)
+            or _usable_tessdata(base / "tessdata", language))
 
 
 def _tesseract() -> str:
@@ -76,6 +141,12 @@ def _tesseract() -> str:
             derived = Path(tessdata).parent / "tesseract" / "current" / "tesseract.exe"
             if usable(derived):
                 return str(derived)
+    # R6 A02: resolve the engine from the declared external registry before
+    # guessing. The engine is installed and registered on this machine, but it is
+    # not on PATH, so `which` was reporting "unavailable" for a working engine.
+    declared_binary = _declared_path("tesseract")
+    if declared_binary and usable(Path(declared_binary)):
+        return declared_binary
     binary = shutil.which("tesseract")
     if binary and usable(Path(binary)):
         return binary
@@ -120,7 +191,7 @@ def _two_column_gutter(words: list[dict]) -> tuple[float, float] | None:
     edges = sorted({round(value, 1) for value in left_edges + right_edges})
     width = max(right_edges) - min(left_edges)
     best: tuple[float, float, float] | None = None
-    for left_edge, right_edge in zip(edges, edges[1:]):
+    for left_edge, right_edge in zip(edges, edges[1:], strict=False):
         band = right_edge - left_edge
         if band < COLUMN_MIN_GUTTER * width:
             continue
@@ -297,27 +368,32 @@ def extract(path: Path, lang: str, tessdata_dir: Path | None = None) -> dict:
     if path.suffix.lower() not in SUPPORTED:
         raise ValueError(f"unsupported image extension: {path.suffix}")
 
-    plain = _run(
-        [binary, str(path), "stdout", "-l", lang, "--psm", "6", *_tessdata_args(tessdata_dir)],
-        capture_output=True,
-        text=True,
-        encoding="utf-8",
-        errors="replace",
-        timeout=300,
+    # Feed the same bounded image bytes to both renderers. Native Leptonica
+    # fopen cannot reliably open extended Windows paths used by Core staging.
+    with path.open("rb") as image:
+        image_bytes = image.read(MAX_IMAGE_BYTES + 1)
+    if not image_bytes or len(image_bytes) > MAX_IMAGE_BYTES:
+        raise ValueError("input image is empty or exceeds the 64 MiB OCR budget")
+
+    def image_run(command: list[str]) -> subprocess.CompletedProcess:
+        result = _run(command, input=image_bytes, capture_output=True, timeout=300)
+        for field in ("stdout", "stderr"):
+            value = getattr(result, field)
+            if isinstance(value, bytes):
+                setattr(result, field, value.decode("utf-8", errors="replace"))
+        return result
+
+    plain = image_run(
+        [binary, "stdin", "stdout", "-l", lang, "--psm", "6", *_tessdata_args(tessdata_dir)],
     )
     if plain.returncode != 0:
         raise RuntimeError(f"tesseract failed: {plain.stderr[-400:]}")
 
-    tsv = _run(
+    tsv = image_run(
         # Language-only tessdata packages may omit configs/tsv. Tesseract's
         # documented -c parameter selects the same renderer without that file.
-        [binary, str(path), "stdout", "-l", lang, "--psm", "6", *_tessdata_args(tessdata_dir),
+        [binary, "stdin", "stdout", "-l", lang, "--psm", "6", *_tessdata_args(tessdata_dir),
          "-c", "tessedit_create_tsv=1"],
-        capture_output=True,
-        text=True,
-        encoding="utf-8",
-        errors="replace",
-        timeout=300,
     )
     if tsv.returncode != 0:
         raise RuntimeError(f"tesseract TSV failed: {tsv.stderr[-400:]}")
@@ -455,6 +531,8 @@ def extract(path: Path, lang: str, tessdata_dir: Path | None = None) -> dict:
             "engine": ENGINE,
             "engine_version": ENGINE_VERSION,
             "params": {"lang": lang, "psm": 6, "engine": "tesseract",
+                       "input_transport": "stdin", "input_bytes": len(image_bytes),
+                       "input_sha256": hashlib.sha256(image_bytes).hexdigest(),
                        "tessdata_dir": str(tessdata_dir) if tessdata_dir is not None else None,
                        "tsv_renderer": "tessedit_create_tsv=1", "warnings": warnings,
                        "coverage_unit": "line anchors",
@@ -515,10 +593,17 @@ def main() -> int:
     if "--staging-root" in sys.argv:
         import importlib.util
 
-        repo_root = Path(__file__).resolve().parents[3]
-        spec = importlib.util.spec_from_file_location(
-            "ocr_transport", repo_root / "services" / "python-workers" / "transport" / "text_ndjson.py"
+        # The shared transport sits beside this worker's own category directory, in a
+        # source checkout (`services/python-workers/transport/`) and in a staged runtime
+        # (`workers/transport/`) alike, so both are tried from this file's location. A
+        # fixed parents[3] plus a `services/python-workers/` suffix was correct only for
+        # the source layout and left a staged worker unable to start.
+        _transport_candidates = (
+            Path(__file__).resolve().parent.parent / "transport" / "text_ndjson.py",
+            Path(__file__).resolve().parents[2] / "services" / "python-workers" / "transport" / "text_ndjson.py",
         )
+        _transport = next((p for p in _transport_candidates if p.is_file()), _transport_candidates[0])
+        spec = importlib.util.spec_from_file_location("ocr_transport", _transport)
         if spec is None or spec.loader is None:
             print(json.dumps({"error": "transport module is missing", "engine": ENGINE}))
             return 1
@@ -541,7 +626,26 @@ def main() -> int:
         print(json.dumps({"error": "usage: worker_ocr.py <image-file> [--lang eng]"}))
         return 2
     try:
-        tessdata_dir = load_tessdata_dir(args.profile) if args.profile is not None else None
+        if args.profile is not None:
+            # An explicit profile is the caller's instruction, so a bad one fails the command
+            # and never falls back: a silent fallback would answer a different question than
+            # the one asked.
+            tessdata_dir = load_tessdata_dir(args.profile)
+        elif args.probe:
+            # No profile and no declaration reader: a probe answers whether the engine is
+            # usable, so it reports rather than raises. Only the declaration lookup is
+            # tolerated - the profile above and extraction below still fail closed.
+            try:
+                tessdata_dir = _declared_tessdata(args.lang)
+            except Exception as resolution_error:  # noqa: BLE001 - reported, not raised
+                out = {"capability": False, "engine": ENGINE, "resolution_failed": True,
+                       "reason": f"{type(resolution_error).__name__}: {resolution_error}"}
+                print(json.dumps(out, ensure_ascii=False))
+                return 0
+        else:
+            # No explicit profile: prefer language data that can serve this language over
+            # an ambient TESSDATA_PREFIX that may be stale (see _declared_tessdata).
+            tessdata_dir = _declared_tessdata(args.lang)
         out = probe(args.lang, tessdata_dir) if args.probe else extract(Path(args.input), args.lang, tessdata_dir)
     except Exception as exc:  # noqa: BLE001
         print(json.dumps({"error": str(exc)}, ensure_ascii=False))

@@ -1,0 +1,1029 @@
+{
+  "schema": "aaos.ui.entry-matrix/v1",
+  "date": "2026-10-07",
+  "purpose": "Read-only UI projection; it is not a second capability authority or progress ledger.",
+  "projection_contract": {
+    "product_spaces": "SPACES -> SpaceRail + CommandPalette",
+    "capabilities": "CAPABILITY_CATALOG -> SpaceRail + CanonicalCapabilitiesSpace + CommandPalette",
+    "future_detail": "Every catalog capability can open its detail route; execution remains gated by implementation state and destination mapping.",
+    "old_aliases": "Atlas origin_requirement_ids and legacy space aliases remain resolvable."
+  },
+  "source_hashes": {
+    "capability_catalog_ts_sha256": "845d16de34c6117c2b29078422978f4b270712a27d0c1733e7064fd4b7e87770",
+    "spaces_ts_sha256": "b88a3d46f1dccbba9c14166276bd33aa3f87727753ac9fcec8de175d81a58ae5",
+    "navigation_ts_sha256": "f83e519e1b35f5efd69e7a9d22d99a468e166fd24d5f460083898054b9281a8a",
+    "authority_sources": [
+      {
+        "path": "docs/truth/CAPABILITY_ATLAS_V2.yaml",
+        "sha256": "c290b342f47d38e79f3e1539175d21f822808495a902b465ea1b0d42b99cc39a"
+      },
+      {
+        "path": "config/capability-map.v1.json",
+        "sha256": "d5873a524c04d5b6213dbd3f5f39d20c0056e5fc96e4d3c977daf7d4f572ed0e"
+      }
+    ]
+  },
+  "product_space_count": 9,
+  "capability_count": 16,
+  "product_spaces": [
+    {
+      "id": "workspace",
+      "label": "工作台",
+      "icon": "Workspace",
+      "description": "当前工作区与任务",
+      "route": "#space=workspace",
+      "menu_visible": true,
+      "command_search_visible": true,
+      "legacy_aliases": [
+        "dashboard",
+        "home"
+      ]
+    },
+    {
+      "id": "library",
+      "label": "资料库",
+      "icon": "Source",
+      "description": "原件、转换与保留",
+      "route": "#space=library",
+      "menu_visible": true,
+      "command_search_visible": true,
+      "legacy_aliases": [
+        "sources"
+      ]
+    },
+    {
+      "id": "intake",
+      "label": "导入",
+      "icon": "Import",
+      "description": "URL、文件与批量多格式导入",
+      "route": "#space=intake",
+      "menu_visible": true,
+      "command_search_visible": true,
+      "legacy_aliases": [
+        "capture",
+        "import"
+      ]
+    },
+    {
+      "id": "vault",
+      "label": "知识库",
+      "icon": "Knowledge",
+      "description": "本地笔记、搜索与画布",
+      "route": "#space=vault",
+      "menu_visible": true,
+      "command_search_visible": true,
+      "legacy_aliases": [
+        "knowledge",
+        "notes"
+      ]
+    },
+    {
+      "id": "evidence",
+      "label": "证据",
+      "icon": "Evidence",
+      "description": "可信证据与知识账本",
+      "route": "#space=evidence",
+      "menu_visible": true,
+      "command_search_visible": true,
+      "legacy_aliases": []
+    },
+    {
+      "id": "learning",
+      "label": "学习",
+      "icon": "Review",
+      "description": "人类学习与掌握反馈",
+      "route": "#space=learning",
+      "menu_visible": true,
+      "command_search_visible": true,
+      "legacy_aliases": [
+        "review"
+      ]
+    },
+    {
+      "id": "ai-assets",
+      "label": "机器知识",
+      "icon": "HumanAi",
+      "description": "经批准供机器使用的知识",
+      "route": "#space=ai-assets",
+      "menu_visible": true,
+      "command_search_visible": true,
+      "legacy_aliases": [
+        "machine"
+      ]
+    },
+    {
+      "id": "exchange",
+      "label": "交换",
+      "icon": "Connection",
+      "description": "开放交换包的导出与验证",
+      "route": "#space=exchange",
+      "menu_visible": true,
+      "command_search_visible": true,
+      "legacy_aliases": [
+        "integrations"
+      ]
+    },
+    {
+      "id": "settings",
+      "label": "设置",
+      "icon": "Settings",
+      "description": "系统与能力设置",
+      "route": "#space=settings",
+      "menu_visible": true,
+      "command_search_visible": true,
+      "legacy_aliases": [
+        "preferences"
+      ]
+    }
+  ],
+  "capabilities": [
+    {
+      "entry_id": "CAP-0010",
+      "label": "原件资产与来源接入",
+      "group_id": "Workspace",
+      "authority_status": "binding_core",
+      "roadmap_state": "critical_now",
+      "activation_horizon": "H0-H1",
+      "implementation_state": "core_native",
+      "runtime_capabilities": [],
+      "menu_visible": true,
+      "command_search_visible": true,
+      "detail_available": true,
+      "route": "#capability/CAP-0010",
+      "legacy_aliases": [
+        {
+          "alias": "AXW-022A",
+          "resolves_to_entry_id": "CAP-0010",
+          "route": "#capability=AXW-022A",
+          "owned_by_this_entry": true
+        },
+        {
+          "alias": "REQ-SOURCE-001",
+          "resolves_to_entry_id": "CAP-0010",
+          "route": "#capability=REQ-SOURCE-001",
+          "owned_by_this_entry": true
+        }
+      ],
+      "scene_objects": [
+        "RawAsset",
+        "SourceRecord",
+        "ImportBatch",
+        "Hash",
+        "Version",
+        "Snapshot"
+      ],
+      "related_views": [
+        "导入",
+        "原件",
+        "版本"
+      ],
+      "dependencies": [],
+      "entry_gate": [
+        "approved root",
+        "hash before write"
+      ],
+      "required_exit_evidence": [
+        "真实 PDF 导入闭环",
+        "hash 读回"
+      ],
+      "fallbacks": [],
+      "destination_space": "library",
+      "execution_action": "Open mapped AAOS product space"
+    },
+    {
+      "entry_id": "CAP-0020",
+      "label": "多格式转换",
+      "group_id": "Workspace",
+      "authority_status": "binding_core",
+      "roadmap_state": "core_next",
+      "activation_horizon": "H1-H2",
+      "implementation_state": "worker_backed",
+      "runtime_capabilities": [
+        "archive.inventory",
+        "canvas.structure",
+        "document.detect",
+        "html.structure",
+        "image.caption",
+        "image.ocr",
+        "media.diarize",
+        "media.probe",
+        "media.transcribe",
+        "media.video",
+        "office.structure",
+        "pdf.extract",
+        "subtitles.structure"
+      ],
+      "menu_visible": true,
+      "command_search_visible": true,
+      "detail_available": true,
+      "route": "#capability/CAP-0020",
+      "legacy_aliases": [
+        {
+          "alias": "AXW-023A",
+          "resolves_to_entry_id": "CAP-0020",
+          "route": "#capability=AXW-023A",
+          "owned_by_this_entry": true
+        },
+        {
+          "alias": "MFX-010",
+          "resolves_to_entry_id": "CAP-0020",
+          "route": "#capability=MFX-010",
+          "owned_by_this_entry": true
+        },
+        {
+          "alias": "REQ-CONVERT-001",
+          "resolves_to_entry_id": "CAP-0020",
+          "route": "#capability=REQ-CONVERT-001",
+          "owned_by_this_entry": true
+        }
+      ],
+      "scene_objects": [
+        "ConversionRun",
+        "DerivedDocument",
+        "Block",
+        "Page",
+        "Region",
+        "Table",
+        "TranscriptSegment",
+        "Anchor"
+      ],
+      "related_views": [
+        "转换",
+        "质量",
+        "损失报告"
+      ],
+      "dependencies": [
+        "MarkItDown",
+        "Tesseract",
+        "FFmpeg",
+        "Magika"
+      ],
+      "entry_gate": [
+        "fixture",
+        "质量指标",
+        "安装验证"
+      ],
+      "required_exit_evidence": [
+        "CER/WER gate",
+        "fixture 通过"
+      ],
+      "fallbacks": [
+        "extension fallback",
+        "honest unavailable"
+      ],
+      "destination_space": "library",
+      "execution_action": "Open mapped AAOS product space"
+    },
+    {
+      "entry_id": "CAP-0030",
+      "label": "证据锚定与交叉核验",
+      "group_id": "Evidence",
+      "authority_status": "binding_core",
+      "roadmap_state": "critical_now",
+      "activation_horizon": "H1",
+      "implementation_state": "core_native",
+      "runtime_capabilities": [],
+      "menu_visible": true,
+      "command_search_visible": true,
+      "detail_available": true,
+      "route": "#capability/CAP-0030",
+      "legacy_aliases": [
+        {
+          "alias": "AXW-022B",
+          "resolves_to_entry_id": "CAP-0030",
+          "route": "#capability=AXW-022B",
+          "owned_by_this_entry": true
+        },
+        {
+          "alias": "REQ-EVIDENCE-001",
+          "resolves_to_entry_id": "CAP-0030",
+          "route": "#capability=REQ-EVIDENCE-001",
+          "owned_by_this_entry": true
+        }
+      ],
+      "scene_objects": [
+        "EvidenceAnchor",
+        "ClaimCandidate",
+        "AnchoredClaim",
+        "CrossValidationRecord",
+        "VerifiedClaim",
+        "EvidenceBundle"
+      ],
+      "related_views": [
+        "证据",
+        "交叉验证",
+        "冲突"
+      ],
+      "dependencies": [
+        "Crossref",
+        "DataCite",
+        "OpenAlex",
+        "Wikidata"
+      ],
+      "entry_gate": [
+        "truth/prediction pairs",
+        "公开可核验"
+      ],
+      "required_exit_evidence": [
+        "anchor 回跳",
+        "交叉验证记录"
+      ],
+      "fallbacks": [
+        "无法公开核验标注"
+      ],
+      "destination_space": "library",
+      "execution_action": "Open mapped AAOS product space"
+    },
+    {
+      "entry_id": "CAP-0040",
+      "label": "人类深度学习系统",
+      "group_id": "Learning",
+      "authority_status": "binding_core",
+      "roadmap_state": "formal_later",
+      "activation_horizon": "H4",
+      "implementation_state": "core_native",
+      "runtime_capabilities": [],
+      "menu_visible": true,
+      "command_search_visible": true,
+      "detail_available": true,
+      "route": "#capability/CAP-0040",
+      "legacy_aliases": [
+        {
+          "alias": "AXW-025A",
+          "resolves_to_entry_id": "CAP-0040",
+          "route": "#capability=AXW-025A",
+          "owned_by_this_entry": true
+        },
+        {
+          "alias": "REQ-LEARNING-001",
+          "resolves_to_entry_id": "CAP-0040",
+          "route": "#capability=REQ-LEARNING-001",
+          "owned_by_this_entry": true
+        }
+      ],
+      "scene_objects": [
+        "LearningObjective",
+        "RetrievalPractice",
+        "FSRS卡片",
+        "TeachBack",
+        "学习画像"
+      ],
+      "related_views": [
+        "学习",
+        "复习",
+        "掌握度"
+      ],
+      "dependencies": [
+        "py-fsrs"
+      ],
+      "entry_gate": [
+        "EvidenceAnchor 绑定",
+        "人工确认"
+      ],
+      "required_exit_evidence": [
+        "FSRS 调度",
+        "练习记录"
+      ],
+      "fallbacks": [],
+      "destination_space": "learning",
+      "execution_action": "Open mapped AAOS product space"
+    },
+    {
+      "entry_id": "CAP-0050",
+      "label": "AI 学习资产与受控调用",
+      "group_id": "AI Assets",
+      "authority_status": "binding_long_term",
+      "roadmap_state": "formal_later",
+      "activation_horizon": "H4-H8",
+      "implementation_state": "worker_backed",
+      "runtime_capabilities": [
+        "machine.answer"
+      ],
+      "menu_visible": true,
+      "command_search_visible": true,
+      "detail_available": true,
+      "route": "#capability/CAP-0050",
+      "legacy_aliases": [
+        {
+          "alias": "REQ-AI-ASSET-001",
+          "resolves_to_entry_id": "CAP-0050",
+          "route": "#capability=REQ-AI-ASSET-001",
+          "owned_by_this_entry": true
+        }
+      ],
+      "scene_objects": [
+        "Memory",
+        "Rule",
+        "Skill",
+        "Standard",
+        "Context",
+        "Evaluation",
+        "GovernedAIAsset"
+      ],
+      "related_views": [
+        "AI 资产",
+        "调用审计",
+        "评测"
+      ],
+      "dependencies": [
+        "LiteLLM",
+        "本地模型"
+      ],
+      "entry_gate": [
+        "人工批准",
+        "证据绑定",
+        "风险等级"
+      ],
+      "required_exit_evidence": [
+        "调用审计",
+        "评测集"
+      ],
+      "fallbacks": [
+        "experimental 受限"
+      ],
+      "destination_space": "vault",
+      "execution_action": "Open mapped AAOS product space"
+    },
+    {
+      "entry_id": "CAP-0060",
+      "label": "LER 视觉教学与课件",
+      "group_id": "Learning",
+      "authority_status": "binding_long_term",
+      "roadmap_state": "formal_later",
+      "activation_horizon": "H6-H7",
+      "implementation_state": "worker_backed",
+      "runtime_capabilities": [
+        "course.general"
+      ],
+      "menu_visible": true,
+      "command_search_visible": true,
+      "detail_available": true,
+      "route": "#capability/CAP-0060",
+      "legacy_aliases": [
+        {
+          "alias": "AXW-090",
+          "resolves_to_entry_id": "CAP-0060",
+          "route": "#capability=AXW-090",
+          "owned_by_this_entry": true
+        },
+        {
+          "alias": "REQ-LER-001",
+          "resolves_to_entry_id": "CAP-0060",
+          "route": "#capability=REQ-LER-001",
+          "owned_by_this_entry": true
+        }
+      ],
+      "scene_objects": [
+        "VisualTeaching",
+        "CoursewarePackage",
+        "VisualPackage",
+        "讲义",
+        "课件"
+      ],
+      "related_views": [
+        "视觉教学",
+        "课件"
+      ],
+      "dependencies": [],
+      "entry_gate": [
+        "来源/证据锚点",
+        "资产许可",
+        "fallback"
+      ],
+      "required_exit_evidence": [
+        "统一 manifest",
+        "静态降级"
+      ],
+      "fallbacks": [
+        "静态帧/文本降级"
+      ],
+      "destination_space": null,
+      "execution_action": "Details only; no direct execution"
+    },
+    {
+      "entry_id": "CAP-0070",
+      "label": "动态解释与仿真",
+      "group_id": "Learning",
+      "authority_status": "binding_long_term",
+      "roadmap_state": "formal_later",
+      "activation_horizon": "H7",
+      "implementation_state": "not_implemented",
+      "runtime_capabilities": [],
+      "menu_visible": true,
+      "command_search_visible": true,
+      "detail_available": true,
+      "route": "#capability/CAP-0070",
+      "legacy_aliases": [
+        {
+          "alias": "AXW-090",
+          "resolves_to_entry_id": "CAP-0060",
+          "route": "#capability=AXW-090",
+          "owned_by_this_entry": false
+        },
+        {
+          "alias": "REQ-LER-002",
+          "resolves_to_entry_id": "CAP-0070",
+          "route": "#capability=REQ-LER-002",
+          "owned_by_this_entry": true
+        }
+      ],
+      "scene_objects": [
+        "AnimationScript",
+        "Scene",
+        "Step",
+        "SimulationPackage",
+        "实验记录"
+      ],
+      "related_views": [
+        "动画",
+        "仿真"
+      ],
+      "dependencies": [],
+      "entry_gate": [
+        "输入输出",
+        "可复现",
+        "fallback"
+      ],
+      "required_exit_evidence": [
+        "操作事件",
+        "反馈"
+      ],
+      "fallbacks": [
+        "静态帧/文本"
+      ],
+      "destination_space": null,
+      "execution_action": "Details only; no direct execution"
+    },
+    {
+      "entry_id": "CAP-0080",
+      "label": "空间记忆与沉浸学习",
+      "group_id": "Learning",
+      "authority_status": "binding_long_term",
+      "roadmap_state": "experimental_later",
+      "activation_horizon": "H7-H8",
+      "implementation_state": "not_implemented",
+      "runtime_capabilities": [],
+      "menu_visible": true,
+      "command_search_visible": true,
+      "detail_available": true,
+      "route": "#capability/CAP-0080",
+      "legacy_aliases": [
+        {
+          "alias": "AXW-090",
+          "resolves_to_entry_id": "CAP-0060",
+          "route": "#capability=AXW-090",
+          "owned_by_this_entry": false
+        },
+        {
+          "alias": "REQ-SPATIAL-001",
+          "resolves_to_entry_id": "CAP-0080",
+          "route": "#capability=REQ-SPATIAL-001",
+          "owned_by_this_entry": true
+        }
+      ],
+      "scene_objects": [
+        "SpatialMemoryPackage",
+        "World",
+        "Palace",
+        "Room",
+        "Locus",
+        "Object",
+        "Route",
+        "MoveMap",
+        "ReviewEvent"
+      ],
+      "related_views": [
+        "空间记忆",
+        "2D/2.5D/3D/VR/AR"
+      ],
+      "dependencies": [],
+      "entry_gate": [
+        "engine-agnostic 数据合同",
+        "资产许可账本",
+        "2D/text fallback"
+      ],
+      "required_exit_evidence": [
+        "学习效果评估",
+        "fallback"
+      ],
+      "fallbacks": [
+        "文本路线",
+        "2D Map",
+        "CSS/Canvas 2.5D"
+      ],
+      "destination_space": null,
+      "execution_action": "Details only; no direct execution"
+    },
+    {
+      "entry_id": "CAP-0090",
+      "label": "研究、课程与项目工作空间",
+      "group_id": "Workspace",
+      "authority_status": "binding_long_term",
+      "roadmap_state": "formal_later",
+      "activation_horizon": "H6-H7",
+      "implementation_state": "core_native",
+      "runtime_capabilities": [],
+      "menu_visible": true,
+      "command_search_visible": true,
+      "detail_available": true,
+      "route": "#capability/CAP-0090",
+      "legacy_aliases": [
+        {
+          "alias": "AXW-091",
+          "resolves_to_entry_id": "CAP-0090",
+          "route": "#capability=AXW-091",
+          "owned_by_this_entry": true
+        },
+        {
+          "alias": "AXW-092",
+          "resolves_to_entry_id": "CAP-0090",
+          "route": "#capability=AXW-092",
+          "owned_by_this_entry": true
+        },
+        {
+          "alias": "AXW-093",
+          "resolves_to_entry_id": "CAP-0090",
+          "route": "#capability=AXW-093",
+          "owned_by_this_entry": true
+        },
+        {
+          "alias": "REQ-RESEARCH-001",
+          "resolves_to_entry_id": "CAP-0090",
+          "route": "#capability=REQ-RESEARCH-001",
+          "owned_by_this_entry": true
+        }
+      ],
+      "scene_objects": [
+        "ResearchProject",
+        "ResearchPackage",
+        "Course",
+        "Project",
+        "Portfolio",
+        "Rubric",
+        "OutputProof"
+      ],
+      "related_views": [
+        "研究",
+        "课程",
+        "项目"
+      ],
+      "dependencies": [],
+      "entry_gate": [],
+      "required_exit_evidence": [],
+      "fallbacks": [],
+      "destination_space": null,
+      "execution_action": "Details only; no direct execution"
+    },
+    {
+      "entry_id": "CAP-0100",
+      "label": "开放互操作与生态适配器",
+      "group_id": "Workspace",
+      "authority_status": "binding_core",
+      "roadmap_state": "core_next",
+      "activation_horizon": "H3",
+      "implementation_state": "not_implemented",
+      "runtime_capabilities": [],
+      "menu_visible": true,
+      "command_search_visible": true,
+      "detail_available": true,
+      "route": "#capability/CAP-0100",
+      "legacy_aliases": [
+        {
+          "alias": "AXW-090",
+          "resolves_to_entry_id": "CAP-0060",
+          "route": "#capability=AXW-090",
+          "owned_by_this_entry": false
+        },
+        {
+          "alias": "REQ-INTEROP-001",
+          "resolves_to_entry_id": "CAP-0100",
+          "route": "#capability=REQ-INTEROP-001",
+          "owned_by_this_entry": true
+        }
+      ],
+      "scene_objects": [
+        "Vault往返",
+        "JSON Canvas",
+        "Markdown",
+        "Links",
+        "Attachments",
+        "Adapter"
+      ],
+      "related_views": [
+        "互操作",
+        "适配器"
+      ],
+      "dependencies": [
+        "JSON Canvas",
+        "MarkItDown"
+      ],
+      "entry_gate": [
+        "expected-hash",
+        "原子写",
+        "冲突检测"
+      ],
+      "required_exit_evidence": [
+        "C4 安全往返"
+      ],
+      "fallbacks": [],
+      "destination_space": null,
+      "execution_action": "Details only; no direct execution"
+    },
+    {
+      "entry_id": "CAP-0110",
+      "label": "搜索、图谱与索引",
+      "group_id": "Library",
+      "authority_status": "binding_core",
+      "roadmap_state": "core_next",
+      "activation_horizon": "H3-H4",
+      "implementation_state": "worker_backed",
+      "runtime_capabilities": [
+        "search.semantic"
+      ],
+      "menu_visible": true,
+      "command_search_visible": true,
+      "detail_available": true,
+      "route": "#capability/CAP-0110",
+      "legacy_aliases": [
+        {
+          "alias": "REQ-SEARCH-001",
+          "resolves_to_entry_id": "CAP-0110",
+          "route": "#capability=REQ-SEARCH-001",
+          "owned_by_this_entry": true
+        }
+      ],
+      "scene_objects": [
+        "FTS",
+        "向量索引",
+        "图谱",
+        "引用路径"
+      ],
+      "related_views": [
+        "搜索",
+        "图谱"
+      ],
+      "dependencies": [
+        "sqlite-vec",
+        "NetworkX"
+      ],
+      "entry_gate": [],
+      "required_exit_evidence": [
+        "索引可重建"
+      ],
+      "fallbacks": [
+        "FTS5 独立可用"
+      ],
+      "destination_space": "vault",
+      "execution_action": "Open mapped AAOS product space"
+    },
+    {
+      "entry_id": "CAP-0120",
+      "label": "桌面、平台与可选协作",
+      "group_id": "Desktop",
+      "authority_status": "binding_core",
+      "roadmap_state": "critical_now",
+      "activation_horizon": "H0-H5",
+      "implementation_state": "core_native",
+      "runtime_capabilities": [],
+      "menu_visible": true,
+      "command_search_visible": true,
+      "detail_available": true,
+      "route": "#capability/CAP-0120",
+      "legacy_aliases": [
+        {
+          "alias": "AXW-096",
+          "resolves_to_entry_id": "CAP-0120",
+          "route": "#capability=AXW-096",
+          "owned_by_this_entry": true
+        },
+        {
+          "alias": "REQ-DESKTOP-001",
+          "resolves_to_entry_id": "CAP-0120",
+          "route": "#capability=REQ-DESKTOP-001",
+          "owned_by_this_entry": true
+        }
+      ],
+      "scene_objects": [
+        "Windows",
+        "Tauri",
+        "安装器",
+        "更新"
+      ],
+      "related_views": [
+        "桌面"
+      ],
+      "dependencies": [
+        "Tauri",
+        "NSIS"
+      ],
+      "entry_gate": [],
+      "required_exit_evidence": [
+        "安装态验证",
+        "restart readback"
+      ],
+      "fallbacks": [],
+      "destination_space": null,
+      "execution_action": "Details only; no direct execution"
+    },
+    {
+      "entry_id": "CAP-0130",
+      "label": "受限受控执行探索",
+      "group_id": "Exploration",
+      "authority_status": "exploration",
+      "roadmap_state": "deferred_retained",
+      "activation_horizon": "H8-H10",
+      "implementation_state": "not_implemented",
+      "runtime_capabilities": [],
+      "menu_visible": true,
+      "command_search_visible": true,
+      "detail_available": true,
+      "route": "#capability/CAP-0130",
+      "legacy_aliases": [
+        {
+          "alias": "AXW-098",
+          "resolves_to_entry_id": "CAP-0130",
+          "route": "#capability=AXW-098",
+          "owned_by_this_entry": true
+        },
+        {
+          "alias": "AXW-099",
+          "resolves_to_entry_id": "CAP-0130",
+          "route": "#capability=AXW-099",
+          "owned_by_this_entry": true
+        },
+        {
+          "alias": "REQ-EXPLORATION-001",
+          "resolves_to_entry_id": "CAP-0130",
+          "route": "#capability=REQ-EXPLORATION-001",
+          "owned_by_this_entry": true
+        }
+      ],
+      "scene_objects": [
+        "受控执行 Adapter",
+        "sandbox",
+        "checkpoint",
+        "trace",
+        "rollback"
+      ],
+      "related_views": [],
+      "dependencies": [],
+      "entry_gate": [
+        "权限",
+        "dry-run",
+        "sandbox",
+        "checkpoint",
+        "trace",
+        "cancel",
+        "rollback"
+      ],
+      "required_exit_evidence": [],
+      "fallbacks": [],
+      "destination_space": null,
+      "execution_action": "Details only; no direct execution"
+    },
+    {
+      "entry_id": "CAP-0140",
+      "label": "备份、同步与发布",
+      "group_id": "Settings",
+      "authority_status": "binding_long_term",
+      "roadmap_state": "formal_later",
+      "activation_horizon": "H5-H9",
+      "implementation_state": "core_native",
+      "runtime_capabilities": [],
+      "menu_visible": true,
+      "command_search_visible": true,
+      "detail_available": true,
+      "route": "#capability/CAP-0140",
+      "legacy_aliases": [
+        {
+          "alias": "AXW-094",
+          "resolves_to_entry_id": "CAP-0140",
+          "route": "#capability=AXW-094",
+          "owned_by_this_entry": true
+        },
+        {
+          "alias": "REQ-BACKUP-001",
+          "resolves_to_entry_id": "CAP-0140",
+          "route": "#capability=REQ-BACKUP-001",
+          "owned_by_this_entry": true
+        }
+      ],
+      "scene_objects": [
+        "备份",
+        "恢复",
+        "同步",
+        "发布",
+        "导出"
+      ],
+      "related_views": [
+        "备份",
+        "同步"
+      ],
+      "dependencies": [],
+      "entry_gate": [],
+      "required_exit_evidence": [
+        "完整导出",
+        "恢复读回"
+      ],
+      "fallbacks": [],
+      "destination_space": "library",
+      "execution_action": "Open mapped AAOS product space"
+    },
+    {
+      "entry_id": "CAP-0150",
+      "label": "模型、Provider 与数据出境治理",
+      "group_id": "AI Assets",
+      "authority_status": "binding_long_term",
+      "roadmap_state": "formal_later",
+      "activation_horizon": "H4-H8",
+      "implementation_state": "not_implemented",
+      "runtime_capabilities": [],
+      "menu_visible": true,
+      "command_search_visible": true,
+      "detail_available": true,
+      "route": "#capability/CAP-0150",
+      "legacy_aliases": [
+        {
+          "alias": "AXW-095",
+          "resolves_to_entry_id": "CAP-0150",
+          "route": "#capability=AXW-095",
+          "owned_by_this_entry": true
+        },
+        {
+          "alias": "REQ-PROVIDER-001",
+          "resolves_to_entry_id": "CAP-0150",
+          "route": "#capability=REQ-PROVIDER-001",
+          "owned_by_this_entry": true
+        }
+      ],
+      "scene_objects": [
+        "本地模型",
+        "Provider",
+        "成本",
+        "Token",
+        "延迟",
+        "数据出境授权"
+      ],
+      "related_views": [
+        "模型",
+        "Provider"
+      ],
+      "dependencies": [
+        "LiteLLM"
+      ],
+      "entry_gate": [
+        "授权",
+        "manifest"
+      ],
+      "required_exit_evidence": [
+        "能力探针"
+      ],
+      "fallbacks": [],
+      "destination_space": null,
+      "execution_action": "Details only; no direct execution"
+    },
+    {
+      "entry_id": "CAP-0160",
+      "label": "可视化与空间学习表征",
+      "group_id": "Learning",
+      "authority_status": "binding_long_term",
+      "roadmap_state": "formal_later",
+      "activation_horizon": "H6-H8",
+      "implementation_state": "not_implemented",
+      "runtime_capabilities": [],
+      "menu_visible": true,
+      "command_search_visible": true,
+      "detail_available": true,
+      "route": "#capability/CAP-0160",
+      "legacy_aliases": [
+        {
+          "alias": "REQ-VISUAL-001",
+          "resolves_to_entry_id": "CAP-0160",
+          "route": "#capability=REQ-VISUAL-001",
+          "owned_by_this_entry": true
+        }
+      ],
+      "scene_objects": [
+        "图解",
+        "概念图",
+        "数据图表",
+        "Learning Map",
+        "Canvas",
+        "Graph"
+      ],
+      "related_views": [
+        "可视化"
+      ],
+      "dependencies": [
+        "JSON Canvas"
+      ],
+      "entry_gate": [
+        "来源/证据锚点"
+      ],
+      "required_exit_evidence": [],
+      "fallbacks": [],
+      "destination_space": null,
+      "execution_action": "Details only; no direct execution"
+    }
+  ]
+}

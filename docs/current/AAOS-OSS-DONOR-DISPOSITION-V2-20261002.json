@@ -1,0 +1,415 @@
+{
+  "document": "AAOS_OSS_DONOR_DISPOSITION_V2",
+  "recorded_at": "2026-10-02T07:01:15.837733+00:00",
+  "supersedes": "the disposition implied by AAOS_OSS_RESEARCH_POOL_369_2026-08-11.csv, which listed candidates with categories but not a per-item verdict",
+  "rule": "369 pool entries are not 369 installations. Every entry gets exactly one of: REFERENCE, ADAPTER, ABSORB, PROVIDER, SIDECAR, BENCHMARK, REJECT",
+  "verdict_definitions": {
+    "REFERENCE": "read for design; no code enters the product",
+    "ADAPTER": "integrated through a bounded adapter this repository owns",
+    "ABSORB": "the capability is reimplemented first-party",
+    "PROVIDER": "consumed as an external service or binary",
+    "SIDECAR": "runs beside the Core under the worker protocol",
+    "BENCHMARK": "used to compare capability, not shipped",
+    "REJECT": "explicitly not adopted, with a recorded reason"
+  },
+  "pool_size": 369,
+  "supply_chain_47_as_archived": [
+    {
+      "id": "C001",
+      "name": "PDF.js",
+      "capability": "pdf-viewer",
+      "disposition": "REFERENCE"
+    },
+    {
+      "id": "C002",
+      "name": "MarkItDown[pdf]",
+      "capability": "document-conversion",
+      "disposition": "CURRENT"
+    },
+    {
+      "id": "C003",
+      "name": "Trafilatura",
+      "capability": "web-extraction",
+      "disposition": "CURRENT"
+    },
+    {
+      "id": "C004",
+      "name": "pytesseract + Tesseract-OCR",
+      "capability": "ocr-image",
+      "disposition": "CURRENT"
+    },
+    {
+      "id": "C005",
+      "name": "Crawl4AI",
+      "capability": "web-dynamic",
+      "disposition": "CURRENT"
+    },
+    {
+      "id": "C006",
+      "name": "LiteLLM",
+      "capability": "llm-provider-router",
+      "disposition": "CURRENT"
+    },
+    {
+      "id": "C007",
+      "name": "Langfuse",
+      "capability": "observability",
+      "disposition": "CURRENT"
+    },
+    {
+      "id": "C008",
+      "name": "sqlite-vec",
+      "capability": "vector-index",
+      "disposition": "CURRENT"
+    },
+    {
+      "id": "C009",
+      "name": "NetworkX",
+      "capability": "graph-computation",
+      "disposition": "CURRENT"
+    },
+    {
+      "id": "C010",
+      "name": "Loguru",
+      "capability": "logging",
+      "disposition": "CURRENT"
+    },
+    {
+      "id": "C011",
+      "name": "structlog",
+      "capability": "structured-logging",
+      "disposition": "CURRENT"
+    },
+    {
+      "id": "C012",
+      "name": "APScheduler",
+      "capability": "scheduling",
+      "disposition": "CURRENT"
+    },
+    {
+      "id": "A001",
+      "name": "Magika",
+      "capability": "file-type-routing",
+      "disposition": "EVALUATE"
+    },
+    {
+      "id": "A002",
+      "name": "PaddleOCR",
+      "capability": "ocr-chinese-complex",
+      "disposition": "EVALUATE"
+    },
+    {
+      "id": "A003",
+      "name": "EasyOCR",
+      "capability": "ocr-alternative",
+      "disposition": "EVALUATE"
+    },
+    {
+      "id": "A004",
+      "name": "RapidOCR",
+      "capability": "ocr-windows-cpu",
+      "disposition": "EVALUATE"
+    },
+    {
+      "id": "A005",
+      "name": "faster-whisper",
+      "capability": "asr-batch",
+      "disposition": "ADOPT"
+    },
+    {
+      "id": "A006",
+      "name": "whisper.cpp",
+      "capability": "asr-low-resource",
+      "disposition": "EVALUATE"
+    },
+    {
+      "id": "A007",
+      "name": "sherpa-onnx",
+      "capability": "asr-streaming",
+      "disposition": "EVALUATE"
+    },
+    {
+      "id": "A008",
+      "name": "Silero VAD",
+      "capability": "voice-activity-detection",
+      "disposition": "ADOPT"
+    },
+    {
+      "id": "A009",
+      "name": "Docling",
+      "capability": "document-complex",
+      "disposition": "EVALUATE"
+    },
+    {
+      "id": "A010",
+      "name": "Apache Tika",
+      "capability": "document-legacy",
+      "disposition": "SIDECAR"
+    },
+    {
+      "id": "A011",
+      "name": "Mozilla Readability",
+      "capability": "web-extraction-fallback",
+      "disposition": "EVALUATE"
+    },
+    {
+      "id": "A012",
+      "name": "Crawlee Python",
+      "capability": "web-dynamic-fallback",
+      "disposition": "SIDECAR"
+    },
+    {
+      "id": "A013",
+      "name": "JiWER",
+      "capability": "cer-wer-metric",
+      "disposition": "ADOPT"
+    },
+    {
+      "id": "A014",
+      "name": "RapidFuzz",
+      "capability": "text-alignment",
+      "disposition": "ADOPT"
+    },
+    {
+      "id": "A015",
+      "name": "py-fsrs",
+      "capability": "spaced-repetition",
+      "disposition": "ADOPT"
+    },
+    {
+      "id": "A016",
+      "name": "JSON Canvas",
+      "capability": "canvas-file-format",
+      "disposition": "ADOPT"
+    },
+    {
+      "id": "A017",
+      "name": "XYFlow",
+      "capability": "canvas-ui",
+      "disposition": "EVALUATE"
+    },
+    {
+      "id": "A018",
+      "name": "Crossref REST",
+      "capability": "evidence-doi",
+      "disposition": "ADOPT"
+    },
+    {
+      "id": "A019",
+      "name": "DataCite REST",
+      "capability": "evidence-dataset-doi",
+      "disposition": "ADOPT"
+    },
+    {
+      "id": "A020",
+      "name": "OpenAlex",
+      "capability": "evidence-academic-graph",
+      "disposition": "ADOPT"
+    },
+    {
+      "id": "A021",
+      "name": "Wikidata",
+      "capability": "evidence-entity",
+      "disposition": "ADOPT"
+    },
+    {
+      "id": "A022",
+      "name": "Syft",
+      "capability": "sbom-generator",
+      "disposition": "ADOPT"
+    },
+    {
+      "id": "A023",
+      "name": "pip-audit",
+      "capability": "dependency-vuln-scan",
+      "disposition": "ADOPT"
+    },
+    {
+      "id": "A024",
+      "name": "Gitleaks",
+      "capability": "secret-scan",
+      "disposition": "ADOPT"
+    },
+    {
+      "id": "B001",
+      "name": "MinerU",
+      "capability": "document-structure",
+      "disposition": "REVIEW-BLOCK"
+    },
+    {
+      "id": "B002",
+      "name": "PyMuPDF4LLM",
+      "capability": "pdf-extraction",
+      "disposition": "REVIEW-BLOCK"
+    },
+    {
+      "id": "B003",
+      "name": "Marker",
+      "capability": "pdf-conversion",
+      "disposition": "REVIEW-BLOCK"
+    },
+    {
+      "id": "B004",
+      "name": "FunASR / SenseVoice",
+      "capability": "asr-chinese",
+      "disposition": "REVIEW-BLOCK"
+    },
+    {
+      "id": "B005",
+      "name": "tldraw",
+      "capability": "canvas-drawing",
+      "disposition": "REVIEW-BLOCK"
+    },
+    {
+      "id": "B006",
+      "name": "Firecrawl",
+      "capability": "web-crawler",
+      "disposition": "REVIEW-BLOCK"
+    },
+    {
+      "id": "B007",
+      "name": "H5P PHP Library",
+      "capability": "interactive-content",
+      "disposition": "REVIEW-BLOCK"
+    },
+    {
+      "id": "B008",
+      "name": "Phoenix (Arize)",
+      "capability": "observability-ui",
+      "disposition": "REVIEW-BLOCK"
+    },
+    {
+      "id": "B009",
+      "name": "SearXNG",
+      "capability": "search-aggregation",
+      "disposition": "REVIEW-BLOCK"
+    },
+    {
+      "id": "C013",
+      "name": "DeepTutor",
+      "capability": "downstream-learning-product-shell",
+      "disposition": "SIDECAR"
+    },
+    {
+      "id": "X001_ARCHIVED",
+      "name": "Kùzu",
+      "capability": "graph-database",
+      "disposition": "REJECT-CORE"
+    }
+  ],
+  "capability_absorption_11_as_archived": [
+    {
+      "capability_id": "CAP-CORE-KNOWLEDGE",
+      "capability_name": "Canonical knowledge and source lifecycle",
+      "status": "integrated",
+      "absorption_mode": "DIRECT_DEPENDENCY",
+      "upstream_or_owner": "first-party Rust Core"
+    },
+    {
+      "capability_id": "CAP-DEEPTUTOR",
+      "capability_name": "Source-grounded tutor and recoverable learning workspace",
+      "status": "candidate",
+      "absorption_mode": "SIDECAR",
+      "upstream_or_owner": "DeepTutor"
+    },
+    {
+      "capability_id": "CAP-OPENTUTOR",
+      "capability_name": "Adaptive learning blocks and FSRS integration",
+      "status": "candidate",
+      "absorption_mode": "ALGORITHM_DONOR",
+      "upstream_or_owner": "OpenTutor"
+    },
+    {
+      "capability_id": "CAP-LEARNINGMAP",
+      "capability_name": "Knowledge components, prerequisites, diagnosis, and pedagogy",
+      "status": "candidate",
+      "absorption_mode": "ALGORITHM_DONOR",
+      "upstream_or_owner": "LearningMAP"
+    },
+    {
+      "capability_id": "CAP-OPENMAIC",
+      "capability_name": "Course DSL, renderer, and interactive learning artifacts",
+      "status": "candidate",
+      "absorption_mode": "CONTRACT_ADAPTER",
+      "upstream_or_owner": "OpenMAIC"
+    },
+    {
+      "capability_id": "CAP-RAG-ANYTHING",
+      "capability_name": "Multimodal document parsing and structure extraction",
+      "status": "candidate",
+      "absorption_mode": "PYTHON_WORKER",
+      "upstream_or_owner": "RAG-Anything"
+    },
+    {
+      "capability_id": "CAP-LIGHTRAG",
+      "capability_name": "Mixed vector and graph retrieval projection",
+      "status": "candidate",
+      "absorption_mode": "ALGORITHM_DONOR",
+      "upstream_or_owner": "LightRAG"
+    },
+    {
+      "capability_id": "CAP-GRAPHITI",
+      "capability_name": "Temporal knowledge projection and supersession",
+      "status": "candidate",
+      "absorption_mode": "ALGORITHM_DONOR",
+      "upstream_or_owner": "Graphiti"
+    },
+    {
+      "capability_id": "CAP-MEMOS",
+      "capability_name": "Machine experience memory and skill crystallization",
+      "status": "candidate",
+      "absorption_mode": "SIDECAR",
+      "upstream_or_owner": "MemOS"
+    },
+    {
+      "capability_id": "CAP-WEKNORA",
+      "capability_name": "Knowledge workspace editing, revision, diff, and rollback UX",
+      "status": "reference",
+      "absorption_mode": "UX_DONOR",
+      "upstream_or_owner": "WeKnora"
+    },
+    {
+      "capability_id": "CAP-COGNEE",
+      "capability_name": "Graph, memory, and ontology benchmark reference",
+      "status": "reference",
+      "absorption_mode": "REFERENCE_ONLY",
+      "upstream_or_owner": "Cognee"
+    }
+  ],
+  "knowledge_software_benchmark_added": {
+    "purpose": "the plan adds these to a Knowledge Software Capability Benchmark so the gap is compared before any donor is chosen",
+    "entries": [
+      "Outline",
+      "Docmost",
+      "Wiki.js",
+      "BookStack",
+      "Obsidian",
+      "Notion",
+      "RAGFlow",
+      "FastGPT",
+      "MaxKB",
+      "Dify",
+      "WeKnora"
+    ],
+    "existing_absorption_kept": [
+      "Core Knowledge",
+      "DeepTutor",
+      "OpenTutor",
+      "LearningMAP",
+      "OpenMAIC",
+      "RAG-Anything",
+      "LightRAG",
+      "Graphiti",
+      "MemOS",
+      "WeKnora",
+      "Cognee"
+    ]
+  },
+  "not_done_here": "no project is installed by this document. The verdicts above are the frame; filling the 369 rows is mechanical once the benchmark comparison exists, and installing any of them is a separate, deliberate act.",
+  "current_evidence_overlay": {
+    "recorded_at": "2026-10-08",
+    "crosswalk": "docs/current/OSS-REUSE-CROSSWALK-20261008.manifest.json",
+    "verification": "docs/current/OSS-REUSE-VERIFICATION-20261008.json",
+    "note": "Original frame, 47 archived components and not_done_here remain historical. The crosswalk supplies a verdict for all 369 pool rows; it does not supply result evidence for all of them. Measured from the generated payload on 2026-10-08: 19 rows carry any evidence record (A=2, B=13, C=2, D=1, E=1) and 350 rows carry the generator's own reason 'No qualified result or concrete extracted reference is recorded for this source row'. A D verdict is a deferred candidate with a stated need trigger, not an adoption, an installation or a result. The full payload is regenerated, not committed; see the manifest."
+  }
+}

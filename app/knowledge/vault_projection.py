@@ -10,6 +10,7 @@ from app.contracts.v1 import LearningArtifactV1, MachineKnowledgeUnitV1
 from shared import knowledge_governance_migration
 from shared.approved_paths import ApprovedRoots, ApprovedRootsError
 from shared.obsidian_projection import render_learning_artifact, write_projection
+from shared.paths import native_path
 
 
 def project_learning_artifact(
@@ -22,7 +23,7 @@ def project_learning_artifact(
     """
     database = Path(db_path)
     knowledge_governance_migration.require_applied(db_path=database, live_wal=True)
-    with sqlite3.connect(database) as connection:
+    with sqlite3.connect(native_path(database)) as connection:
         connection.row_factory = sqlite3.Row
         row = connection.execute(
             "SELECT artifact_json FROM knowledge_candidate_learning_artifacts_v1 WHERE id=?",
@@ -95,7 +96,7 @@ def project_approved_machine_knowledge_asset(
     """Write a stable AI-asset receipt only for an approved, traceable unit."""
     database = Path(db_path)
     knowledge_governance_migration.require_applied(db_path=database, live_wal=True)
-    with sqlite3.connect(database) as connection:
+    with sqlite3.connect(native_path(database)) as connection:
         connection.row_factory = sqlite3.Row
         row = connection.execute(
             "SELECT unit_json, approval_id, reviewer_id, rationale "
@@ -132,8 +133,8 @@ def project_approved_machine_knowledge_asset(
             "evidence_binding": binding,
             "dry_run": True,
         }
-    target.parent.mkdir(parents=True, exist_ok=True)
-    target.write_text(rendered, encoding="utf-8")
+    Path(native_path(target.parent)).mkdir(parents=True, exist_ok=True)
+    Path(native_path(target)).write_text(rendered, encoding="utf-8")
     return {
         "status": "written",
         "file_path": str(target),

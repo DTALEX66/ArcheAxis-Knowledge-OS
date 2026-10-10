@@ -7,7 +7,7 @@
   - rustup toolchains（共享）：D:/All projects/OS External Configuration/10-toolchains/rustup
   - 注：之前 Get-Command 找不到是因 PATH 残留旧名目录（OS configuration 缺 External）
 - 构建：`cmd /c vcvars64.bat && cargo build`（用 stable-x86_64-pc-windows-msvc）；
-  前端先 `npm run build --prefix frontend`（输出到 `.project-local/build/frontend-dist`）。
+  正式候选使用 `npm --prefix frontend run tauri -- build --no-bundle`；默认前端入口为 `npm --prefix frontend run build`。两者按 `dev.py` 分配 owner 下独立 run 的 `artifacts/frontend-dist`，Tauri hook 在父构建 run 中生成嵌入资源。裸 Tauri 构建未携带路由时拒绝，不能消费历史共享路径。
 - **状态（2026-08-19）**：debug 构建成功（11.7MB）+ 启动冒烟通过；release 构建成功（7.9MB，
   1m47s）；安装包（NSIS/MSI）需 @tauri-apps/cli，属 R6。
 - 架构：桌面壳仅承载 React 构建产物 + 监督后端 FastAPI 子进程（端口 8000）；

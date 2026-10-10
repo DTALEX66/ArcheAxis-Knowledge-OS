@@ -8,6 +8,7 @@ from contextlib import closing
 from pathlib import Path
 
 from shared import migration
+from shared.paths import native_path, sqlite_readonly_target
 
 RESEARCH_TABLES = (
     "ir_intake_cards",
@@ -152,8 +153,8 @@ CREATE TABLE IF NOT EXISTS research_package_intake_links_v1 (
 
 
 def _connect(path: Path) -> sqlite3.Connection:
-    path.parent.mkdir(parents=True, exist_ok=True)
-    connection = sqlite3.connect(str(path), timeout=30.0)
+    Path(native_path(path.parent)).mkdir(parents=True, exist_ok=True)
+    connection = sqlite3.connect(native_path(path), timeout=30.0)
     connection.execute("PRAGMA busy_timeout=30000")
     connection.row_factory = sqlite3.Row
     return connection
@@ -161,14 +162,16 @@ def _connect(path: Path) -> sqlite3.Connection:
 
 def _connect_readonly(path: Path) -> sqlite3.Connection:
     sidecars = [Path(f"{path}{suffix}") for suffix in ("-wal", "-shm")]
-    present = [sidecar.name for sidecar in sidecars if sidecar.exists()]
+    present = [sidecar.name for sidecar in sidecars if Path(native_path(sidecar)).exists()]
     if present:
         raise RuntimeError(
             "read-only research access requires a checkpointed database without "
             f"SQLite sidecars: {', '.join(present)}"
         )
-    uri = f"{path.resolve().as_uri()}?mode=ro&immutable=1"
-    connection = sqlite3.connect(uri, uri=True, timeout=30.0)
+    target, use_uri = sqlite_readonly_target(path)
+    connection = sqlite3.connect(
+        f"{target}&immutable=1" if use_uri else target, uri=use_uri, timeout=30.0
+    )
     connection.execute("PRAGMA busy_timeout=30000")
     connection.execute("PRAGMA query_only=ON")
     connection.row_factory = sqlite3.Row
@@ -177,7 +180,7 @@ def _connect_readonly(path: Path) -> sqlite3.Connection:
 
 def _connect_consumer_readonly(path: Path) -> sqlite3.Connection:
     """Open a query-only connection that can safely read a live WAL database."""
-    connection = sqlite3.connect(str(path), timeout=30.0)
+    connection = sqlite3.connect(native_path(path), timeout=30.0)
     connection.execute("PRAGMA busy_timeout=30000")
     connection.execute("PRAGMA query_only=ON")
     connection.row_factory = sqlite3.Row
@@ -327,7 +330,7 @@ def migrate(
 
     database = Path(db_path)
     backups = Path(backup_dir)
-    database_existed = database.is_file()
+    database_existed = Path(native_path(database)).is_file()
     if database_existed:
         migration._validate_database(database)
 
@@ -377,7 +380,7 @@ def status(*, db_path: str | Path, live_wal: bool = False) -> dict[str, object]:
     """
 
     database = Path(db_path)
-    if not database.is_file():
+    if not Path(native_path(database)).is_file():
         return {
             "total": 1,
             "applied": 0,
@@ -415,7 +418,7 @@ def require_applied(*, db_path: str | Path, live_wal: bool = False) -> None:
     """
 
     database = Path(db_path)
-    if not database.is_file():
+    if not Path(native_path(database)).is_file():
         raise RuntimeError("phase4 research schema migration is pending")
     connector = _connect_consumer_readonly if live_wal else _connect_readonly
     with closing(connector(database)) as connection:

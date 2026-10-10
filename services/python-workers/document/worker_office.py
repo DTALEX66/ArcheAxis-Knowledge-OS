@@ -9,6 +9,10 @@ Single worker entrypoint for structured office and PDF sources:
 - pptx: python-pptx engine (slide order, shape text, notes, image counts)
 - xlsx: openpyxl engine (sheets/cells, formula text + cached-value policy note,
         merged ranges; macros never executed)
+- xls : xlrd engine (BIFF values, per-sheet CSV through the member channel,
+        loss report of what the conversion cannot carry)
+- doc : antiword sidecar (external binary, probed and never assumed; the
+        engine's own text output, with its version and licence state recorded)
 - pdf : PyMuPDF engine (page blocks in reading order, per-page anchors,
         image inventory; scanned pages reported, OCR is a separate lane)
 
@@ -17,13 +21,19 @@ surfaces {"error": ...} with a non-zero exit.
 
 Usage:
     python worker_office.py --probe
-    python worker_office.py <input.docx|.pptx|.xlsx|.pdf>
+    python worker_office.py <input.docx|.pptx|.xlsx|.xls|.doc|.pdf>
 """
 
 from __future__ import annotations
 
 import argparse
+import importlib.util
 import json
+import os
+import posixpath
+import re
+import shutil
+import subprocess
 import sys
 import zipfile
 from pathlib import Path
@@ -41,12 +51,30 @@ W = lambda tag: f"{{{W_NS}}}{tag}"  # noqa: E731
 
 def probe() -> dict:
     engine_status: dict[str, tuple[bool, str]] = {"docx": (True, "stdlib-zip+xml")}
-    for module_name, format_name in (("pptx", "pptx"), ("openpyxl", "xlsx"), ("fitz", "pdf")):
+    for module_name, format_name in (("pptx", "pptx"), ("openpyxl", "xlsx"), ("fitz", "pdf"),
+                                     ("xlrd", "xls")):
         try:
             module = __import__(module_name)
             engine_status[format_name] = (True, getattr(module, "__version__", "unknown"))
         except ImportError:
             engine_status[format_name] = (False, "missing")
+    # `.doc` has no in-process engine at all: it is read by an external sidecar that may or may
+    # not be on this host, so the probe reports the resolution attempt rather than a guess.
+    try:
+        identity = _antiword()
+    except (RuntimeError, OSError) as exc:
+        engine_status["doc"] = (False, str(exc))
+    else:
+        engine_status["doc"] = (True, f"antiword {identity['version']} (sidecar)")
+    # `.ppt` is the same shape with a different dependency: Tika runs on a JVM, so both halves
+    # have to resolve, and the probe reports which one did not.
+    try:
+        jvm = _resolve_jvm()
+        tika = _resolve_tika(jvm)
+    except (RuntimeError, OSError) as exc:
+        engine_status["ppt"] = (False, str(exc))
+    else:
+        engine_status["ppt"] = (True, f"apache-tika {tika['version']} on jvm {jvm['version']} (sidecar)")
     engines = {fmt: ok for fmt, (ok, _version) in engine_status.items()}
     versions = {fmt: version for fmt, (_ok, version) in engine_status.items()}
     return {
@@ -54,8 +82,60 @@ def probe() -> dict:
         "engines": engines,
         "versions": versions,
         "formats": [fmt for fmt, ok in engines.items() if ok],
-        "note": "docx always enabled (stdlib); pptx/xlsx/pdf require their engines",
+        "note": "docx always enabled (stdlib); pptx/xls/xlsx/pdf require their engines; "
+                "doc requires the antiword sidecar, which is probed and never assumed",
     }
+
+
+W_NS = "http://schemas.openxmlformats.org/wordprocessingml/2006/main"
+
+
+def _docx_styles(root: ET.Element) -> dict[str, dict]:
+    """The document's own style definitions: id -> name and outline level.
+
+    A paragraph usually carries only a style id. The level a style means lives in the style
+    definition, so reading it from the file is the difference between "this paragraph is
+    called Heading1" and "the document defines Heading1 as outline level 1".
+    """
+    styles: dict[str, dict] = {}
+    for style in root.findall(W("style")):
+        style_id = style.get(W("styleId"))
+        if not style_id:
+            continue
+        name_el = style.find(W("name"))
+        properties = style.find(W("pPr"))
+        outline = properties.find(W("outlineLvl")) if properties is not None else None
+        entry = {"name": name_el.get(W("val")) if name_el is not None else None,
+                 "outline_level": None}
+        if outline is not None:
+            raw = (outline.get(W("val")) or "").strip()
+            if raw.isdigit():
+                entry["outline_level"] = int(raw) + 1
+        styles[style_id] = entry
+    return styles
+
+
+def _heading_level(properties, style_id: str | None, styles: dict[str, dict]) -> int | None:
+    """The outline level this paragraph's own file declares, or None when it declares none."""
+    if properties is not None:
+        direct = properties.find(W("outlineLvl"))
+        if direct is not None:
+            raw = (direct.get(W("val")) or "").strip()
+            if raw.isdigit():
+                return int(raw) + 1
+    if not style_id:
+        return None
+    definition = styles.get(style_id) or {}
+    if definition.get("outline_level") is not None:
+        return definition["outline_level"]
+    # Word names built-in heading styles "heading 1"; a file may also store the id verbatim.
+    for candidate in (definition.get("name"), style_id):
+        if not candidate:
+            continue
+        match = re.fullmatch(r"(?:heading|标题)\s*([1-9])", str(candidate).strip(), re.IGNORECASE)
+        if match:
+            return int(match.group(1))
+    return None
 
 
 def _docx_text(path: Path) -> dict:
@@ -67,7 +147,9 @@ def _docx_text(path: Path) -> dict:
         has_headers = any(n.startswith("word/header") for n in names)
         has_footers = any(n.startswith("word/footer") for n in names)
         document_xml = archive.read("word/document.xml")
+        styles_xml = archive.read("word/styles.xml") if "word/styles.xml" in names else None
     root = ET.fromstring(document_xml)
+    styles = _docx_styles(ET.fromstring(styles_xml)) if styles_xml is not None else {}
     body = root.find(W("body"))
     if body is None:
         raise ValueError("docx document.xml has no body")
@@ -77,7 +159,16 @@ def _docx_text(path: Path) -> dict:
             runs = child.findall(".//" + W("t"))
             paragraph_text = "".join(run.text or "" for run in runs)
             if paragraph_text.strip():
-                text_parts.append({"kind": "paragraph", "text": paragraph_text.strip()})
+                properties = child.find(W("pPr"))
+                style_el = properties.find(W("pStyle")) if properties is not None else None
+                style_id = style_el.get(W("val")) if style_el is not None else None
+                style_name = (styles.get(style_id) or {}).get("name") if style_id else None
+                part = {"kind": "paragraph", "text": paragraph_text.strip(),
+                        "style": style_name or style_id}
+                level = _heading_level(properties, style_id, styles)
+                if level is not None:
+                    part["heading_level"] = level
+                text_parts.append(part)
         elif tag == W("tbl"):
             for row in child.findall(".//" + W("tr")):
                 cells = []
@@ -98,9 +189,13 @@ def _docx_text(path: Path) -> dict:
         start = projection.find(part["text"], offset)
         if start < 0:
             start = offset
-        structure.append(
-            {"kind": part["kind"], "path": [f"{part['kind']}-{index}"], "char_start": start, "char_end": start + len(part["text"])}
-        )
+        entry = {"kind": part["kind"], "path": [f"{part['kind']}-{index}"],
+                 "char_start": start, "char_end": start + len(part["text"])}
+        if part.get("style"):
+            entry["style"] = part["style"]
+        if part.get("heading_level") is not None:
+            entry["heading_level"] = part["heading_level"]
+        structure.append(entry)
         offset = start + len(part["text"])
     return {
         "format": "docx",
@@ -114,6 +209,12 @@ def _docx_text(path: Path) -> dict:
                 "footers": has_footers,
                 "media_files": len(media),
                 "engine": "stdlib-zip+xml",
+                "style_definitions": len(styles),
+                "paragraph_count": len([p for p in text_parts if p["kind"] == "paragraph"]),
+                "heading_count": len([p for p in text_parts if p.get("heading_level") is not None]),
+                "headings": [{"level": p["heading_level"], "style": p.get("style"),
+                              "characters": len(p["text"])}
+                             for p in text_parts if p.get("heading_level") is not None][:200],
             },
             "loss_note": (
                 "paragraphs/tables extracted in document order; header/footer "
@@ -124,27 +225,163 @@ def _docx_text(path: Path) -> dict:
     }
 
 
+C_NS = "http://schemas.openxmlformats.org/drawingml/2006/chart"
+A_NS = "http://schemas.openxmlformats.org/drawingml/2006/main"
+CHART_REL_TYPE = (
+    "http://schemas.openxmlformats.org/officeDocument/2006/relationships/chart"
+)
+
+
+def _c(tag: str) -> str:
+    return f"{{{C_NS}}}{tag}"
+
+
+def _cached_points(container: ET.Element | None) -> list[str]:
+    """Return a cache's values in idx order, or [] when the series carries no cache at all.
+
+    A category or value element wraps a reference (`c:strRef` / `c:numRef`) which in turn wraps
+    the cache, so both levels are descended. A chart can point at a live spreadsheet instead of
+    storing values; this worker never opens a spreadsheet application, so an absent cache is
+    reported, never guessed."""
+    if container is None:
+        return []
+    for ref_tag in ("numRef", "strRef", "multiLvlStrRef"):
+        reference = container.find(_c(ref_tag))
+        if reference is not None:
+            container = reference
+            break
+    for cache_tag in ("strCache", "numCache", "multiLvlStrCache"):
+        cache = container.find(_c(cache_tag))
+        if cache is not None:
+            values = []
+            for point in cache.findall(_c("pt")):
+                node = point.find(_c("v"))
+                if node is None:
+                    node = point.find(_c("ptCount"))
+                values.append("" if node is None or node.text is None else node.text.strip())
+            return values
+    return []
+
+
+def _series_name(series: ET.Element) -> str:
+    tx = series.find(_c("tx"))
+    if tx is None:
+        return "(unnamed series)"
+    str_ref = tx.find(_c("strRef"))
+    if str_ref is None:
+        return "(unnamed series)"
+    cached = _cached_points(str_ref)
+    if cached and cached[0]:
+        return cached[0]
+    formula = str_ref.find(_c("f"))
+    if formula is not None and formula.text and formula.text.strip():
+        return f"(named by reference {formula.text.strip()})"
+    return "(unnamed series)"
+
+
+def _chart_text(root: ET.Element, part: str) -> tuple[str, bool]:
+    """Render one chart part's cached data as text. Returns (text, carried_any_values)."""
+    title_nodes = [node.text.strip() for node in root.iter(f"{{{A_NS}}}t") if node.text and node.text.strip()]
+    lines = [f"Chart: {title_nodes[0] if title_nodes else part}"]
+    plot_area = root.find(f"{_c('chart')}/{_c('plotArea')}")
+    carried = False
+    if plot_area is None:
+        return lines[0] + "\n  (no plot area in this chart part)", False
+    for element in plot_area:
+        tag = element.tag.split("}")[-1]
+        if not tag.endswith("Chart"):
+            continue
+        lines.append(f"  Type: {tag[:-5].lower() if len(tag) > 5 else tag}")
+        for series in element.findall(_c("ser")):
+            categories = _cached_points(series.find(_c("cat")))
+            values = _cached_points(series.find(_c("val")))
+            name = _series_name(series)
+            if not values:
+                lines.append(f"  Series {name}: no cached values in this file (linked data is not resolved)")
+                continue
+            carried = True
+            pairs = []
+            for position, value in enumerate(values):
+                label = categories[position] if position < len(categories) else f"#{position + 1}"
+                pairs.append(f"{label}={value}")
+            lines.append(f"  Series {name}: " + ", ".join(pairs))
+    return "\n".join(lines), carried
+
+
+def _pptx_charts(path: Path) -> dict[int, list[tuple[str, bool, str, str]]]:
+    """Map slide number -> [(text, carried values, relationship ID, chart part)] from the package.
+
+    python-pptx reports that a shape is a chart but not what the chart holds, and the cached
+    categories/values are the only chart data present without a spreadsheet application."""
+    by_slide: dict[int, list[tuple[str, bool, str, str]]] = {}
+    with zipfile.ZipFile(path) as archive:
+        names = set(archive.namelist())
+        parts = sorted(
+            name for name in names
+            if name.startswith("ppt/charts/chart") and name.endswith(".xml")
+        )
+        rendered = {}
+        for part in parts:
+            try:
+                root = ET.fromstring(archive.read(part))
+            except ET.ParseError:
+                rendered[part] = (f"Chart: {part} (the chart part is not well-formed XML)", False)
+                continue
+            rendered[part] = _chart_text(root, part)
+        for name in sorted(n for n in names if n.startswith("ppt/slides/slide")):
+            digits = "".join(char for char in Path(name).stem if char.isdigit())
+            if not digits:
+                continue
+            rel_path = f"ppt/slides/_rels/{Path(name).name}.rels"
+            if rel_path not in names:
+                continue
+            try:
+                rels = ET.fromstring(archive.read(rel_path))
+            except ET.ParseError:
+                continue
+            for rel in rels:
+                target_name = rel.get("Target")
+                if rel.get("Type") != CHART_REL_TYPE or not target_name:
+                    continue
+                target = posixpath.normpath(
+                    posixpath.join(posixpath.dirname(name), target_name.lstrip("/"))
+                ).replace("\\", "/")
+                if target in rendered:
+                    text, carried = rendered[target]
+                    by_slide.setdefault(int(digits), []).append((text, carried, rel.get("Id", ""), target))
+    return by_slide
+
+
 def _pptx_text(path: Path) -> dict:
     try:
         from pptx import Presentation
     except ImportError as exc:
         raise RuntimeError("pptx engine missing (python-pptx not installed)") from exc
     presentation = Presentation(str(path))
+    charts_by_slide = _pptx_charts(path)
     text_parts: list[dict] = []
     image_count = 0
     chart_count = 0
+    charts_with_values = 0
+    charts_without_values = 0
     for index, slide in enumerate(presentation.slides, start=1):
         for shape in slide.shapes:
             if getattr(shape, "has_text_frame", False) and shape.text_frame.text.strip():
-                text_parts.append({"kind": "slide", "index": index, "text": shape.text_frame.text.strip()})
+                text_parts.append({"kind": "slide", "index": index, "shape_id": int(shape.shape_id), "text": shape.text_frame.text.strip(), "path": [f"slide-{index}", f"shape-{shape.shape_id}", "slide"]})
             if shape.shape_type is not None and "PICTURE" in str(shape.shape_type):
                 image_count += 1
             if getattr(shape, "has_chart", False):
                 chart_count += 1
+        for chart_text, carried, relationship_id, chart_part in charts_by_slide.get(index, []):
+            if carried:
+                charts_with_values += 1
+            else:
+                charts_without_values += 1
+            text_parts.append({"kind": "slide_chart", "index": index, "relationship_id": relationship_id, "chart_part": chart_part, "text": chart_text, "path": [f"slide-{index}", f"relationship-{relationship_id}", chart_part, "slide_chart"]})
         if slide.has_notes_slide:
             notes = slide.notes_slide.notes_text_frame.text.strip()
             if notes:
-                text_parts.append({"kind": "slide_notes", "index": index, "text": notes})
+                text_parts.append({"kind": "slide_notes", "index": index, "text": notes, "path": [f"slide-{index}", "notes", "slide_notes"]})
     if not text_parts:
         raise ValueError("pptx contains no extractable text")
     projection = "\n".join(part["text"] for part in text_parts)
@@ -155,7 +392,7 @@ def _pptx_text(path: Path) -> dict:
         if start < 0:
             start = offset
         structure.append(
-            {"kind": part["kind"], "path": [f"slide-{part['index']}", part['kind']], "char_start": start, "char_end": start + len(part["text"])}
+            {"kind": part["kind"], "path": part["path"], "char_start": start, "char_end": start + len(part["text"]), **{key: part[key] for key in ("shape_id", "relationship_id", "chart_part") if key in part}}
         )
         offset = start + len(part["text"])
     return {
@@ -165,10 +402,23 @@ def _pptx_text(path: Path) -> dict:
         "loss_receipt": {
             "engine": ENGINE,
             "engine_version": ENGINE_VERSION,
-            "params": {"slides": len(presentation.slides._sldIdLst), "images": image_count, "charts": chart_count, "engine": "python-pptx"},
-            "loss_note": "slide order preserved; slide-image OCR and chart rendering are separate lanes",
+            "params": {
+                "slides": len(presentation.slides._sldIdLst),
+                "images": image_count,
+                "charts": chart_count,
+                "charts_with_cached_values": charts_with_values,
+                "charts_without_cached_values": charts_without_values,
+                "chart_data_source": "cached values stored in the chart part",
+                "engine": "python-pptx",
+            },
+            "loss_note": "slide order preserved; chart data is the file's own cached categories and "
+            "values, never recomputed, and a series that only references a live spreadsheet is "
+            "named as carrying no cached values; slide-image OCR and chart rendering are separate lanes",
         },
     }
+
+
+CELL_LOCATION_CAP = 5000
 
 
 def _xlsx_text(path: Path) -> dict:
@@ -178,6 +428,7 @@ def _xlsx_text(path: Path) -> dict:
         raise RuntimeError("xlsx engine missing (openpyxl not installed)") from exc
     workbook = load_workbook(str(path), data_only=False)
     text_parts: list[dict] = []
+    locations: list[dict] = []
     formula_count = 0
     for sheet in workbook.worksheets:
         for row in sheet.iter_rows():
@@ -188,7 +439,15 @@ def _xlsx_text(path: Path) -> dict:
                 value = cell.value
                 if isinstance(value, str) and value.startswith("="):
                     formula_count += 1
-                cells.append(f"{cell.coordinate}={value}")
+                token = f"{cell.coordinate}={value}"
+                cells.append(token)
+                # F09: one cell was not a location of its own - the row was the smallest
+                # addressable thing, so a quote from a single cell could only be anchored to a
+                # line that also carried its neighbours. The token is what the projection shows.
+                locations.append({"kind": "cell", "path": f"{sheet.title}!{cell.coordinate}",
+                                  "value": token, "sheet": sheet.title,
+                                  "coordinate": cell.coordinate,
+                                  "row": cell.row, "column": cell.column})
             if cells:
                 text_parts.append({"kind": "sheet_row", "sheet": sheet.title, "text": " | ".join(cells)})
     if not text_parts:
@@ -211,11 +470,23 @@ def _xlsx_text(path: Path) -> dict:
         "loss_receipt": {
             "engine": ENGINE,
             "engine_version": ENGINE_VERSION,
-            "params": {"sheets": len(workbook.worksheets), "formula_cells": formula_count, "engine": "openpyxl"},
+            "params": {
+                "sheets": len(workbook.worksheets), "formula_cells": formula_count, "engine": "openpyxl",
+                "format": {
+                    "location_model": "openpyxl cell coordinates; each value is that cell's own "
+                                      "projected token as the text shows it",
+                    "locations": locations[:CELL_LOCATION_CAP],
+                    "locations_reported": min(len(locations), CELL_LOCATION_CAP),
+                    "locations_total": len(locations),
+                    "locations_capped": len(locations) > CELL_LOCATION_CAP,
+                },
+            },
             "loss_note": (
                 "cell values include formula text (data_only=False); cached "
                 "computed values are NOT presented as live calculations; "
                 "macros never executed; merged ranges reported per sheet only"
+                + (f"; cell locations capped at {CELL_LOCATION_CAP} of {len(locations)}, the rest "
+                   "stay addressable by row only" if len(locations) > CELL_LOCATION_CAP else "")
             ),
         },
     }
@@ -267,8 +538,510 @@ def _pdf_text(path: Path) -> dict:
         },
     }
 
+XLS_SHEET_CAP = 32
+XLS_BYTES_CAP = 64 * 1024 * 1024
+XLS_ERROR_TEXT = {0: "#NULL!", 1: "#DIV/0!", 2: "#VALUE!", 3: "#REF!", 4: "#NAME?",
+                  5: "#NUM!", 6: "#N/A", 7: "#GETTING_DATA"}
 
-def extract(path: str) -> dict:
+
+def _safe_csv_name(index: int, name: str) -> str:
+    """A flat, collision-free file name for one converted sheet."""
+    base = name.rsplit("/", 1)[-1].rsplit("\\", 1)[-1]
+    safe = "".join(char if char.isalnum() or char in "._-" else "_" for char in base)[-48:]
+    return f"sheet-{index:02d}-{safe or 'sheet'}.csv"
+
+
+def _long_path(path: Path) -> str:
+    """Name an absolute transfer path in a form Windows still creates inside a deep workspace.
+
+    A sheet's converted CSV lands in the same attempt-keyed transfer area as a container's
+    members, and its name carries up to 48 characters of the sheet's own title. The transport
+    prefixes only the directory it hands over, and Windows answers a create whose full path
+    passes the limit with ERROR_FILE_NOT_FOUND. Same convention as `worker_archive._long_path`;
+    the Core reads these bytes back through the same prefix.
+    """
+    text = str(path)
+    if sys.platform == "win32" and not text.startswith("\\\\?\\") and Path(text).is_absolute():
+        return "\\\\" + "?\\" + text
+    return text
+
+
+def _xls_cell(sheet, book, row: int, col: int) -> tuple[str, str]:
+    """One cell as (displayed text, type name), using only what xlrd reports."""
+    import xlrd
+
+    value = sheet.cell_value(row, col)
+    kind = sheet.cell_type(row, col)
+    if kind == xlrd.XL_CELL_EMPTY:
+        return "", "empty"
+    if kind == xlrd.XL_CELL_TEXT:
+        return str(value), "text"
+    if kind == xlrd.XL_CELL_NUMBER:
+        return (repr(value)), "number"
+    if kind == xlrd.XL_CELL_DATE:
+        # the file says "a date"; the calendar it means is the workbook's own datemode
+        try:
+            converted = xlrd.xldate_as_datetime(value, book.datemode)
+        except (xlrd.XLDateError, ValueError, OverflowError):
+            return repr(value), "unconvertible_date"
+        return converted.isoformat(sep=" "), "date"
+    if kind == xlrd.XL_CELL_BOOLEAN:
+        return ("TRUE" if value else "FALSE"), "boolean"
+    if kind == xlrd.XL_CELL_ERROR:
+        return XLS_ERROR_TEXT.get(int(value), f"#ERROR{value}"), "error"
+    return str(value), "blank"
+
+
+# R15/F14: a Word 97 binary is not a ZIP of XML, so no stdlib path in this worker can read it.
+# The only reader used here is the `antiword` sidecar, which is an external binary the worker
+# probes for and never assumes: an unprobed or unidentifiable binary is a named refusal, and a
+# document is never projected as if the engine had been there.
+ANTIWORD_PROBE_SECONDS = 10
+ANTIWORD_RUN_SECONDS = 120
+
+
+def _declared_path(name: str) -> str | None:
+    """The declared external path for *name*, or None when nothing is declared.
+
+    Same rule as the OCR lane: only a missing declaration becomes None. A manifest that exists
+    but cannot be read raises, because reporting that as "engine not installed" sends someone
+    looking in the wrong place.
+    """
+    module_path = Path(__file__).resolve().parent.parent / "tool_paths.py"
+    if not module_path.is_file():
+        return None
+    spec = importlib.util.spec_from_file_location("office_tool_paths", module_path)
+    if spec is None or spec.loader is None:
+        return None
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module.declared(name, __file__)
+
+
+def _run(command: list[str], **kwargs) -> subprocess.CompletedProcess:
+    return subprocess.run(
+        command,
+        creationflags=subprocess.CREATE_NO_WINDOW if os.name == "nt" else 0,
+        **kwargs,
+    )
+
+
+def _antiword_identity(binary: str) -> dict | None:
+    """Ask the binary who it is before trusting it with a document.
+
+    A stale shim can exist as a file after its package moves, and `-h` is how antiword states
+    its own version, author and licence status. The usage line is not an error here: antiword
+    prints it and exits non-zero, which is why the return code is deliberately not consulted.
+    """
+    try:
+        probe = _run(
+            [binary, "-h"],
+            capture_output=True, text=True, encoding="utf-8", errors="replace",
+            timeout=ANTIWORD_PROBE_SECONDS,
+        )
+    except (OSError, subprocess.TimeoutExpired):
+        return None
+    reported = probe.stdout + probe.stderr
+    if "MS-Word" not in reported:
+        return None
+    fields: dict[str, str] = {}
+    for line in reported.splitlines():
+        key, _, value = line.partition(":")
+        name = key.strip().lstrip("\t ")
+        if name and name not in fields:
+            fields[name] = value.strip()
+    return {
+        "path": binary,
+        "version": fields.get("Version", "unknown"),
+        "author": fields.get("Author", "unknown"),
+        "licence_status": fields.get("Status", "unknown"),
+    }
+
+
+def _antiword() -> dict:
+    """Resolve the sidecar: configured path, then declared registry, then PATH.
+
+    Nothing is installed here and no host directory is hard-coded. An explicit configuration
+    that does not resolve is an error rather than a cue to go looking elsewhere - silently
+    substituting a different binary is exactly what a declared engine must not do.
+    """
+    configured = os.environ.get("ARCHEAXIS_ANTIWORD_CMD", "").strip()
+    if configured:
+        if Path(configured).is_absolute() and not Path(configured).is_file():
+            raise RuntimeError(f"doc engine missing (configured path does not exist: {configured})")
+        identity = _antiword_identity(configured)
+        if identity is None:
+            raise RuntimeError(f"doc engine missing (configured path is not antiword: {configured})")
+        return identity
+    declared = _declared_path("antiword")
+    if declared:
+        identity = _antiword_identity(declared)
+        if identity is not None:
+            return identity
+    on_path = shutil.which("antiword")
+    if on_path:
+        identity = _antiword_identity(on_path)
+        if identity is not None:
+            return identity
+    raise RuntimeError(
+        "doc engine missing (no usable antiword sidecar: consulted "
+        "the declared capability manifest and PATH)"
+    )
+
+
+def _line_anchors(text: str) -> list[dict]:
+    """One anchor per line of the projection, including empty lines."""
+    anchors = []
+    offset = 0
+    number = 0
+    for line in text.splitlines(keepends=True):
+        number += 1
+        if line.strip():
+            anchors.append(
+                {"kind": "line", "path": [f"line-{number}"],
+                 "char_start": offset, "char_end": offset + len(line.rstrip("\r\n"))}
+            )
+        offset += len(line)
+    return anchors
+
+
+def _antiword_mapping_home() -> str | None:
+    """The HOME to hand the sidecar so it can find its character mapping files.
+
+    antiword looks for a mapping in `$HOME/.antiword` and in `/usr/share/antiword`, and it will
+    not take an absolute path for one: a name longer than the engine's buffer is truncated and the
+    default mapping is used instead. So a copy that is relocated out of its own install tree needs
+    a HOME whose `.antiword` directory holds the tables - which is what the declared
+    `antiword-mappings` entry names.
+
+    Returning None leaves the environment untouched, and an in-place install keeps resolving its
+    own prefix. Nothing here guesses a directory.
+    """
+    declared = _declared_path("antiword-mappings")
+    if not declared:
+        return None
+    path = Path(declared)
+    if path.name != ".antiword":
+        return None
+    return str(path.parent)
+
+
+TIKA_PROBE_SECONDS = 60
+TIKA_RUN_SECONDS = 600
+
+
+def _resolve_jvm() -> dict:
+    """Find the JVM the legacy presentation reader runs on, or say which part is missing.
+
+    Environment first, then the declared capability manifest, then PATH - the same order the
+    document sidecars use. A JVM is only trusted once it has stated what it is, because a stale
+    shim can exist as a file and still not start.
+    """
+    configured = os.environ.get("ARCHEAXIS_JAVA_CMD", "").strip()
+    candidate = configured or _declared_path("zulu-jre") or shutil.which("java") or shutil.which("java.exe")
+    if not candidate:
+        raise RuntimeError(
+            "ppt engine missing: no JVM resolved (consulted ARCHEAXIS_JAVA_CMD, the declared "
+            "capability manifest and PATH)"
+        )
+    if configured and not Path(configured).is_file():
+        raise RuntimeError(f"ppt engine missing (configured JVM does not exist: {configured})")
+    try:
+        probe = _run([candidate, "-version"], capture_output=True, text=True,
+                     encoding="utf-8", errors="replace", timeout=TIKA_PROBE_SECONDS)
+    except (OSError, subprocess.TimeoutExpired) as exc:
+        raise RuntimeError(f"ppt engine missing (JVM could not be started: {exc})") from exc
+    stated = f"{probe.stdout}{probe.stderr}"
+    match = re.search(r'(?:openjdk|java) version "([^"]+)', stated)
+    if probe.returncode != 0 or match is None:
+        raise RuntimeError(
+            f"ppt engine missing (the resolved JVM did not identify itself: {stated.strip()[:160]})"
+        )
+    return {"path": candidate, "version": match.group(1)}
+
+
+def _resolve_tika(jvm: dict) -> dict:
+    """Resolve the Tika application jar and let it name its own version.
+
+    The jar is a declared external artefact; a missing one is a named failure rather than a cue to
+    try a different parser, because which extractor produced a projection is part of the evidence.
+    """
+    configured = os.environ.get("ARCHEAXIS_TIKA_JAR", "").strip()
+    jar = configured or _declared_path("apache-tika")
+    if not jar:
+        raise RuntimeError(
+            "ppt engine missing: no Apache Tika jar resolved (consulted ARCHEAXIS_TIKA_JAR and "
+            "the declared capability manifest)"
+        )
+    if not Path(jar).is_file():
+        raise RuntimeError(f"ppt engine missing (Tika jar does not exist: {jar})")
+    try:
+        probe = _run([jvm["path"], "-jar", jar, "--version"], capture_output=True, text=True,
+                     encoding="utf-8", errors="replace", timeout=TIKA_PROBE_SECONDS)
+    except (OSError, subprocess.TimeoutExpired) as exc:
+        raise RuntimeError(f"ppt engine missing (Tika could not be started: {exc})") from exc
+    stated = (probe.stdout or "").strip()
+    if probe.returncode != 0 or not stated.startswith("Apache Tika"):
+        raise RuntimeError(
+            f"ppt engine missing (the jar did not answer as Apache Tika: "
+            f"{(stated or probe.stderr or '').strip()[:160]})"
+        )
+    return {"jar": jar, "version": stated.split()[-1], "jvm": jvm}
+
+
+def _ppt_text(path: Path) -> dict:
+    """Project a legacy binary presentation through Tika, one file per process.
+
+    Tika's CLI writes its own log lines to stderr and the document's text to stdout, so the
+    projection is stdout alone. Exit codes are consulted here, unlike the batch mode of the
+    document sidecar, because this invocation processes exactly one named file.
+    """
+    jvm = _resolve_jvm()
+    engine = _resolve_tika(jvm)
+    try:
+        run = _run(
+            [jvm["path"], "-jar", engine["jar"], "--text", str(path)],
+            capture_output=True, text=True, encoding="utf-8", timeout=TIKA_RUN_SECONDS,
+        )
+    except subprocess.TimeoutExpired:
+        raise ValueError(
+            "Tika did not finish within the run budget; nothing was projected"
+        ) from None
+    except UnicodeDecodeError as exc:
+        raise ValueError(f"Tika output is not valid UTF-8: {exc}") from exc
+    if run.returncode != 0:
+        reasons = [
+            line for line in (run.stderr or "").splitlines()
+            if line and "INFO" not in line[:24] and "WARN" not in line[:24]
+        ]
+        raise ValueError(f"ppt could not be read by Tika: {(reasons[:1] or ['exit code %s' % run.returncode])[0][:200]}")
+    text = run.stdout or ""
+    if not text.strip():
+        raise ValueError("ppt contains no readable text through Tika")
+
+    structure = _line_anchors(text)
+    losses = [
+        "the projection is Tika's own text extraction: slide order follows the parser's reading of "
+        "the document, and layout, speaker notes, masters, embedded objects and media are not "
+        "presented as a rendered slide would be; the original bytes stay the source of record",
+        "Tika's single-file CLI mode turns on several non-default features for convenience "
+        "(its own startup notice names TIKA-2374, TIKA-4017, TIKA-4354 and TIKA-4472), so the "
+        "reading is that configuration's reading, not a neutral default one",
+    ]
+    return {
+        "format": "ppt",
+        "text": text,
+        "structure": structure,
+        "loss_receipt": {
+            "engine": ENGINE,
+            "engine_version": ENGINE_VERSION,
+            "params": {
+                "engine": "apache-tika",
+                "engine_version_reported": engine["version"],
+                "jvm": f"{jvm['path']} (version {jvm['version']})",
+                "jar": engine["jar"],
+                "output_mode": "--text",
+                "lines_projected": len(structure),
+                "bytes_projected": len(text.encode("utf-8")),
+            },
+            "losses": losses,
+            "loss_note": "; ".join(losses),
+        },
+    }
+
+
+def _doc_text(path: Path) -> dict:
+    engine = _antiword()
+    home = _antiword_mapping_home()
+    run_kwargs: dict = {"capture_output": True, "text": True, "encoding": "utf-8",
+                        "timeout": ANTIWORD_RUN_SECONDS}
+    if home:
+        run_kwargs["env"] = {**os.environ, "HOME": home}
+    try:
+        run = _run([engine["path"], "-t", str(path)], **run_kwargs)
+    except subprocess.TimeoutExpired:
+        raise ValueError(
+            "antiword did not finish within the run budget; nothing was projected"
+        ) from None
+    except UnicodeDecodeError as exc:
+        raise ValueError(f"antiword output is not valid UTF-8: {exc}") from exc
+    if run.returncode != 0:
+        reason = (run.stderr or run.stdout or "").strip().splitlines()
+        stated = reason[0] if reason else f"exit code {run.returncode}"
+        # The engine quotes the full input path back. A stored receipt should name why the file
+        # was refused, not where this host keeps it.
+        if stated.startswith(str(path)):
+            stated = stated[len(str(path)):].strip()
+        raise ValueError(f"doc could not be read by antiword: {stated}")
+    text = run.stdout or ""
+    if not text.strip():
+        raise ValueError("doc contains no readable text through antiword")
+    structure = _line_anchors(text)
+    losses = [
+        "the projection is the sidecar's own text output: no heading level, style, font, "
+        "image or page information is claimed, and a table arrives as a character grid "
+        "rather than as cells; the original bytes stay the source of record",
+        "the document's own structure is not re-derived here; an addressable structure is a "
+        "separate contract change",
+    ]
+    return {
+        "format": "doc",
+        "text": text,
+        "structure": structure,
+        "loss_receipt": {
+            "engine": ENGINE,
+            "engine_version": ENGINE_VERSION,
+            "params": {
+                "engine": "antiword",
+                "engine_version_reported": engine["version"],
+                "engine_author": engine["author"],
+                "engine_licence_self_reported": engine["licence_status"],
+                "output_mode": "-t (plain text)",
+                "character_mapping": "the engine's own default (a named mapping file flattens "
+                                      "typographic quotes, so none is requested)",
+                "mapping_home": home or "inherited from this process",
+                "lines_projected": len(structure),
+                "bytes_projected": len(text.encode("utf-8")),
+            },
+            "losses": losses,
+            "loss_note": "; ".join(losses),
+        },
+    }
+
+
+def _xls_text(path: Path, member_dir: Path | None = None) -> dict:
+    try:
+        import xlrd
+    except ImportError as exc:
+        raise RuntimeError("xls engine missing (xlrd not installed)") from exc
+    try:
+        book = xlrd.open_workbook(str(path), on_demand=True)
+    except xlrd.XLRDError as exc:
+        raise ValueError(f"xls could not be opened: {exc}") from exc
+
+    text_parts: list[dict] = []
+    sheets: list[dict] = []
+    converted: list[dict] = []
+    losses: list[str] = []
+    members_written: list[dict] = []
+    locations: list[dict] = []
+    type_counts: dict[str, int] = {}
+    total_bytes = 0
+    formulas_available = hasattr(book.sheet_by_index(0), "cell_formula_text") if book.nsheets else False
+
+    for index in range(book.nsheets):
+        if index >= XLS_SHEET_CAP:
+            losses.append(f"only the first {XLS_SHEET_CAP} of {book.nsheets} sheets were read")
+            break
+        sheet = book.sheet_by_index(index)
+        rows: list[list[str]] = []
+        cells = 0
+        for row in range(sheet.nrows):
+            line = []
+            for col in range(sheet.ncols):
+                display, kind = _xls_cell(sheet, book, row, col)
+                type_counts[kind] = type_counts.get(kind, 0) + 1
+                line.append(display)
+                if display:
+                    cells += 1
+                    # F09: for xls the projected unit was the whole sheet body, so neither a row
+                    # nor a cell was addressable. The token is the cell exactly as the line shows
+                    # it - the engine's own display text, repr-quoted by the projection.
+                    locations.append({
+                        "kind": "cell", "path": f"{sheet.name}!{xlrd.colname(col)}{row + 1}",
+                        "value": f"{display!r}", "sheet": sheet.name,
+                        "coordinate": f"{xlrd.colname(col)}{row + 1}",
+                        "row": row + 1, "column": col + 1, "cell_type": kind})
+            rows.append(line)
+        sheets.append({"name": sheet.name, "rows": sheet.nrows, "columns": sheet.ncols,
+                       "populated_cells": cells})
+        body = "\n".join(", ".join(f"{cell!r}" for cell in line if cell) for line in rows if any(line))
+        if body.strip():
+            text_parts.append({"kind": "sheet", "name": sheet.name, "text": body.strip()})
+        if member_dir is not None and index < XLS_SHEET_CAP:
+            import csv as _csv
+            import hashlib as _hashlib
+            import io as _io
+
+            buffer = _io.StringIO()
+            writer = _csv.writer(buffer)
+            for line in rows:
+                writer.writerow(line)
+            payload = buffer.getvalue().encode("utf-8")
+            if total_bytes + len(payload) > XLS_BYTES_CAP:
+                losses.append(f"converted byte budget of {XLS_BYTES_CAP} reached; "
+                              "later sheets were not converted")
+                break
+            out = Path(member_dir)
+            Path(_long_path(out)).mkdir(parents=True, exist_ok=True)
+            target = out / _safe_csv_name(index + 1, sheet.name)
+            Path(_long_path(target)).write_bytes(payload)
+            total_bytes += len(payload)
+            members_written.append({
+                "name": f"{sheet.name}.csv",
+                "file": target.name,
+                "bytes": len(payload),
+                "sha256": _hashlib.sha256(payload).hexdigest(),
+            })
+
+    # xlrd keeps the stream mapped while the book lives, and on Windows that holds the attempt's
+    # view file open; release it before anything else can raise or return.
+    book.release_resources()
+    if not text_parts:
+        raise ValueError("xls contains no readable cell values")
+    projection = "\n".join(part["text"] for part in text_parts)
+    structure = []
+    offset = 0
+    for part in text_parts:
+        start = projection.find(part["text"], offset)
+        if start < 0:
+            start = offset
+        structure.append({"kind": "sheet", "path": [f"sheet-{part['name']}"],
+                          "char_start": start, "char_end": start + len(part["text"])})
+        offset = start + len(part["text"])
+
+    losses.append(
+        "converted to one CSV per sheet of the values the file carries: formulas are not "
+        "recalculated, and number formats, styles, merged-cell spans, charts, images, pivots "
+        "and macros are not carried into the conversion; the original bytes stay the source of record"
+    )
+    if not formulas_available:
+        losses.append("the engine exposes no formula text for this file, so formulas are "
+                      "reported only as the cached value the file carries")
+    if len(locations) > CELL_LOCATION_CAP:
+        losses.append(f"cell locations capped at {CELL_LOCATION_CAP} of {len(locations)}; the rest "
+                      "are not addressable")
+    return {
+        "format": "xls",
+        "text": projection,
+        "structure": structure,
+        "loss_receipt": {
+            "engine": ENGINE,
+            "engine_version": ENGINE_VERSION,
+            "params": {
+                "engine": "xlrd",
+                "engine_version_reported": getattr(xlrd, "__version__", "unknown"),
+                "sheets": len(sheets),
+                "datemode": book.datemode,
+                "cell_types": type_counts,
+                "sheet_structure": sheets,
+                "structure": {"extractable_members": members_written},
+                "converted_member_count": len(members_written),
+                "converted_bytes": total_bytes,
+                "format": {
+                    "location_model": "xlrd sheet name plus A1-style coordinate; each value is the "
+                                      "engine's display text exactly as the projection quotes it",
+                    "locations": locations[:CELL_LOCATION_CAP],
+                    "locations_reported": min(len(locations), CELL_LOCATION_CAP),
+                    "locations_total": len(locations),
+                    "locations_capped": len(locations) > CELL_LOCATION_CAP,
+                },
+            },
+            "losses": losses,
+            "loss_note": "; ".join(losses),
+        },
+    }
+def extract(path: str, member_dir: str | None = None) -> dict:
     suffix = Path(path).suffix.lower()
     if not Path(path).is_file():
         raise ValueError(f"input file not found: {path}")
@@ -278,6 +1051,12 @@ def extract(path: str) -> dict:
         return _pptx_text(Path(path))
     if suffix == ".xlsx":
         return _xlsx_text(Path(path))
+    if suffix == ".xls":
+        return _xls_text(Path(path), Path(member_dir) if member_dir else None)
+    if suffix == ".doc":
+        return _doc_text(Path(path))
+    if suffix == ".ppt":
+        return _ppt_text(Path(path))
     if suffix == ".pdf":
         return _pdf_text(Path(path))
     raise ValueError(f"unsupported office/document extension: {suffix}")
@@ -291,10 +1070,17 @@ def main() -> int:
     if "--staging-root" in sys.argv:
         import importlib.util
 
-        repo_root = Path(__file__).resolve().parents[3]
-        spec = importlib.util.spec_from_file_location(
-            "office_transport", repo_root / "services" / "python-workers" / "transport" / "text_ndjson.py"
+        # The shared transport sits beside this worker's own category directory, in a
+        # source checkout (`services/python-workers/transport/`) and in a staged runtime
+        # (`workers/transport/`) alike, so both are tried from this file's location. A
+        # fixed parents[3] plus a `services/python-workers/` suffix was correct only for
+        # the source layout and left a staged worker unable to start.
+        _transport_candidates = (
+            Path(__file__).resolve().parent.parent / "transport" / "text_ndjson.py",
+            Path(__file__).resolve().parents[2] / "services" / "python-workers" / "transport" / "text_ndjson.py",
         )
+        _transport = next((p for p in _transport_candidates if p.is_file()), _transport_candidates[0])
+        spec = importlib.util.spec_from_file_location("office_transport", _transport)
         if spec is None or spec.loader is None:
             print(json.dumps({"error": "transport module is missing", "engine": ENGINE}))
             return 1
@@ -309,7 +1095,7 @@ def main() -> int:
         )
 
     parser = argparse.ArgumentParser(description="ArcheAxis office/document engine worker")
-    parser.add_argument("input", nargs="?", help="input file (.docx/.pptx/.xlsx/.pdf)")
+    parser.add_argument("input", nargs="?", help="input file (.docx/.pptx/.xlsx/.xls/.doc/.pdf)")
     parser.add_argument("--probe", action="store_true", help="engine capability probe")
     args = parser.parse_args()
     if args.probe:

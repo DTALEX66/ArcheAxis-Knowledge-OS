@@ -1,0 +1,1051 @@
+{
+  "schema": "archeaxis.local-stage-receipt/v1",
+  "stage": "UF09",
+  "captured_local": "2026-10-10",
+  "status": "LOCAL_ENGINEERING_CLOSED_WITH_EXPLICIT_QUALIFICATION_GAPS",
+  "whole_taskpack": "PARTIAL",
+  "role": "SOURCE_AND_EVIDENCE_RECEIPT_NOT_EXECUTION_AUTHORITY",
+  "writer_root": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\worktrees\\gov-ui-20261008",
+  "writer_branch": "codex/aaos-gov-ui-20261008",
+  "writer_head": "fc5d4adc7acc28e38c2e6046ef06c0be2eed721d",
+  "source_files": {
+    "crates/archeaxis-api/Cargo.toml": "92aefb0bc36e94865983dfb768bdcc3abb1bbe41c204d503280f693df2da19ad",
+    "crates/archeaxis-api/src/documents.rs": "f3fdf785fe2118c3ae715c5396edac38c02e98ed5788b65ac5a7d0438e44e3f9",
+    "crates/archeaxis-api/src/lib.rs": "8f89cf6b3eacfcdbd679a42c6648b44d464b4c2fe05c4e0205d0653ccb1fdc0b",
+    "crates/archeaxis-api/src/machine_governance.rs": "4e3ce567eefa02f335e054e5dc3de10316186052ad5ebfdfb208788b3f78c3bf",
+    "crates/archeaxis-api/src/main.rs": "6bb5db1eec4d38ce2804f01684fa1b6fe07dd4657250577287782736c98478b1",
+    "crates/archeaxis-api/src/runtime/colearning.rs": "01644389c859527d134637a10b871975202f5229d165643deba224f1f01ddc79",
+    "crates/archeaxis-api/src/runtime/mod.rs": "fb6e8d6888c18ff72d740773cbfba45d1982d3566837b443bbf0c80b89cd5713",
+    "crates/archeaxis-api/src/runtime/withheld.rs": "31e4bd484b30c26e0c394b4d4f496c884872fc4225093035e3161f32c2ca1f02",
+    "crates/archeaxis-api/tests/ai_assets_api.rs": "4c35d8878a18a4da737eff80a82c7cad38a3840eb8f2ce5487526694c32311a4",
+    "crates/archeaxis-api/tests/launch_auth.rs": "82d161388b707b36b49ac87b12bdbc272901fe616a8889791cebcc2fd2adc751",
+    "crates/archeaxis-api/tests/machine_asset_context_api.rs": "b8adf28fe7567f830d5267ced9bffb756042d8df6e519bf84afb824a193a8e8b",
+    "crates/archeaxis-api/tests/machine_withheld_api.rs": "9e14d6c214222823c4ac4ddcd34d5dda943b89a14e78666252fbf276618c0826",
+    "crates/archeaxis-api/tests/maintenance_authorization_fence.rs": "13d381d720645e369a539f0fcaefa8d652a6d3cd0c04e0732f943852706c2f3c",
+    "crates/archeaxis-api/tests/runtime_jobs.rs": "9bd3ba4e6b40de7b93fea4958a203aadfb768bac993199b427feaf47b0362eec",
+    "crates/archeaxis-application/Cargo.toml": "7f3b24bb40f0bef357f3bf4ab873463ad7146bb0a551b2a128be80a148070b3f",
+    "crates/archeaxis-application/src/attempts.rs": "5940b4e2686f00539a7a5c76adbd6460ed3a0621ea7ced3c07203401346e840e",
+    "crates/archeaxis-application/src/executor.rs": "4304325073cced943eb5637e785adcd405671c85ad592e34e62892b246c2b3d7",
+    "crates/archeaxis-application/tests/executor.rs": "0f085fac10eb9165024740848db792e44a19ee1c8e334bbc25aae1f04bbceada",
+    "crates/archeaxis-application/tests/job_atomicity.rs": "e85cf919ce039c370663a0620d2567bcf1ec80b5ce1ae334a9044cbeb52a1dff",
+    "crates/archeaxis-application/tests/machine_answer_resources.rs": "badd18411df68f9f5c56434b3aaea8d84687d5220a34b2d886684874c227290e",
+    "crates/archeaxis-archive/src/lib.rs": "3ee1fef3c21cecaddbd3dc79baa7a1c4bf9e10ca3fe0c78477c4fc5db5ff0549",
+    "crates/archeaxis-archive/tests/authorization_restore_fence.rs": "9df8cfc099b3cd6c8253870c1c54d1cfd8854e1f7b8a12d1a70e07d80d2b6e4b",
+    "crates/archeaxis-domain/src/ai_asset.rs": "cabd6651d7286f74fc4d3d50cf8da29e5175050ef110167c18463280e9cf6a2e",
+    "crates/archeaxis-domain/src/asset_context_grant.rs": "93bbb719e5cdc080c30fe24cd01bc4e82825dbbfd5206b2bbce1ea45222d3350",
+    "crates/archeaxis-domain/src/backup.rs": "4f421930352e65270030558592ce5a893b1c667b71ab352e234fb492523dda0f",
+    "crates/archeaxis-domain/src/context_grant.rs": "facc3917fda90acf8bce641eeb4757fdf37151457e6f18ef35d26fbebb09db07",
+    "crates/archeaxis-domain/src/document.rs": "8422a4070c28926c5af5ca114ba43df50d3c5ef79529d209a42ccb1f3a791eaf",
+    "crates/archeaxis-domain/src/lib.rs": "ce7310887992209043946f8790b20b516b172fede3e491a7b26f666138d50daf",
+    "crates/archeaxis-domain/src/machine.rs": "ca75e7452c11b59f9c216eb47d6ee1dfcbbefe9be8ec0b4b3ab69b5f39fd42d0",
+    "crates/archeaxis-domain/src/machine_evaluation.rs": "553ff9d8d9bd7aecf929da1fe0146546596472b685c32af150497d91e4a3a6c4",
+    "crates/archeaxis-domain/tests/ai_assets.rs": "ed98998c3dc6d43208dcf6d828b22a15a29e84e6706c49286901a0be8b565b14",
+    "crates/archeaxis-domain/tests/course_candidate.rs": "be5a8769b51706f715b6451e8e0ec1ee465c45338978bc4a51b150d28a651454",
+    "crates/archeaxis-domain/tests/machine_evaluation_documents.rs": "bdb1223fac59c597931ee9c3833cea38d4f23f00a42d8652d3aaffc9cdd5e349",
+    "crates/archeaxis-sidecar-protocol/src/worker.rs": "15f9ea54ea51fc5ac86591d9c47ae4d581d2269ddb685228165b736226f16c0e",
+    "crates/archeaxis-store-sqlite/src/authorization_fence.rs": "2cf3400ecd831abf207dad8c166477e0f5b6cd110f40315650403994d10ead8f",
+    "crates/archeaxis-store-sqlite/src/lib.rs": "c887d788c677188cb053abc6c4efc8d59a9b1ee3a5564630b2ba9ea56adea75d",
+    "crates/archeaxis-store-sqlite/tests/writer.rs": "ee54bf6d109e0bf5013858f637b66815166b071f6cad5effdcd744f5c4d032dc",
+    "desktop/src-tauri/src/backend.rs": "31f113ad79a78d7b012f72042816e5aa7233d8655f778b1bb177dbfe2eb96137",
+    "frontend/src/__tests__/AiAssetContract.test.ts": "9184e2b0f17386fad6c1b2f87e3bdd137ae809580b726ac6a06d5a8f3fea842b",
+    "frontend/src/__tests__/AiAssetPacketPanel.test.tsx": "e3b50536433c4df50f40ed467532315bcc968c44808ba9f01f485e600937e980",
+    "frontend/src/__tests__/AssetConsumption.test.ts": "93af0334bad43c3ea08d4f6f3f340c83bb551df0f2c298ff57dbb44ff4f6d5cc",
+    "frontend/src/__tests__/AssetMachineGrantPanel.test.tsx": "a13fcd9058aabbd1d9a479529a8a9c130ff7e6e94713eafda252ae62130021cc",
+    "frontend/src/__tests__/AssetMachineSlots.test.tsx": "36c2f919c60d7628ecfe0dab19199d51ea42e3341d04696eeffd3725716471b1",
+    "frontend/src/__tests__/BoundedJobPanel.test.tsx": "21b6d301717d46a8a1a8e84a4d5e1b3676bf008c90a4292aa921fdbbad8fa457",
+    "frontend/src/__tests__/CanonicalAiAssetsSpace.test.tsx": "d1756f9ed0c31e891d746f511f704378f53c02d228e42d717718ba8a7c128b4c",
+    "frontend/src/__tests__/CanonicalAiJourneySpace.test.tsx": "b249f1716a70050040e72d3362f7d04bb1674d4f22417a8cd3e4f2ac1f546d4b",
+    "frontend/src/__tests__/CanonicalMachineReceiptTaskState.test.tsx": "2247f16f9bbec380eac0a7f451ce252795c537bb8f70e39632d59ce631f5786f",
+    "frontend/src/__tests__/MachineAnswerPanel.test.tsx": "43091eb2d02c8ab286eeca4f6042a00b73be3b42183464a32dc6d463ce7eb972",
+    "frontend/src/__tests__/MachineAnswerPanelAssets.test.tsx": "8933d268fa5e26663b7d8e512c51f80e7e4bad4e09016cf7a33824bb22029fbd",
+    "frontend/src/__tests__/MachineEvaluationPanel.test.tsx": "602e44846bbd8937b6b8d18f06a48b0ff16ef9f16c6cb0a8f6dd78e712559041",
+    "frontend/src/__tests__/ObjectReferencePicker.test.tsx": "3d47455cf3330b8b44ddfd870ae20df177fac8e2d92a360429b35fdc5151ba40",
+    "frontend/src/api/client.ts": "68af347c99fc93125202d6168ec563d5bf5e00170995b000fdfece8969579d98",
+    "frontend/src/api/core.ts": "71f593c761e1e7f222bfcb418c6ba28afc953f54caa48d633c3bd30e7380ae98",
+    "frontend/src/api/generated/ai-asset-contract.ts": "12165bed9f9f5b2e2eaa4bd1ebab4759810b63f1d668a763d197ee2448de5484",
+    "frontend/src/api/generated/collection-contract.ts": "dccf2c52d24282cd1436fea66ee00b78c79c776be42bc789529cb31a2c74d7ab",
+    "frontend/src/api/generated/core-contract.ts": "1f6e8e9b69a1258ff0804953f1999a2f46b4fc4d023a5526854e65ea0cf141a1",
+    "frontend/src/api/generated/teaching-contract.ts": "558b1338a2b736cb9ec996c78ef6108a4878254f9faa965d972d45747725aabc",
+    "frontend/src/app/App.tsx": "07cfebfd05f8f6b6529f75d816b557d622b3da5e2926bac8e482835c3819395c",
+    "frontend/src/components/AiAssetPacketPanel.tsx": "5e0c4efbc666a97f6c17d57a42a1e73c8b07918ea8e1c6d96e6998ffed4f517f",
+    "frontend/src/components/AssetMachineSlots.tsx": "dc98b6f61d3971c418af16478763c11ab26bfc06e19126516074800fc9ecda38",
+    "frontend/src/components/BoundedJobPanel.tsx": "976887009bf9096d4938058ed9c75fde65d9e2b6403af038be207820c33bf3b5",
+    "frontend/src/components/DiagnosticConsole.tsx": "227987beff7acd8243874e917893fe1fcb3004245f00cc16a0447a78be475070",
+    "frontend/src/components/MachineAnswerPanel.tsx": "113238e259bb186809d3a97b3bfc4bf53f6349ff3102d66c47ae8652422096f1",
+    "frontend/src/components/MachineEvaluationPanel.tsx": "4b1c8297a176f29264e5f13e197db7f93f9913f80cf73b23044ccf22cdf07a5e",
+    "frontend/src/components/ObjectReferencePicker.tsx": "8c26f48a3ae414c52e277c06189e2391b0a2647de9449e2bd8d29f2af8fbd76b",
+    "frontend/src/presentation/assetConsumption.ts": "c87b4be2587328ef5500d97f6c8364e41cc4c26ee2f8aa3be569b9278c228f1a",
+    "frontend/src/presentation/diagnostics.ts": "3700e7d512cc996a1691f95497c1fc047f3cd197999b36a24714c5c469767530",
+    "frontend/src/presentation/documentRequestIdentity.ts": "6b14c69cb05a96483f4911251b21cf43f2153c9cf404dc8e190ce0991fe39523",
+    "frontend/src/spaces/CanonicalAiAssetsSpace.tsx": "6cbb95a8a86e13c8618dbcea57d1be455efc7cb1c252dd01a15a06ff617ccd65",
+    "frontend/src/spaces/CanonicalAiJourneySpace.tsx": "9e465178e8ba3d82b1ca4c7a904e54ed90fb559d58aa8dd762001546f0569e6a",
+    "frontend/src/spaces/CanonicalContextSpace.tsx": "39a5ae1291c663ee9b5463d459827ffac879bf3b74c08c2d783f8d2565b7aa1a",
+    "frontend/src/spaces/CanonicalMachineReceiptsSpace.tsx": "9e706c399be4affa0cf3aba2f60eb1503f52f2d5709706930f52f0f2e0864f12",
+    "frontend/src/spaces/SpaceView.tsx": "0f0bf0d01c521821c485f527196d22c8587cef1674497796a9a9ab28a3c20a85",
+    "frontend/src/spaces/ui-first.css": "17ea2369e1d62b55b24544b6045fed740b397ecebe320b5c97742412c67d6184",
+    "frontend/src/test/setup.ts": "6d62a17febf5b12ac956ceeef52c98b21a6301df7e853800e991f4f1ffc49296",
+    "packages/contracts/v1/core-command.schema.json": "8d87a9ecd44bb70491671b5f2b020ab44a54eb4cf84cf80be9c34881f40d1305",
+    "packages/contracts/v1/core-document.schema.json": "6b61638a5a1809330af22d92c6d3106e87fb4893661b2d2e22a6a5a2c2ecb4bd",
+    "packages/contracts/v2/ai-asset.schema.json": "38de01ec460d34ea42e69162224eeb0830a8b2919b66c08681d4bb2bbf67439e",
+    "scripts/contracts/generate_ai_asset_contract.py": "fa606d97f1db5c9818db6d3451828e1793b7bcb7ca3d351ef5bf4f6d3e1e81d6",
+    "services/python-workers/machine/worker_machine_answer.py": "a0ecb7dcffb30179a3b7264dd657548392f2c585add95e4662ba333580bc4756",
+    "src-tauri/src/core_bridge.rs": "6c96f4f528ac5f6a69d1c6477af342aa75aefda97e155e54f98c19683ccf674c",
+    "tests/test_worker_machine_answer.py": "71bfe5ab4105399590b9e0ceff218f94105ce4f56a69dd2c00c2004d24ec4c29",
+    "frontend/src/design-system/theme.ts": "0d0cf41659d1567d11e98e1971f187dcc932932c903bf4d5e92d308c616be365",
+    "frontend/src/design-system/themes.css": "07bb9b3707fa198b495b3f3a3d6391c225a9c3910e07f87378c774beb45cc505",
+    "frontend/src/design-system/tokens.css": "4cc8047b67a9d174558e3700e8b81df9c04230cdd209049b367ba3619d673191"
+  },
+  "source_file_scope": "82 referenced implementation/test/context files plus original theme sources; referenced does not mean exclusively owned",
+  "requirements": [
+    {
+      "id": "UF09-01",
+      "requirement": "五类版本化AI资产；不完整候选可保存；来源、用途、范围、时效、版本、冲突及修订关系",
+      "authority": "docs/taskpacks/aaos-ui-first-20261009/TASKPACK.md:216–217; ZIP01深化L59 / 03:r12",
+      "source": "crates/archeaxis-domain/src/ai_asset.rs:24–112; frontend/src/spaces/CanonicalAiAssetsSpace.tsx:20–67",
+      "evidence": "ui-ai-asset-extra-rust-01; ui-ai-asset-ui-final-01; ai_assets_api/domain ai_assets",
+      "status": "INTEGRATED",
+      "limits": "memory/knowledge_package/rule/skill/experience共享canonical Document attrs；内容与source_payload惰性保存。scope/provenance真实Reference；成员/conflicts/revises为固定version/hash。不是自动知识接受、规则执行或机器资格。"
+    },
+    {
+      "id": "UF09-02",
+      "requirement": "采用需固定候选版本与rubric人工逐项评阅；授权、撤回独立；包成员修改不得延用旧授权",
+      "authority": "docs/taskpacks/aaos-ui-first-20261009/TASKPACK.md:216,219,223; 06:r20–21",
+      "source": "ai_asset.rs:53–128; asset_context_grant.rs:55–78; document.rs append hooks",
+      "evidence": "extra14 tests; production launch_auth asset test",
+      "status": "INTEGRATED",
+      "limits": "candidate内容改变清空review；adopted含未解决conflicts可历史保存但packet拒绝。成员移除令旧包grant失效，不等于撤销该成员另行真人授予的独立grant。撤回终态及旧版本留存。"
+    },
+    {
+      "id": "UF09-03",
+      "requirement": "客户端有限消费、用途范围时效版本验证，禁止私人native/session及工具越权",
+      "authority": "docs/taskpacks/aaos-ui-first-20261009/TASKPACK.md:217,223; 02:r13",
+      "source": "asset_context_grant.rs:25–103; machine_governance.rs; api/launch.rs:379–443",
+      "evidence": "launch_auth生产token测试已在rust-final01执行通过；finite API/native定向证据",
+      "status": "INTEGRATED",
+      "limits": "manual-context-packet仅生成PREPARED_NOT_SENT_TO_PEER；local-machine绑定真实trustedconsumer。GET主API并非全库按grant过滤，不能宣称拥有第三方隔离token或实际跨客户端传送。packet仅批准资产图，非任意工具、CAS正文或私人session权限。"
+    },
+    {
+      "id": "UF09-04",
+      "requirement": "资产实际进入模型回答/复测；客户端重试冻结、旧缓存兼容；执行后授权变化拒绝发布",
+      "authority": "docs/taskpacks/aaos-ui-first-20261009/TASKPACK.md:216–218,223–224",
+      "source": "runtime/colearning.rs:160–318,454–610; runtime/withheld.rs",
+      "evidence": "asset-model-probe six steps; machine_asset_context_api5; machine_withheld_api5; extra14",
+      "status": "INTEGRATED",
+      "limits": "真实memory/rule成员与知识显式grant共同消费；pre/post sameStore admission/hash；正/负回执保存实际pins。输出拒绝发布是EXECUTED_BUT_WITHHELD且不存回答正文。noasset旧retest4field保持；带资产的原答案不可省略asset_context_grant绕过。"
+    },
+    {
+      "id": "UF09-05",
+      "requirement": "原答案/固定rubric不可重写；评测、纠正、再次采用、真实复测与撤回保留历史",
+      "authority": "docs/taskpacks/aaos-ui-first-20261009/TASKPACK.md:216,219,225; 02:r14 / 03:r13 / 05:r11 / 06:r20",
+      "source": "machine_evaluation.rs:59–114; document.rs; runtime/colearning.rs; CanonicalAiJourneySpace.tsx",
+      "evidence": "rust-final01 machine answer/correction/evaluation/retest/withheld suites; real asset probe",
+      "status": "INTEGRATED",
+      "limits": "任何历史rubric身份都不能删除namespace后变为其他对象；evaluation固定答案task/hash和rubric文档/version/hash。人工fixture评阅outcome unmeasured；纠正37→41属SYNTHETIC，不证明真实事实错误已诊断。"
+    },
+    {
+      "id": "UF09-06",
+      "requirement": "AI不得伪装真人；最小权限与普通API/模型边界必须明确",
+      "authority": "docs/taskpacks/aaos-ui-first-20261009/TASKPACK.md:219,223",
+      "source": "api/launch.rs:379–443; api/tests/launch_auth.rs:15; runtime executor cleared env; generic runtime.* write guard",
+      "evidence": "rust-final01 launch_auth通过；真实probe机器写人工evaluation403",
+      "status": "INTEGRATED",
+      "limits": "生产middleware按匹配token覆盖actor，伪造human header无效。主token仍是受信本地API广权限身份；有限packet权限不等于全库GET过滤。模型worker不获得bootstrap凭据。reviewer文本只是注记，不充当认证。"
+    },
+    {
+      "id": "UF09-07",
+      "requirement": "全库恢复不能回滚旧授权；历史字节保全、真人新授权及legacy None拒绝",
+      "authority": "docs/taskpacks/aaos-ui-first-20261009/TASKPACK.md:223 / 03:r14 / 06:r21",
+      "source": "store/authorization_fence.rs:9–38; archive/lib.rs:633; domain/backup.rs:128–205; api/main.rs maintenance; colearning.rs:10–24",
+      "evidence": "restore-fence03; maintenance-fence02; restored-consumption01; rust-final01 restore/API目标",
+      "status": "INTEGRATED",
+      "limits": "原DB/CAS全量exactverify之后Core安装新epoch与历史grant blocked set；通用verify_counts不弱化。生产maintenance显式postverify只容Core fence差异，其余meta/schema/表/CAS exact，失败rollback。任何存在fence的恢复库无grant消费403，包括更早无grant历史的备份；新真人新对象可授权。普通重启不安装fence。"
+    },
+    {
+      "id": "UF09-08",
+      "requirement": "page22有限任务的预算、实际步骤、取消、已提交检查点和继续条件可核验",
+      "authority": "docs/taskpacks/aaos-ui-first-20261009/TASKPACK.md:218; ZIP02:r22 / 05:r18 / 04:r16",
+      "source": "CanonicalMachineReceiptsSpace.tsx:59; BoundedJobPanel.tsx:106–153; execution_status_projection.rs:52–63; runtime/mod.rs",
+      "evidence": "current public AI stage receipt, final-owned-result, final visual, source-bound terminal gate receipts",
+      "status": "INTEGRATED",
+      "limits": "稳定父级command避免dirty重渲染清空cancelpending；新回归保持冻结45000ms预算、request ID、已提交checkpoint，禁止再次执行。202仍仅请求取消；多数媒体checkpoint为NOT_SUPPORTED，新尝试不冒充恢复。"
+    },
+    {
+      "id": "UF09-09",
+      "requirement": "5主题、错误/空态/异步dirty/对象切换/历史与新旧palette不覆盖",
+      "authority": "docs/taskpacks/aaos-ui-first-20261009/TASKPACK.md:227–229; UI increment绑定",
+      "source": "SpaceView.tsx:117–119; CanonicalAiAssetsSpace; AiAssetPacketPanel; MachineAnswerPanel; theme.ts",
+      "evidence": "current public AI stage receipt, final-owned-result, final visual, source-bound terminal gate receipts",
+      "status": "INTEGRATED_SIMULATED_UI",
+      "limits": "最终240唯一场景聚合PASS：239初轮有效截图+唯一超时场景独立3次复验；原PARTIAL与空白载入根因UNVERIFIED保留。40阅读裁剪检查及五主题宽窄10张代表截图复看PASS，32源码hash仍一致。原theme/token字节保留。安装态交互未验。"
+    },
+    {
+      "id": "UF09-10",
+      "requirement": "同一真实Core持久化、重启读回、撤回阻断与现有模型执行",
+      "authority": "docs/taskpacks/aaos-ui-first-20261009/TASKPACK.md:224,227–229",
+      "source": "asset-model-probe/receipt.json / final-summary.json",
+      "evidence": "asset-model-probe/final-summary.json six steps",
+      "status": "INTEGRATED_REAL_ROUTE_WITH_SYNTHETIC_MATERIALS",
+      "limits": "qwen3.5-4b（不是qwen2），2真实worker推理，重试/拒绝不再调用；owned重启历史exact，learning_events0。资产root+memory+rule3pins。普通restart不是restorefence验证；owned进程结束不等于故障时子孙进程回收验收。"
+    },
+    {
+      "id": "UF09-11",
+      "requirement": "模型存在/可发现/可加载/调用/e2e分层，不把输出当专业真值或人掌握",
+      "authority": "docs/taskpacks/aaos-ui-first-20261009/TASKPACK.md:218,224–225",
+      "source": "asset-model-probe actual receipt model_truth_layers",
+      "evidence": "current public AI stage receipt, final-owned-result, final visual, source-bound terminal gate receipts",
+      "status": "PARTIAL_QUALIFICATION",
+      "limits": "两次实际qwen3.5-4b请求路由推理通过，资产真实进入回答和独立复测，持久化及正常重启读回通过。后端权重/实际backend model identity UNKNOWN；人掌握、M01 NOT_RUN，专业真值和语义质量UNMEASURED。"
+    },
+    {
+      "id": "UF09-12",
+      "requirement": "当前树最终门禁，不把旧PASS或required skip当当前PASS",
+      "authority": "docs/taskpacks/aaos-ui-first-20261009/TASKPACK.md:227–229",
+      "source": "ui-ai-rust-final01 result/log; final-owned-result; final-structural-result",
+      "evidence": "current public AI stage receipt, final-owned-result, final visual, source-bound terminal gate receipts",
+      "status": "LOCAL_TARGETED_CHECKS_PASS_WITH_GLOBAL_GAPS",
+      "limits": "当前组件回归通过：前端全836/93文件之后阅读定向49/6文件；domain/store/archive217；两迁移fixture19；worker/治理70；Native83及最终dist04构建。原五包Rust final01/02 FAIL保留，其两个陈旧合成fixture已最小修复并复验；不宣称原命令PASS。全仓conventions8旧问题、architecture13旧问题仍FAIL。82引用文件范围检查通过（App仅上下文旧问题），不是全仓PASS。"
+    }
+  ],
+  "local_checks": [
+    {
+      "run_id": "ui-ai-frontend-final-02",
+      "receipt": ".project-local\\runs\\f714401b40\\ui-ai-frontend-final-02\\artifacts\\result.json",
+      "sha256": "82d78214f15b94e573461315e0413a4960f7a6bf520f116eb014e8927d3e7d6f",
+      "result": "LOCAL_PASS",
+      "source_consistent": true,
+      "ended_at": "2026-10-09T21:39:38.414329+00:00"
+    },
+    {
+      "run_id": "ui-ai-reading-final-01",
+      "receipt": ".project-local\\runs\\f714401b40\\ui-ai-reading-final-01\\artifacts\\result.json",
+      "sha256": "aa5b85423706b6fde01313b74ec2b85395c78509818532db31a9241680f1978f",
+      "result": "LOCAL_PASS",
+      "source_consistent": true,
+      "ended_at": "2026-10-09T21:45:30.507596+00:00"
+    },
+    {
+      "run_id": "ui-ai-rust-final-03",
+      "receipt": ".project-local\\runs\\f714401b40\\ui-ai-rust-final-03\\artifacts\\result.json",
+      "sha256": "381052b2ebe2ee4176988d0894599405055d2f775c5f1469b1ce8631b565a8ef",
+      "result": "LOCAL_PASS",
+      "source_consistent": true,
+      "ended_at": "2026-10-09T21:37:28.560391+00:00"
+    },
+    {
+      "run_id": "ui-ai-migration-fixtures-final-01",
+      "receipt": ".project-local\\runs\\f714401b40\\ui-ai-migration-fixtures-final-01\\artifacts\\result.json",
+      "sha256": "565e8446cbbf6e265665910180eac693644b7f81585781dc08f0d2b58c77aaf5",
+      "result": "LOCAL_PASS",
+      "source_consistent": true,
+      "ended_at": "2026-10-09T21:40:09.479645+00:00"
+    },
+    {
+      "run_id": "ui-ai-python-final-01",
+      "receipt": ".project-local\\runs\\f714401b40\\ui-ai-python-final-01\\artifacts\\result.json",
+      "sha256": "39a02910d7f97d895e3acb680cc3e58bd678f5059f6668b12ad036d512aab530",
+      "result": "LOCAL_PASS",
+      "source_consistent": true,
+      "ended_at": "2026-10-09T21:24:20.607435+00:00"
+    },
+    {
+      "run_id": "ui-ai-native-final-01",
+      "receipt": ".project-local\\runs\\f714401b40\\ui-ai-native-final-01\\artifacts\\result.json",
+      "sha256": "a68a9bfa73f4e0f264b5f654ce9d4efca95594036f02af554e8f68f9339475de",
+      "result": "LOCAL_PASS",
+      "source_consistent": true,
+      "ended_at": "2026-10-09T21:40:19.321833+00:00"
+    },
+    {
+      "run_id": "ui-ai-native-build-final-01",
+      "receipt": ".project-local\\runs\\f714401b40\\ui-ai-native-build-final-01\\artifacts\\result.json",
+      "sha256": "86c4782abd3fed13e64c6a099d332178c23ce82986ca71caab06949dc7978f38",
+      "result": "LOCAL_PASS",
+      "source_consistent": true,
+      "ended_at": "2026-10-09T21:47:10.756652+00:00"
+    },
+    {
+      "run_id": "ui-ai-asset-extra-rust-01",
+      "receipt": ".project-local\\runs\\f714401b40\\ui-ai-asset-extra-rust-01\\artifacts\\result.json",
+      "sha256": "4d5ada71eb7f5c1527a40aef7dfe378c9ad62d05d014e1a56d277a42ec6cc8b2",
+      "result": "LOCAL_PASS",
+      "source_consistent": true,
+      "ended_at": "2026-10-09T21:20:12.179221+00:00"
+    },
+    {
+      "run_id": "87cad4bd61af",
+      "receipt": ".project-local\\runs\\f714401b40\\87cad4bd61af\\artifacts\\frontend-build.json",
+      "sha256": "7d0d992f31f4286b43ce74d9eca104f146b128f5b9897c8220a3253c7192f1b3",
+      "result": "PASS"
+    }
+  ],
+  "verification_cadence": "full frontend836 preceded final three reading layout edits; affected reading49 and current frontend/native builds plus final240 visuals verify those edits. Rust component passes after fixture corrections do not rewrite original five-package FAIL commands.",
+  "visual": {
+    "result": "PASS",
+    "evidence": "SIMULATED",
+    "unique_scenarios": 240,
+    "composition": "239 valid full-02 captures plus sameexact failedscenario verified3 independent times; original full-02 remains PARTIAL, not claimed original240PASS",
+    "original_result": "PARTIAL",
+    "root_cause": "UNVERIFIED",
+    "receipt": ".project-local\\runs\\f714401b40\\ui-ai-stage-20261010\\candidate-final-visual\\visual-final\\RESULT.json",
+    "sha256": "69df9d4ccb7aa301dff65c84f1120426c03e96371f04b370ee4ad96f4e318cfd",
+    "reading_checks": 40,
+    "root_representative_images_viewed": 10,
+    "source_current_matches": true,
+    "owned_processes_stopped": true
+  },
+  "model": {
+    "evidence": "INTEGRATED_WITH_SYNTHETIC_MATERIALS",
+    "requested_route": "qwen3.5-4b",
+    "actual_inference_calls": 2,
+    "workflow_steps": 6,
+    "normal_restart_history_readback": "PASS",
+    "receipt": ".project-local\\runs\\f714401b40\\ui-ai-stage-20261010\\asset-model-probe\\attempt-20261009T210941Z-093d5c\\receipt.json",
+    "sha256": "781bf9476fdefb407ecf5b4e5e96d96611ffc67a393f7c8be159a28bbb238fdd",
+    "identity": "REQUESTED_ROUTE_ID / WORKER_REPORTED; backend model and weights UNKNOWN",
+    "loadability": "REQUESTED_ROUTE_EXECUTABLE_OBSERVED_SUCCESSFUL_INFERENCE / BACKEND_WEIGHTS_UNVERIFIED",
+    "e2e": "INTEGRATED_SYNTHETIC_WORKFLOW_ONLY / HUMAN_VALIDITY_UNMEASURED",
+    "source_binding": {
+      "binary_same": true,
+      "build_receipt_same": true,
+      "worker_same": true,
+      "production_and_contract_semantics_same": true,
+      "original_schema_bytes_same": false,
+      "production_files": {
+        "crates/archeaxis-api/src/ask.rs": {
+          "expected": "8b8e0db8e73b1b38060ee7f809201e8231da8657727bb2e89c7a598ebd683acb",
+          "current": "8b8e0db8e73b1b38060ee7f809201e8231da8657727bb2e89c7a598ebd683acb",
+          "byte_same": true,
+          "contract_crlf_to_lf_only": false,
+          "runtime_semantics_same": true
+        },
+        "crates/archeaxis-api/src/capabilities.rs": {
+          "expected": "1b85954508434905dba6aecd3a06c2c291b55b096cb62fa21f82cb3cdc877327",
+          "current": "1b85954508434905dba6aecd3a06c2c291b55b096cb62fa21f82cb3cdc877327",
+          "byte_same": true,
+          "contract_crlf_to_lf_only": false,
+          "runtime_semantics_same": true
+        },
+        "crates/archeaxis-api/src/documents.rs": {
+          "expected": "f3fdf785fe2118c3ae715c5396edac38c02e98ed5788b65ac5a7d0438e44e3f9",
+          "current": "f3fdf785fe2118c3ae715c5396edac38c02e98ed5788b65ac5a7d0438e44e3f9",
+          "byte_same": true,
+          "contract_crlf_to_lf_only": false,
+          "runtime_semantics_same": true
+        },
+        "crates/archeaxis-api/src/launch.rs": {
+          "expected": "1b2b0fa1a4f336d9605f9233b58ffd6bb5ff66de9f6c89f2f6714173f75fe035",
+          "current": "1b2b0fa1a4f336d9605f9233b58ffd6bb5ff66de9f6c89f2f6714173f75fe035",
+          "byte_same": true,
+          "contract_crlf_to_lf_only": false,
+          "runtime_semantics_same": true
+        },
+        "crates/archeaxis-api/src/lib.rs": {
+          "expected": "8f89cf6b3eacfcdbd679a42c6648b44d464b4c2fe05c4e0205d0653ccb1fdc0b",
+          "current": "8f89cf6b3eacfcdbd679a42c6648b44d464b4c2fe05c4e0205d0653ccb1fdc0b",
+          "byte_same": true,
+          "contract_crlf_to_lf_only": false,
+          "runtime_semantics_same": true
+        },
+        "crates/archeaxis-api/src/machine_governance.rs": {
+          "expected": "4e3ce567eefa02f335e054e5dc3de10316186052ad5ebfdfb208788b3f78c3bf",
+          "current": "4e3ce567eefa02f335e054e5dc3de10316186052ad5ebfdfb208788b3f78c3bf",
+          "byte_same": true,
+          "contract_crlf_to_lf_only": false,
+          "runtime_semantics_same": true
+        },
+        "crates/archeaxis-api/src/main.rs": {
+          "expected": "6bb5db1eec4d38ce2804f01684fa1b6fe07dd4657250577287782736c98478b1",
+          "current": "6bb5db1eec4d38ce2804f01684fa1b6fe07dd4657250577287782736c98478b1",
+          "byte_same": true,
+          "contract_crlf_to_lf_only": false,
+          "runtime_semantics_same": true
+        },
+        "crates/archeaxis-api/src/teaching.rs": {
+          "expected": "25f75330d08839284c024818d4b9747da5469c72587162221334d4da8a0a0bdb",
+          "current": "25f75330d08839284c024818d4b9747da5469c72587162221334d4da8a0a0bdb",
+          "byte_same": true,
+          "contract_crlf_to_lf_only": false,
+          "runtime_semantics_same": true
+        },
+        "crates/archeaxis-api/src/workspace_backup.rs": {
+          "expected": "b13b62b702154f5c9f878286e1a515b18cc2be1c872c12ae36fd6110c2938701",
+          "current": "b13b62b702154f5c9f878286e1a515b18cc2be1c872c12ae36fd6110c2938701",
+          "byte_same": true,
+          "contract_crlf_to_lf_only": false,
+          "runtime_semantics_same": true
+        },
+        "crates/archeaxis-api/src/runtime/colearning.rs": {
+          "expected": "01644389c859527d134637a10b871975202f5229d165643deba224f1f01ddc79",
+          "current": "01644389c859527d134637a10b871975202f5229d165643deba224f1f01ddc79",
+          "byte_same": true,
+          "contract_crlf_to_lf_only": false,
+          "runtime_semantics_same": true
+        },
+        "crates/archeaxis-api/src/runtime/courses.rs": {
+          "expected": "40cd78b571d28363d41b16aafb86063b92c971e66f07a977a5fc24021cd0e876",
+          "current": "40cd78b571d28363d41b16aafb86063b92c971e66f07a977a5fc24021cd0e876",
+          "byte_same": true,
+          "contract_crlf_to_lf_only": false,
+          "runtime_semantics_same": true
+        },
+        "crates/archeaxis-api/src/runtime/execution_status_projection.rs": {
+          "expected": "aba35935fd699deb9c9dad3d6867cf826a17fd83bf1e90986750515be7f2074a",
+          "current": "aba35935fd699deb9c9dad3d6867cf826a17fd83bf1e90986750515be7f2074a",
+          "byte_same": true,
+          "contract_crlf_to_lf_only": false,
+          "runtime_semantics_same": true
+        },
+        "crates/archeaxis-api/src/runtime/mod.rs": {
+          "expected": "fb6e8d6888c18ff72d740773cbfba45d1982d3566837b443bbf0c80b89cd5713",
+          "current": "fb6e8d6888c18ff72d740773cbfba45d1982d3566837b443bbf0c80b89cd5713",
+          "byte_same": true,
+          "contract_crlf_to_lf_only": false,
+          "runtime_semantics_same": true
+        },
+        "crates/archeaxis-api/src/runtime/semantic.rs": {
+          "expected": "a6ec694192c02bd91d134756cafe1e3488f833761d362b226a41451da28022f4",
+          "current": "a6ec694192c02bd91d134756cafe1e3488f833761d362b226a41451da28022f4",
+          "byte_same": true,
+          "contract_crlf_to_lf_only": false,
+          "runtime_semantics_same": true
+        },
+        "crates/archeaxis-api/src/runtime/withheld.rs": {
+          "expected": "31e4bd484b30c26e0c394b4d4f496c884872fc4225093035e3161f32c2ca1f02",
+          "current": "31e4bd484b30c26e0c394b4d4f496c884872fc4225093035e3161f32c2ca1f02",
+          "byte_same": true,
+          "contract_crlf_to_lf_only": false,
+          "runtime_semantics_same": true
+        },
+        "crates/archeaxis-application/src/attempts.rs": {
+          "expected": "5940b4e2686f00539a7a5c76adbd6460ed3a0621ea7ced3c07203401346e840e",
+          "current": "5940b4e2686f00539a7a5c76adbd6460ed3a0621ea7ced3c07203401346e840e",
+          "byte_same": true,
+          "contract_crlf_to_lf_only": false,
+          "runtime_semantics_same": true
+        },
+        "crates/archeaxis-application/src/container.rs": {
+          "expected": "bd671b7fbb85c0a23f1578252a0b4bdec0d3e85a2a92af55e236238c5208e726",
+          "current": "bd671b7fbb85c0a23f1578252a0b4bdec0d3e85a2a92af55e236238c5208e726",
+          "byte_same": true,
+          "contract_crlf_to_lf_only": false,
+          "runtime_semantics_same": true
+        },
+        "crates/archeaxis-application/src/executor.rs": {
+          "expected": "4304325073cced943eb5637e785adcd405671c85ad592e34e62892b246c2b3d7",
+          "current": "4304325073cced943eb5637e785adcd405671c85ad592e34e62892b246c2b3d7",
+          "byte_same": true,
+          "contract_crlf_to_lf_only": false,
+          "runtime_semantics_same": true
+        },
+        "crates/archeaxis-application/src/jobs.rs": {
+          "expected": "ddb53ee28f994ba066331d10ed30a803a3753611696dd7c1ff976a398576bbb3",
+          "current": "ddb53ee28f994ba066331d10ed30a803a3753611696dd7c1ff976a398576bbb3",
+          "byte_same": true,
+          "contract_crlf_to_lf_only": false,
+          "runtime_semantics_same": true
+        },
+        "crates/archeaxis-application/src/lib.rs": {
+          "expected": "1047030a1ffa147790177c42e18dbed2b37063474c57953220ed5ce5c3f8ce50",
+          "current": "1047030a1ffa147790177c42e18dbed2b37063474c57953220ed5ce5c3f8ce50",
+          "byte_same": true,
+          "contract_crlf_to_lf_only": false,
+          "runtime_semantics_same": true
+        },
+        "crates/archeaxis-application/src/media_artifacts.rs": {
+          "expected": "27035ac0d763b695ddf0799df50e79bf91cf298136e1abcc6cf62f985885cb3c",
+          "current": "27035ac0d763b695ddf0799df50e79bf91cf298136e1abcc6cf62f985885cb3c",
+          "byte_same": true,
+          "contract_crlf_to_lf_only": false,
+          "runtime_semantics_same": true
+        },
+        "crates/archeaxis-application/src/ocr.rs": {
+          "expected": "8a294cae76f2bedceb12efd140a6b85cec6e244197c36ff811d2f087eba8180b",
+          "current": "8a294cae76f2bedceb12efd140a6b85cec6e244197c36ff811d2f087eba8180b",
+          "byte_same": true,
+          "contract_crlf_to_lf_only": false,
+          "runtime_semantics_same": true
+        },
+        "crates/archeaxis-application/src/scheduler.rs": {
+          "expected": "60b19b4b5c039996210f2c8729d75d4ab4ffd1bedae71d90d66e797515fae160",
+          "current": "60b19b4b5c039996210f2c8729d75d4ab4ffd1bedae71d90d66e797515fae160",
+          "byte_same": true,
+          "contract_crlf_to_lf_only": false,
+          "runtime_semantics_same": true
+        },
+        "crates/archeaxis-application/src/executor/derived.rs": {
+          "expected": "b035c0b2d0c0360a0fb1a3f76b7a2ef027e7d1ae14b9d8f9611076c290a094dc",
+          "current": "b035c0b2d0c0360a0fb1a3f76b7a2ef027e7d1ae14b9d8f9611076c290a094dc",
+          "byte_same": true,
+          "contract_crlf_to_lf_only": false,
+          "runtime_semantics_same": true
+        },
+        "crates/archeaxis-application/src/executor/health.rs": {
+          "expected": "7193627c91fa6677962b0d1d197ea8cf168d16808e152d189eac4c22f36cb88f",
+          "current": "7193627c91fa6677962b0d1d197ea8cf168d16808e152d189eac4c22f36cb88f",
+          "byte_same": true,
+          "contract_crlf_to_lf_only": false,
+          "runtime_semantics_same": true
+        },
+        "crates/archeaxis-archive/src/lib.rs": {
+          "expected": "3ee1fef3c21cecaddbd3dc79baa7a1c4bf9e10ca3fe0c78477c4fc5db5ff0549",
+          "current": "3ee1fef3c21cecaddbd3dc79baa7a1c4bf9e10ca3fe0c78477c4fc5db5ff0549",
+          "byte_same": true,
+          "contract_crlf_to_lf_only": false,
+          "runtime_semantics_same": true
+        },
+        "crates/archeaxis-contracts/src/lib.rs": {
+          "expected": "dec828dc229b2a759b08574b7c4defc8ec256b617fa82a51b167ad97c2e74b7f",
+          "current": "dec828dc229b2a759b08574b7c4defc8ec256b617fa82a51b167ad97c2e74b7f",
+          "byte_same": true,
+          "contract_crlf_to_lf_only": false,
+          "runtime_semantics_same": true
+        },
+        "crates/archeaxis-contracts/src/loss_receipt.rs": {
+          "expected": "6648cf4adf70cb668f67b2edadab3b393fecf1056b12b96fa7dde739fdc44cb6",
+          "current": "6648cf4adf70cb668f67b2edadab3b393fecf1056b12b96fa7dde739fdc44cb6",
+          "byte_same": true,
+          "contract_crlf_to_lf_only": false,
+          "runtime_semantics_same": true
+        },
+        "crates/archeaxis-contracts/src/generated/vocabulary.rs": {
+          "expected": "fcc44b3b18e6136c4e1b637a395eae7b9ff3d65fafdd23199a5829a5e0181e94",
+          "current": "fcc44b3b18e6136c4e1b637a395eae7b9ff3d65fafdd23199a5829a5e0181e94",
+          "byte_same": true,
+          "contract_crlf_to_lf_only": false,
+          "runtime_semantics_same": true
+        },
+        "crates/archeaxis-domain/src/ai_asset.rs": {
+          "expected": "cabd6651d7286f74fc4d3d50cf8da29e5175050ef110167c18463280e9cf6a2e",
+          "current": "cabd6651d7286f74fc4d3d50cf8da29e5175050ef110167c18463280e9cf6a2e",
+          "byte_same": true,
+          "contract_crlf_to_lf_only": false,
+          "runtime_semantics_same": true
+        },
+        "crates/archeaxis-domain/src/anchor.rs": {
+          "expected": "4f13e940dd4b9dac537bbafe58111f3f09a965b324b20f1543af89dfc057bb0a",
+          "current": "4f13e940dd4b9dac537bbafe58111f3f09a965b324b20f1543af89dfc057bb0a",
+          "byte_same": true,
+          "contract_crlf_to_lf_only": false,
+          "runtime_semantics_same": true
+        },
+        "crates/archeaxis-domain/src/asset_context_grant.rs": {
+          "expected": "93bbb719e5cdc080c30fe24cd01bc4e82825dbbfd5206b2bbce1ea45222d3350",
+          "current": "93bbb719e5cdc080c30fe24cd01bc4e82825dbbfd5206b2bbce1ea45222d3350",
+          "byte_same": true,
+          "contract_crlf_to_lf_only": false,
+          "runtime_semantics_same": true
+        },
+        "crates/archeaxis-domain/src/backup.rs": {
+          "expected": "4f421930352e65270030558592ce5a893b1c667b71ab352e234fb492523dda0f",
+          "current": "4f421930352e65270030558592ce5a893b1c667b71ab352e234fb492523dda0f",
+          "byte_same": true,
+          "contract_crlf_to_lf_only": false,
+          "runtime_semantics_same": true
+        },
+        "crates/archeaxis-domain/src/bounded_formula.rs": {
+          "expected": "b6cb596cc1de092620db0d6f675afcca4138bad9ed46d6db6772eb384764754c",
+          "current": "b6cb596cc1de092620db0d6f675afcca4138bad9ed46d6db6772eb384764754c",
+          "byte_same": true,
+          "contract_crlf_to_lf_only": false,
+          "runtime_semantics_same": true
+        },
+        "crates/archeaxis-domain/src/collection.rs": {
+          "expected": "7a4b748727936938a4f6a719a19ac003d46f5716c4bb768235703c800c98d6c4",
+          "current": "7a4b748727936938a4f6a719a19ac003d46f5716c4bb768235703c800c98d6c4",
+          "byte_same": true,
+          "contract_crlf_to_lf_only": false,
+          "runtime_semantics_same": true
+        },
+        "crates/archeaxis-domain/src/context_grant.rs": {
+          "expected": "facc3917fda90acf8bce641eeb4757fdf37151457e6f18ef35d26fbebb09db07",
+          "current": "facc3917fda90acf8bce641eeb4757fdf37151457e6f18ef35d26fbebb09db07",
+          "byte_same": true,
+          "contract_crlf_to_lf_only": false,
+          "runtime_semantics_same": true
+        },
+        "crates/archeaxis-domain/src/course.rs": {
+          "expected": "6b797b6d5e1a54a1292d8f17f8dc484d285f2bbee8381fac41bb6be0cc0bb0fc",
+          "current": "6b797b6d5e1a54a1292d8f17f8dc484d285f2bbee8381fac41bb6be0cc0bb0fc",
+          "byte_same": true,
+          "contract_crlf_to_lf_only": false,
+          "runtime_semantics_same": true
+        },
+        "crates/archeaxis-domain/src/document.rs": {
+          "expected": "8422a4070c28926c5af5ca114ba43df50d3c5ef79529d209a42ccb1f3a791eaf",
+          "current": "8422a4070c28926c5af5ca114ba43df50d3c5ef79529d209a42ccb1f3a791eaf",
+          "byte_same": true,
+          "contract_crlf_to_lf_only": false,
+          "runtime_semantics_same": true
+        },
+        "crates/archeaxis-domain/src/expression.rs": {
+          "expected": "7e16adab678fe1e20792bc581e91d857bfbf7f042b02d827955e3c27a6f40e34",
+          "current": "7e16adab678fe1e20792bc581e91d857bfbf7f042b02d827955e3c27a6f40e34",
+          "byte_same": true,
+          "contract_crlf_to_lf_only": false,
+          "runtime_semantics_same": true
+        },
+        "crates/archeaxis-domain/src/knowledge.rs": {
+          "expected": "bd1a0d08b9c6e6f780671da03123e54ff75f6190d387793267c120ce0ad3516f",
+          "current": "bd1a0d08b9c6e6f780671da03123e54ff75f6190d387793267c120ce0ad3516f",
+          "byte_same": true,
+          "contract_crlf_to_lf_only": false,
+          "runtime_semantics_same": true
+        },
+        "crates/archeaxis-domain/src/learning.rs": {
+          "expected": "4ab64fabffd30eaf4ab2f709f05fc6bfea12eb12eae16a6004189a96a0d70b19",
+          "current": "4ab64fabffd30eaf4ab2f709f05fc6bfea12eb12eae16a6004189a96a0d70b19",
+          "byte_same": true,
+          "contract_crlf_to_lf_only": false,
+          "runtime_semantics_same": true
+        },
+        "crates/archeaxis-domain/src/lib.rs": {
+          "expected": "ce7310887992209043946f8790b20b516b172fede3e491a7b26f666138d50daf",
+          "current": "ce7310887992209043946f8790b20b516b172fede3e491a7b26f666138d50daf",
+          "byte_same": true,
+          "contract_crlf_to_lf_only": false,
+          "runtime_semantics_same": true
+        },
+        "crates/archeaxis-domain/src/machine.rs": {
+          "expected": "ca75e7452c11b59f9c216eb47d6ee1dfcbbefe9be8ec0b4b3ab69b5f39fd42d0",
+          "current": "ca75e7452c11b59f9c216eb47d6ee1dfcbbefe9be8ec0b4b3ab69b5f39fd42d0",
+          "byte_same": true,
+          "contract_crlf_to_lf_only": false,
+          "runtime_semantics_same": true
+        },
+        "crates/archeaxis-domain/src/machine_evaluation.rs": {
+          "expected": "553ff9d8d9bd7aecf929da1fe0146546596472b685c32af150497d91e4a3a6c4",
+          "current": "553ff9d8d9bd7aecf929da1fe0146546596472b685c32af150497d91e4a3a6c4",
+          "byte_same": true,
+          "contract_crlf_to_lf_only": false,
+          "runtime_semantics_same": true
+        },
+        "crates/archeaxis-domain/src/object_reference.rs": {
+          "expected": "b1495b89a0540dd5e935fd28c200f0ff7f3ebc6412d2b6fa17eb5754c8982383",
+          "current": "b1495b89a0540dd5e935fd28c200f0ff7f3ebc6412d2b6fa17eb5754c8982383",
+          "byte_same": true,
+          "contract_crlf_to_lf_only": false,
+          "runtime_semantics_same": true
+        },
+        "crates/archeaxis-domain/src/relation_projection.rs": {
+          "expected": "ec531e05a5d3ab6418ed6f97022a913375cc09190f5a67bff8e44a69a7935f19",
+          "current": "ec531e05a5d3ab6418ed6f97022a913375cc09190f5a67bff8e44a69a7935f19",
+          "byte_same": true,
+          "contract_crlf_to_lf_only": false,
+          "runtime_semantics_same": true
+        },
+        "crates/archeaxis-domain/src/research.rs": {
+          "expected": "8476a5f6c26db783d92dfac90931cde8fa51ab62bc5f6a1254eea2a38782ed9b",
+          "current": "8476a5f6c26db783d92dfac90931cde8fa51ab62bc5f6a1254eea2a38782ed9b",
+          "byte_same": true,
+          "contract_crlf_to_lf_only": false,
+          "runtime_semantics_same": true
+        },
+        "crates/archeaxis-domain/src/search.rs": {
+          "expected": "eec2f66b4f7df162452b0912a3ea617eab951a73a47f82876adf00372066f0fe",
+          "current": "eec2f66b4f7df162452b0912a3ea617eab951a73a47f82876adf00372066f0fe",
+          "byte_same": true,
+          "contract_crlf_to_lf_only": false,
+          "runtime_semantics_same": true
+        },
+        "crates/archeaxis-domain/src/source.rs": {
+          "expected": "90f151c54442735df957d543636d5421107e7150e474296788e2475decc5bfcd",
+          "current": "90f151c54442735df957d543636d5421107e7150e474296788e2475decc5bfcd",
+          "byte_same": true,
+          "contract_crlf_to_lf_only": false,
+          "runtime_semantics_same": true
+        },
+        "crates/archeaxis-domain/src/teaching.rs": {
+          "expected": "692bc0e14a038d6ae898f4af97033992859f842b729f6d860e380c777dcb39ae",
+          "current": "692bc0e14a038d6ae898f4af97033992859f842b729f6d860e380c777dcb39ae",
+          "byte_same": true,
+          "contract_crlf_to_lf_only": false,
+          "runtime_semantics_same": true
+        },
+        "crates/archeaxis-domain/src/vault.rs": {
+          "expected": "7502ffde85dcc15f3b8fd64b2975cabcc8685e6aca432924b941e1170e5d3782",
+          "current": "7502ffde85dcc15f3b8fd64b2975cabcc8685e6aca432924b941e1170e5d3782",
+          "byte_same": true,
+          "contract_crlf_to_lf_only": false,
+          "runtime_semantics_same": true
+        },
+        "crates/archeaxis-domain/src/vault_members.rs": {
+          "expected": "b654d22665b3507cc563d03e1f1e0dd1b08f91c3143e7e5b7b87c933c9729ac4",
+          "current": "b654d22665b3507cc563d03e1f1e0dd1b08f91c3143e7e5b7b87c933c9729ac4",
+          "byte_same": true,
+          "contract_crlf_to_lf_only": false,
+          "runtime_semantics_same": true
+        },
+        "crates/archeaxis-migration/src/lib.rs": {
+          "expected": "674291d225af2a6bc4a02a3adb040424a38f1319060d1bdaa4e3392d67c51eba",
+          "current": "674291d225af2a6bc4a02a3adb040424a38f1319060d1bdaa4e3392d67c51eba",
+          "byte_same": true,
+          "contract_crlf_to_lf_only": false,
+          "runtime_semantics_same": true
+        },
+        "crates/archeaxis-sidecar-protocol/src/lib.rs": {
+          "expected": "f530655f7c33170ebfc6f6aba4ad8bd16e031729aca4e2c10dcf78d308c0716a",
+          "current": "f530655f7c33170ebfc6f6aba4ad8bd16e031729aca4e2c10dcf78d308c0716a",
+          "byte_same": true,
+          "contract_crlf_to_lf_only": false,
+          "runtime_semantics_same": true
+        },
+        "crates/archeaxis-sidecar-protocol/src/worker.rs": {
+          "expected": "15f9ea54ea51fc5ac86591d9c47ae4d581d2269ddb685228165b736226f16c0e",
+          "current": "15f9ea54ea51fc5ac86591d9c47ae4d581d2269ddb685228165b736226f16c0e",
+          "byte_same": true,
+          "contract_crlf_to_lf_only": false,
+          "runtime_semantics_same": true
+        },
+        "crates/archeaxis-store-sqlite/src/authorization_fence.rs": {
+          "expected": "2cf3400ecd831abf207dad8c166477e0f5b6cd110f40315650403994d10ead8f",
+          "current": "2cf3400ecd831abf207dad8c166477e0f5b6cd110f40315650403994d10ead8f",
+          "byte_same": true,
+          "contract_crlf_to_lf_only": false,
+          "runtime_semantics_same": true
+        },
+        "crates/archeaxis-store-sqlite/src/capability_settings.rs": {
+          "expected": "ebac2aef5df7a463807efd11d58743c87e247c11e09be2ac788d5753ab840a00",
+          "current": "ebac2aef5df7a463807efd11d58743c87e247c11e09be2ac788d5753ab840a00",
+          "byte_same": true,
+          "contract_crlf_to_lf_only": false,
+          "runtime_semantics_same": true
+        },
+        "crates/archeaxis-store-sqlite/src/lib.rs": {
+          "expected": "c887d788c677188cb053abc6c4efc8d59a9b1ee3a5564630b2ba9ea56adea75d",
+          "current": "c887d788c677188cb053abc6c4efc8d59a9b1ee3a5564630b2ba9ea56adea75d",
+          "byte_same": true,
+          "contract_crlf_to_lf_only": false,
+          "runtime_semantics_same": true
+        },
+        "crates/archeaxis-store-sqlite/src/raw_objects.rs": {
+          "expected": "c435d575e5efe2b228f5efd188ef06aa7a26a4b637012e8a0ba615914403e442",
+          "current": "c435d575e5efe2b228f5efd188ef06aa7a26a4b637012e8a0ba615914403e442",
+          "byte_same": true,
+          "contract_crlf_to_lf_only": false,
+          "runtime_semantics_same": true
+        },
+        "crates/archeaxis-store-sqlite/src/writer.rs": {
+          "expected": "dc55bc42c8cab510a4ea1f03a74e5b98b9178f92b19cc220c2afecfe9072eb72",
+          "current": "dc55bc42c8cab510a4ea1f03a74e5b98b9178f92b19cc220c2afecfe9072eb72",
+          "byte_same": true,
+          "contract_crlf_to_lf_only": false,
+          "runtime_semantics_same": true
+        },
+        "packages/contracts/v1/anchor-coordinate.schema.json": {
+          "expected": "82a60e9a050e4945adba1bda319fb59a0fb2d551cbda5fb02f1824b8b97a3f30",
+          "current": "82a60e9a050e4945adba1bda319fb59a0fb2d551cbda5fb02f1824b8b97a3f30",
+          "byte_same": true,
+          "contract_crlf_to_lf_only": false,
+          "runtime_semantics_same": true
+        },
+        "packages/contracts/v1/assessment-vocabulary.schema.json": {
+          "expected": "d4b38716350b450ce0b81af45a7af9a803358ec9d6c9bb0210cbcfae53d67679",
+          "current": "d4b38716350b450ce0b81af45a7af9a803358ec9d6c9bb0210cbcfae53d67679",
+          "byte_same": true,
+          "contract_crlf_to_lf_only": false,
+          "runtime_semantics_same": true
+        },
+        "packages/contracts/v1/closed-loop.schema.json": {
+          "expected": "e200af5eaaffc7a2929a0d58f977ee7c3b1572691be525fd1d921a8cac8cbce2",
+          "current": "e200af5eaaffc7a2929a0d58f977ee7c3b1572691be525fd1d921a8cac8cbce2",
+          "byte_same": true,
+          "contract_crlf_to_lf_only": false,
+          "runtime_semantics_same": true
+        },
+        "packages/contracts/v1/core-command.schema.json": {
+          "expected": "6b98c4a19717f95140e9ce680b68bab266aadb5394341dc80cdeab04009c7740",
+          "current": "8d87a9ecd44bb70491671b5f2b020ab44a54eb4cf84cf80be9c34881f40d1305",
+          "byte_same": false,
+          "contract_crlf_to_lf_only": true,
+          "runtime_semantics_same": true
+        },
+        "packages/contracts/v1/core-document.schema.json": {
+          "expected": "d0f1a9f49e397ea5445943ad52abd44ddbf3f0a6e996203a4b4eb0db632e0d5b",
+          "current": "6b61638a5a1809330af22d92c6d3106e87fb4893661b2d2e22a6a5a2c2ecb4bd",
+          "byte_same": false,
+          "contract_crlf_to_lf_only": true,
+          "runtime_semantics_same": true
+        },
+        "packages/contracts/v1/courseware-artifact.schema.json": {
+          "expected": "f0bdb71e2d928fefa0b8b5fe4faa0fb8dcc6617f50282cbb0cd8a291bb994c2e",
+          "current": "f0bdb71e2d928fefa0b8b5fe4faa0fb8dcc6617f50282cbb0cd8a291bb994c2e",
+          "byte_same": true,
+          "contract_crlf_to_lf_only": false,
+          "runtime_semantics_same": true
+        },
+        "packages/contracts/v1/coverage-receipt.schema.json": {
+          "expected": "bb12e5fdcc95937a12ed34eee02ceed65c64ddfc1e49057132866ffd86c5710b",
+          "current": "bb12e5fdcc95937a12ed34eee02ceed65c64ddfc1e49057132866ffd86c5710b",
+          "byte_same": true,
+          "contract_crlf_to_lf_only": false,
+          "runtime_semantics_same": true
+        },
+        "packages/contracts/v1/derived-projection.schema.json": {
+          "expected": "41e7f6a205c51ae97829b247635db5ed636dc36b811b74a0ab76a787bb3100a5",
+          "current": "41e7f6a205c51ae97829b247635db5ed636dc36b811b74a0ab76a787bb3100a5",
+          "byte_same": true,
+          "contract_crlf_to_lf_only": false,
+          "runtime_semantics_same": true
+        },
+        "packages/contracts/v1/desktop-routes.schema.json": {
+          "expected": "0dc2a81774e2cc3683f6886bc36568150bd2c9ee5cd411b8c9c4a56cd3e7cf99",
+          "current": "0dc2a81774e2cc3683f6886bc36568150bd2c9ee5cd411b8c9c4a56cd3e7cf99",
+          "byte_same": true,
+          "contract_crlf_to_lf_only": false,
+          "runtime_semantics_same": true
+        },
+        "packages/contracts/v1/domain-pack.schema.json": {
+          "expected": "5f3e3527dc6451b3ab291eb9359bb683dc1138d4884d98abfd5fbfdb96f88ad7",
+          "current": "5f3e3527dc6451b3ab291eb9359bb683dc1138d4884d98abfd5fbfdb96f88ad7",
+          "byte_same": true,
+          "contract_crlf_to_lf_only": false,
+          "runtime_semantics_same": true
+        },
+        "packages/contracts/v1/format-execution-receipt.schema.json": {
+          "expected": "b98e9556171822066d9d1bd2981e3959d0156198e7d44d72cdc8cfe16131e935",
+          "current": "b98e9556171822066d9d1bd2981e3959d0156198e7d44d72cdc8cfe16131e935",
+          "byte_same": true,
+          "contract_crlf_to_lf_only": false,
+          "runtime_semantics_same": true
+        },
+        "packages/contracts/v1/job-status.schema.json": {
+          "expected": "27a2b58052a0c0ffc6140c97c5f2af6057a17ff5e1618b413f9262d7b7d42f71",
+          "current": "27a2b58052a0c0ffc6140c97c5f2af6057a17ff5e1618b413f9262d7b7d42f71",
+          "byte_same": true,
+          "contract_crlf_to_lf_only": false,
+          "runtime_semantics_same": true
+        },
+        "packages/contracts/v1/learning-feedback.schema.json": {
+          "expected": "0ee688986089741f77edf245e447997b8117b304d7507049caccb07ef5d9d445",
+          "current": "0ee688986089741f77edf245e447997b8117b304d7507049caccb07ef5d9d445",
+          "byte_same": true,
+          "contract_crlf_to_lf_only": false,
+          "runtime_semantics_same": true
+        },
+        "packages/contracts/v1/local-green-identity.schema.json": {
+          "expected": "15804970b74f1f4094b751645f2d5468643649c1ddc1fbb7e4f95e39dbc642cd",
+          "current": "15804970b74f1f4094b751645f2d5468643649c1ddc1fbb7e4f95e39dbc642cd",
+          "byte_same": true,
+          "contract_crlf_to_lf_only": false,
+          "runtime_semantics_same": true
+        },
+        "packages/contracts/v1/loss-receipt.schema.json": {
+          "expected": "ba36f33f00f2a10f2cfc51142246ecd4f945726a4f9f02d886437f63a4386262",
+          "current": "ba36f33f00f2a10f2cfc51142246ecd4f945726a4f9f02d886437f63a4386262",
+          "byte_same": true,
+          "contract_crlf_to_lf_only": false,
+          "runtime_semantics_same": true
+        },
+        "packages/contracts/v1/machine-feedback.schema.json": {
+          "expected": "b7dc2cef32afac478d4a0e5b33f8a74d6cf2f19ce25750d6acdb5f0abef4b5e9",
+          "current": "b7dc2cef32afac478d4a0e5b33f8a74d6cf2f19ce25750d6acdb5f0abef4b5e9",
+          "byte_same": true,
+          "contract_crlf_to_lf_only": false,
+          "runtime_semantics_same": true
+        },
+        "packages/contracts/v1/machine-growth.schema.json": {
+          "expected": "13a7e4e54c0f46eee1eed63769b76cdfea334ca64545799ca17803a41ab5f732",
+          "current": "13a7e4e54c0f46eee1eed63769b76cdfea334ca64545799ca17803a41ab5f732",
+          "byte_same": true,
+          "contract_crlf_to_lf_only": false,
+          "runtime_semantics_same": true
+        },
+        "packages/contracts/v1/model-capability-pool.schema.json": {
+          "expected": "628c33f82cd6ea6d7bd984e51f933d2fc302f9558b386062c4e96de29bbf44c0",
+          "current": "628c33f82cd6ea6d7bd984e51f933d2fc302f9558b386062c4e96de29bbf44c0",
+          "byte_same": true,
+          "contract_crlf_to_lf_only": false,
+          "runtime_semantics_same": true
+        },
+        "packages/contracts/v1/quality-report.schema.json": {
+          "expected": "6a84cbbe857482d7fa259a05fb1c54fdc5b6c19608bd9ee0278667e36405d4c4",
+          "current": "6a84cbbe857482d7fa259a05fb1c54fdc5b6c19608bd9ee0278667e36405d4c4",
+          "byte_same": true,
+          "contract_crlf_to_lf_only": false,
+          "runtime_semantics_same": true
+        },
+        "packages/contracts/v1/worker-protocol.schema.json": {
+          "expected": "0c6c92239263fce326c370ace2277e858535880dbcccc1f559030c6b4c2a4250",
+          "current": "0c6c92239263fce326c370ace2277e858535880dbcccc1f559030c6b4c2a4250",
+          "byte_same": true,
+          "contract_crlf_to_lf_only": false,
+          "runtime_semantics_same": true
+        },
+        "packages/contracts/v2/ai-asset.schema.json": {
+          "expected": "5390907ccc859ba21ffadb2002e9f59f91784c20fc12794f8d25d81b46df4b3a",
+          "current": "38de01ec460d34ea42e69162224eeb0830a8b2919b66c08681d4bb2bbf67439e",
+          "byte_same": false,
+          "contract_crlf_to_lf_only": true,
+          "runtime_semantics_same": true
+        },
+        "packages/contracts/v2/collection.schema.json": {
+          "expected": "d96d747f7e833306555a0ad524645ae6c528a4629a86fb9a3f1f56dd3cb6246e",
+          "current": "d96d747f7e833306555a0ad524645ae6c528a4629a86fb9a3f1f56dd3cb6246e",
+          "byte_same": true,
+          "contract_crlf_to_lf_only": false,
+          "runtime_semantics_same": true
+        },
+        "packages/contracts/v2/expression.schema.json": {
+          "expected": "a694b9f269dd61d143c3950172e6d3957914a5caef1d01ffc16f8ce99b09563e",
+          "current": "a694b9f269dd61d143c3950172e6d3957914a5caef1d01ffc16f8ce99b09563e",
+          "byte_same": true,
+          "contract_crlf_to_lf_only": false,
+          "runtime_semantics_same": true
+        },
+        "packages/contracts/v2/research.schema.json": {
+          "expected": "74b16c116e2293b59a7b65011c9c7d809c8d87b7114740b4553cb4dfc15c133b",
+          "current": "74b16c116e2293b59a7b65011c9c7d809c8d87b7114740b4553cb4dfc15c133b",
+          "byte_same": true,
+          "contract_crlf_to_lf_only": false,
+          "runtime_semantics_same": true
+        },
+        "packages/contracts/v2/teaching.schema.json": {
+          "expected": "bcc14481a0c7c67c4cbac36e5c004eeca6e5044eec16a5828f604747e7b5e8f9",
+          "current": "bcc14481a0c7c67c4cbac36e5c004eeca6e5044eec16a5828f604747e7b5e8f9",
+          "byte_same": true,
+          "contract_crlf_to_lf_only": false,
+          "runtime_semantics_same": true
+        },
+        "packages/contracts/v2/workspace-restore.schema.json": {
+          "expected": "5ae7b27f7c1134500bf05f6bfaaf8c78cd163a3367eda4dfc359e8cd0616f1e8",
+          "current": "5ae7b27f7c1134500bf05f6bfaaf8c78cd163a3367eda4dfc359e8cd0616f1e8",
+          "byte_same": true,
+          "contract_crlf_to_lf_only": false,
+          "runtime_semantics_same": true
+        },
+        "packages/contracts/v3/knowledge-source.schema.json": {
+          "expected": "26f049be1b2cbc8cd93e4d6b0bb0a8ab275d03bcdc9078ea6a5688137a7ab361",
+          "current": "26f049be1b2cbc8cd93e4d6b0bb0a8ab275d03bcdc9078ea6a5688137a7ab361",
+          "byte_same": true,
+          "contract_crlf_to_lf_only": false,
+          "runtime_semantics_same": true
+        },
+        "packages/contracts/bootstrap/v2/launch.schema.json": {
+          "expected": "cba20e3a69c77f7cf0517d69d359115424b906332d17bf867886ef4c4c93418d",
+          "current": "cba20e3a69c77f7cf0517d69d359115424b906332d17bf867886ef4c4c93418d",
+          "byte_same": true,
+          "contract_crlf_to_lf_only": false,
+          "runtime_semantics_same": true
+        },
+        "packages/contracts/learning/v1/learning-kernel.schema.json": {
+          "expected": "60e09383fe986c38bb6276415342339c082e1cf563c5e0d7be12fda18cf08467",
+          "current": "60e09383fe986c38bb6276415342339c082e1cf563c5e0d7be12fda18cf08467",
+          "byte_same": true,
+          "contract_crlf_to_lf_only": false,
+          "runtime_semantics_same": true
+        },
+        "packages/contracts/learning/v1/review.schema.json": {
+          "expected": "a7b588098152106b8671d3ac0e2b2e74db1fdf8759144740e4b0d5be4b1735d5",
+          "current": "a7b588098152106b8671d3ac0e2b2e74db1fdf8759144740e4b0d5be4b1735d5",
+          "byte_same": true,
+          "contract_crlf_to_lf_only": false,
+          "runtime_semantics_same": true
+        },
+        "packages/contracts/learning/v2/review.schema.json": {
+          "expected": "12ba83422eda6493c955c0e48528d9e150faa56909739af4fd14f869dcff52d0",
+          "current": "12ba83422eda6493c955c0e48528d9e150faa56909739af4fd14f869dcff52d0",
+          "byte_same": true,
+          "contract_crlf_to_lf_only": false,
+          "runtime_semantics_same": true
+        },
+        "packages/contracts/v1/examples/negative/anchor-unknown-kind.bad.json": {
+          "expected": "3b5dcb0d38683c22b8f778b2427cfa357441724783d6aa1cfcf44b5435c4d6e7",
+          "current": "3b5dcb0d38683c22b8f778b2427cfa357441724783d6aa1cfcf44b5435c4d6e7",
+          "byte_same": true,
+          "contract_crlf_to_lf_only": false,
+          "runtime_semantics_same": true
+        },
+        "packages/contracts/v1/examples/negative/job-status-unknown-verdict.bad.json": {
+          "expected": "283d4ed39c408746b8eeec6d868ae0ebeca14af2719b3cdef0b4364d24991b5f",
+          "current": "283d4ed39c408746b8eeec6d868ae0ebeca14af2719b3cdef0b4364d24991b5f",
+          "byte_same": true,
+          "contract_crlf_to_lf_only": false,
+          "runtime_semantics_same": true
+        },
+        "packages/contracts/v1/examples/negative/worker-success-with-error.bad.json": {
+          "expected": "2a8116843374e7ab9e58e2cc18e8510bb647ec9ce53b73cd7408f9fe9fb6aed4",
+          "current": "2a8116843374e7ab9e58e2cc18e8510bb647ec9ce53b73cd7408f9fe9fb6aed4",
+          "byte_same": true,
+          "contract_crlf_to_lf_only": false,
+          "runtime_semantics_same": true
+        },
+        "packages/contracts/v1/examples/positive/anchor-coordinate.ok.json": {
+          "expected": "4613e1dcfa8d1e3bd3b04eb9256681b9dcbfc53002eff93819004c875c2c28fb",
+          "current": "4613e1dcfa8d1e3bd3b04eb9256681b9dcbfc53002eff93819004c875c2c28fb",
+          "byte_same": true,
+          "contract_crlf_to_lf_only": false,
+          "runtime_semantics_same": true
+        },
+        "packages/contracts/v1/examples/positive/job-status.ok.json": {
+          "expected": "637f24c23784ecf08fc03a6be3806307fdd17e81cc20761584e4eab5e0a600c8",
+          "current": "637f24c23784ecf08fc03a6be3806307fdd17e81cc20761584e4eab5e0a600c8",
+          "byte_same": true,
+          "contract_crlf_to_lf_only": false,
+          "runtime_semantics_same": true
+        },
+        "packages/contracts/v1/examples/positive/learning-feedback.ok.json": {
+          "expected": "9baaf46449f9cf47a4189752c17665127f5da0dcdb933c7d604ef7d2adc320bd",
+          "current": "9baaf46449f9cf47a4189752c17665127f5da0dcdb933c7d604ef7d2adc320bd",
+          "byte_same": true,
+          "contract_crlf_to_lf_only": false,
+          "runtime_semantics_same": true
+        },
+        "packages/contracts/v1/examples/positive/machine-feedback.ok.json": {
+          "expected": "df591a1009d99bcde5f06982cac435bac9312ca16760c7b1f2ca96025358d10e",
+          "current": "df591a1009d99bcde5f06982cac435bac9312ca16760c7b1f2ca96025358d10e",
+          "byte_same": true,
+          "contract_crlf_to_lf_only": false,
+          "runtime_semantics_same": true
+        },
+        "packages/contracts/v1/examples/positive/quality-report.ok.json": {
+          "expected": "1812da4359f10c51c4dbbade665f3cc5796ef42a907b56b351c2467d9f671299",
+          "current": "1812da4359f10c51c4dbbade665f3cc5796ef42a907b56b351c2467d9f671299",
+          "byte_same": true,
+          "contract_crlf_to_lf_only": false,
+          "runtime_semantics_same": true
+        }
+      },
+      "boundary": "Actual model receipt binds unchanged production Core/worker. Three schemas subsequently changed CRLF to LF only with byte backups and identical parsed JSON. Latest UI/tests have separate current-tree verification."
+    },
+    "M01": "NOT_RUN",
+    "human_mastery": "NOT_RUN",
+    "professional_truth": "UNMEASURED",
+    "semantic_quality": "UNMEASURED",
+    "normal_restart_is_not_restore_fence_proof": true
+  },
+  "restore": "Production Online Backup, archive fence, mandatory maintenance finalization, Native finite restore contract and legacy no-grant bypass have separate source-bound regression evidence; historical answers/versions preserved, new explicit grants required.",
+  "preserved_failures": [
+    "ui-ai-rust-final-01: stale synthetic v1 migration fixture",
+    "ui-ai-rust-final-02: stale synthetic v8 migration fixture",
+    "ui-ai-cancel-ui-final-01: new mock cleanup fixture return",
+    "visual full-02: blank load timeout, root cause UNVERIFIED"
+  ],
+  "global_checks": {
+    "repository_conventions": "FAIL: 8 preserved baseline issues",
+    "architecture": "FAIL: 13 preserved baseline issues",
+    "owned_file_check": "PASS_WITH_RECORDED_BASELINE_GAPS",
+    "owned_receipt_sha256": "bcf12d95932f2378993eb8db620aa5979f12ae5bdeb2b0607020c6d4303d45ad",
+    "structural_receipt_sha256": "d8d1ea0e71fb67e7a159e3f646ae817895c9fac30c0d3309c3490a72c6a7c914"
+  },
+  "zip": {
+    "state": "PRESENT_HASH_VERIFIED",
+    "members": 10,
+    "internal_checksums": "9/9_PASS",
+    "sha256": "45ac43b7704ba2a5c5979d27339120ffd58417761a13672add24d87f43e55e25",
+    "original_spec_records": 107
+  },
+  "unexecuted": [
+    "installed Native interactive acceptance",
+    "physical IME",
+    "Owner acceptance",
+    "external client packet delivery",
+    "cloud CI",
+    "commit/push/PR/merge/release"
+  ],
+  "next_queue": "O01 / UF10 under current selected_tasks; V01 PAUSED, FT01-04 frozen, UF13 five DAILY future pending",
+  "rollback": "Stage-owned hunks and exact ignored checkpoints only; do not reset/restore whole dirty files or historical HEAD.",
+  "resolved_audit": {
+    "path": ".project-local\\runs\\f714401b40\\ui-ai-stage-20261010\\resolved-final-completion-audit.json",
+    "sha256": "aba43e791598111cf984e7820cfab10a044ff34c00a57ebcdb73a92ac1e3dc50"
+  }
+}

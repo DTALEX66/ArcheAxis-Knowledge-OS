@@ -1,9 +1,12 @@
 //! Real single-shot text worker execution outside the SQLite owner thread.
 //! Explicit local Core configuration, not a user-supplied executable endpoint.
 use crate::attempts;
+mod derived;
+mod health;
 use archeaxis_sidecar_protocol::worker::{
     MAX_FRAME_BYTES, Request, Response, decode_hello, decode_response,
 };
+use archeaxis_store_sqlite::capability_settings;
 use archeaxis_store_sqlite::{raw_objects, writer::Store};
 use std::{
     io::{Read, Write},
@@ -29,6 +32,16 @@ impl Cancellation {
     }
 }
 
+/// Whether a path exists as a regular file, used to decide if a registered route can actually run.
+///
+/// R7/G1: a route whose worker or interpreter is missing is not a provider choice, so choosing it
+/// over a usable fallback would convert a configuration mistake into a failed job.
+fn file_usable(path: &Path) -> bool {
+    std::fs::metadata(path)
+        .map(|meta| meta.is_file())
+        .unwrap_or(false)
+}
+
 #[derive(Clone)]
 pub struct Executor {
     store: Store,
@@ -40,6 +53,10 @@ pub struct Executor {
     /// hardened `-S` launch; engine-backed routes (PDF/OCR) need their engine
     /// from the configured interpreter, so `-S` must not strip it.
     routes: Arc<Vec<(String, PathBuf, bool)>>,
+    document_check_config: Option<Arc<DocumentCheckConfig>>,
+    document_check_config_error: Option<String>,
+    health_slots: Arc<tokio::sync::Semaphore>,
+    derived_slots: Arc<tokio::sync::Semaphore>,
 }
 impl Executor {
     pub async fn open(
@@ -72,8 +89,13 @@ impl Executor {
             .await
             .map_err(|e| e.to_string())?
             .map_err(|e| e.to_string())?;
+        store
+            .submit_wait(archeaxis_domain::document::recover_interrupted_checks)
+            .await
+            .map_err(|_| "document check recovery scheduling failed")?
+            .map_err(|_| "document check recovery failed")?;
         let mut routes: Vec<(String, PathBuf, bool)> =
-            vec![("text.extract".to_string(), default_worker.to_owned(), false)];
+            vec![("text.extract".to_string(), default_worker.to_owned(), true)];
         for (capability, path) in extra {
             if capability.trim().is_empty() {
                 return Err("route capability must not be empty".into());
@@ -86,18 +108,277 @@ impl Executor {
             python: python.to_owned(),
             worker: default_worker.to_owned(),
             routes: Arc::new(routes),
+            document_check_config: None,
+            document_check_config_error: None,
+            health_slots: Arc::new(tokio::sync::Semaphore::new(4)),
+            derived_slots: Arc::new(tokio::sync::Semaphore::new(4)),
         })
     }
 
     /// The worker registered for a capability, with its launch policy.
+    ///
+    /// R7/G1: when more than one route is registered for one capability, the **first usable one**
+    /// answers and the later ones are fallbacks. Usable means its worker script and the interpreter
+    /// both exist, because registering a route whose files are missing is a configuration mistake
+    /// rather than a provider choice, and silently choosing it would turn that mistake into a failed
+    /// job. When no registered route is usable the first is returned anyway, so the failure names the
+    /// provider the operator declared instead of reporting that nothing was registered.
     fn worker_for(&self, capability: &str) -> Option<(PathBuf, bool)> {
+        let candidates: Vec<&(String, PathBuf, bool)> = self
+            .routes
+            .iter()
+            .filter(|(name, _, _)| name == capability)
+            .collect();
+        let chosen = candidates
+            .iter()
+            .find(|(_, path, _)| file_usable(path) && file_usable(&self.python))
+            .or_else(|| candidates.first())?;
+        Some((chosen.1.clone(), chosen.2))
+    }
+
+    /// One bounded local-model call. Runtime owns the shared admission lock.
+    /// Returns the worker's candidate JSON without interpreting its answer as truth.
+    pub async fn machine_answer(
+        &self,
+        context: String,
+        question: String,
+        max_tokens: u64,
+        timeout: Duration,
+    ) -> Result<serde_json::Value, String> {
+        const MAX_CONTEXT: usize = 128_000;
+        // Keep the existing --question argv protocol inside Windows command-line bounds.
+        const MAX_QUESTION: usize = 8_192;
+        const MAX_OUTPUT: usize = 128_000;
+        const MAX_STDERR: usize = 8_192;
+        if context.trim().is_empty() || question.trim().is_empty()
+            || context.len() > MAX_CONTEXT || question.len() > MAX_QUESTION
+            || question.contains('\0') || !(128..=4096).contains(&max_tokens)
+            || timeout < Duration::from_secs(1) || timeout > Duration::from_secs(120)
+        {
+            return Err("invalid machine answer budget or input".into());
+        }
+        let worker = self.worker_for("machine.answer")
+            .map(|(path, _)| path)
+            .ok_or("no worker is registered for machine.answer")?;
+        let python = self.python.clone();
+        let staging = self.staging.clone();
+        tokio::task::spawn_blocking(move || -> Result<serde_json::Value, String> {
+            let deadline = Instant::now() + timeout;
+            let dir = tempfile::tempdir_in(&staging)
+                .map_err(|_| "machine staging unavailable")?;
+            let context_path = dir.path().join("context.txt");
+            std::fs::write(&context_path, context.as_bytes())
+                .map_err(|_| "machine context staging failed")?;
+            let mut command = Command::new(&python);
+            // Local lane overrides are product launch policy, never HTTP input.
+            // No credentials, user Python startup, proxy or home configuration inherited.
+            command.env_clear();
+            for key in ["SystemRoot", "WINDIR", "SYSTEMDRIVE",
+                "ARCHEAXIS_MACHINE_ENDPOINT", "ARCHEAXIS_MACHINE_MODEL",
+                "ARCHEAXIS_MACHINE_PROTOCOL"] {
+                if let Some(value) = std::env::var_os(key) { command.env(key, value); }
+            }
+            for key in ["TEMP", "TMP", "TMPDIR", "HOME", "USERPROFILE",
+                "APPDATA", "LOCALAPPDATA"] { command.env(key, dir.path()); }
+            command.env("NO_PROXY", "127.0.0.1,localhost,::1");
+            command.arg("-I").arg("-B").arg("-X").arg("utf8")
+                .arg(&worker).arg(&context_path).arg("--question").arg(&question)
+                .arg("--max-tokens").arg(max_tokens.to_string())
+                .current_dir(dir.path()).stdin(Stdio::null())
+                .stdout(Stdio::piped()).stderr(Stdio::piped());
+            #[cfg(windows)] {
+                use std::os::windows::process::CommandExt;
+                command.creation_flags(0x08000000);
+            }
+            let mut child = OwnedChild(command.spawn().map_err(|_| "machine worker spawn failed")?);
+            let stdout = child.0.stdout.take().ok_or("machine stdout unavailable")?;
+            let stderr = child.0.stderr.take().ok_or("machine stderr unavailable")?;
+            // Concurrent readers avoid pipe-buffer deadlock. Each stops at limit+1;
+            // overflow is reported before waiting for process exit.
+            fn bounded_reader(
+                stream: impl Read + Send + 'static,
+                limit: usize,
+                tx: mpsc::Sender<(bool, Result<Vec<u8>, &'static str>)>,
+                is_stdout: bool,
+            ) -> thread::JoinHandle<()> {
+                thread::spawn(move || {
+                    let mut bytes = Vec::new();
+                    let result = stream.take((limit + 1) as u64).read_to_end(&mut bytes)
+                        .map_err(|_| "machine pipe read failed")
+                        .and_then(|_| if bytes.len() > limit {
+                            Err("machine worker output exceeds bound")
+                        } else { Ok(bytes) });
+                    let _ = tx.send((is_stdout, result));
+                })
+            }
+            let (send, receive) = mpsc::channel();
+            let reader = bounded_reader(stdout, MAX_OUTPUT, send.clone(), true);
+            let err_reader = bounded_reader(stderr, MAX_STDERR, send, false);
+            let result = (|| -> Result<serde_json::Value, String> {
+                let mut out = None;
+                let mut errors_finished = false;
+                let mut exit_status = None;
+                loop {
+                    while let Ok((is_stdout, result)) = receive.try_recv() {
+                        let bytes = result?;
+                        if is_stdout { out = Some(bytes); } else {
+                            // Never echo model SDK stderr or context into API errors.
+                            drop(bytes);
+                            errors_finished = true;
+                        }
+                    }
+                    if exit_status.is_none() {
+                        exit_status = child.0.try_wait().map_err(|_| "machine status unavailable")?;
+                    }
+                    if let Some(status) = exit_status {
+                        if !status.success() { return Err("machine worker failed".into()); }
+                        if errors_finished && out.is_some() { break; }
+                    }
+                    if Instant::now() >= deadline { return Err("machine worker timed out".into()); }
+                    thread::sleep(Duration::from_millis(10));
+                }
+                let value: serde_json::Value = serde_json::from_slice(&out.unwrap())
+                    .map_err(|_| "machine worker returned invalid JSON")?;
+                if !value.is_object() || !value["answer"].as_str().is_some_and(|s| !s.trim().is_empty()) {
+                    return Err("machine worker returned no candidate answer".into());
+                }
+                Ok(value)
+            })();
+            // No orphaned direct child on timeout/overflow/pipe error.
+            let cleanup_failed = match child.0.try_wait() {
+                Ok(Some(_)) => false,
+                Ok(None) | Err(_) => {
+                    let killed = child.0.kill().is_ok();
+                    let waited = child.0.wait().is_ok();
+                    !killed || !waited
+                }
+            };
+            // A descendant may retain an inherited pipe after our child exits.
+            // Cancel only our own reader threads' blocking I/O on Windows.
+            #[cfg(windows)] {
+                use std::os::windows::io::AsRawHandle;
+                #[link(name = "kernel32")]
+                unsafe extern "system" {
+                    fn CancelSynchronousIo(thread: *mut std::ffi::c_void) -> i32;
+                }
+                for task in [&reader, &err_reader] {
+                    if !task.is_finished() {
+                        unsafe { CancelSynchronousIo(task.as_raw_handle()); }
+                    }
+                }
+            }
+            let cleanup_deadline = Instant::now() + Duration::from_secs(1);
+            while (!reader.is_finished() || !err_reader.is_finished()) && Instant::now() < cleanup_deadline {
+                thread::sleep(Duration::from_millis(10));
+            }
+            let incomplete = !reader.is_finished() || !err_reader.is_finished();
+            for task in [reader, err_reader] {
+                if task.is_finished() { let _ = task.join(); }
+            }
+            if cleanup_failed || incomplete { return Err("machine worker cleanup incomplete".into()); }
+            result
+        }).await.map_err(|_| "machine answer task failed")?
+    }
+
+    /// The routes registered for one capability, in registration order, each marked with whether it
+    /// is usable. The first element is the default; any later element is a fallback candidate.
+    pub fn providers_for(&self, capability: &str) -> Vec<(&Path, bool)> {
         self.routes
             .iter()
-            .find(|(name, _, _)| name == capability)
-            .map(|(_, path, allow_site)| (path.clone(), *allow_site))
+            .filter(|(name, _, _)| name == capability)
+            .map(|(_, path, _)| {
+                (
+                    path.as_path(),
+                    file_usable(path) && file_usable(&self.python),
+                )
+            })
+            .collect()
     }
     pub fn store(&self) -> &Store {
         &self.store
+    }
+
+    /// The interpreter the routes were opened with. A capability record reports whether the
+    /// runtime it would need is present, which needs this path.
+    pub fn python_path(&self) -> &Path {
+        &self.python
+    }
+
+    /// Observe the existing NDJSON hello without submitting a task or selecting a
+    /// replacement. Health is handshake evidence, not engine or inference success.
+    pub async fn provider_health(
+        &self,
+        capability: &str,
+        worker: &Path,
+        allow_site: bool,
+    ) -> serde_json::Value {
+        let permit = self.health_slots.clone().acquire_owned().await;
+        let permit = match permit {
+            Ok(permit) => permit,
+            Err(_) => {
+                return serde_json::json!({"status":"handshake_failed","reason":"health probe unavailable","task_executed":false});
+            }
+        };
+        let python = self.python.clone();
+        let staging = self.staging.clone();
+        let worker = worker.to_owned();
+        let capability = capability.to_owned();
+        tokio::task::spawn_blocking(move || {
+            let _permit = permit;
+            health::probe(&staging,&python,&worker,&capability,allow_site)
+        }).await.unwrap_or_else(|_| serde_json::json!({
+            "status":"handshake_failed","reason":"health probe task failed","task_executed":false
+        }))
+    }
+
+    /// The capability this job would need **if** this workspace has disabled it, so a caller can
+    /// say why the job will not start.
+    ///
+    /// This is a reporting aid, not the enforcement point: the refusal that actually stops a
+    /// disabled capability is inside the claim transaction, which is what guarantees no attempt row
+    /// is written. `None` therefore means "nothing is known to be disabled", which includes the
+    /// cases where the job does not exist or its kind has no route - those are reported by the claim
+    /// itself, with their own reasons.
+    pub async fn disabled_capability_for(&self, job_id: &str) -> Option<String> {
+        let owned = job_id.to_owned();
+        let kind = self
+            .store
+            .submit_wait(move |conn: &mut rusqlite::Connection| {
+                use rusqlite::OptionalExtension;
+                conn.query_row("SELECT kind FROM jobs WHERE job_id=?1", [&owned], |row| {
+                    row.get::<_, String>(0)
+                })
+                .optional()
+            })
+            .await
+            .ok()?
+            .ok()??;
+        let capability = crate::attempts::route_for_kind(&kind)?.0.to_string();
+        let named = capability.clone();
+        let disabled = self
+            .store
+            .submit_wait(move |conn: &mut rusqlite::Connection| {
+                capability_settings::is_enabled(conn, &named)
+            })
+            .await
+            .ok()?
+            .ok()?;
+        (!disabled).then_some(capability)
+    }
+
+    /// The capabilities this executor will actually serve, in registration order.
+    ///
+    /// R7/G1: a registry has to describe what the Core registered rather than what a checkout
+    /// happens to contain, and the launch is what declares routes. This exposes that set read-only
+    /// so a capability surface can report it without a second source of truth. The boolean is
+    /// whether the route may import the interpreter's installed packages.
+    pub fn registered_routes(&self) -> Vec<(&str, &Path, bool)> {
+        self.routes
+            .iter()
+            .map(|(capability, worker, site_packages)| {
+                (capability.as_str(), worker.as_path(), *site_packages)
+            })
+            .collect()
     }
 
     pub async fn execute(
@@ -107,7 +388,20 @@ impl Executor {
         deadline_ms: u64,
         cancel: &Cancellation,
     ) -> Result<(), String> {
-        self.start(job_id, request_id, deadline_ms, cancel)
+        self.execute_splitting(job_id, request_id, deadline_ms, cancel, false, false)
+            .await
+    }
+    /// `execute` for a recording that is transcribed by splitting it into bounded windows.
+    pub async fn execute_splitting(
+        &self,
+        job_id: &str,
+        request_id: &str,
+        deadline_ms: u64,
+        cancel: &Cancellation,
+        split: bool,
+        words: bool,
+    ) -> Result<(), String> {
+        self.start_splitting(job_id, request_id, deadline_ms, cancel, split, words)
             .await?
             .await
             .map_err(|e| format!("execution task failed: {e}"))?
@@ -120,16 +414,33 @@ impl Executor {
         deadline_ms: u64,
         cancel: &Cancellation,
     ) -> Result<tokio::task::JoinHandle<Result<(), String>>, String> {
+        self.start_splitting(job_id, request_id, deadline_ms, cancel, false, false)
+            .await
+    }
+    /// `start` for a split transcription. The staging directory is Core-owned and derived here, so
+    /// a caller says only whether the recording should be split.
+    pub async fn start_splitting(
+        &self,
+        job_id: &str,
+        request_id: &str,
+        deadline_ms: u64,
+        cancel: &Cancellation,
+        split: bool,
+        words: bool,
+    ) -> Result<tokio::task::JoinHandle<Result<(), String>>, String> {
         // Accepted jobs outlive a disconnected HTTP/UI waiter. Explicit owner
         // cancellation still propagates through the shared cancellation handle.
         let owned = self.clone();
         let job = job_id.to_owned();
         let request = request_id.to_owned();
         let cancel = cancel.clone();
+        let split = split.then(|| attempts::Split {
+            root: self.staging.clone(),
+        });
         let (ack, accepted) = tokio::sync::oneshot::channel();
         let task = tokio::spawn(async move {
             owned
-                .execute_owned(&job, &request, deadline_ms, &cancel, ack)
+                .execute_owned(&job, &request, deadline_ms, &cancel, ack, split, words)
                 .await
         });
         match accepted.await {
@@ -148,6 +459,8 @@ impl Executor {
         deadline_ms: u64,
         cancel: &Cancellation,
         ack: tokio::sync::oneshot::Sender<()>,
+        split: Option<attempts::Split>,
+        words: bool,
     ) -> Result<(), String> {
         // Keep the one write to the child's pipe small enough to fit its initial
         // buffer. Configuration and IDs are Core-owned, not shell commands.
@@ -158,7 +471,9 @@ impl Executor {
         let id = request_id.to_owned();
         let req = self
             .store
-            .submit_wait(move |conn| attempts::claim(conn, &job, &id, deadline_ms))
+            .submit_wait(move |conn| {
+                attempts::claim_split(conn, &job, &id, deadline_ms, split, words)
+            })
             .await
             .map_err(|e| e.to_string())?
             .map_err(|e| e.to_string())?;
@@ -181,6 +496,14 @@ impl Executor {
                         ));
                     }
                 };
+                let artifact_root = if matches!(
+                    req.capability.as_str(),
+                    "archive.inventory" | "media.video" | "text.extract" | "office.structure",
+                ) {
+                    crate::container::attempt_root(&self.staging, &req.job_id, req.attempt)
+                } else {
+                    self.staging.clone()
+                };
                 let staging = self.staging.clone();
                 let python = self.python.clone();
                 let request = serde_json::to_string(&req).map_err(|e| e.to_string())?;
@@ -189,7 +512,14 @@ impl Executor {
                 let cancel = cancel.clone();
                 tokio::task::spawn_blocking(move || {
                     run_worker(
-                        &staging, &python, &worker, &req_copy, &input, &cancel, allow_site,
+                        &staging,
+                        &artifact_root,
+                        &python,
+                        &worker,
+                        &req_copy,
+                        &input,
+                        &cancel,
+                        allow_site,
                     )
                 })
                 .await
@@ -200,7 +530,14 @@ impl Executor {
         match result {
             Ok((response, bytes)) => {
                 let cancel = cancel.clone();
-                let artifact_root = self.staging.clone();
+                let artifact_root = if matches!(
+                    req.capability.as_str(),
+                    "archive.inventory" | "media.video" | "text.extract" | "office.structure",
+                ) {
+                    crate::container::attempt_root(&self.staging, &req.job_id, req.attempt)
+                } else {
+                    self.staging.clone()
+                };
                 self.store.submit_wait(move|conn|{
                     // Cancellation competes with completion at the writer boundary;
                     // once completion is committed it cannot be rolled back by cancel.
@@ -208,8 +545,30 @@ impl Executor {
                         attempts::terminate(conn,&req,"cancelled","owner cancelled before commit").map_err(|e|e.to_string())?;
                         return Err("owner cancelled before commit".into());
                     }
-                    match attempts::finish(conn,&req,&response,&bytes){
+                    let finished = if req.capability == "media.video" { attempts::finish_with_artifacts(conn,&req,&response,&bytes,&artifact_root) } else { attempts::finish(conn,&req,&response,&bytes) };
+                    match finished {
                         Ok(())=>{
+                            if matches!(req.capability.as_str(), "archive.inventory" | "text.extract" | "office.structure") {
+                                if let Err(error) = crate::container::expand_members(conn, &artifact_root, &req.job_id) {
+                                    let reason = error.to_string();
+                                    let task = archeaxis_domain::machine::MachineTask {
+                                        task_id: &format!("{}-members-{}", req.job_id, req.attempt),
+                                        principal: "machine",
+                                        conditions: "archive inventory saved but member expansion failed",
+                                        knowledge_version: None,
+                                        method_version: Some("container.expand_members/v1"),
+                                        tool_version: Some("core"),
+                                        model_version: "not-a-model: deterministic core chaining",
+                                        scope: &req.job_id,
+                                        outcome: "failed",
+                                        failure: Some(&reason),
+                                        retest_of: None,
+                                    };
+                                    archeaxis_domain::machine::record_machine_task(conn, &task)
+                                        .map_err(|error| format!("{reason}; expansion failure receipt unavailable: {error}"))?;
+                                    return Err(format!("archive inventory saved; member expansion failed: {reason}"));
+                                }
+                            }
                             // R15/F06: a route that declares follow-up work gets it in the
                             // same commit, so a completed PDF job never leaves its declared
                             // pages unqueued. A chaining failure is recorded as a machine
@@ -357,10 +716,34 @@ pub const KNOWN_WORKER_IDENTITIES: &[&str] = &[
     "python-worker-subtitles-ndjson",
     "python-worker-html-ndjson",
     "python-worker-caption-ndjson",
+    // the ASR route's identity; a route with no identity here is refused with
+    // "unexpected worker identity" before it can serve anything
+    "python-worker-transcribe-ndjson",
+    "python-worker-video-ndjson",
+    // F10: the diarization route's identity, so a job can reach the worker that names its own gap.
+    "python-worker-diarize-ndjson",
+    // F04: the content-detection route's identity.
+    "python-worker-detect-ndjson",
+    // G4: the machine answer route. Registered so a launch may declare it; whether a Core job route
+    // drives it is a separate question, and the capability registry answers that rather than this
+    // list, which only says which identities are recognised at all.
+    "python-worker-machine-answer-ndjson",
 ];
+
+fn worker_input_limit(capability: &str) -> usize {
+    if matches!(
+        capability,
+        "media.transcribe" | "media.video" | "media.diarize"
+    ) {
+        64 * 1024 * 1024
+    } else {
+        16 * 1024 * 1024
+    }
+}
 
 fn run_worker(
     staging: &Path,
+    artifact_root: &Path,
     python: &Path,
     worker: &Path,
     req: &Request,
@@ -370,9 +753,12 @@ fn run_worker(
 ) -> Result<(Response, Vec<Vec<u8>>), Failure> {
     let deadline = Instant::now() + Duration::from_millis(req.deadline_ms);
     check(deadline, cancel)?;
-    if input.len() > 16 * 1024 * 1024 {
-        return Err(Failure::Failed("text input exceeds 16 MiB".into()));
+    if input.len() > worker_input_limit(&req.capability) {
+        return Err(Failure::Failed(
+            "worker input exceeds capability byte budget".into(),
+        ));
     }
+    std::fs::create_dir_all(staging)?;
     let dir = tempfile::tempdir_in(staging)?;
     std::fs::create_dir(dir.path().join("input"))?;
     std::fs::write(dir.path().join("input").join(&req.inputs[0].sha256), input)?;
@@ -388,7 +774,7 @@ fn run_worker(
     // the Core verifies those files later by digest. Only the routes that declare it
     // receive the flag, so every other launch shape stays unchanged.
     if crate::attempts::ARTIFACT_ROOT_CAPABILITIES.contains(&req.capability.as_str()) {
-        command.arg("--artifact-root").arg(staging);
+        command.arg("--artifact-root").arg(artifact_root);
     }
     command
         .current_dir(dir.path())
@@ -549,5 +935,257 @@ fn run_worker(
             Err(Failure::Failed(format!("{message}; stderr tail: {stderr}")))
         }
         other => other,
+    }
+}
+
+/// Explicit product-owned cloud policy. Never comes from an HTTP execution body.
+#[derive(Clone, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct DocumentCheckConfig {
+    pub provider: String,
+    pub model: String,
+    pub endpoint: Option<String>,
+    pub max_tokens: u64,
+    pub timeout_seconds: u64,
+    pub search_limit: u64,
+}
+impl DocumentCheckConfig {
+    pub fn validate(&self) -> Result<(), &'static str> {
+        if self.provider.is_empty()
+            || self.provider.len() > 64
+            || !self
+                .provider
+                .bytes()
+                .all(|b| b.is_ascii_alphanumeric() || b == b'_')
+            || self.model.len() > 256
+            || !self.model.starts_with(&format!("{}/", self.provider))
+            || self
+                .model
+                .split_once('/')
+                .is_none_or(|(_, name)| name.trim().is_empty())
+            || !(128..=4096).contains(&self.max_tokens)
+            || !(1..=120).contains(&self.timeout_seconds)
+            || !(1..=3).contains(&self.search_limit)
+        {
+            return Err("invalid document check configuration");
+        }
+        if self.endpoint.as_ref().is_some_and(|endpoint| {
+            !endpoint.starts_with("https://")
+                || endpoint.len() > 2048
+                || endpoint.contains(['@', '?', '#'])
+                || endpoint.chars().any(char::is_whitespace)
+        }) {
+            return Err("invalid document check endpoint");
+        }
+        Ok(())
+    }
+}
+
+impl Executor {
+    pub fn with_document_check_config(
+        mut self,
+        config: Option<DocumentCheckConfig>,
+    ) -> Result<Self, String> {
+        if config
+            .as_ref()
+            .is_some_and(|value| value.validate().is_err())
+        {
+            self.document_check_config = None;
+            self.document_check_config_error = Some("invalid_config".into());
+            return Ok(self);
+        }
+        self.document_check_config = config.map(Arc::new);
+        Ok(self)
+    }
+    pub fn with_document_check_config_error(
+        mut self,
+        error: Option<String>,
+    ) -> Result<Self, String> {
+        if error
+            .as_deref()
+            .is_some_and(|value| value != "invalid_config")
+            || (error.is_some() && self.document_check_config.is_some())
+        {
+            return Err("invalid document check error contract".into());
+        }
+        if error.is_some() {
+            self.document_check_config_error = error;
+        }
+        Ok(self)
+    }
+    pub fn document_check_config_error(&self) -> Option<String> {
+        self.document_check_config_error.clone()
+    }
+    pub fn document_check_config(&self) -> Option<DocumentCheckConfig> {
+        self.document_check_config
+            .as_ref()
+            .map(|v| v.as_ref().clone())
+    }
+    /// Reuse the launch-owned machine worker and product interpreter. All I/O is bounded.
+    pub async fn document_check(
+        &self,
+        request: serde_json::Value,
+    ) -> Result<serde_json::Value, String> {
+        let config = self.document_check_config().ok_or("not_configured")?;
+        config.validate().map_err(str::to_owned)?;
+        if request["config"] != serde_json::to_value(&config).map_err(|_| "invalid_config")? {
+            return Err("config_identity_mismatch".into());
+        }
+        let worker = self
+            .worker_for("machine.answer")
+            .map(|(path, _)| path)
+            .ok_or("worker_not_configured")?;
+        let python = self.python.clone();
+        let bytes = serde_json::to_vec(&request).map_err(|_| "invalid_request")?;
+        if bytes.len() > 512000 {
+            return Err("input_exceeds_bound".into());
+        }
+        let permit = self
+            .derived_slots
+            .clone()
+            .acquire_owned()
+            .await
+            .map_err(|_| "execution_unavailable")?;
+        tokio::task::spawn_blocking(move || {
+            let _permit = permit;
+            let deadline = Instant::now() + Duration::from_secs(config.timeout_seconds + 20);
+            let mut command = Command::new(&python);
+            command
+                .arg("-B")
+                .arg(worker)
+                .arg("--document-check")
+                .stdin(Stdio::piped())
+                .stdout(Stdio::piped())
+                .stderr(Stdio::piped());
+            #[cfg(windows)]
+            {
+                use std::os::windows::process::CommandExt;
+                command.creation_flags(0x08000000);
+            }
+            let mut child = OwnedChild(command.spawn().map_err(|_| "worker_start_failed")?);
+            let mut input = child.0.stdin.take().ok_or("worker_stdin_missing")?;
+            let mut output = child.0.stdout.take().ok_or("worker_stdout_missing")?;
+            let mut errors = child.0.stderr.take().ok_or("worker_stderr_missing")?;
+            let (send, receive) = mpsc::channel();
+            let reader = thread::spawn(move || {
+                let mut bytes = Vec::new();
+                let result = output
+                    .by_ref()
+                    .take(128001)
+                    .read_to_end(&mut bytes)
+                    .map_err(|_| "worker_read_failed");
+                let _ = send.send(result.map(|_| bytes));
+            });
+            // Drain without logging secret-bearing SDK stderr; no unbounded allocation.
+            let err_reader = thread::spawn(move || {
+                let _ = std::io::copy(&mut errors, &mut std::io::sink());
+            });
+            let (written_send, written_receive) = mpsc::channel();
+            let writer = thread::spawn(move || {
+                let result = input.write_all(&bytes).map_err(|_| "worker_write_failed");
+                drop(input);
+                let _ = written_send.send(result);
+            });
+            let result = (|| -> Result<serde_json::Value, String> {
+                written_receive
+                    .recv_timeout(deadline.saturating_duration_since(Instant::now()))
+                    .map_err(|_| "worker_timeout")?
+                    .map_err(str::to_owned)?;
+                let bytes = receive
+                    .recv_timeout(deadline.saturating_duration_since(Instant::now()))
+                    .map_err(|_| "worker_timeout")?
+                    .map_err(str::to_owned)?;
+                if bytes.len() > 128000 {
+                    return Err("output_exceeds_bound".into());
+                }
+                let value: serde_json::Value =
+                    serde_json::from_slice(&bytes).map_err(|_| "invalid_worker_response")?;
+                if !["succeeded", "failed"].contains(&value["outcome"].as_str().unwrap_or("")) {
+                    return Err("invalid_worker_response".into());
+                }
+                loop {
+                    match child.0.try_wait().map_err(|_| "worker_wait_failed")? {
+                        Some(status) => {
+                            if (value["outcome"] == "succeeded") != status.success() {
+                                return Err("worker_exit_outcome_mismatch".into());
+                            }
+                            break;
+                        }
+                        None if Instant::now() < deadline => {
+                            thread::sleep(Duration::from_millis(20))
+                        }
+                        _ => return Err("worker_timeout".into()),
+                    }
+                }
+                Ok(value)
+            })();
+            if child.0.try_wait().ok().flatten().is_none() {
+                let _ = child.0.kill();
+                let _ = child.0.wait();
+            }
+            // Cancel our own blocking pipe I/O; a descendant retaining a pipe cannot
+            // make cleanup join forever. No shared process or global setting is changed.
+            #[cfg(windows)]
+            {
+                use std::os::windows::io::AsRawHandle;
+                #[link(name = "kernel32")]
+                unsafe extern "system" {
+                    fn CancelSynchronousIo(thread: *mut std::ffi::c_void) -> i32;
+                }
+                for task in [&reader, &writer, &err_reader] {
+                    if !task.is_finished() {
+                        unsafe {
+                            CancelSynchronousIo(task.as_raw_handle());
+                        }
+                    }
+                }
+            }
+            let cleanup_deadline = Instant::now() + Duration::from_secs(1);
+            while (!reader.is_finished() || !writer.is_finished() || !err_reader.is_finished())
+                && Instant::now() < cleanup_deadline
+            {
+                thread::sleep(Duration::from_millis(10));
+            }
+            let incomplete =
+                !reader.is_finished() || !writer.is_finished() || !err_reader.is_finished();
+            for task in [reader, writer, err_reader] {
+                if task.is_finished() {
+                    let _ = task.join();
+                }
+            }
+            if incomplete {
+                return Err("worker_cleanup_incomplete".into());
+            }
+
+            result
+        })
+        .await
+        .map_err(|_| "worker_task_failed".to_string())?
+    }
+}
+
+#[cfg(test)]
+mod media_input_budget_tests {
+    #[test]
+    fn only_execution_media_capabilities_receive_the_larger_budget() {
+        assert_eq!(
+            super::worker_input_limit("media.transcribe"),
+            64 * 1024 * 1024
+        );
+        assert_eq!(super::worker_input_limit("media.video"), 64 * 1024 * 1024);
+        assert_eq!(super::worker_input_limit("media.diarize"), 64 * 1024 * 1024);
+        for capability in [
+            "text.extract",
+            "media.probe",
+            "image.ocr",
+            "office.structure",
+            "unknown",
+        ] {
+            assert_eq!(super::worker_input_limit(capability), 16 * 1024 * 1024);
+        }
+        assert_eq!(
+            archeaxis_sidecar_protocol::worker::MAX_FRAME_BYTES,
+            1024 * 1024
+        );
     }
 }

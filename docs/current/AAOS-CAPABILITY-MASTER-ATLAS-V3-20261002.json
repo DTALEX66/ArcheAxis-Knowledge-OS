@@ -1,0 +1,614 @@
+{
+  "document": "AAOS_CAPABILITY_MASTER_ATLAS_V3",
+  "recorded_at": "2026-10-02T07:01:15.837733+00:00",
+  "supersedes": "AAOS_MASTER_ATLAS_2026-09-29.json (v2) for the current-view; v2 remains the historical record and is not deleted",
+  "not_a_reduction": "the terminal capability set is unchanged; what changes is which capabilities are ACTIVE for R7",
+  "product_identity_frozen": {
+    "is": [
+      "local-first",
+      "evidence-driven",
+      "trusted knowledge",
+      "universal knowledge compatibility",
+      "human-AI bidirectional learning",
+      "plugin-based capability ecosystem"
+    ],
+    "is_not": [
+      "a general agent OS",
+      "a WORK-LAB replacement",
+      "a Notion clone",
+      "an Obsidian clone",
+      "a RAGFlow clone",
+      "a Dify clone",
+      "a chatbot",
+      "a file manager"
+    ]
+  },
+  "core_a_universal_knowledge": {
+    "mandate": "compatibility with personal-knowledge software and multi-format material",
+    "formats": [
+      "Markdown",
+      "PDF",
+      "Office",
+      "HTML/Web",
+      "Image/OCR",
+      "Audio",
+      "Video",
+      "Git",
+      "Canvas"
+    ],
+    "software_targets": [
+      "Obsidian",
+      "Notion Export",
+      "Outline",
+      "Docmost",
+      "Wiki.js",
+      "BookStack",
+      "Joplin",
+      "Logseq",
+      "SiYuan",
+      "Zotero",
+      "Anki",
+      "RAGFlow",
+      "FastGPT",
+      "MaxKB",
+      "Dify",
+      "WeKnora"
+    ],
+    "rule": "through Adapter / Import / Export / API / Provider - never by copying ten products"
+  },
+  "core_b_heavy_learning": {
+    "human_learning": [
+      "Capture",
+      "Knowledge Structure",
+      "Diagnosis",
+      "Learning Route",
+      "Cognitive Load",
+      "Memory Encoding",
+      "FSRS",
+      "Knowledge Palace",
+      "Active Training",
+      "Skill Practice",
+      "Metacognition",
+      "Error Feedback",
+      "Teach-back",
+      "Learner Profile",
+      "Long-term Consolidation"
+    ],
+    "machine_learning": [
+      "Machine Knowledge",
+      "Context",
+      "Memory",
+      "Rule",
+      "Skill",
+      "Evaluation",
+      "Correction",
+      "Retest",
+      "Feedback Loop"
+    ],
+    "ladder": "Experience -> Knowledge -> Rule -> Skill",
+    "note": "machine learning here does not mean training a foundation model"
+  },
+  "capability_atlas_as_archived": [
+    {
+      "capability_id": "CAP-0010",
+      "canonical_name": "原件资产与来源接入",
+      "pillar": "P0",
+      "authority_status": "binding_core",
+      "horizon": "H0-H1",
+      "technical_state": "supported",
+      "current_note": "当前核心"
+    },
+    {
+      "capability_id": "CAP-0020",
+      "canonical_name": "多格式转换",
+      "pillar": "P0",
+      "authority_status": "binding_core",
+      "horizon": "H1-H2",
+      "technical_state": "in_progress",
+      "current_note": "当前核心"
+    },
+    {
+      "capability_id": "CAP-0030",
+      "canonical_name": "证据锚定与交叉核验",
+      "pillar": "P1",
+      "authority_status": "binding_core",
+      "horizon": "H1",
+      "technical_state": "supported",
+      "current_note": "当前核心；科研增强主入口"
+    },
+    {
+      "capability_id": "CAP-0040",
+      "canonical_name": "人类深度学习系统",
+      "pillar": "P2",
+      "authority_status": "binding_core",
+      "horizon": "H4",
+      "technical_state": "in_progress",
+      "current_note": "长期核心；Learning Compiler"
+    },
+    {
+      "capability_id": "CAP-0050",
+      "canonical_name": "AI 学习资产与受控调用",
+      "pillar": "P3",
+      "authority_status": "binding_long_term",
+      "horizon": "H4-H8",
+      "technical_state": "planned",
+      "current_note": "机器学习资产"
+    },
+    {
+      "capability_id": "CAP-0060",
+      "canonical_name": "LER 视觉教学与课件",
+      "pillar": "P4",
+      "authority_status": "binding_long_term",
+      "horizon": "H6-H7",
+      "technical_state": "planned",
+      "current_note": "保留"
+    },
+    {
+      "capability_id": "CAP-0070",
+      "canonical_name": "动态解释与仿真",
+      "pillar": "P4",
+      "authority_status": "binding_long_term",
+      "horizon": "H7",
+      "technical_state": "planned",
+      "current_note": "保留"
+    },
+    {
+      "capability_id": "CAP-0080",
+      "canonical_name": "空间记忆与沉浸学习",
+      "pillar": "P5",
+      "authority_status": "binding_long_term",
+      "horizon": "H7-H8",
+      "technical_state": "planned",
+      "current_note": "保留；M2/H7+"
+    },
+    {
+      "capability_id": "CAP-0090",
+      "canonical_name": "研究、课程与项目工作空间",
+      "pillar": "P6",
+      "authority_status": "binding_long_term",
+      "horizon": "H6-H7",
+      "technical_state": "planned",
+      "current_note": "科研增强主入口"
+    },
+    {
+      "capability_id": "CAP-0100",
+      "canonical_name": "开放互操作与生态适配器",
+      "pillar": "P7",
+      "authority_status": "binding_core",
+      "horizon": "H3",
+      "technical_state": "in_progress",
+      "current_note": "Obsidian/Zotero/Anki 等"
+    },
+    {
+      "capability_id": "CAP-0110",
+      "canonical_name": "搜索、图谱与索引",
+      "pillar": "P8",
+      "authority_status": "binding_core",
+      "horizon": "H3-H4",
+      "technical_state": "in_progress",
+      "current_note": "FTS5/sqlite-vec/derived graph"
+    },
+    {
+      "capability_id": "CAP-0120",
+      "canonical_name": "桌面、平台与可选协作",
+      "pillar": "P9",
+      "authority_status": "binding_core",
+      "horizon": "H0-H5",
+      "technical_state": "in_progress",
+      "current_note": "Avalonia 正式壳"
+    },
+    {
+      "capability_id": "CAP-0130",
+      "canonical_name": "受限受控执行探索",
+      "pillar": "P10",
+      "authority_status": "exploration",
+      "horizon": "H8-H10",
+      "technical_state": "planned",
+      "current_note": "通用 Agent/执行后置"
+    },
+    {
+      "capability_id": "CAP-0140",
+      "canonical_name": "备份、同步与发布",
+      "pillar": "P8/P9",
+      "authority_status": "binding_long_term",
+      "horizon": "H5-H9",
+      "technical_state": "in_progress",
+      "current_note": "当前有备份/候选/Green门"
+    },
+    {
+      "capability_id": "CAP-0150",
+      "canonical_name": "模型、Provider 与数据出境治理",
+      "pillar": "P8",
+      "authority_status": "binding_long_term",
+      "horizon": "H4-H8",
+      "technical_state": "planned",
+      "current_note": "科研/云/本地模型路由入口"
+    },
+    {
+      "capability_id": "CAP-0160",
+      "canonical_name": "可视化与空间学习表征",
+      "pillar": "P4",
+      "authority_status": "binding_long_term",
+      "horizon": "H6-H8",
+      "technical_state": "planned",
+      "current_note": "图解/Canvas/Graph/Learning Map"
+    }
+  ],
+  "capability_absorption_as_archived": [
+    {
+      "capability_id": "CAP-CORE-KNOWLEDGE",
+      "capability_name": "Canonical knowledge and source lifecycle",
+      "status": "integrated",
+      "absorption_mode": "DIRECT_DEPENDENCY",
+      "upstream_or_owner": "first-party Rust Core"
+    },
+    {
+      "capability_id": "CAP-DEEPTUTOR",
+      "capability_name": "Source-grounded tutor and recoverable learning workspace",
+      "status": "candidate",
+      "absorption_mode": "SIDECAR",
+      "upstream_or_owner": "DeepTutor"
+    },
+    {
+      "capability_id": "CAP-OPENTUTOR",
+      "capability_name": "Adaptive learning blocks and FSRS integration",
+      "status": "candidate",
+      "absorption_mode": "ALGORITHM_DONOR",
+      "upstream_or_owner": "OpenTutor"
+    },
+    {
+      "capability_id": "CAP-LEARNINGMAP",
+      "capability_name": "Knowledge components, prerequisites, diagnosis, and pedagogy",
+      "status": "candidate",
+      "absorption_mode": "ALGORITHM_DONOR",
+      "upstream_or_owner": "LearningMAP"
+    },
+    {
+      "capability_id": "CAP-OPENMAIC",
+      "capability_name": "Course DSL, renderer, and interactive learning artifacts",
+      "status": "candidate",
+      "absorption_mode": "CONTRACT_ADAPTER",
+      "upstream_or_owner": "OpenMAIC"
+    },
+    {
+      "capability_id": "CAP-RAG-ANYTHING",
+      "capability_name": "Multimodal document parsing and structure extraction",
+      "status": "candidate",
+      "absorption_mode": "PYTHON_WORKER",
+      "upstream_or_owner": "RAG-Anything"
+    },
+    {
+      "capability_id": "CAP-LIGHTRAG",
+      "capability_name": "Mixed vector and graph retrieval projection",
+      "status": "candidate",
+      "absorption_mode": "ALGORITHM_DONOR",
+      "upstream_or_owner": "LightRAG"
+    },
+    {
+      "capability_id": "CAP-GRAPHITI",
+      "capability_name": "Temporal knowledge projection and supersession",
+      "status": "candidate",
+      "absorption_mode": "ALGORITHM_DONOR",
+      "upstream_or_owner": "Graphiti"
+    },
+    {
+      "capability_id": "CAP-MEMOS",
+      "capability_name": "Machine experience memory and skill crystallization",
+      "status": "candidate",
+      "absorption_mode": "SIDECAR",
+      "upstream_or_owner": "MemOS"
+    },
+    {
+      "capability_id": "CAP-WEKNORA",
+      "capability_name": "Knowledge workspace editing, revision, diff, and rollback UX",
+      "status": "reference",
+      "absorption_mode": "UX_DONOR",
+      "upstream_or_owner": "WeKnora"
+    },
+    {
+      "capability_id": "CAP-COGNEE",
+      "capability_name": "Graph, memory, and ontology benchmark reference",
+      "status": "reference",
+      "absorption_mode": "REFERENCE_ONLY",
+      "upstream_or_owner": "Cognee"
+    }
+  ],
+  "requirements_as_archived": [
+    {
+      "requirement_id": "REQ-SOURCE-001",
+      "title": "原件保全与来源接入",
+      "capability": "CAP-0010",
+      "horizon": "H0-H1",
+      "status": "met_partial"
+    },
+    {
+      "requirement_id": "REQ-CONVERT-001",
+      "title": "多格式转换与质量门",
+      "capability": "CAP-0020",
+      "horizon": "H1-H2",
+      "status": "in_progress"
+    },
+    {
+      "requirement_id": "REQ-EVIDENCE-001",
+      "title": "证据锚定交叉核验",
+      "capability": "CAP-0030",
+      "horizon": "H1",
+      "status": "met_partial"
+    },
+    {
+      "requirement_id": "REQ-LEARNING-001",
+      "title": "人类深度学习链",
+      "capability": "CAP-0040",
+      "horizon": "H4",
+      "status": "in_progress"
+    },
+    {
+      "requirement_id": "REQ-AI-ASSET-001",
+      "title": "AI 学习资产与受控调用",
+      "capability": "CAP-0050",
+      "horizon": "H4-H8",
+      "status": "planned"
+    },
+    {
+      "requirement_id": "REQ-LER-001",
+      "title": "LER 视觉教学",
+      "capability": "CAP-0060",
+      "horizon": "H6-H7",
+      "status": "planned"
+    },
+    {
+      "requirement_id": "REQ-LER-002",
+      "title": "动态解释与仿真",
+      "capability": "CAP-0070",
+      "horizon": "H7",
+      "status": "planned"
+    },
+    {
+      "requirement_id": "REQ-SPATIAL-001",
+      "title": "空间记忆与沉浸学习",
+      "capability": "CAP-0080",
+      "horizon": "H7-H8",
+      "status": "planned"
+    },
+    {
+      "requirement_id": "REQ-RESEARCH-001",
+      "title": "研究课程项目空间",
+      "capability": "CAP-0090",
+      "horizon": "H6-H7",
+      "status": "planned"
+    },
+    {
+      "requirement_id": "REQ-INTEROP-001",
+      "title": "开放互操作与适配器",
+      "capability": "CAP-0100",
+      "horizon": "H3",
+      "status": "in_progress"
+    },
+    {
+      "requirement_id": "REQ-SEARCH-001",
+      "title": "搜索图谱索引",
+      "capability": "CAP-0110",
+      "horizon": "H3-H4",
+      "status": "in_progress"
+    },
+    {
+      "requirement_id": "REQ-DESKTOP-001",
+      "title": "桌面平台",
+      "capability": "CAP-0120",
+      "horizon": "H0-H5",
+      "status": "in_progress"
+    },
+    {
+      "requirement_id": "REQ-EXPLORATION-001",
+      "title": "受控执行探索",
+      "capability": "CAP-0130",
+      "horizon": "H8-H10",
+      "status": "deferred"
+    },
+    {
+      "requirement_id": "REQ-BACKUP-001",
+      "title": "备份同步发布",
+      "capability": "CAP-0140",
+      "horizon": "H5-H9",
+      "status": "in_progress"
+    },
+    {
+      "requirement_id": "REQ-PROVIDER-001",
+      "title": "模型 Provider 治理",
+      "capability": "CAP-0150",
+      "horizon": "H4-H8",
+      "status": "planned"
+    },
+    {
+      "requirement_id": "REQ-VISUAL-001",
+      "title": "可视化表征",
+      "capability": "CAP-0160",
+      "horizon": "H6-H8",
+      "status": "planned"
+    },
+    {
+      "requirement_id": "REQ-IDENTITY-001",
+      "title": "产品身份与命名",
+      "capability": "—",
+      "horizon": "H0",
+      "status": "met_partial"
+    }
+  ],
+  "history_to_current_as_archived": [
+    {
+      "historical_family": "Cognitive/Agent OS",
+      "historical_content": "通用 Agent OS",
+      "current_owner_or_capability": "WORK-LAB / AAOS CAP-0130 exploration",
+      "disposition": "产品中心定位废弃；执行思想外移/受限保留"
+    },
+    {
+      "historical_family": "Human Learning OS A线",
+      "historical_content": "诊断/路线/认知负荷/宫殿/训练/Teach-back/画像",
+      "current_owner_or_capability": "CAP-0040 / 0060 / 0070 / 0080 / 0160",
+      "disposition": "长期能力 donor；按 Horizon 激活"
+    },
+    {
+      "historical_family": "Machine Knowledge OS B线",
+      "historical_content": "Context Pack/Route/MCP/Multi-Agent/TaskPack/Sandbox/Eval",
+      "current_owner_or_capability": "WORK-LAB + CAP-0050/0130",
+      "disposition": "AAOS 保留 AI Asset/Trace/Review；通用编排外移"
+    },
+    {
+      "historical_family": "Research/VeriScope",
+      "historical_content": "外部资料/claim/evidence/conflict",
+      "current_owner_or_capability": "CAP-0030 / CAP-0090 / A06",
+      "disposition": "核心保留；科研模型增强主入口"
+    },
+    {
+      "historical_family": "Obsidian/Vault",
+      "historical_content": "开放格式/Canvas/链接/附件/往返",
+      "current_owner_or_capability": "CAP-0100",
+      "disposition": "Adapter/format compatibility，非产品克隆"
+    },
+    {
+      "historical_family": "Anki/FSRS",
+      "historical_content": "间隔重复/卡片",
+      "current_owner_or_capability": "CAP-0040 / A08",
+      "disposition": "FSRS 已吸收；卡片必须有来源/锚点"
+    },
+    {
+      "historical_family": "DeepTutor",
+      "historical_content": "学习工作台",
+      "current_owner_or_capability": "CAP-DEEPTUTOR / A08",
+      "disposition": "Sidecar/UX benchmark；不写真值"
+    },
+    {
+      "historical_family": "OpenTutor/LearningMAP",
+      "historical_content": "自适应学习/先修/诊断",
+      "current_owner_or_capability": "CAP-OPENTUTOR / CAP-LEARNINGMAP",
+      "disposition": "Algorithm donor"
+    },
+    {
+      "historical_family": "LightRAG/GraphRAG/KAG",
+      "historical_content": "高级检索/图 RAG",
+      "current_owner_or_capability": "CAP-0110 / CAP-LIGHTRAG",
+      "disposition": "算法/eval donor；不做第二事实库"
+    },
+    {
+      "historical_family": "Graphiti/MemOS/Cognee",
+      "historical_content": "时序图/机器记忆/本体",
+      "current_owner_or_capability": "CAP-GRAPHITI / MEMOS / COGNEE",
+      "disposition": "candidate/reference；后置"
+    },
+    {
+      "historical_family": "Visual Teaching / LER",
+      "historical_content": "图解/课件/动画/仿真",
+      "current_owner_or_capability": "CAP-0060/0070/0160",
+      "disposition": "binding_long_term"
+    },
+    {
+      "historical_family": "Spatial Memory",
+      "historical_content": "Palace/Room/Locus/Route/2D-3D-VR",
+      "current_owner_or_capability": "CAP-0080",
+      "disposition": "binding_long_term；M2/H7+"
+    },
+    {
+      "historical_family": "Model Foundry",
+      "historical_content": "多模型路由/本地模型",
+      "current_owner_or_capability": "CAP-0150 + LiteLLM",
+      "disposition": "Provider governance，不是用户一级导航"
+    },
+    {
+      "historical_family": "Open-source Foundry",
+      "historical_content": "开源项目池",
+      "current_owner_or_capability": "369→47 Supply Chain→11 Absorption",
+      "disposition": "从数量驱动收敛为能力 donor/供应链治理"
+    },
+    {
+      "historical_family": "Scientific Intelligence 2026-09-29",
+      "historical_content": "Asta/PaperQA2/Intern-S2/AstaBench 等",
+      "current_owner_or_capability": "CAP-0030/0040/0090/0150",
+      "disposition": "新增提案；先 contract + candidate/eval，不能自动写 Knowledge"
+    }
+  ],
+  "pool_counts_as_archived": [
+    {
+      "name": "早期 STAR 候选",
+      "count": "约 103",
+      "date": "2026-07-17",
+      "meaning": "发现池；Star 不作为优先级"
+    },
+    {
+      "name": "开源能力精选",
+      "count": "57",
+      "date": "2026-07/08",
+      "meaning": "某阶段深入选型；不是当前 P0"
+    },
+    {
+      "name": "高召回研究总池",
+      "count": "369",
+      "date": "2026-07-30/31",
+      "meaning": "Research/Capability donor pool；本包附完整 CSV"
+    },
+    {
+      "name": "历史 registry/ledger",
+      "count": "101",
+      "date": "2026-08 前后",
+      "meaning": "旧登记对象；不能解释为 101 已吸收"
+    },
+    {
+      "name": "历史 implemented",
+      "count": "8",
+      "date": "旧快照",
+      "meaning": "某种代码/依赖证据；不等于 released"
+    },
+    {
+      "name": "当前 Supply Chain Ledger",
+      "count": "47",
+      "date": "2026-09-27 main",
+      "meaning": "当前组件级裁决；CURRENT/ADOPT/EVALUATE/SIDECAR/BLOCK 等"
+    },
+    {
+      "name": "当前 Capability Absorption Registry",
+      "count": "11",
+      "date": "2026-09-19+",
+      "meaning": "能力供体级；不是软件数量竞赛"
+    },
+    {
+      "name": "Capability Atlas",
+      "count": "16",
+      "date": "2026-08-12",
+      "meaning": "长期能力宪法 CAP-0010~0160"
+    },
+    {
+      "name": "Requirement Trace",
+      "count": "17",
+      "date": "2026-08-12",
+      "meaning": "长期需求→能力映射（含 Identity）"
+    }
+  ],
+  "r7_active_surface": {
+    "active": [
+      "G1 trusted core",
+      "G2 first-batch formats and one software source",
+      "G3 human learning lite",
+      "G4 machine co-learning lite",
+      "G5 golden journey"
+    ],
+    "deferred_but_retained": [
+      "full GraphRAG",
+      "multiple vector DBs",
+      "multiple RAG engines",
+      "multiple memory engines",
+      "plugin marketplace",
+      "community plugins",
+      "all domain packs",
+      "full course engine",
+      "full DeepTutor",
+      "full OpenMAIC",
+      "3D",
+      "VR/AR",
+      "full spatial memory",
+      "multi-device",
+      "multi-user",
+      "cloud sync",
+      "general agent orchestration"
+    ],
+    "rule": "deferred means deferred, not deleted - all of it stays in this Atlas and the donor pool"
+  }
+}

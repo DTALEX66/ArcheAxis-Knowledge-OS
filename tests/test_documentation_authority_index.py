@@ -133,7 +133,7 @@ def test_authority_indexes_route_normalization_to_a_frozen_historical_record() -
     language = (ROOT / "docs" / "LANGUAGE_BOUNDARY_AUTHORITY_INDEX.md").read_text(
         encoding="utf-8"
     )
-    assert "Current migration acceptance is defined by R6 A13 and" in language
+    assert "Inherited migration acceptance requirements remain defined by R6 A13 and" in language
     assert "Historical T13 evidence is not a current gate" in language
 
     documentation = (ROOT / "docs" / "DOCUMENTATION_AUTHORITY_INDEX.md").read_text(
@@ -159,24 +159,43 @@ def test_superseded_g0_implementation_plan_is_explicitly_frozen() -> None:
     assert "R6/M0" in text.splitlines()[2]
 
 
-def test_current_ui_roadmap_declares_b10_authority_and_shared_dual_themes() -> None:
-    roadmap = (ROOT / "docs" / "current" / "UI_V3_PRODUCT_ROADMAP.md").read_text(
-        encoding="utf-8"
-    )
+def test_current_ui_roadmap_uses_new_design_and_shared_five_themes() -> None:
+    roadmap = (ROOT / "docs/current/UI_V3_PRODUCT_ROADMAP.md").read_text(encoding="utf-8")
+    current = roadmap.split("## 历史视觉与路线说明", 1)[0]
+    assert "新22页参考" in current
+    assert "blueprint" in current and "blueprint-light" in current
+    assert all(theme in current for theme in ("black", "white", "cosmic"))
+    assert "五主题共用新布局" in current
+    assert "统一语义颜色" in current
+    assert "主题切换只更新前端宿主资源，不更改 Core 配置或知识数据" in current
+    assert "历史参考，不是默认主题" in current
+    assert "B10 最终高保真可部署母版是最高视觉依据" not in current
+    contract = json.loads((ROOT / "config/product/UI_CONTRACT_V2.json").read_text(encoding="utf-8"))
+    projection = contract["visualProjection"]
+    assert projection["defaultTheme"] == "blueprint"
+    assert projection["themes"] == ["blueprint", "blueprint-light", "black", "white", "cosmic"]
+    assert projection["sharedNewLayout"] and projection["legacyThemesArePaletteOnly"]
+    assert projection["consistentSemanticColorsWithinTheme"]
+    assert not projection["changesCoreOrKnowledgeData"]
+    assert contract["executionProjection"]["canonicalPointer"] == "docs/current/AAOS-ACTIVE-EXECUTION.json"
 
-    assert "B10 最终高保真可部署母版是最高视觉依据" in roadmap
-    assert "Aurora 与黑白深色两套配色共用布局及状态" in roadmap
-    assert "两套主题共用 ArcheAxis 母版布局、组件状态、页面密度和缩放规则" in roadmap
-    assert "主题切换只更新 Avalonia 前端资源，不更改 Core 配置或知识数据" in roadmap
-    assert "历史参考，不是默认主题" in roadmap
-    assert "设计底座：Archive Desk + Liquid Glass" not in roadmap
+
+def test_active_execution_pointer_routes_ui_and_keeps_q_evidence_scoped() -> None:
+    pointer = json.loads((ROOT / "docs/current/AAOS-ACTIVE-EXECUTION.json").read_text(encoding="utf-8"))
+    assert pointer["schema"] == "archeaxis.active-execution/v1"
+    assert pointer["active_taskpack"] == "docs/taskpacks/aaos-ui-first-20261009"
+    assert pointer["active_progress"] == "docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md"
+    assert pointer["inherited_progress"] == ["docs/current/AAOS01-Q00-Q15-LEDGER-FINAL-20261005.md"]
+    assert (ROOT / pointer["active_taskpack"] / "TASKPACK.md").is_file()
+    assert (ROOT / pointer["active_progress"]).is_file()
 
 
 def test_readme_marks_pre_r6_capability_and_phase_roadmaps_as_historical() -> None:
     readme = (ROOT / "README.md").read_text(encoding="utf-8")
     assert "Historical snapshot: pre-R6 Research implementation" in readme
     assert "Historical snapshot: pre-R6 program roadmap" in readme
-    assert "Current execution is defined by R6/M0" in readme
+    assert "AAOS-ACTIVE-EXECUTION.json" in readme
+    assert "AAOS-UI-FIRST-EXECUTION-20261009.md" in readme
     assert "当前事实、限制和验证证据见 [`docs/PROJECT_STATUS.md`]" not in readme
 
 
@@ -195,9 +214,17 @@ def test_r6_formal_shell_supersedes_web_first_priority_without_banning_reuse() -
     assert "status: effective" in sup021
     assert "first-release shell priority" in sup021
     assert "TypeScript/JavaScript" in sup021
-    assert ui_contract["productShell"]["base"] == "ArcheAxis C#/Avalonia"
-    assert ui_contract["productShell"]["webCompatibilityRole"] == (
-        "legacy-recovery-and-behavior-reference"
+    # SUP-022 supersedes SUP-021's formal-shell priority, so the machine-readable UI contract
+    # must carry the Tauri/React host rather than the donor it replaced.
+    sup022 = ledger.split("  - id: SUP-022\n", 1)[1].split("  - id: SUP-023\n", 1)[0]
+    assert "status: effective" in sup022
+    assert "SUP-021 formal-shell priority only" in sup022
+    assert "Tauri 2 with React" in sup022
+    assert ui_contract["productShell"]["base"] == "ArcheAxis Tauri 2 + React/TypeScript/Vite"
+    assert ui_contract["productShell"]["authorityDecision"] == "SUP-022"
+    assert ui_contract["productShell"]["donorShell"]["base"] == "ArcheAxis C#/Avalonia"
+    assert ui_contract["productShell"]["donorShell"]["role"] == (
+        "frozen-behavior-and-component-donor"
     )
 
 

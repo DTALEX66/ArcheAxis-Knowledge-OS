@@ -1,53 +1,47 @@
 import { describe, expect, it } from "vitest";
 import { render, screen, within } from "@testing-library/react";
 import { App } from "../app/App";
-import { SPACES } from "../spaces/spaces";
+import { UI_DAILY_ENTRY_POINTS, UI_FIXED_ENTRY_POINTS, UI_PAGES } from "../presentation/uiPages";
 import { LearningSpace } from "../spaces/LearningSpace";
 import userEvent from "@testing-library/user-event";
 
 describe("OSUI v3 production contract", () => {
-  it("uses Chinese-first names for every primary product space", () => {
-    expect(SPACES.map((space) => space.label)).toEqual([
-      "工作台",
-      "资料库",
-      "导入",
-      "知识库",
-      "证据",
-      "学习",
-      "机器知识",
-      "交换",
-      "设置",
-    ]);
+  it("exposes the new five domains with preserved semantic pages and a detail-only page 18", () => {
+    render(<App/>);
+    expect(UI_PAGES).toHaveLength(22);
+    const rail=screen.getByRole("navigation",{name:"主空间导航"});
+    for(const entry of [...UI_DAILY_ENTRY_POINTS,...UI_FIXED_ENTRY_POINTS]) expect(within(rail).getByRole("button",{name:entry.label})).toBeInTheDocument();
+    expect(within(rail).queryByRole("button",{name:"研究空间"})).toBeNull();
+    expect(within(rail).queryByRole("button",{name:"能力详情"})).toBeNull();
   });
-
   it("renders the product workbench instead of a generic status dashboard", () => {
     render(<App />);
 
     expect(document.querySelector(".app-shell")).toBeInTheDocument();
-    expect(document.querySelector(".workspace-page")).toBeInTheDocument();
+    expect(document.querySelector(".ui-workspace")).toBeInTheDocument();
     const main = screen.getByRole("main", { name: "当前空间内容" });
-    expect(within(main).getByRole("heading", { name: /工作台/ })).toBeInTheDocument();
+    expect(within(main).getByRole("heading", { name: /工作台/, level: 1 })).toBeInTheDocument();
   });
 
   it("renders one complete product shell with global commands and contextual navigation", () => {
     render(<App />);
 
     expect(screen.getByRole("button", { name: "打开全局命令" })).toBeInTheDocument();
-    expect(screen.getByRole("navigation", { name: "当前空间导航" })).toBeInTheDocument();
+    expect(screen.getByRole("navigation", { name: "主空间导航" })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "展开检查器" })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "展开活动坞" })).toBeInTheDocument();
   });
 
-  it("uses the global command palette to navigate without exposing planned modules", async () => {
+  it("uses the global command palette to reach an actual content surface", async () => {
     const user = userEvent.setup();
     render(<App />);
 
     await user.click(screen.getByRole("button", { name: "打开全局命令" }));
     expect(screen.getByRole("dialog", { name: "全局命令" })).toBeInTheDocument();
-    await user.type(screen.getByRole("searchbox", { name: "搜索空间或命令" }), "资料");
-    await user.click(screen.getByRole("option", { name: /资料库/ }));
+    await user.type(screen.getByRole("searchbox", { name: "搜索空间或命令" }), "阅读与编辑");
+    await user.click(screen.getByRole("option", { name: /阅读与编辑/ }));
     expect(
-      within(screen.getByRole("main")).getByRole("heading", { name: "资料库" }),
+      within(screen.getByRole("main")).getByRole("heading", { name: "阅读与编辑" }),
     ).toBeInTheDocument();
     expect(screen.queryByText("Agent")).not.toBeInTheDocument();
   });
@@ -81,11 +75,12 @@ describe("OSUI v3 production contract", () => {
     render(<App />);
     const rail = screen.getByRole("navigation", { name: "主空间导航" });
 
-    await user.click(within(rail).getByRole("button", { name: /资料库/ }));
+    await user.click(within(rail).getByRole("button", { name: "知识" }));
+    await user.click(within(rail).getByRole("button", { name: /阅读与编辑/ }));
     expect(
-      within(screen.getByRole("main")).getByRole("heading", { name: "资料库" }),
+      within(screen.getByRole("main")).getByRole("heading", { name: "阅读与编辑" }),
     ).toBeInTheDocument();
-    await user.click(within(rail).getByRole("button", { name: /工作台/ }));
+    await user.click(within(rail).getByRole("button", { name: "工作台" }));
     await user.click(within(rail).getByRole("button", { name: /设置/ }));
     const main = screen.getByRole("main");
     expect(within(main).getByRole("heading", { name: /设置/ })).toBeInTheDocument();

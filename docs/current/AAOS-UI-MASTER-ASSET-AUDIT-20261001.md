@@ -46,3 +46,18 @@
 ## 下一步验收口径
 
 逐路由保留母版截图和同尺寸原生截图，核查布局、字体、间距、色彩、图标、双主题、720/1440 DIP 及 100/125/150/200% DPI；另录制窗口缩放、鼠标/键盘、空/加载/错误/离线与 reduced motion。每个数据图形需给出实际 Core 响应或 unavailable 证据。当前阶段仅有源码与压缩包静态审计，以上均为 `NOT_EXECUTED`。
+
+## 更正（2026-10-08）：正式 UI 品牌图改用业主黑白标志母版抠图
+
+- 母版：业主 2026-10-08 提供的 `Three_Project_Logos_BW_4K_0001_图层 3.jpg`，295557 字节，SHA-256 `670eb8238380992436960333af8950aaf6aa90029847cf0ab98b3f2c7e4b1617`。该文件是个人资产、不在仓库内，所以清单只登记它的哈希与派生成品，不导入原件。
+- 抠图配方：亮度拉伸后直接作为 alpha（黑底→透明，笔画边缘保留），RGB 取各主题自身的 `--aaos-text`；emblem 母版画布 973x879，lockup 母版画布 1036x1053。脚本与逐尺寸对照表在 `.project-local/legacy-scratch-20261008/runs-dirs/logo-extract-20261008/`。
+- 尺寸按界面槽位取，不按母版取：状态栏品牌框是 28 CSS px 高，所以产品内用的是 emblem 单图，并按其自身 1.107 比例画成 31x28（方形画布会把标志压成 20 px 高）；28 px 下线性 alpha 会丢掉细轨道，因此烘焙 `gamma 0.6` 的光学校正——该值由 `未跟踪 .project-local/legacy-scratch-20261008/runs-dirs/logo-extract-20261008/compare_small_sizes.py` 在 28 px 实测四档后选定，不是估的。
+- 外壳图标沿用原 `icon.png` 的透明底约定（旧文件也是 RGBA 256、约 18% 不透明像素），没有自造深色底板。
+- 母版的中文行写的是“星环知识系统”，而 `NAMING_CONTRACT_V2` 锁定“星环知识平台”。因此产品内只使用图形 emblem，名称继续由文本承担；拉丁 wordmark 另存母版供需要完整 lockup 的界面使用。该措辞差异属业主决定项，本轮不改母版、也不把“系统”引进界面。
+
+被替换的三张自绘近似 SVG 记入清单 `superseded`（含原哈希与原提交 `29c3cb98`），恢复命令：`git checkout 29c3cb98 -- frontend/src/assets/aaos-brand-mark-black.svg frontend/src/assets/aaos-brand-mark-white.svg frontend/src/assets/aaos-brand-mark-cosmic.svg`。
+
+上一轮记录的“不将源设计板或整页截图裁成产品素材”（`docs/history/ui-asset-audit-20261001/AAOS-UI-ASSET-INDEX-20260927.md`）在本轮按业主明示收窄为：不得从截图/排版板臆造资产；业主直接提供的标志母版属于资产来源，按“抠图＋哈希登记”使用。历史条目保留原文，不改写。
+
+- 已验证：Chromium 渲染下三主题各自解码到正确 PNG、绘制盒 31x28、`drop-shadow` 光效令牌逐主题不同（`scripts/a0_browser_smoke.py` 主题段）；清单逐文件哈希与磁盘一致（`tests/test_ui_asset_manifest.py`）。
+- 未验证：已安装 WebView2 宿主内的实际观感、Windows 任务栏/资源管理器对 `icon.ico` 各尺寸的渲染、业主肉眼验收。以上记 `NOT_EXECUTED`，不得由 Chromium 结果代替。

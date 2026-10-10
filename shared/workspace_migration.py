@@ -7,6 +7,7 @@ from contextlib import closing
 from pathlib import Path
 
 from shared import migration
+from shared.paths import native_path, sqlite_readonly_target
 
 WORKSPACE_SCHEMA_SQL = """
 CREATE TABLE IF NOT EXISTS workspace_jobs_v1 (
@@ -81,7 +82,7 @@ _OP_CAPABILITY = object()
 
 
 def _connect(path: Path) -> sqlite3.Connection:
-    connection = sqlite3.connect(str(path), timeout=30.0)
+    connection = sqlite3.connect(native_path(path), timeout=30.0)
     connection.execute("PRAGMA busy_timeout=30000")
     connection.row_factory = sqlite3.Row
     return connection
@@ -89,14 +90,16 @@ def _connect(path: Path) -> sqlite3.Connection:
 
 def _connect_readonly(path: Path) -> sqlite3.Connection:
     sidecars = [Path(f"{path}{suffix}") for suffix in ("-wal", "-shm")]
-    present = [sidecar.name for sidecar in sidecars if sidecar.exists()]
+    present = [sidecar.name for sidecar in sidecars if Path(native_path(sidecar)).exists()]
     if present:
         raise RuntimeError(
             "read-only workspace access requires a checkpointed database without "
             f"SQLite sidecars: {', '.join(present)}"
         )
-    uri = f"{path.resolve().as_uri()}?mode=ro&immutable=1"
-    connection = sqlite3.connect(uri, uri=True, timeout=30.0)
+    target, use_uri = sqlite_readonly_target(path)
+    connection = sqlite3.connect(
+        f"{target}&immutable=1" if use_uri else target, uri=use_uri, timeout=30.0
+    )
     connection.execute("PRAGMA busy_timeout=30000")
     connection.execute("PRAGMA query_only=ON")
     connection.row_factory = sqlite3.Row
@@ -254,7 +257,7 @@ def _apply_delivery_receipt_schema(connection: sqlite3.Connection) -> None:
 
 def status(*, db_path: str | Path) -> dict[str, object]:
     database = Path(db_path)
-    if not database.is_file():
+    if not Path(native_path(database)).is_file():
         return {"pending": True, "tables": []}
     with closing(_connect_readonly(database)) as connection:
         pending = bool(_pending_migrations(connection))
@@ -276,7 +279,7 @@ def migrate(
     if _operator_capability is not _OP_CAPABILITY:
         raise RuntimeError("workspace migration requires MigrationOperator")
     database = Path(db_path)
-    if not database.is_file():
+    if not Path(native_path(database)).is_file():
         raise FileNotFoundError(f"SQLite database not found: {database}")
     with closing(_connect(database)) as connection:
         pending = _pending_migrations(connection)

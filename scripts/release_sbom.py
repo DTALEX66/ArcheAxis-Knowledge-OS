@@ -100,6 +100,7 @@ def collect_components(root: Path) -> list[dict]:
     required = (
         (root / "uv.lock", _parse_uv_lock),
         (root / "frontend/package-lock.json", _parse_npm_lock),
+        (root / "Cargo.lock", _parse_cargo_lock),
         (root / "src-tauri/Cargo.lock", _parse_cargo_lock),
     )
     missing = [path.relative_to(root).as_posix() for path, _ in required if not path.is_file()]
@@ -108,13 +109,17 @@ def collect_components(root: Path) -> list[dict]:
 
     components: list[dict] = []
     for lock, parser_fn in required:
-        components.extend(parser_fn(lock))
+        for component in parser_fn(lock):
+            component["properties"] = [{"name": "archeaxis:lock-source", "value": lock.relative_to(root).as_posix()}]
+            components.append(component)
     for lock, parser_fn in (
         (root / "desktop/package-lock.json", _parse_npm_lock),
         (root / "desktop/src-tauri/Cargo.lock", _parse_cargo_lock),
     ):
         if lock.is_file():
-            components.extend(parser_fn(lock))
+            for component in parser_fn(lock):
+                component["properties"] = [{"name": "archeaxis:lock-source", "value": lock.relative_to(root).as_posix()}]
+                components.append(component)
 
     magika_model = root / "shared/models/magika/model.onnx"
     magika_license = root / "shared/models/magika/LICENSE"
@@ -133,7 +138,17 @@ def collect_components(root: Path) -> list[dict]:
         ]
     )
 
-    deduped = {component["purl"]: component for component in components}
+    deduped = {}
+    for component in components:
+        existing = deduped.get(component["purl"])
+        if existing is None:
+            deduped[component["purl"]] = component
+        else:
+            # One package/version, all supplying lock roots; different versions retain distinct purls.
+            properties = existing.setdefault("properties", [])
+            for prop in component.get("properties", []):
+                if prop not in properties:
+                    properties.append(prop)
     return sorted(deduped.values(), key=lambda component: (component["type"], component["name"]))
 
 

@@ -68,11 +68,12 @@ risk_classes:
     gates: [release-verify]
 
   - id: ci-policy
-    description: CI workflow, classifier, gate registry, release scripts
+    description: CI workflow, classifier, gate registry, release scripts, secret-scan policy
     paths:
       - ".github/**"
       - ".worklab/**"
       - ".project/**"
+      - ".gitleaks.toml"
       - "scripts/ci/**"
       - "scripts/release_*.py"
     gates: [static, lint]
@@ -88,7 +89,7 @@ risk_classes:
     gates: [static, lint, rust-vnext]
 
   - id: vnext-avalonia-desktop
-    description: vNext Avalonia/C# desktop shell, supervisor, SDK pinning
+    description: Frozen C#/Avalonia donor shell, supervisor, SDK pinning (donor under SUP-022, not the formal host)
     paths:
       - "apps/ArcheAxis.Desktop/**"
       - global.json
@@ -197,7 +198,7 @@ risk_classes:
     gates: [desktop-fast]
 
   - id: installer
-    description: Legacy React/Tauri bundle and NSIS compatibility lifecycle; not the formal Avalonia product installer
+    description: React/Tauri bundle and NSIS packaging lifecycle - the formal host installer under SUP-022, retained compatibility checks included
     paths:
       - "desktop/scripts/**"
       - frontend/vite.config.ts

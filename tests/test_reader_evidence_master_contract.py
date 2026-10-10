@@ -25,7 +25,9 @@ def test_evidence_detail_mother_layout_scales_its_source_chain_illustration() ->
     assert "EvidenceSourceChainIllustration.Width =" in EVIDENCE_CODE
     assert "EvidenceSourceChainIllustration.Height =" in EVIDENCE_CODE
     assert "EvidenceDetailPageGrid" in EVIDENCE_CODE
-    assert "Core anchor_id 未读取" in EVIDENCE_XAML
+    # The anchor chain's own default text, and the decoration disclaimer beside it, are what
+    # keep the illustration from being read as a measured relation count.
+    assert "引用尚未读取" in EVIDENCE_XAML
     assert "不表示真实关联数量" in EVIDENCE_XAML
 
 

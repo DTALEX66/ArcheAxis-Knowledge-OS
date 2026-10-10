@@ -1,0 +1,46 @@
+{
+  "example_only": true,
+  "do_not_install": true,
+  "notes": "字段建议需映射仓库现有合同；示例不表示已实现",
+  "catalog": {
+    "capability_id": "EXAMPLE_ONLY",
+    "name": "文献检索",
+    "domain": "knowledge",
+    "planning_state": "planned",
+    "canonical_detail": "EXAMPLE_ONLY",
+    "source_refs": [
+      "S04",
+      "S05"
+    ]
+  },
+  "runtime": {
+    "implementation_id": null,
+    "capability_id": "EXAMPLE_ONLY",
+    "worker_id": null,
+    "entry": null,
+    "protocol": null,
+    "required": false,
+    "implementation_state": "UNVERIFIED"
+  },
+  "connection": {
+    "connection_id": null,
+    "credential_ref": null,
+    "enabled": false,
+    "allowed_data_scope": [],
+    "network_targets": [],
+    "paid_budget": 0
+  },
+  "health": {
+    "state": "NOT_CHECKED",
+    "checked_at": null,
+    "receipt_id": null
+  },
+  "receipt": {
+    "run_id": null,
+    "step_id": null,
+    "code_sha": null,
+    "status": "NOT_RUN",
+    "artifacts": [],
+    "human_approval": null
+  }
+}

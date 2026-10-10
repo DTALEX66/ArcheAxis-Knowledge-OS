@@ -1,0 +1,110 @@
+{
+  "schema": "archeaxis/archive-consolidation/v1",
+  "started_at": "2026-10-09T11:43:12.140454+00:00",
+  "completed_at": "2026-10-09T11:43:58.084222+00:00",
+  "status": "PASS",
+  "bundle_root": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\archives\\record-20261009\\compact-recovery-v1",
+  "original_zip_count": 13,
+  "original_bytes": 15042293812,
+  "reconstruction_verified_bytes": 15042293812,
+  "stored_bytes": 1911212397,
+  "saved_bytes": 13131081415,
+  "unique_segments": 31847,
+  "segment_references": 59424,
+  "pack_sha256": "474944f43c5f84c96b4060080df846a648d91996671e17a9de14b34e2a9bb256",
+  "catalog_sha256": "783b591117ccabbdc6a439f30086d94f36dbca9234dc8a6bfb2e8335bef005e3",
+  "recipes": [
+    {
+      "recipe_path": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\archives\\record-20261009\\compact-recovery-v1\\recipes\\de82caf9a6a06e5f025ab813359377eca16e43fc48d39dc8732038e0ab09f32e.json",
+      "source_relative_path": "AAOS-project-archives/2026-09-29/AAOS-Frontend-Acceptance-archive.zip",
+      "original_project_copy": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\archives\\record-20261009\\originals\\Record\\AAOS-project-archives\\2026-09-29\\AAOS-Frontend-Acceptance-archive.zip",
+      "original_bytes": 229477326,
+      "original_sha256": "de82caf9a6a06e5f025ab813359377eca16e43fc48d39dc8732038e0ab09f32e"
+    },
+    {
+      "recipe_path": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\archives\\record-20261009\\compact-recovery-v1\\recipes\\183929bf629bcbd5473c0f41210ec37125f86fb7cae0bfada38843ae100151a4.json",
+      "source_relative_path": "AAOS-project-archives/2026-09-29/AAOS-UI-HISTORY-76DIRS-20260929.zip",
+      "original_project_copy": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\archives\\record-20261009\\originals\\Record\\AAOS-project-archives\\2026-09-29\\AAOS-UI-HISTORY-76DIRS-20260929.zip",
+      "original_bytes": 5434623954,
+      "original_sha256": "183929bf629bcbd5473c0f41210ec37125f86fb7cae0bfada38843ae100151a4"
+    },
+    {
+      "recipe_path": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\archives\\record-20261009\\compact-recovery-v1\\recipes\\b7923f5d2e5cc36fa0e7a4a8bbeaee2e77f839e81912852dd0dac1fc6eacc302.json",
+      "source_relative_path": "AAOS-project-archives/2026-09-29/desktop-app-local-build-20260929.zip",
+      "original_project_copy": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\archives\\record-20261009\\originals\\Record\\AAOS-project-archives\\2026-09-29\\desktop-app-local-build-20260929.zip",
+      "original_bytes": 639514260,
+      "original_sha256": "b7923f5d2e5cc36fa0e7a4a8bbeaee2e77f839e81912852dd0dac1fc6eacc302"
+    },
+    {
+      "recipe_path": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\archives\\record-20261009\\compact-recovery-v1\\recipes\\18546d400bd280b64611c155eb95aec7895e24ebd412188bf3af63e3e82042be.json",
+      "source_relative_path": "AAOS-project-archives/2026-09-29/green-old-checkout-acceptance.zip",
+      "original_project_copy": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\archives\\record-20261009\\originals\\Record\\AAOS-project-archives\\2026-09-29\\green-old-checkout-acceptance.zip",
+      "original_bytes": 1248479583,
+      "original_sha256": "18546d400bd280b64611c155eb95aec7895e24ebd412188bf3af63e3e82042be"
+    },
+    {
+      "recipe_path": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\archives\\record-20261009\\compact-recovery-v1\\recipes\\2c41e8fa809e709eced8092e940e9ee73b6fe55ca2a55fd1452eeb53f39c61e3.json",
+      "source_relative_path": "AAOS-project-archives/2026-09-29/green-old-checkout-build-output-20260929.zip",
+      "original_project_copy": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\archives\\record-20261009\\originals\\Record\\AAOS-project-archives\\2026-09-29\\green-old-checkout-build-output-20260929.zip",
+      "original_bytes": 522265850,
+      "original_sha256": "2c41e8fa809e709eced8092e940e9ee73b6fe55ca2a55fd1452eeb53f39c61e3"
+    },
+    {
+      "recipe_path": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\archives\\record-20261009\\compact-recovery-v1\\recipes\\f13af1b6267a85f87a0037e9e2752f4d9d3c72bb0477a7285a47d2863a3ad15e.json",
+      "source_relative_path": "AAOS-project-archives/2026-09-29/green-ui-unreferenced-output-20260929.zip",
+      "original_project_copy": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\archives\\record-20261009\\originals\\Record\\AAOS-project-archives\\2026-09-29\\green-ui-unreferenced-output-20260929.zip",
+      "original_bytes": 4324551549,
+      "original_sha256": "f13af1b6267a85f87a0037e9e2752f4d9d3c72bb0477a7285a47d2863a3ad15e"
+    },
+    {
+      "recipe_path": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\archives\\record-20261009\\compact-recovery-v1\\recipes\\596de0dd9869725d4c7391bca466a32709614a39fc81a247dc0ea76b874df557.json",
+      "source_relative_path": "AAOS-project-archives/2026-09-30/formal-run-builds/frontend-responsive-desktop-build-absolute.zip",
+      "original_project_copy": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\archives\\record-20261009\\originals\\Record\\AAOS-project-archives\\2026-09-30\\formal-run-builds\\frontend-responsive-desktop-build-absolute.zip",
+      "original_bytes": 76522014,
+      "original_sha256": "596de0dd9869725d4c7391bca466a32709614a39fc81a247dc0ea76b874df557"
+    },
+    {
+      "recipe_path": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\archives\\record-20261009\\compact-recovery-v1\\recipes\\5a5d1c5c3fc7009aee0bfb4b34064635cb5980024790cb1c3cb985ec8d42d7f4.json",
+      "source_relative_path": "AAOS-project-archives/2026-09-30/formal-run-builds/frontend-responsive-desktop-build-railfix.zip",
+      "original_project_copy": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\archives\\record-20261009\\originals\\Record\\AAOS-project-archives\\2026-09-30\\formal-run-builds\\frontend-responsive-desktop-build-railfix.zip",
+      "original_bytes": 76522155,
+      "original_sha256": "5a5d1c5c3fc7009aee0bfb4b34064635cb5980024790cb1c3cb985ec8d42d7f4"
+    },
+    {
+      "recipe_path": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\archives\\record-20261009\\compact-recovery-v1\\recipes\\7b799dc6b5e88dba14433e53e50d601c4e77b0f7faa66147d65b8ec65bbbfc36.json",
+      "source_relative_path": "AAOS-project-archives/2026-09-30/formal-run-builds/r6-a12-build.zip",
+      "original_project_copy": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\archives\\record-20261009\\originals\\Record\\AAOS-project-archives\\2026-09-30\\formal-run-builds\\r6-a12-build.zip",
+      "original_bytes": 190562228,
+      "original_sha256": "7b799dc6b5e88dba14433e53e50d601c4e77b0f7faa66147d65b8ec65bbbfc36"
+    },
+    {
+      "recipe_path": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\archives\\record-20261009\\compact-recovery-v1\\recipes\\2a258308a68694a1198ea35c2df1f43407834aa199f4c1daa17c13e2b0fb0799.json",
+      "source_relative_path": "AAOS-project-archives/2026-09-30/formal-run-builds/ui-finalbuild3.zip",
+      "original_project_copy": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\archives\\record-20261009\\originals\\Record\\AAOS-project-archives\\2026-09-30\\formal-run-builds\\ui-finalbuild3.zip",
+      "original_bytes": 79944989,
+      "original_sha256": "2a258308a68694a1198ea35c2df1f43407834aa199f4c1daa17c13e2b0fb0799"
+    },
+    {
+      "recipe_path": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\archives\\record-20261009\\compact-recovery-v1\\recipes\\01db0a64ab6d2bc96982e5b15f53f086d6676d4ce64c91860fb9b48598489beb.json",
+      "source_relative_path": "AAOS-project-archives/2026-09-30/green-mainline-historical-publish-20260930.zip",
+      "original_project_copy": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\archives\\record-20261009\\originals\\Record\\AAOS-project-archives\\2026-09-30\\green-mainline-historical-publish-20260930.zip",
+      "original_bytes": 170123195,
+      "original_sha256": "01db0a64ab6d2bc96982e5b15f53f086d6676d4ce64c91860fb9b48598489beb"
+    },
+    {
+      "recipe_path": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\archives\\record-20261009\\compact-recovery-v1\\recipes\\98bb8ffbdabe2cbdb3d4fcf4c0ae7324a2e0b7a3dd985fd912e6a6c718b9c22c.json",
+      "source_relative_path": "AAOS-project-archives/2026-09-30/historical-desktop-publish-22dirs-20260930.zip",
+      "original_project_copy": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\archives\\record-20261009\\originals\\Record\\AAOS-project-archives\\2026-09-30\\historical-desktop-publish-22dirs-20260930.zip",
+      "original_bytes": 1659496511,
+      "original_sha256": "98bb8ffbdabe2cbdb3d4fcf4c0ae7324a2e0b7a3dd985fd912e6a6c718b9c22c"
+    },
+    {
+      "recipe_path": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\archives\\record-20261009\\compact-recovery-v1\\recipes\\7b4706d4298cf64ee3800ba091ab863bee5b1770e93fa62a1fe204b2cc1a7673.json",
+      "source_relative_path": "AAOS-project-archives/2026-09-30/nuget-http-cache-20260930.zip",
+      "original_project_copy": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\archives\\record-20261009\\originals\\Record\\AAOS-project-archives\\2026-09-30\\nuget-http-cache-20260930.zip",
+      "original_bytes": 390210198,
+      "original_sha256": "7b4706d4298cf64ee3800ba091ab863bee5b1770e93fa62a1fe204b2cc1a7673"
+    }
+  ],
+  "key_information": "历史安装、构建、UI验收与缓存恢复包；原README/来源/恢复边界另存索引；不作为当前安装或完成状态。"
+}

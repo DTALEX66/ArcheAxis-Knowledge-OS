@@ -1,0 +1,51 @@
+# Secret scanning for this repository (gitleaks v8.30.1, MIT).
+#
+# The default ruleset is kept on: this file only removes known-good findings, so a
+# genuinely new secret is still reported. The allowlist is deliberately narrow - it
+# names the exact fake values used by the fallback/gateway/hardening tests rather
+# than whole files, so a real credential added to those files would still fail.
+title = "ArcheAxis Knowledge secret scan"
+
+[extend]
+useDefault = true
+
+[[allowlists]]
+description = "deliberately fake credentials in the test fixtures"
+regexTarget = "match"
+regexes = [
+  '''sk-1234567890abcdef1234567890abcdef''',
+  '''test-api-key-0123456789abcdef-ABCDEFGH''',
+  '''test-jwt-secret-fedcba9876543210-HGFEDCBA''',
+  '''-----BEGIN RSA PRIVATE KEY-----''',
+  '''eyJhbGciOiJIUzI1NiJ9''',
+  # An Avalonia theme resource key (apps/ArcheAxis.Desktop/Themes/AaosTheme.axaml)
+  # whose name is high-entropy enough for the generic-api-key rule. It is a brush
+  # name, not a credential; the exact literal is named so a real secret in the same
+  # attribute shape would still fail.
+  '''AaosSurface2Brush''',
+]
+# Stopwords target the extracted secret itself. "REDACTED" in a sentence of an
+# already-committed reconciliation doc is a redaction marker, not a credential.
+stopwords = [
+  '''REDACTED''',
+]
+
+[[allowlists]]
+description = "one historical docs commit whose only finding is the word REDACTED"
+# 2026-07-18 reconciliation report (migrations/reports/current-reconciliation/
+# DEEPSEEK_TASK_CATALOG.md:274). The finding is the literal word "REDACTED"; the
+# commit is named because a value-level rule does not suppress a history finding.
+# This is the one deliberate blind spot, and it is a docs-only commit.
+commits = [
+  "7846f90620811f5b52f8a114f09b23c6f4d88a85",
+]
+
+[[allowlists]]
+description = "build output, dependency and development trees are not source"
+paths = [
+  '''\.project-local/''',
+  '''node_modules/''',
+  '''__pycache__/''',
+  '''\.venv/''',
+  '''target/''',
+]

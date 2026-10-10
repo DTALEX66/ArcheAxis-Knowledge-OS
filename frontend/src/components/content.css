@@ -1,0 +1,91 @@
+.canonical-library { display: grid; grid-template-columns: minmax(140px, 200px) minmax(0, 1fr); gap: 18px; }
+.canonical-sources { display: flex; flex-direction: column; gap: 8px; }
+.canonical-sources button { text-align: left; overflow-wrap: anywhere; }
+.canonical-sources button[aria-current="true"] { background: var(--ax-active); border-color: var(--ax-border-strong); }
+.canonical-content, .canonical-reading { min-width: 0; }
+.canonical-reading { display: grid; grid-template-columns: minmax(0, 1fr) 130px; gap: 14px; }
+.canonical-reading aside { display: flex; flex-direction: column; gap: 8px; }
+.canonical-reading pre { max-height: 55vh; white-space: pre-wrap; overflow: auto; overflow-wrap: anywhere; }
+.pdf-reader { max-height: 65vh; overflow: auto; background: var(--ax-raised); padding: 12px; }
+.pdf-reader canvas { display: block; margin: 12px auto; }
+.pdf-reader nav, .document-editor nav, .draft-restore { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.pdf-reader:focus-visible, .canonical-reading pre:focus-visible, .document-editor .tiptap:focus-visible { outline: 2px solid var(--ax-accent); outline-offset: 3px; }
+.document-editor { margin-top: 20px; }
+.document-editor .tiptap { min-height: 160px; padding: 14px; border: 1px solid var(--ax-border-strong); border-radius: var(--ax-radius-sm); background: var(--ax-raised); color: var(--ax-fg); overflow-wrap: anywhere; }
+.document-editor [data-evidence-reference] { cursor: pointer; border-bottom: 1px solid var(--ax-fg-secondary); }
+.document-editor [data-preserved-node] { padding: 10px; border: 1px dashed var(--ax-border-strong); color: var(--ax-fg-secondary); }
+.draft-restore input { width: 80px; margin-left: 8px; }
+.canonical-reading audio, .canonical-reading video { display: block; width: 100%; max-height: 60vh; }
+.document-tab-strip { display:flex; flex-wrap:wrap; align-items:flex-end; gap:4px; min-width:0; margin:14px 0; border-bottom:1px solid var(--ax-border); }
+.document-tab { display:flex; align-items:center; max-width:min(280px,100%); min-width:0; margin-bottom:-1px; border:1px solid var(--ax-border); border-bottom-color:var(--ax-border); border-radius:var(--ax-radius-sm) var(--ax-radius-sm) 0 0; background:var(--ax-raised); }
+.document-tab:has([aria-selected="true"]) { border-color:var(--ax-border-strong); border-bottom-color:var(--ax-active); background:var(--ax-active); }
+.document-tab [role="tab"] { display:flex; align-items:center; gap:8px; min-width:0; min-height:36px; padding:6px 10px; border:0; background:transparent; color:var(--ax-fg); text-align:left; }
+.document-tab [role="tab"]:focus-visible,.document-tab button[aria-label^="关闭文档标签"]:focus-visible { outline:2px solid var(--ax-accent); outline-offset:2px; }
+.document-tab [role="tab"]:first-child { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.document-tab [role="tab"] small { flex:0 0 auto; color:var(--ax-fg-secondary); }
+.document-tab button[aria-label^="关闭文档标签"] { width:32px; min-width:32px; min-height:32px; border:0; border-radius:var(--ax-radius-sm); background:transparent; color:var(--ax-fg-secondary); }
+.document-tab button:disabled { cursor:not-allowed; opacity:.55; }
+.document-tab-strip + .document-editor { margin-top:8px; }
+.original-derived-split { display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr); align-items:start; gap:12px; margin:16px 0; }
+.original-derived-pane { min-width:0; padding:12px; border:1px solid var(--ax-border-strong); border-radius:var(--ax-radius-sm); background:var(--ax-panel); }
+.original-derived-pane > header { position:sticky; top:0; z-index:2; padding:4px 0 8px; border-bottom:1px solid var(--ax-border); background:var(--ax-panel); }
+.original-derived-pane > header h4,.original-derived-pane > header p { margin:4px 0; overflow-wrap:anywhere; }
+.original-derived-identity { display:grid; grid-template-columns:1fr; gap:4px; font-size:.75rem; overflow-wrap:anywhere; }
+.original-derived-identity div { display:grid; grid-template-columns:minmax(120px,.55fr) minmax(0,1fr); gap:8px; }
+.original-derived-identity dd { margin:0; font-family:var(--ax-font-mono); }
+.original-derived-pane > pre { max-height:65vh; overflow:auto; white-space:pre-wrap; overflow-wrap:anywhere; padding:12px; border:1px solid var(--ax-border); background:var(--ax-raised); }
+.original-derived-pane .document-editor { margin-top:8px; }
+.original-derived-pane .pdf-reader { max-height:72vh; }
+.original-derived-image { display:block; max-width:100%; max-height:70vh; object-fit:contain; margin:12px auto; }
+/* 学科模板 launcher. It is the only disclosure on this surface that opens a whole workspace, and it
+   inherited no rule at all (the capability rail styles its own `details` by class), so it read as a
+   stray line of body text. Scoped to `.template-launcher` so `.capability-rail` is untouched. */
+.template-launcher { margin:0 0 14px; border:1px solid var(--ax-border-strong); border-radius:var(--ax-radius-sm); background:var(--ax-panel); }
+.ai-journey-grants { display:grid; grid-template-columns:repeat(auto-fit,minmax(min(280px,100%),1fr)); gap:16px; margin-block:16px; }
+.ai-journey-grants > section, .semantic-panel { min-width:0; padding:16px; border:1px solid var(--ax-border); border-radius:var(--ax-radius-sm); background:var(--ax-panel); color:var(--ax-fg); overflow-wrap:anywhere; }
+.semantic-panel label { display:grid; gap:6px; margin-block:10px; min-width:0; }
+.semantic-panel input, .semantic-panel textarea, .semantic-panel select { min-width:0; max-width:100%; }
+.semantic-panel pre { white-space:pre-wrap; overflow-wrap:anywhere; }
+.semantic-panel fieldset { min-width:0; border:1px solid var(--ax-border); margin-block:12px; }
+.template-launcher > summary { padding:8px 12px; font-weight:600; cursor:pointer; overflow-wrap:anywhere; }
+.template-launcher > summary:focus-visible { outline:2px solid var(--ax-accent); outline-offset:-2px; }
+.template-launcher[open] > summary { border-bottom:1px solid var(--ax-border); }
+/* The track list is fluid rather than breakpoint-driven, and `min(150px,100%)` is what makes that
+   safe: one column becomes the *result* of a container too narrow for two instead of a rule that
+   forces it, so the grid can neither spill sideways nor stack twice as tall as it needs to be.
+   Measured at the window's declared 640x480 floor: a forced single column made this workspace
+   396.6px tall inside a 396px reading column, so its layout box ended 69px past the column's edge
+   and crossed the activity dock band; the fluid list lays it out at 281.4px, which the column
+   holds. Nothing here caps a height - the workspace is shorter because it used the width it had. */
+.template-launcher > section { display:grid; grid-template-columns:repeat(auto-fit,minmax(min(150px,100%),1fr)); gap:10px; padding:12px; min-width:0; }
+.template-launcher > section > p, .template-launcher > section > nav, .template-launcher > section > h3,
+.template-launcher > section > aside, .template-launcher > section > section,
+.template-launcher > section > div { grid-column:1 / -1; min-width:0; }
+.template-launcher > section > p { margin:0; overflow-wrap:anywhere; }
+.template-launcher > section > nav { display:flex; flex-wrap:wrap; gap:8px; }
+.template-launcher > section > nav p { margin:0; }
+/* The list's own state line: it answers "is this empty, or did the read fail?", so it must read as
+   an annotation on the list rather than as one more template row. */
+.template-launcher > section > nav > .template-list-state { width:100%; color:var(--ax-fg-secondary); font-size:.8rem; overflow-wrap:anywhere; }
+.template-launcher > section label { display:grid; gap:4px; font-size:.8rem; min-width:0; overflow-wrap:anywhere; }
+.template-launcher > section select, .template-launcher > section input { min-width:0; max-width:100%; }
+.template-launcher [aria-label="已保存模板"] { max-block-size:min(32vh,16rem); overflow:auto; align-content:start; padding:3px; }
+.template-launcher [aria-label="已保存模板"] button { min-width:0; max-inline-size:100%; white-space:normal; overflow-wrap:anywhere; }
+.template-launcher > section > button { min-width:64px; }
+.template-launcher > section [aria-label="引用式画布"] { border:1px dashed var(--ax-border-strong); border-radius:var(--ax-radius-sm); }
+.template-launcher > section pre { max-width:100%; overflow:auto; white-space:pre-wrap; overflow-wrap:anywhere; }
+@media (max-width: 900px) {
+  /* The two-column surfaces below genuinely cannot seat both tracks side by side here, so they
+     collapse. `.template-launcher > section` is deliberately absent: its own track list already
+     collapses when the container is too narrow, and forcing it here is what made the expanded
+     workspace taller than the reading column at the window floor. */
+  .canonical-library, .canonical-reading { grid-template-columns: minmax(0, 1fr); }
+  .original-derived-split { grid-template-columns:minmax(0,1fr); }
+  .canonical-sources { max-height: 180px; overflow-y: auto; }
+  .document-tab-strip { overflow-x:auto; flex-wrap:nowrap; }
+  .document-tab { flex:0 0 auto; }
+}
+
+/* Keep batch actions reachable inside narrow panes, including keyboard focus. */
+.folder-ingest-table-scroll { max-width: 100%; overflow-x: auto; }
+.folder-ingest-table-scroll:focus-visible { outline: 2px solid var(--ax-active); outline-offset: 2px; }
