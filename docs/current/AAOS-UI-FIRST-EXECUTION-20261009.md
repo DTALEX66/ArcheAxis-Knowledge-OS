@@ -327,3 +327,11 @@ Owner 当前目标为完整核心框架、常见常用格式与最短闭环，�
 运行修复已发布为 `fc940dc89c431d275eec1e9b748dbfab02b0288f`，GitHub 原生 API 独立核对 Audit SHA 一致；完整 CI [38077876660](https://github.com/DTALEX66/ArcheAxis-Knowledge-OS/actions/runs/38077876660) 已启动，检查时 IN_PROGRESS，不记完整通过。主树的后续中文 CI 接线不属于该运行源码。
 
 中文 OCR 准备脚本增加可选 `--require-chinese`，保留 eng 默认；desktop-fast 同时准备 eng/chi_sim，在英文/light 探针后增加必需中文 Core 探针。官方版本文件存在已核实，本地资源 bytes/SHA pin 不伪称上游发布摘要；CI 下载须独立严格匹配。主树 27 项 parser/准备/helper PASS 无 skip，architecture 与 CI critical Ruff PASS；未执行云端下载或新的中文 Core runtime，详见[中文 CI 接线回执](receipts/AAOS-CHINESE-OCR-CI-WIRING-20261011.json)。此前 CRLF patch 检查失败、未导入 helper 导致零测试及 interpreter shutdown warning 均保留；后续候选等待当前有用运行终止，未取消它。
+
+## 2026-10-11 实际多格式读回、新 UI 原生探针与语音进展（PARTIAL）
+
+fc940dc 完整 CI 检查时已通过 Rust、browser-smoke、desktop-fast、desktop-build 及其余前置门禁，installer-lifecycle 正在运行；不记完整 CI PASS。下载的同 SHA clean-source light/OCR 回执 `ok=true`、source_consistent=true，md/csv/json/html/srt/vtt/canvas/png/jpeg/pdf 全部独立重解析和重启相等；英文 OCR 与中文资格分开。
+
+正式分组 UI 新增独立 native branch，通过实际 WebDriver 点击/键盘/文件输入编排同源导入、阅读、引用、工程候选采用、课程/练习/复习、明确恢复、宿主重启、能力开关；Core bridge 只读白名单拒绝写入。安装脚本另开 fresh owned workspace 执行该分支，保留原兼容旅程。26 helper/native 合同、PowerShell AST syntax 和 architecture PASS；新原生运行 NOT_EXECUTED，纠错/复测、旧 grant 拒绝和禁用能力执行拒绝尚缺，不能以工程分项 PASS 代替整九步合格。
+
+语音素材阻塞已用合法公开固定版本工程样本解除：SYSTRAN/faster-whisper v1.2.1 的 JFK FLAC 以 commit/Git blob/1152693 bytes/SHA256 保全，原录音权利参考 JFK Library 官方 Public Domain 档案。现有声明模型、ffmpeg 和实际 worker 对派生 WAV/MP3/MP4 完成所选英文短语及实际 cue 检查；canonical 12 测试全部通过无 skip，模型前后组件摘要相同。未运行上游 tiny 模型测试，不下载新模型、不读私人录音、不重试拒绝的 SAPI。实际 worker ASR 不等于 Core job/CAS/time resolver/重解析/重启资格，MP4 视觉和中文 ASR 仍未测。详见[新 UI 与实际语音进展](receipts/AAOS-GROUPED-NATIVE-ASR-PROGRESS-20261011.json)；原素材、LICENSE 与正文仅项目本地保全。整体继续 NOT_QUALIFIED，当前候选运行保留不取消。

@@ -23,14 +23,19 @@ def probe(monkeypatch):
 def materials(probe,tmp_path):
     assert os.environ.get('AAOS_EXECUTE_LOCAL_ASR')=='1','Real model tests require explicit scoped local ASR qualification'
     probe.declared_model(MODEL)
-    report=probe.generate_speech(tmp_path/'speech',POWERSHELL,FFMPEG)
-    assert report['voice']['language']=='en-US'
+    spoken=os.environ.get('AAOS_ASR_SPEECH_WAV')
+    transcript=os.environ.get('AAOS_ASR_SPEECH_TRANSCRIPT')
+    assert bool(spoken)==bool(transcript),'Selected WAV and reference must be provided together'
+    expected=json.loads(os.environ['AAOS_ASR_EXPECTED_PHRASES']) if spoken else None
+    report=probe.generate_speech(tmp_path/'speech',POWERSHELL,FFMPEG,spoken,transcript,expected)
+    if not spoken:assert report['voice']['language']=='en-US'
     assert all(report['files'][ext]['bytes']>1000 for ext in ('wav','mp3','mp4'))
-    return tmp_path/'speech'
+    return tmp_path/'speech',tuple(report['expected_phrases'])
 
 @pytest.mark.skipif(os.environ.get('AAOS_EXECUTE_LOCAL_ASR')!='1',reason='NOT_EXECUTED: local ASR resource qualification needs explicit opt-in')
 @pytest.mark.parametrize('extension',['wav','mp3','mp4'])
 def test_actual_offline_spoken_content_is_decoded_by_existing_local_asr(probe,materials,tmp_path,monkeypatch,extension):
+    materials,expected=materials
     monkeypatch.setenv('HF_HUB_OFFLINE','1');monkeypatch.setenv('TRANSFORMERS_OFFLINE','1')
     monkeypatch.setenv('FFMPEG_CMD',str(FFMPEG));monkeypatch.setenv('ARCHEAXIS_ASR_MODEL_DIR',str(MODEL))
     monkeypatch.setenv('ARCHEAXIS_CAPTION_PROTOCOL','disabled-for-audio-qualification')
@@ -43,13 +48,13 @@ def test_actual_offline_spoken_content_is_decoded_by_existing_local_asr(probe,ma
         import hashlib
         return {'status':200,'body':{'content':content,'metadata':{'sha256':hashlib.sha256(content.encode()).hexdigest(),'byte_length':len(content.encode())}}}
     snap={'job':{'status':200,'body':{'state':'succeeded','attempt':1}},'quality':{'status':200,'body':{}},'text':out(result['text']),'document_structure':out(json.dumps(result['structure'])),'loss_report':out(json.dumps(result['loss_receipt']))}
-    output=probe.validate_asr(extension,snap)
-    assert output['cues'] and 'blue' in result['text'].lower()
+    output=probe.validate_asr(extension,snap,expected)
+    assert output['cues'] and all(probe.normalize_phrase(phrase) in probe.normalize_phrase(result['text']) for phrase in expected)
     # The real decoder's output is reused for negative gate controls, never authored as OCR/ASR.
     bad_loss=json.loads(snap['loss_report']['body']['content'])
     bad_loss['params']['worker_output']['cues'][0]['end_ms']=output['duration_ms']+1
     snap['loss_report']=out(json.dumps(bad_loss))
-    with pytest.raises(AssertionError):probe.validate_asr(extension,snap)
+    with pytest.raises(AssertionError):probe.validate_asr(extension,snap,expected)
 
 
 def test_model_path_cannot_silently_select_another_unregistered_model(probe,tmp_path):

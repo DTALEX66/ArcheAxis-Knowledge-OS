@@ -1396,7 +1396,7 @@ jobs:
           if ($candidate.schema -ne 'archeaxis/release-candidate/v1' -or $candidate.commit -ne $env:GITHUB_SHA) { throw 'candidate provenance commit mismatch' }
           $installer = Join-Path $candidateRoot $candidate.installer.name
           if (-not (Test-Path -LiteralPath $installer) -or (Get-FileHash $installer -Algorithm SHA256).Hash.ToLowerInvariant() -ne $candidate.installer.sha256) { throw 'candidate installer SHA-256 mismatch' }
-          ./desktop/scripts/verify_nsis_install.ps1 -Installer $installer -RequireCandidateIdentity -NativeToolsReceipt .project-local/task-runtime/aaos01-native-tools/receipt.json
+          ./desktop/scripts/verify_nsis_install.ps1 -Installer $installer -RequireCandidateIdentity -NativeToolsReceipt .project-local/task-runtime/aaos01-native-tools/receipt.json -GroupedOwnerLoop
       - name: Upload installed native journey evidence
         if: ${{ always() }}
         uses: actions/upload-artifact@834a144ee995460fba8ed112a2fc961b36a5ec5a

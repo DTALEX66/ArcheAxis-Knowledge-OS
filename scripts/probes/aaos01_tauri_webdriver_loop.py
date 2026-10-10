@@ -23,6 +23,10 @@ from urllib.request import HTTPRedirectHandler, ProxyHandler, Request, build_ope
 from aaos01_office_runtime_loop import REPO, identity, load
 
 
+class _GroupedJourneyCompleteError(Exception):
+    """Internal branch completion; never bypasses the shared finally checks."""
+
+
 def compatible_edge_versions(driver_version: str, runtime_version: str) -> bool:
     """Microsoft requires matching major/minor/build; patch updates are compatible.
 
@@ -724,6 +728,8 @@ def main():
     parser.add_argument("--driver", type=Path)
     parser.add_argument("--native-driver", type=Path)
     parser.add_argument("--build-receipt", type=Path, help="Bind a candidate to its current source and host/Core hashes")
+    parser.add_argument("--grouped-common-owner-loop", action="store_true", help="Current grouped UI authored TXT/MD journey; bridge reads only, no Owner signoff")
+    parser.add_argument("--grouped-run-ai", "--actual-model", action="store_true", help="Opt-in existing actual model route only; no model/provider changes or fabricated errors")
     parser.add_argument("--synthetic-course-loop", action="store_true", help="Explicit authored fixture with synthetic review actor; never human signoff")
     parser.add_argument("--synthetic-template-pagination", action="store_true", help="501 authored template objects; real Core pagination and UI, no human signoff")
     parser.add_argument(
@@ -740,6 +746,10 @@ def main():
     args = parser.parse_args()
     if not 45 <= args.session_timeout <= 180:
         parser.error("session timeout must be between 45 and 180 seconds")
+    if args.grouped_run_ai and not args.grouped_common_owner_loop:
+        parser.error("grouped AI requires the grouped journey branch")
+    if args.grouped_common_owner_loop and (args.synthetic_course_loop or args.synthetic_template_pagination):
+        parser.error("grouped qualification cannot mix compatibility fixtures")
     host = args.host.resolve()
     tools = REPO / ".project-local/task-runtime/aaos01-tools"
     driver = (args.driver or tools / "tauri-driver-2.1.0/bin/tauri-driver.exe").resolve()
@@ -978,8 +988,11 @@ def main():
         assert request("GET", f"/session/{session}/window/handles"), "Actual WebDriver window missing"
         request("POST", f"/session/{session}/timeouts", {"script":30000})
         wait("return !!document.querySelector('.space-rail [data-page-id=\"02\"]')")
-        receipt["navigation_scope"] = {"launch": "CURRENT_GROUPED_PAGE_ENTRY", "persisted_behavior": "DECLARED_LEGACY_COMPATIBILITY_ROUTES", "new_layout_coverage": "SEPARATE_BROWSER_SMOKE"}
-        navigate_compatibility_space(js, wait, "library")
+        if args.grouped_common_owner_loop:
+            receipt["navigation_scope"] = {"launch": "CURRENT_GROUPED_PAGE_ENTRY", "persisted_behavior": "CURRENT_GROUPED_NATIVE_UI", "compatibility": "NOT_EXECUTED"}
+        else:
+            receipt["navigation_scope"] = {"launch": "CURRENT_GROUPED_PAGE_ENTRY", "persisted_behavior": "DECLARED_LEGACY_COMPATIBILITY_ROUTES", "new_layout_coverage": "SEPARATE_BROWSER_SMOKE"}
+            navigate_compatibility_space(js, wait, "library")
         receipt.setdefault("launches", []).append({"seconds":time.monotonic()-began,"capabilities":result["capabilities"],"user_data_folder":str(folder)})
         version = bridge("system_version")
         assert isinstance(version, dict)
@@ -1040,6 +1053,24 @@ def main():
         else:
             raise TimeoutError("Owned WebDriver readiness")
         launch()
+        if args.grouped_common_owner_loop:
+            grouped = load("grouped_native_owner_journey", REPO / "scripts/probes/aaos01_grouped_owner_loop.py")
+            def grouped_element_command(element_id, action, body):
+                return request("POST", f"/session/{session}/element/{element_id}/{action}", body)
+            def grouped_restart():
+                close_session()
+                launch()
+            receipt["grouped_common_owner_loop"] = {}
+            grouped.run_grouped_loop(
+                bridge=bridge, js=js, wait=wait, element=ui_element,
+                command=grouped_element_command, work=work, screenshot=screenshot,
+                restart=grouped_restart, run_ai=args.grouped_run_ai,
+                report=receipt["grouped_common_owner_loop"],
+            )
+            receipt["steps"].append("Current grouped UI authored same-object engineering journey; see explicit partial/NOT_EXECUTED stages")
+            close_session()
+            receipt["ok"] = receipt["grouped_common_owner_loop"]["engineering_status"] == "PASS"
+            raise _GroupedJourneyCompleteError
         # Same-space navigation must reach real object regions without writes
         # or a workspace remount, even before any source/document exists.
         object_scope = "//ul[@aria-label='资料库对象导航']"
@@ -1388,6 +1419,8 @@ def main():
         receipt["steps"].append("Full host close/relaunch preserves known format originals, worker outputs, locators and loss byte hashes")
         close_session()
         receipt["ok"] = True
+    except _GroupedJourneyCompleteError:
+        pass  # Both branches retain the same mandatory cleanup/final source binding.
     except BaseException as error:
         receipt["ok"] = False
         receipt["error"] = f"{type(error).__name__}: {error}"

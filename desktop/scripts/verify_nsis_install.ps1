@@ -3,7 +3,8 @@ param(
     [string]$Installer,
     [switch]$RequireReleaseIdentity,
     [switch]$RequireCandidateIdentity,
-    [string]$NativeToolsReceipt
+    [string]$NativeToolsReceipt,
+    [switch]$GroupedOwnerLoop
 )
 
 $ErrorActionPreference = 'Stop'
@@ -14,6 +15,10 @@ $appDataExisted = Test-Path $appData
 $ownsInstall = $false
 $activeShell = $null
 $evidenceDirectory = $null
+
+if ($GroupedOwnerLoop -and -not $NativeToolsReceipt) {
+    throw 'grouped native qualification requires a verified NativeToolsReceipt'
+}
 
 if (-not ('ArcheAxisWindow' -as [type])) {
     Add-Type -TypeDefinition @'
@@ -368,6 +373,12 @@ try {
         } | ConvertTo-Json -Depth 4 | Set-Content -LiteralPath (Join-Path $preflightDirectory 'install-preflight.json') -Encoding utf8
         python -B scripts/probes/aaos01_tauri_webdriver_loop.py --host $executable --driver $nativeTools.driver --native-driver $nativeTools.native_driver --installer $Installer
         if ($LASTEXITCODE -ne 0) { throw 'actual installed Tauri WebDriver journey failed' }
+        if ($GroupedOwnerLoop) {
+            # A separate fresh owned data root exercises the current grouped UI.
+            # The probe retains explicit missing AI/Owner qualification; no bridge writes.
+            python -B scripts/probes/aaos01_tauri_webdriver_loop.py --host $executable --driver $nativeTools.driver --native-driver $nativeTools.native_driver --installer $Installer --grouped-common-owner-loop
+            if ($LASTEXITCODE -ne 0) { throw 'actual installed grouped UI engineering journey failed' }
+        }
     }
     $initialProof = Read-CoreCandidateProof -Mode seed
     $pycAfter = @(Get-ChildItem (Join-Path $installRoot 'runtime') -Filter '*.pyc' -File -Recurse).Count
