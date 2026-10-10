@@ -44,6 +44,7 @@ function createWorkingSession() {
   return new CoreWorkingStateSession({
     read:()=>coreCommand<WorkingRead>("ui_state_read"),
     write:body=>coreCommand<WorkingRead>("ui_state_write",{body}),
+    clearJob:body=>coreCommand<WorkingRead>("ui_state_clear_job",{body}),
     clearSaved:body=>coreCommand<WorkingRead>("ui_state_clear_saved",{body}),
     recover:body=>coreCommand<WorkingRead>("ui_state_recover",{body}),
   });
@@ -616,7 +617,7 @@ function AppBody() {
     if(!desktop)return;
     // Scene CAS status also includes page/opened-object bookkeeping. Only actual
     // content drafts or a frozen create request own the content navigation guard.
-    const dirty=Object.keys(working.state.drafts).length>0||Boolean(working.state.pending_original);
+    const dirty=Object.keys(working.state.drafts).length>0||Boolean(working.state.pending_original)||Object.keys(working.state.pending_jobs??{}).length>0;
     if(dirty)draftOwners.current.add("core-working-state");else draftOwners.current.delete("core-working-state");
     draftDirty.current=draftOwners.current.size>0;setUnsavedDrafts(draftDirty.current);
   },[desktop,working.state,working.status,workspaceEpoch]);
@@ -654,7 +655,7 @@ function AppBody() {
     <p>{working.status==="ready"?"工作状态已由 Core 保全；正文保存以各文档版本回执为准。":working.status==="saving"?"正在保全工作草稿…":working.status==="loading"?"正在读取工作草稿；编辑入口等待身份核对。":"工作草稿仍保留，持久化尚未全部确认。"}</p>
     {working.error?<p>{working.error}</p>:null}
     {["blocked","loading","unsaved"].includes(working.status)?<><button onClick={()=>void rereadWorkingState()}>核对工作状态</button><button disabled={working.status!=="unsaved"} onClick={()=>void working.session.flush().catch(()=>{})}>仅重试草稿保全</button></>:null}
-    {working.server?.recovery_requires_confirmation?<><p>恢复候选含 {Object.keys(working.server.recovery_candidates?.drafts??{}).length} 份独立草稿。正文尚未套用；请明确选择。</p><pre>{Object.keys(working.server.recovery_candidates?.drafts??{}).join("\n")}</pre><button onClick={()=>void decideWorkingRecovery("preserve")}>保留恢复候选</button><button onClick={()=>void decideWorkingRecovery("discard")}>丢弃恢复候选</button></>:null}
+    {working.server?.recovery_requires_confirmation?<><p>恢复候选含 {Object.keys(working.server.recovery_candidates?.drafts??{}).length} 份独立草稿及 {Object.keys(working.server.recovery_candidates?.pending_jobs??{}).length} 个冻结执行请求。正文尚未套用；请明确选择。</p><pre>{Object.keys(working.server.recovery_candidates?.drafts??{}).join("\n")}</pre><button onClick={()=>void decideWorkingRecovery("preserve")}>保留恢复候选</button><button onClick={()=>void decideWorkingRecovery("discard")}>丢弃恢复候选</button></>:null}
   </section>:null;
 
   if (!desktopReady && recoveryStatus) {

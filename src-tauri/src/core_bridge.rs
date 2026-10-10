@@ -106,6 +106,7 @@ pub enum Operation {
     UiStateRead,
     UiStateWrite,
     UiStateClearSaved,
+    UiStateClearJob,
     UiStateRecover,
     // Constructed only by version 2 host commands; strict v1 JSON cannot select it.
     #[serde(skip)]
@@ -607,7 +608,7 @@ fn route(request: &Request) -> Result<(&'static str, String, Option<Value>), Str
             }
             ("GET", "/api/v1/workspace/ui-state".into(), None)
         }
-        UiStateWrite | UiStateClearSaved | UiStateRecover => {
+        UiStateWrite | UiStateClearSaved | UiStateClearJob | UiStateRecover => {
             if !p
                 .as_object()
                 .is_some_and(|object| object.len() == 1 && object.contains_key("body"))
@@ -620,6 +621,7 @@ fn route(request: &Request) -> Result<(&'static str, String, Option<Value>), Str
             }
             let (method, path) = match request.operation {
                 UiStateWrite => ("PUT", "/api/v1/workspace/ui-state"),
+                UiStateClearJob => ("POST", "/api/v1/workspace/ui-state/clear-job"),
                 UiStateClearSaved => ("POST", "/api/v1/workspace/ui-state/clear-saved"),
                 UiStateRecover => ("POST", "/api/v1/workspace/ui-state/recover"),
                 _ => unreachable!(),
@@ -818,7 +820,7 @@ fn request_byte_limit(operation: &Operation) -> usize {
         90 * 1024 * 1024
     } else if matches!(
         operation,
-        Operation::UiStateWrite | Operation::UiStateClearSaved | Operation::UiStateRecover
+        Operation::UiStateWrite | Operation::UiStateClearSaved | Operation::UiStateClearJob | Operation::UiStateRecover
     ) {
         1_100_000
     } else {
@@ -1543,6 +1545,7 @@ mod folder_native_contract_regression {
         assert!(body.is_none());
         for (operation, method, path) in [
             ("ui_state_write", "PUT", "/api/v1/workspace/ui-state"),
+            ("ui_state_clear_job", "POST", "/api/v1/workspace/ui-state/clear-job"),
             (
                 "ui_state_clear_saved",
                 "POST",

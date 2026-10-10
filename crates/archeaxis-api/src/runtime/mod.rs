@@ -15,6 +15,7 @@ use tokio::sync::Mutex;
 
 mod colearning;
 mod context_refusal;
+mod job_journal;
 mod courses;
 mod execution_status_projection;
 mod semantic;
@@ -36,6 +37,7 @@ struct Runtime {
 pub fn router(executor: Executor) -> Router {
     let projections = crate::projections_base(executor.store().clone(), false);
     Router::new()
+        .route("/api/v1/workspace/ui-state/clear-job", post(job_journal::clear))
         .route(
             "/api/v1/documents/:document_id/checks/execute",
             post(execute_document_check),
@@ -590,6 +592,12 @@ async fn start(
             };
         }
         Ok(Ok(None)) => (),
+        _ => return unavailable(),
+    }
+    let abandoned_id = id.clone();
+    match runtime.executor.store().submit_wait(move |conn| archeaxis_domain::ui_state::job_abandoned(conn,&abandoned_id)).await {
+        Ok(Ok(false)) => (),
+        Ok(Ok(true)) => return (StatusCode::GONE,"request explicitly abandoned; do not replay it").into_response(),
         _ => return unavailable(),
     }
     {

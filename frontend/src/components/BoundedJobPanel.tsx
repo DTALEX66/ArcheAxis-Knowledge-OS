@@ -1,3 +1,6 @@
+import { folderJobStatus } from "../presentation/folderIngestExecution";
+import { useJobJournal, JobJournalRecovery } from "../presentation/useJobJournal";
+import type { PendingJob } from "../presentation/coreWorkingState";
 import { useEffect, useId, useRef, useState } from "react";
 import type { SourcesListDto, SourceJobsDto } from "../api/generated/core-contract";
 
@@ -21,6 +24,8 @@ function statusOf(value: unknown, job: string, source: string): JobStatus {
 }
 
 export function BoundedJobPanel({ command, pollMs = 1000 }: { command: BoundedJobCommand; pollMs?: number }) {
+  const journal=useJobJournal("bounded");
+  const restoreEntry=useRef<PendingJob|null>(null);
   const owner = `bounded-job-${useId()}`;
   const [sources, setSources] = useState<SourcesListDto["sources"]>([]);
   const [sourceId, setSourceId] = useState("");
@@ -62,7 +67,7 @@ export function BoundedJobPanel({ command, pollMs = 1000 }: { command: BoundedJo
     command("source_jobs", { source_id: sourceId }).then(value => {
       const row = object(value);
       if (row.source_id !== sourceId || !Array.isArray(row.jobs) || row.jobs.length > 50 || row.jobs.some(raw => object(raw).input_ref !== sourceId)) throw new Error("来源任务不匹配");
-      if (alive.current && generation === epoch.current) { setJobs(row.jobs as SourceJobsDto["jobs"]); setCapped(row.jobs_capped === true); }
+      if (alive.current && generation === epoch.current) { setJobs(row.jobs as SourceJobsDto["jobs"]); setCapped(row.jobs_capped === true);if(restoreEntry.current?.source_id===sourceId)setJobId(restoreEntry.current.job_id); }
     }).catch(() => { if (alive.current && generation === epoch.current) setMessage("来源任务读取失败；保留预算设置。"); });
   }, [command, sourceId]);
   async function refresh(job = jobId, source = sourceId, generation = epoch.current, initial = false) {
@@ -71,10 +76,19 @@ export function BoundedJobPanel({ command, pollMs = 1000 }: { command: BoundedJo
       const value = statusOf(await command(initial ? "jobs_get" : "job_execution_status", { job_id: job }), job, source);
       if (!alive.current || generation !== epoch.current || serial !== readSerial.current) return;
       const frozen = currentAttempt.current;
+      if(frozen&&journal.available){
+        folderJobStatus(value,job,source,frozen);
+        const binding=journal.entries.find(entry=>entry.request_id===frozen.request_id);
+        if(!binding||value.kind!==binding.kind)throw new Error("冻结作业种类不匹配");
+      }
       const expectedRequest = frozen?.request_id ?? cancelRequest.current;
       if (expectedRequest && value.request_id !== expectedRequest) throw new Error("当前任务已是另一请求；保留原请求回执");
       setStatus(value);
       if (!frozen && terminal(value.state)) setCancelPending(false);
+      if(frozen&&journal.available&&terminal(value.state)&&value.request_id===frozen.request_id){
+        await journal.clear(frozen.request_id);
+        if(!alive.current||generation!==epoch.current||serial!==readSerial.current)return;
+      }
       if (frozen && value.request_id === frozen.request_id) {
         setUncertain(false);
         if (terminal(value.state)) setCancelPending(false);
@@ -87,6 +101,11 @@ export function BoundedJobPanel({ command, pollMs = 1000 }: { command: BoundedJo
     if (!jobId) return;
     const generation = ++epoch.current; ++readSerial.current;
     setStatus(null); setAttempt(null); setUncertain(false); setCancelPending(false); cancelRequest.current = null; setSplit(false); setWords(false);
+    const restored=restoreEntry.current;
+    if(restored?.job_id===jobId&&restored.source_id===sourceId){
+      const frozen={job_id:restored.job_id,request_id:restored.request_id,body:restored.body};
+      currentAttempt.current=frozen;setAttempt(frozen);setUncertain(true);setDeadline(String(restored.body.deadline_ms));setSplit(restored.body.split);setWords(restored.body.words);restoreEntry.current=null;
+    }else currentAttempt.current=null;
     void refresh(jobId, sourceId, generation, true).then(() => {
       if (alive.current && generation === epoch.current) return refresh(jobId, sourceId, generation);
     });
@@ -109,6 +128,10 @@ export function BoundedJobPanel({ command, pollMs = 1000 }: { command: BoundedJo
     action.current = true; setBusy(true); setAttempt(frozen); currentAttempt.current = frozen; setUncertain(true);
     const generation = epoch.current;
     try {
+      const selected=sources.find(row=>row.source_id===sourceId);
+      if(journal.available&&(!selected?.source_revision||!selectedJob?.kind))throw new Error("来源指纹或作业种类未读回。");
+      if(selected&&selectedJob)await journal.stage({source_id:sourceId,source_revision:selected.source_revision,kind:selectedJob.kind,job_id:frozen.job_id,request_id:frozen.request_id,body:frozen.body,mode:frozen.body.split?"split":"single",relative:null});
+      if(!alive.current||generation!==epoch.current)return;
       const receipt = object(await command("job_execute", { ...frozen }));
       if (receipt.job_id !== frozen.job_id || receipt.request_id !== frozen.request_id || typeof receipt.state !== "string") throw new Error("执行回执身份不匹配");
       if (alive.current && generation === epoch.current) { setMessage("执行请求已读回；以持久化状态确认结果。"); await refresh(); }
@@ -128,7 +151,7 @@ export function BoundedJobPanel({ command, pollMs = 1000 }: { command: BoundedJo
     finally { action.current = false; if (alive.current && generation === epoch.current) setBusy(false); }
   }
   const locked = busy || pending || status?.state === "running";
-  return <section aria-label="受限任务执行">
+  return <section aria-label="受限任务执行"><JobJournalRecovery entries={journal.entries} disabled={busy||journal.blocked} onRestore={entry=>{if(currentAttempt.current&&currentAttempt.current.request_id!==entry.request_id)return;restoreEntry.current=entry;if(sourceId!==entry.source_id)setSourceId(entry.source_id);else if(jobId!==entry.job_id)setJobId(entry.job_id);else{const frozen={job_id:entry.job_id,request_id:entry.request_id,body:entry.body};currentAttempt.current=frozen;setAttempt(frozen);setUncertain(true);setDeadline(String(entry.body.deadline_ms));setSplit(entry.body.split);setWords(entry.body.words);restoreEntry.current=null;}setMessage("冻结身份已从 Core 恢复；只读取状态，不自动执行或启用能力。");}} onAbandon={async entry=>{await journal.clear(entry.request_id,"abandon_unadmitted");if(alive.current&&currentAttempt.current?.request_id===entry.request_id){currentAttempt.current=null;setAttempt(null);setUncertain(false);}}}/>
     <h2>受限任务与检查点</h2>
     {message ? <p role="status">{message}</p> : null}
     <p>仅执行已保存的 Core job。机器回执历史单独保留；不授予通用 Agent 权限。</p>

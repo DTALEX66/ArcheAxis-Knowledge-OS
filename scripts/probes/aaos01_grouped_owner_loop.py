@@ -1075,6 +1075,18 @@ def assert_unadmitted(status, job_id, source_id):
     assert status["attempts"] == [] and status["attempts_capped"] is False
 
 
+def frozen_job_journal(readback, frozen, source_id, source_revision, kind):
+    assert readback["schema"] == "archeaxis.ui-working-state/v1"
+    assert readback["recovery_requires_confirmation"] is False
+    entry = readback["state"]["pending_jobs"][frozen["request_id"]]
+    assert entry["job_id"] == frozen["job_id"] and entry["request_id"] == frozen["request_id"]
+    assert entry["source_id"] == source_id and entry["source_revision"] == source_revision
+    assert entry["kind"] == kind and entry["body"] == frozen["body"]
+    assert entry["origin_restore_epoch"] == readback["restore_epoch"], "Old restore intent cannot be replayed"
+    assert entry["surface"] == "manual" and entry["mode"] == "single" and entry["relative"] is None
+    return entry
+
+
 def assert_single_attempt(status, frozen, source_id):
     assert (
         status["job_id"] == frozen["job_id"]
@@ -1168,8 +1180,26 @@ def capability_refusal_recovery(
     refused = read("job_execution_status", {"job_id": job_id})
     assert_unadmitted(refused, job_id, pin["source_id"])
     capability_permission(read, False)
+    journal_entry = frozen_job_journal(read("ui_state_read"), frozen, pin["source_id"], document["source_revision"], "text")
+    # Restart at the unadmitted/UNKNOWN scene, not only after a completed output.
+    restart()
+    frozen_job_journal(read("ui_state_read"), frozen, pin["source_id"], document["source_revision"], "text")
+    capability_permission(read, False)
+    wait("return location.hash==='#page=03'")
+    ui.click("整理此来源为知识候选")
+    ui.click("恢复冻结现场 " + frozen["request_id"])
+    recovered_view = frozen_conversion_view(js)
+    assert recovered_view["frozen"] == view["frozen"] and recovered_view["latest"] == view["latest"]
+    assert read("job_execution_status", {"job_id": job_id}) == refused, "Restart silently executed frozen intent"
+    assert read("source_jobs", {"source_id": pin["source_id"]}) == listing, "Restart created a replacement job"
+    # Explicitly retry the original identity while still disabled to obtain a fresh admission proof.
+    ui.click("同请求重试转换", "//section[@aria-label='真实转换产物']")
+    wait("return !!document.querySelector('[aria-label=\"冻结请求的能力恢复\"]')")
+    assert read("job_execution_status", {"job_id": job_id}) == refused
     result.update(
         execution_refusal="PASS",
+        frozen_intent_restart="PASS",
+        core_journal_entry=journal_entry,
         frozen=frozen,
         refused_status=refused,
         refused_ui=view,

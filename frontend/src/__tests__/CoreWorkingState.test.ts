@@ -9,6 +9,7 @@ function fixture(initial=state()) {
     server={...server,state:structuredClone(next),state_revision:server.state_revision+1,draft_digests:Object.fromEntries(Object.keys(next.drafts).map(id=>[id,"b".repeat(64)]))};return structuredClone(server);
   };
   const transport:WorkingTransport={read:vi.fn(async()=>structuredClone(server)),write:vi.fn(async request=>publish(request.state)),
+    clearJob:vi.fn(async request=>{const next=structuredClone(server.state);delete next.pending_jobs![request.request_id];if(!Object.keys(next.pending_jobs!).length)delete next.pending_jobs;return publish(next);}),
     clearSaved:vi.fn(async request=>{const next=structuredClone(server.state);delete next.drafts[request.document_id];return publish(next);}),
     recover:vi.fn(async request=>{const result=publish(request.action==="preserve"?server.recovery_candidates!:state());server={...result,recovery_candidates:null,recovery_requires_confirmation:false};return structuredClone(server);})};
   return {transport,session:new CoreWorkingStateSession(transport),publish,get:()=>server,set:(next:WorkingRead)=>{server=next;}};
@@ -115,4 +116,29 @@ it("an original create caller cannot POST until frozen journal ACK is confirmed"
   await f.session.load();const reopened=new CoreWorkingStateSession(f.transport);await reopened.load();
   expect(reopened.getSnapshot().state.pending_original).toEqual(body);await reopened.stageOriginal(body);post(reopened.getSnapshot().state.pending_original);
   expect(post).toHaveBeenCalledWith(body);
+});
+
+it("SIMULATED job journal survives lost save ACK/reopen and refuses changing the frozen identity",async()=>{
+  const f=fixture();await f.session.load();
+  const entry={source_id:"source",source_revision:"a".repeat(64),job_id:"job",request_id:"frozen",kind:"text",body:{deadline_ms:60000,split:false,words:false},surface:"manual" as const,mode:"single" as const,origin_restore_epoch:"initial",relative:null};
+  vi.mocked(f.transport.write).mockImplementationOnce(async request=>{f.publish(request.state);throw new Error("lost journal ACK");});
+  await expect(f.session.stageJob(entry)).rejects.toThrow("lost journal ACK");
+  expect(f.session.getSnapshot().status).toBe("blocked");await f.session.load();
+  const reopened=new CoreWorkingStateSession(f.transport);await reopened.load();
+  expect(reopened.getSnapshot().state.pending_jobs?.frozen).toEqual(entry);
+  await expect(reopened.stageJob({...entry,body:{...entry.body,deadline_ms:1}})).rejects.toThrow("不同的冻结");
+  await reopened.clearJob(entry,"terminal");
+  expect(f.transport.clearJob).toHaveBeenCalledWith(expect.objectContaining({request_id:"frozen",action:"terminal"}));
+  expect(reopened.getSnapshot().state.pending_jobs).toBeUndefined();
+});
+it("SIMULATED job clear refusal preserves the exact entry and late clear ACK preserves newer drafts",async()=>{
+  const f=fixture();await f.session.load();const entry={source_id:"source",source_revision:"a".repeat(64),job_id:"job",request_id:"frozen",kind:"text",body:{deadline_ms:60000,split:false,words:false},surface:"folder" as const,mode:"single" as const,origin_restore_epoch:"initial",relative:"owned.txt"};await f.session.stageJob(entry);
+  vi.mocked(f.transport.clearJob!).mockRejectedValueOnce(new Error("still running"));
+  await expect(f.session.clearJob(entry,"abandon_unadmitted")).rejects.toThrow("still running");
+  expect(f.session.getSnapshot().state.pending_jobs?.frozen).toEqual(entry);await f.session.load();
+  let finish!:(v:WorkingRead)=>void;vi.mocked(f.transport.clearJob!).mockImplementationOnce(()=>new Promise(resolve=>{finish=resolve;}));
+  const clearing=f.session.clearJob(entry,"terminal");await vi.waitFor(()=>expect(finish).toBeTypeOf("function"));
+  f.session.rememberDraft("doc-a",editor("清理期间新输入"),1);
+  const next=structuredClone(f.get().state);delete next.pending_jobs;finish(f.publish(next));await clearing;
+  expect(f.session.getSnapshot().state.drafts["doc-a"].editor_json).toEqual(editor("清理期间新输入"));
 });

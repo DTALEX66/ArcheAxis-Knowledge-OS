@@ -1,16 +1,19 @@
 import type { JSONContent } from "@tiptap/core";
+import type { UiWorkingStatePendingJob } from "../api/generated/ui-working-state-contract";
 import { assertUiWorkingState } from "../api/generated/ui-working-state-contract";
 
 export type WorkingEditor = JSONContent & {type:"doc";content:JSONContent[]};
 export type WorkingDraft = {base_version:number;editor_json:WorkingEditor};
 export type PendingOriginal = {create_request_id:string;title:string;editor_json:WorkingEditor};
-export type WorkingState = {drafts:Record<string,WorkingDraft>;opened_documents:string[];active_document:string|null;page_id:string|null;pending_original?:PendingOriginal|null};
+export type PendingJob = UiWorkingStatePendingJob;
+export type WorkingState = {drafts:Record<string,WorkingDraft>;opened_documents:string[];active_document:string|null;page_id:string|null;pending_original?:PendingOriginal|null;pending_jobs?:Record<string,PendingJob>};
 export type WorkingRead = {schema:"archeaxis.ui-working-state/v1";workspace_id:string;restore_epoch:string;state_revision:number;state:WorkingState;draft_digests:Record<string,string>;pending_document_id:string|null;recovery_candidates:WorkingState|null;recovery_requires_confirmation:boolean};
 type Basis = Pick<WorkingRead,"workspace_id"|"restore_epoch"|"state_revision">;
 export type WorkingTransport = {
   read:()=>Promise<WorkingRead>;
   write:(request:Basis & {state:WorkingState})=>Promise<WorkingRead>;
   clearSaved:(request:Basis & {document_id:string;base_version:number;content_sha256:string;saved_version:number})=>Promise<WorkingRead>;
+  clearJob?:(request:Basis & {request_id:string;action:"terminal"|"abandon_unadmitted"})=>Promise<WorkingRead>;
   recover:(request:Basis & {action:"preserve"|"discard"})=>Promise<WorkingRead>;
 };
 export type WorkingView = {state:WorkingState;server:WorkingRead|null;status:"loading"|"ready"|"unsaved"|"saving"|"blocked"|"recovery";error:string|null};
@@ -108,6 +111,33 @@ export class CoreWorkingStateSession {
     const read=await this.flush();
     if(!equal(read.state.pending_original,body))throw new Error("笔记创建请求尚未持久化确认。");
   }
+  async stageJob(entry:PendingJob):Promise<void> {
+    const old=this.view.state.pending_jobs?.[entry.request_id];
+    if(old&&!equal(old,entry))throw new Error("已有不同的冻结执行请求；未覆盖。");
+    this.change(state=>{state.pending_jobs??={};state.pending_jobs[entry.request_id]=structuredClone(entry);});
+    const read=await this.flush();
+    if(!equal(read.state.pending_jobs?.[entry.request_id],entry))throw new Error("执行身份保全未确认；尚未发送任务。");
+  }
+  async clearJob(entry:PendingJob,action:"terminal"|"abandon_unadmitted"):Promise<void> {
+    if(this.clearFlight){await this.clearFlight;return this.clearJob(entry,action);}
+    const run=this.clearJobOnce(entry,action).then(()=>true);this.clearFlight=run;
+    try{await run;}finally{this.clearFlight=null;}
+  }
+  private async clearJobOnce(entry:PendingJob,action:"terminal"|"abandon_unadmitted"):Promise<void> {
+    await this.flush();
+    const server=this.view.server!;
+    if(!equal(server.state.pending_jobs?.[entry.request_id],entry)||!this.transport.clearJob)throw new Error("执行保全清理身份未确认。");
+    const expected=structuredClone(server.state);delete expected.pending_jobs![entry.request_id];
+    if(!Object.keys(expected.pending_jobs!).length)delete expected.pending_jobs;
+    const run=this.transport.clearJob({...basis(server),request_id:entry.request_id,action});this.inFlight=run;
+    try {
+      const read=assertUiWorkingState<WorkingRead>("Read",await run);
+      if(!sameWorkspace(server,read)||read.state_revision!==server.state_revision+1||!equal(read.state,expected))throw new Error("执行保全清理回执未确认。");
+      const state=structuredClone(this.view.state);
+      if(equal(state.pending_jobs?.[entry.request_id],entry)){delete state.pending_jobs![entry.request_id];if(!Object.keys(state.pending_jobs!).length)delete state.pending_jobs;}
+      this.publish({state,server:read,status:equal(state,read.state)?"ready":"unsaved",error:null});
+    }catch(error){this.unknown={base:server,state:expected};this.fail(error);}finally{this.inFlight=null;}
+  }
   async finishOriginal(body:PendingOriginal):Promise<void> {
     if(!equal(this.view.state.pending_original,body))throw new Error("冻结笔记请求身份已变化。");
     this.change(state=>{state.pending_original=null;});await this.flush();
@@ -150,7 +180,7 @@ export class CoreWorkingStateSession {
     try {
       const read=assertUiWorkingState<WorkingRead>("Read",await run);
       if(!sameWorkspace(server,read)||read.recovery_requires_confirmation||read.state_revision!==server.state_revision+1||this.serial!==serial||!equal(read.state,expected))throw new Error("恢复确认期间本地输入或身份已变化；未自动应用。");
-      if(Object.keys(this.view.state.drafts).length||this.view.state.pending_original) {
+      if(Object.keys(this.view.state.drafts).length||this.view.state.pending_original||Object.keys(this.view.state.pending_jobs??{}).length) {
         this.unknown=null;this.publish({server:read,status:"blocked",error:"Core恢复候选已处理；现场另有本地草稿，请比较保全后再继续，未自动覆盖。"});return;
       }
       this.serial=0;this.unknown=null;this.publish({state:structuredClone(read.state),server:read,status:"ready",error:null});

@@ -1,3 +1,4 @@
+import { useJobJournal, JobJournalRecovery } from "../presentation/useJobJournal";
 import { useEffect, useId, useRef, useState } from "react";
 import { coreCommand } from "../api/core";
 import { ApiError, type JobAdmissionRefusal } from "../api/client";
@@ -78,6 +79,7 @@ function refuseBeforeUpload(relative: string, bytes: number): Refusal | null {
 }
 
 export function FolderIngest({ onOpenSource }: { onOpenSource?: (sourceId: string, jobId?: string) => void }) {
+  const journal=useJobJournal("folder");
   const [rows, setRows] = useState<Row[]>([]), [folder, setFolder] = useState<string | null>(null);
   const [batchId, setBatchId] = useState<string | null>(null), [message, setMessage] = useState("");
   const [busy, setBusy] = useState(false), [remaining, setRemaining] = useState(0), [cancelBusy, setCancelBusy] = useState(false);
@@ -165,9 +167,13 @@ export function FolderIngest({ onOpenSource }: { onOpenSource?: (sourceId: strin
     } finally { unlock(generation); }
   }
   function statusPatch(key: string, status: JobStatus) {
+    const frozen=rowsRef.current.find(row=>row.key===key)?.attempt;
+    if(journal.available&&frozen&&terminalJobState(status.state)&&status.request_id===frozen.request_id){
+      void journal.clear(frozen.request_id).then(()=>{if(mounted.current&&rowsRef.current.some(row=>row.key===key&&row.attempt?.request_id===frozen.request_id))patch(key,{attempt:undefined,cancelPending:false,executionRefused:false,admissionProof:undefined});}).catch(()=>{if(mounted.current&&rowsRef.current.some(row=>row.key===key&&row.attempt?.request_id===frozen.request_id))patch(key,{detail:"终态已记录，但执行保全清理未确认；冻结身份保留，请再核对状态。"});});
+    }
     const terminal = terminalJobState(status.state);
     patch(key, { status, state: jobState(status.state), detail: terminal ? `转换终态 ${status.state}；原件保留，成功产物可按真实来源定位。${status.error ? ` ${status.error}` : ""}` : `转换仍为 ${status.state}；终态未确认。`,
-      ...(terminal ? { attempt: undefined, cancelPending: false, executionRefused: false, admissionProof:undefined, capabilityBusy:false } : {}) });
+      ...(terminal && !journal.available ? { attempt: undefined, cancelPending: false, executionRefused: false, admissionProof:undefined, capabilityBusy:false } : {}) });
   }
   async function executeOne(key: string, mode: "queued" | "fresh" | "same", generation: number) {
     let row = rowsRef.current.find(item => item.key === key);
@@ -191,6 +197,9 @@ export function FolderIngest({ onOpenSource }: { onOpenSource?: (sourceId: strin
     const belongs = () => current(generation) && rowsRef.current.some(item => item.key === key && item.attempt?.request_id === attempt.request_id);
     patch(key, { attempt, state: "UNKNOWN", detail: "执行请求已冻结；等待真实回执，90s 单次预算。", executionRefused: false, admissionProof:undefined }); active.current = { key, attempt };
     try {
+      if(!row.sha256||!row.kind)throw new Error("来源与种类身份缺失；未执行。");
+      await journal.stage({source_id:source,source_revision:row.sha256,kind:row.kind,job_id:attempt.job_id,request_id:attempt.request_id,body:attempt.body,mode:"single",relative:row.relative});
+      if(!belongs())return;
       const receipt = await folderCommand("job_execute", { job_id: attempt.job_id, request_id: attempt.request_id, body: attempt.body });
       if (!belongs()) return;
       folderExecutionAck(receipt, attempt); // An ACK is not a terminal readback.
@@ -250,7 +259,7 @@ export function FolderIngest({ onOpenSource }: { onOpenSource?: (sourceId: strin
     if (row.source_id) callback.current?.(row.source_id, row.state === "succeeded" ? row.job_id : undefined);
   }
   const capabilityBusy = rows.some(row=>row.capabilityBusy);
-  return <section aria-label="文件夹导入"><h4>文件夹导入</h4>
+  return <section aria-label="文件夹导入"><h4>文件夹导入</h4><JobJournalRecovery entries={journal.entries} disabled={busy||cancelBusy||capabilityFlight.current||journal.blocked} onRestore={entry=>{const key=`recovered:${entry.request_id}`;replace({key,batch_id:"recovered",relative:entry.relative??entry.source_id,bytes:0,source_id:entry.source_id,sha256:entry.source_revision,job_id:entry.job_id,kind:entry.kind,attempt:{job_id:entry.job_id,request_id:entry.request_id,body:entry.body},state:"UNKNOWN",detail:"Core 保全现场已恢复；本地文件待上传队列未恢复。先核对原冻结状态，未自动执行。"});}} onAbandon={async entry=>{await journal.clear(entry.request_id,"abandon_unadmitted");update(old=>old.filter(row=>row.attempt?.request_id!==entry.request_id));}}/>
     <label className="content-import">选择一个文件夹<input type="file" aria-label="选择文件夹" disabled={busy || rows.some(row => !!row.attempt)} {...({ webkitdirectory: "", directory: "" } as Record<string, string>)} multiple onChange={event => {
       if (capabilityFlight.current || running.current || rowsRef.current.some(row => !!row.attempt)) return;
       const files = Array.from(event.target.files ?? []); event.target.value = "";

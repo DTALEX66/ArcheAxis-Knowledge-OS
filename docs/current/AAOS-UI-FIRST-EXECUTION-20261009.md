@@ -446,3 +446,11 @@ a2完整CI38085061981已completed/FAIL，安装job114312725772失败。下载art
 独立--installed-draft-conflict-loop已接正式native harness与NSIS必需调用，同fresh portable/archeaxis.sqlite使用installed launcher真实HTTP初始化并确认DB身份；初始化沿用owned terminate/reap，记录真实退出码，不冒称Core优雅退出。正式UI仍要求正常product exit0、新PID/新WebDriver session及同数据目录。原生alert只有明确no-such-alert可无确认，其他错误保留失败；fixture不混新grouped/兼容/AI分支，桥接只读，既有grouped门禁不弱化。
 
 根54 helper/结构检查PASS无skip、source_consistent=true，architecture/critical Ruff/PowerShell parser PASS。应用后第一次postimage检查因新test仅末行CRLF与git apply全LF差异失败；独立byte diff仅行尾，无代码差异，记录实际root hash，不伪称原manifest全部一致。实际Core/installed NOT_EXECUTED；当前29ab CI38086620115仍live且不含新接线，不取消或抢签结果。详见[冲突安装接线回执](receipts/AAOS-INSTALLED-CONFLICT-WIRING-20261011.json)。作业恢复21文件限定补丁已交待根审阅，实际AI复测正文摘要资格缺口另行补齐，整体PARTIAL。
+
+## 2026-10-11 作业冻结身份跨重启日志主树集成（PARTIAL）
+
+21文件限定补丁经exact preimage合入，Core existing workspace_meta新增optional typed pending_jobs：完整source/job/request/kind/budget/surface/epoch身份，CAS确认后才enqueue/execute；三入口重挂载/新App session显式恢复，不自动执行/启用。清理受Runtime admission/active锁及同Store事务保护，精确终态ledger或同epoch可靠未受理才能清除；放弃原子写tombstone阻止晚到请求，已有ledger replay优先，256满或损坏拒绝并保留journal，不淘汰。恢复旧epoch仍候选，不能升级历史未执行证明；旧backup不能保留未来tombstone，folder浏览器文件队列不属此日志范围。
+
+根121文件1111全前端、TypeScript/build PASS且source_consistent=true；后继只修Python helper夹具，不改已测前端。初轮native helper53 PASS/2 FAIL因旧fake未提供新journal读取，补齐真实接口并保留原自动执行/身份负例、增加预算与重启/journal篡改拒绝，最终55 PASS无skip/源码一致；projection/architecture/critical Ruff PASS。第一次postimage检查16文件及helper后继有CRLF/LF差异，独立normalized byte比较后恢复exact reviewed bytes，不伪造首次成功。Rust编译/格式/新增Core与installed重启实际NOT_EXECUTED。详见[作业恢复集成](receipts/AAOS-PENDING-JOB-JOURNAL-INTEGRATION-20261011.json)。
+
+29ab候选CI38086620115的Rust/OS tests已terminal PASS，但不覆盖本次journal；desktop-build仍live，speech step FAIL。日志/JSON下载遭HTTP401/403，随后正常认证重试被automatic approval拒绝，已请求Owner明确授权并停止该读取；精确speech错误及Core是否启动UNVERIFIED。其余本地任务继续，不取消live安装候选，整体PARTIAL。

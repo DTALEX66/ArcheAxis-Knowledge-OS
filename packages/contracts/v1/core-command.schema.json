@@ -84,7 +84,8 @@
         "job_execution_status",
         "job_execution_cancel",
         "ai_assets_list",
-        "ai_asset_packet"
+        "ai_asset_packet",
+        "ui_state_clear_job"
       ]
     },
     "payload": {

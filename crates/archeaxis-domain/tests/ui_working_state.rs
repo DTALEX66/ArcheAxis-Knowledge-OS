@@ -29,6 +29,66 @@ fn fixture(path: &std::path::Path) -> Connection {
 fn body(text: &str) -> Value {
     json!({"type":"doc","content":[{"type":"paragraph","attrs":{"block_id":"block_a"},"content":[{"type":"text","text":text}]}]})
 }
+
+#[test]
+fn job_journal_reopens_refuses_old_client_omission_and_requires_exact_clearance() {
+    let dir = tempfile::tempdir().unwrap();
+    let path = dir.path().join("jobs.sqlite");
+    let mut conn = fixture(&path);
+    conn.execute_batch("CREATE TABLE sources(source_id TEXT PRIMARY KEY,sha256 TEXT);
+        CREATE TABLE jobs(job_id TEXT PRIMARY KEY,input_ref TEXT,kind TEXT);
+        CREATE TABLE job_attempts(job_id TEXT,request_id TEXT,state TEXT,request_json TEXT);
+        INSERT INTO sources VALUES('source',printf('%064d',0));
+        INSERT INTO jobs VALUES('job','source','text');").unwrap();
+    let basis = ui_state::read(&mut conn).unwrap();
+    let entry = json!({"source_id":"source","source_revision":"0".repeat(64),"job_id":"job","request_id":"frozen",
+        "kind":"text","body":{"deadline_ms":60000,"split":false,"words":false},"surface":"manual","mode":"single","origin_restore_epoch":"initial","relative":null});
+    let mut payload = json!({"workspace_id":basis["workspace_id"],"restore_epoch":"initial","state_revision":basis["state_revision"],
+        "state":{"drafts":{},"opened_documents":[],"active_document":null,"page_id":"03","pending_original":null,"pending_jobs":{"frozen":entry}}});
+    let written = ui_state::write(&mut conn,serde_json::from_value(payload.clone()).unwrap()).unwrap();
+    drop(conn);
+    let mut conn = fixture(&path);
+    assert_eq!(ui_state::read(&mut conn).unwrap()["state"]["pending_jobs"]["frozen"],entry);
+    payload["state_revision"] = written["state_revision"].clone();
+    payload["state"].as_object_mut().unwrap().remove("pending_jobs");
+    assert!(ui_state::write(&mut conn,serde_json::from_value(payload.clone()).unwrap()).is_err());
+    payload["state"]["pending_jobs"] = json!({"frozen":entry});
+    // Any different binding cannot replace the stored identity.
+    payload["state"]["pending_jobs"]["frozen"]["body"]["deadline_ms"] = json!(1);
+    assert!(ui_state::write(&mut conn,serde_json::from_value(payload).unwrap()).is_err());
+    let clear = |action:&str| serde_json::from_value(json!({"workspace_id":written["workspace_id"],"restore_epoch":"initial","state_revision":written["state_revision"],"request_id":"frozen","action":action})).unwrap();
+    assert!(ui_state::clear_job(&mut conn,clear("terminal")).is_err());
+    conn.execute("INSERT INTO job_attempts VALUES('another','frozen','succeeded','{}')",[]).unwrap();
+    assert!(ui_state::clear_job(&mut conn,clear("abandon_unadmitted")).is_err());
+    assert!(ui_state::clear_job(&mut conn,clear("terminal")).is_err());
+    conn.execute("DELETE FROM job_attempts",[]).unwrap();
+    let cleared = ui_state::clear_job(&mut conn,clear("abandon_unadmitted")).unwrap();
+    assert!(cleared["state"].get("pending_jobs").is_none());
+    assert!(ui_state::job_abandoned(&conn,"frozen").unwrap());
+    assert!(!ui_state::job_abandoned(&conn,"other").unwrap());
+    let mut restore_entry=entry.clone();restore_entry["request_id"]=json!("restore_frozen");
+    let staged=ui_state::write(&mut conn,serde_json::from_value(json!({"workspace_id":cleared["workspace_id"],"restore_epoch":"initial","state_revision":cleared["state_revision"],"state":{"drafts":{},"opened_documents":[],"active_document":null,"page_id":"03","pending_jobs":{"restore_frozen":restore_entry}}})).unwrap()).unwrap();
+    let tombstone_raw: String=conn.query_row("SELECT value FROM workspace_meta WHERE key='ui_job_abandonments_v1'",[],|r|r.get(0)).unwrap();
+    let clear_staged=|| serde_json::from_value(json!({"workspace_id":staged["workspace_id"],"restore_epoch":"initial","state_revision":staged["state_revision"],"request_id":"restore_frozen","action":"abandon_unadmitted"})).unwrap();
+    let full: BTreeMap<String,String>=(0..256).map(|i|(format!("abandoned_{i}"),"0".repeat(64))).collect();
+    conn.execute("UPDATE workspace_meta SET value=?1 WHERE key='ui_job_abandonments_v1'",[serde_json::to_string(&full).unwrap()]).unwrap();
+    assert!(ui_state::clear_job(&mut conn,clear_staged()).is_err(),"full tombstones must reject clearance without forgetting any identity");
+    assert_eq!(ui_state::read(&mut conn).unwrap(),staged,"failed clearance retains the exact journal and revision");
+    assert!(ui_state::job_abandoned(&conn,"abandoned_0").unwrap());
+    assert!(ui_state::job_abandoned(&conn,"abandoned_255").unwrap());
+    conn.execute("UPDATE workspace_meta SET value='corrupt' WHERE key='ui_job_abandonments_v1'",[]).unwrap();
+    assert!(ui_state::job_abandoned(&conn,"unknown").is_err(),"corrupt record cannot prove an identity reusable");
+    assert!(ui_state::clear_job(&mut conn,clear_staged()).is_err());
+    assert_eq!(ui_state::read(&mut conn).unwrap(),staged);
+    conn.execute("UPDATE workspace_meta SET value=?1 WHERE key='ui_job_abandonments_v1'",[tombstone_raw]).unwrap();
+    conn.execute("INSERT INTO workspace_meta VALUES('authorization_restore_fence',?1)",[json!({"schema":"archeaxis.authorization-restore-fence/v1","epoch":"b".repeat(32),"blocked_grant_ids":[]}).to_string()]).unwrap();
+    let candidate=ui_state::read(&mut conn).unwrap();
+    assert_eq!(candidate["recovery_requires_confirmation"],true);
+    assert!(candidate["state"].get("pending_jobs").is_none());
+    assert_eq!(candidate["recovery_candidates"]["pending_jobs"]["restore_frozen"],restore_entry);
+    let recovered=ui_state::recover(&mut conn,serde_json::from_value(json!({"workspace_id":candidate["workspace_id"],"restore_epoch":candidate["restore_epoch"],"state_revision":staged["state_revision"],"action":"preserve"})).unwrap()).unwrap();
+    assert!(ui_state::clear_job(&mut conn,serde_json::from_value(json!({"workspace_id":recovered["workspace_id"],"restore_epoch":recovered["restore_epoch"],"state_revision":recovered["state_revision"],"request_id":"restore_frozen","action":"abandon_unadmitted"})).unwrap()).is_err(),"current backup absence cannot prove a pre-restore request never executed");
+}
 fn request(receipt: &Value, text: &str) -> Write {
     Write {
         workspace_id: receipt["workspace_id"].as_str().unwrap().into(),
@@ -46,6 +106,7 @@ fn request(receipt: &Value, text: &str) -> Write {
             active_document: Some("doc_a".into()),
             page_id: Some("03".into()),
             pending_original: None,
+            pending_jobs: BTreeMap::new(),
         },
     }
 }

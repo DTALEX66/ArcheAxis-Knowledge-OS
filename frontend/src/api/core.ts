@@ -72,7 +72,7 @@ export async function coreCommand<T>(operation: CoreOperation, payload: Record<s
     throw new ApiError(response.status, reason, response.status === 401 || response.status === 403 ? "unauthorized" : "unavailable");
   }
   const schema = responseSchemas[operation];
-  if (["ui_state_read", "ui_state_write", "ui_state_clear_saved", "ui_state_recover"].includes(operation)) {
+  if (["ui_state_read", "ui_state_write", "ui_state_clear_saved", "ui_state_clear_job", "ui_state_recover"].includes(operation)) {
     try { return assertUiWorkingState<T>("Read", response.body); }
     catch { throw new ApiError(502, "工作草稿保全回读格式无效，当前编辑内容仍保留。", "incompatible"); }
   }

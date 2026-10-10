@@ -21,6 +21,17 @@ def load_probe():
 
 
 class GroupedNativeProbeTests(unittest.TestCase):
+    def test_frozen_job_journal_binds_all_original_fields_and_refuses_old_restore_epoch(self):
+        frozen = {"job_id": "job", "request_id": "request", "body": {"deadline_ms": 60000, "split": False, "words": False}}
+        entry = {**frozen, "source_id": "source", "source_revision": "a" * 64, "kind": "text", "surface": "manual", "mode": "single", "relative": None, "origin_restore_epoch": "initial"}
+        read = {"schema": "archeaxis.ui-working-state/v1", "restore_epoch": "initial", "recovery_requires_confirmation": False, "state": {"pending_jobs": {"request": entry}}}
+        self.assertEqual(self.probe.frozen_job_journal(read, frozen, "source", "a" * 64, "text"), entry)
+        for field in ("job_id", "source_id", "source_revision", "kind", "body", "origin_restore_epoch"):
+            bad = copy.deepcopy(read)
+            bad["state"]["pending_jobs"]["request"][field] = "wrong"
+            with self.assertRaises(AssertionError):
+                self.probe.frozen_job_journal(bad, frozen, "source", "a" * 64, "text")
+
     def setUp(self):
         self.probe = load_probe()
 
@@ -826,20 +837,23 @@ class GroupedNativeProbeTests(unittest.TestCase):
                 for key in [
                     "status",
                     "execution_refusal",
+                    "frozen_intent_restart",
                     "enable_without_execution",
                     "same_request_retry",
                     "host_restart_result",
                 ]
             ],
-            ["PASS"] * 5,
+            ["PASS"] * 6,
         )
-        self.assertEqual(restarts, [False, True])
+        self.assertEqual(restarts, [False, False, True])
         enable_index = actions.index(
             ("click", "启用 text.extract", "//section[@aria-label='冻结请求的能力恢复']")
         )
-        retry_index = actions.index(
-            ("click", "同请求重试转换", "//section[@aria-label='真实转换产物']")
-        )
+        retries = [i for i, action in enumerate(actions) if action ==
+                   ("click", "同请求重试转换", "//section[@aria-label='真实转换产物']")]
+        self.assertEqual(len(retries), 2)
+        self.assertLess(retries[0], enable_index, "disabled same-key proof refresh is a separate action")
+        retry_index = retries[1]
         self.assertGreater(retry_index, enable_index)
         self.assertFalse(any(action[0] == "page" for action in actions[enable_index:retry_index]))
 
@@ -848,8 +862,14 @@ class GroupedNativeProbeTests(unittest.TestCase):
             self.exercise_capability_probe(autoexecute=True)
         with self.assertRaises(AssertionError):
             self.exercise_capability_probe(wrong_retry=True)
+        with self.assertRaises(AssertionError):
+            self.exercise_capability_probe(wrong_budget=True)
+        with self.assertRaisesRegex(AssertionError, "Restart silently executed"):
+            self.exercise_capability_probe(restart_execute=True)
+        with self.assertRaises(AssertionError):
+            self.exercise_capability_probe(changed_journal=True)
 
-    def exercise_capability_probe(self, autoexecute=False, wrong_retry=False):
+    def exercise_capability_probe(self, autoexecute=False, wrong_retry=False, wrong_budget=False, restart_execute=False, changed_journal=False):
         frozen, refused, succeeded = self.capability_fixture()
         # Match the native UUID-shaped request text; pure tests never execute a host or model.
         frozen["request_id"] = "read_run_1234-abcd"
@@ -861,6 +881,8 @@ class GroupedNativeProbeTests(unittest.TestCase):
             "status": copy.deepcopy(refused),
             "page": "#page=06",
             "finished": False,
+            "hydrated": False,
+            "journal": None,
         }
         actions, restarts = [], []
         text = "Authored source text\n"
@@ -907,18 +929,42 @@ class GroupedNativeProbeTests(unittest.TestCase):
                 actions.append(("click", label, scope))
                 if label == "执行真实内容转换":
                     state["new_job"] = True
+                    state["journal"] = {**copy.deepcopy(frozen), "source_id": "source-exact",
+                        "source_revision": document["source_revision"], "kind": "text",
+                        "surface": "manual", "mode": "single", "relative": None,
+                        "origin_restore_epoch": "initial"}
                 elif label == "启用 text.extract":
                     state["enabled"] = True
                     if autoexecute:
                         state["status"] = copy.deepcopy(succeeded)
                 elif label == "同请求重试转换":
+                    self_test.assertTrue(state["hydrated"], "retry needs explicit restored scene")
+                    if not state["enabled"]:
+                        self_test.assertEqual(state["status"], refused)
+                        return  # Fresh bound NOT_ADMITTED, still no durable attempt.
                     state["status"] = copy.deepcopy(succeeded)
+                    if wrong_budget:
+                        state["status"]["attempts"][0]["budget"]["deadline_ms"] = 1
                     if wrong_retry:
                         state["status"]["request_id"] = "another-request"
                     state["finished"] = True
+                elif label == "恢复冻结现场 " + frozen["request_id"]:
+                    self_test.assertIsNotNone(state["journal"])
+                    state["hydrated"] = True
+                elif label not in {"重新读取当前宿主能力", "整理此来源为知识候选"}:
+                    raise AssertionError("unexpected click " + label)
 
+        self_test = self
         def read(op, payload=None):
             self.assertIn(op, self.probe.READ_OPERATIONS)
+            if op == "ui_state_read":
+                self.assertIsNotNone(state["journal"])
+                return {"schema": "archeaxis.ui-working-state/v1", "workspace_id": "b" * 32,
+                    "restore_epoch": "initial", "state_revision": 1,
+                    "state": {"drafts": {}, "opened_documents": [], "active_document": None,
+                        "page_id": "03", "pending_jobs": {frozen["request_id"]: copy.deepcopy(state["journal"])}},
+                    "draft_digests": {}, "pending_document_id": None,
+                    "recovery_requires_confirmation": False, "recovery_candidates": None}
             if op == "capabilities_list":
                 return {
                     "capabilities": [{"capability": "text.extract", "enabled": state["enabled"]}]
@@ -960,6 +1006,13 @@ class GroupedNativeProbeTests(unittest.TestCase):
 
         def restart():
             restarts.append(state["enabled"])
+            state["hydrated"] = False
+            state["page"] = "#page=03"
+            if state["journal"] is not None and not state["finished"]:
+                if restart_execute:
+                    state["status"] = copy.deepcopy(succeeded)
+                if changed_journal:
+                    state["journal"]["body"]["deadline_ms"] = 1
 
         with patch.object(self.probe.time, "sleep", lambda _: None):
             result = self.probe.capability_refusal_recovery(

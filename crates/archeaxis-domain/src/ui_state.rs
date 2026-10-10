@@ -8,6 +8,7 @@ use std::collections::{BTreeMap, HashSet};
 
 const ID_KEY: &str = "ui_workspace_identity_v1";
 const STATE_KEY: &str = "ui_working_state_v1";
+const ABANDONED_KEY: &str = "ui_job_abandonments_v1";
 const MAX_BYTES: usize = 1_048_576;
 const BASIS: &str = "archeaxis.ui-working-state/v1";
 
@@ -36,6 +37,36 @@ pub struct OriginalAttempt {
     pub title: String,
     pub editor_json: Value,
 }
+#[derive(Clone, Debug, Deserialize, Serialize, PartialEq)]
+#[serde(deny_unknown_fields)]
+pub struct JobBudget {
+    pub deadline_ms: u64,
+    pub split: bool,
+    pub words: bool,
+}
+#[derive(Clone, Debug, Deserialize, Serialize, PartialEq)]
+#[serde(deny_unknown_fields)]
+pub struct PendingJob {
+    pub source_id: String,
+    pub source_revision: String,
+    pub job_id: String,
+    pub request_id: String,
+    pub kind: String,
+    pub body: JobBudget,
+    pub surface: String,
+    pub mode: String,
+    pub origin_restore_epoch: String,
+    pub relative: Option<String>,
+}
+#[derive(Debug, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct ClearJob {
+    pub workspace_id: String,
+    pub restore_epoch: String,
+    pub state_revision: i64,
+    pub request_id: String,
+    pub action: String,
+}
 #[derive(Clone, Debug, Default, Deserialize, Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct State {
@@ -45,6 +76,8 @@ pub struct State {
     pub page_id: Option<String>,
     #[serde(default)]
     pub pending_original: Option<OriginalAttempt>,
+    #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
+    pub pending_jobs: BTreeMap<String, PendingJob>,
 }
 #[derive(Clone, Debug, Deserialize, Serialize)]
 #[serde(deny_unknown_fields)]
@@ -137,6 +170,19 @@ fn digest(content: &Value) -> String {
     ))
 }
 fn validate(state: &State) -> Result<(), Error> {
+    if state.pending_jobs.len() > 64 { return Err(Error::Invalid("pending job limit exceeded")); }
+    let mut job_ids = HashSet::new();
+    for (key, job) in &state.pending_jobs {
+        if !job_ids.insert(&job.job_id) { return Err(Error::Invalid("another frozen request already owns this job")); }
+        if key != &job.request_id || !identity(key) || !identity(&job.source_id) || !identity(&job.job_id)
+            || job.source_revision.len() != 64 || !job.source_revision.bytes().all(|b| b.is_ascii_digit() || (b'a'..=b'f').contains(&b))
+            || !identity(&job.kind) || !(1..=300000).contains(&job.body.deadline_ms)
+            || !matches!(job.surface.as_str(), "manual" | "folder" | "bounded")
+            || !matches!(job.mode.as_str(), "single" | "split") || (job.mode == "split") != job.body.split
+            || !(job.origin_restore_epoch == "initial" || hex32(&job.origin_restore_epoch))
+            || job.relative.as_ref().is_some_and(|s| s.len() > 1024 || s.contains('\\') || s.starts_with('/') || s.split('/').any(|p| p == ".." || p.contains(':')))
+        { return Err(Error::Invalid("invalid frozen job journal")); }
+    }
     if let Some(attempt) = &state.pending_original {
         if !identity(&attempt.create_request_id)
             || attempt.title.len() > 1024
@@ -310,6 +356,20 @@ pub fn write(conn: &mut Connection, request: Write) -> Result<Value, Error> {
     if old.restore_epoch != current_epoch {
         return Err(Error::Conflict);
     }
+    for (key, pending) in &old.state.pending_jobs {
+        if request.state.pending_jobs.get(key) != Some(pending) {
+            return Err(Error::Invalid("frozen job cannot be replaced or omitted; use verified clear"));
+        }
+    }
+    for (key, pending) in &request.state.pending_jobs {
+        if !old.state.pending_jobs.contains_key(key) && job_abandoned(&tx, key)? {
+            return Err(Error::Invalid("abandoned request identity cannot be reused"));
+        }
+        if !old.state.pending_jobs.contains_key(key) && pending.origin_restore_epoch != current_epoch {
+            return Err(Error::Invalid("new frozen job belongs to another restore epoch"));
+        }
+        check_job_binding(&tx, pending)?;
+    }
     if let (Some(old_attempt), Some(new_attempt)) =
         (&old.state.pending_original, &request.state.pending_original)
     {
@@ -430,6 +490,7 @@ pub fn recover(conn: &mut Connection, request: Recover) -> Result<Value, Error> 
     match request.action {
         RecoveryAction::Discard => record.state = State::default(),
         RecoveryAction::Preserve => {
+            for pending in record.state.pending_jobs.values() { check_job_binding(&tx, pending)?; }
             for (id, draft) in &record.state.drafts {
                 if !tx.query_row("SELECT EXISTS(SELECT 1 FROM document_versions WHERE document_id=?1 AND version=?2)",rusqlite::params![id,draft.base_version],|r|r.get::<_,bool>(0))? { return Err(Error::Invalid("recovery draft base version missing; candidate retained")); }
             }
@@ -452,4 +513,69 @@ pub fn recover(conn: &mut Connection, request: Recover) -> Result<Value, Error> 
     let result = response(&record, &current_epoch);
     tx.commit()?;
     Ok(result)
+}
+
+fn check_job_binding(conn: &Connection, pending: &PendingJob) -> Result<(), Error> {
+    let sha: Option<String> = conn.query_row("SELECT sha256 FROM sources WHERE source_id=?1",[&pending.source_id],|r|r.get(0)).optional()?;
+    if sha.as_deref() != Some(pending.source_revision.as_str()) { return Err(Error::Invalid("frozen source revision missing or changed")); }
+    let job: Option<(String,String)> = conn.query_row("SELECT input_ref,kind FROM jobs WHERE job_id=?1",[&pending.job_id],|r|Ok((r.get(0)?,r.get(1)?))).optional()?;
+    if job.is_some_and(|(source,kind)| source != pending.source_id || kind != pending.kind) { return Err(Error::Invalid("frozen job source/kind conflict")); }
+    // Missing job is a staged enqueue intent; this journal neither creates nor executes it.
+    Ok(())
+}
+/// Caller holds Runtime admission and active guards; the same Store transaction proves clearance.
+pub fn clear_job(conn: &mut Connection, request: ClearJob) -> Result<Value, Error> {
+    let tx = conn.transaction_with_behavior(TransactionBehavior::Immediate)?;
+    let id = workspace_id(&tx)?;
+    let current_epoch = epoch(&tx)?;
+    let mut record = stored(&tx, &id, &current_epoch)?;
+    compare(&record,&id,&current_epoch,&request.workspace_id,&request.restore_epoch,request.state_revision)?;
+    if record.restore_epoch != current_epoch { return Err(Error::Conflict); }
+    let pending = record.state.pending_jobs.get(&request.request_id).ok_or(Error::Invalid("frozen request missing"))?;
+    check_job_binding(&tx,pending)?;
+    let actual: Option<(String,String,String)> = tx.query_row("SELECT job_id,state,request_json FROM job_attempts WHERE request_id=?1",[&request.request_id],|r|Ok((r.get(0)?,r.get(1)?,r.get(2)?))).optional()?;
+    match request.action.as_str() {
+        "terminal" => {
+            let (job,state,wire) = actual.ok_or(Error::Invalid("exact terminal request not recorded"))?;
+            let value: Value = serde_json::from_str(&wire).map_err(|_|Error::Invalid("corrupt execution request"))?;
+            if job != pending.job_id || !matches!(state.as_str(),"succeeded"|"failed"|"cancelled"|"rejected")
+                || value["job_id"] != pending.job_id || value["request_id"] != pending.request_id
+                || value["deadline_ms"].as_u64() != Some(pending.body.deadline_ms)
+                || value.pointer("/parameters/split").and_then(Value::as_bool).unwrap_or(false) != pending.body.split
+                || value.pointer("/parameters/words").and_then(Value::as_bool).unwrap_or(false) != pending.body.words
+            { return Err(Error::Invalid("exact terminal request binding mismatch")); }
+        }
+        "abandon_unadmitted" => {
+            if pending.origin_restore_epoch != current_epoch || actual.is_some() {
+                return Err(Error::Invalid("request admission/history is not proven absent"));
+            }
+            let running: bool = tx.query_row("SELECT EXISTS(SELECT 1 FROM job_attempts WHERE job_id=?1 AND state='running')",[&pending.job_id],|r|r.get(0))?;
+            if running { return Err(Error::Invalid("job still has an active durable claim")); }
+            let mut tombstones = abandoned(&tx)?;
+            if tombstones.len() >= 256 { return Err(Error::Invalid("abandoned identity limit reached; journal retained")); }
+            tombstones.insert(pending.request_id.clone(), digest(&json!(pending)));
+            tx.execute("INSERT INTO workspace_meta(key,value) VALUES(?1,?2) ON CONFLICT(key) DO UPDATE SET value=excluded.value",rusqlite::params![ABANDONED_KEY,serde_json::to_string(&tombstones).map_err(|_|Error::Invalid("invalid abandoned identity JSON"))?])?;
+        }
+        _ => return Err(Error::Invalid("unknown clear job action")),
+    }
+    record.state.pending_jobs.remove(&request.request_id);
+    record.state_revision = next_revision(&record)?;
+    publish(&tx,&record)?;
+    let result = response(&record,&current_epoch);
+    tx.commit()?;
+    Ok(result)
+}
+
+fn abandoned(conn: &Connection) -> Result<BTreeMap<String,String>,Error> {
+    let Some(raw) = meta(conn,ABANDONED_KEY)? else { return Ok(BTreeMap::new()); };
+    if raw.len() > 65536 { return Err(Error::Invalid("abandoned identity record too large")); }
+    let values: BTreeMap<String,String> = serde_json::from_str(&raw).map_err(|_|Error::Invalid("corrupt abandoned identity record"))?;
+    if values.len() > 256 || values.iter().any(|(key,value)| !identity(key) || value.len()!=64 || !value.bytes().all(|b| b.is_ascii_digit() || (b'a'..=b'f').contains(&b))) {
+        return Err(Error::Invalid("invalid abandoned identity record"));
+    }
+    Ok(values)
+}
+/// A late HTTP request for an explicitly abandoned key must never start a worker.
+pub fn job_abandoned(conn: &Connection, request_id: &str) -> Result<bool, Error> {
+    Ok(abandoned(conn)?.contains_key(request_id))
 }
