@@ -113,5 +113,15 @@
     "cause_of_ci99_exact_failed_conjunct": "UNVERIFIED; old receipt did not collect range/focus observations",
     "grouped_receipt_sha256": "699fef4dc9157fabf1e18a176a104d9d1e1965dccc1496d0b306fc0b906b5690",
     "failure_png_sha256": "9514502664284ab2f73c5c2dd8574aeff2b3834d5ffbc77a0e54934e15bd7c26"
+  },
+  "delivery": {
+    "state": "BRANCH_PUBLISHED",
+    "candidate_sha": "a8f93be52cf08ed4f0cac1c9689561ef5b9d961e",
+    "native_github_sha_match": true,
+    "branch": "codex/Audit",
+    "ci_run_id": 38081667307,
+    "ci_url": "https://github.com/DTALEX66/ArcheAxis-Knowledge-OS/actions/runs/38081667307",
+    "ci": "STARTED_NOT_QUALIFIED",
+    "metadata_head": "resolve actual Git HEAD; candidate SHA identifies the source under CI, not later delivery notes"
   }
 }
