@@ -27,6 +27,33 @@ class _GroupedJourneyCompleteError(Exception):
     """Internal branch completion; never bypasses the shared finally checks."""
 
 
+class WebDriverProtocolError(RuntimeError):
+    def __init__(self, value):
+        self.value = value
+        super().__init__(value)
+
+
+def accept_native_alert(request, session, evidence):
+    try:
+        text = request("GET", f"/session/{session}/alert/text")
+    except WebDriverProtocolError as error:
+        if error.value.get("error") != "no such alert":
+            raise
+        evidence.append({"action": "native_alert_absent", "error": "no such alert"})
+        return
+    assert isinstance(text, str) and text, "Native confirm identity missing"
+    request("POST", f"/session/{session}/alert/accept", {})
+    evidence.append({"action": "trusted_native_alert_accept", "text": text})
+
+
+def validate_conflict_branch(args):
+    if args.installed_draft_conflict_loop:
+        assert args.installer is not None, "Installed conflict requires parent-verified installer"
+        assert not any((args.grouped_common_owner_loop, args.synthetic_course_loop,
+                        args.synthetic_template_pagination, args.grouped_run_ai,
+                        args.grouped_authored_intervention)), "Conflict branch cannot mix other fixtures"
+
+
 def compatible_edge_versions(driver_version: str, runtime_version: str) -> bool:
     """Microsoft requires matching major/minor/build; patch updates are compatible.
 
@@ -728,6 +755,7 @@ def main():
     parser.add_argument("--driver", type=Path)
     parser.add_argument("--native-driver", type=Path)
     parser.add_argument("--build-receipt", type=Path, help="Bind a candidate to its current source and host/Core hashes")
+    parser.add_argument("--installed-draft-conflict-loop", action="store_true", help="Independent installed synthetic initialization + trusted UI 409 recovery; no Owner qualification")
     parser.add_argument("--grouped-common-owner-loop", action="store_true", help="Current grouped UI authored TXT/MD journey; bridge reads only, no Owner signoff")
     parser.add_argument("--grouped-authored-intervention", action="store_true", help="Explicit identity-bound engineering intervention/adoption and independent actual-model retest; not Owner or independent model-error adjudication")
     parser.add_argument("--grouped-run-ai", "--actual-model", action="store_true", help="Opt-in existing actual model route only; no model/provider changes or fabricated errors")
@@ -753,6 +781,7 @@ def main():
         parser.error("grouped AI requires the grouped journey branch")
     if args.grouped_common_owner_loop and (args.synthetic_course_loop or args.synthetic_template_pagination):
         parser.error("grouped qualification cannot mix compatibility fixtures")
+    validate_conflict_branch(args)
     host = args.host.resolve()
     tools = REPO / ".project-local/task-runtime/aaos01-tools"
     driver = (args.driver or tools / "tauri-driver-2.1.0/bin/tauri-driver.exe").resolve()
@@ -847,9 +876,15 @@ def main():
                 value = json.load(response)["value"]
         except HTTPError as error:
             body = error.read().decode("utf-8", "replace")
+            try:
+                protocol = json.loads(body)["value"]
+            except (ValueError, KeyError, TypeError):
+                raise RuntimeError(f"WebDriver {method} {path}: {body}") from error
+            if isinstance(protocol, dict) and protocol.get("error"):
+                raise WebDriverProtocolError(protocol) from error
             raise RuntimeError(f"WebDriver {method} {path}: {body}") from error
         if isinstance(value, dict) and value.get("error"):
-            raise RuntimeError(value)
+            raise WebDriverProtocolError(value)
         return value
 
     def js(script, arguments=None):
@@ -991,7 +1026,7 @@ def main():
         assert request("GET", f"/session/{session}/window/handles"), "Actual WebDriver window missing"
         request("POST", f"/session/{session}/timeouts", {"script":30000})
         wait("return !!document.querySelector('.space-rail [data-page-id=\"02\"]')")
-        if args.grouped_common_owner_loop:
+        if args.grouped_common_owner_loop or args.installed_draft_conflict_loop:
             receipt["navigation_scope"] = {"launch": "CURRENT_GROUPED_PAGE_ENTRY", "persisted_behavior": "CURRENT_GROUPED_NATIVE_UI", "compatibility": "NOT_EXECUTED"}
         else:
             receipt["navigation_scope"] = {"launch": "CURRENT_GROUPED_PAGE_ENTRY", "persisted_behavior": "DECLARED_LEGACY_COMPATIBILITY_ROUTES", "new_layout_coverage": "SEPARATE_BROWSER_SMOKE"}
@@ -1055,7 +1090,60 @@ def main():
                 time.sleep(0.2)
         else:
             raise TimeoutError("Owned WebDriver readiness")
+        if args.installed_draft_conflict_loop:
+            conflict = load("installed_draft_conflict", REPO / "scripts/probes/aaos01_installed_draft_conflict_loop.py")
+            installed_launcher = load("installed_conflict_launcher", host.parent / "start-backend.py")
+            source_dev = load("installed_conflict_source", REPO / "scripts/runtime/dev.py")
+            def conflict_source():
+                _, patch = source_dev.worktree_identity(REPO)
+                return {"commit": source_dev.git(REPO, "rev-parse", "HEAD"), "patch_sha256": patch}
+            init_child = None
+            receipt["installed_draft_conflict_loop"] = {"status": "IN_PROGRESS", "initialization": "SYNTHETIC_INITIALIZATION"}
+            initialization = receipt["installed_draft_conflict_loop"]
+            try:
+                init_child, init_base, init_launch, init_tokens = installed_launcher.start(work / "data", installed_launcher.free_port(), workspace_name="archeaxis.sqlite")
+                initialization["launcher"] = {"path": identity(host.parent / "start-backend.py"), "pid": init_child.pid, "core": identity(host.parent / "core/archeaxis-api.exe"), "workspace": init_launch["workspace"]}
+                initialization["http_calls"] = []
+                def init_http(method, path, body, expected):
+                    status, result = installed_launcher.call(init_base, method, path, body, tokens=init_tokens, role="human")
+                    initialization["http_calls"].append({"method": method, "path": path, "status": status, "result": result})
+                    assert status == expected, {"path": path, "status": status, "expected": expected}
+                    return result
+                version = init_http("GET", "/api/v1/system/version", None, 200)
+                assert Path(version["workspace_db"]).samefile(work / "data/archeaxis.sqlite")
+                fixture = conflict.initialize_fixture(init_http, owned_fresh_workspace=True, source_identity=conflict_source())
+                initialization["fixture"] = fixture
+            finally:
+                if init_child is not None:
+                    init_code = installed_launcher.stop(init_child)
+                    initialization["initializer_exit"] = {"method": "EXISTING_OWNED_LAUNCHER_TERMINATE_REAP", "exit_code": init_code, "stopped": init_child.poll() is not None, "graceful_exit": "NOT_CLAIMED"}
+                    assert init_child.poll() is not None, "Initialization Core remained live"
         launch()
+        if args.installed_draft_conflict_loop:
+            grouped = load("conflict_trusted_controls", REPO / "scripts/probes/aaos01_grouped_owner_loop.py")
+            evidence = initialization.setdefault("ui_actions", [])
+            def conflict_command(element_id, action, body):
+                return request("POST", f"/session/{session}/element/{element_id}/{action}", body)
+            controls = grouped.GroupedUI(js, wait, ui_element, conflict_command, evidence)
+            def accept_conflict_alert():
+                accept_native_alert(request, session, evidence)
+            def conflict_navigate(page):
+                if js("return location.hash") == "#page=" + page:
+                    return
+                controls.click_selector(f'.navigation-sidebar button[data-page-id="{page}"]', "css selector")
+                accept_conflict_alert()
+                wait("return location.hash===" + json.dumps("#page=" + page))
+            def conflict_restart():
+                old_pid, old_session = owned_host.pid, session
+                close_session()
+                shutdown = receipt["host_shutdowns"][-1]
+                launch()
+                return {"normal_exit": shutdown["exited"], "exit_code": shutdown["exit_code"], "old_pid": old_pid, "new_pid": owned_host.pid, "old_session": old_session, "new_session": session, "old_portable_root": str(work / "data"), "new_portable_root": str(work / "data")}
+            initialization["ui_result"] = conflict.run_ui(fixture, ui=controls, bridge=bridge, js=js, wait=wait, navigate=conflict_navigate, accept_navigation_alert=accept_conflict_alert, restart=conflict_restart, screenshot=screenshot, host_identity={"installed": True, "source": conflict_source(), "host": receipt["host"], "installer": receipt["installer"]}, verify_source=conflict_source)
+            initialization["status"] = initialization["ui_result"]["status"]
+            close_session()
+            receipt["ok"] = initialization["status"] == "PASS"
+            raise _GroupedJourneyCompleteError()
         if args.grouped_common_owner_loop:
             grouped = load("grouped_native_owner_journey", REPO / "scripts/probes/aaos01_grouped_owner_loop.py")
             def grouped_element_command(element_id, action, body):

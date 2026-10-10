@@ -373,6 +373,10 @@ try {
         } | ConvertTo-Json -Depth 4 | Set-Content -LiteralPath (Join-Path $preflightDirectory 'install-preflight.json') -Encoding utf8
         python -B scripts/probes/aaos01_tauri_webdriver_loop.py --host $executable --driver $nativeTools.driver --native-driver $nativeTools.native_driver --installer $Installer
         if ($LASTEXITCODE -ne 0) { throw 'actual installed Tauri WebDriver journey failed' }
+        # Required independent installed conflict/dual-draft qualification.
+        # Each invocation owns fresh portable data, separate from source/AI fixtures.
+        python -B scripts/probes/aaos01_tauri_webdriver_loop.py --host $executable --driver $nativeTools.driver --native-driver $nativeTools.native_driver --installer $Installer --installed-draft-conflict-loop
+        if ($LASTEXITCODE -ne 0) { throw 'actual installed document conflict recovery journey failed' }
         if ($GroupedOwnerLoop) {
             # A separate fresh owned data root exercises the current grouped UI.
             # The probe retains explicit missing AI/Owner qualification; no bridge writes.
@@ -504,6 +508,7 @@ try {
         clean_uninstall = $true
         uninstall_retains_data = $true
         reinstall_readback = $true
+        installed_document_conflict_loop = if ($NativeToolsReceipt) { 'PASS' } else { 'NOT_EXECUTED' }
         pyc_growth = $pycAfter - $pycBefore
     } | ConvertTo-Json -Depth 4 | Set-Content -LiteralPath (Join-Path $evidenceDirectory 'lifecycle-receipt.json') -Encoding utf8
 

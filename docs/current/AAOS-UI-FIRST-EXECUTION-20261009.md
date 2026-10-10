@@ -440,3 +440,9 @@ a2同候选多格式回执artifact11682366210/11682276493独立复核：light11�
 a2完整CI38085061981已completed/FAIL，安装job114312725772失败。下载artifact11681987772：兼容child ok=true/source_consistent=true，五次产品正常退出code0；不当完整installer lifecycle通过。新grouped child仍在候选创建后等待审核导航超时，import/read/anchor与完整quote PASS，原HTTP错误UNVERIFIED。后继已发布修复不能改写旧失败。前一运行明确终止后才启动force_full候选29ab6d0c的CI38086620115，独立核对headSha；观察queued，实际结果UNVERIFIED，不含新conflict adapter或pending-job实现。
 
 独立文档409安装adapter按两ABSENT preimage及exact patch/postimage合入根，19 helper tests PASS无skip、source_consistent=true，architecture/critical Ruff PASS。计划真实Core HTTP初始化双草稿/备份后，以安装UI明确恢复、A手动409及完整JSON比较/重绑保存、B独立保全及全宿主重启读回；尚未接入harness，实际Core/installed NOT_EXECUTED。隔离继续接同portable/archeaxis.sqlite、原生alert、正常退出和必需NSIS分支；不重试本地权限拒绝或绕过Core。详见[安装与冲突探针进展](receipts/AAOS-INSTALLED-CONFLICT-ADAPTER-PROGRESS-20261011.json)。全目标继续PARTIAL。
+
+## 2026-10-11 文档冲突安装分支接线（PARTIAL）
+
+独立--installed-draft-conflict-loop已接正式native harness与NSIS必需调用，同fresh portable/archeaxis.sqlite使用installed launcher真实HTTP初始化并确认DB身份；初始化沿用owned terminate/reap，记录真实退出码，不冒称Core优雅退出。正式UI仍要求正常product exit0、新PID/新WebDriver session及同数据目录。原生alert只有明确no-such-alert可无确认，其他错误保留失败；fixture不混新grouped/兼容/AI分支，桥接只读，既有grouped门禁不弱化。
+
+根54 helper/结构检查PASS无skip、source_consistent=true，architecture/critical Ruff/PowerShell parser PASS。应用后第一次postimage检查因新test仅末行CRLF与git apply全LF差异失败；独立byte diff仅行尾，无代码差异，记录实际root hash，不伪称原manifest全部一致。实际Core/installed NOT_EXECUTED；当前29ab CI38086620115仍live且不含新接线，不取消或抢签结果。详见[冲突安装接线回执](receipts/AAOS-INSTALLED-CONFLICT-WIRING-20261011.json)。作业恢复21文件限定补丁已交待根审阅，实际AI复测正文摘要资格缺口另行补齐，整体PARTIAL。
