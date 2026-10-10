@@ -392,3 +392,9 @@ a8 完整 CI 38081667307 已 terminal FAIL。下载 exact artifact 11681586595�
 3ff完整CI的OS tests 4694 PASS/87 SKIP/5 ERROR，五错误均中文测试旧base摘要触发隔离worktree fallback断言；desktop-fast实际中文包装器同一旧摘要拒绝，后续ASR准备/Core/upload均required SKIPPED。审阅99→当前base只有TXT kind/markers/fixture/原UTF8定位扩展，现更新精确LF摘要，保留硬拒绝并统一测试只读自己的checkout；新增LF/CRLF接受及实际源码漂移拒绝回归，不删除pin或绕过校验。根显式既有中文工具23 PASS无skip（含3实际PNG/JPEG/scanned PDF中文OCR），critical Ruff/architecture PASS、source_consistent=true；pyreadline析构错误保留。修复后candidate Core中文仍待后继CI。
 
 当前3ff rust-vnext terminal PASS，下载job114305012318日志确认新disabled_non_admission与durable_running负例均实际通过。下载light artifact11681755128，独立核验TXT完整原字节/正文与产物digest、emoji后原UTF8 span、不同job重解析、locator CURRENT、重启相等；选定真实Core TXT资格通过，非全格式/全局CI签署。详见[中文绑定与TXT/Rust续批](receipts/AAOS-CHINESE-PIN-TXT-RUST-PROGRESS-20261011.json)。新分组安装仍保留当前live验证；主题、冻结任务及发布边界不变。
+
+## 2026-10-11 ASR 独立依赖续批（PARTIAL）
+
+3ff实际Chinese probe失败后ASR按隐含success过滤required SKIP，不能把语音接线当实际结果。仅ASR准备/消费改显式 !cancelled + candidate runtime/host/engine成功前置，消费另须自己的ASR资产成功；独立Office/light/Chinese失败不再遮蔽ASR，但原失败仍导致desktop-fast/a0 FAIL。宿主格式失败可能产生source patch，故严格要求desktop_shell success，不签署变动源码。不改模型/引擎/资产pin、continue-on-error、JSON-only上传或缺receipt error。
+
+YAML/唯一ID/前置顺序及324取消/成功/失败/跳过条件组合通过，另核对三类独立失败；这是条件结构验证，新的实际ASR仍NOT_EXECUTED。详见[ASR独立CI依赖](receipts/AAOS-ASR-INDEPENDENT-CI-DEPENDENCIES-20261011.json)。当前3ff安装构建live，未取消或替代dispatch。文档409比较/明确重绑与恢复grant精确拒绝在独立checkout实现，未以隔离测试提前签署根集成或安装资格。

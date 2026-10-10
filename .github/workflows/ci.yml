@@ -1038,6 +1038,7 @@ jobs:
       - name: Install locked Python runtime
         run: uv sync --frozen
       - name: Prepare the installed Python runtime
+        id: desktop_runtime
         working-directory: ${{ github.workspace }}
         run: |
           cargo build -p archeaxis-api --bin archeaxis-api --release --locked
@@ -1068,6 +1069,7 @@ jobs:
           if-no-files-found: error
           retention-days: 7
       - name: Assert the staged runtime carries the format engines
+        id: desktop_engines
         working-directory: ${{ github.workspace }}
         run: python -B -m desktop.scripts.assert_runtime_engines --candidate .project-local/rt
       - name: Verify real XLSX and PPTX persistence
@@ -1132,6 +1134,9 @@ jobs:
           if-no-files-found: error
       - name: Prepare exact public assets for the existing ASR model
         id: common_asr_assets
+        # Independent OCR/Office failures stay fatal but do not hide speech evidence.
+        # Host failure can generate a formatting patch; never qualify that changed tree.
+        if: ${{ !cancelled() && steps.desktop_runtime.outcome == 'success' && steps.desktop_shell.outcome == 'success' && steps.desktop_engines.outcome == 'success' }}
         working-directory: ${{ github.workspace }}
         run: |
           $prerequisiteReceipt = '.project-local/task-runtime/common-asr-prerequisites.json'
@@ -1155,6 +1160,7 @@ jobs:
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
       - name: Verify actual speech Core content time location reparse and restart
         id: common_speech_loop
+        if: ${{ !cancelled() && steps.desktop_runtime.outcome == 'success' && steps.desktop_shell.outcome == 'success' && steps.desktop_engines.outcome == 'success' && steps.common_asr_assets.outcome == 'success' }}
         working-directory: ${{ github.workspace }}
         run: |
           python -B scripts/probes/aaos01_common_speech_runtime_loop.py --candidate .project-local/rt --model-dir .project-local/task-runtime/common-asr-assets/model --ffmpeg $env:FFMPEG_CMD --speech-wav .project-local/task-runtime/common-asr-derived/selected.wav --speech-transcript .project-local/task-runtime/common-asr-assets/fixture/transcript.txt --language en --expected-phrase "fellow Americans" --expected-phrase "ask not" --expected-phrase "do for your country"

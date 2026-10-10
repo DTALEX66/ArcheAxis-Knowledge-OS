@@ -1,0 +1,30 @@
+{
+  "schema": "archeaxis.asr-independent-ci-dependencies/v1",
+  "date": "2026-10-11",
+  "basis_commit": "b1831674d3f4e27c5d01c6e2468e018b5be89813",
+  "status": "IMPLEMENTED_CONDITION_VALIDATED_NOT_RUNTIME_QUALIFIED",
+  "reason": "3ff desktop-fast Chinese preimage failure suppressed independent ASR preparation and actual Core speech; keep failure but gather independent evidence",
+  "prerequisites": [
+    "desktop_runtime",
+    "desktop_shell",
+    "desktop_engines"
+  ],
+  "consumer_prerequisite": "common_asr_assets success",
+  "semantics": "!cancelled status function replaces implicit success filter; explicit successful prerequisites remain mandatory; no continue-on-error; host failure can generate source patch so host success remains required",
+  "reference": "https://docs.github.com/en/actions/reference/workflows-and-actions/expressions#status-check-functions",
+  "verification": {
+    "id_unique_order": "PASS",
+    "yaml": "PASS",
+    "condition_cases": 324,
+    "no_failure_suppression": "PASS",
+    "actual_new_ASR_execution": "NOT_EXECUTED",
+    "existing_receipt_missing_file": "ERROR_RETAINED",
+    "cases": "Three outcomes for four relevant steps, cancelled true/false, across two conditions; plus independent Office/light/Chinese failure"
+  },
+  "current_run": {
+    "source_commit": "3ffbe73c791a53b150e3ce3a1c1224085abdc98c",
+    "run_id": 38083440673,
+    "state": "LIVE_DESKTOP_BUILD; original failures retained; no successor/cancellation"
+  },
+  "whole_goal": "PARTIAL"
+}
