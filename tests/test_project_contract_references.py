@@ -1,19 +1,9 @@
 """The project contract must not name files that do not exist.
 
-`PROJECT_CONTRACT.yaml` is the agent-facing contract: it declares the mandatory
-owner journey and the schema/graph/registry files an agent is told to read. A
-declared path that does not exist is a dangling instruction, and it was already
-real: `delivery.mandatory_journey` pointed at `tests/journey/v01-owner-loop.yaml`
-from 2026-09-04 while the file was absent.
-
-The known-dangling set is pinned rather than filtered, so this test fails both
-when a *new* reference breaks and when the recorded broken one is repaired
-without updating the record. One entry remains escalated, not silently accepted:
-the digest profile's value is duplicated as a JSON-Schema `const` in
-`.project/schemas/task-graph.schema.json` and mirrored in `.project/TASK-GRAPH.yaml`,
-so repointing it is a governance change (see the DSH completion report) rather
-than a truth-document edit. The equivalent document already exists at
-`docs/vnext-seed/operations/digest-canonicalization.md`.
+`PROJECT_CONTRACT.yaml` declares repository-relative normative references. Every
+reference must resolve; no historical missing-path exception masks new drift.
+The digest profile, task graph and schema const now share the existing canonical
+`docs/vnext-seed/operations/digest-canonicalization.md` source.
 """
 
 from __future__ import annotations
@@ -29,10 +19,8 @@ ROOT = Path(__file__).resolve().parents[1]
 CONTRACT = ROOT / "PROJECT_CONTRACT.yaml"
 PATH_SUFFIXES = (".json", ".yaml", ".yml", ".md", ".toml", ".py", ".cs", ".rs")
 
-# key -> declared value. Escalated, not repaired here.
-KNOWN_DANGLING = {
-    "agent_protocol.digest_profile": "docs/operations/digest-canonicalization.md",
-}
+# No known dangling normative references remain.
+KNOWN_DANGLING = {}
 
 
 def _load_contract() -> dict:

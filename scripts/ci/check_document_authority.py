@@ -28,9 +28,9 @@ from __future__ import annotations
 import hashlib
 import json
 import re
+import stat
 import sys
 from pathlib import Path, PurePosixPath
-import stat
 
 REPO = Path(__file__).resolve().parents[2]
 AUTHORITY = REPO / "AUTHORITY.md"
@@ -356,8 +356,20 @@ def _check_one_ledger(relative: str) -> list[str]:
     return problems
 
 
+def check_public_routing() -> list[str]:
+    # Reuse the public-path identity resolver; no private software state is read.
+    import importlib.util
+    spec = importlib.util.spec_from_file_location(
+        "authority_routes", Path(__file__).resolve().parents[2] / "scripts/maintenance/authority_routes.py")
+    assert spec and spec.loader
+    routes = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(routes)
+    return routes.check_routes(REPO)
+
+
 def main() -> int:
     problems: list[str] = []
+    problems += check_public_routing()
     problems += check_single_current()
     problems += check_authority_references()
     problems += check_input_hashes()

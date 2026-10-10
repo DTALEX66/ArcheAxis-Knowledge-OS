@@ -1,0 +1,17 @@
+{
+  "role": "HISTORICAL_NOT_EXECUTION_GRANT",
+  "originals": [
+    {
+      "path": "docs/history/authority-repair-20261010/AAOS-AGENT-HANDOFF-before-repair.md",
+      "original_path": "docs/current/AAOS-AGENT-HANDOFF-CURRENT.md",
+      "sha256": "8291e3d85152e8d60f39d1f7c6bd7120c54a94e88f15531e7a36a51e60bc5d3d",
+      "copy": "PASS"
+    },
+    {
+      "path": "docs/history/authority-repair-20261010/SYSTEM_BOUNDARY-before-repair.md",
+      "original_path": "docs/SYSTEM_BOUNDARY.md",
+      "sha256": "8567446c4a9e99e887f511b26f18a489e49314b965825eea3b8725fcda1ba1c7",
+      "copy": "PASS"
+    }
+  ]
+}

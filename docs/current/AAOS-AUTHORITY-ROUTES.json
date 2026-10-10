@@ -1,0 +1,294 @@
+{
+  "schema": "archeaxis.authority-routes/v1",
+  "scope": "Public repository document routing; not new business authority or global software configuration",
+  "authority": "AUTHORITY.md",
+  "active_pointer": "docs/current/AAOS-ACTIVE-EXECUTION.json",
+  "decision_order": [
+    "platform instructions",
+    "current explicit Owner decision",
+    "applicable AGENTS.md",
+    "approved concern-specific normative contracts and supersession",
+    "selected TaskPack within its explicit scope",
+    "dated receipts and historical source inputs"
+  ],
+  "resolution_order": [
+    "reject private/outside/traversal/reparse targets",
+    "exact entry",
+    "first matching rule",
+    "UNCLASSIFIED_REFERENCE: no authority inferred"
+  ],
+  "entries": [
+    {
+      "path": ".codex.example/README.md",
+      "role": "LIVE_NAVIGATION"
+    },
+    {
+      "path": ".github/copilot-instructions.md",
+      "role": "LIVE_NAVIGATION"
+    },
+    {
+      "path": "AAOS-后续执行交接提示词-20261009.md",
+      "role": "HISTORICAL_HANDOFF"
+    },
+    {
+      "path": "AAOS-资料索引.md",
+      "role": "LIVE_NAVIGATION"
+    },
+    {
+      "path": "AGENTS.md",
+      "role": "LIVE_NAVIGATION"
+    },
+    {
+      "path": "AUTHORITY.md",
+      "role": "LIVE_NAVIGATION"
+    },
+    {
+      "path": "CLAUDE.md",
+      "role": "LIVE_NAVIGATION"
+    },
+    {
+      "path": "DECISION_SUPERSESSION_LEDGER.yaml",
+      "role": "SUPERSESSION_LEDGER"
+    },
+    {
+      "path": "DIRECTORY_AUTHORITY.yaml",
+      "role": "NORMATIVE_DIRECTORY"
+    },
+    {
+      "path": "GEMINI.md",
+      "role": "LIVE_NAVIGATION"
+    },
+    {
+      "path": "HERMES_HANDOFF.md",
+      "role": "HISTORICAL_HANDOFF"
+    },
+    {
+      "path": "PROJECT_CONTRACT.yaml",
+      "role": "NORMATIVE_CONTRACT"
+    },
+    {
+      "path": "README.md",
+      "role": "LIVE_NAVIGATION"
+    },
+    {
+      "path": "SYSTEM_BOUNDARY.md",
+      "role": "HISTORICAL_RUNTIME_SNAPSHOT"
+    },
+    {
+      "path": "apps/desktop/README.md",
+      "role": "FROZEN_DONOR_REFERENCE"
+    },
+    {
+      "path": "config/product/UI_CONTRACT_V2.json",
+      "role": "NORMATIVE_UI_CONTRACT_REQUIRES_CURRENT_TASK_MAPPING"
+    },
+    {
+      "path": "crates/README.md",
+      "role": "LIVE_NAVIGATION"
+    },
+    {
+      "path": "desktop/README.md",
+      "role": "LIVE_NAVIGATION"
+    },
+    {
+      "path": "docs/CONFIGURATION_AUTHORITY_INDEX.md",
+      "role": "LIVE_NAVIGATION"
+    },
+    {
+      "path": "docs/DIRECTORY_AUTHORITY_INDEX.md",
+      "role": "LIVE_NAVIGATION"
+    },
+    {
+      "path": "docs/DOCUMENTATION_AUTHORITY_INDEX.md",
+      "role": "LIVE_NAVIGATION"
+    },
+    {
+      "path": "docs/LANGUAGE_BOUNDARY_AUTHORITY_INDEX.md",
+      "role": "LIVE_NAVIGATION"
+    },
+    {
+      "path": "docs/README.md",
+      "role": "LIVE_NAVIGATION"
+    },
+    {
+      "path": "docs/RUNTIME_DELIVERY_AUTHORITY_INDEX.md",
+      "role": "LIVE_NAVIGATION"
+    },
+    {
+      "path": "docs/SHARED_RESOURCE_PATH_INDEX.md",
+      "role": "LIVE_NAVIGATION"
+    },
+    {
+      "path": "docs/SYSTEM_BOUNDARY.md",
+      "role": "LIVE_NAVIGATION"
+    },
+    {
+      "path": "docs/VERIFICATION_POLICY.md",
+      "role": "LIVE_NAVIGATION"
+    },
+    {
+      "path": "docs/architecture/CURRENT_ARCHITECTURE.md",
+      "role": "LIVE_NAVIGATION"
+    },
+    {
+      "path": "docs/current/AAOS-ACTIVE-EXECUTION.json",
+      "role": "ACTIVE_ROUTER"
+    },
+    {
+      "path": "docs/current/AAOS-AGENT-HANDOFF-CURRENT.md",
+      "role": "LIVE_NAVIGATION"
+    },
+    {
+      "path": "docs/current/AAOS-AUTHORITY-REPAIR-20261010.md",
+      "role": "GOVERNANCE_READBACK"
+    },
+    {
+      "path": "docs/current/AAOS-AUTHORITY-ROUTES.json",
+      "role": "NAVIGATION_REGISTRY"
+    },
+    {
+      "path": "docs/current/AAOS-GOVERNANCE-ALIGNMENT-20261009.md",
+      "role": "LIVE_NAVIGATION"
+    },
+    {
+      "path": "docs/current/AAOS-REPOSITORY-SYNC-20261010.md",
+      "role": "LIVE_NAVIGATION"
+    },
+    {
+      "path": "docs/current/AAOS-UI-DESIGN-INCREMENT-20261010.json",
+      "role": "DESIGN_OVERLAY"
+    },
+    {
+      "path": "docs/current/AAOS-UI-DESIGN-INCREMENT-20261010.md",
+      "role": "DESIGN_OVERLAY"
+    },
+    {
+      "path": "docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md",
+      "role": "SCOPED_PROGRESS"
+    },
+    {
+      "path": "docs/current/AAOS01-Q00-Q15-LEDGER-FINAL-20261005.md",
+      "role": "INHERITED_Q_PROGRESS"
+    },
+    {
+      "path": "docs/current/UI_V3_PRODUCT_ROADMAP.md",
+      "role": "LIVE_NAVIGATION"
+    },
+    {
+      "path": "docs/taskpacks/README.md",
+      "role": "LIVE_NAVIGATION"
+    },
+    {
+      "path": "docs/truth/ARCHITECTURE_FINAL.md",
+      "role": "SUPERSEDED_ARCHITECTURE"
+    },
+    {
+      "path": "docs/truth/AUTHORITY_AND_STATUS_RULES_V1.md",
+      "role": "INHERITED_STATUS_RULES"
+    },
+    {
+      "path": "docs/truth/AUTHORITY_CONTRACT.md",
+      "role": "HISTORICAL_RULE_SNAPSHOT"
+    },
+    {
+      "path": "docs/truth/CURRENT_STATE_TRUTH.md",
+      "role": "HISTORICAL_CAPABILITY_SNAPSHOT"
+    },
+    {
+      "path": "docs/truth/README.md",
+      "role": "LIVE_NAVIGATION"
+    },
+    {
+      "path": "docs/vnext-seed/operations/digest-canonicalization.md",
+      "role": "NORMATIVE_DIGEST"
+    },
+    {
+      "path": "frontend/README.md",
+      "role": "LIVE_NAVIGATION"
+    },
+    {
+      "path": "services/python-workers/README.md",
+      "role": "LIVE_NAVIGATION"
+    },
+    {
+      "path": "src-tauri/README.md",
+      "role": "LIVE_NAVIGATION"
+    }
+  ],
+  "rules": [
+    {
+      "pattern": "docs/history/conversation-summary-20261010/**",
+      "role": "FROZEN_SOURCE_INPUT"
+    },
+    {
+      "pattern": "docs/history/**",
+      "role": "HISTORICAL_SOURCE_OR_RECEIPT"
+    },
+    {
+      "pattern": "docs/authority/**",
+      "role": "INHERITED_OR_FROZEN_CONTRACT_NOT_ACTIVE_QUEUE"
+    },
+    {
+      "pattern": "docs/taskpacks/aaos-ui-first-20261009/**",
+      "role": "SELECTED_IMMUTABLE_TASK_SOURCE_NOT_LIVE_STATE"
+    },
+    {
+      "pattern": "docs/taskpacks/**",
+      "role": "HISTORICAL_TASK_SOURCE_NOT_ACTIVE_QUEUE"
+    },
+    {
+      "pattern": "docs/current/receipts/**",
+      "role": "VERSION_BOUND_SCOPED_RECEIPT"
+    },
+    {
+      "pattern": "docs/current/**",
+      "role": "DATED_SCOPED_RECORD_NOT_AUTOMATIC_AUTHORITY"
+    },
+    {
+      "pattern": "docs/architecture/imported-designs/**",
+      "role": "IMPORTED_REFERENCE_NOT_AUTHORITY"
+    },
+    {
+      "pattern": "docs/truth/**",
+      "role": "CONCERN_RULE_REQUIRES_INDEX_AND_SUPERSESSION"
+    },
+    {
+      "pattern": "docs/vnext-seed/**",
+      "role": "INHERITED_SPEC_REQUIRES_CURRENT_CONTRACT"
+    },
+    {
+      "pattern": "*.md",
+      "role": "REFERENCE_REQUIRES_CONCERN_AUTHORITY"
+    },
+    {
+      "pattern": "*.txt",
+      "role": "SOURCE_INPUT_NOT_EXECUTION_GRANT"
+    },
+    {
+      "pattern": "docs/**",
+      "role": "REFERENCE_REQUIRES_CONCERN_AUTHORITY"
+    }
+  ],
+  "aliases": [
+    {
+      "old_path": "docs/operations/digest-canonicalization.md",
+      "canonical_path": "docs/vnext-seed/operations/digest-canonicalization.md",
+      "policy": "locator migration only; never recreate duplicate normative text"
+    }
+  ],
+  "consumer_policy": {
+    "search_hit": "classify path before accepting rules/status/authorization",
+    "old_branch_or_export": "require fresh repository snapshot or mark stale/unverified; no promise of rewriting immutable third-party copies",
+    "local_absolute_path": "machine-local locator only; cloud consumers use repository-relative public paths",
+    "unknown_reference": "AUTHORITY_REFERENCE_MISSING or UNVERIFIED; do not invent authority",
+    "frozen_source": "never auto-activate",
+    "product_execution": "resolve active_pointer.execution_control; selected_tasks alone never resumes"
+  },
+  "software_adapters": {
+    "AGENTS.md": "Codex/Qoder/AGENTS-compatible tools",
+    "CLAUDE.md": "Claude Code project instructions",
+    "GEMINI.md": "Gemini CLI project context",
+    ".github/copilot-instructions.md": "GitHub Copilot repository instructions",
+    "qualification": "Files wired and checked; actual per-software context load/runtime not tested"
+  }
+}

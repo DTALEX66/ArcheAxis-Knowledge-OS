@@ -1,5 +1,7 @@
 # HISTORICAL / SUPERSEDED — Hermes handoff — archeaxis-workspace
 
+> **2026-10-10 路由修正：本页属于历史/继承范围，不是当前执行授权。** 原日期、原SHA和正文按历史解释；其旧宿主/队列/优先级不得覆盖平台规则、Owner当前决定与 [AUTHORITY.md](AUTHORITY.md)。正式Tauri/React + Rust Core，产品暂停；先解析当前活动指针及路径身份路由。
+
 > **FROZEN HANDOFF SNAPSHOT.** The “Current authoritative continuation” section below is historical as of 2026-09-02 and is not current authorization or architecture guidance. The formal desktop is C#/Avalonia with Rust Core; React/Tauri is legacy recovery/behavior reference. Use the current `AGENTS.md`, `DECISION_SUPERSESSION_LEDGER.yaml`, R6/M0 and documentation authority index. Preserve this file as historical evidence.
 
 Updated: 2026-09-01 (Green in-place repair and current-state correction; older notes retained below as history)

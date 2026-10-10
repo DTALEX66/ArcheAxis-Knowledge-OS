@@ -1,5 +1,7 @@
 # System Boundary — ArcheAxis Knowledge v0.6.14
 
+> **HISTORICAL SNAPSHOT / 2026-10-10 路由修正**：下文是2026-09-01旧Green/FastAPI拓扑及验收快照，不是当前架构、状态或授权。当前边界读 [docs/SYSTEM_BOUNDARY.md](docs/SYSTEM_BOUNDARY.md)，任务读活动指针；旧安装态声明不能提升当前产品资格。
+
 > Updated 2026-09-01. This is a capability and verification-boundary snapshot,
 > not a release claim. Re-read Git `HEAD`, `origin/main`, and the selected
 > GitHub Actions run for any exact-SHA assertion; this document intentionally

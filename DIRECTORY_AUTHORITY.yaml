@@ -219,6 +219,36 @@ authorities:
   - path: .zcode/**
     owner: none
     write_mode: deny-commit
+  - path: CLAUDE.md
+    owner: owner-integrator
+    execution_lane: owner
+    write_mode: serial-grant
+    protected_resource: governance
+    note: Public software adapter; routes to AGENTS/AUTHORITY, not private configuration.
+  - path: GEMINI.md
+    owner: owner-integrator
+    execution_lane: owner
+    write_mode: serial-grant
+    protected_resource: governance
+    note: Public software adapter; routes to AGENTS/AUTHORITY, not private configuration.
+  - path: .github/copilot-instructions.md
+    owner: owner-integrator
+    execution_lane: owner
+    write_mode: serial-grant
+    protected_resource: governance
+    note: Public software adapter; routes to AGENTS/AUTHORITY, not private configuration.
+  - path: AAOS-后续执行交接提示词-20261009.md
+    owner: owner-integrator
+    execution_lane: owner
+    write_mode: serial-grant
+    protected_resource: governance
+    note: Public archive/navigation entry; history grants do not reactivate.
+  - path: AAOS-资料索引.md
+    owner: owner-integrator
+    execution_lane: owner
+    write_mode: serial-grant
+    protected_resource: governance
+    note: Public archive/navigation entry; history grants do not reactivate.
   - path: AGENTS.md
     owner: owner-integrator
     execution_lane: owner

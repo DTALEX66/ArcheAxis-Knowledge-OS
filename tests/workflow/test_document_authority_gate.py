@@ -48,7 +48,22 @@ def build_repo(root: Path, *, ledger=PROGRESS, pack=PACK, authority_extra="") ->
     (root / LEDGER).write_text("inherited Q progress\n", encoding="utf-8")
     (root / "docs/current/AAOS-ACTIVE-EXECUTION.json").write_text(json.dumps({
         "schema": "archeaxis.active-execution/v1", "active_taskpack": PACK,
-        "active_progress": PROGRESS, "inherited_progress": [LEDGER]}), encoding="utf-8")
+        "active_progress": PROGRESS, "inherited_progress": [LEDGER],
+        "authority_routes": "docs/current/AAOS-AUTHORITY-ROUTES.json",
+        "execution_control": {"state": "PAUSED_BY_OWNER", "automatic_continuation": False}}), encoding="utf-8")
+    # The expanded main gate also requires a public identity routing registry.
+    (root / "docs/current/AAOS-AUTHORITY-ROUTES.json").write_text(json.dumps({
+        "schema": "archeaxis.authority-routes/v1",
+        "active_pointer": "docs/current/AAOS-ACTIVE-EXECUTION.json",
+        "entries": [{"path": name, "role": "LIVE_NAVIGATION"}
+                    for name in ("README.md", "AUTHORITY.md", "AGENTS.md")]
+                   + [{"path": "docs/current/AAOS-ACTIVE-EXECUTION.json", "role": "ACTIVE_ROUTER"}],
+        "aliases": [],
+        "rules": [{"pattern": "docs/current/**", "role": "DATED_SCOPED_RECORD_NOT_AUTOMATIC_AUTHORITY"},
+                  {"pattern": "*.md", "role": "REFERENCE_REQUIRES_CONCERN_AUTHORITY"}]}), encoding="utf-8")
+    for name in ("README.md", "AUTHORITY.md", "AGENTS.md"):
+        with (root / name).open("a", encoding="utf-8") as stream:
+            stream.write("\nAAOS-AUTHORITY-ROUTES.json\n")
     inputs = {
         "inputs_read_this_round": [
             {"path_or_locator": "docs/current/input.md", "byte_sha256": "0" * 64}],

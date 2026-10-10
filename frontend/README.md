@@ -1,43 +1,11 @@
-# ArcheAxis Knowledge — Frontend（AXW-UI-801 渐进迁移）
+# ArcheAxis Knowledge — 正式 React 前端
 
-React + TypeScript + Vite App Shell 骨架（任务包 §9.1/§10/§15.3）。
+本目录为 SUP-022 的正式 React/TypeScript/Vite 界面，与 `src-tauri/` 组成正式 Tauri 2 宿主。任务来源与停止状态从 [活动指针](../docs/current/AAOS-ACTIVE-EXECUTION.json) 读取；当前产品暂停、整体PARTIAL，实际结果见 [UI执行记录](../docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md)。
 
-## 结构
+新布局和导航按UI优先任务包及实际接线验收；不得把早期六空间骨架视为固定产品结构。默认blueprint，blueprint-light和black/white/cosmic作为主题；五主题共用布局与组件状态，同一主题统一语义颜色。主题真值与源码以当前design-system及合同为准，治理更新不改颜色。
 
-```text
-frontend/
-├─ src/
-│  ├─ app/            App Shell（状态栏 + 空间导航 + 检查器 + 活动坞）
-│  ├─ spaces/         六大空间：Workspace / Library / Evidence / Learning / AI Assets / Settings
-│  ├─ components/     共享组件（SpaceRail / StatusBar / Inspector / ActivityDock）
-│  ├─ design-system/  tokens.css（紫晶主题，light/dark，reduced-motion）
-│  ├─ api/            loopback API client（token 内存传递，product fail-closed）
-│  ├─ runtime/        连接状态机（booting→ready/reconnecting/failed…）
-│  └─ contributions/  （后续批次：插件 UI contribution 点）
-├─ public/
-└─ tests/             （后续批次：Vitest + Testing Library）
-```
+`src/app/` 承载Shell，`src/spaces/`承载页面，`src/components/`为组件；`src/api/`与生成DTO经有限认证桥进入Rust Core。界面不直连SQLite、不自建业务写者、不加载任意插件网页，启动令牌不存localStorage。
 
-## 开发
+构建使用 `npm --prefix frontend run build`；桌面使用 `npm --prefix frontend run tauri -- build --no-bundle`。脚本将产物路由到独立 `.project-local/runs/`，不能引用旧共享dist。开发命令、测试及依赖版本从当前 `package.json`/lockfile读取；共享工具链先查 [资源路径索引](../docs/SHARED_RESOURCE_PATH_INDEX.md)，不从旧安装示例推定安装授权。
 
-```bash
-# node 使用共用外置库（OS External Configuration）的 nodejs-lts v24（新稳定版；
-# 原 HERMES_HOME node v22 已停用——重复以新稳定版为准）
-node "D:/All projects/OS External Configuration/10-toolchains/scoop/apps/nodejs-lts/current/node.exe" \
-  "D:/All projects/OS External Configuration/10-toolchains/scoop/apps/nodejs-lts/current/node_modules/npm/bin/npm-cli.js" \
-  install --registry=https://registry.npmmirror.com
-npm run dev        # 127.0.0.1:5173（loopback only）
-npm run build      # tsc --noEmit && vite build → ../.project-local/build/frontend-dist/
-```
-
-## 迁移路径（渐进）
-
-1. Recovery Shell（desktop/bootstrap，已交付）→ 保持为启动/恢复层；
-2. 本 App Shell → 根 `src-tauri/tauri.conf.json` 的 `frontendDist`，通过
-   Tauri IPC 取得一次性内存启动令牌并先完成产品握手；
-3. `desktop/` 只作为受测迁移来源，不能用于 v0.6 构建或发布。
-
-## 约束
-
-- 不直接访问 SQLite；不加载任意插件网页；token 不写 localStorage；
-- 六大空间为产品固定结构，第三方品牌只出现在 Adapter 设置内。
+权威顺序与旧路径分类读 [AUTHORITY](../AUTHORITY.md)、[文档索引](../docs/DOCUMENTATION_AUTHORITY_INDEX.md) 和 [运行交付索引](../docs/RUNTIME_DELIVERY_AUTHORITY_INDEX.md)。测试夹具、截图、build和源码不自行证明安装态、真人验收或发布。

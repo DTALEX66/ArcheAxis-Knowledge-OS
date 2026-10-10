@@ -25,7 +25,7 @@ global_rules:
   issued_envelope_path: .project/tasks/issued/<plan-id>/<task-id>/<issuance-id>.json
   issued_authority_grant_path: .project/leases/issued/<plan-id>/<task-id>/<issuance-id>/<grant-id>.json
   authority_revocation_path: .project/leases/revocations/<grant-id>.json
-  canonical_digest_policy: docs/operations/digest-canonicalization.md
+  canonical_digest_policy: docs/vnext-seed/operations/digest-canonicalization.md
 execution_slicing:
   materialization: just-in-time-from-protected-program-graph
   slice_blueprint_path: .project/EXECUTION-SLICE-BLUEPRINTS.yaml

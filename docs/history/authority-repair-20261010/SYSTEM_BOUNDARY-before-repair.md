@@ -1,0 +1,30 @@
+# v0.6.8 System Boundary (v0.6.0 task scope)
+
+ArcheAxis Knowledge is a local-first trusted-knowledge workspace. The v0.6.8
+release carries the following v0.6.0-defined closed-loop boundary:
+
+```text
+Windows startup → four user-chosen libraries → RawAsset SHA-256 preservation
+→ conversion + physical anchors + LossReport → candidate evidence
+→ identified human review → EvidenceBundle / KnowledgeVersion
+→ independently governed Human Learning and AI assets → display/export/restart readback
+```
+
+The formal desktop implementation is `apps/ArcheAxis.Desktop/` (C#/Avalonia) over the
+Rust Core; `config/product/UI_CONTRACT_V2.json` fixes that entrypoint and the legacy
+role below. `frontend/` plus root `src-tauri/` are the legacy React/Tauri behavior
+reference and recovery surface, not the current product shell.
+`desktop/` and `OSUI/` are migration/reference surfaces, never release authority.
+The former `app/workspace/ui/` and root static product pages have been removed.
+
+WORK-LAB and DESIGN-LAB are external coordinators. They interact only through
+versioned APIs, commands, receipts, and events; they do not share the product's
+authoritative databases. Optional OCR, ASR, model, and external-resource
+capabilities are replaceable adapters and must report honest degradation when
+missing. No installed build may require a development-machine absolute path.
+
+This document defines a release boundary, not a completion assertion. The
+current release state is `v0.6.8 stable — RELEASED`: exact-SHA CI,
+Golden Journey coverage, three Windows distribution lifecycles, and public
+asset readback are recorded in `docs/RELEASE_LEDGER.md`. This does not promote
+deferred capabilities outside the boundary above.

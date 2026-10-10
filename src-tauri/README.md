@@ -1,14 +1,9 @@
-# ArcheAxis Desktop（R5 脚手架）
+# ArcheAxis Knowledge — 正式 Tauri 2 宿主
 
-- 本目录仅为 Tauri 2 桌面壳脚手架（配置 + 最小 main.rs）。
-- **工具链（2026-08-19 复查，共用库已具备）**：
-  - Rust 1.97.1 + MSVC target：D:/All projects/OS External Configuration/toolchains/rust/cargo/bin
-  - MSVC 编译器 14.44 + Windows SDK 10：D:/All projects/OS External Configuration/10-toolchains/msvc
-  - rustup toolchains（共享）：D:/All projects/OS External Configuration/10-toolchains/rustup
-  - 注：之前 Get-Command 找不到是因 PATH 残留旧名目录（OS configuration 缺 External）
-- 构建：`cmd /c vcvars64.bat && cargo build`（用 stable-x86_64-pc-windows-msvc）；
-  正式候选使用 `npm --prefix frontend run tauri -- build --no-bundle`；默认前端入口为 `npm --prefix frontend run build`。两者按 `dev.py` 分配 owner 下独立 run 的 `artifacts/frontend-dist`，Tauri hook 在父构建 run 中生成嵌入资源。裸 Tauri 构建未携带路由时拒绝，不能消费历史共享路径。
-- **状态（2026-08-19）**：debug 构建成功（11.7MB）+ 启动冒烟通过；release 构建成功（7.9MB，
-  1m47s）；安装包（NSIS/MSI）需 @tauri-apps/cli，属 R6。
-- 架构：桌面壳仅承载 React 构建产物 + 监督后端 FastAPI 子进程（端口 8000）；
-  后端保持可独立启动（`uvicorn app.main:app`），不锁死在桌面壳内。
+本目录与 `frontend/` 是 SUP-022 的正式宿主。先读 [AUTHORITY](../AUTHORITY.md)、[当前架构](../docs/architecture/CURRENT_ARCHITECTURE.md)、[运行交付索引](../docs/RUNTIME_DELIVERY_AUTHORITY_INDEX.md) 与 [活动指针](../docs/current/AAOS-ACTIVE-EXECUTION.json)。产品执行目前暂停，源码存在不等于已安装验收。
+
+`src/main.rs` 复用 `desktop/src-tauri/` 生命周期与有限 HostAdapter 桥；宿主监督 Rust Core，SQLite/CAS 的正典业务写入只在 Core。Python workers由Core隔离调度。旧FastAPI/8000拓扑是历史兼容参考，不能从本目录恢复为正式后端。
+
+正式构建入口：`npm --prefix frontend run tauri -- build --no-bundle`。前端构建为 `npm --prefix frontend run build`；路径由 `scripts/runtime/frontend.mjs` 与 `scripts/runtime/dev.py` 分配到独立 `.project-local/runs/`。裸Tauri构建不能使用历史共享dist。
+
+工具链位置与版本动态读取 [共享资源索引](../docs/SHARED_RESOURCE_PATH_INDEX.md)、锁文件与实际环境；不沿用旧README的机器路径、版本或冒烟结果。安装/发布/Green替换需相应Owner授权，本地build不等于runtime或exact-SHA CI。

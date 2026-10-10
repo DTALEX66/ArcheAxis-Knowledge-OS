@@ -1,5 +1,7 @@
 # apps/desktop（Avalonia 桌面层 · 骨架占位）
 
+> **2026-10-10 路由修正：本页属于历史/继承范围，不是当前执行授权。** 原日期、原SHA和正文按历史解释；其旧宿主/队列/优先级不得覆盖平台规则、Owner当前决定与 [../../AUTHORITY.md](../../AUTHORITY.md)。正式Tauri/React + Rust Core，产品暂停；先解析当前活动指针及路径身份路由。
+
 > DIRECTORY_AUTHORITY：`apps/desktop/**` → avalonia-ui（C#，`may_open_main_database: false`）。
 > v0.1 闭环第 1 步：无终端启动 Green 包；Avalonia Supervisor 启动 Rust Core 并完成握手
 > （`crates/archeaxis-sidecar-protocol` 信封 + `archeaxis-application::bootstrap` 身份）。

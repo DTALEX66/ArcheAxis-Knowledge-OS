@@ -149,7 +149,7 @@ agent_protocol:
   program_completion_receipt: .project/schemas/program-completion-receipt.schema.json
   authority_grant: .project/schemas/authority-grant.schema.json
   authority_revocation: .project/schemas/authority-revocation.schema.json
-  digest_profile: docs/operations/digest-canonicalization.md
+  digest_profile: docs/vnext-seed/operations/digest-canonicalization.md
   trusted_source: protected-metadata-only-activation-commit
   one_task_one_branch_one_worktree_one_agent: true
   authority_changes_require_remote_grant: true

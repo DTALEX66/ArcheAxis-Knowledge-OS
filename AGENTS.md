@@ -1,5 +1,7 @@
 # AGENTS.md - 星环知识平台（ArcheAxis Knowledge）Operating Guide
 
+> **2026-10-10 当前路由与状态**：产品执行 PAUSED_BY_OWNER，整体 PARTIAL；当前请求仅授权归档和权威/引用治理修复。旧“下一队列/未发布/两树不同”属于历史日期快照；上次源码已发布，本轮最新状态读 [修复回读](docs/current/AAOS-AUTHORITY-REPAIR-20261010.md)。读取任何旧路径前先按 [路径身份路由](docs/current/AAOS-AUTHORITY-ROUTES.json) 分类，不从文件名CURRENT、旧COMPLETE或旧grant推导授权。六项核心能力增量 FROZEN_BY_OWNER，不自动排队；V01暂停、FT01–04冻结。
+
 > 全局执行标准（跨软件跨项目）：见 WORK-LAB `00-governance/global-execution-standard.md`（执行生命周期：理解→扫技能→分片→执行→验证→落地；全局边界：E盘禁访/数据不外溢/官方优先/全功率）。
 > 经验教训铁律（核实优先/治理最小化/官方优先）：见本项目 `LESSONS_LEARNED.md`。
 

@@ -118,5 +118,21 @@
     "ci": "UNVERIFIED; push response reported required a0-gates expected",
     "installed": "NOT_EXECUTED",
     "latest_delivery_metadata_sha": "resolve actual Git HEAD; do not treat snapshot commit as latest metadata commit"
+  },
+  "authority_routes": "docs/current/AAOS-AUTHORITY-ROUTES.json",
+  "frozen_source_inputs": [
+    {
+      "index": "docs/history/conversation-summary-20261010/INDEX.md",
+      "manifest": "docs/history/conversation-summary-20261010/MANIFEST.json",
+      "state": "FROZEN_BY_OWNER",
+      "execution": "NOT_EXECUTED",
+      "activation": "requires new explicit Owner selection"
+    }
+  ],
+  "governance_maintenance": {
+    "owner_request": "先更新修复所有权威，防止本地/云端按旧文档旧路径旧权威访问审计",
+    "status_record": "docs/current/AAOS-AUTHORITY-REPAIR-20261010.md",
+    "product_execution": "REMAINS_PAUSED",
+    "scope": "public project authority/navigation/aliases and anti-drift checks only"
   }
 }

@@ -1,5 +1,7 @@
 # Configuration Authority Index (AXC-010)
 
+> **2026-10-10 当前路由与状态**：产品执行 PAUSED_BY_OWNER，整体 PARTIAL；当前请求仅授权归档和权威/引用治理修复。旧“下一队列/未发布/两树不同”属于历史日期快照；上次源码已发布，本轮最新状态读 [修复回读](current/AAOS-AUTHORITY-REPAIR-20261010.md)。读取任何旧路径前先按 [路径身份路由](current/AAOS-AUTHORITY-ROUTES.json) 分类，不从文件名CURRENT、旧COMPLETE或旧grant推导授权。六项核心能力增量 FROZEN_BY_OWNER，不自动排队；V01暂停、FT01–04冻结。
+
 > **2026-10-09 当前执行覆盖**：用户已选择新 UI 优先任务及 G01；规范活动指针为 [AAOS-ACTIVE-EXECUTION](current/AAOS-ACTIVE-EXECUTION.json)，当前任务来源为 [UI 优先 TaskPack](taskpacks/aaos-ui-first-20261009/TASKPACK.md)，实际进度只读 [UI 执行记录](current/AAOS-UI-FIRST-EXECUTION-20261009.md)。规划原文的 PLANNING_READY / NOT_EXECUTED 是规划时状态，激活与实际结果由当前覆盖记录，不改写不可变原包。AAOS-01 Q00–Q15 台账仅记录该继承工作流，不代表新 UI 全队列；旧 R6/M0 整包顺序冻结，有效合同、单一 Rust Core writer、内容先保存及历史证据保留。V01 继续暂停。
 > 当前新布局、架构和其余产品界面按新任务执行；默认 `blueprint`，配套 `blueprint-light`，旧 `black` / `white` / `cosmic` 仅为额外配色主题。五主题共用新布局、组件状态及统一语义颜色；一个主题内部的按钮、菜单、侧栏与正文保持一致。主题不更改 Core 配置或知识数据。
 > 平台指令优先；平台范围内用户当前明确决定优先于项目旧描述。此文档同步不授予 commit、push、merge、发布、私人账户/会话访问或恢复暂停的云端任务权限；本机资源索引不是云端权限。
@@ -19,7 +21,7 @@
 | 开发运行根 | `scripts/runtime/dev.py` | `.project-local` 下 worktree/run 隔离；Bash/PowerShell 共用；不是产品 workspace |
 | 正式桌面worker路径载荷 | `scripts/release/stage_backend_runtime.py`、`src-tauri/src/main.rs`、`desktop/src-tauri/src/backend.rs`、`desktop/src-tauri/src/runtime.rs`、`crates/archeaxis-api/src/launch.rs` | 权威暂存器统一生成 runtime/Core/workers、manifest 与 worker-profile；正式 Tauri 沿复用的 backend/runtime 构建 v2 Core 启动文档，Core 校验路径、权限及 text_worker 声明。实际启动解释器须与候选/profile/import 证据一致，text_worker 不添加 schema 字段。Avalonia `apps/ArcheAxis.Desktop/WorkerProfile.cs` 是历史供体，不能覆盖正式 Tauri 契约；保留隔离开发根和旧数据边界。 |
 | 桌面启动身份 | `packages/contracts/bootstrap/v2/launch.schema.json`、`docs/current/R5-DESKTOP-IDENTITY-V2.md` | 显式v2 stdin双令牌、单Core写者；Core作跨字段及路径语义校验，不能把Schema验证当作权限验收 |
-| Core持久复习状态 | `packages/contracts/learning/v1/review.schema.json`、`docs/current/R5-LEARNING-STATE.md` | `/api/v1/learning/reviews`从Core事件恢复完整FSRS状态，独立于旧/events收据契约；只有human可写，状态由Core与worker产生，默认UI接线仍需验收 |
+| Core持久复习状态 | `packages/contracts/learning/v1/review.schema.json`、`docs/current/R5-LEARNING-STATE.md` | `/api/v1/learning/reviews`从Core事件恢复完整FSRS状态，独立于旧/events收据契约；只有human可写，状态由Core与worker产生，正式学习UI接线与验收读当前UI执行记录及分域回执，旧接线状态不代表当前事实 |
 | 跨语言词汇与损失回执 | `packages/contracts/v1/`、`scripts/contracts/generate_vocabulary.py` | Schema 为单源；Rust/C#/Python 词汇生成后须 `--check`；loss receipt 另有跨字段运行时校验，完整 DTO/权限协议仍在推进 |
 | 验证节奏 | `docs/VERIFICATION_POLICY.md` | 风险类型与验证节奏、审计/审查触发 |
 | path risk | `.worklab/project-validation.v1.yaml` | 变更路径 → 风险类 → Gate 映射 |
@@ -73,4 +75,4 @@ CLI explicit override
 | 能力吸收登记 | docs/truth/CAPABILITY_ABSORPTION_REGISTRY.yaml + config/schemas/capability-absorption-registry.schema.json | R6 A03 唯一能力吸收登记；状态、许可、来源、边界和回退必须逐项记录；不得把候选或供体写成已集成 |
 
 
-集合／研究合同：正式writer中的 `packages/contracts/v2/collection.schema.json`、`research.schema.json` 为这两个metadata namespace的单源；生成React DTO不建立第二配置库。Rust Core拥有Document保存与引用验证、公式和只读图／视图投影。详细writer及源码SHA读 [CB03/UF08回执](current/receipts/AAOS-RESEARCH-STAGE-20261010.json)；本主根索引不是schema已合并/云端已具有相同文件的声明。
+集合／研究合同：正式writer中的 `packages/contracts/v2/collection.schema.json`、`research.schema.json` 为这两个metadata namespace的单源；生成React DTO不建立第二配置库。Rust Core拥有Document保存与引用验证、公式和只读图／视图投影。详细writer及源码SHA读 [CB03/UF08回执](current/receipts/AAOS-RESEARCH-STAGE-20261010.json)；上次源码/合同已合并发布，见仓库同步回执；本轮修复的最新发布状态单独读AAOS-AUTHORITY-REPAIR-20261010.md，不从历史writer路径推定当前文件缺失。

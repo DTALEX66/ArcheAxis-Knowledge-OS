@@ -1,5 +1,7 @@
 # Authority Contract — ArcheAxis OS Execution
 
+> **2026-10-10 路由修正：本页属于历史/继承范围，不是当前执行授权。** 原日期、原SHA和正文按历史解释；其旧宿主/队列/优先级不得覆盖平台规则、Owner当前决定与 [../../AUTHORITY.md](../../AUTHORITY.md)。正式Tauri/React + Rust Core，产品暂停；先解析当前活动指针及路径身份路由。
+
 > **HISTORICAL / SUPERSEDED for current execution (2026-09-26):** This 2026-08-09 authority-order snapshot is retained as historical evidence. Its frozen-baseline-only task-source rule is superseded; follow the current project `AGENTS.md`, R6 TaskPack, and M0 priority overlay.
 
 > 合同 ID：`AXW-AUTHORITY-v1-2026-08-09`

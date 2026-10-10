@@ -1,5 +1,7 @@
 # Documentation Authority Index
 
+> **2026-10-10 当前路由与状态**：产品执行 PAUSED_BY_OWNER，整体 PARTIAL；当前请求仅授权归档和权威/引用治理修复。旧“下一队列/未发布/两树不同”属于历史日期快照；上次源码已发布，本轮最新状态读 [修复回读](current/AAOS-AUTHORITY-REPAIR-20261010.md)。读取任何旧路径前先按 [路径身份路由](current/AAOS-AUTHORITY-ROUTES.json) 分类，不从文件名CURRENT、旧COMPLETE或旧grant推导授权。六项核心能力增量 FROZEN_BY_OWNER，不自动排队；V01暂停、FT01–04冻结。
+
 > **2026-10-09 当前执行覆盖**：用户已选择新 UI 优先任务及 G01；规范活动指针为 [AAOS-ACTIVE-EXECUTION](current/AAOS-ACTIVE-EXECUTION.json)，当前任务来源为 [UI 优先 TaskPack](taskpacks/aaos-ui-first-20261009/TASKPACK.md)，实际进度只读 [UI 执行记录](current/AAOS-UI-FIRST-EXECUTION-20261009.md)。规划原文的 PLANNING_READY / NOT_EXECUTED 是规划时状态，激活与实际结果由当前覆盖记录，不改写不可变原包。AAOS-01 Q00–Q15 台账仅记录该继承工作流，不代表新 UI 全队列；旧 R6/M0 整包顺序冻结，有效合同、单一 Rust Core writer、内容先保存及历史证据保留。V01 继续暂停。
 > 当前新布局、架构和其余产品界面按新任务执行；默认 `blueprint`，配套 `blueprint-light`，旧 `black` / `white` / `cosmic` 仅为额外配色主题。五主题共用新布局、组件状态及统一语义颜色；一个主题内部的按钮、菜单、侧栏与正文保持一致。主题不更改 Core 配置或知识数据。
 > 平台指令优先；平台范围内用户当前明确决定优先于项目旧描述。此文档同步不授予 commit、push、merge、发布、私人账户/会话访问或恢复暂停的云端任务权限；本机资源索引不是云端权限。
@@ -34,7 +36,7 @@ and the audit index. The entries below are what it routes to, in order.
    It preserves Rust Core as sole writer, isolated Python workers and R6/M0
    evidence/no-release boundaries. The existing
    [AAOS-01 current ledger](current/AAOS01-Q00-Q15-LEDGER-FINAL-20261005.md)
-   is the single live Q00–Q15 progress record; old planning registries and dated
+   is the scoped inherited Q00–Q15 record; old planning registries and dated
    handoffs do not create parallel state truth or override current requirements.
    A recorded drift and branch/path audit is the dated
    [REPOSITORY-DRIFT-CURRENT-RECEIPT-20260923](current/REPOSITORY-DRIFT-CURRENT-RECEIPT-20260923.md)
@@ -287,3 +289,7 @@ The full source package, its unpacked contents, and the two supplied reports are
 [本页供体资格登记](current/AAOS-RESOURCE-QUALIFICATION-20261010.json)覆盖既有68个稳定身份与115条原冲突，列出本页所选9项及其版本、许可、权限、运行、实测与冻结条件。历史交叉登记保留原始结论；当前宿主握手、锁文件与官方许可证HEAD读回分别记账，不互相推导installed或发布资格。递归来源指纹在当前执行记录指定的唯一产品writer运行 `scripts/contracts/generate_resource_catalog.py --check` 核验。主根镜像登记与资料入口，不作为产品源码资格检出；页面投影不是第二权威或第二状态库。
 
 执行状态仍读[当前UI记录](current/AAOS-UI-FIRST-EXECUTION-20261009.md)与活动指针；TaskPack原规划状态不改写。SBOM/NOTICE生成及模板回归属于本地工程证据，升级、退出、混合导入取消、正式旧库迁移和安装态验收依各自合同另验；未核实项保留明确缺口。
+
+## 全仓路径与软件读取入口 · 2026-10-10
+
+[路径身份注册](current/AAOS-AUTHORITY-ROUTES.json)按exact路径、历史/继承/冻结规则和失效别名解析文档，不能只依赖名称CURRENT。规范digest原路径已修复；当前系统边界读 [SYSTEM_BOUNDARY](SYSTEM_BOUNDARY.md)，原Release/FastAPI/Avalonia正文仅为历史。软件入口AGENTS、CLAUDE、GEMINI与Copilot都回到同一根权威，不各建一套规则。

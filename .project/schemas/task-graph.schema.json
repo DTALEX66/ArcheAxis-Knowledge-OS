@@ -122,7 +122,7 @@
         "issued_envelope_path": {"const": ".project/tasks/issued/<plan-id>/<task-id>/<issuance-id>.json"},
         "issued_authority_grant_path": {"const": ".project/leases/issued/<plan-id>/<task-id>/<issuance-id>/<grant-id>.json"},
         "authority_revocation_path": {"const": ".project/leases/revocations/<grant-id>.json"},
-        "canonical_digest_policy": {"const": "docs/operations/digest-canonicalization.md"}
+        "canonical_digest_policy": {"const": "docs/vnext-seed/operations/digest-canonicalization.md"}
       }
     },
     "execution_slicing": {

@@ -1,0 +1,45 @@
+{
+  "schema": "archeaxis/frozen-source-archive/v1",
+  "recorded_at": "2026-10-10T13:15:59.784891+00:00",
+  "source_path": "D:\\All projects\\Record\\AAOS_Conversation_Summary_20261010.zip",
+  "archive_path": ".project-local/archives/conversation-summary-20261010/originals/AAOS_Conversation_Summary_20261010.zip",
+  "bytes": 668175,
+  "sha256": "d6443927ee60d20889b89331bcacc6a6ff73f5238a548a9591e402c947f64b30",
+  "copy_status": "PASS",
+  "zip_crc": "PASS",
+  "members": [
+    {
+      "zip_member": "AAOS_Conversation_Summary_20261010.docx",
+      "bytes": 45217,
+      "sha256": "f88da58bb8ab9fc42859da60e32d6df2036ef4928eb4c6138128705b63e437f3",
+      "archive_path": ".project-local/archives/conversation-summary-20261010/members/AAOS_Conversation_Summary_20261010.docx",
+      "searchable_path": null,
+      "copy_status": "PASS"
+    },
+    {
+      "zip_member": "AAOS_Conversation_Summary_20261010.pdf",
+      "bytes": 903282,
+      "sha256": "2f98336439c2075e6929989cd24c4d3f2fa39bfcee4d2fa1774ac452afface01",
+      "archive_path": ".project-local/archives/conversation-summary-20261010/members/AAOS_Conversation_Summary_20261010.pdf",
+      "searchable_path": null,
+      "copy_status": "PASS"
+    },
+    {
+      "zip_member": "AAOS_Conversation_Summary_20261010.md",
+      "bytes": 47918,
+      "sha256": "053e16b2b895c4d8549a90610c81cc95e8024e5648419bffbcb2a21949fac6d4",
+      "archive_path": ".project-local/archives/conversation-summary-20261010/members/AAOS_Conversation_Summary_20261010.md",
+      "searchable_path": "docs/history/conversation-summary-20261010/sources/AAOS_Conversation_Summary_20261010.md",
+      "copy_status": "PASS"
+    }
+  ],
+  "status": "FROZEN_BY_OWNER",
+  "execution_status": "NOT_EXECUTED",
+  "authority_role": "SOURCE_INPUT_ONLY; no execution grant",
+  "authorization": "用户：先归档到项目仓库里，冻结后续再考虑这个任务",
+  "reconsideration_requires": "Owner explicitly selects the work; then remap to current authority and verify current source/runtime",
+  "audit_baseline": "fb590dfb060e51c348dce57226a4e0bbc1e19f31",
+  "source_code_baseline": "4b9828c4058901c0b1fd2c75c528238c55e0ec89",
+  "format_parity": "UNVERIFIED; DOCX/PDF/Markdown equivalence not checked",
+  "originals_policy": "Preserve source and original bytes; no deletion or rewriting; binary originals Git-ignored; no upload in this archive action"
+}

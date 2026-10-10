@@ -1,5 +1,7 @@
 # AUTHORITY.md — 根入口
 
+> **2026-10-10 当前路由与状态**：产品执行 PAUSED_BY_OWNER，整体 PARTIAL；当前请求仅授权归档和权威/引用治理修复。旧“下一队列/未发布/两树不同”属于历史日期快照；上次源码已发布，本轮最新状态读 [修复回读](docs/current/AAOS-AUTHORITY-REPAIR-20261010.md)。读取任何旧路径前先按 [路径身份路由](docs/current/AAOS-AUTHORITY-ROUTES.json) 分类，不从文件名CURRENT、旧COMPLETE或旧grant推导授权。六项核心能力增量 FROZEN_BY_OWNER，不自动排队；V01暂停、FT01–04冻结。
+
 本文件是仓库的**导航入口**，不是新的真值来源。它只回答"该读哪个文件"，每一项都指向本仓已存在的规范文件。
 此前两处记录写"根目录 `AUTHORITY.md` 缺失（`AUTHORITY_REFERENCE_MISSING`）"（`docs/current/AAOS-UI-COVERAGE-MATRIX-20261001.md`、
 `docs/current/AAOS-BACKEND-LOOP-EVIDENCE-20261001.md`）；这两处是当时的实测，保留不改写；本文件使该引用可解析。
@@ -19,7 +21,7 @@
 ## 2. 本仓库拥有 / 不拥有
 
 **拥有**：本仓的代码、文档、决策记录与证据；根 `AGENTS.md` 定义的执行边界内的写入。
-**不拥有**：WORK-LAB 与 DESIGN-LAB 两仓（同合仓、不共享业务 DB）；共享工具链与 Model library（仅获准引用）；其他项目的运行状态；
+**不拥有**：WORK-LAB 与 DESIGN-LAB 两仓（不合仓、不共享业务 DB）；共享工具链与 Model library（仅获准引用）；其他项目的运行状态；
 以及 Hermes / Codex / CC Switch / workflow-assistance / session / cron / Kanban 等工作流基础设施——名字提到本项目不构成归属。
 
 ## 3. 当前能力的证据范围（状态分级，不混写）

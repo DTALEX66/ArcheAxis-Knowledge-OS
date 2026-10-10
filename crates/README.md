@@ -1,6 +1,6 @@
 # ArcheAxis vNext crates（同仓结构性重启）
 
-> 对齐 `DIRECTORY_AUTHORITY.yaml`（repo-seed）。legacy 产品路径（app/shared/frontend/src-tauri/desktop）maintenance-only；v0.6.14 冻结为 recoverable legacy 基线。
+> 当前语言/目录职责由 `DIRECTORY_AUTHORITY.yaml`、`PROJECT_CONTRACT.yaml` 与 SUP-022 定义。`frontend/` 与 `src-tauri/` 是正式 Tauri/React 宿主，复用 `desktop/` 生命周期；旧 `app/`/FastAPI 按兼容范围保留，不能成为第二正典写者。v0.6.14 仅为 recoverable legacy 基线；当前任务及暂停状态读 `docs/current/AAOS-ACTIVE-EXECUTION.json`。
 
 ## 布局（根级 Rust workspace）
 
