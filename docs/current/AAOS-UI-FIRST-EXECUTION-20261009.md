@@ -335,3 +335,11 @@ fc940dc 完整 CI 检查时已通过 Rust、browser-smoke、desktop-fast、deskt
 正式分组 UI 新增独立 native branch，通过实际 WebDriver 点击/键盘/文件输入编排同源导入、阅读、引用、工程候选采用、课程/练习/复习、明确恢复、宿主重启、能力开关；Core bridge 只读白名单拒绝写入。安装脚本另开 fresh owned workspace 执行该分支，保留原兼容旅程。26 helper/native 合同、PowerShell AST syntax 和 architecture PASS；新原生运行 NOT_EXECUTED，纠错/复测、旧 grant 拒绝和禁用能力执行拒绝尚缺，不能以工程分项 PASS 代替整九步合格。
 
 语音素材阻塞已用合法公开固定版本工程样本解除：SYSTRAN/faster-whisper v1.2.1 的 JFK FLAC 以 commit/Git blob/1152693 bytes/SHA256 保全，原录音权利参考 JFK Library 官方 Public Domain 档案。现有声明模型、ffmpeg 和实际 worker 对派生 WAV/MP3/MP4 完成所选英文短语及实际 cue 检查；canonical 12 测试全部通过无 skip，模型前后组件摘要相同。未运行上游 tiny 模型测试，不下载新模型、不读私人录音、不重试拒绝的 SAPI。实际 worker ASR 不等于 Core job/CAS/time resolver/重解析/重启资格，MP4 视觉和中文 ASR 仍未测。详见[新 UI 与实际语音进展](receipts/AAOS-GROUPED-NATIVE-ASR-PROGRESS-20261011.json)；原素材、LICENSE 与正文仅项目本地保全。整体继续 NOT_QUALIFIED，当前候选运行保留不取消。
+
+## 2026-10-11 首个完整 CI 与隔离安装资格收口（整体 PARTIAL）
+
+fc940dc 的完整 CI 38077876660 已终止 SUCCESS，20 个 job 包括 installer-lifecycle 和 a0-gates 全部通过。下载的 parent lifecycle 绑定相同 head_sha/run_id 和 installer SHA，实际安装/升级/优雅退出/卸载保留数据/重装读回通过。Native child receipt ok=true、source_consistent=true；普通原创笔记实际 UI 保存正文完整、version=2，并完成关闭重启读回，确认此前 JSON attrs 丢失导致保存拒绝的修复已获运行证据。child 自身 compiled_source_binding 仍标 UNVERIFIED，候选身份依赖其 exact-SHA parent verifier；不把兼容旅程升级为新分组 UI 整九步资格，也不代表 Owner 机器安装或物理 IME。
+
+后续两个任务提交正常上传 Audit，GitHub API 独立读回 99ba6d8b6afc79dee618bb2e8b87473ad27087fc 一致；完整 CI 38079439232 已启动，包含中文 Core OCR 与独立当前 grouped-native branch，结果待验收。能力禁用恢复已确认真实缺陷：旧 capability 检查遮蔽已受理 request replay，前端任意 4xx 冻结后禁止恢复；当前正在补严格未受理证明与原冻结请求显式重试，不能用 queued/null 读回推导安全。详见[完整 CI 与安装分项回执](receipts/AAOS-FC-CI-INSTALLED-QUALIFICATION-20261011.json)。整体目标继续 PARTIAL；没有 merge/release/Green 替换或真实用户覆盖。
+
+现有 ASR 模型的固定公开版本准备器及 actual Core speech probe 已接 desktop-fast：五组件 bytes/SHA 校验、精确项目本地 fresh root、失败保留回执、消费前重新核验，公开录音与许可/来源固定；WAV/MP3/MP4 实际候选 Core 的正文、时间定位、独立重解析与重启作为必需检查。CI 显式声明现有 ffmpeg 并留摘要/version，只上传回执。没有在本机下载权重、改模型/provider或重试 SAPI。根 canonical 30 PASS 无 skip，其中三格式实际本地 worker 语音，其余为 identity/负向合同；source_consistent=true，architecture/critical Ruff/YAML/PowerShell AST PASS。首轮 missing receipt 的异常类型回归失败保留，改为明确未资格拒绝后通过。该 CI 接线尚不等于实际 Core ASR 资格，详见[ASR Core 接线回执](receipts/AAOS-ASR-CORE-CI-WIRING-20261011.json)。

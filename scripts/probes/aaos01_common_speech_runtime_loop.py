@@ -72,6 +72,10 @@ def identity(path):
 
 
 def declared_model(model):
+    prepared=office.load('speech_prepared_assets',REPO/'scripts/ci/prepare_common_asr.py')
+    selected=prepared.lexical_path(model)
+    if selected.is_relative_to(REPO/'.project-local'):
+        return prepared.validate_prepared_model(selected,REPO)
     registry=json.loads((REPO/'config/environment/external-resources-index.json').read_text(encoding='utf-8'))
     def find(value):
         if isinstance(value,dict):

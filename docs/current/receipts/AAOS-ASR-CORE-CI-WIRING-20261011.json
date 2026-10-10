@@ -1,0 +1,34 @@
+{
+  "schema": "archeaxis.asr-core-ci-wiring/v1",
+  "date": "2026-10-11",
+  "base_commit": "99ba6d8b6afc79dee618bb2e8b87473ad27087fc",
+  "whole_goal": "PARTIAL_NOT_QUALIFIED",
+  "implementation": {
+    "preparation": "Fresh project-local directory; fixed public revision and exact five-component bytes/SHA; public speech Git blob, SHA and provenance retained",
+    "model_resource_id": "ext.models.faster-whisper-large-v3-turbo",
+    "model_revision": "0c94664816ec82be77b20e824c8e8675995b0029",
+    "model_bytes": 1621665983,
+    "model_identity": "Same selected existing weights, not another ASR model; four small public component identities still require actual CI download verification",
+    "refusals": ["protected drives before filesystem access", "UNC", "traversal", "links/reparse points", "unknown existing directories", "wrong component bytes/SHA", "changed receipt or provenance", "missing preparation receipt"],
+    "ci": "Required desktop-fast actual candidate Core speech probe for WAV/MP3/MP4 source CAS, text, real cues/time location, independent reparse and restart; prepared assets offline during inference",
+    "ffmpeg": "Explicit pre-existing CI executable declaration with version/bytes/SHA receipt; no installation",
+    "uploads": "Only common-speech, preparation and ffmpeg receipts; model/audio assets excluded"
+  },
+  "local_validation": {
+    "status": "PASS",
+    "canonical_run": ".project-local/runs/be268a2d33/16a40c8257df/artifacts/execution.json",
+    "source_patch_sha256": "8afcab56242b2e6b68263da6ed4e6791969f1c5de6cdbd9fbd7f114bfb2da98e",
+    "source_consistent": true,
+    "tests": "30 PASS, no skip; 18 synthetic asset/refusal helpers plus existing three actual local worker audio formats and nine speech contract regressions",
+    "actual_local_material": "Pinned selected public JFK speech from prior project-owned archive, explicit WAV/transcript; no SAPI retry",
+    "other_checks": ["Architecture guard PASS", "CI critical Ruff selector PASS", "YAML parse PASS", "Both new CI PowerShell steps AST parse PASS"],
+    "retained_failure": "First helper integration: 25 PASS / 1 FAIL / 3 default opt-out skips (606b2e4da6f3). Missing prepared receipt surfaced FileNotFound instead of explicit refusal; validator now requires dedicated model directory and successful receipt, test accepts explicit ValueError rejection. Final opted-in actual run passed."
+  },
+  "runtime_qualification": {
+    "public_model_download": "NOT_EXECUTED",
+    "actual_core_speech": "NOT_EXECUTED",
+    "actual_worker_speech": "PASS_SELECTED_ENGLISH_PHRASES_ONLY",
+    "limits": ["Full transcript/Chinese accuracy UNMEASURED", "MP4 visual understanding NOT_EXECUTED", "No new grouped installed journey or Owner acceptance implied"]
+  },
+  "candidate_delivery": "PENDING_SUCCESSOR_CANDIDATE; running 99ba6d8 CI preserved"
+}

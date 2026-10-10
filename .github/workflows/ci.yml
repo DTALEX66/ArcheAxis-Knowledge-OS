@@ -1130,6 +1130,38 @@ jobs:
             .project-local/runs/**/artifacts/common-chinese-ocr.json
             .project-local/task-runtime/common-light-ocr-tools/ocr-receipt.json
           if-no-files-found: error
+      - name: Prepare exact public assets for the existing ASR model
+        id: common_asr_assets
+        working-directory: ${{ github.workspace }}
+        run: |
+          $ffmpeg = (Get-Command ffmpeg.exe -ErrorAction Stop).Source
+          $env:FFMPEG_CMD = $ffmpeg
+          "FFMPEG_CMD=$ffmpeg" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+          $ffmpegVersion = & $ffmpeg -version
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          $ffmpegIdentity = @{path=$ffmpeg; sha256=(Get-FileHash -LiteralPath $ffmpeg -Algorithm SHA256).Hash.ToLower(); bytes=(Get-Item -LiteralPath $ffmpeg).Length; version=$ffmpegVersion[0]; selection='Explicit existing CI tool declaration; no download or installation'}
+          $ffmpegIdentity | ConvertTo-Json | Out-File -FilePath .project-local/task-runtime/common-asr-ffmpeg.json -Encoding utf8
+          python -B scripts/ci/prepare_common_asr.py --root .project-local/task-runtime/common-asr-assets
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          New-Item -ItemType Directory -Path .project-local/task-runtime/common-asr-derived -ErrorAction Stop | Out-Null
+          & $ffmpeg -nostdin -hide_banner -loglevel error -i .project-local/task-runtime/common-asr-assets/fixture/jfk.flac -ar 16000 -ac 1 .project-local/task-runtime/common-asr-derived/selected.wav
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+      - name: Verify actual speech Core content time location reparse and restart
+        id: common_speech_loop
+        working-directory: ${{ github.workspace }}
+        run: |
+          python -B scripts/probes/aaos01_common_speech_runtime_loop.py --candidate .project-local/rt --model-dir .project-local/task-runtime/common-asr-assets/model --ffmpeg $env:FFMPEG_CMD --speech-wav .project-local/task-runtime/common-asr-derived/selected.wav --speech-transcript .project-local/task-runtime/common-asr-assets/fixture/transcript.txt --language en --expected-phrase "fellow Americans" --expected-phrase "ask not" --expected-phrase "do for your country"
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+      - name: Upload speech qualification receipts without model or audio assets
+        if: ${{ always() && steps.common_asr_assets.outcome != 'skipped' }}
+        uses: actions/upload-artifact@834a144ee995460fba8ed112a2fc961b36a5ec5a
+        with:
+          name: desktop-fast-common-speech-${{ github.sha }}-${{ github.run_attempt }}
+          path: |
+            .project-local/runs/**/artifacts/common-speech.json
+            .project-local/task-runtime/common-asr-assets/receipt.json
+            .project-local/task-runtime/common-asr-ffmpeg.json
+          if-no-files-found: error
       - name: Upload common-format qualification receipt
         if: ${{ always() }}
         uses: actions/upload-artifact@834a144ee995460fba8ed112a2fc961b36a5ec5a

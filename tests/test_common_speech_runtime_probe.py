@@ -58,7 +58,7 @@ def test_actual_offline_spoken_content_is_decoded_by_existing_local_asr(probe,ma
 
 
 def test_model_path_cannot_silently_select_another_unregistered_model(probe,tmp_path):
-    with pytest.raises(AssertionError):probe.declared_model(tmp_path)
+    with pytest.raises((AssertionError, ValueError)):probe.declared_model(tmp_path)
 
 def contract_snapshot(result):
     """Protocol fixture only: this is not an actual Core job receipt."""
