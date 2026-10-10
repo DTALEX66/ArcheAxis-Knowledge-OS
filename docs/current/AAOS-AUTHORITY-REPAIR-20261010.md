@@ -1,6 +1,6 @@
 # 全仓公开权威入口修复 · 2026-10-10
 
-状态：IMPLEMENTED_LOCAL / TESTED_LOCAL；本轮云端发布回读待完成。上次G01完成主要入口与定向门禁，但未覆盖全部直接阅读入口；不把上次PASS推导为本轮全面无漂移。
+状态：IMPLEMENTED_LOCAL / TESTED_LOCAL / BRANCH_PUBLISHED。治理载荷与两端readback见下文；latest元数据SHA动态读取Git。上次G01完成主要入口与定向门禁，但未覆盖全部直接阅读入口；不把上次PASS推导为本轮全面无漂移。
 
 当前产品 PAUSED_BY_OWNER / PARTIAL，仅治理维护执行。六项核心能力增量 FROZEN_BY_OWNER，不加入当前任务。TaskPack原字节、历史证据SHA、失败记录及冻结能力保留；未修改UI配色、业务代码、私人Agent配置或任何其他项目。
 
@@ -42,3 +42,13 @@ AGENTS.md覆盖AGENTS兼容读取；新增CLAUDE.md、GEMINI.md和.github/copilo
 - 实际各软件上下文加载、exact-SHA云端CI、安装、M01和真实效果验收未执行；产品暂停和六项增量冻结保持。
 
 本地回执目录 `.project-local/runs/authority-repair-20261010/`，旧交接/边界保全hash见 `docs/history/authority-repair-20261010/MANIFEST.json`。
+
+## 本轮发布回读
+
+治理载荷提交 `338c17bb17c652e0651b536edaae9b2a96a01ba0`，Git树 `046d4b7f44258bafc35ff562f2f32617b88b7e38`。GitHub原生API读取main、codex/Audit、codex/aaos-gov-ui-20261008，三个ref均等于载荷SHA；主检出与代码检出同步到该SHA。AGENTS/AUTHORITY/路径路由/CLAUDE/GEMINI/Copilot六个关键文件远程字节与Git对象相同，GitHub About已更新并读回。本机回执为 `.project-local/runs/authority-repair-20261010/PAYLOAD-DELIVERY-READBACK.json`。
+
+本页后续readback元数据提交不改变载荷证据身份，最新HEAD/远程ref动态读取。原始ZIP/DOCX/PDF与本地运行证据仍Git-ignored，只上传可提交公开文本、索引与治理源码。最终提交态定向71测试PASS，run `be268a2d33/65d9ddddc308`；退出时pyreadline对象清理警告保留，进程exit=0，不作为额外产品资格。
+
+严格 `git diff --cached --check` 对原文Markdown的14处尾部空白为FAIL；这些是原文Markdown换行字节，保持hash不修剪。排除原文的治理diff检查PASS，不将严格原命令重标PASS。全仓格式41项历史问题仍FAIL。
+
+**CI_VERIFIED_EXACT_SHA 未获得**：推送服务器报告required a0-gates expected，自动check仅按其当前结果记录，不以推送成功替代全门禁。未手动恢复V01、安装、发布或产品开发。

@@ -134,5 +134,22 @@
     "status_record": "docs/current/AAOS-AUTHORITY-REPAIR-20261010.md",
     "product_execution": "REMAINS_PAUSED",
     "scope": "public project authority/navigation/aliases and anti-drift checks only"
+  },
+  "governance_delivery": {
+    "state": "BRANCH_PUBLISHED",
+    "payload_commit": "338c17bb17c652e0651b536edaae9b2a96a01ba0",
+    "payload_tree": "046d4b7f44258bafc35ff562f2f32617b88b7e38",
+    "remote_branches": [
+      "main",
+      "codex/Audit",
+      "codex/aaos-gov-ui-20261008"
+    ],
+    "native_github_ref_tree_and_six_files_match": true,
+    "local_active_checkouts_equal": true,
+    "about_readback": "PASS",
+    "status_record": "docs/current/AAOS-AUTHORITY-REPAIR-20261010.md",
+    "ci": "UNVERIFIED; required a0-gates expected at push",
+    "latest_metadata_sha": "resolve actual HEAD/remote refs; payload commit is evidence identity",
+    "product_execution": "REMAINS_PAUSED"
   }
 }
