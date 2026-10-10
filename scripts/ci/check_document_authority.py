@@ -343,6 +343,9 @@ def _check_one_ledger(relative: str) -> list[str]:
         if crates.is_dir():
             for crate in crates.iterdir():
                 try:
+                    crate_path = _project_path(f"crates/{crate.name}")
+                    if not crate_path.is_dir():
+                        continue
                     target = _project_path(f"crates/{crate.name}/tests/{name}.rs")
                 except ValueError:
                     continue

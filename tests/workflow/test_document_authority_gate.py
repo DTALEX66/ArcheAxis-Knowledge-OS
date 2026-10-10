@@ -262,6 +262,20 @@ def test_inherited_q_missing_citations_are_historical_unverified(monkeypatch, tm
     assert "historical citation UNVERIFIED" in out and "original_target" in out
 
 
+def test_cargo_citation_skips_crate_readme_and_still_reports_missing_target(monkeypatch, tmp_path):
+    gate = wire(monkeypatch, tmp_path)
+    crates = tmp_path / "crates"
+    crates.mkdir(exist_ok=True)
+    (crates / "README.md").write_text("public crate navigation\n", encoding="utf-8")
+    (tmp_path / PROGRESS).write_text("`--test absent_cargo_target`\n", encoding="utf-8")
+    problems = gate.check_ledger_citations()
+    assert any("absent_cargo_target" in problem for problem in problems)
+    target = crates / "example/tests/absent_cargo_target.rs"
+    target.parent.mkdir(parents=True)
+    target.write_text("// actual named test target\n", encoding="utf-8")
+    assert gate.check_ledger_citations() == []
+
+
 def test_legacy_state_json_cannot_claim_current(monkeypatch, tmp_path):
     gate = wire(monkeypatch, tmp_path)
     (tmp_path / "AGENTS.md").write_text("current state docs/current/R6-STATE.json\n", encoding="utf-8")
