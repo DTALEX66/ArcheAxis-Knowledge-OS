@@ -512,3 +512,7 @@ Owner 明确授权当前108候选工程回执只读获取，现有账户正常�
 正式worker实际回答已读回：512预算首轮length/truncated，不算完成；独立2048预算调用stop、truncated=false、8.55秒，包含合成夹具校验值。仅REAL本地worker推理，未以该结果签Core/grant/纠正/复测/恢复或Owner验收，模型权重未下载，provider/prompt/endpoint未变。详见[现有文本服务读回](receipts/AAOS-TEXT-SERVICE-RECONNECTED-20261011.json)。desktop-build当前候选PASS，installer-lifecycle114411571785已实际进入live，仍保留原运行。
 
 读取验证政策发现顶部仍将10/10暂停写成当前状态，本批仅更新当前导航为Owner10/11恢复与当前范围CI授权，保留V01和冻结边界及全部原验证规则；15路由回归与项目public authority check PASS。该治理修正不代替产品资格。
+
+当前b75三份JSON artifact独立只读复核：11轻量/OCR+4 Office/text-PDF，共15资格行，均exact candidate/clean/source_consistent；30不同成功first/reparse主job、102份text/structure/loss摘要及UTF8 bytes重算、40 CURRENT定位、15重解析正文/结构相等与probe报告restart_equal。11类base64原件可独立重算；4类Office/text-PDF仅原件摘要链，JSON无raw原件不能独立核算其bytes。中文重复行不新增格式；单独office-loop缺end/source guard不补资格。详见[当前候选格式回读](receipts/AAOS-B75-FORMAT-READBACK-20261011.json)。FFmpeg修复已本地提交b94910b8，尚未push以保护同分支live安装；修复不是b75媒体实际PASS。
+
+b75完整CI现已completed/failure。安装artifact11694801649中compat与独立conflict成功且source_consistent；grouped创建候选后等待reviewer input失败，后续upgrade/uninstall未完成，不签完整lifecycle。源码独立核对发现from-transform保存UTF-16 schema而resolver不支持该schema；失败artifact未捕获resolver响应，因果结论标为源码推断。本批只增加精确schema的只读source/job/transform/quote重验证，不改历史anchor、不放松UI审核绑定。真实Core路由回归已加入但遵守已有Rust执行/formatter拒绝，等待后继CI；前端区分reading与candidate anchor并覆盖CURRENT/STALE/UNSUPPORTED，7测试PASS。详见[候选定位修复记录](receipts/AAOS-TRANSFORM-ANCHOR-REVALIDATION-20261011.json)。

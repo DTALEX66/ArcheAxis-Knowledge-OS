@@ -10,6 +10,47 @@ use serde_json::{Value, json};
 
 use crate::{AppState, request_actor, verify_anchor_location, with_store};
 
+fn verify_transform_selection(
+    conn: &rusqlite::Connection,
+    source_id: &str,
+    locator: &Value,
+) -> rusqlite::Result<bool> {
+    let (Some(job), Some(transform), Some(start), Some(end), Some(quote)) = (
+        locator["job_id"].as_str(),
+        locator["transform_id"].as_i64(),
+        locator["selection_start_utf16"].as_u64(),
+        locator["selection_end_utf16"].as_u64(),
+        locator["quote"].as_str(),
+    ) else {
+        return Ok(false);
+    };
+    let (Ok(start), Ok(end)) = (usize::try_from(start), usize::try_from(end)) else {
+        return Ok(false);
+    };
+    if job.is_empty() || transform <= 0 || start >= end || quote.is_empty() {
+        return Ok(false);
+    }
+    let text: Option<String> = conn
+        .query_row(
+            "SELECT t.text FROM jobs j JOIN transforms t
+             ON t.transform_id=j.transform_id AND t.source_id=j.input_ref
+             WHERE j.job_id=?1 AND j.input_ref=?2 AND j.transform_id=?3
+             AND j.state='succeeded'",
+            rusqlite::params![job, source_id, transform],
+            |row| row.get(0),
+        )
+        .optional()?;
+    let Some(text) = text else {
+        return Ok(false);
+    };
+    // These offsets belong to the persisted transform, never to raw source bytes.
+    let utf16: Vec<u16> = text.encode_utf16().collect();
+    let Some(selected) = utf16.get(start..end) else {
+        return Ok(false);
+    };
+    Ok(String::from_utf16(selected).is_ok_and(|value| value == quote))
+}
+
 /// GET /sources/:source_id/anchors/:anchor_id/resolve. Launch authentication applies
 /// equally to human and machine readers; this endpoint performs no mutation.
 pub(crate) async fn resolve(
@@ -69,6 +110,13 @@ pub(crate) async fn resolve(
                 Ok(Value::Object(map)) => Value::Object(map),
                 _ => return Ok(outcome("UNSUPPORTED", "malformed_stored_locator")),
             };
+            if locator["schema"] == "archeaxis.transform-text-selection/v1" {
+                return Ok(if verify_transform_selection(conn, &source_id, &locator)? {
+                    outcome("CURRENT", "transform_selection_revalidated")
+                } else {
+                    outcome("STALE", "transform_selection_no_longer_valid")
+                });
+            }
             let kind = locator["type"].as_str().unwrap_or("");
             if !matches!(
                 kind,

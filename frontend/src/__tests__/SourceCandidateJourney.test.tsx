@@ -21,9 +21,10 @@ const text="真实来源的引文正文",hash=createHash("sha256").update(text).
 const source={source_id:"source-exact",source_revision:hash,sha256:hash,original_name:"source.txt",imported_at:"2026-10-11"};
 const position=JSON.stringify({type:"text",start:0,end:6});
 const anchor={anchor_id:"anchor-exact",source_id:source.source_id,source_revision:hash,position,location_status:"located"};
+const candidateAnchor={...anchor,anchor_id:"candidate-anchor-exact",position:JSON.stringify({schema:"archeaxis.transform-text-selection/v1",job_id:"job-exact",transform_id:17,selection_start_utf16:0,selection_end_utf16:4,quote:text.slice(0,4)})};
 const content={type:"doc",content:[{type:"paragraph",attrs:{block_id:"p"},content:[{type:"text",text:"已保存 "},{type:"evidenceReference",attrs:{...anchor,excerpt:"实际引文"}}]}]};
 const doc={document_id:"doc-exact",source_id:source.source_id,source_revision:hash,title:"同源文档",version:1,editor_json:content,text_projection:"已保存",content_sha256:hash,blocks:[]};
-function mockCore(mismatch=false){let accepted=false,knowledgeReads=0;bridge.call.mockImplementation(async(op:string,p:Record<string,unknown>={})=>{
+function mockCore(mismatch=false,candidateStatus="CURRENT"){let accepted=false,knowledgeReads=0;bridge.call.mockImplementation(async(op:string,p:Record<string,unknown>={})=>{
  const state={job_id:"job-exact",input_ref:source.source_id,kind:"text",state:"succeeded",attempt:1,request_id:"request-exact"};
  switch(op){
  case "sources_list":return {sources:[source]};case "documents_list":return {documents:[doc]};
@@ -32,11 +33,11 @@ function mockCore(mismatch=false){let accepted=false,knowledgeReads=0;bridge.cal
  case "jobs_get":case "job_execution_status":return state;
  case "job_output":return outputReceipt(p.kind,p.kind==="text"?text:"[]");case "job_quality":return {job_id:"job-exact",engine:"fixture"};
  case "source_job_transform":return {source_id:source.source_id,job_id:"job-exact",raw_sha256:hash,transform_id:17,content:text};
- case "knowledge_from_transform":if(!allowedKnowledgeTypes.includes(String((p.body as Record<string,unknown>).knowledge_type)))throw new Error("400 unknown knowledge_type (canonical vocabulary)");return {knowledge_id:"knowledge-exact",anchor_id:anchor.anchor_id,status:"candidate",source_id:source.source_id,raw_sha256:hash,job_id:"job-exact",transform_id:17};
- case "knowledge_get":knowledgeReads++;return {knowledge_id:"knowledge-exact",anchor_id:anchor.anchor_id,source_id:mismatch&&knowledgeReads>1?"other-source":source.source_id,version:"knowledge-v1",title:"知识候选",body:"人工整理",status:accepted?"accepted":"candidate"};
+ case "knowledge_from_transform":if(!allowedKnowledgeTypes.includes(String((p.body as Record<string,unknown>).knowledge_type)))throw new Error("400 unknown knowledge_type (canonical vocabulary)");return {knowledge_id:"knowledge-exact",anchor_id:candidateAnchor.anchor_id,status:"candidate",source_id:source.source_id,raw_sha256:hash,job_id:"job-exact",transform_id:17};
+ case "knowledge_get":knowledgeReads++;return {knowledge_id:"knowledge-exact",anchor_id:candidateAnchor.anchor_id,source_id:mismatch&&knowledgeReads>1?"other-source":source.source_id,version:"knowledge-v1",title:"知识候选",body:"人工整理",status:accepted?"accepted":"candidate"};
  case "knowledge_qualification":return {knowledge_id:"knowledge-exact",requires_human_review:true};
  case "knowledge_review":accepted=true;return {knowledge_id:"knowledge-exact",version:"knowledge-v1"};
- case "anchor_resolve":return {source_id:source.source_id,anchor_id:anchor.anchor_id,source_revision:hash,current_source_revision:hash,status:"CURRENT",scope:"locator_provenance_only",position};
+ case "anchor_resolve":{const selected=p.anchor_id===candidateAnchor.anchor_id?candidateAnchor:anchor;return {source_id:source.source_id,anchor_id:selected.anchor_id,source_revision:hash,current_source_revision:hash,status:selected===candidateAnchor?candidateStatus:"CURRENT",scope:"locator_provenance_only",position:selected.position};}
  default:throw new Error(`unconfigured ${op}`);
  }
 });}
@@ -68,6 +69,7 @@ it("SIMULATED page03 CURRENT locator focuses and selects the exact immutable ori
 it("SIMULATED mounted grouped UI preserves exact source/job/transform/anchor/candidate and requires explicit human review",async()=>{
  mockCore();render(<Journey/>);await createCandidate();
  const accept=await screen.findByRole("button",{name:"接受当前候选"});expect(accept).toBeDisabled();
+ expect(bridge.call).toHaveBeenCalledWith("anchor_resolve",{source_id:source.source_id,anchor_id:candidateAnchor.anchor_id});
  expect(bridge.call.mock.calls.filter(([op])=>["job_enqueue","job_execute","knowledge_review"].includes(op))).toEqual([]);
  const request=bridge.call.mock.calls.find(([op])=>op==="knowledge_from_transform")![1];expect(request.body).toMatchObject({knowledge_type:"NOTE",source_id:source.source_id,job_id:"job-exact",transform_id:17,quote:text.slice(0,4)});
  fireEvent.change(screen.getByRole("textbox",{name:"审核者"}),{target:{value:"SYNTHETIC reviewer"}});fireEvent.click(accept);
@@ -75,6 +77,9 @@ it("SIMULATED mounted grouped UI preserves exact source/job/transform/anchor/can
 });
 it("SIMULATED refuses candidate readback bound to a different source and never grants review",async()=>{
  mockCore(true);render(<Journey/>);await createCandidate();await screen.findByText("候选与证据读取失败，审核按钮不可用。");expect(screen.queryByRole("button",{name:"接受当前候选"})).toBeNull();expect(bridge.call.mock.calls.some(([op])=>op==="knowledge_review")).toBe(false);
+});
+it.each(["STALE","UNSUPPORTED"])("SIMULATED refuses %s candidate locator even when the reading locator is CURRENT",async status=>{
+ mockCore(false,status);render(<Journey/>);await createCandidate();await screen.findByText("候选与证据读取失败，审核按钮不可用。");expect(screen.queryByRole("button",{name:"接受当前候选"})).toBeNull();expect(bridge.call.mock.calls.some(([op])=>op==="knowledge_review")).toBe(false);
 });
 it("SIMULATED actual Tiptap transaction serializes the exact locator and click passes its immutable identities",async()=>{
  const save=vi.fn().mockResolvedValue({content,version:2}),activate=vi.fn();render(<DocumentEditor content={content} version={1} onSave={save} onReferenceActivate={activate}/>);

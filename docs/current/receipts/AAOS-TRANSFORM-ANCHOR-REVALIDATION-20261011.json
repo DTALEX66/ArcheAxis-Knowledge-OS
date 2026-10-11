@@ -1,0 +1,20 @@
+{
+  "schema": "archeaxis.engineering-progress/v1",
+  "date": "2026-10-11",
+  "status": "PARTIAL",
+  "failed_candidate": "b75be83e73e03e5829dbb13ab471955b43999265",
+  "ci_run": 38118757115,
+  "ci_conclusion": "failure",
+  "installed_artifact": 11694801649,
+  "installed_results": {"compat": "PASS", "conflict": "PASS", "grouped": "FAIL", "full_lifecycle": "FAIL"},
+  "observed_failure": "Grouped candidate was created but reviewer input never appeared; candidate anchor differs from the reading anchor",
+  "source_diagnosis": "Exact persisted transform-text-selection/v1 schema had no resolver branch; the strict candidate UI requires CURRENT resolution. Resolver response was not directly captured in the failed artifact",
+  "change": "Read-only resolution checks persisted succeeded job/source/transform binding and exact UTF-16 selection quote after the existing source revision check. Historical locator and strict UI identity checks remain intact",
+  "local_checks": {
+    "targeted_frontend": {"status": "PASS", "tests": 7, "run": "76b90f6eef38", "evidence": "SYNTHETIC"},
+    "rust_execution": "NOT_EXECUTED_EXISTING_PERMISSION_BOUNDARY",
+    "rustfmt": "NOT_EXECUTED_EXISTING_PERMISSION_BOUNDARY",
+    "rust_regression_added": "Real Core route reopen, differing raw bytes, exact quote, surrogate boundary, invalid range, wrong job/transform, failed job and changed source revision"
+  },
+  "limits": ["Rust compilation and actual candidate installed grouped journey require successor CI", "Not AI Core qualification, nine-stage completion, installed lifecycle PASS or Owner acceptance"]
+}
