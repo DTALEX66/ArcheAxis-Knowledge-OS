@@ -1,0 +1,19 @@
+{
+  "schema": "archeaxis.engineering-progress/v1",
+  "date": "2026-10-11",
+  "status": "PARTIAL",
+  "failed_candidate": "e5b57a8b48773c1ebbacfe9bf620a35272be9208",
+  "ci_run": 38122358640,
+  "ci_conclusion": "failure",
+  "installed_job": 114422310645,
+  "artifact": 11695524665,
+  "grouped_child": "webdriver-6ffa48dd82da",
+  "observed": "Compatibility and independent conflict children passed. Document selection reached page 03, capability-disabled refusal and frozen journal were observed. Following frozen-request restart preserved page/document/request in Core but fresh window URL had no hash; strict hash wait failed",
+  "independent_evidence": {"native_log_document_click_and_hash_pass": "5975-5991", "frozen_view_page03": 6095, "new_session_empty_hash_url": 6865, "core_page_and_journal_readback": "6887-6908", "strict_hash_false": "7457-8303", "screenshot": "Actual UI03 and grouped-owner.txt; not a hash readback"},
+  "cause": "Existing product hydration restores scene state without normalizing fresh URL; same-page UI navigation is the supported normalization action",
+  "repair": "After independent frozen journal and capability readback, verify exact document and rendered reader scene, perform real same-page03 control navigation, then retain strict hash and no-automatic-execution checks",
+  "regression": "Simulated restart now produces empty hash; hash waits require actual page navigation instead of unconditional success",
+  "local_check": {"run": "0731fa881fab", "source_commit": "f4665cd111562e843d3f311ae725d13fb27139f2", "source_patch_sha256": "a4fb58dbf00413815dba7acfc755cab95d3340896dea2499ad65667c232309a9", "source_consistent": true, "passed": 63, "subtests_passed": 86, "actual_local_asr_deselected": 3, "critical_ruff": "PASS", "evidence": "SIMULATED", "warning": "Existing pyreadline destructor WinError retained"},
+  "qualification": "SUCCESSOR_EXACT_SHA_INSTALLED_EXECUTION_REQUIRED",
+  "limits": ["No installed lifecycle PASS", "No actual AI correction/retest/Owner acceptance", "No product hash behavior or navigation guards changed", "No frozen identity, capability permission or execution assertion weakened"]
+}

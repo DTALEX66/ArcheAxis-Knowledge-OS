@@ -1074,19 +1074,23 @@ class GroupedNativeProbeTests(unittest.TestCase):
         def restart():
             restarts.append(state["enabled"])
             state["hydrated"] = False
-            state["page"] = "#page=03"
+            state["page"] = ""
             if state["journal"] is not None and not state["finished"]:
                 if restart_execute:
                     state["status"] = copy.deepcopy(succeeded)
                 if changed_journal:
                     state["journal"]["body"]["deadline_ms"] = 1
 
+        def wait(script, *args, **kwargs):
+            if script == "return location.hash==='#page=03'":
+                assert state["page"] == "#page=03", "hydrated scene needs real same-page URL navigation"
+
         with patch.object(self.probe.time, "sleep", lambda _: None):
             result = self.probe.capability_refusal_recovery(
                 UI(),
                 read,
                 js,
-                lambda *_, **__: None,
+                wait,
                 restart,
                 {"source_id": "source-exact"},
                 document,
