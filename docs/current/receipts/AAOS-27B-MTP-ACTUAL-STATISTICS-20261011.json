@@ -1,0 +1,34 @@
+{
+  "schema": "archeaxis.local-model-task-sample/v1",
+  "date": "2026-10-11",
+  "status": "PARTIAL",
+  "source_commit": "3bc85fc3cb3e3ef6727a2c029f3f7d29f4d175e1",
+  "source_worktree_at_execution": "CLEAN",
+  "execution": "REAL_DIRECT_LOCAL_SDK_SYNTHETIC_MATERIAL",
+  "model": "qwen3.8-27b",
+  "identifier": "aaos-27b-mtp-observed",
+  "sdk": {"package": "@lmstudio/sdk", "version": "2.0.0", "scope": "Ignored project-local observation environment; install scripts disabled; no product dependency change"},
+  "effective_load_readback": {"mtp": true, "simple_draft": false, "draft_max_tokens": 2, "draft_min_tokens": 1, "context_tokens": 2048, "parallel": 1, "flash_attention": true, "kv_gpu_offload": true, "requested_gpu_ratio": 0.25},
+  "prediction_parameters": {"temperature": 0, "max_tokens": 1024, "context_overflow_policy": "stopAtLimit", "deadline_ms": 120000},
+  "rows": [
+    {"case": "grounding", "wall_s": 38.004311, "predicted_tokens": 107, "draft_total": 88, "draft_accepted": 63, "draft_rejected": 25, "draft_ignored": "UNKNOWN", "stop_reason": "eosFound", "expected_literals_present": true},
+    {"case": "missing", "wall_s": 24.3133166, "predicted_tokens": 69, "draft_total": 56, "draft_accepted": 41, "draft_rejected": 15, "draft_ignored": "UNKNOWN", "stop_reason": "eosFound", "expected_literals_present": true},
+    {"case": "identity", "wall_s": 32.2032036, "predicted_tokens": 102, "draft_total": 78, "draft_accepted": 62, "draft_rejected": 16, "draft_ignored": "UNKNOWN", "stop_reason": "eosFound", "expected_literals_present": true}
+  ],
+  "mtp_execution": "VERIFIED_BY_EFFECTIVE_CONFIG_AND_NONZERO_ACCEPTED_DRAFT_STATS",
+  "stable_acceleration_gain": "UNVERIFIED_NO_MATCHED_REPEATED_SDK_CONTROL",
+  "evidence": [
+    {"path": ".project-local/runs/be268a2d33/model-selection-20261011/sdk/mtp-observed.json", "sha256": "92f80400cb5853c610d32aad93d25600a6d7373b780b9ccdfc75856daf8419e5"},
+    {"path": ".project-local/runs/be268a2d33/model-selection-20261011/sdk/observe27b.json", "sha256": "b5328c7cf2caae6c73d33fa200ca707e0b74da1373e898ccffe29ad60648ebf0"},
+    {"path": ".project-local/runs/be268a2d33/model-selection-20261011/sdk/predict-observed.mjs", "sha256": "e0c33b4c1cb6310cd99354040739b306101f07e84b49158cf111b63dc46245e6"},
+    {"path": ".project-local/runs/be268a2d33/model-selection-20261011/sdk/package-lock.json", "sha256": "8f5c1c3b13b4e7516c11b3c5cf9270385a9e4f59a5732ca7f1831885de83a184"}
+  ],
+  "limits": [
+    "Unknown ignored draft counts and usedDraftModelKey remain UNKNOWN, not zero or inferred identities",
+    "Accepted divided by accepted plus rejected is a decision acceptance ratio; not established total-draft efficiency when ignored is UNKNOWN",
+    "Three narrow synthetic cases are not general accuracy, formal worker/Core/grant, installed runtime or Owner qualification",
+    "Actual CPU/GPU placement and peak memory unverified; SDK numGpuLayers explicitly documented as currently incorrect",
+    "Answers and reasoning not retained; private LM configuration and logs not read; existing 4B and product defaults unchanged",
+    "Prior REST comparison remains a separate historical sample, not a matched control for this SDK execution"
+  ]
+}
