@@ -1,0 +1,38 @@
+{
+  "schema": "archeaxis.local-model-selection/v1",
+  "date": "2026-10-11",
+  "status": "PARTIAL",
+  "owner_direction": "Check project authority and declared resource indexes first; download only confirmed missing resources into their declared directories; reassess existing LM Studio models for this machine",
+  "resource_authority": ["docs/SHARED_RESOURCE_PATH_INDEX.md", "config/environment/capability-requirements.yaml", "services/python-workers/tool_paths.py"],
+  "roots": {"models": "D:/All projects/Model library", "tools": "D:/All projects/OS External Configuration", "test_outputs": ".project-local"},
+  "hardware": {"project_record": "docs/authority/taskpack-0919-r6/TASKPACK.md:772-774", "gpu": "RTX 5060 8GB", "ram": "64GB", "cpu": "i5-14600KF", "current_dynamic_verification": "UNVERIFIED_CIM_ACCESS_DENIED"},
+  "inventory_method": "Existing declared LM Studio CLI ls --json, no private configuration/session reads",
+  "existing_models": ["qwen3.5-4b", "qwen3.8-27b", "qwen2.5-vl-7b-instruct", "text-embedding-qwen3-embedding-0.6b", "qwen3-reranker-0.6b", "text-embedding-nomic-embed-text-v1.5"],
+  "read_only_lm_estimates": [
+    {"model": "qwen3.5-4b", "context_tokens": 8192, "gpu_gib": 3.07, "total_gib": 3.07},
+    {"model": "qwen3.8-27b", "context_tokens": 8192, "gpu_gib": 15.49, "total_gib": 15.49}
+  ],
+  "selection": {
+    "daily_text": "Retain existing declared qwen3.5-4b Q4_K_M for current closed-loop qualification",
+    "heavy_text": "Existing qwen3.8-27b IQ4_XS is an optional future latency-tolerant mixed-memory candidate; not selected or benchmarked",
+    "upgrade_candidate": "Qwen3.5-9B Q4_K_M, evaluate only if existing models fail task needs; no download yet",
+    "visual": "Preserve existing Qwen2.5-VL-7B baseline; installed inventory vision support differs from upstream model capabilities",
+    "retrieval": "Preserve existing 0.6B embedding/reranker roles; inventory does not prove rerank endpoint support"
+  },
+  "actual_samples": {
+    "source": "f36cf453897a35f4f5436c52656d28e38d664399",
+    "source_consistent": true,
+    "run": "77fa84f13693",
+    "local_result": ".project-local/runs/be268a2d33/model-selection-20261011/result.json",
+    "materials": "SYNTHETIC_AUTHORED",
+    "execution": "REAL_STANDALONE_FORMAL_WORKER",
+    "model": "qwen3.5-4b",
+    "cases": [
+      {"case": "Chinese grounding", "finish_reason": "stop", "truncated": false, "expected_literals_present": true, "elapsed_s": 7.58},
+      {"case": "No invented fact", "finish_reason": "stop", "truncated": false, "expected_literals_present": true, "elapsed_s": 7.61},
+      {"case": "Original and draft", "finish_reason": "stop", "truncated": false, "expected_literals_present": true, "elapsed_s": 9.5}
+    ]
+  },
+  "official_sources": ["https://huggingface.co/Qwen/Qwen3.5-4B", "https://huggingface.co/Qwen/Qwen3.5-9B", "https://huggingface.co/Qwen/Qwen3.8-27B", "https://lmstudio.ai/docs/cli/local-models/load"],
+  "limits": ["Three narrow literal checks, not general accuracy or professional truth", "Estimated memory is not measured peak VRAM/RAM", "No new model download, load, provider/default configuration or route change in this assessment", "No Core/grant/correction/retest/installed journey or Owner qualification"]
+}

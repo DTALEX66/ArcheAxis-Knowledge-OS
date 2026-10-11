@@ -11,6 +11,7 @@ import json
 import os
 import subprocess
 import time
+import traceback
 import uuid
 import unicodedata
 from pathlib import Path
@@ -164,15 +165,24 @@ def time_location(call,source,job,snapshot,expected=EXPECTED):
     return result
 
 
-def run_job(call,client,base,token,source,extension,expected=EXPECTED):
+def run_job(call,client,base,token,source,extension,expected=EXPECTED,report=None):
+    record=report if report is not None else {}
     job='speech-'+uuid.uuid4().hex
+    record['job_id']=job
+    record['stage']='request_prepared'
     call('POST','/api/v1/jobs',{'job_id':job,'kind':'video' if extension=='mp4' else 'transcribe','input_ref':source['source_id']},202)
     call('POST',f'/api/v1/jobs/{job}/executions',{'deadline_ms':300000},202,headers={'idempotency-key':job})
+    record['stage']='execution_requested'
     deadline=time.monotonic()+310
     while call('GET',f'/api/v1/jobs/{job}')['state'] not in ('succeeded','failed','cancelled','rejected'):
         assert time.monotonic()<deadline,'actual ASR job deadline exceeded';time.sleep(.2)
-    snap=office.capture(client,base,token,job);validate_asr(extension,snap,expected)
-    return {'job_id':job,'snapshot':snap,'location':time_location(call,source,job,snap,expected)}
+    snap=office.capture(client,base,token,job);record['snapshot']=snap
+    record['stage']='validation_requested'
+    validate_asr(extension,snap,expected)
+    record['stage']='location_requested'
+    record['location']=time_location(call,source,job,snap,expected)
+    record['stage']='validated_and_located'
+    return record
 
 
 def projection(snapshot):
@@ -218,8 +228,8 @@ def main():
             raw=(work/'materials'/f'speech.{extension}').read_bytes();source=call('POST','/api/v1/imports',client.import_request(f'speech.{extension}',raw),202)
             assert source['sha256']==hashlib.sha256(raw).hexdigest();path=f"/api/v1/sources/{source['source_id']}/original";original=call('GET',path);assert base64.b64decode(original['content_base64'])==raw
             record={'extension':extension,'source':source,'original':original};receipt['formats'].append(record)
-            record['first']=run_job(call,client,base,token,source,extension,phrases);anchor_path=f"/api/v1/sources/{source['source_id']}/anchors";before=call('GET',anchor_path)
-            record['reparse']=run_job(call,client,base,token,source,extension,phrases);assert record['first']['job_id']!=record['reparse']['job_id'] and projection(record['first']['snapshot'])==projection(record['reparse']['snapshot'])
+            record['first']={};run_job(call,client,base,token,source,extension,phrases,record['first']);anchor_path=f"/api/v1/sources/{source['source_id']}/anchors";before=call('GET',anchor_path)
+            record['reparse']={};run_job(call,client,base,token,source,extension,phrases,record['reparse']);assert record['first']['job_id']!=record['reparse']['job_id'] and projection(record['first']['snapshot'])==projection(record['reparse']['snapshot'])
             record['anchors']=call('GET',anchor_path);assert all(row in record['anchors']['anchors'] for row in before['anchors']);assert call('GET',path)==original
         launcher.stop(child);child=None;child,base,token,_=office.start(candidate,work,launcher)
         for record in receipt['formats']:
@@ -229,7 +239,9 @@ def main():
             record['restart_equal']=True
         receipt['model_after']=declared_model(args.model_dir);assert receipt['model']==receipt['model_after'],'shared model changed during qualification'
         receipt['ok']=True;receipt['qualification']='INTEGRATED_SELECTED_PHRASE_AUDIO_CONTENT_TIME_REPARSE_RESTART'
-    except Exception as error:receipt['error']=f'{type(error).__name__}: {error}'
+    except Exception as error:
+        receipt['error']=f'{type(error).__name__}: {error}'
+        receipt['traceback']=traceback.format_exc(limit=8)
     finally:
         if child is not None:
             try:launcher.stop(child)

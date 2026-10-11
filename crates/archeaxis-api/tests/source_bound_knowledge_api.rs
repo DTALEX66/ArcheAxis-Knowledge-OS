@@ -128,7 +128,9 @@ async fn source_bound_candidate_checks_unicode_selection_and_commits_anchor_atom
         .unwrap();
     // Reopening the actual Core route must qualify transform UTF-16 offsets,
     // even though the raw source is different and has no such selected quote.
-    let reopened = app(db.to_str().unwrap()).unwrap();
+    drop(router);
+    let router = app(db.to_str().unwrap()).unwrap();
+    let reopened = router.clone();
     let (resolved_status, resolved) = get(&reopened, &resolve_path).await;
     assert_eq!(resolved_status, StatusCode::OK, "{resolved}");
     assert_eq!(resolved["status"], "CURRENT");

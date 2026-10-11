@@ -1,0 +1,40 @@
+{
+  "schema": "archeaxis.engineering-progress/v1",
+  "date": "2026-10-11",
+  "status": "PARTIAL",
+  "failed_candidate": "f36cf453897a35f4f5436c52656d28e38d664399",
+  "ci_run": 38120611525,
+  "rust": {
+    "job": 114414504650,
+    "format": "PASS",
+    "workspace_tests": "FAIL",
+    "observed_error": "source_bound_knowledge_api.rs:131 app reopen returned StoreError::Busy",
+    "cause": "New regression opened a second Core while its original router still held the workspace lease",
+    "repair": "Drop original router, reopen once, clone only the reopened router. Existing synchronous writer join releases the lease before reopening",
+    "review": "Independent static review verified writer Drop/join and existing reopen patterns",
+    "local_execution": "NOT_EXECUTED_EXISTING_RUST_PERMISSION_BOUNDARY"
+  },
+  "speech": {
+    "job": 114414504644,
+    "artifact": 11695866609,
+    "artifact_digest": "sha256:fc59db4bf74d105593663c2bbb497d2e4c5c12e25cedf9f2b6b579d72fef23d9",
+    "status": "FAIL",
+    "source_consistent": true,
+    "observed": "WAV original preserved but first run snapshot absent; bare AssertionError",
+    "root_cause": "UNKNOWN_INSUFFICIENT_FAILURE_EVIDENCE",
+    "diagnostic_defect": "run_job saved its job/snapshot only after all validation and location checks returned successfully",
+    "repair": "Preallocate per-phase receipt, retain job/snapshot/stage before validation, retain traceback without locals on failure; no assertion weakened",
+    "qualification": "NOT_EXECUTED_NOT_QUALIFIED"
+  },
+  "local_checks": {
+    "test_run": "5442f66d4b44",
+    "tests_passed": 30,
+    "actual_local_asr_deselected": 3,
+    "source_consistent": true,
+    "diagnostic_fixture": "SIMULATED",
+    "authority_routes": "PASS_PUBLIC_NAVIGATION_ONLY",
+    "architecture": "PASS",
+    "warning": "Existing pyreadline3 destructor WinError retained after exit 0"
+  },
+  "limits": ["Rust repair still requires successor exact-SHA CI", "Speech runtime cause must be diagnosed from the next preserved failed/successful snapshot", "Current installed run is observed separately; no cancellation or duplicate dispatch", "No complete CI, full lifecycle, actual AI nine-stage or Owner acceptance claim"]
+}

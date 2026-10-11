@@ -57,6 +57,39 @@ def test_actual_offline_spoken_content_is_decoded_by_existing_local_asr(probe,ma
     with pytest.raises(AssertionError):probe.validate_asr(extension,snap,expected)
 
 
+def test_failed_asr_validation_preserves_actual_job_snapshot(probe,monkeypatch):
+    # Simulated transport proves diagnostic retention, never Core/ASR qualification.
+    snapshot={'job':{'status':200,'body':{'state':'succeeded'}},'fixture':'SIMULATED'}
+    monkeypatch.setattr(probe.office,'capture',lambda *args:snapshot)
+    def fail_validation(*args):
+        raise AssertionError('controlled validation failure')
+    monkeypatch.setattr(probe,'validate_asr',fail_validation)
+    def call(method,path,*args,**kwargs):
+        return {'state':'succeeded'} if method=='GET' else {}
+    record={}
+    with pytest.raises(AssertionError,match='controlled validation failure'):
+        probe.run_job(call,None,None,None,{'source_id':'synthetic-source'},'wav',report=record)
+    assert record['job_id'].startswith('speech-') and record['snapshot'] is snapshot
+    assert record['stage']=='validation_requested'
+    assert 'location' not in record
+
+
+def test_failed_asr_location_preserves_validated_snapshot(probe,monkeypatch):
+    snapshot={'job':{'status':200,'body':{'state':'succeeded'}},'fixture':'SIMULATED'}
+    monkeypatch.setattr(probe.office,'capture',lambda *args:snapshot)
+    monkeypatch.setattr(probe,'validate_asr',lambda *args:None)
+    def fail_location(*args):
+        raise AssertionError('controlled locator failure')
+    monkeypatch.setattr(probe,'time_location',fail_location)
+    def call(method,path,*args,**kwargs):
+        return {'state':'succeeded'} if method=='GET' else {}
+    record={}
+    with pytest.raises(AssertionError,match='controlled locator failure'):
+        probe.run_job(call,None,None,None,{'source_id':'synthetic-source'},'wav',report=record)
+    assert record['snapshot'] is snapshot and record['stage']=='location_requested'
+    assert 'location' not in record
+
+
 def test_model_path_cannot_silently_select_another_unregistered_model(probe,tmp_path):
     with pytest.raises((AssertionError, ValueError)):probe.declared_model(tmp_path)
 
