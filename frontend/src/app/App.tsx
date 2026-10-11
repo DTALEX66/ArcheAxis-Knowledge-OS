@@ -220,7 +220,13 @@ function AppBody() {
   const openPage = useCallback((id:string) => {
     const page=findUiPage(id);
     if (!page || restoringRef.current || composing.current) return;
-    if (uiPageId === id && activeSpace === page.space && !selectedCapabilityId) { setNavigationOpen(false); return; }
+    if (uiPageId === id && activeSpace === page.space && !selectedCapabilityId) {
+      setNavigationOpen(false);
+      const hash=`#page=${encodeURIComponent(id)}`;
+      if(window.location.hash!==hash) window.history.replaceState(null,"",`${window.location.pathname}${window.location.search}${hash}`);
+      navigationHash.current=hash;
+      return;
+    }
     if (!navigate(page.space)) return;
     setUiPageId(id);
     const hash=`#page=${encodeURIComponent(id)}`;

@@ -17,3 +17,21 @@ it("SIMULATED mounted App with real CoreWorkingStateSession navigates while only
 it.each(["draft","pending original","editor event"])("SIMULATED mounted App still protects actual %s during navigation",async(kind)=>{window.location.hash="#page=19";read.state.page_id="19";if(kind==="draft"){read.state.drafts["doc-exact"]={base_version:1,editor_json:{type:"doc",content:[{type:"paragraph",content:[{type:"text",text:"保留"}]}]}};read.draft_digests["doc-exact"]="b".repeat(64);}if(kind==="pending original"){read.state.pending_original={create_request_id:"request-exact",title:"保留笔记",editor_json:{type:"doc",content:[]}};read.pending_document_id="doc_req_"+"b".repeat(64);}const confirm=vi.spyOn(window,"confirm").mockReturnValue(false);render(<App/>);await screen.findByRole("heading",{name:"本地工作区与恢复"});if(kind==="editor event")act(()=>window.dispatchEvent(new CustomEvent("archeaxis-draft-dirty",{detail:{owner:"actual-editor",dirty:true}})));confirm.mockClear();fireEvent.click(document.querySelector('.navigation-sidebar button[data-page-id="02"]')!);expect(confirm).toHaveBeenCalledTimes(1);expect(window.location.hash).toBe("#page=19");});
 
 it("SIMULATED scene-only unknown ACK retains journal error without claiming a content draft",async()=>{const original=bridge.call.getMockImplementation()!;bridge.call.mockImplementation(async(op,p)=>{if(op==="ui_state_write")throw new Error("SIMULATED scene ACK lost");return original(op,p);});const confirm=vi.spyOn(window,"confirm").mockReturnValue(false);render(<App/>);await screen.findByText("SIMULATED scene ACK lost");fireEvent.click(document.querySelector('.navigation-sidebar button[data-page-id="02"]')!);await waitFor(()=>expect(window.location.hash).toBe("#page=02"));expect(confirm).not.toHaveBeenCalled();expect(screen.getByText("SIMULATED scene ACK lost")).toBeInTheDocument();});
+
+it.each([false,true])("SIMULATED hydrated same-page click normalizes an empty URL with retained draft=%s",async(withDraft)=>{
+  window.history.replaceState(null,"","/");
+  read.state.page_id="19";
+  if(withDraft){read.state.drafts["doc-exact"]={base_version:1,editor_json:{type:"doc",content:[]}};read.draft_digests["doc-exact"]="b".repeat(64);}
+  const confirm=vi.spyOn(window,"confirm").mockReturnValue(false);
+  render(<App/>);
+  await screen.findByRole("heading",{name:"本地工作区与恢复"});
+  expect(window.location.hash).toBe("");
+  const writes=bridge.call.mock.calls.filter(([op])=>op==="ui_state_write").length;
+  const retained=structuredClone(read.state.drafts);
+  confirm.mockClear();
+  fireEvent.click(document.querySelector('.navigation-sidebar button[data-page-id="19"]')!);
+  expect(window.location.hash).toBe("#page=19");
+  expect(confirm).not.toHaveBeenCalled();
+  expect(read.state.drafts).toEqual(retained);
+  expect(bridge.call.mock.calls.filter(([op])=>op==="ui_state_write")).toHaveLength(writes);
+});

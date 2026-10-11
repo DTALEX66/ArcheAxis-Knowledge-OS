@@ -1,0 +1,48 @@
+{
+  "schema": "archeaxis.execution-progress/v1",
+  "date": "2026-10-11",
+  "whole_goal": "PARTIAL",
+  "authorization": "Owner explicitly authorized existing-account read-only engineering receipts for run 38088242528; subsequent continue instruction retains existing project repair/delivery scope.",
+  "candidate": {
+    "sha": "10852bc158b0f1a3d23616108e70559b2db412d0",
+    "run": 38088242528,
+    "status": "COMPLETED_FAILURE",
+    "local_evidence": ".project-local/runs/be268a2d33/authorized-ci-108-20261011",
+    "artifact_ids": [11683151171, 11683670949, 11683582832],
+    "authentication": "Existing account normal approved execution; no account, credential or permission changes. Earlier denied retry remains historical; this read used new explicit authorization."
+  },
+  "confirmed_failures": {
+    "os_tests": "Three distinct failures: resource catalog source drift, stale runtime mount count, undocumented POST ui-state/clear-job. CI recorded 3 failed / 4773 passed / 87 skipped; not full PASS.",
+    "resource_drift": "Already repaired by preceding source refresh; current targeted regression PASS.",
+    "host": "cargo fmt prerequisite failed in core_bridge; cargo test and downstream media checks were not qualified.",
+    "installed": "Independent document-conflict branch timed out waiting for #page=19. Actual restored UI19 was visible, but fresh URL had no hash and same-page openPage returned before URL normalization. Receipt source_consistent=true; compatible child ok=true does not qualify the failed parent or new journey."
+  },
+  "repairs": {
+    "root_rust_layout": "Applied exact downloaded rustfmt patch to six files, each current preimage matched candidate Git content. Exact reverse apply check PASS. String/nonlayout tokens preserved after excluding formatter braces, semicolons, commas and two verified declaration reorderings. No local Rust execution claim.",
+    "host_rust_layout": "Previously applied core_bridge change is identical to downloaded Tauri rustfmt patch; reverse apply check PASS, no duplicate edit.",
+    "http_authority": "Registered bounded human-only clear-job route and body/action/guards; updated current launch to 22 runtime mounts, 23 runtime pairs, 89 total pairs. Historical measured receipts retained.",
+    "navigation": "Same-page openPage normalizes #page=id and navigationHash without navigating away, confirming departure or writing extra drafts. Native harness and strict hash assertion unchanged."
+  },
+  "verification": {
+    "source_base": "85923c8e28819db50a79ada1ff08ac937d9edebf",
+    "format_manifest": ".project-local/runs/be268a2d33/authorized-ci-108-20261011/format-application.json",
+    "navigation_red": {"execution": ".project-local/runs/be268a2d33/b6b8760a2f0d/artifacts/execution.json", "passed": 5, "failed": 2},
+    "intermediate": "8 passed / 1 failed: confirmation spy included startup hashchange; cleared initialization calls before checking the same-page action. Original navigation protection assertions retained.",
+    "python": {"execution": ".project-local/runs/be268a2d33/b65e8e34227a/artifacts/execution.json", "passed": 62, "source_consistent": true},
+    "frontend": {"execution": ".project-local/runs/be268a2d33/0fddf985d418/artifacts/execution.json", "files": 121, "passed": 1124, "source_consistent": true},
+    "build": {"receipt": ".project-local/runs/be268a2d33/8ba34041204f/artifacts/frontend-build.json", "typescript_and_production": "PASS", "source_consistent": true},
+    "source_note": "Python ran before final test-only confirmation-spy isolation. Final frontend/build share the later source fingerprint; each run independently source-consistent.",
+    "architecture": "PASS",
+    "warnings": "Existing pyreadline3 destructor handle warning and Vite chunk-size warning retained; neither is a runtime qualification.",
+    "local_rustfmt_and_tests": "NOT_EXECUTED; prior local permission refusal not retried or bypassed",
+    "evidence": "SIMULATED mounted UI and helper regressions; CI receipts are actual historical candidate observations, not current-source installed PASS."
+  },
+  "remaining": [
+    "Unified repaired-source exact-SHA full CI and Rust/Core qualification",
+    "Actual Core WAV/MP3/MP4 content/time/reparse/restart",
+    "Current installed conflict/journal/capability recovery and complete grouped journey",
+    "Actual declared text-model answer/correction/independent retest",
+    "Owner interaction acceptance"
+  ],
+  "boundaries": "No global model/provider changes, release, merge, Green replacement, real-user-data overwrite or private cache/session reads. Raw logs and artifacts remain ignored project-local evidence."
+}

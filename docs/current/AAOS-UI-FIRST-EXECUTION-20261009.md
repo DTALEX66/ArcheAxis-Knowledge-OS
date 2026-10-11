@@ -492,3 +492,9 @@ a2完整CI38085061981已completed/FAIL，安装job114312725772失败。下载art
 TLS观察超时后退避重读同run metadata成功，10852bc候选CI38088242528实际completed/FAIL，installer114322058158也FAIL；不因超时替换运行。失败步骤为root cargo fmt、Windows shell、Python合同/OS tests、installed NSIS及最终gate；exact错误正文尚UNVERIFIED。格式artifact11683670949（Tauri/595bytes）、11683151171（root/9917bytes）metadata存在且未过期，尚未下载。已请求当前run工程回执的明确正常认证只读授权，之前automatic approval拒绝后的读取限制未绕过。
 
 手工按相邻样式仅换行展开core_bridge的新增clear-job测试tuple和request-byte-limit match；quoted strings及非空白/非逗号词法序列与旧Git完全相同，diff PASS。不是已下载rustfmt补丁；本地已拒formatter未重试，fmt/Rust/runtime仍NOT_EXECUTED，不能签署门禁修复通过。详见[候选终态进展](receipts/AAOS-108-CANDIDATE-TERMINAL-PROGRESS-20261011.json)。当前root后继合同/恢复/库存修复仍待统一候选，媒体Core/实际AI/九步/Owner资格未收口，没有重复dispatch或发布。
+
+## 2026-10-11 明确授权后的 CI 失败定位与修复（PARTIAL）
+
+Owner 明确授权当前108候选工程回执只读获取，现有账户正常批准通道成功下载两个格式补丁及安装回执，没有修改权限/凭据或绕过旧拒绝。OS实际失败共三项：资源引用漂移已在前批修复；新增clear-job未登记权威HTTP表且计数过期，本批补齐Human-only/body/action/guards和22 runtime mounts、23 runtime pairs、89总pairs，历史实测数字保留。六Rust文件按候选exact preimages应用下载格式补丁并通过reverse check；前批host排版独立核对恰等于Tauri下载补丁。首次词法核对失败保留，审阅formatter block/分号与两声明排序后核字符串/非布局token相等；本地Rust权限拒绝未重试，仍不签署执行PASS。
+
+安装conflict实际回执source_consistent=true：Core hydration恢复UI19但fresh URL为空，同页openPage提前返回导致严格hash等待超时。本批只规范化同页URL/navigationHash，不放松native assertion或草稿保护。新增两项先RED（5 PASS/2 FAIL）；中间spy包含启动hashchange导致8 PASS/1 FAIL，隔离初始化调用后保留操作期断言。最终121文件1124全前端、TypeScript/production build、62合同及探针检查、architecture/diff PASS，各自源码一致；Python运行在最终test-only spy修正前，不伪称同一全树指纹。详见[授权读取与修复回执](receipts/AAOS-AUTHORIZED-CI-REPAIR-20261011.json)。实际新安装冲突、媒体Core、AI和整九步仍待后继统一候选，目标PARTIAL，五主题和冻结范围不变。

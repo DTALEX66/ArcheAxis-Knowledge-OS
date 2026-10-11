@@ -209,7 +209,7 @@ against what it launched; a mismatch means it is talking to a different Core.
 `runtime` and `contract` are hard-coded string literals, not derived from the crate
 version. Do not use them to infer a build.
 
-## 3. Route inventory (88 pairs in a `text_worker` launch)
+## 3. Route inventory (89 pairs in a `text_worker` launch)
 
 `PROD` = reachable in a production launch. `PROD` marks the routes the UI may rely on.
 All paths are relative to the loopback base URL.
@@ -544,14 +544,14 @@ Before the fix this endpoint answered `500` with a raw FTS5 parser message for
 | Launch | Routes served | Consequence for the UI |
 | --- | --- | --- |
 | **no** `text_worker` | 67 projection method/path pairs (57 unconditional mounts, ten dual-method mounts); manual legacy `/jobs/{id}/receipts` remains absent from production | `/jobs/{id}`, `/executions`, `/outputs`, `/cancel`, `/capabilities` and its enable/disable write are **absent** (`404`). |
-| **with** `text_worker` | 88 addresses (66 base projection method/path pairs + 22 runtime method/path pairs) | All routes above are served. |
+| **with** `text_worker` | 89 addresses (66 base projection method/path pairs + 23 runtime method/path pairs) | All routes above are served. |
 
-The runtime builder carries **21** routes, mounted there rather than with the projections because
+The runtime builder carries **22** routes, mounted there rather than with the projections because
 the capability surface reads the executor's registered routes, and the executor is the runtime
 router's state while the projection builder holds only the store. In groups: the four
 job-execution routes; the three capability-registry paths; `POST /api/v1/ask` and the semantic
 search route; the machine answer, correction and retest routes; the three vault routes; and the
-four course routes; and the document-check execution route replacing the projection-only
+four course routes; the job-journal clearance route; and the document-check execution route replacing the projection-only
 unconfigured handler at the same method/path.
 
 Both shapes were started from the real binary and asked over HTTP, and the result is asserted by
@@ -749,11 +749,11 @@ UI must show machine answering as not connected rather than calling anything.
    revision and the correction appears to vanish. The request-body table in §4 names every field
    for this reason.
 
-The projection-only launch retains its explicit unconfigured document-check execution handler. A text-worker launch instead mounts that same method/path once in the runtime builder; its 66 base projection pairs plus 22 runtime pairs total 88. This does not add a second endpoint or imply cloud configuration.
+The projection-only launch retains its explicit unconfigured document-check execution handler. A text-worker launch instead mounts that same method/path once in the runtime builder; its 66 base projection pairs plus 23 runtime pairs total 89. This does not add a second endpoint or imply cloud configuration.
 
 ## 10. 2026-10-10 current-source inventory refresh
 
-The 26 additional method/path pairs below are registered in the current router source. This is source inspection, not runtime or installed qualification. Historical 2026-10-01/05/07 receipts above retain their measured counts. Authentication guards, request bodies and responses remain defined by the handler and generated Core contract; no new permission is granted by this index. Current projection/runtime counts are 57/21 mounts and 67/88 method/path pairs for projection-only/text-worker launches.
+The 27 additional method/path pairs below are registered in the current router source. This is source inspection, not runtime or installed qualification. Historical 2026-10-01/05/07 receipts above retain their measured counts. Authentication guards, request bodies and responses remain defined by the handler and generated Core contract; no new permission is granted by this index. Current projection/runtime counts are 57/22 mounts and 67/89 method/path pairs for projection-only/text-worker launches.
 
 | # | Method + path | Auth | Notes |
 | --- | --- | --- | --- |
@@ -784,3 +784,4 @@ The 26 additional method/path pairs below are registered in the current router s
 | 123 | `PUT /api/v1/workspace/ui-state` | Human-only | Bounded typed working-state CAS by workspace/restore epoch/revision; retained draft and pending-create request. Runtime acceptance UNVERIFIED. |
 | 124 | `POST /api/v1/workspace/ui-state/clear-saved` | Human-only | Core verifies saved Document version and exact draft digest before conditional deletion. Runtime acceptance UNVERIFIED. |
 | 125 | `POST /api/v1/workspace/ui-state/recover` | Human-only | Explicit preserve/discard of restore-quarantined working-state candidates. Runtime acceptance UNVERIFIED. |
+| 126 | `POST /api/v1/workspace/ui-state/clear-job` | Human-only | Body binds workspace_id, restore_epoch, state_revision and request_id; action is terminal or abandon_unadmitted. Admission/active guards and the canonical Store transaction verify the exact frozen request and terminal or unadmitted status before journal CAS clearance; abandonment retains a bounded tombstone. Never cancels a worker. Runtime acceptance UNVERIFIED. |
