@@ -788,7 +788,23 @@ class GroupedNativeProbeTests(unittest.TestCase):
         result = self.exercise_simulated_ai(True)
         result["restored_grant_refusal"] = {"status": "PASS"}
         result["capability_toggle"] = {"status": "PASS"}
+        # Explicit SIMULATED observation for this strict-gate fixture only.
+        for task in (result["ai_progress"]["task"], result["ai_progress"]["retest_task"]):
+            conditions = json.loads(task["conditions"])
+            answer = conditions["answer"]
+            answer.update(requested_model=answer["model"], observed_model=answer["model"],
+                          answer_source={"openai": "content", "ollama": "response"}[answer["protocol"]])
+            task["conditions"] = json.dumps(conditions)
         self.probe.assert_actual_ai_chain(result)
+        for task_key in ("task", "retest_task"):
+            for key, changed in (("observed_model", None), ("observed_model", "different"), ("requested_model", None), ("answer_source", "reasoning_content")):
+                bad = copy.deepcopy(result)
+                task = bad["ai_progress"][task_key]
+                conditions = json.loads(task["conditions"])
+                conditions["answer"][key] = changed
+                task["conditions"] = json.dumps(conditions)
+                with self.subTest(task=task_key, field=key, value=changed), self.assertRaises(AssertionError):
+                    self.probe.assert_actual_ai_chain(bad)
         for field in ("status", "retest"):
             bad = copy.deepcopy(result)
             bad["ai_progress"][field] = "NOT_EXECUTED"

@@ -98,7 +98,7 @@ def test_a_context_is_required_rather_than_answering_ungrounded():
 def test_an_empty_model_answer_is_a_named_failure_not_an_empty_success(monkeypatch):
     monkeypatch.setattr(machine, "_endpoint", lambda: {
         "protocol": "openai", "base": "http://127.0.0.1:1/v1", "model": "m", "discovered": True})
-    monkeypatch.setattr(machine, "_call", lambda *a, **k: ("", "length"))
+    monkeypatch.setattr(machine, "_call", lambda *a, **k: ("", "length", None, "content"))
 
     with pytest.raises(ValueError) as raised:
         machine.answer("context", "question", max_tokens=8)
@@ -111,7 +111,7 @@ def test_an_empty_model_answer_is_a_named_failure_not_an_empty_success(monkeypat
 def test_a_truncated_answer_is_reported_as_a_loss_not_as_an_answer(monkeypatch):
     monkeypatch.setattr(machine, "_endpoint", lambda: {
         "protocol": "openai", "base": "http://127.0.0.1:1/v1", "model": "m", "discovered": True})
-    monkeypatch.setattr(machine, "_call", lambda *a, **k: ("a partial answer", "length"))
+    monkeypatch.setattr(machine, "_call", lambda *a, **k: ("a partial answer", "length", None, "content"))
 
     result = machine.answer("context", "question", max_tokens=16)
     receipt = result["loss_receipt"]
@@ -125,7 +125,7 @@ def test_a_truncated_answer_is_reported_as_a_loss_not_as_an_answer(monkeypatch):
 def test_a_finished_answer_carries_no_loss(monkeypatch):
     monkeypatch.setattr(machine, "_endpoint", lambda: {
         "protocol": "openai", "base": "http://127.0.0.1:1/v1", "model": "m", "discovered": True})
-    monkeypatch.setattr(machine, "_call", lambda *a, **k: ("a complete answer", "stop"))
+    monkeypatch.setattr(machine, "_call", lambda *a, **k: ("a complete answer", "stop", None, "content"))
 
     result = machine.answer("context", "question")
     assert result["truncated"] is False
@@ -137,7 +137,7 @@ def test_the_answer_is_labelled_a_candidate_and_never_knowledge(monkeypatch):
     """The receipt is the promise: a reader must see that this is unreviewed model output."""
     monkeypatch.setattr(machine, "_endpoint", lambda: {
         "protocol": "openai", "base": "http://127.0.0.1:1/v1", "model": "m", "discovered": True})
-    monkeypatch.setattr(machine, "_call", lambda *a, **k: ("an answer", "stop"))
+    monkeypatch.setattr(machine, "_call", lambda *a, **k: ("an answer", "stop", None, "content"))
 
     result = machine.answer("context", "question")
     receipt = result["loss_receipt"]
@@ -161,7 +161,7 @@ def test_extract_forwards_the_token_budget(monkeypatch, tmp_path):
 
     def fake_call(endpoint, model, prompt, timeout_s, max_tokens):
         seen["max_tokens"] = max_tokens
-        return "an answer", "stop"
+        return "an answer", "stop", None, "content"
 
     monkeypatch.setattr(machine, "_endpoint", lambda: {
         "protocol": "openai", "base": "http://127.0.0.1:1/v1", "model": "m", "discovered": True})
@@ -182,7 +182,7 @@ def test_extract_forwards_the_token_budget(monkeypatch, tmp_path):
 def test_route_extraction_preserves_actual_truncation_metadata(monkeypatch, tmp_path):
     monkeypatch.setattr(machine, "_endpoint", lambda: {
         "protocol": "openai", "base": "http://127.0.0.1:1/v1", "model": "m", "discovered": True})
-    monkeypatch.setattr(machine, "_call", lambda *args, **kwargs: ("partial answer", "length"))
+    monkeypatch.setattr(machine, "_call", lambda *args, **kwargs: ("partial answer", "length", None, "content"))
     context = tmp_path / "ctx.txt"
     context.write_text("synthetic accepted material", encoding="utf-8")
     result = machine.extract(str(context), "question", max_tokens=128)
@@ -191,6 +191,36 @@ def test_route_extraction_preserves_actual_truncation_metadata(monkeypatch, tmp_
     assert result["max_tokens"] == 128
     assert result["elapsed_s"] >= 0
     assert result["loss_receipt"]["losses"][0]["kind"] == "truncated_answer"
+
+
+@pytest.mark.parametrize("observed", ["m", "different-model", None, 7, ""])
+@pytest.mark.parametrize("protocol", ["openai", "ollama"])
+def test_http_response_identity_is_observed_without_request_fallback(monkeypatch, observed, protocol):
+    """SIMULATED HTTP response; never an actual-model qualification."""
+    import io
+    monkeypatch.setattr(machine, "_endpoint", lambda: {
+        "protocol": protocol, "base": "http://127.0.0.1:1", "model": "m"})
+    payload = {"model": observed, "choices": [{"message": {"content": "answer"}, "finish_reason": "stop"}],
+               "response": "answer", "done_reason": "stop"}
+    monkeypatch.setattr(machine.urllib.request, "urlopen", lambda *a, **k: io.BytesIO(json.dumps(payload).encode()))
+    result = machine.answer("context", "question")
+    assert result["requested_model"] == result["model"] == "m"
+    assert result["observed_model"] == (observed if isinstance(observed, str) and observed else None)
+    assert result["answer_source"] == ("content" if protocol == "openai" else "response")
+    assert result["loss_receipt"]["params"]["observed_model"] == result["observed_model"]
+
+
+def test_reasoning_fallback_is_explicit_not_a_final_answer_source(monkeypatch, tmp_path):
+    import io
+    monkeypatch.setattr(machine, "_endpoint", lambda: {
+        "protocol": "openai", "base": "http://127.0.0.1:1", "model": "m"})
+    payload = {"model": "m", "choices": [{"message": {"content": "", "reasoning_content": "synthetic reasoning"}, "finish_reason": "stop"}]}
+    monkeypatch.setattr(machine.urllib.request, "urlopen", lambda *a, **k: io.BytesIO(json.dumps(payload).encode()))
+    context = tmp_path / "context.txt"
+    context.write_text("synthetic context", encoding="utf-8")
+    result = machine.extract(str(context), "question")
+    assert result["answer_source"] == "reasoning_content"
+    assert result["observed_model"] == "m"
 
 
 def test_a_missing_context_file_is_a_named_failure(tmp_path):

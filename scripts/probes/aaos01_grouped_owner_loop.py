@@ -799,6 +799,10 @@ def assert_actual_ai_chain(result):
         assert receipt_binding(task, knowledge, original["question"], grant, prior_failed_task=prior)["status"] == "RECEIPT_BINDINGS_VALIDATED"
         assert value["answer"].get("truncated") is False
         assert value["answer"].get("finish_reason") == "stop"
+        answer = value["answer"]
+        assert answer.get("requested_model") == answer["model"]
+        assert answer.get("observed_model") == answer["model"]
+        assert answer.get("answer_source") == {"openai": "content", "ollama": "response"}[answer["protocol"]]
         assert result["actual_tasks"][task["task_id"]] == task
     assert result["actual_tasks"][failed["task_id"]] == failed
     assert result["restored_grant_refusal"]["status"] == "PASS"

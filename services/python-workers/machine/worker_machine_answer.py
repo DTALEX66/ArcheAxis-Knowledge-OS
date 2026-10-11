@@ -202,11 +202,11 @@ def probe(model: str | None = None) -> dict:
 
 
 def _call(endpoint: dict, model: str, prompt: str, timeout_s: int,
-          max_tokens: int) -> tuple[str, str]:
+          max_tokens: int) -> tuple[str, str, str | None, str]:
     """One text request, in whichever protocol the endpoint speaks.
 
-    Returns the text and the endpoint's own finish reason, because "the model stopped" and "the
-    budget ran out" produce very different confidence in the answer.
+    Returns text, finish reason, independently observed model identity and answer source.
+    Missing response identity remains None; the request is never used as an observation.
     """
     if endpoint["protocol"] == "openai":
         url = f"{endpoint['base']}/chat/completions"
@@ -231,15 +231,19 @@ def _call(endpoint: dict, model: str, prompt: str, timeout_s: int,
     if endpoint["protocol"] == "openai":
         choice = (payload.get("choices") or [{}])[0]
         message = choice.get("message", {})
-        # These are reasoning models: the chain of thought arrives in `reasoning_content` and the
-        # answer in `content`, and a small budget is consumed entirely by reasoning, leaving `content`
-        # empty. Prefer the answer and fall back rather than reporting nothing.
+        # Preserve the response identity independently from the requested model.
+        observed = payload.get("model")
+        observed = observed.strip() if isinstance(observed, str) and observed.strip() else None
         text = str(message.get("content") or "").strip()
+        answer_source = "content"
         if not text:
             text = str(message.get("reasoning_content") or "").strip()
-        return text, str(choice.get("finish_reason") or "")
+            answer_source = "reasoning_content"
+        return text, str(choice.get("finish_reason") or ""), observed, answer_source
     text = str(payload.get("response", "")).strip()
-    return text, str(payload.get("done_reason") or "")
+    observed = payload.get("model")
+    observed = observed.strip() if isinstance(observed, str) and observed.strip() else None
+    return text, str(payload.get("done_reason") or ""), observed, "response"
 
 
 def answer(context: str, question: str, model: str | None = None,
@@ -261,7 +265,7 @@ def answer(context: str, question: str, model: str | None = None,
     prompt = PROMPT_TEMPLATE.format(context=context, question=question)
     started = time.monotonic()
     try:
-        text, finish_reason = _call(endpoint, model, prompt, timeout_s, max_tokens)
+        text, finish_reason, observed_model, answer_source = _call(endpoint, model, prompt, timeout_s, max_tokens)
     except urllib.error.URLError as exc:
         raise RuntimeError(
             f"text model call failed at {endpoint['base']} ({endpoint['protocol']}): {exc}"
@@ -282,6 +286,9 @@ def answer(context: str, question: str, model: str | None = None,
         "engine_version": ENGINE_VERSION,
         "answer": text,
         "model": model,
+        "requested_model": model,
+        "observed_model": observed_model,
+        "answer_source": answer_source,
         "endpoint": endpoint["base"],
         "protocol": endpoint["protocol"],
         "prompt_version": PROMPT_VERSION,
@@ -294,6 +301,9 @@ def answer(context: str, question: str, model: str | None = None,
             "engine_version": ENGINE_VERSION,
             "params": {
                 "model": model,
+                "requested_model": model,
+                "observed_model": observed_model,
+                "answer_source": answer_source,
                 "endpoint": endpoint["base"],
                 "protocol": endpoint["protocol"],
                 "prompt_version": PROMPT_VERSION,
@@ -330,6 +340,9 @@ def extract(path: str, question: str | None = None,
         "text": result["answer"],
         "answer": result["answer"],
         "model": result["model"],
+        "requested_model": result["requested_model"],
+        "observed_model": result["observed_model"],
+        "answer_source": result["answer_source"],
         "endpoint": result["endpoint"],
         "protocol": result["protocol"],
         "prompt_version": result["prompt_version"],
