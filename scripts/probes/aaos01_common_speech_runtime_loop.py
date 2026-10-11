@@ -127,7 +127,7 @@ def generate_speech(directory,powershell,ffmpeg,spoken_wav=None,transcript=None,
     return {'voice':voice,'expected_phrases':phrases,'normalization':NORMALIZATION,'transcript':identity(directory/'speech.txt'),'files':{ext:identity(directory/f'speech.{ext}') for ext in ('wav','mp3','mp4')}}
 
 
-def validate_asr(extension,snapshot,expected=EXPECTED):
+def validate_asr(extension,snapshot,expected=EXPECTED,expected_model_label='faster-whisper-large-v3-turbo'):
     light.verify_artifacts(snapshot)
     text=snapshot['text']['body']['content'];loss=json.loads(snapshot['loss_report']['body']['content'])
     normalized=normalize_phrase(text)
@@ -147,10 +147,10 @@ def validate_asr(extension,snapshot,expected=EXPECTED):
         assert output['frames'] and output['audio_wav']
         assert loss['params']['sampling']['continuous_coverage'] is False
         assert loss['params']['sampling']['actual_pts_available'] is False
-        assert loss['params']['asr']['params']['model']=='faster-whisper-large-v3-turbo'
+        assert loss['params']['asr']['params']['model']==expected_model_label
     else:
         assert loss['engine']=='python-worker-transcribe' and output['processing_status']=='complete'
-        assert loss['params']['model']=='faster-whisper-large-v3-turbo'
+        assert loss['params']['model']==expected_model_label
     return output
 
 
@@ -165,7 +165,7 @@ def time_location(call,source,job,snapshot,expected=EXPECTED):
     return result
 
 
-def run_job(call,client,base,token,source,extension,expected=EXPECTED,report=None):
+def run_job(call,client,base,token,source,extension,expected=EXPECTED,report=None,expected_model_label='faster-whisper-large-v3-turbo'):
     record=report if report is not None else {}
     job='speech-'+uuid.uuid4().hex
     record['job_id']=job
@@ -178,7 +178,7 @@ def run_job(call,client,base,token,source,extension,expected=EXPECTED,report=Non
         assert time.monotonic()<deadline,'actual ASR job deadline exceeded';time.sleep(.2)
     snap=office.capture(client,base,token,job);record['snapshot']=snap
     record['stage']='validation_requested'
-    validate_asr(extension,snap,expected)
+    validate_asr(extension,snap,expected,expected_model_label)
     record['stage']='location_requested'
     record['location']=time_location(call,source,job,snap,expected)
     record['stage']='validated_and_located'
@@ -207,6 +207,10 @@ def main():
     original_environment={key:os.environ.get(key) for key in ('ARCHEAXIS_ASR_MODEL_DIR','ARCHEAXIS_ASR_LANG','ARCHEAXIS_ASR_DEVICE','ARCHEAXIS_CAPTION_PROTOCOL','HF_HUB_OFFLINE','TRANSFORMERS_OFFLINE','FFMPEG_CMD')}
     try:
         receipt['model']=declared_model(args.model_dir);profile=launcher.load_profile(candidate)
+        # Worker reports the selected directory basename, not the resource ID.
+        # The preceding exact-path/component validation establishes its identity.
+        expected_model_label=args.model_dir.resolve().name
+        receipt['model_label']={'value':expected_model_label,'meaning':'verified selected directory basename, not resource identity'}
         receipt['ffmpeg']=selected_ffmpeg(args.ffmpeg)
         assert (args.speech_wav is None)==(args.speech_transcript is None),'Spoken WAV and transcript must be selected together'
         if args.speech_wav is None and args.powershell is None:
@@ -228,8 +232,8 @@ def main():
             raw=(work/'materials'/f'speech.{extension}').read_bytes();source=call('POST','/api/v1/imports',client.import_request(f'speech.{extension}',raw),202)
             assert source['sha256']==hashlib.sha256(raw).hexdigest();path=f"/api/v1/sources/{source['source_id']}/original";original=call('GET',path);assert base64.b64decode(original['content_base64'])==raw
             record={'extension':extension,'source':source,'original':original};receipt['formats'].append(record)
-            record['first']={};run_job(call,client,base,token,source,extension,phrases,record['first']);anchor_path=f"/api/v1/sources/{source['source_id']}/anchors";before=call('GET',anchor_path)
-            record['reparse']={};run_job(call,client,base,token,source,extension,phrases,record['reparse']);assert record['first']['job_id']!=record['reparse']['job_id'] and projection(record['first']['snapshot'])==projection(record['reparse']['snapshot'])
+            record['first']={};run_job(call,client,base,token,source,extension,phrases,record['first'],expected_model_label=expected_model_label);anchor_path=f"/api/v1/sources/{source['source_id']}/anchors";before=call('GET',anchor_path)
+            record['reparse']={};run_job(call,client,base,token,source,extension,phrases,record['reparse'],expected_model_label=expected_model_label);assert record['first']['job_id']!=record['reparse']['job_id'] and projection(record['first']['snapshot'])==projection(record['reparse']['snapshot'])
             record['anchors']=call('GET',anchor_path);assert all(row in record['anchors']['anchors'] for row in before['anchors']);assert call('GET',path)==original
         launcher.stop(child);child=None;child,base,token,_=office.start(candidate,work,launcher)
         for record in receipt['formats']:

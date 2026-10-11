@@ -1,0 +1,17 @@
+{
+  "schema": "archeaxis.local-model-task-sample/v1",
+  "date": "2026-10-11",
+  "status": "PARTIAL",
+  "model": "qwen3.8-27b IQ4_XS",
+  "shared_load_parameters": {"context_tokens": 2048, "requested_gpu_ratio": 0.25, "parallel": 1, "ttl_s": 180},
+  "shared_request_parameters": {"temperature": 0, "max_tokens": 1024, "stream": true},
+  "control": {"identifier": "aaos-27b-control", "run": "6b103a323c72", "requested_mtp": false, "elapsed_s": [41.875, 43.797, 41.156], "completion_tokens": [107, 72, 102]},
+  "mtp": {"identifier": "aaos-27b-mtp", "run": "f13f63470865", "requested_mtp": true, "draft_max_tokens": 2, "draft_min_tokens": 1, "elapsed_s": [47.437, 25.188, 40.359], "completion_tokens": [107, 69, 102]},
+  "source_commit": "fed23b450f04a2ba55aa498fdc1b186396e3f00c",
+  "source_consistent": true,
+  "execution": "REAL_DIRECT_LOCAL_API_SYNTHETIC_MATERIAL",
+  "completed": "All six responses finished stop and met narrow expected literal checks",
+  "observed_total": {"control_s": 126.828, "mtp_s": 112.984, "descriptive_reduction_percent": 10.92},
+  "acceleration_gain": "UNVERIFIED_SINGLE_PASS_VARIABLE_OUTPUT_LENGTH_AND_NO_MODE_READBACK",
+  "limits": ["Actual MTP activation, draft acceptance, CPU/GPU placement and peak memory not read back", "No repeat or ordering control; do not interpret aggregate reduction as established gain", "First generated token includes reasoning", "No formal worker/Core/grant or general accuracy qualification", "Only owned idle control model unloaded; existing 4B untouched; no default configuration or route change"]
+}

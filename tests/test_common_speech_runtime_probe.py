@@ -145,6 +145,25 @@ def test_actual_header_worker_cannot_qualify_as_audio_content(probe,extension):
         probe.validate_asr(extension,contract_snapshot(result))
 
 
+@pytest.mark.parametrize('extension',['wav','mp3','mp4'])
+@pytest.mark.parametrize('label',['model','faster-whisper-large-v3-turbo'])
+def test_model_label_matches_exact_verified_directory_not_hardcoded_resource_name(probe,extension,label):
+    # Synthetic protocol data only; resource pin verification remains separate.
+    cue={'text':'blue circle','start_ms':0,'end_ms':100}
+    output={'cues':[cue],'raw_cues':[cue],'alignment_status':'complete','alignment_issues':[], 'duration_ms':100,'processing_status':'complete'}
+    params={'model':label,'worker_output':output}
+    engine='python-worker-transcribe'
+    if extension=='mp4':
+        engine='python-worker-video'
+        output.update(stages={'asr':{'state':'succeeded'},'visual':{'state':'failed','reason':'invalid_local_visual_configuration'}},pipeline_state='partial',visual_results=[],frames=[{}],audio_wav='fixture.wav')
+        params={'asr':{'params':{'model':label}},'sampling':{'continuous_coverage':False,'actual_pts_available':False},'worker_output':output}
+    result={'text':'blue circle','structure':{},'loss_receipt':{'engine':engine,'params':params}}
+    snapshot=contract_snapshot(result)
+    assert probe.validate_asr(extension,snapshot,('blue circle',),expected_model_label=label)==output
+    with pytest.raises(AssertionError):
+        probe.validate_asr(extension,snapshot,('blue circle',),expected_model_label='different-selected-directory')
+
+
 def test_time_locator_pins_actual_contract_cue_and_loss_fingerprint(probe):
     # Controlled cue protocol fixture exercises request construction, not ASR success.
     content=json.dumps({"params":{"worker_output":{"cues":[{"text":"blue circle","start_ms":120,"end_ms":910}]}}})

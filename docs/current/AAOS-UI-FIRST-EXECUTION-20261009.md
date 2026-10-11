@@ -526,3 +526,7 @@ f36完整CI已terminal failure，安装job114417050391的compat/conflict子流�
 2026-10-11 后继候选 e5b57a8b 已普通上传并独立核对双端一致，完整 CI38122358640实际启动，仍 in_progress，不重复dispatch。27B现有库存短上下文/独立测试标识加载17.56秒，三合成材料样例正常stop且字面检查满足，30.469–41.328秒；首个生成token包含reasoning，2.719–4.329秒。该直接API测试不是正式worker/Core资格，也没有GPU驻留或加速收益证据，见[27B基线](receipts/AAOS-27B-BASELINE-SAMPLE-20261011.json)。4B路线未变。
 
 新增显式 --require-actual-ai-loop 并接可选NSIS参数，缺实际原答、独立复测、完成原因、绑定、采用谱系或恢复拒绝则拒绝engineering PASS；不自动启用人工介入，明确工程纠正仅签工程链，保持总体PARTIAL/Owner未验收。24tests/86subtests PASS，source_consistent；PowerShell仅语法PASS，独立只读审查native门禁PASS，真实安装严格模式仍未执行。见[实际AI必需门禁](receipts/AAOS-ACTUAL-AI-REQUIRED-GATE-20261011.json)。本批后继修改暂不push，保留正在运行的e5b候选安装机会。
+
+2026-10-11 e5b Rust job114419658725实际PASS；desktop-fast语音失败回执11696395457现已定位到目录名断言，WAV Core job成功和带时标正文不等于三格式资格。准备器固定root/model，worker如实报告basename；最小修复从已核exact路径/组件pin的目录派生label并传入音频与MP4检查，保留前后模型身份重算。39定向测试PASS、3本地实际ASR明确deselected、source_consistent；首轮夹具短语选择漏传导致6fail已诚实保留。见[ASR名称核对修复](receipts/AAOS-ASR-VERIFIED-MODEL-LABEL-REPAIR-20261011.json)。后继本地修复仍不push，保留e5b live构建/安装机会。
+
+现有27B在固定2048 context/0.25请求offload/parallel1参数下，关闭MTP与请求MTP各三样例均stop且字面检查满足。总耗时126.828与112.984秒，但单项涨跌、输出token差异、单轮顺序效应及缺MTP激活/接受率读回使加速收益UNVERIFIED。仅报告观测，不签倍率；只卸载本任务owned idle control，不改既有4B路线。见[MTP对照](receipts/AAOS-27B-MTP-PAIRED-SAMPLE-20261011.json)。
