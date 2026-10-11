@@ -14,10 +14,18 @@
   ],
   "selection": {
     "daily_text": "Retain existing declared qwen3.5-4b Q4_K_M for current closed-loop qualification",
-    "heavy_text": "Existing qwen3.8-27b IQ4_XS is an optional future latency-tolerant mixed-memory candidate; not selected or benchmarked",
-    "upgrade_candidate": "Qwen3.5-9B Q4_K_M, evaluate only if existing models fail task needs; no download yet",
+    "heavy_text": "Existing qwen3.8-27b IQ4_XS is a priority acceleration benchmark candidate after Owner clarification; memory estimate alone does not establish interaction latency. Not selected into the product route or benchmarked yet",
+    "upgrade_candidate": "Qwen3.5-9B Q4_K_M remains a fallback candidate; benchmark existing accelerated 27B options before downloading an additional model",
     "visual": "Preserve existing Qwen2.5-VL-7B baseline; installed inventory vision support differs from upstream model capabilities",
     "retrieval": "Preserve existing 0.6B embedding/reranker roles; inventory does not prove rerank endpoint support"
+  },
+  "acceleration_assessment": {
+    "status": "RESEARCHED_NOT_BENCHMARKED",
+    "priority": ["Existing LM Studio GGUF CPU/GPU mixed placement with bounded context", "Flash Attention and supported cache precision with memory and correctness measurements", "Existing engine MTP or compatible small draft model, only after verifying weight and runtime compatibility", "Alternative ik_llama.cpp kernels if declared existing tools and model format support are verified"],
+    "nvfp4": "Blackwell-specific Qwen3.8-27B route exists; upstream speed claims do not establish performance or full GPU residency on this 8GB machine",
+    "ktransformers": "Current upstream acceleration examples focus on MoE expert placement; do not transfer those multipliers to dense Qwen27B without an explicit supported configuration",
+    "sources": ["https://lmstudio.ai/docs/app/advanced/speculative-decoding", "https://lmstudio.ai/docs/cli/local-models/load", "https://unsloth.ai/models/qwen3.8-27b", "https://github.com/ikawrakow/ik_llama.cpp", "https://github.com/kvcache-ai/ktransformers"],
+    "required_measurements": ["Same authored tasks and answer budgets", "Prompt processing and generation rates separately", "First-token and end-to-end latency", "Actual CPU/GPU placement and peak memory", "Draft acceptance rate when relevant", "Completed answer and task correctness"]
   },
   "actual_samples": {
     "source": "f36cf453897a35f4f5436c52656d28e38d664399",
