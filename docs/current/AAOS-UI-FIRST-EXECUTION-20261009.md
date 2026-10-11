@@ -530,3 +530,5 @@ f36完整CI已terminal failure，安装job114417050391的compat/conflict子流�
 2026-10-11 e5b Rust job114419658725实际PASS；desktop-fast语音失败回执11696395457现已定位到目录名断言，WAV Core job成功和带时标正文不等于三格式资格。准备器固定root/model，worker如实报告basename；最小修复从已核exact路径/组件pin的目录派生label并传入音频与MP4检查，保留前后模型身份重算。39定向测试PASS、3本地实际ASR明确deselected、source_consistent；首轮夹具短语选择漏传导致6fail已诚实保留。见[ASR名称核对修复](receipts/AAOS-ASR-VERIFIED-MODEL-LABEL-REPAIR-20261011.json)。后继本地修复仍不push，保留e5b live构建/安装机会。
 
 现有27B在固定2048 context/0.25请求offload/parallel1参数下，关闭MTP与请求MTP各三样例均stop且字面检查满足。总耗时126.828与112.984秒，但单项涨跌、输出token差异、单轮顺序效应及缺MTP激活/接受率读回使加速收益UNVERIFIED。仅报告观测，不签倍率；只卸载本任务owned idle control，不改既有4B路线。见[MTP对照](receipts/AAOS-27B-MTP-PAIRED-SAMPLE-20261011.json)。
+
+2026-10-11 e5b desktop-build已实际PASS，安装生命周期job114422310645进入Verify installed NSIS lifecycle且仍live。当前15类格式回执独立核验exact clean/source_consistent；额外中文OCR同3类并去重wrapper/base后，共18夹具行、16独立原件字节身份、36成功主job+8 PDF页job、132派生摘要/bytes和48 CURRENT定位；14轻量/中文原件行可重算，4 Office/textPDF只有原件摘要链。15类别不是18类闭环通过，媒体失败仍单独分账；office独立loop缺结束source guard不补资格。见[当前格式回读](receipts/AAOS-E5B-FORMAT-READBACK-20261011.json)。
