@@ -1,0 +1,22 @@
+{
+  "schema": "archeaxis.engineering-progress/v1",
+  "date": "2026-10-11",
+  "status": "PASS_SCOPED_CURRENT_CANDIDATE_CORE",
+  "candidate": "f36cf453897a35f4f5436c52656d28e38d664399",
+  "ci_run": 38120611525,
+  "artifact": 11695257329,
+  "local_receipt": ".project-local/runs/be268a2d33/ci-f36-readback-20261011/working-state/fd2a08c715/c34d4c780718/artifacts/working-state.json",
+  "review": "Independent read-only audit of downloaded receipt and its exact probe assertions",
+  "materials": "SYNTHETIC_AUTHORED_NOTES",
+  "execution": "ACTUAL_CANDIDATE_CORE_HTTP",
+  "evidence_level": "INTEGRATED",
+  "ok": true,
+  "source_consistent": true,
+  "source_clean": true,
+  "http_calls": 47,
+  "owned_core_pids_stopped": 6,
+  "backup_bytes": 294912,
+  "backup_digest_matches": true,
+  "covered": ["Opaque independent dual drafts and scene fields", "Original pending request identity and idempotence", "Stale and wrong workspace refusals", "Exact saved-version cleanup and later input protection", "Restart journal and ordinary content readback", "Independent preserve/discard restores with distinct epochs", "Machine refusal, explicit human recovery and repeated recovery refusal", "Post-recovery complete restart equality"],
+  "limits": ["Not installed UI, physical IME, human mastery or Owner acceptance", "Lost ACK simulated by discarding response body, not a real network outage", "Owned fixture Core exit uses terminate/wait, not graceful product exit", "Does not qualify successor HEAD or full CI", "Source consistency checks worktree diff identity before/after, not independent post-run executable rehash"]
+}
