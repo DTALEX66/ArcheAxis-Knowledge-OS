@@ -79,3 +79,16 @@ def test_initializer_correct_db_before_host_and_mandatory_nsis_call():
     assert 'actual installed document conflict recovery journey failed' in script
     assert 'installed_document_conflict_loop' in script
     assert '--grouped-common-owner-loop' in script
+
+
+@pytest.mark.parametrize('flags', [[], ['--grouped-common-owner-loop'],
+                                  ['--actual-model'], ['--grouped-authored-intervention'],
+                                  ['--grouped-common-owner-loop', '--actual-model']])
+def test_required_ai_rejects_missing_opt_ins_before_any_host_launch(flags):
+    import subprocess
+    import sys
+    result = subprocess.run([sys.executable, str(HARNESS), '--host', 'NOT_A_REAL_HOST',
+                             '--require-actual-ai-loop', *flags], capture_output=True, text=True)
+    assert result.returncode == 2
+    assert 'required actual AI loop requires' in result.stderr
+    assert 'Traceback' not in result.stderr

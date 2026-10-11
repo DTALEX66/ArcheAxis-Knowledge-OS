@@ -774,8 +774,8 @@ def main():
         help="Exact parent-verified NSIS installer identity; does not itself establish installation",
     )
     args = parser.parse_args()
-    if args.require_actual_ai_loop and not (args.grouped_common_owner_loop and args.grouped_run_ai):
-        parser.error("required actual AI loop requires --grouped-common-owner-loop and --actual-model")
+    if args.require_actual_ai_loop and not (args.grouped_common_owner_loop and args.grouped_run_ai and args.grouped_authored_intervention):
+        parser.error("required actual AI loop requires --grouped-common-owner-loop, --actual-model and --grouped-authored-intervention")
     if not 45 <= args.session_timeout <= 180:
         parser.error("session timeout must be between 45 and 180 seconds")
     if args.grouped_authored_intervention and not args.grouped_run_ai:

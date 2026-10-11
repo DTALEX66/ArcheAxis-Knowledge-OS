@@ -17,6 +17,9 @@ if (($GroupedRunAi -or $GroupedAuthoredIntervention -or $RequireActualAiLoop) -a
 if (($GroupedAuthoredIntervention -or $RequireActualAiLoop) -and -not $GroupedRunAi) {
     throw 'authored intervention or required AI qualification requires explicit GroupedRunAi'
 }
+if ($RequireActualAiLoop -and -not $GroupedAuthoredIntervention) {
+    throw 'required AI qualification requires explicit GroupedAuthoredIntervention'
+}
 $installRoot = Join-Path $env:LOCALAPPDATA 'ArcheAxis Knowledge'
 $appData = Join-Path $env:LOCALAPPDATA 'com.archeaxis.workspace'
 $uninstallKey = 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Uninstall\*'
