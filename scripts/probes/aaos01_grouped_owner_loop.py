@@ -732,7 +732,7 @@ def run_grouped_loop(
             read("knowledge_get", {"id": ai_stage["accepted_correction"]["knowledge_id"]})
             == ai_stage["accepted_correction"]
         )
-    ui.page("20")
+    ui.page("02")
     ui.click_selector(
         "//nav[@aria-label='已保存文档']//button[@aria-label="
         + xpath_literal("打开文档 " + document["title"])
@@ -1182,7 +1182,7 @@ def capability_refusal_recovery(
     before = read("source_jobs", {"source_id": pin["source_id"]})
     assert before["source_id"] == pin["source_id"] and before["jobs_capped"] is False
     previous_jobs = {row["job_id"] for row in before["jobs"]}
-    ui.page("20")
+    ui.page("02")
     ui.click_selector(
         "//nav[@aria-label='已保存文档']//button[@aria-label="
         + xpath_literal("打开文档 " + document["title"])

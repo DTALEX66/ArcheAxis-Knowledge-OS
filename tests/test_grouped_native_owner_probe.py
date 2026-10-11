@@ -959,6 +959,7 @@ class GroupedNativeProbeTests(unittest.TestCase):
                 if "禁用 text.extract" in selector:
                     state["enabled"] = False
                 elif "打开文档" in selector:
+                    assert state["page"] == "#page=02", "document selection requires library page"
                     state["page"] = "#page=03"
                 else:
                     raise AssertionError("unexpected selector")
