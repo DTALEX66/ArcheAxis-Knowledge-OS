@@ -1,0 +1,21 @@
+{
+  "schema": "archeaxis.machine-refusal-identity-regression/v1",
+  "status": "PASS",
+  "overall_status": "PARTIAL",
+  "evidence_level": "SIMULATED",
+  "test_files": 4,
+  "tests": 61,
+  "log": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\runs\\be268a2d33\\db00272a0fc4\\logs\\execution.log",
+  "source_patch_sha256": "95769fb812561fd0c542ef1c4dd0f1c0399927e5ece8b9bb19301d7935ba2f4c",
+  "behavior": [
+    "Generic current-invocation 4xx no longer drops frozen answer/retest identity.",
+    "Changed authorization props do not replace retained requests after lost ACK/refusal.",
+    "Pending reviews participate in App navigation guard."
+  ],
+  "limitations": [
+    "Frozen machine requests are still memory-only.",
+    "No durable pre-inference claim yet.",
+    "No new native runtime acceptance for this increment."
+  ],
+  "preserved_failed_run": ".project-local/runs/be268a2d33/935dd90c7fa0"
+}

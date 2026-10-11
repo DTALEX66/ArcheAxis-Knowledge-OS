@@ -508,7 +508,7 @@ async fn a_disabled_capability_is_refused_by_the_execute_path() {
         .unwrap();
 
     let router = archeaxis_api::runtime::router(executor.clone());
-    put(
+    let (_, disabled_record) = put(
         &router,
         "/api/v1/capabilities/text.extract/enabled",
         r#"{"enabled":false}"#,
@@ -552,12 +552,11 @@ async fn a_disabled_capability_is_refused_by_the_execute_path() {
         attempts, 0,
         "disabled admission must not create an attempt or run the job worker"
     );
-    assert_eq!(
-        std::fs::read_dir(dir.path().join("staging"))
-            .unwrap()
-            .count(),
-        0
-    );
+    let remaining: Vec<_> = std::fs::read_dir(dir.path().join("staging"))
+        .unwrap()
+        .map(|entry| entry.unwrap().file_name())
+        .collect();
+    assert!(remaining.is_empty(), "disabled execution left staging entries: {remaining:?}; capability: {disabled_record}");
     drop(router);
     drop(executor);
     let executor = Executor::open(

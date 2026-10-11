@@ -1,0 +1,54 @@
+{
+  "schema": "archeaxis.engineering-acceptance/v1",
+  "status": "PARTIAL",
+  "engineering_status": "PASS",
+  "evidence_level": "REAL_LOCAL_INVENTORY_AND_MODEL_WITH_SYNTHETIC_MATERIALS_AND_ACK_FAULTS",
+  "raw_receipt": ".project-local\\runs\\be268a2d33\\webdriver-dfef7e767487\\tmp\\journey\\receipt.json",
+  "raw_receipt_sha256": "9b57001f7808aebfbfdaa4a065b17159ad6af1eea4a24955393374c0c968e6c1",
+  "tested_source_patch_sha256": "acdc8cb2b2d20e0127161dec0294449555c9ccabe1df4867db45594efb9ff2f1",
+  "compiled_source_binding": {
+    "status": "PASS",
+    "build_receipt": {
+      "path": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\runs\\be268a2d33\\40974165e054\\artifacts\\native-build-binding.json",
+      "sha256": "4e30ac11964cd91da76b2997e6849e13cb6504f30bf1c0f914f7bd472d07dfaa",
+      "bytes": 1399
+    },
+    "core_sha256": "72c64e53ed646bbc841f106ffaaac37edb34c81ac5f294beb75b544936d40060"
+  },
+  "inventory_read": {
+    "status": "PASS",
+    "evidence_scope": "FORMAL_UI_LOCAL_INVENTORY_ONLY",
+    "listed_model_count": 6,
+    "selected_model_listed": true,
+    "loaded_status": "UNKNOWN",
+    "inference_status": "NOT_EXECUTED",
+    "machine_tasks_unchanged": true
+  },
+  "original_metering": {
+    "usage": {
+      "input_tokens": 155,
+      "output_tokens": 1133,
+      "total_tokens": 1288
+    },
+    "usage_status": "REPORTED",
+    "cost": null,
+    "cost_status": "UNKNOWN"
+  },
+  "retest_metering": {
+    "usage": {
+      "input_tokens": 173,
+      "output_tokens": 987,
+      "total_tokens": 1160
+    },
+    "usage_status": "REPORTED",
+    "cost": null,
+    "cost_status": "UNKNOWN"
+  },
+  "source_consistent": true,
+  "owned_ports_released": true,
+  "scope": "Latest owned-pipe cancellation cleanup candidate: actual formal UI inventory, 4B answer/retest/save/full restart and ACK-loss recovery.",
+  "limitations": [
+    "Normal native journey does not trigger descendant-held-pipe branch; dedicated synthetic resource regression proves that branch.",
+    "No 27B, cloud, installed Green, sustained uptime, accuracy or Owner acceptance."
+  ]
+}

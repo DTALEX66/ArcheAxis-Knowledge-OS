@@ -42,6 +42,7 @@ READ_OPERATIONS = frozenset(
         "learning_history",
         "capabilities_list",
         "machine_tasks_list",
+        "machine_configuration",
         "machine_task_get",
         "machine_contexts_list",
         "ui_state_read",
@@ -222,6 +223,18 @@ def assert_review_readback(before, after, learning, pin, answer):
     assert latest["assessment_id"] == pin["assessment_id"]
 
 
+def assert_reported_metering(answer):
+    assert answer.get("cost_status") == "UNKNOWN" and answer.get("cost") is None
+    assert "usage" in answer and answer.get("usage_status") in {"REPORTED", "UNKNOWN"}
+    usage = answer["usage"]
+    if answer["usage_status"] == "UNKNOWN":
+        assert usage is None
+    else:
+        assert isinstance(usage, dict) and usage and set(usage) <= {"input_tokens", "output_tokens", "total_tokens"}
+        assert all(type(value) is int and 0 <= value <= 2**53-1 for value in usage.values())
+    return {"usage":usage,"usage_status":answer["usage_status"],"cost":None,"cost_status":"UNKNOWN"}
+
+
 def task_conditions(task):
     """Core serializes MachineTaskDto.conditions as JSON text, not an object."""
     raw = task.get("conditions")
@@ -248,17 +261,17 @@ def ai_receipt_contract():
     return helper, helper.declared_identities(source, paths.local_runtime_lanes())
 
 
-def receipt_binding(task, knowledge, question, grant, *, prior_failed_task=None):
+def receipt_binding(task, knowledge, question, grant, *, prior_failed_task=None, selected_model=None):
     helper, identities = ai_receipt_contract()
     try:
         return helper.validate(task, knowledge, question, grant, identities,
-                               scope=task["scope"], prior_failed_task=prior_failed_task)
+                               scope=task["scope"], prior_failed_task=prior_failed_task, selected_model=selected_model)
     except (helper.BindingError, ValueError, TypeError, KeyError) as exc:
         return {"status": "UNVERIFIED", "reason": type(exc).__name__ + ": " + str(exc),
                 "actual_model_execution": "NOT_PROVEN_BY_RECEIPT_HELPER"}
 
 
-def inference_status(task):
+def inference_status(task, selected_model=None):
     """A candidate worker result is execution evidence, never measured accuracy."""
     conditions = task_conditions(task)
     answer = conditions.get("answer", {})
@@ -275,7 +288,9 @@ def inference_status(task):
     ):
         return "UNVERIFIED"
     _, identities = ai_receipt_contract()
-    if not any(all(answer.get(key) == identity[key] for key in
+    if selected_model is not None and (model!=selected_model or answer.get('requested_model')!=selected_model or answer.get('observed_model')!=selected_model or conditions.get('request',{}).get('model')!=selected_model):
+        return "UNVERIFIED"
+    if not any(all(answer.get(key) == (selected_model if key=='model' and selected_model is not None else identity[key]) for key in
                    ("model", "endpoint", "protocol", "engine", "engine_version", "prompt_version"))
                for identity in identities):
         return "UNVERIFIED"
@@ -355,7 +370,8 @@ def read_grant(read, purpose, knowledge_id, operation):
 class GroupedUI:
     """DOM evaluation is observation only; all interaction uses WebDriver commands."""
 
-    def __init__(self, js, wait, element, command, evidence):
+    def __init__(self, js, wait, element, command, evidence, accept_navigation_alert=None):
+        self.accept_navigation_alert=accept_navigation_alert
         self.js, self.wait, self.element, self.command, self.evidence = (
             js,
             wait,
@@ -417,7 +433,7 @@ class GroupedUI:
             }
         )
 
-    def page(self, page_id):
+    def page(self, page_id, confirm_navigation=False):
         if self.js("return location.hash") == "#page=" + page_id:
             return
         parents = {
@@ -432,11 +448,75 @@ class GroupedUI:
         selector = f'.navigation-sidebar button[data-page-id="{page_id}"]'
         if not self.js("return !!document.querySelector(" + json.dumps(selector) + ")"):
             parent = parents[page_id]
-            self.click_selector(
-                f'.navigation-sidebar button[data-page-id="{parent}"]', "css selector"
-            )
-        self.click_selector(selector, "css selector")
-        self.wait("return location.hash===" + json.dumps("#page=" + page_id))
+            try:
+                self.click_selector(f'.navigation-sidebar button[data-page-id="{parent}"]', "css selector")
+            except Exception as error:
+                if not confirm_navigation or getattr(error,'value',{}).get('error')!='unexpected alert open':
+                    raise
+            if confirm_navigation:
+                assert self.accept_navigation_alert is not None, 'Trusted parent navigation confirmation unavailable'
+                self.accept_navigation_alert()
+        # Activate the exact focused navigation button using native WebDriver
+        # keyboard input. Pointer activation remains separately qualified; do not
+        # silently repeat a click that may have hit a moving layout neighbour.
+        element = self.find(selector, "css selector")
+        try:
+            self.command(element, "value", {"text": "\ue007"})
+        except Exception as error:
+            if not confirm_navigation or getattr(error,'value',{}).get('error')!='unexpected alert open':
+                raise
+        if confirm_navigation:
+            assert self.accept_navigation_alert is not None, 'Trusted navigation confirmation unavailable'
+            self.accept_navigation_alert()
+        self.evidence.append({"action": "trusted_navigation_enter", "selector": selector})
+        try:
+            self.wait("return location.hash===" + json.dumps("#page=" + page_id))
+        except TimeoutError:
+            self.evidence.append({"action": "navigation_failure_observation", "observed": self.js("return {hash:location.hash,heading:document.querySelector('.ui-page-heading')?.innerText,focused:document.activeElement?.outerHTML}")})
+            raise
+
+
+    def pointer_page(self, page_id):
+        selector = f'.navigation-sidebar button[data-page-id="{page_id}"]'
+        self.find(selector, "css selector")
+        self.js("""(() => {
+const root=document.querySelector('.navigation-sidebar'), requested=document.querySelector(""" + json.dumps(selector) + """);
+const out={events:[],samples:[]}, id=n=>/^\d{2}$/.test(n?.dataset?.pageId??'')?n.dataset.pageId:null;
+const rect=n=>{if(!n)return null;const r=n.getBoundingClientRect();return {x:r.x,y:r.y,width:r.width,height:r.height};};
+const scroll=()=>['.navigation-sidebar','.navigation-sidebar .space-rail','.navigation-sidebar .ui-page-navigation'].map(scope=>({scope,top:document.querySelector(scope)?.scrollTop??null}));
+const route=()=>({hashPage:location.hash.match(/^#page=(\d{2})$/)?.[1]??null,renderPage:document.querySelector('.ui-page-heading small')?.textContent?.match(/^UI \/ (\d{2})$/)?.[1]??null,currentPages:[...root.querySelectorAll('button[data-page-id][aria-current="page"]')].map(id)});
+const sample=phase=>{if(out.samples.length<40)out.samples.push({phase,t:performance.now(),...route(),requestedRect:rect(requested),scroll:scroll()});};
+const listeners=[];
+for(const type of ['pointerdown','pointerup','pointercancel','mousedown','mouseup','click','focusin'])for(const capture of [true,false]){
+ const fn=e=>{if(!(e.target instanceof Element)||!e.target.closest('.navigation-sidebar')||out.events.length>=64)return;
+ const point='clientX' in e?{x:e.clientX,y:e.clientY}:null;
+ out.events.push({type,phase:capture?'capture':'bubble',trusted:e.isTrusted,targetPage:id(e.target.closest('button[data-page-id]')),hitPage:point?id(document.elementFromPoint(point.x,point.y)?.closest('button[data-page-id]')):null,point,requestedRect:rect(requested),scroll:scroll(),...route()});
+ if(type==='click'&&!capture){sample('click-bubble');queueMicrotask(()=>sample('click-microtask'));requestAnimationFrame(()=>sample('click-next-frame'));for(const ms of [100,250,1000])setTimeout(()=>sample('click+'+ms),ms);}};
+ window.addEventListener(type,fn,capture);listeners.push([type,fn,capture]);
+}
+out.stop=()=>{for(const [type,fn,capture] of listeners)window.removeEventListener(type,fn,capture);};
+window.__aaosNavPointerProbe=out;sample('before');return true;
+})()""")
+        trace = None
+        try:
+            # Exactly one trusted native click; no automatic replacement or retry.
+            self.click_selector(selector, "css selector")
+            self.wait("return location.hash===" + json.dumps("#page=" + page_id))
+            self.wait("return window.__aaosNavPointerProbe.samples.some(s=>s.phase==='click+1000')")
+        finally:
+            trace = self.js("return {events:window.__aaosNavPointerProbe.events,samples:window.__aaosNavPointerProbe.samples}")
+            self.evidence.append({"action":"native_pointer_navigation_observation", "requested_page":page_id, "trace":trace})
+            self.js("window.__aaosNavPointerProbe.stop();delete window.__aaosNavPointerProbe;")
+        assert_pointer_navigation(trace, page_id)
+        return trace
+
+
+def assert_pointer_navigation(trace, page_id):
+    for event_type in ("pointerdown", "pointerup", "click"):
+        events=[event for event in trace["events"] if event["type"]==event_type and event["phase"]=="capture"]
+        assert len(events)==1 and events[0]["trusted"] is True and events[0]["targetPage"]==page_id, "Pointer activation target not proven"
+    final=next(sample for sample in trace["samples"] if sample["phase"]=="click+1000")
+    assert final["hashPage"]==final["renderPage"]==page_id and page_id in final["currentPages"], "Pointer route not stable"
 
 
 def poll(read, operation, payload, predicate, seconds=30):
@@ -447,6 +527,230 @@ def poll(read, operation, payload, predicate, seconds=30):
             return value
         time.sleep(0.15)
     raise TimeoutError(f"Grouped readback deadline: {operation}")
+
+
+def review_ack_recovery(ui, read, js, wait, restart, key, before, report):
+    """Real product submissions with synthetic ACK loss, never direct writes."""
+    def install(mode):
+        js("""const original=window.__TAURI__,invoke=original.core.invoke;
+window.__aaosReviewOriginal=original;window.__aaosReviewProof={rows:[],faults:0};
+const mode=""" + json.dumps(mode) + """, key=""" + json.dumps(key) + """;
+const observed=async function(command,args,...rest){
+ const op=args?.request?.operation, body=args?.request?.payload?.body;
+ const value=await Reflect.apply(invoke,original.core,[command,args,...rest]);
+ if(command==='core_command'&&['ui_state_write','learning_review'].includes(op)){
+ const target=op==='learning_review'?body?.item_key===key:Object.values(value?.body?.state?.pending_reviews??{}).some(e=>e.item_key===key);
+ if(target){window.__aaosReviewProof.rows.push({operation:op,status:value.status,body:op==='learning_review'?body:null,event_id:value.body?.event_id,duplicate:value.body?.duplicate});
+ if(window.__aaosReviewProof.faults===0&&value.status>=200&&value.status<300&&((mode==='freeze'&&op==='ui_state_write')||(mode==='review'&&op==='learning_review'))){window.__aaosReviewProof.faults++;throw new Error('SYNTHETIC_REVIEW_ACK_LOST');}}
+ }return value;
+};window.__TAURI__={...original,core:{...original.core,invoke:observed}};
+if(window.__TAURI__.core.invoke!==observed)throw new Error('Observer installation refused');""")
+    def remove():
+        proof=js("return window.__aaosReviewProof")
+        js("window.__TAURI__=window.__aaosReviewOriginal;delete window.__aaosReviewOriginal;delete window.__aaosReviewProof;")
+        return proof
+    def journal():
+        state=read('ui_state_read')
+        entries=[e for e in state['state'].get('pending_reviews',{}).values() if e['item_key']==key]
+        assert len(entries)==1, 'Frozen review absent or duplicated'
+        return state,entries[0]
+    def recover(expected, history):
+        prior=read('ui_state_read')
+        prior_backups={row['backup_id'] for row in read('workspace_backups')['backups']}
+        ui.page('19',confirm_navigation=True);ui.click('创建一致备份')
+        backups=poll(read,'workspace_backups',{},lambda value:len(value['backups'])==len(prior_backups)+1)['backups']
+        saved=next(row for row in backups if row['backup_id'] not in prior_backups)
+        restart()
+        assert journal()[1]==expected and read('learning_history',{'item_key':key})==history
+        # Resolve the current request through its actual receipt before restoring.
+        # Restore protection must not be weakened merely to exercise a fixture.
+        ui.page('12',confirm_navigation=True)
+        wait("return [...document.querySelectorAll('label')].some(l=>l.textContent.startsWith('本次答案')&&l.querySelector('textarea')?.matches(':disabled'))")
+        install('observe')
+        try:
+            ui.click('记录复习结果')
+            wait("return document.body.innerText.includes('Core 已确认复习记录')")
+        finally:
+            cleared=remove()
+        rows=[row for row in cleared['rows'] if row['operation']=='learning_review']
+        assert len(rows)==1 and rows[0]['body']==expected['body'] and rows[0]['status'] in (200,201)
+        assert expected['client_event_id'] not in read('ui_state_read')['state'].get('pending_reviews',{})
+        ui.page('19');ui.click('刷新备份产物')
+        ui.click_selector('//li[strong[normalize-space(.)='+xpath_literal(saved['filename'])+']]//button[normalize-space(.)="预检此备份"]')
+        ui.click('确认恢复整个工作区')
+        wait("return document.body.innerText.includes('整个工作区已恢复，Core 已重启并读回')")
+        wait("return [...document.querySelectorAll('button')].some(b=>b.textContent==='保留恢复候选')")
+        candidate=read('ui_state_read')
+        assert candidate['restore_epoch']!=prior['restore_epoch'] and candidate['recovery_candidates']['pending_reviews'][expected['client_event_id']]==expected
+        assert js("return [...document.querySelectorAll('button')].find(b=>b.textContent==='丢弃恢复候选')?.disabled") is True
+        ui.click('保留恢复候选')
+        poll(read,'ui_state_read',{},lambda value:value['recovery_requires_confirmation'] is False)
+        ui.page('12',confirm_navigation=True)
+        report.setdefault('restore_preserve',[]).append({'status':'PASS','origin_retained':True,'discard_disabled':True,'epoch_changed':True})
+        restart()
+        state,entry=journal()
+        assert entry==expected and read('learning_history',{'item_key':key})==history
+        # The persisted scene must recover its pending review without a
+        # navigation decision or changing the frozen learning identity.
+        wait("return [...document.querySelectorAll('label')].some(l=>l.textContent.startsWith('本次答案')&&l.querySelector('textarea')?.matches(':disabled'))")
+        answer=js("return [...document.querySelectorAll('label')].find(l=>l.textContent.startsWith('本次答案'))?.querySelector('textarea')?.value")
+        assert answer==expected['body']['answer']
+        return state
+    report.update(status='IN_PROGRESS',evidence_level='INTEGRATED_WITH_SYNTHETIC_ACK_LOSS')
+    install('freeze')
+    try:
+        ui.click('记录复习结果')
+        wait("return window.__aaosReviewProof.faults===1&&document.body.innerText.includes('复习提交未确认')")
+    finally:
+        proof=remove(); report['freeze_ack']=proof
+    assert proof['faults']==1 and not any(r['operation']=='learning_review' for r in proof['rows'])
+    state,entry=journal()
+    assert read('learning_history',{'item_key':key})==before
+    recovered=recover(entry,before)
+    assert recovered['workspace_id']==state['workspace_id'] and recovered['restore_epoch']!=state['restore_epoch']
+    install('review')
+    try:
+        ui.click('记录复习结果')
+        wait("return window.__aaosReviewProof.faults===1&&document.body.innerText.includes('复习提交未确认')")
+    finally:
+        proof=remove(); report['review_ack']=proof
+    rows=[r for r in proof['rows'] if r['operation']=='learning_review']
+    assert proof['faults']==1 and len(rows)==1 and rows[0]['status']==201 and rows[0]['duplicate'] is False and rows[0]['body']==entry['body']
+    first=rows[0]; history=read('learning_history',{'item_key':key}); learning=read('learning_state',{'item_key':key})
+    assert journal()[1]==entry and history!=before
+    recover(entry,history)
+    assert read('learning_state',{'item_key':key})==learning
+    install('observe')
+    try:
+        ui.click('记录复习结果')
+        wait("return document.body.innerText.includes('Core 已确认复习记录')")
+    finally:
+        proof=remove(); report['explicit_retry']=proof
+    rows=[r for r in proof['rows'] if r['operation']=='learning_review']
+    assert proof['faults']==0 and len(rows)==1 and rows[0]['status']==200 and rows[0]['duplicate'] is True and rows[0]['body']==entry['body'] and rows[0]['event_id']==first['event_id']
+    assert entry['client_event_id'] not in read('ui_state_read')['state'].get('pending_reviews',{})
+    assert read('learning_history',{'item_key':key})==history and read('learning_state',{'item_key':key})==learning
+    # Persist hashes only; test material bodies are not needed in the receipt.
+    for phase in ['freeze_ack','review_ack','explicit_retry']:
+        for row in report[phase]['rows']:
+            body=row.pop('body',None)
+            if body is not None:row['body_sha256']=hashlib.sha256(json.dumps(body,sort_keys=True,ensure_ascii=False).encode()).hexdigest()
+    report['status']='PASS'
+    return learning,history
+
+
+def multi_review_ack_recovery(ui, read, js, wait, restart, key, before, knowledge, nonce, answer, report):
+    """Create both requests through native UI; never seed journal/database fixtures."""
+    report.update(status='IN_PROGRESS', evidence_level='INTEGRATED_WITH_SYNTHETIC_ACK_LOSS')
+
+    def install(target, lose=False):
+        js("""const original=window.__TAURI__,invoke=original.core.invoke;
+window.__aaosMultiOriginal=original;window.__aaosMultiProof={rows:[],faults:0};
+const target="""+json.dumps(target)+""", lose="""+json.dumps(lose)+""";
+const observed=async function(command,args,...rest){
+ const op=args?.request?.operation,body=args?.request?.payload?.body;
+ const attempted=command==='core_command'&&['machine_answer','machine_retest'].includes(op);
+ if(attempted)window.__aaosMultiProof.rows.push({operation:op,completed:false});
+ const value=await Reflect.apply(invoke,original.core,[command,args,...rest]);
+ if(command==='core_command'&&['ui_state_write','learning_review','machine_answer','machine_retest'].includes(op)){
+  window.__aaosMultiProof.rows.push({operation:op,status:value.status,body:op==='learning_review'?body:null,event_id:value.body?.event_id});
+  const frozen=Object.values(value?.body?.state?.pending_reviews??{}).some(e=>e.item_key===target);
+  if(lose&&op==='ui_state_write'&&frozen&&value.status>=200&&value.status<300&&window.__aaosMultiProof.faults===0){window.__aaosMultiProof.faults++;throw new Error('SYNTHETIC_MULTI_REVIEW_ACK_LOST');}
+ }return value;
+};window.__TAURI__={...original,core:{...original.core,invoke:observed}};
+if(window.__TAURI__.core.invoke!==observed)throw new Error('Observer installation refused');""")
+
+    def remove():
+        proof=js('return window.__aaosMultiProof')
+        js('window.__TAURI__=window.__aaosMultiOriginal;delete window.__aaosMultiOriginal;delete window.__aaosMultiProof;')
+        return proof
+
+    def freeze(target):
+        install(target, True)
+        try:
+            ui.click('记录复习结果')
+            wait("return window.__aaosMultiProof.faults===1&&document.body.innerText.includes('复习提交未确认')")
+        finally:
+            proof=remove()
+        assert proof['faults']==1 and not any(r['operation'] in ('learning_review','machine_answer','machine_retest') for r in proof['rows'])
+        entries=read('ui_state_read')['state']['pending_reviews']
+        return one(list(entries.values()),lambda e:e['item_key']==target,'native frozen review')
+
+    first=freeze(key)
+    assert read('learning_history',{'item_key':key})==before
+    # Reconcile the exact durable write through the product's reread action.
+    # The same-source candidate overlay is retained until a cold restart.
+    ui.click('核对工作状态')
+    wait("return ![...document.querySelectorAll('button')].some(b=>b.textContent==='核对工作状态')")
+    ui.page('19',confirm_navigation=True)
+    ui.click('由当前知识建立学习问题',"//section[@aria-label='同源候选审核']")
+    assert ui.accept_navigation_alert is not None, 'Trusted learning navigation confirmation unavailable'
+    def trusted_wait(script):
+        try:
+            wait(script)
+        except Exception as error:
+            if 'unexpected alert open' not in str(error):
+                raise
+            ui.accept_navigation_alert()
+            wait(script)
+    trusted_wait("return location.hash==='#page=06'")
+    trusted_wait("return [...document.querySelectorAll('label')].find(l=>l.textContent.startsWith('学习项目键'))?.querySelector('input')?.value?.startsWith('assessment_')&&!!document.querySelector('.ui-learning-review article')")
+    second_key=js("return [...document.querySelectorAll('label')].find(l=>l.textContent.startsWith('学习项目键'))?.querySelector('input')?.value")
+    assert isinstance(second_key,str) and second_key.startswith('assessment_') and second_key!=key
+    second_assessment=read('assessment_get',{'item_key':second_key})
+    assert second_assessment['knowledge_id']==knowledge['knowledge_id']
+    second_before=read('learning_history',{'item_key':second_key})
+    ui.type('本次答案',answer,'textarea');ui.click('查看答案与核对内容')
+    ui.click_selector(label_selector('回答正确'));ui.keys(label_selector('学习者自评','select'),'\ue015\ue015\ue015\ue007')
+    second=freeze(second_key)
+    frozen={first['client_event_id']:first,second['client_event_id']:second}
+    assert read('ui_state_read')['state']['pending_reviews']==frozen
+    restart();ui.page('06',confirm_navigation=True)
+    assert read('ui_state_read')['state']['pending_reviews']==frozen
+    install(None)
+    try:
+        for entry in (first,second,first):
+            ui.click('恢复复习请求 '+entry['item_key'])
+            trusted_wait("return !!document.querySelector('.ui-learning-review article')&&[...document.querySelectorAll('label')].find(l=>l.textContent.startsWith('学习项目键'))?.querySelector('input')?.value==="+json.dumps(entry['item_key'])+"&&[...document.querySelectorAll('label')].find(l=>l.textContent.startsWith('本次答案'))?.querySelector('textarea')?.value==="+json.dumps(entry['body']['answer']))
+            ui.accept_navigation_alert()
+            assert js("return [...document.querySelectorAll('label')].find(l=>l.textContent.startsWith('本次答案'))?.querySelector('textarea')?.disabled") is True
+            assert js("return [...document.querySelectorAll('label')].find(l=>l.textContent.startsWith('学习者自评'))?.querySelector('select')?.value") == str(entry['body']['rating'])
+            assert js("return [...document.querySelectorAll('label')].find(l=>l.textContent.trim()==='回答正确')?.querySelector('input')?.checked") is entry['body']['correct']
+            assert read('ui_state_read')['state']['pending_reviews']==frozen
+        assert read('learning_history',{'item_key':key})==before
+        assert read('learning_history',{'item_key':second_key})==second_before
+    finally:
+        selected=remove()
+    assert not any(r['operation'] in ('learning_review','machine_answer','machine_retest') for r in selected['rows'])
+    submissions=[]
+    for entry,remaining in ((first,{second['client_event_id']:second}),(second,{})):
+        if entry is second:
+            # The single remaining request has a normal queue button, and still
+            # retains its frozen body when explicitly selected.
+            ui.click(second_key,"//ul[@aria-label='复习队列']")
+            trusted_wait("return !!document.querySelector('.ui-learning-review article')&&[...document.querySelectorAll('label')].find(l=>l.textContent.startsWith('学习项目键'))?.querySelector('input')?.value==="+json.dumps(second_key))
+            ui.accept_navigation_alert()
+        install(entry['item_key'])
+        try:
+            ui.click('记录复习结果')
+            wait("return document.body.innerText.includes('Core 已确认复习记录')")
+        finally:
+            proof=remove()
+        rows=[r for r in proof['rows'] if r['operation']=='learning_review']
+        assert len(rows)==1 and rows[0]['status']==201 and rows[0]['body']==entry['body']
+        assert not any(r['operation'] in ('machine_answer','machine_retest') for r in proof['rows'])
+        assert read('ui_state_read')['state'].get('pending_reviews',{})==remaining
+        submissions.append({'item_key':entry['item_key'],'client_event_id':entry['client_event_id'],'event_id':rows[0]['event_id'],'body_sha256':hashlib.sha256(json.dumps(entry['body'],sort_keys=True,ensure_ascii=False).encode()).hexdigest()})
+    learning=read('learning_state',{'item_key':key});history=read('learning_history',{'item_key':key})
+    assert history['count']==before['count']+1
+    second_history=read('learning_history',{'item_key':second_key})
+    assert second_history['count']==second_before['count']+1
+    restart()
+    assert read('ui_state_read')['state'].get('pending_reviews',{})=={}
+    assert read('learning_history',{'item_key':key})==history
+    assert read('learning_history',{'item_key':second_key})==second_history
+    report.update(status='PASS',cold_restart=True,explicit_selection=True,selection_review_calls=0,recovery_inference_calls=0,submissions=submissions,other_request_retained=True)
+    return learning,history
 
 
 def run_grouped_loop(
@@ -463,6 +767,13 @@ def run_grouped_loop(
     authored_intervention=False,
     report=None,
     require_actual_ai_loop=False,
+    pointer_navigation=False,
+    review_ack_loss=False,
+    multi_review_ack_loss=False,
+    machine_ack_loss=False,
+    selected_model=None,
+    selected_max_tokens=None,
+    accept_navigation_alert=None,
 ):
     read = readonly_bridge(bridge)
     result = report if report is not None else {}
@@ -484,7 +795,7 @@ def run_grouped_loop(
             ],
         }
     )
-    ui = GroupedUI(js, wait, element, command, result["actions"])
+    ui = GroupedUI(js, wait, element, command, result["actions"], accept_navigation_alert)
     nonce = uuid.uuid4().hex
     folder = work / "grouped-fixtures" / ("same-source-" + nonce)
     folder.mkdir(parents=True, exist_ok=False)
@@ -703,6 +1014,8 @@ def run_grouped_loop(
     )
     ui.click("练习此学习项目")
     wait("return location.hash==='#page=11'")
+    assert assessment["question"] != assessment["content"] and candidate_body not in assessment["question"], "assessment question exposes bound answer"
+    assert not js("return !!document.querySelector('section[aria-label=\"答案与核对内容\"]')"), "bound answer revealed before learner action"
     ui.type("本次答案", candidate_body, "textarea")
     ui.click("查看答案与核对内容")
     wait("return !!document.querySelector('section[aria-label=\"答案与核对内容\"] p')")
@@ -716,9 +1029,14 @@ def run_grouped_loop(
     ui.click_selector(label_selector("回答正确"))
     ui.keys(label_selector("学习者自评", "select"), "\ue015\ue015\ue015\ue007")
     history_before = read("learning_history", {"item_key": key})
-    ui.click("记录复习结果")
-    wait("return document.body.innerText.includes('Core 已确认复习记录')")
-    learning = read("learning_state", {"item_key": key})
+    if multi_review_ack_loss:
+        learning, history = multi_review_ack_recovery(ui,read,js,wait,restart,key,history_before,knowledge,nonce,candidate_body,result.setdefault('multi_review_recovery',{}))
+    elif review_ack_loss:
+        learning, history = review_ack_recovery(ui,read,js,wait,restart,key,history_before,result.setdefault('review_recovery',{}))
+    else:
+        ui.click("记录复习结果")
+        wait("return document.body.innerText.includes('Core 已确认复习记录')")
+        learning = read("learning_state", {"item_key": key})
     assert_assessment(learning["learner"]["assessment"], pin)
     history = read("learning_history", {"item_key": key})
     assert_review_readback(history_before, history, learning, pin, candidate_body)
@@ -726,14 +1044,17 @@ def run_grouped_loop(
         {"id": "review", "status": "PASS", "state": learning, "history": history}
     )
     screenshot("grouped-learning-review.png")
-    ai_stage = run_ai_stage(ui, read, js, wait, pin, result, run_ai, authored_intervention)
+    ai_stage = run_ai_stage(ui, read, js, wait, pin, result, run_ai, authored_intervention, selected_model, selected_max_tokens, machine_ack_loss, restart)
     result["stages"].append(ai_stage)
+    if machine_ack_loss:
+        require_machine_ack_recovery(ai_stage)
+    if require_actual_ai_loop and ai_stage.get("retest") != "EXECUTED_CANDIDATE_NOT_EVALUATED":
+        raise AssertionError("Actual AI retest unverified; preserve frozen request and failure diagnostics before backup navigation")
     ui.page("19")
+    backup_ids={row['backup_id'] for row in read('workspace_backups')['backups']}
     ui.click("创建一致备份")
-    backups = poll(read, "workspace_backups", {}, lambda value: len(value["backups"]) == 1)[
-        "backups"
-    ]
-    backup = backups[0]
+    backups = poll(read, "workspace_backups", {}, lambda value: len(value["backups"]) == len(backup_ids)+1)["backups"]
+    backup = next(row for row in backups if row['backup_id'] not in backup_ids)
     ui.click("预检此备份")
     ui.click("确认恢复整个工作区")
     wait("return document.body.innerText.includes('整个工作区已恢复，Core 已重启并读回')")
@@ -774,7 +1095,12 @@ def run_grouped_loop(
     )
     ui.page("20")
     wait("return document.body.innerText.includes('Grouped document revision')")
-    ui.page("06")
+    if pointer_navigation:
+        result["pointer_navigation"] = {"status":"IN_PROGRESS", "trace":ui.pointer_page("06")}
+        assert poll(read,"ui_state_read",{},lambda value:value["state"]["page_id"]=="06")["state"]["page_id"]=="06"
+        result["pointer_navigation"]["status"]="PASS"
+    else:
+        ui.page("06")
     ui.click(key, "//ul[@aria-label='复习队列']")
     wait(
         "return document.body.innerText.includes('知识修订：' + "
@@ -828,8 +1154,9 @@ def assert_actual_ai_chain(result):
     ):
         grant = grant_snapshot(document)
         value = assert_inference_task(task, knowledge["knowledge_id"], original["question"], grant, scope)
-        assert inference_status(task) == "EXECUTED_CANDIDATE_NOT_EVALUATED"
-        assert receipt_binding(task, knowledge, original["question"], grant, prior_failed_task=prior)["status"] == "RECEIPT_BINDINGS_VALIDATED"
+        selected=stage.get('explicit_model_selection',{}).get('model')
+        assert inference_status(task,selected) == "EXECUTED_CANDIDATE_NOT_EVALUATED"
+        assert receipt_binding(task, knowledge, original["question"], grant, prior_failed_task=prior,selected_model=selected)["status"] == "RECEIPT_BINDINGS_VALIDATED"
         assert value["answer"].get("truncated") is False
         assert value["answer"].get("finish_reason") == "stop"
         answer = value["answer"]
@@ -868,7 +1195,15 @@ def machine_tasks(read):
     return [read("machine_task_get", {"task_id": row["task_id"]}) for row in page["items"]]
 
 
-def run_ai_stage(ui, read, js, wait, pin, result, run_ai, authored_intervention=False):
+def selected_retest_binding(stage, selected_model):
+    if not stage.get("retest_task"):
+        return False
+    retest = task_conditions(stage["retest_task"])
+    assert retest["request"]["model"] == retest["answer"]["model"] == retest["answer"]["requested_model"] == selected_model
+    return True
+
+
+def run_ai_stage(ui, read, js, wait, pin, result, run_ai, authored_intervention=False, selected_model=None, selected_max_tokens=None, machine_ack_loss=False, restart=None):
     stage = {
         "id": "distill",
         "status": "NOT_EXECUTED",
@@ -911,8 +1246,37 @@ def run_ai_stage(ui, read, js, wait, pin, result, run_ai, authored_intervention=
     document = create_ui_grant(ui, read, wait, pin["knowledge_id"], "answer", purpose)
     grant = grant_snapshot(document)
     stage["original_grant"] = document
+    before_tasks = machine_tasks(read)
+    ui.click("读取模型配置状态")
+    wait("return document.body.innerText.includes('模型身份、加载和推理接通尚未验证')")
+    configuration = read("machine_configuration")
+    assert configuration["schema"] == "archeaxis.machine-configuration/v1"
+    assert configuration["availability"] == "CONFIGURED_UNVERIFIED"
+    assert configuration["network_performed"] is False
+    assert configuration["inference_status"] == "NOT_EXECUTED" and configuration["loaded_status"] == "UNKNOWN"
+    assert all(configuration[key] is None for key in ["model_identity", "usage", "cost"])
+    assert machine_tasks(read) == before_tasks
+    stage["configuration_read"] = {"status":"PASS", "configuration":configuration, "machine_tasks_unchanged":True}
+    ui.click("探测本地模型清单")
+    wait("return document.querySelector('[aria-label=\"本地模型清单探测结果\"]')?.textContent.includes('清单已读取')", seconds=30)
+    inventory_text = ui.js("return document.querySelector('[aria-label=\"本地模型清单探测结果\"]')?.textContent")
+    assert isinstance(inventory_text, str)
+    inventory_match = re.fullmatch(r"清单已读取，共 (\d+) 项；声明模型(已列出|未列出)。加载状态未知，推理尚未验证。", inventory_text.strip())
+    assert inventory_match and 0 <= int(inventory_match[1]) <= 256
+    assert machine_tasks(read) == before_tasks
+    stage["inventory_read"] = {"status":"PASS", "evidence_scope":"FORMAL_UI_LOCAL_INVENTORY_ONLY", "listed_model_count":int(inventory_match[1]), "selected_model_listed":inventory_match[2] == "已列出", "loaded_status":"UNKNOWN", "inference_status":"NOT_EXECUTED", "machine_tasks_unchanged":True}
+    if selected_model is not None:
+        assert isinstance(selected_model,str) and selected_model.strip() == selected_model and 0 < len(selected_model.encode()) <= 256
+        ui.click_selector("//label[contains(.,'本次本地回答模型')]/select/option[@value=" + xpath_literal(selected_model) + "]")
+        wait("return Array.from(document.querySelectorAll('label')).find(n=>n.textContent.includes('本次本地回答模型'))?.querySelector('select')?.value === " + json.dumps(selected_model))
     question = "Explain why original bytes and a versioned document are distinct."
+    if selected_max_tokens is not None:
+        assert selected_max_tokens in (2048,4096)
+        ui.click_selector("//label[contains(.,'本次输出预算')]/select/option[@value=" + xpath_literal(str(selected_max_tokens)) + "]")
     ui.type("实际问题", question, "textarea")
+    if machine_ack_loss:
+        assert restart is not None
+        install_machine_observer(js, lose_ack=True, knowledge_id=pin['knowledge_id'], question=question)
     ui.click("执行本地机器回答")
     wait(
         "return !!document.querySelector('[aria-label=\"真实机器回答\"]') || document.body.innerText.includes('回答未完成') || document.body.innerText.includes('Core 明确拒绝此回答请求') || document.body.innerText.includes('推理已执行，答案未发布')",
@@ -936,7 +1300,15 @@ def run_ai_stage(ui, read, js, wait, pin, result, run_ai, authored_intervention=
         )
         return stage
     task = one(matches, lambda _: True, "actual machine answer task")
+    if machine_ack_loss:
+        recover_machine_ack(ui, read, js, wait, restart, document, task, stage)
     original = assert_inference_task(task, pin["knowledge_id"], question, grant)
+    if selected_max_tokens is not None:
+        assert original["request"]["max_tokens"] == selected_max_tokens
+        stage["explicit_output_budget"] = selected_max_tokens
+    if selected_model is not None:
+        assert original["request"]["model"] == original["answer"]["requested_model"] == original["answer"]["observed_model"] == original["answer"]["model"] == selected_model
+        stage["explicit_model_selection"] = {"status":"PASS", "model":selected_model,"surface":"TRUSTED_NATIVE_UI"}
     assert (
         original["request"]["context_sha256"]
         == hashlib.sha256(knowledge["body"].encode()).hexdigest()
@@ -944,12 +1316,13 @@ def run_ai_stage(ui, read, js, wait, pin, result, run_ai, authored_intervention=
     assert read("knowledge_get", {"id": pin["knowledge_id"]}) == knowledge, (
         "Answer knowledge changed during inference"
     )
-    binding = receipt_binding(task, knowledge, question, grant)
+    binding = receipt_binding(task, knowledge, question, grant,selected_model=selected_model)
     stage.update(
         receipt_binding=binding,
-        status=(inference_status(task) if binding["status"] == "RECEIPT_BINDINGS_VALIDATED" else "UNVERIFIED"),
+        status=(inference_status(task,selected_model) if binding["status"] == "RECEIPT_BINDINGS_VALIDATED" else "UNVERIFIED"),
         task=task,
         original_answer=original,
+        original_metering=assert_reported_metering(original["answer"]),
         original_answer_sha256=hashlib.sha256(original["answer"]["answer"].encode()).hexdigest(),
         knowledge_before=knowledge,
     )
@@ -960,8 +1333,15 @@ def run_ai_stage(ui, read, js, wait, pin, result, run_ai, authored_intervention=
             "Actual configured-model identity not confirmed; no authored intervention or qualification claim"
         )
         return stage
+    if machine_ack_loss:
+        stage['machine_ack_recovery'].update(status='PASS',evidence_level='REAL_MODEL_WITH_SYNTHETIC_BRIDGE_ACK_LOSS')
     if authored_intervention:
         run_authored_intervention(ui, read, wait, stage, result)
+        if selected_model is not None:
+            bound = selected_retest_binding(stage, selected_model)
+            stage["explicit_model_selection"]["retest_bound"] = bound
+            if not bound:
+                return stage
     else:
         stage["reason"] = (
             "Actual answer retained. No explicitly authorized authored intervention; no invented model error."
@@ -971,6 +1351,140 @@ def run_ai_stage(ui, read, js, wait, pin, result, run_ai, authored_intervention=
         "return location.hash==='#page=22' && !!document.querySelector('[aria-label=\"历史机器回答\"]')"
     )
     return stage
+
+
+def install_machine_observer(js, *, lose_ack, knowledge_id=None, question=None):
+    """Observe trusted bridge; discard one successful answer ACK after Core persistence."""
+    js("""const original=window.__TAURI__,invoke=original.core.invoke;
+window.__aaosMachineOriginal=original;window.__aaosMachineProof={rows:[],faults:0};
+const lose=""" + json.dumps(lose_ack) + """, expectedKnowledge=""" + json.dumps(knowledge_id) + """, expectedQuestion=""" + json.dumps(question) + """;
+const observed=async function(command,args,...rest){
+ const op=args?.request?.operation;
+ const row=command==='core_command'&&['machine_answer','machine_retest','ui_state_clear_machine'].includes(op)?{operation:op,status:null,completed:false}:null;
+ if(row)window.__aaosMachineProof.rows.push(row);
+ let value;try{value=await Reflect.apply(invoke,original.core,[command,args,...rest]);}catch(error){if(row)row.error='BRIDGE_REJECTED';throw error;}
+ if(row){Object.assign(row,{status:value.status,task_id:value.body?.answer_id,completed:true});
+ if(lose&&op==='machine_answer'&&value.status>=200&&value.status<300&&value.body?.schema==='archeaxis.machine-answer/v1'&&value.body?.knowledge_id===expectedKnowledge&&value.body?.question===expectedQuestion&&value.body?.client_request_id===args?.request?.payload?.body?.client_request_id&&window.__aaosMachineProof.faults===0){window.__aaosMachineProof.faults++;throw new Error('SYNTHETIC_MACHINE_ACK_LOST');}
+ }return value;
+};window.__TAURI__={...original,core:{...original.core,invoke:observed}};
+if(window.__TAURI__.core.invoke!==observed)throw new Error('Machine observer installation refused');""")
+
+
+def remove_machine_observer(js):
+    proof=js("return window.__aaosMachineProof")
+    js("window.__TAURI__=window.__aaosMachineOriginal;delete window.__aaosMachineOriginal;delete window.__aaosMachineProof;")
+    return proof
+
+
+def recover_machine_ack(ui, read, js, wait, restart, document, task, stage):
+    proof=remove_machine_observer(js)
+    assert proof['faults']==1 and len(proof['rows'])==1
+    assert proof['rows'][0]['operation']=='machine_answer' and proof['rows'][0]['status']==200
+    conditions=task_conditions(task)
+    before=read('ui_state_read')
+    entries=[e for e in before['state'].get('pending_machine',{}).values() if e['owner_knowledge_id']==conditions['knowledge_id']]
+    assert len(entries)==1
+    frozen=entries[0]
+    assert frozen['body']['client_request_id']==conditions['client_request_id'] and frozen['body']['question']==conditions['question']
+    tasks=machine_tasks(read)
+    old_backups={row['backup_id'] for row in read('workspace_backups')['backups']}
+    ui.page('19',confirm_navigation=True);ui.click('创建一致备份')
+    backups=poll(read,'workspace_backups',{},lambda value:len(value['backups'])==len(old_backups)+1)['backups']
+    saved=next(row for row in backups if row['backup_id'] not in old_backups)
+    restart()
+    assert read('ui_state_read')['state'].get('pending_machine',{}).get(frozen['journal_id'])==frozen
+    assert machine_tasks(read)==tasks
+    install_machine_observer(js,lose_ack=False)
+    try:
+        ui.page('14',confirm_navigation=True);ui.click('刷新上下文列表');ui.click('选择原知识授权 '+document['title'])
+        wait("return document.body.innerText.includes('已恢复未确认的机器请求')")
+        ui.click('读取机器学习历史')
+        ui.click('读取此任务旅程 '+task['task_id'])
+        wait("return document.body.innerText.includes('已从 Core 恢复固定回答与既有回执')")
+    finally:
+        recovery=remove_machine_observer(js)
+    assert recovery['faults']==0 and not any(row['operation'] in ('machine_answer','machine_retest') for row in recovery['rows'])
+    assert len(recovery['rows'])==1 and recovery['rows'][0]['operation']=='ui_state_clear_machine' and 200<=recovery['rows'][0]['status']<300
+    assert frozen['journal_id'] not in read('ui_state_read')['state'].get('pending_machine',{})
+    assert machine_tasks(read)==tasks and read('machine_task_get',{'task_id':task['task_id']})==task
+    ui.page('19');ui.click('刷新备份产物')
+    ui.click_selector('//li[strong[normalize-space(.)='+xpath_literal(saved['filename'])+']]//button[normalize-space(.)="预检此备份"]')
+    ui.click('确认恢复整个工作区')
+    wait("return document.body.innerText.includes('整个工作区已恢复，Core 已重启并读回')")
+    candidate=read('ui_state_read')
+    assert candidate['restore_epoch']!=before['restore_epoch'] and candidate['recovery_candidates']['pending_machine'][frozen['journal_id']]==frozen
+    wait("return [...document.querySelectorAll('button')].some(b=>b.textContent==='保留恢复候选')")
+    assert js("return [...document.querySelectorAll('button')].find(b=>b.textContent==='丢弃恢复候选')?.disabled") is True
+    ui.click('保留恢复候选')
+    poll(read,'ui_state_read',{},lambda value:value['recovery_requires_confirmation'] is False)
+    restart()
+    assert read('ui_state_read')['state']['pending_machine'][frozen['journal_id']]==frozen and machine_tasks(read)==tasks
+    install_machine_observer(js,lose_ack=False)
+    try:
+        ui.page('14',confirm_navigation=True);ui.click('刷新上下文列表');ui.click('选择原知识授权 '+document['title'])
+        wait("return document.body.innerText.includes('已恢复未确认的机器请求')")
+        ui.click('读取机器学习历史');ui.click('读取此任务旅程 '+task['task_id'])
+        wait("return document.body.innerText.includes('已从 Core 恢复固定回答与既有回执')")
+    finally:
+        restored=remove_machine_observer(js)
+    assert restored['faults']==0 and len(restored['rows'])==1 and restored['rows'][0]['operation']=='ui_state_clear_machine' and 200<=restored['rows'][0]['status']<300
+    assert frozen['journal_id'] not in read('ui_state_read')['state'].get('pending_machine',{})
+    assert machine_tasks(read)==tasks and read('machine_task_get',{'task_id':task['task_id']})==task
+    stage['machine_restore_recovery']={'status':'JOURNAL_RECOVERY_VERIFIED','discard_disabled':True,'origin_retained':True,'task_unchanged':True,'recovery':restored,'recovery_inference_calls':0}
+    stage['machine_ack_recovery']={'status':'JOURNAL_RECOVERY_VERIFIED','evidence_level':'INTEGRATED_WITH_SYNTHETIC_BRIDGE_ACK_LOSS','initial':proof,'recovery':recovery,'cold_restart':True,'task_unchanged':True,'recovery_inference_calls':0,'journal_id':frozen['journal_id']}
+
+
+def require_machine_ack_recovery(stage):
+    recovery=stage.get('machine_ack_recovery',{})
+    assert stage.get('status')=='EXECUTED_CANDIDATE_NOT_EVALUATED' and recovery.get('status')=='PASS', 'Required actual machine ACK recovery absent or unverified'
+    assert recovery.get('cold_restart') is True and recovery.get('task_unchanged') is True
+    assert recovery.get('recovery_inference_calls')==0
+    assert not any(row['operation'] in ('machine_answer','machine_retest') for row in recovery['recovery']['rows']), 'Recovery attempted inference'
+    assert len(recovery['initial']['rows'])==1 and recovery['initial']['rows'][0].get('completed') is True and recovery['initial']['faults']==1
+
+
+def retryable_retest_failure(observation):
+    return (observation.get("status") == "OBSERVED"
+            and observation.get("retest_incomplete") is True
+            and observation.get("same_request_retry") is True
+            and observation.get("unknown") is False
+            and observation.get("retest_withheld") is False
+            and observation.get("retest_refused") is False
+            and {key: observation.get("failure", {}).get(key) for key in ("phase", "status", "code")}
+                == {"phase": "invoke", "status": 503, "code": "unavailable"})
+
+
+def machine_ui_diagnostic(ui):
+    """Bounded observations only: never copy questions, answers or error bodies."""
+    observe = getattr(ui, "js", None)
+    if not callable(observe):
+        return {"status": "NO_OBSERVER"}
+    try:
+        value = observe("""const root=document.querySelector('[aria-label="知识到机器回答"]');
+const text=root?.innerText??'';
+return {panel_present:!!root,answer_visible:!!root?.querySelector('[aria-label="真实机器回答"]'),
+retest_visible:!!root?.querySelector('[aria-label="独立复测机器回答"]'),
+unknown:text.includes('执行状态 UNKNOWN'),retest_incomplete:text.includes('复测未完成'),
+retest_refused:text.includes('Core 明确拒绝复测请求'),
+retest_withheld:text.includes('复测推理已执行，答案未发布'),
+same_request_retry:[...(root?.querySelectorAll('button')??[])].some(b=>b.textContent?.includes('重试同一冻结复测请求'))};""")
+        keys = ("panel_present", "answer_visible", "retest_visible", "unknown",
+                "retest_incomplete", "retest_refused", "retest_withheld", "same_request_retry")
+        if not isinstance(value, dict) or any(type(value.get(key)) is not bool for key in keys):
+            return {"status": "INVALID_OBSERVATION"}
+        result = {"status": "OBSERVED", **{key: value[key] for key in keys}}
+        failure = observe("return document.querySelector('[aria-label=\"知识到机器回答\"]')?.dataset.retestFailure??null;")
+        if isinstance(failure, str):
+            data = json.loads(failure)
+            if (isinstance(data, dict) and data.get("phase") in ("invoke", "receipt_validation", "task_readback")
+                    and data.get("code") in ("offline", "backend_starting", "migrating", "incompatible", "unauthorized", "unavailable", "unverified")
+                    and (data.get("status") is None or type(data.get("status")) is int and 0 <= data["status"] <= 599)):
+                result["failure"] = {key: data[key] for key in ("phase", "status", "code")}
+                if data.get("reason_code") in {"MODEL_CALL_FAILED", "NO_FINAL_ANSWER", "EMPTY_ANSWER", "WORKER_TIMEOUT", "OUTPUT_LIMIT", "INVALID_OUTPUT", "PIPE_DRAIN_FAILED", "WORKER_FAILED"}:
+                    result["failure"]["reason_code"] = data["reason_code"]
+        return result
+    except Exception:
+        return {"status": "OBSERVATION_FAILED"}
 
 
 def run_authored_intervention(ui, read, wait, stage, result):
@@ -1043,11 +1557,26 @@ def run_authored_intervention(ui, read, wait, stage, result):
         "return !!document.querySelector('[aria-label=\"独立复测机器回答\"]') || document.body.innerText.includes('复测未完成') || document.body.innerText.includes('Core 明确拒绝复测请求') || document.body.innerText.includes('复测推理已执行，答案未发布')",
         seconds=150,
     )
+    stage["retest_ui_diagnostic"] = machine_ui_diagnostic(ui)
+    inventory = machine_tasks(read)
+    stage["retest_task_inventory"] = [
+        {key: task.get(key) for key in ("task_id", "scope", "outcome", "retest_of")}
+        for task in inventory
+    ]
     matches = [
         task
-        for task in machine_tasks(read)
+        for task in inventory
         if task["scope"] == "runtime.retest" and task["retest_of"] == failed["task_id"]
     ]
+    if not matches and retryable_retest_failure(stage["retest_ui_diagnostic"]):
+        # One explicit UI retry of the same frozen payload; never generate a new
+        # request, replace its grant, or turn an unknown response into success.
+        stage["retest_retry"] = {"limit": 1, "first_failure": stage["retest_ui_diagnostic"], "first_inventory": stage["retest_task_inventory"]}
+        ui.click("重试同一冻结复测请求", scope)
+        wait("return !!document.querySelector('[aria-label=\"独立复测机器回答\"]') || document.body.innerText.includes('复测未完成') || document.body.innerText.includes('Core 明确拒绝复测请求') || document.body.innerText.includes('复测推理已执行，答案未发布')", seconds=150)
+        stage["retest_retry"]["final_observation"] = machine_ui_diagnostic(ui)
+        inventory = machine_tasks(read)
+        matches = [task for task in inventory if task["scope"] == "runtime.retest" and task["retest_of"] == failed["task_id"]]
     if not matches:
         stage["retest"] = "UNVERIFIED"
         stage["reason"] = (
@@ -1067,11 +1596,13 @@ def run_authored_intervention(ui, read, wait, stage, result):
     assert read("machine_task_get", {"task_id": stage["task"]["task_id"]}) == stage["task"], (
         "Retest replaced original answer"
     )
-    binding = receipt_binding(retest, accepted, original["question"], grant, prior_failed_task=failed)
+    selected=stage.get('explicit_model_selection',{}).get('model')
+    binding = receipt_binding(retest, accepted, original["question"], grant, prior_failed_task=failed,selected_model=selected)
     stage.update(
         retest_receipt_binding=binding,
-        retest=(inference_status(retest) if binding["status"] == "RECEIPT_BINDINGS_VALIDATED" else "UNVERIFIED"),
+        retest=(inference_status(retest,selected) if binding["status"] == "RECEIPT_BINDINGS_VALIDATED" else "UNVERIFIED"),
         retest_task=retest,
+        retest_metering=assert_reported_metering(task_conditions(retest)["answer"]),
         reason="Actual answer and retest preserved; authored adoption is not independent error evidence or proof of improvement.",
     )
     result["actual_tasks"].update({failed["task_id"]: failed, retest["task_id"]: retest})

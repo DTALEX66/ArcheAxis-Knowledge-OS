@@ -1,0 +1,30 @@
+{
+  "schema": "archeaxis.engineering-acceptance/v1",
+  "status": "PARTIAL",
+  "scope": "Worker explicit model-selection validation only; task-level UI/Core binding remains incomplete",
+  "evidence_level": "SIMULATED",
+  "engineering_status": "PASS",
+  "red": {
+    "log": ".project-local/runs/be268a2d33/deafe122730d/logs/execution.log",
+    "failed": 7,
+    "deselected": 61
+  },
+  "green": {
+    "log": ".project-local/runs/be268a2d33/01fb050e7fbb/logs/execution.log",
+    "passed": 68
+  },
+  "behavior": "Explicit empty, whitespace, control-character, oversized or non-string model selection refuses before endpoint discovery or model call. Only None inherits launch policy.",
+  "limitations": [
+    "No model switched or loaded",
+    "No real model call",
+    "No claim that task selection, retest identity or ACK freezing is complete"
+  ],
+  "current_followup": {
+    "receipt": "docs/current/receipts/AAOS-NATIVE-MODEL-SELECTION-20261012.json",
+    "status": "PASS",
+    "evidence_level": "REAL",
+    "scope": "Explicit task/UI/Core model and output-budget binding, answer and retest, persisted results and full native restart readback",
+    "historical_receipt_scope": "Original simulated worker-only results above are preserved; their incomplete task-binding limitation is superseded for the explicit-selection lane.",
+    "remaining": "Unconfirmed request cross-exit journal, all legacy launch-default request binding, 27B benchmark, cloud real chain and Owner acceptance remain incomplete or unverified."
+  }
+}

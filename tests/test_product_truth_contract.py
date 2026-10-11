@@ -19,9 +19,10 @@ def test_public_product_truth_uses_learning_workspace_positioning() -> None:
     )
 
     assert manifest["product"]["english_name"] == "ArcheAxis Knowledge"
+    assert manifest["product"]["name"] == "星环知识系统"
     assert manifest["product"]["workspace_english_name"] == EXPECTED_WORKSPACE
     assert EXPECTED_POSITIONING in readme_head
-    assert "星环知识平台（ArcheAxis Knowledge）" in readme_head
+    assert "星环知识系统（ArcheAxis Knowledge）" in readme_head
     assert "认知闭环" not in readme_head
     assert 'description = "Local-first, evidence-driven Human–AI learning and knowledge workspace' in pyproject
     assert '"learning-workspace"' in pyproject

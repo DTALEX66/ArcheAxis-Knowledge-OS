@@ -55,7 +55,7 @@ def declared_identities(worker_source, lanes):
     return records
 
 def validate(task, knowledge, question, grant, identities, *, scope='runtime.answer',
-             prior_failed_task=None, asset_packet_json=None):
+             prior_failed_task=None, asset_packet_json=None, selected_model=None):
     """Return binding status, including explicit UNVERIFIED for unexposed execution data.
 
     Current Core immutable knowledge task version is id@v1. No DTO version is invented.
@@ -78,11 +78,17 @@ def validate(task, knowledge, question, grant, identities, *, scope='runtime.ans
     text(answer.get('answer'), 'answer content')
     model = genuine_name(answer.get('model'))
     require(type(identities) is list and bool(identities), 'Declared identities missing')
-    require(any(all(answer.get(key) == identity.get(key) for key in
+    if selected_model is not None:
+        chosen=genuine_name(selected_model)
+        require(chosen==chosen.strip() and len(chosen.encode('utf-8'))<=256 and not any(ord(c)<32 or ord(c)==127 for c in chosen), 'Invalid explicit model selection')
+        require(model==chosen and answer.get('requested_model')==chosen and answer.get('observed_model')==chosen, 'Independent selected model identity mismatch')
+    require(any(all(answer.get(key) == (selected_model if key=='model' and selected_model is not None else identity.get(key)) for key in
                     ('model', 'endpoint', 'protocol', 'engine', 'engine_version', 'prompt_version'))
                 for identity in identities if type(identity) is dict), 'Undeclared worker/model identity')
     require(task.get('model_version') == model, 'Task model version mismatch')
     request = mapping(doc.get('request'), 'request')
+    if selected_model is not None:
+        require(request.get('model')==selected_model, 'Frozen explicit model selection mismatch')
     require(request.get('knowledge_id') == kid and request.get('question') == question, 'Frozen request knowledge/question mismatch')
     require(request.get('context_grant') == grant, 'Explicit grant binding mismatch')
     require(type(grant.get('version')) is int and grant['version'] > 0, 'Grant version type invalid')

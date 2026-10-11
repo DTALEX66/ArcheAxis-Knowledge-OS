@@ -42,4 +42,11 @@ describe("SIMULATED finite bridge restored authorization admission receipt",()=>
     window.__TAURI__.core!.invoke=vi.fn().mockResolvedValue({status:403,body:{schema:"archeaxis.machine-execution-refusal/v1",execution_state:"EXECUTED_BUT_WITHHELD",answer_published:false,audit_status:"RECORDED",audit_task_id:`withheld_${"b".repeat(64)}`}});
     await expect(coreCommand("machine_answer",{body:request})).rejects.toMatchObject({execution:{execution_state:"EXECUTED_BUT_WITHHELD"},machineAdmission:undefined});
   });
+  it("binds an explicit model while preserving the legacy omitted-model digest",async()=>{
+    const selected={...request,model:"m1"};const proof=await receipt("answer",selected);
+    expect(await readMachineAdmissionRefusal(proof,"answer",selected)).toEqual(proof);
+    expect(await readMachineAdmissionRefusal(proof,"answer",{...selected,model:"m2"})).toBeUndefined();
+    expect(await readMachineAdmissionRefusal(proof,"answer",request)).toBeUndefined();
+    expect(await machineAdmissionRequestSha("answer",{...request,model:null})).toEqual(await machineAdmissionRequestSha("answer",request));
+  });
 });

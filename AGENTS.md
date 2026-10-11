@@ -1,4 +1,4 @@
-# AGENTS.md - 星环知识平台（ArcheAxis Knowledge）Operating Guide
+# AGENTS.md - 星环知识系统（ArcheAxis Knowledge）Operating Guide
 
 > **2026-10-11 当前路由与状态**：Owner 已明确恢复完整框架、常见常用格式与最短闭环产品实施；状态 RUNNING_BY_OWNER / PARTIAL。当前范围与恢复决定读[活动指针](docs/current/AAOS-ACTIVE-EXECUTION.json)，实际进度仍在该指针指定的 UI 执行记录。2026-10-10 暂停仅为历史时点，旧 COMPLETE、FAIL 和证据保留各自 SHA。六项核心能力对话增量仍 FROZEN_BY_OWNER；V01 暂停、FT01–04 冻结；发布、Green 替换和真实用户数据覆盖未授权。 文件身份与旧路径按[路由登记](docs/current/AAOS-AUTHORITY-ROUTES.json)核对。
 
@@ -27,7 +27,7 @@ Runtime, multi-agent, Marketplace, 3D/VR, enterprise collaboration) are deferred
 3D/VR/AR, animation, simulation and spatial memory are retained as binding
 long-term capabilities (see `docs/truth/CAPABILITY_ATLAS_V2.yaml`). Product
 identity and naming are locked by `docs/truth/NAMING_CONTRACT_V2.md`
-(ArcheAxis Knowledge / 星环知识平台).
+(ArcheAxis Knowledge / 星环知识系统).
 
 Legacy systems (Knowledge-Base, Inspiration-Research, Cognitive-OS, Obsidian)
 exist as compatibility surfaces only; current routing, capability truth and

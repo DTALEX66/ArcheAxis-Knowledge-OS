@@ -80,6 +80,41 @@ def request():
     }
 
 
+@pytest.mark.parametrize("query", ["", " " * 3, "x" * 1001])
+def test_search_query_is_rejected_before_network_without_silent_truncation(worker, monkeypatch, query):
+    calls = []
+    monkeypatch.setattr(worker, "donor", lambda name: calls.append(name))
+    with pytest.raises(worker.CheckExecutionError, match="invalid_search_query"):
+        worker.retrieve_context(query, 10, 1, [])
+    assert calls == []
+
+
+def test_professional_check_without_independent_query_never_searches(worker, monkeypatch):
+    calls = []
+    monkeypatch.setattr(worker, "retrieve_context", lambda *args: calls.append(args))
+    req = request()
+    req["dimension"] = "professional_basis"
+    assert worker.execute(req)["reason"] == "search_query_required"
+    assert calls == []
+
+
+@pytest.mark.parametrize("usage,expected", [(None, None), ({}, None), ({"total_tokens": None}, None), ({"total_tokens": 0}, 0), ({"total_tokens": 5}, 5)])
+def test_independent_query_is_the_only_search_payload(worker, monkeypatch, usage, expected):
+    queries = []
+    monkeypatch.setattr(worker, "retrieve_context", lambda query, *args: queries.append(query) or "Public synthetic context")
+    monkeypatch.setitem(sys.modules, "litellm", SimpleNamespace(completion=lambda **kwargs: {
+        "model": "fixture-model",
+        "choices": [{"finish_reason": "stop", "message": {"content": '{"status":"supported","basis":"Synthetic context"}'}}],
+        "usage": usage,
+    }))
+    req = request()
+    req.update(dimension="professional_basis", text="PRIVATE synthetic body must not become a query", search_query="public terminology")
+    result = worker.execute(req)
+    assert result["outcome"] == "succeeded"
+    assert result["engine_receipt"]["tokens_used"] == expected
+    assert queries == ["public terminology"]
+
+
 @pytest.mark.parametrize("finish", ["missing", None, "", "length", "tool_calls", "stop"])
 def test_actual_sdk_finish_field_cannot_be_fabricated(worker, monkeypatch, finish):
     choice = {
@@ -99,6 +134,7 @@ def test_actual_sdk_finish_field_cannot_be_fabricated(worker, monkeypatch, finis
     assert calls[0]["model"] == "openai/explicit-model"
     if finish == "stop":
         assert result["outcome"] == "succeeded"
+        assert result["retrieval_receipts"] == []
         assert result["engine_receipt"]["model"] == "actual-sdk-model"
         assert (
             result["engine_receipt"]["response_sha256"]
@@ -111,6 +147,19 @@ def test_actual_sdk_finish_field_cannot_be_fabricated(worker, monkeypatch, finis
             assert result["raw_response"] == choice["message"]["content"]
         else:
             assert result["engine_receipt"] is None
+
+
+@pytest.mark.parametrize("tokens", [True, False, -1, 1.5, "9"])
+def test_invalid_provider_usage_is_not_coerced_to_valid_evidence(worker, monkeypatch, tokens):
+    monkeypatch.setitem(sys.modules, "litellm", SimpleNamespace(completion=lambda **kwargs: {
+        "model": "fixture-model",
+        "choices": [{"finish_reason": "stop", "message": {"content": '{"status":"faithful","basis":"Synthetic comparison"}'}}],
+        "usage": {"total_tokens": tokens},
+    }))
+    result = worker.execute(request())
+    assert result["outcome"] == "failed"
+    assert result["reason"] == "invalid_engine_receipt"
+    assert result["engine_receipt"] is None
 
 
 @pytest.mark.parametrize("model", ["missing", None, ""])
@@ -242,6 +291,7 @@ def test_retrieval_failure_safe_classification_is_durable(
     )
     req = request()
     req["dimension"] = "professional_basis"
+    req["search_query"] = "public background terminology"
     result = worker.execute(req)
     assert result["outcome"] == "failed" and result["reason"] == "retrieval_failed"
     failure = result["retrieval_receipts"][-1]
@@ -267,6 +317,7 @@ def test_untyped_transport_module_failure_never_discloses_messages(worker, monke
     monkeypatch.setattr(worker, "donor", lambda name: fake)
     req = request()
     req["dimension"] = "professional_basis"
+    req["search_query"] = "public background terminology"
     result = worker.execute(req)
     assert result["outcome"] == "failed" and result["reason"] == "retrieval_failed"
     assert result["retrieval_receipts"] == [

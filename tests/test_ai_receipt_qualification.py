@@ -60,6 +60,21 @@ def test_current_bindings_only_never_prove_model_execution(retest,asset):
     assert result['actual_model_execution']=='NOT_PROVEN_BY_RECEIPT_HELPER'
     assert result['owner_acceptance'] is False and result['model_accuracy']=='UNMEASURED'
 
+@pytest.mark.parametrize('retest',[False,True])
+def test_explicit_local_model_keeps_worker_lane_and_independent_response_binding(retest):
+    task,knowledge,question,grant,identities,prior,packet=fixture(retest)
+    selected='aaos27b-owned-identity';doc=json.loads(task['conditions']);doc['request']['model']=selected
+    if retest:doc['execution_request']['request']=copy.deepcopy(doc['request'])
+    doc['answer'].update(model=selected,requested_model=selected,observed_model=selected);task['model_version']=selected;task['conditions']=json.dumps(doc)
+    args=dict(scope=task['scope'],prior_failed_task=prior,selected_model=selected)
+    assert helper.validate(task,knowledge,question,grant,identities,**args)['status']=='RECEIPT_BINDINGS_VALIDATED'
+    with pytest.raises(helper.BindingError):helper.validate(task,knowledge,question,grant,identities,scope=task['scope'],prior_failed_task=prior)
+    for field,value in [('observed_model',None),('observed_model','different'),('endpoint','https://example.com/v1'),('protocol','other'),('engine_version','unknown'),('prompt_version','unknown')]:
+        changed=copy.deepcopy(doc);changed['answer'][field]=value
+        with pytest.raises(helper.BindingError):helper.validate({**task,'conditions':json.dumps(changed)},knowledge,question,grant,identities,**args)
+    changed=copy.deepcopy(doc);changed['request']['model']='other'
+    with pytest.raises(helper.BindingError):helper.validate({**task,'conditions':json.dumps(changed)},knowledge,question,grant,identities,**args)
+
 def test_historical_retest_without_execution_hash_is_unverified():
     value=fixture(True)
     doc=json.loads(value[0]['conditions']);del doc['execution_request'];value[0]['conditions']=json.dumps(doc)

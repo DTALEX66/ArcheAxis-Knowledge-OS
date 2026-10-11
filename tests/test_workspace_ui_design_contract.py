@@ -60,7 +60,7 @@ def test_legacy_tauri_recovery_surface_remains_covered_by_compatibility_ci() -> 
     desktop_lib = (ROOT / "desktop/src-tauri/src/lib.rs").read_text(encoding="utf-8")
     workflow = (ROOT / ".github/workflows/ci.yml").read_text(encoding="utf-8")
 
-    assert "星环知识平台" in frontend
+    assert "星环知识系统" in frontend
     assert "ArcheAxis Knowledge" in frontend
     assert "core_command," in tauri
     assert '.title("星环知识")' in desktop_lib

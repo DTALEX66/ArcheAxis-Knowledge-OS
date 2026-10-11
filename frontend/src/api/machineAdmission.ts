@@ -3,13 +3,13 @@ import { sha256 } from "../presentation/exchangeProof";
 
 /** Finite normalization mirrors runtime/context_refusal.rs, including absent/null defaults. */
 export function normalizedMachineAdmissionRequest(operation:"answer"|"retest", request:Record<string,unknown>) {
-  const keys=["knowledge_id","question","max_tokens","timeout_s","context_grant","asset_context_grant",operation==="answer"?"client_request_id":"retest_of"];
+  const keys=["knowledge_id","question","max_tokens","timeout_s","model","context_grant","asset_context_grant",operation==="answer"?"client_request_id":"retest_of"];
   if(Object.keys(request).some(key=>!keys.includes(key)))throw new Error("unknown frozen machine field");
   return {operation,request:{knowledge_id:request.knowledge_id,question:request.question,
     max_tokens:request.max_tokens??2048,timeout_s:request.timeout_s??120,
     context_grant:request.context_grant??null,asset_context_grant:request.asset_context_grant??null,
     client_request_id:operation==="answer"?(request.client_request_id??null):null,
-    retest_of:operation==="retest"?request.retest_of:null}};
+    retest_of:operation==="retest"?request.retest_of:null,...(request.model!==undefined&&request.model!==null?{model:request.model}:{})}};
 }
 export async function machineAdmissionRequestSha(operation:"answer"|"retest", request:Record<string,unknown>):Promise<string> {
   const canonical=JSON.stringify(normalizedMachineAdmissionRequest(operation,request),(_key,item:unknown)=>

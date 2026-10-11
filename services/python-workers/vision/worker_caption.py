@@ -34,6 +34,9 @@ import urllib.error
 import urllib.request
 from pathlib import Path
 
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+from local_http import local_urlopen
+
 ENGINE = "python-worker-caption"
 ENGINE_VERSION = "0.2.0"
 # R15/F04: the identity advertised in the sidecar handshake for this route.
@@ -130,7 +133,7 @@ def _endpoint() -> dict:
     lanes = _declared_lanes()
     for candidate in lanes:
         try:
-            with urllib.request.urlopen(
+            with local_urlopen(
                     f"{candidate['base']}/{'models' if candidate['protocol'] == 'openai' else 'api/tags'}",
                     timeout=3):
                 return {key: candidate[key] for key in ("protocol", "base", "model")} | {
@@ -149,7 +152,7 @@ def _endpoint() -> dict:
 def _installed_models(endpoint: dict) -> list[str]:
     path = "/models" if endpoint["protocol"] == "openai" else "/api/tags"
     try:
-        with urllib.request.urlopen(f"{endpoint['base']}{path}", timeout=5) as response:
+        with local_urlopen(f"{endpoint['base']}{path}", timeout=5) as response:
             payload = json.loads(response.read().decode("utf-8"))
     except Exception:  # noqa: BLE001
         return []
@@ -224,16 +227,12 @@ def _call(endpoint: dict, model: str, encoded: str, timeout_s: int, *, receipt: 
     request = urllib.request.Request(
         url, data=json.dumps(body).encode("utf-8"),
         headers={"Content-Type": "application/json"}, method="POST")
-    with urllib.request.urlopen(request, timeout=timeout_s) as response:
+    with local_urlopen(request, timeout=timeout_s) as response:
         payload = json.loads(response.read().decode("utf-8"))
     if endpoint["protocol"] == "openai":
         message = (payload.get("choices") or [{}])[0].get("message", {})
-        # These are reasoning models: the chain of thought arrives in `reasoning_content` and the
-        # answer in `content`, and a small budget is consumed entirely by reasoning, leaving
-        # `content` empty. Prefer the answer and fall back rather than reporting nothing.
+        # A reasoning-only response is not a final image description.
         text = str(message.get("content") or "").strip()
-        if not text and receipt is None:
-            text = str(message.get("reasoning_content") or "").strip()
     else:
         text = str(payload.get("response", "")).strip()
     if receipt is not None:

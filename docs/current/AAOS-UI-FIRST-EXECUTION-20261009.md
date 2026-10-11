@@ -2,12 +2,12 @@
 
 > **2026-10-11 最新 Owner 决定**：恢复完整框架、常见常用格式及最短闭环产品实施，RUNNING_BY_OWNER / PARTIAL；范围见[恢复决定](AAOS-CLOSED-LOOP-OWNER-RESUME-20261011.json)。下文暂停/停止/旧 CI 缺资格均保留原时点，最新 CI 读[收口记录](AAOS-AUTHORITY-CLOSEOUT-20261010.md)。当前优先：创建幂等、独立草稿与现场、冲突恢复、常用格式定位重验、资源启停及新 UI 同对象旅程。
 
-> **2026-10-10 最新仓库同步：BRANCH_PUBLISHED**。公开源码、任务包和文档已推送；源码快照 `3c1265be1017f565a64701b513bac3e51d724584`、Git树 `982dafceddc85b8e023f3d028b86805b9592f041` 经GitHub原生API及远程refs读回匹配，main与两个任务分支一致，本地主检出和代码检出已收敛。当前交付元数据的最新SHA以实际Git HEAD/远程ref为准。旧段落“源码不同/未commit/push/云端缺文件”仅为旧时点；不再表示当前仓库状态。安装/产品任务仍暂停，整体PARTIAL与FAIL保留。**CI_VERIFIED_EXACT_SHA未获得**：推送响应显示required a0-gates仍expected，服务器接收提交不等于CI通过。
+> **2026-10-10 历史仓库同步：BRANCH_PUBLISHED**。公开源码、任务包和文档已推送；源码快照 `3c1265be1017f565a64701b513bac3e51d724584`、Git树 `982dafceddc85b8e023f3d028b86805b9592f041` 经GitHub原生API及远程refs读回匹配，main与两个任务分支一致，本地主检出和代码检出已收敛。当前交付元数据的最新SHA以实际Git HEAD/远程ref为准。旧段落“源码不同/未commit/push/云端缺文件”仅为旧时点；不再表示当前仓库状态。该时点安装/产品任务暂停；2026-10-11 产品实施已恢复，安装资格单独记账，历史PARTIAL与FAIL保留。**CI_VERIFIED_EXACT_SHA未获得**：推送响应显示required a0-gates仍expected，服务器接收提交不等于CI通过。
 
 
 本轮状态 **PARTIAL**：首批本地实现与自动检查 PASS；桌面安装版/物理 IME/Owner 验收未执行，S01 清理完成盘点及恢复核验、未执行删除。本文是执行回执，不替换 Authority，不把 TaskPack 或历史 PASS 当本轮完成证据。
 
-当前最新收尾：**UF13 已启动切片完成验证后，按用户要求停止**；整体 TaskPack / UF13 均 **PARTIAL**。读[当前切片回执](receipts/AAOS-UI-FINAL-SLICE-20261010.json)和[原107条及18主题审计](AAOS-UF13-ACCEPTANCE-AUDIT-20261010.json)。审计为实施前快照，后续变化由切片回执分账，不将历史源码证据重标为当前 PASS。**不自动开启后续任务**；V01暂停、FT01–04冻结。
+2026-10-10 历史收尾：**UF13 已启动切片完成验证后，按用户要求停止**；整体 TaskPack / UF13 均 **PARTIAL**。读[当前切片回执](receipts/AAOS-UI-FINAL-SLICE-20261010.json)和[原107条及18主题审计](AAOS-UF13-ACCEPTANCE-AUDIT-20261010.json)。审计为实施前快照，后续变化由切片回执分账，不将历史源码证据重标为当前 PASS。**该时点不自动开启后续任务；2026-10-11 恢复范围按顶部决定执行**；V01暂停、FT01–04冻结。
 
 ## 最新治理修订：G01 当前路由与索引
 
@@ -542,3 +542,694 @@ f36完整CI已terminal failure，安装job114417050391的compat/conflict子流�
 
 
 2026-10-11 安装收口：3bc85fc3 / run38124304699现completed SUCCESS，installer job114428210635 SUCCESS。父preflight候选与installer身份、compat/conflict/grouped三child clean/source_consistent、升级/优雅退出/卸载保留数据/重装读回与原冻结请求唯一执行已独立复核。grouped八阶段PASS但distill/实际纠正复测/旧AI grant拒绝NOT_EXECUTED，完整闭环仍PARTIAL。详见[安装生命周期回读](receipts/AAOS-3BC-INSTALLED-LIFECYCLE-READBACK-20261011.json)。后继源码d22b9c7b的force_full run38126070564已经启动，现IN_PROGRESS；不借旧候选成功资格化后继源码或Owner实际交互。
+
+2026-10-11 DOT 后续本地增量：当前 HEAD d6c2bbeef722f82a02a3f18e1b4296ad5e37c58b，工作树有未提交修改。A02 同候选重读保留备注，候选与来源绑定读取仍是必要条件，模型标注等待/失败不再阻塞用户选择；4 文件定向测试 29 PASS（run c1667575587b，SIMULATED）。最新前端 TypeScript 检查与生产构建 PASS（run e5ed2b574439，非安装验收）。A04 旧 federation 兼容服务现在检查相同 key 的候选 items_hash 和提交人，冲突拒绝；BEGIN IMMEDIATE 串行化并发重试。回归 RED run f6727de4c952：2 failed/7 passed；最终 GREEN run 55f7555b78bc：10 passed，含并发唯一回执、本地合成 SQLite 与原人工选择门禁。仅兼容服务修复，不代表跨项目实际联通。A01 来源草稿持久化幂等、A03 外发计划/目的地/材料/撤回/local-only，以及 Tauri 实际 AI 完整闭环仍未完成；没有提交、推送、付费调用或 Green 替换，整体 PARTIAL。
+
+2026-10-11 A01 来源草稿增量：复用 pending_original 冻结创建日志，新增成对 source_id/source_revision；旧无来源笔记日志不变。来源草稿先保全请求再发送 document_create，丢失响应后的重试保留同一 ID、正文与来源版本，校验创建回执和 version-1 读回；Core 重开保留来源字段并拒绝冻结期间替换来源。SIMULATED 前端 RED run 8fdbdbda8a9a，最终 3 文件 67 PASS（0ba3e6fb9575）；Rust 合成 SQLite 8 PASS（a89d8e4667bc），新增回归曾识别错误的 SHA 长度约束并已修正。TypeScript/生产构建 PASS（7d316eb8ee4a）；Rust fmt、工作状态契约生成一致性与 diff check PASS。来源创建的正式桌面重启、同对象联程和大正文边界仍需验证：沿用工作日志单项 256KiB/整体 1MiB 限制，不代表全格式无限正文资格。A03 外发控制、完整实际 AI 闭环及 Owner 验收仍未完成，整体 PARTIAL；没有新增远程或发布授权。
+
+2026-10-11 A03 首个外发约束：worker 不再将正文前 1000 字符用作 DuckDuckGo query。仅接受独立 search_query，空白/超过 1000 字符或 4000 UTF-8 bytes 在加载检索 transport 前拒绝，不静默截断；识别忠实度默认不公共检索，专业依据无独立查询时返回 search_query_required，尚无 Core/UI 查询确认入口，因此旧专业依据执行路径当前明确不可用而不回退正文。新增参数捕获证明检索只收到合成公开查询，不收到合成私有正文。RED run 73bdfe4be5c7：4 failed；最终 3 文件 51 PASS（a26f3a91f637，SIMULATED SDK/网络，无实际公网调用）。目的地/材料计划确认、撤回、排队竞态与 local-only 尚未实现；完整 A03 和整体目标仍 PARTIAL，不能签完整外发安全或云供应商实连 PASS。
+
+2026-10-11 A03 独立查询贯通：CheckPanel 输入和显示登记查询，CheckBody/CheckInput 在 human cloud 登记时校验 1000 字符/4000 UTF-8 bytes，原 document_checks JSON 保留 query；execute_runtime_check 从持久化 running 记录传给 worker，执行 body 不可替换该 query。旧无 query 记录仍可读取，专业依据缺 query 仍拒绝；没有正文回退。新增真实 owned-worker 协议 fixture 断言 query 等于登记的合成公开查询，拒绝空白/超长及 machine 携带 query；属于 SYNTHETIC Core/worker 协议，不是公网模型实连。UI 15 PASS（a763b45234f2）；API/worker 五项 PASS（201148ec184f），补拒绝断言后定向一项 PASS（27cc3194725b；4 filtered out）；TypeScript/前端构建 PASS（099ee4c40a57），Rust fmt与diff PASS。同步 canonical DTO/schema与OpenAPI说明。独立只读审查确认 query 链路结构正确，但外发计划/材料范围/配置目的地指纹/确认哈希/撤回/local-only 及排队后的取消复核仍未实现；整体 PARTIAL，不能签完整 A03 或完整产品验收。
+
+
+2026-10-11 A03 预览确认与失败持久化增量：复用 execute 的只读 preview，展示实际正文/片段、识别材料、原件范围、模型和搜索目的地及未知用量/费用；配置化执行须匹配当前重算计划 SHA。Core 在 claim 事务内再次重算完整计划并比较身份，直接从确认计划构造实际正文，不再提交后替换片段。合成失败响应只包含 worker 协议身份和失败字段，完整大材料计划留在 durable running/terminal，避免 128000 bytes 响应上限阻断失败收据和重启恢复。界面切换文档或发起新预览清除旧确认卡，校验 dimension/cloud/pending；同步 OpenAPI preview/selection/confirmation/200。Rust 域内定向 8 PASS（15cfd48c0100），含 64k 正文加 64k 识别文本失败恢复及重复恢复不重执行；Core/owned-worker API 5 PASS（57504ec57a56，SYNTHETIC），前端 16 PASS（1eb1c522d9de，SIMULATED），TypeScript/前端生产构建 PASS（ad154dde1749）；fmt --check 与 diff check PASS。首次格式化 wrapper 因源码变动退出 1，保留原记录，不作为验证 PASS。没有公网或付费调用。大全文小片段、错域计划、身份切换失败预览的专门补充回归和片段终端适用范围展示仍待完成；撤回/local-only/取消复核及正式 Tauri 实际 AI 闭环仍未完成，整体 PARTIAL。
+
+
+2026-10-11 A03 本次申请控制与范围回归：大文档只执行确认片段，篡改计划在 claim 前拒绝，终端记录持续显示片段适用范围。local_only 固定于原申请；人类撤回追加独立 egress_control，不占 attempt/retry 身份，无引擎也可撤回并在重开后保留。队列回归 RED 复现撤回后等待任务仍启动，修复为取得槽位后重新读原申请/运行行/终态/材料/查询/配置，Core-only 指纹不进入 worker 协议。复用恢复 fence epoch，旧工作区确认指纹恢复后失效；损坏 fence 拒绝。现有产品契约与 Schema 同步用户入库和外发边界，仅声明要求不签实现完成。最终 Rust 域内13/Core-owned-worker API7/restore-fence3 PASS（b262a6002474，SYNTHETIC），前端26 PASS（4f1d5f4b3b15，SIMULATED），契约22 PASS（f7ca83f5acbb），TypeScript/生产构建 PASS（a9d15ad36cb5），architecture/fmt/diff/生成一致性 PASS；各运行 source_consistent=true，完整记录见[外发控制增量](receipts/AAOS-EGRESS-CONTROL-INCREMENT-20261011.json)。保留 RED 与中间失败：恢复夹具最初缺表，旧式 root 缺 execution_verified，分别修正夹具与显式控制回执字段。撤回不能收回已发材料；运行中取消、最后复查到首次发送的窗口、完整 archive roundtrip、目的地/DNS/重定向/用量费用审计、真实云供应商、正式 Tauri 实际 AI 全闭环及 Owner 验收仍未完成。无公网、付费调用、下载模型、提交、推送或 Green 替换，整体 PARTIAL。
+
+### 2026-10-11 AI 旅程回执导航修复（PARTIAL）
+
+- 当前源码确认：13/14/22 共用 CanonicalControlledAiSpace，visited/hidden 保持子面板挂载。App 的按钮与 hash 导航现仅对该精确家族允许保留组件的切页；不清 dirty、冻结请求或关闭保护，跨家族仍走离开确认。
+- 定向回归：6044e2dab12a，AppSceneNavigationGuard 8 + ControlledAiJourney 5，共 13 PASS，SIMULATED，source_consistent=true，patch SHA-256 69c2988ea019745871ca58b8e760cdfb656f4e1f70b5a3f090411753abb7c401。mounted App 回归使用合成 machine panel，证明 DOM/输入保留、回执往返及 hash 切页不触发离页提示、跨家族仍拦截；不冒充真实复测冻结 payload 的完整验收。
+- 最新前端构建：5eadef362e52，TypeScript + Vite PASS（BUILD_ONLY）。未构建/安装新原生桌面，未提交或推送。
+- 真实原生运行 be9624139e7d 的复测仍 UNVERIFIED；已知导航阻塞已修复，复测失败原因仍 UNKNOWN。MachineAnswerPanel 冻结请求与 uncertain 当前仅内存状态，没有关闭/重启持久化证明。下一步保持严格实际 AI 门禁，补充失败诊断并用最新源码进行隔离原生验收。
+
+### 2026-10-11 真实 AI 复测诊断与最新 Core 构建（PARTIAL）
+
+- 原生 grouped probe 新增复测界面有界布尔观察（未知、拒绝、未发布、同请求重试、回答/复测是否可见），任务 inventory 仅保留 task_id/scope/outcome/retest_of；不复制问题、回答或异常正文。观察缺失/格式错误不转成成功，原实际 AI 严格门禁未放宽。
+- canonical 测试 a92efc9025f1：26 PASS、103 subtests PASS，SIMULATED。新增诊断白名单回归验证额外私有正文不进入结果、非布尔观察拒绝。
+- 最新 Rust Core release/offline/locked 构建 fd5ede82157c 已完成，exit 0，BUILD_ONLY；已有 unused import/dead code 警告，不代表原生运行完成。下一步重新 stage 当前 workers 和 Core、构建隔离 Tauri 并运行严格实际 AI 旅程。
+
+### 2026-10-11 最新隔离原生实际 AI 运行（FAIL，整体 PARTIAL）
+
+- stage dbf0114a4aa0 成功；当前 Core、document_check、worker_machine_answer、learning_scheduler 与隔离包逐项 SHA-256 相等。Tauri 构建 cb000505333f / frontend 子 run 1cd38ff517cd 成功，native-build-binding.json 将当前 patch 与宿主/Core 哈希绑定。
+- 严格原生运行 9339b396a935，子 run webdriver-587d5756856f，最终 FAIL，source_consistent=true、owned_ports_released=true。原回答 EXECUTED_CANDIDATE_NOT_EVALUATED；纠正采用已记录；复测 UNVERIFIED，无 runtime.retest 任务。回执页已越过原阻塞，但转 19 备份页仍被保留的未确认请求保护拒绝；未绕过保护。
+- 新诊断显示 retest_incomplete=true、retest_visible=false、retest_refused=false、retest_withheld=false。原同请求重试识别标签漏了“冻结”二字，已修正；该轮 false 不可用于证明无冻结请求。
+- MachineAnswerPanel 新增复测失败脱敏诊断（invoke/receipt_validation/task_readback，ApiError status/code），不复制异常正文、问题或答案。25 项定向 UI 测试在 run 7c2148236ee3 通过；其后补充 DOM 诊断属性尚需下一轮针对性验证和新构建。真实复测失败具体原因仍 UNKNOWN，不宣称闭环 PASS。
+
+### 2026-10-11 复测失败阶段诊断验证（PARTIAL）
+
+- 复测失败诊断保留阶段 invoke/receipt_validation/task_readback、有限 ApiError 状态码及 runtime projection；DOM 暴露同一脱敏对象供探针读回，不包含异常 message 或业务正文。探针只采纳允许阶段、code 和 0..599 整数/null 的白名单字段。
+- 严格实际 AI 探针若复测未确认，先保留 ai_progress/诊断并明确 FAIL，再停止备份导航；不以触发离页弹窗替代复测故障，不清冻结请求，也不减少最终成功旅程所需的备份恢复门禁。
+- Python probe 回归 69d4e21c1263：26 PASS、103 subtests PASS，SIMULATED。UI 7d3c8ba99cf1：25 PASS，新增检查验证 lostACK=invoke/502/unavailable、restored=invoke/403/unauthorized，并证明重试仍是原冻结请求。前端 TypeScript/生产构建 e2a355a3f3ff PASS，BUILD_ONLY。
+- 本轮没有新的真实模型运行；上一真实复测失败根因仍 UNKNOWN，需要把当前诊断带入下一隔离原生构建和运行。
+
+### 2026-10-11 最新隔离 Tauri 实际 AI 工程链路通过（整体 PARTIAL）
+
+- 运行 b07b958b2fc5，原生子 run webdriver-d48fb2b8b572，当前构建 ebb914367144，source_consistent=true、owned_ports_released=true。严格 require-actual-ai-loop 通过；详见 receipts/AAOS-NATIVE-ACTUAL-AI-CHAIN-20261011.json。
+- 同对象 import/read/anchor/claim/learn/practice/review 工程阶段 PASS；原回答与独立复测均 EXECUTED_CANDIDATE_NOT_EVALUATED；已验证不同任务、独立授权、实际知识正文与引文哈希绑定、明确模型身份/content 输出、finish_reason=stop 和未截断。备份恢复阶段、能力禁用/拒绝/显式启用与恢复旧授权拒绝 PASS。
+- evidence REAL_LOCAL_MODEL_WITH_SYNTHETIC_MATERIAL；工程编写纠正只验证 lineage/adoption，不证明模型错误或纠正有效。Owner acceptance NOT_EXECUTED，closed_loop_verified=false。历史两次复测失败根因仍 UNKNOWN，当前成功不能解释旧失败。
+- 当前证据不覆盖所有格式、云端外发、最终模型选择或 uncertain 请求关闭/重启恢复。整体目标仍 PARTIAL；未提交、推送、发布或替换 Green。
+
+### 2026-10-11 本地 WAV/MP3/MP4 实际 ASR 内容验收（整体 PARTIAL）
+
+- 本地声明 faster-whisper-large-v3-turbo 依赖/模型存在探针 2530ad39d51b 通过（存在不代表推理）。首次 wrapper 08ab89f98350 错误指向 transport/tool_paths.py，失败未推理；核实真实 services/python-workers/tool_paths.py 后更正。
+- 正式隔离 Core 实际语音验收 wrapper 12d29bdc8426、子 run bf3158fa2ef8 成功，source_consistent=true。使用离线 Windows SAPI 合成语音，既有本地 Whisper 模型，HF_HUB_OFFLINE/TRANSFORMERS_OFFLINE=1，无下载或私有资料外发。
+- WAV/MP3/MP4 各执行首次处理及独立重解析，共 6 实际作业；明确短语、时间定位、原件保持、派生结果/定位重启读回通过。另独立重算全部 3 原件 base64 的 bytes/SHA-256，与 source 哈希一致。见 receipts/AAOS-LOCAL-ASR-COMMON-FORMATS-20261011.json。
+- 资格限 INTEGRATED_SELECTED_PHRASE_AUDIO_CONTENT_TIME_REPARSE_RESTART：完整转写准确率 UNMEASURED、MP4 视觉理解未执行、非正式 UI 导入验收。不能把这批结果写成所有媒体/全部格式完成。未提交、推送或替换 Green。
+
+### 2026-10-11 当前 Core 多格式批次通过（整体 PARTIAL）
+
+- 中文 OCR wrapper 6846020ab7e3 / 子 run 1d94ca1d9226：PNG、JPEG、扫描PDF选定中文短语/定位/独立重解析/重启读回 PASS，source_consistent=true；识别准确率 UNMEASURED。
+- light wrapper f34457ab6dcb / 子 run 25bbe854d1ab：txt/md/csv/json/html/srt/vtt/canvas/png/jpeg/扫描pdf 共11夹具格式选定内容、定位、独立重解析及重启读回 PASS，source_consistent=true；英文OCR与中文资格分账。
+- Office wrapper 717ed6a531c9：xlsx/pptx 正常与损坏夹具共4行的实际 Core 结果与重启读回 PASS。内层 receipt 在 .project-local/task-runtime/aaos01-office/3d56f5886eef44b5a3ca6db6d511d04d/；内层无 end guard，由外层 canonical dev source_consistent=true 独立核验。该探针只覆盖 XLSX/PPTX，不冒称 DOCX/text-PDF 或 Office 独立重解析通过。
+- 证据摘要 receipts/AAOS-LOCAL-FORMAT-CORE-BATCH-20261011.json。结合前一 ASR 批次仍需当前 DOCX/text-PDF、正式UI格式导入/重建和全格式统一验收；所有结果使用合成材料，无下载、付费、外发、提交、推送或Green替换。
+
+### 2026-10-11 当前 Office/text-PDF 独立重解析通过（整体 PARTIAL）
+
+- wrapper c27528e165b1 / 子 run 28bcba1a43e2，DOCX/XLSX/PPTX/text-PDF 共4格式：实际 Core 内容/结构定位、8次独立作业、历史anchor保持、原件及派生结果/定位重启读回 PASS，内外 source_consistent=true。见 receipts/AAOS-LOCAL-OFFICE-TEXT-PDF-20261011.json。
+- 与当前 light/中文OCR/ASR批次合并并按 pdf-text/pdf-scanned 去歧义，Owner列出的18类常用格式均有当前Core限定资格。重复英文/中文OCR、正常/损坏 Office 不新增类别；只是选定内容、定位、重解析/重启资格，不是18类完整保真或UI闭环。
+- 未完成：正式UI全格式导入和阅读、源格式重建/完整损失边界、MP4视觉内容、完整OCR/ASR准确率、Owner验收。公式文本和缓存图表不是实时计算。未提交、推送、发布或替换Green。
+
+### 2026-10-11 正式 UI 格式探针与外发预览契约对齐（PARTIAL）
+
+- 当前正式 UI full-branch 探针仍按旧契约期待未配置核验创建两次失败attempt；实际CheckPanel先preview，配置缺失时不应claim attempt。更新为两维preview失败后核验记录逐字读回相同、零新增attempt、无伪造外发plan，正文读回不变；其后的普通修订保存仍保留。
+- 专业云请求在点击申请前通过真实输入控件填写独立公开合成查询；不从正文提取检索词，也不实际联网。识别维度仍无默认搜索。
+- canonical回归 a98b5c8fddaf：34 PASS、103 subtests PASS；额外AST语法检查与git diff --check PASS。此批仅探针对齐及模拟/结构验证，不是正式UI格式运行PASS。需当前源码重新绑定隔离构建再运行full-branch原生格式探针。
+
+### 2026-10-11 隔离资源冲突拒绝与完整 UI 分支运行（FAIL，整体 PARTIAL）
+
+- 构建935e1ea67144虽exit0/source一致，实际运行core哈希仍为旧a808...而非当前87869...，绑定断言明确FAIL，未用于运行。原因是Tauri资源object合并保留旧来源、与新增来源重复映射同一目标。临时overlay将旧来源改映射historical-reference、当前来源保留正式目标，未改正式tauri.conf或Green。
+- 重建658d70a08dfd成功；运行目录Core、document_check、worker_machine_answer、worker-profile四项与当前隔离backend逐项哈希相等。正式完整分支0b614483eca9 / webdriver-719d977f5263最终FAIL、source_consistent=true、owned_ports_released=true。已完成原生启动/中文阅读/保存/重启/备份恢复；在恢复后重开窗口导航library时超时。
+- 失败截图显示当前界面仍在工作台。源码确认bridge readiness不等于UI journal hydration；新hash可能被异步恢复scene覆盖，此因果仍为待复现推断。probe新增等待当前Core工作状态保全UI屏障再写兼容hash；此新增等待尚未重新运行验证，不声明修复通过。
+
+### 2026-10-11 恢复确认与导航顺序核实（整体 PARTIAL）
+
+- 当前构建c66efdce23f1哈希绑定PASS；原生c884a5cd3b88 / webdriver-29f01d5c987f FAIL、source_consistent=true、owned_ports_released=true。错误停在launch内部导航的就绪等待，不是格式处理阶段。
+- 实际截图明确显示recovery candidates待显式选择、正文未套用；调用栈launch:1039先导航，而外层main的confirm_restored_working_state在launch返回之后，顺序不可达。此前仅场景异步覆盖推断不足，现以此真实保护状态修正原因。
+- 探针现先只读核实ui_state_read；需要恢复选择时通过真实“保留恢复候选”按钮并验证workspace/epoch/revision/candidates回执，再导航；无需确认时记录NOT_REQUIRED，不重复确认。新launch_working_state_recovery记录每次选择；产品恢复约束未绕过。
+- 26 probe测试及103 subtests通过，新增顺序尚待下轮原生运行，不宣称完整UI格式PASS。
+
+### 2026-10-11 原生完整流程：公开查询折叠区交互修正
+
+- 原生运行 `webdriver-b5013b97a6c5` 为 FAIL；已通过普通笔记保存、关闭重开、搜索和备份恢复，随后在公开查询输入处被 WebDriver 拒绝。源码证明输入位于默认关闭的 `details`，探针缺少展开操作；不能将此运行算作完整通过。
+- `scripts/probes/aaos01_tauri_webdriver_loop.py` 现通过原生点击展开“补充核验位置与依据”，等待包含输入框的 details 确实 open，再输入独立公开查询。未绕过界面或削弱业务断言。
+- 定向回归 `8ed8e4ca6a2f`：28 passed、103 subtests passed；AST 与 git diff --check 通过。此为结构/回归证据，修正后的完整原生重跑仍 NOT_EXECUTED，整体 PARTIAL。
+
+### 2026-10-11 完整兼容分支原生验收通过（候选构建）
+
+- 当前隔离构建 `6b89a32d5b13` / frontend `864000cb8376` PASS，实际 Core、document_check、worker_machine_answer、worker-profile 哈希与隔离后端一致。
+- 原生 wrapper `64b848f5487a` / child `webdriver-df5a0dbac94d` PASS；source_consistent=true、owned_ports_released=true。正式 Tauri/Core 入口完成普通笔记保存/关闭重开/搜索、手动不确定与云端待执行记录、未配置 preview 拒绝且不创建 attempt、修订依据保存、备份恢复、格式执行及重启读回。6 个 format proofs、21 个 matrix proofs；真实 EPUB 阅读位置及引用读回通过。
+- 回执 `docs/current/receipts/AAOS-NATIVE-COMPATIBILITY-LOOP-20261011.json` 保留原始证据哈希与范围。材料 SYNTHETIC、宿主 REAL candidate；媒体仅 probe，格式通过有限 bridge 不等于所有 UI 导入路径。未证明完整保真、物理 IME、P95、安装版、云端实调、学习效果或 Owner acceptance，整体 PARTIAL。
+
+### 2026-10-11 公开检索传输：组播目标拒绝
+
+- 核实 document_check 的 search/article 均调用共享 SafeHTTP；其既有 DNS 全结果验证、固定已验证 IP 与逐跳 redirect 校验已实现，不重复新增传输层。
+- 新增 IPv4/IPv6 组播回归后，RED `188b79f39719` 证明 is_global 单独判断可放行组播目标并到达被测试禁止的 _open_once；未进行实际网络请求。
+- `shared/safe_http.py` 现在显式拒绝 is_multicast 与 is_reserved；`tests/test_safe_http.py` 覆盖 224.0.0.1、239.255.255.250、ff02::1。GREEN `5a5bc2e42631` SafeHTTP + document_check cloud/fidelity-network 定向测试 LOCAL_PASS、source_consistent=true。证据 SIMULATED，不是云端实际调用；尚需集成包重建验证，其他外发竞态/取消/凭据与费用边界仍 PARTIAL。
+
+### 2026-10-11 重定向材料与凭据边界
+
+- 共享 SafeHTTP 先前跨源 redirect 会保留 headers，307/308 会保留 POST 正文；新增模拟回归证明第二跳可能携带合成凭据或合成私有正文。并无真实数据外发证据。
+- 现在第二跳前拒绝 HTTPS 降级及带正文/非公开请求头的跨 origin 跳转；普通公开网页跨源 GET 仍允许并逐跳 DNS/IP 验证，同源授权头仍保留。POST 转 GET 同时去掉实体 headers。
+- 定向 SafeHTTP/document_check cloud/fidelity-network 回归 50 passed；测试 SIMULATED，不访问外部服务。修复尚未完成运行包集成验证，取消/授权竞态、供应商适配器凭据及实际费用仍未获完整验收；整体 PARTIAL。
+
+
+### 2026-10-11 HTTP 修复的隔离包加载验证
+
+- stage 6168b2dc73e9 已生成新后端包；shared/safe_http.py SHA-256 与当前源码逐字相同。
+- 包内 runtime/python.exe 经 worker document_check.donor 加载包内 shared/safe_http.py，验证运行 4fbdadd54307 共 8 个地址/重定向拒绝用例 PASS、source_consistent=True。包内解释器与 donor 路径真实，传输 SIMULATED，没有公开网络或付费 API 调用。
+- 此为后端包加载与策略集成验证，未等同 Tauri 资源再构建、应用端云核验全链或安装版验收；整体 PARTIAL。
+
+### 2026-10-11 缺失供应商用量保留未知
+
+- 发现 LiteLLM adapter 曾将缺失 total_tokens 强制转成 0，worker/Core/UI 又要求数字用量；已贯通修正为 tokens_used=null 表示未知，与执行证据独立，供应商明确报告 0 时保留 0。无效负值/类型仍拒绝。
+- 修改 shared-contracts/adapters/llm/litellm_adapter.py、document_check.py、Rust document finish_check 与 CheckPanel；同步 worker 说明。供应商费用仍未知，不伪造零费用。
+- Python 47a4753950f1：61 passed；Rust cloud_execution_tests aa83d65b01b3：13 passed，包含未知用量实际 SQLite 保存/关闭读回；UI 0b4b651d80d9：26 passed。均为模拟供应商证据；尚未重建 Core/Tauri 运行包及实调。整体 PARTIAL；活动撤销/取消与第一网络请求竞态仍未解决。
+
+### 2026-10-11 用量可见性与类型拒绝收尾
+
+- CheckPanel 显示供应商用量未知、明确零或已知 tokens；费用始终未知，未推算或写成零。对象读取先校验 unknown 类型。
+- Worker 新增布尔、负值、小数、字符串拒绝回归；4e9c6f6203c6 Python 41 passed。UI 最终运行 32fb4ccf27d5 28 passed，覆盖 null/0/12 显示与不自动入库、不虚构失败重试。
+- 首次生产构建 547b5b7cf3a4 因 unknown engine_receipt 属性读取类型错误 FAIL；已定向修正，02ee6680a91e 生产构建 PASS。保留失败证据，不将之前测试通过当类型检查通过。均非云实调或安装版验收，整体 PARTIAL。
+
+### 2026-10-11 活动核验撤回的执行器增量
+
+- Executor 在 spawn 前及等待 stdin/response/exit 期间重新读取原始申请、撤销记录和确认计划；等待 pipe 采用最多 50ms 轮询间隔。撤销触发既有自有 child 清理及 failed receipt，不能召回已发材料。
+- document_cloud_loop 真实本地无网络 Python worker 回归扩展为同时验证已启动 worker 与排队 worker：活动撤销必须在 fixture release 前结束，reason=egress_withdrawn、execution_verified=false；排队申请不启动。最终运行 bb63b0b09e3c 7 passed、source_consistent=true。
+- 此为真实本地进程/SQLite 与合成无网络 worker 验证，非供应商实调。写入前/首次网络请求竞态、最后复核到 terminal commit 竞态、活动网络及完整子进程树仍未完全验证。未替代正式取消接口与应用验收，整体 PARTIAL。
+
+### 2026-10-11 撤回与终态写入串行约束
+
+- 新回归先复现：有效成功响应返回后、finish_check 前撤回，旧逻辑仍记录成功。现 finish_check 在同一个 Immediate 事务内读取 root request withdrawal，先撤回则终态 status=failed、reason=egress_withdrawn、execution_verified=false，machine task 同步失败；模型 reported_status、raw_response、engine/retrieval evidence 原样保留，不能假装调用没发生。
+- 最终 748b9124ef7c：domain cloud_execution_tests 14 passed；API document_cloud_loop 7 passed；source_consistent=true。新增回归同时拒绝重复 finish 和撤回后 retry。模型响应 SIMULATED，SQLite/本地自有 worker 流程真实，无外部调用。
+- 此只封闭撤回先于终态 commit 的竞态；已经 commit 的历史成功不追溯改写。首次网络发送竞态、活动供应商取消与进程树、当前运行包与 UI 全链仍 PARTIAL。
+
+### 2026-10-11 运行中撤回的前端竞态回归
+
+- 复用现有 CheckPanel executionGeneration，无新增状态模块。新增 mounted UI 延迟 Promise 测试，验证执行等待期间撤回按钮可用；撤回后迟到成功响应与 rejected ACK 均不覆盖撤回提示，不重新开放执行，不重复确认执行，不调用入库或正文保存。
+- 90fd3ceff13a CheckPanel 30 passed；证据 SIMULATED bridge，非 Tauri 实连。后台撤回/终态 writer 约束已有独立本地测试，尚待统一原生运行包闭环。整体 PARTIAL。
+
+### 2026-10-11 恢复确认回执与后续 scene 写入分离
+
+- 新宿主 build 22ed1b1d43f7 / frontend b66177ee0f48 与新后端 8d1a06b72915 哈希一致；原生 bb265c42e10b / webdriver-1a5938c4f61f FAIL，source_consistent=true、owned_ports_released=true。失败在恢复确认 helper 的 revision 恰好+1断言。
+- 精确读取该合成运行 SQLite：pre-restore revision=4/page_id=null，恢复后 revision=6/page_id=01，其余工作状态内容一致。App 会在恢复确认后合法保存默认 scene；helper 把独立 UI 写入错当确认回执。
+- helper 现只观察真实 invoke 参数/结果，不替换返回、不发送恢复命令：仍通过实际点击确认，分别验证 ui_state_recover 精确 revision+1/完整候选/身份，随后每次 ui_state_write 严格连续 revision 且仅 page_id 可变化、工作区/epoch/候选清除不变，最终 readback 必须等于最后观察回执。
+- 新 guard 回归包含错误 ack revision、候选变化、额外草稿和身份变化拒绝；最终 42b9d461bc52 通过。此为 SIMULATED probe regression；观察器的修正后原生重跑尚 NOT_EXECUTED，整体 PARTIAL。
+
+### 2026-10-11 原生恢复观察器安装拒绝诊断增量
+
+- build 0f1326fb0cbd / frontend b07300212da9 PASS。原生 0a6ed0343724 / webdriver-054698a401cf FAIL，未捕获预期 ui_state_recover response；完整流程不得算 PASS。worker/适配器/共享模块绑定已通过，但不等于观察器安装有效。
+- 原挂载直接赋值 core.invoke，未验证 setter 是否生效。现以保留原 API 的透明 facade 包装实际 invoke，安装后断言引用确实生效，finally 恢复原 facade；不改变参数/响应、不额外恢复、不放宽确认及内容断言。新增失败诊断只输出 operation/status，不输出材料。
+- d0bc07c0f053 guard regression 27 passed、108 subtests；原生观察器有效性仍 UNVERIFIED，需新的绑定构建与运行。失败原因尚未实证为冻结属性，不能从修正推断 root cause 已确认；整体 PARTIAL。
+
+### 2026-10-11 当前修复运行包原生兼容刷新 PASS
+
+- build bdf6b06f8a91 / frontend 065a71d9ce2e 与后端 8d1a06b72915 的 Core/worker/shared/profile 六项哈希绑定通过；原生 8cbaa1c4daa2 / webdriver-f98d79eeb815 完整兼容分支 PASS、source_consistent=true、owned_ports_released=true。
+- 透明 facade 观察器捕获实际 UI 恢复 ACK，revision 3→4 与完整候选相等成立；最终 readback 仍为 revision 4，与确认回执相等。本轮未观察额外 scene 写入，额外页面写入分支目前只有模拟 guard 证据，不能宣称本轮实证复现了之前 +2 场景。先前直接替换方法未捕获的问题保留失败记录，本轮不抹除历史。
+- 普通保存、未配置云核验 preview 拒绝、修订依据、备份恢复、6 format proofs /21 matrix proofs 与重启读回完成。回执 AAOS-NATIVE-COMPATIBILITY-REFRESH-20261011.json；候选宿主真实、材料合成，未证明活动云取消、未知用量的云实调、全格式 UI/完整保真、安装版或 Owner 验收，整体 PARTIAL。
+- 本轮公开 loopback LM Studio /v1/models 只读确认声明 qwen3.8-27b（原样 ID），不可据此推断官方型号、已加载、性能或最终基座。未切换模型/配置、未下载。
+
+
+### 2026-10-11 十八类原件正式界面导入与重启读回 PASS
+
+- 新增显式合成材料 manifest，经实际 file input 导入；bridge 仅只读核对来源与完整原件字节，不替代 UI 写入。28 项模拟探针回归 PASS（84c394e64d8d），包含重启字节变化拒绝。
+- build 7bb82f6c7d40 / frontend 105a09f98901 PASS，六项后端资源哈希绑定通过。原生 wrapper 5d03443a4f53 / webdriver-8e727bfb461b PASS，source_consistent=true、owned_ports_released=true。
+- txt/md/csv/json/html/srt/vtt/canvas/png/jpeg/扫描 PDF/wav/mp3/mp4/docx/xlsx/pptx/文本 PDF 共18类，实际界面导入后原件完整字节相同；宿主关闭重开后逐项哈希和长度一致。同轮兼容分支仍通过。回执 AAOS-UI-ORIGINAL-IMPORT-20261011.json。
+- REAL 候选宿主、SYNTHETIC 材料。本次新增仅证明 UI 原件导入和持久化，未证明全格式 UI 转换操作、完整保真、MP4 视觉理解、识别准确率、安装版或 Owner 验收。整体 PARTIAL，未提交、推送或替换 Green。
+
+### 2026-10-11 正式界面转换发现扫描 PDF 待识别缺口（PARTIAL）
+
+- build e987d76df138 / frontend 639f0c9e371f PASS、六项资源绑定 PASS。原生 877648dd7c2a / webdriver-9d349a56cdf5 FAIL，source_consistent=true、owned_ports_released=true；10 类 txt/md/csv/json/html/srt/vtt/canvas/png/jpeg 实际 UI 内容任务通过，扫描 PDF 在非空正文断言失败，其后格式未执行，整轮不算 PASS。
+- 源码核实 PDF worker 正确保留没有文字层的事实并登记扫描页图片，不能把空文本当 OCR 成功。页面识别 UI 原先只有只读回写入口。新增显式“处理此页识别文本”，复用页 source_id/SHA 绑定的 JobContent，本地识别结果与 PDF 文字层独立；选择页面不自动执行。
+- JobContent 完成提示区分文字层处理与仍需识别页面。1034fa800e7a 定向前端回归 PASS，包含显式页身份交接与不自动执行；此为 SIMULATED bridge，不代表修复后原生扫描页链路已通过。原生探针仍需补逐页 UI 识别及重启验证，整体 PARTIAL。
+
+
+### 2026-10-11 十八类正式界面转换及扫描 PDF 逐页识别 PASS
+
+- 3e0afab3a5b1 构建退出1，虽 Rust 编译完成仍 FAIL，不用作运行证据。详细日志同源码构建 6860b33dea56 / frontend 41984935d174 PASS；前次退出原因未确认，保留失败记录。六项后端资源哈希绑定 PASS。
+- 原生 b42e6b84f37d / webdriver-141327070bdb PASS，source_consistent=true、owned_ports_released=true。18 类合成原件经实际 UI 导入和内容转换控件执行；输出字节/哈希、界面正文、结构字符范围、引擎与损失回执核对，宿主重启后原件和输出读回通过。
+- 扫描 PDF 文字层如实为空，两页由实际页面选择→处理此页识别文本→真实内容转换分别执行 OCR；非空页面文本、已识别关系与原件字节绑定成立，重启后页面产物及 PDF 页面关系逐字读回通过。未将空文字层冒充 OCR 正文。
+- 回执 AAOS-UI-FORMAT-CONVERSION-20261011.json。REAL 候选宿主/本地 workers、SYNTHETIC 材料；非空文本与结构范围不证明完整保真或准确率。本轮尚未验证所有格式 UI 重新解析、源格式重建、MP4 完整视觉理解、安装版或 Owner 验收。整体 PARTIAL，未提交、推送或替换 Green。
+
+### 2026-10-11 界面重新解析验收：旧 DOM 点击拒绝（PARTIAL）
+
+- build 3bcce3b89d3f / frontend 77f780d7e991 PASS、资源绑定 PASS；原生 a208b9eb800a / webdriver-8751dc573733 FAIL，source_consistent=true、owned_ports_released=true。首次10类转换已读回，扫描 PDF 的控件点击收到明确 stale element reference，尚未进入第二轮，不能声明重新解析通过。
+- 探针点击仅对明确 stale-before-click 拒绝最多重新查找3次；其他错误与未知 ACK 不重放。重新解析保留独立任务及首轮哈希检查，扫描页最新关系与历史产物分别核对。新点击修正尚待回归和原生重跑，整体 PARTIAL。
+
+
+### 2026-10-11 十八类两轮界面转换及重启保全 PASS
+
+- build 24f25360e6ec / frontend 977cf5725fe0 PASS、六项资源绑定 PASS。原生 70aea53b1bda / webdriver-46d33e2e1136 PASS，source_consistent=true、owned_ports_released=true。
+- 18 类合成原件经实际 UI 连续两轮独立转换，每轮独立 job_id；首轮正文/结构/损失输出哈希在第二轮后保持不变。扫描 PDF 两页每轮分别执行识别，页来源身份不变，最新页面关系与历史任务产物分开核对。宿主重启后两轮原件及产物哈希均读回通过。
+- 回执 AAOS-UI-FORMAT-REPARSE-20261011.json。REAL 候选宿主/本地 workers、SYNTHETIC 材料；此不证明完整保真或准确率，来源定位、完整视觉覆盖、安装版及 Owner 验收仍未完成，整体 PARTIAL。未提交、推送或替换 Green。
+
+### 2026-10-11 PDF 页面证据父来源与摘要约束（PARTIAL）
+
+- PdfPageRecognition 读取 source_pages 时新增当前 pdf_source_id 精确匹配、64位 SHA-256、非空唯一页面 source_id、正整数页码及返回计数一致校验；API 实现 page_count=pages.len() 已核实。身份错误保持已有内容，不公开错误页面操作。
+- b28910a5a1b2 前端定向测试 PASS，覆盖外来父来源、损坏摘要、重复页身份和计数不一致拒绝。证据 SIMULATED bridge；当前新增约束尚需生产构建与原生刷新。泛格式引用位置 UI 尚不完整，定位正确不代表内容准确，整体 PARTIAL。
+
+### 2026-10-11 转换结构显式引用入口（PARTIAL）
+
+- 新增 StructureCitations，由 JobContent 复用：Office/HTML/Canvas/字幕使用 worker_structure，PDF 文字层使用 pdf_line，图片/OCR 页使用 ocr_line。显式按钮读取成功 job、尝试及完整校验过的正文/结构/损失产物，创建首个非空结构位置引用，再解析 CURRENT/来源版本/anchor 身份；Core 仍负责位置与摘要约束。无自动知识入库。
+- 当前入口只引用首个非空结构位置，尚未覆盖任意行/单元格选择、CSV/JSON 格式位置及文本原字节范围；时间引用沿用已有控件。不得把此增量当全格式定位完成。
+- 60b4d27ee121 前端生产构建 PASS；定向 mounted 引用测试、原生引用/重启/重解析后的旧定位验收仍 NOT_EXECUTED。PDF 页面身份约束已包含在生产构建，但尚未原生刷新。整体 PARTIAL。
+
+### 2026-10-11 结构引用 mounted 边界回归 PASS（整体 PARTIAL）
+
+- StructureCitations 新增 mounted 测试，真实组件显式点击后读取成功任务与校验产物；模拟桥接覆盖错误 input_ref、failed task、正文摘要损坏、解析返回外来 source_id，均不得显示成功或交付 onAnchor。中文与非 BMP 字符片段 checksum 按 Unicode 字符范围核对，引用流程不调用 knowledge_* 或 document_draft。
+- 最终 80efcf536bdb：StructureCitations 5 项 + JobContentManualExecution 15 项，共20 PASS。初次运行因 beforeEach 隐式返回 mock 函数被 Vitest 当 cleanup 调用而失败，已修复测试初始化；失败记录保留。
+- 证据 SIMULATED，结构引用原生操作及重启历史定位仍 NOT_EXECUTED；任意位置选择和 CSV/JSON/原文字节定位未完成。整体 PARTIAL。
+
+### 2026-10-11 引用回执精确位置约束与原生探针增量（PARTIAL）
+
+- StructureCitations 保存回执须含非空 anchor_id，返回 position 中任务/尝试/结构位置及 checksum 与请求精确一致，再进行当前来源解析；不能只凭 located 状态接受错误位置。模拟回归新增尝试变化和摘要变化拒绝，与页面识别测试共同通过。
+- 原生格式探针新增 opt-in ui-format-citations：实际点击支持格式的结构引用按钮，只读核对新增 anchor 身份及 CURRENT 解析；重启时旧引用解析逐字相等。扫描页引用分开绑定页来源。CSV/JSON/文本字节与任意位置选择仍未覆盖，不将此探针当全格式定位完成。
+- f961849ffb77 探针定向回归 PASS。新的原生引用链路仍 NOT_EXECUTED，需当前源码绑定构建，整体 PARTIAL。
+
+
+### 2026-10-11 实际结构引用与重新解析、重启定位 PASS
+
+- build abde3fb31738 / frontend 6f58d44263c6 PASS、六项后端资源绑定 PASS。原生 45d7431a7c9f / webdriver-61282dd344f9 PASS，source_consistent=true、owned_ports_released=true。
+- 18类原件两轮界面转换与旧产物保全再次通过；支持格式及扫描 PDF 两页每轮12条、共24条实际结构引用，新增 anchor 的原件版本/job/attempt 核对并 CURRENT 解析。重新解析后宿主重启，旧引用与新引用解析回执分别逐字读回一致。页面证据父来源及摘要约束亦包含此运行包。
+- 回执 AAOS-UI-STRUCTURE-CITATIONS-20261011.json。REAL 候选宿主/本地 workers、SYNTHETIC 材料；仅首个非空结构位置，任意位置、CSV/JSON/原文字节范围、保真及准确率仍未完成。安装版及 Owner 验收未执行，整体 PARTIAL。
+
+### 2026-10-11 CSV/JSON 格式位置引用接入（PARTIAL）
+
+- 复用 StructureCitations，CSV/JSON 选择实际 loss.params.format.locations 的首个非空字符串值，保留原路径字符串和 kind，摘要基于真实 value，Core 按 format_location 校验；不将展示正文的字符范围冒充单元格/JSON 路径。
+- f24b7611e2bc：14 项 mounted 回归 PASS，结构和格式位置均覆盖来源、任务、摘要、返回尝试/摘要及解析身份拒绝；654cb769e243 前端生产构建 PASS。证据 SIMULATED，原生格式引用新增范围仍 NOT_EXECUTED。
+- 原生探针已纳入 CSV/JSON，待绑定重建运行。任意位置选择及 TXT/MD 原始字节定位仍未完成，整体 PARTIAL。
+
+### 2026-10-11 结构与格式位置顺序选择（PARTIAL）
+
+- StructureCitations 由固定首项改为明确选择非空结构位置序号；执行时重新读取并校验实际产物，按选择构造路径和值/片段 checksum，越界/非法序号不得写 anchor。切换来源或任务重置选择。
+- d689c82f0c5e：18 项 mounted 回归 PASS，结构与 format_location 均覆盖第二项位置/摘要和越界拒绝。原生按钮探针已同步新名称，但尚未重建运行。
+- 当前交互仍是序号选择，缺具体位置/内容预览；不宣称任意文本范围选择完成。TXT/MD 原字节引用、原生 CSV/JSON 与所选位置验收、保真/学习/AI 主线仍需继续。整体 PARTIAL。
+
+### 2026-10-11 引用位置路径与内容预览（PARTIAL）
+
+- StructureCitations 新增显式只读预览，显示实际位置路径和完整所选片段/值；改变序号或任务清除预览。保存引用重新读取产物，所选位置与 checksum 须同预览 binding 一致，变化不写 anchor。预览不自动创建引用或入库。
+- 6f416635b16e：20 项 mounted 回归 PASS，包括第二项预览、预览零写入，以及预览后正文/格式值变化拒绝。证据 SIMULATED bridge；新增交互尚待生产构建和原生运行，整体 PARTIAL。
+
+
+### 2026-10-11 原生引用预览零写入与格式位置 PASS
+
+- build 37bc9f4ec459 / frontend d8c7c8bc3a48 PASS、六项后端资源绑定 PASS。原生 8f2efb6ee4f5 / webdriver-e0b5ee03c424 PASS，source_consistent=true、owned_ports_released=true。
+- 18类两轮实际转换/重启保全再次通过；支持结构、扫描两页与 CSV/JSON 每轮14条、共28条实际引用。每次真实点击预览后 anchors 集合不变，保存后新增位置绑定本次 job/attempt，重新解析和宿主重启后旧新引用解析回执逐字一致。
+- 回执 AAOS-UI-CITATION-PREVIEW-20261011.json。原生选择默认序号1，其他序号仅模拟证据；TXT/MD 原字节范围未覆盖。来源定位不等于完整保真或内容正确，学习/实际 AI、安装版与 Owner 验收仍需继续，整体 PARTIAL。
+
+### 2026-10-11 TXT/MD 原始 UTF-8 范围引用入口（PARTIAL）
+
+- 新增 originalTextSelection：UTF-8 严格解码/逐字节 roundtrip，保留 BOM、CRLF，把 textarea UTF-16 选择映射原始字节范围，拒绝无效编码、空/越界范围和截断 surrogate。bbea2515f5a3 字节选择定向测试 PASS。
+- OriginalTextCitation 接入当前原件视图及 Reader 同源整理，对 TXT/MD 显式选择原文字段，引用真实原字节摘要，核对 Core anchor 回执与 CURRENT 解析来源/范围/摘要；不触发知识入库。4d1e50f13959 前端生产构建 PASS。
+- mounted 交互/身份拒绝、真实原生选择与重启定位仍 NOT_EXECUTED；不得以 helper 测试替代 UI 完整验收，整体 PARTIAL。
+
+### 2026-10-11 原件选择 CRLF 显示范围映射与组件回归（PARTIAL）
+
+- mounted 测试揭示 textarea 显示 CRLF 为 LF，直接使用显示 UTF-16 偏移会与不可变原件范围错位。新增 textareaOriginalRange，将显示范围映射回保留 BOM/CRLF 的原文范围，再计算 UTF-8 字节和摘要；选择通过 select/key-up/mouse-up 更新。
+- 最终原件组件5项+字节 helper 2项共7 PASS，覆盖 emoji 原字节8..12、错误来源/范围/摘要/当前版本拒绝。失败运行保留；userEvent 指针选择模拟不稳定，最终通过 fireEvent 键盘选择与点击，不能替代原生操作证据。
+- 浏览器原生选择及重启解析仍 NOT_EXECUTED，新增映射生产构建仍待刷新，整体 PARTIAL。
+
+
+### 2026-10-11 TXT/MD 原件实际键盘选择与重启解析 PASS
+
+- 568ca99bcd95 / frontend c3732cd2a1de 因测试未使用 userEvent 导入的 TS6133 FAIL，已移除。重建 2cb04cd19613 / frontend afea0618f950 PASS，六项后端资源绑定 PASS。
+- 原生 946108e3afcd / webdriver-986a5967da0b PASS，source_consistent=true、owned_ports_released=true。TXT/MD 通过真实 textarea Ctrl+A、显式引用按钮执行，Core 返回原文0..byte_length及完整原字节摘要；宿主重启后解析回执逐字相同。18类原件 UI 导入及同轮兼容流程通过。
+- 回执 AAOS-UI-ORIGINAL-TEXT-CITATIONS-20261011.json。REAL 候选宿主、SYNTHETIC 材料；原生本轮仅整段原文，部分范围/CRLF与emoji的原生选择仍未证明。完整保真、学习/实际AI及安装/Owner验收仍未完成，整体 PARTIAL。
+
+### 2026-10-11 部分原文选择原生失败定位（PARTIAL）
+
+- build 635bd0bd5519 与原生 webdriver-0484e738458b 的部分 emoji 选择超时 FAIL；整段引用与此前 PASS 不变。保留原始失败记录。
+- 调整探针在 readonly textarea 发送选择键前真实点击恢复焦点，并添加有限选择诊断；重建 7d3282927eef / frontend 8e8d850c38db PASS、六项后端资源绑定 PASS。原生 webdriver-f0d086879a5a 仍 FAIL，诊断 focused=true、start=0、end=28，选中前缀而非目标 emoji；不是已证明的 Core 字节映射失败。两轮均使用合成材料。
+- 探针改为 W3C keyboard actions 显式 keyDown/keyUp，finally 释放按键；不以 JS setSelectionRange 替代真实键盘。定向29项回归退出0，新的 actions 路径尚未原生验证，需要绑定重建后继续。整体 PARTIAL，未提交、推送或替换 Green。
+
+### 2026-10-11 原件显示换行与原生选择复核（PARTIAL）
+
+- 显式 W3C 按下/松开原生 webdriver-29b555ba544b 仍 FAIL：focused=true，范围0..28。未把原生失败标为 PASS。
+- OriginalTextCitation 的受控 textarea 显示值明确规范化 CRLF/CR 为 LF，原始字节和映射保持不变；组件回归增加状态更新后 DOM 选择范围保持3..5断言，7项测试退出0。build 448dfca2219a / frontend 16bdb437bd6a PASS、六资源绑定 PASS；原生 webdriver-b3d79bd944b8 仍同一范围失败，换行规范化不能单独解决原生问题。
+- 原生 driver 日志确认 PerformActions 收到显式 keyDown/keyUp 且返回成功，但不能证明预期选择行为。增加各按键间80ms pause，给 WebView select/key-up 状态更新完成时间；此增量原生未测。所有原生材料 SYNTHETIC，整体 PARTIAL，无提交/推送/Green替换。
+
+### 2026-10-11 只读原文逐键诊断与指针选择验收调整（PARTIAL）
+
+- build e179cc3ac4d9 / frontend 1a9f5667fe61 PASS，六项后端资源绑定 PASS；原生 webdriver-a262a5fc0c58 FAIL。每键80ms间隔仍不能改变选择：Home/Control/ArrowDown/Home/ArrowRight/Shift 均 trusted=true，ctrl/shift 状态正确，范围逐步始终0..28。不再将此现象归为修饰键未释放或已确认的 Core 字节映射故障。
+- 部分原文验收改为 readonly textarea 实际指针拖选，计算当前渲染字体/行高后通过 W3C pointerDown/move/up 选择第二行 emoji；没有 setSelectionRange、DOM Range 写入或脚本造选区。整段仍通过实际 Ctrl+A。29项探针回归退出0、diff check PASS；新指针路径尚未绑定重建/原生验证。所有材料合成，整体 PARTIAL。
+
+### 2026-10-11 原生指针坐标复核（PARTIAL）
+
+- build 612078188be3 / frontend f468a96c1707 PASS，六项资源绑定 PASS；原生 webdriver-ead800e2f866 的部分选择仍 FAIL。截图显示 textarea 位于滚动视口上缘，整体原文选区未变，未创建目标部分引用。
+- 指针探针改为先滚动原文框到可见区域中央、回到原文首行，再以 viewport 绝对坐标拖选，避免元素中心与裁剪后可见中心混用；仅调整滚动，不写选区。修正尚需原生验证，整体 PARTIAL。
+
+### 2026-10-11 视口指针范围验证仍未通过（PARTIAL）
+
+- build 18b82eab10c0 / frontend 18213b47ec7b PASS，六项资源绑定 PASS；原生 webdriver-b566463cede9 FAIL，目标部分范围未改变。居中与 viewport 坐标未单独解决问题，不宣称已定位根因。
+- 新增指针坐标及实际 pointerdown/up 可信事件诊断；canvas 字宽使用明确 fontSize/fontFamily，避免计算样式 font 简写为空时采用默认字体。下一轮核对实际命中与字宽，增量未原生测。所有失败证据保留，整体 PARTIAL。
+
+### 2026-10-11 指针命中诊断与并行只读复核（PARTIAL）
+
+- build ebf0ed97fd13 / frontend 9f8b0b440b25 PASS、六资源绑定 PASS；原生 webdriver-56a30ef365d7 FAIL。实际 pointerdown trusted=true，x490/y421 与计算起点一致、字宽18；textarea 没有记录 pointerup，目标范围仍0..28。已确认起点命中，不把事件ACK当选区成功。
+- 新增窗口 pointerup 目标及 pointerdown 默认阻止/disabled 状态诊断，待原生复核。按用户既有并行6.1 SOL MAX要求启动只读组件与探针审计，不共享写入。整体 PARTIAL。
+
+### 2026-10-11 入库选择边界定向刷新（SIMULATED PASS，整体 PARTIAL）
+
+- 5e4e13a1ddef：SourceCandidateJourney 7项、KnowledgeReviewRecovery 3项，共10 PASS。核验读取 failed/pending 不替代也不阻止用户选择，同一候选恢复保留未提交说明。此为组件模拟桥接回归，不代替原生同对象入库、实际AI和学习闭环。
+- 原文部分范围原生仍 FAIL，text_selection_review 6.1 SOL MAX只读审计正在进行；保留完整目标，不以定向回归通过标记闭环完成。
+
+### 2026-10-11 原文部分指针选择、整段引用与重启 PASS（整体 PARTIAL）
+
+- build 2a184af22206 / frontend 486a40f267db PASS、六资源绑定 PASS。原生 webdriver-f93e00fd1eb9 PASS，source_consistent=true、owned_ports_released=true。TXT/MD freshly opened 原文先实际指针拖选 emoji，再 Ctrl+A 整段引用；Core部分范围8..12、摘要等于原emoji字节，宿主重启后旧解析逐字一致，18原件导入及同轮兼容链亦PASS。
+- AAOS-UI-ORIGINAL-PARTIAL-CITATIONS-20261011.json 保留原回执哈希和两条证明。此支持旧全选内拖动导致测试顺序问题；未直接捕获旧dragstart，不宣称唯一根因。此前修饰键/React恢复/坐标解释均不能提升为已确认根因。
+- REAL候选宿主、SYNTHETIC材料，不证明全编码保真、当前实际AI/完整学习/安装或Owner验收，整体PARTIAL。
+
+### 2026-10-12 学习题干、防重冻结与复测历史绑定增量（PARTIAL）
+
+- 新 assessment 题干改为独立复述/解释提示，不嵌入知识正文；核对 content 与不可变知识绑定保持，既有 assessment 不重写。learning_state_api 回归验证题干不含FSRS答案，282a45cd338c 6项实际API测试PASS。直接Cargo缺link.exe、cargo_test入口缺SDK传递的失败保留；复用frontend.msvc_environment的受管子进程初始化后通过，不改系统环境。
+- CanonicalLearningSpace 在真正提交前冻结完整request，未知响应后重读不会清答案/事件ID，答案/对错/难度/项目键编辑锁定；同一冻结body重试，未确认状态触发已有离开保护。已明确4xx拒绝释放冻结。仅组件生命周期内防重，跨重启持久化仍未完成。
+- MachineAnswerPanel 恢复runtime.retest历史时onTask指向所选retest task，不再指原answer。mounted回归新增读复测历史后精确任务断言。d08872639f58 16项前端回归PASS；初次自评未锁失败已修复。
+- 原生grouped实践阶段新增揭晓前题干不含答案及核对区未展示断言；此新增原生尚未构建/暂存/执行。新Core须重建并重新stage backend，不能用旧staged Core验证新题干。整体PARTIAL，无提交/推送/Green替换。
+
+### 2026-10-12 Core 持久化待确认复习请求（PARTIAL）
+
+- ui_state::State 增加可选pending_reviews，复用workspace_meta，不新增数据库。每学习条目最多一个冻结请求，完整body/事件ID/原restore epoch持久化；新请求核对assessment/item/knowledge版本，拒绝替换和未确认遗漏。清除须learning_event_keys的精确payload_hash及实际learning_events关联匹配同条目。恢复其他现场不允许新请求或自动重放旧epoch。
+- v2工作状态schema同步、生成TS DTO及assert validator，CoreWorkingStateSession新增freezeReview/finishReview；CanonicalLearningSpace提交前先确认日志，ACK未知保留原payload。重挂载从日志还原答案/难度/对错/事件，恢复后显式重试同一请求；清日志ACK未知也保持未确认，不推导学习成功。
+- 01810de855e8 Core工作日志9项PASS，含数据库重开、替换/未确认遗漏拒绝、事件key缺实际event/外来条目拒绝、精确已提交事件允许清除；证据本地SQLite执行/合成fixture，不代替真实复习API和宿主重启闭环。05d38156d7a6 前端31项PASS（26工作状态+5知识复习），含日志ACK丢失重开、restore epoch拒绝、组件恢复精确重试；证据SIMULATED。
+- fd0e649a8cf2 前端生产构建PASS，generate_ui_working_state --check PASS。初次前端接入脚本因stageJob方法名匹配断言失败，尚未写入；已校正并完成集成。
+- 新Core资源尚未release重建/重新stage，应用级重启恢复和当前完整实际AI链仍未测。旧8d1a06b72915暂存后端不能用于新工作日志资格。整体PARTIAL，未提交/推送/替换Green。
+
+### 2026-10-12 当前严格实际 AI 验收与导航证据边界
+
+- `webdriver-dc23fc1642b1` 当前源码一致，实际 Qwen3.5-4B 回答与纠正后复测已执行，重启后的 Document/Knowledge/Learning/Task 读回断言通过；整轮仍 FAIL：从页面20进入06时目标 hash 超时，不能据部分成功宣称闭环通过。拥有的进程退出、端口释放均已核实。
+- 驱动确认原目标按钮 click 返回成功，但没有目标页面成功证据；未确认唯一根因。下一轮使用同一正式导航按钮的原生 WebDriver Enter 激活，不篡改 DOM、hash 或导航函数。原指针导航失败保留为 UNVERIFIED，不以键盘通过替代指针资格。失败时追加 hash、当前标题和焦点的只读诊断。
+- 定向 `test_grouped_native_owner_probe.py` 执行退出0；属于 SIMULATED 验收脚本契约检查，不属于实际应用或模型验收。
+- 并行只读模型盘点：LM Studio 登记 `qwen3.8-27b`，文件 `D:\All projects\Model library\plain-gguf\qwen3.8-27b\Qwen3.8-27B-UD-IQ4_XS.gguf`，14,252,845,984 bytes；未加载，未调用推理。已有4B实例保留。27B 4K/10% GPU估算1.71 GiB GPU/15.08 GiB总内存，4K/40%估算6.09 GiB GPU；只是 estimate-only，速度/质量/峰值仍 UNKNOWN，不下载、不改配置。
+
+- 后续候选构建 `1008fd12c399` / frontend `aa26a3bd360f` PASS，源码前后指纹一致，六项资源绑定 PASS。实际 `webdriver-315a166bf1c4` 的 import/read/anchor/claim/learn/practice/review PASS；真实回答已执行，独立复测 invoke 收到503 unavailable、无复测任务记录，整轮 FAIL，尚未到达上一轮重启导航失败位置。失败原因未核实，不声称键盘激活已修复指针问题。拥有进程清理与端口释放 true。
+- 验收探针新增一次上限的既有冻结复测 UI 重试；仅允许明确 invoke/503/unavailable、无UNKNOWN/拒绝/withheld且有同一请求重试入口时触发。首次诊断和任务库存保留，不生成新请求、不替换授权、不自动将失败记成功。`4c018d6ba371` 的30项脚本契约 unittest PASS (SIMULATED)，包括禁止对未知、已执行未发布、拒绝或读回失败自动重试。该新增恢复路径尚未真实运行；需要重新构建绑定后验收。
+
+### 2026-10-12 实际 AI 闭环刷新通过与构建编码修复
+
+- 新回执 `receipts/AAOS-NATIVE-ACTUAL-AI-REFRESH-20261012.json` 对应 `webdriver-25003f3fe9e7`，原始回执 SHA-256 `a8f1d8dabbf5ff73e5fdac5acffdc932be0eec3243a7ee34ef7c69e277a6b22c`。测试源码 patch `a7ae82f5035e9443afc39b9b1391fa82119846126e99658f325968aa7e6bbcbf`，候选构建 `2a0fa6d02a59` / frontend `6cf5b5ebd3be`，Core 与六项资源绑定通过。
+- REAL / SYNTHETIC_ONLY 隔离 Windows 正式 Tauri/Core：import/read/anchor/claim/learn/practice/review/recover PASS；Qwen3.5-4B 原回答与独立复测实际执行。首次复测503 invoke/unavailable保留，唯一一次同冻结请求 UI 重试后读回唯一复测任务；没有更换授权或请求。实际首次503根因仍 UNVERIFIED。工程链通过不将候选答案标为测得正确。
+- 完整应用重启后原始 bytes、Document、Knowledge、课程、学习历史、assessment绑定与任务读回通过；能力关闭/恢复、恢复后的旧授权拒绝 PASS。源码一致性true，拥有进程退出、隔离端口释放true。导航此次为原生按钮 Enter 激活；此前指针导航失败原因仍未核实，不能借此宣称修好。
+- 当前总状态 PARTIAL：工程闭环 PASS，Owner验收、独立真实错误/准确率与效果评估、27B实际推理、云端实际调用、Green替换未执行；durable pending review 跨重启未知响应恢复仍只有模拟/集成证据。
+- 隔离打包曾因父 Python GBK stdout 编码无法打印 Vite `✓` 失败；只向子进程设置UTF8不解决父包装器输出。process-only UTF8后构建通过，随后 `scripts/runtime/dev.py` / `frontend.py` 的CLI入口统一配置本进程stdout/stderr UTF8，不改系统区域/PATH/注册表。`a4c66fb15c0e` unittest运行28项，27通过、1文件symlink能力不可用skip；新的真实GBK子进程Unicode stdout/stderr回归通过。skip不记PASS。此前pytest入口受沙箱路径规范化拒绝，是未执行测试，已保留日志；原生unittest采用既有受限非沙箱授权完成。
+- 只读审计定位503诊断丢失链：worker自由文本异常→Executor非零退出通用失败→Core503→frontend通用unavailable。后续增量应使用有限原因码且execution_state保留UNVERIFIED，不透传异常/stderr，不追认历史失败原因。
+
+### 2026-10-12 模型失败诊断最小增量
+
+- worker CLI失败现在返回固定 `archeaxis.machine-worker-failure/v1` 与白名单原因码，异常正文不外露；已知调用异常、reasoning-only与空答案分别为MODEL_CALL_FAILED/NO_FINAL_ANSWER/EMPTY_ANSWER。未知异常降级WORKER_FAILED，不据新码追认历史503。
+- Executor非零退出先在总期限内有界收尾 stdout/stderr，终态 drain 上限1秒；只读取白名单schema/原因码，非零退出即使携带answer也不接纳为成功。现有输出限额、超时和拥有子进程收尾保留。
+- Core answer/retest统一返回503 `archeaxis.machine-call-failure/v1`，操作绑定，execution_state=UNVERIFIED、answer_published=false；有限原因码覆盖执行器超时/过界/无效输出/收尾失败。没有新成功任务，无原异常透传。frontend校验schema、operation、状态和原因白名单，安全分类进入界面及脱敏探针；保持原冻结请求与已有重试规则。合同同步 `packages/contracts/v1/openapi-outline.yaml`、workers README。
+- `be4b4a54c627` Rust资源6项＋API9项 PASS：包括非零带恶意答案/私有字段、未知码降级、实际合成子进程退出、失败无成功任务、原正常回答/纠正/复测链。证据 INTEGRATED / SYNTHETIC，无模型服务调用。
+- `c9cfcef0752a` Python69项＋120 subtests PASS（SIMULATED），含实际main失败出口不回显异常；`8b7c640fed74` 前端28项 PASS（SIMULATED），含answer/retest分类、未知码与原型属性拒绝和冻结请求回归。最终前端生产构建 `24ed49a3804c` PASS。早先编译只因新测试error未收窄而FAIL，已修正并保留失败回执。
+- 此轮只证明当前失败合同与定向验证，不将上一轮旧候选实际闭环回执冒充新诊断链的REAL证据。当前新Core/worker需要重新stage、Tauri绑定与正式入口运行。未知响应复习跨重启和原指针导航问题仍待实测；总目标PARTIAL。
+
+### 2026-10-12 新诊断代码绑定后的正式应用刷新
+
+- 新stage `0566bffb055b`，manifest SHA-256 `67e84041c9fb4b9cf8d09ebba52d4e996745659d89eb2280535a416c9888866a`，19521资源文件；Core SHA-256 `0c2194df3d15a29470d48ab9f9c1f927d3436d725f44be5d768c011282deeea5`。新Tauri构建 `3cac80e976b5` / frontend `b77bb02974e8` PASS，六项stage/宿主后端资源哈希匹配。
+- `receipts/AAOS-NATIVE-ACTUAL-AI-DIAGNOSTICS-20261012.json` 对应 `webdriver-54e3ba06952e`；raw SHA-256 `f4f627932819079c5358f3b1abdceab3692b0faf6436a3c3fd1d14d46fc539ae`，tested patch `0102cfa253f4fbe12b936153b2adc96190827e35aa5317c4c0df18178363b5eb`。完整既有九阶段工程闭环 PASS，4B实际回答与复测完成，恢复/能力开关/旧授权拒绝通过；源码一致性与拥有端口释放true。
+- 本次实际模型未失败，新失败原因码分支为 NOT_TRIGGERED_IN_THIS_REAL_RUN，沿用上轮定向模拟/集成回归证据，不声称有真实失败分支验证。工程纠正仍为自编合成干预，不证明模型答错、准确率提升或Owner验收。
+- 指针问题继续只读审计：原生ClickElement成功不能证明指定06按钮收到click；现有失败日志没有down/up/click目标诊断。下轮需记录有限data-page-id、isTrusted、rect/scroll及safe路由快照，保留单次原生click、不用Enter或JS路由替代该专项。不根据推测修改CSS。
+- pending_reviews跨重启故障方案复用已有Tauri.invoke测试观察入口：真实调用正常进入Core并提交，仅测试端一次丢弃ACK，注明SYNTHETIC fault + INTEGRATED真实Core。分别验证freeze ACK丢失无复习事件、review ACK丢失已有一个事件；冷启动不自动回放，显式同body重试后清journal且无重复事件。该方案此处为未执行规划，不是完成证据。
+
+2026-10-12：新增 probe-only 原生鼠标导航观察模式，记录受信 pointerdown/up/click 实际目标、滚动与路由读回；不修改产品事件处理，不以键盘替代。本次隔离候选重新构建后执行；当前原生验证 NOT_EXECUTED，失败亦保留证据。
+
+2026-10-12 原生鼠标导航：webdriver-1ae2b4e65355 实际 AI 工程链 PASS，source_consistent=true，owned_ports_released=true。一次受信鼠标点击06及1000ms路由/渲染读回通过；详见 AAOS-NATIVE-POINTER-NAVIGATION-20261012.json。仅证明本轮实测通过，不宣称历史偶发故障根因或永久修复。复习 ACK 丢失冷重启仍 NOT_EXECUTED。
+
+2026-10-12：新增 --grouped-review-ack-loss probe-only 验收路径：真实 UI freeze 持久化 ACK 合成丢失、冷重启、真实 review 201 ACK 合成丢失、再次冷重启、显式相同 body 重放200 duplicate=true、journal清除与历史/schedule不变。观察器原参数单次委托，不直接业务写入；证据等级 INTEGRATED + SYNTHETIC。原生执行 NOT_EXECUTED，未宣称通过。
+
+2026-10-12 ACK 实测 webdriver-2629d55e7d27：FAIL（探针冷恢复入口错误）。真实 ui_state_write 200 后合成丢失一次 ACK，learning_review 未委托；journal与历史在第一次冷重启后一致。失败截图显示12为反馈与修订且没有内存itemKey，因此未挂载复习组件；当前组件合同06总是挂载持久学习队列。探针冷恢复入口修正为06，未修改产品，第二断点及最终幂等验收仍 NOT_EXECUTED。source一致与隔离清理通过。
+
+2026-10-12 webdriver-3b8b95eeb9b6 FAIL：冷恢复后切06触发冻结复习离开保护；清理通过。新增产品修复 CanonicalLearningJourneySpace 从唯一 pending_reviews 恢复 itemKey，使持久场景直接挂载真实复习组件，不自动提交；多个候选不擅自选择。探针取消恢复切页，要求原场景自动恢复。CanonicalLearningJourney/CanonicalReviewLearning 定向 Vitest exit0；新产品修复的原生验收仍 NOT_EXECUTED。
+
+2026-10-12：新增恢复场景回归，证明12页面由唯一pending review恢复练习入口且不自动提交；多个冻结身份不擅自选择。定向Vitest通过。以下新候选执行完整ACK冷重启验收；结果待实际回执。
+
+2026-10-12 webdriver-f61e7ad375b2 FAIL：12实际路由为CanonicalTeachingSpace，上一轮Journey单组件回归不足以证明正式路由恢复。已补SpaceView从唯一持久pending review派生Teaching初始itemKey，保护显式已有选择，不自动提交；原生修复资格仍 UNVERIFIED。失败回执保留。
+
+2026-10-12：新增SpaceView正式12路由恢复唯一冻结身份回归，继续原生复测（结果待回执）。
+
+2026-10-12 webdriver-0e5e13545073 PARTIAL/FAIL：冻结保存200 ACK丢失、两次冷重启journal/history不变、首次复习201 duplicate=false ACK丢失、最终显式重试200 duplicate=true均已发生。最终journal清除导致SpaceView派生itemKey消失并卸载复习组件，成功提示超时，不能标整体PASS。修复为界面恢复身份保留到workspace/restore_epoch变化；不保留旧epoch身份。新修复需回归与原生复验，历史失败保留。
+
+2026-10-12：补路由回归验证pending journal清除后保留当前复习界面，restore_epoch变化后清除恢复身份。定向检查通过，以下隔离候选继续完整原生ACK验收，结果待回执。
+
+2026-10-12 webdriver-132cc461ee71：复习ACK故障恢复链PASS（INTEGRATED + SYNTHETIC）。freeze200丢ACK无review、第一次冷重启原entry/history保持、review201丢ACK、第二次冷重启event/schedule保持、最终同body200 duplicate=true、journal清除/成功提示/history与state不变。新回执AAOS-NATIVE-REVIEW-ACK-RECOVERY-20261012.json。全程FAIL于后续AI按钮查找，未触发AI；不能宣称整个闭环PASS。source一致与ports清理通过。
+
+2026-10-12：AI13路由沿用已恢复的学习项目身份，仍经原有显式知识绑定和授权；修复冷恢复后同对象上下文入口缺失。SpaceView回归包括journal清除→AI13身份保持→epoch变化清除，通过。以下完整原生复测待结果。
+
+2026-10-12：新回执AAOS-NATIVE-REVIEW-ACK-FULL-LOOP-20261012.json完整工程链PASS，含复习两次合成ACK故障、两次冷重启、显式同body幂等重试、界面成功保持、后续真实本地AI、备份恢复最终读回。source一致/owned ports清理通过；整体仍PARTIAL，非Owner验收/准确率/27B/cloud/Green资格。历史失败保留。
+
+2026-10-12：复核ACK完整链、指针导航、模型诊断三份raw receipt SHA绑定PASS。更新现有Agent交接入口最新证据与未测边界；修复CURRENT_STATE_TRUTH历史页仍将R6/M0/September入口称当前现场的导航漂移，历史正文保留。未新增第二执行队列，未授予模型切换/cloud/Green权限。
+
+2026-10-12：恢复修复影响范围聚合回归8文件91项PASS（SIMULATED），详见AAOS-REVIEW-RECOVERY-REGRESSION-20261012.json，原始日志hash绑定。覆盖正式路由、Teaching、Review、WorkingState、导航保护、Context授权、ControlledAi；与原生完整链回执分别记账，未授予安装/发布/模型切换权限。
+
+2026-10-12 后续缺口审计：MachineAnswerPanel具有本地调用和事后模型回执，但本轮检查未发现调用前的真实模型能力状态展示；config/models.yaml default_llm=stub/local-stub仅产品适配器历史占位，不能作为运行接通依据。正在核对Executor运行配置与正式Core可复用契约，未宣称能力状态或模型选择已完成。临时现有27B加载授权已一次询问，待回复，不擅自加载/卸载共享实例。
+
+2026-10-12：worker --probe明确MODEL_INVENTORY_ONLY，列表存在→MODEL_LISTED_INFERENCE_UNVERIFIED，inference NOT_EXECUTED、loaded UNKNOWN；列表失败UNVERIFIED，缺失MODEL_NOT_LISTED。保留旧capability字段兼容且README明确仅表示清单存在；不能报真实推理。定向test_worker_machine_answer.py exit0（SIMULATED）；该新worker源码未stage/原生复验，此前回执只绑定旧patch。正式Core模型状态读契约及UI仍待实施。
+
+2026-10-12：新增machine_configuration只读Core runtime GET/Tauri finite empty-payload dispatch/严格schema生成DTO/frontend显式读取入口。仅投影worker注册与launch选择来源，不读取/输出endpoint/model秘密值，不联网、不执行模型，identity null/loaded UNKNOWN/inference NOT_EXECUTED/usage cost null。本地材料范围与费用未知展示。既有CoreBridge/MachineAnswerPanelScoped定向回归exit0；新接口专项Rust/DTO/无副作用测试与原生验收尚NOT_EXECUTED，未宣称完整模型发现/选择能力完成。
+
+2026-10-12 模型配置状态专项：Core contract_machine_answer新增连续只读无worker执行/无任务写入测试PASS，application资源6项与API10项PASS；首次字段数量断言14→实际13修正，失败保留。CoreBridge DTO未知/null与伪造CONNECTED拒绝、Panel仅显式读取无推理回归PASS。Tauri empty-payload命令桥专项1项PASS（补合规前端目录后）；首次未执行因缺TAURI_CONFIG frontendDist保护拒绝，未放宽检查。OpenAPI同步固定GET严格DTO；当前新源码原生模型配置状态仍NOT_EXECUTED。
+
+2026-10-12：原生AI探针增加真实界面读取模型配置、严格Core回读UNKNOWN/null与任务列表不变检查，然后继续原有真实模型执行；以下当前Core/worker重新构建暂存，结果待回执。
+
+2026-10-12：新Core/worker stage40b248638df9 + Tauri66918b71b1d8原生配置状态与实际AI完整工程链PASS。显式UI读取配置显示未验证；Core严格null/UNKNOWN、无网络声明与任务列表不变通过，后续实际模型执行与ACK两冷重启链通过。详见AAOS-NATIVE-MODEL-CONFIGURATION-20261012.json；整体PARTIAL，配置读取不等于模型清单/加载/推理/Owner资格。source一致与端口清理通过。
+
+2026-10-12：MachineAnswerPanel新增本次模型调用证据（请求模型、observed_model独立身份、finish_reason+truncated完整候选状态、计量未知），声明不证明持续可用/其他模型/答案正确；缺observed不从请求model冒充，缺finish不宣称完整，缺计量不写零。定向Panel回归PASS（SIMULATED），新展示原生资格NOT_EXECUTED；此前原生配置状态回执仍绑定其旧patch。
+
+2026-10-12：本地worker保留实际服务报告token计量，支持OpenAI/Ollama；严格非负整数且拒绝bool/string/超JS安全整数，不补缺失零或推算total，cost null/UNKNOWN。extract正式返回字段及UI本次调用证据展示同步。worker定向回归PASS，实际模型计量保存/重启读回仍NOT_EXECUTED，本轮新worker尚未stage。
+
+2026-10-12：原生探针对原回答和复测检查服务计量/未知费用并写stage证据，后续原task全量重启读回比较包含计量。新增探针计量guard回归；首次模拟夹具缺machine_configuration失败，已同步新接口与未知计量fixture后PASS。以下最新worker重新stage，实际计量资格仍待执行。
+
+2026-10-12：最新计量worker后端暂存f65ad3c25e23成功，Tauri下一轮构建资源已指向该stage。尚未原生执行，不将stage/build视为计量闭环PASS。
+
+2026-10-12：正式应用实际本地模型计量、任务保存与完整宿主重启读回工程链PASS，回执AAOS-NATIVE-MODEL-METERING-20261012.json分别保留original/retest服务返回计数与未知费用。新worker及候选hash绑定一致、端口清理通过。计数属service-reported，不冒充独立测量或费用零；整体PARTIAL。
+
+2026-10-12：发现local worker默认urlopen可能继承proxy/跟随redirect，收紧为local_urlopen统一清单发现/读取/推理：仅HTTP数字回环，localhost规范127.0.0.1，禁继承代理，全部redirect拒绝，userinfo/fragment/remote/unspecified发送前拒绝。定向worker回归PASS（SIMULATED）；无实际泄露结论，新传输尚未stage/正式应用实测，旧计量回执仅属旧patch。
+
+2026-10-12：新增真实loopback HTTP集成（合成材料）验证301/302/303/307/308全部拒绝redirect；每项source1/target0，设置HTTP_PROXY失效目标仍到达本机source，临时拥有服务线程关闭。worker定向套件PASS；不证明云端、真实资料或新传输正式模型闭环。以下stage当前worker供下一原生验收。
+
+2026-10-12：local transport修复后端stage14d448520ed3成功，下一候选资源已指向该stage。暂存≠正式模型实测，当前原生资格仍NOT_EXECUTED。
+
+
+### 2026-10-12 本地传输收紧后正式候选闭环
+
+- Engineering PASS；整体 PARTIAL。最新隔离 Tauri/Core 候选经过真实 LM Studio qwen3.5-4b 回答、复测、保存与多次冷重启读回，包含合成 ACK 丢失恢复；源码一致且本轮所有自有端口释放。
+- 回执：`docs/current/receipts/AAOS-NATIVE-LOCAL-TRANSPORT-20261012.json`，绑定原始回执 SHA-256、源码 patch、构建及 Core；原始用量 154/1359/1513，复测 172/1299/1471（input/output/total，服务报告）；费用 UNKNOWN。
+- 此轮验证收紧传输后实际应用仍可闭环；重定向拒绝由独立 loopback HTTP 集成测试证明，不能仅凭正常模型调用推导。未验证 27B、云端、持续可用性、知识准确率或 Owner 验收；未替换 Green。
+
+
+### 2026-10-12 模型响应读取边界
+
+- 清单和推理响应统一在解码前限制为 4 MiB，拒绝超限响应及非对象 JSON；超限清单不得伪装成空清单或可用能力。
+- 定向 worker 回归 61 PASS，包含合成材料 loopback 重定向拒绝集成测试；证据见 `docs/current/receipts/AAOS-MODEL-RESPONSE-BOUNDARY-20261012.json`。此轮未调用真实模型，新读取边界尚待重新打包实测。
+- 探测仍只证明清单读取，不证明加载或推理；正式界面目前仅配置读取及单次回答证据，实际清单探测接入仍未完成。
+
+
+### 2026-10-12 响应读取边界候选真实闭环
+
+- Engineering PASS；整体 PARTIAL。重新打包的 4 MiB 响应读取边界候选经正式 Tauri/Core 入口完成真实 qwen3.5-4b 回答、复测、保存及冷重启读回，并通过合成 ACK 丢失恢复。源码一致，自有端口释放。
+- 回执：`docs/current/receipts/AAOS-NATIVE-MODEL-RESPONSE-BOUNDARY-20261012.json`。正常调用实测不替代超限分支回归；27B、云端、Green 和真人质量验收未执行。
+
+
+### 2026-10-12 正式模型清单接入源码审计
+
+- SOURCE_INSPECTION / PARTIAL；接入尚未实现。现有 health 仅握手，configuration 仅启动策略；worker probe 具备清单读取，但原结果含 endpoint 与完整 available，不能直接透传。通用 derived launcher 会清空且不传递模型配置，不能直接代表当前声明服务。
+- 主线程与 6.1 SOL MAX 只读并行审计确认：需要无材料的显式探测、能力启用双检查、有限队列与进程超时、有限白名单投影；失败清单计数/是否列出均应 null，加载 UNKNOWN、推理 NOT_EXECUTED。
+- 依据文件与行号见 `docs/current/receipts/AAOS-MODEL-INVENTORY-INTEGRATION-AUDIT-20261012.json`；未调用云端、未切换模型。
+
+
+### 2026-10-12 模型清单后端增量
+
+- PARTIAL：实现空 JSON POST `/api/v1/machine/inventory`、无材料 `--probe` 启动、三项模型启动配置白名单、能力设置双检查及有限结果投影；清单失败数量/是否列出为 null，加载 UNKNOWN、推理 NOT_EXECUTED。复用 co-learning admission，有限排队与进程/管道等待，Windows 仅取消自有线程 I/O。
+- 2 项 application 投影单测及 11 项 API 合成 worker 契约测试 PASS；拒绝外部 endpoint/context payload，正常探测不写机器任务且不回显 worker 私有字段。证据：`docs/current/receipts/AAOS-MODEL-INVENTORY-BACKEND-20261012.json`。
+- 仍待 DTO/OpenAPI/Tauri/UI 接线、禁用/竞争/超时/后代持管道资源回归和正式 UI 真实探测；不得宣称完整探测或资源收尾已验收。
+
+
+### 2026-10-12 正式模型清单 UI/契约接线
+
+- PARTIAL：Tauri 固定 `machine_inventory` 空 payload POST、严格 DTO、生成 TypeScript 与 OpenAPI 已同步。界面显式探测、防重复点击、切换知识/卸载后忽略旧结果；未自动探测或推理。失败计数及是否列出须 null，验证计数 0..256，禁止 loaded/inference 伪成功和 endpoint 附加字段。
+- Frontend 三文件 33 PASS，Tauri envelope 路由/空请求断言 1 PASS；均为 SIMULATED，见 `docs/current/receipts/AAOS-MODEL-INVENTORY-UI-CONTRACT-20261012.json`。
+- 仍待禁用/竞争/超时/管道资源测试以及最新正式候选实际清单探测；清单存在不证明模型加载或推理成功。
+
+
+### 2026-10-12 清单异常分支资源回归
+
+- Scoped PASS / 总体 PARTIAL：application resources 9、API contract 11 全部通过。设置读取失败无 spawn；禁用清单无新增 worker 调用；响应超限与 15s 超时返回 READ_FAILED、未知计数，并实查自有 worker PID 已退出。均为合成 worker/模拟契约证据。
+- 初次禁用断言失败保留：禁用 API 自带既有 health 调用，故计数文件已有；修正为禁用完成后的基线比较，不改变产品行为。
+- 回执 `docs/current/receipts/AAOS-MODEL-INVENTORY-RESOURCES-20261012.json`；仍待排队禁用竞争、后代持管道线程清理及正式 UI 实际清单探测。
+
+
+### 2026-10-12 清单排队禁用与满队列回归
+
+- Scoped PASS：application inventory 4、API contract 11 通过。持有全部 health permits，首次 poll 发起设置读取，再经 writer barrier 与第二次 poll 确认进入排队；此后禁用并释放 permits，返回 DISABLED 且无 worker spawn。满队列返回 BUSY 且无 spawn。不是仅靠 sleep 推断竞争时序。
+- 原资源回执已追加本轮日志 SHA：`docs/current/receipts/AAOS-MODEL-INVENTORY-RESOURCES-20261012.json`。总体 PARTIAL，仍待后代持管道读线程清理和正式 UI 实际探测。
+
+
+### 2026-10-12 正式清单探测与实际 AI 闭环
+
+- Engineering PASS / 总体 PARTIAL。最新隔离 Tauri 候选通过真实界面按钮读取本地清单，验证加载 UNKNOWN、推理 NOT_EXECUTED，并核对机器任务不变。此后独立完成实际 4B 回答、复测、保存、冷重启读回和合成 ACK 丢失恢复。源码一致，自有端口释放。
+- 回执 `docs/current/receipts/AAOS-NATIVE-MODEL-INVENTORY-20261012.json` 绑定 raw SHA/source/build/Core。清单与推理证据分开；没有 27B、云端、Green 或 Owner 资格。后代持管道线程清理回归仍待完成。
+
+
+### 2026-10-12 后代持管道读线程收尾修复
+
+- 新复现实际揭示清理缺口：自有短寿命后代持 stdout/stderr 时，原线程同步取消后仍返回 reader cleanup unverified。保留失败回执；首次测试 Rust Path API 拼写错误修正后才执行复现。
+- 修复：保留自有读管道取消句柄，在 drain 超时取消管道 I/O，并按同步取消要求打开自有线程句柄；仅全部线程结束且 join 后才返回已收尾的 drain failure，否则仍明确 cleanup unverified。不终止线程或共享进程，合成 holder 自然退出。
+- Application inventory 5、API contract 11 PASS，见资源回执 held_pipe_regression。此前 native 清单回执对应旧源码；本清理补丁仍需重新打包实测，总体 PARTIAL。
+
+
+### 2026-10-12 管道清理补丁正式候选闭环
+
+- Engineering PASS / 总体 PARTIAL。最新 Core 重新打包后经正式 UI 本地清单探测、实际 4B 回答/复测/保存、冷重启读回及合成 ACK 丢失恢复通过。源码一致，自有端口释放。
+- 回执 `docs/current/receipts/AAOS-NATIVE-INVENTORY-CLEANUP-20261012.json` 绑定 raw/source/build/Core；资源回执追加本轮 native qualification。正常链路不冒充后代持管道分支实测，该分支仍由专门合成回归证明。27B、云端、Green、持续稳定性、准确率和 Owner 验收不在本 PASS 内。
+
+
+### 2026-10-12 显式本地模型选择实测
+
+隔离 Windows Tauri/Core 工程验收 PASS；产品总体仍 PARTIAL。正式界面选择 qwen3.5-4b，4096 tokens 预算随请求冻结；实际回答、合成人工纠正与复测、保存及完整重启读回完成，源码一致性与所属进程/端口清理通过。回执：`docs/current/receipts/AAOS-NATIVE-MODEL-SELECTION-20261012.json`。先前 NO_FINAL_ANSWER 与探针 KeyError 失败记录保留，不被本次成功改写。此次不证明独立错误纠正、能力提升、正式安装版或 Owner 验收；未确认机器请求跨退出持久化恢复仍待实施。
+
+
+### 2026-10-12 恢复状态保全增量
+
+修复生成 DTO 校验遗漏 minLength，以及备份 preserve/discard 后遗漏保全本地 pending_reviews 的问题。CoreWorkingState 29 项模拟回归 PASS，diff 检查 PASS；记录见 `docs/current/receipts/AAOS-WORKING-STATE-RECOVERY-INCREMENT-20261012.json`。尚未实现 pending_machine；恢复 UI 请求身份不能单独证明 Core 崩溃后的推理 exactly-once，后续须核对 worker 前 durable claim 或采取只核对历史、不开放未知请求重推理的保守恢复。此次新改动未做原生运行验收，不能沿用此前模型选择运行回执。
+
+
+### 2026-10-12 拒绝后的冻结请求身份保全
+
+普通 400/403/404/422 不再清除冻结回答或复测：本次拒绝不证明历史请求未执行，界面保留固定请求并提示读取历史核对。App 导航保全纳入 pending_reviews。4 文件 61 项模拟回归 PASS；回执 `docs/current/receipts/AAOS-MACHINE-REFUSAL-IDENTITY-20261012.json`。本轮仍未实现持久化 pending_machine 或 worker 前执行 claim，也未进行新改动的原生实测。
+
+
+### 2026-10-12 推理前持久化执行记录
+
+新增 runtime/execution_claim.rs 并接入回答、复测：worker 前落盘摘要屏障，无终态记录不得重复推理；明确 worker 失败并确认落盘后允许显式同请求重试。SQLite 关闭重开及正式 API 未完成记录拒绝测试通过；回答、授权、素材、withheld 与复测共 40 项定向测试 PASS，模型为模拟 worker。回执 `docs/current/receipts/AAOS-DURABLE-INFERENCE-CLAIM-20261012.json`。未做真实 Core 崩溃、最新 Tauri 原生验收，尚缺 UI pending_machine 持久化与 legacy 全部请求身份绑定；不宣称 exactly-once。
+
+
+### 2026-10-12 界面默认模型请求身份补齐
+
+MachineAnswerPanel 新回答统一携带冻结 client_request_id，包含未指定模型或 grant 的界面路径；丢失 ACK 后重试保持原始 payload。3 文件 29 项模拟回归 PASS；后续证据附于 AAOS-DURABLE-INFERENCE-CLAIM-20261012.json。直接 legacy API 客户端仍允许省略身份；pending_machine 跨退出恢复尚未完成，本轮未做原生模型实测。
+
+
+### 2026-10-12 pending_machine Core 存储增量（PARTIAL）
+
+ui_working_state 新增默认空、可省略的 pending_machine，存完整冻结输入与原 restore epoch。Core 限制记录数、输入预算、身份和操作；旧记录不可由普通 Write 改写或省略，新记录须属于当前 epoch。schema 与生成 DTO 同步。domain ui_working_state 10 项测试 PASS，日志 `.project-local/runs/be268a2d33/a21f7af7beb5/logs/execution.log`，包含 SQLite 关闭重开和旧客户端省略/改写拒绝。首次编译因测试 State 初始化缺新增字段失败，已修正，历史日志保留。界面尚未写入该字段，精确回执清理路由与完整授权 DTO 约束仍待补齐；不宣称跨重启产品恢复完成。
+
+
+### 2026-10-12 机器请求前端保全基础（PARTIAL）
+
+CoreWorkingState 类型纳入 pending_machine；恢复保全判断与 App 导航防丢失纳入该字段。新增 stageMachine，等待 journal 精确落盘 ACK，并禁止替换冻结 payload；恢复只装载工作状态，不调用推理。定向模拟回归通过，运行记录：a3aee9ef5f87。Panel 尚未接入发送/恢复，清理端点未实现，不宣称产品闭环完成。
+
+
+### 2026-10-12 机器记录精确回执清理基础（PARTIAL）
+
+新增 domain clear_machine：CAS workspace/restore epoch/revision，匹配已存 runtime.answer/runtime.retest 的完整请求与任务身份；回答匹配 client_request_id 派生 task_id，复测核对 execution_request.timeout_s。仅 positive 候选回执可清理，不用 UNKNOWN 或本次拒绝作未执行证明。10 项 domain 回归通过（25074856063c），新增缺失回执、预算篡改保留、精确匹配清理测试。HTTP/Tauri clear 路由、Panel 接入与原生恢复验收尚未实现；withheld 仍保留冻结记录。
+
+
+### 2026-10-12 精确清理应用路由（PARTIAL）
+
+新增 human-only POST workspace/ui-state/clear-machine，取得 colearning_admission 与 active guard，不执行 worker；Tauri 固定 operation、command enum 与前端 Read 校验同步。API 14 项、Tauri 固定路由 1 项通过（0b2f281cd4f8）；首次 Tauri 测试缺有效 frontendDist 配置失败，改为显式绑定既有隔离产物后通过，不算新原生产品构建。Panel 与 session 清理 transport 尚未完成。Owner 已授权临时现有 qwen3.8-27b 合成实测，仅卸载本轮实例、不触碰现有4B/共享实例；随后要求静默执行、不再询问。
+
+
+### 2026-10-12 前端精确清理 transport（PARTIAL）
+
+App 工作状态 transport 已接 ui_state_clear_machine；session clearMachine 使用 CAS 并核对完整返回状态，清理 ACK 丢失保留请求，只有精确独立重读后才移除本地记录。已提交与未提交两种 ACK 丢失回归通过；CoreWorkingState/App/CoreBridge 联合模拟测试通过（38101ab5aa42），TypeScript noEmit 通过（74fe6b7a48ed）。Panel 发送/恢复尚未接入，模型原生验收未执行。27B 只读前置核对已并行启动，不变更共享模型。
+
+
+### 2026-10-12 回答 Panel 持久化接入（PARTIAL）
+
+正式 App provider 下回答先 stageMachine 精确 journal ACK 再调用 worker；确认回答与 task 后调用 Core clearMachine。重开原知识恢复冻结问题/模型/预算及授权快照，只读核对历史，禁推理；精确读取匹配旧回答后可清理。新增 journal ACK 丢失不调用模型、重开读回禁执行的模拟回归通过；联合测试 1574a58581b4。已有 provider 外纯单元模式保留；原生宿主缺 provider 拒绝执行。复测 journal、withheld 界面终态屏障与实际原生验收尚待完成。27B 只读已确认 LM Studio 0.4.25+1、现有 indexedModelIdentifier 与共享4B idle；27B 尚未加载。
+
+
+### 2026-10-12 复测 journal 接入（PARTIAL）
+
+复测发送前等待 stageMachine ACK；精确任务读回后 Core clearMachine 清理。重开恢复 owner_knowledge_id 对应的回答或复测冻结输入，不自动运行；复测只能通过匹配历史回执清理。保留记录与新请求 body 不一致时拒绝发送，防 withheld 后旧 journal 被错误沿用。TypeScript noEmit 与四文件模拟回归通过（587204bf656d）；复测持久化的定向新测试与原生恢复验收尚缺，不据现有回归声称全部完成。27B 预检版本、实例与显存已核实，但尚未加载，须使用瞬态加载 API 避免 CLI 偏好持久化。
+
+### 2026-10-12 本轮授权 27B 临时实测与恢复保护
+
+REAL_DIRECT_SDK_SYNTHETIC_MATERIAL：现有 qwen3.8-27b 临时唯一实例、2048 context、单并行、GPU ratio 0.1、严格 VRAM 上限、KV CPU、MTP 关闭；两项合成样本均 eosFound 且预期文字命中，约 2.58–2.64 token/s、27.64–33.35 秒。已卸载本轮实例并读回既有 qwen3.5-4b 保留。证据 AAOS-AUTHORIZED-27B-PROBE-20261012.json。此项不是产品闭环、加速对照或 Owner 验收。历史 20261011 MTP 真实统计已有证据，不能再描述成所有 27B 完全未测。
+
+修复多条未确认机器请求时仍可能启动新推理的前端缺口，并将恢复中的独立复测按钮禁用。模拟定向三文件 54 tests PASS（31de27c71617）；新增多请求保护回归 2 tests PASS（563d520cf4ab）。git diff --check PASS。当前源码的最新 native 构建与 journal 闭环仍待验证，产品 PARTIAL。
+
+### 2026-10-12 请求持久化当前源码正式入口验证
+
+机器 journal 嵌套授权已按既有 Consumption/PacketRequest 结构校验，限定版本、哈希、用途、目的地及 answer/retest 操作。Domain 11 tests PASS（ae97b386aa3a），前端恢复 36 tests PASS（f6aee1499c94），TSC PASS（5eb14db70ef9），生成投影一致。当前源码 Core/Tauri 隔离构建与绑定 PASS（1cc901fb2aeb / 9d1f0e39b8da）；正式应用 4B/4096 的回答、工程纠正采纳、独立复测、保存、全重启及恢复授权拒绝工程 PASS（webdriver-1d247c4c47d6），source_consistent 与 owned_ports_released 为 true。证据 AAOS-NATIVE-MACHINE-JOURNAL-20261012.json。机器执行中的真实 crash/ACK loss 未测，Owner 验收 NOT_EXECUTED，产品 PARTIAL；不得把 review ACK-loss 当作 machine ACK-loss。并行审计发现 withheld 终态缺明确清理路径，后续修复不能删除历史终态或重跑未知执行。
+
+### 2026-10-12 并行审计补充修复
+
+复测 durable claim 身份改为有限 normalized 输入摘要；实际上下文摘要仍保存在 claim 值中，材料变化不能生成另一个身份绕过未完成屏障。新 API 回归先登记旧 material 的 IN_FLIGHT，再修改同一知识 body 并发出同一复测，409/UNVERIFIED 且 worker count 不增。当前 API 15 + 固定桥接 1 tests PASS（177107d3370e）；最初 f495a9a2cbfd 的测试本身通过但执行中源码变化使 wrapper 非零，该 run 不计 PASS，已完整重跑。嵌套资产 ID<=128、安全整数版本、asset=>context 组合和 claim schema 校验补齐；Domain 11 tests PASS（74a032821bbe），前端恢复 36 tests PASS（d318f5084823）。
+
+仍待修复：RECORDED withheld 精确历史核对/明确结束，FAILED 与旧无指纹审计保留屏障；新复测 journal owner 与真实 failed task lineage 绑定；最新增量需要新的 native 构建及故障分支实测。此前 AAOS-NATIVE-MACHINE-JOURNAL-20261012 对应其 source_patch，不能覆盖后续变更。产品 PARTIAL。
+
+### 2026-10-12 扣留终态与复测归属增量
+
+已实现有限 admission_request_sha256 与实际 request_sha256 分离、human 精确终态清理、历史 audit/claim 保留；FAILED 和旧无指纹审计拒绝清理。新复测 journal owner/问题与真实 failed journey 绑定。Panel 支持扣留历史独立核对、明确结束及 clear ACK 丢失后的 Core 精确读回；不重复推理。Domain13/API withheld unit3/withheld API5/answer API15 PASS（7fbc48ff8fcd），前端58 PASS（5ab2ea4aacb3），TSC PASS（dd744b714c6a），证据 AAOS-MACHINE-TERMINAL-RECOVERY-20261012.json。最初3fa1c7b2ece4两个新增 UI fixture 使用空 map 而非 Core 省略 map，FAIL保留，修正夹具后重跑。
+
+只读复审仍发现多条同 owner pending 时无法从完整 Core journal 选择精确历史终态，当前 refs-based 历史恢复需要继续修复；不能将禁新推理测试当作逐条恢复完成。该增量未重新 native 验证，真实模型 crash/withheld race 未测，Owner NOT_EXECUTED，产品 PARTIAL。
+
+### 2026-10-12 多请求逐条核对与外部清理恢复
+
+已增加精确 journal 选择，同 owner/同 fingerprint 不同 journal_id 可逐条核对与结束；清理只影响选中记录，不重新推理。并行只读复审发现外部删除已选记录后旧 ref 会阻塞唯一剩余记录，已修复 Core ready 状态的 ref 对齐，并补外部 clear 回归。前端三文件60 tests PASS（001ab54509a9），TSC PASS（a4f2c8dd6cfe）。最初 TSC 180d504edf77 的 UI budget 类型错误保留，修正后重跑。
+
+当前 Core/前端隔离构建（469fb0c2e66a / 755196831d56）与真实 4B Tauri 工程旅程 PASS（webdriver-ffdf9a654f76）：固定回答、工程纠正/显式采纳、独立复测、保存、全重启、review ACK loss 和恢复拒绝，source_consistent/owned_ports_released=true。该 native source_patch=4a2b3d1f7d8333a2420ed05898e60062f31733cc65e3bb64b01d495445255c13；其后外部 clear UI 修复仅有模拟验证，不能套用此 native PASS。证据 AAOS-MULTI-MACHINE-RECOVERY-20261012.json。真实 machine crash/withheld race、27B 正式应用闭环和 Owner 验收仍未完成，产品 PARTIAL。
+
+### 2026-10-12 实际机器回答 ACK 丢失验收增量
+
+已加入正式 UI 成功回答后丢一次 bridge ACK 的显式 probe，actual 4B 回答先由 Core 持久化，冻结 journal 冷启动保留，再从精确历史恢复并结束 journal。首轮 webdriver-64dc7e3929b5 实际工程旅程完成；并行复审指出最初 observer 在水合后才记录且只计已返回调用，不能据此证明水合阶段零推理 attempts，该限定保留在 AAOS-MACHINE-ACK-RECOVERY-20261012.json，当前专项 PARTIAL。
+
+已将 observer 提前至选择原授权前、调用进入时计数，保留拒绝/未完成 attempts；只有模型身份及 receipt binding 验证后才升级 REAL PASS，请求 ACK-loss 开关必须满足实际模型与恢复门槛，禁止静默跳过。负向 probe 回归 PASS（c0a98918c3ea）。强化 probe 的新 current-source native 验证待执行；人为 ACK 丢失不证明真实网络故障或模型执行中的 process crash。
+
+强化实测已完成：webdriver-1dcc0980bce0，4B/4096 实际回答、一次人为成功 ACK 丢失、冷启动、原授权选择/水合/精确历史恢复全段 observer，恢复阶段 answer/retest attempts=0、精确 journal clear=1、原 task 不变；实际模型及独立复测 binding PASS，source_consistent 与 owned_ports_released=true。专项 PASS，产品 PARTIAL；source_patch=142f56c1abb4d3a6a82499de77d8810610da6390e924779f9379391b7c0e8336，Core=3dcc868bff005ab2dbbca3bf33ee44bcafd97365416a7983316c12329dd653e3。证据 AAOS-MACHINE-ACK-RECOVERY-20261012.json；它覆盖最新外部 clear UI 修复的构建，但外部 clear 分支仍是模拟回归，不冒称真实故障分支实测。真实 process crash/withheld race、27B 正式应用闭环与 Owner 验收仍待完成。
+
+### 2026-10-12 恢复候选的未知执行保护
+
+并行核对确认旧 discard 是合法 human 入口，但它能直接清空 Core recovery candidate 的 pending_machine/pending_reviews，绕过冻结请求的精确退场校验；此前测试仅保护现场 local state。已在 Rust Core 阻止该类 discard，拒绝时 candidate/revision 原样保留；普通草稿仍可丢弃，保留候选不执行模型。Session 和 UI 同步约束，恢复提示分别展示转换、机器及复习数量，不能把存在的机器/复习请求显示为零。
+
+Domain14 PASS（6e40609bd9f5）、前端46 PASS（9098ed41e69e）、TSC PASS（0bb94ff71d37），canonical schema projection --check PASS；最初 cb689e652cc1 缺 assessment 夹具表导致一个新回归 FAIL，补齐后重跑原 suite。证据 AAOS-RESTORE-JOURNAL-DISCARD-GUARD-20261012.json。新 guard 分支仍需 native 验证，产品 PARTIAL。现有 27B 临时实例的正式应用实测执行器已在 ignored 项目隔离目录准备，尚未加载或调用本轮新实例；仍不下载、不改全局设置、不卸载共享 4B。
+
+### 2026-10-12 27B 首次正式应用回答与资格修复
+
+现有 qwen3.8-27b 本轮唯一 SDK 实例经正式 UI 选入：Core/worker 实际回答 stop/content、无截断，200 input/232 output tokens、96.97 秒；request/requested/observed 模型 ID 一致。native webdriver-55fb6fc4dc04 source_consistent/owned_ports_released=true。总设备 GPU 53 次采样最高使用7583MiB、最低空闲313MiB，含共享4B，不等于27B专属占用；RAM峰值及实际层数 UNVERIFIED。已卸载本轮实例并确认原4B保留，不下载、不改全局配置。
+
+整条旅程 PARTIAL：旧 probe 把“声明启动默认4B”误用为全部允许模型，拒绝显式选择的临时27B alias，因此未进入纠正/复测；不能把这个验收器缺陷归因为27B没有实际回答。已修复 qualifier 与初次/复测/最终整链检查，显式选择只覆盖 model，endpoint/protocol/engine/version/prompt仍严格匹配；冻结请求、requested、独立observed必须与选择一致。61 tests、124 subtests PASS（279cb996fa64）。最初fe61cb64ab7a因沙箱路径规范化拒绝未执行，沿已授权限定非沙箱路径重跑，无ACL或系统更改。证据 AAOS-NATIVE-27B-APPLICATION-20261012.json；新资格逻辑仍需重新实际闭环，不重写旧 PARTIAL 成 PASS。
+
+### 2026-10-12 临时27B正式应用重测
+
+`webdriver-473ddd0813ca` 工程验收 PASS：正式 Tauri UI 选择独占27B实例，实际回答及独立纠正复测、保存、完整重启读回、备份恢复均完成；合成材料，Owner 验收 NOT_EXECUTED，整体 PARTIAL。来源补丁 `f66b3d5c1f24886b14b674c958b265a06060bba46f8d16bdcd900f627c553ca3` 一致。首次回答89.89秒、413 tokens；设备总显存峰值7589 MiB（包含既有4B），最低空闲307 MiB，RAM峰值与实际层分配 UNVERIFIED，不能据此宣称日常流畅或MTP提速。仅本轮实例已卸载，既有4B保留。原失败记录保留在回执 historical_partial_attempt。隔离构建首次因子进程误用缺少PyYAML的全局Python失败，改用已登记项目Python后构建成功，无安装和全局配置修改。详见 `receipts/AAOS-NATIVE-27B-APPLICATION-20261012.json`。
+
+### 2026-10-12 多复习请求恢复增量
+
+只读并行审计发现06学习页在多个合法待确认复习请求下任意选择首条并锁死其他条目。已改为唯一记录才自动恢复，多记录显式选择，选择时恢复原body/event ID并保留其他记录；未保全的UNKNOWN请求仍禁止切换。真实组件＋工作状态Session回归14项 PASS（785b0a068021），TypeScript检查 PASS（c314a55c3828）。模拟UI证据，原生多复习恢复尚未实测；本增量不继承前轮27B原生源码资格。合同结构门禁7f990494f885 PASS。详见 receipts/AAOS-MULTI-REVIEW-RECOVERY-20261012.json。
+
+多复习恢复后续检查：修复busy保护误阻断确认后状态读回的问题；新增成功提交后重新读取状态与历史、清空答案并解除冻结的回归。7ec69a2ed6bd 15项 PASS，7fec72b5321e TypeScript PASS。
+
+最新复习增量原生回归：webdriver-48350ebe84f6 工程 PASS。实际4B回答＋纠正复测、复习/机器持久化后合成ACK丢失、冷重启、同身份回执恢复、最终保存与备份恢复通过；机器恢复0次推理，源码绑定一致，自有端口释放。Owner NOT_EXECUTED，整体PARTIAL。多条复习显式选择分支仍只有模拟UI回归，不以此原生旅程代替。见 receipts/AAOS-REVIEW-SUCCESS-READBACK-NATIVE-20261012.json。
+
+### 2026-10-12 前端完整门禁
+
+20f1405990f5：127文件、1225测试 PASS；5db34948d98f TypeScript PASS。首次531397e5d197失败涉及两个过时machine fixture及隔离临时目录EPERM；修复fixture使其提供真实冻结client_request_id对应answer_id和请求证明，并断言重试严格同身份，沿用既有限定非沙箱授权重跑通过，无系统配置修改。失败记录保留，不降低产品身份校验。并行审计另发现明确保留的旧epoch复习日志被前端freezeReview拒绝的候选缺陷，尚待处理。详见 receipts/AAOS-FRONTEND-REGRESSION-20261012.json。
+
+### 2026-10-12 保留旧复习日志后的重试
+
+修复freezeReview对旧origin_restore_epoch的过强拒绝：仅当前Core读回与本地均exact保留同一entry时允许显式原请求重试；新增、篡改或仅本地未确认的旧epoch请求仍拒绝，不改写事件/body/origin。机器恢复禁止重推理的规则不变。c460314476c2 44回归 PASS，d7ccacdf7ab1 TypeScript PASS；模拟UI证据，原生恢复后复习分支尚未测。见 receipts/AAOS-PRIOR-EPOCH-REVIEW-RETRY-20261012.json。
+
+原生旧epoch验收探针准备：review ACK分支增加持久化后备份恢复、候选禁用丢弃、显式保留、原origin读回及原事件重试断言；最终备份改为按新增backup_id核对。c6b7f1f6a247 探针合同34项通过；新增原生分支 NOT_EXECUTED，尚需接入受信导航确认（未确认复习离开页面会显示既有确认框），不能以合同检查宣称实测。
+
+原生旧epoch首次尝试 webdriver-276a96ff2d67 PARTIAL：受信导航确认已执行，但产品按当前合同阻止覆盖仍含待确认复习的现场，确认恢复按钮禁用，探针如实失败并释放自有端口。不是旧epoch修复失败，未绕过保护。下一步须先凭exact回执完成当前请求，再恢复含冻结日志的合成备份，以正式入口验证旧origin重试；不得通过放宽恢复安全规则使测试通过。
+
+原生旧epoch顺序修正后尝试 webdriver-b2de23a442e5 未完成：离开19进入12前须先展开父学习页，父页导航也触发同一受信确认；探针此前仅处理子页确认，按 unexpected alert open 停止。现补父页确认处理，未重放未知点击。源码一致，自有端口释放；仍不得宣称原生恢复PASS。
+
+原生恢复继续尝试 webdriver-7e617af1eb0e PARTIAL：父/子导航确认完成，但freeze ACK丢失后的现场Session仍blocked，原请求未确认；未进行恢复，也未发生本地模型调用。探针已补在备份后完整冷重启并核对同一journal/history，再显式提交；不能把导航当成UNKNOWN ACK核对。源码一致，自有端口释放，失败截图保留。
+
+原生旧epoch尝试 webdriver-06f3fe1ae5c9 仍PARTIAL：冷重启后父/子导航并非都产生确认，探针把合法no such alert误当失败。已仅对确实出现且文本匹配的确认作受信接受，无确认记录为ABSENT，其他协议错误仍失败，不伪造确认。尚未进入备份恢复资格，继续验证。
+
+### 2026-10-12 原生旧epoch复习闭环通过
+
+webdriver-7ac9dc0fa967 工程PASS：两次真实Core持久化后的合成ACK丢失，分别保全含原冻结日志的备份、冷重启核对、凭exact回执完成当前请求、恢复指定合成备份、确认候选丢弃按钮禁用、显式保留旧origin、冷重启读回，再按原body首次记录/duplicate幂等重试；事件不重复。随后既有4B实际回答、纠正复测、保存及最终备份恢复通过。源码一致，自有端口释放。Owner NOT_EXECUTED，整体PARTIAL；多复习同时选择及含机器日志候选的原生分支仍待测，不能扩大此资格。历史失败全部保留。见 receipts/AAOS-PRIOR-EPOCH-REVIEW-NATIVE-20261012.json。
+
+恢复证据同步：已重新核对webdriver-7ac9dc0fa967原回执SHA-256、源码一致与自有端口释放。旧epoch修复回执、恢复丢弃保护回执及当前handoff分别补入原生followup，明确只证明pending-review界面禁用/保留/重试；Core直接discard拒绝仍为合成测试，机器候选与多复习选择没有借用这份PASS。
+
+### 2026-10-12 机器候选恢复验收准备
+
+只读审计确认14页选择原知识授权仅读取已有document/grant/knowledge，不自动新建授权。机器ACK恢复探针已扩展：正式UI备份含未清日志→冷重启历史exact清理当前请求→恢复指定合成备份→候选禁用丢弃/显式保留→再冷重启仅历史exact清理。断言任务不变、原origin保留、恢复0次推理、仅一次成功clear；不放宽stageMachine epoch规则。35项探针合同通过，新增原生分支 NOT_EXECUTED，待一致构建实测。
+
+
+### 2026-10-12 机器日志备份恢复原生验收
+
+[原生回执](receipts/AAOS-MACHINE-RESTORE-NATIVE-20261012.json)：`webdriver-e53abf84cbf8` 工程 PASS，真实既有4B与合成材料。待确认机器日志随指定备份恢复，丢弃按钮禁用、显式保留旧 origin、冷重启、读取原任务及成功清除日志；恢复阶段0次额外推理、任务集合不变。首次 `webdriver-27decca22576` 被原生未保存草稿确认框阻断（FAIL保留、端口已清理）；修复验收导航的显式可信确认，定向探针回归通过后重建并完成上述实测。Core直接discard拒绝仍为SYNTHETIC后端证据，不扩大为原生强制调用证明。整体PARTIAL，Owner验收未执行。
+
+
+### 2026-10-12 恢复增量后完整前端门禁
+
+`f50fbac87f89`：127文件、1226测试PASS；`b5be359494fc`：TypeScript PASS，两者源码补丁一致。覆盖旧epoch保留复习及多请求选择增量的模拟前端回归，不替代多请求原生资格、模型质量或Owner验收。历史1225测试门禁保留原SHA，[回执](receipts/AAOS-FRONTEND-REGRESSION-20261012.json)追加current_followup。
+
+
+### 2026-10-12 多复习请求原生选择与独立清理
+
+`webdriver-7cae664a1b80` 工程PASS：两个assessment与日志均经正式UI/Core创建；合成ACK丢失后核对工作状态，第二请求独立冻结；冷重启在06页明确切换两条，核对item、answer、自评与correct、禁改及原body/event。选择不提交复习；逐条成功提交仅清自身，保留另一请求，最终冷重启两条历史仍一致。无额外推理，本次未要求模型执行。12页单对象expectedJourney约束未放宽。源码一致、自有端口释放，整体PARTIAL，Owner验收NOT_EXECUTED。详见[回执](receipts/AAOS-MULTI-REVIEW-NATIVE-20261012.json)。只读并行审计定位正式入口及异步确认风险，未改产品合同。
+
+
+### 2026-10-12 图像/视频本机传输与完整Rust门禁
+
+并行只读整体审计确认caption清单与含图像POST原先继承代理/重定向，视频帧共用该链路；无历史泄露证据。本轮加入本机数字回环、禁代理及禁重定向传输，并禁止reasoning-only冒充最终描述。38项定向回归PASS（065981915604），10种实际loopback重定向组合各source1/target0；未调用视觉模型、尚未资格当前native宿主。见[传输回执](receipts/AAOS-CAPTION-LOCAL-TRANSPORT-20261012.json)。
+
+完整Rust门禁发现健康握手残留及陈旧题目措辞断言，失败历史保留。健康worker先关闭stdin、有限等待正常退出，再清理并明确检查暂存；禁用执行仍要求零attempt/零残留。题目测试改核对非空、答案隔离及稳定重试。7c9d561c8bc2完整workspace/release/offline/locked PASS，源一致；见[Rust回执](receipts/AAOS-CURRENT-RUST-WORKSPACE-20261012.json)。不替代Tauri当前构建、模型质量、云端或安装验收。
+
+整体剩余真实功能审计：机器answer/retest尚无正式取消/status、有限retry与失败后冷恢复终态；cleanup incomplete不能开放安全重跑；文档便携包回导及媒体CAS往返未完成；正式职责投影及有界视频视觉阶段/observed模型资格待补；外发撤回到首次发送与活动供应商取消竞态未闭合。以上属当前源码缺口，不以历史PASS或重复日志恢复资格抵消。
+
+
+### 2026-10-12 机器失败的未确认屏障与有限重试
+
+当前源码确认 cleanup incomplete 等错误此前会置KNOWN_FAILURE并开放重跑。本轮改为仅明确已确认的本地worker失败解除此屏障，未知错误/清理未确认/任务丢失/管道收尾不明保留IN_FLIGHT；不声明供应商已停算。每durable identity最多3次总尝试，SQLite重开不重置；旧记录没有可信计数时不发新预算。正式API第4次请求409、worker计数仍3且无成功task。b0b59b0ea337受影响API完整回归通过；最终fail-closed与legacy计数增量cfb4f74f5a85定向4 claim+16 answer API通过。见[回执](receipts/AAOS-MACHINE-RETRY-BARRIER-20261012.json)。正式status/cancel与失败后冷恢复终态仍未实现，不能将本增量宣称完整取消或故障恢复。
+
+### 2026-10-12 机器失败审计原子落盘
+
+已实现 runtime.execution.failed 脱敏审计：失败任务和 KNOWN_FAILURE claim 的 terminal_task_id 在同一 Core savepoint 内写入，审计写入失败回滚重试许可；不同 attempt 保留各自不可改写的历史，UNKNOWN 清理结果继续冻结。失败不保存问题/答案/stderr，provider stop UNKNOWN，usage/cost null。API 全回归 863ed9c30542：338 项、73 个 suite result PASS，source_consistent=true；这是本地 Core 与合成 worker 证据。前次 f471dc774255 编译失败及修正后的 b42286588174 定向 22 项 PASS 均保留。详见 receipts/AAOS-MACHINE-FAILURE-AUDIT-20261012.json。
+
+专用 machine_execution_status、失败日志 clear/前端冷恢复、取消仍未实现；本轮未重新构建或验收 native，不提升整体 PARTIAL。继续在此基础上补 status/clear 和 UI，再做 native 同版本验收。
+
+
+## 2026-10-12 明确机器失败冷恢复与预算缓存修复
+
+状态 IMPLEMENTED_LOCAL / TESTED_LOCAL，整体 PARTIAL。新增 human-only machine-status 只读端口及 Tauri 固定路由；按 workspace/epoch/revision/journal 和当前失败 attempt 核对，UNKNOWN 不解除冻结。正式面板可核对已确认失败并显式结束原请求，保留草稿和历史审计；清除 ACK 丢失走独立读回，不重复模型调用。后端拒绝新 client/input 绕过同 owner 的冻结 journal。复测缓存现在绑定 timeout，旧预算缺失回执只能读历史，不能以换预算隐式重复推理；新复测统一核对 execution schema/request/timeout。
+
+同一 dirty patch `43b726c512709ea528bf66a7e7f571968d5cb3a0320c0cf80fa719efb7d6e050`：Rust workspace `0334da7bb06a` 766 项 / 165 suite PASS；完整前端 `5f4b761dd65e` 127 文件 / 1230 项 PASS（与重编译串行，2 workers）；TypeScript `c763b6f78614`、contracts `3a94507e7974` PASS。定向 Core/SQLite 是 SYNTHETIC worker 的实际本地执行，前端 mounted fixture 是 SIMULATED。此前并发重编译时前端 `b2debf915847` 两项超时仍保留 FAIL，不追认为 PASS。
+
+[本轮回执](receipts/AAOS-MACHINE-FAILURE-COLD-RECOVERY-20261012.json) 保留失败轮次与精确摘要。专用 status/clear 和 UI 冷恢复源码已完成；机器取消、当前 native 构建运行和真实模型失败仍未验证，provider 停算和缺失计量保持 UNKNOWN。下一切片先完成机器取消，再绑定当前 native 资格，避免反复构建旧增量。文档在测试后更新，不声称文档字节已被该源码快照测试。

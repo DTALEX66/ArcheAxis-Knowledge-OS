@@ -11,6 +11,7 @@ import { Section } from "../components/RealData";
 import { MediaReader } from "../components/MediaReader";
 import type { EpubPosition } from "../components/EpubParagraphs";
 import { JobContent } from "../components/JobContent";
+import { OriginalTextCitation } from "../components/OriginalTextCitation";
 import { CheckPanel } from "../components/CheckPanel";
 import { BackupPanel } from "../components/BackupPanel";
 import { ContainerMemberChain } from "../components/ContainerMemberChain";
@@ -313,6 +314,7 @@ export function CanonicalLibrarySpace({initialSourceTarget,purpose,onOpenDocumen
       setSource(null); setOriginal(null); setBytes(null); setAnchors([]); setExportProof(null); setDocumentSource(null); setDocumentOriginal(null); setDocumentBytes(null);
       setEditorEpoch(value => value + 1); setMessage("原创笔记已建立。"); setFailure(false);
       publishDirtyState();
+      if(attempt.body.source_id) await openDocument(created.document_id);
       if(purpose === "library") onOpenDocument?.(created.document_id);
     } catch(error) {
       if(!libraryMounted.current)return;
@@ -337,19 +339,17 @@ export function CanonicalLibrarySpace({initialSourceTarget,purpose,onOpenDocumen
   }
   async function create() {
     if (!source || !original || !bytes) return;
-    const epoch = generation.current;
-    const editingEpoch=editGeneration.current;
-    try {
-      const plain = original.media_type.startsWith("text/") ? new TextDecoder().decode(bytes) : "";
-      const created = await coreCommand<DocumentDto>("document_create", {
-        body: {
-        source_id: source.source_id, source_revision: source.source_revision, title: source.original_name,
-        editor_json: { type: "doc", content: [{ type: "paragraph", ...(plain ? { content: [{ type: "text", text: plain }] } : {}) }] },
-        },
-      });
-      if (epoch !== generation.current || editingEpoch !== editGeneration.current) return;
-      setDocument(created); setDocuments((previous) => [...previous, created]); setOpenedDocuments(previous => [...previous, created]); setDocumentSource(source); setDocumentOriginal(original); setDocumentBytes(bytes); setEditorEpoch((value) => value + 1); setMessage("草稿已建立并持久化。"); setFailure(false);
-    } catch { setMessage("草稿建立失败；原件仍保留。"); setFailure(true); }
+    // Share the durable frozen create journal, including source identity. A
+    // lost ACK must never regenerate the request or substitute a newer source.
+    if(!noteAttempt.current) {
+      const attempt=await prepareOriginalNote();
+      const plain=original.media_type.startsWith("text/")?new TextDecoder().decode(bytes):"";
+      attempt.body.source_id=source.source_id;attempt.body.source_revision=source.source_revision;
+      attempt.body.title=source.original_name;
+      if(plain)attempt.body.editor_json.content![0].content=[{type:"text",text:plain}];
+      noteAttempt.current=attempt;
+    }
+    await createOriginal();
   }
   async function save(content: JSONContent, expectedVersion: number) {
     if (!document) throw new Error("document not loaded");
@@ -571,6 +571,7 @@ export function CanonicalLibrarySpace({initialSourceTarget,purpose,onOpenDocumen
     </nav>
     {nextDocumentCursor ? <button type="button" disabled={loadingDocuments} onClick={()=>void loadMoreDocuments()}>{loadingDocuments ? "正在加载文档…" : "加载更多文档"}</button> : null}
   </>;
+  const originalTextCitation=source&&bytes&&/\.(txt|md)$/i.test(source.original_name)?<OriginalTextCitation sourceId={source.source_id} revision={source.source_revision} bytes={bytes} onAnchor={anchor=>setAnchors(previous=>[...previous.filter(item=>item.anchor_id!==anchor.anchor_id),anchor])}/>:null;
   if(purpose === "library") return <section className="ui-library-page" aria-label="知识库文档视图">
     <div className="ui-content-tabs" role="group" aria-label="内容筛选">
       <button type="button" aria-pressed={contentFilter==="all"} onClick={()=>setContentFilter("all")}>全部内容</button>
@@ -583,7 +584,7 @@ export function CanonicalLibrarySpace({initialSourceTarget,purpose,onOpenDocumen
     </div>{feedback}
   </section>;
   if(purpose === "reader" || purpose === "history") return <section className="ui-reader-page" aria-label={purpose==="history" ? "文档版本视图" : "阅读与编辑文档视图"}>
-    {purpose==="reader"&&source&&original&&bytes?<section aria-label="同源知识整理"><h3>来源 {source.original_name}</h3><p>{source.source_id} · {source.source_revision}</p>{!document?<><pre ref={textRegion} tabIndex={0} aria-label="并排原件正文">{original.media_type.startsWith("text/")?new TextDecoder().decode(bytes):"原字节已核对；派生正文从真实转换作业读取。"}</pre><button disabled={busy} onClick={()=>void singleWrite(create)}>建立版本化草稿</button></>:null}<button aria-pressed={candidateEditing} onClick={()=>setCandidateEditing(true)}>整理此来源为知识候选</button>{candidateEditing?<JobContent key={`journey:${source.source_id}:${source.source_revision}`} sourceId={source.source_id} sourceRevision={source.source_revision} name={source.original_name} pinnedJobId={initialSourceTarget?.job_id} onKnowledge={onKnowledge} onDirtyChange={value=>{if(value)dirtyDocumentIds.current.add("source-candidate");else dirtyDocumentIds.current.delete("source-candidate");publishDirtyState();}} onAnchor={anchor=>setAnchors(previous=>[...previous.filter(a=>a.anchor_id!==anchor.anchor_id),anchor])}/>:null}</section>:null}
+    {purpose==="reader"&&source&&original&&bytes?<section aria-label="同源知识整理"><h3>来源 {source.original_name}</h3>{originalTextCitation}<p>{source.source_id} · {source.source_revision}</p>{!document?<><pre ref={textRegion} tabIndex={0} aria-label="并排原件正文">{original.media_type.startsWith("text/")?new TextDecoder().decode(bytes):"原字节已核对；派生正文从真实转换作业读取。"}</pre><button disabled={busy} onClick={()=>void singleWrite(create)}>建立版本化草稿</button></>:null}<button aria-pressed={candidateEditing} onClick={()=>setCandidateEditing(true)}>整理此来源为知识候选</button>{candidateEditing?<JobContent key={`journey:${source.source_id}:${source.source_revision}`} sourceId={source.source_id} sourceRevision={source.source_revision} name={source.original_name} pinnedJobId={initialSourceTarget?.job_id} onKnowledge={onKnowledge} onDirtyChange={value=>{if(value)dirtyDocumentIds.current.add("source-candidate");else dirtyDocumentIds.current.delete("source-candidate");publishDirtyState();}} onAnchor={anchor=>setAnchors(previous=>[...previous.filter(a=>a.anchor_id!==anchor.anchor_id),anchor])}/>:null}</section>:null}
     {document ? <>
       <div className="ui-reader-toolbar"><div className="ui-content-tabs" role="group" aria-label="阅读辅助视图"><button type="button" aria-pressed={!showSource&&!showVersions} onClick={()=>{setShowSource(false);setShowVersions(false);}}>正文</button><button type="button" aria-pressed={showSource} onClick={()=>setShowSource(value=>!value)}>原件</button><button type="button" aria-pressed={showVersions||purpose==="history"} onClick={()=>setShowVersions(value=>!value)}>版本</button></div></div>
       <div className="ui-reader-layout"><article className="ui-reader-document" aria-label="文档正文与编辑"><header><p className="ui-document-meta">{document.source_id ? "关联原件文档" : "原创笔记"} · v{document.version} · 无需依据即可保存</p><h2>{document.title}</h2></header>{purpose!=="history" ? documentEditor : <p>{document.text_projection}</p>}
@@ -615,6 +616,7 @@ export function CanonicalLibrarySpace({initialSourceTarget,purpose,onOpenDocumen
           <div>
           {isPdf ? <PdfReader bytes={bytes} page={page} onPageChange={setPage} focusRequest={focusRequest} /> : original.media_type.startsWith("text/") ? <pre ref={textRegion} tabIndex={-1} aria-label="原件正文">{new TextDecoder().decode(bytes)}</pre> : null}
           {original.media_type.startsWith("audio/")||original.media_type.startsWith("video/")?<MediaReader key={`media:${source.source_id}`} bytes={bytes} mediaType={original.media_type} seek={mediaSeek?.sourceId===source.source_id?mediaSeek:undefined} onDuration={seconds=>setMediaDuration({sourceId:source.source_id,seconds})}/>:null}
+          {originalTextCitation}
           <JobContent key={`job:${source.source_id}`} sourceId={source.source_id} name={source.original_name} sourceRevision={source.source_revision} epubSeek={epubSeek?.sourceId===source.source_id?epubSeek.position:undefined} onEpubSeek={position=>setEpubSeek({sourceId:source.source_id,position})} onKnowledge={onKnowledge} onTimeSeek={seconds=>setMediaSeek(previous=>({sourceId:source.source_id,milliseconds:seconds*1000,sequence:(previous?.sequence??0)+1}))} onAnchor={anchor=>setAnchors(previous=>previous.some(item=>item.anchor_id===anchor.anchor_id)?previous:[...previous,anchor])} mediaDurationSeconds={mediaDuration?.sourceId===source.source_id?mediaDuration.seconds:undefined}/>
           <ContainerMemberChain key={`members:${source.source_id}`} sourceId={source.source_id} />
           {original && original.media_type === "application/octet-stream" ? <ContentDetectionPanel key={`detect:${source.source_id}`} sourceId={source.source_id} name={source.original_name} /> : null}

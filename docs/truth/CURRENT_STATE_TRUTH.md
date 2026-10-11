@@ -1,15 +1,15 @@
 # Current State Truth — ArcheAxis Knowledge
 
-> **HISTORICAL SNAPSHOT (2026-08-09; its execution/status claims are superseded by R6/M0).**
-> Keep this page as a record of the August truth model and evidence rules, not as the
-> current execution queue. The active baseline is [R6](../authority/taskpack-0919-r6/EXECUTOR-START.md),
-> live progress is [R6-EXECUTION](../current/R6-EXECUTION.md) plus [R6-STATE](../current/R6-STATE.json),
-> and current priority is [M0](../current/M0-DIRECTION-OVERRIDE-20260920.md).
+> **HISTORICAL SNAPSHOT (2026-08-09).** Keep this page as a record of the
+> August truth model and evidence rules. Current routing comes from
+> [active execution](../current/AAOS-ACTIVE-EXECUTION.json); current implementation
+> and acceptance come from its [UI execution record](../current/AAOS-UI-FIRST-EXECUTION-20261009.md).
+> R6/M0 and the September reality files are historical evidence, not another live queue.
 >
 > 文档 ID：`AXW-CURRENT-STATE-v1-2026-08-09`
 >
-> 唯一现场入口：**`docs/current/CURRENT_REALITY_2026-09-01.md`**；
-> `docs/PROJECT_STATUS.md` 为其面向项目的导航页。本文不复制易过期的能力明细；
+> 原历史现场入口：`docs/current/CURRENT_REALITY_2026-09-01.md`；
+> 当前现场入口以活动指针为准。本文不复制易过期的能力明细；
 > 它固定“什么是当前事实”与“什么是规划”的边界。
 
 ## 1. 实现事实 vs 规划/候选（严格分开）
@@ -36,7 +36,7 @@
 ## 3. 配置权威与命名冻结（AXC-000/010，2026-08-13）
 
 - 仓库名 `DTALEX66/ArcheAxis-Knowledge-OS` 为正式云端仓库名，**不再改名**（任务包禁止将其中 `OS` 判为漂移）。
-- 对外产品名 `ArcheAxis Knowledge｜星环知识平台`；内部工作台 `ArcheAxis Learning Workspace`；Python/技术包 `archeaxis-workspace`。
+- 对外产品名 `ArcheAxis Knowledge｜星环知识系统`；内部工作台 `ArcheAxis Learning Workspace`；Python/技术包 `archeaxis-workspace`。
 - 配置权威唯一索引：`docs/CONFIGURATION_AUTHORITY_INDEX.md`（AXC-010）。
 - 任务包：`docs/taskpacks/ArcheAxis-Knowledge-OS_Project_Config_CI_DeDup_TaskPack_2026-08-13.md`（AXC-000~150，基线 1d9d875）。
 

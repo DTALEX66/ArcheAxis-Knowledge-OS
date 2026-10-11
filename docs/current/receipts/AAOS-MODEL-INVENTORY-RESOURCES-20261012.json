@@ -1,0 +1,50 @@
+{
+  "schema": "archeaxis.scoped-regression/v1",
+  "status": "PARTIAL",
+  "scoped_tests_status": "PASS",
+  "evidence_level": "SYNTHETIC_OWNED_PROCESS_AND_SIMULATED_API",
+  "application_resource_tests_passed": 9,
+  "api_contract_tests_passed": 11,
+  "log": ".project-local\\runs\\be268a2d33\\a3d2da86e72a\\logs\\execution.log",
+  "log_sha256": "90f78d446032f2c55a3b7a12525ebea899462815ad45c0206a0bfdbe9ca6cf6d",
+  "verified": [
+    "Inventory settings read failure does not spawn",
+    "Disabled inventory adds no worker invocation after enable/disable API health baseline",
+    "Oversized stdout returns READ_FAILED with unknown counts and owned PID stopped",
+    "15-second inventory timeout returns READ_FAILED and owned PID stopped",
+    "Existing answer resource and API regressions"
+  ],
+  "retained_failed_run": ".project-local/runs/be268a2d33/d546a12ff8d1/logs/execution.log",
+  "failed_run_explanation": "Initial disabled-inventory test incorrectly assumed disabling API performs no existing health handshake; corrected comparison against post-disable count baseline.",
+  "remaining": [],
+  "queue_regression": {
+    "status": "PASS",
+    "evidence_level": "SIMULATED_WITH_OWNED_DATABASE_AND_HELD_SEMAPHORE",
+    "application_tests_passed": 4,
+    "api_tests_passed": 11,
+    "log": ".project-local\\runs\\be268a2d33\\27d8f8195fc1\\logs\\execution.log",
+    "log_sha256": "89a388f72376f1f74f7bcc31d0d4b632387a68d380ff8883a07e15101c65b546",
+    "verified": [
+      "Writer barrier and explicit future polling advance inventory beyond its first settings read into held queue; disabling before release produces DISABLED without worker spawn",
+      "Full queue returns BUSY within bounded wait and does not spawn"
+    ]
+  },
+  "held_pipe_regression": {
+    "status": "PASS",
+    "evidence_level": "SYNTHETIC_OWNED_WINDOWS_PROCESS_AND_PIPE",
+    "application_passed": 5,
+    "api_passed": 11,
+    "log": ".project-local\\runs\\be268a2d33\\3a8563509552\\logs\\execution.log",
+    "log_sha256": "5f5b71fbfee8437e0f37c072db71589e20113c0d8b34b22c0762b7a1c9aa9918",
+    "verified": "Owned holder retains stdout/stderr beyond inventory return; inventory cancels and joins all owned readers before return; holder finishes naturally.",
+    "fix": "CancelIoEx on duplicated owned pipe handles plus owned-thread CancelSynchronousIo; uncompleted cleanup remains explicitly unverified.",
+    "references": [
+      "https://learn.microsoft.com/en-us/windows/win32/api/ioapiset/nf-ioapiset-cancelsynchronousio",
+      "https://learn.microsoft.com/en-us/windows/win32/api/processthreadsapi/nf-processthreadsapi-openthread"
+    ],
+    "failed_compile_run": ".project-local/runs/be268a2d33/55ac5072fc93/logs/execution.log",
+    "failed_runtime_run": ".project-local/runs/be268a2d33/e86ecea91776/logs/execution.log"
+  },
+  "latest_native_qualification": "docs\\current\\receipts\\AAOS-NATIVE-INVENTORY-CLEANUP-20261012.json",
+  "scope_status": "PASS_FOR_SCOPED_INVENTORY_RESOURCE_TESTS_AND_NATIVE_NORMAL_JOURNEY"
+}

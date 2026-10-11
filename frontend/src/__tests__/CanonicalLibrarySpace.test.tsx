@@ -62,6 +62,35 @@ describe("canonical content sample", () => {
       }
     });
   });
+  it("SIMULATED: a source draft retries the identical frozen request after a lost ACK", async () => {
+    const previous=bridge.call.getMockImplementation()!;
+    let saved: typeof doc | null=null;
+    let first=true;
+    bridge.call.mockImplementation(async(operation:string,payload:Record<string,unknown>)=>{
+      if(operation==="documents_list")return {documents:[]};
+      if(operation==="document_create") {
+        const body=payload.body as {create_request_id:string;source_id:string;source_revision:string;title:string;editor_json:typeof doc.editor_json};
+        expect(body.create_request_id).toMatch(/^note_/);
+        const node=body.editor_json.content[0];
+        saved={...doc,document_id:"doc_req_"+createHash("sha256").update(body.create_request_id).digest("hex"),
+          source_id:body.source_id,source_revision:body.source_revision,title:body.title,editor_json:structuredClone(body.editor_json),text_projection:"原文样板",
+          blocks:[{block_id:node.attrs.block_id,kind:"paragraph",ordinal:0,node_json:node,text_projection:"原文样板",codec_status:"known"}] as typeof doc.blocks};
+        if(first){first=false;throw new Error("lost ACK");}return saved;
+      }
+      if(operation==="document_version"&&saved&&payload.document_id===saved.document_id)return saved;
+      if(operation==="document_get"&&saved&&payload.document_id===saved.document_id)return saved;
+      return previous(operation,payload);
+    });
+    render(<CanonicalLibrarySpace/>);
+    const user=userEvent.setup();
+    await user.click(await screen.findByRole("button",{name:"样板.txt"}));
+    await user.click(await screen.findByRole("button",{name:"建立版本化草稿"}));
+    await screen.findByLabelText("待确认的笔记创建");
+    await user.click(screen.getByRole("button",{name:"重试同一笔记请求"}));
+    await waitFor(()=>expect(screen.getByRole("textbox",{name:"文档草稿"})).toHaveTextContent("原文样板"));
+    const sent=bridge.call.mock.calls.filter(([operation])=>operation==="document_create").map(([,payload])=>payload);
+    expect(sent).toHaveLength(2);expect(sent[1]).toEqual(sent[0]);
+  });
   it("SIMULATED: same-space object navigation preserves dirty text and focuses actual version controls without writes", async () => {
     const onDirtyChange = vi.fn();
     const {rerender} = render(<CanonicalLibrarySpace onDirtyChange={onDirtyChange} />);

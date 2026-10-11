@@ -496,7 +496,16 @@ def _prepare_child_command(command: list[str]) -> list[str]:
     return command
 
 
+def configure_console_streams() -> None:
+    """Keep UTF-8 child output lossless even when this launcher started in GBK."""
+    for stream in (sys.stdout, sys.stderr):
+        reconfigure = getattr(stream, "reconfigure", None)
+        if callable(reconfigure):
+            reconfigure(encoding="utf-8")
+
+
 def main() -> int:
+    configure_console_streams()
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--root", type=Path, default=Path(__file__).resolve().parents[2])
     parser.add_argument("--run-id")

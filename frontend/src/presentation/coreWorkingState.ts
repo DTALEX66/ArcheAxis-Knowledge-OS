@@ -1,18 +1,21 @@
 import type { JSONContent } from "@tiptap/core";
-import type { UiWorkingStatePendingJob } from "../api/generated/ui-working-state-contract";
+import type { UiWorkingStatePendingJob, UiWorkingStatePendingReview, UiWorkingStatePendingMachine } from "../api/generated/ui-working-state-contract";
 import { assertUiWorkingState } from "../api/generated/ui-working-state-contract";
 
 export type WorkingEditor = JSONContent & {type:"doc";content:JSONContent[]};
 export type WorkingDraft = {base_version:number;editor_json:WorkingEditor};
-export type PendingOriginal = {create_request_id:string;title:string;editor_json:WorkingEditor};
+export type PendingOriginal = {create_request_id:string;title:string;editor_json:WorkingEditor;source_id?:string;source_revision?:string};
 export type PendingJob = UiWorkingStatePendingJob;
-export type WorkingState = {drafts:Record<string,WorkingDraft>;opened_documents:string[];active_document:string|null;page_id:string|null;pending_original?:PendingOriginal|null;pending_jobs?:Record<string,PendingJob>};
+export type PendingReview = UiWorkingStatePendingReview;
+export type PendingMachine = UiWorkingStatePendingMachine;
+export type WorkingState = {drafts:Record<string,WorkingDraft>;opened_documents:string[];active_document:string|null;page_id:string|null;pending_original?:PendingOriginal|null;pending_jobs?:Record<string,PendingJob>;pending_reviews?:Record<string,PendingReview>;pending_machine?:Record<string,UiWorkingStatePendingMachine>};
 export type WorkingRead = {schema:"archeaxis.ui-working-state/v1";workspace_id:string;restore_epoch:string;state_revision:number;state:WorkingState;draft_digests:Record<string,string>;pending_document_id:string|null;recovery_candidates:WorkingState|null;recovery_requires_confirmation:boolean};
 type Basis = Pick<WorkingRead,"workspace_id"|"restore_epoch"|"state_revision">;
 export type WorkingTransport = {
   read:()=>Promise<WorkingRead>;
   write:(request:Basis & {state:WorkingState})=>Promise<WorkingRead>;
   clearSaved:(request:Basis & {document_id:string;base_version:number;content_sha256:string;saved_version:number})=>Promise<WorkingRead>;
+  clearMachine?:(request:Basis & {journal_id:string;task_id:string})=>Promise<WorkingRead>;
   clearJob?:(request:Basis & {request_id:string;action:"terminal"|"abandon_unadmitted"})=>Promise<WorkingRead>;
   recover:(request:Basis & {action:"preserve"|"discard"})=>Promise<WorkingRead>;
 };
@@ -37,7 +40,7 @@ export class CoreWorkingStateSession {
   private inFlight:Promise<WorkingRead>|null=null;
   private readFlight:Promise<WorkingRead>|null=null;
   private clearFlight:Promise<boolean>|null=null;
-  private unknown:{base:WorkingRead;state:WorkingState;cleared?:{id:string;sent:WorkingDraft};clearedJob?:PendingJob}|null=null;
+  private unknown:{base:WorkingRead;state:WorkingState;cleared?:{id:string;sent:WorkingDraft};clearedJob?:PendingJob;clearedMachine?:PendingMachine}|null=null;
   getSnapshot=():WorkingView=>this.view;
   subscribe=(listener:()=>void):(()=>void)=>{this.listeners.add(listener);return()=>this.listeners.delete(listener);};
   constructor(private transport:WorkingTransport) {}
@@ -71,6 +74,9 @@ export class CoreWorkingStateSession {
             if(!Object.keys(state.pending_jobs!).length)delete state.pending_jobs;
             this.publish({state});
           }
+          if(pending.clearedMachine&&equal(this.view.state.pending_machine?.[pending.clearedMachine.journal_id],pending.clearedMachine)) {
+            const state=structuredClone(this.view.state);delete state.pending_machine![pending.clearedMachine.journal_id];if(!Object.keys(state.pending_machine!).length)delete state.pending_machine;this.publish({state});
+          }
           this.unknown=null;this.publish({server:read,status:equal(read.state,this.view.state)?"ready":"unsaved",error:null});return read;
         }
         if(read.state_revision===pending.base.state_revision&&equal(read.state,pending.base.state)) {
@@ -92,6 +98,16 @@ export class CoreWorkingStateSession {
     this.publish({state,status:this.view.status==="blocked"||this.view.status==="recovery"?this.view.status:"unsaved"});
   }
   rememberDraft(id:string,editor:WorkingEditor,baseVersion:number):void {this.change(state=>{state.drafts[id]={base_version:baseVersion,editor_json:structuredClone(editor)};});}
+  async stageMachine(entry:PendingMachine):Promise<void> {
+    assertUiWorkingState("PendingMachine",entry);
+    const server=this.view.server;
+    if(!server||!["ready","unsaved"].includes(this.view.status)||entry.origin_restore_epoch!==server.restore_epoch)throw new Error("机器请求保全身份未就绪；尚未发送。");
+    const old=this.view.state.pending_machine?.[entry.journal_id];
+    if(old&&!equal(old,entry))throw new Error("机器请求已冻结，不能替换。");
+    this.change(state=>{state.pending_machine??={};state.pending_machine[entry.journal_id]=structuredClone(entry);});
+    const read=await this.flush();
+    if(!equal(read.state.pending_machine?.[entry.journal_id],entry))throw new Error("机器请求落盘未确认；尚未发送。");
+  }
   rememberScene(page:string|null,id?:string):void {this.change(state=>{state.page_id=page;if(id){if(!state.opened_documents.includes(id))state.opened_documents.push(id);state.active_document=id;}});}
   async flush():Promise<WorkingRead> {
     if(this.readFlight)await this.readFlight;
@@ -115,6 +131,20 @@ export class CoreWorkingStateSession {
     this.change(state=>{state.pending_original=structuredClone(body);});
     const read=await this.flush();
     if(!equal(read.state.pending_original,body))throw new Error("笔记创建请求尚未持久化确认。");
+  }
+  async freezeReview(entry:PendingReview):Promise<void> {
+    const server=this.view.server;
+    const old=this.view.state.pending_reviews?.[entry.client_event_id];
+    const retained=server?.state.pending_reviews?.[entry.client_event_id];
+    if(!server||(server.restore_epoch!==entry.origin_restore_epoch&&(!equal(old,entry)||!equal(retained,entry))))throw new Error("复习请求属于另一恢复现场；未发送。");
+    if(old&&!equal(old,entry))throw new Error("复习请求已冻结，不能替换。");
+    this.change(state=>{state.pending_reviews??={};state.pending_reviews[entry.client_event_id]=structuredClone(entry);});
+    const read=await this.flush();if(!equal(read.state.pending_reviews?.[entry.client_event_id],entry))throw new Error("复习身份保全未确认；尚未发送。");
+  }
+  async finishReview(entry:PendingReview):Promise<void> {
+    if(!equal(this.view.state.pending_reviews?.[entry.client_event_id],entry))throw new Error("冻结复习身份已变化。");
+    this.change(state=>{delete state.pending_reviews![entry.client_event_id];if(!Object.keys(state.pending_reviews!).length)delete state.pending_reviews;});
+    await this.flush();
   }
   async stageJob(entry:PendingJob):Promise<void> {
     const old=this.view.state.pending_jobs?.[entry.request_id];
@@ -143,6 +173,26 @@ export class CoreWorkingStateSession {
       if(equal(state.pending_jobs?.[entry.request_id],entry)){delete state.pending_jobs![entry.request_id];if(!Object.keys(state.pending_jobs!).length)delete state.pending_jobs;}
       this.publish({state,server:read,status:equal(state,read.state)?"ready":"unsaved",error:null});
     }catch(error){this.unknown={base:server,state:expected,clearedJob:structuredClone(entry)};this.fail(error);}finally{this.inFlight=null;}
+  }
+  async clearMachine(entry:PendingMachine,taskId:string):Promise<void> {
+    if(this.clearFlight){await this.clearFlight;return this.clearMachine(entry,taskId);}
+    const run=this.clearMachineOnce(entry,taskId).then(()=>true);this.clearFlight=run;
+    try{await run;}finally{this.clearFlight=null;}
+  }
+  private async clearMachineOnce(entry:PendingMachine,taskId:string):Promise<void> {
+    await this.flush();
+    const server=this.view.server!;
+    if(!equal(server.state.pending_machine?.[entry.journal_id],entry)||!this.transport.clearMachine)throw new Error("执行保全清理身份未确认。");
+    const expected=structuredClone(server.state);delete expected.pending_machine![entry.journal_id];
+    if(!Object.keys(expected.pending_machine!).length)delete expected.pending_machine;
+    const run=this.transport.clearMachine({...basis(server),journal_id:entry.journal_id,task_id:taskId});this.inFlight=run;
+    try {
+      const read=assertUiWorkingState<WorkingRead>("Read",await run);
+      if(!sameWorkspace(server,read)||read.state_revision!==server.state_revision+1||!equal(read.state,expected))throw new Error("执行保全清理回执未确认。");
+      const state=structuredClone(this.view.state);
+      if(equal(state.pending_machine?.[entry.journal_id],entry)){delete state.pending_machine![entry.journal_id];if(!Object.keys(state.pending_machine!).length)delete state.pending_machine;}
+      this.publish({state,server:read,status:equal(state,read.state)?"ready":"unsaved",error:null});
+    }catch(error){this.unknown={base:server,state:expected,clearedMachine:structuredClone(entry)};this.fail(error);}finally{this.inFlight=null;}
   }
   async finishOriginal(body:PendingOriginal):Promise<void> {
     if(!equal(this.view.state.pending_original,body))throw new Error("冻结笔记请求身份已变化。");
@@ -180,13 +230,14 @@ export class CoreWorkingStateSession {
   async recover(action:"preserve"|"discard"):Promise<void> {
     const server=this.view.server;
     if(!server?.recovery_requires_confirmation||this.inFlight||this.readFlight||this.clearFlight)throw new Error("没有可确认的恢复候选，或请求仍在执行。");
+    if(action==="discard"&&(Object.keys(server.recovery_candidates?.pending_machine??{}).length||Object.keys(server.recovery_candidates?.pending_reviews??{}).length))throw new Error("恢复候选含未确认的机器或复习请求；请保留候选后核对回执，不能直接丢弃执行记录。");
     const serial=this.serial;
     const expected=action==="preserve"?server.recovery_candidates:empty();
     const run=this.transport.recover({...basis(server),action});this.inFlight=run;
     try {
       const read=assertUiWorkingState<WorkingRead>("Read",await run);
       if(!sameWorkspace(server,read)||read.recovery_requires_confirmation||read.state_revision!==server.state_revision+1||this.serial!==serial||!equal(read.state,expected))throw new Error("恢复确认期间本地输入或身份已变化；未自动应用。");
-      if(Object.keys(this.view.state.drafts).length||this.view.state.pending_original||Object.keys(this.view.state.pending_jobs??{}).length) {
+      if(Object.keys(this.view.state.drafts).length||this.view.state.pending_original||Object.keys(this.view.state.pending_jobs??{}).length||Object.keys(this.view.state.pending_reviews??{}).length||Object.keys(this.view.state.pending_machine??{}).length) {
         this.unknown=null;this.publish({server:read,status:"blocked",error:"Core恢复候选已处理；现场另有本地草稿，请比较保全后再继续，未自动覆盖。"});return;
       }
       this.serial=0;this.unknown=null;this.publish({state:structuredClone(read.state),server:read,status:"ready",error:null});

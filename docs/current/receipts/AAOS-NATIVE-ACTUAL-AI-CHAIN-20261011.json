@@ -1,0 +1,73 @@
+{
+  "schema": "archeaxis.native-actual-ai-progress/v1",
+  "date": "2026-10-11",
+  "overall": "PARTIAL",
+  "engineering_status": "PASS",
+  "evidence_level": "REAL_LOCAL_MODEL_WITH_SYNTHETIC_MATERIAL",
+  "source_patch_sha256": "f412cf71e2faa62c99001632a1c4c37f3c7576bea255c779a71430bcdfc3e7f2",
+  "run": "b07b958b2fc5",
+  "native_run": "webdriver-d48fb2b8b572",
+  "receipt": ".project-local/runs/be268a2d33/webdriver-d48fb2b8b572/tmp/journey/receipt.json",
+  "receipt_sha256": "a0fb289e6c6330982ef50a65b5ab8d06d9f328086a8642cc6b7ff0c4ee2a4b60",
+  "build_receipt": {
+    "status": "PASS",
+    "build_receipt": {
+      "path": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\runs\\be268a2d33\\ebb914367144\\artifacts\\native-build-binding.json",
+      "sha256": "e6d443f593026a2bc4cbe789c51052f559032166e6aa275410176b4fd379ad02",
+      "bytes": 1127
+    },
+    "core_sha256": "87869c10cb25017abfc3ff3377906427f8a1012e7a5949de3655de03ddf36976"
+  },
+  "stages": [
+    {
+      "id": "import",
+      "status": "PASS"
+    },
+    {
+      "id": "read",
+      "status": "PASS"
+    },
+    {
+      "id": "anchor",
+      "status": "PASS"
+    },
+    {
+      "id": "claim",
+      "status": "PASS"
+    },
+    {
+      "id": "learn",
+      "status": "PASS"
+    },
+    {
+      "id": "practice",
+      "status": "PASS"
+    },
+    {
+      "id": "review",
+      "status": "PASS"
+    },
+    {
+      "id": "distill",
+      "status": "EXECUTED_CANDIDATE_NOT_EVALUATED"
+    },
+    {
+      "id": "recover",
+      "status": "PASS"
+    }
+  ],
+  "original_answer_status": "EXECUTED_CANDIDATE_NOT_EVALUATED",
+  "retest_status": "EXECUTED_CANDIDATE_NOT_EVALUATED",
+  "capability_toggle": "PASS",
+  "restored_grant_refusal": "PASS",
+  "source_consistent": true,
+  "owned_ports_released": true,
+  "human_signoff": false,
+  "owner_acceptance": "NOT_EXECUTED",
+  "limits": [
+    "Engineering authored correction is not independent evidence of model error or improvement.",
+    "Earlier retest failures remain unexplained; this successful run does not establish their cause.",
+    "This selected text journey does not qualify all formats, cloud egress, model selection or restart recovery of uncertain requests.",
+    "No commit, push, release or Green replacement."
+  ]
+}

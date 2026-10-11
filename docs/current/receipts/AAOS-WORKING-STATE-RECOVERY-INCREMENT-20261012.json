@@ -1,0 +1,18 @@
+{
+  "schema": "archeaxis.ui-working-state-recovery-increment/v1",
+  "status": "PASS",
+  "product_status": "PARTIAL",
+  "evidence_level": "SIMULATED",
+  "test_count": 29,
+  "log": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\runs\\be268a2d33\\a01a8d79b9f2\\logs\\execution.log",
+  "source_patch_sha256": "288511d52152813fdb831de7f6d3f5f31dcdd66d2c41842fa6ab50b072cbe38f",
+  "changes": [
+    "Generated DTO validator now enforces declared string minLength.",
+    "Preserve/discard backup recovery retains local unconfirmed review journal and blocks silent replacement."
+  ],
+  "limitations": [
+    "No pending_machine implementation yet.",
+    "No native runtime acceptance of these new changes.",
+    "UI journal alone cannot prove exactly-once inference after Core crash; durable pre-inference claim or conservative no-retry recovery is required."
+  ]
+}

@@ -4,6 +4,31 @@ use axum::{Router, body::Body, http::Request};
 use serde_json::{Value, json};
 use tower::ServiceExt;
 async fn call(router: &Router, method: &str, path: &str, body: Value, actor: &str) -> (u16, Value) {
+    let mut body = body;
+    // Existing lifecycle fixtures explicitly model the user's preview-confirm
+    // sequence. raw_call remains available for no-confirmation refusal tests.
+    if method == "POST"
+        && path.ends_with("/checks/execute")
+        && actor == "human"
+        && body["preview"].is_null()
+        && body["confirmed_egress_sha256"].is_null()
+    {
+        let mut preview = body.clone();
+        preview["preview"] = json!(true);
+        let (_, plan) = raw_call(router, method, path, preview, actor).await;
+        if let Some(hash) = plan["egress_sha256"].as_str() {
+            body["confirmed_egress_sha256"] = json!(hash);
+        }
+    }
+    raw_call(router, method, path, body, actor).await
+}
+async fn raw_call(
+    router: &Router,
+    method: &str,
+    path: &str,
+    body: Value,
+    actor: &str,
+) -> (u16, Value) {
     let response = router
         .clone()
         .oneshot(
@@ -38,6 +63,9 @@ async fn configured_worker_is_outside_writer_transaction_and_old_version_readbac
         r#"import hashlib,json,sys,time
 from pathlib import Path
 request=json.load(sys.stdin)
+assert 'egress_sha256' not in request, 'Core admission metadata must not change worker protocol'
+assert request['search_query']=='public synthetic terminology', 'independent query was not forwarded'
+assert request['text']=='saved original', 'unselected document text was forwarded'
 ready=Path({ready});release=Path({release})
 ready.write_text('fixture-ready')
 deadline=time.monotonic()+10
@@ -65,28 +93,79 @@ print(json.dumps(result))
     .with_document_check_config(Some(DocumentCheckConfig {
         provider: "fixture".into(),
         model: "fixture/explicit".into(),
-        endpoint: None,
+        endpoint: Some("https://fixture.invalid/v1".into()),
         max_tokens: 128,
         timeout_seconds: 10,
         search_limit: 1,
     }))
     .unwrap();
     let router = archeaxis_api::runtime::router(executor.clone());
-    let (status,document)=call(&router,"POST","/api/v1/documents",json!({"title":"ordinary","editor_json":{"type":"doc","content":[{"type":"paragraph","content":[{"type":"text","text":"saved original document"}]}]}}),"human").await;
+    let full_text = format!(
+        "{}saved original document{}",
+        "private ".repeat(5000),
+        "private ".repeat(5000)
+    );
+    let (status,document)=call(&router,"POST","/api/v1/documents",json!({"title":"ordinary","editor_json":{"type":"doc","content":[{"type":"paragraph","content":[{"type":"text","text":full_text}]}]}}),"human").await;
     assert_eq!(status, 201);
     let id = document["document_id"].as_str().unwrap();
     let checks = format!("/api/v1/documents/{id}/checks");
     let execute = format!("{checks}/execute");
+    for query in [" ".to_owned(), "x".repeat(1001)] {
+        assert_eq!(call(&router, "POST", &checks,
+            json!({"version":1,"dimension":"professional_basis","provider_mode":"cloud","search_query":query}), "human").await.0, 400);
+    }
+    assert_eq!(call(&router, "POST", &checks,
+        json!({"version":1,"dimension":"professional_basis","provider_mode":"cloud","search_query":"public query"}), "machine").await.0, 400);
     let (status, pending) = call(
         &router,
         "POST",
         &checks,
-        json!({"version":1,"dimension":"professional_basis","provider_mode":"cloud"}),
+        json!({"version":1,"dimension":"professional_basis","provider_mode":"cloud","search_query":"public synthetic terminology"}),
         "human",
     )
     .await;
     assert_eq!(status, 201);
-    let body = json!({"check_id":pending["check_id"],"expected_content_sha256":document["content_sha256"]});
+    assert_eq!(pending["search_query"], "public synthetic terminology");
+    assert_eq!(raw_call(&router, "POST", &execute,
+        json!({"check_id":pending["check_id"],"expected_content_sha256":document["content_sha256"],"preview":true}), "human").await.0, 400);
+    let body = json!({"check_id":pending["check_id"],"expected_content_sha256":document["content_sha256"],"selected_text":"saved original"});
+    assert_eq!(
+        raw_call(&router, "POST", &execute, body.clone(), "human")
+            .await
+            .0,
+        400
+    );
+    assert!(!ready.exists());
+    let mut preview_body = body.clone();
+    preview_body["preview"] = json!(true);
+    let (preview_status, preview) =
+        raw_call(&router, "POST", &execute, preview_body, "human").await;
+    assert_eq!(preview_status, 200);
+    assert_eq!(
+        preview["egress_plan"]["search_query"],
+        "public synthetic terminology"
+    );
+    assert_eq!(
+        preview["egress_plan"]["document_text"]["text"],
+        "saved original"
+    );
+    assert!(!ready.exists());
+    assert_eq!(preview["egress_plan"]["scope"], "selected_text");
+    let mut changed_material = body.clone();
+    changed_material["confirmed_egress_sha256"] = preview["egress_sha256"].clone();
+    changed_material["selected_text"] = json!("document");
+    assert_eq!(
+        raw_call(&router, "POST", &execute, changed_material, "human")
+            .await
+            .0,
+        400
+    );
+    let mut stale = body.clone();
+    stale["confirmed_egress_sha256"] = json!("0".repeat(64));
+    assert_eq!(
+        raw_call(&router, "POST", &execute, stale, "human").await.0,
+        400
+    );
     assert_eq!(
         call(&router, "POST", &execute, body.clone(), "machine")
             .await
@@ -114,6 +193,11 @@ print(json.dumps(result))
     assert_eq!(terminal["execution_verified"], true);
     assert_eq!(terminal["status"], "uncertain");
     assert_eq!(terminal["actor"], "machine");
+    assert_eq!(terminal["egress_plan"]["scope"], "selected_text");
+    assert_eq!(
+        terminal["egress_plan"]["document_text"]["text"],
+        "saved original"
+    );
     drop(router);
     drop(executor);
     let restarted = archeaxis_api::app(database.to_str().unwrap()).unwrap();
@@ -129,6 +213,10 @@ print(json.dumps(result))
     assert_eq!(history["historical"], true);
     assert_eq!(history["checks"].as_array().unwrap().len(), 3);
     assert_eq!(
+        history["checks"].as_array().unwrap().last().unwrap()["egress_plan"],
+        terminal["egress_plan"]
+    );
+    assert_eq!(
         call(
             &restarted,
             "GET",
@@ -140,6 +228,271 @@ print(json.dumps(result))
         .1["text_projection"],
         "save never waits for cloud"
     );
+}
+
+#[tokio::test]
+async fn withdrawal_while_waiting_for_worker_slot_prevents_worker_start() {
+    let dir = tempfile::tempdir().unwrap();
+    let release = dir.path().join("release");
+    let script = dir.path().join("worker.py");
+    let source = format!(
+        r#"import json,sys,time
+from pathlib import Path
+request=json.load(sys.stdin)
+directory=Path({directory})
+(directory/('ready-'+request['request_check_id'])).write_text('synthetic worker started')
+deadline=time.monotonic()+10
+while not (directory/'release').exists() and time.monotonic()<deadline: time.sleep(.01)
+assert (directory/'release').exists(), 'fixture timeout'
+print(json.dumps({{'schema':'archeaxis.document-check.response/v1',**{{k:request[k] for k in ('attempt_id','request_check_id','document_id','version','content_sha256','dimension')}},'outcome':'failed','status':'failed','reason':'fixture_end','basis':'','raw_response':'','engine_receipt':None,'retrieval_receipts':[]}}))
+sys.exit(1)
+"#,
+        directory = serde_json::to_string(&dir.path().to_string_lossy()).unwrap()
+    );
+    std::fs::write(&script, source).unwrap();
+    let python = std::path::PathBuf::from(std::env::var_os("ARCHEAXIS_PYTHON").unwrap());
+    let executor = Executor::open_routes(
+        &dir.path().join("db.sqlite"),
+        &dir.path().join("staging"),
+        &python,
+        &script,
+        &[("machine.answer", script.clone())],
+    )
+    .await
+    .unwrap()
+    .with_document_check_config(Some(DocumentCheckConfig {
+        provider: "fixture".into(),
+        model: "fixture/explicit".into(),
+        endpoint: Some("https://fixture.invalid/v1".into()),
+        max_tokens: 128,
+        timeout_seconds: 10,
+        search_limit: 1,
+    }))
+    .unwrap();
+    let router = archeaxis_api::runtime::router(executor);
+    let (status, document) = call(&router,"POST","/api/v1/documents",json!({"title":"ordinary","editor_json":{"type":"doc","content":[{"type":"paragraph","content":[{"type":"text","text":"synthetic selected material"}]}]}}),"human").await;
+    assert_eq!(status, 201);
+    let checks = format!(
+        "/api/v1/documents/{}/checks",
+        document["document_id"].as_str().unwrap()
+    );
+    let execute = format!("{checks}/execute");
+    let mut tasks = Vec::new();
+    let mut last_body = Value::Null;
+    let mut last_marker = dir.path().join("unused");
+    let mut active_withdrawal = Value::Null;
+    for index in 0..5 {
+        let (status,pending) = call(&router,"POST",&checks,json!({"version":1,"dimension":"professional_basis","provider_mode":"cloud","search_query":"public synthetic query"}),"human").await;
+        assert_eq!(status, 201);
+        let mut body = json!({"check_id":pending["check_id"],"expected_content_sha256":document["content_sha256"],"preview":true});
+        let (status, plan) = raw_call(&router, "POST", &execute, body.clone(), "human").await;
+        assert_eq!(status, 200);
+        body.as_object_mut().unwrap().remove("preview");
+        body["confirmed_egress_sha256"] = plan["egress_sha256"].clone();
+        let marker = dir
+            .path()
+            .join(format!("ready-{}", pending["check_id"].as_str().unwrap()));
+        last_body = json!({"check_id":pending["check_id"],"expected_content_sha256":document["content_sha256"],"withdraw":true});
+        if index == 0 {
+            active_withdrawal = last_body.clone();
+        }
+        last_marker = marker.clone();
+        let owned = router.clone();
+        let endpoint = execute.clone();
+        tasks.push(tokio::spawn(async move {
+            raw_call(&owned, "POST", &endpoint, body, "human").await
+        }));
+        if index < 4 {
+            tokio::time::timeout(std::time::Duration::from_secs(5), async {
+                while !marker.exists() {
+                    tokio::time::sleep(std::time::Duration::from_millis(10)).await;
+                }
+            })
+            .await
+            .unwrap();
+        }
+    }
+    let root = last_body["check_id"].clone();
+    tokio::time::timeout(std::time::Duration::from_secs(5), async {
+        loop {
+            let (_, history) = raw_call(&router, "GET", &checks, Value::Null, "human").await;
+            if history["checks"]
+                .as_array()
+                .unwrap()
+                .iter()
+                .any(|r| r["request_check_id"] == root && r["execution_state"] == "running")
+            {
+                break;
+            }
+            tokio::time::sleep(std::time::Duration::from_millis(10)).await;
+        }
+    })
+    .await
+    .unwrap();
+    assert!(!last_marker.exists());
+    let (status, withdrawal) = raw_call(&router, "POST", &execute, last_body, "human").await;
+    assert_eq!(status, 200, "{withdrawal}");
+    let (status, withdrawal) =
+        raw_call(&router, "POST", &execute, active_withdrawal, "human").await;
+    assert_eq!(status, 200, "{withdrawal}");
+    let (status, cancelled) =
+        tokio::time::timeout(std::time::Duration::from_secs(5), tasks.remove(0))
+            .await
+            .expect("active withdrawal must finish before fixture release")
+            .unwrap();
+    assert_eq!(status, 201, "{cancelled}");
+    assert_eq!(cancelled["reason"], "egress_withdrawn");
+    assert_eq!(cancelled["execution_verified"], false);
+    std::fs::write(release, b"release fixtures").unwrap();
+    let mut last_result = Value::Null;
+    for task in tasks {
+        let (status, receipt) = task.await.unwrap();
+        assert_eq!(status, 201, "{receipt}");
+        last_result = receipt;
+    }
+    assert_eq!(last_result["reason"], "egress_withdrawn");
+    assert!(
+        !last_marker.exists(),
+        "withdrawn queued worker must never start"
+    );
+}
+
+#[tokio::test]
+async fn local_only_and_durable_withdrawal_preserve_save_with_or_without_engine() {
+    for configured in [false, true] {
+        let dir = tempfile::tempdir().unwrap();
+        let marker = dir.path().join("unexpected-worker");
+        let script = dir.path().join("worker.py");
+        std::fs::write(
+            &script,
+            format!(
+                "from pathlib import Path\nPath({}).write_text('unexpected synthetic worker')\n",
+                serde_json::to_string(&marker.to_string_lossy()).unwrap()
+            ),
+        )
+        .unwrap();
+        let python = std::path::PathBuf::from(std::env::var_os("ARCHEAXIS_PYTHON").unwrap());
+        let db = dir.path().join("db.sqlite");
+        let executor = Executor::open_routes(
+            &db,
+            &dir.path().join("staging"),
+            &python,
+            &script,
+            &[("machine.answer", script.clone())],
+        )
+        .await
+        .unwrap()
+        .with_document_check_config(configured.then(|| DocumentCheckConfig {
+            provider: "fixture".into(),
+            model: "fixture/explicit".into(),
+            endpoint: Some("https://fixture.invalid/v1".into()),
+            max_tokens: 128,
+            timeout_seconds: 10,
+            search_limit: 1,
+        }))
+        .unwrap();
+        let router = archeaxis_api::runtime::router(executor.clone());
+        let (status,document)=call(&router,"POST","/api/v1/documents",json!({"title":"ordinary","editor_json":{"type":"doc","content":[{"type":"paragraph","content":[{"type":"text","text":"synthetic material"}]}]}}),"human").await;
+        assert_eq!(status, 201);
+        let path = format!(
+            "/api/v1/documents/{}",
+            document["document_id"].as_str().unwrap()
+        );
+        let checks = format!("{path}/checks");
+        let execute = format!("{checks}/execute");
+        let (status,local)=call(&router,"POST",&checks,json!({"version":1,"dimension":"professional_basis","provider_mode":"cloud","search_query":"public synthetic query","local_only":true}),"human").await;
+        assert_eq!(status, 201);
+        assert_eq!(local["local_only"], true);
+        let local_body = json!({"check_id":local["check_id"],"expected_content_sha256":document["content_sha256"],"confirmed_egress_sha256":"0".repeat(64)});
+        assert_eq!(
+            raw_call(&router, "POST", &execute, local_body, "human")
+                .await
+                .0,
+            400
+        );
+        let (status,pending)=call(&router,"POST",&checks,json!({"version":1,"dimension":"professional_basis","provider_mode":"cloud","search_query":"public synthetic query"}),"human").await;
+        assert_eq!(status, 201);
+        let body = json!({"check_id":pending["check_id"],"expected_content_sha256":document["content_sha256"],"withdraw":true});
+        assert_eq!(
+            raw_call(&router, "POST", &execute, body.clone(), "machine")
+                .await
+                .0,
+            403
+        );
+        let mut wrong = body.clone();
+        wrong["expected_content_sha256"] = json!("wrong");
+        assert_eq!(
+            raw_call(&router, "POST", &execute, wrong, "human").await.0,
+            400
+        );
+        let mut mixed = body.clone();
+        mixed["preview"] = json!(true);
+        assert_eq!(
+            raw_call(&router, "POST", &execute, mixed, "human").await.0,
+            400
+        );
+        let mut preview_body = body.clone();
+        preview_body.as_object_mut().unwrap().remove("withdraw");
+        preview_body["preview"] = json!(true);
+        let (_, old_preview) =
+            raw_call(&router, "POST", &execute, preview_body.clone(), "human").await;
+        let (status, event) = raw_call(&router, "POST", &execute, body.clone(), "human").await;
+        assert_eq!(status, 200);
+        assert_eq!(event["execution_state"], "withdrawn");
+        assert!(event["attempt_id"].is_null());
+        assert!(event["request_check_id"].is_null());
+        assert_eq!(
+            raw_call(&router, "POST", &execute, body.clone(), "human").await,
+            (200, event.clone())
+        );
+        assert_eq!(
+            raw_call(&router, "POST", &execute, preview_body, "human")
+                .await
+                .0,
+            if configured { 400 } else { 503 }
+        );
+        let execute_body = json!({"check_id":pending["check_id"],"expected_content_sha256":document["content_sha256"],"confirmed_egress_sha256":old_preview["egress_sha256"]});
+        assert_eq!(
+            raw_call(&router, "POST", &execute, execute_body.clone(), "human")
+                .await
+                .0,
+            400
+        );
+        assert!(!marker.exists());
+        let (status,saved)=call(&router,"PUT",&format!("{path}/draft"),json!({"expected_version":1,"editor_json":{"type":"doc","content":[{"type":"paragraph","content":[{"type":"text","text":"saving remains independent"}]}]}}),"human").await;
+        assert_eq!(status, 200);
+        assert_eq!(saved["version"], 2);
+        drop(router);
+        drop(executor);
+        let reopened = archeaxis_api::app(db.to_str().unwrap()).unwrap();
+        assert_eq!(
+            raw_call(&reopened, "POST", &execute, body, "human").await,
+            (200, event.clone())
+        );
+        assert_eq!(
+            raw_call(&reopened, "POST", &execute, execute_body, "human")
+                .await
+                .0,
+            400
+        );
+        let (_, history) = raw_call(
+            &reopened,
+            "GET",
+            &format!("{checks}?version=1"),
+            Value::Null,
+            "human",
+        )
+        .await;
+        assert_eq!(history["checks"].as_array().unwrap().len(), 3);
+        assert!(history["checks"].as_array().unwrap().contains(&event));
+        assert_eq!(
+            raw_call(&reopened, "GET", &path, Value::Null, "human")
+                .await
+                .1,
+            saved
+        );
+        assert!(!marker.exists());
+    }
 }
 
 #[tokio::test]
@@ -174,7 +527,7 @@ async fn malformed_flood_and_timeout_are_failed_and_explicitly_retryable() {
         .with_document_check_config(Some(DocumentCheckConfig {
             provider: "fixture".into(),
             model: "fixture/explicit".into(),
-            endpoint: None,
+            endpoint: Some("https://fixture.invalid/v1".into()),
             max_tokens: 128,
             timeout_seconds: 1,
             search_limit: 1,
@@ -195,7 +548,7 @@ async fn malformed_flood_and_timeout_are_failed_and_explicitly_retryable() {
             &router,
             "POST",
             &path,
-            json!({"version":1,"dimension":"professional_basis","provider_mode":"cloud"}),
+            json!({"version":1,"dimension":"professional_basis","provider_mode":"cloud","search_query":"public synthetic terminology"}),
             "human",
         )
         .await;
@@ -283,7 +636,7 @@ async fn invalid_owned_config_preserves_save_and_records_failed_attempt() {
     .with_document_check_config(Some(DocumentCheckConfig {
         provider: "invalid-provider".into(),
         model: "invalid-provider/explicit".into(),
-        endpoint: None,
+        endpoint: Some("https://fixture.invalid/v1".into()),
         max_tokens: 128,
         timeout_seconds: 1,
         search_limit: 1,
@@ -307,7 +660,7 @@ async fn invalid_owned_config_preserves_save_and_records_failed_attempt() {
         &router,
         "POST",
         &path,
-        json!({"version":1,"dimension":"professional_basis","provider_mode":"cloud"}),
+        json!({"version":1,"dimension":"professional_basis","provider_mode":"cloud","search_query":"public synthetic terminology"}),
         "human",
     )
     .await;
@@ -349,7 +702,7 @@ async fn legitimate_material_failure_is_persisted_retryable_and_never_runs_worke
     .with_document_check_config(Some(DocumentCheckConfig {
         provider: "fixture".into(),
         model: "fixture/explicit".into(),
-        endpoint: None,
+        endpoint: Some("https://fixture.invalid/v1".into()),
         max_tokens: 128,
         timeout_seconds: 1,
         search_limit: 1,
@@ -374,7 +727,7 @@ async fn legitimate_material_failure_is_persisted_retryable_and_never_runs_worke
         &router,
         "POST",
         &path,
-        json!({"version":1,"dimension":"professional_basis","provider_mode":"cloud"}),
+        json!({"version":1,"dimension":"professional_basis","provider_mode":"cloud","search_query":"public synthetic terminology"}),
         "human",
     )
     .await;
@@ -517,7 +870,7 @@ async fn retrieval_failure_details_survive_restart_without_blocking_ordinary_sav
         .with_document_check_config(Some(DocumentCheckConfig {
             provider: "fixture".into(),
             model: "fixture/explicit".into(),
-            endpoint: None,
+            endpoint: Some("https://fixture.invalid/v1".into()),
             max_tokens: 128,
             timeout_seconds: 10,
             search_limit: 1,
@@ -537,7 +890,7 @@ async fn retrieval_failure_details_survive_restart_without_blocking_ordinary_sav
             &router,
             "POST",
             &checks,
-            json!({"version":1,"dimension":"professional_basis","provider_mode":"cloud"}),
+            json!({"version":1,"dimension":"professional_basis","provider_mode":"cloud","search_query":"public synthetic terminology"}),
             "human",
         )
         .await;

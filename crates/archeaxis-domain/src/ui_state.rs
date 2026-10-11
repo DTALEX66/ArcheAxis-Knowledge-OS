@@ -33,6 +33,10 @@ pub struct Draft {
 #[derive(Clone, Debug, Deserialize, Serialize, PartialEq)]
 #[serde(deny_unknown_fields)]
 pub struct OriginalAttempt {
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub source_id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub source_revision: Option<String>,
     pub create_request_id: String,
     pub title: String,
     pub editor_json: Value,
@@ -58,6 +62,23 @@ pub struct PendingJob {
     pub origin_restore_epoch: String,
     pub relative: Option<String>,
 }
+#[derive(Clone, Debug, Deserialize, Serialize, PartialEq)]
+#[serde(deny_unknown_fields)]
+pub struct PendingReview {
+    pub item_key: String,
+    pub client_event_id: String,
+    pub body: Value,
+    pub origin_restore_epoch: String,
+}
+#[derive(Clone, Debug, Deserialize, Serialize, PartialEq)]
+#[serde(deny_unknown_fields)]
+pub struct PendingMachine {
+    pub journal_id: String,
+    pub owner_knowledge_id: String,
+    pub operation: String,
+    pub body: Value,
+    pub origin_restore_epoch: String,
+}
 #[derive(Debug, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct ClearJob {
@@ -66,6 +87,23 @@ pub struct ClearJob {
     pub state_revision: i64,
     pub request_id: String,
     pub action: String,
+}
+#[derive(Debug, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct ClearMachine {
+    pub workspace_id: String,
+    pub restore_epoch: String,
+    pub state_revision: i64,
+    pub journal_id: String,
+    pub task_id: String,
+}
+#[derive(Debug, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct MachineStatus {
+    pub workspace_id: String,
+    pub restore_epoch: String,
+    pub state_revision: i64,
+    pub journal_id: String,
 }
 #[derive(Clone, Debug, Default, Deserialize, Serialize)]
 #[serde(deny_unknown_fields)]
@@ -78,6 +116,10 @@ pub struct State {
     pub pending_original: Option<OriginalAttempt>,
     #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
     pub pending_jobs: BTreeMap<String, PendingJob>,
+    #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
+    pub pending_reviews: BTreeMap<String, PendingReview>,
+    #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
+    pub pending_machine: BTreeMap<String, PendingMachine>,
 }
 #[derive(Clone, Debug, Deserialize, Serialize)]
 #[serde(deny_unknown_fields)]
@@ -169,7 +211,90 @@ fn digest(content: &Value) -> String {
         serde_json::to_vec(content).expect("JSON Value serialization"),
     ))
 }
+/// Hash only finite transport inputs. Context execution digests remain separate.
+pub fn machine_request_fingerprint(operation: &str, body: &Value) -> String {
+    let mut request=serde_json::json!({"knowledge_id":body["knowledge_id"],"question":body["question"],
+        "max_tokens":body["max_tokens"].as_u64().unwrap_or(2048),"timeout_s":body["timeout_s"].as_u64().unwrap_or(120),
+        "context_grant":body["context_grant"],"asset_context_grant":body["asset_context_grant"],
+        "client_request_id":if operation=="answer" {body["client_request_id"].clone()} else {Value::Null},
+        "retest_of":if operation=="retest" {body["retest_of"].clone()} else {Value::Null}});
+    if let Some(model)=body.get("model") {request["model"]=model.clone();}
+    digest(&serde_json::json!({"operation":operation,"request":request}))
+}
+fn machine_owner(conn: &Connection, pending: &PendingMachine) -> Result<(), Error> {
+    if pending.operation=="answer" {return Ok(());}
+    let raw:Option<String>=conn.query_row("SELECT conditions FROM machine_tasks WHERE task_id=?1 AND scope='runtime.evaluation.failed'",
+        [pending.body["retest_of"].as_str().ok_or(Error::Invalid("retest journey identity missing"))?],|r|r.get(0)).optional()?;
+    let prior:Value=serde_json::from_str(&raw.ok_or(Error::Invalid("retest journey missing"))?).map_err(|_|Error::Invalid("retest journey unreadable"))?;
+    if prior["knowledge_id"]!=pending.owner_knowledge_id || prior["question"]!=pending.body["question"] {
+        return Err(Error::Invalid("retest journal owner or question differs from failed journey"));
+    }
+    Ok(())
+}
+fn machine_snapshot_shape(document_id: &str, version: i64, hash: &str, max_id: usize) -> bool {
+    !document_id.trim().is_empty() && document_id.len() <= max_id && (1..=9_007_199_254_740_991).contains(&version)
+        && hash.len() == 64 && hash.bytes().all(|b| b.is_ascii_hexdigit() && !b.is_ascii_uppercase())
+}
+fn machine_grant_shapes(body: &Value, operation: &str) -> bool {
+    if let Some(value) = body.get("context_grant") {
+        let Ok(grant) = serde_json::from_value::<crate::context_grant::Consumption>(value.clone()) else { return false; };
+        if !machine_snapshot_shape(&grant.document_id, grant.version, &grant.content_sha256, 256)
+            || grant.purpose.trim().is_empty() || grant.purpose.len() > 1024 { return false; }
+    }
+    if let Some(value) = body.get("asset_context_grant") {
+        if body.get("context_grant").is_none() { return false; }
+        let Ok(grant) = serde_json::from_value::<crate::asset_context_grant::PacketRequest>(value.clone()) else { return false; };
+        if grant.request_id.is_empty() || grant.request_id.len() > 128 || !grant.request_id.bytes().all(|b| (33..=126).contains(&b))
+            || grant.purpose.trim().is_empty() || grant.purpose.len() > 1024
+            || grant.consumer != crate::asset_context_grant::Consumer::LocalMachine
+            || !matches!((operation, &grant.operation), ("answer", crate::asset_context_grant::Operation::Answer) | ("retest", crate::asset_context_grant::Operation::Retest))
+            || !machine_snapshot_shape(&grant.grant.document_id, grant.grant.version, &grant.grant.content_sha256, 128)
+            || !machine_snapshot_shape(&grant.asset.document_id, grant.asset.version, &grant.asset.content_sha256, 128) { return false; }
+    }
+    true
+}
 fn validate(state: &State) -> Result<(), Error> {
+    if state.pending_machine.len()>32 {return Err(Error::Invalid("pending machine limit exceeded"));}
+    for (key,pending) in &state.pending_machine {
+        let allowed=["knowledge_id","question","max_tokens","timeout_s","model","context_grant","asset_context_grant","client_request_id","retest_of"];
+        let body=&pending.body;
+        if key!=&pending.journal_id || !identity(key) || pending.owner_knowledge_id.trim().is_empty() || pending.owner_knowledge_id.len()>256
+            || !["answer","retest"].contains(&pending.operation.as_str())
+            || !(pending.origin_restore_epoch=="initial"||hex32(&pending.origin_restore_epoch))
+            || !body.as_object().is_some_and(|b| b.keys().all(|k|allowed.contains(&k.as_str())))
+            || !body["knowledge_id"].as_str().is_some_and(|s|!s.trim().is_empty()&&s.len()<=256)
+            || !body["question"].as_str().is_some_and(|s|!s.trim().is_empty()&&s.len()<=8192&&!s.contains('\0'))
+            || !body["max_tokens"].as_u64().is_some_and(|n|(128..=4096).contains(&n))
+            || !body["timeout_s"].as_u64().is_some_and(|n|(1..=120).contains(&n))
+            || body.get("model").is_some_and(|v|!v.as_str().is_some_and(|s|!s.is_empty()&&s.trim()==s&&s.len()<=256&&!s.chars().any(char::is_control)))
+            || !machine_grant_shapes(body, &pending.operation)
+            || (pending.operation=="answer" && (body["knowledge_id"]!=pending.owner_knowledge_id || body.get("retest_of").is_some() || !body["client_request_id"].as_str().is_some_and(identity)))
+            || (pending.operation=="retest" && (body.get("client_request_id").is_some() || !body["retest_of"].as_str().is_some_and(identity)))
+        {return Err(Error::Invalid("invalid frozen machine journal"));}
+    }
+    if state.pending_reviews.len() > 32 {
+        return Err(Error::Invalid("pending review limit exceeded"));
+    }
+    let mut review_items = HashSet::new();
+    for (key, review) in &state.pending_reviews {
+        let allowed = ["item_key", "client_event_id", "correct", "rating", "answer", "assessment_id", "question_version", "knowledge_version"];
+        if key != &review.client_event_id || !identity(key)
+            || review.item_key.trim().is_empty() || review.item_key.len() > 512
+            || !review_items.insert(&review.item_key)
+            || review.body["item_key"].as_str() != Some(review.item_key.as_str())
+            || review.body["client_event_id"].as_str() != Some(key.as_str())
+            || !review.body.as_object().is_some_and(|body| body.keys().all(|k| allowed.contains(&k.as_str())))
+            || !review.body["answer"].as_str().is_some_and(|s| !s.trim().is_empty() && s.len() <= 65536)
+            || !review.body["assessment_id"].as_str().is_some_and(|s| !s.is_empty())
+            || !review.body["knowledge_version"].as_str().is_some_and(|s| !s.is_empty())
+            || !review.body["rating"].as_u64().is_some_and(|n| (1..=4).contains(&n))
+            || review.body.get("question_version").is_some_and(|v| !v.as_str().is_some_and(|s| !s.is_empty()))
+            || !review.body["correct"].as_bool().is_some_and(|correct| (review.body["rating"] == 1) == !correct)
+            || !(review.origin_restore_epoch == "initial" || hex32(&review.origin_restore_epoch))
+        {
+            return Err(Error::Invalid("invalid frozen review journal"));
+        }
+    }
     if state.pending_jobs.len() > 64 {
         return Err(Error::Invalid("pending job limit exceeded"));
     }
@@ -206,6 +331,11 @@ fn validate(state: &State) -> Result<(), Error> {
         }
     }
     if let Some(attempt) = &state.pending_original {
+        if !matches!((&attempt.source_id, &attempt.source_revision), (None, None))
+            && !matches!((&attempt.source_id, &attempt.source_revision), (Some(id), Some(revision)) if identity(id) && revision.len() == 64 && revision.bytes().all(|b| b.is_ascii_digit() || (b'a'..=b'f').contains(&b)))
+        {
+            return Err(Error::Invalid("invalid frozen creation source binding"));
+        }
         if !identity(&attempt.create_request_id)
             || attempt.title.len() > 1024
             || attempt.editor_json["type"] != "doc"
@@ -378,6 +508,37 @@ pub fn write(conn: &mut Connection, request: Write) -> Result<Value, Error> {
     if old.restore_epoch != current_epoch {
         return Err(Error::Conflict);
     }
+    for (key,pending) in &old.state.pending_machine {
+        if request.state.pending_machine.get(key)!=Some(pending) {return Err(Error::Invalid("frozen machine cannot be replaced or omitted; requires exact receipt clearance"));}
+    }
+    for (key,pending) in &request.state.pending_machine {
+        if !old.state.pending_machine.contains_key(key) && pending.origin_restore_epoch!=current_epoch {return Err(Error::Invalid("new frozen machine belongs to another restore epoch"));}
+        if !old.state.pending_machine.contains_key(key) {machine_owner(&tx,pending)?;}
+    }
+    for (key, pending) in &old.state.pending_reviews {
+        if request.state.pending_reviews.get(key) == Some(pending) { continue; }
+        if request.state.pending_reviews.contains_key(key) {
+            return Err(Error::Invalid("frozen review cannot be replaced"));
+        }
+        let mut canonical = serde_json::Map::new();
+        for field in ["item_key", "correct", "rating", "now", "answer", "assessment_id", "question_version", "knowledge_version", "exposure_id", "assist_strategy", "rating_version", "correction_id"] {
+            canonical.insert(field.into(), pending.body.get(field).cloned().unwrap_or(Value::Null));
+        }
+        let canonical = Value::Object(canonical).to_string();
+        let mut hash = Sha256::new(); hash.update(b"archeaxis.learning-state/v1\0");
+        for part in ["review", if pending.body["correct"] == true {"correct"} else {"incorrect"}, canonical.as_str()] {
+            hash.update((part.len() as u64).to_le_bytes()); hash.update(part.as_bytes());
+        }
+        let confirmed = tx.query_row("SELECT EXISTS(SELECT 1 FROM learning_event_keys k JOIN learning_events e ON e.event_id=k.event_id WHERE k.event_key=?1 AND k.item_key=?2 AND e.item_key=?2 AND k.payload_hash=?3)", rusqlite::params![key, pending.item_key, hex::encode(hash.finalize())], |r| r.get::<_, bool>(0))?;
+        if !confirmed { return Err(Error::Invalid("frozen review requires exact committed receipt before removal")); }
+    }
+    for (key, pending) in &request.state.pending_reviews {
+        if !old.state.pending_reviews.contains_key(key) {
+            if pending.origin_restore_epoch != current_epoch { return Err(Error::Invalid("new frozen review belongs to another restore epoch")); }
+            let bound = tx.query_row("SELECT EXISTS(SELECT 1 FROM learning_assessments WHERE assessment_id=?1 AND item_key=?2 AND knowledge_version=?3)", rusqlite::params![pending.body["assessment_id"].as_str(), pending.item_key, pending.body["knowledge_version"].as_str()], |r| r.get::<_, bool>(0))?;
+            if !bound { return Err(Error::Invalid("frozen review assessment binding mismatch")); }
+        }
+    }
     for (key, pending) in &old.state.pending_jobs {
         if request.state.pending_jobs.get(key) != Some(pending) {
             return Err(Error::Invalid(
@@ -518,7 +679,12 @@ pub fn recover(conn: &mut Connection, request: Recover) -> Result<Value, Error> 
         return Err(Error::Conflict);
     }
     match request.action {
-        RecoveryAction::Discard => record.state = State::default(),
+        RecoveryAction::Discard => {
+            if !record.state.pending_machine.is_empty() || !record.state.pending_reviews.is_empty() {
+                return Err(Error::Invalid("unconfirmed machine or review recovery candidate requires exact receipt; preserve candidate before reconciliation"));
+            }
+            record.state = State::default();
+        }
         RecoveryAction::Preserve => {
             for pending in record.state.pending_jobs.values() {
                 check_job_binding(&tx, pending)?;
@@ -571,6 +737,120 @@ fn check_job_binding(conn: &Connection, pending: &PendingJob) -> Result<(), Erro
     // Missing job is a staged enqueue intent; this journal neither creates nor executes it.
     Ok(())
 }
+/// Caller holds Runtime admission and active guards; the same Store transaction proves clearance.
+fn machine_claim(conn: &Connection, pending: &PendingMachine) -> Result<Option<Value>, Error> {
+    let fingerprint=machine_request_fingerprint(&pending.operation,&pending.body);
+    let claim_id=if pending.operation=="answer" {
+        format!("answer_req_{}",hex::encode(Sha256::digest(pending.body["client_request_id"].as_str().ok_or(Error::Invalid("answer identity missing"))?.as_bytes())))
+    } else {format!("retest_input_{fingerprint}")};
+    let key=format!("machine_execution_claim_{}",hex::encode(Sha256::digest(claim_id.as_bytes())));
+    let Some(raw)=meta(conn,&key)? else {return Ok(None)};
+    Ok(serde_json::from_str::<Value>(&raw).ok())
+}
+/// A fresh transport identity must not bypass an unresolved journal of this journey.
+/// Headless callers without a UI journal retain the existing API contract.
+pub fn machine_admission_guard(conn: &Connection, owner: &str, operation: &str, fingerprint: &str) -> Result<(), Error> {
+    let Some(raw)=meta(conn,STATE_KEY)? else {return Ok(())};
+    if raw.len()>1_100_000 {return Err(Error::Invalid("working state exceeds bound"))}
+    let record:Stored=serde_json::from_str(&raw).map_err(|_|Error::Invalid("working state unreadable"))?;
+    validate(&record.state)?;
+    for pending in record.state.pending_machine.values().filter(|p|p.owner_knowledge_id==owner) {
+        if pending.operation!=operation || machine_request_fingerprint(&pending.operation,&pending.body)!=fingerprint {
+            return Err(Error::Conflict);
+        }
+    }
+    Ok(())
+}
+fn failure_binding(conn: &Connection, pending: &PendingMachine, task_id: &str, doc: &Value, retest_of: Option<&str>) -> Result<bool, Error> {
+    let fingerprint=machine_request_fingerprint(&pending.operation,&pending.body);
+    let Some(claim)=machine_claim(conn,pending)? else {return Ok(false)};
+    Ok(doc["schema"]=="archeaxis.machine-execution-failed/v1" && doc["execution_state"]=="UNVERIFIED"
+        && doc["answer_published"]==false && doc["authority"]=="historical_execution_audit"
+        && doc["audit_task_id"]==task_id && doc["operation"]==pending.operation && doc["knowledge_id"]==pending.body["knowledge_id"]
+        && doc["admission_request_sha256"]==fingerprint
+        && claim["schema"]=="archeaxis.machine-execution-claim/v1" && claim["state"]=="KNOWN_FAILURE"
+        && claim["terminal_task_id"]==task_id && claim["attempt"]==doc["attempt"]
+        && claim["request_sha256"]==doc["request_sha256"]
+        && doc["attempt"].as_u64().is_some_and(|n|(1..=3).contains(&n)) && doc["max_attempts"]==3 && claim["max_attempts"]==3
+        && (if pending.operation=="answer" {doc["client_request_id"]==pending.body["client_request_id"] && doc["retest_of"].is_null() && retest_of.is_none()}
+            else {doc["retest_of"]==pending.body["retest_of"] && retest_of==pending.body["retest_of"].as_str()}))
+}
+
+/// Historical read only: never consumes grants, invokes inference or changes journals.
+/// A persisted unfinished claim is UNKNOWN, not proof of a live worker.
+pub fn machine_status(conn: &Connection, request: MachineStatus) -> Result<Value, Error> {
+    let id=meta(conn,ID_KEY)?.ok_or(Error::Invalid("workspace identity missing"))?;
+    let current_epoch=epoch(conn)?;let record=stored(conn,&id,&current_epoch)?;
+    compare(&record,&id,&current_epoch,&request.workspace_id,&request.restore_epoch,request.state_revision)?;
+    if record.restore_epoch!=current_epoch {return Err(Error::Conflict)}
+    let pending=record.state.pending_machine.get(&request.journal_id).ok_or(Error::Invalid("frozen machine missing"))?;
+    machine_owner(conn,pending)?;
+    let mut result=serde_json::json!({"schema":"archeaxis.machine-journal-status/v1","journal_id":request.journal_id,
+        "status":"UNKNOWN","can_clear":false,"task_id":null,"attempt":null,"max_attempts":3,"provider_stop_state":"UNKNOWN"});
+    let exists:bool=conn.query_row("SELECT EXISTS(SELECT 1 FROM sqlite_master WHERE type='table' AND name='machine_tasks')",[],|r|r.get(0))?;
+    if !exists {return Ok(result)}
+    let Some(claim)=machine_claim(conn,pending)? else {return Ok(result)};
+    let Some(task_id)=claim["terminal_task_id"].as_str() else {return Ok(result)};
+    let row:Option<(String,Option<String>)>=conn.query_row("SELECT conditions,retest_of FROM machine_tasks WHERE scope='runtime.execution.failed' AND task_id=?1",[task_id],|r|Ok((r.get(0)?,r.get(1)?))).optional()?;
+    if let Some((raw,retest_of))=row {
+        let Ok(doc)=serde_json::from_str::<Value>(&raw) else {return Ok(result)};
+        if failure_binding(conn,pending,&task_id,&doc,retest_of.as_deref())? {
+            result["status"]=serde_json::json!("FAILED");result["can_clear"]=serde_json::json!(true);
+            result["task_id"]=serde_json::json!(task_id);result["attempt"]=doc["attempt"].clone();
+        }
+    }
+    Ok(result)
+}
+
+/// Caller holds Runtime admission and active guards; the same Store transaction proves clearance.
+pub fn clear_machine(conn: &mut Connection, request: ClearMachine) -> Result<Value, Error> {
+    let tx=conn.transaction_with_behavior(TransactionBehavior::Immediate)?;
+    let id=workspace_id(&tx)?;let current_epoch=epoch(&tx)?;let mut record=stored(&tx,&id,&current_epoch)?;
+    compare(&record,&id,&current_epoch,&request.workspace_id,&request.restore_epoch,request.state_revision)?;
+    if record.restore_epoch!=current_epoch {return Err(Error::Conflict);}
+    let pending=record.state.pending_machine.get(&request.journal_id).ok_or(Error::Invalid("frozen machine missing"))?;
+    machine_owner(&tx,pending)?;
+    let scope=if pending.operation=="answer" {"runtime.answer"} else {"runtime.retest"};
+    let raw:Option<(String,String,Option<String>)>=tx.query_row("SELECT conditions,scope,retest_of FROM machine_tasks WHERE task_id=?1 AND scope IN (?2,'runtime.execution.withheld','runtime.execution.failed')",rusqlite::params![request.task_id,scope],|r|Ok((r.get(0)?,r.get(1)?,r.get(2)?))).optional()?;
+    let (raw,actual_scope,retest_of)=raw.ok_or(Error::Invalid("exact machine receipt missing"))?;
+    let doc:Value=serde_json::from_str(&raw).map_err(|_|Error::Invalid("corrupt machine receipt"))?;
+    if actual_scope=="runtime.execution.failed" {
+        if !failure_binding(&tx,pending,&request.task_id,&doc,retest_of.as_deref())? {return Err(Error::Invalid("failure audit frozen identity or current attempt mismatch"))}
+        record.state.pending_machine.remove(&request.journal_id);record.state_revision=next_revision(&record)?;
+        publish(&tx,&record)?;let result=response(&record,&current_epoch);tx.commit()?;return Ok(result);
+    }
+    if actual_scope=="runtime.execution.withheld" {
+        if doc["schema"]!="archeaxis.machine-execution-withheld/v1" || doc["execution_state"]!="EXECUTED_BUT_WITHHELD"
+            || doc["answer_published"]!=false || doc["authority"]!="historical_execution_audit"
+            || doc["audit_task_id"]!=request.task_id || doc["operation"]!=pending.operation || doc["knowledge_id"]!=pending.body["knowledge_id"]
+            || doc["admission_request_sha256"]!=machine_request_fingerprint(&pending.operation,&pending.body)
+            || (pending.operation=="answer" && (doc["client_request_id"]!=pending.body["client_request_id"] || !doc["retest_of"].is_null() || retest_of.is_some()))
+            || (pending.operation=="retest" && (doc["retest_of"]!=pending.body["retest_of"] || retest_of.as_deref()!=pending.body["retest_of"].as_str()))
+        {return Err(Error::Invalid("withheld audit frozen identity mismatch"));}
+        record.state.pending_machine.remove(&request.journal_id);record.state_revision=next_revision(&record)?;
+        publish(&tx,&record)?;let result=response(&record,&current_epoch);tx.commit()?;return Ok(result);
+    }
+    let body=&pending.body;let proof=&doc["request"];
+    let schema=if pending.operation=="answer" {"archeaxis.machine-answer/v1"} else {"archeaxis.machine-retest/v1"};
+    let common=["knowledge_id","question","max_tokens","context_grant","asset_context_grant","model"];
+    if doc["schema"]!=schema || doc["authority"]!="candidate" || doc["answer_id"]!=request.task_id
+        || doc["knowledge_id"]!=body["knowledge_id"] || doc["question"]!=body["question"]
+        || common.iter().any(|k|proof[*k]!=body[*k])
+        || !doc["answer"]["answer"].as_str().is_some_and(|s|!s.trim().is_empty())
+    {return Err(Error::Invalid("machine receipt frozen input mismatch"));}
+    if pending.operation=="answer" {
+        let client=body["client_request_id"].as_str().ok_or(Error::Invalid("answer request identity missing"))?;
+        let expected=format!("answer_req_{}",hex::encode(Sha256::digest(client.as_bytes())));
+        if request.task_id!=expected || doc["client_request_id"]!=client || proof["timeout_s"]!=body["timeout_s"]
+            || (body.get("asset_context_grant").is_some() && proof["asset_client_request_id"]!=client)
+        {return Err(Error::Invalid("answer receipt identity mismatch"));}
+    } else if doc["retest_of"]!=body["retest_of"] || proof["retest_of"]!=body["retest_of"]
+        || doc["execution_request"]["timeout_s"]!=body["timeout_s"]
+    {return Err(Error::Invalid("retest receipt identity or budget mismatch"));}
+    record.state.pending_machine.remove(&request.journal_id);record.state_revision=next_revision(&record)?;
+    publish(&tx,&record)?;let result=response(&record,&current_epoch);tx.commit()?;Ok(result)
+}
+
 /// Caller holds Runtime admission and active guards; the same Store transaction proves clearance.
 pub fn clear_job(conn: &mut Connection, request: ClearJob) -> Result<Value, Error> {
     let tx = conn.transaction_with_behavior(TransactionBehavior::Immediate)?;

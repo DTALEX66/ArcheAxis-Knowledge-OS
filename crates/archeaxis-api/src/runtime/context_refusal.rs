@@ -6,19 +6,23 @@ use rusqlite::Connection;
 use serde_json::{Value, json};
 
 pub(super) fn answer_request(body: &MachineAnswerBody) -> Value {
-    json!({"operation":"answer","request":{
+    let mut request = json!({"operation":"answer","request":{
         "knowledge_id":body.knowledge_id,"question":body.question,
         "max_tokens":body.max_tokens.unwrap_or(2048),"timeout_s":body.timeout_s.unwrap_or(120),
         "context_grant":body.context_grant,"asset_context_grant":body.asset_context_grant,
-        "client_request_id":body.client_request_id,"retest_of":null}})
+        "client_request_id":body.client_request_id,"retest_of":null}});
+    if let Some(model) = &body.model { request["request"]["model"] = json!(model); }
+    request
 }
 
 pub(super) fn retest_request(body: &RetestBody) -> Value {
-    json!({"operation":"retest","request":{
+    let mut request = json!({"operation":"retest","request":{
         "knowledge_id":body.knowledge_id,"question":body.question,
         "max_tokens":body.max_tokens.unwrap_or(2048),"timeout_s":body.timeout_s.unwrap_or(120),
         "context_grant":body.context_grant,"asset_context_grant":body.asset_context_grant,
-        "client_request_id":null,"retest_of":body.retest_of}})
+        "client_request_id":null,"retest_of":body.retest_of}});
+    if let Some(model) = &body.model { request["request"]["model"] = json!(model); }
+    request
 }
 pub(super) fn inspect(
     conn: &Connection,
@@ -93,5 +97,11 @@ mod tests {
             withheld::digest(&retest_request(&retest).to_string()),
             digest
         );
+        let selected: MachineAnswerBody = serde_json::from_value(json!({
+            "knowledge_id":"k","question":"question","client_request_id":"client","model":"m1",
+            "context_grant":{"document_id":"g","version":1,"content_sha256":"a".repeat(64),"purpose":"purpose"}
+        })).unwrap();
+        assert_ne!(withheld::digest(&answer_request(&selected).to_string()), digest);
+        assert_eq!(answer_request(&selected)["request"]["model"], "m1");
     }
 }

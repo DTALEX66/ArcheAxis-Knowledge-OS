@@ -43,7 +43,7 @@ def close_window(child):
         if pid.value == child.pid and user32.IsWindowVisible(handle):
             title = ctypes.create_unicode_buffer(512)
             user32.GetWindowTextW(handle, title, len(title))
-            if title.value.startswith(("星环知识平台", "ArcheAxis")):
+            if title.value.startswith(("星环知识系统", "ArcheAxis")):
                 posted.append(bool(user32.PostMessageW(handle, 0x0010, 0, 0)))
         return True
 

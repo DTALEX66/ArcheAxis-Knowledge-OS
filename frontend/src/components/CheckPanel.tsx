@@ -4,6 +4,29 @@ import { RawReceiptButton } from "./DiagnosticConsole";
 import { assertCoreDto, type DocumentDto, type DocumentCheckDto, type DocumentChecksDto, type RevisionBasisDto } from "../api/generated/core-contract";
 
 const labels: Record<string,string> = {pending:"等待核验",unverified:"未核验",uncertain:"不确定",original_unclear:"原件不清晰",conflicting:"存在冲突",failed:"核验失败",faithful:"识别忠实",mismatch:"识别不一致",supported:"有依据支持",refuted:"依据不支持",passed:"核验通过"};
+function usageLabel(receipt:unknown):string {
+  const tokens=receipt&&typeof receipt==="object"&&!Array.isArray(receipt)?(receipt as Record<string,unknown>).tokens_used:undefined;
+  return Number.isSafeInteger(tokens)&&Number(tokens)>=0?`${String(tokens)} tokens`:"未知";
+}
+function requireEgressPreview(value:DocumentCheckDto,item:DocumentCheckDto,document:DocumentDto,requestId:string):void {
+  const plan=value.egress_plan as Record<string,unknown>|undefined;
+  const material=plan?.document_text as {text?:unknown;bytes?:unknown;sha256?:unknown}|undefined;
+  const configuration=plan?.configuration as {endpoint?:unknown}|undefined;
+  if(value.check_id!==requestId||value.document_id!==document.document_id||value.version!==document.version
+    ||value.content_sha256!==document.content_sha256||value.dimension!==item.dimension||value.provider_mode!=="cloud"
+    ||value.status!=="pending"||value.execution_verified!==false||value.execution_state!=="not_executed"
+    ||typeof value.egress_sha256!=="string"||!/^[a-f0-9]{64}$/.test(value.egress_sha256)
+    ||plan?.schema!=="archeaxis.document-check-egress/v1"||plan.document_id!==document.document_id
+    ||plan.version!==document.version||plan.content_sha256!==document.content_sha256||plan.request_check_id!==requestId
+    ||plan.purpose!==item.dimension||typeof plan.model_destination!=="string"||!plan.model_destination.startsWith("https://")
+    ||configuration?.endpoint!==plan.model_destination||!["selected_text","full_saved_snapshot"].includes(String(plan.scope))
+    ||typeof material?.text!=="string"||new TextEncoder().encode(material.text).length!==material.bytes||Number(material.bytes)>64000
+    ||typeof material.sha256!=="string"||!/^[a-f0-9]{64}$/.test(material.sha256)
+    ||(plan.scope==="selected_text"?(item.dimension!=="professional_basis"||!material.text.trim()||!document.text_projection.includes(material.text)):material.text!==document.text_projection)
+    ||plan.usage!=="unknown"||plan.cost!=="unknown"
+    ||(plan.search_query??null)!==(item.search_query??null)
+    ||plan.search_destination!==(item.search_query?"https://lite.duckduckgo.com/lite/":null))throw new Error("egress preview unconfirmed");
+}
 // Checks transport execution separately from the model's dimension-specific verdict.
 export function checkExecutionLabel(value:DocumentCheckDto):string {
   if(value.execution_verified===false&&value.execution_state==="not_executed"&&value.status==="failed"&&value.reason==="not_configured")return "执行尝试已记录为失败：核验引擎未配置；没有发生云端核验。正文仍可保存。";
@@ -14,8 +37,9 @@ export function checkExecutionLabel(value:DocumentCheckDto):string {
   if(value.execution_verified!==true||value.execution_state!=="executed"||!allowed.includes(value.status)||!engine
     ||["provider","requested_model","model"].some(field=>typeof engine[field]!=="string"||!String(engine[field]).trim()||/^(unknown|unverified)$/i.test(String(engine[field])))
     ||engine.finish_reason!=="stop"||![engine.prompt_sha256,engine.response_sha256].every(hash=>typeof hash==="string"&&/^[a-f0-9]{64}$/i.test(hash))
-    ||!Number.isSafeInteger(engine.tokens_used)||Number(engine.tokens_used)<0||!Array.isArray(value.retrieval_receipts))throw new Error("unverified execution receipt");
-  return `真实核验任务已执行：${labels[value.status]}；${value.dimension==="recognition_fidelity"?"识别忠实度":"专业依据"}与真人认可分别记录。正文仍可保存。`;
+    ||(engine.tokens_used!==null&&(!Number.isSafeInteger(engine.tokens_used)||Number(engine.tokens_used)<0))||!Array.isArray(value.retrieval_receipts))throw new Error("unverified execution receipt");
+  const scope=(value.egress_plan as {scope?:unknown}|undefined)?.scope;
+  return `真实核验任务已执行：${labels[value.status]}；${value.dimension==="recognition_fidelity"?"识别忠实度":"专业依据"}与真人认可分别记录。${scope==="selected_text"?"核验结论只适用于所选片段，不代表全文。":""}正文仍可保存。`;
 }
 export function CheckPanel({document,onRevisionBasis}:{document:DocumentDto;onRevisionBasis:(basis:RevisionBasisDto)=>void}) {
   const identity=`${document.document_id}:${document.version}:${document.content_sha256}`;
@@ -26,6 +50,11 @@ export function CheckPanel({document,onRevisionBasis}:{document:DocumentDto;onRe
   const [version,setVersion]=useState(String(document.version));
   const [message,setMessage]=useState(""); const [busy,setBusy]=useState(false);
   const [reason,setReason]=useState(""); const [position,setPosition]=useState("");
+  const [searchQuery,setSearchQuery]=useState("");
+  const [selectedText,setSelectedText]=useState("");
+  const [localOnly,setLocalOnly]=useState(false);
+  const [controlBusy,setControlBusy]=useState(false);
+  const [pendingEgress,setPendingEgress]=useState<{item:DocumentCheckDto;preview:DocumentCheckDto}|null>(null);
   const [basis,setBasis]=useState(""); const [job,setJob]=useState(""); const [hash,setHash]=useState("");
   const [statuses,setStatuses]=useState({recognition_fidelity:"uncertain",professional_basis:"uncertain"}); const [rationale,setRationale]=useState("");
   async function read(target:number,offset=0) {
@@ -35,7 +64,7 @@ export function CheckPanel({document,onRevisionBasis}:{document:DocumentDto;onRe
     if(value.document_id!==document.document_id||value.version!==target)throw new Error("check identity mismatch");
     if(currentIdentity.current===boundIdentity&&readGeneration.current===generation)setResult(value);
   }
-  useEffect(()=>{let alive=true;executionGeneration.current++;readGeneration.current++;setBusy(false);setMessage("");setResult(null);setVersion(String(document.version));
+  useEffect(()=>{let alive=true;executionGeneration.current++;readGeneration.current++;setBusy(false);setControlBusy(false);setPendingEgress(null);setSelectedText("");setLocalOnly(false);setMessage("");setResult(null);setVersion(String(document.version));
     coreCommand<DocumentChecksDto>("document_checks",{document_id:document.document_id,version:document.version}).then(value=>{
       assertCoreDto("DocumentChecksDto",value);
       if(value.document_id!==document.document_id||value.version!==document.version||value.content_sha256!==document.content_sha256)throw new Error("check identity mismatch");
@@ -46,6 +75,8 @@ export function CheckPanel({document,onRevisionBasis}:{document:DocumentDto;onRe
     setBusy(true);
     try {
       const value=await coreCommand<DocumentCheckDto>("document_check_record",{document_id:document.document_id,body:{version:document.version,dimension,provider_mode:mode,
+        ...(mode==="cloud"&&searchQuery.trim()?{search_query:searchQuery}:{}),
+        ...(mode==="cloud"&&localOnly?{local_only:true}:{}),
         ...(mode==="manual"?{status:statuses[dimension]}:{}),...(reason.trim()?{reason:reason.trim()}:{}),...(position.trim()?{position:{description:position.trim()}}:{}),
         ...(basis.trim()?{basis:basis.trim()}:{}),...(job.trim()?{recognition_job_id:job.trim()}:{}),...(hash.trim()?{recognition_result_sha256:hash.trim()}:{}),
       }});
@@ -57,16 +88,43 @@ export function CheckPanel({document,onRevisionBasis}:{document:DocumentDto;onRe
       try { await read(document.version); } catch { setMessage("核验记录已保存；但记录回读未完成，可稍后重新读取。"); }
     } catch {setMessage("核验记录未确认，请保留填写内容重试；正文仍可保存。");}finally{setBusy(false);}
   }
-  async function execute(item:DocumentCheckDto) {
-    if(item.provider_mode!=="cloud"||item.version!==document.version||item.content_sha256!==document.content_sha256)return;
+  async function withdraw(item:DocumentCheckDto) {
+    const boundIdentity=identity;
+    const requestId=typeof item.request_check_id==="string"?item.request_check_id:item.check_id;
+    setControlBusy(true);setPendingEgress(null);
+    try {
+      const value=await coreCommand<DocumentCheckDto>("document_check_execute",{document_id:document.document_id,body:{check_id:requestId,expected_content_sha256:item.content_sha256,withdraw:true}});
+      assertCoreDto("DocumentCheckDto",value);
+      if(value.document_id!==document.document_id||value.version!==item.version||value.content_sha256!==item.content_sha256||value.dimension!==item.dimension
+        ||value.actor!=="human"||value.provider_mode!=="cloud"||value.status!=="unverified"||value.reason!=="egress_withdrawn"
+        ||!value.check_id.trim()||value.check_id===requestId||value.event_kind!=="egress_control"||value.control!=="withdraw_request"||value.target_request_check_id!==requestId
+        ||value.execution_state!=="withdrawn"||value.execution_verified!==false||value.attempt_id!=null||value.request_check_id!=null)throw new Error("withdrawal receipt unconfirmed");
+      if(currentIdentity.current!==boundIdentity)return;
+      executionGeneration.current++;setBusy(false);
+      setMessage("申请已撤回；后续执行和重试已禁止。已发出的材料无法收回。");
+      try {await read(item.version);}catch {setMessage("申请已撤回；记录回读未完成，可稍后重新读取。已发出的材料无法收回。");}
+    }catch {if(currentIdentity.current===boundIdentity)setMessage("撤回回执未确认；不能宣称申请已撤回，请重新读取记录。");}
+    finally {if(currentIdentity.current===boundIdentity)setControlBusy(false);}
+  }
+  async function execute(item:DocumentCheckDto,confirmed?:DocumentCheckDto) {
+    if(item.provider_mode!=="cloud"||item.local_only===true||item.event_kind==="egress_control"||item.version!==document.version||item.content_sha256!==document.content_sha256)return;
+    setPendingEgress(null);
     const boundIdentity=identity;const generation=++executionGeneration.current;
     const current=()=>currentIdentity.current===boundIdentity&&executionGeneration.current===generation;
     setBusy(true);
     try {
       const requestId=typeof item.request_check_id==="string"?item.request_check_id:item.check_id;
       const retryId=typeof item.attempt_id==="string"?item.attempt_id:undefined;
-      const value=await coreCommand<DocumentCheckDto>("document_check_execute",{document_id:document.document_id,body:{check_id:requestId,expected_content_sha256:document.content_sha256,...(retryId?{retry_of_task_id:retryId}:{})}});
+      const frozenPlan=confirmed?.egress_plan as {scope?:string;document_text?:{text?:string}}|undefined;
+      const selection=confirmed?(frozenPlan?.scope==="selected_text"?frozenPlan.document_text?.text:undefined):item.dimension==="professional_basis"?selectedText||undefined:undefined;
+      const value=await coreCommand<DocumentCheckDto>("document_check_execute",{document_id:document.document_id,body:{check_id:requestId,expected_content_sha256:document.content_sha256,...(retryId?{retry_of_task_id:retryId}:{}),...(selection?{selected_text:selection}:{}),...(confirmed?{confirmed_egress_sha256:confirmed.egress_sha256}:{preview:true})}});
       assertCoreDto("DocumentCheckDto",value);
+      if(!confirmed) {
+        requireEgressPreview(value,item,document,requestId);
+        if(current())setPendingEgress({item,preview:value});
+        return;
+      }
+      if(current())setPendingEgress(null);
       if(value.document_id!==document.document_id||value.version!==document.version||value.content_sha256!==document.content_sha256||value.dimension!==item.dimension||value.provider_mode!=="cloud"||value.request_check_id!==requestId||typeof value.attempt_id!=="string"||value.retry_of_task_id!==(retryId??null))throw new Error("execution identity mismatch");
       const executionMessage=checkExecutionLabel(value);
       const refreshed=await coreCommand<DocumentChecksDto>("document_checks",{document_id:document.document_id,version:document.version});
@@ -75,7 +133,23 @@ export function CheckPanel({document,onRevisionBasis}:{document:DocumentDto;onRe
       if(!current())return;setResult(refreshed);setMessage(executionMessage);
     } catch {if(current())setMessage("执行回执未确认；不会标记核验成功。正文仍可保存。");} finally {if(current())setBusy(false);}
   }
+  const previewPlan=pendingEgress?.preview.egress_plan as Record<string,unknown>|undefined;
+  const previewText=previewPlan?.document_text as {text?:string}|undefined;
+  const previewOriginal=previewPlan?.original as {name?:string;bytes?:number}|null|undefined;
+  const previewRecognition=previewPlan?.recognition as {text?:string}|null|undefined;
   return <section aria-label="内容核验"><h4>内容核验</h4><p>核验与笔记保存独立；核验通过不等同人工认可。</p>
+    {pendingEgress&&pendingEgress.preview.document_id===document.document_id&&pendingEgress.preview.version===document.version&&pendingEgress.preview.content_sha256===document.content_sha256?<section aria-label="本次外发确认">
+      <h5>确认本次材料与目的地</h5><p>{previewPlan?.scope==="selected_text"?"本次只发送所选正文片段；核验结论只适用于该片段。":"本次发送完整的已保存正文；识别核验还包含原件和识别结果。"}用量和费用未知。取消不会发送材料。</p>
+      <p>模型服务：{String(previewPlan?.model_destination??"未知")}</p>
+      <p>公开查询：{String(previewPlan?.search_query??"不进行公开检索")}</p>
+      {previewPlan?.search_destination?<p>搜索服务：{String(previewPlan.search_destination)}；还会读取检索结果中的公开网页。</p>:null}
+      <details><summary>查看将发送的正文</summary><pre>{previewText?.text}</pre></details>
+      {previewOriginal?<p>完整原件：{previewOriginal.name} · {previewOriginal.bytes} 字节；PDF 会转为全部页面图像，超出处理限额时拒绝。</p>:null}
+      {previewRecognition?<details><summary>查看将发送的识别结果</summary><pre>{previewRecognition.text}</pre></details>:null}
+      <RawReceiptButton label="外发计划与指纹" payload={pendingEgress.preview}/>
+      <button disabled={busy} onClick={()=>void execute(pendingEgress.item,pendingEgress.preview)}>确认这些材料并执行</button>
+      <button disabled={busy} onClick={()=>setPendingEgress(null)}>取消本次外发</button>
+    </section>:null}
     <label>查看核验版本 <input type="number" min="1" max={document.version} value={version} onChange={event=>setVersion(event.target.value)}/></label>
     <button disabled={busy} onClick={()=>{const target=Number(version);if(Number.isInteger(target)&&target>0&&target<=document.version)void read(target).catch(()=>setMessage("该版本记录未读取；当前文档未改变。"));}}>读取版本记录</button>
     {result?.checks_capped?<p>此版本记录较多，当前仅显示有限记录。</p>:null}
@@ -86,8 +160,16 @@ export function CheckPanel({document,onRevisionBasis}:{document:DocumentDto;onRe
       {result ? result.checks.filter(item=>item.dimension===dimension).length ? result.checks.filter(item=>item.dimension===dimension).map(item=><div key={item.check_id}>
         <p>{item.status==="passed"?"旧版通过标记（未细分核验维度）":labels[item.status]} · {item.provider_mode==="manual"?"手动记录":item.execution_verified&&item.execution_state==="executed"?"云端任务已执行":item.execution_state==="running"?"任务执行中":item.execution_state==="failed"?"任务执行失败":"云端尚未执行"}</p>
         {item.reason?<p>{item.reason==="worker_not_configured"?"该申请记录创建时引擎未配置；不代表当前配置状态，尚未执行。":item.reason}</p>:null}{item.basis?<p>依据：{String(item.basis)}</p>:null}
-        {item.provider_mode==="cloud"&&result.next_offset==null&&(!item.attempt_id?!result.checks.some(other=>other.request_check_id===item.check_id&&typeof other.attempt_id==="string"):item.status==="failed"&&typeof item.attempt_id==="string"&&result.checks.slice().reverse().find(other=>other.request_check_id===item.request_check_id&&typeof other.attempt_id==="string")?.attempt_id===item.attempt_id)?<button disabled={busy||item.version!==document.version||item.content_sha256!==document.content_sha256} onClick={()=>void execute(item)}>{typeof item.attempt_id==="string"?"明确重试执行核验":"明确执行核验"}</button>:null}
+        {item.search_query?<p>本次独立公开查询：{item.search_query}</p>:null}
+        {item.local_only===true&&item.event_kind!=="egress_control"?<p>本次申请仅限本地；禁止云端执行和联网检索。</p>:null}
+        {item.event_kind!=="egress_control"&&result.checks.some(other=>other.event_kind==="egress_control"&&other.control==="withdraw_request"&&other.target_request_check_id===(item.request_check_id??item.check_id))?<p>该申请已撤回；重新联网需要新申请及重新确认。</p>:null}
+        {item.event_kind==="egress_control"?<p>外发申请撤回记录；不代表事实判断，也不收回已发出的材料。</p>:null}
+        {(item.egress_plan as {scope?:unknown}|undefined)?.scope==="selected_text"?<details><summary>核验范围：仅限所选片段，不代表全文</summary><pre>{String((item.egress_plan as {document_text?:{text?:unknown}}).document_text?.text??"")}</pre></details>:null}
+        {item.egress_plan?<RawReceiptButton label="本次外发范围与计划" payload={{plan:item.egress_plan,sha256:item.egress_sha256}}/>:null}
+        {item.provider_mode==="cloud"&&item.local_only!==true&&item.event_kind!=="egress_control"&&!result.checks.some(other=>other.event_kind==="egress_control"&&other.control==="withdraw_request"&&other.target_request_check_id===(item.request_check_id??item.check_id))&&result.next_offset==null&&(!item.attempt_id?!result.checks.some(other=>other.request_check_id===item.check_id&&typeof other.attempt_id==="string"):item.status==="failed"&&typeof item.attempt_id==="string"&&result.checks.slice().reverse().find(other=>other.request_check_id===item.request_check_id&&typeof other.attempt_id==="string")?.attempt_id===item.attempt_id)?<button disabled={busy||controlBusy||item.version!==document.version||item.content_sha256!==document.content_sha256} onClick={()=>void execute(item)}>{typeof item.attempt_id==="string"?"明确重试执行核验":"明确执行核验"}</button>:null}
+        {item.provider_mode==="cloud"&&item.status==="pending"&&!item.attempt_id&&!item.request_check_id&&item.event_kind!=="egress_control"&&!result.checks.some(other=>other.event_kind==="egress_control"&&other.control==="withdraw_request"&&other.target_request_check_id===item.check_id)?<button disabled={controlBusy} onClick={()=>void withdraw(item)}>撤回此申请</button>:null}
         {item.execution_state==="failed"&&item.reported_status?<p>模型报告：{labels[String(item.reported_status)]??String(item.reported_status)}；任务失败，未验证执行成功。</p>:null}
+        {item.engine_receipt?<p>供应商用量：{usageLabel(item.engine_receipt)}；费用：未知。</p>:null}
         {item.execution_verified&&item.execution_state==="executed"&&item.engine_receipt?<RawReceiptButton label="实际引擎与检索回执" payload={{engine:item.engine_receipt,retrieval:item.retrieval_receipts}} />:null}
         {typeof item.raw_response==="string"&&item.raw_response.length>0?<details><summary>查看模型原始响应</summary><pre>{item.raw_response}</pre></details>:null}
         {item.execution_state==="failed"&&item.engine_receipt?<RawReceiptButton label="失败执行回执" payload={item.engine_receipt} />:null}
@@ -101,6 +183,12 @@ export function CheckPanel({document,onRevisionBasis}:{document:DocumentDto;onRe
       </details>
     </section>)}
     <details><summary>补充核验位置与依据</summary>
+      <label><input type="checkbox" checked={localOnly} onChange={event=>setLocalOnly(event.target.checked)}/>本次申请仅本地，禁止联网</label>
+      <p>仅本地限制随本次申请保存，不能在执行时解除；需要联网时另建申请并重新确认。</p>
+      <label>独立公开查询 <input value={searchQuery} maxLength={1000} onChange={event=>setSearchQuery(event.target.value)}/></label>
+      <label>专业核验正文片段（留空使用全文） <textarea value={selectedText} onChange={event=>{setSelectedText(event.target.value);setPendingEgress(null);}}/></label>
+      <p>片段必须逐字来自当前保存正文；识别忠实度仍使用原件与完整识别结果。</p>
+      <p>查询将发送到搜索服务；请仅填写适合公开检索的词句。正文不会自动成为查询。专业依据需要独立查询；识别核验留空时不搜索。填写位置不限制模型接收的正文或原件范围。</p>
       <label>疑点位置 <input value={position} onChange={event=>setPosition(event.target.value)}/></label>
       <label>核验说明 <textarea value={reason} onChange={event=>setReason(event.target.value)}/></label>
       <label>参考依据 <textarea value={basis} onChange={event=>setBasis(event.target.value)}/></label>

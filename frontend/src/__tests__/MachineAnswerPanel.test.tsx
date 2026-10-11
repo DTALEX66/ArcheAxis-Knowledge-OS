@@ -1,20 +1,22 @@
+import {createHash} from "node:crypto";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MachineAnswerPanel } from "../components/MachineAnswerPanel";
 const bridge=vi.hoisted(()=>({call:vi.fn()}));vi.mock("../api/core",()=>({coreCommand:bridge.call}));
 const answer={schema:"archeaxis.machine-answer/v1",answer_id:"answer1",knowledge_id:"k1",question:"实际问题",answer:{answer:"实际机器回答",model:"local-model"},authority:"candidate"};
-const retestReceipt={schema:"archeaxis.machine-retest/v1",retest_task_id:"retest1",answer_id:"retest1",retest_of:"evaluation_answer1",knowledge_id:"correction1",question:"实际问题",answer:{answer:"纠正后复测回答",model:"local-model"},authority:"candidate",prior:{},request:{retest_of:"evaluation_answer1",knowledge_id:"correction1",question:"实际问题",max_tokens:2048},note:"human compares"};
+const retestReceipt={schema:"archeaxis.machine-retest/v1",retest_task_id:"retest1",answer_id:"retest1",retest_of:"evaluation_answer1",knowledge_id:"correction1",question:"实际问题",answer:{answer:"纠正后复测回答",model:"local-model"},authority:"candidate",prior:{},request:{retest_of:"evaluation_answer1",knowledge_id:"correction1",question:"实际问题",max_tokens:2048},execution_request:{schema:"archeaxis.machine-retest-execution/v1",timeout_s:120,request:{retest_of:"evaluation_answer1",knowledge_id:"correction1",question:"实际问题",max_tokens:2048}},note:"human compares"};
 function task(doc:typeof answer|typeof retestReceipt,scope="runtime.answer") {return {task_id:doc.answer_id,conditions:JSON.stringify(doc),scope,knowledge_version:doc.knowledge_id+"@v1",model_version:doc.answer.model,outcome:"unmeasured",retest_of:scope==="runtime.retest"?"evaluation_answer1":null};}
 describe("SIMULATED machine candidate UI with Core bridge fixtures",()=>{
  beforeEach(()=>{bridge.call.mockReset();});
  it("reads a persisted answer and requires explicit human correction fields without accepting",async()=>{
+  let liveAnswer:typeof answer & Record<string,unknown>=answer;
   let candidateStatus="candidate",candidateVersion="correction-v1";
   bridge.call.mockImplementation(async(op:string,payload:Record<string,unknown>={})=>{
-   if(op==="machine_answer")return answer;
+   if(op==="machine_answer"){const body=payload.body as Record<string,unknown>;liveAnswer={...answer,answer_id:"answer_req_"+createHash("sha256").update(String(body.client_request_id)).digest("hex"),client_request_id:body.client_request_id,request:{...body,schema:"archeaxis.machine-answer-request/v1",context_grant:null,context_sha256:"a".repeat(64)}};return liveAnswer;}
    if(op==="machine_task_get" && payload.task_id==="retest1")return task(retestReceipt,"runtime.retest");
-   if(op==="machine_task_get")return task(answer);
-   if(op==="machine_correction")return {answer_id:"answer1",failed_task_id:"evaluation_answer1",correction_candidate_id:"correction1",status:"candidate",authority:"candidate",corrects_knowledge_id:"k1",question:"实际问题",machine_answer:"实际机器回答",corrected_answer:"使用者纠正",error_note:"具体错误依据",reviewer:"实际使用者"};
+   if(op==="machine_task_get")return task(liveAnswer);
+   if(op==="machine_correction")return {answer_id:liveAnswer.answer_id,failed_task_id:"evaluation_answer1",correction_candidate_id:"correction1",status:"candidate",authority:"candidate",corrects_knowledge_id:"k1",question:"实际问题",machine_answer:"实际机器回答",corrected_answer:"使用者纠正",error_note:"具体错误依据",reviewer:"实际使用者"};
    if(op==="machine_retest")return retestReceipt;
    if(op==="knowledge_get")return {knowledge_id:"correction1",body:"使用者纠正",version:candidateVersion,status:candidateStatus};
    if(op==="knowledge_review"){candidateStatus=(payload.body as Record<string,unknown>).action as string;candidateVersion=candidateVersion==="correction-v1"?"correction-v2":"correction-v3";return {knowledge_id:"correction1",version:candidateVersion};}
@@ -24,7 +26,7 @@ describe("SIMULATED machine candidate UI with Core bridge fixtures",()=>{
   render(<MachineAnswerPanel knowledgeId="k1"/>);const user=userEvent.setup();await user.type(screen.getByLabelText("实际问题"),"实际问题");await user.click(screen.getByRole("button",{name:"执行本地机器回答"}));
   expect(await screen.findByLabelText("真实机器回答")).toHaveTextContent("实际机器回答");expect(screen.getByRole("button",{name:"记录使用者纠正候选"})).toBeDisabled();
   await user.type(screen.getByLabelText("正确答案"),"使用者纠正");await user.type(screen.getByLabelText("具体错误依据"),"具体错误依据");await user.type(screen.getByLabelText("纠正提交者"),"实际使用者");await user.click(screen.getByRole("button",{name:"记录使用者纠正候选"}));
-  await waitFor(()=>expect(bridge.call).toHaveBeenCalledWith("machine_correction",{body:{answer_id:"answer1",knowledge_id:"k1",question:"实际问题",machine_answer:"实际机器回答",corrected_answer:"使用者纠正",error_note:"具体错误依据",reviewer:"实际使用者"}}));
+  await waitFor(()=>expect(bridge.call).toHaveBeenCalledWith("machine_correction",{body:{answer_id:liveAnswer.answer_id,knowledge_id:"k1",question:"实际问题",machine_answer:"实际机器回答",corrected_answer:"使用者纠正",error_note:"具体错误依据",reviewer:"实际使用者"}}));
   expect(await screen.findByText("candidate")).toBeInTheDocument();expect(screen.getByRole("region",{name:"纠正候选审核"})).toBeInTheDocument();
   expect(screen.getByText("Core 候选正文读回").parentElement).toHaveTextContent("使用者纠正");
   expect(screen.getByText("纠正候选修订").parentElement).toHaveTextContent("correction-v1");
@@ -49,11 +51,11 @@ describe("SIMULATED machine candidate UI with Core bridge fixtures",()=>{
 
 describe("machine identity and history regressions",()=>{
  beforeEach(()=>{bridge.call.mockReset();});
- it("rejects the wrong original question and blocks blind reinference",async()=>{
+ it("rejects the wrong original question and blocks UNKNOWN inference retry",async()=>{
   bridge.call.mockResolvedValue({...answer,question:"错问题"});render(<MachineAnswerPanel knowledgeId="k1"/>);
   const user=userEvent.setup();await user.type(screen.getByLabelText("实际问题"),"实际问题");await user.click(screen.getByRole("button",{name:"执行本地机器回答"}));
   expect(await screen.findByText(/状态 UNKNOWN。请读取历史核对/)).toBeInTheDocument();expect(screen.queryByLabelText("真实机器回答")).not.toBeInTheDocument();
-  expect(bridge.call).toHaveBeenCalledTimes(1);expect(screen.getByRole("button",{name:"执行本地机器回答"})).toBeDisabled();
+  expect(bridge.call).toHaveBeenCalledTimes(1);expect(screen.queryByRole("button",{name:"执行本地机器回答"})).not.toBeInTheDocument();expect(screen.getByRole("button",{name:"重试同一回答请求"})).toBeDisabled();await user.click(screen.getByRole("button",{name:"重试同一回答请求"}));expect(bridge.call).toHaveBeenCalledTimes(1);
  });
  it("rejects wrong task knowledge with matching answer text",async()=>{
   bridge.call.mockImplementation(async(op:string)=>op==="machine_answer"?answer:task({...answer,knowledge_id:"other"}));

@@ -6,6 +6,7 @@ import { useEffect, useRef, useState } from "react";
 import { CanonicalLibrarySpace } from "./CanonicalLibrarySpace";
 import { CanonicalKnowledgeSpace } from "./CanonicalKnowledgeSpace";
 import { CanonicalLearningJourneySpace } from "./CanonicalLearningJourneySpace";
+import { useOptionalCoreWorkingState } from "../presentation/useCoreWorkingState";
 import { CanonicalTeachingSpace } from "./CanonicalTeachingSpace";
 import { CanonicalExchangeSpace } from "./CanonicalExchangeSpace";
 import { CanonicalExpressionSpace } from "./CanonicalExpressionSpace";
@@ -76,6 +77,13 @@ export function SpaceView({
   initialLearningItemKey?: string; onReviewItem?: (key:string)=>void;
 }) {
   const [sourceTarget,setSourceTarget]=useState<SourceJourneyTarget>();
+  const working=useOptionalCoreWorkingState();
+  const pendingReviews=Object.values(working?.state.pending_reviews??{});
+  const recoveredReview=useRef<{scope:string;itemKey?:string}>({scope:""});
+  const reviewScope=working?.server?`${working.server.workspace_id}:${working.server.restore_epoch}`:"";
+  if(recoveredReview.current.scope!==reviewScope)recoveredReview.current={scope:reviewScope};
+  if(pendingReviews.length===1)recoveredReview.current.itemKey=pendingReviews[0].item_key;
+  const pendingReviewItemKey=recoveredReview.current.itemKey;
   const [candidateTarget,setCandidateTarget]=useState<CandidateJourneyTarget>();
   const externalDocument=useRef(initialDocumentId);
   useEffect(()=>{if(externalDocument.current!==initialDocumentId){externalDocument.current=initialDocumentId;setSourceTarget(undefined);}},[initialDocumentId]);
@@ -119,10 +127,10 @@ export function SpaceView({
     return <CollectionPanel document={document} value={attrs.archeaxis_collection} readOnly={readOnly} onPendingEditChange={pending} onOpenReference={setPinnedReference} onChange={value=>change({...envelope,attrs:{...attrs,archeaxis_collection:value}})}/>;
   }}/>;
   if (uiPageId === "05") return <CanonicalResearchSpace onOpenReference={setPinnedReference} onTrail={onTrail}/>;
-  if(uiPageId&&["13","14","22"].includes(uiPageId))return <CanonicalControlledAiSpace pageId={uiPageId} initialLearningItemKey={initialLearningItemKey} onOpenPage={onOpenPage} onOpenReference={setPinnedReference}/>;
+  if(uiPageId&&["13","14","22"].includes(uiPageId))return <CanonicalControlledAiSpace pageId={uiPageId} initialLearningItemKey={initialLearningItemKey ?? pendingReviewItemKey} onOpenPage={onOpenPage} onOpenReference={setPinnedReference}/>;
   if (uiPageId === "15") return <CanonicalResourcesSpace onOpenDocument={onOpenDocument} onOpenCapability={onOpenCapability}/>;
   if (uiPageId === "06" || uiPageId === "07") return <CanonicalLearningJourneySpace pageId={uiPageId} initialItemKey={initialLearningItemKey} onLearningItem={onReviewItem} onOpenPage={onOpenPage} onTrail={onTrail}/>;
-  if (uiPageId && ["08","09","10","11","12"].includes(uiPageId)) return <CanonicalTeachingSpace pageId={uiPageId} initialItemKey={initialLearningItemKey} onOpenPage={onOpenPage} onTrail={onTrail}/>;
+  if (uiPageId && ["08","09","10","11","12"].includes(uiPageId)) return <CanonicalTeachingSpace pageId={uiPageId} initialItemKey={initialLearningItemKey ?? pendingReviewItemKey} onOpenPage={onOpenPage} onTrail={onTrail}/>;
   if (uiPageId === "16") return <CanonicalExchangeSpace onReadSource={target=>{setSourceTarget(target);setCandidateTarget(undefined);onOpenPage?.("03");}} initialDocumentId={initialDocumentId} onOpenDocument={onOpenDocument} onOpenPage={onOpenPage} onTrail={onTrail}/>;
   const semanticPage = uiPageId ? findUiPage(uiPageId) : undefined;
   if (semanticPage && !semanticPage.implemented) return <section className="ui-pending-page" aria-label={semanticPage.label}><h2>此页面尚未接通</h2><p>能力意图和页面入口已保留；当前没有此页面的完整真实用户路径。</p><p>承接任务 {semanticPage.task} · UI / {semanticPage.id}</p><button onClick={()=>onNavigate("settings")}>查看能力、依赖与系统状态</button></section>;

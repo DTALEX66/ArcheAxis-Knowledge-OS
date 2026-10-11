@@ -6,7 +6,7 @@ import { ApiError } from "../api/client";
 
 export class OriginalNoteRefused extends Error {}
 
-export type OriginalNoteAttempt = { id:string; body:{create_request_id:string;title:string;editor_json:JSONContent} };
+export type OriginalNoteAttempt = { id:string; body:{create_request_id:string;title:string;editor_json:JSONContent;source_id?:string;source_revision?:string} };
 function canonical(value:unknown):string {
   if(Array.isArray(value))return `[${value.map(canonical).join(",")}]`;
   if(value&&typeof value==="object")return `{${Object.entries(value).sort(([a],[b])=>a.localeCompare(b)).map(([key,item])=>`${JSON.stringify(key)}:${canonical(item)}`).join(",")}}`;
@@ -20,11 +20,12 @@ export async function prepareOriginalNote():Promise<OriginalNoteAttempt> {
 export function validateOriginalNote(attempt:OriginalNoteAttempt,document:DocumentDto):void {
   const node=attempt.body.editor_json.content![0];
   const block=document.blocks?.[0];
+  const text=(node.content??[]).map(item=>item.text??"").join("");
   if(document.document_id!==attempt.id||document.version!==1||document.title!==attempt.body.title
-    ||document.source_id!==null||document.source_revision!==null||document.text_projection!==""
+    ||document.source_id!==(attempt.body.source_id??null)||document.source_revision!==(attempt.body.source_revision??null)||document.text_projection!==text
     ||!/^[a-f0-9]{64}$/.test(document.content_sha256)||canonical(document.editor_json)!==canonical(attempt.body.editor_json)
     ||document.blocks?.length!==1||block.block_id!==node.attrs!.block_id||block.ordinal!==0
-    ||block.kind!=="paragraph"||block.text_projection!==""||canonical(block.node_json)!==canonical(node)) {
+    ||block.kind!=="paragraph"||block.text_projection!==text||canonical(block.node_json)!==canonical(node)) {
     throw new Error("笔记创建身份或完整正文读回不一致；冻结请求仍保留。");
   }
 }

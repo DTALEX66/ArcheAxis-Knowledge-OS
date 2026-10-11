@@ -48,6 +48,7 @@ export class ApiError extends Error {
     public execution?: MachineExecutionRefusal,
     public jobAdmission?: JobAdmissionRefusal,
     public machineAdmission?: MachineAdmissionRefusal,
+    public machineFailure?: {reason_code:string;execution_state:"UNVERIFIED";answer_published:false},
   ) {
     super(message);
     this.name = "ApiError";

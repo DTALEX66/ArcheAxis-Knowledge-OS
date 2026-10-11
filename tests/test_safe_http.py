@@ -22,6 +22,9 @@ def test_rejects_private_and_loopback_targets_before_open(monkeypatch):
         "http://10.0.0.8/internal",
         "http://192.168.1.10/router",
         "http://169.254.169.254/latest/meta-data",
+        "http://224.0.0.1/",
+        "http://239.255.255.250/",
+        "http://[ff02::1]/",
     ):
         with pytest.raises(SafeHTTPError, match="blocked address"):
             fetch(url)
@@ -71,7 +74,7 @@ def test_revalidates_each_redirect(monkeypatch):
         "shared.safe_http._open_once",
         lambda *args, **kwargs: SimpleNamespace(
             status=302,
-            headers={"location": "http://internal.example/secret"},
+            headers={"location": "https://internal.example/secret"},
             body=b"",
         ),
     )
@@ -201,3 +204,43 @@ def test_bounded_reader_rejects_body_without_loading_more_than_limit():
     with pytest.raises(SafeHTTPError, match="response exceeds"):
         _read_bounded(response, 5)
     assert response.requested == [6]
+
+
+@pytest.mark.parametrize("location,method,body,headers", [
+    ("https://other.example/", "POST", b"synthetic-private-material", {}),
+    ("https://other.example/", "GET", None, {"Authorization": "synthetic-token"}),
+    ("https://other.example/", "GET", None, {"Cookie": "synthetic-session"}),
+    ("https://other.example/", "GET", None, {"X-Api-Key": "synthetic-key"}),
+    ("http://example.com/", "GET", None, {}),
+])
+def test_redirect_cannot_expand_sensitive_destination(monkeypatch, location, method, body, headers):
+    monkeypatch.setattr("shared.safe_http._resolve_addresses", lambda hostname, **kwargs: ["93.184.216.34"])
+    opened = []
+
+    def fake_open(url, **kwargs):
+        opened.append(url)
+        return SimpleNamespace(status=307, headers={"location": location}, body=b"")
+
+    monkeypatch.setattr("shared.safe_http._open_once", fake_open)
+    with pytest.raises(SafeHTTPError, match="redirect"):
+        fetch("https://example.com/start", method=method, body=body, headers=headers)
+    assert opened == ["https://example.com/start"]
+
+
+@pytest.mark.parametrize("location,headers", [
+    ("https://other.example/public", {}),
+    ("/next", {"Authorization": "synthetic-token"}),
+])
+def test_safe_public_or_same_origin_redirect_remains_available(monkeypatch, location, headers):
+    monkeypatch.setattr("shared.safe_http._resolve_addresses", lambda hostname, **kwargs: ["93.184.216.34"])
+    opened = []
+
+    def fake_open(url, **kwargs):
+        opened.append((url, kwargs["headers"]))
+        return SimpleNamespace(status=302, headers={"location": location}, body=b"") if len(opened)==1 else SimpleNamespace(status=200, headers={"content-type": "text/plain"}, body=b"ok")
+
+    monkeypatch.setattr("shared.safe_http._open_once", fake_open)
+    assert fetch("https://example.com/start", headers=headers).body == b"ok"
+    assert len(opened) == 2
+    if headers:
+        assert opened[1][1]["Authorization"] == "synthetic-token"

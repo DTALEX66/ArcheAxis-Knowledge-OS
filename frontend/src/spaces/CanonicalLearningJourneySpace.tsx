@@ -3,6 +3,7 @@ import { coreCommand } from "../api/core";
 import { coreFailureReason } from "../presentation/labels";
 import { KnowledgeCoursePanel } from "../components/KnowledgeCoursePanel";
 import { CanonicalLearningSpace } from "./CanonicalLearningSpace";
+import { useOptionalCoreWorkingState } from "../presentation/useCoreWorkingState";
 import type { ObjectTrailLevel } from "../components/NavTrail";
 
 type CourseRow = { manifest_id: string; title: string; stale: boolean; status: "candidate"; human_review_required: true };
@@ -38,6 +39,12 @@ export function CanonicalLearningJourneySpace({ pageId = "06", onOpenPage, onTra
   const [knowledgeTitle, setKnowledgeTitle] = useState("");
   const [courseId, setCourseId] = useState<string>();
   const [itemKey, setItemKey] = useState<string | undefined>(initialItemKey);
+  const working = useOptionalCoreWorkingState();
+  useEffect(() => {
+    if (itemKey) return;
+    const pending = Object.values(working?.state.pending_reviews ?? {});
+    if (pending.length === 1) setItemKey(pending[0].item_key);
+  }, [itemKey, working?.state.pending_reviews]);
   useEffect(()=>{if(initialItemKey)setItemKey(initialItemKey);},[initialItemKey]);
   const [message, setMessage] = useState("");
   const [failure, setFailure] = useState<string | null>(null);

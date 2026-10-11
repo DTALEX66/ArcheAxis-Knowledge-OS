@@ -384,7 +384,7 @@ public partial class MainWindow : Window
         }
         catch (Exception)
         {
-            Title = "星环知识平台 — 工作组件配置无效，请检查运行配置";
+            Title = "星环知识系统 — 工作组件配置无效，请检查运行配置";
             CoreStatusText.Text = "核心状态：配置无效";
             FirstRunCoreStatusText.Text = "核心服务：工作组件配置无效";
             FirstRunOptionalStatusText.Text = "文本处理组件配置无效；插件、模型和扩展工具的状态暂不可用。";
@@ -396,8 +396,8 @@ public partial class MainWindow : Window
         var result = await _supervisor.StartAsync();
         if (result.ok)
         {
-            var connectedTitle = worker is null ? "星环知识平台 — 文本处理组件未配置"
-                : "星环知识平台 — 已连接";
+            var connectedTitle = worker is null ? "星环知识系统 — 文本处理组件未配置"
+                : "星环知识系统 — 已连接";
             Title = connectedTitle;
             CoreStatusText.Text = worker is null ? "核心状态：已连接 · 未配置文本组件"
                 : "核心状态：已连接";

@@ -2,7 +2,7 @@
   "schemaVersion": "archeaxis/ui-contract/v2",
   "product": {
     "englishName": "ArcheAxis Knowledge",
-    "chineseName": "星环知识平台"
+    "chineseName": "星环知识系统"
   },
   "authority": "ArcheAxis",
   "productShell": {

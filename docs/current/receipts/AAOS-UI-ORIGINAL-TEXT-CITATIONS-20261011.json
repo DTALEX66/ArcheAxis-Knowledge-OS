@@ -1,0 +1,80 @@
+{
+  "schema": "archeaxis.ui-original-text-citation-qualification/v1",
+  "status": "PASS",
+  "whole_scope": "PARTIAL",
+  "execution": "REAL_CANDIDATE_HOST",
+  "materials": "SYNTHETIC_AUTHORED",
+  "wrapper": "946108e3afcd",
+  "build": "2cb04cd19613",
+  "raw_receipt": ".project-local\\runs\\be268a2d33\\webdriver-986a5967da0b\\tmp\\journey\\receipt.json",
+  "raw_sha256": "37a1e8da98155f00118f2caf8a5a9044cba095f81f8331e128706afb4aca1133",
+  "source_patch_sha256": "ce3a7165b770bfad3ec075fb42b237b94c292cab0a6ec3428fcf9f69f33bca70",
+  "source_consistent": true,
+  "owned_ports_released": true,
+  "proofs": [
+    {
+      "format": "txt",
+      "source_id": "src_82cebe57d49d956b4078f161",
+      "name": "ui-original-txt.txt",
+      "sha256": "489ddfc8eca9fcde65d43ee1237cb425044f04704c149d5d8c72ef16892cff58",
+      "bytes": 55,
+      "scope": "UI_ORIGINAL_IMPORT_ONLY",
+      "ui_text_citation": {
+        "anchor": {
+          "anchor_id": "anc_1d3973e8269703817a0c06c1",
+          "checksum": "489ddfc8eca9fcde65d43ee1237cb425044f04704c149d5d8c72ef16892cff58",
+          "location_status": "located",
+          "position": "{\"checksum\":\"489ddfc8eca9fcde65d43ee1237cb425044f04704c149d5d8c72ef16892cff58\",\"end\":55,\"location_status\":\"located\",\"start\":0,\"type\":\"text\"}",
+          "source_id": "src_82cebe57d49d956b4078f161",
+          "source_revision": "489ddfc8eca9fcde65d43ee1237cb425044f04704c149d5d8c72ef16892cff58"
+        },
+        "resolution": {
+          "anchor_id": "anc_1d3973e8269703817a0c06c1",
+          "current_source_revision": "489ddfc8eca9fcde65d43ee1237cb425044f04704c149d5d8c72ef16892cff58",
+          "position": "{\"checksum\":\"489ddfc8eca9fcde65d43ee1237cb425044f04704c149d5d8c72ef16892cff58\",\"end\":55,\"location_status\":\"located\",\"start\":0,\"type\":\"text\"}",
+          "reason": "locator_revalidated",
+          "scope": "locator_provenance_only",
+          "source_id": "src_82cebe57d49d956b4078f161",
+          "source_revision": "489ddfc8eca9fcde65d43ee1237cb425044f04704c149d5d8c72ef16892cff58",
+          "status": "CURRENT"
+        },
+        "selection_scope": "WHOLE_ORIGINAL_TRUSTED_KEYS"
+      },
+      "host_restart_original_readback": "PASS"
+    },
+    {
+      "format": "md",
+      "source_id": "src_4df9b5bbbcdede36a271bd1a",
+      "name": "ui-original-md.md",
+      "sha256": "5c166f1f54841e39a09d47f41dd2bf8d22caa0c9dca5c7e713cd5150e26cfdf1",
+      "bytes": 134,
+      "scope": "UI_ORIGINAL_IMPORT_ONLY",
+      "ui_text_citation": {
+        "anchor": {
+          "anchor_id": "anc_3787f20a52db22955879877b",
+          "checksum": "5c166f1f54841e39a09d47f41dd2bf8d22caa0c9dca5c7e713cd5150e26cfdf1",
+          "location_status": "located",
+          "position": "{\"checksum\":\"5c166f1f54841e39a09d47f41dd2bf8d22caa0c9dca5c7e713cd5150e26cfdf1\",\"end\":134,\"location_status\":\"located\",\"start\":0,\"type\":\"text\"}",
+          "source_id": "src_4df9b5bbbcdede36a271bd1a",
+          "source_revision": "5c166f1f54841e39a09d47f41dd2bf8d22caa0c9dca5c7e713cd5150e26cfdf1"
+        },
+        "resolution": {
+          "anchor_id": "anc_3787f20a52db22955879877b",
+          "current_source_revision": "5c166f1f54841e39a09d47f41dd2bf8d22caa0c9dca5c7e713cd5150e26cfdf1",
+          "position": "{\"checksum\":\"5c166f1f54841e39a09d47f41dd2bf8d22caa0c9dca5c7e713cd5150e26cfdf1\",\"end\":134,\"location_status\":\"located\",\"start\":0,\"type\":\"text\"}",
+          "reason": "locator_revalidated",
+          "scope": "locator_provenance_only",
+          "source_id": "src_4df9b5bbbcdede36a271bd1a",
+          "source_revision": "5c166f1f54841e39a09d47f41dd2bf8d22caa0c9dca5c7e713cd5150e26cfdf1",
+          "status": "CURRENT"
+        },
+        "selection_scope": "WHOLE_ORIGINAL_TRUSTED_KEYS"
+      },
+      "host_restart_original_readback": "PASS"
+    }
+  ],
+  "limits": [
+    "Trusted Ctrl+A covers whole-original range only; partial native selection remains unverified",
+    "No recognition accuracy, complete fidelity, installed runtime or Owner acceptance"
+  ]
+}

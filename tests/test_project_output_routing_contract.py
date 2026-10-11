@@ -135,7 +135,7 @@ def test_formal_desktop_window_is_the_archeaxis_workspace_shell() -> None:
     assert "Welcome to Avalonia!" not in xaml
     window = ET.fromstring(xaml)
     assert window.get("Title") == "ArcheAxis Knowledge"
-    assert window.get("AutomationProperties.Name") == "星环知识平台（ArcheAxis Knowledge）"
+    assert window.get("AutomationProperties.Name") == "星环知识系统（ArcheAxis Knowledge）"
     assert "选择资料" in xaml
     assert "载入学习路径" in xaml
     assert 'Click="OnImportClick"' in xaml

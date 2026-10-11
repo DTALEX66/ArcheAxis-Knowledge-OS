@@ -1,0 +1,43 @@
+{
+  "schema": "archeaxis.durable-inference-claim-increment/v1",
+  "status": "PASS",
+  "overall_status": "PARTIAL",
+  "evidence_level": "INTEGRATED",
+  "model_evidence": "SIMULATED_WORKERS",
+  "tests": 40,
+  "runs": [
+    {
+      "run": "e1cd75a6cae8",
+      "log": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\runs\\be268a2d33\\e1cd75a6cae8\\logs\\execution.log",
+      "source_patch_sha256": "db23307ed23e4537e39c88842704525c39797609ec402675b0e60399f55b2bc8"
+    },
+    {
+      "run": "79794740008f",
+      "log": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\runs\\be268a2d33\\79794740008f\\logs\\execution.log",
+      "source_patch_sha256": "db23307ed23e4537e39c88842704525c39797609ec402675b0e60399f55b2bc8"
+    }
+  ],
+  "changes": [
+    "Core writes request-digest execution claim before answer/retest worker invocation.",
+    "Unfinished/conflicting claim refuses repeat with 409 and prior execution UNVERIFIED.",
+    "Returned worker failures permit explicit same-request retry only after failure state persistence.",
+    "Committed positive/withheld history is still checked before claim admission."
+  ],
+  "limitations": [
+    "No live Core crash during real model execution tested.",
+    "No latest Tauri native build/runtime acceptance yet.",
+    "UI pending_machine durable request restoration is not implemented.",
+    "Legacy answers without client_request_id have no cross-request stable key.",
+    "Claims are conservative barriers; no general exactly-once guarantee."
+  ],
+  "preserved_failed_run": "133b662ff950",
+  "ui_identity_followup": {
+    "status": "PASS",
+    "evidence_level": "SIMULATED",
+    "tests": 29,
+    "test_files": 3,
+    "log": ".project-local/runs/be268a2d33/b2401a902976/logs/execution.log",
+    "behavior": "All newly submitted Panel answers now carry fixed client_request_id, including unscoped launch-default requests; lost-ACK retries reuse the full original body.",
+    "scope_limit": "Direct legacy API clients may still omit client_request_id. UI cross-exit pending_machine restoration remains incomplete."
+  }
+}

@@ -1,0 +1,40 @@
+{
+  "schema": "archeaxis.read-only-audit/v1",
+  "status": "PARTIAL",
+  "scope": "Formal model inventory integration",
+  "evidence_level": "SOURCE_INSPECTION",
+  "findings": [
+    {
+      "path": "crates/archeaxis-application/src/executor/derived.rs",
+      "line": 82,
+      "finding": "Generic derived launcher clears inherited environment and does not forward machine endpoint/model/protocol."
+    },
+    {
+      "path": "crates/archeaxis-application/src/executor.rs",
+      "line": 401,
+      "finding": "Existing provider health observes worker hello, not model inventory or inference."
+    },
+    {
+      "path": "services/python-workers/machine/worker_machine_answer.py",
+      "line": 230,
+      "finding": "Worker already offers inventory-only observation with loaded UNKNOWN and inference NOT_EXECUTED."
+    },
+    {
+      "path": "frontend/src/components/MachineAnswerPanel.tsx",
+      "line": 339,
+      "finding": "Formal UI exposes policy configuration read and per-answer evidence; no inventory probe command yet."
+    }
+  ],
+  "required_behavior": [
+    "Explicit user-triggered inventory only; no context or inference.",
+    "Respect disabled capability before worker admission.",
+    "Preserve only declared model launch configuration with bounded process, output and queue timeout.",
+    "Project finite validated fields; never expose raw endpoint, exceptions or unbounded model identifiers.",
+    "Inventory presence never implies loaded or inference success.",
+    "Recheck capability enabled after bounded queue admission as well as before queue.",
+    "Failed inventory has unknown count and selected presence (null), never fabricated empty/zero.",
+    "Do not directly forward worker probe endpoint, free-text reason or complete inventory."
+  ],
+  "implementation_status": "NOT_IMPLEMENTED",
+  "cloud_and_model_switch": "NOT_EXECUTED"
+}

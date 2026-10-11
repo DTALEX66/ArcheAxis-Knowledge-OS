@@ -4,11 +4,34 @@ use super::*;
 use archeaxis_domain::context_grant::{self, Consumption, Operation};
 use archeaxis_domain::{knowledge, machine};
 
+fn machine_failure(operation: &str, error: &str) -> Response {
+    let reason = match error {
+        "machine failure: MODEL_CALL_FAILED" => "MODEL_CALL_FAILED",
+        "machine failure: NO_FINAL_ANSWER" => "NO_FINAL_ANSWER",
+        "machine failure: EMPTY_ANSWER" | "machine worker returned no candidate answer" => "EMPTY_ANSWER",
+        "machine worker timed out" => "WORKER_TIMEOUT",
+        "machine worker output exceeds bound" => "OUTPUT_LIMIT",
+        "machine worker returned invalid JSON" => "INVALID_OUTPUT",
+        "machine worker pipe drain unavailable" => "PIPE_DRAIN_FAILED",
+        _ => "WORKER_FAILED",
+    };
+    (StatusCode::SERVICE_UNAVAILABLE, Json(json!({
+        "schema":"archeaxis.machine-call-failure/v1", "operation":operation,
+        "reason_code":reason, "execution_state":"UNVERIFIED", "answer_published":false
+    }))).into_response()
+}
+
 fn now_seconds() -> u64 {
     std::time::SystemTime::now()
         .duration_since(std::time::UNIX_EPOCH)
         .map(|d| d.as_secs())
         .unwrap_or(u64::MAX)
+}
+fn claim_error(error: rusqlite::Error) -> (StatusCode,String) {
+    match error {
+        rusqlite::Error::InvalidParameterName(_) => (StatusCode::CONFLICT,"previous execution claim is unfinished, conflicting or unreadable; prior execution UNVERIFIED; inference not repeated".into()),
+        _ => (StatusCode::INTERNAL_SERVER_ERROR,"execution claim persistence unconfirmed; inference not started".into()),
+    }
 }
 fn consume_grant(
     conn: &rusqlite::Connection,
@@ -311,6 +334,12 @@ pub(super) async fn machine_answer(
     State(runtime): State<Runtime>,
     Json(body): Json<MachineAnswerBody>,
 ) -> Response {
+    if body.model.as_ref().is_some_and(|m| m.trim().is_empty() || m != m.trim() || m.len() > 256 || m.chars().any(char::is_control)) {
+        return (StatusCode::UNPROCESSABLE_ENTITY, "invalid model selection").into_response();
+    }
+    if body.model.is_some() && body.client_request_id.is_none() {
+        return (StatusCode::UNPROCESSABLE_ENTITY, "model selection requires frozen client_request_id").into_response();
+    }
     if let Err(refusal) = check_budget(&body.question, body.max_tokens, body.timeout_s) {
         return refusal;
     }
@@ -358,6 +387,7 @@ pub(super) async fn machine_answer(
     let effective_timeout = body.timeout_s.unwrap_or(120);
     let wanted = body.knowledge_id.clone();
     let refusal_request = super::context_refusal::answer_request(&body);
+    let admission_request_sha256 = withheld::digest(&refusal_request.to_string());
     let refusal_grant = body.context_grant.clone();
     if let Ok(Ok(Some(refusal))) = runtime
         .executor
@@ -379,13 +409,17 @@ pub(super) async fn machine_answer(
         "max_tokens":effective_tokens,"timeout_s":effective_timeout,
         "context_grant":body.context_grant
     });
+    if let Some(model) = &body.model { base_request["model"] = json!(model); }
     if let Some(asset) = &body.asset_context_grant {
         base_request["asset_context_grant"] = json!(asset);
         base_request["asset_client_request_id"] = json!(body.client_request_id);
     }
+    let frozen_input=admission_request_sha256.clone();
     let prepared = runtime.executor.store().submit_wait(move |conn: &mut rusqlite::Connection|
         -> Result<(String,Value,Option<Value>,String),(StatusCode,String)> {
         // Admission, body, positive cache and terminal audit lookup are ONE Store read.
+        archeaxis_domain::ui_state::machine_admission_guard(conn,&wanted,"answer",&frozen_input)
+            .map_err(|_|(StatusCode::CONFLICT,"unresolved frozen journey differs; retain request and read history before new inference".into()))?;
         consume_grant(conn,grant.as_ref(),Operation::Answer,&wanted).map_err(permission_error)?;
         let text = context(conn,&wanted)
             .map_err(|_|(StatusCode::INTERNAL_SERVER_ERROR,"knowledge context cannot be read".into()))?
@@ -427,13 +461,21 @@ pub(super) async fn machine_answer(
     if let Some(doc) = cached {
         return execution_response(doc);
     }
+    let claim_id = execution_id.clone();
+    let claim_request = request.clone();
+    match runtime.executor.store().submit_wait(move |conn: &mut rusqlite::Connection| super::execution_claim::admit(conn,&claim_id,&claim_request)).await {
+        Ok(Ok(())) => {},
+        Ok(Err(error)) => {let (status,message)=claim_error(error);return (status,message).into_response();},
+        Err(_) => return (StatusCode::INTERNAL_SERVER_ERROR,"execution claim persistence unconfirmed; inference not started").into_response(),
+    }
     let answer = match runtime
         .executor
-        .machine_answer(
+        .machine_answer_selected(
             text,
             body.question.clone(),
             effective_tokens,
             std::time::Duration::from_secs(effective_timeout),
+            body.model.clone(),
         )
         .await
     {
@@ -444,14 +486,15 @@ pub(super) async fn machine_answer(
         {
             answer
         }
-        Ok(_) => {
-            return (
-                StatusCode::SERVICE_UNAVAILABLE,
-                "the worker returned no answer",
-            )
-                .into_response();
-        }
-        Err(error) => return (StatusCode::SERVICE_UNAVAILABLE, error).into_response(),
+        failed => {
+            let error=failed.err().unwrap_or_else(||"machine worker returned no candidate answer".into());
+            let claim_id=execution_id.clone();
+            let failure=error.clone();
+            let identity=json!({"operation":"answer","knowledge_id":body.knowledge_id,"client_request_id":body.client_request_id,"admission_request_sha256":admission_request_sha256});
+            let released=runtime.executor.store().submit_wait(move |conn: &mut rusqlite::Connection| super::execution_claim::record_terminal_failure(conn,&claim_id,&failure,&identity)).await;
+            if !matches!(released,Ok(Ok(()))) {return (StatusCode::INTERNAL_SERVER_ERROR,"execution failure persistence unconfirmed; retain frozen request").into_response();}
+            return machine_failure("answer",&error);
+        },
     };
     let stored = runtime.executor.store().submit_wait(move |conn: &mut rusqlite::Connection|
         -> Result<Value,(StatusCode,String)> {
@@ -459,7 +502,7 @@ pub(super) async fn machine_answer(
             withheld::refuse(conn,&Executed {
                 execution_id:&execution_id,client_request_id:body.client_request_id.as_deref(),
                 operation:"answer",knowledge_id:&body.knowledge_id,grant:body.context_grant.as_ref(),
-                request:&request,context_sha256:request["context_sha256"].as_str().unwrap_or("UNVERIFIED"),
+                request:&request,admission_request_sha256:&admission_request_sha256,context_sha256:request["context_sha256"].as_str().unwrap_or("UNVERIFIED"),
                 answer:&answer,retest_of:None,
             },reason)
         };
@@ -603,6 +646,9 @@ pub(super) async fn run_retest(
     State(runtime): State<Runtime>,
     Json(body): Json<RetestBody>,
 ) -> Response {
+    if body.model.as_ref().is_some_and(|m| m.trim().is_empty() || m != m.trim() || m.len() > 256 || m.chars().any(char::is_control)) {
+        return (StatusCode::UNPROCESSABLE_ENTITY, "invalid model selection").into_response();
+    }
     if let Err(refusal) = check_budget(&body.question, body.max_tokens, body.timeout_s) {
         return refusal;
     }
@@ -655,6 +701,9 @@ pub(super) async fn run_retest(
         )
             .into_response();
     }
+    if prior["request"]["model"].is_string() && body.model.is_none() {
+        return (StatusCode::UNPROCESSABLE_ENTITY, "retest requires an explicit model for a model-bound answer").into_response();
+    }
     if body.asset_context_grant.is_some() && body.context_grant.is_none() {
         return (
             StatusCode::FORBIDDEN,
@@ -669,6 +718,10 @@ pub(super) async fn run_retest(
     // Only explicit context_grant adds the already-existing fifth field.
     let mut request = json!({"retest_of":body.retest_of,"knowledge_id":body.knowledge_id,
         "question":body.question,"max_tokens":body.max_tokens.unwrap_or(2048)});
+    if let Some(model) = &body.model {
+        request["model"] = json!(model);
+        request["timeout_s"] = json!(body.timeout_s.unwrap_or(120));
+    }
     if let Some(grant) = &body.context_grant {
         request["context_grant"] = json!(grant);
     }
@@ -687,6 +740,10 @@ pub(super) async fn run_retest(
         .to_string();
     let effective_timeout = body.timeout_s.unwrap_or(120);
     let refusal_request = super::context_refusal::retest_request(&body);
+    let admission_request_sha256 = withheld::digest(&refusal_request.to_string());
+    // Identity comes from frozen admitted input, not mutable knowledge/context bytes.
+    // The claim still hashes the execution envelope, so changed material conflicts.
+    let durable_claim_id = format!("retest_input_{}", withheld::digest(&refusal_request.to_string()));
     let refusal_grant = body.context_grant.clone();
     if let Ok(Ok(Some(refusal))) = runtime
         .executor
@@ -698,20 +755,27 @@ pub(super) async fn run_retest(
     {
         return (StatusCode::FORBIDDEN, Json(refusal)).into_response();
     }
+    let frozen_input=admission_request_sha256.clone();
     let prepared=runtime.executor.store().submit_wait(move |conn: &mut rusqlite::Connection|
         -> Result<(String,Value,String,Option<Value>),(StatusCode,String)> {
+        archeaxis_domain::ui_state::machine_admission_guard(conn,&original_id,"retest",&frozen_input)
+            .map_err(|_|(StatusCode::CONFLICT,"unresolved frozen journey differs; retain request and read history before new inference".into()))?;
         consume_grant(conn,cache_grant.as_ref(),Operation::Retest,&cache_knowledge).map_err(permission_error)?;
         // Legacy cached answers are historical reads, never renewed scoped permission.
         // Governed knowledge has already refused an omitted grant above.
         if cache_grant.is_none() && cache_asset.is_none() {
             let raw:Option<String>=conn.query_row(
                 "SELECT conditions FROM machine_tasks WHERE scope='runtime.retest'
-                 AND json_extract(conditions,'$.request')=json(?1) LIMIT 1",
-                [&wanted],|r|r.get(0)).optional()
+                 AND json_extract(conditions,'$.request')=json(?1)
+                 AND (json_extract(conditions,'$.execution_request.timeout_s')=?2 OR json_type(conditions,'$.execution_request.timeout_s') IS NOT 'integer') LIMIT 1",
+                rusqlite::params![wanted,effective_timeout as i64],|r|r.get(0)).optional()
                 .map_err(|_|(StatusCode::INTERNAL_SERVER_ERROR,"retest history unavailable".into()))?;
             if let Some(raw)=raw {
                 let cached=serde_json::from_str::<Value>(&raw)
                     .map_err(|_|(StatusCode::INTERNAL_SERVER_ERROR,"retest history unreadable".into()))?;
+                if cached["execution_request"]["timeout_s"].as_u64()!=Some(effective_timeout) {
+                    return Err((StatusCode::CONFLICT,"legacy retest budget unverified; read historical task without repeating inference".into()));
+                }
                 return Ok((String::new(),Value::Null,String::new(),Some(cached)));
             }
         }
@@ -750,12 +814,16 @@ pub(super) async fn run_retest(
         }
         let raw:Option<String>=conn.query_row(
             "SELECT conditions FROM machine_tasks WHERE scope='runtime.retest'
-             AND json_extract(conditions,'$.request')=json(?1) LIMIT 1",
-            [wanted],|r|r.get(0)).optional()
+             AND json_extract(conditions,'$.request')=json(?1)
+             AND (json_extract(conditions,'$.execution_request.timeout_s')=?2 OR json_type(conditions,'$.execution_request.timeout_s') IS NOT 'integer') LIMIT 1",
+            rusqlite::params![wanted,effective_timeout as i64],|r|r.get(0)).optional()
             .map_err(|_|(StatusCode::INTERNAL_SERVER_ERROR,"retest history unavailable".into()))?;
         let cached=raw.map(|s|serde_json::from_str::<Value>(&s)
             .map_err(|_|(StatusCode::INTERNAL_SERVER_ERROR,"retest history unreadable".into()))).transpose()?;
         if let Some(cached)=&cached {
+            if cached["execution_request"]["timeout_s"].as_u64()!=Some(effective_timeout) {
+                return Err((StatusCode::CONFLICT,"legacy retest budget unverified; read historical task without repeating inference".into()));
+            }
             if cache_asset.is_some() && cached["execution_request"]!=execution_request {
                 return Err((StatusCode::CONFLICT,"asset retest cache differs from frozen execution context or budget".into()));
             }
@@ -779,13 +847,21 @@ pub(super) async fn run_retest(
     if let Some(refusal) = crate::capabilities::refusal(&runtime.executor, "machine.answer").await {
         return refusal;
     }
+    let claim_id=durable_claim_id.clone();
+    let claim_request=execution_request.clone();
+    match runtime.executor.store().submit_wait(move |conn: &mut rusqlite::Connection| super::execution_claim::admit(conn,&claim_id,&claim_request)).await {
+        Ok(Ok(())) => {},
+        Ok(Err(error)) => {let (status,message)=claim_error(error);return (status,message).into_response();},
+        Err(_) => return (StatusCode::INTERNAL_SERVER_ERROR,"execution claim persistence unconfirmed; inference not started").into_response(),
+    }
     let answer = match runtime
         .executor
-        .machine_answer(
+        .machine_answer_selected(
             admitted_text,
             body.question.clone(),
             body.max_tokens.unwrap_or(2048),
             std::time::Duration::from_secs(effective_timeout),
+            body.model.clone(),
         )
         .await
     {
@@ -796,20 +872,21 @@ pub(super) async fn run_retest(
         {
             answer
         }
-        Ok(_) => {
-            return (
-                StatusCode::SERVICE_UNAVAILABLE,
-                "the worker returned no answer",
-            )
-                .into_response();
-        }
-        Err(e) => return (StatusCode::SERVICE_UNAVAILABLE, e).into_response(),
+        failed => {
+            let error=failed.err().unwrap_or_else(||"machine worker returned no candidate answer".into());
+            let claim_id=durable_claim_id.clone();
+            let failure=error.clone();
+            let identity=json!({"operation":"retest","knowledge_id":body.knowledge_id,"retest_of":body.retest_of,"admission_request_sha256":admission_request_sha256});
+            let released=runtime.executor.store().submit_wait(move |conn: &mut rusqlite::Connection| super::execution_claim::record_terminal_failure(conn,&claim_id,&failure,&identity)).await;
+            if !matches!(released,Ok(Ok(()))) {return (StatusCode::INTERNAL_SERVER_ERROR,"execution failure persistence unconfirmed; retain frozen request").into_response();}
+            return machine_failure("retest",&error);
+        },
     };
     let stored=runtime.executor.store().submit_wait(move |conn: &mut rusqlite::Connection| {
         let rejected=|conn: &mut rusqlite::Connection,reason:Reason| {
             withheld::refuse(conn,&Executed {
                 execution_id:&execution_id,client_request_id:None,operation:"retest",
-                knowledge_id:&body.knowledge_id,grant:body.context_grant.as_ref(),request:&execution_request,
+                knowledge_id:&body.knowledge_id,grant:body.context_grant.as_ref(),request:&execution_request,admission_request_sha256:&admission_request_sha256,
                 context_sha256:execution_request["context_sha256"].as_str().unwrap_or("UNVERIFIED"),
                 answer:&answer,retest_of:Some(&body.retest_of),
             },reason)

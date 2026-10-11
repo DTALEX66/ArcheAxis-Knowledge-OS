@@ -7,7 +7,7 @@ product:
     class: display
   name:
     en-US: ArcheAxis Knowledge
-    zh-CN: 星环知识平台
+    zh-CN: 星环知识系统
     class: display
   description:
     en-US: A local-first, evidence-driven, bidirectional Human–AI Learning & Trusted-Knowledge Workspace.
@@ -48,7 +48,7 @@ forbidden_default_terms:
   - 星轨
 rules:
   default_ui_product_name: ArcheAxis Knowledge
-  default_ui_product_name_zh: 星环知识平台
+  default_ui_product_name_zh: 星环知识系统
   preserve_technical_compatibility_ids: true
   github_repository_rename: explicit_decision_required
   tauri_identifier_change: migration_and_rollback_required

@@ -1,0 +1,144 @@
+{
+  "schema": "archeaxis.format-core-batch/v1",
+  "date": "2026-10-11",
+  "overall": "PARTIAL",
+  "evidence_level": "INTEGRATED_CORE_REAL_PARSERS_SYNTHETIC_MATERIAL",
+  "batches": [
+    {
+      "receipt": ".project-local/runs/be268a2d33/1d94ca1d9226/artifacts/common-chinese-ocr.json",
+      "sha256": "b0e7b49818bc5e5f7ce69e4c6157f0880a17c932b4400ba6e07df30f9b57b7de",
+      "qualification": "INTEGRATED_SELECTED_CHINESE_OCR_LOCATION_REPARSE_RESTART",
+      "formats": [
+        {
+          "format": "png",
+          "restart_equal": true,
+          "corrupt": false
+        },
+        {
+          "format": "jpeg",
+          "restart_equal": true,
+          "corrupt": false
+        },
+        {
+          "format": "pdf",
+          "restart_equal": true,
+          "corrupt": false
+        }
+      ],
+      "limits": [
+        "Selected actual Chinese phrases only; full recognition accuracy UNMEASURED",
+        "OCR canonical line/span location; bbox is actual review metadata",
+        "No installed UI, source package reconstruction or ASR",
+        "Independent new jobs preserve pinned historical attempts"
+      ]
+    },
+    {
+      "receipt": ".project-local/runs/be268a2d33/25bbe854d1ab/artifacts/common-light-ocr.json",
+      "sha256": "e649f9bb6d4d9e538a982d49530c8efba208e59e658ddb439819f4b564018ce4",
+      "qualification": "INTEGRATED_SELECTED_LIGHT_CONTENT_OCR_LOCATION_REPARSE_RESTART",
+      "formats": [
+        {
+          "format": "txt",
+          "restart_equal": true,
+          "corrupt": false
+        },
+        {
+          "format": "md",
+          "restart_equal": true,
+          "corrupt": false
+        },
+        {
+          "format": "csv",
+          "restart_equal": true,
+          "corrupt": false
+        },
+        {
+          "format": "json",
+          "restart_equal": true,
+          "corrupt": false
+        },
+        {
+          "format": "html",
+          "restart_equal": true,
+          "corrupt": false
+        },
+        {
+          "format": "srt",
+          "restart_equal": true,
+          "corrupt": false
+        },
+        {
+          "format": "vtt",
+          "restart_equal": true,
+          "corrupt": false
+        },
+        {
+          "format": "canvas",
+          "restart_equal": true,
+          "corrupt": false
+        },
+        {
+          "format": "png",
+          "restart_equal": true,
+          "corrupt": false
+        },
+        {
+          "format": "jpeg",
+          "restart_equal": true,
+          "corrupt": false
+        },
+        {
+          "format": "pdf",
+          "restart_equal": true,
+          "corrupt": false
+        }
+      ],
+      "limits": [
+        "English OCR sentinel content only; Chinese scan recognition UNMEASURED",
+        "MD anchor binds immutable original UTF-8 byte span; derived structure separately checked",
+        "No installed UI or source-application navigation",
+        "No format reconstruction or ASR",
+        "Independent reparse new job does not supersede historical pinned attempts"
+      ]
+    },
+    {
+      "receipt": ".project-local/task-runtime/aaos01-office/3d56f5886eef44b5a3ca6db6d511d04d/receipt.json",
+      "sha256": "0de4d1a53329c8de3869a02b5560c33123e10253199ba557f05462a224592a17",
+      "qualification": "OFFICE_CORE_RESULT_AND_CORRUPT_RESTART",
+      "formats": [
+        {
+          "format": "xlsx",
+          "restart_equal": true,
+          "corrupt": false
+        },
+        {
+          "format": "xlsx",
+          "restart_equal": true,
+          "corrupt": true
+        },
+        {
+          "format": "pptx",
+          "restart_equal": true,
+          "corrupt": false
+        },
+        {
+          "format": "pptx",
+          "restart_equal": true,
+          "corrupt": true
+        }
+      ],
+      "limits": [
+        "No installed Tauri/UI qualification",
+        "Line anchors derive from projection; Office paths are retained worker facts",
+        "No live formula calculation or rendering qualification"
+      ]
+    }
+  ],
+  "office_source_guard": "717ed6a531c9 external canonical dev wrapper; inner office probe lacks its own end guard",
+  "remaining": [
+    "Current DOCX and text-PDF qualification",
+    "Formal UI format import and reconstruction",
+    "All-format unified end-to-end acceptance",
+    "Recognition accuracy and Owner acceptance"
+  ]
+}

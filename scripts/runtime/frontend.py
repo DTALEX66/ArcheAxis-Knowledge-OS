@@ -169,6 +169,7 @@ def build(root: Path, node: str, mode: str, arguments: list[str], receipt: Path 
 
 
 def main() -> int:
+    dev.configure_console_streams()
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--node", required=True)
     parser.add_argument("mode", choices=("build", "tauri", "verify"))

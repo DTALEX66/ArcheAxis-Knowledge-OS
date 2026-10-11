@@ -1,0 +1,316 @@
+{
+  "schema": "archeaxis.cloud-audit-intake/v1",
+  "source": "D:\\All projects\\Record\\AAOS-WORK-DESIGN-cloud-audit-20261011.zip",
+  "source_sha256": "b8bd438e74b91cb0193ffda03c13c1191a4dd54bb1614a92ada012519a1fda72",
+  "zip_members": 163,
+  "manifest_hashes_verified": 162,
+  "preserved_members": 43,
+  "rows": [
+    {
+      "member": "00-START-HERE.txt",
+      "bytes": 3919,
+      "sha256": "28b81689f91d1787c2d5954c000a8b010b78130991316dcc6932ea15ddad0183",
+      "identity": "SHARED_AUDIT_CONTEXT",
+      "local_path": ".project-local\\archives\\dot-cloud-audit-20261011\\00-START-HERE.txt"
+    },
+    {
+      "member": "LINUX-REPORT.html",
+      "bytes": 7479,
+      "sha256": "76caf3b28942b0d1f6db217d34beea178b0908474531d6249c79bcaec715d70b",
+      "identity": "SHARED_AUDIT_CONTEXT",
+      "local_path": ".project-local\\archives\\dot-cloud-audit-20261011\\LINUX-REPORT.html"
+    },
+    {
+      "member": "LINUX-REPORT.txt",
+      "bytes": 7296,
+      "sha256": "f730b9f77b9e0b7fedf0d1b5528d623cc9ff13f77201e8ae46280159affcbeba",
+      "identity": "SHARED_AUDIT_CONTEXT",
+      "local_path": ".project-local\\archives\\dot-cloud-audit-20261011\\LINUX-REPORT.txt"
+    },
+    {
+      "member": "LOCAL-CODEX-TEST-PROMPT.txt",
+      "bytes": 4148,
+      "sha256": "ce8bb81f0fb3cfbac4296ac8936e45c5e20e98d3975576a2405e6ce270fbb8ff",
+      "identity": "SHARED_AUDIT_CONTEXT",
+      "local_path": ".project-local\\archives\\dot-cloud-audit-20261011\\LOCAL-CODEX-TEST-PROMPT.txt"
+    },
+    {
+      "member": "MANIFEST.json",
+      "bytes": 16783,
+      "sha256": "e891aa048581ea2afd1ff3d643bf60a09dfe7eb498f960b126dbbde32838d68e",
+      "identity": "SHARED_AUDIT_CONTEXT",
+      "local_path": ".project-local\\archives\\dot-cloud-audit-20261011\\MANIFEST.json"
+    },
+    {
+      "member": "PRODUCT-BOUNDARIES-AND-KNOWLEDGE-EXCHANGE.txt",
+      "bytes": 5197,
+      "sha256": "887de50b6beee300916466f4e0ce0edd37c84c7f0638eb921395595bf069a2c0",
+      "identity": "SHARED_AUDIT_CONTEXT",
+      "local_path": ".project-local\\archives\\dot-cloud-audit-20261011\\PRODUCT-BOUNDARIES-AND-KNOWLEDGE-EXCHANGE.txt"
+    },
+    {
+      "member": "READ-ME-FIRST.txt",
+      "bytes": 350,
+      "sha256": "26cb5fa0cd94a20707e3d523d2a279999b8753f53791c29426d7e0f60f788f93",
+      "identity": "SHARED_AUDIT_CONTEXT",
+      "local_path": ".project-local\\archives\\dot-cloud-audit-20261011\\READ-ME-FIRST.txt"
+    },
+    {
+      "member": "REPORT.html",
+      "bytes": 29047,
+      "sha256": "ff049ad4b8063020ad3818910e41d567ed61594fa78b8ad95d7d98a8c09ea35f",
+      "identity": "SHARED_AUDIT_CONTEXT",
+      "local_path": ".project-local\\archives\\dot-cloud-audit-20261011\\REPORT.html"
+    },
+    {
+      "member": "REPORT.txt",
+      "bytes": 21328,
+      "sha256": "62f877885b44e78c10f3cf9fd5ebad452792cb2c975eaa4c72a351167ee84f56",
+      "identity": "SHARED_AUDIT_CONTEXT",
+      "local_path": ".project-local\\archives\\dot-cloud-audit-20261011\\REPORT.txt"
+    },
+    {
+      "member": "VISUAL-REVIEW.txt",
+      "bytes": 3512,
+      "sha256": "b5afc7be35e9d155f3aeafe7f7e50034b1b5ba1363e44d569d899b5598fa6bd3",
+      "identity": "SHARED_AUDIT_CONTEXT",
+      "local_path": ".project-local\\archives\\dot-cloud-audit-20261011\\VISUAL-REVIEW.txt"
+    },
+    {
+      "member": "evidence/aaos-audit-recovery.log",
+      "bytes": 1304,
+      "sha256": "e8719676aa62a1952abd5c5f2188450a5bdeb0dd4832a7f8add0494d40a2c523",
+      "identity": "AAOS_EVIDENCE_OR_PROBE",
+      "local_path": ".project-local\\archives\\dot-cloud-audit-20261011\\evidence\\aaos-audit-recovery.log"
+    },
+    {
+      "member": "evidence/aaos-blueprint.png",
+      "bytes": 154755,
+      "sha256": "0b0a8ee917b195498c96b14ac67e00c734f696bda64145ef995edf6f8d9b452e",
+      "identity": "AAOS_EVIDENCE_OR_PROBE",
+      "local_path": ".project-local\\archives\\dot-cloud-audit-20261011\\evidence\\aaos-blueprint.png"
+    },
+    {
+      "member": "evidence/aaos-browser-no-core.png",
+      "bytes": 117506,
+      "sha256": "5ab409d9d3d97e017da3c9cbeddb9ea91b74b15a6551bfbc9224d089a8a3fd7f",
+      "identity": "AAOS_EVIDENCE_OR_PROBE",
+      "local_path": ".project-local\\archives\\dot-cloud-audit-20261011\\evidence\\aaos-browser-no-core.png"
+    },
+    {
+      "member": "evidence/aaos-build.log",
+      "bytes": 2590,
+      "sha256": "9ee368728e74fac3dc20b51443a02e9915fb15efc3ae014c26beb90f446b28c0",
+      "identity": "AAOS_EVIDENCE_OR_PROBE",
+      "local_path": ".project-local\\archives\\dot-cloud-audit-20261011\\evidence\\aaos-build.log"
+    },
+    {
+      "member": "evidence/aaos-clone.log",
+      "bytes": 44,
+      "sha256": "3fc638afde88ca83db43e8ee161fcf83fd94d63c98f14299d698c9070f51c191",
+      "identity": "AAOS_EVIDENCE_OR_PROBE",
+      "local_path": ".project-local\\archives\\dot-cloud-audit-20261011\\evidence\\aaos-clone.log"
+    },
+    {
+      "member": "evidence/aaos-cloud-contract-retest.log",
+      "bytes": 54977,
+      "sha256": "097fe1ee39fc97d77c9b0f784125333f6a0702ecd20e65024eec1035c16fd0dd",
+      "identity": "AAOS_EVIDENCE_OR_PROBE",
+      "local_path": ".project-local\\archives\\dot-cloud-audit-20261011\\evidence\\aaos-cloud-contract-retest.log"
+    },
+    {
+      "member": "evidence/aaos-cloud-final.log",
+      "bytes": 99,
+      "sha256": "0ac8bffce95153a83bc79b238c2231b3516d826b3104bbebef11469d40b78230",
+      "identity": "AAOS_EVIDENCE_OR_PROBE",
+      "local_path": ".project-local\\archives\\dot-cloud-audit-20261011\\evidence\\aaos-cloud-final.log"
+    },
+    {
+      "member": "evidence/aaos-cosmic.png",
+      "bytes": 121413,
+      "sha256": "8c1d1e5e99f22f58cccf0bfb4e62929480a16a862e0c14100de455d481c14669",
+      "identity": "AAOS_EVIDENCE_OR_PROBE",
+      "local_path": ".project-local\\archives\\dot-cloud-audit-20261011\\evidence\\aaos-cosmic.png"
+    },
+    {
+      "member": "evidence/aaos-historical-ci.json",
+      "bytes": 194,
+      "sha256": "bc37f1f7ce08dcabe20cb6c3bd84191bc774874ea9e98e7441c7f009526c5e5a",
+      "identity": "AAOS_EVIDENCE_OR_PROBE",
+      "local_path": ".project-local\\archives\\dot-cloud-audit-20261011\\evidence\\aaos-historical-ci.json"
+    },
+    {
+      "member": "evidence/aaos-legacy-federation.json",
+      "bytes": 1262,
+      "sha256": "b78385f2a00a06fdc830f731ddf046d9d922684f45f644ad3702ffeda2894e32",
+      "identity": "AAOS_EVIDENCE_OR_PROBE",
+      "local_path": ".project-local\\archives\\dot-cloud-audit-20261011\\evidence\\aaos-legacy-federation.json"
+    },
+    {
+      "member": "evidence/aaos-light.png",
+      "bytes": 143027,
+      "sha256": "b714593dfeabe676a3595b3e344e4064397f523abe36d7b40e6fdffa61301e63",
+      "identity": "AAOS_EVIDENCE_OR_PROBE",
+      "local_path": ".project-local\\archives\\dot-cloud-audit-20261011\\evidence\\aaos-light.png"
+    },
+    {
+      "member": "evidence/aaos-npm-official.log",
+      "bytes": 149,
+      "sha256": "799825b7b9dfaf2c87688f0823e6f6d2e475517038233ebd5616b3252321d57d",
+      "identity": "AAOS_EVIDENCE_OR_PROBE",
+      "local_path": ".project-local\\archives\\dot-cloud-audit-20261011\\evidence\\aaos-npm-official.log"
+    },
+    {
+      "member": "evidence/aaos-npm.log",
+      "bytes": 271,
+      "sha256": "62c180daa83908e0d57659483b332a9cf70d814ac3e20aebfd74543a53c85eb0",
+      "identity": "AAOS_EVIDENCE_OR_PROBE",
+      "local_path": ".project-local\\archives\\dot-cloud-audit-20261011\\evidence\\aaos-npm.log"
+    },
+    {
+      "member": "evidence/aaos-palette.png",
+      "bytes": 158779,
+      "sha256": "024e45d202d86fdd72f864ed9eeab4d4a23817c637bc1a446665210ad506e687",
+      "identity": "AAOS_EVIDENCE_OR_PROBE",
+      "local_path": ".project-local\\archives\\dot-cloud-audit-20261011\\evidence\\aaos-palette.png"
+    },
+    {
+      "member": "evidence/aaos-python.log",
+      "bytes": 55068,
+      "sha256": "011104d979bdd63bfc41992d3f2fc9321d4325cb2815aa26352b3e31bb1e6d21",
+      "identity": "AAOS_EVIDENCE_OR_PROBE",
+      "local_path": ".project-local\\archives\\dot-cloud-audit-20261011\\evidence\\aaos-python.log"
+    },
+    {
+      "member": "evidence/aaos-query-egress.json",
+      "bytes": 234,
+      "sha256": "873a682419d3458a50eaed682bb62b805821fcc81fb4f9b12659a94c2b3d36bb",
+      "identity": "AAOS_EVIDENCE_OR_PROBE",
+      "local_path": ".project-local\\archives\\dot-cloud-audit-20261011\\evidence\\aaos-query-egress.json"
+    },
+    {
+      "member": "evidence/aaos-security-extra.log",
+      "bytes": 687,
+      "sha256": "92f3001b7a54ec02d858305e0a2c308cd82d6957f4c42ec951a501069e11ebbf",
+      "identity": "AAOS_EVIDENCE_OR_PROBE",
+      "local_path": ".project-local\\archives\\dot-cloud-audit-20261011\\evidence\\aaos-security-extra.log"
+    },
+    {
+      "member": "evidence/aaos-server.log",
+      "bytes": 3121,
+      "sha256": "39cf60ab38e08eade77506c56c7b6bc1539889ab5c1c4332ca7cccf244dc3357",
+      "identity": "AAOS_EVIDENCE_OR_PROBE",
+      "local_path": ".project-local\\archives\\dot-cloud-audit-20261011\\evidence\\aaos-server.log"
+    },
+    {
+      "member": "evidence/aaos-vitest.log",
+      "bytes": 15084,
+      "sha256": "8a80d3d53440e0e8d6cd11aff5359773c656da8c805f86103ee97c4340ef670c",
+      "identity": "AAOS_EVIDENCE_OR_PROBE",
+      "local_path": ".project-local\\archives\\dot-cloud-audit-20261011\\evidence\\aaos-vitest.log"
+    },
+    {
+      "member": "evidence/linux/aaos-api-env-retest.log",
+      "bytes": 2083,
+      "sha256": "a2bd3c9531655cbc48fab2863fae4c72640db3370a7518419b7ded3e71dd5cb9",
+      "identity": "AAOS_EVIDENCE_OR_PROBE",
+      "local_path": ".project-local\\archives\\dot-cloud-audit-20261011\\evidence\\linux\\aaos-api-env-retest.log"
+    },
+    {
+      "member": "evidence/linux/aaos-api-selected.log",
+      "bytes": 5745,
+      "sha256": "54963a3c3ff99d2d9c3646b626ef84cedd10d2ba52af438fa043eb637805faac",
+      "identity": "AAOS_EVIDENCE_OR_PROBE",
+      "local_path": ".project-local\\archives\\dot-cloud-audit-20261011\\evidence\\linux\\aaos-api-selected.log"
+    },
+    {
+      "member": "evidence/linux/aaos-cargo.log",
+      "bytes": 19400,
+      "sha256": "c3c1ecf7a41b0f63b72233ad6f542ceb87a084e3b9f1e2885b2749987c093708",
+      "identity": "AAOS_EVIDENCE_OR_PROBE",
+      "local_path": ".project-local\\archives\\dot-cloud-audit-20261011\\evidence\\linux\\aaos-cargo.log"
+    },
+    {
+      "member": "evidence/linux/aaos-domain-selected.log",
+      "bytes": 3734,
+      "sha256": "e6c94c0fe0c6c43619c45b54da8e3207458fa5524641865a7596ae28e222a403",
+      "identity": "AAOS_EVIDENCE_OR_PROBE",
+      "local_path": ".project-local\\archives\\dot-cloud-audit-20261011\\evidence\\linux\\aaos-domain-selected.log"
+    },
+    {
+      "member": "evidence/linux/aaos-libs.log",
+      "bytes": 6808,
+      "sha256": "ae429e2f97c68d6fe6fe82a7be95c2ec6bd6e54417436158ff4117284d1a7ffa",
+      "identity": "AAOS_EVIDENCE_OR_PROBE",
+      "local_path": ".project-local\\archives\\dot-cloud-audit-20261011\\evidence\\linux\\aaos-libs.log"
+    },
+    {
+      "member": "evidence/linux/aaos-ownership.log",
+      "bytes": 1748,
+      "sha256": "921baa5cf0df8fb69dc09c0202ab2b404c6ae6e37177d6c7e76542dfc620b922",
+      "identity": "AAOS_EVIDENCE_OR_PROBE",
+      "local_path": ".project-local\\archives\\dot-cloud-audit-20261011\\evidence\\linux\\aaos-ownership.log"
+    },
+    {
+      "member": "evidence/linux/aaos-server-1.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "identity": "AAOS_EVIDENCE_OR_PROBE",
+      "local_path": ".project-local\\archives\\dot-cloud-audit-20261011\\evidence\\linux\\aaos-server-1.log"
+    },
+    {
+      "member": "evidence/linux/aaos-server-2.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "identity": "AAOS_EVIDENCE_OR_PROBE",
+      "local_path": ".project-local\\archives\\dot-cloud-audit-20261011\\evidence\\linux\\aaos-server-2.log"
+    },
+    {
+      "member": "evidence/linux/aaos-service-probe.log",
+      "bytes": 77,
+      "sha256": "e60246dcb24a24e1d0adc7ff0d38d3c54625c630689b421c61567df3386913b2",
+      "identity": "AAOS_EVIDENCE_OR_PROBE",
+      "local_path": ".project-local\\archives\\dot-cloud-audit-20261011\\evidence\\linux\\aaos-service-probe.log"
+    },
+    {
+      "member": "evidence/linux/aaos-service.json",
+      "bytes": 7091,
+      "sha256": "6c9cc81120e8d46822fd946678a4d338427a6a4d1bf3ee9dd007491a838b8e67",
+      "identity": "AAOS_EVIDENCE_OR_PROBE",
+      "local_path": ".project-local\\archives\\dot-cloud-audit-20261011\\evidence\\linux\\aaos-service.json"
+    },
+    {
+      "member": "evidence/linux/aaos_service_probe.py",
+      "bytes": 2693,
+      "sha256": "63842514a10fcfad2e66c9cf760fc54cd5d4f11a66a27c0145eaa5ceb637ecfa",
+      "identity": "AAOS_EVIDENCE_OR_PROBE",
+      "local_path": ".project-local\\archives\\dot-cloud-audit-20261011\\evidence\\linux\\aaos_service_probe.py"
+    },
+    {
+      "member": "findings.json",
+      "bytes": 14109,
+      "sha256": "8bbf04981e1ebd839b5fdd4142e05e6361e8f49b2acbaf31fedf792b235b4457",
+      "identity": "SHARED_AUDIT_CONTEXT",
+      "local_path": ".project-local\\archives\\dot-cloud-audit-20261011\\findings.json"
+    },
+    {
+      "member": "evidence/probes/AuditRecovery.test.tsx",
+      "bytes": 3064,
+      "sha256": "564b42f880748e1478ab98ef03fcf3d1cf0ed95875ff2d0454fe0d5f80ece429",
+      "identity": "AAOS_AUDIT_EVIDENCE",
+      "local_path": ".project-local\\archives\\dot-cloud-audit-20261011\\evidence\\probes\\AuditRecovery.test.tsx"
+    },
+    {
+      "member": "evidence/bs4-install.log",
+      "bytes": 624,
+      "sha256": "4e6d9dda9e873cdbdc0fbe7c25510b527734fdfe9f57a18c2dce69f3e42bc1c2",
+      "identity": "SHARED_AUDIT_CONTEXT",
+      "local_path": ".project-local\\archives\\dot-cloud-audit-20261011\\evidence\\bs4-install.log"
+    }
+  ],
+  "role": "HISTORICAL_AUDIT_INPUT_NOT_EXECUTION_AUTHORITY",
+  "audited_aaos_commit": "d6c2bbeef722f82a02a3f18e1b4296ad5e37c58b",
+  "current_analysis_status": "PARTIAL_SOURCE_RECONCILIATION",
+  "visual_evidence_status": "FIVE_AAOS_SCREENSHOTS_VISUALLY_REVIEWED_HISTORICAL_SHELL_ONLY",
+  "other_projects": "Not extracted except shared report context; no cross-project changes."
+}

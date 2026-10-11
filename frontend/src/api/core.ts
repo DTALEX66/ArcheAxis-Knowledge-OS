@@ -14,6 +14,9 @@ const teachingResponses: Partial<Record<CoreOperation,string>> = {
   teaching_import_preview:"ImportPreview",teaching_import:"ImportReceipt",
 };
 const responseSchemas: Partial<Record<CoreOperation, string>> = {
+  machine_configuration: "MachineConfigurationDto",
+  machine_inventory: "MachineInventoryDto",
+  ui_state_machine_status: "MachineJournalStatusDto",
   document_graph: "RelationProjectionDto",
   sources_list: "SourcesListDto", source_jobs: "SourceJobsDto", source_members: "SourceMembersDto", source_pages: "SourcePagesDto", source_original: "OriginalDto", documents_list: "DocumentsListDto",
   document_create: "DocumentDto", document_get: "DocumentDto", document_draft: "DocumentDto",
@@ -45,6 +48,20 @@ export async function coreCommand<T>(operation: CoreOperation, payload: Record<s
       if (admission) throw new ApiError(409, "能力已禁用，原请求未受理；启用后可显式同请求重试。", "unavailable", undefined, admission);
     }
     const refusal = response.body as Record<string,unknown> | null;
+    if (["machine_answer","machine_retest"].includes(operation) && response.status === 503
+      && refusal?.schema === "archeaxis.machine-call-failure/v1"
+      && refusal.operation === (operation === "machine_answer" ? "answer" : "retest")
+      && refusal.execution_state === "UNVERIFIED" && refusal.answer_published === false) {
+      const reasons:Record<string,string> = {
+        MODEL_CALL_FAILED:"模型服务调用失败", NO_FINAL_ANSWER:"模型未返回最终答案",
+        EMPTY_ANSWER:"模型答案为空", WORKER_TIMEOUT:"模型执行超时", OUTPUT_LIMIT:"模型输出超过限额",
+        INVALID_OUTPUT:"模型输出格式无效", PIPE_DRAIN_FAILED:"模型进程输出收尾未确认", WORKER_FAILED:"模型执行失败",
+      };
+      if(typeof refusal.reason_code === "string" && Object.prototype.hasOwnProperty.call(reasons,refusal.reason_code)) {
+        throw new ApiError(503,`${reasons[refusal.reason_code]}；执行状态未确认，保留原请求。`,"unavailable",undefined,undefined,undefined,
+          {reason_code:refusal.reason_code,execution_state:"UNVERIFIED",answer_published:false});
+      }
+    }
     if (["machine_answer","machine_retest"].includes(operation) && refusal?.schema === "archeaxis.context-admission-refusal/v1") {
       const body=payload.body;
       const admission=response.status===403&&body&&typeof body==="object"&&!Array.isArray(body)
@@ -72,7 +89,7 @@ export async function coreCommand<T>(operation: CoreOperation, payload: Record<s
     throw new ApiError(response.status, reason, response.status === 401 || response.status === 403 ? "unauthorized" : "unavailable");
   }
   const schema = responseSchemas[operation];
-  if (["ui_state_read", "ui_state_write", "ui_state_clear_saved", "ui_state_clear_job", "ui_state_recover"].includes(operation)) {
+  if (["ui_state_read", "ui_state_write", "ui_state_clear_saved", "ui_state_clear_job", "ui_state_clear_machine", "ui_state_recover"].includes(operation)) {
     try { return assertUiWorkingState<T>("Read", response.body); }
     catch { throw new ApiError(502, "工作草稿保全回读格式无效，当前编辑内容仍保留。", "incompatible"); }
   }

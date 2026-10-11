@@ -1,0 +1,11 @@
+{
+  "schema": "archeaxis.prior-epoch-review-native-attempt/v1",
+  "status": "PARTIAL",
+  "native_run": "webdriver-276a96ff2d67",
+  "raw_receipt_sha256": "b45efd8fc3802253a2c883b95f342604c1cd0acf3ebd9352366069dbb8f1d23d",
+  "source_patch_sha256": "1fa33e9493768266a4822affdce842303e68aefcd51e30b2e82befcb3694d323",
+  "reason": "Native product correctly refused whole-workspace restore while current frozen review remained pending. No bypass or successful restore claim. Probe must first complete exact review and then explicitly restore its preserved synthetic backup.",
+  "source_consistent": true,
+  "owned_ports_released": true,
+  "qualification": "NOT_COMPLETED"
+}

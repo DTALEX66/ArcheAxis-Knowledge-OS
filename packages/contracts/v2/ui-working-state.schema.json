@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "archeaxis/ui-working-state/v1",
-  "description": "Core-owned human working drafts and UI continuity; not committed Document content. State <=1048576 UTF8 bytes; each draft <=262144 bytes. Exact Core workspace/restore epoch/revision CAS required. clear_saved verifies stored draft digest and actual base+1 committed Document version. Restore candidates require explicit preserve/discard; never automatic application.",
+  "description": "Core-owned human working drafts and UI continuity; not committed Document content. State <=1048576 UTF8 bytes; each draft <=262144 bytes. Exact Core workspace/restore epoch/revision CAS required. clear_saved verifies stored draft digest and actual base+1 committed Document version. Restore candidates require explicit preserve/discard; never automatic application. Discard refuses candidates containing pending_machine or pending_reviews without changing revision; preserve then reconcile exact receipts. Ordinary draft-only candidates remain discardable.",
   "oneOf": [
     {
       "$ref": "#/$defs/Write"
@@ -133,6 +133,20 @@
           },
           "additionalProperties": {
             "$ref": "#/$defs/PendingJob"
+          }
+        },
+        "pending_reviews": {
+          "type": "object",
+          "maxProperties": 32,
+          "additionalProperties": {
+            "$ref": "#/$defs/PendingReview"
+          }
+        },
+        "pending_machine": {
+          "type": "object",
+          "maxProperties": 32,
+          "additionalProperties": {
+            "$ref": "#/$defs/PendingMachine"
           }
         }
       },
@@ -348,6 +362,14 @@
             "type",
             "content"
           ]
+        },
+        "source_id": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9_-]{1,128}$"
+        },
+        "source_revision": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
         }
       }
     },
@@ -474,6 +496,276 @@
           ]
         }
       }
+    },
+    "PendingReview": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "item_key": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 512
+        },
+        "client_event_id": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9_-]{1,128}$"
+        },
+        "origin_restore_epoch": {
+          "type": "string",
+          "pattern": "^(initial|[a-f0-9]{32})$"
+        },
+        "body": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "item_key": {
+              "type": "string",
+              "minLength": 1
+            },
+            "client_event_id": {
+              "type": "string",
+              "minLength": 1
+            },
+            "answer": {
+              "type": "string",
+              "minLength": 1
+            },
+            "assessment_id": {
+              "type": "string",
+              "minLength": 1
+            },
+            "question_version": {
+              "type": "string",
+              "minLength": 1
+            },
+            "knowledge_version": {
+              "type": "string",
+              "minLength": 1
+            },
+            "correct": {
+              "type": "boolean"
+            },
+            "rating": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 4
+            }
+          },
+          "required": [
+            "item_key",
+            "client_event_id",
+            "answer",
+            "assessment_id",
+            "knowledge_version",
+            "correct",
+            "rating"
+          ]
+        }
+      },
+      "required": [
+        "item_key",
+        "client_event_id",
+        "origin_restore_epoch",
+        "body"
+      ]
+    },
+    "PendingMachine": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "journal_id": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9_-]{1,128}$"
+        },
+        "owner_knowledge_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        },
+        "operation": {
+          "enum": [
+            "answer",
+            "retest"
+          ]
+        },
+        "origin_restore_epoch": {
+          "type": "string",
+          "pattern": "^(initial|[a-f0-9]{32})$"
+        },
+        "body": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "knowledge_id": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 256
+            },
+            "question": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 8192
+            },
+            "max_tokens": {
+              "type": "integer",
+              "minimum": 128,
+              "maximum": 4096
+            },
+            "timeout_s": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 120
+            },
+            "model": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 256
+            },
+            "client_request_id": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 128
+            },
+            "retest_of": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 128
+            },
+            "context_grant": {
+              "$ref": "#/$defs/MachineContextConsumption"
+            },
+            "asset_context_grant": {
+              "$ref": "#/$defs/MachineAssetPacketRequest"
+            }
+          },
+          "required": [
+            "knowledge_id",
+            "question",
+            "max_tokens",
+            "timeout_s"
+          ],
+          "dependentRequired": {
+            "asset_context_grant": [
+              "context_grant"
+            ]
+          }
+        }
+      },
+      "required": [
+        "journal_id",
+        "owner_knowledge_id",
+        "operation",
+        "origin_restore_epoch",
+        "body"
+      ]
+    },
+    "MachineAssetSnapshot": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "document_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "version": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 9223372036854775807
+        },
+        "content_sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$",
+          "minLength": 64,
+          "maxLength": 64
+        }
+      },
+      "required": [
+        "document_id",
+        "version",
+        "content_sha256"
+      ]
+    },
+    "MachineAssetPacketRequest": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "request_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[!-~]+$"
+        },
+        "grant": {
+          "$ref": "#/$defs/MachineAssetSnapshot"
+        },
+        "asset": {
+          "$ref": "#/$defs/MachineAssetSnapshot"
+        },
+        "purpose": {
+          "type": "string",
+          "maxLength": 1024
+        },
+        "consumer": {
+          "$ref": "#/$defs/MachineAssetConsumer"
+        },
+        "operation": {
+          "$ref": "#/$defs/MachineAssetOperation"
+        }
+      },
+      "required": [
+        "request_id",
+        "grant",
+        "asset",
+        "purpose",
+        "consumer",
+        "operation"
+      ]
+    },
+    "MachineAssetConsumer": {
+      "type": "string",
+      "enum": [
+        "local-machine",
+        "manual-context-packet"
+      ]
+    },
+    "MachineAssetOperation": {
+      "type": "string",
+      "enum": [
+        "read_packet",
+        "answer",
+        "retest"
+      ]
+    },
+    "MachineContextConsumption": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "document_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        },
+        "version": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "content_sha256": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        },
+        "purpose": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 1024
+        }
+      },
+      "required": [
+        "document_id",
+        "version",
+        "content_sha256",
+        "purpose"
+      ]
     }
   }
 }

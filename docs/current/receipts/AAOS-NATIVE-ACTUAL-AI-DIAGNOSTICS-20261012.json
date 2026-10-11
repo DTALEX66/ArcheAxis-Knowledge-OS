@@ -1,0 +1,77 @@
+{
+  "schema": "archeaxis.engineering-acceptance/v1",
+  "status": "PARTIAL",
+  "engineering_status": "PASS",
+  "evidence_level": "REAL",
+  "materials": "SYNTHETIC_ONLY",
+  "runtime": "ISOLATED_WINDOWS_TAURI_CORE",
+  "raw_receipt": ".project-local\\runs\\be268a2d33\\webdriver-54e3ba06952e\\tmp\\journey\\receipt.json",
+  "raw_receipt_sha256": "f4f627932819079c5358f3b1abdceab3692b0faf6436a3c3fd1d14d46fc539ae",
+  "source_commit": "d6c2bbeef722f82a02a3f18e1b4296ad5e37c58b",
+  "tested_source_patch_sha256": "0102cfa253f4fbe12b936153b2adc96190827e35aa5317c4c0df18178363b5eb",
+  "compiled_source_binding": {
+    "status": "PASS",
+    "build_receipt": {
+      "path": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\runs\\be268a2d33\\3cac80e976b5\\artifacts\\native-build-binding.json",
+      "sha256": "aa6884471754a4bc03765fc43207fadfb92bc0ebdb19588900f056c2311277b5",
+      "bytes": 1399
+    },
+    "core_sha256": "0c2194df3d15a29470d48ab9f9c1f927d3436d725f44be5d768c011282deeea5"
+  },
+  "core_sha256": "0c2194df3d15a29470d48ab9f9c1f927d3436d725f44be5d768c011282deeea5",
+  "stages": [
+    {
+      "id": "import",
+      "status": "PASS"
+    },
+    {
+      "id": "read",
+      "status": "PASS"
+    },
+    {
+      "id": "anchor",
+      "status": "PASS"
+    },
+    {
+      "id": "claim",
+      "status": "PASS"
+    },
+    {
+      "id": "learn",
+      "status": "PASS"
+    },
+    {
+      "id": "practice",
+      "status": "PASS"
+    },
+    {
+      "id": "review",
+      "status": "PASS"
+    },
+    {
+      "id": "distill",
+      "status": "EXECUTED_CANDIDATE_NOT_EVALUATED"
+    },
+    {
+      "id": "recover",
+      "status": "PASS"
+    }
+  ],
+  "model": "qwen3.5-4b",
+  "original_task_id": "answer_req_3ea8a449089005884ec7697c8089f5d62e1b5b19a056179aa05322c37508c0a2",
+  "retest_task_id": "retest_1566bee316a11d21107cfaa206288606",
+  "actual_ai_requirement": "ENGINEERING_AUTHORED_ACTUAL_AI_CHAIN",
+  "model_failure_branch": "NOT_TRIGGERED_IN_THIS_REAL_RUN",
+  "full_host_restart_readback": true,
+  "old_grant_refusal_status": "PASS",
+  "capability_toggle_status": "PASS",
+  "source_consistent": true,
+  "owned_ports_released": true,
+  "limitations": [
+    "Failure classifiers have synthetic/integrated regression evidence; this real run did not trigger a model failure.",
+    "Authored correction is an engineering fixture, not independent model error or Owner acceptance.",
+    "Native navigation uses Enter; prior pointer failure remains unverified.",
+    "Pending-review acknowledgement loss and cold restart require a separate fault-injection run.",
+    "27B/cloud/Green/Owner acceptance remain outside this receipt."
+  ]
+}

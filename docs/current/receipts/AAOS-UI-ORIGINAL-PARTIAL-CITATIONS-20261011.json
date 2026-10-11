@@ -1,0 +1,117 @@
+{
+  "schema": "archeaxis.ui-original-partial-citation/v1",
+  "status": "PASS",
+  "evidence_level": "REAL_TAURI_CANDIDATE_SYNTHETIC_MATERIAL",
+  "raw_receipt": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\runs\\be268a2d33\\webdriver-f93e00fd1eb9\\tmp\\journey\\receipt.json",
+  "raw_receipt_sha256": "31f3327e1f57a4af6dded46d3a73c354cc5d6787d9c0a6c228411a1c77e10b5f",
+  "build": "2a184af22206",
+  "source_patch_sha256": "abf3f9c57513baecf38bc0b66abdb6459ddc6454c98299f236b727881362ede0",
+  "proofs": [
+    {
+      "format": "txt",
+      "source_id": "src_29e96e18c099caf060569b0c",
+      "name": "ui-partial-original.txt",
+      "sha256": "ca555215e167337946cb2e6bb9450ca60f15e8f89c44db884cdc15010b38ac4f",
+      "bytes": 72,
+      "scope": "UI_ORIGINAL_IMPORT_ONLY",
+      "ui_partial_text_citation": {
+        "anchor": {
+          "anchor_id": "anc_926a83e38d93aca93bb49b57",
+          "checksum": "f0443a342c5ef54783a111b51ba56c938e474c32324d90c3a60c9c8e3a37e2d9",
+          "location_status": "located",
+          "position": "{\"checksum\":\"f0443a342c5ef54783a111b51ba56c938e474c32324d90c3a60c9c8e3a37e2d9\",\"end\":12,\"location_status\":\"located\",\"start\":8,\"type\":\"text\"}",
+          "source_id": "src_29e96e18c099caf060569b0c",
+          "source_revision": "ca555215e167337946cb2e6bb9450ca60f15e8f89c44db884cdc15010b38ac4f"
+        },
+        "resolution": {
+          "anchor_id": "anc_926a83e38d93aca93bb49b57",
+          "current_source_revision": "ca555215e167337946cb2e6bb9450ca60f15e8f89c44db884cdc15010b38ac4f",
+          "position": "{\"checksum\":\"f0443a342c5ef54783a111b51ba56c938e474c32324d90c3a60c9c8e3a37e2d9\",\"end\":12,\"location_status\":\"located\",\"start\":8,\"type\":\"text\"}",
+          "reason": "locator_revalidated",
+          "scope": "locator_provenance_only",
+          "source_id": "src_29e96e18c099caf060569b0c",
+          "source_revision": "ca555215e167337946cb2e6bb9450ca60f15e8f89c44db884cdc15010b38ac4f",
+          "status": "CURRENT"
+        },
+        "selection_scope": "EMOJI_AFTER_BOM_CHINESE_CRLF_TRUSTED_POINTER"
+      },
+      "ui_text_citation": {
+        "anchor": {
+          "anchor_id": "anc_8701505744f45cac1ff91db9",
+          "checksum": "ca555215e167337946cb2e6bb9450ca60f15e8f89c44db884cdc15010b38ac4f",
+          "location_status": "located",
+          "position": "{\"checksum\":\"ca555215e167337946cb2e6bb9450ca60f15e8f89c44db884cdc15010b38ac4f\",\"end\":72,\"location_status\":\"located\",\"start\":0,\"type\":\"text\"}",
+          "source_id": "src_29e96e18c099caf060569b0c",
+          "source_revision": "ca555215e167337946cb2e6bb9450ca60f15e8f89c44db884cdc15010b38ac4f"
+        },
+        "resolution": {
+          "anchor_id": "anc_8701505744f45cac1ff91db9",
+          "current_source_revision": "ca555215e167337946cb2e6bb9450ca60f15e8f89c44db884cdc15010b38ac4f",
+          "position": "{\"checksum\":\"ca555215e167337946cb2e6bb9450ca60f15e8f89c44db884cdc15010b38ac4f\",\"end\":72,\"location_status\":\"located\",\"start\":0,\"type\":\"text\"}",
+          "reason": "locator_revalidated",
+          "scope": "locator_provenance_only",
+          "source_id": "src_29e96e18c099caf060569b0c",
+          "source_revision": "ca555215e167337946cb2e6bb9450ca60f15e8f89c44db884cdc15010b38ac4f",
+          "status": "CURRENT"
+        },
+        "selection_scope": "WHOLE_ORIGINAL_TRUSTED_KEYS"
+      },
+      "host_restart_original_readback": "PASS"
+    },
+    {
+      "format": "md",
+      "source_id": "src_dbaec2c8cb03caa56c2257f7",
+      "name": "ui-partial-original.md",
+      "sha256": "a8dba1e8a4ed57627a81d84235bd46bb270e0434694f9505b605426e7583e025",
+      "bytes": 151,
+      "scope": "UI_ORIGINAL_IMPORT_ONLY",
+      "ui_partial_text_citation": {
+        "anchor": {
+          "anchor_id": "anc_c1671783c6c36fb10522bd87",
+          "checksum": "f0443a342c5ef54783a111b51ba56c938e474c32324d90c3a60c9c8e3a37e2d9",
+          "location_status": "located",
+          "position": "{\"checksum\":\"f0443a342c5ef54783a111b51ba56c938e474c32324d90c3a60c9c8e3a37e2d9\",\"end\":12,\"location_status\":\"located\",\"start\":8,\"type\":\"text\"}",
+          "source_id": "src_dbaec2c8cb03caa56c2257f7",
+          "source_revision": "a8dba1e8a4ed57627a81d84235bd46bb270e0434694f9505b605426e7583e025"
+        },
+        "resolution": {
+          "anchor_id": "anc_c1671783c6c36fb10522bd87",
+          "current_source_revision": "a8dba1e8a4ed57627a81d84235bd46bb270e0434694f9505b605426e7583e025",
+          "position": "{\"checksum\":\"f0443a342c5ef54783a111b51ba56c938e474c32324d90c3a60c9c8e3a37e2d9\",\"end\":12,\"location_status\":\"located\",\"start\":8,\"type\":\"text\"}",
+          "reason": "locator_revalidated",
+          "scope": "locator_provenance_only",
+          "source_id": "src_dbaec2c8cb03caa56c2257f7",
+          "source_revision": "a8dba1e8a4ed57627a81d84235bd46bb270e0434694f9505b605426e7583e025",
+          "status": "CURRENT"
+        },
+        "selection_scope": "EMOJI_AFTER_BOM_CHINESE_CRLF_TRUSTED_POINTER"
+      },
+      "ui_text_citation": {
+        "anchor": {
+          "anchor_id": "anc_1a736843968b66430b7cc6be",
+          "checksum": "a8dba1e8a4ed57627a81d84235bd46bb270e0434694f9505b605426e7583e025",
+          "location_status": "located",
+          "position": "{\"checksum\":\"a8dba1e8a4ed57627a81d84235bd46bb270e0434694f9505b605426e7583e025\",\"end\":151,\"location_status\":\"located\",\"start\":0,\"type\":\"text\"}",
+          "source_id": "src_dbaec2c8cb03caa56c2257f7",
+          "source_revision": "a8dba1e8a4ed57627a81d84235bd46bb270e0434694f9505b605426e7583e025"
+        },
+        "resolution": {
+          "anchor_id": "anc_1a736843968b66430b7cc6be",
+          "current_source_revision": "a8dba1e8a4ed57627a81d84235bd46bb270e0434694f9505b605426e7583e025",
+          "position": "{\"checksum\":\"a8dba1e8a4ed57627a81d84235bd46bb270e0434694f9505b605426e7583e025\",\"end\":151,\"location_status\":\"located\",\"start\":0,\"type\":\"text\"}",
+          "reason": "locator_revalidated",
+          "scope": "locator_provenance_only",
+          "source_id": "src_dbaec2c8cb03caa56c2257f7",
+          "source_revision": "a8dba1e8a4ed57627a81d84235bd46bb270e0434694f9505b605426e7583e025",
+          "status": "CURRENT"
+        },
+        "selection_scope": "WHOLE_ORIGINAL_TRUSTED_KEYS"
+      },
+      "host_restart_original_readback": "PASS"
+    }
+  ],
+  "limitations": [
+    "Candidate executable, not installed Owner acceptance",
+    "Synthetic UTF-8 BOM Chinese CRLF emoji examples, not all encodings or full fidelity"
+  ]
+}

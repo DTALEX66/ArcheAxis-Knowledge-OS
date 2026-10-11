@@ -76,10 +76,10 @@ it("SIMULATED mounted grouped UI preserves exact source/job/transform/anchor/can
  await waitFor(()=>expect(bridge.call).toHaveBeenCalledWith("knowledge_review",{id:"knowledge-exact",body:{action:"accepted",reviewer:"SYNTHETIC reviewer",note:"",expected_version:"knowledge-v1"}}));
 });
 it("SIMULATED refuses candidate readback bound to a different source and never grants review",async()=>{
- mockCore(true);render(<Journey/>);await createCandidate();await screen.findByText("候选与证据读取失败，审核按钮不可用。");expect(screen.queryByRole("button",{name:"接受当前候选"})).toBeNull();expect(bridge.call.mock.calls.some(([op])=>op==="knowledge_review")).toBe(false);
+ mockCore(true);render(<Journey/>);await createCandidate();await screen.findByText("候选或来源绑定读取失败，审核按钮不可用。");expect(screen.queryByRole("button",{name:"接受当前候选"})).toBeNull();expect(bridge.call.mock.calls.some(([op])=>op==="knowledge_review")).toBe(false);
 });
 it.each(["STALE","UNSUPPORTED"])("SIMULATED refuses %s candidate locator even when the reading locator is CURRENT",async status=>{
- mockCore(false,status);render(<Journey/>);await createCandidate();await screen.findByText("候选与证据读取失败，审核按钮不可用。");expect(screen.queryByRole("button",{name:"接受当前候选"})).toBeNull();expect(bridge.call.mock.calls.some(([op])=>op==="knowledge_review")).toBe(false);
+ mockCore(false,status);render(<Journey/>);await createCandidate();await screen.findByText("候选或来源绑定读取失败，审核按钮不可用。");expect(screen.queryByRole("button",{name:"接受当前候选"})).toBeNull();expect(bridge.call.mock.calls.some(([op])=>op==="knowledge_review")).toBe(false);
 });
 it("SIMULATED actual Tiptap transaction serializes the exact locator and click passes its immutable identities",async()=>{
  const save=vi.fn().mockResolvedValue({content,version:2}),activate=vi.fn();render(<DocumentEditor content={content} version={1} onSave={save} onReferenceActivate={activate}/>);

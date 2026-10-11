@@ -1,0 +1,23 @@
+{
+  "schema": "archeaxis.scoped-regression/v1",
+  "status": "PARTIAL",
+  "scoped_tests_status": "PASS",
+  "evidence_level": "SIMULATED_WITH_OWNED_SYNTHETIC_WORKER_PROCESS",
+  "application_unit_passed": 2,
+  "api_contract_passed": 11,
+  "log": ".project-local\\runs\\be268a2d33\\083007359cac\\logs\\execution.log",
+  "log_sha256": "09e4f4ae5f52bc6a9d60dc8d5e6011fe7ae729b23090af0b937d23e95560b2ba",
+  "implemented": [
+    "POST /api/v1/machine/inventory requires empty JSON object",
+    "Input-free --probe launch with three model configuration environment variables only",
+    "Capability settings read before queue and after permit; settings failure refuses spawn",
+    "Finite inventory projection without endpoint, available or error text; failed count/presence null",
+    "Bounded queue and process/drain handling; Windows own-thread I/O cancellation"
+  ],
+  "remaining": [
+    "Formal DTO/OpenAPI/Tauri/frontend wiring",
+    "Disabled/race/queue/timeout/descendant-pipe resource regressions",
+    "Actual local inventory via formal UI",
+    "Overall model availability and inference qualification remain distinct"
+  ]
+}

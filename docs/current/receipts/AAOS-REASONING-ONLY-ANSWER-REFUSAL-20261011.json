@@ -1,0 +1,51 @@
+{
+  "schema": "archeaxis.local-repair-receipt/v1",
+  "date": "2026-10-11",
+  "status": "PARTIAL",
+  "base_commit": "d6c2bbeef722f82a02a3f18e1b4296ad5e37c58b",
+  "implementation": "Ordinary machine answer refuses reasoning_content-only responses before extract/transport can publish or persist them as final answers; existing final content, Ollama response and labelled truncation behavior retained",
+  "files": ["services/python-workers/machine/worker_machine_answer.py", "tests/test_worker_machine_answer.py"],
+  "evidence_level": "SIMULATED_HTTP_RESPONSE_LOCAL_WORKER_EXECUTION",
+  "red": {"run": "a91e61d933b8", "passed": 31, "failed": 2, "reason": "Both stop and length reasoning-only responses were returned instead of refused"},
+  "green": {"run": "2278bc5a1731", "passed": 48, "subtests_passed": 30, "exit_code": 0, "source_consistent": true, "tested_patch_sha256": "58d18dfeaac425d159d0d1eda8972c32735528483ba4d1ede44845020a2b5930"},
+  "evidence_root": ".project-local/runs/be268a2d33",
+  "checks": {"critical_ruff": "PASS", "architecture": "PASS", "diff_check": "PASS", "independent_read_only_review": "PASS"},
+  "real_response_observation": {
+    "evidence_level": "REAL_STANDALONE_FORMAL_WORKER_SYNTHETIC_MATERIAL",
+    "declared_lane": "http://127.0.0.1:1234/v1",
+    "requested_model": "qwen3.5-4b",
+    "observed_response_model": "UNVERIFIED_NOT_CAPTURED_ON_FAILURE",
+    "source_consistent": true,
+    "tested_patch_sha256": "2e4024e497434ae13c2996924ae01a6f8e346630f707e184e879fc4261861515",
+    "runs": [
+      {"run": "c8c23e952790", "max_tokens": 512, "result": "FAIL", "error_type": "ValueError", "failure_classification": "UNVERIFIED", "metadata_sha256": "73f94865f051d31af7f11cbcc8ac2fa56d895e7ce6d390777944cc7c0e7184c7"},
+      {"run": "3c2faa3c1ce4", "max_tokens": 1024, "result": "FAIL", "reasoning_only_refused": true, "final_answer_returned": false, "metadata_sha256": "48dfe43dc93939e6e6db02388413c5b5c793a8089736c0e88ffb056b208806b5"}
+    ],
+    "qualification": "Real reasoning-only refusal observed; successful answer task and full Core loop NOT_QUALIFIED",
+    "data_retention": "Only synthetic request and whitelisted failure metadata retained; no response or reasoning body"
+  },
+  "environment_resolution": {
+    "status": "PASS_ORIGINAL_BLOCKER_RESOLVED",
+    "owner_grant": "Owner explicitly authorized this round's limited non-sandbox isolated build and synthetic Tauri/Core verification; no ACL/system/security-check change",
+    "cause": "Same physical Node and source path: sandbox realpath failed EPERM; authorized non-sandbox realpath succeeded. Windows CreateFileW succeeded while normalized GetFinalPathNameByHandleW failed with error 5 in sandbox",
+    "routing_fix": "frontend_paths.mjs now respects the canonical runner's explicit ARCHEAXIS_PYTHON before the stale managed .venv, retaining safePath and regular-file checks",
+    "routing_tests": {"run": "2b4fd26d8841", "passed": 19, "skipped": 2, "exit_code": 0},
+    "current_tauri_build": {"run": "d744fa7995a3", "status": "PASS", "source_consistent": true, "source_patch_sha256": "e985f66e5c46ff0aad0d55ef94c625041b7bb514dfa062ff2a2aca344b3b4688", "binding": ".project-local/runs/be268a2d33/d744fa7995a3/artifacts/native-build-binding.json"},
+    "core_real_model": {"run": "ef73aede49c7", "status": "PASS", "evidence_level": "REAL_LOCAL_CORE_WORKER_MODEL_SYNTHETIC_MATERIAL", "receipt": ".project-local/task-runtime/aaos01-machine/e878a60c52394e1c88ec4ca6a310ef62/receipt.json", "observed_model": "qwen3.5-4b", "answer_source": "content", "finish_reason": "stop", "authority": "candidate", "restart_equal": true, "accuracy": "UNMEASURED"},
+    "native_journey": {"status": "FAIL", "receipt": ".project-local/runs/be268a2d33/webdriver-efd5156ed68c/tmp/journey/receipt.json", "passed_stages": ["import", "read", "anchor", "claim", "learn", "practice", "review"], "initial_ai": "EXECUTED_CANDIDATE_NOT_EVALUATED", "correction": "EXECUTED_AUTHORED_INTERVENTION_NOT_INDEPENDENT_ERROR", "independent_retest": "UNVERIFIED", "failure": "Navigation raised an unexpected native unsaved-draft alert after unconfirmed retest", "source_consistent": true, "qualification": "Nine-stage native closed loop NOT_QUALIFIED; no Owner signoff"},
+    "limits": "Receipt updates occur after the tested build fingerprint; earlier failed attempts below remain historical evidence"
+  },
+  "authorized_candidate_preparation": {
+    "owner_grant": "Owner explicitly allowed this run's isolated Rust build and Tauri/Core actual verification under project-local; no commit/push/system install/Green replacement/user data overwrite",
+    "snapshot_patch_sha256": "6459ccf397d98895f14ffcfa5aa216f56af3dfab7e88a536c67f2aca1e1412b0",
+    "core_build": {"run": "306c8defd99d", "status": "PASS", "source_consistent": true, "mode": "release locked offline; declared MSVC child environment", "sha256": "a808b214b8b5e22586e40f1438ae4c060019d4191f0205d9dd4290407df86a42"},
+    "backend_staging": {"run": "ead7878fdd2e", "status": "PASS", "source_consistent": true, "root": ".project-local/rt", "files": 19521, "manifest_sha256": "bde655f8a820465b448b3246657f34ccc1e5184d825cd8e62ea2cac7ade02b46", "core_matches_build": true, "machine_worker_matches_current_source": true, "machine_worker_sha256": "559b031bb7888ad846aa6a1b33a215c1f5e322219f388b3809202b7d5655e42d", "runtime_donor": ".project-local/build/tauri/release/runtime", "runtime_origin": "fa1c643aabeeda8aa4724d08cf808719ddfa904f; caller asserted provenance, independently kept separate from current workers/Core", "runtime_imports": "Python 3.12.13, yaml and fsrs imported"},
+    "tauri_build": {"run": "a3b5ebd3dab2", "status": "FAIL", "source_consistent": true, "mode": "no-bundle locked offline", "reason": "Vite realpath frontend/src/main.tsx returned EPERM; current host not generated"},
+    "earlier_attempts": ["99598824a198: linker not initialized; corrected using existing declared MSVC function", "f75214eac8ec: uv not on child PATH; indexed host-managed uv found", "1d4b111c967e: 116 locked dependencies installed offline, project uv wheel build denied; partial donor preserved, operation not retried", "cc4a351a8ace: Node current junction rejected; used physical 24.18.0 path already declared in resource index"],
+    "path_diagnosis": {"status": "BLOCKED_ENVIRONMENT", "observation": "Physical Node 24.18.0 can read/lstat source; realpathSync.native returns EPERM for repository, frontend, project-local and the declared physical Node executable. Tested directories/executable are not symbolic links. No ACL change, elevation or path-check bypass attempted", "cause": "UNVERIFIED; failure is in native path canonicalization, not established as a Vite source defect"},
+    "core_actual_model_probe": {"run": "31046094836c", "receipt": ".project-local/task-runtime/aaos01-machine/ae97ff68e8f84a2ba787c200837bc6f1/receipt.json", "status": "FAIL", "observation": "Existing LM Studio advertised requested qwen3.5-4b; current staged Core exited 1 before readiness. No model inference performed by this probe", "root_cause": "UNVERIFIED; canonical SQLite writer requires path canonicalization, but the launcher suppresses child stderr and this probe does not identify its underlying initialization error", "qualification": "NOT_QUALIFIED; not native UI or Owner acceptance"},
+    "native_actual_ai_journey": "NOT_EXECUTED_CURRENT_HOST_BUILD_FAILED",
+    "publication": "NOT_EXECUTED"
+  },
+  "limits": ["Green fingerprint precedes receipt additions", "Existing pyreadline3 destructor warning retained after successful test exit", "Real response observation failed to return a final answer; it is not successful inference or accuracy qualification", "Core build and backend staging are not native runtime or Owner qualification; current Tauri build failed", "No model/provider/endpoint/global configuration change", "No commit or push; current changes remain local", "Full project goal remains PARTIAL"]
+}

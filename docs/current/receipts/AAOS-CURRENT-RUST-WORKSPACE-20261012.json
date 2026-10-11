@@ -1,0 +1,43 @@
+{
+  "schema": "archeaxis.current-rust-workspace/v1",
+  "status": "PASS",
+  "overall_product_status": "PARTIAL",
+  "run": "7c9d561c8bc2",
+  "command": "cargo test --workspace --locked --offline --release",
+  "source_patch_sha256": "1f568a257a0ec51678ad9d7edafcc93b74d1c3d42774bdd7f5bf9da536ce1b3c",
+  "source_consistent": true,
+  "suite_results": 165,
+  "tests_passed": 758,
+  "tests_failed": 0,
+  "tests_ignored": 0,
+  "execution_receipt_sha256": "97699064e4e37805e0631736274eee1c2e190e0c8e5c5e10f553dd7ffcb2ac73",
+  "historical_failures": [
+    {
+      "run": "7ebbdab0a53c",
+      "reason": "Capability health handshake left owned temporary directory locked on Windows; disabled admission itself had zero attempts"
+    },
+    {
+      "run": "9dcb90da5aad",
+      "reason": "Diagnostic confirms generated .tmp directory remained"
+    },
+    {
+      "run": "451f51a3d714",
+      "reason": "Explicit cleanup reported Windows sharing violation 32, preserved as failed health observation"
+    },
+    {
+      "run": "75c71b00569d",
+      "reason": "Old assessment test required obsolete wording; actual non-answer prompt differs intentionally"
+    }
+  ],
+  "changes": [
+    "Health handshake closes stdin and allows bounded normal exit before killing launcher, explicitly checks staging cleanup",
+    "Disabled execution still requires zero attempts and zero staging residue; diagnostics retain failure details",
+    "Assessment regression verifies nonempty, non-answer question and stable retry instead of old wording"
+  ],
+  "limits": [
+    "Rust workspace excludes formal Tauri native qualification",
+    "Mixed synthetic fixtures and actual local worker process tests; not real cloud or model quality",
+    "Tests named V01 are existing regression only and do not resume paused V01 product task",
+    "No installed Green or Owner acceptance"
+  ]
+}

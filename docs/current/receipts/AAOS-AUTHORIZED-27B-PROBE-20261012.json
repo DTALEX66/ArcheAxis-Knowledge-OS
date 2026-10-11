@@ -1,0 +1,73 @@
+{
+  "schema": "archeaxis.authorized-model-probe/v1",
+  "identifier": "aaos27b-20261012-57c8c929-42ed-4a52-82ee-cbc7013c2588",
+  "modelKey": "qwen3.8-27b",
+  "execution": "REAL_DIRECT_SDK_SYNTHETIC_MATERIAL",
+  "status": "PASS",
+  "rows": [
+    {
+      "case": "grounding",
+      "wall_s": 27.6444609,
+      "expected_literals_present": true,
+      "stats": {
+        "stopReason": "eosFound",
+        "tokensPerSecond": 2.6445687083445204,
+        "timeToFirstTokenSec": 4.569064999999999,
+        "promptTokensCount": 72,
+        "predictedTokensCount": 62
+      }
+    },
+    {
+      "case": "missing",
+      "wall_s": 33.3504543,
+      "expected_literals_present": true,
+      "stats": {
+        "stopReason": "eosFound",
+        "tokensPerSecond": 2.581477007558737,
+        "timeToFirstTokenSec": 4.146382,
+        "promptTokensCount": 77,
+        "predictedTokensCount": 76
+      }
+    }
+  ],
+  "limits": [
+    "Direct SDK is not application closure or Owner acceptance",
+    "No generated answer or reasoning retained",
+    "No global configuration mutation or downloads",
+    "Actual layer placement and peak RAM remain UNVERIFIED"
+  ],
+  "before": [
+    {
+      "identifier": "qwen3.5-4b",
+      "modelKey": "qwen3.5-4b"
+    }
+  ],
+  "effectiveConfig": {
+    "gpu": {
+      "splitStrategy": "evenly",
+      "disabledGpus": [],
+      "ratio": 0.1,
+      "numCpuExpertLayersRatio": "off"
+    },
+    "gpuStrictVramCap": true,
+    "offloadKVCacheToGpu": false,
+    "contextLength": 2048,
+    "maxParallelPredictions": 1,
+    "flashAttention": true,
+    "speculativeDraftMtp": false,
+    "speculativeDraftSimple": false
+  },
+  "after": [
+    {
+      "identifier": "qwen3.5-4b",
+      "modelKey": "qwen3.5-4b"
+    }
+  ],
+  "owned_instance_unloaded": true,
+  "preexisting_instances_preserved": true,
+  "evidence": {
+    "path": ".project-local/runs/be268a2d33/model-selection-20261011/sdk/authorized27b-20261012.json",
+    "sha256": "e9d0697eb812c2e1866fefa4c4ff50323b3f44486ffb55f5dca19e54ea648c11"
+  },
+  "product_status": "PARTIAL"
+}

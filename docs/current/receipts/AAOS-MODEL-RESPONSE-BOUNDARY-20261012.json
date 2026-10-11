@@ -1,0 +1,17 @@
+{
+  "schema": "archeaxis.scoped-regression/v1",
+  "status": "PASS",
+  "scope": "tests/test_worker_machine_answer.py",
+  "passed": 61,
+  "failed": 0,
+  "evidence_level": "SIMULATED_AND_LOOPBACK_INTEGRATED_WITH_SYNTHETIC_MATERIALS",
+  "log": ".project-local\\runs\\be268a2d33\\2dea342e209f\\logs\\execution.log",
+  "log_sha256": "0d14a5872262940f4fd3fb6929ea4685918b3db919d04425b5750c6560805282",
+  "source_sha256": "4228993e109b9d17bf4ab32fcd4c53264f17eedca2e31cd497b0c32ede85d842",
+  "change": "Inventory and inference JSON reads capped at 4 MiB before decoding; oversized and non-object responses fail.",
+  "limitations": [
+    "No actual model call in this regression run.",
+    "Previous native transport receipt belongs to the previous worker source; response-limit change still requires a new staged native qualification.",
+    "Model discovery is not yet exposed through the formal UI."
+  ]
+}

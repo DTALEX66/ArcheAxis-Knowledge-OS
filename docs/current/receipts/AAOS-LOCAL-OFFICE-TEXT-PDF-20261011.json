@@ -1,0 +1,621 @@
+{
+  "schema": "archeaxis.office-pdf-progress/v1",
+  "date": "2026-10-11",
+  "overall": "PARTIAL",
+  "qualification": "INTEGRATED_SELECTED_CONTENT_LOCATION_REPARSE_RESTART",
+  "evidence_level": "INTEGRATED_CORE_REAL_PARSERS_SYNTHETIC_MATERIAL",
+  "run": "c27528e165b1",
+  "child_run": "28bcba1a43e2",
+  "receipt": ".project-local/runs/be268a2d33/28bcba1a43e2/artifacts/common-formats.json",
+  "receipt_sha256": "c92e0a5930ef583ad3040574e04b8ac9a0e7cb80035e0b186a6650dff9d47ef6",
+  "source": {
+    "commit": "d6c2bbeef722f82a02a3f18e1b4296ad5e37c58b",
+    "dirty": true,
+    "patch_sha256": "9f3a057ebfb8aff7948e8090a5be92b42713dd06118c4f7bf6a91a7c2d97c80a",
+    "changes": [
+      {
+        "path": ".project/schemas/project-contract.schema.json",
+        "head_tree_entry": "100644 blob 305b977b474c2908ecb4de23e22314497a8dd3b8\t.project/schemas/project-contract.schema.json",
+        "exists": true,
+        "worktree_blob": "ebd0740d40448ba57b59005ea006724907cb0985",
+        "bytes": 13040
+      },
+      {
+        "path": "AGENTS.md",
+        "head_tree_entry": "100644 blob cb0bc5b778ffea2bf16b34ed76ad796fec4f11c6\tAGENTS.md",
+        "exists": true,
+        "worktree_blob": "2ac0a269d12c231a3bc6157ac2bd76edb336bce5",
+        "bytes": 13570
+      },
+      {
+        "path": "AUTHORITY.md",
+        "head_tree_entry": "100644 blob 085df4bdf59d5b8c41db5eb6261424574a4801fc\tAUTHORITY.md",
+        "exists": true,
+        "worktree_blob": "a463b8236ece10f9d348a43c51349009f353096e",
+        "bytes": 7518
+      },
+      {
+        "path": "PROJECT_CONTRACT.yaml",
+        "head_tree_entry": "100644 blob 96234dd625a49d031ae9eb39dd09c2727a1003ae\tPROJECT_CONTRACT.yaml",
+        "exists": true,
+        "worktree_blob": "cffed890047032db847a58270a588bb98013df58",
+        "bytes": 7957
+      },
+      {
+        "path": "README.md",
+        "head_tree_entry": "100644 blob b82093724427933369655e897c99c2c973fdeb46\tREADME.md",
+        "exists": true,
+        "worktree_blob": "239094a3dd696bbf40621175e4d1ac62833ab5e2",
+        "bytes": 26537
+      },
+      {
+        "path": "app/contracts/federation_v1.py",
+        "head_tree_entry": "100644 blob 853a198b620ca0fe979e94e8f20b772323de2fec\tapp/contracts/federation_v1.py",
+        "exists": true,
+        "worktree_blob": "b5437176230e55321a66efcce5a5eb385bb8cb26",
+        "bytes": 6147
+      },
+      {
+        "path": "app/federation/service.py",
+        "head_tree_entry": "100644 blob 8de898d1b890ebf71b7539dbf5264422cc944a89\tapp/federation/service.py",
+        "exists": true,
+        "worktree_blob": "f0d4146c9da021eed9690beb949eabe1e3fc8328",
+        "bytes": 24756
+      },
+      {
+        "path": "app/release-manifest.json",
+        "head_tree_entry": "100644 blob 27e5beeb469ebfe98ccabba96e9086db0a251dd6\tapp/release-manifest.json",
+        "exists": true,
+        "worktree_blob": "bcc01c4e185fb94098772a3d04dea0d73f416820",
+        "bytes": 4293
+      },
+      {
+        "path": "apps/ArcheAxis.Desktop/MainWindow.axaml",
+        "head_tree_entry": "100644 blob 48df6754864c92ea28307d40502a6f3d2d34c3ec\tapps/ArcheAxis.Desktop/MainWindow.axaml",
+        "exists": true,
+        "worktree_blob": "27d8e587441cdbc1438a2a1c4095bb78ccc4a483",
+        "bytes": 225644
+      },
+      {
+        "path": "apps/ArcheAxis.Desktop/MainWindow.axaml.cs",
+        "head_tree_entry": "100644 blob 55fe7855af7ca08d3178b6db86f0506635f4da49\tapps/ArcheAxis.Desktop/MainWindow.axaml.cs",
+        "exists": true,
+        "worktree_blob": "063ac9ac00ada1655eb35176582912f772957597",
+        "bytes": 326006
+      },
+      {
+        "path": "archeaxis/__init__.py",
+        "head_tree_entry": "100644 blob 9357367ac77ae45afff4aa1afaeba18cfbe49a45\tarcheaxis/__init__.py",
+        "exists": true,
+        "worktree_blob": "8b5b366e6dbd3d2c41e00ee9dc41832177fcfb06",
+        "bytes": 1383
+      },
+      {
+        "path": "config/product-naming-registry.yaml",
+        "head_tree_entry": "100644 blob 8746e212ffb9ac1c1a67793294aee70da2697915\tconfig/product-naming-registry.yaml",
+        "exists": true,
+        "worktree_blob": "b5b0698777c0270a09b7cb6d617f0986921de2aa",
+        "bytes": 1881
+      },
+      {
+        "path": "config/product/UI_CONTRACT_V2.json",
+        "head_tree_entry": "100644 blob e1a81d624d891aee37a719490895f7fa8d08cae4\tconfig/product/UI_CONTRACT_V2.json",
+        "exists": true,
+        "worktree_blob": "2547ccd7f8b859771fddc992ee4e518113834d79",
+        "bytes": 5510
+      },
+      {
+        "path": "crates/archeaxis-api/src/documents.rs",
+        "head_tree_entry": "100644 blob fdd5aa531434328c640c4bb1a528d1c132603cbc\tcrates/archeaxis-api/src/documents.rs",
+        "exists": true,
+        "worktree_blob": "bc64d3ba0a4a1f3b90f1eb624456bdd6626bfbe2",
+        "bytes": 26715
+      },
+      {
+        "path": "crates/archeaxis-api/tests/document_cloud_loop.rs",
+        "head_tree_entry": "100644 blob 7088b6f29c5c0962bda2b134c2b224e6ee70b619\tcrates/archeaxis-api/tests/document_cloud_loop.rs",
+        "exists": true,
+        "worktree_blob": "8842ef9e5ba6fb837305d9261454028a478ac1cd",
+        "bytes": 37491
+      },
+      {
+        "path": "crates/archeaxis-application/src/executor.rs",
+        "head_tree_entry": "100644 blob 0cb542b29857f5eeac4f52c7fb73abd1eb4d99c8\tcrates/archeaxis-application/src/executor.rs",
+        "exists": true,
+        "worktree_blob": "0d954f8fef4737afe0fb1c3d5a171efd39236215",
+        "bytes": 53186
+      },
+      {
+        "path": "crates/archeaxis-domain/src/document.rs",
+        "head_tree_entry": "100644 blob fca8db21f38fdef050109772d14309b854329d7e\tcrates/archeaxis-domain/src/document.rs",
+        "exists": true,
+        "worktree_blob": "b96fe5a3390ec8436c4138625c357a44c884bb5e",
+        "bytes": 91508
+      },
+      {
+        "path": "crates/archeaxis-domain/src/ui_state.rs",
+        "head_tree_entry": "100644 blob a85ccac20c13ebe525ac4d90b1ad353df9559416\tcrates/archeaxis-domain/src/ui_state.rs",
+        "exists": true,
+        "worktree_blob": "b40ad142ff1a3ba225dd9e69e1f554283366e490",
+        "bytes": 25769
+      },
+      {
+        "path": "crates/archeaxis-domain/tests/ui_working_state.rs",
+        "head_tree_entry": "100644 blob c45eebd55cd9b0c76d98edc2acc0212e8c550eb4\tcrates/archeaxis-domain/tests/ui_working_state.rs",
+        "exists": true,
+        "worktree_blob": "72b8db8a53a7f043799b25ce2270d31bb94451e9",
+        "bytes": 17558
+      },
+      {
+        "path": "crates/archeaxis-store-sqlite/src/authorization_fence.rs",
+        "head_tree_entry": "100644 blob 2008b7732cfae8902158155162b9533a55d5ffd0\tcrates/archeaxis-store-sqlite/src/authorization_fence.rs",
+        "exists": true,
+        "worktree_blob": "f155caa093f0edd7efed1fd1773fa3df92778cd7",
+        "bytes": 8529
+      },
+      {
+        "path": "desktop/bootstrap/index.html",
+        "head_tree_entry": "100644 blob 205be44d8ad9f03dbaca7808ed46d4dbb98c5c6b\tdesktop/bootstrap/index.html",
+        "exists": true,
+        "worktree_blob": "fe20e7d6ef8e32b453061d64a6b8f2f78c899d02",
+        "bytes": 541
+      },
+      {
+        "path": "docs/PRODUCT_POSITIONING.md",
+        "head_tree_entry": "100644 blob 37422217db1053d88b7926a14c86268eb1b83eb8\tdocs/PRODUCT_POSITIONING.md",
+        "exists": true,
+        "worktree_blob": "19f5a08fe978689d7199e9135ba51f83b3d7e1aa",
+        "bytes": 2973
+      },
+      {
+        "path": "docs/PRODUCT_STAGE_COMPATIBILITY.md",
+        "head_tree_entry": "100644 blob 7e07db210246e7b004fb0f6ddc1238275f322285\tdocs/PRODUCT_STAGE_COMPATIBILITY.md",
+        "exists": true,
+        "worktree_blob": "080aed6941c27d5d7914214d4d480feec70752da",
+        "bytes": 2452
+      },
+      {
+        "path": "docs/current/AAOS-GOVERNANCE-UI-HANDOFF-20261008.md",
+        "head_tree_entry": "100644 blob 72c2b6f2f8a3f4a2da498ecda334be213bb1b645\tdocs/current/AAOS-GOVERNANCE-UI-HANDOFF-20261008.md",
+        "exists": true,
+        "worktree_blob": "b372f64194c6f2c414f8bcda31aab59df703f792",
+        "bytes": 109881
+      },
+      {
+        "path": "docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md",
+        "head_tree_entry": "100644 blob 7e9a274ffd3feb4cff40b354e9a604ee7fcc6ba2\tdocs/current/AAOS-UI-FIRST-EXECUTION-20261009.md",
+        "exists": true,
+        "worktree_blob": "66166c3ec7d8a34ea043d93e7de8f7c109dd1286",
+        "bytes": 125257
+      },
+      {
+        "path": "docs/current/receipts/AAOS-EGRESS-CONTROL-INCREMENT-20261011.json",
+        "head_tree_entry": "",
+        "exists": true,
+        "worktree_blob": "cde44ccf45c80369a9c80ace9daee2b78e183a1e",
+        "bytes": 5891
+      },
+      {
+        "path": "docs/current/receipts/AAOS-LOCAL-ASR-COMMON-FORMATS-20261011.json",
+        "head_tree_entry": "",
+        "exists": true,
+        "worktree_blob": "80679466959a45d7b9358c10deb8976f78bc6a76",
+        "bytes": 25999
+      },
+      {
+        "path": "docs/current/receipts/AAOS-LOCAL-FORMAT-CORE-BATCH-20261011.json",
+        "head_tree_entry": "",
+        "exists": true,
+        "worktree_blob": "d5f62c65ea2db1c6e4bd3bea6f4916a742e41f96",
+        "bytes": 4465
+      },
+      {
+        "path": "docs/current/receipts/AAOS-NATIVE-ACTUAL-AI-CHAIN-20261011.json",
+        "head_tree_entry": "",
+        "exists": true,
+        "worktree_blob": "e080d73b31a7a0dc77585702ed66ffaf5b975568",
+        "bytes": 2318
+      },
+      {
+        "path": "docs/current/receipts/AAOS-REASONING-ONLY-ANSWER-REFUSAL-20261011.json",
+        "head_tree_entry": "",
+        "exists": true,
+        "worktree_blob": "83b8382584bddef6775decd8444e807bb51afbce",
+        "bytes": 7932
+      },
+      {
+        "path": "docs/decisions/ADR-AXW-IDENTITY-001.md",
+        "head_tree_entry": "100644 blob c19d62250e7a5a5e8f70817d19207f7a786804a8\tdocs/decisions/ADR-AXW-IDENTITY-001.md",
+        "exists": true,
+        "worktree_blob": "ef2c27916756cb36153ab6fed64d2faa5fce271f",
+        "bytes": 1218
+      },
+      {
+        "path": "docs/truth/CURRENT_STATE_TRUTH.md",
+        "head_tree_entry": "100644 blob b142310f27faa9c079a2fd8e977d3421f33c43e3\tdocs/truth/CURRENT_STATE_TRUTH.md",
+        "exists": true,
+        "worktree_blob": "95bde22a0bd63cfce60cb3e0e101944c48aeab6d",
+        "bytes": 4024
+      },
+      {
+        "path": "docs/truth/NAMING_CONTRACT_V1.md",
+        "head_tree_entry": "100644 blob 8b360dcd9305343fb1f3094166064bed43ea8551\tdocs/truth/NAMING_CONTRACT_V1.md",
+        "exists": true,
+        "worktree_blob": "19a0a0b413e25aedaba7932729322ecfed1ca0c2",
+        "bytes": 3354
+      },
+      {
+        "path": "docs/truth/NAMING_CONTRACT_V2.md",
+        "head_tree_entry": "100644 blob e621a6678eb191c49ca06a5e98ef4c541613c121\tdocs/truth/NAMING_CONTRACT_V2.md",
+        "exists": true,
+        "worktree_blob": "5d2aa2e37c97f8ebfbacfdce86a55f7c3e98e778",
+        "bytes": 8909
+      },
+      {
+        "path": "frontend/index.html",
+        "head_tree_entry": "100644 blob dad991bb80e512d82ac8b51f80680f2e2e2078f1\tfrontend/index.html",
+        "exists": true,
+        "worktree_blob": "04a047ae1af39e60c8823fa8178431f6ae614074",
+        "bytes": 441
+      },
+      {
+        "path": "frontend/src/__tests__/AppSceneNavigationGuard.test.tsx",
+        "head_tree_entry": "100644 blob 05d50ec8851bda58f5411c6c25112d4e69e761bc\tfrontend/src/__tests__/AppSceneNavigationGuard.test.tsx",
+        "exists": true,
+        "worktree_blob": "479244168b1f91d3c9acd7638d50f663e0b1b94e",
+        "bytes": 7677
+      },
+      {
+        "path": "frontend/src/__tests__/CanonicalLibrarySpace.test.tsx",
+        "head_tree_entry": "100644 blob 606c968f234fbf39d6b1724001dc4370887a81de\tfrontend/src/__tests__/CanonicalLibrarySpace.test.tsx",
+        "exists": true,
+        "worktree_blob": "059e2abb56141eddaad454bf94489ff8b64a3fd2",
+        "bytes": 44017
+      },
+      {
+        "path": "frontend/src/__tests__/CheckPanel.test.tsx",
+        "head_tree_entry": "100644 blob 052220ae756e0ddce5627eadd542a99bfe40e2f6\tfrontend/src/__tests__/CheckPanel.test.tsx",
+        "exists": true,
+        "worktree_blob": "bf1cf2b7f78bce5806d6408bab31f376603da613",
+        "bytes": 26529
+      },
+      {
+        "path": "frontend/src/__tests__/CoreWorkingState.test.ts",
+        "head_tree_entry": "100644 blob 89f55d44f4a43598e45af66cf008660cafc2b9e1\tfrontend/src/__tests__/CoreWorkingState.test.ts",
+        "exists": true,
+        "worktree_blob": "aeaee5df22f2d0c1d75550792a6a51434e08b0ae",
+        "bytes": 20308
+      },
+      {
+        "path": "frontend/src/__tests__/KnowledgeReviewRecovery.test.tsx",
+        "head_tree_entry": "",
+        "exists": true,
+        "worktree_blob": "fd1c8cb78654befdcab17ebab21d0c6bdb124cae",
+        "bytes": 3037
+      },
+      {
+        "path": "frontend/src/__tests__/MachineAnswerPanelScoped.test.tsx",
+        "head_tree_entry": "100644 blob e4bbe02af756fbabee426cc66536097f2d936a87\tfrontend/src/__tests__/MachineAnswerPanelScoped.test.tsx",
+        "exists": true,
+        "worktree_blob": "66273051d43a8b8c9626330ad21e73de71c9ab5f",
+        "bytes": 14775
+      },
+      {
+        "path": "frontend/src/__tests__/SourceCandidateJourney.test.tsx",
+        "head_tree_entry": "100644 blob 3f19bf2ca19bbd79765e7a89c81dfd2626d57ed0\tfrontend/src/__tests__/SourceCandidateJourney.test.tsx",
+        "exists": true,
+        "worktree_blob": "86c85d7d93f3500c5e4dfb5077ef1fb091d9b56d",
+        "bytes": 10079
+      },
+      {
+        "path": "frontend/src/__tests__/StatusBar.test.tsx",
+        "head_tree_entry": "100644 blob e37cb69b277e9e22095b1146186041f809deec47\tfrontend/src/__tests__/StatusBar.test.tsx",
+        "exists": true,
+        "worktree_blob": "63deb0639bafbc8ff43e77e366b325850c41be77",
+        "bytes": 3815
+      },
+      {
+        "path": "frontend/src/api/generated/core-contract.ts",
+        "head_tree_entry": "100644 blob a78a95a266cad0d9dc7393b34a9c5e5ffa032354\tfrontend/src/api/generated/core-contract.ts",
+        "exists": true,
+        "worktree_blob": "d77b61b6d4a079c99f0c78c478d41fa176dce229",
+        "bytes": 37524
+      },
+      {
+        "path": "frontend/src/api/generated/ui-working-state-contract.ts",
+        "head_tree_entry": "100644 blob 113f9fbbcde040a6d38658ccf36241ce8834b1fa\tfrontend/src/api/generated/ui-working-state-contract.ts",
+        "exists": true,
+        "worktree_blob": "6707b47d7555e740bb73fe11f1243d91ffb4bf7c",
+        "bytes": 10413
+      },
+      {
+        "path": "frontend/src/app/App.tsx",
+        "head_tree_entry": "100644 blob 57b1cd3fd134a7673a2610cb809b3efe2bf72543\tfrontend/src/app/App.tsx",
+        "exists": true,
+        "worktree_blob": "672bbfa5bca7c4cdc7d68b3718faedc51a2aabf8",
+        "bytes": 37885
+      },
+      {
+        "path": "frontend/src/components/CheckPanel.tsx",
+        "head_tree_entry": "100644 blob 3235bb313e8131ed6fe42393be2edbe9e37da7a6\tfrontend/src/components/CheckPanel.tsx",
+        "exists": true,
+        "worktree_blob": "a9796ceeb5902a92ba51c38352edaead7af9bc7c",
+        "bytes": 23802
+      },
+      {
+        "path": "frontend/src/components/MachineAnswerPanel.tsx",
+        "head_tree_entry": "100644 blob d98f81162dd9619d2703be2fa23956185fc5be68\tfrontend/src/components/MachineAnswerPanel.tsx",
+        "exists": true,
+        "worktree_blob": "ef1db3c1eb950338958dea06543dc58ae764d0e0",
+        "bytes": 35811
+      },
+      {
+        "path": "frontend/src/components/RecoveryShell.tsx",
+        "head_tree_entry": "100644 blob aab178200c3baab97f3664b1fa354be13b49291b\tfrontend/src/components/RecoveryShell.tsx",
+        "exists": true,
+        "worktree_blob": "0c8ce97a31e4bce0af870f110ed45881c7b057e2",
+        "bytes": 9649
+      },
+      {
+        "path": "frontend/src/components/StatusBar.tsx",
+        "head_tree_entry": "100644 blob 60a28c4467fcbb932e2805477f1f4c02cff557e3\tfrontend/src/components/StatusBar.tsx",
+        "exists": true,
+        "worktree_blob": "445816fcccb02e83796ddc44a435a2393130e64d",
+        "bytes": 3349
+      },
+      {
+        "path": "frontend/src/presentation/coreWorkingState.ts",
+        "head_tree_entry": "100644 blob 7bd7a93bda33da755e814edb8942bd318e6f3745\tfrontend/src/presentation/coreWorkingState.ts",
+        "exists": true,
+        "worktree_blob": "03bbb167e9a1b51a0af7a97d4a164887b6b81a00",
+        "bytes": 15431
+      },
+      {
+        "path": "frontend/src/presentation/originalNoteWrite.ts",
+        "head_tree_entry": "100644 blob 8d3e9bb251b5880c60011bfe3e189926f304d4fa\tfrontend/src/presentation/originalNoteWrite.ts",
+        "exists": true,
+        "worktree_blob": "3a07fe9cb251162b4660fdad124b47872b8d5fe4",
+        "bytes": 2918
+      },
+      {
+        "path": "frontend/src/spaces/CanonicalKnowledgeSpace.tsx",
+        "head_tree_entry": "100644 blob 57b0436f555964bf4562db0634606e054899b5f5\tfrontend/src/spaces/CanonicalKnowledgeSpace.tsx",
+        "exists": true,
+        "worktree_blob": "4b4bc76ef205df551617e0831a30d4aa1097a7dd",
+        "bytes": 11264
+      },
+      {
+        "path": "frontend/src/spaces/CanonicalLibrarySpace.tsx",
+        "head_tree_entry": "100644 blob 8b2bc0477e31432771ab8f450b1e75499622ab70\tfrontend/src/spaces/CanonicalLibrarySpace.tsx",
+        "exists": true,
+        "worktree_blob": "1c4dad21fe4b804314e605a088c1ace69ba5382c",
+        "bytes": 63599
+      },
+      {
+        "path": "packages/contracts/v1/core-document.schema.json",
+        "head_tree_entry": "100644 blob aeea3d68dca4931ae2f2166f2d0dc36772c198fc\tpackages/contracts/v1/core-document.schema.json",
+        "exists": true,
+        "worktree_blob": "dd9dbad1dbf11db230ea5e0ae2d3baca37e6ca67",
+        "bytes": 44879
+      },
+      {
+        "path": "packages/contracts/v1/openapi-outline.yaml",
+        "head_tree_entry": "100644 blob 2425ff22e8a8cad986de125ca6a65f3cfa44f960\tpackages/contracts/v1/openapi-outline.yaml",
+        "exists": true,
+        "worktree_blob": "bc59faeb8111ff87250cdcf17d32216efa05a04c",
+        "bytes": 22878
+      },
+      {
+        "path": "packages/contracts/v2/ui-working-state.schema.json",
+        "head_tree_entry": "100644 blob 1f9bf7683f7f7f56cda113481c01a1ffa74e6bd1\tpackages/contracts/v2/ui-working-state.schema.json",
+        "exists": true,
+        "worktree_blob": "a3c8e7a7e484691dde46955417fb58dff84a825d",
+        "bytes": 11825
+      },
+      {
+        "path": "scripts/probes/aaos01_grouped_owner_loop.py",
+        "head_tree_entry": "100644 blob 315e6277a5347ded9d929f696ac4b9f2e6af25aa\tscripts/probes/aaos01_grouped_owner_loop.py",
+        "exists": true,
+        "worktree_blob": "bfae6f217082c869218a47d2c91b09b6ac6883ab",
+        "bytes": 64467
+      },
+      {
+        "path": "scripts/probes/aaos01_tauri_window_loop.py",
+        "head_tree_entry": "100644 blob 5f94432f5bc2f563622329956aad619ef880e1d5\tscripts/probes/aaos01_tauri_window_loop.py",
+        "exists": true,
+        "worktree_blob": "f8640ea07c2635892058b40f544bc5c80dd87427",
+        "bytes": 9616
+      },
+      {
+        "path": "scripts/runtime/frontend_paths.mjs",
+        "head_tree_entry": "100644 blob 4d2fe6e05fababfe884780573b2ff0a25ab10acd\tscripts/runtime/frontend_paths.mjs",
+        "exists": true,
+        "worktree_blob": "877084d5959aa33a34c0246acf9daa7a9fa0afe5",
+        "bytes": 1772
+      },
+      {
+        "path": "services/python-workers/README.md",
+        "head_tree_entry": "100644 blob b3bed38c46dd50bbe3acd05a92c3ec3002b44e8f\tservices/python-workers/README.md",
+        "exists": true,
+        "worktree_blob": "492a9daa26a4dc53f41c8f390bcaa91c2ab06c8b",
+        "bytes": 6189
+      },
+      {
+        "path": "services/python-workers/machine/document_check.py",
+        "head_tree_entry": "100644 blob 2558f933f26c3c0374e2ea04604cfd594c3fc3e0\tservices/python-workers/machine/document_check.py",
+        "exists": true,
+        "worktree_blob": "8c9cec4a6830aef715323090fcfa313a47ece82d",
+        "bytes": 24941
+      },
+      {
+        "path": "services/python-workers/machine/worker_machine_answer.py",
+        "head_tree_entry": "100644 blob fb462823454631e0f9bc8df98f27870683f76b7a\tservices/python-workers/machine/worker_machine_answer.py",
+        "exists": true,
+        "worktree_blob": "4d6f44415a25d60e9e920881a9f85495d909e487",
+        "bytes": 19419
+      },
+      {
+        "path": "src-tauri/src/main.rs",
+        "head_tree_entry": "100644 blob 0421906c249d723ac38d84d0aa007fc9c2500656\tsrc-tauri/src/main.rs",
+        "exists": true,
+        "worktree_blob": "fb8fdc621b6d04aa4bb9dcc1f4e56994e500f3a3",
+        "bytes": 43366
+      },
+      {
+        "path": "tests/runtime-paths/test_frontend_router.py",
+        "head_tree_entry": "100644 blob f4b969af0f351276ebedd00768188e1ba18a18e2\ttests/runtime-paths/test_frontend_router.py",
+        "exists": true,
+        "worktree_blob": "b5f2d4b5c665f53ffadb1c6c1e96756dd2bb39d0",
+        "bytes": 15850
+      },
+      {
+        "path": "tests/test_archeaxis_root_package.py",
+        "head_tree_entry": "100644 blob f4b9c8d37446c8ab857e950d6a2bce2d4554fedd\ttests/test_archeaxis_root_package.py",
+        "exists": true,
+        "worktree_blob": "c325baeb52ae87b6db5152eb774b0f230d9f17e3",
+        "bytes": 465
+      },
+      {
+        "path": "tests/test_federation_v1.py",
+        "head_tree_entry": "100644 blob 279bd656871e18742472f2f62504c6dd534ae5e2\ttests/test_federation_v1.py",
+        "exists": true,
+        "worktree_blob": "a0cceb6d8d562eb92ce62368a587eb4ed933465f",
+        "bytes": 7824
+      },
+      {
+        "path": "tests/test_grouped_native_owner_probe.py",
+        "head_tree_entry": "100644 blob 0f288427f6938377f6487f634dc5993487c3e9b6\ttests/test_grouped_native_owner_probe.py",
+        "exists": true,
+        "worktree_blob": "4722a48648218319777653bec420629e2e1b7e75",
+        "bytes": 58264
+      },
+      {
+        "path": "tests/test_naming_conventions.py",
+        "head_tree_entry": "100644 blob 3a5450fa462619600d7cb5371915c0a347f90d91\ttests/test_naming_conventions.py",
+        "exists": true,
+        "worktree_blob": "d3ef5598ab7efd63fd2da4c4bc4cd877630a3c47",
+        "bytes": 18302
+      },
+      {
+        "path": "tests/test_phase7_runtime_vertical_slice.py",
+        "head_tree_entry": "100644 blob f352df359a75b82b62c852bb8d2e21f9975318ba\ttests/test_phase7_runtime_vertical_slice.py",
+        "exists": true,
+        "worktree_blob": "5723490a136db8034e58cf2760a0443ed135974c",
+        "bytes": 5897
+      },
+      {
+        "path": "tests/test_product_truth_contract.py",
+        "head_tree_entry": "100644 blob d01c625c7ab2ecc35dbea026467ae221c54844d7\ttests/test_product_truth_contract.py",
+        "exists": true,
+        "worktree_blob": "bceec51b0361725d884573a476f55a8a2c9d2b7a",
+        "bytes": 1743
+      },
+      {
+        "path": "tests/test_project_output_routing_contract.py",
+        "head_tree_entry": "100644 blob e821353dea9903497809972a3b5bb55a8a3b837d\ttests/test_project_output_routing_contract.py",
+        "exists": true,
+        "worktree_blob": "2b15948e6628819b2b9ac177b295c36d8bf197ec",
+        "bytes": 6619
+      },
+      {
+        "path": "tests/test_worker_machine_answer.py",
+        "head_tree_entry": "100644 blob 126a0b8af31a63cc435124a81c695272977d0c01\ttests/test_worker_machine_answer.py",
+        "exists": true,
+        "worktree_blob": "bb2c8dd77f4bf1f8e9dde93bdbc0389f65a56248",
+        "bytes": 13028
+      },
+      {
+        "path": "tests/test_workspace_ui_design_contract.py",
+        "head_tree_entry": "100644 blob b1d95ea1171e3513f0dcc85f15baaa85eb7b3a8f\ttests/test_workspace_ui_design_contract.py",
+        "exists": true,
+        "worktree_blob": "172c80d6d735cdc02ed9015f21f28bd07c80c7de",
+        "bytes": 3671
+      },
+      {
+        "path": "tests/workers/test_document_check_cloud.py",
+        "head_tree_entry": "100644 blob 0e618897ca0e762f2dc5974486ea0512c7189b60\ttests/workers/test_document_check_cloud.py",
+        "exists": true,
+        "worktree_blob": "6a86cf2d90dc19cea07dfc2cace2178885c60cd6",
+        "bytes": 12070
+      },
+      {
+        "path": "tests/workers/test_document_check_fidelity_network.py",
+        "head_tree_entry": "100644 blob ce7cf272ae3aba13371e0d92bb1de070c64540da\ttests/workers/test_document_check_fidelity_network.py",
+        "exists": true,
+        "worktree_blob": "37d4ce8ab2a3ec2b5f82b05e9daf70863b7f49b2",
+        "bytes": 4296
+      },
+      {
+        "path": "tests/workers/test_document_check_original_pdf.py",
+        "head_tree_entry": "100644 blob 57281e45c96633c3dbcd0b8f9f464c99e408afe5\ttests/workers/test_document_check_original_pdf.py",
+        "exists": true,
+        "worktree_blob": "f87f8aab4374f446fc4ece7e5479797bf76a5206",
+        "bytes": 8310
+      },
+      {
+        "path": "workspace/intake/AAOS-CHINESE-NAME-20261011.md",
+        "head_tree_entry": "",
+        "exists": true,
+        "worktree_blob": "418ca54cca538e14e92aaa87eff0c793b034f5be",
+        "bytes": 1356
+      }
+    ]
+  },
+  "formats": [
+    {
+      "format": "docx",
+      "original_sha": "d516380107157a5a27fd469a3f8e3dfe3f59816ea1115e41db83cbb49a5afe83",
+      "restart_equal": true
+    },
+    {
+      "format": "xlsx",
+      "original_sha": "faf35b3e83a4948659849ea6c61fefb7b66b7b89490b5a3958857c576f159d15",
+      "restart_equal": true
+    },
+    {
+      "format": "pptx",
+      "original_sha": "c88c7818020b8337a348c67621e66c931050d4ca1d503baf4ed7fcab37af2afb",
+      "restart_equal": true
+    },
+    {
+      "format": "pdf",
+      "original_sha": "0d67a7fe827b8ac97dfb3e2a7878b4f22b6c76b4ecca2c30b95cdbced47b0681",
+      "restart_equal": true
+    }
+  ],
+  "limits": [
+    "No installed UI/source-application navigation",
+    "Text PDF only; OCR separate",
+    "Formula text/cached chart data are not live calculation",
+    "No source package reconstruction",
+    "Independent reparse uses a new job; old pinned job remains valid, not superseded"
+  ],
+  "current_core_selected_coverage": {
+    "categories": [
+      "txt",
+      "md",
+      "csv",
+      "json",
+      "html",
+      "pdf-text",
+      "pdf-scanned",
+      "png",
+      "jpeg",
+      "docx",
+      "xlsx",
+      "pptx",
+      "srt",
+      "vtt",
+      "wav",
+      "mp3",
+      "mp4",
+      "canvas"
+    ],
+    "count": 18,
+    "scope": "selected content/location/reparse/restart; ASR selected phrase only; not UI/full fidelity qualification",
+    "other_receipts": [
+      "docs/current/receipts/AAOS-LOCAL-FORMAT-CORE-BATCH-20261011.json",
+      "docs/current/receipts/AAOS-LOCAL-ASR-COMMON-FORMATS-20261011.json"
+    ]
+  }
+}

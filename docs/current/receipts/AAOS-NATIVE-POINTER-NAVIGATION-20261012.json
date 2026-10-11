@@ -1,0 +1,655 @@
+{
+  "schema": "archeaxis.engineering-acceptance/v1",
+  "status": "PARTIAL",
+  "engineering_status": "PASS",
+  "evidence_level": "REAL",
+  "materials": "SYNTHETIC_ONLY",
+  "runtime": "ISOLATED_WINDOWS_TAURI_CORE",
+  "raw_receipt": ".project-local\\runs\\be268a2d33\\webdriver-1ae2b4e65355\\tmp\\journey\\receipt.json",
+  "raw_receipt_sha256": "16ebaf4bacd37b60072ae11b752818dd404d6a6f0398ecc190eb7cfc147f71e4",
+  "tested_source_patch_sha256": "cc494ad285e6a47c48a3da91b15fd165a0f19187970dadd9496eb7f79c01d717",
+  "source_consistent": true,
+  "owned_ports_released": true,
+  "pointer_navigation": {
+    "status": "PASS",
+    "trace": {
+      "events": [
+        {
+          "currentPages": [
+            "20"
+          ],
+          "hashPage": "20",
+          "hitPage": "06",
+          "phase": "capture",
+          "point": {
+            "x": 108,
+            "y": 235
+          },
+          "renderPage": "20",
+          "requestedRect": {
+            "height": 40,
+            "width": 201.1999969482422,
+            "x": 8,
+            "y": 215
+          },
+          "scroll": [
+            {
+              "scope": ".navigation-sidebar",
+              "top": 0
+            },
+            {
+              "scope": ".navigation-sidebar .space-rail",
+              "top": 0
+            },
+            {
+              "scope": ".navigation-sidebar .ui-page-navigation",
+              "top": 0
+            }
+          ],
+          "targetPage": "06",
+          "trusted": true,
+          "type": "pointerdown"
+        },
+        {
+          "currentPages": [
+            "20"
+          ],
+          "hashPage": "20",
+          "hitPage": "06",
+          "phase": "bubble",
+          "point": {
+            "x": 108,
+            "y": 235
+          },
+          "renderPage": "20",
+          "requestedRect": {
+            "height": 40,
+            "width": 201.1999969482422,
+            "x": 8,
+            "y": 215
+          },
+          "scroll": [
+            {
+              "scope": ".navigation-sidebar",
+              "top": 0
+            },
+            {
+              "scope": ".navigation-sidebar .space-rail",
+              "top": 0
+            },
+            {
+              "scope": ".navigation-sidebar .ui-page-navigation",
+              "top": 0
+            }
+          ],
+          "targetPage": "06",
+          "trusted": true,
+          "type": "pointerdown"
+        },
+        {
+          "currentPages": [
+            "20"
+          ],
+          "hashPage": "20",
+          "hitPage": "06",
+          "phase": "capture",
+          "point": {
+            "x": 108,
+            "y": 235
+          },
+          "renderPage": "20",
+          "requestedRect": {
+            "height": 40,
+            "width": 201.1999969482422,
+            "x": 8,
+            "y": 215
+          },
+          "scroll": [
+            {
+              "scope": ".navigation-sidebar",
+              "top": 0
+            },
+            {
+              "scope": ".navigation-sidebar .space-rail",
+              "top": 0
+            },
+            {
+              "scope": ".navigation-sidebar .ui-page-navigation",
+              "top": 0
+            }
+          ],
+          "targetPage": "06",
+          "trusted": true,
+          "type": "mousedown"
+        },
+        {
+          "currentPages": [
+            "20"
+          ],
+          "hashPage": "20",
+          "hitPage": "06",
+          "phase": "bubble",
+          "point": {
+            "x": 108,
+            "y": 235
+          },
+          "renderPage": "20",
+          "requestedRect": {
+            "height": 40,
+            "width": 201.1999969482422,
+            "x": 8,
+            "y": 215
+          },
+          "scroll": [
+            {
+              "scope": ".navigation-sidebar",
+              "top": 0
+            },
+            {
+              "scope": ".navigation-sidebar .space-rail",
+              "top": 0
+            },
+            {
+              "scope": ".navigation-sidebar .ui-page-navigation",
+              "top": 0
+            }
+          ],
+          "targetPage": "06",
+          "trusted": true,
+          "type": "mousedown"
+        },
+        {
+          "currentPages": [
+            "20"
+          ],
+          "hashPage": "20",
+          "hitPage": null,
+          "phase": "capture",
+          "point": null,
+          "renderPage": "20",
+          "requestedRect": {
+            "height": 40,
+            "width": 201.1999969482422,
+            "x": 8,
+            "y": 215
+          },
+          "scroll": [
+            {
+              "scope": ".navigation-sidebar",
+              "top": 0
+            },
+            {
+              "scope": ".navigation-sidebar .space-rail",
+              "top": 0
+            },
+            {
+              "scope": ".navigation-sidebar .ui-page-navigation",
+              "top": 0
+            }
+          ],
+          "targetPage": "06",
+          "trusted": true,
+          "type": "focusin"
+        },
+        {
+          "currentPages": [
+            "20"
+          ],
+          "hashPage": "20",
+          "hitPage": null,
+          "phase": "bubble",
+          "point": null,
+          "renderPage": "20",
+          "requestedRect": {
+            "height": 40,
+            "width": 201.1999969482422,
+            "x": 8,
+            "y": 215
+          },
+          "scroll": [
+            {
+              "scope": ".navigation-sidebar",
+              "top": 0
+            },
+            {
+              "scope": ".navigation-sidebar .space-rail",
+              "top": 0
+            },
+            {
+              "scope": ".navigation-sidebar .ui-page-navigation",
+              "top": 0
+            }
+          ],
+          "targetPage": "06",
+          "trusted": true,
+          "type": "focusin"
+        },
+        {
+          "currentPages": [
+            "20"
+          ],
+          "hashPage": "20",
+          "hitPage": "06",
+          "phase": "capture",
+          "point": {
+            "x": 108,
+            "y": 235
+          },
+          "renderPage": "20",
+          "requestedRect": {
+            "height": 40,
+            "width": 201.1999969482422,
+            "x": 8,
+            "y": 215
+          },
+          "scroll": [
+            {
+              "scope": ".navigation-sidebar",
+              "top": 0
+            },
+            {
+              "scope": ".navigation-sidebar .space-rail",
+              "top": 0
+            },
+            {
+              "scope": ".navigation-sidebar .ui-page-navigation",
+              "top": 0
+            }
+          ],
+          "targetPage": "06",
+          "trusted": true,
+          "type": "pointerup"
+        },
+        {
+          "currentPages": [
+            "20"
+          ],
+          "hashPage": "20",
+          "hitPage": "06",
+          "phase": "bubble",
+          "point": {
+            "x": 108,
+            "y": 235
+          },
+          "renderPage": "20",
+          "requestedRect": {
+            "height": 40,
+            "width": 201.1999969482422,
+            "x": 8,
+            "y": 215
+          },
+          "scroll": [
+            {
+              "scope": ".navigation-sidebar",
+              "top": 0
+            },
+            {
+              "scope": ".navigation-sidebar .space-rail",
+              "top": 0
+            },
+            {
+              "scope": ".navigation-sidebar .ui-page-navigation",
+              "top": 0
+            }
+          ],
+          "targetPage": "06",
+          "trusted": true,
+          "type": "pointerup"
+        },
+        {
+          "currentPages": [
+            "20"
+          ],
+          "hashPage": "20",
+          "hitPage": "06",
+          "phase": "capture",
+          "point": {
+            "x": 108,
+            "y": 235
+          },
+          "renderPage": "20",
+          "requestedRect": {
+            "height": 40,
+            "width": 201.1999969482422,
+            "x": 8,
+            "y": 215
+          },
+          "scroll": [
+            {
+              "scope": ".navigation-sidebar",
+              "top": 0
+            },
+            {
+              "scope": ".navigation-sidebar .space-rail",
+              "top": 0
+            },
+            {
+              "scope": ".navigation-sidebar .ui-page-navigation",
+              "top": 0
+            }
+          ],
+          "targetPage": "06",
+          "trusted": true,
+          "type": "mouseup"
+        },
+        {
+          "currentPages": [
+            "20"
+          ],
+          "hashPage": "20",
+          "hitPage": "06",
+          "phase": "bubble",
+          "point": {
+            "x": 108,
+            "y": 235
+          },
+          "renderPage": "20",
+          "requestedRect": {
+            "height": 40,
+            "width": 201.1999969482422,
+            "x": 8,
+            "y": 215
+          },
+          "scroll": [
+            {
+              "scope": ".navigation-sidebar",
+              "top": 0
+            },
+            {
+              "scope": ".navigation-sidebar .space-rail",
+              "top": 0
+            },
+            {
+              "scope": ".navigation-sidebar .ui-page-navigation",
+              "top": 0
+            }
+          ],
+          "targetPage": "06",
+          "trusted": true,
+          "type": "mouseup"
+        },
+        {
+          "currentPages": [
+            "20"
+          ],
+          "hashPage": "20",
+          "hitPage": "06",
+          "phase": "capture",
+          "point": {
+            "x": 108,
+            "y": 235
+          },
+          "renderPage": "20",
+          "requestedRect": {
+            "height": 40,
+            "width": 201.1999969482422,
+            "x": 8,
+            "y": 215
+          },
+          "scroll": [
+            {
+              "scope": ".navigation-sidebar",
+              "top": 0
+            },
+            {
+              "scope": ".navigation-sidebar .space-rail",
+              "top": 0
+            },
+            {
+              "scope": ".navigation-sidebar .ui-page-navigation",
+              "top": 0
+            }
+          ],
+          "targetPage": "06",
+          "trusted": true,
+          "type": "click"
+        },
+        {
+          "currentPages": [
+            "06"
+          ],
+          "hashPage": "06",
+          "hitPage": "06",
+          "phase": "bubble",
+          "point": {
+            "x": 108,
+            "y": 235
+          },
+          "renderPage": "06",
+          "requestedRect": {
+            "height": 40,
+            "width": 193.1999969482422,
+            "x": 8,
+            "y": 215
+          },
+          "scroll": [
+            {
+              "scope": ".navigation-sidebar",
+              "top": 0
+            },
+            {
+              "scope": ".navigation-sidebar .space-rail",
+              "top": 0
+            },
+            {
+              "scope": ".navigation-sidebar .ui-page-navigation",
+              "top": 0
+            }
+          ],
+          "targetPage": "06",
+          "trusted": true,
+          "type": "click"
+        }
+      ],
+      "samples": [
+        {
+          "currentPages": [
+            "20"
+          ],
+          "hashPage": "20",
+          "phase": "before",
+          "renderPage": "20",
+          "requestedRect": {
+            "height": 40,
+            "width": 201.1999969482422,
+            "x": 8,
+            "y": 215
+          },
+          "scroll": [
+            {
+              "scope": ".navigation-sidebar",
+              "top": 0
+            },
+            {
+              "scope": ".navigation-sidebar .space-rail",
+              "top": 0
+            },
+            {
+              "scope": ".navigation-sidebar .ui-page-navigation",
+              "top": 0
+            }
+          ],
+          "t": 5206.20000000298
+        },
+        {
+          "currentPages": [
+            "06"
+          ],
+          "hashPage": "06",
+          "phase": "click-bubble",
+          "renderPage": "06",
+          "requestedRect": {
+            "height": 40,
+            "width": 193.1999969482422,
+            "x": 8,
+            "y": 215
+          },
+          "scroll": [
+            {
+              "scope": ".navigation-sidebar",
+              "top": 0
+            },
+            {
+              "scope": ".navigation-sidebar .space-rail",
+              "top": 0
+            },
+            {
+              "scope": ".navigation-sidebar .ui-page-navigation",
+              "top": 0
+            }
+          ],
+          "t": 5320
+        },
+        {
+          "currentPages": [
+            "06"
+          ],
+          "hashPage": "06",
+          "phase": "click-microtask",
+          "renderPage": "06",
+          "requestedRect": {
+            "height": 40,
+            "width": 193.1999969482422,
+            "x": 8,
+            "y": 215
+          },
+          "scroll": [
+            {
+              "scope": ".navigation-sidebar",
+              "top": 0
+            },
+            {
+              "scope": ".navigation-sidebar .space-rail",
+              "top": 0
+            },
+            {
+              "scope": ".navigation-sidebar .ui-page-navigation",
+              "top": 0
+            }
+          ],
+          "t": 5320.10000000149
+        },
+        {
+          "currentPages": [
+            "06"
+          ],
+          "hashPage": "06",
+          "phase": "click-next-frame",
+          "renderPage": "06",
+          "requestedRect": {
+            "height": 40,
+            "width": 193.1999969482422,
+            "x": 8,
+            "y": 215
+          },
+          "scroll": [
+            {
+              "scope": ".navigation-sidebar",
+              "top": 0
+            },
+            {
+              "scope": ".navigation-sidebar .space-rail",
+              "top": 0
+            },
+            {
+              "scope": ".navigation-sidebar .ui-page-navigation",
+              "top": 0
+            }
+          ],
+          "t": 5321.70000000298
+        },
+        {
+          "currentPages": [
+            "06"
+          ],
+          "hashPage": "06",
+          "phase": "click+100",
+          "renderPage": "06",
+          "requestedRect": {
+            "height": 40,
+            "width": 193.1999969482422,
+            "x": 8,
+            "y": 215
+          },
+          "scroll": [
+            {
+              "scope": ".navigation-sidebar",
+              "top": 0
+            },
+            {
+              "scope": ".navigation-sidebar .space-rail",
+              "top": 0
+            },
+            {
+              "scope": ".navigation-sidebar .ui-page-navigation",
+              "top": 0
+            }
+          ],
+          "t": 5422.70000000298
+        },
+        {
+          "currentPages": [
+            "06"
+          ],
+          "hashPage": "06",
+          "phase": "click+250",
+          "renderPage": "06",
+          "requestedRect": {
+            "height": 40,
+            "width": 193.1999969482422,
+            "x": 8,
+            "y": 179
+          },
+          "scroll": [
+            {
+              "scope": ".navigation-sidebar",
+              "top": 0
+            },
+            {
+              "scope": ".navigation-sidebar .space-rail",
+              "top": 0
+            },
+            {
+              "scope": ".navigation-sidebar .ui-page-navigation",
+              "top": 0
+            }
+          ],
+          "t": 5572.60000000149
+        },
+        {
+          "currentPages": [
+            "06"
+          ],
+          "hashPage": "06",
+          "phase": "click+1000",
+          "renderPage": "06",
+          "requestedRect": {
+            "height": 40,
+            "width": 193.1999969482422,
+            "x": 8,
+            "y": 179
+          },
+          "scroll": [
+            {
+              "scope": ".navigation-sidebar",
+              "top": 0
+            },
+            {
+              "scope": ".navigation-sidebar .space-rail",
+              "top": 0
+            },
+            {
+              "scope": ".navigation-sidebar .ui-page-navigation",
+              "top": 0
+            }
+          ],
+          "t": 6327.60000000149
+        }
+      ]
+    }
+  },
+  "limitations": [
+    "One native pointer run passed; this does not establish the cause or permanent elimination of the historical intermittent failure.",
+    "Pending-review ACK-loss cold restart, 27B qualification, cloud, Green and Owner acceptance remain unverified."
+  ]
+}

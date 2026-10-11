@@ -1,0 +1,29 @@
+{
+  "schema": "archeaxis.scoped-regression/v1",
+  "status": "PARTIAL",
+  "scoped_tests_status": "PASS",
+  "evidence_level": "SIMULATED",
+  "frontend_passed": 33,
+  "tauri_bridge_passed": 1,
+  "logs": [
+    {
+      "path": ".project-local\\runs\\be268a2d33\\6db0e9d2b818\\logs\\execution.log",
+      "sha256": "296faecfd90bb139735a17d7f07016a6d09cc042d0e5912f2dc18274a568a7b4"
+    },
+    {
+      "path": ".project-local\\runs\\be268a2d33\\90a22a9f814d\\logs\\execution.log",
+      "sha256": "5f1e12ad80d996e8668a5fce87b71edbfc260f9d874ff1b6d4aea710725d114d"
+    }
+  ],
+  "implemented": [
+    "Finite machine_inventory command, strict response DTO, generated contracts and OpenAPI",
+    "Explicit UI inventory button with pending guard and epoch-based stale-result rejection",
+    "Failed inventory count/presence must be null; verified count bounded 0..256",
+    "Tauri refuses nonempty payload and binds fixed POST route"
+  ],
+  "remaining": [
+    "Disabled/race/timeout/pipe resource regressions",
+    "Build latest candidate and exercise real local inventory via formal UI",
+    "Overall model loading/inference and 27B qualification remain separate"
+  ]
+}

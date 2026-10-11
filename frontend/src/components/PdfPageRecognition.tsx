@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { coreCommand } from "../api/core";
 import { RawReceiptButton } from "./DiagnosticConsole";
+import { JobContent } from "./JobContent";
 
 type Page = {
   page: number | null;
@@ -20,32 +21,36 @@ type Pages = {
   note: string;
 };
 
-function pagesShape(value: unknown): Pages {
+function pagesShape(value: unknown, sourceId: string): Pages {
   if (!value || typeof value !== "object" || Array.isArray(value)) throw new Error("invalid pages");
   const item = value as Record<string, unknown>;
-  if (typeof item.pdf_source_id !== "string" || typeof item.note !== "string" || !Array.isArray(item.pages)) {
+  if (item.pdf_source_id !== sourceId || typeof item.note !== "string" || !Array.isArray(item.pages)) {
     throw new Error("invalid pages");
   }
-  if (![item.page_count, item.recognised_count].every((count) => Number.isInteger(count))) {
+  if (![item.page_count, item.recognised_count].every((count) => Number.isSafeInteger(count) && Number(count) >= 0)
+    || item.page_count !== item.pages.length || Number(item.recognised_count) > Number(item.page_count)) {
     throw new Error("invalid pages");
   }
   for (const entry of item.pages) {
     const page = entry as Record<string, unknown>;
-    if (typeof page.source_id !== "string" || typeof page.sha256 !== "string"
+    if (typeof page.source_id !== "string" || !page.source_id || typeof page.sha256 !== "string" || !/^[a-f0-9]{64}$/.test(page.sha256)
       || typeof page.recognised !== "boolean" || typeof page.origin_ref !== "string"
       || typeof page.original_name !== "string"
-      || !(page.page === null || Number.isInteger(page.page))
+      || !(page.page === null || (Number.isSafeInteger(page.page) && Number(page.page) > 0))
       || !(page.text === null || typeof page.text === "string")
       || !(page.job_id === null || typeof page.job_id === "string")) {
       throw new Error("invalid pages");
     }
   }
+  if (new Set(item.pages.map(page => (page as Page).source_id)).size !== item.pages.length
+    || item.pages.filter(page => (page as Page).recognised).length !== item.recognised_count) throw new Error("invalid pages identity");
   return item as unknown as Pages;
 }
 
 export function PdfPageRecognition({ sourceId }: { sourceId: string }) {
   const [pages, setPages] = useState<Pages | null>(null);
   const [open, setOpen] = useState<Page | null>(null);
+  const [recognitionOpen, setRecognitionOpen] = useState(false);
   const [message, setMessage] = useState("");
   const [busy, setBusy] = useState(false);
 
@@ -64,7 +69,7 @@ export function PdfPageRecognition({ sourceId }: { sourceId: string }) {
   async function refresh() {
     await run(async () => {
       try {
-        const read = pagesShape(await coreCommand<unknown>("source_pages", { source_id: sourceId }));
+        const read = pagesShape(await coreCommand<unknown>("source_pages", { source_id: sourceId }), sourceId);
         setPages(read);
         setOpen(null);
         setMessage(read.page_count
@@ -81,6 +86,7 @@ export function PdfPageRecognition({ sourceId }: { sourceId: string }) {
   }
 
   function openPage(page: Page) {
+    setRecognitionOpen(false);
     setOpen(page);
     if (!page.recognised) {
       setMessage(`第 ${page.page ?? "？"} 页没有识别文本：OCR 路由未对该页产出内容，原件仍在保管中。`);
@@ -123,6 +129,11 @@ export function PdfPageRecognition({ sourceId }: { sourceId: string }) {
           <textarea id="page-recognition" readOnly rows={8} value={open.text} />
         </>
       ) : null}
+      {open ? <div>
+        <p>识别使用此页的本地图片原件；结果与 PDF 文字层分开保存。完成后点击“读取页面与识别文本”核对回写。</p>
+        <button onClick={() => setRecognitionOpen(true)}>处理此页识别文本</button>
+        {recognitionOpen ? <JobContent key={`${open.source_id}:${open.sha256}`} sourceId={open.source_id} sourceRevision={open.sha256} name={open.original_name} /> : null}
+      </div> : null}
     </section>
   );
 }

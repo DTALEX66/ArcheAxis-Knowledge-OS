@@ -44,6 +44,7 @@ function createWorkingSession() {
   return new CoreWorkingStateSession({
     read:()=>coreCommand<WorkingRead>("ui_state_read"),
     write:body=>coreCommand<WorkingRead>("ui_state_write",{body}),
+    clearMachine:body=>coreCommand<WorkingRead>("ui_state_clear_machine",{body}),
     clearJob:body=>coreCommand<WorkingRead>("ui_state_clear_job",{body}),
     clearSaved:body=>coreCommand<WorkingRead>("ui_state_clear_saved",{body}),
     recover:body=>coreCommand<WorkingRead>("ui_state_recover",{body}),
@@ -227,7 +228,13 @@ function AppBody() {
       navigationHash.current=hash;
       return;
     }
-    if (!navigate(page.space)) return;
+    // These pages share one mounted journey; changing its visible panel retains
+    // frozen requests and dirty owners. Leaving the family still uses navigate.
+    const retainedAiJourney = uiPageId !== undefined &&
+      ["13", "14", "22"].includes(uiPageId) && ["13", "14", "22"].includes(id) &&
+      activeSpace === "ai-assets" && page.space === "ai-assets" && !selectedCapabilityId;
+    if (retainedAiJourney) setNavigationOpen(false);
+    else if (!navigate(page.space)) return;
     setUiPageId(id);
     const hash=`#page=${encodeURIComponent(id)}`;
     window.history.replaceState(null,"",`${window.location.pathname}${window.location.search}${hash}`);
@@ -268,12 +275,15 @@ function AppBody() {
   useEffect(() => {
     const onHashChange = () => {
       if(restoringRef.current || composing.current){window.history.replaceState(null,"",`${window.location.pathname}${window.location.search}${navigationHash.current}`);return;}
-      if (draftDirty.current && !window.confirm("草稿尚未保存，请先保留文字。仍要离开吗？")) {
+      const target = resolveNavigationHash(window.location.hash);
+      if (!target) return;
+      const retainedAiJourney = uiPageId !== undefined && ["13", "14", "22"].includes(uiPageId) &&
+        target.pageId !== undefined && ["13", "14", "22"].includes(target.pageId) &&
+        activeSpace === "ai-assets" && target.spaceId === "ai-assets" && !selectedCapabilityId && !target.capabilityId;
+      if (draftDirty.current && !retainedAiJourney && !window.confirm("草稿尚未保存，请先保留文字。仍要离开吗？")) {
         window.history.replaceState(null, "", `${window.location.pathname}${window.location.search}${navigationHash.current}`);
         return;
       }
-      const target = resolveNavigationHash(window.location.hash);
-      if (!target) return;
       if(target.spaceId!=="learning"&&learningFocus){setLearningFocus(false);window.dispatchEvent(new CustomEvent("archeaxis-learning-focus",{detail:false}));}
       navigationHash.current = window.location.hash;
       setUiPageId(target.capabilityId ? "18" : target.pageId);
@@ -285,7 +295,7 @@ function AppBody() {
     };
     window.addEventListener("hashchange", onHashChange);
     return () => window.removeEventListener("hashchange", onHashChange);
-  }, [learningFocus]);
+  }, [learningFocus, uiPageId, activeSpace, selectedCapabilityId]);
 
   const inspect = useCallback((target: InspectionTarget) => {
     if(restoringRef.current)return;
@@ -623,7 +633,7 @@ function AppBody() {
     if(!desktop)return;
     // Scene CAS status also includes page/opened-object bookkeeping. Only actual
     // content drafts or a frozen create request own the content navigation guard.
-    const dirty=Object.keys(working.state.drafts).length>0||Boolean(working.state.pending_original)||Object.keys(working.state.pending_jobs??{}).length>0;
+    const dirty=Object.keys(working.state.drafts).length>0||Boolean(working.state.pending_original)||Object.keys(working.state.pending_jobs??{}).length>0||Object.keys(working.state.pending_reviews??{}).length>0||Object.keys(working.state.pending_machine??{}).length>0;
     if(dirty)draftOwners.current.add("core-working-state");else draftOwners.current.delete("core-working-state");
     draftDirty.current=draftOwners.current.size>0;setUnsavedDrafts(draftDirty.current);
   },[desktop,working.state,working.status,workspaceEpoch]);
@@ -661,7 +671,7 @@ function AppBody() {
     <p>{working.status==="ready"?"工作状态已由 Core 保全；正文保存以各文档版本回执为准。":working.status==="saving"?"正在保全工作草稿…":working.status==="loading"?"正在读取工作草稿；编辑入口等待身份核对。":"工作草稿仍保留，持久化尚未全部确认。"}</p>
     {working.error?<p>{working.error}</p>:null}
     {["blocked","loading","unsaved"].includes(working.status)?<><button onClick={()=>void rereadWorkingState()}>核对工作状态</button><button disabled={working.status!=="unsaved"} onClick={()=>void working.session.flush().catch(()=>{})}>仅重试草稿保全</button></>:null}
-    {working.server?.recovery_requires_confirmation?<><p>恢复候选含 {Object.keys(working.server.recovery_candidates?.drafts??{}).length} 份独立草稿及 {Object.keys(working.server.recovery_candidates?.pending_jobs??{}).length} 个冻结执行请求。正文尚未套用；请明确选择。</p><pre>{Object.keys(working.server.recovery_candidates?.drafts??{}).join("\n")}</pre><button onClick={()=>void decideWorkingRecovery("preserve")}>保留恢复候选</button><button onClick={()=>void decideWorkingRecovery("discard")}>丢弃恢复候选</button></>:null}
+    {working.server?.recovery_requires_confirmation?<><p>恢复候选含 {Object.keys(working.server.recovery_candidates?.drafts??{}).length} 份独立草稿、{Object.keys(working.server.recovery_candidates?.pending_jobs??{}).length} 个转换请求、{Object.keys(working.server.recovery_candidates?.pending_machine??{}).length} 个机器请求及 {Object.keys(working.server.recovery_candidates?.pending_reviews??{}).length} 个复习请求。正文尚未套用；请明确选择。</p><pre>{Object.keys(working.server.recovery_candidates?.drafts??{}).join("\n")}</pre><button onClick={()=>void decideWorkingRecovery("preserve")}>保留恢复候选</button><button disabled={!!(Object.keys(working.server.recovery_candidates?.pending_machine??{}).length||Object.keys(working.server.recovery_candidates?.pending_reviews??{}).length)} onClick={()=>void decideWorkingRecovery("discard")}>丢弃恢复候选</button>{Object.keys(working.server.recovery_candidates?.pending_machine??{}).length||Object.keys(working.server.recovery_candidates?.pending_reviews??{}).length?<p>未确认的机器或复习请求须保留候选后核对回执，不能通过丢弃候选清除执行记录。</p>:null}</>:null}
   </section>:null;
 
   if (!desktopReady && recoveryStatus) {

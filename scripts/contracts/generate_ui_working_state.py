@@ -40,6 +40,7 @@ function valid(node: any, value: unknown): boolean {
   if (node.type === "boolean") return typeof value === "boolean";
   if (node.type === "string") return typeof value === "string"
     && (node.pattern === undefined || new RegExp(node.pattern).test(value))
+    && (node.minLength === undefined || Array.from(value).length >= node.minLength)
     && (node.maxLength === undefined || Array.from(value).length <= node.maxLength);
   if (node.type === "integer") return typeof value === "number" && Number.isSafeInteger(value)
     && (node.minimum === undefined || value >= node.minimum)
@@ -53,6 +54,8 @@ function valid(node: any, value: unknown): boolean {
     const object = value as Record<string, unknown>, properties = node.properties || {}, keys = Object.keys(object);
     return (node.maxProperties === undefined || keys.length <= node.maxProperties)
       && (node.required || []).every((key: string) => Object.prototype.hasOwnProperty.call(object, key))
+      && Object.entries(node.dependentRequired || {}).every(([key, required]) => !Object.prototype.hasOwnProperty.call(object, key)
+        || (required as string[]).every(name => Object.prototype.hasOwnProperty.call(object, name)))
       && keys.every(key => (!node.propertyNames || valid(node.propertyNames, key))
         && (Object.prototype.hasOwnProperty.call(properties, key) ? valid(properties[key], object[key])
           : node.additionalProperties === false ? false

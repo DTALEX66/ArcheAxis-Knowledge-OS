@@ -888,7 +888,7 @@ pub fn create_assessment(
         None => None,
     };
     let id = assessment_id(item_key, knowledge_id);
-    let question = format!("请回答：{body}");
+    let question = "请用自己的话复述本条知识，并解释其依据或适用条件；作答后再查看核对内容。";
     tx.execute(
         "INSERT OR IGNORE INTO learning_assessments(
             assessment_id, item_key, knowledge_id, knowledge_version,

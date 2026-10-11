@@ -1,4 +1,4 @@
-# 星环知识平台（ArcheAxis Knowledge）
+# 星环知识系统（ArcheAxis Knowledge）
 
 > **2026-10-11 当前路由与状态**：Owner 已明确恢复完整框架、常见常用格式与最短闭环产品实施；状态 RUNNING_BY_OWNER / PARTIAL。当前范围与恢复决定读[活动指针](docs/current/AAOS-ACTIVE-EXECUTION.json)，实际进度仍在该指针指定的 UI 执行记录。2026-10-10 暂停仅为历史时点，旧 COMPLETE、FAIL 和证据保留各自 SHA。六项核心能力对话增量仍 FROZEN_BY_OWNER；V01 暂停、FT01–04 冻结；发布、Green 替换和真实用户数据覆盖未授权。 文件身份与旧路径按[路由登记](docs/current/AAOS-AUTHORITY-ROUTES.json)核对。
 
@@ -25,7 +25,7 @@
 
 > **GitHub 交付**：上传/审核见 [`GITHUB_DELIVERY.md`](GITHUB_DELIVERY.md)（WORK-LAB 交付加速器）。
 
-主品牌 **ArcheAxis**（固定拼写）；英文产品名 **ArcheAxis Knowledge**；中文产品名 **星环知识平台**。
+主品牌 **ArcheAxis**（固定拼写）；英文产品名 **ArcheAxis Knowledge**；中文产品名 **星环知识系统**。
 仓库技术 ID `archeaxis-workspace` 仅为 Git/分发兼容身份（历史兼容身份，不是产品名）；旧名"元枢/元枢工作台"只保留在 Legacy/Migration/兼容说明中。
 项目状态：**Personal Research Project / 个人研究项目**（不等同于许可证）。
 

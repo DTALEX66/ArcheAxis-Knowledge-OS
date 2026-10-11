@@ -1,0 +1,52 @@
+{
+  "schema": "archeaxis.restore-journal-discard-guard/v1",
+  "status": "PASS",
+  "overall_product_status": "PARTIAL",
+  "evidence_level": "SYNTHETIC_CORE_AND_SIMULATED_UI",
+  "problem": "Explicit recovery discard previously erased Core candidate journals without exact machine or review receipt reconciliation; earlier tests covered local state only",
+  "behavior": "Core refuses discard while recovery candidate contains pending_machine or pending_reviews, leaving candidate and revision unchanged; preserve remains explicit and does not execute inference. Ordinary draft-only discard remains available",
+  "tests": [
+    {
+      "run": "6e40609bd9f5",
+      "suite": "domain/ui_working_state",
+      "passed": 14
+    },
+    {
+      "run": "9098ed41e69e",
+      "suite": "frontend/AppSceneNavigationGuard CoreWorkingState",
+      "passed": 46
+    },
+    {
+      "run": "0bb94ff71d37",
+      "suite": "TypeScript",
+      "exit_code": 0
+    }
+  ],
+  "failed_attempt": {
+    "run": "cb689e652cc1",
+    "reason": "Synthetic review candidate fixture lacked required learning_assessments table; corrected fixture and reran original suite"
+  },
+  "limits": [
+    "Pending-review native UI and preserve path qualified; canonical discard refusal still covered by synthetic Core regression",
+    "Pending-machine native UI and preserve/history recovery qualified; direct Core discard refusal remains synthetic",
+    "No change to formal knowledge admission or ordinary content saving",
+    "No Owner acceptance, release, Green replacement, commit or push"
+  ],
+  "native_review_candidate": {
+    "status": "PASS",
+    "run": "webdriver-7ac9dc0fa967",
+    "source_patch_sha256": "227a74f85b71e93a7de574eb67d8c9f781e214f3fe610d195caad3f6eded4e96",
+    "raw_receipt_sha256": "7d93af150aaf49a4088d3c61ada6470a71fcf8bb8c7e940f559485cb155a2818",
+    "scope": "Native UI disables discard for pending-review recovery candidates; explicit preserve retains original journal and subsequent original-event replay is verified",
+    "core_discard_refusal": "SYNTHETIC_CORE_TEST_ONLY",
+    "machine_candidate": "NOT_NATIVE_QUALIFIED"
+  },
+  "native_machine_candidate": {
+    "status": "PASS",
+    "receipt": "AAOS-MACHINE-RESTORE-NATIVE-20261012.json",
+    "run": "webdriver-e53abf84cbf8",
+    "raw_receipt_sha256": "41dd307e2de4dd1054c8b7f087d4bf039a87b655fe1c793bba8d1107fc2d4981",
+    "scope": "Native pending-machine candidate disabled discard, explicit preserve, cold restart, original task recovery and one journal clear with zero additional inference",
+    "core_discard_refusal": "SYNTHETIC_CORE_TEST_ONLY"
+  }
+}

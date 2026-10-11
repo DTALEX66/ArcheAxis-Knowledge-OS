@@ -2,6 +2,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { PdfPageRecognition } from "../components/PdfPageRecognition";
+vi.mock("../components/JobContent", () => ({ JobContent: (props: {sourceId:string;sourceRevision:string;name:string}) => <div aria-label="页面识别执行身份">{JSON.stringify(props)}</div> }));
 
 const bridge = vi.hoisted(() => ({ call: vi.fn() }));
 vi.mock("../api/core", () => ({ coreCommand: bridge.call }));
@@ -24,6 +25,33 @@ const pages = {
 
 describe("PDF page recognition write-back", () => {
   beforeEach(() => bridge.call.mockReset());
+
+  it.each(["foreign-source", "bad-hash", "duplicate-page", "count-mismatch"])("refuses %s page evidence without exposing recognition actions", async (mutation) => {
+    const value = structuredClone(pages);
+    if (mutation === "foreign-source") value.pdf_source_id = "another-source";
+    if (mutation === "bad-hash") value.pages[0].sha256 = "not-a-digest";
+    if (mutation === "duplicate-page") value.pages[1].source_id = value.pages[0].source_id;
+    if (mutation === "count-mismatch") value.page_count = 3;
+    bridge.call.mockResolvedValue(value);
+    render(<PdfPageRecognition sourceId="src-pdf" />);
+    await userEvent.click(screen.getByRole("button", {name:"读取页面与识别文本"}));
+    expect(await screen.findByRole("status")).toHaveTextContent("页面识别回写读取失败");
+    expect(screen.queryByRole("button", {name:/第 3 页/})).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", {name:"处理此页识别文本"})).not.toBeInTheDocument();
+  });
+
+  it("opens an explicit page-bound recognition action without executing on selection", async () => {
+    bridge.call.mockImplementation(async () => pages);
+    render(<PdfPageRecognition sourceId="src-pdf" />);
+    await userEvent.click(screen.getByRole("button", {name:"读取页面与识别文本"}));
+    await userEvent.click(await screen.findByRole("button", {name:/第 4 页/}));
+    expect(screen.queryByLabelText("页面识别执行身份")).not.toBeInTheDocument();
+    await userEvent.click(screen.getByRole("button", {name:"处理此页识别文本"}));
+    expect(JSON.parse(screen.getByLabelText("页面识别执行身份").textContent!)).toEqual({sourceId:blindPage.source_id,sourceRevision:blindPage.sha256,name:blindPage.original_name});
+    expect(bridge.call.mock.calls.every(([operation]) => operation === "source_pages")).toBe(true);
+    await userEvent.click(screen.getByRole("button", {name:/第 3 页/}));
+    expect(screen.queryByLabelText("页面识别执行身份")).not.toBeInTheDocument();
+  });
 
   it("reads each page and shows only the page that was opened", async () => {
     bridge.call.mockImplementation(async (operation: string) => {

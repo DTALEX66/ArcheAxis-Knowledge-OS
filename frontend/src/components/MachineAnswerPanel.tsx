@@ -1,12 +1,14 @@
 import { useEffect, useId, useRef, useState } from "react";
 import { coreCommand } from "../api/core";
-import type { ContextConsumptionDto, MachineTaskRowDto, MachineTasksPageDto } from "../api/generated/core-contract";
+import type { ContextConsumptionDto, MachineTaskRowDto, MachineTasksPageDto, MachineConfigurationDto, MachineInventoryDto, MachineJournalStatusDto } from "../api/generated/core-contract";
 import { assertAiAssetDto, type AssetPacketRequest, type MachineAssetContext } from "../api/generated/ai-asset-contract";
 import { sameAssetPin } from "../presentation/assetConsumption";
 import { ApiError, type MachineAdmissionRefusal } from "../api/client";
 import { readMachineAdmissionRefusal } from "../api/machineAdmission";
 import { documentRequestIdentity } from "../presentation/documentRequestIdentity";
 import { RawReceiptButton } from "./DiagnosticConsole";
+import { useOptionalCoreWorkingState } from "../presentation/useCoreWorkingState";
+import type { PendingMachine } from "../presentation/coreWorkingState";
 
 function record(value: unknown): Record<string, unknown> {
   if (!value || typeof value !== "object" || Array.isArray(value)) throw new Error("invalid response");
@@ -15,7 +17,17 @@ function record(value: unknown): Record<string, unknown> {
 
 function canonical(value: unknown): string {
   return JSON.stringify(value, (_key, item: unknown) => item && typeof item === "object" && !Array.isArray(item)
-    ? Object.fromEntries(Object.entries(item as Record<string,unknown>).sort(([a],[b]) => a.localeCompare(b))) : item);
+    ? Object.fromEntries(Object.entries(item as Record<string,unknown>).sort(([a],[b]) => a<b?-1:a>b?1:0)) : item);
+}
+
+async function frozenFingerprint(entry: PendingMachine): Promise<string> {
+  const body=entry.body;
+  const request={knowledge_id:body.knowledge_id,question:body.question,max_tokens:body.max_tokens,timeout_s:body.timeout_s,
+    context_grant:body.context_grant??null,asset_context_grant:body.asset_context_grant??null,
+    client_request_id:entry.operation==="answer"?body.client_request_id??null:null,
+    retest_of:entry.operation==="retest"?body.retest_of??null:null,...(body.model===undefined?{}:{model:body.model})};
+  const digest=await crypto.subtle.digest("SHA-256",new TextEncoder().encode(canonical({operation:entry.operation,request})));
+  return Array.from(new Uint8Array(digest),byte=>byte.toString(16).padStart(2,"0")).join("");
 }
 
 type ReviewAction = "accepted" | "rejected" | "deprecated";
@@ -25,6 +37,12 @@ export function MachineAnswerPanel({ knowledgeId, contextGrant, retestContextGra
   scoped?: boolean; assetContextGrant?:AssetPacketRequest; retestAssetContextGrant?:AssetPacketRequest; assetScoped?:boolean; retestAssetScoped?:boolean; onTask?: (id: string) => void; onCandidate?: (id: string) => void;
 }) {
   const answerScoped=scoped||assetScoped||!!assetContextGrant;
+  const working=useOptionalCoreWorkingState();
+  const pendingAnswer=useRef<PendingMachine|null>(null);
+  const pendingRetest=useRef<PendingMachine|null>(null);
+  const [restoredPending,setRestoredPending]=useState(false);
+  const [withheldAudit,setWithheldAudit]=useState<{taskId:string;entry:PendingMachine;failed?:true}|null>(null);
+  const [selectedJournal,setSelectedJournal]=useState("");
   const [question, setQuestion] = useState("");
   const [answer, setAnswer] = useState<Record<string, unknown> | null>(null);
   const [task, setTask] = useState<unknown>(null);
@@ -39,6 +57,12 @@ export function MachineAnswerPanel({ knowledgeId, contextGrant, retestContextGra
   const [retestTask, setRetestTask] = useState<unknown>(null);
   const [message, setMessage] = useState("");
   const [busy, setBusy] = useState(false);
+  const [modelConfiguration, setModelConfiguration] = useState<MachineConfigurationDto|null>(null);
+  const [inventory, setInventory] = useState<MachineInventoryDto|null>(null);
+  const [inventoryBusy, setInventoryBusy] = useState(false);
+  const [selectedModel, setSelectedModel] = useState("");
+  const [maxTokens, setMaxTokens] = useState<2048|4096>(2048);
+  const inventoryPending = useRef(false);
   const alive = useRef(true);
   const epoch = useRef(0);
   const [history, setHistory] = useState<MachineTaskRowDto[]>([]);
@@ -46,6 +70,7 @@ export function MachineAnswerPanel({ knowledgeId, contextGrant, retestContextGra
   const [uncertain, setUncertain] = useState(false);
   const [withheld, setWithheld] = useState(false);
   const [admissionRefusal,setAdmissionRefusal]=useState<MachineAdmissionRefusal|null>(null);
+  const [retestFailure,setRetestFailure]=useState<{phase:string;status:number|null;code:string;reason_code?:string}|null>(null);
   const frozenAnswer = useRef<Record<string, unknown> | null>(null);
   const frozenRetest = useRef<Record<string, unknown> | null>(null);
   const dirtyOwner = useId(); const savedReview = useRef("");
@@ -54,11 +79,64 @@ export function MachineAnswerPanel({ knowledgeId, contextGrant, retestContextGra
   useEffect(() => {
     alive.current = true; epoch.current += 1;
     frozenAnswer.current = null; frozenRetest.current = null; savedReview.current = "";
+    pendingAnswer.current=null;pendingRetest.current=null;setRestoredPending(false);setWithheldAudit(null);setSelectedJournal("");
+    setRetestFailure(null);
+    inventoryPending.current = false; setInventoryBusy(false); setInventory(null); setModelConfiguration(null); setSelectedModel(""); setMaxTokens(2048);
     setAnswer(null); setTask(null); setCorrection(null); setCandidate(null); setRetest(null); setRetestTask(null);
     setQuestion(""); setCorrected(""); setNote(""); setReviewNote(""); setReviewer(""); setCorrectionAuthor("");
     setHistory([]); setCursor(null); setBusy(false); setUncertain(false); setWithheld(false); setAdmissionRefusal(null); setMessage("");
     return () => { alive.current = false; epoch.current += 1; window.dispatchEvent(new CustomEvent("archeaxis-draft-dirty",{detail:{owner:dirtyOwner,dirty:false}})); };
   }, [knowledgeId]);
+  useEffect(()=>{
+    if(!working||working.status!=="ready"||pendingAnswer.current||pendingRetest.current)return;
+    const entries=Object.values(working.state.pending_machine??{}).filter(e=>e.owner_knowledge_id===knowledgeId);
+    if(entries.length>1){setUncertain(true);setRestoredPending(true);setMessage("当前知识有多条未确认机器请求；请读取历史核对，暂不启动新的推理。");return;}
+    if(entries.length!==1)return;
+    const entry=entries[0];
+    if(entry.operation==="answer"){pendingAnswer.current=structuredClone(entry);frozenAnswer.current=Object.freeze(structuredClone(entry.body));}
+    else {pendingRetest.current=structuredClone(entry);frozenRetest.current=Object.freeze(structuredClone(entry.body));}
+    setQuestion(entry.body.question);setSelectedModel(entry.body.model??"");setMaxTokens(entry.body.max_tokens===4096?4096:2048);
+    setUncertain(true);setRestoredPending(true);setMessage("已恢复未确认的机器请求；仅保留身份与输入。请读取历史核对，不自动推理或替换授权。");
+  },[knowledgeId,working?.status,working?.state.pending_machine]);
+  useEffect(()=>{
+    if(!working||working.status!=="ready"||busy)return;
+    const entries=Object.values(working.state.pending_machine??{}).filter(entry=>entry.owner_knowledge_id===knowledgeId);
+    if(pendingAnswer.current&&!entries.some(entry=>entry.journal_id===pendingAnswer.current?.journal_id)){pendingAnswer.current=null;frozenAnswer.current=null;}
+    if(pendingRetest.current&&!entries.some(entry=>entry.journal_id===pendingRetest.current?.journal_id)){pendingRetest.current=null;frozenRetest.current=null;}
+    if(entries.length===1&&!pendingAnswer.current&&!pendingRetest.current&&restoredPending){
+      const entry=entries[0];
+      if(entry.operation==="answer"){pendingAnswer.current=structuredClone(entry);frozenAnswer.current=structuredClone(entry.body);}
+      else {pendingRetest.current=structuredClone(entry);frozenRetest.current=structuredClone(entry.body);}
+      setQuestion(String(entry.body.question));setSelectedModel(String(entry.body.model??""));setMaxTokens(entry.body.max_tokens===4096?4096:2048);
+    }
+    if(selectedJournal&&!entries.some(entry=>entry.journal_id===selectedJournal))setSelectedJournal("");
+    if(entries.length===0&&restoredPending&&!withheldAudit){
+      pendingAnswer.current=null;pendingRetest.current=null;frozenAnswer.current=null;frozenRetest.current=null;
+      setRestoredPending(false);setUncertain(false);setWithheld(false);
+      setMessage("Core 已确认当前知识没有待核对机器请求；问题与纠正草稿保留。");
+    }
+  },[working?.status,working?.state.pending_machine,knowledgeId,busy,restoredPending,selectedJournal,withheldAudit]);
+  useEffect(()=>{
+    if(!withheldAudit||!working||working.status!=="ready"||working.state.pending_machine?.[withheldAudit.entry.journal_id])return;
+    if(pendingAnswer.current?.journal_id===withheldAudit.entry.journal_id){pendingAnswer.current=null;frozenAnswer.current=null;}
+    if(pendingRetest.current?.journal_id===withheldAudit.entry.journal_id){pendingRetest.current=null;frozenRetest.current=null;}
+    setWithheldAudit(null);setWithheld(false);setUncertain(false);
+    setRestoredPending(Object.values(working.state.pending_machine??{}).some(entry=>entry.owner_knowledge_id===knowledgeId));
+    setMessage("Core 工作状态已确认待核对记录结束；历史终态与执行屏障仍保留。");
+  },[withheldAudit,working?.status,working?.state.pending_machine,knowledgeId]);
+  async function readInventory() {
+    if (inventoryPending.current || busy || uncertain || frozenRetest.current) return;
+    const generation = epoch.current;
+    inventoryPending.current = true; setInventoryBusy(true); setInventory(null);
+    try {
+      const value = await coreCommand<MachineInventoryDto>("machine_inventory");
+      if (requestLive(generation)) { setInventory(value); if(value.status!=="READ_VERIFIED"||!value.model_choices?.includes(selectedModel))setSelectedModel(""); }
+    } catch {
+      if (requestLive(generation)) setInventory(null);
+    } finally {
+      if (requestLive(generation)) { inventoryPending.current = false; setInventoryBusy(false); }
+    }
+  }
   function downstreamDirty() {
     return corrected.trim() !== String(correction?.corrected_answer ?? "") || note.trim() !== String(correction?.error_note ?? "")
       || correctionAuthor.trim() !== String(correction?.reviewer ?? "")
@@ -104,7 +182,8 @@ export function MachineAnswerPanel({ knowledgeId, contextGrant, retestContextGra
         ||proof.schema!=="archeaxis.machine-answer-request/v1"||proof.knowledge_id!==request.knowledge_id
         ||proof.question!==request.question||proof.max_tokens!==request.max_tokens||proof.timeout_s!==request.timeout_s
         ||typeof proof.context_sha256!=="string"||!/^[a-f0-9]{64}$/.test(proof.context_sha256)
-        ||canonical(proof.context_grant)!==canonical(request.context_grant))throw new Error("frozen answer identity mismatch");
+        ||canonical(proof.context_grant)!==canonical(request.context_grant??null)
+        ||proof.model!==request.model || (request.model!==undefined&&(record(response.answer).model!==request.model||record(response.answer).requested_model!==request.model)))throw new Error("frozen answer identity mismatch");
       if(request.asset_context_grant!==undefined){
         if(canonical(proof.asset_context_grant)!==canonical(request.asset_context_grant)
           ||proof.asset_client_request_id!==request.client_request_id
@@ -127,8 +206,13 @@ export function MachineAnswerPanel({ knowledgeId, contextGrant, retestContextGra
 
   async function restoreHistory(row: MachineTaskRowDto) {
     if (busy) return;
+    if(row.scope==="runtime.execution.withheld"){await inspectWithheld(row);return;}
     const frozenMatch = frozenAnswer.current && (()=>{try {const doc=record(JSON.parse(row.conditions));return doc.client_request_id===frozenAnswer.current!.client_request_id && doc.question===question.trim();}catch{return false;}})();
-    if (downstreamDirty() || frozenRetest.current || (question.trim() !== String(answer?.question ?? "") && !frozenMatch)) {
+    const restoredRetestMatch=frozenRetest.current&&row.scope==="runtime.retest"&&(()=>{try{const doc=record(JSON.parse(row.conditions));return doc.retest_of===frozenRetest.current!.retest_of&&doc.knowledge_id===frozenRetest.current!.knowledge_id&&doc.question===frozenRetest.current!.question;}catch{return false;}})();
+    const pendingHistory=restoredPending&&(()=>{try{const doc=record(JSON.parse(row.conditions));return pendingEntries().some(entry=>
+      row.scope==="runtime.retest"?entry.operation==="retest"&&entry.body.retest_of===doc.retest_of&&entry.body.knowledge_id===doc.knowledge_id
+      :entry.operation==="answer"&&entry.body.client_request_id===doc.client_request_id&&entry.body.knowledge_id===doc.knowledge_id);}catch{return false;}})();
+    if (downstreamDirty() || (frozenRetest.current&&!restoredRetestMatch&&!pendingHistory) || (question.trim() !== String(answer?.question ?? "") && !frozenMatch&&!restoredRetestMatch&&!pendingHistory)) {
       setMessage("当前回答、纠正或审核草稿未保存；历史读取不会覆盖输入，请先提交或核对当前请求。"); return;
     }
     const generation = ++epoch.current; setBusy(true);
@@ -139,7 +223,21 @@ export function MachineAnswerPanel({ knowledgeId, contextGrant, retestContextGra
       const evaluation = row.scope === "runtime.evaluation.failed" ? doc : row.scope === "runtime.retest" ? record(record(doc.prior).conditions) : null;
       const original = evaluation ?? doc;
       validateAnswer(original, knowledgeId);
-      if(frozenAnswer.current)await validateFrozenAnswer(original,frozenAnswer.current);
+      let selected:PendingMachine|null=null;
+      if(row.scope==="runtime.retest"){
+        const request={...record(doc.request),timeout_s:record(doc.execution_request??{}).timeout_s};
+        const candidates=await Promise.all(pendingEntries().filter(entry=>entry.operation==="retest").map(async entry=>
+          await frozenFingerprint(entry)===await frozenFingerprint({...entry,body:request as PendingMachine["body"]})?entry:null));
+        const matches=candidates.filter((entry):entry is PendingMachine=>entry!==null);
+        if(matches.length>1)throw new Error("ambiguous frozen retest history");selected=matches[0]??null;
+        if(frozenRetest.current&&await frozenFingerprint({journal_id:"comparison",owner_knowledge_id:knowledgeId,operation:"retest",origin_restore_epoch:"initial",body:frozenRetest.current as PendingMachine["body"]})!==await frozenFingerprint({journal_id:"comparison",owner_knowledge_id:knowledgeId,operation:"retest",origin_restore_epoch:"initial",body:request as PendingMachine["body"]}))throw new Error("frozen retest history mismatch");
+      }else{
+        const matches=pendingEntries().filter(entry=>entry.operation==="answer"&&entry.body.client_request_id===original.client_request_id);
+        if(matches.length>1)throw new Error("ambiguous frozen answer history");selected=matches[0]??null;
+        if(selected)await validateFrozenAnswer(original,selected.body);
+        else if(frozenAnswer.current)await validateFrozenAnswer(original,frozenAnswer.current);
+      }
+      if(pendingHistory&&!selected)throw new Error("frozen history input mismatch");
       if(record(original.request??{}).asset_context!==undefined)assertAiAssetDto<MachineAssetContext>("MachineAssetContext",record(original.request).asset_context);
       if(row.scope==="runtime.retest"&&record(doc.execution_request??{}).asset_context!==undefined)assertAiAssetDto<MachineAssetContext>("MachineAssetContext",record(doc.execution_request).asset_context);
       const originalTask = record(await coreCommand("machine_task_get", {task_id:original.answer_id}));
@@ -161,16 +259,87 @@ export function MachineAnswerPanel({ knowledgeId, contextGrant, retestContextGra
       if (row.scope === "runtime.retest") validateTask(proof, doc, "runtime.retest", row.task_id);
       else if (row.scope !== "runtime.answer" && row.scope !== "runtime.evaluation.failed") throw new Error("not a learning history task");
       if (!requestLive(generation)) return;
+      if(selected&&working){if(working.status!=="ready")throw new Error("working state unconfirmed");if(working.session.getSnapshot().state.pending_machine?.[selected.journal_id])await working.session.clearMachine(selected,selected.operation==="answer"?String(original.answer_id):row.task_id);
+        if(requestLive(generation)){if(pendingAnswer.current?.journal_id===selected.journal_id){pendingAnswer.current=null;frozenAnswer.current=null;}if(pendingRetest.current?.journal_id===selected.journal_id){pendingRetest.current=null;frozenRetest.current=null;}}}
+      if (!requestLive(generation)) return;
       setAnswer(original); setTask(originalTask); setQuestion(String(original.question));
+      setMaxTokens(record(original.request??{}).max_tokens===4096?4096:2048);
       setCorrection(correctionValue); setCandidate(candidateValue);
       if (candidateValue) onCandidate?.(String(candidateValue.knowledge_id));
       setCorrectionAuthor(correctionValue ? String(correctionValue.reviewer) : "");
       setReviewer(correctionValue ? String(correctionValue.reviewer) : ""); setReviewNote(""); savedReview.current="";
       setCorrected(correctionValue ? String(correctionValue.corrected_answer) : ""); setNote(correctionValue ? String(correctionValue.error_note) : "");
       setRetest(row.scope === "runtime.retest" ? doc : null); setRetestTask(row.scope === "runtime.retest" ? proof : null);
-      frozenAnswer.current=null; setUncertain(false); onTask?.(String(original.answer_id)); setMessage("已从 Core 恢复固定回答与既有回执；历史记录不代表当前可消费资格或复测通过。");
+      const remaining=hasPendingOwner();setRestoredPending(remaining);setUncertain(remaining);if(!remaining)frozenAnswer.current=null;
+      onTask?.(row.scope === "runtime.retest" ? String(row.task_id) : String(original.answer_id)); setMessage("已从 Core 恢复固定回答与既有回执；历史记录不代表当前可消费资格或复测通过。"+(remaining?"仍有其他未确认请求，请逐条核对。":""));
     } catch { if (requestLive(generation)) {setUncertain(true); setMessage("历史身份或读回未确认，状态 UNKNOWN；不会自动重跑推理。");} }
     finally { if (requestLive(generation)) setBusy(false); }
+  }
+
+  function pendingEntries():PendingMachine[] {
+    const entries=new Map<string,PendingMachine>();
+    for(const entry of [pendingAnswer.current,pendingRetest.current,...Object.values(working?.session.getSnapshot().state.pending_machine??{})]){
+      if(entry&&entry.owner_knowledge_id===knowledgeId)entries.set(entry.journal_id,entry);
+    }
+    return Array.from(entries.values()).filter(entry=>(working?.status!=="ready"||!!working.state.pending_machine?.[entry.journal_id])&&(!selectedJournal||entry.journal_id===selectedJournal));
+  }
+  function hasPendingOwner():boolean {
+    return Object.values(working?.session.getSnapshot().state.pending_machine??{}).some(entry=>entry.owner_knowledge_id===knowledgeId);
+  }
+
+  async function inspectWithheld(row: MachineTaskRowDto) {
+    const generation=epoch.current;setBusy(true);setWithheldAudit(null);
+    try {
+      const proof=record(await coreCommand("machine_task_get",{task_id:row.task_id}));
+      if(proof.task_id!==row.task_id||proof.scope!=="runtime.execution.withheld"||proof.conditions!==row.conditions||proof.outcome!=="failed")throw new Error("audit identity changed");
+      const doc=record(JSON.parse(String(proof.conditions)));
+      const candidates=pendingEntries().filter(entry=>entry.operation===doc.operation&&entry.body.knowledge_id===doc.knowledge_id);
+      const entries=(await Promise.all(candidates.map(async entry=>await frozenFingerprint(entry)===doc.admission_request_sha256?entry:null))).filter((entry):entry is PendingMachine=>entry!==null);
+      if(entries.length!==1)throw new Error("audit has no unique frozen request");
+      const entry=entries[0];
+      if(entry.owner_knowledge_id!==knowledgeId||doc.schema!=="archeaxis.machine-execution-withheld/v1"||doc.execution_state!=="EXECUTED_BUT_WITHHELD"
+        ||doc.answer_published!==false||doc.authority!=="historical_execution_audit"||doc.audit_task_id!==row.task_id
+        ||doc.admission_request_sha256!==await frozenFingerprint(entry)
+        ||(entry.operation==="answer"&&(doc.client_request_id!==entry.body.client_request_id||doc.retest_of!==null||proof.retest_of!==null))
+        ||(entry.operation==="retest"&&(doc.retest_of!==entry.body.retest_of||proof.retest_of!==entry.body.retest_of)))throw new Error("audit frozen identity mismatch");
+      if(entry.operation==="retest"){
+        const failed=record(await coreCommand("machine_task_get",{task_id:entry.body.retest_of}));const prior=record(JSON.parse(String(failed.conditions)));
+        if(failed.task_id!==entry.body.retest_of||failed.scope!=="runtime.evaluation.failed"||prior.knowledge_id!==knowledgeId||prior.question!==entry.body.question)throw new Error("audit journey mismatch");
+      }
+      if(requestLive(generation)){setWithheld(true);setUncertain(true);setWithheldAudit({taskId:row.task_id,entry:structuredClone(entry)});setMessage("Core 脱敏终态已与冻结请求核对；可以明确结束待核对记录。历史审计与禁止重复执行的屏障继续保留。");}
+    }catch{if(requestLive(generation))setMessage("扣留审计与冻结请求未确认；保留请求屏障，不结束或重跑。");}
+    finally{if(requestLive(generation))setBusy(false);}
+  }
+  async function finishWithheld() {
+    if(busy||!working||!withheldAudit)return;
+    const generation=epoch.current;const audit=withheldAudit;setBusy(true);
+    try {
+      await working.session.clearMachine(audit.entry,audit.taskId);
+      if(!requestLive(generation))return;
+      if(pendingAnswer.current?.journal_id===audit.entry.journal_id){pendingAnswer.current=null;frozenAnswer.current=null;}
+      if(pendingRetest.current?.journal_id===audit.entry.journal_id){pendingRetest.current=null;frozenRetest.current=null;}
+      const remaining=hasPendingOwner();setWithheldAudit(null);setWithheld(false);setUncertain(remaining);setRestoredPending(remaining);
+      setMessage("已确认结束待核对记录，问题与纠正草稿保留。历史终态及执行屏障仍由 Core 保留；新的明确操作仍须满足当前授权。");
+    }catch{if(requestLive(generation))setMessage("结束回执未确认；保留冻结记录，读取 Core 工作状态核对，不重新推理。");}
+    finally{if(requestLive(generation))setBusy(false);}
+  }
+  async function inspectFailure() {
+    if(busy||!working||working.status!=="ready")return;
+    const entries=pendingEntries();if(entries.length!==1){setMessage("请选择一条冻结机器请求核对。");return;}
+    const entry=structuredClone(entries[0]);const server=working.session.getSnapshot().server;
+    if(!server)return;
+    const generation=epoch.current;setBusy(true);setWithheldAudit(null);
+    try {
+      const value=await coreCommand<MachineJournalStatusDto>("ui_state_machine_status",{body:{workspace_id:server.workspace_id,restore_epoch:server.restore_epoch,state_revision:server.state_revision,journal_id:entry.journal_id}});
+      if(!requestLive(generation))return;
+      if(value.journal_id!==entry.journal_id)throw new Error("status identity mismatch");
+      if(value.status!=="FAILED"||!value.can_clear||typeof value.task_id!=="string"||!value.task_id||typeof value.attempt!=="number"||value.attempt<1||value.attempt>3){
+        setUncertain(true);setMessage("Core 未确认当前请求的失败终态；保留冻结身份，不结束或重跑。");return;
+      }
+      setWithheld(false);setUncertain(true);setWithheldAudit({taskId:value.task_id,entry,failed:true});
+      setMessage(`Core 已确认第 ${value.attempt} 次尝试的失败审计；可结束失败请求并保留草稿。服务端停止状态、用量与费用仍未知。`);
+    }catch{if(requestLive(generation)){setUncertain(true);setMessage("失败状态读取未确认；保留冻结请求，不再次推理。");}}
+    finally{if(requestLive(generation))setBusy(false);}
   }
 
   async function readCandidate(id: string) {
@@ -184,19 +353,26 @@ export function MachineAnswerPanel({ knowledgeId, contextGrant, retestContextGra
 
   async function ask() {
     const generation = epoch.current;
-    if (!question.trim() || busy || (uncertain && !frozenAnswer.current) || (answerScoped && !contextGrant && !frozenAnswer.current) || (assetScoped && !assetContextGrant && !frozenAnswer.current)) return;
+    if(restoredPending)return;
+    if (!question.trim() || busy || inventoryPending.current || uncertain || (answerScoped && !contextGrant && !frozenAnswer.current) || (assetScoped && !assetContextGrant && !frozenAnswer.current)) return;
     if (answer && (downstreamDirty() || frozenRetest.current)) {setMessage("纠正或审核草稿尚未确认，请先保存和核对后再发起新回答。");return;}
-    const request = frozenAnswer.current ?? Object.freeze({knowledge_id:knowledgeId,question:question.trim(),max_tokens:2048,timeout_s:120,
-      ...(contextGrant ? {context_grant:structuredClone(contextGrant)} : {}), ...(assetContextGrant ? {asset_context_grant:{...structuredClone(assetContextGrant),request_id:`assetanswer_${crypto.randomUUID()}`,consumer:"local-machine",operation:"answer"}} : {}), ...(answerScoped ? {client_request_id:`machine_${crypto.randomUUID()}`} : {})});
-    if (answerScoped) frozenAnswer.current = request;
+    const request = frozenAnswer.current ?? Object.freeze({knowledge_id:knowledgeId,question:question.trim(),max_tokens:maxTokens,timeout_s:120,
+      ...(selectedModel ? {model:selectedModel} : {}), ...(contextGrant ? {context_grant:structuredClone(contextGrant)} : {}), ...(assetContextGrant ? {asset_context_grant:{...structuredClone(assetContextGrant),request_id:`assetanswer_${crypto.randomUUID()}`,consumer:"local-machine",operation:"answer"}} : {}), client_request_id:`machine_${crypto.randomUUID()}`});
+    frozenAnswer.current = request;
     setBusy(true); setAnswer(null); setTask(null); setCorrection(null); setCandidate(null); setRetest(null); setRetestTask(null);
     setAdmissionRefusal(null);
     setCorrected(""); setNote(""); setReviewNote(""); setMessage("正在执行本地机器回答，等待真实回执…");
     try {
+      if(working){
+        const entry=pendingAnswer.current??{journal_id:String(request.client_request_id),owner_knowledge_id:knowledgeId,operation:"answer" as const,origin_restore_epoch:working.server?.restore_epoch??"",body:request as PendingMachine["body"]};
+        if(canonical(entry.body)!==canonical(request))throw new Error("旧冻结请求尚未清理；新输入未发送。");
+        pendingAnswer.current=entry;await working.session.stageMachine(entry);
+      }else if(window.__TAURI__)throw new Error("正式宿主缺少工作状态保全，尚未发送推理。");
       const response = record(await coreCommand("machine_answer", { body: request }));
       await validateFrozenAnswer(response,request);
       const proof = record(await coreCommand("machine_task_get", { task_id: response.answer_id }));
       validateTask(proof, response, "runtime.answer", String(response.answer_id));
+      if(working&&pendingAnswer.current&&requestLive(generation)){await working.session.clearMachine(pendingAnswer.current,String(response.answer_id));if(requestLive(generation))pendingAnswer.current=null;}
       if (requestLive(generation)) { frozenAnswer.current = null; setUncertain(false); setAnswer(response); setTask(proof); onTask?.(String(response.answer_id)); setMessage("本地回答已持久化读回；可能为同请求的历史重放。它仍是候选，不是已接受知识或能力评分。"); }
     } catch (reason) {
       if (requestLive(generation)) {
@@ -207,8 +383,8 @@ export function MachineAnswerPanel({ knowledgeId, contextGrant, retestContextGra
           setMessage(refusal?"Core 明确拒绝此回答请求：恢复后的旧授权已隔离。本次调用未执行；同一请求的历史执行仍未验证。冻结身份与原输入保留，请核对历史并新建明确授权，不自动替换或重跑。":"授权拒绝身份未确认，状态 UNKNOWN；保留冻结请求并核对历史。");
         }
         else if (reason instanceof ApiError && reason.execution) {frozenAnswer.current=null;setUncertain(true);setWithheld(true);setMessage(reason.execution.audit_status === "RECORDED" ? `推理已执行，答案未发布；脱敏审计 ${reason.execution.audit_task_id} 已保存。请核对授权与审计，不自动重跑。` : "推理已执行，答案未发布；持久化审计未确认。请保留草稿并检查 Core，不自动重跑。");}
-        else if (reason instanceof ApiError && [400,403,404,422].includes(reason.status)) {frozenAnswer.current=null;setUncertain(false);setMessage("Core 明确拒绝此回答请求；请核对当前知识、用途或授权，原输入保留。");}
-        else {setUncertain(true); setMessage("回答未完成或持久化读回未确认，状态 UNKNOWN。请读取历史核对；不会自动再次推理。");}
+        else if (reason instanceof ApiError && [400,403,404,422].includes(reason.status)) {setUncertain(true);setMessage("Core 明确拒绝此回答请求；仅说明本次拒绝，历史执行仍未确认。原冻结身份与输入保留，请读取历史核对，不自动换授权或重跑。");}
+        else {setUncertain(true); setMessage("回答未完成或持久化读回未确认，状态 UNKNOWN。" + (reason instanceof ApiError && reason.machineFailure ? reason.message : "") + "请读取历史核对；不会自动再次推理。");}
       }
     } finally { if (requestLive(generation)) setBusy(false); }
   }
@@ -279,24 +455,37 @@ export function MachineAnswerPanel({ knowledgeId, contextGrant, retestContextGra
 
   async function runIndependentRetest() {
     const generation = epoch.current;
+    if(restoredPending||uncertain)return;
     if (!answer || !correction || !candidate || candidate.status !== "accepted" || retest || busy || ((scoped||retestAssetScoped||!!retestAssetContextGrant||record(answer.request??{}).asset_context!==undefined) && !retestContextGrant && !frozenRetest.current) || ((retestAssetScoped || record(answer.request??{}).asset_context!==undefined) && !retestAssetContextGrant && !frozenRetest.current)) return;
     const failedTaskId = correction.failed_task_id;
     const candidateId = String(candidate.knowledge_id);
     const originalQuestion = String(answer.question);
-    const request = frozenRetest.current ?? { retest_of: failedTaskId, knowledge_id: candidateId, question: originalQuestion, max_tokens: 2048, timeout_s: 120, ...(retestContextGrant ? {context_grant:structuredClone(retestContextGrant)} : {}), ...(retestAssetContextGrant ? {asset_context_grant:{...structuredClone(retestAssetContextGrant),request_id:`assetretest_${crypto.randomUUID()}`,consumer:"local-machine",operation:"retest"}} : {}) };
+    const request = frozenRetest.current ?? { retest_of: failedTaskId, knowledge_id: candidateId, question: originalQuestion, max_tokens: maxTokens, timeout_s: 120, ...(selectedModel ? {model:selectedModel} : typeof record(answer.request??{}).model === "string" ? {model:record(answer.request).model} : {}), ...(retestContextGrant ? {context_grant:structuredClone(retestContextGrant)} : {}), ...(retestAssetContextGrant ? {asset_context_grant:{...structuredClone(retestAssetContextGrant),request_id:`assetretest_${crypto.randomUUID()}`,consumer:"local-machine",operation:"retest"}} : {}) };
     frozenRetest.current=request;
+    setRetestFailure(null);
+    let phase = "invoke";
     setAdmissionRefusal(null); setBusy(true); setMessage("正在以已审核纠正知识重答原问题；Core 回执与任务读回确认前不显示为完成…");
     try {
+      if(working){
+        const entry=pendingRetest.current??{journal_id:`retest_${crypto.randomUUID()}`,owner_knowledge_id:knowledgeId,operation:"retest" as const,origin_restore_epoch:working.server?.restore_epoch??"",body:request as PendingMachine["body"]};
+        if(canonical(entry.body)!==canonical(request))throw new Error("旧冻结复测尚未清理；新输入未发送。");
+        pendingRetest.current=entry;await working.session.stageMachine(entry);
+      }else if(window.__TAURI__)throw new Error("正式宿主缺少工作状态保全，尚未发送复测。");
       const response = record(await coreCommand("machine_retest", { body: request }));
+      phase = "receipt_validation";
       const machine = record(response.answer);
       if (response.schema !== "archeaxis.machine-retest/v1" || response.retest_of !== failedTaskId
         || response.knowledge_id !== candidateId || response.question !== originalQuestion
         || response.authority !== "candidate" || typeof response.retest_task_id !== "string"
         || typeof machine.answer !== "string" || !machine.answer.trim()) throw new Error("invalid retest receipt");
-      if (canonical(response.request) !== canonical({retest_of:request.retest_of,knowledge_id:request.knowledge_id,question:request.question,max_tokens:request.max_tokens,...(request.context_grant ? {context_grant:request.context_grant} : {}),...(request.asset_context_grant ? {asset_context_grant:request.asset_context_grant} : {})})) throw new Error("retest request mismatch");
+      if (canonical(response.request) !== canonical({retest_of:request.retest_of,knowledge_id:request.knowledge_id,question:request.question,max_tokens:request.max_tokens,...(request.model ? {model:request.model,timeout_s:request.timeout_s} : {}),...(request.context_grant ? {context_grant:request.context_grant} : {}),...(request.asset_context_grant ? {asset_context_grant:request.asset_context_grant} : {})}) || (request.model!==undefined&&(machine.model!==request.model||machine.requested_model!==request.model))) throw new Error("retest request mismatch");
+      const execution=record(response.execution_request??{});
+      if(execution.schema!=="archeaxis.machine-retest-execution/v1"||execution.timeout_s!==request.timeout_s||canonical(execution.request)!==canonical(response.request))throw new Error("retest execution envelope mismatch");
       if(request.asset_context_grant){const execution=record(response.execution_request);if(execution.schema!=="archeaxis.machine-retest-execution/v1"||execution.timeout_s!==request.timeout_s||canonical(execution.request)!==canonical(response.request)||typeof execution.context_sha256!=="string"||!/^[a-f0-9]{64}$/.test(execution.context_sha256)||typeof execution.knowledge_context_sha256!=="string"||!/^[a-f0-9]{64}$/.test(execution.knowledge_context_sha256))throw new Error("retest execution budget or context mismatch");validateAssetContext(execution.asset_context,assertAiAssetDto<AssetPacketRequest>("AssetPacketRequest",request.asset_context_grant));}
+      phase = "task_readback";
       const proof = record(await coreCommand("machine_task_get", { task_id: response.retest_task_id }));
       validateTask(proof, response, "runtime.retest", String(response.retest_task_id));
+      if(working&&pendingRetest.current&&requestLive(generation)){await working.session.clearMachine(pendingRetest.current,String(response.retest_task_id));if(requestLive(generation))pendingRetest.current=null;}
       if (requestLive(generation)) {
         setRetest(response); setRetestTask(proof);
         frozenRetest.current=null;
@@ -312,28 +501,58 @@ export function MachineAnswerPanel({ knowledgeId, contextGrant, retestContextGra
           setMessage(refusal?"Core 明确拒绝复测请求：恢复后的旧授权已隔离。本次调用未执行；历史执行仍未验证。原冻结复测与纠正保留，不自动换授权或重跑。":"复测授权拒绝身份未确认，状态 UNKNOWN；保留冻结请求。");
         }
         else if (reason instanceof ApiError && reason.execution) {frozenRetest.current=null;setUncertain(true);setWithheld(true);setMessage(reason.execution.audit_status === "RECORDED" ? `复测推理已执行，答案未发布；脱敏审计 ${reason.execution.audit_task_id} 已保存，不自动重跑。` : "复测推理已执行，答案未发布；审计持久化未确认，不自动重跑。");}
-        else if (reason instanceof ApiError && [400,403,404,422].includes(reason.status)) {frozenRetest.current=null;setMessage("Core 明确拒绝复测请求；原回答与纠正仍保留，请核对当前授权。");}
-        else setMessage("复测未完成或持久化读回未确认。保留纠正与原失败回执；重试保持同一冻结请求，不能据此宣称完成。");
+        else if (reason instanceof ApiError && [400,403,404,422].includes(reason.status)) {setMessage("Core 明确拒绝复测请求；仅说明本次拒绝，历史执行仍未确认。原冻结复测、回答与纠正保留，请读取历史核对，不自动换授权或重跑。");}
+        else {setUncertain(true);setMessage("复测未完成或持久化读回未确认。" + (reason instanceof ApiError && reason.machineFailure ? reason.message : "") + "保留纠正与原失败回执；先核对终态，不再次推理。");}
+        setRetestFailure({phase,status:reason instanceof ApiError ? reason.status : null,code:reason instanceof ApiError ? reason.code : "unverified",...(reason instanceof ApiError && reason.machineFailure ? {reason_code:reason.machineFailure.reason_code}: {})});
+        setUncertain(true);
       }
     } finally { if (requestLive(generation)) setBusy(false); }
   }
 
-  return <section aria-label="知识到机器回答" className="ui-machine-answer">
+  return <section aria-label="知识到机器回答" className="ui-machine-answer" data-retest-failure={retestFailure?JSON.stringify(retestFailure):undefined}>
+    {retestFailure?<RawReceiptButton label="复测失败脱敏诊断" payload={retestFailure}/>:null}
     {admissionRefusal?<section aria-label="恢复授权拒绝" data-context-admission-refusal={JSON.stringify(admissionRefusal)}><p>拒绝依据：恢复后的旧授权隔离。仅确认本次调用未执行；历史执行 UNVERIFIED。</p><RawReceiptButton label="恢复授权拒绝回执" payload={admissionRefusal}/></section>:null}
-    {withheld ? <button disabled={busy} onClick={()=>{setWithheld(false);setUncertain(false);setMessage("已结束此未发布请求，问题与纠正草稿保留。再次执行将是新的明确操作，请先核对授权。");}}>结束已执行但未发布的请求，保留草稿</button> : null}
+    {withheld ? <><p>先读取并核对已保存的扣留审计；审计未确认时保留执行屏障。</p><button disabled={busy||!withheldAudit||!working} onClick={()=>void finishWithheld()}>结束已执行但未发布的请求，保留草稿</button></> : null}
+    {working&&hasPendingOwner()?<button disabled={busy||working.status!=="ready"} onClick={()=>void inspectFailure()}>核对冻结机器请求的失败状态</button>:null}
+    {withheldAudit?.failed?<button disabled={busy||!working} onClick={()=>void finishWithheld()}>结束失败请求，保留草稿</button>:null}
     <h4>既有机器学习回执</h4>
+    {working&&Object.values(working.state.pending_machine??{}).filter(entry=>entry.owner_knowledge_id===knowledgeId).length>1?
+      <label>待核对机器请求 <select value={selectedJournal} disabled={busy||working.status!=="ready"} onChange={event=>{
+        const entry=working.state.pending_machine?.[event.target.value];setSelectedJournal(event.target.value);setWithheldAudit(null);setWithheld(false);
+        if(!entry||entry.owner_knowledge_id!==knowledgeId)return;
+        pendingAnswer.current=entry.operation==="answer"?structuredClone(entry):null;pendingRetest.current=entry.operation==="retest"?structuredClone(entry):null;
+        frozenAnswer.current=entry.operation==="answer"?Object.freeze(structuredClone(entry.body)):null;frozenRetest.current=entry.operation==="retest"?Object.freeze(structuredClone(entry.body)):null;
+        setQuestion(entry.body.question);setSelectedModel(entry.body.model??"");setMaxTokens(entry.body.max_tokens===4096?4096:2048);setRestoredPending(true);setUncertain(true);
+      }}><option value="">选择一条请求核对</option>{Object.values(working.state.pending_machine??{}).filter(entry=>entry.owner_knowledge_id===knowledgeId).map(entry=><option key={entry.journal_id} value={entry.journal_id}>{entry.operation==="answer"?"回答":"复测"} · {entry.body.question.slice(0,80)} · {entry.journal_id}</option>)}</select></label>:null}
     <button disabled={busy} onClick={() => void readHistory()}>读取机器学习历史</button>
-    <ul aria-label="既有机器学习任务">{history.filter(row => ["runtime.answer","runtime.evaluation.failed","runtime.retest"].includes(row.scope)).map(row => <li key={row.task_id}><span>{row.task_id} · {row.scope} · {row.outcome}</span><button disabled={busy} onClick={() => void restoreHistory(row)}>读取此任务旅程 {row.task_id}</button></li>)}</ul>
+    <ul aria-label="既有机器学习任务">{history.filter(row => ["runtime.answer","runtime.evaluation.failed","runtime.retest","runtime.execution.withheld"].includes(row.scope)).map(row => <li key={row.task_id}><span>{row.task_id} · {row.scope} · {row.outcome}</span><button disabled={busy} onClick={() => void restoreHistory(row)}>读取此任务旅程 {row.task_id}</button></li>)}</ul>
     {cursor ? <button disabled={busy} onClick={() => void readHistory(true)}>读取更多任务</button> : null}
-    {uncertain ? <p>执行状态 UNKNOWN；先核对既有历史，避免重复调用。</p> : null}
+    {uncertain ? <p>{withheldAudit?.failed ? "本地调用失败已核对；服务停止状态仍未知。结束请求前保留冻结输入。" : "执行状态 UNKNOWN；先核对既有历史，避免重复调用。"}</p> : null}
     <h4>基于当前知识的本地回答</h4>
+    <button disabled={busy} onClick={()=>void coreCommand<MachineConfigurationDto>("machine_configuration").then(setModelConfiguration).catch(()=>setModelConfiguration(null))}>读取模型配置状态</button>
+    <p>{modelConfiguration ? (modelConfiguration.worker_registered ? "本地回答 worker 已配置；模型身份、加载和推理接通尚未验证。" : "本地回答 worker 未注册。") : "模型配置状态未读取或读取失败。"}</p>
+    <p>本地回答仅向本机服务发送已授权知识与明确填写的问题；用量和费用在服务未返回前为未知。读取配置状态不会调用模型。</p>
+    <button disabled={busy || inventoryBusy || uncertain || !!frozenRetest.current} onClick={() => void readInventory()}>探测本地模型清单</button>
+    <p>探测只读取本机服务清单，不发送知识或问题，不加载模型或执行推理。</p>
+    <p aria-label="本地模型清单探测结果">{inventoryBusy ? "正在读取本地清单…" : !inventory ? "清单未探测或读取失败。" : inventory.status === "READ_VERIFIED" ? `清单已读取，共 ${inventory.listed_model_count} 项；声明模型${inventory.selected_model_listed ? "已列出" : "未列出"}。加载状态未知，推理尚未验证。` : inventory.status === "DISABLED" ? "本地回答能力已禁用，未探测。" : inventory.status === "BUSY" ? "模型服务入口正忙，请稍后重试。" : "清单读取未确认；模型数量与可用性未知。"}</p>
+    <label>本次本地回答模型 <select value={selectedModel} disabled={busy||uncertain||!!frozenRetest.current||inventoryBusy} onChange={event=>setSelectedModel(event.target.value)}><option value="">沿用本地启动配置（模型尚未绑定）</option>{selectedModel&&(inventory?.status!=="READ_VERIFIED"||!inventory.model_choices?.includes(selectedModel))?<option value={selectedModel}>{selectedModel}（此前选择，本次清单未确认）</option>:null}{inventory?.status==="READ_VERIFIED"?inventory.model_choices?.map(model=><option key={model} value={model}>{model}（清单已列出，推理未验证）</option>):null}</select></label>
+    <p>选择仅用于本次回答及复测，不修改全局配置。执行可能由本机服务加载所选模型；不会自动转云。重试保留原选择。</p>
+    <label>本次输出预算 <select value={maxTokens} disabled={busy||uncertain||!!frozenRetest.current} onChange={event=>setMaxTokens(event.target.value==="4096"?4096:2048)}><option value="2048">2048 tokens</option><option value="4096">4096 tokens</option></select></label>
+    <p>推理与正文可能共享输出预算；预算用尽不代表已得到答案。更高预算可能增加等待时间，本次上限 120 秒。</p>
     <label>实际问题 <textarea value={question} disabled={busy} onChange={event => setQuestion(event.target.value)} /></label>
     {answerScoped && !contextGrant ? <p>请先选择已保存、允许回答的上下文授权。</p> : null}
-    <button disabled={busy || (uncertain && !frozenAnswer.current) || !question.trim() || (answerScoped && !contextGrant && !frozenAnswer.current) || (assetScoped && !assetContextGrant && !frozenAnswer.current)} onClick={() => void ask()}>{frozenAnswer.current ? "重试同一回答请求" : "执行本地机器回答"}</button>
+    <button disabled={restoredPending || busy || inventoryBusy || uncertain || !question.trim() || (answerScoped && !contextGrant && !frozenAnswer.current) || (assetScoped && !assetContextGrant && !frozenAnswer.current)} onClick={() => void ask()}>{frozenAnswer.current ? "重试同一回答请求" : "执行本地机器回答"}</button>
     {assetScoped&&!assetContextGrant?<p>选中的资产授权已失效或未确认；新执行暂停，原历史保留。</p>:null}
     {message ? <p role="status">{message}</p> : null}
     {answer ? <>
       <h4>机器回答候选</h4><pre aria-label="真实机器回答">{String(record(answer.answer).answer)}</pre>
+      <dl aria-label="本次模型调用证据">
+        <dt>请求模型</dt><dd>{String(record(answer.answer).requested_model ?? record(answer.answer).model ?? "未知")}</dd>
+        <dt>服务返回模型</dt><dd>{typeof record(answer.answer).observed_model === "string" && record(answer.answer).observed_model ? String(record(answer.answer).observed_model) : "未知；服务未提供模型身份"}</dd>
+        <dt>完成状态</dt><dd>{record(answer.answer).finish_reason === "stop" && record(answer.answer).truncated === false ? "完整返回候选答案" : record(answer.answer).truncated === true ? "答案截断" : "未知；完成状态未提供"}</dd>
+        <dt>用量与费用</dt><dd>{record(answer.answer).usage_status === "REPORTED" ? `服务报告 token：${JSON.stringify(record(answer.answer).usage)}；费用未知` : "未知；本次回执未提供可核实的计量"}</dd>
+      </dl>
+      <p>这些证据只属于本次调用，不证明服务持续可用、其他模型接通或答案正确。</p>
       <p>机器回答未被接受为知识。保存错误纠正不会自行改变已接受知识，也不会证明机器改进。</p>
       <RawReceiptButton label="持久化任务与模型回执" payload={task} />
       <p>若你实际发现错误，可记录具体更正；没有错误无需提交。</p>
@@ -367,7 +586,7 @@ export function MachineAnswerPanel({ knowledgeId, contextGrant, retestContextGra
         {candidate.status === "accepted" ? <>
           <p>已审核知识可用于重答原问题。Core 会校验先前失败任务和知识修订 lineage；接受知识本身不等同复测通过。</p>
           {scoped && !retestContextGrant ? <p>请先为已接受的纠正知识保存并选择独立复测授权。</p> : null}
-          <button disabled={busy || withheld || Boolean(retest) || ((scoped||retestAssetScoped||!!retestAssetContextGrant||record(answer.request??{}).asset_context!==undefined) && !retestContextGrant && !frozenRetest.current) || ((retestAssetScoped || record(answer.request??{}).asset_context!==undefined) && !retestAssetContextGrant && !frozenRetest.current)} onClick={() => void runIndependentRetest()}>{retest ? "独立复测已记录" : frozenRetest.current ? "重试同一冻结复测请求" : "以已接受纠正知识运行独立复测"}</button>
+          <button disabled={restoredPending || busy || uncertain || withheld || Boolean(retest) || ((scoped||retestAssetScoped||!!retestAssetContextGrant||record(answer.request??{}).asset_context!==undefined) && !retestContextGrant && !frozenRetest.current) || ((retestAssetScoped || record(answer.request??{}).asset_context!==undefined) && !retestAssetContextGrant && !frozenRetest.current)} onClick={() => void runIndependentRetest()}>{retest ? "独立复测已记录" : frozenRetest.current ? "重试同一冻结复测请求" : "以已接受纠正知识运行独立复测"}</button>
         </> : null}
           {retest ? <section aria-label="独立复测结果对照">
             <h4>独立复测结果对照</h4>

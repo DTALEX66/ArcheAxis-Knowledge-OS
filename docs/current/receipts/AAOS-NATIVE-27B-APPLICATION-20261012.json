@@ -1,0 +1,209 @@
+{
+  "schema": "archeaxis.native-27b-application/v1",
+  "status": "PASS",
+  "overall_product_status": "PARTIAL",
+  "execution": "REAL_NATIVE_APPLICATION_WITH_SYNTHETIC_MATERIAL",
+  "native_run": "webdriver-473ddd0813ca",
+  "sdk_receipt": ".project-local/runs/be268a2d33/model-selection-20261011/sdk/aaos27b-app-8a450e96-2e1b-4b77-94dc-87366265d7ef.json",
+  "source_patch_sha256": "f66b3d5c1f24886b14b674c958b265a06060bba46f8d16bdcd900f627c553ca3",
+  "core_sha256": "9636850aaa7da109f25a92fd9897ba37fa093e6f4262585f8204a5b6547441c8",
+  "model_key": "qwen3.8-27b",
+  "owned_identifier": "aaos27b-app-8a450e96-2e1b-4b77-94dc-87366265d7ef",
+  "loaded_configuration": {
+    "contextLength": 2048,
+    "maxParallelPredictions": 1,
+    "gpu_ratio": 0.1,
+    "gpuStrictVramCap": true,
+    "offloadKVCacheToGpu": false,
+    "flashAttention": true,
+    "MTP": false
+  },
+  "answer": {
+    "elapsed_s": 89.89,
+    "metering": {
+      "usage": {
+        "input_tokens": 198,
+        "output_tokens": 215,
+        "total_tokens": 413
+      },
+      "usage_status": "REPORTED",
+      "cost": null,
+      "cost_status": "UNKNOWN"
+    },
+    "receipt_binding": {
+      "status": "RECEIPT_BINDINGS_VALIDATED",
+      "knowledge_id": "k_5ff3ccf70e147ffb843da342",
+      "knowledge_version": "k_5ff3ccf70e147ffb843da342@v1",
+      "context_sha256": "316f98b57bb029670baa83de86e6d7c21654acbf248dbc2e156495c49ae856a8",
+      "actual_model_execution": "NOT_PROVEN_BY_RECEIPT_HELPER",
+      "owner_acceptance": false,
+      "model_accuracy": "UNMEASURED"
+    }
+  },
+  "gpu_observation": {
+    "sample_count": 115,
+    "maximum_total_used_mib": 7589,
+    "minimum_total_free_mib": 307
+  },
+  "cleanup": {
+    "owned_instance_unloaded": true,
+    "preexisting_shared_instances_preserved": true,
+    "native_owned_ports_released": true,
+    "source_consistent": true
+  },
+  "qualification_fix": {
+    "status": "NATIVE_REQUALIFIED",
+    "test_run": "279cb996fa64",
+    "passed": 61,
+    "subtests": 124
+  },
+  "failed_test_attempt": {
+    "run": "fe61cb64ab7a",
+    "status": "NOT_EXECUTED",
+    "reason": "Sandbox SQLite path normalization refused; reran under existing limited non-sandbox authorization without ACL/system changes"
+  },
+  "limits": [
+    "No global configuration changes or downloads",
+    "GPU samples cover total device including preexisting models; not per-model allocation",
+    "RAM peak and actual layer placement remain UNVERIFIED",
+    "Engineering actors are not Owner acceptance",
+    "No matched MTP acceleration qualification",
+    "Overall product remains PARTIAL; no installed Green or Owner acceptance"
+  ],
+  "engineering_status": "PASS",
+  "owner_acceptance": "NOT_EXECUTED",
+  "stage_statuses": [
+    {
+      "id": "import",
+      "status": "PASS"
+    },
+    {
+      "id": "read",
+      "status": "PASS"
+    },
+    {
+      "id": "anchor",
+      "status": "PASS"
+    },
+    {
+      "id": "claim",
+      "status": "PASS"
+    },
+    {
+      "id": "learn",
+      "status": "PASS"
+    },
+    {
+      "id": "practice",
+      "status": "PASS"
+    },
+    {
+      "id": "review",
+      "status": "PASS"
+    },
+    {
+      "id": "distill",
+      "status": "EXECUTED_CANDIDATE_NOT_EVALUATED"
+    },
+    {
+      "id": "recover",
+      "status": "PASS"
+    }
+  ],
+  "model_binding": {
+    "status": "PASS",
+    "model": "aaos27b-app-8a450e96-2e1b-4b77-94dc-87366265d7ef",
+    "surface": "TRUSTED_NATIVE_UI",
+    "retest_bound": true
+  },
+  "retest": {
+    "status": "EXECUTED_CANDIDATE_NOT_EVALUATED",
+    "metering": {
+      "usage": {
+        "input_tokens": 216,
+        "output_tokens": 234,
+        "total_tokens": 450
+      },
+      "usage_status": "REPORTED",
+      "cost": null,
+      "cost_status": "UNKNOWN"
+    },
+    "receipt_binding": {
+      "status": "RECEIPT_BINDINGS_VALIDATED",
+      "knowledge_id": "k_e038a264242031f3357d9b2a",
+      "knowledge_version": "k_e038a264242031f3357d9b2a@v1",
+      "context_sha256": "de231eaeffe6662d15e5335dc720cf7c27d2b485c39f9b9d913c286ee584b8b9",
+      "actual_model_execution": "NOT_PROVEN_BY_RECEIPT_HELPER",
+      "owner_acceptance": false,
+      "model_accuracy": "UNMEASURED"
+    }
+  },
+  "historical_partial_attempt": {
+    "schema": "archeaxis.native-27b-application/v1",
+    "status": "PARTIAL",
+    "overall_product_status": "PARTIAL",
+    "execution": "REAL_TAURI_CORE_ANSWER_WITH_SYNTHETIC_MATERIAL",
+    "native_run": "webdriver-55fb6fc4dc04",
+    "sdk_receipt": ".project-local/runs/be268a2d33/model-selection-20261011/sdk/aaos27b-app-a568af96-dee5-4314-bdc2-418ba0f731d1.json",
+    "source_patch_sha256": "1cd832b1b0a4252f33c8e37649e5fd5e99d3b827c124f6dd4134f37764e14139",
+    "core_sha256": "9636850aaa7da109f25a92fd9897ba37fa093e6f4262585f8204a5b6547441c8",
+    "model_key": "qwen3.8-27b",
+    "owned_identifier": "aaos27b-app-a568af96-dee5-4314-bdc2-418ba0f731d1",
+    "loaded_configuration": {
+      "contextLength": 2048,
+      "maxParallelPredictions": 1,
+      "gpu_ratio": 0.1,
+      "gpuStrictVramCap": true,
+      "offloadKVCacheToGpu": false,
+      "flashAttention": true,
+      "MTP": false
+    },
+    "answer": {
+      "formal_ui_selection": "PASS",
+      "request_requested_observed_identity_match": true,
+      "finish_reason": "stop",
+      "truncated": false,
+      "answer_source": "content",
+      "elapsed_s": 96.97,
+      "input_tokens": 200,
+      "output_tokens": 232,
+      "total_tokens": 432
+    },
+    "gpu_observation": {
+      "scope": "TOTAL_DEVICE_INCLUDING_PREEXISTING_SHARED_4B",
+      "samples": 53,
+      "maximum_used_mib": 7583,
+      "minimum_free_mib": 313,
+      "RAM_peak": "UNVERIFIED",
+      "actual_layer_placement": "UNVERIFIED"
+    },
+    "reason_incomplete": "The probe incorrectly restricted qualification to the launch-default 4B identity and rejected the independently observed, explicitly selected temporary 27B alias. Correction and retest were not executed; no completed application-loop claim",
+    "cleanup": {
+      "owned_instance_unloaded": true,
+      "preexisting_shared_instances_preserved": true,
+      "native_owned_ports_released": true,
+      "source_consistent": true
+    },
+    "qualification_fix": {
+      "status": "IMPLEMENTED_NOT_NATIVE_REQUALIFIED",
+      "behavior": "Explicit trusted UI selection overrides model only; declared local endpoint/protocol/worker/prompt still match, frozen requested and independently observed identities must all equal selection",
+      "test_run": "279cb996fa64",
+      "passed": 61,
+      "subtests": 124
+    },
+    "failed_test_attempt": {
+      "run": "fe61cb64ab7a",
+      "status": "NOT_EXECUTED",
+      "reason": "Sandbox SQLite path normalization refused; reran under existing limited non-sandbox authorization without ACL/system changes"
+    },
+    "limits": [
+      "No 27B correction/retest/save/restart closed loop yet",
+      "No MTP matched optimization comparison in this application run",
+      "No Owner acceptance, Green replacement, commit, push or release"
+    ]
+  },
+  "raw_receipt": {
+    "path": ".project-local/runs/be268a2d33/webdriver-473ddd0813ca/tmp/journey/receipt.json",
+    "sha256": "dc06500e51f794af4bad6341761813348c889f6dab594b85e93c042f0a687a6f"
+  }
+}

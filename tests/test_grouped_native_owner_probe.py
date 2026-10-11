@@ -21,6 +21,149 @@ def load_probe():
 
 
 class GroupedNativeProbeTests(unittest.TestCase):
+    def test_trusted_pending_review_navigation_confirms_parent_and_child_without_replaying_clicks(self):
+        probe=load_probe();actions=[]
+        def js(source):
+            return '#page=19' if source=='return location.hash' else False
+        ui=probe.GroupedUI(js,lambda source:None,lambda *args:'node',lambda *args:actions.append('child'),[],lambda:actions.append('confirm'))
+        ui.find=lambda *args:'node'
+        ui.click_selector=lambda *args:actions.append('parent')
+        ui.page('12',confirm_navigation=True)
+        self.assertEqual(actions,['parent','confirm','child','confirm'])
+
+    def test_machine_ack_qualification_rejects_missing_model_and_unfinished_inference_attempt(self):
+        probe=load_probe()
+        good={"status":"EXECUTED_CANDIDATE_NOT_EVALUATED","machine_ack_recovery":{"status":"PASS","cold_restart":True,"task_unchanged":True,"recovery_inference_calls":0,"initial":{"faults":1,"rows":[{"operation":"machine_answer","completed":True}]},"recovery":{"rows":[{"operation":"ui_state_clear_machine","completed":True}]}}}
+        probe.require_machine_ack_recovery(good)
+        for change in ('missing','model','attempt','unfinished'):
+            candidate=copy.deepcopy(good)
+            if change=='missing':candidate.pop('machine_ack_recovery')
+            elif change=='model':candidate['status']='UNVERIFIED'
+            elif change=='attempt':candidate['machine_ack_recovery']['recovery']['rows'].append({'operation':'machine_answer','completed':False,'status':None})
+            else:candidate['machine_ack_recovery']['initial']['rows'][0]['completed']=False
+            with self.subTest(change=change),self.assertRaises(AssertionError):probe.require_machine_ack_recovery(candidate)
+    def test_selected_retest_failure_preserves_missing_task_instead_of_keyerror(self):
+        probe = load_probe()
+        self.assertFalse(probe.selected_retest_binding({"retest": "NOT_EXECUTED"}, "m1"))
+        task = {"conditions": json.dumps({"request": {"model": "m1"}, "answer": {"model": "m1", "requested_model": "m1"}})}
+        self.assertTrue(probe.selected_retest_binding({"retest_task": task}, "m1"))
+        with self.assertRaises(AssertionError):
+            probe.selected_retest_binding({"retest_task": task}, "m2")
+
+    def test_metering_keeps_unknown_and_rejects_invented_or_invalid_counts(self):
+        probe=load_probe()
+        base={"cost":None,"cost_status":"UNKNOWN","usage":None,"usage_status":"UNKNOWN"}
+        self.assertEqual(probe.assert_reported_metering(base)["usage"],None)
+        self.assertEqual(probe.assert_reported_metering({**base,"usage_status":"REPORTED","usage":{"output_tokens":0}})["usage"],{"output_tokens":0})
+        for values in ({"cost":0},{"usage_status":"REPORTED","usage":{}},{"usage_status":"REPORTED","usage":{"input_tokens":True}}):
+            with self.assertRaises(AssertionError):probe.assert_reported_metering({**base,**values})
+    def test_retest_retry_requires_explicit_503_and_retained_payload(self):
+        probe = load_probe()
+        observed = {"status": "OBSERVED", "retest_incomplete": True, "same_request_retry": True, "unknown": False, "retest_withheld": False, "retest_refused": False, "failure": {"phase": "invoke", "status": 503, "code": "unavailable"}}
+        self.assertTrue(probe.retryable_retest_failure(observed))
+        for key, value in (("unknown", True), ("retest_withheld", True), ("retest_refused", True), ("same_request_retry", False), ("failure", {"phase": "invoke", "status": None, "code": "offline"}), ("failure", {"phase": "task_readback", "status": 503, "code": "unavailable"})):
+            with self.subTest(key=key, value=value):
+                self.assertFalse(probe.retryable_retest_failure({**observed, key: value}))
+
+    def test_pointer_proof_rejects_neighbour_untrusted_and_route_rebound(self):
+        probe=load_probe()
+        trace={"events":[{"type":kind,"phase":"capture","trusted":True,"targetPage":"06"} for kind in ("pointerdown","pointerup","click")],"samples":[{"phase":"click+1000","hashPage":"06","renderPage":"06","currentPages":["06"]}]}
+        probe.assert_pointer_navigation(trace,"06")
+        for field,value in (("targetPage","13"),("trusted",False)):
+            wrong=copy.deepcopy(trace);wrong["events"][-1][field]=value
+            with self.assertRaises(AssertionError):probe.assert_pointer_navigation(wrong,"06")
+        wrong=copy.deepcopy(trace);wrong["samples"][0]["renderPage"]="13"
+        with self.assertRaises(AssertionError):probe.assert_pointer_navigation(wrong,"06")
+
+    def test_native_click_retries_only_explicit_stale_refusal(self):
+        source = (ROOT / "scripts/probes/aaos01_tauri_webdriver_loop.py").read_text(encoding="utf-8")
+        nodes = [node for node in ast.parse(source).body if isinstance(node, (ast.FunctionDef, ast.ClassDef)) and node.name in {"WebDriverProtocolError", "click_current_element"}]
+        namespace = {}
+        exec(compile(ast.Module(body=nodes, type_ignores=[]), "native_click", "exec"), namespace)
+        for error, failures, expected in (("stale element reference", 1, 2), ("stale element reference", 3, 3), ("timeout", 1, 1), ("unknown error", 1, 1)):
+            with self.subTest(error=error, failures=failures):
+                calls = []; finds = []
+                def find(*args):
+                    finds.append(args)
+                    return str(len(finds))
+                def request(*args):
+                    calls.append(args)
+                    if len(calls) <= failures: raise namespace["WebDriverProtocolError"]({"error": error})
+                    return "clicked"
+                if error == "stale element reference" and failures == 1:
+                    self.assertEqual(namespace["click_current_element"](request, find, "session", "selector"), "clicked")
+                else:
+                    with self.assertRaises(namespace["WebDriverProtocolError"]): namespace["click_current_element"](request, find, "session", "selector")
+                self.assertEqual(len(calls), expected)
+                self.assertEqual(len(finds), expected)
+
+    def test_ui_original_restart_readback_rejects_changed_bytes(self):
+        import base64
+        source = (ROOT / "scripts/probes/aaos01_tauri_webdriver_loop.py").read_text(encoding="utf-8")
+        node = next(n for n in ast.parse(source).body if isinstance(n, ast.FunctionDef) and n.name == "ui_original_import_readback")
+        namespace = {"base64": base64, "hashlib": hashlib}
+        exec(compile(ast.Module(body=[node], type_ignores=[]), "original_readback", "exec"), namespace)
+        raw = b"synthetic retained original"
+        digest = hashlib.sha256(raw).hexdigest()
+        for changed in (False, True):
+            with self.subTest(changed=changed):
+                proofs = [{"source_id": "source", "sha256": digest, "bytes": len(raw)}]
+                def bridge(operation, payload):
+                    self.assertEqual(operation, "source_original")
+                    self.assertEqual(payload, {"source_id": "source"})
+                    return {"sha256": digest, "content_base64": base64.b64encode(raw + (b" changed" if changed else b"")).decode()}
+                if changed:
+                    with self.assertRaises(AssertionError): namespace[node.name](bridge, proofs)
+                    self.assertNotIn("host_restart_original_readback", proofs[0])
+                else:
+                    namespace[node.name](bridge, proofs)
+                    self.assertEqual(proofs[0]["host_restart_original_readback"], "PASS")
+
+    def test_recovery_observer_requires_exact_ack_and_only_scene_followup(self):
+        source = (ROOT / "scripts/probes/aaos01_tauri_webdriver_loop.py").read_text(encoding="utf-8")
+        node = next(n for n in ast.parse(source).body if isinstance(n, ast.FunctionDef) and n.name == "confirm_restored_working_state")
+        namespace = {}
+        exec(compile(ast.Module(body=[node], type_ignores=[]), "recovery_observer", "exec"), namespace)
+        run = namespace[node.name]
+        candidate = {"drafts": {}, "opened_documents": [], "active_document": None, "page_id": None, "pending_original": None}
+        before = {"schema": "archeaxis.ui-working-state/v1", "workspace_id": "workspace", "restore_epoch": "epoch", "state_revision": 4, "state": {}, "recovery_candidates": candidate, "recovery_requires_confirmation": True}
+        ack = {**before, "state_revision": 5, "state": candidate, "recovery_candidates": None, "recovery_requires_confirmation": False}
+        after = {**ack, "state_revision": 6, "state": {**candidate, "page_id": "01"}}
+        for mutation in (None, "ack_revision", "ack_content", "followup_content", "after_identity"):
+            with self.subTest(mutation=mutation):
+                a, last = copy.deepcopy(ack), copy.deepcopy(after)
+                if mutation == "ack_revision": a["state_revision"] = 6
+                if mutation == "ack_content": a["state"]["drafts"] = {"lost": {}}
+                if mutation == "followup_content": last["state"]["drafts"] = {"unexpected": {}}
+                if mutation == "after_identity": last["workspace_id"] = "different"
+                observed = [{"operation": "ui_state_recover", "value": {"status": 200, "body": a}}, {"operation": "ui_state_write", "value": {"status": 200, "body": last}}]
+                reads = iter([copy.deepcopy(before), last]); actions = []
+                def js(script):
+                    actions.append(script)
+                    return observed if script == "return window.__aaosRecoveryReplies" else None
+                invoke = lambda: run(lambda *_: next(reads), actions.append, lambda *_: None, js)
+                if mutation is None:
+                    self.assertEqual(invoke()["acknowledged"], ack)
+                else:
+                    with self.assertRaises(AssertionError): invoke()
+                self.assertIn("保留恢复候选", actions)
+                self.assertTrue(any("delete window.__aaosRecoveryOriginal" in action for action in actions))
+
+    def test_machine_diagnostic_is_bounded_and_does_not_copy_private_text(self):
+        probe = load_probe()
+        keys = ("panel_present", "answer_visible", "retest_visible", "unknown",
+                "retest_incomplete", "retest_refused", "retest_withheld", "same_request_retry")
+        class UI:
+            def js(self, script):
+                return {**dict.fromkeys(keys, True), "private_question": "must not copy"}
+        result = probe.machine_ui_diagnostic(UI())
+        self.assertEqual(set(result), {"status", *keys})
+        self.assertEqual(result["status"], "OBSERVED")
+        class Invalid:
+            def js(self, script):
+                return {"panel_present": "true"}
+        self.assertEqual(probe.machine_ui_diagnostic(Invalid()), {"status": "INVALID_OBSERVATION"})
+
     def test_frozen_job_journal_binds_all_original_fields_and_refuses_old_restore_epoch(self):
         frozen = {"job_id": "job", "request_id": "request", "body": {"deadline_ms": 60000, "split": False, "words": False}}
         entry = {**frozen, "source_id": "source", "source_revision": "a" * 64, "kind": "text", "surface": "manual", "mode": "single", "relative": None, "origin_restore_epoch": "initial"}
@@ -610,6 +753,10 @@ class GroupedNativeProbeTests(unittest.TestCase):
             def page(self, page):
                 actions.append(("page", page))
 
+            def js(self, script):
+                assert '本地模型清单探测结果' in script
+                return '清单已读取，共 1 项；声明模型已列出。加载状态未知，推理尚未验证。'
+
             def click_selector(self, selector):
                 actions.append(("checkbox", selector))
                 fields["operation"] = "retest" if "允许本地复测" in selector else "answer"
@@ -646,6 +793,7 @@ class GroupedNativeProbeTests(unittest.TestCase):
                         "answer": {
                             **probe.ai_receipt_contract()[1][0],
                             "answer": "A correct explanation; no actual error claimed",
+                            "usage": None, "usage_status":"UNKNOWN", "cost":None, "cost_status":"UNKNOWN",
                             "finish_reason": "stop",
                             "truncated": False,
                         },
@@ -737,6 +885,8 @@ class GroupedNativeProbeTests(unittest.TestCase):
             self.assertIn(op, probe.READ_OPERATIONS)
             reads.append(op)
             payload = payload or {}
+            if op == "machine_configuration":
+                return {"schema":"archeaxis.machine-configuration/v1","availability":"CONFIGURED_UNVERIFIED","network_performed":False,"inference_status":"NOT_EXECUTED","loaded_status":"UNKNOWN","model_identity":None,"usage":None,"cost":None}
             if op == "capabilities_list":
                 return {
                     "capabilities": [

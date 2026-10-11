@@ -8,7 +8,9 @@ info:
     it remains a reference until each route actually carries it (route
     conformance is tracked in the T03/T04/T12 lanes, not claimed here).
     Error semantics: errors.catalog.yaml codes map to HTTP statuses; every
-    failure body is {code, message, retryable} (component Error).
+    reference failure body is {code, message, retryable} (component Error).
+    Current machine answer/retest execution failures use the independently
+    bounded MachineCallFailure component; 503 does not prove non-execution.
     Status vocabulary: job-status.schema.json; review/evidence states:
     assessment-vocabulary.schema.json; anchors: anchor-coordinate.schema.json.
 servers:
@@ -24,6 +26,70 @@ x-freeze:
   date: 2026-09-05
   status: reference-not-implementation
 paths:
+  /api/v1/workspace/ui-state/machine-status:
+    post:
+      operationId: readFrozenMachineStatus
+      description: Human-only read of one current frozen journal and its exact current failure audit. Does not consume grants, read material, run inference or clear state. Unfinished, legacy or conflicting claims remain UNKNOWN. FAILED permits only explicit clear-machine with the exact task and current CAS; provider stop, usage and cost are not thereby verified.
+      x-contract-status: implemented-source-slice-not-native-or-owner-acceptance
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required: [workspace_id, restore_epoch, state_revision, journal_id]
+              properties:
+                workspace_id: {type: string}
+                restore_epoch: {type: string}
+                state_revision: {type: integer}
+                journal_id: {type: string}
+      responses:
+        "200":
+          description: Historical failure binding or explicit UNKNOWN
+          content:
+            application/json:
+              schema: {$ref: 'core-document.schema.json#/$defs/MachineJournalStatusDto'}
+        "403": {description: Human identity required}
+        "409": {description: Working state CAS changed}
+        "422": {description: Missing or invalid frozen journal}
+        "503": {description: Read unconfirmed; journal retained}
+  /api/v1/machine/inventory:
+    post:
+      operationId: readMachineInventory
+      description: "Explicit input-free local inventory observation; no inference, loading or task writes. Verified replies may expose bounded model_choices for task selection. Failed inventory has unknown count and presence. Raw endpoints and worker errors are never returned. Listing does not qualify inference."
+      x-contract-status: implemented-source-slice-not-owner-acceptance
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              maxProperties: 0
+      responses:
+        "200":
+          description: Inventory-only observation
+          content:
+            application/json:
+              schema:
+                $ref: ./core-document.schema.json#/$defs/MachineInventoryDto
+        "400":
+          description: Nonempty payload rejected before worker launch
+        "503":
+          description: Shared model admission busy; inventory not executed
+  /api/v1/machine/configuration:
+    get:
+      operationId: readMachineConfiguration
+      description: "Launch policy only; no model discovery, network request, inference or task write. Registered worker does not establish model availability. Model identity, usage and cost are null; loaded state is UNKNOWN."
+      x-contract-status: implemented-source-slice-not-owner-acceptance
+      responses:
+        "200":
+          description: Configuration evidence only
+          content:
+            application/json:
+              schema:
+                $ref: ./core-document.schema.json#/$defs/MachineConfigurationDto
   # AAOS-01 current-source slice; the older reference-only paths retain their status.
   /api/v1/sources:
     get:
@@ -106,7 +172,7 @@ paths:
         schema: {type: string}
     post:
       operationId: executeDocumentCheck
-      description: "Human-only explicit version/hash-bound attempt, distinct from pending application and note save. Current unconfigured worker yields failed/not_configured, execution_verified=false, execution_state=not_executed; no cloud call or human approval is implied. Retry references a real previous attempt_id. Arbitrary model/provider fields are forbidden."
+      description: "Human-only explicit version/hash-bound attempt, distinct from pending application and note save. Current unconfigured worker yields failed/not_configured, execution_verified=false, execution_state=not_executed; no cloud call or human approval is implied. Retry references a real previous attempt_id. Configured execution requires a matching snapshot/material/destination/configuration/restore-epoch preview fingerprint. Immutable request local_only and durable withdrawal deny new starts/retries; queued work rechecks Core policy after its worker slot becomes available. Withdrawal cannot recall sent materials and does not certify active-worker cancellation. Arbitrary model/provider fields are forbidden."
       x-contract-status: implemented-source-slice-not-owner-acceptance
       requestBody:
         required: true
@@ -120,7 +186,17 @@ paths:
                 check_id: {type: string}
                 expected_content_sha256: {type: string}
                 retry_of_task_id: {type: [string, "null"]}
+                withdraw: {type: [boolean, "null"], description: Human-only durable withdrawal; mutually exclusive with preview/confirmation/material/retry fields}
+                preview: {type: [boolean, "null"]}
+                selected_text: {type: [string, "null"], description: Exact saved professional-check excerpt; omitted means full saved text}
+                confirmed_egress_sha256: {type: [string, "null"], pattern: "^[a-f0-9]{64}$"}
       responses:
+        "200":
+          description: Read-only material and destination preview or idempotent withdrawal receipt; configured execution requires its matching confirmation fingerprint
+          content:
+            application/json:
+              schema:
+                $ref: "core-document.schema.json#/$defs/DocumentCheckDto"
         "201":
           description: Durable failed/not_configured attempt receipt; execution was not verified
           content:
@@ -148,8 +224,30 @@ paths:
                 $ref: "core-document.schema.json#/$defs/DocumentChecksDto"
     post:
       operationId: recordDocumentCheck
-      description: "Human-only explicit manual report or pending cloud request. Never a save prerequisite or human approval substitute."
+      description: "Explicit manual report or pending cloud request. Optional search_query is human-only, cloud-only independent public query (1-1000 nonblank characters, at most 4000 UTF-8 bytes), persisted verbatim and forwarded to the worker; document text is never substituted as query. Recognition defaults to no search; professional execution requires an independent query. This query is not complete material/destination egress approval. Never a save prerequisite or human approval substitute."
       x-contract-status: implemented-source-slice-not-owner-acceptance
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required: [version, dimension, provider_mode]
+              properties:
+                version: {type: integer, minimum: 1}
+                dimension: {enum: [recognition_fidelity, professional_basis]}
+                provider_mode: {enum: [manual, cloud]}
+                local_only: {type: [boolean, "null"], description: Immutable scope of this human cloud request; true forbids preview/execution/search and never blocks ordinary saves}
+                search_query: {type: [string, "null"], maxLength: 1000, description: Independent public query; nonblank and at most 4000 UTF-8 bytes}
+                status: {type: [string, "null"]}
+                source_id: {type: [string, "null"]}
+                source_revision: {type: [string, "null"]}
+                position: {type: [object, "null"]}
+                recognition_job_id: {type: [string, "null"]}
+                recognition_result_sha256: {type: [string, "null"]}
+                basis: {type: [string, "null"]}
+                reason: {type: [string, "null"]}
       responses:
         "201":
           description: Version-bound record
@@ -475,6 +573,18 @@ components:
       name: x-archeaxis-launch-token
       description: Ephemeral per-process desktop credential sent through the inherited stdin pipe at launch; never in argv or readiness output. Native desktop only; browser Origin requests are denied. Requested scopes cannot grant authority.
   schemas:
+    MachineCallFailure:
+      type: object
+      additionalProperties: false
+      required: [schema, operation, reason_code, execution_state, answer_published]
+      properties:
+        schema: {const: archeaxis.machine-call-failure/v1}
+        operation: {enum: [answer, retest]}
+        reason_code:
+          enum: [MODEL_CALL_FAILED, NO_FINAL_ANSWER, EMPTY_ANSWER, WORKER_TIMEOUT, OUTPUT_LIMIT, INVALID_OUTPUT, PIPE_DRAIN_FAILED, WORKER_FAILED]
+        execution_state: {const: UNVERIFIED}
+        answer_published: {const: false}
+      description: HTTP 503 after worker execution failure; excludes raw exceptions, stderr and model text. A failure response alone does not grant retry permission. Core retains the unfinished claim for unknown outcomes or unconfirmed cleanup; only confirmed local-worker failures permit explicit same-request retries, with at most three total attempts per durable identity across restarts. Confirmed failures persist a redacted attempt-bound runtime.execution.failed audit and the claim terminal_task_id atomically; audit persistence failure rolls back retry release. Provider stop, usage and cost remain unknown. Legacy unknown attempt counts do not receive a fresh budget. The response is not a success receipt or proof of no prior side effect or provider-side stop. Frozen journal status and exact clear-machine provide explicit cold recovery; UNKNOWN never grants UI repeat inference or a fresh identity around an unresolved journey. Modern retest cache binds the effective timeout even without explicit model selection; legacy unknown budgets remain historical and cannot qualify a new execution receipt.
     Error:
       type: object
       additionalProperties: false
@@ -483,7 +593,7 @@ components:
         code: {type: string}
         message: {type: string}
         retryable: {type: boolean}
-      description: Failure envelope on every channel (errors.catalog.yaml codes).
+      description: Reference failure envelope (errors.catalog.yaml codes); current machine execution failures use MachineCallFailure.
   parameters:
     JobId:
       name: job_id

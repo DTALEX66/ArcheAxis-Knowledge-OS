@@ -18,14 +18,28 @@ mod context_refusal;
 mod courses;
 mod execution_status_projection;
 mod job_journal;
+mod machine_journal;
 mod semantic;
 mod withheld;
+mod execution_claim;
 use colearning::{machine_answer, record_correction, run_retest};
 
 struct Active {
     request_id: String,
     cancel: Cancellation,
     faulted: bool,
+}
+async fn machine_configuration(State(runtime): State<Runtime>) -> Json<Value> {
+    Json(runtime.executor.machine_configuration())
+}
+async fn machine_inventory(State(runtime): State<Runtime>, Json(payload): Json<Value>) -> Response {
+    if !payload.as_object().is_some_and(|v| v.is_empty()) {
+        return (StatusCode::BAD_REQUEST, Json(json!({"error":"EMPTY_PAYLOAD_REQUIRED"}))).into_response();
+    }
+    let Ok(_permit) = tokio::time::timeout(std::time::Duration::from_secs(2), runtime.colearning_admission.lock()).await else {
+        return (StatusCode::SERVICE_UNAVAILABLE, Json(json!({"error":"MODEL_PROBE_BUSY"}))).into_response();
+    };
+    Json(runtime.executor.machine_inventory().await).into_response()
 }
 #[derive(Clone)]
 struct Runtime {
@@ -37,6 +51,8 @@ struct Runtime {
 pub fn router(executor: Executor) -> Router {
     let projections = crate::projections_base(executor.store().clone(), false);
     Router::new()
+        .route("/api/v1/workspace/ui-state/clear-machine", post(machine_journal::clear))
+        .route("/api/v1/workspace/ui-state/machine-status", post(machine_journal::status))
         .route(
             "/api/v1/workspace/ui-state/clear-job",
             post(job_journal::clear),
@@ -68,6 +84,8 @@ pub fn router(executor: Executor) -> Router {
         // needs the executor, and the executor is this router's state; the projection builder holds
         // only the store and cannot reach a worker.
         .route("/api/v1/machine/answers", post(machine_answer))
+        .route("/api/v1/machine/configuration", get(machine_configuration))
+        .route("/api/v1/machine/inventory", post(machine_inventory))
         // G2: Ask with citations. It needs the store and the domain search matcher, both reachable
         // from the executor, and it answers over the same material the search route answers over.
         .route("/api/v1/ask", post(ask))
@@ -366,6 +384,8 @@ struct CapabilityEnabledBody {
 #[serde(deny_unknown_fields)]
 struct MachineAnswerBody {
     #[serde(default)]
+    model: Option<String>,
+    #[serde(default)]
     client_request_id: Option<String>,
     knowledge_id: String,
     question: String,
@@ -464,6 +484,8 @@ struct VaultLinksBody {
 #[derive(Deserialize)]
 #[serde(deny_unknown_fields)]
 struct RetestBody {
+    #[serde(default)]
+    model: Option<String>,
     /// The machine task being retested.
     retest_of: String,
     /// The knowledge the retest answers from - usually the corrected item, which is why it is named

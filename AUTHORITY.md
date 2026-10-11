@@ -16,7 +16,7 @@
 
 来源：输入蓝图《AAOS 完整项目描述与未来蓝图》2026-10-06，§2。<br>
 输入字节 SHA-256 `2c99e7ae7dd52298ee425c8360c90b63a40d02f41af4c1b151cad6efd55d1ed9`（已核，与提示词要求一致）。<br>
-名称：内部代号 AAOS；对外"星环知识平台 ArcheAxis Knowledge"；仓库身份 `DTALEX66/ArcheAxis-Knowledge-OS`；展示状态保留 Ongoing。
+名称：内部代号 AAOS；对外"星环知识系统 ArcheAxis Knowledge"；仓库身份 `DTALEX66/ArcheAxis-Knowledge-OS`；展示状态保留 Ongoing。
 
 ## 2. 本仓库拥有 / 不拥有
 

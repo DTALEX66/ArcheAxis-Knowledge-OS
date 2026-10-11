@@ -1,8 +1,17 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { coreCommand, verifyCanonicalCore } from "../api/core";
+import { ApiError } from "../api/client";
 
 afterEach(() => { delete window.__TAURI__; });
 describe("finite Core bridge", () => {
+  it("retains unknown model/cost and rejects invented connected status",async()=>{
+    const body={schema:"archeaxis.machine-configuration/v1",worker_registered:true,selection_source:"EXPLICIT_LAUNCH",availability:"CONFIGURED_UNVERIFIED",model_identity:null,destination:"LOCAL_LOOPBACK_ONLY",material_scope:"AUTHORIZED_KNOWLEDGE_AND_EXPLICIT_QUESTION",inference_status:"NOT_EXECUTED",loaded_status:"UNKNOWN",usage:null,cost:null,network_performed:false,evidence_scope:"LAUNCH_POLICY_ONLY"};
+    const invoke=vi.fn().mockResolvedValue({status:200,body});window.__TAURI__={core:{invoke}};
+    expect(await coreCommand("machine_configuration")).toEqual(body);
+    expect(invoke).toHaveBeenCalledWith("core_command",{request:{operation:"machine_configuration",payload:{}}});
+    invoke.mockResolvedValue({status:200,body:{...body,availability:"CONNECTED",cost:0}});
+    await expect(coreCommand("machine_configuration")).rejects.toThrow();
+  });
   it.each(["3.51.3","3.50.7","3.44.6","3.52.0"])("accepts a fixed SQLite version %s",async(sqlite_version)=>{
     window.__TAURI__={core:{invoke:vi.fn().mockResolvedValue({status:200,body:{runtime:"archeaxis-api",contract:"0.1.0-outline",schema_version:7,sqlite_version}})}};
     await expect(verifyCanonicalCore()).resolves.toBeUndefined();
@@ -51,4 +60,20 @@ describe("finite Core bridge", () => {
     invoke.mockResolvedValue({status:200,body:{...receipt,authority:"accepted"}});
     await expect(coreCommand("machine_retest",{body:{}})).rejects.toMatchObject({status:502,code:"incompatible"});
   });
+});
+
+it.each(["machine_answer", "machine_retest"] as const)("SIMULATED %s retains safe machine failure without raw diagnostics",async(operation)=>{
+  window.__TAURI__={core:{invoke:vi.fn().mockResolvedValue({status:503,body:{schema:"archeaxis.machine-call-failure/v1",operation:operation==="machine_answer"?"answer":"retest",reason_code:"NO_FINAL_ANSWER",execution_state:"UNVERIFIED",answer_published:false,message:"SYNTHETIC_PRIVATE",stderr:"SYNTHETIC_PRIVATE"}})}};
+  const error=await coreCommand(operation,{}).catch(error=>error);
+  if (!(error instanceof ApiError)) throw new Error("Expected finite Core failure");
+  expect(error.machineFailure).toEqual({reason_code:"NO_FINAL_ANSWER",execution_state:"UNVERIFIED",answer_published:false});
+  expect(error.message).toContain("模型未返回最终答案");
+  expect(JSON.stringify(error)).not.toContain("SYNTHETIC_PRIVATE");
+});
+it.each(["SYNTHETIC_PRIVATE","__proto__"])("SIMULATED unknown machine reason %s stays generic",async(reason_code)=>{
+  window.__TAURI__={core:{invoke:vi.fn().mockResolvedValue({status:503,body:{schema:"archeaxis.machine-call-failure/v1",operation:"retest",reason_code,execution_state:"UNVERIFIED",answer_published:false}})}};
+  const error=await coreCommand("machine_retest",{}).catch(error=>error);
+  if (!(error instanceof ApiError)) throw new Error("Expected finite Core failure");
+  expect(error.machineFailure).toBeUndefined();
+  expect(error.message).not.toContain(reason_code);
 });

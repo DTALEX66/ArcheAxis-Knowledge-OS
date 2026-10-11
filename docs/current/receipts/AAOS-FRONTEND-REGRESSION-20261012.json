@@ -1,0 +1,43 @@
+{
+  "schema": "archeaxis.frontend-regression/v1",
+  "status": "PASS",
+  "overall_product_status": "PARTIAL",
+  "evidence_level": "SIMULATED_FRONTEND",
+  "run": "20f1405990f5",
+  "source_patch_sha256": "c1aa1afac4b388d868366e0ff0f6bffbe03b383436b91ce2088ab28b763432d7",
+  "files_passed": 127,
+  "tests_passed": 1225,
+  "typescript_run": "5db34948d98f",
+  "typescript_exit_code": 0,
+  "historical_attempts": [
+    {
+      "run": "531397e5d197",
+      "status": "FAIL",
+      "reason": "Two outdated machine fixtures and one sandbox temporary-directory EPERM; no full-suite PASS claim"
+    },
+    {
+      "run": "61f7f3056fbc",
+      "status": "FAIL",
+      "reason": "Unscoped same frozen identity retry is supported; old assertion expected obsolete execute button"
+    }
+  ],
+  "change": "Machine answer fixture now derives canonical answer identity from actual frozen client_request_id, includes versioned request proof, and verifies retry preserves exact request",
+  "files": [
+    "frontend/src/__tests__/MachineAnswerPanel.test.tsx"
+  ],
+  "limits": [
+    "No actual cloud calls, model-quality evaluation, installed Green or Owner acceptance",
+    "Preserved old-epoch review retry has targeted and native evidence; multiple-request selection still lacks native qualification"
+  ],
+  "current_followup": {
+    "run": "f50fbac87f89",
+    "source_patch_sha256": "f3c3f5173f373893bb67615500efaa4d85c06b8bf4b33d2eeb74ecffe2c3b857",
+    "source_consistent": true,
+    "files_passed": 127,
+    "tests_passed": 1226,
+    "typescript_run": "b5be359494fc",
+    "typescript_exit_code": 0,
+    "execution_receipt_sha256": "93c7336201cf5fc427bb21015b7c78c3f15fd3c4df3c426c200a99a0bc96e6e6",
+    "scope": "Full frontend regression after prior-epoch preserved review retry and multi-request selection increments"
+  }
+}

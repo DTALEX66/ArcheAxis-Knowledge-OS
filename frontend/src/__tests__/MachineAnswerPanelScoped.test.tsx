@@ -10,10 +10,50 @@ const bridge=vi.hoisted(()=>({call:vi.fn()}));vi.mock("../api/core",()=>({coreCo
 type J=Record<string,unknown>;
 const grant:ContextConsumptionDto={document_id:"grant",version:2,content_sha256:"a".repeat(64),purpose:"固定原用途"};
 const changed:ContextConsumptionDto={...grant,version:3,purpose:"不同用途"};
+it("freezes unscoped launch-default answers across lost acknowledgments",async()=>{
+  const requests:J[]=[];bridge.call.mockImplementation(async(op:string,p:J={})=>{
+    if(op!=="machine_answer")throw new Error("unexpected "+op);
+    requests.push(structuredClone(p.body as J));throw new ApiError(502,"SIMULATED lost acknowledgment");
+  });
+  render(<MachineAnswerPanel knowledgeId="k1"/>);const user=userEvent.setup();
+  await user.type(screen.getByLabelText("实际问题"),"默认模型问题");await user.click(screen.getByRole("button",{name:"执行本地机器回答"}));
+  await screen.findByText(/回答未完成或持久化读回未确认/);
+  await user.click(screen.getByRole("button",{name:"重试同一回答请求"}));
+  expect(screen.getByRole("button",{name:"重试同一回答请求"})).toBeDisabled();
+  expect(requests).toHaveLength(1);
+  expect(requests[0].client_request_id).toMatch(/^machine_/);
+  expect(requests[0]).not.toHaveProperty("model");expect(requests[0]).not.toHaveProperty("context_grant");
+});
+it.each([400,403,404,422])("retains frozen answer and blocks unknown retry before subsequent %s can be sent",async status=>{
+  const requests:J[]=[];
+  bridge.call.mockImplementation(async(op:string,p:J={})=>{
+    if(op!=="machine_answer")throw new Error("unexpected "+op);
+    requests.push(structuredClone(p.body as J));
+    throw new ApiError(requests.length===1?502:status,"SIMULATED response loss or refusal");
+  });
+  const ui=render(<MachineAnswerPanel knowledgeId="k1" scoped contextGrant={grant}/>);const user=userEvent.setup();
+  await user.type(screen.getByLabelText("实际问题"),"固定问题");await user.click(screen.getByRole("button",{name:"执行本地机器回答"}));
+  await screen.findByText(/回答未完成或持久化读回未确认/);
+  ui.rerender(<MachineAnswerPanel knowledgeId="k1" scoped contextGrant={changed}/>);
+  await user.click(screen.getByRole("button",{name:"重试同一回答请求"}));
+  expect(requests).toHaveLength(1);expect(requests[0].context_grant).toEqual(grant);
+  expect(screen.getByRole("button",{name:"重试同一回答请求"})).toBeDisabled();
+  expect(screen.getByLabelText("实际问题")).toHaveValue("固定问题");
+});
 function answer(request:J){return {schema:"archeaxis.machine-answer/v1",answer_id:"answer_req_"+createHash("sha256").update(String(request.client_request_id)).digest("hex"),client_request_id:request.client_request_id,knowledge_id:request.knowledge_id,question:request.question,answer:{answer:"SIMULATED实际返回",model:"fixture-model"},authority:"candidate",request:{schema:"archeaxis.machine-answer-request/v1",knowledge_id:request.knowledge_id,question:request.question,max_tokens:request.max_tokens,timeout_s:request.timeout_s,context_grant:request.context_grant,context_sha256:"b".repeat(64)}};}
 function task(doc:J,scope="runtime.answer"){return {task_id:doc.answer_id,conditions:JSON.stringify(doc),scope,knowledge_version:String(doc.knowledge_id)+"@v1",model_version:(doc.answer as J).model,outcome:"unmeasured",retest_of:scope==="runtime.retest"?doc.retest_of:null,principal:"machine",recorded_at:"SIMULATED",method_version:null,tool_version:null,failure:null};}
 async function enterQuestion(){const user=userEvent.setup();await user.type(screen.getByLabelText("实际问题"),"固定问题");await user.click(screen.getByRole("button",{name:"执行本地机器回答"}));return user;}
 describe("SIMULATED real scoped Panel lostACK contracts",()=>{
+ it("reads configuration only on explicit action and does not claim model connection",async()=>{
+  bridge.call.mockResolvedValue({worker_registered:true,availability:"CONFIGURED_UNVERIFIED"});
+  render(<MachineAnswerPanel knowledgeId="k1" scoped contextGrant={grant}/>);
+  expect(bridge.call).not.toHaveBeenCalled();
+  await userEvent.click(screen.getByRole("button",{name:"读取模型配置状态"}));
+  expect(await screen.findByText(/模型身份、加载和推理接通尚未验证/)).toBeInTheDocument();
+  expect(bridge.call).toHaveBeenCalledTimes(1);
+  expect(bridge.call).toHaveBeenCalledWith("machine_configuration");
+  expect(screen.getByText(/用量和费用.*未知/)).toBeInTheDocument();
+ });
  beforeEach(()=>{bridge.call.mockReset();vi.stubGlobal("crypto",webcrypto);});afterEach(()=>vi.unstubAllGlobals());
  it("keeps frozen answer after precise restore refusal, reports current invocation only and never substitutes a new grant",async()=>{
   const calls:J[]=[];
@@ -29,14 +69,14 @@ describe("SIMULATED real scoped Panel lostACK contracts",()=>{
   ui.rerender(<MachineAnswerPanel knowledgeId="k1" scoped contextGrant={changed}/>);
   expect(calls).toHaveLength(1);expect(screen.queryByRole("button",{name:"执行本地机器回答"})).not.toBeInTheDocument();
   await user.click(screen.getByRole("button",{name:"重试同一回答请求"}));
-  await waitFor(()=>expect(calls).toHaveLength(2));expect(calls[1]).toEqual(calls[0]);
+  expect(screen.getByRole("button",{name:"重试同一回答请求"})).toBeDisabled();expect(calls).toHaveLength(1);
  });
  it("keeps UNKNOWN protection when a nominal typed receipt is bound to another frozen request",async()=>{
   bridge.call.mockRejectedValue(new ApiError(403,"wrong proof","unauthorized",undefined,undefined,{schema:"archeaxis.context-admission-refusal/v1",reason_code:"RESTORED_GRANT_FENCED",execution_state:"NOT_EXECUTED",execution_scope:"CURRENT_INVOCATION",prior_request_execution:"UNVERIFIED",answer_published:false,
    operation:"answer",knowledge_id:"other",client_request_id:"other",retest_of:null,request_sha256:"a".repeat(64),grant:{document_id:grant.document_id,version:grant.version,content_sha256:grant.content_sha256}}));
   render(<MachineAnswerPanel knowledgeId="k1" scoped contextGrant={grant}/>);await enterQuestion();
   await screen.findByText(/授权拒绝身份未确认，状态 UNKNOWN/);
-  expect(screen.queryByLabelText("恢复授权拒绝")).not.toBeInTheDocument();expect(screen.getByRole("button",{name:"重试同一回答请求"})).toBeEnabled();
+  expect(screen.queryByLabelText("恢复授权拒绝")).not.toBeInTheDocument();expect(screen.getByRole("button",{name:"重试同一回答请求"})).toBeDisabled();
   expect(bridge.call).toHaveBeenCalledTimes(1);
  });
  it("does not publish a late restored-grant receipt after switching knowledge",async()=>{
@@ -64,7 +104,8 @@ describe("SIMULATED real scoped Panel lostACK contracts",()=>{
   const ui=render(<MachineAnswerPanel knowledgeId="k1" scoped contextGrant={grant}/>);const user=await enterQuestion();await screen.findByText(/状态 UNKNOWN。请读取历史核对/);
   ui.rerender(<MachineAnswerPanel knowledgeId="k1" scoped contextGrant={changed}/>);
   await user.clear(screen.getByLabelText("实际问题"));await user.type(screen.getByLabelText("实际问题"),"后续不同草稿");await user.click(screen.getByRole("button",{name:"重试同一回答请求"}));
-  expect(await screen.findByLabelText("真实机器回答")).toHaveTextContent("SIMULATED实际返回");expect(calls).toHaveLength(2);expect(calls[1]).toEqual(calls[0]);expect((calls[1].context_grant as J).purpose).toBe("固定原用途");
+  expect(screen.queryByLabelText("真实机器回答")).not.toBeInTheDocument();expect(calls).toHaveLength(1);expect((calls[0].context_grant as J).purpose).toBe("固定原用途");
+  expect(screen.getByRole("button",{name:"重试同一回答请求"})).toBeDisabled();
   expect(screen.getByLabelText("实际问题")).toHaveValue("后续不同草稿");
  });
  it("withholds publication when Core returns another deterministic request identity",async()=>{
@@ -87,25 +128,30 @@ describe("SIMULATED real scoped Panel lostACK contracts",()=>{
   await user.type(screen.getByLabelText("实际问题"),"未提交新问题");await user.click(screen.getByRole("button",{name:"读取此任务旅程 old"}));
   expect(screen.getByLabelText("实际问题")).toHaveValue("未提交新问题");expect(screen.queryByLabelText("真实机器回答")).not.toBeInTheDocument();
  });
- it.each(["lostACK","restored"])("%s retest freezes the original purpose even when props change",async(mode)=>{
+ it.each(["lostACK","restored","forbidden"])("%s retest freezes the original purpose even when props change",async(mode)=>{
   const original={schema:"archeaxis.machine-answer/v1",answer_id:"old",knowledge_id:"k1",question:"旧问题",answer:{answer:"旧回答",model:"fixture-model"},authority:"candidate"};
   const correction={schema:"archeaxis.machine-correction/v1",answer_id:"old",failed_task_id:"evaluation_old",correction_candidate_id:"correction1",corrects_knowledge_id:"k1",question:"旧问题",machine_answer:"旧回答",corrected_answer:"修正",error_note:"实际依据",reviewer:"human",status:"candidate",authority:"candidate"};
   const evaluation={...original,correction};const failed={...task(evaluation),task_id:"evaluation_old",conditions:JSON.stringify(evaluation),scope:"runtime.evaluation.failed",outcome:"failed",failure:"实际依据"};
   const requests:J[]=[];let retest:J|null=null;
   bridge.call.mockImplementation(async(op:string,p:J={})=>{
-   if(op==="machine_tasks_list")return {items:[failed],next_cursor:null};
+   if(op==="machine_tasks_list")return {items:retest?[failed,task(retest,"runtime.retest")]:[failed],next_cursor:null};
    if(op==="knowledge_get")return {knowledge_id:"correction1",body:"修正",version:"hash-v2",status:"accepted"};
-   if(op==="machine_retest"){const b=p.body as J;requests.push(structuredClone(b));retest={schema:"archeaxis.machine-retest/v1",retest_task_id:"retest1",answer_id:"retest1",retest_of:b.retest_of,knowledge_id:b.knowledge_id,question:b.question,answer:{answer:"复测回答",model:"fixture-model"},authority:"candidate",request:{retest_of:b.retest_of,knowledge_id:b.knowledge_id,question:b.question,max_tokens:b.max_tokens,context_grant:b.context_grant}};if(requests.length===1){
+   if(op==="machine_retest"){const b=p.body as J;requests.push(structuredClone(b));retest={schema:"archeaxis.machine-retest/v1",retest_task_id:"retest1",answer_id:"retest1",retest_of:b.retest_of,knowledge_id:b.knowledge_id,question:b.question,answer:{answer:"复测回答",model:"fixture-model"},authority:"candidate",prior:{conditions:evaluation},execution_request:{timeout_s:b.timeout_s},request:{retest_of:b.retest_of,knowledge_id:b.knowledge_id,question:b.question,max_tokens:b.max_tokens,model:b.model,context_grant:b.context_grant}};if(requests.length===1){
     if(mode==="lostACK")throw new ApiError(502,"lostACK");
+    if(mode==="forbidden")throw new ApiError(403,"current refusal","unauthorized");
     throw new ApiError(403,"restored","unauthorized",undefined,undefined,{schema:"archeaxis.context-admission-refusal/v1",reason_code:"RESTORED_GRANT_FENCED",execution_state:"NOT_EXECUTED",execution_scope:"CURRENT_INVOCATION",prior_request_execution:"UNVERIFIED",answer_published:false,
      operation:"retest",knowledge_id:String(b.knowledge_id),client_request_id:null,retest_of:String(b.retest_of),request_sha256:await machineAdmissionRequestSha("retest",b),grant:{document_id:grant.document_id,version:grant.version,content_sha256:grant.content_sha256}});
    }return retest;}
    if(op==="machine_task_get")return p.task_id==="old"?task(original):p.task_id==="evaluation_old"?failed:task(retest!,"runtime.retest");
    throw new Error("unexpected "+op);
   });
-  const ui=render(<MachineAnswerPanel knowledgeId="k1" scoped contextGrant={grant} retestContextGrant={grant}/>);const user=userEvent.setup();await user.click(screen.getByRole("button",{name:"读取机器学习历史"}));await user.click(await screen.findByRole("button",{name:"读取此任务旅程 evaluation_old"}));
+  const onTask=vi.fn();const ui=render(<MachineAnswerPanel knowledgeId="k1" scoped contextGrant={grant} retestContextGrant={grant} onTask={onTask}/>);const user=userEvent.setup();await user.click(screen.getByRole("button",{name:"读取机器学习历史"}));await user.click(await screen.findByRole("button",{name:"读取此任务旅程 evaluation_old"}));
   await user.click(await screen.findByRole("button",{name:"以已接受纠正知识运行独立复测"}));await screen.findByText(mode==="lostACK"?/复测未完成或持久化读回未确认/:/Core 明确拒绝复测请求/);
-  ui.rerender(<MachineAnswerPanel knowledgeId="k1" scoped contextGrant={grant} retestContextGrant={changed}/>);await user.click(screen.getByRole("button",{name:"重试同一冻结复测请求"}));
-  await waitFor(()=>expect(requests).toHaveLength(2));expect(requests[1]).toEqual(requests[0]);
+  expect(JSON.parse(screen.getByLabelText("知识到机器回答").dataset.retestFailure!)).toEqual({phase:"invoke",status:mode==="lostACK"?502:403,code:mode==="lostACK"?"unavailable":"unauthorized"});
+  ui.rerender(<MachineAnswerPanel knowledgeId="k1" scoped contextGrant={grant} retestContextGrant={changed} onTask={onTask}/>);await user.click(screen.getByRole("button",{name:"重试同一冻结复测请求"}));
+  expect(screen.getByRole("button",{name:"重试同一冻结复测请求"})).toBeDisabled();expect(requests).toHaveLength(1);
+  await user.click(screen.getByRole("button",{name:"读取机器学习历史"}));
+  await user.click(await screen.findByRole("button",{name:"读取此任务旅程 retest1"}));
+  await waitFor(()=>expect(onTask).toHaveBeenLastCalledWith("retest1"));
  });
 });
