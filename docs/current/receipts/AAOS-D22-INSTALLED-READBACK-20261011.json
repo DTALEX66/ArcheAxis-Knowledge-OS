@@ -1,0 +1,28 @@
+{
+  "schema": "archeaxis.installed-lifecycle-readback/v1",
+  "date": "2026-10-11",
+  "status": "PARTIAL",
+  "candidate": "d22b9c7bc750131e2f856e74a4dbf5bc78b95af4",
+  "ci_run": 38126070564,
+  "full_ci": "SUCCESS",
+  "installer_job": 114433354094,
+  "installer_job_conclusion": "success",
+  "artifact_id": 11697623975,
+  "evidence_root": ".project-local/runs/be268a2d33/ci-d22-readback-20261011/installed",
+  "installer_sha256": "8e5d903edbe823fab509c9f40661b9f79144ab42383db010cc241b7280b891d9",
+  "identity": "Parent lifecycle/preflight and three child installer/host identities match exact candidate/run/attempt; all child ok/source_consistent=true with empty patch",
+  "lifecycle": "Upgrade, graceful exit, clean uninstall retaining data, reinstall readback, owned process/port cleanup PASS",
+  "practice_review": "New textarea/content observations and unconditional review helper actually executed in candidate native log; one new persisted event, answer/assessment/knowledge revision/latest projection and restored state validated; legal null next_review accepted",
+  "conflict": "Actual installed UI A conflict saved to v3; B independent draft preserved; normal exit/new PID restart readback PASS",
+  "compat": "Restore v3 to v2/CAS equality; 17 valid matrix inputs succeeded, four damaged inputs failed correctly; WAV/MP4 compatibility header probes are not speech qualification",
+  "frozen_request": "Original source/revision/job/request unchanged, only attempt1, enable without automatic execution and restart readback PASS",
+  "grouped": {"passed_stages": ["import", "read", "anchor", "claim", "learn", "practice", "review", "recover"], "distill": "NOT_EXECUTED", "correction_retest_old_grant_refusal": "NOT_EXECUTED", "capability_toggle": "PASS", "closed_loop_verified": false},
+  "receipt_sha256": {
+    "lifecycle": "58aa38fab9b521fac00f3ac91e40253069de1c02148921da10af68cb89246d9c",
+    "child_543aa3b9adef": "91fa16b0385c7957ea4a27e364a0e0009bb30a73faa73a1dc7b1602c90dd89f0",
+    "child_da494ee6480a": "ac29b54eba31f5565af421563c3bae86a21a77103ecf3a363ecd60901aaf3371",
+    "grouped_e5bf80a32348": "abb775be48b47d34692149b3cfe6aa396941a4743b869744e26659b3be261702"
+  },
+  "verification": "Root source/hash inspection and independent read-only candidate source/native logs, identity, lifecycle, content, restore and frozen-request audit",
+  "limits": ["Exact d22 qualification only, not subsequent documentation HEAD", "Actual AI chain still NOT_EXECUTED; existing local Core execution permission rejection not bypassed", "No alternate approved complete actual-AI route declared in current authority", "No Owner interaction/IME/professional truth/mastery acceptance", "No merge/release/Green replacement/user-data overwrite"]
+}
