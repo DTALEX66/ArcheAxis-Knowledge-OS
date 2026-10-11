@@ -522,3 +522,7 @@ b75完整CI现已completed/failure。安装artifact11694801649中compat与独立
 按Owner补充先核项目资源权威与LM现有库存，再搜索官方模型资料；声明模型库/工具库不另造目录。本机硬件仅项目记录RTX5060 8GB/64GB/i5-14600KF，当前CIM拒绝保留为UNVERIFIED，不变通。LM只读8K估算4B3.07GiB、27B15.49GiB；现有4B三项正式worker实际合成材料样例正常stop/nontruncated且字面检查满足，7.58/7.61/9.50秒，运行77fa84f13693绑定clean f36/source_consistent。保留4B日常候选，9B为未下载折中候选，27B仅混合内存重任务评估；未切换provider/model route或修改LM配置。见[模型评估](receipts/AAOS-LOCAL-MODEL-SELECTION-20261011.json)，三项样例不是准确率或Core/Owner闭环资格。
 
 f36完整CI已terminal failure，安装job114417050391的compat/conflict子流程通过，grouped八项非AI阶段通过但distill NOT_EXECUTED，能力恢复在历史页20选择已保存文档超时。当前历史页恢复活动文档后不显示列表，正式选择入口是内容库02并跳阅读03；两处探针改用02，保留之后20版本检查。fake UI增加页面前提以捕获此前被掩盖的错误，23 tests/78 subtests PASS、source_consistent，证据SIMULATED；不放宽实际安装或授权断言。详见[安装导航修复](receipts/AAOS-F36-INSTALLED-NAVIGATION-REPAIR-20261011.json)。
+
+2026-10-11 后继候选 e5b57a8b 已普通上传并独立核对双端一致，完整 CI38122358640实际启动，仍 in_progress，不重复dispatch。27B现有库存短上下文/独立测试标识加载17.56秒，三合成材料样例正常stop且字面检查满足，30.469–41.328秒；首个生成token包含reasoning，2.719–4.329秒。该直接API测试不是正式worker/Core资格，也没有GPU驻留或加速收益证据，见[27B基线](receipts/AAOS-27B-BASELINE-SAMPLE-20261011.json)。4B路线未变。
+
+新增显式 --require-actual-ai-loop 并接可选NSIS参数，缺实际原答、独立复测、完成原因、绑定、采用谱系或恢复拒绝则拒绝engineering PASS；不自动启用人工介入，明确工程纠正仅签工程链，保持总体PARTIAL/Owner未验收。24tests/86subtests PASS，source_consistent；PowerShell仅语法PASS，独立只读审查native门禁PASS，真实安装严格模式仍未执行。见[实际AI必需门禁](receipts/AAOS-ACTUAL-AI-REQUIRED-GATE-20261011.json)。本批后继修改暂不push，保留正在运行的e5b候选安装机会。

@@ -613,6 +613,8 @@ class GroupedNativeProbeTests(unittest.TestCase):
                         "answer": {
                             **probe.ai_receipt_contract()[1][0],
                             "answer": "A correct explanation; no actual error claimed",
+                            "finish_reason": "stop",
+                            "truncated": False,
                         },
                         "request": {
                             "knowledge_id": knowledge["knowledge_id"],
@@ -779,6 +781,32 @@ class GroupedNativeProbeTests(unittest.TestCase):
             self.assertEqual(stage["retest"], "NOT_EXECUTED")
             self.assertEqual(len(tasks), 1)
             self.assertFalse(any(action[1] == "记录使用者纠正候选" for action in actions))
+
+        return result
+
+    def test_required_actual_ai_chain_revalidates_tasks_and_rejects_incomplete_execution(self):
+        result = self.exercise_simulated_ai(True)
+        result["restored_grant_refusal"] = {"status": "PASS"}
+        result["capability_toggle"] = {"status": "PASS"}
+        self.probe.assert_actual_ai_chain(result)
+        for field in ("status", "retest"):
+            bad = copy.deepcopy(result)
+            bad["ai_progress"][field] = "NOT_EXECUTED"
+            with self.subTest(field=field), self.assertRaises(AssertionError):
+                self.probe.assert_actual_ai_chain(bad)
+        for key, value in (("truncated", True), ("finish_reason", "length"), ("finish_reason", None), ("model", "mock")):
+            bad = copy.deepcopy(result)
+            task = bad["ai_progress"]["retest_task"]
+            conditions = json.loads(task["conditions"])
+            conditions["answer"][key] = value
+            task["conditions"] = json.dumps(conditions)
+            with self.subTest(key=key, value=value), self.assertRaises(AssertionError):
+                self.probe.assert_actual_ai_chain(bad)
+        for field in ("restored_grant_refusal", "capability_toggle"):
+            bad = copy.deepcopy(result)
+            bad[field]["status"] = "NOT_EXECUTED"
+            with self.subTest(field=field), self.assertRaises(AssertionError):
+                self.probe.assert_actual_ai_chain(bad)
 
     def capability_fixture(self):
         frozen = {

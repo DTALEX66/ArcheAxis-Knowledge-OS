@@ -4,10 +4,19 @@ param(
     [switch]$RequireReleaseIdentity,
     [switch]$RequireCandidateIdentity,
     [string]$NativeToolsReceipt,
-    [switch]$GroupedOwnerLoop
+    [switch]$GroupedOwnerLoop,
+    [switch]$GroupedRunAi,
+    [switch]$GroupedAuthoredIntervention,
+    [switch]$RequireActualAiLoop
 )
 
 $ErrorActionPreference = 'Stop'
+if (($GroupedRunAi -or $GroupedAuthoredIntervention -or $RequireActualAiLoop) -and -not $GroupedOwnerLoop) {
+    throw 'AI qualification switches require GroupedOwnerLoop'
+}
+if (($GroupedAuthoredIntervention -or $RequireActualAiLoop) -and -not $GroupedRunAi) {
+    throw 'authored intervention or required AI qualification requires explicit GroupedRunAi'
+}
 $installRoot = Join-Path $env:LOCALAPPDATA 'ArcheAxis Knowledge'
 $appData = Join-Path $env:LOCALAPPDATA 'com.archeaxis.workspace'
 $uninstallKey = 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Uninstall\*'
@@ -380,7 +389,11 @@ try {
         if ($GroupedOwnerLoop) {
             # A separate fresh owned data root exercises the current grouped UI.
             # The probe retains explicit missing AI/Owner qualification; no bridge writes.
-            python -B scripts/probes/aaos01_tauri_webdriver_loop.py --host $executable --driver $nativeTools.driver --native-driver $nativeTools.native_driver --installer $Installer --grouped-common-owner-loop
+            $groupedAiArguments = @()
+            if ($GroupedRunAi) { $groupedAiArguments += '--actual-model' }
+            if ($GroupedAuthoredIntervention) { $groupedAiArguments += '--grouped-authored-intervention' }
+            if ($RequireActualAiLoop) { $groupedAiArguments += '--require-actual-ai-loop' }
+            python -B scripts/probes/aaos01_tauri_webdriver_loop.py --host $executable --driver $nativeTools.driver --native-driver $nativeTools.native_driver --installer $Installer --grouped-common-owner-loop @groupedAiArguments
             if ($LASTEXITCODE -ne 0) { throw 'actual installed grouped UI engineering journey failed' }
         }
     }

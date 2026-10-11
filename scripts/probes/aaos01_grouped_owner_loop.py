@@ -437,6 +437,7 @@ def run_grouped_loop(
     run_ai=False,
     authored_intervention=False,
     report=None,
+    require_actual_ai_loop=False,
 ):
     read = readonly_bridge(bridge)
     result = report if report is not None else {}
@@ -767,9 +768,41 @@ def run_grouped_loop(
         result["restored_grant_refusal"]["status"]
     )
     result["pin"] = pin
+    if require_actual_ai_loop:
+        result["actual_ai_requirement"] = "IN_PROGRESS"
+        assert_actual_ai_chain(result)
+        result["actual_ai_requirement"] = "ENGINEERING_AUTHORED_ACTUAL_AI_CHAIN"
     result["engineering_status"] = "PASS"
     result["status"] = "PARTIAL"  # Missing Owner/model correction evidence remains explicit.
     return result
+
+
+def assert_actual_ai_chain(result):
+    """Fail closed on missing inference; never certify human or model accuracy."""
+    stage = result["ai_progress"]
+    assert stage.get("status") == "EXECUTED_CANDIDATE_NOT_EVALUATED"
+    assert stage.get("retest") == "EXECUTED_CANDIDATE_NOT_EVALUATED"
+    original = stage["original_answer"]
+    failed = stage["failed_task"]
+    accepted = stage["accepted_correction"]
+    assert accepted["status"] == "accepted"
+    assert_correction_lineage(original, failed, accepted, stage["authored_intervention"])
+    assert stage["task"]["task_id"] != stage["retest_task"]["task_id"]
+    assert stage["original_grant"]["document_id"] != stage["retest_grant"]["document_id"]
+    for task, knowledge, document, scope, prior in (
+        (stage["task"], stage["knowledge_before"], stage["original_grant"], "runtime.answer", None),
+        (stage["retest_task"], accepted, stage["retest_grant"], "runtime.retest", failed),
+    ):
+        grant = grant_snapshot(document)
+        value = assert_inference_task(task, knowledge["knowledge_id"], original["question"], grant, scope)
+        assert inference_status(task) == "EXECUTED_CANDIDATE_NOT_EVALUATED"
+        assert receipt_binding(task, knowledge, original["question"], grant, prior_failed_task=prior)["status"] == "RECEIPT_BINDINGS_VALIDATED"
+        assert value["answer"].get("truncated") is False
+        assert value["answer"].get("finish_reason") == "stop"
+        assert result["actual_tasks"][task["task_id"]] == task
+    assert result["actual_tasks"][failed["task_id"]] == failed
+    assert result["restored_grant_refusal"]["status"] == "PASS"
+    assert result["capability_toggle"]["status"] == "PASS"
 
 
 def create_ui_grant(ui, read, wait, knowledge_id, operation, purpose):

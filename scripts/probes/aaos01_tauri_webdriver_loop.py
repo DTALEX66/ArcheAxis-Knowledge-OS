@@ -759,6 +759,7 @@ def main():
     parser.add_argument("--grouped-common-owner-loop", action="store_true", help="Current grouped UI authored TXT/MD journey; bridge reads only, no Owner signoff")
     parser.add_argument("--grouped-authored-intervention", action="store_true", help="Explicit identity-bound engineering intervention/adoption and independent actual-model retest; not Owner or independent model-error adjudication")
     parser.add_argument("--grouped-run-ai", "--actual-model", action="store_true", help="Opt-in existing actual model route only; no model/provider changes or fabricated errors")
+    parser.add_argument("--require-actual-ai-loop", action="store_true", help="Require actual answer, adopted engineering correction, independent retest and restore refusal; no Owner or accuracy qualification")
     parser.add_argument("--synthetic-course-loop", action="store_true", help="Explicit authored fixture with synthetic review actor; never human signoff")
     parser.add_argument("--synthetic-template-pagination", action="store_true", help="501 authored template objects; real Core pagination and UI, no human signoff")
     parser.add_argument(
@@ -773,6 +774,8 @@ def main():
         help="Exact parent-verified NSIS installer identity; does not itself establish installation",
     )
     args = parser.parse_args()
+    if args.require_actual_ai_loop and not (args.grouped_common_owner_loop and args.grouped_run_ai):
+        parser.error("required actual AI loop requires --grouped-common-owner-loop and --actual-model")
     if not 45 <= args.session_timeout <= 180:
         parser.error("session timeout must be between 45 and 180 seconds")
     if args.grouped_authored_intervention and not args.grouped_run_ai:
@@ -1158,6 +1161,7 @@ def main():
                 restart=grouped_restart, run_ai=args.grouped_run_ai,
                 authored_intervention=args.grouped_authored_intervention,
                 report=receipt["grouped_common_owner_loop"],
+                require_actual_ai_loop=args.require_actual_ai_loop,
             )
             receipt["steps"].append("Current grouped UI authored same-object engineering journey; see explicit partial/NOT_EXECUTED stages")
             close_session()

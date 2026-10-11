@@ -1,0 +1,28 @@
+{
+  "schema": "archeaxis.engineering-progress/v1",
+  "date": "2026-10-11",
+  "status": "PARTIAL",
+  "implementation": "IMPLEMENTED_LOCAL",
+  "native_switch": "--require-actual-ai-loop",
+  "requires_explicit": ["--grouped-common-owner-loop", "--actual-model"],
+  "installer_switches": ["GroupedOwnerLoop", "GroupedRunAi", "GroupedAuthoredIntervention", "RequireActualAiLoop"],
+  "behavior": "Strict opt-in revalidates both inference tasks, declared identities, frozen receipt bindings, nonempty completed nontruncated answers, independent grants, accepted correction lineage, persisted task equality, capability recovery and restored-grant refusal before engineering PASS",
+  "missing_actual_ai": "FAIL_CLOSED",
+  "authored_intervention": "Not enabled implicitly; absent correction/retest fails strict mode. Explicit authored intervention remains engineering lineage evidence, not independent model-error adjudication",
+  "qualification_label": "ENGINEERING_AUTHORED_ACTUAL_AI_CHAIN",
+  "owner_acceptance": "NOT_EXECUTED",
+  "closed_loop_verified": false,
+  "local_check": {
+    "run": "375b234fd31f",
+    "source_commit": "e5b57a8b48773c1ebbacfe9bf620a35272be9208",
+    "patch_sha256": "ae2ba20dc063da7ef84a8b9caa3d04160b662d62bf062710668713a967d119bb",
+    "source_consistent": true,
+    "tests_passed": 24,
+    "subtests_passed": 86,
+    "evidence": "SIMULATED",
+    "powershell_syntax": "PASS_NOT_RUNTIME",
+    "independent_static_review": "PASS_NATIVE_GATE",
+    "warning": "Existing pyreadline destructor WinError after successful exit retained"
+  },
+  "limits": ["No local Core/native runtime execution because existing permission boundary remains", "Default cloud installer has no actual model and retains explicit AI NOT_EXECUTED", "Strict installed invocation still requires actual model and runtime evidence", "No accuracy, real correction or Owner signoff"]
+}
