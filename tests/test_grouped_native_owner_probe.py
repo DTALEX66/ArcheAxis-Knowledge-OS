@@ -35,6 +35,39 @@ class GroupedNativeProbeTests(unittest.TestCase):
     def setUp(self):
         self.probe = load_probe()
 
+    def test_review_requires_new_persisted_bound_answer_and_matching_projection(self):
+        pin = {"item_key": "course:one:artifact:two", "assessment_id": "assessment", "knowledge_version": "knowledge"}
+        before = {"item_key": pin["item_key"], "count": 0, "events": []}
+        event = {"event_id": 7, "kind": "review", "next_review": None,
+                 "outcome": json.dumps({"answer": "answer", "assessment_id": "assessment", "outcome": "correct",
+                                        "review_evidence": {"knowledge_version": "knowledge"}})}
+        after = {"item_key": pin["item_key"], "count": 1, "events": [event]}
+        state = {"item_key": pin["item_key"], "learner": {"event_count": 1, "latest_review": {
+            "event_id": 7, "kind": "review", "next_review": None, "answer": "answer", "assessment_id": "assessment"}}}
+        self.probe.assert_review_readback(before, after, state, pin, " answer ")
+        for target, field, value in (("history", "count", 0), ("state", "event_count", 0),
+                                     ("latest", "answer", "wrong"), ("latest", "assessment_id", "wrong"),
+                                     ("latest", "event_id", 8)):
+            bad_history, bad_state = copy.deepcopy(after), copy.deepcopy(state)
+            obj = bad_history if target == "history" else bad_state["learner"] if target == "state" else bad_state["learner"]["latest_review"]
+            obj[field] = value
+            with self.subTest(target=target, field=field), self.assertRaises(AssertionError):
+                self.probe.assert_review_readback(before, bad_history, bad_state, pin, "answer")
+        with self.assertRaises(AssertionError):
+            self.probe.assert_review_readback(after, after, state, pin, "answer")
+        for field, value in (("answer", "wrong"), ("assessment_id", "wrong"), ("outcome", "incorrect"),
+                             ("review_evidence", {"knowledge_version": "wrong"})):
+            bad = copy.deepcopy(after)
+            outcome = json.loads(bad["events"][-1]["outcome"])
+            outcome[field] = value
+            bad["events"][-1]["outcome"] = json.dumps(outcome)
+            with self.subTest(outcome=field), self.assertRaises(AssertionError):
+                self.probe.assert_review_readback(before, bad, state, pin, "answer")
+        prior = {"item_key": pin["item_key"], "count": 1, "events": [{**event, "event_id": 6}]}
+        changed = {"item_key": pin["item_key"], "count": 2, "events": [{**event, "event_id": 5}, event]}
+        with self.assertRaises(AssertionError):
+            self.probe.assert_review_readback(prior, changed, state, pin, "answer")
+
     def test_mutations_refused(self):
         operations = [
             "source_import",

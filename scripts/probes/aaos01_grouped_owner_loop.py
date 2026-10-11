@@ -197,6 +197,31 @@ def assert_assessment(value, pin):
         assert value.get(field) == pin[field], f"Assessment identity changed: {field}"
 
 
+def assert_review_readback(before, after, learning, pin, answer):
+    """Verify one persisted learner event, never mastery or scheduler effectiveness."""
+    for history in (before, after):
+        assert history["item_key"] == pin["item_key"]
+        assert type(history["count"]) is int and history["count"] == len(history["events"])
+    assert after["events"][:-1] == before["events"]
+    assert after["count"] == before["count"] + 1
+    ids = [event["event_id"] for event in after["events"]]
+    assert all(type(value) is int for value in ids) and len(set(ids)) == len(ids)
+    event = after["events"][-1]
+    assert event["kind"] == "review" and isinstance(event["outcome"], str)
+    outcome = json.loads(event["outcome"])
+    assert outcome["answer"] == answer.strip()
+    assert outcome["assessment_id"] == pin["assessment_id"] and outcome["outcome"] == "correct"
+    assert outcome["review_evidence"]["knowledge_version"] == pin["knowledge_version"]
+    assert learning["item_key"] == pin["item_key"]
+    learner = learning["learner"]
+    assert learner["event_count"] == after["count"]
+    latest = learner["latest_review"]
+    for field in ("event_id", "kind", "next_review"):
+        assert latest[field] == event[field]
+    assert latest["answer"] == outcome["answer"]
+    assert latest["assessment_id"] == pin["assessment_id"]
+
+
 def task_conditions(task):
     """Core serializes MachineTaskDto.conditions as JSON text, not an object."""
     raw = task.get("conditions")
@@ -680,6 +705,9 @@ def run_grouped_loop(
     wait("return location.hash==='#page=11'")
     ui.type("本次答案", candidate_body, "textarea")
     ui.click("查看答案与核对内容")
+    wait("return !!document.querySelector('section[aria-label=\"答案与核对内容\"] p')")
+    assert js("return Array.from(document.querySelectorAll('label')).find(label=>label.textContent.startsWith('本次答案'))?.querySelector('textarea')?.value") == candidate_body
+    assert js("return document.querySelector('section[aria-label=\"答案与核对内容\"] p')?.textContent") == assessment["content"]
     result["stages"].append(
         {"id": "practice", "status": "PASS", "item_key": key, "actual_mastery": "UNMEASURED"}
     )
@@ -687,11 +715,13 @@ def run_grouped_loop(
     # Explicit authored learner fixture; no inference that this proves mastery.
     ui.click_selector(label_selector("回答正确"))
     ui.keys(label_selector("学习者自评", "select"), "\ue015\ue015\ue015\ue007")
+    history_before = read("learning_history", {"item_key": key})
     ui.click("记录复习结果")
     wait("return document.body.innerText.includes('Core 已确认复习记录')")
     learning = read("learning_state", {"item_key": key})
     assert_assessment(learning["learner"]["assessment"], pin)
     history = read("learning_history", {"item_key": key})
+    assert_review_readback(history_before, history, learning, pin, candidate_body)
     result["stages"].append(
         {"id": "review", "status": "PASS", "state": learning, "history": history}
     )
@@ -721,6 +751,9 @@ def run_grouped_loop(
     assert read("document_get", {"document_id": document["document_id"]}) == document
     assert read("knowledge_get", {"id": pin["knowledge_id"]}) == knowledge
     assert read("learning_history", {"item_key": key}) == history
+    restored_learning = read("learning_state", {"item_key": key})
+    assert_assessment(restored_learning["learner"]["assessment"], pin)
+    assert_review_readback(history_before, history, restored_learning, pin, candidate_body)
     assert read("course_get", {"course_id": key.split(":")[1]}) == course
     assert (
         base64.b64decode(read("source_original", {"source_id": pin["source_id"]})["content_base64"])
