@@ -1,0 +1,63 @@
+{
+  "schema": "archeaxis.common-format-readback/v1",
+  "date": "2026-10-11",
+  "status": "PARTIAL",
+  "qualification": "18_CATEGORIES_INTEGRATED_SELECTED_CONTENT_LOCATION_REPARSE_RESTART",
+  "candidate": "3bc85fc3cb3e3ef6727a2c029f3f7d29f4d175e1",
+  "ci_run": 38124304699,
+  "job": 114425451841,
+  "job_conclusion": "success",
+  "whole_ci": "IN_PROGRESS_AT_READBACK_INSTALLER_LIFECYCLE_114428210635",
+  "source": "All five JSON receipts ok=true, clean exact candidate, empty source patch and source_consistent=true; Chinese duplicate receipt counted once",
+  "categories": ["txt", "md", "csv", "json", "html", "pdf-text", "pdf-scanned", "png", "jpeg", "docx", "xlsx", "pptx", "srt", "vtt", "wav", "mp3", "mp4", "canvas"],
+  "observed_counts": {
+    "fixture_rows": 21,
+    "unique_original_sha256": 19,
+    "original_base64_sha256_recomputed_rows": 17,
+    "original_input_bytes_also_compared_rows": 14,
+    "office_and_text_pdf_original_sha_only_rows": 4,
+    "different_first_reparse_jobs": 42,
+    "scanned_pdf_page_jobs": 8,
+    "successful_job_snapshots": 50,
+    "derived_utf8_byte_length_sha256_verified": 150,
+    "current_locators": 54,
+    "reparse_content_structure_equal": true,
+    "restart_equal_all_rows": true
+  },
+  "speech": {
+    "run": "7c50f08a3a4d",
+    "core_jobs": 6,
+    "derived_objects": 18,
+    "current_time_locators": 6,
+    "stage_all": "validated_and_located",
+    "selected_cue_start_ms": 0,
+    "selected_cue_end_ms": 10380,
+    "original_bytes": {"wav": 352078, "mp3": 79821, "mp4": 105972},
+    "model_identity_before_after_equal": true,
+    "model_resource": "ext.models.faster-whisper-large-v3-turbo",
+    "model_revision": "0c94664816ec82be77b20e824c8e8675995b0029",
+    "model_members": 5,
+    "model_label": "model: verified directory basename, not resource identity"
+  },
+  "evidence_root": ".project-local/runs/be268a2d33/ci-3bc-readback-20261011",
+  "artifacts": [11696328992, 11696279156, 11696114449],
+  "receipt_sha256": {
+    "speech/7c50f08a3a4d": "923359353ee24d6949d157f2a6c4e5277495d862a4c1227d0a847960492d7c32",
+    "formats/b231b1a8070d": "4b1b114891b1ad9fb10cfa2ea96b3cd507733b0ead43337c9ae4376208a6acda",
+    "light/a902cca6b69d": "4ad37e63ad6862c6f51469e33c424f18b2f1ca1801c4458ec310af676712f4bf",
+    "chinese/light/48501b59dc7a": "fd6ad22192c074ad8a14a3900b566f355fe200001aae864bd020905ee2536ea4"
+  },
+  "verification": "Independent read-only audit checked original SHA, job terminal state, derived content digest and byte length, locator identity and time bindings, exact reparse content/structure, restart equality; root separately checked candidate metadata and receipt hashes",
+  "limits": [
+    "Selected authored/public sample content qualification only; no universal format fidelity or full recognition accuracy",
+    "Line anchors/coverage for speech, Office, HTML, subtitles and canvas are transport-derived from projected text; original worker structure retained in params",
+    "English PNG has two and JPEG four low-confidence regions awaiting human review; no-loss Chinese OCR is not measured accuracy",
+    "Scanned PDF pages require separately qualified OCR; XLSX formula caches/charts do not establish live calculation",
+    "Office/text PDF original bytes not independently present in downloaded receipt; original SHA alignment only",
+    "Chinese OCR is three additional fixtures, not new format categories; duplicate JSON counted once",
+    "MP4 audio qualified; no visual model inference or proven continuous visual coverage",
+    "No installed UI/source reconstruction, Owner interaction or professional truth qualification",
+    "Evidence bound to 3bc85fc3; successor AI worker changes require their own exact-SHA validation",
+    "No full product completion from this format evidence"
+  ]
+}
