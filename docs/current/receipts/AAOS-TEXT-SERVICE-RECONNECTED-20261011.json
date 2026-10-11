@@ -1,0 +1,43 @@
+{
+  "schema": "archeaxis.engineering-progress/v1",
+  "date": "2026-10-11",
+  "status": "PARTIAL",
+  "owner_steering": "Find existing records and paths in the project; do not repeatedly ask for recorded information",
+  "project_sources": ["docs/SHARED_RESOURCE_PATH_INDEX.md", "docs/current/R6-STATE.json", "docs/current/AAOS01-CONVERSATION-TASK-SUMMARY-20261006.md"],
+  "paths_verified": {
+    "lm_studio": "C:/Users/ALEX/AppData/Local/Programs/LM Studio/LM Studio.exe",
+    "cli": "C:/Users/ALEX/AppData/Local/Programs/LM Studio/resources/app/.webpack/lms.exe",
+    "model": "D:/All projects/Model library/plain-gguf/qwen3.5-4b/Qwen3.5-4B-Q4_K_M.gguf",
+    "historical_ollama_executable": "NOT_FOUND_AT_RECORDED_EXACT_PATH"
+  },
+  "readback": {
+    "initial_server": "RUNNING_PORT_1234",
+    "initial_loaded_models": "NONE_BY_CLI_PS",
+    "selected_model_key": "qwen3.5-4b",
+    "selected_model_bytes": 2740937888,
+    "loaded_identity": "qwen3.5-4b",
+    "current_worker_inventory": "READ_VERIFIED",
+    "capability": true,
+    "endpoint": "http://127.0.0.1:1234/v1",
+    "protocol": "openai",
+    "availability_run": ".project-local/runs/be268a2d33/6cc9c55a2fff"
+  },
+  "failures_preserved": ["Full indexed path not accepted as CLI model-key; actual CLI inventory verified before selecting key", "CLI load reported EPERM writing its own cli-pref.json; no elevation, ACL change, direct preference write or retry; independent ps confirmed loaded identity", "First worker call exhausted 512-token budget: finish_reason=length, truncated=true; not qualified as completed answer"],
+  "actual_worker_call": {
+    "materials": "SYNTHETIC_AUTHORED_ENGINEERING_FIXTURE",
+    "execution": "REAL_LOCAL_WORKER_MODEL_CALL",
+    "engine": "python-worker-machine-answer",
+    "engine_version": "0.1.0",
+    "prompt_version": "archeaxis.vnext/v1 2026-10-02",
+    "model": "qwen3.5-4b",
+    "max_tokens": 2048,
+    "finish_reason": "stop",
+    "truncated": false,
+    "elapsed_seconds": 8.55,
+    "contains_selected_fixture_value": true,
+    "run": ".project-local/runs/be268a2d33/4bf3d4f4cdb7",
+    "output": ".project-local/runs/be268a2d33/ci-b75-readback-20261011/worker-answer-output.txt",
+    "qualification": "WORKER_INFERENCE_ONLY_NOT_CORE_OR_INSTALLED_JOURNEY"
+  },
+  "limits": ["No Core/grant/correction/retest/backup qualification from standalone call", "No actual accuracy, professional truth or Owner acceptance", "No new model download, global provider/endpoint configuration, service restart or shared process termination", "Model remains loaded in the already running shared service; no global default changed"]
+}

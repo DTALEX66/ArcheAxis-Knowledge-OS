@@ -500,3 +500,15 @@ Owner 明确授权当前108候选工程回执只读获取，现有账户正常�
 安装conflict实际回执source_consistent=true：Core hydration恢复UI19但fresh URL为空，同页openPage提前返回导致严格hash等待超时。本批只规范化同页URL/navigationHash，不放松native assertion或草稿保护。新增两项先RED（5 PASS/2 FAIL）；中间spy包含启动hashchange导致8 PASS/1 FAIL，隔离初始化调用后保留操作期断言。最终121文件1124全前端、TypeScript/production build、62合同及探针检查、architecture/diff PASS，各自源码一致；Python运行在最终test-only spy修正前，不伪称同一全树指纹。详见[授权读取与修复回执](receipts/AAOS-AUTHORIZED-CI-REPAIR-20261011.json)。实际新安装冲突、媒体Core、AI和整九步仍待后继统一候选，目标PARTIAL，五主题和冻结范围不变。
 
 本批13文件正常提交并上传Audit，local/native GitHub ref独立核对 `b75be83e73e03e5829dbb13ab471955b43999265` 一致，交付后工作树clean。只在先前候选全部terminal后dispatch force_full新候选[38118757115](https://github.com/DTALEX66/ArcheAxis-Knowledge-OS/actions/runs/38118757115)，run head_sha独立相等，初次观察in_progress、gateplan PASS/lint live；尚无Rust、媒体或安装通过结论。后继导航记录提交不改变候选身份，不作为新全树测试资格。实际文本服务启动合同仍待确认，未启动未知软件或更改模型配置。
+
+## 2026-10-11 接续核实与语音工具选择修复（PARTIAL）
+
+当前 Audit HEAD e15b96a9 与原生 GitHub ref 一致，接手工作树 clean；候选 b75be83e 的 CI38118757115 保持原运行，未取消或重复 dispatch。Rust job114409055991 的 fmt、workspace test 与当前旅程回执检查实际 PASS；desktop-fast 的实际 speech 步骤 FAIL。正常现有账户认证下载 artifact11693599189：候选 yaml/faster_whisper 导入成功，固定 FFmpeg 准备成功，但 formats=[]，在启动 Core 前因 declared_location 忽略 FFMPEG_CMD 失败，source_consistent=false 是失败早于采集，不是资格通过。
+
+最小修复使用正式 declared_path，保留 CLI 精确身份一致检查、不改通用 resolver/PATH/模型。新增回归先1 PASS/2 FAIL，最终44 PASS、3个实际本地ASR显式deselected，源码一致；architecture/critical Ruff/diff PASS，pyreadline析构warning保留。不重试已有Core/SAPI权限拒绝，三格式实际Core仍待后继CI。详见[FFmpeg定位修复](receipts/AAOS-ASR-FFMPEG-RESOLVER-REPAIR-20261011.json)。当前安装构建仍live，不提前签署installed或完整CI。
+
+项目记录内已定位现有LM Studio CLI与共享Qwen3.5-4B模型，按Owner本轮要求先查项目记录；现存路径及CLI库存独立读回，不再将旧READ_FAILED推断为未安装。服务1234已运行、初始无loaded模型；精确model-key加载成功，独立ps与正式worker probe读回qwen3.5-4b、READ_VERIFIED/capability=true。首次完整路径被CLI拒为未知key，库存确认正确model-key后使用；加载时CLI偏好写入EPERM保留，不提权/修改权限或私人配置。实际回答正在单独验证，库存/加载不等于Core、grant或九步资格。
+
+正式worker实际回答已读回：512预算首轮length/truncated，不算完成；独立2048预算调用stop、truncated=false、8.55秒，包含合成夹具校验值。仅REAL本地worker推理，未以该结果签Core/grant/纠正/复测/恢复或Owner验收，模型权重未下载，provider/prompt/endpoint未变。详见[现有文本服务读回](receipts/AAOS-TEXT-SERVICE-RECONNECTED-20261011.json)。desktop-build当前候选PASS，installer-lifecycle114411571785已实际进入live，仍保留原运行。
+
+读取验证政策发现顶部仍将10/10暂停写成当前状态，本批仅更新当前导航为Owner10/11恢复与当前范围CI授权，保留V01和冻结边界及全部原验证规则；15路由回归与项目public authority check PASS。该治理修正不代替产品资格。

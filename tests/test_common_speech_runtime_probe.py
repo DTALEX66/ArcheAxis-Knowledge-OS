@@ -60,6 +60,41 @@ def test_actual_offline_spoken_content_is_decoded_by_existing_local_asr(probe,ma
 def test_model_path_cannot_silently_select_another_unregistered_model(probe,tmp_path):
     with pytest.raises((AssertionError, ValueError)):probe.declared_model(tmp_path)
 
+
+def test_explicit_ci_ffmpeg_is_used_without_external_root(probe,tmp_path,monkeypatch):
+    executable=tmp_path/'ffmpeg.exe'
+    executable.write_bytes(b'SYNTHETIC_TOOL_IDENTITY_ONLY')
+    monkeypatch.setenv('FFMPEG_CMD',str(executable))
+    monkeypatch.delenv('ARCHEAXIS_EXTERNAL_ROOT',raising=False)
+    monkeypatch.delenv('OS_EXTERNAL_CONFIG',raising=False)
+    assert probe.selected_ffmpeg(executable)==probe.identity(executable)
+
+
+def test_ffmpeg_argument_cannot_replace_explicit_selected_tool(probe,tmp_path,monkeypatch):
+    selected=tmp_path/'selected.exe';selected.write_bytes(b'SYNTHETIC_SELECTED')
+    other=tmp_path/'other.exe';other.write_bytes(b'SYNTHETIC_OTHER')
+    monkeypatch.setenv('FFMPEG_CMD',str(selected))
+    with pytest.raises(AssertionError,match='must match project declaration'):
+        probe.selected_ffmpeg(other)
+
+
+def test_missing_ffmpeg_override_cannot_fall_back_to_path(probe,tmp_path,monkeypatch):
+    missing=tmp_path/'missing.exe'
+    monkeypatch.setenv('FFMPEG_CMD',str(missing))
+    with pytest.raises(AssertionError,match='unavailable'):
+        probe.selected_ffmpeg(missing)
+
+
+def test_path_only_ffmpeg_is_not_an_explicit_declaration(probe,tmp_path,monkeypatch):
+    executable=tmp_path/'ffmpeg.exe';executable.write_bytes(b'SYNTHETIC_PATH_ONLY')
+    manifest=tmp_path/'capabilities.yaml';manifest.write_text('capabilities: {}\n',encoding='utf-8')
+    monkeypatch.setenv('ARCHEAXIS_CAPABILITY_MANIFEST',str(manifest))
+    monkeypatch.setenv('PATH',str(tmp_path))
+    for name in ('FFMPEG_CMD','ARCHEAXIS_FFMPEG_CMD','ARCHEAXIS_EXTERNAL_ROOT','OS_EXTERNAL_CONFIG'):
+        monkeypatch.delenv(name,raising=False)
+    with pytest.raises(AssertionError,match='unavailable'):
+        probe.selected_ffmpeg(executable)
+
 def contract_snapshot(result):
     """Protocol fixture only: this is not an actual Core job receipt."""
     import hashlib

@@ -182,6 +182,14 @@ def projection(snapshot):
     return {'text':snapshot['text'],'structure':snapshot['document_structure'],'cues':output['cues'],'raw_cues':output['raw_cues'],'duration_ms':output['duration_ms']}
 
 
+def selected_ffmpeg(path):
+    tool_paths=office.load('speech_tool_paths',REPO/'services/python-workers/tool_paths.py')
+    declared=tool_paths.declared_path('ffmpeg')
+    assert declared,'Project-declared ffmpeg is unavailable'
+    assert path.resolve()==Path(declared).resolve(),'ffmpeg must match project declaration'
+    return identity(path)
+
+
 def main():
     parser=argparse.ArgumentParser(description=__doc__);parser.add_argument('--candidate',type=Path,required=True);parser.add_argument('--expected-phrase',action='append');parser.add_argument('--language',default='auto');parser.add_argument('--speech-wav',type=Path);parser.add_argument('--speech-transcript',type=Path);parser.add_argument('--model-dir',type=Path,required=True);parser.add_argument('--ffmpeg',type=Path,required=True);parser.add_argument('--powershell',type=Path);args=parser.parse_args()
     candidate=args.candidate.resolve();dev=office.load('speech_dev',REPO/'scripts/runtime/dev.py');paths=dev.layout(REPO);dev.prepare(paths);work=paths['run'];launcher=office.load('speech_launcher',REPO/'scripts/release/backend_launcher.py');client=office.load('speech_client',REPO/'shared/core_client.py')
@@ -189,11 +197,7 @@ def main():
     original_environment={key:os.environ.get(key) for key in ('ARCHEAXIS_ASR_MODEL_DIR','ARCHEAXIS_ASR_LANG','ARCHEAXIS_ASR_DEVICE','ARCHEAXIS_CAPTION_PROTOCOL','HF_HUB_OFFLINE','TRANSFORMERS_OFFLINE','FFMPEG_CMD')}
     try:
         receipt['model']=declared_model(args.model_dir);profile=launcher.load_profile(candidate)
-        tool_paths=office.load('speech_tool_paths',REPO/'services/python-workers/tool_paths.py')
-        declared_ffmpeg=tool_paths.declared_location('ffmpeg')
-        assert declared_ffmpeg,'Project-declared ffmpeg is unavailable'
-        assert args.ffmpeg.resolve()==Path(declared_ffmpeg).resolve(),'ffmpeg must match project declaration'
-        receipt['ffmpeg']=identity(args.ffmpeg)
+        receipt['ffmpeg']=selected_ffmpeg(args.ffmpeg)
         assert (args.speech_wav is None)==(args.speech_transcript is None),'Spoken WAV and transcript must be selected together'
         if args.speech_wav is None and args.powershell is None:
             system_root=os.environ.get('SystemRoot')
