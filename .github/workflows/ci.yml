@@ -813,7 +813,7 @@ jobs:
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
       - name: cargo test (vNext workspace)
         shell: bash
-        run: cargo test --workspace
+        run: cargo test --workspace -- --test-threads=2
       - name: Verify current-run journey receipt
         run: python -B scripts/ci/check_vnext_receipt.py
 

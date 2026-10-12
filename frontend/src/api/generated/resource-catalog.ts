@@ -15,7 +15,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
     },
     {
       "path": "docs/current/AAOS-RESOURCE-QUALIFICATION-20261010.json",
-      "sha256": "ab9d96641f1fc8bb11618f1b5baf2719ba369acd20b6fcfdc9ef6af8bf5d2b3f"
+      "sha256": "b42aa04a8007befd04c427dc3d53138b542da552ae1c03f71c106e9009c088ea"
     },
     {
       "path": "docs/truth/SUPPLY_CHAIN_LEDGER.json",
