@@ -1,0 +1,33 @@
+tree 0e0e22cd435579e5f9b536f917a8e200f8bad816
+parent fec7a18f12b541a3e55a9215c408cffffa61ad25
+author DTALEX66 <DTALEX66@users.noreply.github.com> 1790906732 +0800
+committer DTALEX66 <DTALEX66@users.noreply.github.com> 1790906732 +0800
+
+State the palette invariant instead of counting palettes by hand
+
+CI failed on one test in the first commit of this branch:
+
+    tests/test_aaos_icon_b10_contract.py::test_icon_stroke_and_foreground_follow_both_theme_palettes
+    assert palettes.count('["AaosIvoryBrush"]') == 2
+    assert 3 == 2
+
+The assertion was written when two palettes existed. The cosmic theme layer added a third -
+深空主题 / DeepSpace - and moved Apply() from a two-way choice to a switch over three tables, so
+each palette defines the ivory brush the icons bind to and there are now three definitions. The
+behaviour is correct; the assertion described the palette count rather than the rule it was testing.
+
+It now states the rule: one ivory-brush definition per palette table, whatever number of tables
+exists, read from the declarations themselves. That keeps the original intent and will not need
+editing again when a fourth palette appears - while still failing if a palette forgets the brush.
+
+Palette tables verified to be structurally identical before changing the assertion (34 lines each),
+so a complete third palette was added rather than a partial one.
+
+The test file is one of the files outside the six the branch already touched, which is why the
+first commit's local run did not catch it: the six affected contract files pass, and this one is not
+among them.
+
+CI is the authority for this fix - the local run of the full suite also reports six diagnostics and
+release-manifest failures, but those are the known host-environment class documented in
+AAOS-ERRORS-BLOCKERS-20261001.md (one asserts no absolute-path marker while the worktree path itself
+contains "D:\") and CI reported none of them.

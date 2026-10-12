@@ -249,3 +249,11 @@ The branch is additive relative to its base: no schema migration and no data cha
 commit is independently revertable; the two behavioural ones are the PDF anchor numbering
 and the OCR language selection. Reverting either restores the previous behaviour and
 re-fails exactly the regression test added with it.
+
+## 2026-10-13 package and cancellation checks
+
+```sh
+cargo test -p archeaxis-api --test document_package_api --test contract_machine_answer
+```
+
+These checks cover bounded human-only portable import and attempt-bound worker cancellation; they do not qualify real model inference.

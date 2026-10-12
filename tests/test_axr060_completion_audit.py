@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import hashlib
 import re
 import subprocess
 from pathlib import Path
@@ -374,6 +375,20 @@ def test_tracked_current_surfaces_only_reference_declared_release_delta_or_sourc
     unreachable = {
         sha for sha in unresolved if object_kind.get(sha) not in {"commit", "tree", "blob"}
     }
+    # One owner-deleted historical donor tip has an exact canonical commit body
+    # retained in the tracked history archive. It must hash to the original ID;
+    # it is never accepted as a release-facing source or checkout ancestor.
+    retired = "627e74ffcc2b16e2109ab85c0a8183f1e4a6b21a"
+    if retired in unreachable:
+        archived = ROOT / "docs/history/retired-refs" / (retired + ".commit")
+        raw = archived.read_bytes()
+        assert hashlib.sha1(b"commit " + str(len(raw)).encode("ascii") + b"\0" + raw).hexdigest() == retired
+        assert re.match(rb"tree [0-9a-f]{40}\nparent [0-9a-f]{40}\n", raw)
+        for locked in _LOCKED_SURFACES:
+            target = ROOT / locked
+            paths = target.rglob("*") if target.is_dir() else [target]
+            assert all(retired not in path.read_text(encoding="utf-8", errors="replace") for path in paths if path.is_file())
+        unreachable.remove(retired)
     assert unreachable == set(), (
         "current surfaces cite hashes that are not real objects in this repository: "
         f"{sorted(unreachable)}"
@@ -545,3 +560,15 @@ def test_G_r5_source_and_release_constraints_still_assert_ancestry() -> None:
     declared = _declared_r5_source_objects()
     assert declared, "R5 source objects must still resolve"
 
+
+
+def test_retired_tip_is_verified_when_not_in_fresh_clone(monkeypatch):
+    original = subprocess.run
+    retired = "627e74ffcc2b16e2109ab85c0a8183f1e4a6b21a"
+    def without_retired_object(args, *positional, **kwargs):
+        result = original(args, *positional, **kwargs)
+        if "--batch-check" in args and isinstance(result.stdout, str):
+            result.stdout = "\n".join(retired + " missing" if line.startswith(retired + " ") else line for line in result.stdout.splitlines()) + "\n"
+        return result
+    monkeypatch.setattr(subprocess, "run", without_retired_object)
+    test_tracked_current_surfaces_only_reference_declared_release_delta_or_source_objects()

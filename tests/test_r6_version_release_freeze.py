@@ -14,7 +14,10 @@ def test_release_workflow_is_tag_only_and_exact_sha_gated() -> None:
     assert "if: ${{ false }} # R6 release freeze" in workflow
     assert "Require tag target to equal main" in workflow
     assert "Require successful exact-SHA CI" in workflow
-    assert "Download and verify exact-SHA Avalonia Green candidate" in workflow
+    assert "Download and verify exact CI release candidate" in workflow
+    assert "Verify formal Tauri release architecture" in workflow
+    assert "verify_nsis_install.ps1" in workflow
+    assert "candidate.commit -ne $env:GITHUB_SHA" in workflow
 
 
 def test_development_manifest_is_not_a_public_release() -> None:
