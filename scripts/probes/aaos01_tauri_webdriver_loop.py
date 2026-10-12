@@ -1055,6 +1055,7 @@ def main():
     parser.add_argument("--grouped-machine-ack-loss", action="store_true", help="Discard one actual answer ACK, cold restart and recover exact history without inference")
     parser.add_argument("--grouped-machine-cancel", action="store_true", help="Explicit actual model route UI cancellation, durable local-worker audit/clear, cold restart and fresh normal answer; provider stop remains unknown")
     parser.add_argument("--closure-features", action="store_true", help="Explicit current grouped native responsibilities and document package reimport qualification with synthetic material")
+    parser.add_argument("--closure-downloads", action="store_true", help="Opt-in owned WebView download to isolated journey directory and trusted file reimport; requires closure features")
     parser.add_argument("--grouped-authored-intervention", action="store_true", help="Explicit identity-bound engineering intervention/adoption and independent actual-model retest; not Owner or independent model-error adjudication")
     parser.add_argument("--grouped-run-ai", "--actual-model", action="store_true", help="Opt-in existing actual model route only; no model/provider changes or fabricated errors")
     parser.add_argument("--grouped-model", help="Explicit already-authorized local model choice through the formal UI; no endpoint or global configuration change")
@@ -1087,6 +1088,8 @@ def main():
         parser.error("grouped AI requires the grouped journey branch")
     if args.grouped_machine_cancel and (not args.grouped_run_ai or not args.grouped_common_owner_loop or args.grouped_machine_ack_loss):
         parser.error("machine cancellation requires the actual-model grouped journey and cannot mix answer ACK loss")
+    if args.closure_downloads and not args.closure_features:
+        parser.error("--closure-downloads requires --closure-features")
     if args.closure_features and not args.grouped_common_owner_loop:
         parser.error("closure features require the grouped native journey")
     if args.grouped_model and not args.grouped_run_ai:
@@ -1509,6 +1512,14 @@ def main():
             def grouped_restart():
                 close_session()
                 launch()
+            def grouped_download_control(directory):
+                directory = Path(directory).resolve()
+                directory.relative_to(work.resolve())
+                directory.mkdir(parents=True, exist_ok=False)
+                request("POST", f"/session/{session}/ms/cdp/execute", {
+                    "cmd": "Browser.setDownloadBehavior",
+                    "params": {"behavior": "allow", "downloadPath": str(directory)},
+                })
             def grouped_accept_navigation_alert():
                 try:
                     text=request("GET",f"/session/{session}/alert/text")
@@ -1534,6 +1545,7 @@ def main():
                 machine_ack_loss=args.grouped_machine_ack_loss,
                 machine_cancel=args.grouped_machine_cancel,
                 closure_features=args.closure_features,
+                download_control=grouped_download_control if args.closure_downloads else None,
                 selected_model=args.grouped_model,
                 selected_max_tokens=args.grouped_max_tokens,
                 accept_navigation_alert=grouped_accept_navigation_alert,
