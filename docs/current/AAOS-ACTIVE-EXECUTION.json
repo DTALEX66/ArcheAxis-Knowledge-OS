@@ -231,8 +231,13 @@
     "receipt": "docs/current/receipts/AAOS-CONVERSATION-CLOSURE-20261013.json",
     "pr186": "MERGED",
     "pr187": "MERGED",
-    "main_sha": "e8e28efba00aee464f10ba4ba44fb2d950641543",
+    "main_sha": "eaaa2c2ce0677febe9d88550d510da1c20d65bb3",
     "native_4b_27b": "PASS_REAL_SYNTHETIC_MATERIAL",
-    "overall": "PARTIAL_PENDING_FINAL_DELIVERY_AND_UNQUALIFIED_BOUNDARIES"
+    "overall": "PRODUCT_PARTIAL_AT_DECLARED_BOUNDARIES",
+    "pr188": "MERGED",
+    "pr189": "MERGED",
+    "main_ci": 38292838799,
+    "engineering_closure": "COMPLETE_AUTHORIZED_SCOPE",
+    "current_refs": "Read Git/remote live; dated delivery observation"
   }
 }
