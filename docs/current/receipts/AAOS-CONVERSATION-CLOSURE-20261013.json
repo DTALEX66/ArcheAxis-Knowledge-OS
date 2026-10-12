@@ -64,7 +64,7 @@
     },
     {
       "id": "authority-and-cloud-continuity",
-      "status": "PR186_AND_PR187_MERGED; FINAL_DOCUMENT_SYNC_PENDING",
+      "status": "MERGED_VERIFIED_THROUGH_PR189; NO_AUTHORIZED_ENGINEERING_BLOCKER",
       "required": "Update live navigation, receipts, contracts and public cloud source without uploading private runtime or model files"
     },
     {
@@ -376,6 +376,17 @@
     "subtests": 124,
     "run": ".project-local/runs/7d522a2a69/6af8618abe9b",
     "native_file": "PASS",
-    "delivery": "PENDING_FINAL_PROBE_PR"
+    "delivery": "MERGED_PR189; candidate and main required gates PASS"
+  },
+  "engineering_closure": "COMPLETE_AUTHORIZED_SCOPE; overall product remains PARTIAL at declared unqualified or unauthorized boundaries",
+  "final_delivery_observation": {
+    "pr": 189,
+    "candidate_sha": "37dd42c499ed045b1b92d21519452a862d1bfa87",
+    "candidate_ci": 38292668155,
+    "main_sha": "eaaa2c2ce0677febe9d88550d510da1c20d65bb3",
+    "main_ci": 38292838799,
+    "ci": "PASS_REQUIRED_CHANGED_PATH_GATES; heavy jobs intentionally skipped",
+    "runtime_qualification": "Unchanged product runtime from 5cfeb176; current model and file qualification retain their exact source identities",
+    "current_refs": "Read Git/remote live; this is a dated delivery observation, not a self-referential future SHA claim"
   }
 }
