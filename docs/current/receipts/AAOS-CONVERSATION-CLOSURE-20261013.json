@@ -327,7 +327,7 @@
     "4B/27B vision metadata false; 7B vision candidate not loaded under current grant",
     "No real cloud provider qualification or paid/private outward call",
     "No installed Green replacement or real user data overwrite",
-    "Browser download-to-disk readback remains NOT_EXECUTED",
+    "Browser download and actual file reimport PASS in separate current portable_file_qualification; model journeys retain their original evidence scope",
     "GPU observations are total device; RAM peak and actual layer placement UNVERIFIED"
   ],
   "document_sync_validation": {
@@ -342,5 +342,40 @@
     "main_sha": "d714e613fcb348f6ab10b5341ce2ab305e8e31d3",
     "main_ci": 38291083446,
     "main_ci_status": "PASS_DOCUMENT_CHANGE_GATES; not a replacement for PR187 full source CI"
+  },
+  "portable_file_qualification": {
+    "status": "PASS",
+    "level": "REAL_NATIVE_UI_CORE_SYNTHETIC_FILE",
+    "source_commit": "882ca784ec3f10f6eadef42f380e05415761601a",
+    "native_receipt": ".project-local/runs/7d522a2a69/webdriver-426c16909fb6/tmp/journey/receipt.json",
+    "native_receipt_sha256": "dcd68bee7c5a4adca0f9245734682c19602c23dab4c82ca961ad6ad9ea5604d1",
+    "source_consistent": true,
+    "owned_ports_released": true,
+    "model_invocation": "NOT_EXECUTED_IN_THIS_RUN",
+    "checks": {
+      "status": "PASS",
+      "roles": "REAL_RENDERED_CURRENT_NATIVE_UI",
+      "import_status": "TRUSTED_UI_CONFIRMATION_PASS",
+      "media_cas": "FORMAL_CORE_BYTES_AND_HASH_PASS",
+      "unknown_nodes": "PASS",
+      "source_bound_originals": "PASS",
+      "admission": "NOT_EXECUTED",
+      "media_sha256": "050538c71fc63ee2d0e8327f2fbdffad6f8cab135d35069aa86dc371300f68c8",
+      "downloaded_file_readback": "REAL_OWNED_WEBVIEW_FILE_PASS",
+      "downloaded_file_sha256": "2a4e0a881c3e8325d891e9a65a85e48a5e9f8951e9d4b977055c848d8fb5969b",
+      "downloaded_file_reimport": "TRUSTED_UI_PASS",
+      "downloaded_file_cold_restart": "PASS",
+      "downloaded_file_repeat": "IDEMPOTENT_PASS",
+      "cold_restart": "PASS",
+      "repeated_ui_import": "IDEMPOTENT_PASS",
+      "qualification": "REAL_CURRENT_NATIVE_UI_AND_CORE_SYNTHETIC_MATERIAL; not Owner acceptance"
+    }
+  },
+  "latest_checks": {
+    "grouped_and_transport_tests": 41,
+    "subtests": 124,
+    "run": ".project-local/runs/7d522a2a69/6af8618abe9b",
+    "native_file": "PASS",
+    "delivery": "PENDING_FINAL_PROBE_PR"
   }
 }
