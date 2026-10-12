@@ -369,11 +369,11 @@
           "source_refs": [
             {
               "path": "crates/archeaxis-domain/src/document.rs",
-              "sha256": "95c22566814795592250175e4f990897c2dd60dc3d8d84d8dcee1692544b05a3"
+              "sha256": "93148dd8ea6d69af988c786ddaee4027053c735bd9b137e3b6cf626d57e9429e"
             },
             {
               "path": "frontend/src/api/generated/core-contract.ts",
-              "sha256": "5f2d133c9590393135847ce8f62361f856e6d5a5e5d7ef42c5ba8ce6ec55bb6a"
+              "sha256": "c6a92ce02868173f8f4f44bb7ce2093ddbd1af97491dc184c88e4db877c2d702"
             }
           ]
         },
@@ -390,7 +390,7 @@
             },
             {
               "path": "Cargo.lock",
-              "sha256": "8cb82278834c9c1ec20fc27529810270d1d8157cfbe398c991d223f95e3e849b"
+              "sha256": "a5347918a0bf4acd8f7acabf8351228f2e72260f8ad29e7a08fd9b9943e39f3f"
             }
           ]
         },
@@ -592,11 +592,11 @@
           "source_refs": [
             {
               "path": "crates/archeaxis-domain/src/document.rs",
-              "sha256": "95c22566814795592250175e4f990897c2dd60dc3d8d84d8dcee1692544b05a3"
+              "sha256": "93148dd8ea6d69af988c786ddaee4027053c735bd9b137e3b6cf626d57e9429e"
             },
             {
               "path": "frontend/src/api/generated/core-contract.ts",
-              "sha256": "5f2d133c9590393135847ce8f62361f856e6d5a5e5d7ef42c5ba8ce6ec55bb6a"
+              "sha256": "c6a92ce02868173f8f4f44bb7ce2093ddbd1af97491dc184c88e4db877c2d702"
             }
           ]
         },
@@ -613,7 +613,7 @@
             },
             {
               "path": "Cargo.lock",
-              "sha256": "8cb82278834c9c1ec20fc27529810270d1d8157cfbe398c991d223f95e3e849b"
+              "sha256": "a5347918a0bf4acd8f7acabf8351228f2e72260f8ad29e7a08fd9b9943e39f3f"
             }
           ]
         },
@@ -7785,7 +7785,7 @@
     },
     {
       "path": "Cargo.lock",
-      "sha256": "8cb82278834c9c1ec20fc27529810270d1d8157cfbe398c991d223f95e3e849b"
+      "sha256": "a5347918a0bf4acd8f7acabf8351228f2e72260f8ad29e7a08fd9b9943e39f3f"
     },
     {
       "path": "src-tauri/Cargo.lock",

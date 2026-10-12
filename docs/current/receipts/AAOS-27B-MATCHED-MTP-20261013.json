@@ -1,0 +1,122 @@
+{
+  "schema": "archeaxis.matched-27b-qualification/v1",
+  "status": "PASS_SHORT_SYNTHETIC_TRIAL; PRODUCT_AND_OWNER_QUALIFICATION_PARTIAL",
+  "observed_at": "2026-10-12T16:37:15.569Z",
+  "model_key": "qwen3.8-27b",
+  "model_identity_limit": "LM Studio registered key; not independent verification of model training/version claims",
+  "evidence_level": "REAL_DIRECT_SDK_SYNTHETIC_MATERIAL",
+  "raw_receipt": ".project-local/closure-27b-matched-20261013.json",
+  "raw_sha256": "c1a2b2074dec8fceeabd5e96c671f90045e53fa40584e8594bfdd2074f1bdb97",
+  "same_effective_load_config_except_mtp": {
+    "gpu": {
+      "splitStrategy": "evenly",
+      "disabledGpus": [],
+      "ratio": 0.4,
+      "numCpuExpertLayersRatio": "off"
+    },
+    "gpuStrictVramCap": true,
+    "offloadKVCacheToGpu": false,
+    "contextLength": 2048,
+    "maxParallelPredictions": 1,
+    "flashAttention": true,
+    "speculativeDraftMaxTokens": 2,
+    "speculativeDraftMinTokens": 1
+  },
+  "prediction_config": {
+    "temperature": 0,
+    "seed": 42,
+    "max_tokens": 1024
+  },
+  "rows": [
+    {
+      "mtp": false,
+      "case": "grounding",
+      "wall_s": 27.974178,
+      "expected_literals_present": true,
+      "stats": {
+        "stopReason": "eosFound",
+        "tokensPerSecond": 2.5620445775781238,
+        "timeToFirstTokenSec": 4.919382,
+        "promptTokensCount": 75,
+        "predictedTokensCount": 60,
+        "totalDraftTokensCount": "UNKNOWN",
+        "acceptedDraftTokensCount": "UNKNOWN",
+        "rejectedDraftTokensCount": "UNKNOWN"
+      }
+    },
+    {
+      "mtp": false,
+      "case": "missing",
+      "wall_s": 35.9832365,
+      "expected_literals_present": true,
+      "stats": {
+        "stopReason": "eosFound",
+        "tokensPerSecond": 2.4792754971529853,
+        "timeToFirstTokenSec": 2.379479,
+        "promptTokensCount": 79,
+        "predictedTokensCount": 84,
+        "totalDraftTokensCount": "UNKNOWN",
+        "acceptedDraftTokensCount": "UNKNOWN",
+        "rejectedDraftTokensCount": "UNKNOWN"
+      }
+    },
+    {
+      "mtp": true,
+      "case": "grounding",
+      "wall_s": 19.24723090000001,
+      "expected_literals_present": true,
+      "stats": {
+        "stopReason": "eosFound",
+        "tokensPerSecond": 2.9719760627371703,
+        "timeToFirstTokenSec": 4.768898,
+        "promptTokensCount": 75,
+        "predictedTokensCount": 44,
+        "totalDraftTokensCount": 32,
+        "acceptedDraftTokensCount": 27,
+        "rejectedDraftTokensCount": 5
+      }
+    },
+    {
+      "mtp": true,
+      "case": "missing",
+      "wall_s": 32.6456525,
+      "expected_literals_present": true,
+      "stats": {
+        "stopReason": "eosFound",
+        "tokensPerSecond": 2.776405092622714,
+        "timeToFirstTokenSec": 2.608281,
+        "promptTokensCount": 79,
+        "predictedTokensCount": 84,
+        "totalDraftTokensCount": 66,
+        "acceptedDraftTokensCount": 50,
+        "rejectedDraftTokensCount": 16
+      }
+    }
+  ],
+  "gpu_observation": {
+    "scope": "TOTAL_DEVICE_NOT_PER_MODEL",
+    "samples": 50,
+    "peak_used_mib": 7591,
+    "minimum_free_mib": 305,
+    "actual_layers": "UNVERIFIED",
+    "per_model_ram_peak": "UNVERIFIED"
+  },
+  "cleanup": {
+    "owned_instances_unloaded": true,
+    "preexisting_instances_preserved": true
+  },
+  "interpretation": "Both MTP cases report accepted/rejected draft tokens. Reported token rates increased in this short trial, but grounding output token counts differ (60 versus 44), so wall-time difference is not an identical-output speedup. No default model/configuration changed.",
+  "limits": [
+    "Single-machine short trial, not sustained speed or independent accuracy",
+    "Same load configuration and deterministic synthetic requests, separate owned instances",
+    "Total device VRAM includes other software; actual GPU layer placement and per-model RAM unverified",
+    "Direct SDK does not qualify the formal application closed loop",
+    "No independent model accuracy or sustained thermal/load study",
+    "Current native application qualification is separate"
+  ],
+  "primary_references": [
+    "https://lmstudio.ai/docs/cli/local-models/load",
+    "https://lmstudio.ai/docs/python/llm-prediction/speculative-decoding"
+  ],
+  "reference_limit": "Official generic draft-model docs do not qualify this installed MTP runtime; local effective configuration and returned draft-token statistics supply that observation"
+}

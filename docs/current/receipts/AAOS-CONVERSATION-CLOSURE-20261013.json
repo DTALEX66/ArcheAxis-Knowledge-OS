@@ -8,26 +8,116 @@
     "main_sha": "23f22a4928c69db2667b76b9c5cb84a2cd24252c",
     "ci_run": 38274429552,
     "ci": "PASS_VERIFIED_20261013",
-    "remote_branches_at_observation": ["main"],
+    "remote_branches_at_observation": [
+      "main"
+    ],
     "cosmic_remote": "DELETED_BY_OWNER_REQUEST",
     "dirty_local_worktrees": "PRESERVED; not declared merged or equivalent"
   },
   "issues": [
-    {"id": "machine-cancellation", "status": "IMPLEMENTING_ISOLATED", "required": "Formal answer/retest cancel, owned cleanup, race-safe final publication, frozen journal/epoch binding, bounded drain"},
-    {"id": "outbound-dispatch", "status": "IMPLEMENTING_AND_REVIEWING", "required": "Revalidate every search/article/model dispatch, exact scope and material binding; approved in-flight requests cannot be promised recoverable", "interim_python_tests": {"passed": 39, "run": ".project-local/runs/f59505525f/e5913a2bcfb3", "level": "SYNTHETIC_NOT_REAL_CLOUD"}},
-    {"id": "portable-restore", "status": "IMPLEMENTING_ISOLATED", "required": "Core-owned import/export, unknown editor nodes and media CAS hashes, validate before publication, transactional/idempotent document restore, formal Exchange UI"},
-    {"id": "model-tool-roles", "status": "IMPLEMENTED_LOCAL_PENDING_INTEGRATION", "required": "Existing capability catalog presents conversion, daily learning, and research roles, configuration versus real availability and user admission boundary"},
-    {"id": "current-native-loop", "status": "NOT_EXECUTED_CURRENT_INCREMENT", "required": "After integrating changes, stable current-source Tauri/Core build and synthetic formal application loop with real local inference"},
-    {"id": "27b-fit-and-acceleration", "status": "PARTIAL", "required": "Existing model only; distinguish supported MTP/load config, measured latency/resource observation and independent quality; previous SDK or native evidence cannot qualify later code"},
-    {"id": "bounded-video-vision", "status": "IMPLEMENTED_BOUNDED_PATH_QUALIFICATION_PENDING", "required": "Existing bounded frames are not continuous video understanding; transport regression is not actual vision-model output qualification"},
-    {"id": "authority-and-cloud-continuity", "status": "BASELINE_MERGED_CURRENT_UPDATE_LOCAL", "required": "Update live navigation, receipts, contracts and public cloud source without uploading private runtime or model files"},
-    {"id": "cloud-provider-real-call", "status": "NOT_EXECUTED_AUTHORIZATION_BOUNDARY", "required": "No paid API or private material outward call authorized; local synthetic dispatch tests cannot qualify real suppliers"},
-    {"id": "owner-and-installed-acceptance", "status": "NOT_EXECUTED_AUTHORIZATION_BOUNDARY", "required": "Owner acceptance, real data overwrite and Green replacement cannot be inferred from engineering actors or CI installation"},
-    {"id": "independent-learning-effect", "status": "UNVERIFIED", "required": "Engineering tests do not establish answer accuracy or learning effectiveness"}
+    {
+      "id": "machine-cancellation",
+      "status": "IMPLEMENTED_INTEGRATED; CURRENT_NATIVE_QUALIFICATION_PENDING",
+      "required": "Formal answer/retest cancel, owned cleanup, race-safe final publication, frozen journal/epoch binding, bounded drain"
+    },
+    {
+      "id": "outbound-dispatch",
+      "status": "IMPLEMENTED_INTEGRATED; SYNTHETIC_TARGETED_PASS; REAL_PROVIDER_NOT_EXECUTED",
+      "required": "Revalidate every search/article/model dispatch, exact scope and material binding; approved in-flight requests cannot be promised recoverable",
+      "interim_python_tests": {
+        "passed": 39,
+        "run": ".project-local/runs/f59505525f/e5913a2bcfb3",
+        "level": "SYNTHETIC_NOT_REAL_CLOUD"
+      },
+      "tests": {
+        "python": 68,
+        "rust_dispatch": 3,
+        "api": 8,
+        "scope": "Isolated same-source formal worker and adapter with synthetic HTTP/SDK; integrated verification pending"
+      }
+    },
+    {
+      "id": "portable-restore",
+      "status": "IMPLEMENTED_INTEGRATED; CURRENT_NATIVE_QUALIFICATION_PENDING",
+      "required": "Core-owned import/export, unknown editor nodes and media CAS hashes, validate before publication, transactional/idempotent document restore, formal Exchange UI"
+    },
+    {
+      "id": "model-tool-roles",
+      "status": "IMPLEMENTED_INTEGRATED; CURRENT_NATIVE_QUALIFICATION_PENDING",
+      "required": "Existing capability catalog presents conversion, daily learning, and research roles, configuration versus real availability and user admission boundary"
+    },
+    {
+      "id": "current-native-loop",
+      "status": "NOT_EXECUTED_CURRENT_INCREMENT",
+      "required": "After integrating changes, stable current-source Tauri/Core build and synthetic formal application loop with real local inference"
+    },
+    {
+      "id": "27b-fit-and-acceleration",
+      "status": "REAL_SHORT_MATCHED_MTP_TRIAL_PASS; QUALITY_AND_CURRENT_PRODUCT_PARTIAL",
+      "required": "Existing model only; distinguish supported MTP/load config, measured latency/resource observation and independent quality; previous SDK or native evidence cannot qualify later code",
+      "receipt": "docs/current/receipts/AAOS-27B-MATCHED-MTP-20261013.json"
+    },
+    {
+      "id": "bounded-video-vision",
+      "status": "IMPLEMENTED_BOUNDED_PATH_QUALIFICATION_PENDING",
+      "required": "Existing bounded frames are not continuous video understanding; transport regression is not actual vision-model output qualification"
+    },
+    {
+      "id": "authority-and-cloud-continuity",
+      "status": "BASELINE_MERGED_CURRENT_UPDATE_LOCAL",
+      "required": "Update live navigation, receipts, contracts and public cloud source without uploading private runtime or model files"
+    },
+    {
+      "id": "cloud-provider-real-call",
+      "status": "NOT_EXECUTED_AUTHORIZATION_BOUNDARY",
+      "required": "No paid API or private material outward call authorized; local synthetic dispatch tests cannot qualify real suppliers"
+    },
+    {
+      "id": "owner-and-installed-acceptance",
+      "status": "NOT_EXECUTED_AUTHORIZATION_BOUNDARY",
+      "required": "Owner acceptance, real data overwrite and Green replacement cannot be inferred from engineering actors or CI installation"
+    },
+    {
+      "id": "independent-learning-effect",
+      "status": "UNVERIFIED",
+      "required": "Engineering tests do not establish answer accuracy or learning effectiveness"
+    }
   ],
   "limitations": [
     "Interim tests do not bind the final integrated source; final checks and native build remain required",
     "Source fixes, local synthetic execution, exact-SHA CI, installed runtime, actual models and Owner acceptance remain separate",
     "No downloads, global configuration changes, paid requests, private uploads, Green replacement or history rewrite"
-  ]
+  ],
+  "frontend_tests": {
+    "files": 129,
+    "passed": 1235,
+    "run": ".project-local/runs/be268a2d33/9401f4bdb979",
+    "level": "SIMULATED_FRONTEND",
+    "scope": "Integrated roles, portable package and cancellation UI; not subsequent egress-source qualification"
+  },
+  "historical_dirty_worktrees_audit": {
+    "scope": "Tracked diff only, nine registered project-local worktrees; no private/runtime/untracked content read",
+    "result": "No unmerged required current Tauri implementation identified; source increments already absorbed, strengthened or superseded",
+    "cleanup": "NOT_EXECUTED; preserve unknown untracked materials and local donor differences"
+  },
+  "cloud_settings_readback": {
+    "actions_enabled": true,
+    "default_workflow_permissions": "read",
+    "main_ruleset": 20849492,
+    "required_check": "a0-gates",
+    "tag_ruleset": 20849089,
+    "repository_variables_count": 0,
+    "environments_count": 0,
+    "release": "FROZEN; formal host references corrected to Tauri/React; not published",
+    "nightly_heavy": "Scheduled heavy jobs disabled unless ENABLE_NIGHTLY_HEAVY is true; variable absent"
+  },
+  "integrated_upload_checks": {
+    "status": "PASS",
+    "python_targeted": 54,
+    "run": ".project-local/runs/be268a2d33/b7d436ffaad5",
+    "resource_catalog": "PASS",
+    "diff_check": "PASS",
+    "native_helper": "SYNTAX_ONLY; NOT_EXECUTED",
+    "exact_sha_ci": "PENDING_AFTER_PUSH"
+  }
 }
