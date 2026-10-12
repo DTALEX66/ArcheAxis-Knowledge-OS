@@ -1267,12 +1267,12 @@ def run_ai_stage(ui, read, js, wait, pin, result, run_ai, authored_intervention=
     stage["inventory_read"] = {"status":"PASS", "evidence_scope":"FORMAL_UI_LOCAL_INVENTORY_ONLY", "listed_model_count":int(inventory_match[1]), "selected_model_listed":inventory_match[2] == "已列出", "loaded_status":"UNKNOWN", "inference_status":"NOT_EXECUTED", "machine_tasks_unchanged":True}
     if selected_model is not None:
         assert isinstance(selected_model,str) and selected_model.strip() == selected_model and 0 < len(selected_model.encode()) <= 256
-        ui.click_selector("//label[contains(.,'本次本地回答模型')]/select/option[@value=" + xpath_literal(selected_model) + "]")
+        ui.click_selector("descendant::label[contains(.,'本次本地回答模型')]/select/option[@value=" + xpath_literal(selected_model) + "]")
         wait("return Array.from(document.querySelectorAll('label')).find(n=>n.textContent.includes('本次本地回答模型'))?.querySelector('select')?.value === " + json.dumps(selected_model))
     question = "Explain why original bytes and a versioned document are distinct."
     if selected_max_tokens is not None:
         assert selected_max_tokens in (2048,4096)
-        ui.click_selector("//label[contains(.,'本次输出预算')]/select/option[@value=" + xpath_literal(str(selected_max_tokens)) + "]")
+        ui.click_selector("descendant::label[contains(.,'本次输出预算')]/select/option[@value=" + xpath_literal(str(selected_max_tokens)) + "]")
     ui.type("实际问题", question, "textarea")
     if machine_ack_loss:
         assert restart is not None
