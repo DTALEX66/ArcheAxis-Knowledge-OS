@@ -17,7 +17,7 @@
   "issues": [
     {
       "id": "machine-cancellation",
-      "status": "IMPLEMENTED_INTEGRATED; CURRENT_NATIVE_QUALIFICATION_PENDING",
+      "status": "IMPLEMENTED_INTEGRATED; REAL_CURRENT_NATIVE_4B_AND_27B_SYNTHETIC_MATERIAL_PASS",
       "required": "Formal answer/retest cancel, owned cleanup, race-safe final publication, frozen journal/epoch binding, bounded drain"
     },
     {
@@ -33,27 +33,27 @@
         "python": 68,
         "rust_dispatch": 3,
         "api": 8,
-        "scope": "Isolated same-source formal worker and adapter with synthetic HTTP/SDK; integrated verification pending"
+        "scope": "Isolated same-source formal worker and adapter with synthetic HTTP/SDK PASS; integrated source CI PASS. No real cloud supplier qualification."
       }
     },
     {
       "id": "portable-restore",
-      "status": "IMPLEMENTED_INTEGRATED; CURRENT_NATIVE_QUALIFICATION_PENDING",
+      "status": "IMPLEMENTED_INTEGRATED; REAL_CURRENT_NATIVE_4B_AND_27B_SYNTHETIC_MATERIAL_PASS",
       "required": "Core-owned import/export, unknown editor nodes and media CAS hashes, validate before publication, transactional/idempotent document restore, formal Exchange UI"
     },
     {
       "id": "model-tool-roles",
-      "status": "IMPLEMENTED_INTEGRATED; CURRENT_NATIVE_QUALIFICATION_PENDING",
+      "status": "IMPLEMENTED_INTEGRATED; REAL_CURRENT_NATIVE_4B_AND_27B_SYNTHETIC_MATERIAL_PASS",
       "required": "Existing capability catalog presents conversion, daily learning, and research roles, configuration versus real availability and user admission boundary"
     },
     {
       "id": "current-native-loop",
-      "status": "REAL_4B_ATTEMPTED_PARTIAL; COMPLETE_CURRENT_CLOSURE_PENDING",
+      "status": "IMPLEMENTED_INTEGRATED; REAL_CURRENT_NATIVE_4B_AND_27B_SYNTHETIC_MATERIAL_PASS",
       "required": "After integrating changes, stable current-source Tauri/Core build and synthetic formal application loop with real local inference"
     },
     {
       "id": "27b-fit-and-acceleration",
-      "status": "REAL_SHORT_MATCHED_MTP_TRIAL_PASS; QUALITY_AND_CURRENT_PRODUCT_PARTIAL",
+      "status": "REAL_SHORT_MATCHED_MTP_AND_CURRENT_NATIVE_PRODUCT_PASS; INDEPENDENT_QUALITY_AND_SUSTAINED_PERFORMANCE_UNVERIFIED",
       "required": "Existing model only; distinguish supported MTP/load config, measured latency/resource observation and independent quality; previous SDK or native evidence cannot qualify later code",
       "receipt": "docs/current/receipts/AAOS-27B-MATCHED-MTP-20261013.json"
     },
@@ -64,7 +64,7 @@
     },
     {
       "id": "authority-and-cloud-continuity",
-      "status": "BASELINE_MERGED_CURRENT_UPDATE_LOCAL",
+      "status": "PR186_AND_PR187_MERGED; FINAL_DOCUMENT_SYNC_PENDING",
       "required": "Update live navigation, receipts, contracts and public cloud source without uploading private runtime or model files"
     },
     {
@@ -117,8 +117,8 @@
     "run": ".project-local/runs/be268a2d33/b7d436ffaad5",
     "resource_catalog": "PASS",
     "diff_check": "PASS",
-    "native_helper": "SYNTAX_ONLY; NOT_EXECUTED",
-    "exact_sha_ci": "PENDING_AFTER_PUSH"
+    "native_helper": "Historical batch: SYNTAX_ONLY; superseded for current source by current_native_qualification",
+    "exact_sha_ci": "PR186 candidate 010ca3ac PASS run 38283199871; PR187 candidate 5cfeb176 PASS run 38289331035"
   },
   "delivery_20261013": {
     "pr": 186,
@@ -166,7 +166,7 @@
     "subtests": 124,
     "run": ".project-local/runs/7d522a2a69/3259f699377d",
     "level": "SYNTHETIC_REAL_LOOPBACK_AND_SIMULATED_GUARDS",
-    "native_repeat": "PENDING"
+    "native_repeat": "PASS_CURRENT_4B_AND_27B; see current_native_qualification"
   },
   "local_model_capability_readback": {
     "observed_local_date": "2026-10-13",
@@ -189,5 +189,147 @@
       }
     ],
     "boundary": "Metadata is not inference qualification. Existing temporary test grants name 4B/27B; do not silently load or switch to the 7B vision candidate."
+  },
+  "current_native_qualification": [
+    {
+      "source_commit": "5cfeb17622b77598c9ba7e08c5b49369ebf52759",
+      "status": "PASS",
+      "level": "REAL_NATIVE_LOCAL_MODEL_SYNTHETIC_MATERIAL",
+      "model_catalog_name": "qwen3.5-4b",
+      "effective_load_config": {
+        "gpu": {
+          "splitStrategy": "evenly",
+          "disabledGpus": [],
+          "ratio": 1,
+          "numCpuExpertLayersRatio": "off"
+        },
+        "gpuStrictVramCap": true,
+        "offloadKVCacheToGpu": false,
+        "contextLength": 2048,
+        "maxParallelPredictions": 1,
+        "flashAttention": true,
+        "speculativeDraftMtp": false
+      },
+      "answer_status": "EXECUTED_CANDIDATE_NOT_EVALUATED",
+      "retest_status": "EXECUTED_CANDIDATE_NOT_EVALUATED",
+      "answer_elapsed_s": 32.97,
+      "metering": {
+        "usage": {
+          "input_tokens": 157,
+          "output_tokens": 928,
+          "total_tokens": 1085
+        },
+        "usage_status": "REPORTED",
+        "cost": null,
+        "cost_status": "UNKNOWN"
+      },
+      "gpu_observation": {
+        "sample_count": 71,
+        "maximum_total_used_mib": 4532,
+        "minimum_total_free_mib": 3364
+      },
+      "closure_features": {
+        "status": "PASS",
+        "roles": "REAL_RENDERED_CURRENT_NATIVE_UI",
+        "import_status": "TRUSTED_UI_CONFIRMATION_PASS",
+        "media_cas": "FORMAL_CORE_BYTES_AND_HASH_PASS",
+        "unknown_nodes": "PASS",
+        "source_bound_originals": "PASS",
+        "admission": "NOT_EXECUTED",
+        "media_sha256": "050538c71fc63ee2d0e8327f2fbdffad6f8cab135d35069aa86dc371300f68c8",
+        "downloaded_file_readback": "NOT_EXECUTED; export route only, no browser disk claim",
+        "cold_restart": "PASS",
+        "repeated_ui_import": "IDEMPOTENT_PASS",
+        "qualification": "REAL_CURRENT_NATIVE_UI_AND_CORE_SYNTHETIC_MATERIAL; not Owner acceptance"
+      },
+      "local_worker_cancellation": "PASS",
+      "provider_stop": "UNKNOWN",
+      "source_consistent": true,
+      "owned_ports_released": true,
+      "owned_instance_unloaded": true,
+      "preexisting_instances_preserved": true,
+      "native_receipt": ".project-local/runs/7d522a2a69/webdriver-acef40d9fe43/tmp/journey/receipt.json",
+      "native_receipt_sha256": "e4e711a3d6c17aa85b8ea52c8efa0c0e66a6530855e095a78de5031dd290fdcc"
+    },
+    {
+      "source_commit": "5cfeb17622b77598c9ba7e08c5b49369ebf52759",
+      "status": "PASS",
+      "level": "REAL_NATIVE_LOCAL_MODEL_SYNTHETIC_MATERIAL",
+      "model_catalog_name": "qwen3.8-27b",
+      "effective_load_config": {
+        "gpu": {
+          "splitStrategy": "evenly",
+          "disabledGpus": [],
+          "ratio": 0.4,
+          "numCpuExpertLayersRatio": "off"
+        },
+        "gpuStrictVramCap": true,
+        "offloadKVCacheToGpu": false,
+        "contextLength": 2048,
+        "maxParallelPredictions": 1,
+        "flashAttention": true,
+        "speculativeDraftMtp": true
+      },
+      "answer_status": "EXECUTED_CANDIDATE_NOT_EVALUATED",
+      "retest_status": "EXECUTED_CANDIDATE_NOT_EVALUATED",
+      "answer_elapsed_s": 84.58,
+      "metering": {
+        "usage": {
+          "input_tokens": 200,
+          "output_tokens": 229,
+          "total_tokens": 429
+        },
+        "usage_status": "REPORTED",
+        "cost": null,
+        "cost_status": "UNKNOWN"
+      },
+      "gpu_observation": {
+        "sample_count": 104,
+        "maximum_total_used_mib": 7521,
+        "minimum_total_free_mib": 375
+      },
+      "closure_features": {
+        "status": "PASS",
+        "roles": "REAL_RENDERED_CURRENT_NATIVE_UI",
+        "import_status": "TRUSTED_UI_CONFIRMATION_PASS",
+        "media_cas": "FORMAL_CORE_BYTES_AND_HASH_PASS",
+        "unknown_nodes": "PASS",
+        "source_bound_originals": "PASS",
+        "admission": "NOT_EXECUTED",
+        "media_sha256": "050538c71fc63ee2d0e8327f2fbdffad6f8cab135d35069aa86dc371300f68c8",
+        "downloaded_file_readback": "NOT_EXECUTED; export route only, no browser disk claim",
+        "cold_restart": "PASS",
+        "repeated_ui_import": "IDEMPOTENT_PASS",
+        "qualification": "REAL_CURRENT_NATIVE_UI_AND_CORE_SYNTHETIC_MATERIAL; not Owner acceptance"
+      },
+      "local_worker_cancellation": "PASS",
+      "provider_stop": "UNKNOWN",
+      "source_consistent": true,
+      "owned_ports_released": true,
+      "owned_instance_unloaded": true,
+      "preexisting_instances_preserved": true,
+      "native_receipt": ".project-local/runs/7d522a2a69/webdriver-ea9a6798b397/tmp/journey/receipt.json",
+      "native_receipt_sha256": "294542ff6ef6c3b9b9f1e941f0985c24ea479fa78dd2c85eeab18b622d9ca8c4"
+    }
+  ],
+  "probe_delivery": {
+    "pr": 187,
+    "candidate_sha": "5cfeb17622b77598c9ba7e08c5b49369ebf52759",
+    "candidate_ci_run": 38289331035,
+    "candidate_ci": "PASS_VERIFIED",
+    "merge_sha": "e8e28efba00aee464f10ba4ba44fb2d950641543",
+    "main_ci": "PENDING_CURRENT_OBSERVATION"
+  },
+  "qualification_limits": [
+    "REAL is local execution with synthetic material, not independent accuracy or Owner acceptance",
+    "4B/27B vision metadata false; 7B vision candidate not loaded under current grant",
+    "No real cloud provider qualification or paid/private outward call",
+    "No installed Green replacement or real user data overwrite",
+    "Browser download-to-disk readback remains NOT_EXECUTED",
+    "GPU observations are total device; RAM peak and actual layer placement UNVERIFIED"
+  ],
+  "document_sync_validation": {
+    "document_authority": "PASS",
+    "historical_m0_sha_checker": "NOT_APPLICABLE_TO_CURRENT_UI_EXECUTION_ROUTE; historical M0/R6 defaults fail live-HEAD claim and were not counted as PASS"
   }
 }
