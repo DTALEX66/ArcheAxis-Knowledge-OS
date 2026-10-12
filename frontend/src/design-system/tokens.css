@@ -101,7 +101,7 @@ html, body {
   color: var(--ax-fg);
 }
 
-#root, .app-shell, .app-body, .app-center {
+#root, .app-shell {
   background: var(--ax-canvas) !important;
   min-height: 100%;
 }
