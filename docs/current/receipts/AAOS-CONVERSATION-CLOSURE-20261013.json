@@ -33,7 +33,7 @@
         "python": 68,
         "rust_dispatch": 3,
         "api": 8,
-        "scope": "Isolated same-source formal worker and adapter with synthetic HTTP/SDK; integrated verification pending"
+        "scope": "Isolated same-source formal worker and adapter with synthetic HTTP/SDK PASS; integrated source CI PASS. No real cloud supplier qualification."
       }
     },
     {
@@ -53,7 +53,7 @@
     },
     {
       "id": "27b-fit-and-acceleration",
-      "status": "REAL_SHORT_MATCHED_MTP_TRIAL_PASS; QUALITY_AND_CURRENT_PRODUCT_PARTIAL",
+      "status": "REAL_SHORT_MATCHED_MTP_AND_CURRENT_NATIVE_PRODUCT_PASS; INDEPENDENT_QUALITY_AND_SUSTAINED_PERFORMANCE_UNVERIFIED",
       "required": "Existing model only; distinguish supported MTP/load config, measured latency/resource observation and independent quality; previous SDK or native evidence cannot qualify later code",
       "receipt": "docs/current/receipts/AAOS-27B-MATCHED-MTP-20261013.json"
     },
@@ -117,8 +117,8 @@
     "run": ".project-local/runs/be268a2d33/b7d436ffaad5",
     "resource_catalog": "PASS",
     "diff_check": "PASS",
-    "native_helper": "SYNTAX_ONLY; NOT_EXECUTED",
-    "exact_sha_ci": "PENDING_AFTER_PUSH"
+    "native_helper": "Historical batch: SYNTAX_ONLY; superseded for current source by current_native_qualification",
+    "exact_sha_ci": "PR186 candidate 010ca3ac PASS run 38283199871; PR187 candidate 5cfeb176 PASS run 38289331035"
   },
   "delivery_20261013": {
     "pr": 186,
@@ -166,7 +166,7 @@
     "subtests": 124,
     "run": ".project-local/runs/7d522a2a69/3259f699377d",
     "level": "SYNTHETIC_REAL_LOOPBACK_AND_SIMULATED_GUARDS",
-    "native_repeat": "PENDING"
+    "native_repeat": "PASS_CURRENT_4B_AND_27B; see current_native_qualification"
   },
   "local_model_capability_readback": {
     "observed_local_date": "2026-10-13",
@@ -327,5 +327,9 @@
     "No installed Green replacement or real user data overwrite",
     "Browser download-to-disk readback remains NOT_EXECUTED",
     "GPU observations are total device; RAM peak and actual layer placement UNVERIFIED"
-  ]
+  ],
+  "document_sync_validation": {
+    "document_authority": "PASS",
+    "historical_m0_sha_checker": "NOT_APPLICABLE_TO_CURRENT_UI_EXECUTION_ROUTE; historical M0/R6 defaults fail live-HEAD claim and were not counted as PASS"
+  }
 }
