@@ -18,6 +18,48 @@ from urllib.parse import parse_qs, quote, unquote, urlsplit
 
 MAX_INPUT = 512_000
 MAX_OUTPUT = 128_000
+_DISPATCH_REQUIRED = False
+_DISPATCH_SEQUENCE = 0
+_DISPATCH_IDENTITY: dict[str, Any] = {}
+_PUBLIC_SOURCES: list[dict[str, str]] = []
+
+
+def authorize_dispatch(kind: str, destination: str, material: dict[str, Any]) -> None:
+    """One bounded Core decision immediately before each transport operation.
+
+    Core approval is the dispatch linearization point. An approved in-flight
+    operation cannot be recalled; withdrawal refuses subsequent operations and
+    result publication. Direct library tests use injected synthetic transports.
+    """
+    global _DISPATCH_SEQUENCE
+    if not _DISPATCH_REQUIRED:
+        return
+    raw_directory = os.environ.get("ARCHEAXIS_DOCUMENT_CHECK_DISPATCH_DIR")
+    if not raw_directory:
+        raise CheckExecutionError("dispatch_unavailable")
+    directory = Path(raw_directory)
+    _DISPATCH_SEQUENCE += 1
+    encoded = json.dumps(material, sort_keys=True, separators=(",", ":"), ensure_ascii=False).encode("utf8")
+    frame = {"sequence": _DISPATCH_SEQUENCE, "kind": kind,
+             "destination": destination, "material": material, "material_sha256": sha(encoded),
+             **_DISPATCH_IDENTITY}
+    temporary = directory / "request.tmp"
+    encoded_frame = json.dumps(frame, ensure_ascii=False).encode("utf8")
+    if len(encoded_frame) > MAX_INPUT:
+        raise CheckExecutionError("dispatch_frame_limit")
+    temporary.write_bytes(encoded_frame)
+    temporary.rename(directory / "request.json")
+    deadline = time.monotonic() + 5
+    approval = directory / "approval.json"
+    while time.monotonic() < deadline:
+        if approval.is_file():
+            accepted = json.loads(approval.read_text(encoding="utf8"))
+            approval.unlink()
+            if accepted != frame:
+                raise CheckExecutionError("dispatch_identity_mismatch")
+            return
+        time.sleep(0.01)
+    raise CheckExecutionError("dispatch_timeout")
 IDENTITY = (
     "attempt_id",
     "request_check_id",
@@ -65,6 +107,13 @@ def public_url(value: str) -> str:
 
 
 def bounded_fetch(http: ModuleType, *args: Any, **kwargs: Any) -> Any:
+    url = args[0]
+    parsed = urlsplit(url)
+    search = parsed.hostname == "lite.duckduckgo.com"
+    authorize_dispatch("search" if search else "article",
+                       parsed._replace(query="", fragment="").geturl(),
+                       {"query": parse_qs(parsed.query).get("q", [None])[0], "url": url}
+                       if search else {"url": url, "scope": "public_search_results_only"})
     try:
         return http.fetch(*args, **kwargs)
     except Exception as exc:
@@ -117,6 +166,7 @@ def retrieve_context(query: str, timeout: int, limit: int, receipts: list[dict[s
         policy=http.SafeHTTPPolicy(
             timeout=min(timeout, 15),
             max_bytes=500_000,
+            max_redirects=0,
             allowed_hosts=("lite.duckduckgo.com",),
             allowed_content_types=("text/html",),
         ),
@@ -164,6 +214,7 @@ def retrieve_context(query: str, timeout: int, limit: int, receipts: list[dict[s
             policy=http.SafeHTTPPolicy(
                 timeout=min(15, remaining),
                 max_bytes=500_000,
+                max_redirects=0,
                 allowed_content_types=("text/html", "application/xhtml+xml"),
             ),
         )
@@ -194,6 +245,8 @@ def retrieve_context(query: str, timeout: int, limit: int, receipts: list[dict[s
             }
         )
         material += "\nPUBLIC SOURCE " + safe_url + "\n" + article[:6000]
+        _PUBLIC_SOURCES.append({"url": url, "display_url": safe_url,
+                                "text": article[:6000], "text_sha256": sha(article[:6000].encode())})
     return material
 
 
@@ -280,6 +333,7 @@ def original_pdf(raw: bytes) -> tuple[list[str], dict[str, Any]]:
 
 
 def execute(req: dict[str, Any]) -> dict[str, Any]:
+    _PUBLIC_SOURCES.clear()
     result = {
         "schema": "archeaxis.document-check.response/v1",
         **{k: req.get(k) for k in IDENTITY},
@@ -362,6 +416,7 @@ def execute(req: dict[str, Any]) -> dict[str, Any]:
         image_identity = None
         pdf_images = None
         pdf_identity = None
+        auxiliary_state = "available"
         if req["dimension"] == "recognition_fidelity":
             original = req.get("original")
             recognition = req.get("recognition")
@@ -386,12 +441,11 @@ def execute(req: dict[str, Any]) -> dict[str, Any]:
                 raise CheckExecutionError("original_digest_mismatch")
             if original["media_type"] == "application/pdf":
                 pdf_images, pdf_identity = original_pdf(raw)
-                material = "All ORIGINAL PDF page rasters attached; identity: " + json.dumps(pdf_identity, sort_keys=True)
+                material = ("All ORIGINAL PDF page rasters attached; sha256: " + original["sha256"]
+                            + "; pages: " + json.dumps([page["sha256"] for page in pdf_identity["pages"]]))
             elif original["media_type"] in ("image/png", "image/jpeg"):
                 image_data_url, image_identity = original_image(raw, original["media_type"])
-                material = "Immutable ORIGINAL IMAGE attached; identity: " + json.dumps(
-                    image_identity, sort_keys=True
-                )
+                material = "Immutable ORIGINAL IMAGE attached; sha256: " + original["sha256"]
             else:
                 try:
                     material = raw.decode("utf8")
@@ -408,6 +462,7 @@ def execute(req: dict[str, Any]) -> dict[str, Any]:
                 raise CheckExecutionError("invalid_recognition_digest")
             material = "ORIGINAL:\n" + material + "\nRECOGNITION:\n" + recognition["text"]
             try:
+                auxiliary_state = "available" if search_query is not None else "not_requested"
                 auxiliary = (
                     retrieve_context(search_query, timeout, limit, result["retrieval_receipts"])
                     if search_query is not None else "No public background requested; compare only the immutable original."
@@ -425,6 +480,7 @@ def execute(req: dict[str, Any]) -> dict[str, Any]:
                     {"kind": "auxiliary_unavailable", "reason": str(exc), **exc.safe_failure}
                 )
                 auxiliary = "Auxiliary public background unavailable; judge fidelity only against the immutable ORIGINAL. Absence of search results is not an original error."
+                auxiliary_state = "unavailable"
             material += (
                 "\nAUXILIARY TERMINOLOGY/BACKGROUND ONLY:\n"
                 + auxiliary
@@ -458,7 +514,13 @@ def execute(req: dict[str, Any]) -> dict[str, Any]:
         if pdf_images is not None:
             kwargs["image_data_urls"] = pdf_images
         try:
+            authorize_dispatch("model", endpoint, {"prompt": prompt,
+                               "images": pdf_images or ([image_data_url] if image_data_url else []),
+                               "public_sources": list(_PUBLIC_SOURCES) if auxiliary_state == "available" else [],
+                               "auxiliary_state": auxiliary_state, "model": model, "max_tokens": tokens})
             answer = adapter.complete(prompt, model=model, max_tokens=tokens, **kwargs)
+        except CheckExecutionError:
+            raise
         except Exception:
             raise CheckExecutionError("provider_call_failed") from None
         raw = answer.content
@@ -565,11 +627,16 @@ def execute(req: dict[str, Any]) -> dict[str, Any]:
 
 
 def main() -> int:
+    global _DISPATCH_REQUIRED, _DISPATCH_IDENTITY, _DISPATCH_SEQUENCE
+    _DISPATCH_REQUIRED = True
+    _DISPATCH_SEQUENCE = 0
     try:
         raw = sys.stdin.buffer.read(MAX_INPUT + 1)
         if len(raw) > MAX_INPUT:
             raise ValueError("input limit")
         req = json.loads(raw)
+        _DISPATCH_IDENTITY = {"attempt_id": req.get("attempt_id"),
+                              "egress_sha256": os.environ.get("ARCHEAXIS_DOCUMENT_CHECK_DISPATCH_HASH")}
         result = execute(req)
         output = json.dumps(result, ensure_ascii=False).encode()
         if len(output) > MAX_OUTPUT:

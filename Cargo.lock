@@ -31,6 +31,7 @@ dependencies = [
  "archeaxis-domain",
  "archeaxis-sidecar-protocol",
  "archeaxis-store-sqlite",
+ "base64",
  "hex",
  "rusqlite",
  "serde",

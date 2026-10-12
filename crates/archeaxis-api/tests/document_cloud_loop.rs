@@ -51,6 +51,111 @@ async fn raw_call(
         serde_json::from_slice(&bytes).unwrap_or(Value::Null),
     )
 }
+
+#[tokio::test]
+async fn actual_check_worker_dispatches_only_exact_confirmed_material_with_synthetic_transports() {
+    for tamper in [false, true] {
+        let dir = tempfile::tempdir().unwrap();
+        let script = dir.path().join("worker.py");
+        let events = dir.path().join("events.json");
+        let repo = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
+            .parent()
+            .unwrap()
+            .parent()
+            .unwrap();
+        let source = format!(
+            r#"import importlib.util,json,sys
+from pathlib import Path
+from types import SimpleNamespace
+root=Path({root})
+sys.path.insert(0,str(root/'services/python-workers/machine'))
+import document_check as worker
+events=Path({events})
+def record(kind):
+    values=json.loads(events.read_text()) if events.exists() else []
+    events.write_text(json.dumps(values+[kind]))
+original_donor=worker.donor
+def donor(name):
+    module=original_donor(name)
+    if name=='safe_http':
+        def fetch(url,**kwargs):
+            assert kwargs['policy'].max_redirects==0
+            body=(b'<html><a class="result-link" href="https://source.invalid/public?q=term">public source</a></html>' if 'duckduckgo' in url else b'<html><body><article><h1>Synthetic public source</h1><p>Synthetic public background sentence for protocol testing only. No factual qualification is asserted.</p></article></body></html>')
+            return module.SafeHTTPResponse(url,200,{{'content-type':'text/html'}},body)
+        module.fetch=fetch
+    return module
+worker.donor=donor
+original_dispatch=worker.authorize_dispatch
+def dispatch(kind,destination,material):
+    if kind=='model' and {tamper}:
+        material=dict(material)
+        material['prompt']+='\nUNSELECTED PRIVATE SYNTHETIC MATERIAL'
+    original_dispatch(kind,destination,material)
+    record(kind)
+worker.authorize_dispatch=dispatch
+def completion(**kwargs):
+    assert kwargs['num_retries']==0 and kwargs['api_base']=='https://fixture.invalid/v1'
+    assert kwargs['model']=='fixture/explicit'
+    return {{'model':'SIMULATED-model','choices':[{{'message':{{'content':json.dumps({{'status':'uncertain','basis':'SIMULATED transport only'}})}},'finish_reason':'stop'}}],'usage':{{'total_tokens':3}}}}
+sys.modules['litellm']=SimpleNamespace(completion=completion)
+raise SystemExit(worker.main())
+"#,
+            root = serde_json::to_string(&repo.to_string_lossy()).unwrap(),
+            events = serde_json::to_string(&events.to_string_lossy()).unwrap(),
+            tamper = if tamper { "True" } else { "False" }
+        );
+        std::fs::write(&script, source).unwrap();
+        let python = std::path::PathBuf::from(std::env::var_os("ARCHEAXIS_PYTHON").unwrap());
+        let executor = Executor::open_routes(
+            &dir.path().join("db.sqlite"),
+            &dir.path().join("staging"),
+            &python,
+            &script,
+            &[("machine.answer", script.clone())],
+        )
+        .await
+        .unwrap()
+        .with_document_check_config(Some(DocumentCheckConfig {
+            provider: "fixture".into(),
+            model: "fixture/explicit".into(),
+            endpoint: Some("https://fixture.invalid/v1".into()),
+            max_tokens: 128,
+            timeout_seconds: 10,
+            search_limit: 1,
+        }))
+        .unwrap();
+        let router = archeaxis_api::runtime::router(executor);
+        let (status,document)=call(&router,"POST","/api/v1/documents",json!({"title":"synthetic","editor_json":{"type":"doc","content":[{"type":"paragraph","content":[{"type":"text","text":"synthetic saved body"}]}]}}),"human").await;
+        assert_eq!(status, 201);
+        let checks = format!(
+            "/api/v1/documents/{}/checks",
+            document["document_id"].as_str().unwrap()
+        );
+        let execute = format!("{checks}/execute");
+        let (status,pending)=call(&router,"POST",&checks,json!({"version":1,"dimension":"professional_basis","provider_mode":"cloud","search_query":"public synthetic query"}),"human").await;
+        assert_eq!(status, 201);
+        let body = json!({"check_id":pending["check_id"],"expected_content_sha256":document["content_sha256"]});
+        assert_eq!(
+            raw_call(&router, "POST", &execute, body.clone(), "human")
+                .await
+                .0,
+            400
+        );
+        assert!(!events.exists());
+        let (status, result) = call(&router, "POST", &execute, body, "human").await;
+        assert_eq!(status, 201, "{result}");
+        let operations: Value = serde_json::from_slice(&std::fs::read(events).unwrap()).unwrap();
+        if tamper {
+            assert_eq!(operations, json!(["search", "article"]));
+            assert_eq!(result["reason"], "dispatch_actual_material_mismatch");
+            assert_eq!(result["execution_verified"], false);
+        } else {
+            assert_eq!(operations, json!(["search", "article", "model"]));
+            assert_eq!(result["execution_verified"], true, "{result}");
+            assert_eq!(result["engine_receipt"]["model"], "SIMULATED-model");
+        }
+    }
+}
 #[tokio::test]
 async fn configured_worker_is_outside_writer_transaction_and_old_version_readback_survives_restart()
 {

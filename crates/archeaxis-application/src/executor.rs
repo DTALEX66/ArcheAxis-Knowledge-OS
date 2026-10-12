@@ -2,6 +2,7 @@
 //! Explicit local Core configuration, not a user-supplied executable endpoint.
 use crate::attempts;
 mod derived;
+mod dispatch;
 mod health;
 mod inventory;
 use archeaxis_sidecar_protocol::worker::{
@@ -1273,6 +1274,7 @@ impl Executor {
                 _ => "egress_revalidation_failed".to_owned(),
             })?;
         let check_store = self.store.clone();
+        let dispatch_staging = self.staging.clone();
         let runtime = tokio::runtime::Handle::current();
         tokio::task::spawn_blocking(move || {
             let _permit = permit;
@@ -1292,8 +1294,21 @@ impl Executor {
                     })
             };
             revalidate()?;
+            let dispatch_directory =
+                tempfile::tempdir_in(&dispatch_staging).map_err(|_| "dispatch_unavailable")?;
+            let mut dispatch_sequence = dispatch::State::default();
             let mut command = Command::new(&python);
             command
+                .env(
+                    "ARCHEAXIS_DOCUMENT_CHECK_DISPATCH_DIR",
+                    dispatch_directory.path(),
+                )
+                .env(
+                    "ARCHEAXIS_DOCUMENT_CHECK_DISPATCH_HASH",
+                    request["egress_sha256"]
+                        .as_str()
+                        .ok_or("dispatch_identity_missing")?,
+                )
                 .arg("-B")
                 .arg(worker)
                 .arg("--document-check")
@@ -1332,6 +1347,12 @@ impl Executor {
             let result = (|| -> Result<serde_json::Value, String> {
                 loop {
                     revalidate()?;
+                    dispatch::decide(
+                        dispatch_directory.path(),
+                        &mut dispatch_sequence,
+                        &request,
+                        &revalidate,
+                    )?;
                     if Instant::now() >= deadline {
                         return Err("worker_timeout".into());
                     }
@@ -1351,6 +1372,12 @@ impl Executor {
                 }
                 let bytes = loop {
                     revalidate()?;
+                    dispatch::decide(
+                        dispatch_directory.path(),
+                        &mut dispatch_sequence,
+                        &request,
+                        &revalidate,
+                    )?;
                     if Instant::now() >= deadline {
                         return Err("worker_timeout".into());
                     }
