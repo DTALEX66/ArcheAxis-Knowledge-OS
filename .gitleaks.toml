@@ -95,3 +95,11 @@ targetRules = ["generic-api-key"]
 regexTarget = "secret"
 paths = ['''^docs/current/receipts/AAOS-MULTI-REVIEW-NATIVE-20261012\.json$''']
 regexes = ['''^assessment_[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$''']
+
+[[allowlists]]
+description = "exact public LM Studio model catalog key in the closure receipt; not a credential"
+condition = "AND"
+targetRules = ["generic-api-key"]
+regexTarget = "secret"
+paths = ['''^docs/current/receipts/AAOS-CONVERSATION-CLOSURE-20261013\.json$''']
+regexes = ['''^qwen2\.5-vl-7b-instruct$''']
