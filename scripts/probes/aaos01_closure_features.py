@@ -78,6 +78,14 @@ def run(*, ui, read, bridge, js, wait, restart, work, report):
     expected = copy.deepcopy(editor)
     nodes = saved["editor_json"]["attrs"]["archeaxis_expression"]["nodes"]
     expected["attrs"]["archeaxis_expression"]["nodes"][0]["media"]["source_id"] = nodes[0]["media"]["source_id"]
+    # Core assigns stable block identities to new top-level editor nodes. The
+    # externally authored unknown widget has none yet; preserve every supplied
+    # field and require its newly assigned identity to survive export/restart.
+    widget = saved["editor_json"]["content"][-1]
+    assert widget["type"] == "future_portable_widget"
+    block_id = widget["attrs"].get("block_id")
+    assert isinstance(block_id, str) and block_id, "Core block identity missing"
+    expected["content"][-1]["attrs"]["block_id"] = block_id
     assert saved["editor_json"] == expected, "Unknown nodes or original structure lost"
     original = read("source_original", {"source_id": nodes[0]["media"]["source_id"]})
     assert original["sha256"] == media_sha and base64.b64decode(original["content_base64"]) == image
