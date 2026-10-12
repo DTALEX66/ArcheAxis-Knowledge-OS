@@ -64,7 +64,7 @@
     "remote_description_update": "OWNER_REQUESTED",
     "commit": "NOT_GRANTED_BY_THIS_POINTER",
     "push": "NOT_GRANTED_BY_THIS_POINTER",
-    "merge": "NOT_GRANTED",
+    "merge": "NOT_GRANTED_BY_THIS_POINTER; current delivery grant recorded separately",
     "cloud_ci": "OWNER_REQUESTED_CURRENT_SCOPE_QUALIFICATION; independent V01 remains paused",
     "release": "NOT_GRANTED",
     "bulk_delete": "EXACT_PATH_GRANT_REQUIRED"
@@ -98,29 +98,44 @@
     }
   },
   "delivery_authorization": {
-    "date": "2026-10-10",
-    "owner_request": "全部上传 双端仓库一致",
-    "scope": "Project public source/documents/taskpack snapshot and normal fast-forward synchronization; ignored runtime/private data remain local",
-    "commit": "GRANTED",
-    "push": "GRANTED",
-    "local_branch_convergence": "GRANTED_WITHOUT_HISTORY_REWRITE",
-    "release_install": "NOT_GRANTED",
-    "product_execution": "REMAINS_PAUSED"
+    "date": "2026-10-12",
+    "owner_request": "所有分支该合并的合并，该清理的清理，该并入主线的并入主线；所有权威性质/索引/路径等相关内容更新到云端，防止换会话换软件漂移",
+    "scope": "Reviewed public project source and authority/navigation maintenance, normal commit/push/PR/merge and fully merged branch cleanup; no history rewrite or private runtime upload",
+    "commit": "GRANTED_CURRENT_DELIVERY_SCOPE",
+    "push": "GRANTED_CURRENT_DELIVERY_SCOPE",
+    "merge": "GRANTED_CURRENT_DELIVERY_SCOPE",
+    "release_install": "NOT_GRANTED_FOR_OWNER_MACHINE_OR_GREEN",
+    "product_execution": "RUNNING_BY_OWNER / PARTIAL",
+    "future_grants": "Recorded task scope only; new sessions must resolve their current request, not inherit unrestricted permissions"
   },
   "delivery_readback": {
-    "state": "BRANCH_PUBLISHED",
-    "source_snapshot_commit": "3c1265be1017f565a64701b513bac3e51d724584",
-    "source_snapshot_tree": "982dafceddc85b8e023f3d028b86805b9592f041",
+    "state": "MERGED_MAIN",
+    "observed_date": "2026-10-12",
+    "repository": "DTALEX66/ArcheAxis-Knowledge-OS",
+    "pull_request": 184,
+    "source_snapshot_commit": "fca7e7150c0e356b832730531f942af3f49b1b95",
+    "source_snapshot_tree": "9956bf790352ec4bfbeb0b96b3faeef2e05dcf11",
+    "merge_commit": "1a322045490075e68e4d8b5f26bdd706d3e4089a",
     "remote_branches": [
       "main",
-      "codex/Audit",
-      "codex/aaos-gov-ui-20261008"
+      "codex/minimax-aaos-cosmic-ui-20261001"
     ],
-    "native_github_sha_tree_match": true,
-    "local_worktrees_equal": true,
-    "ci": "UNVERIFIED; push response reported required a0-gates expected",
-    "installed": "NOT_EXECUTED",
-    "latest_delivery_metadata_sha": "resolve actual Git HEAD; do not treat snapshot commit as latest metadata commit"
+    "local_remote_main_identity": "MATCH_AT_RECORDED_OBSERVATION",
+    "local_worktrees_equal": false,
+    "preserved_dirty_worktrees": 9,
+    "ci": {
+      "head_sha": "fca7e7150c0e356b832730531f942af3f49b1b95",
+      "run_id": 38268676998,
+      "state": "PASS_REQUIRED_GATES",
+      "installer_lifecycle": "REAL_CI_WINDOWS_SYNTHETIC_MATERIAL"
+    },
+    "merge_sha_ci": {
+      "run_id": 38272440912,
+      "state": "IN_PROGRESS_AT_OBSERVATION; query live before claiming PASS"
+    },
+    "installed": "CI_WINDOWS_INSTALLED_JOURNEYS_PASS; Owner machine/Green acceptance NOT_GRANTED_OR_NOT_COMPLETED",
+    "latest_delivery_metadata_sha": "Resolve actual Git HEAD and origin/main; this file cannot bind its own commit",
+    "status_record": "docs/current/AAOS-REPOSITORY-CONTINUITY-20261012.md"
   },
   "authority_routes": "docs/current/AAOS-AUTHORITY-ROUTES.json",
   "frozen_source_inputs": [
@@ -139,20 +154,53 @@
     "scope": "public project authority/navigation/aliases and anti-drift checks only"
   },
   "governance_delivery": {
-    "state": "BRANCH_PUBLISHED",
-    "payload_commit": "338c17bb17c652e0651b536edaae9b2a96a01ba0",
-    "payload_tree": "046d4b7f44258bafc35ff562f2f32617b88b7e38",
-    "remote_branches": [
-      "main",
-      "codex/Audit",
-      "codex/aaos-gov-ui-20261008"
-    ],
-    "native_github_ref_tree_and_six_files_match": true,
-    "local_active_checkouts_equal": true,
-    "about_readback": "PASS",
-    "status_record": "docs/current/AAOS-AUTHORITY-REPAIR-20261010.md",
-    "ci": "UNVERIFIED; required a0-gates expected at push",
-    "latest_metadata_sha": "resolve actual HEAD/remote refs; payload commit is evidence identity",
-    "product_execution": "REMAINS_PAUSED"
+    "state": "MERGED_MAIN_BASELINE; subsequent authority metadata tracked by actual HEAD",
+    "status_record": "docs/current/AAOS-REPOSITORY-CONTINUITY-20261012.md",
+    "product_execution": "RUNNING_BY_OWNER / PARTIAL",
+    "historical_readback": "delivery_history.governance_delivery"
+  },
+  "delivery_history": {
+    "delivery_authorization": {
+      "date": "2026-10-10",
+      "owner_request": "全部上传 双端仓库一致",
+      "scope": "Project public source/documents/taskpack snapshot and normal fast-forward synchronization; ignored runtime/private data remain local",
+      "commit": "GRANTED",
+      "push": "GRANTED",
+      "local_branch_convergence": "GRANTED_WITHOUT_HISTORY_REWRITE",
+      "release_install": "NOT_GRANTED",
+      "product_execution": "REMAINS_PAUSED"
+    },
+    "delivery_readback": {
+      "state": "BRANCH_PUBLISHED",
+      "source_snapshot_commit": "3c1265be1017f565a64701b513bac3e51d724584",
+      "source_snapshot_tree": "982dafceddc85b8e023f3d028b86805b9592f041",
+      "remote_branches": [
+        "main",
+        "codex/Audit",
+        "codex/aaos-gov-ui-20261008"
+      ],
+      "native_github_sha_tree_match": true,
+      "local_worktrees_equal": true,
+      "ci": "UNVERIFIED; push response reported required a0-gates expected",
+      "installed": "NOT_EXECUTED",
+      "latest_delivery_metadata_sha": "resolve actual Git HEAD; do not treat snapshot commit as latest metadata commit"
+    },
+    "governance_delivery": {
+      "state": "BRANCH_PUBLISHED",
+      "payload_commit": "338c17bb17c652e0651b536edaae9b2a96a01ba0",
+      "payload_tree": "046d4b7f44258bafc35ff562f2f32617b88b7e38",
+      "remote_branches": [
+        "main",
+        "codex/Audit",
+        "codex/aaos-gov-ui-20261008"
+      ],
+      "native_github_ref_tree_and_six_files_match": true,
+      "local_active_checkouts_equal": true,
+      "about_readback": "PASS",
+      "status_record": "docs/current/AAOS-AUTHORITY-REPAIR-20261010.md",
+      "ci": "UNVERIFIED; required a0-gates expected at push",
+      "latest_metadata_sha": "resolve actual HEAD/remote refs; payload commit is evidence identity",
+      "product_execution": "REMAINS_PAUSED"
+    }
   }
 }

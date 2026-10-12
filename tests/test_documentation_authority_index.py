@@ -199,6 +199,21 @@ def test_readme_marks_pre_r6_capability_and_phase_roadmaps_as_historical() -> No
     assert "当前事实、限制和验证证据见 [`docs/PROJECT_STATUS.md`]" not in readme
 
 
+def test_live_delivery_and_navigation_do_not_reactivate_historical_pause() -> None:
+    pointer = json.loads((ROOT / "docs/current/AAOS-ACTIVE-EXECUTION.json").read_text(encoding="utf-8"))
+    assert pointer["delivery_authorization"]["product_execution"].startswith(pointer["execution_control"]["state"])
+    assert pointer["governance_delivery"]["product_execution"].startswith(pointer["execution_control"]["state"])
+    assert pointer["delivery_readback"]["local_worktrees_equal"] is False
+    assert pointer["delivery_history"]["delivery_readback"]["state"] == "BRANCH_PUBLISHED"
+    for relative in ("docs/README.md", "docs/DIRECTORY_AUTHORITY_INDEX.md",
+                     "docs/LANGUAGE_BOUNDARY_AUTHORITY_INDEX.md", "docs/RUNTIME_DELIVERY_AUTHORITY_INDEX.md"):
+        heading = (ROOT / relative).read_text(encoding="utf-8").splitlines()[2]
+        assert pointer["execution_control"]["state"] in heading
+        assert "PAUSED_BY_OWNER" not in heading
+        assert "AAOS-ACTIVE-EXECUTION.json" in heading
+        assert "AAOS-AUTHORITY-ROUTES.json" in heading
+
+
 def test_r6_formal_shell_supersedes_web_first_priority_without_banning_reuse() -> None:
     ledger = (ROOT / "DECISION_SUPERSESSION_LEDGER.yaml").read_text(encoding="utf-8")
     assert "  - id: SUP-021\n" in ledger

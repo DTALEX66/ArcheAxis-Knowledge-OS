@@ -7,7 +7,7 @@
 
 2026-10-11 Owner补充：缺少资源先检查本项目权威、路径索引与已配置库存；确认不存在后再选择下载到对应声明目录，避免重复下载或另造资源根。本机现有LM Studio模型的只读库存、内存估算和三项实际文本样例见[本轮模型评估](current/receipts/AAOS-LOCAL-MODEL-SELECTION-20261011.json)。该评估没有更改模型路由或全局配置。
 
-## 当前执行说明（2026-10-06）
+## 历史执行说明（2026-10-06，非当前路由）
 
 AAOS-01 / SUP-022 是当前执行包，唯一进度见[现行台账](current/AAOS01-Q00-Q15-LEDGER-FINAL-20261005.md)。下方带日期的工具和候选记录保留原身份，不代表当前默认工具或当前资格。旧表中的“本轮DP”限制属于其记录时点；当前用户已授权指定Green目录的独立候选部署及按精确审核清单清理，仍不得据目录名删除未知资产或覆盖旧默认数据。真实资料库不因该授权成为测试输出目录。
 
@@ -88,14 +88,18 @@ The statements below describe the earlier toolchain investigation snapshot. Curr
 5. 本机测试读取 `project_test_corpus`，写入仅到当前项目 dev.py 分配的运行目录；默认不碰 `green_material_library`。
 6. 只有用户明确更新资源映射后才修改本表；其他文档引用本表，不增另一个“默认资源根”。手交任务包可带本表路径快照，但必须声明本索引为准并在接手时重查。
 
+## 当前执行路由
+
+当前入口：[活动指针](current/AAOS-ACTIVE-EXECUTION.json) → [UI 执行记录](current/AAOS-UI-FIRST-EXECUTION-20261009.md)。本机精确工具/模型路径仍以本索引及对应回执为准；云端使用项目相对路径和自己的运行环境，不照搬 Windows 绝对路径。旧候选路径与旧权限只保留历史身份。
+
 ## 相关入口
 
 - [配置权威索引](CONFIGURATION_AUTHORITY_INDEX.md)
 - [目录权威索引](DIRECTORY_AUTHORITY_INDEX.md)
 - [文档权威索引](DOCUMENTATION_AUTHORITY_INDEX.md)
-- [当前执行入口](authority/taskpack-1004-aaos01/01_完整执行任务书.md)
+- [继承合同入口](authority/taskpack-1004-aaos01/01_完整执行任务书.md)
 - [历史R6执行入口](authority/taskpack-0919-r6/EXECUTOR-START.md)
-- [当前进度台账](current/AAOS01-Q00-Q15-LEDGER-FINAL-20261005.md)
+- [继承 Q00–Q15 台账](current/AAOS01-Q00-Q15-LEDGER-FINAL-20261005.md)
 - [历史R6台账](current/R6-EXECUTION.md)
 - [M0 优先级覆盖](current/M0-DIRECTION-OVERRIDE-20260920.md)
 
